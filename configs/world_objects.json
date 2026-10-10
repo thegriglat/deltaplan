@@ -1,5 +1,5 @@
 {
-  "_doc": "Объекты мира (scripts/world_objects/, docs/guide/world-objects.md): ветроуказатели и ленточки (VR-7), посадочные площадки (VR-12), дороги, здания и ЛЭП из OpenStreetMap (VR-9, VR-10), бюджет производительности (VR-13, NFR-1). Координаты мира: X — восток, −Z — север, Y — высота над морем, м.",
+  "_doc": "Объекты мира (scripts/world_objects/, docs/guide/world-objects.md): ветроуказатели и ленточки (VR-7), посадочные площадки (VR-12), тропы к стартам, бюджет производительности (VR-13, NFR-1). Координаты мира: X — восток, −Z — север, Y — высота над морем, м.",
   "quality": "high",
   "quality_doc": "Пресет качества: high (дискретная видеокарта) или low (встроенная графика) — см. quality_presets; значения пресета заменяют одноимённые ключи разделов",
   "quality_presets": {
@@ -8,15 +8,6 @@
     "low": {
       "buildings": {
         "visibility_m": 4000,
-        "cast_shadows": false
-      },
-      "roads": {
-        "minor_visibility_m": 2000,
-        "major_visibility_m": 12000
-      },
-      "power": {
-        "tower_visibility_m": 2500,
-        "wire_visibility_m": 300,
         "cast_shadows": false
       },
       "windsock": {
@@ -29,23 +20,17 @@
     }
   },
   "threaded_build": true,
-  "threaded_build_doc": "Считать дороги и здания в пуле потоков параллельно с ЛЭП (загрузка быстрее); false — последовательно (отладка)",
+  "threaded_build_doc": "Считать объекты мира в пуле потоков параллельно (загрузка быстрее); false — последовательно (отладка)",
   "update_interval_s": 0.25,
   "update_interval_s_doc": "Как часто пересчитывать, какие ветроуказатели рядом с камерой (активны), с",
   "clearings": {
     "_doc": "Маска просек для деревьев рельефа (WorldClearings, docs/guide/world-objects.md → «Просеки»): где деревья не ставятся",
     "cell_m": 10.0,
     "cell_m_doc": "Размер пикселя маски, м (40 км / 10 м = 4000² пикселей, 16 МБ)",
-    "road_margin_m": 3.0,
-    "road_margin_m_doc": "Обочина без деревьев с каждой стороны дороги сверх её ширины, м",
-    "power_corridor_high_m": 30.0,
-    "power_corridor_high_m_doc": "Ширина просеки ЛЭП 35–220 кВ (решётчатые опоры), м",
-    "power_corridor_low_m": 12.0,
-    "power_corridor_low_m_doc": "Ширина просеки ЛЭП 0,4–10 кВ (столбы), м",
-    "building_margin_m": 4.0,
-    "building_margin_m_doc": "Отступ от здания (по описанной окружности пятна), м",
     "landing_margin_m": 15.0,
     "landing_margin_m_doc": "Поле посадки плюс этот край без леса, м (лесополосы посадки ставит WorldObjects сам)",
+    "house_margin_m": 3.0,
+    "house_margin_m_doc": "Двор дома без леса: полуширина дома плюс этот край, м (деревья не растут в домах)",
     "start_track_margin_m": 2.0,
     "start_track_margin_m_doc": "Обочина без деревьев с каждой стороны тропы к старту сверх её ширины, м"
   },
@@ -166,7 +151,7 @@
     "cast_shadows": false
   },
   "landing": {
-    "_doc": "Посадочные площадки (VR-12): скошенное поле, ветроуказатель, препятствия вокруг (деревья, забор, ЛЭП по краю — ЛЭП из OSM). Данные — ниже по id локации (configs/locations/ — чужая папка).",
+    "_doc": "Посадочные площадки (VR-12): скошенное поле, ветроуказатель, препятствия вокруг (деревья). Данные — ниже по id локации (configs/locations/ — чужая папка).",
     "grass_cell_m": 4.0,
     "grass_cell_m_doc": "Шаг сетки меша поля по рельефу, м",
     "grass_lift_m": 0.05,
@@ -191,10 +176,6 @@
     "pine_scene_path_doc": "Модель хвойного дерева (kind: pine)",
     "tree_mesh_name": "LOD0",
     "tree_mesh_name_doc": "Какой меш модели брать (деревья assets/models/trees/ содержат LOD0/LOD1/LOD2); нет такого — первый меш",
-    "fence_scene_path": "res://assets/models/world/fence_segment.glb",
-    "fence_scene_path_doc": "Пролёт забора (3 м, жерди на столбах); повторяется вдоль стороны поля",
-    "fence_span_m": 3.0,
-    "fence_span_m_doc": "Длина пролёта забора в модели, м",
     "tree_height_m": [
       14.0,
       22.0
@@ -202,14 +183,6 @@
     "tree_height_m_doc": "Разброс высот деревьев, м",
     "tree_radius_m": 3.0,
     "tree_radius_m_doc": "Радиус кроны для столкновений, м (на единицу высоты делится внутри)",
-    "osm_fence_radius_m": 600.0,
-    "osm_fence_radius_m_doc": "Заборы из OSM (barrier=fence/wall) рисуются и сталкиваются только ближе этого к центру посадки, м",
-    "fence_tile_m": 500.0,
-    "fence_tile_m_doc": "Заборы OSM — MultiMesh по тайлам такого размера (дальность видимости — от центра тайла), м",
-    "fence_visibility_m": 1500,
-    "fence_visibility_m_doc": "Дальше этого заборы OSM не рисуются (пролёт 1,4 м тоньше пикселя уже с ~1 км), м",
-    "fence_height_m": 1.4,
-    "fence_height_m_doc": "Высота забора для столкновений, м",
     "visibility_objects_m": 4000,
     "visibility_objects_m_doc": "Дальность видимости деревьев и забора посадки, м",
     "cast_shadows": true,
@@ -222,16 +195,15 @@
         0.4,
         -0.56
       ],
-      "trees": [],
-      "fences": []
+      "trees": []
     },
     "sites": {
-      "_doc": "id локации → площадки. Поля: id (совпадает с landing_sites локации — тогда lat/lon можно не писать), name, lat, lon (WGS84, °), length_m, width_m, axis_deg, windsock_at, trees, fences. Недостающие поля — из defaults.",
+      "_doc": "id локации → площадки. Поля: id (совпадает с landing_sites локации — тогда lat/lon можно не писать), name, lat, lon (WGS84, °), length_m, width_m, axis_deg, windsock_at, trees. Недостающие поля — из defaults.",
       "altai": [
         {
           "id": "manzherok_katun",
           "name": "Посадка — поле у Озёрного (Манжерок)",
-          "_source_doc": "См. docs/guide/world-objects.md → «Посадка Алтая»: поле (OSM landuse=farmland, 6 га, уклон ≤ 2°) в долине между Озёрным и Малой Синюхой, 3 км на запад-северо-запад от западного старта; к северу в ~120 м — ЛЭП 110 кВ (реальная, из OSM); выбрано по OSM и рельефу, т. к. точных координат официальной посадки в открытых источниках нет.",
+          "_source_doc": "См. docs/guide/world-objects.md → «Посадка Алтая»: поле (6 га, уклон ≤ 2°) в долине между Озёрным и Малой Синюхой, 3 км на запад-северо-запад от западного старта; выбрано по рельефу, т. к. точных координат официальной посадки в открытых источниках нет.",
           "lat": 51.83476,
           "lon": 85.81696,
           "length_m": 300.0,
@@ -259,17 +231,13 @@
               "kind": "pine"
             }
           ],
-          "trees_doc": "Лесополосы вдоль сторон поля: side — north/south/east/west (сторона прямоугольника по оси), count — деревьев, offset_m — от края поля наружу",
-          "fences": [
-            "east"
-          ],
-          "fences_doc": "Стороны поля с забором (жерди), на краю поля"
+          "trees_doc": "Лесополосы вдоль сторон поля: side — north/south/east/west (сторона прямоугольника по оси), count — деревьев, offset_m — от края поля наружу"
         }
       ],
       "ongudai": [
         {
           "id": "ongudai_fields",
-          "_source_doc": "Точка — configs/locations/ongudai.json → landing_sites (lat/lon берутся оттуда). Ровный луг (уклон ~1,5°) в долине ручья севернее Онгудая, 5,8 км от старта у ретранслятора; ось — вдоль долины (ССВ–ЮЮЗ), заход против южного ветра; ЛЭП 110 и 10 кВ ~500 м западнее, заборы — из OSM.",
+          "_source_doc": "Точка — configs/locations/ongudai.json → landing_sites (lat/lon берутся оттуда). Ровный луг (уклон ~1,5°) в долине ручья севернее Онгудая, 5,8 км от старта у ретранслятора; ось — вдоль долины (ССВ–ЮЮЗ), заход против южного ветра.",
           "length_m": 300.0,
           "width_m": 150.0,
           "axis_deg": 20.0,
@@ -289,8 +257,7 @@
               "offset_m": 25.0,
               "kind": "birch"
             }
-          ],
-          "fences": []
+          ]
         }
       ],
       "askarovo": [
@@ -316,8 +283,7 @@
               "offset_m": 20.0,
               "kind": "birch"
             }
-          ],
-          "fences": []
+          ]
         },
         {
           "id": "biyagoda_east_field",
@@ -341,8 +307,7 @@
               "offset_m": 18.0,
               "kind": "birch"
             }
-          ],
-          "fences": []
+          ]
         }
       ],
       "aushkul": [
@@ -368,91 +333,13 @@
               "offset_m": 20.0,
               "kind": "birch"
             }
-          ],
-          "fences": []
+          ]
         }
       ]
     }
   },
-  "roads": {
-    "_doc": "Дороги из OSM (VR-9): лента по рельефу (меш, семплы height_at каждые step_m), тайлы tile_m с дальностью видимости по классу.",
-    "enabled": true,
-    "step_m": 12.0,
-    "step_m_doc": "Шаг семплирования рельефа вдоль главной дороги, м",
-    "minor_step_m": 20.0,
-    "minor_step_m_doc": "То же для второстепенных дорог и грунтовок, м (их больше всего — время загрузки)",
-    "lift_m": 0.15,
-    "lift_m_doc": "Подъём над рельефом, м",
-    "depth_pull": 0.004,
-    "depth_pull_doc": "Сдвиг к камере в шейдере на единицу расстояния (прячет расхождение с грубым LOD рельефа вдали), доля",
-    "tile_m": 2000.0,
-    "tile_m_doc": "Размер тайла меша дорог, м (отсечение по видимости)",
-    "classes": {
-      "_doc": "класс highway → [ширина, м; главная (1) или второстепенная (0); цвет sRGB r, g, b]",
-      "trunk": [
-        9.0,
-        1,
-        0.34,
-        0.34,
-        0.36
-      ],
-      "primary": [
-        8.0,
-        1,
-        0.36,
-        0.36,
-        0.38
-      ],
-      "secondary": [
-        7.0,
-        1,
-        0.38,
-        0.38,
-        0.39
-      ],
-      "tertiary": [
-        6.0,
-        1,
-        0.4,
-        0.4,
-        0.4
-      ],
-      "unclassified": [
-        4.5,
-        0,
-        0.47,
-        0.44,
-        0.39
-      ],
-      "residential": [
-        5.0,
-        0,
-        0.45,
-        0.43,
-        0.4
-      ],
-      "service": [
-        3.5,
-        0,
-        0.48,
-        0.45,
-        0.4
-      ],
-      "track": [
-        3.0,
-        0,
-        0.55,
-        0.5,
-        0.4
-      ]
-    },
-    "major_visibility_m": 25000,
-    "major_visibility_m_doc": "Дальность видимости главных дорог, м (приметы для навигации)",
-    "minor_visibility_m": 4000,
-    "minor_visibility_m_doc": "Дальность видимости второстепенных дорог и грунтовок, м"
-  },
   "tents": {
-    "_doc": "Лагерь пилотов у старта (TentCamp, scripts/world_objects/tent_camp.gd, docs/guide/world-objects.md → «Палатки у старта»): палатки кучкой на ровном месте в нескольких десятках метров от старта игрока — не на площадке, не в коридоре разбега и не на местах ожидания ботов (bots.json → launch), не впереди линии старта, не на тропе/дороге/реке, не в лесу, воде, застройке, не на камнях и кустах, не у обрыва. Палаток = 1 (игрок) + боты (bots.json → count). Детерминированно от места старта. Модели — assets/models/world/tents.glb (tools/blender/build_tents.py), 2 LOD. Палатки — препятствия «tent» для столкновений",
+    "_doc": "Лагерь пилотов у старта (TentCamp, scripts/world_objects/tent_camp.gd, docs/guide/world-objects.md → «Палатки у старта»): палатки кучкой на ровном месте в нескольких десятках метров от старта игрока — не на площадке, не в коридоре разбега и не на местах ожидания ботов (bots.json → launch), не впереди линии старта, не на тропе, не в лесу, воде, застройке, не на камнях и кустах, не у обрыва. Палаток = 1 (игрок) + боты (bots.json → count). Детерминированно от места старта. Модели — assets/models/world/tents.glb (tools/blender/build_tents.py), 2 LOD. Палатки — препятствия «tent» для столкновений",
     "enabled": true,
     "seed": 7,
     "seed_doc": "Сид случайностей лагеря (смешивается с местом и курсом старта)",
@@ -494,10 +381,6 @@
     "launch_zone_margin_m_doc": "Запас к зоне ожидания ботов и коридору разбега (bots.json → launch: behind_max_m, lateral_max_m, corridor_half_width_m), м",
     "track_margin_m": 4.0,
     "track_margin_m_doc": "Не ближе к краю тропы к старту, м",
-    "road_margin_m": 10.0,
-    "road_margin_m_doc": "Не ближе к оси дороги или реки OSM, м",
-    "building_margin_m": 15.0,
-    "building_margin_m_doc": "Не ближе к зданию OSM, м",
     "downwind_share": 0.6,
     "downwind_share_doc": "Доля палаток входом по ветру (спиной к ветру в склон), ± yaw_spread_deg",
     "side_share": 0.25,
@@ -593,28 +476,12 @@
     "turbulence_doc": "Сила вихрей: клубы расходятся, шлейф не столб (растёт с ветром)"
   },
   "start_tracks": {
-    "_doc": "Тропы к стартам (docs/guide/world-objects.md): от ближайшей автомобильной дороги или посёлка вверх к площадке старта. OSM track рядом со стартом — используется как есть; иначе — процедурная тропа по рельефу (серпантин, уклон ≤ max_slope_deg, обход воды). Лента по рельефу уже дорог, естественная (не 'рельс'): ширина и потёртость вытоптанной травы гуляют вдоль пути, мягкие/рваные края, цвет приглушённый, короткая и мягко затухающая вдали видимость (near..far).",
+    "_doc": "Тропы к стартам (docs/guide/world-objects.md): от площадки старта вниз по склону: процедурная тропа по рельефу (серпантин, уклон ≤ max_slope_deg). Лента по рельефу, естественная (не 'рельс'): ширина и потёртость вытоптанной травы гуляют вдоль пути, мягкие/рваные края, цвет приглушённый, короткая и мягко затухающая вдали видимость (near..far).",
     "enabled": true,
-    "osm_track_classes": [
-      "track"
-    ],
-    "osm_track_classes_doc": "Классы highway OSM, которые считаются готовой тропой к старту",
-    "osm_match_radius_m": 150.0,
-    "osm_match_radius_m_doc": "Трек засчитывается «ведущим к старту», если ближе этого расстояния к площадке, м",
-    "road_classes": [
-      "trunk",
-      "primary",
-      "secondary",
-      "tertiary",
-      "unclassified",
-      "residential",
-      "service"
-    ],
-    "road_classes_doc": "Классы highway, которые считаются «автомобильной дорогой» — цель процедурной тропы",
-    "max_length_m": 2000.0,
-    "max_length_m_doc": "Не длиннее (для найденного OSM-трека и для генерации), м",
+    "depth_pull": 0.004,
+    "depth_pull_doc": "Сдвиг к камере в шейдере на единицу расстояния (прячет расхождение с грубым LOD рельефа вдали), доля",
     "no_destination_length_m": 300.0,
-    "no_destination_length_m_doc": "Длина тропы, если нет OSM (рантайм-локация по координатам): вниз по склону от старта, м",
+    "no_destination_length_m_doc": "Длина тропы вниз по склону от старта, м",
     "max_slope_deg": 16.0,
     "max_slope_deg_doc": "Предел уклона тропы, град (серпантин обходит более крутое; реальные тропы — 12–18°)",
     "contour_fractions": [
@@ -625,12 +492,8 @@
       1.0
     ],
     "contour_fractions_doc": "Доля поворота от направления к цели к направлению нулевого уклона (перпендикуляр к локальному градиенту рельефа), перебирается по возрастанию, обе стороны — первая по уклону в пределах max_slope_deg",
-    "water_search_margin_m": 250.0,
-    "water_search_margin_m_doc": "Радиус вокруг прямой старт-цель, где ищутся близкие реки/озёра (быстрый отсев перед проверкой воды на каждом шаге), м",
     "max_steps": 800,
     "max_steps_doc": "Предел шагов трассировки (страховка от зацикливания на сложном рельефе)",
-    "water_buffer_m": 6.0,
-    "water_buffer_m_doc": "Обход рек/озёр OSM при генерации: не ближе этого расстояния, м",
     "step_m": 8.0,
     "step_m_doc": "Шаг семплирования рельефа и трассировки серпантина, м",
     "tile_m": 2000.0,
@@ -670,8 +533,40 @@
     "fade_far_m": 250.0,
     "fade_far_m_doc": "За это расстояние до visibility_far_m заметность плавно падает до нуля (мягкое исчезновение, а не обрыв)"
   },
+  "villages": {
+    "_doc": "Дома посёлков (NO-2, VillagePlacer): процедурно внутри пятен застройки WorldCover (BuiltPatches), без имён и без OSM. Двор — клетка сетки со стороной sqrt(yard_m2) и случайным сдвигом; в нём дом, рядом с вероятностью — сарай и баня. Сельская застройка: дом 6×8–8×10 м, двор на дом 600–1500 м² (с огородом).",
+    "enabled": true,
+    "yard_m2": 520.0,
+    "yard_m2_doc": "Площадь двора на один дом, м² (NO-10: плотный сельский посёлок, шаг ~23 м, промежутки между домами 10–25 м; было 1400)",
+    "yard_jitter": 0.4,
+    "yard_jitter_doc": "Доля стороны двора, в пределах которой дом сдвинут от центра (0 — ровная сетка, 1 — вся клетка); меньше — дома ровнее вдоль «улиц» и не налезают",
+    "fill": 1.0,
+    "fill_doc": "Вероятность двора = доля застройки клетки × fill (плотность по share_at)",
+    "built_soft_cell_m": 50.0,
+    "built_soft_cell_m_doc": "NO-10: подложка застройки в рельефе — detail_built10 сжата до клеток этого размера (билинейно: мягкий переход шириной ~30–60 м)",
+    "min_share": 0.25,
+    "min_share_doc": "Клетки с долей застройки ниже — не двор (дом только внутри пятна)",
+    "max_slope_deg": 14.0,
+    "max_slope_deg_doc": "Круче — дом не ставится (на склоне круче 14° строить не будут)",
+    "slope_align_deg": 4.0,
+    "slope_align_deg_doc": "Уклон, с которого дом разворачивается длинной стороной вдоль горизонтали",
+    "edge_grad_min": 0.25,
+    "edge_grad_min_doc": "Градиент доли застройки (на 20 м), с которого дом разворачивается параллельно краю пятна",
+    "angle_jitter_deg": 14.0,
+    "angle_jitter_deg_doc": "Случайный разброс разворота, град (улицы не идеально ровные)",
+    "shed_prob": 0.7,
+    "shed_prob_doc": "Вероятность сарая у дома",
+    "banya_prob": 0.3,
+    "banya_prob_doc": "Вероятность бани у дома",
+    "types": {
+      "_doc": "Размеры дома по диапазонам [мин, макс], м; roof: 0 — двускатная, 1 — плоская",
+      "house": {"width_m": [6.0, 8.0], "length_m": [8.0, 10.0], "wall_height_m": [2.6, 3.2], "roof": 0},
+      "shed": {"width_m": [3.0, 4.5], "length_m": [4.0, 6.0], "wall_height_m": [2.0, 2.6], "roof": 0},
+      "banya": {"width_m": [3.0, 3.6], "length_m": [3.5, 4.5], "wall_height_m": [2.2, 2.6], "roof": 0}
+    }
+  },
   "buildings": {
-    "_doc": "Здания из OSM (VR-6, VR-9): коробки реального размера с крышами, MultiMesh по тайлам.",
+    "_doc": "Отрисовка домов посёлков (VR-6, VR-9, NO-2; расстановка — villages): коробки с крышами, MultiMesh по тайлам.",
     "enabled": true,
     "tile_m": 1000.0,
     "tile_m_doc": "Размер тайла MultiMesh, м",
@@ -729,130 +624,6 @@
     "roof_colors_doc": "Цвета крыш (sRGB): профлист серый, красный, зелёный, оцинковка",
     "cast_shadows": true
   },
-  "power": {
-    "_doc": "ЛЭП из OSM (VR-10): опоры по узлам линии, провода — цепные линии; видны только вблизи; wire_hit() — столкновение для интегратора.",
-    "enabled": true,
-    "tower_scene_path": "res://assets/models/world/power_tower.glb",
-    "tower_scene_path_doc": "Решётчатая опора ЛЭП 35–220 кВ (модель высотой tower_height_m, точки подвеса — см. tower_arms_m)",
-    "pole_scene_path": "res://assets/models/world/power_pole.glb",
-    "pole_scene_path_doc": "Столб ЛЭП 0,4–10 кВ",
-    "high_voltage_kv": 30.0,
-    "high_voltage_kv_doc": "От этого напряжения — решётчатые опоры, ниже и minor_line — столбы, кВ",
-    "tower_height_m": 26.0,
-    "pole_height_m": 9.0,
-    "tower_arms_m": [
-      [
-        -5.5,
-        20.0
-      ],
-      [
-        5.5,
-        20.0
-      ],
-      [
-        -4.0,
-        25.5
-      ],
-      [
-        4.0,
-        25.5
-      ]
-    ],
-    "tower_arms_m_doc": "Точки подвеса проводов опоры: [поперёк линии, высота], м (как в модели)",
-    "pole_arms_m": [
-      [
-        -0.8,
-        8.6
-      ],
-      [
-        0.0,
-        9.15
-      ],
-      [
-        0.8,
-        8.6
-      ]
-    ],
-    "pole_arms_m_doc": "Точки подвеса проводов столба: [поперёк линии, высота], м",
-    "sag_ratio": 0.03,
-    "sag_ratio_doc": "Провисание в середине пролёта, доля длины пролёта",
-    "wire_segments": 12,
-    "wire_segments_doc": "Отрезков на провод пролёта (цепная линия)",
-    "wire_width_m": 0.02,
-    "wire_width_m_doc": "Реальная толщина провода, м (шейдер рисует не тоньше пикселя, но с прозрачностью = покрытию — провод тает с расстоянием, как в жизни)",
-    "wire_color": [
-      0.18,
-      0.18,
-      0.18
-    ],
-    "wire_color_doc": "Цвет провода, sRGB",
-    "min_span_m": 15.0,
-    "min_span_m_doc": "Без опоры в OSM-узле ставим опоры не реже, чем через max_span_m, и не ближе min_span_m, м",
-    "max_span_m": 350.0,
-    "tile_m": 2000.0,
-    "tile_m_doc": "Тайл MultiMesh опор, м",
-    "wire_tile_m": 400.0,
-    "wire_tile_m_doc": "Тайл мешей проводов, м (мелкий: провода видны только вблизи)",
-    "wire_visibility_boost": 1.5,
-    "wire_visibility_boost_doc": "Множитель заметности провода к доле покрытия пикселя (блики, контраст с небом)",
-    "tower_visibility_m": 5000,
-    "tower_visibility_m_doc": "Дальность видимости опор, м (опоры и просека — то, что пилот замечает первым)",
-    "wire_visibility_m": 500,
-    "wire_visibility_m_doc": "Дальше провода не рисуются совсем, м (сами тают раньше: покрытие пикселя)",
-    "wire_hit_radius_m": 0.4,
-    "wire_hit_radius_m_doc": "Отрезок пути ближе этого к проводу — столкновение, м",
-    "cast_shadows": true
-  },
-  "osm": {
-    "_doc": "Параметры выгрузки OSM (читает OsmStage). Лицензия данных — ODbL, © OpenStreetMap contributors. Файл места — Locations.osm_path(id).",
-    "overpass_urls": [
-      "https://overpass-api.de/api/interpreter",
-      "https://overpass.kumi.systems/api/interpreter",
-      "https://overpass.private.coffee/api/interpreter"
-    ],
-    "overpass_urls_doc": "Серверы Overpass API по порядку (при ошибке — следующий)",
-    "timeout_s": 180,
-    "half_size_m": 20000,
-    "half_size_m_doc": "Половина стороны квадрата выгрузки вокруг центра локации, м (если в configs/locations/<id>.json есть dem.layers — берётся половина детального слоя)",
-    "road_classes": [
-      "trunk",
-      "primary",
-      "secondary",
-      "tertiary",
-      "unclassified",
-      "residential",
-      "service",
-      "track"
-    ],
-    "road_classes_doc": "Какие highway выгружать",
-    "level_height_m": 3.0,
-    "level_height_m_doc": "Высота этажа, м",
-    "default_levels": {
-      "_other": 1,
-      "apartments": 5,
-      "hotel": 3,
-      "school": 3,
-      "industrial": 2,
-      "commercial": 2,
-      "retail": 1,
-      "garage": 0.9,
-      "shed": 0.8,
-      "roof": 0.9
-    },
-    "default_levels_doc": "Этажей по типу building, если в OSM нет building:levels/height",
-    "flat_roof_min_levels": 3,
-    "flat_roof_min_levels_doc": "С этой этажности крыша плоская (многоэтажки), если roof:shape не задан",
-    "flat_roof_kinds": [
-      "industrial",
-      "commercial",
-      "retail",
-      "garages",
-      "warehouse",
-      "school"
-    ],
-    "min_building_size_m": 2.0,
-    "min_building_size_m_doc": "Меньше — не выгружаем (будки, навесы), м"
-  },
   "preview": {
     "_doc": "Тестовая сцена scenes/world_objects/world_objects_preview.tscn (ракурсы, замер)",
     "fov_deg": 70.0,
@@ -864,17 +635,6 @@
     "landing_distance_m": 350.0,
     "landing_agl_m": 45.0,
     "landing_agl_m_doc": "Заход на посадку: камера на оси поля, м от центра и над землёй",
-    "village_xz": {
-      "altai": [
-        -6400.0,
-        4200.0
-      ]
-    },
-    "village_xz_doc": "Центр посёлка для ракурса village по локациям, м мира (нет записи — крупнейший пункт OSM)",
-    "village_agl_m": 300.0,
-    "village_back_m": 700.0,
-    "wires_distance_m": 35.0,
-    "wires_eye_m": 24.0,
     "settle_s": 2.0,
     "settle_s_doc": "Сколько секунд анимации до снимка",
     "shot_delay_frames": 30,

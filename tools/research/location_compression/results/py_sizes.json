@@ -1,0 +1,334 @@
+{
+ "sizes_mb": {
+  "A f32 zstd3 (текущее, файл)": {
+   "altai": 11.232,
+   "ongudai": 12.437,
+   "aushkul": 10.372,
+   "askarovo": 10.086,
+   "sum": 44.127
+  },
+  "A f32 zstd19": {
+   "altai": 8.673,
+   "ongudai": 9.336,
+   "aushkul": 7.561,
+   "askarovo": 7.291,
+   "sum": 32.862
+  },
+  "A f32 zstd19+shuffle4": {
+   "altai": 6.642,
+   "ongudai": 7.147,
+   "aushkul": 6.01,
+   "askarovo": 5.827,
+   "sum": 25.626
+  },
+  "q1/32 raw shuf zstd3": {
+   "altai": 6.933,
+   "ongudai": 7.69,
+   "aushkul": 6.357,
+   "askarovo": 6.313,
+   "sum": 27.292
+  },
+  "q1/32 raw shuf zstd19": {
+   "altai": 6.442,
+   "ongudai": 6.985,
+   "aushkul": 5.876,
+   "askarovo": 5.744,
+   "sum": 25.048
+  },
+  "q1/32 left shuf zstd3": {
+   "altai": 6.169,
+   "ongudai": 6.646,
+   "aushkul": 5.535,
+   "askarovo": 5.439,
+   "sum": 23.789
+  },
+  "q1/32 left shuf zstd19": {
+   "altai": 5.852,
+   "ongudai": 6.33,
+   "aushkul": 5.215,
+   "askarovo": 5.036,
+   "sum": 22.433
+  },
+  "q1/32 avg shuf zstd3": {
+   "altai": 5.91,
+   "ongudai": 6.338,
+   "aushkul": 5.227,
+   "askarovo": 5.074,
+   "sum": 22.548
+  },
+  "q1/32 avg shuf zstd19": {
+   "altai": 5.567,
+   "ongudai": 5.986,
+   "aushkul": 4.953,
+   "askarovo": 4.773,
+   "sum": 21.278
+  },
+  "q1/32 med shuf zstd3": {
+   "altai": 5.521,
+   "ongudai": 6.045,
+   "aushkul": 4.776,
+   "askarovo": 4.579,
+   "sum": 20.921
+  },
+  "q1/32 med shuf zstd19": {
+   "altai": 5.293,
+   "ongudai": 5.779,
+   "aushkul": 4.635,
+   "askarovo": 4.402,
+   "sum": 20.109
+  },
+  "q1/32 grad shuf zstd3": {
+   "altai": 4.927,
+   "ongudai": 5.389,
+   "aushkul": 4.217,
+   "askarovo": 4.057,
+   "sum": 18.59
+  },
+  "q1/32 grad shuf zstd19": {
+   "altai": 4.741,
+   "ongudai": 5.189,
+   "aushkul": 4.146,
+   "askarovo": 3.956,
+   "sum": 18.032
+  },
+  "q1/16 raw shuf zstd3": {
+   "altai": 6.355,
+   "ongudai": 6.867,
+   "aushkul": 5.897,
+   "askarovo": 5.861,
+   "sum": 24.98
+  },
+  "q1/16 raw shuf zstd19": {
+   "altai": 5.911,
+   "ongudai": 6.407,
+   "aushkul": 5.304,
+   "askarovo": 5.133,
+   "sum": 22.755
+  },
+  "q1/16 left shuf zstd3": {
+   "altai": 5.608,
+   "ongudai": 6.154,
+   "aushkul": 4.817,
+   "askarovo": 4.73,
+   "sum": 21.309
+  },
+  "q1/16 left shuf zstd19": {
+   "altai": 5.207,
+   "ongudai": 5.745,
+   "aushkul": 4.506,
+   "askarovo": 4.369,
+   "sum": 19.828
+  },
+  "q1/16 avg shuf zstd3": {
+   "altai": 5.347,
+   "ongudai": 5.863,
+   "aushkul": 4.585,
+   "askarovo": 4.418,
+   "sum": 20.213
+  },
+  "q1/16 avg shuf zstd19": {
+   "altai": 4.883,
+   "ongudai": 5.403,
+   "aushkul": 4.246,
+   "askarovo": 4.073,
+   "sum": 18.604
+  },
+  "q1/16 med shuf zstd3": {
+   "altai": 4.877,
+   "ongudai": 5.429,
+   "aushkul": 4.137,
+   "askarovo": 3.942,
+   "sum": 18.385
+  },
+  "q1/16 med shuf zstd19": {
+   "altai": 4.62,
+   "ongudai": 5.135,
+   "aushkul": 3.972,
+   "askarovo": 3.766,
+   "sum": 17.493
+  },
+  "q1/16 grad shuf zstd3": {
+   "altai": 4.243,
+   "ongudai": 4.709,
+   "aushkul": 3.606,
+   "askarovo": 3.474,
+   "sum": 16.032
+  },
+  "q1/16 grad shuf zstd19": {
+   "altai": 4.07,
+   "ongudai": 4.521,
+   "aushkul": 3.531,
+   "askarovo": 3.384,
+   "sum": 15.506
+  },
+  "q1/8 raw shuf zstd3": {
+   "altai": 5.982,
+   "ongudai": 6.385,
+   "aushkul": 5.581,
+   "askarovo": 5.429,
+   "sum": 23.377
+  },
+  "q1/8 raw shuf zstd19": {
+   "altai": 5.435,
+   "ongudai": 5.932,
+   "aushkul": 4.796,
+   "askarovo": 4.616,
+   "sum": 20.779
+  },
+  "q1/8 left shuf zstd3": {
+   "altai": 4.989,
+   "ongudai": 5.602,
+   "aushkul": 4.189,
+   "askarovo": 4.074,
+   "sum": 18.854
+  },
+  "q1/8 left shuf zstd19": {
+   "altai": 4.532,
+   "ongudai": 5.152,
+   "aushkul": 3.833,
+   "askarovo": 3.709,
+   "sum": 17.225
+  },
+  "q1/8 avg shuf zstd3": {
+   "altai": 4.634,
+   "ongudai": 5.215,
+   "aushkul": 3.874,
+   "askarovo": 3.694,
+   "sum": 17.418
+  },
+  "q1/8 avg shuf zstd19": {
+   "altai": 4.12,
+   "ongudai": 4.676,
+   "aushkul": 3.45,
+   "askarovo": 3.308,
+   "sum": 15.554
+  },
+  "q1/8 med shuf zstd3": {
+   "altai": 4.195,
+   "ongudai": 4.743,
+   "aushkul": 3.514,
+   "askarovo": 3.312,
+   "sum": 15.764
+  },
+  "q1/8 med shuf zstd19": {
+   "altai": 3.933,
+   "ongudai": 4.454,
+   "aushkul": 3.281,
+   "askarovo": 3.102,
+   "sum": 14.77
+  },
+  "q1/8 grad shuf zstd3": {
+   "altai": 3.576,
+   "ongudai": 4.009,
+   "aushkul": 3.028,
+   "askarovo": 2.911,
+   "sum": 13.523
+  },
+  "q1/8 grad shuf zstd19": {
+   "altai": 3.401,
+   "ongudai": 3.831,
+   "aushkul": 2.915,
+   "askarovo": 2.767,
+   "sum": 12.914
+  },
+  "q1/4 raw shuf zstd3": {
+   "altai": 5.636,
+   "ongudai": 6.032,
+   "aushkul": 5.178,
+   "askarovo": 4.916,
+   "sum": 21.763
+  },
+  "q1/4 raw shuf zstd19": {
+   "altai": 4.85,
+   "ongudai": 5.424,
+   "aushkul": 4.134,
+   "askarovo": 3.982,
+   "sum": 18.39
+  },
+  "q1/4 left shuf zstd3": {
+   "altai": 4.255,
+   "ongudai": 4.92,
+   "aushkul": 3.475,
+   "askarovo": 3.357,
+   "sum": 16.007
+  },
+  "q1/4 left shuf zstd19": {
+   "altai": 3.822,
+   "ongudai": 4.412,
+   "aushkul": 3.099,
+   "askarovo": 3.007,
+   "sum": 14.34
+  },
+  "q1/4 avg shuf zstd3": {
+   "altai": 3.778,
+   "ongudai": 4.44,
+   "aushkul": 3.107,
+   "askarovo": 2.957,
+   "sum": 14.282
+  },
+  "q1/4 avg shuf zstd19": {
+   "altai": 3.371,
+   "ongudai": 3.903,
+   "aushkul": 2.714,
+   "askarovo": 2.605,
+   "sum": 12.593
+  },
+  "q1/4 med shuf zstd3": {
+   "altai": 3.483,
+   "ongudai": 4.012,
+   "aushkul": 2.885,
+   "askarovo": 2.718,
+   "sum": 13.098
+  },
+  "q1/4 med shuf zstd19": {
+   "altai": 3.236,
+   "ongudai": 3.734,
+   "aushkul": 2.611,
+   "askarovo": 2.474,
+   "sum": 12.056
+  },
+  "q1/4 grad shuf zstd3": {
+   "altai": 2.973,
+   "ongudai": 3.367,
+   "aushkul": 2.512,
+   "askarovo": 2.411,
+   "sum": 11.264
+  },
+  "q1/4 grad shuf zstd19": {
+   "altai": 2.759,
+   "ongudai": 3.125,
+   "aushkul": 2.312,
+   "askarovo": 2.204,
+   "sum": 10.401
+  },
+  "q1/32 u32? пропуск": {
+   "altai": 0.0,
+   "ongudai": 0.0,
+   "aushkul": 0.0,
+   "askarovo": 0.0,
+   "sum": 0.0
+  }
+ },
+ "quant": {
+  "q1/32": {
+   "maxerr": 0,
+   "bits": 17,
+   "rmse": 0.0
+  },
+  "q1/16": {
+   "maxerr": 0.03125,
+   "bits": 16,
+   "rmse": 0.022013859230349854
+  },
+  "q1/8": {
+   "maxerr": 0.0625,
+   "bits": 15,
+   "rmse": 0.038238268480029036
+  },
+  "q1/4": {
+   "maxerr": 0.125,
+   "bits": 14,
+   "rmse": 0.07285055430815149
+  }
+ }
+}

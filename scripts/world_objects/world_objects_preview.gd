@@ -3,7 +3,7 @@ extends Node3D
 ##   godot --path . res://scenes/world_objects/world_objects_preview.tscn -- [аргументы]
 ## Аргументы (после --):
 ##   --location=<id>  локация (по умолчанию из сцены — altai)
-##   --view=start|landing|village|wires|sock|track   ракурс (по умолчанию start); sock — крупно
+##   --view=start|landing|sock|track   ракурс (по умолчанию start); sock — крупно
 ##                    конус; track — тропа к старту, вид на склон с 150–400 м (VR-9, тропы старта)
 ##   --wind=<км/ч> --from=<град>   ветер (по умолчанию из пресета погоды)
 ##   --weather=weak|medium|strong
@@ -12,7 +12,7 @@ extends Node3D
 ##   --shot=<png>    снять кадр и выйти;  --bench — GPU-время кадра с объектами и без, выход
 ## Управление: WASD/QE — полёт, Shift — быстрее, ПКМ — обзор, 1–5 — ракурсы.
 
-const VIEWS: PackedStringArray = ["start", "landing", "village", "wires", "sock", "track"]
+const VIEWS: PackedStringArray = ["start", "landing", "sock", "track"]
 
 var _args := {}
 var _cfg: Dictionary
@@ -37,7 +37,10 @@ func _ready() -> void:
 	SkyEnvironment.setup_camera(cam)
 	cam.fov = float(_cfg.fov_deg)
 	if _args.has("location") and _args.location != terrain.location_id:
-		terrain.load_location(String(_args.location))
+		if Locations.is_builtin(String(_args.location)):
+			await terrain.load_builtin(String(_args.location))  # нет в кеше — соберётся (нужна сеть)
+		else:
+			terrain.load_location(String(_args.location))
 	atmo.set_weather("weather/" + String(_args.get("weather", "medium")))
 	var from := float(_args.get("from", str(atmo.weather.wind_from_deg)))
 	atmo.set_wind(float(_args.get("wind", str(atmo.weather.wind_speed_kmh))), from)
@@ -96,55 +99,12 @@ func _set_view(view: String) -> void:
 			var ax := TerrainGeo.heading_vector(float(landing.axis_deg))
 			eye = target - ax * float(_cfg.landing_distance_m)
 			eye.y = terrain.height_at(eye.x, eye.z) + float(_cfg.landing_agl_m)
-		"village":
-			target = _village()
-			target.y = terrain.height_at(target.x, target.z)
-			eye = target + Vector3(0.0, float(_cfg.village_agl_m), float(_cfg.village_back_m))
-		"wires":
-			var s := _nearest_support(landing.get("position", start.position))
-			var line_dir := Vector3(-sin(float(s.yaw)), 0.0, -cos(float(s.yaw)))
-			var side := line_dir.cross(Vector3.UP)
-			var d := float(_cfg.wires_distance_m)
-			eye = s.position + side * d + line_dir * d * 0.6
-			eye.y = terrain.height_at(eye.x, eye.z) + float(_cfg.wires_eye_m)
-			target = s.position + Vector3.UP * 20.0 + line_dir * d * 0.3
 	cam.global_position = eye
 	cam.look_at(target)
 	_yaw = rad_to_deg(-cam.rotation.y)
 	_pitch = rad_to_deg(cam.rotation.x)
 	atmo.set_focus(eye)
 	print("Вид '%s': камера %s → %s" % [view, eye.round(), target.round()])
-
-
-## Центр посёлка: из конфига для локации или крупнейший населённый пункт OSM.
-func _village() -> Vector3:
-	var by_loc: Dictionary = _cfg.village_xz
-	if by_loc.has(terrain.location_id):
-		var p: Array = by_loc[terrain.location_id]
-		return Vector3(float(p[0]), 0.0, float(p[1]))
-	var rank := {"city": 5, "town": 4, "village": 3, "suburb": 2, "hamlet": 1}
-	var best := Vector3.ZERO
-	var best_r := -1
-	if world.osm != null:
-		for pl in world.osm.places:
-			var r := int(rank.get(String(pl.t), 0))
-			if r > best_r:
-				best_r = r
-				best = Vector3(float(pl.x), 0.0, float(pl.z))
-	return best
-
-
-func _nearest_support(p: Vector3) -> Dictionary:
-	var best := {"position": p, "yaw": 0.0}
-	var bd := INF
-	if world.osm_layer == null:
-		return best
-	for s in world.osm_layer.power_plan.get("supports", []):
-		var d := p.distance_to(s.position)
-		if d < bd:
-			bd = d
-			best = s
-	return best
 
 
 func _process(delta: float) -> void:

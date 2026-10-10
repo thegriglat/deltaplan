@@ -1,18 +1,35 @@
 ---
 type: "guide"
 status: "active"
-module: "osm-any"
-updated: "2026-10-09"
-summary: "Откуда берутся данные места: стадии сборки (рельеф, реки, покров, лес и вода 10 м, OSM), источники и лицензии, кеш user://locations, точка внутри встроенного места, повтор без сети, как собрать встроенное место."
-related: ["docs/plan/osm-any.md", "docs/contracts/osm-any.md", "docs/guide/terrain.md", "docs/guide/world-objects.md", "docs/registry/findings.md"]
+module: "no-osm"
+updated: "2026-10-10"
+summary: "Откуда берутся данные места без OSM: стадии dem, rivers, surface (рельеф, реки, покров, лес, вода и застройка 10 м), файлы в WebP, версии формата и источника, кеш user://locations, встроенные места собираются при первом выборе, счётчик загрузки, как собрать встроенное место."
+related: ["docs/plan/no-osm.md", "docs/contracts/no-osm.md", "docs/contracts/osm-any.md", "docs/research/lakes_worldcover.md", "docs/research/location_compression.md", "docs/guide/terrain.md", "docs/guide/world-objects.md", "docs/registry/findings.md"]
 ---
 # Данные места: один путь для встроенных мест и любой точки
 
 Игра на встроенном месте и на любой точке с карты получает один и тот же набор слоёв того же объёма и детальности.
-Код один — сборщик места в игре (`scripts/terrain/build/`, GDScript); встроенные места — те же папки, собранные им
-заранее. Формат папки — контракт OA-К1/К2 (`docs/contracts/osm-any.md`); план и решения — `docs/plan/osm-any.md`.
-Python-сборки (`fetch_dem.py`, `fetch_landcover.py`, `rivers.py`, `osm_water.py`, `fetch_osm.py`) больше нет: до
-удаления порт в игру доказал равенство результата (числа — `docs/registry/findings.md`, тема osm-any).
+Код один — сборщик места в игре (`scripts/terrain/build/`, GDScript). Данных OpenStreetMap в месте нет вообще (модуль
+no-osm, решение пользователя): ни файла OSM в папке места, ни стадии OSM, ни сетевых запросов к OSM. Встроенных данных в паке игры тоже
+нет: четыре встроенных места (altai, ongudai, askarovo, aushkul) **собираются при первом выборе** в `user://locations/<id>`
+тем же сборщиком (первая сборка aushkul с пустым кешем: 55,8 с, 166 запросов — рельеф 16,5 с, реки 19,3 с, покров
+18,2 с; пак игры 102,9 → 79,8 МБ). Тесты используют заранее собранные фикстуры `tests/fixtures/locations/<id>`
+(`Locations.fixtures_root`, ставит `tests/run_tests.gd`). Формат папки — контракты OA-К1/К2 (`docs/contracts/osm-any.md`) и
+N1/N5 (`docs/contracts/no-osm.md`); планы — `docs/plan/osm-any.md`, `docs/plan/no-osm.md`.
+
+Версия формата: `Locations.FORMAT_VERSION` (`scripts/terrain/build/locations.gd`, сейчас 2) пишется в `build.json → format_version`; её поднимают при любом изменении файлов места. Кеш места `user://locations/<ключ>` с другой версией (или без поля) удаляется целиком и собирается заново — старый кеш пилота пересобирается сам. Сырые блоки источника (`user://terrain_cache`) имеют отдельную версию, `LocationCache.SOURCE_VERSION`: сбрасываются только при её смене (меняется источник или нарезка блоков), не при смене `FORMAT_VERSION`.
+
+## Файлы в WebP
+Основа — `docs/research/location_compression.md` (сравнение форматов: PNG, WebP lossless, brotli/zstd поверх float32).
+- **Высоты** слоёв (`detail`, `far`) — `<id>.webp`, WebP lossless, RGB8: код v = (R << 16) | (G << 8) | B (24 бит),
+  `h = height_min_m + v · height_step_m`, шаг 1/8 м (0,125), ошибка квантования ≤ 0,0625 м против float32 (замер: max 0,0625 м).
+  `height_min_m`, `height_step_m` и имя файла — в описании слоя в `meta.json`.
+- **Растры** (`<id>_surface`, `<id>_water`, `detail_detail10`, `detail_built10`) — WebP lossless, значения и каналы те же,
+  что у прежних PNG (L8 / LA8), побитово (расхождение 0 из 169 млн пикселей). У LA8 (`detail_detail10`) цвет под нулевой
+  альфой не обнуляется: там L — доля леса, а вода A = 0.
+- Размер четырёх встроенных мест 55,3 → 24,2 МБ (ongudai 15,4 → 7,1 МБ, askarovo 12,5 → 5,0 МБ); чтение места
+  в 1,79 раза дольше (0,74 → 1,33 с на четыре места) — принято, предел был 2.
+- Совместимость со старыми файлами не поддерживается: формат один.
 
 ## Стадии сборки
 Сборщик (`LocationBuilder`) гоняет стадии по порядку; каждая читает только файлы предыдущих и контекст
@@ -20,19 +37,34 @@ Python-сборки (`fetch_dem.py`, `fetch_landcover.py`, `rivers.py`, `osm_wat
 
 | Стадия | Класс | Источник | Что пишет |
 |---|---|---|---|
-| Рельеф | `DemStage` | detail: Copernicus GLO-30 (COG на S3, HTTP range по внутренним тайлам), 40 км, шаг 25 м, σ = 0,8 клетки; far: Terrarium z10, 160 км, шаг 100 м, detail вклеен в far | `detail.f32.zst`, `far.f32.zst` (float32, квантование 1/32 м, zstd), `meta.json` |
-| Реки | `RiverStage` | сам рельеф: сток по far (priority-flood, накопление, привязка к долине), ширина от площади водосбора | `detail_water.png`, `far_water.png` (255 — русло) |
-| Покров | `SurfaceStage` | ESA WorldCover 2021 (COG, HTTP range): класс узла — мода 3×3 подвыборок; лес 10 м | `detail_surface.png`, `far_surface.png` (классы игры 0..8), `detail_detail10.png` (канал L — доля леса), `surface.json` |
-| OSM | `OsmStage` | Overpass API: 6 запросов по слоям на квадрат ±20 км последовательно (`[timeout]`, `[maxsize]`), перед запросом — `/api/status` и ожидание свободного слота, при 429/504 — до 5 попыток с растущей паузой и смена зеркала, тяжёлые слои при отказе — 4 тайлами; зеркала из `world_objects.json → osm.overpass_urls`, User-Agent; сырой ответ после упаковки не хранится | `osm.json` (дороги, здания, ЛЭП, реки, озёра, посёлки, поля, заборы), канал A `detail_detail10.png` (вода 10 м), `water_fraction` в `surface.json` |
+| Рельеф (`dem`) | `DemStage` | detail: Copernicus GLO-30 (COG на S3, HTTP range по внутренним тайлам), 40 км, шаг 25 м, σ = 0,8 клетки; far: Terrarium z10, 160 км, шаг 100 м, detail вклеен в far | `detail.webp`, `far.webp` (24 бит, шаг 1/8 м), `meta.json` |
+| Реки (`rivers`) | `RiverStage` | сам рельеф: сток по far (priority-flood, накопление, привязка к долине), ширина от площади водосбора | `detail_water.webp`, `far_water.webp` (255 — русло) |
+| Покров (`surface`) | `SurfaceStage` | ESA WorldCover 2021 (COG, HTTP range): класс узла — мода 3×3 подвыборок; лес, вода и застройка 10 м | `detail_surface.webp`, `far_surface.webp` (классы игры 0..8), `detail_detail10.webp`, `detail_built10.webp`, `built_patches.json`, `surface.json` |
+
+**Вода 10 м** — канал A файла `detail_detail10.webp`: `A = max(round(255 · n_w / 9), маска рек по рельефу на этой сетке)`, где
+n_w — число подвыборок 3×3 класса «вода» WorldCover (код 80), маска рек — `detail_water`, переведённая билинейно с сетки
+25 м на 10 м (не растеризация сегментов на 10 м; ось реки Онгудая попадает в воду в 50 из 50 точек, в 300 м от неё — 36 из 50).
+Канал L — доля леса (как было). `surface.json → layers[detail].detail10.water_fraction` — доля клеток с A ≥ 128.
+Почему без озёр OSM: WorldCover сам видит озёра ≥ 10 га (покрытие полигона OSM 0,85–0,98, IoU 0,86–0,97 у Аушкуля,
+Чебаркуля, Атавды, Мулдаккуля), вода не теряется ни в моде 3×3 (Аушкуль: 18,549 → 18,547 км²), ни в классе 25 м;
+основной вклад в долю воды в H дал класс WorldCover, а не OSM (Аушкуль: +0,0134 против +0,0051 от OSM,
+`docs/research/lakes_worldcover.md`). Проигрыш: мелкие и узкие водоёмы WorldCover видит хуже (Белое у Аушкуля: 0,86 км² в OSM против 0,06 в WorldCover; Улянды — покрытие
+полигона 0,44), контур водохранилищ — по состоянию 2021 г. Доля воды в области 40×40 км после замены, до → после:
+askarovo 0,0227 → 0,0219, altai 0,0139 → 0,0127 (сдвиг в пределах 0,001).
+
+**Застройка 10 м** — `detail_built10.webp` (L8, та же сетка 10 м; значение = round(255 · n / 9), n — число подвыборок 3×3
+класса «застройка», WorldCover 50) и `built_patches.json`: пятна — 8-связные компоненты клеток с долей ≥ 0,5 площадью ≥ 3000 м²
+(`world.json → surface.built`); `{id, x, z, area_m2, share, bbox}`, порядок детерминирован. Суммарная площадь пятен к площади
+класса «застройка» в карте покрова: 0,83–0,92 (askarovo 0,89, altai 0,92, aushkul 0,83, ongudai 0,86). Из пятен
+`VillagePlacer` ставит дома, `BuiltPatches` читает пятна (см. `docs/guide/world-objects.md`).
 
 Параметры сетки и шаблон конфига точки — `configs/world.json → location_builder.template` (те же значения, что у
 встроенных мест). Сеть — с User-Agent из `runtime_terrain.user_agent`; блоки COG и тайлы Terrarium кешируются в
 `user://terrain_cache` (повторная сборка соседнего места берёт их оттуда). Рельеф — обязательный слой: без него места
-нет (сообщение, возврат в меню). Покров и OSM — по возможности, см. «Отказ слоя».
+нет (сообщение, возврат в меню). Покров — по возможности, см. «Отказ слоя».
 
 Атрибуции источников записывает сама стадия в `meta.json` (Copernicus DEM GLO-30 © DLR/Airbus/ЕС/ESA, Terrain Tiles
-Mapzen/AWS Open Data), `surface.json` (© ESA WorldCover 2021, CC-BY 4.0) и `osm.json` (© OpenStreetMap contributors,
-ODbL); в `ASSETS.md` — общая строка по источникам.
+Mapzen/AWS Open Data) и `surface.json` (© ESA WorldCover 2021, CC-BY 4.0); в `ASSETS.md` — общая строка по источникам.
 
 ## Кеш `user://locations/<ключ>`
 - **Ключ** — центр точки, привязанный к сетке `snap_deg` = 0,05° (≈ 5 км): `LocationCache.key_for(lat, lon)`,
@@ -43,23 +75,28 @@ ODbL); в `ASSETS.md` — общая строка по источникам.
   `builder_version, key, center_lat/lon, built_utc, complete, missing, seconds` (по стадиям), `net_requests, sources`.
 - **Сборка** идёт во временной `user://locations/.tmp_<ключ>`, затем папка переименовывается — оборванная сборка
   не оставляет полуместо.
-- **Состав папки** — как у встроенного (`meta.json`, `*.f32.zst`, `*_water.png`, `*_surface.png`,
-  `detail_detail10.png`, `surface.json`, `osm.json`, `build.json`) плюс `location.json` — конфиг места по шаблону:
-  `center_lat/lon`, `utc_offset_h = round(lon/15)` (часовой пояс по долготе, границы поясов не знаем), `name` —
-  ближайший посёлок из OSM или координаты, `start_sites` пуст (старт — в выбранной точке по уклону).
-- Все чтения конфига места и пути OSM — через `Locations` (`config`, `osm_path`, `is_builtin`, `builtin_at`).
+- **Состав папки** — `meta.json`, `detail.webp`, `far.webp`, `*_water.webp`, `*_surface.webp`, `detail_detail10.webp`,
+  `detail_built10.webp`, `built_patches.json`, `surface.json`, `build.json` плюс `location.json` (у точки) — конфиг места по
+  шаблону: `center_lat/lon`, `utc_offset_h = round(lon/15)` (часовой пояс по долготе, границы поясов не знаем), `name` —
+  координаты точки (имён посёлков без OSM нет), `start_sites` пуст (старт — в выбранной точке по уклону). У встроенного
+  места имя и ручные данные (старты, посадки) — в `configs/locations/<id>.json`.
+- Все чтения конфига места — через `Locations` (`config`, `data_dir`, `is_builtin`, `builtin_at`).
 
 ## Отказ слоя и догрузка
-- Нет покрова или OSM (сеть, сервер, ответ не разобран) — летаем без слоя: покров — процедурный, как раньше; OSM —
-  без дорог, зданий и ЛЭП. В `build.json` → `missing` имя стадии, `complete: false`.
-- Следующий запуск той же точки догружает **только** недостающие стадии (при пересборке покрова пересобирается и
-  OSM, потому что вода 10 м ложится в канал A его файла); готовые слои сеть не трогают.
+- Нет покрова (сеть, сервер, ответ не разобран) — летаем без слоя: покров — процедурный, воды 10 м и пятен застройки нет
+  (домов нет). В `build.json` → `missing` имя стадии, `complete: false`.
+- Следующий запуск той же точки догружает **только** недостающие стадии; готовые слои сеть не трогают.
 - Отказ рельефа — ошибка для пилота («нет связи», «нет данных рельефа», «здесь море»), назад в меню.
+
+## Счётчик загрузки
+На экране загрузки под названием этапа — счётчик запросов: «Рельеф: N/M», «Покров: N/M», «Всего: N/M» (ru/en; N — выполнено,
+M — запланировано); полоса идёт по счётчику, запросы, взятые из кеша блоков, засчитываются сразу. Оценок времени нет.
+M покрова растёт по мере планирования тайлов пакетами (в одной сборке 42 → 119), M рельефа известен сразу. Холодная сборка точки
+(43,2; 76,9, пустой кеш): 61,5 с, 135 запросов (рельеф 55/55, покров 119/119). Код — `scripts/ui/loading_screen.gd`, `LoadProgress`.
 
 ## Точка внутри встроенного места
 `Locations.builtin_at(lat, lon)`: если точка не ближе `location_builder.builtin_margin_km` (10 км) к краю детального
-квадрата встроенного места — грузится само встроенное место (`data/terrain/<id>/`) со стартом в точке, сборка и сеть
-не нужны. Иначе — обычный путь через кеш. `location_id` в настройках и сети — id встроенного места или ключ точки.
+квадрата встроенного места — грузится само встроенное место (`user://locations/<id>`; если его там ещё нет — собирается при первом выборе) со стартом в точке. Иначе — обычный путь через кеш. `location_id` в настройках и сети — id встроенного места или ключ точки.
 
 ## Повтор без сети
 Полное место в кеше грузится с диска, `net_requests` = 0. Командой можно проверить: повторная сборка той же точки с
@@ -82,26 +119,25 @@ ODbL); в `ASSETS.md` — общая строка по источникам.
 Все HTTP-запросы игры идут через `HttpLog.fetch` (`scripts/core/http_log.gd`) и пишут две строки в лог игры
 (`user://logs/godot.log`, у itch-установки ещё `logs/godot.log` рядом с игрой):
 
-    HTTP > #12 POST overpass-api.de/api/interpreter [overpass roads попытка 2/5] body=388B "[out:json][timeout:180]…"
-    HTTP < #12 200 48213B 1.42s [overpass roads попытка 2/5]
+    HTTP > #12 GET <хост>/<путь> [surface попытка 1/2]
+    HTTP < #12 206 48213B 0.42s [surface попытка 1/2]
     HTTP < #13 ошибка result=2 (CANT_CONNECT) http=0 0B 0.05s [dem попытка 1/2]
 
 Номер запроса, метод, хост+путь (без query и userinfo — ключи и токены не попадают), метка (стадия и попытка), для
 POST — размер и начало тела (80 символов, `key/token/…=` маскируются); итог — код, размер, время или ошибка.
 
 ## Как собрать и добавить встроенное место
-1. `configs/locations/<id>.json`: `name`, `center_lat/lon`, `data_dir` (`res://data/terrain/<id>`), `dem`, `surface`,
-   `rivers` (взять за образец шаблон или соседнее место), `start_sites`, `landing_sites`.
-2. Собрать (нужна сеть; только из рабочей копии репозитория, не в игре):
-   `godot --headless --path . -s res://tools/terrain/build_location.gd -- --id <id>` — стадии как в игре, результат в
-   `data_dir`, включая `osm.json` и `build.json`. Точку без конфига (для проверки кеша):
-   `... -- --lat 47.05 --lon 11.0 [--offline]` в `user://locations/` (профиль для проверок —
-   `XDG_DATA_HOME=$(mktemp -d)`).
+1. `configs/locations/<id>.json`: `name`, `center_lat/lon`, `dem`, `surface`, `rivers` (взять за образец шаблон или соседнее
+   место), `start_sites`, `landing_sites`. Папки данных в репозитории не нужно: место соберётся при первом выборе.
+2. Собрать вручную (нужна сеть; из рабочей копии, не в игре): `godot --headless --path . -s res://tools/terrain/build_location.gd -- --id <id>` —
+   стадии как в игре, результат в `user://locations/<id>`. Точку без конфига (для проверки кеша):
+   `... -- --lat 47.05 --lon 11.0 [--offline]` (профиль для проверок — `XDG_DATA_HOME=$(mktemp -d)`).
+   Фикстуру для тестов копируют из собранной папки в `tests/fixtures/locations/<id>`.
 3. Проверить старты и посадки (`tests/terrain/test_locations.gd`), посадки — `configs/world_objects.json → landing`,
    превью — `terrain_preview.tscn -- --location=<id>`, `world_objects_preview.tscn`.
-4. Строка по данным места в `ASSETS.md`. Бюджет данных — ≤ 15 МБ на место.
+4. Строка по данным места в `ASSETS.md`, если у места появились свои данные.
 
 ## Границы
-Часовой пояс — по долготе; посадки и именованные старты — только у встроенных мест (ручные данные); OSM —
-квадрат ±20 км, как у детального слоя. Время сборки точки и сравнение с прежним Python-путём — в
-`docs/registry/findings.md`.
+Часовой пояс — по долготе; посадки и именованные старты — только у встроенных мест (ручные данные); имён посёлков и
+дорог нет. Покров WorldCover 2021 — один снимок: новая застройка, изменившийся берег водоёма и вырубки не видны. Дома по
+пятнам процедурные. Время сборки точки и сравнение с прежним Python-путём — в `docs/registry/findings.md`.

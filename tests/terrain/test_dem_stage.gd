@@ -1,5 +1,5 @@
 extends TestCase
-## Стадия рельефа DemStage (OA-1) и COG float32: предиктор 3, .f32.zst, паритет с встроенными высотами.
+## Стадия рельефа DemStage (OA-1) и COG float32: предиктор 3, .webp, паритет с встроенными высотами.
 ## Паритет — только если на машине есть локальные копии Copernicus/Terrarium (иначе пропуск).
 ## Полный паритет двух мест — tools/terrain/parity/dem_parity.gd.
 
@@ -114,13 +114,13 @@ func test_parity_with_builtin_askarovo() -> void:
 	]
 	var ctx := await _run_stage(layers)
 	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ctx.dir + "/meta.json"))
-	check(meta.layers.size() == 2 and meta.layers[0].file == "detail.f32.zst" and meta.layers[1].water_file == "far_water.png", "meta.json: слои, .f32.zst, water_file")
+	check(meta.layers.size() == 2 and meta.layers[0].file == "detail.webp" and meta.layers[1].water_file == "far_water.webp", "meta.json: слои, .webp, water_file")
 	check(meta.attribution.size() == 2, "meta.json: две атрибуции")
-	var ref_meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(loc.data_dir + "/meta.json"))
-	var ref_d := HeightLayer.load_from_file(loc.data_dir + "/detail.f32.zst", ref_meta.layers[0])
-	var ref_f := HeightLayer.load_from_file(loc.data_dir + "/far.f32.zst", ref_meta.layers[1])
-	var mine_d := HeightLayer.load_from_file(ctx.dir + "/detail.f32.zst", meta.layers[0])
-	var mine_f := HeightLayer.load_from_file(ctx.dir + "/far.f32.zst", meta.layers[1])
+	var ref_meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Locations.data_dir("askarovo") + "/meta.json"))
+	var ref_d := HeightLayer.load_from_file(Locations.data_dir("askarovo") + "/detail.webp", ref_meta.layers[0])
+	var ref_f := HeightLayer.load_from_file(Locations.data_dir("askarovo") + "/far.webp", ref_meta.layers[1])
+	var mine_d := HeightLayer.load_from_file(ctx.dir + "/detail.webp", meta.layers[0])
+	var mine_f := HeightLayer.load_from_file(ctx.dir + "/far.webp", meta.layers[1])
 	check(mine_d != null and mine_f != null, "слои читаются с диска")
 	if mine_d == null or mine_f == null:
 		return
@@ -136,8 +136,8 @@ func test_parity_with_builtin_askarovo() -> void:
 	# Грубый слой в зоне detail взят из детального.
 	check(absf(mine_f.sample(0.0, 0.0) - mine_d.sample(0.0, 0.0)) < 0.5, "far в зоне detail вклеен из detail")
 	check(ctx.heights.has("detail") and ctx.layers.has("far"), "ctx.heights/ctx.layers заполнены")
-	DirAccess.remove_absolute(ctx.dir + "/detail.f32.zst")
-	DirAccess.remove_absolute(ctx.dir + "/far.f32.zst")
+	DirAccess.remove_absolute(ctx.dir + "/detail.webp")
+	DirAccess.remove_absolute(ctx.dir + "/far.webp")
 	DirAccess.remove_absolute(ctx.dir + "/meta.json")
 
 

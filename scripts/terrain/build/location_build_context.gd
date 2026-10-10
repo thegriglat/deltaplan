@@ -1,9 +1,11 @@
 class_name LocationBuildContext
 extends RefCounted
 ## Контекст сборки места (контракт OA-К3, docs/contracts/osm-any.md). Стадии (DemStage, RiverStage,
-## SurfaceStage, OsmStage) читают его и пишут файлы в dir. Менять — только через координатора модуля.
+## SurfaceStage) читают его и пишут файлы в dir. Менять — только через координатора модуля.
 
 signal progress(stage: String, fraction: float)
+## Счётчик запросов стадии (NO-7): сделано done из total (блоки COG / тайлы; из кеша — тоже).
+signal counter(stage: String, done: int, total: int)
 
 ## Ключ места (OA-К4).
 var key: String = ""
@@ -30,8 +32,24 @@ var net_requests: int = 0
 var log_lines: PackedStringArray = PackedStringArray()
 
 
+var _req_total: Dictionary = {}
+var _req_done: Dictionary = {}
+
+
 func report(stage: String, fraction: float) -> void:
 	progress.emit(stage, clampf(fraction, 0.0, 1.0))
+
+
+## Стадия спланировала n запросов (total растёт).
+func plan(stage: String, n: int) -> void:
+	_req_total[stage] = int(_req_total.get(stage, 0)) + n
+	counter.emit(stage, int(_req_done.get(stage, 0)), int(_req_total[stage]))
+
+
+## Готов один запрос стадии (скачан или взят из кеша).
+func tick(stage: String) -> void:
+	_req_done[stage] = int(_req_done.get(stage, 0)) + 1
+	counter.emit(stage, int(_req_done[stage]), int(_req_total.get(stage, 0)))
 
 
 func log_line(text: String) -> void:

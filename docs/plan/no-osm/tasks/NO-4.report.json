@@ -1,0 +1,95 @@
+{
+  "status": "partial",
+  "summary": "OSM убран целиком: OsmStage/OverpassClient, osm.json встроенных мест, OsmData, OsmLayer, RoadMesher, дороги/ЛЭП/заборы/поля/имена, Locations.osm_path; сборщик dem→rivers→surface; тропы к стартам только процедурные. Приёмка 9/10 по фильтрам, кроме game/ (таймаут test_cockpit, воспроизводится и на main) и no_osm_refs (building_placer.gd, не мой файл).",
+  "commits": [
+    "e8fe4ba4 NO-4 (1): без Overpass, ЛЭП, заборов, полей и имён OSM",
+    "NO-4 (2): OSM целиком — без osm.json, OsmLayer, RoadMesher",
+    "9c810727 NO-4 (3): удалены OsmData, Locations.osm_path"
+  ],
+  "checks": [
+    {
+      "name": "no_osm_contracts_n4",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "84/84",
+      "pass": true
+    },
+    {
+      "name": "test_location",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "test_surface_stage",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "ui/",
+      "value": "105/105",
+      "pass": true
+    },
+    {
+      "name": "osm_any_contracts",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "no_overpass",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "no_power_fence",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "game/",
+      "value": "dp accept: таймаут 900 с; по файлам 36 из 37 зелёные (test_collisions 2/2), test_cockpit зависает; на main тоже таймаут",
+      "pass": false
+    },
+    {
+      "name": "no_osm_refs",
+      "value": "остался scripts/world_objects/building_placer.gd:7 (комментарий 'из OsmData'); файл в dont_touch (NO-2)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "no_osm_refs: убрать слово OsmData из комментария building_placer.gd — после/в NO-2",
+    "game/: test_cockpit (test_trapezoid_and_telltales: ленточки в кадре; затем зависание) — не связан с OSM, на main тот же таймаут; нужен отдельный разбор"
+  ],
+  "questions": [
+    "Удалены и собственные заборы посадок (landing.sites.fences, fence_segment.glb) — иначе fence_segment остаётся в configs; верно?",
+    "docs/guide/world-objects.md и docs/contracts/steam-assets.md (фраза про osm.json) не правил: вне скоупа; ODbL-фраза в tools/release/third_party_notices.py и sa4-тесте уже без osm.json — контракт steam-assets обновить"
+  ],
+  "images": [],
+  "how_to_check": "dp accept NO-4 --dry",
+  "uncertain": [
+    {
+      "where": "tests/game/test_collisions.gd",
+      "why": "убрал сценарий с проводом ЛЭП и проверку кэша CollisionCheck по проводам и CPU-замер",
+      "checked": "test_collisions 2/2 зелёные, но покрытие FineIndex-vs-obstacle_hit теперь только в юнит-тесте"
+    },
+    {
+      "where": "scripts/world_objects/start_tracks.gd",
+      "why": "убран обход воды и OSM-дороги; тропа — только спуск по склону no_destination_length_m",
+      "checked": "world_objects 84/84, test_start_tracks"
+    },
+    {
+      "where": "scripts/terrain/build/surface_stage.gd",
+      "why": "в комментариях ещё OsmStage (файл NO-1/не мой)",
+      "checked": "grep"
+    }
+  ],
+  "dp_feedback": "dp accept --dry не показывает, какие именно тесты упали/зависли внутри фильтра (только лог-файл) и долго (900 с) ждёт зависший файл; хорошо бы таймаут на файл и список упавших в сводке. dp job list отсутствует.",
+  "extra": {
+    "удалено_строк": "≈3400",
+    "tools/research": "fetch_osm.py и hg_sites/* (fetch/build/catalog/README) всё ещё упоминают Overpass — офлайн-инструменты, не трогал; tools/places/build_hg_takeoffs.py тоже"
+  },
+  "t": "2026-10-10T05:27:52",
+  "by": "executor"
+}

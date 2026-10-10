@@ -1,6 +1,6 @@
 class_name EggHerds
 extends EasterEgg
-## Отары и табуны (чисто картинка): 1–3 стайки овец/коров/лошадей на лугах у посёлков OSM.
+## Отары и табуны (чисто картинка): 1–3 стайки овец/коров/лошадей на лугах у посёлков (пятна застройки).
 ## Одна стайка = один MultiMesh (модель из примитивов). Центр дрейфует по эллипсу, животные
 ## блуждают около своих мест — всё функция ctx.t. Низкий пролёт игрока пугает: животные бегут
 ## от него несколько секунд, потом бредут дальше от новых мест (локальная анимация, К3/К4).
@@ -19,7 +19,7 @@ var _meshes := {}  ## вид → ArrayMesh
 var _mat: StandardMaterial3D
 
 
-## Условия: день, апрель–октябрь, не сильный ветер, есть место и посёлок OSM.
+## Условия: день, апрель–октябрь, не сильный ветер, есть место и посёлок.
 static func can_appear(ctx: EggContext, cfg: Dictionary) -> bool:
 	if ctx.sun_elev_deg <= 0.0:
 		return false
@@ -38,9 +38,9 @@ static func ground_ok(place: EggPlace, x: float, z: float, cfg: Dictionary) -> b
 	if s == SurfaceLayer.SHRUB:
 		var share := float(cfg.get("shrub_share", 0.25))
 		var cell := int(floorf(x / 50.0)) * 7 + int(floorf(z / 50.0)) * 13
-		if float(posmod(cell, 100)) / 100.0 >= share:
+		if float(wrapi(cell, 0, 100)) / 100.0 >= share:
 			return false
-	elif s != SurfaceLayer.GRASS:
+	elif s != SurfaceLayer.GRASS and s != SurfaceLayer.NONE:  # NONE — нет покрова: открытый грунт
 		return false
 	if place.slope_deg_at(x, z) > float(cfg.get("max_slope_deg", 20.0)):
 		return false

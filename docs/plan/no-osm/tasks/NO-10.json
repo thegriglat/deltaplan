@@ -1,0 +1,73 @@
+{
+  "id": "NO-10",
+  "module": "no-osm",
+  "type": "dp-engineer",
+  "title": "Плотнее дома и мягкая размытая подложка застройки",
+  "goal": "Посёлок с воздуха — мягкое пятно застройки с плотными домами вдоль улиц, без серой шахматки 25 м.",
+  "plan_ref": "NO-10",
+  "contracts": [
+    {
+      "name": "N2",
+      "version": "2",
+      "ref": "docs/contracts/no-osm.md"
+    },
+    {
+      "name": "N3",
+      "version": "1",
+      "ref": "docs/contracts/no-osm.md"
+    }
+  ],
+  "copy": "~/deltaplan-no-osm-NO-10",
+  "branch": "no-osm/NO-10",
+  "base": "feature/no-osm",
+  "scope": [
+    "scripts/world_objects/village_placer.gd",
+    "configs/world_objects.json",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/*.gdshaderinc",
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/terrain_renderer.gd",
+    "scripts/terrain/surface_layer.gd",
+    "tests/world_objects/test_villages.gd",
+    "tests/terrain/",
+    "tools/shots/"
+  ],
+  "dont_touch": [
+    "assets/",
+    "project.godot",
+    "data/",
+    "docs/contracts/",
+    "tests/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "test_villages",
+      "tests": "test_villages"
+    },
+    {
+      "name": "test_world_objects",
+      "tests": "test_world_objects"
+    },
+    {
+      "name": "test_terrain",
+      "tests": "test_terrain"
+    },
+    {
+      "name": "test_surface",
+      "tests": "test_surface"
+    },
+    {
+      "name": "test_collisions",
+      "tests": "test_collisions"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/NO-10/ | grep -ciE 'jpg|png'",
+      "expect": "num:^([0-9]+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T05:53:10",
+  "edited": "2026-10-10T06:04:30"
+}

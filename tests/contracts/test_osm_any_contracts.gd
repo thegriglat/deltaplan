@@ -50,30 +50,30 @@ func test_k1_builtin_layout() -> void:
 	check(ids.size() >= 1, "встроенные места есть")
 	for id: String in ids:
 		var loc: Dictionary = Config.get_config("locations/" + id)
-		var dir := String(loc.get("data_dir", ""))
+		var dir := Locations.data_dir(id)
 		var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir + "/meta.json"))
 		_has_keys(meta, ["location", "center_lat", "center_lon", "earth_radius_m", "layers", "attribution"], id + " meta")
 		var layers: Array = meta.get("layers", [])
 		check(layers.size() == 2 and layers[0].id == "detail" and layers[1].id == "far", id + ": слои detail, far")
 		for l: Dictionary in layers:
 			_has_keys(l, ["id", "file", "width", "height", "spacing_m", "origin_x_m", "origin_z_m",
-				"min_height_m", "max_height_m", "source", "water_file"], id + " слой")
-			check(String(l.file) == String(l.id) + ".f32.zst", id + ": высоты встроенного — .f32.zst")
+				"min_height_m", "max_height_m", "source", "water_file", "height_min_m", "height_step_m"], id + " слой")
+			check(String(l.file) == String(l.id) + ".webp", id + ": высоты встроенного — .webp (no-osm N5)")
 			check(FileAccess.file_exists(dir + "/" + String(l.file)), id + ": файл высот")
 			var w := Image.load_from_file(dir + "/" + String(l.water_file))
-			check(w != null and w.get_format() == Image.FORMAT_L8 and w.get_width() == int(l.width),
+			if w != null:
+				w.convert(Image.FORMAT_L8)
+			check(w != null and w.get_width() == int(l.width),
 				"%s: %s L8 %d" % [id, l.water_file, l.width])
-			var s := Image.load_from_file("%s/%s_surface.png" % [dir, l.id])
-			check(s != null and s.get_format() == Image.FORMAT_L8 and s.get_height() == int(l.height),
-				"%s: %s_surface.png L8" % [id, l.id])
+			var s := Image.load_from_file("%s/%s_surface.webp" % [dir, l.id])
+			check(s != null and s.get_height() == int(l.height), "%s: %s_surface.webp" % [id, l.id])
 		var surf: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir + "/surface.json"))
 		_has_keys(surf, ["source", "layers", "attribution"], id + " surface")
 		var d10: Dictionary = surf.layers[0].get("detail10", {})
 		_has_keys(d10, ["file", "width", "height", "spacing_m", "origin_x_m", "origin_z_m", "channels",
 			"forest_fraction", "water_fraction"], id + " detail10")
 		var img := Image.load_from_file(dir + "/" + String(d10.get("file", "")))
-		check(img != null and img.get_format() == Image.FORMAT_LA8 and img.get_width() == int(d10.get("width", 0)),
-			id + ": detail10 LA8")
+		check(img != null and img.get_width() == int(d10.get("width", 0)), id + ": detail10 (webp)")
 
 
 func test_k1_no_python_build() -> void:
@@ -83,50 +83,10 @@ func test_k1_no_python_build() -> void:
 		check(not FileAccess.file_exists(f), "Python-сборка убрана: " + f)
 	for id: String in _builtin_ids():
 		var loc: Dictionary = Config.get_config("locations/" + id)
-		check(FileAccess.file_exists(String(loc.get("data_dir", "")) + "/build.json"), id + ": build.json встроенного")
+		check(FileAccess.file_exists(Locations.data_dir(id) + "/build.json"), id + ": build.json встроенного")
 
 
-func test_k1_height_zst() -> void:
-	var w := 3
-	var h := 2
-	var vals := PackedFloat32Array([1.0, 2.5, 3.25, -4.0, 5.5, 600.03125])
-	var path := "user://oa_contract_test.f32.zst"
-	var f := FileAccess.open(path, FileAccess.WRITE)
-	f.store_buffer(vals.to_byte_array().compress(FileAccess.COMPRESSION_ZSTD))
-	f.close()
-	var info := {"id": "detail", "width": w, "height": h, "spacing_m": 25.0, "origin_x_m": -25.0,
-		"origin_z_m": -12.5, "min_height_m": -4.0, "max_height_m": 600.03125}
-	var l: HeightLayer = HeightLayer.load_from_file(path, info)
-	check(l != null, "HeightLayer читает .f32.zst")
-	if l != null:
-		check(l.heights == vals, "значения .f32.zst без искажений")
-		check(is_equal_approx(l.node(2, 1), 600.03125), "узел (2,1) — последняя строка")
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
-
-
-func test_k2_builtin_osm_schema() -> void:
-	for id: String in _builtin_ids():
-		var loc: Dictionary = Config.get_config("locations/" + id)
-		var path := String(loc.get("data_dir", "")) + "/osm.json"
-		check(FileAccess.file_exists(path), id + ": osm.json в папке места")
-		if not FileAccess.file_exists(path):
-			continue
-		var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
-		_has_keys(d, ["attribution", "location", "center_lat", "center_lon", "bbox_latlon", "roads", "buildings",
-			"power", "water", "places", "landuse"], id + " osm")
-		_has_keys(d.get("water", {}), ["rivers", "lakes"], id + " osm.water")
-		_has_keys(d.get("landuse", {}), ["fields", "fences"], id + " osm.landuse")
-		check((d.bbox_latlon as Array).size() == 4, id + ": bbox_latlon[4]")
-		for r: Dictionary in (d.roads as Array).slice(0, 20):
-			_has_keys(r, ["t", "p"], id + " road")
-		for b: Array in (d.buildings as Array).slice(0, 20):
-			check(b.size() == 7, id + ": дом — 7 чисел")
-		for p: Dictionary in d.places:
-			_has_keys(p, ["n", "t", "x", "z"], id + " place")
-		for r: Dictionary in (d.water.rivers as Array).slice(0, 20):
-			_has_keys(r, ["t", "p"], id + " river")
-		for k: Dictionary in (d.water.lakes as Array).slice(0, 20):
-			_has_keys(k, ["p"], id + " lake")
+## test_k1_height_zst снят: высоты — WebP 24 бит (no-osm N5), проверка — tests/terrain/test_height_layer.gd.
 
 
 func test_k3_context() -> void:
@@ -160,12 +120,6 @@ func test_k3_surface() -> void:
 	_check_run("surface_stage.gd")
 
 
-func test_k3_osm() -> void:
-	var m := _check_run("osm_stage.gd")
-	check(m.has("pack") and (m.pack.args as Array).size() == 4, "OsmStage.pack(elements, lat, lon, half_m)")
-	check(m.has("water_alpha") and (m.water_alpha.args as Array).size() == 2, "OsmStage.water_alpha(osm, info10)")
-
-
 func test_k4_config() -> void:
 	var lb: Dictionary = Config.get_config("world").get("location_builder", {})
 	_has_keys(lb, ["version", "cache_dir", "snap_deg", "builtin_margin_km", "template"], "location_builder")
@@ -190,7 +144,7 @@ func test_k4_registry() -> void:
 	var b := _methods("res://scripts/terrain/build/location_builder.gd")
 	check(b.has("build") and (b.build.args as Array).size() == 3, "LocationBuilder.build(host, lat, lon)")
 	var r := _methods("res://scripts/terrain/build/locations.gd")
-	for n in ["config", "osm_path", "is_builtin", "builtin_at"]:
+	for n in ["config", "is_builtin", "builtin_at"]:
 		check(r.has(n), "Locations.%s" % n)
 	if r.has("config"):
 		var scr: Script = load("res://scripts/terrain/build/locations.gd")

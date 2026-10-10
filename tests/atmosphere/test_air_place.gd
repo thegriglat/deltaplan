@@ -11,7 +11,7 @@ const FIX := "res://tests/atmosphere/fixtures/air_model/picard/"
 
 
 static func load_detail(loc_id: String) -> Array:
-	var dir := "res://data/terrain/%s" % loc_id
+	var dir := Locations.data_dir(loc_id)
 	var meta: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string(dir.path_join("meta.json"))
 	)
@@ -20,7 +20,7 @@ static func load_detail(loc_id: String) -> Array:
 			var l := HeightLayer.load_from_file(dir.path_join(String(info.file)), info)
 			var img: Image = null
 			if info.has("water_file"):
-				var tex := load(dir.path_join(String(info.water_file))) as Texture2D
+				var tex := TerrainRenderer.load_mask_texture(dir.path_join(String(info.water_file)))
 				img = tex.get_image() if tex != null else null
 			return [l, img]
 	return []
@@ -63,7 +63,8 @@ func test_domain_input_vs_reference() -> void:
 				% [int(dx), t_ms, fmt.call(e_h), fmt.call(e_q), fmt.call(e_g), c.z_i, float(m.z_i)]
 			)
 		)
-		check(e_h < 1e-3, "рельеф: %s м" % fmt.call(e_h))
+		# высоты места квантованы шагом 1/8 м (N5): эталон по float32, допуск — полшага
+		check(e_h < 0.07, "рельеф: %s м" % fmt.call(e_h))
 		check(e_q < 1e-9, "H клетки = SurfaceHeat.mix_flux по её долям: %s Вт/м²" % fmt.call(e_q))
 		check(e_g < 1e-7, "dθ̄/dz: %s К/м" % fmt.call(e_g))
 		check(absf(c.z_i - float(m.z_i)) < 0.5, "z_i: %.2f против %.2f" % [c.z_i, float(m.z_i)])

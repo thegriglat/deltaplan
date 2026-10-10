@@ -1,0 +1,116 @@
+{
+  "status": "done",
+  "summary": "Собранные слои altai/askarovo/aushkul/ongudai убраны из пака (git mv в tests/fixtures/locations/<id>, формат кеша); ручные данные остались в configs/locations/<id>.json (поле data_dir убрано). Terrain.load_builtin(id) собирает место LocationBuilder.for_builtin в user://locations/<id> при первом выборе (экран загрузки со счётчиком работает), дальше кеш. pck 102.9 -> 79.8 МБ.",
+  "commits": [
+    "NO-8: встроенные места не в паке — собираются при первом выборе; тестовые фикстуры",
+    "NO-8: Terrain._ready собирает встроенное место, если его нет в кеше"
+  ],
+  "checks": [
+    {
+      "name": "dp accept NO-8 --dry",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "pck_mb до/после",
+      "value": "102.9 / 79.8",
+      "pass": true
+    },
+    {
+      "name": "сборка aushkul с пустым кешем (XDG пустой)",
+      "value": "55.8 с, 166 запросов (dem 16.5, rivers 19.3, surface 18.2), мир загружен; повторно из кеша 1.0 с",
+      "pass": true
+    },
+    {
+      "name": "доп. тесты osm_any, height_layer, trees_water, air_place, dem_stage",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_location",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "test_terrain",
+      "value": "15/15",
+      "pass": true
+    },
+    {
+      "name": "test_surface",
+      "value": "36/36",
+      "pass": true
+    },
+    {
+      "name": "test_built_patches",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "90/90",
+      "pass": true
+    },
+    {
+      "name": "test_eggs_no_osm",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "test_menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "test_collisions",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "no_osm_contracts",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "no_built_layers",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pck_size",
+      "value": "pck_mb 79.8 (до 102.9)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "pck 79.8, а не ~60 МБ: остальное — assets/ (чужая задача по текстурам)",
+    "tools/flight, weather, bench, wind_field используют синхронный load_location(встроенное): нужен собранный кеш (tools/terrain/build_location.gd --id <id> или один запуск игры); не переделывал"
+  ],
+  "questions": [],
+  "how_to_check": "dp accept NO-8; bash tools/release/pck_size.sh",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/location_builder.gd build()",
+      "why": "проверка формата/кеша теперь и для fixed-режима (build.json читается из user://locations/<id>), ensure_source_cache вызывается всегда",
+      "checked": "живая сборка aushkul + повторный запуск из кеша; test_location_builder/osm_any зелёные"
+    },
+    {
+      "where": "tools/terrain/parity/*, rebuild_cover.gd",
+      "why": "пути правлены на user://locations/<id> без запуска",
+      "checked": "не запускал (требуют сети/локальных копий)"
+    },
+    {
+      "where": "tools/release/pck_size.sh",
+      "why": "скрипта не было, создал; пресет Linux, мерил 'до' в временной worktree ветки feature/no-osm",
+      "checked": "выдаёт pck_mb 79.8; на старой базе 102.9"
+    }
+  ],
+  "dp_feedback": "Нет команды для замера до/после на базе ветки (пришлось worktree вручную); dp task sync падал на неотслеживаемых .uid, совпадающих с входящими — сообщение не называло файлы.",
+  "extra": {
+    "changelog_line": "встроенные места скачиваются при первом выборе",
+    "first_build_s": 55.8,
+    "first_build_requests": 166
+  },
+  "t": "2026-10-10T06:34:04",
+  "by": "executor"
+}

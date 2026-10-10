@@ -94,7 +94,7 @@ func test_terrain_set_sun_recomputes_shadow() -> void:
 
 
 func test_compute_time_40km() -> void:
-	var dir := "res://data/terrain/ongudai"
+	var dir := Locations.data_dir("ongudai")
 	var meta: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string(dir.path_join("meta.json"))
 	)

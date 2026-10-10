@@ -1,0 +1,133 @@
+{
+  "status": "done",
+  "summary": "SurfaceStage пишет канал A detail10 = max(вода WorldCover 3x3, маска рек по рельефу), detail_built10.png, built_patches.json, surface.json->built10; BuiltPatches по N2; покров 4 мест пересобран (канал L побитово прежний). dp accept NO-1 --dry: 7/7.",
+  "commits": [
+    "8c38e399 вода и застройка 10 м из WorldCover, пятна, BuiltPatches",
+    "9d1bcba9 .import масок застройки — keep"
+  ],
+  "checks": [
+    {
+      "name": "dp accept NO-1 --dry",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "канал L у 4 мест",
+      "value": "побитово равен прежнему",
+      "pass": true
+    },
+    {
+      "name": "area_vs_classes",
+      "value": "askarovo 0.89, altai 0.92, aushkul 0.83, ongudai 0.86",
+      "pass": true
+    },
+    {
+      "name": "for_terrain",
+      "value": "1.8-3.1 мс (предел 20)",
+      "pass": true
+    },
+    {
+      "name": "no_osm_contracts_n1",
+      "value": "PASS (dp accept NO-1)",
+      "pass": true
+    },
+    {
+      "name": "test_surface",
+      "value": "PASS (dp accept NO-1)",
+      "pass": true
+    },
+    {
+      "name": "test_location_builder",
+      "value": "PASS (dp accept NO-1)",
+      "pass": true
+    },
+    {
+      "name": "test_built_patches",
+      "value": "PASS (dp accept NO-1)",
+      "pass": true
+    },
+    {
+      "name": "aushkul_water",
+      "value": "PASS (dp accept NO-1)",
+      "pass": true
+    },
+    {
+      "name": "test_trees_water",
+      "value": "PASS (dp accept NO-1)",
+      "pass": true
+    },
+    {
+      "name": "area_vs_classes",
+      "value": "PASS (dp accept NO-1)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Пороги пятен threshold 0.5, min_area_m2 3000 выбраны с первого раза (ratio к class_fraction[7] 0.83-0.92); медиана пятна 6300 м2, много мелких (askarovo: 272 из 403 < 1 га). Для NO-2 хватит или поднять min_area?"
+  ],
+  "how_to_check": "tools/dp accept NO-1 --dry; пересборка покрова: XDG_DATA_HOME=/tmp/no1_xdg godot --headless --path . -s res://tools/terrain/rebuild_cover.gd -- --id <id> --local (~6 с на место, сеть не нужна)",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/surface_stage.gd:_band_detail10",
+      "why": "маска рек (сетка слоя 25 м, мягкая кромка) переносится на сетку 10 м билинейно, а не растеризацией сегментов на 10 м; рек в ctx нет, только <id>_water.png",
+      "checked": "ось реки Онгудая: surface_at вода 50/50, в 300 м не вода 36/50"
+    },
+    {
+      "where": "scripts/terrain/built_patches.gd:share_at",
+      "why": "растр built10 читается лениво при первом share_at (PNG 4001x4001 в for_terrain не укладывается в бюджет без ленивости не проверял), первый вызов тяжелее O(1)",
+      "checked": "for_terrain 1.8-3.1 мс без растра"
+    },
+    {
+      "where": "tests/terrain/test_surface.gd:test_river_axis_is_water",
+      "why": "эталон осей рек теперь маска рек detail_water.png (OSM-рек в воде больше нет), порог off-axis 70 % при +300 м (получено 72 %) близок к границе",
+      "checked": "прогон 37/37; IoU Аушкуля с OSM 0.907"
+    },
+    {
+      "where": "data/terrain/*/detail_built10.png.import",
+      "why": "редактор при импорте создал importer texture; заменил на keep как у detail10",
+      "checked": "импорт повторён, ctex остаётся, но .import закоммичен keep"
+    }
+  ],
+  "dp_feedback": "Не хватило команды пересборки одной стадии для встроенного места (написал tools/terrain/rebuild_cover.gd); новый class_name требует godot --import перед dp accept, иначе тест не загружается.",
+  "extra": {
+    "places": {
+      "askarovo": {
+        "patches": 403,
+        "area_m2": 9864500,
+        "largest_m2": 1744900,
+        "water_before": 0.0227,
+        "water_after": 0.0219,
+        "for_terrain_ms": 2.7
+      },
+      "altai": {
+        "patches": 407,
+        "area_m2": 17204400,
+        "largest_m2": 6508500,
+        "water_before": 0.0139,
+        "water_after": 0.0127,
+        "for_terrain_ms": 3.1
+      },
+      "aushkul": {
+        "patches": 218,
+        "area_m2": 2905400,
+        "largest_m2": 185700,
+        "water_before": 0.0136,
+        "water_after": 0.0138,
+        "for_terrain_ms": 1.9
+      },
+      "ongudai": {
+        "patches": 109,
+        "area_m2": 2210500,
+        "largest_m2": 629200,
+        "water_before": 0.0049,
+        "water_after": 0.0084,
+        "for_terrain_ms": 1.8
+      }
+    },
+    "config": "world.json surface.built: threshold 0.5, min_area_m2 3000",
+    "surface_png": "detail_surface.png/far_surface.png не изменились"
+  },
+  "t": "2026-10-10T03:59:19",
+  "by": "executor"
+}

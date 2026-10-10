@@ -1,0 +1,172 @@
+{
+ "place": "ongudai",
+ "extent_km2": 1600.0,
+ "area_km2": {
+  "worldcover_raw_frac_sum": 3.43,
+  "worldcover_raw_mask05": 3.414,
+  "class25_water": 3.408,
+  "osm_channel_A": 8.568,
+  "osm_lakes_polygons_raster": 4.507,
+  "osm_lakes_polygons_exact": 8.167,
+  "rivers_mask_25m": 13.546
+ },
+ "iou_wc_vs_osm_lakes_whole": 0.526,
+ "iou_wc_vs_A05_whole": 0.3287,
+ "H_water_frac_disk10km": {
+  "H0_rivers_mask_only(before SH-4)": 0.0096,
+  "H1_rivers+class25(no OSM)": 0.0101,
+  "H2_rivers+class25+A(now)": 0.0118,
+  "H3_rivers+class25+A_without_OSM_lakes": 0.011,
+  "H4_rivers+WC10m(proposed:A:=WC)": 0.0101,
+  "H5_rivers+class25+WC10m+OSM_rivers_in_A": 0.0111,
+  "class25_only": 0.0013,
+  "A_only": 0.0039,
+  "WC10m_only": 0.0014
+ },
+ "biggest_lakes": [
+  {
+   "name": "Катунь",
+   "osm_polygon_km2": 3.494,
+   "wc_raw_km2_in_window": 0.7007,
+   "wc_covers_osm_polygon": 0.906,
+   "iou_wc_osm": 0.817,
+   "class25_km2": 0.7025,
+   "A_km2": 0.7001,
+   "H_nodes_class25_only_km2": 1.0137,
+   "H_nodes_now_km2": 1.0175,
+   "wc_codes_inside_polygon": {
+    "80": 0.904,
+    "10": 0.035,
+    "60": 0.031
+   }
+  },
+  {
+   "name": "Катунь",
+   "osm_polygon_km2": 1.9708,
+   "wc_raw_km2_in_window": 2.0427,
+   "wc_covers_osm_polygon": 0.852,
+   "iou_wc_osm": 0.734,
+   "class25_km2": 2.0513,
+   "A_km2": 2.2179,
+   "H_nodes_class25_only_km2": 3.1744,
+   "H_nodes_now_km2": 3.405,
+   "wc_codes_inside_polygon": {
+    "80": 0.852,
+    "10": 0.08,
+    "30": 0.044
+   }
+  },
+  {
+   "name": "",
+   "osm_polygon_km2": 0.9815,
+   "wc_raw_km2_in_window": 0.2234,
+   "wc_covers_osm_polygon": 0.413,
+   "iou_wc_osm": 0.36,
+   "class25_km2": 0.2094,
+   "A_km2": 0.4707,
+   "H_nodes_class25_only_km2": 1.2119,
+   "H_nodes_now_km2": 1.385,
+   "wc_codes_inside_polygon": {
+    "80": 0.414,
+    "30": 0.382,
+    "10": 0.141
+   }
+  },
+  {
+   "name": "",
+   "osm_polygon_km2": 0.4297,
+   "wc_raw_km2_in_window": 0.0857,
+   "wc_covers_osm_polygon": 0.138,
+   "iou_wc_osm": 0.123,
+   "class25_km2": 0.0919,
+   "A_km2": 0.3802,
+   "H_nodes_class25_only_km2": 0.9806,
+   "H_nodes_now_km2": 1.14,
+   "wc_codes_inside_polygon": {
+    "30": 0.545,
+    "10": 0.252,
+    "80": 0.137
+   }
+  }
+ ],
+ "size_classes": [
+  {
+   "class": "<0.5 га",
+   "n_osm": 12,
+   "n_detected_ge50pct": 0,
+   "osm_area_km2": 0.0139,
+   "wc_inside_osm_km2": 0.0
+  },
+  {
+   "class": "0.5–2 га",
+   "n_osm": 1,
+   "n_detected_ge50pct": 0,
+   "osm_area_km2": 0.0051,
+   "wc_inside_osm_km2": 0.001
+  },
+  {
+   "class": "2–10 га",
+   "n_osm": 1,
+   "n_detected_ge50pct": 0,
+   "osm_area_km2": 0.0963,
+   "wc_inside_osm_km2": 0.0509
+  },
+  {
+   "class": "10–100 га",
+   "n_osm": 6,
+   "n_detected_ge50pct": 0,
+   "osm_area_km2": 2.5867,
+   "wc_inside_osm_km2": 0.337
+  },
+  {
+   "class": ">100 га",
+   "n_osm": 2,
+   "n_detected_ge50pct": 2,
+   "osm_area_km2": 5.4648,
+   "wc_inside_osm_km2": 2.3414
+  }
+ ],
+ "wc_water_not_in_osm_km2": 0.548,
+ "largest_osm_lakes_missed_by_wc": [
+  {
+   "name": "",
+   "osm_km2": 0.4297,
+   "wc_cover": 0.138,
+   "wc_codes_inside": {
+    "30": 0.545,
+    "10": 0.252,
+    "80": 0.137
+   }
+  },
+  {
+   "name": "",
+   "osm_km2": 0.3706,
+   "wc_cover": 0.025,
+   "wc_codes_inside": {
+    "10": 0.514,
+    "30": 0.437,
+    "80": 0.028
+   }
+  },
+  {
+   "name": "",
+   "osm_km2": 0.3021,
+   "wc_cover": 0.102,
+   "wc_codes_inside": {
+    "30": 0.764,
+    "10": 0.111,
+    "80": 0.101
+   }
+  },
+  {
+   "name": "",
+   "osm_km2": 0.2631,
+   "wc_cover": 0.19,
+   "wc_codes_inside": {
+    "10": 0.475,
+    "30": 0.31,
+    "80": 0.19
+   }
+  }
+ ]
+}

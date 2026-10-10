@@ -1,0 +1,66 @@
+{
+  "_doc": "Собрано SurfaceStage (scripts/terrain/build/surface_stage.gd) — не править руками.",
+  "attribution": [
+    "© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium; CC-BY 4.0"
+  ],
+  "layers": [
+    {
+      "built10": {
+        "built_fraction": 0.004,
+        "file": "detail_built10.webp",
+        "patches": 218,
+        "patches_file": "built_patches.json"
+      },
+      "class_fraction": {
+        "0": 0.0,
+        "1": 0.5121,
+        "2": 0.387,
+        "3": 0.0868,
+        "4": 0.0,
+        "5": 0.0004,
+        "6": 0.0116,
+        "7": 0.0022,
+        "8": 0.0
+      },
+      "detail10": {
+        "channels": "L — доля леса (0..255, WorldCover), A — вода (0..255): max(доля воды WorldCover 10 м по подвыборкам, маска рек по рельефу)",
+        "file": "detail_detail10.webp",
+        "forest_fraction": 0.5114,
+        "height": 4001,
+        "origin_x_m": -20000.0,
+        "origin_z_m": -20000.0,
+        "spacing_m": 10.0,
+        "water_fraction": 0.0138,
+        "width": 4001
+      },
+      "file": "detail_surface.webp",
+      "height": 1601,
+      "id": "detail",
+      "origin_x_m": -20000.0,
+      "origin_z_m": -20000.0,
+      "spacing_m": 25.0,
+      "width": 1601
+    },
+    {
+      "class_fraction": {
+        "0": 0.0,
+        "1": 0.5765,
+        "2": 0.2594,
+        "3": 0.1399,
+        "4": 0.0,
+        "5": 0.0021,
+        "6": 0.0147,
+        "7": 0.0075,
+        "8": 0.0
+      },
+      "file": "far_surface.webp",
+      "height": 1601,
+      "id": "far",
+      "origin_x_m": -80000.0,
+      "origin_z_m": -80000.0,
+      "spacing_m": 100.0,
+      "width": 1601
+    }
+  ],
+  "source": "ESA WorldCover 10 m 2021 v200"
+}

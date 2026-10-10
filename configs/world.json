@@ -551,7 +551,7 @@
       "attribution": "© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium"
     },
     "detail10": {
-      "_doc": "Маска «деталь 10 м» (T02) для детального слоя встроенных локаций: <слой>_detail10.png, R — доля леса в клетке 10 м из WorldCover без моды (резкая кромка леса в шейдере, Terrain.forest_at, surface_at на опушке), G — резерв (вода). Готовит SurfaceStage. Рантайм-локации (FR-17) — прежняя карта классов.",
+      "_doc": "Маска «деталь 10 м» (T02) для детального слоя встроенных локаций: <слой>_detail10.png, R — доля леса в клетке 10 м из WorldCover без моды (резкая кромка леса в шейдере, Terrain.forest_at, surface_at на опушке), A — вода: max(доля воды WorldCover по тем же подвыборкам, маска рек по рельефу) (NO-1, без OSM). Готовит SurfaceStage. Рантайм-локации (FR-17) — прежняя карта классов.",
       "layers": [
         "detail"
       ],
@@ -560,6 +560,13 @@
       "cell_m_doc": "Шаг маски, м",
       "subsamples": 3,
       "subsamples_doc": "Подвыборок k×k на клетку (доля леса = число лесных / k²)"
+    },
+    "built": {
+      "_doc": "Пятна застройки (NO-1, N1): из доли застройки WorldCover 10 м (detail_built10.png) — 8-связные компоненты клеток с долей ≥ threshold; пятна меньше min_area_m2 отбрасываются. Смысл: отсечь одиночные пиксели дорог, карьеров и отдельные постройки, оставить деревни и хутора. Результат — built_patches.json (SurfaceStage), читает BuiltPatches.",
+      "threshold": 0.5,
+      "threshold_doc": "Доля застройки в клетке 10 м (0..1), с которой клетка входит в пятно",
+      "min_area_m2": 3000,
+      "min_area_m2_doc": "Минимальная площадь пятна, м² (≈ 30 клеток 10 м; хутор из нескольких дворов — больше)"
     },
     "runtime": {
       "_doc": "Рантайм-загрузка карты поверхности для load_location_latlon (FR-17). Нет сети — запасная процедурная классификация (fallback).",
@@ -670,7 +677,7 @@
   "location_builder": {
     "_doc": "Сборка места для любой точки в игре (osm-any, docs/contracts/osm-any.md OA-К3/OA-К4): те же слои и параметры, что у встроенных мест; кеш user://locations/<ключ>.",
     "version": 1,
-    "version_doc": "Версия сборщика: место в кеше с другой версией собирается заново",
+    "version_doc": "Не используется: версия формата места — Locations.FORMAT_VERSION (build.json -> format_version), сырых блоков — LocationCache.SOURCE_VERSION",
     "cache_dir": "user://locations",
     "snap_deg": 0.05,
     "snap_deg_doc": "Шаг сетки центра места, градусы: соседние точки берут одно место",

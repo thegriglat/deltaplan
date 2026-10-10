@@ -1,8 +1,8 @@
 class_name WorldClearings
 extends RefCounted
 ## Просеки для расстановки деревьев рельефа: где деревьев быть не должно —
-## дороги (ширина + обочина), коридоры ЛЭП, здания с отступом, поля посадок.
-## Маска-картинка L8 (255 — расчищено) в координатах мира; строится из OSM места (Locations.osm_path),
+## поля посадок, тропы к стартам, дома посёлков.
+## Маска-картинка L8 (255 — расчищено) в координатах мира; строится из
 ## configs/locations/<id>.json (центр, landing_sites) и
 ## configs/world_objects.json (посадки, параметры — раздел clearings).
 ## Без нод, можно звать из terrain.
@@ -10,6 +10,8 @@ extends RefCounted
 ##   c.is_clear_at(x, z)  /  c.image, c.origin (x, z угла пикселя 0,0), c.cell_m
 
 const CLEAR := 255
+## Половина стороны маски, если у места нет слоёв рельефа, м.
+const DEFAULT_HALF_SIZE_M := 20000.0
 
 var image: Image
 ## Мир (x, z) левого верхнего угла пикселя (0, 0): x растёт вправо (восток), z — вниз (юг).
@@ -26,11 +28,10 @@ static func build_for(location_id: String) -> WorldClearings:
 	var cfg := WorldObjects.load_config()
 	var lat0 := float(loc.center_lat)
 	var lon0 := float(loc.center_lon)
-	var half := float(cfg.osm.half_size_m)
+	var half := DEFAULT_HALF_SIZE_M
 	var layers: Array = loc.get("dem", {}).get("layers", [])
 	if not layers.is_empty():
 		half = float(layers[0].size_km) * 500.0
-	var osm := OsmData.load_file(Locations.osm_path(location_id), lat0, lon0)
 	var landings: Array = []
 	for spec in WorldObjects.landing_specs(cfg.landing, location_id, loc.get("landing_sites", [])):
 		var p := TerrainGeo.latlon_to_local(float(spec.lat), float(spec.lon), lat0, lon0)
@@ -41,13 +42,28 @@ static func build_for(location_id: String) -> WorldClearings:
 		for s in loc.get("start_sites", []):
 			var p := TerrainGeo.latlon_to_local(float(s.lat), float(s.lon), lat0, lon0)
 			starts.append({"position": Vector3(p.x, 0.0, p.y)})
-		var dem_dir := String(loc.get("data_dir", "res://data/terrain/" + location_id))
+		var dem_dir := Locations.data_dir(location_id)
 		var height_fn := _load_height_fn(dem_dir)
 		if height_fn.is_valid():
-			tracks = StartTracks.plan(starts, osm, cfg.start_tracks, height_fn)
+			tracks = StartTracks.plan(starts, cfg.start_tracks, height_fn)
+	var houses: Array = []
+	var dem_dir2 := Locations.data_dir(location_id)
+	var hf := _load_height_fn(dem_dir2)
+	if hf.is_valid():
+		houses = VillagePlacer.plan(patches_for_location(location_id), location_id, cfg.villages, hf)
 	var c := WorldClearings.new()
-	c.build(osm, landings, cfg, half, tracks)
+	c.build(landings, cfg, half, tracks, houses)
 	return c
+
+
+## Пятна застройки места по id (без ноды Terrain); пустые, если места или файлов нет.
+static func patches_for_location(location_id: String) -> BuiltPatches:
+	var loc: Dictionary = Locations.config(location_id)
+	if loc.is_empty():
+		return BuiltPatches.new()
+	return VillagePlacer.patches_for_dir(
+		Locations.data_dir(location_id)
+	)
 
 
 ## Высота по данным рельефа локации (<data_dir>/meta.json), как Terrain.height_at, но без
@@ -71,10 +87,10 @@ static func _load_height_fn(dir: String) -> Callable:
 		return layers[layers.size() - 1].sample(x, z)
 
 
-## osm может быть null (только посадки). landings — спецификации посадок с x, z (мир).
+## landings — спецификации посадок с x, z (мир).
 ## tracks — тропы к стартам (StartTracks.plan), мир (x, z) — не растут деревья.
 func build(
-	osm: OsmData, landings: Array, cfg: Dictionary, half_size_m: float, tracks: Array = []
+	landings: Array, cfg: Dictionary, half_size_m: float, tracks: Array = [], houses: Array = []
 ) -> void:
 	var t0 := Time.get_ticks_usec()
 	var cc: Dictionary = cfg.clearings
@@ -82,16 +98,15 @@ func build(
 	var n := ceili(2.0 * half_size_m / cell_m)
 	origin = Vector2(-half_size_m, -half_size_m)
 	image = Image.create_empty(n, n, false, Image.FORMAT_L8)
-	if osm != null:
-		_roads(osm.roads, cfg.roads.classes, float(cc.road_margin_m))
-		_power(osm.power, cfg.power, cc)
-		_buildings(osm.buildings, float(cc.building_margin_m))
 	for l in landings:
 		_landing(l, float(cc.landing_margin_m))
 	var track_half := float(cfg.start_tracks.width_m) * 0.5 + float(cc.start_track_margin_m)
 	for pts in tracks:
 		if (pts as PackedVector2Array).size() >= 2:
 			stamp_line(pts, track_half)
+	var margin := float(cc.get("house_margin_m", 3.0))
+	for b: Array in houses:
+		stamp(float(b[0]), float(b[1]), maxf(float(b[2]), float(b[3])) * 0.5 + margin)
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 
 
@@ -127,27 +142,6 @@ func stamp_line(pts: PackedVector2Array, half: float) -> void:
 		for s in k + 1:
 			var p := a.lerp(b, float(s) / k)
 			stamp(p.x, p.y, half)
-
-
-func _roads(roads: Array, classes: Dictionary, margin: float) -> void:
-	for r in roads:
-		if classes.has(r.t):
-			stamp_line(OsmData.points(r.p), float(classes[r.t][0]) * 0.5 + margin)
-
-
-func _power(lines: Array, pcfg: Dictionary, cc: Dictionary) -> void:
-	for l in lines:
-		var high := (
-			String(l.get("k", "line")) == "line"
-			and (float(l.get("v", 0.0)) <= 0.0 or float(l.v) >= float(pcfg.high_voltage_kv))
-		)
-		var w := float(cc.power_corridor_high_m if high else cc.power_corridor_low_m)
-		stamp_line(OsmData.points(l.p), w * 0.5)
-
-
-func _buildings(buildings: Array, margin: float) -> void:
-	for b in buildings:
-		stamp(float(b[0]), float(b[1]), Vector2(float(b[2]), float(b[3])).length() * 0.5 + margin)
 
 
 func _landing(l: Dictionary, margin: float) -> void:

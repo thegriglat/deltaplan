@@ -1,0 +1,20 @@
+{
+  "built_utc": "2026-10-09T14:08:29Z",
+  "center_lat": 54.72,
+  "center_lon": 59.69,
+  "complete": true,
+  "format_version": 2,
+  "key": "aushkul",
+  "missing": [],
+  "net_requests": 0,
+  "seconds": {
+    "dem": 3.9,
+    "rivers": 21.83,
+    "surface": 9.83
+  },
+  "sources": [
+    "copernicus",
+    "terrarium",
+    "worldcover"
+  ]
+}

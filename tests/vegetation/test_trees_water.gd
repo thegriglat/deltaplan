@@ -19,7 +19,7 @@ func _locations() -> PackedStringArray:
 	var out := PackedStringArray()
 	for f in DirAccess.get_files_at("res://configs/locations"):
 		var id := f.get_basename()
-		if f.ends_with(".json") and DirAccess.dir_exists_absolute("res://data/terrain/" + id):
+		if f.ends_with(".json") and DirAccess.dir_exists_absolute(Locations.data_dir(id)):
 			out.append(id)
 	return out
 
@@ -135,19 +135,3 @@ func _check_location(id: String, t: Terrain) -> void:
 	check(bank_k >= 0.5, "%s: у берега плотность ×%.2f" % [id, bank_k])
 
 
-func test_osm_water_rings_closed_islands_cut() -> void:
-	# водоёмы OSM — замкнутые кольца (мультиполигоны собраны из участков, а не замкнуты хордой
-	# каждый: хорда заливала пойму водой прямо по лесу), острова — дыры
-	var holes := 0
-	for id in _locations():
-		var osm := OsmData.load_file(Locations.osm_path(id))
-		if osm == null:
-			continue
-		var open := 0
-		for lk: Dictionary in osm.lakes:
-			var p: Array = lk.p
-			if p.size() < 6 or p[0] != p[p.size() - 2] or p[1] != p[p.size() - 1]:
-				open += 1
-			holes += (lk.get("h", []) as Array).size()
-		check(open == 0, "%s: незамкнутых водоёмов %d" % [id, open])
-	check(holes > 50, "острова-дыры в водоёмах: %d" % holes)

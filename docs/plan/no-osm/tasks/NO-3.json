@@ -1,0 +1,79 @@
+{
+  "id": "NO-3",
+  "module": "no-osm",
+  "type": "dp-engineer",
+  "title": "Пасхалки без OSM: места из пятен застройки и рельефа, УАЗ по бездорожью",
+  "goal": "Ан-2, стада, шары и УАЗ появляются в любой точке без OSM так же часто, как раньше со встроенным OSM: посёлки — пятна застройки BuiltPatches или опорные точки по рельефу, вода — покров и реки по рельефу, УАЗ — по ровному открытому грунту вдоль долины.",
+  "plan_ref": "NO-3",
+  "contracts": [
+    {
+      "name": "К8",
+      "version": "4",
+      "ref": "docs/contracts/no-osm.md"
+    },
+    {
+      "name": "N2",
+      "version": "1",
+      "ref": "docs/contracts/no-osm.md"
+    }
+  ],
+  "copy": "~/deltaplan-no-osm-NO-3",
+  "branch": "no-osm/NO-3",
+  "base": "feature/no-osm",
+  "scope": [
+    "scripts/world_objects/egg_place.gd",
+    "scripts/world_objects/easter_eggs/",
+    "scripts/world_objects/easter_eggs.gd",
+    "configs/easter_eggs.json",
+    "tests/world_objects/test_egg*",
+    "tests/world_objects/test_easter_eggs.gd",
+    "tests/world_objects/test_world_objects.gd",
+    "tests/world_objects/test_eggs_no_osm.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/",
+    "scripts/world_objects/osm_layer.gd",
+    "scripts/world_objects/building_placer.gd",
+    "data/",
+    "docs/contracts/",
+    "tests/contracts/",
+    "scripts/world_objects/osm_data.gd",
+    "scripts/world_objects/start_tracks.gd"
+  ],
+  "accept": [
+    {
+      "name": "no_osm_contracts_k8",
+      "tests": "no_osm_contracts_k8"
+    },
+    {
+      "name": "test_egg",
+      "tests": "test_egg"
+    },
+    {
+      "name": "test_easter_eggs",
+      "tests": "test_easter_eggs"
+    },
+    {
+      "name": "test_eggs_no_osm",
+      "tests": "test_eggs_no_osm"
+    },
+    {
+      "name": "test_world_objects",
+      "tests": "test_world_objects"
+    },
+    {
+      "name": "no_osm_in_eggs",
+      "cmd": "! grep -nE 'osm|Osm|OSM' scripts/world_objects/egg_place.gd scripts/world_objects/easter_eggs/*.gd scripts/world_objects/easter_eggs.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_osm_in_egg_tests",
+      "cmd": "! grep -nlE 'OsmData|osm_path|\\.osm\\b' tests/world_objects/test_egg*.gd tests/world_objects/test_easter_eggs.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T03:50:28",
+  "edited": "2026-10-10T04:05:09"
+}

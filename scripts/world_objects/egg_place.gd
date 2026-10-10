@@ -1,20 +1,18 @@
 class_name EggPlace
 extends RefCounted
-## Место для пасхалок (docs/contracts/easter-eggs.md → К8): дешёвые проверки «логично ли здесь»
-## по рельефу, карте поверхности, OSM локации и лагерю. ТОЛЬКО ЧТЕНИЕ: рельеф, OSM и
-## WorldObjects не меняются. Нет данных (OSM, WorldCover) → «нет»: {} / [] / INF / NONE.
+## Место для пасхалок (docs/contracts/easter-eggs.md → К8 v4): дешёвые проверки «логично ли здесь»
+## по рельефу, карте поверхности (WorldCover), пятнам застройки и лагерю. ТОЛЬКО ЧТЕНИЕ: рельеф,
+## покров и WorldObjects не меняются. Нет данных → «нет»: {} / [] / INF / NONE.
 ## Строит планировщик один раз на полёт (EasterEggs), пороги — configs/easter_eggs.json → place.
 
 var build_ms := 0.0  ## сколько строилось, мс (для тестов)
 var _terrain: Terrain
-var _osm: OsmData
 var _camp: Array[Dictionary] = []
 var _cfg: Dictionary = {}
 var _valley := 0.0
-var _road_cache := {}  ## ключ классов → Array[PackedVector2Array]
-var _road_cells := {}  ## ключ классов → {Vector2i ячейка ROAD_CELL_M: true}, где есть дорога (PF-12)
-var _water_lines: Array = []  ## PackedVector2Array: реки и контуры озёр
-var _water_ready := false
+var _places: Array[Dictionary] = []
+var _places_ready := false
+var _place_xz := PackedVector2Array()  ## центры places() для быстрого поиска ближайшего
 
 
 ## terrain — рельеф (null → пустое место: высота 0, всё «нет»); objects — WorldObjects или null;
@@ -27,8 +25,6 @@ static func build(terrain: Terrain, objects: Node = null, place_cfg: Dictionary 
 	if p._cfg.is_empty():
 		p._cfg = Config.get_config("easter_eggs").get("place", {})
 	if objects != null:
-		var o: Variant = objects.get("osm")
-		p._osm = o as OsmData
 		var c: Variant = objects.get("camp")
 		if c is Array:
 			for d in c:
@@ -80,87 +76,142 @@ func is_mountain(x: float, z: float) -> bool:
 	)
 
 
-## Ближайший посёлок OSM {n, t, x, z, pop, dist_m}; {} — нет данных.
+## «Посёлки» места (копия): пятна застройки WorldCover (BuiltPatches) {x, z, radius_m, src: "built"};
+## нет пятен — опорные точки по рельефу {x, z, radius_m, src: "relief"}. Считается один раз.
+func places() -> Array[Dictionary]:
+	_ensure_places()
+	return _places.duplicate()
+
+
+## Ближайший из places() + dist_m; {} — places() пуст.
 func nearest_place(x: float, z: float) -> Dictionary:
-	if _osm == null:
-		return {}
-	var best := {}
+	_ensure_places()
+	var best := -1
 	var best_d := INF
-	for pl in _osm.places:
-		var d := Vector2(float(pl.x) - x, float(pl.z) - z).length()
+	var q := Vector2(x, z)
+	for i in _place_xz.size():
+		var d := q.distance_squared_to(_place_xz[i])
 		if d < best_d:
 			best_d = d
-			best = pl
-	if best.is_empty():
+			best = i
+	if best < 0:
 		return {}
-	var out: Dictionary = best.duplicate()
-	out["dist_m"] = best_d
+	var out: Dictionary = _places[best].duplicate()
+	out["dist_m"] = sqrt(best_d)
 	return out
 
 
-## Дороги OSM этих классов (highway): Array[PackedVector2Array]; [] — нет.
-func roads(classes: PackedStringArray) -> Array:
-	if _osm == null:
-		return []
-	var key := ",".join(classes)
-	if not _road_cache.has(key):
-		var out: Array = []
-		for r in _osm.roads:
-			if classes.has(String(r.get("t", ""))):
-				out.append(OsmData.points(r.p))
-		_road_cache[key] = out
-	return _road_cache[key]
+func _ensure_places() -> void:
+	if _places_ready:
+		return
+	_places_ready = true
+	if _terrain == null:
+		return
+	for p in BuiltPatches.for_terrain(_terrain).patches():
+		_places.append(
+			{"x": float(p.x), "z": float(p.z), "radius_m": sqrt(float(p.area_m2) / PI), "src": "built"}
+		)
+	if _places.is_empty():
+		_places = _relief_places()
+	for p in _places:
+		_place_xz.append(Vector2(p.x, p.z))
 
 
-const ROAD_CELL_M := 64.0
+## Опорные точки по рельефу, когда пятен застройки нет: низко над дном долины, ровно, открытый
+## грунт, ближе к воде. Сетка шагом relief_step_m в круге valley_radius_m; лучшие по оценке,
+## не ближе relief_gap_m друг к другу. Порядок детерминирован.
+func _relief_places() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var rad := float(_cfg.get("valley_radius_m", 10000.0))
+	var step := float(_cfg.get("relief_step_m", 500.0))
+	var low := float(_cfg.get("relief_above_valley_m", 200.0))
+	var slope_max := float(_cfg.get("relief_slope_deg", 5.0))
+	var water_m := float(_cfg.get("relief_water_m", 1500.0))
+	var cand: Array = []
+	var n := int(rad / step)
+	for j in range(-n, n + 1):
+		for i in range(-n, n + 1):
+			var x := i * step
+			var z := j * step
+			if x * x + z * z > rad * rad:
+				continue
+			if above_valley_m(x, z) > low or slope_deg_at(x, z) > slope_max:
+				continue
+			var sf := surface_at(x, z)
+			if not (sf == SurfaceLayer.GRASS or sf == SurfaceLayer.CROP or sf == SurfaceLayer.SHRUB or sf == SurfaceLayer.NONE):
+				continue
+			cand.append({"x": x, "z": z, "score": above_valley_m(x, z)})
+	cand.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.score < b.score)
+	# воду (дорогая) считаем только для лучших по высоте над дном
+	cand = cand.slice(0, int(_cfg.get("relief_water_candidates", 40)))
+	for c in cand:
+		var w := near_water_m(float(c.x), float(c.z), water_m)
+		c.score = float(c.score) + (w if not is_inf(w) else water_m * 2.0) * 0.1
+	cand.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.score < b.score)
+	var gap := float(_cfg.get("relief_gap_m", 2000.0))
+	var max_n := int(_cfg.get("relief_places_max", 6))
+	var min_n := int(_cfg.get("relief_places_min", 3))
+	while true:
+		out.clear()
+		for c in cand:
+			if out.size() >= max_n:
+				break
+			var ok := true
+			for o in out:
+				if Vector2(c.x - o.x, c.z - o.z).length() < gap:
+					ok = false
+					break
+			if ok:
+				(
+					out
+					. append(
+						{
+							"x": c.x,
+							"z": c.z,
+							"radius_m": float(_cfg.get("relief_radius_m", 150.0)),
+							"src": "relief"
+						}
+					)
+				)
+		if out.size() >= min_n or gap < 250.0:
+			break
+		gap *= 0.5  # точек мало — разрешить ближе друг к другу
+	return out
 
 
-## Дешёвый отсев (O(1)): false — дороги этих классов в пределах max_m (≤ 16 м) от точки заведомо
-## нет; true — возможно есть (проверить nearest_road_m). Без отсева поиск места для УАЗа гонял
-## по 16 тыс. точек дорог ~500 раз за кадр (рывок 1,7–2,8 с на старте полёта, PF-12).
-func road_maybe_near(x: float, z: float, classes: PackedStringArray) -> bool:
-	if _osm == null:
-		return false
-	var key := ",".join(classes)
-	if not _road_cells.has(key):
-		var cells := {}
-		for line in roads(classes):
-			var pts: PackedVector2Array = line
-			for i in pts.size():
-				_mark_cell(cells, pts[i])
-				if i + 1 < pts.size():
-					var n := int(ceil(pts[i].distance_to(pts[i + 1]) / (ROAD_CELL_M * 0.5)))
-					for k in range(1, n):
-						_mark_cell(cells, pts[i].lerp(pts[i + 1], float(k) / float(n)))
-		_road_cells[key] = cells
-	var cells: Dictionary = _road_cells[key]
-	var c := Vector2i(floori(x / ROAD_CELL_M), floori(z / ROAD_CELL_M))
-	for dx in range(-1, 2):
-		for dz in range(-1, 2):
-			if cells.has(Vector2i(c.x + dx, c.y + dz)):
-				return true
-	return false
-
-
-static func _mark_cell(cells: Dictionary, p: Vector2) -> void:
-	cells[Vector2i(floori(p.x / ROAD_CELL_M), floori(p.y / ROAD_CELL_M))] = true
-
-
-func nearest_road_m(x: float, z: float, classes: PackedStringArray) -> float:
-	return _dist_to_lines(Vector2(x, z), roads(classes))
-
-
-## До реки или озера OSM, м (для озера — до контура); INF — нет данных.
-func near_water_m(x: float, z: float) -> float:
-	if _osm == null:
+## До воды, м: класс WATER покрова (в нём маска воды 10 м и реки по рельефу); поиск кольцами
+## шагом max(25, max_m/20) м до max_m (по умолчанию place.water_search_m); дальше — INF. Не для каждого кадра.
+func near_water_m(x: float, z: float, max_m := -1.0) -> float:
+	if _terrain == null:
 		return INF
-	if not _water_ready:
-		_water_ready = true
-		for r in _osm.rivers:
-			_water_lines.append(OsmData.points(r.p))
-		for l in _osm.lakes:
-			_water_lines.append(OsmData.points(l.p))
-	return _dist_to_lines(Vector2(x, z), _water_lines)
+	var lim := max_m if max_m > 0.0 else float(_cfg.get("water_search_m", 1500.0))
+	var step := maxf(25.0, lim / 20.0)
+	if _is_water(x, z):
+		return 0.0
+	var r := step
+	while r <= lim:
+		var n := maxi(8, int(TAU * r / step))
+		for k in n:
+			var a := TAU * float(k) / float(n)
+			if _is_water(x + cos(a) * r, z + sin(a) * r):
+				return r
+		r += step
+	return INF
+
+
+## Вода в точке: как первая ветка Terrain.surface_at (маска воды 10 м, в ней реки по рельефу; иначе
+## класс карты поверхности), но без нормали — на порядок дешевле.
+func _is_water(x: float, z: float) -> bool:
+	var sl: SurfaceLayer = null
+	for l in _terrain.surfaces:
+		if l != null and l.contains(x, z):
+			sl = l
+			break
+	if sl == null:
+		return false
+	if sl.mask_contains(x, z):
+		return sl.mask_g(x, z) >= 0.5
+	return sl.class_at(x, z) == SurfaceLayer.WATER
 
 
 ## Старты локации (копия).
@@ -186,18 +237,3 @@ func find_point(
 		if accept.is_null() or bool(accept.call(x, z)):
 			return Vector3(x, height_at(x, z), z)
 	return null
-
-
-static func _dist_to_lines(p: Vector2, lines: Array) -> float:
-	var best := INF
-	for line in lines:
-		var pts: PackedVector2Array = line
-		if pts.size() == 1:
-			best = minf(best, p.distance_squared_to(pts[0]))
-		for i in range(pts.size() - 1):
-			var a := pts[i]
-			var ab := pts[i + 1] - a
-			var l2 := ab.length_squared()
-			var t := 0.0 if l2 < 1.0e-9 else clampf((p - a).dot(ab) / l2, 0.0, 1.0)
-			best = minf(best, p.distance_squared_to(a + ab * t))
-	return sqrt(best) if not is_inf(best) else INF

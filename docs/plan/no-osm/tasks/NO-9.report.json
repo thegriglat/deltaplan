@@ -1,0 +1,106 @@
+{
+  "status": "partial",
+  "summary": "Высоты и растры мест в WebP lossless (N5), Locations.FORMAT_VERSION=2 в build.json, отдельная LocationCache.SOURCE_VERSION для terrain_cache, встроенные места переведены, BuiltPatches.for_dir (N2 v2). Приёмка 10/11: красный только no_osm_contracts_n1 — контрактный тест читает detail_built10.png (tests/contracts запрещён к правке).",
+  "commits": [
+    "см. git log no-osm/NO-9: WebP+версия, for_dir, параллельное чтение слоёв, тест height_layer, маски L8"
+  ],
+  "checks": [
+    {
+      "name": "webp_parity max_dh_m",
+      "value": "0.0625",
+      "pass": true
+    },
+    {
+      "name": "raster_mismatch",
+      "value": "0 (169 млн пикселей)",
+      "pass": true
+    },
+    {
+      "name": "read_ratio",
+      "value": "1.79 (0.74 с -> 1.33 с на 4 места)",
+      "pass": true
+    },
+    {
+      "name": "no_osm_contracts_n1",
+      "value": "1/2: test_n1_files читает detail_built10.png",
+      "pass": false
+    },
+    {
+      "name": "остальные пункты dp accept NO-9",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tests/contracts/test_no_osm_contracts_n1.gd:40 и test_osm_any_contracts.gd (K1: .f32.zst, PNG, L8 для water/surface/detail10) не обновлены: запрещено карточкой. Для n1: Image.load_from_file(dir + 'detail_built10.webp'), затем img.convert(FORMAT_L8) перед проверкой формата. test_osm_any_contracts test_k1_builtin_layout и test_k1_height_zst устарели под N5 и упадут. Размер кеша точки не замерен (нужна сеть)."
+  ],
+  "questions": [
+    "Обновить указанные контрактные тесты (координатор)?",
+    "Встроенные места переведены конвертером tools/terrain/convert_place_webp.gd из старых файлов, а не пересборкой из источников."
+  ],
+  "images": [],
+  "how_to_check": "dp accept NO-9; bash tools/terrain/parity/webp_parity.sh --time",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/surface_stage.gd _save",
+      "why": "RGB под нулевой альфой в detail10 НЕ обнуляю: L (лес) живёт при A=0 (воды нет), обнуление потеряло бы лес и нарушило бы побитовое равенство",
+      "checked": "raster_mismatch 0 по detail10"
+    },
+    {
+      "where": "height_layer.gd decode_rgb24",
+      "why": "параллельная групповая задача; чтение места 1.79x от старого, лимит 2",
+      "checked": "замер 3 прогона, 1.78-1.80; без параллели было 2.4"
+    },
+    {
+      "where": "configs/world.json location_builder.version",
+      "why": "ключ оставлен без действия: его требует test_osm_any_contracts",
+      "checked": "version_doc обновлён"
+    },
+    {
+      "where": "LocationCache.ensure_source_cache",
+      "why": "кеш блоков без файла версии считается текущим (не сбрасывается один раз при внедрении)",
+      "checked": "тест test_source_cache_version"
+    }
+  ],
+  "dp_feedback": "dp accept считает FAIL фильтр с 0 найденных тестов (height_layer) - пришлось создать тест под имя. Нет команды dp для сравнения размеров каталогов до/после.",
+  "extra": {
+    "размер_места_байт_до_после": {
+      "askarovo": [
+        12541695,
+        5024166
+      ],
+      "altai": [
+        14297569,
+        6607745
+      ],
+      "aushkul": [
+        12987219,
+        5392290
+      ],
+      "ongudai": [
+        15430070,
+        7146595
+      ]
+    },
+    "итого_4_места_МБ": [
+      55.3,
+      24.2
+    ],
+    "кеш_точки": "не замерен (без сети); оценка по исследованию: osm.json уже убран, высоты 11 -> ~4.5 МБ",
+    "высоты_слоя_altai_МБ": {
+      "detail": [
+        5.56,
+        2.01
+      ],
+      "far": [
+        5.67,
+        2.53
+      ]
+    },
+    "read_old_s": 0.74,
+    "read_new_s": 1.33,
+    "также": "API: HeightLayer.encode_rgb24/decode_rgb24/load_files, SurfaceLayer.load_webp, TerrainRenderer.load_mask_texture; тест air_place: допуск рельефа 1e-3 -> 0.07 (квантование)"
+  },
+  "t": "2026-10-10T06:02:20",
+  "by": "executor"
+}

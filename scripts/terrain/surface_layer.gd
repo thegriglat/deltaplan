@@ -32,7 +32,7 @@ var classes: PackedByteArray = PackedByteArray()
 ## Откуда карта: "worldcover", "worldcover_runtime", "procedural".
 var source: String = ""
 
-## Маска «деталь 10 м» (T02/T03, <слой>_detail10.png): RG8, R — доля леса в клетке (0..255, T02),
+## Маска «деталь 10 м» (T02/T03, <слой>_detail10.webp): RG8, R — доля леса в клетке (0..255, T02),
 ## G — доля воды (0..255, T03: реки/ручьи/каналы/озёра OSM, tools/terrain/osm_water.py).
 ## Узел (i, j): x = mask_origin_x + i·mask_spacing (как у карты классов).
 ## Пустая — маски нет (рантайм-локации, дальние слои). Снаружи — через forest_mask_image().
@@ -65,12 +65,12 @@ static func from_classes(
 	return s
 
 
-## Загрузить из 8-битного PNG (значение пикселя = класс) по описанию из surface.json.
+## Загрузить из WebP lossless (N5; значение пикселя = класс, канал R) по описанию из surface.json.
 ## Файл читается байтами (в проекте он не импортируется: importer="keep").
-static func load_png(path: String, info: Dictionary) -> SurfaceLayer:
+static func load_webp(path: String, info: Dictionary) -> SurfaceLayer:
 	var bytes := FileAccess.get_file_as_bytes(path)
 	var img := Image.new()
-	if bytes.is_empty() or img.load_png_from_buffer(bytes) != OK:
+	if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
 		push_error("SurfaceLayer: не прочитан %s" % path)
 		return null
 	if img.get_format() != Image.FORMAT_L8:
@@ -93,18 +93,21 @@ static func load_png(path: String, info: Dictionary) -> SurfaceLayer:
 	return s
 
 
-## Прочитать PNG маски 10 м (можно в рабочем потоке), null — ошибка.
+## Прочитать WebP маски 10 м (можно в рабочем потоке), null — ошибка. Результат — LA8
+## (в файле RGBA8: R = G = B = L, A = вода).
 static func decode_detail10(path: String) -> Image:
 	var bytes := FileAccess.get_file_as_bytes(path)
 	var img := Image.new()
-	if bytes.is_empty() or img.load_png_from_buffer(bytes) != OK:
+	if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
 		push_error("SurfaceLayer: не прочитана маска %s" % path)
 		return null
+	if img.get_format() != Image.FORMAT_LA8:
+		img.convert(Image.FORMAT_LA8)
 	return img
 
 
-## Подключить маску 10 м из PNG (серый+альфа = RG8) по описанию surface.json → detail10.
-## img — уже прочитанный PNG (decode_detail10), null — прочитать здесь.
+## Подключить маску 10 м из WebP по описанию surface.json → detail10.
+## img — уже прочитанная маска (decode_detail10), null — прочитать здесь.
 func load_detail10(path: String, info: Dictionary, img: Image = null) -> bool:
 	if img == null:
 		img = decode_detail10(path)
@@ -138,6 +141,41 @@ func set_forest_mask(img: Image, step: float, ox: float, oz: float) -> void:
 	mask_origin_x = ox
 	mask_origin_z = oz
 	_mask_data = img.get_data()
+
+
+## Размытая подложка застройки (NO-10): detail_built10 (L8, 10 м) сжата до клеток ~built_soft_cell_m —
+## билинейная выборка в шейдере даёт мягкое пятно без шахматки 25 м. Пустая — как раньше (класс built).
+var built_soft_image: Image
+var built_soft_spacing: float = 50.0
+var built_soft_origin_x: float = 0.0
+var built_soft_origin_z: float = 0.0
+
+
+## Прочитать detail_built10 по surface.json → built10 + detail10 (сетка) и сжать до клеток built_soft_cell_m.
+func load_built_soft(path: String, d10: Dictionary, soft_cell_m: float) -> bool:
+	var bytes := FileAccess.get_file_as_bytes(path)
+	var img := Image.new()
+	if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
+		return false
+	var w := int(d10.width)
+	var h := int(d10.height)
+	if img.get_width() != w or img.get_height() != h:
+		return false
+	img.convert(Image.FORMAT_L8)
+	var step := float(d10.spacing_m)
+	var k := maxi(1, roundi(soft_cell_m / step))
+	var nw := ceili(float(w) / k)
+	var nh := ceili(float(h) / k)
+	img.resize(nw, nh, Image.INTERPOLATE_TRILINEAR)
+	built_soft_image = img
+	built_soft_spacing = step * float(w - 1) / maxf(float(nw - 1), 1.0)
+	built_soft_origin_x = float(d10.origin_x_m)
+	built_soft_origin_z = float(d10.origin_z_m)
+	return true
+
+
+func make_built_soft_texture() -> ImageTexture:
+	return ImageTexture.create_from_image(built_soft_image) if built_soft_image != null else null
 
 
 func has_forest_mask() -> bool:

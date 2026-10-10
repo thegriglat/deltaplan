@@ -71,10 +71,10 @@ func _run() -> void:
 			print("%s: ОШИБКА %d %s" % [id, err, ctx.log_lines])
 			quit(1)
 			return
-		var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(cfg.get_config("locations/" + id).data_dir + "/meta.json"))
+		var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("user://locations/" + id + "/meta.json"))
 		for info: Dictionary in meta.layers:
 			var ref = height_script.load_from_file(
-				"%s/%s" % [loc.data_dir, info.file], info)
+				"%s/%s" % ["user://locations/" + id, info.file], info)
 			var mine: PackedFloat32Array = ctx.heights[info.id]
 			var ss := 0.0
 			var mx := 0.0

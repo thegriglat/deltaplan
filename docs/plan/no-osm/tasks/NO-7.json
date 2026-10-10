@@ -1,0 +1,63 @@
+{
+  "id": "NO-7",
+  "module": "no-osm",
+  "type": "dp-engineer",
+  "title": "Счётчик загрузки данных места «этап: N/M»",
+  "goal": "При холодной сборке места видно, что игра качает данные: экран загрузки показывает этап и число готовых запросов из общего (блоки COG, тайлы), полоса — по счётчику; из кеша засчитывается сразу.",
+  "plan_ref": "NO-7",
+  "contracts": [
+    {
+      "name": "N4",
+      "version": "2",
+      "ref": "docs/contracts/no-osm.md"
+    }
+  ],
+  "copy": "~/deltaplan-no-osm-NO-7",
+  "branch": "no-osm/NO-7",
+  "base": "feature/no-osm",
+  "scope": [
+    "scripts/core/load_progress.gd",
+    "scripts/ui/loading_screen.gd",
+    "scripts/terrain/build/",
+    "scripts/terrain/terrain.gd",
+    "scripts/game/game.gd",
+    "locale/",
+    "tests/ui/",
+    "tests/terrain/"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/",
+    "data/",
+    "docs/contracts/",
+    "tests/contracts/",
+    "assets/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_load_progress",
+      "tests": "test_load_progress"
+    },
+    {
+      "name": "test_menu_setup",
+      "tests": "test_menu_setup"
+    },
+    {
+      "name": "test_terrain",
+      "tests": "test_terrain"
+    },
+    {
+      "name": "test_location_builder",
+      "tests": "test_location_builder"
+    },
+    {
+      "name": "screenshot",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/NO-7/ | grep -iE 'jpg|png'",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T03:55:12",
+  "edited": "2026-10-10T05:37:13"
+}

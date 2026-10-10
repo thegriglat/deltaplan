@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "EggPlace без OSM: places() из BuiltPatches (иначе опорные точки по рельефу), nearest_place без имени, near_water_m по покрову/маске воды, дороги удалены; Ан-2/стада/шар/УАЗ работают без OSM, УАЗ — бездорожье вдоль долины. Тест test_eggs_no_osm не хуже базы.",
+  "commits": [
+    "cd074c07 NO-3: пасхалки без OSM"
+  ],
+  "checks": [
+    {
+      "name": "no_osm_contracts_k8",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_egg",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_easter_eggs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_eggs_no_osm",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_world_objects",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_osm_in_eggs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_osm_in_egg_tests",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "поиск места УАЗа, макс",
+      "value": "15 мс",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "osm_data.gd, start_tracks.gd, world_objects_preview.gd не трогал (по изменению задания; NO-4)"
+  ],
+  "questions": [],
+  "how_to_check": "tools/dp accept NO-3",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/egg_place.gd:_relief_places",
+      "why": "запасной путь (нет пятен) стоит 50-140 мс на первый вызов places(), контракт просит ≤ 20 мс",
+      "checked": "у всех 4 встроенных мест пятна есть, запасной путь только для мест без WorldCover-застройки; кандидатов воды ограничил до 12"
+    },
+    {
+      "where": "an2 altai/ongudai/aushkul",
+      "why": "0/10 и до правок — ограничение места (склон ≤ 6°, высота, 6 км от стартов)",
+      "checked": "база та же"
+    }
+  ],
+  "dp_feedback": "Критерий no_osm_in_eggs (grep osm) ловит posmod/fposmod — пришлось заменить на wrapi/wrapf; стоит grep -w или другой шаблон.",
+  "extra": {
+    "таблица_найдено_из_10": "база (osm.json) -> без OSM: altai an2 0->0 herds 10->10 balloon 10->10 uaz 0->10; askarovo 10/10/10/10 -> 10/10/10/10; ongudai an2 0->0 herds 10->10 balloon 10->10 uaz 2->10; aushkul an2 0->0 herds 10->10 balloon 10->10 uaz 10->10. Запасной путь по рельефу (без пятен): то же, кроме altai herds 8/10.",
+    "время_мс_макс_на_вызов": "an2 11, herds 2, balloon 31, uaz 15"
+  },
+  "t": "2026-10-10T04:16:48",
+  "by": "executor"
+}

@@ -305,14 +305,11 @@
     "looped_doc": "Позы и циклы — зациклить (иначе однокадровая поза «доигрывает» раньше перехода и пилот остаётся в позе покоя)"
   },
   "world_objects_scene": "res://scenes/world_objects/world_objects.tscn",
-  "world_objects_scene_doc": "Объекты мира: ветроуказатели, посадки, дороги, ЛЭП, препятствия (docs/guide/world-objects.md); пусто — без них",
+  "world_objects_scene_doc": "Объекты мира: ветроуказатели, посадки, дороги, препятствия (docs/guide/world-objects.md); пусто — без них",
   "collision_texts": {
     "_doc": "Итог полёта при столкновении с препятствием (WorldObjects.obstacle_hit → kind)",
-    "wire": "collision_wire",
-    "tower": "collision_tower",
     "building": "collision_building",
-    "tree": "collision_tree",
-    "fence": "collision_fence"
+    "tree": "collision_tree"
   },
   "vario_sound_from": {
     "classic_90s": "VarioMount",

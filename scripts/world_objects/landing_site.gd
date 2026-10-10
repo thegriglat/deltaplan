@@ -1,6 +1,6 @@
 class_name LandingSite
 extends Node3D
-## Посадочная площадка (VR-12): скошенное поле с полосами покоса по рельефу, лесополосы и забор
+## Посадочная площадка (VR-12): скошенное поле с полосами покоса по рельефу, лесополосы
 ## по сторонам (с коллизией в ObstacleIndex).
 ## Ветроуказатель ставит WorldObjects в windsock_position().
 ## Данные — configs/world_objects.json → landing.sites.<id локации>.
@@ -44,8 +44,6 @@ func setup(
 	_build_field()
 	for t in site.get("trees", []):
 		_build_trees(t, obstacles)
-	for side in site.get("fences", []):
-		_build_fence(String(side), obstacles)
 
 
 ## Описание для игры (тренировка точности посадки, FR-36).
@@ -201,36 +199,6 @@ func _build_trees(spec: Dictionary, obstacles: ObstacleIndex) -> void:
 	add_child(node)
 
 
-func _build_fence(side_name: String, obstacles: ObstacleIndex) -> void:
-	var s := _side(side_name)
-	var span := float(_cfg.fence_span_m)
-	var total := float(s.len)
-	var n := ceili(total / span)
-	var dir: Vector3 = s.along
-	var yaw := atan2(-dir.z, dir.x)
-	var mesh := WorldTiles.load_mesh(String(_cfg.fence_scene_path), _fence_placeholder(span))
-	var xf: Array[Transform3D] = []
-	var start: Vector3 = center + s.n * (s.half + 1.0) - dir * total * 0.5
-	var fh := float(_cfg.fence_height_m)
-	for i in n:
-		var p := _ground(start + dir * span * i)
-		xf.append(Transform3D(Basis(Vector3.UP, yaw), p))
-		var m := _ground(p + dir * span * 0.5)
-		obstacles.add_box(
-			m.x, m.z, span * 0.5, 0.1, atan2(dir.z, dir.x), p.y - 1.0, m.y + fh, "fence"
-		)
-	var node := WorldTiles.multimesh_node(
-		mesh,
-		xf,
-		PackedColorArray(),
-		center,
-		float(_cfg.visibility_objects_m),
-		bool(_cfg.cast_shadows)
-	)
-	node.name = "Fence_" + side_name
-	add_child(node)
-
-
 static func _tree_placeholder() -> Mesh:
 	var m := CylinderMesh.new()
 	m.top_radius = 0.0
@@ -238,8 +206,3 @@ static func _tree_placeholder() -> Mesh:
 	m.height = 1.0
 	return m
 
-
-static func _fence_placeholder(span: float) -> Mesh:
-	var m := BoxMesh.new()
-	m.size = Vector3(span, 1.2, 0.05)
-	return m

@@ -68,7 +68,7 @@ static func dist_to_segment(q: Vector2, a: Vector2, b: Vector2) -> float:
 
 ## Точка старта (центр набора): на своей долине или равнине не ближе min_dist_flying_zone_m (плюс
 ## разброс фестиваля) ни к одному старту локации на всём пути сноса за время жизни, ни к пилоту
-## в момент появления; ≤ village_max_m от посёлка OSM; не горы, рельеф ≤ max_ground_m, под точкой
+## в момент появления; ≤ village_max_m от посёлка (пятна застройки); не горы, рельеф ≤ max_ground_m, под точкой
 ## не снег/скалы/лес/вода. Vector3 на рельефе или null (шара нет).
 static func find_site(ctx: EggContext, rng: RandomNumberGenerator, cfg: Dictionary) -> Variant:
 	var place := ctx.place
@@ -143,7 +143,7 @@ func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, _t0: fl
 		var hue := rng.randf()
 		var ca := Color.from_hsv(hue, rng.randf_range(0.7, 0.95), rng.randf_range(0.85, 1.0))
 		var cb := Color.from_hsv(
-			fposmod(hue + rng.randf_range(0.15, 0.5), 1.0),
+			wrapf(hue + rng.randf_range(0.15, 0.5), 0.0, 1.0),
 			rng.randf_range(0.6, 0.95),
 			rng.randf_range(0.85, 1.0)
 		)

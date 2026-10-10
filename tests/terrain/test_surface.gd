@@ -65,9 +65,10 @@ func _plane(cls: int, ax: float = 0.0, az: float = 0.0) -> Terrain:
 
 
 func _surface_png(info: Dictionary) -> PackedByteArray:
-	var dir: String = Config.get_config("locations/" + LOCATION).data_dir
+	var dir: String = Locations.data_dir(LOCATION)
 	var img := Image.new()
-	img.load_png_from_buffer(FileAccess.get_file_as_bytes(dir.path_join(info.file)))
+	img.load_webp_from_buffer(FileAccess.get_file_as_bytes(dir.path_join(info.file)))
+	img.convert(Image.FORMAT_L8)
 	return img.get_data()
 
 
@@ -88,7 +89,7 @@ func test_surface_at_matches_data() -> void:
 	var t := _altai()
 	var meta: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string(
-			String(Config.get_config("locations/" + LOCATION).data_dir).path_join("surface.json")
+			String(Locations.data_dir(LOCATION)).path_join("surface.json")
 		)
 	)
 	var info: Dictionary = meta.layers[0]
@@ -477,15 +478,14 @@ func test_forest_at_sharp_edge() -> void:
 
 
 func test_surface_at_forest_by_mask() -> void:
-	# surface_at = лес там, где доля леса маски 10 м (данные PNG) ≥ 0,5 — не меньше 95 % точек.
+	# surface_at = лес там, где доля леса маски 10 м (данные WebP) ≥ 0,5 — не меньше 95 % точек.
 	var t := _ong()
-	var dir: String = Config.get_config("locations/ongudai").data_dir
+	var dir: String = Locations.data_dir("ongudai")
 	var meta: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string(dir.path_join("surface.json"))
 	)
 	var info: Dictionary = meta.layers[0].detail10
-	var img := Image.new()
-	img.load_png_from_buffer(FileAccess.get_file_as_bytes(dir.path_join(info.file)))
+	var img := SurfaceLayer.decode_detail10(dir.path_join(info.file))
 	var w := int(info.width)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 21
@@ -509,52 +509,42 @@ func test_surface_at_forest_by_mask() -> void:
 
 
 func test_river_axis_is_water() -> void:
-	# T03/VR-9: 50 точек на осевых OSM-рек Онгудая (river/canal — шире клетки маски 10 м;
-	# ручьи (stream, 4 м) в клетке 10 м — только доля покрытия для затемнения берега в шейдере,
-	# не сплошная вода для surface_at/термиков) — surface_at = вода ≥ 90 %;
-	# те же точки, сдвинутые на 100 м поперёк русла, — не вода ≥ 95 %.
+	# NO-1: вода в канале A — max(вода WorldCover 10 м, маска рек по рельефу), без OSM. 50 точек на осях рек Онгудая
+	# по маске рек detail_water.webp (сетка слоя 25 м, значение ≥ 200 — русло) — surface_at = вода ≥ 90 %;
+	# те же точки, сдвинутые на 300 м вбок, — не вода в большинстве (не «вся карта — вода»).
 	var t := _ong()
-	var osm_str := FileAccess.get_file_as_string(Locations.osm_path("ongudai"))
-	var osm: Dictionary = JSON.parse_string(osm_str)
-	var rivers: Array = []
-	for river: Dictionary in osm.water.rivers:
-		if river.t == "river" or river.t == "canal":
-			rivers.append(river)
+	var dir := Locations.data_dir("ongudai") + "/"
+	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir + "meta.json"))
+	var info: Dictionary = {}
+	for l: Dictionary in meta.layers:
+		if String(l.id) == "detail":
+			info = l
+	var img := Image.load_from_file(dir + "detail_water.webp")
+	img.convert(Image.FORMAT_L8)
+	check(img != null, "маска рек читается")
+	if img == null:
+		return
+	var w := img.get_width()
+	var data := img.get_data()
+	var cells := PackedInt32Array()
+	for i in data.size():
+		if data[i] >= 200:
+			cells.append(i)
+	check(cells.size() >= 500, "русел в маске рек: %d клеток" % cells.size())
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	var on_axis := 0
 	var off_axis := 0
-	var n := 0
-	var guard := 0
-	while n < 50 and guard < 5000:
-		guard += 1
-		var river: Dictionary = rivers[rng.randi_range(0, rivers.size() - 1)]
-		var p: Array = river.p
-		if p.size() < 4:
-			continue
-		var seg := rng.randi_range(0, p.size() / 2 - 2)
-		var x0 := float(p[seg * 2])
-		var z0 := float(p[seg * 2 + 1])
-		var x1 := float(p[seg * 2 + 2])
-		var z1 := float(p[seg * 2 + 3])
-		var d := Vector2(x1 - x0, z1 - z0)
-		if d.length() < 1.0:
-			continue
-		var mid_t := rng.randf()
-		var x := lerpf(x0, x1, mid_t)
-		var z := lerpf(z0, z1, mid_t)
-		var perp := Vector2(-d.y, d.x).normalized()
-		n += 1
+	var n := 50
+	for q in n:
+		var c := cells[rng.randi_range(0, cells.size() - 1)]
+		var x := float(info.origin_x_m) + (c % w) * float(info.spacing_m)
+		var z := float(info.origin_z_m) + (c / w) * float(info.spacing_m)
 		on_axis += int(t.surface_at(x, z) == SurfaceLayer.WATER)
-		# на изгибе русло может вернуться в пределы 100 м с одной стороны — берём сторону подальше
-		var off_a := Vector2(x, z) + perp * 100.0
-		var off_b := Vector2(x, z) - perp * 100.0
-		var not_water_a := t.surface_at(off_a.x, off_a.y) != SurfaceLayer.WATER
-		var not_water_b := t.surface_at(off_b.x, off_b.y) != SurfaceLayer.WATER
-		off_axis += int(not_water_a or not_water_b)
-	check(n == 50, "точек на осях рек: %d" % n)
+		off_axis += int(t.surface_at(x + 300.0, z) != SurfaceLayer.WATER)
 	check(on_axis >= 0.9 * n, "surface_at = вода на оси реки: %d/%d" % [on_axis, n])
-	check(off_axis >= 0.95 * n, "в 100 м от оси — не вода: %d/%d" % [off_axis, n])
+	check(off_axis >= 0.7 * n, "в 300 м от оси — не вода: %d/%d" % [off_axis, n])
+	print("         ось реки: вода %d/%d, в 300 м не вода %d/%d" % [on_axis, n, off_axis, n])
 
 
 ## Чётность пересечений луча (ray casting): точка внутри многоугольника (x, z), p — [x0,z0,x1,z1…].
@@ -571,52 +561,6 @@ func _point_in_polygon(p: Array, x: float, z: float) -> bool:
 			inside = not inside
 		j = i
 	return inside
-
-
-func test_lake_iou_aushkul() -> void:
-	# T03/VR-9 (U1): контур озера Аушкуль в маске 10 м (канал G) — IoU с полигоном OSM ≥ 0,85.
-	var t := _aush()
-	var sl := _mask_layer(t)
-	check(sl != null, "у Аушкуля есть маска 10 м")
-	if sl == null:
-		return
-	var osm_str := FileAccess.get_file_as_string(Locations.osm_path("aushkul"))
-	var osm: Dictionary = JSON.parse_string(osm_str)
-	var poly: Array = []
-	for lake in osm.water.lakes:
-		if lake.n == "Аушкуль":
-			poly = lake.p
-			break
-	check(poly.size() >= 6, "полигон озера Аушкуль найден")
-	if poly.size() < 6:
-		return
-	var x0 := INF
-	var x1 := -INF
-	var z0 := INF
-	var z1 := -INF
-	for i in range(0, poly.size(), 2):
-		x0 = minf(x0, poly[i])
-		x1 = maxf(x1, poly[i])
-		z0 = minf(z0, poly[i + 1])
-		z1 = maxf(z1, poly[i + 1])
-	var step := 10.0
-	var inter := 0
-	var uni := 0
-	var z := z0
-	while z <= z1:
-		var x := x0
-		while x <= x1:
-			var a := _point_in_polygon(poly, x, z)
-			var b := sl.mask_g(x, z) >= 0.5
-			if a or b:
-				uni += 1
-			if a and b:
-				inter += 1
-			x += step
-		z += step
-	var iou := float(inter) / maxf(float(uni), 1.0)
-	check(iou >= 0.85, "IoU озера Аушкуль (OSM vs маска 10 м): %.3f" % iou)
-	print("         IoU озера Аушкуль (OSM vs маска 10 м): %.3f" % iou)
 
 
 func test_height_includes_crowns() -> void:

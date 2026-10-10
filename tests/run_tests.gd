@@ -6,6 +6,8 @@ extends Node
 ## пропускаются, не падают; запускать их — tools/gpu_tests.sh (окно, не headless, флаг --gpu).
 
 func _ready() -> void:
+	# встроенные места в паке не лежат (NO-8): тесты берут готовые файлы из фикстур, без сети
+	Locations.fixtures_root = "res://tests/fixtures/locations"
 	var filter := ""
 	var gpu := false
 	for a in OS.get_cmdline_user_args():

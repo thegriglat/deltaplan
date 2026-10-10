@@ -1,0 +1,20 @@
+{
+  "built_utc": "2026-10-09T14:08:31Z",
+  "center_lat": 50.79,
+  "center_lon": 86.13,
+  "complete": true,
+  "format_version": 2,
+  "key": "ongudai",
+  "missing": [],
+  "net_requests": 0,
+  "seconds": {
+    "dem": 3.84,
+    "rivers": 22.96,
+    "surface": 10.25
+  },
+  "sources": [
+    "copernicus",
+    "terrarium",
+    "worldcover"
+  ]
+}

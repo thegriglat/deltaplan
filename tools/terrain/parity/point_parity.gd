@@ -1,10 +1,8 @@
 extends SceneTree
 ## OA-6: таблица паритета слоёв «после» — собранная точка против встроенного места.
 ##   godot --headless --path . -s res://tools/terrain/parity/point_parity.gd -- [--point <папка>] [--builtin askarovo]
-## По умолчанию папка точки — dir= из build/point_cache.txt. Читает только файлы папок (meta/surface/osm.json, png).
+## По умолчанию папка точки — dir= из build/point_cache.txt. Читает только файлы папок (meta/surface.json, png).
 ## Пишет build/point_parity.md и печатает те же строки key=value.
-
-const OSM_LAYERS := ["roads", "buildings", "power", "places"]
 
 
 func _initialize() -> void:
@@ -81,17 +79,4 @@ func _collect(dir: String, builtin: bool) -> Dictionary:
 				r["detail10.сетка"] = "%dx%d, шаг %s м" % [d.width, d.height, d.spacing_m]
 				r["detail10.лес_доля"] = "%.3f" % float(d.forest_fraction)
 				r["detail10.вода_доля"] = "%.3f" % float(d.water_fraction)
-	var osm_path := dir.path_join("osm.json")
-	var osm: Variant = _json(osm_path)
-	if osm is Dictionary:
-		for k: String in OSM_LAYERS:
-			r["osm.%s" % k] = str(osm.get(k, []).size())
-		var w: Dictionary = osm.get("water", {})
-		r["osm.реки"] = str(w.get("rivers", []).size())
-		r["osm.озёра"] = str(w.get("lakes", []).size())
-		var lu: Dictionary = osm.get("landuse", {})
-		r["osm.поля"] = str(lu.get("fields", []).size())
-		r["osm.заборы"] = str(lu.get("fences", []).size())
-	else:
-		r["osm.json"] = "нет"
 	return r

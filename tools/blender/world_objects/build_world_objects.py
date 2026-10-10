@@ -1,15 +1,13 @@
-"""Модели объектов мира (VR-7, VR-10, VR-12): ветроуказатель, вешка с лентой,
-пролёт забора, опора ЛЭП 110 кВ, столб 10 кВ. Деревья у посадки — общие assets/models/trees/.
+"""Модели объектов мира (VR-7, VR-12): ветроуказатель, вешка с лентой. Деревья у посадки — общие assets/models/trees/.
 
 Запуск:  blender --background --python tools/blender/world_objects/build_world_objects.py [-- имя…]
-Имена: windsock streamer fence_segment power_tower power_pole (по умолчанию все).
+Имена: windsock streamer (по умолчанию все).
 Результат: assets/models/world/<имя>.glb, исходники assets/source/world/<имя>.blend.
 
 Оси Blender: X вправо, +Y вперёд, Z вверх → Godot: X, −Z, Y. 1 ед. = 1 м.
 Ветроуказатель и вешка: пустышка Pivot — ось вращения по ветру; меш Sock/Ribbon — дочерний
 к Pivot, вытянут вдоль +Y Blender (= −Z Godot, «по ветру»); его гнёт вершинный шейдер
 scripts/world_objects/wind_cloth.gdshader (провисание, болтание). Полосы — отдельные материалы.
-Забор — пролёт 3 м вдоль +X.
 """
 import math
 import os
@@ -99,64 +97,7 @@ def streamer() -> None:
     U.export("world/streamer")
 
 
-def fence_segment() -> None:
-    m = mats(Wood=((0.48, 0.38, 0.27), 0.9))
-    mb = U.MeshBuilder()
-    mb.add_box((0, 0, 0.6), (0.12, 0.12, 1.6), "Wood")
-    for z in (0.55, 1.2):
-        mb.add_box((1.5, 0, z), (3.0, 0.04, 0.1), "Wood")
-    mb.build("Fence", m)
-    U.export("world/fence_segment")
-
-
-def beam(mb: U.MeshBuilder, a, b, w: float, mat: str) -> None:
-    """Уголок решётки — тонкий брусок от a до b."""
-    a, b = Vector(a), Vector(b)
-    d = b - a
-    mb.add_tube([a, b], w * 0.7, mat, sides=4, cap=False,
-                up=(1, 0, 0) if abs(d.normalized().z) > 0.9 else (0, 0, 1), smooth=False)
-
-
-def power_tower() -> None:
-    """Опора 110 кВ «бочка»: решётчатый ствол, траверсы поперёк линии (±X), линия — вдоль Y."""
-    m = mats(Steel=((0.55, 0.57, 0.58), 0.5, True), Glass=((0.30, 0.42, 0.40), 0.2))
-    mb = U.MeshBuilder()
-    levels = [(0.0, 2.4), (6.0, 1.9), (12.0, 1.4), (18.0, 0.95), (21.5, 0.8), (27.0, 0.6),
-              (28.5, 0.3)]
-    corners = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
-    for (z0, h0), (z1, h1) in zip(levels, levels[1:]):
-        for cx, cy in corners:
-            beam(mb, (cx * h0, cy * h0, z0), (cx * h1, cy * h1, z1), 0.14, "Steel")
-        for k in range(4):  # раскосы крест-накрест на каждой грани
-            (ax, ay), (bx, by) = corners[k], corners[(k + 1) % 4]
-            beam(mb, (ax * h0, ay * h0, z0), (bx * h1, by * h1, z1), 0.07, "Steel")
-            beam(mb, (bx * h0, by * h0, z0), (ax * h1, ay * h1, z1), 0.07, "Steel")
-            beam(mb, (ax * h1, ay * h1, z1), (bx * h1, by * h1, z1), 0.07, "Steel")
-    for z, half, h in ((21.5, 5.5, 0.8), (27.0, 4.0, 0.6)):
-        for s in (-1, 1):  # траверса: верхний и нижний пояс, сходятся к концу
-            beam(mb, (s * h, -h, z), (s * half, 0, z), 0.1, "Steel")
-            beam(mb, (s * h, h, z), (s * half, 0, z), 0.1, "Steel")
-            beam(mb, (s * h, 0, z - 1.2), (s * half, 0, z), 0.1, "Steel")
-            # гирлянда изоляторов вниз до точки подвеса провода (z − 1.5)
-            mb.add_tube([(s * half, 0, z), (s * half, 0, z - 1.5)], 0.09, "Glass", sides=6)
-    mb.build("Tower", m)
-    U.export("world/power_tower")
-
-
-def power_pole() -> None:
-    """Железобетонный столб 10 кВ с траверсой и штыревыми изоляторами."""
-    m = mats(Concrete=((0.66, 0.66, 0.63), 0.9), Steel=((0.35, 0.36, 0.37), 0.5),
-             Glass=((0.30, 0.42, 0.40), 0.2))
-    mb = U.MeshBuilder()
-    mb.add_tube([(0, 0, -0.5), (0, 0, 9.0)], [0.14, 0.09], "Concrete", sides=8)
-    mb.add_box((0, 0, 8.4), (2.0, 0.08, 0.08), "Steel")
-    for x, z in ((-0.8, 8.44), (0.8, 8.44), (0.0, 9.0)):
-        mb.add_tube([(x, 0, z), (x, 0, z + 0.16)], [0.05, 0.035], "Glass", sides=6)
-    mb.build("Pole", m)
-    U.export("world/power_pole")
-
-
-BUILDERS = {f.__name__: f for f in (windsock, streamer, fence_segment, power_tower, power_pole)}
+BUILDERS = {f.__name__: f for f in (windsock, streamer)}
 
 
 def main() -> None:

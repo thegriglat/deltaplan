@@ -34,11 +34,10 @@ class FakeStage:
 					var h := PackedFloat32Array()
 					h.resize(25)
 					h.fill(100.0)
-					var f := FileAccess.open(ctx.dir.path_join(id + ".f32.zst"), FileAccess.WRITE)
-					f.store_buffer(h.to_byte_array().compress(FileAccess.COMPRESSION_ZSTD))
-					f.close()
-					var info := {"id": id, "file": id + ".f32.zst", "width": 5, "height": 5, "spacing_m": 25.0,
-						"origin_x_m": -50.0, "origin_z_m": -50.0, "source": "fake", "water_file": id + "_water.png"}
+					HeightLayer.encode_rgb24(h, 5, 5, 100.0, 0.125).save_webp(ctx.dir.path_join(id + ".webp"), false)
+					var info := {"id": id, "file": id + ".webp", "width": 5, "height": 5, "spacing_m": 25.0,
+						"origin_x_m": -50.0, "origin_z_m": -50.0, "source": "fake", "water_file": id + "_water.webp",
+						"height_min_m": 100.0, "height_step_m": 0.125}
 					layers.append(info)
 					ctx.heights[id] = h
 					ctx.layers[id] = info
@@ -46,10 +45,6 @@ class FakeStage:
 					"center_lon": ctx.center_lon, "layers": layers, "attribution": []})
 			"surface":
 				_write(ctx.dir.path_join("surface.json"), {"layers": []})
-			"osm":
-				_write(ctx.dir.path_join("osm.json"), {"places": [
-					{"n": "Далёкая", "t": "village", "x": 4000.0, "z": 0.0, "pop": 10},
-					{"n": "Ближняя", "t": "hamlet", "x": 300.0, "z": -200.0, "pop": 5}]})
 		return OK
 
 	static func _write(path: String, d: Dictionary) -> void:
@@ -61,7 +56,7 @@ class FakeStage:
 func _builder(fails: Array = []) -> LocationBuilder:
 	var b := LocationBuilder.new()
 	b.stages = []
-	for n in ["dem", "rivers", "surface", "osm"]:
+	for n in ["dem", "rivers", "surface"]:
 		var st := FakeStage.new(n, _log)
 		st.fail = fails.has(n)
 		b.stages.append({"name": n, "obj": st})
@@ -90,35 +85,73 @@ func test_build_then_cache() -> void:
 	var b := _builder()
 	var r: Dictionary = await b.build(null, POINT.x, POINT.y)
 	check(bool(r.ok) and r.missing.is_empty(), "сборка прошла без недостающего")
-	check(_log == ["dem", "rivers", "surface", "osm"], "стадии по порядку: %s" % str(_log))
+	check(_log == ["dem", "rivers", "surface"], "стадии по порядку: %s" % str(_log))
 	var key := String(r.key)
 	var dir := LocationCache.dir_for(key)
 	check(LocationCache.is_complete(key), "место полное")
 	check(not DirAccess.dir_exists_absolute(LocationCache.tmp_dir_for(key)), "временной папки нет")
-	for f in ["meta.json", "detail.f32.zst", "far.f32.zst", "surface.json", "osm.json", "location.json", "build.json"]:
+	for f in ["meta.json", "detail.webp", "far.webp", "surface.json", "location.json", "build.json"]:
 		check(FileAccess.file_exists(dir.path_join(f)), "файл " + f)
 	var bj := LocationCache.read_build(dir)
-	check(int(bj.net_requests) == 4 and bj.complete == true, "build.json: запросы и complete")
+	check(int(bj.net_requests) == 3 and bj.complete == true, "build.json: запросы и complete")
 	var loc: Dictionary = Locations.config(key)
-	check(String(loc.name) == "Ближняя", "имя — ближайший посёлок из OSM: %s" % loc.get("name"))
+	check(String(loc.name) == "%.3f, %.3f" % [loc.center_lat, loc.center_lon], "имя места — координаты: %s" % loc.get("name"))
 	check(int(loc.utc_offset_h) == int(roundf(float(loc.center_lon) / 15.0)), "utc_offset_h")
 	check((loc.start_sites as Array).is_empty() and String(loc.data_dir) == dir, "start_sites пусты, data_dir")
 	check(loc.has("render") and loc.has("dem") and loc.has("rivers"), "шаблон конфига места")
-	check(Locations.osm_path(key) == dir.path_join("osm.json") and not Locations.is_builtin(key), "реестр: кеш")
+	check(not bj.missing.has("osm") and not bj.seconds.has("osm"), "OSM не стадия")
+	check(not Locations.is_builtin(key), "реестр: кеш")
 	# повтор — из кеша
 	_log.clear()
 	var b2 := _builder()
 	var r2: Dictionary = await b2.build(null, POINT.x + 0.01, POINT.y + 0.01)
 	check(bool(r2.ok) and r2.key == key, "та же точка (в пределах сетки) — тот же ключ")
 	check(_log.is_empty() and b2.net_requests == 0, "из кеша: стадии не вызваны, net_requests == 0")
-	# другая версия сборщика — заново
+	check(int(bj.format_version) == Locations.FORMAT_VERSION, "build.json: format_version")
+	# другая версия формата — каталог удаляется, место собирается заново целиком
 	var bad := bj.duplicate()
-	bad.builder_version = LocationCache.version() + 1
+	bad.format_version = Locations.FORMAT_VERSION - 1
 	_write_json(dir.path_join("build.json"), bad)
+	var stale := dir.path_join("stale_old.f32.zst")
+	var sf := FileAccess.open(stale, FileAccess.WRITE)
+	sf.store_string("x")
+	sf.close()
 	check(not LocationCache.is_complete(key), "другая версия — не полное")
+	_log.clear()
 	await _builder().build(null, POINT.x, POINT.y)
-	check(LocationCache.is_complete(key) and _log == ["dem", "rivers", "surface", "osm"], "версия: пересборка целиком")
+	check(LocationCache.is_complete(key) and _log == ["dem", "rivers", "surface"], "версия: пересборка целиком")
+	check(not FileAccess.file_exists(stale), "версия: старый каталог удалён, не дополнен")
+	# нет поля format_version — тоже старое место
+	var nov := LocationCache.read_build(dir)
+	nov.erase("format_version")
+	_write_json(dir.path_join("build.json"), nov)
+	_log.clear()
+	await _builder().build(null, POINT.x, POINT.y)
+	check(_log == ["dem", "rivers", "surface"] and LocationCache.is_complete(key), "без format_version — пересборка")
+	# текущая версия — из кеша, 0 запросов в сеть
+	_log.clear()
+	var b3 := _builder()
+	await b3.build(null, POINT.x, POINT.y)
+	check(_log.is_empty() and b3.net_requests == 0, "текущая версия: стадий и запросов нет")
 	_cleanup()
+
+
+func test_source_cache_version() -> void:
+	var root := "user://test_source_cache_%d" % Time.get_ticks_usec()
+	DirAccess.make_dir_recursive_absolute(root.path_join("terrarium"))
+	var tf := FileAccess.open(root.path_join("terrarium/a.bin"), FileAccess.WRITE)
+	tf.store_string("x")
+	tf.close()
+	check(not LocationCache.ensure_source_cache(root), "кеш без файла версии не сбрасывается")
+	check(FileAccess.file_exists(root.path_join("terrarium/a.bin")), "блок на месте")
+	check(not LocationCache.ensure_source_cache(root), "та же версия источника — без сброса")
+	var vf := FileAccess.open(root.path_join(LocationCache.SOURCE_VERSION_FILE), FileAccess.WRITE)
+	vf.store_string(str(LocationCache.SOURCE_VERSION + 1))
+	vf.close()
+	check(LocationCache.ensure_source_cache(root), "другая версия источника — сброс")
+	check(not FileAccess.file_exists(root.path_join("terrarium/a.bin")), "блоки удалены")
+	check(FileAccess.get_file_as_string(root.path_join(LocationCache.SOURCE_VERSION_FILE)).strip_edges() == str(LocationCache.SOURCE_VERSION), "записана текущая версия")
+	LocationCache.remove_dir(root)
 
 
 func _write_json(path: String, d: Dictionary) -> void:
@@ -130,29 +163,34 @@ func _write_json(path: String, d: Dictionary) -> void:
 func test_missing_resume() -> void:
 	_cleanup()
 	_log.clear()
-	var r: Dictionary = await _builder(["osm"]).build(null, POINT.x, POINT.y)
+	var r: Dictionary = await _builder(["rivers"]).build(null, POINT.x, POINT.y)
 	var key := String(r.key)
-	check(bool(r.ok) and r.missing == ["osm"], "отказ OSM — место без слоя, missing: %s" % str(r.missing))
+	check(bool(r.ok) and r.missing == ["rivers"], "отказ рек — место без слоя, missing: %s" % str(r.missing))
 	var bj := LocationCache.read_build(LocationCache.dir_for(key))
-	check(bj.complete == false and bj.missing == ["osm"], "build.json: missing")
-	check(not FileAccess.file_exists(LocationCache.dir_for(key).path_join("osm.json")), "osm.json нет")
-	check(String(Locations.config(key).name).contains("."), "имя без OSM — координаты")
+	check(bj.complete == false and bj.missing == ["rivers"], "build.json: missing")
+	check(String(Locations.config(key).name).contains("."), "имя места — координаты")
 	_log.clear()
-	var b2 := _builder()
-	var r2: Dictionary = await b2.build(null, POINT.x, POINT.y)
+	var r2: Dictionary = await _builder().build(null, POINT.x, POINT.y)
 	check(bool(r2.ok) and r2.missing.is_empty(), "догрузка прошла")
-	check(_log == ["osm"], "догружен только OSM: %s" % str(_log))
+	check(_log == ["rivers"], "догружены только реки: %s" % str(_log))
 	check(LocationCache.is_complete(key), "место стало полным")
-	check(String(Locations.config(key).name) == "Ближняя", "имя обновилось после догрузки OSM")
-	# отказ покрова тянет за собой OSM (он дописывает воду в карту покрова)
+	# отказ покрова — только покров в missing (OSM в стадиях нет)
 	_cleanup()
 	_log.clear()
 	var r3: Dictionary = await _builder(["surface"]).build(null, POINT.x, POINT.y)
-	check(bool(r3.ok) and r3.missing == ["surface", "osm"], "отказ покрова: missing %s" % str(r3.missing))
+	check(bool(r3.ok) and r3.missing == ["surface"], "отказ покрова: missing %s" % str(r3.missing))
 	_log.clear()
 	await _builder().build(null, POINT.x, POINT.y)
-	check(_log == ["surface", "osm"], "догружены покров и OSM: %s" % str(_log))
+	check(_log == ["surface"], "догружен покров: %s" % str(_log))
 	_cleanup()
+
+
+## N4: стадии игры — dem → rivers → surface; OSM-стадии нет.
+func test_default_stages_without_osm() -> void:
+	var names: Array = []
+	for st in LocationBuilder.default_stages():
+		names.append(st.name)
+	check(names == ["dem", "rivers", "surface"], "стадии игры: %s" % str(names))
 
 
 func test_dem_failure_is_error() -> void:
@@ -171,7 +209,6 @@ func test_dem_failure_is_error() -> void:
 
 func test_registry_builtin() -> void:
 	check(Locations.is_builtin("altai") and not Locations.is_builtin("pt_+01.000_+002.000"), "is_builtin")
-	check(Locations.osm_path("altai") == "res://data/terrain/altai/osm.json", "osm_path встроенного")
 	check(not Locations.config("altai").is_empty() and Locations.config("pt_+09.999_+009.999").is_empty(), "config")
 	var al: Dictionary = Locations.config("altai")
 	check(Locations.builtin_at(float(al.center_lat), float(al.center_lon)) == "altai", "builtin_at центр")

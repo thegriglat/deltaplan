@@ -121,7 +121,6 @@ loading_getting_ready_dots,Готовлюсь…,Getting ready…
 loading_getting_ready,Готовлюсь,Getting ready
 loading_dem,Скачиваю рельеф…,Downloading terrain…
 loading_landcover,Карта леса и полей…,Forest and field map…
-loading_osm,"Дороги, реки и посёлки…","Roads, rivers and villages…"
 loading_classify,Лес и поля…,Forests and fields…
 loading_mesh,Строю рельеф…,Building terrain…
 loading_trees,Сажаю лес…,Planting trees…
@@ -189,11 +188,8 @@ status_terrain_module_error,нет данных или ошибка в моду�
 status_terrain_failed_detail,«%s» — %s (подробности — в журнале Godot),“%s” — %s (details in the Godot log)
 launch_fail_touchdown,Касание сразу после старта — полёт не засчитан,Touched down right after launch — flight not counted
 collision,Столкновение,Collision
-collision_wire,Столкновение с проводами ЛЭП,Hit power lines
-collision_tower,Столкновение с опорой ЛЭП,Hit a power line pylon
 collision_building,Столкновение со зданием,Hit a building
 collision_tree,Столкновение с деревом,Hit a tree
-collision_fence,Столкновение с забором,Hit a fence
 tab_page_flight,ПОЛЁТ,FLIGHT
 tab_page_map,КАРТА,MAP
 tab_page_wind,ВЕТЕР,WIND
@@ -472,3 +468,6 @@ fkey_hint_perf,частота кадров,frame rate
 fkey_hint_wind_field,ветер над местностью,wind over terrain
 fkey_hint_wind,ветер вокруг,wind around
 fkey_hint_thermals,термики,thermals
+loading_counter_dem,Рельеф: %d/%d,Terrain: %d/%d
+loading_counter_surface,Покров: %d/%d,Land cover: %d/%d
+loading_counter_total,Всего: %d/%d,Total: %d/%d
