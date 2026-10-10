@@ -53,3 +53,4 @@
 {"t": "2026-10-11T02:23:37", "by": "executor", "task": "OL-6", "ev": "checked", "note": "4/4 world_objects=ok:133/133; test_osm_look=ok:13/13; gd=ok:exit 0; shots=ok:4"}
 {"t": "2026-10-11T02:23:38", "by": "executor", "task": "OL-6", "ev": "reported", "commits": ["2370598a", "2981b5e6"], "note": "done: L1 (9 полей, по_правилу), L2 (BuildingStyle.classify/adjust, шейдер building.gdshader, плоские крыши города/промзоны, д…", "dp_feedback": "Нет команды для сравнения времени до/после на базовой ветке (пришлось делать git worktree вручную). godot -s скрипт не видит автозагрузки — хотелось бы справку об этом в dp.md."}
 {"t": "2026-10-11T02:23:53", "by": "coordinator", "task": "OL-6", "ev": "accepted", "note": "по отчёту: 4/4 (--no-accept --no-review исполнителя); шлейфы облегчены, GPU +0,95 мс в худшем стенде (было +2,9)"}
+{"t": "2026-10-11T02:24:51", "by": "coordinator", "task": "OL-6", "ev": "merged", "commits": ["bd0cabf"], "note": "на ветке модуля test_osm 87/87"}
