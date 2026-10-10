@@ -58,7 +58,7 @@ Surge в планировании не нуль, потому что модел�
 - `python3 tools/motion_rig/recv.py --port 33001 --format auto|srs|generic [--jsonl файл] [--count N] [--timeout с] [--quiet]`, `--selftest` — разбор пакетов без игры. Неверный размер/заголовок — строка-ошибка, не падение.
 - `bash tools/motion_rig/loop_check.sh [секунд]` — headless Godot летит ≈3 с горизонтально и шлёт generic и srs в два recv.py; проверка потока (valid, heave ≈ g и т. д.); успех — «loop OK».
 - `python3 tools/motion_rig/check_layout.py` — `.h` (offsetof/sizeof через cc, если есть компилятор) = `motion_formats.py` = фикстуры пакетов игры; успех — «layout OK».
-- Тесты: `tests/motion_rig/` (25 проверок: величины, разрыв, упаковка, знаки, микробенч ≈10 мс при пороге 20), контрактный тест `tests/contracts/test_motion_rig_contracts.gd`.
+- Тесты: `tests/motion_rig/` (25 проверок: величины, разрыв, упаковка, знаки, микробенч ≈10 мс при пороге 50 мс), контрактный тест `tests/contracts/test_motion_rig_contracts.gd`.
 
 ## Границы модели
 
