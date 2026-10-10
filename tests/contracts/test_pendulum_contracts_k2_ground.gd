@@ -70,3 +70,5 @@ func test_pd14_keys() -> void:
 		check(e > 0.5 and e <= 1.0, "ground_effect.span_efficiency в (0,5; 1]")
 	check(c.get("strip_cl_max_match_polar") is bool, "strip_cl_max_match_polar — bool")
 	check(c.has("strip_cl_max_match_polar_doc"), "strip_cl_max_match_polar_doc есть")
+	check(c.get("stall_cp_shift") is bool, "stall_cp_shift — bool")
+	check(c.has("stall_cp_shift_doc"), "stall_cp_shift_doc есть")

@@ -292,6 +292,9 @@ class GameSim(Sim):
     3. C_L max полос подобран так, что C_L max всего крыла (статика, симметрично) = поляры
        (configs/pendulum.json → strip_cl_max_match_polar; PendulumWingStrips.match_polar_cl_max):
        скорость сваливания — паспортная.
+    4. Центр давления сорванной части полосы — назад по хорде (PD-18, configs/pendulum.json →
+       stall_cp_shift): x/c = 0,25 + 0,25·sin α (Fage & Johansen 1927), у обтекаемой — cp_chord.
+       Пикирующий момент срыва: крыло выходит из глубокого срыва.
     """
 
     _ge = None  # σ по полосам на текущем вызове wing_aero
@@ -315,6 +318,8 @@ class GameSim(Sim):
         def cl(a):
             R = R_from_euler(0.0, a, 0.0)
             F, _, _ = Sim.wing_aero(self, np.zeros(3), np.array([1.0, 0.0, 0.0]), R, np.zeros(3))
+            if self._r0 is not None:
+                self.r_strip_b = self._r0
             return -F[2] / (0.5 * self.p.rho * self.p.area)
         grid = [(cl(math.radians(d)), d) for d in range(5, 46)]
         best, d0 = max(grid)
@@ -322,7 +327,24 @@ class GameSim(Sim):
             best = max(best, cl(math.radians(d0 - 1.0 + j * 0.05)))
         return best
 
+    stall_cp_shift = True
+
     def strip_cl(self, a_eff):
+        cl, cd_x, blend = self._strip_cl_ge(a_eff)
+        if self.stall_cp_shift:
+            # центр давления сорванной части — назад по хорде (момент считается по r_strip_b после
+            # strip_cl; положения полос для скоростей уже взяты); wing_aero возвращает r_strip_b
+            if self._r0 is None:
+                self._r0 = self.r_strip_b
+            st = self.strips
+            a_rel = a_eff - self.alpha0_root
+            d = blend * st.chord * (0.25 * np.abs(np.sin(a_rel)) + 0.25 - self.p.cp_chord)
+            self.r_strip_b = self._r0 - st.c_b * d[:, None]
+        return cl, cd_x, blend
+
+    _r0 = None
+
+    def _strip_cl_ge(self, a_eff):
         if self._ge is None:
             return super().strip_cl(a_eff)
         p = self.p
@@ -353,6 +375,8 @@ class GameSim(Sim):
             return super().wing_aero(pos, vel, R, w)
         finally:
             self._ge = None
+            if self._r0 is not None:
+                self.r_strip_b = self._r0
 
     def _legs(self):
         F = super()._legs()

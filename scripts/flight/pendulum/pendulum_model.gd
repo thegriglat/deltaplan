@@ -52,6 +52,7 @@ const DEFAULTS := {
 	},
 	"ground_effect": {"enabled": true, "span_efficiency": 0.9},
 	"strip_cl_max_match_polar": true,
+	"stall_cp_shift": true,
 	"apparatus_defaults": {
 		"hang_shift_cm": 0.0, "hang_length_m": 1.2, "sail_flex": 0.2, "dihedral_eff_deg": 1.0,
 	},

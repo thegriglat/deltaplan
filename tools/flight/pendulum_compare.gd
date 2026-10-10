@@ -16,15 +16,21 @@ const DIVE_VARIANTS := [[-1.0, 1.0], [-1.0, 2.0], [-0.5, 3.0], [-0.5, 6.0], [-0.
 
 var _out: FileAccess
 var _plan: Dictionary = {}
+var _cp_shift := true  ## --no-cp-shift: без сдвига ЦД срыва (до PD-18), для сравнения
 
 
 func _ready() -> void:
 	var out_path := "tools/research/pendulum/out/pd8_game.jsonl"
 	var plan_path := ""
 	var bench := false
+	var dive_all := false
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--out="):
 			out_path = a.substr(6)
+		elif a == "--no-cp-shift":
+			_cp_shift = false
+		elif a == "--dive-all":
+			dive_all = true
 		elif a == "--bench":
 			bench = true
 		elif a.begins_with("--plan="):
@@ -35,6 +41,11 @@ func _ready() -> void:
 	var t0 := Time.get_ticks_msec()
 	if bench:
 		_bench()
+		_out.close()
+		get_tree().quit(0)
+		return
+	if dive_all:
+		_dive_all()
 		_out.close()
 		get_tree().quit(0)
 		return
@@ -73,6 +84,53 @@ func _ready() -> void:
 	get_tree().quit(0)
 
 
+## PD-18: выход из пикирования («на себя» до упора 3 с, потом нейтраль) на всех крыльях configs/wings;
+## 60 с после отпускания. Строка dive_all: время первого входа скорости в 10 % трима при α ниже
+## срывного, самый долгий срыв подряд, α и V в конце.
+##   --dive-all  (--out=… для jsonl; --no-cp-shift — без сдвига ЦД срыва, для сравнения «до»)
+func _dive_all() -> void:
+	var names: Array = []
+	for f in DirAccess.get_files_at("res://configs/wings"):
+		if f.ends_with(".json"):
+			names.append(f.get_basename())
+	names.sort()
+	for w: String in names:
+		for v: Array in [[-1.0, 3.0], [-0.5, 3.0]]:
+			var m := _model(w)
+			var v_trim := S.airspeed(m) * 3.6
+			var a_stall: float = m.strips.alpha0_root + m.strips.cl_max / m.strips.lift_slope
+			var inp := S.input(v[0])
+			var t_trim := NAN
+			var streak := 0.0
+			var streak_max := 0.0
+			var a_max := 0.0
+			var v_min := INF
+			var v_max := 0.0
+			var hold: float = v[1]
+			for i in _steps(hold + 60.0, DT):
+				if m.time_s >= hold - 1.0e-9:
+					inp.pitch = 0.0
+				m.step(DT, inp, Callable(), Callable())
+				a_max = maxf(a_max, m.alpha)
+				if m.time_s < hold:
+					continue
+				var vk := S.airspeed(m) * 3.6
+				v_min = minf(v_min, vk)
+				v_max = maxf(v_max, vk)
+				if m.alpha > a_stall:
+					streak += DT
+					streak_max = maxf(streak_max, streak)
+				else:
+					streak = 0.0
+					if is_nan(t_trim) and absf(vk - v_trim) <= 0.10 * v_trim:
+						t_trim = m.time_s - hold
+			_emit("dive_all_p%d" % roundi(-100.0 * v[0]), w, DT, {
+				"V_trim_kmh": v_trim, "alpha_stall_deg": rad_to_deg(a_stall), "t_to_trim_s": t_trim,
+				"stall_streak_max_s": streak_max, "alpha_max_deg": rad_to_deg(a_max), "V_min_kmh": v_min,
+				"V_max_kmh": v_max, "alpha_end_deg": rad_to_deg(m.alpha), "V_end_kmh": S.airspeed(m) * 3.6,
+				"finite": S.finite(m)})
+
+
 func _emit(sc: String, wing: String, dt: float, d: Dictionary) -> void:
 	d["sc"] = sc
 	d["wing"] = wing
@@ -105,6 +163,7 @@ class Hold:
 
 func _model(w: String, mass := 0.0) -> PendulumModel:
 	var m := S.make(w, mass)
+	m.strips.stall_cp_shift = _cp_shift
 	S.reset(m)
 	return m
 
