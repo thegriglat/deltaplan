@@ -99,10 +99,18 @@
       "name": "doc_version",
       "cmd": "grep -n FORMAT_VERSION docs/guide/location-data.md",
       "expect": "exit=0"
+    },
+    {
+      "name": "osm_any_contracts",
+      "tests": "osm_any_contracts"
+    },
+    {
+      "name": "test_air_place",
+      "tests": "test_air_place"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T04:21:20",
-  "edited": "2026-10-10T05:43:13"
+  "edited": "2026-10-10T06:03:43"
 }
