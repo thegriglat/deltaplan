@@ -51,8 +51,13 @@ static func build_for(location_id: String) -> WorldClearings:
 	var hf := _load_height_fn(dem_dir2)
 	if hf.is_valid():
 		houses = VillagePlacer.plan(patches_for_location(location_id), location_id, cfg.villages, hf)
+	# просеки вдоль дорог и ж/д из тайлов OSM (OT-9); нет тайлов — пустой OsmData
+	var ocfg: Dictionary = Config.get_config("osm_tiles")
+	var osm: OsmData = null
+	if bool(ocfg.get("enabled", true)):
+		osm = OsmData.load_for(Locations.data_dir(location_id), lat0, lon0, float(ocfg.get("half_m", 20000.0)))
 	var c := WorldClearings.new()
-	c.build(landings, cfg, half, tracks, houses)
+	c.build(landings, cfg, half, tracks, houses, osm)
 	return c
 
 
@@ -89,8 +94,14 @@ static func _load_height_fn(dir: String) -> Callable:
 
 ## landings — спецификации посадок с x, z (мир).
 ## tracks — тропы к стартам (StartTracks.plan), мир (x, z) — не растут деревья.
+## osm — данные OSM места: просека вдоль дорог (ширина класса + обочина), без тоннелей.
 func build(
-	landings: Array, cfg: Dictionary, half_size_m: float, tracks: Array = [], houses: Array = []
+	landings: Array,
+	cfg: Dictionary,
+	half_size_m: float,
+	tracks: Array = [],
+	houses: Array = [],
+	osm: OsmData = null
 ) -> void:
 	var t0 := Time.get_ticks_usec()
 	var cc: Dictionary = cfg.clearings
@@ -98,6 +109,10 @@ func build(
 	var n := ceili(2.0 * half_size_m / cell_m)
 	origin = Vector2(-half_size_m, -half_size_m)
 	image = Image.create_empty(n, n, false, Image.FORMAT_L8)
+	if osm != null:
+		_roads(osm.roads, cfg.get("roads", {}).get("classes", {}), float(cc.get("road_margin_m", 3.0)))
+		_buildings(osm.buildings, float(cc.get("building_margin_m", 4.0)))
+		_rails(osm.rail, cfg.get("rail", {}).get("classes", {}), float(cc.get("road_margin_m", 3.0)))
 	for l in landings:
 		_landing(l, float(cc.landing_margin_m))
 	var track_half := float(cfg.start_tracks.width_m) * 0.5 + float(cc.start_track_margin_m)
@@ -142,6 +157,23 @@ func stamp_line(pts: PackedVector2Array, half: float) -> void:
 		for s in k + 1:
 			var p := a.lerp(b, float(s) / k)
 			stamp(p.x, p.y, half)
+
+
+func _roads(roads: Array, classes: Dictionary, margin: float) -> void:
+	for r: Dictionary in roads:
+		if classes.has(r.t) and not bool(r.get("tunnel", false)):
+			stamp_line(r.p, float(classes[r.t][0]) * 0.5 + margin)
+
+
+func _buildings(buildings: Array, margin: float) -> void:
+	for b: Array in buildings:
+		stamp(float(b[0]), float(b[1]), Vector2(float(b[2]), float(b[3])).length() * 0.5 + margin)
+
+
+func _rails(rails: Array, classes: Dictionary, margin: float) -> void:
+	for r: Dictionary in rails:
+		if classes.has(r.t) and not bool(r.get("tunnel", false)):
+			stamp_line(r.p, float(classes[r.t][0]) * 0.5 + margin)
 
 
 func _landing(l: Dictionary, margin: float) -> void:
