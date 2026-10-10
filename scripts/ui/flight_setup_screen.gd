@@ -71,6 +71,8 @@ var _hours: PackedFloat32Array = []  ## start_hours(); индекс совпад
 var _month_opt: OptionButton
 var _day: SpinBox
 var _done_btn: Button
+var _tabs: TabContainer
+var _apparatus: Dictionary = {}  ## ключ PD-К3 → HSlider
 var _fav_btn: Button
 var _recent_section: VBoxContainer
 var _recent_list: VBoxContainer
@@ -127,22 +129,34 @@ func _build() -> void:
 	UiKit.label(box, tr("setup_title"), "TitleLabel")
 	UiKit.separator(box)
 
-	_build_wing(box)
+	_tabs = TabContainer.new()
+	_tabs.use_hidden_tabs_for_min_size = true
+	box.add_child(_tabs)
+	var box_place := _add_tab(_tabs, tr("setup_tab_place"))
+	var box_app := _add_tab(_tabs, tr("setup_tab_apparatus"))
+	_tabs.tab_changed.connect(func(_i: int) -> void: sp["scroll"].scroll_vertical = 0)
 
+	_build_wing(box_app)
 	_mass = UiKit.slider_row(
-		box, tr("setup_pilot_mass"), 50, 120, float(ui.get("mass_step_kg", 1.0)), "%.0f " + tr("unit_kg")
+		box_app,
+		tr("setup_pilot_mass"),
+		50,
+		120,
+		float(ui.get("mass_step_kg", 1.0)),
+		"%.0f " + tr("unit_kg")
 	)
+	_build_apparatus(box_app)
 
-	_build_forecast(box)
-	_build_time(box)
+	_build_forecast(box_place)
+	_build_time(box_place)
 
-	UiKit.separator(box)
+	UiKit.separator(box_place)
 	_row = PlacePickRow.new()
 	_row.settings = settings
-	box.add_child(_row)
+	box_place.add_child(_row)
 	_row.build(self, popular_places_path)
 	_row.changed.connect(_update_dir_hint)
-	_build_recent(box)
+	_build_recent(box_place)
 
 	UiKit.separator(sp["footer"])
 	var bar := UiKit.button_bar(sp["footer"])
@@ -150,6 +164,36 @@ func _build() -> void:
 	_done_btn.custom_minimum_size.x = 160
 	_fav_btn = UiKit.button(bar, tr("setup_add_favorite"), _on_add_favorite)
 	UiKit.button(bar, tr("common_back"), func() -> void: closed.emit())
+
+
+## Вкладка: колонка внутри TabContainer.
+func _add_tab(tabs: TabContainer, title: String) -> VBoxContainer:
+	var m := MarginContainer.new()
+	m.add_theme_constant_override("margin_top", 12)
+	tabs.add_child(m)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	m.add_child(v)
+	tabs.set_tab_title(tabs.get_tab_count() - 1, title)
+	return v
+
+
+## Четыре ползунка PD-К3; у каждого — «Важно только при режиме управления «Маятник»».
+func _build_apparatus(box: Control) -> void:
+	UiKit.separator(box)
+	var fmts := {
+		"hang_shift_cm": "%+.1f " + tr("unit_cm"),
+		"hang_length_m": "%.2f " + tr("unit_m"),
+		"sail_flex": "%.2f",
+		"dihedral_eff_deg": "%+.1f°",
+	}
+	for k: String in FlightSettings.APPARATUS_SPEC:
+		var sp: Array = FlightSettings.APPARATUS_SPEC[k]
+		var sl := UiKit.slider_row(box, tr("setup_app_" + k), sp[0], sp[1], sp[2], fmts[k])
+		_apparatus[k] = sl
+		sl.get_parent().tooltip_text = tr("setup_app_pendulum_only")
+		var hint := UiKit.label(box, tr("setup_app_pendulum_only"), "HintLabel")
+		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 
 func _apply_settings() -> void:
@@ -166,6 +210,10 @@ func _apply_settings() -> void:
 	_month_opt.select(clampi(settings.month, 1, 12) - 1)
 	_on_month_selected(_month_opt.selected)
 	_day.value = settings.day
+	var ap := FlightSettings.normalize_apparatus(settings.apparatus)
+	for k: String in _apparatus:
+		(_apparatus[k] as HSlider).value = ap[k]
+		(_apparatus[k] as HSlider).value_changed.emit(ap[k])
 	_row.refresh()
 	_fill_recent()
 
@@ -376,6 +424,10 @@ func _collect() -> FlightSettings:
 	s.start_hour = _hours[maxi(_hour.selected, 0)]
 	s.month = _month_opt.selected + 1
 	s.day = int(_day.value)
+	var ap := {}
+	for k: String in _apparatus:
+		ap[k] = (_apparatus[k] as HSlider).value
+	s.apparatus = FlightSettings.normalize_apparatus(ap)
 	return s
 
 
