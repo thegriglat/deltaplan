@@ -73,7 +73,7 @@ v1 → v2 (10.10, решение пользователя): OSM удалён и 
 ## N5. Файлы места в WebP и версия кеша (v1, владелец NO-9; потребители HeightLayer, SurfaceLayer, Terrain, сборщик, NO-8)
 Основа — `docs/research/location_compression.md`. Совместимость со старыми файлами не нужна.
 - **Высоты** слоя (`detail`, `far`): `<id>.webp`, WebP lossless, RGB8; код v = (R << 16) | (G << 8) | B,
-  высота h = `height_min_m` + v · `height_step_m`, шаг 1/8 м (0,125), ошибка ≤ 0,0625 м против float32. `height_min_m`,
+  высота h = `height_min_m` + v · `height_step_m`, шаг 1/32 м (0,03125), ошибка 0 против float32 (его квантование тоже 1/32). `height_min_m`,
   `height_step_m`, имя файла — в описании слоя (`meta.json`/info слоя, там же, где сейчас размер и шаг сетки).
 - **Остальные растры места** (`<id>_surface`, `<id>_water`, `detail_detail10`, `detail_built10`): `.webp` lossless с
   теми же значениями и каналами, что прежние PNG (L8 / LA8); читатель после загрузки приводит к прежнему формату

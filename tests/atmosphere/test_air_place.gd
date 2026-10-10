@@ -63,8 +63,8 @@ func test_domain_input_vs_reference() -> void:
 				% [int(dx), t_ms, fmt.call(e_h), fmt.call(e_q), fmt.call(e_g), c.z_i, float(m.z_i)]
 			)
 		)
-		# высоты места квантованы шагом 1/8 м (N5): эталон по float32, допуск — полшага
-		check(e_h < 0.07, "рельеф: %s м" % fmt.call(e_h))
+		# высоты места квантованы шагом 1/32 м (N5), как float32 эталона
+		check(e_h < 1e-3, "рельеф: %s м" % fmt.call(e_h))
 		check(e_q < 1e-9, "H клетки = SurfaceHeat.mix_flux по её долям: %s Вт/м²" % fmt.call(e_q))
 		check(e_g < 1e-7, "dθ̄/dz: %s К/м" % fmt.call(e_g))
 		check(absf(c.z_i - float(m.z_i)) < 0.5, "z_i: %.2f против %.2f" % [c.z_i, float(m.z_i)])

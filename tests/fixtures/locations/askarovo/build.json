@@ -3,10 +3,10 @@
   "center_lat": 53.26,
   "center_lon": 58.54,
   "complete": true,
-  "format_version": 2,
+  "format_version": 3,
   "key": "askarovo",
   "missing": [],
-  "net_requests": 0,
+  "net_requests": 0.0,
   "seconds": {
     "dem": 3.69,
     "rivers": 21.78,

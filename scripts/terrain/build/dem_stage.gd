@@ -4,7 +4,7 @@ extends RefCounted
 ## Слои из ctx.spec.dem.layers: Copernicus GLO-30 (COG по HTTP range или локальный файл) и
 ## Terrarium (тайлы PNG), пересэмплирование на метрическую сетку вокруг центра (равнопромежуточная
 ## проекция, R = 6371008,8 м), гауссово сглаживание, квантование, вклейка детального слоя в грубый.
-## Пишет <ctx.dir>/<слой>.webp (N5: WebP lossless, 24 бит в RGB8, шаг 1/8 м от минимума) и meta.json; заполняет ctx.heights/ctx.layers.
+## Пишет <ctx.dir>/<слой>.webp (N5: WebP lossless, 24 бит в RGB8, шаг 1/32 м от минимума) и meta.json; заполняет ctx.heights/ctx.layers.
 ## Реки (<слой>_water.webp) — RiverStage; в meta.json только имя файла water_file.
 ## Сеть: User-Agent из runtime_terrain, кеш в user://terrain_cache, ctx.net_requests += 1 на запрос;
 ## ctx.offline — только локальные файлы и кеш (иначе ERR_UNAVAILABLE).
@@ -14,7 +14,7 @@ extends RefCounted
 
 const EARTH_R_M := 6371008.8
 ## Шаг кода высот в файле слоя, м (ошибка ≤ половины шага).
-const HEIGHT_STEP_M := 0.125
+const HEIGHT_STEP_M := 0.03125
 const HEADER_BYTES := 65536
 const TILE_PX := 256
 const COP_NAME := "Copernicus_DSM_COG_10_%s%02d_00_%s%03d_00_DEM"
