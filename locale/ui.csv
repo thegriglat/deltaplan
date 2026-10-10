@@ -513,3 +513,11 @@ settings_bar_reset,Сброс,Reset
 settings_bar_raw,"Сырые оси: крен %.3f, тангаж %.3f","Raw axes: roll %.3f, pitch %.3f"
 settings_bar_roll,Крен (итог),Roll (result)
 settings_bar_pitch,Тангаж (итог),Pitch (result)
+setup_tab_place,Место,Place
+setup_tab_apparatus,Аппарат,Apparatus
+unit_cm,см,cm
+setup_app_hang_shift_cm,Подвеска вдоль киля,Hang point along keel
+setup_app_hang_length_m,Длина подвески,Hang strap length
+setup_app_sail_flex,Гибкость паруса,Sail flexibility
+setup_app_dihedral_eff_deg,Поперечное V,Effective dihedral
+setup_app_pendulum_only,Важно только при режиме управления «Маятник»,Matters only in the Pendulum control mode
