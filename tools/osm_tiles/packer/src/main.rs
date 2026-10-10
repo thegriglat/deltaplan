@@ -1,4 +1,4 @@
-//! CLI `osmtiles` (O5). `pack` и `finalize` — в OT-2; здесь `dump`, `stats`, `cover`, `manifest`.
+//! CLI `osmtiles` (O5): `pack`, `finalize`, `dump`, `stats`, `cover`, `manifest`.
 
 use clap::{Parser, Subcommand};
 use osmtiles::{codec, cover, manifest, pb, stats};
@@ -75,7 +75,12 @@ fn set_threads(n: Option<usize>) {
 
 fn run(cmd: Cmd) -> Result<(), String> {
     match cmd {
-        Cmd::Pack { .. } | Cmd::Finalize { .. } => Err("pack/finalize: не реализовано (задача OT-2)".into()),
+        Cmd::Pack { input, region, poly, frag_dir, tmp: _, threads: _, report } => {
+            osmtiles::pack::pack(&osmtiles::pack::PackOpts { input, region, poly, frag_dir, report })
+        }
+        Cmd::Finalize { frag_dir, out, list, threads: _, report } => {
+            osmtiles::finalize::finalize(&osmtiles::finalize::FinalizeOpts { frag_dir, out, list, report })
+        }
         Cmd::Cover { poly } => {
             let text = std::fs::read_to_string(&poly).map_err(|e| format!("{}: {e}", poly.display()))?;
             let tiles = cover::cover(&cover::parse_poly(&text)?);
