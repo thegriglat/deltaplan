@@ -36,3 +36,6 @@
 {"t": "2026-10-11T01:37:44", "by": "coordinator", "task": "OL-5", "ev": "accepted", "note": "по отчёту: 4/4 PASS; подложка — первый (пёстрый) вариант по решению пользователя, спокойные варианты в конфиге выключены"}
 {"t": "2026-10-11T01:43:11", "by": "executor", "task": "OL-1", "ev": "checked", "note": "5/5 test_osm_look_contracts=ok:4/4; world_objects=ok:117/117; osm_tiles=ok:24/24; shots=ok:5; gd=ok:exit 0"}
 {"t": "2026-10-11T01:43:20", "by": "coordinator", "task": "OL-1", "ev": "accepted", "note": "по отчёту: 5/5 PASS; слой домов 2,62→2,99 с (+14 %, под нагрузкой), кадр в шуме; рябь крыш — flat varying; отступление INSTANCE_COLOR принято"}
+{"t": "2026-10-11T01:47:48", "by": "coordinator", "task": "OL-1", "ev": "accepted", "commits": ["e73c76c"], "note": "5/5 test_osm_look_contracts=ok:4/4; world_objects=ok:129/129; osm_tiles=ok:24/24; shots=ok:5; gd=ok:exit 0"}
+{"t": "2026-10-11T01:47:59", "by": "coordinator", "task": "OL-1", "ev": "merged", "commits": ["e73c76c"], "note": "на ветке модуля: контракты 4/4, модели 9/9, world_objects 129/129, osm_tiles 24/24"}
+{"t": "2026-10-11T01:47:59", "by": "coordinator", "task": "OL-5", "ev": "merged", "commits": ["4432261"], "note": "на ветке модуля в составе прогона после OL-1: world_objects 129/129"}
