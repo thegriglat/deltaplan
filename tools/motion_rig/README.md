@@ -78,3 +78,5 @@ Set the address in the game to `127.0.0.1:33001` (or the receiving PC) and fly. 
 ## SimTools / FlyPT Mover
 
 Not supported yet: SimTools needs a per-game plugin (dll), and FlyPT Mover has no generic UDP input. If you need them, use the Generic format as a basis for a plugin.
+
+See also: [build your own control bar](../control_bar/README.md) (a joystick as the control bar input).
