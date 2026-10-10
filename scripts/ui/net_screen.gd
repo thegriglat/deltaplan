@@ -38,8 +38,7 @@ var _input_box: VBoxContainer
 var _connecting_box: VBoxContainer
 var _zone_box: VBoxContainer
 var _server: LineEdit
-var _place_opt: OptionButton
-var _places: Array[Dictionary] = []  ## {location, site} или {pick: true}
+var _place_row: PlacePickRow  ## выбор места — тот же, что в «Настройках полёта»
 var _code_edit: LineEdit
 var _create_btn: Button
 var _join_btn: Button
@@ -163,21 +162,9 @@ func join_zone() -> void:
 	backend.connect_and_join(_address, UserSettings.pilot_name(), _code_edit.text.strip_edges())
 
 
-## Параметры новой зоны: последний «Полёт…» + место из списка.
+## Параметры новой зоны: последний «Полёт…» + место (встроенное, из каталога или точка с карты).
 func zone_params() -> FlightSettings:
-	var s := settings.duplicate()
-	if _place_opt.selected < 0:
-		return s
-	var k: Variant = _place_opt.get_item_metadata(_place_opt.selected)
-	if k == null:
-		return s
-	var e: Dictionary = _places[int(k)]
-	if not e.get("pick", false):
-		s.location_id = String(e.location)
-		s.site_id = String(e.site)
-		s.pick_lat = NAN
-		s.pick_lon = NAN
-	return s
+	return settings.duplicate()
 
 
 func _begin() -> void:
@@ -251,12 +238,13 @@ func _build_input(box: VBoxContainer) -> void:
 
 	UiKit.separator(box)
 	UiKit.label(box, tr("net_create_title"), "HeaderLabel")
-	_place_opt = OptionButton.new()
-	_place_opt.fit_to_longest_item = false
-	var place_row := UiKit.row(box, tr("net_place"), _place_opt)
-	_create_btn = UiKit.button(place_row, tr("net_create"), create_zone)
+	_place_row = PlacePickRow.new()
+	_place_row.settings = settings
+	box.add_child(_place_row)
+	_place_row.build(self)
+	_place_row.refresh()
+	_create_btn = UiKit.button(UiKit.button_bar(box), tr("net_create"), create_zone)
 	_create_btn.custom_minimum_size.x = 170
-	_fill_places()
 
 	UiKit.separator(box)
 	UiKit.label(box, tr("net_join_title"), "HeaderLabel")
@@ -306,44 +294,6 @@ func _build_zone(box: VBoxContainer) -> void:
 	if backend.steam_available():
 		_invite_btn = UiKit.button(bar, tr("net_invite_friends"), backend.invite_friends)
 	UiKit.button(bar, tr("net_leave"), _on_leave)
-
-
-## Старты всех локаций, сгруппированы по локациям (как в «Полёт…»); точка с карты из
-## последнего «Полёт…» — первой строкой.
-func _fill_places() -> void:
-	_place_opt.clear()
-	_places.clear()
-	var chosen := -1
-	if settings.has_pick():
-		_places.append({"pick": true})
-		_place_opt.add_item(tr("menu_point") % [settings.pick_lat, settings.pick_lon])
-		_place_opt.set_item_metadata(0, 0)
-		chosen = 0
-	for loc_name in Config.list_configs("locations"):
-		var loc: Dictionary = Config.get_config(loc_name)
-		var starts: Array = loc.get("start_sites", [])
-		if starts.is_empty():
-			continue
-		_place_opt.add_separator(tr(String(loc.get("name", loc_name.get_file()))))
-		for st: Dictionary in starts:
-			var site := String(st.get("id", ""))
-			_places.append({"location": loc_name.get_file(), "site": site})
-			_place_opt.add_item("   " + tr(String(st.get("name", site))))
-			var i := _place_opt.item_count - 1
-			_place_opt.set_item_metadata(i, _places.size() - 1)
-			if (
-				not settings.has_pick()
-				and loc_name.get_file() == settings.location_id
-				and (site == settings.site_id or settings.site_id == "")
-				and chosen < 0
-			):
-				chosen = i
-	if chosen < 0:  # место из «Полёт…» не нашлось — первый старт
-		for i in _place_opt.item_count:
-			if _place_opt.get_item_metadata(i) != null:
-				chosen = i
-				break
-	_place_opt.select(chosen)
 
 
 func _fill_peers() -> void:

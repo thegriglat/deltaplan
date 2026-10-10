@@ -57,15 +57,14 @@ func _run_location(loc_id: String) -> void:
 	start_menu.setup_requested.emit()
 	check(fss.visible, "%s: экран «Полёт…» открыт" % loc_id)
 
-	var site_idx := _first_site_index(fss, loc_id)
-	check(site_idx >= 0, "%s: в списке стартов есть эта локация" % loc_id)
-	if site_idx < 0:
+	var place := _first_place(fss, loc_id)
+	check(not place.is_empty(), "%s: в «Популярных местах» есть эта локация" % loc_id)
+	if place.is_empty():
 		fss.visible = false
 		await _finish(main, catcher)
 		return
-	fss.get("_site_opt").select(site_idx)
-	# как щелчок пилота: выбор площадки снимает точку с карты (её мог помнить user://)
-	fss.get("_site_opt").item_selected.emit(site_idx)
+	# как выбор пилота в окне «Популярные места» (снимает и точку с карты, которую мог помнить user://)
+	fss.call("_on_place_chosen", place)
 	(fss.get("_done_btn") as Button).emit_signal("pressed")  # «Готово» — выбор, назад в меню
 	check(not fss.visible and start_menu.visible, "%s: «Готово» вернула в меню" % loc_id)
 	(start_menu.get("_fly_btn") as Button).emit_signal("pressed")  # «Лететь»
@@ -137,17 +136,12 @@ func _run_location(loc_id: String) -> void:
 	await _finish(main, catcher)
 
 
-## Первая площадка выбранной локации в OptionButton (порядок из _fill_sites — как на экране).
-func _first_site_index(fss: FlightSetupScreen, loc_id: String) -> int:
-	var site_opt: OptionButton = fss.get("_site_opt")
-	var sites: Array = fss.get("_sites")
-	for i in site_opt.item_count:
-		var k: Variant = site_opt.get_item_metadata(i)
-		if k == null:
-			continue
-		if String((sites[int(k)] as Dictionary).get("location", "")) == loc_id:
-			return i
-	return -1
+## Первый старт встроенной локации в каталоге «Популярные места» экрана ({} — нет).
+func _first_place(fss: FlightSetupScreen, loc_id: String) -> Dictionary:
+	for p: Dictionary in (fss.get("_places_catalog") as Dictionary).get("takeoffs", []):
+		if String(p.get("location", "")) == loc_id:
+			return p
+	return {}
 
 
 ## Точка посадки локации (первая из landing_sites); если нет (altai) — точка в долине по
