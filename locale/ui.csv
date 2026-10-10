@@ -478,14 +478,13 @@ settings_motion_rate,Частота,Rate
 settings_motion_format,Формат,Format
 settings_motion_format_srs,SRS (DOF Reality),SRS (DOF Reality)
 settings_motion_format_generic,Generic,Generic
-settings_motion_signs,Знаки величин,Axis signs
-settings_motion_invert,инв.,invert
-settings_motion_sign_surge,Продольная (surge),Surge
-settings_motion_sign_sway,Боковая (sway),Sway
-settings_motion_sign_heave,Вертикальная (heave),Heave
+settings_motion_signs,Инвертировать знак величины,Invert sign of
+settings_motion_sign_surge,Продольная,Surge
+settings_motion_sign_sway,Боковая,Sway
+settings_motion_sign_heave,Вертикальная,Heave
 settings_motion_sign_roll,Крен,Roll
 settings_motion_sign_pitch,Тангаж,Pitch
 settings_motion_sign_yaw,Курс,Yaw
-settings_motion_sign_roll_rate,Скорость крена,Roll rate
-settings_motion_sign_pitch_rate,Скорость тангажа,Pitch rate
-settings_motion_sign_yaw_rate,Скорость курса,Yaw rate
+settings_motion_sign_roll_rate,Скор. крена,Roll rate
+settings_motion_sign_pitch_rate,Скор. тангажа,Pitch rate
+settings_motion_sign_yaw_rate,Скор. курса,Yaw rate

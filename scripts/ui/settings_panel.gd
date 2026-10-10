@@ -213,14 +213,22 @@ func _build_motion_rig(box: Control) -> void:
 	_motion_format.add_item(tr("settings_motion_format_generic"))
 	UiKit.row(box, tr("settings_motion_format"), _motion_format)
 	var grid := GridContainer.new()
-	grid.columns = 3
+	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 16)
+	var names := {
+		"surge": tr("settings_motion_sign_surge"), "sway": tr("settings_motion_sign_sway"),
+		"heave": tr("settings_motion_sign_heave"), "roll": tr("settings_motion_sign_roll"),
+		"pitch": tr("settings_motion_sign_pitch"), "yaw": tr("settings_motion_sign_yaw"),
+		"roll_rate": tr("settings_motion_sign_roll_rate"), "pitch_rate": tr("settings_motion_sign_pitch_rate"),
+		"yaw_rate": tr("settings_motion_sign_yaw_rate"),
+	}
 	for k in MotionPacket.SIGN_KEYS:
 		var c := CheckBox.new()
-		c.text = "%s: %s" % [tr("settings_motion_sign_" + k), tr("settings_motion_invert")]
+		c.text = String(names[k])
 		grid.add_child(c)
 		_motion_signs[k] = c
-	UiKit.row(box, tr("settings_motion_signs"), grid)
+	UiKit.label(box, tr("settings_motion_signs"), "HintLabel")
+	box.add_child(grid)
 
 
 ## VSync, предел кадров, режим окна, разрешение (game.json → display, машинные настройки).
