@@ -107,6 +107,10 @@ func test_trapezoid_and_telltales() -> void:
 		check(bar_in > 0, "%s: взгляд вниз 90° — штанга в кадре (%d из 41 точек)" % [wing, bar_in])
 		check(_count_in_view(cam, _arm_points(v)) > 0, "%s: взгляд вниз 90° — руки в кадре" % wing)
 		print("         %s: взгляд вниз 90°: штанга в кадре %d/41, угол до центра штанги %.1f°" % [wing, bar_in, _axis_angle(cam, game.glider.get_marker("BaseBar").global_position)])
+		# Ленточки у лица (≈0,3 м спереди, ±0,49 м вбок после позы Б): под углом ≈58° к оси,
+		# горизонтальная половина кадра 16:9 при FOV 75 — 53,8°, при FOV 90 по умолчанию (camera.json)
+		# — 60,6°; проверяем в FOV игры.
+		cam.fov = float(Config.get_config("camera").fov_deg)
 		# ленточки: найти наклон головы вверх ≤ 55°, при котором обе в кадре
 		var seen_pitch := -1.0
 		for pit in [10.0, 20.0, 30.0, 40.0, 50.0, 55.0]:
