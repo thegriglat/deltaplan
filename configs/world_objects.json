@@ -374,10 +374,50 @@
       "service": [3.5, 0, 0.48, 0.45, 0.4],
       "track": [3.0, 0, 0.55, 0.5, 0.4]
     },
+    "look": {
+      "_doc": "L7 (OL-5): вид дорог в шейдере road.gdshader. styles — код вида по классу highway: 0 асфальт, 1 пунктир по оси и краевые линии, 2 сплошная ось и краевые линии, 3 пунктир по оси, 4 грунтовка (колея из двух полос, рваный край); нет в списке — 0. Остальное — uniform'ы шейдера: noise_amp/patch_amp/speck_amp — размах шума, ремонтных заплат и крупы асфальта (доля яркости); detail_fade_start_m/end_m — детали гаснут с расстоянием; mark_color — цвет разметки sRGB; center_w_m/edge_w_m — ширины линий, м; edge_inset_m — отступ краевой линии от края, м; dash_period_m/dash_len_m — пунктир, м; mark_wear — стёртость разметки; rut_*_m — отступ и ширина колеи грунтовки; edge_darken — затемнение краёв ленты.",
+      "styles": {
+        "motorway": 2, "trunk": 2, "primary": 1, "secondary": 1, "tertiary": 3, "track": 4
+      },
+      "noise_amp": 0.12,
+      "patch_amp": 0.1,
+      "speck_amp": 0.06,
+      "detail_fade_start_m": 250.0,
+      "detail_fade_end_m": 1400.0,
+      "mark_color": [0.86, 0.86, 0.82],
+      "center_w_m": 0.16,
+      "edge_w_m": 0.12,
+      "edge_inset_m": 0.35,
+      "dash_period_m": 9.0,
+      "dash_len_m": 3.0,
+      "mark_wear": 0.25,
+      "rut_offset_m": 0.72,
+      "rut_w_m": 0.45,
+      "edge_darken": 0.2
+    },
     "major_visibility_m": 25000,
     "major_visibility_m_doc": "Дальность видимости главных дорог, м (приметы для навигации)",
     "minor_visibility_m": 4000,
     "minor_visibility_m_doc": "Дальность видимости второстепенных дорог и грунтовок, м"
+  },
+  "city_ground": {
+    "_doc": "L8 (OL-5): земля города — серо-бежевая подложка дворов с пятнами зелени между домами OSM (scripts/world_objects/osm/city_ground.gd). Маска: доля площади под домами по клеткам cell_m (если есть buildings.style.cell_m — он), сглаженная на ~fade_m, порог coverage_min; к краю города подложка плавно угасает, сёла и промзоны вне города остаются травой. Класс WorldCover «застройка» рельеф знает только в местах с картой поверхности, поэтому маска — по домам OSM (работает везде, где есть тайлы). Сетка по рельефу: шаг vertex_m, тайлы tile_m, подъём lift_m; depth_bias_m — сдвиг к камере (меньше, чем у дорог: дороги лежат выше); visibility_m/fade_margin_m — дальность и мягкое угасание тайлов; ground_color/yard_color/green_color — sRGB, green_share — доля зелени, patch_m — размер пятна, м.",
+    "enabled": false,
+    "cell_m": 200.0,
+    "coverage_min": 0.12,
+    "fade_m": 250.0,
+    "vertex_m": 40.0,
+    "tile_m": 2000.0,
+    "lift_m": 0.05,
+    "depth_bias_m": 0.12,
+    "visibility_m": 8000,
+    "fade_margin_m": 800,
+    "ground_color": [0.58, 0.54, 0.47],
+    "yard_color": [0.5, 0.47, 0.42],
+    "green_color": [0.3, 0.38, 0.19],
+    "green_share": 0.22,
+    "patch_m": 22.0,
+    "noise_amp": 0.15
   },
   "rivers": {
     "_doc": "Реки и каналы из OSM (OT-9): те же ленты, что дороги, но материал воды; в маску воды рельефа не пишутся. Ширины в тайлах нет — по классу: река с именем / без имени / канал.",
@@ -648,53 +688,99 @@
     "sink_m_doc": "Насколько стены уходят в землю под самой низкой точкой пятна, м",
     "roof_pitch_deg": 30.0,
     "roof_pitch_deg_doc": "Уклон двускатной крыши, град",
-    "wall_colors": [
-      [
-        0.78,
-        0.72,
-        0.62
-      ],
-      [
-        0.62,
-        0.5,
-        0.38
-      ],
-      [
-        0.85,
-        0.84,
-        0.8
-      ],
-      [
-        0.7,
-        0.62,
-        0.5
-      ]
-    ],
-    "wall_colors_doc": "Цвета стен (sRGB), выбираются детерминированно по зданию",
-    "roof_colors": [
-      [
-        0.42,
-        0.44,
-        0.46
-      ],
-      [
-        0.55,
-        0.26,
-        0.2
-      ],
-      [
-        0.25,
-        0.38,
-        0.3
-      ],
-      [
-        0.6,
-        0.6,
-        0.58
-      ]
-    ],
-    "roof_colors_doc": "Цвета крыш (sRGB): профлист серый, красный, зелёный, оцинковка",
+    "_doc_style": "Стиль домов (OL-1, L2): город / село / промзона. Классификация по типу O3, площади следа, вытянутости и плотности застройки клетки; крыша всегда другого цвета, чем стены.",
+    "style": {
+      "cell_m": 200.0,
+      "cell_m_doc": "Клетка плотности застройки, м",
+      "extent_m": 32000.0,
+      "extent_m_doc": "Сетка плотности покрывает квадрат ±extent_m от центра места; дома дальше считаются по своему типу",
+      "industrial_types": ["industrial", "warehouse"],
+      "city_types": ["apartments", "residential", "office", "hotel", "commercial", "retail", "public", "civic", "school"],
+      "village_types": ["house", "detached", "terrace", "farm", "barn", "shed", "garage", "garages", "hut", "cabin", "roof", "service", "construction"],
+      "types_doc": "Типы O3 по именам; остальные (yes, church, прочее) решает площадь и плотность клетки",
+      "industrial_min_area_m2": 1200.0,
+      "industrial_min_ratio": 1.8,
+      "industrial_max_coverage": 0.15,
+      "industrial_doc": "yes/прочее: след не меньше этой площади, вытянутость l/w не меньше и клетка не плотнее этой доли — промзона",
+      "city_min_area_m2": 500.0,
+      "city_coverage": 0.22,
+      "city_doc": "yes/прочее: след не меньше этой площади или клетка плотнее этой доли — город; иначе село",
+      "min_roof_contrast": 0.08,
+      "min_roof_contrast_doc": "Минимальная разница относительной яркости крыши и стен одного дома",
+      "floor_m": 3.0,
+      "floor_m_doc": "Высота этажа для окон в шейдере, м",
+      "ground_dark": 0.45,
+      "ground_dark_doc": "Затемнение стен у земли (доля яркости у самой земли)",
+      "ground_dark_h_m": 1.0,
+      "ground_dark_h_m_doc": "Высота затемнения над землёй, м",
+      "window_fade_m": 1100.0,
+      "window_fade_m_doc": "Окна растворяются в средний цвет стены к этому расстоянию от камеры, м",
+      "city": {
+        "wall_colors": [[0.8, 0.79, 0.76], [0.72, 0.72, 0.72], [0.85, 0.82, 0.74], [0.66, 0.68, 0.72], [0.78, 0.7, 0.62]],
+        "roof_colors": [[0.34, 0.34, 0.35], [0.4, 0.4, 0.41], [0.42, 0.37, 0.34], [0.3, 0.32, 0.34]]
+      },
+      "village": {
+        "wall_colors": [[0.85, 0.8, 0.68], [0.78, 0.72, 0.62], [0.88, 0.87, 0.82], [0.72, 0.62, 0.5]],
+        "roof_colors": [[0.55, 0.2, 0.16], [0.2, 0.36, 0.26], [0.3, 0.32, 0.35], [0.38, 0.26, 0.2]]
+      },
+      "industrial": {
+        "wall_colors": [[0.62, 0.64, 0.66], [0.7, 0.68, 0.62], [0.58, 0.62, 0.64]],
+        "roof_colors": [[0.2, 0.3, 0.45], [0.2, 0.4, 0.28], [0.45, 0.18, 0.15], [0.38, 0.4, 0.42]]
+      },
+      "palettes_doc": "Палитры стен и крыш (sRGB) по стилю; палитры стен и крыш одного стиля не пересекаются по яркости (проверяет тест)",
+      "window_dark": [0.1, 0.13, 0.18],
+      "window_light": [0.36, 0.46, 0.58],
+      "glass": [0.3, 0.45, 0.55],
+      "windows_doc": "Тёмное окно, окно с отражением неба, сплошное стекло (sRGB)"
+    },
+    "chimney": {
+      "_doc": "Труба — коробка на скате двускатной крыши сельского дома (L3)",
+      "fraction": 0.85,
+      "fraction_doc": "Доля сельских домов с двускатной крышей, у которых есть труба (выбор по округлённым координатам)",
+      "size_m": [0.5, 1.3, 0.5],
+      "size_m_doc": "Размер трубы: ширина, высота над коньком-линией, глубина, м",
+      "color": [0.36, 0.3, 0.28],
+      "color_doc": "Цвет трубы (sRGB)"
+    },
+    "smoke": {
+      "_doc": "Дым над трубами сельских домов (L3, L4): дым костра (smoke_particles/smoke_puff) в пуле эмиттеров у камеры; слабее и мельче костра",
+      "fraction": 0.3,
+      "fraction_doc": "Доля домов с трубой, над которыми идёт дым (выбор по координатам); от всех сельских домов ≈ 0,25",
+      "max_emitters": 48,
+      "max_emitters_doc": "Эмиттеров в пуле (у ближайших к камере дымящих труб)",
+      "visibility_m": 1200.0,
+      "visibility_m_doc": "Дым рисуется для труб ближе этого расстояния от камеры, м",
+      "update_s": 1.0,
+      "update_s_doc": "Как часто пересчитывать, у каких труб эмиттеры, с",
+      "cluster_m": 250.0,
+      "cluster_m_doc": "Ветер опрашивается на клетку такого размера, не на дом, м",
+      "sample_h_m": 12.0,
+      "sample_h_m_doc": "Высота опроса ветра над трубой, м",
+      "amount": 36,
+      "amount_doc": "Клубов на эмиттер одновременно",
+      "lifetime_s": 12.0,
+      "lifetime_s_doc": "Жизнь клуба, с",
+      "density": 0.8,
+      "tint": [0.7, 0.72, 0.76],
+      "size_start_m": 0.5,
+      "size_end_m": 5.0,
+      "rise_speed": 1.6,
+      "rise_decay_s": 5.0,
+      "rise_min": 0.25,
+      "wind_damp": 0.1,
+      "follow_s": 1.5,
+      "turbulence": 0.4,
+      "updraft_max_ms": 2.0,
+      "params_doc": "density…updraft_max_ms — параметры дыма костра (campfire), здесь слабее и мельче"
+    },
     "cast_shadows": true
+  },
+  "osm_wind": {
+    "_doc": "Провод ветра в слой OSM (L4): WorldObjects → OsmLayer.update_wind(air_fn, cam) → osm_wind у потомков группы osm_wind (дым, ветряки, кабинки)",
+    "update_s": 0.5,
+    "update_s_doc": "Как часто WorldObjects обновляет ветер слоя OSM, с",
+    "max_samples": 64,
+    "max_samples_doc": "Всего вызовов air_fn слоем OSM за одно обновление"
   },
   "preview": {
     "_doc": "Тестовая сцена scenes/world_objects/world_objects_preview.tscn (ракурсы, замер)",
@@ -724,7 +810,7 @@
     "track_agl_m_doc": "Ракурс track: камера над рельефом, м"
   },
   "osm_pilot": {
-    "_doc": "Объекты OSM для пилота (OT-10, OsmPilot): подписи вершин и перевалов (вид — bots.json → names, как у ботов; включение — peaks.show), ЛЭП (опоры + провода wire.gdshader, препятствия), мачты/башни/трубы/ветряки, канатные дороги, аэродромы и ВПП. Простые меши, без моделей.",
+    "_doc": "Объекты OSM для пилота (OT-10, OsmPilot): подписи вершин и перевалов (вид — bots.json → names, как у ботов; включение — peaks.show), ЛЭП (опоры + провода wire.gdshader, препятствия), мачты/башни/трубы/ветряки, канатные дороги, аэродромы и ВПП. Опоры, столбы, мачты, телебашни и трубы — модели assets/models/osm (OL-2, L5), ветряки и канатки — простые меши.",
     "enabled": true,
     "peaks": {
       "enabled": true,
@@ -746,9 +832,9 @@
       "pole_arms_m_doc": "Точки подвеса проводов столба (minor_line): [поперёк линии, высота], м",
       "tower_arms_m": [[-5.5, 20.0], [5.5, 20.0], [-4.0, 25.5], [4.0, 25.5]],
       "tower_arms_m_doc": "Точки подвеса проводов решётчатой опоры: [поперёк линии, высота], м",
-      "tower_height_m": 26.0,
+      "tower_height_m": 28.0,
       "pole_height_m": 9.0,
-      "tower_radius_m": 2.0,
+      "tower_radius_m": 3.2,
       "pole_radius_m": 0.15,
       "tower_color": [0.45, 0.47, 0.5],
       "pole_color": [0.38, 0.3, 0.22],
@@ -772,12 +858,71 @@
       "enabled": true,
       "visibility_m": 8000,
       "default_h_m": {"mast": 60.0, "tower": 40.0, "chimney": 50.0, "wind": 80.0},
-      "default_h_m_doc": "Высота без тега height, м",
-      "radius_m": {"mast": 0.6, "tower": 2.5, "chimney": 2.0, "wind": 2.0},
-      "color": {"mast": [0.8, 0.2, 0.2], "tower": [0.6, 0.6, 0.62], "chimney": [0.7, 0.45, 0.4], "wind": [0.92, 0.92, 0.9]},
+      "default_h_m_doc": "Высота без тега height, м (по классу OSM)",
+      "model_h_m": {"mast_lattice": 60.0, "tv_tower": 540.0, "chimney": 100.0},
+      "model_h_m_doc": "Высота моделей assets/models/osm (скрипт Blender читает отсюда). Экземпляр: масштаб по Y = h / model_h_m (верх = h), по XZ = clamp((h / model_h_m)^0.75, 0.35, 1) — след не шире radius_m; решётка растягивается по Y, число пролётов не меняется",
+      "tv_tower_min_h_m": 150.0,
+      "tv_tower_min_h_m_doc": "Класс tower: телебашня (tv_tower, по образцу Останкинской, 540 м) только при высоте с тега не ниже этой (comm без высоты — сотовая мачта: mast_lattice), иначе решётчатая мачта (mast_lattice), м",
+      "tv_tower_obstacle": [[1.0, 0.0, 0.117], [0.32, 0.117, 1.0], [0.63, 0.58, 0.65]],
+      "tv_tower_obstacle_doc": "Препятствия телебашни — цилиндры [доля radius_m, низ, верх (доли высоты)]: конус-основание, ствол с антенной, «тюльпан»; радиус масштабируется по XZ",
+      "radius_m": {"mast_lattice": 1.5, "tv_tower": 31.0, "chimney": 4.0, "wind": 2.0},
+      "radius_m_doc": "Радиус следа модели при масштабе 1 (он же препятствие, масштабируется на XZ), м",
+      "skip": ["wind"],
+      "skip_doc": "Классы OSM (mast, tower, chimney, wind), которые _verticals не рисует (OL-3 ставит wind, когда ветряки рисует сам)",
+      "color": {"wind": [0.92, 0.92, 0.9]},
       "blade_frac": 0.4,
       "blade_frac_doc": "Длина лопасти ветряка, доля высоты башни",
       "cast_shadows": true
+    },
+    "chimney_plume": {
+      "_doc": "Шлейфы пара промышленных труб (L9, L4): дым костра (smoke_particles/smoke_puff), но крупнее и долгоживущий, бело-серый; выход на высоте трубы, снос и вытягивание по ветру модели на высоте устья (один опрос на трубу) — указатель ветра издалека",
+      "enabled": true,
+      "fraction": 0.5,
+      "fraction_doc": "Доля труб класса chimney со шлейфом (выбор по хэшу координат)",
+      "visibility_m": 5000.0,
+      "visibility_m_doc": "Шлейф рисуется для труб ближе этого расстояния от камеры, м",
+      "max_emitters": 24,
+      "update_s": 2.0,
+      "sample_h_m": 0.0,
+      "sample_h_m_doc": "Опрос ветра выше устья на столько, м (позиции эмиттеров уже на устье)",
+      "cluster_m": 250.0,
+      "amount": 36,
+      "amount_doc": "Клубов на эмиттер одновременно (≈ lifetime_s / интервал между клубами)",
+      "lifetime_s": 70.0,
+      "lifetime_s_doc": "Жизнь клуба, с; длина шлейфа ≈ ветер × это (до max_drift_m видимости)",
+      "max_drift_m": 700.0,
+      "density": 0.5,
+      "tint": [0.86, 0.87, 0.89],
+      "size_start_m": 4.0,
+      "size_end_m": 45.0,
+      "rise_speed": 3.0,
+      "rise_decay_s": 12.0,
+      "rise_min": 0.15,
+      "wind_damp": 0.05,
+      "follow_s": 4.0,
+      "turbulence": 0.6,
+      "updraft_max_ms": 3.0
+    },
+    "wind_turbines": {
+      "_doc": "Ветряки OSM (L6, OsmWindTurbines): модели wind_tower/wind_rotor.glb, масштаб по высоте ступицы (h или verticals.default_h_m.wind). Гондола разворачивается носом на ветер (L4: группа osm_wind, воздух на высоте ступицы), ротор крутится по кривой турбины 2–3 МВт.",
+      "enabled": true,
+      "visibility_m": 8000,
+      "cast_shadows": true,
+      "yaw_deg_s": 0.5,
+      "yaw_deg_s_doc": "Предельная скорость рыскания гондолы, °/с (типичные привода рыскания 0,3–0,7 °/с)",
+      "min_dir_ms": 0.5,
+      "min_dir_ms_doc": "Слабее этого ветра направление не обновляется (гондола стоит как была), м/с",
+      "cut_in_ms": 3.0,
+      "rated_ms": 12.0,
+      "cut_out_ms": 25.0,
+      "rated_rpm": 15.0,
+      "curve_doc": "Об/мин ротора: 0 ниже cut_in_ms, линейно до rated_rpm при rated_ms, rated_rpm до cut_out_ms, 0 выше (паспорт типичной турбины 2–3 МВт)",
+      "rotor_accel_rpm_s": 0.5,
+      "rotor_accel_rpm_s_doc": "Предельное изменение частоты вращения ротора (инерция), об/мин за с — угол копится, рывков нет",
+      "cluster_m": 1000.0,
+      "cluster_m_doc": "Размер ячейки кластера: один опрос воздуха на ячейку за вызов osm_wind",
+      "max_samples": 24,
+      "max_samples_doc": "Опросов воздуха за один вызов osm_wind (доля ветряков в общем max_samples слоя)"
     },
     "aerialways": {
       "enabled": true,
@@ -791,7 +936,20 @@
       "pole_radius_m": 0.25,
       "pole_color": [0.35, 0.35, 0.38],
       "wire_width_m": 0.03,
-      "wire_hit_radius_m": 0.4
+      "wire_hit_radius_m": 0.4,
+      "cabins": {
+        "_doc": "Кабинки на тросе (L6, OsmCableCars): едут по тросу OsmPilot и по второму тросу рядом (rope_gap_m), у станций тросы сходятся на turn_m. Классы без записи в classes кабинок не получают (chair_lift — по желанию, добавить запись).",
+        "enabled": true,
+        "rope_gap_m": 5.0,
+        "turn_m": 25.0,
+        "min_length_m": 120.0,
+        "classes": {
+          "gondola": {"speed_ms": 5.0, "spacing_m": 120.0},
+          "mixed_lift": {"speed_ms": 5.0, "spacing_m": 100.0},
+          "cable_car": {"speed_ms": 7.0, "dwell_s": 40.0}
+        },
+        "classes_doc": "gondola/mixed_lift — замкнутая петля с равным шагом spacing_m; cable_car — две кабины-маятник со стоянкой dwell_s у станций (speed_ms — средняя скорость хода)"
+      }
     },
     "aeroways": {
       "enabled": true,

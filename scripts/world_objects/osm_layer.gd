@@ -16,8 +16,12 @@ func build(data: OsmData, cfg: Dictionary, height_fn: Callable, obstacles: Obsta
 	var t0 := Time.get_ticks_usec()
 	building_obstacles = ObstacleIndex.new()
 	var parts: Array = [
+		["CityGround", OsmCityGround.build(data, cfg, height_fn)],
 		["Roads", OsmRoads.build(data, cfg, height_fn, obstacles)],
 		["Pilot", OsmPilot.build(data, cfg, height_fn, obstacles)],
+		["ChimneyPlumes", OsmChimneyPlumes.build(data, cfg, height_fn)],
+		["Wind", OsmWindTurbines.build(data, cfg, height_fn, obstacles)],
+		["Cabins", OsmCableCars.build(data, cfg, height_fn, obstacles)],
 		["Buildings", OsmBuildings.build(data, cfg, height_fn, building_obstacles)],
 	]
 	var made := 0
@@ -29,3 +33,17 @@ func build(data: OsmData, cfg: Dictionary, height_fn: Callable, obstacles: Obsta
 			made += 1
 	stats["layers"] = made
 	stats["build_s"] = (Time.get_ticks_usec() - t0) / 1.0e6
+
+
+## L4: ветер слоя OSM. air_fn(p: Vector3) -> Vector3 — скорость воздуха модели в точке, м/с; cam — позиция камеры
+## (мир). Зовёт osm_wind(air_fn, cam) у каждого потомка в группе osm_wind (дым, ветряки, кабинки).
+func update_wind(air_fn: Callable, cam: Vector3) -> void:
+	feed_wind(self, air_fn, cam)
+
+
+## Обход потомков узла: osm_wind(air_fn, cam) у каждого в группе osm_wind (работает и вне SceneTree).
+static func feed_wind(root: Node, air_fn: Callable, cam: Vector3) -> void:
+	for c in root.get_children():
+		if c.is_in_group(&"osm_wind") and c.has_method(&"osm_wind"):
+			c.call(&"osm_wind", air_fn, cam)
+		feed_wind(c, air_fn, cam)

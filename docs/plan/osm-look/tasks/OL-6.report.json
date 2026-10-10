@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "L1 (9 полей, по_правилу), L2 (BuildingStyle.classify/adjust, шейдер building.gdshader, плоские крыши города/промзоны, двускатные у села, контраст палитр, окна по этажам, стекло, затемнение у земли), L3 (трубы-коробки у 85% сельских домов с двускатной крышей, дым у 30% из них, пул 48 эмиттеров дыма костра), L4 (OsmLayer.update_wind + вызов из WorldObjects раз в 0,5 с, и для процедурных посёлков). Устранена рябь на плоских крышах: интерполяция целого кода экземпляра в шейдере (varying flat). Лёгкий конфиг: +0,95 мс GPU в стенде 800 м/20 труб.",
+  "commits": [
+    "2370598a OL-1: стиль домов город/село/промзона, этажность мегаполиса, шейдер домов, трубы и дым, провод ветра",
+    "2981b5e6 OL-6: шлейфы легче для слабой видеокарты"
+  ],
+  "checks": [
+    {
+      "name": "world_objects",
+      "value": "ok:133/133",
+      "pass": true
+    },
+    {
+      "name": "test_osm_look",
+      "value": "ok:13/13",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "ok:exit 0",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "ok:4",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Остаточная рябь внутри окон на длинных стенах под скользящим углом (кадр 06) — не добил за 2 попытки; крыши чистые.",
+    "Кадр кадра игры целиком (frame_profile со всей игрой на Алматы) не гонял: сравнение кадра сделано автономной сценой tools/shots/osm_frame_bench."
+  ],
+  "questions": [
+    "Поправка метро: пороги city_area_lo/hi (4e6/3e7 м2) и core_cov (0,1/0,3) заданы по смыслу, не по картинке; в Алматы получилось 2661 дом >=45 м (макс 161 м) — достаточно ли высоток, решает пользователь по кадру 05.",
+    "Контракт L2 говорит про INSTANCE_CUSTOM; данные экземпляра упакованы в альфу INSTANCE_COLOR (set_instance_custom_data на 280 тыс. домов стоил ~0,1 с). Раскладка описана в шапке шейдера."
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-1/02_город_сверху.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-1/03_частный_сектор_дым.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-1/04_промзона.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-1/05_центр_высотки.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-1/06_плоские_крыши_вблизи.png"
+  ],
+  "how_to_check": "dp accept OL-1; кадры: godot --path . res://tools/shots/osm_buildings_shot.tscn -- --out=x.png --focus=city|village|industrial|core",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/osm/building.gdshader",
+      "why": "остаточный шум в окнах на скользящем угле; fwidth вынесен из ветвей, возможно дело в aa-затухании",
+      "checked": "крыша — сплошная (проверено подменой цвета); окна на кадре 06 лучше, но не идеальны"
+    },
+    {
+      "where": "scripts/world_objects/osm/osm_smoke.gd",
+      "why": "дым при смене выборки эмиттеров начинает шлейф заново; на высоте сноса видимость зависит от тестового ветра 2,5 м/с",
+      "checked": "кадр 03: шлейфы видны, пул 48, опросов ветра <=64"
+    },
+    {
+      "where": "configs/world_objects.json buildings.smoke",
+      "why": "параметры дыма подобраны по видимости (density 0,8, amount 36), сильнее прежних, но слабее костра по размеру",
+      "checked": "3 попытки по кадру"
+    },
+    {
+      "where": "замер buildings_build_s",
+      "why": "машина была под нагрузкой (load 17-35), цифры шумные",
+      "checked": "минимум из прогонов"
+    }
+  ],
+  "dp_feedback": "Нет команды для сравнения времени до/после на базовой ветке (пришлось делать git worktree вручную). godot -s скрипт не видит автозагрузки — хотелось бы справку об этом в dp.md.",
+  "extra": {
+    "bench_render_gpu_ms": {
+      "без шлейфов": 0.477,
+      "со шлейфами до": 3.337,
+      "со шлейфами после (amount 36, size_end 45, density 0.5)": 1.427
+    },
+    "gpu_delta_ms": 0.95
+  },
+  "buildings_build_s_before": "2.62 (минимум, фикстура Алматы 3x3, 280412 домов)",
+  "buildings_build_s_after": "2.99 (минимум; +14%, стиль 0,37 с, расстановка 2,3 с, узлы 0,23-0,3 с)",
+  "frame_ms_before": "0.64 средний, p95 0.84 (osm_frame_bench, RTX 4070 S)",
+  "frame_ms_after": "0.73 средний, p95 0.92 (в пределах шума: повторы 0.64-0.80 до и 0.73-0.97 после)",
+  "t": "2026-10-11T02:23:38",
+  "by": "executor"
+}

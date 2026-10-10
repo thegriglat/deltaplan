@@ -1,0 +1,108 @@
+{
+  "status": "done",
+  "summary": "Пять моделей (опора ЛЭП, столб, решётчатая мачта, телебашня по образцу Останкинской, труба) скриптом Blender, OsmPilot рисует их MultiMesh по тайлам; verticals.skip; контрактный тест L5 (v2). Телебашня переделана по замечанию пользователя (L5 v2, ≤1500 треуг.).",
+  "commits": [
+    "99963530 Слияние feature/osm-look в osm-look/OL-2",
+    "a9f97fa7 OL-2: телебашня по образцу Останкинской (L5 v2), р"
+  ],
+  "checks": [
+    {
+      "name": "test_osm_look_models_l5",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "114/114",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "12",
+      "pass": true
+    },
+    {
+      "name": "assets",
+      "value": "2",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Кадр в игре — на плоской земле без рельефа (рельефа Алматы в репозитории нет); полный frame_profile не гонял — замер упрощённым стендом tools/shots/osm_pilot_shot.gd --bench."
+  ],
+  "questions": [
+    "Правило tower→tv_tower: по контракту при comm; сделал только при h с тега ≥ tv_tower_min_h_m (150), иначе mast_lattice (comm без высоты — почти всегда сотовая мачта, а не Останкино 300 м). default_h_m.tv_tower не заведён. Подходит? ",
+    "След трактую как сечение у земли (y ≤ 2 м); траверсы столба/опоры шире radius_m на высоте. tower_radius_m 2.0→3.2, tower_height_m 26→28 (траверсы выше), mast radius 0.6→1.5, chimney 2→4, tv_tower 31.",
+    "Препятствие телебашни — три цилиндра (основание, ствол, «тюльпан»), см. verticals.tv_tower_obstacle.",
+    "Материалов в L5 v2 для tv_tower оставил ≤2 (корпус+основание с альфа-арками)."
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/01_опора_лэп_крупно.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/02_столб_крупно.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/03_решётчатая_мачта_крупно.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/04_телебашня_крупно.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/05_труба_крупно.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/06_опора_лэп_издали.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/07_телебашня_шайба.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/08_телебашня_основание.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/09_кок-тобе_телебашня_в_игре.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/10_лэп_алматы_в_игре.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/11_труба_в_игре.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-2/12_мачта_в_игре.png"
+  ],
+  "how_to_check": "dp accept OL-2; кадры моделей: godot ... res://tools/shots/osm_models_shot.tscn -- --out=<dir>; в Алматы: osm_pilot_shot.tscn --focus=power|tv|chimney|mast",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_osm_objects.py (lattice_texture)",
+      "why": "решётка с alpha scissor вдали истончается в мипах",
+      "checked": "кадр опоры издали 06: видна за счёт тонких ног-трубок; на 5 км не смотрел"
+    },
+    {
+      "where": "scripts/world_objects/osm/osm_pilot.gd model_scale",
+      "why": "масштаб XZ = clamp((h/H)^0.75,0.35,1), решётка растягивается по Y",
+      "checked": "тест: верх = h, XZ ≤ 1; визуально Кок-Тобе h=192 нормально"
+    },
+    {
+      "where": "configs/world_objects.json verticals",
+      "why": "радиусы/цвета: color оставлен только для wind; OL-3 правит рядом (возможен конфликт слияния)",
+      "checked": "только мои строки"
+    }
+  ],
+  "dp_feedback": "dp task sync отказывает при застейдженных чужих .uid от git add tools — сообщение не говорит какие файлы; dp accept --dry молчит долго без прогресса.",
+  "extra": {
+    "frame_before_after": {
+      "метод": "osm_pilot_shot --bench --focus=power --dist=300, 1920x1080, 300 кадров, 2 прогона",
+      "до_cpu_ms": [
+        0.301,
+        0.286
+      ],
+      "после_cpu_ms": [
+        0.266,
+        0.307
+      ],
+      "до_gpu_ms": [
+        0.275,
+        0.288
+      ],
+      "после_gpu_ms": [
+        0.288,
+        0.283
+      ],
+      "вывод": "в пределах шума; 552 опоры, 1982 провода в сцене"
+    },
+    "tris": {
+      "power_tower": 160,
+      "power_pole": 84,
+      "mast_lattice": 86,
+      "tv_tower": 604,
+      "chimney": 96
+    }
+  },
+  "t": "2026-10-11T01:02:09",
+  "by": "executor"
+}

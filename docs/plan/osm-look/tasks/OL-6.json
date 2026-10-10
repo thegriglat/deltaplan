@@ -1,0 +1,65 @@
+{
+  "id": "OL-6",
+  "module": "osm-look",
+  "type": "dp-engineer",
+  "title": "Шлейфы пара из промышленных труб по ветру модели",
+  "goal": "У половины промышленных труб — бело-серый шлейф пара, вытянутый по ветру модели на высоте устья: пилот читает ветер издалека.",
+  "plan_ref": "OL-6 Шлейфы промышленных труб",
+  "contracts": [
+    {
+      "name": "L9",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    },
+    {
+      "name": "L4",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    },
+    {
+      "name": "L5",
+      "version": "2",
+      "ref": "docs/contracts/osm-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-look-OL-6",
+  "branch": "osm-look/OL-6",
+  "base": "feature/osm-look",
+  "scope": [
+    "scripts/world_objects/osm/osm_chimney_plumes.gd (новый, имя на выбор)",
+    "scripts/world_objects/osm_layer.gd (только добавить часть)",
+    "configs/world_objects.json (osm_pilot.chimney_plume)",
+    "tests/world_objects/",
+    "tools/shots/ (свой кадр)"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles/",
+    "scripts/world_objects/campfire.gd, smoke_*.gdshader (только переиспользовать)",
+    "scripts/world_objects/osm/osm_smoke.gd (дым домов — можно переиспользовать, не менять поведение)",
+    "scripts/flight/ (модуль pendulum)",
+    "tests/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "test_osm_look",
+      "tests": "test_osm_look"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/osm-look...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/osm-look/$DP_TASK/ | grep -ciE \"\\.(png|jpg)$\"",
+      "expect": "num:^(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T01:48:16"
+}

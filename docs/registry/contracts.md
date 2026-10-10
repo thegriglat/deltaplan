@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-10"
+updated: "2026-10-11"
 summary: "Контракты стыков по модулям: идентификаторы и версии из заголовков."
 related: []
 generated: true
@@ -22,12 +22,14 @@ generated: true
 | air-phase | P1 v1, P2 v6, P3 v3, P4 v6, P5 v1, P6 v2, P7 v1, P8 v1, P9 v2, P10 v5, P11 v3, P12 v4, P13 v2, P14 v2, P15 v1 | [docs/contracts/air-phase.md](/docs/contracts/air-phase.md) |
 | air-synth | S1 v5, S2 v4, S3 v3, S4 v2, S5 v4, S6 v1, S7 v1 | [docs/contracts/air-synth.md](/docs/contracts/air-synth.md) |
 | ann2 | A1 v2, A2 v2, A3 v2 | [docs/contracts/ann2.md](/docs/contracts/ann2.md) |
+| control-bar | CB-К1 v2, CB-К2 v1 | [docs/contracts/control-bar.md](/docs/contracts/control-bar.md) |
 | control-fix | С1 v2, С2 v3, С3 v3 | [docs/contracts/control-fix.md](/docs/contracts/control-fix.md) |
 | easter-eggs | К8 v4, К9 v5 | [docs/contracts/easter-eggs.md](/docs/contracts/easter-eggs.md) |
 | motion-rig | MR-К1 v1, MR-К2 v1, MR-К3 v2 | [docs/contracts/motion-rig.md](/docs/contracts/motion-rig.md) |
-| no-osm | N1 v1, N2 v2, N3 v1, N4 v2, N5 v1 | [docs/contracts/no-osm.md](/docs/contracts/no-osm.md) |
+| no-osm | N1 v1, N2 v2, N3 v1, N4 v3, N5 v1 | [docs/contracts/no-osm.md](/docs/contracts/no-osm.md) |
 | osm-any | OA-К1 v2, OA-К2 v2, OA-К3 v1, OA-К4 v2 | [docs/contracts/osm-any.md](/docs/contracts/osm-any.md) |
-| osm-tiles | O1 v1, O2 v1, O3 v1, O4 v1, O5 v1, O6 v1, O7 v1, O8 v2, O9 v1 | [docs/contracts/osm-tiles.md](/docs/contracts/osm-tiles.md) |
+| osm-look | L1 v1, L2 v1, L3 v1, L4 v1, L5 v2, L6 v1, L7 v1, L8 v1, L9 v1 | [docs/contracts/osm-look.md](/docs/contracts/osm-look.md) |
+| osm-tiles | O1 v1, O2 v1, O3 v1, O4 v1, O5 v1, O6 v1, O7 v1, O8 v2, O9 v2 | [docs/contracts/osm-tiles.md](/docs/contracts/osm-tiles.md) |
 | perf | PF-К2 v2, PF-К4 v2 | [docs/contracts/perf.md](/docs/contracts/perf.md) |
 | pilot-view | PV1 v3, PV2 v1, PV3 v2 | [docs/contracts/pilot-view.md](/docs/contracts/pilot-view.md) |
 | popular-places | PP-К1 v2, PP-К2 v1 | [docs/contracts/popular-places.md](/docs/contracts/popular-places.md) |

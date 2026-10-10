@@ -41,18 +41,21 @@ static func load_mesh(path: String, fallback: Mesh, mesh_name: String = "") -> M
 	return fallback
 
 
-## MultiMeshInstance3D в центре тайла; transforms — в мире (сдвигаются к центру тайла).
+## MultiMeshInstance3D в центре тайла; transforms — в мире (сдвигаются к центру тайла). custom — данные
+## экземпляра для шейдера (INSTANCE_CUSTOM), если не пусто.
 static func multimesh_node(
 	mesh: Mesh,
 	transforms: Array[Transform3D],
 	colors: PackedColorArray,
 	origin: Vector3,
 	range_m: float,
-	shadows: bool
+	shadows: bool,
+	custom: PackedColorArray = PackedColorArray()
 ) -> MultiMeshInstance3D:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = not colors.is_empty()
+	mm.use_custom_data = not custom.is_empty()
 	mm.mesh = mesh
 	mm.instance_count = transforms.size()
 	for i in transforms.size():
@@ -61,6 +64,8 @@ static func multimesh_node(
 		mm.set_instance_transform(i, t)
 		if mm.use_colors:
 			mm.set_instance_color(i, colors[i])
+		if mm.use_custom_data:
+			mm.set_instance_custom_data(i, custom[i])
 	var node := MultiMeshInstance3D.new()
 	node.multimesh = mm
 	node.position = origin

@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-10"
+updated: "2026-10-11"
 summary: "Все исследования docs/research и tools/research: тема, вывод, данные, где применено."
 related: []
 generated: true
@@ -28,6 +28,7 @@ generated: true
 | Учебно-тренировочный дельтаплан «Атлас» (СССР): данные из статьи | Учебно-тренировочный дельтаплан «Атлас» (СССР): данные из статьи — Выписка для модели крыла configs/wings/atlas.json и 3D-модели glider_atlas.glb. |  |  | [docs/research/atlas_wing.md](/docs/research/atlas_wing.md) |
 | Табличные данные для калибровки атмосферы и поля ветра | Табличные данные для калибровки атмосферы и поля ветра — Все наборы данных (что где лежит, статус, ограничения) — в каталоге docs/research/experimental_data.md. |  |  | [docs/research/calibration_data.md](/docs/research/calibration_data.md) |
 | Правила маршрутных соревнований (дельтапланеризм) | Доступные очки = 1000 × валидность задания (валидность старта × дистанции × времени). |  |  | [docs/research/competition_rules.md](/docs/research/competition_rules.md) |
+| Трапеция как абсолютная ось: протоколы и готовые решения | Поддерживаем стандартный USB HID-джойстик без своего протокола: Godot 4.5+ отдаёт сырые оси неизвестного HID по индексу; самодельщики так и делают (Arduino Leonardo/Pro Micro, FreeJoy). Игре нужны только выбор устройства, оси, инверсия, калибровка. | tools/research/control-bar/ не создавался; числа — из документации и исходников по ссылкам в тексте | не применено: ждёт решения главной сессии по CB-2/CB-3 | [docs/research/control-bar-input.md](/docs/research/control-bar-input.md) |
 | Референсы: трапеция (control frame) и вид с места пилота | 1. Мануал Wills Wing T2/T2C — https://www.delta-club-82.com/bible/manuels/t2c-manual_id798.pdf (даёт точные мм/дюймы и текстовые описания узлов апекс-бракета, углов, тросов). |  |  | [docs/research/control_frame_refs.md](/docs/research/control_frame_refs.md) |
 | Каталог экспериментальных и эталонных данных для модели воздуха | Каталог экспериментальных и эталонных данных для модели воздуха — Единая точка входа: какие данные есть, где лежат, что дают и для чего годятся. |  |  | [docs/research/experimental_data.md](/docs/research/experimental_data.md) |
 | ТЗ на 3D-модели крыльев по паспортам (DHV, производители) | ТЗ на 3D-модели крыльев по паспортам (DHV, производители): раздел на крыло, самодостаточный для исполнителя. | tools/research/data/wing_passports/out/wings3d_spec.json | tools/blender/make_new_wings.py, docs/guide/models.md | [docs/research/glider_3d_tz.md](/docs/research/glider_3d_tz.md) |
