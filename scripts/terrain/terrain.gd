@@ -133,7 +133,7 @@ func _read_location(id: String) -> Dictionary:
 		push_error("Terrain: нет %s/meta.json — собери: godot --headless -s res://tools/terrain/build_location.gd -- --id %s" % [dir, id])
 		load_failed.emit(tr("err_no_location_data") % id)
 		return {}
-	# маски 10 м (PNG ≈ 60 мс) читаются в рабочем потоке, пока распаковываются высоты
+	# маски 10 м (WebP) читаются в рабочем потоке, пока распаковываются высоты
 	var masks := _start_mask_decode(dir)
 	var new_layers: Array[HeightLayer] = []
 	for info in meta.layers:
@@ -930,7 +930,7 @@ func _load_surfaces(
 	for info: Dictionary in meta.get("layers", []):
 		for k in new_layers.size():
 			if new_layers[k].id == String(info.id):
-				out[k] = SurfaceLayer.load_png(dir.path_join(String(info.file)), info)
+				out[k] = SurfaceLayer.load_webp(dir.path_join(String(info.file)), info)
 				if out[k] != null and info.has("detail10"):
 					var d10: Dictionary = info.detail10
 					var slot: Array = mask_images.get(info.id, [null])

@@ -45,7 +45,7 @@ func test_flow_tree_and_accumulate() -> void:
 	check(absf(mx - 0.01 * N * N) < 1e-6 or mx > 0.01 * N * 0.5, "водосбор растёт к стоку (%.3f км²)" % mx)
 
 
-func test_run_writes_png() -> void:
+func test_run_writes_webp() -> void:
 	var ctx := LocationBuildContext.new()
 	ctx.dir = "user://test_river_stage_%d" % Time.get_ticks_usec()
 	DirAccess.make_dir_recursive_absolute(ctx.dir)
@@ -54,11 +54,11 @@ func test_run_writes_png() -> void:
 	ctx.layers = _layers()
 	var err: Error = await RiverStage.new().run(ctx)
 	check(err == OK, "run: OK")
-	var p := "%s/far_water.png" % ctx.dir
-	check(FileAccess.file_exists(p), "far_water.png записан")
+	var p := "%s/far_water.webp" % ctx.dir
+	check(FileAccess.file_exists(p), "far_water.webp записан")
 	var img := Image.load_from_file(ProjectSettings.globalize_path(p))
-	check(img != null and img.get_width() == N and img.get_pixel(32, 40).r > 0.9, "PNG читается, русло на месте")
-	check(ctx.layers.far.get("water_file", "") == "far_water.png", "water_file в слое")
+	check(img != null and img.get_width() == N and img.get_pixel(32, 40).r > 0.9, "WebP читается, русло на месте")
+	check(ctx.layers.far.get("water_file", "") == "far_water.webp", "water_file в слое")
 	DirAccess.remove_absolute(p)
 	DirAccess.remove_absolute(ctx.dir)
 	ctx.spec = {}

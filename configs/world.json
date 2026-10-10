@@ -677,7 +677,7 @@
   "location_builder": {
     "_doc": "Сборка места для любой точки в игре (osm-any, docs/contracts/osm-any.md OA-К3/OA-К4): те же слои и параметры, что у встроенных мест; кеш user://locations/<ключ>.",
     "version": 1,
-    "version_doc": "Версия сборщика: место в кеше с другой версией собирается заново",
+    "version_doc": "Не используется: версия формата места — Locations.FORMAT_VERSION (build.json -> format_version), сырых блоков — LocationCache.SOURCE_VERSION",
     "cache_dir": "user://locations",
     "snap_deg": 0.05,
     "snap_deg_doc": "Шаг сетки центра места, градусы: соседние точки берут одно место",

@@ -32,7 +32,7 @@ var classes: PackedByteArray = PackedByteArray()
 ## Откуда карта: "worldcover", "worldcover_runtime", "procedural".
 var source: String = ""
 
-## Маска «деталь 10 м» (T02/T03, <слой>_detail10.png): RG8, R — доля леса в клетке (0..255, T02),
+## Маска «деталь 10 м» (T02/T03, <слой>_detail10.webp): RG8, R — доля леса в клетке (0..255, T02),
 ## G — доля воды (0..255, T03: реки/ручьи/каналы/озёра OSM, tools/terrain/osm_water.py).
 ## Узел (i, j): x = mask_origin_x + i·mask_spacing (как у карты классов).
 ## Пустая — маски нет (рантайм-локации, дальние слои). Снаружи — через forest_mask_image().
@@ -65,12 +65,12 @@ static func from_classes(
 	return s
 
 
-## Загрузить из 8-битного PNG (значение пикселя = класс) по описанию из surface.json.
+## Загрузить из WebP lossless (N5; значение пикселя = класс, канал R) по описанию из surface.json.
 ## Файл читается байтами (в проекте он не импортируется: importer="keep").
-static func load_png(path: String, info: Dictionary) -> SurfaceLayer:
+static func load_webp(path: String, info: Dictionary) -> SurfaceLayer:
 	var bytes := FileAccess.get_file_as_bytes(path)
 	var img := Image.new()
-	if bytes.is_empty() or img.load_png_from_buffer(bytes) != OK:
+	if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
 		push_error("SurfaceLayer: не прочитан %s" % path)
 		return null
 	if img.get_format() != Image.FORMAT_L8:
@@ -93,18 +93,21 @@ static func load_png(path: String, info: Dictionary) -> SurfaceLayer:
 	return s
 
 
-## Прочитать PNG маски 10 м (можно в рабочем потоке), null — ошибка.
+## Прочитать WebP маски 10 м (можно в рабочем потоке), null — ошибка. Результат — LA8
+## (в файле RGBA8: R = G = B = L, A = вода).
 static func decode_detail10(path: String) -> Image:
 	var bytes := FileAccess.get_file_as_bytes(path)
 	var img := Image.new()
-	if bytes.is_empty() or img.load_png_from_buffer(bytes) != OK:
+	if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
 		push_error("SurfaceLayer: не прочитана маска %s" % path)
 		return null
+	if img.get_format() != Image.FORMAT_LA8:
+		img.convert(Image.FORMAT_LA8)
 	return img
 
 
-## Подключить маску 10 м из PNG (серый+альфа = RG8) по описанию surface.json → detail10.
-## img — уже прочитанный PNG (decode_detail10), null — прочитать здесь.
+## Подключить маску 10 м из WebP по описанию surface.json → detail10.
+## img — уже прочитанная маска (decode_detail10), null — прочитать здесь.
 func load_detail10(path: String, info: Dictionary, img: Image = null) -> bool:
 	if img == null:
 		img = decode_detail10(path)

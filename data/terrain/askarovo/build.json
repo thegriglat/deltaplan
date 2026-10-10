@@ -1,9 +1,9 @@
 {
-  "builder_version": 1,
   "built_utc": "2026-10-09T14:08:29Z",
   "center_lat": 53.26,
   "center_lon": 58.54,
   "complete": true,
+  "format_version": 2,
   "key": "askarovo",
   "missing": [],
   "net_requests": 0,

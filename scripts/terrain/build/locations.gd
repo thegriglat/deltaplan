@@ -5,6 +5,11 @@ extends RefCounted
 
 const KEY_PREFIX := "pt_"
 
+## Версия формата файлов места (build.json -> format_version): поднимать при любом изменении
+## файлов места (имена, кодирование, состав). Кеш места с другой версией удаляется целиком и
+## собирается заново. Версия сырых блоков источника — LocationCache.SOURCE_VERSION (отдельная).
+const FORMAT_VERSION := 2
+
 static var _cfg_cache: Dictionary = {}
 
 

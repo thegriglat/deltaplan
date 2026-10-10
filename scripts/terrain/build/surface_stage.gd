@@ -2,12 +2,12 @@ class_name SurfaceStage
 extends RefCounted
 ## Стадия покрова места (OA-К3, docs/contracts/osm-any.md): порт tools/terrain/fetch_landcover.py.
 ## Из ESA WorldCover 10 м (COG, HTTP range) считает для слоёв ctx.layers:
-##   <id>_surface.png — класс игры в каждом узле сетки слоя (мода по k×k подвыборкам клетки,
+##   <id>_surface.webp — класс игры в каждом узле сетки слоя (мода по k×k подвыборкам клетки,
 ##                      уровень COG и k — spec.surface.layers[id]);
-##   detail_detail10.png (LA8) — L: доля леса в клетке 10 м (k×k подвыборок уровня 0, без моды),
+##   detail_detail10.webp (LA8) — L: доля леса в клетке 10 м (k×k подвыборок уровня 0, без моды),
 ##                      A: вода = max(доля воды WorldCover по тем же подвыборкам, маска рек по рельефу
-##                      <id>_water.png на сетке 10 м) (NO-1, N1; OSM в A не пишет);
-##   detail_built10.png (L8) — доля застройки (WorldCover 50) по тем же подвыборкам, built_patches.json —
+##                      <id>_water.webp на сетке 10 м) (NO-1, N1);
+##   detail_built10.webp (L8) — доля застройки (WorldCover 50) по тем же подвыборкам, built_patches.json —
 ##                      связные пятна застройки (N1);
 ##   surface.json — описание слоёв (water_fraction — по каналу A, built10).
 ## Классы: configs/world.json → surface.worldcover.classes. Тайлы COG кешируются в
@@ -80,7 +80,7 @@ func run(ctx: LocationBuildContext) -> Error:
 		if res.err != OK:
 			return res.err
 		var cls: PackedByteArray = res.data
-		var name := "%s_surface.png" % id
+		var name := "%s_surface.webp" % id
 		if not _save(ctx, name, w, h, Image.FORMAT_L8, cls):
 			return ERR_FILE_CANT_WRITE
 		var frac := {}
@@ -103,20 +103,20 @@ func run(ctx: LocationBuildContext) -> Error:
 
 		if has10:
 			var river: Image = null
-			var rpath := ctx.dir.path_join("%s_water.png" % id)
+			var rpath := ctx.dir.path_join("%s_water.webp" % id)
 			if FileAccess.file_exists(rpath):
 				river = Image.load_from_file(rpath)
 				if river != null and (river.get_width() != w or river.get_height() != h):
-					ctx.log_line("surface: %s_water.png не той сетки — реки не учтены" % id)
+					ctx.log_line("surface: %s_water.webp не той сетки — реки не учтены" % id)
 					river = null
 				elif river != null and river.get_format() != Image.FORMAT_L8:
 					river.convert(Image.FORMAT_L8)
 			else:
-				ctx.log_line("surface: нет %s_water.png — реки в A не учтены" % id)
+				ctx.log_line("surface: нет %s_water.webp — реки в A не учтены" % id)
 			var r10 := await _detail10(ctx, d10, w, h, spacing, ox, oz, river)
 			if r10.err != OK:
 				return r10.err
-			var name10 := "%s_detail10.png" % id
+			var name10 := "%s_detail10.webp" % id
 			if not _save(ctx, name10, r10.w, r10.h, Image.FORMAT_LA8, r10.data):
 				return ERR_FILE_CANT_WRITE
 			entry["detail10"] = {
@@ -131,7 +131,7 @@ func run(ctx: LocationBuildContext) -> Error:
 				"water_fraction": snappedf(r10.water_fraction, 0.0001),
 			}
 			if r10.built_max > 0:
-				var nameb := "%s_built10.png" % id
+				var nameb := "%s_built10.webp" % id
 				if not _save(ctx, nameb, r10.w, r10.h, Image.FORMAT_L8, r10.built):
 					return ERR_FILE_CANT_WRITE
 				var pr := extract_patches(
@@ -995,9 +995,14 @@ func _read_local(
 	return [OK, d]
 
 
+## N5: растр места — WebP lossless. L8 и LA8 пишутся как RGB8/RGBA8 (серый в R=G=B); читатель
+## возвращает прежний формат. RGB под нулевой альфой не обнуляется: в detail10 L — доля леса
+## при A = 0 (воды нет), обнуление потеряло бы лес.
 func _save(ctx: LocationBuildContext, name: String, w: int, h: int, fmt: int, data: PackedByteArray) -> bool:
 	var img := Image.create_from_data(w, h, false, fmt, data)
-	if img == null or img.save_png(ctx.dir.path_join(name)) != OK:
+	if img != null:
+		img.convert(Image.FORMAT_RGBA8 if fmt == Image.FORMAT_LA8 else Image.FORMAT_RGB8)
+	if img == null or img.save_webp(ctx.dir.path_join(name), false) != OK:
 		ctx.log_line("surface: не записать %s" % name)
 		return false
 	return true
