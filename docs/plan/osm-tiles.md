@@ -162,7 +162,8 @@ buildings на 25 тайлах эталона (`tiles20_almaty.json`).
 (заглушки) и подключение в `WorldObjects`; контрактный тест `tests/contracts/test_osm_tiles_contracts.gd`
 (золотая сетка, `sample_v1.dpt`). Приёмка: контрактный тест и тесты стадии (200/404/таймаут 5 с/офлайн/битый
 файл, `http_hook`) зелёные; место без сети открывается с `missing: ["osm_tiles"]`; время разбора 3×3 фикстуры —
-в отчёте; тесты terrain/world_objects/game зелёные.
+в отчёте; тесты terrain/world_objects/game зелёные. Счётчик «OSM: N/9» в строке стадий экрана загрузки (решение пользователя;
+механизм NO-7, из кеша — сразу, пропуск по таймауту виден), тест счётчика, 1 скриншот → `build/screenshots/OT-8/`.
 
 ### OT-9. Дороги, реки/каналы, ж/д (dp-engineer) — обязательная
 `OsmRoads` (`scripts/world_objects/osm/osm_roads.gd`): восстановленный `RoadMesher` (классы `world_objects.json →

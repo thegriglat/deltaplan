@@ -50,7 +50,8 @@
     "configs/osm_tiles.json",
     "tests/contracts/test_osm_tiles_contracts.gd",
     "tests/world_objects",
-    "tests/terrain"
+    "tests/terrain",
+    "scripts/ui,locale/ui.csv,scripts/terrain/build/load_progress.gd,tests/ui"
   ],
   "dont_touch": [
     "tools/osm_tiles",
@@ -88,5 +89,5 @@
   ],
   "notes": "",
   "created": "2026-10-10T16:22:59",
-  "edited": "2026-10-10T16:22:59"
+  "edited": "2026-10-10T16:27:51"
 }
