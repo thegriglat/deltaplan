@@ -18,6 +18,8 @@ func build(data: OsmData, cfg: Dictionary, height_fn: Callable, obstacles: Obsta
 	var parts: Array = [
 		["Roads", OsmRoads.build(data, cfg, height_fn, obstacles)],
 		["Pilot", OsmPilot.build(data, cfg, height_fn, obstacles)],
+		["Wind", OsmWindTurbines.build(data, cfg, height_fn, obstacles)],
+		["Cabins", OsmCableCars.build(data, cfg, height_fn, obstacles)],
 		["Buildings", OsmBuildings.build(data, cfg, height_fn, building_obstacles)],
 	]
 	var made := 0

@@ -98,6 +98,13 @@
 | `assets/models/osm/{power_tower,power_pole,mast_lattice,tv_tower,chimney}.glb` (исходники `assets/source/osm/*.blend`, текстуры `assets/textures/osm/*.png` и извлечённые рядом с моделями) | osm-look: опора ЛЭП, столб, решётчатая мачта, телебашня (по образцу Останкинской: основание-конус на 10 опорах с арками, ствол с поясами, «тюльпан» с остеклением, красно-белая антенна), промышленная труба; лоупольно (≤ 600 треугольников, телебашня ≤ 1500), решётки — грани с альфа-текстурой (alpha scissor) | сгенерировано `tools/blender/build_osm_objects.py` (Blender) по размерам из `configs/world_objects.json → osm_pilot` | — | опоры и столбы ЛЭП, мачты, башни и трубы OSM (`OsmPilot`) |
 | `assets/textures/osm/lattice_steel.png`, `lattice_mast.png`, `wood_pole.png`, `chimney.png`, `tv_ostankino.png`, `tv_legs.png`, `tv_cabin.png` (osm-look) | текстуры решётки (альфа), дерева, бетона с красно-белыми поясами, ствола и антенны телебашни | процедурные: numpy в `tools/blender/build_osm_objects.py` | — | модели `assets/models/osm/` |
 
+### osm-look: ветряк и канатка
+| Файл | Что | Источник | Лицензия | Где используется |
+|---|---|---|---|---|
+| `assets/models/osm/wind_tower.glb` (исходник `assets/source/osm/wind_tower.blend`, текстура `wind_tower.png`) | ветряк 2–3 МВт: башня (окрашенная сталь, швы, фланцы, дверь; 256×1024) и гондола, ступица 80 м, ~200 треугольников | сгенерировано `tools/blender/build_osm_wind_cable.py` (модель и текстура процедурно, numpy) | — | ветряки OSM (`OsmWindTurbines`) |
+| `assets/models/osm/wind_rotor.glb` (`assets/source/osm/wind_rotor.blend`, `wind_blade.png`) | ротор: три лопасти (7 сечений профиля с круткой, радиус 40,5 м), обтекатель, текстура лопасти 128×512, 360 треугольников | то же | — | ветряки OSM |
+| `assets/models/osm/cable_cabin.glb` (`assets/source/osm/cable_cabin.blend`, `cable_cabin.png`) | кабинка канатки с подвесом и зажимом, остекление (текстура 256²), 140 треугольников | то же | — | кабинки канатных дорог (`OsmCableCars`) |
+
 ## Движок и библиотеки
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
