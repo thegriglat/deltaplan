@@ -5,7 +5,7 @@ module: "osm-look"
 updated: "2026-10-11"
 summary: "Контракты osm-look (вид объектов OSM): L1 тип дома в записи (O9 v2), L2 стиль домов город/село/промзона и шейдер, L3 трубы и дым, L4 ветер для слоя OSM, L5 модели ЛЭП/мачт/башен/труб, L6 ветряки и кабинки канатки."
 related: ["docs/plan/osm-look.md", "docs/contracts/osm-tiles.md", "docs/guide/osm-tiles.md"]
-contracts: [{"id": "L1", "version": 1}, {"id": "L2", "version": 1}, {"id": "L3", "version": 1}, {"id": "L4", "version": 1}, {"id": "L5", "version": 1}, {"id": "L6", "version": 1}]
+contracts: [{"id": "L1", "version": 1}, {"id": "L2", "version": 1}, {"id": "L3", "version": 1}, {"id": "L4", "version": 1}, {"id": "L5", "version": 2}, {"id": "L6", "version": 1}]
 ---
 # Контракты модуля osm-look
 
@@ -106,13 +106,14 @@ contracts: [{"id": "L1", "version": 1}, {"id": "L2", "version": 1}, {"id": "L3",
   по слою ≤ `osm_wind.max_samples` (по умолчанию 64) за вызов.
 - Высота опроса: дым — `smoke.sample_h_m` над трубой; ветряк — высота ступицы.
 
-## L5 v1 — модели опор ЛЭП, мачт, башен, труб
+## L5 v2 — модели опор ЛЭП, мачт, башен, труб
+v2: `tv_tower` — по образцу Останкинской башни (решение пользователя 11.10): параметрическая по `h` (основание-конус на ногах с арками, сужающийся бетонный ствол с поясами, «шайба» с остеклением, красно-белая антенна; пропорции 540 м: основание ~63, ствол до ~385, шайба ~328–337, антенна ~148 м); телебашня только при `h ≥ 150 м` из тега, иначе `mast_lattice`. Бюджет `tv_tower` — до 1500 треугольников.
 Владелец: OL-2. Потребитель: `OsmPilot` (`_power`, `_verticals`).
 - Модели — скрипт Blender `tools/blender/build_osm_objects.py` (как `build_rocks.py`, помощники `bl_util.py`) →
   `assets/models/osm/<имя>.glb`, исходник `assets/source/osm/*.blend`. Имена: `power_tower` (решётчатая опора),
   `power_pole` (столб), `mast_lattice` (решётчатая мачта), `tv_tower` (телебашня), `chimney` (промышленная труба).
   Связь с OSM: `power=tower` → `power_tower`; опоры `minor_line` → `power_pole`; `mast` → `mast_lattice`;
-  `tower` → `tv_tower` при `comm` или `h ≥ verticals.tv_tower_min_h_m`, иначе `mast_lattice`; `chimney` → `chimney`;
+  `tower` → `tv_tower` при `h` из тега `≥ verticals.tv_tower_min_h_m` (150 м), иначе `mast_lattice` (`comm` без высоты — обычно сотовая мачта); `chimney` → `chimney`;
   `wind` — L6.
 - Оси и единицы: метры, +Y вверх, начало — центр основания на уровне земли; у опор ЛЭП траверсы вдоль
   локального X (поперёк линии), линия — вдоль Z. Точки подвеса проводов модели = `osm_pilot.power.tower_arms_m` /

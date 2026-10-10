@@ -5,7 +5,7 @@ extends TestCase
 ## Скрипты нового кода грузятся по пути (load), чтобы файл разбирался и до их появления.
 
 const DOC := "res://docs/contracts/osm-look.md"
-const VERSIONS := {"L1": 1, "L2": 1, "L3": 1, "L4": 1, "L5": 1, "L6": 1}
+const VERSIONS := {"L1": 1, "L2": 1, "L3": 1, "L4": 1, "L5": 2, "L6": 1}
 const SAMPLE := "res://tests/contracts/osm_tiles/sample_v1.dpt"
 const STYLE_PATH := "res://scripts/world_objects/osm/building_style.gd"
 
