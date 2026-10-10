@@ -38,7 +38,8 @@
     "tests/motion_rig/",
     "tests/contracts/test_motion_rig_contracts.gd",
     "tools/motion_rig/",
-    "scripts/flight/flight_model.gd"
+    "scripts/flight/flight_model.gd",
+    "tools/motion_rig/"
   ],
   "dont_touch": [
     "docs/contracts/motion-rig.md",
@@ -74,10 +75,18 @@
         "exit": 0,
         "re": "loop OK"
       }
+    },
+    {
+      "name": "layout",
+      "cmd": "python3 tools/motion_rig/check_layout.py",
+      "expect": {
+        "exit": 0,
+        "re": "layout OK"
+      }
     }
   ],
   "report_extra": [],
   "notes": "flight_model.gd — только заполнение pilot_* в телеметрии (по MR-К1), физику не менять.",
   "created": "2026-10-10T17:16:01",
-  "edited": "2026-10-10T17:39:28"
+  "edited": "2026-10-10T17:45:24"
 }
