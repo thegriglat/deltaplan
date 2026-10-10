@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "summary": "Аппарат хранится по крылу (apparatus={wing_id:{ключ:знач}}), resolved_apparatus(wing_id) с порядком пилот→крыло→общие, экран показывает значения выбранного крыла, V −2…+6, причины nose/keel/fell, test_zone_round_trip зелёный.",
+  "commits": [
+    "3d3fc3fd PD-13: настройки «Аппарат» по крылу"
+  ],
+  "checks": [
+    {
+      "name": "pendulum_contracts_k3",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "pendulum_mode",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "zone",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "setup_apparatus (новый)+pendulum_game",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept PD-13",
+  "uncertain": [
+    {
+      "where": "flight_settings.gd apparatus_defaults(wing_id)",
+      "why": "блока pendulum.apparatus_defaults в крыльях в ветке ещё нет (PD-12)",
+      "checked": "путь крыла проверен только кодом; тест берёт ветку else; после слияния PD-12 прогнать pendulum_contracts_k3"
+    },
+    {
+      "where": "locale/ui.csv launch_fail_nose/keel/fell",
+      "why": "тексты придуманы мной; сопоставление в game._on_takeoff_failed, т.к. GroundRun.failure_text вне скоупа",
+      "checked": "ключи есть ru/en"
+    }
+  ],
+  "dp_feedback": "Нужна команда запуска теста по имени (dp test <фильтр>) вместо check.sh.",
+  "t": "2026-10-11T02:32:12",
+  "by": "main"
+}
