@@ -35,10 +35,6 @@
       "tests": "world_objects"
     },
     {
-      "name": "game",
-      "tests": "game"
-    },
-    {
       "name": "osm_tiles",
       "tests": "osm_tiles"
     },
@@ -55,5 +51,5 @@
   ],
   "notes": "",
   "created": "2026-10-10T17:32:00",
-  "edited": "2026-10-10T17:32:00"
+  "edited": "2026-10-10T18:19:21"
 }
