@@ -3,6 +3,9 @@ settings_invert_pitch_hint,"Как ручка самолёта: ↑ и мышь 
 controls_short_help,"Мышь, ↑/↓, ←/→ — трапеция; на земле W/S — шаг, A/D — поворот, Shift — разбег; в полёте W/A/S/D — осмотреться; C — камера, Tab — прибор, Esc — пауза","Mouse, ↑/↓, ←/→ — control bar; on the ground W/S — step, A/D — turn, Shift — run; in flight W/A/S/D — look around; C — camera, Tab — instrument, Esc — pause"
 result_crash,Авария,Crash
 loc_altai,Алтай — Манжерок,Altai — Manzherok
+launch_fail_nose,Нос крыла упёрся в землю,The nose hit the ground
+launch_fail_keel,Киль крыла чиркнул по земле,The keel scraped the ground
+launch_fail_fell,Пилот упал на разбеге,The pilot fell during the run
 launch_fail_wingtip,Консоль коснулась земли — крыло опрокинуто,A wingtip hit the ground — the wing tipped over
 result_circling_pct,В кружении: %.0f%% времени,Circling: %.0f%% of the time
 setup_wind_into_launch,Встречный,Headwind

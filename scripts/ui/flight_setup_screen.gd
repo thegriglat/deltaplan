@@ -73,6 +73,9 @@ var _day: SpinBox
 var _done_btn: Button
 var _tabs: TabContainer
 var _apparatus: Dictionary = {}  ## ключ PD-К3 → HSlider
+var _app_user: Dictionary = {}  ## {wing_id: {ключ: значение}} — изменённое пилотом (PD-К3 v2)
+var _app_wing: String = ""  ## крыло, значения которого сейчас на ползунках
+var _app_loading: bool = false  ## ползунки заполняются программно — в _app_user не писать
 var _fav_btn: Button
 var _recent_section: VBoxContainer
 var _recent_list: VBoxContainer
@@ -191,12 +194,15 @@ func _build_apparatus(box: Control) -> void:
 		var sp: Array = FlightSettings.APPARATUS_SPEC[k]
 		var sl := UiKit.slider_row(box, tr("setup_app_" + k), sp[0], sp[1], sp[2], fmts[k])
 		_apparatus[k] = sl
+		sl.value_changed.connect(_on_apparatus_changed.bind(k))
 		sl.get_parent().tooltip_text = tr("setup_app_pendulum_only")
 		var hint := UiKit.label(box, tr("setup_app_pendulum_only"), "HintLabel")
 		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 
 func _apply_settings() -> void:
+	_app_user = settings.apparatus.duplicate(true)
+	_app_wing = ""
 	_select_wing(settings.wing)
 	_temp.value = roundf(settings.temperature_c)
 	_temp.value_changed.emit(_temp.value)
@@ -210,10 +216,6 @@ func _apply_settings() -> void:
 	_month_opt.select(clampi(settings.month, 1, 12) - 1)
 	_on_month_selected(_month_opt.selected)
 	_day.value = settings.day
-	var ap := FlightSettings.normalize_apparatus(settings.apparatus)
-	for k: String in _apparatus:
-		(_apparatus[k] as HSlider).value = ap[k]
-		(_apparatus[k] as HSlider).value_changed.emit(ap[k])
 	_row.refresh()
 	_fill_recent()
 
@@ -285,6 +287,29 @@ func _on_wing_selected(i: int) -> void:
 	_mass.max_value = hi
 	_mass.value = clampf(m, lo, hi)
 	_mass.value_changed.emit(_mass.value)
+	_show_apparatus(_wings[i].get_file())
+
+
+## Ползунки «Аппарат» — значения крыла wing_id (пилот → умолчания крыла → общие).
+func _show_apparatus(wing_id: String) -> void:
+	if _apparatus.is_empty():
+		return
+	_app_wing = wing_id
+	var mine: Variant = _app_user.get(wing_id)
+	var ap := FlightSettings.normalize_apparatus(mine if mine is Dictionary else {}, wing_id)
+	_app_loading = true
+	for k: String in _apparatus:
+		(_apparatus[k] as HSlider).value = ap[k]
+		(_apparatus[k] as HSlider).value_changed.emit(ap[k])
+	_app_loading = false
+
+
+func _on_apparatus_changed(v: float, key: String) -> void:
+	if _app_loading or _app_wing == "":
+		return
+	if not _app_user.has(_app_wing):
+		_app_user[_app_wing] = {}
+	_app_user[_app_wing][key] = v
 
 
 ## «жёсткая поперечина · качество 13 · ветер 10–12 м/с · 14,5 м² · пилот 65–95 кг · ≈ 2003 · мачтовое»
@@ -424,10 +449,7 @@ func _collect() -> FlightSettings:
 	s.start_hour = _hours[maxi(_hour.selected, 0)]
 	s.month = _month_opt.selected + 1
 	s.day = int(_day.value)
-	var ap := {}
-	for k: String in _apparatus:
-		ap[k] = (_apparatus[k] as HSlider).value
-	s.apparatus = FlightSettings.normalize_apparatus(ap)
+	s.apparatus = FlightSettings.from_dict({"apparatus": _app_user}).apparatus
 	return s
 
 
