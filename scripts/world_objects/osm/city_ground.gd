@@ -1,6 +1,6 @@
 class_name OsmCityGround
 extends RefCounted
-## Земля города (L8, OL-5): в городской застройке между домами — серо-бежевая подложка дворов с мягкими пятнами тона
+## Земля города (L8, OL-5): в городской застройке между домами — серо-бежевая подложка дворов с пятнами зелени
 ## вместо зелёного поля рельефа; к краю города плавно уходит (дизеринг по альфе вершин, как у лент draped).
 ## Маска — доля площади под домами по клеткам cell_m (сетка плотности L2), сглаженная на fade_m, порог
 ## coverage_min: сёла и промзоны вне города остаются с травой. Слой — сетка с шагом vertex_m по рельефу,
@@ -38,11 +38,11 @@ static func build(data: OsmData, cfg: Dictionary, height_fn: Callable) -> Node3D
 	mat.shader = SHADER
 	mat.set_shader_parameter(&"depth_pull", float(cfg.get("roads", {}).get("depth_pull", 0.004)))
 	mat.set_shader_parameter(&"depth_bias_m", float(gc.get("depth_bias_m", 0.12)))
-	for k: String in ["ground_color", "yard_color"]:
+	for k: String in ["ground_color", "yard_color", "green_color"]:
 		if gc.has(k):
 			var a: Array = gc[k]
 			mat.set_shader_parameter(StringName(k), Color(float(a[0]), float(a[1]), float(a[2])))
-	for k: String in ["patch_m", "roughness"]:
+	for k: String in ["green_share", "patch_m", "noise_amp", "roughness"]:
 		if gc.has(k):
 			mat.set_shader_parameter(StringName(k), float(gc[k]))
 	var root := Node3D.new()

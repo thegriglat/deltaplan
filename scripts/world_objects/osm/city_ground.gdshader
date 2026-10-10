@@ -10,7 +10,11 @@ uniform float depth_pull = 0.004;
 uniform float roughness : hint_range(0.0, 1.0) = 0.95;
 uniform vec3 ground_color : source_color = vec3(0.5, 0.47, 0.42);
 uniform vec3 yard_color : source_color = vec3(0.42, 0.40, 0.36);
+uniform vec3 green_color : source_color = vec3(0.27, 0.35, 0.17);
+// Доля зелени (газоны, деревья во дворах) и размер пятна, м.
+uniform float green_share : hint_range(0.0, 1.0) = 0.25;
 uniform float patch_m = 28.0;
+uniform float noise_amp = 0.18;
 
 varying vec2 lp;
 varying float view_dist;
@@ -47,9 +51,15 @@ void fragment() {
 	if (alpha < 0.999 && alpha < hash12(FRAGCOORD.xy)) {
 		discard;
 	}
-	// спокойный светлый тон: только очень крупные мягкие пятна (малый контраст), без мелкого шума и зелени
+	float near = 1.0 - smoothstep(400.0, 2500.0, view_dist);
 	float big = vnoise(lp / patch_m + vec2(5.1, 2.7));
-	vec3 c = mix(ground_color, yard_color, smoothstep(0.2, 0.8, big));
+	float mid = vnoise(lp / (patch_m * 0.3) + vec2(1.3, 8.8));
+	// зелень: крупные пятна, на краю города (малая альфа) больше травы
+	float g_thr = 0.5 + (0.5 - green_share) * 0.5 - (1.0 - alpha) * 0.15;
+	float green = smoothstep(g_thr - 0.05, g_thr + 0.05, big * 0.75 + mid * 0.25);
+	vec3 c = mix(ground_color, yard_color, smoothstep(0.3, 0.7, vnoise(lp / (patch_m * 2.2) + vec2(9.0, 4.0))) * 0.8);
+	c *= 1.0 + (mid - 0.5) * noise_amp * near + (hash12(floor(lp * 0.7)) - 0.5) * 0.08 * near;
+	c = mix(c, green_color * (0.85 + 0.3 * mid), green);
 	ALBEDO = c;
 	ROUGHNESS = roughness;
 	NORMAL = FRONT_FACING ? NORMAL : -NORMAL;
