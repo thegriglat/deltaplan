@@ -27,6 +27,13 @@
     "world.sun",
     "world.effects",
     "vegetation.grass",
-    "motion_rig"
+    "motion_rig",
+    "controls.gamepad.device_guid",
+    "controls.gamepad.device_name",
+    "controls.gamepad.roll_axis",
+    "controls.gamepad.pitch_axis",
+    "controls.gamepad.invert_roll",
+    "controls.gamepad.invert_pitch",
+    "controls.gamepad.calibration"
   ]
 }

@@ -30,6 +30,13 @@ const LOCAL_KEYS: PackedStringArray = [
 	"world.effects",
 	"vegetation.grass",
 	"motion_rig",
+	"controls.gamepad.device_guid",
+	"controls.gamepad.device_name",
+	"controls.gamepad.roll_axis",
+	"controls.gamepad.pitch_axis",
+	"controls.gamepad.invert_roll",
+	"controls.gamepad.invert_pitch",
+	"controls.gamepad.calibration",
 ]
 ## Имя пилота (NET-51): user-конфиг game.json → net.pilot_name; пусто/нет — умолчание
 ## ник Steam (S1.5), затем по языку интерфейса (net_pilot_name_default).

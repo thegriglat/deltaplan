@@ -35,6 +35,7 @@ func test_calibration_and_save() -> void:
 	var dir := ProjectSettings.globalize_path("res://.godot/test_control_bar_cfg")
 	DirAccess.make_dir_recursive_absolute(dir)
 	DirAccess.remove_absolute(dir.path_join("controls.json"))
+	DirAccess.remove_absolute(UserSettings.local_dir(dir).path_join("controls.json"))
 	var sp := _panel(dir)
 	var cb: ControlBarSettings = sp.get("_bar_ui")
 	check(cb != null, "раздел собран")
@@ -58,7 +59,9 @@ func test_calibration_and_save() -> void:
 	approx(float(p.calibration.roll[0]), -0.6, 1e-6, "мин крена")
 	approx(float(p.calibration.roll[2]), 0.9, 1e-6, "макс крена")
 	check(sp.save(), "сохранение")
-	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("controls.json")))
+	var saved: Variant = JSON.parse_string(
+		FileAccess.get_file_as_string(UserSettings.local_dir(dir).path_join("controls.json"))
+	)
 	check(saved is Dictionary and saved.gamepad.device_guid == "g1", "gamepad.device_guid записан: %s" % [saved])
 	approx(float(saved.gamepad.calibration.roll[2]), 0.9, 1e-6, "калибровка записана")
 	cb.reset_calibration()
@@ -78,3 +81,21 @@ func test_missing_device_label() -> void:
 	var dev: OptionButton = cb.get("_device")
 	check(dev.get_item_text(dev.selected).contains("Old bar"), "«не подключено: Old bar»: %s" % dev.get_item_text(dev.selected))
 	sp.queue_free()
+
+
+## CB-К1 v2: машинные листья gamepad — в local/configs, общие — в configs; Config читает оба.
+func test_save_patch_split() -> void:
+	var dir := ProjectSettings.globalize_path("res://.godot/test_control_bar_split/configs")
+	DirAccess.make_dir_recursive_absolute(dir)
+	var local := UserSettings.local_dir(dir).path_join("controls.json")
+	DirAccess.remove_absolute(local)
+	DirAccess.remove_absolute(dir.path_join("controls.json"))
+	var ok := UserSettings.save_patch(
+		"controls", {"gamepad": {"device_guid": "g9", "deadzone": 0.2, "calibration": {"roll": [-0.5, 0.0, 0.5]}}}, dir
+	)
+	check(ok, "save_patch")
+	var l: Variant = JSON.parse_string(FileAccess.get_file_as_string(local))
+	var c: Variant = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("controls.json")))
+	check(l is Dictionary and l.gamepad.device_guid == "g9" and l.gamepad.has("calibration"), "машинные в local: %s" % [l])
+	check(l is Dictionary and not l.gamepad.has("deadzone"), "deadzone не в local")
+	check(c is Dictionary and c.gamepad.deadzone == 0.2 and not c.gamepad.has("device_guid"), "общие в configs: %s" % [c])
