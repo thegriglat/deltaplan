@@ -54,3 +54,6 @@
 {"t": "2026-10-11T01:42:47", "by": "coordinator", "task": null, "ev": "note", "note": "Шлюз 1 (сборка «полёт»): PD-1, 2, 4, 5, 10, 11 приняты и влиты в feature/pendulum (83204c31); сборка build/pendulum_test/{linux,windows}, режим «Маятник» по умолчанию, старт всегда в воздухе (100 м вперёд, 150 м над рельефом). Дальше по плану: PD-3 (земля, Opus) → вторая сборка; PD-6 (тело и камера по цепи), PD-7 (сеть), PD-8 (сверка, серия зёрен болтанки laminar), PD-9 (docs, CHANGELOG). Ждём: отзыв пилота и решение главной сессии"}
 {"t": "2026-10-11T01:44:53", "by": "coordinator", "task": "PD-3", "ev": "created", "note": "Земля маятника: стоит/идёт/бежит, отрыв из сил, касание и выравнивание"}
 {"t": "2026-10-11T01:44:53", "by": "coordinator", "task": "PD-6", "ev": "created", "note": "Визуал маятника: тело по цепи, руки к штанге, камера «из глаз» на подвеске"}
+{"t": "2026-10-11T01:44:58", "by": "coordinator", "task": "PD-3", "ev": "started", "note": "dp-engineer opus, ~/deltaplan-pendulum-PD-3"}
+{"t": "2026-10-11T01:44:58", "by": "coordinator", "task": "PD-6", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-pendulum-PD-6"}
+{"t": "2026-10-11T01:46:05", "by": "coordinator", "task": "PD-7", "ev": "created", "note": "Сеть: режим управления и положение пилота у чужих (PD-К4)"}
