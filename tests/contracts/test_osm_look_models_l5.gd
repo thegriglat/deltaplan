@@ -157,6 +157,7 @@ func test_skip_class() -> void:
 		{"t": "tower", "comm": true, "x": 700.0, "z": 500.0, "h": 300.0},
 	]
 	var cfg := WorldObjects.load_config()
+	cfg.osm_pilot.verticals.skip = []
 	OsmPilot.build(d, cfg, func(_x: float, _z: float) -> float: return 0.0, ObstacleIndex.new())
 	check(int(OsmPilot.stats.get("verticals", 0)) == 3, "без skip рисуются все: %s" % [OsmPilot.stats])
 	cfg.osm_pilot.verticals.skip = ["wind"]
