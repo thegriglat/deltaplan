@@ -1,0 +1,34 @@
+// Контракты O2 и O7 (docs/contracts/osm-tiles.md), версия 1. Менять — только через координатора модуля.
+syntax = "proto3";
+package deltaplan.osmtiles;
+
+message OsmTile {
+  uint32 format_version = 1;     // = 1 (версия O3)
+  sint32 j = 2;
+  uint32 i = 3;
+  uint32 n = 4;                  // n(j) — проверка сетки
+  int64 osm_timestamp = 5;       // unix с, самая поздняя метка источников (0 — неизвестно)
+  repeated string sources = 6;   // id регионов: фрагмент — один; итоговый тайл — внёсшие данные, по алфавиту
+  repeated Stream streams = 7;   // не больше одного на вид, по возрастанию kind; пустые не пишутся
+}
+message Stream {
+  Kind kind = 1;
+  uint32 count = 2;              // число объектов в data
+  bytes data = 3;                // кодировка O3
+  bytes ids = 4;                 // только во фрагментах (O4); в итоговом тайле пусто
+}
+enum Kind {
+  KIND_UNSPECIFIED = 0; ROADS = 1; TRACK = 2; BUILDINGS = 3; POWERLINE = 4; POWER_TOWER = 5;
+  AERIALWAY = 6; AEROWAY = 7; VERTICAL = 8; RAIL = 9; PEAK = 10; PASS = 11; NAMES = 12;
+  RIVER = 13; CANAL = 14;
+}
+
+message TileManifest {
+  uint32 format_version = 1;     // = 1
+  int64 created_unix = 2;
+  repeated Source sources = 3;   // по id
+  repeated TileEntry tiles = 4;  // по (j, i)
+  uint64 total_bytes = 5;
+}
+message Source { string region = 1; string url = 2; string md5 = 3; int64 osm_timestamp = 4; uint64 pbf_bytes = 5; }
+message TileEntry { sint32 j = 1; uint32 i = 2; uint32 bytes = 3; bytes sha256 = 4; }  // sha256 файла .dpt, 32 Б

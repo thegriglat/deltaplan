@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "Крейт osmtiles (grid O1, контейнер O2, кодек O3 с API Tile/StreamData/Objects и ids фрагментов, dump/stats/cover/manifest; pack/finalize — заглушки), схема proto, золотая сетка, образцы sample_v1 и sample_frag_v1, независимый декодер read_tile.py и тесты. dp accept OT-1 --dry: 6/6.",
+  "commits": [
+    "66a67375 osm-tiles OT-1: крейт osmtiles, схема, образцы, декодер и тесты"
+  ],
+  "checks": [
+    {
+      "name": "cargo_test",
+      "value": "exit 0, 18 passed",
+      "pass": true
+    },
+    {
+      "name": "cargo_ok",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "py_tests",
+      "value": "OK (6)",
+      "pass": true
+    },
+    {
+      "name": "cover_inside",
+      "value": "missing 0 of 28 (cover=81 тайл)",
+      "pass": true
+    },
+    {
+      "name": "sample_dump",
+      "value": "equal",
+      "pass": true
+    },
+    {
+      "name": "grid_golden",
+      "value": "bands 1000 points 420 neighbors 43",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "pack/finalize — заглушки (OT-2)"
+  ],
+  "questions": [
+    "Формат объектов в dump/sample_v1.json выбран мной (контракт говорит «словарями»): дороги {cls,width_dm|null,lanes|null,tunnel,bridge,pts}, дома {x,y,w2,l2,angle,hq,lv,type}, остальное {cls,flags,h,pts}, names — строки; потоки {kind,count,objects,ids}; координаты абсолютные (дельты раскрыты). Подтвердить для декодеров GDScript."
+  ],
+  "how_to_check": "tools/dp accept OT-1",
+  "uncertain": [
+    {
+      "where": "tools/osm_tiles/packer/src/cover.rs",
+      "why": "cover считает пересечение прямоугольника тайла с полигоном (рёбра + чётность по горизонтали центра); антимеридиан и пересекающиеся кольца не обрабатываются",
+      "checked": "Словения: все 28 inside; тесты на дыру и маленький полигон"
+    },
+    {
+      "where": "grid.rs n(j)",
+      "why": "контракт floor(360*kx/T), эталон Python использует //; на всех 1000 поясах совпало",
+      "checked": "golden-тест по 1000 поясам"
+    }
+  ],
+  "dp_feedback": "python3 в py_tests без zstandard: решено перезапуском через venv в tests/_env.py; а rtk сжимает вывод cargo test (видно только 'N passed').",
+  "t": "2026-10-10T16:27:35",
+  "by": "executor"
+}

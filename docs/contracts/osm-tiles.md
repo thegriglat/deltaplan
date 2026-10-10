@@ -193,6 +193,10 @@ Rust — `prost` (+ `protox` в `build.rs`, системный `protoc` не н�
 - `osmtiles stats --tiles <корень> [--zstd-per-stream] [--only <file со строками "j i">]` — JSON O6 в stdout.
 - `osmtiles dump <file>` — разбор файла O2 в JSON (`header`, поля OsmTile, у потоков — объекты O3 в виде
   словарей) — отладка и тесты.
+  Вид (уточнение v1 по OT-1, до потребителей; канонический — его сверяют декодеры Python и GDScript с
+  `sample_v1.json`): поток `{kind, count, objects, ids}`; координаты абсолютные (дельты раскрыты), `pts` —
+  `[[x, y], …]`; дороги/track — `{cls, width_dm|null, lanes|null, tunnel, bridge, pts}`; дома — `{x, y, w2, l2,
+  angle, hq, lv, type}`; остальные потоки — `{cls, flags, h, pts}`; `names` — список строк. Ключи — по алфавиту.
 - `osmtiles manifest --tiles <корень> --sources <sources.json> --out <файл.pb>` — O7.
 
 ## O6. Сводка `stats` — версия 1

@@ -1,0 +1,106 @@
+{
+  "id": "OT-2",
+  "module": "osm-tiles",
+  "type": "dp-engineer",
+  "title": "Упаковщик: pack и finalize региона (Словения, Казахстан)",
+  "goal": "Главная часть этапа 1: PBF региона → фрагменты → итоговые тайлы O2/O3 на всех ядрах; корректность — сверкой с эталоном §9 (Словения, Алматы), скорость, пик памяти и загрузка CPU — замером.",
+  "plan_ref": "OT-2. Упаковщик: pack и finalize одного региона",
+  "contracts": [
+    {
+      "name": "O1",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O2",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O3",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O4",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O5",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O6",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-2",
+  "branch": "osm-tiles/OT-2",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "tools/osm_tiles/packer",
+    "tools/osm_tiles/pack_region.sh",
+    "tests/fixtures/osm_tiles"
+  ],
+  "dont_touch": [
+    "tools/research/osm_pack",
+    "tools/osm_tiles/compare_ref.py",
+    "tools/osm_tiles/proto",
+    "docs/contracts",
+    "scripts"
+  ],
+  "accept": [
+    {
+      "name": "cargo_test",
+      "cmd": "cd tools/osm_tiles/packer && cargo test --release 2>&1 | tail -30",
+      "expect": "!re:test result: FAILED|error\\["
+    },
+    {
+      "name": "slo_compare",
+      "cmd": "tools/osm_tiles/pack_region.sh /home/greg/deltaplan_data/osm_pack/slovenia-latest.osm.pbf /home/greg/deltaplan_data/osm_pack/slovenia.poly slovenia /home/greg/deltaplan_data/osm_tiles/OT-2/acc_slo && python3 tools/osm_tiles/compare_ref.py /home/greg/deltaplan_data/osm_tiles/OT-2/acc_slo/stats.json --ref slovenia --cover /home/greg/deltaplan_data/osm_tiles/OT-2/acc_slo/cover.txt",
+      "expect": "exit=0"
+    },
+    {
+      "name": "almaty_compare",
+      "cmd": "tools/osm_tiles/pack_region.sh /home/greg/deltaplan_data/osm_pack/kazakhstan-latest.osm.pbf /home/greg/deltaplan_data/osm_tiles/OT-2/kazakhstan.poly kazakhstan /home/greg/deltaplan_data/osm_tiles/OT-2/acc_kz && python3 tools/osm_tiles/compare_ref.py /home/greg/deltaplan_data/osm_tiles/OT-2/acc_kz/stats.json --ref almaty --cover /home/greg/deltaplan_data/osm_tiles/OT-2/acc_kz/cover.txt",
+      "expect": "exit=0"
+    },
+    {
+      "name": "deterministic",
+      "cmd": "tools/osm_tiles/pack_region.sh /home/greg/deltaplan_data/osm_pack/slovenia-latest.osm.pbf /home/greg/deltaplan_data/osm_pack/slovenia.poly slovenia /home/greg/deltaplan_data/osm_tiles/OT-2/acc_slo2 >/dev/null 2>&1; a=$(cd /home/greg/deltaplan_data/osm_tiles/OT-2/acc_slo/tiles && find . -name '*.dpt' | sort | xargs sha256sum | sha256sum); b=$(cd /home/greg/deltaplan_data/osm_tiles/OT-2/acc_slo2/tiles && find . -name '*.dpt' | sort | xargs sha256sum | sha256sum); [ \"$a\" = \"$b\" ] && echo same",
+      "expect": "re:^same"
+    },
+    {
+      "name": "cpu_pack_kz",
+      "cmd": "python3 -c \"import json;print('cores',json.load(open('/home/greg/deltaplan_data/osm_tiles/OT-2/acc_kz/summary.json'))['pack_encode_cores_avg'])\"",
+      "expect": "num:cores ([\\d.]+) >=14"
+    },
+    {
+      "name": "cpu_finalize_kz",
+      "cmd": "python3 -c \"import json;print('cores',json.load(open('/home/greg/deltaplan_data/osm_tiles/OT-2/acc_kz/summary.json'))['finalize_cores_avg'])\"",
+      "expect": "num:cores ([\\d.]+) >=14"
+    },
+    {
+      "name": "summary_fields",
+      "cmd": "python3 -c \"import json;s=json.load(open('/home/greg/deltaplan_data/osm_tiles/OT-2/acc_kz/summary.json'));print(sorted(s))\"",
+      "expect": "re:peak_rss_mb.*seconds_total"
+    },
+    {
+      "name": "fixture_size",
+      "cmd": "echo size $(du -sb tests/fixtures/osm_tiles/v1 | cut -f1)",
+      "expect": "num:size (\\d+) <=1600000"
+    },
+    {
+      "name": "fixture_tiles",
+      "cmd": "echo tiles $(find tests/fixtures/osm_tiles/v1 -name '*.dpt' | wc -l)",
+      "expect": "num:tiles (\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T16:22:35",
+  "edited": "2026-10-10T16:22:44"
+}
