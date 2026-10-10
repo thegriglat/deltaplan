@@ -89,7 +89,7 @@ static func load_for(place_dir: String, center_lat: float, center_lon: float, ha
 			tiles.append(r)
 		else:
 			missing += 1
-	d = from_tiles(tiles, center_lat, center_lon, half_m)
+	d = from_tiles_parallel(tiles, center_lat, center_lon, half_m)
 	d.tiles_ok = tiles.size() + empty
 	d.tiles_missing = missing
 	d.load_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
@@ -109,6 +109,37 @@ static func decode_files(paths: Array) -> Array:
 	var gid := WorkerThreadPool.add_group_task(task, paths.size(), -1, true, "osm tiles decode")
 	WorkerThreadPool.wait_for_group_task_completion(gid)
 	return out
+
+
+## То же, что from_tiles, но тайлы переводятся в мир на рабочих потоках (по задаче на тайл), результаты
+## склеиваются в порядке тайлов. Конфиг читается здесь, на вызывающем потоке.
+static func from_tiles_parallel(tile_dicts: Array, center_lat: float, center_lon: float, half_m: float) -> OsmData:
+	var cfg: Dictionary = Config.get_config("osm_tiles")
+	if tile_dicts.size() < 2:
+		return from_tiles(tile_dicts, center_lat, center_lon, half_m, cfg)
+	var parts: Array = []
+	parts.resize(tile_dicts.size())
+	var task := func(k: int) -> void:
+		parts[k] = from_tiles([tile_dicts[k]], center_lat, center_lon, half_m, cfg)
+	var gid := WorkerThreadPool.add_group_task(task, tile_dicts.size(), -1, true, "osm tiles to world")
+	WorkerThreadPool.wait_for_group_task_completion(gid)
+	var o := OsmData.new()
+	for p: OsmData in parts:
+		o.roads.append_array(p.roads)
+		o.rivers.append_array(p.rivers)
+		o.rail.append_array(p.rail)
+		o.buildings.append_array(p.buildings)
+		o.power.append_array(p.power)
+		o.towers.append_array(p.towers)
+		o.aerialways.append_array(p.aerialways)
+		o.aeroways.append_array(p.aeroways)
+		o.verticals.append_array(p.verticals)
+		o.peaks.append_array(p.peaks)
+		o.passes.append_array(p.passes)
+	o.tiles_ok = tile_dicts.size()
+	if not o.is_empty():
+		o.attribution = ATTRIBUTION
+	return o
 
 
 ## Тайлы (словари OsmTileReader.read) → данные места. half_m — полуразмер квадрата места, м.
