@@ -94,7 +94,12 @@ func _init() -> void:
 
 func _ready() -> void:
 	if location_id != "" and layers.is_empty():
-		load_location(location_id)
+		if Locations.is_builtin(location_id) and Locations.fixtures_root == "":
+			var id := location_id
+			location_id = ""
+			await load_builtin(id)  # нет в кеше — соберётся при первом запуске
+		else:
+			load_location(location_id)
 
 
 ## Загрузить место: встроенное (configs/locations/<id>.json, data/terrain/<id>/) или собранную
