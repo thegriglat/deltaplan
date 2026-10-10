@@ -55,7 +55,9 @@ Professional»). Какие величины ожидают (surge/sway/heave, r
 Приёмка: тесты `motion_rig` и контрактные — 0 упало; проверка приёмником; частота кадров — отправка без блокировок (неблокирующий сокет).
 
 ### MR-3 Документация и инструкция игроку (dp-writer)
-`docs/guide/motion-rig.md` (как устроено, контракт, границы); англ. инструкция игроку `docs/guide/motion-rig-setup.en.md`
+`docs/guide/motion-rig.md` (как устроено, контракт, границы); англ. инструкция игроку `tools/motion_rig/README.md` (папка
+`tools/motion_rig/` отдаётся игроку целиком: инструкция, recv.py, motion_generic.h, motion_formats.py; таблица полей обоих
+форматов — смещение, тип, единицы, знак/ось; настройка знаков direct/inverse)
 (DOF Reality через Sim Racing Studio: что включить в игре и в SRS, игра на Linux — SRS на другом ПК; оси и инверсия знаков;
 почему SimTools/FlyPT Mover пока нет; generic — формат для самодельных приёмников). CHANGELOG — строка в «В работе».
 Приёмка: `dp docs check`, файлы есть.
