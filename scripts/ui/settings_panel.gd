@@ -195,7 +195,7 @@ func _ready() -> void:
 	_motion_addr = LineEdit.new()
 	_motion_addr.placeholder_text = "127.0.0.1:33001"
 	UiKit.row(box, tr("settings_motion_addr"), _motion_addr)
-	_motion_rate = UiKit.slider_row(box, tr("settings_motion_rate"), 10.0, 120.0, 5.0, "%.0f " + tr("unit_hz"))
+	_motion_rate = UiKit.slider_row(box, tr("settings_motion_rate"), 1.0, float(Config.value("sim", "physics_hz", 120)), 1.0, "%.0f " + tr("unit_hz"))
 	_motion_format = OptionButton.new()
 	_motion_format.add_item(tr("settings_motion_format_srs"))
 	_motion_format.add_item(tr("settings_motion_format_generic"))

@@ -14,6 +14,8 @@ var packets_sent: int = 0
 
 var _source := MotionSource.new()
 var _udp: PacketPeerUDP = null
+var _failed: bool = false  ## адрес не определился: не пытаться снова до configure()
+var resolve_count: int = 0
 var _counter: int = 0
 var _seq: int = 0
 var _active: bool = false  ## были шаги в полёте с прошлого reset()
@@ -69,13 +71,20 @@ func build_packet(s: MotionSample) -> PackedByteArray:
 	return pkt
 
 
+## Адрес определяется один раз на открытие сокета (IP — как есть, имя — IP.resolve_hostname); неудача
+## запоминается до следующего configure()/_close(): вывод выключен, повторов в шаге физики нет.
 func _send(pkt: PackedByteArray) -> void:
+	if _failed:
+		return
 	if _udp == null:
 		if host.is_empty() or port < 1 or port > 65535:
+			_failed = true
 			return
+		var ip := host if host.is_valid_ip_address() else _resolve(host)
 		var u := PacketPeerUDP.new()
-		if u.set_dest_address(host, port) != OK:
-			return  # неверный адрес: отправка выключена
+		if ip.is_empty() or u.set_dest_address(ip, port) != OK:
+			_failed = true
+			return
 		_udp = u
 	if _udp.put_packet(pkt) == OK:
 		packets_sent += 1
@@ -85,3 +94,9 @@ func _close() -> void:
 	if _udp != null:
 		_udp.close()
 		_udp = null
+	_failed = false
+
+
+func _resolve(name: String) -> String:
+	resolve_count += 1
+	return IP.resolve_hostname(name)
