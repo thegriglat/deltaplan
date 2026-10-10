@@ -51,6 +51,9 @@ func _ready() -> void:
 	print("osm_place_shot: окно ", get_window().size, " режим ", get_window().mode)
 	for cl in _main.find_children("*", "CanvasLayer", true, false):
 		cl.visible = false  # приборы и подписи — чистый кадр мира
+	for c in _main.find_children("*", "Control", true, false):
+		if not c.get_parent() is Control:
+			c.visible = false
 	DirAccess.make_dir_recursive_absolute(out)
 	var lc: Dictionary = Locations.config(_game.terrain.location_id)
 	var clat := float(lc.get("center_lat", 0.0))
@@ -75,9 +78,14 @@ func _ready() -> void:
 		var cz := tgt.y - cos(az) * dist
 		var cpos := Vector3(cx, _game.terrain.height_at(cx, cz) + hcam, cz)
 		print("osm_place_shot: ", f[0], " цель ", tgt, " (", f[1], ") камера ", cpos)
+		_game.glider.reset_in_air(cpos + Vector3(sin(az) * 60.0, 40.0, -cos(az) * 60.0), rad_to_deg(az) + 180.0)  # слои мира — вокруг планера
 		var t_end := Time.get_ticks_msec() + int(wait_s * 1000.0)
+		var t_reset := Time.get_ticks_msec()
 		while Time.get_ticks_msec() < t_end:
 			await get_tree().process_frame
+			if Time.get_ticks_msec() - t_reset > 700:
+				_game.glider.reset_in_air(cpos + Vector3(sin(az) * 60.0, 40.0, -cos(az) * 60.0), rad_to_deg(az) + 180.0)
+				t_reset = Time.get_ticks_msec()
 			cam.global_transform = Transform3D(Basis(), cpos).looking_at(tgt3, Vector3.UP)
 			cam.global_position = cpos
 		for i in 4:
@@ -108,6 +116,11 @@ func _pick(osm: OsmData, kind: String, hint: Vector2) -> Vector2:
 					if d < best:
 						best = d
 						res = p[i]
+					if i > 0:
+						var q := Geometry2D.get_closest_point_to_segment(hint, p[i - 1], p[i])
+						if q.distance_to(hint) < best:
+							best = q.distance_to(hint)
+							res = q
 		"cable":
 			for a: Dictionary in osm.aerialways:
 				var p: PackedVector2Array = a.p
