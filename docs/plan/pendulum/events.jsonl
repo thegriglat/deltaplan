@@ -135,3 +135,4 @@
 {"t": "2026-10-11T04:14:16", "by": "coordinator", "task": "PD-18", "ev": "merged", "commits": ["3dfb8cc0"]}
 {"t": "2026-10-11T04:14:25", "by": "coordinator", "task": "PD-19", "ev": "created", "note": "Срыв полос: без вечного срыва и без переворотов в болтанке, посадка учебного"}
 {"t": "2026-10-11T04:14:28", "by": "coordinator", "task": "PD-19", "ev": "started", "note": "dp-engineer opus, ~/deltaplan-pendulum-PD-19"}
+{"t": "2026-10-11T04:56:35", "by": "coordinator", "task": "PD-20", "ev": "created", "note": "Ленточки (Telltale) в «Маятнике» показывают скольжение"}
