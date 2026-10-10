@@ -12,9 +12,12 @@
 Болтанка — детерминированная сумма синусоид (моды в reference.json → `turbulence`), одинаковая
 здесь и в тесте GDScript (оси игры: X — восток, Y — вверх, −Z — север).
 
-Запуск (≈ 5–10 мин на 8 процессах):
+Земля (PD-3): разбег со склона 15° в штиль и при встречном 3 и 6 м/с вдоль склона (`ground_run*`); `--ground` —
+только эти сценарии, дописываются в готовый reference.json с его блоками.
+
+Запуск (≈ 5–10 мин на 8 процессах; --ground — ≈ 1 мин):
   /home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python \
-      tools/research/pendulum/export_reference.py [--jobs 8]
+      tools/research/pendulum/export_reference.py [--jobs 8] [--ground]
 """
 
 from __future__ import annotations
@@ -31,7 +34,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from pendulum import air, trim  # noqa: E402
-from pendulum.model import Control, Sim  # noqa: E402
+from pendulum.model import Control, Ground, R_from_euler, Sim  # noqa: E402
 from pendulum.params import DIHEDRAL_EFF_DEG, FLEX_RELIEF, G, load_params  # noqa: E402
 from pendulum.scenarios import BankHold, first_cross, run, settle  # noqa: E402
 
@@ -42,6 +45,7 @@ D = math.degrees
 RAD = math.radians
 SUBSTEPS_PER_S = 480
 SUBSTEPS_MIN = 4
+MIN_AIRSPEED = 0.5  # flight.json → min_airspeed_ms
 
 
 def substeps_for(dt: float) -> int:
@@ -235,6 +239,99 @@ def sc_turbulence(wing, blk, modes, dt=1 / 120, T=40.0):
             "max_stretch_m": float(s.max_stretch)}
 
 
+class GroundSim(Sim):
+    """Прототип с одной правкой ног (как PendulumGround): сила бега — сцепление, не больше μ·N
+    (μ = 0,8 — как боковое трение прототипа). В Sim._legs бег толкал полной силой при любом
+    касании — и при опоре в доли ньютона (в сильный ветер это держало пилота «на цыпочках»
+    у склона, отрыва не было)."""
+
+    def _legs(self):
+        F = super()._legs()
+        if self.on_ground and self.control.run:
+            fz = -F[2]
+            lim = 0.8 * fz
+            if abs(F[0]) > lim:
+                F[0] = math.copysign(lim, F[0])
+        return F
+
+
+def make_ground(wing: str, blk: dict, dt=1 / 120):
+    p = load_params(wing)
+    p = p.with_(x_hang=blk["hang_from_nose_m"], dcm0=blk["dcm0"])
+    s = GroundSim(p, yaw_mode="free", dt=dt, substeps=substeps_for(dt))
+    s.cd_scale = blk["cd_scale"]
+    a, st = trim.solve_trim(s)
+    s.reset_air(st)
+    return s
+
+
+def sc_ground_run(wing, blk, wind=0.0, slope_deg=15.0):
+    """Разбег (PD-3): постановка scenarios.sc_ground_run прототипа, но с блоком крыла (dcm0,
+    cd_scale) и носом крыла как в игре (PendulumGround, GroundRun): wing.launch.alpha_neutral_deg
+    к потоку на бегущего пилота (ветер в ЦМ крыла; пока потока меньше min_airspeed_ms — вдоль склона), а не 14°
+    к склону для всех — иначе в сильный встречный ветер угол атаки на склоне мал; сила бега ≤ μ·N
+    (GroundSim). Пилот стоит 1 с, потом бежит (run);
+    отрыв — ступни (ЦМ − 1 м) выше земли на 5 см без опоры, после 1,5 с; руки на штангу — через
+    1 с после отрыва. Время — от начала (стоя), путь — по горизонтали вдоль склона."""
+    s = make_ground(wing, blk)
+    p = s.p
+    gnd = Ground(slope_tan=math.tan(RAD(slope_deg)), h0=0.0)
+    s.ground = gnd
+    # встречный ветер вдоль склона (у земли поток обтекает склон): на юг и вверх по склону;
+    # горизонтальный ветер на склоне 15° наклоняет подъёмную силу назад вдоль склона — в 6 м/с
+    # крыло «висит» у склона, а разгружённые ноги не разгоняют (отрыва нет)
+    a = RAD(slope_deg)
+    s.air_fn = air.uniform([-wind * math.cos(a), 0.0, -wind * math.sin(a)])
+    la = float(json.loads((ROOT / f"configs/wings/{wing}.json").read_text())["launch"]["alpha_neutral_deg"])
+    p.extra["launch_theta_deg"] = la - slope_deg  # тангаж к горизонту: угол атаки к склону
+    xp = np.array([0.0, 0.0, -1.0])
+    s.xn = np.stack([xp for _ in range(s.n_links)])
+    s.vn = np.zeros((s.n_links, 3))
+    s.R = R_from_euler(0.0, RAD(la - slope_deg), 0.0)
+    s.pos = xp + np.array([0.35, 0.0, -0.45]) - s.R @ s.r_grip_b
+    s.vel = np.zeros(3)
+    s.w = np.zeros(3)
+    s.neutral_rel = None
+    H = s.hang_world()
+    for i in range(s.n_links):
+        s.xn[i] = H + (xp - H) * (i + 1) / s.n_links
+    liftoff = None
+    t_half = None
+    hands = "uprights"
+    n = int(25.0 / s.dt)
+    W_p = p.m_pilot * G
+    feet_max = 0.0
+    for i in range(n):
+        tt = i * s.dt
+        if liftoff is not None and tt - liftoff > 1.0 and hands == "uprights":
+            hands = "bar"
+            s.neutral_rel = s.pilot_rel_b()
+        va = s.vn[-1] - s.air_fn(s.pos[None])[0]  # поток на бегущего пилота, ветер — у крыла
+        d3 = np.array([math.cos(RAD(slope_deg)), 0.0, math.sin(RAD(slope_deg))])
+        u = va + d3 * max(MIN_AIRSPEED - float(np.linalg.norm(va)), 0.0)
+        u = u / np.linalg.norm(u) if np.linalg.norm(u) > 1e-3 else d3
+        p.extra["launch_theta_deg"] = math.degrees(math.asin(max(-1.0, min(1.0, -u[2])))) + la
+        s.step(Control(run=tt > 1.0, hands=hands))
+        o = s.observe()
+        h_feet = o["hp"] - 1.0 - gnd.height(o["xp"], o["yp"])
+        if t_half is None and o["tension"] > 0.5 * W_p:
+            t_half = tt + s.dt
+        if liftoff is None and h_feet > 0.05 and o["feet"] == 0.0 and tt > 1.5:
+            liftoff = tt + s.dt
+            out = {"t_liftoff": liftoff, "x_liftoff": float(o["xp"]), "v_liftoff_kmh": o["V"] * 3.6,
+                   "vxp_liftoff": float(o["vxp"])}
+        if liftoff is not None:
+            feet_max = max(feet_max, h_feet)
+            if tt - liftoff > 5.0:
+                break
+    if liftoff is None:
+        return {"wind_ms": wind, "slope_deg": slope_deg, "alpha_launch_deg": la, "t_liftoff": float("nan")}
+    out.update({"wind_ms": wind, "slope_deg": slope_deg, "alpha_launch_deg": la,
+                "t_strap_half_load": t_half if t_half is not None else float("nan"),
+                "max_h_feet_5s": float(feet_max)})
+    return out
+
+
 def job(args):
     name, wing, blk, extra = args
     if name == "trim":
@@ -247,15 +344,37 @@ def job(args):
         return name, wing, sc_pendulum(wing, blk)
     if name == "ochi":
         return name, wing, sc_ochi(wing, blk)
+    if name.startswith("ground_run"):
+        return name, wing, sc_ground_run(wing, blk, wind=extra["wind"])
     if name.startswith("turbulence"):
         return name, wing, sc_turbulence(wing, blk, extra["modes"], dt=extra["dt"])
     raise ValueError(name)
 
 
+GROUND_PLAN = (("ground_run", 0.0), ("ground_run_wind3", 3.0), ("ground_run_wind6", 6.0))
+
+
+def main_ground(jobs: int):
+    ref = json.loads(OUT.read_text())
+    blocks = ref["blocks"]
+    plan = [(nm, w, blocks[w], {"wind": wind}) for nm, wind in GROUND_PLAN for w in WINGS]
+    with ProcessPoolExecutor(jobs) as ex:
+        for name, wing, r in ex.map(job, plan):
+            ref["scenarios"].setdefault(name, {})[wing] = r
+            print(name, wing, json.dumps(r, ensure_ascii=False), flush=True)
+    OUT.write_text(json.dumps(ref, ensure_ascii=False, indent=1) + "\n")
+    print("→", OUT)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jobs", type=int, default=8)
+    ap.add_argument("--ground", action="store_true",
+                    help="только сценарии земли (PD-3): дописать в готовый reference.json, блоки — из него")
     args = ap.parse_args()
+    if args.ground:
+        main_ground(args.jobs)
+        return
     with ProcessPoolExecutor(args.jobs) as ex:
         blocks = dict(zip(WINGS, ex.map(block, WINGS)))
     modes = turbulence_modes()
@@ -267,6 +386,9 @@ def main():
     plan.append(("ochi", "laminar", blocks["laminar"], {}))
     for dt, nm in ((1 / 60, "turbulence_dt60"), (1 / 30, "turbulence_dt30")):
         plan.append((nm, "sport", blocks["sport"], {"modes": modes, "dt": dt}))
+    for nm, wind in GROUND_PLAN:
+        for w in WINGS:
+            plan.append((nm, w, blocks[w], {"wind": wind}))
     res = {}
     with ProcessPoolExecutor(args.jobs) as ex:
         for name, wing, r in ex.map(job, plan):
