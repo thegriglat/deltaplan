@@ -80,6 +80,10 @@ var strap_tension: float = 0.0
 ## усилие рук, Н (+ — пилот вправо; NAN — нет).
 var arms_relaxed := false
 var hands_force_y: float = NAN
+## Частота пересчёта аэродинамики полос и выборки ветра, Гц (≤ 0 — на каждом подшаге, как
+## прототип); между пересчётами сила и момент заморожены в осях крыла. Цепь и руки — на каждом
+## подшаге. Детерминированные сценарии при 60 Гц совпадают с прототипом до 0,5 % (PD-2).
+var aero_hz: float = 60.0
 
 var strips := PendulumWingStrips.new()
 var chain := PendulumPilotChain.new()
@@ -115,6 +119,18 @@ var _w := Vector3.ZERO
 var _air := PackedVector3Array()
 var _zero_air := PackedVector3Array()
 var _last_pitch: float = 0.0
+var _air_p := Vector3.ZERO
+var _aero_age: float = INF  ## время с последнего пересчёта аэродинамики, с
+var _air_c := Vector3.ZERO  ## ветер в ЦМ крыла при последнем пересчёте аэродинамики (NED)
+var _aero_f_b := Vector3.ZERO
+var _aero_m_b := Vector3.ZERO
+var _pilot_cda: float = 0.21
+var _alt_dep := true
+var _rho_sea: float = 1.225
+var _scale_h: float = 10400.0
+var _lf_filter: float = 0.3
+var _lf_jitter: float = 1.0
+var _flare_h: float = 4.0
 var _feet_agl: float = INF
 
 
@@ -139,19 +155,6 @@ static func basis_from_euler(ps: float, th: float, ph: float) -> Basis:
 		Vector3(sph * sth * cps - cph * sps, sph * sth * sps + cph * cps, sph * cth),
 		Vector3(cph * sth * cps + sph * sps, cph * sth * sps - sph * cps, cph * cth)
 	)
-
-
-static func _log_rot(b: Basis) -> Vector3:
-	var q := b.get_rotation_quaternion()
-	var vv := Vector3(q.x, q.y, q.z)
-	var w := q.w
-	if w < 0.0:
-		vv = -vv
-		w = -w
-	var s := vv.length()
-	if s < 1.0e-9:
-		return vv * 2.0
-	return vv * (2.0 * atan2(s, w) / s)
 
 
 ## wing_cfg — конфиг крыла с блоком pendulum (PD-К2), pilot_cfg — pilot.json (mass_kg уже
@@ -189,6 +192,14 @@ func setup(
 	_sub_min = int(ch.substeps_min)
 	_head_fwd = float(pendulum.head.forward_m)
 	_head_up = float(pendulum.head.up_m)
+	_pilot_cda = float(pendulum.pilot_cda_m2)
+	var ad: Dictionary = flight.air_density
+	_alt_dep = bool(ad.altitude_dependent)
+	_rho_sea = float(ad.sea_level_kgm3)
+	_scale_h = float(ad.scale_height_m)
+	_lf_filter = float(flight.load_factor.filter_s)
+	_lf_jitter = float(flight.load_factor.jitter_window_s)
+	_flare_h = float(flight.flare.height_m)
 	# геометрия в осях «от носа» N (x назад по килю, z вниз) → связанные B около ЦМ крыла
 	_cg_n = Vector3(float(blk.cg_x_from_nose_m), 0.0, -float(blk.cg_z_m))
 	var shift := float(apparatus.hang_shift_cm) / 100.0
@@ -257,6 +268,7 @@ func set_kinematic(pos: Vector3, vel: Vector3, heading_: float, bank_: float, th
 	_R = basis_from_euler(heading_, theta_, bank_)
 	_vel = ned(vel)
 	_w = Vector3.ZERO
+	_aero_age = INF
 	_place_wing(pos)
 	var h := _pos + _R * _r_hang_b
 	chain.place(h, E3, _vel)
@@ -276,13 +288,16 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var n := maxi(_sub_min, ceili(dt * _sub_per_s - 1.0e-9))
 	var h := dt / n
 	_last_pitch = input.pitch
-	for _k in n:
-		_substep(h, input, air_fn)
-	var lf: Dictionary = flight.load_factor
+	var t_aero := 0.0 if aero_hz <= 0.0 else 1.0 / aero_hz - 1.0e-9
+	for k in n:
+		if _aero_age >= t_aero:
+			_aero_update(air_fn)
+			_aero_age = 0.0
+		_substep(h, input)
+		_aero_age += h
+	_R = _R.orthonormalized()
 	var f_p := chain.pilot_force + _R * arms.force_b
-	load.update(
-		f_p.length(), pilot_mass * Units.G, float(lf.filter_s), dt, float(lf.jitter_window_s)
-	)
+	load.update(f_p.length(), pilot_mass * Units.G, _lf_filter, dt, _lf_jitter)
 	_update_outputs(air_fn, ground_fn)
 	_check_touchdown(ground_fn)
 
@@ -301,7 +316,7 @@ func phase() -> String:
 
 ## v1: доля «от себя» (0…1) только ниже flight.flare.height_m (ступни над землёй), иначе 0.
 func flare_amount() -> float:
-	if mode != FlightModel.Mode.AIR or _feet_agl > float(flight.flare.height_m):
+	if mode != FlightModel.Mode.AIR or _feet_agl > _flare_h:
 		return 0.0
 	return clampf(_last_pitch, 0.0, 1.0)
 
@@ -313,10 +328,9 @@ func stall_amount() -> float:
 
 ## Плотность воздуха на высоте, кг/м³ (как FlightModel).
 func air_density(altitude_m: float) -> float:
-	var ad: Dictionary = flight.air_density
-	if not bool(ad.altitude_dependent):
+	if not _alt_dep:
 		return _rho_ref
-	return float(ad.sea_level_kgm3) * exp(-altitude_m / float(ad.scale_height_m))
+	return _rho_sea * exp(-altitude_m / _scale_h)
 
 
 ## Ориентация крыла в осях игры (−Z вперёд по килю, +Y вверх, +X вправо).
@@ -383,72 +397,82 @@ func solve_trim() -> Dictionary:
 
 
 # ------------------------------------------------------------------ шаг
-func _substep(h: float, input: ControlInput, air_fn: Callable) -> void:
+## Аэродинамика крыла и воздух у пилота: раз в 1/aero_hz с (между вызовами сила и момент
+## заморожены в осях крыла и поворачиваются с ним; цепь и руки — на каждом подшаге).
+func _aero_update(air_fn: Callable) -> void:
 	var R := _R
-	var Rt := R.transposed()
-	var rh: Vector3 = R * _r_hang_b
-	var H := _pos + rh
-	var xp := chain.pilot()
-	var vp := chain.pilot_vel()
-	# воздух в точках полос и пилота
 	var air_c := Vector3.ZERO
-	var air_p := Vector3.ZERO
+	_air_p = Vector3.ZERO
 	if air_fn.is_valid():
+		var rb := strips.r_b
 		for i in strips.n:
-			_air[i] = _air_at(air_fn, _pos + R * strips.r_b[i])
+			# точка полосы в мире игры (сложение с началом в float64) → ветер → NED
+			var p: Vector3 = _pos + R * rb[i]
+			var g: Vector3 = air_fn.call(Vector3(_oe + p.y, -(_od + p.z), -(_on + p.x)))
+			_air[i] = Vector3(-g.z, g.x, -g.y)
 		air_c = _air_at(air_fn, _pos)
-		air_p = _air_at(air_fn, xp)
+		_air_p = _air_at(air_fn, chain.pilot())
+	_air_c = air_c
 	var lam := 0.0
 	if strips.billow_shift != 0.0:
-		var d_b := Rt * (chain.x[0] - H)
+		var d_b := R.transposed() * (chain.x[0] - _pos - R * _r_hang_b)
 		lam = d_b.y / maxf(d_b.z, 1.0e-3)
 	strips.aero(_vel, R, _w, _air if air_fn.is_valid() else _zero_air, air_c, lam, rho)
-	var f_w := strips.force + E3 * (_m_wing * Units.G)
-	var m_w := strips.moment
+	_aero_f_b = strips.force_b
+	_aero_m_b = strips.moment_b
+
+
+func _substep(h: float, input: ControlInput) -> void:
+	var R := _R
+	var Rt := R.transposed()
+	var H: Vector3 = _pos + R * _r_hang_b
+	var last := chain.links - 1
+	var xp: Vector3 = chain.x[last]
+	var vp: Vector3 = chain.v[last]
+	var wb: Vector3 = Rt * _w
+	var f_wb := _aero_f_b  # сила на крыло без веса, оси B
+	var tb := _aero_m_b  # момент около ЦМ, оси B
 	# пилот: вес, сопротивление (CD·A)_п, руки
-	var va := vp - air_p
-	var f_p := E3 * (pilot_mass * Units.G) - va * (0.5 * rho * float(pendulum.pilot_cda_m2) * va.length())
-	var rel := Rt * (xp - H)
-	var vh := _vel + _w.cross(rh)
-	var vrel := Rt * (vp - vh - _w.cross(xp - H))
+	var va := vp - _air_p
+	var f_p := E3 * (pilot_mass * Units.G) - va * (0.5 * rho * _pilot_cda * va.length())
+	var rel: Vector3 = Rt * (xp - H)
+	# скорость пилота относительно подвески во вращающихся осях крыла
+	var vrel: Vector3 = Rt * (vp - _vel) - wb.cross(_r_hang_b + rel)
 	var fb := arms.compute(
 		rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y
 	)
 	if fb != Vector3.ZERO:
-		var fh: Vector3 = R * fb
-		f_p += fh
+		f_p += R * fb
+		f_wb -= fb
 		# продольная сила рук — в середине штанги (момент по тангажу); поперечная — на высоте
 		# штанги, но на продольной координате ЦМ пилота (пилот держит тело ⊥ штанге: пара
 		# «штанга — стропа» по рысканию на крыло не передаётся; Takamatsu & Ochi 2022)
-		var rb_x: Vector3 = R * _r_bar_b
-		var r_pil_b := Rt * (xp - _pos)
-		var rb_y: Vector3 = R * Vector3(r_pil_b.x, 0.0, _r_bar_b.z)
-		f_w -= fh
-		m_w += rb_x.cross(-(R * Vector3(fb.x, 0.0, 0.0))) + rb_y.cross(-(R * Vector3(0.0, fb.y, 0.0)))
+		var r_pil_x := _r_hang_b.x + rel.x
+		tb += _r_bar_b.cross(Vector3(-fb.x, 0.0, 0.0))
+		tb += Vector3(r_pil_x, 0.0, _r_bar_b.z).cross(Vector3(0.0, -fb.y, 0.0))
 	# скорости и позиции
 	var pos_prev := _pos
 	var r_prev := R
-	var x_prev := chain.x.duplicate()
-	_vel += f_w * (h / _m_wing)
-	var wb := Rt * _w
-	var tb := Rt * m_w
+	_vel += (R * f_wb) * (h / _m_wing) + E3 * (Units.G * h)
 	# гироскопический член — по инерции конструкции (присоединённая масса — не твёрдое тело)
 	wb += _I_inv * (tb - wb.cross(_I_struct * wb)) * h
 	_w = R * wb
 	_pos += _vel * h
 	var ang := _w.length() * h
 	if ang > 1.0e-12:
-		R = Basis(_w.normalized(), ang) * R
+		R = Basis(_w / (ang / h), ang) * R
 	chain.integrate(h, f_p)
 	# связи цепи
 	var iw_inv := R * _I_inv * R.transposed()
 	chain.project(h, _pos, R, _r_hang_b, _m_wing, iw_inv)
 	_pos = chain.wing_pos
-	_R = chain.wing_R.orthonormalized()
-	# скорости из позиций
+	_R = chain.wing_R
+	# скорости из позиций; поворот за подшаг мал (|ω|·h ≲ 0,01 рад) — ω из кососимметричной
+	# части R·R_prevᵀ (ошибка ~θ²/6)
 	_vel = (_pos - pos_prev) / h
-	_w = _log_rot(_R * r_prev.transposed()) / h
-	chain.velocities_from(x_prev, h)
+	var d := _R * r_prev.transposed()
+	_w = Vector3(d.y.z - d.z.y, d.z.x - d.x.z, d.x.y - d.y.x) * (0.5 / h)
+	chain.velocities_from_prev(h)
 
 
 func _air_at(air_fn: Callable, p_local: Vector3) -> Vector3:
@@ -484,6 +508,7 @@ func _place_wing(pos: Vector3) -> void:
 
 func _reset_common() -> void:
 	time_s = 0.0
+	_aero_age = INF
 	_w = Vector3.ZERO
 	arms.reset()
 	load.reset()
@@ -527,9 +552,7 @@ func _update_outputs(air_fn: Callable, ground_fn: Callable) -> void:
 	hang_position = _world(h_loc)
 	position = _world(p_loc)
 	velocity = game(_vel + _w.cross(p_loc - _pos))
-	var air_c := Vector3.ZERO
-	if air_fn.is_valid() and mode == FlightModel.Mode.AIR:
-		air_c = _air_at(air_fn, _pos)
+	var air_c := _air_c if air_fn.is_valid() and mode == FlightModel.Mode.AIR else Vector3.ZERO
 	var vb := R.transposed() * (_vel - air_c)
 	alpha = atan2(vb.z, vb.x)
 	stalled = strips.root_stalled()

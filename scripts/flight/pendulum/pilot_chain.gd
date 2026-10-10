@@ -13,6 +13,7 @@ var x := PackedVector3Array()  ## узлы 1..N (последний — пило
 var v := PackedVector3Array()  ## их скорости, м/с
 var m := PackedFloat64Array()  ## массы узлов, кг
 var inv_m := PackedFloat64Array()
+var _prev := PackedVector3Array()
 
 # результат последней проекции
 var wing_pos := Vector3.ZERO
@@ -31,6 +32,7 @@ func setup(chain: Dictionary, m_pilot: float, hang_len: float) -> void:
 	v.resize(links)
 	m.resize(links)
 	inv_m.resize(links)
+	_prev.resize(links)
 	for i in links:
 		m[i] = ms
 	m[links - 1] = m_pilot
@@ -102,18 +104,20 @@ func project(
 
 
 ## Явный шаг узлов: вес промежуточных узлов, у пилота — f_pilot (вес + сопротивление + руки).
+## Запоминает позиции до шага (для скоростей из позиций).
 func integrate(h: float, f_pilot: Vector3) -> void:
 	var last := links - 1
 	for i in links:
+		_prev[i] = x[i]
 		var f := Vector3(0.0, 0.0, m[i] * Units.G) if i < last else f_pilot
 		v[i] += f * (h * inv_m[i])
 		x[i] += v[i] * h
 
 
 ## Скорости узлов из позиций (XPBD): (x − x_prev) / h.
-func velocities_from(x_prev: PackedVector3Array, h: float) -> void:
+func velocities_from_prev(h: float) -> void:
 	for i in links:
-		v[i] = (x[i] - x_prev[i]) / h
+		v[i] = (x[i] - _prev[i]) / h
 
 
 func shift(d: Vector3) -> void:

@@ -17,6 +17,8 @@ var r_b := PackedVector3Array()  ## точки приложения сил по�
 var c_b := PackedVector3Array()  ## хордовое направление (вперёд, ⊥ размаху), B
 var n_b := PackedVector3Array()  ## нормаль панели (вниз, с поперечным V), B
 var s_b := PackedVector3Array()  ## размах наружу, B
+var sxc_b := PackedVector3Array()  ## s × c (для направления подъёмной силы)
+var sxn_b := PackedVector3Array()  ## s × n
 var twist := PackedFloat64Array()  ## геометрическая крутка, рад
 var sc := PackedFloat64Array()  ## площадь полосы (хорда × ширина), м²
 var yabs := PackedFloat64Array()  ## |y| / полуразмаха
@@ -42,17 +44,18 @@ var free_yaw := true
 # результат последнего вызова aero (мир NED, около ЦМ)
 var force := Vector3.ZERO
 var moment := Vector3.ZERO
+var force_b := Vector3.ZERO  ## то же в осях B
+var moment_b := Vector3.ZERO
 var lift_n: float = 0.0  ## подъёмная сила (−F_b.z), Н
 var blend := PackedFloat64Array()  ## 0 — обтекание, 1 — пластина (по полосам)
 
 # рабочие массивы
-var _rw := PackedVector3Array()
-var _uc := PackedFloat64Array()
-var _uz := PackedFloat64Array()
-var _qn := PackedFloat64Array()
-var _cl := PackedFloat64Array()
-var _cdx := PackedFloat64Array()
-var _u := PackedVector3Array()
+var _a_st: float = 1.0  ## α (от нулевой подъёмной) на cl_max
+var _inv_blend: float = 1.0
+## Таблица сопротивления полосы cd_scale·(CD поляры − доля пилота) по CL от _cd_lo до cl_max.
+var _cd_tab := PackedFloat64Array()
+var _cd_lo: float = -2.0
+var _cd_inv: float = 1.0
 
 
 ## wing — конфиг крыла, blk — его блок pendulum (PD-К2), pend — configs/pendulum.json,
@@ -83,6 +86,8 @@ func setup(
 	c_b.resize(n)
 	n_b.resize(n)
 	s_b.resize(n)
+	sxc_b.resize(n)
+	sxn_b.resize(n)
 	twist.resize(n)
 	sc.resize(n)
 	yabs.resize(n)
@@ -104,6 +109,8 @@ func setup(
 			c_b[i] = c_vec
 			n_b[i] = n_vec
 			s_b[i] = s_vec
+			sxc_b[i] = s_vec.cross(c_vec)
+			sxn_b[i] = s_vec.cross(n_vec)
 			twist[i] = -washout * y / half
 			sc[i] = c * half / n_side
 			yabs[i] = y / half
@@ -128,70 +135,109 @@ func setup(
 	var fin_arm := float(yaw.fin_arm_m)
 	fin_area = float(yaw.cn_beta) * area * span / (fin_slope * fin_arm)
 	r_fin_b = Vector3(-fin_arm, 0.0, 0.0)
-	for arr: Variant in [_rw, _uc, _uz, _qn, _cl, _cdx, _u, blend]:
-		arr.resize(n)
+	blend.resize(n)
+	_a_st = cl_max / lift_slope
+	_inv_blend = 1.0 / deg_to_rad(BLEND_DEG)
+	build_cd_table()
 
 
-## Сила и момент около ЦМ (мир NED) → force, moment. vel — скорость ЦМ (земля), R — B→мир,
-## w — угловая скорость (мир), air — ветер в точках полос (мир, порядок r_b), air_c — в ЦМ,
-## billow_lam — tg угла стропы к крылу поперёк (для billow_shift), rho — плотность.
+## Таблица CD полосы (после смены cd_scale — пересобрать): 512 отрезков, ошибка < 1e-5.
+func build_cd_table() -> void:
+	var nt := 512
+	_cd_tab.resize(nt + 1)
+	_cd_inv = nt / (cl_max - _cd_lo)
+	for j in nt + 1:
+		var cl := _cd_lo + j / _cd_inv
+		_cd_tab[j] = cd_scale * (polar.cd_at(cl) - cd_pilot_share)
+
+
+## Сила и момент около ЦМ (мир NED) → force, moment (и в осях B — force_b, moment_b).
+## vel — скорость ЦМ (земля), R — B→мир, w — угловая скорость (мир), air — ветер в точках
+## полос (мир, порядок r_b), air_c — в ЦМ, billow_lam — tg угла стропы к крылу поперёк
+## (для billow_shift), rho — плотность. Полосы считаются парами (правая i, левая i + n/2):
+## гибкий парус перераспределяет нагрузку внутри пары.
 func aero(
 	vel: Vector3, R: Basis, w: Vector3, air: PackedVector3Array, air_c: Vector3,
 	billow_lam: float, rho: float
 ) -> void:
 	var Rt := R.transposed()
-	var cs2 := cos_sweep * cos_sweep
-	for i in n:
-		var rw: Vector3 = R * r_b[i]
-		_rw[i] = rw
-		var u: Vector3 = Rt * (vel + w.cross(rw) - air[i])
-		_u[i] = u
-		var uc := u.dot(c_b[i])
-		var uz := u.dot(n_b[i])
-		_uc[i] = uc
-		_uz[i] = uz
-		var a_eff := atan2(uz, uc) * cos_sweep + twist[i]
-		if billow_shift != 0.0:
-			a_eff -= side[i] * billow_shift * billow_lam * yabs[i]
-		# CL полосы: линейно до cl_max, дальше пластина CN = 2 (смешивание за 4°)
-		var a_rel := a_eff - alpha0_root
-		var a_st := cl_max / lift_slope
-		var b := clampf((a_rel - a_st) / deg_to_rad(BLEND_DEG), 0.0, 1.0)
-		var cl_att := minf(lift_slope * a_rel, cl_max)
-		if a_rel < -a_st:
-			cl_att = -cl_max
-		var sa := sin(a_rel)
-		_cl[i] = (1.0 - b) * cl_att + b * 2.0 * sa * cos(a_rel)
-		_cdx[i] = b * maxf(2.0 * sa * sa, 0.0)
-		blend[i] = b
-		_qn[i] = 0.5 * rho * (uc * uc + uz * uz) / cs2
-	if flex_relief < 1.0:
-		# гибкий парус: разница нагрузок консолей частично снимается круткой
-		var h := n / 2
-		for i in h:
-			var lr := _qn[i] * _cl[i]
-			var ll := _qn[i + h] * _cl[i + h]
-			var m := 0.5 * (lr + ll)
-			var d := 0.5 * (lr - ll) * flex_relief
-			_cl[i] = (m + d) / maxf(_qn[i], 1.0e-6)
-			_cl[i + h] = (m - d) / maxf(_qn[i + h], 1.0e-6)
+	var wb: Vector3 = Rt * w
+	var vb: Vector3 = Rt * vel
+	var q_half := 0.5 * rho / (cos_sweep * cos_sweep)
+	var h := n / 2
 	var f_sum := Vector3.ZERO
 	var m_sum := Vector3.ZERO
-	for i in n:
-		var cl := _cl[i]
-		var cd := cd_scale * (polar.cd_at(clampf(cl, -2.0, cl_max)) - cd_pilot_share) + _cdx[i]
-		var un: Vector3 = c_b[i] * _uc[i] + n_b[i] * _uz[i]
-		var ld: Vector3 = s_b[i].cross(un)
-		if ld.z > 0.0:
-			ld = -ld
-		var ln := ld.length()
-		ld = ld / maxf(ln, 1.0e-9)
-		var u: Vector3 = _u[i]
-		var um := u.length()
-		var dd := -u / maxf(um, 1.0e-9)
-		var fb: Vector3 = (ld * cl + dd * cd) * (_qn[i] * sc[i])
-		f_sum += fb
-		m_sum += r_b[i].cross(fb)
+	var nt2 := _cd_tab.size() - 2
+	for j in h:
+		var i := j
+		var k := j + h
+		var rbi: Vector3 = r_b[i]
+		var rbk: Vector3 = r_b[k]
+		var cbi: Vector3 = c_b[i]
+		var nbi: Vector3 = n_b[i]
+		var cbk: Vector3 = c_b[k]
+		var nbk: Vector3 = n_b[k]
+		# скорость полос относительно воздуха в осях B: v + ω×r − ветер
+		var ui: Vector3 = vb + wb.cross(rbi) - Rt * air[i]
+		var uk: Vector3 = vb + wb.cross(rbk) - Rt * air[k]
+		var uci := ui.dot(cbi)
+		var uzi := ui.dot(nbi)
+		var uck := uk.dot(cbk)
+		var uzk := uk.dot(nbk)
+		var ai := atan2(uzi, uci) * cos_sweep + twist[i]
+		var ak := atan2(uzk, uck) * cos_sweep + twist[k]
+		if billow_shift != 0.0:
+			ai -= side[i] * billow_shift * billow_lam * yabs[i]
+			ak -= side[k] * billow_shift * billow_lam * yabs[k]
+		# CL полосы: линейно до cl_max, дальше пластина CN = 2 (смешивание за 4°)
+		var ri := ai - alpha0_root
+		var rk := ak - alpha0_root
+		var bi := clampf((ri - _a_st) * _inv_blend, 0.0, 1.0)
+		var bk := clampf((rk - _a_st) * _inv_blend, 0.0, 1.0)
+		blend[i] = bi
+		blend[k] = bk
+		var cli := -cl_max if ri < -_a_st else minf(lift_slope * ri, cl_max)
+		var clk := -cl_max if rk < -_a_st else minf(lift_slope * rk, cl_max)
+		var cdxi := 0.0
+		var cdxk := 0.0
+		if bi > 0.0:
+			cli += bi * (sin(2.0 * ri) - cli)
+			cdxi = bi * 2.0 * sin(ri) * sin(ri)
+		if bk > 0.0:
+			clk += bk * (sin(2.0 * rk) - clk)
+			cdxk = bk * 2.0 * sin(rk) * sin(rk)
+		var q2i := uci * uci + uzi * uzi
+		var q2k := uck * uck + uzk * uzk
+		var qi := q_half * q2i
+		var qk := q_half * q2k
+		if flex_relief < 1.0:
+			# гибкий парус: разница нагрузок консолей частично снимается круткой
+			var lr := qi * cli
+			var ll := qk * clk
+			var mm := 0.5 * (lr + ll)
+			var dd := 0.5 * (lr - ll) * flex_relief
+			cli = (mm + dd) / maxf(qi, 1.0e-6)
+			clk = (mm - dd) / maxf(qk, 1.0e-6)
+		# сопротивление: поляра (таблица по CL) + пластина при срыве
+		var xi := (clampf(cli, _cd_lo, cl_max) - _cd_lo) * _cd_inv
+		var xk := (clampf(clk, _cd_lo, cl_max) - _cd_lo) * _cd_inv
+		var ii := mini(int(xi), nt2)
+		var ik := mini(int(xk), nt2)
+		var c0i := _cd_tab[ii]
+		var c0k := _cd_tab[ik]
+		var cdi := c0i + (_cd_tab[ii + 1] - c0i) * (xi - ii) + cdxi
+		var cdk := c0k + (_cd_tab[ik + 1] - c0k) * (xk - ik) + cdxk
+		# подъёмная ⊥ размаху и нормальной к кромке скорости (s × (c·uc + n·uz)), вверх
+		var ldi: Vector3 = sxc_b[i] * uci + sxn_b[i] * uzi
+		var ldk: Vector3 = sxc_b[k] * uck + sxn_b[k] * uzk
+		if ldi.z > 0.0:
+			ldi = -ldi
+		if ldk.z > 0.0:
+			ldk = -ldk
+		var fi: Vector3 = (ldi * (cli / maxf(sqrt(q2i), 1.0e-9)) - ui * (cdi / maxf(ui.length(), 1.0e-9))) * (qi * sc[i])
+		var fk: Vector3 = (ldk * (clk / maxf(sqrt(q2k), 1.0e-9)) - uk * (cdk / maxf(uk.length(), 1.0e-9))) * (qk * sc[k])
+		f_sum += fi + fk
+		m_sum += rbi.cross(fi) + rbk.cross(fk)
 	# момент паруса (Cm0) по скоростному напору в ЦМ
 	var v_c := vel - air_c
 	var V := v_c.length()
@@ -205,6 +251,8 @@ func aero(
 		f_sum += ff
 		m_sum += r_fin_b.cross(ff)
 	lift_n = -f_sum.z
+	force_b = f_sum
+	moment_b = m_sum
 	force = R * f_sum
 	moment = R * m_sum
 
