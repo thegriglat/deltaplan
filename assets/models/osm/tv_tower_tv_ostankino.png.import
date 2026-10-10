@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dy8sdpq335gta"
-path="res://.godot/imported/tv_tower_tv_cabin.png-6a4e5dbb3d6486bf616cdd489944b484.ctex"
+uid="uid://d17ssnxwoint3"
+path="res://.godot/imported/tv_tower_tv_ostankino.png-9bab8e088bc14b2948df76d1c66bb933.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "ef0fd36e1b34f3339b9197003ce862dd"
+"md5": "89453b4bec03cdcecb441f5f9e410edd"
 }
 
 [deps]
 
-source_file="res://assets/models/osm/tv_tower_tv_cabin.png"
-dest_files=["res://.godot/imported/tv_tower_tv_cabin.png-6a4e5dbb3d6486bf616cdd489944b484.ctex"]
+source_file="res://assets/models/osm/tv_tower_tv_ostankino.png"
+dest_files=["res://.godot/imported/tv_tower_tv_ostankino.png-9bab8e088bc14b2948df76d1c66bb933.ctex"]
 
 [params]
 

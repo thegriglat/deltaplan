@@ -158,13 +158,13 @@ def arm(mb, mat, x_tip, z_bot, thick_root, thick_tip, width_root, x_root, bays):
         mb.add_face(idx, mat, uv=[(0, 0), (1, 0), (1, bays), (0, bays)], smooth=False)
 
 
-def finish(stem, mb, mats, h_expect):
+def finish(stem, mb, mats, h_expect, max_tris=600):
     ob = mb.build(stem, mats)
     ob.select_set(True)
     zs = [v.co.z for v in ob.data.vertices]
     tris = U.tri_count()
     print("OSM %s: %d tris, top %.2f (ожидалось %.2f), %d материала" % (stem, tris, max(zs), h_expect, len(mats)))
-    assert tris <= 600 and len(mats) <= 2, stem
+    assert tris <= max_tris and len(mats) <= 2, stem
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SRC, stem + ".blend"), check_existing=False, compress=True)
     bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, stem + ".glb"), export_format="GLB",
                               export_yup=True, use_selection=False, export_apply=True,
@@ -258,33 +258,91 @@ def build_mast():
     finish("mast_lattice", mb, mats, H)
 
 
+def ostankino_texture(name, h0):
+    """Ствол, «шайба», антенна: V = z / h0 по всей высоте (256 × 1024, строка 0 — земля)."""
+    w, h = 256, 1024
+    v = (np.arange(h) + 0.5) / h
+    z = v * h0
+    rgb = np.zeros((h, w, 3), np.float32)
+    rgb[:] = np.array([0.80, 0.79, 0.76], np.float32)
+    # потёки: вертикальные полосы тоном, у основания темнее
+    streak = _noise(1, w, 2.5) * 0.04
+    rgb += streak[:, :, None] + _noise(h, w, 0.025)[:, :, None]
+    rgb *= (0.82 + 0.18 * np.clip(z / 250.0, 0, 1))[:, None, None]
+    # тёмные пояса на стволе
+    for zb in (90, 130, 170, 210, 250, 290):
+        m = np.abs(z - zb) < 1.8
+        rgb[m] = np.array([0.34, 0.35, 0.37], np.float32)
+    # нижняя часть «тюльпана» темнее, верхние технические этажи серее
+    m = (z > 318) & (z < 329)
+    rgb[m] *= 0.86
+    m = (z > 337) & (z < 352)
+    rgb[m] = np.array([0.55, 0.56, 0.58], np.float32) + _noise(int(m.sum()), w, 0.02)[:, :, None]
+    # остекление «Седьмого неба»: 24 грани, переплёты на границах граней
+    m = (z >= 329) & (z <= 337)
+    glass = np.array([0.10, 0.16, 0.23], np.float32)
+    rgb[m] = glass
+    for k in range(24):
+        x = int(round(k * w / 24.0)) % w
+        rgb[np.ix_(np.where(m)[0], [x, (x + 1) % w])] = np.array([0.72, 0.72, 0.70], np.float32)
+    # антенна: красно-белая разметка
+    m = z >= 387
+    band = (np.floor((z - 387.0) / 21.8).astype(int)) % 2
+    for i in np.where(m)[0]:
+        rgb[i] = np.array([0.82, 0.18, 0.12] if band[i] == 0 else [0.93, 0.92, 0.90], np.float32)
+    return U.image_from_array(name, rgb.astype(np.float32), os.path.join(TEX, name + ".png"))
+
+
+def ostankino_legs_texture(name):
+    """Грань конуса-основания: бетон с арочным проёмом (alpha = 0 внутри арки)."""
+    w, h = 128, 256
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    u = (xx + 0.5) / w
+    v = (yy + 0.5) / h
+    hw = 0.28
+    spring = 0.34
+    rise = 0.22
+    dx = (u - 0.5) / hw
+    inside = (np.abs(dx) < 1.0) & (v < spring + rise * np.sqrt(np.clip(1.0 - dx * dx, 0, 1)))
+    a = np.where(inside, 0.0, 1.0).astype(np.float32)
+    rgb = np.zeros((h, w, 3), np.float32)
+    rgb[:] = np.array([0.74, 0.73, 0.70], np.float32)
+    rgb += _noise(h, w, 0.03)[:, :, None]
+    return U.image_from_array(name, np.dstack([rgb, a]), os.path.join(TEX, name + ".png"))
+
+
 def build_tv_tower():
+    """Телебашня по образцу Останкинской (540 м): конус-основание на 10 опорах с арками (грани с
+    альфа-проёмами), сужающийся бетонный ствол с поясами, «тюльпан» с остеклением на 329–337 м,
+    красно-белая антенна. Пропорции — доли H = model_h_m.tv_tower; радиус следа — radius_m."""
     U.reset_scene()
     H = float(VT["model_h_m"]["tv_tower"])
     R = float(VT["radius_m"]["tv_tower"])
-    hw_b = (R - 0.6) / math.sqrt(2.0)
-    img = lattice_texture("lattice_steel", [STEEL])
-    cab = cabin_texture("tv_cabin")
-    mats = {"lat": U.material("tv_lattice", U.srgb(STEEL), 0.7, 0.3, True, img, True),
-            "cab": U.material("tv_cabin", U.srgb((0.8, 0.8, 0.78)), 0.5, 0.1, False, cab)}
+    k = H / 540.0
+    tex = ostankino_texture("tv_ostankino", H)
+    legs_tex = ostankino_legs_texture("tv_legs")
+    mats = {"body": U.material("tv_body", U.srgb((0.8, 0.79, 0.76)), 0.8, 0.0, False, tex),
+            "legs": U.material("tv_legs", U.srgb((0.74, 0.73, 0.7)), 0.85, 0.0, True, legs_tex, True)}
     mb = U.MeshBuilder()
-    z1, z2, z3, z4 = H * 0.66, H * 0.63, H * 0.75, H * 0.93
-    hw1, hw2, hw3 = hw_b * 0.42, hw_b * 0.4, hw_b * 0.14
-    frustum_faces(mb, "lat", 0.0, z1, hw_b, hw1, 8)
-    frustum_faces(mb, "lat", z2 + 0.06 * H, z4, hw2 * 0.9, hw3, 4)
-    # ноги — из текстуры кабины (однотонный участок v≈0.05)
-    for sx in (-1, 1):
-        for sy in (-1, 1):
-            pts = [(sx * hw_b, sy * hw_b, 0.0), (sx * hw1, sy * hw1, z1), (sx * hw3, sy * hw3, z4)]
-            mb.add_tube(pts, [0.45, 0.3, 0.16], "cab", sides=4, smooth=False,
-                        uv_v=[0.05, 0.05, 0.05])
-    # кабина: конус — цилиндр — конус
-    rc = hw_b * 1.0
-    rings = [(H * 0.625, rc * 0.45, 0.0), (H * 0.665, rc, 0.2), (H * 0.72, rc, 0.6), (H * 0.745, rc * 0.4, 1.0)]
-    mb.add_tube([(0, 0, z) for z, _, _ in rings], [r for _, r, _ in rings], "cab", sides=12, cap=True,
-                smooth=False, uv_v=[v for _, _, v in rings])
-    mb.add_tube([(0, 0, z4), (0, 0, H)], [0.35, 0.08], "cab", sides=6, smooth=False, uv_v=[0.05, 0.05])
-    finish("tv_tower", mb, mats, H)
+    # основание: 10 граней усечённого конуса, грань = опора + арка
+    zb, r0, r1 = 63.0 * k, (R - 1.0), 9.6
+    n = 10
+    for i in range(n):
+        a0, a1 = 2 * math.pi * i / n, 2 * math.pi * (i + 1) / n
+        idx = [mb.add_vert((r0 * math.cos(a0), r0 * math.sin(a0), 0.0)),
+               mb.add_vert((r0 * math.cos(a1), r0 * math.sin(a1), 0.0)),
+               mb.add_vert((r1 * math.cos(a1), r1 * math.sin(a1), zb)),
+               mb.add_vert((r1 * math.cos(a0), r1 * math.sin(a0), zb))]
+        mb.add_face(idx, "legs", uv=[(0, 0), (1, 0), (1, 1), (0, 1)], smooth=False)
+    # ствол + «тюльпан»: (z, r) в метрах Останкинской, z масштабируется на k
+    prof = [(0, 9.0), (63, 9.0), (300, 5.6), (318, 6.4), (326, 14.5), (329, 19.0), (337, 19.5),
+            (342, 17.0), (352, 8.5), (360, 6.2), (385, 5.0)]
+    mb.add_tube([(0, 0, z * k) for z, _ in prof], [r for _, r in prof], "body", sides=24, cap=True,
+                smooth=True, uv_v=[z / 540.0 for z, _ in prof])
+    ant = [(385, 2.4), (440, 1.7), (500, 1.0), (540, 0.12)]
+    mb.add_tube([(0, 0, z * k) for z, _ in ant], [r for _, r in ant], "body", sides=10, cap=False,
+                smooth=True, uv_v=[(z + (2.0 if i == 0 else 0)) / 540.0 for i, (z, _) in enumerate(ant)])
+    finish("tv_tower", mb, mats, H, 1500)
 
 
 def build_chimney():

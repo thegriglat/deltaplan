@@ -2,16 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bhp4gwib2y13u"
-path="res://.godot/imported/tv_cabin.png-c5c3e07dd7308cf80fef0bf5d613424a.ctex"
+uid="uid://c5l87s2lwi3rj"
+path="res://.godot/imported/tv_tower_tv_legs.png-0a6003714affe19b000d5efd1fe47ca6.ctex"
 metadata={
 "vram_texture": false
+}
+generator_parameters={
+"md5": "499f7270639ff7f584838bfd80060909"
 }
 
 [deps]
 
-source_file="res://assets/textures/osm/tv_cabin.png"
-dest_files=["res://.godot/imported/tv_cabin.png-c5c3e07dd7308cf80fef0bf5d613424a.ctex"]
+source_file="res://assets/models/osm/tv_tower_tv_legs.png"
+dest_files=["res://.godot/imported/tv_tower_tv_legs.png-0a6003714affe19b000d5efd1fe47ca6.ctex"]
 
 [params]
 
@@ -23,7 +26,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

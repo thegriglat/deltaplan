@@ -7,6 +7,7 @@ const DIR := "res://assets/models/osm/"
 const NAMES := ["power_tower", "power_pole", "mast_lattice", "tv_tower", "chimney"]
 const LATTICE := ["power_tower", "mast_lattice", "tv_tower"]
 const MAX_TRIS := 600
+const MAX_TRIS_TV := 1500  # L5 v2: телебашня по образцу Останкинской
 const MAX_MATS := 2
 const MAX_TEX := 1024
 const FOOT_Y := 2.0  # «след» — сечение у земли, м
@@ -68,7 +69,7 @@ func test_files_budget_and_textures() -> void:
 		check(not m.is_empty(), "%s: glb загружается" % name)
 		if m.is_empty():
 			continue
-		check(int(m.tris) <= MAX_TRIS and int(m.tris) > 20, "%s: треугольников %d ≤ %d" % [name, m.tris, MAX_TRIS])
+		check(int(m.tris) <= (MAX_TRIS_TV if name == "tv_tower" else MAX_TRIS) and int(m.tris) > 20, "%s: треугольников %d" % [name, m.tris])
 		var mesh: Mesh = m.mesh
 		check(mesh.get_surface_count() <= MAX_MATS, "%s: материалов %d ≤ %d" % [name, mesh.get_surface_count(), MAX_MATS])
 		var scissor := false
@@ -140,7 +141,8 @@ func test_class_to_model_rule() -> void:
 	var min_h := float(pc.tv_tower_min_h_m)
 	check(OsmPilot.vertical_model("mast", false, 0.0, pc) == "mast_lattice", "mast → mast_lattice")
 	check(OsmPilot.vertical_model("chimney", false, 0.0, pc) == "chimney", "chimney → chimney")
-	check(OsmPilot.vertical_model("tower", true, 0.0, pc) == "tv_tower", "tower + comm → tv_tower")
+	check(OsmPilot.vertical_model("tower", true, 0.0, pc) == "mast_lattice", "tower + comm без высоты → mast_lattice (сотовая)")
+	check(OsmPilot.vertical_model("tower", true, 372.0, pc) == "tv_tower", "tower + comm высотой 372 → tv_tower")
 	check(OsmPilot.vertical_model("tower", false, min_h, pc) == "tv_tower", "tower высотой ≥ порога → tv_tower")
 	check(OsmPilot.vertical_model("tower", false, min_h - 1.0, pc) == "mast_lattice", "tower ниже порога → mast_lattice")
 	var s := OsmPilot.model_scale(372.0, float(pc.model_h_m.tv_tower))

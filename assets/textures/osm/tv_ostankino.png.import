@@ -2,19 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dqr0xe7jdw2lg"
-path="res://.godot/imported/tv_tower_lattice_steel.png-c84b5fc1558872b7bb1c6399ce916845.ctex"
+uid="uid://b45k2mvixixr2"
+path="res://.godot/imported/tv_ostankino.png-234a44f945fa5c783c045fde72f8a046.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "3fd2b3bd518bc5c07ab2b4a8dbbab3b1"
 }
 
 [deps]
 
-source_file="res://assets/models/osm/tv_tower_lattice_steel.png"
-dest_files=["res://.godot/imported/tv_tower_lattice_steel.png-c84b5fc1558872b7bb1c6399ce916845.ctex"]
+source_file="res://assets/textures/osm/tv_ostankino.png"
+dest_files=["res://.godot/imported/tv_ostankino.png-234a44f945fa5c783c045fde72f8a046.ctex"]
 
 [params]
 
@@ -26,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

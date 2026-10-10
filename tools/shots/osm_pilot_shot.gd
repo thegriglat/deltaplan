@@ -51,7 +51,7 @@ func _ready() -> void:
 	var fx := Vector2.ZERO
 	var best := 1.0e18
 	for v: Dictionary in d.verticals:
-		var match_t: bool = (focus == "tv" and String(v.t) == "tower" and (bool(v.comm) or float(v.h) >= 100.0)) \
+		var match_t: bool = (focus == "tv" and String(v.t) == "tower" and float(v.h) >= 150.0) \
 			or (focus == "chimney" and v.t == "chimney") or (focus == "mast" and v.t in ["mast", "tower"] and not bool(v.comm))
 		if list:
 			print("  ", v.t, " comm=", v.comm, " h=", v.h, " x=", int(v.x), " z=", int(v.z))
@@ -74,6 +74,9 @@ func _ready() -> void:
 	if list:
 		get_tree().quit(0)
 		return
+	if old:
+		for m in ["power_tower", "power_pole", "mast_lattice", "tv_tower", "chimney"]:
+			OsmPilot._models[m] = null
 	var h_fn := func(_x: float, _z: float) -> float: return 0.0
 	var cfg := WorldObjects.load_config()
 	var node := OsmPilot.build(d, cfg, h_fn, ObstacleIndex.new())
@@ -110,10 +113,18 @@ func _ready() -> void:
 	for i in 8:
 		await get_tree().process_frame
 	if bench:
-		var acc := 0.0
-		for i in 120:
+		var vp := get_viewport().get_viewport_rid()
+		RenderingServer.viewport_set_measure_render_time(vp, true)
+		var cpu := 0.0
+		var gpu := 0.0
+		var n := 0
+		for i in 400:
 			await get_tree().process_frame
-			acc += RenderingServer.get_frame_setup_time_cpu() if false else 0.0
+			if i >= 100:
+				cpu += RenderingServer.viewport_get_measured_render_time_cpu(vp)
+				gpu += RenderingServer.viewport_get_measured_render_time_gpu(vp)
+				n += 1
+		print("BENCH %s render_cpu_ms=%.3f render_gpu_ms=%.3f" % ["old" if old else "new", cpu / n, gpu / n])
 		get_tree().quit(0)
 		return
 	await RenderingServer.frame_post_draw

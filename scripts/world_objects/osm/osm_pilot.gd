@@ -255,7 +255,12 @@ static func _verticals(
 			var yaw := WorldTiles.hash01(int(x * 7.0) ^ int(z * 13.0)) * TAU
 			_group(groups, kind, tk).t.append(Transform3D(Basis(Vector3.UP, yaw) * Basis.from_scale(Vector3(sc.x, sc.y, sc.x)), base))
 			rad *= sc.x
-		obstacles.add_cylinder(x, z, maxf(rad, 0.5), g - 1.0, g + h, "tower")
+		if kind == "tv_tower":
+			for part: Array in pc.tv_tower_obstacle:
+				var y0 := g + float(part[1]) * h if float(part[1]) > 0.0 else g - 1.0
+				obstacles.add_cylinder(x, z, maxf(rad * float(part[0]), 0.5), y0, g + float(part[2]) * h, "tower")
+		else:
+			obstacles.add_cylinder(x, z, maxf(rad, 0.5), g - 1.0, g + h, "tower")
 		if kind == "wind":
 			var yaw := WorldTiles.hash01(int(x * 7.0) ^ int(z * 13.0)) * TAU
 			var len := h * float(pc.blade_frac)
@@ -281,7 +286,8 @@ static func _verticals(
 static func vertical_model(cls: String, comm: bool, h_tag: float, pc: Dictionary) -> String:
 	match cls:
 		"tower":
-			return "tv_tower" if comm or h_tag >= float(pc.tv_tower_min_h_m) else "mast_lattice"
+			# comm без высоты — обычно сотовая мачта; телебашня — только с высотой с тега
+			return "tv_tower" if h_tag >= float(pc.tv_tower_min_h_m) else "mast_lattice"
 		"mast":
 			return "mast_lattice"
 		"chimney":

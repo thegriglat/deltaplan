@@ -7,7 +7,7 @@ const MODELS := {
 	"power_tower": {"label": "опора_лэп", "h": 28.0},
 	"power_pole": {"label": "столб", "h": 9.15},
 	"mast_lattice": {"label": "решётчатая_мачта", "h": 60.0},
-	"tv_tower": {"label": "телебашня", "h": 200.0},
+	"tv_tower": {"label": "телебашня", "h": 540.0},
 	"chimney": {"label": "труба", "h": 100.0},
 }
 
@@ -56,8 +56,10 @@ func _ready() -> void:
 		# крупно: сбоку-сверху на 2/3 высоты; вблизи основания; издали
 		var views := {
 			"крупно": [Vector3(h * 0.9, h * 0.55, h * 1.25), Vector3(0, h * 0.5, 0)],
+			"низ": [Vector3(h * 0.12, h * 0.05, h * 0.2), Vector3(0, h * 0.06, 0)],
+			"шайба": [Vector3(h * 0.15, h * 0.58, h * 0.22), Vector3(0, h * 0.62, 0)],
 			"вблизи": [Vector3(h * 0.35, h * 0.2, h * 0.5), Vector3(0, h * 0.25, 0)],
-			"издали": [Vector3(1500, 120, 1500) if h >= 50.0 else Vector3(300, 30, 300), Vector3(0, h * 0.5, 0)],
+			"издали": [Vector3(2500, 200, 2500) if h >= 50.0 else Vector3(300, 30, 300), Vector3(0, h * 0.5, 0)],
 		}
 		for v: String in views:
 			cam.position = views[v][0]

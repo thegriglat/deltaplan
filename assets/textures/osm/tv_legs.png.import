@@ -2,19 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bhjstfu8m30w7"
-path="res://.godot/imported/chimney_chimney.png-e0514de3e03b5db2ed4fe7612cb44240.ctex"
+uid="uid://depclffwxxvvr"
+path="res://.godot/imported/tv_legs.png-1252df323ff9e0ba4c9e36a2e6f7bc5a.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "3145cb36d67173f0283fb1cf0636f588"
 }
 
 [deps]
 
-source_file="res://assets/models/osm/chimney_chimney.png"
-dest_files=["res://.godot/imported/chimney_chimney.png-e0514de3e03b5db2ed4fe7612cb44240.ctex"]
+source_file="res://assets/textures/osm/tv_legs.png"
+dest_files=["res://.godot/imported/tv_legs.png-1252df323ff9e0ba4c9e36a2e6f7bc5a.ctex"]
 
 [params]
 
@@ -26,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
