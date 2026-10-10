@@ -154,7 +154,7 @@
     "alpha_range_deg_doc": "Изменение угла атаки при трапеции до упора от себя/на себя на разбеге, °"
   },
   "pendulum": {
-    "contract": "PD-К2 v1",
+    "contract": "PD-К2 v3",
     "_doc": "генерирует tools/flight/pendulum_params.py (порт балансировки tools/research/pendulum), руками не править; оси киля: x — назад от носа, z — вверх; inertia_kgm2 — оси x вперёд, y вправо, z вниз, около ЦМ крыла, без присоединённой массы (ixz = элемент тензора, −Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим при hang_from_nose_m и эталонной массе",
     "sweep_deg": 30.0,
     "root_chord_m": 2.6,
@@ -165,23 +165,27 @@
     "hang_from_nose_m": 1.285,
     "bar_x_from_nose_m": 0.6141,
     "bar_z_m": -1.6329,
-    "cg_x_from_nose_m": 1.4841,
-    "cg_z_m": -0.0669,
+    "cg_x_from_nose_m": 1.4829,
+    "cg_z_m": 0.0499,
     "inertia_kgm2": {
-      "ixx": 131.693,
-      "iyy": 18.687,
-      "izz": 142.505,
-      "ixz": -2.365
+      "ixx": 132.68,
+      "iyy": 19.651,
+      "izz": 142.482,
+      "ixz": -3.778
     },
-    "dcm0": 0.12415,
-    "cd_scale": 0.87093,
+    "dcm0": 0.13314,
+    "cd_scale": 0.86817,
+    "apparatus_defaults": {
+      "dihedral_eff_deg": 5.0,
+      "sail_flex": 0.15
+    },
     "ref": {
       "trim_kmh": 31.0,
       "sink_ms": 1.2,
-      "alpha_trim_deg": 11.76,
-      "neutral_point_from_nose_m": 1.6464,
-      "static_margin": 0.1716,
-      "kmh_per_cm_hang": 0.428
+      "alpha_trim_deg": 11.92,
+      "neutral_point_from_nose_m": 1.6923,
+      "static_margin": 0.1941,
+      "kmh_per_cm_hang": 0.378
     }
   },
   "visual": {

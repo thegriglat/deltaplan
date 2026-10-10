@@ -25,6 +25,7 @@ applied_in: "docs/research/pendulum.md, docs/plan/pendulum.md"
 | `pendulum/scenarios.py` | сценарии замеров (трим, переложение, полное смещение, «в центр», спираль, термик на краю, болтанка, маятник, фугоида, трапеция, подвеска, разбег, численная схема) |
 | `run_all.py` | весь план одним прогоном → `out/results.jsonl` (строка на запуск, продолжение с места), `out/results.json`, ряды `out/series/*.npz` |
 | `report.py` | итог: `out/tables.md`, `out/summary.json`, графики `out/fig/*.png` (для статьи; проверка — по таблицам) |
+| `calibrate_classes.py` | PD-12: сетка V × flex_relief на опорных крыльях классов (`out/calib_classes.*`), проверка умолчаний класса на всех 48 крыльях (`--verify` → `out/calib_verify.*`), доп. рычаг cn_beta (`--levers` → `out/calib_levers.jsonl`) |
 | `estimates.py`, `estimates.json` | оценки 05.10 (Fable): полюса Hiway Demon, частоты, ω·dt — см. ниже |
 
 ## Воспроизведение
@@ -37,6 +38,7 @@ cd tools/research/pendulum
 $PY run_all.py --only reversal/sport   # часть плана по подстроке id
 $PY report.py                          # таблицы, сводка, графики
 python3 estimates.py                   # оценки 05.10
+/home/greg/deltaplan/tools/dp job start pd12-calib 3000 systemd-run --user --scope -p MemoryMax=12G -q $PY calibrate_classes.py --jobs 7   # PD-12, ≈ 20 мин; --verify, --levers — см. выше
 ```
 Шаг физики как в игре — 1/120 с (`configs/sim.json → physics_hz`), 4 подшага XPBD, N = 3 звена, 16 полос — по умолчанию.
 

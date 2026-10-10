@@ -181,7 +181,7 @@ func test_mouse_on_ground_controls_wing() -> void:
 	for i in 12:
 		game.tick(DT)
 	check(game.glider.phase() != "flying", "на земле")
-	var a0 := game.glider.model.alpha
+	var a0: float = game.glider.model.alpha
 	var b0 := game.glider.get_telemetry().bank_deg
 	var px := get_viewport().get_visible_rect().size.y * 0.5 * 0.5
 	_push_motion(Vector2(px, px), _center())  # полхода вправо и на себя
@@ -189,7 +189,7 @@ func test_mouse_on_ground_controls_wing() -> void:
 		game.tick(DT)
 	var c := ic.control
 	var t := game.glider.get_telemetry()
-	var a1 := game.glider.model.alpha
+	var a1: float = game.glider.model.alpha
 	print(
 		(
 			"CF3 земля: мышь вправо+на себя — pitch %.2f roll %.2f; α %.1f° → %.1f°, крен %.1f° → %.1f°, %s"

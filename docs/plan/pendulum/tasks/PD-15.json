@@ -1,0 +1,48 @@
+{
+  "id": "PD-15",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Регрессии от нетипизированного Glider.model: разбор тестов и инструментов",
+  "goal": "После PD-4 (Glider.model без статического типа) часть тестов и инструментов не разбирается (вывод типа через := от glider.model, напр. tests/game/test_catch_up_game.gd); починить без изменения поведения, фейк set_local_state — как в test_net_flight.gd (PD-7).",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "2",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-15",
+  "branch": "pendulum/PD-15",
+  "base": "feature/pendulum",
+  "scope": [
+    "tests",
+    "tools/flight",
+    "tools/shots",
+    "tools/bench",
+    "tools/motion_rig"
+  ],
+  "dont_touch": [
+    "scripts",
+    "tests/flight/pendulum"
+  ],
+  "accept": [
+    {
+      "name": "catch_up",
+      "tests": "catch_up"
+    },
+    {
+      "name": "net_flight",
+      "tests": "net_flight"
+    },
+    {
+      "name": "parse_all",
+      "cmd": "bash -c 'tools/dp check gd $(git ls-files \"tests/*.gd\" \"tools/flight/*.gd\" \"tools/shots/*.gd\" \"tools/bench/*.gd\" \"tools/motion_rig/*.gd\") 2>&1 | tail -1'",
+      "expect": "re:— ок\\s*$"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T02:27:15",
+  "edited": "2026-10-11T02:34:50"
+}

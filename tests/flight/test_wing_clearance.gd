@@ -45,7 +45,7 @@ static func _ctl(pitch: float, run: bool, walk: float, turn: float = 0.0) -> Con
 
 ## Наименьший зазор за фазу: {min, part, bank_deg (наибольший |крен|), theta_deg}.
 func _phase(g: Glider, pts: Dictionary, gf: Callable, inp: ControlInput, secs: float) -> Dictionary:
-	var m := g.model
+	var m: FlightModel = g.model
 	m.reset_on_ground(Vector3(0, gf.call(0.0, 0.0), 0), 0.0)
 	var zero := func(_p: Vector3) -> Vector3: return Vector3.ZERO
 	var res := {"min": INF, "part": "", "bank_deg": 0.0, "theta_deg": 0.0}

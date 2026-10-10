@@ -61,6 +61,11 @@ class Pilot:
 	var phase: String = "standing"
 	## Сколько прошло с последнего состояния (upsert или set_pose), с.
 	var silent_s: float = 0.0
+	## Режим управления (PD-К4): "RATE" / "WEIGHT_SHIFT" / "PENDULUM"; "" — не пришёл (старый клиент).
+	var control_mode: String = ""
+	## Положение пилота относительно подвески (оси крыла, м); has_pilot_rel — пришло.
+	var pilot_rel := Vector3.ZERO
+	var has_pilot_rel: bool = false
 	## Позу задаёт интерполяция снаружи (set_pose): upsert позу не трогает.
 	var external_pose: bool = false
 	## Возраст последнего состояния для продления по скорости, с.
@@ -122,6 +127,7 @@ func upsert(state: Dictionary) -> void:
 	if state.has("colors") and not _same(state.colors, p.colors):
 		p.colors = state.colors
 		rebuild = true
+	_read_hang(p, state.get("control_mode", state.get("controlMode")), state.get("pilot_rel", state.get("pilotRel")))
 	if state.has("t"):
 		p.t = float(state.t)
 	if not p.external_pose:
@@ -144,7 +150,13 @@ func upsert(state: Dictionary) -> void:
 
 ## Поза на этот кадр от интерполяции (NET-32): с этого момента upsert позу не меняет.
 func set_pose(
-	pilot_id: Variant, pos: Vector3, rot: Variant, vel: Vector3, phase: Variant = null
+	pilot_id: Variant,
+	pos: Vector3,
+	rot: Variant,
+	vel: Vector3,
+	phase: Variant = null,
+	control_mode: Variant = null,
+	rel: Variant = null
 ) -> void:
 	var p: Pilot = _pilots.get(str(pilot_id))
 	if p == null:
@@ -155,8 +167,19 @@ func set_pose(
 	p.velocity = vel
 	if phase != null:
 		p.phase = phase_name(phase)
+	_read_hang(p, control_mode, rel)
 	p.age_s = 0.0
 	p.silent_s = 0.0
+
+
+## Режим управления и pilot_rel из состояния (null/"" — без изменений).
+func _read_hang(p: Pilot, mode: Variant, rel: Variant) -> void:
+	if mode != null and str(mode) != "":
+		var m := str(mode).trim_prefix("CONTROL_MODE_")
+		p.control_mode = "" if m == "UNSPECIFIED" else m
+	if rel != null:
+		p.pilot_rel = to_vec3(rel)
+		p.has_pilot_rel = true
 
 
 ## Пилот ушёл из зоны.
@@ -283,6 +306,9 @@ func _apply(p: Pilot, dt: float) -> void:
 			a.model.mode = FlightModel.Mode.GROUND
 			a.state = BotAgent.State.WAIT
 	a.pilot_name = p.pilot_name
+	# PD-К5: поза по маятнику — только если пришли и PENDULUM, и pilot_rel; иначе по вводу
+	a.pilot_rel_valid = p.control_mode == "PENDULUM" and p.has_pilot_rel
+	a.pilot_rel = p.pilot_rel if a.pilot_rel_valid else Vector3.ZERO
 	if p.glider != null:
 		if dt <= 0.0:
 			p.glider.snap()

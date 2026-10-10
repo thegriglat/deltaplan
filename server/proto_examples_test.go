@@ -45,7 +45,7 @@ func sameAsProtojson(t *testing.T, src string, m proto.Message) bool {
 }
 
 func TestLanAnnounceDocExamples(t *testing.T) {
-	doc, err := os.ReadFile("../docs/net_protocol.md")
+	doc, err := os.ReadFile("../docs/guide/net-protocol.md")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestLanAnnounceDocExamples(t *testing.T) {
 }
 
 func TestProtocolDocExamples(t *testing.T) {
-	doc, err := os.ReadFile("../docs/net_protocol.md")
+	doc, err := os.ReadFile("../docs/guide/net-protocol.md")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -257,7 +257,25 @@ func send_local() -> void:
 	var t := game.glider.get_telemetry()
 	var rot := Quaternion(t.basis.orthonormalized())
 	var ph := "TOW" if game.is_towing() else proto_phase(t.phase, game.is_crashed())
-	pilots.call("set_local_state", t.position, rot, t.velocity, ph, game.settings.wing, colors)
+	# PD-К4: режим управления; pilot_rel — только в «Маятнике» (иначе поле не шлётся)
+	var cm := control_mode_name()
+	var rel: Variant = null
+	if cm == "PENDULUM" and game.glider.is_pendulum():
+		rel = game.glider.model.pilot_rel
+	pilots.call(
+		"set_local_state", t.position, rot, t.velocity, ph, game.settings.wing, colors, cm, rel
+	)
+
+
+## controls.roll_control_mode → имя ControlMode без префикса ("RATE" / "WEIGHT_SHIFT" / "PENDULUM").
+static func control_mode_name() -> String:
+	match String(Config.value("controls", "roll_control_mode", "weight_shift")):
+		"pendulum":
+			return "PENDULUM"
+		"rate":
+			return "RATE"
+		_:
+			return "WEIGHT_SHIFT"
 
 
 ## Чужие пилоты из NetPilots — в RemotePilots (себя нет).
@@ -287,7 +305,9 @@ func feed_remote() -> void:
 					"phase": s.get("phase", "STAND"),
 				}
 			)
-		remote.set_pose(id, s.pos, s.rot, s.vel, s.get("phase"))
+		remote.set_pose(
+			id, s.pos, s.rot, s.vel, s.get("phase"), s.get("control_mode", ""), s.get("pilot_rel")
+		)
 
 
 ## Есть ли в воздухе кто-то из живых пилотов (не боты) — для «Продолжить рядом».

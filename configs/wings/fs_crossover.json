@@ -171,7 +171,7 @@
     "alpha_range_deg_doc": "Изменение угла атаки при трапеции до упора от себя/на себя на разбеге, °"
   },
   "pendulum": {
-    "contract": "PD-К2 v1",
+    "contract": "PD-К2 v3",
     "_doc": "генерирует tools/flight/pendulum_params.py (порт балансировки tools/research/pendulum), руками не править; оси киля: x — назад от носа, z — вверх; inertia_kgm2 — оси x вперёд, y вправо, z вниз, около ЦМ крыла, без присоединённой массы (ixz = элемент тензора, −Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим при hang_from_nose_m и эталонной массе",
     "sweep_deg": 26.5,
     "root_chord_m": 2.36,
@@ -192,6 +192,10 @@
     },
     "dcm0": 0.08499,
     "cd_scale": 0.94644,
+    "apparatus_defaults": {
+      "dihedral_eff_deg": 1.0,
+      "sail_flex": 0.2
+    },
     "ref": {
       "trim_kmh": 36.4,
       "sink_ms": 0.956,

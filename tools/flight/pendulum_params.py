@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Офлайн-расчёт блока `pendulum` (PD-К2 v1) для всех configs/wings/*.json.
+"""Офлайн-расчёт блока `pendulum` (PD-К2 v3) для всех configs/wings/*.json.
 
 Порт балансировки прототипа tools/research/pendulum (params/geometry/trim — импортируются, не
 дублируются): для каждого крыла — геометрия полос, ЦМ и инерция крыла, dcm0 (момент паруса под
@@ -28,7 +28,7 @@ from pendulum import geometry, trim  # noqa: E402
 from pendulum.model import Sim  # noqa: E402
 from pendulum.params import load_params  # noqa: E402
 
-CONTRACT = "PD-К2 v1"
+CONTRACT = "PD-К2 v3"
 WINGS = ROOT / "configs" / "wings"
 TABLE = ROOT / "tools" / "flight" / "pendulum_params_table.md"
 DOC = ("генерирует tools/flight/pendulum_params.py (порт балансировки tools/research/pendulum), "
@@ -36,6 +36,15 @@ DOC = ("генерирует tools/flight/pendulum_params.py (порт бала�
        "y вправо, z вниз, около ЦМ крыла, без присоединённой массы (ixz = элемент тензора, "
        "−Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим "
        "при hang_from_nose_m и эталонной массе")
+# Умолчания «Аппарата» по классу крыла (`group` в конфиге): эффективное поперечное V, ° и гибкость
+# паруса (flex_relief, 1 — жёсткое). Калибровка — tools/research/pendulum/calibrate_classes.py,
+# обоснование — docs/research/pendulum.md, «Ответы пилота 11.10».
+GROUP_DEFAULTS = {
+    "trainer": {"dihedral_eff_deg": 5.0, "sail_flex": 0.15},
+    "soviet": {"dihedral_eff_deg": 3.0, "sail_flex": 0.2},
+    "kingpost": {"dihedral_eff_deg": 1.0, "sail_flex": 0.2},
+    "topless": {"dihedral_eff_deg": 0.5, "sail_flex": 0.2},
+}
 GP = json.loads((ROOT / "tools/blender/glider_params.json").read_text())
 R = lambda x, n=4: round(float(x), n)  # noqa: E731
 
@@ -89,11 +98,17 @@ def balance(p, xh: float):
     return a, s0
 
 
+def apparatus_defaults(wing_id: str) -> dict:
+    group = json.loads((WINGS / f"{wing_id}.json").read_text())["group"]
+    return dict(GROUP_DEFAULTS[group])
+
+
 def compute(wing_id: str) -> dict:
     """Крутка из glider_params.json (геометрия) у части крыльев (≥ 12°) так разгружает концы, что
     полосы срываются раньше паспортной скорости трима или Kn выходит за инвариант PD-К2; тогда
     крутка уменьшается шагом 1° до самосогласованного трима (значение пишется в washout_deg)."""
-    p0 = load_params(wing_id)
+    d = apparatus_defaults(wing_id)
+    p0 = load_params(wing_id).with_(dihedral=math.radians(d["dihedral_eff_deg"]), flex_relief=d["sail_flex"])
     w_deg = math.degrees(p0.washout)
     while w_deg >= 0:
         b = _compute(wing_id, p0.with_(washout=math.radians(w_deg)))
@@ -152,6 +167,7 @@ def _compute(wing_id: str, p):
                          "ixz": R(I[0, 2], 3)},
         "dcm0": R(d, 5),
         "cd_scale": R(s.cd_scale, 5),
+        "apparatus_defaults": apparatus_defaults(wing_id),
         "ref": {
             "trim_kmh": R(st["V"] * 3.6, 2),
             "sink_ms": R(st["V"] * math.sin(st["gamma"]), 3),
@@ -193,17 +209,18 @@ def write_block(wing_id: str, block: dict) -> None:
 
 
 def table(res: dict[str, dict]) -> str:
-    L = ["# Параметры маятника по крыльям (PD-К2 v1)", "",
+    L = ["# Параметры маятника по крыльям (PD-К2 v3)", "",
          "Генерирует `tools/flight/pendulum_params.py`; руками не править.", "",
-         "| Крыло | трим км/ч (паспорт) | снижение м/с | α трима ° | Kn | НТ от носа, м | подвеска от носа, м | ЦМ x, м | dcm0 | cd_scale | км/ч на см | крутка ° (glider_params) |",
-         "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+         "| Крыло | трим км/ч (паспорт) | снижение м/с | α трима ° | Kn | НТ от носа, м | подвеска от носа, м | ЦМ x, м | dcm0 | cd_scale | км/ч на см | крутка ° (glider_params) | класс | V ° | гибкость |",
+         "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for wid, b in res.items():
         w = json.loads((WINGS / f"{wid}.json").read_text())
         r = b["ref"]
         L.append(f"| {wid} | {r['trim_kmh']:.1f} ({w['trim_speed_kmh']}) | {r['sink_ms']:.3f} | "
                  f"{r['alpha_trim_deg']:.1f} | {r['static_margin']:.3f} | {r['neutral_point_from_nose_m']:.3f} | "
                  f"{b['hang_from_nose_m']:.3f} | {b['cg_x_from_nose_m']:.3f} | {b['dcm0']:.4f} | "
-                 f"{b['cd_scale']:.3f} | {r['kmh_per_cm_hang']:.2f} | {b['washout_deg']:.0f} ({GP['wings'][wid]['washout_deg']:.0f}) |")
+                 f"{b['cd_scale']:.3f} | {r['kmh_per_cm_hang']:.2f} | {b['washout_deg']:.0f} ({GP['wings'][wid]['washout_deg']:.0f}) | "
+                 f"{w['group']} | {b['apparatus_defaults']['dihedral_eff_deg']:g} | {b['apparatus_defaults']['sail_flex']:g} |")
     return "\n".join(L) + "\n"
 
 
@@ -227,6 +244,11 @@ def check_invariants(wid: str, b: dict) -> list[str]:
     I = b["inertia_kgm2"]
     if not all(I[k] > 0 for k in ("ixx", "iyy", "izz")):
         err.append("инерция")
+    ad = b["apparatus_defaults"]
+    if not -2.0 <= ad["dihedral_eff_deg"] <= 6.0:
+        err.append(f"V {ad['dihedral_eff_deg']} вне −2…+6 (PD-К3)")
+    if not 0.1 <= ad["sail_flex"] <= 1.0:
+        err.append(f"flex {ad['sail_flex']} вне 0,1…1 (PD-К3)")
     return err
 
 
