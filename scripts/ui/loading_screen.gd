@@ -12,6 +12,7 @@ var _stage: Label
 var _bar: ProgressBar
 var _time: Label
 var _note: Label
+var _counter: Label
 var _shown := 0.0
 var _anim := 0.0
 var _t0 := 0
@@ -72,6 +73,22 @@ func net_line_text() -> String:
 	return _net_label.text if _net_label.visible else ""
 
 
+## Строка счётчика запросов под этапом: «Рельеф: 23/63» / «Покров: 40/86», и «Всего: N/M» при
+## нескольких стадиях ("" — счётчика нет); для тестов/скриншотов.
+func counter_line() -> String:
+	if _progress == null:
+		return ""
+	var parts: PackedStringArray = []
+	for k: String in ["dem", "surface"]:
+		var t := _progress.counter_text(k)
+		if t != "":
+			parts.append(t)
+	var total := _progress.total_text()
+	if total != "":
+		parts.append(total)
+	return "   ".join(parts)
+
+
 func close() -> void:
 	if _progress != null and _progress.changed.is_connected(_on_changed):
 		_progress.changed.disconnect(_on_changed)
@@ -102,6 +119,8 @@ func _build() -> void:
 	_stage = UiKit.label(box, "", "HeaderLabel")
 	_note = UiKit.label(box, "", "HintLabel")
 	_note.visible = false
+	_counter = UiKit.label(box, "", "HintLabel")
+	_counter.visible = false
 	_bar = ProgressBar.new()
 	_bar.min_value = 0.0
 	_bar.max_value = 1.0
@@ -146,5 +165,7 @@ func _process(dt: float) -> void:
 	var note := _progress.note if _progress != null else ""
 	_note.text = note
 	_note.visible = note != ""
+	_counter.text = counter_line()
+	_counter.visible = _counter.text != ""
 	var s := (Time.get_ticks_msec() - _t0) / 1000
 	_time.text = "%d:%02d" % [s / 60, s % 60]

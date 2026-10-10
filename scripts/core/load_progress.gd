@@ -16,6 +16,9 @@ var trace: bool = false
 ## [{key, text, s}] — завершённые этапы с длительностью.
 var timings: Array[Dictionary] = []
 
+## Счётчики запросов по стадиям сборки (NO-7): ключ стадии ("dem", "surface") → [done, total].
+var counters: Dictionary = {}
+
 var _weights: Dictionary = {}
 var _order: PackedStringArray = []
 var _key: String = ""
@@ -35,6 +38,7 @@ func _init(weights: Dictionary = {}) -> void:
 ## Начать заново (новая загрузка).
 func begin() -> void:
 	timings.clear()
+	counters.clear()
 	note = ""
 	_key = ""
 	_t0 = Time.get_ticks_usec()
@@ -73,6 +77,49 @@ func sub(done: float, total: float) -> void:
 	if total <= 0.0:
 		return
 	_emit(text, maxf(fraction, lerpf(_lo, _hi, clampf(done / total, 0.0, 1.0))))
+
+
+## Счётчик запросов стадии сборки: сделано done из total (из кеша засчитывается сразу).
+## Полоса идёт по счётчику: доля внутри текущего этапа = done / total.
+func counter(build_stage: String, done: int, total: int) -> void:
+	counters[build_stage] = [done, total]
+	if total > 0:
+		sub(float(done), float(total))
+	else:
+		changed.emit(text, fraction)
+
+
+## «Рельеф: 23/63» для стадии сборки ("" — запросов нет / стадия без счётчика).
+func counter_text(build_stage: String) -> String:
+	var c: Array = counters.get(build_stage, [])
+	if c.is_empty() or int(c[1]) <= 0:
+		return ""
+	var label_key: String = {"dem": "loading_counter_dem", "surface": "loading_counter_surface"}.get(build_stage, "")
+	if label_key == "":
+		return ""
+	return tr(label_key) % [int(c[0]), int(c[1])]
+
+
+## Сумма по всем стадиям: [done, total].
+func totals() -> Array:
+	var d := 0
+	var t := 0
+	for c: Array in counters.values():
+		d += int(c[0])
+		t += int(c[1])
+	return [d, t]
+
+
+## «Всего: 40/149» ("" — меньше двух стадий со счётчиком, дублировать нечего).
+func total_text() -> String:
+	var n := 0
+	for c: Array in counters.values():
+		if int(c[1]) > 0:
+			n += 1
+	if n < 2:
+		return ""
+	var s := totals()
+	return tr("loading_counter_total") % [int(s[0]), int(s[1])]
 
 
 ## Всё готово.
