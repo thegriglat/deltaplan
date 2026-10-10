@@ -26,7 +26,8 @@
     "scripts/game/game.gd",
     "tests/contracts/test_pendulum_contracts_k3.gd",
     "tests/ui",
-    "tests/flight/pendulum/test_pendulum_mode.gd"
+    "tests/flight/pendulum/test_pendulum_mode.gd",
+    "locale/ui.csv"
   ],
   "dont_touch": [
     "scripts/flight",
@@ -48,5 +49,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T02:04:19"
+  "created": "2026-10-11T02:04:19",
+  "edited": "2026-10-11T02:20:38"
 }

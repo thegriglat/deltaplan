@@ -45,11 +45,12 @@
       "tests": "pendulum"
     },
     {
-      "name": "landing_judge",
-      "tests": "landing_judge"
+      "name": "test_landing",
+      "tests": "test_landing"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T01:44:53"
+  "created": "2026-10-11T01:44:53",
+  "edited": "2026-10-11T02:20:38"
 }
