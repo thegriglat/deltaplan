@@ -777,7 +777,30 @@
       "color": {"mast": [0.8, 0.2, 0.2], "tower": [0.6, 0.6, 0.62], "chimney": [0.7, 0.45, 0.4], "wind": [0.92, 0.92, 0.9]},
       "blade_frac": 0.4,
       "blade_frac_doc": "Длина лопасти ветряка, доля высоты башни",
-      "cast_shadows": true
+      "cast_shadows": true,
+      "skip": ["wind"],
+      "skip_doc": "Классы, которые OsmPilot._verticals не рисует: ветряки рисует OsmWindTurbines (wind_turbines)"
+    },
+    "wind_turbines": {
+      "_doc": "Ветряки OSM (L6, OsmWindTurbines): модели wind_tower/wind_rotor.glb, масштаб по высоте ступицы (h или verticals.default_h_m.wind). Гондола разворачивается носом на ветер (L4: группа osm_wind, воздух на высоте ступицы), ротор крутится по кривой турбины 2–3 МВт.",
+      "enabled": true,
+      "visibility_m": 8000,
+      "cast_shadows": true,
+      "yaw_deg_s": 0.5,
+      "yaw_deg_s_doc": "Предельная скорость рыскания гондолы, °/с (типичные привода рыскания 0,3–0,7 °/с)",
+      "min_dir_ms": 0.5,
+      "min_dir_ms_doc": "Слабее этого ветра направление не обновляется (гондола стоит как была), м/с",
+      "cut_in_ms": 3.0,
+      "rated_ms": 12.0,
+      "cut_out_ms": 25.0,
+      "rated_rpm": 15.0,
+      "curve_doc": "Об/мин ротора: 0 ниже cut_in_ms, линейно до rated_rpm при rated_ms, rated_rpm до cut_out_ms, 0 выше (паспорт типичной турбины 2–3 МВт)",
+      "rotor_accel_rpm_s": 0.5,
+      "rotor_accel_rpm_s_doc": "Предельное изменение частоты вращения ротора (инерция), об/мин за с — угол копится, рывков нет",
+      "cluster_m": 1000.0,
+      "cluster_m_doc": "Размер ячейки кластера: один опрос воздуха на ячейку за вызов osm_wind",
+      "max_samples": 24,
+      "max_samples_doc": "Опросов воздуха за один вызов osm_wind (доля ветряков в общем max_samples слоя)"
     },
     "aerialways": {
       "enabled": true,
@@ -791,7 +814,20 @@
       "pole_radius_m": 0.25,
       "pole_color": [0.35, 0.35, 0.38],
       "wire_width_m": 0.03,
-      "wire_hit_radius_m": 0.4
+      "wire_hit_radius_m": 0.4,
+      "cabins": {
+        "_doc": "Кабинки на тросе (L6, OsmCableCars): едут по тросу OsmPilot и по второму тросу рядом (rope_gap_m), у станций тросы сходятся на turn_m. Классы без записи в classes кабинок не получают (chair_lift — по желанию, добавить запись).",
+        "enabled": true,
+        "rope_gap_m": 5.0,
+        "turn_m": 25.0,
+        "min_length_m": 120.0,
+        "classes": {
+          "gondola": {"speed_ms": 5.0, "spacing_m": 120.0},
+          "mixed_lift": {"speed_ms": 5.0, "spacing_m": 100.0},
+          "cable_car": {"speed_ms": 7.0, "dwell_s": 40.0}
+        },
+        "classes_doc": "gondola/mixed_lift — замкнутая петля с равным шагом spacing_m; cable_car — две кабины-маятник со стоянкой dwell_s у станций (speed_ms — средняя скорость хода)"
+      }
     },
     "aeroways": {
       "enabled": true,

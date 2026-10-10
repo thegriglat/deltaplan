@@ -96,6 +96,13 @@
 | `data/terrain/textures/scree_ambientcg_gravel022.jpg` | щебень осыпей (цвет, 512²) | [ambientCG Gravel022](https://ambientcg.com/view?id=Gravel022) | [CC0 1.0](licenses/CC0-1.0.txt) | рельеф, `terrain_textures.scree` |
 | — | полог леса с высоты, фактура лугов и полей, слои скал, колыхание травы, травинки | сгенерировано процедурно: `terrain.gdshader`, `terrain_wind.gdshaderinc`, `grass.gdshader` | — | рельеф |
 
+### osm-look: ветряк и канатка
+| Файл | Что | Источник | Лицензия | Где используется |
+|---|---|---|---|---|
+| `assets/models/osm/wind_tower.glb` (исходник `assets/source/osm/wind_tower.blend`, текстура `wind_tower.png`) | ветряк 2–3 МВт: башня (окрашенная сталь, швы, фланцы, дверь; 256×1024) и гондола, ступица 80 м, ~200 треугольников | сгенерировано `tools/blender/build_osm_wind_cable.py` (модель и текстура процедурно, numpy) | — | ветряки OSM (`OsmWindTurbines`) |
+| `assets/models/osm/wind_rotor.glb` (`assets/source/osm/wind_rotor.blend`, `wind_blade.png`) | ротор: три лопасти (7 сечений профиля с круткой, радиус 40,5 м), обтекатель, текстура лопасти 128×512, 360 треугольников | то же | — | ветряки OSM |
+| `assets/models/osm/cable_cabin.glb` (`assets/source/osm/cable_cabin.blend`, `cable_cabin.png`) | кабинка канатки с подвесом и зажимом, остекление (текстура 256²), 140 треугольников | то же | — | кабинки канатных дорог (`OsmCableCars`) |
+
 ## Движок и библиотеки
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
