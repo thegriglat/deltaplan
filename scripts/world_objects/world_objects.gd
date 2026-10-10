@@ -141,7 +141,11 @@ func _build_osm(loc_id: String, center: Vector2, height_fn: Callable) -> void:
 	osm = OsmData.new()
 	if loc_id == "" or not bool(ocfg.get("enabled", true)):
 		return
-	osm = OsmData.load_for(Locations.data_dir(loc_id), center.x, center.y, float(ocfg.get("half_m", 20000.0)))
+	# центр места — в double из конфига локации (Vector2 — float32, сдвиг объектов до ~0,5 м)
+	var lc: Dictionary = Locations.config(loc_id)
+	var clat := float(lc.get("center_lat", center.x))
+	var clon := float(lc.get("center_lon", center.y))
+	osm = OsmData.load_for(Locations.data_dir(loc_id), clat, clon, float(ocfg.get("half_m", 20000.0)))
 	if osm.is_empty():
 		return
 	osm_layer = OsmLayer.new()
@@ -288,6 +292,20 @@ func _camp_env(start: Vector3, tc: Dictionary, terrain: Node) -> Dictionary:
 	var tw := float(tc.get("track_margin_m", 4.0))
 	for pts: PackedVector2Array in start_tracks:
 		env.lines.append([pts, tw + float(cfg.start_tracks.get("width_m", 2.0)) * 0.5])
+	if osm != null:
+		# дороги, реки, ж/д OSM (OT-9): только отрезки рядом со стартом — они бывают на десятки километров
+		var c := Vector2(start.x, start.z)
+		var reach := float(tc.distance_m[1]) + 60.0
+		var rm := float(tc.get("road_margin_m", 8.0))
+		for arr: Array in [osm.roads, osm.rivers, osm.rail]:
+			for item: Dictionary in arr:
+				if bool(item.get("tunnel", false)):
+					continue
+				var pts: PackedVector2Array = item.p
+				for i in pts.size() - 1:
+					var seg := PackedVector2Array([pts[i], pts[i + 1]])
+					if TentCamp.dist_to_polyline(c, seg) < reach:
+						env.lines.append([seg, rm])
 	var bm := float(tc.get("building_margin_m", 15.0))
 	var reach := float(tc.distance_m[1]) + 60.0
 	for b: Array in houses:
