@@ -30,3 +30,5 @@
 {"t": "2026-10-10T16:29:41", "by": "coordinator", "task": "OT-1", "ev": "merged", "commits": ["4dda25ed"]}
 {"t": "2026-10-10T16:29:41", "by": "coordinator", "task": "OT-2", "ev": "note", "note": "Из ревью OT-1 (в твой скоуп packer): osmtiles cover не режет рёбра .poly на антимеридиане (cover.rs) — полигон через 180° (Россия/Чукотка, Фиджи, Аляска) даёт полосу тайлов через весь пояс; исправить по правилу O1 (резать ребро, |Δlon|>180°) + юнит-тест.", "addendum": true}
 {"t": "2026-10-10T16:29:41", "by": "coordinator", "task": null, "ev": "note", "note": "dp: задание ревьюера — подсказать формат rerun (список объектов) в dp review --template/ошибке (от ревьюера OT-1)"}
+{"t": "2026-10-10T16:29:53", "by": "coordinator", "task": "OT-2", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-osm-tiles-OT-2"}
+{"t": "2026-10-10T16:29:53", "by": "coordinator", "task": "OT-8", "ev": "started", "note": "dp-engineer, ~/deltaplan-osm-tiles-OT-8"}
