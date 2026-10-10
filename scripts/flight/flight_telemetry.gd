@@ -1,12 +1,12 @@
 class_name FlightTelemetry
 extends RefCounted
-## Заполнение Telemetry из состояния FlightModel (для приборов, звука, камер).
+## Заполнение Telemetry из состояния FlightModel или PendulumModel (параметр без типа) (для приборов, звука, камер).
 
 const UP := Vector3.UP
 
 
-static func fill(m: FlightModel, air_fn: Callable, ground_fn: Callable) -> void:
-	var t := m.telemetry
+static func fill(m, air_fn: Callable, ground_fn: Callable) -> void:
+	var t: Telemetry = m.telemetry
 	t.time_s = m.time_s
 	t.phase = m.phase()
 	t.position = m.position
@@ -35,10 +35,16 @@ static func fill(m: FlightModel, air_fn: Callable, ground_fn: Callable) -> void:
 	t.stalled = m.stalled
 	t.glide_ratio = t.groundspeed / -m.velocity.y if m.velocity.y < -0.05 else 0.0
 	t.basis = Basis.from_euler(Vector3(m.theta, -m.heading, -m.bank))
-	# точка пилота (MR-К1): пока одна материальная точка; с маятником заполнит он
-	t.pilot_position = m.position
-	t.pilot_velocity = m.velocity
-	t.pilot_basis = t.basis
+	if "pilot_rel" in m:
+		# маятник (PD-К1): точка пилота — ЦМ в конце цепи (MR-К1), нагрузка — по стропе и рукам
+		t.pilot_position = m.pilot_position
+		t.pilot_velocity = m.pilot_velocity
+		t.pilot_basis = m.pilot_basis
+	else:
+		# FlightModel: пилот — одна материальная точка с крылом
+		t.pilot_position = m.position
+		t.pilot_velocity = m.velocity
+		t.pilot_basis = t.basis
 	if "load_factor" in t:
 		t.set("load_factor", m.load.load_factor)
 	if "flare_amount" in t:

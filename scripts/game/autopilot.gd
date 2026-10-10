@@ -46,6 +46,16 @@ var circle_after_s: float = -1.0
 ## Крен кружения, ° (+ вправо).
 var circle_bank_deg: float = 15.0
 
+## Режим «Маятник» (R7): крен держит ПИД через положение пилота (roll_command → ControlInput.roll),
+## а не клавиши-rate. Включает зовущий (Game по режиму управления; тест).
+var pendulum := false
+## Положение пилота поперёк, −1…1 (+ вправо): выход ПИД крена в режиме pendulum.
+var roll_command := 0.0
+## Коэффициенты ПИД крена (как BankHold прототипа): на рад ошибки, на рад/с, на рад·с.
+var pid_kp := 1.5
+var pid_kd := 0.8
+var pid_ki := 0.3
+
 ## Ждать (сеть, NET-43: не первый в очереди на старт или идёт к своему месту): ничего не жать,
 ## замер ветра стоя — заново, когда ожидание кончится.
 var hold := false
@@ -56,6 +66,8 @@ var _heading: float = -1.0
 var _prev_bank: float = 0.0
 var _bank_rate: float = 0.0
 var _wind_ms: float = 0.0
+var _pid_i := 0.0
+var _dt := 0.0
 var _wind_seen := false  ## стоя уже замерил ветер в лицо — можно бежать
 
 
@@ -66,6 +78,8 @@ func reset() -> void:
 	_wind_seen = false
 	_prev_bank = 0.0
 	_bank_rate = 0.0
+	_pid_i = 0.0
+	roll_command = 0.0
 	_heading = hold_heading_deg
 	release_all()
 
@@ -78,6 +92,7 @@ func drive(t: Telemetry, dt: float) -> void:
 		_wind_seen = false
 		return
 	_time += dt
+	_dt = dt
 	if dt > 0.0:
 		_bank_rate = lerpf(_bank_rate, (t.bank_deg - _prev_bank) / dt, 0.2)
 	_prev_bank = t.bank_deg
@@ -104,6 +119,7 @@ func drive(t: Telemetry, dt: float) -> void:
 				want = circle_bank_deg
 			_level_roll(t.bank_deg, want)
 		_:
+			roll_command = 0.0
 			_press("roll_left", false)
 			_press("roll_right", false)
 	_press("run", hold_w)
@@ -139,9 +155,19 @@ func _nose_dir(t: Telemetry) -> int:
 
 
 func _level_roll(bank: float, want: float) -> void:
+	if pendulum:
+		_pid_roll(bank, want)
+		return
 	bank += _bank_rate * lead_s
 	_press("roll_right", bank < want - bank_tol_deg)
 	_press("roll_left", bank > want + bank_tol_deg)
+
+
+## ПИД крена: цель want, °; bank, ° — крен; скорость крена — фильтрованная (_bank_rate).
+func _pid_roll(bank: float, want: float) -> void:
+	var e := deg_to_rad(want - bank)
+	_pid_i = clampf(_pid_i + pid_ki * e * _dt, -1.0, 1.0)
+	roll_command = clampf(pid_kp * e - pid_kd * deg_to_rad(_bank_rate) + _pid_i, -1.0, 1.0)
 
 
 func _press(action: String, on: bool) -> void:

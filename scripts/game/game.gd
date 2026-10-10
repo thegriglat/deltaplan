@@ -56,6 +56,9 @@ var flying_enabled := false
 ## Старт в воздухе (--air-start, docs/guide/game.md): в air_start_m м от старта по его курсу, на
 ## air_start_agl_m м над рельефом, на скорости трима; < 0 — обычный старт с земли.
 var air_start_m := -1.0
+## Режим «Маятник» (PD-4): старт в воздухе, вперёд по курсу старта, м, и над рельефом, м.
+const PENDULUM_START_FORWARD_M := 100.0
+const PENDULUM_START_AGL_M := 150.0
 var air_start_agl_m := 300.0
 ## Сид мира (термики, порывы); < 0 — atmosphere.json → seed. Задать до start(): «Лететь» из
 ## меню — новый случайный, «Ещё раз» его не меняет; сеть — сид зоны.
@@ -234,6 +237,7 @@ func tick(dt: float) -> void:
 	_publish_activity(phase)
 	if autopilot != null:
 		autopilot.hold = input_controller.run_blocked or not queue_walk.is_empty()
+		autopilot.pendulum = glider.is_pendulum()
 		autopilot.drive(glider.get_telemetry(), dt)
 	input_controller.on_ground = phase != "flying"
 	# Свободная камера занимает WASD — крыло без рук; при автопилоте крыло ведёт он, а камера
@@ -242,6 +246,8 @@ func tick(dt: float) -> void:
 	input_controller.hands_off = free_cam or hands_off
 	camera.free_keys_enabled = autopilot == null
 	var control := input_controller.update(dt)
+	if autopilot != null and autopilot.pendulum:
+		control.roll = autopilot.roll_command  # ПИД крена: положение пилота (R7)
 	if not queue_walk.is_empty():
 		_queue_walk_step(control, phase)
 	glider.set_input(control)
@@ -570,7 +576,12 @@ func restart(keep_clock: bool = false) -> void:
 	queue_walk = {}
 	motion.reset()
 	_align_start_heading()
-	if air_start_m >= 0.0:
+	if glider.is_pendulum():
+		# земли маятника ещё нет (PD-3): всегда в воздухе над стартом, на триме
+		glider.reset_in_air(
+			air_start_position(PENDULUM_START_FORWARD_M, PENDULUM_START_AGL_M), _start_heading
+		)
+	elif air_start_m >= 0.0:
 		glider.reset_in_air(air_start_position(), _start_heading)
 	elif net != null:  # в сети — на своё место в очереди на старт (NET-43)
 		var sp := net.queue_start_spot()
@@ -631,10 +642,12 @@ func _align_start_heading() -> void:
 
 
 ## Точка старта в воздухе: air_start_m по курсу старта, air_start_agl_m над рельефом там.
-func air_start_position() -> Vector3:
+## forward_m/agl_m < 0 — air_start_m/air_start_agl_m (режим «Маятник» задаёт свои).
+func air_start_position(forward_m := -1.0, agl_m := -1.0) -> Vector3:
 	var h := deg_to_rad(_start_heading)
-	var p := _start_pos + Vector3(sin(h), 0.0, -cos(h)) * air_start_m
-	p.y = terrain.height_at(p.x, p.z) + air_start_agl_m
+	var f := forward_m if forward_m >= 0.0 else air_start_m
+	var p := _start_pos + Vector3(sin(h), 0.0, -cos(h)) * f
+	p.y = terrain.height_at(p.x, p.z) + (agl_m if agl_m >= 0.0 else air_start_agl_m)
 	return p
 
 
@@ -901,8 +914,8 @@ func catch_up_to(id: String) -> String:
 func start_catch_up(target_fn: Callable) -> bool:
 	if settings == null:
 		return false
-	var m := glider.model
-	var vel := m.velocity if m.mode == FlightModel.Mode.AIR else Vector3.ZERO
+	var m = glider.model
+	var vel: Vector3 = m.velocity if m.mode == FlightModel.Mode.AIR else Vector3.ZERO
 	var t := CatchUpTow.new({}, terrain.height_at)
 	t.start(m.position, vel, target_fn, m.heading)
 	if not t.is_active():
@@ -1109,7 +1122,7 @@ func _setup_glider() -> void:
 	for n in mounted:
 		n.queue_free()
 	mounted.clear()
-	glider.setup(settings.wing_id(), settings.pilot_mass_kg)
+	glider.setup(settings.wing_id(), settings.pilot_mass_kg, settings.apparatus)
 	settings.pilot_mass_kg = glider.pilot_mass_kg
 	camera.set_head(glider.get_marker("PilotHead"))
 	# Смещение центра масс пилота от подвески в полёте (крен/тангаж ручкой), оси планера: голова
