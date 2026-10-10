@@ -1,0 +1,68 @@
+{
+  "status": "done",
+  "summary": "Склейка O4 на границе KZ/KG верна: на 74 пограничных тайлах sep и merged совпадают по счёту объектов во всех потоках (max_count_diff_pct=0, dup_keys=0); автотест сшивки test_border_stitch.py даёт PASS (длины дорог/рек/ЛЭП/рельсов по тайлу = эталон osmium ±1 %, дома в коридоре эталона, дублей нет). Правки finalize не потребовались (кроме sources частей нарезки — уже в ветке).",
+  "commits": [
+    "0b9efb2a finalize: sources частей нарезки <id>__p<n> -> <id>, юнит-тест",
+    "018968ec compare_ref: допуски 5 %",
+    "e01ec84e border_compare.py и test_border_stitch.py"
+  ],
+  "checks": [
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "border_counts",
+      "value": "max_count_diff_pct=0.000 (74 тайла; roads 15335/15335, buildings 161647/161647, river 1014, track 3015, powerline 369, power_tower 8392)",
+      "pass": true
+    },
+    {
+      "name": "no_dups",
+      "value": "dup_keys=0; 35821 ключей присутствуют в обоих регионах и склеены в один объект; geom_dups 3/3 (в эталоне те же — данные OSM)",
+      "pass": true
+    },
+    {
+      "name": "stitch",
+      "value": "PASS; км sep/эталон: roads 9459.5/9459.5, track 3937.7/3937.7, powerline 2027.6/2027.6, river 2920.6/2920.5, canal 896.9/896.9, rail 426.3/426.3; линий-дублей 0",
+      "pass": true
+    },
+    {
+      "name": "almaty_south",
+      "value": "almaty_south_more=yes (1183 против 1027 объектов в южном ряду)",
+      "pass": true
+    },
+    {
+      "name": "peak osmium extract",
+      "value": "8,2 ГБ (RSS наибольшего процесса) при пачках по 4 выхода, запас bbox 10 %, под MemoryMax=12G; все 74 разом — >11,5 ГБ (причина OOM)",
+      "pass": true
+    },
+    {
+      "name": "dp accept OT-4 --dry",
+      "value": "5/5",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "systemd-run --user --scope -p MemoryMax=12G -q dp accept OT-4",
+  "uncertain": [
+    {
+      "where": "tools/osm_tiles/tests/test_border_stitch.py: дома",
+      "why": "число домов проверяется коридором (нижняя граница: центроид внутри тайла и площадь >= 53 м2; верхняя: запас 3 м по кромке и площадь >= 47), а не точным равенством — центроид/площадь считаются здесь не тем кодом, что в упаковщике",
+      "checked": "сперва видел расхождения 0,2-0,6 %; причины в самом тесте: потеря точности центроида при координатах ~70° (исправлено сдвигом к первой точке) и osmium extract без запаса теряет пути без узлов в bbox (запас 10 %); после этого все 74 тайла в коридоре, пропавших домов нет"
+    },
+    {
+      "where": "сшивка длины рек",
+      "why": "эталон длиннее пути, у которого сегмент без узлов в тайле, нужен запас bbox",
+      "checked": "тайл 240/1026 — Чу, 2-точечный сегмент: упаковщик клипует верно, эталон без запаса его терял"
+    }
+  ],
+  "dp_feedback": [
+    "dp lock требует формат 'dp lock cpu <имя> --no-tmux -- команда', --help ничего не объясняет (падает IndexError при 'dp lock cpu -- cmd') — нужна понятная ошибка/справка",
+    "нет команды замера пика памяти дочерних процессов"
+  ],
+  "t": "2026-10-10T17:28:43",
+  "by": "executor"
+}

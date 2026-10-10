@@ -1,0 +1,92 @@
+{
+  "id": "MR-2",
+  "module": "motion-rig",
+  "type": "dp-engineer",
+  "title": "Вывод движения на платформу: MotionSource, UDP (srs/generic), настройки, приёмник",
+  "goal": "Игра шлёт честные величины движения пилота (удельная сила, углы, угловые скорости) по UDP в формате SRS API v102 (DOF Reality) или своём generic; настройка в UI, по умолчанию выключено; приёмник tools/motion_rig/recv.py для проверки без железа.",
+  "plan_ref": "MR-2",
+  "contracts": [
+    {
+      "name": "MR-К1",
+      "version": "1",
+      "ref": "docs/contracts/motion-rig.md"
+    },
+    {
+      "name": "MR-К2",
+      "version": "1",
+      "ref": "docs/contracts/motion-rig.md"
+    },
+    {
+      "name": "MR-К3",
+      "version": "2",
+      "ref": "docs/contracts/motion-rig.md"
+    }
+  ],
+  "copy": "~/deltaplan-motion-rig-MR-2",
+  "branch": "motion-rig/MR-2",
+  "base": "feature/motion-rig",
+  "scope": [
+    "scripts/motion_rig/",
+    "scripts/core/telemetry.gd",
+    "scripts/flight/flight_telemetry.gd",
+    "scripts/game/game.gd",
+    "scripts/ui/settings_panel.gd",
+    "scripts/game/user_settings.gd",
+    "steam/partner/auto_cloud.json",
+    "configs/motion_rig.json",
+    "locale/ui.csv",
+    "tests/motion_rig/",
+    "tests/contracts/test_motion_rig_contracts.gd",
+    "tools/motion_rig/",
+    "scripts/flight/flight_model.gd",
+    "tools/motion_rig/"
+  ],
+  "dont_touch": [
+    "docs/contracts/motion-rig.md",
+    "docs/plan/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "motion_rig",
+      "tests": "motion_rig"
+    },
+    {
+      "name": "tests/flight/",
+      "tests": "tests/flight/"
+    },
+    {
+      "name": "tests/ui/",
+      "tests": "tests/ui/"
+    },
+    {
+      "name": "tests/steam/",
+      "tests": "tests/steam/"
+    },
+    {
+      "name": "recv_selftest",
+      "cmd": "python3 tools/motion_rig/recv.py --selftest",
+      "expect": "exit=0"
+    },
+    {
+      "name": "loop",
+      "cmd": "bash tools/motion_rig/loop_check.sh",
+      "expect": {
+        "exit": 0,
+        "re": "loop OK"
+      }
+    },
+    {
+      "name": "layout",
+      "cmd": "python3 tools/motion_rig/check_layout.py",
+      "expect": {
+        "exit": 0,
+        "re": "layout OK"
+      }
+    }
+  ],
+  "report_extra": [],
+  "notes": "flight_model.gd — только заполнение pilot_* в телеметрии (по MR-К1), физику не менять.",
+  "created": "2026-10-10T17:16:01",
+  "edited": "2026-10-10T17:45:24"
+}

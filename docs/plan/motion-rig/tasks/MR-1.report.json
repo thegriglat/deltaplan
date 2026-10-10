@@ -1,0 +1,41 @@
+{
+  "status": "done",
+  "summary": "Записка дополнена: SimTools 3 и FlyPT Mover 3.7 без generic UDP, авиасимы в списке DOF/SRS, оси H4R, покой=0 принимается примерами SRS. Решение прежнее: SRS API v102, UDP 33001.",
+  "commits": [
+    "0574f96e записка",
+    "1a645529 дополнение"
+  ],
+  "checks": [
+    {
+      "name": "note_exists",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "has_urls",
+      "value": ">=10",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Знаки осей SRS API, частота/задержки, распределение yaw/heave в SRS для H4R не найдены"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept MR-1",
+  "uncertain": [
+    {
+      "where": "раздел Дополнение, про покой",
+      "why": "вывод из кода примеров, не из спецификации",
+      "checked": "main.py и Telemetry.cs"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-10T17:14:28",
+  "by": "executor"
+}

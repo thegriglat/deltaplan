@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "Панель настроек разделена на 5 вкладок (TabContainer): Игра (язык, имя пилота, модель ветра, скорость времени, другие пилоты, имена), Графика и вид (пресет, масштаб, VSync/кадры/окно/разрешение, трава, FOV, вид глаз, каска), Управление (чувствительность, инверсия, крен, ввод крена), Звук (громкость и звук вариометра), Платформа (_build_motion_rig целиком). Ключи вкладок settings_tab_* в locale/ui.csv.",
+  "commits": [
+    "f64cfa45 Панель настроек: вкладки, тест вкладок"
+  ],
+  "checks": [
+    {
+      "name": "tests/ui/",
+      "value": "110/110",
+      "pass": true
+    },
+    {
+      "name": "motion_rig",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "tests/steam/",
+      "value": "40/40",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept MR-4",
+  "uncertain": [
+    {
+      "where": "scripts/ui/settings_panel.gd:_ready",
+      "why": "Прокрутка общая (внешний ScrollPanel вокруг TabContainer), а не по одной на вкладку; при смене вкладки сбрасывается наверх",
+      "checked": "test_scroll_screens на 1280x720 и 1024x600 проходит; TabContainer считает минимальную высоту по текущей вкладке"
+    }
+  ],
+  "dp_feedback": "После правки locale/ui.csv первый godot --import падает (аварийный останов), оставляя ui.en.translation-XXXX; второй прогон проходит. Хорошо бы dp accept сам делал import.",
+  "t": "2026-10-10T18:13:39",
+  "by": "executor"
+}

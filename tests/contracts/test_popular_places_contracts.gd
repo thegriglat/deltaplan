@@ -21,7 +21,7 @@ func _doc_line(head: String) -> String:
 
 
 func test_versions_in_doc() -> void:
-	check(_doc_line("## PP-К1.").contains("(v1)"), "PP-К1 v1 в документе")
+	check(_doc_line("## PP-К1.").contains("(v2)"), "PP-К1 v2 в документе")
 	check(_doc_line("## PP-К2.").contains("(v1)"), "PP-К2 v1 в документе")
 
 
@@ -34,7 +34,7 @@ func _check_k1(path: String, tag: String) -> void:
 	if not root is Dictionary:
 		return
 	check(String(root.get("format", "")) == "deltaplan.hg_takeoffs", "%s: format" % tag)
-	check(int(root.get("version", 0)) == 1, "%s: version 1" % tag)
+	check(int(root.get("version", 0)) == 1, "%s: version 1 (формат файла)" % tag)
 	check(String(root.get("source", "")).strip_edges() != "", "%s: source" % tag)
 	check(String(root.get("fetch_date_utc", "")).strip_edges() != "", "%s: fetch_date_utc" % tag)
 	var countries: Variant = root.get("countries")
@@ -53,7 +53,7 @@ func _check_k1(path: String, tag: String) -> void:
 	check(takeoffs is Array and not takeoffs.is_empty(), "%s: takeoffs — непустой массив" % tag)
 	if not takeoffs is Array:
 		return
-	var re_id := RegEx.create_from_string("^(node|way|relation)/\\d+$")
+	var re_id := RegEx.create_from_string("^((node|way|relation)/\\d+|builtin/[a-z0-9_]+/[a-z0-9_]+)$")
 	var ids := {}
 	var used := {}
 	var bad := 0
@@ -63,8 +63,17 @@ func _check_k1(path: String, tag: String) -> void:
 			continue
 		var keys := (t as Dictionary).keys()
 		keys.sort()
-		var ok := keys == ["country", "ele", "id", "lat", "lon", "name", "orientation"]
 		var id := String(t.get("id", ""))
+		# встроенное место (PP-К1 v2): + location, site, heading_deg; id = builtin/<location>/<site>
+		var ok := (
+			keys == ["country", "ele", "heading_deg", "id", "lat", "location", "lon", "name", "orientation", "site"]
+			if id.begins_with("builtin/")
+			else keys == ["country", "ele", "id", "lat", "lon", "name", "orientation"]
+		)
+		if id.begins_with("builtin/"):
+			ok = ok and id == "builtin/%s/%s" % [t.get("location"), t.get("site")]
+			ok = ok and (t.get("heading_deg") is float or t.get("heading_deg") is int)
+			ok = ok and Locations.is_builtin(String(t.get("location", "")))
 		ok = ok and re_id.search(id) != null and not ids.has(id)
 		ids[id] = true
 		ok = ok and t.get("name") is String

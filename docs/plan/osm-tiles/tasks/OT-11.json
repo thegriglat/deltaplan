@@ -1,0 +1,55 @@
+{
+  "id": "OT-11",
+  "module": "osm-tiles",
+  "type": "dp-engineer",
+  "title": "Дома OSM вместо процедурных (бонус)",
+  "goal": "Алматы сейчас — огромная деревня из процедурных домов; дома OSM (прямоугольники ≥ 50 м²) с высотой по правилу O9 убирают это: в пятне с домами OSM процедурных нет.",
+  "plan_ref": "OT-11. Дома OSM вместо процедурных",
+  "contracts": [
+    {
+      "name": "O9",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-11",
+  "branch": "osm-tiles/OT-11",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "scripts/world_objects/osm/osm_buildings.gd",
+    "scripts/world_objects/village_placer.gd",
+    "scripts/world_objects/village_layer.gd",
+    "configs/osm_tiles.json",
+    "tests/world_objects"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/osm/osm_roads.gd",
+    "scripts/world_objects/osm/osm_pilot.gd",
+    "scripts/world_objects/egg_place.gd",
+    "tools/osm_tiles",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "osm_tiles",
+      "tests": "osm_tiles"
+    },
+    {
+      "name": "screenshot",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/OT-11/ | grep -ciE '\\.(png|jpg)$'",
+      "expect": "num:^(\\d+) >=1"
+    }
+  ],
+  "report_extra": [
+    "buildings_almaty_3x3",
+    "build_ms_almaty_3x3",
+    "procedural_in_osm_patches"
+  ],
+  "notes": "",
+  "created": "2026-10-10T17:32:00",
+  "edited": "2026-10-10T18:19:21"
+}

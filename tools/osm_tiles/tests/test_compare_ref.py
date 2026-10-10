@@ -98,9 +98,9 @@ class CompareRef(unittest.TestCase):
     def test_file_vs_streams_tolerance(self):
         s = stats("slovenia")
         sz = sum(v["zstd"] for v in s["totals"].values())
-        s["file_bytes_total"] = int(sz * 1.004)
+        s["file_bytes_total"] = int(sz * 1.045)
         self.assertEqual(fails(compare_ref.compare(s, "slovenia")), [])
-        s["file_bytes_total"] = int(sz * 1.006)
+        s["file_bytes_total"] = int(sz * 1.055)
         self.assertTrue(any("итоговые файлы" in m for m in fails(compare_ref.compare(s, "slovenia"))))
 
     def test_cli_codes(self):
