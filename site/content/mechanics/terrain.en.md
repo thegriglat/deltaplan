@@ -1,14 +1,15 @@
 ---
 title: "Terrain and places"
 weight: 50
-description: "Built-in places and flight by coordinates, sources of elevation and maps, houses/roads/power lines from OpenStreetMap, water and forest: how the terrain is built and what its limits are."
+description: "Built-in places and flight by coordinates, sources of elevation and land cover, water, villages and forest: how a place is built and what its limits are."
 ---
 
 # Terrain and places
 
-The terrain is not just a "mountain made of noise": underneath it are the real elevations of a specific place on Earth, a real
-land cover map (forest, meadow, field, water) and real houses, roads and power lines from OpenStreetMap. You can
-take off from one of the built-in places or enter coordinates, and fly wherever the data reaches.
+The terrain is not just a "mountain made of noise": underneath it are the real elevations of a specific place on Earth and a
+real land cover map (forest, meadow, field, water, built-up area). You can take off from one of the built-in places or
+pick a point on the map and fly wherever the data reaches. There is no OpenStreetMap data in a place at all: no files and
+no network requests at build time (only the raster basemap of the place selection map remains).
 
 ## Built-in places
 
@@ -22,72 +23,71 @@ take off from one of the built-in places or enter coordinates, and fly wherever 
 Sources and assumptions for each place are in the `_sources_doc` of the place config, for example
 [configs/locations/ongudai.json](/configs/locations/ongudai.json).
 
-## Flight by coordinates
+## Building a place and flight by coordinates
 
-Besides the built-in places, you can enter any coordinates (latitude, longitude) on the place selection map; the terrain
-and the surface map are loaded over the network:
+A built-in place and any point on the map get the same set of layers: the code is one, the place builder
+(`scripts/terrain/build/`), and the stages run in order: terrain (Copernicus GLO-30 + Terrarium), rivers from the
+terrain, ESA WorldCover 10 m land cover. The game package holds no place data: the four built-in places are **downloaded
+on first selection** and cached in `user://locations/<key>`. A cache with a different format version (`FORMAT_VERSION`) is
+deleted and rebuilt. Example: the first build of `aushkul` with an empty cache takes 55.8 s and 166 requests.
+Place data is stored as lossless WebP; elevations are 24 bit with a 1/32 m step (error against float32 is 0).
 
-```gdscript
-terrain.load_location_latlon(43.25, 42.45, 40.0)   # lat, lon, side length in km
-await terrain.loaded
-```
+The loading screen shows a request counter ("Terrain: N/M", "Cover: N/M", "Total: N/M"); there are no time estimates.
+If the cover could not be fetched, the flight goes on without that layer (procedural cover, no 10 m water and no houses),
+and the next run fetches only what is missing. Without terrain there is no place: a message and a return to the menu.
+Details: [docs/guide/location-data.md](/docs/guide/location-data.md).
 
-The point selection map is drawn as a hillshade straight from the same elevation tiles that are loaded for the flight,
-with no external map services and no keys (`scripts/terrain/map_picker.gd`).
+The place selection map is a raster basemap from tiles (`scripts/terrain/map_picker.gd`): OpenTopoMap by default or the
+standard OpenStreetMap tiles, with a disk cache and attribution on the map. It is a menu basemap and provides no place data.
 
 ## Elevation sources
 
-For the built-in places the elevations are **Copernicus DEM GLO-30** (1″ resolution, ≈30 m, cloud-hosted
-GeoTIFF, free, no key): the best open quality, newer and cleaner than SRTM. The data is converted to a
-flat format in advance (`scripts/terrain/build/dem_stage.gd`, the same code the game uses for any point) and enters the game as a ready layer.
+The detail layer (40 km, 25 m step) is **Copernicus DEM GLO-30** (1″ resolution, ≈30 m, cloud-hosted GeoTIFF, free,
+no key): the best open quality, newer and cleaner than SRTM. Only the needed internal tiles are read (HTTP range
+requests), with smoothing σ = 0.8 cell. The background layer (160 km, 100 m step) is **Terrarium** (AWS Terrain Tiles,
+Mapzen/Tilezen, z10): on land the base is the same SRTM, more accurate in some regions (Europe: EU-DEM, USA: 3DEP 10 m,
+above 60° N: ArcticDEM). The detail layer is pasted into the background one, the nodes are aligned, and there is no step at the seam.
 
-For runtime places (by coordinates) it is **AWS Terrain Tiles** (Mapzen/Tilezen): on land the base is the same
-SRTM (≈30 m), more accurate for some regions (Europe: EU-DEM, USA: 3DEP 10 m, above 60° N:
-ArcticDEM). Open HTTPS with no key and no limits; the engine itself decodes the PNG tiles.
-
-**Both Copernicus and SRTM are a surface model (DSM), not a ground model (DTM):** in a forest the "elevation" is the top of the canopy
-(+15…25 m), and at forest edges and clearings you get steps as tall as a tree. So the detailed layer is slightly
-smoothed (σ = 0.8 cell), and the 3D trees are sunk into the surface. There are no open forest-free models
-for Altai: FABDEM is licensed under CC-BY-NC (not suitable for a freely distributed game),
-and national lidar DTMs cover only individual countries.
-
-Each built-in place stores two nested elevation layers: a detailed one (40 km, 25 m step) and a background one (160 km,
-100 m step, Terrarium); the nodes are aligned, so there is no step at the seam. Loading Altai takes 0.2–0.3 s.
+**Both Copernicus and SRTM are a surface model (DSM), not a ground model (DTM):** in a forest the "elevation" is the
+top of the crowns (+15…25 m), and at forest edges and clearings there are steps the height of a tree. So the detail
+layer is slightly smoothed and the 3D trees are sunk into the surface. There are no open forest-free models for Altai:
+FABDEM is licensed CC-BY-NC (unsuitable for a freely distributed game), and national lidar DTMs cover only individual countries.
 
 ## Land cover map
 
-The surface class (forest, meadow, cropland, shrub, rock, water, built-up, snow) comes from **ESA WorldCover 2021**
-(10 m, CC-BY 4.0 license). The same map gives the ground color, the places where trees stand, and the strength of the
-thermal sources: three things from one file. `surface_stage.gd` reads only the tiles it needs from the COG
-(HTTP range requests, no GDAL) and writes the node class as the 3×3 mode of the subsamples.
+The surface class (forest, meadow, arable, shrub, rock, water, built-up, snow) comes from **ESA WorldCover 2021**
+(10 m, CC-BY 4.0). The same map gives the ground color, where trees stand, and the strength of thermal
+sources: three things from one file. The cover stage reads only the needed COG tiles (HTTP range requests, no GDAL) and
+writes the node class as the mode of 3×3 subsamples.
 
-In addition, for the detailed layer a "10 m detail" mask is built (two channels: R is the forest fraction, G is the water
-fraction in a 10 m cell): with it the forest edge and river banks look smooth rather than a "staircase" of 25 m cells.
-The water in this mask is supplemented with rivers, canals and streams from OpenStreetMap (width by type: river 25 m,
-canal 6 m, stream 4 m) and lakes (OSM polygons). Streams narrower than a cell stay a bank in the shader rather than
-solid water; rivers and canals are solid water. The data of the whole location, including this mask, is no more than
-15 MB.
+For the detail layer a "10 m detail" mask is built (R is the forest fraction, G is the water fraction in a 10 m cell):
+it makes forest edges and banks look smooth rather than a "staircase" of 25 m cells. Water in the mask is `max(WorldCover
+"water" class fraction, river mask from the terrain)`. Rivers are computed from the terrain itself (drainage over the
+background layer, width from the catchment area) and resampled bilinearly onto the 10 m grid; WorldCover sees lakes of
+≥ 10 ha by itself. The trade-off: small and narrow water bodies are seen worse by WorldCover, and reservoir outlines
+follow the 2021 state. The cover is a single snapshot: new buildings, a changed shoreline and clear-cuts are not visible.
 
-For runtime places (by coordinates) this mask does not exist: water is determined by the WorldCover class, as before;
-if there is neither network nor data, a fallback procedural map by elevation, slope, aspect and noise
-(`SurfaceClassifier`) is used, of the same form as the real one.
+If there is no cover (no network), a fallback procedural map by height, slope, aspect and noise (`SurfaceClassifier`)
+is used, of the same form as the real one.
 
-## OSM objects: houses, roads, wires, fences
+## Villages and the trail to the launch
 
-For the built-in places, real OpenStreetMap objects stand on top of the terrain
-(`data/terrain/<id>/osm.json`, © OpenStreetMap contributors, ODbL license): roads (a ribbon along the terrain, step
-12 m on main roads / 20 m on the rest, visibility 25 km / 4 km), buildings (wall boxes + roof, following the outline
-from OSM), power lines (lattice towers 110 kV / poles 10 kV, the wire is a parabola with a sag of
-3 % of the span, real thickness 2 cm but never thinner than a pixel; up close it is a line, beyond 500 m it is not drawn, as
-in real life), fences at landing fields. Wires have collision.
+There are no roads, power lines or fences in the game. There are village houses, windsocks, landing fields of the
+built-in places, and a trail from the launch.
 
-Rivers and lakes are **not drawn from OSM separately**: the water is already in the terrain coloring (the 10 m mask above);
-the OSM water data is in the file and, if desired, the terrain module can use it to replace the river masks built
-from drainage. OSM data is exported via the Overpass API (`scripts/terrain/build/osm_stage.gd`) and stored in the repository,
-not requested by the game in real time.
+**Villages.** The only source is the WorldCover "built-up" class: the cover stage writes the built-up basemap
+`detail_built10` (built-up fraction in a 10 m cell) and patches, 8-connected components of cells with fraction ≥ 0.5 and
+area ≥ 3000 m². Inside a patch `VillagePlacer` lays out a grid of yards (≈ 520 m²) with a random offset; a yard is
+occupied with probability equal to the built-up fraction; it holds a procedural house (6×8…8×10 m, gable roof), with
+probability 0.7 a shed and 0.3 a bathhouse (banya). There are no houses on slopes steeper than 14°; a house is turned along the
+contour by slope, and at a patch edge parallel to the edge. The generator is deterministic by place and patch, so everyone
+in a network session sees the same houses. The built-up basemap is blurred: soft edges, no sharp patch outline. Outlines of
+real buildings and village names are not reproduced. Clearings (buildings, planted fields) cut out trees with an explicit mask.
 
-For runtime places (by coordinates) there is no OSM data: only windsocks at the launches are placed, without houses,
-roads and wires.
+**Trail.** A footpath dirt trail down the slope from each launch is always procedural: there is no road or village
+to attach it to.
+
+Details: [docs/guide/world-objects.md](/docs/guide/world-objects.md).
 
 ## Water
 
@@ -113,7 +113,7 @@ Three levels of forest seen from altitude:
 
 Trees stand only where the "10 m detail" mask shows forest (fraction ≥ 0.5) and do not stand in water (water
 fraction of the mask < 0.35). At the forest edge the trees are denser and less sunk: the edge looks more voluminous rather than
-ending in a wall. Clearings (roads, the power line corridor, buildings, planted fields) cut out trees with an explicit mask
+ending in a wall. Clearings (buildings, planted fields) cut out trees with an explicit mask
 (`WorldClearings`): neither a model nor an impostor lands there.
 
 The grass blades around the camera, their thinning and swaying in the wind are a separate mechanic; see
@@ -127,9 +127,9 @@ building the mesh is instant. The LOD is switched by the camera distance to the 
 are closed by a "skirt". There is no collision as such: flight and landing use the `height_at` function
 (bilinear interpolation of the most detailed layer covering the point; ≈1.6 µs per call).
 
-**Runtime loading** (flight by coordinates) does not hang the main thread: elevation tiles and cover maps
-are downloaded via `HTTPRequest` in background threads, and the assembly of the mesh, trees and grass proceeds frame by frame in a worker
-thread while the loading screen shows the stages and the progress fraction. At high latitudes a web Mercator
+**Place loading** does not hang the main thread: elevation and cover blocks are downloaded via `HTTPRequest` (blocks are
+cached in `user://terrain_cache`, and a neighboring place takes them from there), heavy computation runs in the
+`WorkerThreadPool`, and the assembly of the mesh, trees and grass proceeds frame by frame while the loading screen shows the request counter. At high latitudes a web Mercator
 pixel shrinks as cos(latitude), so the tile level is lowered automatically to keep the grid from
 ballooning (for example, near Greenland at 72° N).
 
@@ -139,36 +139,33 @@ does not respond (timeout on unchanged progress).
 
 ## Model limits
 
-- **Resolution.** Elevations are 25 m for built-in places (30 m for runtime places), the cover map is 10 m for the
-  detailed mask / 25 m for the general class map. The terrain distinguishes nothing finer than this: rocks,
-  paths and individual bushes on the map are not "real" but a procedural pattern following statistics.
-- **DSM, not DTM.** The elevation in a forest is the top of the canopy, not the ground beneath it; landing in a forest is a collision
-  with the crowns, not a descent through them to the ground.
-- **Not everything is taken from OSM.** Roads, buildings, power lines and fences at landing fields are drawn; rivers and lakes are taken not
-  from the OSM geometry but from the general water map (10 m mask / WorldCover class). Other OSM objects (bridges,
-  small forms, yards) are not displayed.
-- **Runtime places are poorer than built-in ones**: no OSM (no houses, roads, wires, fences), no 10 m water
-  mask (water only by the WorldCover class), no specially placed landing fields: only the
-  chosen point and a heading down the slope.
-- **The data budget** is no more than 15 MB per built-in place (elevations + cover map + masks), so
-  some details (for example, stream width by OSM tag) are deliberately not taken into account.
-- **Thermals are tied to the same map** as the ground color: if WorldCover gets a class wrong (a typical
-  error of satellite classification is to mistake a floodplain for forest), it shows up equally in the thermals and in the picture;
+- **Resolution.** Elevations are 25 m for the detail layer (100 m for the background one), the cover map is 10 m for the
+  detail mask / 25 m for the general class map. The terrain distinguishes nothing finer: rocks, paths and
+  individual bushes on the map are not "real" but a procedural pattern following statistics.
+- **DSM, not DTM.** The elevation in a forest is the top of the crowns, not the ground below; landing in a forest is
+  a collision with the crowns, not a descent through them to the ground.
+- **Objects.** No roads, power lines, fences, village names or outlines of real buildings; houses on built-up patches are procedural.
+- **Launches and landings.** Named launches and landing fields are manual data only for built-in places; for an arbitrary
+  point the launch is at the chosen point, heading down the slope.
+- **Time zone** is by longitude (`round(lon/15)`); the game does not know time zone borders.
+- **Thermals are tied to the same map** as the ground color: if WorldCover got a class wrong (a typical
+  satellite classification error is to mistake a floodplain for forest), it shows equally in the thermals and in the picture;
   the model does not "peek" at the right answer separately from what the pilot sees.
 
 ## What was considered and why it is done this way
 
-- **Map tiles for the place selection screen.** The standard `tile.openstreetmap.org` tiles under their usage
-  policy are only for moderate traffic with attribution and no bulk prefetching; for a distributed game
-  with no guaranteed limit this does not fit. Paid services (MapTiler, Thunderforest) would require embedding an API key
-  in open code. Our own OSM tile server is an option for the future but requires infrastructure. The choice was a terrain hillshade
-  from the same elevation tiles that are needed for flight anyway: no external services or keys, and mountains and valleys read better
-  to a pilot than roads.
-- **DEM for runtime.** Copernicus DEM is better in quality, but it cannot be bundled into the game for runtime points across the world
-  (the whole globe is not 15 MB). OpenTopography offers a convenient API but requires a key and is limited
-  in area and daily request count, which does not suit a game on a random user's machine. AWS Terrain Tiles
-  are open PNG tiles with no key and no limits, decoded by the engine itself; the quality is slightly lower
-  than Copernicus (SRTM steps in places), but good enough for flight.
+- **One path for built-in places and any point.** Built-in places used to have pre-built data (including OpenStreetMap)
+  and points by coordinates poorer data. Now the build code is one and there is no OSM data: WorldCover patches give
+  the built-up areas, the terrain gives the rivers, and a place is equally rich everywhere. The price: no roads or
+  power lines, houses are procedural, small water bodies are seen worse.
+- **Lakes and rivers without OSM.** WorldCover sees lakes of ≥ 10 ha by itself (coverage of OSM polygons 0.85–0.98 at
+  Aushkul, Chebarkul, Atavda, Muldakkul), and rivers are computed from drainage. Details: `docs/research/lakes_worldcover.md`.
+- **Map tiles for the place selection screen.** Standard `tile.openstreetmap.org` tiles are, by usage policy, for
+  moderate traffic with attribution and no bulk prefetching; so the default basemap is OpenTopoMap with a disk cache.
+  Paid services (MapTiler, Thunderforest) would require embedding an API key in open code.
+- **DEM.** Copernicus is better in quality than the SRTM-based Terrarium tiles, but the whole globe cannot be bundled into the
+  game as a ready layer; so the detail layer is taken from the Copernicus COG when a place is built, and the background from Terrarium
+  (open PNG tiles with no key, decoded by the engine itself). OpenTopography requires a key and limits the number of requests.
 - **No forest-free DTM was found** with a suitable license (FABDEM is CC-BY-NC), so instead of trying to remove the
   forest from the elevations, simple smoothing plus sinking the 3D tree models into the surface was chosen.
 - **One map for three tasks.** The ground color, the placement of trees and the strength of thermals could have lived in
@@ -180,13 +177,14 @@ does not respond (timeout on unchanged progress).
 - [docs/guide/terrain.md](/docs/guide/terrain.md): the full structure of the terrain module (files, formulas, parameters).
 - [docs/research/terrain_sources.md](/docs/research/terrain_sources.md): comparison of elevation sources and
   map basemaps.
-- [docs/guide/world-objects.md](/docs/guide/world-objects.md): OSM objects, landing fields, windsocks,
+- [docs/guide/location-data.md](/docs/guide/location-data.md): place building: stages, formats, cache, loading counter.
+- [docs/guide/world-objects.md](/docs/guide/world-objects.md): villages, trail, landing fields, windsocks,
   the camp and campfire at the launch.
 - [docs/guide/vegetation.md](/docs/guide/vegetation.md): grass blades and trees along the forest edge.
 - Code: [scripts/terrain/](/scripts/terrain/), [scripts/world_objects/](/scripts/world_objects/).
-- Place data preparation: [scripts/terrain/build/dem_stage.gd](/scripts/terrain/build/dem_stage.gd),
-  [scripts/terrain/build/surface_stage.gd](/scripts/terrain/build/surface_stage.gd),
-  [scripts/terrain/build/osm_stage.gd](/scripts/terrain/build/osm_stage.gd).
+- Place data building: [scripts/terrain/build/dem_stage.gd](/scripts/terrain/build/dem_stage.gd),
+  [scripts/terrain/build/river_stage.gd](/scripts/terrain/build/river_stage.gd),
+  [scripts/terrain/build/surface_stage.gd](/scripts/terrain/build/surface_stage.gd).
 
 ![Wind over water: calm, gusts of 3 and 6 m/s](/releases/0.7.0/screenshots/99_вода_ветер_0_3_6.jpg "Wind over water: calm, gusts of 3 and 6 m/s")
 
