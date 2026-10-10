@@ -1,6 +1,6 @@
 {
   "_doc": "Тайлы OSM (osm-tiles, контракт O9, docs/contracts/osm-tiles.md): загрузка 3x3 тайлов мировой сетки 20 км, разбор и перевод в мир места. Ответственный — стадия OsmTilesStage и OsmData.",
-  "base_url": "",
+  "base_url": "https://pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev",
   "base_url_doc": "Корень без /v1: URL или локальный каталог (абсолютный путь или file://…). Пусто — стадия сразу missing, без сети. Переопределение — переменная окружения DELTAPLAN_OSM_TILES_URL.",
   "enabled": true,
   "timeout_s": 5.0,

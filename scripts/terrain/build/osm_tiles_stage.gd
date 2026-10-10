@@ -105,7 +105,7 @@ func _read_local(ctx: LocationBuildContext, base: String, pending: Array[Vector2
 	for t in pending:
 		var p := root.path_join("v1/%d/%d.dpt" % [t.x, t.y])
 		if not FileAccess.file_exists(p):
-			state[t] = _store_none(t)
+			state[t] = "none"  # каталог — не пишем метку в общий кеш (иначе при переходе на сервер тайл навсегда пустой)
 		else:
 			state[t] = _store_body(ctx, t, FileAccess.get_file_as_bytes(p))
 		if state[t] != "missing":

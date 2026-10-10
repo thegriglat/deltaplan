@@ -63,10 +63,10 @@ static func origin_d(j: int, i: int) -> PackedFloat64Array:
 	return PackedFloat64Array([j * DLAT, -180.0 + i * dlon(j)])
 
 
-## Координаты тайла (x восток, y север, м) точки.
-static func to_tile(j: int, i: int, lat: float, lon: float) -> Vector2:
+## Координаты тайла (x восток, y север, м) точки: [x, y] в double.
+static func to_tile(j: int, i: int, lat: float, lon: float) -> PackedFloat64Array:
 	var o := origin_d(j, i)
-	return Vector2((_wrap_lon(lon) - o[1]) * kx(j), (lat - o[0]) * _m)
+	return PackedFloat64Array([(_wrap_lon(lon) - o[1]) * kx(j), (lat - o[0]) * _m])
 
 
 ## Соседи 3x3 точки: массив Vector2i(j, i), снизу вверх, запад → восток, без повторов.

@@ -35,7 +35,7 @@ func test_o1_points() -> void:
 		var lon := float(p.lon)
 		var t := OsmGrid.tile_of(lat, lon)
 		var xy := OsmGrid.to_tile(t.x, t.y, lat, lon)
-		if t.x != int(p.j) or t.y != int(p.i) or absf(xy.x - float(p.x)) > 1e-3 or absf(xy.y - float(p.y)) > 1e-3:
+		if t.x != int(p.j) or t.y != int(p.i) or absf(xy[0] - float(p.x)) > 1e-6 or absf(xy[1] - float(p.y)) > 1e-6:
 			bad += 1
 			if bad <= 3:
 				failures.append("точка %s,%s: ожидалось %d,%d (%s,%s), получено %d,%d (%s)" % [

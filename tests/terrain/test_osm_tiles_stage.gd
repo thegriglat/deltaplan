@@ -249,6 +249,8 @@ func test_local_directory() -> void:
 		var st := _states(ctx)
 		check(err == OK and st.count("ok") == 5 and st.count("none") == 4, "%s: %s" % [base, str(st)])
 		check(calls.is_empty() and ctx.net_requests == 0, "локальный каталог — без HTTP")
+		for t in tiles:
+			check(not FileAccess.file_exists(OsmTilesStage.none_path(t.x, t.y)), "каталог не пишет .none в кеш: %s" % str(t))
 
 
 # ---------- интеграция в LocationBuilder ----------
