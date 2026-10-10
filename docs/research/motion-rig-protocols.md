@@ -69,6 +69,13 @@ applied_in: "docs/contracts/motion-rig.md"
 - Содержимое страниц DOF Knowledge Base (Freshdesk) и supported-games не читалось; в SimTools 3 generic UDP и формат SimTools-источника FlyPT не найдены.
 - Поддержка yaw и heave в SRS для H4R не проверена. SRS работает только на Windows: если игра на Linux, SRS на другом ПК в той же сети (UDP на его IP).
 
+## Дополнение (повторная проверка)
+
+- **FlyPT Mover 3.7 (бета)**: в документации 3.5 и в форумных постах generic/custom UDP-источника с задаваемым форматом не найдено; единственный путь — имитировать чужой формат (Codemasters CM3). Посты yobuddy/pmvcda про такой источник не нашлись. Новый Mover 3.7 ещё бета (https://xsimulator.net/community/goto/post?id=258726).
+- **SimTools 3**: универсального входа без dll не найдено; все игровые плагины v3 состоят из `GameName_GamePlugin.dll` + баннер + MaxMin (https://xsimulator.net/community/goto/post?id=227424). UDP-игры идут через свой dll-посредник.
+- **Авиасимы в SRS/DOF**: список https://dofreality.com/supported-games/ содержит 27 авиасимов, в т.ч. X-Plane 10/11/12, MSFS 2020/2024, DCS, IL-2, Aerofly FS 2, Condor 2/3. Как SRS получает данные от них, не раскрыто. Оси H4R: pitch, roll, yaw, heave (https://simufy.com/en/products/simulador-movimiento-de-4-ejes-hero-h4); как SRS распределяет yaw/heave из пакета, не найдено.
+- **Покой в SRS API**: в примере main.py ускорения (long, lat, vert) стартуют с 0 и меняются в 0..10, углы стартуют с pitch 0, roll -15, yaw 5; Unity-пример шлёт нули в ускорениях. Значит нулевые ускорения без g принимаются; что heave в покое должен быть 1 g, из кода не следует. Отрицательные значения в примерах не используются (README допускает -10..10). Знаки по-прежнему не заданы.
+
 ## Что настраивает игрок (SRS)
 
 1. Установить SRS (≥1.43.2), подключить платформу, выбрать профиль H4R.
