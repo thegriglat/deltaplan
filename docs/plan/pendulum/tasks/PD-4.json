@@ -42,7 +42,8 @@
     "tests/game",
     "tests/flight/pendulum/test_pendulum_mode.gd",
     "tests/flight/pendulum/test_pendulum_autopilot.gd",
-    "tests/flight/pendulum/test_pendulum_hang_shift.gd"
+    "tests/flight/pendulum/test_pendulum_hang_shift.gd",
+    "scripts/flight/pendulum/pendulum_model.gd"
   ],
   "dont_touch": [
     "scripts/flight/flight_model.gd",
@@ -77,5 +78,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T01:02:29"
+  "created": "2026-10-11T01:02:29",
+  "edited": "2026-10-11T01:24:58"
 }
