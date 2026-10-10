@@ -19,6 +19,7 @@ func build(data: OsmData, cfg: Dictionary, height_fn: Callable, obstacles: Obsta
 		["CityGround", OsmCityGround.build(data, cfg, height_fn)],
 		["Roads", OsmRoads.build(data, cfg, height_fn, obstacles)],
 		["Pilot", OsmPilot.build(data, cfg, height_fn, obstacles)],
+		["ChimneyPlumes", OsmChimneyPlumes.build(data, cfg, height_fn)],
 		["Wind", OsmWindTurbines.build(data, cfg, height_fn, obstacles)],
 		["Cabins", OsmCableCars.build(data, cfg, height_fn, obstacles)],
 		["Buildings", OsmBuildings.build(data, cfg, height_fn, building_obstacles)],
