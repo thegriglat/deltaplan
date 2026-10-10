@@ -692,16 +692,27 @@ class Ctx:
         w, rid = self.w, r["id"]
         pbf = w.p("dl", rid + ".osm.pbf")
         parts = [self.by_id[p] for p in r["parts"]]
-        cfg = w.p("tmp", rid + ".extract.json")
         os.makedirs(w.p("tmp"), exist_ok=True)
         tmpn = {p["id"]: w.p("dl", p["id"] + ".tmp.osm.pbf") for p in parts}
-        json.dump({"directory": "/", "extracts": [{"output": tmpn[p["id"]], "bbox": p["bbox"]} for p in parts]}, open(cfg, "w"))
-        w.event("split_start", region=rid, parts=len(parts))
+        hdr = []                               # extract теряет osmosis_replication_timestamp: переносим вручную
+        rc0, o0, _e0 = self.run_child([self.args.osmium, "fileinfo", "-g", "header.option.osmosis_replication_timestamp", pbf])
+        if rc0 == 0 and o0.strip():
+            hdr = ["--output-header", "osmosis_replication_timestamp=" + o0.strip()]
+        batch = max(1, int(self.args.extract_batch))
+        if os.path.getsize(pbf) > 2 * GB:       # замер: ~3,7 ГБ RSS на выход у KZ 0,22 ГБ; у больших родителей — по одному
+            batch = 1
+        w.event("split_start", region=rid, parts=len(parts), batch=batch)
         self.cur_region = rid
         t0 = time.time()
-        rc, _o, err = self.run_child([self.args.osmium, "extract", "--strategy", "smart", "-c", cfg, "--overwrite", pbf])
-        if self.stop.is_set():
-            return False
+        rc, err = 0, ""
+        for k in range(0, len(parts), batch):          # пачками: память smart-extract растёт с числом выходов за проход
+            cfg = w.p("tmp", "%s.extract%d.json" % (rid, k // batch))
+            json.dump({"directory": "/", "extracts": [{"output": tmpn[p["id"]], "bbox": p["bbox"]} for p in parts[k:k + batch]]}, open(cfg, "w"))
+            rc, _o, err = self.run_child([self.args.osmium, "extract", "--strategy", "smart", "-c", cfg, "--overwrite"] + hdr + [pbf])
+            if self.stop.is_set():
+                return False
+            if rc != 0:
+                break
         self.cur_region = None
         if rc != 0 or not all(os.path.exists(f) for f in tmpn.values()):
             msg = "osmium extract: код %d: %s" % (rc, err.strip()[-300:])
@@ -1006,6 +1017,7 @@ def main(argv=None):
         p.add_argument("--max-region-gb", type=float, default=2.0)
         p.add_argument("--osmtiles", default=DEFAULT_BIN)
         p.add_argument("--osmium", default="osmium", help="osmium для нарезки больших регионов (O8 v2)")
+        p.add_argument("--extract-batch", type=int, default=2, help="частей за один проход osmium extract (память!)")
         p.add_argument("--seed-from", help="готовый каталог плана OT-5 (index, heads, regions.json, poly, cover) — только чтение")
     r = sub.add_parser("run")
     common(r)

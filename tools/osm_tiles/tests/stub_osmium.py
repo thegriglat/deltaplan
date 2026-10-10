@@ -9,6 +9,9 @@ import sys
 import time
 
 args = sys.argv[1:]
+if args[0] == "fileinfo":
+    print("2025-10-09T00:00:00Z")
+    sys.exit(0)
 assert args[0] == "extract", args
 cfg = json.load(open(args[args.index("-c") + 1]))
 data = open(args[-1], "rb").read()

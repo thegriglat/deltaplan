@@ -354,7 +354,7 @@ class WorldTest(unittest.TestCase):
 
 
     # ---- нарезка больших регионов (O8 v2)
-    SPLIT = ["--max-region-gb", "0.0007"]          # выгрузки ~1,6 МБ -> по 3 части
+    SPLIT = ["--max-region-gb", "0.0007", "--extract-batch", "2"]          # выгрузки ~1,6 МБ -> по 3 части
 
     def test_split_run(self):
         ref = self.reference()
