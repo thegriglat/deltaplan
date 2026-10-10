@@ -1,7 +1,7 @@
 class_name BuiltPatches
 extends RefCounted
 ## Пятна застройки места (NO-1, контракт N2, docs/contracts/no-osm.md): связные группы клеток 10 м с долей
-## застройки WorldCover (деревни, хутора, города) — built_patches.json и detail_built10.png, которые пишет
+## застройки WorldCover (деревни, хутора, города) — built_patches.json и detail_built10.webp, которые пишет
 ## SurfaceStage. Один на место, только чтение. Потребители: дома (NO-2), пасхалки (NO-3).
 
 const META_KEY := "built_patches"
@@ -30,12 +30,12 @@ static func for_terrain(t: Terrain) -> BuiltPatches:
 		var cached: BuiltPatches = t.get_meta(META_KEY)
 		if cached._dir == dir:
 			return cached
-	var bp := _load(dir)
+	var bp := for_dir(dir)
 	t.set_meta(META_KEY, bp)
 	return bp
 
 
-static func _load(dir: String) -> BuiltPatches:
+static func for_dir(dir: String) -> BuiltPatches:
 	var bp := BuiltPatches.new()
 	bp._dir = dir
 	var surf: Variant = _json(dir.path_join("surface.json"))
@@ -65,7 +65,7 @@ static func _load(dir: String) -> BuiltPatches:
 			}
 		)
 	bp.source = String(pj.get("source", "worldcover10"))
-	bp._built_file = String(b10.get("file", "detail_built10.png"))
+	bp._built_file = String(b10.get("file", "detail_built10.webp"))
 	bp._x0 = float(d10.get("origin_x_m", 0.0))
 	bp._z0 = float(d10.get("origin_z_m", 0.0))
 	bp._cell = float(d10.get("spacing_m", 10.0))
@@ -113,7 +113,7 @@ func share_at(x: float, z: float) -> float:
 		_img_tried = true
 		var img := Image.new()
 		var bytes := FileAccess.get_file_as_bytes(_dir.path_join(_built_file))
-		if bytes.is_empty() or img.load_png_from_buffer(bytes) != OK:
+		if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
 			img = null
 		if img != null and img.get_width() == _w and img.get_height() == _h:
 			if img.get_format() != Image.FORMAT_L8:

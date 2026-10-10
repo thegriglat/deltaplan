@@ -1,9 +1,9 @@
 {
-  "builder_version": 1,
   "built_utc": "2026-10-09T14:08:31Z",
   "center_lat": 50.79,
   "center_lon": 86.13,
   "complete": true,
+  "format_version": 2,
   "key": "ongudai",
   "missing": [],
   "net_requests": 0,

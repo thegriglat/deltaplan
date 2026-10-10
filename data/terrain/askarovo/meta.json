@@ -8,8 +8,10 @@
   "earth_radius_m": 6371008.8,
   "layers": [
     {
-      "file": "detail.f32.zst",
+      "file": "detail.webp",
       "height": 1601,
+      "height_min_m": 344.3125,
+      "height_step_m": 0.125,
       "id": "detail",
       "max_height_m": 1029.71875,
       "min_height_m": 344.3125,
@@ -17,12 +19,14 @@
       "origin_z_m": -20000.0,
       "source": "copernicus",
       "spacing_m": 25.0,
-      "water_file": "detail_water.png",
+      "water_file": "detail_water.webp",
       "width": 1601
     },
     {
-      "file": "far.f32.zst",
+      "file": "far.webp",
       "height": 1601,
+      "height_min_m": -5.5625,
+      "height_step_m": 0.125,
       "id": "far",
       "max_height_m": 1241.6875,
       "min_height_m": -5.5625,
@@ -30,7 +34,7 @@
       "origin_z_m": -80000.0,
       "source": "terrarium",
       "spacing_m": 100.0,
-      "water_file": "far_water.png",
+      "water_file": "far_water.webp",
       "width": 1601
     }
   ],

@@ -14,6 +14,8 @@ related: ["docs/plan/osm-any.md", "docs/contracts/osm-any.md", "docs/guide/terra
 Python-сборки (`fetch_dem.py`, `fetch_landcover.py`, `rivers.py`, `osm_water.py`, `fetch_osm.py`) больше нет: до
 удаления порт в игру доказал равенство результата (числа — `docs/registry/findings.md`, тема osm-any).
 
+Версия формата: `Locations.FORMAT_VERSION` (`scripts/terrain/build/locations.gd`) пишется в `build.json → format_version`; её поднимают при любом изменении файлов места. Кеш места `user://locations/<ключ>` с другой версией (или без поля) удаляется целиком и собирается заново. Сырые блоки источника (`user://terrain_cache`) имеют отдельную версию, `LocationCache.SOURCE_VERSION`: сбрасываются только при её смене. Высоты слоёв — `<id>.webp` (WebP lossless, 24 бит в RGB8, `h = height_min_m + код · height_step_m`, шаг 1/8 м), растры — WebP lossless (N5).
+
 ## Стадии сборки
 Сборщик (`LocationBuilder`) гоняет стадии по порядку; каждая читает только файлы предыдущих и контекст
 (`LocationBuildContext`, OA-К3). Тяжёлый счёт — в `WorkerThreadPool`, HTTP — `HTTPRequest`; меню и экран загрузки живы.

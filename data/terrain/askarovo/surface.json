@@ -7,7 +7,7 @@
     {
       "built10": {
         "built_fraction": 0.01,
-        "file": "detail_built10.png",
+        "file": "detail_built10.webp",
         "patches": 403,
         "patches_file": "built_patches.json"
       },
@@ -24,7 +24,7 @@
       },
       "detail10": {
         "channels": "L — доля леса (0..255, WorldCover), A — вода (0..255): max(доля воды WorldCover 10 м по подвыборкам, маска рек по рельефу)",
-        "file": "detail_detail10.png",
+        "file": "detail_detail10.webp",
         "forest_fraction": 0.2523,
         "height": 4001,
         "origin_x_m": -20000.0,
@@ -33,7 +33,7 @@
         "water_fraction": 0.0219,
         "width": 4001
       },
-      "file": "detail_surface.png",
+      "file": "detail_surface.webp",
       "height": 1601,
       "id": "detail",
       "origin_x_m": -20000.0,
@@ -53,7 +53,7 @@
         "7": 0.0079,
         "8": 0.0
       },
-      "file": "far_surface.png",
+      "file": "far_surface.webp",
       "height": 1601,
       "id": "far",
       "origin_x_m": -80000.0,

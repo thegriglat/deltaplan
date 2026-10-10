@@ -69,11 +69,12 @@ func test_local_cog_classes_and_forest() -> void:
 	if err != OK:
 		return
 	check(ctx.net_requests == 0, "без сети")
-	var s := Image.load_from_file(tmp.path_join("out/detail_surface.png"))
+	var s := Image.load_from_file(tmp.path_join("out/detail_surface.webp"))
+	s.convert(Image.FORMAT_L8)
 	check(s != null and s.get_format() == Image.FORMAT_L8 and s.get_width() == 9, "surface L8 9×9")
 	check(s.get_data()[4 * 9 + 0] == 1, "запад — лес")
 	check(s.get_data()[4 * 9 + 8] == 2, "восток — луг")
-	var d := Image.load_from_file(tmp.path_join("out/detail_detail10.png"))
+	var d := SurfaceLayer.decode_detail10(tmp.path_join("out/detail_detail10.webp"))
 	check(d != null and d.get_format() == Image.FORMAT_LA8 and d.get_width() == 21, "detail10 LA8 21×21")
 	var px := d.get_data()
 	check(px[2 * (10 * 21 + 0)] == 255 and px[2 * (10 * 21 + 20)] == 0, "L: лес слева, нет справа")

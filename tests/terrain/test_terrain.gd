@@ -20,12 +20,7 @@ func _altai() -> Terrain:
 
 func _raw_layer(info: Dictionary) -> PackedFloat32Array:
 	var dir: String = Config.get_config("locations/" + LOCATION).data_dir
-	var bytes := FileAccess.get_file_as_bytes(dir.path_join(info.file))
-	return (
-		bytes
-		. decompress(int(info.width) * int(info.height) * 4, FileAccess.COMPRESSION_BROTLI)
-		. to_float32_array()
-	)
+	return HeightLayer.load_from_file(dir.path_join(info.file), info).heights
 
 
 func _meta() -> Dictionary:
@@ -104,7 +99,7 @@ func test_layers_match_at_boundary() -> void:
 	for k in 20:
 		var x := d.origin_x + k * 2000.0
 		var z := d.origin_z
-		approx(f.sample(x, z), d.sample(x, z), 0.05, "стык слоёв x=%.0f" % x)
+		approx(f.sample(x, z), d.sample(x, z), 0.15, "стык слоёв x=%.0f" % x)
 
 
 func test_normal_on_plane() -> void:

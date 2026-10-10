@@ -4,8 +4,8 @@ extends RefCounted
 ## Слои из ctx.spec.dem.layers: Copernicus GLO-30 (COG по HTTP range или локальный файл) и
 ## Terrarium (тайлы PNG), пересэмплирование на метрическую сетку вокруг центра (равнопромежуточная
 ## проекция, R = 6371008,8 м), гауссово сглаживание, квантование, вклейка детального слоя в грубый.
-## Пишет <ctx.dir>/<слой>.f32.zst (float32 LE, zstd) и meta.json; заполняет ctx.heights/ctx.layers.
-## Реки (<слой>_water.png) — RiverStage; в meta.json только имя файла water_file.
+## Пишет <ctx.dir>/<слой>.webp (N5: WebP lossless, 24 бит в RGB8, шаг 1/8 м от минимума) и meta.json; заполняет ctx.heights/ctx.layers.
+## Реки (<слой>_water.webp) — RiverStage; в meta.json только имя файла water_file.
 ## Сеть: User-Agent из runtime_terrain, кеш в user://terrain_cache, ctx.net_requests += 1 на запрос;
 ## ctx.offline — только локальные файлы и кеш (иначе ERR_UNAVAILABLE).
 ## Необязательный ctx.spec.dem_sources (проверки без сети, паритет): copernicus_dir — папка с
@@ -13,6 +13,8 @@ extends RefCounted
 ## скачанные тайлы Terrarium вместо user://terrain_cache/terrarium.
 
 const EARTH_R_M := 6371008.8
+## Шаг кода высот в файле слоя, м (ошибка ≤ половины шага).
+const HEIGHT_STEP_M := 0.125
 const HEADER_BYTES := 65536
 const TILE_PX := 256
 const COP_NAME := "Copernicus_DSM_COG_10_%s%02d_00_%s%03d_00_DEM"
@@ -86,14 +88,14 @@ func run(ctx: LocationBuildContext) -> Error:
 		ctx.report("dem", base + span * 0.9)
 		var info := {
 			"id": String(lc.id),
-			"file": "%s.f32.zst" % lc.id,
+			"file": "%s.webp" % lc.id,
 			"width": int(g.n),
 			"height": int(g.n),
 			"spacing_m": float(g.step),
 			"origin_x_m": -float(g.half),
 			"origin_z_m": -float(g.half),
 			"source": src,
-			"water_file": "%s_water.png" % lc.id,
+			"water_file": "%s_water.webp" % lc.id,
 		}
 		# Там, где есть более детальный слой, грубый берёт высоты из него (узлы сеток выровнены).
 		for b in built:
@@ -101,13 +103,15 @@ func run(ctx: LocationBuildContext) -> Error:
 		var mm := _min_max(h)
 		info["min_height_m"] = mm.x
 		info["max_height_m"] = mm.y
+		info["height_min_m"] = mm.x
+		info["height_step_m"] = HEIGHT_STEP_M
 		built.append({"h": h, "info": info})
 		ctx.heights[info.id] = h
 		ctx.layers[info.id] = info
 		(meta.layers as Array).append(info)
 		if not (meta.attribution as Array).has(ATTRIBUTION[src]):
 			(meta.attribution as Array).append(ATTRIBUTION[src])
-		var werr := _write_layer(ctx.dir.path_join(String(info.file)), h)
+		var werr := _write_layer(ctx.dir.path_join(String(info.file)), h, info)
 		if werr != OK:
 			ctx.log_line("DemStage: не записан %s" % info.file)
 			return werr
@@ -718,10 +722,9 @@ static func _min_max(h: PackedFloat32Array) -> Vector2:
 	return Vector2(lo, hi)
 
 
-func _write_layer(path: String, h: PackedFloat32Array) -> Error:
-	var f := FileAccess.open(path, FileAccess.WRITE)
-	if f == null:
-		return FileAccess.get_open_error()
-	f.store_buffer(h.to_byte_array().compress(FileAccess.COMPRESSION_ZSTD))
-	f.close()
-	return OK
+## N5: WebP lossless, RGB8, код = (h − height_min_m) / height_step_m (24 бит, R старший).
+func _write_layer(path: String, h: PackedFloat32Array, info: Dictionary) -> Error:
+	var img := HeightLayer.encode_rgb24(
+		h, int(info.width), int(info.height), float(info.height_min_m), float(info.height_step_m)
+	)
+	return img.save_webp(path, false)

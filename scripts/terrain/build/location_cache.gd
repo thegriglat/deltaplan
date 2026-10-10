@@ -3,6 +3,10 @@ extends RefCounted
 ## Кеш собранных мест user://locations/<ключ>/ (OA-К4): ключ точки, папка, полнота по build.json.
 
 const BUILD_FILE := "build.json"
+## Версия сырых блоков источника (user://terrain_cache: COG Copernicus/WorldCover, тайлы Terrarium).
+## Поднимать при смене источника или нарезки блоков; смена Locations.FORMAT_VERSION кеш блоков не сбрасывает.
+const SOURCE_VERSION := 1
+const SOURCE_VERSION_FILE := "source_version.txt"
 
 
 static func _cfg(key: String, default: Variant) -> Variant:
@@ -34,7 +38,25 @@ static func tmp_dir_for(key: String) -> String:
 
 
 static func version() -> int:
-	return int(_cfg("version", 1))
+	return Locations.FORMAT_VERSION
+
+
+## Кеш сырых блоков записан для другой SOURCE_VERSION — очистить и записать текущую. Кеш без файла
+## версии (до его введения) считается текущим. true — кеш был сброшен.
+static func ensure_source_cache(root: String) -> bool:
+	var vp := root.path_join(SOURCE_VERSION_FILE)
+	var wiped := false
+	if FileAccess.file_exists(vp):
+		if FileAccess.get_file_as_string(vp).strip_edges() == str(SOURCE_VERSION):
+			return false
+		remove_dir(root)
+		wiped = true
+	DirAccess.make_dir_recursive_absolute(root)
+	var f := FileAccess.open(vp, FileAccess.WRITE)
+	if f != null:
+		f.store_string(str(SOURCE_VERSION) + "\n")
+		f.close()
+	return wiped
 
 
 ## Содержимое build.json папки места; пустой словарь — нет или битый.
@@ -48,7 +70,7 @@ static func read_build(dir: String) -> Dictionary:
 
 ## Версия сборщика в build.json совпадает с текущей (место пригодно, пусть и без некоторых слоёв).
 static func is_current(build: Dictionary) -> bool:
-	return not build.is_empty() and int(build.get("builder_version", -1)) == version()
+	return not build.is_empty() and int(build.get("format_version", -1)) == version()
 
 
 ## Место полное: build.json с complete и текущей версией сборщика.

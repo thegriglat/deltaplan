@@ -2,7 +2,7 @@ class_name LocationBuilder
 extends RefCounted
 ## Сборщик места для точки (OA-К4): стадии DemStage → RiverStage → SurfaceStage во
 ## временной папке user://locations/.tmp_<ключ>, затем переименование; build.json — последним.
-## Полное место (build.json complete, версия сборщика та же) берётся из кеша без стадий и сети.
+## Полное место (build.json complete, format_version та же) берётся из кеша без стадий и сети.
 ## Отказ рельефа — ошибка; отказ рек/покрова — место без слоя, имя в build.json → missing,
 ## следующий запуск догружает только недостающее.
 
@@ -45,6 +45,12 @@ func build(host: Node, lat: float, lon: float) -> Dictionary:
 		return result
 	var final_dir := out_dir if fixed else LocationCache.dir_for(key)
 	var old := {} if fixed else LocationCache.read_build(final_dir)
+	if not fixed:
+		LocationCache.ensure_source_cache(String(Config.value("world", "runtime_terrain.cache_dir", "user://terrain_cache")))
+		# место другой версии формата (или без неё) удаляется целиком, собирается заново
+		if DirAccess.dir_exists_absolute(final_dir) and not LocationCache.is_current(old):
+			LocationCache.remove_dir(final_dir)
+			Locations.invalidate(key)
 	if LocationCache.is_current(old):
 		if bool(old.get("complete", false)):
 			result.ok = true
@@ -119,7 +125,7 @@ func build(host: Node, lat: float, lon: float) -> Dictionary:
 	var all_seconds := prev_seconds.duplicate()
 	all_seconds.merge(seconds, true)
 	var b := {
-		"builder_version": LocationCache.version(),
+		"format_version": LocationCache.version(),
 		"key": key,
 		"center_lat": clat,
 		"center_lon": clon,

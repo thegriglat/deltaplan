@@ -37,10 +37,10 @@ func test_n1_files() -> void:
 		check(not b10.is_empty(), "%s: surface.json → layers[detail].built10" % id)
 		for k in ["file", "patches_file", "built_fraction", "patches"]:
 			check(b10.has(k), "%s: built10.%s" % [id, k])
-		var img := Image.load_from_file(dir + "detail_built10.png")
-		check(img != null, "%s: detail_built10.png читается" % id)
+		var img := Image.load_from_file(dir + "detail_built10.webp")  # N5: WebP lossless, читатель приводит к L8
+		check(img != null, "%s: detail_built10.webp читается" % id)
 		if img != null:
-			check(img.get_format() == Image.FORMAT_L8, "%s: built10 — L8" % id)
+			img.convert(Image.FORMAT_L8)
 			var d10: Dictionary = det.get("detail10", {})
 			check(
 				img.get_width() == int(d10.get("width", -1)) and img.get_height() == int(d10.get("height", -1)),

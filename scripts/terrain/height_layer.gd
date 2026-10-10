@@ -36,18 +36,20 @@ static func from_heights(
 	return l
 
 
-## Загрузить слой из файла .f32.zst (float32 LE, zstd; OA-К1 v2) по описанию из meta.json.
+## Загрузить слой из файла <id>.webp (N5: WebP lossless, RGB8, код v = R·65536 + G·256 + B,
+## h = height_min_m + v·height_step_m) по описанию из meta.json.
 static func load_from_file(path: String, info: Dictionary) -> HeightLayer:
 	var w := int(info.width)
 	var h := int(info.height)
-	var packed := FileAccess.get_file_as_bytes(path)
-	if packed.is_empty():
+	var img := _read_webp(path)
+	if img == null:
 		push_error("HeightLayer: не прочитан %s" % path)
 		return null
-	var raw := packed.decompress(w * h * 4, FileAccess.COMPRESSION_ZSTD)
-	if raw.size() != w * h * 4:
-		push_error("HeightLayer: неверный размер данных %s: %d" % [path, raw.size()])
+	if img.get_width() != w or img.get_height() != h:
+		push_error("HeightLayer: неверный размер данных %s: %dx%d" % [path, img.get_width(), img.get_height()])
 		return null
+	if img.get_format() != Image.FORMAT_RGB8:
+		img.convert(Image.FORMAT_RGB8)
 	var l := HeightLayer.new()
 	l.id = String(info.id)
 	l.width = w
@@ -56,12 +58,91 @@ static func load_from_file(path: String, info: Dictionary) -> HeightLayer:
 	l.origin_x = float(info.origin_x_m)
 	l.origin_z = float(info.origin_z_m)
 	l._inv_spacing = 1.0 / l.spacing
-	l.heights = raw.to_float32_array()
+	l.heights = decode_rgb24(img.get_data(), w * h, float(info.height_min_m), float(info.height_step_m))
 	l.min_h = float(info.get("min_height_m", 0.0))
 	l.max_h = float(info.get("max_height_m", 0.0))
 	if l.max_h <= l.min_h:
 		l.update_min_max()
 	return l
+
+
+## Все слои сразу (файлы читаются параллельно): [HeightLayer или null] в порядке infos.
+static func load_files(dir: String, infos: Array) -> Array:
+	var out := []
+	out.resize(infos.size())
+	var job := func(i: int) -> void:
+		out[i] = load_from_file(dir.path_join(String(infos[i].file)), infos[i])
+	var gid := WorkerThreadPool.add_group_task(job, infos.size(), -1, true)
+	WorkerThreadPool.wait_for_group_task_completion(gid)
+	return out
+
+
+static func _read_webp(path: String) -> Image:
+	var bytes := FileAccess.get_file_as_bytes(path)
+	var img := Image.new()
+	if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
+		return null
+	return img
+
+
+## Высоты (float32) -> картинка RGB8 с 24-битным кодом от минимума. Код вне 0..2^24-1 обрезается.
+static func encode_rgb24(h: PackedFloat32Array, w: int, hh: int, h_min: float, step: float) -> Image:
+	var n := h.size()
+	var inv := 1.0 / step
+	var slots := _chunk_slots(n)
+	var job := func(ci: int) -> void:
+		var a: int = ci * CHUNK
+		var b: int = mini(a + CHUNK, n)
+		var out := PackedByteArray()
+		out.resize((b - a) * 3)
+		var o := 0
+		for k in range(a, b):
+			var v := clampi(int(roundf((h[k] - h_min) * inv)), 0, 0xFFFFFF)
+			out[o] = v >> 16
+			out[o + 1] = (v >> 8) & 255
+			out[o + 2] = v & 255
+			o += 3
+		slots[ci] = out
+	_run_chunks(job, slots.size())
+	return Image.create_from_data(w, hh, false, Image.FORMAT_RGB8, _join(slots))
+
+
+## RGB8-байты (3 на клетку) -> высоты; работа делится по ядрам.
+static func decode_rgb24(data: PackedByteArray, n: int, h_min: float, step: float) -> PackedFloat32Array:
+	var slots := _chunk_slots(n)
+	var job := func(ci: int) -> void:
+		var a: int = ci * CHUNK
+		var b: int = mini(a + CHUNK, n)
+		var out := PackedFloat32Array()
+		out.resize(b - a)
+		var o := a * 3
+		for k in b - a:
+			out[k] = h_min + step * float((data[o] << 16) | (data[o + 1] << 8) | data[o + 2])
+			o += 3
+		slots[ci] = out
+	_run_chunks(job, slots.size())
+	return _join(slots)
+
+
+const CHUNK := 1 << 14
+
+
+static func _chunk_slots(n: int) -> Array:
+	var slots := []
+	slots.resize(maxi(1, (n + CHUNK - 1) / CHUNK))
+	return slots
+
+
+static func _run_chunks(job: Callable, count: int) -> void:
+	var gid := WorkerThreadPool.add_group_task(job, count, -1, true)
+	WorkerThreadPool.wait_for_group_task_completion(gid)
+
+
+static func _join(slots: Array) -> Variant:
+	var out = slots[0]
+	for i in range(1, slots.size()):
+		out.append_array(slots[i])
+	return out
 
 
 func update_min_max() -> void:

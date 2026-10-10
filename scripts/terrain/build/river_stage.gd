@@ -2,7 +2,7 @@ class_name RiverStage
 extends RefCounted
 ## Стадия рек по рельефу (OA-К3): порт tools/terrain/rivers.py — priority-flood по слою-источнику,
 ## водосбор, ширина ~ k·√площадь, привязка русла к дну долины в детальном слое, растеризация.
-## compute() — чистое ядро без контекста; run() считает его вне главного потока и пишет <id>_water.png.
+## compute() — чистое ядро без контекста; run() считает его вне главного потока и пишет <id>_water.webp.
 
 const _DR: Array[int] = [-1, 1, 0, 0, -1, -1, 1, 1]
 const _DC: Array[int] = [0, 0, -1, 1, -1, 1, -1, 1]
@@ -276,7 +276,7 @@ static func rasterize(segs: PackedFloat64Array, info: Dictionary) -> PackedByteA
 	return bytes
 
 
-## Стадия: читает ctx.heights/ctx.layers/ctx.spec.rivers, пишет <id>_water.png в ctx.dir.
+## Стадия: читает ctx.heights/ctx.layers/ctx.spec.rivers, пишет <id>_water.webp в ctx.dir.
 func run(ctx: LocationBuildContext) -> Error:
 	var cfg: Dictionary = ctx.spec.get("rivers", {})
 	if cfg.is_empty():
@@ -302,10 +302,12 @@ func run(ctx: LocationBuildContext) -> Error:
 	var images: Dictionary = box.get("images", {})
 	for id in images:
 		var img: Image = images[id]
-		var err := img.save_png("%s/%s_water.png" % [ctx.dir, id])
+		if img.get_format() != Image.FORMAT_RGB8:
+			img.convert(Image.FORMAT_RGB8)
+		var err := img.save_webp("%s/%s_water.webp" % [ctx.dir, id], false)
 		if err != OK:
-			ctx.log_line("RiverStage: не записан %s_water.png (%d)" % [id, err])
+			ctx.log_line("RiverStage: не записан %s_water.webp (%d)" % [id, err])
 			return err
-		ctx.layers[id]["water_file"] = "%s_water.png" % id
+		ctx.layers[id]["water_file"] = "%s_water.webp" % id
 	ctx.report("rivers", 1.0)
 	return OK

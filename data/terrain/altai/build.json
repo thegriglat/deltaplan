@@ -1,9 +1,9 @@
 {
-  "builder_version": 1,
   "built_utc": "2026-10-09T14:08:33Z",
   "center_lat": 51.87,
   "center_lon": 85.87,
   "complete": true,
+  "format_version": 2,
   "key": "altai",
   "missing": [],
   "net_requests": 0,

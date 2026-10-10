@@ -34,11 +34,10 @@ class FakeStage:
 					var h := PackedFloat32Array()
 					h.resize(25)
 					h.fill(100.0)
-					var f := FileAccess.open(ctx.dir.path_join(id + ".f32.zst"), FileAccess.WRITE)
-					f.store_buffer(h.to_byte_array().compress(FileAccess.COMPRESSION_ZSTD))
-					f.close()
-					var info := {"id": id, "file": id + ".f32.zst", "width": 5, "height": 5, "spacing_m": 25.0,
-						"origin_x_m": -50.0, "origin_z_m": -50.0, "source": "fake", "water_file": id + "_water.png"}
+					HeightLayer.encode_rgb24(h, 5, 5, 100.0, 0.125).save_webp(ctx.dir.path_join(id + ".webp"), false)
+					var info := {"id": id, "file": id + ".webp", "width": 5, "height": 5, "spacing_m": 25.0,
+						"origin_x_m": -50.0, "origin_z_m": -50.0, "source": "fake", "water_file": id + "_water.webp",
+						"height_min_m": 100.0, "height_step_m": 0.125}
 					layers.append(info)
 					ctx.heights[id] = h
 					ctx.layers[id] = info
@@ -91,7 +90,7 @@ func test_build_then_cache() -> void:
 	var dir := LocationCache.dir_for(key)
 	check(LocationCache.is_complete(key), "место полное")
 	check(not DirAccess.dir_exists_absolute(LocationCache.tmp_dir_for(key)), "временной папки нет")
-	for f in ["meta.json", "detail.f32.zst", "far.f32.zst", "surface.json", "location.json", "build.json"]:
+	for f in ["meta.json", "detail.webp", "far.webp", "surface.json", "location.json", "build.json"]:
 		check(FileAccess.file_exists(dir.path_join(f)), "файл " + f)
 	var bj := LocationCache.read_build(dir)
 	check(int(bj.net_requests) == 3 and bj.complete == true, "build.json: запросы и complete")
@@ -108,14 +107,51 @@ func test_build_then_cache() -> void:
 	var r2: Dictionary = await b2.build(null, POINT.x + 0.01, POINT.y + 0.01)
 	check(bool(r2.ok) and r2.key == key, "та же точка (в пределах сетки) — тот же ключ")
 	check(_log.is_empty() and b2.net_requests == 0, "из кеша: стадии не вызваны, net_requests == 0")
-	# другая версия сборщика — заново
+	check(int(bj.format_version) == Locations.FORMAT_VERSION, "build.json: format_version")
+	# другая версия формата — каталог удаляется, место собирается заново целиком
 	var bad := bj.duplicate()
-	bad.builder_version = LocationCache.version() + 1
+	bad.format_version = Locations.FORMAT_VERSION - 1
 	_write_json(dir.path_join("build.json"), bad)
+	var stale := dir.path_join("stale_old.f32.zst")
+	var sf := FileAccess.open(stale, FileAccess.WRITE)
+	sf.store_string("x")
+	sf.close()
 	check(not LocationCache.is_complete(key), "другая версия — не полное")
+	_log.clear()
 	await _builder().build(null, POINT.x, POINT.y)
 	check(LocationCache.is_complete(key) and _log == ["dem", "rivers", "surface"], "версия: пересборка целиком")
+	check(not FileAccess.file_exists(stale), "версия: старый каталог удалён, не дополнен")
+	# нет поля format_version — тоже старое место
+	var nov := LocationCache.read_build(dir)
+	nov.erase("format_version")
+	_write_json(dir.path_join("build.json"), nov)
+	_log.clear()
+	await _builder().build(null, POINT.x, POINT.y)
+	check(_log == ["dem", "rivers", "surface"] and LocationCache.is_complete(key), "без format_version — пересборка")
+	# текущая версия — из кеша, 0 запросов в сеть
+	_log.clear()
+	var b3 := _builder()
+	await b3.build(null, POINT.x, POINT.y)
+	check(_log.is_empty() and b3.net_requests == 0, "текущая версия: стадий и запросов нет")
 	_cleanup()
+
+
+func test_source_cache_version() -> void:
+	var root := "user://test_source_cache_%d" % Time.get_ticks_usec()
+	DirAccess.make_dir_recursive_absolute(root.path_join("terrarium"))
+	var tf := FileAccess.open(root.path_join("terrarium/a.bin"), FileAccess.WRITE)
+	tf.store_string("x")
+	tf.close()
+	check(not LocationCache.ensure_source_cache(root), "кеш без файла версии не сбрасывается")
+	check(FileAccess.file_exists(root.path_join("terrarium/a.bin")), "блок на месте")
+	check(not LocationCache.ensure_source_cache(root), "та же версия источника — без сброса")
+	var vf := FileAccess.open(root.path_join(LocationCache.SOURCE_VERSION_FILE), FileAccess.WRITE)
+	vf.store_string(str(LocationCache.SOURCE_VERSION + 1))
+	vf.close()
+	check(LocationCache.ensure_source_cache(root), "другая версия источника — сброс")
+	check(not FileAccess.file_exists(root.path_join("terrarium/a.bin")), "блоки удалены")
+	check(FileAccess.get_file_as_string(root.path_join(LocationCache.SOURCE_VERSION_FILE)).strip_edges() == str(LocationCache.SOURCE_VERSION), "записана текущая версия")
+	LocationCache.remove_dir(root)
 
 
 func _write_json(path: String, d: Dictionary) -> void:
