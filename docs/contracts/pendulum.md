@@ -5,7 +5,7 @@ module: pendulum
 updated: 2026-10-11
 summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4), поза пилота в визуале и у чужих (PD-К5)."
 related: ["docs/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 2}, {"id": "PD-К2", "version": 2}, {"id": "PD-К3", "version": 1}, {"id": "PD-К4", "version": 1}, {"id": "PD-К5", "version": 1}]
+contracts: [{"id": "PD-К1", "version": 2}, {"id": "PD-К2", "version": 3}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 1}, {"id": "PD-К5", "version": 1}]
 ---
 # Контракты модуля pendulum
 
@@ -63,7 +63,8 @@ v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы н
 
 Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel` (как сейчас); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
 
-## PD-К2. Конфиг маятника и блок pendulum в крыльях (v2)
+## PD-К2. Конфиг маятника и блок pendulum в крыльях (v3)
+v3 (11.10, ответы пилота): + `apparatus_defaults` в блоке крыла — умолчания «Аппарата» по классу крыла (офлайн-скрипт); `contract` блока — `"PD-К2 v3"`.
 v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта сил полос и выборки ветра; между пересчётами сила и момент полос заморожены в осях крыла, цепь и руки — на каждом подшаге.
 Владелец — PD-1; потребители — PD-2, PD-3, PD-5, PD-8.
 
@@ -103,21 +104,23 @@ v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта си�
 | `inertia_kgm2` | `{ixx, iyy, izz, ixz}`, кг·м² | инерция крыла около его ЦМ, оси x — вперёд, y — вправо, z — вниз (аэродинамические); `ixz` — элемент тензора I[0][2] = −Σ m·x·z (как `geometry.mass_model` прототипа), не произведение инерции; **без** присоединённой массы (её считает модель от ρ) |
 | `dcm0` | безразм. | момент паруса под паспортный трим при `hang_from_nose_m` и эталонной массе |
 | `cd_scale` | безразм. | множитель сопротивления полос: снижение на триме = поляре |
+| `apparatus_defaults` | `{dihedral_eff_deg, sail_flex}` | умолчания «Аппарата» этого крыла по классу (учебные — устойчивая спираль, жёстче; безмачтовые — нейтральная спираль); `ref` посчитан при них |
 | `ref` | словарь, справочно | `trim_kmh`, `sink_ms`, `alpha_trim_deg`, `neutral_point_from_nose_m`, `static_margin`, `kmh_per_cm_hang` (сдвиг подвески на 1 см вперёд) — для тестов и PD-5 |
 
 Инварианты (тест PD-К2, все 48 крыльев): все ключи есть, числа конечны; `root_chord_m > tip_chord_m > 0`; 0 < `static_margin` < 0,4; `|ref.trim_kmh − trim_speed_kmh| ≤ 0,3`; `ref.sink_ms` = поляра на триме ±0,02 м/с; `inertia_kgm2.ixx, iyy, izz > 0`.
 
-## PD-К3. Настройки «Аппарат» (v1)
-Владелец — PD-5; потребители — PD-4 (`Game` → `Glider.setup(…, apparatus)`), PD-2 (`PendulumModel.setup`).
+## PD-К3. Настройки «Аппарат» (v2)
+v2 (11.10): настройки — у каждого крыла свои; умолчания — по крылу (PD-К2 v3).
+Владелец — PD-5 (v1), PD-13 (v2); потребители — PD-4 (`Game` → `Glider.setup(…, apparatus)`), PD-2 (`PendulumModel.setup`).
 
-Хранение — `FlightSettings.apparatus: Dictionary` (`scripts/game/flight_settings.gd`, `to_dict`/`from_dict` → `user://last_flight.json`); нет ключа — умолчание из `configs/pendulum.json → apparatus_defaults`.
+Хранение — `FlightSettings.apparatus: Dictionary` = `{wing_id: {ключ: значение}}` — только то, что пилот менял (`to_dict`/`from_dict` → `user://last_flight.json`). `FlightSettings.resolved_apparatus(wing_id) -> Dictionary` — все 4 ключа: пилот → `configs/wings/<id>.json → pendulum.apparatus_defaults` → `configs/pendulum.json → apparatus_defaults`; `Game` передаёт в `Glider.setup` именно его. Экран «Аппарат» показывает значения выбранного крыла (при смене крыла — его значения).
 
 | Ключ | Единицы | Диапазон, шаг | Умолчание | Подпись в UI | Смысл в модели |
 |---|---|---|---|---|---|
 | `hang_shift_cm` | см | −4…+4, 0,5 | 0 | «Подвеска вдоль киля» | + — вперёд (к носу): подвеска = `hang_from_nose_m − hang_shift_cm/100`; трим быстрее |
 | `hang_length_m` | м | 1,0…1,4, 0,05 | 1,2 | «Длина подвески» | подвеска → ЦМ пилота, сумма звеньев |
-| `sail_flex` | безразм. | 0,1…1,0, 0,05 | 0,2 | «Гибкость паруса» | `flex_relief` (1 — жёсткое) |
-| `dihedral_eff_deg` | ° | −2…+5, 0,5 | 1 | «Поперечное V» | эффективное поперечное V полос |
+| `sail_flex` | безразм. | 0,1…1,0, 0,05 | 0,2 (крыло — своё) | «Гибкость паруса» | `flex_relief` (1 — жёсткое) |
+| `dihedral_eff_deg` | ° | −2…+6, 0,5 | 1 (крыло — своё) | «Поперечное V» | эффективное поперечное V полос |
 
 UI: экран «Полёт…» (`scripts/ui/flight_setup_screen.gd`) делится на вкладки «Место» и «Аппарат» (в «Аппарат» — класс и модель крыла, масса пилота, эти 4 ползунка). У всех четырёх — подпись «Важно только при режиме управления «Маятник»». Строки — `locale/ui.csv`.
 
