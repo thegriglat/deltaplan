@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "Дороги, реки/каналы, ж/д из тайлов OSM лентами (восстановлен RoadMesher + OsmRoads), просеки вдоль дорог, ж/д и домов OSM, отрезки дорог/рек/ж/д у палаток; центр места в OsmData.load_for — double. Тоннели не рисуются.",
+  "commits": [
+    "b0d1f60c OT-9: дороги, реки/каналы, ж/д из тайлов OSM",
+    "следом коммит uid теста; затем слияние feature/osm-tiles (dp task sync)"
+  ],
+  "checks": [
+    {
+      "name": "world_objects",
+      "value": "105/105",
+      "pass": true
+    },
+    {
+      "name": "osm_tiles",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "screenshot",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "фикстура Бохинь: лент = объектам OsmData (без тоннелей)",
+      "value": "дороги 11 тип-классов: primary 407, tertiary 507, residential 2450, unclassified 1613, living_street 202, secondary 520, primary_link 15, track 5424, tertiary_link 4, motorway_link 73, secondary_link 2, motorway 115; реки: river_named 62, river 5, canal 33; ж/д rail 285; тоннелей пропущено 72; всего 11717 лент",
+      "pass": true
+    },
+    {
+      "name": "Алматы 3x3: время постройки лент (плоская высота, 20 ядер)",
+      "value": "731 мс (объектов: дорог 29217, рек 872, ж/д 858; меш-тайлов 1964); до разбивки на куски было 2118-3979 мс",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Серпантин на Шымбулак отдельно не проверялся глазами: скриншот — Алматы с воздуха на условном рельефе (подъём к югу), реального DEM в тесте нет; дороги из тех же тайлов out_a.",
+    "Мосты рисуются обычной лентой по рельефу (над ущельем лента ляжет на дно)."
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/OT-9/roads_almaty_air.png"
+  ],
+  "how_to_check": "godot --headless ... -- --filter=test_osm_roads; dp accept OT-9; скрин: tools/shots/roads_shot.tscn",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/osm/osm_roads.gd (потоки)",
+      "why": "в первом dp accept world_objects упал heap corruption (malloc_consolidate, exit -6) на первом тесте OsmRoads в полном прогоне; три повтора (1 одиночный + 2 accept) зелёные",
+      "checked": "гонок в коде не нашёл: куски пишут в свои словари, общий конфиг только читается; threaded_build=false даёт последовательный путь"
+    },
+    {
+      "where": "configs/world_objects.json rivers/rail",
+      "why": "ширины рек (10/4/5 м) и цвета воды выбраны по классу, в тайлах ширины нет",
+      "checked": "только числа, картинку не разглядывал"
+    }
+  ],
+  "dp_feedback": "После dp task sync новый class_name из слияния давал Parse Error в тестах, пока не сделал godot --import; sync мог бы сам предупреждать/импортировать.",
+  "extra": {
+    "clearings": "ключи road_margin_m, building_margin_m в clearings; tents.road_margin_m",
+    "configs": "roads/rivers/rail в world_objects.json"
+  },
+  "t": "2026-10-10T18:51:32",
+  "by": "executor"
+}
