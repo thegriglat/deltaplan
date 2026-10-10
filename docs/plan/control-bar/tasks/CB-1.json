@@ -1,0 +1,50 @@
+{
+  "id": "CB-1",
+  "module": "control-bar",
+  "type": "dp-researcher",
+  "title": "Исследование: протоколы и готовые решения для самодельной трапеции",
+  "goal": "Не изобретать велосипед: понять, чем самодельщики подключают абсолютные оси (HID-джойстик и др.), как Godot видит их на трёх ОС, и рекомендовать, что поддерживаем.",
+  "plan_ref": "CB-1",
+  "contracts": [],
+  "copy": "~/deltaplan-control-bar-CB-1",
+  "branch": "control-bar/CB-1",
+  "base": "feature/control-bar",
+  "scope": [
+    "docs/research/control-bar-input.md",
+    "tools/research/control-bar/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "file",
+      "cmd": "test -s docs/research/control-bar-input.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "urls",
+      "cmd": "grep -oE 'https?://[^ )>]+' docs/research/control-bar-input.md | sort -u | wc -l",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "conclusion",
+      "cmd": "grep -E '^conclusion: .{20,}' docs/research/control-bar-input.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "recommendation",
+      "cmd": "grep -iE 'рекомендац' docs/research/control-bar-input.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T18:32:12"
+}
