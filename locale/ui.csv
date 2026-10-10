@@ -58,7 +58,6 @@ about_intro,Симулятор дельтаплана. Проект с откр�
 about_thanks_dhv,"Спасибо DHV (Deutscher Hängegleiterverband, www.dhv.de) за открытые данные паспортов и типовых испытаний крыльев: паспорта, геометрия и характеристики.","Thanks to the DHV (Deutscher Hängegleiterverband, www.dhv.de) for the open data on wing datasheets and type tests: datasheets, geometry and characteristics."
 result_touchdown_speed,"Скорость касания: вертикальная %.1f м/с, горизонтальная %.1f м/с","Touchdown speed: vertical %.1f m/s, horizontal %.1f m/s"
 common_save,Сохранить,Save
-setup_launch,Старт,Launch
 result_total_climb,Суммарный набор высоты: %.0f м,Total climb: %.0f m
 site_altai_tugaya_south,Тугая (Горно-Алтайск) — южный склон,Tugaya (Gorno-Altaysk) — south slope
 menu_controls,Управление,Controls
@@ -399,7 +398,6 @@ net_friends_zone,"%s — %s, зона %s","%s — %s, zone %s"
 net_invite_friends,Пригласить друзей,Invite friends
 net_steam_friend,другу в Steam,a Steam friend
 net_create_title,Новая зона,New zone
-net_place,Место,Place
 net_create,Создать,Create
 net_join_title,Войти по коду,Join by code
 net_code,Код,Code

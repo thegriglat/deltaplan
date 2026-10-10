@@ -176,17 +176,32 @@ func test_start_menu_shows_choice_summary() -> void:
 	m.queue_free()
 
 
-## 4. Все 4 встроенные локации — в списке стартов.
+## 4. Все старты всех 4 встроенных локаций — в «Популярных местах» (страна Россия), с теми же координатами,
+## направлением разбега; отдельного списка «Старт» на экране нет.
 func test_flight_setup_lists_all_locations() -> void:
 	var m: FlightSetupScreen = _scene("res://scenes/ui/flight_setup_screen.tscn")
 	var locations := Config.list_configs("locations")
 	check(locations.size() == 4, "4 встроенные локации в configs/locations/ (%d)" % locations.size())
-	var sites: Array = m.get("_sites")
-	var seen := {}
-	for e: Dictionary in sites:
-		seen[String(e.location)] = true
+	check(m.get("_site_opt") == null, "списка «Старт» на экране нет")
+	var by_id := {}
+	for p: Dictionary in (m.get("_places_catalog") as Dictionary).get("takeoffs", []):
+		by_id[String(p.id)] = p
 	for loc_name in locations:
-		check(seen.has(loc_name.get_file()), "локация %s есть в списке стартов" % loc_name.get_file())
+		var loc: Dictionary = Config.get_config(loc_name)
+		for st: Dictionary in loc.get("start_sites", []):
+			var id := "builtin/%s/%s" % [loc_name.get_file(), st.id]
+			var p: Dictionary = by_id.get(id, {})
+			check(not p.is_empty(), "старт %s есть в популярных местах" % id)
+			if p.is_empty():
+				continue
+			check(String(p.country) == "RU", "%s: страна Россия" % id)
+			check(is_equal_approx(float(p.lat), float(st.lat)) and is_equal_approx(float(p.lon), float(st.lon)), "%s: координаты" % id)
+			check(is_equal_approx(float(p.heading_deg), float(st.heading_deg)), "%s: направление разбега" % id)
+	# выбор такого места — встроенное место и точный старт, без точки
+	var p0: Dictionary = by_id["builtin/aushkul/ridge_west"]
+	m.call("_on_place_chosen", p0)
+	var s: FlightSettings = m.call("_collect")
+	check(s.location_id == "aushkul" and s.site_id == "ridge_west" and not s.has_pick(), "выбор места ставит location/site")
 	m.queue_free()
 
 
