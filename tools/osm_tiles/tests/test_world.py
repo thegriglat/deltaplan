@@ -23,6 +23,7 @@ import compare_runs  # noqa: E402
 
 WORLD = os.path.join(os.path.dirname(HERE), "world.py")
 STUB = os.path.join(HERE, "stub_osmtiles.py")
+STUB_OSMIUM = os.path.join(HERE, "stub_osmium.py")
 
 # регионы: a и b делят тайл (1, 0); c делит (2, 0) с b
 COVER = {"a": [(0, 0), (1, 0), (0, 1)], "b": [(1, 0), (2, 0), (1, 1)], "c": [(2, 0), (3, 0), (3, 1)]}
@@ -117,7 +118,7 @@ def make_work(work, base, ids=("a", "b", "c")):
 
 def run_world(work, out, regions="a,b,c", extra=(), env=None, wait=True, timeout=120):
     cmd = [sys.executable, WORLD, "run", "--work", work, "--out", out, "--regions", regions, "--osmtiles", STUB,
-           "--keep-free-gb", "0"] + list(extra)
+           "--keep-free-gb", "0", "--osmium", STUB_OSMIUM] + list(extra)
     e = dict(os.environ, WORLD_FAST_RETRY="1")
     e.update(env or {})
     if not wait:
@@ -130,6 +131,7 @@ def run_world(work, out, regions="a,b,c", extra=(), env=None, wait=True, timeout
 class WorldTest(unittest.TestCase):
     def setUp(self):
         os.chmod(STUB, 0o755)
+        os.chmod(STUB_OSMIUM, 0o755)
         self.tmp = tempfile.mkdtemp(prefix="world_test_")
         self.srv = Server().__enter__()
         self.addCleanup(lambda: shutil.rmtree(self.tmp, ignore_errors=True))
@@ -349,6 +351,53 @@ class WorldTest(unittest.TestCase):
         self.srv.httpd.log.clear()
         self.assertEqual(run_world(w, o).returncode, 0)
         self.assertEqual(self.srv.httpd.log, [])
+
+
+    # ---- нарезка больших регионов (O8 v2)
+    SPLIT = ["--max-region-gb", "0.0007"]          # выгрузки ~1,6 МБ -> по 3 части
+
+    def test_split_run(self):
+        ref = self.reference()
+        w, o = self.dirs("split")
+        r = run_world(w, o, extra=self.SPLIT)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(set(compare_runs.tile_hashes(o)), set(compare_runs.tile_hashes(ref)))
+        st = json.load(open(os.path.join(w, "state.json")))["regions"]
+        self.assertEqual(sorted(st), sorted(["a", "b", "c"] + ["%s__p%d" % (x, n) for x in "abc" for n in (1, 2, 3)]))
+        self.assertTrue(all(v["status"] == "done" for v in st.values()), st)
+        self.assertEqual(os.listdir(os.path.join(w, "dl")), [])
+        ev = [json.loads(x) for x in open(os.path.join(w, "log.jsonl"))]
+        self.assertEqual(sum(1 for e in ev if e["event"] == "split"), 3)
+        src = json.load(open(os.path.join(w, "sources.json")))
+        self.assertEqual([s["region"] for s in src], ["a", "b", "c"])
+        self.assertTrue(all(s["osm_timestamp"] == 1760000000 for s in src))
+        self.assertGreater(os.path.getsize(os.path.join(o, "v1", "manifest.pb")), 100)
+        # граничный тайл (1, 0): источники - части a и b
+        body = json.loads(open(os.path.join(o, "v1", "1", "0.dpt"), "rb").read()[7:])
+        self.assertTrue(all("__p" in x for x in body["sources"]) and len(body["sources"]) >= 2)
+
+    def test_split_osmium_fails_then_rerun(self):
+        w, o = self.dirs("splitfail")
+        flag = os.path.join(self.tmp, "osm.flag")
+        r = run_world(w, o, extra=self.SPLIT, env={"STUB_OSMIUM_DIE_ONCE": flag})
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("ОШИБКА нарезки", r.stderr)
+        r = run_world(w, o, extra=self.SPLIT, env={"STUB_OSMIUM_DIE_ONCE": flag})
+        self.assertEqual(r.returncode, 0, r.stderr)
+        st = json.load(open(os.path.join(w, "state.json")))["regions"]
+        self.assertTrue(all(v["status"] == "done" for v in st.values()), st)
+
+    def test_split_kill_during_split(self):
+        ref = self.reference()
+        w, o = self.dirs("splitkill")
+        p = run_world(w, o, extra=self.SPLIT, env={"STUB_OSMIUM_SLEEP": "3"}, wait=False)
+        self.assertTrue(self.wait_for(lambda: self.status_of(w, "a") == "downloaded"))
+        time.sleep(0.5)
+        p.send_signal(signal.SIGKILL)
+        p.wait()
+        r = run_world(w, o, extra=self.SPLIT)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(set(compare_runs.tile_hashes(o)), set(compare_runs.tile_hashes(ref)))
 
 
 class UnitTest(unittest.TestCase):

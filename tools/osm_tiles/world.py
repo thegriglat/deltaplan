@@ -45,7 +45,7 @@ FINALIZE_BATCH = 2000          # тайлов в одном вызове finaliz
 SAVE_EVERY_S = 5.0
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_BIN = os.path.join(HERE, "packer", "target", "release", "osmtiles")
-STATUSES = ["planned", "downloading", "downloaded", "packing", "packed", "done", "failed"]
+STATUSES = ["planned", "downloading", "downloaded", "split", "packing", "packed", "done", "failed"]
 
 
 # ------------------------------------------------------------------ утилиты
@@ -201,6 +201,67 @@ def ensure_plan(args, ids=None):
     return rj
 
 
+def poly_bbox(path):
+    """(minlon, minlat, maxlon, maxlat) по .poly Osmosis (строки «lon lat»)."""
+    xs, ys = [], []
+    for line in open(path):
+        p = line.split()
+        if len(p) == 2:
+            try:
+                xs.append(float(p[0]))
+                ys.append(float(p[1]))
+            except ValueError:
+                pass
+    if not xs:
+        raise RuntimeError("пустой .poly " + path)
+    return [min(xs), min(ys), max(xs), max(ys)]
+
+
+def rect_poly(name, bb):
+    x0, y0, x1, y1 = bb
+    pts = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
+    return name + "\n1\n" + "".join("   %.7f   %.7f\n" % p for p in pts) + "END\nEND\n"
+
+
+def expand_splits(args, w, state, regions):
+    """O8 v2: регион с .pbf > --max-region-gb режется на k частей-прямоугольников по долготе (id `<id>__p<n>`).
+    Возвращает список: родитель (скачивается), затем его части (ждут нарезки). Разбиение запоминается в state."""
+    limit = args.max_region_gb * GB
+    splits = state.setdefault("splits", {})
+    out = []
+    for r in regions:
+        sp = splits.get(r["id"])
+        if not sp and r["pbf_bytes"] > limit:
+            k = math.ceil(r["pbf_bytes"] / limit)
+            x0, y0, x1, y1 = poly_bbox(w.p("poly", r["id"] + ".poly"))
+            edges = [x0 + (x1 - x0) * n / k for n in range(k)] + [x1]
+            sp = splits[r["id"]] = {"parts": [{"id": "%s__p%d" % (r["id"], n + 1), "bbox": [edges[n], y0, edges[n + 1], y1]}
+                                              for n in range(k)]}
+            say("%s: %s ГБ > лимита %s ГБ — после скачивания режу на %d частей по долготе" % (
+                r["id"], fmt_gb(r["pbf_bytes"]), fmt_gb(limit), k))
+        if not sp:
+            out.append(r)
+            continue
+        parent = dict(r, parts=[p["id"] for p in sp["parts"]])
+        out.append(parent)
+        pcov = set(R.read_cover(w.p("cover", r["id"] + ".txt")))
+        for p in sp["parts"]:
+            poly, cov = w.p("poly", p["id"] + ".poly"), w.p("cover", p["id"] + ".txt")
+            if not os.path.exists(poly):
+                R.atomic_write(poly, rect_poly(p["id"], p["bbox"]))
+            if not os.path.exists(cov):
+                if not os.path.exists(args.osmtiles):
+                    sys.exit("нет упаковщика %s — соберите: cd tools/osm_tiles/packer && cargo build --release" % args.osmtiles)
+                txt = R.run_cover(args.osmtiles, poly, cov + ".all")
+                os.remove(cov + ".all")
+                tiles = sorted(set(tuple(map(int, l.split()[:2])) for l in txt.splitlines() if l.strip()) & pcov)
+                R.atomic_write(cov, "".join("%d %d\n" % t for t in tiles))
+            out.append({"id": p["id"], "split_of": r["id"], "bbox": p["bbox"], "url": "", "md5_url": "", "poly_url": "",
+                        "pbf_bytes": r["pbf_bytes"] // len(sp["parts"]), "tiles": None})
+    R.atomic_write(w.state_path, json.dumps(state, ensure_ascii=False, indent=1))
+    return out
+
+
 def select_regions(rj, args):
     by_id = {r["id"]: r for r in rj["regions"]}
     if args.regions:
@@ -266,7 +327,7 @@ class Downloader(threading.Thread):
     def run(self):
         try:
             for r in self.regions:
-                if self.ctx.w.reg(r["id"])["status"] in ("planned", "downloading"):
+                if not r.get("split_of") and self.ctx.w.reg(r["id"])["status"] in ("planned", "downloading"):
                     self.one(r)
                     if self.ctx.stop.is_set():
                         break
@@ -446,7 +507,7 @@ class Ctx:
     def __init__(self, args, w, rj, regions):
         self.args, self.w, self.rj, self.regions = args, w, rj, regions
         self.ids = [r["id"] for r in regions]
-        self.by_id = {r["id"]: r for r in regions}
+        self.by_id = {r["id"]: r for r in regions if not r.get("parts")}
         self.stop = threading.Event()
         self.user_stop = False
         self.keep_free = args.keep_free_gb * GB
@@ -461,6 +522,15 @@ class Ctx:
         self.peak_disk = 0
         self.t_start = time.time()
         self.cur_region = None
+        for r in regions:               # O8 v2: у разрезанного региона cover — объединение cover его частей
+            if r.get("parts"):
+                for t in self.cover.pop(r["id"], []):
+                    self.S[t].remove(r["id"])
+            if r.get("split_of"):
+                tiles = sorted(set(R.read_cover(w.p("cover", r["id"] + ".txt"))))
+                self.cover[r["id"]] = tiles
+                for t in tiles:
+                    self.S.setdefault(t, []).append(r["id"])
         self.prior = rates_from_log(w)
         for rec in read_jsonl(w.fin_path):
             self.finalized[(rec["j"], rec["i"])] = rec
@@ -494,9 +564,11 @@ class Ctx:
     def totals(self):
         tot = done = 0
         for r in self.regions:
+            if r.get("split_of"):
+                continue
             tot += r["pbf_bytes"]
             reg = self.w.reg(r["id"])
-            done += r["pbf_bytes"] if reg["status"] in ("downloaded", "packing", "packed", "done") else reg["bytes_done"]
+            done += r["pbf_bytes"] if reg["status"] in ("downloaded", "split", "packing", "packed", "done") else reg["bytes_done"]
         return tot, done
 
     def eta(self):
@@ -507,7 +579,8 @@ class Ctx:
             dl_rate = self.dl.rate_bytes / el
         pk_rate = (self.pack_rate_bytes / self.pack_rate_sec) if self.pack_rate_sec else self.prior["pack"]
         to_pack = sum(r["pbf_bytes"] for r in self.regions
-                      if self.w.reg(r["id"])["status"] in ("planned", "downloading", "downloaded", "packing"))
+                      if not (r.get("split_of") and self.w.reg(r["id"])["status"] == "planned")
+                      and self.w.reg(r["id"])["status"] in ("planned", "downloading", "downloaded", "packing"))
         t = []
         if tot - done > 0:
             if not dl_rate:
@@ -614,6 +687,44 @@ class Ctx:
         shutil.rmtree(w.p("tmp", rid), ignore_errors=True)
         return True
 
+    def split(self, r):
+        """Режет выгрузку родителя на части-прямоугольники одним проходом osmium extract; False — остановили."""
+        w, rid = self.w, r["id"]
+        pbf = w.p("dl", rid + ".osm.pbf")
+        parts = [self.by_id[p] for p in r["parts"]]
+        cfg = w.p("tmp", rid + ".extract.json")
+        os.makedirs(w.p("tmp"), exist_ok=True)
+        tmpn = {p["id"]: w.p("dl", p["id"] + ".tmp.osm.pbf") for p in parts}
+        json.dump({"directory": "/", "extracts": [{"output": tmpn[p["id"]], "bbox": p["bbox"]} for p in parts]}, open(cfg, "w"))
+        w.event("split_start", region=rid, parts=len(parts))
+        self.cur_region = rid
+        t0 = time.time()
+        rc, _o, err = self.run_child([self.args.osmium, "extract", "--strategy", "smart", "-c", cfg, "--overwrite", pbf])
+        if self.stop.is_set():
+            return False
+        self.cur_region = None
+        if rc != 0 or not all(os.path.exists(f) for f in tmpn.values()):
+            msg = "osmium extract: код %d: %s" % (rc, err.strip()[-300:])
+            say("%s: ОШИБКА нарезки — %s" % (rid, msg))
+            for f in tmpn.values():
+                if os.path.exists(f):
+                    os.remove(f)
+            w.set(rid, status="failed", error=msg)
+            for p in parts:
+                w.set(p["id"], status="failed", error="нарезка родителя не удалась")
+            w.event("failed", region=rid, step="split", error=msg)
+            return True
+        for p in parts:
+            final = w.p("dl", p["id"] + ".osm.pbf")
+            os.replace(tmpn[p["id"]], final)
+            p["pbf_bytes"] = os.path.getsize(final)
+            w.set(p["id"], status="downloaded", bytes_done=0, error="")
+        os.remove(pbf)
+        w.set(rid, status="split")
+        w.event("split", region=rid, parts=len(parts), seconds=round(time.time() - t0, 2),
+                part_bytes=[p["pbf_bytes"] for p in parts])
+        return True
+
     def finalize_ready(self):
         """Склеивает всё, что готово; False — остановили."""
         for rid in self.ids:
@@ -622,6 +733,11 @@ class Ctx:
             if not self.run_finalize(self.tiles_ready(rid)):
                 return False
             self.maybe_done(rid)
+        for r in self.regions:
+            if r.get("parts") and self.w.reg(r["id"])["status"] == "split" and \
+               all(self.w.reg(p)["status"] == "done" for p in r["parts"]):
+                self.w.set(r["id"], status="done")
+                self.w.event("done", region=r["id"])
         return True
 
     def run_finalize(self, ready):
@@ -698,7 +814,9 @@ def take_lock(w):
 def build_sources(w, regions):
     out = []
     for r in regions:
-        rep = R.load_json(w.p("reports", r["id"] + ".pack.json"), {})
+        if r.get("split_of"):
+            continue
+        rep = R.load_json(w.p("reports", (r["parts"][0] if r.get("parts") else r["id"]) + ".pack.json"), {})
         ts = rep.get("osm_timestamp", 0)
         if isinstance(ts, str):
             try:
@@ -707,7 +825,7 @@ def build_sources(w, regions):
             except ValueError:
                 ts = 0
         out.append({"region": r["id"], "url": r["url"], "md5": w.reg(r["id"])["md5"], "osm_timestamp": ts,
-                    "pbf_bytes": rep.get("input_bytes", r["pbf_bytes"])})
+                    "pbf_bytes": r["pbf_bytes"] if r.get("parts") else rep.get("input_bytes", r["pbf_bytes"])})
     return sorted(out, key=lambda s: s["region"])
 
 
@@ -734,6 +852,7 @@ def cmd_run(args):
     state = w.load_state()
     state["out"] = os.path.abspath(args.out)
     os.makedirs(args.out, exist_ok=True)
+    regions = expand_splits(args, w, state, regions)
     for r in regions:
         reg = state["regions"].setdefault(r["id"], {"status": "planned", "bytes_done": 0, "etag": "", "md5": "",
                                                     "attempts": 0, "error": ""})
@@ -745,6 +864,9 @@ def cmd_run(args):
             reg["status"] = "downloaded"        # пакуется заново
         if reg["status"] == "downloaded" and not os.path.exists(pbf):
             reg.update(status="planned", bytes_done=0, etag="", md5="")
+        if r.get("split_of") and reg["status"] == "planned" and state["regions"].get(r["split_of"], {}).get("status") in ("split", "done"):
+            # родитель уже разрезан, а выгрузки части нет — качать и резать родителя заново
+            state["regions"][r["split_of"]].update(status="planned", bytes_done=0, etag="", md5="")
         if reg["status"] in ("planned", "downloading"):
             reg["bytes_done"] = os.path.getsize(part) if os.path.exists(part) else 0
     ctx = Ctx(args, w, rj, regions)
@@ -779,7 +901,8 @@ def cmd_run(args):
             fin = dl.finished
             nxt = next((r for r in regions if w.reg(r["id"])["status"] == "downloaded"), None)
             if nxt:
-                if not ctx.pack(nxt) or not ctx.finalize_ready():
+                ok = ctx.split(nxt) if nxt.get("parts") else ctx.pack(nxt)
+                if not ok or not ctx.finalize_ready():
                     break
                 continue
             if fin:
@@ -807,7 +930,7 @@ def cmd_run(args):
         return 130
     st = {s: sum(1 for r in regions if w.reg(r["id"])["status"] == s) for s in STATUSES}
     failed = [r["id"] for r in regions if w.reg(r["id"])["status"] == "failed"]
-    unfinished = [r["id"] for r in regions if w.reg(r["id"])["status"] not in ("done", "failed")]
+    unfinished = [r["id"] for r in regions if w.reg(r["id"])["status"] not in ("done", "failed", "split")]
     import resource
     rss = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024.0
     w.event("run_end", statuses=st, seconds=round(time.time() - ctx.t_start, 1),
@@ -882,6 +1005,7 @@ def main(argv=None):
         p.add_argument("--all", action="store_true", help="весь набор регионов")
         p.add_argument("--max-region-gb", type=float, default=2.0)
         p.add_argument("--osmtiles", default=DEFAULT_BIN)
+        p.add_argument("--osmium", default="osmium", help="osmium для нарезки больших регионов (O8 v2)")
         p.add_argument("--seed-from", help="готовый каталог плана OT-5 (index, heads, regions.json, poly, cover) — только чтение")
     r = sub.add_parser("run")
     common(r)

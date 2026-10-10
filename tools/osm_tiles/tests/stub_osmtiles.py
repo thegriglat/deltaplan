@@ -24,12 +24,25 @@ def atomic(path, data):
 
 
 def poly_tiles(path):
+    """Файл «j i» — список тайлов; прямоугольный .poly (есть END) — все целые (j, i) в bbox (j = lon, i = lat)."""
+    text = open(path).read()
+    if "END" in text:
+        pts = [tuple(map(float, l.split())) for l in text.splitlines() if len(l.split()) == 2]
+        xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+        import math
+        return [(j, i) for j in range(math.ceil(min(xs) - 1e-9), math.floor(max(xs) + 1e-9) + 1)
+                for i in range(math.ceil(min(ys) - 1e-9), math.floor(max(ys) + 1e-9) + 1)]
     out = []
-    for line in open(path):
+    for line in text.splitlines():
         p = line.split()
         if len(p) == 2 and p[0].lstrip("-").isdigit():
             out.append((int(p[0]), int(p[1])))
     return out
+
+
+def cmd_cover(a):
+    for j, i in poly_tiles(a.poly):
+        print(j, i)
 
 
 def cmd_pack(a):
@@ -106,6 +119,9 @@ def main():
     for k in ("--frag-dir", "--out", "--list", "--threads", "--report"):
         f.add_argument(k)
     f.set_defaults(fn=cmd_finalize)
+    c = sub.add_parser("cover")
+    c.add_argument("--poly")
+    c.set_defaults(fn=cmd_cover)
     m = sub.add_parser("manifest")
     for k in ("--tiles", "--sources", "--out"):
         m.add_argument(k)
