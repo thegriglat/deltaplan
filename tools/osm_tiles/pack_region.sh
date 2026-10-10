@@ -5,6 +5,7 @@
 # tiles/v1/<j>/<i>.dpt, finalize.jsonl, stats.json (O6, --zstd-per-stream), summary.json, *.log.
 # Загрузка ядер finalize — (user+sys)/real по bash time (у pack — из его pack.json).
 set -euo pipefail
+export LC_NUMERIC=C   # bash time: точка, а не запятая
 [ $# -ge 4 ] || { echo "usage: $0 <pbf> <poly> <region> <out> [--threads N]" >&2; exit 2; }
 PBF=$(readlink -f "$1"); POLY=$(readlink -f "$2"); REGION=$3; OUT=$4; shift 4
 THREADS=()
