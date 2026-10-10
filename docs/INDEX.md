@@ -23,7 +23,7 @@ generated: true
 | [docs/guide/flight.md](/docs/guide/flight.md) | guide | active | flight | Модель полёта (scripts/flight/) — Реализует FR-1…FR-10. Логика — в RefCounted-классах (тестируются headless), нода Glider — тонкая обёртка: время, ввод, визуал. |
 | [docs/guide/game.md](/docs/guide/game.md) | guide | active | game | Сборка игры (scenes/main, scenes/game, scenes/ui) — Главная сцена собирает модули в играбельный полёт: меню → полёт ⇄ пауза → итог. |
 | [docs/guide/instruments.md](/docs/guide/instruments.md) | guide | active | instruments | Приборы и звук вариометра — Instrument3D: экран смотрит в локальную +Z, верх — +Y, начало — центр корпуса, хомут сзади снизу. |
-| [docs/guide/location-data.md](/docs/guide/location-data.md) | guide | active | osm-any | Откуда берутся данные места: стадии сборки (рельеф, реки, покров, лес и вода 10 м, OSM), источники и лицензии, кеш user://locations, точка внутри встроенного места, повтор без сети, как собрать встроенное место. |
+| [docs/guide/location-data.md](/docs/guide/location-data.md) | guide | active | no-osm | Откуда берутся данные места без OSM: стадии dem, rivers, surface (рельеф, реки, покров, лес, вода и застройка 10 м), файлы в WebP, версии формата и источника, кеш user://locations, встроенные места собираются при первом выборе, счётчик загрузки, как собрать встроенное место. |
 | [docs/guide/models.md](/docs/guide/models.md) | guide | active | wings | Модели (крылья, пилот, приборы, деревья) — Все модели генерируются скриптами Blender 4.3 (воспроизводимо, параметры в JSON рядом со скриптами), исходники .blend и текстуры — в assets/source/ (там .gdignore), готовые .glb — в assets/models/. |
 | [docs/guide/net-protocol.md](/docs/guide/net-protocol.md) | guide | active | net | Сетевой протокол Deltaplan — Единственный источник правды — server/proto/deltaplan/v1/net.proto (пакет deltaplan.v1). |
 | [docs/guide/steam.md](/docs/guide/steam.md) | guide | active | steam | Steam в Deltaplan — как устроено, как включить и выключить, тест на App ID 480, ручные проверки на двух аккаунтах, Windows и macOS, известные ограничения |
@@ -31,7 +31,7 @@ generated: true
 | [docs/guide/telltale.md](/docs/guide/telltale.md) | guide | active | wings | Ленточка на тросе трапеции («ниточка», yaw string) — Просьба пилота: ленточка, привязанная к переднему тросу трапеции (сначала висела на боковом; перевешена по просьбе пользователя, wire: "front"). |
 | [docs/guide/terrain.md](/docs/guide/terrain.md) | guide | active | terrain | Рельеф и мир — FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. |
 | [docs/guide/vegetation.md](/docs/guide/vegetation.md) | guide | active | vegetation | Растительность вблизи камеры — Группа «Растительность» (V01: рекомендации 1, 3, 4 из docs/archive/plan/groups-top-level.md, группа 5; V02 — деревья по маске леса 10 м). |
-| [docs/guide/world-objects.md](/docs/guide/world-objects.md) | guide | active | world | Объекты мира (world_objects) — VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2. |
+| [docs/guide/world-objects.md](/docs/guide/world-objects.md) | guide | active | world | Объекты мира (world_objects): ветроуказатели, посадки, процедурные дома посёлков в пятнах застройки WorldCover, тропы к стартам, лагерь, костёр, просеки, пасхалки. Без OSM: нет дорог, ЛЭП, заборов, полей и имён посёлков. |
 
 ## Контракты стыков
 
@@ -210,7 +210,7 @@ generated: true
 | путь | тип | статус | модуль | summary |
 |---|---|---|---|---|
 | [docs/registry/contracts.md](/docs/registry/contracts.md) | registry | active |  | Контракты стыков по модулям: идентификаторы и версии из заголовков. |
-| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (466 записей), по модулям. |
+| [docs/registry/decisions.md](/docs/registry/decisions.md) | registry | active |  | Решения всех модулей из decisions.jsonl (472 записей), по модулям. |
 | [docs/registry/findings.md](/docs/registry/findings.md) | registry | active |  | Реестр выводов из закрытых планов и журналов: тема, вывод (числа как в источнике), источник в архиве, где применено. Пишется вручную. |
 | [docs/registry/research.md](/docs/registry/research.md) | registry | active |  | Все исследования docs/research и tools/research: тема, вывод, данные, где применено. |
 | [TODO.md](/TODO.md) | registry | active |  | TODO — реестр задач — Цель сейчас: доделать основу — всё, кроме разделов «Идеи», «Позже/отложено», «Места» и явно отложенного. |
