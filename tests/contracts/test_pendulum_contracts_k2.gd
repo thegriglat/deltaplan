@@ -59,18 +59,18 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К2\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 1, "PD-К2 (v1) в заголовках")
+	check(m != null and int(m.get_string(1)) == 2, "PD-К2 (v2) в заголовках")
 
 
 func test_pendulum_config() -> void:
 	var c := _read_json("res://configs/pendulum.json")
 	check(not c.is_empty(), "configs/pendulum.json читается")
-	check(c.get("contract") == "PD-К2 v1", "contract")
+	check(c.get("contract") == "PD-К2 v2", "contract")
 	var want := {
 		"chain": {"links": 3, "strap_mass_kg": 1.0, "compliance_m_per_n": 4e-5, "substeps_per_s": 480, "substeps_min": 4},
 		"arms": {"force_max_n": 300.0, "tau_s": 0.30, "ti_s": 0.6, "shift_y_max_m": 0.45,
 				"shift_x_pull_m": 0.45, "shift_x_push_m": 0.30},
-		"strips": {"count": 16, "cp_chord": 0.25},
+		"strips": {"count": 16, "cp_chord": 0.25, "aero_hz": 60.0},
 		"yaw": {"cn_beta": 0.06, "fin_arm_m": 1.6, "fin_slope_per_rad": 2.0},
 		"head": {"forward_m": 0.75, "up_m": 0.15},
 		"apparatus_defaults": {"hang_shift_cm": 0.0, "hang_length_m": 1.2, "sail_flex": 0.2, "dihedral_eff_deg": 1.0},
