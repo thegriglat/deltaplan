@@ -167,7 +167,7 @@
     "alpha_range_deg_doc": "Изменение угла атаки при трапеции до упора от себя/на себя на разбеге, °. WPC-4: нейтраль опущена (17,0 → 15,0°), упор «нос вниз» оставлен на прежнем угле -3,0° (геометрия: концы крыла над землёй, tests/flight/test_wing_clearance.gd) — ход 18,0°, упор «нос вверх» 33,0°"
   },
   "pendulum": {
-    "contract": "PD-К2 v1",
+    "contract": "PD-К2 v3",
     "_doc": "генерирует tools/flight/pendulum_params.py (порт балансировки tools/research/pendulum), руками не править; оси киля: x — назад от носа, z — вверх; inertia_kgm2 — оси x вперёд, y вправо, z вниз, около ЦМ крыла, без присоединённой массы (ixz = элемент тензора, −Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим при hang_from_nose_m и эталонной массе",
     "sweep_deg": 26.0,
     "root_chord_m": 2.3,
@@ -179,22 +179,26 @@
     "bar_x_from_nose_m": 0.4086,
     "bar_z_m": -1.6024,
     "cg_x_from_nose_m": 1.425,
-    "cg_z_m": -0.0485,
+    "cg_z_m": -0.065,
     "inertia_kgm2": {
-      "ixx": 206.084,
-      "iyy": 19.677,
-      "izz": 218.6,
-      "ixz": -2.849
+      "ixx": 205.972,
+      "iyy": 19.566,
+      "izz": 218.599,
+      "ixz": -2.626
     },
-    "dcm0": 0.03686,
-    "cd_scale": 0.97969,
+    "dcm0": 0.03565,
+    "cd_scale": 0.97976,
+    "apparatus_defaults": {
+      "dihedral_eff_deg": 0.5,
+      "sail_flex": 0.2
+    },
     "ref": {
       "trim_kmh": 38.0,
       "sink_ms": 0.866,
-      "alpha_trim_deg": 9.6,
-      "neutral_point_from_nose_m": 1.3823,
-      "static_margin": 0.1097,
-      "kmh_per_cm_hang": 0.963
+      "alpha_trim_deg": 9.59,
+      "neutral_point_from_nose_m": 1.3769,
+      "static_margin": 0.1067,
+      "kmh_per_cm_hang": 0.99
     }
   },
   "visual": {
