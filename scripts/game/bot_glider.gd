@@ -9,8 +9,6 @@ extends Node3D
 ## Сам не считает физику: BotPilots шагает BotAgent и зовёт on_step(); между шагами бота
 ## (они реже шагов игрока) положение интерполируется.
 
-const NAME_FONT := "res://assets/fonts/NotoSans-CondensedBold.ttf"
-
 var agent: BotAgent
 var visual: GliderVisual
 var animator := PilotAnimator.new()
@@ -119,32 +117,11 @@ func set_name_config(nc: Dictionary) -> void:
 	_names = nc
 	if name_tag == null:
 		return
-	var c: Array = nc.get("color", [1.0, 1.0, 1.0])
-	name_tag.modulate = Color(float(c[0]), float(c[1]), float(c[2]))
-	name_tag.outline_size = int(nc.get("outline_px", 6))
-	if not bool(nc.get("show", true)):
-		name_tag.visible = false
+	NameTag.apply_style(name_tag, nc)
 
 
 func _build_name_tag() -> void:
-	name_tag = Label3D.new()
-	name_tag.name = "NameTag"
-	name_tag.top_level = true
-	name_tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	name_tag.fixed_size = true
-	name_tag.no_depth_test = false
-	name_tag.shaded = false
-	name_tag.double_sided = true
-	# Непрозрачное (отсечка по альфе) — пишет глубину: иначе дымка и облака (haze, cloud_volume
-	# — по буферу глубины) рисуются поверх имени, и его не видно.
-	name_tag.alpha_cut = Label3D.ALPHA_CUT_DISCARD
-	name_tag.font_size = 48
-	name_tag.outline_modulate = Color(0.0, 0.0, 0.0, 0.8)
-	name_tag.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	name_tag.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	if ResourceLoader.exists(NAME_FONT):
-		name_tag.font = load(NAME_FONT)
-	name_tag.visible = false
+	name_tag = NameTag.create()
 	add_child(name_tag)
 	set_name_config(Config.get_config("bots").get("names", {}))
 
@@ -162,20 +139,11 @@ func _update_name_tag(cam: Camera3D, d: float, shown: bool) -> void:
 	if agent.state != BotAgent.State.FLY:
 		end = minf(end, float(_names.get("ground_fade_end_m", 120.0)))
 		start = minf(start, end * 0.5)
-	var a := 1.0 - smoothstep(start, end, d)
-	if a <= 0.01:
-		name_tag.visible = false
-		return
-	name_tag.visible = true
-	if name_tag.text != agent.pilot_name:
-		name_tag.text = agent.pilot_name
 	var up := _hang_h + float(_names.get("height_m", 3.2))
-	name_tag.global_position = global_position + Vector3.UP * up
-	var frac := float(_names.get("font_px", 22.0)) / 1080.0
-	name_tag.pixel_size = frac * 2.0 * tan(deg_to_rad(cam.fov) * 0.5) / float(name_tag.font_size)
-	var k := float(_names.get("alpha", 0.85)) * a
-	name_tag.modulate.a = k
-	name_tag.outline_modulate.a = 0.8 * k
+	NameTag.show_at(
+		name_tag, cam, agent.pilot_name, global_position + Vector3.UP * up, _names,
+		NameTag.fade(d, start, end)
+	)
 
 
 func _xform() -> Transform3D:
