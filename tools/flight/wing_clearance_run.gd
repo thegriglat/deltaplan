@@ -109,7 +109,7 @@ func _scene(
 		"разбег": [_inp(0, 0, true, 0), 12.0],
 	}
 	for ph: String in phases:
-		var m := g.model
+		var m: FlightModel = g.model
 		m.reset_on_ground(Vector3(pos.x, gf.call(pos.x, pos.z), pos.z), heading)
 		var inp: ControlInput = phases[ph][0]
 		var dur: float = phases[ph][1]

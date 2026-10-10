@@ -186,7 +186,7 @@ func _run_matrix() -> void:
 func _fly_straight(game: Game, mode: String, pilot: String) -> Dictionary:
 	game.restart()
 	game.air.set("time_s", 0.0)
-	var m := game.glider.model
+	var m: FlightModel = game.glider.model
 	var c := ControlInput.new()
 	c.weight_shift = mode == "weight_shift"
 	var delay_n := int(round(HUMAN_DELAY_S / DT))

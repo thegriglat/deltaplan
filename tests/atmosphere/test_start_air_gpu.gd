@@ -58,7 +58,7 @@ func _check_site(game: Game, site: String) -> void:
 	if not air.is_air_field_on():
 		return
 	game.restart()
-	var p := game.glider.model.position + Vector3.UP * 1.5
+	var p: Vector3 = game.glider.model.position + Vector3.UP * 1.5
 	var gs := air.ground.sample(p.x, p.z)
 	var agl := p.y - gs.x
 	var fw := air.air_field.sample(p, gs.x)

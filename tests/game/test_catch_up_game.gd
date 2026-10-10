@@ -54,9 +54,25 @@ class FakePilots:
 	var states := {}
 
 	func set_local_state(
-		pos: Vector3, rot: Quaternion, vel: Vector3, phase: String, wing: String, colors: Variant
+		pos: Vector3,
+		rot: Quaternion,
+		vel: Vector3,
+		phase: String,
+		wing: String,
+		colors: Variant,
+		control_mode: String = "",
+		pilot_rel: Variant = null
 	) -> void:
-		local = {"pos": pos, "rot": rot, "vel": vel, "phase": phase, "wing": wing, "colors": colors}
+		local = {
+			"pos": pos,
+			"rot": rot,
+			"vel": vel,
+			"phase": phase,
+			"wing": wing,
+			"colors": colors,
+			"control_mode": control_mode,
+			"pilot_rel": pilot_rel,
+		}
 
 	func clear_local_state() -> void:
 		local = {}
@@ -141,7 +157,7 @@ func _run_tow(max_s: float = 40.0) -> Dictionary:
 		n += 1
 		if game.is_towing():
 			last = game.tow.last
-			var p := game.glider.model.position
+			var p: Vector3 = game.glider.model.position
 			min_agl = minf(min_agl, p.y - game.terrain.height_at(p.x, p.z))
 			game.net.send_local()
 			tow_phase = tow_phase and String(pilots.local.get("phase", "")) == "TOW"
@@ -150,7 +166,7 @@ func _run_tow(max_s: float = 40.0) -> Dictionary:
 
 ## После передачи управления: 10 с полёта без рук — без сваливания, скорость не ниже трима.
 func _fly_after(label: String) -> void:
-	var trim := game.glider.model.trim_speed()
+	var trim: float = game.glider.model.trim_speed()
 	var min_as := INF
 	var stalled := false
 	var ended_before := ended.size()
@@ -167,7 +183,7 @@ func _fly_after(label: String) -> void:
 
 func _arrival(label: String, id: String) -> void:
 	var tgt: Vector3 = pilots.states[id].pos
-	var own := game.glider.model.position
+	var own: Vector3 = game.glider.model.position
 	var d := own.distance_to(tgt)
 	check(d >= 30.0 and d <= 80.0, "%s: прибытие в 30–80 м от цели (%.1f м)" % [label, d])
 	check(absf(own.y - tgt.y) < 12.0, "%s: на высоте цели (Δ %.1f м)" % [label, own.y - tgt.y])
@@ -305,16 +321,16 @@ func test_catch_up_in_main_scene() -> void:
 	check(game.catch_up_to(FRIEND) == "tow", "снова буксир")
 	for i in int(3.0 / DT):
 		_step()
-	var at := game.glider.model.position
+	var at: Vector3 = game.glider.model.position
 	_key("pause")
 	check(not game.is_towing(), "Esc — буксир отменён")
 	check(main.get("state") == 2, "Esc на буксире не открывает паузу")
 	check(tow_ends.back() == "aborted", "отмена")
 	check(game.glider.model.position.distance_to(at) < 0.5, "физика — на месте")
 	check(game.glider.phase() == "flying", "в воздухе")
-	var p0 := game.glider.model.position
+	var p0: Vector3 = game.glider.model.position
 	_step()
-	var moved := game.glider.model.position.distance_to(p0)
+	var moved: float = game.glider.model.position.distance_to(p0)
 	check(moved > 0.01 and moved < 1.0, "физика шагает сама (%.3f м за шаг)" % moved)
 
 	# `=` на буксире — тоже отмена.
