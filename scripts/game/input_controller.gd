@@ -312,21 +312,30 @@ static func _soft_center(x: float, dz: float) -> float:
 
 func _apply_gamepad() -> void:
 	var gp: Dictionary = _cfg.gamepad
-	if not bool(gp.enabled) or Input.get_connected_joypads().is_empty():
+	if not bool(gp.enabled):
 		return
+	# выбранного устройства нет — ввода с джойстика нет (не подменять другим: другая калибровка)
+	var dev := BarAxis.find_device(String(gp.get("device_guid", "")))
+	if dev < 0:
+		return
+	apply_stick(Input.get_joy_axis(dev, int(gp.roll_axis)), Input.get_joy_axis(dev, int(gp.pitch_axis)))
+	if on_ground and not run_blocked and Input.is_joy_button_pressed(dev, int(gp.run_button)):
+		control.run = true
+		control.walk = 0.0
+		control.turn = 0.0
+
+
+## Сырые значения осей джойстика → control.roll/pitch (CB-К2). Отдельно от устройства — для тестов.
+func apply_stick(raw_roll: float, raw_pitch: float) -> void:
+	var gp: Dictionary = _cfg.gamepad
 	var inv := -1.0 if bool(_cfg.invert_pitch) else 1.0
-	var dev: int = Input.get_connected_joypads()[0]
-	var gx := _stick(Input.get_joy_axis(dev, int(gp.roll_axis)), gp)
-	var gy := _stick(Input.get_joy_axis(dev, int(gp.pitch_axis)), gp)
+	var gx := BarAxis.axis_value(raw_roll, BarAxis.cal_of(gp, "roll"), bool(gp.get("invert_roll", false)), gp)
+	var gy := BarAxis.axis_value(raw_pitch, BarAxis.cal_of(gp, "pitch"), bool(gp.get("invert_pitch", false)), gp)
 	if gx != 0.0 or gy != 0.0:
 		# стик — трапеция и в полёте, и на земле (С2 v3): на земле нос и заданный крен крыла
 		control.roll = gx * _roll_sign()  # ход стика = ручка крена (смещение веса или скорость крена — по режиму)
 		# стик вперёд (ось < 0) = трапеция от себя (pitch +), как у дельтапланериста (У1 v3)
 		control.pitch = -gy * inv
-	if on_ground and not run_blocked and Input.is_joy_button_pressed(dev, int(gp.run_button)):
-		control.run = true
-		control.walk = 0.0
-		control.turn = 0.0
 
 
 func _telemetry() -> Telemetry:
@@ -346,13 +355,3 @@ static func _ramp(v: float, dir: float, rate: float, ret: float, dt: float) -> f
 	if dir != 0.0:
 		return move_toward(v, signf(dir), rate * dt)
 	return move_toward(v, 0.0, ret * dt)
-
-
-static func _stick(v: float, gp: Dictionary) -> float:
-	var dz := float(gp.deadzone)
-	if absf(v) < dz:
-		return 0.0
-	var x := (absf(v) - dz) / (1.0 - dz)
-	var e := float(gp.expo)
-	x = (1.0 - e) * x + e * x * x * x
-	return signf(v) * clampf(x * float(gp.sensitivity), 0.0, 1.0)

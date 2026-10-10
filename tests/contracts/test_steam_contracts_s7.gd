@@ -78,7 +78,7 @@ func test_save_patch_splits_local_keys() -> void:
 	for k in UserSettings.LOCAL_KEYS:
 		var parts := (k as String).split(".")
 		var c := UserSettings.read_json(dir.path_join(parts[0] + ".json"))
-		var node: Variant = c
+		var node: Variant = c if parts.size() > 1 else (null if c.is_empty() else c)
 		for i in range(1, parts.size()):
 			node = node.get(parts[i]) if node is Dictionary else null
 		check(node == null, "в configs нет " + k)
