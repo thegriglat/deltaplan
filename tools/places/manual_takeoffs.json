@@ -1,0 +1,7 @@
+{
+ "_note": "Старты, которых нет в OSM и которые не встроенные места игры (PP-К1 v3, id manual/<место>/<старт>). Вершина Юцы — firstep.ru/flyplaces/juca (N43°58.1571' E043°01.3574'); точки стартов поставлены по рельефу SRTM 30 м у вершины, ele — null (нет точных данных).",
+ "takeoffs": [
+  {"id": "manual/yutsa/south", "name": "Юца (Пятигорск) — южный склон, высокий старт", "lat": 43.9680, "lon": 43.0226, "country": "RU", "ele": null, "orientation": ["S"]},
+  {"id": "manual/yutsa/west", "name": "Юца (Пятигорск) — западный склон, низкий старт", "lat": 43.9690, "lon": 43.0190, "country": "RU", "ele": null, "orientation": ["W"]}
+ ]
+}

@@ -8176,6 +8176,28 @@
     "SSE"
    ],
    "site": "kayancha_south"
+  },
+  {
+   "country": "RU",
+   "ele": null,
+   "id": "manual/yutsa/south",
+   "lat": 43.968,
+   "lon": 43.0226,
+   "name": "Юца (Пятигорск) — южный склон, высокий старт",
+   "orientation": [
+    "S"
+   ]
+  },
+  {
+   "country": "RU",
+   "ele": null,
+   "id": "manual/yutsa/west",
+   "lat": 43.969,
+   "lon": 43.019,
+   "name": "Юца (Пятигорск) — западный склон, низкий старт",
+   "orientation": [
+    "W"
+   ]
   }
  ],
  "version": 1
