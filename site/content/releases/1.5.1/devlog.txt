@@ -1,0 +1,26 @@
+Deltaplan 1.5.1 — a world from the satellite map
+
+The game no longer depends on OpenStreetMap. Every place, anywhere in the world, is now built only from terrain and the satellite land cover map: villages are generated inside built-up patches, lakes come straight from the satellite map. Loading a new place no longer waits for an overloaded map server, and the loading screen shows how many requests are left.
+
+The pilot also got a new pose in flight, closer to real flying: upper arms down, elbows out, forearms to the bar, hanging with the centre of mass under the carabiner. And the game is almost half the size.
+
+Places:
+- No OpenStreetMap: terrain and satellite land cover only
+- Villages with houses, sheds and saunas inside built-up areas
+- Lakes and rivers from the satellite map and terrain
+- No roads, power lines or fences; a path goes down from the launch
+- Built-in places are downloaded on first use, then open from the cache
+- Request counter on the loading screen
+
+Pilot and camera:
+- New flying pose: elbows out like on a motorbike, forearms to the bar
+- Pilot hangs with the centre of mass under the carabiner; normal arm proportions
+- Two cockpit views: pilot's eyes, and behind without the pilot (default)
+
+Other:
+- Bots waiting for launch keep their own spots and go one at a time
+- Download is almost half the size: about 90 MB instead of 168 MB
+
+Known issues:
+- The first visit to a built-in place needs the internet (about a minute)
+- Takeoff in a strong headwind can drop a wingtip on some gliders
