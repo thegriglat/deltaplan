@@ -37,11 +37,12 @@
     },
     {
       "name": "parse_all",
-      "cmd": "XDG_DATA_HOME=$(mktemp -d) timeout 900 systemd-run --user --scope -p MemoryMax=12G -q godot --headless --path . res://tests/run_tests.tscn -- --filter=__no_such_test__ 2>&1 | grep -c 'Parse Error\\|Cannot infer'",
-      "expect": "re:^0\\s*$"
+      "cmd": "bash -c 'tools/dp check gd $(git ls-files \"tests/*.gd\" \"tools/flight/*.gd\" \"tools/shots/*.gd\" \"tools/bench/*.gd\" \"tools/motion_rig/*.gd\") 2>&1 | tail -1'",
+      "expect": "re:— ок\\s*$"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T02:27:15"
+  "created": "2026-10-11T02:27:15",
+  "edited": "2026-10-11T02:34:50"
 }
