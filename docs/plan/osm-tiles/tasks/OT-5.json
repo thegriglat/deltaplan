@@ -1,0 +1,67 @@
+{
+  "id": "OT-5",
+  "module": "osm-tiles",
+  "type": "dp-engineer",
+  "title": "Набор регионов Geofabrik и покрытие тайлами",
+  "goal": "Оркестратору нужен замороженный набор неперекрывающихся регионов Geofabrik (≤ 2 ГБ каждый, вместе — вся суша) и карта тайл → регионы для склейки границ (O4, O8).",
+  "plan_ref": "OT-5. Набор регионов Geofabrik",
+  "contracts": [
+    {
+      "name": "O8",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O4",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    },
+    {
+      "name": "O5",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-5",
+  "branch": "osm-tiles/OT-5",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "tools/osm_tiles/regions.py",
+    "tools/osm_tiles/tests/test_regions.py",
+    "tools/osm_tiles/tests/data/geofabrik"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles/packer",
+    "tools/osm_tiles/world.py"
+  ],
+  "accept": [
+    {
+      "name": "unit",
+      "cmd": "python3 -m unittest tools/osm_tiles/tests/test_regions.py 2>&1 | tail -3",
+      "expect": "re:^OK"
+    },
+    {
+      "name": "overlap",
+      "cmd": "python3 tools/osm_tiles/regions.py check --work /home/greg/deltaplan_data/osm_tiles/OT-5",
+      "expect": "num:overlap_max_pct=([\\d.]+) <=1"
+    },
+    {
+      "name": "coverage",
+      "cmd": "python3 tools/osm_tiles/regions.py check --work /home/greg/deltaplan_data/osm_tiles/OT-5",
+      "expect": "num:coverage_pct=([\\d.]+) >=99"
+    },
+    {
+      "name": "max_size",
+      "cmd": "python3 tools/osm_tiles/regions.py check --work /home/greg/deltaplan_data/osm_tiles/OT-5",
+      "expect": "re:oversize_unlisted=0"
+    },
+    {
+      "name": "cover_done",
+      "cmd": "python3 tools/osm_tiles/regions.py check --work /home/greg/deltaplan_data/osm_tiles/OT-5",
+      "expect": "re:cover_missing=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T16:20:51"
+}

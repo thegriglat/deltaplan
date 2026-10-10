@@ -1,0 +1,59 @@
+{
+  "id": "OT-3",
+  "module": "osm-tiles",
+  "type": "dp-researcher",
+  "title": "Сверка с эталоном и оценка планеты",
+  "goal": "Детерминированная сверка вывода упаковщика (stats O6) с Python-эталоном §9 по допускам плана и оценка размера планеты по нашим тайлам — условие приёмки OT-2 и шлюз бюджета 10 ГБ.",
+  "plan_ref": "OT-3. Сверка с эталоном и оценка планеты",
+  "contracts": [
+    {
+      "name": "O6",
+      "version": "1",
+      "ref": "docs/contracts/osm-tiles.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-tiles-OT-3",
+  "branch": "osm-tiles/OT-3",
+  "base": "feature/osm-tiles",
+  "scope": [
+    "tools/osm_tiles/compare_ref.py",
+    "tools/osm_tiles/ref_to_stats.py",
+    "tools/osm_tiles/estimate_planet.py",
+    "tools/osm_tiles/tests/test_compare_ref.py",
+    "tools/osm_tiles/tests/test_estimate_planet.py"
+  ],
+  "dont_touch": [
+    "tools/research/osm_pack",
+    "tools/osm_tiles/packer"
+  ],
+  "accept": [
+    {
+      "name": "selftest_tests",
+      "cmd": "python3 -m unittest tools/osm_tiles/tests/test_compare_ref.py tools/osm_tiles/tests/test_estimate_planet.py 2>&1 | tail -3",
+      "expect": "re:^OK"
+    },
+    {
+      "name": "self_slovenia",
+      "cmd": "python3 tools/osm_tiles/ref_to_stats.py --ref slovenia > /tmp/ot3_s.json && python3 tools/osm_tiles/compare_ref.py /tmp/ot3_s.json --ref slovenia",
+      "expect": "exit=0"
+    },
+    {
+      "name": "self_almaty",
+      "cmd": "python3 tools/osm_tiles/ref_to_stats.py --ref almaty > /tmp/ot3_a.json && python3 tools/osm_tiles/compare_ref.py /tmp/ot3_a.json --ref almaty",
+      "expect": "exit=0"
+    },
+    {
+      "name": "perturbed_fails",
+      "cmd": "python3 tools/osm_tiles/ref_to_stats.py --ref slovenia --perturb buildings:count:1.02 > /tmp/ot3_p.json; python3 tools/osm_tiles/compare_ref.py /tmp/ot3_p.json --ref slovenia; echo rc=$?",
+      "expect": "re:rc=1"
+    },
+    {
+      "name": "estimate",
+      "cmd": "python3 tools/osm_tiles/estimate_planet.py /tmp/ot3_s.json /tmp/ot3_a.json",
+      "expect": "re:планета.*ГБ"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T16:20:28"
+}
