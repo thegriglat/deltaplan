@@ -491,3 +491,20 @@ settings_motion_sign_yaw,Курс,Yaw
 settings_motion_sign_roll_rate,Скор. крена,Roll rate
 settings_motion_sign_pitch_rate,Скор. тангажа,Pitch rate
 settings_motion_sign_yaw_rate,Скор. курса,Yaw rate
+settings_bar_title,Трапеция / джойстик,Control bar / joystick
+settings_bar_device,Устройство,Device
+settings_bar_device_first,Первое подключённое,First connected
+settings_bar_device_missing,не подключено: %s,not connected: %s
+settings_bar_roll_axis,Ось крена,Roll axis
+settings_bar_pitch_axis,Ось тангажа,Pitch axis
+settings_bar_invert_roll,Инверсия крена,Invert roll
+settings_bar_invert_pitch,Инверсия тангажа (устройство),Invert pitch (device)
+settings_bar_deadzone,Мёртвая зона,Deadzone
+settings_bar_expo,Экспонента (0 — линейно),Expo (0 = linear)
+settings_bar_neutral,Нейтраль,Set neutral
+settings_bar_range,Края,Record range
+settings_bar_range_stop,Края: стоп,Range: stop
+settings_bar_reset,Сброс,Reset
+settings_bar_raw,"Сырые оси: крен %.3f, тангаж %.3f","Raw axes: roll %.3f, pitch %.3f"
+settings_bar_roll,Крен (итог),Roll (result)
+settings_bar_pitch,Тангаж (итог),Pitch (result)

@@ -1,0 +1,51 @@
+{
+  "id": "CB-3",
+  "module": "control-bar",
+  "type": "dp-writer",
+  "title": "Инструкция Build your own control bar (англ.)",
+  "goal": "Самодельщику — коротко: игре нужен любой USB HID-джойстик с двумя осями, готовые варианты ссылками, как выбрать устройство и откалибровать в игре.",
+  "plan_ref": "CB-3",
+  "contracts": [
+    {
+      "name": "CB-К1",
+      "version": "1",
+      "ref": "docs/contracts/control-bar.md"
+    }
+  ],
+  "copy": "~/deltaplan-control-bar-CB-3",
+  "branch": "control-bar/CB-3",
+  "base": "feature/control-bar",
+  "scope": [
+    "tools/control_bar/README.md",
+    "tools/motion_rig/README.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "file",
+      "cmd": "test -s tools/control_bar/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "urls",
+      "cmd": "grep -oE 'https?://[^ )>]+' tools/control_bar/README.md | sort -u | wc -l",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "ui_names",
+      "cmd": "grep -c -e 'Set neutral' -e 'Record range' -e 'Control bar / joystick' tools/control_bar/README.md",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "link",
+      "cmd": "grep -q 'control_bar/README.md' tools/motion_rig/README.md && grep -q 'motion_rig/README.md' tools/control_bar/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T18:41:38"
+}

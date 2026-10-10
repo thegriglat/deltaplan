@@ -52,6 +52,7 @@ var _wind_model: OptionButton
 var _language: OptionButton
 var _language_codes: Array = []
 var _pilot_name: LineEdit
+var _bar_ui: ControlBarSettings  ## «Трапеция / джойстик» (CB-2)
 var _motion_on: CheckBox
 var _motion_addr: LineEdit
 var _motion_rate: HSlider
@@ -107,6 +108,8 @@ func _ready() -> void:
 	_roll_input.add_item(tr("settings_roll_input_bar"))
 	_roll_input.add_item(tr("settings_roll_input_body"))
 	UiKit.row(box_ctl, tr("settings_roll_input"), _roll_input)
+	_bar_ui = ControlBarSettings.new()
+	box_ctl.add_child(_bar_ui)
 	# Звук вариометра: пресеты configs/audio.json → vario_audio.presets (если есть).
 	var va: Dictionary = Config.get_config("audio").get("vario_audio", {})
 	var presets: Variant = va.get("presets", {})
@@ -304,6 +307,7 @@ func load_values() -> void:
 	var rm := String(Config.value("controls", "roll_control_mode", "rate"))
 	_roll_mode.select(1 if rm == "weight_shift" else 0)
 	_roll_input.select(1 if String(Config.value("controls", "roll_input", "body")) == "body" else 0)
+	_bar_ui.load_values()
 	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))
 	_render_scale_auto.button_pressed = bool(Config.value("game", "render_scale_auto", true))
 	_render_scale.value = float(Config.value("game", "render_scale_pct", 100.0))
@@ -375,6 +379,7 @@ func save() -> bool:
 		)
 		and ok
 	)
+	ok = UserSettings.save_patch("controls", {"gamepad": _bar_ui.patch()}, config_dir) and ok
 	if not _net_mode and _time_speed.selected >= 0:
 		var tp := {"time": {"speed": float(_speeds[_time_speed.selected])}}
 		ok = UserSettings.save_patch("world", tp, config_dir) and ok
