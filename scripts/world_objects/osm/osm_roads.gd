@@ -41,6 +41,8 @@ static func build(data: OsmData, cfg: Dictionary, height_fn: Callable, _obstacle
 		WorkerThreadPool.wait_for_task_completion(t)
 	for g: Dictionary in groups:
 		var parts: Array = g.parts
+		for part: Dictionary in parts:
+			RoadMesher.meshes(part.tiles)  # ArrayMesh — только на главном потоке
 		for k in parts.size():
 			for c in parts[k].counts:
 				g.counts[c] = int(g.counts.get(c, 0)) + int(parts[k].counts[c])

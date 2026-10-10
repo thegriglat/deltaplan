@@ -4,7 +4,8 @@ extends RefCounted
 ## вершина кромки кладётся на height_at + lift_m. Меши группируются по тайлам и по «главная /
 ## второстепенная» (разная дальность видимости).
 ## Цвет — цвет вершин (линейный), UV.x — поперёк (0..1).
-## Без нод; результат: {"<major>:<tx>:<tz>": {mesh: ArrayMesh, origin: Vector3, major: bool}}.
+## Без нод и ресурсов — build безопасен в рабочих потоках: результат {"<major>:<tx>:<tz>": {arrays: Array,
+## origin: Vector3, major: bool}}; ArrayMesh из него делает meshes() на главном потоке.
 
 
 ## counts (необязательно) — сколько лент построено по классам: {класс: число}.
@@ -26,7 +27,11 @@ static func build(roads: Array, cfg: Dictionary, height_fn: Callable, counts: Di
 			continue
 		counts[t] = int(counts.get(t, 0)) + 1
 		var col := WorldTiles.linear_color([cls[2], cls[3], cls[4]])
-		_add_strip(acc, pts, float(cls[0]), major, col, lift, tile, height_fn)
+		var width := float(cls[0])
+		var rw := float(r.get("w", 0.0))
+		if rw > 0.0:  # ширина из тега width, с ограничением сверху
+			width = clampf(rw, 1.0, minf(width * 2.5, 40.0))
+		_add_strip(acc, pts, width, major, col, lift, tile, height_fn)
 	var out := {}
 	for k in acc:
 		var a: Dictionary = acc[k]
@@ -37,10 +42,17 @@ static func build(roads: Array, cfg: Dictionary, height_fn: Callable, counts: Di
 		arrays[Mesh.ARRAY_COLOR] = a.c
 		arrays[Mesh.ARRAY_TEX_UV] = a.uv
 		arrays[Mesh.ARRAY_INDEX] = a.i
-		var mesh := ArrayMesh.new()
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-		out[k] = {"mesh": mesh, "origin": a.origin, "major": a.major}
+		out[k] = {"arrays": arrays, "origin": a.origin, "major": a.major}
 	return out
+
+
+## Массивы → ArrayMesh (только главный поток): добавляет в каждую запись ключ mesh.
+static func meshes(tiles: Dictionary) -> void:
+	for k in tiles:
+		var t: Dictionary = tiles[k]
+		var mesh := ArrayMesh.new()
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, t.arrays)
+		t["mesh"] = mesh
 
 
 ## Точки ломаной не реже шага.
