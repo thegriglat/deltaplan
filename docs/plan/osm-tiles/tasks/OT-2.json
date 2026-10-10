@@ -43,11 +43,11 @@
   "scope": [
     "tools/osm_tiles/packer",
     "tools/osm_tiles/pack_region.sh",
-    "tests/fixtures/osm_tiles"
+    "tests/fixtures/osm_tiles",
+    "tools/osm_tiles/compare_ref.py,tools/osm_tiles/tests/test_compare_ref.py"
   ],
   "dont_touch": [
     "tools/research/osm_pack",
-    "tools/osm_tiles/compare_ref.py",
     "tools/osm_tiles/proto",
     "docs/contracts",
     "scripts"
@@ -102,5 +102,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T16:22:35",
-  "edited": "2026-10-10T16:22:44"
+  "edited": "2026-10-10T16:49:53"
 }
