@@ -114,3 +114,13 @@
 {"t": "2026-10-11T03:34:00", "by": "coordinator", "task": "PD-14", "ev": "checked", "note": "3/3 pendulum=ok:77/77; test_landing=ok:11/11; pilot_pose=ok:2/2"}
 {"t": "2026-10-11T03:35:32", "by": "reviewer", "task": "PD-14", "ev": "reviewed", "note": "Скоуп и «не трогать» соблюдены, пороги LandingJudge не ослаблены. Экран по Wieselsberger с источником, ключи в конфиге. Мягкая посадка в штиль только у trainin…", "verdict": "accept", "review": "docs/plan/pendulum/tasks/PD-14.review.json"}
 {"t": "2026-10-11T03:35:41", "by": "coordinator", "task": "PD-14", "ev": "accepted", "note": "по ревью (sonnet, accept, 1 minor — граница C_L max в docs, PD-9)"}
+{"t": "2026-10-11T03:35:50", "by": "coordinator", "task": "PD-14", "ev": "merged", "commits": ["f5ab8205"]}
+{"t": "2026-10-11T03:36:00", "by": "coordinator", "task": "PD-8", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-pendulum-PD-8"}
+{"t": "2026-10-11T03:47:12", "by": "coordinator", "task": "PD-14", "ev": "accepted", "commits": ["f5ab8205"], "note": "3/3 pendulum=ok:77/77; test_landing=ok:11/11; pilot_pose=ok:2/2"}
+{"t": "2026-10-11T03:47:26", "by": "coordinator", "task": "PD-13", "ev": "accepted", "commits": ["f5ab8205"], "note": "4/4 pendulum_contracts_k3=ok:4/4; menu_setup=ok:12/12; pendulum_mode=ok:6/6; zone=ok:4/4"}
+{"t": "2026-10-11T03:48:48", "by": "coordinator", "task": "PD-15", "ev": "accepted", "commits": ["f5ab8205"], "note": "3/3 catch_up=ok:20/20; net_flight=ok:7/7; parse_all=ok:— ок"}
+{"t": "2026-10-11T03:50:10", "by": "coordinator", "task": "PD-7", "ev": "accepted", "commits": ["f5ab8205"], "note": "4/4 net=ok:79/79; remote_pilots=ok:7/7; pendulum_contracts_k4=ok:5/5; go_test=ok:exit 0"}
+{"t": "2026-10-11T03:56:08", "by": "coordinator", "task": "PD-6", "ev": "accepted", "commits": ["f5ab8205"], "note": "6/6 pilot_pose=ok:2/2; aframe_contracts=ok:4/4; cockpit=ok:6/6; pendulum_contracts_k5=ok:5/5; pendulum_visual=ok:5/5; pendulum_head=ok:1/1"}
+{"t": "2026-10-11T03:56:43", "by": "executor", "task": "PD-8", "ev": "reported", "commits": ["946e5c24"], "note": "done: Пачка сценариев PD-8 прогнана на игре и прототипе: из 110 сравнённых чисел ни одно не расходится > 15 % (макс. 13 % на …", "dp_feedback": "Нет команды для заготовки пакетного прогона godot+python с общими jsonl; dp job wait по умолчанию режется таймаутом оболочки 120 с, приходилось ждать порциями."}
+{"t": "2026-10-11T03:57:12", "by": "coordinator", "task": "PD-4", "ev": "accepted", "commits": ["f5ab8205"], "note": "5/5 control_bar=ok:13/13; motion_rig=ok:25/25; autopilot=ok:2/2; pendulum=ok:77/77; settings_tabs=ok:1/1"}
+{"t": "2026-10-11T03:57:14", "by": "coordinator", "task": "PD-8", "ev": "checked", "note": "2/2 table=ok:278; docs=ok:ошибок 0"}
