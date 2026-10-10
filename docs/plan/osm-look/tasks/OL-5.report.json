@@ -1,0 +1,85 @@
+{
+  "status": "done",
+  "summary": "Дороги: новый road.gdshader (асфальт с шумом/заплатами, разметка по классам, колея грунтовок, UV вдоль в метрах + UV2 код вида). Земля города: OsmCityGround — серо-бежевая подложка с пятнами зелени по маске плотности домов, плавный край. По решению пользователя оставлен первый (пёстрый) вариант подложки; спокойные варианты 08/07 — только кадры.",
+  "commits": [
+    "f0c029fc OL-5: подложка города — возвращён первый вариант (пёстрая, с зеленью), по решению пользователя",
+    "a51d94ed OL-5: спокойная подложка города — средний серо-бежевый тон, крупные мягкие пятна, без зелени и шума",
+    "96abc107 OL-5: вид дорог (асфальт, разметка, колея) и земля города по плотности домов"
+  ],
+  "checks": [
+    {
+      "name": "world_objects",
+      "value": "118/118",
+      "pass": true
+    },
+    {
+      "name": "osm_tiles",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "8",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Рельефа Алматы нет в репозитории: кадры над плоской зелёной землёй, не над реальным рельефом/WorldCover",
+    "Трава рельефа (grass_field) вблизи может торчать сквозь подложку — не проверялось в игре"
+  ],
+  "questions": [
+    "Подложка выкл. — city_ground.enabled=false; спокойный вариант: ground_color [0.55,0.52,0.47], yard_color [0.52,0.49,0.45], patch_m 160, без зелени — в коммите 2-й попытки, не применён"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-5/01_алматы_сверху_до.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-5/02_алматы_сверху_после.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-5/03_дорога_крупно_разметка.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-5/04_грунтовка_колея.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-5/05_двор_города_вблизи.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-5/06_алматы_сверху_после-2_спокойная_подложка.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-5/07_алматы_сверху_после-2б_тёмно-серая_подложка.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-5/08_алматы_сверху_после-2в_средний_тон.png"
+  ],
+  "how_to_check": "dp accept OL-5; godot res://tools/shots/city_look_shot.tscn -- --view=top|road|track",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/osm/city_ground.gd",
+      "why": "Рельеф WorldCover built знает только в местах с картой поверхности; маска взята по домам OSM (клетка 200 м, порог 0.12, сглаживание), общий помощник BuildingStyle (OL-1) не подключён — место отмечено в коде",
+      "checked": "кадры Алматы; тест маски на подставных данных"
+    },
+    {
+      "where": "scripts/world_objects/osm/road.gdshader",
+      "why": "Z-порядок дорога/подложка/рельеф держится depth_bias (дороги 0.3, подложка 0.12)",
+      "checked": "кадры вблизи и сверху без мерцания"
+    }
+  ],
+  "dp_feedback": "dp accept --dry дольше 120 с — foreground-вызов уходит в фон; в инструкции задания лучше dp job start.",
+  "extra": {
+    "frame_ms_before_top": {
+      "cpu": 1.535,
+      "gpu": 1.459
+    },
+    "frame_ms_after_top": {
+      "cpu": 0.847,
+      "gpu": 1.797
+    },
+    "frame_ms_before_road": {
+      "cpu": 0.845,
+      "gpu": 1.847
+    },
+    "frame_ms_after_road": {
+      "cpu": 0.669,
+      "gpu": 1.0
+    },
+    "note": "стенд city_look_shot --bench, плоская земля; GPU сверху +0.3 мс (подложка+дороги), в пределах шума CPU",
+    "city_ground_vertices": "см. OsmLayer stats; шаг 40 м, тайлы 2 км",
+    "journal": "dp inbox OL-5 — только дополнение координатора"
+  },
+  "t": "2026-10-11T01:32:38",
+  "by": "executor"
+}
