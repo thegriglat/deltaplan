@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "GliderVisual.set_hang_pose: тело вдоль HangPoint→пилот (кратчайший поворот без рыскания), таз ровно в pilot_rel, без сглаживания; руки IK, стропа-лента; Glider._update_pilot, BotGlider, BotAgent.pilot_rel/_valid, камера из глаз без head_follow_body в маятнике. Тесты К5/visual/head и 6 проверок карточки зелёные.",
+  "commits": [
+    "bc813bce PD-6: поза пилота по маятнику"
+  ],
+  "checks": [
+    {
+      "name": "pilot_pose",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "aframe_contracts",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "cockpit",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "pendulum_contracts_k5",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "pendulum_visual",
+      "value": "4/4; голова от head_position 1.6 см",
+      "pass": true
+    },
+    {
+      "name": "pendulum_head",
+      "value": "1/1; training 1.8 / laminar 3.8 / sport 1.5 см",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/PD-6/01_вираж.png",
+    "/home/greg/deltaplan/build/screenshots/PD-6/02_из_глаз.png"
+  ],
+  "how_to_check": "dp accept PD-6",
+  "uncertain": [
+    {
+      "where": "tests/flight/pendulum/test_pendulum_head.gd",
+      "why": "sport x0.54 у нижней границы 0,5-2x: отклик хаотичен",
+      "checked": "детерминированное поле, прогон повторяем; training/laminar 0.83/1.05"
+    },
+    {
+      "where": "scripts/flight/glider_visual.gd:set_hang_pose",
+      "why": "таз берётся из кости Hips текущей анимации; без скелета - body_center+drop",
+      "checked": "голова из Head-кости ложится в 1.6 см от head_position"
+    }
+  ],
+  "dp_feedback": "dp task show --full хватило; не хватает команды запуска одного теста с выводом print.",
+  "t": "2026-10-11T02:06:09",
+  "by": "executor"
+}

@@ -60,3 +60,5 @@
 {"t": "2026-10-11T02:03:37", "by": "coordinator", "task": "PD-12", "ev": "created", "note": "Умолчания «Аппарата» по классам крыла и подвеска — по ответам пилота"}
 {"t": "2026-10-11T02:03:39", "by": "coordinator", "task": "PD-12", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-pendulum-PD-12"}
 {"t": "2026-10-11T02:04:19", "by": "coordinator", "task": "PD-13", "ev": "created", "note": "Настройки «Аппарат» у каждого крыла свои (PD-К3 v2)"}
+{"t": "2026-10-11T02:06:09", "by": "executor", "task": "PD-6", "ev": "reported", "commits": ["bc813bce"], "note": "done: GliderVisual.set_hang_pose: тело вдоль HangPoint→пилот (кратчайший поворот без рыскания), таз ровно в pilot_rel, без сг…", "dp_feedback": "dp task show --full хватило; не хватает команды запуска одного теста с выводом print."}
+{"t": "2026-10-11T02:15:01", "by": "coordinator", "task": "PD-6", "ev": "checked", "note": "6/6 pilot_pose=ok:2/2; aframe_contracts=ok:4/4; cockpit=ok:6/6; pendulum_contracts_k5=ok:5/5; pendulum_visual=ok:4/4; pendulum_head=ok:1/1"}
