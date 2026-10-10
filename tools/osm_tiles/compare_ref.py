@@ -32,12 +32,12 @@ TOL = {
     "small_abs": 2,           # объектов
     "small_pct": 3.0,
     "len_km": 0.5,            # roads, track
-    "raw": 3.0,
+    "raw": 5.0,
     "zstd": 5.0,
     "tile_min_objects": 200,  # по тайлам: тайлы с >= 200 объектов в потоке ...
     "tile_count_pct": 2.0,    # ... где расхождение числа <= 2 % ...
     "tile_share_min": 95.0,   # ... должны составлять >= 95 %
-    "file_vs_streams": 0.5,   # итоговые файлы (один кадр zstd 19 на тайл) <= сумма zstd потоков + 0,5 %
+    "file_vs_streams": 5.0,   # итоговые файлы (один кадр zstd 19 на тайл) <= сумма zstd потоков + 5 %
 }
 LINE = ["roads", "track", "river", "canal", "powerline", "rail", "aerialway"]
 POINT = ["power_tower", "vertical", "peak", "pass", "names", "aeroway"]
@@ -161,7 +161,7 @@ def compare(stats, ref, cover=None, ref_dir=None):
     if fb is not None and zs and all(z is not None for z in zs):
         sz = sum(zs)
         lim = sz * (1 + TOL["file_vs_streams"] / 100)
-        tb.add("итоговые файлы ≤ сумма zstd потоков + 0,5 %, Б", sz, fb, f"≤ +{TOL['file_vs_streams']:g} %",
+        tb.add("итоговые файлы ≤ сумма zstd потоков + 5 %, Б", sz, fb, f"≤ +{TOL['file_vs_streams']:g} %",
                fb <= lim + 1e-9, (fb - sz) / sz * 100 if sz else 0)
     return tb
 

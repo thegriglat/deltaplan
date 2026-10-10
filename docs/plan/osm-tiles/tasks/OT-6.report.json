@@ -1,56 +1,49 @@
 {
   "status": "partial",
-  "summary": "world.py (run/status/plan) готов и проходит 16 тестов на заглушке osmtiles + локальном HTTP-сервере с Range; боевой тест KZ+KG ждёт OT-2/OT-4.",
+  "summary": "split_same разобран: тайлы out_a и out_c/out_d совпадают с точностью до поля sources (id частей kazakhstan__pN) и вытекающего raw_len; ждёт правки finalize в OT-4. Нарезка переведена на пачки, потеря osm_timestamp в частях исправлена.",
   "commits": [
-    "18409f49 OT-6: оркестратор world.py, тесты на заглушке"
+    "b40f9272 OT-6: нарезка пачками (--extract-batch), перенос osmosis-времени в части"
   ],
   "checks": [
     {
       "name": "unit",
-      "value": "OK, 16 тестов, 63 с",
+      "value": "OK 19 tests",
       "pass": true
     },
     {
-      "name": "status_done",
-      "value": "ждёт боевого теста",
-      "pass": false
-    },
-    {
       "name": "resume_same",
-      "value": "ждёт боевого теста",
-      "pass": false
+      "value": "same 6662 tiles",
+      "pass": true
     },
     {
-      "name": "manifest",
-      "value": "ждёт боевого теста",
+      "name": "split_same (dump без sources)",
+      "value": "6119 Казахстан: равны без sources (+raw_len); 543 Киргизия равны побайтно; пар с иными отличиями 0",
       "pass": false
     }
   ],
   "not_done": [
-    "боевой тест kazakhstan,kyrgyzstan (run_a без прерываний, run_b с kill) и замеры — ждёт OT-2/OT-4",
-    "оценка времени мирового прогона — после замера"
+    "split_same по sha ждёт OT-4: в sources тайла должен быть исходный регион, а не часть"
   ],
-  "questions": [
-    "Раскладка фрагментов O4 в контракте не задана: world.py предполагает <frag-dir>/<регион>/<j>/<i>.dpt и <frag-dir>/<регион>.pack.json (удаляет фрагменты склеенных тайлов по этому пути). Совпадает ли с OT-2? Если нет — поправлю константу."
-  ],
-  "how_to_check": "python3 -m unittest tools/osm_tiles/tests/test_world.py; боевой: world.py run --work …/OT-6/run_a --out …/out_a --regions kazakhstan,kyrgyzstan --seed-from /home/greg/deltaplan_data/osm_tiles/OT-5",
+  "questions": [],
+  "how_to_check": "dp accept OT-6 --dry (после OT-4 + dp task sync OT-6)",
   "uncertain": [
     {
-      "where": "tools/osm_tiles/world.py: Ctx.pack/run_finalize",
-      "why": "формат --report finalize ({j,i,bytes,sha256}) и путь фрагментов взяты из O5/O4 без реального бинаря",
-      "checked": "только заглушка по тексту контракта"
+      "where": "world.py split (osmium fileinfo/--output-header)",
+      "why": "extract теряет osmosis_replication_timestamp: в out_c 6119 тайлов имели osm_timestamp=0 (вторая причина расхождения, не только sources)",
+      "checked": "добавлен перенос через --output-header; прогон run_d: osm_timestamp совпал с out_a во всех тайлах"
     },
     {
-      "where": "tools/osm_tiles/world.py: PDEATHSIG",
-      "why": "дочерний osmtiles гибнет при kill -9 world.py только на Linux (prctl); на Win/mac осиротевший pack может дожить",
-      "checked": "на Linux тесты kill -9 проходят"
+      "where": "оценка памяти extract на canada",
+      "why": "память ~3,7 ГБ на выход при Казахстане 0,22 ГБ; от размера входа зависимость не измерена",
+      "checked": "замер 1/2/3 выхода: 3,81/7,49/11,15 ГБ; для родителей >2 ГБ batch=1 принудительно; на canada ожидаю 4-8 ГБ на выход (не проверено)"
     }
   ],
-  "dp_feedback": "dp accept --dry гоняет 63-секундный unit целиком; не хватило способа запускать одну проверку.",
-  "seconds_kz_kg": "ждёт боевого теста",
-  "peak_disk_gb": "ждёт боевого теста",
-  "peak_rss_mb": "ждёт боевого теста",
-  "world_eta_hours": "ждёт боевого теста",
-  "t": "2026-10-10T16:51:38",
+  "dp_feedback": "dp lock cpu требует имя и '--': в справке по задаче стоит как dp lock cpu <команда>. Хотелось бы dp для сравнения тайлов через osmtiles dump с игнором полей.",
+  "seconds_kz_kg": "run_a без нарезки 43,0 с (скачивание 41 с, pack 3,0+0,9 с); run_d с нарезкой на 3 части 57,0 с (extract 20,3 с)",
+  "peak_disk_gb": "0,217 (run_a), 0,428 (run_d с нарезкой)",
+  "peak_rss_mb": "1151 (pack/finalize, run_a); 7655 (run_d, extract батч 2)",
+  "world_eta_hours": "~3,5-4 ч: скачивание 82,7 ГБ при 7-9 МБ/с (замер 6,9 и 9,0 МБ/с) = 2,6-3,3 ч; упаковка ~75 МБ/с = ~0,3 ч (идёт параллельно скачиванию); нарезка 7 исключений-гигантов по ~6 с/выход на 0,22 ГБ, для больших ~десятки минут",
+  "osmium_extract_peak_gb": "Казахстан 3 части: 3,8 (1 выход) / 7,5 (2) / 11,2 (3 за проход); по умолчанию батч 2, для родителя >2 ГБ батч 1; canada оценка 4-8 ГБ на выход",
+  "t": "2026-10-10T17:30:39",
   "by": "executor"
 }

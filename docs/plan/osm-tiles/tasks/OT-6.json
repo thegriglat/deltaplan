@@ -72,9 +72,10 @@
     "seconds_kz_kg",
     "peak_disk_gb",
     "peak_rss_mb",
-    "world_eta_hours"
+    "world_eta_hours",
+    "osmium_extract_peak_gb"
   ],
   "notes": "",
   "created": "2026-10-10T16:37:40",
-  "edited": "2026-10-10T16:56:41"
+  "edited": "2026-10-10T17:19:11"
 }
