@@ -1,6 +1,6 @@
 extends TestCase
 ## «Маятник» (PD-2): болтанка σ 1 м/с без развала; шаг 1/120, 1/60, 1/30 с без NaN; временное
-## касание (v1, до PD-3) → LANDED и LandingJudge.
+## касание → LANDED и LandingJudge (земля — test_pendulum_ground*).
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 
@@ -127,17 +127,19 @@ func test_touchdown_lands() -> void:
 	check(absf(feet.y) < 0.2, "ступни у земли (%.2f м)" % feet.y)
 	# прямое планирование на триме: горизонтальная ~10 м/с — «жёсткая», не авария по вертикали
 	check(float(res.vertical_speed_ms) < 3.0, "вертикальная %.2f м/с" % res.vertical_speed_ms)
-	var p := m.position
-	m.step(S.DT, inp, Callable(), ground)
-	check(m.position.is_equal_approx(p), "после касания step не интегрирует")
+	# v2: после жёсткой посадки пилот на ногах — пробежка, а не заморозка
+	for i in 240:
+		m.step(S.DT, inp, Callable(), ground)
+	check(m.mode == FlightModel.Mode.LANDED and S.finite(m), "стоит на ногах, без NaN")
+	check(got.size() == 1, "landed не повторяется")
 	print("    касание: %s за %.1f с" % [res, t])
 
 
-func test_reset_on_ground_starts_in_air() -> void:
+func test_reset_on_ground_stands() -> void:
 	var m := S.make("sport")
 	m.reset_on_ground(Vector3(5.0, 200.0, 7.0), 30.0)
-	check(m.mode == FlightModel.Mode.AIR, "v1: старт в воздухе")
-	approx(m.position.y, 300.0, 0.5, "на 100 м выше")
+	check(m.mode == FlightModel.Mode.GROUND, "v2: стоит на земле")
+	approx(m.pilot_position.y - 1.0, 200.0, 0.05, "ступни на земле")
 	approx(m.telemetry.heading_deg, 30.0, 0.5, "курс")
 
 

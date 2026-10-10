@@ -56,9 +56,6 @@ var flying_enabled := false
 ## Старт в воздухе (--air-start, docs/guide/game.md): в air_start_m м от старта по его курсу, на
 ## air_start_agl_m м над рельефом, на скорости трима; < 0 — обычный старт с земли.
 var air_start_m := -1.0
-## Режим «Маятник» (PD-4): старт в воздухе, вперёд по курсу старта, м, и над рельефом, м.
-const PENDULUM_START_FORWARD_M := 100.0
-const PENDULUM_START_AGL_M := 150.0
 var air_start_agl_m := 300.0
 ## Сид мира (термики, порывы); < 0 — atmosphere.json → seed. Задать до start(): «Лететь» из
 ## меню — новый случайный, «Ещё раз» его не меняет; сеть — сид зоны.
@@ -576,12 +573,7 @@ func restart(keep_clock: bool = false) -> void:
 	queue_walk = {}
 	motion.reset()
 	_align_start_heading()
-	if glider.is_pendulum():
-		# земли маятника ещё нет (PD-3): всегда в воздухе над стартом, на триме
-		glider.reset_in_air(
-			air_start_position(PENDULUM_START_FORWARD_M, PENDULUM_START_AGL_M), _start_heading
-		)
-	elif air_start_m >= 0.0:
+	if air_start_m >= 0.0:
 		glider.reset_in_air(air_start_position(), _start_heading)
 	elif net != null:  # в сети — на своё место в очереди на старт (NET-43)
 		var sp := net.queue_start_spot()

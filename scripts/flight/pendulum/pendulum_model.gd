@@ -10,8 +10,14 @@ extends RefCounted
 ##
 ## Внутри — мир NED (x север, y восток, z вниз) с локальным началом, которое каждый шаг
 ## переносится в ЦМ крыла (float32 у Vector3 иначе даёт шум скоростей из позиций вдали от нуля).
-## Наружу — оси игры (X восток, Y вверх, −Z север). Земли маятника в v1 нет (PD-3): только
-## касание ступнями → LANDED; reset_on_ground стартует в воздухе.
+## Наружу — оси игры (X восток, Y вверх, −Z север).
+##
+## Земля (PD-К1 v2, PD-3; R6 плана) — PendulumGround: ноги — пружина-демпфер, руки держат стойки
+## (_uprights). Отрыв — ступни перестали касаться земли под нагрузкой стропы; руки на штангу —
+## через ground.bar_after_liftoff_s или когда ступни выше takeoff.upright_clear_m. Посадка —
+## касание ступнями (LandingJudge по скорости ЦМ пилота); консоль или нос раньше ступней — авария.
+## После посадки без аварии пилот снова на ногах с крылом на руках (пробежка, run/walk — снова
+## разбег).
 
 signal took_off
 signal landed(result: Dictionary)
@@ -19,7 +25,6 @@ signal takeoff_failed(reason: String)
 
 const UP := Vector3.UP
 const E3 := Vector3(0.0, 0.0, 1.0)  ## вниз (NED)
-const FEET_BELOW_CM_M := 1.0  ## ступни ниже ЦМ пилота вдоль его оси, м (PD-К1)
 ## Умолчания configs/pendulum.json (PD-К2 v1) — на случай, если файла нет.
 const DEFAULTS := {
 	"chain": {
@@ -36,6 +41,15 @@ const DEFAULTS := {
 	"apparent_roll": true,
 	"billow_shift_deg": 0.0,
 	"head": {"forward_m": 0.75, "up_m": 0.15},
+	"ground": {
+		"leg_length_m": 1.0, "leg_stiffness_n_per_m": 3.0e4, "foot_friction": 0.8,
+		"side_damping_n_s_per_m": 2000.0, "stand_stiffness_n_per_m": 2.0e4,
+		"shoulder_forward_m": 0.35, "shoulder_up_m": 0.45, "grip_along_upright_m": 0.7,
+		"grip_stiffness_n_per_m": 3000.0, "grip_force_max_n": 600.0, "grip_down_max_n": 100.0,
+		"pitch_hold_nm_per_deg": 30.0, "pitch_moment_max_nm": 300.0,
+		"liftoff_feet_clear_m": 0.05, "liftoff_strap_fraction": 0.25, "bar_after_liftoff_s": 1.0,
+		"fell_cm_height_m": 0.5,
+	},
 	"apparatus_defaults": {
 		"hang_shift_cm": 0.0, "hang_length_m": 1.2, "sail_flex": 0.2, "dihedral_eff_deg": 1.0,
 	},
@@ -88,6 +102,7 @@ var aero_hz: float = 60.0
 var strips := PendulumWingStrips.new()
 var chain := PendulumPilotChain.new()
 var arms := PendulumPilotArms.new()
+var ground := PendulumGround.new()
 
 var _polar: WingPolar
 var _m_wing: float = 0.0
@@ -132,6 +147,24 @@ var _lf_filter: float = 0.3
 var _lf_jitter: float = 1.0
 var _flare_h: float = 4.0
 var _feet_agl: float = INF
+# земля (PD-3)
+var _uprights := false  ## руки на стойках, ноги работают (земля, сразу после отрыва, после посадки)
+var _t_air: float = 0.0  ## с отрыва, пока руки на стойках
+var _fresh := false  ## reset_on_ground: поза по уклону — на первом шаге (склон ещё не известен)
+var _h_ground0: float = 0.0  ## высота земли при reset_on_ground (если ground_fn нет)
+var _leg_len: float = 1.0
+var _feet_clear: float = 0.05
+var _strap_frac: float = 0.25
+var _bar_after: float = 1.0
+var _upright_clear: float = 1.0
+var _fell_h: float = 0.5
+var _slope_d: float = 1.0
+var _tension_avg: float = 0.0
+var _hands_p := Vector3.ZERO  ## сила рук на пилота (NED), последний подшаг
+var _contact_pts: Array[Vector3] = []  ## нос, концы консолей (правая, левая), конец киля — оси B
+const CONTACT_NAMES := ["nose", "wingtip", "wingtip", "keel"]
+## Посадка: консоль на земле раньше ступней — авария, если крыло накренено хотя бы на это, рад.
+const LANDING_TIP_BANK := deg_to_rad(10.0)
 
 
 static func ned(g: Vector3) -> Vector3:
@@ -229,6 +262,28 @@ func setup(
 	_zero_air.resize(strips.n)
 	chain.setup(ch, pilot_mass, _hang_len)
 	arms.setup(pendulum.arms)
+	# земля: ноги, хват за стойки, точки касания крыла
+	var gc: Dictionary = pendulum.ground
+	ground.setup(gc, pilot, flight, wing, pilot_mass, _m_wing)
+	ground.set_grip(
+		Vector3(x_hang, 0.0, 0.0), Vector3(bar_x, 0.0, -float(blk.bar_z_m)),
+		float(gc.grip_along_upright_m), _cg_n
+	)
+	_leg_len = float(gc.leg_length_m)
+	_feet_clear = float(gc.liftoff_feet_clear_m)
+	_strap_frac = float(gc.liftoff_strap_fraction)
+	_bar_after = float(gc.bar_after_liftoff_s)
+	_fell_h = float(gc.fell_cm_height_m)
+	_upright_clear = float(flight.takeoff.upright_clear_m)
+	_slope_d = float(flight.takeoff.slope_sample_m)
+	var half := 0.5 * span
+	var x_tip := half * tan(deg_to_rad(float(blk.sweep_deg))) + 0.5 * float(blk.tip_chord_m)
+	_contact_pts = []
+	for r_n: Vector3 in [
+		Vector3.ZERO, Vector3(x_tip, half, 0.0), Vector3(x_tip, -half, 0.0),
+		Vector3(float(blk.keel_len_m), 0.0, 0.0),
+	]:
+		_contact_pts.append(Vector3(_cg_n.x - r_n.x, r_n.y, r_n.z - _cg_n.z))
 	_neutral_ok = false
 	telemetry = Telemetry.new()
 
@@ -252,14 +307,54 @@ func reset_in_air(
 	var h := _pos + _R * _r_hang_b
 	chain.place(h, _R * Vector3(st.pilot_dir_b), _vel)
 	mode = FlightModel.Mode.AIR
+	_uprights = false
 	_air_c = ned(wind)  # до первого step воздушная скорость — относительно ветра
 	_update_outputs(Callable(), Callable())
 
 
-## v1 (до PD-3): земли маятника нет — старт в воздухе на 100 м выше.
+## Пилот стоит ступнями в pos (мир игры; высота — земля, её даёт Glider) лицом по курсу, крыло
+## на руках: хват за стойки у плеч, нос — wing.launch.alpha_neutral_deg к земле по курсу, стропа
+## провисает. Уклон склона модель узнаёт на первом шаге (ground_fn) — тогда поза ставится заново.
 func reset_on_ground(pos: Vector3, heading_deg: float) -> void:
-	push_error("PendulumModel v1: reset_on_ground не поддерживается — старт в воздухе (PD-3)")
-	reset_in_air(pos + Vector3(0.0, 100.0, 0.0), heading_deg)
+	_reset_common()
+	rho = air_density(pos.y)
+	solve_trim()  # нейтраль рук на штанге — для полёта после отрыва
+	_h_ground0 = pos.y
+	_on = -pos.z
+	_oe = pos.x
+	_od = -pos.y
+	ground.set_plane(0.0, 0.0, 0.0, 0.0, 0.0)
+	_place_on_ground(deg_to_rad(heading_deg), Vector3.ZERO)
+	_fresh = true
+	mode = FlightModel.Mode.GROUND
+	_update_outputs(Callable(), Callable())
+
+
+## Поза стоя: ступни в feet (локальная NED, на земле), курс ps; ЦМ пилота над ступнями на длину
+## ноги со статическим сжатием, плечи — хват за стойки, крыло с носом на alpha_neutral к земле.
+func _place_on_ground(ps: float, feet: Vector3) -> void:
+	_w = Vector3.ZERO
+	_aero_age = INF
+	_air_c = Vector3.ZERO
+	arms.reset()
+	_uprights = true
+	_t_air = 0.0
+	ground.heading_cmd = ps
+	var squash := mass * Units.G / ground.leg_k
+	var xp := feet + PendulumGround.UP_NED * (_leg_len - squash)
+	ground.set_flow(Vector3.ZERO)
+	var th := ground.flow_gamma + ground.alpha_neutral
+	_R = basis_from_euler(ps, th, 0.0)
+	var f := ground.fwd()
+	var sh := xp + f * ground.shoulder_fwd + PendulumGround.UP_NED * ground.shoulder_up
+	_pos = sh - _R * ground.grip_b
+	_vel = Vector3.ZERO
+	var h := _pos + _R * _r_hang_b
+	chain.place(h, Vector3.ZERO, Vector3.ZERO)
+	for i in chain.links:  # провисшая цепь: узлы на прямой подвеска — пилот
+		chain.x[i] = h + (xp - h) * (float(i + 1) / chain.links)
+	ground.reset(ps, xp)
+	_recentre()
 
 
 ## Буксир (NET-42): крыло жёстко в заданное положение, пилот в равновесии под подвеской, ω = 0.
@@ -276,35 +371,174 @@ func set_kinematic(pos: Vector3, vel: Vector3, heading_: float, bank_: float, th
 	chain.place(h, E3, _vel)
 	_air_c = Vector3.ZERO
 	arms.reset()
+	_uprights = false
 	mode = FlightModel.Mode.AIR
 	_update_outputs(Callable(), Callable())
 
 
 ## Один шаг: dt 1/240…1/30 с; подшагов max(substeps_min, ceil(dt·substeps_per_s)).
 func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable) -> void:
-	if mode != FlightModel.Mode.AIR:
+	if not _simulating():
 		_update_outputs(air_fn, ground_fn)
 		return
 	time_s += dt
 	rho = air_density(-(_od + _pos.z))
 	_recentre()
+	var landed_ := mode == FlightModel.Mode.LANDED
+	if landed_ and (input.run or absf(input.walk) > 0.01):
+		# после посадки без аварии: пошёл или побежал — снова на земле с крылом
+		mode = FlightModel.Mode.GROUND
+		landed_ = false
+		landing_result = {}
+		ground.decel = ground.stop_decel
+	if _uprights:
+		_sample_ground(ground_fn)
+		if _fresh:
+			_fresh = false
+			var xp0 := chain.pilot()
+			var feet := Vector3(xp0.x, xp0.y, ground.ground_z(xp0))
+			_place_on_ground(ground.heading_cmd, feet)
+			_sample_ground(ground_fn)
+		ground.begin_step(dt, input, chain.pilot_vel(), landed_)
+		ground.set_flow(chain.pilot_vel() - _air_c)  # поток на бегущего пилота (не качание крыла)
+	var inp := input
+	if landed_:
+		inp = ControlInput.new()  # стоит после посадки: руки держат крыло в нейтрали
 	var n := maxi(_sub_min, ceili(dt * _sub_per_s - 1.0e-9))
 	var h := dt / n
 	_last_pitch = input.pitch
 	var t_aero := 0.0 if aero_hz <= 0.0 else 1.0 / aero_hz - 1.0e-9
 	var f_sum := Vector3.ZERO  # сила на пилота, усреднённая по подшагам (звено может провиснуть в последнем)
+	var t_sum := 0.0
 	for k in n:
 		if _aero_age >= t_aero:
 			_aero_update(air_fn)
 			_aero_age = 0.0
-		_substep(h, input)
-		f_sum += chain.pilot_force + _R * arms.force_b
+		_substep(h, inp)
+		f_sum += chain.pilot_force + _hands_p
+		t_sum += chain.tension
 		_aero_age += h
 	_R = _R.orthonormalized()
+	_tension_avg = t_sum / n
 	var f_p := f_sum / n
 	load.update(f_p.length(), pilot_mass * Units.G, _lf_filter, dt, _lf_jitter)
 	_update_outputs(air_fn, ground_fn)
-	_check_touchdown(ground_fn)
+	match mode:
+		FlightModel.Mode.GROUND:
+			_check_ground(ground_fn)
+		FlightModel.Mode.AIR:
+			if _uprights:
+				_check_after_liftoff(dt, ground_fn)
+			else:
+				_check_touchdown(ground_fn)
+
+
+## Шагает ли модель: в воздухе, на земле и после посадки без аварии (пилот на ногах).
+func _simulating() -> bool:
+	match mode:
+		FlightModel.Mode.AIR, FlightModel.Mode.GROUND:
+			return true
+		FlightModel.Mode.LANDED:
+			return _uprights
+	return false
+
+
+## Плоскость земли под пилотом (ground_fn; нет — ровная земля на высоте reset_on_ground).
+func _sample_ground(ground_fn: Callable) -> void:
+	var xp := chain.pilot()
+	var g := _world(xp)
+	var d := _slope_d
+	var hc := FlightModel.ground_height(ground_fn, g.x, g.z)
+	if hc == -INF:
+		ground.set_plane(xp.x, xp.y, -_h_ground0 - _od, 0.0, 0.0)
+		return
+	var hx := (
+		FlightModel.ground_height(ground_fn, g.x + d, g.z)
+		- FlightModel.ground_height(ground_fn, g.x - d, g.z)
+	) / (2.0 * d)
+	var hz := (
+		FlightModel.ground_height(ground_fn, g.x, g.z + d)
+		- FlightModel.ground_height(ground_fn, g.x, g.z - d)
+	) / (2.0 * d)
+	# NED: север = −z игры, восток = x; «вниз» земли = −h
+	ground.set_plane(xp.x, xp.y, -hc - _od, hz, -hx)
+
+
+## Высота земли под локальной точкой p (мир игры; без ground_fn — плоскость под пилотом).
+func _ground_alt(ground_fn: Callable, p: Vector3) -> float:
+	var g := _world(p)
+	var hg := FlightModel.ground_height(ground_fn, g.x, g.z)
+	return hg if hg > -INF else -(ground.ground_z(p) + _od)
+
+
+## Первая точка крыла (нос, консоли, конец киля) на земле или ниже; −1 — нет.
+## landing — касание в полёте: конец киля и консоли при ровном крыле (|крен| < LANDING_TIP_BANK:
+## задранный на выравнивании парус задевает землю задней кромкой) аварией не считаются.
+func _wing_contact(ground_fn: Callable, landing: bool) -> int:
+	for i in _contact_pts.size():
+		if landing and (i == 3 or (i != 0 and absf(bank) < LANDING_TIP_BANK)):
+			continue
+		var p: Vector3 = _pos + _R * _contact_pts[i]
+		if -(_od + p.z) <= _ground_alt(ground_fn, p):
+			return i
+	return -1
+
+
+## На земле: срыв (крыло коснулось земли, пилот упал) или отрыв (ступни над землёй без опоры,
+## стропа под нагрузкой — из сил, без порога скорости).
+func _check_ground(ground_fn: Callable) -> void:
+	var c := _wing_contact(ground_fn, false)
+	var xp := chain.pilot()
+	if c >= 0:
+		_fail(CONTACT_NAMES[c])
+		return
+	if ground.agl(xp) < _fell_h:
+		_fail("fell")
+		return
+	var feet := ground.agl(xp) - _leg_len
+	if (
+		not ground.contact and feet > _feet_clear
+		and _tension_avg > _strap_frac * pilot_mass * Units.G
+	):
+		mode = FlightModel.Mode.AIR
+		_t_air = 0.0
+		_update_outputs(Callable(), ground_fn)
+		took_off.emit()
+
+
+## Сразу после отрыва (руки ещё на стойках): касание ступнями — снова разбег; крыло о землю —
+## срыв взлёта; через bar_after_liftoff_s (или ступни выше upright_clear_m) — руки на штангу.
+func _check_after_liftoff(dt: float, ground_fn: Callable) -> void:
+	if ground.contact:
+		mode = FlightModel.Mode.GROUND
+		_update_outputs(Callable(), ground_fn)
+		return
+	var c := _wing_contact(ground_fn, false)
+	if c >= 0:
+		_fail(CONTACT_NAMES[c])
+		return
+	_t_air += dt
+	var feet := ground.agl(chain.pilot()) - _leg_len
+	if _t_air >= _bar_after or feet > _upright_clear:
+		_uprights = false
+		arms.reset()
+
+
+func _fail(reason: String) -> void:
+	takeoff_failure = reason
+	mode = FlightModel.Mode.FAILED
+	_uprights = false
+	_freeze()
+	takeoff_failed.emit(reason)
+
+
+func _freeze() -> void:
+	_vel = Vector3.ZERO
+	_w = Vector3.ZERO
+	chain.stop()
+	_hands_p = Vector3.ZERO
+	arms.reset()
+	_update_outputs(Callable(), Callable())
 
 
 ## Значения Telemetry.phase.
@@ -316,12 +550,13 @@ func phase() -> String:
 			return "landed"
 		FlightModel.Mode.FAILED:
 			return "failed"
-	return "standing"
+	return ground.phase
 
 
-## v1: доля «от себя» (0…1) только ниже flight.flare.height_m (ступни над землёй), иначе 0.
+## Доля «от себя» (0…1) у земли — ступни ниже flight.flare.height_m (в полёте, руки на штанге),
+## иначе 0 (v2).
 func flare_amount() -> float:
-	if mode != FlightModel.Mode.AIR or _feet_agl > _flare_h:
+	if mode != FlightModel.Mode.AIR or _uprights or _feet_agl > _flare_h:
 		return 0.0
 	return clampf(_last_pitch, 0.0, 1.0)
 
@@ -441,11 +676,25 @@ func _substep(h: float, input: ControlInput) -> void:
 	var va := vp - _air_p
 	var f_p := E3 * (pilot_mass * Units.G) - va * (0.5 * rho * _pilot_cda * va.length())
 	var rel: Vector3 = Rt * (xp - H)
-	# скорость пилота относительно подвески во вращающихся осях крыла
-	var vrel: Vector3 = Rt * (vp - _vel) - wb.cross(_r_hang_b + rel)
-	var fb := arms.compute(
-		rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y
-	)
+	var fb := Vector3.ZERO
+	if _uprights:
+		# руки на стойках: горизонтальная сила — в хвате, вертикальная опора — под ЦМ крыла
+		var rg := R * ground.grip_b
+		var fw := ground.grip_force(_pos + rg, _vel + _w.cross(rg), xp, vp)
+		var fv := Vector3(0.0, 0.0, fw.z)
+		f_wb += Rt * fw
+		tb += Rt * (rg.cross(fw - fv) + (R * Vector3(0.0, 0.0, ground.grip_b.z)).cross(fv))
+		tb += ground.torque_b(R, wb, _I_b, input.pitch, input.roll)
+		f_p -= fw
+		_hands_p = -fw
+		f_p += ground.legs(xp, vp, h)
+	else:
+		# скорость пилота относительно подвески во вращающихся осях крыла
+		var vrel: Vector3 = Rt * (vp - _vel) - wb.cross(_r_hang_b + rel)
+		fb = arms.compute(
+			rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y
+		)
+		_hands_p = R * fb
 	if fb != Vector3.ZERO:
 		f_p += R * fb
 		f_wb -= fb
@@ -498,6 +747,10 @@ func _recentre() -> void:
 	_od += d.z
 	_pos = Vector3.ZERO
 	chain.shift(-d)
+	ground.anchor -= Vector2(d.x, d.y)
+	ground.gpx -= d.x
+	ground.gpy -= d.y
+	ground.gz -= d.z
 
 
 ## Крыло по точке position узла Glider (pos — мир игры) при текущих _R.
@@ -521,27 +774,51 @@ func _reset_common() -> void:
 	takeoff_failure = ""
 	_feet_agl = INF
 	_last_pitch = 0.0
+	_fresh = false
+	_hands_p = Vector3.ZERO
 
 
+## Касание в полёте (руки на штанге): ступни (ЦМ пилота − длина ноги по его оси) у земли →
+## LandingJudge по скорости ЦМ пилота; консоль или нос в землю раньше ступней — авария. После
+## посадки без аварии пилот на ногах с крылом на руках (пробежка гасит скорость), после аварии —
+## всё стоит.
 func _check_touchdown(ground_fn: Callable) -> void:
 	if not ground_fn.is_valid():
 		return
-	var feet := pilot_position - pilot_basis.y * FEET_BELOW_CM_M
+	var feet := pilot_position - pilot_basis.y * _leg_len
 	var gh := FlightModel.ground_height(ground_fn, feet.x, feet.z)
 	_feet_agl = feet.y - gh
-	if _feet_agl > 0.0:
+	var wing_hit := -1
+	if _feet_agl < span:
+		wing_hit = _wing_contact(ground_fn, true)
+	if _feet_agl > 0.0 and wing_hit < 0:
 		return
 	var lc: Dictionary = flight.landing
 	var nrm := LandingJudge.ground_normal(ground_fn, feet.x, feet.z, float(lc.normal_sample_m))
 	var result := LandingJudge.evaluate(pilot_velocity, nrm, rad_to_deg(bank), lc)
+	if _feet_agl > 0.0:
+		result["grade"] = "crash"  # крыло в землю раньше ног
+		result["contact"] = CONTACT_NAMES[wing_hit]
+	else:
+		result["contact"] = "feet"
 	result["position"] = Vector3(feet.x, gh, feet.z)
 	result["flight_time_s"] = time_s
 	landing_result = result
 	mode = FlightModel.Mode.LANDED
-	_vel = Vector3.ZERO
-	_w = Vector3.ZERO
-	chain.stop()
-	_update_outputs(Callable(), ground_fn)
+	if result.grade == "crash":
+		_freeze()
+	else:
+		# на ноги: руки со штанги на стойки, ступни держат землю, пробежка с runout_decel
+		_uprights = true
+		var xp := chain.pilot()
+		_sample_ground(ground_fn)
+		ground.reset(heading, xp)
+		var f := ground.fwd()
+		var vp := chain.pilot_vel()
+		ground.v_walk = maxf(vp.x * f.x + vp.y * f.y, 0.0)
+		ground.decel = float(lc.runout_decel_ms2)
+		arms.reset()
+		_update_outputs(Callable(), ground_fn)
 	landed.emit(result)
 
 
@@ -557,7 +834,7 @@ func _update_outputs(air_fn: Callable, ground_fn: Callable) -> void:
 	hang_position = _world(h_loc)
 	position = _world(p_loc)
 	velocity = game(_vel + _w.cross(p_loc - _pos))
-	var air_c := _air_c if mode == FlightModel.Mode.AIR else Vector3.ZERO
+	var air_c := _air_c if _simulating() else Vector3.ZERO
 	var vb := R.transposed() * (_vel - air_c)
 	alpha = atan2(vb.z, vb.x)
 	stalled = strips.root_stalled()
@@ -569,7 +846,7 @@ func _update_outputs(air_fn: Callable, ground_fn: Callable) -> void:
 	var up := -rel_g.normalized()
 	pilot_basis = Basis(Quaternion(bg.y, up)) * bg if up.length() > 0.5 else bg
 	head_position = pilot_position + pilot_basis * Vector3(0.0, _head_up, -_head_fwd)
-	bar_force = game(R * arms.force_b)
+	bar_force = game(_hands_p)
 	strap_tension = chain.tension
 	_fill_telemetry(air_c, ground_fn, bg)
 

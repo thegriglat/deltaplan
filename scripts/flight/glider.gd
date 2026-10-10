@@ -98,10 +98,6 @@ func set_ground_fn(f: Callable) -> void:
 
 ## Пилот стоит на земле в точке pos лицом по курсу heading_deg (0 — север).
 func reset_on_ground(pos: Vector3, heading_deg: float) -> void:
-	if is_pendulum():
-		# земли маятника ещё нет (PD-3): старт в воздухе над точкой
-		reset_in_air(pos + Vector3(0.0, 100.0, 0.0), heading_deg)
-		return
 	if ground_fn.is_valid():
 		pos.y = float(ground_fn.call(pos.x, pos.z))
 	model.reset_on_ground(pos, heading_deg)

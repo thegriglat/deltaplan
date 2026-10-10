@@ -20,7 +20,7 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К1\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 1, "заголовок «## PD-К1. … (v1)»")
+	check(m != null and int(m.get_string(1)) == 2, "заголовок «## PD-К1. … (v2)»")
 
 
 func test_surface_members() -> void:
@@ -93,6 +93,35 @@ func test_derived_quantities() -> void:
 	m.step(1.0 / 120.0, inp, Callable(), Callable())
 	var v_fd := (m.position - p0) * 120.0
 	check(v_fd.distance_to(m.velocity) < 0.3, "velocity — скорость точки position")
+
+
+## v2: земля — reset_on_ground ставит пилота на ноги с крылом (GROUND), фазы земли, отрыв из сил.
+func test_ground_v2() -> void:
+	var m := S.make("training")
+	var g := func(_x: float, z: float) -> float: return tan(deg_to_rad(15.0)) * z
+	m.reset_on_ground(Vector3.ZERO, 0.0)
+	check(m.mode == FlightModel.Mode.GROUND, "reset_on_ground → GROUND")
+	check(m.phase() == "standing" and m.telemetry.phase == "standing", "фаза standing")
+	check(m.telemetry.on_ground, "telemetry.on_ground")
+	var feet := m.pilot_position.y - 1.0
+	check(absf(feet) < 0.05, "ступни пилота в pos (%.3f м)" % feet)
+	check(m.pilot_position.y < m.hang_position.y, "крыло над пилотом")
+	var inp := S.input()
+	inp.walk = 1.0
+	m.step(1.0 / 120.0, inp, Callable(), g)
+	check(m.phase() == "walking", "фаза walking")
+	inp.walk = 0.0
+	inp.run = true
+	var got := []
+	m.took_off.connect(func() -> void: got.append(true))
+	for i in 120 * 12:
+		m.step(1.0 / 120.0, inp, Callable(), g)
+		if i == 10:
+			check(m.phase() == "running", "фаза running")
+		if m.mode == FlightModel.Mode.AIR:
+			break
+	check(m.mode == FlightModel.Mode.AIR and got.size() == 1, "отрыв: AIR и took_off")
+	check(m.phase() == "flying", "фаза flying")
 
 
 func test_set_kinematic() -> void:
