@@ -28,6 +28,14 @@ applied_in: ""
 - `summarize.py` — сводка и экстраполяция (оценка).
 - `results/` — json с числами, `results/*.jpg` — картинки.
 
+## Минимальный пакет (10.10.2026, раздел 8 в `docs/plan/osm_vector_pack.md`)
+`filter_min.txt`, `build_min.py` (два уровня за проход: detail 0,25° и world 1°), `analyze_min.py`,
+`summarize_min.py`, `fig_mask.py`, результаты `results/slovenia_min.json`, `summary_min.json`,
+`build_min_stats.json`, `bohinj_lake_mask.jpg`. Команды — §8.6 документа. PBF Словении:
+Geofabrik, Last-Modified 2026-10-08 23:04 GMT, md5 8e661b185bdebdec030be771c1d81f01 (ODbL,
+© OpenStreetMap contributors); данные и venv — `/home/greg/deltaplan_data/osm_pack/`
+(`out_min/` 52 МБ — производные ODbL, не в репозитории).
+
 ## Данные (вне репозитория, `/home/greg/deltaplan_data/osm_pack/`)
 - `slovenia-latest.osm.pbf` — Geofabrik, выгрузка 2026-09-28T20:23Z, 313 335 209 байт,
   md5 e3e669d8d7622f63ee2595738d2eed27. Лицензия ODbL, © OpenStreetMap contributors.

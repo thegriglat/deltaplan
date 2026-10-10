@@ -1,0 +1,14 @@
+{
+ "detail": {
+  "slovenia_bytes": 8314970,
+  "bytes_per_km2": 407.1,
+  "planet_by_density_MB": 54551.4,
+  "planet_by_pbf_share_MB": 2520.6
+ },
+ "world": {
+  "slovenia_bytes": 211336,
+  "bytes_per_km2": 10.3,
+  "planet_by_density_MB": 1380.2,
+  "planet_by_pbf_share_MB": 64.1
+ }
+}
