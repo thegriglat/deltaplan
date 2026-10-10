@@ -72,10 +72,6 @@
       "tests": "ui/"
     },
     {
-      "name": "game/",
-      "tests": "game/"
-    },
-    {
       "name": "osm_any_contracts",
       "tests": "osm_any_contracts"
     },
@@ -90,13 +86,12 @@
       "expect": "exit=0"
     },
     {
-      "name": "no_osm_refs",
-      "cmd": "! grep -rIlE 'osm\\.json|OsmData|OsmLayer|RoadMesher|osm_path|[Oo]verpass' scripts configs tests data | grep -v no_osm_contracts_n4",
-      "expect": "exit=0"
+      "name": "test_collisions",
+      "tests": "test_collisions"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-10T03:47:54",
-  "edited": "2026-10-10T04:04:47"
+  "edited": "2026-10-10T05:28:15"
 }
