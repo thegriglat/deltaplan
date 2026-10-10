@@ -26,6 +26,7 @@
     "world.trees",
     "world.sun",
     "world.effects",
-    "vegetation.grass"
+    "vegetation.grass",
+    "motion_rig"
   ]
 }

@@ -23,6 +23,14 @@ pub fn tile_path(root: &Path, j: i32, i: u32) -> PathBuf {
     root.join("v1").join(j.to_string()).join(format!("{i}.dpt"))
 }
 
+/// Часть нарезки O8 v2 `<id>__p<n>` → `<id>` (для `sources` итогового тайла, O4).
+pub fn base_region(reg: &str) -> &str {
+    match reg.rfind("__p") {
+        Some(k) if k > 0 && reg.len() > k + 3 && reg[k + 3..].bytes().all(|c| c.is_ascii_digit()) => &reg[..k],
+        _ => reg,
+    }
+}
+
 /// Склейка одного тайла из фрагментов (байты файлов по регионам, по алфавиту). `None` — пусто.
 pub fn merge_tile(j: i32, i: u32, frags: &[(String, Vec<u8>)]) -> Result<Option<(Vec<u8>, usize)>> {
     let mut regs: Vec<&(String, Vec<u8>)> = frags.iter().collect();
@@ -40,7 +48,7 @@ pub fn merge_tile(j: i32, i: u32, frags: &[(String, Vec<u8>)]) -> Result<Option<
             return Err(format!("{j} {i} {reg}: в файле тайл {} {}", t.j, t.i));
         }
         ts = ts.max(t.osm_timestamp);
-        sources.push(reg.clone());
+        sources.push(base_region(reg).to_string());
         let mut local: BTreeMap<(i32, i64), Vec<Item>> = BTreeMap::new();
         for it in tile_items(&t) {
             local.entry((it.kind as i32, it.key)).or_default().push(it);
@@ -55,6 +63,8 @@ pub fn merge_tile(j: i32, i: u32, frags: &[(String, Vec<u8>)]) -> Result<Option<
             }
         }
     }
+    sources.sort();
+    sources.dedup();
     let items: Vec<Item> = groups.into_values().flat_map(|g| g.2).collect();
     if items.is_empty() {
         return Ok(None);

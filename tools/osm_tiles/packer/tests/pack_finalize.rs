@@ -70,3 +70,13 @@ fn buildings_morton_then_id() {
 fn empty_merge() {
     assert!(merge_tile(1, 1, &[]).unwrap().is_none());
 }
+
+#[test]
+fn sources_split_parts_collapse() {
+    let a = frag("kz__p1", vec![road(21, 0, vec![(0, 0), (1, 1)])]);
+    let b = frag("kz__p2", vec![road(29, 0, vec![(2, 2), (3, 3)])]);
+    let c = frag("kg", vec![peak(2, "")]);
+    let (data, _) = merge_tile(255, 750, &[a, b, c]).unwrap().unwrap();
+    let t = decode_tile(&data).unwrap();
+    assert_eq!(t.sources, vec!["kg", "kz"]);
+}

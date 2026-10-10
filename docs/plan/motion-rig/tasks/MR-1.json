@@ -1,0 +1,40 @@
+{
+  "id": "MR-1",
+  "module": "motion-rig",
+  "type": "dp-researcher",
+  "title": "Протоколы платформ подвижности: DOF Reality H-серия, SimTools, FlyPT Mover",
+  "goal": "Выяснить, как DOF Reality H2/H3/H4R/H6 получают данные от игр (SimTools 2.x/3.x, FlyPT Mover, собственный софт DOF Reality), и выбрать один простой универсальный протокол (вероятно generic UDP), который мы реализуем. Итог — короткая записка с URL и решением.",
+  "plan_ref": "MR-1",
+  "contracts": [],
+  "copy": "~/deltaplan-motion-rig-MR-1",
+  "branch": "motion-rig/MR-1",
+  "base": "feature/motion-rig",
+  "scope": [
+    "docs/research/motion-rig-protocols.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "scenes",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "note_exists",
+      "cmd": "test -f docs/research/motion-rig-protocols.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_check",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "has_urls",
+      "cmd": "grep -c 'https\\?://' docs/research/motion-rig-protocols.md",
+      "expect": "num:(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-10T17:08:28"
+}
