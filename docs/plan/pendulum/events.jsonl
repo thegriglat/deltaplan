@@ -128,3 +128,6 @@
 {"t": "2026-10-11T03:57:35", "by": "coordinator", "task": "PD-1", "ev": "checked", "commits": ["f5ab8205"], "note": "5/6 pendulum_contracts_k2=ok:7/7; test_wings=ok:4/4; wing_physics_contracts=ok:5/5; params_check=ok:exit 0; wings_only_added=ok:0; wings_count=FAIL:0"}
 {"t": "2026-10-11T03:57:36", "by": "coordinator", "task": "PD-8", "ev": "merged", "commits": ["9e6dbe1"]}
 {"t": "2026-10-11T03:57:36", "by": "coordinator", "task": "PD-18", "ev": "created", "note": "Выход из глубокого срыва: центр давления сорванной полосы назад"}
+{"t": "2026-10-11T03:57:39", "by": "coordinator", "task": "PD-18", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-pendulum-PD-18"}
+{"t": "2026-10-11T04:12:24", "by": "executor", "task": "PD-18", "ev": "reported", "commits": ["47024b61"], "note": "done: Центр давления сорванной части полосы уходит назад по хорде (x/c = 0,25 + 0,25·sin α, Fage & Johansen 1927), включён по…", "dp_feedback": "Нет команды запуска теста по фильтру с выводом только FAIL и итога (пришлось grep -A по выводу godot); файл теста с именем без префикса test_ молча даёт «0 тестов»."}
+{"t": "2026-10-11T04:14:15", "by": "coordinator", "task": "PD-18", "ev": "checked", "note": "2/2 pendulum=ok:79/79; test_landing=ok:11/11"}
