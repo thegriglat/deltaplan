@@ -5,7 +5,7 @@ module: pendulum
 updated: 2026-10-11
 summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4), поза пилота в визуале и у чужих (PD-К5)."
 related: ["docs/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 2}, {"id": "PD-К2", "version": 3}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 1}, {"id": "PD-К5", "version": 1}]
+contracts: [{"id": "PD-К1", "version": 2}, {"id": "PD-К2", "version": 3}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 1}, {"id": "PD-К5", "version": 2}]
 ---
 # Контракты модуля pendulum
 
@@ -88,6 +88,8 @@ v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта си�
 | `head.forward_m`, `head.up_m` | м | 0,75, 0,15 |
 | `apparatus_defaults` | словарь ключей PD-К3 | см. PD-К3 |
 
+`ground.*` (v3) — числа земли маятника (ноги, бег, сцепление, руки на стойках, отрыв), владелец PD-3, ключи и `_doc` — в самом файле; `contract` файла — `"PD-К2 v3"`.
+
 **`configs/wings/<id>.json → pendulum`** — во всех 48 крыльях; пишет только офлайн-скрипт `tools/flight/pendulum_params.py` (порт `params.py`/`geometry.py`/`trim.py` прототипа; источник геометрии — `tools/blender/glider_params.json` + сам конфиг); в рантайме не пересчитывается. Оси — «оси киля» (выше).
 
 | Ключ | Тип, единицы | Смысл |
@@ -129,9 +131,10 @@ UI: экран «Полёт…» (`scripts/ui/flight_setup_screen.gd`) дели�
 
 `server/proto/deltaplan/v1/net.proto`, `PilotState`: `ControlMode control_mode = 11;` (`enum ControlMode { CONTROL_MODE_UNSPECIFIED = 0; CONTROL_MODE_RATE = 1; CONTROL_MODE_WEIGHT_SHIFT = 2; CONTROL_MODE_PENDULUM = 3; }`), `Vec3 pilot_rel = 12;` (= `PendulumModel.pilot_rel`, оси крыла, м, округление 1 см; только при PENDULUM). JSON-ключи `net_messages.gd` — `controlMode`, `pilotRel` (оба nullable). Нет поля — поза по вводу, как сейчас. Прирост `PilotState` ≤ 16 байт.
 
-## PD-К5. Поза пилота в визуале и у чужих пилотов (v1)
+## PD-К5. Поза пилота в визуале и у чужих пилотов (v2)
+v2 (11.10, PD-3): на земле узел `Glider` (формула `position` PD-К1) стоит на 0,2–0,3 м выше и впереди ступней (подвеска физики выше ступней на ≈ 2,2 м, у визуала — `hang_height_m`), поэтому стоящий пилот рисуется ступнями в `pilot_position − 1,0 м·pilot_basis.y` (в осях узла), а не от начала узла.
 Владелец — PD-6 (`GliderVisual`, `BotGlider`, камера); поставщики данных — PD-К1 (`pilot_rel`, `pilot_basis`, `head_position`), PD-7 (`BotAgent.pilot_rel`).
 
-- `GliderVisual.set_hang_pose(pilot_rel: Vector3, on_ground: bool, dt: float)` — поза пилота по маятнику: тело висит вдоль направления HangPoint → пилот (`pilot_rel`, оси крыла = оси узла `Glider`, м), без сглаживания (решение 5); на земле — стоит (как сейчас). Режимы «Смещение веса»/«Упрощённый» — прежний `set_pose(roll, pitch, …)` без изменений.
+- `GliderVisual.set_hang_pose(pilot_rel: Vector3, on_ground: bool, dt: float)` — поза пилота по маятнику: тело висит вдоль направления HangPoint → пилот (`pilot_rel`, оси крыла = оси узла `Glider`, м), без сглаживания (решение 5); на земле — стоит, ступни — в `pilot_position − 1,0 м·pilot_basis.y` (v2). Режимы «Смещение веса»/«Упрощённый» — прежний `set_pose(roll, pitch, …)` без изменений.
 - `Glider._update_pilot`: при `is_pendulum()` → `visual.set_hang_pose(model.pilot_rel, …)`; маркер `PilotHead` следует за телом, так что `head_position` модели и маркер совпадают в пределах 3 см; камера «из глаз» в «Маятнике» не добавляет `head_follow_body` и сглаживание поверх физики.
 - Чужие пилоты: `BotAgent.pilot_rel: Vector3`, `BotAgent.pilot_rel_valid: bool` (по умолчанию false) — пишет `remote_pilots.gd` из `PilotState.pilot_rel` (PD-7); `BotGlider` при `pilot_rel_valid` вызывает `set_hang_pose`, иначе — прежняя поза по вводу. Боты (`pilot_rel_valid = false`) не меняются.
