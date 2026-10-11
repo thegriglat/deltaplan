@@ -22,6 +22,7 @@ SRS_FIELDS = [
     ("roll", "f", 180),
     ("yaw", "f", 184),
     ("lateral_velocity", "f", 188),
+    # ускорения srs — в м/с² (MR-К2 v2): vertical = heave - g (стоя и в установившемся полёте ≈ 0)
     ("lateral_acceleration", "f", 192),
     ("vertical_acceleration", "f", 196),
     ("longitudinal_acceleration", "f", 200),

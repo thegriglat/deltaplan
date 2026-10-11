@@ -105,6 +105,7 @@ var _touchdown := {}  ## оценка последнего касания (Landi
 var _prev_phase := ""
 var _alt_pub_at := -1.0  ## sim_time_s последней публикации высоты в Activity (−1 — ещё нет)
 var _paused := false
+var _motion_gap := false  ## поток движения прерывался (меню/пауза): следующий шаг — с reset()
 
 @onready var sky: SkyEnvironment = $Environment
 @onready var terrain: Terrain = $Terrain
@@ -253,17 +254,27 @@ func tick(dt: float) -> void:
 		_tow_step(dt)  # без физики, столкновений и итога полёта
 		return
 	if _crashed:
+		_motion_step(dt)  # стоянка после столкновения: поза неподвижна, поток идёт
 		return
 	glider.step(dt)  # → telemetry_updated → приборы, звук, статистика
-	if glider.phase() == "flying":
-		motion.step(glider.get_telemetry(), dt)  # свой пилот в полёте (MR-К2)
-	else:
-		motion.idle()
+	_motion_step(dt)  # свой пилот во всех фазах (MR-К1 v2); reset() — только на разрывах
 	_feed_step(dt)
 	var hit := collisions.check(glider.get_telemetry())
 	if not hit.is_empty():
 		_on_collision(hit)
 	_check_finished()
+
+
+## Шаг потока движения своего пилота: только в полёте (не в меню) и не на паузе. Вне полёта пакетов нет;
+## при возврате после меню/паузы (в сети дерево на паузе не стоит, крыло летит само) — reset(): состояние ушло.
+func _motion_step(dt: float) -> void:
+	if not flying_enabled or _paused:
+		_motion_gap = true
+		return
+	if _motion_gap:
+		_motion_gap = false
+		motion.reset()
+	motion.step(glider.get_telemetry(), dt)
 
 
 ## Новый полёт: загрузить рельеф (если нужно), настроить крыло, погоду и поставить на старт.
@@ -913,6 +924,7 @@ func start_catch_up(target_fn: Callable) -> bool:
 	if not t.is_active():
 		return false
 	tow = t
+	motion.reset()  # разрыв потока (MR-К1 v2): на буксире пакетов нет
 	_crashed = false
 	_ended = true  # на буксире итога полёта нет
 	_leave_queue_for_tow()

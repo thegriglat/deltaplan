@@ -22,7 +22,21 @@ func test_doc_headings() -> void:
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
 	for id in ["MR-К1", "MR-К2", "MR-К3"]:
-		check(found.get(id, 0) == (2 if id == "MR-К3" else 1), "%s (v1) в заголовках: %s" % [id, found])
+		check(found.get(id, 0) == 2, "%s (v2) в заголовках: %s" % [id, found])
+
+
+## MR-К2 v2: ускорения srs в м/с² (vertical = heave − G), generic без изменений (version 1).
+func test_k2_srs_units_ms2() -> void:
+	var s := MotionSample.new()
+	s.sway = 0.7
+	s.heave = Units.G + 1.3
+	s.surge = -0.4
+	var b := MotionPacket.pack_srs(s)
+	check(absf(b.decode_float(192) - 0.7) < 1e-5, "lateral_acceleration = sway, м/с²")
+	check(absf(b.decode_float(196) - 1.3) < 1e-5, "vertical_acceleration = heave − G, м/с²")
+	check(absf(b.decode_float(200) + 0.4) < 1e-5, "longitudinal_acceleration = surge, м/с²")
+	var g := MotionPacket.pack_generic(s, 0)
+	check(absf(g.decode_float(28) - (Units.G + 1.3)) < 1e-4, "generic heave — как раньше, м/с²")
 
 
 func test_k1_telemetry_and_classes() -> void:

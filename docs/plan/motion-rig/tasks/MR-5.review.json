@@ -1,0 +1,21 @@
+{
+  "summary": "Пакет srs v102 по MR-К2 v2: смещения 192/196/200 те же, ускорения в м/с², vertical = heave − G, знаки и inverse не тронуты; generic без изменений. Поток по MR-К1 v2: _motion_step во всех фазах и при _crashed, гейт flying_enabled и не _paused, reset() после паузы/меню (через _motion_gap), на restart, start_catch_up, _end_catch_up; на буксире пакетов нет; seq не обнуляется на reset. Замечания по прошлому ревью закрыты.",
+  "issues": [
+    {
+      "file": "scripts/game/game.gd",
+      "line": 232,
+      "severity": "minor",
+      "what": "Ожидание (_wait_step) и режим осмотра (inspect_mode) выходят из tick до _motion_step: пакеты на это время пропадают, но _motion_gap не ставится, поэтому поток продолжается без reset(). Поза за это время не меняется, так что скачка нет; в контракте эти случаи просто не названы",
+      "fix": "При желании ставить _motion_gap = true в этих ветках или назвать их в MR-К1 вместе с меню и паузой; на поведение платформы это не влияет"
+    }
+  ],
+  "rerun": [
+    "dp accept --only layout --dry: PASS (layout OK)",
+    "dp accept --only recv_selftest --dry: PASS (exit 0)",
+    "dp accept --only loop --dry: PASS (loop OK, пакеты есть и на земле, и в полёте)",
+    "tests/game/ не перезапускал, как просили"
+  ],
+  "verdict": "accept",
+  "t": "2026-10-11T22:12:28",
+  "by": "reviewer"
+}

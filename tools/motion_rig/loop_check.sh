@@ -31,7 +31,8 @@ def load(n):
     except FileNotFoundError:
         return []
 errs = []
-exp = secs * 60 * 0.8
+GROUND = 1.5  # loop_run.gd GROUND_S
+exp = (secs + GROUND) * 60 * 0.8
 g, s = load("generic"), load("srs")
 if len(g) < exp: errs.append(f"generic: пакетов {len(g)} < {exp:.0f}")
 if len(s) < exp: errs.append(f"srs: пакетов {len(s)} < {exp:.0f}")
@@ -39,15 +40,22 @@ if g:
     if any(p["format"] != "generic" or p["version"] != 1 for p in g): errs.append("generic: magic/версия")
     seqs = [p["seq"] for p in g]
     if seqs != sorted(seqs) or len(set(seqs)) != len(seqs): errs.append("generic: seq не растёт")
-    heave = sum(p["heave"] for p in g) / len(g)
-    if abs(heave - G) > 0.5: errs.append(f"generic: heave среднее {heave:.3f}")
-    if sum(p["valid"] for p in g) < len(g) - 1: errs.append("generic: valid=false в потоке")
-    print(f"generic: пакетов {len(g)}, heave среднее {heave:.3f}")
+    gnd = [p for p in g if p["on_ground"]]
+    air = [p for p in g if not p["on_ground"]]
+    if len(gnd) < GROUND * 60 * 0.8: errs.append(f"generic: пакетов на земле {len(gnd)}")
+    if len(air) < secs * 60 * 0.8: errs.append(f"generic: пакетов в полёте {len(air)}")
+    heave = sum(p["heave"] for p in air) / max(1, len(air))
+    if abs(heave - G) > 0.5: errs.append(f"generic: heave среднее в полёте {heave:.3f}")
+    hg = sum(p["heave"] for p in gnd) / max(1, len(gnd))
+    if abs(hg - G) > 2.0: errs.append(f"generic: heave среднее на земле {hg:.3f}")
+    # valid=false — только первый пакет после каждого reset() (два reset: земля, воздух)
+    if sum(not p["valid"] for p in g) > 2: errs.append("generic: valid=false в потоке")
+    print(f"generic: пакетов {len(g)} (на земле {len(gnd)}), heave среднее: полёт {heave:.3f}, земля {hg:.3f}")
 if s:
     if any(p["format"] != "srs" or p["version"] != 102 or p["game"] != "Deltaplan" for p in s): errs.append("srs: заголовок/версия")
     vert = sum(p["vertical_acceleration"] for p in s) / len(s)
-    if abs(vert) > 0.05: errs.append(f"srs: vertical среднее {vert:.4f} g")
-    print(f"srs: пакетов {len(s)}, vertical среднее {vert:.4f} g")
+    if abs(vert) > 0.5: errs.append(f"srs: vertical среднее {vert:.4f} м/с²")
+    print(f"srs: пакетов {len(s)}, vertical среднее {vert:.4f} м/с²")
 if errs:
     print("loop FAIL: " + "; ".join(errs)); sys.exit(1)
 print("loop OK")

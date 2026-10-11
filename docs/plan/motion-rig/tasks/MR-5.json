@@ -1,0 +1,82 @@
+{
+  "id": "MR-5",
+  "module": "motion-rig",
+  "type": "dp-engineer",
+  "title": "Heave в SRS (м/с²) и поток движения на земле",
+  "goal": "Отзыв владельца DOF Reality: heave не двигает платформу (srs слал g, ≈1% шкалы), на земле телеметрии нет, рывок на взлёте/посадке из-за обрыва потока. Перевести srs на м/с² (MR-К2 v2) и слать непрерывно во всех фазах своего пилота (MR-К1 v2).",
+  "plan_ref": "MR-5 Heave в SRS и поток на земле",
+  "contracts": [
+    {
+      "name": "MR-К1",
+      "version": "2",
+      "ref": "docs/contracts/motion-rig.md"
+    },
+    {
+      "name": "MR-К2",
+      "version": "2",
+      "ref": "docs/contracts/motion-rig.md"
+    },
+    {
+      "name": "MR-К3",
+      "version": "2",
+      "ref": "docs/contracts/motion-rig.md"
+    }
+  ],
+  "copy": "~/deltaplan-motion-rig-MR-5",
+  "branch": "motion-rig/MR-5",
+  "base": "feature/motion-rig",
+  "scope": [
+    "scripts/motion_rig/",
+    "scripts/game/game.gd",
+    "tests/motion_rig/",
+    "tests/contracts/test_motion_rig_contracts.gd",
+    "tools/motion_rig/",
+    "docs/guide/motion-rig.md",
+    "CHANGELOG.md",
+    "scripts/flight/flight_model.gd"
+  ],
+  "dont_touch": [
+    "docs/contracts/motion-rig.md",
+    "docs/plan/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "motion_rig",
+      "tests": "motion_rig"
+    },
+    {
+      "name": "tests/game/",
+      "tests": "tests/game/"
+    },
+    {
+      "name": "recv_selftest",
+      "cmd": "python3 tools/motion_rig/recv.py --selftest",
+      "expect": "exit=0"
+    },
+    {
+      "name": "loop",
+      "cmd": "bash tools/motion_rig/loop_check.sh",
+      "expect": "re:loop OK"
+    },
+    {
+      "name": "layout",
+      "cmd": "python3 tools/motion_rig/check_layout.py",
+      "expect": "re:layout OK"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "bash -c 'git diff --quiet feature/motion-rig -- CHANGELOG.md; test $? -eq 1'",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Знаки не менять (пилот подтвердил оси). flight_model.gd — только если pilot_* в телеметрии не заполняются в наземных фазах (физику не менять). Стоянка после столкновения (_crashed): пакеты с неподвижной позой, без reset. Буксир: reset на start_catch_up и _end_catch_up, во время _tow_step пакетов нет. Проверить, что каждая постановка крыла (reset_on_ground/reset_in_air) в game.gd сопровождается motion.reset(), и что в меню/паузе пакетов нет. Сглаживание в игре не добавлять. В отчёте числа: srs vertical (м/с²) стоя на ровном и на склоне, в установившемся полёте, пик удара посадки; шум (СКО) heave стоя и на разбеге; сколько срабатываний защиты 50 g на земле за прогон. loop_check — пакеты и на земле (флаг on_ground в generic), и в полёте.",
+  "created": "2026-10-11T20:45:17",
+  "edited": "2026-10-11T20:45:23"
+}
