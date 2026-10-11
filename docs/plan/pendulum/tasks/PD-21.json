@@ -1,0 +1,67 @@
+{
+  "id": "PD-21",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Боковой канал по литературе: Cnβ, голландский шаг, спираль по классам, самовыравнивание учебных, лента в вираже",
+  "goal": "Сверка бокового канала прототипа и игры с эталонами литературы (pendulum-yaw-literature.md, zheglov-1983.md) и правка по KISS: Cnβ ≈ 0,03, инерция по рысканию, голландский шаг, скольжение в перекладке ≤ 10–15°, ровный вираж — лента < 3°; спираль по классам (учебный сам выходит из виража 30–40° за несколько секунд, спортивный держит) — «третий рычаг»; руки — прямая подача с учётом n.",
+  "plan_ref": "Что уходит в этап B (и дальше)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-21",
+  "branch": "pendulum/PD-21",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/pendulum",
+    "configs/pendulum.json",
+    "configs/wings",
+    "tools/flight/pendulum_params.py",
+    "tools/flight/pendulum_params_table.md",
+    "tools/flight/pendulum_compare.gd",
+    "tools/research/pendulum",
+    "tests/flight/pendulum",
+    "tests/contracts",
+    "docs/research/pendulum.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/landing_judge.gd",
+    "scripts/game"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "test_landing",
+      "tests": "test_landing"
+    },
+    {
+      "name": "test_wings",
+      "tests": "test_wings"
+    },
+    {
+      "name": "params_check",
+      "cmd": "/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python tools/flight/pendulum_params.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T05:51:32"
+}

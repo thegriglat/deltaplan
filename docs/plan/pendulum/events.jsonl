@@ -148,3 +148,6 @@
 {"t": "2026-10-11T05:50:00", "by": "coordinator", "task": "PD-19", "ev": "checked", "note": "2/2 pendulum=ok:82/82; test_landing=ok:11/11"}
 {"t": "2026-10-11T05:50:38", "by": "reviewer", "task": "PD-19", "ev": "reviewed", "note": "Руки без интеграла физически обоснованы, снимают вечный срыв (0/48) и дают мягкую посадку, но цель «одновременно» не достигнута: выход из пикирования у laminar…", "verdict": "rework", "issues": {"major": 2, "minor": 2}, "review": "docs/plan/pendulum/tasks/PD-19.review.json"}
 {"t": "2026-10-11T05:51:03", "by": "coordinator", "task": "PD-19", "ev": "accepted", "note": "по решению координатора о критериях (ревью rework: 2 major о критериях → PD-22, minor → PD-21)"}
+{"t": "2026-10-11T05:51:04", "by": "coordinator", "task": "PD-19", "ev": "merged", "commits": ["4d222ea2"]}
+{"t": "2026-10-11T05:51:13", "by": "coordinator", "task": "PD-17", "ev": "started", "note": "dp-mechanic, ~/deltaplan-pendulum-PD-17"}
+{"t": "2026-10-11T05:51:32", "by": "coordinator", "task": "PD-21", "ev": "created", "note": "Боковой канал по литературе: Cnβ, голландский шаг, спираль по классам, самовыравнивание учебных, лента в вираже"}
