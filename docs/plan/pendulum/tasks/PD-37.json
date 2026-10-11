@@ -1,0 +1,49 @@
+{
+  "id": "PD-37",
+  "module": "pendulum",
+  "type": "dp-mechanic",
+  "title": "Версии контрактов PD-К1 v4 / PD-К2 v7 в конфиге и тестах; тестовая сборка 6",
+  "goal": "Заменить ожидаемые версии контрактов в configs/pendulum.json и контрактных тестах (механически), затем сборка 6 в build/pendulum_test6 с маятником по умолчанию в конфиге сборки.",
+  "plan_ref": "Что уходит в этап B (и дальше)",
+  "contracts": [],
+  "copy": "~/deltaplan-pendulum-PD-37",
+  "branch": "pendulum/PD-37",
+  "base": "feature/pendulum",
+  "scope": [
+    "configs/pendulum.json",
+    "tests/contracts",
+    "build/pendulum_test6"
+  ],
+  "dont_touch": [
+    "scripts"
+  ],
+  "accept": [
+    {
+      "name": "pendulum_contracts",
+      "tests": "pendulum_contracts"
+    },
+    {
+      "name": "linux_exe",
+      "cmd": "test -x /home/greg/deltaplan/build/pendulum_test6/linux/deltaplan.x86_64 && test -s /home/greg/deltaplan/build/pendulum_test6/linux/deltaplan.pck && echo ok",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "windows_exe",
+      "cmd": "test -s /home/greg/deltaplan/build/pendulum_test6/windows/deltaplan.exe && echo ok",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "mode_pendulum",
+      "cmd": "/usr/bin/grep -h '\"roll_control_mode\"' /home/greg/deltaplan/build/pendulum_test6/linux/configs/controls.json /home/greg/deltaplan/build/pendulum_test6/windows/configs/controls.json",
+      "expect": "re:pendulum[\\s\\S]*pendulum"
+    },
+    {
+      "name": "smoke_linux",
+      "cmd": "cat /home/greg/deltaplan/build/pendulum_test6/smoke_linux.txt",
+      "expect": "re:smoke ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T18:35:54"
+}
