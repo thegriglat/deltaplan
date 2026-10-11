@@ -37,6 +37,8 @@ var phi: float = 0.0
 var neutral_rel := Vector3.ZERO
 ## Сила рук на пилота в осях B, Н (последний расчёт).
 var force_b := Vector3.ZERO
+## Цель положения пилота относительно подвески в осях крыла — последний расчёт (для разбора).
+var target_b := Vector3.ZERO
 var _int := Vector3.ZERO
 
 
@@ -88,6 +90,7 @@ func compute(
 	tgt.y += ry * shift_y_max
 	var push := lerpf(shift_x_push, shift_x_push_flare, flare_mix)
 	tgt.x += -px * (push if px > 0.0 else shift_x_pull)
+	target_b = tgt
 	var k := m_pilot / (tau * tau)
 	var d := 2.0 * m_pilot / tau
 	var e := tgt - rel

@@ -95,6 +95,7 @@ var moment_b := Vector3.ZERO
 var lift_n: float = 0.0  ## подъёмная сила (−F_b.z), Н
 var blend := PackedFloat64Array()  ## 0 — обтекание, 1 — пластина (по полосам)
 var margin := PackedFloat64Array()  ## угол атаки полосы минус срывной, рад (> 0 — за срывом)
+var alpha_s := PackedFloat64Array()  ## угол атаки полосы от нулевой подъёмной, рад (для разбора)
 
 ## Запаздывание отрыва (PD-29, strips.dynamic_stall): доля обтекаемого потока полосы f отстаёт от
 ## статической — τ₁·ḟ = f_ст(Δα − τ₂·Δα̇) − f, τ = T·c/V (Goman & Khrabrov 1994). dyn_dt — время с
@@ -204,6 +205,7 @@ func setup(
 	_sb2_4 = 0.25 * area * span * span
 	blend.resize(n)
 	margin.resize(n)
+	alpha_s.resize(n)
 	attached.resize(n)
 	_m_prev.resize(n)
 	attached.fill(1.0)
@@ -427,6 +429,7 @@ func _strip_cl(j: int, r: float, sl: float, cap: float, un := 0.0) -> Vector4:
 	var m := r - ast
 	var b := clampf(m * _inv_blend, 0.0, 1.0)
 	margin[j] = m
+	alpha_s[j] = r
 	var f := 1.0 - b
 	if dyn_on:
 		f = _dyn_attached(j, m, un)
