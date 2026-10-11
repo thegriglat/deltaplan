@@ -1,7 +1,8 @@
 class_name MotionOutput
 extends RefCounted
 ## Отправка движения пилота по UDP (MR-К2/К3). Выключено → сокета нет, на шаг физики — одна проверка флага.
-## step() зовёт Game после glider.step(dt) для своего пилота в полёте; reset() — на разрыв.
+## step() зовёт Game каждый шаг физики своего пилота во всех фазах (MR-К1 v2); reset() — только на разрыв
+## (новый полёт, постановка крыла, начало/конец буксира). Меню, пауза, буксир — шагов нет, пакетов нет.
 
 var enabled: bool = false
 var host: String = "127.0.0.1"
@@ -19,7 +20,6 @@ var _failed: bool = false  ## адрес не определился: не пы�
 var resolve_count: int = 0
 var _counter: int = 0
 var _seq: int = 0
-var _active: bool = false  ## были шаги в полёте с прошлого reset()
 
 
 ## Прочитать configs/motion_rig.json (и применить сразу, без перезапуска полёта).
@@ -35,26 +35,18 @@ func configure() -> void:
 	every_n = maxi(1, roundi(float(Engine.physics_ticks_per_second) / float(hz)))
 	_close()
 	if enabled and not was:
+		_seq = 0
 		reset()
 
 
 func reset() -> void:
 	_source.reset()
-	_counter = 0
-	_seq = 0
-	_active = false
-
-
-## Вне полёта: пакетов нет; следующий полёт начнётся с reset().
-func idle() -> void:
-	if _active:
-		reset()
+	_counter = 0  # seq не обнуляем: номер пакета растёт с запуска отправки через все разрывы потока
 
 
 func step(tel: Telemetry, dt: float) -> void:
 	if not enabled:
 		return
-	_active = true
 	_source.push(tel, dt)
 	_counter += 1
 	if _counter < every_n:

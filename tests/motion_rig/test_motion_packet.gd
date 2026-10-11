@@ -43,9 +43,9 @@ func test_srs_layout() -> void:
 	approx(b.decode_float(180), 12.5, 1e-5, "roll")
 	approx(b.decode_float(184), -90.0, 1e-5, "yaw в (−180, 180]")
 	approx(b.decode_float(188), 0.5, 1e-5, "lateral_velocity")
-	approx(b.decode_float(192), -2.0 / G, 1e-5, "lateral_acceleration, g")
-	approx(b.decode_float(196), 11.0 / G - 1.0, 1e-5, "vertical_acceleration, g")
-	approx(b.decode_float(200), 1.5 / G, 1e-5, "longitudinal_acceleration, g")
+	approx(b.decode_float(192), -2.0, 1e-5, "lateral_acceleration, м/с²")
+	approx(b.decode_float(196), 11.0 - G, 1e-5, "vertical_acceleration = heave − G, м/с²")
+	approx(b.decode_float(200), 1.5, 1e-5, "longitudinal_acceleration, м/с²")
 	check(b.decode_s32(172) == 0, "gear")
 	for off in [164, 168, 204, 208, 212, 216, 220, 224, 228, 232]:
 		check(b.decode_u32(off) == 0, "нулевое поле @%d" % off)
@@ -114,8 +114,8 @@ func test_signs_inverse_srs() -> void:
 			if other == k:
 				want = -want
 			approx(b.decode_float(at[other]), want, 1e-4, "srs inverse %s → поле %s" % [k, other])
-	# vertical: −(heave/G − 1)
-	approx(MotionPacket.pack_srs(known(), "", {"heave": "inverse"}).decode_float(196), -(11.0 / G - 1.0), 1e-5, "vertical")
+	# vertical: −(heave − G)
+	approx(MotionPacket.pack_srs(known(), "", {"heave": "inverse"}).decode_float(196), -(11.0 - G), 1e-5, "vertical")
 	# yaw: обёртка в (−180, 180]
 	var s := known()
 	s.yaw = 180.0

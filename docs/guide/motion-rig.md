@@ -2,19 +2,19 @@
 type: "guide"
 status: "active"
 module: "motion-rig"
-updated: "2026-10-10"
+updated: "2026-10-11"
 summary: "Вывод движения пилота на платформы подвижности (DOF Reality через Sim Racing Studio, свой UDP-формат): откуда величины, физика и знаки, форматы, настройки, приёмник и проверки, границы."
 related: ["docs/contracts/motion-rig.md", "docs/research/motion-rig-protocols.md", "docs/plan/motion-rig.md", "tools/motion_rig/README.md"]
 ---
 # Вывод движения на платформу подвижности
 
-Игра шлёт по UDP «честное» движение пилота; фильтры, масштабы и washout — в софте платформы. Контракты — `docs/contracts/motion-rig.md` (MR-К1 величины, MR-К2 пакеты, MR-К3 настройки v2); выбор протоколов — `docs/research/motion-rig-protocols.md`; инструкция игроку (англ.) — `tools/motion_rig/README.md`. Код — `scripts/motion_rig/`.
+Игра шлёт по UDP «честное» движение пилота; фильтры, масштабы и washout — в софте платформы. Контракты — `docs/contracts/motion-rig.md` (MR-К1 величины и когда шлётся, MR-К2 пакеты, MR-К3 настройки; все v2); выбор протоколов — `docs/research/motion-rig-protocols.md`; инструкция игроку (англ.) — `tools/motion_rig/README.md`. Код — `scripts/motion_rig/`.
 
 ## Что выводится и откуда
 
 Единственный источник — точка пилота в `Telemetry` (`pilot_position`, `pilot_velocity`, `pilot_basis`), её заполняет `FlightModel._update_telemetry`. Сейчас модель — одна материальная точка, поэтому поля равны `position`, `velocity`, `telemetry.basis`. Когда появится маятник пилот–крыло, эти три поля начнёт заполнять он, а вывод не изменится. Поправки на смещение головы от точки (ε×r, ω×(ω×r)) не вводим: платформа сама поворачивает сиденье.
 
-Цепочка: `Game.tick` → после `glider.step` в фазе «flying» → `MotionOutput.step` → `MotionSource.push(tel, dt)` каждый шаг физики → раз в N = max(1, round(physics_hz / rate_hz)) шагов `sample()` → `MotionPacket` (упаковка, знаки) → `PacketPeerUDP.put_packet`. Вне полёта (меню, пауза, старт на земле) пакетов нет; перезапуск, телепорт, снимок — `reset()`.
+Цепочка: `Game.tick` → после `glider.step` в любой фазе своего пилота (`standing`, `walking`, `running`, `flying`, `landed`, `failed`; после столкновения, когда физика стоит, — с той же неподвижной позой) → `MotionOutput.step` → `MotionSource.push(tel, dt)` каждый шаг физики → раз в N = max(1, round(physics_hz / rate_hz)) шагов `sample()` → `MotionPacket` (упаковка, знаки) → `PacketPeerUDP.put_packet`. Поток непрерывный, без `reset()` на смене фаз: уклон склона, разбег, отрыв, касание и пробег дают то, что даёт физика (стоя неподвижно на склоне a = 0, f = +g, углы — реальная поза). `reset()` — только на разрывах: новый полёт и «Ещё раз»/«На старт», любая постановка крыла (`reset_on_ground`/`reset_in_air`), начало и конец буксира, защита 50 g. Во время буксира, в меню и на паузе шагов нет и пакетов нет — приёмник сам уводит платформу в нейтраль по таймауту. Сглаживания на переходах в игре нет: непрерывный поток убирает рывок, фильтры — в софте платформы. `seq` не обнуляется на `reset()`.
 
 ## Физика
 
@@ -43,7 +43,7 @@ Surge в планировании не нуль, потому что модел�
 
 Один датаграм = один сэмпл на `host:port`; числа little-endian. Таблицы полей — в MR-К2 (авторитет), машиночитаемо — `tools/motion_rig/motion_generic.h` (C) и `tools/motion_rig/motion_formats.py` (единственная раскладка на Python).
 
-- **`srs`** (по умолчанию) — Sim Racing Studio API v102, структура C с нативным выравниванием, 236 байт, `api`, порт по умолчанию 33001. Поля: speed — `airspeed` в км/ч; pitch, roll, yaw (yaw приведён к (−180, 180]) в градусах; lateral_velocity = `air_lateral`; lateral_acceleration = sway/g, longitudinal_acceleration = surge/g, vertical_acceleration = heave/g − 1 (перегрузка сверх 1 g: в установившемся полёте ≈ 0, как в покое у примеров SRS). Остальное — нули.
+- **`srs`** (по умолчанию) — Sim Racing Studio API v102, структура C с нативным выравниванием, 236 байт, `api`, порт по умолчанию 33001. Поля: speed — `airspeed` в км/ч; pitch, roll, yaw (yaw приведён к (−180, 180]) в градусах; lateral_velocity = `air_lateral`; ускорения в **м/с²** (MR-К2 v2): lateral_acceleration = sway, longitudinal_acceleration = surge, vertical_acceleration = heave − g (стоя на ровном и в установившемся полёте ≈ 0). В g (v1) наши ±0,1 были около 1 % шкалы SRS (примеры SRS — 0…10, README — ±10), и heave не двигал платформу даже на максимальном усилении. Остальное — нули.
 - **`generic`** — свой формат `DPMR` v1, 64 байта, для самодельных приёмников (микроконтроллеры, Python): `seq`, `flags` (бит 0 `valid`, бит 1 на земле), `t`, `surge/sway/heave` (м/с²), `roll/pitch/yaw` (град, yaw [0, 360)), три угловые скорости (град/с), `airspeed`, `air_lateral` (м/с). Protobuf не используем (решение 10.10: поток реального времени, приёмники на микроконтроллерах).
 - SimTools и FlyPT Mover не поддерживаются: у SimTools нет общего UDP-входа (нужен dll-плагин для каждой игры), у FlyPT Mover нет универсального UDP-источника (по документации 3.5/3.7 beta). Подробности и ссылки — в записке.
 
@@ -51,14 +51,14 @@ Surge в планировании не нуль, потому что модел�
 
 `configs/motion_rig.json` (машинные настройки, не облако Steam: `UserSettings.LOCAL_KEYS`, `steam/partner/auto_cloud.json`): `enabled` (false), `host` (127.0.0.1), `port` (33001), `rate_hz` (60, 1…physics_hz), `format` (`srs`|`generic`), `signs`. В игре — «Настройки → Платформа подвижности»: флажок «Вывод движения», «Адрес (хост:порт)», «Частота», «Формат», девять флажков инверсии знака. Применяется сразу, без перезапуска полёта; неверный адрес — отправка выключена без ошибок. Выключено → сокета нет, на шаг физики одна проверка флага.
 
-`signs[<величина>] = "inverse"` умножает поле пакета на −1 после перевода единиц (SRS vertical: −(heave/g − 1); yaw — отрицание и приведение к диапазону формата). Ключи: `surge, sway, heave, roll, pitch, yaw, roll_rate, pitch_rate, yaw_rate`. Зачем: знаки SRS не документированы, платформы у нас нет, игрок правит сам без новой сборки. Для формата `srs` реально используются шесть из девяти (surge, sway, heave, roll, pitch, yaw); скорости только в `generic`.
+`signs[<величина>] = "inverse"` умножает поле пакета на −1 после перевода единиц (SRS vertical: −(heave − g); yaw — отрицание и приведение к диапазону формата). Ключи: `surge, sway, heave, roll, pitch, yaw, roll_rate, pitch_rate, yaw_rate`. Зачем: знаки SRS не документированы, платформы у нас нет, игрок правит сам без новой сборки. Для формата `srs` реально используются шесть из девяти (surge, sway, heave, roll, pitch, yaw); скорости только в `generic`.
 
 ## Приёмник и проверки
 
 - `python3 tools/motion_rig/recv.py --port 33001 --format auto|srs|generic [--jsonl файл] [--count N] [--timeout с] [--quiet]`, `--selftest` — разбор пакетов без игры. Неверный размер/заголовок — строка-ошибка, не падение.
-- `bash tools/motion_rig/loop_check.sh [секунд]` — headless Godot летит ≈3 с горизонтально и шлёт generic и srs в два recv.py; проверка потока (valid, heave ≈ g и т. д.); успех — «loop OK».
+- `bash tools/motion_rig/loop_check.sh [секунд]` — headless Godot стоит 1,5 с на земле, затем летит ≈3 с горизонтально и шлёт generic и srs в два recv.py; проверка потока (пакеты и на земле — флаг on_ground, и в полёте; valid; seq растёт; heave ≈ g); успех — «loop OK».
 - `python3 tools/motion_rig/check_layout.py` — `.h` (offsetof/sizeof через cc, если есть компилятор) = `motion_formats.py` = фикстуры пакетов игры; успех — «layout OK».
-- Тесты: `tests/motion_rig/` (25 проверок: величины, разрыв, упаковка, знаки, микробенч ≈10 мс при пороге 50 мс), контрактный тест `tests/contracts/test_motion_rig_contracts.gd`.
+- Тесты: `tests/motion_rig/` (величины, разрыв, упаковка в м/с², знаки, поток на земле и через смену фаз `test_motion_ground.gd` с одиночной точкой и маятником, микробенч ≈10 мс при пороге 50 мс), контрактный тест `tests/contracts/test_motion_rig_contracts.gd`.
 
 ## Границы модели
 
@@ -67,6 +67,8 @@ Surge в планировании не нуль, потому что модел�
 - Угловое ускорение головы, вибрации, турбулентность выше частоты шага не передаются.
 - `air_lateral` в модели точки ≈ 0.
 
-## Что проверено только без платформы
+## Что проверено и что нет
 
-Железа DOF Reality H4R и Sim Racing Studio у нас нет. Проверено: тесты упаковки по смещениям из MR-К2, разбор пакетов игры скриптом-приёмником, петля `loop_check.sh`, сверка `.h` и `.py`. **Не проверено**: приём настоящим SRS, знаки SRS (в документации API не заданы; поэтому есть инверсия), единицы speed, как SRS распределяет yaw/heave для H4R, нужная частота и задержка, поведение при реальных манёврах игрока. Подключение `Game.tick` проверено headless-петлёй, целиком тесты `tests/game` на него не запускались.
+Проверено владельцем DOF Reality (11.10, через SRS): оси и знаки pitch, roll, yaw верные. Проверено без платформы: тесты упаковки по смещениям из MR-К2 (единицы м/с²), поток на земле и через смену фаз (разрывов нет), разбор пакетов игры скриптом-приёмником, петля `loop_check.sh` (земля и полёт), сверка `.h` и `.py`.
+
+**Не проверено на железе** (после MR-5): heave в м/с² двигает платформу заметно (раньше в g не двигал вовсе); поведение на земле (уклон, разбег, посадка); отсутствие рывка на взлёте и посадке; знаки sway, surge и heave; как SRS распределяет heave для H4R; нужная частота и задержка. Усиление и фильтры (washout, масштабы) подбираются в SRS.

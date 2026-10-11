@@ -42,8 +42,8 @@ func test_steady_level_flight() -> void:
 	approx(s.pitch_rate, 0.0, 0.2, "pitch_rate")
 	approx(s.yaw_rate, 0.0, 0.2, "yaw_rate")
 	var srs := MotionPacket.pack_srs(s, "Test")
-	approx(srs.decode_float(196), 0.0, 0.05, "srs vertical_acceleration, g")
-	approx(srs.decode_float(192), 0.0, 0.05, "srs lateral_acceleration, g")
+	approx(srs.decode_float(196), 0.0, 0.5, "srs vertical_acceleration, м/с²")
+	approx(srs.decode_float(192), 0.0, 0.5, "srs lateral_acceleration, м/с²")
 
 
 func test_steady_right_turn() -> void:

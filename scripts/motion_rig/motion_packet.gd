@@ -41,9 +41,9 @@ static func pack_srs(s: MotionSample, location: String = "", signs: Dictionary =
 		yaw -= 360.0
 	b.encode_float(184, yaw)
 	b.encode_float(188, s.air_lateral)
-	b.encode_float(192, s.sway / Units.G * _sg(signs, "sway"))
-	b.encode_float(196, (s.heave / Units.G - 1.0) * _sg(signs, "heave"))
-	b.encode_float(200, s.surge / Units.G * _sg(signs, "surge"))
+	b.encode_float(192, s.sway * _sg(signs, "sway"))  # м/с² (MR-К2 v2)
+	b.encode_float(196, (s.heave - Units.G) * _sg(signs, "heave"))  # без g: стоя ≈ 0
+	b.encode_float(200, s.surge * _sg(signs, "surge"))
 	return b
 
 
