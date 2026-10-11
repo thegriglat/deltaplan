@@ -101,3 +101,44 @@ func test_cpu_ms_bar_charm() -> void:
 	print("cpu_ms_bar_charm=%.4f" % ms)
 	check(ms <= 0.02, "cpu_ms_bar_charm %.4f > 0,02" % ms)
 	e.free()
+
+
+## Установившийся вираж (крен 30°, 20 м/с): маркер движется физтиками 120 Гц, кадры — dt 1/60…1/144
+## с разбросом ±30 % (свой rng). interpolate: как в игре (Glider._process интерполирует между
+## тиками); false — худший случай, маркер ступеньками. Возвращает максимум отклонения нити от g − a, °.
+func _circle_err(interpolate: bool) -> float:
+	var e := _make()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var v := 20.0
+	var a_c := 9.81 * tan(deg_to_rad(30.0))
+	var w := a_c / v
+	var r := v / w
+	var tick := 1.0 / 120.0
+	var t := 0.0
+	var worst := 0.0
+	while t < 8.0:
+		var dt := rng.randf_range(1.0 / 144.0, 1.0 / 60.0) * rng.randf_range(0.7, 1.3)
+		dt = clampf(dt, 1.0 / 190.0, 1.0 / 46.0)
+		t += dt
+		var tk := floorf(t / tick)
+		var ta := tk * tick
+		var tb := ta + tick
+		var f := (t - ta) / tick if interpolate else 0.0
+		var pa := Vector3(sin(w * ta) * r, 1000.0, -cos(w * ta) * r)
+		var pb := Vector3(sin(w * tb) * r, 1000.0, -cos(w * tb) * r)
+		e.advance(pa.lerp(pb, f), Vector3.FORWARD, dt)
+		if t > 3.0:
+			var acc := Vector3(-sin(w * t), 0.0, cos(w * t)) * a_c
+			var want := (Vector3(0, -9.81, 0) - acc).normalized()
+			worst = maxf(worst, rad_to_deg(e.dir.angle_to(want)))
+	e.free()
+	return worst
+
+
+func test_steady_turn_no_jitter() -> void:
+	var worst := _circle_err(true)
+	print("bar_charm: вираж, интерполированный маркер: макс. отклонение %.2f°" % worst)
+	check(worst < 2.0, "нить дрожит на вираже: %.2f° (< 2°)" % worst)
+	var worst_step := _circle_err(false)
+	print("bar_charm: вираж, маркер ступеньками: макс. отклонение %.2f°" % worst_step)

@@ -12,7 +12,8 @@ const MODEL := "res://assets/easter_eggs/bar_charm/gull_charm.glb"
 var length_m := 0.09
 var damping_per_s := 2.0
 var substep_s := 1.0 / 240.0
-var max_accel_ms2 := 80.0
+var max_accel_ms2 := 30.0
+var accel_tau_s := 0.07  ## постоянная времени фильтра нижних частот ускорения
 var teleport_m := 30.0
 var hang_offset := Vector3(0.0, -0.02, 0.0)
 var cord_radius_m := 0.00075
@@ -30,7 +31,7 @@ var _prev_pos := Vector3.ZERO
 var _prev_vel := Vector3.ZERO
 var _have_pos := false
 var _have_vel := false
-var _accel := Vector3.ZERO
+var _accel := Vector3.ZERO  ## сглаженное ускорение точки подвеса
 
 
 func begin(_ctx: EggContext, cfg: Dictionary, _rng: RandomNumberGenerator, _t0: float) -> void:
@@ -38,6 +39,7 @@ func begin(_ctx: EggContext, cfg: Dictionary, _rng: RandomNumberGenerator, _t0: 
 	damping_per_s = float(cfg.get("damping_per_s", damping_per_s))
 	substep_s = float(cfg.get("substep_s", substep_s))
 	max_accel_ms2 = float(cfg.get("max_accel_ms2", max_accel_ms2))
+	accel_tau_s = float(cfg.get("accel_tau_s", accel_tau_s))
 	teleport_m = float(cfg.get("teleport_m", teleport_m))
 	cord_radius_m = float(cfg.get("cord_radius_m", cord_radius_m))
 	var o: Array = cfg.get("hang_offset_m", [hang_offset.x, hang_offset.y, hang_offset.z])
@@ -117,7 +119,8 @@ func advance(hang: Vector3, forward: Vector3, dt: float) -> void:
 	if _have_pos:
 		var v := (hang - _prev_pos) / dt
 		if _have_vel:
-			_accel = ((v - _prev_vel) / dt).limit_length(max_accel_ms2)
+			var raw := ((v - _prev_vel) / dt).limit_length(max_accel_ms2)
+			_accel = _accel.lerp(raw, 1.0 - exp(-dt / maxf(accel_tau_s, 1e-4)))
 		_prev_vel = v
 		_have_vel = true
 	else:
