@@ -13,7 +13,7 @@
     },
     {
       "name": "PD-К2",
-      "version": "4",
+      "version": "5",
       "ref": "docs/contracts/pendulum.md"
     }
   ],
@@ -52,5 +52,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T06:51:49"
+  "created": "2026-10-11T06:51:49",
+  "edited": "2026-10-11T08:34:53"
 }
