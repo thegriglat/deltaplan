@@ -193,3 +193,10 @@
 {"t": "2026-10-11T10:17:18", "by": "executor", "task": "PD-25", "ev": "reported", "commits": ["b49795dd"], "note": "done: Причина: автопилот оценивал скорость крена как производную угла bank_deg с фильтром lerp 0,2 (отставание ~4 шага, к том…", "dp_feedback": "dp job start не запускает 'VAR=x cmd' (нужен env); godot -s run_tests.gd не работает без автозагрузок, только res://tests/run_tests.tscn — стоит в dp.md/карточке задачи дать готовую команду одного теста. Контрактные ключи strips.stall_* добавлены в проверку test_pendulum_contracts_k2.gd (5 ключей + _doc)."}
 {"t": "2026-10-11T10:18:47", "by": "coordinator", "task": "PD-25", "ev": "checked", "note": "3/3 pendulum=ok:84/84; autopilot=ok:2/2; pendulum_contracts=ok:28/28"}
 {"t": "2026-10-11T10:18:47", "by": "coordinator", "task": "PD-25", "ev": "accepted", "note": "по отчёту: 3/3; скорость крена автопилота из поворота basis; training в болтанке с малым запасом (14,4 при 14,5)"}
+{"t": "2026-10-11T10:18:48", "by": "coordinator", "task": "PD-25", "ev": "merged", "commits": ["de724ef1"]}
+{"t": "2026-10-11T10:18:57", "by": "coordinator", "task": "PD-26", "ev": "started", "note": "dp-mechanic, ~/deltaplan-pendulum-PD-26"}
+{"t": "2026-10-11T10:20:20", "by": "coordinator", "task": "PD-25", "ev": "accepted", "commits": ["de724ef1"], "note": "3/3 pendulum=ok:84/84; autopilot=ok:2/2; pendulum_contracts=ok:28/28"}
+{"t": "2026-10-11T10:21:37", "by": "coordinator", "task": "PD-22", "ev": "accepted", "commits": ["de724ef1"], "note": "3/3 pendulum=ok:84/84; test_landing=ok:11/11; test_wings=ok:4/4"}
+{"t": "2026-10-11T10:21:45", "by": "coordinator", "task": "PD-20", "ev": "accepted", "commits": ["de724ef1"], "note": "2/2 pendulum_telltale=ok:3/3; telltale=ok:11/11"}
+{"t": "2026-10-11T10:22:10", "by": "coordinator", "task": "PD-26", "ev": "accepted", "note": "4/4 linux_exe=ok:ok; windows_exe=ok:ok; mode_pendulum=ok:pendulum\", \"roll_control_mode…; smoke_linux=ok:smoke ok"}
+{"t": "2026-10-11T10:22:10", "by": "coordinator", "task": "PD-26", "ev": "note", "note": "сборка 3: build/pendulum_test3/{linux,windows} от feature/pendulum de724ef1, режим «Маятник» по умолчанию, smoke ok"}
