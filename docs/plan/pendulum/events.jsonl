@@ -184,3 +184,7 @@
 {"t": "2026-10-11T10:00:38", "by": "coordinator", "task": "PD-22", "ev": "merged", "commits": ["94b6e7d1"]}
 {"t": "2026-10-11T10:00:53", "by": "coordinator", "task": "PD-25", "ev": "created", "note": "Автопилот «Маятника» в болтанке (sport) и контракт PD-К2 v6 в конфиге и тестах"}
 {"t": "2026-10-11T10:00:54", "by": "coordinator", "task": "PD-9", "ev": "created", "note": "Документация маятника: guide/flight.md, CHANGELOG, findings"}
+{"t": "2026-10-11T10:00:58", "by": "coordinator", "task": "PD-25", "ev": "started", "note": "dp-engineer sonnet"}
+{"t": "2026-10-11T10:00:58", "by": "coordinator", "task": "PD-9", "ev": "started", "note": "dp-writer sonnet"}
+{"t": "2026-10-11T10:04:17", "by": "executor", "task": "PD-9", "ev": "reported", "commits": ["92b0c0db"], "note": "done: Раздел «Маятник (третий режим управления)» в docs/guide/flight.md (со ссылками на research и контракты), 4 пункта-блока…", "dp_feedback": "Не хватало быстрой выжимки по ключевым числам модуля (итоговые умолчания и границы после последней задачи) — пришлось читать research целиком (100 КБ). dp docs index тоже перегенерил contracts/decisions/research registry — коммитил заодно (в скоупе docs/registry)."}
+{"t": "2026-10-11T10:04:34", "by": "coordinator", "task": "PD-9", "ev": "accepted", "note": "2/2 docs=ok:ошибок 0; guide=ok:5"}

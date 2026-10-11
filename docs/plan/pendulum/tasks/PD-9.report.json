@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "Раздел «Маятник (третий режим управления)» в docs/guide/flight.md (со ссылками на research и контракты), 4 пункта-блока в CHANGELOG «В работе», 6 выводов в findings (раздел pendulum). dp docs check — 0 ошибок.",
+  "commits": [
+    "92b0c0db Документация маятника: раздел «Маятник» в guide/flight.md, CHANGELOG, выводы в findings"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "guide",
+      "value": "5 вхождений «Маятник»",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Контракт PD-К3 v2 говорит sail_flex по умолчанию 0,2 и V 1°, а реальные умолчания классов (PD-24): V 6/5/−1,5/0,5°, гибкость 0,5/0,45/0,6/0,6; в configs/pendulum.json диапазон V «−2…+5», в контракте −2…+6 — в гайде взял контракт и PD-24; docs/contracts не трогал (вне скоупа)."
+  ],
+  "how_to_check": "dp accept PD-9",
+  "uncertain": [
+    {
+      "where": "docs/guide/flight.md, «Земля»",
+      "why": "путь отрыва 21–31 м и 5,2–6,5 с — PD-14/PD-8; «встречный сокращает в несколько раз» — по PD-3, числа без пересчёта после PD-22",
+      "checked": "сверил с research"
+    },
+    {
+      "where": "docs/guide/flight.md, «Камера»",
+      "why": "голова 5–10 см / 2–4 см — прототип; в игре тест PD-6: 1,5–3,8 см между head_position и костью",
+      "checked": "research PD-6/PD-8"
+    },
+    {
+      "where": "docs/guide/flight.md, «Что учтено»",
+      "why": "класс «советские» перекладка 3,5 с — по apogee; формулировки про ответы пилота — пересказ таблицы research",
+      "checked": "таблицы PD-24"
+    }
+  ],
+  "dp_feedback": "Не хватало быстрой выжимки по ключевым числам модуля (итоговые умолчания и границы после последней задачи) — пришлось читать research целиком (100 КБ). dp docs index тоже перегенерил contracts/decisions/research registry — коммитил заодно (в скоупе docs/registry).",
+  "t": "2026-10-11T10:04:17",
+  "by": "executor"
+}
