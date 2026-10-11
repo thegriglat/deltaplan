@@ -843,6 +843,8 @@ func _check_touchdown(ground_fn: Callable) -> void:
 	var lc: Dictionary = flight.landing
 	var nrm := LandingJudge.ground_normal(ground_fn, feet.x, feet.z, float(lc.normal_sample_m))
 	var contact := "feet" if _feet_agl <= 0.0 else String(CONTACT_NAMES[wing_hit])
+	if contact == "wingtip" and absf(bank) > PI * 0.5:
+		contact = "tail"  # крыло за вертикалью (крен Эйлера ±180°): хвостом в землю (PD-35)
 	var result := touchdown.evaluate(pilot_velocity, nrm, rad_to_deg(bank), contact, lc)
 	result["position"] = Vector3(feet.x, gh, feet.z)
 	result["flight_time_s"] = time_s

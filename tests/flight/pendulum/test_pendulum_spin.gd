@@ -7,6 +7,7 @@ extends TestCase
 ## Жеглову (с. 122): «на себя» до упора и смещение против вращения, пока не кончится вращение и срыв,
 ## затем ручка плавно к нейтрали по скорости (без «свечи»), крен к нулю. Выход — срыва нет, |крен| < 15°, вращения нет
 ## (|dψ/dt| < 20°/с) 3 с подряд; 20 с после — без переворота и без нового штопора.
+## PD35_SPINTRACE=крыло — ход выхода (каждые 0,25 с): крен, рыскание, срыв полос, V, α полос (PD-35).
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const WINGS := ["training", "sport"]
@@ -107,6 +108,12 @@ func _run(w: String) -> Dictionary:
 				o.yaw_mean = rad_to_deg(yaw_sum / n_yaw)
 		elif phase == 2:
 			var tr := m.time_s - t_rec0
+			if OS.get_environment("PD35_SPINTRACE") == w and i % 30 == 0:
+				var ms := ""
+				for j in m.strips.n:
+					ms += "%4.0f" % rad_to_deg(m.strips.alpha_s[j])
+				print("      mode %d h %7.1f tr %5.2f крен %6.1f yr %6.1f срыв %d/%d V %5.1f p %5.2f θ %6.1f | α полос %s" % [
+					m.mode, m.position.y, tr, rad_to_deg(m.bank), rad_to_deg(yr), nr, nl, S.airspeed(m) * 3.6, inp.pitch, rad_to_deg(m.theta), ms])
 			if pulling and tr >= 1.0 and (tr >= 10.0 or (nr + nl == 0 and absf(yr) < deg_to_rad(45.0))):
 				pulling = false
 				o.pull_s = tr

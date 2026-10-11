@@ -48,8 +48,17 @@ static func fmt(r: Dictionary) -> String:
 
 
 ## Выравнивание на подходящей высоте даёт мягкую во встречный 3 м/с (в штиль — test_calm_near_limit).
+## PD-35: отдача до вытянутых рук прямо с трима (≈ 1,4 срыва) на 0,5–2 м ставит laminar и sport на хвост
+## (крыло за вертикалью, авария), выше — жёстко по вертикальной; мягкая у них — только с выравниванием
+## (test_pendulum_landing_technique). Здесь мягкая с трима — у учебного, у laminar и sport — не мягкая.
 func test_soft_with_flare() -> void:
-	var cases := [["training", 3.0], ["laminar", 3.0], ["sport", 3.0]]
+	var cases := [["training", 3.0]]
+	for w: String in ["laminar", "sport"]:
+		for h: float in FLARE_HEIGHTS:
+			var r: Dictionary = approach(w, 3.0, h).result
+			if not OS.get_environment("PD35_ALL").is_empty():
+				print("      %s, ветер 3, с %.2f м — %s" % [w, h, fmt(r)])
+			check(r.get("grade", "") != "soft", "%s, ветер 3, с %.2f м: отдача с трима — не мягкая (%s)" % [w, h, fmt(r)])
 	for c: Array in cases:
 		var best := {}
 		var best_h := NAN
@@ -57,6 +66,8 @@ func test_soft_with_flare() -> void:
 			var a := approach(c[0], c[1], h)
 			var r: Dictionary = a.result
 			check(a.flare > 0.99, "%s: flare_amount у земли = 1 (%.2f)" % [c[0], a.flare])
+			if not OS.get_environment("PD35_ALL").is_empty():
+				print("      %s, ветер %.0f, с %.2f м — %s" % [c[0], c[1], h, fmt(r)])
 			if r.get("grade", "") == "soft":
 				best = r
 				best_h = h

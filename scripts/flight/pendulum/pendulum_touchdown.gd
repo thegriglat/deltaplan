@@ -6,7 +6,8 @@ extends RefCounted
 ## - до run_max_ms — пробегает: ноги гасят скорость с flight.json → landing.runout_decel_ms2 (тем же,
 ##   с которым модель гасит пробежку после касания), шаги — с периодом step_period_s;
 ## - быстрее — не выбегает: жёстко (падает вперёд, на колени, на трапецию).
-## Касание не ступнями: трапеция раньше ступней — жёстко («на трапецию»), нос, консоль — авария (PD-К1).
+## Касание не ступнями: трапеция раньше ступней — жёстко («на трапецию»), нос, консоль, хвост (крыло
+## за вертикалью) — авария (PD-К1).
 ## result — как у LandingJudge.evaluate (grade, vertical_speed_ms, horizontal_speed_ms, bank_deg) плюс
 ## touchdown ("stood" / "ran" / "hard" / "crash"), runout_m, steps.
 
@@ -22,7 +23,7 @@ func setup(td: Dictionary) -> void:
 
 
 ## velocity — скорость ЦМ пилота в момент касания (оси игры), normal — нормаль к земле, bank_deg —
-## крен крыла, contact — "feet" | "bar" | "nose" | "wingtip"; lc — flight.json → landing.
+## крен крыла, contact — "feet" | "bar" | "nose" | "wingtip" | "tail"; lc — flight.json → landing.
 func evaluate(velocity: Vector3, normal: Vector3, bank_deg: float, contact: String, lc: Dictionary) -> Dictionary:
 	var r := LandingJudge.evaluate(velocity, normal, bank_deg, lc)
 	var vn := float(r.vertical_speed_ms)

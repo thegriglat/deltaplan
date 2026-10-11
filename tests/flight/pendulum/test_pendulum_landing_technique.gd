@@ -47,7 +47,6 @@ static func land(
 	var v_stall: float = float(Config.get_config("wings/" + wing).polar.points_kmh_ms[0][0]) / 3.6
 	if OS.get_environment("PD27_PUSH") != "":
 		m.arms.shift_x_push_flare = float(OS.get_environment("PD27_PUSH"))
-	S.pd35_env(m)
 	if OS.get_environment("PD29_CNMAX") != "":
 		m.strips.dyn_cn_max = float(OS.get_environment("PD29_CNMAX"))
 	if OS.get_environment("PD30_BOT") == "29":
