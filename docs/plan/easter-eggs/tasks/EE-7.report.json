@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "Модель гуся (53 вершины, 77 треугольников, размах 1,6 м, длина 0,87 м) и луп гогота стаи 16 с (CC0) готовы; тесты К13/К14 и dp accept EE-7 --dry проходят 5/5.",
+  "commits": [
+    "2c5dada EE-7: модель гуся (К13) и луп гогота стаи CC0 (К14), тесты контрактов"
+  ],
+  "checks": [
+    {
+      "name": "goose_model",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "geese_sound",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "dp accept EE-7 --dry",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "glb",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "ogg",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Рендер модели для самопроверки не делал (проверено числами тестом: AABB, вершины тела/крыла)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept EE-7",
+  "uncertain": [
+    {
+      "where": "assets/sounds/geese/geese_flock_loop.ogg",
+      "why": "разница RMS на стыке лупа 4 дБ (в записи стая переменной плотности); скачка сэмпла нет (0,25 от p99)",
+      "checked": "loop_seam_report; на слух не проверял"
+    },
+    {
+      "where": "assets/sounds/geese/geese_flock_loop.ogg",
+      "why": "запись — канадские казарки (Canada Goose), не серый гусь; шумный фон воды, отфильтрован ФВЧ 150 Гц",
+      "checked": "название и описание записи на freesound"
+    },
+    {
+      "where": "godot --import",
+      "why": "импорт завершается аварийно (double free, rc=134) уже после создания .import — похоже на существующий дефект проекта, не от ассетов",
+      "checked": ".import и тесты после этого рабочие"
+    }
+  ],
+  "dp_feedback": "Нет команды для поиска/скачивания freesound в dp (использовал tools/sounds/fs_search.py и fetch_candidates.py); у audiolib.highpass нужен scipy, которого нет в системном python — пришлось ffmpeg-фильтр. Godot --import падает с double free на выходе.",
+  "extra": {
+    "goose_vertices": 53,
+    "goose_tris": 77,
+    "goose_span_m": 1.6,
+    "goose_length_m": 0.87,
+    "wing_rows_abs_x": [
+      0.13,
+      0.35,
+      0.58,
+      0.7,
+      0.8
+    ],
+    "loop_s": 16.0,
+    "peak_dbfs": -1.0,
+    "source_segment_s": "106-124"
+  },
+  "sound_source": "freesound 568803 «200823 Canada Goose, large flock flight calls, slow fly over water», автор TRP, https://freesound.org/s/568803/",
+  "sound_license": "CC0 1.0",
+  "t": "2026-10-11T06:26:27",
+  "by": "executor"
+}
