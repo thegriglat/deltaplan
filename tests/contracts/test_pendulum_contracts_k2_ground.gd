@@ -46,12 +46,12 @@ func test_doc_heading() -> void:
 		text = FileAccess.get_file_as_string(ProjectSettings.globalize_path(DOC))
 	var re := RegEx.create_from_string("(?m)^## PD-К2\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 4, "заголовок «## PD-К2. … (v4)»")
+	check(m != null and int(m.get_string(1)) == 5, "заголовок «## PD-К2. … (v5)»")
 
 
 func test_contract_v4() -> void:
 	var c := _cfg()
-	check(c.get("contract") == "PD-К2 v4", "configs/pendulum.json → contract = PD-К2 v4 (%s)" % c.get("contract"))
+	check(c.get("contract") == "PD-К2 v5", "configs/pendulum.json → contract = PD-К2 v5 (%s)" % c.get("contract"))
 
 
 func test_yaw_add_keys_v4() -> void:

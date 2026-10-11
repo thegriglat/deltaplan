@@ -59,13 +59,13 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К2\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 4, "PD-К2 (v4) в заголовках")
+	check(m != null and int(m.get_string(1)) == 5, "PD-К2 (v5) в заголовках")
 
 
 func test_pendulum_config() -> void:
 	var c := _read_json("res://configs/pendulum.json")
 	check(not c.is_empty(), "configs/pendulum.json читается")
-	check(c.get("contract") == "PD-К2 v4", "contract")
+	check(c.get("contract") == "PD-К2 v5", "contract")
 	var want := {
 		"chain": {"links": 3, "strap_mass_kg": 1.0, "compliance_m_per_n": 4e-5, "substeps_per_s": 480, "substeps_min": 4},
 		"arms": {"force_max_n": 300.0, "tau_s": 0.30, "ti_s": 0.0, "shift_y_max_m": 0.45,

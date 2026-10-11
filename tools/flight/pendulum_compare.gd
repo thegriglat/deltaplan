@@ -175,6 +175,17 @@ func _pd19(plan: Dictionary) -> void:
 				var r := _pd19_turnstall(_pd19_model(w, props, false))
 				r["variant"] = vname
 				_emit("pd19_turnstall", w, DT, r)
+		if "spin" in sc:
+			for w: String in plan.get("spin_wings", ["training", "laminar", "sport"]):
+				for ramp: float in plan.get("spin_ramps", [10.0]):
+					for after: String in plan.get("spin_after", ["push"]):
+						var r := _pd22_spin(_pd19_model(w, props, false), ramp, after, plan.get("trace", false),
+							float(plan.get("spin_rec_pull", -0.5)), float(plan.get("spin_rec_hold", 2.0)),
+							float(plan.get("spin_ease_hold", 2.0)), float(plan.get("spin_ease", 2.0)))
+						r["variant"] = vname
+						r["ramp_s"] = ramp
+						r["after"] = after
+						_emit("pd22_spin", w, DT, r)
 		if "phug" in sc:
 			for w: String in WINGS:
 				for dv: float in [1.0, 2.0, 3.0, 4.0, 6.0]:
@@ -192,6 +203,10 @@ func _pd19(plan: Dictionary) -> void:
 					for fh: float in [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.5, 6.0]:
 						var r := _pd19_landing(w, props, wind, fh)
 						var q := maxf(float(r.get("vertical_speed_ms", 99.0)) / 5.0, float(r.get("horizontal_speed_ms", 99.0)) / 3.0)
+						if plan.get("landing_all", false):
+							_emit("pd22_flare", w, DT, {"variant": vname, "wind": wind, "flare_h": fh, "score": q,
+								"grade": r.get("grade", "?"), "v": r.get("vertical_speed_ms", NAN),
+								"h": r.get("horizontal_speed_ms", NAN)})
 						if fh == 6.0:
 							_emit("pd19_flare6", w, DT, {"variant": vname, "wind": wind, "grade": r.get("grade", "?"),
 								"v": r.get("vertical_speed_ms", NAN), "h": r.get("horizontal_speed_ms", NAN)})
@@ -423,6 +438,8 @@ func _pd19_turb(m: PendulumModel, modes: Dictionary, dt: float, trace := false) 
 	var phi: PackedFloat64Array = []
 	var blow := false
 	var t_stall := 0.0
+	var t_stall25 := 0.0
+	var t_full := 0.0
 	var a_max := -INF
 	var ser: Array = []
 	var every := maxi(1, roundi(0.1 / dt))
@@ -443,12 +460,189 @@ func _pd19_turb(m: PendulumModel, modes: Dictionary, dt: float, trace := false) 
 			phi.append(rad_to_deg(m.bank))
 			if m.stall_amount() > 0.0:
 				t_stall += dt
+			if m.stall_amount() >= 0.25:
+				t_stall25 += dt
+			for j in m.strips.n:
+				if m.strips.blend[j] >= 1.0:
+					t_full += dt
+					break
 			a_max = maxf(a_max, rad_to_deg(m.alpha))
 	var mx := 0.0
 	for v in phi:
 		mx = maxf(mx, absf(v))
 	return {"blowup": blow, "std_phi_deg": _std(phi), "max_abs_phi_deg": mx, "max_stretch_m": m.chain.max_stretch,
-		"t_stall_s": t_stall, "alpha_max_deg": a_max, "series": ser}
+		"t_stall_s": t_stall, "t_stall25_s": t_stall25, "t_stall_full_s": t_full, "alpha_max_deg": a_max, "series": ser}
+
+
+## PD-22: сваливание на крыло в вираже. Вираж 30° вправо 14 с (пилот держит крен), «от себя» 0 → 1
+## за ramp с до первого срыва полосы; дальше руки по крену замирают, «от себя» — after: "push" —
+## дожимать к упору, "keep" — держать; 6 с; потом выход по Жеглову (с. 112, 122): «на себя» 0,5 на
+## 2 с, затем нейтраль, крен к 0. Выход — |крен| < 10°, V в 10 % трима, срыва нет, 2 с подряд.
+func _pd22_spin(m: PendulumModel, ramp: float, after: String, trace: bool, rec_pull := -0.5, rec_hold := 2.0,
+		rec_ease_hold := 2.0, rec_ease := 2.0) -> Dictionary:
+	var v_trim := S.airspeed(m) * 3.6
+	var hb := Hold.new(deg_to_rad(30.0), 6.0, 2.5, 1.0)
+	var inp := S.input()
+	for i in _steps(14.0, DT):
+		inp.roll = hb.roll(m, DT)
+		m.step(DT, inp, Callable(), Callable())
+	var h := m.strips.n / 2
+	var t0 := m.time_s
+	var out := {"V_trim_kmh": v_trim}
+	var phase := 0
+	var t_st := NAN
+	var roll_frz := 0.0
+	var p_st := 0.0
+	var h0 := 0.0
+	var hd_prev := m.heading
+	var bank0 := 0.0
+	var ser: Array = []
+	var bank_max := 0.0
+	var bank_min := 999.0
+	var yaw_sum := 0.0
+	var yaw_n := 0
+	var sink_max := 0.0
+	var v_min := INF
+	var v_max := 0.0
+	var a_max := -INF
+	var stall_max := 0.0
+	var t_rec0 := 0.0
+	var rec_since := NAN
+	var rec_t := NAN
+	var h_rec := NAN
+	var first_r := -1.0
+	var first_l := -1.0
+	var pulling := true
+	var bank_rec_max := 0.0
+	var v_rec_max := 0.0
+	var t_rel := 0.0
+	var stalled_n := 0
+	var yaw_prev := 0.0
+	for i in _steps(90.0, DT):
+		var t := m.time_s - t0
+		if phase == 0:
+			inp.pitch = clampf(t / ramp, 0.0, 1.0)
+			inp.roll = hb.roll(m, DT)
+		elif phase == 1:
+			inp.roll = roll_frz
+			if after == "push":
+				inp.pitch = clampf(t / ramp, 0.0, 1.0)
+		else:
+			# rec_hold < 0: «на себя», пока не кончится вращение и срыв (не меньше 1 с, не больше 10 с)
+			var tr := m.time_s - t_rec0
+			if rec_hold >= 0.0:
+				inp.pitch = rec_pull if tr < rec_hold else 0.0
+			else:
+				# вращение кончилось — rec_ease > 0: ещё rec_ease_hold с «на себя», потом к нейтрали за rec_ease с;
+				# rec_ease ≤ 0 — отдача по скорости
+				if pulling and tr >= 1.0 and (tr >= 10.0 or (stalled_n == 0 and absf(yaw_prev) < deg_to_rad(45.0))):
+					pulling = false
+					out["pull_s"] = tr
+					t_rel = tr
+				if pulling:
+					inp.pitch = rec_pull
+					# против вращения (Жеглов: смещение против крена — в сторону, противоположную
+					# свалившейся консоли; угол крена Эйлера на крутом пикировании штопора не годится)
+					inp.roll = -signf(yaw_prev)
+				elif rec_ease <= 0.0:
+					# отдача по скорости: «на себя», пока V выше трима (−1 при V ≥ трим·(1 + 1/k)), без свечи
+					inp.pitch = clampf(rec_ease * (S.airspeed(m) * 3.6 - v_trim) / v_trim, -1.0, 0.0)
+				else:
+					inp.pitch = rec_pull * clampf(1.0 - (tr - t_rel - rec_ease_hold) / rec_ease, 0.0, 1.0)
+			hb.target = 0.0
+			var hr := hb.roll(m, DT)
+			if not (rec_hold < 0.0 and pulling):
+				inp.roll = hr
+		m.step(DT, inp, Callable(), Callable())
+		var yaw_rate := wrapf(m.heading - hd_prev, -PI, PI) / DT
+		hd_prev = m.heading
+		var nr := 0
+		var nl := 0
+		for j in h:
+			if m.strips.blend[j] > 0.01:
+				nr += 1
+			if m.strips.blend[j + h] > 0.01:
+				nl += 1
+		stalled_n = nr + nl
+		yaw_prev = yaw_rate
+		if phase == 0 and nr + nl > 0:
+			phase = 1
+			t_st = t
+			roll_frz = inp.roll
+			p_st = inp.pitch
+			h0 = m.position.y
+			bank0 = rad_to_deg(m.bank)
+			out["first"] = "обе" if nr > 0 and nl > 0 else ("внутренняя" if nr > 0 else "внешняя")
+			out["n_inner_at_stall"] = nr
+			out["n_outer_at_stall"] = nl
+			out["V_at_stall_kmh"] = S.airspeed(m) * 3.6
+			out["bank_at_stall_deg"] = bank0
+			var mg: Array = []
+			for j in m.strips.n:
+				mg.append(snappedf(rad_to_deg(m.strips.margin[j]), 0.1))
+			out["margin_at_stall_deg"] = mg
+			var vb: Vector3 = m.wing_basis().transposed() * m.velocity
+			out["beta_at_stall_deg"] = rad_to_deg(atan2(vb.x, -vb.z))
+			out["roll_in_at_stall"] = inp.roll
+			out["arm_fy_at_stall_n"] = m.arms.force_b.y
+		elif phase == 1:
+			bank_max = maxf(bank_max, rad_to_deg(m.bank))
+			bank_min = minf(bank_min, rad_to_deg(m.bank))
+			yaw_sum += yaw_rate
+			yaw_n += 1
+			sink_max = maxf(sink_max, -m.velocity.y)
+			v_min = minf(v_min, S.airspeed(m) * 3.6)
+			v_max = maxf(v_max, S.airspeed(m) * 3.6)
+			a_max = maxf(a_max, rad_to_deg(m.alpha))
+			stall_max = maxf(stall_max, m.stall_amount())
+			if first_r < 0.0 and nr >= 4:
+				first_r = t - t_st
+			if first_l < 0.0 and nl >= 4:
+				first_l = t - t_st
+			if t - t_st >= 6.0:
+				phase = 2
+				t_rec0 = m.time_s
+				out["bank_6s_deg"] = rad_to_deg(m.bank)
+				out["V_6s_kmh"] = S.airspeed(m) * 3.6
+				out["h_loss_6s_m"] = h0 - m.position.y
+		else:
+			# выход: срыва нет, |крен| < 15°, вращения нет (|dψ/dt| < 20°/с) — 3 с подряд (фугоида после
+			# пикирования — отдельно, PD-19); переворот в выходе — |крен| > 120°
+			bank_rec_max = maxf(bank_rec_max, absf(rad_to_deg(m.bank)))
+			v_rec_max = maxf(v_rec_max, S.airspeed(m) * 3.6)
+			var ok := absf(rad_to_deg(m.bank)) < 15.0 and absf(rad_to_deg(yaw_rate)) < 20.0 and nr + nl == 0
+			if ok:
+				if is_nan(rec_since):
+					rec_since = m.time_s
+					h_rec = m.position.y
+				elif m.time_s - rec_since >= 3.0:
+					rec_t = rec_since - t_rec0
+					break
+			else:
+				rec_since = NAN
+		if trace and i % 30 == 0:
+			ser.append([snappedf(t, 0.01), phase, snappedf(inp.pitch, 0.01), snappedf(inp.roll, 0.01),
+				snappedf(rad_to_deg(m.bank), 0.1), snappedf(rad_to_deg(yaw_rate), 0.1),
+				snappedf(S.airspeed(m) * 3.6, 0.1), snappedf(rad_to_deg(m.alpha), 0.1),
+				snappedf(-m.velocity.y, 0.01), nr, nl, snappedf(m.position.y, 0.1)])
+	out["t_stall_s"] = t_st
+	out["pitch_at_stall"] = p_st
+	out["bank_max_deg"] = bank_max
+	out["bank_min_deg"] = bank_min
+	out["yaw_rate_mean_dps"] = rad_to_deg(yaw_sum / maxf(yaw_n, 1))
+	out["sink_max_ms"] = sink_max
+	out["V_min_kmh"] = v_min
+	out["V_max_kmh"] = v_max
+	out["alpha_max_deg"] = a_max
+	out["stall_frac_max"] = stall_max
+	out["t_inner4_s"] = first_r
+	out["t_outer4_s"] = first_l
+	out["recover_s"] = rec_t
+	out["bank_rec_max_deg"] = bank_rec_max
+	out["V_rec_max_kmh"] = v_rec_max
+	out["h_loss_total_m"] = h0 - h_rec if not is_nan(rec_t) else NAN
+	out["series"] = ser
+	return out
 
 
 func _emit(sc: String, wing: String, dt: float, d: Dictionary) -> void:

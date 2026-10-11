@@ -64,8 +64,12 @@ func test_soft_with_flare() -> void:
 			print("    мягкая %s, ветер %.0f, выравнивание с %.2f м — %s" % [c[0], c[1], best_h, fmt(best)])
 
 
-## Штиль, все крылья: мягкой нет, но лучшее выравнивание — у порога (max(верт/5, гор/3) ≤ 1,25;
-## сторож предела, PD-14; training — с PD-18).
+## Штиль, все крылья: мягкой нет; лучшее выравнивание — сторож предела max(верт/5, гор/3) ≤ 2,0
+## (PD-22; было 1,25 с PD-14). Срыв полосы теперь Viterna & Corrigan (C_N 90° ≈ 1,2 при λ 5–8, C_L за
+## срывом падает плавно, как у Жеглова): «воздушного тормоза» 2D-пластины C_N = 2 нет. laminar и sport
+## у прежнего порога (1,2–1,3), учебное «от себя» до упора почти не сваливается и гасит скорость слабо —
+## 1,95 (гор. 5,8 м/с). Приоритет — честный срыв и отсутствие переворотов в болтанке (решение
+## координатора PD-22).
 func test_calm_near_limit() -> void:
 	for w: String in WINGS:
 		var best := 99.0
@@ -77,7 +81,7 @@ func test_calm_near_limit() -> void:
 				best = sc
 				best_r = r
 		print("    штиль %s: лучшее %.2f — %s" % [w, best, fmt(best_r)])
-		check(best <= 1.25, "%s: в штиль лучшее выравнивание у порога (%.2f ≤ 1,25)" % [w, best])
+		check(best <= 2.0, "%s: в штиль лучшее выравнивание — сторож (%.2f ≤ 2,0)" % [w, best])
 
 
 ## Без выравнивания (прямо на триме) — жёсткая: горизонтальная больше soft_horizontal_ms.
@@ -97,14 +101,19 @@ func test_hard_without_flare() -> void:
 		check(absf(feet.y) < 0.01, "%s: точка касания на земле" % w)
 
 
-## Выравнивание слишком высоко — крыло срывается и падает: вертикальная ≥ hard_vertical_ms.
+## Выравнивание слишком высоко — крыло срывается и падает: вертикальная ≥ hard_vertical_ms. Учебное
+## (PD-22: срыв Viterna, ЦД сорванной части сдвигается за 20°) «от себя» до упора почти не сваливается —
+## парашютирует с ≈ 2 м/с, но не гасит скорость: жёсткая по горизонтальной.
 func test_hard_flare_too_high() -> void:
 	var lc: Dictionary = Config.get_config("flight").landing
 	for w: String in WINGS:
 		var r: Dictionary = approach(w, 0.0, 6.0).result
 		print("    выравнивание с 6 м %s — %s" % [w, fmt(r)])
 		check(r.get("grade", "") in ["hard", "crash"], "%s: высокое выравнивание — не мягкая" % w)
-		check(float(r.vertical_speed_ms) >= float(lc.hard_vertical_ms), "%s: падает ≥ %.0f м/с" % [w, lc.hard_vertical_ms])
+		if w == "training":
+			check(float(r.horizontal_speed_ms) > float(lc.soft_horizontal_ms) + 1.0, "%s: парашютирует, но быстро по горизонтальной (%.1f м/с)" % [w, r.horizontal_speed_ms])
+		else:
+			check(float(r.vertical_speed_ms) >= float(lc.hard_vertical_ms), "%s: падает ≥ %.0f м/с" % [w, lc.hard_vertical_ms])
 
 
 ## «На себя» до упора к земле — авария (горизонтальная больше crash_horizontal_ms).
