@@ -281,3 +281,5 @@
 {"t": "2026-10-11T18:39:47", "by": "coordinator", "task": "PD-37", "ev": "accepted", "note": "5/5 pendulum_contracts=ok:30/30; linux_exe=ok:ok; windows_exe=ok:ok; mode_pendulum=ok:pendulum\", \"roll_control_mode…; smoke_linux=ok:smoke ok"}
 {"t": "2026-10-11T18:39:48", "by": "coordinator", "task": "PD-37", "ev": "merged", "commits": ["fe456663"]}
 {"t": "2026-10-11T18:39:48", "by": "coordinator", "task": null, "ev": "note", "note": "Волна 5б: PD-35 (досягаемость рук, касание ногами, C_N 90° исправлен; правильная посадка в штиль жёсткая — граница модели; полёт без изменений 0,0 %), PD-36 (подскоки — анимация run, пересобрана), PD-37 (версии контрактов) — влиты; сборка 6 build/pendulum_test6 от fe456663. dp: нужна команда прогона одного тестового файла с изолированным профилем и лимитом памяти"}
+{"t": "2026-10-11T23:10:40", "by": "coordinator", "task": "PD-38", "ev": "created", "note": "Жёсткость касания земли: диагностика и податливость ног в обоих режимах"}
+{"t": "2026-10-11T23:11:29", "by": "coordinator", "task": "PD-38", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-pendulum-PD-38"}

@@ -1,0 +1,116 @@
+{
+  "id": "PD-38",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Жёсткость касания земли: диагностика и податливость ног в обоих режимах",
+  "goal": "Посадка 3,5 м/с вниз даёт пик удельной силы пилота ≈ 26,7 g (MR-5) — контакт абсолютно жёсткий. Найти, где гасится вертикальная скорость на касании («Смещение веса» и «Маятник»), замерить пики и сделать честную податливость ног (ход ≈ 0,2–0,3 м, демпфирование, ограниченная сила): нормальная посадка 1,5–3 g, жёсткая больше, авария как авария; оценка посадки не меняется.",
+  "plan_ref": "Касание земли: жёсткость (PD-38, 11.10)",
+  "contracts": [
+    {
+      "name": "PD-К6",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К1",
+      "version": "4",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "MR-К1",
+      "version": "2",
+      "ref": "docs/contracts/motion-rig.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-38",
+  "branch": "pendulum/PD-38",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight",
+    "configs/flight.json",
+    "configs/pilot.json",
+    "configs/pendulum.json",
+    "tests/flight",
+    "tests/motion_rig/test_motion_ground.gd",
+    "tools/research/pendulum/pd38",
+    "docs/research/pendulum.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/motion_rig",
+    "scripts/flight/landing_judge.gd",
+    "configs/flight.json → landing.{hard,crash,soft}_* (пороги оценки)",
+    "docs/contracts",
+    "tests/contracts",
+    "scripts/game"
+  ],
+  "accept": [
+    {
+      "name": "flight",
+      "tests": "flight"
+    },
+    {
+      "name": "motion_rig",
+      "tests": "motion_rig"
+    },
+    {
+      "name": "contracts_pendulum",
+      "tests": "test_pendulum_contracts"
+    },
+    {
+      "name": "peaks_runs",
+      "cmd": "bash tools/research/pendulum/pd38/peaks.sh",
+      "expect": "re:^PEAK mode=pend v=3\\.5 ",
+      "timeout": 900
+    },
+    {
+      "name": "ws_v1_phys_le_2g",
+      "cmd": "cat tools/research/pendulum/pd38/out/peaks.txt",
+      "expect": "num:PEAK mode=ws v=1\\.0 phys_g=([\\d.]+) <=2.0"
+    },
+    {
+      "name": "ws_v2_60hz_ge_1_5g",
+      "cmd": "cat tools/research/pendulum/pd38/out/peaks.txt",
+      "expect": "num:PEAK mode=ws v=2\\.0 phys_g=[\\d.]+ g60=([\\d.]+) >=1.5"
+    },
+    {
+      "name": "ws_v2_phys_le_3g",
+      "cmd": "cat tools/research/pendulum/pd38/out/peaks.txt",
+      "expect": "num:PEAK mode=ws v=2\\.0 phys_g=([\\d.]+) <=3.0"
+    },
+    {
+      "name": "ws_v35_phys_le_6g",
+      "cmd": "cat tools/research/pendulum/pd38/out/peaks.txt",
+      "expect": "num:PEAK mode=ws v=3\\.5 phys_g=([\\d.]+) <=6.0"
+    },
+    {
+      "name": "pend_v1_phys_le_2g",
+      "cmd": "cat tools/research/pendulum/pd38/out/peaks.txt",
+      "expect": "num:PEAK mode=pend v=1\\.0 phys_g=([\\d.]+) <=2.0"
+    },
+    {
+      "name": "pend_v2_60hz_ge_1_5g",
+      "cmd": "cat tools/research/pendulum/pd38/out/peaks.txt",
+      "expect": "num:PEAK mode=pend v=2\\.0 phys_g=[\\d.]+ g60=([\\d.]+) >=1.5"
+    },
+    {
+      "name": "pend_v2_phys_le_3g",
+      "cmd": "cat tools/research/pendulum/pd38/out/peaks.txt",
+      "expect": "num:PEAK mode=pend v=2\\.0 phys_g=([\\d.]+) <=3.0"
+    },
+    {
+      "name": "pend_v35_phys_le_6g",
+      "cmd": "cat tools/research/pendulum/pd38/out/peaks.txt",
+      "expect": "num:PEAK mode=pend v=3\\.5 phys_g=([\\d.]+) <=6.0"
+    }
+  ],
+  "report_extra": [
+    "peaks_before",
+    "peaks_after",
+    "diagnosis",
+    "grade_changes",
+    "config_keys"
+  ],
+  "notes": "Пункты по порядку. (1) Диагностика до правок: где и как гасится вертикальная скорость на касании в обоих режимах — «Смещение веса» (по умолчанию: FlightModel + наземная модель ground_run/landing_flare) и «Маятник» (scripts/flight/pendulum/: PendulumModel, PendulumGround, PendulumTouchdown); что касается земли (тело пилота, ступни, точка подвески, трапеция, кили), есть ли пружина/демпфер или скорость обнуляется/проецируется; влияет ли модель пилота (масса, подвеска, маятник, ноги) на пик. Ответ на вопрос пользователя «может ли влиять сама модель пилота» — явно, в поле diagnosis. (2) Скрипт tools/research/pendulum/pd38/peaks.sh (одним прогоном, headless Godot с временным XDG_DATA_HOME) — посадки на ровной земле, горизонтальная ≈ 2 м/с, вертикальная 1, 2, 3,5, 5,5 м/с и «на брюхо»/авария (≥ 7 м/с), оба режима; пик |f| = |Δpilot_velocity/Δt − g_vec| в g на шаге физики (120 Гц) и на интервалах 1/60 с (как MotionSource, MR-К1); пишет tools/research/pendulum/pd38/out/peaks.txt и печатает строки ровно вида «PEAK mode=ws|pend v=1.0 phys_g=X.XX g60=Y.YY grade=soft» (v — с одной цифрой после точки: 1.0, 2.0, 3.5, 5.5, belly). Таблица до исправления — в peaks_before. (3) Исправление по PD-К6 v1: податливость ног — ход d ≈ 0,2–0,3 м, демпфирование, ограниченная сила, параметры в конфиге с _doc и физическим смыслом; касание не ногами — своя (жёстче) податливость; оценка LandingJudge — по скорости первого касания, пороги не трогать. Пилотаж посадки (выравнивание, отдача, PendulumTouchdown stood/ran/hard) и оценки в существующих тестах — не должны поменяться; если меняются — в grade_changes явно, по сценариям. Разбег, отрыв и полёт — без изменений (тесты flight зелёные). Если FlightModel начинает отдавать pilot_position/pilot_velocity ≠ position/velocity (тело на согнутых ногах) — напиши в questions, контракт MR-К1 правит координатор. (4) Тесты пиков на касании (оба режима, монотонность: 1 < 2 < 3,5 < 5,5 м/с) — в tests/flight (и tests/flight/pendulum). Коротко — в docs/research/pendulum.md (раздел про касание: модель, числа до/после, границы) и строка в CHANGELOG.md «В работе».",
+  "created": "2026-10-11T23:10:40"
+}
