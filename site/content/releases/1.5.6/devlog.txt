@@ -1,0 +1,12 @@
+Deltaplan 1.5.6 — take-off run and landing
+
+Take-off run, all control modes:
+- The pilot runs evenly, without bouncing (the running animation was redone).
+
+Pendulum mode (experimental):
+- In a crosswind at launch the hands hold the wing on its heading.
+- On landing the pilot stands on his feet or runs a few steps; into a headwind the landing is soft.
+
+Known issues:
+- In no wind, landing in Pendulum mode is still harder than in real life.
+- Flight itself did not change.
