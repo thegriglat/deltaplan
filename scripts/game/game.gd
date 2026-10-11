@@ -1087,7 +1087,9 @@ func _choose_start() -> void:
 	if settings.has_pick():
 		var p := terrain.latlon_to_local(settings.pick_lat, settings.pick_lon)
 		var cfg: Dictionary = _cfg.start_search
-		var launch := StartPlacement.evaluate(terrain.height_at, p.x, p.y, cfg)
+		var launch := StartPlacement.find_launch(terrain.height_at, p.x, p.y, cfg)
+		if not launch.ok:
+			push_warning("Game: у выбранной точки нет склона для разбега — старт на месте")
 		_start_pos = launch.position
 		_start_heading = float(launch.heading_deg)
 		# Пустырь вокруг старта (≥ 2 длины разбега): в лесу иначе не разбежаться и не набрать
