@@ -24,6 +24,7 @@ buses/default_bus_layout="res://scenes/audio/bus_layout.tres"
 [autoload]
 
 Config="*res://scripts/core/config.gd"
+MotionRig="*res://scripts/motion_rig/motion_rig.gd"
 SteamService="*res://scripts/steam/steam_service.gd"
 Achievements="*res://scripts/steam/achievements.gd"
 Activity="*res://scripts/core/activity.gd"
