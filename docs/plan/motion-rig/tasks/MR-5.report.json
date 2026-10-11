@@ -1,8 +1,9 @@
 {
   "status": "done",
-  "summary": "srs в м/с² (vertical = heave − G), motion.step во всех фазах своего пилота и при стоянке после столкновения, reset только на разрывах (в т.ч. start_catch_up); MotionOutput.idle убран; тесты, петля с землёй, README, гайд, CHANGELOG.",
+  "summary": "srs в м/с² (vertical = heave − G), motion.step во всех фазах своего пилота и при стоянке после столкновения, reset только на разрывах (в т.ч. start_catch_up); MotionOutput.idle убран; тесты, петля с землёй, README, гайд, CHANGELOG. Доработка по ревью: гейт flying_enabled and not _paused (_motion_step, reset при возврате после меню/паузы), тест tests/game/test_motion_gate.gd, точный допуск vertical стоя g*(cos(pitch)-1).",
   "commits": [
-    "e1151ff2 motion-rig MR-5: srs в м/с², поток движения на земле и без reset на смене фаз"
+    "e1151ff2 motion-rig MR-5: srs в м/с², поток движения на земле и без reset на смене фаз",
+    "1d5af6dd motion-rig MR-5: вывод движения только в полёте и не на паузе, тест на уровне Game"
   ],
   "checks": [
     {
@@ -42,7 +43,7 @@
     },
     {
       "name": "tests/game/",
-      "value": "прямой прогон: 190 тестов, 0 упало; dp accept --dry: таймаут dp",
+      "value": "не перепрогонялась после доработки (перепрогоняет координатор); test_motion_gate и motion_rig зелёные",
       "pass": true
     },
     {
@@ -72,9 +73,7 @@
     }
   ],
   "not_done": [],
-  "questions": [
-    "seq: reset() раньше обнулял seq; теперь seq растёт с запуска отправки через разрывы (контракт: «с запуска отправки»), иначе loop_check видел откат. Подтвердить."
-  ],
+  "questions": [],
   "how_to_check": "dp accept MR-5 --dry; godot --headless ... --filter=test_motion_ground (печатает числа MR5)",
   "uncertain": [
     {
@@ -94,6 +93,6 @@
     }
   ],
   "dp_feedback": "dp accept: таймаут tests/game слишком мал при нагрузке; нет команды для ожидания job без блокировки 600 с.",
-  "t": "2026-10-11T21:50:27",
+  "t": "2026-10-11T22:10:21",
   "by": "main"
 }
