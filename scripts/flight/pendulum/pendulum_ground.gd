@@ -74,6 +74,11 @@ var decel: float = 4.0  ## торможение точки опоры (стоя/
 var flow_gamma: float = 0.0  ## наклон набегающего потока к горизонту (+ — снизу вверх), рад
 var min_airspeed: float = 0.5
 var _th_int: float = 0.0  ## интегральная часть момента рук по тангажу, Н·м
+var yaw_k: float = 0.0  ## жёсткость удержания курса, Н·м/рад
+var yaw_ti: float = 0.0
+var yaw_max: float = 200.0
+var _ps_int: float = 0.0  ## интегральная часть момента рук по курсу, Н·м
+var yaw_moment: float = 0.0  ## последний момент рук по курсу (телеметрия/тест), Н·м
 
 
 func setup(
@@ -96,6 +101,9 @@ func setup(
 	pitch_k = float(gc.pitch_hold_nm_per_deg) * 180.0 / PI
 	pitch_max = float(gc.pitch_moment_max_nm)
 	pitch_ti = float(gc.get("pitch_hold_ti_s", 0.0))
+	yaw_k = float(gc.yaw_hold_nm_per_deg) * 180.0 / PI
+	yaw_ti = float(gc.get("yaw_hold_ti_s", 0.0))
+	yaw_max = float(gc.yaw_moment_max_nm)
 	var gb: Dictionary = flight.ground_bank
 	roll_cmd_max = deg_to_rad(float(gb.command_max_deg))
 	roll_max = float(gb.pilot_moment_max_nm)
@@ -140,6 +148,7 @@ func reset(heading: float, pilot_local: Vector3) -> void:
 	phase = "standing"
 	decel = stop_decel
 	_th_int = 0.0
+	_ps_int = 0.0
 
 
 ## Плоскость земли: в локальной точке (px, py) земля на «глубине» z (NED, вниз), уклоны —
@@ -289,8 +298,12 @@ func torque_b(R: Basis, wb: Vector3, I: Basis, pitch: float, roll: float, h: flo
 	if absf(e_ps) > deg_to_rad(30.0):
 		heading_cmd = ps + signf(e_ps) * deg_to_rad(30.0)
 		e_ps = signf(e_ps) * deg_to_rad(30.0)
-	var m_ps := I.z.z / tau2 * e_ps - 2.0 * I.z.z / hold_tau * wb.z
+	# PD-32: курс держат руки, как тангаж — пружина-демпфер к курсу бега плюс интеграл; ветер
+	# виден усилием (интеграл растёт до равновесия с моментом флюгера), предел — yaw_max·доля веса на ногах
+	var lim_ps := yaw_max * feet_load
+	if yaw_ti > 0.0 and h > 0.0:
+		_ps_int = clampf(_ps_int + yaw_k / yaw_ti * e_ps * h, -lim_ps, lim_ps)
+	var m_ps := yaw_k * e_ps + _ps_int - 2.0 * sqrt(yaw_k * I.z.z) * wb.z
 	var lim := roll_max * feet_load
-	return Vector3(
-		clampf(m_ph, -lim, lim), clampf(m_th, -pitch_max, pitch_max), clampf(m_ps, -lim, lim)
-	)
+	yaw_moment = clampf(m_ps, -lim_ps, lim_ps)
+	return Vector3(clampf(m_ph, -lim, lim), clampf(m_th, -pitch_max, pitch_max), yaw_moment)

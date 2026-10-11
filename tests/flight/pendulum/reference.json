@@ -751,36 +751,36 @@
   "ground_run": {
    "training": {
     "t_liftoff": 3.8166666666666664,
-    "x_liftoff": 14.993232940318068,
-    "v_liftoff_kmh": 31.10561387610563,
-    "vxp_liftoff": 8.503048281164922,
+    "x_liftoff": 14.99323294031814,
+    "v_liftoff_kmh": 31.105613876108794,
+    "vxp_liftoff": 8.503048281165775,
     "wind_ms": 0.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 14.0,
     "t_strap_half_load": 2.7666666666666666,
-    "max_h_feet_5s": 5.516890852771258
+    "max_h_feet_5s": 5.51689085275952
    },
    "laminar": {
     "t_liftoff": 3.925,
-    "x_liftoff": 15.569510186821368,
-    "v_liftoff_kmh": 31.69386540057606,
-    "vxp_liftoff": 8.633331383473717,
+    "x_liftoff": 15.56951018682065,
+    "v_liftoff_kmh": 31.69386540057325,
+    "vxp_liftoff": 8.633331383472864,
     "wind_ms": 0.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 17.0,
     "t_strap_half_load": 2.9166666666666665,
-    "max_h_feet_5s": 5.987589012018045
+    "max_h_feet_5s": 5.987589012016436
    },
    "sport": {
     "t_liftoff": 4.458333333333334,
-    "x_liftoff": 20.52575804344455,
-    "v_liftoff_kmh": 36.08658608827826,
+    "x_liftoff": 20.52575804344397,
+    "v_liftoff_kmh": 36.08658608827175,
     "vxp_liftoff": 9.816703972858818,
     "wind_ms": 0.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 13.5,
     "t_strap_half_load": 3.3666666666666667,
-    "max_h_feet_5s": 8.43602127018718
+    "max_h_feet_5s": 8.436021270194267
    }
   },
   "ground_run_wind3": {
@@ -793,64 +793,64 @@
     "slope_deg": 15.0,
     "alpha_launch_deg": 14.0,
     "t_strap_half_load": 1.5166666666666666,
-    "max_h_feet_5s": 5.517553472870825
+    "max_h_feet_5s": 5.517553472872777
    },
    "laminar": {
     "t_liftoff": 2.9583333333333335,
-    "x_liftoff": 7.145103772943014,
-    "v_liftoff_kmh": 32.13538431397173,
-    "vxp_liftoff": 5.865896361460443,
+    "x_liftoff": 7.145103772942688,
+    "v_liftoff_kmh": 32.13538431396905,
+    "vxp_liftoff": 5.8658963614595905,
     "wind_ms": 3.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 17.0,
     "t_strap_half_load": 1.6333333333333333,
-    "max_h_feet_5s": 5.949435391824419
+    "max_h_feet_5s": 5.949435391822039
    },
    "sport": {
     "t_liftoff": 3.225,
-    "x_liftoff": 9.506501191050152,
-    "v_liftoff_kmh": 36.82940637717985,
+    "x_liftoff": 9.506501191050113,
+    "v_liftoff_kmh": 36.82940637717998,
     "vxp_liftoff": 7.12734009456625,
     "wind_ms": 3.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 13.5,
     "t_strap_half_load": 1.7666666666666666,
-    "max_h_feet_5s": 8.503079304895135
+    "max_h_feet_5s": 8.50307930489673
    }
   },
   "ground_run_wind6": {
    "training": {
     "t_liftoff": 2.3,
-    "x_liftoff": 2.085998454002592,
+    "x_liftoff": 2.0859984540026657,
     "v_liftoff_kmh": 30.67372575485253,
-    "vxp_liftoff": 2.5796774681487022,
+    "vxp_liftoff": 2.5796774681489154,
     "wind_ms": 6.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 14.0,
     "t_strap_half_load": 0.125,
-    "max_h_feet_5s": 5.510531610085202
+    "max_h_feet_5s": 5.510531610088772
    },
    "laminar": {
     "t_liftoff": 2.3249999999999997,
-    "x_liftoff": 2.2677796393506697,
-    "v_liftoff_kmh": 31.45805622950573,
-    "vxp_liftoff": 2.7704402677670714,
+    "x_liftoff": 2.267779639350744,
+    "v_liftoff_kmh": 31.45805622950639,
+    "vxp_liftoff": 2.7704402677672846,
     "wind_ms": 6.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 17.0,
     "t_strap_half_load": 0.19999999999999998,
-    "max_h_feet_5s": 6.022093193497301
+    "max_h_feet_5s": 6.022093193496811
    },
    "sport": {
     "t_liftoff": 2.55,
-    "x_liftoff": 3.859249069825998,
-    "v_liftoff_kmh": 36.342673633223775,
-    "vxp_liftoff": 4.091977469501202,
+    "x_liftoff": 3.8592490698260864,
+    "v_liftoff_kmh": 36.342673633224514,
+    "vxp_liftoff": 4.0919774695014155,
     "wind_ms": 6.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 13.5,
     "t_strap_half_load": 1.3416666666666666,
-    "max_h_feet_5s": 8.472428923082214
+    "max_h_feet_5s": 8.47242892307657
    }
   }
  }

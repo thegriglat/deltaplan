@@ -183,57 +183,69 @@ static func _track(m: PendulumModel, st: Dictionary, dt: float) -> void:
 	st.h_23 = h
 
 
-## 4а. Боковой ветер 12° справа, 5 м/с, стоит на склоне 15°: руки держат, но наветренное (правое)
-## крыло приподнято — его прижимает усилие рук (момент ≈ Ixx/τ²·крен); без усилия рук (предел
-## момента 0) крыло разворачивает «по циркулю» носом к ветру (скольжение уходит — крен тоже).
+## 4а. Боковой ветер 10–15° справа, 4–5 м/с, стоит на склоне 15° (PD-32): руки держат курс как
+## тангаж (ground.yaw_hold_*) — крыло не разворачивает «по циркулю», ветер виден усилием на руках
+## и небольшим креном (наветренное крыло приподнято). Без рук (предел 0) нос уходит к ветру.
 func test_crosswind_standing() -> void:
 	var res := {}
-	for hold: bool in [true, false]:
-		var m := S.make("training")
-		var g := slope_fn(15.0)
-		var air := wind_fn(5.0, 15.0, 12.0)
-		m.reset_on_ground(Vector3.ZERO, 0.0)
-		if not hold:
-			m.ground.roll_max = 0.0
-		var inp := S.input()
-		var t := 0.0
-		var min_bank := 0.0
-		while t < 3.0 and m.mode == FlightModel.Mode.GROUND:
-			m.step(S.DT, inp, air, g)
-			t += S.DT
-			min_bank = minf(min_bank, rad_to_deg(m.bank))
-		res[hold] = {"bank": min_bank, "heading": rad_to_deg(wrapf(m.heading, -PI, PI)), "mode": m.mode, "fail": m.takeoff_failure}
-	print("    боковой 12° 5 м/с стоя: держит — крен до %.1f°, курс %.1f°; отпустил — крен до %.1f°, курс %.1f° (%s)" % [
-		res[true].bank, res[true].heading, res[false].bank, res[false].heading, res[false].fail])
-	check(res[true].bank < -1.0 and res[true].bank > -5.0, "держит: наветренное крыло приподнято на 1–5° против рук")
-	check(res[false].heading > res[true].heading + 5.0, "отпустил: нос к ветру («по циркулю»)")
+	for side: float in [10.0, 15.0]:
+		for hold: bool in [true, false]:
+			var m := S.make("training")
+			var g := slope_fn(15.0)
+			var air := wind_fn(5.0 if side < 12.0 else 4.0, 15.0, side)
+			m.reset_on_ground(Vector3.ZERO, 0.0)
+			if not hold:
+				m.ground.yaw_max = 0.0
+			var inp := S.input()
+			var t := 0.0
+			var min_bank := 0.0
+			var max_dev := 0.0
+			var max_m := 0.0
+			while t < 4.0 and m.mode == FlightModel.Mode.GROUND:
+				m.step(S.DT, inp, air, g)
+				t += S.DT
+				min_bank = minf(min_bank, rad_to_deg(m.bank))
+				max_dev = maxf(max_dev, absf(rad_to_deg(wrapf(m.heading - m.ground.heading_cmd, -PI, PI))))
+				max_m = maxf(max_m, absf(m.ground.yaw_moment))
+			res[[side, hold]] = {"bank": min_bank, "dev": max_dev, "m": max_m, "mode": m.mode}
+	for side: float in [10.0, 15.0]:
+		var h: Dictionary = res[[side, true]]
+		var f: Dictionary = res[[side, false]]
+		print("    боковой %.0f° стоя: держит — курс ±%.1f°, крен до %.1f°, момент рук %.0f Н·м; без рук — курс %.1f°" % [
+			side, h.dev, h.bank, h.m, f.dev])
+		check(h.dev < 3.0, "боковой %.0f° стоя: курс крыла в пределах 3° от курса бега" % side)
+		check(h.bank < -0.5 and h.bank > -6.0, "наветренное крыло приподнято на небольшой крен")
+		check(h.m < 0.8 * m_yaw_cap() and h.m > 5.0, "момент рук по курсу виден и не на пределе")
+		check(f.dev > h.dev + 5.0, "без рук: нос к ветру («по циркулю»)")
 
 
-## 4б. Разбег и полёт у земли с боковым 15° справа, 4 м/с: на разгрузке и после отрыва нос уходит
-## к ветру (флюгер); без коррекции наветренное крыло поднимается, смещением тела крен удерживается.
+static func m_yaw_cap() -> float:
+	return S.make("training").ground.yaw_max
+
+
+## 4б. Разбег с боковым 10–15°, 4–5 м/с (PD-32): курс крыла держится у направления бега, пилот
+## бежит вниз по склону (на север), крен небольшой, момент рук по курсу не на пределе; после
+## отрыва руки на штанге — курс уже не держится на земле.
 func test_crosswind_takeoff() -> void:
-	var out := {}
-	for hold: bool in [false, true]:
-		var bh := S.BankHold.new(0.0, 2.0, 0.6, 0.5)
+	for side: float in [10.0, 15.0]:
 		var ctrl := func(t: float, m: PendulumModel, st: Dictionary) -> Vector2:
 			var c: Vector2 = zheglov(t, m, st)
-			if t > 1.0:
-				st.min_bank = minf(st.get("min_bank", 0.0), rad_to_deg(m.bank))
-				st.max_abs_bank = maxf(st.get("max_abs_bank", 0.0), absf(rad_to_deg(m.bank)))
-				st.heading = maxf(st.get("heading", -90.0), rad_to_deg(wrapf(m.heading, -PI, PI)))
-			if st.t_lift >= 0.0:
-				c = Vector2(0.0, bh.roll(m) if hold else 0.0)
+			if t > 1.0 and st.t_lift < 0.0:
+				st.max_bank = maxf(st.get("max_bank", 0.0), absf(rad_to_deg(m.bank)))
+				st.dev = maxf(st.get("dev", 0.0), absf(rad_to_deg(wrapf(m.heading - m.ground.heading_cmd, -PI, PI))))
+				st.max_m = maxf(st.get("max_m", 0.0), absf(m.ground.yaw_moment))
 			return c
-		var r := run("training", 15.0, wind_fn(4.0, 15.0, 15.0), ctrl, 3.0)
-		out[hold] = r
-		check(r.took_off, "боковой ветер, удержание %s: отрыв (срыв «%s»)" % [hold, r.failure])
-	if not (out[false].took_off and out[true].took_off):
-		return
-	var f: Dictionary = out[false].st
-	var h: Dictionary = out[true].st
-	print("    боковой 15° 4 м/с: путь %.1f м; без коррекции — крен до %.1f°, курс к ветру до %.1f°; держит телом — |крен| ≤ %.1f°, курс до %.1f°" % [
-		out[false].x, f.min_bank, f.heading, h.max_abs_bank, h.heading])
-	check(f.heading > 3.0, "флюгер: нос к ветру")
-	check(f.min_bank < -3.0, "без коррекции наветренное крыло поднимается")
-	check(h.max_abs_bank < 10.0, "смещением тела крен удерживается")
-	check((out[true].model as PendulumModel).mode == FlightModel.Mode.AIR, "держит — летит")
+		var r := run("training", 15.0, wind_fn(4.5, 15.0, side), ctrl, 1.0)
+		check(r.took_off, "боковой %.0f° на разбеге: отрыв (срыв «%s»)" % [side, r.failure])
+		var st: Dictionary = r.st
+		var m: PendulumModel = r.model
+		var east := absf(m.pilot_position.x)
+		var north := absf(m.pilot_position.z)
+		print("    разбег, боковой %.0f° 4,5 м/с: путь %.1f м, в сторону %.1f м; курс ±%.1f°, крен до %.1f°, момент рук до %.0f Н·м" % [
+			side, r.get("x", NAN), east, st.get("dev", NAN), st.get("max_bank", NAN), st.get("max_m", NAN)])
+		if not r.took_off:
+			continue
+		check(st.dev < 4.0, "боковой %.0f° разбег: курс в пределах 4° от курса бега" % side)
+		check(east < 0.25 * north, "бежит вниз по склону, а не вбок")
+		check(st.max_bank < 8.0, "крен небольшой")
+		check(st.max_m < 0.8 * m_yaw_cap(), "момент рук по курсу не на пределе")
