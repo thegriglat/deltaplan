@@ -73,7 +73,8 @@ surge/sway — проекции g; углы — реальная поза).
 **Кто зовёт (v3).** Отправкой владеет автозагрузка `MotionRig` (`scripts/motion_rig/motion_rig.gd`, в `[autoload]`
 `project.godot`; без `class_name MotionRig`), живёт всё время работы игры, `process_mode = PROCESS_MODE_ALWAYS`
 (тикает и на паузе дерева), свой `_physics_process` с приоритетом после сцены полёта. Интерфейс для `Game`:
-- `MotionRig.attach(game: Node) -> void` / `detach(game: Node) -> void` — сцена полёта есть/нет (`_ready`/`_exit_tree`);
+- `MotionRig.attach(game: Node) -> void` / `detach(game: Node) -> void` — полёт есть/нет: `Game.set_flying(true/false)`
+  плюс `detach` в `_exit_tree` (`Game` живёт и под главным меню — там нейтраль, а не удержание);
   пока присоединена и живых сэмплов нет — удержание, иначе — нейтраль;
 - `MotionRig.step(tel: Telemetry, dt: float) -> void` — живой шаг физики своего пилота (внутри `MotionSource.push`);
 - `MotionRig.reset() -> void` — разрыв (MR-К1); `MotionRig.place: String` — название места (для `srs` location).

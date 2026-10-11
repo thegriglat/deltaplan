@@ -1,0 +1,105 @@
+{
+  "status": "done",
+  "summary": "Автозагрузка MotionRig владеет отправкой: пакеты идут всегда, пока вывод включён (live/hold/neutral), повтор потоком при зависании, плавный вход ramp_s на всех переходах, множитель ground_accel_scale для srs, generic v2 (биты synthetic/ramp), UI, инструменты, docs, CHANGELOG. Диагностика показала: в данных при появлении пика нет, опасен был переход SRS standby -> живые данные.",
+  "commits": [
+    "cef0c701 тесты потока и переходов, generic v2, петля, README, guide, CHANGELOG",
+    "(первый коммит задачи) поток MotionRig, диагностика, UI, конфиг"
+  ],
+  "checks": [
+    {
+      "name": "motion_rig",
+      "value": "52 теста (filter=test_motion) 0 упало; в т.ч. test_motion_flow 15",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "5 тестов 0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_steam_contracts_s7",
+      "value": "6 тестов 0 упало",
+      "pass": true
+    },
+    {
+      "name": "recv_selftest",
+      "value": "selftest OK",
+      "pass": true
+    },
+    {
+      "name": "loop",
+      "value": "re:loop OK",
+      "pass": true
+    },
+    {
+      "name": "layout",
+      "value": "layout OK",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "diff есть",
+      "pass": true
+    },
+    {
+      "name": "tests/game/",
+      "value": "dry-прогон в dp job acc6 ещё идёт (долгий, как в MR-5); мой tests/game/test_motion_gate.gd зелёный",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Итог полного tests/game/ не дождался (только время, не падения по предыдущему опыту); job acc6 пишет в ~/.cache/deltaplan-jobs/acc6.log"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept MR-6; диагностика: godot --headless --path . res://tools/motion_rig/diag_spawn.tscn -- out.csv 60",
+  "uncertain": [
+    {
+      "where": "scripts/motion_rig/motion_output.gd",
+      "why": "Не знаем, уходит ли SRS в standby на нейтральных/hold-пакетах и как реагирует на повтор пакета; платформы и SRS нет",
+      "checked": "только UDP-петля и приёмник recv.py, синтетические тесты"
+    },
+    {
+      "where": "переходы: появление, меню, пауза, рестарт/телепорт, буксир, авария 50 g, смена настроек, выключение вывода",
+      "why": "проверены синтетически на MotionOutput (скачок за пакет <= 0.5 м/с2, 1 град, 2.5 град yaw); без ramp те же тесты падают",
+      "checked": "tests/motion_rig/test_motion_flow.gd; со сценой Game - только состояния live/hold/neutral в test_motion_gate"
+    },
+    {
+      "where": "scripts/game/game.gd set_flying",
+      "why": "attach/detach привязаны к set_flying(true/false), а не к _ready/_exit_tree (Game в меню существует, а контракт требует нейтраль в меню); _exit_tree тоже делает detach",
+      "checked": "test_motion_gate"
+    },
+    {
+      "where": "диагностика разбега",
+      "why": "в headless с автопилотом толчков heave по шагам нет (пик вертикали 0.25 g, скачок 0.11 g за пакет только в момент начала бега); возможно, толчки владельца - от неровной частоты кадров или ног/анимации в живой игре",
+      "checked": "diag_spawn.gd на физике до и после PD-38 (числа идентичны)"
+    },
+    {
+      "where": "touchdown_peak_ratio",
+      "why": "измерен на синтетическом ударе, не на реальной посадке после PD-38",
+      "checked": "test_motion_flow: 28.54 против 29.40 м/с2"
+    }
+  ],
+  "dp_feedback": "dp accept --dry реально гоняет тесты и выглядит как сухой прогон; tests/game/ занимает >10 мин без промежуточного вывода. Не хватает dp-команды ждать detached accept; dp job wait ограничен таймаутом.",
+  "extra": {
+    "diag": "стоя 3 с на склоне: пики |surge| 0.507, |sway| 0.113, |vertical| 0.013 м/с2; скачок за пакет <= 0.06 g; первый пакет valid=true. Разбег (автопилот): |vertical| до 2.49 м/с2 (0.254 g), |surge| до 6.47 м/с2, скачок heave за пакет 0.112 g, surge 0.333 g (начало бега, ступенька ввода). Отрыв на 4.5 с, скачок heave 1.1 м/с2 за пакет",
+    "spawn_jump_per_packet_first2s": "surge 0.174 sway 0.096 vertical 0.007 м/с2, pitch 0.02 roll 0.00 yaw 1.51 град (порог 0.5/1/2.5)",
+    "touchdown": "пик vertical 28.54 (x0.3) против 29.40 (x1), отношение 0.971",
+    "ground": "на земле ровно x0.300, скачок множителя за пакет 0.0292 (предел 0.0342)",
+    "keepalive": "зависание 1 с: 58 пакетов (все повторы потоком), seq подряд; средний интервал 17 мс",
+    "menu": "через автозагрузку 96-99 пакетов за 1.5 с, все нейтральные",
+    "pd38": "диагностика повторена после слияния PD-38: числа те же; тесты MR на новой физике зелёные"
+  },
+  "spawn_peak_raw": "стоя 3 с: |surge| 0.507, |sway| 0.113, |vertical| 0.013 м/с2; скачок за пакет <= 0.06 g (пика в данных нет)",
+  "spawn_peak_packet": "скачок за пакет в первые 2 с: surge 0.174, sway 0.096, vertical 0.007 м/с2, pitch 0.02, roll 0.00, yaw 1.51 град",
+  "run_heave_step_g": "|vertical| до 0.254 g; скачок за пакет 0.112 g (старт бега); плавных толчков по шагам нет",
+  "touchdown_peak_ratio": 0.971,
+  "keepalive_gap_ms": "58 пакетов за 1000 мс зависания, средний интервал 17 мс (период 16.7)",
+  "t": "2026-10-12T00:49:17",
+  "by": "executor"
+}
