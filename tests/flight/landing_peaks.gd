@@ -20,7 +20,8 @@ static func flat(_x: float, _z: float) -> float:
 ## t_td, last_g (|f| в конце, г), nan, model}.
 ## dt — шаг физики (по умолчанию 120 Гц; пик на интервалах 1/60 с — только при dt = 1/120).
 static func run(
-	mode: String, v_down: float, v_fwd: float = 2.0, secs: float = 2.0, wing := "sport", dt := DT
+	mode: String, v_down: float, v_fwd: float = 2.0, secs: float = 2.0, wing := "sport", dt := DT,
+	hook := Callable()
 ) -> Dictionary:
 	var m: Variant
 	# касание на первом шаге: за него свободное падение добавит g·dt — на касании ровно v_down
@@ -50,6 +51,8 @@ static func run(
 	var n := int(round(secs / dt))
 	for i in n:
 		m.step(dt, inp, Callable(), flat)
+		if hook.is_valid():
+			hook.call(m, i, dt)
 		var v: Vector3 = m.telemetry.pilot_velocity
 		if not v.is_finite():
 			bad = true
