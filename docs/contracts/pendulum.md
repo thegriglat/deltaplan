@@ -5,7 +5,7 @@ module: pendulum
 updated: 2026-10-11
 summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4), поза пилота в визуале и у чужих (PD-К5)."
 related: ["docs/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 3}, {"id": "PD-К2", "version": 3}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}]
+contracts: [{"id": "PD-К1", "version": 3}, {"id": "PD-К2", "version": 4}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}]
 ---
 # Контракты модуля pendulum
 
@@ -64,7 +64,8 @@ v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы н
 
 Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel` (как сейчас); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
 
-## PD-К2. Конфиг маятника и блок pendulum в крыльях (v3)
+## PD-К2. Конфиг маятника и блок pendulum в крыльях (v4)
+v4 (11.10, PD-21/23): + `yaw.cn_p_add`, `yaw.cn_r_add` — добавочные производные рыскания по pb/2V и rb/2V (приведение Cnp, Cnr полос к литературе, docs/research/pendulum-yaw-literature.md); `contract` — `"PD-К2 v4"` (блоки крыльев — v3 без изменений, если не пересчитываются).
 v3 (11.10, ответы пилота): + `apparatus_defaults` в блоке крыла — умолчания «Аппарата» по классу крыла (офлайн-скрипт); `contract` блока — `"PD-К2 v3"`.
 v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта сил полос и выборки ветра; между пересчётами сила и момент полос заморожены в осях крыла, цепь и руки — на каждом подшаге.
 Владелец — PD-1; потребители — PD-2, PD-3, PD-5, PD-8.
@@ -83,6 +84,7 @@ v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта си�
 | `strips.count`, `strips.cp_chord` | int (чётное), доля хорды | 16, 0,25 |
 | `strips.aero_hz` | Гц (≤ 0 — на каждом подшаге, как прототип) | 60 |
 | `yaw.cn_beta`, `yaw.fin_arm_m`, `yaw.fin_slope_per_rad` | 1/рад, м, 1/рад | 0,06, 1,6, 2,0 |
+| `yaw.cn_p_add`, `yaw.cn_r_add` | безразм. (на pb/2V, rb/2V) | 0, 0 (v4; значения — PD-23) |
 | `pilot_cda_m2` | м² | 0,21 |
 | `apparent_roll` | bool | true |
 | `billow_shift_deg` | ° | 0 |
