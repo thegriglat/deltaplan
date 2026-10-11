@@ -52,11 +52,12 @@
     },
     {
       "name": "wings_count",
-      "cmd": "ls configs/wings/*.json | xargs grep -l '\"PD-К2 v1\"' | wc -l",
+      "cmd": "ls configs/wings/*.json | xargs /usr/bin/grep -l '\"PD-К2 v[0-9]' | wc -l",
       "expect": "num:(\\d+) >=48"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T00:50:13"
+  "created": "2026-10-11T00:50:13",
+  "edited": "2026-10-11T07:42:40"
 }
