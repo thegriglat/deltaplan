@@ -15,11 +15,11 @@ func check(cond: bool, msg: String = "") -> void:
 
 func _ticks(game: Game, n: int) -> int:
 	var out: MotionOutput = MotionRig.output
-	var before := out.packets_sent
+	var before := out.packets_sent - out.repeats_sent
 	for i in n:
 		game.tick(DT)
 		MotionRig.advance(DT)  # как _physics_process автозагрузки, после Game
-	return out.packets_sent - before
+	return out.packets_sent - out.repeats_sent - before
 
 
 func test_packets_in_every_state() -> void:

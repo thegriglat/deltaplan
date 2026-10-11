@@ -152,8 +152,8 @@ func step(tel: Telemetry, dt: float) -> void:
 
 ## Тик физики (после Game): раз в every_n тиков — один пакет. true, если пакет ушёл на этом тике.
 func tick(dt: float) -> bool:
-	if not enabled and not _winding_down:
-		_stepped = false
+	if (not enabled and not _winding_down) or (_failed and use_transport):
+		_stepped = false  # выключено или адрес неверный (до configure()): пакет не собираем
 		return false
 	_acc_dt += dt
 	_counter += 1
