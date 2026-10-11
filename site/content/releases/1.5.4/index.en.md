@@ -14,4 +14,7 @@ description: "Hay bales, geese flying in migration season and a seagull charm on
 - In migration months skeins of honking geese fly by: north in spring, south in autumn; no geese out of season.
 - A small seagull charm hangs in the right corner of the control bar and swings on its string with banking and turbulence.
 
+**Start from the map**
+- You start exactly where you put the point on the map; the game no longer moves it to a suitable slope nearby. Heading is downhill at that point.
+
 [itch.io devlog text](/site/content/releases/1.5.4/devlog.txt)
