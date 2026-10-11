@@ -366,7 +366,11 @@ func _pd19_model(w: String, props: Dictionary, proto: bool) -> PendulumModel:
 	for k: String in props:
 		if k not in ["model", "arms", "cl_max_mult"]:
 			strip_props += 1
-		if k == "model":
+		if k == "cd90_sweep_norm":
+			# PD-35: false — C_N 90° без поправки cos²Λ (как до PD-35)
+			if not bool(props[k]):
+				m.strips.cd90 /= m.strips.cos_sweep * m.strips.cos_sweep
+		elif k == "model":
 			for q: String in props.model:
 				m.set(q, props.model[q])
 		elif k == "arms":

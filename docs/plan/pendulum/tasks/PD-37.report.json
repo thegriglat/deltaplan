@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "Версии контрактов заменены (PD-К1 v4, PD-К2 v7) в configs/pendulum.json и трёх контрактных тестах; pendulum_contracts 30/30. Собраны linux и windows (debug), скопированы в build/pendulum_test6, roll_control_mode=pendulum, smoke ok. dp accept --dry: 5/5.",
+  "commits": [
+    "ed24c1d4 pendulum PD-37: версии контрактов PD-К1 v4, PD-К2 v7 в конфиге и тестах"
+  ],
+  "checks": [
+    {
+      "name": "pendulum_contracts",
+      "value": "30 тестов, 0 упало, 0 пропущено",
+      "pass": true
+    },
+    {
+      "name": "linux_exe",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "windows_exe",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "mode_pendulum",
+      "value": "pendulum в обоих controls.json",
+      "pass": true
+    },
+    {
+      "name": "smoke_linux",
+      "value": "smoke ok (exit 0; в выводе при выходе: ERROR: 7 resources still in use at exit)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "configs/wings/*.json (блок pendulum.contract = \"PD-К2 v3\") и проверка test_pendulum_contracts_k2.gd:111 не менялись: в задании не указаны, версия не PD-К2 v6. Нужно решение координатора, поднимать ли до v7."
+  ],
+  "images": [],
+  "how_to_check": "dp accept PD-37",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_pendulum_contracts_k2.gd:86",
+      "why": "комментарий «v6 (PD-22)» оставлен как есть — это история правок, не ожидаемая версия",
+      "checked": "только grep"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "build_dir": "/home/greg/deltaplan/build/pendulum_test6",
+    "smoke_note": "exit 0 при предупреждении о неосвобождённых ресурсах на выходе"
+  },
+  "t": "2026-10-11T18:39:34",
+  "by": "executor"
+}

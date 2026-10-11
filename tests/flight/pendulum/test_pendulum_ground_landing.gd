@@ -1,7 +1,8 @@
 extends TestCase
 ## Посадка «Маятника» (PD-К1 v2, PD-3): заход на триме над ровной землёй, выравнивание — «от себя»
-## до упора на высоте ступней flare_h; касание ступнями → LandingJudge (пороги flight.json →
-## landing не меняются): мягкая / жёсткая / авария. Консоль в землю раньше ступней — авария.
+## до упора на высоте ступней flare_h; касание ступнями → PendulumTouchdown (PD-35: вертикальная, крен,
+## авария — пороги LandingJudge, горизонтальная — выбегает ли пилот, touchdown.run_max_ms): мягкая /
+## жёсткая / авария. Консоль в землю раньше ступней — авария.
 ## После посадки без аварии пилот на ногах с крылом: пробежка гасит скорость, run/walk — земля.
 ## Экранный эффект полос (PD-14) включён. В штиль мягкой почти ни у кого: лучшая посадка — на пороге
 ## (верт ≈ 5 или гор ≈ 3 м/с). Это предел самой аэродинамики полос, а не техники: идеальная точка с
@@ -47,8 +48,17 @@ static func fmt(r: Dictionary) -> String:
 
 
 ## Выравнивание на подходящей высоте даёт мягкую во встречный 3 м/с (в штиль — test_calm_near_limit).
+## PD-35: отдача до вытянутых рук прямо с трима (≈ 1,4 срыва) на 0,5–2 м ставит laminar и sport на хвост
+## (крыло за вертикалью, авария), выше — жёстко по вертикальной; мягкая у них — только с выравниванием
+## (test_pendulum_landing_technique). Здесь мягкая с трима — у учебного, у laminar и sport — не мягкая.
 func test_soft_with_flare() -> void:
-	var cases := [["training", 3.0], ["laminar", 3.0], ["sport", 3.0]]
+	var cases := [["training", 3.0]]
+	for w: String in ["laminar", "sport"]:
+		for h: float in FLARE_HEIGHTS:
+			var r: Dictionary = approach(w, 3.0, h).result
+			if not OS.get_environment("PD35_ALL").is_empty():
+				print("      %s, ветер 3, с %.2f м — %s" % [w, h, fmt(r)])
+			check(r.get("grade", "") != "soft", "%s, ветер 3, с %.2f м: отдача с трима — не мягкая (%s)" % [w, h, fmt(r)])
 	for c: Array in cases:
 		var best := {}
 		var best_h := NAN
@@ -56,6 +66,8 @@ func test_soft_with_flare() -> void:
 			var a := approach(c[0], c[1], h)
 			var r: Dictionary = a.result
 			check(a.flare > 0.99, "%s: flare_amount у земли = 1 (%.2f)" % [c[0], a.flare])
+			if not OS.get_environment("PD35_ALL").is_empty():
+				print("      %s, ветер %.0f, с %.2f м — %s" % [c[0], c[1], h, fmt(r)])
 			if r.get("grade", "") == "soft":
 				best = r
 				best_h = h
@@ -85,16 +97,15 @@ func test_calm_near_limit() -> void:
 		check(best <= 2.0, "%s: в штиль лучшее выравнивание — сторож (%.2f ≤ 2,0)" % [w, best])
 
 
-## Без выравнивания (прямо на триме) — жёсткая: горизонтальная больше soft_horizontal_ms.
+## Без выравнивания (прямо на триме) — жёсткая: горизонтальная больше выбегаемой (touchdown.run_max_ms).
 func test_hard_without_flare() -> void:
-	var lc: Dictionary = Config.get_config("flight").landing
 	for w: String in WINGS:
 		var a := approach(w, 0.0, -1.0)
 		var r: Dictionary = a.result
 		var m: PendulumModel = a.model
 		print("    без выравнивания %s — %s" % [w, fmt(r)])
 		check(r.get("grade", "") == "hard", "%s: без выравнивания — жёсткая (%s)" % [w, fmt(r)])
-		check(float(r.horizontal_speed_ms) > float(lc.soft_horizontal_ms), "%s: жёсткая по горизонтальной" % w)
+		check(float(r.horizontal_speed_ms) > m.touchdown.run_max, "%s: жёсткая по горизонтальной" % w)
 		check(m.mode == FlightModel.Mode.LANDED and m.phase() == "landed", "%s: LANDED" % w)
 		check(a.signals.size() == 1, "%s: сигнал landed один раз" % w)
 		check(r.has("position") and r.has("flight_time_s"), "%s: position и flight_time_s" % w)
@@ -114,7 +125,8 @@ func test_hard_flare_too_high() -> void:
 		# жёстко по вертикальной (падает) или по горизонтальной (парашютирует быстро); с запаздыванием
 		# отрыва (PD-30) учебное тоже падает, а не парашютирует
 		check(float(r.vertical_speed_ms) >= float(lc.hard_vertical_ms)
-			or float(r.horizontal_speed_ms) > float(lc.soft_horizontal_ms) + 1.0,
+			or float(r.horizontal_speed_ms) > float(lc.soft_horizontal_ms) + 1.0
+			or r.get("contact", "") == "bar",
 			"%s: падает ≥ %.0f м/с или парашютирует быстро по горизонтальной (%.1f м/с)" % [
 				w, lc.hard_vertical_ms, r.horizontal_speed_ms])
 

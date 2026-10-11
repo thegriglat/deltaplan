@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "summary": "Подскок — в анимации run (pilot.glb), не в физике: таз картинки ходил на 37–39 см дважды за цикл, ЦМ физики — 0,3–0,5 см. Анимация пересобрана (таз на постоянной высоте, IK ног): 2,5–3,2 см.",
+  "commits": [
+    "e38d5aa1 Разбег: таз пилота на постоянной высоте"
+  ],
+  "checks": [
+    {
+      "name": "pendulum",
+      "value": "97/97",
+      "pass": true
+    },
+    {
+      "name": "pilot_pose",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "cockpit",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "подскок ЦМ физики, см",
+      "value": "0.3-0.5",
+      "pass": true
+    },
+    {
+      "name": "подскок таза в картинке, см (было 37-39)",
+      "value": "2.5-3.2",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скорость проигрыша run не привязана к скорости бега (ступни по земле скользят); не трогал",
+    "Анимацию walk с похожей привязкой нижней стопы не проверял"
+  ],
+  "questions": [
+    "Скоуп расширен на tools/blender/build_pilot.py, assets/models/pilot.glb, assets/source/pilot.blend (пересборка пилота) — ок?"
+  ],
+  "how_to_check": "dp accept PD-36; godot --headless --path . res://tests/run_tests.tscn -- --filter=run_smooth",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_pilot.py run_legs",
+      "why": "вид бега глазом не смотрел (картинки не заказаны); IK-стопа на склоне 15° в ±8 см от земли",
+      "checked": "таз и физика числами; пункты сообщения: set_hang_pose привязка ступней ±1 см, смены опоры нет, фаза running идёт в аниматор"
+    }
+  ],
+  "dp_feedback": "Не хватило dp-команды для прогона одного тестового файла headless с XDG и MemoryMax.",
+  "t": "2026-10-11T18:17:25",
+  "by": "executor"
+}

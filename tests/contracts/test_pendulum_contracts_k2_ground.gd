@@ -1,6 +1,6 @@
 extends TestCase
-## Контрактный тест PD-К2 v4 (docs/contracts/pendulum.md), часть земли и посадки: configs/pendulum.json
-## → contract «PD-К2 v4», блок ground.* (PD-3), ключи PD-14 (экранный эффект, C_L max полос по
+## Контрактный тест PD-К2 v7 (docs/contracts/pendulum.md), часть земли и посадки: configs/pendulum.json
+## → contract «PD-К2 v7», блок ground.* (PD-3), ключи PD-14 (экранный эффект, C_L max полос по
 ## поляре) и добавки рыскания v4 (yaw.cn_p_add, yaw.cn_r_add). У каждого ключа — <ключ>_doc. Блок pendulum крыльев и прочие ключи —
 ## tests/contracts/test_pendulum_contracts_k2.gd.
 
@@ -47,12 +47,12 @@ func test_doc_heading() -> void:
 		text = FileAccess.get_file_as_string(ProjectSettings.globalize_path(DOC))
 	var re := RegEx.create_from_string("(?m)^## PD-К2\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 6, "заголовок «## PD-К2. … (v6)»")
+	check(m != null and int(m.get_string(1)) == 7, "заголовок «## PD-К2. … (v7)»")
 
 
 func test_contract_v4() -> void:
 	var c := _cfg()
-	check(c.get("contract") == "PD-К2 v6", "configs/pendulum.json → contract = PD-К2 v6 (%s)" % c.get("contract"))
+	check(c.get("contract") == "PD-К2 v7", "configs/pendulum.json → contract = PD-К2 v7 (%s)" % c.get("contract"))
 
 
 func test_yaw_add_keys_v4() -> void:
