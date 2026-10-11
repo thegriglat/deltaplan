@@ -509,7 +509,18 @@ class GameSim(Sim):
         m_th = k_th * e + m_i - 2 * math.sqrt(k_th * Iyy) * wb[1]
         m_ph = Ixx / tau ** 2 * (ph_cmd - ph) - 2 * Ixx / tau * wb[0]
         lim_ph = 200.0 * self.feet_load
-        return self.R @ np.array([np.clip(m_ph, -lim_ph, lim_ph), np.clip(m_th, -lim_th, lim_th), 0.0])
+        # PD-32: курс — руки держат к курсу бега (курс на старте), как тангаж: пружина + интеграл,
+        # предел 200 Н·м × доля веса на ногах (ground.yaw_hold_*)
+        if getattr(self, "_ps_ref", None) is None:
+            self._ps_ref = ps
+        k_ps = float(p.extra.get("ground_yaw_nm_per_deg", 30.0)) * 180.0 / math.pi
+        ti_ps = float(p.extra.get("ground_yaw_ti_s", 0.0))
+        lim_ps = float(p.extra.get("ground_yaw_max_nm", 200.0)) * self.feet_load
+        e_ps = (self._ps_ref - ps + math.pi) % (2 * math.pi) - math.pi
+        if ti_ps > 0.0 and self._dyn_dt > 0.0:
+            self._ps_int = max(-lim_ps, min(lim_ps, getattr(self, "_ps_int", 0.0) + k_ps / ti_ps * e_ps * self._dyn_dt))
+        m_ps = k_ps * e_ps + getattr(self, "_ps_int", 0.0) - 2 * math.sqrt(k_ps * self.I_b[2, 2]) * wb[2]
+        return self.R @ np.array([np.clip(m_ph, -lim_ph, lim_ph), np.clip(m_th, -lim_th, lim_th), np.clip(m_ps, -lim_ps, lim_ps)])
 
     def _substep(self, h):
         self._dyn_dt = h
@@ -617,6 +628,9 @@ def make_ground(wing: str, blk: dict, dt=1 / 120):
     gc = json.loads((ROOT / "configs/pendulum.json").read_text())["ground"]
     p.extra["launch_alpha_range_deg"] = float(wing_cfg(wing)["launch"]["alpha_range_deg"])
     p.extra["ground_pitch_ti_s"] = float(gc.get("pitch_hold_ti_s", 0.0))
+    p.extra["ground_yaw_nm_per_deg"] = float(gc.get("yaw_hold_nm_per_deg", 30.0))
+    p.extra["ground_yaw_ti_s"] = float(gc.get("yaw_hold_ti_s", 0.0))
+    p.extra["ground_yaw_max_nm"] = float(gc.get("yaw_moment_max_nm", 200.0))
     a, st = trim.solve_trim(s)
     s.reset_air(st)
     return s
