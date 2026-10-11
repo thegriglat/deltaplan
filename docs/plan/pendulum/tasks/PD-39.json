@@ -1,0 +1,113 @@
+{
+  "id": "PD-39",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Авария без «деревянного» контакта: ограниченное замедление ≈ 20 g вместо обнуления скорости за шаг",
+  "goal": "На аварии (вертикальная > 7 м/с, трапеция/нос/консоль, «на брюхо») скорость сейчас обнуляется за один шаг — пик ≈ 100 g задаёт шаг физики, а защита MotionSource 50 g срабатывает. Гасить с ограниченным замедлением landing.crash_decel_g ≈ 20 g (8 м/с → ≈ 0,04 с, ≈ 0,16 м) в обоих режимах; момент и оценка аварии, итог полёта — без изменений.",
+  "plan_ref": "Авария без «деревянного» контакта (PD-39, 12.10)",
+  "contracts": [
+    {
+      "name": "PD-К6",
+      "version": "2",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К1",
+      "version": "4",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "MR-К1",
+      "version": "2",
+      "ref": "docs/contracts/motion-rig.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-39",
+  "branch": "pendulum/PD-39",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight",
+    "configs/flight.json (только новый ключ landing.crash_decel_g + _doc)",
+    "configs/pilot.json",
+    "configs/pendulum.json",
+    "tests/flight",
+    "tools/research/pendulum/pd39",
+    "docs/research/pendulum.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/motion_rig",
+    "scripts/game (в т.ч. game.gd — параллельно идёт MR-6)",
+    "scripts/flight/landing_judge.gd",
+    "configs/flight.json → landing.{hard,crash,soft}_* (пороги оценки)",
+    "docs/contracts",
+    "tests/contracts",
+    "tests/motion_rig"
+  ],
+  "accept": [
+    {
+      "name": "flight",
+      "tests": "flight",
+      "timeout": 1800
+    },
+    {
+      "name": "motion_rig",
+      "tests": "motion_rig"
+    },
+    {
+      "name": "contracts_pendulum",
+      "tests": "test_pendulum_contracts"
+    },
+    {
+      "name": "crash_runs",
+      "cmd": "bash tools/research/pendulum/pd39/crash.sh",
+      "expect": "re:^CRASH mode=pend hz=240 ",
+      "timeout": 900
+    },
+    {
+      "name": "ws_120_le_21g",
+      "cmd": "cat tools/research/pendulum/pd39/out/crash.txt",
+      "expect": "num:CRASH mode=ws hz=120 phys_g=([\\d.]+) <=21.0"
+    },
+    {
+      "name": "ws_240_le_21g",
+      "cmd": "cat tools/research/pendulum/pd39/out/crash.txt",
+      "expect": "num:CRASH mode=ws hz=240 phys_g=([\\d.]+) <=21.0"
+    },
+    {
+      "name": "pend_120_le_21g",
+      "cmd": "cat tools/research/pendulum/pd39/out/crash.txt",
+      "expect": "num:CRASH mode=pend hz=120 phys_g=([\\d.]+) <=21.0"
+    },
+    {
+      "name": "pend_240_le_21g",
+      "cmd": "cat tools/research/pendulum/pd39/out/crash.txt",
+      "expect": "num:CRASH mode=pend hz=240 phys_g=([\\d.]+) <=21.0"
+    },
+    {
+      "name": "all_crash_grade",
+      "cmd": "cat tools/research/pendulum/pd39/out/crash.txt",
+      "expect": "!re:^CRASH .*grade=(?!crash)"
+    },
+    {
+      "name": "motion_guard_0",
+      "cmd": "cat tools/research/pendulum/pd39/out/crash.txt",
+      "expect": "num:guard_resets_total=(\\d+) <=0"
+    },
+    {
+      "name": "peaks_pd38_unchanged",
+      "cmd": "bash tools/research/pendulum/pd38/peaks.sh",
+      "expect": "num:PEAK mode=ws v=3\\.5 phys_g=([\\d.]+) <=6.0",
+      "timeout": 900
+    }
+  ],
+  "report_extra": [
+    "crash_before",
+    "crash_after",
+    "touch_points",
+    "timing_changes",
+    "config_keys"
+  ],
+  "notes": "(1) Найти все места, где на аварии/касании не ногами скорость обнуляется или замораживается за шаг (по отчёту PD-38: «Смещение веса» — velocity = 0 в LandingFlare/FlightModel на аварии; «Маятник» — _freeze; касание трапецией, носом, консолью, «на брюхо»; срыв разбега с касанием крылом — проверить, относится ли). (2) Заменить на гашение с ограниченным замедлением a = landing.crash_decel_g·g (новый ключ в configs/flight.json → landing с _doc: смятие каркаса/трапеции/тела, ≈ 20 g; 8 м/с → ≈ 0,04 с, путь ≈ 0,16 м): скорость (вектор относительно земли, или хотя бы её компонента в землю + горизонтальная — выбери KISS и опиши) уменьшается на a·dt за шаг до нуля, пик не зависит от шага. Момент аварии, grade = \"crash\", LandingJudge, сигналы landed/takeoff_failed, mode, итог полёта — как сейчас (авария наступает в тот же шаг); меняется только профиль скорости после касания; итоговый экран и столкновения по времени — не позже ≈ 0,1 с (в timing_changes — что и на сколько сдвинулось). (3) Скрипт tools/research/pendulum/pd39/crash.sh (headless Godot, временный XDG_DATA_HOME, одним прогоном): аварии «на брюхо» 8 м/с вниз + 2 м/с вперёд, оба режима, шаг 1/120 и 1/240 (и, если есть отдельные пути кода, касание трапецией/носом/консолью — дополнительными строками с mode=ws|pend и своим tag=…); пишет tools/research/pendulum/pd39/out/crash.txt и печатает строки ровно вида «CRASH mode=ws|pend hz=120|240 phys_g=X.XX g60=Y.YY grade=crash t_stop_s=… path_m=… guard_resets=N» (phys_g — пик |Δpilot_velocity/Δt − g_vec| в g на шаге физики, g60 — на интервалах 1/60 с, guard_resets — сколько раз защита MotionSource 50 g сбросила поток за прогон, через сам MotionSource без правки его кода) и в конце строку «guard_resets_total=N». Таблица до исправления — crash_before (закоммитить скрипт и crash_before до правок). (4) Тест в tests/flight (и tests/flight/pendulum): пик «на брюхо» ≤ 21 g на 120 и 240 Гц, NaN нет, grade crash. Нормальные посадки PD-38 (pilot_legs) не трогать — peaks.sh PD-38 должен дать те же числа. Коротко — docs/research/pendulum.md (касание: авария) и строка CHANGELOG «В работе».",
+  "created": "2026-10-12T00:21:23"
+}

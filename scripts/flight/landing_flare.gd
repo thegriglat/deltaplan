@@ -17,6 +17,8 @@ var apex_y: float = 0.0
 ## Ноги после касания (PD-К6 v1): сгиб коленей, м (тело ниже ступней-земли), и его скорость, м/с (> 0 — вниз).
 var knee_y: float = 0.0
 var knee_v: float = 0.0
+## Авария (PD-К6 v2): скорость гасится с постоянным замедлением landing.crash_decel_g, а не за шаг.
+var crashed: bool = false
 var _legs: PilotLegs = null
 
 
@@ -27,6 +29,7 @@ func reset() -> void:
 	hang_time = -1.0
 	knee_y = 0.0
 	knee_v = 0.0
+	crashed = false
 	_legs = null  # масса могла поменяться (setup)
 
 
@@ -100,8 +103,10 @@ func touchdown(m: FlightModel, ground_fn: Callable, gh: float) -> Dictionary:
 	knee_v = maxf(-m.velocity.y, 0.0)
 	m.velocity = Vector3(m.velocity.x, -knee_v, m.velocity.z)
 	if result.grade == "crash":
-		m.velocity = Vector3.ZERO
+		# вся скорость касания (вектор) — на смятие каркаса, см. runout
+		m.velocity = Vector3(m.velocity.x, minf(m.velocity.y, 0.0), m.velocity.z)
 		knee_v = 0.0
+		crashed = true
 	m.roll_rate = 0.0
 	m.stalled = false
 	return result
@@ -110,6 +115,9 @@ func touchdown(m: FlightModel, ground_fn: Callable, gh: float) -> Dictionary:
 ## Пробежка после касания: горизонтальная скорость гасится ногами, вертикальная — сгибанием коленей
 ## (PilotLegs, pilot.json → legs): тело на knee_y ниже земли под ступнями, потом встаёт.
 func runout(m: FlightModel, dt: float, ground_fn: Callable) -> void:
+	if crashed:
+		_crash(m, dt, ground_fn)
+		return
 	var decel := float(m.flight.landing.runout_decel_ms2)
 	var vh := Vector3(m.velocity.x, 0.0, m.velocity.z).move_toward(Vector3.ZERO, decel * dt)
 	m.position += vh * dt
@@ -139,3 +147,14 @@ func _knees(m: FlightModel, dt: float) -> void:
 			knee_y = 0.0
 			knee_v = 0.0
 			return
+
+
+## Авария: скорость (вектор) убывает на crash_decel_g·g·dt за шаг до нуля; по земле скользим горизонтальной
+## частью, вниз тело не уходит (земля). Пик не зависит от шага.
+func _crash(m: FlightModel, dt: float, ground_fn: Callable) -> void:
+	var a := float(m.flight.landing.crash_decel_g) * Units.G
+	m.velocity = m.velocity.move_toward(Vector3.ZERO, a * dt)
+	m.position += Vector3(m.velocity.x, 0.0, m.velocity.z) * dt
+	var gh := FlightModel.ground_height(ground_fn, m.position.x, m.position.z)
+	if gh > -INF:
+		m.position.y = gh

@@ -141,9 +141,13 @@ func test_crash_dive() -> void:
 		print("    пикирование %s — %s" % [w, fmt(r)])
 		check(r.get("grade", "") == "crash", "%s: пикирование в землю — авария" % w)
 		check(float(r.horizontal_speed_ms) > float(lc.crash_horizontal_ms), "%s: по горизонтальной" % w)
+		# PD-К6 v2: скорость гасится с crash_decel_g (≈ 20 g), а не за шаг; через 0,5 с всё стоит
+		for i in 60:
+			m.step(S.DT, S.input(), a.air, a.ground)
 		var p := m.position
 		m.step(S.DT, S.input(), a.air, a.ground)
 		check(m.position.is_equal_approx(p), "%s: после аварии всё стоит" % w)
+		check(m.pilot_velocity.length() < 0.01, "%s: скорость погашена" % w)
 
 
 ## Крен до упора у земли — консоль касается раньше ступней: авария.
