@@ -59,13 +59,13 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К2\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 5, "PD-К2 (v5) в заголовках")
+	check(m != null and int(m.get_string(1)) == 6, "PD-К2 (v6) в заголовках")
 
 
 func test_pendulum_config() -> void:
 	var c := _read_json("res://configs/pendulum.json")
 	check(not c.is_empty(), "configs/pendulum.json читается")
-	check(c.get("contract") == "PD-К2 v5", "contract")
+	check(c.get("contract") == "PD-К2 v6", "contract")
 	var want := {
 		"chain": {"links": 3, "strap_mass_kg": 1.0, "compliance_m_per_n": 4e-5, "substeps_per_s": 480, "substeps_min": 4},
 		"arms": {"force_max_n": 300.0, "tau_s": 0.30, "ti_s": 0.0, "shift_y_max_m": 0.45,
@@ -83,6 +83,15 @@ func test_pendulum_config() -> void:
 			if d.has(k):
 				check(is_equal_approx(float(d[k]), float(want[sec][k])), "%s.%s = %s (%s)" % [sec, k, want[sec][k], d[k]])
 	check(int(c["strips"]["count"]) % 2 == 0, "strips.count чётное")
+	# v6 (PD-22): срыв полос
+	var st: Dictionary = c["strips"]
+	check(st.get("stall_model") in ["viterna", "plate"], "strips.stall_model — viterna | plate")
+	check(st.get("stall_criterion") in ["streamwise", "normal"], "strips.stall_criterion — streamwise | normal")
+	check(is_equal_approx(float(st.get("stall_cd90_base", 0.0)), 1.11), "strips.stall_cd90_base = 1,11")
+	check(is_equal_approx(float(st.get("stall_cd90_per_ar", 0.0)), 0.018), "strips.stall_cd90_per_ar = 0,018")
+	check(is_equal_approx(float(st.get("stall_cp_blend_deg", 0.0)), 20.0), "strips.stall_cp_blend_deg = 20")
+	for k in ["stall_model", "stall_cd90_base", "stall_cd90_per_ar", "stall_criterion", "stall_cp_blend_deg"]:
+		check(st.has(k + "_doc"), "strips.%s_doc есть" % k)
 	check(is_equal_approx(float(c.get("pilot_cda_m2", 0.0)), 0.21), "pilot_cda_m2")
 	check(c.get("apparent_roll") == true, "apparent_roll")
 	check(is_equal_approx(float(c.get("billow_shift_deg", 0.0)), 40.0), "billow_shift_deg (PD-24: перекос пузыря)")
