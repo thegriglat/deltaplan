@@ -1,0 +1,99 @@
+{
+  "status": "done",
+  "summary": "srs в м/с² (vertical = heave − G), motion.step во всех фазах своего пилота и при стоянке после столкновения, reset только на разрывах (в т.ч. start_catch_up); MotionOutput.idle убран; тесты, петля с землёй, README, гайд, CHANGELOG.",
+  "commits": [
+    "e1151ff2 motion-rig MR-5: srs в м/с², поток движения на земле и без reset на смене фаз"
+  ],
+  "checks": [
+    {
+      "name": "motion_rig",
+      "value": "33/33",
+      "pass": true
+    },
+    {
+      "name": "srs vertical стоя на ровном, м/с²",
+      "value": "-0.271 (СКО 0)",
+      "pass": true
+    },
+    {
+      "name": "srs vertical стоя на склоне 0.3, м/с²",
+      "value": "-0.015 (СКО 0)",
+      "pass": true
+    },
+    {
+      "name": "srs vertical установившийся полёт, м/с²",
+      "value": "-0.065 (СКО 0.0001)",
+      "pass": true
+    },
+    {
+      "name": "пик удара посадки (3.5 м/с вниз, 2 вперёд), м/с²",
+      "value": "261.6 (≈26.7 g, < 50 g)",
+      "pass": true
+    },
+    {
+      "name": "СКО heave стоя / на разбеге, м/с²",
+      "value": "0.0000 / 0.68 (одиночная точка); маятник 0.064 / 0.87",
+      "pass": true
+    },
+    {
+      "name": "срабатываний защиты 50 g на земле за прогон",
+      "value": "0 (разбег, отрыв, посадка; одиночная точка и маятник)",
+      "pass": true
+    },
+    {
+      "name": "tests/game/",
+      "value": "прямой прогон: 190 тестов, 0 упало; dp accept --dry: таймаут dp",
+      "pass": true
+    },
+    {
+      "name": "recv_selftest",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "loop",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "layout",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "seq: reset() раньше обнулял seq; теперь seq растёт с запуска отправки через разрывы (контракт: «с запуска отправки»), иначе loop_check видел откат. Подтвердить."
+  ],
+  "how_to_check": "dp accept MR-5 --dry; godot --headless ... --filter=test_motion_ground (печатает числа MR5)",
+  "uncertain": [
+    {
+      "where": "tests/game по dp accept",
+      "why": "проверка упирается в таймаут dp (около 10 мин при параллельных запусках)",
+      "checked": "тот же фильтр напрямую: 190 тестов, 0 упало"
+    },
+    {
+      "where": "scripts/game/game.gd tick (motion.step при _crashed)",
+      "why": "сквозного теста Game с включённым выводом нет",
+      "checked": "логика проверена по коду; headless-потоки на модели без разрывов; pilot_* заполняются и для FlightModel, и для маятника без правок flight_model.gd"
+    },
+    {
+      "where": "шум на земле",
+      "why": "в headless на ровной/склоне шум ~0 (поза статична); на разбеге СКО heave 0.68-0.87 м/с², пик vertical на земле ~3 м/с²; ночного шума нет, реальный шум по рельефу с неровностями не мерили",
+      "checked": "только плоские/линейные склоны"
+    }
+  ],
+  "dp_feedback": "dp accept: таймаут tests/game слишком мал при нагрузке; нет команды для ожидания job без блокировки 600 с.",
+  "t": "2026-10-11T21:50:27",
+  "by": "main"
+}
