@@ -70,6 +70,8 @@ var hands_off := false
 ## Очередь на старт (сеть, NET-43): идти к месту ожидания {position, heading_deg}; {} — нет.
 ## Клавиши ходьбы и разбега пилота (или отрыв, буксир) отменяют ходьбу.
 var queue_walk: Dictionary = {}
+## Индикатор смещения пилота внизу экрана (FB-1).
+var shift_indicator: PilotShiftIndicator
 ## Отладочные слои F1/F5/F6 (DebugOverlays).
 var debug_overlays: DebugOverlays
 
@@ -156,6 +158,10 @@ func _ready() -> void:
 	fkey_hint.name = "FKeyHint"
 	fkey_hint.overlays = debug_overlays
 	add_child(fkey_hint)
+	shift_indicator = PilotShiftIndicator.new()
+	shift_indicator.name = "PilotShiftIndicator"
+	add_child(shift_indicator)
+	Config.reloaded.connect(shift_indicator.reload)
 	var wfd := get_node_or_null("WindFieldDebug")
 	if wfd != null and wfd.has_signal("toggled"):
 		wfd.connect("toggled", func(on: bool) -> void: debug_overlays.wind_field_on = on)
@@ -924,6 +930,7 @@ func start_catch_up(target_fn: Callable) -> bool:
 	if not t.is_active():
 		return false
 	tow = t
+	_update_overlay()
 	motion.reset()  # разрыв потока (MR-К1 v2): на буксире пакетов нет
 	_crashed = false
 	_ended = true  # на буксире итога полёта нет
@@ -983,6 +990,7 @@ func _tow_step(dt: float) -> void:
 ## (у самой земли — стоит), физика и столкновения снова считаются, статистика — с этой точки.
 func _end_catch_up(r: Dictionary) -> void:
 	tow = null
+	_update_overlay()
 	feed.cancel()
 	camera.tight = false
 	var pos: Vector3 = r.position
@@ -1189,6 +1197,8 @@ func _mount_instrument(m: Dictionary) -> void:
 func _update_overlay() -> void:
 	# Прибор в углу — только в полёте во внешних камерах (не в меню, не на паузе).
 	overlay.visible = flying_enabled and input_controller.enabled and camera.mode != "cockpit"
+	if shift_indicator != null:  # индикатор смещения — во всех камерах, не в меню и не на буксире
+		shift_indicator.set_active(flying_enabled and input_controller.enabled and tow == null)
 
 
 # ---------------------------------------------------------------- сигналы планера
@@ -1201,6 +1211,7 @@ func _on_telemetry(t: Telemetry) -> void:
 		_animator.update(t.phase, t.altitude_agl, 0.0, 0.0, _dt)
 		return
 	instrument.update(t, _dt)
+	shift_indicator.update(t)
 	for n in mounted:
 		if not bool(n.get_meta("shares_tablet", false)) and n.has_method("update"):
 			n.call("update", t, _dt)

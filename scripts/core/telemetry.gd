@@ -28,3 +28,6 @@ var basis: Basis = Basis.IDENTITY   ## ориентация крыла для к
 var pilot_position: Vector3 = Vector3.ZERO
 var pilot_velocity: Vector3 = Vector3.ZERO
 var pilot_basis: Basis = Basis.IDENTITY
+## Смещение пилота относительно подвески (FB-К1), без единиц, нормировано на предел хода: x + — вправо,
+## y + — к носу (на себя); (0,0) — нейтраль (пилот висит без усилия на трапеции); длина > 1 — за пределом.
+var pilot_shift: Vector2 = Vector2.ZERO
