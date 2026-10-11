@@ -228,4 +228,4 @@ func test_flights_share_and_cpu() -> void:
 	print("         cpu_ms_crop_circles: среднее %.3f мс/кадр, худший кадр %.2f мс, рисунков найдено %d, мешей сейчас %d" % [total / frames, worst, e.circles.size(), e._items.size()])
 	e.free()
 	check(total / frames < 1.0, "в среднем < 1 мс/кадр")
-	check(worst < 25.0, "худший кадр < 25 мс")
+	check(worst < 1.0, "худший кадр < 1 мс (бюджет на кадр)")
