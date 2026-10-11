@@ -20,9 +20,11 @@ var ti: float = 0.0  ## ≤ 0 — без интегральной части
 var shift_y_max: float = 0.45
 var shift_x_pull: float = 0.45
 var shift_x_push: float = 0.3
-## «От себя» у земли (PD-29): пилот стоит в подвеске, руки на стойках у плеч — ход кистей ближе к
+## «От себя» у земли (PD-29, PD-35): пилот стоит в подвеске, руки на стойках у плеч — ход кистей ближе к
 ## подвеске, крыло поворачивается относительно стропы сильнее; эквивалентное смещение ЦМ пилота, м.
-var shift_x_push_flare: float = 0.3
+## < 0 — по досягаемости рук (PD-35): пилот толкает до вытянутых рук, цель — поворот крыла к стропе на
+## flare_reach + flare_reach_soft (через зону спада упора), L·sin этого угла; без досягаемости — shift_x_push.
+var shift_x_push_flare: float = -1.0
 ## Доля хода стоящего пилота 0…1 (модель задаёт по высоте ступней).
 var flare_mix: float = 0.0
 ## Досягаемость рук стоящего пилота (PD-30): хват на стойке поворачивается с крылом около подвески;
@@ -49,7 +51,7 @@ func setup(arms: Dictionary) -> void:
 	shift_y_max = float(arms.shift_y_max_m)
 	shift_x_pull = float(arms.shift_x_pull_m)
 	shift_x_push = float(arms.shift_x_push_m)
-	shift_x_push_flare = float(arms.get("flare_shift_x_push_m", shift_x_push))
+	shift_x_push_flare = float(arms.get("flare_shift_x_push_m", -1.0))
 	var fr: Dictionary = arms.get("flare_reach", {})
 	flare_reach = 0.0
 	if bool(fr.get("enabled", false)):
@@ -67,6 +69,15 @@ static func reach_angle(shoulder_below: float, grip_below: float, grip_ahead: fl
 	var psi0 := atan2(grip_ahead, grip_below)
 	var c := (r * r + shoulder_below * shoulder_below - arm * arm) / (2.0 * r * shoulder_below)
 	return acos(clampf(c, -1.0, 1.0)) - psi0
+
+
+## Ход «от себя» стоящего пилота, м (смещение ЦМ назад в осях крыла): задан или по досягаемости рук.
+func flare_push() -> float:
+	if shift_x_push_flare >= 0.0:
+		return shift_x_push_flare
+	if flare_reach <= 0.0:
+		return shift_x_push
+	return neutral_rel.length() * sin(flare_reach + flare_reach_soft)
 
 
 func reset() -> void:
@@ -88,7 +99,7 @@ func compute(
 	var ry := clampf(roll, -1.0, 1.0)
 	var px := clampf(pitch, -1.0, 1.0)
 	tgt.y += ry * shift_y_max
-	var push := lerpf(shift_x_push, shift_x_push_flare, flare_mix)
+	var push := lerpf(shift_x_push, flare_push(), flare_mix)
 	tgt.x += -px * (push if px > 0.0 else shift_x_pull)
 	target_b = tgt
 	var k := m_pilot / (tau * tau)

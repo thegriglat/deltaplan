@@ -37,6 +37,24 @@ static func make(
 	return m
 
 
+## Варианты физики до PD-35 для сравнения (переменные окружения): PD35_SWEEPNORM=0 — C_N 90° без
+## поправки cos²Λ, PD35_CPREV=0 — центр давления в обратном потоке по прямой формуле,
+## PD35_ALPHAEXACT=0 — угол полосы α⊥·cos Λ. C_L max полос подбирается заново. Вызывать до reset.
+static func pd35_env(m: PendulumModel) -> void:
+	var any := false
+	if OS.get_environment("PD35_SWEEPNORM") == "0":
+		m.strips.cd90 /= m.strips.cos_sweep * m.strips.cos_sweep
+		any = true
+	if OS.get_environment("PD35_CPREV") == "0":
+		m.strips.stall_cp_reverse = false
+		any = true
+	if OS.get_environment("PD35_ALPHAEXACT") == "0":
+		m.strips.sweep_alpha_exact = false
+		any = true
+	if any and bool(m.pendulum.get("strip_cl_max_match_polar", true)):
+		m.strips.match_polar_cl_max()
+
+
 ## Сброс как в прототипе: ЦМ крыла в START_CG, курс север. → смещение ЦМ от START_CG
 ## (для сдвига поля болтанки, чтобы ЦМ видел то же поле, что в прототипе).
 static func reset(m: PendulumModel) -> Vector3:
