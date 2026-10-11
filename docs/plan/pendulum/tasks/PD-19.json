@@ -28,7 +28,8 @@
     "tests/contracts/test_pendulum_contracts_k2_ground.gd",
     "tools/research/pendulum",
     "tools/flight/pendulum_compare.gd",
-    "docs/research/pendulum.md"
+    "docs/research/pendulum.md",
+    "scripts/flight/pendulum/pilot_arms.gd"
   ],
   "dont_touch": [
     "scripts/flight/flight_model.gd",
@@ -47,5 +48,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T04:14:25"
+  "created": "2026-10-11T04:14:25",
+  "edited": "2026-10-11T05:08:56"
 }
