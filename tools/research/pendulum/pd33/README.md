@@ -1,3 +1,14 @@
+---
+type: research
+status: active
+module: pendulum
+updated: 2026-10-11
+summary: "Данные разбора правильной посадки маятника (PD-33): ход посадки по шагам, варианты, сильный ветер."
+related: ["docs/research/pendulum.md"]
+conclusion: "Квазистационарно правильная посадка в штиль жёсткая: упирается ход рук, стропа не тормозит пилота (docs/research/pendulum.md, «Посадка (PD-33)»)."
+data: "tools/research/pendulum/pd33/"
+applied_in: "docs/research/pendulum.md"
+---
 PD-33 — разбор правильной посадки «Маятника» (docs/research/pendulum.md → «Посадка (PD-33)»).
 
 - `base_*`, `B06_*`, `X_*`, `A_B06_*` — ход посадки по шагам 0,05 с (`PD27_TRACE=крыло,0,0.5 PD33_DIAG=1`;
