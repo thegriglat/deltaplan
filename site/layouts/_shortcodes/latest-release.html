@@ -1,6 +1,6 @@
 {{- /* Последняя версия с обложкой (params.cover или первый скриншот): {{< latest-release >}} */ -}}
 {{- with site.GetPage "/releases" -}}
-{{- with index .Pages.ByDate.Reverse 0 -}}
+{{- with index (partial "releases/sorted" .) 0 -}}
 {{- $p := . -}}
 {{- $cover := false -}}
 {{- with $p.Params.cover -}}{{- $cover = $p.Resources.Get . -}}{{- end -}}
