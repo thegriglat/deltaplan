@@ -232,3 +232,4 @@
 {"t": "2026-10-11T16:32:40", "by": "coordinator", "task": "PD-28", "ev": "checked", "note": "3/3 pendulum=ok:94/94; test_landing=ok:11/11; test_wings=ok:4/4"}
 {"t": "2026-10-11T16:32:41", "by": "coordinator", "task": "PD-28", "ev": "accepted", "note": "по отчёту: две ошибки физики разбега (ноги — вертикальная пружина тормозила на склоне; руки не держали нос — интеграл ground.pitch_hold_ti_s 0,5 с, оценка); training 11,7 м на 15° в штиль с небольшой отдачей, 6,1 м при встречном 2,5; пункты 2–4 пилота модель даёт сама — тесты"}
 {"t": "2026-10-11T16:32:41", "by": "coordinator", "task": "PD-28", "ev": "merged", "commits": ["11b6b920"]}
+{"t": "2026-10-11T16:33:19", "by": "coordinator", "task": "PD-31", "ev": "created", "note": "Тестовая сборка 4 «Маятник» (посадка, разбег): Linux + Windows в build/pendulum_test4"}
