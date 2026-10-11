@@ -16,6 +16,8 @@ var _on_ground: bool = false
 var _span: float = 0.0
 var _t: float = 0.0
 var _last: MotionSample = null
+## Сколько раз сработала защита от телепорта (разрыв внутри sample()); отправка по росту запускает плавный вход.
+var breaks: int = 0
 
 
 ## Разрыв: старт, перезапуск, телепорт, снимок. Следующий sample() — valid = false.
@@ -57,6 +59,7 @@ func sample() -> MotionSample:
 		var a := (_v1 - _v0) / _span
 		if a.length() > TELEPORT_G * Units.G:
 			# разрыв: как reset(), но состояние остаётся стартом следующего интервала
+			breaks += 1
 			_v0 = _v1
 			_b0 = _b1
 			_span = 0.0

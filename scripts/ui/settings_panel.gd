@@ -61,6 +61,8 @@ var _motion_on: CheckBox
 var _motion_addr: LineEdit
 var _motion_rate: HSlider
 var _motion_format: OptionButton
+var _motion_ramp: HSlider
+var _motion_ground: HSlider
 var _motion_signs: Dictionary = {}  ## величина → CheckBox «инв.»
 
 
@@ -245,6 +247,8 @@ func _build_motion_rig(box: Control) -> void:
 	_motion_format.add_item(tr("settings_motion_format_srs"))
 	_motion_format.add_item(tr("settings_motion_format_generic"))
 	UiKit.row(box, tr("settings_motion_format"), _motion_format)
+	_motion_ramp = UiKit.slider_row(box, tr("settings_motion_ramp"), 0.0, 10.0, 0.5, "%.1f " + tr("unit_s"))
+	_motion_ground = UiKit.slider_row(box, tr("settings_motion_ground"), 0.0, 1.0, 0.05, "×%.2f")
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 16)
@@ -357,6 +361,10 @@ func load_values() -> void:
 	_motion_rate.value = float(Config.value("motion_rig", "rate_hz", 60))
 	_motion_rate.value_changed.emit(_motion_rate.value)
 	_motion_format.select(1 if String(Config.value("motion_rig", "format", "srs")) == "generic" else 0)
+	_motion_ramp.value = float(Config.value("motion_rig", "ramp_s", 2.5))
+	_motion_ramp.value_changed.emit(_motion_ramp.value)
+	_motion_ground.value = float(Config.value("motion_rig", "ground_accel_scale", 0.3))
+	_motion_ground.value_changed.emit(_motion_ground.value)
 	var sg: Variant = Config.value("motion_rig", "signs", {})
 	for k: String in _motion_signs:
 		(_motion_signs[k] as CheckBox).button_pressed = sg is Dictionary and String(sg.get(k, "direct")) == "inverse"
@@ -468,13 +476,15 @@ static func parse_motion_address(text: String) -> Dictionary:
 
 
 ## Вывод движения (MR-К3): неверный адрес — вывод выключен, прежний адрес остаётся. Применяется сразу
-## (Config.reload → Game.motion.configure).
+## (Config.reload → MotionRig.output.configure).
 func _save_motion() -> bool:
 	var addr := parse_motion_address(_motion_addr.text)
 	var patch := {
 		"enabled": _motion_on.button_pressed and not addr.is_empty(),
 		"rate_hz": int(_motion_rate.value),
 		"format": "generic" if _motion_format.selected == 1 else "srs",
+		"ramp_s": _motion_ramp.value,
+		"ground_accel_scale": _motion_ground.value,
 		"signs": {},
 	}
 	for k: String in _motion_signs:

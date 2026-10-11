@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Петля MR-2: headless Godot летит ≈3 с горизонтально и шлёт UDP (generic, затем srs) → recv.py пишет jsonl →
-# проверка. Успех — строка «loop OK» и код 0.   bash tools/motion_rig/loop_check.sh [секунд на формат]
+# Петля MR-2/MR-6: headless Godot шлёт UDP (generic, затем srs) в меню, на земле, в полёте ≈3 с, на паузе (hold) и снова в
+# меню → recv.py пишет jsonl → проверка. Успех — строка «re:loop OK» и код 0.   bash tools/motion_rig/loop_check.sh [секунд на формат]
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 secs="${1:-3}"
@@ -31,26 +31,36 @@ def load(n):
     except FileNotFoundError:
         return []
 errs = []
-GROUND = 1.5  # loop_run.gd GROUND_S
-exp = (secs + GROUND) * 60 * 0.8
+GROUND, MENU, PAUSE = 1.5, 1.0, 1.0  # loop_run.gd
+exp = (secs + GROUND + MENU + PAUSE + MENU) * 60 * 0.8
 g, s = load("generic"), load("srs")
 if len(g) < exp: errs.append(f"generic: пакетов {len(g)} < {exp:.0f}")
 if len(s) < exp: errs.append(f"srs: пакетов {len(s)} < {exp:.0f}")
 if g:
-    if any(p["format"] != "generic" or p["version"] != 1 for p in g): errs.append("generic: magic/версия")
+    if any(p["format"] != "generic" or p["version"] != 2 for p in g): errs.append("generic: magic/версия 2")
     seqs = [p["seq"] for p in g]
     if seqs != sorted(seqs) or len(set(seqs)) != len(seqs): errs.append("generic: seq не растёт")
-    gnd = [p for p in g if p["on_ground"]]
-    air = [p for p in g if not p["on_ground"]]
-    if len(gnd) < GROUND * 60 * 0.8: errs.append(f"generic: пакетов на земле {len(gnd)}")
-    if len(air) < secs * 60 * 0.8: errs.append(f"generic: пакетов в полёте {len(air)}")
+    live = [p for p in g if not p["synthetic"]]
+    syn = [p for p in g if p["synthetic"]]
+    gnd = [p for p in live if p["on_ground"]]
+    air = [p for p in live if not p["on_ground"]]
+    if len(gnd) < GROUND * 60 * 0.8: errs.append(f"generic: живых пакетов на земле {len(gnd)}")
+    if len(air) < secs * 60 * 0.8: errs.append(f"generic: живых пакетов в полёте {len(air)}")
+    if len(syn) < (MENU + PAUSE + MENU) * 60 * 0.8: errs.append(f"generic: synthetic (меню/пауза) {len(syn)}")
+    neutral = [p for p in syn if not p["valid"]]
+    if len(neutral) < 2 * MENU * 60 * 0.8: errs.append(f"generic: нейтральных пакетов в меню {len(neutral)}")
+    if any(abs(p["heave"] - G) > 1e-3 or p["surge"] or p["sway"] or p["roll"] or p["pitch"] for p in neutral): errs.append("generic: нейтраль не нулевая")
+    hold = [p for p in syn if p["valid"]]
+    if len(hold) < PAUSE * 60 * 0.8: errs.append(f"generic: hold на паузе {len(hold)}")
+    if any(p["roll_rate"] or p["pitch_rate"] or p["yaw_rate"] for p in hold): errs.append("generic: hold с угловыми скоростями")
+    if any(p["ramp"] for p in g): errs.append("generic: ramp при ramp_s = 0")
     heave = sum(p["heave"] for p in air) / max(1, len(air))
     if abs(heave - G) > 0.5: errs.append(f"generic: heave среднее в полёте {heave:.3f}")
     hg = sum(p["heave"] for p in gnd) / max(1, len(gnd))
     if abs(hg - G) > 2.0: errs.append(f"generic: heave среднее на земле {hg:.3f}")
-    # valid=false — только первый пакет после каждого reset() (два reset: земля, воздух)
-    if sum(not p["valid"] for p in g) > 2: errs.append("generic: valid=false в потоке")
-    print(f"generic: пакетов {len(g)} (на земле {len(gnd)}), heave среднее: полёт {heave:.3f}, земля {hg:.3f}")
+    # valid=false среди живых — только первый пакет после каждого reset() (два reset: земля, воздух)
+    if sum(not p["valid"] for p in live) > 2: errs.append("generic: valid=false в живом потоке")
+    print(f"generic: пакетов {len(g)} (живых {len(live)}, на земле {len(gnd)}, нейтраль {len(neutral)}, hold {len(hold)}), heave среднее: полёт {heave:.3f}, земля {hg:.3f}")
 if s:
     if any(p["format"] != "srs" or p["version"] != 102 or p["game"] != "Deltaplan" for p in s): errs.append("srs: заголовок/версия")
     vert = sum(p["vertical_acceleration"] for p in s) / len(s)
@@ -58,5 +68,5 @@ if s:
     print(f"srs: пакетов {len(s)}, vertical среднее {vert:.4f} м/с²")
 if errs:
     print("loop FAIL: " + "; ".join(errs)); sys.exit(1)
-print("loop OK")
+print("re:loop OK")
 PY

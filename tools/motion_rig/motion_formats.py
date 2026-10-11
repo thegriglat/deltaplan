@@ -31,7 +31,7 @@ SRS_FIELDS = [
 ]
 
 GENERIC_SIZE = 64
-GENERIC_VERSION = 1
+GENERIC_VERSION = 2
 GENERIC_MAGIC = b"DPMR"
 GENERIC_FIELDS = [
     ("magic", "4s", 0),
@@ -105,6 +105,8 @@ def parse_generic(data):
     d["format"] = "generic"
     d["valid"] = bool(d["flags"] & 1)
     d["on_ground"] = bool(d["flags"] & 2)
+    d["synthetic"] = bool(d["flags"] & 4)  # не живой сэмпл: hold, neutral или повтор при зависании (MR-К2 v3)
+    d["ramp"] = bool(d["flags"] & 8)  # идёт плавный вход, значения смешаны
     del d["magic"]
     return d
 
