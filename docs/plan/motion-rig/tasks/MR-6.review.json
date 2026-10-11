@@ -1,0 +1,58 @@
+{
+  "verdict": "accept",
+  "summary": "Контракты MR-К1/К2/К3 v3 соблюдены: порядок пакета (сэмпл → единицы → множитель srs → знаки → рамп), smoothstep, кратчайшая дуга yaw/roll, множитель с ограничением скорости и снапом после reset/в нейтрали, повтор потоком под Mutex с остановкой в _exit_tree, generic v2 с битами 2/3 синхронно в .h/.py/игре; project.godot — одна строка автозагрузки. test_motion_gate переписан под v3 и реально проверяет пакеты и режимы live/hold/neutral на сцене Game при паузе и в меню (плавность переходов — только синтетически в test_motion_flow). Полный tests/game/ исполнитель не дождался (job acc6 убит по таймауту, rc=143) — прогнать при dp accept.",
+  "issues": [
+    {
+      "file": "locale/ui.csv",
+      "line": 1,
+      "severity": "minor",
+      "what": "Правка вне скоупа карточки (3 новые строки UI и подсказка). Нужна для полей ramp_s/ground_accel_scale, вреда нет.",
+      "fix": "Координатору: добавить locale/ui.csv в скоуп задним числом, слияние без изменений."
+    },
+    {
+      "file": "scripts/game/game.gd",
+      "line": 740,
+      "severity": "minor",
+      "what": "attach/detach привязаны к set_flying(true/false) (+ detach в _exit_tree), а MR-К1 v3 «Кто зовёт» говорит _ready/_exit_tree. Поведение по контракту верное (Game живёт и в меню — при attach в _ready в меню был бы hold вместо neutral); расходится только текст контракта.",
+      "fix": "Координатору: уточнить в MR-К1 v3 «attach — вход в полёт (set_flying(true)), detach — выход в меню/_exit_tree». Код не менять."
+    },
+    {
+      "file": "tests/game/test_motion_gate.gd",
+      "line": 18,
+      "severity": "minor",
+      "what": "_ticks считает out.packets_sent, куда входят и повторы потока отправки; допуск ±1. Если один game.tick() в headless займёт >25 мс реального времени, повтор попадёт в счёт и тест станет нестабильным (сейчас прошёл).",
+      "fix": "Считать packets_sent − repeats_sent или глушить поток (use_thread=false) в тесте."
+    },
+    {
+      "file": "scripts/motion_rig/motion_output.gd",
+      "line": 155,
+      "severity": "minor",
+      "what": "При неверном адресе (_failed) tick() всё равно считает сэмпл, множитель, рамп и упаковывает пакет на каждом окне — _transmit отбрасывает готовый пакет. Контракт обещает «отправка выключена»; стоимость — микросекунды, но работа лишняя.",
+      "fix": "В начале tick(): if _failed: return false (сброс _failed уже делает configure())."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "motion_rig (--filter=motion_rig)",
+      "value": "50 тестов, 0 упало; MR6 spawn 0.174/0.096/0.007 м/с², yaw 1.51°; touchdown 0.971; ground ×0.300, шаг множителя 0.0292; keepalive 58 пакетов — совпадает с отчётом",
+      "pass": true
+    },
+    {
+      "name": "recv_selftest",
+      "value": "selftest OK, exit=0",
+      "pass": true
+    },
+    {
+      "name": "loop",
+      "value": "loop OK: generic 462 пакетов (live 270, земля 90, neutral 120, hold 72), srs 455",
+      "pass": true
+    },
+    {
+      "name": "tests/game/test_motion_gate",
+      "value": "2 теста, 0 упало (dp job rev6gate)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-12T00:54:43",
+  "by": "reviewer"
+}

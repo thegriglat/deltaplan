@@ -4,7 +4,19 @@
 
 Deltaplan can send the pilot's motion over UDP to a motion platform or to your own receiver. The numbers are honest physics: specific force (acceleration minus gravity) in the pilot's axes, attitude angles and angular rates. The game applies no filtering, washout, scaling or limits. Do that in your motion software (Sim Racing Studio or your own code).
 
-Output is continuous while you are in the scene, on the ground as well as in the air: standing on a slope (tilt), the take-off run, lift-off, landing and the landing run all produce motion, and the stream is not cut at phase changes, so there is no jerk at take-off or landing. In menus, on pause and while being towed nothing is sent, so a receiver should return the platform to neutral on a timeout.
+Packets are sent **all the time while motion output is enabled**: in flight, on the ground, in the menu, on pause, while being towed and while a scene loads. The platform never goes without data, so SRS does not drop to standby and then jump when you appear on the ground (a jerk like that can knock the actuators out). What is sent when:
+
+- **Live**: you are flying or standing/running in the scene. Real motion.
+- **Hold**: the scene exists but there is no live motion (pause, inspection, tow, waiting). The last pose is held, angular rates are 0, so the platform stays where it was instead of snapping to level. In the Generic format these packets have flag bit 2 (`synthetic`) set.
+- **Neutral**: no flight scene (menus, loading, after leaving a flight): standing on level ground, still (SRS: all accelerations and angles 0, speed 0; yaw keeps the last heading). Also `synthetic`.
+- If the game freezes for a moment (loading a scene, a long frame), a separate send thread repeats the last packet about once per period, so the interval between packets stays about 2/rate even then (Generic: own `seq`, `synthetic` set).
+
+On **every transition** (appearing in the scene, menu, pause on/off, restart, teleport, tow start/end, changing settings, enabling output) the values glide from the last sent packet to the new ones over `ramp_s` seconds (smoothstep; angles take the shortest arc). Turning output off glides to neutral first, then goes silent. Quitting the game does not glide. Generic flag bit 3 (`ramp`) is set while a glide is in progress.
+
+Two settings (both under **Settings -> Motion platform**):
+
+- **Ease-in, s** (`ramp_s`, default 2.5, 0 = off): length of the glide above. Raise it if the platform still feels abrupt at transitions; lower it if you want live motion right away. It does not alter motion after the glide ends.
+- **Ground accelerations, x** (`ground_accel_scale`, default 0.3, **SRS format only**): multiplies lateral, longitudinal and vertical acceleration while on the ground (take-off run, standing). Angles and speed are not multiplied, so a slope is still felt. SRS has one common gain per axis, so you cannot reduce the strong take-off-run jolts there without losing flight motion; this setting does it in the game. The multiplier changes smoothly (`ground_blend_s`, config only, default 0.4 s) at lift-off and touchdown, so the touchdown impact (the first ~0.1 s) is kept almost fully. 1 = no change. Generic ignores it: use the `on ground` flag in your receiver.
 
 ## DOF Reality (H2/H3/H4R/H6) via Sim Racing Studio
 
@@ -44,10 +56,10 @@ For your own receivers (microcontroller, Python, etc.). In the game choose **For
 | Offset | Type | Field | Units, sign |
 |---|---|---|---|
 | 0 | char[4] | magic | `DPMR` |
-| 4 | uint32 | version | 1 |
+| 4 | uint32 | version | 2 |
 | 8 | uint32 | seq | packet number, +1 per packet |
-| 12 | uint32 | flags | bit 0 valid, bit 1 on ground |
-| 16 | float32 | t | s, flight time |
+| 12 | uint32 | flags | bit 0 valid, bit 1 on ground, bit 2 synthetic (hold, neutral or repeat during a freeze), bit 3 ramp (glide in progress) |
+| 16 | float32 | t | s, flight time (held at the last live value in hold/neutral) |
 | 20 | float32 | surge | m/s^2, specific force forward (nose forward > 0) |
 | 24 | float32 | sway | m/s^2, to the right > 0 |
 | 28 | float32 | heave | m/s^2, up (into the seat) > 0; level flight about +9.8 |

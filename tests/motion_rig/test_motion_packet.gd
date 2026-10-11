@@ -67,7 +67,7 @@ func test_generic_layout() -> void:
 	var b := MotionPacket.pack_generic(s, 42)
 	check(b.size() == 64, "размер generic %d" % b.size())
 	check(b.slice(0, 4).get_string_from_ascii() == "DPMR", "magic")
-	check(b.decode_u32(4) == 1, "version")
+	check(b.decode_u32(4) == 2, "version 2 (MR-К2 v3)")
 	check(b.decode_u32(8) == 42, "seq")
 	check(b.decode_u32(12) == 1, "flags: valid")
 	s.valid = false
@@ -150,7 +150,8 @@ func test_output_disabled_has_no_socket() -> void:
 	var o := MotionOutput.new()
 	check(not o.enabled, "по умолчанию выключено")
 	o.step(Telemetry.new(), 1.0 / 120.0)
-	check(o._udp == null and o.packets_sent == 0, "сокет не создан")
+	o.tick(1.0 / 120.0)
+	check(o._udp == null and o._thread == null and o.packets_sent == 0, "сокета и потока нет")
 
 
 func test_output_sends_every_n() -> void:
@@ -162,10 +163,12 @@ func test_output_sends_every_n() -> void:
 	o.port = rx.get_local_port()
 	o.format = "generic"
 	o.every_n = 4
+	o.rate_hz = 30
 	var t := Telemetry.new()
 	t.pilot_velocity = Vector3(0, 0, -10)
 	for i in 40:
 		o.step(t, 1.0 / 120.0)
+		o.tick(1.0 / 120.0)
 	check(o.packets_sent == 10, "пакетов %d (ожидалось 10)" % o.packets_sent)
 	OS.delay_msec(50)
 	var got := 0
@@ -175,7 +178,8 @@ func test_output_sends_every_n() -> void:
 		check(p.size() == 64, "размер принятого")
 		last_seq = p.decode_u32(8)
 		got += 1
-	check(got == 10 and last_seq == 9, "принято %d, последний seq %d" % [got, last_seq])
+	check(got >= 10 and last_seq >= 9, "принято %d, последний seq %d" % [got, last_seq])
+	o.shutdown()
 	rx.close()
 
 
@@ -187,6 +191,7 @@ func test_output_bad_address_is_silent() -> void:
 	var t := Telemetry.new()
 	for i in 5:
 		o.step(t, 1.0 / 120.0)
+		o.tick(1.0 / 120.0)
 	check(o.packets_sent == 0, "адрес неверный — ничего не уходит, без ошибок")
 
 
@@ -198,12 +203,14 @@ func test_output_bad_host_resolves_once() -> void:
 	var t := Telemetry.new()
 	for i in 20:
 		o.step(t, 1.0 / 120.0)
+		o.tick(1.0 / 120.0)
 	check(o.resolve_count == 1, "имя разрешалось %d раз (ожидалось 1)" % o.resolve_count)
 	check(o._udp == null and o.packets_sent == 0, "сокета нет")
 	o.configure()
 	o.host = "no-such-host.invalid"
 	for i in 3:
 		o.step(t, 1.0 / 120.0)
+		o.tick(1.0 / 120.0)
 	check(o.resolve_count <= 2, "после configure — не больше одной новой попытки")
 
 

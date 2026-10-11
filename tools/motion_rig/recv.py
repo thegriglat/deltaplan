@@ -34,11 +34,11 @@ def selftest():
     assert abs(d["vertical_acceleration"] + 1.0) < 1e-6 and abs(d["longitudinal_acceleration"] - 3.0) < 1e-6, d
     assert parse(s, "auto")["format"] == "srs"
     g = mf.pack_fields(mf.GENERIC_FIELDS, mf.GENERIC_SIZE, {
-        "magic": b"DPMR", "version": 1, "seq": 7, "flags": 3, "t": 1.5, "surge": 0.1, "sway": 0.2, "heave": 9.81,
+        "magic": b"DPMR", "version": 2, "seq": 7, "flags": 15, "t": 1.5, "surge": 0.1, "sway": 0.2, "heave": 9.81,
         "roll": 1.0, "pitch": 2.0, "yaw": 3.0, "roll_rate": 4.0, "pitch_rate": 5.0, "yaw_rate": 6.0,
         "airspeed": 11.0, "air_lateral": 0.5})
     d = parse(g)
-    assert d["seq"] == 7 and d["valid"] and d["on_ground"] and abs(d["heave"] - 9.81) < 1e-5, d
+    assert d["seq"] == 7 and d["valid"] and d["on_ground"] and d["synthetic"] and d["ramp"] and abs(d["heave"] - 9.81) < 1e-5, d
     assert abs(d["yaw_rate"] - 6.0) < 1e-6 and abs(d["air_lateral"] - 0.5) < 1e-6, d
     for bad in (b"", b"x" * 10, b"api" + b"\0" * 233, b"XXXX" + b"\0" * 60):
         try:
