@@ -16,7 +16,7 @@ func _plane_east(deg: float) -> Callable:
 
 
 func test_start_placement_downhill_heading() -> void:
-	var r := StartPlacement.evaluate(_plane_east(20.0), 0.0, 0.0, _slope_cfg())
+	var r := StartPlacement.find_launch(_plane_east(20.0), 0.0, 0.0, _slope_cfg())
 	check(r.ok, "склон 20° пригоден")
 	approx(float(r.heading_deg), 90.0, 1.0, "курс вниз по склону — на восток")
 	approx(float(r.slope_deg), 20.0, 0.5, "уклон")
@@ -26,18 +26,18 @@ func test_start_placement_downhill_heading() -> void:
 	approx(float(r2.heading_deg), 0.0, 1.0, "курс на север")
 
 
-func test_start_placement_stays_at_point() -> void:
-	# Ровное плато до x = 200, дальше склон 22° на восток: старт всё равно в самой точке.
+func test_start_placement_finds_slope_nearby() -> void:
+	# Ровное плато до x = 200, дальше склон 22° на восток.
 	var k := tan(deg_to_rad(22.0))
 	var f := func(x: float, _z: float) -> float: return 800.0 - k * maxf(x - 200.0, 0.0)
-	var r := StartPlacement.evaluate(f, 0.0, 0.0, _slope_cfg())
-	check(not r.ok, "на плато склона нет")
-	approx((r.position as Vector3).x, 0.0, 0.01, "старт в самой точке, не на склоне рядом")
+	var r := StartPlacement.find_launch(f, 0.0, 0.0, _slope_cfg())
+	check(r.ok, "нашёл склон рядом с плато")
+	check((r.position as Vector3).x > 200.0, "старт на склоне, а не на плато")
+	approx(float(r.heading_deg), 90.0, 2.0, "курс вниз по склону")
 	var flat := func(_x: float, _z: float) -> float: return 300.0
-	var r2 := StartPlacement.evaluate(flat, 5.0, 7.0, _slope_cfg())
+	var r2 := StartPlacement.find_launch(flat, 5.0, 7.0, _slope_cfg())
+	check(not r2.ok, "на ровном месте склона нет")
 	approx((r2.position as Vector3).x, 5.0, 0.01, "старт в самой точке")
-	approx((r2.position as Vector3).z, 7.0, 0.01, "старт в самой точке")
-	approx(float(r2.heading_deg), 0.0, 0.01, "на ровном — курс на север")
 
 
 func test_flight_stats() -> void:

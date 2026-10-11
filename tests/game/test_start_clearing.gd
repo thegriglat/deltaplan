@@ -87,7 +87,7 @@ static func _forest_share(t: Terrain, c: Vector2, r: float, step: float) -> floa
 	return float(f) / maxi(n, 1)
 
 
-## Старт «с карты» в лесу: пригодный склон (StartPlacement.evaluate) в глубине
+## Старт «с карты» в лесу: пригодный склон (StartPlacement, как Game._choose_start) в глубине
 ## леса, вдали от встроенных стартов. {position, heading_deg}.
 func _forest_launch(t: Terrain, r: float) -> Dictionary:
 	if not _spot.is_empty():
