@@ -55,7 +55,7 @@ class D:
     SHOULDER_X, SHOULDER_DOWN, SHOULDER_FWD = 0.19, 0.1, 0.0
     HIP_X, HIP_DOWN, HIP_FWD = 0.11, 0.0, 0.0
     LEG_SPLAY = 6.0                    # ноги врозь в позах на земле, ° (configs/pilot.json → run_anim)
-    RUN_AMP, RUN_KNEE = 42.0, 85.0     # бег: размах бедра, сгиб колена, ° (configs/pilot.json → run_anim)
+    RUN_STRIDE, RUN_DROP, RUN_LIFT = 0.28, 0.76, 0.12  # бег: полушаг, таз над голеностопом опорной ноги, подъём стопы, м (configs/pilot.json → run_anim)
     SPLAY_TH, SPLAY_SH = 6.0, 6.0      # ноги врозь (от вертикали во фронтальной плоскости), °
     EYE_UP, EYE_FWD = 0.16, 0.09
     ANKLE_H = 0.09                      # голеностоп над подошвой
@@ -234,11 +234,35 @@ def poses(cf: dict, eye: Vector) -> dict:
         return Pose((0, hips_y, hip_z - 2.0 + D.ANKLE_H - low), lean, head, legs, stand_hands,
                     pole_down, grips=ug, splay=sf)
 
+    def run_legs(t: float, lean: float) -> list:
+        """Ноги бега (PD-36): таз на постоянной высоте (ЦМ не подпрыгивает), опорная голень стоит на
+        земле и уходит назад, переносимая идёт вперёд с подъёмом стопы; суставы — двухзвенная IK
+        в плоскости бега (колено вперёд). Углы — относительно тела (th, kn), как у остальных поз."""
+        legs = []
+        for phase in (0.0, 0.5):
+            u = (t + phase) % 1.0
+            if u < 0.5:                     # опора: стопа едет назад по земле
+                ya, za, ft = D.RUN_STRIDE * (1 - 4 * u), -D.RUN_DROP, 0.0
+            else:                           # перенос: вперёд, с подъёмом
+                w = (u - 0.5) * 2
+                ya = D.RUN_STRIDE * (-1 + 2 * (0.5 - 0.5 * math.cos(math.pi * w)))
+                za = -D.RUN_DROP + D.RUN_LIFT * math.sin(math.pi * w)
+                ft = -20 * math.sin(math.pi * w)
+            r = min(math.hypot(ya, za), D.THIGH + D.SHIN - 1e-3)
+            phi = math.degrees(math.atan2(ya, -za))
+            beta = math.degrees(math.acos((D.THIGH ** 2 + r * r - D.SHIN ** 2) / (2 * D.THIGH * r)))
+            gamma = math.degrees(math.acos((D.SHIN ** 2 + r * r - D.THIGH ** 2) / (2 * D.SHIN * r)))
+            a1, a2 = phi + beta, phi - gamma     # от вертикали, вперёд +
+            legs.append((a1 + lean, a1 - a2, ft))
+        return legs
+
     def standing(t: float, kind: str) -> Pose:
         ph = 2 * math.pi * t
         if kind == "stand":   # корпус вперёд, колени чуть согнуты, ноги впереди таза
             return grounded(0.12, 32, 34, [(34, 36, 0), (26, 30, 0)])
-        amp, knee, lean = (24, 40, 26) if kind == "walk" else (D.RUN_AMP, D.RUN_KNEE, 40)
+        if kind == "run":
+            return grounded(0.2, 40, 30, run_legs(t, 40))
+        amp, knee, lean = 24, 40, 26
         legs = []
         for phase in (0.0, math.pi):
             s_ = math.sin(ph + phase)
@@ -996,7 +1020,8 @@ def main() -> None:
     params = U.load_json("tools/blender/glider_params.json")
     ra = U.load_json("configs/pilot.json")["visual"]["run_anim"]
     D.LEG_SPLAY = float(ra["leg_splay_deg"])
-    D.RUN_AMP, D.RUN_KNEE = float(ra["thigh_amp_deg"]), float(ra["knee_flex_deg"])
+    D.RUN_STRIDE, D.RUN_DROP, D.RUN_LIFT = (
+        float(ra["run_stride_half_m"]), float(ra["run_hip_drop_m"]), float(ra["run_foot_lift_m"]))
     cf = params["control_frame"]
     eye = Vector(params["pilot_eye"])
     U.reset_scene()
