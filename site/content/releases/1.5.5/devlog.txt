@@ -1,0 +1,8 @@
+Deltaplan 1.5.5 — take-off run in Pendulum mode
+
+Pendulum mode (experimental), take-off run and launch:
+- Shorter run on a slope: a training wing lifts off after 10-12 m in no wind and 5-6 m into a headwind.
+- Fixed legs that slowed the run on a slope; the hands now hold the wing nose up during the run.
+- At launch in a crosswind the wing turns its nose into the wind.
+- Known limit: landing in Pendulum mode is still hard even with correct technique.
+- The default control mode is still "Weight shift".
