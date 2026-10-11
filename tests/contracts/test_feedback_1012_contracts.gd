@@ -96,8 +96,7 @@ func test_pendulum_ground_stand() -> void:
 	for i in int(1.0 / PS.DT):
 		m.step(PS.DT, PS.input(), Callable(), gf)
 	_ok_shift(m.telemetry.pilot_shift, "Маятник земля")
-	# стоя с крылом на плечах ЦМ пилота ~0.12 м впереди отвеса под подвеской (≈0.27): в центре, не у края
-	check(m.telemetry.pilot_shift.length() < 0.4, "Маятник на земле стоя < 0.4: %s" % m.telemetry.pilot_shift)
+	check(m.telemetry.pilot_shift.length() < 0.1, "Маятник на земле стоя < 0.1: %s" % m.telemetry.pilot_shift)
 
 
 func test_indicator_geometry() -> void:

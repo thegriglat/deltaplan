@@ -126,6 +126,7 @@ var _head_up: float = 0.15
 var _v_trim_ref: float = 10.0
 var _alpha0: float = 0.0
 var _neutral_ok := false
+var _ground_neutral := Vector3.ZERO  ## pilot_rel в позе стоя при постановке на землю (FB-К1)
 
 # состояние крыла: ЦМ (локальное начало NED), скорость, B→мир, угловая скорость (мир)
 var _on: float = 0.0  ## начало: север, м
@@ -371,6 +372,8 @@ func _place_on_ground(ps: float, feet: Vector3) -> void:
 		chain.x[i] = h + (xp - h) * (float(i + 1) / chain.links)
 	ground.reset(ps, xp)
 	_recentre()
+	# нейтраль индикатора на земле — поза стоя без ввода (крыло на плечах), в осях крыла (FB-К1)
+	_ground_neutral = wing_basis().transposed() * game(xp - h)
 
 
 ## Буксир (NET-42): крыло жёстко в заданное положение, пилот в равновесии под подвеской, ω = 0.
@@ -900,7 +903,7 @@ func _update_outputs(air_fn: Callable, ground_fn: Callable) -> void:
 
 ## Смещение пилота (FB-К1): (pilot_rel − нейтраль) / предел хода по осям крыла. В воздухе на штанге
 ## нейтраль — положение рук без усилия (arms.neutral_rel, оси тела NED → оси крыла игры);
-## на ногах, после посадки и до расчёта нейтрали — пилот под подвеской по отвесу (висит спокойно).
+## на земле до отрыва — поза стоя при постановке (_ground_neutral); после посадки и до расчёта нейтрали — пилот под подвеской по отвесу (висит спокойно).
 ## Предел: поперёк shift_y_max, к носу shift_x_pull, к хвосту shift_x_push (pilot_arms).
 func _shift_of(bg: Basis, rel_g: Vector3) -> Vector2:
 	if not (rel_g.is_finite() and pilot_rel.is_finite()):
@@ -909,6 +912,8 @@ func _shift_of(bg: Basis, rel_g: Vector3) -> Vector2:
 	if mode == FlightModel.Mode.AIR and not _uprights and _neutral_ok:
 		var n := arms.neutral_rel
 		neutral = Vector3(n.y, -n.z, -n.x)
+	elif mode == FlightModel.Mode.GROUND and _uprights and _ground_neutral != Vector3.ZERO:
+		neutral = _ground_neutral
 	else:
 		neutral = bg.transposed() * (Vector3.DOWN * rel_g.length())
 	var d := pilot_rel - neutral
