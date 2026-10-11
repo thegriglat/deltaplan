@@ -170,6 +170,11 @@ func _pd19(plan: Dictionary) -> void:
 					r["variant"] = vname
 					r.erase("series")
 					_emit("pd19_diveall_p%d" % roundi(pull * 100.0), w, DT, r)
+		if "turnstall" in sc:
+			for w: String in ["training", "sport"]:
+				var r := _pd19_turnstall(_pd19_model(w, props, false))
+				r["variant"] = vname
+				_emit("pd19_turnstall", w, DT, r)
 		if "phug" in sc:
 			for w: String in WINGS:
 				for dv: float in [1.0, 2.0, 3.0, 4.0, 6.0]:
@@ -227,6 +232,89 @@ func _pd19_landing(w: String, props: Dictionary, wind: float, flare_h: float) ->
 		m.step(DT, inp, air, flat)
 		t += DT
 	return m.landing_result
+
+
+## Вираж 30° вправо (пилот держит крен), «от себя» плавно 0 → 1 за 10 с до первого срыва полосы;
+## 3 с после срыва — руки как были; потом выход: «на себя» 0,5 на 2 с, затем нейтраль и крен к 0.
+## → какая консоль сорвалась первой, крен/курс за 3 с, время выхода и потеря высоты.
+func _pd19_turnstall(m: PendulumModel) -> Dictionary:
+	var v_trim := S.airspeed(m) * 3.6
+	var a_stall: float = m.strips.alpha0_root + m.strips.cl_max / m.strips.lift_slope
+	var hb := Hold.new(deg_to_rad(30.0), 6.0, 2.5, 1.0)
+	var inp := S.input()
+	for i in _steps(14.0, DT):
+		inp.roll = hb.roll(m, DT)
+		m.step(DT, inp, Callable(), Callable())
+	var t0 := m.time_s
+	var h := m.strips.n / 2
+	var t_st := NAN
+	var first := ""
+	var bank0 := 0.0
+	var hd0 := 0.0
+	var h0 := 0.0
+	var rec_t := NAN
+	var h_min := INF
+	var out := {}
+	var phase := 0
+	var t_rec0 := 0.0
+	for i in _steps(60.0, DT):
+		var t := m.time_s - t0
+		if phase == 0:
+			inp.pitch = clampf(t / 10.0, 0.0, 1.0)
+			inp.roll = hb.roll(m, DT)
+		elif phase == 1:
+			inp.roll = hb.roll(m, DT)
+		else:
+			inp.pitch = -0.5 if m.time_s - t_rec0 < 2.0 else 0.0
+			hb.target = 0.0
+			inp.roll = hb.roll(m, DT)
+		m.step(DT, inp, Callable(), Callable())
+		if phase == 0:
+			var r_st := false
+			var l_st := false
+			var r_list := ""
+			var l_list := ""
+			for j in h:
+				if m.strips.blend[j] > 0.01:
+					r_st = true
+					r_list += str(j)
+				if m.strips.blend[j + h] > 0.01:
+					l_st = true
+					l_list += str(j)
+			if r_st or l_st:
+				t_st = t
+				first = "обе" if r_st and l_st else ("правая (внутренняя)" if r_st else "левая (внешняя)")
+				out["strips_right"] = r_list
+				out["strips_left"] = l_list
+				out["pitch_at_stall"] = inp.pitch
+				out["V_at_stall_kmh"] = S.airspeed(m) * 3.6
+				bank0 = rad_to_deg(m.bank)
+				hd0 = rad_to_deg(m.heading)
+				h0 = m.position.y
+				phase = 1
+		elif phase == 1:
+			if t - t_st >= 3.0:
+				out["bank_after3_deg"] = rad_to_deg(m.bank)
+				out["bank_change3_deg"] = rad_to_deg(m.bank) - bank0
+				out["heading_change3_deg"] = wrapf(rad_to_deg(m.heading) - hd0, -180.0, 180.0)
+				out["stall_frac_3s"] = m.stall_amount()
+				out["V_3s_kmh"] = S.airspeed(m) * 3.6
+				out["h_loss_3s_m"] = h0 - m.position.y
+				phase = 2
+				t_rec0 = m.time_s
+		else:
+			h_min = minf(h_min, m.position.y)
+			var vk := S.airspeed(m) * 3.6
+			if is_nan(rec_t) and m.time_s - t_rec0 > 2.0 and m.alpha < a_stall and absf(rad_to_deg(m.bank)) < 10.0 and absf(vk - v_trim) < 0.1 * v_trim and m.stall_amount() == 0.0:
+				rec_t = m.time_s - t_rec0
+				out["h_loss_total_m"] = h0 - h_min
+				break
+	out["V_trim_kmh"] = v_trim
+	out["t_stall_s"] = t_st
+	out["first"] = first
+	out["recover_s"] = rec_t
+	out["bank_max_deg"] = 0.0
+	return out
 
 
 ## Фугоида: сброс на триме с V + dv, руки в нейтрали, 60 с. Пики V → отношение амплитуд за период.
