@@ -14,6 +14,10 @@ var time: float = 0.0
 var hang_time: float = -1.0
 ## Высота верхней точки подскока, м.
 var apex_y: float = 0.0
+## Ноги после касания (PD-К6 v1): сгиб коленей, м (тело ниже ступней-земли), и его скорость, м/с (> 0 — вниз).
+var knee_y: float = 0.0
+var knee_v: float = 0.0
+var _legs: PilotLegs = null
 
 
 func reset() -> void:
@@ -21,6 +25,9 @@ func reset() -> void:
 	amount = 0.0
 	time = 0.0
 	hang_time = -1.0
+	knee_y = 0.0
+	knee_v = 0.0
+	_legs = null  # масса могла поменяться (setup)
 
 
 ## Обновить состояние: agl — высота ног над землёй, м.
@@ -87,20 +94,48 @@ func touchdown(m: FlightModel, ground_fn: Callable, gh: float) -> Dictionary:
 	result["position"] = Vector3(p.x, gh, p.z)
 	result["flight_time_s"] = m.time_s
 	m.position.y = gh
-	m.velocity = Vector3(m.velocity.x, 0.0, m.velocity.z)
+	reset()
+	# ноги гасят вертикальную скорость сгибанием коленей (runout), а не за шаг; авария — стоп
+	knee_y = 0.0
+	knee_v = maxf(-m.velocity.y, 0.0)
+	m.velocity = Vector3(m.velocity.x, -knee_v, m.velocity.z)
 	if result.grade == "crash":
 		m.velocity = Vector3.ZERO
+		knee_v = 0.0
 	m.roll_rate = 0.0
 	m.stalled = false
-	reset()
 	return result
 
 
-## Пробежка после касания: горизонтальная скорость гасится ногами.
+## Пробежка после касания: горизонтальная скорость гасится ногами, вертикальная — сгибанием коленей
+## (PilotLegs, pilot.json → legs): тело на knee_y ниже земли под ступнями, потом встаёт.
 func runout(m: FlightModel, dt: float, ground_fn: Callable) -> void:
 	var decel := float(m.flight.landing.runout_decel_ms2)
-	m.velocity = m.velocity.move_toward(Vector3.ZERO, decel * dt)
-	m.position += m.velocity * dt
+	var vh := Vector3(m.velocity.x, 0.0, m.velocity.z).move_toward(Vector3.ZERO, decel * dt)
+	m.position += vh * dt
+	_knees(m, dt)
+	m.velocity = Vector3(vh.x, -knee_v, vh.z)
 	var gh := FlightModel.ground_height(ground_fn, m.position.x, m.position.z)
 	if gh > -INF:
-		m.position.y = gh
+		m.position.y = gh - knee_y
+
+
+## Сгиб коленей за шаг dt (подшаги ≤ 1/480 с: упор жёсткий). Колени прямые и тело не опускается — стоит.
+func _knees(m: FlightModel, dt: float) -> void:
+	if knee_y <= 0.0 and knee_v <= 0.0:
+		knee_y = 0.0
+		knee_v = 0.0
+		return
+	if _legs == null:
+		_legs = PilotLegs.new()
+		_legs.setup(m.pilot.legs, m.mass)
+	var n := maxi(1, ceili(dt * 480.0 - 1.0e-9))
+	var h := dt / n
+	for i in n:
+		var f := _legs.force(knee_y, knee_v) if knee_y > 0.0 else _legs.hold
+		knee_v += (Units.G - f / m.mass) * h
+		knee_y += knee_v * h
+		if knee_y <= 0.0 and knee_v <= 0.0:
+			knee_y = 0.0
+			knee_v = 0.0
+			return
