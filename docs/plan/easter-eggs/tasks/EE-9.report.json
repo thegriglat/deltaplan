@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "Модель брелока-чайки по К15: скрипт build_gull_charm.py, glb (115 треугольников, один меш/материал, цвета вершин), контрактный тест, строка ASSETS, рендер.",
+  "commits": [
+    "0ca3b14 Модель брелока-чайки (К15)"
+  ],
+  "checks": [
+    {
+      "name": "glb",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "gull_charm_model",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "render",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "размах/длина/max y",
+      "value": "0,060 м / 0,040 м / -0,0001 м, min y -0,014",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/easter-eggs-wave/06_брелок_чайка.jpg"
+  ],
+  "how_to_check": "dp accept EE-9",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_gull_charm.py",
+      "why": "колечко 4,4 мм в диаметре и 1,6 мм трубка — мелкое, на экране почти не видно",
+      "checked": "в рендере видно как серое кольцо на спине"
+    }
+  ],
+  "dp_feedback": "Команда запуска одного контрактного теста вручную неочевидна (tests/run_tests.gd не стартует напрямую); помог только dp accept --dry.",
+  "t": "2026-10-11T06:41:46",
+  "by": "executor"
+}

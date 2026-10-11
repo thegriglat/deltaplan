@@ -1,0 +1,72 @@
+{
+  "id": "EE-7",
+  "module": "easter-eggs",
+  "type": "dp-researcher",
+  "title": "Модель гуся (Blender-скрипт) и звук гусиной стаи CC0 (К13, К14)",
+  "goal": "Ассеты для клина гусей: простая своя модель гуся с раскрытыми крыльями под взмах шейдером и зацикленный гогот летящей стаи с честной лицензией.",
+  "plan_ref": "Волна 3 (11.10.2026, решение пользователя)",
+  "contracts": [
+    {
+      "name": "К13",
+      "version": "8",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К14",
+      "version": "8",
+      "ref": "docs/contracts/easter-eggs.md"
+    }
+  ],
+  "copy": "~/deltaplan-easter-eggs-EE-7",
+  "branch": "easter-eggs/EE-7",
+  "base": "feature/easter-eggs",
+  "scope": [
+    "tools/blender/build_goose.py (новый)",
+    "assets/easter_eggs/geese/goose.glb (+ .import)",
+    "assets/source/easter_eggs/goose.blend (по желанию)",
+    "assets/sounds/geese/geese_flock_loop.ogg (+ .import, loop)",
+    "tools/sounds/ (скрипт обрезки/нормализации, по желанию)",
+    "ASSETS.md (модель и звук)",
+    "assets/sounds/LICENSES.md",
+    "licenses/ (если нужен текст новой лицензии)",
+    "tests/contracts/test_goose_model_contracts.gd (новый)",
+    "tests/contracts/test_geese_sound_contracts.gd (новый)"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "другие ассеты",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "glb",
+      "cmd": "test -s assets/easter_eggs/geese/goose.glb",
+      "expect": "exit=0"
+    },
+    {
+      "name": "ogg",
+      "cmd": "test -s assets/sounds/geese/geese_flock_loop.ogg",
+      "expect": "exit=0"
+    },
+    {
+      "name": "goose_model",
+      "tests": "goose_model"
+    },
+    {
+      "name": "geese_sound",
+      "tests": "geese_sound"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/easter-eggs...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "sound_source",
+    "sound_license"
+  ],
+  "notes": "",
+  "created": "2026-10-11T06:22:01"
+}

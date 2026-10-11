@@ -57,6 +57,11 @@
 | creak_01…06.ogg | Valerie-Vivegnis | [26.07.04- Creaky Playground Swing - Rope Friction 1](https://freesound.org/s/862995/) | CC0 | 6 скрипов (1,62 / 4,47 / 7,43 / 10,33 / 13,16 / 30,42 с), ФВЧ 120 Гц, общий пик −6 dBFS |
 | carabiner_clip.ogg | Kinoton | [Carabiner Attach to Harness](https://freesound.org/s/399926/) | CC0 | 0–2,2 с, ФВЧ 100 Гц, пик −6 dBFS |
 
+### geese/ — пасхалка «Клин гусей»
+| Файл | Автор | Источник | Лицензия | Изменения |
+|---|---|---|---|---|
+| geese_flock_loop.ogg | TRP | [200823 Canada Goose, large flock flight calls, slow fly over water](https://freesound.org/s/568803/) | CC0 | 106–124 с, моно, ФВЧ 150 Гц, луп (2 с), пик −1 dBFS (`tools/sounds/make_geese.py`) |
+
 ### ambient/ — окружение
 | Файл | Автор | Источник | Лицензия | Изменения |
 |---|---|---|---|---|

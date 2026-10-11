@@ -1,0 +1,76 @@
+{
+  "id": "EE-4",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "Рулоны сена на скошенных полях",
+  "goal": "Живой мир: на скошенных участках полей (и лугах у посёлков) лежат круглые рулоны сена — рядами по полю или горкой у края; летом–осенью; плотностью по миру, детерминированно по участку; дёшево (MultiMesh).",
+  "plan_ref": "Волна 3 (11.10.2026, решение пользователя)",
+  "contracts": [
+    {
+      "name": "К3",
+      "version": "1",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К7",
+      "version": "5",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К8",
+      "version": "4",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К10",
+      "version": "7",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К11",
+      "version": "7",
+      "ref": "docs/contracts/easter-eggs.md"
+    }
+  ],
+  "copy": "~/deltaplan-easter-eggs-EE-4",
+  "branch": "easter-eggs/EE-4",
+  "base": "feature/easter-eggs",
+  "scope": [
+    "scripts/world_objects/easter_eggs/hay_bales.gd (новый)",
+    "configs/easter_eggs.json (блок eggs.hay_bales)",
+    "tests/world_objects/test_egg_hay_bales.gd (новый)"
+  ],
+  "dont_touch": [
+    "scripts/terrain/",
+    "scripts/world_objects/field_plots.gd (К10 — через координатора)",
+    "assets/easter_eggs/hay_bales/ и tools/blender/ (модель — задача EE-2)",
+    "scripts/world_objects/easter_eggs.gd, easter_egg.gd, egg_context.gd, egg_place.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "egg_hay_bales",
+      "tests": "egg_hay_bales"
+    },
+    {
+      "name": "field_plots",
+      "tests": "field_plots"
+    },
+    {
+      "name": "easter_eggs",
+      "tests": "test_easter_eggs"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/easter-eggs...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "rural_share_with_bales",
+    "cpu_ms_hay_bales",
+    "instances_max"
+  ],
+  "notes": "",
+  "created": "2026-10-11T06:22:38"
+}

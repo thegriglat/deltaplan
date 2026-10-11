@@ -1,0 +1,28 @@
+{
+  "id": "EE-8",
+  "module": "easter-eggs",
+  "type": "dp-mechanic",
+  "title": "Рендеры моделей волны 3: рулон сена, гусь",
+  "goal": "Пользователь смотрит модели волны по картинкам: крупные рендеры рулона сена и гуся в общую папку скриншотов волны.",
+  "plan_ref": "Волна 3 (11.10.2026, решение пользователя)",
+  "contracts": [],
+  "copy": "~/deltaplan-easter-eggs-EE-8",
+  "branch": "easter-eggs/EE-8",
+  "base": "feature/easter-eggs",
+  "scope": [
+    "/home/greg/deltaplan/build/screenshots/easter-eggs-wave/ (только 01, 02)"
+  ],
+  "dont_touch": [
+    "весь репозиторий (ничего не коммитить)"
+  ],
+  "accept": [
+    {
+      "name": "renders",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/easter-eggs-wave/ | grep -cE '^0[12]_.*\\.jpg$'",
+      "expect": "num:^(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T06:28:59"
+}
