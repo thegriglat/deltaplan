@@ -2,10 +2,10 @@
 type: "contract"
 status: "active"
 module: "osm-tiles"
-updated: "2026-10-10"
+updated: "2026-10-11"
 summary: "Контракты osm-tiles: мировая сетка 20 км (O1), файл тайла (O2), потоки и кодировка (O3), фрагменты и склейка регионов (O4), CLI упаковщика (O5), сводка stats (O6), манифест (O7), оркестратор и его состояние (O8), клиент в игре (O9)."
 related: ["docs/plan/osm-tiles.md", "docs/plan/osm_vector_pack.md", "docs/plan/no-osm.md", "docs/contracts/osm-any.md"]
-contracts: [{"id": "O1", "version": 1}, {"id": "O2", "version": 1}, {"id": "O3", "version": 1}, {"id": "O4", "version": 1}, {"id": "O5", "version": 1}, {"id": "O6", "version": 1}, {"id": "O7", "version": 1}, {"id": "O8", "version": 2}, {"id": "O9", "version": 1}]
+contracts: [{"id": "O1", "version": 1}, {"id": "O2", "version": 1}, {"id": "O3", "version": 1}, {"id": "O4", "version": 1}, {"id": "O5", "version": 1}, {"id": "O6", "version": 1}, {"id": "O7", "version": 1}, {"id": "O8", "version": 2}, {"id": "O9", "version": 2}]
 ---
 # Контракты модуля osm-tiles
 
@@ -271,7 +271,8 @@ v2 (10.10, по замеру OT-2: пик памяти `pack` до 5,2× раз�
 - **Прогресс** (stdout, одна строка с `\r`): `регион 37/412 germany-bayern · скачано 12,3/80,1 ГБ ·
   упаковано 36 · тайлов 51 234 (1,42 ГБ) · ETA 3 ч 12 мин`; Ctrl-C — выход, состояние на диске.
 
-## O9. Клиент в игре — версия 1
+## O9. Клиент в игре — версия 2
+v2 (osm-look, OL-1, контракт L1 в `docs/contracts/osm-look.md`): запись дома `buildings` дополнена полями `тип` (код O3) и `по_правилу` (1 — высота из `height_rule`); поправка этажности города и стиль домов — L2.
 Владелец: OT-8 (загрузка, разбор, `OsmData`). Потребители: OT-9 (дороги, реки/каналы, ж/д, просеки, палатки),
 OT-10 (вершины/перевалы с подписями, ЛЭП, мачты, канатки, аэродромы), OT-11 (дома). Основа — удалённый клиент
 (коммиты e8fe4ba4, 4493cfec, 9c810727: `OsmData`, `OsmLayer`, `RoadMesher`, `PowerLinePlanner`, стыки в
@@ -309,7 +310,7 @@ null). Перевод: тайл (x, y) → (lat, lon) по O1 → `TerrainGeo.la
   нет), lanes: int, tunnel: bool, bridge: bool, grade: int (у track)}` — `t` совпадает с ключами
   `world_objects.json → roads.classes` старого `RoadMesher`;
 - `rivers: Array` — `{t: "river"|"canal", named: bool, p}`; `rail: Array` — `{t, tunnel, bridge, p}`;
-- `buildings: Array` — `[x, z, w, l, угол_град, высота_стен_м, крыша 0|1]` (формат `BuildingPlacer`), высота
+- `buildings: Array` — `[x, z, w, l, угол_град, высота_стен_м, крыша 0|1, тип O3, по_правилу 0|1]` (формат `BuildingPlacer`, L1), высота
   и крыша — по `height_rule` ниже;
 - `power: Array` — `{minor: bool, p}`; `towers: PackedVector2Array`; `aerialways: Array` — `{t: String, p}`;
   `aeroways: Array` — `{t: String, kind: "point"|"line"|"area", p}`; `verticals: Array` — `{t: "mast"|"tower"|

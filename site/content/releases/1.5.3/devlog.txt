@@ -1,0 +1,14 @@
+Deltaplan 1.5.3 — cars on the roads
+
+The roads below you are no longer empty: cars, vans and trucks now drive along OpenStreetMap roads around the pilot. It is simple traffic, just enough to make a road look alive when you fly over it.
+
+Traffic:
+- Cars, vans and trucks in different colours
+- Most traffic on motorways and main roads, less on local streets, none in yards or on dirt tracks
+- Each car has its own speed, follows a slower car at a distance, slows down before turns; trucks are slower
+- At the end of a road a car goes the straightest way on; at a dead end it turns around
+- Cars only within about 1.5 km of the pilot; settings in world_objects.json, section osm_traffic
+
+Known issues:
+- No traffic rules at junctions: cars pass through each other
+- A car changes lanes abruptly when it turns around at a dead end

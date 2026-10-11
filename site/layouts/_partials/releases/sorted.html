@@ -1,0 +1,12 @@
+{{- /* Страницы версий по убыванию semver (имя папки X.Y.Z): partial "releases/sorted" <раздел releases> */ -}}
+{{- $items := slice -}}
+{{- range .Pages -}}
+  {{- $key := "" -}}
+  {{- with .File -}}
+    {{- range split .ContentBaseName "." -}}{{- $key = printf "%s%06d" $key (int .) -}}{{- end -}}
+  {{- end -}}
+  {{- $items = $items | append (dict "key" $key "page" .) -}}
+{{- end -}}
+{{- $pages := slice -}}
+{{- range sort $items "key" "desc" -}}{{- $pages = $pages | append .page -}}{{- end -}}
+{{- return $pages -}}

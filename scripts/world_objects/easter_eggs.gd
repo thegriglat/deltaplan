@@ -269,6 +269,7 @@ func _fill_ctx(g: Game) -> void:
 	c.air = g.air
 	c.month = g.sky.clock.month
 	c.day = g.sky.clock.day
+	c.lat_deg = g.sky.clock.latitude_deg
 	c.sun_elev_deg = rad_to_deg(asin(clampf(c.to_sun.y, -1.0, 1.0)))
 	c.sky = g.settings.sky
 	c.wind_ms = g.settings.wind_speed_kmh / 3.6

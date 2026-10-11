@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "FieldPlots по К10: hash12/cell_at/rect/center/tone/kind/rows_axis/brightness, float32 эмулируется; контрактный тест с эталоном numpy float32.",
+  "commits": [
+    "5be62635 FieldPlots (К10)"
+  ],
+  "checks": [
+    {
+      "name": "field_plots",
+      "value": "6/6 PASS",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept EE-1",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/field_plots.gd:MOWN_MIN",
+      "why": "граница GREEN/MOWN = 0.75 (середина fh 0.45..1) — визуальная, т.к. цвет зависит от палитры места (meadow)",
+      "checked": "формула mix(meadow, dry_grass_color, fh)"
+    },
+    {
+      "where": "hash12",
+      "why": "float32 эмулирован округлением после каждой операции; порядок fma на конкретной GPU может дать расхождение в последних битах",
+      "checked": "эталон numpy float32 совпадает с GDScript до 1e-6 на 11 точках"
+    },
+    {
+      "where": "from_world_config",
+      "why": "читает только world.json terrain_look.field_size_m, переопределения locations/*.json (terrain_look) не учитывает; сейчас ни одна локация его не задаёт",
+      "checked": "grep field_size по configs"
+    }
+  ],
+  "notes": "Мировые координаты: сдвига начала нет — меши слоёв стоят в (x0,0,z0), v_world=MODEL_MATRIX*VERTEX, те же x(восток)/z(юг), что Terrain.height_at. Ключ размера: terrain_look.field_size_m (не корень world.json). rows_axis: (1,0) при hash12(cell+19.1)<0.5, иначе (0,1) (x,z); борозды идут вдоль этого вектора (along=dot(p,(dir.y,dir.x))). Сдвиг ряда: cell.x = floor(x/sx + floor(z/(6sy))*0.37).",
+  "dp_feedback": "Свежая копия: после добавления нового class_name нужен повторный godot --import, иначе dp accept падает 'Could not find type'; dp accept мог бы сам это делать.",
+  "t": "2026-10-11T06:26:26",
+  "by": "executor"
+}

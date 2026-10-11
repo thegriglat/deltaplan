@@ -1,0 +1,57 @@
+{
+  "id": "OL-4",
+  "module": "osm-look",
+  "type": "dp-engineer",
+  "title": "Тестовая сборка osm-look, кадры Алматы в игре, замер кадра main против feature/osm-look",
+  "goal": "Шлюз модуля: пилот запускает сборку и видит новый вид OSM на реальном рельефе Алматы; есть числа кадра до/после на тех же местах.",
+  "plan_ref": "OL-4 Тестовая сборка, кадры Алматы, замер кадра до/после",
+  "contracts": [
+    {
+      "name": "O9",
+      "version": "2",
+      "ref": "docs/contracts/osm-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-look-OL-4",
+  "branch": "osm-look/OL-4",
+  "base": "feature/osm-look",
+  "scope": [
+    "/home/greg/deltaplan/build/osm_test/ (сборка, не git)",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-4/",
+    "/home/greg/deltaplan/build/perf/osm-look/ (замеры, не git)",
+    "tools/shots/ (только запуск; правка — если без неё кадр не снять)",
+    "CHANGELOG.md",
+    "tools/bench/ (только флаги места по координатам, если frame_profile их не умеет)"
+  ],
+  "dont_touch": [
+    "scripts/ (код игры не править — нашёл баг: описать в отчёте)",
+    "tools/osm_tiles/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/osm-look/$DP_TASK/ | grep -ciE \"\\.(png|jpg)$\"",
+      "expect": "num:^(\\d+) >=6"
+    },
+    {
+      "name": "perf",
+      "cmd": "ls /home/greg/deltaplan/build/perf/osm-look/ | grep -c .",
+      "expect": "num:^(\\d+) >=2"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -c 'osm-look\\|ветряк' CHANGELOG.md",
+      "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "build",
+      "cmd": "find /home/greg/deltaplan/build/osm_test -maxdepth 1 -name '*.x86_64' -newer /home/greg/deltaplan-osm-look/docs/plan/osm-look/tasks/OL-4.json | grep -c x86_64",
+      "expect": "num:^(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T01:49:29",
+  "edited": "2026-10-11T01:50:12"
+}

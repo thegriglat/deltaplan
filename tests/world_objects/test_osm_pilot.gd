@@ -81,6 +81,7 @@ func test_synthetic_layer() -> void:
 	]
 	var obs := ObstacleIndex.new()
 	var cfg := WorldObjects.load_config()
+	cfg.osm_pilot.verticals.skip = []  # в игре ветряки рисует OsmWindTurbines (skip=[wind]); здесь — собственный путь OsmPilot
 	var node := OsmPilot.build(d, cfg, _flat, obs)
 	check(node != null, "слой создан")
 	var st := OsmPilot.stats

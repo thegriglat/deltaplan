@@ -19,8 +19,11 @@ func _data(houses: Array) -> OsmData:
 func _mm_count(root: Node) -> int:
 	var n := 0
 	for c in root.get_children():
-		var mm := (c as MultiMeshInstance3D).multimesh
-		if mm.mesh is BoxMesh:
+		var mmi := c as MultiMeshInstance3D
+		if mmi == null:
+			continue
+		var mm := mmi.multimesh
+		if mm.mesh is BoxMesh and mm.mesh.material is ShaderMaterial:
 			n += mm.instance_count
 	return n
 
@@ -119,9 +122,9 @@ func _measure(label: String, d: OsmData) -> Dictionary:
 	var ms := (Time.get_ticks_usec() - t0) / 1000.0
 	var mem := (OS.get_static_memory_usage() - mem0) / 1048576.0
 	var st := OsmBuildings.last_stats
-	print("OT-11 замер %s: домов OSM %d, тайлов MultiMesh %d, постройка %.0f мс (расстановка %.0f, узлы %.0f), память +%.0f МБ" % [
+	print("OT-11 замер %s: домов OSM %d, тайлов MultiMesh %d, постройка %.0f мс (стиль %.0f из них классификация %.0f, расстановка %.0f, узлы %.0f), память +%.0f МБ" % [
 		label, d.buildings.size(), int(st.get("building_tiles", 0)), ms,
-		float(st.get("place_s", 0.0)) * 1000.0, float(st.get("nodes_s", 0.0)) * 1000.0, mem])
+		float(st.get("style_s", 0.0)) * 1000.0, float(st.get("classify_s", 0.0)) * 1000.0, float(st.get("place_s", 0.0)) * 1000.0, float(st.get("nodes_s", 0.0)) * 1000.0, mem])
 	if root != null:
 		check(_mm_count(root) == d.buildings.size(), "%s: все дома в MultiMesh" % label)
 		root.free()

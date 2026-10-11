@@ -1,0 +1,71 @@
+{
+  "id": "OL-5",
+  "module": "osm-look",
+  "type": "dp-engineer",
+  "title": "Вид дорог (асфальт, разметка, колея) и земля города",
+  "goal": "Дороги перестают быть одноцветными лентами, город стоит не на зелёном поле: асфальт с разметкой, грунтовки с колеёй, серо-бежевые дворы по маске застройки; дёшево, без пересборки тайлов.",
+  "plan_ref": "OL-5 Вид дорог и земля города",
+  "contracts": [
+    {
+      "name": "L7",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    },
+    {
+      "name": "L8",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    },
+    {
+      "name": "L2",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-osm-look-OL-5",
+  "branch": "osm-look/OL-5",
+  "base": "feature/osm-look",
+  "scope": [
+    "scripts/world_objects/osm/osm_roads.gd",
+    "scripts/world_objects/road_mesher.gd",
+    "scripts/world_objects/draped.gdshader",
+    "scripts/world_objects/osm/road.gdshader (новый, если нужен)",
+    "scripts/world_objects/osm/city_ground.gd (новый, имя на выбор)",
+    "шейдер рельефа и его загрузчик — минимально, только маска города (L8)",
+    "configs/world_objects.json (roads.look, city_ground)",
+    "scripts/world_objects/osm_layer.gd (только добавить часть, если нужна)",
+    "ASSETS.md (подраздел osm-look: дороги)",
+    "tests/world_objects/",
+    "tools/shots/ (свой кадр)"
+  ],
+  "dont_touch": [
+    "tools/osm_tiles/",
+    "scripts/world_objects/osm/building_style.gd, osm_buildings.gd, building_placer.gd, osm_data.gd (OL-1, идёт параллельно)",
+    "scripts/world_objects/osm/osm_pilot.gd",
+    "scripts/flight/ (модуль pendulum)",
+    "tests/contracts/test_osm_look_contracts.gd"
+  ],
+  "accept": [
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "osm_tiles",
+      "tests": "osm_tiles"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/osm-look...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/osm-look/$DP_TASK/ | grep -ciE \"\\.(png|jpg)$\"",
+      "expect": "num:^(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T01:10:21"
+}

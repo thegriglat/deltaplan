@@ -1,0 +1,50 @@
+{
+  "id": "EE-2",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "Модель круглого рулона сена — Blender-скрипт (К11)",
+  "goal": "Своя низкополигональная модель круглого рулона сена для россыпей на полях (EE-4), генерируется скриптом, как машинки и деревья.",
+  "plan_ref": "Волна 3 (11.10.2026, решение пользователя)",
+  "contracts": [
+    {
+      "name": "К11",
+      "version": "7",
+      "ref": "docs/contracts/easter-eggs.md"
+    }
+  ],
+  "copy": "~/deltaplan-easter-eggs-EE-2",
+  "branch": "easter-eggs/EE-2",
+  "base": "feature/easter-eggs",
+  "scope": [
+    "tools/blender/build_hay_bale.py (новый; общее — через tools/blender/bl_util.py без изменения его поведения)",
+    "assets/easter_eggs/hay_bales/hay_bale.glb (+ .import после godot --import)",
+    "assets/source/easter_eggs/hay_bale.blend (по желанию)",
+    "ASSETS.md (строка про модель)",
+    "tests/contracts/test_hay_bale_model_contracts.gd (новый)"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "другие модели assets/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "glb",
+      "cmd": "test -s assets/easter_eggs/hay_bales/hay_bale.glb",
+      "expect": "exit=0"
+    },
+    {
+      "name": "hay_bale_model",
+      "tests": "hay_bale_model"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/easter-eggs...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T06:19:36"
+}

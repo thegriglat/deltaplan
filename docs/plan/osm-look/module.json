@@ -1,0 +1,9 @@
+{
+  "module": "osm-look",
+  "plan": "docs/plan/osm-look.md",
+  "contracts": "docs/contracts/osm-look.md",
+  "branch": "feature/osm-look",
+  "copy": "~/deltaplan-osm-look",
+  "created": "2026-10-11T00:28:40",
+  "code": "OL"
+}
