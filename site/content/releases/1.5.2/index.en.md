@@ -21,7 +21,7 @@ captions:
 
 ## What's new
 **OpenStreetMap is back**
-- OpenStreetMap objects are back, served from our own tiles (no overloaded map servers): buildings, roads, rivers and canals, railways, power lines, masts, chimneys, wind turbines, cable cars, airfields, peak and pass labels. Tiles currently cover Kazakhstan and Kyrgyzstan; elsewhere the world is built as in 1.5.1, with villages from the satellite map.
+- OpenStreetMap objects are back, served from our own tiles (no overloaded map servers): buildings, roads, rivers and canals, railways, power lines, masts, chimneys, wind turbines, cable cars, airfields, peak and pass labels. The tiles cover the whole world.
 - Buildings styled as city / village / industrial; in big cities buildings without a height in OSM grow taller towards the centre, with glass high-rises in the dense core.
 - Smoke from village chimneys and steam plumes from industrial stacks, carried by the model wind, so a plume works as a wind indicator from kilometres away.
 - Models instead of cones: lattice pylons and poles with wires, masts, chimneys, TV towers modelled on Ostankino.
