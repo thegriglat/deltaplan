@@ -153,7 +153,8 @@ func test_stand_still() -> void:
 		var g := slope_fn(SLOPE_DEG)
 		m.reset_on_ground(Vector3(3.0, 0.0, 4.0), 30.0)
 		var inp := S.input()
-		for i in 120:
+		# 3 с: руки доводят нос до заданного угла (интеграл ground.pitch_hold_ti_s, PD-28)
+		for i in 360:
 			m.step(S.DT, inp, Callable(), g)
 		var p0 := m.pilot_position
 		var th0 := m.theta
