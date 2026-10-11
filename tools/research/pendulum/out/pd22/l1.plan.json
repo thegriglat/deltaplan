@@ -1,0 +1,1 @@
+{"variants": [{"name": "vc_cs"}, {"name": "vc_n", "strips": {"stall_streamwise": false}}, {"name": "plate", "strips": {"stall_vc": false, "stall_streamwise": false}}], "scenarios": ["landing", "spin"], "landing_all": true, "turbulence": {}, "spin_ramps": [10.0], "spin_after": ["push", "keep"]}

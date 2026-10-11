@@ -338,29 +338,65 @@ class GameSim(Sim):
                 self._r0 = self.r_strip_b
             st = self.strips
             a_rel = a_eff - self.alpha0_root
-            d = blend * st.chord * (0.25 * np.abs(np.sin(a_rel)) + 0.25 - self.p.cp_chord)
+            # сдвиг нарастает за срывом на stall_cp_blend_deg (PD-22: 20°; было — как blend, 4°)
+            cb = np.clip(self._margin / math.radians(self.stall_cp_blend_deg), 0.0, 1.0)
+            d = np.where(blend > 0.0, cb, 0.0) * st.chord * (0.25 * np.abs(np.sin(a_rel)) + 0.25 - self.p.cp_chord)
             self.r_strip_b = self._r0 - st.c_b * d[:, None]
         return cl, cd_x, blend
 
     _r0 = None
 
+    # срыв полосы (PD-22, configs/pendulum.json → strips.stall_model): "viterna" — Viterna & Corrigan
+    # (C_L и C_D непрерывны на срыве, C_N 90° = 1,11 + 0,018·λ), "plate" — 2D-пластина CN = 2
+    stall_model = "viterna"
+    cd90_base, cd90_per_ar = 1.11, 0.018
+    # срыв по местному c_l к полному напору полосы (метод критического сечения, strips.stall_criterion
+    # = "streamwise"): в скольжении первой срывается наветренная консоль; "normal" — по α ⊥ кромке
+    stall_criterion = "streamwise"
+    _kcap = None
+    stall_cp_blend_deg = 20.0
+    _margin = None
+
     def _strip_cl_ge(self, a_eff):
-        if self._ge is None:
-            return super().strip_cl(a_eff)
         p = self.p
-        ind = 1.0 / (math.pi * GE_SPAN_EFFICIENCY * p.span * p.span / p.area)
-        a0 = p.lift_slope / max(1.0 - p.lift_slope * ind, 0.2)
-        sl = a0 / (1.0 + (1.0 - self._ge) * a0 * ind)
+        if self._ge is None:
+            sl, ge, ind = p.lift_slope, None, 0.0
+        else:
+            ind = 1.0 / (math.pi * GE_SPAN_EFFICIENCY * p.span * p.span / p.area)
+            a0 = p.lift_slope / max(1.0 - p.lift_slope * ind, 0.2)
+            ge = self._ge
+            sl = a0 / (1.0 + (1.0 - ge) * a0 * ind)
+        cm = self.cl_max_strip
+        if self.stall_criterion == "streamwise" and self._kcap is not None:
+            cm = cm * self._kcap
         a_rel = a_eff - self.alpha0_root
-        a_st = self.cl_max_strip / sl
-        cl_plate = 2.0 * np.sin(a_rel) * np.cos(a_rel)
+        a_st = cm / sl
         blend = np.clip((a_rel - a_st) / math.radians(4.0), 0.0, 1.0)
-        cl_att = np.minimum(sl * a_rel, self.cl_max_strip)
-        cl_att = np.where(a_rel < -a_st, -self.cl_max_strip, cl_att)
-        cl = (1 - blend) * cl_att + blend * cl_plate
-        cd_extra = blend * np.maximum(2.0 * np.sin(a_rel) ** 2, 0.0)
-        # индуктивная часть обтекаемой доли × (1 − σ): вычитается здесь же (cd_extra идёт в сумму CD)
-        cd_extra = cd_extra - self._ge * (1 - blend) * self.cd_scale * ind * cl * cl
+        self._margin = a_rel - a_st
+        cl_att = np.minimum(sl * a_rel, cm)
+        cl_att = np.where(a_rel < -a_st, -cm, cl_att)
+        if self.stall_model == "plate":
+            cl = (1 - blend) * cl_att + blend * 2.0 * np.sin(a_rel) * np.cos(a_rel)
+            cd_extra = blend * np.maximum(2.0 * np.sin(a_rel) ** 2, 0.0)
+        else:
+            # Viterna & Corrigan за срывом; CD = CD_s·cos α/cos α_s + cd90·(sin²α − sin²α_s·cos α/cos α_s),
+            # CD_s — поляра на срыве; cd_extra — разница с CD поляры по CL (её прибавляет wing_aero)
+            cdm = self.cd90_base + self.cd90_per_ar * p.span * p.span / p.area
+            post = a_rel > a_st
+            sa, ca = np.sin(a_st), np.cos(a_st)
+            s_ = np.sin(a_rel)
+            c_ = np.maximum(np.cos(a_rel), 0.0)
+            a2 = (cm - cdm * sa * ca) * sa / (ca * ca)
+            clv = 0.5 * cdm * np.sin(2.0 * a_rel) + a2 * c_ * c_ / np.where(np.abs(s_) > 1e-9, s_, 1e-9)
+            cl = np.where(post, clv, cl_att)
+            f = c_ / ca
+            pc = p.polar
+            cds = self.cd_scale * (pc.cd_at(pc.cl_max) - self.cd_pilot_share)
+            cdcur = self.cd_scale * (pc.cd_at(np.clip(cl, -2, pc.cl_max)) - self.cd_pilot_share)
+            cd_extra = np.where(post, cds * f - cdcur + cdm * (s_ * s_ - sa * sa * f), 0.0)
+        if ge is not None:
+            # индуктивная часть обтекаемой доли × (1 − σ): вычитается здесь же (cd_extra идёт в сумму CD)
+            cd_extra = cd_extra - ge * (1 - blend) * self.cd_scale * ind * cl * cl
         return cl, cd_extra, blend
 
     def wing_aero(self, pos, vel, R, w):

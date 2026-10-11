@@ -6,11 +6,19 @@ extends RefCounted
 ## Оси — связанные B (авиационные): x — вперёд по килю, y — вправо, z — вниз; начало — ЦМ крыла.
 ## У каждой полосы местная скорость v + ω×r − ветер; подъёмная сила ⊥ нормальной к кромке
 ## скорости, сопротивление — поляра игры CD(CL) за вычетом доли пилота, × cd_scale крыла.
-## Сваливание полосы — линейно до cl_max, дальше пластина CN = 2 (смешивание за 4°); cl_max полос
-## подобран так, что C_L max всего крыла = поляры (скорость сваливания паспорта, PD-14).
+## Сваливание полосы (PD-22) — линейно до cl_max, дальше Viterna & Corrigan (1981): C_L и C_D
+## непрерывны на срыве, к 90° — пластина конечного удлинения C_N 90° = 1,11 + 0,018·λ (≈ 1,2 при
+## λ 5–8; Hoerner, «Fluid-Dynamic Drag», 1965, гл. 3: пластина λ 5 — 1,2, λ 10 — 1,3; 2D — 2,0).
+## За срывом C_L падает плавно (≈ −15 % за 5–6°, как эскиз «Славутича» у Жеглова, с. 15) — наклон
+## отрицательный: опускающаяся консоль теряет подъёмную силу, это авторотация (сваливание на крыло,
+## штопор). strips.stall_model = "plate" — прежняя 2D-пластина CN = 2 (смешивание за 4°). cl_max
+## полос подобран так, что C_L max всего крыла = поляры (скорость сваливания паспорта, PD-14).
 ## Центр давления сорванной части полосы уходит назад по хорде, как у плоской пластины:
 ## x/c = 0,25 + 0,25·sin α (≈ 0,38 при 30°, 0,5 при 90°; Fage & Johansen 1927, ARC R&M 1104) —
 ## пикирующий момент срыва, без него крыло зависает в глубоком срыве (PD-18); у обтекаемой — cp_chord.
+## Сдвиг нарастает линейно за срывом на strips.stall_cp_blend_deg (20°, PD-22): отрыв развивается
+## постепенно, как и падение C_L по Viterna; положение пластины — в глубоком срыве. С 4° (как
+## смешивание пластины) срыв давал резкий клевок — «пикирование», а не «парашютирование» (Жеглов, с. 112).
 ## Гибкий парус (PD-24): полосы не урезают разницу нагрузок консолей — Clβ, Clp, Clr идут как у
 ## жёсткого крыла по полосам (к Hiway Demon, Cook & Spottiswoode 2005). Гибкость — «перекос пузыря»
 ## (billow shift, Kroo 1981, NASA TM-81269: киль-карман и плавающая поперечина): пилот толкает
@@ -47,6 +55,16 @@ var side := PackedFloat64Array()  ## +1 правая, −1 левая
 var cos_sweep: float = 1.0
 var cp_chord: float = 0.25  ## точка приложения сил обтекаемой полосы, доля хорды
 var stall_cp_shift := true  ## центр давления сорванной части — назад (pendulum.json → stall_cp_shift)
+var stall_vc := true  ## срыв по Viterna & Corrigan (strips.stall_model = "viterna"), иначе пластина CN = 2
+var cd90: float = 1.2  ## C_N (C_D) сорванной полосы при 90°: 1,11 + 0,018·λ (strips.stall_cd90_*)
+## Срыв по местному c_l, отнесённому к полному напору полосы (метод критического сечения,
+## strips.stall_criterion = "streamwise"): потолок c_l по нормальной к кромке скорости — cl_max·|u|²·cos²Λ/
+## (u_c² + u_z²). В скольжении наветренная консоль (меньше стреловидность, больше нагрузка) срывается
+## первой; "normal" — по углу атаки в плоскости ⊥ кромке (простая теория стреловидности: первой —
+## подветренная).
+var stall_streamwise := true
+## Сдвиг центра давления сорванной части нарастает за срывом на этом угле, рад (strips.stall_cp_blend_deg)
+var stall_cp_blend: float = deg_to_rad(20.0)
 var lift_slope: float = 0.0
 var alpha0_root: float = 0.0  ## α нулевой подъёмной силы киля + средняя крутка
 var cl_max: float = 1.0  ## C_L max полосы (поляра или подобранный под неё — match_polar_cl_max)
@@ -76,6 +94,7 @@ var force_b := Vector3.ZERO  ## то же в осях B
 var moment_b := Vector3.ZERO
 var lift_n: float = 0.0  ## подъёмная сила (−F_b.z), Н
 var blend := PackedFloat64Array()  ## 0 — обтекание, 1 — пластина (по полосам)
+var margin := PackedFloat64Array()  ## угол атаки полосы минус срывной, рад (> 0 — за срывом)
 
 # рабочие массивы
 var _inv_blend: float = 1.0
@@ -169,6 +188,7 @@ func setup(
 	cn_r_add = float(yaw.get("cn_r_add", 0.0))
 	_sb2_4 = 0.25 * area * span * span
 	blend.resize(n)
+	margin.resize(n)
 	_inv_blend = 1.0 / deg_to_rad(BLEND_DEG)
 	var ge: Dictionary = pend.get("ground_effect", {})
 	var e := float(ge.get("span_efficiency", 0.9))
@@ -176,6 +196,10 @@ func setup(
 	a0_2d = lift_slope / maxf(1.0 - lift_slope * ind_k, 0.2)
 	build_cd_table()
 	stall_cp_shift = bool(pend.get("stall_cp_shift", true))
+	stall_vc = String(st.get("stall_model", "viterna")) == "viterna"
+	stall_streamwise = String(st.get("stall_criterion", "streamwise")) == "streamwise"
+	stall_cp_blend = deg_to_rad(float(st.get("stall_cp_blend_deg", 20.0)))
+	cd90 = float(st.get("stall_cd90_base", 1.11)) + float(st.get("stall_cd90_per_ar", 0.018)) * span * span / area
 	cl_max_wing = wing_cl_max()
 	if bool(pend.get("strip_cl_max_match_polar", true)):
 		match_polar_cl_max()
@@ -295,16 +319,21 @@ func aero(
 			gk = ge[k]
 			sli = a0_2d / (1.0 + (1.0 - gi) * a0_2d * ind_k)
 			slk = a0_2d / (1.0 + (1.0 - gk) * a0_2d * ind_k)
-		var oi := _strip_cl(i, ri, sli)
-		var ok := _strip_cl(k, rk, slk)
+		var q2i := uci * uci + uzi * uzi
+		var q2k := uck * uck + uzk * uzk
+		var capi := cl_max
+		var capk := cl_max
+		if stall_streamwise:
+			capi = cl_max * cos_sweep * cos_sweep * ui.length_squared() / maxf(q2i, 1.0e-9)
+			capk = cl_max * cos_sweep * cos_sweep * uk.length_squared() / maxf(q2k, 1.0e-9)
+		var oi := _strip_cl(i, ri, sli, capi)
+		var ok := _strip_cl(k, rk, slk, capk)
 		var cli := oi.x
 		var clk := ok.x
 		var cdxi := oi.y
 		var cdxk := ok.y
 		var bi := oi.z
 		var bk := ok.z
-		var q2i := uci * uci + uzi * uzi
-		var q2k := uck * uck + uzk * uzk
 		var qi := q_half * q2i
 		var qk := q_half * q2k
 		# сопротивление: поляра (таблица по CL) + пластина при срыве
@@ -314,8 +343,9 @@ func aero(
 		var ik := mini(int(xk), nt2)
 		var c0i := _cd_tab[ii]
 		var c0k := _cd_tab[ik]
-		var cdi := c0i + (_cd_tab[ii + 1] - c0i) * (xi - ii) + cdxi
-		var cdk := c0k + (_cd_tab[ik + 1] - c0k) * (xk - ik) + cdxk
+		# за срывом (Viterna) — сопротивление поляры на срыве × cos α / cos α_кр (oi.w ≥ 0)
+		var cdi := (c0i + (_cd_tab[ii + 1] - c0i) * (xi - ii) if oi.w < 0.0 else _cd_tab[nt2 + 1] * oi.w) + cdxi
+		var cdk := (c0k + (_cd_tab[ik + 1] - c0k) * (xk - ik) if ok.w < 0.0 else _cd_tab[nt2 + 1] * ok.w) + cdxk
 		if has_ge:
 			# экран: индуктивная часть обтекаемой доли — × (1 − σ)
 			cdi -= gi * (1.0 - bi) * cd_scale * ind_k * cli * cli
@@ -331,10 +361,12 @@ func aero(
 		var fk: Vector3 = (ldk * (clk / maxf(sqrt(q2k), 1.0e-9)) - uk * (cdk / maxf(uk.length(), 1.0e-9))) * (qk * sc[k])
 		f_sum += fi + fk
 		if bi > 0.0 and stall_cp_shift:
-			# центр давления сорванной части — назад по хорде (пластина)
-			rbi -= cbi * (bi * chord[i] * (0.25 * absf(sin(ri)) + 0.25 - cp_chord))
+			# центр давления сорванной части — назад по хорде (пластина), нарастает за stall_cp_blend
+			var ci := clampf(margin[i] / stall_cp_blend, 0.0, 1.0)
+			rbi -= cbi * (ci * chord[i] * (0.25 * absf(sin(ri)) + 0.25 - cp_chord))
 		if bk > 0.0 and stall_cp_shift:
-			rbk -= cbk * (bk * chord[k] * (0.25 * absf(sin(rk)) + 0.25 - cp_chord))
+			var ck := clampf(margin[k] / stall_cp_blend, 0.0, 1.0)
+			rbk -= cbk * (ck * chord[k] * (0.25 * absf(sin(rk)) + 0.25 - cp_chord))
 		m_sum += rbi.cross(fi) + rbk.cross(fk)
 	# момент паруса (Cm0) по скоростному напору в ЦМ
 	var v_c := vel - air_c
@@ -359,18 +391,35 @@ func aero(
 	moment = R * m_sum
 
 
-## CL полосы j: линейно до cl_max, дальше пластина CN = 2 (смешивание за BLEND_DEG); r — угол
-## атаки от нулевой подъёмной, sl — наклон (у земли больше). → (CL, CD пластины, доля срыва).
-func _strip_cl(j: int, r: float, sl: float) -> Vector3:
-	var ast := cl_max / sl
+## CL полосы j: линейно до cl_max, дальше Viterna & Corrigan (или пластина CN = 2 со смешиванием
+## за BLEND_DEG); r — угол атаки от нулевой подъёмной, sl — наклон (у земли больше).
+## cap — потолок c_l полосы (cl_max или по методу критического сечения).
+## → (CL, добавка CD, доля срыва, множитель CD поляры на срыве: −1 — CD поляры по CL).
+## Viterna (α_s — срыв, C_N90 = cd90): CL = cd90/2·sin 2α + A2·cos²α/sin α,
+## A2 = (cl_max − cd90·sin α_s·cos α_s)·sin α_s/cos²α_s; CD = CD_s·cos α/cos α_s +
+## cd90·(sin²α − sin²α_s·cos α/cos α_s); за 90° — пластина (cos α → 0).
+func _strip_cl(j: int, r: float, sl: float, cap: float) -> Vector4:
+	var ast := cap / sl
 	var b := clampf((r - ast) * _inv_blend, 0.0, 1.0)
 	blend[j] = b
-	var cl := -cl_max if r < -ast else minf(sl * r, cl_max)
+	margin[j] = r - ast
+	var cl := -cap if r < -ast else minf(sl * r, cap)
 	var cdx := 0.0
-	if b > 0.0:
+	if r <= ast:
+		return Vector4(cl, 0.0, b, -1.0)
+	if not stall_vc:
 		cl += b * (sin(2.0 * r) - cl)
 		cdx = b * 2.0 * sin(r) * sin(r)
-	return Vector3(cl, cdx, b)
+		return Vector4(cl, cdx, b, -1.0)
+	var sa := sin(ast)
+	var ca := cos(ast)
+	var s := sin(r)
+	var c := maxf(cos(r), 0.0)
+	cl = 0.5 * cd90 * sin(2.0 * r)
+	if c > 0.0:
+		cl += (cap - cd90 * sa * ca) * sa / (ca * ca) * c * c / s
+	var f := c / ca
+	return Vector4(cl, cd90 * (s * s - sa * sa * f), b, f)
 
 
 ## Доля полос с сорванным потоком.

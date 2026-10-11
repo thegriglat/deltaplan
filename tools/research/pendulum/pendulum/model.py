@@ -219,6 +219,8 @@ class Sim:
             # свободное качание пилота с отпущенной штангой паруса не перекашивает
             lam = self.hands_force_b[1] / (p.m_pilot * G)
             a_eff = a_eff - st.side * math.radians(p.billow_shift_deg * p.sail_flex) * lam * yabs
+        # потолок c_l по методу критического сечения (GameSim, PD-22): cos²Λ·|u|²/(u_c² + u_z²)
+        self._kcap = cs * cs * (u * u).sum(1) / np.maximum(uc * uc + uz * uz, 1e-9)
         cl, cd_x, blend = self.strip_cl(a_eff)
         qn = 0.5 * p.rho * (uc * uc + uz * uz) / (cs * cs)
         cd = self.cd_scale * (p.polar.cd_at(np.clip(cl, -2, p.polar.cl_max)) - self.cd_pilot_share) + cd_x

@@ -1,0 +1,1 @@
+{"variants": [{"name": "vc_cs"}], "scenarios": ["spin"], "turbulence": {}, "spin_ramps": [10.0, 20.0], "spin_after": ["push", "keep"], "spin_rec_pull": -1, "spin_rec_hold": -1, "spin_ease_hold": 0, "spin_ease": -2}
