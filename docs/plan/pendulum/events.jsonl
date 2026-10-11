@@ -151,3 +151,7 @@
 {"t": "2026-10-11T05:51:04", "by": "coordinator", "task": "PD-19", "ev": "merged", "commits": ["4d222ea2"]}
 {"t": "2026-10-11T05:51:13", "by": "coordinator", "task": "PD-17", "ev": "started", "note": "dp-mechanic, ~/deltaplan-pendulum-PD-17"}
 {"t": "2026-10-11T05:51:32", "by": "coordinator", "task": "PD-21", "ev": "created", "note": "Боковой канал по литературе: Cnβ, голландский шаг, спираль по классам, самовыравнивание учебных, лента в вираже"}
+{"t": "2026-10-11T05:52:34", "by": "coordinator", "task": "PD-19", "ev": "accepted", "commits": ["4d222ea2"], "note": "2/2 pendulum=ok:82/82; test_landing=ok:11/11"}
+{"t": "2026-10-11T05:52:42", "by": "coordinator", "task": "PD-20", "ev": "accepted", "commits": ["4d222ea2"], "note": "2/2 pendulum_telltale=ok:3/3; telltale=ok:11/11"}
+{"t": "2026-10-11T05:54:40", "by": "coordinator", "task": "PD-17", "ev": "accepted", "note": "4/4 linux_exe=ok:ok; windows_exe=ok:ok; mode_pendulum=ok:pendulum\", \"roll_control_mode…; smoke_linux=ok:smoke ok"}
+{"t": "2026-10-11T05:54:41", "by": "coordinator", "task": "PD-17", "ev": "note", "note": "сборка 2: build/pendulum_test2/{linux,windows} от feature/pendulum 4d222ea (PD-1…PD-20 без PD-9), режим «Маятник» по умолчанию, smoke ok"}
