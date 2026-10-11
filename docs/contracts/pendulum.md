@@ -5,7 +5,7 @@ module: pendulum
 updated: 2026-10-11
 summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4), поза пилота в визуале и у чужих (PD-К5)."
 related: ["docs/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 3}, {"id": "PD-К2", "version": 4}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}]
+contracts: [{"id": "PD-К1", "version": 3}, {"id": "PD-К2", "version": 5}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}]
 ---
 # Контракты модуля pendulum
 
@@ -64,7 +64,8 @@ v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы н
 
 Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel` (как сейчас); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
 
-## PD-К2. Конфиг маятника и блок pendulum в крыльях (v4)
+## PD-К2. Конфиг маятника и блок pendulum в крыльях (v5)
+v5 (11.10, PD-24): `flex_relief` (урезание разницы нагрузок консолей) удалён; гибкость паруса — управление: крутка конца = `billow_shift_deg` (40°) × `sail_flex` × (сила рук вбок / вес пилота) (Kroo 1981); `sail_flex` — 1 самый гибкий; классы — новые `apparatus_defaults`.
 v4 (11.10, PD-21/23): + `yaw.cn_p_add`, `yaw.cn_r_add` — добавочные производные рыскания по pb/2V и rb/2V (приведение Cnp, Cnr полос к литературе, docs/research/pendulum-yaw-literature.md); `contract` — `"PD-К2 v4"` (блоки крыльев — v3 без изменений, если не пересчитываются).
 v3 (11.10, ответы пилота): + `apparatus_defaults` в блоке крыла — умолчания «Аппарата» по классу крыла (офлайн-скрипт); `contract` блока — `"PD-К2 v3"`.
 v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта сил полос и выборки ветра; между пересчётами сила и момент полос заморожены в осях крыла, цепь и руки — на каждом подшаге.
@@ -87,7 +88,7 @@ v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта си�
 | `yaw.cn_p_add`, `yaw.cn_r_add` | безразм. (на pb/2V, rb/2V) | 0, 0 (v4; значения — PD-23) |
 | `pilot_cda_m2` | м² | 0,21 |
 | `apparent_roll` | bool | true |
-| `billow_shift_deg` | ° | 0 |
+| `billow_shift_deg` | ° на (сила рук вбок / вес пилота) при sail_flex 1 | 40 (v5) |
 | `head.forward_m`, `head.up_m` | м | 0,75, 0,15 |
 | `apparatus_defaults` | словарь ключей PD-К3 | см. PD-К3 |
 
@@ -124,7 +125,7 @@ v2 (11.10): настройки — у каждого крыла свои; умо
 |---|---|---|---|---|---|
 | `hang_shift_cm` | см | −4…+4, 0,5 | 0 | «Подвеска вдоль киля» | + — вперёд (к носу): подвеска = `hang_from_nose_m − hang_shift_cm/100`; трим быстрее |
 | `hang_length_m` | м | 1,0…1,4, 0,05 | 1,2 | «Длина подвески» | подвеска → ЦМ пилота, сумма звеньев |
-| `sail_flex` | безразм. | 0,1…1,0, 0,05 | 0,2 (крыло — своё) | «Гибкость паруса» | `flex_relief` (1 — жёсткое) |
+| `sail_flex` | безразм. | 0,1…1,0, 0,05 | 0,2 (крыло — своё) | «Гибкость паруса» | множитель перекоса паруса от усилия рук (v5: 1 — самый гибкий) |
 | `dihedral_eff_deg` | ° | −2…+6, 0,5 | 1 (крыло — своё) | «Поперечное V» | эффективное поперечное V полос |
 
 UI: экран «Полёт…» (`scripts/ui/flight_setup_screen.gd`) делится на вкладки «Место» и «Аппарат» (в «Аппарат» — класс и модель крыла, масса пилота, эти 4 ползунка). У всех четырёх — подпись «Важно только при режиме управления «Маятник»». Строки — `locale/ui.csv`.
