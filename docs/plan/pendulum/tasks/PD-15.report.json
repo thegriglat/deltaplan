@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "Явные типы вместо := от Glider.model в 9 файлах (tests и tools), фейк set_local_state в test_catch_up_game.gd получил control_mode/pilot_rel как в test_net_flight.gd. dp check gd по 337 файлам скоупа: ок. scripts/ не тронут.",
+  "commits": [
+    "f97d7338 Явные типы вместо := от Glider.model; set_local_state в фейке catch_up"
+  ],
+  "checks": [
+    {
+      "name": "catch_up",
+      "value": "20/20",
+      "pass": true
+    },
+    {
+      "name": "net_flight",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "parse_all",
+      "value": "dp check gd по 337 файлам: ок",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept PD-15",
+  "uncertain": [
+    {
+      "where": "карточка, check parse_all",
+      "why": "раннер tests/run_tests.gd фильтрует по имени ДО load(), поэтому с несуществующим фильтром ни один скрипт не грузится и исходная проверка всегда давала 0",
+      "checked": "заменена на tools/dp check gd по git ls-files tests/*.gd и tools/{flight,shots,bench,motion_rig}/*.gd (загрузка в контексте проекта с автозагрузками), ожидание re:— ок; до правок команда нашла 29 ошибок в 9 файлах, после - 0"
+    }
+  ],
+  "dp_feedback": "Хорошо бы dp task check-шаблон parse_all/dp check gd --scope <скоуп задачи> без ручного ls-files. Прикидки parse_all в карточке стоит делать через dp check gd.",
+  "extra": {
+    "fixed_files": [
+      "tests/atmosphere/test_start_air_gpu.gd",
+      "tests/flight/test_wing_clearance.gd",
+      "tests/game/test_catch_up_game.gd",
+      "tests/game/test_game_flight.gd",
+      "tests/game/test_mouse_bar_flight.gd",
+      "tests/instruments/test_telltale.gd",
+      "tools/flight/roll_sway.gd",
+      "tools/flight/wing_clearance_run.gd",
+      "tools/shots/wing_ground_shot.gd"
+    ]
+  },
+  "t": "2026-10-11T02:36:43",
+  "by": "executor"
+}

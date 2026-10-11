@@ -28,7 +28,8 @@ var hands_off := false
 ## Телеметрия планера для «в центр» (X) в режиме rate: () -> Telemetry.
 ## Не задана — берётся у соседнего узла Glider (сцена игры).
 var telemetry_fn: Callable
-## Режим крена: "rate" — как раньше, "weight_shift" — смещение веса (из controls.json).
+## Режим крена: "rate" — как раньше, "weight_shift" — смещение веса, "pendulum" — то же
+## положение пилота, но физика маятника (из controls.json).
 var roll_mode := "rate"
 ## Разбег заблокирован (сеть, очередь на старт NET-43: не первый в очереди): Shift не бежит.
 var run_blocked := false
@@ -66,6 +67,8 @@ func keys_look() -> bool:
 
 ## Крен в полёте — смещение веса (иначе — скорость крена, как раньше). Автопилот — всегда rate.
 func weight_shift() -> bool:
+	if roll_mode == "pendulum":
+		return true  # положение пилота (маятник); автопилот задаёт его сам (Autopilot.roll_command)
 	var game := get_parent()
 	var auto := game != null and game.get("autopilot") != null
 	return roll_mode == "weight_shift" and not auto

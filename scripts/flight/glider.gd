@@ -21,7 +21,8 @@ enum AutoStart { NONE, IN_AIR, ON_GROUND }
 ## Что делать в _ready, если setup/reset не вызывали (для запуска сцены отдельно).
 @export var auto_start: AutoStart = AutoStart.IN_AIR
 
-var model := FlightModel.new()
+## FlightModel или PendulumModel (controls.roll_control_mode == "pendulum"); общая поверхность — PD-К1.
+var model = FlightModel.new()
 var control := ControlInput.new()
 var air_fn: Callable = Callable()
 var ground_fn: Callable = Callable()
@@ -48,15 +49,20 @@ func _ready() -> void:
 
 
 ## Выбрать крыло и массу пилота (≤0 — по умолчанию). Сбрасывает состояние: потом reset_*.
-func setup(wing_name: String, mass_kg: float = 0.0) -> void:
+## Режим управления креном «pendulum» → PendulumModel (apparatus — настройки «Аппарат», PD-К3).
+func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) -> void:
 	wing_id = wing_name
 	var wing: Dictionary = Config.get_config("wings/" + wing_name)
 	var pilot: Dictionary = Config.get_config("pilot").duplicate(true)
 	var m := mass_kg if mass_kg > 0.0 else float(pilot.mass_kg)
 	pilot.mass_kg = FlightModel.clamp_pilot_mass(wing, m)
 	pilot_mass_kg = pilot.mass_kg
-	model = FlightModel.new()
-	model.setup(wing, pilot)
+	if is_pendulum_mode():
+		model = PendulumModel.new()
+		model.setup(wing, pilot, {}, apparatus)
+	else:
+		model = FlightModel.new()
+		model.setup(wing, pilot)
 	model.landed.connect(func(r: Dictionary) -> void: landed.emit(r))
 	model.takeoff_failed.connect(func(reason: String) -> void: takeoff_failed.emit(reason))
 	model.took_off.connect(func() -> void: took_off.emit())
@@ -64,6 +70,16 @@ func setup(wing_name: String, mass_kg: float = 0.0) -> void:
 	_vis = Config.get_config("flight").visual
 	if is_node_ready():
 		_build_visual()
+
+
+## Выбран режим управления «Маятник» (controls.roll_control_mode).
+static func is_pendulum_mode() -> bool:
+	return String(Config.value("controls", "roll_control_mode", "weight_shift")) == "pendulum"
+
+
+## Сейчас модель — PendulumModel.
+func is_pendulum() -> bool:
+	return model is PendulumModel
 
 
 func set_input(c: ControlInput) -> void:
@@ -104,6 +120,18 @@ func reset_in_air(pos: Vector3, heading_deg: float, airspeed_ms: float = 0.0) ->
 func set_kinematic(
 	pos: Vector3, vel: Vector3, heading: float, bank: float, basis: Basis, flow_speed := -1.0
 ) -> void:
+	if is_pendulum():
+		model.set_kinematic(pos, vel, heading, bank, 0.0)
+		FlightTelemetry.fill(model, air_fn, ground_fn)
+		var tp: Telemetry = model.telemetry
+		tp.basis = basis
+		if flow_speed >= 0.0:
+			tp.airspeed = flow_speed
+		_placed = true
+		_prev_xform = _cur_xform
+		_cur_xform = Transform3D(basis, pos)
+		telemetry_updated.emit(tp)
+		return
 	model.mode = FlightModel.Mode.AIR
 	model.position = pos
 	model.velocity = vel
@@ -113,7 +141,7 @@ func set_kinematic(
 	model.roll_rate = 0.0
 	model.stalled = false
 	FlightTelemetry.fill(model, air_fn, ground_fn)
-	var t := model.telemetry
+	var t: Telemetry = model.telemetry
 	t.basis = basis
 	if flow_speed >= 0.0:
 		t.airspeed = flow_speed
@@ -189,9 +217,12 @@ func _build_visual() -> void:
 
 func _update_pilot(dt: float) -> void:
 	if visual != null:
-		var flying := model.mode == FlightModel.Mode.AIR
-		visual.set_pose(control.roll, control.pitch, flying, dt)
+		var flying: bool = model.mode == FlightModel.Mode.AIR
+		if is_pendulum():
+			visual.set_hang_pose(model.pilot_rel, not flying, dt)  # PD-К5: тело по цепи маятника
+		else:
+			visual.set_pose(control.roll, control.pitch, flying, dt)
 		# парус: болтанка — средний разброс перегрузки относительно configs/sail.json
 		var full_g := float(Config.value("sail", "turbulence_full_g"))
-		var turb := model.load.jitter / full_g
+		var turb: float = model.load.jitter / full_g
 		visual.set_flight(model.telemetry.airspeed, model.stall_amount(), turb)

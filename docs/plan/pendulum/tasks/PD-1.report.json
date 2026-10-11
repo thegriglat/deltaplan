@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "Офлайн-скрипт tools/flight/pendulum_params.py (импортирует модули прототипа) записал блок pendulum в 48 крыльев (вставка перед \"visual\", 0 удалённых строк), таблица, configs/pendulum.json, тест PD-К2. dp accept PD-1 --dry: 6/6 PASS.",
+  "commits": [
+    "908ac750 PD-1: блок pendulum в 48 крыльях, configs/pendulum.json, pendulum_params.py, тест PD-К2"
+  ],
+  "checks": [
+    {
+      "name": "pendulum_contracts_k2",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_wings",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "wing_physics_contracts",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "params_check",
+      "value": "exit 0, 25 с",
+      "pass": true
+    },
+    {
+      "name": "wings_only_added",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "wings_count",
+      "value": "48",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "У 7 крыльев (aeros_fox 14→10°, atlas 16→9°, condor_crex3 14→7°, condor_flex 14→9°, fs_space 14→11°, icaro_alto 11→10°, icaro_piuma 14→9°) washout_deg в блоке меньше, чем в glider_params.json: иначе полосы срываются раньше паспортного трима или Kn вне (0;0,4). Принять как есть или править данные (трим/крутку) в источниках?"
+  ],
+  "how_to_check": "/home/greg/deltaplan/tools/dp accept PD-1 --dry; python tools/flight/pendulum_params.py --check",
+  "uncertain": [
+    {
+      "where": "tools/flight/pendulum_params.py: balance()/compute()",
+      "why": "Угол атаки трима ищется по паспортной скорости (не alpha_for_cl прототипа) - при большой крутке CL по полосам ниже CL_alpha*(alpha-alpha0), иначе трим уезжал до 2,5 км/ч; dcm0 и cd_scale - итерацией. Это отличие от scenarios.make прототипа.",
+      "checked": "трим ±0,3 км/ч и снижение = поляра ±0,02 по всем 48; Kn 0.02..0.38"
+    },
+    {
+      "where": "inertia_kgm2.ixz",
+      "why": "элемент тензора I[0][2] (как уточнил координатор)",
+      "checked": "совпадает с geometry.mass_model"
+    },
+    {
+      "where": "ref.kmh_per_cm_hang",
+      "why": "у части крыльев сдвиг назад не имеет корня в поиске, берётся разность по доступным точкам (односторонняя)",
+      "checked": "значения конечны, положительные"
+    },
+    {
+      "where": "godot --headless --import",
+      "why": "в копии упал аварийно (abort), тесты через dp accept прошли",
+      "checked": "accept PASS"
+    }
+  ],
+  "dp_feedback": "dp accept --dry показывает тесты за 1 с - не видно, что реально выполнено; хотелось бы число проверок/файл лога в выводе.",
+  "extra": {
+    "washout_reduced": 7,
+    "kn_range": "0.02-0.38"
+  },
+  "t": "2026-10-11T01:00:49",
+  "by": "executor"
+}

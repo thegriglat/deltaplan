@@ -1,0 +1,41 @@
+{
+  "status": "done",
+  "summary": "FlightSettings.apparatus (4 ключа PD-К3, to_dict/from_dict, зажим в диапазоны и шаги, пропуски — умолчания); экран «Полёт…» разделён на вкладки «Место» и «Аппарат» (класс/модель крыла, масса, 4 ползунка, под каждым подпись «Важно только при режиме управления «Маятник»»). Строки ru/en в locale/ui.csv.",
+  "commits": [
+    "3cb5f9c3 PD-5: экран «Полёт…» с вкладками, FlightSettings.apparatus"
+  ],
+  "checks": [
+    {
+      "name": "pendulum_contracts_k3",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "settings_tabs",
+      "value": "1/1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Чтение умолчаний из configs/pendulum.json не проверено на реальном файле: его нет в ветке (PD-1 не влит); пока запасные значения PD-К3"
+  ],
+  "questions": [],
+  "how_to_check": "dp accept PD-5",
+  "uncertain": [
+    {
+      "where": "scripts/game/flight_settings.gd:apparatus_defaults",
+      "why": "формат apparatus_defaults в файле PD-К2 не видел",
+      "checked": "читаю float по ключам PD-К3 из Config.get_config('pendulum').apparatus_defaults, только если файл есть; после влития PD-1 — dp task sync и проверить"
+    }
+  ],
+  "dp_feedback": [
+    "dp task show --full не показал текст контракта; docs/contracts/pendulum.md в основной копии отсутствует (только в ветке) — искал вручную"
+  ],
+  "t": "2026-10-11T00:53:53",
+  "by": "executor"
+}

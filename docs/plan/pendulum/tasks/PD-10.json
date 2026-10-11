@@ -1,0 +1,36 @@
+{
+  "id": "PD-10",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Ядро маятника: две правки по ревью PD-2 (перегрузка по подшагам, airspeed после reset_in_air)",
+  "goal": "Перегрузка пилота не проседает при провисании звена в последнем подшаге; телеметрия сразу после старта в воздухе с ветром показывает воздушную скорость без ветра.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-10",
+  "branch": "pendulum/PD-10",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "tests/flight/pendulum"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "configs",
+    "scripts/game"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T01:32:22"
+}

@@ -1,0 +1,3 @@
+[{"name": "sV0", "over_deg": {"dihedral": 0.0}, "wings": ["sport"]},
+ {"name": "sV05", "over_deg": {"dihedral": 0.5}, "wings": ["sport"]},
+ {"name": "sV1", "over_deg": {"dihedral": 1.0}, "wings": ["sport"]}]

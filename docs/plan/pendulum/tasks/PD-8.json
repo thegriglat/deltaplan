@@ -1,0 +1,49 @@
+{
+  "id": "PD-8",
+  "module": "pendulum",
+  "type": "dp-researcher",
+  "title": "Сверка игры с прототипом: пачка сценариев, сходимость по шагу, цена кадра, серия болтанки, выход из пикирования",
+  "goal": "Одна пачка сценариев маятника в игре (GDScript) против прототипа на умолчаниях классов; сходимость 60/120/240 Гц; цена шага; серия зёрен болтанки laminar; брошенная ручка — прямой полёт и сам выход из пикирования (слова пилота).",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-8",
+  "branch": "pendulum/PD-8",
+  "base": "feature/pendulum",
+  "scope": [
+    "tools/research/pendulum",
+    "tools/flight/pendulum_compare.gd",
+    "tools/flight/pendulum_compare.tscn",
+    "docs/research/pendulum.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests"
+  ],
+  "accept": [
+    {
+      "name": "table",
+      "cmd": "test -s tools/research/pendulum/out/game_vs_proto.md && grep -c '|' tools/research/pendulum/out/game_vs_proto.md",
+      "expect": "num:(\\d+) >=20"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T03:28:48"
+}

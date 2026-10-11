@@ -1,0 +1,53 @@
+{
+  "id": "PD-25",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Автопилот «Маятника» в болтанке (sport) и контракт PD-К2 v6 в конфиге и тестах",
+  "goal": "Автопилот игры в режиме «Маятник» держит горизонт sport в болтанке σ 1 м/с не хуже прямого ПИД на модели (тест test_autopilot_holds_horizon_in_turbulence зелёный без ослабления); configs/pendulum.json и контрактные тесты — PD-К2 v6.",
+  "plan_ref": "Что уходит в этап B (и дальше)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "6",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-25",
+  "branch": "pendulum/PD-25",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/game/autopilot.gd",
+    "scripts/game/game.gd",
+    "scripts/flight/glider.gd",
+    "tests/flight/pendulum/test_pendulum_autopilot.gd",
+    "configs/pendulum.json",
+    "tests/contracts"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum",
+    "configs/wings",
+    "scripts/flight/flight_model.gd"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "autopilot",
+      "tests": "autopilot"
+    },
+    {
+      "name": "pendulum_contracts",
+      "tests": "pendulum_contracts"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T10:00:53"
+}

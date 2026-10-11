@@ -71,6 +71,11 @@ var _hours: PackedFloat32Array = []  ## start_hours(); индекс совпад
 var _month_opt: OptionButton
 var _day: SpinBox
 var _done_btn: Button
+var _tabs: TabContainer
+var _apparatus: Dictionary = {}  ## ключ PD-К3 → HSlider
+var _app_user: Dictionary = {}  ## {wing_id: {ключ: значение}} — изменённое пилотом (PD-К3 v2)
+var _app_wing: String = ""  ## крыло, значения которого сейчас на ползунках
+var _app_loading: bool = false  ## ползунки заполняются программно — в _app_user не писать
 var _fav_btn: Button
 var _recent_section: VBoxContainer
 var _recent_list: VBoxContainer
@@ -127,22 +132,34 @@ func _build() -> void:
 	UiKit.label(box, tr("setup_title"), "TitleLabel")
 	UiKit.separator(box)
 
-	_build_wing(box)
+	_tabs = TabContainer.new()
+	_tabs.use_hidden_tabs_for_min_size = true
+	box.add_child(_tabs)
+	var box_place := _add_tab(_tabs, tr("setup_tab_place"))
+	var box_app := _add_tab(_tabs, tr("setup_tab_apparatus"))
+	_tabs.tab_changed.connect(func(_i: int) -> void: sp["scroll"].scroll_vertical = 0)
 
+	_build_wing(box_app)
 	_mass = UiKit.slider_row(
-		box, tr("setup_pilot_mass"), 50, 120, float(ui.get("mass_step_kg", 1.0)), "%.0f " + tr("unit_kg")
+		box_app,
+		tr("setup_pilot_mass"),
+		50,
+		120,
+		float(ui.get("mass_step_kg", 1.0)),
+		"%.0f " + tr("unit_kg")
 	)
+	_build_apparatus(box_app)
 
-	_build_forecast(box)
-	_build_time(box)
+	_build_forecast(box_place)
+	_build_time(box_place)
 
-	UiKit.separator(box)
+	UiKit.separator(box_place)
 	_row = PlacePickRow.new()
 	_row.settings = settings
-	box.add_child(_row)
+	box_place.add_child(_row)
 	_row.build(self, popular_places_path)
 	_row.changed.connect(_update_dir_hint)
-	_build_recent(box)
+	_build_recent(box_place)
 
 	UiKit.separator(sp["footer"])
 	var bar := UiKit.button_bar(sp["footer"])
@@ -152,7 +169,40 @@ func _build() -> void:
 	UiKit.button(bar, tr("common_back"), func() -> void: closed.emit())
 
 
+## Вкладка: колонка внутри TabContainer.
+func _add_tab(tabs: TabContainer, title: String) -> VBoxContainer:
+	var m := MarginContainer.new()
+	m.add_theme_constant_override("margin_top", 12)
+	tabs.add_child(m)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	m.add_child(v)
+	tabs.set_tab_title(tabs.get_tab_count() - 1, title)
+	return v
+
+
+## Четыре ползунка PD-К3; у каждого — «Важно только при режиме управления «Маятник»».
+func _build_apparatus(box: Control) -> void:
+	UiKit.separator(box)
+	var fmts := {
+		"hang_shift_cm": "%+.1f " + tr("unit_cm"),
+		"hang_length_m": "%.2f " + tr("unit_m"),
+		"sail_flex": "%.2f",
+		"dihedral_eff_deg": "%+.1f°",
+	}
+	for k: String in FlightSettings.APPARATUS_SPEC:
+		var sp: Array = FlightSettings.APPARATUS_SPEC[k]
+		var sl := UiKit.slider_row(box, tr("setup_app_" + k), sp[0], sp[1], sp[2], fmts[k])
+		_apparatus[k] = sl
+		sl.value_changed.connect(_on_apparatus_changed.bind(k))
+		sl.get_parent().tooltip_text = tr("setup_app_pendulum_only")
+		var hint := UiKit.label(box, tr("setup_app_pendulum_only"), "HintLabel")
+		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+
 func _apply_settings() -> void:
+	_app_user = settings.apparatus.duplicate(true)
+	_app_wing = ""
 	_select_wing(settings.wing)
 	_temp.value = roundf(settings.temperature_c)
 	_temp.value_changed.emit(_temp.value)
@@ -237,6 +287,29 @@ func _on_wing_selected(i: int) -> void:
 	_mass.max_value = hi
 	_mass.value = clampf(m, lo, hi)
 	_mass.value_changed.emit(_mass.value)
+	_show_apparatus(_wings[i].get_file())
+
+
+## Ползунки «Аппарат» — значения крыла wing_id (пилот → умолчания крыла → общие).
+func _show_apparatus(wing_id: String) -> void:
+	if _apparatus.is_empty():
+		return
+	_app_wing = wing_id
+	var mine: Variant = _app_user.get(wing_id)
+	var ap := FlightSettings.normalize_apparatus(mine if mine is Dictionary else {}, wing_id)
+	_app_loading = true
+	for k: String in _apparatus:
+		(_apparatus[k] as HSlider).value = ap[k]
+		(_apparatus[k] as HSlider).value_changed.emit(ap[k])
+	_app_loading = false
+
+
+func _on_apparatus_changed(v: float, key: String) -> void:
+	if _app_loading or _app_wing == "":
+		return
+	if not _app_user.has(_app_wing):
+		_app_user[_app_wing] = {}
+	_app_user[_app_wing][key] = v
 
 
 ## «жёсткая поперечина · качество 13 · ветер 10–12 м/с · 14,5 м² · пилот 65–95 кг · ≈ 2003 · мачтовое»
@@ -376,6 +449,7 @@ func _collect() -> FlightSettings:
 	s.start_hour = _hours[maxi(_hour.selected, 0)]
 	s.month = _month_opt.selected + 1
 	s.day = int(_day.value)
+	s.apparatus = FlightSettings.from_dict({"apparatus": _app_user}).apparatus
 	return s
 
 

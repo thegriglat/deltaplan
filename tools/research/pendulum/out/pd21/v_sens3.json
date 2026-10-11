@@ -1,0 +1,5 @@
+[{"name":"cn035_tens","over":{"cn_beta":0.035}},
+ {"name":"rigid","over":{"cn_beta":0.035,"flex_relief":1.0}},
+ {"name":"rigid_bs15","over":{"cn_beta":0.035,"flex_relief":1.0,"billow_shift_deg":15}},
+ {"name":"rigid_bs30","over":{"cn_beta":0.035,"flex_relief":1.0,"billow_shift_deg":30}},
+ {"name":"f05_bs15","over":{"cn_beta":0.035,"flex_relief":0.5,"billow_shift_deg":15}}]

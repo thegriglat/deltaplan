@@ -121,6 +121,6 @@ func test_glider_crosswind_on_launch() -> void:
 	for t in g.visual.telltales:
 		check(t.visible, "после шага ленточка видна")
 		var d := t.model.direction()
-		var w := wind - g.model.velocity
+		var w: Vector3 = wind - g.model.velocity
 		check(_deg(d, w) < 15.0, "на старте ленточка по ветру: %.1f° (%s, %s)" % [_deg(d, w), d, w])
 	g.free()

@@ -1,0 +1,58 @@
+{
+  "id": "PD-13",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Настройки «Аппарат» у каждого крыла свои (PD-К3 v2)",
+  "goal": "Значения «Аппарата» хранятся по крылу, умолчания — из блока крыла (apparatus_defaults); экран показывает значения выбранного крыла; Game передаёт в модель resolved_apparatus.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К3",
+      "version": "2",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-13",
+  "branch": "pendulum/PD-13",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/game/flight_settings.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/game/game.gd",
+    "tests/contracts/test_pendulum_contracts_k3.gd",
+    "tests/ui",
+    "tests/flight/pendulum/test_pendulum_mode.gd",
+    "locale/ui.csv"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "pendulum_contracts_k3",
+      "tests": "pendulum_contracts_k3"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "pendulum_mode",
+      "tests": "pendulum_mode"
+    },
+    {
+      "name": "zone",
+      "tests": "zone"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T02:04:19",
+  "edited": "2026-10-11T02:27:16"
+}

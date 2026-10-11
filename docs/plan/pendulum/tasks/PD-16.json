@@ -1,0 +1,54 @@
+{
+  "id": "PD-16",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Модель и эталон на умолчаниях крыла (PD-К1 v3): reference.json, пороги тестов",
+  "goal": "PendulumModel берёт пропуски apparatus из блока крыла; эталон прототипа пересчитан при умолчаниях классов; тесты маятника зелёные против нового эталона без ослабления критериев.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К3",
+      "version": "2",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-16",
+  "branch": "pendulum/PD-16",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "tools/research/pendulum/export_reference.py",
+    "tests/flight/pendulum",
+    "tests/contracts/test_pendulum_contracts_k1.gd",
+    "tests/contracts/test_pendulum_contracts_k3.gd",
+    "tests/game/test_pendulum_game.gd"
+  ],
+  "dont_touch": [
+    "configs/wings",
+    "tools/flight/pendulum_params.py",
+    "scripts/flight/flight_model.gd"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "test_landing",
+      "tests": "test_landing"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T02:42:52"
+}

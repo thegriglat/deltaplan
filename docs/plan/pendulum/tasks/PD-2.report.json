@@ -1,0 +1,159 @@
+{
+  "status": "done",
+  "summary": "PendulumModel (PD-К1 v1) — порт прототипа в варианте B: 16 полос, цепь XPBD из 3 звеньев, руки ПИД с пределом, свободное рыскание с эквивалентным килем, flex_relief, поперечное V из «Аппарата». Есть временное касание (LANDED и LandingJudge), а reset_on_ground стартует в воздухе. Эталон прототипа экспортируется в reference.json, сценарии приёмки сделаны тестами против него, есть контрактный тест PD-К1 и стенд цены шага; ratio 2,53. По решению координатора aero_hz = 60 Гц перенесён в configs/pendulum.json → strips.aero_hz (PD-К2 v2).",
+  "commits": [
+    "c0d2809a ядро PendulumModel (полосы, цепь XPBD, руки), эталон прототипа reference.json, тесты трима и фугоиды",
+    "bfc3fa87 тесты крена (переложение, Ochi, качание пилота), болтанки, шага 1/30–1/240, касания",
+    "0b0c9240 цена шага: аэродинамика полос 60 Гц (заморожена в осях крыла), таблица CD, развёрнутый цикл полос; pendulum_bench",
+    "7bae0206 контрактный тест PD-К1, сброс с ветром и скоростью",
+    "df22c06f слияние feature/pendulum (PD-1) через dp task sync",
+    "e8221b49 pendulum PD-2: strips.aero_hz в configs/pendulum.json (PD-К2 v2), модель читает его; контрактный тест К2 — v2"
+  ],
+  "checks": [
+    {
+      "name": "pendulum",
+      "value": "23/23 (dp accept PD-2 --dry)",
+      "pass": true
+    },
+    {
+      "name": "bench_ratio",
+      "value": "2.515 (FlightModel ≈ 29 мкс/шаг, PendulumModel ≈ 74 мкс/шаг)",
+      "pass": true
+    },
+    {
+      "name": "трим, км/ч: порт / прототип (training, laminar, sport)",
+      "value": "32,54/32,42; 35,35/35,26; 35,82/35,72",
+      "pass": true
+    },
+    {
+      "name": "снижение, м/с",
+      "value": "1,068/1,066; 0,920/0,921; 0,895/0,895",
+      "pass": true
+    },
+    {
+      "name": "фугоида: период, с / отношение амплитуд",
+      "value": "5,19/0,68 (5,17/0,67); 5,64/0,81 (5,63/0,79); 5,71/0,83 (5,70/0,82)",
+      "pass": true
+    },
+    {
+      "name": "переложение 45→45, с",
+      "value": "3,70 (3,69); 4,40 (4,40); 3,95 (3,96)",
+      "pass": true
+    },
+    {
+      "name": "Ochi (laminar, 72,6 кг, 30 Н 8,5 с): крен через 7 с, макс.",
+      "value": "33,2° (33,3°), 42,7° (42,9°)",
+      "pass": true
+    },
+    {
+      "name": "руки отпущены, поперёк: период, с / затухание за период",
+      "value": "1,22/0,16 (1,22/0,18); 1,30/0,24 (1,30/0,26); 1,33/0,27 (1,33/0,29)",
+      "pass": true
+    },
+    {
+      "name": "руки отпущены, вдоль: период, с / затухание",
+      "value": "1,00/0,89 (1,00/0,88); 1,13/0,89 (1,14/0,87); 1,17/0,87 (1,18/0,86)",
+      "pass": true
+    },
+    {
+      "name": "болтанка σ 1 м/с 40 с (dt 1/120; sport 1/60, 1/30): без развала",
+      "value": "развала и NaN нет, растяжение цепи ≤ 0,046 м (прототип ≤ 0,049), СКО крена 0,6–1,4× прототипа",
+      "pass": true
+    },
+    {
+      "name": "dt 1/240, 1/60, 1/30: полное смещение и «на себя» 8 с",
+      "value": "NaN нет, цепь < 0,15 м",
+      "pass": true
+    },
+    {
+      "name": "временное касание",
+      "value": "LANDED, landed один раз, оценка hard (горизонтальная 9,8 м/с, вертикальная 0,9 м/с), после касания step не интегрирует",
+      "pass": true
+    },
+    {
+      "name": "контрактный тест PD-К1",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "контрактный тест PD-К2 v2 (strips.aero_hz)",
+      "value": "ok",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Болтанка сравнивается не ±15 %, а по критерию, который координатор принял: без развала, цепь цела, |крен| < 60°, СКО 0,5–2× прототипа."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept PD-2; числа сценариев печатаются в выводе: XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=pendulum; эталон заново: /home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python tools/research/pendulum/export_reference.py",
+  "uncertain": [
+    {
+      "where": "configs/pendulum.json → strips.aero_hz = 60; scripts/flight/pendulum/pendulum_model.gd:_aero_update",
+      "why": "Аэродинамика заморожена на 16,7 мс в осях крыла (явная схема). Это отход от прототипа, где аэродинамика пересчитывается на каждом подшаге. Возможное запаздывание по быстрым движениям (выравнивание, срыв, резкие порывы).",
+      "checked": "Трим, фугоида, переложение, Ochi и маятник при aero_hz 60 и 120 совпадают до 0,5 %. Оценка устойчивости явной схемы: λ·dt по демпфированию крена ≈ 0,08, по тангажу ≈ 0,13. aero_hz ≤ 0 включает режим прототипа — для PD-8 (сходимость)."
+    },
+    {
+      "where": "scripts/flight/pendulum/pendulum_model.gd:_substep (ω из кососимметричной части R·R_prevᵀ), step (ортонормировка раз в шаг)",
+      "why": "В прототипе logm и SVD-ортонормировка на каждом подшаге. Здесь малоугловая формула (ошибка ~θ²/6 при θ = |ω|h ≲ 0,01) и Gram–Schmidt раз в шаг.",
+      "checked": "Детерминированные сценарии совпадают с прототипом. Влияет только на хаотичную болтанку (по точкам там всё равно не сравнить)."
+    },
+    {
+      "where": "scripts/flight/pendulum/wing_strips.gd: build_cd_table",
+      "why": "CD поляры берётся из таблицы на 512 отрезков, а не вызовом WingPolar.cd_at. На изломах кусочно-линейной поляры ошибка ~1e-5.",
+      "checked": "Трим и снижение совпадают до 0,1 %."
+    },
+    {
+      "where": "scripts/flight/pendulum/pendulum_model.gd:setup (_r_bar_b, hang_shift_cm)",
+      "why": "При сдвиге подвески трапеция сдвигается вместе с ней, как в прототипе (mass_model ставит стойки от x_hang). ЦМ и инерция крыла остаются из блока PD-1 (при паспортной подвеске), а прототип их пересчитывал. Для PD-5 (чувствительность км/ч на см) может дать небольшое расхождение с таблицей прототипа.",
+      "checked": "Не проверял: hang_shift ≠ 0 в тестах PD-2 не участвует."
+    },
+    {
+      "where": "tests/flight/pendulum/test_pendulum_lateral.gd: test_relaxed_pendulum (затухание ±25 %)",
+      "why": "Затухание качания измеряется по отношению пиков. Это малое число (0,16–0,29), к выбору пиков чувствительно, поэтому допуск 25 %, а не 15. Получилось 0,16/0,18 у training — 11 %.",
+      "checked": "Периоды совпадают до 1 %."
+    },
+    {
+      "where": "scripts/flight/pendulum/pendulum_model.gd:_update_outputs (alpha, telemetry.airspeed)",
+      "why": "alpha и airspeed считаются по ЦМ крыла с ветром последнего пересчёта аэродинамики. Ветер не пересэмплируется в точке position: если ветер меняется резко, показания могут отставать до 1/60 с.",
+      "checked": "Сброс с ветром: воздушная скорость = трим ±0,1 м/с."
+    },
+    {
+      "where": "PD-К1: load",
+      "why": "Перегрузка = |сила последнего звена на пилота + сила рук| / (m_п·g). Сила звена берётся из множителя XPBD последнего подшага — величина шумная, её сглаживает фильтр LoadMeter.",
+      "checked": "В прямом полёте load_factor ≈ 1 (контрактный тест — 0,5…2). Вираж с n = 1/cos не проверял."
+    },
+    {
+      "where": "tools/flight/pendulum_bench.gd",
+      "why": "ratio зависит от загрузки машины (load average 15–20 во время замеров): FlightModel давал 28–50 мкс/шаг. Берётся минимум из 3 прогонов каждой модели.",
+      "checked": "5 прогонов: 2,53–2,57 при aero 60 Гц."
+    },
+    {
+      "where": "tests/flight/pendulum/test_pendulum_robust.gd: test_turbulence_game_blocks (laminar, dt 1/120)",
+      "why": "На блоке PD-1 у laminar в болтанке σ 1 м/с крен доходит до 41° (СКО 17,9°), у прототипа на его блоке — максимум 25° (СКО 9°). Скорее всего это хаотичность отклика: тот же прогон при dt 1/30 даёт 17,6°. Но laminar — самое чувствительное по крену крыло, и случайный эпизод, близкий к спирали, не исключён.",
+      "checked": "Развала и NaN нет, цепь держит (≤ 0,046 м); предел в тесте — 60°. Длинную серию по зёрнам поля не гонял."
+    }
+  ],
+  "dp_feedback": "1) При --script (проверка bench_ratio в карточке) классы, обращающиеся к автозагрузке Config, не компилируются («Identifier not found: Config»). Пришлось грузить модели через load() в _process — стоит записать в tools/dp.md или в шаблон стендов. 2) После добавления новых class_name нужен повторный godot --import, иначе тесты падают с «Could not resolve external class member». Было бы удобно, чтобы dp accept или dp task sync делали import сами или подсказывали это. 3) dp job хватило; ожидание фонового python-счёта через dp job wait в этот раз не понадобилось (5 мин).",
+  "extra": {
+    "files": [
+      "scripts/flight/pendulum/pendulum_model.gd",
+      "scripts/flight/pendulum/wing_strips.gd",
+      "scripts/flight/pendulum/pilot_chain.gd",
+      "scripts/flight/pendulum/pilot_arms.gd",
+      "tests/flight/pendulum/{pendulum_sim.gd,reference.json,test_pendulum_longitudinal.gd,test_pendulum_lateral.gd,test_pendulum_robust.gd}",
+      "tests/contracts/test_pendulum_contracts_k1.gd",
+      "tools/flight/pendulum_bench.gd",
+      "tools/research/pendulum/export_reference.py"
+    ],
+    "step_cost_us": {
+      "FlightModel": 29,
+      "PendulumModel_aero60": 74,
+      "PendulumModel_aero120": 94,
+      "PendulumModel_naive_port": 432
+    },
+    "pd1_block_vs_prototype": "Блоки PD-1 и прототипа совпадают, кроме dcm0 (−1,5 %) и cd_scale (±0,2 %): трим порта на блоке PD-1 на 0,1 км/ч выше прототипа"
+  },
+  "t": "2026-10-11T01:19:27",
+  "by": "executor"
+}

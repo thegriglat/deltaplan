@@ -1,0 +1,69 @@
+{
+  "id": "PD-6",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Визуал маятника: тело по цепи, руки к штанге, камера «из глаз» на подвеске",
+  "goal": "PD-К5: в режиме «Маятник» тело пилота висит по физике (pilot_rel), голова и камера «из глаз» качаются честно, без сглаживания; чужие пилоты — по BotAgent.pilot_rel.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К5",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К1",
+      "version": "2",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-6",
+  "branch": "pendulum/PD-6",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/glider_visual.gd",
+    "scripts/flight/glider.gd",
+    "scripts/flight/pilot_arm_ik.gd",
+    "scripts/game/camera_rig.gd",
+    "scripts/game/bot_glider.gd",
+    "scripts/game/bot_agent.gd",
+    "tests/flight/pendulum/test_pendulum_visual.gd",
+    "tests/flight/pendulum/test_pendulum_head.gd",
+    "tests/contracts/test_pendulum_contracts_k5.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum",
+    "scripts/flight/flight_model.gd",
+    "scripts/game/remote_pilots.gd",
+    "scripts/net"
+  ],
+  "accept": [
+    {
+      "name": "pilot_pose",
+      "tests": "pilot_pose"
+    },
+    {
+      "name": "aframe_contracts",
+      "tests": "aframe_contracts"
+    },
+    {
+      "name": "cockpit",
+      "tests": "cockpit"
+    },
+    {
+      "name": "pendulum_contracts_k5",
+      "tests": "pendulum_contracts_k5"
+    },
+    {
+      "name": "pendulum_visual",
+      "tests": "pendulum_visual"
+    },
+    {
+      "name": "pendulum_head",
+      "tests": "pendulum_head"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T01:44:53"
+}

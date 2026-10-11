@@ -1,4 +1,9 @@
-Deltaplan 1.5.4 — a living world
+Deltaplan 1.5.4 — Pendulum mode and a living world
+
+Control (experimental):
+- New third roll-control mode, "Pendulum" (Settings > Controls): wing and pilot are two bodies, the pilot swings on the hang strap, hands apply force to the bar, sideslip arises on its own. Default is still "Weight shift"; bots and other pilots use the old model.
+- Less tested than the older modes. Training and Soviet wings leave a turn on their own in 5-10 s; stalls and spins are modelled.
+- Known limits: landing in no wind is hard, tell-tales in a turn deflect inward instead of outward, no VG, the Dutch roll is faster than in real life.
 
 A few small things that make the world below feel lived in. They follow the flight date: what you see in April is not what you see in August.
 

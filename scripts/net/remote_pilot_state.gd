@@ -16,6 +16,9 @@ extends RefCounted
 ##       ("UNSPECIFIED", пока не пришла ни одна фаза);
 ##   id, name, wing ("wings/sport"), colors (WingColors-словарь {hueDeg, sat, value} или
 ##       null — родная текстура), is_bot — последние известные;
+##   control_mode: String — "RATE" | "WEIGHT_SHIFT" | "PENDULUM" | "" (PD-К4; последний известный);
+##   pilot_rel: Vector3 — положение пилота относительно подвески (оси крыла, м), интерполяция
+##       линейная; ключа нет, если в снимках его не было (не «Маятник» или старый клиент);
 ##   t: float — время зоны отрисованного состояния (= render_t, кроме удержания);
 ##   mode: String — "interp" | "extrap" (буфер кончился, ≤ 1 с по скорости) | "hold"
 ##       (дольше 1 с — стоит на месте, vel = 0) | "empty" (снимков ещё нет).
@@ -44,6 +47,9 @@ var is_bot := false
 var name := ""
 var wing := ""
 var colors: Variant = null
+## Режим управления (PD-К4): "RATE" / "WEIGHT_SHIFT" / "PENDULUM"; "" — не приходил (старый клиент).
+## Как name/wing — держится последнее известное (приходит в полных пакетах и при смене).
+var control_mode := ""
 ## Время зоны последнего снимка; время получения последнего пакета (часы получателя).
 var latest_t := -INF
 var last_recv_s := -INF
@@ -71,6 +77,9 @@ func push(data: Dictionary, recv_s: float) -> bool:
 		name = str(data.get("name", ""))
 		wing = str(data.wing)
 		colors = data.get("colors")
+	var cm := NetMessages.short_enum(str(data.get("controlMode", "")))
+	if cm != "" and cm != PHASE_NONE:
+		control_mode = cm
 	var phase := short_phase(str(data.get("phase", "")))
 	if t <= _rendered_t:
 		return false
@@ -89,6 +98,9 @@ func push(data: Dictionary, recv_s: float) -> bool:
 		"vel": NetMessages.to_vector3(data.get("vel")),
 		"phase": phase,
 	}
+	# pilot_rel (PD-К4) — только если пришёл (иначе ключа нет)
+	if data.get("pilotRel") is Dictionary:
+		snap["pilot_rel"] = NetMessages.to_vector3(data.pilotRel)
 	_snaps.insert(at, snap)
 	if t >= latest_t:
 		latest_t = t
@@ -106,6 +118,7 @@ func sample(render_t: float) -> Dictionary:
 		"name": name,
 		"wing": wing,
 		"colors": colors,
+		"control_mode": control_mode,
 		"phase": _phase,
 		"t": render_t,
 		"pos": Vector3.ZERO,
@@ -145,6 +158,8 @@ func sample(render_t: float) -> Dictionary:
 	out.pos = hermite(a.pos, a.vel, b.pos, b.vel, dt, s)
 	out.rot = (a.rot as Quaternion).slerp(b.rot, s)
 	out.vel = (a.vel as Vector3).lerp(b.vel, s)
+	if a.has("pilot_rel") and b.has("pilot_rel"):
+		out["pilot_rel"] = (a.pilot_rel as Vector3).lerp(b.pilot_rel, s)
 	_trim(i)
 	return out
 
@@ -183,6 +198,8 @@ func _fill(out: Dictionary, snap: Dictionary, mode: String) -> void:
 	out.rot = snap.rot
 	out.vel = snap.vel
 	out.phase = snap.phase
+	if snap.has("pilot_rel"):
+		out["pilot_rel"] = snap.pilot_rel
 	out.mode = mode
 
 

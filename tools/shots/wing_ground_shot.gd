@@ -113,7 +113,7 @@ func _run() -> void:
 		var gf := ground_fn(String(c[0]))
 		var g := WC.make_glider(self, _wing)
 		var pts := WC.wing_points(g.visual)
-		var m := g.model
+		var m: FlightModel = g.model
 		m.reset_on_ground(Vector3(0, 100, 0), 0.0)
 		var inp := ControlInput.new()
 		inp.pitch = float(c[1])

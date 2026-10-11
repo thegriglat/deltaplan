@@ -105,7 +105,11 @@ func _process(dt: float) -> void:
 	if not (shown and full):
 		return
 	var c := agent.control
-	visual.set_pose(c.roll, c.pitch, agent.model.mode == FlightModel.Mode.AIR, dt)
+	var flying: bool = agent.model.mode == FlightModel.Mode.AIR
+	if agent.pilot_rel_valid:  # PD-К5: чужой пилот в «Маятнике» — поза по pilot_rel
+		visual.set_hang_pose(agent.pilot_rel, not flying, dt)
+	else:
+		visual.set_pose(c.roll, c.pitch, flying, dt)
 	var full_g := float(Config.value("sail", "turbulence_full_g"))
 	visual.set_flight(
 		agent.telemetry().airspeed, agent.model.stall_amount(), agent.model.load.jitter / full_g

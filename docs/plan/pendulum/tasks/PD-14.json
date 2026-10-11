@@ -1,0 +1,67 @@
+{
+  "id": "PD-14",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Посадка и отрыв маятника: экранный эффект, мягкая посадка в штиль, скорость отрыва; стоящий пилот",
+  "goal": "Мягкая посадка в штиль достижима на всех классах крыльев честной физикой (экранный эффект полос, выравнивание руками) без ослабления порогов LandingJudge; разобрать, почему отрыв на триме, а не ниже (пилот: ниже); стоящий пилот рисуется ступнями на земле (PD-К5 v2).",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "2",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К5",
+      "version": "2",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-14",
+  "branch": "pendulum/PD-14",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/pendulum",
+    "configs/pendulum.json",
+    "scripts/flight/glider_visual.gd",
+    "tests/flight/pendulum",
+    "tests/contracts/test_pendulum_contracts_k5.gd",
+    "tools/research/pendulum/export_reference.py",
+    "tests/contracts/test_pendulum_contracts_k2_ground.gd",
+    "tests/contracts/test_pendulum_contracts_k2.gd",
+    "tests/contracts/test_pendulum_contracts_k1.gd",
+    "tests/contracts/test_pendulum_contracts_k3.gd",
+    "tests/game/test_pendulum_game.gd",
+    "tests/contracts/test_pendulum_contracts_k4.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/landing_judge.gd",
+    "scripts/flight/ground_run.gd",
+    "scripts/flight/landing_flare.gd",
+    "configs/wings"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "test_landing",
+      "tests": "test_landing"
+    },
+    {
+      "name": "pilot_pose",
+      "tests": "pilot_pose"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T02:24:01",
+  "edited": "2026-10-11T03:28:32"
+}

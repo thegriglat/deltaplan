@@ -1,0 +1,58 @@
+{
+  "id": "PD-12",
+  "module": "pendulum",
+  "type": "dp-researcher",
+  "title": "Умолчания «Аппарата» по классам крыла и подвеска — по ответам пилота",
+  "goal": "Калибровка прототипом эффективного V и гибкости паруса по классам (учебные — сами выходят из виража, безмачтовые — нейтральная спираль, перекладка ≈ 4 / 4–5 с), проверка правила подвески «ЦМ + 2–3 см вперёд» против модели масс; блок apparatus_defaults во всех 48 крыльях (PD-К2 v3); раздел «Ответы пилота 11.10» в research.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К2",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-12",
+  "branch": "pendulum/PD-12",
+  "base": "feature/pendulum",
+  "scope": [
+    "tools/flight/pendulum_params.py",
+    "tools/flight/pendulum_params_table.md",
+    "configs/wings",
+    "tests/contracts/test_pendulum_contracts_k2.gd",
+    "tools/research/pendulum",
+    "docs/research/pendulum.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs/pendulum.json"
+  ],
+  "accept": [
+    {
+      "name": "pendulum_contracts_k2",
+      "tests": "pendulum_contracts_k2"
+    },
+    {
+      "name": "test_wings",
+      "tests": "test_wings"
+    },
+    {
+      "name": "params_check",
+      "cmd": "/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python tools/flight/pendulum_params.py --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wings_v3",
+      "cmd": "ls configs/wings/*.json | xargs grep -l '\"PD-К2 v3\"' | wc -l",
+      "expect": "num:(\\d+) >=48"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T02:03:37"
+}

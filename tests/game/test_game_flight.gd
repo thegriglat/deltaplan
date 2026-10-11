@@ -148,7 +148,7 @@ func test_air_start() -> void:
 		check(absf(d.length() - 600.0) < 1.0, "в 600 м от старта: %.0f" % d.length())
 		check(d.normalized().dot(Vector2(sin(h), -cos(h))) > 0.999, "по курсу старта")
 		check(absf(tel.altitude_agl - 150.0) < 1.0, "150 м над рельефом: %.0f" % tel.altitude_agl)
-		var trim := game.glider.model.trim_speed()
+		var trim: float = game.glider.model.trim_speed()
 		check(absf(tel.airspeed - trim) < 1.0, "скорость трима %.1f / %.1f" % [tel.airspeed, trim])
 		for i in 120 * 3:
 			game.tick(DT)

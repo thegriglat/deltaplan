@@ -192,3 +192,30 @@ func test_decoded_pilot_state() -> void:
 	check(p.phase == "crashed" and p.agent.model.mode == FlightModel.Mode.LANDED, "авария")
 	check(p.agent.scheme.is_empty(), "colors null — родная текстура")
 	rp.free()
+
+
+func test_pilot_rel_pendulum_only() -> void:
+	var rp := make()
+	var rel := Vector3(0.05, -1.18, -0.12)
+	rp.upsert(state("1", "flying", Vector3(0, 300, 0), {"controlMode": "CONTROL_MODE_PENDULUM", "pilotRel": {"x": 0.05, "y": -1.18, "z": -0.12}}))
+	var a: BotAgent = rp.get_pilot("1").agent
+	check(a.pilot_rel_valid, "PENDULUM + pilot_rel → valid")
+	check(a.pilot_rel.is_equal_approx(rel), "pilot_rel записан")
+	# set_pose: интерполированные значения
+	rp.set_pose("1", Vector3(0, 300, 0), Basis.IDENTITY, Vector3.ZERO, "flying", "PENDULUM", Vector3(0.1, -1.1, 0.0))
+	rp.tick(0.016)
+	check(a.pilot_rel.is_equal_approx(Vector3(0.1, -1.1, 0.0)), "set_pose обновляет pilot_rel")
+	# другой режим → поза по вводу
+	rp.set_pose("1", Vector3(0, 300, 0), Basis.IDENTITY, Vector3.ZERO, "flying", "WEIGHT_SHIFT", null)
+	rp.tick(0.016)
+	check(not a.pilot_rel_valid, "WEIGHT_SHIFT → не valid")
+	# pilot_rel без режима (режим не пришёл) → не valid
+	rp.upsert(state("2", "flying", Vector3(0, 300, 0), {"pilotRel": {"x": 0.0, "y": -1.2, "z": 0.0}}))
+	check(not rp.get_pilot("2").agent.pilot_rel_valid, "режима нет → не valid")
+	# старый клиент: нет полей
+	rp.upsert(state("3", "flying", Vector3(0, 300, 0)))
+	check(not rp.get_pilot("3").agent.pilot_rel_valid, "нет полей → не valid")
+	# PENDULUM без pilot_rel → не valid
+	rp.upsert(state("4", "flying", Vector3(0, 300, 0), {"control_mode": "PENDULUM"}))
+	check(not rp.get_pilot("4").agent.pilot_rel_valid, "PENDULUM без pilot_rel → не valid")
+	rp.free()

@@ -1,0 +1,21 @@
+{
+  "verdict": "accept",
+  "findings": [
+    {
+      "file": "scripts/flight/pendulum/wing_strips.gd",
+      "line": 170,
+      "severity": "minor",
+      "what": "match_polar_cl_max подбирает cl_max полос под паспортную поляру (бисекция): калибровка с физическим основанием (паспортная скорость срыва), по умолчанию включена, отключается ключом.",
+      "fix": "Ничего; границу модели (симметричный поток, без экрана) держать в доке."
+    }
+  ],
+  "summary": "Скоуп и «не трогать» соблюдены, пороги LandingJudge не ослаблены. Экран по Wieselsberger с источником, ключи в конфиге. Мягкая посадка в штиль только у training; laminar и sport честно жёсткие по решению координатора.",
+  "rerun": [
+    "dp accept PD-14 --only pendulum --dry: 77/77 PASS",
+    "--only test_landing --dry: 11/11 PASS",
+    "--only pilot_pose --dry: 2/2 PASS"
+  ],
+  "issues": [],
+  "t": "2026-10-11T03:35:32",
+  "by": "reviewer"
+}

@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп чист, PD-К1 v2 реализован, пороги LandingJudge не ослаблены, числа разбега совпадают с эталоном прототипа; ограничения посадки заявлены честно.",
+  "issues": [
+    {
+      "file": "docs/contracts/pendulum.md",
+      "line": 1,
+      "severity": "minor",
+      "what": "Блок configs/pendulum.json -> ground не внесён в таблицу PD-К2.",
+      "fix": "Координатору внести ключи ground в PD-К2."
+    },
+    {
+      "file": "tests/flight/pendulum/test_pendulum_ground_landing.gd",
+      "line": 50,
+      "severity": "minor",
+      "what": "Мягкая посадка: подбор высоты из 8; training в штиль и все крылья при встречном 3 м/с; laminar/sport в штиль не мягкие (заявлено). Граница модели.",
+      "fix": "Зафиксировать как известное ограничение."
+    },
+    {
+      "file": "scripts/flight/pendulum/pendulum_ground.gd",
+      "line": 1,
+      "severity": "minor",
+      "what": "Разбег в штиль 23-34 м против 12-18 у GroundRun; сходится с прототипом.",
+      "fix": "Координатору решить: принять или калибровать."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "pendulum",
+      "value": "49/49",
+      "pass": true
+    },
+    {
+      "name": "test_landing",
+      "value": "11/11",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-11T02:23:38",
+  "by": "reviewer"
+}

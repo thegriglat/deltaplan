@@ -3,6 +3,9 @@ settings_invert_pitch_hint,"Как ручка самолёта: ↑ и мышь 
 controls_short_help,"Мышь, ↑/↓, ←/→ — трапеция; на земле W/S — шаг, A/D — поворот, Shift — разбег; в полёте W/A/S/D — осмотреться; C — камера, Tab — прибор, Esc — пауза","Mouse, ↑/↓, ←/→ — control bar; on the ground W/S — step, A/D — turn, Shift — run; in flight W/A/S/D — look around; C — camera, Tab — instrument, Esc — pause"
 result_crash,Авария,Crash
 loc_altai,Алтай — Манжерок,Altai — Manzherok
+launch_fail_nose,Нос крыла упёрся в землю,The nose hit the ground
+launch_fail_keel,Киль крыла чиркнул по земле,The keel scraped the ground
+launch_fail_fell,Пилот упал на разбеге,The pilot fell during the run
 launch_fail_wingtip,Консоль коснулась земли — крыло опрокинуто,A wingtip hit the ground — the wing tipped over
 result_circling_pct,В кружении: %.0f%% времени,Circling: %.0f%% of the time
 setup_wind_into_launch,Встречный,Headwind
@@ -82,6 +85,7 @@ settings_roll_input_bar,Как штанга (вправо — крен влев�
 settings_roll_input_body,Как тело (вправо — крен вправо),Like the body (right — roll right)
 settings_roll_simple,Простое (аркадное),Simple (arcade)
 settings_roll_weight_shift,Смещение веса (как на настоящем крыле),Weight shift (like a real wing)
+settings_roll_pendulum,Маятник (экспериментальный),Pendulum (experimental)
 controls_mouse_bar,Мышь — трапеция: от себя / на себя и вбок; средняя кнопка или V — снова смотреть вперёд,Mouse — control bar: push / pull and sideways; middle button or V — look ahead
 controls_glance,Держать — посмотреть на приборы на перекладине,Hold — look at the instruments on the bar
 controls_look_keys,"W/A/S/D — осмотреться в кабине (A/D — влево/вправо, W/S — вверх/вниз); V — снова вперёд","W/A/S/D — look around in the cockpit (A/D — left/right, W/S — up/down); V — look ahead again"
@@ -513,3 +517,11 @@ settings_bar_reset,Сброс,Reset
 settings_bar_raw,"Сырые оси: крен %.3f, тангаж %.3f","Raw axes: roll %.3f, pitch %.3f"
 settings_bar_roll,Крен (итог),Roll (result)
 settings_bar_pitch,Тангаж (итог),Pitch (result)
+setup_tab_place,Место,Place
+setup_tab_apparatus,Аппарат,Apparatus
+unit_cm,см,cm
+setup_app_hang_shift_cm,Подвеска вдоль киля,Hang point along keel
+setup_app_hang_length_m,Длина подвески,Hang strap length
+setup_app_sail_flex,Гибкость паруса,Sail flexibility
+setup_app_dihedral_eff_deg,Поперечное V,Effective dihedral
+setup_app_pendulum_only,Важно только при режиме управления «Маятник»,Matters only in the Pendulum control mode

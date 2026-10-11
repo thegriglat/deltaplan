@@ -1,0 +1,62 @@
+{
+  "id": "PD-7",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Сеть: режим управления и положение пилота у чужих (PD-К4)",
+  "goal": "Чужой пилот в режиме «Маятник» висит у других игроков по своей физике: PilotState несёт control_mode и pilot_rel, remote_pilots пишет BotAgent.pilot_rel.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К4",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К5",
+      "version": "1",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-7",
+  "branch": "pendulum/PD-7",
+  "base": "feature/pendulum",
+  "scope": [
+    "server/proto/deltaplan/v1/net.proto",
+    "server/gen",
+    "server/proto_examples_test.go",
+    "scripts/net",
+    "scripts/game/remote_pilots.gd",
+    "scripts/game/net_flight.gd",
+    "docs/guide/net-protocol.md",
+    "tests/net",
+    "tests/game/test_remote_pilots.gd",
+    "tests/contracts/test_pendulum_contracts_k4.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/game/bot_agent.gd",
+    "scripts/game/bot_glider.gd"
+  ],
+  "accept": [
+    {
+      "name": "net",
+      "tests": "net"
+    },
+    {
+      "name": "remote_pilots",
+      "tests": "remote_pilots"
+    },
+    {
+      "name": "pendulum_contracts_k4",
+      "tests": "pendulum_contracts_k4"
+    },
+    {
+      "name": "go_test",
+      "cmd": "cd server && go test ./... 2>&1 | tail -3",
+      "expect": "!re:FAIL"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T01:46:05"
+}

@@ -1,0 +1,52 @@
+{
+  "status": "partial",
+  "summary": "Режим «Маятник» готов: Glider выбирает PendulumModel по controls.roll_control_mode, apparatus доходит до модели, пункт настроек, ввод как weight_shift, ПИД-автопилот, MR-К1 из маятника, старт в воздухе (100 м/150 м). Все 5 проверок карточки зелёные (dp accept --dry). Не сделаны: dp task sync и две правки ядра по сообщению (см. not_done).",
+  "commits": [
+    "a5706597 Режим «Маятник»: выбор модели в Glider, настройка, ввод, ПИД автопилота, телеметрия MR-К1, старт в воздухе",
+    "тесты автопилота и сдвига подвески (второй коммит)"
+  ],
+  "checks": [
+    {
+      "name": "control_bar/motion_rig/autopilot/pendulum/settings_tabs",
+      "value": "13/13, 25/25, 2/2, 32/32, 1/1",
+      "pass": true
+    },
+    {
+      "name": "СКО крена автопилота в болтанке (горизонт, max_bank 0) training/laminar/sport",
+      "value": "7.71/12.98/4.88 против прототипа 5.45/9.04/7.59 (лимит 1.5x: 8.17/13.57/11.4)",
+      "pass": true
+    },
+    {
+      "name": "сдвиг подвески +1 см, км/ч (игра/таблица)",
+      "value": "training 0.409 (динамика) ; laminar 0.740/0.728 ; sport 0.931/0.932 — в пределах 20%",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "dp task sync PD-4 не выполнен: запуск заблокирован классификатором прав (запрос пришёл сообщением другой сессии, не от пользователя). Поэтому две правки ядра (усреднение chain.pilot_force по подшагам для load_factor; _air_c = ned(wind) в reset_in_air) НЕ сделаны — ядро в копии не менялось; нужны подтверждение координатора/пользователя и sync."
+  ],
+  "questions": [
+    "Подтвердить sync PD-4 и расширение скоупа на pendulum_model.gd (две правки ядра) — или сделать их в ядре самому."
+  ],
+  "how_to_check": "dp accept PD-4",
+  "uncertain": [
+    {
+      "where": "tests/flight/pendulum/test_pendulum_autopilot.gd",
+      "why": "СКО крена укладывается в 1.5x прототипа только при чистом удержании горизонта (ap.max_bank_deg = 0); с курсовым контуром Autopilot по умолчанию (bank_per_deg 0.5, до 15 градусов) training/laminar дают 16/18 градусов. Запас у training/laminar мал (7.71 из 8.17, 12.98 из 13.57); отклик хаотичен, но детерминирован.",
+      "checked": "прогон с max_bank 0 и по умолчанию; блок маятника из configs/wings (не блок прототипа)"
+    },
+    {
+      "where": "scripts/flight/glider.gd reset_on_ground",
+      "why": "Для маятника reset_on_ground -> reset_in_air на +100 м (земли нет до PD-3); конец буксира у земли тоже уйдёт вверх.",
+      "checked": "тест Glider; Game.restart использует свой старт 100 м/150 м"
+    },
+    {
+      "where": "tests/flight/pendulum/test_pendulum_hang_shift.gd",
+      "why": "Сдвиг сходится (training 0.409 км/ч в динамике; значение solve_trim и таблица в логе), не подгонялось.",
+      "checked": "solve_trim и 30 с полёта"
+    }
+  ],
+  "dp_feedback": "dp task sync блокируется классификатором при вызове по просьбе другого агента; полезно понимать, кто может его запускать.",
+  "t": "2026-10-11T01:29:23",
+  "by": "executor"
+}
