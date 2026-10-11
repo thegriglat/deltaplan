@@ -190,3 +190,5 @@
 {"t": "2026-10-11T10:04:34", "by": "coordinator", "task": "PD-9", "ev": "accepted", "note": "2/2 docs=ok:ошибок 0; guide=ok:5"}
 {"t": "2026-10-11T10:04:34", "by": "coordinator", "task": "PD-9", "ev": "merged", "commits": ["14054292"]}
 {"t": "2026-10-11T10:04:44", "by": "coordinator", "task": "PD-26", "ev": "created", "note": "Тестовая сборка 3 «Маятник» (боковой канал, срыв и штопор): Linux + Windows в build/pendulum_test3"}
+{"t": "2026-10-11T10:17:18", "by": "executor", "task": "PD-25", "ev": "reported", "commits": ["b49795dd"], "note": "done: Причина: автопилот оценивал скорость крена как производную угла bank_deg с фильтром lerp 0,2 (отставание ~4 шага, к том…", "dp_feedback": "dp job start не запускает 'VAR=x cmd' (нужен env); godot -s run_tests.gd не работает без автозагрузок, только res://tests/run_tests.tscn — стоит в dp.md/карточке задачи дать готовую команду одного теста. Контрактные ключи strips.stall_* добавлены в проверку test_pendulum_contracts_k2.gd (5 ключей + _doc)."}
+{"t": "2026-10-11T10:18:47", "by": "coordinator", "task": "PD-25", "ev": "checked", "note": "3/3 pendulum=ok:84/84; autopilot=ok:2/2; pendulum_contracts=ok:28/28"}
