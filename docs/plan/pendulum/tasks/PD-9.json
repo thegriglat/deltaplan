@@ -3,7 +3,7 @@
   "module": "pendulum",
   "type": "dp-writer",
   "title": "Документация маятника: guide/flight.md, CHANGELOG, findings",
-  "goal": "Раздел «Маятник» в docs/guide/flight.md (модель, параметры «Аппарата», что учтено из ответов пилота, границы модели), CHANGELOG «В работе», выводы в findings.",
+  "goal": "Раздел «Маятник» в docs/guide/flight.md (модель, режим, вкладка «Аппарат» и умолчания по классам, земля, срыв и штопор, ленточки, что учтено из ответов пилота и литературы, границы модели), CHANGELOG «В работе», выводы в docs/registry/findings.md.",
   "plan_ref": "Задачи этапа A (с минимальным B)",
   "contracts": [],
   "copy": "~/deltaplan-pendulum-PD-9",
@@ -29,11 +29,11 @@
     },
     {
       "name": "guide",
-      "cmd": "grep -c 'Маятник' docs/guide/flight.md",
+      "cmd": "/usr/bin/grep -c 'Маятник' docs/guide/flight.md",
       "expect": "num:(\\d+) >=3"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T03:28:49"
+  "created": "2026-10-11T10:00:54"
 }
