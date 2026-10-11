@@ -140,3 +140,4 @@
 {"t": "2026-10-11T04:59:43", "by": "executor", "task": "PD-20", "ev": "reported", "commits": ["a3b8214b"], "note": "done: glider.gd менять не пришлось: в Маятнике он уже передаёт visual.step_telltales telemetry.basis (wing_basis с рысканием)…", "dp_feedback": "нет"}
 {"t": "2026-10-11T05:00:05", "by": "coordinator", "task": "PD-20", "ev": "checked", "note": "2/2 pendulum_telltale=ok:3/3; telltale=ok:11/11"}
 {"t": "2026-10-11T05:00:05", "by": "coordinator", "task": "PD-20", "ev": "accepted", "note": "по отчёту: передача ориентации и скорости уже верна, добавлен тест; в ровном вираже 30° лента −6,7° (скольжение внутрь ≈ 5° у модели) — критерий ослаблен до < 8°, вернуть < 3° в PD-21"}
+{"t": "2026-10-11T05:00:06", "by": "coordinator", "task": "PD-20", "ev": "merged", "commits": ["162ec2b7"]}
