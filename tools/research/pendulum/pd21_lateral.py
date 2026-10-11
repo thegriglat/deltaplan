@@ -16,7 +16,7 @@
   $PY pd21_lateral.py run --variants variants.json --out out/pd21_<имя>.jsonl [--jobs 8]
   $PY pd21_lateral.py table out/pd21_<имя>.jsonl            → таблица в stdout (md)
 variants.json: [{"name": "base", "over": {}}, {"name": "cnb03", "over": {"cn_beta": 0.03}}, …]
-(«over» — поля Params: cn_beta, fin_arm, fin_slope, dihedral (рад), flex_relief, billow_shift_deg, …;
+(«over» — поля Params: cn_beta, fin_arm, fin_slope, dihedral (рад), sail_flex, billow_shift_deg, …;
 отдельно "over_deg": {"dihedral": 5} — в градусах.)
 """
 
@@ -67,7 +67,7 @@ def make_v(wing, over, over_deg=None, m_pilot=None):
     cnp_add = float(kw.pop("cnp_add", 0.0))
     fs = kw.pop("flex_scale", None)
     if fs is not None:
-        kw["flex_relief"] = min(1.0, E.wing_cfg(wing)["pendulum"]["apparatus_defaults"]["sail_flex"] * float(fs))
+        kw["sail_flex"] = min(1.0, E.wing_cfg(wing)["pendulum"]["apparatus_defaults"]["sail_flex"] * float(fs))
     for k, v in (over_deg or {}).items():
         kw[k] = RAD(v)
     p = E.params(wing, m_pilot).with_(x_hang=blk["hang_from_nose_m"], dcm0=blk["dcm0"], **kw)

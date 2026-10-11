@@ -85,7 +85,7 @@ func test_pendulum_config() -> void:
 	check(int(c["strips"]["count"]) % 2 == 0, "strips.count чётное")
 	check(is_equal_approx(float(c.get("pilot_cda_m2", 0.0)), 0.21), "pilot_cda_m2")
 	check(c.get("apparent_roll") == true, "apparent_roll")
-	check(is_equal_approx(float(c.get("billow_shift_deg", 1.0)), 0.0), "billow_shift_deg")
+	check(is_equal_approx(float(c.get("billow_shift_deg", 0.0)), 40.0), "billow_shift_deg (PD-24: перекос пузыря)")
 	for k in ["pilot_cda_m2", "apparent_roll", "billow_shift_deg", "contract"]:
 		check(c.has(k + "_doc"), "%s_doc есть" % k)
 

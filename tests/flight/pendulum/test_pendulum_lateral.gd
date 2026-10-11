@@ -122,9 +122,8 @@ func test_relaxed_pendulum() -> void:
 			_rel(per, r[key + "_period_s"], "%s: период качания %s, с" % [w, key])
 			_rel(ratio, r[key + "_ratio_per_period"], "%s: затухание за период %s" % [w, key], 0.25)
 			if key == "lat":
-				# PD-23: парус жёстче (гибкость 0,35–0,45) — крыло качается навстречу пилоту чуть
-				# иначе: training 1,03 с, затухание sport 0,52–0,56; против прототипа — _rel выше
+				# PD-23/24: у training (лёгкое крыло, V 6°) период 1,03–1,05 с — нижняя граница 1,0
 				check(per > 1.0 and per < 1.4, "%s: период поперёк 1,0–1,4 с: %.2f" % [w, per])
-				check(ratio < 0.65, "%s: качание поперёк затухает: %.2f" % [w, ratio])
+				check(ratio < 0.5, "%s: качание поперёк затухает: %.2f" % [w, ratio])
 			print("    %s %s: период %.2f с (прототип %.2f), затухание %.2f (%.2f)" % [
 				w, key, per, r[key + "_period_s"], ratio, r[key + "_ratio_per_period"]])

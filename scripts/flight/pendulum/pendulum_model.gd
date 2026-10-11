@@ -4,7 +4,7 @@ extends RefCounted
 ## степенями свободы, подъёмная сила и сопротивление — по полосам (PendulumWingStrips), пилот —
 ## точка на цепи из N звеньев (PendulumPilotChain, XPBD с подшагами), руки — сила с пределом
 ## между пилотом и трапецией (PendulumPilotArms). Рыскание свободно (скольжение — из полос и
-## «эквивалентного киля»), гибкий парус — flex_relief, поперечное V — эффективное из «Аппарата».
+## «эквивалентного киля»), гибкий парус — перекос пузыря (крутка консолей от угла стропы), поперечное V — эффективное из «Аппарата».
 ## Порт прототипа tools/research/pendulum/pendulum/model.py (вариант B); числа и границы —
 ## docs/research/pendulum.md.
 ##
@@ -39,7 +39,7 @@ const DEFAULTS := {
 	"yaw": {"cn_beta": 0.05, "fin_arm_m": 1.6, "fin_slope_per_rad": 2.0, "cn_p_add": 0.15, "cn_r_add": -0.03},
 	"pilot_cda_m2": 0.21,
 	"apparent_roll": true,
-	"billow_shift_deg": 0.0,
+	"billow_shift_deg": 40.0,
 	"head": {"forward_m": 0.75, "up_m": 0.15},
 	"ground": {
 		"leg_length_m": 1.0, "leg_stiffness_n_per_m": 3.0e4, "foot_friction": 0.8,
@@ -665,10 +665,10 @@ func _aero_update(air_fn: Callable, ground_fn: Callable = Callable()) -> void:
 		air_c = _air_at(air_fn, _pos)
 		_air_p = _air_at(air_fn, chain.pilot())
 	_air_c = air_c
+	# перекос пузыря: поперечная сила рук на вес пилота (в равновесии = tg угла стропы к крылу)
 	var lam := 0.0
-	if strips.billow_shift != 0.0:
-		var d_b := R.transposed() * (chain.x[0] - _pos - R * _r_hang_b)
-		lam = d_b.y / maxf(d_b.z, 1.0e-3)
+	if strips.billow_shift != 0.0 and pilot_mass > 0.0:
+		lam = arms.force_b.y / (pilot_mass * Units.G)
 	var ge := PackedFloat64Array()
 	if _ge_on and _ground_effect(ground_fn):
 		ge = _ge

@@ -1,0 +1,6 @@
+[{"name": "base", "over": {}},
+ {"name": "rig", "over": {"flex_relief": 1.0}},
+ {"name": "rigB10", "over": {"flex_relief": 1.0, "billow_shift_deg": 10}},
+ {"name": "rigB20", "over": {"flex_relief": 1.0, "billow_shift_deg": 20}},
+ {"name": "rigB35", "over": {"flex_relief": 1.0, "billow_shift_deg": 35}},
+ {"name": "rigB20n", "over": {"flex_relief": 1.0, "billow_shift_deg": 20, "cn_p_add": 0.0, "cn_r_add": 0.0}}]

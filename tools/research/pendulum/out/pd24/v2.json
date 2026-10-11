@@ -1,0 +1,5 @@
+[{"name": "B28c50", "over": {"flex_relief": 1.0, "billow_shift_deg": 28}},
+ {"name": "B28c35", "over": {"flex_relief": 1.0, "billow_shift_deg": 28, "cn_beta": 0.035}},
+ {"name": "B28c27", "over": {"flex_relief": 1.0, "billow_shift_deg": 28, "cn_beta": 0.0275}},
+ {"name": "B28c35V-3", "over": {"flex_relief": 1.0, "billow_shift_deg": 28, "cn_beta": 0.035}, "over_deg": {"dihedral": -3}, "wings": ["laminar", "sport"]},
+ {"name": "B28c35V3", "over": {"flex_relief": 1.0, "billow_shift_deg": 28, "cn_beta": 0.035}, "over_deg": {"dihedral": 3}, "wings": ["training"]}]

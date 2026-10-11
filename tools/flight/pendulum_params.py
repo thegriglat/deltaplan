@@ -37,16 +37,17 @@ DOC = ("генерирует tools/flight/pendulum_params.py (порт бала�
        "−Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим "
        "при hang_from_nose_m и эталонной массе")
 # Умолчания «Аппарата» по классу крыла (`group` в конфиге): эффективное поперечное V, ° и гибкость
-# паруса (flex_relief, 1 — жёсткое). Калибровка — tools/research/pendulum/calibrate_classes.py,
-# обоснование — docs/research/pendulum.md, «Ответы пилота 11.10».
+# паруса (множитель перекоса пузыря, configs/pendulum.json → billow_shift_deg). Калибровка —
+# tools/research/pendulum/pd21_lateral.py (out/pd24), обоснование — docs/research/pendulum.md, PD-24.
 GROUP_DEFAULTS = {
-    # PD-23 (рыскание по литературе: Cnp ≈ 0, Cnr ≈ −0,055): гибкость — Ochi ≈ 30° за 7 с (laminar) и
-    # перекладка 45→45 3,5–5 с; V мачтовых −1,5°, безмачтовых −0,5° — спираль держится, нейтральна (пилот: у спортивных
-    # V бывает отрицательное), учебные 5° — сами выходят из виража
-    "trainer": {"dihedral_eff_deg": 5.0, "sail_flex": 0.45},
-    "soviet": {"dihedral_eff_deg": 3.0, "sail_flex": 0.45},
-    "kingpost": {"dihedral_eff_deg": -1.5, "sail_flex": 0.35},
-    "topless": {"dihedral_eff_deg": -0.5, "sail_flex": 0.35},
+    # PD-24 (полосы без урезания разницы нагрузок, Clβ/Clp/Clr — к Hiway Demon): гибкость — перекладка
+    # 45→45 ≈ 4 с и Ochi ≈ 30° за 7 с (laminar); V учебных 6° (верх ползунка), советских 5° — сами выходят из виража 30°
+    # за 5–10 с; V мачтовых −1,5°, безмачтовых +0,5° — спираль держится (пилот: у спортивных V бывает
+    # отрицательное)
+    "trainer": {"dihedral_eff_deg": 6.0, "sail_flex": 0.5},
+    "soviet": {"dihedral_eff_deg": 5.0, "sail_flex": 0.45},
+    "kingpost": {"dihedral_eff_deg": -1.5, "sail_flex": 0.6},
+    "topless": {"dihedral_eff_deg": 0.5, "sail_flex": 0.6},
 }
 GP = json.loads((ROOT / "tools/blender/glider_params.json").read_text())
 R = lambda x, n=4: round(float(x), n)  # noqa: E731
@@ -111,7 +112,7 @@ def compute(wing_id: str) -> dict:
     полосы срываются раньше паспортной скорости трима или Kn выходит за инвариант PD-К2; тогда
     крутка уменьшается шагом 1° до самосогласованного трима (значение пишется в washout_deg)."""
     d = apparatus_defaults(wing_id)
-    p0 = load_params(wing_id).with_(dihedral=math.radians(d["dihedral_eff_deg"]), flex_relief=d["sail_flex"])
+    p0 = load_params(wing_id).with_(dihedral=math.radians(d["dihedral_eff_deg"]), sail_flex=d["sail_flex"])
     w_deg = math.degrees(p0.washout)
     while w_deg >= 0:
         b = _compute(wing_id, p0.with_(washout=math.radians(w_deg)))

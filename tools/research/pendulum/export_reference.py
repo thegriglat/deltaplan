@@ -111,7 +111,7 @@ def params(wing: str, m_pilot=None):
     blk = wing_cfg(wing)["pendulum"]
     ad = blk["apparatus_defaults"]
     return load_params(wing, m_pilot).with_(
-        dihedral=math.radians(ad["dihedral_eff_deg"]), flex_relief=ad["sail_flex"],
+        dihedral=math.radians(ad["dihedral_eff_deg"]), sail_flex=ad["sail_flex"],
         washout=math.radians(blk["washout_deg"]))
 
 
