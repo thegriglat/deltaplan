@@ -27,11 +27,11 @@ def selftest():
     s = mf.pack_fields(mf.SRS_FIELDS, mf.SRS_SIZE, {
         "api_mode": b"api", "version": 102, "game": b"Deltaplan", "vehicle_name": b"Hang glider",
         "location": b"Altai", "speed_kmh": 40.0, "pitch": 5.0, "roll": -10.0, "yaw": 90.0,
-        "vertical_acceleration": -0.1, "longitudinal_acceleration": 0.3})
+        "vertical_acceleration": -1.0, "longitudinal_acceleration": 3.0})  # м/с²
     d = parse(s, "srs")
     assert d["game"] == "Deltaplan" and d["vehicle"] == "Hang glider" and d["location"] == "Altai", d
     assert abs(d["pitch"] - 5.0) < 1e-6 and abs(d["roll"] + 10.0) < 1e-6 and abs(d["yaw"] - 90.0) < 1e-6, d
-    assert abs(d["vertical_acceleration"] + 0.1) < 1e-6 and abs(d["longitudinal_acceleration"] - 0.3) < 1e-6, d
+    assert abs(d["vertical_acceleration"] + 1.0) < 1e-6 and abs(d["longitudinal_acceleration"] - 3.0) < 1e-6, d
     assert parse(s, "auto")["format"] == "srs"
     g = mf.pack_fields(mf.GENERIC_FIELDS, mf.GENERIC_SIZE, {
         "magic": b"DPMR", "version": 1, "seq": 7, "flags": 3, "t": 1.5, "surge": 0.1, "sway": 0.2, "heave": 9.81,

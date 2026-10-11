@@ -20,8 +20,8 @@ KNOWN_GENERIC = {"t": 7.5, "surge": 1.5, "sway": -2.0, "heave": 11.0, "roll": 12
 G = 9.80665
 KNOWN_SRS = {"game": "Deltaplan", "vehicle": "Hang glider", "location": "Altai", "speed_kmh": 43.2,
              "pitch": -3.25, "roll": 12.5, "yaw": -90.0, "lateral_velocity": 0.5,
-             "lateral_acceleration": -2.0 / G, "vertical_acceleration": 11.0 / G - 1.0,
-             "longitudinal_acceleration": 1.5 / G}
+             "lateral_acceleration": -2.0, "vertical_acceleration": 11.0 - G,
+             "longitudinal_acceleration": 1.5}
 
 
 def struct_layout(fields):

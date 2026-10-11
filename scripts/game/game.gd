@@ -253,12 +253,10 @@ func tick(dt: float) -> void:
 		_tow_step(dt)  # без физики, столкновений и итога полёта
 		return
 	if _crashed:
+		motion.step(glider.get_telemetry(), dt)  # стоянка после столкновения: поза неподвижна, поток идёт
 		return
 	glider.step(dt)  # → telemetry_updated → приборы, звук, статистика
-	if glider.phase() == "flying":
-		motion.step(glider.get_telemetry(), dt)  # свой пилот в полёте (MR-К2)
-	else:
-		motion.idle()
+	motion.step(glider.get_telemetry(), dt)  # свой пилот во всех фазах (MR-К1 v2); reset() — только на разрывах
 	_feed_step(dt)
 	var hit := collisions.check(glider.get_telemetry())
 	if not hit.is_empty():
@@ -913,6 +911,7 @@ func start_catch_up(target_fn: Callable) -> bool:
 	if not t.is_active():
 		return false
 	tow = t
+	motion.reset()  # разрыв потока (MR-К1 v2): на буксире пакетов нет
 	_crashed = false
 	_ended = true  # на буксире итога полёта нет
 	_leave_queue_for_tow()

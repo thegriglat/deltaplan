@@ -4,7 +4,7 @@
 
 Deltaplan can send the pilot's motion over UDP to a motion platform or to your own receiver. The numbers are honest physics: specific force (acceleration minus gravity) in the pilot's axes, attitude angles and angular rates. The game applies no filtering, washout, scaling or limits. Do that in your motion software (Sim Racing Studio or your own code).
 
-Output is sent only while you are flying. In menus and on pause nothing is sent, so a receiver should return the platform to neutral on a timeout.
+Output is continuous while you are in the scene, on the ground as well as in the air: standing on a slope (tilt), the take-off run, lift-off, landing and the landing run all produce motion, and the stream is not cut at phase changes, so there is no jerk at take-off or landing. In menus, on pause and while being towed nothing is sent, so a receiver should return the platform to neutral on a timeout.
 
 ## DOF Reality (H2/H3/H4R/H6) via Sim Racing Studio
 
@@ -22,20 +22,20 @@ The game sends the Sim Racing Studio API v102 packet (236 bytes, header `api`, g
 
 ## Axes and signs
 
-The SRS documentation does not define signs, and we have not tested this on a real platform. If an axis moves the wrong way, either invert it in SRS or tick the matching checkbox in the game (**Settings -> Motion platform -> Invert sign of**). It multiplies the value sent by -1.
+The axes and signs of pitch, roll and yaw were confirmed on a DOF Reality platform. Surge, sway and heave signs are not confirmed yet. If an axis moves the wrong way, either invert it in SRS or tick the matching checkbox in the game (**Settings -> Motion platform -> Invert sign of**). It multiplies the value sent by -1.
 
 | Quantity | Positive direction | SRS field | Invert checkbox |
 |---|---|---|---|
 | Pitch | nose up | `pitch`, degrees | Pitch |
 | Roll | right wing down | `roll`, degrees | Roll |
 | Yaw | heading, clockwise from north (SRS: -180..180) | `yaw`, degrees | Yaw |
-| Surge | forward force (nose forward) | `longitudinal_acceleration`, g | Surge |
-| Sway | force to the right | `lateral_acceleration`, g | Sway |
-| Heave | force pressing into the seat | `vertical_acceleration`, g = load factor - 1 g | Heave |
+| Surge | forward force (nose forward) | `longitudinal_acceleration`, m/s^2 | Surge |
+| Sway | force to the right | `lateral_acceleration`, m/s^2 | Sway |
+| Heave | force pressing into the seat | `vertical_acceleration`, m/s^2 = specific force minus 1 g | Heave |
 | Sideslip | to the right | `lateral_velocity`, m/s | (none) |
 | Airspeed | | `speed`, km/h | (none) |
 
-Heave is the load factor minus 1 g: about 0 in steady flight, positive in a pull-up or a banked turn (load factor about 1/cos(bank): +0.15 g at 30 degrees of bank), negative when unloaded. Surge in steady glide is small but not zero, because the glider flies nose up about 6.6 degrees and the axes are body-fixed (about +0.11 g). Rates (roll, pitch, yaw rate) are not part of the SRS packet; the checkboxes for them affect the Generic format only.
+Accelerations in the SRS packet are in m/s^2 (earlier builds sent g, about 1 % of the SRS scale, so heave barely moved the platform). Heave is the specific force minus 1 g: about 0 in steady flight and standing on level ground, positive in a pull-up or a banked turn (about +1.5 m/s^2 at 30 degrees of bank), negative when unloaded. On the ground the same quantities are sent: standing still on a slope gives a tilted pose with surge/sway/heave from the tilted gravity, running and landing give real accelerations (a hard touchdown peaks at tens of m/s^2). Surge in steady glide is small but not zero, because the glider flies nose up about 6.6 degrees and the axes are body-fixed (about +1.1 m/s^2). Gain, scaling and filters (washout) are set in SRS, not in the game. Rates (roll, pitch, yaw rate) are not part of the SRS packet; the checkboxes for them affect the Generic format only.
 
 ## Generic UDP format
 
