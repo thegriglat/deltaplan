@@ -28,7 +28,11 @@
     "scripts/game/pilot_animator.gd",
     "tests/flight/pendulum",
     "tools/research/pendulum/export_reference.py",
-    "docs/research/pendulum.md"
+    "docs/research/pendulum.md",
+    "tools/blender/build_pilot.py",
+    "assets/models/pilot.glb",
+    "assets/source/pilot.blend",
+    "configs/pilot.json"
   ],
   "dont_touch": [
     "scripts/flight/flight_model.gd",
@@ -52,5 +56,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T18:04:17"
+  "created": "2026-10-11T18:04:17",
+  "edited": "2026-10-11T18:25:10"
 }
