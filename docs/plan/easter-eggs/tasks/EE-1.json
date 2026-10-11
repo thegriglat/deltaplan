@@ -1,0 +1,43 @@
+{
+  "id": "EE-1",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "FieldPlots — участки полей шейдера рельефа в GDScript (К10)",
+  "goal": "Пасхалкам на полях (рисунки НЛО, рулоны сена) нужно знать, где участок поля и какой он (колосья / луг / скошено) ровно так, как его рисует шейдер рельефа; без правки шейдера.",
+  "plan_ref": "Волна 3 (11.10.2026, решение пользователя)",
+  "contracts": [
+    {
+      "name": "К10",
+      "version": "7",
+      "ref": "docs/contracts/easter-eggs.md"
+    }
+  ],
+  "copy": "~/deltaplan-easter-eggs-EE-1",
+  "branch": "easter-eggs/EE-1",
+  "base": "feature/easter-eggs",
+  "scope": [
+    "scripts/world_objects/field_plots.gd (новый)",
+    "tests/contracts/test_field_plots_contracts.gd (новый)",
+    "tests/world_objects/test_field_plots.gd (новый, по желанию)"
+  ],
+  "dont_touch": [
+    "scripts/terrain/ (шейдер рельефа не менять — только читать)",
+    "configs/world.json",
+    "scripts/world_objects/easter_eggs/",
+    "docs/contracts/ (интерфейс меняет только координатор)"
+  ],
+  "accept": [
+    {
+      "name": "field_plots",
+      "tests": "field_plots"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/easter-eggs...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T06:19:36"
+}
