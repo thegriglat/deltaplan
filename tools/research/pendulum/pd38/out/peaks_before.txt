@@ -1,0 +1,10 @@
+PEAK mode=ws v=1.0 phys_g=13.24 g60=7.12 grade=soft vtd=1.08 t_td=0.008 t_peak=0.008 end_g=1.00 nan=false
+PEAK mode=ws v=2.0 phys_g=25.47 g60=13.24 grade=soft vtd=2.07 t_td=0.008 t_peak=0.008 end_g=1.00 nan=false
+PEAK mode=ws v=3.5 phys_g=43.83 g60=22.41 grade=soft vtd=3.57 t_td=0.008 t_peak=0.008 end_g=1.00 nan=false
+PEAK mode=ws v=5.5 phys_g=68.30 g60=34.65 grade=hard vtd=5.56 t_td=0.008 t_peak=0.008 end_g=1.00 nan=false
+PEAK mode=ws v=belly phys_g=101.88 g60=51.42 grade=crash vtd=8.05 t_td=0.008 t_peak=0.008 end_g=1.00 nan=false
+PEAK mode=pend v=1.0 phys_g=4.13 g60=2.97 grade=soft vtd=1.08 t_td=0.008 t_peak=0.017 end_g=1.00 nan=false
+PEAK mode=pend v=2.0 phys_g=7.84 g60=5.28 grade=soft vtd=2.08 t_td=0.008 t_peak=0.017 end_g=1.00 nan=false
+PEAK mode=pend v=3.5 phys_g=13.38 g60=9.03 grade=soft vtd=3.58 t_td=0.008 t_peak=0.017 end_g=1.00 nan=false
+PEAK mode=pend v=5.5 phys_g=20.77 g60=14.17 grade=hard vtd=5.58 t_td=0.008 t_peak=0.017 end_g=1.00 nan=false
+PEAK mode=pend v=belly phys_g=101.88 g60=51.42 grade=crash vtd=8.08 t_td=0.008 t_peak=0.008 end_g=1.00 nan=false
