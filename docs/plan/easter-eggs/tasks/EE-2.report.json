@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Модель круглого рулона по К11: скрипт tools/blender/build_hay_bale.py, glb с цветами вершин (бок — солома, торцы темнее с кольцами намотки), один меш и один материал, 188 треугольников; контрактный тест и строка в ASSETS.md.",
+  "commits": [
+    "ee0b4033 Модель круглого рулона сена (К11)"
+  ],
+  "checks": [
+    {
+      "name": "glb",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "hay_bale_model",
+      "value": "1/1 PASS",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "треугольников",
+      "value": "188 <= 200",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Неровность края не делал (16 сегментов, цилиндр гранёный) — потолок 200 треугольников"
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/EE-2/hay_bale.png"
+  ],
+  "how_to_check": "dp accept EE-2",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_hay_bale.py",
+      "why": "цвета вершин COLOR_0 — Godot должен использовать их как albedo",
+      "checked": "тест проверяет наличие ARRAY_COLOR; в самой игре не смотрел"
+    }
+  ],
+  "dp_feedback": "нет",
+  "t": "2026-10-11T06:22:43",
+  "by": "main"
+}

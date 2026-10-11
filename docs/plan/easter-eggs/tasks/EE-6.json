@@ -23,7 +23,7 @@
     },
     {
       "name": "К8",
-      "version": "4",
+      "version": "9",
       "ref": "docs/contracts/easter-eggs.md"
     },
     {
@@ -44,13 +44,14 @@
     "scripts/world_objects/easter_eggs/geese.gd (новый)",
     "scripts/world_objects/easter_eggs/geese.gdshader (взмах крыльев, новый)",
     "configs/easter_eggs.json (блок eggs.geese)",
-    "tests/world_objects/test_egg_geese.gd (новый)"
+    "tests/world_objects/test_egg_geese.gd (новый)",
+    "scripts/world_objects/egg_context.gd и easter_eggs.gd — только поле lat_deg (К8 v9)"
   ],
   "dont_touch": [
-    "scripts/world_objects/easter_eggs.gd, easter_egg.gd, egg_context.gd, egg_place.gd (планировщик и контракты К1–К8 — через координатора)",
     "assets/ (модель и звук — задача EE-7)",
     "scripts/flight/",
-    "docs/contracts/"
+    "docs/contracts/",
+    "scripts/world_objects/easter_egg.gd, egg_place.gd; в easter_eggs.gd и egg_context.gd — ничего, кроме lat_deg"
   ],
   "accept": [
     {
@@ -72,5 +73,6 @@
     "cpu_ms_geese"
   ],
   "notes": "",
-  "created": "2026-10-11T06:22:01"
+  "created": "2026-10-11T06:22:01",
+  "edited": "2026-10-11T06:25:55"
 }
