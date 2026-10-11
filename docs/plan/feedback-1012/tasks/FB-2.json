@@ -1,0 +1,52 @@
+{
+  "id": "FB-2",
+  "module": "feedback-1012",
+  "type": "dp-engineer",
+  "title": "Старт ровно в точке с карты (откат 21e27eb7)",
+  "goal": "Старт с карты — в выбранной точке, без подгонки к склону; нос вниз по местному уклону.",
+  "plan_ref": "FB-2 Старт ровно в точке с карты",
+  "contracts": [],
+  "copy": "~/deltaplan-feedback-1012-FB-2",
+  "branch": "feedback-1012/FB-2",
+  "base": "feature/feedback-1012",
+  "scope": [
+    "scripts/game/start_placement.gd",
+    "scripts/game/game.gd",
+    "configs/game.json",
+    "docs/guide/game.md",
+    "tests/game/",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "site/content/releases/1.5.4/",
+    "scripts/flight/",
+    "scripts/motion_rig/"
+  ],
+  "accept": [
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
+    },
+    {
+      "name": "test_start_clearing",
+      "tests": "test_start_clearing"
+    },
+    {
+      "name": "tests/game",
+      "tests": "tests/game"
+    },
+    {
+      "name": "no_site_1_5_4",
+      "cmd": "git diff --quiet feature/feedback-1012 -- site/content/releases/1.5.4",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T00:40:24"
+}
