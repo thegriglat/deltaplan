@@ -36,7 +36,7 @@ const DEFAULTS := {
 		"shift_y_max_m": 0.45, "shift_x_pull_m": 0.45, "shift_x_push_m": 0.3,
 	},
 	"strips": {"count": 16, "cp_chord": 0.25, "aero_hz": 60.0},
-	"yaw": {"cn_beta": 0.06, "fin_arm_m": 1.6, "fin_slope_per_rad": 2.0},
+	"yaw": {"cn_beta": 0.05, "fin_arm_m": 1.6, "fin_slope_per_rad": 2.0, "cn_p_add": 0.15, "cn_r_add": -0.03},
 	"pilot_cda_m2": 0.21,
 	"apparent_roll": true,
 	"billow_shift_deg": 0.0,

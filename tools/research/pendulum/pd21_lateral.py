@@ -65,6 +65,9 @@ def make_v(wing, over, over_deg=None, m_pilot=None):
     blk = E.wing_cfg(wing)["pendulum"]
     kw = dict(over or {})
     cnp_add = float(kw.pop("cnp_add", 0.0))
+    fs = kw.pop("flex_scale", None)
+    if fs is not None:
+        kw["flex_relief"] = min(1.0, E.wing_cfg(wing)["pendulum"]["apparatus_defaults"]["sail_flex"] * float(fs))
     for k, v in (over_deg or {}).items():
         kw[k] = RAD(v)
     p = E.params(wing, m_pilot).with_(x_hang=blk["hang_from_nose_m"], dcm0=blk["dcm0"], **kw)

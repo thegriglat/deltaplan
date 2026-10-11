@@ -40,10 +40,13 @@ DOC = ("генерирует tools/flight/pendulum_params.py (порт бала�
 # паруса (flex_relief, 1 — жёсткое). Калибровка — tools/research/pendulum/calibrate_classes.py,
 # обоснование — docs/research/pendulum.md, «Ответы пилота 11.10».
 GROUP_DEFAULTS = {
-    "trainer": {"dihedral_eff_deg": 5.0, "sail_flex": 0.15},
-    "soviet": {"dihedral_eff_deg": 3.0, "sail_flex": 0.2},
-    "kingpost": {"dihedral_eff_deg": 1.0, "sail_flex": 0.2},
-    "topless": {"dihedral_eff_deg": 0.5, "sail_flex": 0.2},
+    # PD-23 (рыскание по литературе: Cnp ≈ 0, Cnr ≈ −0,055): гибкость — Ochi ≈ 30° за 7 с (laminar) и
+    # перекладка 45→45 3,5–5 с; V мачтовых −1,5°, безмачтовых −0,5° — спираль держится, нейтральна (пилот: у спортивных
+    # V бывает отрицательное), учебные 5° — сами выходят из виража
+    "trainer": {"dihedral_eff_deg": 5.0, "sail_flex": 0.45},
+    "soviet": {"dihedral_eff_deg": 3.0, "sail_flex": 0.45},
+    "kingpost": {"dihedral_eff_deg": -1.5, "sail_flex": 0.35},
+    "topless": {"dihedral_eff_deg": -0.5, "sail_flex": 0.35},
 }
 GP = json.loads((ROOT / "tools/blender/glider_params.json").read_text())
 R = lambda x, n=4: round(float(x), n)  # noqa: E731

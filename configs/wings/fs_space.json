@@ -177,7 +177,7 @@
     "cd_scale": 0.97635,
     "apparatus_defaults": {
       "dihedral_eff_deg": 5.0,
-      "sail_flex": 0.15
+      "sail_flex": 0.45
     },
     "ref": {
       "trim_kmh": 35.4,

@@ -179,26 +179,26 @@
     "bar_x_from_nose_m": 0.4206,
     "bar_z_m": -1.6024,
     "cg_x_from_nose_m": 1.4347,
-    "cg_z_m": -0.0649,
+    "cg_z_m": -0.0983,
     "inertia_kgm2": {
-      "ixx": 208.435,
-      "iyy": 19.69,
+      "ixx": 208.248,
+      "iyy": 19.503,
       "izz": 221.185,
-      "ixz": -2.622
+      "ixz": -2.172
     },
-    "dcm0": 0.04891,
-    "cd_scale": 0.95835,
+    "dcm0": 0.04547,
+    "cd_scale": 0.95844,
     "apparatus_defaults": {
-      "dihedral_eff_deg": 0.5,
-      "sail_flex": 0.2
+      "dihedral_eff_deg": -0.5,
+      "sail_flex": 0.35
     },
     "ref": {
       "trim_kmh": 35.4,
       "sink_ms": 0.899,
-      "alpha_trim_deg": 11.74,
-      "neutral_point_from_nose_m": 1.3816,
-      "static_margin": 0.1026,
-      "kmh_per_cm_hang": 0.965
+      "alpha_trim_deg": 11.73,
+      "neutral_point_from_nose_m": 1.3688,
+      "static_margin": 0.0956,
+      "kmh_per_cm_hang": 1.038
     }
   },
   "visual": {

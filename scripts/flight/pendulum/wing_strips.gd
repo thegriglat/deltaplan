@@ -56,6 +56,9 @@ var fin_area: float = 0.0
 var fin_slope: float = 0.0
 var r_fin_b := Vector3.ZERO
 var free_yaw := true
+var cn_p_add: float = 0.0  ## добавка Cn на pb/2V (PD-К2 v4)
+var cn_r_add: float = 0.0  ## добавка Cn на rb/2V (PD-К2 v4)
+var _sb2_4: float = 0.0  ## S·b²/4 для добавок рыскания
 ## Экранный эффект: 1/(π·e·λ) и наклон профиля a₀ (lift_slope = a₀/(1 + a₀/(π·e·λ))).
 var ind_k: float = 0.0
 var a0_2d: float = 0.0
@@ -157,6 +160,9 @@ func setup(
 	var fin_arm := float(yaw.fin_arm_m)
 	fin_area = float(yaw.cn_beta) * area * span / (fin_slope * fin_arm)
 	r_fin_b = Vector3(-fin_arm, 0.0, 0.0)
+	cn_p_add = float(yaw.get("cn_p_add", 0.0))
+	cn_r_add = float(yaw.get("cn_r_add", 0.0))
+	_sb2_4 = 0.25 * area * span * span
 	blend.resize(n)
 	_inv_blend = 1.0 / deg_to_rad(BLEND_DEG)
 	var ge: Dictionary = pend.get("ground_effect", {})
@@ -345,6 +351,10 @@ func aero(
 		var ff := Vector3(0.0, fy, 0.0)
 		f_sum += ff
 		m_sum += r_fin_b.cross(ff)
+		# добавочные производные рыскания (Cnp, Cnr полос — к литературе, PD-23):
+		# ΔN = ½ρV²·S·b·(cn_p_add·pb/2V + cn_r_add·rb/2V)
+		if V > 0.1:
+			m_sum.z += rho * V * _sb2_4 * (cn_p_add * wb.x + cn_r_add * wb.z)
 	lift_n = -f_sum.z
 	force_b = f_sum
 	moment_b = m_sum

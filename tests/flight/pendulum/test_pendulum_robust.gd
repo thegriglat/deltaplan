@@ -64,7 +64,12 @@ func _check_turb(name: String, w: String, dt: float) -> void:
 	var hi_phi: float = r.std_phi_deg
 	var lo_y: float = r.std_rel_y_m
 	var hi_y: float = r.std_rel_y_m
-	for b: Dictionary in r.get("by_dt", []):
+	# прогоны 1/60 и 1/30 — одиночные: окно — ещё и по шагам эталона-среднего (PD-23: sport на поле
+	# эталона у срыва хаотичен — СКО крена прототипа по шагам 6–60°, один прогон окна не задаёт)
+	var by: Array = r.get("by_dt", [])
+	if by.is_empty():
+		by = S.scenario("turbulence", w).get("by_dt", [])
+	for b: Dictionary in by:
 		lo_phi = minf(lo_phi, float(b.std_phi_deg))
 		hi_phi = maxf(hi_phi, float(b.std_phi_deg))
 		lo_y = minf(lo_y, float(b.std_rel_y_m))

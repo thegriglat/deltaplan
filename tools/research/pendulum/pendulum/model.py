@@ -248,6 +248,10 @@ class Sim:
             ff = np.array([0.0, fy, 0.0])
             F_b += ff
             M_b += np.cross(self.r_fin_b, ff)
+            # добавочные производные рыскания (Cnp, Cnr полос — к литературе, PD-23)
+            if V > 0.1 and (p.cn_p_add or p.cn_r_add):
+                wb = R.T @ w
+                M_b[2] += 0.25 * p.rho * V * p.area * p.span ** 2 * (p.cn_p_add * wb[0] + p.cn_r_add * wb[2])
         info = {"cl": cl, "a": a_eff, "blend": blend, "V": V, "lift": float(-F_b[2])}
         return R @ F_b, R @ M_b, info
 
