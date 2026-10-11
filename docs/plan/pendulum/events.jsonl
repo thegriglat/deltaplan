@@ -137,3 +137,5 @@
 {"t": "2026-10-11T04:14:28", "by": "coordinator", "task": "PD-19", "ev": "started", "note": "dp-engineer opus, ~/deltaplan-pendulum-PD-19"}
 {"t": "2026-10-11T04:56:35", "by": "coordinator", "task": "PD-20", "ev": "created", "note": "Ленточки (Telltale) в «Маятнике» показывают скольжение"}
 {"t": "2026-10-11T04:56:37", "by": "coordinator", "task": "PD-20", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-pendulum-PD-20"}
+{"t": "2026-10-11T04:59:43", "by": "executor", "task": "PD-20", "ev": "reported", "commits": ["a3b8214b"], "note": "done: glider.gd менять не пришлось: в Маятнике он уже передаёт visual.step_telltales telemetry.basis (wing_basis с рысканием)…", "dp_feedback": "нет"}
+{"t": "2026-10-11T05:00:05", "by": "coordinator", "task": "PD-20", "ev": "checked", "note": "2/2 pendulum_telltale=ok:3/3; telltale=ok:11/11"}
