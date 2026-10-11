@@ -1,0 +1,53 @@
+{
+  "verdict": "rework",
+  "summary": "Пакет srs v102 (смещения, м/с², vertical = heave − G, знаки, inverse) по MR-К2 v2 верен, reset стоит на всех разрывах (restart, start_catch_up, _end_catch_up), поток через фазы без valid=false. Но gate по фазе убран без замены: Game.tick идёт и в меню после полёта (main.gd: set_flying(false) + game.restart(), дерево не на паузе), так что пакеты идут в меню. Это нарушает MR-К1 v2 и заметку карточки.",
+  "issues": [
+    {
+      "file": "scripts/game/game.gd",
+      "line": 259,
+      "severity": "major",
+      "what": "motion.step зовётся безусловно (и на строке 256 при _crashed). После выхода в меню (scenes/main.gd:454-461: set_flying(false), game.restart(), get_tree().paused=false, physics_process включён) Game.tick шагает стоящего пилота, и пакеты идут в меню. MR-К1 v2: «Меню… push не вызывается, пакетов нет». Раньше это закрывал gate phase==flying. Тесты и loop_check этого не ловят: они гоняют MotionSource/MotionOutput без Game",
+      "fix": "Звать motion.step только при flying_enabled and not _paused (обе точки: 256 и 259); при входе в полёт или выходе из меню reset() уже даёт restart(). Добавить тест Game: set_flying(false) → tick → MotionOutput не шлёт (счётчик или заглушка сокета)"
+    },
+    {
+      "file": "scripts/game/game.gd",
+      "line": 259,
+      "severity": "minor",
+      "what": "Сетевая пауза и экран итога в сети (main.gd:480, 626: get_tree().paused = game.net == null) дерево не останавливают, и поток идёт в паузе. Крыло летит само, разрыва нет, но по букве контракта в паузе пакетов быть не должно",
+      "fix": "С гейтом not _paused из замечания выше: при снятии паузы в сети нужен motion.reset() (состояние ушло). Либо с координатором записать в MR-К1 исключение для сетевой паузы"
+    },
+    {
+      "file": "tests/motion_rig/test_motion_ground.gd",
+      "line": 93,
+      "severity": "minor",
+      "what": "Допуск «vertical стоя на ровном ≈ 0» = 0.3 при факте −0.271. Число честное: heave = g·cos(pitch стоя ≈ 13.5°). Но допуск выглядит подогнанным впритык, и тест упадёт от малой правки позы стоя",
+      "fix": "Проверять физику, а не ≈0: vertical ≈ G·(cos(pitch_tel) − 1) с допуском ~0.05 по pitch из телеметрии"
+    },
+    {
+      "file": "scripts/flight/flight_model.gd",
+      "line": 0,
+      "severity": "major",
+      "what": "Вопрос вне скоупа MR-5 (физику не меняли, правка не требуется). Пик посадки 3.5 м/с вниз = 261.6 м/с² (26.7 g) за один пакет: модель гасит вертикальную скорость почти мгновенно. Для SRS (шкала ~±10) это одиночный удар в упор, по ощущению тот же «рывок на посадке», на который жаловался владелец. У реальной посадки на ноги при ходе ~0.3 м — порядка 2 g",
+      "fix": "Координатору: завести задачу на податливость контакта с землёй в flight_model и маятнике (физический ход ног/подвески) и не лечить сглаживанием в выводе"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "motion_rig (dp accept --only --dry)",
+      "value": "33/33",
+      "pass": true
+    },
+    {
+      "name": "loop (dp accept --only --dry)",
+      "value": "loop OK",
+      "pass": true
+    },
+    {
+      "name": "layout (dp accept --only --dry)",
+      "value": "layout OK",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-11T22:07:42",
+  "by": "reviewer"
+}
