@@ -20,7 +20,7 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К1\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 3, "заголовок «## PD-К1. … (v3)»")
+	check(m != null and int(m.get_string(1)) == 4, "заголовок «## PD-К1. … (v4)»")
 
 
 func test_surface_members() -> void:
