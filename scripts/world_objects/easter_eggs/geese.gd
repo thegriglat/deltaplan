@@ -243,7 +243,7 @@ func update(ctx: EggContext) -> bool:
 	_pilot = ctx.pilot_pos
 	position = center_at(age)
 	basis = Basis.looking_at(_dir, Vector3.UP)
-	var vis := position.distance_to(_pilot) < float(_cfg.get("vis_m", 1200.0)) + 100.0
+	var vis := position.distance_to(_pilot) < float(_cfg.get("fade_end_m", 3500.0)) + 150.0
 	_mmi.visible = vis
 	if vis:
 		_pose(age)
@@ -280,7 +280,9 @@ func _pose(age: float) -> void:
 			break
 	_last_pos.resize(_n)
 	var breath := float(_cfg.get("breath_m", 0.7))
-	var scale_xyz := Vector3.ONE
+	var f0 := float(_cfg.get("fade_start_m", 2500.0))
+	var f1 := maxf(float(_cfg.get("fade_end_m", 3500.0)), f0 + 1.0)
+	var xf := global_transform if is_inside_tree() else transform
 	var lift := float(_cfg.get("swap_lift_m", 3.0))
 	for slot in _n:
 		var bird := perm[slot]
@@ -302,4 +304,6 @@ func _pose(age: float) -> void:
 			* breath
 		)
 		_last_pos[bird] = p
-		_mm.set_instance_transform(bird, Transform3D(Basis.from_scale(scale_xyz), p))
+		# граница видимости: птица сжимается к нулю между f0 и f1 от пилота
+		var sc := clampf((f1 - (xf * p).distance_to(_pilot)) / (f1 - f0), 0.0, 1.0)
+		_mm.set_instance_transform(bird, Transform3D(Basis.from_scale(Vector3.ONE * sc), p))

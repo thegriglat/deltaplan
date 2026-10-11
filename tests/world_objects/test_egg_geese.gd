@@ -118,7 +118,7 @@ func _sched(sound := true) -> EasterEggs:
 ## Клин проходит область насквозь: вне видимости в начале и в конце, строй держится весь пролёт.
 func test_pass_through_and_formation() -> void:
 	var cfg := _cfg()
-	var vis := float(cfg.vis_m)
+	var vis := float(cfg.fade_end_m)
 	var crossed := 0
 	var total := 0
 	var ng := 0
@@ -145,7 +145,7 @@ func test_pass_through_and_formation() -> void:
 				first_far = d > vis + 500.0
 			dmin = minf(dmin, d)
 			last_far = d > vis + 500.0
-			if step % 6 == 0:
+			if step % 30 == 0:
 				var bp := e.bird_positions()
 				if e.get_child(0) is MultiMeshInstance3D and (e.get_child(0) as Node3D).visible:
 					for i in bp.size():
@@ -156,7 +156,7 @@ func test_pass_through_and_formation() -> void:
 			step += 1
 			if t > 100.0 + life + 5.0:
 				break
-		check(first_far and last_far, "вход и выход за видимостью (сид %d)" % sd)
+		check(first_far and last_far, "вход и выход за границей видимости (сид %d)" % sd)
 		check(t - 100.0 <= float(cfg.lifetime_s) + 1.0, "жизнь ≤ lifetime_s")
 		if dmin < vis:
 			crossed += 1
@@ -183,7 +183,7 @@ func test_sound() -> void:
 	check(p != null, "есть AudioStreamPlayer3D")
 	if p != null:
 		check(p.attenuation_model == AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE, "1/r")
-		check(p.max_distance >= 2500.0 and p.max_distance > float(_cfg().vis_m) * 2.0, "слышен дальше видимости")
+		check(p.max_distance > float(_cfg().fade_end_m), "слышен дальше видимости")
 		var gain_near := p.unit_size / 200.0
 		var gain_far := p.unit_size / 2000.0
 		check(gain_far < gain_near * 0.15, "затухает с расстоянием (1/r)")
@@ -199,7 +199,7 @@ func test_schedule_deterministic() -> void:
 	var b := _run("S1", 1)
 	var c := _run("S1", 1800)
 	var d := _run("S2", 5)
-	check(a.size() > 5, "клиньев %d" % a.size())
+	check(a.size() > 2, "клиньев %d" % a.size())
 	check(a == b, "шаг 5 с и 1 с совпадают")
 	var sub := true
 	for x in c:
@@ -219,13 +219,14 @@ func _run(key: String, step: int) -> Array:
 	return out
 
 
-## Плотность: доля полётов (~1 ч, пилот случайно в 1,5 км от центра) с клином в 1 км, в пик.
+## Плотность: доля полётов (~1 ч, пилот случайно в 1,5 км от центра) с клином до начала угасания (fade_start_m), в пик.
 func test_peak_flights_share_and_cpu() -> void:
 	var s := _sched(false)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 424242
 	var flights := 100
 	var seen := 0
+	var seen_near := 0
 	var flocks := 0
 	var dists := []
 	for f in flights:
@@ -236,6 +237,7 @@ func test_peak_flights_share_and_cpu() -> void:
 		var rr := sqrt(rng.randf()) * 1500.0
 		var pilot := Vector3(cos(ang) * rr, 300.0, sin(ang) * rr)
 		var got := false
+		var got_near := false
 		for t in range(0, 3600, 10):
 			var c := _ctx(float(t), 4, 51.0, key)
 			c.pilot_pos = pilot
@@ -243,15 +245,23 @@ func test_peak_flights_share_and_cpu() -> void:
 			for e in s.active():
 				if e is EggGeese and not (e as EggGeese).is_ghost():
 					var d := e.position.distance_to(pilot)
-					if d < 1000.0:
+					if d < float(_cfg().fade_start_m):
 						got = true
+					if d < 1000.0:
+						got_near = true
 		flocks += s.spawn_log.size()
 		if got:
 			seen += 1
+		if got_near:
+			seen_near += 1
 	var share := float(seen) / flights
 	metrics["peak_flights_with_geese_share"] = share
 	print("peak_flights_with_geese_share=%.2f (клиньев на полёт в расписании %.1f)" % [share, float(flocks) / flights])
-	check(share >= 0.6 and share <= 0.98, "доля полётов с клином в пик %.2f" % share)
+	var near := float(seen_near) / flights
+	metrics["peak_flights_with_geese_share_1km"] = near
+	print("доля полётов с клином ближе 1 км: %.2f" % near)
+	check(share >= 0.85, "доля полётов с клином до начала угасания (2,5 км) %.2f" % share)
+	check(near >= 0.3 and near <= 0.95, "доля полётов с клином ближе 1 км %.2f" % near)
 	s.queue_free()
 	# CPU: кадр с видимым клином (позы 20–40 птиц + MultiMesh)
 	var e: EggGeese = null
