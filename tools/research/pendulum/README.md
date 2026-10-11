@@ -43,7 +43,7 @@ python3 estimates.py                   # оценки 05.10
 Шаг физики как в игре — 1/120 с (`configs/sim.json → physics_hz`), 4 подшага XPBD, N = 3 звена, 16 полос — по умолчанию.
 
 ## Оценки 05.10 (`estimates.py`)
-Полюса разомкнутой модели Hiway Demon (Abouheaf, Gueaieb, Lewis, arXiv:2108.02393, табл. 1–2; модель Cook & Spottiswoode 2006) → ωn, ζ; маятник пилота; инерция крыла по трубам; `Cm_alpha` по двум точкам балансировки; ω·dt для 60/120/240 Гц; крен от момента веса при Cl_p = −0,45 (≈ 16°/с). Запуск: `python3 tools/research/pendulum/estimates.py`.
+Полюса разомкнутой модели Hiway Demon (Abouheaf, Gueaieb, Lewis, arXiv:2108.02393, табл. 1–2; модель Cook & Spottiswoode 2005) → ωn, ζ; маятник пилота; инерция крыла по трубам; `Cm_alpha` по двум точкам балансировки; ω·dt для 60/120/240 Гц; крен от момента веса при Cl_p = −0,45 (≈ 16°/с). Запуск: `python3 tools/research/pendulum/estimates.py`.
 
 ## Данные и лицензии
 Свои расчёты; чужих данных в репозитории нет. Числа из литературы — с цитированием: статьи ICAS 2016/2022 — открытый архив ICAS; NASA TM-81269 (Kroo 1981) и NASA CP (Kroo & Chang, Ormiston, 1979) — public domain; arXiv:2108.02393 — числа из таблиц с цитированием; руководства Airborne Fun, Moyes Xtralite, Wills Wing Sport 2 — числа (подвеска, шаг регулировки) с URL, PDF не храним. Графики `out/fig/*.png` — свои.
