@@ -42,5 +42,7 @@ var wind_ms := 0.0
 var wind_from_deg := 270.0
 ## Температура днём по прогнозу, °C.
 var temp_c := 20.0
+## Широта места, градусы (sky.clock.latitude_deg; < 0 — южное полушарие, сезоны зеркально) — К8 v9.
+var lat_deg := 45.0
 ## Место (EggPlace, только чтение); null — рельеф не загружен (тесты без мира).
 var place: EggPlace
