@@ -96,6 +96,21 @@ var lift_n: float = 0.0  ## подъёмная сила (−F_b.z), Н
 var blend := PackedFloat64Array()  ## 0 — обтекание, 1 — пластина (по полосам)
 var margin := PackedFloat64Array()  ## угол атаки полосы минус срывной, рад (> 0 — за срывом)
 
+## Запаздывание отрыва (PD-29, strips.dynamic_stall): доля обтекаемого потока полосы f отстаёт от
+## статической — τ₁·ḟ = f_ст(Δα − τ₂·Δα̇) − f, τ = T·c/V (Goman & Khrabrov 1994). dyn_dt — время с
+## прошлого вызова aero (≤ 0 — статика без состояния: балансировка, C_L max; больше DYN_DT_MAX —
+## сброс: f = f_ст). Пока f > 0 за срывом, обтекаемая часть несёт нормальную силу пластины без подсасывания
+## кромки — подъёмная выше cl_max и сопротивление растут вместе (perching); нормальная сила не больше
+## dyn_cn_max (пик динамического срыва).
+const DYN_DT_MAX := 0.25
+var dyn_on := false
+var dyn_t1: float = 3.0  ## τ₁ в c/V
+var dyn_t2: float = 2.0  ## τ₂ в c/V
+var dyn_cn_max: float = 3.0  ## предел нормальной силы обтекаемой части за срывом
+var dyn_dt: float = 0.0
+var attached := PackedFloat64Array()  ## f — доля обтекаемого потока полосы (1 — обтекание)
+var _m_prev := PackedFloat64Array()  ## Δα прошлого вызова (для Δα̇)
+
 # рабочие массивы
 var _inv_blend: float = 1.0
 ## Таблица сопротивления полосы cd_scale·(CD поляры − доля пилота) по CL от _cd_lo до C_L max поляры.
@@ -189,6 +204,10 @@ func setup(
 	_sb2_4 = 0.25 * area * span * span
 	blend.resize(n)
 	margin.resize(n)
+	attached.resize(n)
+	_m_prev.resize(n)
+	attached.fill(1.0)
+	_m_prev.fill(0.0)
 	_inv_blend = 1.0 / deg_to_rad(BLEND_DEG)
 	var ge: Dictionary = pend.get("ground_effect", {})
 	var e := float(ge.get("span_efficiency", 0.9))
@@ -200,6 +219,11 @@ func setup(
 	stall_streamwise = String(st.get("stall_criterion", "streamwise")) == "streamwise"
 	stall_cp_blend = deg_to_rad(float(st.get("stall_cp_blend_deg", 20.0)))
 	cd90 = float(st.get("stall_cd90_base", 1.11)) + float(st.get("stall_cd90_per_ar", 0.018)) * span * span / area
+	var ds: Dictionary = st.get("dynamic_stall", {})
+	dyn_on = bool(ds.get("enabled", false))
+	dyn_t1 = float(ds.get("t1_c_per_v", 3.0))
+	dyn_t2 = float(ds.get("t2_c_per_v", 2.0))
+	dyn_cn_max = float(ds.get("cn_max", 3.0))
 	cl_max_wing = wing_cl_max()
 	if bool(pend.get("strip_cl_max_match_polar", true)):
 		match_polar_cl_max()
@@ -326,8 +350,8 @@ func aero(
 		if stall_streamwise:
 			capi = cl_max * cos_sweep * cos_sweep * ui.length_squared() / maxf(q2i, 1.0e-9)
 			capk = cl_max * cos_sweep * cos_sweep * uk.length_squared() / maxf(q2k, 1.0e-9)
-		var oi := _strip_cl(i, ri, sli, capi)
-		var ok := _strip_cl(k, rk, slk, capk)
+		var oi := _strip_cl(i, ri, sli, capi, sqrt(q2i))
+		var ok := _strip_cl(k, rk, slk, capk, sqrt(q2k))
 		var cli := oi.x
 		var clk := ok.x
 		var cdxi := oi.y
@@ -398,28 +422,63 @@ func aero(
 ## Viterna (α_s — срыв, C_N90 = cd90): CL = cd90/2·sin 2α + A2·cos²α/sin α,
 ## A2 = (cl_max − cd90·sin α_s·cos α_s)·sin α_s/cos²α_s; CD = CD_s·cos α/cos α_s +
 ## cd90·(sin²α − sin²α_s·cos α/cos α_s); за 90° — пластина (cos α → 0).
-func _strip_cl(j: int, r: float, sl: float, cap: float) -> Vector4:
+func _strip_cl(j: int, r: float, sl: float, cap: float, un := 0.0) -> Vector4:
 	var ast := cap / sl
-	var b := clampf((r - ast) * _inv_blend, 0.0, 1.0)
-	blend[j] = b
-	margin[j] = r - ast
-	var cl := -cap if r < -ast else minf(sl * r, cap)
-	var cdx := 0.0
-	if r <= ast:
-		return Vector4(cl, 0.0, b, -1.0)
-	if not stall_vc:
+	var m := r - ast
+	var b := clampf(m * _inv_blend, 0.0, 1.0)
+	margin[j] = m
+	var f := 1.0 - b
+	if dyn_on:
+		f = _dyn_attached(j, m, un)
+	if m <= 0.0 or not stall_vc:
+		blend[j] = b
+		var cl := -cap if r < -ast else minf(sl * r, cap)
+		if m <= 0.0:
+			return Vector4(cl, 0.0, b, -1.0)
 		cl += b * (sin(2.0 * r) - cl)
-		cdx = b * 2.0 * sin(r) * sin(r)
-		return Vector4(cl, cdx, b, -1.0)
+		return Vector4(cl, b * 2.0 * sin(r) * sin(r), b, -1.0)
 	var sa := sin(ast)
 	var ca := cos(ast)
 	var s := sin(r)
 	var c := maxf(cos(r), 0.0)
-	cl = 0.5 * cd90 * sin(2.0 * r)
+	var clv := 0.5 * cd90 * sin(2.0 * r)
 	if c > 0.0:
-		cl += (cap - cd90 * sa * ca) * sa / (ca * ca) * c * c / s
-	var f := c / ca
-	return Vector4(cl, cd90 * (s * s - sa * sa * f), b, f)
+		clv += (cap - cd90 * sa * ca) * sa / (ca * ca) * c * c / s
+	var fv := c / ca
+	var cdv := cd90 * (s * s - sa * sa * fv)
+	if not dyn_on or f <= 0.0:
+		blend[j] = b
+		return Vector4(clv, cdv, b, fv)
+	# обтекаемая часть за срывом: нормальная сила пластины без подсасывания кромки,
+	# N = cap/(sin α_s·cos α_s)·sin α (на срыве — ровно cl_max и CD поляры)
+	var nn := cap / maxf(sa * ca, 1.0e-6)  # cap = 0 при нулевом потоке
+	var na := minf(nn * s, maxf(dyn_cn_max, nn * sa))
+	var cla := na * c
+	var cda := na * s - nn * sa * sa
+	# центр давления — как у сорванной (blend = b): вихрь передней кромки уходит назад по хорде,
+	# пикирующий момент «срыва момента» (McCroskey 1981) — не держать нос задранным
+	var g := 1.0 - f
+	blend[j] = b
+	return Vector4(g * clv + f * cla, g * cdv + f * cda, b, g * fv + f)
+
+
+## Доля обтекаемого потока полосы j (Goman & Khrabrov 1994): статическая f_ст = 1 − доля срыва по
+## Δα − τ₂·Δα̇; релаксация за τ₁. Δα̇ — по прошлому вызову (dyn_dt).
+func _dyn_attached(j: int, m: float, un: float) -> float:
+	var fs := 1.0 - clampf(m * _inv_blend, 0.0, 1.0)
+	if dyn_dt <= 0.0:
+		return fs  # статика (балансировка, C_L max): состояние не трогает
+	if dyn_dt > DYN_DT_MAX:
+		attached[j] = fs  # первый вызов после сброса
+		_m_prev[j] = m
+		return fs
+	var cv := chord[j] / maxf(un, 1.0)
+	var mdot := (m - _m_prev[j]) / dyn_dt
+	_m_prev[j] = m
+	var ft := 1.0 - clampf((m - dyn_t2 * cv * mdot) * _inv_blend, 0.0, 1.0)
+	var f := ft + (attached[j] - ft) * exp(-dyn_dt / (dyn_t1 * cv))
+	attached[j] = f
+	return f
 
 
 ## Доля полос с сорванным потоком.
