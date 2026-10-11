@@ -26,6 +26,19 @@
       "glider": 5
     }
   },
+  "pilot_shift": {
+    "_doc": "Индикатор смещения пилота на HUD (FB-1, scripts/ui/pilot_shift_indicator.gd): круг с перекрестием внизу по центру, точка — Telemetry.pilot_shift",
+    "enabled": true,
+    "enabled_doc": "Показывать индикатор (флажок в настройках)",
+    "diameter_frac": 0.09,
+    "diameter_frac_doc": "Диаметр круга, доля высоты окна (0,09 → ~97 px при 1080p)",
+    "bottom_margin_frac": 0.035,
+    "bottom_margin_frac_doc": "Отступ от нижнего края, доля высоты окна",
+    "opacity": 0.55,
+    "opacity_doc": "Прозрачность круга и перекрестия",
+    "ring_color": "#d8e4ec",
+    "dot_color": "#7fe8ff"
+  },
   "mass_step_kg": 1.0,
   "mass_step_kg_doc": "Шаг слайдера массы пилота, кг",
   "vario_volume_range_db": [

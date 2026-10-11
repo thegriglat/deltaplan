@@ -89,6 +89,7 @@ var pilot_position := Vector3.ZERO
 var pilot_velocity := Vector3.ZERO
 var pilot_basis := Basis.IDENTITY
 var pilot_rel := Vector3.ZERO  ## пилот − подвеска в осях крыла (игра), м
+var pilot_shift := Vector2.ZERO  ## смещение пилота от нейтрали / предел хода (FB-К1): x + вправо, y + к носу
 var head_position := Vector3.ZERO
 var bar_force := Vector3.ZERO  ## сила рук на пилота (мир игры), Н
 var strap_tension: float = 0.0
@@ -888,12 +889,34 @@ func _update_outputs(air_fn: Callable, ground_fn: Callable) -> void:
 	pilot_velocity = game(chain.pilot_vel())
 	var rel_g := game(xp - h_loc)
 	pilot_rel = bg.transposed() * rel_g
+	pilot_shift = _shift_of(bg, rel_g)
 	var up := -rel_g.normalized()
 	pilot_basis = Basis(Quaternion(bg.y, up)) * bg if up.length() > 0.5 else bg
 	head_position = pilot_position + pilot_basis * Vector3(0.0, _head_up, -_head_fwd)
 	bar_force = game(_hands_p)
 	strap_tension = chain.tension
 	_fill_telemetry(air_c, ground_fn, bg)
+
+
+## Смещение пилота (FB-К1): (pilot_rel − нейтраль) / предел хода по осям крыла. В воздухе на штанге
+## нейтраль — положение рук без усилия (arms.neutral_rel, оси тела NED → оси крыла игры);
+## на ногах, после посадки и до расчёта нейтрали — пилот под подвеской по отвесу (висит спокойно).
+## Предел: поперёк shift_y_max, к носу shift_x_pull, к хвосту shift_x_push (pilot_arms).
+func _shift_of(bg: Basis, rel_g: Vector3) -> Vector2:
+	if not (rel_g.is_finite() and pilot_rel.is_finite()):
+		return Vector2.ZERO
+	var neutral := Vector3.ZERO
+	if mode == FlightModel.Mode.AIR and not _uprights and _neutral_ok:
+		var n := arms.neutral_rel
+		neutral = Vector3(n.y, -n.z, -n.x)
+	else:
+		neutral = bg.transposed() * (Vector3.DOWN * rel_g.length())
+	var d := pilot_rel - neutral
+	var fwd := -d.z
+	var sx := d.x / maxf(arms.shift_y_max, 1.0e-3)
+	var sy := fwd / maxf(arms.shift_x_pull if fwd > 0.0 else arms.shift_x_push, 1.0e-3)
+	var v := Vector2(sx, sy)
+	return v if v.is_finite() else Vector2.ZERO
 
 
 func _fill_telemetry(air_c_ned: Vector3, ground_fn: Callable, bg: Basis) -> void:
@@ -922,5 +945,6 @@ func _fill_telemetry(air_c_ned: Vector3, ground_fn: Callable, bg: Basis) -> void
 	t.pilot_position = pilot_position
 	t.pilot_velocity = pilot_velocity
 	t.pilot_basis = pilot_basis
+	t.pilot_shift = pilot_shift
 	t.load_factor = load.load_factor
 	t.flare_amount = flare_amount()
