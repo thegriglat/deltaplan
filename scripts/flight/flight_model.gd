@@ -11,6 +11,8 @@ extends RefCounted
 signal took_off
 signal landed(result: Dictionary)
 signal takeoff_failed(reason: String)
+## FB-К2 v1: начат переход в лётное положение (false → true, один раз за полёт).
+signal flight_position_started_changed()
 
 enum Mode { GROUND, AIR, LANDED, FAILED }
 
@@ -26,6 +28,11 @@ var takeoff_failure: String = ""
 var load := LoadMeter.new()
 ## Результат последней посадки (LandingJudge.evaluate + position, flight_time_s).
 var landing_result: Dictionary = {}
+## FB-К2 v1: начат переход в лётное положение — с этого момента касание крылом земли — срыв/авария
+## по прежним правилам; до — контакт держит крыло. Только чтение снаружи; выставляет
+## start_flight_position(); false после reset_on_ground (новый старт), в полёте и после посадки
+## назад не сбрасывается.
+var flight_position_started := false
 
 # параметры (СИ)
 var wing: Dictionary = {}
@@ -129,8 +136,24 @@ func setup(wing_cfg: Dictionary, pilot_cfg: Dictionary, flight_override: Diction
 	telemetry = Telemetry.new()
 
 
+## FB-К2 v1: начать переход в лётное положение (идемпотентно). Автоматика модели зовёт его,
+## когда пилот после отрыва уходит в подвеску (ступни выше takeoff.upright_clear_m).
+func start_flight_position() -> void:
+	if flight_position_started:
+		return
+	flight_position_started = true
+	flight_position_started_changed.emit()
+
+
 ## Пилот стоит на склоне в точке pos (Y берётся из ground_fn при первом шаге), лицом по курсу.
+## Новый старт: flight_position_started = false (FB-К2).
 func reset_on_ground(pos: Vector3, heading_deg: float) -> void:
+	flight_position_started = false
+	_stand_on_ground(pos, heading_deg)
+
+
+## Поза стоя без сброса флага FB-К2 (после посадки пилот снова на ногах — тот же полёт).
+func _stand_on_ground(pos: Vector3, heading_deg: float) -> void:
 	_reset_common(pos, heading_deg)
 	mode = Mode.GROUND
 	theta = Units.deg(float(wing.launch.alpha_neutral_deg))
@@ -144,6 +167,7 @@ func reset_in_air(
 ) -> void:
 	_reset_common(pos, heading_deg)
 	mode = Mode.AIR
+	start_flight_position()  # старт в воздухе — пилот уже в подвеске
 	rho = air_density(pos.y)
 	var v := airspeed_ms if airspeed_ms > 0.0 else trim_speed()
 	var gamma := -asin(clampf(steady_glide(v).y / v, -1.0, 1.0))
@@ -167,7 +191,7 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 			# после нормальной посадки можно уйти пешком или снова разбежаться
 			var moving := input.run or absf(input.walk) > 0.01
 			if landing_result.get("grade", "") != "crash" and moving:
-				reset_on_ground(position, rad_to_deg(heading))
+				_stand_on_ground(position, rad_to_deg(heading))
 				_step_ground(dt, input, air_fn, ground_fn)
 		_:
 			velocity = Vector3.ZERO
@@ -315,6 +339,8 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 	var agl := position.y - ground_height(ground_fn, position.x, position.z)
 	if agl > float(flight.takeoff.upright_clear_m):
 		_upright = false  # ступни высоко — пилот в подвеске, касание дальше — посадка
+	if not _upright:
+		start_flight_position()  # FB-К2: в подвеске (и после set_kinematic) касание крылом — авария
 	_flare.update(self, input, agl, dt)
 	_update_pitch(dt, input, asin(clampf(u.y, -1.0, 1.0)), q)
 	var c := aero_coefs(dt)

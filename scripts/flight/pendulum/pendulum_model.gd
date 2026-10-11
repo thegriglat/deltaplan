@@ -22,6 +22,8 @@ extends RefCounted
 signal took_off
 signal landed(result: Dictionary)
 signal takeoff_failed(reason: String)
+## FB-К2 v1: начат переход в лётное положение (false → true, один раз за полёт).
+signal flight_position_started_changed()
 
 const UP := Vector3.UP
 const E3 := Vector3(0.0, 0.0, 1.0)  ## вниз (NED)
@@ -63,6 +65,10 @@ var mode: FlightModel.Mode = FlightModel.Mode.AIR
 var load := LoadMeter.new()
 var landing_result: Dictionary = {}
 var takeoff_failure: String = ""
+## FB-К2 v1: начат переход в лётное положение — с этого момента касание крылом земли — срыв/авария
+## по прежним правилам; до — контакт держит крыло (_wing_ground_force). Только чтение снаружи;
+## выставляет start_flight_position(); false после reset_on_ground (новый старт).
+var flight_position_started := false
 
 var wing: Dictionary = {}
 var pilot: Dictionary = {}
@@ -323,8 +329,18 @@ func reset_in_air(
 	chain.place(h, _R * Vector3(st.pilot_dir_b), _vel)
 	mode = FlightModel.Mode.AIR
 	_uprights = false
+	start_flight_position()  # старт в воздухе — пилот уже на штанге
 	_air_c = ned(wind)  # до первого step воздушная скорость — относительно ветра
 	_update_outputs(Callable(), Callable())
+
+
+## FB-К2 v1: начать переход в лётное положение (идемпотентно). Автоматика модели зовёт его, когда
+## руки после отрыва уходят со стоек на штангу (_uprights = false).
+func start_flight_position() -> void:
+	if flight_position_started:
+		return
+	flight_position_started = true
+	flight_position_started_changed.emit()
 
 
 ## Пилот стоит ступнями в pos (мир игры; высота — земля, её даёт Glider) лицом по курсу, крыло
@@ -332,6 +348,7 @@ func reset_in_air(
 ## провисает. Уклон склона модель узнаёт на первом шаге (ground_fn) — тогда поза ставится заново.
 func reset_on_ground(pos: Vector3, heading_deg: float) -> void:
 	_reset_common()
+	flight_position_started = false
 	rho = air_density(pos.y)
 	solve_trim()  # нейтраль рук на штанге — для полёта после отрыва
 	_h_ground0 = pos.y
@@ -358,7 +375,7 @@ func _place_on_ground(ps: float, feet: Vector3) -> void:
 	var squash := mass * Units.G / ground.leg_k
 	var xp := feet + PendulumGround.UP_NED * (_leg_len - squash)
 	ground.set_flow(Vector3.ZERO)
-	var th := ground.flow_gamma + ground.alpha_neutral
+	var th := ground.stand_pitch  # FB-3: стоя киль к горизонту (PendulumGround.torque_b)
 	_R = basis_from_euler(ps, th, 0.0)
 	var f := ground.fwd()
 	var sh := xp + f * ground.shoulder_fwd + PendulumGround.UP_NED * ground.shoulder_up
@@ -414,6 +431,8 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 			var feet := Vector3(xp0.x, xp0.y, ground.ground_z(xp0))
 			_place_on_ground(ground.heading_cmd, feet)
 			_sample_ground(ground_fn)
+			_preload_hold(air_fn, ground_fn)
+		ground.rho = rho
 		ground.begin_step(dt, input, chain.pilot_vel(), landed_)
 		ground.set_flow(chain.pilot_vel() - _air_c)  # поток на бегущего пилота (не качание крыла)
 	var inp := input
@@ -445,6 +464,8 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var f_p := f_sum / n
 	load.update(f_p.length(), pilot_mass * Units.G, _lf_filter, dt, _lf_jitter)
 	_update_outputs(air_fn, ground_fn)
+	if mode == FlightModel.Mode.AIR and not _uprights:
+		start_flight_position()  # FB-К2: на штанге (и после set_kinematic) касание крылом — авария
 	match mode:
 		FlightModel.Mode.GROUND:
 			_check_ground(ground_fn)
@@ -511,7 +532,7 @@ func _wing_contact(ground_fn: Callable, landing: bool) -> int:
 ## На земле: срыв (крыло коснулось земли, пилот упал) или отрыв (ступни над землёй без опоры,
 ## стропа под нагрузкой — из сил, без порога скорости).
 func _check_ground(ground_fn: Callable) -> void:
-	var c := _wing_contact(ground_fn, false)
+	var c := _wing_contact(ground_fn, false) if flight_position_started else -1
 	var xp := chain.pilot()
 	if c >= 0:
 		_fail(CONTACT_NAMES[c])
@@ -537,7 +558,7 @@ func _check_after_liftoff(dt: float, ground_fn: Callable) -> void:
 		mode = FlightModel.Mode.GROUND
 		_update_outputs(Callable(), ground_fn)
 		return
-	var c := _wing_contact(ground_fn, false)
+	var c := _wing_contact(ground_fn, false) if flight_position_started else -1
 	if c >= 0:
 		_fail(CONTACT_NAMES[c])
 		return
@@ -546,6 +567,7 @@ func _check_after_liftoff(dt: float, ground_fn: Callable) -> void:
 	if _t_air >= _bar_after or feet > _upright_clear:
 		_uprights = false
 		arms.reset()
+		start_flight_position()
 
 
 func _fail(reason: String) -> void:
@@ -716,6 +738,10 @@ func _substep(h: float, input: ControlInput) -> void:
 		f_p -= fw
 		_hands_p = -fw
 		f_p += ground.legs(xp, vp, h)
+		if not flight_position_started:
+			var fc := _wing_ground_force(R)
+			f_wb += Rt * fc[0]
+			tb += Rt * fc[1]
 	else:
 		# скорость пилота относительно подвески во вращающихся осях крыла
 		var vrel: Vector3 = Rt * (vp - _vel) - wb.cross(_r_hang_b + rel)
@@ -755,6 +781,50 @@ func _substep(h: float, input: ControlInput) -> void:
 	var d := _R * r_prev.transposed()
 	_w = Vector3(d.y.z - d.z.y, d.z.x - d.x.z, d.x.y - d.y.x) * (0.5 / h)
 	chain.velocities_from_prev(h)
+
+
+## FB-3: старт — пилот уже стоит с крылом, а не только что взял его: интеграл удержания носа
+## (PendulumGround.pitch_ti) сразу равен статическому моменту — руки несут вес и аэродинамику
+## крыла (вертикально под ЦМ, горизонтально в хвате, как в _substep), без переходной раскачки
+## на первых секундах. Ветер и рельеф — те, что на первом шаге.
+func _preload_hold(air_fn: Callable, ground_fn: Callable) -> void:
+	_aero_update(air_fn, ground_fn)
+	var R := _R
+	var fw := -(R * _aero_f_b + E3 * (_m_wing * Units.G))
+	var fv := Vector3(0.0, 0.0, fw.z)
+	var rg := R * ground.grip_b
+	var m_ned := rg.cross(fw - fv) + (R * Vector3(0.0, 0.0, ground.grip_b.z)).cross(fv)
+	var m_b := R.transposed() * m_ned + _aero_m_b
+	ground.preload_pitch(-m_b.y)
+
+
+## FB-К2: до перехода в лётное положение земля держит крыло — точки касания (нос, консоли, конец
+## киля, трапеция) ниже плоскости земли под пилотом отталкивает пружина-демпфер по нормали
+## (жёсткость ноги ground.leg_k, критическое демпфирование по массе крыла), вдоль земли — вязкое
+## трение не больше μ·N. → [сила (NED), момент около ЦМ крыла (NED)].
+func _wing_ground_force(R: Basis) -> Array:
+	var f := Vector3.ZERO
+	var t := Vector3.ZERO
+	var nrm := Vector3(ground.gn, ground.ge, -1.0).normalized()  # вверх от земли (NED)
+	var c := 2.0 * sqrt(ground.leg_k * _m_wing)
+	for pt: Vector3 in _contact_pts:
+		var r := R * pt
+		var p := _pos + r
+		var pen := (p.z - ground.ground_z(p)) * -nrm.z  # глубина по нормали
+		if pen <= 0.0:
+			continue
+		var v := _vel + _w.cross(r)
+		var vn := v.dot(nrm)
+		var fn := maxf(ground.leg_k * pen - c * vn, 0.0)
+		var vt := v - nrm * vn
+		var ft := -vt * c
+		var lim := ground.mu * fn
+		if ft.length() > lim:
+			ft = ft.normalized() * lim if ft.length() > 1.0e-9 else Vector3.ZERO
+		var fp := nrm * fn + ft
+		f += fp
+		t += r.cross(fp)
+	return [f, t]
 
 
 ## σ экранного эффекта полос → _ge (PendulumWingStrips.ground_sigma по высоте полосы над землёй).

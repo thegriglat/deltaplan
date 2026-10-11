@@ -186,6 +186,7 @@ static func _track(m: PendulumModel, st: Dictionary, dt: float) -> void:
 ## 4а. Боковой ветер 10–15° справа, 4–5 м/с, стоит на склоне 15° (PD-32): руки держат курс как
 ## тангаж (ground.yaw_hold_*) — крыло не разворачивает «по циркулю», ветер виден усилием на руках
 ## и небольшим креном (наветренное крыло приподнято). Без рук (предел 0) нос уходит к ветру.
+## FB-3: стоя без поворота по умолчанию — флюгер (test_ground_stand); здесь он выключен (cn_beta = 0).
 func test_crosswind_standing() -> void:
 	var res := {}
 	for side: float in [10.0, 15.0]:
@@ -194,6 +195,7 @@ func test_crosswind_standing() -> void:
 			var g := slope_fn(15.0)
 			var air := wind_fn(5.0 if side < 12.0 else 4.0, 15.0, side)
 			m.reset_on_ground(Vector3.ZERO, 0.0)
+			m.ground.cn_beta = 0.0  # FB-3: флюгер выключен — пилот держит курс бега и стоя
 			if not hold:
 				m.ground.yaw_max = 0.0
 			var inp := S.input()

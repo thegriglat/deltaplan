@@ -1211,6 +1211,7 @@ func _on_telemetry(t: Telemetry) -> void:
 	if t.on_ground and air.has_method("mean_wind_at"):
 		extra["ground_wind_ms"] = (air.call("mean_wind_at", t.position) as Vector3).length()
 	flight_audio.update(t, extra)
+	stats.flight_position_started = glider.model.flight_position_started  # FB-К2
 	stats.update(t, _dt)
 	# Старт в воздухе (reset_in_air: тесты, «свободный полёт»): взлёта со склона не было —
 	# полёт сразу засчитан, касание будет посадкой, а не «взлёт сорван».

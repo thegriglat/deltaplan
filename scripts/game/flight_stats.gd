@@ -39,6 +39,10 @@ var took_off := false
 var armed := false
 ## Был хотя бы один подскок-касание после взлёта (для статистики, полёт не завершает).
 var touched := false
+## FB-К2: модель начала переход в лётное положение (flight_position_started; ставит Game каждый
+## шаг). До этого подскок и касание — попытка взлёта, полёт не заканчивается («взлёт сорван» нет):
+## пилот снова на ногах, может бежать ещё раз.
+var flight_position_started := true
 
 var _last_pos := Vector3.ZERO
 var _air_time_total_s: float = 0.0
@@ -144,6 +148,8 @@ func _update_finish(t: Telemetry, dt: float) -> void:
 		_was_on_ground = true
 		if armed:
 			touched = true
+		if not flight_position_started:
+			_grounded_s = 0.0  # до перехода в лётное положение касание — не посадка
 	if not armed and not t.on_ground:
 		var far_enough := distance_from_takeoff(t.position) >= ARM_MIN_HORIZ_M
 		if t.altitude_agl >= ARM_MIN_HEIGHT_AGL_M or far_enough:
@@ -155,12 +161,14 @@ func _update_finish(t: Telemetry, dt: float) -> void:
 
 ## Сколько секунд пилот на земле после полёта, пока посадка не подтверждена (0 — не ждём).
 func grounded_pending_s() -> float:
+	if not flight_position_started:
+		return 0.0
 	return _grounded_s if took_off and _was_on_ground and not _finished else 0.0
 
 
 ## Q-02: засчитать посадку, не дожидаясь LANDING_CONFIRM_S (по клавише). false — нечего засчитывать.
 func force_finish() -> bool:
-	if _finished or not took_off or not _was_on_ground:
+	if _finished or not took_off or not _was_on_ground or not flight_position_started:
 		return false
 	_finished = true
 	_finish_reason = "landed" if armed else "takeoff_failed"
