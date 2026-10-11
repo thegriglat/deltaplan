@@ -34,6 +34,7 @@ const DEFAULTS := {
 	"arms": {
 		"force_max_n": 300.0, "tau_s": 0.3, "ti_s": 0.0,
 		"shift_y_max_m": 0.45, "shift_x_pull_m": 0.45, "shift_x_push_m": 0.3,
+		"flare_shift_x_push_m": 0.3,
 	},
 	"strips": {"count": 16, "cp_chord": 0.25, "aero_hz": 60.0},
 	"yaw": {"cn_beta": 0.05, "fin_arm_m": 1.6, "fin_slope_per_rad": 2.0, "cn_p_add": 0.15, "cn_r_add": -0.03},
@@ -415,6 +416,11 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var inp := input
 	if landed_:
 		inp = ControlInput.new()  # стоит после посадки: руки держат крыло в нейтрали
+	# у земли пилот стоит в подвеске, руки на стойках: ход «от себя» — стоящего (PD-29), за 1 м
+	# выше flight.flare.height_m нарастает
+	arms.flare_mix = 0.0
+	if mode == FlightModel.Mode.AIR and not _uprights:
+		arms.flare_mix = clampf(_flare_h + 1.0 - _feet_agl, 0.0, 1.0)
 	var n := maxi(_sub_min, ceili(dt * _sub_per_s - 1.0e-9))
 	var h := dt / n
 	_last_pitch = input.pitch
@@ -423,7 +429,9 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var t_sum := 0.0
 	for k in n:
 		if _aero_age >= t_aero:
+			strips.dyn_dt = _aero_age
 			_aero_update(air_fn, ground_fn)
+			strips.dyn_dt = 0.0
 			_aero_age = 0.0
 		_substep(h, inp)
 		f_sum += chain.pilot_force + _hands_p

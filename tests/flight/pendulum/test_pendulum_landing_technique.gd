@@ -5,15 +5,22 @@ extends TestCase
 ## на ≈ 0,5 м (ступни) — отдача до упора. Касание ступнями → LandingJudge (пороги flight.json →
 ## landing не меняются). Правильная посадка мягкая на всех классах в штиль и во встречный 3 м/с;
 ## ранняя отдача (2 м) и поздняя (0,1 м) — жёсткая.
-## Сейчас test_correct_landing_soft красный: в квазистационарной аэродинамике полос мягкой отдачи с
-## 0,5 м в штиль нет (разбор — docs/research/pendulum.md, «Посадка (PD-27)»).
+## Сейчас test_correct_landing_soft красный (PD-27, PD-29 остановлены на развилке — разбор в
+## docs/research/pendulum.md, «Посадка (PD-27)», «Посадка (PD-29)»).
+## Переключатели для разбора (переменные окружения): PD27_TRACE=крыло,ветер,высота — ход по шагам;
+## PD27_SWEEP=1 — сетка бота; PD27_PUSH — ход «от себя» у земли, м; PD27_HOLDMAX — предел «от себя»
+## на выдерживании; PD29_DS=1/0 — запаздывание срыва вкл./выкл. (в конфиге выключено); PD29_T=τ₁,τ₂; PD29_CNMAX; PD29_FMAX — предел
+## силы рук; PD29_VR — отдача на 0,5 м, когда скорость ≤ это × срыва по поляре (иначе по высоте).
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const WINGS := ["training", "apogee", "laminar", "sport"]
 const ROUND_H := 3.0  ## ступни: начало выравнивания, м
-const HOLD_PITCH_MAX := 0.8  ## выдерживание — не до упора: упор оставлен на отдачу
+## Выравнивание: снижение к −max(0,05; kh·(h − HOLD_H)) м/с — к 0,5 м пилот подходит почти
+## горизонтально, ещё на скорости ≈ 1,3 срыва (выдерживание короткое).
+const HOLD_H := 0.3
+const HOLD_PITCH_MAX := 0.45  ## выдерживание — не до упора: упор оставлен на отдачу
 ## Пилот-бот на выдерживании: ПИ по вертикальной скорости + гашение скорости тангажа крыла.
-const GAINS := {"kp": 0.4, "ki": 0.6, "kq": 1.0, "kh": 0.4}
+const GAINS := {"kp": 0.4, "ki": 0.6, "kq": 1.0, "kh": 0.8}
 
 
 ## Заход с h0 м на триме курсом на север, встречный wind м/с; на ROUND_H — выравнивание и
@@ -22,11 +29,23 @@ const GAINS := {"kp": 0.4, "ki": 0.6, "kq": 1.0, "kh": 0.4}
 ## на push_h (ступни) — «от себя» до упора. push_h < 0 — без отдачи (выдерживание до касания).
 ## trace — печать хода от выравнивания. → {result, model, push_v (воздушная скорость на отдаче)}.
 static func land(
-	wing: String, wind: float, push_h: float, trace := false, h0 := 15.0, g := GAINS
+	wing: String, wind: float, push_h: float, trace := false, h0 := 15.0, g := GAINS,
+	hold_h := HOLD_H, v_ratio := 0.0
 ) -> Dictionary:
 	var m := S.make(wing)
+	var v_stall: float = float(Config.get_config("wings/" + wing).polar.points_kmh_ms[0][0]) / 3.6
 	if OS.get_environment("PD27_PUSH") != "":
-		m.arms.shift_x_push = float(OS.get_environment("PD27_PUSH"))
+		m.arms.shift_x_push_flare = float(OS.get_environment("PD27_PUSH"))
+	if OS.get_environment("PD29_CNMAX") != "":
+		m.strips.dyn_cn_max = float(OS.get_environment("PD29_CNMAX"))
+	if OS.get_environment("PD29_FMAX") != "":
+		m.arms.force_max = float(OS.get_environment("PD29_FMAX"))
+	if OS.get_environment("PD29_DS") != "":
+		m.strips.dyn_on = OS.get_environment("PD29_DS") == "1"
+	if OS.get_environment("PD29_T") != "":
+		var tt := OS.get_environment("PD29_T").split(",")
+		m.strips.dyn_t1 = float(tt[0])
+		m.strips.dyn_t2 = float(tt[1])
 	var flat := func(_x: float, _z: float) -> float: return 0.0
 	var w := Vector3(0.0, 0.0, wind)
 	var air := func(_p: Vector3) -> Vector3: return w
@@ -55,14 +74,15 @@ static func land(
 		var vz := m.pilot_velocity.y
 		if phase == 0 and hf < ROUND_H:
 			phase = 1
-		if phase == 1 and push_h >= 0.0 and hf < push_h:
+		var slow := v_ratio > 0.0 and hf < push_h + 0.15 and m.telemetry.airspeed <= v_ratio * v_stall
+		if phase == 1 and push_h >= 0.0 and (hf < push_h - (0.15 if v_ratio > 0.0 else 0.0) or slow):
 			phase = 2
 			push_v = m.telemetry.airspeed
 			t_push = t
 		var q := 0.0 if is_nan(th_prev) else (m.theta - th_prev) / S.DT
 		th_prev = m.theta
 		if phase == 1:
-			var vz_cmd := -maxf(0.05, float(g.kh) * (hf - 0.55))
+			var vz_cmd := -maxf(0.05, float(g.kh) * (hf - hold_h))
 			var e := vz_cmd - vz  # > 0 — снижается быстрее заданного: «от себя»
 			pitch_i = clampf(pitch_i + float(g.ki) * e * S.DT, -0.5, hold_max)
 			inp.pitch = clampf(pitch_i + float(g.kp) * e - float(g.kq) * q, -0.5, hold_max)
@@ -128,7 +148,9 @@ func test_sweep() -> void:
 func test_correct_landing_soft() -> void:
 	for wind: float in [0.0, 3.0]:
 		for w: String in WINGS:
-			var a := land(w, wind, 0.5)
+			var ph := 0.5 if OS.get_environment("PD29_PUSH_H") == "" else float(OS.get_environment("PD29_PUSH_H"))
+			var vr := 0.0 if OS.get_environment("PD29_VR") == "" else float(OS.get_environment("PD29_VR"))
+			var a := land(w, wind, ph, false, 15.0, GAINS, 0.55 if vr > 0.0 else HOLD_H, vr)
 			print("    правильная %s, ветер %.0f — %s" % [w, wind, fmt(a)])
 			check(a.result.get("grade", "") == "soft", "%s, ветер %.0f: правильная посадка мягкая (%s)" % [w, wind, fmt(a)])
 

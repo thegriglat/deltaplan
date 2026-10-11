@@ -20,6 +20,11 @@ var ti: float = 0.0  ## ≤ 0 — без интегральной части
 var shift_y_max: float = 0.45
 var shift_x_pull: float = 0.45
 var shift_x_push: float = 0.3
+## «От себя» у земли (PD-29): пилот стоит в подвеске, руки на стойках у плеч — ход кистей ближе к
+## подвеске, крыло поворачивается относительно стропы сильнее; эквивалентное смещение ЦМ пилота, м.
+var shift_x_push_flare: float = 0.3
+## Доля хода стоящего пилота 0…1 (модель задаёт по высоте ступней).
+var flare_mix: float = 0.0
 
 ## Положение пилота относительно подвески при нейтрали (оси B: x вперёд, y вправо, z вниз), м.
 var neutral_rel := Vector3.ZERO
@@ -35,6 +40,7 @@ func setup(arms: Dictionary) -> void:
 	shift_y_max = float(arms.shift_y_max_m)
 	shift_x_pull = float(arms.shift_x_pull_m)
 	shift_x_push = float(arms.shift_x_push_m)
+	shift_x_push_flare = float(arms.get("flare_shift_x_push_m", shift_x_push))
 
 
 func reset() -> void:
@@ -56,7 +62,8 @@ func compute(
 	var ry := clampf(roll, -1.0, 1.0)
 	var px := clampf(pitch, -1.0, 1.0)
 	tgt.y += ry * shift_y_max
-	tgt.x += -px * (shift_x_push if px > 0.0 else shift_x_pull)
+	var push := lerpf(shift_x_push, shift_x_push_flare, flare_mix)
+	tgt.x += -px * (push if px > 0.0 else shift_x_pull)
 	var k := m_pilot / (tau * tau)
 	var d := 2.0 * m_pilot / tau
 	var e := tgt - rel
