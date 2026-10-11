@@ -51,30 +51,39 @@ func _std(x: PackedFloat64Array) -> float:
 
 ## Болтанка против прототипа (блок прототипа, то же поле и регулятор). Отклик хаотичен: у самого
 ## прототипа СКО крена за 30–140 с меняется в 0,6–1,7 раза от одной смены шага (1/120 → 1/60),
-## поэтому по точкам не сравнить — только «без развала» и порядок величины (0,5–2× прототипа).
+## поэтому по точкам не сравнить — только «без развала» и порядок величины (0,5× меньшего — 2× большего
+## из прогонов прототипа по шагам: после PD-19 у sport они 4,8–17,1°, среднее одним выбросом не мерило).
 ## Эталон «turbulence» — среднее прототипа по шагам 1/120, 1/100, 1/60, 1/30 (PD-14); dt60/dt30 — свои прогоны.
 func _check_turb(name: String, w: String, dt: float) -> void:
 	var r := S.scenario(name, w)
 	var o := _turbulence(w, dt, true)
 	var tag := "%s dt 1/%d" % [w, roundi(1.0 / dt)]
 	_check_bounded(o, tag, w)
-	var k_phi: float = o.std_phi_deg / float(r.std_phi_deg)
-	var k_y: float = o.std_rel_y_m / float(r.std_rel_y_m)
-	check(k_phi > 0.5 and k_phi < 2.0, "%s: СКО крена %.1f° — порядок прототипа (%.1f°)" % [
-		tag, o.std_phi_deg, r.std_phi_deg])
-	check(k_y > 0.5 and k_y < 2.0, "%s: СКО пилота поперёк %.3f м — порядок прототипа (%.3f)" % [
-		tag, o.std_rel_y_m, r.std_rel_y_m])
+	# порядок прототипа: 0,5× меньшего — 2× большего из среднего и прогонов по шагам (by_dt)
+	var lo_phi: float = r.std_phi_deg
+	var hi_phi: float = r.std_phi_deg
+	var lo_y: float = r.std_rel_y_m
+	var hi_y: float = r.std_rel_y_m
+	for b: Dictionary in r.get("by_dt", []):
+		lo_phi = minf(lo_phi, float(b.std_phi_deg))
+		hi_phi = maxf(hi_phi, float(b.std_phi_deg))
+		lo_y = minf(lo_y, float(b.std_rel_y_m))
+		hi_y = maxf(hi_y, float(b.std_rel_y_m))
+	check(o.std_phi_deg > 0.5 * lo_phi and o.std_phi_deg < 2.0 * hi_phi,
+		"%s: СКО крена %.1f° — порядок прототипа (%.1f°, по шагам %.1f–%.1f°)" % [
+		tag, o.std_phi_deg, r.std_phi_deg, lo_phi, hi_phi])
+	check(o.std_rel_y_m > 0.5 * lo_y and o.std_rel_y_m < 2.0 * hi_y,
+		"%s: СКО пилота поперёк %.3f м — порядок прототипа (%.3f, по шагам %.3f–%.3f)" % [
+		tag, o.std_rel_y_m, r.std_rel_y_m, lo_y, hi_y])
 	print("    %s: СКО крена %.2f° (прототип %.2f°), СКО пилота поперёк %.3f м (%.3f), растяжение %.3f м (%.3f)" % [
 		tag, o.std_phi_deg, r.std_phi_deg, o.std_rel_y_m, r.std_rel_y_m, o.max_stretch_m, r.max_stretch_m])
 
 
-## sport (PD-18): после сдвига ЦД срыва в болтанке бывает срыв с переворотом (у прототипа так же:
-## dt 1/30 — СКО крена 49°, макс. 174°, растяжение 0,27 м), поэтому для него — только «без развала».
-func _check_bounded(o: Dictionary, tag: String, w := "") -> void:
-	var sport := w == "sport"
+## Без развала, цепь держит, крен ограничен (у всех трёх, как до PD-18; PD-19 — руки без интеграла).
+func _check_bounded(o: Dictionary, tag: String, _w := "") -> void:
 	check(not o.blowup, "%s: без развала и NaN" % tag)
-	check(o.max_stretch_m < (0.35 if sport else 0.1), "%s: цепь держит (растяжение %.3f м)" % [tag, o.max_stretch_m])
-	check(o.max_abs_phi_deg < (180.0 if sport else 60.0), "%s: крен в болтанке ограничен (%.1f°)" % [tag, o.max_abs_phi_deg])
+	check(o.max_stretch_m < 0.1, "%s: цепь держит (растяжение %.3f м)" % [tag, o.max_stretch_m])
+	check(o.max_abs_phi_deg < 60.0, "%s: крен в болтанке ограничен (%.1f°)" % [tag, o.max_abs_phi_deg])
 
 
 func test_turbulence_120hz() -> void:
