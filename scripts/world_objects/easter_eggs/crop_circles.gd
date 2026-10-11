@@ -26,6 +26,7 @@ var _scan_at := Vector2(1.0e9, 1.0e9)
 var _rows: Array[int] = []
 var _scan_origin := Vector2.ZERO
 var _todo: Array[Vector2i] = []
+var _job := {}  ## постройка меша порциями: {cell, j, verts}
 var _items := {}  ## участок → MeshInstance3D
 var _mat_base: ShaderMaterial
 
@@ -92,7 +93,7 @@ func update(ctx: EggContext) -> bool:
 	if here.distance_to(_scan_at) >= float(_cfg.get("rescan_m", 400.0)):
 		_scan_at = here
 		_scan(ctx, here)
-	_work(ctx)
+	_work(ctx, int(float(_cfg.get("budget_ms", 0.45)) * 1000.0))
 	var vis := float(_cfg.get("visible_m", 7000.0))
 	for cell in _items.keys():
 		var mi: MeshInstance3D = _items[cell]
@@ -106,8 +107,8 @@ func update(ctx: EggContext) -> bool:
 	return true
 
 
-## Новый обход участков вокруг точки: ряды ставятся в очередь и разбираются по _rows_per_update штук за кадр,
-## найденные участки получают меш по одному за кадр (без рывка на одном кадре).
+## Новый обход участков вокруг точки: ряды ставятся в очередь и разбираются в бюджете budget_ms за кадр,
+## меш участка строится порциями строк в том же бюджете.
 func _scan(_ctx: EggContext, at: Vector2) -> void:
 	var vis := float(_cfg.get("visible_m", 7000.0))
 	var sy := _plots.size_m.y
@@ -119,18 +120,17 @@ func _scan(_ctx: EggContext, at: Vector2) -> void:
 
 ## Дообработать очередь целиком (тесты и первый кадр).
 func settle(ctx: EggContext) -> void:
-	while not _rows.is_empty() or not _todo.is_empty():
-		_work(ctx)
+	while not _rows.is_empty() or not _todo.is_empty() or not _job.is_empty():
+		_work(ctx, 1 << 60)
 
 
-func _work(ctx: EggContext) -> void:
+func _work(ctx: EggContext, budget_us: int) -> void:
+	var t_end := Time.get_ticks_usec() + budget_us
 	var vis := float(_cfg.get("visible_m", 7000.0))
 	var p := float(_cfg.get("probability", 0.0015))
 	var sx := _plots.size_m.x
 	var at := _scan_origin
-	var budget := int(_cfg.get("rows_per_update", 8))
-	while budget > 0 and not _rows.is_empty():
-		budget -= 1
+	while not _rows.is_empty() and Time.get_ticks_usec() < t_end:
 		var iy: int = _rows.pop_back()
 		var shift := floorf(float(iy) / FieldPlots.BAND_ROWS) * FieldPlots.ROW_SHIFT
 		var ix0 := int(floorf((at.x - vis) / sx + shift)) - 1
@@ -149,9 +149,10 @@ func _work(ctx: EggContext) -> void:
 			if plot_ok(_plots, ctx.place, cell, _cfg):
 				_make_info(cell, r)
 				_todo.append(cell)
-	if not _todo.is_empty():
-		var cell: Vector2i = _todo.pop_front()
-		_make_mesh(ctx, cell)
+	while Time.get_ticks_usec() < t_end and (not _job.is_empty() or not _todo.is_empty()):
+		if _job.is_empty():
+			_start_mesh(_todo.pop_front())
+		_step_mesh(ctx, t_end)
 
 
 func _make_info(cell: Vector2i, r: Rect2) -> void:
@@ -167,41 +168,46 @@ func _make_info(cell: Vector2i, r: Rect2) -> void:
 	circles[cell] = {"center": c, "radius": radius, "rot": rot, "pattern": pat, "rect": r}
 
 
-func _make_mesh(ctx: EggContext, cell: Vector2i) -> void:
-	var ci: Dictionary = circles[cell]
-	var r: Rect2 = ci.rect
-	var c: Vector2 = ci.center
-	var radius: float = ci.radius
-	var rot: float = ci.rot
-	var pat: int = ci.pattern
-	var mi := MeshInstance3D.new()
-	var mc := r.get_center()
-	mi.position = Vector3(mc.x, 0.0, mc.y)
-	mi.mesh = _grid_mesh(ctx, r, mc)
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var m := _mat_base.duplicate() as ShaderMaterial
-	m.set_shader_parameter("center", c)
-	m.set_shader_parameter("radius", radius)
-	m.set_shader_parameter("rot", rot)
-	m.set_shader_parameter("pattern", pat)
-	mi.material_override = m
-	add_child(mi)
-	_items[cell] = mi
-
-
-## Сетка участка на рельефе; вершины относительно центра участка (y — абсолютная высота).
-func _grid_mesh(ctx: EggContext, r: Rect2, mc: Vector2) -> ArrayMesh:
+func _start_mesh(cell: Vector2i) -> void:
+	var r: Rect2 = circles[cell].rect
 	var step := float(_cfg.get("mesh_step_m", 10.0))
-	var nx := maxi(int(ceilf(r.size.x / step)), 1)
-	var nz := maxi(int(ceilf(r.size.y / step)), 1)
-	var verts := PackedVector3Array()
-	var idx := PackedInt32Array()
+	_job = {
+		"cell": cell,
+		"j": 0,
+		"nx": maxi(int(ceilf(r.size.x / step)), 1),
+		"nz": maxi(int(ceilf(r.size.y / step)), 1),
+		"verts": PackedVector3Array(),
+	}
+
+
+## Строки вершин сетки — пока есть время; в конце собрать меш и узел.
+func _step_mesh(ctx: EggContext, t_end: int) -> void:
+	var cell: Vector2i = _job.cell
+	var r: Rect2 = circles[cell].rect
+	var mc := r.get_center()
+	var nx: int = _job.nx
+	var nz: int = _job.nz
 	var lift := float(_cfg.get("lift_m", 0.15))
-	for j in nz + 1:
+	var verts: PackedVector3Array = _job.verts
+	while _job.j <= nz and Time.get_ticks_usec() < t_end:
+		var z := r.position.y + r.size.y * float(_job.j) / float(nz)
 		for i in nx + 1:
 			var x := r.position.x + r.size.x * float(i) / float(nx)
-			var z := r.position.y + r.size.y * float(j) / float(nz)
 			verts.append(Vector3(x - mc.x, float(ctx.height_at.call(x, z)) + lift, z - mc.y))
+		_job.j += 1
+	_job.verts = verts
+	if _job.j > nz:
+		_finish_mesh(cell, verts, nx, nz)
+		_job = {}
+
+
+func _finish_mesh(cell: Vector2i, verts: PackedVector3Array, nx: int, nz: int) -> void:
+	var ci: Dictionary = circles[cell]
+	var r: Rect2 = ci.rect
+	var mc := r.get_center()
+	var mi := MeshInstance3D.new()
+	mi.position = Vector3(mc.x, 0.0, mc.y)
+	var idx := PackedInt32Array()
 	for j in nz:
 		for i in nx:
 			var a := j * (nx + 1) + i
@@ -212,4 +218,13 @@ func _grid_mesh(ctx: EggContext, r: Rect2, mc: Vector2) -> ArrayMesh:
 	arr[Mesh.ARRAY_INDEX] = idx
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
-	return mesh
+	mi.mesh = mesh
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var m := _mat_base.duplicate() as ShaderMaterial
+	m.set_shader_parameter("center", ci.center)
+	m.set_shader_parameter("radius", ci.radius)
+	m.set_shader_parameter("rot", ci.rot)
+	m.set_shader_parameter("pattern", ci.pattern)
+	mi.material_override = m
+	add_child(mi)
+	_items[cell] = mi
