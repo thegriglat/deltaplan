@@ -1,0 +1,13 @@
+Deltaplan 1.5.7 — motion rig fix
+
+A fix for motion platforms after the first real test with a DOF Reality rig through Sim Racing Studio.
+
+Motion rig (SRS):
+- Heave now moves the platform: accelerations are sent in m/s² instead of g (before, they were about 1% of the scale).
+- Motion data is sent on the ground too: slope, take-off run, touchdown and roll-out.
+- No more jump at take-off and landing from the stream switching on and off.
+- Gain and filters are set in Sim Racing Studio.
+
+Known issues:
+- Touchdown is stiff in the physics: the landing impact is short and strong.
+- Heave and ground motion are not yet tested on a real platform.
