@@ -3,7 +3,8 @@ extends RefCounted
 ## Земля «Маятника» (PD-К1 v2, R6 плана): пилот стоит, идёт, бежит с крылом на руках.
 ## Порт Sim._legs, _ground_hands, _ground_torque прототипа (tools/research/pendulum/pendulum/
 ## model.py) с обобщением на рельеф и курс:
-## - ноги — пружина-демпфер к земле под ЦМ пилота (только толкают); бег — сила ног
+## - ноги — пружина-демпфер к земле под ЦМ пилота (только толкают), сила больше pilot.json →
+##   legs.hold_body_weights — сгибаются колени (PilotLegs, PD-К6 v1: касание гасится на ходе); бег — сила ног
 ##   F·(1 − v/v_ног) по курсу (как GroundRun; быстрее v_ног ноги тормозят ∝ доле веса на ногах),
 ##   но не больше сцепления μ·N (у прототипа бег толкал полной силой при любой опоре),
 ##   боковое скольжение — вязкое трение ≤ μ·N; стоя и шагом — сцепление покоя: ступни держат
@@ -22,6 +23,8 @@ const UP_NED := Vector3(0.0, 0.0, -1.0)
 var leg_len: float = 1.0
 var leg_k: float = 3.0e4
 var leg_c: float = 0.0
+## Сила ноги по сжатию (PD-К6 v1): прямая нога leg_k/leg_c до hold, дальше сгиб коленей (pilot.json → legs).
+var knees := PilotLegs.new()
 var mu: float = 0.8
 var side_damp: float = 2000.0
 var stand_k: float = 2.0e4
@@ -88,6 +91,7 @@ func setup(
 	leg_len = float(gc.leg_length_m)
 	leg_k = float(gc.leg_stiffness_n_per_m)
 	leg_c = 2.0 * sqrt(leg_k * m_pilot)
+	knees.setup(pilot.legs, m_pilot + m_wing, leg_k, leg_c)
 	mu = float(gc.foot_friction)
 	side_damp = float(gc.side_damping_n_s_per_m)
 	stand_k = float(gc.stand_stiffness_n_per_m)
@@ -228,7 +232,7 @@ func legs(x: Vector3, v: Vector3, h: float) -> Vector3:
 	contact = true
 	# земля под движущейся точкой уходит вниз со скоростью (NED z) gn·vx + ge·vy
 	var vz_g := gn * v.x + ge * v.y
-	var fz := maxf(leg_k * -pen + leg_c * (v.z - vz_g), 0.0)  # вверх
+	var fz := knees.force(-pen, v.z - vz_g)  # вверх; больше knees.hold — сгибаются колени
 	F.z = -fz
 	feet_load = minf(fz / (m_total * Units.G), 1.0)
 	var f := fwd()
