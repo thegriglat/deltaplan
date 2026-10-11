@@ -280,6 +280,14 @@ def sc_turbulence_mean(wing, blk, modes):
     return out
 
 
+def reach_angle(shoulder_below, grip_below, grip_ahead, arm):
+    """Угол крыла к стропе (нос вверх), на котором рука вытянута, рад (PendulumPilotArms.reach_angle)."""
+    r = math.hypot(grip_ahead, grip_below)
+    psi0 = math.atan2(grip_ahead, grip_below)
+    c = (r * r + shoulder_below * shoulder_below - arm * arm) / (2.0 * r * shoulder_below)
+    return math.acos(min(max(c, -1.0), 1.0)) - psi0
+
+
 class GameSim(Sim):
     """Прототип с правками, как в игре (PD-3, PD-14).
 
@@ -295,12 +303,49 @@ class GameSim(Sim):
     4. Центр давления сорванной части полосы — назад по хорде (PD-18, configs/pendulum.json →
        stall_cp_shift): x/c = 0,25 + 0,25·sin α (Fage & Johansen 1927), у обтекаемой — cp_chord.
        Пикирующий момент срыва: крыло выходит из глубокого срыва.
+    5. Запаздывание отрыва на полосах (PD-29/PD-30, configs/pendulum.json → strips.dynamic_stall,
+       PendulumWingStrips._dyn_attached): доля обтекаемого потока f отстаёт от статической,
+       τ₁·ḟ = f_ст(Δα − τ₂·Δα̇) − f, τ = T·c/V (Goman & Khrabrov 1994); обтекаемая часть за срывом —
+       нормальная сила пластины без подсасывания кромки до cn_max, центр давления — как у сорванной.
+       Состояние шагает только на подшагах (_dyn_dt > 0); балансировка и C_L max — статика.
+    6. Руки стоящего пилота у земли (PD-29/PD-30, configs/pendulum.json → arms.flare_shift_x_push_m,
+       arms.flare_reach; PendulumPilotArms): ниже flight.flare.height_m (за 1 м выше — нарастает) ход
+       «от себя» — flare_shift_x_push_m; упор «от себя» спадает до нуля у вытянутых рук (угол крыла
+       к стропе от нейтрали ≥ досягаемости).
     """
 
     _ge = None  # σ по полосам на текущем вызове wing_aero
+    # запаздывание отрыва (п. 5): параметры — из configs/pendulum.json в __post_init__
+    dyn_on = False
+    dyn_t1, dyn_t2, dyn_cn_max = 3.0, 2.0, 3.0
+    _dyn_dt = 0.0  # > 0 — шаг состояния (подшаг), 0 — статика
+    _dyn_f = None  # доля обтекаемого потока по полосам
+    _dyn_m_prev = None
+    _dyn_un = None  # |u| в плоскости хорда — нормаль полосы (для c/V)
+    # руки стоящего пилота (п. 6)
+    flare_h = 4.0
+    flare_push = None
+    flare_reach = 0.0
+    flare_reach_soft = 0.0
+    flare_mix = 0.0
+    hands_phi = 0.0
 
     def __post_init__(self):
         super().__post_init__()
+        pc = json.loads((ROOT / "configs/pendulum.json").read_text())
+        ds = pc["strips"].get("dynamic_stall", {})
+        self.dyn_on = bool(ds.get("enabled", False))
+        self.dyn_t1 = float(ds.get("t1_c_per_v", 3.0))
+        self.dyn_t2 = float(ds.get("t2_c_per_v", 2.0))
+        self.dyn_cn_max = float(ds.get("cn_max", 3.0))
+        arms = pc["arms"]
+        self.flare_push = float(arms.get("flare_shift_x_push_m", self.p.shift_x_push))
+        fr = arms.get("flare_reach", {})
+        if fr.get("enabled", False):
+            self.flare_reach = reach_angle(fr["shoulder_below_hang_m"], fr["grip_below_hang_m"],
+                                           fr["grip_ahead_m"], fr["arm_length_m"])
+            self.flare_reach_soft = math.radians(fr["soft_deg"])
+        self.flare_h = float(json.loads((ROOT / "configs/flight.json").read_text())["flare"]["height_m"])
         self.cl_max_wing0 = self.wing_cl_max()
         target = self.p.polar.cl_max
         lo, hi = target, 1.6 * target
@@ -394,13 +439,65 @@ class GameSim(Sim):
             cds = self.cd_scale * (pc.cd_at(pc.cl_max) - self.cd_pilot_share)
             cdcur = self.cd_scale * (pc.cd_at(np.clip(cl, -2, pc.cl_max)) - self.cd_pilot_share)
             cd_extra = np.where(post, cds * f - cdcur + cdm * (s_ * s_ - sa * sa * f), 0.0)
+            if self.dyn_on:
+                fa = self._dyn_attached(a_rel - a_st)
+                # обтекаемая часть за срывом: N = cl_max/(sin α_s·cos α_s)·sin α, не больше cn_max
+                nn = cm / np.maximum(sa * ca, 1e-6)
+                na = np.minimum(nn * s_, np.maximum(self.dyn_cn_max, nn * sa))
+                cla = na * c_
+                cda = na * s_ - nn * sa * sa
+                g_ = 1.0 - fa
+                cdv = cdm * (s_ * s_ - sa * sa * f)
+                cl_d = g_ * clv + fa * cla
+                cdcur_d = self.cd_scale * (pc.cd_at(np.clip(cl_d, -2, pc.cl_max)) - self.cd_pilot_share)
+                cdx_d = cds * (g_ * f + fa) + g_ * cdv + fa * cda - cdcur_d
+                use = post & (fa > 0.0)
+                cl = np.where(use, cl_d, cl)
+                cd_extra = np.where(use, cdx_d, cd_extra)
         if ge is not None:
             # индуктивная часть обтекаемой доли × (1 − σ): вычитается здесь же (cd_extra идёт в сумму CD)
             cd_extra = cd_extra - ge * (1 - blend) * self.cd_scale * ind * cl * cl
         return cl, cd_extra, blend
 
+    def _dyn_attached(self, m):
+        """Доля обтекаемого потока по полосам (PendulumWingStrips._dyn_attached), m — Δα за срывом."""
+        fs = 1.0 - np.clip(m / math.radians(4.0), 0.0, 1.0)
+        dt = self._dyn_dt
+        if dt <= 0.0 or self._dyn_un is None:
+            return fs
+        if self._dyn_f is None:
+            self._dyn_f = fs.copy()
+            self._dyn_m_prev = m.copy()
+            return fs
+        cv = self.strips.chord / np.maximum(self._dyn_un, 1.0)
+        mdot = (m - self._dyn_m_prev) / dt
+        self._dyn_m_prev = m.copy()
+        ft = 1.0 - np.clip((m - self.dyn_t2 * cv * mdot) / math.radians(4.0), 0.0, 1.0)
+        f = ft + (self._dyn_f - ft) * np.exp(-dt / (self.dyn_t1 * cv))
+        self._dyn_f = f
+        return f
+
+    def reset_air(self, state):
+        super().reset_air(state)
+        self._dyn_f = None
+        self._dyn_m_prev = None
+
+    def _substep(self, h):
+        self._dyn_dt = h
+        try:
+            super()._substep(h)
+        finally:
+            self._dyn_dt = 0.0
+
     def wing_aero(self, pos, vel, R, w):
         self._ge = None
+        if self.dyn_on and self._dyn_dt > 0.0:
+            st = self.strips
+            r_w = self.r_strip_b @ R.T
+            u = (vel[None] + np.cross(w[None], r_w) - self.air_fn(pos[None] + r_w)) @ R
+            uc = (u * st.c_b).sum(1)
+            uz = (u * st.n_b).sum(1)
+            self._dyn_un = np.sqrt(uc * uc + uz * uz)
         if self.ground is not None:
             pts = pos[None] + self.r_strip_b @ R.T
             h = -pts[:, 2] - self.ground.height(pts[:, 0], pts[:, 1])
@@ -413,6 +510,60 @@ class GameSim(Sim):
             self._ge = None
             if self._r0 is not None:
                 self.r_strip_b = self._r0
+
+    def _hands_force(self, H, v_wing_pt_bar):
+        """Руки (Sim._hands_force) + ход стоящего пилота у земли и досягаемость (п. 6)."""
+        p = self.p
+        c = self.control
+        self.flare_mix = 0.0
+        if self.ground is not None and not self.on_ground:
+            x = self.xn[-1]
+            h_feet = -x[2] - 1.0 - float(self.ground.height(x[0], x[1]))
+            self.flare_mix = min(max(self.flare_h + 1.0 - h_feet, 0.0), 1.0)
+        if c.arms_relaxed:
+            self.hands_force_b = np.zeros(3)
+            self.arm_int = np.zeros(3)
+            return np.zeros(3)
+        R = self.R
+        rel = R.T @ (self.xn[-1] - H)
+        vH = self.vel + np.cross(self.w, R @ self.r_hang_b)
+        vrel = R.T @ (self.vn[-1] - vH - np.cross(self.w, self.xn[-1] - H))
+        tgt = self.neutral_rel.copy()
+        ry = max(-1.0, min(1.0, c.roll))
+        px = max(-1.0, min(1.0, c.pitch))
+        tgt[1] += ry * p.shift_y_max
+        push = p.shift_x_push + (self.flare_push - p.shift_x_push) * self.flare_mix
+        tgt[0] += -px * (push if px > 0 else p.shift_x_pull)
+        k = p.m_pilot / p.arm_tau ** 2
+        d = 2.0 * p.m_pilot / p.arm_tau
+        e = tgt - rel
+        e[2] = 0.0
+        if p.arm_ti > 0:
+            self.arm_int = self.arm_int + e * self._h / p.arm_ti
+        f = k * (e + self.arm_int) - d * vrel
+        L = float(np.linalg.norm(self.neutral_rel))
+        if L > 0.1:
+            off = tgt - self.neutral_rel
+            off[2] = 0.0
+            f = f + off * (p.m_pilot * G / L)
+        f[2] = 0.0
+        nr = self.neutral_rel
+        self.hands_phi = math.atan2(-rel[0], rel[2]) - math.atan2(-nr[0], nr[2])
+        if self.flare_reach > 0.0 and self.flare_mix > 0.0 and f[0] < 0.0:
+            cr = min(max((self.flare_reach - self.hands_phi) / max(self.flare_reach_soft, 1e-3), 0.0), 1.0)
+            f[0] *= 1.0 + (cr - 1.0) * self.flare_mix
+        n = math.hypot(f[0], f[1])
+        if n > p.arm_force_max:
+            f *= p.arm_force_max / n
+            if p.arm_ti > 0:
+                self.arm_int = self.arm_int - e * self._h / p.arm_ti
+        if c.force_y is not None:
+            f[1] = c.force_y
+            n = math.hypot(f[0], f[1])
+            if n > p.arm_force_max:
+                f *= p.arm_force_max / n
+        self.hands_force_b = f
+        return R @ f
 
     def _legs(self):
         F = super()._legs()

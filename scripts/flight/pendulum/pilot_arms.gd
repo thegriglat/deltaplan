@@ -25,6 +25,13 @@ var shift_x_push: float = 0.3
 var shift_x_push_flare: float = 0.3
 ## Доля хода стоящего пилота 0…1 (модель задаёт по высоте ступней).
 var flare_mix: float = 0.0
+## Досягаемость рук стоящего пилота (PD-30): хват на стойке поворачивается с крылом около подвески;
+## «от себя» толкает, пока плечо — хват ≤ длины руки. Угол крыла к стропе, на котором руки
+## вытянуты, рад (0 — без предела) и ширина спада упора до него, рад.
+var flare_reach: float = 0.0
+var flare_reach_soft: float = 0.0
+## Угол крыла к стропе от нейтрали (нос вверх +), рад — последний расчёт (для разбора).
+var phi: float = 0.0
 
 ## Положение пилота относительно подвески при нейтрали (оси B: x вперёд, y вправо, z вниз), м.
 var neutral_rel := Vector3.ZERO
@@ -41,6 +48,23 @@ func setup(arms: Dictionary) -> void:
 	shift_x_pull = float(arms.shift_x_pull_m)
 	shift_x_push = float(arms.shift_x_push_m)
 	shift_x_push_flare = float(arms.get("flare_shift_x_push_m", shift_x_push))
+	var fr: Dictionary = arms.get("flare_reach", {})
+	flare_reach = 0.0
+	if bool(fr.get("enabled", false)):
+		flare_reach = reach_angle(
+			float(fr.shoulder_below_hang_m), float(fr.grip_below_hang_m),
+			float(fr.grip_ahead_m), float(fr.arm_length_m))
+		flare_reach_soft = deg_to_rad(float(fr.soft_deg))
+
+
+## Угол поворота крыла к стропе (нос вверх), на котором рука вытянута, рад: хват (на стойке, grip_below
+## под подвеской и grip_ahead впереди стропы) поворачивается с крылом около подвески; плечо — на
+## стропе shoulder_below под подвеской; |плечо − хват| = arm.
+static func reach_angle(shoulder_below: float, grip_below: float, grip_ahead: float, arm: float) -> float:
+	var r := Vector2(grip_ahead, grip_below).length()
+	var psi0 := atan2(grip_ahead, grip_below)
+	var c := (r * r + shoulder_below * shoulder_below - arm * arm) / (2.0 * r * shoulder_below)
+	return acos(clampf(c, -1.0, 1.0)) - psi0
 
 
 func reset() -> void:
@@ -78,6 +102,13 @@ func compute(
 		off.z = 0.0
 		f += off * (m_pilot * Units.G / L)
 	f.z = 0.0
+	# досягаемость (стоящий пилот): угол крыла к стропе φ (нос вверх — пилот назад в осях крыла);
+	# у вытянутых рук упор «от себя» спадает до нуля — хват ушёл вперёд-вверх, за голову; руки
+	# дальше только держат (тянут на себя), прямая подача не толкает
+	phi = atan2(-rel.x, rel.z) - atan2(-neutral_rel.x, neutral_rel.z)
+	if flare_reach > 0.0 and flare_mix > 0.0 and f.x < 0.0:
+		var c := clampf((flare_reach - phi) / maxf(flare_reach_soft, 1.0e-3), 0.0, 1.0)
+		f.x *= lerpf(1.0, c, flare_mix)
 	var fn := Vector2(f.x, f.y).length()
 	if fn > force_max:
 		f *= force_max / fn

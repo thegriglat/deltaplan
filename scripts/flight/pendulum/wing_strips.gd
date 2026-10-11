@@ -451,7 +451,7 @@ func _strip_cl(j: int, r: float, sl: float, cap: float, un := 0.0) -> Vector4:
 		return Vector4(clv, cdv, b, fv)
 	# обтекаемая часть за срывом: нормальная сила пластины без подсасывания кромки,
 	# N = cap/(sin α_s·cos α_s)·sin α (на срыве — ровно cl_max и CD поляры)
-	var nn := cap / (sa * ca)
+	var nn := cap / maxf(sa * ca, 1.0e-6)  # cap = 0 при нулевом потоке
 	var na := minf(nn * s, maxf(dyn_cn_max, nn * sa))
 	var cla := na * c
 	var cda := na * s - nn * sa * sa
