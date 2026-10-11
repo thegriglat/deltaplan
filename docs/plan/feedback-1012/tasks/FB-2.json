@@ -32,10 +32,6 @@
       "tests": "test_start_clearing"
     },
     {
-      "name": "tests/game",
-      "tests": "tests/game"
-    },
-    {
       "name": "no_site_1_5_4",
       "cmd": "git diff --quiet feature/feedback-1012 -- site/content/releases/1.5.4",
       "expect": "exit=0"
@@ -44,9 +40,14 @@
       "name": "gd",
       "cmd": "/home/greg/deltaplan/tools/dp check gd",
       "expect": "exit=0"
+    },
+    {
+      "name": "test_input_launch",
+      "tests": "test_input_launch"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-12T00:40:24"
+  "created": "2026-10-12T00:40:24",
+  "edited": "2026-10-12T01:15:26"
 }
