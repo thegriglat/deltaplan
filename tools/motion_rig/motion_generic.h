@@ -1,4 +1,4 @@
-/* Формат generic пакета движения Deltaplan (MR-К2 v1): один UDP-датаграм = одна структура, 64 байта.
+/* Формат generic пакета движения Deltaplan (MR-К2 v3): один UDP-датаграм = одна структура, 64 байта.
  * ВСЕ ЧИСЛА LITTLE-ENDIAN (x86, ARM Cortex-M, ESP32 — нативно; на big-endian переставлять байты).
  * Без зависимостей, выравнивания нет (все поля по 4 байта, packed). Величины — «честные», без фильтров;
  * знаки при необходимости инвертирует игрок в настройках игры (signs). Оси пилота: вперёд, вправо, вверх. */
@@ -9,14 +9,16 @@
 #include <stdint.h>
 
 #define DPMR_MAGIC "DPMR"
-#define DPMR_VERSION 1u
+#define DPMR_VERSION 2u
 #define DPMR_FLAG_VALID 1u     /* бит 0: величины валидны (есть прошлое состояние) */
 #define DPMR_FLAG_ON_GROUND 2u /* бит 1: пилот на земле */
+#define DPMR_FLAG_SYNTHETIC 4u /* бит 2: не живой сэмпл: hold, neutral или повтор при зависании игры */
+#define DPMR_FLAG_RAMP 8u      /* бит 3: идёт плавный вход, значения смешаны */
 
 #pragma pack(push, 1)
 typedef struct {
     char     magic[4];      /*  0: "DPMR" (без нуля) */
-    uint32_t version;       /*  4: 1 */
+    uint32_t version;       /*  4: 2 */
     uint32_t seq;           /*  8: номер пакета с запуска отправки, +1 на пакет */
     uint32_t flags;         /* 12: DPMR_FLAG_* */
     float    t;             /* 16: с, время с reset() (поток идёт и на земле) */
