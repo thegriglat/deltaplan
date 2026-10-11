@@ -233,3 +233,8 @@
 {"t": "2026-10-11T16:32:41", "by": "coordinator", "task": "PD-28", "ev": "accepted", "note": "по отчёту: две ошибки физики разбега (ноги — вертикальная пружина тормозила на склоне; руки не держали нос — интеграл ground.pitch_hold_ti_s 0,5 с, оценка); training 11,7 м на 15° в штиль с небольшой отдачей, 6,1 м при встречном 2,5; пункты 2–4 пилота модель даёт сама — тесты"}
 {"t": "2026-10-11T16:32:41", "by": "coordinator", "task": "PD-28", "ev": "merged", "commits": ["11b6b920"]}
 {"t": "2026-10-11T16:33:19", "by": "coordinator", "task": "PD-31", "ev": "created", "note": "Тестовая сборка 4 «Маятник» (посадка, разбег): Linux + Windows в build/pendulum_test4"}
+{"t": "2026-10-11T16:33:22", "by": "coordinator", "task": "PD-31", "ev": "started", "note": "dp-mechanic"}
+{"t": "2026-10-11T16:35:03", "by": "coordinator", "task": "PD-28", "ev": "accepted", "commits": ["9571c9b9"], "note": "3/3 pendulum=ok:94/94; test_landing=ok:11/11; test_wings=ok:4/4"}
+{"t": "2026-10-11T16:36:36", "by": "coordinator", "task": "PD-30", "ev": "accepted", "commits": ["9571c9b9"], "note": "3/3 pendulum=ok:94/94; test_landing=ok:11/11; test_wings=ok:4/4"}
+{"t": "2026-10-11T16:36:49", "by": "coordinator", "task": "PD-31", "ev": "accepted", "note": "4/4 linux_exe=ok:ok; windows_exe=ok:ok; mode_pendulum=ok:pendulum\", \"roll_control_mode…; smoke_linux=ok:smoke ok"}
+{"t": "2026-10-11T16:36:50", "by": "coordinator", "task": "PD-31", "ev": "note", "note": "сборка 4: build/pendulum_test4/{linux,windows} от feature/pendulum (после волны 4 и слияния main с 1.5.4), маятник по умолчанию в конфиге сборки, smoke ok"}
