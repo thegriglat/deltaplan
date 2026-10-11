@@ -35,7 +35,7 @@ git -C <копия модуля> worktree add ~/deltaplan-<модуль>-<зад
   --check <имя> "<команда>" "<exit=0 | re:… | num:(…) <=X>"
 ```
 (копия и ветка по умолчанию — `~/deltaplan-<модуль>-<ID>`, `<модуль>/<ID>`; длинное — `--from card.json` или правкой JSON карточки.)
-Задание исполнителю = вывод `/home/greg/deltaplan/tools/dp task show <ID>` + особенности задачи текстом (GPU-замок, большие данные — где лежат, скриншоты — в `/home/greg/deltaplan/build/screenshots/<задача>/`). Исполнителю: перед отчётом — пробный прогон проверок `dp accept <ID> --dry` (без события в журнале); полное задание одним куском — `dp task show <ID> --full`. Задачи нумеруются `<КОД>-<n>` (`dp task new <модуль>` без ID — следующий номер). Отчёт исполнитель сдаёт `/home/greg/deltaplan/tools/dp report <ID>` и коротко текстом, в конце — `dp_feedback`.
+Задание исполнителю = вывод `/home/greg/deltaplan/tools/dp task show <ID>` + особенности задачи текстом (GPU-замок, большие данные — где лежат, скриншоты не заказывать — визуал проверяется тестовой сборкой Linux; если пользователь просит скриншоты — в `/home/greg/deltaplan/build/screenshots/<задача>/`). Исполнителю: перед отчётом — пробный прогон проверок `dp accept <ID> --dry` (без события в журнале); полное задание одним куском — `dp task show <ID> --full`. Задачи нумеруются `<КОД>-<n>` (`dp task new <модуль>` без ID — следующий номер). Отчёт исполнитель сдаёт `/home/greg/deltaplan/tools/dp report <ID>` и коротко текстом, в конце — `dp_feedback`.
 
 ## 5. Журнал
 `/home/greg/deltaplan/tools/dp event <ID> started --note "<тип>, <копия>"`; карточку и события коммитит координатор: `git add docs/plan/<модуль> && git commit -m "…" -- docs/plan/<модуль>`.
