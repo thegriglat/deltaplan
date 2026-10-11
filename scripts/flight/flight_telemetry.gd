@@ -40,11 +40,13 @@ static func fill(m, air_fn: Callable, ground_fn: Callable) -> void:
 		t.pilot_position = m.pilot_position
 		t.pilot_velocity = m.pilot_velocity
 		t.pilot_basis = m.pilot_basis
+		t.pilot_shift = m.pilot_shift
 	else:
 		# FlightModel: пилот — одна материальная точка с крылом
 		t.pilot_position = m.position
 		t.pilot_velocity = m.velocity
 		t.pilot_basis = t.basis
+		t.pilot_shift = m.last_shift
 	if "load_factor" in t:
 		t.set("load_factor", m.load.load_factor)
 	if "flare_amount" in t:

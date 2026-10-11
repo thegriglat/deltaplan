@@ -71,7 +71,8 @@ func step(
 	var walk := 0.0 if running else clampf(input.walk, -1.0, 1.0)
 	phase = "running" if running else ("walking" if absf(walk) > 0.01 else "standing")
 
-	_turn(m, dt, input, running)
+	var wind := FlightModel.sample_air(air_fn, m.position + UP * float(to.wing_height_m))
+	_turn(m, dt, input, running, m.velocity - wind)
 	var fwd := m.heading_dir()
 	var d := float(to.slope_sample_m)
 	var slope_tan := 0.0
@@ -79,10 +80,9 @@ func step(
 		var ahead := m.position + fwd * d
 		slope_tan = (FlightModel.ground_height(ground_fn, ahead.x, ahead.z) - gh) / d
 	var dir3 := (fwd + UP * slope_tan).normalized()
-	var wind := FlightModel.sample_air(air_fn, m.position + UP * float(to.wing_height_m))
 
 	var v_air := dir3 * _speed - wind
-	var aero := _aero_force(m, dt, input, v_air, dir3)
+	var aero := _aero_force(m, dt, input, v_air, dir3, running)
 	var weight := m.mass * Units.G
 	feet_load = clampf(1.0 - aero.y / weight, 0.0, 1.0)
 	_ground_bank(m, dt, v_air, air_fn)
@@ -106,11 +106,17 @@ func step(
 ## ±N/W·a_max), |a| ≤ a_max, ω = a/v. Пока ноги нагружены, курс — от φ_зад, крен от ветра ноги
 ## перебарывают; к отрыву (N → 0) — от крена крыла, g·sinφ/v, как вираж в воздухе. На малой
 ## скорости угловая скорость не больше, чем при повороте на месте. input.turn на бегу не нужен.
-func _turn(m: FlightModel, dt: float, input: ControlInput, running: bool) -> void:
+## Стоя и шагом без input.turn — флюгер (FB-3, weathervane_rate): крыло само встаёт против ветра.
+## v_air — скорость пилота относительно воздуха у крыла (прошлого шага), м/с.
+func _turn(m: FlightModel, dt: float, input: ControlInput, running: bool, v_air: Vector3) -> void:
 	_bank_cmd = bank_command(m, input)  # для _ground_bank этого же шага
 	var w_walk := Units.deg(float(m.pilot.walk.turn_rate_dps))
 	if not running:
-		_yaw_rate = clampf(input.turn, -1.0, 1.0) * w_walk
+		var turn := clampf(input.turn, -1.0, 1.0)
+		if absf(turn) > 0.01:
+			_yaw_rate = turn * w_walk
+		else:
+			_yaw_rate = weathervane_rate(m, dt, v_air, _yaw_rate)
 	else:
 		var f := clampf(feet_load, 0.0, 1.0)
 		var a_max := float(m.pilot.run.turn_accel_max_ms2)
@@ -123,13 +129,45 @@ func _turn(m: FlightModel, dt: float, input: ControlInput, running: bool) -> voi
 	m.heading += _yaw_rate * dt
 
 
+## Момент инерции крыла по рысканию, кг·м²: конструкция по размаху как стержень (та же доля
+## ground_bank.span_mass_fraction, что в roll_inertia; присоединённой массы при повороте в своей
+## плоскости нет, киль и пилот у оси — без вклада).
+static func yaw_inertia(m: FlightModel) -> float:
+	var gb: Dictionary = m.flight.ground_bank
+	return float(gb.span_mass_fraction) * float(m.wing.wing_mass_kg) * m.span * m.span / 12.0
+
+
+## Флюгер на земле (FB-3, flight.json → ground_yaw): пилот не держит курс, крыло разворачивается
+## носом против ветра. I_z·ψ̈ = −K·sin β − D·ψ̇; K = ½ρV²·S·b·Cnβ (V — горизонтальная воздушная
+## скорость), D = 2√(K·I_z) — ноги пилота гасят разворот без раскачки (критическое
+## демпфирование); |ψ̇| ≤ pilot.walk.turn_rate_dps (быстрее не переступить). β — угол между килем
+## и горизонтальным потоком; попутный ветер (β = 180°) — неустойчивое равновесие. Штиль (V ниже
+## min_airspeed_ms) — крыло стоит. → новая угловая скорость курса, рад/с (+ вправо).
+static func weathervane_rate(m: FlightModel, dt: float, v_air: Vector3, rate: float) -> float:
+	var vh := Vector2(v_air.x, v_air.z)
+	var v := vh.length()
+	var k := 0.5 * m.rho * v * v * m.area * m.span * float(m.flight.ground_yaw.cn_beta)
+	if v <= float(m.flight.min_airspeed_ms) or k <= 0.0:
+		return 0.0  # штиль или флюгер выключен (cn_beta = 0): курс стоит
+	var inertia := yaw_inertia(m)
+	var target := atan2(v_air.x, -v_air.z)
+	var beta := wrapf(m.heading - target, -PI, PI)
+	var acc := (-k * sin(beta) - 2.0 * sqrt(k * inertia) * rate) / inertia
+	var w_walk := Units.deg(float(m.pilot.walk.turn_rate_dps))
+	return clampf(rate + acc * dt, -w_walk, w_walk)
+
+
 ## Аэродинамическая сила на крыло в руках пилота. dir3 — направление бега вдоль склона по курсу.
 ## Трапеция задаёт угол атаки — угол киля к набегающему потоку; пока потока нет (штиль, стоит),
 ## опорное направление — вдоль склона по курсу (поток, который встретит крыло на разбеге), а не
 ## горизонт: иначе стоя на склоне 20° нос задран на 20° выше, чем на первом шаге, и задние концы
 ## консолей уходят в склон (docs/guide/flight.md → «Поза крыла на земле»).
+## Стоя и шагом (FB-3) — киль к горизонту на takeoff.stand_pitch_deg (+ трапеция ·
+## takeoff.stand_pitch_range_deg): пилот держит крыло у плеч и не ловит угол порывов; угол атаки — от
+## потока, каким он есть. На разбеге (running) — угол атаки к потоку, как раньше; переход — с
+## тем же запаздыванием tau_pitch.
 func _aero_force(
-	m: FlightModel, dt: float, input: ControlInput, v_air: Vector3, dir3: Vector3
+	m: FlightModel, dt: float, input: ControlInput, v_air: Vector3, dir3: Vector3, running: bool
 ) -> Vector3:
 	var v := v_air.length()
 	var min_v := float(m.flight.min_airspeed_ms)
@@ -145,6 +183,11 @@ func _aero_force(
 		float(la.alpha_neutral_deg) + clampf(input.pitch, -1.0, 1.0) * float(la.alpha_range_deg)
 	)
 	var theta_target := gamma + Units.deg(nose)
+	if not running:
+		theta_target = Units.deg(
+			float(m.flight.takeoff.stand_pitch_deg)
+			+ clampf(input.pitch, -1.0, 1.0) * float(m.flight.takeoff.stand_pitch_range_deg)
+		)
 	if _fresh:
 		# FlightModel.reset_on_ground не знает склона — на первом шаге сразу поза стоя,
 		# без переходного наклона от горизонта
@@ -279,18 +322,46 @@ func _move(
 ## или ниже — крыло опрокинуто. Консоль, которая не опущена креном (ровное крыло поперёк склона:
 ## верхняя консоль лежит на склоне), — касание без опрокидывания, не срыв.
 ## true — взлёт сорван (failure заполнен).
+## До начала перехода в лётное положение (FB-К2: m.flight_position_started == false) касание
+## консолью — не срыв: земля держит консоль (крен не глубже касания), пилот продолжает.
 func _check_failures(m: FlightModel, ground_fn: Callable) -> bool:
 	if not ground_fn.is_valid() or m.bank == 0.0:
 		return false
-	var side := signf(m.bank)  # + крен вправо: опущена правая консоль
+	if _tip_depth(m, ground_fn, m.bank) < 0.0:
+		return false
+	if not m.flight_position_started:
+		_hold_tip(m, ground_fn)
+		return false
+	failure = "wingtip"
+	_speed = 0.0
+	return true
+
+
+## Высота земли над концом опущенной креном bank консоли, м (≥ 0 — консоль на земле или ниже).
+func _tip_depth(m: FlightModel, ground_fn: Callable, bank: float) -> float:
+	var side := signf(bank)  # + крен вправо: опущена правая консоль
 	var half := 0.5 * m.span
 	var tip := (
 		m.position
-		+ UP * (float(m.flight.takeoff.wing_height_m) - half * absf(sin(m.bank)))
-		+ m.right_dir() * (side * half * cos(m.bank))
+		+ UP * (float(m.flight.takeoff.wing_height_m) - half * absf(sin(bank)))
+		+ m.right_dir() * (side * half * cos(bank))
 	)
-	if tip.y <= FlightModel.ground_height(ground_fn, tip.x, tip.z):
-		failure = "wingtip"
-		_speed = 0.0
-		return true
-	return false
+	return FlightModel.ground_height(ground_fn, tip.x, tip.z) - tip.y
+
+
+## Консоль на земле до перехода в лётное положение: крен — до касания (поиск делением пополам
+## между горизонтом и текущим креном), угловая скорость в землю гасится — земля держит консоль.
+func _hold_tip(m: FlightModel, ground_fn: Callable) -> void:
+	var lo := 0.0
+	var hi := m.bank
+	if _tip_depth(m, ground_fn, lo) >= 0.0:
+		return  # ровное крыло поперёк склона: верхняя консоль лежит на склоне — крен не поможет
+	for i in 12:
+		var mid := 0.5 * (lo + hi)
+		if _tip_depth(m, ground_fn, mid) >= 0.0:
+			hi = mid
+		else:
+			lo = mid
+	m.bank = lo
+	if m.roll_rate * signf(m.bank) > 0.0:
+		m.roll_rate = 0.0

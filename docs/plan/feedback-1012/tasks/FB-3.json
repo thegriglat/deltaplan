@@ -1,0 +1,78 @@
+{
+  "id": "FB-3",
+  "module": "feedback-1012",
+  "type": "dp-engineer",
+  "title": "Крыло на земле: без раскачки по тангажу, начальная поза у горизонта",
+  "goal": "Стоя на старте крыло не колбасит, держится около горизонта (нос чуть вверх) и само встаёт против ветра — в обоих режимах управления.",
+  "plan_ref": "FB-3 Крыло на земле",
+  "contracts": [
+    {
+      "name": "FB-К2",
+      "version": "1",
+      "ref": "docs/contracts/feedback-1012.md"
+    }
+  ],
+  "copy": "~/deltaplan-feedback-1012-FB-3",
+  "branch": "feedback-1012/FB-3",
+  "base": "feature/feedback-1012",
+  "scope": [
+    "scripts/flight/ground_run.gd",
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/pendulum/",
+    "scripts/game/input_controller.gd",
+    "scripts/game/flight_stats.gd",
+    "scripts/game/game.gd",
+    "scripts/game/collision_check.gd",
+    "configs/flight.json",
+    "configs/pilot.json",
+    "configs/game.json",
+    "tests/flight/",
+    "tests/game/",
+    "docs/guide/"
+  ],
+  "dont_touch": [
+    "scripts/motion_rig/",
+    "scripts/game/start_placement.gd",
+    "scripts/core/telemetry.gd",
+    "scripts/ui/"
+  ],
+  "accept": [
+    {
+      "name": "tests/flight",
+      "tests": "tests/flight"
+    },
+    {
+      "name": "pendulum_ground",
+      "tests": "pendulum_ground"
+    },
+    {
+      "name": "ground",
+      "tests": "ground"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "test_flight_stats",
+      "tests": "test_flight_stats"
+    },
+    {
+      "name": "feedback_1012",
+      "tests": "feedback_1012"
+    },
+    {
+      "name": "test_e2e",
+      "tests": "test_e2e"
+    },
+    {
+      "name": "test_input_launch",
+      "tests": "test_input_launch"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T00:40:24",
+  "edited": "2026-10-12T01:15:26"
+}

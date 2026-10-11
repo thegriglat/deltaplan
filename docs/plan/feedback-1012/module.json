@@ -1,0 +1,9 @@
+{
+  "module": "feedback-1012",
+  "plan": "docs/plan/feedback-1012.md",
+  "contracts": "docs/contracts/feedback-1012.md",
+  "branch": "feature/feedback-1012",
+  "copy": "~/deltaplan-feedback-1012",
+  "created": "2026-10-12T00:37:20",
+  "code": "FB"
+}

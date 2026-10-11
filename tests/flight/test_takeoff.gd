@@ -73,9 +73,12 @@ func test_tailwind_no_liftoff() -> void:
 func test_crosswind_fails() -> void:
 	# сильный ветер под 45° к курсу, пилот стоит лицом не в ветер: момент от скольжения
 	# (∝ встречная × боковая) больше предела «руки пилота» — крыло опрокидывает и стоя
-	var m := Sim.make("sport")
+	# FB-3: пилот держит курс (флюгер выключен), касание консолью — срыв после начала перехода (FB-К2)
+	var m := Sim.make("sport", 0.0, {"ground_yaw": {"cn_beta": 0.0}})
 	m.reset_on_ground(Vector3.ZERO, 0.0)
-	Sim.run_for(m, 10.0, Sim.input(), wind_fn(Vector3(4.24, 0, 4.24)), slope)
+	m.start_flight_position()
+	# нос на угле разбега (как стоял до FB-3: стоя теперь 5,5° к горизонту, Cl и момент скольжения меньше)
+	Sim.run_for(m, 10.0, Sim.input(_launch_nose(m)), wind_fn(Vector3(4.24, 0, 4.24)), slope)
 	check(
 		m.mode == FlightModel.Mode.FAILED and m.takeoff_failure == "wingtip",
 		"сильный ветер под 45° валит крыло: " + m.takeoff_failure
@@ -128,12 +131,21 @@ func test_stop_running_stands() -> void:
 	)
 
 
+## Трапеция стоя, при которой киль на launch.alpha_neutral_deg к горизонту (FB-3).
+static func _launch_nose(m: FlightModel) -> float:
+	var to: Dictionary = m.flight.takeoff
+	return (float(m.wing.launch.alpha_neutral_deg) - float(to.stand_pitch_deg)) / float(to.stand_pitch_range_deg)
+
+
 func test_failure_signal() -> void:
-	var m := Sim.make("sport")
+	# FB-3: пилот держит курс (флюгер выключен), касание консолью — срыв после начала перехода (FB-К2)
+	var m := Sim.make("sport", 0.0, {"ground_yaw": {"cn_beta": 0.0}})
 	m.reset_on_ground(Vector3.ZERO, 0.0)
+	m.start_flight_position()
 	var got := []
 	m.takeoff_failed.connect(func(reason: String) -> void: got.append(reason))
-	Sim.run_for(m, 10.0, Sim.input(), wind_fn(Vector3(4.24, 0, 4.24)), slope)
+	# нос на угле разбега (как стоял до FB-3: стоя теперь 5,5° к горизонту, Cl и момент скольжения меньше)
+	Sim.run_for(m, 10.0, Sim.input(_launch_nose(m)), wind_fn(Vector3(4.24, 0, 4.24)), slope)
 	check(got == ["wingtip"], "сигнал takeoff_failed: " + str(got))
 
 

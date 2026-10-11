@@ -1,0 +1,64 @@
+{
+  "id": "FB-1",
+  "module": "feedback-1012",
+  "type": "dp-engineer",
+  "title": "Индикатор смещения пилота на HUD",
+  "goal": "Пилот видит, куда смещён его вес относительно подвески (толкаю/тяну/крен) — особенно от первого лица.",
+  "plan_ref": "FB-1 Индикатор смещения пилота (HUD)",
+  "contracts": [
+    {
+      "name": "FB-К1",
+      "version": "1",
+      "ref": "docs/contracts/feedback-1012.md"
+    }
+  ],
+  "copy": "~/deltaplan-feedback-1012-FB-1",
+  "branch": "feedback-1012/FB-1",
+  "base": "feature/feedback-1012",
+  "scope": [
+    "scripts/core/telemetry.gd",
+    "scripts/flight/flight_telemetry.gd",
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "scripts/ui/",
+    "scripts/instruments/",
+    "scripts/game/game.gd",
+    "scripts/game/user_settings.gd",
+    "configs/",
+    "locale/ui.csv",
+    "tests/",
+    "scenes/"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum/pendulum_ground.gd",
+    "scripts/flight/ground_run.gd",
+    "scripts/game/start_placement.gd",
+    "scripts/motion_rig/"
+  ],
+  "accept": [
+    {
+      "name": "feedback_1012",
+      "tests": "feedback_1012"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    },
+    {
+      "name": "telemetry",
+      "tests": "telemetry"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T00:40:24"
+}

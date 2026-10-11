@@ -53,6 +53,14 @@ var walk_max_slope: float = 1.0
 var walk_min_factor: float = 0.15
 var alpha_neutral: float = deg_to_rad(14.0)
 var alpha_range: float = deg_to_rad(18.0)
+## FB-3: стоя и шагом киль к горизонту на этот угол (flight.json → takeoff.stand_pitch_deg), рад.
+var stand_pitch: float = deg_to_rad(5.5)
+var stand_range: float = deg_to_rad(10.0)  ## ход трапеции стоя (takeoff.stand_pitch_range_deg), рад
+## FB-3: флюгер стоя — Cnβ (flight.json → ground_yaw.cn_beta), площадь и размах крыла, плотность.
+var cn_beta: float = 0.04
+var area: float = 14.0
+var span: float = 10.0
+var rho: float = 1.225
 var m_total: float = 100.0
 
 ## Хват за стойки в осях крыла B (около ЦМ крыла).
@@ -75,6 +83,9 @@ var running := false
 var phase: String = "standing"
 var decel: float = 4.0  ## торможение точки опоры (стоя/шагом — stop_decel; после посадки — runout)
 var flow_gamma: float = 0.0  ## наклон набегающего потока к горизонту (+ — снизу вверх), рад
+var flow_h: float = 0.0  ## горизонтальная воздушная скорость пилота (set_flow), м/с
+## FB-3: стоя и шагом без поворота руки курс не держат — крыло встаёт против ветра (флюгер).
+var yaw_free := false
 var min_airspeed: float = 0.5
 var _th_int: float = 0.0  ## интегральная часть момента рук по тангажу, Н·м
 var yaw_k: float = 0.0  ## жёсткость удержания курса, Н·м/рад
@@ -127,6 +138,11 @@ func setup(
 	var la: Dictionary = wing.launch
 	alpha_neutral = deg_to_rad(float(la.alpha_neutral_deg))
 	alpha_range = deg_to_rad(float(la.alpha_range_deg))
+	stand_pitch = deg_to_rad(float(flight.takeoff.stand_pitch_deg))
+	stand_range = deg_to_rad(float(flight.takeoff.stand_pitch_range_deg))
+	cn_beta = float(flight.ground_yaw.cn_beta)
+	area = float(wing.area_m2)
+	span = float(wing.span_m)
 	m_total = m_pilot + m_wing
 	decel = stop_decel
 	min_airspeed = float(flight.min_airspeed_ms)
@@ -153,6 +169,11 @@ func reset(heading: float, pilot_local: Vector3) -> void:
 	decel = stop_decel
 	_th_int = 0.0
 	_ps_int = 0.0
+
+
+## FB-3: интеграл удержания носа — сразу статический момент m, Н·м (пилот уже держит крыло).
+func preload_pitch(m: float) -> void:
+	_th_int = clampf(m, -pitch_max, pitch_max) if pitch_ti > 0.0 else 0.0
 
 
 ## Плоскость земли: в локальной точке (px, py) земля на «глубине» z (NED, вниз), уклоны —
@@ -194,6 +215,7 @@ func set_flow(v_air: Vector3) -> void:
 	var u := v_air + dir3 * maxf(min_airspeed - v_air.length(), 0.0)
 	u = u.normalized() if u.length() > 1.0e-3 else dir3
 	flow_gamma = asin(clampf(-u.z, -1.0, 1.0))
+	flow_h = Vector2(v_air.x, v_air.y).length()
 
 
 ## Перед шагом: фаза, курс бега. input — ControlInput; v_pilot — скорость пилота (NED);
@@ -203,6 +225,7 @@ func begin_step(dt: float, input: ControlInput, v_pilot: Vector3, free: bool) ->
 	running = input.run and not free
 	var walk := 0.0 if running or free else clampf(input.walk, -1.0, 1.0)
 	phase = "running" if running else ("walking" if absf(walk) > 0.01 else "standing")
+	yaw_free = not running and (free or absf(input.turn) <= 0.01)
 	var f := fwd()
 	var v_f := v_pilot.x * f.x + v_pilot.y * f.y
 	if was_running and not running:
@@ -290,7 +313,9 @@ func torque_b(R: Basis, wb: Vector3, I: Basis, pitch: float, roll: float, h: flo
 	var th := -asin(clampf(R.x.z, -1.0, 1.0))
 	var ph := atan2(R.y.z, R.z.z)
 	var ps := atan2(R.x.y, R.x.x)
-	var th_cmd := flow_gamma + alpha_neutral + clampf(pitch, -1.0, 1.0) * alpha_range
+	# FB-3: стоя и шагом — киль к горизонту (stand_pitch), на разбеге — угол атаки к потоку
+	var p := clampf(pitch, -1.0, 1.0)
+	var th_cmd := flow_gamma + alpha_neutral + p * alpha_range if running else stand_pitch + p * stand_range
 	var ph_cmd := clampf(roll, -1.0, 1.0) * roll_cmd_max
 	if pitch_ti > 0.0 and h > 0.0:
 		_th_int = clampf(_th_int + pitch_k / pitch_ti * (th_cmd - th) * h, -pitch_max, pitch_max)
@@ -308,6 +333,15 @@ func torque_b(R: Basis, wb: Vector3, I: Basis, pitch: float, roll: float, h: flo
 	if yaw_ti > 0.0 and h > 0.0:
 		_ps_int = clampf(_ps_int + yaw_k / yaw_ti * e_ps * h, -lim_ps, lim_ps)
 	var m_ps := yaw_k * e_ps + _ps_int - 2.0 * sqrt(yaw_k * I.z.z) * wb.z
+	if yaw_free and flow_h > min_airspeed and cn_beta > 0.0:
+		# FB-3, флюгер (как GroundRun.weathervane_rate): руки курс не держат, крыло само встаёт
+		# против ветра моментом полос и киля; ноги гасят разворот — D = 2√(K·I_z),
+		# K = ½ρV²·S·b·Cnβ. Курс бега (корпус) идёт за крылом. В штиль (и при cn_beta = 0 —
+		# флюгер выключен, тесты удержания) — держат, как раньше.
+		heading_cmd = ps
+		_ps_int = 0.0
+		var k_wv := 0.5 * rho * flow_h * flow_h * area * span * cn_beta
+		m_ps = -2.0 * sqrt(k_wv * I.z.z) * wb.z
 	var lim := roll_max * feet_load
 	yaw_moment = clampf(m_ps, -lim_ps, lim_ps)
 	return Vector3(clampf(m_ph, -lim, lim), clampf(m_th, -pitch_max, pitch_max), yaw_moment)
