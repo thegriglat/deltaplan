@@ -208,3 +208,5 @@
 {"t": "2026-10-11T10:31:35", "by": "coordinator", "task": "PD-1", "ev": "accepted", "commits": ["de724ef1"], "note": "6/6 pendulum_contracts_k2=ok:8/8; test_wings=ok:4/4; wing_physics_contracts=ok:5/5; params_check=ok:exit 0; wings_only_added=ok:0; wings_count=ok:48"}
 {"t": "2026-10-11T10:31:55", "by": "coordinator", "task": null, "ev": "note", "note": "Сборка 3 (build/pendulum_test3, de724ef1): PD-24 боковой канал по данным, PD-22 срыв/сваливание/штопор, PD-25 автопилот, PD-20 ленточки, PD-9 docs; все проверки задач на ветке модуля зелёные (pd-verify4). Ждём: отзыв пилота и одобрение слияния в main"}
 {"t": "2026-10-11T15:10:56", "by": "coordinator", "task": "PD-27", "ev": "created", "note": "Посадка маятника: правильная посадка мягкая на всех классах"}
+{"t": "2026-10-11T15:10:59", "by": "coordinator", "task": "PD-27", "ev": "started", "note": "dp-engineer opus, ~/deltaplan-pendulum-PD-27"}
+{"t": "2026-10-11T15:11:25", "by": "coordinator", "task": "PD-28", "ev": "created", "note": "Разбег и старт маятника: отрыв ≤ 10–12 м, ручка от себя на разбеге, боковой ветер"}
