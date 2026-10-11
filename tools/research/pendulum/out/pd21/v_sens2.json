@@ -1,0 +1,5 @@
+[{"name":"cn035","over":{"cn_beta":0.035}},
+ {"name":"cn035_np+08","over":{"cn_beta":0.035,"cnp_add":0.08}},
+ {"name":"cn035_np+15","over":{"cn_beta":0.035,"cnp_add":0.15}},
+ {"name":"cn035_V8","over":{"cn_beta":0.035},"over_deg":{"dihedral":8},"wings":["training"]},
+ {"name":"cn02","over":{"cn_beta":0.02},"wings":["training"]}]

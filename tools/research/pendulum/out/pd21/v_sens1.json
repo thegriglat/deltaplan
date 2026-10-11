@@ -1,0 +1,5 @@
+[{"name":"base","over":{}},
+ {"name":"cn04","over":{"cn_beta":0.04}},
+ {"name":"cn04_l1.0","over":{"cn_beta":0.04,"fin_arm":1.0}},
+ {"name":"cn04_l2.2","over":{"cn_beta":0.04,"fin_arm":2.2}},
+ {"name":"cn10","over":{"cn_beta":0.10}}]
