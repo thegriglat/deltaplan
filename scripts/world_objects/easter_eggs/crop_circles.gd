@@ -75,7 +75,7 @@ func begin(ctx: EggContext, cfg: Dictionary, _rng: RandomNumberGenerator, _t0: f
 	_mat_base.set_shader_parameter("fade_start_m", fv * float(cfg.get("fade_start", 0.7)))
 	_mat_base.set_shader_parameter("fade_end_m", fv)
 	_mat_base.set_shader_parameter("strength", float(cfg.get("strength", 1.0)))
-	var tn: Array = cfg.get("tint", [1.2, 1.22, 1.18])
+	var tn: Array = cfg.get("tint", [1.4, 1.42, 1.36])
 	_mat_base.set_shader_parameter("tint", Vector3(float(tn[0]), float(tn[1]), float(tn[2])))
 	var vs: Array = cfg.get("view_sin", [0.08, 0.5])
 	_mat_base.set_shader_parameter("view_sin", Vector2(float(vs[0]), float(vs[1])))
