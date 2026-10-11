@@ -5,7 +5,7 @@ module: pendulum
 updated: 2026-10-11
 summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4), поза пилота в визуале и у чужих (PD-К5)."
 related: ["docs/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 3}, {"id": "PD-К2", "version": 5}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}]
+contracts: [{"id": "PD-К1", "version": 3}, {"id": "PD-К2", "version": 6}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}]
 ---
 # Контракты модуля pendulum
 
@@ -64,7 +64,8 @@ v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы н
 
 Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel` (как сейчас); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
 
-## PD-К2. Конфиг маятника и блок pendulum в крыльях (v5)
+## PD-К2. Конфиг маятника и блок pendulum в крыльях (v6)
+v6 (11.10, PD-22): срыв полос — `strips.stall_model` ("viterna" | "plate"), `strips.stall_cd90_base` (1,11), `strips.stall_cd90_per_ar` (0,018), `strips.stall_criterion` ("streamwise" | "normal"), `strips.stall_cp_blend_deg` (20); `contract` — `"PD-К2 v6"`.
 v5 (11.10, PD-24): `flex_relief` (урезание разницы нагрузок консолей) удалён; гибкость паруса — управление: крутка конца = `billow_shift_deg` (40°) × `sail_flex` × (сила рук вбок / вес пилота) (Kroo 1981); `sail_flex` — 1 самый гибкий; классы — новые `apparatus_defaults`.
 v4 (11.10, PD-21/23): + `yaw.cn_p_add`, `yaw.cn_r_add` — добавочные производные рыскания по pb/2V и rb/2V (приведение Cnp, Cnr полос к литературе, docs/research/pendulum-yaw-literature.md); `contract` — `"PD-К2 v4"` (блоки крыльев — v3 без изменений, если не пересчитываются).
 v3 (11.10, ответы пилота): + `apparatus_defaults` в блоке крыла — умолчания «Аппарата» по классу крыла (офлайн-скрипт); `contract` блока — `"PD-К2 v3"`.
