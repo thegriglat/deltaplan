@@ -5,7 +5,7 @@ module: pendulum
 updated: 2026-10-11
 summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4), поза пилота в визуале и у чужих (PD-К5)."
 related: ["docs/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 3}, {"id": "PD-К2", "version": 6}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}]
+contracts: [{"id": "PD-К1", "version": 4}, {"id": "PD-К2", "version": 7}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}]
 ---
 # Контракты модуля pendulum
 
@@ -15,7 +15,8 @@ contracts: [{"id": "PD-К1", "version": 3}, {"id": "PD-К2", "version": 6}, {"id
 
 Не меняются: CB-К1/К2 (control-bar), MR-К1 v1 (motion-rig — маятник только заполняет `pilot_*`), `ControlInput`, `FlightModel`, `GroundRun`, `LandingFlare`, `LandingJudge` (пороги), боты.
 
-## PD-К1. Поверхность модели полёта «Маятник» (v3)
+## PD-К1. Поверхность модели полёта «Маятник» (v4)
+v4 (11.10, PD-35): касание маятника — `PendulumTouchdown` (обёртка над `LandingJudge`, сам он не меняется): вертикальная/крен/авария — пороги `LandingJudge`; горизонтальная ≤ `touchdown.stand_max_ms` — «встал на ноги», ≤ `touchdown.run_max_ms` — «пробежал N шагов», выше — жёстко; в `result` + `touchdown`, `runout_m`, `steps`; `contact` + `"bar"` (трапеция — жёстко), `"tail"` (крыло за вертикалью — авария).
 v3 (11.10, PD-12): пропуски `apparatus` в `setup` — сначала умолчания крыла (`wing.pendulum.apparatus_defaults`, PD-К2 v3), потом общие.
 v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы на земле, взлёт и посадка из сил; `run`/`walk`/`turn` читаются; `flare_amount` — по выравниванию у земли; принудительный старт в воздухе в режиме «Маятник» (`Glider`, `Game`) убирается.
 Владелец — PD-2 (ядро), PD-3 (земля, v2); потребители — PD-4 (`Glider`, телеметрия, автопилот), PD-6 (визуал, камера), PD-7 (сеть), PD-8.
@@ -64,7 +65,8 @@ v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы н
 
 Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel` (как сейчас); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
 
-## PD-К2. Конфиг маятника и блок pendulum в крыльях (v6)
+## PD-К2. Конфиг маятника и блок pendulum в крыльях (v7)
+v7 (11.10, PD-35): убран `arms.flare_shift_x_push_m` (ход у земли — из `arms.flare_reach`); + `strips.stall_cd90_sweep_norm`, `strips.sweep_alpha_exact`, `strips.stall_cp_reverse`, `touchdown {run_max_ms, stand_max_ms, step_period_s}`; `contract` — `"PD-К2 v7"`.
 v6 (11.10, PD-22): срыв полос — `strips.stall_model` ("viterna" | "plate"), `strips.stall_cd90_base` (1,11), `strips.stall_cd90_per_ar` (0,018), `strips.stall_criterion` ("streamwise" | "normal"), `strips.stall_cp_blend_deg` (20); `contract` — `"PD-К2 v6"`.
 v5 (11.10, PD-24): `flex_relief` (урезание разницы нагрузок консолей) удалён; гибкость паруса — управление: крутка конца = `billow_shift_deg` (40°) × `sail_flex` × (сила рук вбок / вес пилота) (Kroo 1981); `sail_flex` — 1 самый гибкий; классы — новые `apparatus_defaults`.
 v4 (11.10, PD-21/23): + `yaw.cn_p_add`, `yaw.cn_r_add` — добавочные производные рыскания по pb/2V и rb/2V (приведение Cnp, Cnr полос к литературе, docs/research/pendulum-yaw-literature.md); `contract` — `"PD-К2 v4"` (блоки крыльев — v3 без изменений, если не пересчитываются).
