@@ -2,6 +2,7 @@ extends TestCase
 ## Логика интеграции без сцены: старт на склоне, статистика, опции запуска,
 ## выбор меню, пользовательские настройки, заглушка воздуха, атрибуция, экран итога.
 
+const _FS := preload("res://tests/flight/flight_sim.gd")
 const TMP_DIR := "user://test_game_tmp"
 
 
@@ -16,7 +17,7 @@ func _plane_east(deg: float) -> Callable:
 
 
 func test_start_placement_downhill_heading() -> void:
-	var r := StartPlacement.find_launch(_plane_east(20.0), 0.0, 0.0, _slope_cfg())
+	var r := StartPlacement.evaluate(_plane_east(20.0), 0.0, 0.0, _slope_cfg())
 	check(r.ok, "склон 20° пригоден")
 	approx(float(r.heading_deg), 90.0, 1.0, "курс вниз по склону — на восток")
 	approx(float(r.slope_deg), 20.0, 0.5, "уклон")
@@ -26,18 +27,47 @@ func test_start_placement_downhill_heading() -> void:
 	approx(float(r2.heading_deg), 0.0, 1.0, "курс на север")
 
 
-func test_start_placement_finds_slope_nearby() -> void:
-	# Ровное плато до x = 200, дальше склон 22° на восток.
+func test_start_placement_diagonal_heading() -> void:
+	# Склон 20° вниз на юго-запад: курс 225°, независимо от точки на склоне.
+	var a := tan(deg_to_rad(20.0)) / sqrt(2.0)
+	var sw := func(x: float, z: float) -> float: return 1000.0 + a * x - a * z
+	for p in [Vector2(0, 0), Vector2(1234, -777)]:
+		var r := StartPlacement.evaluate(sw, p.x, p.y, _slope_cfg())
+		approx(float(r.heading_deg), 225.0, 2.0, "нос вниз по склону — на юго-запад")
+		approx((r.position as Vector3).x, p.x, 0.01, "старт ровно в точке")
+
+
+func test_start_placement_wing_not_touching() -> void:
+	# Нос вниз по склону: после старта с карты стоим без ввода 6 с — консоль не касается склона.
+	var a := tan(deg_to_rad(20.0)) / sqrt(2.0)
+	var cases := {
+		"восток": [_plane_east(20.0), 90.0],
+		"юго-запад": [func(x: float, z: float) -> float: return 1000.0 + a * x - a * z, 225.0],
+	}
+	for name in cases:
+		var ground: Callable = cases[name][0]
+		var r := StartPlacement.evaluate(ground, 0.0, 0.0, _slope_cfg())
+		approx(float(r.heading_deg), float(cases[name][1]), 3.0, "курс вниз по склону (%s)" % name)
+		var m := _FS.make("sport")
+		var pos: Vector3 = r.position
+		m.reset_on_ground(pos, float(r.heading_deg))
+		_FS.run_for(m, 6.0, _FS.input(), Callable(), ground)
+		check(m.takeoff_failure == "", "крыло не коснулось склона (%s): %s" % [name, m.takeoff_failure])
+		check(m.phase() == "standing", "стоит на склоне (%s): %s" % [name, m.phase()])
+
+
+func test_start_placement_stays_at_point() -> void:
+	# Ровное плато до x = 200, дальше склон 22° на восток: старт всё равно в самой точке.
 	var k := tan(deg_to_rad(22.0))
 	var f := func(x: float, _z: float) -> float: return 800.0 - k * maxf(x - 200.0, 0.0)
-	var r := StartPlacement.find_launch(f, 0.0, 0.0, _slope_cfg())
-	check(r.ok, "нашёл склон рядом с плато")
-	check((r.position as Vector3).x > 200.0, "старт на склоне, а не на плато")
-	approx(float(r.heading_deg), 90.0, 2.0, "курс вниз по склону")
+	var r := StartPlacement.evaluate(f, 0.0, 0.0, _slope_cfg())
+	check(not r.ok, "на плато склона нет")
+	approx((r.position as Vector3).x, 0.0, 0.01, "старт в самой точке, не на склоне рядом")
 	var flat := func(_x: float, _z: float) -> float: return 300.0
-	var r2 := StartPlacement.find_launch(flat, 5.0, 7.0, _slope_cfg())
-	check(not r2.ok, "на ровном месте склона нет")
+	var r2 := StartPlacement.evaluate(flat, 5.0, 7.0, _slope_cfg())
 	approx((r2.position as Vector3).x, 5.0, 0.01, "старт в самой точке")
+	approx((r2.position as Vector3).z, 7.0, 0.01, "старт в самой точке")
+	approx(float(r2.heading_deg), 0.0, 0.01, "на ровном — курс на север")
 
 
 func test_flight_stats() -> void:
