@@ -1,6 +1,6 @@
 {
 	"_doc": "Модель «Маятник» (PD-К2): общие числа честного маятника — цепь подвески, руки, полосы крыла, рысканье, голова, умолчания настроек «Аппарат». Значения — tools/research/pendulum/pendulum/params.py (оценки EST и литература — docs/research/pendulum.md). Геометрия, ЦМ, инерция, dcm0, cd_scale каждого крыла — в configs/wings/<id>.json → pendulum (генерирует tools/flight/pendulum_params.py).",
-	"contract": "PD-К2 v5",
+	"contract": "PD-К2 v6",
 	"contract_doc": "Версия контракта PD-К2 (docs/contracts/pendulum.md); тесты — tests/contracts/test_pendulum_contracts_k2.gd, test_pendulum_contracts_k2_ground.gd (ground.* и ключи PD-14)",
 	"chain": {
 		"_doc": "Цепь подвески: пилот на звеньях от точки подвеса",

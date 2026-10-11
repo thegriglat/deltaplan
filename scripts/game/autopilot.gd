@@ -64,6 +64,7 @@ var _time: float = 0.0
 var _air_time: float = 0.0
 var _heading: float = -1.0
 var _prev_bank: float = 0.0
+var _prev_basis := Basis.IDENTITY
 var _bank_rate: float = 0.0
 var _wind_ms: float = 0.0
 var _pid_i := 0.0
@@ -77,6 +78,7 @@ func reset() -> void:
 	_wind_ms = 0.0
 	_wind_seen = false
 	_prev_bank = 0.0
+	_prev_basis = Basis.IDENTITY
 	_bank_rate = 0.0
 	_pid_i = 0.0
 	roll_command = 0.0
@@ -94,7 +96,18 @@ func drive(t: Telemetry, dt: float) -> void:
 	_time += dt
 	_dt = dt
 	if dt > 0.0:
-		_bank_rate = lerpf(_bank_rate, (t.bank_deg - _prev_bank) / dt, 0.2)
+		if pendulum:
+			# скорость крена — угловая скорость корпуса вокруг оси вперёд (из поворота basis за шаг), как
+			# BankHold на модели: производная угла крена и фильтр lerp 0,2 отставали на ~4 шага и
+			# врали на 30 % (угол крена ≠ проекция угловой скорости), а sport в болтанке на границе
+			# устойчивости ПИД
+			var dr := _prev_basis.orthonormalized().inverse() * t.basis.orthonormalized()
+			# поворот вокруг оси Z basis (вперёд = −Z) — антисимметричная часть dr (малый угол точнее кватерниона)
+			var rz := (dr.x.y - dr.y.x) * 0.5
+			_bank_rate = rad_to_deg(-rz / dt) if _time > 1.5 * dt else 0.0  # первый шаг: prev ещё нет
+		else:
+			_bank_rate = lerpf(_bank_rate, (t.bank_deg - _prev_bank) / dt, 0.2)
+	_prev_basis = t.basis
 	_prev_bank = t.bank_deg
 	var hold_w := false
 	var nose := 0
