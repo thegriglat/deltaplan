@@ -34,6 +34,7 @@ var grip_max: float = 600.0
 var grip_down_max: float = 100.0
 var pitch_k: float = 300.0 / deg_to_rad(10.0)  ## Н·м/рад
 var pitch_max: float = 300.0
+var pitch_ti: float = 0.0  ## интеграл удержания носа, с (≤ 0 — только пружина)
 var roll_cmd_max: float = deg_to_rad(15.0)
 var roll_max: float = 200.0
 var hold_tau: float = 0.3
@@ -72,6 +73,7 @@ var phase: String = "standing"
 var decel: float = 4.0  ## торможение точки опоры (стоя/шагом — stop_decel; после посадки — runout)
 var flow_gamma: float = 0.0  ## наклон набегающего потока к горизонту (+ — снизу вверх), рад
 var min_airspeed: float = 0.5
+var _th_int: float = 0.0  ## интегральная часть момента рук по тангажу, Н·м
 
 
 func setup(
@@ -93,6 +95,7 @@ func setup(
 	grip_down_max = float(gc.grip_down_max_n)
 	pitch_k = float(gc.pitch_hold_nm_per_deg) * 180.0 / PI
 	pitch_max = float(gc.pitch_moment_max_nm)
+	pitch_ti = float(gc.get("pitch_hold_ti_s", 0.0))
 	var gb: Dictionary = flight.ground_bank
 	roll_cmd_max = deg_to_rad(float(gb.command_max_deg))
 	roll_max = float(gb.pilot_moment_max_nm)
@@ -136,6 +139,7 @@ func reset(heading: float, pilot_local: Vector3) -> void:
 	running = false
 	phase = "standing"
 	decel = stop_decel
+	_th_int = 0.0
 
 
 ## Плоскость земли: в локальной точке (px, py) земля на «глубине» z (NED, вниз), уклоны —
@@ -228,6 +232,10 @@ func legs(x: Vector3, v: Vector3, h: float) -> Vector3:
 		if fr < 0.0:
 			fr *= feet_load
 		F += f * clampf(fr, -lim, lim)  # толкают сцеплением: не больше μ·N
+		# PD-28: опора бегущего — по нормали к склону, вдоль склона только сила бега. Вертикальная
+		# опора давала ещё и N·tg θ вверх по склону — торможение ногами, равное скатывающей силе:
+		# склон разбег не ускорял. Стоя и шагом — вертикальная (сцепление покоя держит склон)
+		F += Vector3(gn, ge, 0.0) * fz
 		var v_s := v.dot(side)
 		F -= side * (signf(v_s) * minf(absf(v_s) * side_damp, lim))
 		anchor = Vector2(x.x, x.y)
@@ -261,14 +269,19 @@ func grip_force(grip: Vector3, v_grip: Vector3, x_p: Vector3, v_p: Vector3) -> V
 
 
 ## Момент рук на крыло в осях B: тангаж — нос на alpha_neutral (+ pitch·alpha_range) к потоку, крен к input.roll, курс к курсу бега.
-## R — B→NED, wb — угловая скорость в B, I — инерция (диагональ), pitch/roll — ввод.
-func torque_b(R: Basis, wb: Vector3, I: Basis, pitch: float, roll: float) -> Vector3:
+## R — B→NED, wb — угловая скорость в B, I — инерция (диагональ), pitch/roll — ввод; h — подшаг, с.
+## Тангаж (PD-28): пружина-демпфер плюс интеграл pitch_ti — пилот доводит нос до заданного угла,
+## а не уступает моменту устойчивости крыла (с одной пружиной нос отставал на 2–3°, отдача
+## давала ≈ 55 % заданного хода).
+func torque_b(R: Basis, wb: Vector3, I: Basis, pitch: float, roll: float, h: float = 0.0) -> Vector3:
 	var th := -asin(clampf(R.x.z, -1.0, 1.0))
 	var ph := atan2(R.y.z, R.z.z)
 	var ps := atan2(R.x.y, R.x.x)
 	var th_cmd := flow_gamma + alpha_neutral + clampf(pitch, -1.0, 1.0) * alpha_range
 	var ph_cmd := clampf(roll, -1.0, 1.0) * roll_cmd_max
-	var m_th := pitch_k * (th_cmd - th) - 2.0 * sqrt(pitch_k * I.y.y) * wb.y
+	if pitch_ti > 0.0 and h > 0.0:
+		_th_int = clampf(_th_int + pitch_k / pitch_ti * (th_cmd - th) * h, -pitch_max, pitch_max)
+	var m_th := pitch_k * (th_cmd - th) + _th_int - 2.0 * sqrt(pitch_k * I.y.y) * wb.y
 	var tau2 := hold_tau * hold_tau
 	var m_ph := I.x.x / tau2 * (ph_cmd - ph) - 2.0 * I.x.x / hold_tau * wb.x
 	# курс: ошибка больше 30° — корпус доворачивается за крылом (не копит)

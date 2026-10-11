@@ -35,7 +35,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from pendulum import air, trim  # noqa: E402
-from pendulum.model import Control, Ground, R_from_euler, Sim  # noqa: E402
+from pendulum.model import Control, Ground, R_from_euler, Sim, euler_from_R  # noqa: E402
 from pendulum.params import G, load_params  # noqa: E402
 from pendulum.scenarios import BankHold, first_cross, run, settle  # noqa: E402
 
@@ -294,6 +294,8 @@ class GameSim(Sim):
     1. Ноги (как PendulumGround): сила бега — сцепление, не больше μ·N (μ = 0,8 — как боковое
        трение прототипа). В Sim._legs бег толкал полной силой при любом касании — и при опоре в
        доли ньютона (в сильный ветер это держало пилота «на цыпочках» у склона, отрыва не было).
+       PD-28: на бегу опора ног — по нормали к склону (вертикальная опора тормозила бег
+       скатывающей силой m·g·sin θ: склон не ускорял разбег); стоя — как прежде (сцепление покоя).
     2. Экранный эффект полос (PD-14, configs/pendulum.json → ground_effect): индуктивный скос у
        полосы × (1 − σ), σ — Wieselsberger по высоте полосы над склоном; наклон подъёмной силы
        a₀/(1 + (1 − σ)·a₀/(π·e·λ)), индуктивное сопротивление C_L²/(π·e·λ) × (1 − σ), C_L max прежний.
@@ -482,6 +484,33 @@ class GameSim(Sim):
         self._dyn_f = None
         self._dyn_m_prev = None
 
+    def _ground_torque(self):
+        """Руки на стойках (как PendulumGround.torque_b): нос — launch_theta_deg + pitch·alpha_range
+        (wing.launch), а не ±10° прототипа. PD-28: пилот держит нос не пружиной, а доводит его
+        до заданного угла (ПИ: интеграл с постоянной ground_pitch_ti_s, ≤ 0 — без интеграла)."""
+        p = self.p
+        c = self.control
+        ps, th, ph = euler_from_R(self.R)
+        rng = float(p.extra.get("launch_alpha_range_deg", 10.0))
+        th_cmd = math.radians(float(p.extra.get("launch_theta_deg", 14.0)) + max(-1.0, min(1.0, c.pitch)) * rng)
+        ph_cmd = c.roll * math.radians(15)
+        wb = self.R.T @ self.w
+        Ixx, Iyy = self.I_b[0, 0], self.I_b[1, 1]
+        tau = 0.3
+        k_th = 300.0 / math.radians(10.0)
+        lim_th = 300.0
+        e = th_cmd - th
+        ti = float(p.extra.get("ground_pitch_ti_s", 0.0))
+        m_i = 0.0
+        if ti > 0.0 and self._dyn_dt > 0.0:
+            self._th_int = getattr(self, "_th_int", 0.0) + k_th / ti * e * self._dyn_dt
+            self._th_int = max(-lim_th, min(lim_th, self._th_int))
+            m_i = self._th_int
+        m_th = k_th * e + m_i - 2 * math.sqrt(k_th * Iyy) * wb[1]
+        m_ph = Ixx / tau ** 2 * (ph_cmd - ph) - 2 * Ixx / tau * wb[0]
+        lim_ph = 200.0 * self.feet_load
+        return self.R @ np.array([np.clip(m_ph, -lim_ph, lim_ph), np.clip(m_th, -lim_th, lim_th), 0.0])
+
     def _substep(self, h):
         self._dyn_dt = h
         try:
@@ -572,6 +601,10 @@ class GameSim(Sim):
             lim = 0.8 * fz
             if abs(F[0]) > lim:
                 F[0] = math.copysign(lim, F[0])
+            # PD-28: на бегу опора ног — по нормали к склону, вдоль склона только сила бега.
+            # Вертикальная пружина ног давала опору N·(sin θ вверх по склону) — постоянное
+            # торможение ногами, равное скатывающей силе m·g·sin θ: склон разбег не ускорял
+            F[0] += -F[2] * self.ground.slope_tan
         return F
 
 
@@ -580,6 +613,10 @@ def make_ground(wing: str, blk: dict, dt=1 / 120):
     p = p.with_(x_hang=blk["hang_from_nose_m"], dcm0=blk["dcm0"])
     s = GameSim(p, yaw_mode="free", dt=dt, substeps=substeps_for(dt))
     s.cd_scale = blk["cd_scale"]
+    # руки на стойках (PD-28): ход носа — wing.launch.alpha_range_deg, интеграл удержания — ground
+    gc = json.loads((ROOT / "configs/pendulum.json").read_text())["ground"]
+    p.extra["launch_alpha_range_deg"] = float(wing_cfg(wing)["launch"]["alpha_range_deg"])
+    p.extra["ground_pitch_ti_s"] = float(gc.get("pitch_hold_ti_s", 0.0))
     a, st = trim.solve_trim(s)
     s.reset_air(st)
     return s

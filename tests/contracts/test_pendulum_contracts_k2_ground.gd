@@ -12,6 +12,7 @@ const GROUND := {
 	"side_damping_n_s_per_m": "pos", "stand_stiffness_n_per_m": "pos", "shoulder_forward_m": "num",
 	"shoulder_up_m": "num", "grip_along_upright_m": "pos", "grip_stiffness_n_per_m": "pos",
 	"grip_force_max_n": "pos", "grip_down_max_n": "pos", "pitch_hold_nm_per_deg": "pos",
+	"pitch_hold_ti_s": "num",
 	"pitch_moment_max_nm": "pos", "liftoff_feet_clear_m": "pos", "liftoff_strap_fraction": "pos",
 	"bar_after_liftoff_s": "pos", "fell_cm_height_m": "pos",
 }
