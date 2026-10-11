@@ -85,7 +85,7 @@ settings_roll_input_bar,Как штанга (вправо — крен влев�
 settings_roll_input_body,Как тело (вправо — крен вправо),Like the body (right — roll right)
 settings_roll_simple,Простое (аркадное),Simple (arcade)
 settings_roll_weight_shift,Смещение веса (как на настоящем крыле),Weight shift (like a real wing)
-settings_roll_pendulum,Маятник (физика подвески и рук),Pendulum (hang-strap and arms physics)
+settings_roll_pendulum,Маятник (экспериментальный),Pendulum (experimental)
 controls_mouse_bar,Мышь — трапеция: от себя / на себя и вбок; средняя кнопка или V — снова смотреть вперёд,Mouse — control bar: push / pull and sideways; middle button or V — look ahead
 controls_glance,Держать — посмотреть на приборы на перекладине,Hold — look at the instruments on the bar
 controls_look_keys,"W/A/S/D — осмотреться в кабине (A/D — влево/вправо, W/S — вверх/вниз); V — снова вперёд","W/A/S/D — look around in the cockpit (A/D — left/right, W/S — up/down); V — look ahead again"
@@ -148,8 +148,8 @@ about_version,Версия %s,Version %s
 about_version_build,Версия %s · сборка %s,Version %s · build %s
 settings_fov,Поле зрения (по вертикали),Field of view (vertical)
 settings_eye_mode,Камера в кабине,Cockpit camera
-camera_eye_back_hidden,"Сзади, без тела и рук",Behind the body — no body or hands
-camera_eye_eyes,Глаза пилота,Pilot's eyes
+camera_eye_back_hidden,Сидячая поза,Seated pose
+camera_eye_eyes,Горизонтальная поза,Prone pose
 settings_helmet,Каска (вид из кабины),Helmet (pilot's view)
 helmet_none,Без каски,No helmet
 helmet_open,Открытая,Open face

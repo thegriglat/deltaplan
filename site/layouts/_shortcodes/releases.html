@@ -1,7 +1,7 @@
 {{- /* Список версий (новые сверху): {{< releases >}} */ -}}
 {{- with site.GetPage "/releases" -}}
 <ul class="releases">
-{{- range .Pages.ByDate.Reverse -}}
+{{- range partial "releases/sorted" . -}}
 <li><a href="{{ .RelPermalink }}"><strong>{{ .Title }}</strong></a> <span class="muted">— {{ .Date | time.Format (site.Params.BookDateFormat | default "2006-01-02") }}</span>{{ with .Description }}<br>{{ . }}{{ end }}</li>
 {{- end -}}
 </ul>

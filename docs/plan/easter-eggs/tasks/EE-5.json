@@ -1,0 +1,83 @@
+{
+  "id": "EE-5",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "Блики стёкол: машины OSM и окна домов OSM (К12)",
+  "goal": "Солнечные зайчики: короткие мерцающие вспышки, когда отражение солнца от лобового стекла машины или окна дома попадает в камеру; дёшево по CPU/GPU, без поясняющих сообщений.",
+  "plan_ref": "Волна 3 (11.10.2026, решение пользователя)",
+  "contracts": [
+    {
+      "name": "К3",
+      "version": "1",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К7",
+      "version": "5",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К12",
+      "version": "7",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "L2",
+      "version": "1",
+      "ref": "docs/contracts/osm-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-easter-eggs-EE-5",
+  "branch": "easter-eggs/EE-5",
+  "base": "feature/easter-eggs",
+  "scope": [
+    "scripts/world_objects/easter_eggs/glints.gd (новая пасхалка: блики машин)",
+    "scripts/world_objects/easter_eggs/glints.gdshader (спрайт блика, по желанию)",
+    "scripts/world_objects/osm/osm_traffic.gd (только группа osm_traffic и метод glass(), К12)",
+    "configs/world_objects.json (osm_traffic: наклон стекла по типу, с _doc)",
+    "configs/easter_eggs.json (блок eggs.glints)",
+    "scripts/world_objects/osm/building.gdshader (блик на пикселях стекла; данные экземпляра L2 не менять)",
+    "tests/world_objects/test_egg_glints.gd (новый)",
+    "tests/contracts/test_traffic_glass_contracts.gd (новый)"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/osm/building_placer.gd, building_style.gd, osm_buildings.gd (формат данных экземпляра)",
+    "scripts/terrain/",
+    "scripts/flight/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "egg_glints",
+      "tests": "egg_glints"
+    },
+    {
+      "name": "traffic_glass",
+      "tests": "traffic_glass"
+    },
+    {
+      "name": "osm_traffic",
+      "tests": "osm_traffic"
+    },
+    {
+      "name": "osm_look",
+      "tests": "osm_look"
+    },
+    {
+      "name": "easter_eggs",
+      "tests": "test_easter_eggs"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/easter-eggs...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "cpu_ms_glints",
+    "gpu_ms_delta",
+    "houses_done"
+  ],
+  "notes": "",
+  "created": "2026-10-11T06:19:36"
+}

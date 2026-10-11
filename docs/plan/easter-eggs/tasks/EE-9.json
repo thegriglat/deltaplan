@@ -1,0 +1,56 @@
+{
+  "id": "EE-9",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "Модель брелока-чайки — Blender-скрипт (К15)",
+  "goal": "Маленькая светлая фигурка чайки с расправленными крыльями для брелока на трапеции; генерируется скриптом; крупный рендер для пользователя.",
+  "plan_ref": "Волна 3 (11.10.2026, решение пользователя)",
+  "contracts": [
+    {
+      "name": "К15",
+      "version": "10",
+      "ref": "docs/contracts/easter-eggs.md"
+    }
+  ],
+  "copy": "~/deltaplan-easter-eggs-EE-9",
+  "branch": "easter-eggs/EE-9",
+  "base": "feature/easter-eggs",
+  "scope": [
+    "tools/blender/build_gull_charm.py (новый)",
+    "assets/easter_eggs/bar_charm/gull_charm.glb (+ .import)",
+    "assets/source/easter_eggs/gull_charm.blend (по желанию)",
+    "ASSETS.md (строка)",
+    "tests/contracts/test_gull_charm_model_contracts.gd (новый)",
+    "/home/greg/deltaplan/build/screenshots/easter-eggs-wave/06_брелок_чайка.jpg (рендер, не в git)"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "другие ассеты",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "glb",
+      "cmd": "test -s assets/easter_eggs/bar_charm/gull_charm.glb",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gull_charm_model",
+      "tests": "gull_charm_model"
+    },
+    {
+      "name": "render",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/easter-eggs-wave/ | grep -c '^06_.*\\.jpg$'",
+      "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/easter-eggs...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T06:38:02"
+}

@@ -1,0 +1,74 @@
+{
+  "status": "done",
+  "summary": "Ветряки (OsmWindTurbines: башня/гондола/ротор, разворот на ветер 0,5 °/с, кривая 3/12/25 м/с, 15 об/мин, угол копится) и кабинки канатки (OsmCableCars: по тросу OsmPilot + второй трос, петля или маятник) подключены в OsmLayer; модели Blender с процедурными текстурами; лопасти — по замечанию пользователя шире и толще (хорда 4 м, круглый комель Ø2). После слияния OL-2: skip=[wind] работает, кадры без старого конуса.",
+  "commits": [
+    "6413f4cb OL-3: ветряки и кабинки канатки",
+    "20f09a19 слияние feature/osm-look, skip=[wind]",
+    "test_osm_pilot: skip=[] для своего пути OsmPilot"
+  ],
+  "checks": [
+    {
+      "name": "test_osm_look_models_l6",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "121/122 под -j 2 (test_build_time 6,49 с — порог от нагрузки; один — ок), остальные ок",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "8",
+      "pass": true
+    },
+    {
+      "name": "assets",
+      "value": "3",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "chair_lift не нужны (по решению координатора)"
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-3/01_ветряк_спереди.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-3/02_ветряк_ступица_вблизи.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-3/05_ветряк_гондола_сбоку.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-3/06_ветряки_Ерейментау.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-3/07_канатка_кабинка_вблизи.png",
+    "/home/greg/deltaplan/build/screenshots/osm-look/OL-3/08_канатка_Шымбулак.png"
+  ],
+  "how_to_check": "dp accept OL-3; кадры: godot res://tools/shots/osm_wind_cable_shot.tscn -- --out=x.png --synth=wind|farm|cabin --sim=300 или --lat/--lon --find=wind|cable",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/osm/osm_wind_turbines.gd:osm_wind",
+      "why": "кластер 1000 м: один опрос воздуха на ячейку; ветер на высоте ступицы берётся в среднем по ячейке",
+      "checked": "тест one_sample_per_cluster, высота опроса = ступица"
+    },
+    {
+      "where": "configs/world_objects.json osm_pilot.verticals.skip",
+      "why": "ключ добавлен мной; OL-2 добавит такой же — возможен конфликт слияния",
+      "checked": "ключ верный JSON"
+    },
+    {
+      "where": "scripts/world_objects/osm/osm_cable_cars.gd",
+      "why": "второй трос (rope_gap_m 5 м, сходится к станциям) — моя добавка для встречного хода, он тоже препятствие (капсулы); станций/опор у него нет",
+      "checked": "кадры, тест плавности хода"
+    },
+    {
+      "where": "tools/blender/build_osm_wind_cable.py",
+      "why": "направление вращения/профиль лопасти упрощены",
+      "checked": "кадры вблизи"
+    }
+  ],
+  "dp_feedback": "dp accept --dry в фоне молчит до конца (120 с лимит инструмента); хотелось бы вывод по ходу. Новые class_name требуют godot --import перед запуском — стоило бы подсказывать.",
+  "t": "2026-10-11T01:21:49",
+  "by": "executor"
+}

@@ -19,7 +19,7 @@ related: []
 | `scripts/game/input_controller.gd` (`InputController`) | клавиатура / мышь / геймпад → `ControlInput` (FR-30…33) |
 | `scripts/game/camera_rig.gd` (`CameraRig`) | камеры cockpit / chase / free (FR-26), поворот головы мышью (FR-31) |
 | `scripts/game/flight_settings.gd` (`FlightSettings`) | выбор пилота: крыло, масса, прогноз (температура днём, ветер на старте, откуда, облачность), старт |
-| `scripts/game/start_placement.gd` (`StartPlacement`) | старт в точке с карты: ближайший склон, курс вниз по склону |
+| `scripts/game/start_placement.gd` (`StartPlacement`) | старт в точке с карты: ровно в выбранной точке, курс вниз по местному уклону |
 | `scripts/game/flight_stats.gd` (`FlightStats`) | итоги полёта для экрана после посадки |
 | `scripts/game/calm_air.gd` (`CalmAir`) | запасная модель воздуха (ветер + статичные термики) |
 | `scripts/game/cloud_whiteout.gd` (`CloudWhiteout`) | «белая мгла» в облаке: туман окружения по плотности облака у камеры |
@@ -103,7 +103,7 @@ WASD — по взгляду, E/Q — вверх/вниз, Shift — ×`fast_fac
 пилота» (±`flight.json → ground_bank.command_max_deg`). Клавиши, мышь и стик ведут трапецию одинаково на
 земле и в полёте — на отрыве `pitch`/`roll` непрерывны, защёлки нет. Знак клавиш задаёт только карта
 `controls.json → keys` (ui-controls, контракт У1 v3: ↑ — от себя, ↓ — на себя). Автопилот тестов жмёт те же действия: Shift и трапецию по углу атаки киля.
-**Пустырь вокруг старта.** Старт с карты (`StartPlacement.find_launch`) может попасть в лес — после выбора точки
+**Пустырь вокруг старта.** Старт с карты (ровно в выбранной точке, `StartPlacement.evaluate` даёт курс вниз по уклону) может попасть в лес — после выбора точки
 `Game._choose_start` вызывает `terrain.add_start_clearing` (docs/guide/terrain.md): лес в круге R → луг — деревьев нет,
 трава, кусты и камни остаются. R = `game.json → start_search.clearing_radius_m` = 160 м; у встроенных стартов — не меньше. Правило (решение
 пользователя): **R ≥ 2 · L_run**, иначе сразу за разбегом деревья и набрать высоту до них нельзя. L_run — разбег с места

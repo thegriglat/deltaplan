@@ -1,0 +1,78 @@
+{
+  "id": "EE-6",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "Клин гусей",
+  "goal": "Живой мир в сезон перелёта: клинья гусей летят своими маршрутами через область (весна март–май — на север/северо-восток, осень сентябрь–ноябрь — на юг/юго-запад, южнее экватора зеркально; вне сезона нет), машут крыльями, строй дышит, гогот слышен раньше, чем видна стая; в пик ~1–2 клина за типичный полёт где-то в видимости — плотностью по миру, не прицельно к пилоту.",
+  "plan_ref": "Волна 3 (11.10.2026, решение пользователя)",
+  "contracts": [
+    {
+      "name": "К3",
+      "version": "1",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К4",
+      "version": "1",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К7",
+      "version": "5",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К8",
+      "version": "9",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К13",
+      "version": "8",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К14",
+      "version": "8",
+      "ref": "docs/contracts/easter-eggs.md"
+    }
+  ],
+  "copy": "~/deltaplan-easter-eggs-EE-6",
+  "branch": "easter-eggs/EE-6",
+  "base": "feature/easter-eggs",
+  "scope": [
+    "scripts/world_objects/easter_eggs/geese.gd (новый)",
+    "scripts/world_objects/easter_eggs/geese.gdshader (взмах крыльев, новый)",
+    "configs/easter_eggs.json (блок eggs.geese)",
+    "tests/world_objects/test_egg_geese.gd (новый)",
+    "scripts/world_objects/egg_context.gd и easter_eggs.gd — только поле lat_deg (К8 v9)"
+  ],
+  "dont_touch": [
+    "assets/ (модель и звук — задача EE-7)",
+    "scripts/flight/",
+    "docs/contracts/",
+    "scripts/world_objects/easter_egg.gd, egg_place.gd; в easter_eggs.gd и egg_context.gd — ничего, кроме lat_deg"
+  ],
+  "accept": [
+    {
+      "name": "egg_geese",
+      "tests": "egg_geese"
+    },
+    {
+      "name": "easter_eggs",
+      "tests": "test_easter_eggs"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/easter-eggs...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "peak_flights_with_geese_share",
+    "cpu_ms_geese"
+  ],
+  "notes": "",
+  "created": "2026-10-11T06:22:01",
+  "edited": "2026-10-11T06:26:21"
+}

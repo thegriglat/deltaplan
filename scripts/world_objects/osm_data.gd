@@ -25,7 +25,8 @@ var roads: Array = []
 var rivers: Array = []
 ## [{t, tunnel, bridge, p}]
 var rail: Array = []
-## [[x, z, w, l, угол_град, высота_стен_м, крыша 0|1]] — формат BuildingPlacer (w — вдоль направления угла).
+## [[x, z, w, l, угол_град, высота_стен_м, крыша 0|1, тип O3, по_правилу 0|1]] — L1 (O9 v2), формат BuildingPlacer
+## (w — вдоль направления угла); по_правилу 1 — высоты нет в тегах (hq = 0), взята из height_rule.
 var buildings: Array = []
 ## [{minor, p}]
 var power: Array = []
@@ -229,7 +230,7 @@ static func from_tiles(tile_dicts: Array, center_lat: float, center_lon: float, 
 			var hq := int(b.hq)
 			var wall_h := 0.5 * float(hq) if hq > 0 else float(rr.height_m) if rr.height_m > 0.0 else float(rr.levels) * level_m
 			# O3: угол от востока против часовой (север вверх) → мир (z на юг): минус
-			o.buildings.append([c.x, c.y, w, l, fposmod(-float(b.angle), 180.0), wall_h, int(rr.roof)])
+			o.buildings.append([c.x, c.y, w, l, fposmod(-float(b.angle), 180.0), wall_h, int(rr.roof), int(b.type), 0 if hq > 0 else 1])
 	o.tiles_ok = tile_dicts.size()
 	if not o.is_empty():
 		o.attribution = ATTRIBUTION

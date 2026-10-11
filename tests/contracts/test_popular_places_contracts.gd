@@ -21,7 +21,7 @@ func _doc_line(head: String) -> String:
 
 
 func test_versions_in_doc() -> void:
-	check(_doc_line("## PP-К1.").contains("(v2)"), "PP-К1 v2 в документе")
+	check(_doc_line("## PP-К1.").contains("(v3)"), "PP-К1 v3 в документе")
 	check(_doc_line("## PP-К2.").contains("(v1)"), "PP-К2 v1 в документе")
 
 
@@ -53,7 +53,7 @@ func _check_k1(path: String, tag: String) -> void:
 	check(takeoffs is Array and not takeoffs.is_empty(), "%s: takeoffs — непустой массив" % tag)
 	if not takeoffs is Array:
 		return
-	var re_id := RegEx.create_from_string("^((node|way|relation)/\\d+|builtin/[a-z0-9_]+/[a-z0-9_]+)$")
+	var re_id := RegEx.create_from_string("^((node|way|relation)/\\d+|(builtin|manual)/[a-z0-9_]+/[a-z0-9_]+)$")
 	var ids := {}
 	var used := {}
 	var bad := 0
