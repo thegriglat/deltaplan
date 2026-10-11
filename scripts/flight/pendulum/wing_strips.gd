@@ -11,7 +11,14 @@ extends RefCounted
 ## Центр давления сорванной части полосы уходит назад по хорде, как у плоской пластины:
 ## x/c = 0,25 + 0,25·sin α (≈ 0,38 при 30°, 0,5 при 90°; Fage & Johansen 1927, ARC R&M 1104) —
 ## пикирующий момент срыва, без него крыло зависает в глубоком срыве (PD-18); у обтекаемой — cp_chord.
-## Гибкий парус: антисимметричная часть нагрузки консолей × flex_relief. Флюгерная
+## Гибкий парус (PD-24): полосы не урезают разницу нагрузок консолей — Clβ, Clp, Clr идут как у
+## жёсткого крыла по полосам (к Hiway Demon, Cook & Spottiswoode 2005). Гибкость — «перекос пузыря»
+## (billow shift, Kroo 1981, NASA TM-81269: киль-карман и плавающая поперечина): пилот толкает
+## штангу вбок, рама сдвигает киль относительно паруса, крутка консолей антисимметрична — конец на
+## стороне пилота теряет угол атаки на billow_shift_deg × sail_flex градусов на единицу отношения
+## поперечной силы рук к весу пилота (в равновесии — тангенс угла стропы к крылу), линейно по
+## размаху. Свободное качание пилота с отпущенной штангой парус не перекашивает. Это главный рычаг управления смещением веса; сам по себе
+## сдвиг ЦМ перекладывает крыло 45→45 за 10 с и дольше (PD-24), с перекосом — за ≈ 4 с. Флюгерная
 ## устойчивость — «эквивалентный киль» (Cnβ) позади ЦМ. Момент паруса — dcm0 (Cm0).
 ##
 ## Экранный эффект (PD-14): у земли вихревой след крыла «отражается» от неё (метод зеркального
@@ -47,8 +54,7 @@ var cl_max_wing: float = 0.0  ## C_L max всего крыла (статика),
 var polar: WingPolar
 var cd_scale: float = 1.0
 var cd_pilot_share: float = 0.0
-var flex_relief: float = 1.0
-var billow_shift: float = 0.0  ## рад на единицу tg угла стропы к крылу
+var billow_shift: float = 0.0  ## крутка конца, рад на единицу «сила рук вбок / вес пилота» (× гибкость)
 var dcm0: float = 0.0
 var area: float = 0.0
 var chord_mean: float = 0.0
@@ -56,6 +62,9 @@ var fin_area: float = 0.0
 var fin_slope: float = 0.0
 var r_fin_b := Vector3.ZERO
 var free_yaw := true
+var cn_p_add: float = 0.0  ## добавка Cn на pb/2V (PD-К2 v4)
+var cn_r_add: float = 0.0  ## добавка Cn на rb/2V (PD-К2 v4)
+var _sb2_4: float = 0.0  ## S·b²/4 для добавок рыскания
 ## Экранный эффект: 1/(π·e·λ) и наклон профиля a₀ (lift_slope = a₀/(1 + a₀/(π·e·λ))).
 var ind_k: float = 0.0
 var a0_2d: float = 0.0
@@ -149,14 +158,16 @@ func setup(
 	cl_max = polar.cl_max
 	cd_scale = float(blk.cd_scale)
 	cd_pilot_share = float(pend.pilot_cda_m2) / area
-	flex_relief = flex
-	billow_shift = deg_to_rad(float(pend.get("billow_shift_deg", 0.0)))
+	billow_shift = deg_to_rad(float(pend.get("billow_shift_deg", 0.0))) * flex
 	dcm0 = float(blk.dcm0)
 	var yaw: Dictionary = pend.yaw
 	fin_slope = float(yaw.fin_slope_per_rad)
 	var fin_arm := float(yaw.fin_arm_m)
 	fin_area = float(yaw.cn_beta) * area * span / (fin_slope * fin_arm)
 	r_fin_b = Vector3(-fin_arm, 0.0, 0.0)
+	cn_p_add = float(yaw.get("cn_p_add", 0.0))
+	cn_r_add = float(yaw.get("cn_r_add", 0.0))
+	_sb2_4 = 0.25 * area * span * span
 	blend.resize(n)
 	_inv_blend = 1.0 / deg_to_rad(BLEND_DEG)
 	var ge: Dictionary = pend.get("ground_effect", {})
@@ -233,10 +244,9 @@ func build_cd_table() -> void:
 
 ## Сила и момент около ЦМ (мир NED) → force, moment (и в осях B — force_b, moment_b).
 ## vel — скорость ЦМ (земля), R — B→мир, w — угловая скорость (мир), air — ветер в точках
-## полос (мир, порядок r_b), air_c — в ЦМ, billow_lam — tg угла стропы к крылу поперёк
+## полос (мир, порядок r_b), air_c — в ЦМ, billow_lam — сила рук вбок / вес пилота
 ## (для billow_shift), rho — плотность, ge — σ экранного эффекта по полосам (пусто — нет).
-## Полосы считаются парами (правая i, левая i + n/2): гибкий парус перераспределяет нагрузку
-## внутри пары.
+## Полосы считаются парами (правая i, левая i + n/2).
 func aero(
 	vel: Vector3, R: Basis, w: Vector3, air: PackedVector3Array, air_c: Vector3,
 	billow_lam: float, rho: float, ge := PackedFloat64Array()
@@ -269,6 +279,7 @@ func aero(
 		var ai := atan2(uzi, uci) * cos_sweep + twist[i]
 		var ak := atan2(uzk, uck) * cos_sweep + twist[k]
 		if billow_shift != 0.0:
+			# перекос пузыря: на стороне пилота конец теряет угол атаки (Kroo 1981)
 			ai -= side[i] * billow_shift * billow_lam * yabs[i]
 			ak -= side[k] * billow_shift * billow_lam * yabs[k]
 		# CL полосы: линейно до cl_max, дальше пластина CN = 2 (смешивание за 4°); у земли наклон
@@ -296,14 +307,6 @@ func aero(
 		var q2k := uck * uck + uzk * uzk
 		var qi := q_half * q2i
 		var qk := q_half * q2k
-		if flex_relief < 1.0:
-			# гибкий парус: разница нагрузок консолей частично снимается круткой
-			var lr := qi * cli
-			var ll := qk * clk
-			var mm := 0.5 * (lr + ll)
-			var dd := 0.5 * (lr - ll) * flex_relief
-			cli = (mm + dd) / maxf(qi, 1.0e-6)
-			clk = (mm - dd) / maxf(qk, 1.0e-6)
 		# сопротивление: поляра (таблица по CL) + пластина при срыве
 		var xi := (clampf(cli, _cd_lo, _cd_hi) - _cd_lo) * _cd_inv
 		var xk := (clampf(clk, _cd_lo, _cd_hi) - _cd_lo) * _cd_inv
@@ -345,6 +348,10 @@ func aero(
 		var ff := Vector3(0.0, fy, 0.0)
 		f_sum += ff
 		m_sum += r_fin_b.cross(ff)
+		# добавочные производные рыскания (Cnp, Cnr полос — к литературе, PD-23):
+		# ΔN = ½ρV²·S·b·(cn_p_add·pb/2V + cn_r_add·rb/2V)
+		if V > 0.1:
+			m_sum.z += rho * V * _sb2_4 * (cn_p_add * wb.x + cn_r_add * wb.z)
 	lift_n = -f_sum.z
 	force_b = f_sum
 	moment_b = m_sum

@@ -34,7 +34,9 @@ func test_apparatus_reaches_model() -> void:
 	var m: PendulumModel = g.model
 	approx(float(m.apparatus.hang_shift_cm), 2.0, 1e-9, "hang_shift_cm в модели")
 	approx(float(m.apparatus.hang_length_m), 1.1, 1e-9, "hang_length_m в модели")
-	approx(float(m.apparatus.sail_flex), 0.2, 1e-9, "пропуск — умолчание PD-К3")
+	var wing: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://configs/wings/sport.json"))
+	var flex := float(wing.pendulum.apparatus_defaults.sail_flex)
+	approx(float(m.apparatus.sail_flex), flex, 1e-9, "пропуск — умолчание класса крыла (PD-К3)")
 	g.free()
 
 

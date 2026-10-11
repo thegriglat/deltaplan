@@ -210,21 +210,17 @@ class Sim:
         a_eff = a_geo + st.twist
         half = 0.5 * p.span
         yabs = np.abs(self.strips.r_n[:, 1]) / half
-        if p.billow_shift_deg != 0.0 and self.xn is not None:
-            # «перекос пузыря» (billow shift, Kroo 1981: киль-карман, плавающий киль): боковая
-            # нагрузка стропы сдвигает киль относительно паруса — на стороне пилота крутка растёт
-            d_b = R.T @ (self.xn[0] - (pos + R @ self.r_hang_b))
-            lam = d_b[1] / max(d_b[2], 1e-3)
-            a_eff = a_eff - st.side * math.radians(p.billow_shift_deg) * lam * yabs
+        if p.billow_shift_deg != 0.0 and self.hands_force_b is not None:
+            # «перекос пузыря» (billow shift, Kroo 1981, NASA TM-81269: киль-карман, плавающая
+            # поперечина): пилот толкает штангу вбок, рама сдвигает киль относительно паруса — конец
+            # на стороне пилота теряет угол атаки; × гибкость паруса (PD-24: вместо урезания разницы
+            # нагрузок консолей, которое занижало Clβ, Clp, Clr в 4–15 раз против литературы).
+            # Мера — поперечная сила рук на вес пилота (в равновесии = tg угла стропы к крылу);
+            # свободное качание пилота с отпущенной штангой паруса не перекашивает
+            lam = self.hands_force_b[1] / (p.m_pilot * G)
+            a_eff = a_eff - st.side * math.radians(p.billow_shift_deg * p.sail_flex) * lam * yabs
         cl, cd_x, blend = self.strip_cl(a_eff)
         qn = 0.5 * p.rho * (uc * uc + uz * uz) / (cs * cs)
-        if p.flex_relief < 1.0:
-            # гибкий парус: разница нагрузок левой и правой консоли частично снимается круткой
-            # (антисимметричная часть нагрузки × flex_relief; симметричная уже в поляре)
-            n2 = len(cl) // 2
-            lR, lL = qn[:n2] * cl[:n2], qn[n2:] * cl[n2:]
-            m_, d_ = 0.5 * (lR + lL), 0.5 * (lR - lL) * p.flex_relief
-            cl = np.concatenate([(m_ + d_) / np.maximum(qn[:n2], 1e-6), (m_ - d_) / np.maximum(qn[n2:], 1e-6)])
         cd = self.cd_scale * (p.polar.cd_at(np.clip(cl, -2, p.polar.cl_max)) - self.cd_pilot_share) + cd_x
         # направления в B
         un = st.c_b * uc[:, None] + st.n_b * uz[:, None]
@@ -248,6 +244,10 @@ class Sim:
             ff = np.array([0.0, fy, 0.0])
             F_b += ff
             M_b += np.cross(self.r_fin_b, ff)
+            # добавочные производные рыскания (Cnp, Cnr полос — к литературе, PD-23)
+            if V > 0.1 and (p.cn_p_add or p.cn_r_add):
+                wb = R.T @ w
+                M_b[2] += 0.25 * p.rho * V * p.area * p.span ** 2 * (p.cn_p_add * wb[0] + p.cn_r_add * wb[2])
         info = {"cl": cl, "a": a_eff, "blend": blend, "V": V, "lift": float(-F_b[2])}
         return R @ F_b, R @ M_b, info
 

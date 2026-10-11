@@ -25,7 +25,7 @@ from pendulum import scenarios as S  # noqa: E402
 OUT = HERE / "out"
 WINGS = ["training", "laminar", "sport"]
 # гибкое крыло (оценка): половина разницы нагрузок консолей снимается круткой паруса; перекос пузыря
-RIGID = {"flex_relief": 1.0}  # жёсткое крыло (без крутки паруса) — для сравнения
+RIGID = {"billow_shift_deg": 0.0}  # жёсткое крыло (без перекоса пузыря, PD-24) — для сравнения
 
 
 def plan():
@@ -47,7 +47,7 @@ def plan():
         for rel in (0.1, 0.2, 0.35, 1.0):
             for dd in (0.0, 1.0, 2.5):
                 jobs.append({"id": f"ochi/F{force:g}/relief{rel:g}/dih{dd:g}", "sc": "ochi", "wing": "laminar",
-                             "kw": {"force": force, "flex_relief": rel, "dihedral": math.radians(dd)}})
+                             "kw": {"force": force, "sail_flex": rel, "dihedral": math.radians(dd)}})
     # численная схема (спорт, со скольжением)
     for sub in (1, 2, 4, 8, 16):
         for n in (1, 3, 5):
@@ -65,7 +65,7 @@ def plan():
         "arm_force_max": (150.0, 500.0), "arm_tau": (0.15, 0.5), "cn_beta": (0.03, 0.1),
         "pilot_cda": (0.12,), "apparent_roll": (False,), "shift_y_max": (0.35, 0.55),
         "hang_len": (1.0, 1.4), "strap_compliance": (1e-5, 1.6e-4), "hang_shift": (-0.03, 0.03),
-        "flex_relief": (0.1, 0.35, 0.6), "billow_shift_deg": (8.0,),
+        "sail_flex": (0.1, 0.35, 0.6), "billow_shift_deg": (8.0,),
         "dihedral": (0.0, math.radians(2.5), math.radians(5.0)),
     }
     for w in ("training", "sport"):

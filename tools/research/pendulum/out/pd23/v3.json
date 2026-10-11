@@ -1,0 +1,4 @@
+[{"name":"sp_f030_Vm15","over":{"flex_relief":0.30},"wings":["sport"]},
+ {"name":"sp_f025_Vm15","over":{"flex_relief":0.25},"wings":["sport"]},
+ {"name":"sp_f035_Vm05","over":{},"over_deg":{"dihedral":-0.5},"wings":["sport"]},
+ {"name":"sp_f030_Vm05","over":{"flex_relief":0.30},"over_deg":{"dihedral":-0.5},"wings":["sport"]}]

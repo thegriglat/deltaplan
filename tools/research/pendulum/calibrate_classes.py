@@ -23,7 +23,7 @@ D, RAD = math.degrees, math.radians
 
 
 def measure(wing, v, flex, extra=None):
-    kw = {"dihedral": RAD(v), "flex_relief": flex, **{k: x for k, x in (extra or {}).items() if k != "group"}}
+    kw = {"dihedral": RAD(v), "sail_flex": flex, **{k: x for k, x in (extra or {}).items() if k != "group"}}
     out = {}
     rv = S.sc_reversal(wing, bank=45.0, **kw)
     out["rev45_s"] = rv["t_to_minus"]

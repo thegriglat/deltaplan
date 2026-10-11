@@ -1,0 +1,5 @@
+[{"name":"p10_f1.25_Vcls","over":{"cn_beta":0.035,"cn_p_add":0.10,"cn_r_add":-0.03,"flex_scale":1.25}},
+ {"name":"p10_f1.25_Vneg","over":{"cn_beta":0.035,"cn_p_add":0.10,"cn_r_add":-0.03,"flex_scale":1.25},"over_deg":{"dihedral":-1.5},"wings":["laminar","sport"]},
+ {"name":"p10_f2.0_V5","over":{"cn_beta":0.035,"cn_p_add":0.10,"cn_r_add":-0.03,"flex_scale":2.0},"wings":["training"]},
+ {"name":"p15_f1.5_Vneg","over":{"cn_beta":0.035,"cn_p_add":0.15,"cn_r_add":-0.03,"flex_scale":1.5},"over_deg":{"dihedral":-1.5},"wings":["laminar","sport"]},
+ {"name":"p15_f3.0_V5","over":{"cn_beta":0.035,"cn_p_add":0.15,"cn_r_add":-0.03,"flex_scale":3.0},"wings":["training"]}]
