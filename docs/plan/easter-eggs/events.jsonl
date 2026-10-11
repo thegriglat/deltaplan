@@ -85,3 +85,6 @@
 {"t": "2026-10-01T17:40:04", "by": "dp-engineer", "task": "E11", "ev": "reported", "commits": ["c5d14e8"], "note": "done", "src": "docs/plan/world_easter_eggs_progress.md:22"}
 {"t": "2026-10-01T17:47:05", "by": "coordinator", "task": "E11", "ev": "accepted", "note": "принята (01.10)", "src": "docs/plan/world_easter_eggs_progress.md:22"}
 {"t": "2026-10-01T17:47:05", "by": "coordinator", "task": "E11", "ev": "merged", "commits": ["234e4bc"], "src": "docs/plan/world_easter_eggs_progress.md:22"}
+{"t": "2026-10-11T06:18:21", "by": "coordinator", "task": null, "ev": "plan", "note": "контракты К9. Другая группа — доп. боты пасхалки (v5, владе…: дописано 74 стр."}
+{"t": "2026-10-11T06:18:21", "by": "coordinator", "task": null, "ev": "plan", "note": "контракты весь файл: замена «**Версия: 6** (10.10.202…» ×1"}
+{"t": "2026-10-11T06:18:49", "by": "coordinator", "task": null, "ev": "plan", "note": "план Приёмка каждой: дописано 21 стр."}
