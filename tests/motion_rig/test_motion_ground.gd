@@ -90,7 +90,9 @@ func test_standing_flat() -> void:
 	st.run(m, 5.0, Sim.input(), Callable(), flat)
 	print("MR5 стоя ровно: vertical среднее %.4f СКО %.4f пик %.3f м/с², phase %s" % [st.mean(st.vert, 5), st.sd(st.vert, 5), st.peak(st.vert), m.phase()])
 	check(st.ground[st.ground.size() - 1], "on_ground")
-	approx(st.mean(st.vert, 5), 0.0, 0.3, "vertical стоя на ровном ≈ 0 м/с²")
+	# стоя неподвижно: f = +g вверх, heave = g·cos(pitch) → vertical = g·(cos(pitch) − 1), а не ≈ 0
+	var want := G * (cos(deg_to_rad(m.telemetry.pitch_deg)) - 1.0)
+	approx(st.mean(st.vert, 5), want, 0.02, "vertical стоя на ровном = g·(cos(pitch) − 1)")
 	check(st.sd(st.vert, 5) < 0.5, "СКО стоя мало")
 
 
