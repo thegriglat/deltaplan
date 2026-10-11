@@ -1,0 +1,91 @@
+{
+  "status": "done",
+  "summary": "Авария (> 7 м/с, «на брюхо», трапеция/нос/консоль) в обоих режимах гасит скорость пилота (вектор) с постоянным замедлением landing.crash_decel_g·g = 20 g вместо обнуления за шаг; пик 20,97 g на 1/120 и 1/240, защита MotionSource не срабатывает. Момент, оценка, сигналы — прежние.",
+  "commits": [
+    "4ce3eb60 crash.sh и crash_before",
+    "4ef9b123 авария гасится с замедлением crash_decel_g",
+    "607f7fd2 тест пикирования обновлён"
+  ],
+  "checks": [
+    {
+      "name": "flight",
+      "value": "209/209",
+      "pass": true
+    },
+    {
+      "name": "motion_rig",
+      "value": "33/33",
+      "pass": true
+    },
+    {
+      "name": "contracts_pendulum",
+      "value": "34/34",
+      "pass": true
+    },
+    {
+      "name": "crash_runs",
+      "value": "CRASH mode=pend hz=240",
+      "pass": true
+    },
+    {
+      "name": "ws_120_le_21g",
+      "value": "20.97",
+      "pass": true
+    },
+    {
+      "name": "ws_240_le_21g",
+      "value": "20.97",
+      "pass": true
+    },
+    {
+      "name": "pend_120_le_21g",
+      "value": "20.97",
+      "pass": true
+    },
+    {
+      "name": "pend_240_le_21g",
+      "value": "20.97",
+      "pass": true
+    },
+    {
+      "name": "all_crash_grade",
+      "value": "crash",
+      "pass": true
+    },
+    {
+      "name": "motion_guard_0",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "peaks_pd38_unchanged",
+      "value": "3.87",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Срыв разбега с касанием крылом (takeoff_failed, _fail → _freeze в Маятнике, GroundRun.FAILED в Смещении веса) по-прежнему стопит за шаг: скорости малы (разбег), к аварии оценки не относится, MotionSource не срабатывает. Если нужен тот же профиль — отдельная задача."
+  ],
+  "how_to_check": "dp accept PD-39; bash tools/research/pendulum/pd39/crash.sh",
+  "uncertain": [
+    {
+      "where": "scripts/flight/landing_flare.gd:_crash, pendulum_model.gd:_crash_step",
+      "why": "пик 20,97 g чуть выше 20: замедление вдоль вектора скорости (направление вверх+назад) плюс g; запас до порога 21 — 0,03 g",
+      "checked": "таблица crash.sh на 120/240 Гц, оба режима: 20,97 везде"
+    },
+    {
+      "where": "tests/flight/pendulum/test_pendulum_ground_landing.gd:test_crash_dive",
+      "why": "тест требовал «после аварии всё стоит» на следующем шаге; поправил на 0,5 с и скорость 0",
+      "checked": "тест зелёный; это сдвиг остановки, а не оценки"
+    }
+  ],
+  "dp_feedback": "",
+  "crash_before": "ws/pend 120 Гц: phys_g 100,91, g60 50,94, t_stop 0,008 с, path 0; 240 Гц: 201,81 / g60 51,18, guard_resets 1 на каждый режим (total 2). tools/research/pendulum/pd39/out/crash_before.txt",
+  "crash_after": "все 4 строки: phys_g 20,97, g60 20,97, grade crash, t_stop 0,046–0,050 с, path_m (горизонтальный) 0,034–0,039, guard_resets_total 0, nan false",
+  "touch_points": "Смещение веса: LandingFlare.touchdown (стоп за шаг) → crashed + LandingFlare._crash в runout. Маятник: PendulumModel._check_touchdown → _crash_start/_crash_step (вся модель скользит со скоростью пилота, затем _freeze). Не затронуты: LandingJudge, PendulumTouchdown, нормальные посадки (pilot_legs), _fail/takeoff_failed, GroundRun.",
+  "timing_changes": "Остановка пилота после аварии позже на ≈ 0,04–0,05 с (8 м/с); landed/grade/момент — в тот же шаг. На пикировании 18 м/с — до ≈ 0,09 с, скольжение ≈ 0,8 м. Тест test_crash_dive: «стоит» теперь через 0,5 с.",
+  "config_keys": "configs/flight.json → landing.crash_decel_g = 20.0 и crash_decel_g_doc",
+  "t": "2026-10-12T01:23:58",
+  "by": "executor"
+}

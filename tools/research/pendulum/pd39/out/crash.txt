@@ -1,0 +1,5 @@
+CRASH mode=ws hz=120 phys_g=20.97 g60=20.97 grade=crash t_stop_s=0.050 path_m=0.035 guard_resets=0 nan=false
+CRASH mode=ws hz=240 phys_g=20.97 g60=20.97 grade=crash t_stop_s=0.046 path_m=0.039 guard_resets=0 nan=false
+CRASH mode=pend hz=120 phys_g=20.97 g60=20.97 grade=crash t_stop_s=0.050 path_m=0.034 guard_resets=0 nan=false
+CRASH mode=pend hz=240 phys_g=20.97 g60=20.97 grade=crash t_stop_s=0.046 path_m=0.038 guard_resets=0 nan=false
+guard_resets_total=0

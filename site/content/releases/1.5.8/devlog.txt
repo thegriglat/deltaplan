@@ -1,0 +1,23 @@
+Deltaplan 1.5.8 — launch, weight-shift indicator, soft touchdown
+
+Fixes from pilot feedback: a calmer launch, a way to see where your weight is, a pilot with real legs on touchdown, and a motion rig stream without jolts.
+
+Launch:
+- Launching from the map puts you exactly at the chosen point; the nose points down the local slope.
+- Standing at launch, the wing no longer rocks or leans all the way back; with no input it turns into the wind.
+- Until the transition to the flying position starts, touching the ground with the wing is not a crash: hop, touch and try again.
+
+Weight-shift indicator:
+- A circle with a crosshair at the bottom centre of the screen; the dot shows where the pilot's body is relative to the hang point. Can be turned off in the interface settings.
+
+Touchdown:
+- The legs absorb vertical speed: landing at 3.5 m/s down is about 4 g instead of 22-44 g.
+- A crash no longer stops the pilot in a single physics step.
+
+Motion rig (SRS):
+- Packets are always sent while output is on, so SRS doesn't go to standby.
+- Values ease in over 2.5 s on any transition (spawn, menu, pause, restart).
+- New setting "Ground accelerations" (0.3 by default) softens the take-off run without touching flight.
+
+Known issues:
+- Ease-in and the ground multiplier are not yet tested on a real platform.

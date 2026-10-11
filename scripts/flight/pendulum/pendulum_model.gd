@@ -64,6 +64,7 @@ var telemetry := Telemetry.new()
 var mode: FlightModel.Mode = FlightModel.Mode.AIR
 var load := LoadMeter.new()
 var landing_result: Dictionary = {}
+var _crash_v := Vector3.ZERO  ## скорость пилота (NED) при гашении на аварии, м/с; ноль — не идёт
 var takeoff_failure: String = ""
 ## FB-К2 v1: начат переход в лётное положение — с этого момента касание крылом земли — срыв/авария
 ## по прежним правилам; до — контакт держит крыло (_wing_ground_force). Только чтение снаружи;
@@ -414,6 +415,9 @@ func set_kinematic(pos: Vector3, vel: Vector3, heading_: float, bank_: float, th
 
 ## Один шаг: dt 1/240…1/30 с; подшагов max(substeps_min, ceil(dt·substeps_per_s)).
 func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable) -> void:
+	if _crash_v != Vector3.ZERO:
+		_crash_step(dt)
+		return
 	if not _simulating():
 		_update_outputs(air_fn, ground_fn)
 		return
@@ -580,6 +584,36 @@ func _fail(reason: String) -> void:
 	_uprights = false
 	_freeze()
 	takeoff_failed.emit(reason)
+
+
+## Авария (PD-К6 v2): вся модель скользит по земле со скоростью пилота NED и гасится с постоянным
+## замедлением landing.crash_decel_g·g (смятие каркаса/трапеции/тела) до нуля, потом — _freeze.
+func _crash_start() -> void:
+	_crash_v = chain.pilot_vel()
+	if _crash_v == Vector3.ZERO:
+		_freeze()
+		return
+	_w = Vector3.ZERO
+	_hands_p = Vector3.ZERO
+	arms.reset()
+
+
+func _crash_step(dt: float) -> void:
+	time_s += dt
+	var a := float(flight.landing.crash_decel_g) * Units.G
+	_crash_v = _crash_v.move_toward(Vector3.ZERO, a * dt)
+	var v := _crash_v
+	# по земле скользим горизонтальной частью (NED: x, y); вниз земля не пускает
+	var d := Vector3(v.x, v.y, 0.0) * dt
+	_pos += d
+	chain.shift(d)
+	_vel = v
+	for i in chain.links:
+		chain.v[i] = v
+	if v == Vector3.ZERO:
+		_freeze()
+	else:
+		_update_outputs(Callable(), Callable())
 
 
 func _freeze() -> void:
@@ -884,6 +918,7 @@ func _place_wing(pos: Vector3) -> void:
 
 
 func _reset_common() -> void:
+	_crash_v = Vector3.ZERO
 	time_s = 0.0
 	_aero_age = INF
 	_w = Vector3.ZERO
@@ -925,7 +960,7 @@ func _check_touchdown(ground_fn: Callable) -> void:
 	landing_result = result
 	mode = FlightModel.Mode.LANDED
 	if result.grade == "crash":
-		_freeze()
+		_crash_start()
 	else:
 		# на ноги: руки со штанги на стойки, ступни держат землю, пробежка с runout_decel
 		_uprights = true

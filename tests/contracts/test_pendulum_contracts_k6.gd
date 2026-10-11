@@ -19,7 +19,7 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К6\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 1, "заголовок «## PD-К6. … (v1)»")
+	check(m != null and int(m.get_string(1)) == 2, "заголовок «## PD-К6. … (v2)»")
 
 
 func _landing() -> Dictionary:
@@ -56,3 +56,13 @@ func test_judge_grades() -> void:
 	check(LandingJudge.evaluate(Vector3(0, -8.0, -1.0), up, 0.0, c).grade == "crash", "8 м/с — авария")
 	check(LandingJudge.evaluate(Vector3(0, -1.0, -8.0), up, 0.0, c).grade == "hard", "гор. 8 м/с — жёстко")
 	check(LandingJudge.evaluate(Vector3(0, -1.0, -2.0), up, 40.0, c).grade == "crash", "крен 40° — авария")
+
+
+func test_crash_decel_v2() -> void:
+	# v2 (PD-39): замедление на аварии — константа конфига с описанием, ≈ 20 g
+	var c := _landing()
+	check(c.has("crash_decel_g"), "landing.crash_decel_g есть (v2)")
+	check(c.has("crash_decel_g_doc"), "landing.crash_decel_g_doc есть (v2)")
+	if c.has("crash_decel_g"):
+		var g := float(c.crash_decel_g)
+		check(g >= 10.0 and g <= 30.0, "crash_decel_g в 10…30 g (%s)" % g)

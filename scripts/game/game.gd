@@ -112,8 +112,6 @@ var _motion_gap := false  ## поток движения прерывался (�
 @onready var sky: SkyEnvironment = $Environment
 @onready var terrain: Terrain = $Terrain
 @onready var glider: Glider = $Glider
-## Вывод движения на платформу (MR-К2/К3): по умолчанию выключен, сокета нет.
-var motion: MotionOutput = MotionOutput.new()
 @onready var input_controller: InputController = $InputController
 @onready var camera: CameraRig = $CameraRig
 @onready var instrument: FlightInstrument = $FlightInstrument
@@ -122,14 +120,16 @@ var motion: MotionOutput = MotionOutput.new()
 @onready var flight_audio: FlightAudio = $FlightAudio
 
 
+func _exit_tree() -> void:
+	MotionRig.detach(self)
+
+
 func _ready() -> void:
 	# Первый запуск: пресет графики по видеокарте (до создания облаков и рельефа).
 	if DisplayServer.get_name() != "headless" and GraphicsPresets.ensure_detected():
 		sky.apply_config()
 	GraphicsPresets.apply_viewport(get_viewport())
 	_cfg = Config.get_config("game")
-	motion.configure()
-	Config.reloaded.connect(motion.configure)
 	glider.set_physics_process(false)
 	world_link = WorldLink.new()
 	world_link.name = "WorldLink"
@@ -271,16 +271,16 @@ func tick(dt: float) -> void:
 	_check_finished()
 
 
-## Шаг потока движения своего пилота: только в полёте (не в меню) и не на паузе. Вне полёта пакетов нет;
-## при возврате после меню/паузы (в сети дерево на паузе не стоит, крыло летит само) — reset(): состояние ушло.
+## Шаг потока движения своего пилота: только в полёте (не в меню) и не на паузе; иначе живого шага нет, а пакеты
+## идут (hold/neutral, MotionRig). При возврате после меню/паузы (в сети дерево на паузе не стоит) — reset().
 func _motion_step(dt: float) -> void:
 	if not flying_enabled or _paused:
 		_motion_gap = true
 		return
 	if _motion_gap:
 		_motion_gap = false
-		motion.reset()
-	motion.step(glider.get_telemetry(), dt)
+		MotionRig.reset()
+	MotionRig.step(glider.get_telemetry(), dt)
 
 
 ## Новый полёт: загрузить рельеф (если нужно), настроить крыло, погоду и поставить на старт.
@@ -588,7 +588,7 @@ func restart(keep_clock: bool = false) -> void:
 	feed.cancel()  # полёт без посадки не засчитывается
 	camera.tight = false
 	queue_walk = {}
-	motion.reset()
+	MotionRig.reset()
 	_align_start_heading()
 	if air_start_m >= 0.0:
 		glider.reset_in_air(air_start_position(), _start_heading)
@@ -743,6 +743,10 @@ func is_paused() -> bool:
 ## В полёте (true) — ввод, прибор в углу, звук; в меню (false) — только вид.
 func set_flying(on: bool) -> void:
 	flying_enabled = on
+	if on:
+		MotionRig.attach(self)
+	else:
+		MotionRig.detach(self)  # меню: платформе нейтраль (MR-К1 v3)
 	if not on and feed != null:
 		feed.cancel()  # выход в меню из полёта: flight_finished не шлётся
 	_paused = false
@@ -931,7 +935,7 @@ func start_catch_up(target_fn: Callable) -> bool:
 		return false
 	tow = t
 	_update_overlay()
-	motion.reset()  # разрыв потока (MR-К1 v2): на буксире пакетов нет
+	MotionRig.reset()  # разрыв потока (MR-К1 v3): на буксире — hold
 	_crashed = false
 	_ended = true  # на буксире итога полёта нет
 	_leave_queue_for_tow()
@@ -995,7 +999,7 @@ func _end_catch_up(r: Dictionary) -> void:
 	camera.tight = false
 	var pos: Vector3 = r.position
 	var heading_deg := rad_to_deg(float(r.heading))
-	motion.reset()
+	MotionRig.reset()
 	_prev_phase = ""
 	if pos.y - terrain.height_at(pos.x, pos.z) < TOW_GROUND_AGL_M:
 		glider.reset_on_ground(pos, heading_deg)
@@ -1125,7 +1129,7 @@ func _choose_start() -> void:
 			site = st
 	_start_pos = site.position
 	_start_heading = float(site.heading_deg)
-	motion.place = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
+	MotionRig.place = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
 
 
 func _setup_glider() -> void:

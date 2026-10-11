@@ -479,6 +479,7 @@ loading_counter_osm,OSM: %d/%d,OSM: %d/%d
 loading_counter_osm_skipped,OSM: пропущено,OSM: skipped
 loading_counter_total,Всего: %d/%d,Total: %d/%d
 unit_hz,Гц,Hz
+unit_s,с,s
 settings_motion_title,Платформа подвижности,Motion platform
 settings_tab_game,Игра,Game
 settings_tab_graphics,Графика и вид,Graphics and view
@@ -486,9 +487,11 @@ settings_tab_controls,Управление,Controls
 settings_tab_sound,Звук,Sound
 settings_tab_motion,Платформа,Motion platform
 settings_motion_on,Вывод движения,Motion output
-settings_motion_on_hint,Слать движение пилота на платформу по UDP (в полёте),Send pilot motion to a platform over UDP (in flight)
+settings_motion_on_hint,Слать движение пилота на платформу по UDP (пакеты идут всегда, пока включено, в т. ч. в меню и на паузе),Send pilot motion to a platform over UDP (packets flow whenever on, including menu and pause)
 settings_motion_addr,Адрес (хост:порт),Address (host:port)
 settings_motion_rate,Частота,Rate
+settings_motion_ramp,"Плавный вход, с","Ease-in, s"
+settings_motion_ground,"Ускорения на земле, × (только SRS)","Ground accelerations, × (SRS only)"
 settings_motion_format,Формат,Format
 settings_motion_format_srs,SRS (DOF Reality),SRS (DOF Reality)
 settings_motion_format_generic,Generic,Generic
