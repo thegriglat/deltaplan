@@ -1,0 +1,248 @@
+=== test_pendulum_takeoff_pilot
+
+    training склон 15° ветер 0.0: отдача — 11.7 м (ноги без веса 8.2), 2.42 с бега, 27.6 км/ч; нейтраль — 15.0 м, 31.1 км/ч
+    training склон 15° ветер 2.5: отдача — 6.1 м (ноги без веса 3.8), 1.77 с бега, 27.7 км/ч; нейтраль — 7.8 м, 31.4 км/ч
+    training склон 20° ветер 0.0: отдача — 9.0 м (ноги без веса 6.3), 1.95 с бега, 28.5 км/ч; нейтраль — 11.5 м, 32.1 км/ч
+    training склон 20° ветер 2.5: отдача — 4.7 м (ноги без веса 2.8), 1.43 с бега, 28.3 км/ч; нейтраль — 6.3 м, 32.1 км/ч
+    laminar склон 15° ветер 0.0: отдача — 12.3 м (ноги без веса 8.8), 2.53 с бега, 27.6 км/ч; нейтраль — 15.6 м, 31.7 км/ч
+    laminar склон 15° ветер 2.5: отдача — 6.2 м (ноги без веса 3.8), 1.80 с бега, 27.9 км/ч; нейтраль — 8.1 м, 32.2 км/ч
+    laminar склон 20° ветер 0.0: отдача — 9.3 м (ноги без веса 6.7), 2.02 с бега, 28.7 км/ч; нейтраль — 12.0 м, 32.9 км/ч
+    laminar склон 20° ветер 2.5: отдача — 4.8 м (ноги без веса 3.0), 1.47 с бега, 28.6 км/ч; нейтраль — 6.6 м, 33.0 км/ч
+    sport склон 15° ветер 0.0: отдача — 15.9 м (ноги без веса 12.0), 2.94 с бега, 32.0 км/ч; нейтраль — 20.5 м, 36.1 км/ч
+    sport склон 15° ветер 2.5: отдача — 8.2 м (ноги без веса 5.4), 2.06 с бега, 32.4 км/ч; нейтраль — 10.8 м, 36.8 км/ч
+    sport склон 20° ветер 0.0: отдача — 12.1 м (ноги без веса 9.4), 2.33 с бега, 33.2 км/ч; нейтраль — 15.6 м, 37.2 км/ч
+    sport склон 20° ветер 2.5: отдача — 6.6 м (ноги без веса 4.1), 1.71 с бега, 33.2 км/ч; нейтраль — 8.7 м, 37.7 км/ч
+  ok   test_pendulum_takeoff_pilot.gd::test_liftoff_distance
+    через 1,5 с бега: нейтраль 6.14 м/с, «от себя» до упора 5.57 м/с
+  ok   test_pendulum_takeoff_pilot.gd::test_push_early_brakes
+    поздняя отдача на 20 км/ч: отрыв false (nan км/ч), срыв «wingtip», режим 3, посадка -; крен до 13°, α до 53°
+  ok   test_pendulum_takeoff_pilot.gd::test_push_late_low_speed_stalls
+    после отрыва (27.6 км/ч): «на себя» — V через 4 с 38.8 км/ч, ступни над склоном 2.49 м (мин. 0.18); нейтраль — 33.9 км/ч, 3.63 м
+  ok   test_pendulum_takeoff_pilot.gd::test_push_then_pull
+    боковой 10° стоя: держит — курс ±0.4°, крен до -2.9°, момент рук 22 Н·м; без рук — курс 9.0°
+    боковой 15° стоя: держит — курс ±0.4°, крен до -2.2°, момент рук 21 Н·м; без рук — курс 13.2°
+  ok   test_pendulum_takeoff_pilot.gd::test_crosswind_standing
+    разбег, боковой 10° 4,5 м/с: путь 2.7 м, в сторону 0.6 м; курс ±2.3°, крен до 3.1°, момент рук до 30 Н·м
+    разбег, боковой 15° 4,5 м/с: путь 2.8 м, в сторону 0.9 м; курс ±4.0°, крен до 4.7°, момент рук до 42 Н·м
+  ok   test_pendulum_takeoff_pilot.gd::test_crosswind_takeoff
+
+6 тестов, 0 упало, 0 пропущено
+=== test_pendulum_ground
+
+    ground_run training: отрыв 3.80 с (эталон 3.81), путь 15.0 м (14.9), V 31.1 км/ч (31.1), через 4 с 33.7 км/ч
+    ground_run laminar: отрыв 3.91 с (эталон 3.92), путь 15.6 м (15.6), V 31.7 км/ч (31.7), через 4 с 37.8 км/ч
+    ground_run sport: отрыв 4.43 с (эталон 4.46), путь 20.5 м (20.5), V 36.1 км/ч (36.1), через 4 с 34.2 км/ч
+  ok   test_pendulum_ground.gd::test_run_up_calm
+    ground_run_wind3 training: отрыв 2.89 с (эталон 2.91), путь 6.8 м (6.9), V 31.3 км/ч (31.3), через 4 с 33.6 км/ч
+    ground_run_wind3 laminar: отрыв 2.94 с (эталон 2.96), путь 7.1 м (7.1), V 32.2 км/ч (32.1), через 4 с 37.6 км/ч
+    ground_run_wind3 sport: отрыв 3.22 с (эталон 3.23), путь 9.5 м (9.5), V 36.9 км/ч (36.8), через 4 с 33.8 км/ч
+  ok   test_pendulum_ground.gd::test_run_up_headwind_shorter
+    training: отрыв в нейтрали 31.1 км/ч, «от себя» 0,3 — 27.7 км/ч; через 4 с 33.7 против 27.1
+    laminar: отрыв в нейтрали 31.7 км/ч, «от себя» 0,3 — 27.9 км/ч; через 4 с 37.8 против 27.0
+    sport: отрыв в нейтрали 36.1 км/ч, «от себя» 0,3 — 32.2 км/ч; через 4 с 34.2 против 30.9
+  ok   test_pendulum_ground.gd::test_run_up_push_slower_liftoff
+    ground_run_wind6 training: отрыв 2.30 с (эталон 2.30), путь 2.1 м (2.1), V 30.7 км/ч (30.7), через 4 с 33.8 км/ч
+    ground_run_wind6 laminar: отрыв 2.32 с (эталон 2.32), путь 2.3 м (2.3), V 31.5 км/ч (31.5), через 4 с 37.9 км/ч
+    ground_run_wind6 sport: отрыв 2.55 с (эталон 2.55), путь 3.9 м (3.9), V 36.4 км/ч (36.3), через 4 с 34.0 км/ч
+  ok   test_pendulum_ground.gd::test_run_up_headwind_6
+    штиль 15° training: GroundRun 2.47 с бега, 12.2 м, 29.3 км/ч; маятник 2.80 с, 15.0 м, 31.1 км/ч
+    штиль 15° laminar: GroundRun 2.67 с бега, 13.5 м, 29.9 км/ч; маятник 2.91 с, 15.6 м, 31.7 км/ч
+    штиль 15° sport: GroundRun 3.20 с бега, 18.2 м, 34.1 км/ч; маятник 3.43 с, 20.5 м, 36.1 км/ч
+  ok   test_pendulum_ground.gd::test_compare_ground_run
+  ok   test_pendulum_ground.gd::test_stand_still
+  ok   test_pendulum_ground.gd::test_walk_and_turn
+    падение на крыло training: 1.2 с, крен 12°
+    падение на крыло laminar: 1.0 с, крен 11°
+    падение на крыло sport: 1.1 с, крен 11°
+  ok   test_pendulum_ground.gd::test_wing_drop_fails
+  ok   test_pendulum_ground.gd::test_any_dt
+  ok   test_pendulum_ground_effect.gd::test_sigma
+    training, h/b = 0,25: подъёмная +7.2 %, сопротивление -6.5 %
+    laminar, h/b = 0,25: подъёмная +5.3 %, сопротивление -7.4 %
+    sport, h/b = 0,25: подъёмная +5.0 %, сопротивление -8.8 %
+  ok   test_pendulum_ground_effect.gd::test_lift_up_drag_down
+  ok   test_pendulum_ground_effect.gd::test_high_no_change
+    мягкая training, ветер 3, выравнивание с 0.50 м — soft: вертикальная 3.66, горизонтальная 2.55 м/с, крен 0°, касание feet
+  ok   test_pendulum_ground_landing.gd::test_soft_with_flare
+    штиль training: лучшее 1.29 — hard: вертикальная 6.44, горизонтальная 3.84 м/с, крен 0°, касание feet
+    штиль laminar: лучшее 1.45 — hard: вертикальная 6.83, горизонтальная 4.34 м/с, крен 0°, касание feet
+    штиль sport: лучшее 1.68 — crash: вертикальная 7.04, горизонтальная 5.03 м/с, крен 0°, касание feet
+  ok   test_pendulum_ground_landing.gd::test_calm_near_limit
+    без выравнивания training — hard: вертикальная 0.93, горизонтальная 8.91 м/с, крен 0°, касание feet
+    без выравнивания laminar — hard: вертикальная 0.79, горизонтальная 9.75 м/с, крен 0°, касание feet
+    без выравнивания sport — hard: вертикальная 0.78, горизонтальная 9.90 м/с, крен 0°, касание feet
+  ok   test_pendulum_ground_landing.gd::test_hard_without_flare
+    выравнивание с 6 м training — hard: вертикальная 5.30, горизонтальная 6.08 м/с, крен 0°, касание feet
+    выравнивание с 6 м laminar — hard: вертикальная 6.69, горизонтальная 5.22 м/с, крен 0°, касание feet
+    выравнивание с 6 м sport — crash: вертикальная 7.91, горизонтальная 3.84 м/с, крен 0°, касание feet
+  ok   test_pendulum_ground_landing.gd::test_hard_flare_too_high
+    пикирование training — crash: вертикальная 3.71, горизонтальная 13.81 м/с, крен 0°, касание feet
+    пикирование laminar — crash: вертикальная 8.81, горизонтальная 18.30 м/с, крен 0°, касание feet
+    пикирование sport — crash: вертикальная 10.97, горизонтальная 17.67 м/с, крен 0°, касание feet
+  ok   test_pendulum_ground_landing.gd::test_crash_dive
+    крен у земли training — crash: вертикальная 3.83, горизонтальная 11.11 м/с, крен 51°, касание wingtip
+    крен у земли laminar — crash: вертикальная 5.81, горизонтальная 11.70 м/с, крен 61°, касание wingtip
+    крен у земли sport — crash: вертикальная 5.26, горизонтальная 11.74 м/с, крен 59°, касание wingtip
+  ok   test_pendulum_ground_landing.gd::test_crash_wingtip
+  ok   test_pendulum_ground_landing.gd::test_after_landing
+
+19 тестов, 0 упало, 0 пропущено
+=== test_pendulum_run_smooth
+
+    встречный 0 м/с: разбег 3.10 с; подскок ЦМ физики 0.3 см, таза в картинке 3.2 см (размах)
+    встречный 3 м/с: разбег 2.65 с; подскок ЦМ физики 0.5 см, таза в картинке 2.5 см (размах)
+  ok   test_pendulum_run_smooth.gd::test_no_bounce
+
+1 тестов, 0 упало, 0 пропущено
+=== test_pendulum_landing_technique
+
+  ok   test_pendulum_landing_technique.gd::test_trace
+  ok   test_pendulum_landing_technique.gd::test_sweep
+    правильная training, ветер 0 — hard hard 6 шаг. 1.22: верт 1.77, гор 6.11 м/с, крен 0°, feet; ступни гор 6.19 верт 1.74; V на отдаче 6.8, от отдачи до касания 0.57 с, пробег 6.2 м
+    правильная apogee, ветер 0 — hard hard 6 шаг. 1.19: верт 2.11, гор 5.93 м/с, крен 0°, feet; ступни гор 5.81 верт 2.05; V на отдаче 6.7, от отдачи до касания 0.32 с, пробег 5.8 м
+    правильная laminar, ветер 0 — hard hard 6 шаг. 1.23: верт 2.26, гор 6.14 м/с, крен 0°, feet; ступни гор 6.62 верт 2.19; V на отдаче 7.1, от отдачи до касания 0.56 с, пробег 6.3 м
+    правильная sport, ветер 0 — hard hard 7 шаг. 1.43: верт 2.29, гор 7.15 м/с, крен 0°, feet; ступни гор 7.70 верт 2.24; V на отдаче 7.8, от отдачи до касания 0.44 с, пробег 8.5 м
+    правильная training, ветер 3 — soft ran 3 шаг. 0.62: верт 1.77, гор 3.11 м/с, крен 0°, feet; ступни гор 3.19 верт 1.75; V на отдаче 6.8, от отдачи до касания 0.57 с, пробег 1.6 м
+    правильная apogee, ветер 3 — soft ran 3 шаг. 0.59: верт 2.11, гор 2.93 м/с, крен 0°, feet; ступни гор 2.81 верт 2.05; V на отдаче 6.7, от отдачи до касания 0.32 с, пробег 1.4 м
+    правильная laminar, ветер 3 — soft ran 3 шаг. 0.63: верт 2.26, гор 3.14 м/с, крен 0°, feet; ступни гор 3.62 верт 2.19; V на отдаче 7.1, от отдачи до касания 0.56 с, пробег 1.6 м
+    правильная sport, ветер 3 — soft ran 4 шаг. 0.83: верт 2.29, гор 4.15 м/с, крен 0°, feet; ступни гор 4.70 верт 2.23; V на отдаче 7.8, от отдачи до касания 0.44 с, пробег 2.9 м
+  ok   test_pendulum_landing_technique.gd::test_correct_landing_soft
+    отдача с 2.0 м training — hard hard 4 шаг. 1.15: верт 5.75, гор 4.31 м/с, крен 0°, feet; ступни гор 3.41 верт 6.41; V на отдаче 8.8, от отдачи до касания 1.59 с, пробег 3.1 м
+    отдача с 2.0 м apogee — hard hard 5 шаг. 1.14: верт 5.69, гор 4.47 м/с, крен 0°, feet; ступни гор 3.82 верт 6.18; V на отдаче 9.0, от отдачи до касания 1.49 с, пробег 3.3 м
+    отдача с 2.0 м laminar — hard hard 5 шаг. 1.24: верт 6.21, гор 4.97 м/с, крен 0°, feet; ступни гор 3.54 верт 7.55; V на отдаче 9.7, от отдачи до касания 1.59 с, пробег 4.1 м
+    отдача с 2.0 м sport — crash crash 0 шаг. 1.20: верт 5.70, гор 5.99 м/с, крен 180°, tail; ступни гор 5.34 верт 6.57; V на отдаче 9.9, от отдачи до касания 1.41 с, пробег 0.0 м
+    отдача с 0.1 м training — hard hard 6 шаг. 1.23: верт 1.40, гор 6.13 м/с, крен 0°, feet; ступни гор 5.95 верт 1.33; V на отдаче 6.5, от отдачи до касания 0.07 с, пробег 6.2 м
+    отдача с 0.1 м apogee — hard hard 6 шаг. 1.18: верт 2.07, гор 5.92 м/с, крен 0°, feet; ступни гор 5.68 верт 1.98; V на отдаче 6.5, от отдачи до касания 0.06 с, пробег 5.8 м
+    отдача с 0.1 м laminar — hard hard 6 шаг. 1.22: верт 1.60, гор 6.12 м/с, крен 0°, feet; ступни гор 5.96 верт 1.54; V на отдаче 6.6, от отдачи до касания 0.07 с, пробег 6.2 м
+    отдача с 0.1 м sport — hard hard 7 шаг. 1.42: верт 1.83, гор 7.12 м/с, крен 0°, feet; ступни гор 7.07 верт 1.78; V на отдаче 7.5, от отдачи до касания 0.06 с, пробег 8.4 м
+    отдача с -1.0 м training — hard hard 6 шаг. 1.23: верт 1.41, гор 6.14 м/с, крен 0°, feet; ступни гор 6.00 верт 1.35; V на отдаче nan, от отдачи до касания nan с, пробег 6.3 м
+    отдача с -1.0 м apogee — hard hard 6 шаг. 1.19: верт 2.08, гор 5.93 м/с, крен 0°, feet; ступни гор 5.76 верт 2.00; V на отдаче nan, от отдачи до касания nan с, пробег 5.8 м
+    отдача с -1.0 м laminar — hard hard 6 шаг. 1.23: верт 1.61, гор 6.14 м/с, крен 0°, feet; ступни гор 6.03 верт 1.54; V на отдаче nan, от отдачи до касания nan с, пробег 6.3 м
+    отдача с -1.0 м sport — hard hard 7 шаг. 1.43: верт 1.84, гор 7.16 м/с, крен 0°, feet; ступни гор 7.16 верт 1.79; V на отдаче nan, от отдачи до касания nan с, пробег 8.5 м
+  ok   test_pendulum_landing_technique.gd::test_wrong_timing_hard
+    встречный 8, без отдачи training — soft stood 0 шаг. 0.36: верт 1.82, гор 0.11 м/с, крен 0°, feet; ступни гор 0.11 верт 1.79; V на отдаче nan, от отдачи до касания nan с, пробег 0.0 м
+    встречный 8, без отдачи apogee — soft stood 0 шаг. 0.52: верт 2.59, гор 0.39 м/с, крен 0°, feet; ступни гор 0.77 верт 2.53; V на отдаче nan, от отдачи до касания nan с, пробег 0.0 м
+    встречный 8, без отдачи laminar — soft stood 0 шаг. 0.29: верт 1.46, гор 0.30 м/с, крен 0°, feet; ступни гор 0.58 верт 1.43; V на отдаче nan, от отдачи до касания nan с, пробег 0.0 м
+    встречный 8, без отдачи sport — soft stood 0 шаг. 0.27: верт 1.33, гор 0.17 м/с, крен 0°, feet; ступни гор 0.36 верт 1.30; V на отдаче nan, от отдачи до касания nan с, пробег 0.0 м
+    встречный 10, без отдачи training — soft stood 0 шаг. 0.54: верт 2.70, гор 0.08 м/с, крен 0°, feet; ступни гор 0.11 верт 2.69; V на отдаче nan, от отдачи до касания nan с, пробег 0.0 м
+    встречный 10, без отдачи apogee — soft stood 0 шаг. 0.60: верт 2.98, гор 0.07 м/с, крен 0°, feet; ступни гор 0.21 верт 2.95; V на отдаче nan, от отдачи до касания nan с, пробег 0.0 м
+    встречный 10, без отдачи laminar — soft stood 1 шаг. 0.35: верт 1.73, гор 1.11 м/с, крен 0°, feet; ступни гор 0.99 верт 1.75; V на отдаче nan, от отдачи до касания nan с, пробег 0.2 м
+    встречный 10, без отдачи sport — soft stood 1 шаг. 0.28: верт 0.61, гор 1.40 м/с, крен 0°, feet; ступни гор 2.26 верт 0.75; V на отдаче nan, от отдачи до касания nan с, пробег 0.4 м
+  ok   test_pendulum_landing_technique.gd::test_strong_wind_soft
+    без выравнивания, отдача с 0.5 м training — hard hard 6 шаг. 1.09: верт 3.77, гор 5.47 м/с, крен 0°, feet; ступни гор 5.58 верт 3.61; V на отдаче 9.0, от отдачи до касания 1.34 с, пробег 5.0 м
+    без выравнивания, отдача с 0.5 м apogee — hard hard 6 шаг. 1.26: верт 2.89, гор 6.29 м/с, крен 0°, feet; ступни гор 7.12 верт 2.10; V на отдаче 9.3, от отдачи до касания 1.16 с, пробег 6.6 м
+    без выравнивания, отдача с 0.5 м laminar — crash crash 0 шаг. 1.27: верт 3.17, гор 6.35 м/с, крен 180°, tail; ступни гор 6.59 верт 2.63; V на отдаче 9.8, от отдачи до касания 1.22 с, пробег 0.0 м
+    без выравнивания, отдача с 0.5 м sport — crash crash 0 шаг. 1.42: верт 2.96, гор 7.11 м/с, крен 180°, tail; ступни гор 7.87 верт 1.86; V на отдаче 9.9, от отдачи до касания 1.08 с, пробег 0.0 м
+    без выравнивания, отдача с -1.0 м training — hard hard 9 шаг. 1.78: верт 0.87, гор 8.92 м/с, крен 0°, feet; ступни гор 8.92 верт 0.87; V на отдаче nan, от отдачи до касания nan с, пробег 15.6 м
+    без выравнивания, отдача с -1.0 м apogee — hard hard 9 шаг. 1.84: верт 1.20, гор 9.20 м/с, крен 0°, feet; ступни гор 9.20 верт 1.20; V на отдаче nan, от отдачи до касания nan с, пробег 14.9 м
+    без выравнивания, отдача с -1.0 м laminar — hard hard 10 шаг. 1.95: верт 0.75, гор 9.73 м/с, крен 0°, feet; ступни гор 9.73 верт 0.75; V на отдаче nan, от отдачи до касания nan с, пробег 20.3 м
+    без выравнивания, отдача с -1.0 м sport — hard hard 10 шаг. 1.97: верт 0.72, гор 9.86 м/с, крен 0°, feet; ступни гор 9.86 верт 0.72; V на отдаче nan, от отдачи до касания nan с, пробег 18.6 м
+  ok   test_pendulum_landing_technique.gd::test_no_roundout_hard
+
+6 тестов, 0 упало, 0 пропущено
+=== test_pendulum_ground_landing
+
+    мягкая training, ветер 3, выравнивание с 0.50 м — soft: вертикальная 3.66, горизонтальная 2.55 м/с, крен 0°, касание feet
+  ok   test_pendulum_ground_landing.gd::test_soft_with_flare
+    штиль training: лучшее 1.29 — hard: вертикальная 6.44, горизонтальная 3.84 м/с, крен 0°, касание feet
+    штиль laminar: лучшее 1.45 — hard: вертикальная 6.83, горизонтальная 4.34 м/с, крен 0°, касание feet
+    штиль sport: лучшее 1.68 — crash: вертикальная 7.04, горизонтальная 5.03 м/с, крен 0°, касание feet
+  ok   test_pendulum_ground_landing.gd::test_calm_near_limit
+    без выравнивания training — hard: вертикальная 0.93, горизонтальная 8.91 м/с, крен 0°, касание feet
+    без выравнивания laminar — hard: вертикальная 0.79, горизонтальная 9.75 м/с, крен 0°, касание feet
+    без выравнивания sport — hard: вертикальная 0.78, горизонтальная 9.90 м/с, крен 0°, касание feet
+  ok   test_pendulum_ground_landing.gd::test_hard_without_flare
+    выравнивание с 6 м training — hard: вертикальная 5.30, горизонтальная 6.08 м/с, крен 0°, касание feet
+    выравнивание с 6 м laminar — hard: вертикальная 6.69, горизонтальная 5.22 м/с, крен 0°, касание feet
+    выравнивание с 6 м sport — crash: вертикальная 7.91, горизонтальная 3.84 м/с, крен 0°, касание feet
+  ok   test_pendulum_ground_landing.gd::test_hard_flare_too_high
+    пикирование training — crash: вертикальная 3.71, горизонтальная 13.81 м/с, крен 0°, касание feet
+    пикирование laminar — crash: вертикальная 8.81, горизонтальная 18.30 м/с, крен 0°, касание feet
+    пикирование sport — crash: вертикальная 10.97, горизонтальная 17.67 м/с, крен 0°, касание feet
+  ok   test_pendulum_ground_landing.gd::test_crash_dive
+    крен у земли training — crash: вертикальная 3.83, горизонтальная 11.11 м/с, крен 51°, касание wingtip
+    крен у земли laminar — crash: вертикальная 5.81, горизонтальная 11.70 м/с, крен 61°, касание wingtip
+    крен у земли sport — crash: вертикальная 5.26, горизонтальная 11.74 м/с, крен 59°, касание wingtip
+  ok   test_pendulum_ground_landing.gd::test_crash_wingtip
+  ok   test_pendulum_ground_landing.gd::test_after_landing
+
+7 тестов, 0 упало, 0 пропущено
+=== test_landing.gd
+
+  ok   test_landing.gd::test_grades
+  ok   test_landing.gd::test_result_fields
+  ok   test_landing.gd::test_flare_vs_no_flare
+  ok   test_landing.gd::test_flare_slightly_off
+  ok   test_landing.gd::test_runout_stops_pilot
+  ok   test_landing.gd::test_flare_too_high
+  ok   test_landing.gd::test_flare_headwind
+  ok   test_landing.gd::test_dive_into_ground_crashes
+  ok   test_landing.gd::test_slope_landing_uses_normal
+  ok   test_landing.gd::test_walk_after_landing
+  ok   test_landing.gd::test_flare_amount
+
+11 тестов, 0 упало, 0 пропущено
+=== test_takeoff
+
+  ok   test_takeoff.gd::test_headwind_launch
+  ok   test_takeoff.gd::test_headwind_helps
+    штиль: true за 2.90 с; попутный 3 м/с: true 3.84 с ''
+  ok   test_takeoff.gd::test_tailwind_no_liftoff
+  ok   test_takeoff.gd::test_crosswind_fails
+  ok   test_takeoff.gd::test_crosswind_light_all_wings
+  ok   test_takeoff.gd::test_nose_high_no_liftoff
+  ok   test_takeoff.gd::test_nose_low_no_liftoff
+  ok   test_takeoff.gd::test_stop_running_stands
+  ok   test_takeoff.gd::test_failure_signal
+  ok   test_takeoff.gd::test_walking
+
+10 тестов, 0 упало, 0 пропущено
+=== test_liftoff_physics
+
+    slavutich_ut склон 0° pitch +0, 10 с стоя: standing, сдвиг 0.00 м
+    slavutich_ut склон 0° pitch +1, 10 с стоя: standing, сдвиг 0.00 м
+    slavutich_ut склон 17° pitch +0, 10 с стоя: standing, сдвиг 0.00 м
+    slavutich_ut склон 17° pitch +1, 10 с стоя: standing, сдвиг 0.00 м
+    training склон 0° pitch +0, 10 с стоя: standing, сдвиг 0.00 м
+    training склон 0° pitch +1, 10 с стоя: standing, сдвиг 0.00 м
+    training склон 17° pitch +0, 10 с стоя: standing, сдвиг 0.00 м
+    training склон 17° pitch +1, 10 с стоя: standing, сдвиг 0.00 м
+    sport склон 0° pitch +0, 10 с стоя: standing, сдвиг 0.00 м
+    sport склон 0° pitch +1, 10 с стоя: standing, сдвиг 0.00 м
+    sport склон 17° pitch +0, 10 с стоя: standing, сдвиг 0.00 м
+    sport склон 17° pitch +1, 10 с стоя: standing, сдвиг 0.00 м
+  ok   test_liftoff_physics.gd::test_no_liftoff_without_run_or_wind
+    training склон 8°: отрыв true за 4.27 с, 22.9 м; V 7.58 м/с, V_отр (L_верт = W) 7.58, √(2W/ρSC_L) 7.62, α 16.7°
+    training склон 17°: отрыв true за 2.02 с, 9.0 м; V 7.62 м/с, V_отр (L_верт = W) 7.62, √(2W/ρSC_L) 7.62, α 16.7°
+    sport склон 8°: отрыв true за 6.76 с, 45.0 м; V 9.39 м/с, V_отр (L_верт = W) 9.39, √(2W/ρSC_L) 9.41, α 13.5°
+    sport склон 17°: отрыв true за 2.85 с, 15.8 м; V 9.48 м/с, V_отр (L_верт = W) 9.48, √(2W/ρSC_L) 9.41, α 13.5°
+  ok   test_liftoff_physics.gd::test_liftoff_at_lift_equals_weight
+    бег 1 с, отпустил Shift на 5 с: standing, скорость 0.00 м/с
+  ok   test_liftoff_physics.gd::test_stop_running_is_not_failure
+    sport склон 8° ветер 0: flying за 6.76 с, 45.0 м
+    sport склон 8° ветер 3: flying за 3.00 с, 12.1 м
+    sport склон 8° ветер 6: flying за 1.29 с, 2.4 м
+    sport склон 17° ветер 0: flying за 2.85 с, 15.8 м
+    sport склон 17° ветер 3: flying за 1.91 с, 7.0 м
+    sport склон 17° ветер 6: flying за 0.99 с, 1.7 м
+  ok   test_liftoff_physics.gd::test_liftoff_time_from_physics
+  ok   test_liftoff_physics.gd::test_no_time_thresholds_in_launch_code
+
+5 тестов, 0 упало, 0 пропущено
+=== test_motion_ground
+
+  ok   test_motion_ground.gd::test_srs_units_ms2
+MR5 стоя ровно: vertical среднее -0.2710 СКО 0.0000 пик 0.271 м/с², phase standing
+  ok   test_motion_ground.gd::test_standing_flat
+MR5 стоя на склоне: vertical среднее -0.0153 СКО 0.0000 пик 0.015 м/с², pitch -3.20
+  ok   test_motion_ground.gd::test_standing_slope
+MR5 разбег: фазы { "standing": 360, "running": 192, "flying": 1608 }; СКО heave стоя 0.0000, на разбеге 0.6825 м/с²; vertical в полёте среднее -0.0271; пик на земле 3.106; разрывов (защита 50 g) 0
+  ok   test_motion_ground.gd::test_takeoff_stream_no_gaps
+MR5 полёт: vertical среднее -0.0648 СКО 0.0001 м/с²
+  ok   test_motion_ground.gd::test_steady_flight_srs
+MR5 посадка: фаза landed; пик vertical 61.64 м/с², invalid 0
+  ok   test_motion_ground.gd::test_landing_stream
+MR5 маятник: фазы { "standing": 360, "running": 292, "flying": 908 }; vertical стоя среднее -0.103 СКО heave стоя 0.064, на разбеге 0.867; пик 2.50; разрывов 0
+  ok   test_motion_ground.gd::test_pendulum_ground_stream
+
+7 тестов, 0 упало, 0 пропущено

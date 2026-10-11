@@ -9,7 +9,7 @@ const Sim := preload("res://tests/flight/flight_sim.gd")
 const PSim := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const DT := 1.0 / 120.0
 const GROUND_Y := 100.0
-const FEET_CLEAR := 0.005  ## ступни над землёй в начале, м: касание через 1–2 шага, скорость ≈ заданной
+const FEET_CLEAR := 0.005  ## ступни над землёй в начале, м: касание на первом шаге
 
 
 static func flat(_x: float, _z: float) -> float:
@@ -18,9 +18,13 @@ static func flat(_x: float, _z: float) -> float:
 
 ## mode "ws" | "pend"; v_down, v_fwd — м/с; secs — сколько шагать. → {phys_g, g60, grade, vtd, t_peak,
 ## t_td, last_g (|f| в конце, г), nan, model}.
-static func run(mode: String, v_down: float, v_fwd: float = 2.0, secs: float = 2.0, wing := "sport") -> Dictionary:
+## dt — шаг физики (по умолчанию 120 Гц; пик на интервалах 1/60 с — только при dt = 1/120).
+static func run(
+	mode: String, v_down: float, v_fwd: float = 2.0, secs: float = 2.0, wing := "sport", dt := DT
+) -> Dictionary:
 	var m: Variant
-	var vel := Vector3(0.0, -v_down, -v_fwd)
+	# касание на первом шаге: за него свободное падение добавит g·dt — на касании ровно v_down
+	var vel := Vector3(0.0, -(v_down - Units.G * dt), -v_fwd)
 	if mode == "ws":
 		m = Sim.make(wing)
 		m.reset_in_air(Vector3(0.0, GROUND_Y + FEET_CLEAR, 0.0), 0.0)
@@ -43,21 +47,21 @@ static func run(mode: String, v_down: float, v_fwd: float = 2.0, secs: float = 2
 	var t_td := -1.0
 	var last := 0.0
 	var bad := false
-	var n := int(round(secs / DT))
+	var n := int(round(secs / dt))
 	for i in n:
-		m.step(DT, inp, Callable(), flat)
+		m.step(dt, inp, Callable(), flat)
 		var v: Vector3 = m.telemetry.pilot_velocity
 		if not v.is_finite():
 			bad = true
 			break
 		if t_td < 0.0 and m.mode != FlightModel.Mode.AIR:
-			t_td = (i + 1) * DT
-		var f := ((v - v_prev) / DT - g_vec).length() / Units.G
+			t_td = (i + 1) * dt
+		var f := ((v - v_prev) / dt - g_vec).length() / Units.G
 		if f > phys:
 			phys = f
-			t_peak = (i + 1) * DT
+			t_peak = (i + 1) * dt
 		if i % 2 == 1:
-			g60 = maxf(g60, ((v - v_prev2) / (2.0 * DT) - g_vec).length() / Units.G)
+			g60 = maxf(g60, ((v - v_prev2) / (2.0 * dt) - g_vec).length() / Units.G)
 			v_prev2 = v
 		last = f
 		v_prev = v

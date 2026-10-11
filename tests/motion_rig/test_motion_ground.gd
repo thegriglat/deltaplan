@@ -144,6 +144,9 @@ func test_landing_stream() -> void:
 	print("MR5 посадка: фаза %s; пик vertical %.2f м/с², invalid %d" % [m.phase(), st.peak(st.vert), st.invalid_after_first()])
 	check(m.phase() == "landed", "приземлился")
 	check(st.invalid_after_first() == 0, "касание без разрыва потока")
+	# PD-38 (PD-К6 v1): касание ≈ 4,7 м/с гасят ноги на ходе 0,3 м (было 261,6 м/с² — за 1–2 шага);
+	# ход почти исчерпан — удар заметный, но не десятки g
+	check(st.peak(st.vert) < 8.0 * G, "пик касания %.1f м/с² < 8 g" % st.peak(st.vert))
 
 
 ## Маятник (PD-К1): pilot_* заполняются и на земле, разбег и отрыв — без разрывов потока.
