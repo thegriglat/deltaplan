@@ -1,0 +1,35 @@
+| крыло | метрика | до | после | Δ, % |
+|---|---|---|---|---|
+| training | trim_kmh | 32.480 | 32.480 | +0.0 |
+| training | sink_ms | 1.061 | 1.061 | +0.0 |
+| training | bank_2s_deg | 33.112 | 33.112 | +0.0 |
+| training | reversal_s | 5.092 | 5.092 | +0.0 |
+| training | recover_5s_deg | 8.112 | 8.112 | +0.0 |
+| training | recover_10s_deg | 1.396 | 1.396 | +0.0 |
+| training | recover_20s_deg | 0.070 | 0.070 | +0.0 |
+| training | pull100_force_n | 249.234 | 249.234 | +0.0 |
+| training | pull100_kmh | 48.896 | 48.896 | +0.0 |
+| training | pull50_force_n | 110.058 | 110.058 | +0.0 |
+| training | pull50_kmh | 39.972 | 39.972 | +0.0 |
+| laminar | trim_kmh | 35.305 | 35.305 | +0.0 |
+| laminar | sink_ms | 0.919 | 0.919 | +0.0 |
+| laminar | bank_2s_deg | 44.521 | 44.521 | +0.0 |
+| laminar | reversal_s | 4.067 | 4.067 | +0.0 |
+| laminar | recover_5s_deg | 43.738 | 43.738 | +0.0 |
+| laminar | recover_10s_deg | 52.738 | 52.738 | +0.0 |
+| laminar | recover_20s_deg | 58.876 | 58.876 | +0.0 |
+| laminar | pull100_force_n | 229.741 | 229.741 | +0.0 |
+| laminar | pull100_kmh | 60.066 | 60.066 | +0.0 |
+| laminar | pull50_force_n | 106.442 | 106.442 | +0.0 |
+| laminar | pull50_kmh | 51.430 | 51.430 | +0.0 |
+| sport | trim_kmh | 35.858 | 35.858 | +0.0 |
+| sport | sink_ms | 0.891 | 0.891 | +0.0 |
+| sport | bank_2s_deg | 41.558 | 41.558 | +0.0 |
+| sport | reversal_s | 4.500 | 4.500 | +0.0 |
+| sport | recover_5s_deg | 39.215 | 39.215 | +0.0 |
+| sport | recover_10s_deg | 45.539 | 45.539 | +0.0 |
+| sport | recover_20s_deg | 52.893 | 52.893 | +0.0 |
+| sport | pull100_force_n | 213.143 | 213.143 | +0.0 |
+| sport | pull100_kmh | 59.948 | 59.948 | +0.0 |
+| sport | pull50_force_n | 104.943 | 104.943 | +0.0 |
+| sport | pull50_kmh | 53.459 | 53.459 | +0.0 |

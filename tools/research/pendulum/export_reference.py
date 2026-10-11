@@ -310,9 +310,9 @@ class GameSim(Sim):
        τ₁·ḟ = f_ст(Δα − τ₂·Δα̇) − f, τ = T·c/V (Goman & Khrabrov 1994); обтекаемая часть за срывом —
        нормальная сила пластины без подсасывания кромки до cn_max, центр давления — как у сорванной.
        Состояние шагает только на подшагах (_dyn_dt > 0); балансировка и C_L max — статика.
-    6. Руки стоящего пилота у земли (PD-29/PD-30, configs/pendulum.json → arms.flare_shift_x_push_m,
-       arms.flare_reach; PendulumPilotArms): ниже flight.flare.height_m (за 1 м выше — нарастает) ход
-       «от себя» — flare_shift_x_push_m; упор «от себя» спадает до нуля у вытянутых рук (угол крыла
+    6. Руки стоящего пилота у земли (PD-29/PD-30/PD-35, configs/pendulum.json → arms.flare_reach;
+       PendulumPilotArms): ниже flight.flare.height_m (за 1 м выше — нарастает) ход «от себя» — до
+       вытянутых рук: цель L·sin(досягаемость + спад) (PD-35); упор «от себя» спадает до нуля у вытянутых рук (угол крыла
        к стропе от нейтрали ≥ досягаемости).
     """
 
@@ -337,11 +337,15 @@ class GameSim(Sim):
         pc = json.loads((ROOT / "configs/pendulum.json").read_text())
         ds = pc["strips"].get("dynamic_stall", {})
         self.dyn_on = bool(ds.get("enabled", False))
+        self.cd90_sweep_norm = bool(pc["strips"].get("stall_cd90_sweep_norm", True))
+        self.stall_cp_reverse = bool(pc.get("stall_cp_reverse", True))
+        self.sweep_alpha_exact = bool(pc["strips"].get("sweep_alpha_exact", True))
         self.dyn_t1 = float(ds.get("t1_c_per_v", 3.0))
         self.dyn_t2 = float(ds.get("t2_c_per_v", 2.0))
         self.dyn_cn_max = float(ds.get("cn_max", 3.0))
         arms = pc["arms"]
-        self.flare_push = float(arms.get("flare_shift_x_push_m", self.p.shift_x_push))
+        # PD-35: ход «от себя» стоя — по досягаемости рук (< 0), если не задан явно
+        self.flare_push = float(arms.get("flare_shift_x_push_m", -1.0))
         fr = arms.get("flare_reach", {})
         if fr.get("enabled", False):
             self.flare_reach = reach_angle(fr["shoulder_below_hang_m"], fr["grip_below_hang_m"],
@@ -375,6 +379,7 @@ class GameSim(Sim):
         return best
 
     stall_cp_shift = True
+    stall_cp_reverse = True  # pendulum.json → stall_cp_reverse (PD-35)
 
     def strip_cl(self, a_eff):
         cl, cd_x, blend = self._strip_cl_ge(a_eff)
@@ -387,7 +392,10 @@ class GameSim(Sim):
             a_rel = a_eff - self.alpha0_root
             # сдвиг нарастает за срывом на stall_cp_blend_deg (PD-22: 20°; было — как blend, 4°)
             cb = np.clip(self._margin / math.radians(self.stall_cp_blend_deg), 0.0, 1.0)
-            d = np.where(blend > 0.0, cb, 0.0) * st.chord * (0.25 * np.abs(np.sin(a_rel)) + 0.25 - self.p.cp_chord)
+            sa = 0.25 * np.abs(np.sin(a_rel))
+            # PD-35: в обратном потоке (cos α < 0) — от задней кромки, как у симметричной пластины
+            xcp = np.where((np.cos(a_rel) < 0.0) & self.stall_cp_reverse, 0.75 - sa, 0.25 + sa)
+            d = np.where(blend > 0.0, cb, 0.0) * st.chord * (xcp - self.p.cp_chord)
             self.r_strip_b = self._r0 - st.c_b * d[:, None]
         return cl, cd_x, blend
 
@@ -397,6 +405,7 @@ class GameSim(Sim):
     # (C_L и C_D непрерывны на срыве, C_N 90° = 1,11 + 0,018·λ), "plate" — 2D-пластина CN = 2
     stall_model = "viterna"
     cd90_base, cd90_per_ar = 1.11, 0.018
+    cd90_sweep_norm = True  # strips.stall_cd90_sweep_norm (PD-35)
     # срыв по местному c_l к полному напору полосы (метод критического сечения, strips.stall_criterion
     # = "streamwise"): в скольжении первой срывается наветренная консоль; "normal" — по α ⊥ кромке
     stall_criterion = "streamwise"
@@ -429,6 +438,9 @@ class GameSim(Sim):
             # Viterna & Corrigan за срывом; CD = CD_s·cos α/cos α_s + cd90·(sin²α − sin²α_s·cos α/cos α_s),
             # CD_s — поляра на срыве; cd_extra — разница с CD поляры по CL (её прибавляет wing_aero)
             cdm = self.cd90_base + self.cd90_per_ar * p.span * p.span / p.area
+            if self.cd90_sweep_norm:
+                # PD-35: сила полосы — q⊥/cos²Λ·C, пластина поперёк потока — C_N 90° по полному напору
+                cdm = cdm * self.cos_sweep ** 2
             post = a_rel > a_st
             sa, ca = np.sin(a_st), np.cos(a_st)
             s_ = np.sin(a_rel)
@@ -572,7 +584,11 @@ class GameSim(Sim):
         ry = max(-1.0, min(1.0, c.roll))
         px = max(-1.0, min(1.0, c.pitch))
         tgt[1] += ry * p.shift_y_max
-        push = p.shift_x_push + (self.flare_push - p.shift_x_push) * self.flare_mix
+        fp = self.flare_push
+        if fp < 0.0:
+            fp = (float(np.linalg.norm(self.neutral_rel)) * math.sin(self.flare_reach + self.flare_reach_soft)
+                  if self.flare_reach > 0.0 else p.shift_x_push)
+        push = p.shift_x_push + (fp - p.shift_x_push) * self.flare_mix
         tgt[0] += -px * (push if px > 0 else p.shift_x_pull)
         k = p.m_pilot / p.arm_tau ** 2
         d = 2.0 * p.m_pilot / p.arm_tau

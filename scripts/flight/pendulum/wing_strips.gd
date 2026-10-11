@@ -53,10 +53,20 @@ var yabs := PackedFloat64Array()  ## |y| / полуразмаха
 var side := PackedFloat64Array()  ## +1 правая, −1 левая
 
 var cos_sweep: float = 1.0
+## Угол атаки полосы по потоку из угла ⊥ кромке (PD-35, strips.sweep_alpha_exact): true — точно,
+## tg α = tg α⊥·cos Λ (atan2(u_z·cos Λ, u_c): на 90° — 90°, за ним — обратный поток), false —
+## линейно α⊥·cos Λ (верно при малых α; поперёк паруса даёт 78° вместо 90°, сила не по нормали)
+var sweep_alpha_exact := true
 var cp_chord: float = 0.25  ## точка приложения сил обтекаемой полосы, доля хорды
 var stall_cp_shift := true  ## центр давления сорванной части — назад (pendulum.json → stall_cp_shift)
+## Обратный поток (|α| > 90°, PD-35, pendulum.json → stall_cp_reverse): пластина симметрична — центр
+## давления от задней кромки как от передней, x/c = 0,75 − 0,25·|sin α| (иначе 0,25 + 0,25·|sin α|)
+var stall_cp_reverse := true
 var stall_vc := true  ## срыв по Viterna & Corrigan (strips.stall_model = "viterna"), иначе пластина CN = 2
-var cd90: float = 1.2  ## C_N (C_D) сорванной полосы при 90°: 1,11 + 0,018·λ (strips.stall_cd90_*)
+## C_N (C_D) сорванной полосы при 90° в коэффициентах полосы: (1,11 + 0,018·λ)·cos²Λ (strips.stall_cd90_*,
+## PD-35): сила полосы — q⊥/cos²Λ·C, а пластина поперёк потока держит C_N 90° по полному напору
+## (q⊥ = q), поэтому в формулу Viterna идёт C_N·cos²Λ; без этого C_N крыла на 90° — 1,54–1,62 вместо 1,2
+var cd90: float = 1.2
 ## Срыв по местному c_l, отнесённому к полному напору полосы (метод критического сечения,
 ## strips.stall_criterion = "streamwise"): потолок c_l по нормальной к кромке скорости — cl_max·|u|²·cos²Λ/
 ## (u_c² + u_z²). В скольжении наветренная консоль (меньше стреловидность, больше нагрузка) срывается
@@ -217,10 +227,14 @@ func setup(
 	a0_2d = lift_slope / maxf(1.0 - lift_slope * ind_k, 0.2)
 	build_cd_table()
 	stall_cp_shift = bool(pend.get("stall_cp_shift", true))
+	stall_cp_reverse = bool(pend.get("stall_cp_reverse", true))
+	sweep_alpha_exact = bool(st.get("sweep_alpha_exact", true))
 	stall_vc = String(st.get("stall_model", "viterna")) == "viterna"
 	stall_streamwise = String(st.get("stall_criterion", "streamwise")) == "streamwise"
 	stall_cp_blend = deg_to_rad(float(st.get("stall_cp_blend_deg", 20.0)))
 	cd90 = float(st.get("stall_cd90_base", 1.11)) + float(st.get("stall_cd90_per_ar", 0.018)) * span * span / area
+	if bool(st.get("stall_cd90_sweep_norm", true)):
+		cd90 *= cos_sweep * cos_sweep
 	var ds: Dictionary = st.get("dynamic_stall", {})
 	dyn_on = bool(ds.get("enabled", false))
 	dyn_t1 = float(ds.get("t1_c_per_v", 3.0))
@@ -326,8 +340,8 @@ func aero(
 		var uzi := ui.dot(nbi)
 		var uck := uk.dot(cbk)
 		var uzk := uk.dot(nbk)
-		var ai := atan2(uzi, uci) * cos_sweep + twist[i]
-		var ak := atan2(uzk, uck) * cos_sweep + twist[k]
+		var ai := (atan2(uzi * cos_sweep, uci) if sweep_alpha_exact else atan2(uzi, uci) * cos_sweep) + twist[i]
+		var ak := (atan2(uzk * cos_sweep, uck) if sweep_alpha_exact else atan2(uzk, uck) * cos_sweep) + twist[k]
 		if billow_shift != 0.0:
 			# перекос пузыря: на стороне пилота конец теряет угол атаки (Kroo 1981)
 			ai -= side[i] * billow_shift * billow_lam * yabs[i]
@@ -389,10 +403,10 @@ func aero(
 		if bi > 0.0 and stall_cp_shift:
 			# центр давления сорванной части — назад по хорде (пластина), нарастает за stall_cp_blend
 			var ci := clampf(margin[i] / stall_cp_blend, 0.0, 1.0)
-			rbi -= cbi * (ci * chord[i] * (0.25 * absf(sin(ri)) + 0.25 - cp_chord))
+			rbi -= cbi * (ci * chord[i] * (_cp_stalled(ri) - cp_chord))
 		if bk > 0.0 and stall_cp_shift:
 			var ck := clampf(margin[k] / stall_cp_blend, 0.0, 1.0)
-			rbk -= cbk * (ck * chord[k] * (0.25 * absf(sin(rk)) + 0.25 - cp_chord))
+			rbk -= cbk * (ck * chord[k] * (_cp_stalled(rk) - cp_chord))
 		m_sum += rbi.cross(fi) + rbk.cross(fk)
 	# момент паруса (Cm0) по скоростному напору в ЦМ
 	var v_c := vel - air_c
@@ -415,6 +429,15 @@ func aero(
 	moment_b = m_sum
 	force = R * f_sum
 	moment = R * m_sum
+
+
+## Центр давления сорванной полосы, доля хорды от передней кромки: пластина (Fage & Johansen 1927)
+## 0,25 + 0,25·|sin α|; в обратном потоке (cos α < 0, stall_cp_reverse) — то же от задней кромки.
+func _cp_stalled(r: float) -> float:
+	var sa := 0.25 * absf(sin(r))
+	if stall_cp_reverse and cos(r) < 0.0:
+		return 0.75 - sa
+	return 0.25 + sa
 
 
 ## CL полосы j: линейно до cl_max, дальше Viterna & Corrigan (или пластина CN = 2 со смешиванием

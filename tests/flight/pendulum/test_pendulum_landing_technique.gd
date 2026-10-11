@@ -2,12 +2,14 @@ extends TestCase
 ## Правильная посадка «Маятника» (PD-27): пилот-бот садится по Жеглову (1983, с. 115) и ответу
 ## пилота 11.10 — против ветра на полётной скорости; с ≈ 3 м выравнивание (предварительное), у
 ## земли выдерживание: «от себя» постепенно, чтобы снижаться всё медленнее, пока гаснет скорость;
-## на ≈ 0,5 м (ступни) — отдача до упора. Касание ступнями → LandingJudge (пороги flight.json →
-## landing не меняются). Цель — правильная посадка мягкая на всех классах в штиль и во встречный
-## 3 м/с, ранняя (2 м) и поздняя (0,1 м) — жёсткая. В квазистационарной модели (запаздывание отрыва
-## и ход у земли выключены, PD-30) мягкой правильной нет: правильная — сторож с фактическими
-## числами, ранняя, поздняя и без отдачи — жёстко, без переворотов (docs/research/pendulum.md →
-## «Посадка (PD-27)», «Посадка (PD-30)»).
+## на ≈ 0,5 м (ступни) — отдача до упора (ход — до вытянутых рук, PD-35). Касание ступнями →
+## PendulumTouchdown (PD-35): встал на ноги (гор. ≤ 2 м/с) / пробежал N шагов (≤ 5 м/с) / жёстко.
+## Цель — правильная посадка мягкая на всех классах в штиль и во встречный 3 м/с, ранняя (2 м) и
+## поздняя (0,1 м) — жёсткая. В квазистационарной модели мягкой правильной в штиль нет (гор. 5,9–7,1
+## м/с > 5): правильная в штиль — сторож с фактическими числами, во встречный 3 м/с — мягко;
+## поздняя и без отдачи — жёстко без переворотов; ранняя (отдача на скорости ≈ 1,3 срыва) — не мягко,
+## laminar и sport встают на хвост (тангаж за 90°) — авария (docs/research/pendulum.md → «Посадка
+## (PD-27)», «Посадка (PD-30)», «Посадка (PD-35)»).
 ## Переключатели для разбора (переменные окружения): PD27_TRACE=крыло,ветер,высота — ход по шагам;
 ## PD27_SWEEP=1 — сетка бота; PD27_PUSH — ход «от себя» у земли, м; PD27_HOLDMAX — предел «от себя»
 ## на выдерживании; PD33_DIAG=1 (с PD27_TRACE) — разбор по шагам 0,05 с: α киля и полос, тангаж, руки
@@ -192,14 +194,16 @@ static func diag_line(m: PendulumModel, t: float, phase: int, hf: float, pitch: 
 		-fb.z / q, -fb.x / q, L / q, D / q, m._aero_m_b.y, arm_m]
 
 
+## Оценка для таблиц: max(верт/5, гор/5) — порог PendulumTouchdown (вертикальная — LandingJudge
+## hard_vertical_ms, горизонтальная — touchdown.run_max_ms); мягкая < 1.
 static func score(r: Dictionary) -> float:
-	return maxf(float(r.get("vertical_speed_ms", 99.0)) / 5.0, float(r.get("horizontal_speed_ms", 99.0)) / 3.0)
+	return maxf(float(r.get("vertical_speed_ms", 99.0)) / 5.0, float(r.get("horizontal_speed_ms", 99.0)) / 5.0)
 
 
 static func fmt(a: Dictionary) -> String:
 	var r: Dictionary = a.result
-	return "%s %.2f: верт %.2f, гор %.2f м/с, крен %.0f°, %s; ступни гор %.2f верт %.2f; V на отдаче %.1f, от отдачи до касания %.2f с, пробег %.1f м" % [
-		r.get("grade", "?"), score(r), r.get("vertical_speed_ms", NAN),
+	return "%s %s %d шаг. %.2f: верт %.2f, гор %.2f м/с, крен %.0f°, %s; ступни гор %.2f верт %.2f; V на отдаче %.1f, от отдачи до касания %.2f с, пробег %.1f м" % [
+		r.get("grade", "?"), r.get("touchdown", "?"), int(r.get("steps", -1)), score(r), r.get("vertical_speed_ms", NAN),
 		r.get("horizontal_speed_ms", NAN), r.get("bank_deg", NAN), r.get("contact", "?"),
 		a.feet_v.x, a.feet_v.y, a.push_v, a.t_touch, a.runout]
 
@@ -232,11 +236,10 @@ func test_sweep() -> void:
 					print("    " + line)
 
 
-## Правильная посадка — сторож границы модели (PD-30, без запаздывания отрыва): штиль 2,20 / 2,12 /
-## 2,04 / 2,45, встречный 3 м/с 1,20 / 1,12 / 1,04 / 1,45 у training / apogee / laminar / sport —
-## жёстко по горизонтальной (штиль 6,1–7,4 м/с). Не хуже CALM_GUARD / WIND_GUARD и без переворота.
-const CALM_GUARD := 2.7
-const WIND_GUARD := 1.7
+## Правильная посадка (PD-35): в штиль — сторож границы модели (жёстко, гор. 6,10 / 5,90 / 6,13 /
+## 7,14 м/с у training / apogee / laminar / sport: не выбегает), не быстрее CALM_H_GUARD по
+## горизонтальной, касание ступнями, без переворота; во встречный 3 м/с — мягко (пробежал 3–4 шага).
+const CALM_H_GUARD := 7.6
 
 
 func test_correct_landing_soft() -> void:
@@ -250,11 +253,16 @@ func test_correct_landing_soft() -> void:
 			print("    правильная %s, ветер %.0f — %s" % [w, wind, fmt(a)])
 			var r: Dictionary = a.result
 			check(absf(float(r.get("bank_deg", 180.0))) < 60.0, "%s, ветер %.0f: без переворота (%s)" % [w, wind, fmt(a)])
-			var guard := WIND_GUARD if wind > 0.0 else CALM_GUARD
-			check(score(r) < guard, "%s, ветер %.0f: сторож %.2f < %.1f (%s)" % [w, wind, score(r), guard, fmt(a)])
+			check(r.get("contact", "") == "feet", "%s, ветер %.0f: касание ступнями (%s)" % [w, wind, fmt(a)])
+			if wind > 0.0:
+				check(r.get("grade", "") == "soft", "%s, ветер %.0f: мягко (%s)" % [w, wind, fmt(a)])
+			else:
+				check(float(r.get("horizontal_speed_ms", 99.0)) < CALM_H_GUARD,
+					"%s, штиль: сторож гор. < %.1f м/с (%s)" % [w, CALM_H_GUARD, fmt(a)])
 
 
-## Ранняя (2 м) и поздняя (0,1 м, без отдачи) — жёсткая хотя бы у трёх из четырёх крыльев.
+## Ранняя (2 м) и поздняя (0,1 м, без отдачи) — не мягкая хотя бы у трёх из четырёх крыльев. Поздняя и
+## без отдачи — без переворота; ранняя — отдача на скорости, laminar и sport встают на хвост (авария).
 func test_wrong_timing_hard() -> void:
 	if not OS.get_environment("PD27_TRACE").is_empty() or not OS.get_environment("PD27_SWEEP").is_empty():
 		return  # разбор: только ход
@@ -262,11 +270,11 @@ func test_wrong_timing_hard() -> void:
 		var hard := 0
 		for w: String in WINGS:
 			var a := land(w, 0.0, ph)
-			var sc := score(a.result)
 			print("    отдача с %.1f м %s — %s" % [ph, w, fmt(a)])
-			if sc >= 1.0:
+			if a.result.get("grade", "") != "soft":
 				hard += 1
-			check(absf(float(a.result.get("bank_deg", 180.0))) < 60.0, "отдача с %.1f м %s: без переворота (%s)" % [ph, w, fmt(a)])
+			if ph < 1.0:
+				check(absf(float(a.result.get("bank_deg", 180.0))) < 60.0, "отдача с %.1f м %s: без переворота (%s)" % [ph, w, fmt(a)])
 		check(hard >= 3, "отдача с %.1f м: жёсткая у %d из 4 (нужно ≥ 3)" % [ph, hard])
 
 
@@ -281,7 +289,7 @@ func test_strong_wind_soft() -> void:
 		for w: String in WINGS:
 			var a := land(w, wind, -1.0)
 			print("    встречный %.0f, без отдачи %s — %s" % [wind, w, fmt(a)])
-			check(score(a.result) < 1.0, "встречный %.0f %s: мягко (%s)" % [wind, w, fmt(a)])
+			check(a.result.get("grade", "") == "soft", "встречный %.0f %s: мягко (%s)" % [wind, w, fmt(a)])
 			check(float(a.runout) <= 5.0, "встречный %.0f %s: пробег ≤ 5 м (%s)" % [wind, w, fmt(a)])
 
 
@@ -293,4 +301,4 @@ func test_no_roundout_hard() -> void:
 		for w: String in WINGS:
 			var a := land(w, 0.0, ph, false, 15.0, GAINS, HOLD_H, 0.0, 0.0)
 			print("    без выравнивания, отдача с %.1f м %s — %s" % [ph, w, fmt(a)])
-			check(score(a.result) >= 1.0, "без выравнивания, отдача с %.1f м %s: жёстко (%s)" % [ph, w, fmt(a)])
+			check(a.result.get("grade", "") != "soft", "без выравнивания, отдача с %.1f м %s: не мягко (%s)" % [ph, w, fmt(a)])

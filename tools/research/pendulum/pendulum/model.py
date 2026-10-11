@@ -206,7 +206,8 @@ class Sim:
         uc = (u * st.c_b).sum(1)  # нормальная к кромке хордовая составляющая
         uz = (u * st.n_b).sum(1)  # по нормали панели (поперечное V даёт эффект скольжения)
         cs = self.cos_sweep
-        a_geo = np.arctan2(uz, uc) * cs  # потоковый эквивалент угла атаки
+        # потоковый эквивалент угла атаки: tg α = tg α⊥·cos Λ (PD-35, strips.sweep_alpha_exact; было α⊥·cos Λ)
+        a_geo = np.arctan2(uz * cs, uc) if getattr(self, "sweep_alpha_exact", False) else np.arctan2(uz, uc) * cs
         a_eff = a_geo + st.twist
         half = 0.5 * p.span
         yabs = np.abs(self.strips.r_n[:, 1]) / half

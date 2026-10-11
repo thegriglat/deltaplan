@@ -34,7 +34,26 @@ static func make(
 	pilot.mass_kg = pilot_mass_kg if pilot_mass_kg > 0.0 else float(wing.pilot_mass_ref_kg)
 	var m := PendulumModel.new()
 	m.setup(wing, pilot, {"air_density": {"altitude_dependent": false}}, apparatus)
+	pd35_env(m)
 	return m
+
+
+## Варианты физики до PD-35 для сравнения (переменные окружения): PD35_SWEEPNORM=0 — C_N 90° без
+## поправки cos²Λ, PD35_CPREV=0 — центр давления в обратном потоке по прямой формуле,
+## PD35_ALPHAEXACT=0/1 — угол полосы α⊥·cos Λ / точный (strips.sweep_alpha_exact). C_L max полос подбирается заново. Вызывает make.
+static func pd35_env(m: PendulumModel) -> void:
+	var any := false
+	if OS.get_environment("PD35_SWEEPNORM") == "0":
+		m.strips.cd90 /= m.strips.cos_sweep * m.strips.cos_sweep
+		any = true
+	if OS.get_environment("PD35_CPREV") == "0":
+		m.strips.stall_cp_reverse = false
+		any = true
+	if OS.get_environment("PD35_ALPHAEXACT") != "":
+		m.strips.sweep_alpha_exact = OS.get_environment("PD35_ALPHAEXACT") == "1"
+		any = true
+	if any and bool(m.pendulum.get("strip_cl_max_match_polar", true)):
+		m.strips.match_polar_cl_max()
 
 
 ## Сброс как в прототипе: ЦМ крыла в START_CG, курс север. → смещение ЦМ от START_CG

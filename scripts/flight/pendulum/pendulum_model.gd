@@ -15,7 +15,7 @@ extends RefCounted
 ## Земля (PD-К1 v2, PD-3; R6 плана) — PendulumGround: ноги — пружина-демпфер, руки держат стойки
 ## (_uprights). Отрыв — ступни перестали касаться земли под нагрузкой стропы; руки на штангу —
 ## через ground.bar_after_liftoff_s или когда ступни выше takeoff.upright_clear_m. Посадка —
-## касание ступнями (LandingJudge по скорости ЦМ пилота); консоль или нос раньше ступней — авария.
+## касание ступнями (PendulumTouchdown по скорости ЦМ пилота, PD-35); консоль или нос раньше ступней — авария.
 ## После посадки без аварии пилот снова на ногах с крылом на руках (пробежка, run/walk — снова
 ## разбег).
 
@@ -34,7 +34,6 @@ const DEFAULTS := {
 	"arms": {
 		"force_max_n": 300.0, "tau_s": 0.3, "ti_s": 0.0,
 		"shift_y_max_m": 0.45, "shift_x_pull_m": 0.45, "shift_x_push_m": 0.3,
-		"flare_shift_x_push_m": 0.3,
 	},
 	"strips": {"count": 16, "cp_chord": 0.25, "aero_hz": 60.0},
 	"yaw": {"cn_beta": 0.05, "fin_arm_m": 1.6, "fin_slope_per_rad": 2.0, "cn_p_add": 0.15, "cn_r_add": -0.03},
@@ -167,8 +166,10 @@ var _fell_h: float = 0.5
 var _slope_d: float = 1.0
 var _tension_avg: float = 0.0
 var _hands_p := Vector3.ZERO  ## сила рук на пилота (NED), последний подшаг
-var _contact_pts: Array[Vector3] = []  ## нос, концы консолей (правая, левая), конец киля — оси B
-const CONTACT_NAMES := ["nose", "wingtip", "wingtip", "keel"]
+var _contact_pts: Array[Vector3] = []  ## нос, концы консолей (правая, левая), конец киля, трапеция — оси B
+## Оценка касания (PD-35): пилот встаёт на ноги / пробегает / жёстко (pendulum.json → touchdown).
+var touchdown := PendulumTouchdown.new()
+const CONTACT_NAMES := ["nose", "wingtip", "wingtip", "keel", "bar"]
 ## Посадка: консоль на земле раньше ступней — авария, если крыло накренено хотя бы на это, рад.
 const LANDING_TIP_BANK := deg_to_rad(10.0)
 
@@ -296,6 +297,8 @@ func setup(
 		Vector3(float(blk.keel_len_m), 0.0, 0.0),
 	]:
 		_contact_pts.append(Vector3(_cg_n.x - r_n.x, r_n.y, r_n.z - _cg_n.z))
+	_contact_pts.append(_r_bar_b)  # середина трапеции — только на посадке
+	touchdown.setup(pendulum.get("touchdown", {}))
 	_neutral_ok = false
 	telemetry = Telemetry.new()
 
@@ -495,7 +498,9 @@ func _ground_alt(ground_fn: Callable, p: Vector3) -> float:
 ## задранный на выравнивании парус задевает землю задней кромкой) аварией не считаются.
 func _wing_contact(ground_fn: Callable, landing: bool) -> int:
 	for i in _contact_pts.size():
-		if landing and (i == 3 or (i != 0 and absf(bank) < LANDING_TIP_BANK)):
+		if landing and (i == 3 or ((i == 1 or i == 2) and absf(bank) < LANDING_TIP_BANK)):
+			continue
+		if i == 4 and not landing:
 			continue
 		var p: Vector3 = _pos + _R * _contact_pts[i]
 		if -(_od + p.z) <= _ground_alt(ground_fn, p):
@@ -819,7 +824,9 @@ func _reset_common() -> void:
 
 
 ## Касание в полёте (руки на штанге): ступни (ЦМ пилота − длина ноги по его оси) у земли →
-## LandingJudge по скорости ЦМ пилота; консоль или нос в землю раньше ступней — авария. После
+## PendulumTouchdown по скорости ЦМ пилота (PD-35: встал на ноги / пробежал / жёстко; пороги
+## вертикальной, крена, аварии — LandingJudge); трапеция раньше ступней — жёстко, консоль или нос
+## в землю раньше ступней — авария. После
 ## посадки без аварии пилот на ногах с крылом на руках (пробежка гасит скорость), после аварии —
 ## всё стоит.
 func _check_touchdown(ground_fn: Callable) -> void:
@@ -835,12 +842,10 @@ func _check_touchdown(ground_fn: Callable) -> void:
 		return
 	var lc: Dictionary = flight.landing
 	var nrm := LandingJudge.ground_normal(ground_fn, feet.x, feet.z, float(lc.normal_sample_m))
-	var result := LandingJudge.evaluate(pilot_velocity, nrm, rad_to_deg(bank), lc)
-	if _feet_agl > 0.0:
-		result["grade"] = "crash"  # крыло в землю раньше ног
-		result["contact"] = CONTACT_NAMES[wing_hit]
-	else:
-		result["contact"] = "feet"
+	var contact := "feet" if _feet_agl <= 0.0 else String(CONTACT_NAMES[wing_hit])
+	if contact == "wingtip" and absf(bank) > PI * 0.5:
+		contact = "tail"  # крыло за вертикалью (крен Эйлера ±180°): хвостом в землю (PD-35)
+	var result := touchdown.evaluate(pilot_velocity, nrm, rad_to_deg(bank), contact, lc)
 	result["position"] = Vector3(feet.x, gh, feet.z)
 	result["flight_time_s"] = time_s
 	landing_result = result
