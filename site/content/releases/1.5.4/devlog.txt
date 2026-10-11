@@ -1,0 +1,8 @@
+Deltaplan 1.5.4 — a living world
+
+A few small things that make the world below feel lived in. They follow the flight date: what you see in April is not what you see in August.
+
+World:
+- Round hay bales in meadows and fields in summer and autumn, in rows or stacked at the field edge
+- Skeins of honking geese in migration months: north in spring, south in autumn, none out of season
+- A small seagull charm on the right corner of the control bar, swinging with banking and turbulence
