@@ -147,3 +147,11 @@
 {"t": "2026-10-11T06:38:00", "by": "coordinator", "task": "EE-2", "ev": "checked", "commits": ["b0254a89"], "note": "2/3 glb=ok:exit 0; hay_bale_model=FAIL:таймаут; gd=ok:exit 0"}
 {"t": "2026-10-11T06:38:02", "by": "coordinator", "task": "EE-9", "ev": "created", "note": "Модель брелока-чайки — Blender-скрипт (К15)"}
 {"t": "2026-10-11T06:38:03", "by": "coordinator", "task": "EE-10", "ev": "created", "note": "Брелок-чайка на трапеции: маятник от ускорений (К16)"}
+{"t": "2026-10-11T06:38:20", "by": "main", "task": "EE-9", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-easter-eggs-EE-9"}
+{"t": "2026-10-11T06:39:07", "by": "executor", "task": "EE-4", "ev": "checked", "note": "4/4 egg_hay_bales=ok:6/6; field_plots=ok:6/6; easter_eggs=ok:6/6; gd=ok:exit 0"}
+{"t": "2026-10-11T06:39:24", "by": "executor", "task": "EE-4", "ev": "reported", "commits": ["4dfa3496"], "note": "done: Рулоны сена: пасхалка hay_bales (per_flight, lifetime 0), раскладка участка — чистая функция plan_cell(ключ мира, участ…", "dp_feedback": "dp accept --dry/полный прогон хорошо; не хватило команды быстро получить список локаций с долей CROP/GRASS (делал временным тестом)."}
+{"t": "2026-10-11T06:39:58", "by": "coordinator", "task": null, "ev": "plan", "note": "контракты К10. Участки полей — `FieldPlots` (v7, владелец E…: замена «проверяют, что весь учас…»"}
+{"t": "2026-10-11T06:41:46", "by": "executor", "task": "EE-9", "ev": "reported", "commits": ["0ca3b14"], "note": "done: Модель брелока-чайки по К15: скрипт build_gull_charm.py, glb (115 треугольников, один меш/материал, цвета вершин), конт…", "dp_feedback": "Команда запуска одного контрактного теста вручную неочевидна (tests/run_tests.gd не стартует напрямую); помог только dp accept --dry."}
+{"t": "2026-10-11T06:42:03", "by": "executor", "task": "EE-9", "ev": "checked", "note": "4/4 glb=ok:exit 0; gull_charm_model=ok:1/1; render=ok:1; gd=ok:exit 0"}
+{"t": "2026-10-11T06:42:29", "by": "coordinator", "task": "EE-1", "ev": "checked", "commits": ["95e655d5"], "note": "1/2 field_plots=FAIL:таймаут; gd=ok:exit 0"}
+{"t": "2026-10-11T06:42:58", "by": "main", "task": "EE-9", "ev": "accepted", "note": "по отчёту: 115 треуг., размах 6 см, подвес в центре спины, рендер 06_брелок_чайка.jpg"}
