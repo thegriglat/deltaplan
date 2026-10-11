@@ -21,6 +21,8 @@ const UP := Vector3.UP
 const OVERBANK_FADE_DEG := 10.0
 
 var telemetry := Telemetry.new()
+## Смещение пилота по последнему вводу (FB-К1): x = roll, y = −pitch; в Telemetry.pilot_shift.
+var last_shift := Vector2.ZERO
 var mode: Mode = Mode.GROUND
 ## Причина срыва взлёта: "wingtip" (консоль на земле) или "" (GroundRun.failure).
 var takeoff_failure: String = ""
@@ -181,6 +183,7 @@ func reset_in_air(
 ## ground_fn(x: float, z: float) -> float — высота земли (пустой — земли нет).
 func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable) -> void:
 	time_s += dt
+	last_shift = Vector2(clampf(input.roll, -1.0, 1.0), -clampf(input.pitch, -1.0, 1.0))
 	match mode:
 		Mode.AIR:
 			_step_air(dt, input, air_fn, ground_fn)

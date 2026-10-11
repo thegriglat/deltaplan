@@ -51,6 +51,7 @@ var _helmet_modes: Array = []
 var _bots: HSlider
 var _names: CheckBox
 var _peak_names: CheckBox
+var _pilot_shift: CheckBox
 var _grass: HSlider
 var _wind_model: OptionButton
 var _language: OptionButton
@@ -209,6 +210,9 @@ func _ready() -> void:
 	_peak_names = CheckBox.new()
 	_peak_names.text = tr("settings_peak_names_hint")
 	UiKit.row(box_game, tr("settings_peak_names"), _peak_names)
+	_pilot_shift = CheckBox.new()
+	_pilot_shift.text = tr("settings_pilot_shift_hint")
+	UiKit.row(box_game, tr("settings_pilot_shift"), _pilot_shift)
 	_build_motion_rig(box_rig)
 	UiKit.label(box, tr("settings_saved_hint"), "HintLabel")
 	var bar := UiKit.button_bar(sp["footer"])
@@ -350,6 +354,7 @@ func load_values() -> void:
 	_bots.value_changed.emit(_bots.value)
 	_names.button_pressed = bool(Config.value("bots", "names.show", true))
 	_peak_names.button_pressed = bool(Config.value("world_objects", "osm_pilot.peaks.show", true))
+	_pilot_shift.button_pressed = bool(Config.value("ui", "pilot_shift.enabled", true))
 	_motion_on.button_pressed = bool(Config.value("motion_rig", "enabled", false))
 	_motion_addr.text = "%s:%d" % [
 		String(Config.value("motion_rig", "host", "127.0.0.1")), int(Config.value("motion_rig", "port", 33001))
@@ -426,6 +431,7 @@ func save() -> bool:
 	ok = UserSettings.save_patch("bots", bp, config_dir) and ok
 	var pk := {"osm_pilot": {"peaks": {"show": _peak_names.button_pressed}}}
 	ok = UserSettings.save_patch("world_objects", pk, config_dir) and ok
+	ok = UserSettings.save_patch("ui", {"pilot_shift": {"enabled": _pilot_shift.button_pressed}}, config_dir) and ok
 	if _language.selected >= 0:
 		var code := String(_language_codes[_language.selected])
 		if code != Language.current():

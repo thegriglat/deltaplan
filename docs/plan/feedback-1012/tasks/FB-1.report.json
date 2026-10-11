@@ -1,0 +1,60 @@
+{
+  "status": "done",
+  "summary": "Telemetry.pilot_shift (FB-К1 v1) заполняется обеих моделями; виджет PilotShiftIndicator (круг с перекрестием и светящейся точкой) внизу по центру экрана для всех камер; флажок в настройках (вкладка игры), по умолчанию включён. На земле нейтраль маятника = поза стоя при постановке (_ground_neutral, берётся в _place_on_ground из геометрии, подстраивается под начальный тангаж FB-3); на земле без ввода длина < 0.1.",
+  "commits": [
+    "72f823dd FB-1: индикатор смещения пилота на HUD",
+    "52e1a475 FB-1: нейтраль индикатора на з"
+  ],
+  "checks": [
+    {
+      "name": "feedback_1012",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "telemetry",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "pendulum",
+      "value": "103/103",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Визуал не смотрел (по заданию без скриншотов) — нужна тестовая сборка Linux."
+  ],
+  "questions": [],
+  "how_to_check": "/home/greg/deltaplan/tools/dp accept FB-1",
+  "uncertain": [
+    {
+      "where": "scripts/flight/pendulum/pendulum_model.gd:_shift_of",
+      "why": "нейтраль и предел хода выбраны мной",
+      "checked": "В воздухе на штанге нейтраль = arms.neutral_rel (положение рук без усилия, решение solve_trim; оси тела NED -> оси крыла: (n.y, -n.z, -n.x)); на ногах/после посадки/до trim — плумб под подвеской на длину pilot_rel. Предел: поперёк arms.shift_y_max (0.45 м), к носу shift_x_pull (0.45 м), к хвосту shift_x_push (0.3 м) — нормировка асимметричная. Тесты: нейтраль <0.1, roll=+1 -> x>0.5, pitch=-1 -> y>0.5, pitch=+1 -> y<-0.3 для training и sport — зелёные."
+    },
+    {
+      "where": "scripts/game/game.gd (shift_indicator, _update_overlay)",
+      "why": "расположение на экране",
+      "checked": "Индикатор — CanvasLayer 9, низ по центру: диаметр 0.09 высоты окна (~97 px при 1080p), отступ снизу 0.035 высоты. Ничего не сдвигал: прибор InstrumentOverlay в правом нижнем углу, подсказка F-клавиш сверху по центру, центр обзора свободен. Скрыт вне полёта/меню/паузы и на буксире. Не проверял пересечение с отладочными слоями F1/F5/F6 и сетевыми подписями."
+    },
+    {
+      "where": "scripts/flight/flight_telemetry.gd",
+      "why": "PendulumModel заполняет свою телеметрию сам (_fill_telemetry), ветка pilot_rel в FlightTelemetry.fill мёртвая; пилот-shift добавил и там для согласованности",
+      "checked": "тесты зелёные"
+    }
+  ],
+  "dp_feedback": "Фильтр --filter=telemetry совпадает только с именами тестовых файлов/тестов; приёмка с 0 тестов не падает на карточке заранее — стоило бы предупреждать при dp task set --test, если фильтру ничего не соответствует.",
+  "t": "2026-10-12T00:53:24",
+  "by": "executor"
+}
