@@ -32,7 +32,7 @@ const DEFAULTS := {
 		"substeps_per_s": 480, "substeps_min": 4,
 	},
 	"arms": {
-		"force_max_n": 300.0, "tau_s": 0.3, "ti_s": 0.6,
+		"force_max_n": 300.0, "tau_s": 0.3, "ti_s": 0.0,
 		"shift_y_max_m": 0.45, "shift_x_pull_m": 0.45, "shift_x_push_m": 0.3,
 	},
 	"strips": {"count": 16, "cp_chord": 0.25, "aero_hz": 60.0},

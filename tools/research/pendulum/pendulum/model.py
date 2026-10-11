@@ -307,16 +307,25 @@ class Sim:
         d = 2.0 * p.m_pilot / p.arm_tau
         e = tgt - rel
         e[2] = 0.0
-        # руки держат положение (ПИД): интегральная часть снимает статическую ошибку против
-        # возвращающей силы маятника m·g/L (иначе пилот «не доходит» до заданного смещения)
-        self.arm_int = self.arm_int + e * self._h / p.arm_ti
+        # руки — пружина-демпфер плюс прямая подача силы маятника m·g/L·(цель − нейтраль): пилот,
+        # сдвинутый от нейтрали на Δ, тянется стропой назад силой ≈ m·g·Δ/L — руки держат её сразу
+        # (PD-19). Интеграл (arm_ti > 0) — только для сравнения: ПИ-удержание с 0,6 с раскачивало
+        # фугоиду (затухание sport 0,95 за период вместо 0,80), большие размахи — срыв и петля.
+        if p.arm_ti > 0:
+            self.arm_int = self.arm_int + e * self._h / p.arm_ti
         f = k * (e + self.arm_int) - d * vrel
+        L = float(np.linalg.norm(self.neutral_rel))
+        if L > 0.1:
+            off = tgt - self.neutral_rel
+            off[2] = 0.0
+            f = f + off * (p.m_pilot * G / L)
         f[2] = 0.0  # вертикально — стропа, не руки
         n = math.hypot(f[0], f[1])
         if n > p.arm_force_max:
             f *= p.arm_force_max / n
             # антинасыщение: интеграл не копится сверх того, что руки могут дать
-            self.arm_int = self.arm_int - e * self._h / p.arm_ti
+            if p.arm_ti > 0:
+                self.arm_int = self.arm_int - e * self._h / p.arm_ti
         if c.force_y is not None:
             f[1] = c.force_y
             n = math.hypot(f[0], f[1])

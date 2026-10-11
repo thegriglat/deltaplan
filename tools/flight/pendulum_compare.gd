@@ -24,7 +24,10 @@ func _ready() -> void:
 	var plan_path := ""
 	var bench := false
 	var dive_all := false
+	var pd19 := ""
 	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--pd19="):
+			pd19 = a.substr(7)
 		if a.begins_with("--out="):
 			out_path = a.substr(6)
 		elif a == "--no-cp-shift":
@@ -41,6 +44,11 @@ func _ready() -> void:
 	var t0 := Time.get_ticks_msec()
 	if bench:
 		_bench()
+		_out.close()
+		get_tree().quit(0)
+		return
+	if pd19 != "":
+		_pd19(JSON.parse_string(FileAccess.get_file_as_string(pd19)))
 		_out.close()
 		get_tree().quit(0)
 		return
@@ -129,6 +137,230 @@ func _dive_all() -> void:
 				"stall_streak_max_s": streak_max, "alpha_max_deg": rad_to_deg(a_max), "V_min_kmh": v_min,
 				"V_max_kmh": v_max, "alpha_end_deg": rad_to_deg(m.alpha), "V_end_kmh": S.airspeed(m) * 3.6,
 				"finite": S.finite(m)})
+
+
+# ----------------------------------------------------------------------------- PD-19
+## Пачка PD-19: варианты модели срыва полос × сценарии. plan.json:
+## {"variants": [{"name": …, "strips": {свойство PendulumWingStrips: значение}}],
+##  "scenarios": ["dive", "turb", "dive_all"], "turbulence": {"ref": моды, "<зерно>": моды},
+##  "dts": [120, 60, 30], "trace": false}
+## dive — training/laminar/sport, 100 % и 50 % «на себя» 3 с, 60 с после: самый долгий срыв подряд,
+## число новых срывов, время, с которого V навсегда в 10 % трима; turb — болтанка 40 с (как
+## test_pendulum_robust), блок прототипа и игры; dive_all — 48 крыльев.
+func _pd19(plan: Dictionary) -> void:
+	var sc: Array = plan.get("scenarios", ["dive", "turb"])
+	for vr: Dictionary in plan.variants:
+		var vname: String = vr.name
+		var props: Dictionary = vr.get("strips", {})
+		if "dive" in sc:
+			for w: String in WINGS:
+				for pull: float in [1.0, 0.5]:
+					var r := _pd19_dive(_pd19_model(w, props, false), pull, plan.get("trace", false))
+					r["variant"] = vname
+					_emit("pd19_dive_p%d" % roundi(pull * 100.0), w, DT, r)
+		if "dive_all" in sc:
+			var names: Array = []
+			for f in DirAccess.get_files_at("res://configs/wings"):
+				if f.ends_with(".json"):
+					names.append(f.get_basename())
+			names.sort()
+			for w: String in names:
+				for pull: float in [1.0, 0.5]:
+					var r := _pd19_dive(_pd19_model(w, props, false), pull, false)
+					r["variant"] = vname
+					r.erase("series")
+					_emit("pd19_diveall_p%d" % roundi(pull * 100.0), w, DT, r)
+		if "phug" in sc:
+			for w: String in WINGS:
+				for dv: float in [1.0, 2.0, 3.0, 4.0, 6.0]:
+					var m := _pd19_model(w, props, false)
+					var r := _pd19_phug(m, dv)
+					r["variant"] = vname
+					r["dv"] = dv
+					_emit("pd19_phug", w, DT, r)
+		if "landing" in sc:
+			for w: String in WINGS:
+				for wind: float in [0.0, 3.0]:
+					var best := 99.0
+					var best_r := {}
+					var best_h := 0.0
+					for fh: float in [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.5, 6.0]:
+						var r := _pd19_landing(w, props, wind, fh)
+						var q := maxf(float(r.get("vertical_speed_ms", 99.0)) / 5.0, float(r.get("horizontal_speed_ms", 99.0)) / 3.0)
+						if fh == 6.0:
+							_emit("pd19_flare6", w, DT, {"variant": vname, "wind": wind, "grade": r.get("grade", "?"),
+								"v": r.get("vertical_speed_ms", NAN), "h": r.get("horizontal_speed_ms", NAN)})
+						elif q < best:
+							best = q
+							best_r = r
+							best_h = fh
+					_emit("pd19_landing", w, DT, {"variant": vname, "wind": wind, "score": best, "flare_h": best_h,
+						"grade": best_r.get("grade", "?"), "v": best_r.get("vertical_speed_ms", NAN),
+						"h": best_r.get("horizontal_speed_ms", NAN)})
+		if "turb" in sc:
+			for w: String in WINGS:
+				for proto: bool in plan.get("blocks", [true, false]):
+					for hz: int in plan.get("dts", [120, 60, 30]):
+						for fk: String in plan.turbulence:
+							var m := _pd19_model(w, props, proto)
+							var r := _pd19_turb(m, plan.turbulence[fk], 1.0 / hz, plan.get("trace", false))
+							r["variant"] = vname
+							r["field"] = fk
+							r["proto_block"] = proto
+							r["hz"] = hz
+							_emit("pd19_turb", w, 1.0 / hz, r)
+
+
+## Заход с 12 м на триме, выравнивание «от себя» до упора со ступней на flare_h (как
+## test_pendulum_ground_landing.approach). → landing_result.
+func _pd19_landing(w: String, props: Dictionary, wind: float, flare_h: float) -> Dictionary:
+	var m := _pd19_model(w, props, false)
+	var flat := func(_x: float, _z: float) -> float: return 0.0
+	var wv := Vector3(0.0, 0.0, wind)
+	var air := func(_p: Vector3) -> Vector3: return wv
+	m.reset_in_air(Vector3(0.0, 12.0, 0.0), 0.0, 0.0, wv)
+	var inp := S.input()
+	var t := 0.0
+	while m.mode == FlightModel.Mode.AIR and t < 60.0:
+		if m.pilot_position.y - 1.0 < flare_h:
+			inp.pitch = 1.0
+		m.step(DT, inp, air, flat)
+		t += DT
+	return m.landing_result
+
+
+## Фугоида: сброс на триме с V + dv, руки в нейтрали, 60 с. Пики V → отношение амплитуд за период.
+func _pd19_phug(m: PendulumModel, dv: float) -> Dictionary:
+	var v_trim := S.airspeed(m)
+	m.reset_in_air(m.position, 0.0, v_trim + dv)
+	var inp := S.input()
+	var vs: PackedFloat64Array = []
+	var stall_t := 0.0
+	var a_max := -INF
+	var a_min := INF
+	for i in _steps(60.0, DT):
+		m.step(DT, inp, Callable(), Callable())
+		vs.append(S.airspeed(m))
+		if m.stall_amount() > 0.0:
+			stall_t += DT
+		a_max = maxf(a_max, rad_to_deg(m.alpha))
+		a_min = minf(a_min, rad_to_deg(m.alpha))
+	var pk: Array = []
+	for i in range(1, vs.size() - 1):
+		if vs[i] > vs[i - 1] and vs[i] >= vs[i + 1]:
+			pk.append([i * DT, vs[i]])
+	var amps: Array = []
+	for q: Array in pk:
+		amps.append(snappedf((q[1] - v_trim) * 3.6, 0.01))
+	return {"V_trim_kmh": v_trim * 3.6, "peak_amps_kmh": amps.slice(0, 10),
+		"t_first_peaks": pk.slice(0, 3).map(func(q: Array) -> float: return snappedf(q[0], 0.01)),
+		"stall_s": stall_t, "alpha_max_deg": a_max, "alpha_min_deg": a_min}
+
+
+func _pd19_model(w: String, props: Dictionary, proto: bool) -> PendulumModel:
+	var m := S.make(w, 0.0, {}, proto)
+	var strip_props := 0
+	for k: String in props:
+		if k not in ["model", "arms", "cl_max_mult"]:
+			strip_props += 1
+		if k == "model":
+			for q: String in props.model:
+				m.set(q, props.model[q])
+		elif k == "arms":
+			for q: String in props.arms:
+				m.arms.set(q, props.arms[q])
+		elif k != "cl_max_mult":
+			m.strips.set(k, props[k])
+	if strip_props > 0 and bool(m.pendulum.get("strip_cl_max_match_polar", true)):
+		m.strips.match_polar_cl_max()
+	if props.has("cl_max_mult"):
+		m.strips.cl_max *= float(props.cl_max_mult)
+	S.reset(m)
+	return m
+
+
+func _pd19_dive(m: PendulumModel, pull: float, trace: bool) -> Dictionary:
+	var hold := 3.0
+	var v_trim := S.airspeed(m) * 3.6
+	var a_stall: float = m.strips.alpha0_root + m.strips.cl_max / m.strips.lift_slope
+	var inp := S.input(-pull)
+	var streak := 0.0
+	var streak_max := 0.0
+	var entries := 0
+	var was := false
+	var t_out10 := 0.0
+	var v_min20 := INF
+	var v_max20 := 0.0
+	var a_max20 := -INF
+	var ph_max := 0.0
+	var ser: Array = []
+	for i in _steps(hold + 60.0, DT):
+		if m.time_s >= hold - 1.0e-9:
+			inp.pitch = 0.0
+		m.step(DT, inp, Callable(), Callable())
+		if m.time_s < hold:
+			continue
+		var t := m.time_s - hold
+		var vk := S.airspeed(m) * 3.6
+		var st := m.alpha > a_stall
+		if st:
+			streak += DT
+			streak_max = maxf(streak_max, streak)
+			if not was:
+				entries += 1
+		else:
+			streak = 0.0
+		was = st
+		if absf(vk - v_trim) > 0.10 * v_trim:
+			t_out10 = t
+		ph_max = maxf(ph_max, absf(rad_to_deg(m.bank)))
+		if t >= 20.0:
+			v_min20 = minf(v_min20, vk)
+			v_max20 = maxf(v_max20, vk)
+			a_max20 = maxf(a_max20, rad_to_deg(m.alpha))
+		if trace and i % 30 == 0:
+			ser.append([snappedf(t, 0.01), snappedf(rad_to_deg(m.alpha), 0.1), snappedf(rad_to_deg(m.theta), 0.1),
+				snappedf(vk, 0.1), snappedf(m.stall_amount(), 0.01), snappedf(rad_to_deg(m.bank), 0.1)])
+	return {"V_trim_kmh": v_trim, "alpha_stall_deg": rad_to_deg(a_stall), "stall_streak_max_s": streak_max,
+		"stall_entries": entries, "t_out10_s": t_out10, "V_min20_kmh": v_min20, "V_max20_kmh": v_max20,
+		"alpha_max20_deg": a_max20, "bank_max_deg": ph_max, "finite": S.finite(m), "series": ser}
+
+
+func _pd19_turb(m: PendulumModel, modes: Dictionary, dt: float, trace := false) -> Dictionary:
+	var off := S.cg(m) - S.START_CG
+	var tb := S.Turbulence.new(modes, off)
+	var air := tb.air
+	var bh := Hold.new(0.0, 1.5, 0.8, 0.3)
+	var inp := S.input()
+	var phi: PackedFloat64Array = []
+	var blow := false
+	var t_stall := 0.0
+	var a_max := -INF
+	var ser: Array = []
+	var every := maxi(1, roundi(0.1 / dt))
+	for i in _steps(40.0, dt):
+		inp.roll = bh.roll(m, dt)
+		m.step(dt, inp, air, Callable())
+		if trace and i % every == 0:
+			var bl := ""
+			for j in m.strips.n:
+				bl += str(mini(9, int(m.strips.blend[j] * 9.99)))
+			ser.append([snappedf(m.time_s, 0.01), snappedf(rad_to_deg(m.alpha), 0.1), snappedf(rad_to_deg(m.theta), 0.1),
+				snappedf(S.airspeed(m) * 3.6, 0.1), bl, snappedf(rad_to_deg(m.bank), 0.1), snappedf(inp.roll, 0.01),
+				snappedf(rad_to_deg(m.roll_rate), 0.1)])
+		if not S.finite(m) or S.airspeed(m) > 80.0:
+			blow = true
+			break
+		if m.time_s > 10.0:
+			phi.append(rad_to_deg(m.bank))
+			if m.stall_amount() > 0.0:
+				t_stall += dt
+			a_max = maxf(a_max, rad_to_deg(m.alpha))
+	var mx := 0.0
+	for v in phi:
+		mx = maxf(mx, absf(v))
+	return {"blowup": blow, "std_phi_deg": _std(phi), "max_abs_phi_deg": mx, "max_stretch_m": m.chain.max_stretch,
+		"t_stall_s": t_stall, "alpha_max_deg": a_max, "series": ser}
 
 
 func _emit(sc: String, wing: String, dt: float, d: Dictionary) -> void:
