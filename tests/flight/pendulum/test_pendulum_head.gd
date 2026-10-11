@@ -1,11 +1,12 @@
 extends TestCase
 ## «Маятник», голова (PD-6, R9): в болтанке σ 1 м/с (детерминированное поле reference.json, пилот
 ## мягко держит горизонт — как в test_pendulum_robust) голова качается поперёк в осях крыла.
-## СКО в полосе 0,3–3 Гц — 0,5–2× прототипа (docs/research/pendulum.md → «Маятник и болтанка»:
-## 2,2 / 3,6 / 2,7 см для training / laminar / sport). Отклик хаотичен — порядок величины, не точки.
+## СКО в полосе 0,3–3 Гц — 0,5–2× прототипа в той же постановке (то же поле и регулятор, среднее
+## по шагам 1/120, 1/100, 1/60, 1/30; tools/research/pendulum/pd19_head.py, PD-19: руки без интеграла).
+## Отклик хаотичен — порядок величины, не точки.
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
-const PROTO_CM := {"training": 2.2, "laminar": 3.6, "sport": 2.7}
+const PROTO_CM := {"training": 4.45, "laminar": 4.37, "sport": 5.77}
 const BAND_HZ := Vector2(0.3, 3.0)
 const T_S := 40.0
 const SKIP_S := 10.0
