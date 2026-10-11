@@ -1,0 +1,55 @@
+{
+  "id": "PD-27",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Посадка маятника: правильная посадка мягкая на всех классах",
+  "goal": "Правильная посадка (против ветра, предварительное выравнивание, отдача ручки ≈ 0,5 м над землёй) даёт мягкое касание на всех классах в штиль и при встречном 3 м/с; поздняя или ранняя отдача — жёстко. Найти причину нынешней жёсткости (эффективность отдачи, срыв на выравнивании, скорость снижения, ноги и пробежка), не ослабляя LandingJudge.",
+  "plan_ref": "Что уходит в этап B (и дальше)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "6",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-27",
+  "branch": "pendulum/PD-27",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/pendulum",
+    "configs/pendulum.json",
+    "tools/flight/pendulum_compare.gd",
+    "tools/research/pendulum",
+    "tests/flight/pendulum",
+    "tests/contracts",
+    "docs/research/pendulum.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/landing_judge.gd",
+    "configs/wings",
+    "scripts/game"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "test_landing",
+      "tests": "test_landing"
+    },
+    {
+      "name": "test_wings",
+      "tests": "test_wings"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T15:10:56"
+}

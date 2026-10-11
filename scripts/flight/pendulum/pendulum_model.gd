@@ -34,6 +34,7 @@ const DEFAULTS := {
 	"arms": {
 		"force_max_n": 300.0, "tau_s": 0.3, "ti_s": 0.0,
 		"shift_y_max_m": 0.45, "shift_x_pull_m": 0.45, "shift_x_push_m": 0.3,
+		"flare_shift_x_push_m": 0.3,
 	},
 	"strips": {"count": 16, "cp_chord": 0.25, "aero_hz": 60.0},
 	"yaw": {"cn_beta": 0.05, "fin_arm_m": 1.6, "fin_slope_per_rad": 2.0, "cn_p_add": 0.15, "cn_r_add": -0.03},
@@ -46,7 +47,7 @@ const DEFAULTS := {
 		"side_damping_n_s_per_m": 2000.0, "stand_stiffness_n_per_m": 2.0e4,
 		"shoulder_forward_m": 0.35, "shoulder_up_m": 0.45, "grip_along_upright_m": 0.7,
 		"grip_stiffness_n_per_m": 3000.0, "grip_force_max_n": 600.0, "grip_down_max_n": 100.0,
-		"pitch_hold_nm_per_deg": 30.0, "pitch_moment_max_nm": 300.0,
+		"pitch_hold_nm_per_deg": 30.0, "pitch_hold_ti_s": 0.5, "pitch_moment_max_nm": 300.0,
 		"liftoff_feet_clear_m": 0.05, "liftoff_strap_fraction": 0.25, "bar_after_liftoff_s": 1.0,
 		"fell_cm_height_m": 0.5,
 	},
@@ -415,6 +416,11 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var inp := input
 	if landed_:
 		inp = ControlInput.new()  # стоит после посадки: руки держат крыло в нейтрали
+	# у земли пилот стоит в подвеске, руки на стойках: ход «от себя» — стоящего (PD-29), за 1 м
+	# выше flight.flare.height_m нарастает
+	arms.flare_mix = 0.0
+	if mode == FlightModel.Mode.AIR and not _uprights:
+		arms.flare_mix = clampf(_flare_h + 1.0 - _feet_agl, 0.0, 1.0)
 	var n := maxi(_sub_min, ceili(dt * _sub_per_s - 1.0e-9))
 	var h := dt / n
 	_last_pitch = input.pitch
@@ -423,7 +429,9 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var t_sum := 0.0
 	for k in n:
 		if _aero_age >= t_aero:
+			strips.dyn_dt = _aero_age
 			_aero_update(air_fn, ground_fn)
+			strips.dyn_dt = 0.0
 			_aero_age = 0.0
 		_substep(h, inp)
 		f_sum += chain.pilot_force + _hands_p
@@ -699,7 +707,7 @@ func _substep(h: float, input: ControlInput) -> void:
 		var fv := Vector3(0.0, 0.0, fw.z)
 		f_wb += Rt * fw
 		tb += Rt * (rg.cross(fw - fv) + (R * Vector3(0.0, 0.0, ground.grip_b.z)).cross(fv))
-		tb += ground.torque_b(R, wb, _I_b, input.pitch, input.roll)
+		tb += ground.torque_b(R, wb, _I_b, input.pitch, input.roll, h)
 		f_p -= fw
 		_hands_p = -fw
 		f_p += ground.legs(xp, vp, h)

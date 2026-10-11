@@ -11,7 +11,8 @@ extends TestCase
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const WINGS := ["training", "laminar", "sport"]
-const FLARE_HEIGHTS := [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.5]
+## Отдача с 0,5–0,75 м — правильная (PD-27, ответ пилота 11.10); с 1 м и выше — по FR-10.
+const FLARE_HEIGHTS := [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.5]
 
 
 ## Заход с 12 м на триме курсом на север; встречный ветер wind, м/с. flare_h < 0 — без
@@ -110,10 +111,12 @@ func test_hard_flare_too_high() -> void:
 		var r: Dictionary = approach(w, 0.0, 6.0).result
 		print("    выравнивание с 6 м %s — %s" % [w, fmt(r)])
 		check(r.get("grade", "") in ["hard", "crash"], "%s: высокое выравнивание — не мягкая" % w)
-		if w == "training":
-			check(float(r.horizontal_speed_ms) > float(lc.soft_horizontal_ms) + 1.0, "%s: парашютирует, но быстро по горизонтальной (%.1f м/с)" % [w, r.horizontal_speed_ms])
-		else:
-			check(float(r.vertical_speed_ms) >= float(lc.hard_vertical_ms), "%s: падает ≥ %.0f м/с" % [w, lc.hard_vertical_ms])
+		# жёстко по вертикальной (падает) или по горизонтальной (парашютирует быстро); с запаздыванием
+		# отрыва (PD-30) учебное тоже падает, а не парашютирует
+		check(float(r.vertical_speed_ms) >= float(lc.hard_vertical_ms)
+			or float(r.horizontal_speed_ms) > float(lc.soft_horizontal_ms) + 1.0,
+			"%s: падает ≥ %.0f м/с или парашютирует быстро по горизонтальной (%.1f м/с)" % [
+				w, lc.hard_vertical_ms, r.horizontal_speed_ms])
 
 
 ## «На себя» до упора к земле — авария (горизонтальная больше crash_horizontal_ms).

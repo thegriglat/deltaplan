@@ -750,107 +750,107 @@
   },
   "ground_run": {
    "training": {
-    "t_liftoff": 5.2,
-    "x_liftoff": 21.167571188501874,
-    "v_liftoff_kmh": 31.854365622115584,
-    "vxp_liftoff": 8.667876915666852,
+    "t_liftoff": 3.8166666666666664,
+    "x_liftoff": 14.993232940318068,
+    "v_liftoff_kmh": 31.10561387610563,
+    "vxp_liftoff": 8.503048281164922,
     "wind_ms": 0.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 14.0,
-    "t_strap_half_load": 3.8583333333333334,
-    "max_h_feet_5s": 6.395011324788799
+    "t_strap_half_load": 2.7666666666666666,
+    "max_h_feet_5s": 5.516890852771258
    },
    "laminar": {
-    "t_liftoff": 5.516666666666667,
-    "x_liftoff": 22.638398587982405,
-    "v_liftoff_kmh": 32.510395900260555,
-    "vxp_liftoff": 8.821006228669148,
+    "t_liftoff": 3.925,
+    "x_liftoff": 15.569510186821368,
+    "v_liftoff_kmh": 31.69386540057606,
+    "vxp_liftoff": 8.633331383473717,
     "wind_ms": 0.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 17.0,
-    "t_strap_half_load": 4.183333333333334,
-    "max_h_feet_5s": 7.503654459290905
+    "t_strap_half_load": 2.9166666666666665,
+    "max_h_feet_5s": 5.987589012018045
    },
    "sport": {
-    "t_liftoff": 6.525,
-    "x_liftoff": 30.494937090657658,
-    "v_liftoff_kmh": 36.43421312651709,
-    "vxp_liftoff": 9.880954288742032,
+    "t_liftoff": 4.458333333333334,
+    "x_liftoff": 20.52575804344455,
+    "v_liftoff_kmh": 36.08658608827826,
+    "vxp_liftoff": 9.816703972858818,
     "wind_ms": 0.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 13.5,
-    "t_strap_half_load": 5.066666666666667,
-    "max_h_feet_5s": 9.558373107696482
+    "t_strap_half_load": 3.3666666666666667,
+    "max_h_feet_5s": 8.43602127018718
    }
   },
   "ground_run_wind3": {
    "training": {
-    "t_liftoff": 3.3,
-    "x_liftoff": 8.02824867112183,
-    "v_liftoff_kmh": 31.866130784204227,
-    "vxp_liftoff": 5.773854029371819,
+    "t_liftoff": 2.908333333333333,
+    "x_liftoff": 6.882336466208077,
+    "v_liftoff_kmh": 31.32538559291676,
+    "vxp_liftoff": 5.671110364198881,
     "wind_ms": 3.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 14.0,
-    "t_strap_half_load": 2.0166666666666666,
-    "max_h_feet_5s": 6.387633160914232
+    "t_strap_half_load": 1.5166666666666666,
+    "max_h_feet_5s": 5.517553472870825
    },
    "laminar": {
-    "t_liftoff": 3.4416666666666664,
-    "x_liftoff": 8.497455067055952,
-    "v_liftoff_kmh": 32.5304314607695,
-    "vxp_liftoff": 5.929365063655325,
+    "t_liftoff": 2.9583333333333335,
+    "x_liftoff": 7.145103772943014,
+    "v_liftoff_kmh": 32.13538431397173,
+    "vxp_liftoff": 5.865896361460443,
     "wind_ms": 3.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 17.0,
-    "t_strap_half_load": 1.8333333333333333,
-    "max_h_feet_5s": 7.504303169030019
+    "t_strap_half_load": 1.6333333333333333,
+    "max_h_feet_5s": 5.949435391824419
    },
    "sport": {
-    "t_liftoff": 3.7666666666666666,
-    "x_liftoff": 10.852461362224448,
-    "v_liftoff_kmh": 36.39028525363511,
-    "vxp_liftoff": 6.969429014347952,
+    "t_liftoff": 3.225,
+    "x_liftoff": 9.506501191050152,
+    "v_liftoff_kmh": 36.82940637717985,
+    "vxp_liftoff": 7.12734009456625,
     "wind_ms": 3.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 13.5,
-    "t_strap_half_load": 2.5166666666666666,
-    "max_h_feet_5s": 9.55696990453109
+    "t_strap_half_load": 1.7666666666666666,
+    "max_h_feet_5s": 8.503079304895135
    }
   },
   "ground_run_wind6": {
    "training": {
-    "t_liftoff": 2.4416666666666664,
-    "x_liftoff": 2.4954931592403518,
-    "v_liftoff_kmh": 31.850037918997565,
-    "vxp_liftoff": 2.8699162153721147,
+    "t_liftoff": 2.3,
+    "x_liftoff": 2.085998454002592,
+    "v_liftoff_kmh": 30.67372575485253,
+    "vxp_liftoff": 2.5796774681487022,
     "wind_ms": 6.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 14.0,
     "t_strap_half_load": 0.125,
-    "max_h_feet_5s": 6.394283709439543
+    "max_h_feet_5s": 5.510531610085202
    },
    "laminar": {
-    "t_liftoff": 2.475,
-    "x_liftoff": 2.6593074491943054,
-    "v_liftoff_kmh": 32.506935989615,
-    "vxp_liftoff": 3.023434094075199,
+    "t_liftoff": 2.3249999999999997,
+    "x_liftoff": 2.2677796393506697,
+    "v_liftoff_kmh": 31.45805622950573,
+    "vxp_liftoff": 2.7704402677670714,
     "wind_ms": 6.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 17.0,
     "t_strap_half_load": 0.19999999999999998,
-    "max_h_feet_5s": 7.505136771940764
+    "max_h_feet_5s": 6.022093193497301
    },
    "sport": {
-    "t_liftoff": 2.6999999999999997,
-    "x_liftoff": 4.078788720681519,
-    "v_liftoff_kmh": 36.363066470609816,
-    "vxp_liftoff": 4.0625981080604845,
+    "t_liftoff": 2.55,
+    "x_liftoff": 3.859249069825998,
+    "v_liftoff_kmh": 36.342673633223775,
+    "vxp_liftoff": 4.091977469501202,
     "wind_ms": 6.0,
     "slope_deg": 15.0,
     "alpha_launch_deg": 13.5,
-    "t_strap_half_load": 1.4166666666666665,
-    "max_h_feet_5s": 9.555490228313664
+    "t_strap_half_load": 1.3416666666666666,
+    "max_h_feet_5s": 8.472428923082214
    }
   }
  }

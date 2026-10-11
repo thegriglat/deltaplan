@@ -1,0 +1,55 @@
+{
+  "id": "PD-30",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Посадка: упор рук по углу к стропе, запаздывание срыва с пределом, перенос в прототип",
+  "goal": "Ограничить ход рук по углу крыла к стропе (трапеция за головой — упор не держит), включить запаздывание срыва (cn_max 2,5–3) и ход у земли 0,6 м; правильная посадка мягкая на всех классах (штиль и встречный 3 м/с), ранняя/поздняя — жёстко; без переворотов; перенос в прототип, эталон, регрессия. Если не сходится — лучший вариант без переворотов, штиль — граница модели.",
+  "plan_ref": "Что уходит в этап B (и дальше)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "6",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "/home/greg/deltaplan-pendulum-PD-29",
+  "branch": "pendulum/PD-29",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/pendulum",
+    "configs/pendulum.json",
+    "tools/flight/pendulum_compare.gd",
+    "tools/research/pendulum",
+    "tests/flight/pendulum",
+    "tests/contracts",
+    "docs/research/pendulum.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/landing_judge.gd",
+    "configs/wings",
+    "scripts/game"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "test_landing",
+      "tests": "test_landing"
+    },
+    {
+      "name": "test_wings",
+      "tests": "test_wings"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T15:43:50"
+}
