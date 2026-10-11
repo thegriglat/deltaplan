@@ -23,7 +23,6 @@
   "scope": [
     "scripts/flight/pendulum",
     "configs/pendulum.json",
-    "configs/pilot.json",
     "tools/flight/pendulum_compare.gd",
     "tools/research/pendulum",
     "tests/flight/pendulum",
@@ -35,7 +34,8 @@
     "scripts/flight/ground_run.gd",
     "scripts/flight/landing_judge.gd",
     "configs/wings",
-    "scripts/game"
+    "scripts/game",
+    "configs/pilot.json"
   ],
   "accept": [
     {
@@ -53,5 +53,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-11T15:11:25"
+  "created": "2026-10-11T15:11:25",
+  "edited": "2026-10-11T15:11:31"
 }
