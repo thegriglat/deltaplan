@@ -14,9 +14,14 @@
     "scripts/flight/flight_model.gd",
     "scripts/flight/pendulum/",
     "scripts/game/input_controller.gd",
+    "scripts/game/flight_stats.gd",
+    "scripts/game/game.gd",
+    "scripts/game/collision_check.gd",
     "configs/flight.json",
     "configs/pilot.json",
+    "configs/game.json",
     "tests/flight/",
+    "tests/game/",
     "docs/guide/"
   ],
   "dont_touch": [
@@ -42,9 +47,18 @@
       "name": "gd",
       "cmd": "/home/greg/deltaplan/tools/dp check gd",
       "expect": "exit=0"
+    },
+    {
+      "name": "test_flight_stats",
+      "tests": "test_flight_stats"
+    },
+    {
+      "name": "tests/game",
+      "tests": "tests/game"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-12T00:40:24"
+  "created": "2026-10-12T00:40:24",
+  "edited": "2026-10-12T00:45:47"
 }
