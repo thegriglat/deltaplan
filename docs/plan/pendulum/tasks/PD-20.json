@@ -1,0 +1,40 @@
+{
+  "id": "PD-20",
+  "module": "pendulum",
+  "type": "dp-engineer",
+  "title": "Ленточки (Telltale) в «Маятнике» показывают скольжение",
+  "goal": "В режиме «Маятник» Glider передаёт в visual.step_telltales настоящую ориентацию крыла (с рысканием) и скорость крыла; узел ленты едет с крылом; тест: скольжение β≈10° → угол ленты в осях крыла ≈ β ±3°, ровный вираж — почти строго назад.",
+  "plan_ref": "Задачи этапа A (с минимальным B)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "3",
+      "ref": "docs/contracts/pendulum.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-PD-20",
+  "branch": "pendulum/PD-20",
+  "base": "feature/pendulum",
+  "scope": [
+    "scripts/flight/glider.gd",
+    "tests/flight/pendulum/test_pendulum_telltale.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum",
+    "scripts/instruments",
+    "scripts/flight/flight_model.gd"
+  ],
+  "accept": [
+    {
+      "name": "pendulum_telltale",
+      "tests": "pendulum_telltale"
+    },
+    {
+      "name": "telltale",
+      "tests": "telltale"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-11T04:56:35"
+}

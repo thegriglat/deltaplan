@@ -78,7 +78,7 @@ v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта си�
 | `chain.strap_mass_kg` | кг (на промежуточные узлы) | 1,0 |
 | `chain.compliance_m_per_n` | м/Н | 4e-5 |
 | `chain.substeps_per_s`, `chain.substeps_min` | 1/с, int | 480, 4 |
-| `arms.force_max_n`, `arms.tau_s`, `arms.ti_s` | Н, с, с | 300, 0,30, 0,6 |
+| `arms.force_max_n`, `arms.tau_s`, `arms.ti_s` | Н, с, с | 300, 0,30, 0 (0 — без интеграла: пружина-демпфер + прямая подача m·g/L·(цель − нейтраль), PD-19) |
 | `arms.shift_y_max_m`, `arms.shift_x_pull_m`, `arms.shift_x_push_m` | м | 0,45, 0,45, 0,30 |
 | `strips.count`, `strips.cp_chord` | int (чётное), доля хорды | 16, 0,25 |
 | `strips.aero_hz` | Гц (≤ 0 — на каждом подшаге, как прототип) | 60 |
