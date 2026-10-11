@@ -26,6 +26,8 @@ var _job_center := Vector2.ZERO
 var _job: Array[Vector2i] = []  ## ячейки, которые ещё считать
 var _job_all: Array[Vector2i] = []
 var _job_on := false
+var _cur := {}  ## участок, который привязывается к рельефу порциями
+var _cur_cell := Vector2i.ZERO
 ## Для тестов и печати.
 var instances := 0
 var near_instances := 0
@@ -72,9 +74,19 @@ static func cell_type(cell: Vector2i, fp: FieldPlots, place: EggPlace, cfg: Dict
 	]
 	var n_crop := 0
 	var n_grass := 0
-	for p in pts:
-		var sf := place.surface_at(p.x, p.y)
-		n_grass += 1 if sf == SurfaceLayer.GRASS else 0
+	var sc := place.surface_at(c.x, c.y)
+	if sc == SurfaceLayer.GRASS:
+		for p in pts:
+			n_grass += 1 if place.surface_at(p.x, p.y) == SurfaceLayer.GRASS else 0
+		if n_grass == pts.size():
+			if place.is_mountain(c.x, c.y):
+				return ""
+			var v := place.nearest_place(c.x, c.y)
+			if not v.is_empty() and float(v.dist_m) <= float(cfg.get("meadow_village_max_m", 2500.0)):
+				return "meadow"
+			return ""
+	if fp.tone(cell) < FieldPlots.MOWN_MIN + float(cfg.get("mown_margin", 0.03)):
+		return ""
 	for gx in 5:
 		for gz in 3:
 			var q := r.position + Vector2(r.size.x * (0.1 + 0.2 * gx), r.size.y * (0.17 + 0.33 * gz))
@@ -83,14 +95,8 @@ static func cell_type(cell: Vector2i, fp: FieldPlots, place: EggPlace, cfg: Dict
 		return ""
 	# поле: участок целиком вписан в покров редко (пятна WorldCover мельче участка), поэтому достаточно
 	# crop_min_points из 15 проверочных точек (сетка 5×3), а каждый рулон потом проверяется на CROP отдельно
-	if n_crop >= int(cfg.get("crop_min_points", 3)):
-		if fp.tone(cell) < FieldPlots.MOWN_MIN + float(cfg.get("mown_margin", 0.03)):
-			return ""
+	if n_crop >= int(cfg.get("crop_min_points", 2)):
 		return "mown"
-	if n_grass == pts.size():
-		var v := place.nearest_place(c.x, c.y)
-		if not v.is_empty() and float(v.dist_m) <= float(cfg.get("meadow_village_max_m", 2500.0)):
-			return "meadow"
 	return ""
 
 
@@ -100,10 +106,26 @@ static func cell_type(cell: Vector2i, fp: FieldPlots, place: EggPlace, cfg: Dict
 static func plan_cell(
 	cell: Vector2i, fp: FieldPlots, place: EggPlace, cfg: Dictionary, world_key: String
 ) -> Dictionary:
+	var out := plan_begin(cell, fp, place, cfg, world_key)
+	if out.is_empty():
+		return {}
+	plan_finish(out, place, cfg, 1 << 30)
+	if (out.xf as Array).is_empty():
+		return {}
+	return out
+
+
+## Первая стадия раскладки (дёшево, без привязки к рельефу рядов): отбор участка и кандидаты.
+## Горка готова сразу; ряды — список out.cand, привязывается к рельефу порциями plan_finish.
+static func plan_begin(
+	cell: Vector2i, fp: FieldPlots, place: EggPlace, cfg: Dictionary, world_key: String
+) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = ("%s|hay_bales|%d|%d" % [world_key, cell.x, cell.y]).hash()
 	var u_share := rng.randf()
 	var u_layout := rng.randf()
+	if u_share >= maxf(float(cfg.get("mown_share", 0.5)), float(cfg.get("meadow_share", 0.5))):
+		return {}  # дёшево отсекаем до проверок покрова
 	var type := cell_type(cell, fp, place, cfg)
 	if type == "":
 		return {}
@@ -117,6 +139,9 @@ static func plan_cell(
 		"xf": [] as Array[Transform3D],
 		"row": PackedInt32Array(),
 		"tier": PackedInt32Array(),
+		"cand": [],
+		"ci": 0,
+		"cfg_cap": int(cfg.get("max_per_cell", 60)),
 	}  # row/tier — упакованные массивы (значения): добавлять через out.row.append, не через `as`
 	if u_layout < float(cfg.get("pile_share", 0.35)):
 		out.layout = "pile"
@@ -124,9 +149,25 @@ static func plan_cell(
 	else:
 		out.layout = "rows"
 		_make_rows(out, fp.rect(cell), place, cfg, rng)
-	if (out.xf as Array).is_empty():
-		return {}
 	return out
+
+
+## Вторая стадия: привязать до n кандидатов к рельефу (покров, наклон). true — готово.
+static func plan_finish(out: Dictionary, place: EggPlace, cfg: Dictionary, n: int) -> bool:
+	var cand: Array = out.cand
+	var tilt := float(cfg.get("max_tilt_deg", 15.0))
+	while out.ci < cand.size() and n > 0:
+		var c: Dictionary = cand[out.ci]
+		out.ci += 1
+		n -= 1
+		if (out.xf as Array).size() >= int(out.cfg_cap):
+			out.ci = cand.size()
+			break
+		if _spot_ok(place, c.pos, out.want, cfg):
+			(out.xf as Array).append(_ground_xf(place, c.pos, c.yaw, 0.04, tilt))
+			out.row.append(c.row)
+			out.tier.append(0)
+	return out.ci >= cand.size()
 
 
 ## Под рулоном нужный покров (CROP на поле, GRASS на лугу) и не круто.
@@ -172,8 +213,6 @@ static func _make_rows(out: Dictionary, r: Rect2, place: EggPlace, cfg: Dictiona
 	var jit_a := float(cfg.get("jitter_along_m", 1.5))
 	var jit_p := float(cfg.get("jitter_across_m", 0.6))
 	var jit_yaw := deg_to_rad(float(cfg.get("jitter_yaw_deg", 8.0)))
-	var tilt := float(cfg.get("max_tilt_deg", 15.0))
-	var cap := int(cfg.get("max_per_cell", 60))
 	var q0 := -half_p + inset + rng.randf() * gap
 	var a_phase := rng.randf() * step
 	var k := 0
@@ -187,12 +226,9 @@ static func _make_rows(out: Dictionary, r: Rect2, place: EggPlace, cfg: Dictiona
 			var jp := rng.randf_range(-jit_p, jit_p)
 			var jy := rng.randf_range(-jit_yaw, jit_yaw)
 			var pos := c + ax * (a + ja) + pp * (q + jp)
-			if row_on and has and (out.xf as Array).size() < cap and _spot_ok(place, pos, out.want, cfg):
-				var across := pp  # ось рулона поперёк хода — поперёк ряда
-				var yaw := _yaw_for(across) + jy
-				(out.xf as Array).append(_ground_xf(place, pos, yaw, 0.04, tilt))
-				out.row.append(k)
-				out.tier.append(0)
+			if row_on and has:
+				# ось рулона поперёк хода — поперёк ряда
+				out.cand.append({"pos": pos, "yaw": _yaw_for(pp) + jy, "row": k})
 			a += step
 		q += gap
 		k += 1
@@ -312,7 +348,7 @@ func update(ctx: EggContext) -> bool:
 	var c2 := Vector2(cam.x, cam.z)
 	if not _job_on and c2.distance_to(_center) > float(_cfg.get("rebuild_m", 150.0)):
 		_start_job(c2)
-	if _job_on:
+	elif _job_on:
 		_step_job(ctx)
 	last_update_us = Time.get_ticks_usec() - t_us
 	max_update_us = maxi(max_update_us, last_update_us)
@@ -339,7 +375,6 @@ func _start_job(c2: Vector2) -> void:
 			var d := _fp.center(cell).distance_to(c2)
 			if d <= R + half_diag * 0.0 + 0.0:
 				cand.append([d, cell])
-	cand.sort_custom(func(a, b): return a[0] < b[0])
 	for e in cand:
 		_job_all.append(e[1])
 	_job = []
@@ -356,23 +391,33 @@ func _start_job(c2: Vector2) -> void:
 
 
 func _step_job(ctx: EggContext) -> void:
-	var n := int(_cfg.get("cells_per_frame", 8))
-	while n > 0 and not _job.is_empty():
-		var cell: Vector2i = _job.pop_front()
-		_cache[cell] = _eval(cell)
-		n -= 1
-	if _job.is_empty():
-		_assemble(ctx)
-		_center = _job_center
-		_job_on = false
-		rebuilds += 1
+	var budget_us := int(float(_cfg.get("budget_ms", 0.5)) * 1000.0)
+	var t0 := Time.get_ticks_usec()
+	while not _job.is_empty() or not _cur.is_empty():
+		if _cur.is_empty():
+			var cell: Vector2i = _job.pop_front()
+			var out := plan_begin(cell, _fp, _place, _cfg, _key)
+			if out.is_empty():
+				_cache[cell] = {}
+			else:
+				_cur = out
+				_cur_cell = cell
+		if not _cur.is_empty():
+			if plan_finish(_cur, _place, _cfg, 3):
+				_cache[_cur_cell] = _pack(_cur)
+				_cur = {}
+		if Time.get_ticks_usec() - t0 >= budget_us:
+			return
+	_assemble(ctx)
+	_center = _job_center
+	_job_on = false
+	rebuilds += 1
 
 
-func _eval(cell: Vector2i) -> Dictionary:
-	var pl := plan_cell(cell, _fp, _place, _cfg, _key)
-	if pl.is_empty():
-		return {}
+func _pack(pl: Dictionary) -> Dictionary:
 	var xf: Array = pl.xf
+	if xf.is_empty():
+		return {}
 	var pack := PackedFloat32Array()
 	pack.resize(xf.size() * 12)
 	var i := 0
