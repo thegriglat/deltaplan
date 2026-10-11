@@ -1,0 +1,71 @@
+{
+  "id": "EE-3",
+  "module": "easter-eggs",
+  "type": "dp-engineer",
+  "title": "Рисунки НЛО на полях",
+  "goal": "Живой мир: на участках спелых колосьев попадаются геометрические «рисунки НЛО» (примятые колосья чуть светлее), сверху ясно видны, с земли почти нет; в большинстве полётов над сельской местностью хотя бы один в видимости — плотностью по миру, детерминированно по участку.",
+  "plan_ref": "Волна 3 (11.10.2026, решение пользователя)",
+  "contracts": [
+    {
+      "name": "К3",
+      "version": "1",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К7",
+      "version": "5",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К8",
+      "version": "4",
+      "ref": "docs/contracts/easter-eggs.md"
+    },
+    {
+      "name": "К10",
+      "version": "7",
+      "ref": "docs/contracts/easter-eggs.md"
+    }
+  ],
+  "copy": "~/deltaplan-easter-eggs-EE-3",
+  "branch": "easter-eggs/EE-3",
+  "base": "feature/easter-eggs",
+  "scope": [
+    "scripts/world_objects/easter_eggs/crop_circles.gd (новый)",
+    "scripts/world_objects/easter_eggs/crop_circles.gdshader (новый)",
+    "configs/easter_eggs.json (блок eggs.crop_circles)",
+    "tests/world_objects/test_egg_crop_circles.gd (новый)"
+  ],
+  "dont_touch": [
+    "scripts/terrain/ (шейдер рельефа не менять)",
+    "scripts/world_objects/field_plots.gd (К10 — через координатора)",
+    "scripts/world_objects/easter_eggs.gd, easter_egg.gd, egg_context.gd, egg_place.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "egg_crop_circles",
+      "tests": "egg_crop_circles"
+    },
+    {
+      "name": "field_plots",
+      "tests": "field_plots"
+    },
+    {
+      "name": "easter_eggs",
+      "tests": "test_easter_eggs"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd $(git diff --name-only --diff-filter=AM feature/easter-eggs...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "rural_share_with_circle",
+    "cpu_ms_crop_circles",
+    "patterns"
+  ],
+  "notes": "",
+  "created": "2026-10-11T06:22:38"
+}
