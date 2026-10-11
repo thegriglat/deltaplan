@@ -204,6 +204,7 @@ func test_wing_drop_fails() -> void:
 		var got := []
 		m.takeoff_failed.connect(func(reason: String) -> void: got.append(reason))
 		m.reset_on_ground(Vector3.ZERO, 0.0)
+		m.start_flight_position()  # FB-К2: касание крылом — срыв только после начала перехода
 		var g := slope_fn(SLOPE_DEG)
 		var inp := S.input(0.0, 1.0)
 		inp.run = true

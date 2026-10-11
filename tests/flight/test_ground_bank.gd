@@ -273,8 +273,10 @@ static func crosswind_threshold(w: String, head_ms: float) -> float:
 
 ## Стоит во встречном head_ms 2 с, затем боковой порыв side_ms на 10 с.
 func _gust(w: String, head_ms: float, side_ms: float) -> Dictionary:
-	var m := Sim.make(w)
+	# FB-3: флюгер выключен — порог опрокидывания при курсе, который держит пилот
+	var m := Sim.make(w, 0.0, {"ground_yaw": {"cn_beta": 0.0}})
 	m.reset_on_ground(Vector3.ZERO, 0.0)
+	m.start_flight_position()  # FB-К2: касание консолью — срыв только после начала перехода
 	Sim.run_for(m, 2.0, Sim.input(), wind_fn(Vector3(0, 0, head_ms)), flat)
 	var res := {"failure": "", "t": 0.0, "max_bank": 0.0}
 	var af := wind_fn(Vector3(side_ms, 0, head_ms))
