@@ -2,3 +2,6 @@
 {"t": "2026-10-12T00:40:24", "by": "coordinator", "task": "FB-1", "ev": "created", "note": "Индикатор смещения пилота на HUD"}
 {"t": "2026-10-12T00:40:24", "by": "coordinator", "task": "FB-2", "ev": "created", "note": "Старт ровно в точке с карты (откат 21e27eb7)"}
 {"t": "2026-10-12T00:40:24", "by": "coordinator", "task": "FB-3", "ev": "created", "note": "Крыло на земле: без раскачки по тангажу, начальная поза у горизонта"}
+{"t": "2026-10-12T00:41:02", "by": "coordinator", "task": "FB-1", "ev": "started", "note": "dp-engineer, ~/deltaplan-feedback-1012-FB-1"}
+{"t": "2026-10-12T00:41:02", "by": "coordinator", "task": "FB-2", "ev": "started", "note": "dp-engineer, ~/deltaplan-feedback-1012-FB-2"}
+{"t": "2026-10-12T00:41:02", "by": "coordinator", "task": "FB-3", "ev": "started", "note": "dp-engineer opus, ~/deltaplan-feedback-1012-FB-3"}
