@@ -84,3 +84,7 @@
 {"t": "2026-10-12T22:53:50", "by": "executor", "task": "SC-11", "ev": "reported", "commits": ["3e0ef630"], "note": "done: camp_pilot.glb: тело пилота MPFB (кисти открытые) одним мешем PersonBody, куртка/брюки/кожа/волосы/ботинки с подошвой, …", "dp_feedback": "dp task show --full выдаёт длинный вывод; нет команды dp accept с выводом только упавших проверок кратко. Тест-раннер не печатает путь, по которому нашёл ноды — пришлось писать пробный --script для структуры glb."}
 {"t": "2026-10-12T22:54:53", "by": "executor", "task": "SC-11", "ev": "checked", "note": "3/3 start_camp_contracts_k4_pilot=ok:1/1; pilot=ok:54/54; pilot_glb_unchanged=ok:exit 0"}
 {"t": "2026-10-12T22:55:05", "by": "coordinator", "task": "SC-11", "ev": "accepted", "note": "по отчёту: 3/3, pilot.glb не тронут; 3714 треугольников, 16 костей; стыки куртка/брюки и волосы рваные — не шлифуем"}
+{"t": "2026-10-12T22:55:06", "by": "coordinator", "task": "SC-11", "ev": "merged"}
+{"t": "2026-10-12T22:55:06", "by": "coordinator", "task": "SC-12", "ev": "created", "note": "Люди у лагеря вблизи — модель пилота со скелетом"}
+{"t": "2026-10-12T22:55:07", "by": "coordinator", "task": "SC-12", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"near_count_max\", \"skinned_tris\", \"anim_cost_note\"]"]}}
+{"t": "2026-10-12T22:55:10", "by": "coordinator", "task": "SC-12", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-start-camp-SC-12"}
