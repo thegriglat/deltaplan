@@ -173,6 +173,7 @@ func _ready() -> void:
 	clock_label.clock = sky.clock
 	add_child(clock_label)
 	Config.reloaded.connect(clock_label.reload)
+	Config.reloaded.connect(_reload_wrist)
 	var wfd := get_node_or_null("WindFieldDebug")
 	if wfd != null and wfd.has_signal("toggled"):
 		wfd.connect("toggled", func(on: bool) -> void: debug_overlays.wind_field_on = on)
@@ -1322,6 +1323,8 @@ func _setup_glider() -> void:
 			return Vector3.ZERO
 		return v.body_shift
 	_hide_from_cockpit()
+	if v != null:
+		v.set_wrist_clock(sky.clock)  # наручные часы — время игры (PH-7)
 	if v != null and v.sky_shade != null:
 		v.sky_shade.env_fn = _sky_shade_env
 	for m: Dictionary in _cfg.get("mounted_instruments", []):
@@ -1345,6 +1348,12 @@ func _sky_shade_env() -> Vector2:
 		if dv.has("sky"):
 			cover = float(WeatherModel.sky_params(String(dv.sky)).get("cover", 0.0))
 	return Vector2(sin_el, cover)
+
+
+## Флажки «Часы»/«Компас» на лету: наручные приборы перечитывают ui.json (PH-7).
+func _reload_wrist() -> void:
+	if glider != null and glider.visual != null and glider.visual.wrist != null:
+		glider.visual.wrist.reload()
 
 
 ## Шлем и т. п. (camera.json → cockpit.hidden_nodes) — на слой, который кабина не рисует.

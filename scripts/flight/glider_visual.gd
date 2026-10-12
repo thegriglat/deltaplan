@@ -61,6 +61,8 @@ var arm_bar := 0.0
 var arm_flare := 0.0
 ## Ленточки на тросах трапеции (Telltale, instruments.json → telltale); шагает Glider.step.
 var telltales: Array[Telltale] = []
+var wrist: WristInstruments  ## часы на левой руке и компас на правой (PH-7), null — нет пустышек
+var wrist_clock: SunClock  ## время суток для часов (Game.sky.clock), null — часы скрыты
 var sky_shade: SkyShade  ## затенение земли крылом (PH-8), null — выключено
 ## Рисуется ли жёсткая стропа модели пилота (на земле скрыта, вместо неё гибкая лента — A3.7).
 var strap_rigid_visible := true
@@ -151,6 +153,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 		_animated_stand = _animated_stand or ap.has_animation("stand")
 		_anim = ap
 	_build_arms(pm)
+	_build_wrist(pm)
 	_fit_neutral_pose()
 	_build_strap(pm)
 	GloveLeather.apply(pm.find_child("PilotBody", true, false) as MeshInstance3D)
@@ -168,6 +171,24 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 		sky_shade = SkyShade.new()
 		add_child(sky_shade)
 		sky_shade.setup(float(wing_cfg.get("area_m2", 13.5)), ss_cfg)
+
+
+## Часы и компас на пустышки запястий (PH-7).
+func _build_wrist(pm: Node3D) -> void:
+	wrist = WristInstruments.new()
+	wrist.name = "WristInstruments"
+	if not wrist.attach(pm):
+		wrist.free()
+		wrist = null
+		return
+	add_child(wrist)
+	wrist.set_clock(wrist_clock)
+
+
+func set_wrist_clock(c: SunClock) -> void:
+	wrist_clock = c
+	if wrist != null:
+		wrist.set_clock(c)
 
 
 ## Стропа пилота: поверхность Strap в PilotBody (прячется на земле), нижняя точка подвесной

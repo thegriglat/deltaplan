@@ -299,7 +299,7 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 
 `assets/models/watch.glb` (PH-К4 v1, 1570 треугольников; `assets/source/watch.blend`). Крепятся к пустышке `WristL`
 без смещения и поворота. Перегенерация — `blender --background --python tools/blender/build_watch.py`
-(параметры в мм — `tools/blender/watch.json`: эллипс руки `ellipse_w_mm`×`ellipse_h_mm` — сейчас 56×51 по PH-3,
+(параметры в мм — `tools/blender/watch.json`: эллипс руки `ellipse_w_mm`×`ellipse_h_mm` — 54×52 по PH-3 (PH-7),
 ширина/толщина ремешка, зазор, размеры корпуса, слои стрелок), затем `godot --headless --path . --import`.
 
 - Оси: начало — центр дна корпуса; циферблат смотрит в −Z, «12» — к +Y (к пальцам), «3» и заводная головка — по −X.
@@ -311,12 +311,12 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 - Циферблат: текстура 256² (чёрный фон, белые 12 меток 2,2 мм и цифры 12/3/6/9 высотой 6,2 мм — рисуются скриптом
   штриховым шрифтом), ремешок — 256×128 (тёмная кожа со строчкой). Текстуры в glb; Godot извлекает их в
   `assets/models/watch_watch_*.png`, их `.import` — `compress/mode=2`, `mipmaps/generate=true` (проверяет тест).
-- Заводная головка сейчас на «3 часах» (−X), над ушком ремешка; по PH-К4 v2 — на стороне +Y (к пальцам), переносит PH-7.
+- Заводная головка — на стороне +Y (к пальцам; PH-К4 v2, перенесена в PH-7), ушки ремешка — по ±X.
 - Тесты: `test_ph_k4_watch_*` в `tests/contracts/test_pilot_hud_contracts.gd`, `scenes/models_preview/check_models.gd`.
 
 ### Наручный компас
 
-`assets/models/wrist_compass.glb` (правая рука, `WristR`), 1 304 треугольника. Сборка: `blender --background --python tools/blender/build_wrist_compass.py` (параметры в мм — `tools/blender/wrist_compass.json`: эллипс руки `wrist_w_mm`×`wrist_h_mm` = 56×51 по отчёту PH-3, ширина/толщина/зазор ремешка, размеры капсулы и картушки; PH-7 меняет W×H и перегенерирует той же командой). Затем `godot --headless --path . --import`.
+`assets/models/wrist_compass.glb` (правая рука, `WristR`), 1 304 треугольника. Сборка: `blender --background --python tools/blender/build_wrist_compass.py` (параметры в мм — `tools/blender/wrist_compass.json`: эллипс руки `wrist_w_mm`×`wrist_h_mm` = 54×52 по отчёту PH-3 (PH-7), ширина/толщина/зазор ремешка, размеры капсулы и картушки; PH-7 меняет W×H и перегенерирует той же командой). Затем `godot --headless --path . --import`.
 
 - Ноды верхнего уровня: `Case` (корпус Ø 46 мм, высота 11 мм над рукавом, юбка следует эллипсу руки, безель; `CompassCase`, `CompassBezel`), `Strap` (22 мм, зазор 1,5 мм, пряжка; `CompassStrap`, `CompassBuckle`), `Card` (картушка Ø 38 мм, толщина 1 мм, начало на оси на высоте 6,6 мм; `CompassCard`), `Lubber` (курсовая черта на +Y, чуть выше картушки; `CompassMark`), `Glass` (купол капсулы, альфа 0,08; `CompassGlass`).
 - Картушка: текстура 256² (`assets/models/wrist_compass_CompassCard.png`, Godot вынимает её из glb; `.import`: `compress/mode=2`, `mipmaps/generate=true`). N/E/S/W высотой 6,4 мм, метки через 10° (30° длиннее, 90° шире), цифры/10 через 30° (3, 6, 12, 15, 21, 24, 30, 33; 3,4 мм), N — красный буква и красный треугольник у кромки остриём к центру. Штрихи рисует скрипт (numpy), шрифтов нет. При повороте 0 N на +Y; E справа для смотрящего (по часовой), `rotation.z = θ` по контракту.

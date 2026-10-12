@@ -1,7 +1,7 @@
 {
   "_doc": "Параметры наручного компаса (tools/blender/build_wrist_compass.py), мм. Контракт PH-К4/PH-К3: docs/contracts/pilot-hud.md. W и H — эллипс сечения руки в точке крепления (PH-К3; PH-3: 56x51), PH-7 перегенерирует с точными.",
-  "wrist_w_mm": 56.0,
-  "wrist_h_mm": 51.0,
+  "wrist_w_mm": 54.0,
+  "wrist_h_mm": 52.0,
   "strap_w_mm": 22.0,
   "strap_t_mm": 2.6,
   "strap_gap_mm": 1.5,

@@ -1,7 +1,7 @@
 {
   "_doc": "Параметры build_watch.py (PH-К4 v1), мм. W/H — эллипс сечения руки в точке крепления WristL (PH-К3): центр (0,0,+H/2), W по X, H по Z; PH-7 перегенерирует по точным значениям PH-3.",
-  "ellipse_w_mm": 56,
-  "ellipse_h_mm": 51,
+  "ellipse_w_mm": 54,
+  "ellipse_h_mm": 52,
   "strap_width_mm": 20,
   "strap_thick_mm": 2.5,
   "strap_gap_mm": 1.5,
