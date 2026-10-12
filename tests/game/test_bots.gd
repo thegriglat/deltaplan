@@ -238,3 +238,53 @@ func test_thermal_rule_and_separation() -> void:
 	)
 	check(bad_pairs <= total / 50, "ботов ближе 50 м / 15 м: %d из %d" % [bad_pairs, total])
 	b.free()
+
+
+## Появление у старта: ни одно место ожидания не ближе двух размахов к игроку и не в коридоре
+## камеры 3-го лица (позади игрока по линии взгляда) — на всех курсах стартов каталога, на ровной
+## площадке, на склоне и на узком гребне (камни по бокам гонят очередь назад).
+func test_spawn_clear_of_player_and_camera() -> void:
+	var cat := PopularPlaces.load_catalog("res://data/places/hg_takeoffs.json")
+	var headings := {}
+	for t: Dictionary in cat.takeoffs:
+		for d in t.get("orientation", []):
+			var k := PopularPlaces.DIRS.find(String(d))
+			if k >= 0:
+				headings[k * 22.5] = true
+	check(headings.size() >= 8, "курсов в каталоге: %d" % headings.size())
+	var lc: Dictionary = Config.get_config("bots").get("launch", {})
+	var half := float(lc.get("camera_corridor_half_width_m", 8.0))
+	var cam_len := float(lc.get("camera_corridor_len_m", 40.0))
+	var near := float(lc.get("player_clear_m", 22.0))
+	var cfg_cam: Dictionary = Config.get_config("camera").get("chase", {})
+	check(cam_len > float(cfg_cam.get("distance_m", 12.0)), "коридор длиннее отстояния камеры")
+	var flat := func(_x: float, _z: float) -> float: return 300.0
+	var slope := func(_x: float, z: float) -> float: return 300.0 + z * 0.36
+	var walls: Array[Vector3] = []
+	for k in range(-20, 21):
+		walls.append(Vector3(-11.0, k * 4.0, 3.0))
+		walls.append(Vector3(11.0, k * 4.0, 3.0))
+	var min_d := INF
+	var total := 0
+	for hd: float in headings:
+		var h := deg_to_rad(hd)
+		var fwd := Vector2(sin(h), -cos(h))
+		var right := Vector2(cos(h), sin(h))
+		var st := Vector3(100.0, 300.0, -50.0)
+		for gf: Callable in [flat, slope]:
+			for obs: Array in [[], walls]:
+				# стенки заданы в осях курса 0 — поворачиваем под курс
+				var o: Array[Vector3] = []
+				for w: Vector3 in obs:
+					var q := Vector2(st.x, st.z) + right * w.x + (-fwd) * w.y
+					o.append(Vector3(q.x, q.y, w.z))
+				var spots := BotPilots.find_spots(gf, st, hd, 8, lc, o)
+				check(spots.size() == 8, "курс %.1f: мест %d" % [hd, spots.size()])
+				for s: Dictionary in spots:
+					var rel := Vector2(s.position.x - st.x, s.position.z - st.z)
+					min_d = minf(min_d, rel.length())
+					total += 1
+					check(rel.length() >= near - 0.01, "курс %.1f: бот в %.1f м от игрока" % [hd, rel.length()])
+					var in_cam := -rel.dot(fwd) < cam_len and absf(rel.dot(right)) < half
+					check(not in_cam, "курс %.1f: бот в коридоре камеры (%.1f, %.1f)" % [hd, -rel.dot(fwd), rel.dot(right)])
+	print("spawn-clear мест=%d min_d=%.1f" % [total, min_d])

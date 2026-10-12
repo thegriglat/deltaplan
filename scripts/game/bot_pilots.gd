@@ -380,7 +380,7 @@ func state_counts() -> Dictionary:
 # ---------------------------------------------------------------- старт
 
 
-## Места ожидания позади старта: ровно, не в коридоре разбега, не ближе spacing_m друг к другу
+## Места ожидания позади старта: ровно, не в коридоре разбега и не в коридоре камеры 3-го лица, не ближе spacing_m друг к другу
 ## и player_clear_m к игроку, крыло не задевает препятствия (obstacles: Vector3(x, z, радиус),
 ## зазор obstacle_clear_m); ближние к старту — первые в очереди. Курс — как у старта.
 ## Возвращает [{position: Vector3, heading_deg}] длины count.
@@ -405,6 +405,8 @@ static func find_spots(
 	var corridor := float(cfg.get("corridor_half_width_m", 9.0))
 	var probe := float(cfg.get("flat_probe_m", 3.0))
 	var gap := float(cfg.get("obstacle_clear_m", 6.0))
+	var cam_half := float(cfg.get("camera_corridor_half_width_m", 8.0))
+	var cam_len := float(cfg.get("camera_corridor_len_m", 40.0))
 	# Точка, где бот ждёт разбега (BotAgent._ready_point): места не ближе spacing к ней.
 	var ready := s2 - fwd * float(cfg.get("ready_behind_m", 2.0))
 	var cands: Array = []
@@ -415,8 +417,11 @@ static func find_spots(
 			var p := s2 - fwd * b + right * l
 			var rel := p - s2
 			var in_corridor := rel.dot(fwd) > -2.0 and absf(rel.dot(right)) < corridor
+			# Коридор камеры 3-го лица: позади игрока по линии взгляда — бот закрыл бы игрока.
+			var in_camera := -rel.dot(fwd) < cam_len and absf(rel.dot(right)) < cam_half
 			if (
 				not in_corridor
+				and not in_camera
 				and p.distance_to(s2) >= clear
 				and p.distance_to(ready) >= spacing
 				and _free(p, obstacles, gap)
