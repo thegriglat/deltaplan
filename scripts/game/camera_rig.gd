@@ -350,11 +350,16 @@ static func _is_back(c: Dictionary) -> bool:
 	return String(c.get("eye_mode", "back_hidden")) != "eyes"
 
 
-## Тело пилота в кабине: back_hidden — ничего не рисуется, eyes — только руки (перчатки).
+## Тело пилота в кабине (оба eye_mode): рисуются только поверхности из cockpit.visible_materials (PH-К5).
 func _apply_body_mode(c: Dictionary) -> void:
 	var vis := head.get_parent() as GliderVisual
 	if vis == null:
 		return
+	var vm := PackedStringArray()
+	for n: String in c.get("visible_materials", []):
+		vm.append(n)
+	if not vm.is_empty():
+		vis.cockpit_visible_materials = vm
 	vis.set_cockpit_body("hands")
 
 
