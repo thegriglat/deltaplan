@@ -1114,6 +1114,11 @@ func _create_visuals() -> void:
 	dust.name = "DustDevils"
 	add_child(dust)
 	dust.setup(self)
+	if bool(cfg.gust_dust.enabled):
+		var gdust := GustDust.new()
+		gdust.name = "GustDust"
+		add_child(gdust)
+		gdust.setup(self)
 	if bool(cfg.birds.enabled):
 		var bird_script: Script = load("res://scripts/atmosphere/bird_flock.gd")
 		if bird_script != null:
