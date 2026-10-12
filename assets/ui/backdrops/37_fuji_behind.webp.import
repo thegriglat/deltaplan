@@ -2,24 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://6n5mvwmkhsv8"
-path.bptc="res://.godot/imported/thermal.jpg-8e1413e9c2aa2e1ab6adf597f9ad24a5.bptc.ctex"
-path.astc="res://.godot/imported/thermal.jpg-8e1413e9c2aa2e1ab6adf597f9ad24a5.astc.ctex"
+uid="uid://cneq6eef0rlc3"
+path="res://.godot/imported/37_fuji_behind.webp-4e98da2f3c7433f90b310365c7f1244b.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/loading/thermal.jpg"
-dest_files=["res://.godot/imported/thermal.jpg-8e1413e9c2aa2e1ab6adf597f9ad24a5.bptc.ctex", "res://.godot/imported/thermal.jpg-8e1413e9c2aa2e1ab6adf597f9ad24a5.astc.ctex"]
+source_file="res://assets/ui/backdrops/37_fuji_behind.webp"
+dest_files=["res://.godot/imported/37_fuji_behind.webp-4e98da2f3c7433f90b310365c7f1244b.ctex"]
 
 [params]
 
-compress/mode=2
-compress/high_quality=true
-compress/lossy_quality=0.8
+compress/mode=1
+compress/high_quality=false
+compress/lossy_quality=0.9
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
@@ -38,5 +36,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=2560
 detect_3d/compress_to=1

@@ -14,6 +14,7 @@ const TIMEOUT_S := 240.0
 var _cfg: Dictionary = {}
 var _out := ""
 var _main: Node = null
+var _game: Game
 var _cam: Camera3D = null
 var _target: Node3D = null
 var _heading_rad := 0.0
@@ -68,10 +69,12 @@ func _run() -> void:
 	while game.sim_time_s < t_end and main.state == main.State.FLYING:
 		await get_tree().physics_frame
 	game.overlay.visible = false
+	_hide_texts(main)
 	# сим замирает на sim_time_s: число физических шагов за прогрев не зависит от частоты кадров
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused = true
 	_cam = game.camera
+	_game = game
 	_target = _cam.target
 	_cam.process_mode = Node.PROCESS_MODE_DISABLED
 	_locked = true
@@ -93,10 +96,26 @@ func _run() -> void:
 	get_tree().quit(0 if err == OK else 1)
 
 
+## Чистый кадр: без подписей в мире (имена ботов, вершины) и без интерфейса поверх.
+## Сим на паузе — подписи и интерфейс не возвращаются сами.
+func _hide_texts(node: Node) -> void:
+	for ch in node.get_children():
+		if ch is Label3D:
+			ch.visible = false
+		elif ch is CanvasLayer:
+			ch.visible = false
+		else:
+			_hide_texts(ch)
+
+
 ## Камера: смещение в осях курса планера (курс — только рыскание, без крена/тангажа).
+## camera.peak = [lat, lon] — оси не по курсу, а по направлению с планера на вершину (гора за планером).
 func _place_camera() -> void:
 	var c: Dictionary = _cfg.camera
 	var fwd := -_target.global_transform.basis.z
+	if c.has("peak"):
+		var p: Vector2 = _game.terrain.latlon_to_local(float(c.peak[0]), float(c.peak[1]))
+		fwd = Vector3(p.x, 0.0, p.y) - _target.global_position
 	fwd.y = 0.0
 	fwd = fwd.normalized()
 	_heading_rad = atan2(-fwd.x, -fwd.z)
@@ -110,6 +129,12 @@ func _place_camera() -> void:
 	)
 	# рыскание > 0 — влево от курса (как в игре), тангаж > 0 — вверх
 	var yaw := atan2(-fwd.x, -fwd.z) + deg_to_rad(float(c.yaw_deg))
-	var basis_now := Basis(Vector3.UP, yaw) * Basis(Vector3.RIGHT, deg_to_rad(float(c.pitch_deg)))
+	var pitch := deg_to_rad(float(c.pitch_deg))
+	if bool(c.get("aim", false)):
+		# aim: yaw/pitch — смещение от направления на планер (планер не по центру кадра)
+		var to := pivot - pos
+		yaw = atan2(-to.x, -to.z) + deg_to_rad(float(c.yaw_deg))
+		pitch = atan2(to.y, Vector2(to.x, to.z).length()) + deg_to_rad(float(c.pitch_deg))
+	var basis_now := Basis(Vector3.UP, yaw) * Basis(Vector3.RIGHT, pitch)
 	_cam.global_transform = Transform3D(basis_now, pos)
 	_cam.fov = float(c.fov_deg)

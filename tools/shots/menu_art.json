@@ -1,0 +1,617 @@
+{
+ "_doc": "Сюжеты для tools/shots/menu_art.py. cameras — ракурсы menu_background.gd (aim: камера смотрит на планер, yaw/pitch — смещение от него: yaw > 0 — планер правее центра, pitch > 0 — ниже; меню ложится слева и по центру). light — время и облачность: hour — час старта (облака к нужному моменту), clock_hour — только свет неба и солнца. places — каталог стартов (location/site) или точка у знаковой горы (latlon + peak: ветер дует с горы, планер летит к ней, камера сзади видит гору за планером). Номера кадров — по порядку places × variants.",
+ "graphics": "high",
+ "warmup_frames": 40,
+ "cameras": {
+  "side_far": {
+   "aim": true,
+   "back_m": 40,
+   "right_m": 30,
+   "up_m": 8,
+   "yaw_deg": 14,
+   "pitch_deg": 6,
+   "fov_deg": 50
+  },
+  "behind_high": {
+   "aim": true,
+   "back_m": 35,
+   "right_m": 8,
+   "up_m": 20,
+   "yaw_deg": 12,
+   "pitch_deg": 14,
+   "fov_deg": 60
+  },
+  "below_sky": {
+   "aim": true,
+   "back_m": 25,
+   "right_m": 18,
+   "up_m": -12,
+   "yaw_deg": 14,
+   "pitch_deg": 10,
+   "fov_deg": 62
+  },
+  "front_side": {
+   "aim": true,
+   "back_m": -35,
+   "right_m": 28,
+   "up_m": 4,
+   "yaw_deg": 14,
+   "pitch_deg": 5,
+   "fov_deg": 55
+  },
+  "tele": {
+   "aim": true,
+   "back_m": 150,
+   "right_m": 80,
+   "up_m": 15,
+   "yaw_deg": 5,
+   "pitch_deg": 3,
+   "fov_deg": 24
+  },
+  "peak_behind": {
+   "aim": true,
+   "back_m": 30,
+   "right_m": 6,
+   "up_m": 3,
+   "yaw_deg": 10,
+   "pitch_deg": 14,
+   "fov_deg": 50
+  },
+  "peak_tele": {
+   "aim": true,
+   "back_m": 150,
+   "right_m": 20,
+   "up_m": 0,
+   "yaw_deg": 4,
+   "pitch_deg": 8,
+   "fov_deg": 24
+  },
+  "shadow_above": {
+   "aim": true,
+   "back_m": 22,
+   "right_m": 14,
+   "up_m": 30,
+   "yaw_deg": 8,
+   "pitch_deg": -14,
+   "fov_deg": 62
+  },
+  "shadow_side": {
+   "aim": true,
+   "back_m": 10,
+   "right_m": 40,
+   "up_m": 18,
+   "yaw_deg": 10,
+   "pitch_deg": -12,
+   "fov_deg": 58
+  }
+ },
+ "light": {
+  "morning": {
+   "sky": "clear",
+   "temp": 24,
+   "hour": 9,
+   "clock_hour": 8.5
+  },
+  "noon_cu": {
+   "sky": "partly",
+   "temp": 33,
+   "hour": 12,
+   "clock_hour": 13.0
+  },
+  "afternoon_cu": {
+   "sky": "partly",
+   "temp": 33,
+   "hour": 15,
+   "clock_hour": 16.0
+  },
+  "evening": {
+   "sky": "partly",
+   "temp": 33,
+   "hour": 15,
+   "clock_hour": 19.3
+  },
+  "sunset": {
+   "sky": "clear",
+   "temp": 30,
+   "hour": 20,
+   "clock_hour": 20.4
+  },
+  "overcast": {
+   "sky": "overcast",
+   "temp": 22,
+   "hour": 12,
+   "clock_hour": 13.0
+  }
+ },
+ "places": [
+  {
+   "id": "ongudai",
+   "title": "Онгудай, Каянча",
+   "location": "ongudai",
+   "site": "kayancha_south",
+   "circle": "1,-12",
+   "variants": [
+    {
+     "name": "evening_side",
+     "light": "evening",
+     "camera": "side_far",
+     "desc": "лесистые горы, вечер, длинные тени"
+    },
+    {
+     "name": "cu_behind",
+     "light": "noon_cu",
+     "camera": "behind_high",
+     "desc": "долина сверху, кучевые"
+    },
+    {
+     "name": "sunset_below",
+     "light": "sunset",
+     "camera": "below_sky",
+     "desc": "снизу на фоне закатного неба"
+    },
+    {
+     "name": "morning_tele",
+     "light": "morning",
+     "camera": "tele",
+     "air_start": "1500,450",
+     "desc": "далеко, утро, горы слоями"
+    }
+   ]
+  },
+  {
+   "id": "sinyukha_w",
+   "title": "Алтай, Синюха запад",
+   "location": "altai",
+   "site": "sinyukha_west",
+   "circle": "1,12",
+   "variants": [
+    {
+     "name": "evening_front",
+     "light": "evening",
+     "camera": "front_side",
+     "desc": "навстречу, вечерний свет на парусе"
+    },
+    {
+     "name": "cu_side",
+     "light": "afternoon_cu",
+     "camera": "side_far",
+     "air_start": "1200,500",
+     "desc": "над тайгой под кучевыми"
+    },
+    {
+     "name": "overcast_behind",
+     "light": "overcast",
+     "camera": "behind_high",
+     "desc": "пасмурно, низкие облака"
+    }
+   ]
+  },
+  {
+   "id": "sinyukha_e",
+   "title": "Алтай, Синюха восток",
+   "location": "altai",
+   "site": "sinyukha_east",
+   "variants": [
+    {
+     "name": "morning_side",
+     "light": "morning",
+     "camera": "side_far",
+     "desc": "утро у склона"
+    },
+    {
+     "name": "sunset_tele",
+     "light": "sunset",
+     "camera": "tele",
+     "air_start": "1500,400",
+     "desc": "закат, силуэт далеко"
+    },
+    {
+     "name": "cu_below",
+     "light": "noon_cu",
+     "camera": "below_sky",
+     "desc": "снизу, кучевые над головой"
+    }
+   ]
+  },
+  {
+   "id": "tugaya",
+   "title": "Алтай, Тугая юг",
+   "location": "altai",
+   "site": "tugaya_south",
+   "circle": "1,-12",
+   "variants": [
+    {
+     "name": "evening_behind",
+     "light": "evening",
+     "camera": "behind_high",
+     "air_start": "1500,500",
+     "desc": "вечер, тени по долине"
+    },
+    {
+     "name": "cu_front",
+     "light": "afternoon_cu",
+     "camera": "front_side",
+     "desc": "навстречу, облака сзади"
+    },
+    {
+     "name": "start_close",
+     "light": "noon_cu",
+     "camera": "side_far",
+     "air_start": "150,60",
+     "desc": "у старта, ниже склона"
+    }
+   ]
+  },
+  {
+   "id": "biyagoda",
+   "title": "Аскарово, Бийагода",
+   "location": "askarovo",
+   "site": "biyagoda_west",
+   "circle": "1,12",
+   "variants": [
+    {
+     "name": "evening_side",
+     "light": "evening",
+     "camera": "side_far",
+     "desc": "Урал, вечер"
+    },
+    {
+     "name": "sunset_below",
+     "light": "sunset",
+     "camera": "below_sky",
+     "desc": "снизу, закат"
+    },
+    {
+     "name": "start_camp",
+     "light": "afternoon_cu",
+     "camera": "behind_high",
+     "air_start": "120,40",
+     "desc": "над стартом с лагерем"
+    }
+   ]
+  },
+  {
+   "id": "biyagoda_sw",
+   "title": "Аскарово, Бийагода юго-запад",
+   "location": "askarovo",
+   "site": "biyagoda_south_west",
+   "variants": [
+    {
+     "name": "cu_tele",
+     "light": "noon_cu",
+     "camera": "tele",
+     "air_start": "1500,500",
+     "desc": "далеко, облачная улица"
+    },
+    {
+     "name": "morning_front",
+     "light": "morning",
+     "camera": "front_side",
+     "desc": "утро, навстречу"
+    }
+   ]
+  },
+  {
+   "id": "aushtau",
+   "title": "Аушкуль, Аушта",
+   "location": "aushkul",
+   "site": "aushtau_east",
+   "circle": "1,-12",
+   "variants": [
+    {
+     "name": "evening_lake",
+     "light": "evening",
+     "camera": "side_far",
+     "air_start": "1200,400",
+     "desc": "вечер над озером"
+    },
+    {
+     "name": "cu_behind",
+     "light": "afternoon_cu",
+     "camera": "behind_high",
+     "air_start": "1000,500",
+     "desc": "сверху на озеро"
+    },
+    {
+     "name": "sunset_tele",
+     "light": "sunset",
+     "camera": "tele",
+     "air_start": "1500,300",
+     "desc": "закат над озером"
+    },
+    {
+     "name": "start_close",
+     "light": "noon_cu",
+     "camera": "front_side",
+     "air_start": "150,60",
+     "desc": "у старта"
+    }
+   ]
+  },
+  {
+   "id": "ridge_w",
+   "title": "Аушкуль, хребет запад",
+   "location": "aushkul",
+   "site": "ridge_west",
+   "variants": [
+    {
+     "name": "evening_below",
+     "light": "evening",
+     "camera": "below_sky",
+     "desc": "снизу, вечер"
+    },
+    {
+     "name": "overcast_side",
+     "light": "overcast",
+     "camera": "side_far",
+     "desc": "пасмурно"
+    }
+   ]
+  },
+  {
+   "id": "everest",
+   "title": "Эверест (с Кала-Паттхара)",
+   "latlon": [
+    27.9957,
+    86.8285
+   ],
+   "peak": [
+    27.9881,
+    86.925
+   ],
+   "air_start": "300,500",
+   "variants": [
+    {
+     "name": "behind",
+     "light": "noon_cu",
+     "camera": "peak_behind",
+     "desc": "к Эвересту"
+    },
+    {
+     "name": "tele",
+     "light": "evening",
+     "camera": "peak_tele",
+     "desc": "телевик, вечер"
+    },
+    {
+     "name": "morning",
+     "light": "morning",
+     "camera": "peak_behind",
+     "camera_patch": {
+      "right_m": -20,
+      "yaw_deg": -12
+     },
+     "desc": "утро, планер слева"
+    }
+   ]
+  },
+  {
+   "id": "elbrus",
+   "title": "Эльбрус (с Чегета)",
+   "latlon": [
+    43.245,
+    42.51
+   ],
+   "peak": [
+    43.3499,
+    42.4453
+   ],
+   "air_start": "300,400",
+   "variants": [
+    {
+     "name": "behind",
+     "light": "afternoon_cu",
+     "camera": "peak_behind",
+     "desc": "к Эльбрусу"
+    },
+    {
+     "name": "tele",
+     "light": "evening",
+     "camera": "peak_tele",
+     "desc": "телевик, вечер"
+    },
+    {
+     "name": "sunset",
+     "light": "sunset",
+     "camera": "peak_behind",
+     "desc": "закат"
+    }
+   ]
+  },
+  {
+   "id": "kilimanjaro",
+   "title": "Килиманджаро (с юга)",
+   "latlon": [
+    2.96,
+    37.32
+   ],
+   "peak": [
+    3.0674,
+    37.3556
+   ],
+   "air_start": "300,500",
+   "variants": [
+    {
+     "name": "behind",
+     "light": "noon_cu",
+     "camera": "peak_behind",
+     "desc": "к Кибо над облаками"
+    },
+    {
+     "name": "tele",
+     "light": "evening",
+     "camera": "peak_tele",
+     "desc": "телевик, вечер"
+    }
+   ]
+  },
+  {
+   "id": "matterhorn",
+   "title": "Маттерхорн (от Церматта)",
+   "latlon": [
+    46.02,
+    7.73
+   ],
+   "peak": [
+    45.9763,
+    7.6586
+   ],
+   "air_start": "300,500",
+   "variants": [
+    {
+     "name": "behind",
+     "light": "afternoon_cu",
+     "camera": "peak_behind",
+     "desc": "к Маттерхорну"
+    },
+    {
+     "name": "tele",
+     "light": "evening",
+     "camera": "peak_tele",
+     "desc": "телевик, вечер"
+    }
+   ]
+  },
+  {
+   "id": "montblanc",
+   "title": "Монблан (от Шамони)",
+   "latlon": [
+    45.95,
+    6.89
+   ],
+   "peak": [
+    45.8326,
+    6.8652
+   ],
+   "air_start": "300,500",
+   "variants": [
+    {
+     "name": "behind",
+     "light": "noon_cu",
+     "camera": "peak_behind",
+     "desc": "Шамони, к Монблану"
+    },
+    {
+     "name": "tele",
+     "light": "evening",
+     "camera": "peak_tele",
+     "desc": "телевик, вечер"
+    }
+   ]
+  },
+  {
+   "id": "fuji",
+   "title": "Фудзи (от Кавагутико)",
+   "latlon": [
+    35.49,
+    138.76
+   ],
+   "peak": [
+    35.3606,
+    138.7274
+   ],
+   "air_start": "300,400",
+   "variants": [
+    {
+     "name": "behind",
+     "light": "afternoon_cu",
+     "camera": "peak_behind",
+     "desc": "к Фудзи"
+    },
+    {
+     "name": "tele",
+     "light": "sunset",
+     "camera": "peak_tele",
+     "desc": "телевик, закат"
+    }
+   ]
+  },
+  {
+   "id": "ushba",
+   "title": "Ушба (Сванетия)",
+   "latlon": [
+    43.07,
+    42.6
+   ],
+   "peak": [
+    43.125,
+    42.665
+   ],
+   "air_start": "300,500",
+   "variants": [
+    {
+     "name": "behind",
+     "light": "evening",
+     "camera": "peak_behind",
+     "desc": "двурогая Ушба, вечер"
+    }
+   ]
+  },
+  {
+   "id": "shadow_biyagoda",
+   "title": "Аскарово, луг под Бийагодой — тень",
+   "location": "askarovo",
+   "site": "biyagoda_west",
+   "variants": [
+    {
+     "name": "noon",
+     "light": "noon_cu",
+     "camera": "shadow_above",
+     "air_start": "700,25",
+     "desc": "тень дельтаплана на лугу, полдень"
+    },
+    {
+     "name": "afternoon",
+     "light": "afternoon_cu",
+     "camera": "shadow_side",
+     "air_start": "700,20",
+     "desc": "тень сбоку, после полудня"
+    }
+   ]
+  },
+  {
+   "id": "shadow_aushtau",
+   "title": "Аушкуль — тень",
+   "location": "aushkul",
+   "site": "aushtau_south",
+   "variants": [
+    {
+     "name": "noon",
+     "light": "noon_cu",
+     "camera": "shadow_above",
+     "air_start": "500,25",
+     "desc": "тень на склоне, полдень"
+    },
+    {
+     "name": "evening",
+     "light": "afternoon_cu",
+     "camera": "shadow_side",
+     "air_start": "500,20",
+     "desc": "тень сбоку, после полудня"
+    }
+   ]
+  },
+  {
+   "id": "shadow_ongudai",
+   "title": "Аскарово, Бийагода восток — тень",
+   "location": "askarovo",
+   "site": "biyagoda_east",
+   "variants": [
+    {
+     "name": "noon",
+     "light": "noon_cu",
+     "camera": "shadow_above",
+     "air_start": "700,25",
+     "desc": "тень на лугу, полдень"
+    },
+    {
+     "name": "afternoon",
+     "light": "afternoon_cu",
+     "camera": "shadow_side",
+     "air_start": "900,20",
+     "desc": "тень сбоку"
+    }
+   ]
+  }
+ ]
+}

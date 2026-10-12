@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Фон главного меню (assets/ui/menu_background.jpg): кадр из игры по параметрам tools/shots/menu_background.json.
+# Один кадр из игры по параметрам JSON (по умолчанию tools/shots/menu_background.json) — основа tools/shots/menu_art.py.
 # tools/shots/menu_background.sh [--size=3840x2160|2560x1440] [--out=файл.jpg] [--config=файл.json]
 # Окно — виртуальный дисплей xvfb нужного размера (Vulkan на видеокарте), профиль пилота временный.
 # Пресет графики «Высокое», «Масштаб рендера» 100 % (без FSR), без прибора и меню. Детерминированно:
@@ -8,7 +8,7 @@ set -uo pipefail
 cd "$(dirname "$0")/../.."
 
 size="3840x2160"
-out="assets/ui/menu_background.jpg"
+out="build/screenshots/menu_background.jpg"
 cfg="tools/shots/menu_background.json"
 for a in "$@"; do
 	case "$a" in
@@ -25,8 +25,8 @@ cfg_abs="$(realpath "$cfg")"
 mapfile -t flags < <(python3 -c 'import json,sys; print("\n".join(json.load(open(sys.argv[1]))["flags"]))' "$cfg_abs")
 
 export XDG_DATA_HOME
-XDG_DATA_HOME="$(mktemp -d)"
-timeout 300 xvfb-run -a -s "-screen 0 ${size}x24" \
+XDG_DATA_HOME="${MB_XDG:-$(mktemp -d)}"  # MB_XDG — общий кеш мест для --latlon
+timeout "${MB_TIMEOUT:-300}" xvfb-run -a -s "-screen 0 ${size}x24" \
 	godot --path . --audio-driver Dummy --resolution "$size" \
 	res://tools/shots/menu_background.tscn -- "${flags[@]}" "--mb-config=$cfg_abs" "--mb-out=$out_abs"
 code=$?

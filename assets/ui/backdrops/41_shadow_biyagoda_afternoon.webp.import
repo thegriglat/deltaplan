@@ -2,24 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c56je5oegm45p"
-path.bptc="res://.godot/imported/free.jpg-2affbce1591809cbb38c6d9b8002f1da.bptc.ctex"
-path.astc="res://.godot/imported/free.jpg-2affbce1591809cbb38c6d9b8002f1da.astc.ctex"
+uid="uid://dw6a4jocye0ax"
+path="res://.godot/imported/41_shadow_biyagoda_afternoon.webp-0a6c0c92f517061e53559c393d994429.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/loading/free.jpg"
-dest_files=["res://.godot/imported/free.jpg-2affbce1591809cbb38c6d9b8002f1da.bptc.ctex", "res://.godot/imported/free.jpg-2affbce1591809cbb38c6d9b8002f1da.astc.ctex"]
+source_file="res://assets/ui/backdrops/41_shadow_biyagoda_afternoon.webp"
+dest_files=["res://.godot/imported/41_shadow_biyagoda_afternoon.webp-0a6c0c92f517061e53559c393d994429.ctex"]
 
 [params]
 
-compress/mode=2
-compress/high_quality=true
-compress/lossy_quality=0.8
+compress/mode=1
+compress/high_quality=false
+compress/lossy_quality=0.9
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
@@ -38,5 +36,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=2560
 detect_3d/compress_to=1

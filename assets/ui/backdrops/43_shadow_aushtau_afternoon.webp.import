@@ -2,24 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://oafdi0di7uuh"
-path.bptc="res://.godot/imported/chase.jpg-d5fc8efc594f7412f3935c455ee99db5.bptc.ctex"
-path.astc="res://.godot/imported/chase.jpg-d5fc8efc594f7412f3935c455ee99db5.astc.ctex"
+uid="uid://cvommbesael3u"
+path="res://.godot/imported/43_shadow_aushtau_afternoon.webp-88ece6148cdf21e813f76b1b10fc53ef.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/loading/chase.jpg"
-dest_files=["res://.godot/imported/chase.jpg-d5fc8efc594f7412f3935c455ee99db5.bptc.ctex", "res://.godot/imported/chase.jpg-d5fc8efc594f7412f3935c455ee99db5.astc.ctex"]
+source_file="res://assets/ui/backdrops/43_shadow_aushtau_afternoon.webp"
+dest_files=["res://.godot/imported/43_shadow_aushtau_afternoon.webp-88ece6148cdf21e813f76b1b10fc53ef.ctex"]
 
 [params]
 
-compress/mode=2
-compress/high_quality=true
-compress/lossy_quality=0.8
+compress/mode=1
+compress/high_quality=false
+compress/lossy_quality=0.9
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
@@ -38,5 +36,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=2560
 detect_3d/compress_to=1
