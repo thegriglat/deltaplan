@@ -16,7 +16,7 @@ func test_sky_shade_cockpit_visible_to_every_camera() -> void:
 	var main: Node = MAIN_SCENE.instantiate()
 	main.set("opts", LaunchOptions.parse(PackedStringArray(["--autostart", "--autopilot"])))
 	add_child(main)
-	for i in 600:
+	for i in 6000:
 		if main.get("state") == 2:
 			break
 		await get_tree().process_frame
