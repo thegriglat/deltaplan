@@ -12,7 +12,7 @@ extends RefCounted
 ##   - decode() подставляет умолчания для всех отсутствующих полей: 0 / 0.0 / false / "" /
 ##     [] / имя нулевого значения перечисления; вложенное сообщение — словарь с умолчаниями.
 ##     Игровому коду не нужен has(). Исключения (есть смысл «не задано»):
-##       * optional double (Zone.pickLat/pickLon) — NAN, если не задано;
+##       * optional double (Zone.pickLat/pickLon, startLat/startLon/startHeadingDeg) — NAN, если не задано;
 ##       * PilotState.pilotRel — null, если нет (PD-К4: только в режиме «Маятник»)
 ##       * PilotState.colors — null, если нет (родная текстура крыла) — см. NULLABLE;
 ##   - целые поля (int32/uint32/int64/uint64) в данных — int; 64-битные на проводе строками;
@@ -84,6 +84,9 @@ const MESSAGES := {
 		"botsCount": "int32",
 		"worldKey": "string",
 		"worldHash": "string",
+		"startLat": "opt:double",
+		"startLon": "opt:double",
+		"startHeadingDeg": "opt:double",
 	},
 	"Peer": {"id": "string", "name": "string", "joinOrder": "uint32"},
 	"WingColors": {"hueDeg": "float", "sat": "float", "value": "float"},
