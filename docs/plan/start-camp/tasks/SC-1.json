@@ -31,7 +31,9 @@
     "configs/world_objects.json",
     "tests/world_objects/test_tents.gd",
     "tests/contracts/test_start_camp_contracts_k1.gd",
-    "tests/game/test_bots.gd"
+    "tests/game/test_bots.gd",
+    "scripts/game/net_flight.gd",
+    "scripts/game/net_bots.gd"
   ],
   "dont_touch": [
     "scripts/world_objects/start_gear.gd",
@@ -79,5 +81,5 @@
   ],
   "notes": "",
   "created": "2026-10-12T22:23:19",
-  "edited": "2026-10-12T22:23:59"
+  "edited": "2026-10-12T22:40:01"
 }
