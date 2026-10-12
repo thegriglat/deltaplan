@@ -4,6 +4,9 @@ extends EasterEgg
 ## и прохаживаются около своих мест; когда игрок низко проходит над лагерем, поворачиваются к
 ## нему и машут руками (локальная анимация, К3). По MultiMesh на часть модели camp_person.glb
 ## (ноги, торс, голова, правая, левая рука; запасной путь — капсулы), экземпляр i — человек i. Положение и руки — функция ctx.t.
+## Вблизи (ближе near_m от камеры, с гистерезисом; не больше max_skinned человек) человек рисуется
+## моделью camp_pilot.glb со скелетной анимацией (idle / walk / wave / wave_both, SC-K4 v2), в
+## MultiMesh он скрыт; AnimationPlayer работает только у ближних. Раскраска та же, что у дальнего LOD.
 ## Порядок бросков rng в begin: число людей; на каждого — палатка, угол, расстояние от края
 ## палатки, курс, фазы, рост, цвета (рубашка, штаны, кожа).
 
@@ -11,6 +14,15 @@ const PARTS := 5  ## ноги, торс, голова, левая рука, пр
 const SHOULDER_Y := 1.42
 const MODEL := "res://assets/models/world/camp_person.glb"
 const PART_NODES := ["Legs", "Torso", "Head", "ArmR", "ArmL"]
+const NEAR_MODEL := "res://assets/models/world/camp_pilot.glb"
+const WALK_STRIDE_M := 1.2  ## длина шага цикла walk, м (SC-11)
+const BLEND_S := 0.35  ## плавный переход между анимациями, с
+const HAIR_PALETTE: Array[Color] = [
+	Color(0.12, 0.08, 0.05), Color(0.22, 0.15, 0.1), Color(0.4, 0.28, 0.16),
+	Color(0.62, 0.5, 0.3), Color(0.55, 0.55, 0.55)
+]
+static var _skin_mats: Dictionary = {}  ## квантованный тон кожи → общий материал
+static var _hair_mats: Dictionary = {}  ## индекс палитры → общий материал
 
 ## Итоги для тестов: [{home: Vector3, tent: int, edge_m: float}]
 var info: Array[Dictionary] = []
@@ -19,6 +31,13 @@ var _cfg: Dictionary = {}
 var _people: Array[Dictionary] = []
 var _mms: Array[MultiMesh] = []  ## по MultiMesh на часть; экземпляр i — человек i
 var _mmis: Array[MultiMeshInstance3D] = []
+var _slot_of: Array[int] = []  ## человек i → номер ближнего экземпляра в _pool (−1 — дальний LOD)
+var _pool: Array[Dictionary] = []  ## {root, ap, a, b, person, anim}; создаются по мере надобности
+var _near_ok := true  ## модель camp_pilot.glb загрузилась
+var _near_meshes: Array[Mesh] = []  ## [куртка+кожа+волосы+обувь, штаны] — тонируются по отдельности
+var _near_max := 0  ## максимум одновременно ближних за жизнь
+var _near_tris := 0
+var _walk_mps := 1.1
 var _hidden: Array[bool] = []  ## человек i скрыт в MultiMesh (ближний LOD рисует его сам)
 var _model := false  ## части из camp_person.glb (иначе запасные капсулы)
 var _center := Vector3.ZERO
@@ -92,6 +111,7 @@ func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, _t0: fl
 		}
 		p.yaw = p.yaw0
 		_people.append(p)
+		_slot_of.append(-1)
 		info.append({"home": Vector3(home.x, 0.0, home.y), "tent": ti, "edge_m": ecl})
 	var reach := _camp_r + 20.0
 	var aabb := AABB(Vector3(-reach, -60.0, -reach), Vector3(reach * 2.0, 120.0, reach * 2.0))
@@ -218,6 +238,7 @@ func update(ctx: EggContext) -> bool:
 	if d > _camp_r + float(_cfg.get("sleep_m", 1500.0)):
 		for m in _mmis:
 			m.visible = false
+		_hide_all_near()
 		_last_t = NAN
 		return true
 	for m in _mmis:
@@ -254,6 +275,12 @@ func update(ctx: EggContext) -> bool:
 			0.2 * sin(0.4 * t + ph.y), 0.2 * cos(0.35 * t + ph.z)
 		)
 		var moving := absf(cos(0.25 * t + ph.x)) * pace * 0.25 > 0.05
+		# скорость перемещения (производная положения), м/с — темп шага ближней анимации
+		var vel := dirv * (pace * 0.25 * cos(0.25 * t + ph.x)) + Vector2(
+			0.08 * cos(0.4 * t + ph.y), -0.07 * sin(0.35 * t + ph.z)
+		)
+		p.speed = vel.length()
+		p.moving = moving
 		var target := 1.0 if reacting else 0.0
 		var r: float = p.react
 		r = target if dt == 0.0 else move_toward(r, target, dt / float(_cfg.get("react_s", 1.0)))
@@ -268,22 +295,29 @@ func update(ctx: EggContext) -> bool:
 		p.yaw = yaw
 		p.pos = pos
 		var g: float = ctx.height_at.call(pos.x, pos.y)
-		var origin := Vector3(pos.x - _center.x, g - _center.y, pos.y - _center.z)
-		var b := Basis(Vector3.UP, yaw)
+		p.origin = Vector3(pos.x - _center.x, g - _center.y, pos.y - _center.z)
 		var s: float = float(p.h) / 1.75
-		var sb := b.scaled(Vector3(s, s, s))
+		p.sb = Basis(Vector3.UP, yaw).scaled(Vector3(s, s, s))
+		p.dist = cam.distance_to(Vector3(pos.x, g + 1.0, pos.y))
+		# руки: r — поднять и махать; в покое чуть покачиваются
+		var wave := 0.35 * sin(t * 7.0 + ph.w * TAU)
+		p.a_r = lerpf(0.12 + 0.05 * sin(0.5 * t + ph.x), up + wave, r)
+		p.a_l = lerpf(0.12 + 0.05 * sin(0.5 * t + ph.y), up - wave * 0.6, r * step_on(ph.w))
+		p.arm = maxf(p.a_l, p.a_r)
+	_assign_near()
+	for i in _people.size():
+		var p: Dictionary = _people[i]
+		var origin: Vector3 = p.origin
+		var sb: Basis = p.sb
+		if _slot_of[i] >= 0:
+			_pose_near(i)
 		# ноги, торс, голова
 		_set_part(0, i, sb, origin, Vector3(0, 0.43, 0), Vector3(0.3, 0.43, 0.26), Basis.IDENTITY)
 		_set_part(1, i, sb, origin, Vector3(0, 1.12, 0), Vector3(0.4, 0.33, 0.25), Basis.IDENTITY)
 		_set_part(2, i, sb, origin, Vector3(0, 1.62, 0), Vector3(0.22, 0.13, 0.22), Basis.IDENTITY)
-		# руки: r — поднять и махать; в покое чуть покачиваются
-		var wave := 0.35 * sin(t * 7.0 + ph.w * TAU)
-		var a_r := lerpf(0.12 + 0.05 * sin(0.5 * t + ph.x), up + wave, r)
-		var a_l := lerpf(0.12 + 0.05 * sin(0.5 * t + ph.y), up - wave * 0.6, r * step_on(ph.w))
-		p.arm = maxf(a_l, a_r)
 		for side in 2:
 			var sx := 1.0 if side == 0 else -1.0
-			var a := a_r if side == 0 else a_l
+			var a: float = p.a_r if side == 0 else p.a_l
 			if _model:  # шарнир в плече; поворот вокруг Z (рука вдоль −Y → вверх при a = π)
 				if _is_hidden(i):
 					_mms[3 + side].set_instance_transform(i, Transform3D(Basis.from_scale(Vector3.ZERO), origin))
@@ -295,6 +329,254 @@ func update(ctx: EggContext) -> bool:
 			var c := Vector3(sx * 0.22, SHOULDER_Y, 0.0) + dir * 0.3
 			_set_part(3 + side, i, sb, origin, c, Vector3(0.1, 0.3, 0.1), Basis(Vector3.BACK, sx * a))
 	return true
+
+
+# ---------- ближний LOD: camp_pilot.glb со скелетом ----------
+
+
+## Кто сейчас ближний: выходят дальше near_m + гистерезис, входят ближе near_m (ближайшие первыми),
+## не больше max_skinned. Скрытый в MultiMesh ⇔ показан скелетный.
+func _assign_near() -> void:
+	var near_m := float(_cfg.get("near_m", 70.0))
+	var hyst := float(_cfg.get("near_hyst_m", 10.0))
+	var cap := int(_cfg.get("max_skinned", 8))
+	var used := 0
+	for i in _people.size():
+		if _slot_of[i] >= 0:
+			if float(_people[i].dist) > near_m + hyst:
+				_release(i)
+			else:
+				used += 1
+	if used < cap and _near_ok:
+		var cand: Array[int] = []
+		for i in _people.size():
+			if _slot_of[i] < 0 and float(_people[i].dist) < near_m:
+				cand.append(i)
+		cand.sort_custom(func(x: int, y: int) -> bool: return float(_people[x].dist) < float(_people[y].dist))
+		for i in cand:
+			if used >= cap:
+				break
+			if _acquire(i):
+				used += 1
+	_near_max = maxi(_near_max, used)
+
+
+func _hide_all_near() -> void:
+	for i in _people.size():
+		if _slot_of[i] >= 0:
+			_release(i)
+
+
+func _release(i: int) -> void:
+	var sl: Dictionary = _pool[_slot_of[i]]
+	_slot_of[i] = -1
+	sl.person = -1
+	sl.anim = ""
+	var ap: AnimationPlayer = sl.ap
+	ap.stop()
+	ap.active = false
+	ap.process_mode = Node.PROCESS_MODE_DISABLED
+	sl.root.visible = false
+	while _hidden.size() < _people.size():
+		_hidden.append(false)
+	_hidden[i] = false
+	_last_tick = -1.0e9
+
+
+## Занять ближний экземпляр человеком i: раскраска, анимация с его фазой.
+func _acquire(i: int) -> bool:
+	var k := -1
+	for j in _pool.size():
+		if int(_pool[j].person) < 0:
+			k = j
+			break
+	if k < 0:
+		k = _make_slot()
+		if k < 0:
+			_near_ok = false
+			return false
+	var sl: Dictionary = _pool[k]
+	var p: Dictionary = _people[i]
+	sl.person = i
+	_slot_of[i] = k
+	var a: MeshInstance3D = sl.a
+	var b: MeshInstance3D = sl.b
+	var sh: Color = p.shirt
+	var pn: Color = p.pants
+	a.set_instance_shader_parameter("tint", Vector3(sh.r, sh.g, sh.b))
+	b.set_instance_shader_parameter("tint", Vector3(pn.r, pn.g, pn.b))
+	var sk := _skin_material(p.skin)
+	var hr := _hair_material(int(float(p.ph.w) * HAIR_PALETTE.size()))
+	for s in a.mesh.get_surface_count():
+		var nm := a.mesh.surface_get_material(s).resource_name
+		if nm == "Skin":
+			a.set_surface_override_material(s, sk)
+		elif nm == "Hair":
+			a.set_surface_override_material(s, hr)
+	var ap: AnimationPlayer = sl.ap
+	ap.process_mode = Node.PROCESS_MODE_INHERIT
+	ap.active = true
+	sl.root.visible = true
+	sl.anim = "idle"
+	ap.play("idle")
+	ap.seek(fmod(float(p.ph.x), TAU) / TAU * ap.get_animation("idle").length, true)
+	while _hidden.size() < _people.size():
+		_hidden.append(false)
+	_hidden[i] = true
+	_last_tick = -1.0e9
+	return true
+
+
+## Положение, тень и анимация ближнего человека i по его состоянию.
+func _pose_near(i: int) -> void:
+	var p: Dictionary = _people[i]
+	var sl: Dictionary = _pool[_slot_of[i]]
+	var root: Node3D = sl.root
+	# рост модели 1,78 м, а не 1,75
+	var sb: Basis = (p.sb as Basis).scaled(Vector3.ONE * (1.75 / 1.78))
+	root.transform = Transform3D(sb, p.origin)
+	var mode := (
+		GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		if float(p.dist) < float(_cfg.get("shadow_m", 150.0))
+		else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	)
+	(sl.a as MeshInstance3D).cast_shadow = mode
+	(sl.b as MeshInstance3D).cast_shadow = mode
+	var r: float = p.react
+	var want: String = sl.anim
+	if r > 0.3 or (want.begins_with("wave") and r > 0.1):
+		want = "wave_both" if step_on(p.ph.w) >= 1.0 else "wave"
+	elif p.moving:
+		want = "walk"
+	else:
+		want = "idle"
+	var ap: AnimationPlayer = sl.ap
+	if want != sl.anim:
+		sl.anim = want
+		ap.play(want, BLEND_S)
+	# темп шага под скорость перемещения: иначе ноги скользят
+	ap.speed_scale = clampf(float(p.speed) / _walk_mps, 0.08, 1.6) if want == "walk" else 1.0
+
+
+func _make_slot() -> int:
+	if not ResourceLoader.exists(NEAR_MODEL):
+		return -1
+	var ps := load(NEAR_MODEL) as PackedScene
+	if ps == null:
+		return -1
+	var root := ps.instantiate() as Node3D
+	var body := root.find_child("PersonBody", true, false) as MeshInstance3D
+	var ap := root.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if body == null or ap == null:
+		root.free()
+		return -1
+	if _near_meshes.is_empty():
+		_near_meshes = _split_body(body.mesh)
+	var b := MeshInstance3D.new()
+	b.name = "PersonTrousers"
+	body.get_parent().add_child(b)
+	b.skin = body.skin
+	b.skeleton = body.skeleton
+	body.mesh = _near_meshes[0]
+	b.mesh = _near_meshes[1]
+	root.visible = false
+	add_child(root)
+	_near_tris = _mesh_tris(_near_meshes[0]) + _mesh_tris(_near_meshes[1])
+	_walk_mps = WALK_STRIDE_M / maxf(0.1, ap.get_animation("walk").length)
+	ap.active = false
+	ap.process_mode = Node.PROCESS_MODE_DISABLED
+	_pool.append({"root": root, "ap": ap, "a": body, "b": b, "person": -1, "anim": ""})
+	return _pool.size() - 1
+
+
+## Тело на два меша: куртка+кожа+волосы+обувь и штаны — у MeshInstance3D один instance-тон на меш.
+func _split_body(src: Mesh) -> Array[Mesh]:
+	var ma := ArrayMesh.new()
+	var mb := ArrayMesh.new()
+	for s in src.get_surface_count():
+		var mat := src.surface_get_material(s)
+		var dst: ArrayMesh = mb if mat.resource_name == "Trousers" else ma
+		dst.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, src.surface_get_arrays(s))
+		var idx := dst.get_surface_count() - 1
+		if mat.resource_name == "Jacket" or mat.resource_name == "Trousers":
+			dst.surface_set_material(idx, CampFabric.material("cloth"))
+			dst.surface_set_name(idx, mat.resource_name)
+		else:
+			dst.surface_set_material(idx, mat)
+	var out: Array[Mesh] = [ma, mb]
+	return out
+
+
+func _mesh_tris(m: Mesh) -> int:
+	var n := 0
+	for s in m.get_surface_count():
+		var arr := m.surface_get_arrays(s)
+		var idx = arr[Mesh.ARRAY_INDEX]
+		n += (idx.size() if idx != null else arr[Mesh.ARRAY_VERTEX].size()) / 3
+	return n
+
+
+## Общий материал кожи по палитре (тон квантуется до 0,05): материалов мало, не по одному на человека.
+func _skin_material(c: Color) -> Material:
+	var q := Color(roundf(c.r * 20.0) / 20.0, roundf(c.g * 20.0) / 20.0, roundf(c.b * 20.0) / 20.0)
+	var key := q.to_html(false)
+	if not _skin_mats.has(key):
+		var m := StandardMaterial3D.new()
+		m.resource_name = "Skin_" + key
+		m.albedo_color = q
+		m.roughness = 0.8
+		_skin_mats[key] = m
+	return _skin_mats[key]
+
+
+func _hair_material(k: int) -> Material:
+	k = clampi(k, 0, HAIR_PALETTE.size() - 1)
+	if not _hair_mats.has(k):
+		var m := StandardMaterial3D.new()
+		m.resource_name = "Hair_%d" % k
+		m.albedo_color = HAIR_PALETTE[k]
+		m.roughness = 0.9
+		_hair_mats[k] = m
+	return _hair_mats[k]
+
+
+## Для тестов и отчёта: ближний ли человек i, его анимация, играет ли AnimationPlayer.
+func is_near(i: int) -> bool:
+	return _slot_of[i] >= 0
+
+
+func near_count() -> int:
+	var n := 0
+	for k in _slot_of:
+		n += 1 if k >= 0 else 0
+	return n
+
+
+func near_count_max() -> int:
+	return _near_max
+
+
+func near_tris() -> int:
+	return _near_tris
+
+
+func near_anim(i: int) -> String:
+	return "" if _slot_of[i] < 0 else String(_pool[_slot_of[i]].anim)
+
+
+## AnimationPlayer всех экземпляров пула: [{person, active, playing, disabled, visible}].
+func near_players() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for sl in _pool:
+		var ap: AnimationPlayer = sl.ap
+		out.append({
+			"person": int(sl.person),
+			"active": ap.active,
+			"playing": ap.is_playing(),
+			"disabled": ap.process_mode == Node.PROCESS_MODE_DISABLED,
+			"visible": (sl.root as Node3D).visible,
+		})
+	return out
 
 
 ## Часть людей машет двумя руками, часть — одной (вторая опускается неполно).
