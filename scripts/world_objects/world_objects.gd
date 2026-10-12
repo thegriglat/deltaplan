@@ -32,9 +32,14 @@ var campfire: Campfire = null
 ## Дома посёлков (VillagePlacer, N3): [x, z, w, l, угол_град, высота_стен_м, крыша].
 var houses: Array = []
 var village_layer: VillageLayer
+## Снаряжение у стартов (StartGear.plan): по старту локации (порядок start_sites) свой список вещей.
+var start_gear: Array = []
+## Время плана снаряжения на один старт, мс (последняя сборка; отчёт SC-2).
+var start_gear_plan_ms: Array[float] = []
 
 
 var _air_fn: Callable
+var _gear_terrain: Node = null
 var _height_fn: Callable
 var _clearings: WorldClearings
 var _active: Array[WindIndicator] = []
@@ -56,6 +61,7 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 	var patches: BuiltPatches = null
 	if terrain is Terrain:
 		patches = BuiltPatches.for_terrain(terrain)
+	_gear_terrain = terrain
 	build(
 		String(terrain.get(&"location_id")),
 		terrain.call(&"get_start_sites"),
@@ -66,6 +72,7 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 		Vector2(float(terrain.get(&"center_lat")), float(terrain.get(&"center_lon"))),
 		patches
 	)
+	_gear_terrain = null
 
 
 ## То же без нод (тесты, другие источники рельефа).
@@ -101,6 +108,7 @@ func build(
 		start_tracks = StartTracks.plan(start_sites, cfg.start_tracks, height_fn)
 		_build_start_tracks(height_fn)
 	_build_villages(patches, height_fn)
+	_build_start_gear(start_sites)
 	_reset_indicators()
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 	print(
@@ -127,6 +135,8 @@ func clear() -> void:
 	landing_sites.clear()
 	start_tracks.clear()
 	houses = []
+	start_gear = []
+	start_gear_plan_ms.clear()
 	village_layer = null
 	osm_layer = null
 	osm = null
@@ -245,6 +255,45 @@ func place_camp(start: Vector3, heading_deg: float, terrain: Node = null, count:
 		(
 			"WorldObjects: палаток у старта %d из %d за %.0f мс"
 			% [camp.size(), count, (Time.get_ticks_usec() - t0) / 1000.0]
+		)
+	)
+
+
+## Снаряжение у каждого старта локации (StartGear, configs/world_objects.json → start_gear): набор
+## постоянный (не от погоды и игрока), узел StartGear_<i>, препятствия «gear» (крылья, аппарат,
+## чехлы — коробки). Окружение запретов — как у палаток (_camp_env); после троп и посёлков.
+func _build_start_gear(start_sites: Array) -> void:
+	var gc: Dictionary = cfg.get("start_gear", {})
+	if gc.is_empty() or not bool(gc.get("enabled", true)):
+		return
+	var t0 := Time.get_ticks_usec()
+	var total := 0
+	for i in start_sites.size():
+		var site: Dictionary = start_sites[i]
+		var sp: Vector3 = site.position
+		var env := _camp_env(sp, cfg.get("tents", {}), _gear_terrain)
+		var t1 := Time.get_ticks_usec()
+		var items := StartGear.plan(sp, float(site.heading_deg), gc, env)
+		start_gear_plan_ms.append((Time.get_ticks_usec() - t1) / 1000.0)
+		start_gear.append(items)
+		if items.is_empty():
+			continue
+		total += items.size()
+		var node := StartGear.build_node(items, gc)
+		node.name = "StartGear_%d" % i
+		add_child(node)
+		for it: Dictionary in items:
+			var box: Vector3 = it.box
+			if box == Vector3.ZERO:
+				continue
+			var c: Vector3 = it.center
+			obstacles.add_box(
+				c.x, c.z, box.x, box.y, -float(it.yaw), c.y - 0.5, c.y + box.z, "gear"
+			)
+	print(
+		(
+			"WorldObjects: снаряжение у %d стартов — %d вещей за %.0f мс"
+			% [start_sites.size(), total, (Time.get_ticks_usec() - t0) / 1000.0]
 		)
 	)
 
