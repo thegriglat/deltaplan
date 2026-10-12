@@ -87,6 +87,7 @@ class MeshBuilder:
         self.smooth: list = []
         self.mat_names: list = []
         self.colors: dict = {}   # индекс вершины → (x, y) второй UV (UV2); есть — пишется слой
+        self.vcol: list = []     # цвет вершин RGBA (маска износа, bake_wear); есть — пишется слой
 
     def _mat(self, name: str) -> int:
         if name not in self.mat_names:
@@ -215,6 +216,10 @@ class MeshBuilder:
                     li = f.loop_start + k
                     uv2.data[li].uv = self.colors.get(me.loops[li].vertex_index, (0, 0))[:2]
             me.uv_layers.active_index = 0
+        if self.vcol:
+            ca = me.color_attributes.new("Wear", "FLOAT_COLOR", "POINT")
+            ca.data.foreach_set("color", [c for rgba in self.vcol for c in rgba])
+            me.color_attributes.active_color = ca
         me.polygons.foreach_set("material_index", self.mats)
         me.polygons.foreach_set("use_smooth", self.smooth)
         for mn in self.mat_names:
@@ -261,7 +266,7 @@ def tri_count(obj_names=None) -> int:
     return n
 
 
-def export(stem: str) -> None:
+def export(stem: str, vertex_color: str = "NONE") -> None:
     os.makedirs(MODELS, exist_ok=True)
     os.makedirs(SOURCE, exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SOURCE, stem + ".blend"),
@@ -269,7 +274,7 @@ def export(stem: str) -> None:
     bpy.ops.export_scene.gltf(filepath=os.path.join(MODELS, stem + ".glb"),
                               export_format="GLB", export_yup=True, use_selection=False,
                               export_apply=True, export_extras=False,
-                              export_vertex_color="NONE",
+                              export_vertex_color=vertex_color,
                               export_cameras=False, export_lights=False)
     print("EXPORTED %s: %d tris" % (stem, tri_count()))
 
@@ -305,3 +310,114 @@ def screen_quad(size, y: float, zc: float, circle_seg: int = 0) -> MeshBuilder:
         uv.reverse()
     mb.add_face(idx, "Screen", uv=uv, smooth=False)
     return mb
+
+
+def _smoothstep(a: float, b: float, x: float) -> float:
+    t = min(max((x - a) / (b - a), 0.0), 1.0)
+    return t * t * (3.0 - 2.0 * t)
+
+
+def bake_wear(mb: MeshBuilder, zone_mats=(), inset: float = 0.003, inset_min_area: float = 4e-5,
+              ao_rays: int = 24, ao_dist: float = 0.02, skip_mats=()) -> None:
+    """Маска износа в цвет вершин (mb.vcol, RGBA), детерминированно. Каналы:
+    R — износ рёбер: выпуклый излом по сварке вершин по позиции (макс. угол между нормалями
+        граней, сходящихся в точке), 0 на плоскостях;
+    G — грязь во впадинах: AO вершины (лучи по полусфере из BVH-дерева самой модели);
+    B — «зона кнопок» (грани материалов zone_mats);  A = 1.
+    Плоские (smooth=False) грани площадью > inset_min_area получают вставку (пояс шириной inset,
+    внутренние вершины R=0): иначе у большой грани все вершины были бы на ребре и износ залил бы
+    её целиком — пояс даёт фаску износа по краю при линейной интерполяции."""
+    from mathutils.bvhtree import BVHTree
+    V = [Vector(v) for v in mb.verts]
+
+    def fnorm(f):
+        n = Vector()
+        for i in range(len(f)):
+            a, b = V[f[i]], V[f[(i + 1) % len(f)]]
+            n += Vector(((a.y - b.y) * (a.z + b.z), (a.z - b.z) * (a.x + b.x),
+                         (a.x - b.x) * (a.y + b.y)))
+        return n.normalized() if n.length > 1e-12 else Vector((0, 0, 1))
+
+    def fcen(f):
+        return sum((V[i] for i in f), Vector()) / len(f)
+
+    norms = [fnorm(f) for f in mb.faces]
+    cens = [fcen(f) for f in mb.faces]
+    groups: dict = {}
+    for fi, f in enumerate(mb.faces):
+        if mb.mat_names[mb.mats[fi]] in skip_mats:
+            continue
+        for vi in f:
+            key = tuple(round(c * 1e4) for c in V[vi])
+            groups.setdefault(key, []).append(fi)
+    R = [0.0] * len(V)
+    for fi, f in enumerate(mb.faces):
+        for vi in f:
+            key = tuple(round(c * 1e4) for c in V[vi])
+            fs = groups.get(key, [])
+            worst = 0.0
+            for a in fs:
+                for b in fs:
+                    if a >= b:
+                        continue
+                    ang = norms[a].angle(norms[b])
+                    if (cens[b] - cens[a]).dot(norms[a]) < 1e-6 and \
+                            (cens[a] - cens[b]).dot(norms[b]) < 1e-6:   # выпуклый излом
+                        worst = max(worst, ang)
+            R[vi] = _smoothstep(0.15, 1.0, worst)
+    Z = [0.0] * len(V)
+    for fi, f in enumerate(mb.faces):
+        if mb.mat_names[mb.mats[fi]] in zone_mats:
+            for vi in f:
+                Z[vi] = 1.0
+    # вставка поясов у больших плоских граней
+    faces, uvs, mats, smooth = [], [], [], []
+    for fi, f in enumerate(mb.faces):
+        area = 0.5 * sum(((V[f[i]] - V[f[0]]).cross(V[f[(i + 1) % len(f)]] - V[f[0]])
+                          for i in range(1, len(f) - 1)), Vector()).length
+        if mb.smooth[fi] or area < inset_min_area or mb.mat_names[mb.mats[fi]] in skip_mats:
+            faces.append(f); uvs.append(mb.uvs[fi]); mats.append(mb.mats[fi])
+            smooth.append(mb.smooth[fi])
+            continue
+        c = cens[fi]
+        rad = sum((V[i] - c).length for i in f) / len(f)
+        k = min(0.45, inset / max(rad, 1e-6))
+        inner = []
+        for vi in f:
+            V.append(V[vi].lerp(c, k)); R.append(0.0); Z.append(Z[vi])
+            inner.append(len(V) - 1)
+        n = len(f)
+        for i in range(n):
+            j = (i + 1) % n
+            faces.append((f[i], f[j], inner[j], inner[i]))
+            uvs.append([(0.0, 0.0)] * 4); mats.append(mb.mats[fi]); smooth.append(False)
+        faces.append(tuple(inner)); uvs.append([(0.0, 0.0)] * n)
+        mats.append(mb.mats[fi]); smooth.append(False)
+    mb.verts = [tuple(v) for v in V]
+    mb.faces, mb.uvs, mb.mats, mb.smooth = faces, uvs, mats, smooth
+    # AO вершин: нормаль — среднее нормалей граней, лучи по полусфере (золотая спираль)
+    tris = []
+    for f in faces:
+        for i in range(1, len(f) - 1):
+            tris.append((f[0], f[i], f[i + 1]))
+    tree = BVHTree.FromPolygons([tuple(v) for v in V], tris)
+    vn = [Vector() for _ in V]
+    for f in faces:
+        n = fnorm(f)
+        for vi in f:
+            vn[vi] += n
+    mb.vcol = []
+    golden = math.pi * (3.0 - math.sqrt(5.0))
+    for vi, v in enumerate(V):
+        n = vn[vi].normalized() if vn[vi].length > 1e-9 else Vector((0, 0, 1))
+        t = n.cross(Vector((0, 0, 1)) if abs(n.z) < 0.9 else Vector((1, 0, 0))).normalized()
+        b = n.cross(t)
+        hit = 0.0
+        for k in range(ao_rays):
+            h = (k + 0.5) / ao_rays
+            r = math.sqrt(1.0 - h)
+            ph = golden * k
+            d = (t * (r * math.cos(ph)) + b * (r * math.sin(ph)) + n * math.sqrt(h)).normalized()
+            if tree.ray_cast(v + n * 1e-4, d, ao_dist)[0] is not None:
+                hit += 1.0
+        mb.vcol.append((R[vi], min(1.0, hit / ao_rays * 1.6), Z[vi], 1.0))

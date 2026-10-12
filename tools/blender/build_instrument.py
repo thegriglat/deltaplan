@@ -71,9 +71,10 @@ def main() -> None:
     mb = U.MeshBuilder()
     case(mb)
     bracket(mb)
+    U.bake_wear(mb, zone_mats=("Button",))   # R износ рёбер, G грязь (AO), B зона кнопок
     mb.build("Body", mats)
     U.screen_quad(SCREEN, D * 0.5 + 0.0014, LIFT + SCREEN_UP).build("Screen", mats)
-    U.export("instrument")
+    U.export("instrument", vertex_color="ACTIVE")
 
 
 if __name__ == "__main__":
