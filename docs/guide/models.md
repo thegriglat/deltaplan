@@ -63,7 +63,7 @@ related: []
 | `assets/models/glider_ww_fusion.glb` | безмачтовое продвинутое (в духе Wills Wing Fusion 150): база sport, 128° | 13 268 |
 | `assets/models/glider_ww_talon.glb` | безмачтовое продвинутое (в духе Wills Wing Talon): база sport, 128° | 13 268 |
 | `assets/models/glider_ww_cross_country.glb` | мачтовое продвинутое (в духе Wills Wing Cross Country 155): база magic, 124° | 12 576 |
-| `assets/models/pilot.glb` | пилот со скелетом и 8 анимациями (стоя, ходьба, разбег, бег в воздухе, заползание в кокон, лёжа, выход, выравнивание): тело человека MakeHuman (MPFB 2) с плавной привязкой к костям, кулаки в перчатках обхватывают трубу | 5 433 |
+| `assets/models/pilot.glb` | пилот со скелетом и 8 анимациями (стоя, ходьба, разбег, бег в воздухе, заползание в кокон, лёжа, выход, выравнивание): тело человека MakeHuman (MPFB 2) с плавной привязкой к костям, кулаки в перчатках обхватывают трубу | 6 020 |
 | `assets/models/instrument.glb` | планшет-полётный компьютер (e-reader/телефон в чехле) на кронштейне в центре базовой штанги | 1 070 |
 | `assets/models/vario_90s.glb` | обобщённый вариометр 1990-х (коробочка со стрелочной шкалой и кнопками) на хомуте базовой штанги слева от планшета | 1 506 |
 | `assets/models/trees/tree_<вид>.glb` | деревья Алтая: `pine`, `cedar`, `larch`, `birch`, `spruce`, по 3 LOD | LOD0 ≤ 2k, LOD1 ≤ 200, LOD2 = 4 |
@@ -170,7 +170,7 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 
 Ноды `Pilot`/`PilotHead` в крыле нет — пилот отдельной моделью.
 
-**Пилот** `pilot.glb` — человек со скелетом (≈ 5,4k треугольников: тело 2,7k, кисти 0,9k, подвеска/кокон/
+**Пилот** `pilot.glb` — человек со скелетом (≈ 6,0k треугольников: тело 2,7k, кисти 0,9k, подвеска/кокон/
 краги/воротник 1k, голова 0,4k, шлем с визором 0,4k). Начало координат = карабин (крепится в `HangPoint`
 крыла без смещения во всех позах), вперёд −Z. В Godot:
 `pilot` → `Pilot` → `Skeleton3D` (меши `PilotBody` и `Helmet`, `BoneAttachment3D` с пустышками) и
@@ -200,7 +200,7 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
   подсказкой). `PILOT_OUT=<каталог>` — записать `pilot.glb`/`.blend` не в assets. MPFB в игру не входит.
 - Кости (`Skeleton3D`): `Hips`, `Spine`, `Chest`, `Head`, `UpperArm.L/R`, `Forearm.L/R`,
   `Hand.L/R` (кисти — ищите их, если нужна своя IK рук), `Thigh.L/R`, `Shin.L/R`, `Foot.L/R`,
-  `PodTail` (кокон ног), `Strap` (фал). В Godot точки в именах костей заменяются: `Hand_L` и т. п.
+  `PodTail`, `PodMid`, `PodEnd` (цепь кокона ног: стоя пустой мягкий мешок — уже, короче, конец заворачивается; лёжа надет на ноги, конец чуть провисает), `Strap` (фал). В Godot точки в именах костей заменяются: `Hand_L` и т. п.
   (см. `Skeleton3D.find_bone`).
 - Пустышки (следуют за костями через `BoneAttachment3D`): `Head` (глаза; в позе `prone` взгляд
   горизонтально вперёд, −Z), `HandL`, `HandR` (точки хвата), `CockpitCamera` (кабинная камера лёжа).
