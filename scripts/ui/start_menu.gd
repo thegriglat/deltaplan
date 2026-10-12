@@ -101,9 +101,15 @@ static func forecast_text(s: FlightSettings) -> String:
 
 func _build() -> void:
 	var ui: Dictionary = Config.get_config("ui")
-	UiKit.full_screen_background(
-		self, String(ui.get("menu_background", "")), Color(0.05, 0.06, 0.08)
-	)
+	var shots := BackdropSlideshow.configured_paths()
+	if shots.is_empty():
+		UiKit.full_screen_background(self, "", Color(0.05, 0.06, 0.08))
+	else:
+		var bg := BackdropSlideshow.new(
+			shots, float(ui.get("menu_backdrop_interval_s", 20.0)), float(ui.get("menu_backdrop_fade_s", 2.5))
+		)
+		add_child(bg)
+		move_child(bg, 0)
 	var logo_path := String(ui.get("menu_logo", ""))
 	if logo_path != "" and ResourceLoader.exists(logo_path):
 		_add_logo(load(logo_path) as Texture2D, float(ui.get("menu_logo_width", 560.0)))

@@ -2,24 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dalelpvud1sku"
-path.bptc="res://.godot/imported/menu_background.jpg-b94a40abde299301004c4f775f7f455c.bptc.ctex"
-path.astc="res://.godot/imported/menu_background.jpg-b94a40abde299301004c4f775f7f455c.astc.ctex"
+uid="uid://lo4msqe4npg0"
+path="res://.godot/imported/09_sinyukha_e_sunset_tele.webp-f36ef3622df1b59f551d8f97f6550195.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/menu_background.jpg"
-dest_files=["res://.godot/imported/menu_background.jpg-b94a40abde299301004c4f775f7f455c.bptc.ctex", "res://.godot/imported/menu_background.jpg-b94a40abde299301004c4f775f7f455c.astc.ctex"]
+source_file="res://assets/ui/backdrops/09_sinyukha_e_sunset_tele.webp"
+dest_files=["res://.godot/imported/09_sinyukha_e_sunset_tele.webp-f36ef3622df1b59f551d8f97f6550195.ctex"]
 
 [params]
 
-compress/mode=2
-compress/high_quality=true
-compress/lossy_quality=0.8
+compress/mode=1
+compress/high_quality=false
+compress/lossy_quality=0.9
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

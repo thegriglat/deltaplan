@@ -2,24 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://y84fc8o5wexy"
-path.bptc="res://.godot/imported/run.jpg-90fc3e5f826208cb4376a7f82b290d32.bptc.ctex"
-path.astc="res://.godot/imported/run.jpg-90fc3e5f826208cb4376a7f82b290d32.astc.ctex"
+uid="uid://cfc0vxfg1p5ro"
+path="res://.godot/imported/17_biyagoda_sw_cu_tele.webp-182bebdc7382ab8e9ec4d86b855ad69c.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/loading/run.jpg"
-dest_files=["res://.godot/imported/run.jpg-90fc3e5f826208cb4376a7f82b290d32.bptc.ctex", "res://.godot/imported/run.jpg-90fc3e5f826208cb4376a7f82b290d32.astc.ctex"]
+source_file="res://assets/ui/backdrops/17_biyagoda_sw_cu_tele.webp"
+dest_files=["res://.godot/imported/17_biyagoda_sw_cu_tele.webp-182bebdc7382ab8e9ec4d86b855ad69c.ctex"]
 
 [params]
 
-compress/mode=2
-compress/high_quality=true
-compress/lossy_quality=0.8
+compress/mode=1
+compress/high_quality=false
+compress/lossy_quality=0.9
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
@@ -38,5 +36,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=2560
 detect_3d/compress_to=1
