@@ -117,6 +117,8 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	var sail := wing.find_child("Sail", true, false) as MeshInstance3D
 	if sail != null and wpath != "" and ResourceLoader.exists(wpath):
 		sail_material = SailMaterial.apply(sail, wpath.get_file().get_basename())
+	if wpath != "" and ResourceLoader.exists(wpath):
+		FrameMetal.apply(wing, _cfg.get("metal", {}))
 	for mname in WING_MARKERS:
 		if wing.find_child(mname, true, false) == null:
 			push_warning("GliderVisual: в модели %s нет ноды %s" % [wpath, mname])
