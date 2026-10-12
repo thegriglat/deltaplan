@@ -26,7 +26,7 @@ contracts: [{"id": "SP-К1", "version": 1}, {"id": "SP-К2", "version": 1}, {"id
   - `to_dict`/`from_dict` — ключи `start_lat`, `start_lon`, `start_heading_deg` (нет точки — ключей нет или `null`; `from_dict` без ключей → `NAN`); `duplicate`/копирование настроек переносит поля.
 - Точка — уточнение текущего места (`location_id/site_id/pick_lat/pick_lon` не меняются). Любой выбор места в `PlacePickRow` (карта, популярные, недавние, встроенное) вызывает `clear_exact_start()`; загрузка из избранного/последнего полёта — берёт точку из словаря.
 - `Game._choose_start()`: если `has_exact_start()` и `StartSpot.check(...)` (SP-К2) по `terrain.latlon_to_local(start_lat, start_lon)` даёт `ok` → `_start_pos = Vector3(x, height_at(x, z), z)`, `_start_heading = start_heading_deg`, `terrain.add_start_clearing(x, z, Terrain.start_clearing_radius_m())`. Иначе — прежний автостарт (встроенный старт или точка с карты) и `push_warning`, без сообщения пилоту.
-- `_site_heading = _start_heading` (ветер «в старт» дует в выбранный курс). `_align_start_heading()` при `has_exact_start()` курс не меняет (и на `restart()`).
+- `_site_heading = _start_heading` (ветер «в старт» дует в выбранный курс). `_align_start_heading()` курс не меняет, если точный старт применён (`has_exact_start()` и `check` дал `ok`; и на `restart()`); при откате на автостарт — поворот к ветру как раньше.
 - `Game.get_start()` — как было: `{position, heading_deg}` — отдаёт точный старт; лагерь, боты, термики, пасхалки, сетевая очередь видят его без правок.
 - Инварианты: при допустимой точке `get_start().position` по XZ — в пределах 0,5 м от `latlon_to_local(start_lat, start_lon)`, `heading_deg` — `start_heading_deg` (±0,01°) и после `restart()`; `from_dict(to_dict(s))` сохраняет три поля (NAN ↔ NAN).
 
