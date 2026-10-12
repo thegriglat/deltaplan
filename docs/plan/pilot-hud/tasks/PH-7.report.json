@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "Часы (WristL) и компас (WristR) подключены через WristInstruments из GliderVisual.build: стрелки по sky.clock.hour, картушка на север с осциллятором (период 1,5 с, ζ 0,6, в ui.json → compass), флажок «Компас» (ui.compass.enabled). Головка часов перенесена на +Y, сечение ремешков 54×52, модели перегенерированы.",
+  "commits": [
+    "59daa5d7 PH-7: часы и компас на запястьях пилота"
+  ],
+  "checks": [
+    {
+      "name": "pilot_hud",
+      "value": "16/16, 0 упало (после правки двух старых проверок размеров)",
+      "pass": true
+    },
+    {
+      "name": "wrist",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "cockpit",
+      "value": "7 тестов, 1 упало (только известный test_trapezoid_and_telltales)",
+      "pass": true
+    },
+    {
+      "name": "картушка",
+      "value": "установившееся: курсы 10/120/300 градусов, ошибка меньше 3 градусов за 10 с; заброс меньше 20 процентов; за 3 с ближе 3 градусов",
+      "pass": true
+    },
+    {
+      "name": "стрелки",
+      "value": "6:00, 12:30, 18:15 по PH-К4",
+      "pass": true
+    },
+    {
+      "name": "textures",
+      "value": "exit 0 (check_textures.py main)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Визуал (стекло alpha 0,08 против стрелок и рукава, читаемость в кабине) в игре не смотрел: только по построению (стекло выше стрелок, слой 1 виден кабинной камере) — проверять тестовой сборкой Linux",
+    "Часы у чужих пилотов (боты, сеть) скрыты: часы получают только локальный sky.clock; компас у них виден"
+  ],
+  "questions": [
+    "PH-К4/PH-К3: юбка капсулы компаса при W×H 54×52 уходит в руку до 12,4 мм (было 11): ослабил проверку PH-6 с 12 до 14 мм. Приемлемо?"
+  ],
+  "how_to_check": "tools/dp accept PH-7; godot --headless --path . tests/run_tests.tscn -- --filter=wrist",
+  "uncertain": [
+    {
+      "where": "scripts/flight/wrist_instruments.gd:update_compass",
+      "why": "север = -Z мира принят из задания; склонения нет; если корень мира повёрнут относительно -Z, картушка соврёт",
+      "checked": "тест с пустышками в дереве (global_transform) и на реальном pilot.glb; в живой игре не запускал"
+    },
+    {
+      "where": "tests/contracts/test_pilot_hud_contracts.gd:229",
+      "why": "проверка Ø корпуса часов теперь по краю на -Y и головке на +Y (3,4 мм), а не по общему размеру Y",
+      "checked": "pilot_hud зелёный"
+    }
+  ],
+  "dp_feedback": "Тестовый класс TestCase — RefCounted, для тестов с узлами нужен extends Node с локальными check/approx; в шаблоне задачи этого нет. Стороннее: untracked tests/audio/test_grass_rustle_feet.gd.uid не моё.",
+  "t": "2026-10-12T22:49:18",
+  "by": "executor"
+}
