@@ -17,8 +17,6 @@ const TINTED := ["Fabric", "Door"]
 
 ## Меши из GLB: "<тип>_LOD<n>" → Mesh (загружаются один раз).
 static var _meshes: Dictionary = {}
-## Материалы по (имя материала, цвет): "Fabric|3" → StandardMaterial3D.
-static var _materials: Dictionary = {}
 
 
 ## Сколько палаток: игрок + боты. bots < 0 — из настроек (bots.json → count, до 4 по умолчанию).
@@ -263,10 +261,17 @@ static func build_node(tents: Array, cfg: Dictionary) -> Node3D:
 				else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			)
 			var ci := int(t.color) % colors.size()
+			var rgb: Array = colors[ci]
+			var has_fabric := false
 			for s in mesh.get_surface_count():
 				var m := mesh.surface_get_material(s)
 				if m != null and String(m.resource_name) in TINTED:
-					mi.set_surface_override_material(s, _tinted(m, ci, colors[ci], cfg))
+					mi.set_surface_override_material(s, _fabric(String(m.resource_name), cfg))
+					has_fabric = true
+			if has_fabric:
+				var tint := Vector3(float(rgb[0]), float(rgb[1]), float(rgb[2]))
+				mi.set_instance_shader_parameter("tint", tint)
+				mi.set_meta("camp_tint", tint)  # для тестов: в headless параметры экземпляра не читаются
 			node.add_child(mi)
 	return root
 
@@ -284,19 +289,13 @@ static func mesh_for(type: String, lod: int) -> Mesh:
 	return _meshes.get("%s_LOD%d" % [type, lod])
 
 
-static func _tinted(base: Material, ci: int, rgb: Array, cfg: Dictionary) -> Material:
-	var key := "%s|%d" % [base.resource_name, ci]
-	if _materials.has(key):
-		return _materials[key]
-	var m := base.duplicate() as BaseMaterial3D
-	if m == null:
-		return base
-	var c := Color(float(rgb[0]), float(rgb[1]), float(rgb[2]))
-	if String(base.resource_name) == "Door":
-		c = c.darkened(float(cfg.get("door_darken", 0.35)))
-	m.albedo_color = c
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_materials[key] = m
+## Общий материал ткани (CampFabric) для материала модели; Door темнее на cfg.door_darken.
+static func _fabric(res_name: String, cfg: Dictionary) -> Material:
+	if res_name != "Door":
+		return CampFabric.material("tent")
+	var m := CampFabric.material("tent_door")
+	var k := 1.0 - float(cfg.get("door_darken", 0.35))
+	m.set_shader_parameter("base_color", Vector3(k, k, k))
 	return m
 
 
