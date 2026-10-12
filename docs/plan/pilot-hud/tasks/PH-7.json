@@ -72,10 +72,15 @@
         "!re": "FAIL (?!test_cockpit\\.gd::test_trapezoid_and_telltales)"
       },
       "timeout": 1500
+    },
+    {
+      "name": "textures",
+      "cmd": "python3 /home/greg/deltaplan-pilot-hud/tools/check_textures.py main",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "Зависит от PH-3, PH-5, PH-6 (влиты в feature/pilot-hud). Ремешки: если W×H из PH-3 отличаются от JSON > 3 мм — правка watch.json/wrist_compass.json и перегенерация скриптами PH-5/PH-6. Компас: демпфированный осциллятор (период ~1,5 с, ζ ≈ 0,6, в конфиге с пояснением), при почти вертикальном циферблате держит угол. Тесты назвать с wrist в имени файла.",
   "created": "2026-10-12T21:06:01",
-  "edited": "2026-10-12T21:41:53"
+  "edited": "2026-10-12T22:36:36"
 }
