@@ -4,7 +4,7 @@ extends TestCase
 
 const EXAMPLE := (
 	"deltaplan://world?bots=4&date=2026-07-15&from=270&hour=13.00&lat=50.75120&lon=86.12030"
-	+ "&seed=4711&sky=clear&temp=26.0&v=1&wind=3.0"
+	+ "&seed=4711&sky=clear&temp=26.0&v=2&wind=3.0"
 )
 
 

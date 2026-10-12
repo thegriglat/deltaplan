@@ -266,3 +266,91 @@ func test_sp_k2_steep_and_ok() -> void:
 		var ev := StartPlacement.evaluate(t.height_at, good.x, good.y, Config.get_config("game").start_search)
 		check(absf(float(r.slope_deg) - float(ev.slope_deg)) < 1e-4, "slope_deg как у StartPlacement")
 		check(absf(float(r.downhill_deg) - float(ev.heading_deg)) < 1e-4, "downhill_deg как у StartPlacement")
+
+
+# ---- SP-К3: точный старт в сети ----
+
+
+func _exact_settings() -> FlightSettings:
+	var s := FlightSettings.defaults()
+	s.set_exact_start(50.75321, 86.12345, 123.4)
+	return s
+
+
+func test_sp_k3_zone_roundtrip() -> void:
+	var s := _exact_settings()
+	var z := s.to_zone(7, 2)
+	check(z.startLat == s.start_lat and z.startLon == s.start_lon, "to_zone: точка")
+	check(z.startHeadingDeg == s.start_heading_deg, "to_zone: курс")
+	var back := FlightSettings.from_zone(z)
+	check(back.has_exact_start(), "from_zone: есть точный старт")
+	check(is_equal_approx(back.start_lat, s.start_lat) and is_equal_approx(back.start_lon, s.start_lon), "точка")
+	check(is_equal_approx(back.start_heading_deg, 123.4), "курс")
+	var plain := FlightSettings.from_zone(FlightSettings.defaults().to_zone(7, 2))
+	check(not plain.has_exact_start(), "без точки — не задан")
+
+
+func test_sp_k3_messages() -> void:
+	var z := _exact_settings().to_zone(7, 2)
+	var json := NetMessages.encode("createZone", {"zone": z})
+	var raw: Dictionary = JSON.parse_string(json).createZone.zone
+	check(raw.has("startLat") and raw.has("startLon") and raw.has("startHeadingDeg"), "поля шлются")
+	var m := NetMessages.decode(json)
+	check(is_equal_approx(m.data.zone.startLat, 50.75321), "decode: startLat")
+	check(is_equal_approx(m.data.zone.startHeadingDeg, 123.4), "decode: курс")
+	var z0 := FlightSettings.defaults().to_zone(7, 2)
+	var raw0: Dictionary = JSON.parse_string(NetMessages.encode("createZone", {"zone": z0})).createZone.zone
+	check(not raw0.has("startLat") and not raw0.has("startHeadingDeg"), "без точки — полей нет")
+	var m0 := NetMessages.decode(NetMessages.encode("createZone", {"zone": z0}))
+	check(is_nan(m0.data.zone.startLat) and is_nan(m0.data.zone.startLon), "нет → NAN")
+	check(not FlightSettings.from_zone(m0.data.zone).has_exact_start(), "нет → не задан")
+
+
+func test_sp_k3_world_key() -> void:
+	check(WorldKey.VERSION == 2, "VERSION = 2")
+	var s := _exact_settings()
+	var key := s.world_key(7, 2)
+	var kv := WorldKey.split(key)
+	check(kv.get("slat") == "50.75321" and kv.get("slon") == "86.12345" and kv.get("hdg") == "123.4", "ключи: %s" % key)
+	check(kv.get("v") == "2", "v=2")
+	var plain := FlightSettings.defaults().world_key(7, 2)
+	var pk := WorldKey.split(plain)
+	check(not pk.has("slat") and not pk.has("slon") and not pk.has("hdg"), "без точки ключей нет")
+	# хост с точкой → у клиента та же точка (в пределах квантования), место не притянуто
+	var parsed := FlightSettings.from_world_key(key, FlightSettings.defaults())
+	var c: FlightSettings = parsed.settings
+	check(c.has_exact_start(), "клиент: есть точный старт")
+	check(absf(c.start_lat - s.start_lat) <= 1e-5 and absf(c.start_lon - s.start_lon) <= 1e-5, "точка ±1e-5")
+	check(absf(c.start_heading_deg - s.start_heading_deg) <= 0.1, "курс ±0,1")
+	check(c.world_key(7, 2) == key, "ключ клиента = ключ хозяина")
+	# база клиента с собственным точным стартом: ключ без точки её сбрасывает
+	var base := _exact_settings()
+	check(not FlightSettings.from_world_key(plain, base).settings.has_exact_start(), "ключ без точки сбрасывает")
+	# точка на склоне встроенной локации не притягивается к встроенному старту
+	var loc := FlightSettings.defaults()
+	loc.set_exact_start(loc_lat_offset(loc), WorldKey.launch_latlon(loc).y, 10.0)
+	var c2: FlightSettings = FlightSettings.from_world_key(loc.world_key(1, 0)).settings
+	check(absf(c2.start_lat - loc.start_lat) <= 1e-5, "точка не притянута к старту локации")
+
+
+func loc_lat_offset(s: FlightSettings) -> float:
+	return WorldKey.launch_latlon(s).x + 0.003
+
+
+func test_sp_k3_net_flight_world_and_queue() -> void:
+	var host := _exact_settings()
+	var z := host.to_zone(7, 2)
+	z["worldKey"] = host.world_key(7, 2)
+	var obj := _ZoneHolder.new()
+	obj.zone = z
+	var s := NetFlight.world_settings(obj, FlightSettings.defaults())
+	check(s.has_exact_start(), "NetFlight.world_settings: точный старт")
+	check(absf(s.start_lat - host.start_lat) <= 1e-5 and absf(s.start_heading_deg - 123.4) <= 0.1, "значения")
+	var start := Vector3(10, 5, -20)
+	var spots := NetQueue.spots_for(func(_x: float, _z: float) -> float: return 5.0, start, 123.4, 3)
+	check(spots[0].position == start and is_equal_approx(spots[0].heading_deg, 123.4), "очередь от точки и курса")
+
+
+class _ZoneHolder:
+	extends RefCounted
+	var zone: Dictionary = {}

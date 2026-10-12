@@ -262,6 +262,9 @@ func to_zone(world_seed: int, bots_count: int) -> Dictionary:
 		"siteId": site_id,
 		"pickLat": pick_lat,
 		"pickLon": pick_lon,
+		"startLat": start_lat,
+		"startLon": start_lon,
+		"startHeadingDeg": start_heading_deg,
 		"month": month,
 		"day": day,
 		"startHour": start_hour,
@@ -286,6 +289,9 @@ static func from_zone(zone: Dictionary, base: FlightSettings = null) -> FlightSe
 	s.site_id = String(zone.get("siteId", ""))
 	s.pick_lat = float(zone.get("pickLat", NAN))
 	s.pick_lon = float(zone.get("pickLon", NAN))
+	s.start_lat = float(zone.get("startLat", NAN))
+	s.start_lon = float(zone.get("startLon", NAN))
+	s.start_heading_deg = float(zone.get("startHeadingDeg", NAN))
 	s.month = int(zone.get("month", s.month))
 	s.day = int(zone.get("day", s.day))
 	s.start_hour = float(zone.get("startHour", s.start_hour))

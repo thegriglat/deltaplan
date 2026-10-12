@@ -793,9 +793,15 @@ type Zone struct {
 	// Первые 16 hex-символов (строчные) SHA-256 от world_key. Вошедший строит мир
 	// из полей Zone, считает свой ключ и сверяет хэш: не совпал — миры разные
 	// (разные версии генератора). Пусто — не проверять.
-	WorldHash     string `protobuf:"bytes,12,opt,name=world_hash,json=worldHash,proto3" json:"world_hash,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	WorldHash string `protobuf:"bytes,12,opt,name=world_hash,json=worldHash,proto3" json:"world_hash,omitempty"`
+	// Точный старт создателя зоны (SP-К3): точка и курс разбега, градусы. Все три
+	// поля заданы или ни одного; не заданы — старт по месту (site_id / pick).
+	// Клиенты ставят пилота в эту точку и строят очередь от неё.
+	StartLat        *float64 `protobuf:"fixed64,13,opt,name=start_lat,json=startLat,proto3,oneof" json:"start_lat,omitempty"`
+	StartLon        *float64 `protobuf:"fixed64,14,opt,name=start_lon,json=startLon,proto3,oneof" json:"start_lon,omitempty"`
+	StartHeadingDeg *float64 `protobuf:"fixed64,15,opt,name=start_heading_deg,json=startHeadingDeg,proto3,oneof" json:"start_heading_deg,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Zone) Reset() {
@@ -910,6 +916,27 @@ func (x *Zone) GetWorldHash() string {
 		return x.WorldHash
 	}
 	return ""
+}
+
+func (x *Zone) GetStartLat() float64 {
+	if x != nil && x.StartLat != nil {
+		return *x.StartLat
+	}
+	return 0
+}
+
+func (x *Zone) GetStartLon() float64 {
+	if x != nil && x.StartLon != nil {
+		return *x.StartLon
+	}
+	return 0
+}
+
+func (x *Zone) GetStartHeadingDeg() float64 {
+	if x != nil && x.StartHeadingDeg != nil {
+		return *x.StartHeadingDeg
+	}
+	return 0
 }
 
 // Живой пилот в зоне.
@@ -2112,7 +2139,7 @@ const file_deltaplan_v1_net_proto_rawDesc = "" +
 	"\x0ewind_speed_kmh\x18\x02 \x01(\x02R\fwindSpeedKmh\x12(\n" +
 	"\x10wind_into_launch\x18\x03 \x01(\bR\x0ewindIntoLaunch\x12\"\n" +
 	"\rwind_from_deg\x18\x04 \x01(\x02R\vwindFromDeg\x12\x10\n" +
-	"\x03sky\x18\x05 \x01(\tR\x03sky\"\x84\x03\n" +
+	"\x03sky\x18\x05 \x01(\tR\x03sky\"\xab\x04\n" +
 	"\x04Zone\x12\x1f\n" +
 	"\vlocation_id\x18\x01 \x01(\tR\n" +
 	"locationId\x12\x17\n" +
@@ -2130,9 +2157,17 @@ const file_deltaplan_v1_net_proto_rawDesc = "" +
 	" \x01(\x05R\tbotsCount\x12\x1b\n" +
 	"\tworld_key\x18\v \x01(\tR\bworldKey\x12\x1d\n" +
 	"\n" +
-	"world_hash\x18\f \x01(\tR\tworldHashB\v\n" +
+	"world_hash\x18\f \x01(\tR\tworldHash\x12 \n" +
+	"\tstart_lat\x18\r \x01(\x01H\x02R\bstartLat\x88\x01\x01\x12 \n" +
+	"\tstart_lon\x18\x0e \x01(\x01H\x03R\bstartLon\x88\x01\x01\x12/\n" +
+	"\x11start_heading_deg\x18\x0f \x01(\x01H\x04R\x0fstartHeadingDeg\x88\x01\x01B\v\n" +
 	"\t_pick_latB\v\n" +
-	"\t_pick_lon\"I\n" +
+	"\t_pick_lonB\f\n" +
+	"\n" +
+	"_start_latB\f\n" +
+	"\n" +
+	"_start_lonB\x14\n" +
+	"\x12_start_heading_deg\"I\n" +
 	"\x04Peer\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
