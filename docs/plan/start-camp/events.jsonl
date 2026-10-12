@@ -35,3 +35,9 @@
 {"t": "2026-10-12T22:35:31", "by": "coordinator", "task": "SC-6", "ev": "accepted", "note": "по отчёту: контрактный тест PASS, бюджеты в норме"}
 {"t": "2026-10-12T22:35:32", "by": "coordinator", "task": "SC-7", "ev": "accepted", "note": "по отчёту: контрактный тест PASS, бюджеты в норме"}
 {"t": "2026-10-12T22:35:32", "by": "coordinator", "task": "SC-8", "ev": "accepted", "note": "по отчёту: контрактный тест PASS, бюджеты в норме"}
+{"t": "2026-10-12T22:35:41", "by": "executor", "task": "SC-1", "ev": "reported", "commits": ["ffc4a4fd"], "note": "done: Лагерь по SC-K1: центр 30-50 м (prefer 40), край палатки >= 32 м, along <= -5, вне коридора, не ниже старта более чем н…"}
+{"t": "2026-10-12T22:35:56", "by": "coordinator", "task": "SC-6", "ev": "accepted", "commits": ["f00c33a6"], "note": "1/1 start_camp_contracts_k3_gear=ok:1/1"}
+{"t": "2026-10-12T22:35:57", "by": "coordinator", "task": "SC-7", "ev": "accepted", "commits": ["f00c33a6"], "note": "1/1 start_camp_contracts_k3_kit=ok:1/1"}
+{"t": "2026-10-12T22:35:58", "by": "coordinator", "task": "SC-8", "ev": "accepted", "commits": ["f00c33a6"], "note": "1/1 start_camp_contracts_k4=ok:1/1"}
+{"t": "2026-10-12T22:36:16", "by": "executor", "task": "SC-3", "ev": "checked", "note": "4/4 grass=ok:14/14; start_camp_contracts_k6=ok:4/4; test_world_objects=ok:12/12; gd=ok:exit 0"}
+{"t": "2026-10-12T22:36:30", "by": "coordinator", "task": "SC-3", "ev": "accepted", "note": "по отчёту: 4/4 PASS (test_build_time — порог по нагрузке, на повторе зелёный); вид — тестовая сборка Linux"}
