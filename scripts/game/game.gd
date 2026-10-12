@@ -389,7 +389,11 @@ func start(s: FlightSettings) -> bool:
 		glider.model.span,
 		float(Config.value("flight", "visual.hang_height_m", 2.0))
 	)
-	bots.setup_in_world(terrain, air, _start_pos, _start_heading, bots_count)
+	# Лагерь и вещи — до ботов: места ожидания обходят палатки (SC-K1)
+	world_link.place_camp()
+	bots.setup_in_world(
+		terrain, air, _start_pos, _start_heading, bots_count, world_link.objects
+	)
 	# Поля рельефа (влажность ложбин ослабляет источники термиков) считаются в фоне — термики
 	# рождаются только после них, иначе первые термики зависели бы от скорости машины.
 	# Поля доводит Terrain._process; у выключенного узла (тесты шагают сами) — ждать здесь.

@@ -109,7 +109,6 @@ func test_camps_at_real_starts() -> void:
 				(camp[i].position as Vector3).is_equal_approx(w.camp[i].position),
 				"%s: повтор — палатка %d на том же месте" % [tag, i]
 			)
-		var zone := TentCamp.launch_zone(cfg)
 		var h := TerrainGeo.heading_vector(hd)
 		var fwd := Vector2(h.x, h.z)
 		var right := Vector2(-fwd.y, fwd.x)
@@ -119,14 +118,15 @@ func test_camps_at_real_starts() -> void:
 			var v := Vector2(p.x - sp.x, p.z - sp.z)
 			var r := float(tent.radius)
 			var d0 := v.length()
-			check(d0 >= 20.0 and d0 <= 190.0, "%s: палатка в %.0f м от старта" % [tag, d0])
-			check(v.dot(fwd) < 0.0, "%s: палатка впереди линии старта" % tag)
+			check(d0 - r >= float(cfg.camp_min_edge_m) - 0.01, "%s: край палатки в %.0f м" % [tag, d0 - r])
+			check(v.dot(fwd) <= -5.0, "%s: палатка впереди линии старта" % tag)
 			check(
-				v.dot(fwd) < -float(zone.behind_m) or absf(v.dot(right)) > float(zone.lateral_m),
-				(
-					"%s: палатка в коридоре разбега / на местах ботов (%.0f, %.0f)"
-					% [tag, v.dot(fwd), v.dot(right)]
-				)
+				v.dot(fwd) < -8.0 or absf(v.dot(right)) >= 11.0,
+				"%s: палатка в коридоре разбега (%.0f, %.0f)" % [tag, v.dot(fwd), v.dot(right)]
+			)
+			check(
+				p.y >= sp.y - float(cfg.max_drop_m) - 0.5,
+				"%s: палатка ниже старта на %.1f м" % [tag, sp.y - p.y]
 			)
 			var dt := TentCamp.dist_to_polyline(Vector2(p.x, p.z), track)
 			check(dt > r + 2.0, "%s: палатка на тропе (%.1f м)" % [tag, dt])
@@ -181,3 +181,31 @@ func _check_gaps(camp: Array, tag: String) -> void:
 			check(
 				nearest <= 25.0, "%s: палатка %d в стороне от лагеря (%.1f м)" % [tag, i, nearest]
 			)
+
+
+## Кольцо лагеря на ровном поле: центр 30–50 м от старта, позади/сбоку, край ≥ 32 м.
+func test_ring_on_flat_field() -> void:
+	var cfg := _cfg()
+	var env := {"height_fn": func(_x: float, _z: float) -> float: return 100.0}
+	for hd: float in [0.0, 90.0, 215.0]:
+		var camp := TentCamp.plan(Vector3(0, 100, 0), hd, 5, cfg, env)
+		check(camp.size() == 5, "курс %.0f: все 5 встали, %d" % [hd, camp.size()])
+		var h := TerrainGeo.heading_vector(hd)
+		var fwd := Vector2(h.x, h.z)
+		var mid := Vector2.ZERO
+		for t: Dictionary in camp:
+			var v := Vector2(t.position.x, t.position.z)
+			mid += v / camp.size()
+			check(v.length() - float(t.radius) >= 32.0 - 0.01, "край палатки ≥ 32 м (%.1f)" % v.length())
+			check(v.dot(fwd) <= -5.0, "палатка не впереди линии старта")
+		check(mid.length() >= 25.0 and mid.length() <= 55.0, "центр лагеря в %.0f м" % mid.length())
+
+
+## Не вниз по склону: склон под уклоном — лагерь не ниже старта более чем на max_drop_m.
+func test_not_downslope() -> void:
+	var cfg := _cfg()
+	# ровный уступ 6° вдоль x: ниже старта (x > 0) — спуск
+	var env := {"height_fn": func(x: float, _z: float) -> float: return -0.1 * x}
+	var camp := TentCamp.plan(Vector3(0, 0, 0), 90.0, 4, cfg, env)
+	for t: Dictionary in camp:
+		check(t.position.y >= -float(cfg.max_drop_m) - 0.5, "палатка ниже старта на %.1f" % -t.position.y)

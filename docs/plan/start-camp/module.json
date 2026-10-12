@@ -1,0 +1,9 @@
+{
+  "module": "start-camp",
+  "plan": "docs/plan/start-camp.md",
+  "contracts": "docs/contracts/start-camp.md",
+  "branch": "feature/start-camp",
+  "copy": "~/deltaplan-start-camp",
+  "created": "2026-10-12T22:14:17",
+  "code": "SC"
+}

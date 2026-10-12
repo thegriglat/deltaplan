@@ -4,8 +4,9 @@ extends Node
 ## объекты мира (ветроуказатели, посадки, OSM, препятствия — WorldObjects), просеки для деревьев
 ## рельефа (WorldClearings), ветер для травы/деревьев, пилот для примятой травы,
 ## столкновения с проводами и препятствиями. Сцена объектов — game.json → world_objects_scene.
-## Лагерь палаток у старта (WorldObjects.place_camp) — когда Game закончил загрузку полёта
-## (status_changed("")): старт выбран, число ботов известно (Game.bots_count или настройка).
+## Лагерь палаток у старта (WorldObjects.place_camp) — Game зовёт place_camp() после выбора старта
+## и до BotPilots.setup_in_world (боты обходят палатки, SC-K1); число ботов — Game.bots_count
+## или настройка.
 
 var objects: Node3D  ## WorldObjects или null (сцены нет)
 
@@ -23,9 +24,6 @@ func _ready() -> void:
 			add_child(objects)
 	else:
 		push_warning("WorldLink: нет сцены объектов мира %s" % path)
-	var game := get_parent()
-	if game != null and game.has_signal(&"status_changed"):
-		game.connect(&"status_changed", _on_game_status)
 
 
 ## Рельеф загружен (или сменилась погода): всё, что зависит от места и воздуха.
@@ -55,7 +53,20 @@ func link(terrain: Terrain, air: Node, pilot: Node3D) -> void:
 		objects.call("setup", terrain, air)
 
 
-## Палатки у старта Game (get_start): 1 + боты (Game.bots_count ≥ 0 — --bots=N, иначе настройка).
+## Сколько ботов считать в лагере: в сети — Zone.bots_count (настройки создателя, у всех
+## клиентов одинаково — палатки входят в препятствия очереди), иначе Game.bots_count
+## (--bots=N; < 0 — настройка).
+static func camp_bots(game: Object) -> int:
+	if game == null:
+		return -1
+	var net: Variant = game.get(&"net")
+	if net is Object and (net as Object).get(&"zone") is Object:
+		return int(((net as Object).get(&"zone") as Object).get(&"bots_count"))
+	var n: Variant = game.get(&"bots_count")
+	return int(n) if n != null else -1
+
+
+## Палатки у старта Game (get_start): 1 + боты (camp_bots).
 func place_camp() -> void:
 	var game := get_parent()
 	if objects == null or not objects.has_method(&"place_camp") or game == null:
@@ -63,16 +74,26 @@ func place_camp() -> void:
 	if not game.has_method(&"get_start") or not is_instance_valid(_terrain):
 		return
 	var st: Dictionary = game.call(&"get_start")
-	var bots := int(game.get(&"bots_count")) if &"bots_count" in game else -1
 	objects.call(
-		&"place_camp", st.position, float(st.heading_deg), _terrain, TentCamp.tent_count(bots)
+		&"place_camp",
+		st.position,
+		float(st.heading_deg),
+		_terrain,
+		TentCamp.tent_count(camp_bots(game))
 	)
+	_apply_trample(st.position)
 
 
-## Загрузка полёта закончена (Game.start → status_changed("")) — старт выбран.
-func _on_game_status(text: String) -> void:
-	if text == "":
-		place_camp()
+## Примятая трава вокруг старта (SC-K6): маска по палаткам, вещам и тропе — в GrassField.
+func _apply_trample(start: Vector3) -> void:
+	var grass: Variant = _terrain.get(&"grass") if is_instance_valid(_terrain) else null
+	if grass == null or not objects.has_method(&"trample_mask"):
+		return
+	var m: Dictionary = objects.call(&"trample_mask", start)
+	if m.is_empty():
+		grass.set_trample_mask(null, Vector2.ZERO, 1.0)
+	else:
+		grass.set_trample_mask(m.image, m.origin, m.cell_m)
 
 
 ## Столкновение за шаг (отрезок пути от прошлого положения): {kind, point} или {}.

@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "camp_person.glb: пять мешей Legs/Torso/Head/ArmR/ArmL с шарнирами по SC-K4, 658 треугольников, 29 КБ; куртка/штаны, кепка, нос, кисти с большим пальцем, ботинки. Контрактный тест написан (файла не было) и зелёный.",
+  "commits": [
+    "59b8a96e Модель человечка у лагеря camp_person.glb (SC-K4)"
+  ],
+  "checks": [
+    {
+      "name": "start_camp_contracts_k4",
+      "value": "1/1 PASS (dp accept SC-8 --dry)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/SC-8/camp_person.png"
+  ],
+  "tris_by_node": {
+    "Legs": 228,
+    "Torso": 104,
+    "Head": 170,
+    "ArmR": 78,
+    "ArmL": 78,
+    "total": 658
+  },
+  "glb_kb": 28.7,
+  "image": "/home/greg/deltaplan/build/screenshots/SC-8/camp_person.png",
+  "how_to_check": "tools/dp accept SC-8 --dry",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_start_camp_contracts_k4.gd",
+      "why": "теста не существовало, написан мной по тексту SC-K4",
+      "checked": "проходит; проверяет ноды, шарниры ±0,02, рост, бюджет, материалы, пальцы 0,62 м"
+    },
+    {
+      "where": "tools/blender/build_camp_person.py",
+      "why": "нормали выровнены recalc_face_normals; руки не зеркалятся, ArmL строится с отражённым большим пальцем",
+      "checked": "вид спереди/сбоку в Blender"
+    }
+  ],
+  "dp_feedback": "Контрактного теста из карточки в копии не было (скоуп его назвал). dp accept --dry долго молчит при первом импорте (>120 с).",
+  "t": "2026-10-12T22:33:09",
+  "by": "executor"
+}

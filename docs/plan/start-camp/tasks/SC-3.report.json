@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "Маска примятой травы SC-K6: TrampleMask (R8 256 м/0,5 м) по палаткам с кольцом, тропинкам, пятнам вещей SC-K2, кругу разбега и тропе StartTracks; GrassField.set_trample_mask/trample_at; шейдер (ниже, наклон, желтее, одна выборка); подключено в WorldLink после place_camp.",
+  "commits": [
+    "470b7ce4 Примятая трава у старта: маска R8 ..."
+  ],
+  "checks": [
+    {
+      "name": "grass",
+      "value": "14/14",
+      "pass": true
+    },
+    {
+      "name": "start_camp_contracts_k6",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_world_objects",
+      "value": "11/12, падает test_build_time (6,7-10,2 с против 10 с, нагрузка машины); падает и без моих правок (проверено git stash)",
+      "pass": false
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "цена маски на CPU",
+      "value": "24 мс (6 палаток, 20 вещей, тропа 320 м)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Визуал не смотрел (по заданию - тестовая сборка Linux). Пятна вещей пока подхватываются через get('start_gear') - проверено только тестом с заглушкой формата SC-K2, реальный start_gear SC-2 ещё не влит."
+  ],
+  "questions": [
+    "Новый файл scripts/world_objects/trample_mask.gd (класс TrampleMask) вне списка скоупа: вынес построение, чтобы не раздувать world_objects.gd; WorldObjects.trample_mask - тонкая обёртка по контракту. Допустимо?"
+  ],
+  "how_to_check": "dp accept SC-3",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/grass.gdshader (блок tr)",
+      "why": "внешний вид (высота 12 % от нормальной, наклон 1,3, жёлтый тон) подобран без просмотра",
+      "checked": "математика: при tr=0 mix даёт точно прежние значения; параметры в configs/vegetation.json -> grass.trample"
+    },
+    {
+      "where": "scripts/world_objects/world_objects.gd trample_mask",
+      "why": "пятна вещей берутся из start_gear тех стартов, чей первый элемент ближе 60 м к старту; формат SC-K2 не проверен на реальных данных",
+      "checked": "только тест с имитацией"
+    },
+    {
+      "where": "scripts/world_objects/trample_mask.gd _box",
+      "why": "ориентация палатки через item.basis (локальный x - поперёк, z - вдоль)",
+      "checked": "тест с поворотом на 90 градусов"
+    }
+  ],
+  "dp_feedback": "godot --import надо повторять после добавления нового class_name (иначе тесты молча падают 'не объявлен', а раннер пишет ok по другим тестам); хорошо бы dp accept это делал/предупреждал.",
+  "t": "2026-10-12T22:32:21",
+  "by": "executor"
+}

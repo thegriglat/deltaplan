@@ -338,3 +338,86 @@ static func clump_mesh(blades: int, width: float, segments: int) -> ArrayMesh:
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	return mesh
+
+
+# --- Примятая трава у старта (SC-K6, SC-3): маска R8 вокруг старта игрока ---
+
+## Маска приминания: байты R8 (строка — z, столбец — x), размер в текселях, начало мира и шаг клетки.
+var _trample_bytes := PackedByteArray()
+var _trample_size := Vector2i.ZERO
+var _trample_origin := Vector2.ZERO
+var _trample_cell: float = 0.5
+
+
+## Маска примятой травы (SC-K6): img — FORMAT_R8 (0 — нетронута, 255 — примята до земли), тексель
+## (i, j) покрывает мир x ∈ [origin.x + i·cell, +cell), z ∈ [origin.y + j·cell, +cell); null — снять.
+## Применяется ко всем материалам поля (ближний и дальний слой). Шейдер: ниже, наклонена, желтее.
+func set_trample_mask(img: Image, origin: Vector2, cell_m: float) -> void:
+	if img == null or img.get_format() != Image.FORMAT_R8 or cell_m <= 0.0:
+		_trample_bytes = PackedByteArray()
+		_trample_size = Vector2i.ZERO
+	else:
+		_trample_bytes = img.get_data()
+		_trample_size = Vector2i(img.get_width(), img.get_height())
+		_trample_origin = origin
+		_trample_cell = cell_m
+	for m in materials():
+		if m == null:
+			continue
+		if _trample_bytes.is_empty():
+			m.set_shader_parameter("trample_on", 0.0)
+			m.set_shader_parameter("trample_tex", null)
+			continue
+		var size_m := Vector2(_trample_size) * cell_m
+		m.set_shader_parameter("trample_tex", ImageTexture.create_from_image(img))
+		m.set_shader_parameter(
+			"trample_rect", Vector4(origin.x, origin.y, 1.0 / size_m.x, 1.0 / size_m.y)
+		)
+		m.set_shader_parameter("trample_on", 1.0)
+		var look := _trample_look()
+		for k in look:
+			m.set_shader_parameter(k, look[k])
+
+
+## Приминание в точке (x, z), 0..1: билинейно по центрам текселей (как фильтр текстуры в шейдере),
+## у края маски — значение крайнего текселя, вне маски и без маски — 0. CPU, для звука шагов.
+func trample_at(x: float, z: float) -> float:
+	if _trample_bytes.is_empty():
+		return 0.0
+	var u := (x - _trample_origin.x) / _trample_cell
+	var v := (z - _trample_origin.y) / _trample_cell
+	if u < 0.0 or v < 0.0 or u >= _trample_size.x or v >= _trample_size.y:
+		return 0.0
+	u -= 0.5
+	v -= 0.5
+	var i0 := int(floor(u))
+	var j0 := int(floor(v))
+	var fu := u - i0
+	var fv := v - j0
+	var a := _trample_texel(i0, j0)
+	var b := _trample_texel(i0 + 1, j0)
+	var c := _trample_texel(i0, j0 + 1)
+	var d := _trample_texel(i0 + 1, j0 + 1)
+	return lerpf(lerpf(a, b, fu), lerpf(c, d, fu), fv)
+
+
+func _trample_texel(i: int, j: int) -> float:
+	i = clampi(i, 0, _trample_size.x - 1)
+	j = clampi(j, 0, _trample_size.y - 1)
+	return float(_trample_bytes[j * _trample_size.x + i]) / 255.0
+
+
+## Вид примятой травы: configs/vegetation.json → grass.trample (trample_height_k, trample_lean,
+## trample_tint); нет конфига — значения по умолчанию из шейдера.
+func _trample_look() -> Dictionary:
+	var out := {}
+	if not FileAccess.file_exists("res://configs/vegetation.json"):
+		return out
+	var t: Dictionary = Config.get_config("vegetation").get("grass", {}).get("trample", {})
+	if t.has("height_k"):
+		out["trample_height_k"] = float(t.height_k)
+	if t.has("lean"):
+		out["trample_lean"] = float(t.lean)
+	if t.has("tint") and t.tint is Array and t.tint.size() == 3:
+		out["trample_tint"] = Vector3(float(t.tint[0]), float(t.tint[1]), float(t.tint[2]))
+	return out

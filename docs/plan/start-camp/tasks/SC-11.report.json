@@ -1,0 +1,91 @@
+{
+  "status": "done",
+  "summary": "camp_pilot.glb: тело пилота MPFB (кисти открытые) одним мешем PersonBody, куртка/брюки/кожа/волосы/ботинки с подошвой, скелет из 16 костей пилота, анимации idle/wave/wave_both/walk. build_pilot.py не менялся (функции импортом), pilot.glb не тронут.",
+  "commits": [
+    "3e0ef630 SC-11: модель camp_pilot.glb"
+  ],
+  "checks": [
+    {
+      "name": "start_camp_contracts_k4_pilot",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "pilot",
+      "value": "54/54",
+      "pass": true
+    },
+    {
+      "name": "pilot_glb_unchanged",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "рост",
+      "value": "1.790 м (по мешу, вместе с волосами)",
+      "pass": true
+    },
+    {
+      "name": "влияния на вершину",
+      "value": "<=4 (после прореживания обрезаны до 4; было до 5)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Кости: в контракте 17, у пилота без подвески остаётся 16 (Hips, Spine, Chest, Head, руки 3x2, ноги 3x2); PodTail/PodMid/PodEnd/Strap убраны."
+  ],
+  "questions": [
+    "Контракт говорит 17 костей — возможно, счёт с корнем/PodTail; SC-12 стоит опираться на имена, а не на число."
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/SC-11/camp_pilot.png"
+  ],
+  "how_to_check": "dp accept SC-11; пересборка: BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user blender --background --python tools/blender/build_camp_pilot.py (CAMP_OUT=каталог, CAMP_RENDER=каталог для картинки)",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_camp_pilot.py: Maker.walk",
+      "why": "ноги в ходьбе — IK по лодыжкам; опорная стопа проскальзывает по земле заметно: ход лодыжки за шаг 0,6 м при реальных ~0,72 м контакта на 1,1 м/с (дальше не достать — ноги выпрямлены)",
+      "checked": "недотяг цели лодыжки 0,011 м; видно будет только в игре — скорость шага в игре подбирать по walk_step_m, при желании чуть выше"
+    },
+    {
+      "where": "tools/blender/build_camp_pilot.py: dress",
+      "why": "граница куртка/брюки и линия волос рваные (большие грани после прореживания до 3300), куртка — облегающая оболочка по телу (+8 мм), без подола/воротника",
+      "checked": "одна картинка (idle и wave, спереди и сбоку): читается как человек в куртке и брюках; по правилу «не шлифовать» не правил"
+    },
+    {
+      "where": "camp_pilot.glb.import",
+      "why": "зацикливание задано в _subresources (settings/loop_mode=1) для всех 4 анимаций; суффикс -loop в имени Godot 4.7 не зацикливает",
+      "checked": "тест проверяет LOOP_LINEAR; Godot-длины после импорта на 1 кадр длиннее (30 к/с): idle 4,04, wave 1,25, walk 1,125"
+    },
+    {
+      "where": "ладонь при wave",
+      "why": "поворот ладони вперёд считается по нормали ладони из геометрии MPFB (пальцы и большой палец)",
+      "checked": "на картинке ладонь повёрнута к зрителю; числа нормали напечатаны при сборке (LADON)"
+    }
+  ],
+  "dp_feedback": "dp task show --full выдаёт длинный вывод; нет команды dp accept с выводом только упавших проверок кратко. Тест-раннер не печатает путь, по которому нашёл ноды — пришлось писать пробный --script для структуры glb.",
+  "extra": {
+    "tris_total": 3714,
+    "bones": 16,
+    "materials": 6,
+    "tris_decimated_source": "22424 -> 3298, + ботинки ~416",
+    "walk_cycle_s": 1.083,
+    "stride_m": 1.2,
+    "speed_mps": 1.11,
+    "godot_tree": "camp_pilot > Person > Skeleton3D > PersonBody; AnimationPlayer — сосед Person (дочерний корня)"
+  },
+  "tris_by_node": {
+    "PersonBody": 3714
+  },
+  "glb_kb": 220.7,
+  "anim_lengths_s": {
+    "idle": 4.0,
+    "wave": 1.208,
+    "wave_both": 1.208,
+    "walk": 1.083
+  },
+  "walk_step_m": 0.6,
+  "image": "/home/greg/deltaplan/build/screenshots/SC-11/camp_pilot.png",
+  "t": "2026-10-12T22:53:50",
+  "by": "executor"
+}

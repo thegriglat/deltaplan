@@ -1,0 +1,61 @@
+{
+  "id": "SC-12",
+  "module": "start-camp",
+  "type": "dp-engineer",
+  "title": "Люди у лагеря вблизи — модель пилота со скелетом",
+  "goal": "Вблизи люди у палаток — тело пилота (camp_pilot.glb) со скелетной анимацией: стоят, переминаются, ходят, машут; различаются раскраской; вдали — дешёвый MultiMesh (SC-5); скелетов мало, анимация только вблизи.",
+  "plan_ref": "SC-12 Люди у лагеря вблизи",
+  "contracts": [
+    {
+      "name": "SC-K4",
+      "version": "2",
+      "ref": "docs/contracts/start-camp.md"
+    },
+    {
+      "name": "SC-K5",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-camp-SC-12",
+  "branch": "start-camp/SC-12",
+  "base": "feature/start-camp",
+  "scope": [
+    "scripts/world_objects/easter_eggs/people.gd",
+    "configs/easter_eggs.json",
+    "tests/world_objects/test_egg_people.gd",
+    "tests/contracts/test_start_camp_contracts_k4_near.gd"
+  ],
+  "dont_touch": [
+    "assets",
+    "tools/blender",
+    "scripts/world_objects/camp_fabric.gd"
+  ],
+  "accept": [
+    {
+      "name": "egg_people",
+      "tests": "egg_people"
+    },
+    {
+      "name": "test_easter_eggs",
+      "tests": "test_easter_eggs"
+    },
+    {
+      "name": "start_camp_contracts_k4",
+      "tests": "start_camp_contracts_k4"
+    },
+    {
+      "name": "gd",
+      "cmd": "f=$(git diff --name-only --diff-filter=AM feature/start-camp...HEAD -- \"*.gd\"); [ -z \"$f\" ] || /home/greg/deltaplan/tools/dp check gd $f",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "near_count_max",
+    "skinned_tris",
+    "anim_cost_note"
+  ],
+  "notes": "",
+  "created": "2026-10-12T22:55:06",
+  "edited": "2026-10-12T22:55:07"
+}

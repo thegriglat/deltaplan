@@ -70,7 +70,14 @@ func start_in_game(game: Game) -> void:
 	var st: Dictionary = game.get_start()
 	start(
 		func(b: BotPilots, count: int) -> void:
-			b.setup_in_world(game.terrain, game.air, st.position, float(st.heading_deg), count)
+			b.setup_in_world(
+				game.terrain,
+				game.air,
+				st.position,
+				float(st.heading_deg),
+				count,
+				game.world_link.objects
+			)
 	)
 
 
