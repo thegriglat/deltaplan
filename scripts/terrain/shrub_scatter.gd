@@ -259,9 +259,12 @@ func _check_key() -> void:
 			[
 				Vector2(sp.x, sp.z),
 				Vector2(hd.x, hd.z).normalized(),
-				float(_cfg.get("keep_off_start_m", 15.0))
+				_keep_start()
 			]
 		)
+	# SP-К4: любой пустырь старта (встроенный, с карты, точный) — без кустов на разбеге
+	for c: Vector3 in terrain.get_start_clearings():
+		_sites.append([Vector2(c.x, c.y), Vector2.ZERO, _keep_start()])
 	for s in terrain.get_landing_sites():
 		var sp: Vector3 = s.position
 		_sites.append(
@@ -271,6 +274,14 @@ func _check_key() -> void:
 	_tree_free = terrain.get_start_clearings()
 	_last_center = Vector2(INF, INF)
 	_first_done = false
+
+
+## Отступ от центра старта, м: не меньше длины разбега (start_search.runway_m).
+func _keep_start() -> float:
+	return maxf(
+		float(_cfg.get("keep_off_start_m", 15.0)),
+		float(Config.value("game", "start_search.runway_m", 40.0))
+	)
 
 
 ## Рабочий поток: достроить тайлы вокруг c, собрать буферы MultiMesh.
