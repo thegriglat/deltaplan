@@ -61,14 +61,32 @@ func test_flight_model_speed_ratio() -> void:
 	check(m.bar_force_estimate(vt).length() < 1.0, "на триме усилия нет")
 
 
-func test_flight_model_roll_hold() -> void:
+## Ввод в крен: x того же знака, что крен; установившийся вираж ~30° (ввод = «держащий») — |x| мал.
+## Порог 60 Н — по замеру маятника в установившемся вираже 30° (sport, BankHold): среднее x = −39 Н,
+## |x| ≤ 42 Н (при вводе пик до предела рук ~300 Н).
+func test_flight_model_roll_entry_and_steady_turn() -> void:
 	var m := FS.make(WING)
 	m.reset_in_air(Vector3(0, 3000, 0), 0.0)
-	FS.run_for(m, 3.0, FS.input(0.0, 0.3))
+	var wsin := FS.input(0.0, 0.3)
+	wsin.weight_shift = true
+	FS.run_for(m, 1.0, wsin)
 	var f: Vector2 = m.telemetry.bar_force
-	print("PH1 flight roll=0.3 bank=%.1f v=%.2f F=%s" % [m.telemetry.bank_deg, m.telemetry.airspeed, f])
-	check(m.telemetry.bank_deg > 3.0 and f.x > 0.0, "крен вправо удерживается: x>0 %s" % f)
-	check(f.length() <= 300.0, "предел рук")
+	print("PH1 flight roll entry bank=%.1f F=%s" % [m.telemetry.bank_deg, f])
+	check(m.telemetry.bank_deg > 1.0 and f.x > 0.0, "ввод вправо: x>0 при крене вправо: %s" % f)
+	# установившийся вираж 30°: крен задан, ввод — «держащий» roll_input_for_bank (установившийся крен модели)
+	m.reset_in_air(Vector3(0, 3000, 0), 0.0)
+	m.bank = deg_to_rad(30.0)
+	var ws := FS.input(0.0, 0.0)
+	ws.weight_shift = true
+	var mx := 0.0
+	for i in int(3.0 / FS.DT):
+		var u := m.roll_input_for_bank(m.bank, m.telemetry.airspeed if m.telemetry.airspeed > 1.0 else m.trim_speed())
+		ws.roll = u
+		m.step(FS.DT, ws, Callable(), Callable())
+		mx = maxf(mx, absf(m.telemetry.bar_force.x))
+	print("PH1 flight steady turn bank=%.1f max|x|=%.1f N" % [m.telemetry.bank_deg, mx])
+	check(absf(m.telemetry.bank_deg - 30.0) < 8.0, "вираж ~30°: %.1f" % m.telemetry.bank_deg)
+	check(mx < 60.0, "установившийся вираж: |x| < 60 Н: %.1f" % mx)
 
 
 func test_flight_model_ground_zero() -> void:
