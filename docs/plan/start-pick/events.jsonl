@@ -9,3 +9,5 @@
 {"t": "2026-10-12T06:07:27", "by": "executor", "task": "SP-4", "ev": "reported", "commits": ["c3746d52"], "note": "done: Центры отступа камней и кустов — Terrain.get_start_clearings(), радиус не меньше start_search.runway_m (40 м); кеш камн…", "dp_feedback": "dp report требует в checks имена проверок accept (test_start_pick_contracts, shrub, rock, test_start_clearing, gd); ошибка не говорит, что формат — checks[].name; dp accept их не подставляет сам."}
 {"t": "2026-10-12T06:08:03", "by": "executor", "task": "SP-4", "ev": "checked", "note": "5/5 test_start_pick_contracts=ok:2/2; shrub=ok:5/5; rock=ok:4/4; test_start_clearing=ok:3/3; gd=ok:exit 0"}
 {"t": "2026-10-12T06:08:07", "by": "coordinator", "task": "SP-4", "ev": "accepted", "note": "по отчёту: 5/5 PASS, узкая правка отступа с тестом, uncertain нет"}
+{"t": "2026-10-12T06:08:31", "by": "coordinator", "task": "SP-4", "ev": "accepted", "commits": ["bb63c521"], "note": "5/5 test_start_pick_contracts=ok:2/2; shrub=ok:5/5; rock=ok:4/4; test_start_clearing=ok:3/3; gd=ok:exit 0"}
+{"t": "2026-10-12T06:08:31", "by": "coordinator", "task": "SP-4", "ev": "merged", "commits": ["bb63c521"]}
