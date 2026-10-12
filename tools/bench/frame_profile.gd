@@ -25,7 +25,7 @@ const AIR_MAX_S := 40.0
 const ALL_EXPS := [
 	"base", "scale50", "scale75", "nomsaa", "noshadow", "shadow1k", "noglow", "nocloudfx",
 	"noclouds", "notrees", "notreeshadow", "noimpostors", "nograss", "noscatter", "noobjects",
-	"nohaze", "noterrain", "cloudres33", "cloudres25", "cloudit64", "cloudlight3", "clouddetail0",
+	"nohaze", "noterrain", "noerosion", "cloudres33", "cloudres25", "cloudit64", "cloudlight3", "clouddetail0",
 	"base2"
 ]
 ## Опыты облаков: [свойство эффекта или ключ params, значение].
@@ -312,6 +312,12 @@ func _apply(e: String) -> void:
 			for n in _nodes_by_script_dir(_main, "res://scripts/world_objects/"):
 				if n is Node3D:
 					_ovr(n, "visible", false)
+		"noerosion":
+			# промоины в нормалях рельефа (terrain.gdshader → erosion_enabled)
+			for n in _nodes_of_classes(_main, ["TerrainRenderer"]):
+				for m: ShaderMaterial in n.call("materials"):
+					_restore.append([m, "shader_parameter/erosion_enabled", true])
+					m.set_shader_parameter("erosion_enabled", false)
 		"nohaze":
 			for g in _all_of(_main, "GeometryInstance3D"):
 				if _uses_shader(g as GeometryInstance3D, "haze"):

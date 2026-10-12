@@ -3,19 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bsxdaxt37cfpw"
-path="res://.godot/imported/trees_impostor_atlas.png-210584efc5161daa1099780a0af56032.ctex"
+path.s3tc="res://.godot/imported/trees_impostor_atlas.png-210584efc5161daa1099780a0af56032.s3tc.ctex"
+path.etc2="res://.godot/imported/trees_impostor_atlas.png-210584efc5161daa1099780a0af56032.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/models/trees/trees_impostor_atlas.png"
-dest_files=["res://.godot/imported/trees_impostor_atlas.png-210584efc5161daa1099780a0af56032.ctex"]
+dest_files=["res://.godot/imported/trees_impostor_atlas.png-210584efc5161daa1099780a0af56032.s3tc.ctex", "res://.godot/imported/trees_impostor_atlas.png-210584efc5161daa1099780a0af56032.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0
@@ -23,7 +25,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

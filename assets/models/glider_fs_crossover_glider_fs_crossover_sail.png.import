@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bsm5a5qxvflq6"
-path="res://.godot/imported/glider_fs_crossover_glider_fs_crossover_sail.png-a657367553a82700f37b074bf0c351d0.ctex"
+path.bptc="res://.godot/imported/glider_fs_crossover_glider_fs_crossover_sail.png-a657367553a82700f37b074bf0c351d0.bptc.ctex"
+path.astc="res://.godot/imported/glider_fs_crossover_glider_fs_crossover_sail.png-a657367553a82700f37b074bf0c351d0.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "903d9bef7ea3305d521ab0a1a060cf59"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_fs_crossover_glider_fs_crossover_sail.png"
-dest_files=["res://.godot/imported/glider_fs_crossover_glider_fs_crossover_sail.png-a657367553a82700f37b074bf0c351d0.ctex"]
+dest_files=["res://.godot/imported/glider_fs_crossover_glider_fs_crossover_sail.png-a657367553a82700f37b074bf0c351d0.bptc.ctex", "res://.godot/imported/glider_fs_crossover_glider_fs_crossover_sail.png-a657367553a82700f37b074bf0c351d0.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

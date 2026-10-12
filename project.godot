@@ -66,7 +66,9 @@ common/physics_ticks_per_second=120
 common/max_physics_steps_per_frame=16
 
 [rendering]
+textures/vram_compression/import_s3tc_bptc=true
 textures/vram_compression/import_etc2_astc=true
+textures/default_filters/anisotropic_filtering_level=4
 
 renderer/rendering_method="forward_plus"
 lights_and_shadows/directional_shadow/size=4096

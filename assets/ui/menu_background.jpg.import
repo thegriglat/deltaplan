@@ -3,20 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dalelpvud1sku"
-path="res://.godot/imported/menu_background.jpg-b94a40abde299301004c4f775f7f455c.ctex"
+path.bptc="res://.godot/imported/menu_background.jpg-b94a40abde299301004c4f775f7f455c.bptc.ctex"
+path.astc="res://.godot/imported/menu_background.jpg-b94a40abde299301004c4f775f7f455c.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/ui/menu_background.jpg"
-dest_files=["res://.godot/imported/menu_background.jpg-b94a40abde299301004c4f775f7f455c.ctex"]
+dest_files=["res://.godot/imported/menu_background.jpg-b94a40abde299301004c4f775f7f455c.bptc.ctex", "res://.godot/imported/menu_background.jpg-b94a40abde299301004c4f775f7f455c.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
@@ -36,5 +38,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=2560
 detect_3d/compress_to=1

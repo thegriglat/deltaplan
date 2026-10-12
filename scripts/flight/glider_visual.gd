@@ -117,6 +117,8 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	var sail := wing.find_child("Sail", true, false) as MeshInstance3D
 	if sail != null and wpath != "" and ResourceLoader.exists(wpath):
 		sail_material = SailMaterial.apply(sail, wpath.get_file().get_basename())
+	if wpath != "" and ResourceLoader.exists(wpath):
+		FrameMetal.apply(wing, _cfg.get("metal", {}))
 	for mname in WING_MARKERS:
 		if wing.find_child(mname, true, false) == null:
 			push_warning("GliderVisual: в модели %s нет ноды %s" % [wpath, mname])
@@ -133,6 +135,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	if pm == null:
 		pm = _fallback_pilot()
 	pm.name = "Model"
+	PilotLook.apply(pm, vis_cfg.get("pilot_look", {}))
 	pilot.add_child(pm)
 	_head = pm.find_child("Head", true, false) as Node3D
 	_animated_stand = false
@@ -143,6 +146,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	_build_arms(pm)
 	_fit_neutral_pose()
 	_build_strap(pm)
+	GloveLeather.apply(pm.find_child("PilotBody", true, false) as MeshInstance3D)
 	if _head == null:
 		push_warning("GliderVisual: в модели %s нет ноды Head" % ppath)
 	head_marker = Marker3D.new()

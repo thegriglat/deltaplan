@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cnr8o5pmh1kt8"
-path="res://.godot/imported/glider_aeros_fox_glider_aeros_fox_sail.png-f582419b656cae414f8a0bcc856d5131.ctex"
+path.bptc="res://.godot/imported/glider_aeros_fox_glider_aeros_fox_sail.png-f582419b656cae414f8a0bcc856d5131.bptc.ctex"
+path.astc="res://.godot/imported/glider_aeros_fox_glider_aeros_fox_sail.png-f582419b656cae414f8a0bcc856d5131.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "05af7bce35244a9527a08bebee006ba2"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_aeros_fox_glider_aeros_fox_sail.png"
-dest_files=["res://.godot/imported/glider_aeros_fox_glider_aeros_fox_sail.png-f582419b656cae414f8a0bcc856d5131.ctex"]
+dest_files=["res://.godot/imported/glider_aeros_fox_glider_aeros_fox_sail.png-f582419b656cae414f8a0bcc856d5131.bptc.ctex", "res://.godot/imported/glider_aeros_fox_glider_aeros_fox_sail.png-f582419b656cae414f8a0bcc856d5131.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

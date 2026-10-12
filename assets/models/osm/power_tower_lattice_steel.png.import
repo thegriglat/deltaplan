@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://6v4qj54hsg5a"
-path="res://.godot/imported/power_tower_lattice_steel.png-f5ad1af068f30d4aa2a87f12bc56576a.ctex"
+path.s3tc="res://.godot/imported/power_tower_lattice_steel.png-f5ad1af068f30d4aa2a87f12bc56576a.s3tc.ctex"
+path.etc2="res://.godot/imported/power_tower_lattice_steel.png-f5ad1af068f30d4aa2a87f12bc56576a.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "4ebf1c0f0d751e1dc0f6d9bef69c6603"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/osm/power_tower_lattice_steel.png"
-dest_files=["res://.godot/imported/power_tower_lattice_steel.png-f5ad1af068f30d4aa2a87f12bc56576a.ctex"]
+dest_files=["res://.godot/imported/power_tower_lattice_steel.png-f5ad1af068f30d4aa2a87f12bc56576a.s3tc.ctex", "res://.godot/imported/power_tower_lattice_steel.png-f5ad1af068f30d4aa2a87f12bc56576a.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

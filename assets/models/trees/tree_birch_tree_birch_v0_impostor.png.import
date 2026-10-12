@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://r4ayk14u5g3l"
-path="res://.godot/imported/tree_birch_tree_birch_v0_impostor.png-7ac32fb36a32e1fb80c07cfffdf3a167.ctex"
+path.s3tc="res://.godot/imported/tree_birch_tree_birch_v0_impostor.png-7ac32fb36a32e1fb80c07cfffdf3a167.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_birch_tree_birch_v0_impostor.png-7ac32fb36a32e1fb80c07cfffdf3a167.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "8d448810a5c3e060823e21a2148f2deb"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_birch_tree_birch_v0_impostor.png"
-dest_files=["res://.godot/imported/tree_birch_tree_birch_v0_impostor.png-7ac32fb36a32e1fb80c07cfffdf3a167.ctex"]
+dest_files=["res://.godot/imported/tree_birch_tree_birch_v0_impostor.png-7ac32fb36a32e1fb80c07cfffdf3a167.s3tc.ctex", "res://.godot/imported/tree_birch_tree_birch_v0_impostor.png-7ac32fb36a32e1fb80c07cfffdf3a167.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0

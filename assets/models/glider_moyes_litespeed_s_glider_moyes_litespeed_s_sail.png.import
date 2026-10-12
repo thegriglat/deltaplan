@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://sel2lti8siq"
-path="res://.godot/imported/glider_moyes_litespeed_s_glider_moyes_litespeed_s_sail.png-f023b31bcc79e47e5c085a2d858806d2.ctex"
+path.bptc="res://.godot/imported/glider_moyes_litespeed_s_glider_moyes_litespeed_s_sail.png-f023b31bcc79e47e5c085a2d858806d2.bptc.ctex"
+path.astc="res://.godot/imported/glider_moyes_litespeed_s_glider_moyes_litespeed_s_sail.png-f023b31bcc79e47e5c085a2d858806d2.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "d9133879be1fd1128abd10223b45f7c0"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_moyes_litespeed_s_glider_moyes_litespeed_s_sail.png"
-dest_files=["res://.godot/imported/glider_moyes_litespeed_s_glider_moyes_litespeed_s_sail.png-f023b31bcc79e47e5c085a2d858806d2.ctex"]
+dest_files=["res://.godot/imported/glider_moyes_litespeed_s_glider_moyes_litespeed_s_sail.png-f023b31bcc79e47e5c085a2d858806d2.bptc.ctex", "res://.godot/imported/glider_moyes_litespeed_s_glider_moyes_litespeed_s_sail.png-f023b31bcc79e47e5c085a2d858806d2.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

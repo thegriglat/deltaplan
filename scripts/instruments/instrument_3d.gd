@@ -48,6 +48,9 @@ func _load_model(m: Dictionary) -> bool:
 	add_child(model)
 	screen.material_override = _screen_mat
 	screen_mesh = screen
+	var all_cfg: Dictionary = Config.get_config("instruments")
+	InstrumentWear.apply(model, screen, all_cfg)
+	InstrumentWear.apply_glass(_screen_mat, all_cfg)
 	return true
 
 

@@ -11,7 +11,17 @@ render_mode cull_disabled;
 uniform float depth_bias_m = 0.3;
 uniform float depth_pull = 0.004;
 uniform float roughness : hint_range(0.0, 1.0) = 0.93;
-uniform float edge_darken = 0.2;
+uniform float edge_darken = 0.0;
+// Край асфальта: растушёвка (дизеринг-альфа с шумом по миру), светлая пыльная обочина вместо тёмной кромки.
+uniform float edge_feather_m = 1.2;
+uniform float shoulder_w_m = 0.9;
+uniform vec3 shoulder_color : source_color = vec3(0.45, 0.40, 0.33);
+uniform float shoulder_amt = 0.45;
+// Вдали лента теряет контраст и насыщенность и подтягивается к цвету обочины (средний план без резкой полосы).
+uniform float far_fade_start_m = 1000.0;
+uniform float far_fade_end_m = 4000.0;
+uniform float far_desat = 0.5;
+uniform float far_tint = 0.3;
 // Асфальт: размах шума (доля яркости), пятна ремонта, мелкая «крупа».
 uniform float noise_amp = 0.12;
 uniform float patch_amp = 0.10;
@@ -130,6 +140,18 @@ void fragment() {
 		c = mix(c, mark_color, clamp(m * wear, 0.0, 1.0));
 	}
 	c *= 1.0 - edge_darken * smoothstep(0.6, 1.0, e);
+	float far = smoothstep(far_fade_start_m, far_fade_end_m, view_dist);
+	if (style < 3.5) {
+		float edge_m = (1.0 - e) * width * 0.5;  // м до края ленты
+		float fw = min(edge_feather_m, width * 0.3);
+		float en = (vnoise(lp / 0.9) - 0.5) * fw * 0.8;
+		alpha = smoothstep(0.0, fw, edge_m + en);
+		float sh = 1.0 - smoothstep(0.0, shoulder_w_m + fw, edge_m);
+		c = mix(c, shoulder_color, shoulder_amt * sh * (0.7 + 0.6 * vnoise(lp / 2.0)));
+	}
+	float lum = dot(c, vec3(0.299, 0.587, 0.114));
+	c = mix(c, vec3(lum), far * far_desat);
+	c = mix(c, shoulder_color, far * far_tint);
 	if (alpha < 0.999 && alpha < hash12(FRAGCOORD.xy)) {
 		discard;
 	}

@@ -17,7 +17,7 @@ USER_DIR = "~/.cache/deltaplan/blender_user"
 MACRO = {"gender": 1.0, "age": 0.538, "muscle": 0.6, "weight": 0.55, "height": 0.545,
          "proportions": 0.5}
 FINGERS = ("index", "middle", "ring", "pinky")
-MIN_CLEAR = 0.0192     # ни одна вершина кисти не ближе к оси трубы (стойка r 0,019)
+MIN_CLEAR = 0.0190     # ни одна вершина кисти не ближе к оси трубы (штанга с накладкой r 0,0175)
 
 
 def require_mpfb():
@@ -240,6 +240,33 @@ def _wrist_fix(rig, s: str, c: Vector, a: Vector) -> tuple:
     return ra, t2
 
 
+def _smooth(x0: float, x1: float, x: float) -> float:
+    t = min(max((x - x0) / (x1 - x0), 0.0), 1.0)
+    return t * t * (3 - 2 * t)
+
+
+def _wear(h, me, rig, s: str, c: Vector, a: Vector) -> dict:
+    """{индекс вершины: (ладонь, костяшки)} для кисти s: ладонь/пальцы, что трутся о трубу
+    (близко к оси хвата), и самые дальние от трубы места пальцев — костяшки."""
+    names = _groups(h)
+    out = {}
+    for v in me.vertices:
+        gs = [g for g in v.groups if names.get(g.group) in rig.data.bones]
+        if not gs:
+            continue
+        nm = names[max(gs, key=lambda g: g.weight).group]
+        if not nm.endswith("_" + s) or nm.startswith(("lowerarm", "upperarm", "clav")):
+            continue
+        d = v.co - c
+        r = (d - a * d.dot(a)).length
+        palm = _smooth(0.034, 0.022, r)
+        kn = 0.0
+        if nm.split("_")[0] in FINGERS and nm.split("_")[1] in ("01", "02"):
+            kn = _smooth(0.033, 0.040, r)
+        out[v.index] = (palm, kn)
+    return out
+
+
 def make_fists(h, rig, grip_r: float) -> dict:
     """Кулаки обеих рук (поза рига). {s: (ось трубы, HAND, зазор)}. Толщины фаланг меряются по
     мешу; если вершины кисти ближе MIN_CLEAR к оси трубы — виноватые звенья отодвигаются."""
@@ -247,6 +274,7 @@ def make_fists(h, rig, grip_r: float) -> dict:
     verts = _dominant(h, me, rig)
     bpy.data.meshes.remove(me)
     out = {}
+    wear = {}
     for s in ("l", "r"):
         th = palm_thickness(rig, verts, s)
         for it in range(6):
@@ -257,6 +285,7 @@ def make_fists(h, rig, grip_r: float) -> dict:
             c, a = pose_fist(rig, s, grip_r, th)
             me = evaluated_mesh(h)
             worst = {}
+            wear_s = _wear(h, me, rig, s, c, a)
             for co, nm in _dominant(h, me, rig):
                 if not nm.endswith("_" + s) or nm.startswith(("lowerarm", "upperarm", "clav")):
                     continue
@@ -272,8 +301,12 @@ def make_fists(h, rig, grip_r: float) -> dict:
                 break
             for k, v in bad.items():
                 th[k] = th.get(k, 0.0) + (MIN_CLEAR - v) + 0.0005
+        wear.update(wear_s)
         a2, hand = _wrist_fix(rig, s, c, a)
         out[s] = (a2, hand, clr)
+    uv2 = h.data.uv_layers.new(name="UV2")      # (потёртость ладони у трубы, глянец костяшек)
+    for lp in h.data.loops:
+        uv2.data[lp.index].uv = wear.get(lp.vertex_index, (0.0, 0.0))
     return out
 
 

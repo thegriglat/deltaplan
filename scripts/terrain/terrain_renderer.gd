@@ -239,6 +239,11 @@ func _make_material(
 	var tex := layer.make_texture()
 	height_textures.append(tex)
 	m.set_shader_parameter("height_tex", tex)
+	# та же текстура с мипмапами и линейной фильтрацией — нормаль во фрагментном шейдере
+	m.set_shader_parameter("height_mip_tex", tex)
+	m.set_shader_parameter(
+		"height_mip_max_lod", floorf(log(float(maxi(layer.width, layer.height))) / log(2.0))
+	)
 	m.set_shader_parameter("layer_origin", Vector2(layer.origin_x, layer.origin_z))
 	m.set_shader_parameter("layer_spacing", layer.spacing)
 	m.set_shader_parameter("layer_texels", Vector2(layer.width, layer.height))

@@ -8,7 +8,7 @@ extends Node3D
 
 ## Вид: смещение камеры от правой кисти в осях визуала (+X вправо, +Y вверх, −Z вперёд).
 const VIEWS := {
-	"prone": {"back": Vector3(0.3, 0.4, 0.6), "side": Vector3(0.65, 0.05, -0.3)},
+	"prone": {"fpv": Vector3(-0.2, 0.13, 0.35), "top": Vector3(0.1, 0.35, 0.12), "side": Vector3(0.65, 0.05, -0.3)},
 	"stand": {"back": Vector3(0.4, 0.25, 0.6), "side": Vector3(0.6, 0.0, -0.5)},
 }
 

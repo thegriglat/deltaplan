@@ -24,6 +24,7 @@ func build(data: OsmData, cfg: Dictionary, height_fn: Callable, obstacles: Obsta
 		["Cabins", OsmCableCars.build(data, cfg, height_fn, obstacles)],
 		["Traffic", OsmTraffic.build(data, cfg, height_fn, obstacles)],
 		["Buildings", OsmBuildings.build(data, cfg, height_fn, building_obstacles)],
+		["CityTrees", CityTrees.build(data, cfg, height_fn)],
 	]
 	var made := 0
 	for p: Array in parts:

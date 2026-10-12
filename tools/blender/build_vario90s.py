@@ -72,9 +72,10 @@ def main() -> None:
     mb = U.MeshBuilder()
     case(mb)
     clamp(mb)
+    U.bake_wear(mb, zone_mats=("Button", "Key"))   # R износ рёбер, G грязь (AO), B зона кнопок
     mb.build("Body", mats)
     U.screen_quad((DIAL, DIAL), Y0 + D + 0.001, LIFT + DIAL_UP, circle_seg=32).build("Screen", mats)
-    U.export("vario_90s")
+    U.export("vario_90s", vertex_color="ACTIVE")
 
 
 if __name__ == "__main__":

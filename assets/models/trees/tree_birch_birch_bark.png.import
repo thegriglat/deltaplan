@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwh1euijmiidn"
-path="res://.godot/imported/tree_birch_birch_bark.png-575c3b0103d7d97251574ee6cd82c10f.ctex"
+path.s3tc="res://.godot/imported/tree_birch_birch_bark.png-575c3b0103d7d97251574ee6cd82c10f.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_birch_birch_bark.png-575c3b0103d7d97251574ee6cd82c10f.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "02b3b8cea7c7f6289abd3e4d3cb6ddd2"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_birch_birch_bark.png"
-dest_files=["res://.godot/imported/tree_birch_birch_bark.png-575c3b0103d7d97251574ee6cd82c10f.ctex"]
+dest_files=["res://.godot/imported/tree_birch_birch_bark.png-575c3b0103d7d97251574ee6cd82c10f.s3tc.ctex", "res://.godot/imported/tree_birch_birch_bark.png-575c3b0103d7d97251574ee6cd82c10f.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0
