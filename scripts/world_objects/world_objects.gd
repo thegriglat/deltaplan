@@ -287,6 +287,10 @@ func _build_villages(patches: BuiltPatches, height_fn: Callable) -> void:
 	village_layer.name = "Villages"
 	add_child(village_layer)
 	village_layer.build(houses, cfg, height_fn)
+	var gardens := CityTrees.build_gardens(houses, cfg, height_fn)
+	if gardens != null:
+		gardens.name = "Gardens"
+		village_layer.add_child(gardens)
 
 
 ## Окружение для TentCamp.plan: рельеф, запреты (лес/вода/застройка), линии (тропы), точки (камни, кусты).

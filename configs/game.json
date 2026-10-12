@@ -153,6 +153,7 @@
     "low": {
       "name": "gfx_low",
       "configs": {
+        "world_objects": {"city_trees": {"density_mult": 0.35, "radius_m": 400, "cast_shadows": false}},
         "vegetation": {"grass": {"density_pct": 0}},
         "atmosphere": {
           "clouds": {
@@ -187,6 +188,7 @@
     "medium": {
       "name": "gfx_medium",
       "configs": {
+        "world_objects": {"city_trees": {"density_mult": 0.7, "radius_m": 700, "cast_shadows": false}},
         "vegetation": {"grass": {"density_pct": 100}},
         "atmosphere": {
           "clouds": {
@@ -216,6 +218,7 @@
     "high": {
       "name": "gfx_high",
       "configs": {
+        "world_objects": {"city_trees": {"density_mult": 1.0, "radius_m": 1100, "cast_shadows": true}},
         "vegetation": {"grass": {"density_pct": 150}},
         "atmosphere": {
           "clouds": {
