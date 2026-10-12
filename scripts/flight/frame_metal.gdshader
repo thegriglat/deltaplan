@@ -22,6 +22,7 @@ uniform vec3 grip_l = vec3(0.0, 1.0e4, 0.0); // точки хвата в ося�
 uniform vec3 grip_r = vec3(0.0, 1.0e4, 0.0);
 uniform float grip_radius = 0.14;   // зона хвата, м
 uniform float grip_rough_k = 0.45;  // в зоне хвата шероховатость × это
+uniform float rough_min = 0.2;      // нижний предел: реальный металл рамы не зеркало (иначе блик солнца — HDR-лампа с ореолом)
 uniform float fade_near = 3.0;      // детали полностью до, м
 uniform float fade_far = 14.0;      // и нет совсем после
 
@@ -48,10 +49,12 @@ float vnoise(vec3 x) {
 void vertex() {
 	mpos = VERTEX;
 	mtan = COLOR.rgb * 2.0 - 1.0;
-	if (brush > 0.0) {
-		TANGENT = normalize((MODELVIEW_NORMAL_MATRIX * mtan));
-		BINORMAL = normalize(cross(NORMAL, TANGENT));
-	}
+	// Шейдер пишет ANISOTROPY, значит TANGENT/BINORMAL нужны всегда: у мешей без касательных (steel, fitting)
+	// они нулевые → NaN в блике (0 × NaN) → белая «лампа» с ореолом. Без оси — любая ортогональная нормали пара.
+	vec3 t_obj = brush > 0.0 ? mtan : cross(NORMAL, abs(NORMAL.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0));
+	t_obj = t_obj - NORMAL * dot(t_obj, NORMAL);
+	TANGENT = normalize(MODELVIEW_NORMAL_MATRIX * (dot(t_obj, t_obj) > 1.0e-8 ? t_obj : vec3(1.0, 0.0, 0.0)));
+	BINORMAL = normalize(cross(NORMAL, TANGENT));
 }
 
 void fragment() {
@@ -91,7 +94,7 @@ void fragment() {
 	col = mix(col, col * 1.06, g);
 
 	ALBEDO = clamp(col, 0.0, 1.0);
-	ROUGHNESS = clamp(rough, 0.05, 1.0);
+	ROUGHNESS = clamp(rough, rough_min, 1.0);
 	METALLIC = base_metal;
 	SPECULAR = 0.5;
 	ANISOTROPY = aniso_k * (1.0 - g);
