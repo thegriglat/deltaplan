@@ -5,7 +5,7 @@ extends TestCase
 
 const DOC := "res://docs/contracts/pilot-hud.md"
 const VERSIONS := {
-	"PH-К1": 1, "PH-К2": 1, "PH-К3": 1, "PH-К4": 1, "PH-К5": 1, "PH-К6": 1, "PH-К7": 1,
+	"PH-К1": 1, "PH-К2": 1, "PH-К3": 2, "PH-К4": 1, "PH-К5": 1, "PH-К6": 1, "PH-К7": 1,
 }
 
 
