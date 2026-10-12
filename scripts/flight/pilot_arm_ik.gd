@@ -5,8 +5,8 @@ extends SkeletonModifier3D
 ## после AnimationPlayer в том же обновлении скелета, поэтому пустышки HandL/HandR
 ## (BoneAttachment3D) уже видят исправленную позу.
 ##
-## Кисть с предплечьем — одно жёсткое звено (запястье не гнётся, как в анимации): звено 1 —
-## UpperArm (плечо → локоть), звено 2 — Forearm (локоть → пустышка хвата HandL/HandR).
+## Звено 1 — UpperArm (плечо → локоть), звено 2 — Forearm (локоть → запястье, а до включения
+## hand_w — до пустышки хвата HandL/HandR: кисть с предплечьем жёсткие, как в анимации).
 ## Цели задаёт GliderVisual (set_targets) в координатах своей ноды; полюс локтя — в тех же осях.
 ## Нет нужных костей — модификатор ничего не делает.
 
@@ -25,11 +25,13 @@ var target_r := Vector3.ZERO
 ## Куда смотрит локоть (направление в осях frame_node) для левой/правой руки.
 var pole_l := Vector3(-1, -1, 0)
 var pole_r := Vector3(1, -1, 0)
-## Касательная базовой штанги в точке хвата (оси frame_node, ненулевая — включена) и доля, с которой
-## кулак поворачивается вдоль неё (0 — рука на стойке, 1 — на штанге). Ось кулака — X кости кисти.
-var tangent_l := Vector3.ZERO
-var tangent_r := Vector3.ZERO
-var tangent_w := 0.0
+## Ориентация кисти в осях frame_node (базис кости кисти: X — ось кулака вдоль штанги) и доля, с
+## которой кисть принимает её вместо поворота вслед за предплечьем (0 — рука на стойке, как в
+## анимации; 1 — рука на штанге: кисть неподвижна относительно штанги, запястье не гнётся от позы
+## пилота; хват достаётся смещением запястья и поворотом предплечья).
+var hand_basis_l := Basis.IDENTITY
+var hand_basis_r := Basis.IDENTITY
+var hand_w := 0.0
 ## Плечо может выдвинуться к цели (лопатка) не больше чем на столько, м.
 var shoulder_reach := 0.07
 
@@ -92,6 +94,19 @@ func arm_lengths() -> Vector2:
 	)
 
 
+## Длина предплечья (локоть → запястье), м, и точка хвата в осях кости кисти: на штанге IK ставит
+## в цель запястье = хват − базис кисти · точка хвата, предплечье — звено локоть → запястье.
+func forearm_length() -> float:
+	var sk := get_skeleton()
+	if sk == null or _arms.is_empty():
+		return 0.0
+	return sk.get_bone_rest(_arms[0].hand).origin.length()
+
+
+func grip_local(side: int) -> Vector3:
+	return _arms[side].grip if side < _arms.size() else Vector3.ZERO
+
+
 ## Есть ли кости рук (setup прошёл).
 func ready_to_solve() -> bool:
 	return _arms.size() == 2
@@ -104,10 +119,10 @@ func _process_modification_with_delta(_delta: float) -> void:
 	# цели: оси визуала → оси скелета
 	var to_sk := sk.global_transform.affine_inverse() * frame_node.global_transform
 	var reach := shoulder_reach
-	var tl_ := (to_sk.basis * tangent_l).normalized() if tangent_w > 0.0 else Vector3.ZERO
-	var tr_ := (to_sk.basis * tangent_r).normalized() if tangent_w > 0.0 else Vector3.ZERO
-	_solve(sk, _arms[0], to_sk * target_l, (to_sk.basis * pole_l).normalized(), reach, tl_)
-	_solve(sk, _arms[1], to_sk * target_r, (to_sk.basis * pole_r).normalized(), reach, tr_)
+	var hl := (to_sk.basis * hand_basis_l).orthonormalized()
+	var hr := (to_sk.basis * hand_basis_r).orthonormalized()
+	_solve(sk, _arms[0], to_sk * target_l, (to_sk.basis * pole_l).normalized(), reach, hl)
+	_solve(sk, _arms[1], to_sk * target_r, (to_sk.basis * pole_r).normalized(), reach, hr)
 
 
 ## Плечо и локоть, посчитанные IK в последнем кадре, в осях скелета: [плечо, локоть]
@@ -128,7 +143,7 @@ func grip_point(side: int) -> Vector3:
 
 
 func _solve(
-	sk: Skeleton3D, a: Dictionary, target: Vector3, pole: Vector3, reach: float, tangent: Vector3
+	sk: Skeleton3D, a: Dictionary, target: Vector3, pole: Vector3, reach: float, hand_b: Basis
 ) -> void:
 	var up_i: int = a.upper
 	var fo_i: int = a.fore
@@ -137,18 +152,26 @@ func _solve(
 	var h := sk.get_bone_global_pose(a.hand)
 	var s := u.origin  # плечо
 	var e := f.origin  # локоть
-	var g := h * (a.grip as Vector3)  # хват сейчас
+	# кисть неподвижна (hand_w > 0): запястье встаёт в цель минус вынос хвата при заданной ориентации
+	var fixed := hand_w > 0.001
+	var tip: Vector3 = Vector3.ZERO if fixed else a.grip
+	if fixed:
+		var grip: Vector3 = a.grip
+		target -= (h.basis * grip).lerp(hand_b * grip, hand_w)
+	var g := h * tip  # конец цепи сейчас
 	var la := s.distance_to(e)
 	var lb := e.distance_to(g)
 	if la < 1e-4 or lb < 1e-4:
 		return
 	# не достаёт — плечо (лопатка) выдвигается к цели
+	var shift := Vector3.ZERO
 	var over := s.distance_to(target) - (la + lb - 1e-3)
 	if over > 0.0:
 		var sh := (target - s).normalized() * minf(over, reach)
 		s += sh
 		e += sh
 		g += sh
+		shift = sh
 		u.origin = s
 		f.origin = e
 	var to_t := target - s
@@ -168,27 +191,16 @@ func _solve(
 	var u2 := Transform3D(q1 * u.basis, s)
 	var f1 := u2 * u.affine_inverse() * f  # предплечье едет за плечом
 	var g1 := f1 * f.affine_inverse() * g
-	# предплечье: повернуть вокруг локтя, чтобы хват встал в цель
+	# предплечье: повернуть вокруг локтя, чтобы конец цепи встал в цель
 	var q2 := _arc(g1 - f1.origin, s + n * d - f1.origin)
 	var f2 := Transform3D(q2 * f1.basis, f1.origin)
 	a.solved = [s, e2] as Array[Vector3]
 	sk.set_bone_global_pose(up_i, u2)
 	sk.set_bone_global_pose(fo_i, f2)
-	if tangent != Vector3.ZERO:
-		_align_fist(sk, a, tangent)
-
-
-## Кулак вдоль трубы: кисть поворачивается вокруг точки хвата так,
-## чтобы ось кулака (X кости кисти) легла на касательную штанги (знак — ближайший к текущей оси).
-func _align_fist(sk: Skeleton3D, a: Dictionary, tangent: Vector3) -> void:
-	var h := sk.get_bone_global_pose(a.hand)  # уже едет за предплечьем
-	var g := h * (a.grip as Vector3)
-	var ax := h.basis.x.normalized()
-	var t := tangent if ax.dot(tangent) >= 0.0 else -tangent
-	var q := _arc(ax, t)
-	if tangent_w < 1.0:
-		q = Basis(Quaternion.IDENTITY.slerp(q.get_rotation_quaternion(), tangent_w))
-	sk.set_bone_global_pose(a.hand, Transform3D(q * h.basis, g + q * (h.origin - g)))
+	if fixed:
+		var h2 := f2 * f.affine_inverse() * Transform3D(h.basis, h.origin + shift)
+		var q := Quaternion(h2.basis.orthonormalized()).slerp(Quaternion(hand_b), hand_w)
+		sk.set_bone_global_pose(a.hand, Transform3D(Basis(q), h2.origin))
 
 
 ## Кратчайший поворот от a к b.

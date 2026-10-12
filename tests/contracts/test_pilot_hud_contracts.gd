@@ -239,8 +239,8 @@ func test_ph_k4_watch_dimensions() -> void:
 	check(dial.size.x >= 0.030 and dial.size.y >= 0.030, "Ø циферблата %.1f мм" % (dial.size.x * 1000))
 	check(dial.size.z < 1e-4 and dial.position.z < 0, "циферблат плоский, смотрит в −Z")
 	var strap := _watch_aabb(root, "Strap")
-	var w := 0.054
-	var h := 0.052
+	var w := 0.062
+	var h := 0.046
 	var gap := 0.001
 	# ширина вдоль руки 20 мм; охват эллипса W×H с зазором ≥ 1 мм, но не дальше 5 мм
 	check(strap.size.y >= 0.0199 and strap.size.y <= 0.0245, "ширина ремешка 20 мм (с пряжкой до 24) %.1f мм" % (strap.size.y * 1000))
@@ -324,7 +324,7 @@ func test_ph_k4_compass_nodes_and_axes() -> void:
 	var case_a := _mi(r, "Case").get_aabb()
 	check(absf(case_a.size.x * 1000.0 - 46.0) <= 3.0, "корпус Ø 46 ± 3: %.1f" % (case_a.size.x * 1000.0))
 	check(-case_a.position.z * 1000.0 <= 16.0 and case_a.position.z < 0.0, "корпус наружу (−Z), высота ≤ 16 мм")
-	check(case_a.end.z >= 0.0 and case_a.end.z < 0.014, "юбка корпуса садится на рукав (до 14 мм вглубь: при сечении 54×52 юбка у края глубже)")
+	check(case_a.end.z >= 0.0 and case_a.end.z < 0.014, "юбка корпуса садится на рукав (до 14 мм вглубь: при сечении 62×46 юбка у края глубже)")
 	var card := _mi(r, "Card")
 	check(card.get_aabb().size.x >= 0.034, "картушка Ø ≥ 34 мм")
 	for n in ["Card", "Lubber"]:

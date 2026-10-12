@@ -356,3 +356,39 @@ func _check_elbows(v: GliderVisual, what: String, prone: bool) -> void:
 		else:
 			check(elbow.x * side > mid.x * side, "%s рука %d: локоть наружу" % [what, side])
 			check(elbow.y < mid.y, "%s рука %d: локоть вниз" % [what, side])
+
+
+## Кисть на штанге неподвижна относительно штанги: ориентация кости кисти (оси крыла) не зависит от
+## крена/тангажа пилота, ось кулака (X) идёт по касательной штанги, хват остаётся на оси.
+func test_hand_static_on_bar() -> void:
+	for wing in WINGS:
+		var v := _visual(wing)
+		var ap := _player(v)
+		if v.arm_ik == null or ap == null:
+			v.free()
+			continue
+		ap.play("prone", 0.0)
+		ap.advance(0.5)
+		v.set_pose(0.0, 0.0, true, 1.0e6)
+		await _frames(4)
+		for side in [-1, 1]:
+			var ref := Basis()
+			var worst := 0.0
+			var first := true
+			for roll in [-1.0, 0.0, 1.0]:
+				for pitch in [-1.0, 0.0, 1.0]:
+					v.set_pose(roll, pitch, true, 1.0e6)
+					await _frames(4)
+					var hand := v.find_child("HandL" if side < 0 else "HandR", true, false) as Node3D
+					var bone := hand.global_transform.basis * hand.transform.basis.inverse()
+					var b := (v.global_basis.inverse() * bone).orthonormalized()
+					if first:
+						ref = b
+						first = false
+					worst = maxf(worst, (b * ref.inverse()).get_rotation_quaternion().get_angle())
+					check(
+						absf(b.x.dot(v.bar_tangent(side))) > 0.999,
+						"%s рука %d: кулак вдоль штанги" % [wing, side]
+					)
+			check(rad_to_deg(worst) < 0.5, "%s рука %d: кисть неподвижна, разброс %.2f°" % [wing, side, rad_to_deg(worst)])
+		v.free()

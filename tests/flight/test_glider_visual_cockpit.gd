@@ -13,7 +13,7 @@ func check(cond: bool, msg: String = "") -> void:
 func test_glider_visual_cockpit_materials() -> void:
 	var v := _build("sport")
 	_pose(v, "prone")
-	v.cockpit_visible_materials = ["Glove", "JacketSleeve", "Trousers", "Boot", "Sole"]
+	v.cockpit_visible_materials = ["Glove", "Trousers", "Boot", "Sole"]
 	v.set_cockpit_body("hands")
 	var hands := v.find_child("PilotHands", true, false) as MeshInstance3D
 	check(hands != null, "есть PilotHands")
@@ -28,10 +28,11 @@ func test_glider_visual_cockpit_materials() -> void:
 				shown.append(mn)
 		for mn in shown:
 			var ok := false
-			for pre in ["Glove", "JacketSleeve", "Trousers", "Boot", "Sole"]:
+			for pre in ["Glove", "Trousers", "Boot", "Sole"]:
 				ok = ok or mn.begins_with(pre)
 			check(ok, "в кабине не рисуется " + mn)
 		check(shown.has("Glove") and shown.has("Boot"), "перчатки и ботинки видны")
+		check(not shown.has("JacketSleeve"), "предплечья (рукав) от первого лица скрыты")
 	v.queue_free()
 
 

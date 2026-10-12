@@ -175,9 +175,15 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 
 ## Часы и компас на пустышки запястий (PH-7).
 func _build_wrist(pm: Node3D) -> void:
+	# перчатки без манжеты; приборы встают вплотную к срезу перчатки, на кость кисти
+	var sk := _skeleton
+	if sk == null:
+		var sks := pm.find_children("*", "Skeleton3D", true, false)
+		sk = sks[0] as Skeleton3D if not sks.is_empty() else null
+	var openings := PilotGloveCut.cut(pm.find_child("PilotBody", true, false) as MeshInstance3D, sk)
 	wrist = WristInstruments.new()
 	wrist.name = "WristInstruments"
-	if not wrist.attach(pm):
+	if not wrist.attach(pm, openings):
 		wrist.free()
 		wrist = null
 		return
@@ -493,9 +499,32 @@ func _update_arms(flying: bool, dt: float) -> void:
 		pole_l = bb.basis * pole_l
 		pole_r = bb.basis * pole_r
 	arm_ik.set_targets(up_l.lerp(bar_l, arm_bar), up_r.lerp(bar_r, arm_bar), pole_l, pole_r)
-	arm_ik.tangent_l = bar_tangent(-1)
-	arm_ik.tangent_r = bar_tangent(1)
-	arm_ik.tangent_w = arm_bar
+	arm_ik.hand_basis_l = _hand_basis(-1)
+	arm_ik.hand_basis_r = _hand_basis(1)
+	arm_ik.hand_w = arm_bar
+
+
+## Ориентация кисти на базовой штанге в осях визуала (базис кости кисти): кулак вдоль касательной
+## штанги, остальное — из опорной ориентации flight.json → arms.hand_ref_l (левая рука, оси X/Y/Z
+## кости в осях визуала) и крена кисти вокруг штанги arms.hand_roll_deg; правая — зеркально.
+## Не зависит от позы пилота: кисть неподвижна относительно штанги.
+func _hand_basis(side: int) -> Basis:
+	var a: Dictionary = _cfg.get("arms", {})
+	var ref: Dictionary = a.get("hand_ref_l", {})
+	var x := _vec3(ref.get("x", [0.985, -0.102, -0.138]))
+	var y := _vec3(ref.get("y", [-0.172, -0.586, -0.792]))
+	var z := _vec3(ref.get("z", [0.0, 0.803, -0.595]))
+	var m := Vector3(-1, 1, 1)
+	var roll := deg_to_rad(float(a.get("hand_roll_deg", 0.0)))
+	var b := Basis(x, y, z)
+	if side > 0:
+		b = Basis(x * m, y * m, -(z * m))  # зеркало левой: ось Z правой кости смотрит на ладонь
+		roll = -roll
+	var t := bar_tangent(side)
+	if b.x.dot(t) < 0.0:
+		t = -t
+	b = PilotArmIK._arc(b.x, t) * b
+	return (Basis(b.x.normalized(), roll) * b).orthonormalized()
 
 
 ## Подсказка локтя на базовой штанге (оси визуала): плечо и хват фиксированы, локоть лежит на
@@ -504,8 +533,10 @@ func _update_arms(flying: bool, dt: float) -> void:
 ## хвата; 0,5 — «как на мотоцикле»: локоть на полпути, разведён наружу и вниз).
 func _bar_elbow_pole(side: int, grip: Vector3, frac: float) -> Vector3:
 	var sh := shoulder(side)
-	var lens := arm_ik.arm_lengths()
-	var axis := grip - sh
+	# на штанге кисть неподвижна: цепь плечо → локоть → запястье, запястье = хват − вынос хвата
+	var lens := Vector2(arm_ik.arm_lengths().x, arm_ik.forearm_length())
+	var wrist := grip - _hand_basis(side) * arm_ik.grip_local(0 if side < 0 else 1)
+	var axis := wrist - sh
 	var d := clampf(axis.length(), absf(lens.x - lens.y) + 1e-3, lens.x + lens.y - 1e-3)
 	var n := axis.normalized()
 	var down := global_transform.basis.inverse() * Vector3.DOWN
@@ -515,7 +546,7 @@ func _bar_elbow_pole(side: int, grip: Vector3, frac: float) -> Vector3:
 		sd = -sd
 	var x := (lens.x * lens.x - lens.y * lens.y + d * d) / (2.0 * d)
 	var r := sqrt(maxf(lens.x * lens.x - x * x, 0.0))
-	var want := sh.y - frac * (sh.y - grip.y)
+	var want := sh.y - frac * (sh.y - wrist.y)
 	var best := 0.0
 	var best_err := INF
 	for i in 91:
@@ -888,7 +919,7 @@ var _hands_mi: MeshInstance3D
 
 ## Префиксы имён материалов PilotBody, которые кабинная камера рисует в режиме "hands"
 ## (camera.json → cockpit.visible_materials, контракт PH-К5). Меняется до первого "hands".
-var cockpit_visible_materials: PackedStringArray = ["Glove", "JacketSleeve", "Trousers", "Boot", "Sole"]
+var cockpit_visible_materials: PackedStringArray = ["Glove", "Trousers", "Boot", "Sole"]
 
 
 func set_cockpit_body(mode: String) -> void:

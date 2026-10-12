@@ -78,30 +78,27 @@ def dial_texture() -> np.ndarray:
     u = (np.arange(n) + 0.5) / n
     px, py = np.meshgrid((u - 0.5) * size, (u - 0.5) * size)   # строка = v (0 — низ)
     k = n / size
-    img = np.zeros((n, n, 3), dtype=np.float32) + 0.025        # чёрный циферблат
+    img = np.zeros((n, n, 3), dtype=np.float32) + 0.012        # чёрный циферблат
     white = np.zeros((n, n), dtype=np.float32)
+    red = np.zeros((n, n), dtype=np.float32)
 
     def cov(dist, hw):   # покрытие с антиалиасингом в 1 пиксель
         return np.clip(0.5 + (hw - dist) * k, 0, 1)
 
-    # часовые метки: 12 штрихов 2,2 × 4,6 мм у края (ширина ≥ 2 мм по контракту)
+    # 12 часовых меток у края: обычные 2,6 × 5 мм белые, на 12/3/6/9 — красные 3,6 × 7 мм (цифр нет)
     r_out = size / 2 - 1.0
     for h in range(12):
         a = math.radians(30 * h)
         dx, dy = math.sin(a), math.cos(a)           # от «12» по часовой (вправо = +px)
-        c0 = (dx * (r_out - 4.6), dy * (r_out - 4.6))
-        c1 = (dx * r_out, dy * r_out)
-        white = np.maximum(white, cov(_seg_dist(px, py, c0, c1), 1.1))
-    # цифры 12, 3, 6, 9 (высота 6,5 мм ≥ 6)
-    hh = 6.2
-    rt = r_out - 4.6 - 1.2 - hh / 2
-    for text, ang in (("12", 0), ("3", 90), ("6", 180), ("9", 270)):
-        a = math.radians(ang)
-        cx, cy = math.sin(a) * rt, math.cos(a) * rt
-        if ang in (90, 270):
-            cx = math.sin(a) * (rt - 0.5)
-        white = np.maximum(white, cov(stroke_text(px, py, text, cx, cy, hh, 0.55), 0.55))
-    img += white[:, :, None] * (0.93 - 0.025)
+        main = h % 3 == 0
+        ln, hw = (7.0, 1.8) if main else (5.0, 1.3)
+        seg = _seg_dist(px, py, (dx * (r_out - ln), dy * (r_out - ln)), (dx * r_out, dy * r_out))
+        if main:
+            red = np.maximum(red, cov(seg, hw))
+        else:
+            white = np.maximum(white, cov(seg, hw))
+    img += white[:, :, None] * (1.0 - 0.012)
+    img = img * (1 - red[:, :, None]) + np.array([0.80, 0.02, 0.01], dtype=np.float32) * red[:, :, None]
     return img
 
 
@@ -290,7 +287,7 @@ def main():
         "Case": U.material("WatchCase", U.srgb((0.46, 0.47, 0.49)), rough=0.42, metal=0.55),
         "Strap": U.material("WatchStrap", (1, 1, 1), rough=0.85, image=strap_img),
         "Screen": U.material("WatchDial", (1, 1, 1), rough=0.55, image=dial_img),
-        "Hand": U.material("WatchHand", U.srgb((0.82, 0.82, 0.76)), rough=0.7),
+        "Hand": U.material("WatchHand", U.srgb((0.97, 0.97, 0.92)), rough=0.6),
         "Glass": U.material("WatchGlass", U.srgb((0.9, 0.95, 1.0)), rough=0.12),
     }
     g = mats["Glass"]

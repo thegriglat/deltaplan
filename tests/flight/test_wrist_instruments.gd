@@ -162,6 +162,15 @@ func test_wrist_visibility_flags() -> void:
 	wi.queue_free()
 
 
+func _pose_prone(v: GliderVisual) -> void:
+	var ap: AnimationPlayer = v.find_children("*", "AnimationPlayer", true, false)[0]
+	ap.play("prone", 0.0)
+	ap.advance(3.0)
+	for i in 4:
+		v.set_pose(0.0, 0.0, true, 1.0e6)
+		await get_tree().process_frame
+
+
 func test_wrist_on_real_pilot_and_visible_layers() -> void:
 	var v := GliderVisual.new()
 	add_child(v)
@@ -169,10 +178,11 @@ func test_wrist_on_real_pilot_and_visible_layers() -> void:
 	v.build(Config.get_config("wings/sport"), Config.get_config("pilot"), Config.get_config("flight").visual)
 	check(v.wrist != null, "GliderVisual создал приборы на запястьях")
 	if v.wrist != null:
-		var wl := v.find_child("WristL", true, false)
-		var wr := v.find_child("WristR", true, false)
-		check(wl != null and v.wrist.watch.get_parent() == wl, "часы на WristL")
-		check(wr != null and v.wrist.compass.get_parent() == wr, "компас на WristR")
+		# приборы жёстко на кисти (пустышка хвата HandL/HandR), не на предплечье
+		var hl := v.find_child("HandL", true, false)
+		var hr := v.find_child("HandR", true, false)
+		check(hl != null and v.wrist.watch.get_parent().get_parent() == hl, "часы на кисти HandL")
+		check(hr != null and v.wrist.compass.get_parent().get_parent() == hr, "компас на кисти HandR")
 		check(v.wrist.is_watch_shown(), "часы видны")
 		# PH-К5: приборы на слое 1, который видит кабинная камера (скрыт только бит шлема)
 		var bad := 0
@@ -186,3 +196,54 @@ func test_wrist_on_real_pilot_and_visible_layers() -> void:
 		v.set_cockpit_body("hands")
 		check(v.wrist.is_watch_shown(), "в кабине (hands) приборы остаются")
 	v.queue_free()
+
+
+## Манжеты (краг) нет, прибор с ремешком стоит вплотную перед срезом перчатки, циферблатом к глазам.
+func test_wrist_instruments_at_glove_edge() -> void:
+	var v := GliderVisual.new()
+	add_child(v)
+	v.set_wrist_clock(SunClock.new())
+	v.build(Config.get_config("wings/sport"), Config.get_config("pilot"), Config.get_config("flight").visual)
+	await _pose_prone(v)
+	var sk := v.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	var body := v.find_child("PilotBody", true, false) as MeshInstance3D
+	# в меш визуала манжет нет, в общей модели они есть
+	var fresh := ((load(PILOT) as PackedScene).instantiate() as Node3D).find_child("PilotBody", true, false) as MeshInstance3D
+	var cut_n := _glove_indices(body.mesh)
+	check(cut_n < _glove_indices(fresh.mesh), "из перчаток убраны манжеты: %d < %d индексов" % [cut_n, _glove_indices(fresh.mesh)])
+	fresh.get_parent().free()
+	var openings := PilotGloveCut.cut(body, sk)
+	check(_glove_indices(body.mesh) == cut_n, "повторный разрез ничего не убирает (манжет не осталось)")
+	var eye := v.head_marker.global_position
+	for side in ["L", "R"]:
+		check(openings.has(side), "срез перчатки %s найден" % side)
+		if not openings.has(side):
+			continue
+		var inst: Node3D = v.wrist.watch if side == "L" else v.wrist.compass
+		var grip := v.find_child("Hand" + side, true, false) as Node3D
+		var bone := grip.global_transform * grip.transform.affine_inverse()  # кость кисти
+		var strap := inst.find_child("Strap", true, false) as MeshInstance3D
+		var sb := strap.get_aabb()
+		# лента вдоль кисти (локальный Y кости): до среза перчатки 0…3 мм
+		var o := bone.affine_inverse() * inst.global_transform.origin
+		var y_hi := o.y + sb.end.y
+		var y_lo := o.y + sb.position.y
+		var edge: float = openings[side].y
+		check(edge - y_hi >= -0.0005 and edge - y_hi <= 0.003, "%s: ремешок вплотную перед срезом, зазор %.1f мм" % [side, (edge - y_hi) * 1000.0])
+		check(y_lo < edge - 0.015, "%s: ремешок не уходит внутрь перчатки" % [side])
+		# кольцо охватывает сечение запястья: центр кольца на оси кисти (по X/Z кости)
+		var c: Vector3 = openings[side].center
+		var ring_c := bone.affine_inverse() * (inst.global_transform * Vector3(0, 0, v.wrist.RING_H_M * 0.5))
+		check(Vector2(ring_c.x - c.x, ring_c.z - c.z).length() < 0.003, "%s: кольцо соосно запястью" % side)
+		# циферблат смотрит к глазам
+		var facing := (-inst.global_basis.z).dot((eye - inst.global_position).normalized())
+		check(facing > 0.7, "%s: циферблат к пилоту, cos %.2f" % [side, facing])
+	v.queue_free()
+
+
+func _glove_indices(m: Mesh) -> int:
+	for s in m.get_surface_count():
+		var mt := m.surface_get_material(s)
+		if mt != null and mt.resource_name.begins_with("Glove"):
+			return (m.surface_get_arrays(s)[Mesh.ARRAY_INDEX] as PackedInt32Array).size()
+	return -1
