@@ -47,6 +47,14 @@ uniform vec3 press_pos = vec3(1e9);
 uniform float press_radius_m = 1.5;
 uniform float press_agl_full_m = 0.4;   // ноги ниже — приминание полное
 uniform float press_agl_zero_m = 1.2;   // ноги выше — приминания нет
+// примятая трава у старта (SC-K6, GrassField.set_trample_mask): R8-маска (0 — нетронута, 1 — до земли),
+// trample_rect — xy начало мира, zw — 1/размер, м; вне маски и при trample_on = 0 — трава как была.
+uniform sampler2D trample_tex : filter_linear, repeat_disable, hint_default_black;
+uniform vec4 trample_rect = vec4(0.0, 0.0, 1.0, 1.0);
+uniform float trample_on = 0.0;
+uniform float trample_height_k = 0.12;   // высота травы при полном приминании (доля)
+uniform float trample_lean = 1.3;        // наклон в случайную сторону при полном приминании
+uniform vec3 trample_tint = vec3(1.12, 1.0, 0.72);   // чуть желтее
 // прореживание вдали (рекомендация 1): rank пучка < far_density(d) — виден
 uniform float far_density_min = 0.12;
 uniform float thin_start_k = 0.1;
@@ -120,6 +128,15 @@ void vertex() {
 				hh *= landing_hk[k];
 			}
 		}
+		// примятая трава (SC-K6): одна выборка маски; вне маски tr = 0 — высота и наклон прежние
+		float tr = 0.0;
+		if (trample_on > 0.5) {
+			vec2 tuv = (xz - trample_rect.xy) * trample_rect.zw;
+			if (tuv.x >= 0.0 && tuv.y >= 0.0 && tuv.x < 1.0 && tuv.y < 1.0) {
+				tr = textureLod(trample_tex, tuv, 0.0).r;
+			}
+		}
+		hh *= mix(1.0, trample_height_k, tr);
 		hh *= height_k * (1.0 - smoothstep(area_radius_m * height_fade_k, area_radius_m, d));
 		float width_scale = mix(1.0, far_width_k, thin_s);
 
@@ -141,6 +158,9 @@ void vertex() {
 		float near_ground = 1.0 - smoothstep(press_agl_full_m, press_agl_zero_m, press_pos.y - h);
 		float press = near_ground * (1.0 - smoothstep(press_radius_m * 0.4, press_radius_m, pd));
 		lean = mix(lean, (pd > 0.01 ? pv / pd : vec2(0.0)) * 1.5, press);
+		// примятая трава ложится в случайную сторону (на tr = 0 lean не меняется)
+		float ta = hash12(cell + 9.3) * 6.2832;
+		lean = mix(lean, vec2(cos(ta), sin(ta)) * trample_lean, tr * 0.85);
 		float l2 = min(dot(lean, lean), 2.0);
 		// поворот пучка
 		float a = hash12(cell + 6.6) * 6.2832;
@@ -172,6 +192,7 @@ void vertex() {
 		}
 		base *= 1.0 + color_variation * (hash12(cell + 13.3) - 0.5) * 2.0;
 		base *= blade_tint * (1.0 + wind_shade * wshade);
+		base *= mix(vec3(1.0), trample_tint, tr);
 		v_col = base;
 		v_t = t;
 	}

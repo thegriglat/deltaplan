@@ -531,6 +531,24 @@
       "tarp": {"weight": 0.2, "max_share": 0.25, "radius_m": 1.7, "half_size_m": [1.5, 1.35], "height_m": 1.7}
     }
   },
+  "trample": {
+    "_doc": "Маска примятой травы вокруг старта игрока (TrampleMask, WorldObjects.trample_mask, SC-K6): значение 0..1 (1 — до земли) пятен; ring/margin/fade — ширина спада к нетронутой траве, м",
+    "enabled": true,
+    "size_m": 256.0,
+    "cell_m": 0.5,
+    "tent_value": 0.9,
+    "tent_ring_m": 1.5,
+    "path_width_m": 0.8,
+    "path_value": 0.6,
+    "gear_margin_m": 0.5,
+    "gear_value": 0.7,
+    "run_radius_m": 6.0,
+    "run_value": 0.5,
+    "run_fade_m": 1.5,
+    "track_value": 0.5,
+    "track_width_m": 1.75,
+    "track_fade_m": 0.6
+  },
   "campfire": {
     "_doc": "Костёр в лагере пилотов (Campfire, scripts/world_objects/campfire.gd, docs/guide/world-objects.md → «Костёр»): кольцо камней, поленья, язычки пламени, мерцающий свет и дым. Дым — частицы (smoke_particles.gdshader), их сносит ЛОКАЛЬНЫЙ ветер модели (Atmosphere.air_velocity_at у костра на двух высотах): в штиль — почти столбом, порывы колышут, сильный ветер прижимает. Горит всегда. Текстур нет — клубы и пламя рисуются шейдером",
     "enabled": true,
