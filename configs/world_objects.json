@@ -1000,5 +1000,65 @@
       "point_radius_m": {"helipad": 8.0, "aerodrome": 20.0, "airstrip": 20.0},
       "point_color": [0.6, 0.6, 0.6]
     }
+  },
+  "city_trees": {
+    "_doc": "Деревья города и сёл (scripts/world_objects/osm/city_tree_plan.gd, city_trees.gd): улицы (ряд по обе стороны дорог классов street.classes внутри города), дворы (редкие группы между домами) и сады (1–4 дерева у малых жилых домов частного сектора и сёл). Город — маска OsmCityGround (доля площади под домами по клеткам buildings.style.cell_m, порог city_ground.coverage_min). Модель — берёза из assets/models/trees, материал и LOD те же, что у одиночных деревьев мира; препятствий нет. MultiMesh по тайлам tile_m вокруг камеры в радиусе radius_m (расстановка в рабочем потоке, кеш тайлов), дальше LOD2 — крест-импостер. Пресеты графики (game.json) меняют density_mult, radius_m, cast_shadows.",
+    "enabled": true,
+    "density_mult": 1.0,
+    "density_mult_doc": "Множитель вероятностей (пропуски улиц, дворы, сады); 0 — деревьев нет",
+    "radius_m": 1100,
+    "first_radius_m": 300,
+    "first_radius_m_doc": "Первая расстановка — только ближние тайлы, м (полный радиус следующим проходом)",
+    "tile_m": 192,
+    "rebuild_step_m": 60,
+    "max_agl_m": 1000,
+    "max_agl_m_doc": "Выше этой высоты над землёй деревья города не рисуются, м",
+    "max_instances": 40000,
+    "lod_m": [70, 220],
+    "lod_m_doc": "Границы LOD0→LOD1 и LOD1→LOD2 (крест-импостер), м",
+    "cast_shadows": true,
+    "shadow_lods": 1,
+    "shadow_lods_doc": "Тени отбрасывают LOD с номером меньше этого (1 — только LOD0)",
+    "variants": 4,
+    "species": {
+      "birch": {"model": "res://assets/models/trees/tree_birch.glb", "weight": 1.0}
+    },
+    "tint_var": 0.12,
+    "sway_top_m": 0.5,
+    "sway_hz": 0.25,
+    "river_avoid_w_m": 8.0,
+    "river_avoid_w_m_doc": "Реки и каналы OSM для деревьев — полоса такой ширины, м",
+    "city": {"min_houses": 50},
+    "street": {
+      "enabled": true,
+      "classes": ["residential", "tertiary", "secondary", "primary", "unclassified", "living_street"],
+      "spacing_m": 9.5,
+      "jitter_m": 5.0,
+      "gap_chance": 0.25,
+      "offset_m": [2.0, 4.0],
+      "offset_m_doc": "Отступ ствола от края проезжей части (ширина/2 + это), м",
+      "height_m": [8, 14]
+    },
+    "yard": {
+      "enabled": true,
+      "cell_m": 30,
+      "chance": 0.12,
+      "count": [1, 3],
+      "spread_m": 5,
+      "height_m": [6, 12]
+    },
+    "garden": {
+      "enabled": true,
+      "chance": 0.85,
+      "count": [1, 4],
+      "ring_m": [2.5, 8.0],
+      "ring_m_doc": "Расстояние ствола от угла дома (по описанной окружности), м",
+      "height_m": [4, 7],
+      "min_area_m2": 24,
+      "max_area_m2": 260,
+      "yes_max_area_m2": 160,
+      "max_wall_m": 7.5,
+      "types_doc": "Сад — у домов типа house/detached/farm/hut/cabin/terrace, малых yes и всех процедурных домов посёлков"
+    }
   }
 }
