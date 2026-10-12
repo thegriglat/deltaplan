@@ -65,6 +65,7 @@ func refresh() -> void:
 func set_pick(lat: float, lon: float) -> void:
 	picked_place_name = ""
 	pick_elev_m = NAN
+	settings.clear_exact_start()
 	settings.pick_lat = lat
 	settings.pick_lon = lon
 	refresh()
@@ -109,6 +110,7 @@ func _build_map() -> void:
 func _on_map_ok() -> void:
 	if is_nan(_map.picked.x):
 		return
+	settings.clear_exact_start()
 	settings.pick_lat = _map.picked.x
 	settings.pick_lon = _map.picked.y
 	picked_place_name = ""
@@ -160,6 +162,7 @@ func _open_places() -> void:
 ## старта, как с карты и из «Недавних мест» (высоту подтянет подпись).
 func choose_place(p: Dictionary) -> void:
 	pick_elev_m = NAN
+	settings.clear_exact_start()
 	if p.has("location") and p.has("site"):
 		picked_place_name = ""
 		settings.location_id = String(p.location)
