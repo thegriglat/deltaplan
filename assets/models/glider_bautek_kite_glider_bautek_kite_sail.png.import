@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bkhl4r70pi2ia"
-path="res://.godot/imported/glider_bautek_kite_glider_bautek_kite_sail.png-0d6b925461839d031f4533e0cc151dd9.ctex"
+path.bptc="res://.godot/imported/glider_bautek_kite_glider_bautek_kite_sail.png-0d6b925461839d031f4533e0cc151dd9.bptc.ctex"
+path.astc="res://.godot/imported/glider_bautek_kite_glider_bautek_kite_sail.png-0d6b925461839d031f4533e0cc151dd9.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "8cfdc99629406e3908bd7c629c086887"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_bautek_kite_glider_bautek_kite_sail.png"
-dest_files=["res://.godot/imported/glider_bautek_kite_glider_bautek_kite_sail.png-0d6b925461839d031f4533e0cc151dd9.ctex"]
+dest_files=["res://.godot/imported/glider_bautek_kite_glider_bautek_kite_sail.png-0d6b925461839d031f4533e0cc151dd9.bptc.ctex", "res://.godot/imported/glider_bautek_kite_glider_bautek_kite_sail.png-0d6b925461839d031f4533e0cc151dd9.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

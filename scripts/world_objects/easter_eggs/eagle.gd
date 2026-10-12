@@ -282,7 +282,7 @@ func _build_mesh(cfg: Dictionary) -> void:
 	var mesh := _load_mesh(String(cfg.get("model_path", "res://assets/models/bird.glb")))
 	var span := float(cfg.get("span_m", 2.0))
 	var w := mesh.get_aabb().size.x if mesh != null else 0.0
-	_scale = span / w if w > 0.01 else 1.0
+	_scale = (span / w if w > 0.01 else 1.0) * float(cfg.get("scale", 1.0))
 	_mm = MultiMesh.new()
 	_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_mm.use_custom_data = true

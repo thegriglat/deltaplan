@@ -185,8 +185,8 @@
       0.86
     ],
     "color_doc": "Цвет дымки, RGB",
-    "sun_scatter": 0.15,
-    "sun_scatter_doc": "Подсветка дымки со стороны солнца",
+    "sun_scatter": 0.35,
+    "sun_scatter_doc": "Дымка к солнцу, 0..1 (ползунок в настройках графики, одно значение на всё): Environment.fog_sun_scatter, ореол наземной дымки haze.gdshader и дымка на облаках (cloud_layer → fog_sun_scatter облачных шейдеров)",
     "aerial_perspective": 0.5,
     "aerial_perspective_doc": "0 — туман своего цвета, 1 — цвет берётся из неба (воздушная перспектива)",
     "sky_affect": 0.1,
@@ -940,6 +940,8 @@
     "mesh_rings_doc": "Колец по высоте кроны",
     "cast_shadows": true,
     "cast_shadows_doc": "Тени от деревьев",
+    "shadow_lods": 2,
+    "shadow_lods_doc": "Модели: сколько ближних LOD отбрасывают тень (1 — только LOD0, 2 — LOD0 и LOD1); работает при cast_shadows",
     "sway_top_m": 0.6,
     "sway_top_m_doc": "Отклонение макушки дерева при ветре wind_visual.wind_full_ms, м",
     "sway_hz": 0.25,
@@ -1175,8 +1177,6 @@
       10
     ],
     "turbid_visibility_km_doc": "При видимости ≥ первого значения дымка голубая, ≤ второго — серая, между — плавно, км",
-    "sun_scatter": 0.45,
-    "sun_scatter_doc": "Подсветка дымки в сторону солнца (ореол)",
     "sun_scatter_power": 6.0,
     "sun_scatter_power_doc": "Узость ореола вокруг солнца (больше — уже)",
     "max_opacity": 0.97,

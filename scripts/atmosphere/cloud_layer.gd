@@ -434,11 +434,12 @@ func _update_light() -> void:
 		var fc := env.fog_light_color.srgb_to_linear() * env.fog_light_energy
 		_material.set_shader_parameter("fog_color", Vector3(fc.r, fc.g, fc.b))
 		_material.set_shader_parameter("fog_density", env.fog_density)
-		_material.set_shader_parameter("fog_sun_scatter", env.fog_sun_scatter)
 	else:
 		var fc2 := _color(cfg.fog_color_fallback).srgb_to_linear()
 		_material.set_shader_parameter("fog_color", Vector3(fc2.r, fc2.g, fc2.b))
 		_material.set_shader_parameter("fog_density", float(cfg.fog_density_fallback))
+	# «Дымка к солнцу» — то же значение, что у наземной дымки и окружения (SkyEnvironment)
+	_material.set_shader_parameter("fog_sun_scatter", SkyEnvironment.fog_sun_scatter())
 
 
 func _find_light(n: Node) -> DirectionalLight3D:

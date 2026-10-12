@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bfryuqrh7uq84"
-path="res://.godot/imported/glider_ww_eagle_glider_ww_eagle_sail.png-8c8672f539632bdb0f79ba8b9967bde8.ctex"
+path.bptc="res://.godot/imported/glider_ww_eagle_glider_ww_eagle_sail.png-8c8672f539632bdb0f79ba8b9967bde8.bptc.ctex"
+path.astc="res://.godot/imported/glider_ww_eagle_glider_ww_eagle_sail.png-8c8672f539632bdb0f79ba8b9967bde8.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "908fa7cf1bdd823accbaa258cd3e3f61"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_ww_eagle_glider_ww_eagle_sail.png"
-dest_files=["res://.godot/imported/glider_ww_eagle_glider_ww_eagle_sail.png-8c8672f539632bdb0f79ba8b9967bde8.ctex"]
+dest_files=["res://.godot/imported/glider_ww_eagle_glider_ww_eagle_sail.png-8c8672f539632bdb0f79ba8b9967bde8.bptc.ctex", "res://.godot/imported/glider_ww_eagle_glider_ww_eagle_sail.png-8c8672f539632bdb0f79ba8b9967bde8.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

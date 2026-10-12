@@ -53,6 +53,7 @@ var _names: CheckBox
 var _peak_names: CheckBox
 var _pilot_shift: CheckBox
 var _grass: HSlider
+var _haze_sun: HSlider
 var _wind_model: OptionButton
 var _language: OptionButton
 var _language_codes: Array = []
@@ -168,6 +169,7 @@ func _ready() -> void:
 		float(grass_cfg.get("density_step_pct", 10.0)),
 		"%.0f%%"
 	)
+	_haze_sun = UiKit.slider_row(box_gfx, tr("settings_haze_sun"), 0.0, 1.0, 0.05, "%.2f")
 	_graphics.item_selected.connect(_on_graphics_selected)
 	_wind_model = OptionButton.new()
 	# id: 0 расчёт (auto), 1 эвристика (off)
@@ -340,6 +342,8 @@ func load_values() -> void:
 	_resolution.select(maxi(_resolutions.find(Vector2i(int(ws[0]), int(ws[1]))), 0))
 	_grass.value = float(Config.value("vegetation", "grass.density_pct", 100.0))
 	_grass.value_changed.emit(_grass.value)
+	_haze_sun.value = float(Config.value("world", "fog.sun_scatter", 0.35))
+	_haze_sun.value_changed.emit(_haze_sun.value)
 	var wm := String(Config.value("atmosphere", "air_model.enabled", "auto"))
 	_wind_model.select(_wind_model.get_item_index(1 if wm == "off" else 0))
 	var sp := float(Config.value("world", "time.speed", 1.0))
@@ -451,6 +455,7 @@ func save() -> bool:
 	# густота травы — после пресета (он пишет свою; слайдер при выборе пресета уже показал её)
 	var gp := {"grass": {"density_pct": _grass.value}}
 	ok = UserSettings.save_patch("vegetation", gp, config_dir) and ok
+	ok = UserSettings.save_patch("world", {"fog": {"sun_scatter": _haze_sun.value}}, config_dir) and ok
 	# модель ветра: «расчёт» = auto (как по умолчанию), «упрощённый» = off; со следующей загрузки места
 	var wp := {
 		"air_model":

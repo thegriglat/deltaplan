@@ -811,6 +811,7 @@ func apply_user_settings() -> void:
 	# Масштаб окна (пресет и/или «Масштаб рендера» из настроек) — сразу, вне зависимости от
 	# того, поменялся ли сам пресет.
 	GraphicsPresets.apply_viewport(get_viewport())
+	sky.apply_fog_sun_scatter()
 	if GraphicsPresets.current() != _graphics:
 		if _graphics != "":
 			sky.apply_config()

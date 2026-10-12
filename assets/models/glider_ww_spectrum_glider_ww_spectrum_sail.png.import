@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqacy4slg2g3r"
-path="res://.godot/imported/glider_ww_spectrum_glider_ww_spectrum_sail.png-5810c7bd8aa0c6b2bd93ba9a80b35934.ctex"
+path.bptc="res://.godot/imported/glider_ww_spectrum_glider_ww_spectrum_sail.png-5810c7bd8aa0c6b2bd93ba9a80b35934.bptc.ctex"
+path.astc="res://.godot/imported/glider_ww_spectrum_glider_ww_spectrum_sail.png-5810c7bd8aa0c6b2bd93ba9a80b35934.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "de805163d028ab0f0c2ff5b9c2c8554c"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_ww_spectrum_glider_ww_spectrum_sail.png"
-dest_files=["res://.godot/imported/glider_ww_spectrum_glider_ww_spectrum_sail.png-5810c7bd8aa0c6b2bd93ba9a80b35934.ctex"]
+dest_files=["res://.godot/imported/glider_ww_spectrum_glider_ww_spectrum_sail.png-5810c7bd8aa0c6b2bd93ba9a80b35934.bptc.ctex", "res://.godot/imported/glider_ww_spectrum_glider_ww_spectrum_sail.png-5810c7bd8aa0c6b2bd93ba9a80b35934.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
