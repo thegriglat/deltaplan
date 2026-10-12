@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "glider_kit.glb: kit_bundle (4 трубы пучком ~5,5 м с открытыми торцами, кингпост, парус в рулоне, раскрытый чехол с загнутыми краями) и kit_frame (трапеция плашмя: стойки 1,65, штанга 1,4, узел вершины, колёса из wheel_parts), по 2 LOD.",
+  "commits": [
+    "652ecc29 Модель glider_kit.glb"
+  ],
+  "checks": [
+    {
+      "name": "start_camp_contracts_k3_kit",
+      "value": "dp accept SC-7 --dry: 1/1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/SC-7/glider_kit.png"
+  ],
+  "how_to_check": "dp accept SC-7",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_glider_kit.py (материалы kit_bundle)",
+      "why": "два тонируемых материала в одном варианте (Fabric чехол + Sail рулон) — противоречит общему правилу SK3, но так заказано в задании",
+      "checked": "чехол=Fabric, подкладки нет; тест допускает"
+    },
+    {
+      "where": "kit_frame_LOD1",
+      "why": "низ y=0,013 (колесо 6-гранником), в допуске 0,02",
+      "checked": "AABB в тесте"
+    }
+  ],
+  "dp_feedback": "godot --script tests/run_tests.gd напрямую не работает (Config не найден) — только через dp accept; хорошо бы подсказка в карточке.",
+  "tris_by_node": {
+    "kit_bundle_LOD0": 2120,
+    "kit_frame_LOD0": 1788,
+    "kit_bundle_LOD1": 112,
+    "kit_frame_LOD1": 76
+  },
+  "glb_kb": 217,
+  "image": "/home/greg/deltaplan/build/screenshots/SC-7/glider_kit.png",
+  "t": "2026-10-12T22:33:04",
+  "by": "executor"
+}

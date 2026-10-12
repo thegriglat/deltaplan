@@ -23,7 +23,8 @@
     "configs/world_objects.json",
     "ASSETS.md",
     "tests/world_objects/test_camp_fabric.gd",
-    "tests/contracts/test_start_camp_contracts_k5.gd"
+    "tests/contracts/test_start_camp_contracts_k5.gd",
+    "tools/textures/camp_fabric_tex.py"
   ],
   "dont_touch": [
     "TentCamp.plan/_grow/_Ctx (место палаток — SC-1)",
@@ -52,5 +53,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-12T22:23:34"
+  "created": "2026-10-12T22:23:34",
+  "edited": "2026-10-12T22:24:50"
 }

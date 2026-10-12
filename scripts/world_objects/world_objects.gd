@@ -554,3 +554,24 @@ func _build_start_tracks(height_fn: Callable) -> void:
 		mi.visibility_range_begin = float(tc.visibility_near_m)
 		mi.visibility_range_end = WorldTiles.tile_range(float(tc.visibility_far_m), float(tc.tile_m))
 		root.add_child(mi)
+
+
+## Маска примятой травы вокруг старта (SC-K6, TrampleMask): {image: Image R8, origin: Vector2, cell_m},
+## пустой словарь — выключена в конфиге. Палатки (camp), пятна вещей SC-K2 (start_gear этого старта,
+## если есть) и тропа StartTracks. Вызывать после place_camp; передаётся GrassField.set_trample_mask.
+func trample_mask(start: Vector3, size_m: float = 256.0, cell_m: float = 0.5) -> Dictionary:
+	var tc: Dictionary = cfg.get("trample", {})
+	if not bool(tc.get("enabled", true)):
+		return {}
+	tc = tc.duplicate()
+	tc["size_m"] = size_m
+	tc["cell_m"] = cell_m
+	var gear: Array = []
+	var all_gear = get("start_gear")
+	if all_gear is Array:
+		for g in all_gear:
+			if g is Array and not g.is_empty():
+				var p: Vector3 = g[0].position
+				if Vector2(p.x, p.z).distance_to(Vector2(start.x, start.z)) < 60.0:
+					gear.append_array(g)
+	return TrampleMask.build(start, camp, gear, start_tracks, cfg.get("tents", {}), tc)

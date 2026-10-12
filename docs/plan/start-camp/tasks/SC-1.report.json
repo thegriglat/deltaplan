@@ -1,0 +1,127 @@
+{
+  "status": "done",
+  "summary": "Лагерь по SC-K1: центр 30-50 м (prefer 40), край палатки >= 32 м, along <= -5, вне коридора, не ниже старта более чем на 5 м, ступени 60/80/150; прямоугольник ботов убран как запрет. place_camp вызывается из game.gd до ботов; боты (одиночная игра) и NetQueue.spots_for (через NetFlight._queue_spots) получают палатки/снаряжение через ObstacleIndex.points_near(c, r, [tent, gear]) поверх камней/кустов (BotPilots.start_obstacles).",
+  "commits": [
+    "ffc4a4fd SC-1: лагерь в 30–50 м от старта"
+  ],
+  "checks": [
+    {
+      "name": "tents",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "start_camp_contracts_k1",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "test_bots",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "net_queue",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "campfire",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "egg_people",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_world_objects",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "docs/guide/world-objects.md (описание запретов палаток) не правил: вне скоупа",
+    "ключ launch_zone_margin_m заменён на corridor_margin_m; TentCamp.launch_zone удалён (заменён corridor_half_m); env.zone больше не используется"
+  ],
+  "questions": [],
+  "how_to_check": "tools/dp accept SC-1",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd (вызов world_link.place_camp перед bots.setup_in_world)",
+      "why": "в полном запуске игры не проверял: порядок и то, что objects.setup (в world_link.link) уже отработал к этому моменту",
+      "checked": "link() идёт раньше _choose_start, читал код; place_camp ранее вызывался по status_changed, этот обработчик убран; тесты bots/net_queue зелёные"
+    },
+    {
+      "where": "tests test_world_objects::test_build_time",
+      "why": "один раз упал по времени сборки 7,5 с (NFR-2) при последовательном прогоне, при повторах и на чистой ветке проходит; place_camp в сборке не участвует",
+      "checked": "3 повторных прогона зелёные"
+    },
+    {
+      "where": "scripts/world_objects/tent_camp.gd _plan_ring",
+      "why": "ступень: если кольцо не вместило все палатки, берётся вариант с большим числом палаток (при равенстве ближний); возможна ситуация, когда далёкий лагерь полный предпочтён неполному ближнему",
+      "checked": "тест test_k1_steps"
+    }
+  ],
+  "dp_feedback": "",
+  "camp_distance_m_by_site": {
+    "ongudai/kayancha_south": {
+      "center_m": 42.2,
+      "min_edge_m": 33.1,
+      "tents": 5
+    },
+    "askarovo/biyagoda_west": {
+      "center_m": 41.7,
+      "min_edge_m": 33.6,
+      "tents": 5
+    },
+    "askarovo/biyagoda_east": {
+      "center_m": 61.1,
+      "min_edge_m": 53.3,
+      "tents": 5
+    },
+    "askarovo/biyagoda_south_west": {
+      "center_m": 45.1,
+      "min_edge_m": 36.4,
+      "tents": 5
+    },
+    "aushkul/aushtau_east": {
+      "center_m": 45.8,
+      "min_edge_m": 41.0,
+      "tents": 5
+    },
+    "aushkul/aushtau_south": {
+      "center_m": 84.6,
+      "min_edge_m": 77.2,
+      "tents": 5
+    },
+    "aushkul/ridge_west": {
+      "center_m": 44.5,
+      "min_edge_m": 36.5,
+      "tents": 5
+    },
+    "altai/sinyukha_west": {
+      "center_m": 38.2,
+      "min_edge_m": 32.1,
+      "tents": 5
+    },
+    "altai/sinyukha_east": {
+      "center_m": 41.6,
+      "min_edge_m": 33.0,
+      "tents": 5
+    },
+    "altai/tugaya_south": {
+      "center_m": 46.3,
+      "min_edge_m": 38.0,
+      "tents": 5
+    }
+  },
+  "t": "2026-10-12T22:35:41",
+  "by": "executor"
+}
