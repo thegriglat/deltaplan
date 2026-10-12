@@ -23,6 +23,10 @@ const FRAME_MARKERS: Array[String] = [
 ]
 ## Заглушка крыла: верх стоек относительно HangPoint (правая; левая — зеркально по X), м.
 ## Заглушка: вынос середины базовой штанги вперёд (PV3, среднее по классам), м.
+## Закон дуги изогнутой базовой штанги (PV3), как tools/blender/aframe_geom: прямые концы у углов и
+## прямой центр, доли полуширины штанги.
+const BAR_STRAIGHT_FRAC := 0.45
+const BAR_FLAT_FRAC := 0.2
 const FALLBACK_BAR_BOW := 0.08
 const FALLBACK_INSTRUMENT_TILT_DEG := 60.0
 const FALLBACK_UPRIGHT_TOP := Vector3(0.055, -0.02, -0.25)
@@ -440,6 +444,9 @@ func _update_arms(flying: bool, dt: float) -> void:
 		pole_l = bb.basis * pole_l
 		pole_r = bb.basis * pole_r
 	arm_ik.set_targets(up_l.lerp(bar_l, arm_bar), up_r.lerp(bar_r, arm_bar), pole_l, pole_r)
+	arm_ik.tangent_l = bar_tangent(-1)
+	arm_ik.tangent_r = bar_tangent(1)
+	arm_ik.tangent_w = arm_bar
 
 
 ## Подсказка локтя на базовой штанге (оси визуала): плечо и хват фиксированы, локоть лежит на
@@ -482,6 +489,35 @@ func bar_grip(side: int) -> Vector3:
 	if gm != null:
 		return _relative_xform(self, gm).origin + bb.basis * off
 	return bb * (Vector3(side * float(a.get("bar_grip_half_width_m", 0.33)), 0.0, 0.0) + off)
+
+
+## Касательная оси базовой штанги в точке хвата (оси визуала, единичная, вдоль +X). Штанга изогнута
+## вперёд (PV3): вынос оси — S-образная дуга между прямыми концами у углов и прямым центром (закон
+## tools/blender/aframe_geom.bow_at, доли BAR_STRAIGHT_FRAC/BAR_FLAT_FRAC); вынос и полуширина —
+## из маркеров (хорда UprightBottomL–R и BaseBar), производная дуги в точке хвата даёт наклон
+## касательной. У прямой штанги (вынос 0) — ось X.
+func bar_tangent(side: int) -> Vector3:
+	var um_l := get_marker("UprightBottomL")
+	var um_r := get_marker("UprightBottomR")
+	var bm := get_marker("BaseBar")
+	var gm := get_marker("BarGripL" if side < 0 else "BarGripR")
+	if um_l == null or um_r == null or bm == null or gm == null:
+		return Vector3.RIGHT
+	var pl := _relative_xform(self, um_l).origin
+	var pr := _relative_xform(self, um_r).origin
+	var mid := (pl + pr) * 0.5
+	var w := (pr.x - pl.x) * 0.5
+	var bow := mid.z - _relative_xform(self, bm).origin.z  # вынос вперёд (−Z)
+	var x := _relative_xform(self, gm).origin.x - mid.x
+	var half := w * (1.0 - BAR_STRAIGHT_FRAC)
+	var flat := w * BAR_FLAT_FRAC
+	var a := absf(x)
+	if bow <= 1e-4 or w <= 1e-3 or a >= half or a <= flat:
+		return Vector3.RIGHT
+	var k := (half - a) / (half - flat)
+	# вынос(x) = bow·(3k² − 2k³), k убывает с |x|: d(вынос)/dx = −sign(x)·bow·6k(1−k)/(half − flat)
+	var dbow := -signf(x) * bow * 6.0 * k * (1.0 - k) / (half - flat)
+	return Vector3(1.0, 0.0, -dbow).normalized()
 
 
 ## Точка хвата на стойке трапеции выше плеча по вертикали мира (+ arms.upright_above_shoulder_m,
