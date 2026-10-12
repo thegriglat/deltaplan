@@ -1,0 +1,33 @@
+{
+  "_doc": "Параметры наручного компаса (tools/blender/build_wrist_compass.py), мм. Контракт PH-К4/PH-К3: docs/contracts/pilot-hud.md. W и H — эллипс сечения руки в точке крепления (PH-К3; PH-3: 56x51), PH-7 перегенерирует с точными.",
+  "wrist_w_mm": 54.0,
+  "wrist_h_mm": 52.0,
+  "strap_w_mm": 22.0,
+  "strap_t_mm": 2.6,
+  "strap_gap_mm": 1.5,
+  "strap_end_x_mm": 22.0,
+  "case_d_mm": 46.0,
+  "case_shoulder_y_mm": 8.8,
+  "bezel_top_y_mm": 11.0,
+  "well_r_mm": 19.8,
+  "well_floor_y_mm": 3.2,
+  "dome_top_y_mm": 15.2,
+  "card_d_mm": 38.0,
+  "card_y_mm": 6.6,
+  "card_t_mm": 1.0,
+  "lubber_y_mm": 8.0,
+  "lubber_t_mm": 0.9,
+  "lubber_w_mm": 2.2,
+  "lubber_r0_mm": 17.6,
+  "tex_px": 256,
+  "colors_srgb": {
+    "case": [0.17, 0.18, 0.19],
+    "bezel": [0.62, 0.63, 0.65],
+    "strap": [0.10, 0.11, 0.12],
+    "buckle": [0.60, 0.61, 0.63],
+    "card_bg": [0.07, 0.08, 0.10],
+    "card_ink": [0.93, 0.91, 0.84],
+    "card_red": [0.95, 0.15, 0.10],
+    "lubber": [0.96, 0.62, 0.05]
+  }
+}

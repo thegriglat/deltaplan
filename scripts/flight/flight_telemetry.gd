@@ -41,12 +41,14 @@ static func fill(m, air_fn: Callable, ground_fn: Callable) -> void:
 		t.pilot_velocity = m.pilot_velocity
 		t.pilot_basis = m.pilot_basis
 		t.pilot_shift = m.pilot_shift
+		t.bar_force = m.bar_force_wing
 	else:
 		# FlightModel: пилот — одна материальная точка с крылом
 		t.pilot_position = m.position
 		t.pilot_velocity = m.velocity
 		t.pilot_basis = t.basis
 		t.pilot_shift = m.last_shift
+		t.bar_force = m.bar_force_estimate(t.airspeed) if m.mode == FlightModel.Mode.AIR else Vector2.ZERO
 	if "load_factor" in t:
 		t.set("load_factor", m.load.load_factor)
 	if "flare_amount" in t:

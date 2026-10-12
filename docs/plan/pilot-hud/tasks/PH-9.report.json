@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "В кабине (оба eye_mode) теперь рисуются материалы из camera.json cockpit.visible_materials (Glove, JacketSleeve, Trousers, Boot, Sole); ноги выпускаются с 25 м вместо 15 м; в flare носки ботинок в кадре (35,9° / 43,5° от оси при полполя 45°).",
+  "commits": [
+    "5d47d7b8 PH-9: тело пилота в кабине по cockpit.visible_materials, ноги выпускаются с 25 м"
+  ],
+  "checks": [
+    {
+      "name": "pilot_hud",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "cockpit",
+      "value": "8/8 (включая test_cockpit_legs)",
+      "pass": true
+    },
+    {
+      "name": "pilot_pose",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "pilot_view",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "glider_visual",
+      "value": "1/1 (новый tests/flight/test_glider_visual_cockpit.gd; раньше фильтр давал 0 тестов = FAIL у dp)",
+      "pass": true
+    },
+    {
+      "name": "game",
+      "value": "1 упал: test_mouse_bar_flight::test_mouse_on_ground_controls_wing (нос ниже 12,7°) - падает и без моих правок (проверено откатом); dp accept из-за 900 с таймаута не дошёл, прогон вручную ~25 мин",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "JacketSleeve в pilot.glb пока нет (PH-3) - предплечья появятся сами, без ошибок",
+    "Скриншоты не делались"
+  ],
+  "questions": [
+    "scope карточки не включал configs/game.json (там pilot_animation), правил в нём только climb_out_agl_m 15->25 и climb_in_agl_m 30->40 с пояснением - ок?",
+    "game-тесты идут ~25 мин и упираются в 900-с таймаут dp accept; mouse_bar_flight падает на feature/pilot-hud и без PH-9"
+  ],
+  "how_to_check": "godot --headless --path . res://tests/run_tests.tscn -- --filter=cockpit_legs (печатает углы носков)",
+  "uncertain": [
+    {
+      "where": "tests/game/test_cockpit_legs.gd",
+      "why": "углы считаются в осях визуала при pitch/roll 0 и взгляде 10 вниз от оси планера; в реальном flare планер задран и камера держит горизонт, на отметке pilot_shift/маятника поза чуть другая",
+      "checked": "при задранном носу ось взгляда в осях планера уходит вниз - носки ближе к центру; запас в eyes-режиме малый (1,5 градуса), при FOV меньше 90 (слайдер до 45) носки выпадут"
+    },
+    {
+      "where": "scripts/flight/glider_visual.gd _make_hands",
+      "why": "Trousers в prone видны, но лежат позади камеры в коконе; Pod/Jacket/Strap/Visor скрыты",
+      "checked": "список поверхностей в тесте glider_visual"
+    }
+  ],
+  "dp_feedback": "dp accept: фильтр без тестов даёт FAIL без пояснения; таймаут game 900 с мал при параллельной нагрузке; dp accept --dry в фоне долго блокирует, нужен вывод прогресса.",
+  "extra": {
+    "half_fov_by_mode": "fov_deg 90 -> 45",
+    "toe_angles": {
+      "flare_back_hidden": 35.9,
+      "flare_eyes": 43.5,
+      "climb_out_back_hidden": 35.9,
+      "climb_out_eyes": 43.5
+    }
+  },
+  "legs_pose_trigger": "Раньше: PilotAnimator при фазе flying, воздух >10 с, agl<15 м и vario<0 либо flare_amount>0.3 -> climb_out (1,5 с) -> flare; обратно при agl>30 м. Ноги были невидимы совсем: PilotBody целиком на BODY_HIDDEN_LAYER, копия PilotHands рисовала только Glove*; в prone ноги в коконе позади камеры. Теперь: agl<25 м (climb_out_agl_m, обратно >40 м), список видимых материалов из camera.json.",
+  "toe_angle_from_view_deg": "flare: back_hidden 35.9, eyes 43.5 (climb_out финальная поза те же); look_down 10",
+  "half_fov_deg": 45.0,
+  "t": "2026-10-12T22:19:13",
+  "by": "executor"
+}

@@ -38,6 +38,8 @@ const FALLBACK_UPRIGHT_TOP := Vector3(0.055, -0.02, -0.25)
 const GROUND_GRIP := Vector3(0.0, -0.59, -0.43)
 ## Середина ступней (кости Foot) в позе stand относительно карабина без наклона, м.
 const GROUND_FEET := Vector3(0.0, -1.905, 0.17)
+## Кость Foot над низом подошвы, м (hang_height_m 2,0 − GROUND_FEET.y 1,905).
+const FOOT_BONE_ABOVE_SOLE_M := 0.095
 
 var wing: Node3D  ## модель крыла
 var pilot: Node3D  ## нода Pilot (качается маятником вокруг HangPoint), внутри — модель пилота
@@ -59,6 +61,9 @@ var arm_bar := 0.0
 var arm_flare := 0.0
 ## Ленточки на тросах трапеции (Telltale, instruments.json → telltale); шагает Glider.step.
 var telltales: Array[Telltale] = []
+var wrist: WristInstruments  ## часы на левой руке и компас на правой (PH-7), null — нет пустышек
+var wrist_clock: SunClock  ## время суток для часов (Game.sky.clock), null — часы скрыты
+var sky_shade: SkyShade  ## затенение земли крылом (PH-8), null — выключено
 ## Рисуется ли жёсткая стропа модели пилота (на земле скрыта, вместо неё гибкая лента — A3.7).
 var strap_rigid_visible := true
 
@@ -148,6 +153,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 		_animated_stand = _animated_stand or ap.has_animation("stand")
 		_anim = ap
 	_build_arms(pm)
+	_build_wrist(pm)
 	_fit_neutral_pose()
 	_build_strap(pm)
 	GloveLeather.apply(pm.find_child("PilotBody", true, false) as MeshInstance3D)
@@ -158,6 +164,31 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	add_child(head_marker)
 	_pose = _flight_pose(Vector3.ZERO)
 	set_pose(0.0, 0.0, true, 1.0e6)
+	# Затенение земли крылом (PH-8, PH-К7): одна декаль под парусом, видна всем камерам
+	var ss_cfg: Dictionary = vis_cfg.get("sky_shade", {})
+	sky_shade = null
+	if bool(ss_cfg.get("enabled", false)):
+		sky_shade = SkyShade.new()
+		add_child(sky_shade)
+		sky_shade.setup(float(wing_cfg.get("area_m2", 13.5)), ss_cfg)
+
+
+## Часы и компас на пустышки запястий (PH-7).
+func _build_wrist(pm: Node3D) -> void:
+	wrist = WristInstruments.new()
+	wrist.name = "WristInstruments"
+	if not wrist.attach(pm):
+		wrist.free()
+		wrist = null
+		return
+	add_child(wrist)
+	wrist.set_clock(wrist_clock)
+
+
+func set_wrist_clock(c: SunClock) -> void:
+	wrist_clock = c
+	if wrist != null:
+		wrist.set_clock(c)
 
 
 ## Стропа пилота: поверхность Strap в PilotBody (прячется на земле), нижняя точка подвесной
@@ -397,6 +428,24 @@ func ground_feet_target(pilot_rel: Vector3) -> Vector3:
 ## Ступни нарисованного стоящего пилота (оси визуала): точка ступней позы стоя.
 func ground_feet() -> Vector3:
 	return _pose * _ground_feet_local
+
+
+## PH-К6: мировые точки низа подошв [левая, правая] в текущей позе скелета; нет скелета
+## пилота или ноды вне дерева — пустой массив.
+func feet_positions() -> PackedVector3Array:
+	var out := PackedVector3Array()
+	if _skeleton == null or not _skeleton.is_inside_tree():
+		return out
+	for side in ["L", "R"]:
+		var i := -1
+		for n in ["Foot_" + side, "Foot." + side]:
+			if i < 0:
+				i = _skeleton.find_bone(n)
+		if i < 0:
+			return PackedVector3Array()
+		var w := _skeleton.global_transform * _skeleton.get_bone_global_pose(i).origin
+		out.append(w - Vector3(0.0, FOOT_BONE_ABOVE_SOLE_M, 0.0))
+	return out
 
 
 ## Таз (ЦМ пилота) в осях ноды Pilot: кость Hips по текущей анимации; нет скелета — центр тела
@@ -837,6 +886,11 @@ var _body_mi: MeshInstance3D
 var _hands_mi: MeshInstance3D
 
 
+## Префиксы имён материалов PilotBody, которые кабинная камера рисует в режиме "hands"
+## (camera.json → cockpit.visible_materials, контракт PH-К5). Меняется до первого "hands".
+var cockpit_visible_materials: PackedStringArray = ["Glove", "JacketSleeve", "Trousers", "Boot", "Sole"]
+
+
 func set_cockpit_body(mode: String) -> void:
 	if mode == _body_mode and (_body_mi != null or mode == "full"):
 		return
@@ -854,8 +908,10 @@ func set_cockpit_body(mode: String) -> void:
 		_hands_mi.visible = mode == "hands"
 
 
-## «hands»: тело скрыто, кабинная камера видит только перчатки (поверхности Glove*) — копию
-## PilotBody на слое «только кабина», остальные поверхности подменены невидимым материалом.
+## «hands»: тело скрыто, кабинная камера видит только поверхности из cockpit_visible_materials
+## (перчатки, рукава, брюки, ботинки; PH-К5) — копию PilotBody на слое «только кабина», остальные
+## поверхности (голова, шея, грудь) подменены невидимым материалом. Материала из списка нет в
+## модели — пропуск (ошибки нет).
 func _make_hands(body: MeshInstance3D) -> MeshInstance3D:
 	var hands := body.duplicate() as MeshInstance3D
 	hands.name = "PilotHands"
@@ -867,10 +923,17 @@ func _make_hands(body: MeshInstance3D) -> MeshInstance3D:
 	hide.shader = sh
 	for i in body.mesh.get_surface_count():
 		var m := body.mesh.surface_get_material(i)
-		if m == null or not m.resource_name.begins_with("Glove"):
+		if m == null or not _cockpit_shows(m.resource_name):
 			hands.set_surface_override_material(i, hide)
 	body.get_parent().add_child(hands)
 	return hands
+
+
+func _cockpit_shows(material_name: String) -> bool:
+	for pre in cockpit_visible_materials:
+		if material_name.begins_with(pre):
+			return true
+	return false
 
 
 ## Центр тела относительно карабина.

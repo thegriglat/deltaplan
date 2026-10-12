@@ -23,6 +23,7 @@ const OVERBANK_FADE_DEG := 10.0
 var telemetry := Telemetry.new()
 ## Смещение пилота по последнему вводу (FB-К1): x = roll, y = −pitch; в Telemetry.pilot_shift.
 var last_shift := Vector2.ZERO
+var _last_weight_shift := false  ## последний ввод — режим «смещение веса» (для оценки усилия рук)
 var mode: Mode = Mode.GROUND
 ## Причина срыва взлёта: "wingtip" (консоль на земле) или "" (GroundRun.failure).
 var takeoff_failure: String = ""
@@ -183,6 +184,7 @@ func reset_in_air(
 ## ground_fn(x: float, z: float) -> float — высота земли (пустой — земли нет).
 func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable) -> void:
 	time_s += dt
+	_last_weight_shift = input.weight_shift
 	last_shift = Vector2(clampf(input.roll, -1.0, 1.0), -clampf(input.pitch, -1.0, 1.0))
 	match mode:
 		Mode.AIR:
@@ -246,6 +248,39 @@ func steady_glide(v: float) -> Vector2:
 		ld = cl / polar.cd_at(cl)
 		cos_g = cos(atan(1.0 / ld))
 	return Vector2(v, v * sin(atan(1.0 / ld)))
+
+
+## Усилие рук на трапеции (PH-К1), Н, оси крыла (x + вправо, y + к носу) — оценка из моментов модели
+## «смещение веса», где силы рук нет (тангаж кинематический). Модель «центр масс на подвеске»:
+##  - тангаж: чтобы держать воздушную скорость v ≠ V_трим, пилот сдвигает ЦМ вдоль крыла на
+##    Δx = (v − V_трим) / (k·s): сдвиг подвески против аэродинамического момента Cm(α) − Cm(α_трим)
+##    (устойчивость по скорости), k = wing.pendulum.ref.kmh_per_cm_hang (км/ч на см сдвига на
+##    эталонной массе; из баланса моментов крыла tools/flight/pendulum_params.py), s = speed_scale()
+##    (скорости и dV/dx растут как √(M/ρ), отношение v/V_трим от массы не зависит);
+##  - крен: в модели установившийся крен держится смещением (roll_input_for_bank) — упрощение
+##    кинематики: в жизни установившийся вираж ≈ без усилия (Ochi < 10 Н). Поэтому усилие — от
+##    отклонения ввода от «держащего» (в режиме «как раньше», где ввод — скорость крена, держащий ввод 0): Δy = (roll − roll_input_for_bank(bank, v))·arms.shift_y_max_m,
+##    то есть есть при вводе в крен и выводе, в установившемся вираже ≈ 0;
+##  - руки держат пилота на подвеске длиной L (pilot.visual.hang_length_m) со смещённым ЦМ:
+##    горизонтальная составляющая веса m_p·g·Δ/L (малые углы), F = m_p·g·Δ/L.
+## Приближения: линейность Cm(α) около трима (в модели линейная зависимость v от сдвига),
+## квазистатика (динамику тангажа и инерцию пилота не считаем), перегрузка n = 1 (вес без n),
+## предел рук — pendulum.arms.force_max_n. Вне AIR — ноль.
+func bar_force_estimate(airspeed: float) -> Vector2:
+	if mode != Mode.AIR or not is_finite(airspeed):
+		return Vector2.ZERO
+	var arms: Dictionary = Config.get_config("pendulum").arms
+	var hang_l := float(pilot.visual.hang_length_m)
+	var k_ms_per_m := float(wing.pendulum.ref.kmh_per_cm_hang) * 100.0 / 3.6 * speed_scale()
+	var dx := (airspeed - trim_speed()) / maxf(k_ms_per_m, 1.0e-3)
+	# режим «как раньше»: ввод — скорость крена, в установившемся крене ввода нет, «держащего» положения нет
+	var hold := 0.0
+	if _last_weight_shift:
+		hold = roll_input_for_bank(bank, maxf(airspeed, float(flight.min_airspeed_ms)))
+	var dy := (last_shift.x - hold) * float(arms.shift_y_max_m)
+	var f := pilot_mass * Units.G / maxf(hang_l, 0.1) * Vector2(dy, dx)
+	f = f.limit_length(float(arms.force_max_n))
+	return f if f.is_finite() else Vector2.ZERO
 
 
 ## Выравнивание у земли 0..1 (для позы пилота): 0 — нет, 1 — трапеция от себя до упора.

@@ -1,0 +1,59 @@
+{
+  "status": "done",
+  "summary": "Модель wrist_compass.glb собрана воспроизводимо (build_wrist_compass.py + wrist_compass.json, W×H 56×51): корпус-капсула Ø46, картушка Ø38 с текстурой 256², Lubber на +Y, ремешок 22 мм, купол Glass. Тесты pilot_hud 5/5; check_models по компасу ок, общий ИТОГ красный из-за ранее существующих ошибок крыльев (InstrumentMount).",
+  "commits": [
+    "ab4b7da9 PH-6: модель наручного компаса"
+  ],
+  "checks": [
+    {
+      "name": "pilot_hud",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "check_models блок компаса",
+      "value": "все [ok]",
+      "pass": true
+    },
+    {
+      "name": "check_models",
+      "value": "ОШИБОК 192, все в glider_*.glb (InstrumentMount −Z/верх экрана), не от компаса",
+      "pass": false
+    },
+    {
+      "name": "контраст",
+      "value": "метки/фон 15:1, красный N 4.4:1, Lubber 8.6:1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Метки через 10° тоньше 2 мм (геометрически не влезает: шаг на кромке 3.3 мм); 30° — 1.3 мм, 90° — 1.9 мм."
+  ],
+  "questions": [
+    "Ошибки check_models в glider_*.glb (InstrumentMount) были до задачи — кто чинит? Из-за них dp accept check_models не пройдёт."
+  ],
+  "how_to_check": "blender --background --python tools/blender/build_wrist_compass.py; godot --headless --import; dp accept PH-6 --dry",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_wrist_compass.py (Glass)",
+      "why": "альфа 0.08 BLEND в glTF; в игре Godot-материал не проверял визуально",
+      "checked": "alphaMode BLEND в glb; тест albedo.a ≤ 0.15"
+    },
+    {
+      "where": "docs/guide/models.md «Наручные приборы»",
+      "why": "PH-5 тоже может создать общий раздел — возможен конфликт при слиянии",
+      "checked": "добавил раздел перед «Шейдер паруса» с одним подпунктом"
+    },
+    {
+      "where": "ориентация E/W",
+      "why": "E справа для смотрящего (по часовой) — по рендеру в Blender (камера была перевёрнута на 180°, согласуется); тест проверяет только N",
+      "checked": "рендер top/oblique"
+    }
+  ],
+  "dp_feedback": "Нет команды проверки текущих ошибок check_models «до моих правок» (пришлось разбирать лог вручную).",
+  "tris": 1304,
+  "texture_px": 256,
+  "case_d_mm": 46,
+  "t": "2026-10-12T21:14:52",
+  "by": "executor"
+}

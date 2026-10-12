@@ -1,0 +1,49 @@
+{
+  "id": "PH-2",
+  "module": "pilot-hud",
+  "type": "dp-engineer",
+  "title": "Часы текстом от 3-го лица и флажок «Часы»",
+  "goal": "От 3-го лица пилот видит время суток игры текстом справа внизу; флажок «Часы» в настройках выключает и текст, и наручные часы.",
+  "plan_ref": "PH-2 Часы",
+  "contracts": [
+    {
+      "name": "PH-К2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-hud.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-hud-PH-2",
+  "branch": "pilot-hud/PH-2",
+  "base": "feature/pilot-hud",
+  "scope": [
+    "scripts/ui/clock_label.gd",
+    "scripts/game/game.gd",
+    "scripts/ui/settings_panel.gd",
+    "configs/ui.json",
+    "locale/ui.csv",
+    "tests/ui",
+    "tests/contracts/test_pilot_hud_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/instruments/telltale*",
+    "scripts/ui/pilot_shift_indicator.gd"
+  ],
+  "accept": [
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "clock",
+      "tests": "clock"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Источник — SunClock.hour той же sky.clock (game.gd: sky.clock), текст SunClock.format_hour/time_text; не продвигать часы. Видимость: флажок ui.clock.enabled и camera.mode != cockpit, как индикатор подвески (set_active в _update_overlay) — не в меню и не в паузе. Справа внизу, не перекрывая угловой прибор overlay и индикатор подвески; шрифт UI, скромно. Тесты назвать с clock в имени файла.",
+  "created": "2026-10-12T21:06:00",
+  "edited": "2026-10-12T22:01:10"
+}

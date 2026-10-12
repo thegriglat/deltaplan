@@ -1,0 +1,79 @@
+{
+  "id": "PH-3",
+  "module": "pilot-hud",
+  "type": "dp-engineer",
+  "title": "Пилот: перчатки без раструба, крепления WristL/WristR, рукав материалом JacketSleeve",
+  "goal": "Убрать мешающий раструб краги (только кисти) и подготовить запястья под наручные часы и компас; рукав отдельным материалом — чтобы предплечья можно было показать от 1-го лица.",
+  "plan_ref": "PH-3 Пилот",
+  "contracts": [
+    {
+      "name": "PH-К3",
+      "version": "2",
+      "ref": "docs/contracts/pilot-hud.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-hud-PH-3",
+  "branch": "pilot-hud/PH-3",
+  "base": "feature/pilot-hud",
+  "scope": [
+    "tools/blender/build_pilot.py",
+    "tools/blender/*pilot*",
+    "assets/models/pilot.glb",
+    "assets/models/pilot.glb.import",
+    "assets/source/pilot.blend",
+    "scripts/flight/glove_leather.gd",
+    "assets/shaders/glove/glove_leather.gdshader",
+    "docs/guide/models.md",
+    "scenes/models_preview/check_models.gd",
+    "tests/contracts/test_pilot_hud_contracts.gd",
+    "tests/flight"
+  ],
+  "dont_touch": [
+    "scripts/game/glider_visual.gd",
+    "configs/camera.json",
+    "scripts/instruments/telltale*"
+  ],
+  "accept": [
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "pilot_pose",
+      "tests": "pilot_pose"
+    },
+    {
+      "name": "glove",
+      "tests": "glove"
+    },
+    {
+      "name": "pilot_arms",
+      "tests": "pilot_arms"
+    },
+    {
+      "name": "check_models",
+      "cmd": "godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -60",
+      "expect": "re:ИТОГ: OK"
+    },
+    {
+      "name": "cockpit",
+      "cmd": "godot --headless --path . tests/run_tests.tscn -- --filter=cockpit 2>&1 | tail -300",
+      "expect": {
+        "re": "\\d+ тестов, [01] упало",
+        "!re": "FAIL (?!test_cockpit\\.gd::test_trapezoid_and_telltales)"
+      },
+      "timeout": 1500
+    }
+  ],
+  "report_extra": [
+    "wrist_w_mm",
+    "wrist_h_mm",
+    "beta_deg",
+    "eye_angle_deg",
+    "tris_before",
+    "tris_after"
+  ],
+  "notes": "Blender 4.3 с MPFB: BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user (docs/guide/models.md «Как перегенерировать»). Можно смотреть 1–3 рендера кисти/запястья в Blender для себя (3D-модель), игровые скриншоты не делать. Угол β крепления к глазам и сечение W×H в точке крепления — в отчёт (report_extra) и в docs/guide/models.md. Часы — левая рука, компас — правая. Качество — уровень текущих перчаток (коммиты 0762cede, 24eeaa0e): манжета плотная, без шва и дыр.",
+  "created": "2026-10-12T21:03:39",
+  "edited": "2026-10-12T21:29:40"
+}

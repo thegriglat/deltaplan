@@ -1,0 +1,74 @@
+{
+  "id": "PH-9",
+  "module": "pilot-hud",
+  "type": "dp-engineer",
+  "title": "Тело пилота от 1-го лица: ноги на посадке и предплечья",
+  "goal": "От 1-го лица на посадке пилот видит свои выпущенные ноги внизу кадра (как в жизни), а предплечья — под наручные приборы; сейчас в кабине рисуются только перчатки.",
+  "plan_ref": "PH-9 Тело пилота",
+  "contracts": [
+    {
+      "name": "PH-К5",
+      "version": "1",
+      "ref": "docs/contracts/pilot-hud.md"
+    },
+    {
+      "name": "PH-К3",
+      "version": "2",
+      "ref": "docs/contracts/pilot-hud.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-hud-PH-9",
+  "branch": "pilot-hud/PH-9",
+  "base": "feature/pilot-hud",
+  "scope": [
+    "scripts/game/camera_rig.gd",
+    "configs/camera.json",
+    "configs/flight.json",
+    "configs/pilot.json",
+    "tests/game",
+    "tests/flight",
+    "tests/contracts/test_pilot_hud_contracts.gd",
+    "docs/guide",
+    "scripts/flight/glider_visual.gd"
+  ],
+  "dont_touch": [
+    "tools/blender",
+    "assets/models/pilot.glb",
+    "scripts/instruments/telltale*"
+  ],
+  "accept": [
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "pilot_pose",
+      "tests": "pilot_pose"
+    },
+    {
+      "name": "pilot_view",
+      "tests": "pilot_view"
+    },
+    {
+      "name": "glider_visual",
+      "tests": "glider_visual"
+    },
+    {
+      "name": "cockpit",
+      "cmd": "godot --headless --path . tests/run_tests.tscn -- --filter=cockpit 2>&1 | tail -300",
+      "expect": {
+        "re": "\\d+ тестов, [01] упало",
+        "!re": "FAIL (?!test_cockpit\\.gd::test_trapezoid_and_telltales)"
+      },
+      "timeout": 1500
+    }
+  ],
+  "report_extra": [
+    "legs_pose_trigger",
+    "toe_angle_from_view_deg",
+    "half_fov_deg"
+  ],
+  "notes": "Сначала разобраться (в отчёт): когда включаются climb_out/flare (высота/время/условие), почему ноги видны лишь у самой земли (слои, near, отсечение, eye_mode back_hidden — камера на 0,3 м позади глаз), угол ног в позе. Затем: видимость в кабине по cockpit.visible_materials (PH-К5), поза «ноги вниз» с запасом до касания по-пилотски (параметр с пояснением), ноги в кадре при взгляде по умолчанию — числом. JacketSleeve появится после PH-3 — до этого предплечий нет, без ошибок. Баланс достоверности и удобства: можно чуть сдвинуть ноги вперёд в позе flare/камеру, но без «телепортов». Скриншоты — только для себя при замерах, не обязательно.",
+  "created": "2026-10-12T21:03:59",
+  "edited": "2026-10-12T21:51:45"
+}

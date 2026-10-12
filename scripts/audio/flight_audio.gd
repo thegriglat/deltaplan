@@ -51,6 +51,7 @@ func setup(cfg: Dictionary, seed_value: int = 0) -> void:
 	_make_loops(cfg.get("sail", {}), FlightSoundMix.SAIL_LOOPS, fx)
 	_make_loops(cfg.get("run", {}), FlightSoundMix.RUN_LOOPS, fx)
 	_make_loops(cfg.get("ambient", {}), FlightSoundMix.AMBIENT_LOOPS, amb)
+	_make_rustle_loop(cfg.get("rustle", {}), fx)
 	var sail_files: Dictionary = cfg.get("sail", {}).get("files", {})
 	var frame_files: Dictionary = cfg.get("frame", {}).get("files", {})
 	var run_files: Dictionary = cfg.get("run", {}).get("files", {})
@@ -73,7 +74,8 @@ func setup(cfg: Dictionary, seed_value: int = 0) -> void:
 
 ## Данные полёта. extra: phase ("standing"/"walking"/"running"/"flying"/"landed"),
 ## stall_amount 0..1, turbulence 0..1, sideslip_deg, load_factor, ground_wind_ms,
-## surface ("grass"/"gravel") — всё необязательно.
+## surface ("grass"/"gravel"), feet (подошвы для шуршания: [{clearance_m, speed_ms,
+## grass_h_m}]) — всё необязательно.
 func update(t: Telemetry, extra: Dictionary = {}) -> void:
 	mix.set_state(t, extra)
 	_has_state = true
@@ -210,6 +212,21 @@ func _make_loops(section: Dictionary, names: PackedStringArray, bus: String) -> 
 		_loops[loop_name] = p
 		_gain[loop_name] = 0.0
 		_pitch[loop_name] = 1.0
+
+
+## Шуршание ног о траву (PH-4): процедурный луп на шине Effects, громкость — mix.compute().
+func _make_rustle_loop(rc: Dictionary, bus: String) -> void:
+	if not bool(rc.get("enabled", true)):
+		return
+	var p := AudioStreamPlayer.new()
+	p.name = "Loop_rustle"
+	p.stream = GrassRustle.make_loop(rc, int(rc.get("seed", 7)))
+	p.bus = bus
+	p.volume_db = _min_db
+	add_child(p)
+	_loops[FlightSoundMix.RUSTLE_LOOP] = p
+	_gain[FlightSoundMix.RUSTLE_LOOP] = 0.0
+	_pitch[FlightSoundMix.RUSTLE_LOOP] = 1.0
 
 
 func _load_list(paths: Array) -> Array[AudioStream]:

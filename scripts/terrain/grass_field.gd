@@ -25,6 +25,13 @@ var _last_cell := Vector2(INF, INF)
 ## Высота скошенной травы по умолчанию (configs/vegetation.json → grass.mowed_height_k) —
 ## для set_landing_sites, если площадка не задала свою.
 var _mowed_height_k: float = 0.3
+## Для height_at (PH-К6): карта поверхности, параметры высоты по классам, скошенные места.
+var _surface: SurfaceLayer
+var _cfg: Dictionary = {}
+var _rock_slope_deg: float = 38.0
+var _mowed_spots: Array[Vector4] = []
+## Посадки для height_at: {center: Vector2, axis_deg, length_m, width_m, hk}.
+var _landing_rects: Array[Dictionary] = []
 
 
 func setup(
@@ -37,6 +44,10 @@ func setup(
 	mowed_spots: Array[Vector4]
 ) -> void:
 	_layer = layer
+	_surface = surface
+	_cfg = cfg
+	_rock_slope_deg = float(look.get("rock_slope_deg", 38.0))
+	_mowed_spots = mowed_spots.slice(0, MAX_MOWED)
 	_spacing = float(cfg.clump_spacing_m)
 	if bool(cfg.get("density_scaled", true)):
 		_spacing = spacing_for_density(_spacing, density_k(cfg))
@@ -196,6 +207,55 @@ static func class_share(c: int, shrub_density: float, forest_density: float) -> 
 	return 0.0
 
 
+## PH-К6: высота верхушек травы над землёй в точке мира, м; 0 — травы нет. Та же классификация,
+## что у отрисовки (grass.gdshader): класс поверхности × class_share, склон круче
+## terrain_look.rock_slope_deg, скошенные места и посадки-прямоугольники (hk). Высота — середина
+## диапазона класса (у отрисовки она случайна по пучку), у кустарника/леса умножена на долю
+## пучков. От камеры и max_agl_m не зависит. Детерминирована, без аллокаций кроме мелких.
+func height_at(x: float, z: float) -> float:
+	if _layer == null or _surface == null or not is_enabled(_cfg):
+		return 0.0
+	var c := _surface.class_at(x, z)
+	if _surface.mask_contains(x, z):
+		if _surface.mask_g(x, z) >= 0.5:
+			return 0.0  # вода
+		if _surface.mask_r(x, z) >= 0.5:
+			c = SurfaceLayer.FOREST
+		elif c == SurfaceLayer.FOREST:
+			c = _surface.open_class_near(x, z)
+	var shrub := float(_cfg.get("shrub_density", 0.5))
+	var forest := float(_cfg.get("forest_density", 0.0))
+	var share := class_share(c, shrub, forest)
+	if share <= 0.0:
+		return 0.0
+	var range_v: Vector2
+	match c:
+		SurfaceLayer.CROP:
+			range_v = _v2(_cfg.get("crop_height_m", [0.6, 0.9]))
+		SurfaceLayer.FOREST:
+			range_v = _v2(_cfg.get("forest_height_m", [0.12, 0.3]))
+			share = forest
+		_:
+			range_v = _v2(_cfg.get("blade_height_m", [0.25, 0.55]))
+	var h := (range_v.x + range_v.y) * 0.5 * share * float(_cfg.get("height_k", 1.0))
+	var e := _layer.spacing
+	var n := Vector3(
+		_layer.sample(x - e, z) - _layer.sample(x + e, z),
+		2.0 * e,
+		_layer.sample(x, z - e) - _layer.sample(x, z + e)
+	).normalized()
+	var slope := rad_to_deg(acos(clampf(n.y, 0.0, 1.0)))
+	h *= 1.0 - smoothstep(_rock_slope_deg - 4.0, _rock_slope_deg + 2.0, slope)
+	var xz := Vector2(x, z)
+	for m in _mowed_spots:
+		if xz.distance_to(Vector2(m.x, m.y)) < m.z:
+			h *= m.w
+	for r in _landing_rects:
+		if in_landing_rect(xz, r.center, r.axis_deg, r.length_m, r.width_m):
+			h *= float(r.hk)
+	return h
+
+
 static func _v2(a: Variant) -> Vector2:
 	return Vector2(float(a[0]), float(a[1]))
 
@@ -212,6 +272,19 @@ func set_relief(relief: TerrainRelief) -> void:
 ## Вызывает группа «Сцена игры»; до вызова действует круговое скашивание по
 ## Terrain.get_landing_sites (configs/vegetation.json → grass.landing_mow_radius_m).
 func set_landing_sites(sites: Array[Dictionary]) -> void:
+	_landing_rects.clear()
+	for s in sites.slice(0, MAX_LANDING):
+		var p: Vector3 = s.position
+		_landing_rects.append(
+			{
+				"center": Vector2(p.x, p.z),
+				"axis_deg": float(s.get("axis_deg", 0.0)),
+				"length_m": float(s.length_m),
+				"width_m": float(s.width_m),
+				"hk": float(s.get("mowed_height_k", _mowed_height_k)),
+			}
+		)
+	_mowed_spots.clear()
 	if material == null:
 		return
 	if far_layer != null:

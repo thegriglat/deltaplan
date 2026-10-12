@@ -99,6 +99,7 @@ var pilot_rel := Vector3.ZERO  ## пилот − подвеска в осях к
 var pilot_shift := Vector2.ZERO  ## смещение пилота от нейтрали / предел хода (FB-К1): x + вправо, y + к носу
 var head_position := Vector3.ZERO
 var bar_force := Vector3.ZERO  ## сила рук на пилота (мир игры), Н
+var bar_force_wing := Vector2.ZERO  ## она же в осях крыла (PH-К1): x + вправо, y + к носу, Н
 var strap_tension: float = 0.0
 
 ## Для тестов и опытов (не PD-К1): руки отпущены (свободный маятник) и заданное поперечное
@@ -1002,6 +1003,9 @@ func _update_outputs(air_fn: Callable, ground_fn: Callable) -> void:
 	pilot_basis = Basis(Quaternion(bg.y, up)) * bg if up.length() > 0.5 else bg
 	head_position = pilot_position + pilot_basis * Vector3(0.0, _head_up, -_head_fwd)
 	bar_force = game(_hands_p)
+	# PH-К1: оси крыла, как pilot_shift — x вправо, y к носу (−z крыла)
+	var bf := bg.transposed() * bar_force
+	bar_force_wing = Vector2(bf.x, -bf.z) if bf.is_finite() else Vector2.ZERO
 	strap_tension = chain.tension
 	_fill_telemetry(air_c, ground_fn, bg)
 
@@ -1056,5 +1060,6 @@ func _fill_telemetry(air_c_ned: Vector3, ground_fn: Callable, bg: Basis) -> void
 	t.pilot_velocity = pilot_velocity
 	t.pilot_basis = pilot_basis
 	t.pilot_shift = pilot_shift
+	t.bar_force = bar_force_wing
 	t.load_factor = load.load_factor
 	t.flare_amount = flare_amount()
