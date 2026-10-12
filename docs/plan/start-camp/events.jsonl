@@ -18,3 +18,10 @@
 {"t": "2026-10-12T22:25:48", "by": "coordinator", "task": "SC-3", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-start-camp-SC-3"}
 {"t": "2026-10-12T22:25:49", "by": "coordinator", "task": "SC-4", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-start-camp-SC-4"}
 {"t": "2026-10-12T22:26:21", "by": "coordinator", "task": null, "ev": "note", "note": "шлюз: задания SC-6/SC-7/SC-8 (Blender) переданы главной сессии на запуск; SC-1…SC-4 запущены"}
+{"t": "2026-10-12T22:26:39", "by": "main", "task": "SC-6", "ev": "started", "note": "dp-engineer Sonnet, ~/deltaplan-start-camp-SC-6"}
+{"t": "2026-10-12T22:26:39", "by": "main", "task": "SC-7", "ev": "started", "note": "dp-engineer Sonnet, ~/deltaplan-start-camp-SC-7"}
+{"t": "2026-10-12T22:26:40", "by": "main", "task": "SC-8", "ev": "started", "note": "dp-engineer Sonnet, ~/deltaplan-start-camp-SC-8"}
+{"t": "2026-10-12T22:32:18", "by": "executor", "task": "SC-4", "ev": "reported", "commits": ["ee56325f"], "note": "done: Общий шейдер ткани camp_fabric.gdshader (проекция по доминирующей оси в осях объекта, одна выборка нормали рипстопа, ан…", "dp_feedback": "dp task show не говорит, что headless-тесты не проверяют instance uniform/uniform list шейдера; пришлось ставить meta camp_tint для теста."}
+{"t": "2026-10-12T22:32:21", "by": "executor", "task": "SC-3", "ev": "reported", "commits": ["470b7ce4"], "note": "done: Маска примятой травы SC-K6: TrampleMask (R8 256 м/0,5 м) по палаткам с кольцом, тропинкам, пятнам вещей SC-K2, кругу ра…", "dp_feedback": "godot --import надо повторять после добавления нового class_name (иначе тесты молча падают 'не объявлен', а раннер пишет ok по другим тестам); хорошо бы dp accept это делал/предупреждал."}
+{"t": "2026-10-12T22:32:55", "by": "executor", "task": "SC-4", "ev": "checked", "note": "4/4 camp_fabric=ok:2/2; start_camp_contracts_k5=ok:2/2; tents=ok:6/6; gd=ok:exit 0"}
+{"t": "2026-10-12T22:33:01", "by": "coordinator", "task": "SC-4", "ev": "accepted", "note": "по отчёту: 4/4 PASS; шейдер — проверка в тестовой сборке Linux"}

@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "Общий шейдер ткани camp_fabric.gdshader (проекция по доминирующей оси в осях объекта, одна выборка нормали рипстопа, аналитические складки, пыль снизу по dirt_height_m, тон base_color×COLOR×instance tint, sRGB→линейный в шейдере) + CampFabric.material(preset) с кэшем и 6 пресетами; палатки переведены на tent/tent_door, цвет — instance uniform tint.",
+  "commits": [
+    "ee56325f Ткань лагеря: общий шейдер camp_fabric, CampFabric.material, палатки на нём (SC-4)"
+  ],
+  "checks": [
+    {
+      "name": "camp_fabric",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "start_camp_contracts_k5",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "tents",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SC-4",
+  "uncertain": [
+    {
+      "where": "assets/shaders/camp/camp_fabric.gdshader",
+      "why": "внешний вид не видел; headless шейдер не компилирует (dummy-рендер)",
+      "checked": "оконный запуск с двумя сферами на пресетах tent/tent_door и instance tint — ошибок шейдера в логе нет; визуал — тестовой сборкой"
+    },
+    {
+      "where": "scripts/world_objects/tent_camp.gd:_fabric",
+      "why": "door_darken задаётся через set_shader_parameter(base_color) на общем материале tent_door (глобально, последний build_node побеждает)",
+      "checked": "cfg один на игру"
+    }
+  ],
+  "dp_feedback": "dp task show не говорит, что headless-тесты не проверяют instance uniform/uniform list шейдера; пришлось ставить meta camp_tint для теста.",
+  "t": "2026-10-12T22:32:18",
+  "by": "executor"
+}
