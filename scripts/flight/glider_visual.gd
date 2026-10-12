@@ -61,6 +61,7 @@ var arm_bar := 0.0
 var arm_flare := 0.0
 ## Ленточки на тросах трапеции (Telltale, instruments.json → telltale); шагает Glider.step.
 var telltales: Array[Telltale] = []
+var glove_openings := {}  ## срезы перчаток (PilotGloveCut.cut), оси кости кисти
 var wrist: WristInstruments  ## часы на левой руке и компас на правой (PH-7), null — нет пустышек
 var wrist_clock: SunClock  ## время суток для часов (Game.sky.clock), null — часы скрыты
 var sky_shade: SkyShade  ## затенение земли крылом (PH-8), null — выключено
@@ -180,10 +181,10 @@ func _build_wrist(pm: Node3D) -> void:
 	if sk == null:
 		var sks := pm.find_children("*", "Skeleton3D", true, false)
 		sk = sks[0] as Skeleton3D if not sks.is_empty() else null
-	var openings := PilotGloveCut.cut(pm.find_child("PilotBody", true, false) as MeshInstance3D, sk)
+	glove_openings = PilotGloveCut.cut(pm.find_child("PilotBody", true, false) as MeshInstance3D, sk)
 	wrist = WristInstruments.new()
 	wrist.name = "WristInstruments"
-	if not wrist.attach(pm, openings):
+	if not wrist.attach(pm, glove_openings):
 		wrist.free()
 		wrist = null
 		return

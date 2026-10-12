@@ -10,10 +10,10 @@ extends Node
 const WATCH_PATH := "res://assets/models/watch.glb"
 const COMPASS_PATH := "res://assets/models/wrist_compass.glb"
 ## Размеры моделей ремешка (с пряжкой; tools/blender/watch.json, wrist_compass.json): ширина вдоль
-## кисти, высота эллипса кольца по оси циферблата, зазор до среза перчатки, м.
+## кисти, высота эллипса кольца по оси циферблата, перекрытие края перчатки ремешком (минус — ремешок заходит на перчатку, рваный край под ним не виден), м.
 const STRAP_W_M := 0.025
 const RING_H_M := 0.046
-const STRAP_GAP_M := 0.001
+const STRAP_GAP_M := -0.001
 
 var clock: SunClock  ## источник времени (Game.sky.clock); null — часы скрыты (чужой пилот)
 var watch: Node3D  ## корень модели часов

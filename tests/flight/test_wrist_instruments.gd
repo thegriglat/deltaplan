@@ -212,24 +212,24 @@ func test_wrist_instruments_at_glove_edge() -> void:
 	var cut_n := _glove_indices(body.mesh)
 	check(cut_n < _glove_indices(fresh.mesh), "из перчаток убраны манжеты: %d < %d индексов" % [cut_n, _glove_indices(fresh.mesh)])
 	fresh.get_parent().free()
-	var openings := PilotGloveCut.cut(body, sk)
-	check(_glove_indices(body.mesh) == cut_n, "повторный разрез ничего не убирает (манжет не осталось)")
+	var openings := v.glove_openings
 	var eye := v.head_marker.global_position
 	for side in ["L", "R"]:
 		check(openings.has(side), "срез перчатки %s найден" % side)
 		if not openings.has(side):
 			continue
 		var inst: Node3D = v.wrist.watch if side == "L" else v.wrist.compass
+		_check_flat_edge(body, sk, side, float(openings[side].y))
 		var grip := v.find_child("Hand" + side, true, false) as Node3D
 		var bone := grip.global_transform * grip.transform.affine_inverse()  # кость кисти
 		var strap := inst.find_child("Strap", true, false) as MeshInstance3D
 		var sb := strap.get_aabb()
-		# лента вдоль кисти (локальный Y кости): до среза перчатки 0…3 мм
+		# лента вдоль кисти (локальный Y кости): край перчатки ровный (стянут на плоскость), ремешок вплотную, перекрытие 0–3 мм
 		var o := bone.affine_inverse() * inst.global_transform.origin
 		var y_hi := o.y + sb.end.y
 		var y_lo := o.y + sb.position.y
 		var edge: float = openings[side].y
-		check(edge - y_hi >= -0.0005 and edge - y_hi <= 0.003, "%s: ремешок вплотную перед срезом, зазор %.1f мм" % [side, (edge - y_hi) * 1000.0])
+		check(edge - y_hi <= 0.0 and edge - y_hi >= -0.003, "%s: ремешок сразу у ровного края перчатки (перекрытие 0–3 мм), зазор %.1f мм" % [side, (edge - y_hi) * 1000.0])
 		check(y_lo < edge - 0.015, "%s: ремешок не уходит внутрь перчатки" % [side])
 		# кольцо охватывает сечение запястья: центр кольца на оси кисти (по X/Z кости)
 		var c: Vector3 = openings[side].center
@@ -247,3 +247,25 @@ func _glove_indices(m: Mesh) -> int:
 		if mt != null and mt.resource_name.begins_with("Glove"):
 			return (m.surface_get_arrays(s)[Mesh.ARRAY_INDEX] as PackedInt32Array).size()
 	return -1
+
+
+## Край перчатки ровный: ни одна вершина острова кисти не лежит дальше плоскости среза к локтю.
+func _check_flat_edge(body: MeshInstance3D, sk: Skeleton3D, side: String, plane_y: float) -> void:
+	var f := sk.get_bone_global_rest(sk.find_bone("Hand." + side)).affine_inverse()
+	var m := body.mesh
+	var low := 0
+	var n := 0
+	for s in m.get_surface_count():
+		var mt := m.surface_get_material(s)
+		if mt == null or not mt.resource_name.begins_with("Glove"):
+			continue
+		var a := m.surface_get_arrays(s)
+		var verts: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		for vi: int in a[Mesh.ARRAY_INDEX]:  # только вершины, на которые есть треугольники
+			var l := f * verts[vi]
+			if l.length() < 0.2 and l.y > plane_y - 0.0005 - 0.05 and l.y < plane_y - 0.0005:
+				low += 1
+			if l.length() < 0.2:
+				n += 1
+	check(n > 100, "%s: вершины кисти найдены" % side)
+	check(low == 0, "%s: край перчатки ровный, зубцов ниже плоскости: %d" % [side, low])

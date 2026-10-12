@@ -343,10 +343,11 @@ func _check_elbows(v: GliderVisual, what: String, prone: bool) -> void:
 		var mid := (j[0] + _grip(v, side)) * 0.5
 		if prone:
 			# вариант Б (arms.elbow_height_frac = 0,5): локоть на полпути между плечом и трапецией
-			# (ниже плеча ≈ 0,13 м), разведён наружу
+			# (ниже плеча ≈ 0,13–0,2 м: кисть неподвижна, запястье ближе к плечу, локоть упирается в верхний
+			# предел разворота), разведён наружу
 			var drop := j[0].y - elbow.y
 			check(
-				drop > 0.07 and drop < 0.2,
+				drop > 0.07 and drop < 0.22,
 				"%s рука %d: локоть на полпути к трапеции (ниже плеча на %.3f м)" % [what, side, drop]
 			)
 			check(

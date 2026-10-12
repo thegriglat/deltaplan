@@ -11,6 +11,9 @@ const CUFF_MAX_Y := 0.01
 ## (сам край сужен до горловины — по нему размер не снимаем).
 const EDGE_FROM := 0.012
 const EDGE_TO := 0.032
+## Рваный край кисти (остаток после удаления манжеты) стягивается на ровную плоскость на этом
+## расстоянии от самого дальнего зубца, м вдоль оси кисти; к ней вплотную встаёт ремешок.
+const SNAP_ABOVE := 0.006
 ## Дальше этого от кости кисти (м) вершина к руке не относится.
 const HAND_RADIUS := 0.4
 
@@ -99,7 +102,15 @@ static func cut(mi: MeshInstance3D, sk: Skeleton3D) -> Dictionary:
 				mn = mn.min(Vector2(p.x, p.z))
 				mx = mx.max(Vector2(p.x, p.z))
 		var c2 := (mn + mx) * 0.5
-		out[side] = {"y": y0, "center": Vector3(c2.x, y0, c2.y), "half": (mx - mn) * 0.5}
+		# край ровный: вершины ниже плоскости среза стянуты на неё (вдоль оси кисти)
+		var yp := y0 + SNAP_ABOVE
+		var axis_y := (frames[side] as Transform3D).affine_inverse().basis.y
+		for i: int in out[side].vs:
+			var yl := ((frames[side] as Transform3D) * vv[i]).y
+			if yl < yp:
+				vv[i] += axis_y * (yp - yl)
+		out[side] = {"y": yp, "center": Vector3(c2.x, yp, c2.y), "half": (mx - mn) * 0.5}
+	arr[Mesh.ARRAY_VERTEX] = vv
 	if drop.is_empty():
 		return out
 	var keep := PackedInt32Array()
@@ -108,7 +119,6 @@ static func cut(mi: MeshInstance3D, sk: Skeleton3D) -> Dictionary:
 			keep.append(idx[t * 3])
 			keep.append(idx[t * 3 + 1])
 			keep.append(idx[t * 3 + 2])
-	print("GLOVECUT drop ", drop.size(), " keep ", keep.size(), " of ", idx.size(), " out ", out)
 	arr[Mesh.ARRAY_INDEX] = keep
 	var nm := ArrayMesh.new()
 	for s in mi.mesh.get_surface_count():
