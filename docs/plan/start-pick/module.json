@@ -1,0 +1,9 @@
+{
+  "module": "start-pick",
+  "plan": "docs/plan/start-pick.md",
+  "contracts": "docs/contracts/start-pick.md",
+  "branch": "feature/start-pick",
+  "copy": "~/deltaplan-start-pick",
+  "created": "2026-10-12T05:53:46",
+  "code": "SP"
+}
