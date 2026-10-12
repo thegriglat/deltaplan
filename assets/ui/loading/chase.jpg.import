@@ -3,20 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://oafdi0di7uuh"
-path="res://.godot/imported/chase.jpg-d5fc8efc594f7412f3935c455ee99db5.ctex"
+path.bptc="res://.godot/imported/chase.jpg-d5fc8efc594f7412f3935c455ee99db5.bptc.ctex"
+path.astc="res://.godot/imported/chase.jpg-d5fc8efc594f7412f3935c455ee99db5.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/ui/loading/chase.jpg"
-dest_files=["res://.godot/imported/chase.jpg-d5fc8efc594f7412f3935c455ee99db5.ctex"]
+dest_files=["res://.godot/imported/chase.jpg-d5fc8efc594f7412f3935c455ee99db5.bptc.ctex", "res://.godot/imported/chase.jpg-d5fc8efc594f7412f3935c455ee99db5.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
