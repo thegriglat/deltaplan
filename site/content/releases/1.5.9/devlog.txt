@@ -1,0 +1,20 @@
+Deltaplan 1.5.9 — graphics and a precise launch spot
+
+A round of cheap graphics improvements that also saves video memory: sharper terrain and rocks, a city with trees, a metal control frame, proper pilot gear. And a new way to start: pick the exact launch spot and run-up direction right on the 3D terrain.
+
+Graphics:
+- Sharper terrain in the middle distance, erosion gullies on steep slopes
+- Angular rocks of different sizes, ridges along slopes, screes below crags
+- Roads with soft edges and dusty shoulders; OSM rivers are no longer drawn
+- City buildings in a calm palette, roof details, birches along streets and in gardens
+- Tree branches sway in the wind; strong gusts raise dust over dry fields
+- Metal control frame and tubes, twisted cables, bolts; worn instruments
+- Pilot gloves gripping the base bar, soft harness pod, new helmet, visor and clothing materials
+- New setting "Haze toward the sun"
+- Compressed, mipmapped textures: much less video memory, less shimmering in the distance
+
+Precise launch:
+- Main menu "Pick launch on terrain": click the ground to place the launch, drag to set the run-up direction, then "Fly from here"
+- Water, buildings, slopes over 40 degrees and the edge of the place are not allowed (red marker with the reason)
+- The spot is saved with the last flight and favourites; in network play everyone uses the host's spot
+- No rocks or bushes on the 40 m run-up at any launch
