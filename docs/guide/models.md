@@ -279,6 +279,27 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 и атлас `trees/trees_impostor_atlas.png` (1024², ячейки 256×512: верхний ряд pine, cedar, larch, birch;
 нижний — spruce).
 
+## Наручные приборы
+
+### Наручные часы
+
+`assets/models/watch.glb` (PH-К4 v1, 1570 треугольников; `assets/source/watch.blend`). Крепятся к пустышке `WristL`
+без смещения и поворота. Перегенерация — `blender --background --python tools/blender/build_watch.py`
+(параметры в мм — `tools/blender/watch.json`: эллипс руки `ellipse_w_mm`×`ellipse_h_mm` — сейчас 56×51 по PH-3,
+ширина/толщина ремешка, зазор, размеры корпуса, слои стрелок), затем `godot --headless --path . --import`.
+
+- Оси: начало — центр дна корпуса; циферблат смотрит в −Z, «12» — к +Y (к пальцам), «3» и заводная головка — по −X.
+- Ноды верхнего уровня: `Case` (Ø 40, высота 12 мм, безель, головка; `WatchCase`), `Strap` (ремешок 20 мм по эллипсу
+  W×H с зазором 1,5 мм, пряжка; `WatchStrap`), `Dial` (Ø 34, `WatchDial`), `Glass` (плоское стекло, альфа 0,08;
+  `WatchGlass`), `HourHand` и `MinuteHand` (`WatchHand`, начало на оси на глубине 8 и 9 мм, острие к +Y,
+  поворот только вокруг локальной Z, `rotation.z > 0` — по часовой). Секундной нет. Слои вдоль −Z: циферблат 7 мм,
+  часовая 8, минутная 9, стекло 11 — стрелки ничего не пересекают при любом угле.
+- Циферблат: текстура 256² (чёрный фон, белые 12 меток 2,2 мм и цифры 12/3/6/9 высотой 6,2 мм — рисуются скриптом
+  штриховым шрифтом), ремешок — 256×128 (тёмная кожа со строчкой). Текстуры в glb; Godot извлекает их в
+  `assets/models/watch_watch_*.png`, их `.import` — `compress/mode=2`, `mipmaps/generate=true` (проверяет тест).
+- Заводная головка по контракту на «3 часах» (−X), то есть на стороне ушек ремешка; ремешок крепится к ушкам по ±X.
+- Тесты: `test_ph_k4_watch_*` в `tests/contracts/test_pilot_hud_contracts.gd`, `scenes/models_preview/check_models.gd`.
+
 ## Шейдер паруса
 
 Файлы: `assets/shaders/sail/sail.gdshader`, `sail_material.gd` (`SailMaterial`), `configs/sail.json`
