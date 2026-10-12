@@ -77,3 +77,6 @@
 {"t": "2026-10-12T22:47:57", "by": "coordinator", "task": "SC-4", "ev": "accepted", "commits": ["a9530fd6"], "note": "4/4 camp_fabric=ok:2/2; start_camp_contracts_k5=ok:2/2; tents=ok:8/8; gd=ok:exit 0"}
 {"t": "2026-10-12T22:49:43", "by": "executor", "task": "SC-5", "ev": "checked", "note": "4/4 egg_people=ok:3/3; test_easter_eggs=ok:6/6; start_camp_contracts_k4=ok:1/1; gd=ok:exit 0"}
 {"t": "2026-10-12T22:50:09", "by": "coordinator", "task": "SC-5", "ev": "accepted", "note": "по отчёту: 4/4; знак поворота руки исправлен верно (поворот вокруг +Z на sx*a даёт направление (sx sin a, −cos a))"}
+{"t": "2026-10-12T22:50:10", "by": "coordinator", "task": "SC-2", "ev": "note", "note": "вопрос исполнителю: тангаж крыла −72° — ожидаю 35–50°; остальные отступления (уклон 16°, Hardware, один вид рюкзаков) приняты"}
+{"t": "2026-10-12T22:50:10", "by": "coordinator", "task": "SC-5", "ev": "merged"}
+{"t": "2026-10-12T22:50:11", "by": "coordinator", "task": "SC-1", "ev": "merged"}
