@@ -266,6 +266,13 @@ def tri_count(obj_names=None) -> int:
     return n
 
 
+def externalize_shared(glb_path: str) -> None:
+    """Общая текстура шины — внешним файлом (uri), а не копией внутри glb: одна текстура в памяти."""
+    import glb_extern
+    tire = os.path.join(ROOT, "assets", "textures", "wheel", "tire.png")
+    glb_extern.externalize(glb_path, {"wheel_tire": tire})
+
+
 def export(stem: str, vertex_color: str = "NONE") -> None:
     os.makedirs(MODELS, exist_ok=True)
     os.makedirs(SOURCE, exist_ok=True)
@@ -276,6 +283,7 @@ def export(stem: str, vertex_color: str = "NONE") -> None:
                               export_apply=True, export_extras=False,
                               export_vertex_color=vertex_color,
                               export_cameras=False, export_lights=False)
+    externalize_shared(os.path.join(MODELS, stem + ".glb"))
     print("EXPORTED %s: %d tris" % (stem, tri_count()))
 
 

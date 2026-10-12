@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://4bxkjw65tiir"
-path.s3tc="res://.godot/imported/glider_fs_space_wheel_tire.png-1833d9864ecc0ab3cad80c04f9607321.s3tc.ctex"
-path.etc2="res://.godot/imported/glider_fs_space_wheel_tire.png-1833d9864ecc0ab3cad80c04f9607321.etc2.ctex"
+uid="uid://lqdgg8q7lp8d"
+path.s3tc="res://.godot/imported/tire.png-4f4eaebdc4772d7b45085e11484924e2.s3tc.ctex"
+path.etc2="res://.godot/imported/tire.png-4f4eaebdc4772d7b45085e11484924e2.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -15,8 +15,8 @@ generator_parameters={
 
 [deps]
 
-source_file="res://assets/models/glider_fs_space_wheel_tire.png"
-dest_files=["res://.godot/imported/glider_fs_space_wheel_tire.png-1833d9864ecc0ab3cad80c04f9607321.s3tc.ctex", "res://.godot/imported/glider_fs_space_wheel_tire.png-1833d9864ecc0ab3cad80c04f9607321.etc2.ctex"]
+source_file="res://assets/textures/wheel/tire.png"
+dest_files=["res://.godot/imported/tire.png-4f4eaebdc4772d7b45085e11484924e2.s3tc.ctex", "res://.godot/imported/tire.png-4f4eaebdc4772d7b45085e11484924e2.etc2.ctex"]
 
 [params]
 
