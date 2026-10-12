@@ -82,6 +82,7 @@ var inspect_mode := false
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
 var _start_heading := 0.0
+var _exact_start := false  # точный старт пилота применён (SP-К1): курс не выравнивается по ветру
 var _site_heading := 0.0  # курс площадки (до выравнивания по ветру поля)
 var _load_error := ""
 var _dt: float = 1.0 / 120.0
@@ -624,7 +625,7 @@ func restart(keep_clock: bool = false) -> void:
 ## у старта (без пульсаций, по нескольким точкам), но не дальше max_turn_deg от курса площадки.
 ## Штиль (< min_speed_ms), аналитика (поля нет), ветер с румба и сеть — курс площадки.
 func _align_start_heading() -> void:
-	if settings == null or net != null or not settings.wind_into_launch:
+	if settings == null or net != null or not settings.wind_into_launch or _exact_start:
 		return
 	_start_heading = _site_heading
 	if not air.has_method("is_air_field_on") or not air.call("is_air_field_on"):
@@ -1108,6 +1109,17 @@ func _load_terrain() -> bool:
 
 
 func _choose_start() -> void:
+	_exact_start = false
+	if settings.has_exact_start():
+		var q := terrain.latlon_to_local(settings.start_lat, settings.start_lon)
+		var chk := StartSpot.check(terrain, q.x, q.y)
+		if bool(chk.ok):
+			_start_pos = Vector3(q.x, terrain.height_at(q.x, q.y), q.y)
+			_start_heading = settings.start_heading_deg
+			_exact_start = true
+			terrain.add_start_clearing(q.x, q.y, Terrain.start_clearing_radius_m())
+			return
+		push_warning("Game: точный старт недопустим (%s), автостарт" % chk.reason)
 	if settings.has_pick():
 		var p := terrain.latlon_to_local(settings.pick_lat, settings.pick_lon)
 		var cfg: Dictionary = _cfg.start_search
