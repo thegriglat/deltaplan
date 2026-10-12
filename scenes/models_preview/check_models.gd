@@ -85,7 +85,8 @@ func _check_axes(path: String, root: Node3D) -> void:
 		var im := _xform(root, "InstrumentMount")
 		# A3.3 v9: приборы на хомуте нижней перекладины — маркер на оси штанги (ломаная
 		# BarGripL–BaseBar–BarGripR, допуск 3 см на изгиб PV3) между хватами; экран (−Z) к глазам
-		# (вверх), верх экрана (+Y маркера) — вперёд (−Z мира)
+		# (назад-вверх: −Z маркера = (0; sin30°; cos30°) при instrument_tilt_deg 60° к горизонту, как
+		# в заглушке glider_visual.gd), верх экрана (+Y маркера) — вверх-вперёд
 		var vm := _xform(root, "VarioMount")
 		var gl := _pos(root, "BarGripL")
 		var gr := _pos(root, "BarGripR")
@@ -95,8 +96,10 @@ func _check_axes(path: String, root: Node3D) -> void:
 			_expect(path, "%s на оси штанги (%.3f м от оси)" % [pair[0], d], d < 0.03)
 			_expect(path, "%s между хватами (|x| %.2f < %.2f)" % [pair[0], absf(o.x), absf(gl.x) - 0.04],
 				absf(o.x) < absf(gl.x) - 0.04)
-			_expect(path, "%s −Z смотрит вверх на пилота" % pair[0], (-pair[1].basis.z).y > 0.6)
-			_expect(path, "%s верх экрана вперёд" % pair[0], pair[1].basis.y.z < -0.7)
+			_expect(path, "%s −Z смотрит назад-вверх на пилота" % pair[0],
+				(-pair[1].basis.z).z > 0.7 and (-pair[1].basis.z).y > 0.3)
+			_expect(path, "%s верх экрана вверх-вперёд" % pair[0],
+				pair[1].basis.y.z < -0.3 and pair[1].basis.y.y > 0.5)
 		_expect(path, "VarioMount слева от планшета", vm.origin.x < im.origin.x - 0.1)
 		print("  InstrumentMount %s −Z %s" % [im.origin, -im.basis.z])
 		print("  VarioMount %s −Z %s" % [vm.origin, -vm.basis.z])
