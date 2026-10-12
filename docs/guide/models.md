@@ -261,6 +261,11 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
   высоте): в позе `stand` ступни на 0,3 м позади таза и глаза на 0,7 м впереди ступней, иначе взгляд
   вниз не достаёт до ног. Итог: ступни→глаза 14° от вертикали, корпус вперёд 17°, ноги 4°
   (`tests/flight/test_pilot_pose.gd`). Сдвиг по крену/тангажу в полёте — как раньше.
+- Тело в кабинной камере (PH-9, PH-К5): в обоих `eye_mode` рисуются только материалы из
+  `camera.json → cockpit.visible_materials` (`Glove`, `JacketSleeve`, `Trousers`, `Boot`, `Sole`); голова, шея, грудь,
+  кокон — нет; нет материала в модели — пропуск. Ноги выпускаются `climb_out` при снижении ниже
+  `game.json → pilot_animation.climb_out_agl_m` (25 м); в `flare` при взгляде по умолчанию носки ботинок
+  в кадре (`tests/game/test_cockpit_legs.gd`).
 - Вид от первого лица на старте: камера в `Head`, `Helmet` скрыт, взгляд вниз на 60–80° — видны
   грудь и подвеска, ноги и ботинки между стойками, базовая штанга с планшетом (`pilot/pov_down.png`).
 - Проверка по фото: [стоя с крылом на плечах](https://commons.wikimedia.org/wiki/File:Deltaplane_au_d%C3%A9part.JPG),

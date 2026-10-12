@@ -865,6 +865,11 @@ var _body_mi: MeshInstance3D
 var _hands_mi: MeshInstance3D
 
 
+## Префиксы имён материалов PilotBody, которые кабинная камера рисует в режиме "hands"
+## (camera.json → cockpit.visible_materials, контракт PH-К5). Меняется до первого "hands".
+var cockpit_visible_materials: PackedStringArray = ["Glove", "JacketSleeve", "Trousers", "Boot", "Sole"]
+
+
 func set_cockpit_body(mode: String) -> void:
 	if mode == _body_mode and (_body_mi != null or mode == "full"):
 		return
@@ -882,8 +887,10 @@ func set_cockpit_body(mode: String) -> void:
 		_hands_mi.visible = mode == "hands"
 
 
-## «hands»: тело скрыто, кабинная камера видит только перчатки (поверхности Glove*) — копию
-## PilotBody на слое «только кабина», остальные поверхности подменены невидимым материалом.
+## «hands»: тело скрыто, кабинная камера видит только поверхности из cockpit_visible_materials
+## (перчатки, рукава, брюки, ботинки; PH-К5) — копию PilotBody на слое «только кабина», остальные
+## поверхности (голова, шея, грудь) подменены невидимым материалом. Материала из списка нет в
+## модели — пропуск (ошибки нет).
 func _make_hands(body: MeshInstance3D) -> MeshInstance3D:
 	var hands := body.duplicate() as MeshInstance3D
 	hands.name = "PilotHands"
@@ -895,10 +902,17 @@ func _make_hands(body: MeshInstance3D) -> MeshInstance3D:
 	hide.shader = sh
 	for i in body.mesh.get_surface_count():
 		var m := body.mesh.surface_get_material(i)
-		if m == null or not m.resource_name.begins_with("Glove"):
+		if m == null or not _cockpit_shows(m.resource_name):
 			hands.set_surface_override_material(i, hide)
 	body.get_parent().add_child(hands)
 	return hands
+
+
+func _cockpit_shows(material_name: String) -> bool:
+	for pre in cockpit_visible_materials:
+		if material_name.begins_with(pre):
+			return true
+	return false
 
 
 ## Центр тела относительно карабина.
