@@ -536,8 +536,11 @@ def rest_pose(rest_args) -> Pose:
 
 # ------------------------------------------------------------------ перчатки, подвеска, шлем
 
-CUFF_LEN = 0.13        # длина крага вдоль предплечья, м (до середины предплечья)
-CUFF_FLARE = (0.024, 0.030)   # расширение раструба к верху: по ширине и толщине руки, м
+CUFF_LEN = 0.034       # манжета: от кромки кисти к локтю, м (конец ≤ 40 мм от оси запястья, PH-К3)
+CUFF_OFF = 0.0045      # манжета стоит над рукавом на столько, м (кожа, без раструба и отворота)
+WRIST_AT = 0.045       # крепление часов/компаса: от оси запястья к локтю, м (PH-К3: 40–50 мм)
+BETA_MAX = 50.0        # PH-К3 v2: поворот крепления от тыла к большому пальцу, β ∈ [0°, 50°]
+EYE_ANGLE_OK = 56.0    # берём наименьший β (циферблат читаемее), при котором угол к глазам не больше
 GLOVE_TILE = 0.06      # размер тайла кожи на перчатке, м (текстура Leather037)
 GLOVE_W = 0.3          # грань — перчатка, если средний вес кисти и пальцев не меньше
 GRIP_R = 0.0197        # внутренний радиус кулака, м: штанга под руками r 0,0175 (Ø30 + накладка 2,5 мм) + кожа 2,2 мм
@@ -589,51 +592,85 @@ def loft(mb: U.MeshBuilder, fr, rings: list, mat: str, sides: int = 10, cap: boo
 
 
 def cuff(mb: U.MeshBuilder, bone: tuple, side: int, pts: list, glove: list) -> None:
-    """Краг (кожаный раструб) поверх рукава: от запястья до ~13 см вверх, расширяется к
-    середине предплечья, на запястье лёгкая складка-перетяжка, верхний край — толстый отворот
-    (кромка загибается внутрь). Сечения обнимают меш руки с зазором. Жёстко на кости Hand.
-    UV2 вершин краги = (−расстояние от кромки, м; доля обхода) — по знаку шейдер отличает краг
-    от кисти (у кисти UV2 = потёртость ладони, глянец костяшек)."""
+    """Манжета перчатки (PH-К3): короткая плотная кожаная гильза от кромки кисти к локтю на
+    CUFF_LEN, без раструба и отворота. Сечения повторяют руку с зазором CUFF_OFF; к концу гильза
+    сужается до поверхности рукава («заправлена под рукав») и закрыта изнутри диском — из камеры
+    за спиной пилота ни шва, ни дыры. Жёстко на кости Hand. UV2 вершин = (−расстояние от кромки,
+    м; доля обхода) — по знаку шейдер отличает манжету от кисти."""
     fr = glove_frame(bone, side)
     wr, y, x, bk = fr
     a1 = min((p - wr).dot(y) for p in glove) + 0.014
-    length = CUFF_LEN
-    n = 9
-    base = []
+    n = 3
+    rings = []
+    uv2 = []
+    end = a1 - CUFF_LEN
     for i in range(n + 1):
-        t = i / n                                # 0 — запястье, 1 — верх
-        a = a1 - length * t
+        a = a1 - CUFF_LEN * i / n
         near = [p - wr for p in pts if abs((p - wr).dot(y) - a) < 0.007]
         hw = max(abs(q.dot(x)) for q in near) + 0.004
         hb = max(abs(q.dot(bk)) for q in near) + 0.004
-        base.append([a, hw, hb])
-    for i in range(1, n + 1):                    # раструб: к локтю не уже предыдущего кольца
-        base[i][1] = max(base[i][1], base[i - 1][1])
-        base[i][2] = max(base[i][2], base[i - 1][2])
-    rings = []
-    uv2 = []
-    top = base[-1][0]
-    for i, (a, hw, hb) in enumerate(base):
-        t = i / n
-        fl = t ** 1.6
-        hw += 0.006 + CUFF_FLARE[0] * fl
-        hb += 0.006 + CUFF_FLARE[1] * fl
-        if i == 1:                               # складка-перетяжка у запястья
-            hw -= 0.004
-            hb -= 0.004
-        elif i == 2:
-            hw += 0.001
-        rings.append([a, 0.0, hw, hb])
-        uv2.append((-(a - top), 0.0))
-    # отворот: толстая кромка, загиб внутрь и подкладка вниз к запястью
+        rings.append([a, 0.0, hw + CUFF_OFF, hb + CUFF_OFF])
+    for i in range(1, n + 1):                    # к локтю не уже предыдущего кольца
+        rings[i][2] = max(rings[i][2], rings[i - 1][2] - 0.001)
+        rings[i][3] = max(rings[i][3], rings[i - 1][3] - 0.001)
+    # закруглённая кромка: утопает в рукав и закрыта диском
     a, _, hw, hb = rings[-1]
-    for da, dr in ((-0.0035, 0.0035), (-0.006, 0.0025), (-0.0065, 0.0), (-0.0055, -0.0035),
-                   (-0.0015, -0.0045), (0.03, -0.0045)):
-        rings.append([a + da if da < 0 else top + da, 0.0, hw + dr, hb + dr])
-        uv2.append((-0.0005, 0.0))
-    loft(mb, fr, [tuple(r) for r in rings], "Glove", sides=20, cap=False, uv2=uv2)
-    print("CUFF: краг от %.3f до %.3f м вдоль кисти, раструб +%.0f мм" % (
-        top, a1, 1000 * CUFF_FLARE[0]))
+    for da, dr in ((-0.0015, -0.0020), (-0.0030, -0.0045)):
+        rings.append([a + da, 0.0, hw + dr, hb + dr])
+    for r in rings:
+        uv2.append((-(r[0] - rings[-1][0]) - 0.0005, 0.0))
+    loft(mb, fr, [tuple(r) for r in rings], "Glove", sides=20, cap=True, uv2=uv2)
+    print("CUFF: манжета от %.3f до %.3f м вдоль кисти (%.0f мм от оси запястья)" % (
+        a1, rings[-1][0], -1000 * rings[-1][0]))
+
+
+def wrist_mount(rest: dict, s: str, side: int, arm: list, thumb: list, prone: Pose,
+                eye: Vector) -> dict:
+    """Крепление часов/компаса на предплечье (PH-К3). Точка — WRIST_AT от оси запястья к локтю,
+    на тыле предплечья, повёрнутая вокруг оси предплечья к большому пальцу на β ∈ [0, BETA_MAX];
+    β подбирается так, чтобы в prone угол между наружной нормалью и направлением на глаза был
+    минимальным. Возвращает {beta, matrix (Blender, мир), W, H (м), ang (по β), n (нормаль)}."""
+    wr = rest["Hand." + s][0]
+    el, fd, _, _ = rest["Forearm." + s]
+    f = fd.normalized()
+    c = wr - f * WRIST_AT
+    sl = [p for p in arm if abs((p - c).dot(f)) < 0.015]
+    ctr = sum(((p - f * (p - c).dot(f)) for p in sl), Vector()) / len(sl)   # центр сечения
+    bk = glove_frame(rest["Hand." + s], side)[3]
+    n0 = (bk - f * bk.dot(f)).normalized()
+    l0 = f.cross(n0).normalized()
+    tm = sum(thumb, Vector()) / len(thumb) - ctr
+    st = 1.0 if tm.dot(l0) >= 0 else -1.0
+    # рука в prone: перенос точек из покоя (кость Forearm в покое → в позе)
+    h0, d0, z0, _ = rest["Forearm." + s]
+    h1, d1, z1, _ = prone.bones()["Forearm." + s]
+    xf = bone_matrix(h1, d1, z1) @ bone_matrix(h0, d0, z0).inverted()
+    ang = {}
+    best = None
+    for b10 in range(0, int(BETA_MAX * 10) + 1, 5):
+        b = b10 / 10
+        n = (n0 * math.cos(math.radians(b)) + l0 * st * math.sin(math.radians(b))).normalized()
+        d = [(p - ctr).dot(n) for p in sl]
+        origin = ctr + n * max(d)
+        o1 = xf @ origin
+        n1 = xf.to_3x3() @ n
+        ang[b] = math.degrees((eye - o1).angle(n1))
+        if best is None or ang[b] < ang[best]:
+            best = b
+    b = next((k for k in sorted(ang) if ang[k] <= EYE_ANGLE_OK), best)
+    n = (n0 * math.cos(math.radians(b)) + l0 * st * math.sin(math.radians(b))).normalized()
+    lat = f.cross(n).normalized()                  # поперёк руки
+    ds = [(p - ctr).dot(n) for p in sl]
+    ws = [(p - ctr).dot(lat) for p in sl]
+    origin = ctr + n * max(ds)
+    # Blender → glTF (y вверх): локальная X Godot = X Blender, Y Godot = Z Blender, Z Godot = −Y
+    # Blender; цель Godot: −Z наружу (= +Y Blender = n), +Y вдоль предплечья к пальцам (= +Z Blender),
+    # X = Y × Z (Godot) = n × f ... проверено в check_models (правая тройка)
+    xg = f.cross(-n).normalized()
+    m = Matrix((xg, n, f)).transposed().to_4x4()
+    m.translation = origin
+    return {"beta": b, "matrix": m, "W": max(ws) - min(ws), "H": max(ds) - min(ds),
+            "ang": ang[b], "ang0": ang[0.0], "thumb": st, "n": n}
 
 
 def cuff_clearance(pts: list, bone: tuple) -> float:
@@ -931,7 +968,7 @@ def shell(mb: U.MeshBuilder, grid: list, keep, c: Vector, mat: str, wrap: bool) 
 
 def split_parts(src, wts: list, groups: dict) -> dict:
     """Меш MPFB → {часть: объект} (тело, кисти, голова с шеей) с нашими весами и материалами."""
-    mats = ["Pod", "Jacket", "Trousers", "Boot", "Glove", "Skin"]
+    mats = ["Pod", "Jacket", "JacketSleeve", "Trousers", "Boot", "Glove", "Skin"]
     me = src.data
     me.materials.clear()
     for mn in mats:
@@ -954,6 +991,8 @@ def split_parts(src, wts: list, groups: dict) -> dict:
             else:
                 reg = "Pod" if z < groups["waist_z"] else "Jacket"
         mat = {"Head": "Skin", "Neck": "Jacket"}.get(reg, reg)
+        if mat == "Jacket" and acc and max(acc, key=acc.get).startswith("lowerarm"):
+            mat = "JacketSleeve"      # PH-К3: рукав от локтя (граница — кольцо у локтя)
         poly.material_index = mats.index(mat)
         part_of.append("hands" if reg == "Glove" else "head" if reg in ("Head", "Neck")
                        else "body")
@@ -1121,6 +1160,7 @@ def main() -> None:
         "Pod": U.material("Pod", U.srgb((0.10, 0.13, 0.22)), rough=0.7),
         "Stripe": U.material("PodStripe", U.srgb((0.95, 0.55, 0.05)), rough=0.6),
         "Jacket": U.material("Jacket", U.srgb((0.22, 0.24, 0.27)), rough=0.8),
+        "JacketSleeve": U.material("JacketSleeve", U.srgb((0.22, 0.24, 0.27)), rough=0.8),
         "Trousers": U.material("Trousers", U.srgb((0.16, 0.16, 0.17)), rough=0.85),
         "Boot": U.material("Boot", U.srgb((0.11, 0.07, 0.045)), rough=0.55),
         "Sole": U.material("Sole", U.srgb((0.03, 0.03, 0.03)), rough=0.9),
@@ -1214,6 +1254,21 @@ def main() -> None:
     bpy.context.view_layer.update()
     n, hu, hf, _ = rest["Head"]
     rest_eye = n + hu * D.EYE_UP + hf * D.EYE_FWD
+    all_poses = poses(cf, eye)
+    prone_eye = eye_of(all_poses["prone"][0])
+    wrist = {}
+    for s, sd in (("L", -1), ("R", 1)):
+        thumb = [p for p, w in zip(pts, wts) if w and max(w, key=w.get).startswith("thumb")
+                 and p.x * sd > 0.2]
+        wrist[s] = wrist_mount(rest, s, sd, arm_pts[s], thumb, all_poses["prone"][0], prone_eye)
+        wm = wrist[s]
+        print("WRIST %s: β %.1f° (к большому пальцу %+d), угол нормаль→глаза в prone %.1f° (при "
+              "β=0: %.1f°), сечение W×H %.0f×%.0f мм" % (
+                  s, wm["beta"], wm["thumb"], wm["ang"], wm["ang0"], 1000 * wm["W"],
+                  1000 * wm["H"]))
+    print("DIMS WRIST_W_MM %.0f, WRIST_H_MM %.0f, BETA_DEG %.1f, EYE_ANGLE_DEG %.1f" % (
+        500 * (wrist["L"]["W"] + wrist["R"]["W"]), 500 * (wrist["L"]["H"] + wrist["R"]["H"]),
+        wrist["L"]["beta"], max(wrist["L"]["ang"], wrist["R"]["ang"])))
     cam = rest_eye + rot_x(HEAD_PRONE) @ Vector((0, -0.25, 0.08))  # лёжа: 0,25 м сзади, 0,08 выше
     look = rot_x(HEAD_PRONE) @ hf
     marks = {"Head": ("Head", U.look_matrix(rest_eye, rest_eye + look)),
@@ -1221,6 +1276,8 @@ def main() -> None:
     for s, nm in (("L", "HandL"), ("R", "HandR")):
         w, d, _, _ = rest["Hand." + s]
         marks[nm] = ("Hand." + s, Matrix.Translation(w + d * D.HAND))
+    for s in ("L", "R"):
+        marks["Wrist" + s] = ("Forearm." + s, wrist[s]["matrix"])
     for nm, (bone, mw) in marks.items():
         e = U.empty(nm, (0, 0, 0))
         e.parent = arm
@@ -1231,7 +1288,6 @@ def main() -> None:
     ad.pose_position = "POSE"
     # анимации
     arm.animation_data_create()
-    all_poses = poses(cf, eye)
     for aname, frames in all_poses.items():
         act = bpy.data.actions.new(aname)
         act.use_fake_user = True
