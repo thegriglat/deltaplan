@@ -8,13 +8,19 @@ extends Node3D
 ## kurum_share), класс поверхности Terrain.surface_at (BARE — скалы; лес, вода, поля, застройка,
 ## снег — без камней), маска просек Terrain.set_clearings и площадки (keep_off_sites_m).
 ## Расстановка детерминирована: хеш клетки выборки (sample_m), тайлы tile_m кешируются.
+## Размеры — степенной закон (много щебня, редкие глыбы): крупные (≥ split_m) — в радиусе radius_m,
+## мелочь (< split_m) — отдельным слоем только вблизи (small_radius_m, build_small_tile).
+## Формы — «роли» (round, chunk, slab, wedge, tooth, comb): у роли есть крупная и мелкая модель.
+## Выходы породы — грядки гребешков вдоль горизонтали (слои strata_m), осыпи — шлейфы щебня вниз
+## по линии падения под крутым обрывом (мелочь выше, крупнее ниже). Камни только визуальные:
+## MultiMesh без коллизий и физических тел.
 ## Модели — assets/models/rocks/rocks.glb (tools/blender/build_rocks.py), 3 LOD.
 ## Подключение: RockScatter.attach(terrain, camera) — нода "Rocks" ребёнком Terrain.
 
 const SHADER := preload("res://scripts/terrain/rock_scatter.gdshader")
 const LODS := 3
-## категории камней: курумник, коренная порода, скалы, одиночные в траве
-const CATS: PackedStringArray = ["kurum", "bedrock", "steep", "grass"]
+## категории камней: курумник, коренная порода, скалы, одиночные в траве, осыпи под обрывами
+const CATS: PackedStringArray = ["kurum", "bedrock", "steep", "grass", "scree"]
 const NO_ROCKS: Array[int] = [
 	SurfaceLayer.FOREST,
 	SurfaceLayer.WATER,
@@ -31,11 +37,19 @@ var _cfg: Dictionary = {}
 var _look: Dictionary = {}
 var _n_boulders := 0
 var _n_stones := 0
+## роли: [название, [индексы крупных моделей], [индексы мелких]]
+var _roles: Array = []
+## высота модели (м при размере 1) по индексу варианта — для утопления
+var _mh: PackedFloat32Array = PackedFloat32Array()
+## последний замер: мс на достройку тайлов в _build (для проверки бюджета)
+var last_build_ms := 0.0
 ## _mmis[вариант * LODS + lod]
 var _mmis: Array[MultiMeshInstance3D] = []
 ## Vector2i тайла → {xf: PackedFloat32Array (12 на камень), col: PackedFloat32Array (4),
 ## size: PackedFloat32Array, var: PackedInt32Array}
 var _tiles: Dictionary = {}
+## то же для мелочи (build_small_tile): только тайлы у камеры
+var _small: Dictionary = {}
 ## площадки: [Vector2 позиция, Vector2 направление разбега (ZERO у посадок), радиус, м]
 var _sites: Array = []
 var _clear: Array = []
@@ -78,6 +92,26 @@ func setup(cfg: Dictionary) -> bool:
 	var meshes := load_meshes(String(cfg.get("model_path", "")), names)
 	if meshes.is_empty() or _n_boulders == 0 or _n_stones == 0:
 		push_warning("RockScatter: нет модели камней %s" % cfg.get("model_path", ""))
+		return false
+	_mh.resize(names.size())
+	for v in names.size():
+		_mh[v] = maxf((meshes[v * LODS] as Mesh).get_aabb().size.y, 0.05)
+	_roles.clear()
+	var rd: Dictionary = cfg.get("roles", {})
+	for rn: String in rd:
+		var big: Array = []
+		var sm: Array = []
+		for nm: String in rd[rn].get("big", []):
+			if nm in names:
+				big.append(names.find(nm))
+		for nm: String in rd[rn].get("small", []):
+			if nm in names:
+				sm.append(names.find(nm))
+		if big.is_empty() and sm.is_empty():
+			continue
+		_roles.append([rn, big if not big.is_empty() else sm, sm if not sm.is_empty() else big])
+	if _roles.is_empty():
+		push_warning("RockScatter: нет ролей камней (rocks.roles)")
 		return false
 	material = _make_material(cfg)
 	var shadows := bool(cfg.get("cast_shadows", true))
@@ -205,6 +239,7 @@ func _check_key() -> void:
 		return
 	_key = k
 	_tiles.clear()
+	_small.clear()
 	_clear = cl
 	_sites.clear()
 	for s in terrain.get_start_sites():
@@ -237,26 +272,60 @@ func _build(c: Vector2) -> void:
 				Vector2(a).distance_squared_to(c / tile) < Vector2(b).distance_squared_to(c / tile)
 			)
 	)
+	var t_us := Time.get_ticks_usec()
 	for k in _tiles.keys():
 		if ((Vector2(k) + Vector2(0.5, 0.5)) * tile).distance_to(c) > radius * 1.6:
 			_tiles.erase(k)
 	for k in keys:
 		if not _tiles.has(k):
 			_tiles[k] = build_tile(k.x, k.y)
-	_buffers = _assemble(c, keys, radius)
+	# мелочь — только тайлы у камеры (ключи уже отсортированы по расстоянию)
+	var sr := float(_cfg.get("small_radius_m", 90.0))
+	var skeys: Array[Vector2i] = []
+	for k in keys:
+		var tc := (Vector2(k) + Vector2(0.5, 0.5)) * tile
+		if tc.distance_to(c) <= sr + tile * 0.75:
+			skeys.append(k)
+	for k in _small.keys():
+		if ((Vector2(k) + Vector2(0.5, 0.5)) * tile).distance_to(c) > sr * 2.5:
+			_small.erase(k)
+	for k in skeys:
+		if not _small.has(k):
+			_small[k] = build_small_tile(k.x, k.y)
+	last_build_ms = (Time.get_ticks_usec() - t_us) / 1000.0
+	_buffers = _assemble(c, keys, skeys, radius)
 
 
-func _assemble(c: Vector2, keys: Array[Vector2i], radius: float) -> Array:
+func _assemble(c: Vector2, keys: Array[Vector2i], skeys: Array[Vector2i], radius: float) -> Array:
 	var nb := _mmis.size()
 	var bufs: Array[PackedFloat32Array] = []
 	bufs.resize(nb)
+	var budget := int(_cfg.get("max_instances", 30000))
+	budget = _add_tiles(bufs, c, keys, _tiles, radius, float(_cfg.get("view_per_m", 110.0)), 50.0, budget)
+	var sr := float(_cfg.get("small_radius_m", 90.0))
+	_add_tiles(
+		bufs, c, skeys, _small, sr, float(_cfg.get("small_view_per_m", 300.0)), 30.0, budget
+	)
+	return bufs
+
+
+## Экземпляры тайлов в буферы по вариантам и LOD; дальность видимости = размер · view_k
+## в пределах [view_min, radius]. Возвращает остаток бюджета.
+func _add_tiles(
+	bufs: Array[PackedFloat32Array],
+	c: Vector2,
+	keys: Array[Vector2i],
+	tiles: Dictionary,
+	radius: float,
+	view_k: float,
+	view_min: float,
+	budget: int
+) -> int:
 	var lod_m: Array = _cfg.get("lod_m", [40.0, 120.0])
 	var l0 := float(lod_m[0])
 	var l1 := float(lod_m[1])
-	var view_k := float(_cfg.get("view_per_m", 110.0))
-	var budget := int(_cfg.get("max_instances", 9000))
 	for k in keys:
-		var t: Dictionary = _tiles[k]
+		var t: Dictionary = tiles[k]
 		var xf: PackedFloat32Array = t.xf
 		var col: PackedFloat32Array = t.col
 		var sz: PackedFloat32Array = t.size
@@ -264,7 +333,7 @@ func _assemble(c: Vector2, keys: Array[Vector2i], radius: float) -> Array:
 		for i in vv.size():
 			var d := Vector2(xf[i * 12 + 3], xf[i * 12 + 11]).distance_to(c)
 			var s := sz[i]
-			if d > clampf(s * view_k, 50.0, radius):
+			if d > clampf(s * view_k, view_min, radius):
 				continue
 			var ls := sqrt(clampf(s, 0.5, 4.0))
 			var lod := 0 if d < l0 * ls else (1 if d < l1 * ls else 2)
@@ -273,8 +342,8 @@ func _assemble(c: Vector2, keys: Array[Vector2i], radius: float) -> Array:
 			bufs[b].append_array(col.slice(i * 4, i * 4 + 4))
 			budget -= 1
 			if budget <= 0:
-				return bufs
-	return bufs
+				return 0
+	return budget
 
 
 func _apply() -> void:
@@ -299,8 +368,18 @@ func _apply() -> void:
 # ---------------- расстановка (без сцены — для тестов) ----------------
 
 
-## Камни тайла (tx, tz) размера tile_m: {xf, col, size, var} (см. _tiles). Детерминированно.
+## Камни тайла (tx, tz) размера tile_m: {xf, col, size, var} (см. _tiles) — крупные (≥ split_m)
+## и грядки гребешков. Детерминированно.
 func build_tile(tx: int, tz: int) -> Dictionary:
+	return _build_tile(tx, tz, false)
+
+
+## Мелочь тайла (щебень, < split_m) — тот же формат; строится только вблизи камеры.
+func build_small_tile(tx: int, tz: int) -> Dictionary:
+	return _build_tile(tx, tz, true)
+
+
+func _build_tile(tx: int, tz: int, small: bool) -> Dictionary:
 	var out := {
 		"xf": PackedFloat32Array(),
 		"col": PackedFloat32Array(),
@@ -315,12 +394,43 @@ func build_tile(tx: int, tz: int) -> Dictionary:
 		for i in n:
 			var ix := tx * n + i
 			var iz := tz * n + j
-			_sample(ix, iz, step, out)
+			_sample(ix, iz, step, out, small)
 	return out
 
 
-## Одна клетка выборки: классы, уклон, выпуклость — и камни в ней.
-func _sample(ix: int, iz: int, step: float, out: Dictionary) -> void:
+## Падение склона вниз (единичный вектор в плане) по нормали; ZERO на плоском.
+static func down_dir(n: Vector3) -> Vector2:
+	var g := Vector2(n.x, n.z)
+	return g.normalized() if g.length() > 1e-3 else Vector2.ZERO
+
+
+## Осыпь в точке: x — сила 0..1 (склон 9–36° под крутым обрывом выше по падению, шлейфами по
+## линии падения), y — «насколько ниже обрыва» 0..1 (мелочь выше, крупнее ниже).
+func scree_at(x: float, z: float, n: Vector3, slope: float) -> Vector2:
+	if slope < 9.0 or slope > 36.0:
+		return Vector2.ZERO
+	var gd := down_dir(n)
+	if gd == Vector2.ZERO:
+		return Vector2.ZERO
+	var probe := float(_look.get("scree_probe_m", 35.0))
+	var steep_deg := float(_look.get("rock_slope_deg", 38.0)) - 3.0
+	var p := Vector2(x, z)
+	for f: float in [0.25, 0.5, 0.8, 1.15]:
+		var pu := p - gd * (probe * f)
+		var nu := terrain.normal_at(pu.x, pu.y)
+		if rad_to_deg(acos(clampf(nu.y, 0.0, 1.0))) < steep_deg:
+			continue
+		# шлейфы: шум по положению источника (обрыва) — вдоль линии падения он постоянен
+		var streak := smoothstep(0.35, 0.65, vnoise(pu / 11.0 + Vector2(5.2, 1.3)))
+		var tdown := clampf((f - 0.25) / 0.9, 0.0, 1.0)
+		var inten := (1.0 - 0.5 * tdown) * streak
+		inten *= smoothstep(9.0, 15.0, slope) * (1.0 - smoothstep(31.0, 36.0, slope))
+		return Vector2(inten, tdown)
+	return Vector2.ZERO
+
+
+## Одна клетка выборки: классы, уклон, выпуклость — и камни в ней (small — слой мелочи).
+func _sample(ix: int, iz: int, step: float, out: Dictionary, small: bool) -> void:
 	var x := (ix + 0.5) * step
 	var z := (iz + 0.5) * step
 	var cls := terrain.surface_at(x, z)
@@ -365,9 +475,11 @@ func _sample(ix: int, iz: int, step: float, out: Dictionary) -> void:
 		)
 	var area := step * step
 	var bare := cls == SurfaceLayer.BARE
+	var sc := scree_at(x, z, n, slope) if _cfg.has("scree") else Vector2.ZERO
+	var dkey := "small_density" if small else "density"
 	for ci in CATS.size():
 		var cat: Dictionary = _cfg.get(CATS[ci], {})
-		var e := float(cat.get("density", 0.0)) * area
+		var e := float(cat.get(dkey, 0.0)) * area
 		match ci:
 			0:
 				e *= kurum if drv > 0.01 else 0.0
@@ -377,17 +489,69 @@ func _sample(ix: int, iz: int, step: float, out: Dictionary) -> void:
 				e *= 1.0 if bare else 0.0
 			3:
 				e *= 0.0 if bare else 1.0
-		if e <= 0.0:
-			continue
-		var cnt := int(e + hash01(ix, iz, 100 + ci))
-		for r in cnt:
-			_place(ix, iz, step, ci, r, cat, drv, out)
+			4:
+				e *= sc.x
+		if e > 0.0:
+			var cnt := int(e + hash01(ix, iz, 100 + ci + (50 if small else 0)))
+			for r in cnt:
+				_place(ix, iz, step, ci, r, cat, drv, out, small, sc.y)
+		# грядки гребешков — только крупный слой, на выходах породы и скалах
+		if not small and (ci == 1 or ci == 2) and cat.has("ridge") and (bare or ci == 1):
+			var rg: Dictionary = cat.ridge
+			var er := float(rg.get("density", 0.0)) * area
+			if ci == 1:
+				er *= (1.0 - kurum) if drv > 0.01 else 0.0
+			if er > 0.0:
+				var rc := int(er + hash01(ix, iz, 120 + ci))
+				for r in rc:
+					_ridge(ix, iz, step, ci, r, rg, drv, out)
+
+
+## Размер по степенному закону: N(>s) ~ s^-a на [lo, hi] (обратная функция усечённого Парето).
+static func pareto(u: float, lo: float, hi: float, a: float) -> float:
+	var q := 1.0 - u * (1.0 - pow(lo / hi, a))
+	return lo / pow(q, 1.0 / a)
+
+
+## Роль по весам mix: индекс в _roles.
+func _pick_role(mix: Dictionary, u: float) -> int:
+	var tot := 0.0
+	for ro in _roles:
+		tot += float(mix.get(ro[0], 0.0))
+	if tot <= 0.0:
+		return 0
+	var acc := 0.0
+	for i in _roles.size():
+		acc += float(mix.get(_roles[i][0], 0.0)) / tot
+		if u < acc:
+			return i
+	return _roles.size() - 1
+
+
+## Коэффициенты роли: [наклон к склону 0..1, высота ×, ширина ×, разброс по высоте].
+const ROLE_PARAMS := {
+	"round": [0.5, 0.85, 0.85, 0.2],
+	"chunk": [0.6, 1.0, 0.8, 0.35],
+	"slab": [1.0, 1.0, 0.8, 0.45],
+	"wedge": [0.8, 1.0, 0.8, 0.3],
+	"tooth": [0.15, 1.3, 0.8, 0.4],
+	"comb": [0.9, 1.0, 1.0, 0.4]
+}
 
 
 func _place(
-	ix: int, iz: int, step: float, ci: int, r: int, cat: Dictionary, drv: float, out: Dictionary
+	ix: int,
+	iz: int,
+	step: float,
+	ci: int,
+	r: int,
+	cat: Dictionary,
+	drv: float,
+	out: Dictionary,
+	small: bool,
+	tdown: float
 ) -> void:
-	var s0 := 1000 + ci * 64 + r * 8
+	var s0 := 1000 + (ci * 256 + r) * 10 + (60000 if small else 0)
 	var px := (ix + hash01(ix, iz, s0)) * step
 	var pz := (iz + hash01(ix, iz, s0 + 1)) * step
 	var oc := outcrop_at(px, pz, drv)
@@ -396,37 +560,126 @@ func _place(
 		return
 	if ci == 3 and oc > 0.05:
 		return
-	var sr: Array = cat.get("size_m", [0.5, 1.5])
-	var u := hash01(ix, iz, s0 + 3)
-	var size := lerpf(float(sr[0]), float(sr[1]), u * u)
-	var stone := hash01(ix, iz, s0 + 4) < float(cat.get("stone_share", 0.3))
-	var v: int
-	if stone:
-		v = _n_boulders + int(hash01(ix, iz, s0 + 5) * _n_stones) % _n_stones
-		if ci != 3:
-			size *= 0.45
+	var sr: Array = cat.get("size_m", [0.15, 2.0])
+	var split := float(_cfg.get("split_m", 0.6))
+	var lo := float(sr[0])
+	var hi := float(sr[1])
+	var a := float(cat.get("pareto", _cfg.get("pareto", 1.8)))
+	if ci == 4:  # осыпь: крупнее ниже по склону
+		hi = lerpf(minf(split * 1.5, hi), hi, tdown)
+	if small:
+		hi = minf(hi, split)
 	else:
-		v = int(hash01(ix, iz, s0 + 5) * _n_boulders) % _n_boulders
+		lo = maxf(lo, split)
+	if hi <= lo * 1.01:
+		hi = lo * 1.01
+	var size := pareto(hash01(ix, iz, s0 + 3), lo, hi, a)
+	var ro: int = _pick_role(cat.get("mix", {}), hash01(ix, iz, s0 + 4))
+	var vs: Array = _roles[ro][2 if small else 1]
+	var v: int = vs[int(hash01(ix, iz, s0 + 5) * vs.size()) % vs.size()]
 	if not is_free(px, pz, size * 0.5):
 		return
+	_emit(ix, iz, s0, px, pz, size, _roles[ro][0], v, out, NAN)
+
+
+## Грядка гребешков: 2–4 вытянутых куска по 3–8 м вдоль горизонтали (то же направление, что у
+## слоёв terrain.gdshader — перпендикулярно падению склона), на ближайшей горизонтали с шагом
+## strata_m (слои — по хешу, layer_fill).
+func _ridge(
+	ix: int, iz: int, step: float, ci: int, r: int, rg: Dictionary, drv: float, out: Dictionary
+) -> void:
+	var s0 := 30000 + (ci * 256 + r) * 40
+	var px := (ix + hash01(ix, iz, s0)) * step
+	var pz := (iz + hash01(ix, iz, s0 + 1)) * step
+	if ci == 1 and hash01(ix, iz, s0 + 2) >= outcrop_at(px, pz, drv):
+		return
 	var nn := terrain.normal_at(px, pz)
-	var up := nn
-	var tall := 1.0
-	match ci:
-		1:
-			up = Vector3.UP.lerp(nn, 0.35).normalized()
-			tall = 1.2 + 0.5 * hash01(ix, iz, s0 + 6)
-		3:
-			up = Vector3.UP.lerp(nn, 0.7).normalized()
-	var yaw := hash01(ix, iz, s0 + 7) * TAU
+	var tan_s := sqrt(maxf(1.0 - nn.y * nn.y, 0.0)) / maxf(nn.y, 0.05)
+	var p := Vector2(px, pz)
+	var gd := down_dir(nn)
+	if gd == Vector2.ZERO:
+		return
+	var strata := maxf(float(_look.get("strata_m", 7.0)), 1.0)
+	var hh := terrain.height_at(px, pz)
+	var li := floori(hh / strata + 0.5)
+	if hash01(li, ci, 77) > float(rg.get("layer_fill", 0.65)):
+		return  # этот слой без гряды
+	if tan_s > 0.25:
+		var move := (hh - li * strata) / tan_s  # вниз по падению на горизонталь слоя
+		if absf(move) > 8.0:
+			return
+		p += gd * move
+	var comb := _roles_by_name("comb")
+	var vs: Array = comb[1]
+	if vs.is_empty():
+		return
+	var wob := (hash01(ix, iz, s0 + 4) - 0.5) * 0.5
+	var tdir := Vector2(-gd.y, gd.x).rotated(wob)  # вдоль горизонтали
+	var lens: Array = rg.get("len_m", [3.0, 8.0])
+	var pc: Array = rg.get("pieces", [2, 4])
+	var cnt := int(lerpf(float(pc[0]), float(pc[1]) + 0.999, hash01(ix, iz, s0 + 3)))
+	var pos := -0.25 * cnt * (float(lens[0]) + float(lens[1]))
+	for i in cnt:
+		var q := s0 + 10 + i * 5
+		var len_m := lerpf(float(lens[0]), float(lens[1]), hash01(ix, iz, q))
+		pos += 0.5 * len_m
+		var c := p + tdir * pos
+		pos += 0.5 * len_m * 0.9
+		if not is_free(c.x, c.y, len_m * 0.3):
+			continue
+		var v: int = vs[int(hash01(ix, iz, q + 1) * vs.size()) % vs.size()]
+		_emit(ix, iz, q, c.x, c.y, len_m, "comb", v, out, atan2(-tdir.y, tdir.x))
+
+
+func _roles_by_name(rn: String) -> Array:
+	for ro in _roles:
+		if ro[0] == rn:
+			return ro
+	return ["", [], []]
+
+
+## Положить экземпляр: масштаб по осям, наклон по нормали склона, утопление, оттенок.
+## yaw_fixed — заданный поворот вокруг вертикали (гребешок вдоль горизонтали), NAN — случайный.
+func _emit(
+	ix: int,
+	iz: int,
+	s0: int,
+	px: float,
+	pz: float,
+	size: float,
+	role: String,
+	v: int,
+	out: Dictionary,
+	yaw_fixed: float
+) -> void:
+	var rp: Array = ROLE_PARAMS.get(role, ROLE_PARAMS.chunk)
+	var nn := terrain.normal_at(px, pz)
+	var tilt := float(rp[0])
+	var up := Vector3.UP.lerp(nn, tilt).normalized()
 	var j1 := hash01(ix, iz, s0 + 6)
+	var j2 := hash01(ix, iz, s0 + 7)
+	var j3 := hash01(ix, iz, s0 + 8)
+	# неравномерный масштаб: длина ~ size, высота и ширина — доли размера со случайным разбросом
+	var sy := size * float(rp[1]) * (1.0 - float(rp[3]) + 2.0 * float(rp[3]) * j1)
+	var sw := size * float(rp[2]) * (0.55 + 0.6 * j2)
+	if role == "comb":
+		sy = size * (0.5 + 0.5 * j1)
+		sw = size * (0.6 + 0.5 * j2)
+	var yaw := j3 * TAU if is_nan(yaw_fixed) else yaw_fixed + (j2 - 0.5) * 0.3
+	if role == "comb" and is_nan(yaw_fixed):  # гребешок и вне гряды — вдоль горизонтали
+		var gd := down_dir(nn)
+		if gd != Vector2.ZERO:
+			yaw = atan2(gd.x, gd.y) + (j2 - 0.5) * 0.4  # ось X ⟂ падению: (−gd.y, gd.x)
 	var b := Basis(Quaternion(Vector3.UP, up)) * Basis(Vector3.UP, yaw)
-	b = b.scaled_local(
-		Vector3(size * (0.85 + 0.3 * j1), size * tall * (0.8 + 0.4 * u), size * (1.15 - 0.3 * j1))
-	)
+	if role != "slab" and role != "comb":  # лёгкий крен — камни не лежат «по линейке»
+		b = b * Basis(Vector3(1, 0, 0), (j1 - 0.5) * 0.35)
+	b = b.scaled_local(Vector3(size, sy, sw))
+	var hw := sy * _mh[v]
+	var sin_s := sqrt(maxf(1.0 - nn.y * nn.y, 0.0))
 	var y := (
 		terrain.height_at(px, pz)
-		- size * (float(_cfg.get("sink", 0.12)) + 0.5 * sqrt(maxf(1.0 - nn.y * nn.y, 0.0)))
+		- hw * float(_cfg.get("sink", 0.2))
+		- (1.0 - tilt) * 0.4 * size * sin_s
 	)
 	out.xf.append_array(
 		PackedFloat32Array(
@@ -434,8 +687,8 @@ func _place(
 		)
 	)
 	var tv := float(_cfg.get("tint_var", 0.18))
-	var br := 1.0 + tv * (2.0 * hash01(ix, iz, s0 + 8) - 1.0)
-	var och := 0.08 * (2.0 * hash01(ix, iz, s0 + 9) - 1.0)
+	var br := 1.0 + tv * (2.0 * hash01(ix, iz, s0 + 9) - 1.0)
+	var och := 0.08 * (2.0 * hash01(ix, iz, s0 + 5) - 1.0)
 	out.col.append_array(PackedFloat32Array([br * (1.0 + och), br, br * (1.0 - och), 1.0]))
 	out.size.append(size)
 	out["var"].append(v)
