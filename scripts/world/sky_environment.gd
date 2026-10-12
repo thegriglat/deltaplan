@@ -106,7 +106,7 @@ func apply_config() -> void:
 	env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
 	env.fog_density = float(fog_cfg.density)
 	env.fog_light_color = _color(fog_cfg.color)
-	env.fog_sun_scatter = float(fog_cfg.sun_scatter)
+	env.fog_sun_scatter = fog_sun_scatter()
 	env.fog_aerial_perspective = float(fog_cfg.aerial_perspective)
 	env.fog_sky_affect = float(fog_cfg.sky_affect)
 	env.fog_height = float(fog_cfg.height_m)
@@ -229,6 +229,21 @@ func _apply_glare(gc: Dictionary) -> void:
 	glare.apply_config()
 
 
+## «Дымка к солнцу» (world.json → fog.sun_scatter, ползунок настроек): одно значение для
+## окружения Годо, наземной дымки и облаков (cloud_layer читает его же).
+static func fog_sun_scatter() -> float:
+	return clampf(float(Config.value("world", "fog.sun_scatter", 0.35)), 0.0, 1.0)
+
+
+## Применить значение сразу, без пересборки окружения (после Config.reload()).
+func apply_fog_sun_scatter() -> void:
+	var v := fog_sun_scatter()
+	if _env != null:
+		_env.fog_sun_scatter = v
+	if _haze_mat != null:
+		_haze_mat.set_shader_parameter("sun_scatter", v)
+
+
 func _apply_haze(hz: Dictionary) -> void:
 	if not bool(hz.get("enabled", false)):
 		if haze != null:
@@ -272,7 +287,7 @@ func _apply_haze(hz: Dictionary) -> void:
 	var c_turbid := _color(hz.get("turbid_color", [0.66, 0.67, 0.68]))
 	# haze_color, sun_color, sun_dir — в _apply_sun (зависят от высоты солнца)
 	_haze_base_color = c_clear.lerp(c_turbid, grey)
-	_haze_mat.set_shader_parameter("sun_scatter", float(hz.get("sun_scatter", 0.3)))
+	_haze_mat.set_shader_parameter("sun_scatter", fog_sun_scatter())
 	_haze_mat.set_shader_parameter("sun_scatter_power", float(hz.get("sun_scatter_power", 6.0)))
 	_haze_mat.set_shader_parameter("max_opacity", float(hz.get("max_opacity", 0.97)))
 	_haze_mat.set_shader_parameter("inscatter_power", float(hz.get("inscatter_power", 1.0)))

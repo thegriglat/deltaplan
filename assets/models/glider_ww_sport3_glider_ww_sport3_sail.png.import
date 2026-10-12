@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://sbtwayf7wg7f"
-path="res://.godot/imported/glider_ww_sport3_glider_ww_sport3_sail.png-9ce08b98fb05b60a8bd4fcd74ef26540.ctex"
+path.bptc="res://.godot/imported/glider_ww_sport3_glider_ww_sport3_sail.png-9ce08b98fb05b60a8bd4fcd74ef26540.bptc.ctex"
+path.astc="res://.godot/imported/glider_ww_sport3_glider_ww_sport3_sail.png-9ce08b98fb05b60a8bd4fcd74ef26540.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "62a39a9c051db33e63811c96b309121a"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_ww_sport3_glider_ww_sport3_sail.png"
-dest_files=["res://.godot/imported/glider_ww_sport3_glider_ww_sport3_sail.png-9ce08b98fb05b60a8bd4fcd74ef26540.ctex"]
+dest_files=["res://.godot/imported/glider_ww_sport3_glider_ww_sport3_sail.png-9ce08b98fb05b60a8bd4fcd74ef26540.bptc.ctex", "res://.godot/imported/glider_ww_sport3_glider_ww_sport3_sail.png-9ce08b98fb05b60a8bd4fcd74ef26540.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

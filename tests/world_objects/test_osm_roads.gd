@@ -23,6 +23,8 @@ static func _flat(_x: float, _z: float) -> float:
 
 ## Ожидаемое число лент по ключу класса (как их делит OsmRoads).
 static func _expect(arr: Array, classes: Dictionary, rivers: bool = false) -> Dictionary:
+	if rivers and not bool(WorldObjects.load_config().get("rivers", {}).get("enabled", true)):
+		return {}  # реки OSM выключены конфигом (вода — подложка DEM/WorldCover)
 	var e := {}
 	for r: Dictionary in arr:
 		if bool(r.get("tunnel", false)):
@@ -61,7 +63,7 @@ func test_fixture_counts_match_objects() -> void:
 	check(int(st.skipped_tunnels) == tunnels, "тоннели пропущены: %d из %d" % [st.skipped_tunnels, tunnels])
 	print("OT-9 фикстура Бохинь: лент %d, меш-тайлов %d, тоннелей пропущено %d, дороги %s, реки %s, ж/д %s, %.0f мс" % [
 		total, st.tiles, st.skipped_tunnels, st.roads, st.rivers, st.rail, ms])
-	if d.rivers.size() > 0:
+	if d.rivers.size() > 0 and bool(cfg.rivers.get("enabled", true)):
 		var rv := node.get_node_or_null("Rivers")
 		check(rv != null and rv.get_child_count() > 0, "узел рек есть")
 		if rv != null and rv.get_child_count() > 0:

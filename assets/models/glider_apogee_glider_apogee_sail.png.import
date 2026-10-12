@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c6ky1bcb0taqt"
-path="res://.godot/imported/glider_apogee_glider_apogee_sail.png-cbb01bf6f5c3f18fe97c676719be9d7f.ctex"
+path.bptc="res://.godot/imported/glider_apogee_glider_apogee_sail.png-cbb01bf6f5c3f18fe97c676719be9d7f.bptc.ctex"
+path.astc="res://.godot/imported/glider_apogee_glider_apogee_sail.png-cbb01bf6f5c3f18fe97c676719be9d7f.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "79c8af17ff392b50e2c29fd3315abe81"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_apogee_glider_apogee_sail.png"
-dest_files=["res://.godot/imported/glider_apogee_glider_apogee_sail.png-cbb01bf6f5c3f18fe97c676719be9d7f.ctex"]
+dest_files=["res://.godot/imported/glider_apogee_glider_apogee_sail.png-cbb01bf6f5c3f18fe97c676719be9d7f.bptc.ctex", "res://.godot/imported/glider_apogee_glider_apogee_sail.png-cbb01bf6f5c3f18fe97c676719be9d7f.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

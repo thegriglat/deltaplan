@@ -196,7 +196,8 @@
         "world": {
           "trees": {
             "radius_m": 400,
-            "cast_shadows": true
+            "cast_shadows": true,
+            "shadow_lods": 1
           },
           "sun": {
             "shadow_max_distance_m": 2000

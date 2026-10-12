@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b0iyj3htb5xc3"
-path="res://.godot/imported/glider_air_sting3_glider_air_sting3_sail.png-5664980f6d328d448b82386fa7a16dfd.ctex"
+path.bptc="res://.godot/imported/glider_air_sting3_glider_air_sting3_sail.png-5664980f6d328d448b82386fa7a16dfd.bptc.ctex"
+path.astc="res://.godot/imported/glider_air_sting3_glider_air_sting3_sail.png-5664980f6d328d448b82386fa7a16dfd.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "0dead675790cf7b6804784936c377ae3"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_air_sting3_glider_air_sting3_sail.png"
-dest_files=["res://.godot/imported/glider_air_sting3_glider_air_sting3_sail.png-5664980f6d328d448b82386fa7a16dfd.ctex"]
+dest_files=["res://.godot/imported/glider_air_sting3_glider_air_sting3_sail.png-5664980f6d328d448b82386fa7a16dfd.bptc.ctex", "res://.godot/imported/glider_air_sting3_glider_air_sting3_sail.png-5664980f6d328d448b82386fa7a16dfd.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

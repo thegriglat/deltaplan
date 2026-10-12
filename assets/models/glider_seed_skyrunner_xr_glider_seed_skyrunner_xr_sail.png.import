@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://x6upnp5ae0o6"
-path="res://.godot/imported/glider_seed_skyrunner_xr_glider_seed_skyrunner_xr_sail.png-813d39ea84914f62b76939eac7c86c4d.ctex"
+path.bptc="res://.godot/imported/glider_seed_skyrunner_xr_glider_seed_skyrunner_xr_sail.png-813d39ea84914f62b76939eac7c86c4d.bptc.ctex"
+path.astc="res://.godot/imported/glider_seed_skyrunner_xr_glider_seed_skyrunner_xr_sail.png-813d39ea84914f62b76939eac7c86c4d.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "1bacbf471e790298eddebc379eaf5e57"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_seed_skyrunner_xr_glider_seed_skyrunner_xr_sail.png"
-dest_files=["res://.godot/imported/glider_seed_skyrunner_xr_glider_seed_skyrunner_xr_sail.png-813d39ea84914f62b76939eac7c86c4d.ctex"]
+dest_files=["res://.godot/imported/glider_seed_skyrunner_xr_glider_seed_skyrunner_xr_sail.png-813d39ea84914f62b76939eac7c86c4d.bptc.ctex", "res://.godot/imported/glider_seed_skyrunner_xr_glider_seed_skyrunner_xr_sail.png-813d39ea84914f62b76939eac7c86c4d.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

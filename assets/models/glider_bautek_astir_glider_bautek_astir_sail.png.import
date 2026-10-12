@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://jnc02hg3skdb"
-path="res://.godot/imported/glider_bautek_astir_glider_bautek_astir_sail.png-14d86bfa6c9e7e4d73b2ed7133abecde.ctex"
+path.bptc="res://.godot/imported/glider_bautek_astir_glider_bautek_astir_sail.png-14d86bfa6c9e7e4d73b2ed7133abecde.bptc.ctex"
+path.astc="res://.godot/imported/glider_bautek_astir_glider_bautek_astir_sail.png-14d86bfa6c9e7e4d73b2ed7133abecde.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f161fcfd40e472bb362a2301dab347a8"
@@ -14,12 +16,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_bautek_astir_glider_bautek_astir_sail.png"
-dest_files=["res://.godot/imported/glider_bautek_astir_glider_bautek_astir_sail.png-14d86bfa6c9e7e4d73b2ed7133abecde.ctex"]
+dest_files=["res://.godot/imported/glider_bautek_astir_glider_bautek_astir_sail.png-14d86bfa6c9e7e4d73b2ed7133abecde.bptc.ctex", "res://.godot/imported/glider_bautek_astir_glider_bautek_astir_sail.png-14d86bfa6c9e7e4d73b2ed7133abecde.astc.ctex"]
 
 [params]
 
-compress/mode=1
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

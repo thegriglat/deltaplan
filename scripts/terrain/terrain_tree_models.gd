@@ -48,6 +48,7 @@ func setup(layer: HeightLayer, surface: SurfaceLayer, cfg: Dictionary) -> bool:
 	_rebuild_step = float(cfg.get("rebuild_step_m", 16.0))
 	_max_agl = float(cfg.get("max_agl_m", 900.0))
 	var shadows := bool(cfg.get("cast_shadows", true))
+	var shadow_lods := int(cfg.get("shadow_lods", 2))
 	var aabb := AABB(
 		Vector3(layer.origin_x, layer.min_h - 100.0, layer.origin_z),
 		Vector3(layer.size_x(), layer.max_h - layer.min_h + 200.0, layer.size_z())
@@ -65,7 +66,7 @@ func setup(layer: HeightLayer, surface: SurfaceLayer, cfg: Dictionary) -> bool:
 			mmi.custom_aabb = aabb
 			mmi.cast_shadow = (
 				GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-				if shadows and lod < 2
+				if shadows and lod < shadow_lods
 				else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			)
 			add_child(mmi)
