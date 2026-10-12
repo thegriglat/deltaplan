@@ -42,6 +42,18 @@ float rect(vec2 f, vec2 c, vec2 h, vec2 aa) {
 	return m.x * m.y;
 }
 
+// значимый шум 0..1 на плоскости; ячейка 1 по p
+float vnoise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	float a = hash13(vec3(i, 1.0));
+	float b = hash13(vec3(i + vec2(1.0, 0.0), 1.0));
+	float c = hash13(vec3(i + vec2(0.0, 1.0), 1.0));
+	float d = hash13(vec3(i + vec2(1.0, 1.0), 1.0));
+	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
 void vertex() {
 	v_size = vec3(length(MODEL_MATRIX[0].xyz), length(MODEL_MATRIX[1].xyz), length(MODEL_MATRIX[2].xyz));
 	v_m = VERTEX * v_size;
@@ -61,6 +73,8 @@ void fragment() {
 	int roof_i = int(style) * 4 + int(ri);
 	float h_ground = v_m.y + 0.5 * v_size.y - sink_m;  // высота над землёй, м
 	vec3 wall = COLOR.rgb;
+	// разброс яркости между домами ±10 %
+	wall *= 0.9 + 0.2 * fract(seed * 7.31 + 0.37);
 	vec3 col = wall;
 	float rough = 0.9;
 	float metal = 0.0;
@@ -70,6 +84,7 @@ void fragment() {
 	float dz = fwidth(v_m.z);
 	float dy = fwidth(h_ground);
 	float near = 1.0 - smoothstep(0.55 * window_fade_m, window_fade_m, v_depth);
+	vec3 wall_far = wall;  // вдали: стена со средним цветом окон (доля остекления)
 
 	if (v_n.y > 0.5) {
 		// крыша: плоская — цвет палитры стиля; у промзоны швы профлиста
@@ -78,6 +93,31 @@ void fragment() {
 		if (style > 1.5) {
 			rc *= 0.93 + 0.07 * sin(v_m.x * 9.0 + v_m.z * 0.0);
 		}
+		// пятна и подтёки: два масштаба шума, гаснут к среднему по размеру пикселя на крыше
+		vec2 rp = v_m.xz + vec2(seed * 97.0, seed * 53.0);
+		float px = max(dx, dz);
+		float n1 = vnoise(rp / 4.0);
+		float n2 = vnoise(rp / 1.3);
+		float fn1 = 1.0 - smoothstep(1.0, 3.0, px);
+		float fn2 = 1.0 - smoothstep(0.4, 1.2, px);
+		rc *= 1.0 + 0.22 * (n1 - 0.5) * fn1 + 0.12 * (n2 - 0.5) * fn2;
+		// тёмные прямоугольники (шахты, вентиляция) на крупных крышах: сетка 14 м, ~25 % ячеек
+		if (style < 1.5 && v_size.x * v_size.z > 400.0) {
+			vec2 gp = rp / 14.0;
+			vec2 gi = floor(gp);
+			vec2 gf = fract(gp);
+			float hv = hash13(vec3(gi, 5.0));
+			vec2 hc = vec2(0.3 + 0.4 * hash13(vec3(gi, 6.0)), 0.3 + 0.4 * hash13(vec3(gi, 7.0)));
+			vec2 hs2 = vec2(1.0 + 1.2 * hash13(vec3(gi, 8.0)), 1.0 + 1.5 * hash13(vec3(gi, 9.0))) / 14.0;
+			float vent = hv < 0.25 ? rect(gf, hc, hs2, vec2(px / 14.0 + 0.002)) : 0.0;
+			vent *= 1.0 - smoothstep(1.5, 4.0, px);
+			rc = mix(rc, rc * 0.45, vent);
+		}
+		// светлый парапет по кромке
+		float edge = min(0.5 * v_size.x - abs(v_m.x), 0.5 * v_size.z - abs(v_m.z));
+		float pw = max(fwidth(edge), 0.001);
+		float para = (1.0 - smoothstep(0.45 - pw, 0.45 + pw, edge)) * (1.0 - smoothstep(0.6, 2.0, pw));
+		rc = mix(rc, min(rc * 1.7 + 0.04, vec3(1.0)), 0.7 * para);
 		col = rc;
 		rough = 0.8;
 	} else if (v_n.y > -0.5) {
@@ -97,7 +137,7 @@ void fragment() {
 				float fu = fract((u + 0.5 * len) / 1.5);
 				float aa_g = (along_x ? dz : dx) / 1.5;
 				float vm = smoothstep(0.0, 0.04 + aa_g, fu) * smoothstep(0.0, 0.04 + aa_g, 1.0 - fu);
-				float k = mix(1.0, mull * vm, near);
+				float k = mix(0.88, mull * vm, near);
 				float tone = 0.85 + 0.3 * hash13(vec3(floor((u + 0.5 * len) / 1.5), fl, face + seed * 17.0));
 				col = glass * tone * mix(1.0, k, 0.8);
 				metal = 0.5;
@@ -116,12 +156,16 @@ void fragment() {
 				// первый этаж без окон у самой земли, верхний этаж под кровлей — окна как у всех
 				float hs = hash13(vec3(ci, fl, face + seed * 31.0));
 				vec3 wc = hs > 0.72 ? window_light * (0.7 + 0.6 * hs) : mix(window_dark, window_light, hs * 0.5);
-				win *= near * (1.0 - smoothstep(0.25, 0.6, max(aa_u, aa_y)));
-				col = mix(wall, wc, win);
+				float fade = near * (1.0 - smoothstep(0.25, 0.6, max(aa_u, aa_y)));
+				// средний цвет окна ≈ тёмное с долей отражений; остекление ≈ 0.24
+				vec3 wavg = mix(window_dark, window_light, 0.3);
+				wall_far = mix(wall, wavg * 1.1, 0.24);
+				win *= fade;
+				col = mix(wall_far, mix(wall, wc, win / max(fade, 0.001)), fade);
 				rough = mix(0.9, 0.15, win);
 				metal = win * 0.2;
-				// межэтажные пояса чуть темнее
-				col *= 1.0 - 0.06 * smoothstep(0.1, 0.0, ff) * near;
+				// межэтажные пояса едва заметно
+				col *= 1.0 - 0.04 * smoothstep(0.1, 0.0, ff) * mix(0.4, 1.0, near);
 			}
 		} else if (style < 1.5) {
 			// село: 1–2 небольших окна на стену на этаж
@@ -133,8 +177,10 @@ void fragment() {
 			float aa_u = (along_x ? dz : dx) / pitch + 0.001;
 			float win = rect(vec2(fu, ff), vec2(0.5, 0.5), vec2(0.5 * min(1.1 / pitch, 0.6), 0.2), vec2(aa_u, aa_y));
 			float hs = hash13(vec3(ci, fl, face + seed * 31.0));
-			win *= step(0.12, hs) * near * (1.0 - smoothstep(0.25, 0.6, max(aa_u, aa_y)));
-			col = mix(wall, mix(window_dark, window_light, hs * 0.4), win);
+			float fade = near * (1.0 - smoothstep(0.25, 0.6, max(aa_u, aa_y)));
+			wall_far = mix(wall, mix(window_dark, window_light, 0.2) * 1.1, 0.09);
+			win *= step(0.12, hs) * fade;
+			col = mix(wall_far, mix(wall, mix(window_dark, window_light, hs * 0.4), win / max(fade, 0.001)), fade);
 			rough = mix(0.9, 0.2, win);
 		} else {
 			// промзона: профлист — вертикальные рёбра, без окон
@@ -143,6 +189,11 @@ void fragment() {
 			rough = 0.6;
 			metal = 0.1;
 		}
+		// грязь: вертикальные подтёки от крыши (гаснут по размеру пикселя)
+		float drip = vnoise(vec2((u + 0.5 * len) * 1.2 + seed * 40.0, face * 3.0));
+		float from_top = v_size.y - sink_m - h_ground;
+		float dmask = (1.0 - smoothstep(0.0, 5.0, from_top)) * smoothstep(0.45, 0.9, drip);
+		col *= 1.0 - 0.14 * dmask * (1.0 - smoothstep(0.3, 1.0, max(dx, dz)));
 		// затемнение у земли
 		col *= mix(1.0 - ground_dark, 1.0, smoothstep(0.0, ground_h_m, h_ground));
 	} else {
