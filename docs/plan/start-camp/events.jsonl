@@ -41,3 +41,10 @@
 {"t": "2026-10-12T22:35:58", "by": "coordinator", "task": "SC-8", "ev": "accepted", "commits": ["f00c33a6"], "note": "1/1 start_camp_contracts_k4=ok:1/1"}
 {"t": "2026-10-12T22:36:16", "by": "executor", "task": "SC-3", "ev": "checked", "note": "4/4 grass=ok:14/14; start_camp_contracts_k6=ok:4/4; test_world_objects=ok:12/12; gd=ok:exit 0"}
 {"t": "2026-10-12T22:36:30", "by": "coordinator", "task": "SC-3", "ev": "accepted", "note": "по отчёту: 4/4 PASS (test_build_time — порог по нагрузке, на повторе зелёный); вид — тестовая сборка Linux"}
+{"t": "2026-10-12T22:36:42", "by": "coordinator", "task": "SC-3", "ev": "merged"}
+{"t": "2026-10-12T22:36:42", "by": "coordinator", "task": "SC-4", "ev": "merged"}
+{"t": "2026-10-12T22:36:43", "by": "coordinator", "task": "SC-6", "ev": "merged"}
+{"t": "2026-10-12T22:36:44", "by": "coordinator", "task": "SC-7", "ev": "merged"}
+{"t": "2026-10-12T22:36:45", "by": "coordinator", "task": "SC-8", "ev": "merged"}
+{"t": "2026-10-12T22:36:45", "by": "coordinator", "task": "SC-5", "ev": "created", "note": "Люди у палаток из модели camp_person.glb"}
+{"t": "2026-10-12T22:36:48", "by": "coordinator", "task": "SC-5", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-start-camp-SC-5"}

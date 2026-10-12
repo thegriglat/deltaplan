@@ -1,0 +1,56 @@
+{
+  "id": "SC-5",
+  "module": "start-camp",
+  "type": "dp-engineer",
+  "title": "Люди у палаток из модели camp_person.glb",
+  "goal": "Человечки у лагеря — не капсулы: части из camp_person.glb (SC-K4) в MultiMesh, одежда — ткань CampFabric cloth с цветом экземпляра; поведение (переминаются, машут) не меняется.",
+  "plan_ref": "SC-5 Люди у палаток",
+  "contracts": [
+    {
+      "name": "SC-K4",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    },
+    {
+      "name": "SC-K5",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-camp-SC-5",
+  "branch": "start-camp/SC-5",
+  "base": "feature/start-camp",
+  "scope": [
+    "scripts/world_objects/easter_eggs/people.gd",
+    "configs/easter_eggs.json",
+    "tests/world_objects/test_egg_people.gd"
+  ],
+  "dont_touch": [
+    "assets",
+    "tools/blender",
+    "scripts/world_objects/camp_fabric.gd",
+    "assets/shaders"
+  ],
+  "accept": [
+    {
+      "name": "egg_people",
+      "tests": "egg_people"
+    },
+    {
+      "name": "test_easter_eggs",
+      "tests": "test_easter_eggs"
+    },
+    {
+      "name": "start_camp_contracts_k4",
+      "tests": "start_camp_contracts_k4"
+    },
+    {
+      "name": "gd",
+      "cmd": "f=$(git diff --name-only --diff-filter=AM feature/start-camp...HEAD -- \"*.gd\"); [ -z \"$f\" ] || /home/greg/deltaplan/tools/dp check gd $f",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T22:36:45"
+}
