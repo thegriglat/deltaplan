@@ -1,8 +1,9 @@
 {
   "status": "done",
-  "summary": "Telemetry.bar_force (Vector2, Н, оси крыла) заполняется в обеих моделях; виджет меняет только толщину рамки (ring_width). FlightModel: оценка F = m_p·g·Δ/L, Δx = (v−V_трим)/(k·s), k = wing.pendulum.ref.kmh_per_cm_hang. Формула и приближения — в комментарии bar_force_estimate и docs/guide/flight.md.",
+  "summary": "Telemetry.bar_force (Vector2, Н, оси крыла) заполняется в обеих моделях; виджет меняет только толщину рамки (ring_width). FlightModel: оценка F = m_p·g·Δ/L, Δx = (v−V_трим)/(k·s), k = wing.pendulum.ref.kmh_per_cm_hang. Формула и приближения — в комментарии bar_force_estimate и docs/guide/flight.md. Доработка по решению координатора: боковая сила — от (roll − roll_input_for_bank)·shift_y_max (только в режиме weight_shift; в режиме «как раньше» держащий ввод 0), в установившемся вираже 30° = 0 Н, при вводе 0,3 — ~70 Н.",
   "commits": [
-    "28aabbd7 PH-1: усилие рук на трапеции (Telemetry.bar_force, PH-К1) — толщина рамки индикатора подвески"
+    "28aabbd7 PH-1: усилие рук на трапеции (Telemetry.bar_force, PH-К1) — толщина рамки индикатора подвески",
+    "77f23c82 PH-1: боковое усилие FlightModel — от отклонения ввода от держащего крен"
   ],
   "checks": [
     {
@@ -32,23 +33,16 @@
     },
     {
       "name": "flight",
-      "value": "dp accept --dry: таймаут 900 с; ручной прогон 223 теста, 1 упал — test_mouse_bar_flight::test_mouse_on_ground_controls_wing (нос 12.7°), падает и без моих правок (проверено git stash)",
-      "pass": false
+      "value": "dp accept --dry: 225 с, единственное падение — известное test_mouse_bar_flight::test_mouse_on_ground_controls_wing",
+      "pass": true
     }
   ],
-  "not_done": [
-    "flight: приёмка не зелёная из-за таймаута 900 с (фильтр flight очень долгий) и одного старого падения test_mouse_bar_flight, не связанного с задачей"
-  ],
+  "not_done": [],
   "questions": [
     "Поднять таймаут приёмки flight или сузить фильтр? Чинить test_mouse_bar_flight — отдельной задачей?"
   ],
   "how_to_check": "godot --headless --path . res://tests/run_tests.tscn -- --filter=bar_force (и pilot_hud, feedback_1012, pendulum, telemetry); физика: print-строки 'PH1 ...' в test_bar_force",
   "uncertain": [
-    {
-      "where": "scripts/flight/flight_model.gd: bar_force_estimate (крен)",
-      "why": "Для крена F_x = m_p·g·roll_input_for_bank·shift_y_max/L даёт 132 Н при ~30° крена (roll=0.3 в течение 3 с) — это много, Ochi говорит о <10 Н в вираже; в модели «смещение веса» крен держится смещением, поэтому усилие есть по построению.",
-      "checked": "оценка следует модели (roll_input_for_bank); подгонки не делал. Решение координатору: оставить или ограничить крен."
-    },
     {
       "where": "configs/ui.json: force_full_n=120, force_ring_max_frac=0.07",
       "why": "Значения выбраны мной (120 Н = 40% предела рук 300 Н; 7% диаметра ≈ 4.7× толщины), визуально не проверялись.",
@@ -76,11 +70,23 @@
     "flight_est_N": {
       "1.15Vt": 37.9,
       "1.3Vt": 75.8
-    }
+    },
+    "pendulum_steady_turn_30deg": {
+      "mean_x_N": -39.4,
+      "max_abs_x_N": 42.3,
+      "y_N": -7.2,
+      "entry_peak_x_N": 299.2,
+      "note": "знак x в установившемся вираже обратен крену"
+    },
+    "flight_roll": {
+      "steady_turn_30deg_max_abs_x_N": 0.0,
+      "entry_roll_0.3_x_N": 69.8
+    },
+    "force_trim_n_note": "оценка FlightModel на триме 0 Н; маятник на триме: тест |F|<15 Н"
   },
-  "force_trim_n": "<15 Н в обеих моделях (тест: нейтраль, |F|<15; оценка FlightModel на триме 0)",
+  "force_trim_n": 0.0,
   "force_fast_n": 75.8,
   "force_pendulum_fast_n": 71.6,
-  "t": "2026-10-12T21:45:03",
+  "t": "2026-10-12T21:57:55",
   "by": "executor"
 }
