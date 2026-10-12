@@ -66,6 +66,7 @@ related: []
 | `assets/models/pilot.glb` | пилот со скелетом и 8 анимациями (стоя, ходьба, разбег, бег в воздухе, заползание в кокон, лёжа, выход, выравнивание): тело человека MakeHuman (MPFB 2) с плавной привязкой к костям, кулаки в перчатках обхватывают трубу | 10 431 |
 | `assets/models/instrument.glb` | планшет-полётный компьютер (e-reader/телефон в чехле) на кронштейне в центре базовой штанги | 1 070 |
 | `assets/models/vario_90s.glb` | обобщённый вариометр 1990-х (коробочка со стрелочной шкалой и кнопками) на хомуте базовой штанги слева от планшета | 1 506 |
+| `assets/models/wrist_compass.glb` | наручный жидкостный компас на правую руку пилота: картушка Ø 38 мм, ремешок под эллипс руки | 1 304 |
 | `assets/models/trees/tree_<вид>.glb` | деревья Алтая: `pine`, `cedar`, `larch`, `birch`, `spruce`, по 3 LOD | LOD0 ≤ 2k, LOD1 ≤ 200, LOD2 = 4 |
 
 Крыло + пилот ≈ 17–18,5k треугольников (бюджет 30k; из них трапеция с узлами, наконечниками и подвеской ≈ 3–4k, мелкие детали в дали упрощает авто-LOD импорта Godot), приборы < 1,1k (бюджет 3k).
@@ -79,6 +80,7 @@ tools/blender/setup_mpfb.sh                                         # один �
 BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user blender --background --python tools/blender/build_pilot.py
 blender --background --python tools/blender/build_instrument.py   # планшет
 blender --background --python tools/blender/build_vario90s.py
+blender --background --python tools/blender/build_wrist_compass.py   # наручный компас (wrist_compass.json)
 xvfb-run -a blender --background --python tools/blender/build_trees.py   # Eevee печёт импосторы
 tools/blender/render_all.sh                                        # скриншоты → docs/models/screenshots/
 xvfb-run -a blender --background --python tools/blender/render_trees.py
@@ -278,6 +280,20 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 Картинки-импосторы: `trees/tree_<вид>_impostor.png` (256×512 RGBA, вид сбоку, ортокамера, низ = земля)
 и атлас `trees/trees_impostor_atlas.png` (1024², ячейки 256×512: верхний ряд pine, cedar, larch, birch;
 нижний — spruce).
+
+## Наручные приборы
+
+Контракты PH-К3/PH-К4 (docs/contracts/pilot-hud.md). Общее: модель крепится к пустышке `WristL/WristR` без смещения и поворота; начало — центр нижней плоскости корпуса на рукаве; циферблат смотрит в −Z, +Y — к пальцам.
+
+### Наручный компас
+
+`assets/models/wrist_compass.glb` (правая рука, `WristR`), 1 304 треугольника. Сборка: `blender --background --python tools/blender/build_wrist_compass.py` (параметры в мм — `tools/blender/wrist_compass.json`: эллипс руки `wrist_w_mm`×`wrist_h_mm` = 56×51 по отчёту PH-3, ширина/толщина/зазор ремешка, размеры капсулы и картушки; PH-7 меняет W×H и перегенерирует той же командой). Затем `godot --headless --path . --import`.
+
+- Ноды верхнего уровня: `Case` (корпус Ø 46 мм, высота 11 мм над рукавом, юбка следует эллипсу руки, безель; `CompassCase`, `CompassBezel`), `Strap` (22 мм, зазор 1,5 мм, пряжка; `CompassStrap`, `CompassBuckle`), `Card` (картушка Ø 38 мм, толщина 1 мм, начало на оси на высоте 6,6 мм; `CompassCard`), `Lubber` (курсовая черта на +Y, чуть выше картушки; `CompassMark`), `Glass` (купол капсулы, альфа 0,08; `CompassGlass`).
+- Картушка: текстура 256² (`assets/models/wrist_compass_CompassCard.png`, Godot вынимает её из glb; `.import`: `compress/mode=2`, `mipmaps/generate=true`). N/E/S/W высотой 6,4 мм, метки через 10° (30° длиннее, 90° шире), цифры/10 через 30° (3, 6, 12, 15, 21, 24, 30, 33; 3,4 мм), N — красный буква и красный треугольник у кромки остриём к центру. Штрихи рисует скрипт (numpy), шрифтов нет. При повороте 0 N на +Y; E справа для смотрящего (по часовой), `rotation.z = θ` по контракту.
+- Цвета: тёмная картушка, светлые метки (контраст 15:1), красный N (4,4:1), оранжевая курсовая черта (8,6:1); ничего светящегося.
+- Метки через 10° тоньше 2 мм (шаг на кромке 3,3 мм), 30° — 1,3 мм, 90° — 1,9 мм: контрактные «≥ 2 мм» к ним не применимы геометрически.
+- Проверки: `scenes/models_preview/check_models.gd` (блок компаса), `tests/contracts/test_pilot_hud_contracts.gd` (`test_ph_k4_compass_*`).
 
 ## Шейдер паруса
 
