@@ -106,3 +106,5 @@
 {"t": "2026-10-12T23:05:59", "by": "coordinator", "task": "SC-12", "ev": "merged"}
 {"t": "2026-10-12T23:05:59", "by": "coordinator", "task": "SC-9", "ev": "created", "note": "Документы и CHANGELOG модуля start-camp; закрыть T-22, T-23"}
 {"t": "2026-10-12T23:06:02", "by": "coordinator", "task": "SC-9", "ev": "started", "note": "dp-writer, ~/deltaplan-start-camp-SC-9"}
+{"t": "2026-10-12T23:06:32", "by": "coordinator", "task": "SC-12", "ev": "merged"}
+{"t": "2026-10-12T23:06:32", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp merge/gc — подсказать незакоммиченные .uid новых файлов (Godot создаёт их при импорте, исполнители забывают); git worktree remove падает на них"}
