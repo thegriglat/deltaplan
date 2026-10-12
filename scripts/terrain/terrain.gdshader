@@ -158,6 +158,36 @@ uniform float erosion_gain = 0.55;                // сила следующей
 uniform float erosion_branch = 1.0;               // поворот октавы по уклону от предыдущих (ветвление)
 uniform vec2 erosion_slope_deg = vec2(5.0, 18.0); // уклон появления / полной силы
 uniform vec2 erosion_fade_m = vec2(7000.0, 14000.0);   // гаснут с расстоянием, м
+// --- скальная поверхность на крутизне (скалы и выходы породы; terrain_look: rock_macro_*,
+// rock_normal_strength, ledge_*, outcrop_ribs): та же текстура породы крупным масштабом по трём
+// проекциям (рисунок и нормаль видны с километров, где мелкий тайл усреднён мипами), уступы
+// слоёв в нормали, пятна породы на крутом — рёбрами вдоль линии падения ---
+uniform float rock_macro_k = 24.0;                // крупный слой: тайл ×k
+uniform float rock_macro_contrast = 1.6;         // степень контраста рисунка крупного слоя (мипы его сглаживают)
+uniform float rock_macro_strength = 0.8;          // контраст рисунка крупного слоя (яркость)
+uniform float rock_macro_normal = 0.5;            // наклон нормали крупного слоя
+uniform vec2 rock_macro_fade_m = vec2(6000.0, 12000.0);
+uniform float rock_normal_strength = 0.6;         // мелкий слой (тайл rock.tile_m), вблизи
+uniform float ledge_strength = 0.3;               // уступы слоёв: ± доля уклона (ступень/полка)
+uniform vec2 ledge_slope_deg = vec2(25.0, 45.0);  // уступы появляются / в полную силу, °
+uniform float erosion_rock_boost = 1.0;          // промоины на скальной поверхности сильнее (× 1 + boost)
+uniform float outcrop_ribs = 0.6;
+// кромки материалов (трава/скала/осыпь/снег в кулуарах): узкий переход по рваной кромке вместо
+// широкой плавной смеси; ширина не уже ~пикселя
+uniform float material_edge_noise = 0.5;          // сдвиг кромки шумом 7–25 м (доля веса)
+uniform float material_edge_hw = 0.06;            // полуширина перехода (доля веса)
+// фактура скальной зоны на средней дистанции (300–2000 м), без моделей камней
+uniform float rock_tone_var = 0.35;               // разброс яркости породы пятнами 30–150 м
+uniform float rock_crack_m = 22.0;                // шаг трещин-кулуаров (вдоль линии падения ×3), м
+uniform float rock_crack_dark = 0.3;              // затемнение трещин
+uniform float rock_scree_streaks = 0.45;          // доля светлых полос осыпей вдоль линии падения
+uniform float rock_curv_shade = 0.25;
+// порода высокогорья (ниже линии снега в кулуарах на rock_alpine_below_m — полностью): холодная
+// тёмная (гранит, сланец), пятнами 0,5–2 км ржавая; на крутом темнее
+uniform vec3 rock_alpine_color : source_color = vec3(0.22, 0.23, 0.25);
+uniform vec3 rock_alpine_rust : source_color = vec3(0.33, 0.27, 0.2);
+uniform vec2 rock_alpine_below_m = vec2(1100.0, 400.0);
+uniform float rock_alpine_mix = 0.85;             // гребни светлее, ложбины темнее (кривизна 35 м)                 // доля «рёбер вдоль линии падения» в пятнах породы на крутом
 
 varying vec3 v_world;
 // тень облаков: множитель прямого солнца и SPECULAR — в light() (cloud_shadow.gdshaderinc)
@@ -166,6 +196,74 @@ varying float v_cs_spec;
 // выпуклость рельефа (−лапласиан, м/м) в масштабе outcrop_scale_m — в вершине, дёшево
 uniform float outcrop_scale_m = 35.0;         // масштаб кривизны (гребни, бугры), м
 varying float v_convex;
+
+// Градиент высоты (dh/dx, dh/dz) центральными разностями с шагом d = тексель мип-уровня lod:
+// мип — среднее высот, разность средних — средний уклон по окрестности ±d (фильтр без муара).
+// lod 0 — шаг базовой сетки слоя (как прежняя нормаль вершины LOD 0), билинейно между узлами.
+vec2 height_grad(vec2 xz, float lod) {
+	float d = layer_spacing * exp2(lod);
+	vec2 uv = ((xz - layer_origin) / layer_spacing + 0.5) / layer_texels;
+	vec2 du = vec2(d / layer_spacing / layer_texels.x, 0.0);
+	vec2 dv = vec2(0.0, d / layer_spacing / layer_texels.y);
+	float hx1 = textureLod(height_mip_tex, uv + du, lod).r;
+	float hx0 = textureLod(height_mip_tex, uv - du, lod).r;
+	float hz1 = textureLod(height_mip_tex, uv + dv, lod).r;
+	float hz0 = textureLod(height_mip_tex, uv - dv, lod).r;
+	return vec2(hx1 - hx0, hz1 - hz0) / (2.0 * d);
+}
+
+// --- форма гор вдали (только картинка: высоты физики, столкновения и полёта не меняются) ---
+// terrain_look: relief_*. Источник (Copernicus 30 м) при сборке сглажен (σ 0,8 клетки — против
+// ступенек леса в DSM): кривизна гребней ×0,6, гребни ниже на ~5 м; сетка LOD на 1,5–7 км срезает
+// гребни ещё на 8–15 м. Вершины вдали: гребни/ложбины заострены (нерезкая маска по ±1 узлу),
+// промоины (тот же рисунок, что в нормали фрагмента, erosion_*) вдавлены в рельеф. Вблизи камеры
+// (relief_near_m) — гасится до нуля: у земли картинка совпадает с высотами физики.
+uniform bool relief_detail_enabled = true;
+uniform vec2 relief_near_m = vec2(200.0, 350.0);   // от камеры: нет / в полную силу, м
+uniform vec2 relief_slope_deg = vec2(15.0, 30.0);  // с уклона: появляется / в полную силу, °
+uniform float relief_sharpen = 0.8;                 // доля кривизны ±1 узла, добавляемая обратно
+uniform float relief_sharpen_max_m = 8.0;           // предел заострения, м
+uniform float relief_gully = 1.0;
+uniform float relief_lod_m = 1000.0;               // оценка шага вершин: шаг слоя × дальность / это, м                   // глубина промоин в форме (× рисунка нормалей)
+
+// Промоины по высоте: ячейка — значение cos фазы (z) и его производная по p (xy), как gully_cell.
+vec3 gully_cell3(vec2 ip, vec2 fp, vec2 o, vec2 dir) {
+	float hs = hash12(ip + o);
+	vec2 pp = fp - o - (vec2(hs, fract(hs * 37.17)) - 0.5) * 0.5;
+	float ph = dot(pp, dir) * 6.2832;
+	return vec3(-sin(ph) * dir * 6.2832, cos(ph));
+}
+
+vec3 gully_octave3(vec2 p, vec2 dir) {
+	vec2 ip = floor(p);
+	vec2 fp = p - ip;
+	vec2 u = fp * fp * (3.0 - 2.0 * fp);
+	vec3 a = mix(gully_cell3(ip, fp, vec2(0.0, 0.0), dir), gully_cell3(ip, fp, vec2(1.0, 0.0), dir), u.x);
+	vec3 b = mix(gully_cell3(ip, fp, vec2(0.0, 1.0), dir), gully_cell3(ip, fp, vec2(1.0, 1.0), dir), u.x);
+	return mix(a, b, u.y);
+}
+
+// Высота промоин в точке, м: октавы как erosion_octave (уклон октавы amp_o — высота amp_o·λ·cos),
+// октава реже ~3 вершин сетки (шаг vs, м) — без неё.
+float erosion_height(vec2 xz, vec2 g, float vs, float k) {
+	float amp0 = erosion_strength * length(g) / 6.2832 * k;
+	vec2 dg = vec2(0.0);
+	float hsum = 0.0;
+	for (int i = 0; i < 3; i++) {
+		float o = float(i);
+		float lambda = erosion_scale_m * exp2(-o);
+		float kv = smoothstep(2.5, 4.0, lambda / vs) * step(o + 0.5, erosion_octaves);
+		if (kv > 0.0) {   // без break: цикл из 3 шагов разворачивается
+			vec2 gg = g + dg * erosion_branch;
+			vec2 dir = length(gg) > 1e-4 ? normalize(vec2(-gg.y, gg.x)) : vec2(1.0, 0.0);
+			float a = amp0 * pow(erosion_gain, o) * kv;
+			vec3 r = gully_octave3(xz / lambda + o * 17.3, dir);
+			dg += r.xy * a;
+			hsum += r.z * a * lambda;
+		}
+	}
+	return hsum;
+}
 
 void vertex() {
 	vec3 wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
@@ -179,7 +277,37 @@ void vertex() {
 	float hz1 = h_node(ij + ivec2(0, s));
 	vec3 n = normalize(vec3(hx0 - hx1, 2.0 * float(s) * layer_spacing, hz0 - hz1));
 	// COLOR.r = 1 у вершин «юбки»: опускаем их вниз
-	VERTEX.y = h - COLOR.r * skirt_depth;
+	float dh = 0.0;
+	if (relief_detail_enabled) {
+		float dcam = length(wp.xz - MAIN_CAM_INV_VIEW_MATRIX[3].xz);
+		float kd = smoothstep(relief_near_m.x, relief_near_m.y, dcam);
+		// всё — от мира и дальности, не от шага LOD: на стыках чанков разных LOD одна и та же высота
+		vec2 g1 = vec2(h_node(ij + ivec2(1, 0)) - h_node(ij - ivec2(1, 0)),
+				h_node(ij + ivec2(0, 1)) - h_node(ij - ivec2(0, 1))) / (2.0 * layer_spacing);
+		float ks = kd * smoothstep(relief_slope_deg.x, relief_slope_deg.y, degrees(atan(length(g1))));
+		if (ks > 0.0) {
+			// открытые склоны (не лес — ступеньки крон DSM, не вода/застройка)
+			vec4 swa;
+			vec4 swb;
+			surface_weights(wp.xz, swa, swb);
+			ks *= (1.0 - swa.x) * (1.0 - swb.y) * (1.0 - swb.z);
+		}
+		if (ks > 0.0) {
+			float l1 = (h_node(ij + ivec2(1, 0)) + h_node(ij - ivec2(1, 0)) + h_node(ij + ivec2(0, 1))
+					+ h_node(ij - ivec2(0, 1))) * 0.25 - h;
+			dh = clamp(-relief_sharpen * l1, -relief_sharpen_max_m, relief_sharpen_max_m);
+			if (erosion_enabled && relief_gully > 0.0) {
+				float lod_e = clamp(log2(0.5 * erosion_scale_m / layer_spacing), 0.0, height_mip_max_lod);
+				vec2 ge = height_grad(wp.xz, lod_e);
+				float ek = smoothstep(erosion_slope_deg.x, erosion_slope_deg.y, degrees(atan(length(ge))));
+				// шаг вершин по дальности (LOD ×2 на каждом пороге ~1,5/3,5/7 км) — непрерывно
+				float vs = layer_spacing * max(1.0, dcam / relief_lod_m);
+				dh += relief_gully * erosion_height(wp.xz, ge, vs, ek);
+			}
+			dh *= ks;
+		}
+	}
+	VERTEX.y = h + dh - COLOR.r * skirt_depth;
 	NORMAL = n;   // только смещение теней; освещение — нормаль фрагмента (height_grad)
 	v_world = vec3(wp.x, VERTEX.y, wp.z);
 	int k = max(int(round(outcrop_scale_m / layer_spacing)), s);
@@ -502,21 +630,6 @@ void water_wind(vec2 xz, float dist, float foot, out float rough, out vec3 nw, o
 	rough = clamp(rough, 0.0, 0.8);
 }
 
-// Градиент высоты (dh/dx, dh/dz) центральными разностями с шагом d = тексель мип-уровня lod:
-// мип — среднее высот, разность средних — средний уклон по окрестности ±d (фильтр без муара).
-// lod 0 — шаг базовой сетки слоя (как прежняя нормаль вершины LOD 0), билинейно между узлами.
-vec2 height_grad(vec2 xz, float lod) {
-	float d = layer_spacing * exp2(lod);
-	vec2 uv = ((xz - layer_origin) / layer_spacing + 0.5) / layer_texels;
-	vec2 du = vec2(d / layer_spacing / layer_texels.x, 0.0);
-	vec2 dv = vec2(0.0, d / layer_spacing / layer_texels.y);
-	float hx1 = textureLod(height_mip_tex, uv + du, lod).r;
-	float hx0 = textureLod(height_mip_tex, uv - du, lod).r;
-	float hz1 = textureLod(height_mip_tex, uv + dv, lod).r;
-	float hz0 = textureLod(height_mip_tex, uv - dv, lod).r;
-	return vec2(hx1 - hx0, hz1 - hz0) / (2.0 * d);
-}
-
 // Мип-уровень по следу пикселя foot (м): тексель уровня ≈ пиксель; не мельче базовой сетки.
 float height_lod(float foot) {
 	return clamp(log2(max(foot, 1e-3) / layer_spacing), 0.0, height_mip_max_lod);
@@ -584,6 +697,20 @@ vec3 bilinear_normal(vec2 xz) {
 	float dhdx = mix(b - a, d - c, t.y) / layer_spacing;
 	float dhdz = mix(c - a, d - b, t.x) / layer_spacing;
 	return normalize(vec3(-dhdx, 1.0, -dhdz));
+}
+
+// Рваная узкая кромка материала: вес w (0..1, плавный) → почти ступенька по изолинии 0,5,
+// сдвинутой шумом 7–25 м (мелкий слой гаснет, когда мельче пикселя: подставляется его среднее);
+// переход не уже ~1,5 пикселя foot (без «лесенки»).
+float ragged_edge(float w, vec2 p, float foot) {
+	if (w <= 0.0 || w >= 1.0) {
+		return w;
+	}
+	float kf = 1.0 - smoothstep(2.0, 6.0, foot);
+	float nz = vnoise(p / 23.0 + vec2(3.7, 8.1)) * 0.6
+			+ mix(0.5, vnoise(p / 7.0 + vec2(1.3, 5.9)), kf) * 0.4;
+	float hw = clamp(material_edge_hw + foot * 0.015, material_edge_hw, 0.5);
+	return smoothstep(0.5 - hw, 0.5 + hw, w + material_edge_noise * (nz - 0.5));
 }
 
 void fragment() {
@@ -697,7 +824,13 @@ void fragment() {
 			if (kf > 0.0) {
 				brk = mix(brk, brk * 0.6 + vnoise(wp.xz / (outcrop_patch_m * 0.06) + vec2(3.7, 0.4)) * 0.4, kf);
 			}
-			float pn = fbm(wp.xz / outcrop_patch_m + vec2(12.7, 3.1), 2) + 0.2 * (brk - 0.5);
+			float pn = fbm(wp.xz / outcrop_patch_m + vec2(12.7, 3.1), 2);
+			// на крутом порода выходит рёбрами между кулуарами (вытянуты вдоль линии падения)
+			if (steep > 0.01 && outcrop_ribs > 0.0) {
+				vec2 dn0 = length(n_class.xz) > 1e-4 ? normalize(n_class.xz) : vec2(1.0, 0.0);
+				pn = mix(pn, fall_bands(wp.xz + vec2(31.3, 17.9), dn0), outcrop_ribs * steep);
+			}
+			pn += 0.2 * (brk - 0.5);
 			outcrop = smoothstep(0.5, 0.56, pn + 0.2 * (drv - 1.0)) * smoothstep(0.0, 0.3, drv)
 					* outcrop_amount;
 			kurum = clamp(smoothstep(0.35, 0.65, vnoise(wp.xz / 160.0 + vec2(3.3, 1.1))
@@ -865,8 +998,8 @@ void fragment() {
 
 	// --- скалы: крутые склоны без леса (луг, кустарник, грунт на крутизне — выходы породы) ---
 	float rnoise = fbm(wp.xz / 40.0 + vec2(5.1, 2.3), 3);
-	float rock = smoothstep(rock_slope_deg - rock_blend_deg * 0.5, rock_slope_deg + rock_blend_deg * 0.5,
-			slope_deg + 10.0 * (rnoise - 0.5)) * (wa.y + crop + shrub + bare) / land;
+	float rock = ragged_edge(smoothstep(rock_slope_deg - rock_blend_deg * 0.5, rock_slope_deg + rock_blend_deg * 0.5,
+			slope_deg + 10.0 * (rnoise - 0.5)), wp.xz, foot_m) * (wa.y + crop + shrub + bare) / land;
 	// цвет породы — только там, где есть скалы или выходы породы (текстуры — с производными,
 	// посчитанными до ветвления)
 	vec3 rcol = rock_color;
@@ -903,7 +1036,7 @@ void fragment() {
 				vec3 na = textureGrad(rock_normal_tex, uv_xy, dxy.xy, dxy.zw).rgb * 2.0 - 1.0;
 				vec3 nb = textureGrad(rock_normal_tex, uv_zy, dzy.xy, dzy.zw).rgb * 2.0 - 1.0;
 				// касательные возмущения в мировых осях проекций (xy → вдоль x и y, zy → вдоль z и y)
-				rn_add = mix(vec3(na.x, na.y, 0.0), vec3(0.0, nb.y, nb.x), bx) * 0.6 * fade;
+				rn_add = mix(vec3(na.x, na.y, 0.0), vec3(0.0, nb.y, nb.x), bx) * rock_normal_strength * fade;
 			}
 		}
 		// лишайник пятнами на верхних гранях камней
@@ -928,11 +1061,11 @@ void fragment() {
 		}
 		slope_up = degrees(acos(clamp(n_up.y, 0.0, 1.0)));
 	}
-	float scree = smoothstep(rock_slope_deg - 2.0, rock_slope_deg + 8.0, slope_up)
+	float scree = ragged_edge(smoothstep(rock_slope_deg - 2.0, rock_slope_deg + 8.0, slope_up)
 			* smoothstep(6.0, 14.0, slope_up - slope_deg)
-			* smoothstep(scree_min_deg - 4.0, scree_min_deg + 4.0, slope_deg) * 0.8
-			* (1.0 - rock) * (wa.y + shrub + bare) / land
-			* smoothstep(0.35, 0.6, fbm(wp.xz / 30.0 + vec2(4.4, 0.7), 3) + 0.15);
+			* smoothstep(scree_min_deg - 4.0, scree_min_deg + 4.0, slope_deg)
+			* smoothstep(0.35, 0.6, fbm(wp.xz / 30.0 + vec2(4.4, 0.7), 3) + 0.15), wp.xz + 41.0, foot_m)
+			* 0.85 * (1.0 - rock) * (wa.y + shrub + bare) / land;
 	vec2 uv_sc = wp.xz / scree_tex_tile_m;
 	vec4 dsc = vec4(dFdx(uv_sc), dFdy(uv_sc));
 	if (scree > 0.001) {
@@ -990,6 +1123,94 @@ void fragment() {
 	}
 	col = mix(col, rcol, rock);
 
+	// --- скальная поверхность (скалы и выходы породы): крупный слой текстуры породы по трём
+	// проекциям — рисунок (яркость) и нормаль, видны до rock_macro_fade_m, когда мелкий тайл уже
+	// усреднён мипами; уступы слоёв strata_m в нормали (ступень круче, полка положе) ---
+	float rsw = max(rock, ocw);
+	vec3 rs_n = vec3(0.0);
+	float mk = 1.0 - smoothstep(rock_macro_fade_m.x, rock_macro_fade_m.y, dist);
+	if (rsw > 0.001 && mk > 0.0) {
+		// средняя дистанция: тон пятнами 30–150 м, тёмные трещины-кулуары и светлые полосы осыпей
+		// вдоль линии падения, кривизна (гребни светлее, ложбины темнее) — читается без камней
+		vec2 dfall = length(n_class.xz) > 1e-4 ? normalize(n_class.xz) : vec2(1.0, 0.0);
+		vec2 q = vec2(dot(wp.xz, vec2(-dfall.y, dfall.x)), dot(wp.xz, dfall));
+		float tv = vnoise(wp.xz / 35.0 + vec2(7.3, 2.1)) * 0.6 + vnoise(wp.xz / 140.0 + vec2(1.1, 4.7)) * 0.4;
+		float fr = 1.0 + rock_tone_var * 2.0 * (tv - 0.5);
+		float big = fbm(wp.xz / 900.0 + vec2(4.1, 6.6), 2);
+		float alp = smoothstep(gully_snow_line_m - rock_alpine_below_m.x, gully_snow_line_m - rock_alpine_below_m.y,
+				h + 250.0 * (big - 0.5)) * rock_alpine_mix;
+		if (alp > 0.0) {
+			vec3 ac = mix(rock_alpine_color, rock_alpine_rust, smoothstep(0.55, 0.72, big))
+					* (1.0 - 0.25 * smoothstep(35.0, 55.0, slope_deg));
+			col = mix(col, ac * (0.85 + 0.3 * tv), alp * rsw * mk);
+		}
+		float cr_w = 1.0 - smoothstep(0.15 * rock_crack_m, 0.5 * rock_crack_m, foot_m);
+		if (cr_w > 0.0) {
+			float cn = vnoise(vec2(q.x / rock_crack_m, q.y / (rock_crack_m * 3.0)) + vec2(5.5, 0.9));
+			float crack = 1.0 - smoothstep(0.0, 0.05 + foot_m / rock_crack_m * 0.25, abs(cn - 0.5));
+			fr *= 1.0 - rock_crack_dark * crack * cr_w;
+			float sn = vnoise(vec2(q.x / (rock_crack_m * 1.5), q.y / (rock_crack_m * 6.0)) + vec2(2.2, 9.4));
+			float streak = smoothstep(0.6, 0.72, sn) * rock_scree_streaks * mix(0.5, 1.0, cr_w);
+			col = mix(col, scree_color * (0.85 + 0.3 * tv), streak * rsw * mk);
+		}
+		fr *= 1.0 + rock_curv_shade * clamp(v_convex / outcrop_convex_k, -1.0, 1.0);
+		col *= mix(1.0, fr, rsw * mk);
+		if (use_rock_tex) {
+			vec3 bw3 = n_class * n_class;
+			bw3 *= bw3;
+			bw3 /= max(bw3.x + bw3.y + bw3.z, 1e-4);
+			float km = 1.0 / rock_macro_k;
+			vec2 mzy = uv_zy * km + vec2(0.71, 0.43);
+			vec2 mxy = uv_xy * km + vec2(0.31, 0.17);
+			vec2 mxz = uv_xz * km + vec2(0.59, 0.23);
+			const vec3 LM = vec3(0.2126, 0.7152, 0.0722);
+			float lum = 0.0;
+			vec3 mn = vec3(0.0);
+			if (bw3.x > 0.02) {
+				lum += dot(textureGrad(rock_tex, mzy, dzy.xy * km, dzy.zw * km).rgb, LM) * bw3.x;
+			}
+			if (bw3.z > 0.02) {
+				lum += dot(textureGrad(rock_tex, mxy, dxy.xy * km, dxy.zw * km).rgb, LM) * bw3.z;
+			}
+			if (bw3.y > 0.02) {
+				lum += dot(textureGrad(rock_tex, mxz, dxz.xy * km, dxz.zw * km).rgb, LM) * bw3.y;
+			}
+			float wsum3 = (bw3.x > 0.02 ? bw3.x : 0.0) + (bw3.z > 0.02 ? bw3.z : 0.0)
+					+ (bw3.y > 0.02 ? bw3.y : 0.0);
+			float avg_l = max(dot(rock_tex_avg, LM), 1e-3);
+			float r = clamp(pow(lum / max(wsum3, 1e-3) / avg_l, rock_macro_contrast), 0.45, 1.8);
+			col *= mix(1.0, r, rock_macro_strength * rsw * mk);
+			if (use_rock_normal && rock_macro_normal > 0.0) {
+				if (bw3.x > 0.02) {
+					vec3 t = textureGrad(rock_normal_tex, mzy, dzy.xy * km, dzy.zw * km).rgb * 2.0 - 1.0;
+					mn += vec3(0.0, t.y, t.x) * bw3.x;
+				}
+				if (bw3.z > 0.02) {
+					vec3 t = textureGrad(rock_normal_tex, mxy, dxy.xy * km, dxy.zw * km).rgb * 2.0 - 1.0;
+					mn += vec3(t.x, t.y, 0.0) * bw3.z;
+				}
+				if (bw3.y > 0.02) {
+					vec3 t = textureGrad(rock_normal_tex, mxz, dxz.xy * km, dxz.zw * km).rgb * 2.0 - 1.0;
+					mn += vec3(t.x, 0.0, t.y) * bw3.y;
+				}
+				rs_n += mn * rock_macro_normal * mk;
+			}
+		}
+		// уступы: уклон ±ledge_strength по фазе слоёв (шаг strata_m и ×3,7); слой мельче
+		// ~пикселя гаснет (муар)
+		float kl = ledge_strength * smoothstep(ledge_slope_deg.x, ledge_slope_deg.y, slope_deg);
+		if (kl > 0.0) {
+			float sy = wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0;
+			float a1 = 1.0 - smoothstep(0.25 * strata_m, 0.6 * strata_m, foot_px);
+			float a2 = 1.0 - smoothstep(0.9 * strata_m, 2.2 * strata_m, foot_px);
+			float w = sin(6.2832 * sy / strata_m) * 0.3 * a1
+					+ 0.6 * sin(6.2832 * sy / (strata_m * 3.7) + 1.3) * a2;
+			// уступы рвутся пятнами (иначе — сплошные «горизонтали»)
+			w *= smoothstep(0.45, 0.65, vnoise(wp.xz / 70.0 + vec2(8.3, 1.6)));
+			rs_n += vec3(-hg.x, 0.0, -hg.y) * kl * w;
+		}
+	}
+
 	// снег в кулуарах и ложбинах высоких гор (по высоте, вогнутости, экспозиции), а не шапкой
 	float gd = max(gully_scale_m, 2.0 * layer_spacing);
 	float lap = -1.0;
@@ -999,9 +1220,9 @@ void fragment() {
 			- 4.0 * h_bilinear(wp.xz)) / (4.0 * gd);
 	}
 	float gully = smoothstep(0.0, gully_k, lap + 0.02 * (rnoise - 0.5));
-	float gsnow = gully * smoothstep(gully_snow_line_m - 100.0, gully_snow_line_m + 150.0,
+	float gsnow = ragged_edge(gully * smoothstep(gully_snow_line_m - 100.0, gully_snow_line_m + 150.0,
 			h + gully_north_m * max(north, 0.0) + 120.0 * (patch2 - 0.5))
-			* (1.0 - smoothstep(48.0, 58.0, slope_deg)) * (1.0 - forest);
+			* (1.0 - smoothstep(48.0, 58.0, slope_deg)), wp.xz + 17.0, foot_m) * (1.0 - forest);
 	col = mix(col, snow_color * (0.9 + 0.1 * fbm(wp.xz / 9.0, 2)), gsnow);
 
 	// --- мелкая детализация (кочки, пятна) ---
@@ -1034,14 +1255,15 @@ void fragment() {
 			float sdeg = degrees(atan(length(ge)));
 			ek *= smoothstep(erosion_slope_deg.x, erosion_slope_deg.y, sdeg);
 			if (ek > 0.01) {
-				vec2 dg = erosion_grad(wp.xz, ge, foot_px, ek);
+				vec2 dg = erosion_grad(wp.xz, ge, foot_px, ek * (1.0 + erosion_rock_boost * rsw));
 				vec2 gn = -n.xz / max(n.y, 0.05) + dg;
 				n = normalize(vec3(-gn.x, 1.0, -gn.y));
 			}
 		}
 	}
 
-	n = normalize(n + vec3(grass_bend.x, 0.0, grass_bend.y) + gn_add + rn_add * max(rock, outcrop * (1.0 - kurum)));
+	n = normalize(n + vec3(grass_bend.x, 0.0, grass_bend.y) + gn_add + rn_add * max(rock, outcrop * (1.0 - kurum))
+			+ rs_n * rsw);
 	// нормали крон (освещение полога)
 	n = normalize(mix(n, normalize(n + vec3(crown_n.x, 0.0, crown_n.z) * 1.5), forest * crown_k * 0.6));
 	// возмущение нормали шумом (кроны/кочки), чтобы вблизи поверхность не была «пластиковой»
