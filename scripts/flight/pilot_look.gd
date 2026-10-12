@@ -15,6 +15,7 @@ const KINDS := {
 	"Pod": ["pod", 2],
 	"PodStripe": ["pod_stripe", 2],
 	"Jacket": ["jacket", 3],
+	"JacketSleeve": ["jacket", 3],
 	"Trousers": ["trousers", 3],
 	"Strap": ["strap", 4],
 	"Boot": ["boot", 5],
