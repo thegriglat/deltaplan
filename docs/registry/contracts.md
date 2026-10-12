@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-11"
+updated: "2026-10-12"
 summary: "Контракты стыков по модулям: идентификаторы и версии из заголовков."
 related: []
 generated: true
@@ -25,19 +25,22 @@ generated: true
 | control-bar | CB-К1 v2, CB-К2 v1 | [docs/contracts/control-bar.md](/docs/contracts/control-bar.md) |
 | control-fix | С1 v2, С2 v3, С3 v3 | [docs/contracts/control-fix.md](/docs/contracts/control-fix.md) |
 | easter-eggs | К8 v9, К9 v5, К10 v7, К11 v7, К12 v7, К13 v8, К14 v8, К15 v10, К16 v10 | [docs/contracts/easter-eggs.md](/docs/contracts/easter-eggs.md) |
-| motion-rig | MR-К1 v1, MR-К2 v1, MR-К3 v2 | [docs/contracts/motion-rig.md](/docs/contracts/motion-rig.md) |
+| feedback-1012 | FB-К1 v1, FB-К2 v1 | [docs/contracts/feedback-1012.md](/docs/contracts/feedback-1012.md) |
+| motion-rig | MR-К1 v3, MR-К2 v3, MR-К3 v3 | [docs/contracts/motion-rig.md](/docs/contracts/motion-rig.md) |
 | no-osm | N1 v1, N2 v2, N3 v1, N4 v3, N5 v1 | [docs/contracts/no-osm.md](/docs/contracts/no-osm.md) |
 | osm-any | OA-К1 v2, OA-К2 v2, OA-К3 v1, OA-К4 v2 | [docs/contracts/osm-any.md](/docs/contracts/osm-any.md) |
 | osm-look | L1 v1, L2 v1, L3 v1, L4 v1, L5 v3, L6 v1, L7 v1, L8 v1, L9 v1 | [docs/contracts/osm-look.md](/docs/contracts/osm-look.md) |
 | osm-tiles | O1 v1, O2 v1, O3 v1, O4 v1, O5 v1, O6 v1, O7 v1, O8 v2, O9 v2 | [docs/contracts/osm-tiles.md](/docs/contracts/osm-tiles.md) |
-| pendulum | PD-К1 v3, PD-К2 v6, PD-К3 v2, PD-К4 v2, PD-К5 v2 | [docs/contracts/pendulum.md](/docs/contracts/pendulum.md) |
+| pendulum | PD-К1 v4, PD-К2 v7, PD-К3 v2, PD-К4 v2, PD-К5 v2, PD-К6 v2 | [docs/contracts/pendulum.md](/docs/contracts/pendulum.md) |
 | perf | PF-К2 v2, PF-К4 v2 | [docs/contracts/perf.md](/docs/contracts/perf.md) |
 | pilot-view | PV1 v3, PV2 v1, PV3 v2 | [docs/contracts/pilot-view.md](/docs/contracts/pilot-view.md) |
 | popular-places | PP-К1 v3, PP-К2 v1 | [docs/contracts/popular-places.md](/docs/contracts/popular-places.md) |
 | qol | QL-К1 v1, QL-К2 v1, QL-К3 v1 | [docs/contracts/qol.md](/docs/contracts/qol.md) |
 | site-i18n | SI-К1 v2, SI-К2 v1, SI-К3 v2, SI-К4 v3, SI-К5 v1, SI-К6 v1 | [docs/contracts/site-i18n.md](/docs/contracts/site-i18n.md) |
+| start-camp | SC-K1 v1, SC-K2 v1, SC-K3 v1, SC-K4 v2, SC-K5 v1, SC-K6 v1 | [docs/contracts/start-camp.md](/docs/contracts/start-camp.md) |
 | start-fixes | К1 v2, К2 v2, К3 v2, К4 v1 | [docs/contracts/start-fixes.md](/docs/contracts/start-fixes.md) |
 | start-map | SM-К1 v3, SM-К2 v1 | [docs/contracts/start-map.md](/docs/contracts/start-map.md) |
+| start-pick | SP-К1 v1, SP-К2 v1, SP-К3 v1, SP-К4 v1 | [docs/contracts/start-pick.md](/docs/contracts/start-pick.md) |
 | steam-assets | SA-К1 v3, SA-К2 v5, SA-К3 v4, SA-К4 v3 | [docs/contracts/steam-assets.md](/docs/contracts/steam-assets.md) |
 | steam | S1 v1, S2 v3, S3 v2, S4 v2, S5 v1, S6 v2, S7 v1 | [docs/contracts/steam.md](/docs/contracts/steam.md) |
 | surface-heat | SH1 v1, SH2 v2, SH3 v1, SH4 v1, SH5 v1 | [docs/contracts/surface-heat.md](/docs/contracts/surface-heat.md) |
