@@ -17,6 +17,8 @@ const MAIN_KINDS := ["wing", "kit_bundle", "kit_frame", "bag", "harness", "helme
 const OBSTACLE_KINDS := ["wing", "kit_bundle", "kit_frame", "bag"]
 const FABRIC_PRESETS := {"Fabric": "bag", "FabricDark": "fabric_dark", "Sail": "sail"}
 const TINTED_STD := ["Shell"]
+## Мелкие детали одного вида сливаются в один материал (меньше вызовов отрисовки мелочи).
+const HARDWARE := ["Webbing", "Tube", "Fitting", "Steel", "Cap"]
 
 ## Позы моделей крыльев: id → {nose, bar_l, bar_r, span, aabb, tris_near, tris_far, glb}.
 static var _poses: Dictionary = {}
@@ -24,7 +26,6 @@ static var _poses: Dictionary = {}
 static var _meshes: Dictionary = {}
 static var _glb_meshes: Dictionary = {}
 static var _glb_loaded: Dictionary = {}
-static var _fabric_cache: Dictionary = {}
 static var _std_cache: Dictionary = {}
 
 
@@ -96,7 +97,7 @@ static func plan(
 		var bsz: Array = _size(variants, "kit_bundle")
 		var fsz: Array = _size(variants, "kit_frame")
 		var ur := float(bsz[1]) * 0.5 + 0.5
-		var q: Variant = ctx.find_spot(rng, ur, wing_circles, 0.6)
+		var q: Variant = ctx.find_spot(rng, ur, wing_circles, 0.6, 2.8)
 		if q == null:
 			continue
 		var qv: Vector2 = q
@@ -132,7 +133,7 @@ static func plan(
 		var anchor: Array = []
 		if not anchors.is_empty() and rng.randf() < 0.6:
 			anchor = anchors
-		var q: Variant = ctx.find_spot(rng, pr, anchor, 0.5)
+		var q: Variant = ctx.find_spot(rng, pr, anchor, 0.5, 1.2)
 		if q == null:
 			continue
 		var qv: Vector2 = q
@@ -158,8 +159,10 @@ static func plan(
 		anchors.append([qv, pr])
 	# 4. Рюкзаки и подвески
 	var harness_at: Array = []
+	# один вид рюкзаков на старт: вызовов отрисовки мелочи ≤ 20 (по одному на материал и вариант)
+	var harness_variant := "harness_pack" if rng.randf() < 0.6 else "harness_open"
 	for i in n_harness:
-		var vname := "harness_pack" if rng.randf() < 0.6 else "harness_open"
+		var vname := harness_variant
 		var sz: Array = _size(variants, vname)
 		var hr := _hyp(float(sz[0]) * 0.5, float(sz[1]) * 0.5) + 0.1
 		var anchor: Array = anchors if (not anchors.is_empty() and rng.randf() < 0.5) else []
@@ -544,14 +547,14 @@ class _Ctx:
 		return rad_to_deg(atan2(worst, r))
 
 	## Круг радиуса r в центре p: допустим ли по SC-K1 (кольцо, коридор, запреты, зазоры, уклон).
-	func fits(p: Vector2, r: float, gap: float) -> bool:
+	func fits(p: Vector2, r: float, gap: float, inset: float = 0.0) -> bool:
 		var v := p - s
 		var d := v.length()
-		if d < d_lo or d > d_hi:
+		if d < d_lo + inset or d > d_hi - inset:
 			return false
 		var along := v.dot(fwd)
 		var lat := v.dot(right)
-		if along > along_max:
+		if along > along_max - inset:
 			return false
 		if along > -corr_behind - r and absf(lat) < corr_half + r:
 			return false
@@ -576,7 +579,9 @@ class _Ctx:
 
 	## Место для круга r: рядом с кругами anchors ([[центр, радиус]]) или в кольце от старта.
 	## null — места нет.
-	func find_spot(rng: RandomNumberGenerator, r: float, anchors: Array, gap_: float) -> Variant:
+	func find_spot(
+		rng: RandomNumberGenerator, r: float, anchors: Array, gap_: float, inset: float = 0.0
+	) -> Variant:
 		var g := gap_
 		for attempt in attempts:
 			var p: Vector2
@@ -594,7 +599,7 @@ class _Ctx:
 				var ang := rng.randf_range(-0.5 * PI, 0.5 * PI)
 				var dir := -fwd * cos(ang) + right * sin(ang)
 				p = s + dir.normalized() * dist
-			if fits(p, r, g):
+			if fits(p, r, g, inset):
 				return p
 		return null
 
@@ -702,7 +707,7 @@ static func variant_mesh(variant: String, lod: int, cfg: Dictionary) -> Mesh:
 		mesh = src.duplicate() as Mesh
 	else:
 		mesh = _temp_mesh(variant, lod, vc)
-	_map_materials(mesh, cfg)
+	_map_materials(mesh, variant)
 	_meshes[key] = mesh
 	return mesh
 
@@ -719,14 +724,18 @@ static func _glb_mesh(path: String, node_name: String) -> Mesh:
 	return _glb_meshes.get("%s|%s" % [path, node_name])
 
 
-static func _map_materials(mesh: Mesh, cfg: Dictionary) -> void:
+static func _map_materials(mesh: Mesh, variant: String) -> void:
+	var am := mesh as ArrayMesh
 	for s in mesh.get_surface_count():
 		var m := mesh.surface_get_material(s)
 		if m == null:
 			continue
 		var n := String(m.resource_name)
 		if FABRIC_PRESETS.has(n):
-			mesh.surface_set_material(s, _fabric(String(FABRIC_PRESETS[n]), cfg))
+			var preset := String(FABRIC_PRESETS[n])
+			if variant == "kit_bundle" and n == "Fabric":
+				preset = "fabric_dark"  # чехол аппарата не красится в цвет паруса
+			mesh.surface_set_material(s, _fabric(preset))
 		elif n in TINTED_STD and m is BaseMaterial3D:
 			var key := "tint|" + n
 			if not _std_cache.has(key):
@@ -734,31 +743,51 @@ static func _map_materials(mesh: Mesh, cfg: Dictionary) -> void:
 				d.vertex_color_use_as_albedo = true
 				_std_cache[key] = d
 			mesh.surface_set_material(s, _std_cache[key])
+		elif n in HARDWARE:
+			mesh.surface_set_material(s, _hardware())
+	if am != null:
+		_merge_surfaces(am)
 
 
-## Ткань лагеря (SC-K5): CampFabric.material(preset) через load() — класс может быть ещё не слит;
-## нет — StandardMaterial3D, тон — цвет экземпляра MultiMesh.
-static func _fabric(preset: String, cfg: Dictionary) -> Material:
-	if _fabric_cache.has(preset):
-		return _fabric_cache[preset]
-	var mat: Material = null
-	var path := String(cfg.get("fabric_script", ""))
-	if path != "" and ResourceLoader.exists(path):
-		var sc := load(path) as GDScript
-		if sc != null:
-			mat = sc.call(&"material", preset) as Material
-	if mat == null:
-		var s := StandardMaterial3D.new()
-		s.resource_name = preset
-		s.roughness = 0.85
-		s.cull_mode = BaseMaterial3D.CULL_DISABLED
-		if preset == "fabric_dark":
-			s.albedo_color = Color(0.12, 0.12, 0.13)
-		else:
-			s.vertex_color_use_as_albedo = true
-		mat = s
-	_fabric_cache[preset] = mat
-	return mat
+static func _hardware() -> Material:
+	if not _std_cache.has("hardware"):
+		var m := StandardMaterial3D.new()
+		m.resource_name = "Hardware"
+		m.albedo_color = Color(0.3, 0.31, 0.33)
+		m.metallic = 0.5
+		m.roughness = 0.5
+		_std_cache["hardware"] = m
+	return _std_cache["hardware"]
+
+
+## Поверхности с одним материалом — в одну (вызов отрисовки на материал).
+static func _merge_surfaces(mesh: ArrayMesh) -> void:
+	var groups: Array = []  # [материал, [индексы поверхностей]]
+	for s in mesh.get_surface_count():
+		var m := mesh.surface_get_material(s)
+		var found := false
+		for g: Array in groups:
+			if g[0] == m:
+				(g[1] as Array).append(s)
+				found = true
+		if not found:
+			groups.append([m, [s]])
+	if groups.size() == mesh.get_surface_count():
+		return
+	var src := mesh.duplicate() as ArrayMesh
+	mesh.clear_surfaces()
+	for g: Array in groups:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for s: int in g[1]:
+			st.append_from(src, s, Transform3D.IDENTITY)
+		st.commit(mesh)
+		mesh.surface_set_material(mesh.get_surface_count() - 1, g[0])
+
+
+## Ткань лагеря (SC-K5): общий материал пресета; тон — цвет экземпляра MultiMesh.
+static func _fabric(preset: String) -> Material:
+	return CampFabric.material(preset)
 
 
 # --- временные меши (нет glb SC-K3) ---

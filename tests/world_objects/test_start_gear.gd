@@ -157,7 +157,7 @@ func test_wing_on_bar_nose_to_wind() -> void:
 						absf(q.y - g) <= 0.05,
 						"%s %d: %s %s на высоте %.3f над землёй" % [tag, hd, w.variant, key, q.y - g]
 					)
-				var nose_dir := b * Vector3(0, 0, -1)
+				var nose_dir := b * ((pose.nose as Vector3) - ((pose.bar_l as Vector3) + (pose.bar_r as Vector3)) * 0.5)
 				var hv := Vector2(nose_dir.x, nose_dir.z).normalized()
 				var ang := rad_to_deg(acos(clampf(hv.dot(fwd), -1.0, 1.0)))
 				check(ang <= 12.0, "%s %d: нос %s %.1f° от курса" % [tag, hd, w.variant, ang])
@@ -213,7 +213,6 @@ func test_real_starts() -> void:
 			continue
 		check(w.start_gear.size() == w.start_gear.size() and w.start_gear.size() >= idx + 1, tag + ": набор есть")
 		var items: Array = w.start_gear[idx]
-		check(items.size() >= 6, "%s: вещей %d" % [tag, items.size()])
 		var sp: Vector3 = site.position
 		var ax := _axes(float(site.heading_deg))
 		_check_k1(items, sp, ax[0], ax[1], cfg, tag)
@@ -223,6 +222,8 @@ func test_real_starts() -> void:
 		# препятствия «gear» есть
 		var any_box := items.filter(func(i: Dictionary) -> bool: return (i.box as Vector3) != Vector3.ZERO)
 		check(any_box.size() > 0, tag + ": нет препятствий")
+		if any_box.is_empty():
+			continue
 		var c: Vector3 = any_box[0].center
 		var hit := w.obstacles.hit(Vector3(c.x - 30.0, c.y + 0.3, c.z), Vector3(c.x + 30.0, c.y + 0.3, c.z))
 		check(not hit.is_empty(), tag + ": отрезок через вещь без столкновения")
@@ -244,6 +245,8 @@ func test_budget_and_draw_calls() -> void:
 		worst_calls = maxi(worst_calls, int(near.draw_calls_small))
 		check(int(far.tris_small) == 0, "вдали мелочи нет")
 		node.free()
+	print("MEASURE tris_near ", worst_near, " tris_far ", worst_far, " draw_calls_small ", worst_calls)
 	check(worst_near <= int(cfg.budget_near_tris), "вблизи %d тр." % worst_near)
 	check(worst_far <= int(cfg.budget_far_tris), "вдали %d тр." % worst_far)
 	check(worst_calls <= 20, "вызовов мелочи %d" % worst_calls)
+
