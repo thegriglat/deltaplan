@@ -30,7 +30,7 @@ pause_waiting,Идёт время… — любая клавиша прерыв�
 settings_invert_pitch,Инверсия тангажа,Invert pitch
 result_touchdown_bank,Крен при касании: %.0f°,Bank at touchdown: %.0f°
 menu_fly,Лететь,Fly
-menu_inspect,Осмотр карты,Map inspection
+menu_inspect,Выбрать старт на рельефе,Pick launch on terrain
 menu_fly_from_here,Лететь отсюда,Fly from here
 result_best_thermal,Лучший термик: %.1f м/с,Best thermal: %.1f m/s
 site_altai_sinyukha_summit_east,"Малая Синюха — вершина, восточный склон","Malaya Sinyukha — summit, east slope"
@@ -65,7 +65,7 @@ result_total_climb,Суммарный набор высоты: %.0f м,Total cli
 site_altai_tugaya_south,Тугая (Горно-Алтайск) — южный склон,Tugaya (Gorno-Altaysk) — south slope
 menu_controls,Управление,Controls
 settings_mouse_sensitivity,Чувствительность мыши,Mouse sensitivity
-map_hint,"Щёлкните по карте или введите координаты. Старт — на ближайшем склоне, вниз по склону.","Click the map or enter coordinates. The launch is placed on the nearest slope, facing downhill."
+map_hint,"Щёлкните по карте или введите координаты. Старт — в выбранной точке; точнее — «Выбрать старт на рельефе» в главном меню.","Click the map or enter coordinates. The launch is at the chosen point; for a precise spot use "Pick launch on terrain" in the main menu."
 unit_db,дБ,dB
 unit_kg,кг,kg
 setup_map_point,"точка на карте: %.4f, %.4f · %s","map point: %.4f, %.4f · %s"
@@ -530,3 +530,16 @@ setup_app_hang_length_m,Длина подвески,Hang strap length
 setup_app_sail_flex,Гибкость паруса,Sail flexibility
 setup_app_dihedral_eff_deg,Поперечное V,Effective dihedral
 setup_app_pendulum_only,Важно только при режиме управления «Маятник»,Matters only in the Pendulum control mode
+start_pick_hint,Щёлкните по земле — поставить старт. Протяжка мышью задаёт курс.,Click the ground to set the launch. Drag to set the heading.
+start_pick_coords,Широта %.5f · долгота %.5f,Lat %.5f · lon %.5f
+start_pick_height,%d м,%d m
+start_pick_slope,уклон %d°,slope %d°
+start_pick_heading,Курс %d°,Heading %d°
+start_pick_downhill,По склону,Downhill
+start_pick_reset,Сбросить старт,Reset launch
+start_pick_bad_outside,за краем места,outside the area
+start_pick_bad_water,вода,water
+start_pick_bad_built,застройка,built-up
+start_pick_bad_steep,слишком круто,too steep
+setup_exact_start,Старт уточнён на рельефе · курс %d°,Launch set on terrain · heading %d°
+setup_exact_reset,Сбросить,Reset
