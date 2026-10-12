@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "EggPeople: ближе near_m=70 м (гистерезис +10 м, не больше max_skinned=8, ближайшие первыми) человек рисуется camp_pilot.glb со скелетом, в MultiMesh скрыт; анимации idle/walk/wave/wave_both с blend 0,35 с; AnimationPlayer выключен у не занятых экземпляров; раскраска от _people (куртка/штаны — CampFabric cloth + instance tint, кожа и волосы — общие материалы по палитре).",
+  "commits": [
+    "см. git log start-camp/SC-12"
+  ],
+  "checks": [
+    {
+      "name": "egg_people",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_easter_eggs",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "start_camp_contracts_k4",
+      "value": "5/5 (включая k4_near 3/3)",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Волосы дальнего LOD (фиксированный материал Hair в camp_person.glb) не тонируются: у ближних палитра из 5 цветов, у дальних один цвет"
+  ],
+  "questions": [],
+  "how_to_check": "dp accept SC-12; godot ... res://tests/run_tests.tscn -- --filter=start_camp_contracts_k4_near",
+  "uncertain": [
+    {
+      "where": "people.gd:_split_body",
+      "why": "тело делится на два меша (куртка+кожа+волосы+обувь / штаны), т.к. instance uniform tint один на MeshInstance3D, а куртка и штаны разных цветов; второй MeshInstance3D делит Skeleton3D и Skin. Скиннинг и вид в рендере не проверены (headless, без скриншотов)",
+      "checked": "тест: 3714 треугольников суммарно, поверхности и материалы на месте, анимации играют"
+    },
+    {
+      "where": "people.gd:_pose_near",
+      "why": "темп walk: реальная скорость людей 0,05–0,2 м/с (макс. ~0,25 с учётом дрожания), шаг анимации 1,2 м/1,125 с = 1,07 м/с, speed_scale = v/1,07, ограничено снизу 0,08 — ноги переступают очень медленно; при ходьбе во время взмаха позиция всё равно смещается",
+      "checked": "расчёт по формуле положения в update"
+    },
+    {
+      "where": "people.gd:_assign_near",
+      "why": "при полном пуле ближний не вытесняется более близким (нет вытеснения, чтобы не мигать)",
+      "checked": "логика"
+    }
+  ],
+  "dp_feedback": "Нет команды для запуска одного теста по фильтру с чистым выводом (пришлось grep по выводу godot).",
+  "near_count_max": "8 (max_skinned; в тестах — число людей 3–8, одновременно ближних все до лимита)",
+  "skinned_tris": "3714 на человека (PersonBody, 2 меша: куртка+кожа+волосы+обувь и штаны); 8 ближних ≈ 29,7 тыс. треугольников",
+  "anim_cost_note": "Скелет 16 костей, 4 анимации; AnimationPlayer+скиннинг только у ближних (≤8) и выключен у свободных экземпляров (process_mode DISABLED, active=false); экземпляры создаются лениво и переиспользуются; 2 draw-вызова на ближнего (+ тени ближе shadow_m=150 м); дальним тени выключены. Замера кадра нет (headless).",
+  "t": "2026-10-12T23:03:47",
+  "by": "executor"
+}

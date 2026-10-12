@@ -99,3 +99,7 @@
 {"t": "2026-10-12T23:01:07", "by": "coordinator", "task": "SC-3", "ev": "accepted", "commits": ["27aedb16"], "note": "4/4 grass=ok:14/14; start_camp_contracts_k6=ok:4/4; test_world_objects=ok:12/12; gd=ok:exit 0"}
 {"t": "2026-10-12T23:02:53", "by": "coordinator", "task": "SC-5", "ev": "accepted", "commits": ["27aedb16"], "note": "4/4 egg_people=ok:3/3; test_easter_eggs=ok:6/6; start_camp_contracts_k4=ok:2/2; gd=ok:exit 0"}
 {"t": "2026-10-12T23:02:54", "by": "coordinator", "task": "SC-2", "ev": "merged"}
+{"t": "2026-10-12T23:03:41", "by": "executor", "task": "SC-12", "ev": "checked", "note": "4/4 egg_people=ok:3/3; test_easter_eggs=ok:6/6; start_camp_contracts_k4=ok:5/5; gd=ok:exit 0"}
+{"t": "2026-10-12T23:03:47", "by": "executor", "task": "SC-12", "ev": "reported", "commits": ["см."], "note": "done: EggPeople: ближе near_m=70 м (гистерезис +10 м, не больше max_skinned=8, ближайшие первыми) человек рисуется camp_pilot…", "dp_feedback": "Нет команды для запуска одного теста по фильтру с чистым выводом (пришлось grep по выводу godot)."}
+{"t": "2026-10-12T23:05:48", "by": "executor", "task": "SC-12", "ev": "checked", "note": "4/4 egg_people=ok:3/3; test_easter_eggs=ok:6/6; start_camp_contracts_k4=ok:5/5; gd=ok:exit 0"}
+{"t": "2026-10-12T23:05:59", "by": "coordinator", "task": "SC-12", "ev": "accepted", "note": "по отчёту: 4/4; скиннинг после разделения меша и вид — проверка тестовой сборкой; волосы дальнего LOD без палитры — мелочь"}
