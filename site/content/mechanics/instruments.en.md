@@ -91,7 +91,9 @@ slight glow (fluorescent fabric is visible even in shade), attached to the **fro
 
 The attachment point is found from the geometry of the 3D wing model without a single hard-coded coordinate
 (`Telltale.find_anchor`): either from the `TelltaleL`/`TelltaleR` empties in the model, or from the "Wire" material of
-the control frame mesh — this works for all wings of the model generator.
+the control frame mesh: each wire is a separate tube, and the knot sits on the axis of the front wire at a set fraction of
+the control frame height — this works for all wings of the model generator. The string is drawn as a satin ribbon
+looped around the wire, with a smooth bend and a frayed end.
 
 **Physics** (`TelltaleModel`, an ordinary testable class): the flow at the attachment point = the wind at that point minus the
 glider's velocity, corrected for rotation over the step. The string is a chain of links; each link tends toward
