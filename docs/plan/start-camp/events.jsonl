@@ -108,3 +108,5 @@
 {"t": "2026-10-12T23:06:02", "by": "coordinator", "task": "SC-9", "ev": "started", "note": "dp-writer, ~/deltaplan-start-camp-SC-9"}
 {"t": "2026-10-12T23:06:32", "by": "coordinator", "task": "SC-12", "ev": "merged"}
 {"t": "2026-10-12T23:06:32", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp merge/gc — подсказать незакоммиченные .uid новых файлов (Godot создаёт их при импорте, исполнители забывают); git worktree remove падает на них"}
+{"t": "2026-10-12T23:10:06", "by": "executor", "task": "SC-9", "ev": "reported", "commits": ["f54c84e0"], "note": "done: world-objects.md: обновлены «Палатки у старта», новые разделы «Снаряжение у старта», «Примятая трава», «Ткань лагеря», …", "dp_feedback": "Нет команды сводки отчётов модуля одним выводом (пришлось гонять dp report SC-n --show по каждому). dp docs index меняет реестры при любом правке docs — полезно предупреждать, что их нужно коммитить."}
+{"t": "2026-10-12T23:10:23", "by": "executor", "task": "SC-9", "ev": "accepted", "note": "1/1 docs=ok:ошибок 0"}
