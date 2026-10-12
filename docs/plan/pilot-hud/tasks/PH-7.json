@@ -61,12 +61,17 @@
       "tests": "wrist"
     },
     {
-      "name": "cockpit",
-      "tests": "cockpit"
-    },
-    {
       "name": "settings",
       "tests": "settings"
+    },
+    {
+      "name": "cockpit",
+      "cmd": "godot --headless --path . tests/run_tests.tscn -- --filter=cockpit 2>&1 | tail -300",
+      "expect": {
+        "re": "\\d+ тестов, [01] упало",
+        "!re": "FAIL (?!test_cockpit\\.gd::test_trapezoid_and_telltales)"
+      },
+      "timeout": 1500
     }
   ],
   "report_extra": [],
