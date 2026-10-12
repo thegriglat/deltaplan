@@ -1,0 +1,74 @@
+{
+  "id": "PH-1",
+  "module": "pilot-hud",
+  "type": "dp-engineer",
+  "title": "Усилие на трапеции — толщина рамки индикатора подвески",
+  "goal": "Пилот чувствует усилие на ручке по толщине рамки индикатора подвески: сила рук по физике модели (растёт со скоростью), без цвета и подсказок.",
+  "plan_ref": "PH-1 Усилие на трапеции",
+  "contracts": [
+    {
+      "name": "PH-К1",
+      "version": 1,
+      "ref": "docs/contracts/pilot-hud.md"
+    },
+    {
+      "name": "FB-К1",
+      "version": 1,
+      "ref": "docs/contracts/feedback-1012.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-hud-PH-1",
+  "branch": "pilot-hud/PH-1",
+  "base": "feature/pilot-hud",
+  "scope": [
+    "scripts/core/telemetry.gd",
+    "scripts/flight/flight_telemetry.gd",
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "scripts/ui/pilot_shift_indicator.gd",
+    "configs/ui.json",
+    "tests/contracts/test_pilot_hud_contracts.gd",
+    "tests/ui",
+    "tests/flight",
+    "docs/guide"
+  ],
+  "dont_touch": [
+    "scripts/instruments/telltale*",
+    "scripts/game/game.gd",
+    "tools/blender"
+  ],
+  "accept": [
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "feedback_1012",
+      "tests": "feedback_1012"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "flight",
+      "tests": "flight"
+    },
+    {
+      "name": "telemetry",
+      "tests": "telemetry"
+    },
+    {
+      "name": "bar_force",
+      "tests": "bar_force"
+    }
+  ],
+  "report_extra": [
+    "force_trim_n",
+    "force_fast_n",
+    "force_pendulum_fast_n"
+  ],
+  "notes": "Физика FlightModel: оценка из моментов модели, формула и приближения в комментарии и в docs/guide (раздел про индикатор, если есть — рядом с FB-1); параметры только с физическим смыслом из конфигов крыла/пилота. Порядок величины против PendulumModel на тех же скоростях — числом в отчёте (report_extra). Виджет: только толщина рамки.",
+  "created": "2026-10-12T21:03:14",
+  "edited": "2026-10-12T21:03:30"
+}

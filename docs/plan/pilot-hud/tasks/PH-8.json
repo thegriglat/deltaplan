@@ -1,0 +1,64 @@
+{
+  "id": "PH-8",
+  "module": "pilot-hud",
+  "type": "dp-engineer",
+  "title": "Затенение земли крылом на посадке (тень от неба)",
+  "goal": "На последних метрах высоты пилот видит, как под крылом и перед ним темнеет земля (крыло закрывает небо): по размеру, резкости и плотности пятна читается высота, у касания пятно сходится с ногами.",
+  "plan_ref": "PH-8 Затенение",
+  "contracts": [
+    {
+      "name": "PH-К7",
+      "version": "1",
+      "ref": "docs/contracts/pilot-hud.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-hud-PH-8",
+  "branch": "pilot-hud/PH-8",
+  "base": "feature/pilot-hud",
+  "scope": [
+    "scripts/flight/sky_shade.gd",
+    "assets/shaders",
+    "scripts/game/glider_visual.gd",
+    "scripts/game/game.gd",
+    "configs/flight.json",
+    "scripts/terrain/grass.gdshader",
+    "tests/flight",
+    "tests/game",
+    "tests/contracts/test_pilot_hud_contracts.gd",
+    "docs/guide"
+  ],
+  "dont_touch": [
+    "scripts/instruments/telltale*",
+    "tools/blender"
+  ],
+  "accept": [
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "sky_shade",
+      "tests": "sky_shade"
+    },
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "cockpit",
+      "tests": "cockpit"
+    },
+    {
+      "name": "glider_visual",
+      "tests": "glider_visual"
+    }
+  ],
+  "report_extra": [
+    "center_darkening_at_touchdown",
+    "h_max_m",
+    "frame_cost_ms"
+  ],
+  "notes": "Физика — PH-К7 (фактор видимости диска, только рассеянный свет неба). sky_share — из окружения (энергия неба vs солнца) или конфиг с пояснением; облачно — заметнее, ясно — слабее, это честно. Сдвиг к виду пилота ≤ h и gain ≤ 2 — параметры в конфиге с пояснением. Декаль: проверить, что ложится на траву (шейдер травы может не принимать декали — тогда затемнение в grass.gdshader по тем же данным, uniform/глобальный параметр). Одна декаль, без теней; цена кадра — оценка в отчёт. Тесты назвать с sky_shade в имени.",
+  "created": "2026-10-12T21:03:59",
+  "edited": "2026-10-12T21:03:59"
+}

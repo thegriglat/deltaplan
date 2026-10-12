@@ -1,0 +1,59 @@
+{
+  "id": "PH-5",
+  "module": "pilot-hud",
+  "type": "dp-engineer",
+  "title": "Модель наручных часов (watch.glb)",
+  "goal": "Хорошая модель наручных часов для руки пилота: читается от 1-го лица, подвижные части по контракту PH-К4, бережно к VRAM.",
+  "plan_ref": "PH-5 Модель",
+  "contracts": [
+    {
+      "name": "PH-К4",
+      "version": "1",
+      "ref": "docs/contracts/pilot-hud.md"
+    },
+    {
+      "name": "PH-К3",
+      "version": "1",
+      "ref": "docs/contracts/pilot-hud.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-hud-PH-5",
+  "branch": "pilot-hud/PH-5",
+  "base": "feature/pilot-hud",
+  "scope": [
+    "tools/blender/build_watch.py",
+    "tools/blender/watch.json",
+    "assets/models/watch*",
+    "assets/textures/watch",
+    "assets/source/watch.blend",
+    "scenes/models_preview/check_models.gd",
+    "docs/guide/models.md",
+    "ASSETS.md",
+    "tests/contracts/test_pilot_hud_contracts.gd"
+  ],
+  "dont_touch": [
+    "tools/blender/build_pilot.py",
+    "assets/models/pilot.glb",
+    "scripts",
+    "scripts/instruments/telltale*"
+  ],
+  "accept": [
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "check_models",
+      "cmd": "godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -40",
+      "expect": "re:ИТОГ: OK"
+    }
+  ],
+  "report_extra": [
+    "tris",
+    "texture_px",
+    "case_d_mm"
+  ],
+  "notes": "Часы — левая рука (WristL). Корпус Ø 40 мм, чёрный циферблат с белыми метками и цифрами (контраст), матовые светлые стрелки, ремешок кожа/нейлон под эллипс W×H из watch.json (по умолчанию 64×50 мм; PH-3 сообщит точные — PH-7 перегенерирует). Только Blender-скрипт (воспроизводимо, параметры в JSON), как пилот/приборы (tools/blender/bl_util.py — износ и т. п.). Текстуры ≤ 512² (лучше 256²), в Godot .import: compress/mode=2, mipmaps/generate=true. В docs/guide/models.md — подраздел «Наручные часы» в разделе «Наручные приборы» (общий с PH-6: каждый правит свой подраздел). Проверки формы PH-К4 (часы) — в tests/contracts/test_pilot_hud_contracts.gd (свои функции test_ph_k4_watch_*). Рендеры в Blender (1–3) — для себя, игровые скриншоты не делать.",
+  "created": "2026-10-12T21:04:15",
+  "edited": "2026-10-12T21:04:15"
+}
