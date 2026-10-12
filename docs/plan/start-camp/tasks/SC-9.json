@@ -1,0 +1,36 @@
+{
+  "id": "SC-9",
+  "module": "start-camp",
+  "type": "dp-writer",
+  "title": "Документы и CHANGELOG модуля start-camp; закрыть T-22, T-23",
+  "goal": "Описать по фактам из журнала и кода, что появилось у старта (лагерь ближе, вещи и крылья, примятая трава, ткань, люди), обновить руководства и CHANGELOG по-пилотски, закрыть T-22/T-23.",
+  "plan_ref": "SC-9 Документы и CHANGELOG",
+  "contracts": [],
+  "copy": "~/deltaplan-start-camp-SC-9",
+  "branch": "start-camp/SC-9",
+  "base": "feature/start-camp",
+  "scope": [
+    "docs/guide/world-objects.md",
+    "docs/guide/models.md",
+    "CHANGELOG.md",
+    "TODO.md",
+    "docs/INDEX.md",
+    "docs/registry"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "assets",
+    "site"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T23:05:59"
+}

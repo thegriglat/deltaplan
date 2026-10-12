@@ -32,9 +32,14 @@ var campfire: Campfire = null
 ## Дома посёлков (VillagePlacer, N3): [x, z, w, l, угол_град, высота_стен_м, крыша].
 var houses: Array = []
 var village_layer: VillageLayer
+## Снаряжение у стартов (StartGear.plan): по старту локации (порядок start_sites) свой список вещей.
+var start_gear: Array = []
+## Время плана снаряжения на один старт, мс (последняя сборка; отчёт SC-2).
+var start_gear_plan_ms: Array[float] = []
 
 
 var _air_fn: Callable
+var _gear_terrain: Node = null
 var _height_fn: Callable
 var _clearings: WorldClearings
 var _active: Array[WindIndicator] = []
@@ -56,6 +61,7 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 	var patches: BuiltPatches = null
 	if terrain is Terrain:
 		patches = BuiltPatches.for_terrain(terrain)
+	_gear_terrain = terrain
 	build(
 		String(terrain.get(&"location_id")),
 		terrain.call(&"get_start_sites"),
@@ -66,6 +72,7 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 		Vector2(float(terrain.get(&"center_lat")), float(terrain.get(&"center_lon"))),
 		patches
 	)
+	_gear_terrain = null
 
 
 ## То же без нод (тесты, другие источники рельефа).
@@ -101,6 +108,7 @@ func build(
 		start_tracks = StartTracks.plan(start_sites, cfg.start_tracks, height_fn)
 		_build_start_tracks(height_fn)
 	_build_villages(patches, height_fn)
+	_build_start_gear(start_sites)
 	_reset_indicators()
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 	print(
@@ -127,6 +135,8 @@ func clear() -> void:
 	landing_sites.clear()
 	start_tracks.clear()
 	houses = []
+	start_gear = []
+	start_gear_plan_ms.clear()
 	village_layer = null
 	osm_layer = null
 	osm = null
@@ -249,6 +259,45 @@ func place_camp(start: Vector3, heading_deg: float, terrain: Node = null, count:
 	)
 
 
+## Снаряжение у каждого старта локации (StartGear, configs/world_objects.json → start_gear): набор
+## постоянный (не от погоды и игрока), узел StartGear_<i>, препятствия «gear» (крылья, аппарат,
+## чехлы — коробки). Окружение запретов — как у палаток (_camp_env); после троп и посёлков.
+func _build_start_gear(start_sites: Array) -> void:
+	var gc: Dictionary = cfg.get("start_gear", {})
+	if gc.is_empty() or not bool(gc.get("enabled", true)):
+		return
+	var t0 := Time.get_ticks_usec()
+	var total := 0
+	for i in start_sites.size():
+		var site: Dictionary = start_sites[i]
+		var sp: Vector3 = site.position
+		var env := _camp_env(sp, cfg.get("tents", {}), _gear_terrain)
+		var t1 := Time.get_ticks_usec()
+		var items := StartGear.plan(sp, float(site.heading_deg), gc, env)
+		start_gear_plan_ms.append((Time.get_ticks_usec() - t1) / 1000.0)
+		start_gear.append(items)
+		if items.is_empty():
+			continue
+		total += items.size()
+		var node := StartGear.build_node(items, gc)
+		node.name = "StartGear_%d" % i
+		add_child(node)
+		for it: Dictionary in items:
+			var box: Vector3 = it.box
+			if box == Vector3.ZERO:
+				continue
+			var c: Vector3 = it.center
+			obstacles.add_box(
+				c.x, c.z, box.x, box.y, -float(it.yaw), c.y - 0.5, c.y + box.z, "gear"
+			)
+	print(
+		(
+			"WorldObjects: снаряжение у %d стартов — %d вещей за %.0f мс"
+			% [start_sites.size(), total, (Time.get_ticks_usec() - t0) / 1000.0]
+		)
+	)
+
+
 ## Костёр у лагеря (Campfire, configs/world_objects.json → campfire).
 func _place_campfire(start: Vector3, heading_deg: float, tc: Dictionary, env: Dictionary) -> void:
 	var fc: Dictionary = cfg.get("campfire", {})
@@ -295,7 +344,7 @@ func _build_villages(patches: BuiltPatches, height_fn: Callable) -> void:
 
 ## Окружение для TentCamp.plan: рельеф, запреты (лес/вода/застройка), линии (тропы), точки (камни, кусты).
 func _camp_env(start: Vector3, tc: Dictionary, terrain: Node) -> Dictionary:
-	var env := {"lines": [], "points": [], "zone": TentCamp.launch_zone(tc)}
+	var env := {"lines": [], "points": []}
 	var tw := float(tc.get("track_margin_m", 4.0))
 	for pts: PackedVector2Array in start_tracks:
 		env.lines.append([pts, tw + float(cfg.start_tracks.get("width_m", 2.0)) * 0.5])
@@ -505,3 +554,24 @@ func _build_start_tracks(height_fn: Callable) -> void:
 		mi.visibility_range_begin = float(tc.visibility_near_m)
 		mi.visibility_range_end = WorldTiles.tile_range(float(tc.visibility_far_m), float(tc.tile_m))
 		root.add_child(mi)
+
+
+## Маска примятой травы вокруг старта (SC-K6, TrampleMask): {image: Image R8, origin: Vector2, cell_m},
+## пустой словарь — выключена в конфиге. Палатки (camp), пятна вещей SC-K2 (start_gear этого старта,
+## если есть) и тропа StartTracks. Вызывать после place_camp; передаётся GrassField.set_trample_mask.
+func trample_mask(start: Vector3, size_m: float = 256.0, cell_m: float = 0.5) -> Dictionary:
+	var tc: Dictionary = cfg.get("trample", {})
+	if not bool(tc.get("enabled", true)):
+		return {}
+	tc = tc.duplicate()
+	tc["size_m"] = size_m
+	tc["cell_m"] = cell_m
+	var gear: Array = []
+	var all_gear = get("start_gear")
+	if all_gear is Array:
+		for g in all_gear:
+			if g is Array and not g.is_empty():
+				var p: Vector3 = g[0].position
+				if Vector2(p.x, p.z).distance_to(Vector2(start.x, start.z)) < 60.0:
+					gear.append_array(g)
+	return TrampleMask.build(start, camp, gear, start_tracks, cfg.get("tents", {}), tc)

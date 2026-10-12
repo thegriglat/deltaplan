@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "EggPeople рисует людей по MultiMesh на часть из camp_person.glb (Legs/Torso/Head/ArmR/ArmL), Cloth -> CampFabric cloth с цветом экземпляра, SkinTint -> StandardMaterial3D с цветом вершин; поведение и info прежние; капсулы - запасной путь без модели. Добавлено set_person_visible(i, vis) (нулевой масштаб экземпляров); цвета в _people.",
+  "commits": [
+    "aa9b72e0 EggPeople: люди из camp_person.glb"
+  ],
+  "checks": [
+    {
+      "name": "egg_people",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_easter_eggs",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "start_camp_contracts_k4",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SC-5",
+  "uncertain": [
+    {
+      "where": "people.gd руки",
+      "why": "знак поворота руки вокруг Z изменён на Basis(BACK, sx*a): рука +X уходит наружу/вверх; старый код с капсулами был -sx*a",
+      "checked": "выкладкой вручную, визуально не проверено (тестовая сборка Linux)"
+    },
+    {
+      "where": "people.gd тени",
+      "why": "тени включаются ближе shadow_m как раньше (на всех частях)",
+      "checked": "код"
+    }
+  ],
+  "dp_feedback": "нет",
+  "t": "2026-10-12T22:47:17",
+  "by": "main"
+}

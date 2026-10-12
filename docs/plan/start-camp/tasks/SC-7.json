@@ -1,0 +1,54 @@
+{
+  "id": "SC-7",
+  "module": "start-camp",
+  "type": "dp-engineer",
+  "title": "Модель Blender: полусобранный аппарат (glider_kit.glb)",
+  "goal": "Полусобранный дельтаплан у старта: пучок труб каркаса с парусом в рулоне на раскрытом чехле и трапеция с колёсами плашмя — из деталей frame_parts.py/wheel_parts.py, 2 LOD.",
+  "plan_ref": "SC-6, SC-7, SC-8 Модели Blender",
+  "contracts": [
+    {
+      "name": "SC-K3",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    },
+    {
+      "name": "SC-K5",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-camp-SC-7",
+  "branch": "start-camp/SC-7",
+  "base": "feature/start-camp",
+  "scope": [
+    "tools/blender/build_glider_kit.py",
+    "assets/models/world/glider_kit.glb",
+    "assets/models/world/glider_kit_*.png",
+    "assets/source/world/glider_kit.blend",
+    "tests/contracts/test_start_camp_contracts_k3_kit.gd",
+    "ASSETS.md",
+    "assets/models/world/glider_kit.glb.import"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools/blender/frame_parts.py",
+    "tools/blender/wheel_parts.py",
+    "tools/blender/bl_util.py",
+    "glider_*.glb"
+  ],
+  "accept": [
+    {
+      "name": "start_camp_contracts_k3_kit",
+      "tests": "start_camp_contracts_k3_kit"
+    }
+  ],
+  "report_extra": [
+    "tris_by_node",
+    "glb_kb",
+    "image"
+  ],
+  "notes": "",
+  "created": "2026-10-12T22:23:49",
+  "edited": "2026-10-12T22:23:59"
+}

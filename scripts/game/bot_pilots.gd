@@ -143,7 +143,12 @@ func build_visuals() -> void:
 ## Новый полёт в игре: воздух (Atmosphere или CalmAir), рельеф (Terrain), старт игрока;
 ## count < 0 — из bots.json (настройка «Другие пилоты в небе»).
 func setup_in_world(
-	terrain: Node, air: Node, start: Vector3, heading_deg: float, count: int = -1
+	terrain: Node,
+	air: Node,
+	start: Vector3,
+	heading_deg: float,
+	count: int = -1,
+	objects: Node = null
 ) -> void:
 	var opts := {
 		"air_fn": Callable(air, "air_velocity_at"),
@@ -156,10 +161,22 @@ func setup_in_world(
 		opts.cloudbase_msl = float(air.call("get_cloudbase_msl"))
 	if air is Atmosphere:
 		opts.clouds_fn = _visible_clouds.bind(air)
+	opts.obstacles = start_obstacles(terrain, objects, start)
+	setup(opts)
+
+
+## Препятствия для мест ожидания у старта (SC-K1): камни, кусты, деревья рельефа и, если лагерь
+## уже стоит (objects = WorldObjects), палатки и вещи у старта — ObstacleIndex.points_near.
+static func start_obstacles(terrain: Node, objects: Node, start: Vector3) -> Array[Vector3]:
 	var lc: Dictionary = Config.get_config("bots").get("launch", {})
 	var r := float(lc.get("behind_max_m", 70.0)) + float(lc.get("lateral_max_m", 40.0))
-	opts.obstacles = obstacles_near(terrain, Vector2(start.x, start.z), r)
-	setup(opts)
+	var c := Vector2(start.x, start.z)
+	var out := obstacles_near(terrain, c, r)
+	if objects != null:
+		var idx: Variant = objects.get(&"obstacles")
+		if idx is ObstacleIndex:
+			out.append_array((idx as ObstacleIndex).points_near(c, r, PackedStringArray(["tent", "gear"])))
+	return out
 
 
 ## Камни, кусты и отдельные деревья (RockScatter, ShrubScatter — дети Terrain) в радиусе r

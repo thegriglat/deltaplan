@@ -100,6 +100,35 @@ func remove_kind(kind: String) -> void:
 		_add(types[i], kinds[i], p0[i], p1[i], p2[i], lo, hi)
 
 
+## Описанные круги препятствий видов kinds, пересекающие круг (c, r): Vector3(x, z, радиус) —
+## формат BotPilots.obstacles_near (SC-K2: боты обходят палатки и вещи).
+func points_near(c: Vector2, r: float, kinds: PackedStringArray) -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	var seen := {}
+	for cx in range(floori((c.x - r) / cell_m), floori((c.x + r) / cell_m) + 1):
+		for cz in range(floori((c.y - r) / cell_m), floori((c.y + r) / cell_m) + 1):
+			for i: int in _grid.get(Vector2i(cx, cz), []):
+				if seen.has(i) or not _kinds[i] in kinds:
+					continue
+				seen[i] = true
+				var o := _circle(i)
+				if Vector2(o.x, o.y).distance_to(c) <= r + o.z:
+					out.append(Vector3(o.x, o.y, o.z))
+	return out
+
+
+## Описанный круг препятствия i: (x, z, радиус).
+func _circle(i: int) -> Vector3:
+	match _types[i]:
+		0:
+			var m := (_p0[i] + _p1[i]) * 0.5
+			return Vector3(m.x, m.z, _p0[i].distance_to(_p1[i]) * 0.5 + _p2[i].x)
+		1:
+			return Vector3(_p0[i].x, _p0[i].z, _p1[i].x)
+		_:
+			return Vector3(_p0[i].x, _p0[i].z, Vector2(_p1[i].x, _p1[i].z).length())
+
+
 ## Первое препятствие на отрезке a→b: {kind, point} или {}
 ## (point — ближайшая к препятствию точка пути).
 func hit(a: Vector3, b: Vector3, kind_filter: String = "") -> Dictionary:

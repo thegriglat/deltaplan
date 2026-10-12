@@ -64,6 +64,10 @@ related: []
 | `assets/models/glider_ww_talon.glb` | безмачтовое продвинутое (в духе Wills Wing Talon): база sport, 128° | 13 268 |
 | `assets/models/glider_ww_cross_country.glb` | мачтовое продвинутое (в духе Wills Wing Cross Country 155): база magic, 124° | 12 576 |
 | `assets/models/pilot.glb` | пилот со скелетом и 8 анимациями (стоя, ходьба, разбег, бег в воздухе, заползание в кокон, лёжа, выход, выравнивание): тело человека MakeHuman (MPFB 2) с плавной привязкой к костям, кулаки в перчатках обхватывают трубу | 10 431 |
+| `assets/models/world/start_gear.glb` | вещи у старта: 6 вариантов × 2 LOD (чехлы крыла 5,6 и 4,2 м, рюкзак, раскрытая подвеска, шлем, бутылка), см. «Модели лагеря у старта» | LOD0 ≤ 150–700, LOD1 ≤ 16–60 на вариант |
+| `assets/models/world/glider_kit.glb` | полусобранный аппарат: `kit_bundle` (трубы пучком с парусом в рулоне на раскрытом чехле) и `kit_frame` (трапеция плашмя с колёсами), по 2 LOD | LOD0 ≤ 2500 / 2000, LOD1 ≤ 150 / 100 |
+| `assets/models/world/camp_person.glb` | человек у лагеря, дальний уровень: пять мешей с шарнирами (`Legs`, `Torso`, `Head`, `ArmR`, `ArmL`) | 658 |
+| `assets/models/world/camp_pilot.glb` | человек у лагеря, ближний уровень: тело пилота (MPFB) со скелетом из 16 костей и анимациями `idle`, `wave`, `wave_both`, `walk`, без подвески и шлема | 3 714 |
 | `assets/models/instrument.glb` | планшет-полётный компьютер (e-reader/телефон в чехле) на кронштейне в центре базовой штанги | 1 070 |
 | `assets/models/vario_90s.glb` | обобщённый вариометр 1990-х (коробочка со стрелочной шкалой и кнопками) на хомуте базовой штанги слева от планшета | 1 506 |
 | `assets/models/wrist_compass.glb` | наручный жидкостный компас на правую руку пилота: картушка Ø 38 мм, ремешок под эллипс руки | 1 304 |
@@ -81,12 +85,21 @@ BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user blender --background --py
 blender --background --python tools/blender/build_instrument.py   # планшет
 blender --background --python tools/blender/build_vario90s.py
 blender --background --python tools/blender/build_wrist_compass.py   # наручный компас (wrist_compass.json)
+blender --background --python tools/blender/build_start_gear.py    # вещи у старта
+blender --background --python tools/blender/build_glider_kit.py    # полусобранный аппарат
+blender --background --python tools/blender/build_camp_person.py   # человек, дальний уровень
+BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user blender --background --python tools/blender/build_camp_pilot.py   # человек, ближний уровень
 xvfb-run -a blender --background --python tools/blender/build_trees.py   # Eevee печёт импосторы
 tools/blender/render_all.sh                                        # скриншоты → docs/models/screenshots/
 xvfb-run -a blender --background --python tools/blender/render_trees.py
 godot --headless --path . --import
 godot --headless --path . --script res://scenes/models_preview/check_models.gd   # контракт имён
 ```
+
+**Общая текстура шины** — один файл `assets/textures/wheel/tire.png` (VRAM-сжатие, мипмапы); glb колёсных крыльев и
+`world/glider_kit.glb` ссылаются на него по uri, встроенной копии нет (`tools/blender/glb_extern.py`, вызывается из
+`bl_util.export` и `build_glider_kit.py`; без этого Godot извлекает отдельный png на каждую модель и держит в памяти
+столько же текстур). Новую модель с шиной не копировать: материал с картинкой `wheel_tire` из `wheel_parts.tire_texture()`.
 
 Файлы: `bl_util.py` (MeshBuilder, материалы, экспорт), `frame_parts.py` (детали трапеции: пластины,
 болты, наконечники тросов, профильная труба, стропы, карабин), `glider_params.json` (форма крыльев, трапеция,
@@ -141,6 +154,65 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 (хват ±0,33) ниже концов, изгибы к углам. Детали трапеции — `frame_parts.py`.
 Референсы и приоритеты — docs/research/control_frame_refs.md. `pilot_eye` — глаза пилота
 (общие для пилота, маркеров приборов и кабинного рендера).
+
+## Модели лагеря у старта (`assets/models/world/`)
+
+Контракты — `docs/contracts/start-camp.md` (SC-K3 вещи и аппарат, SC-K4 люди); использование в игре — `docs/guide/world-objects.md`
+(«Снаряжение у старта», «Люди у лагеря»). Общие правила: оси Godot (вперёд −Z, вверх +Y, метры; в Blender длина вдоль +Y,
+вверх +Z), начало — центр пятна на земле, нижняя точка y = 0 (до −0,02). Мелкие вещи — меши-ноды `<вариант>_LOD0` (ближний)
+и `<вариант>_LOD1` (грубый силуэт) на верхнем уровне. Цвета вершин и логотипов нет, UV у ткани не нужны: тон и рисунок ткани
+задаёт игра по **имени материала** (в glb — светло-серый `StandardMaterial3D`, игра подменяет его на `CampFabric`, см.
+`world-objects.md → «Ткань лагеря»`). Текстура в этих моделях одна — общая шина `assets/textures/wheel/tire.png` (абзац
+выше); отдельной шины для `glider_kit.glb` нет.
+
+**`start_gear.glb`** (`tools/blender/build_start_gear.py`, исходник `assets/source/world/start_gear.blend`, 94 КБ).
+Варианты (размеры ±10 %; треугольники LOD0 / LOD1):
+| Нода | Что | Треугольники |
+|---|---|---|
+| `wing_bag_long` | чехол крыла 5,6 м, сечение ~0,34 × 0,28 м, лежит, неровный от труб, молния по верху, ручки-стропы | ≤ 700 / ≤ 60 |
+| `wing_bag_short` | короткий пакет 4,2 м | ≤ 600 / ≤ 60 |
+| `harness_pack` | рюкзак с подвеской, лежит на спине, 0,85 × 0,45 × 0,32 м | ≤ 500 / ≤ 40 |
+| `harness_open` | вытряхнутая подвеска-кокон плашмя, ~1,9 × 0,6 × 0,15 м, лямки, карабин | ≤ 700 / ≤ 40 |
+| `helmet` | открытый шлем стоя, 0,29 × 0,23 × 0,20 м | ≤ 400 / ≤ 30 |
+| `bottle` | бутылка 1,5 л на боку, Ø 0,09 × 0,33 м | ≤ 150 / ≤ 16 |
+Материалы (имена — контракт): `Fabric` (ткань с тоном экземпляра — пресет `bag`), `FabricDark` (без тона), `Webbing`
+(стропы), `Shell` (пластик шлема с тоном), `Fitting`, `Steel`, `Bottle`, `Cap`. В игре `Webbing`, `Tube`, `Fitting`, `Steel`,
+`Cap` сливаются в один `Hardware`, иначе вызовов отрисовки 36 при лимите 20. В варианте — один тонируемый материал.
+
+**`glider_kit.glb`** (`build_glider_kit.py`, детали — `frame_parts.py` и `wheel_parts.py`, 148 КБ):
+- `kit_bundle` — сложенный каркас (две передние кромки, киль, поперечина пучком ~5,5 м, торцы труб открыты, рядом
+  кингпост) с парусом в рулоне, на расстёгнутом раскрытом чехле ~5,6 × 0,9 м с загнутыми краями; ≤ 2500 / ≤ 150;
+- `kit_frame` — трапеция плашмя: стойки 1,65 м, базовая штанга 1,4 м, узел вершины, колёса на концах штанги; вершина к −Z;
+  ≤ 2000 / ≤ 100.
+Материалы: `Fabric` (чехол, тон игры), `FabricDark` (подкладка), `Sail` (парус в рулоне, тон игры), `Webbing`, `Tube`,
+`Fitting`, `Steel`, `Tire` (внешний файл `tire.png`). В `kit_bundle` два тонируемых материала (`Fabric` и `Sail`) — единственное
+отступление от правила «один тонируемый материал на вариант», так заказано.
+
+**`camp_person.glb`** (`build_camp_person.py`, 29 КБ, 658 треугольников, один LOD). Человек, рост 1,75 м, лицом к −Z. Пять
+мешей на верхнем уровне, у каждого начало — шарнир: `Legs` (0, 0, 0) на земле между стоп, до таза 0,95 м; `Torso` — таз
+(0, 0,95, 0); `Head` (0, 1,50, 0) — шея, голова, кепка; `ArmR` (+0,22, 1,42, 0) и `ArmL` (−0,22, 1,42, 0) — плечи, рука висит
+вдоль −Y, 0,62 м до кончиков пальцев. Куртка, штаны, кепка, нос, кисти с большим пальцем, ботинки; `ArmL` строится с
+отражённым большим пальцем (руки не зеркалятся). Материалы: `Cloth` (одежда с тоном экземпляра, пресет `cloth`; не более
+одного тонируемого материала на меш), `SkinTint` (лицо, шея — тон кожи экземпляра), `Skin` (кисти, фиксированный тон), `Hair`,
+`Shoes`.
+
+**`camp_pilot.glb`** (`build_camp_pilot.py`, 221 КБ, 3 714 треугольников: 3 298 тело после прореживания из 22 424 + ботинки
+~416). Тот же конвейер, что `build_pilot.py` (MPFB-тело, `fit_dims`, ботинки, риг), функции берутся импортом —
+`build_pilot.py` и `pilot.glb` не менялись. Убрано всё лётное: подвеска, лямки, кокон, фал, воротник, шлем, визор, краги; кисти
+открытые, куртка и брюки навыпуск, волосы, ботинки с подошвой. Сцена: `camp_pilot` → `Person` → `Skeleton3D` (один меш
+`PersonBody`) и `AnimationPlayer` — сосед `Person`. Начало на земле между стоп, лицом к −Z, рост 1,79 м (по мешу, с волосами;
+контракт 1,78 ± 0,03 м). Скелет — 16 костей (`Hips`, `Spine`, `Chest`, `Head`, по три на руку и ногу; контракт говорил 17 —
+счёт с корнем или `PodTail`, а у человека без подвески остаётся 16; опираться на имена, не на число), до 4 влияний на
+вершину. Анимации (все зациклены через `settings/loop_mode=1` в `.glb.import`, без смещения корня — перемещает игра): `idle`
+(~4 с), `wave` (~1,2 с, правая рука), `wave_both` (~1,2 с), `walk` (цикл 1,083 с, шаг 1,2 м, 1,11 м/с; ноги — IK по
+лодыжкам, опорная стопа заметно скользит). Материалы: `Jacket`, `Trousers` (тон игры — пресет `cloth`), `Skin`, `Hair`, `Boot`,
+`Sole` (6 штук).
+
+**Общая текстура шины** `assets/textures/wheel/tire.png` — одна на все колёсные крылья и `glider_kit.glb`
+(описание — выше, «Как перегенерировать»). Другим моделям лагеря текстуры не нужны: ткань и тон задаёт шейдер.
+
+Контрактные тесты: `test_start_camp_contracts_k3_gear.gd`, `_k3_kit.gd`, `_k4.gd` (человек), `_k4_pilot.gd` (ноды, кости,
+анимации и их зацикленность, рост, бюджет, имена материалов, нет нод подвески и шлема).
 
 ## Контракт имён и осей
 
