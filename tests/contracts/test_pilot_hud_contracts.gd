@@ -397,3 +397,17 @@ func test_ph_k4_compass_materials_and_import() -> void:
 	var imp := FileAccess.get_file_as_string("res://assets/models/wrist_compass_CompassCard.png.import")
 	check(imp.contains("compress/mode=2") and imp.contains("mipmaps/generate=true"), ".import: VRAM-сжатие и мипмапы")
 	r.free()
+
+
+# ---- PH-К2: часы и флажки (владелец флажка clock — PH-2) ----
+
+
+func test_ph_k2_clock_flag_default_and_source() -> void:
+	check(Config.get_config("ui").get("clock", {}).get("enabled", null) == true, "ui.clock.enabled по умолчанию true")
+	var c := SunClock.new()
+	c.hour = 6.5
+	check(SunClock.format_hour(c.hour) == "06:30" and c.time_text() == "06:30", "6,5 = 06:30")
+	var lbl := ClockLabel.new()
+	lbl.clock = c
+	check(lbl.text() == SunClock.format_hour(c.hour), "текст = format_hour(clock.hour)")
+	lbl.free()

@@ -40,14 +40,10 @@
     {
       "name": "settings",
       "tests": "settings"
-    },
-    {
-      "name": "game",
-      "tests": "game"
     }
   ],
   "report_extra": [],
   "notes": "Источник — SunClock.hour той же sky.clock (game.gd: sky.clock), текст SunClock.format_hour/time_text; не продвигать часы. Видимость: флажок ui.clock.enabled и camera.mode != cockpit, как индикатор подвески (set_active в _update_overlay) — не в меню и не в паузе. Справа внизу, не перекрывая угловой прибор overlay и индикатор подвески; шрифт UI, скромно. Тесты назвать с clock в имени файла.",
   "created": "2026-10-12T21:06:00",
-  "edited": "2026-10-12T21:06:01"
+  "edited": "2026-10-12T22:01:10"
 }

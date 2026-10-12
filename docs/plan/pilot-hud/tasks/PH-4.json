@@ -18,7 +18,6 @@
   "scope": [
     "scripts/audio",
     "scripts/terrain/grass_field.gd",
-    "scripts/game/glider_visual.gd",
     "scripts/game/game.gd",
     "configs/audio.json",
     "assets/sounds",
@@ -27,7 +26,8 @@
     "tests/terrain",
     "tests/vegetation",
     "tests/contracts/test_pilot_hud_contracts.gd",
-    "docs/guide/vegetation.md"
+    "docs/guide/vegetation.md",
+    "scripts/flight/glider_visual.gd"
   ],
   "dont_touch": [
     "scripts/instruments/telltale*"
@@ -57,5 +57,5 @@
   "report_extra": [],
   "notes": "glider_visual.gd — только feet_positions(); game.gd — только передача данных в звук. Звук процедурный (фильтрованный шум с зёрнами) или из имеющихся run/step_grass_*; новые файлы — только CC0 с записью в assets/sounds/LICENSES.md и ASSETS.md. Шина Effects. Шаги в ходьбе/беге — без изменений. Тесты назвать с rustle в имени файла.",
   "created": "2026-10-12T21:06:01",
-  "edited": "2026-10-12T21:06:01"
+  "edited": "2026-10-12T21:41:53"
 }

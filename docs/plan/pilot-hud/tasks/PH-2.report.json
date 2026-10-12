@@ -1,0 +1,51 @@
+{
+  "status": "partial",
+  "summary": "Часы текстом «ЧЧ:ММ» справа внизу (над угловым прибором overlay) в 3-м лице + флажок «Часы» в настройках игры (ui.clock.enabled). Источник — Game.sky.clock, только чтение. Приёмка по game не закрыта: фильтр game упёрся в таймаут 900 с.",
+  "commits": [
+    "4cb02255 PH-2: часы текстом от 3-го лица и флажок «Часы»"
+  ],
+  "checks": [
+    {
+      "name": "pilot_hud",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "clock",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "game",
+      "value": "таймаут 900 с; в успевшей части 1 FAIL: test_cockpit.gd::test_trapezoid_and_telltales (ленточки в кадре при взгляде вверх), мой код не затрагивает",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Фильтр game не дошёл до конца за 900 с (тяжёлые тесты с загрузкой мира)."
+  ],
+  "questions": [
+    "test_cockpit::test_trapezoid_and_telltales падает (ленточки, скоуп telltale) — известно/чьё? На чистой feature/pilot-hud не проверял."
+  ],
+  "how_to_check": "dp accept PH-2; godot тесты --filter=clock; визуально — тестовая сборка Linux: 3-е лицо, часы над прибором справа; кабина — нет текста; флажок выкл — нет.",
+  "uncertain": [
+    {
+      "where": "scripts/ui/clock_label.gd:anchor_px",
+      "why": "позиция над рамкой overlay считается из instruments.json (height_frac, bezel, margin), без учёта rotation_deg и не от реального размера рамки",
+      "checked": "юнит-тест на 1920x1080; визуально не смотрел"
+    },
+    {
+      "where": "scripts/game/game.gd:_update_overlay",
+      "why": "часы активны при flying_enabled и input_controller.enabled и не cockpit; на буксире (tow) часы показываются",
+      "checked": "только чтение кода"
+    }
+  ],
+  "dp_feedback": "dp accept с фильтром game упирается в таймаут 900 с, т.к. фильтр по подстроке цепляет тяжёлые тесты; нужен лимит/точный фильтр. Вывод dp accept в background теряется при pipe в tail.",
+  "t": "2026-10-12T21:51:24",
+  "by": "executor"
+}

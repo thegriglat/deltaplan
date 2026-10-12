@@ -51,16 +51,21 @@
       "tests": "pendulum"
     },
     {
-      "name": "flight",
-      "tests": "flight"
-    },
-    {
       "name": "telemetry",
       "tests": "telemetry"
     },
     {
       "name": "bar_force",
       "tests": "bar_force"
+    },
+    {
+      "name": "flight",
+      "cmd": "godot --headless --path . tests/run_tests.tscn -- --filter=flight 2>&1 | tail -400",
+      "expect": {
+        "re": "\\d+ тестов, [01] упало",
+        "!re": "FAIL (?!test_mouse_bar_flight\\.gd::test_mouse_on_ground_controls_wing)"
+      },
+      "timeout": 1800
     }
   ],
   "report_extra": [

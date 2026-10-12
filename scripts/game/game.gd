@@ -72,6 +72,7 @@ var hands_off := false
 var queue_walk: Dictionary = {}
 ## Индикатор смещения пилота внизу экрана (FB-1).
 var shift_indicator: PilotShiftIndicator
+var clock_label: ClockLabel
 ## Отладочные слои F1/F5/F6 (DebugOverlays).
 var debug_overlays: DebugOverlays
 
@@ -163,6 +164,11 @@ func _ready() -> void:
 	shift_indicator.name = "PilotShiftIndicator"
 	add_child(shift_indicator)
 	Config.reloaded.connect(shift_indicator.reload)
+	clock_label = ClockLabel.new()
+	clock_label.name = "ClockLabel"
+	clock_label.clock = sky.clock
+	add_child(clock_label)
+	Config.reloaded.connect(clock_label.reload)
 	var wfd := get_node_or_null("WindFieldDebug")
 	if wfd != null and wfd.has_signal("toggled"):
 		wfd.connect("toggled", func(on: bool) -> void: debug_overlays.wind_field_on = on)
@@ -1365,6 +1371,8 @@ func _update_overlay() -> void:
 	overlay.visible = flying_enabled and input_controller.enabled and camera.mode != "cockpit"
 	if shift_indicator != null:  # индикатор смещения — во всех камерах, не в меню и не на буксире
 		shift_indicator.set_active(flying_enabled and input_controller.enabled and tow == null)
+	if clock_label != null:  # часы текстом — только в 3-м лице (PH-К2)
+		clock_label.set_active(flying_enabled and input_controller.enabled and camera.mode != "cockpit")
 
 
 # ---------------------------------------------------------------- сигналы планера
