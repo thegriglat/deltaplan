@@ -62,3 +62,6 @@
 {"t": "2026-10-12T22:42:06", "by": "executor", "task": "SC-10", "ev": "reported", "commits": ["96c91825"], "note": "done: Шина теперь один файл assets/textures/wheel/tire.png (compress/mode=2, мипмапы). 11 glb колёсных крыльев и glider_kit.g…", "dp_feedback": "Для задач с glb нет команды сравнения до/после (размер, треугольники по нодам); писал свой скрипт."}
 {"t": "2026-10-12T22:42:26", "by": "executor", "task": "SC-10", "ev": "checked", "note": "6/6 start_camp_contracts_k3_kit=ok:1/1; start_camp_wheel_tire=ok:2/2; test_glider=ok:2/2; one_tire=ok:1; tire_vram=ok:exit 0; gd=ok:exit 0"}
 {"t": "2026-10-12T22:42:32", "by": "coordinator", "task": "SC-10", "ev": "accepted", "note": "по отчёту: 6/6, треугольники по нодам совпали, −70 КБ на крыло"}
+{"t": "2026-10-12T22:43:06", "by": "coordinator", "task": "SC-10", "ev": "accepted", "commits": ["ff6b7661"], "note": "6/6 start_camp_contracts_k3_kit=ok:1/1; start_camp_wheel_tire=ok:2/2; test_glider=ok:2/2; one_tire=ok:1; tire_vram=ok:exit 0; gd=ok:exit 0"}
+{"t": "2026-10-12T22:43:24", "by": "coordinator", "task": "SC-3", "ev": "accepted", "commits": ["ff6b7661"], "note": "4/4 grass=ok:14/14; start_camp_contracts_k6=ok:4/4; test_world_objects=ok:12/12; gd=ok:exit 0"}
+{"t": "2026-10-12T22:43:25", "by": "coordinator", "task": "SC-10", "ev": "merged"}
