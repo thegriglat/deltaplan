@@ -20,6 +20,11 @@ uniform float roughness_value = 0.9;
 uniform float model_height = 20.0;     // высота модели (меша), м
 uniform float sway_top_m = 0.6;        // отклонение макушки при ветре wind_full_ms, м
 uniform float sway_hz = 0.25;          // частота качания, Гц
+// ветки (вторичный изгиб): вес растёт с удалением вершины от оси ствола, нормирован габаритом кроны
+uniform float branch_amp_m = 0.3;      // размах конца ветки при ветре wind_full_ms, м (при масштабе 1)
+uniform float branch_hz = 0.9;         // частота ветки, Гц (у каждой ветки своя фаза и ±25%)
+uniform float branch_reach_k = 0.22;   // вылет кроны от оси, доля model_height
+uniform float leaf_flutter_m = 0.04;   // трепет листвы на конце ветки, м
 // смягчение вдали (отзыв пилота: деревья на земле слишком резкие) — та же логика, что у импостеров
 // forest_impostors.gdshader; модели видны примерно до inner_end_m (~300–500 м), дальше — билборды.
 // та же кривая, что у forest_impostors (300 → 1200 м): в полосе передачи 350–500 м модели и
@@ -59,12 +64,31 @@ void vertex() {
 	float t = clamp(VERTEX.y / max(model_height, 0.1), 0.0, 1.0);
 	float sway = amp * sway_top_m * t * t
 			* (0.5 + 0.7 * g + 0.25 * sin(TIME * sway_hz * 6.2832 + ph));
-	// мелкая дрожь листвы
-	float flutter = amp * 0.05 * t * sin(TIME * 5.0 + dot(VERTEX, vec3(3.1, 1.7, 2.3)) + ph);
-	vec3 disp = vec3(d.x, 0.0, d.y) * sway + vec3(flutter, 0.0, -flutter);
-	// мир → локальные координаты экземпляра (поворот вокруг Y + равномерный масштаб)
+	// ветки: только ближние LOD (за lod_d.y плавно гаснут), у земли и у оси ствола неподвижно
 	mat3 m = mat3(MODEL_MATRIX);
 	float s2 = max(dot(m[0], m[0]), 1e-6);
+	float reach = max(model_height * branch_reach_k, 0.1);
+	float rr = length(VERTEX.xz) / reach;
+	float bw = smoothstep(0.15, 0.9, rr) * smoothstep(0.12, 0.4, t)
+			* (1.0 - smoothstep(lod_d.y, lod_d.y + lod_fade_m * 2.0, v_dist)) * amp;
+	vec3 disp = vec3(d.x, 0.0, d.y) * sway;
+	if (bw > 0.0) {
+		// «ветка» — сектор азимута (8) и ярус высоты (6): свои фаза и частота
+		float az = floor((atan(VERTEX.z, VERTEX.x) + 3.1416) * 1.2732);
+		float bph = wind_hash(vec2(az, floor(t * 6.0)) + floor(base.xz * 0.37)) * 6.2832;
+		float f = branch_hz * (0.75 + 0.5 * fract(bph * 1.618));
+		// порыв бежит по кроне (мелкое поле, сдвиг по ветру)
+		float g2 = wind_noise((p + VERTEX.xz) / (wind_gust_scale_m * 0.12));
+		float w = sin(TIME * f * 6.2832 + bph - dot(VERTEX.xz, d) * 0.8) * (0.55 + 0.9 * g2);
+		float wv = sin(TIME * f * 6.2832 * 1.3 + bph * 1.7);
+		float sc = sqrt(s2);
+		disp += (vec3(d.x, 0.0, d.y) * (0.6 + 0.5 * g2) * w * 0.5 + vec3(-d.y, 0.0, d.x) * w * 0.25
+				+ vec3(0.0, 0.5 * wv, 0.0)) * bw * branch_amp_m * sc;
+		// листва: мельче и быстрее, фаза по положению вершины, амплитуда к концам веток
+		float fl = bw * leaf_flutter_m * sc * sin(TIME * 5.0 + dot(VERTEX, vec3(3.1, 1.7, 2.3)) + ph);
+		disp += vec3(fl, 0.4 * fl, -fl);
+	}
+	// мир → локальные координаты экземпляра (поворот вокруг Y + равномерный масштаб)
 	VERTEX += transpose(m) * disp / s2;
 	v_color = COLOR.rgb;
 	v_crown = UV2.x; // 1 — карточка кроны с нормалями «от центра кроны» (build_trees.py), 0 — кора, импостор
