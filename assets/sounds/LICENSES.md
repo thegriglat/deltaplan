@@ -72,3 +72,19 @@
 | grass_wind_loop.ogg | felix.blume | [Dry grass rustling in the wind, in the desert of Chile](https://freesound.org/s/146436/) | CC0 | 10–53 с, ФВЧ 60 Гц, луп (3 с), −26 LUFS |
 
 Kenney Impact Sounds: «Created/distributed by Kenney (www.kenney.nl)», CC0 (License.txt в архиве).
+
+### menu/ — крики хищных птиц для фона меню
+Скрипт: `tools/sounds/make_menu_birds.py` (кластеры 1,2–6 кГц, ФВЧ 500 Гц, fade, пик −6 дБ, моно). Все CC0.
+| Файл | Автор | Источник | Лицензия | Изменения |
+|---|---|---|---|---|
+| raptor_buzzard_01.ogg | farandjoun | [Common Buzzards](https://freesound.org/s/828438/) | CC0 | канюк, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+| raptor_buzzard_02.ogg | farandjoun | [Common Buzzards](https://freesound.org/s/828438/) | CC0 | канюк, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+| raptor_buzzard_03.ogg | JW_Audio | [BIRDMisc_Buzzard sqwuak](https://freesound.org/s/818322/) | CC0 | канюк, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+| raptor_hawk_01.ogg | TRP | [Red Tailed Hawk, eq isolated calls](https://freesound.org/s/616926/) | CC0 | ястреб (канюк), фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+| raptor_hawk_02.ogg | TRP | [Red Tailed Hawk, eq isolated calls](https://freesound.org/s/616926/) | CC0 | ястреб (канюк), фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+| raptor_kite_01.ogg | farandjoun | [Red kite and magpie](https://freesound.org/s/830292/) | CC0 | коршун, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+| raptor_kite_02.ogg | farandjoun | [Red kite and magpie](https://freesound.org/s/830292/) | CC0 | коршун, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+| raptor_eagle_01.ogg | Kinoton | [Bald Eagle Calls / Chirps](https://freesound.org/s/832476/) | CC0 | орёл, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+| raptor_eagle_02.ogg | Kinoton | [Bald Eagle Calls / Chirps](https://freesound.org/s/832476/) | CC0 | орёл, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+| raptor_eagle_03.ogg | craigsmith | [S28-16 Eagle squawks & calls](https://freesound.org/s/675962/) | CC0 | орёл, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |
+| raptor_eagle_04.ogg | craigsmith | [S28-16 Eagle squawks & calls](https://freesound.org/s/675962/) | CC0 | орёл, фрагмент, ФВЧ 500 Гц, моно, пик −6 дБ |

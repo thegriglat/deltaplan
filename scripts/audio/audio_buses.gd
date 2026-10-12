@@ -8,8 +8,8 @@ extends RefCounted
 ## Создать недостающие шины (cfg — раздел flight из configs/audio.json).
 static func ensure(cfg: Dictionary) -> void:
 	var buses: Dictionary = cfg.get("buses", {})
-	_ensure_bus(String(buses.get("vario", "Vario")))
-	var wind := _ensure_bus(String(buses.get("wind", "Wind")))
+	ensure_bus(String(buses.get("vario", "Vario")))
+	var wind := ensure_bus(String(buses.get("wind", "Wind")))
 	if find_effect(wind, "AudioEffectLowPassFilter") == null:
 		AudioServer.add_bus_effect(wind, AudioEffectLowPassFilter.new())
 	if find_effect(wind, "AudioEffectPanner") == null:
@@ -19,8 +19,8 @@ static func ensure(cfg: Dictionary) -> void:
 		comp.threshold = float(buses.get("wind_compressor_threshold_db", -12.0))
 		comp.ratio = float(buses.get("wind_compressor_ratio", 3.0))
 		AudioServer.add_bus_effect(wind, comp)
-	_ensure_bus(String(buses.get("effects", "Effects")))
-	_ensure_bus(String(buses.get("ambient", "Ambient")))
+	ensure_bus(String(buses.get("effects", "Effects")))
+	ensure_bus(String(buses.get("ambient", "Ambient")))
 
 
 ## Эффект заданного класса на шине или null.
@@ -40,7 +40,7 @@ static func index_or_master(bus_name: String) -> int:
 	return i if i >= 0 else 0
 
 
-static func _ensure_bus(bus_name: String) -> int:
+static func ensure_bus(bus_name: String) -> int:
 	var i := AudioServer.get_bus_index(bus_name)
 	if i >= 0:
 		return i
