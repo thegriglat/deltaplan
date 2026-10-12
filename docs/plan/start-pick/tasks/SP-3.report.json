@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "Точный старт (slat/slon/hdg) доходит до клиентов: Zone.start_lat/lon/heading_deg в proto и Go-коде (gen.sh, go test ok), зеркало NetMessages, to_zone/from_zone, WorldKey v2 с ключами slat/slon/hdg только при точке, NetFlight.world_settings берёт точку из ключа.",
+  "commits": [
+    "f7ba3c83 SP-3: точный старт хозяина доходит до клиентов"
+  ],
+  "checks": [
+    {
+      "name": "tests/net",
+      "value": "31/31",
+      "pass": true
+    },
+    {
+      "name": "test_world_key",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_start_pick_contracts",
+      "value": "14/14",
+      "pass": true
+    },
+    {
+      "name": "net_flight",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept SP-3",
+  "uncertain": [
+    {
+      "where": "scripts/game/world_key.gd parse",
+      "why": "ключ без slat/slon/hdg сбрасывает точный старт базы клиента",
+      "checked": "тест: ключ без точки -> has_exact_start() false"
+    },
+    {
+      "where": "scripts/net/net_zone.gd world_key_for",
+      "why": "запасной STUB-ключ точку старта не содержит; не менял",
+      "checked": "прочитан код"
+    },
+    {
+      "where": "docs/guide/net-protocol.md",
+      "why": "примеры ключей остались с v=1 (показывают форму)",
+      "checked": "tests/net зелёные"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-12T06:46:00",
+  "by": "executor"
+}

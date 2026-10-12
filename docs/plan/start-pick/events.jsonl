@@ -19,3 +19,6 @@
 {"t": "2026-10-12T06:31:06", "by": "coordinator", "task": "SP-1", "ev": "merged", "commits": ["5216f9cc"]}
 {"t": "2026-10-12T06:38:58", "by": "coordinator", "task": "SP-2", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-start-pick-SP-2"}
 {"t": "2026-10-12T06:38:58", "by": "coordinator", "task": "SP-3", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-start-pick-SP-3"}
+{"t": "2026-10-12T06:46:00", "by": "executor", "task": "SP-3", "ev": "reported", "commits": ["f7ba3c83"], "note": "done: Точный старт (slat/slon/hdg) доходит до клиентов: Zone.start_lat/lon/heading_deg в proto и Go-коде (gen.sh, go test ok)…"}
+{"t": "2026-10-12T06:47:36", "by": "executor", "task": "SP-3", "ev": "checked", "note": "6/6 tests/net=ok:31/31; test_world_key=ok:4/4; test_start_pick_contracts=ok:14/14; net_flight=ok:7/7; gd=ok:exit 0; docs=ok:exit 0"}
+{"t": "2026-10-12T06:47:41", "by": "coordinator", "task": "SP-3", "ev": "accepted", "note": "по отчёту: 6/6 PASS, go test зелёный; uncertain (parse без slat сбрасывает точку; STUB-ключ без точки; примеры v=1 в доке) — разумны, закрыты тестами"}
