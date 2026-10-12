@@ -18,7 +18,7 @@
     },
     {
       "name": "PH-К4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pilot-hud.md"
     },
     {
@@ -44,7 +44,8 @@
     "assets/models/wrist_compass*",
     "tests/flight",
     "tests/game",
-    "tests/contracts/test_pilot_hud_contracts.gd"
+    "tests/contracts/test_pilot_hud_contracts.gd",
+    "tools/blender/build_watch.py,tools/blender/build_wrist_compass.py,assets/source/watch.blend,assets/source/wrist_compass.blend"
   ],
   "dont_touch": [
     "scripts/instruments/telltale*",
@@ -71,5 +72,5 @@
   "report_extra": [],
   "notes": "Зависит от PH-3, PH-5, PH-6 (влиты в feature/pilot-hud). Ремешки: если W×H из PH-3 отличаются от JSON > 3 мм — правка watch.json/wrist_compass.json и перегенерация скриптами PH-5/PH-6. Компас: демпфированный осциллятор (период ~1,5 с, ζ ≈ 0,6, в конфиге с пояснением), при почти вертикальном циферблате держит угол. Тесты назвать с wrist в имени файла.",
   "created": "2026-10-12T21:06:01",
-  "edited": "2026-10-12T21:10:22"
+  "edited": "2026-10-12T21:17:52"
 }

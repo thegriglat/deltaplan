@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "PH-К4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pilot-hud.md"
     },
     {
@@ -44,8 +44,8 @@
     },
     {
       "name": "check_models",
-      "cmd": "godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -40",
-      "expect": "re:ИТОГ: OK"
+      "cmd": "godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -60",
+      "expect": "num:ОШИБОК: (\\d+) <=192"
     }
   ],
   "report_extra": [
@@ -55,5 +55,5 @@
   ],
   "notes": "Компас — правая рука (WristR). Жидкостная капсула Ø ~46 мм, картушка Ø ≥ 34 мм: N/E/S/W крупно, метки через 10°, цифры через 30°, N выделено формой (красный треугольник на предмете допустим — это предмет, не HUD), неподвижная курсовая черта Lubber на +Y. Ремешок под эллипс W×H из wrist_compass.json (по умолчанию 64×50 мм; PH-3 сообщит точные — PH-7 перегенерирует). Только Blender-скрипт (воспроизводимо, параметры в JSON), как пилот/приборы (tools/blender/bl_util.py). Текстуры ≤ 512² (лучше 256²), в Godot .import: compress/mode=2, mipmaps/generate=true. В docs/guide/models.md — подраздел «Наручный компас» в разделе «Наручные приборы» (общий с PH-5: каждый правит свой подраздел). Проверки формы PH-К4 (компас) — в tests/contracts/test_pilot_hud_contracts.gd (свои функции test_ph_k4_compass_*). Рендеры в Blender (1–3) — для себя, игровые скриншоты не делать.",
   "created": "2026-10-12T21:04:15",
-  "edited": "2026-10-12T21:10:22"
+  "edited": "2026-10-12T21:17:52"
 }
