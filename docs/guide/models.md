@@ -336,7 +336,7 @@ godot --headless --path . --script res://scenes/models_preview/check_models.gd  
 - Тело в кабинной камере (PH-9, PH-К5): в обоих `eye_mode` рисуются только материалы из
   `camera.json → cockpit.visible_materials` (`Glove`, `Trousers`, `Boot`, `Sole`; рукав `JacketSleeve` убран из кабины — fix/wrist-gloves); голова, шея, грудь,
   кокон — нет; нет материала в модели — пропуск. Ноги выпускаются `climb_out` при снижении ниже
-  `game.json → pilot_animation.climb_out_agl_m` (25 м); в `flare` при взгляде по умолчанию носки ботинок
+  `game.json → pilot_animation.climb_out_agl_m` (8 м); в `flare` при взгляде по умолчанию носки ботинок
   в кадре (`tests/game/test_cockpit_legs.gd`).
 - Вид от первого лица на старте: камера в `Head`, `Helmet` скрыт, взгляд вниз на 60–80° — видны
   грудь и подвеска, ноги и ботинки между стойками, базовая штанга с планшетом (`pilot/pov_down.png`).
