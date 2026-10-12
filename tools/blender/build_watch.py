@@ -6,7 +6,7 @@
 Параметры — tools/blender/watch.json (мм). Контракт PH-К4 v1 (docs/contracts/pilot-hud.md,
 docs/guide/models.md → «Наручные часы»): начало координат — центр нижней плоскости корпуса на рукаве;
 циферблат смотрит в −Z Godot (+Y Blender), «12 часов» и подвижные части при повороте 0 — к +Y Godot
-(+Z Blender), «3 часа» (заводная головка) — по −X. Ремешок охватывает эллипс W×H (центр (0, 0, +H/2)
+(+Z Blender), заводная головка — на стороне +Y (PH-К4 v2), ушки ремешка — по ±X. Ремешок охватывает эллипс W×H (центр (0, 0, +H/2)
 Godot = (0, −H/2, 0) Blender) с зазором. Ноды верхнего уровня: Case, Strap, Dial, Glass, HourHand,
 MinuteHand; стрелки — с началом на оси циферблата, вращаются только вокруг своей Z Godot (Y Blender).
 """
@@ -155,12 +155,12 @@ def build_case(mb):
             (rd + mm(0.4), top - mm(0.2)), (rd + mm(0.2), yd + mm(1.0)), (rd, yd)]
     lathe(mb, prof, "Case")
     disc(mb, rc - mm(1.2), 0.0, "Case", up=False)       # дно (на рукаве)
-    # заводная головка на «3 часах» (−X): ножка и рифлёная головка
+    # заводная головка на стороне +Y Godot (+Z Blender, к пальцам; PH-К4 v2): ножка и рифлёная головка
     yc = mm(6.0)
-    mb.add_tube([(-rc + mm(0.5), yc, 0), (-rc - mm(1.2), yc, 0)], mm(1.3), "Case", sides=12,
+    mb.add_tube([(0, yc, rc - mm(0.5)), (0, yc, rc + mm(1.2))], mm(1.3), "Case", sides=12,
                 up=(0, 1, 0))
-    mb.add_tube([(-rc - mm(1.2), yc, 0), (-rc - mm(3.4), yc, 0)], mm(2.4), "Case", sides=12,
-                up=(0, 1, 0))
+    mb.add_tube([(0, yc, rc + mm(1.2)), (0, yc, rc + mm(3.4))], mm(2.4), "Case", sides=12,
+                up=(1, 0, 0))
     # ушки: на концах ремешка (по ±X), вровень с ремешком по ширине
     sw = mm(P["strap_width_mm"])
     for sx in (-1, 1):

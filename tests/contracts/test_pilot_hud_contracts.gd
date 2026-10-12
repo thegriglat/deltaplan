@@ -228,16 +228,19 @@ func test_ph_k4_watch_dimensions() -> void:
 		return
 	var case_box := _watch_aabb(root, "Case")
 	# корпус: Ø 40 ± 2 по Y (вдоль руки), высота ≤ 13 мм от начала, дно на z=0, циферблат в −Z
-	check(absf(case_box.size.y - 0.040) <= 0.002, "Ø корпуса %.1f мм" % (case_box.size.y * 1000))
+	check(absf(case_box.position.y + 0.020) <= 0.002, "Ø корпуса: край на −Y %.1f мм" % (case_box.position.y * 1000))
+	check(absf(case_box.end.y - 0.020 - 0.0034) <= 0.002, "на +Y корпус + заводная головка: %.1f мм" % (case_box.end.y * 1000))
 	check(case_box.size.x <= 0.046, "ширина с головкой %.1f мм" % (case_box.size.x * 1000))
-	check(case_box.position.x < -0.0225 and case_box.end.x < 0.0225, "заводная головка по −X")
+	# PH-К4 v2: головка на +Y (к пальцам): корпус вытянут к +Y сильнее, чем к −Y; по X симметричен (ушки)
+	check(case_box.end.y > -case_box.position.y + 0.002, "заводная головка на +Y: %s" % case_box)
+	check(absf(case_box.end.x + case_box.position.x) < 0.001, "по X корпус симметричен (головки по −X нет)")
 	check(absf(case_box.end.z) < 1e-4 and case_box.position.z >= -0.013, "корпус от 0 до ≤ 13 мм в −Z: %s" % case_box)
 	var dial := _watch_aabb(root, "Dial")
 	check(dial.size.x >= 0.030 and dial.size.y >= 0.030, "Ø циферблата %.1f мм" % (dial.size.x * 1000))
 	check(dial.size.z < 1e-4 and dial.position.z < 0, "циферблат плоский, смотрит в −Z")
 	var strap := _watch_aabb(root, "Strap")
-	var w := 0.056
-	var h := 0.051
+	var w := 0.054
+	var h := 0.052
 	var gap := 0.001
 	# ширина вдоль руки 20 мм; охват эллипса W×H с зазором ≥ 1 мм, но не дальше 5 мм
 	check(strap.size.y >= 0.0199 and strap.size.y <= 0.0245, "ширина ремешка 20 мм (с пряжкой до 24) %.1f мм" % (strap.size.y * 1000))
@@ -321,7 +324,7 @@ func test_ph_k4_compass_nodes_and_axes() -> void:
 	var case_a := _mi(r, "Case").get_aabb()
 	check(absf(case_a.size.x * 1000.0 - 46.0) <= 3.0, "корпус Ø 46 ± 3: %.1f" % (case_a.size.x * 1000.0))
 	check(-case_a.position.z * 1000.0 <= 16.0 and case_a.position.z < 0.0, "корпус наружу (−Z), высота ≤ 16 мм")
-	check(case_a.end.z >= 0.0 and case_a.end.z < 0.012, "юбка корпуса садится на рукав (до 12 мм вглубь)")
+	check(case_a.end.z >= 0.0 and case_a.end.z < 0.014, "юбка корпуса садится на рукав (до 14 мм вглубь: при сечении 54×52 юбка у края глубже)")
 	var card := _mi(r, "Card")
 	check(card.get_aabb().size.x >= 0.034, "картушка Ø ≥ 34 мм")
 	for n in ["Card", "Lubber"]:

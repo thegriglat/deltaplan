@@ -164,6 +164,8 @@ settings_pilot_shift,Смещение пилота,Pilot shift
 settings_pilot_shift_hint,круг внизу экрана: куда смещён вес,circle at screen bottom: where the weight is shifted
 settings_clock,Часы,Clock
 settings_clock_hint,время суток игры внизу справа и на запястье,in-game time of day at bottom right and on the wrist
+settings_compass,Компас,Compass
+settings_compass_hint,компас на правом запястье (курс по реальному направлению),compass on the right wrist (shows your real heading)
 settings_pilot_name,Имя пилота,Pilot name
 net_pilot_name_default,Пилот,Pilot
 gfx_low,Низкое (лёгкое),Low (light)
