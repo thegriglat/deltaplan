@@ -12,6 +12,7 @@ const OTHER := {
 		"CockpitCamera"],
 	"res://assets/models/instrument.glb": ["Body", "Screen"],
 	"res://assets/models/vario_90s.glb": ["Body", "Screen"],
+	"res://assets/models/watch.glb": ["Case", "Strap", "Dial", "Glass", "HourHand", "MinuteHand"],
 }
 const TRI_BUDGET := {"glider": 30000, "wing": 14000, "instrument": 3000}
 
@@ -115,6 +116,15 @@ func _check_axes(path: String, root: Node3D) -> void:
 			and ap.get_animation("walk").loop_mode == Animation.LOOP_LINEAR
 			and ap.get_animation("run").loop_mode == Animation.LOOP_LINEAR)
 		print("  Head %s HandL %s HandR %s" % [head, _pos(root, "HandL"), _pos(root, "HandR")])
+	elif path.ends_with("watch.glb"):
+		# PH-К4: корпус Ø 40 ± 2 по Y, циферблат смотрит в −Z, стрелки — на оси, острие к +Y
+		var cb := (root.find_child("Case", false, false) as MeshInstance3D).get_aabb()
+		_expect(path, "корпус Ø %.1f мм (40 ± 2)" % (cb.size.y * 1000), absf(cb.size.y - 0.04) <= 0.002)
+		_expect(path, "циферблат в −Z", (root.find_child("Dial", false, false) as MeshInstance3D).get_aabb().position.z < 0)
+		for hn in ["HourHand", "MinuteHand"]:
+			var hand := root.find_child(hn, false, false) as MeshInstance3D
+			_expect(path, "%s: острие к +Y, начало на оси" % hn, hand.get_aabb().end.y > 0.008
+				and absf(hand.position.x) < 1e-6 and absf(hand.position.y) < 1e-6)
 	elif path.ends_with("instrument.glb") or path.ends_with("vario_90s.glb"):
 		var scr := root.find_child("Screen", true, false) as MeshInstance3D
 		if scr:
