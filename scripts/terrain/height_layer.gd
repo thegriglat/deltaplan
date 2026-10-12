@@ -192,9 +192,12 @@ func sample(x: float, z: float) -> float:
 	return lerpf(lerpf(a, b, tx), lerpf(c, d, tx), tz)
 
 
-## Текстура высот (FORMAT_RF, 32 бита) для вершинного шейдера.
+## Текстура высот (FORMAT_RF, 32 бита) для вершинного шейдера; с мипмапами (среднее высот —
+## уклон, отфильтрованный по следу пикселя: нормаль рельефа во фрагментном шейдере). Уровень 0 —
+## узлы как есть (texelFetch вершин и height_at не меняются); мипы — ~5 мс и +1/3 памяти на слой.
 func make_texture() -> ImageTexture:
 	var img := Image.create_from_data(
 		width, height, false, Image.FORMAT_RF, heights.to_byte_array()
 	)
+	img.generate_mipmaps()
 	return ImageTexture.create_from_image(img)

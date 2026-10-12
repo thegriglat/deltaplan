@@ -10,7 +10,7 @@ render_mode cull_back, diffuse_burley, specular_schlick_ggx;
 #include "res://scripts/terrain/meadow_look.gdshaderinc"
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
-// шаг между вершинами чанка в узлах сетки (1, 2, 4…) — для гладкой нормали вершины
+// шаг между вершинами чанка в узлах сетки (1, 2, 4…) — для нормали вершины (тени)
 uniform float lod_stride = 1.0;  // свой материал на каждый LOD (instance uniform переполняет Compatibility)
 uniform float skirt_depth;      // глубина «юбки», м
 // прямоугольник X/Z, где рисует более детальный слой (грубый слой там не рисуется)
@@ -143,9 +143,23 @@ uniform float water_specular = 0.4;      // блик воды (PBR specular; 0.5
 uniform float roughness_value;
 uniform float specular_value;
 
+// та же текстура высот с мипмапами (среднее высот): нормаль во фрагменте с шагом базовой сетки
+// слоя вблизи и по следу пикселя вдали — не зависит от LOD меша (TerrainRenderer)
+uniform sampler2D height_mip_tex : filter_linear_mipmap, repeat_disable;
+uniform float height_mip_max_lod = 0.0;
+// --- промоины (эрозионный рисунок только в нормалях, по образцу erosion filter runevision /
+// gullies Clay John): ветвящиеся полосы вдоль линии падения, октавы; configs/world.json →
+// terrain_look: erosion_* ---
+uniform bool erosion_enabled = true;
+uniform float erosion_strength = 0.45;            // наклон нормали промоин, доля уклона склона
+uniform float erosion_scale_m = 140.0;            // шаг крупных промоин, м (октавы — вдвое мельче)
+uniform float erosion_octaves = 3.0;
+uniform float erosion_gain = 0.55;                // сила следующей октавы
+uniform float erosion_branch = 1.0;               // поворот октавы по уклону от предыдущих (ветвление)
+uniform vec2 erosion_slope_deg = vec2(5.0, 18.0); // уклон появления / полной силы
+uniform vec2 erosion_fade_m = vec2(7000.0, 14000.0);   // гаснут с расстоянием, м
+
 varying vec3 v_world;
-varying vec3 v_normal_world;
-varying flat float v_lod_stride;
 // тень облаков: множитель прямого солнца и SPECULAR — в light() (cloud_shadow.gdshaderinc)
 varying float v_cs_sun;
 varying float v_cs_spec;
@@ -166,10 +180,8 @@ void vertex() {
 	vec3 n = normalize(vec3(hx0 - hx1, 2.0 * float(s) * layer_spacing, hz0 - hz1));
 	// COLOR.r = 1 у вершин «юбки»: опускаем их вниз
 	VERTEX.y = h - COLOR.r * skirt_depth;
-	NORMAL = n;
+	NORMAL = n;   // только смещение теней; освещение — нормаль фрагмента (height_grad)
 	v_world = vec3(wp.x, VERTEX.y, wp.z);
-	v_normal_world = n;
-	v_lod_stride = lod_stride;
 	int k = max(int(round(outcrop_scale_m / layer_spacing)), s);
 	float gr = float(k) * layer_spacing;
 	v_convex = -(h_node(ij + ivec2(k, 0)) + h_node(ij - ivec2(k, 0)) + h_node(ij + ivec2(0, k))
@@ -490,6 +502,75 @@ void water_wind(vec2 xz, float dist, float foot, out float rough, out vec3 nw, o
 	rough = clamp(rough, 0.0, 0.8);
 }
 
+// Градиент высоты (dh/dx, dh/dz) центральными разностями с шагом d = тексель мип-уровня lod:
+// мип — среднее высот, разность средних — средний уклон по окрестности ±d (фильтр без муара).
+// lod 0 — шаг базовой сетки слоя (как прежняя нормаль вершины LOD 0), билинейно между узлами.
+vec2 height_grad(vec2 xz, float lod) {
+	float d = layer_spacing * exp2(lod);
+	vec2 uv = ((xz - layer_origin) / layer_spacing + 0.5) / layer_texels;
+	vec2 du = vec2(d / layer_spacing / layer_texels.x, 0.0);
+	vec2 dv = vec2(0.0, d / layer_spacing / layer_texels.y);
+	float hx1 = textureLod(height_mip_tex, uv + du, lod).r;
+	float hx0 = textureLod(height_mip_tex, uv - du, lod).r;
+	float hz1 = textureLod(height_mip_tex, uv + dv, lod).r;
+	float hz0 = textureLod(height_mip_tex, uv - dv, lod).r;
+	return vec2(hx1 - hx0, hz1 - hz0) / (2.0 * d);
+}
+
+// Мип-уровень по следу пикселя foot (м): тексель уровня ≈ пиксель; не мельче базовой сетки.
+float height_lod(float foot) {
+	return clamp(log2(max(foot, 1e-3) / layer_spacing), 0.0, height_mip_max_lod);
+}
+
+// Промоины: вклад одной ячейки сетки (шаг 1) — полосы вдоль линии падения (фаза — вдоль
+// горизонтали dir) с началом фазы в сдвинутом центре ячейки. Производная рисунка cos по p.
+vec2 gully_cell(vec2 ip, vec2 fp, vec2 o, vec2 dir) {
+	float hs = hash12(ip + o);
+	vec2 pp = fp - o - (vec2(hs, fract(hs * 37.17)) - 0.5) * 0.5;
+	return -sin(dot(pp, dir) * 6.2832) * dir;
+}
+
+// Промоины: одна октава — 4 ближайшие ячейки, смешанные гладкими весами (как value noise;
+// у ячеек разная фаза — полосы рвутся и сдвигаются). Возвращает производную рисунка по p
+// (значение не нужно — только нормаль), |·| ≤ 2π.
+// Без циклов (здесь и в erosion_grad): цикл с телом такого размера драйвер (NVIDIA) не
+// разворачивает и не выбрасывает из прохода глубины/теней, где нужен только discard, — туда
+// тянется вся раскраска, от которой зависит сила (замер: тени +2,5 мс).
+vec2 gully_octave(vec2 p, vec2 dir) {
+	vec2 ip = floor(p);
+	vec2 fp = p - ip;
+	vec2 u = fp * fp * (3.0 - 2.0 * fp);
+	vec2 a = mix(gully_cell(ip, fp, vec2(0.0, 0.0), dir), gully_cell(ip, fp, vec2(1.0, 0.0), dir), u.x);
+	vec2 b = mix(gully_cell(ip, fp, vec2(0.0, 1.0), dir), gully_cell(ip, fp, vec2(1.0, 1.0), dir), u.x);
+	return mix(a, b, u.y) * 6.2832;
+}
+
+// Октава o (0, 1, 2…) промоин: шаг erosion_scale_m / 2^o, ориентирована по уклону g с учётом
+// предыдущих октав dg — промоины ветвятся. Октава мельче ~3 пикселей — без неё (муар).
+vec2 erosion_octave(vec2 xz, vec2 g, vec2 dg, float o, float foot, float amp0) {
+	float lambda = erosion_scale_m * exp2(-o);
+	float kaa = (1.0 - smoothstep(0.15 * lambda, 0.35 * lambda, foot))
+			* step(o + 0.5, erosion_octaves);
+	if (kaa <= 0.0) {
+		return dg;
+	}
+	vec2 gg = g + dg * erosion_branch;
+	vec2 dir = length(gg) > 1e-4 ? normalize(vec2(-gg.y, gg.x)) : vec2(1.0, 0.0);
+	return dg + gully_octave(xz / lambda + o * 17.3, dir) * amp0 * pow(erosion_gain, o) * kaa;
+}
+
+// Возмущение градиента высоты промоинами в точке xz: g — уклон в масштабе промоин (мир),
+// foot — след пикселя, м; k — общая сила (маска поверхности × крутизна × дальность).
+// До 4 октав (erosion_octaves).
+vec2 erosion_grad(vec2 xz, vec2 g, float foot, float k) {
+	float amp0 = erosion_strength * length(g) / 6.2832 * k;
+	vec2 dg = erosion_octave(xz, g, vec2(0.0), 0.0, foot, amp0);
+	dg = erosion_octave(xz, g, dg, 1.0, foot, amp0);
+	dg = erosion_octave(xz, g, dg, 2.0, foot, amp0);
+	dg = erosion_octave(xz, g, dg, 3.0, foot, amp0);
+	return dg;
+}
+
 // Нормаль по билинейной поверхности в точке (градиент внутри клетки сетки).
 vec3 bilinear_normal(vec2 xz) {
 	vec2 f = (xz - layer_origin) / layer_spacing;
@@ -512,24 +593,21 @@ void fragment() {
 		discard;
 	}
 	float dist = length(wp - CAMERA_POSITION_WORLD);
-	// Нормаль вершины — сглаженная (центральные разности по узлам): по ней классифицируем
-	// поверхность (уклон, экспозиция), чтобы ступеньки DSM на опушках не красились в скалы.
-	vec3 n_class = normalize(v_normal_world);
-	vec3 n = n_class;
-	// У грубых LOD вершины редкие: добавляем освещению детали из сетки (нормаль билинейной
-	// поверхности), пока клетка сетки крупнее пикселя — иначе мерцание.
-	if (v_lod_stride > 1.5) {
-		vec2 fw = fwidth(wp.xz);
-		float footprint = max(fw.x, fw.y);
-		float fine_w = 1.0 - smoothstep(0.3 * layer_spacing, layer_spacing, footprint);
-		if (fine_w > 0.0) {
-			n = normalize(mix(n, bilinear_normal(wp.xz), fine_w));
-		}
-	}
 	float h = wp.y;
 	float fade = 1.0 - smoothstep(detail_fade_m * 0.25, detail_fade_m, dist);
 	vec2 fw_m = fwidth(wp.xz);
 	float foot_m = max(fw_m.x, fw_m.y);
+	// Нормаль рельефа — во фрагменте, из мипов текстуры высот: вблизи центральные разности с
+	// шагом базовой сетки слоя (±1 узел, как прежняя нормаль вершины LOD 0), вдали — средний
+	// уклон по следу пикселя (не мерцает). От LOD меша не зависит: вдали детали не «надуты»
+	// крупными треугольниками, на стыках LOD нормаль одна и та же. По ней же классификация
+	// (уклон, экспозиция); ступеньку крон DSM на опушке вычитаем ниже по маске 10 м.
+	float foot_px = max(length(dFdx(wp.xz)), length(dFdy(wp.xz)));
+	float n_lod = height_lod(foot_px);
+	float n_d = layer_spacing * exp2(n_lod);   // полушаг разностей нормали, м
+	vec2 hg = height_grad(wp.xz, n_lod);
+	vec3 n_class = normalize(vec3(-hg.x, 1.0, -hg.y));
+	vec3 n = n_class;
 
 	vec4 wa;
 	vec4 wb;
@@ -571,8 +649,8 @@ void fragment() {
 		float nz = vnoise(q / 3.0 + vec2(1.7, 9.2)) - 0.5;
 		float f10 = smoothstep(0.5 - forest_edge_soft, 0.5 + forest_edge_soft,
 				r0 + nz * forest_edge_noise);
-		// окрестность ±d (шаг нормали вершины): ступенька крон DSM и глубина в лесу
-		float d = max(layer_spacing * v_lod_stride, canopy_edge_depth_m);
+		// окрестность ±d (шаг нормали): ступенька крон DSM и глубина в лесу
+		float d = max(n_d, canopy_edge_depth_m);
 		float rx1 = forest_mask_r(q + vec2(d, 0.0));
 		float rx0 = forest_mask_r(q - vec2(d, 0.0));
 		float rz1 = forest_mask_r(q + vec2(0.0, d));
@@ -940,6 +1018,29 @@ void fragment() {
 	col *= 1.0 + detail_strength * fade * ((d1 - 0.5) * 1.2 + (d2 - 0.5) * 0.8 * d2k)
 			+ detail_strength * near_fade * (d0 - 0.5) * 1.2;
 
+	// --- вода (реки, ручьи, озёра): класс «вода» WorldCover (карта 25 м) или маска 10 м (T03,
+	// OSM — точнее по форме и не мигает с шагом карты классов); максимум из двух ---
+	float water_g = use_forest_mask ? forest_mask_g_aa(wp.xz, foot_m) : 0.0;
+	float water = max(wb.y, water_g);
+
+	// промоины на открытых склонах (не на воде, снегу, под пологом леса, в застройке): только
+	// нормаль; направление и сила — по уклону в масштабе крупных промоин (от камеры не зависит)
+	if (erosion_enabled && erosion_strength > 0.0 && dist < erosion_fade_m.y) {
+		float ek = (1.0 - forest) * (1.0 - snow) * (1.0 - gsnow) * (1.0 - water) * (1.0 - built)
+				* (1.0 - smoothstep(erosion_fade_m.x, erosion_fade_m.y, dist));
+		if (ek > 0.01 && foot_px < 0.35 * erosion_scale_m) {
+			float lod_e = clamp(log2(0.5 * erosion_scale_m / layer_spacing), 0.0, height_mip_max_lod);
+			vec2 ge = height_grad(wp.xz, lod_e);
+			float sdeg = degrees(atan(length(ge)));
+			ek *= smoothstep(erosion_slope_deg.x, erosion_slope_deg.y, sdeg);
+			if (ek > 0.01) {
+				vec2 dg = erosion_grad(wp.xz, ge, foot_px, ek);
+				vec2 gn = -n.xz / max(n.y, 0.05) + dg;
+				n = normalize(vec3(-gn.x, 1.0, -gn.y));
+			}
+		}
+	}
+
 	n = normalize(n + vec3(grass_bend.x, 0.0, grass_bend.y) + gn_add + rn_add * max(rock, outcrop * (1.0 - kurum)));
 	// нормали крон (освещение полога)
 	n = normalize(mix(n, normalize(n + vec3(crown_n.x, 0.0, crown_n.z) * 1.5), forest * crown_k * 0.6));
@@ -955,10 +1056,6 @@ void fragment() {
 		n = normalize(n + bump);
 	}
 
-	// --- вода (реки, ручьи, озёра): класс «вода» WorldCover (карта 25 м) или маска 10 м (T03,
-	// OSM — точнее по форме и не мигает с шагом карты классов); максимум из двух ---
-	float water_g = use_forest_mask ? forest_mask_g_aa(wp.xz, foot_m) : 0.0;
-	float water = max(wb.y, water_g);
 	// берег: тонкая полоса мокрого грунта/гальки у кромки воды маски 10 м (не на самой воде)
 	float bank = use_forest_mask
 			? smoothstep(0.02, 0.22, water_g) * (1.0 - smoothstep(0.22, 0.4, water_g))
