@@ -8,7 +8,7 @@ const WING_NODES: Array[String] = ["Sail", "Frame", "ControlFrame", "HangPoint",
 	"UprightBottomL", "UprightBottomR", "WingCG"]
 ## Модели не крыльев; крылья — по одному glider_<id>.glb на каждый configs/wings/<id>.json.
 const OTHER := {
-	"res://assets/models/pilot.glb": ["Pilot", "PilotBody", "Helmet", "Head", "HandL", "HandR",
+	"res://assets/models/pilot.glb": ["Pilot", "PilotBody", "Helmet", "Head", "HandL", "HandR", "WristL", "WristR",
 		"CockpitCamera"],
 	"res://assets/models/instrument.glb": ["Body", "Screen"],
 	"res://assets/models/vario_90s.glb": ["Body", "Screen"],
@@ -115,6 +115,8 @@ func _check_axes(path: String, root: Node3D) -> void:
 			and ap.get_animation("walk").loop_mode == Animation.LOOP_LINEAR
 			and ap.get_animation("run").loop_mode == Animation.LOOP_LINEAR)
 		print("  Head %s HandL %s HandR %s" % [head, _pos(root, "HandL"), _pos(root, "HandR")])
+		for w: String in ["WristL", "WristR"]:
+			_expect(path, "%s есть" % w, root.find_child(w, true, false) != null)
 	elif path.ends_with("instrument.glb") or path.ends_with("vario_90s.glb"):
 		var scr := root.find_child("Screen", true, false) as MeshInstance3D
 		if scr:
