@@ -6,11 +6,12 @@ shader_type spatial;
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D normal_tex : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform sampler2D rough_tex : hint_roughness_gray, filter_linear_mipmap, repeat_enable;
-uniform vec3 tint : source_color = vec3(0.06, 0.036, 0.024);
+uniform vec3 tint : source_color = vec3(0.2, 0.115, 0.07);
 uniform vec3 worn_tint : source_color = vec3(0.2, 0.12, 0.075);
 uniform vec3 thread_tint : source_color = vec3(0.3, 0.22, 0.14);
-uniform float normal_strength = 1.0;
-uniform float base_rough = 0.62;
+uniform float normal_strength = 1.8;
+uniform float uv_scale = 0.28;   // UV кисти ~6 см на единицу: плитка 1K ≈ 21 см, зерно ≈ 0,2 мм/тексель
+uniform float base_rough = 0.8;
 uniform float seam_d = 0.012;
 
 varying vec2 wear;
@@ -20,7 +21,7 @@ void vertex() {
 }
 
 void fragment() {
-	vec2 uv = UV;
+	vec2 uv = UV * uv_scale;
 	vec3 tex = texture(albedo_tex, uv).rgb;
 	float lum = dot(tex, vec3(0.299, 0.587, 0.114));
 	vec3 nm = texture(normal_tex, uv).xyz * 2.0 - 1.0;
@@ -41,12 +42,12 @@ void fragment() {
 
 	float rough_tex_v = texture(rough_tex, uv * 0.7).r;
 	float grain = texture(albedo_tex, uv * 0.23).r;           // крупное пятно потёртости
-	float crease = clamp((1.0 - nm.z) * 3.0, 0.0, 1.0);
+	float crease = clamp((1.0 - nm.z) * 4.0, 0.0, 1.0);
 	float use = 0.0;
 	float cuff = step(wear.x, -0.0001);
 	float d = -wear.x;
 	if (cuff < 0.5) {
-		use = clamp(wear.x, 0.0, 1.0) * (0.55 + 0.6 * grain) + wear.y * 0.8;
+		use = clamp(wear.x, 0.0, 1.0) * (0.55 + 0.6 * grain) + wear.y * 0.4;
 	} else {
 		use = smoothstep(0.016, 0.0, d) * (0.5 + 0.5 * grain);   // затёртая кромка отворота
 	}
@@ -55,7 +56,11 @@ void fragment() {
 	col *= 1.0 - 0.4 * crease;                                    // в складках темнее
 	col = mix(col, worn_tint * (0.7 + 0.6 * lum), use * 0.65);
 	float rough = base_rough * (0.75 + 0.5 * rough_tex_v);
-	rough = mix(rough, 0.26 + 0.1 * rough_tex_v, use);            // глянец на тёртых местах
+	float gloss = smoothstep(0.6, 0.95, clamp(wear.x, 0.0, 1.0)) * (cuff < 0.5 ? 1.0 : 0.0);
+	rough = mix(rough, 0.38 + 0.1 * rough_tex_v, gloss);          // блеск — узкая полоса ладони у трубы
+	if (cuff > 0.5) {
+		rough = mix(rough, 0.45 + 0.1 * rough_tex_v, use);
+	}
 	if (cuff > 0.5) {
 		// строчка: пунктир на seam_d от кромки
 		float line = smoothstep(0.0012, 0.0004, abs(d - seam_d));
@@ -68,5 +73,5 @@ void fragment() {
 	ALBEDO = col;
 	ROUGHNESS = clamp(rough, 0.05, 1.0);
 	METALLIC = 0.0;
-	SPECULAR = 0.45;
+	SPECULAR = 0.3;
 }
