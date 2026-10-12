@@ -72,6 +72,7 @@ var hands_off := false
 var queue_walk: Dictionary = {}
 ## Индикатор смещения пилота внизу экрана (FB-1).
 var shift_indicator: PilotShiftIndicator
+var clock_label: ClockLabel
 ## Отладочные слои F1/F5/F6 (DebugOverlays).
 var debug_overlays: DebugOverlays
 
@@ -119,6 +120,10 @@ var _motion_gap := false  ## поток движения прерывался (�
 @onready var overlay: InstrumentOverlay = $InstrumentOverlay
 @onready var vario_audio: VarioAudio = $VarioAudio
 @onready var flight_audio: FlightAudio = $FlightAudio
+# Подошвы пилота на прошлом шаге (шуршание о траву, _rustle_feet).
+var _feet_prev := PackedVector3Array()
+var _feet_prev_usec: int = 0
+var _feet_speed: Array[float] = []
 
 
 func _exit_tree() -> void:
@@ -163,6 +168,11 @@ func _ready() -> void:
 	shift_indicator.name = "PilotShiftIndicator"
 	add_child(shift_indicator)
 	Config.reloaded.connect(shift_indicator.reload)
+	clock_label = ClockLabel.new()
+	clock_label.name = "ClockLabel"
+	clock_label.clock = sky.clock
+	add_child(clock_label)
+	Config.reloaded.connect(clock_label.reload)
 	var wfd := get_node_or_null("WindFieldDebug")
 	if wfd != null and wfd.has_signal("toggled"):
 		wfd.connect("toggled", func(on: bool) -> void: debug_overlays.wind_field_on = on)
@@ -1312,6 +1322,8 @@ func _setup_glider() -> void:
 			return Vector3.ZERO
 		return v.body_shift
 	_hide_from_cockpit()
+	if v != null and v.sky_shade != null:
+		v.sky_shade.env_fn = _sky_shade_env
 	for m: Dictionary in _cfg.get("mounted_instruments", []):
 		_mount_instrument(m)
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
@@ -1319,6 +1331,20 @@ func _setup_glider() -> void:
 	camera.glance_nodes.clear()
 	for inst: Node in mounted:
 		camera.glance_nodes.append(inst as Node3D)
+
+
+## Освещение для тени от неба (SkyShade.env_fn): sin высоты солнца и облачность прогноза.
+func _sky_shade_env() -> Vector2:
+	var sin_el := 1.0
+	if sky != null and sky.sun != null:
+		sin_el = maxf(sky.sun.global_transform.basis.z.y, 0.0)
+	var cover := 0.0
+	var w: Variant = air.get("weather") if air != null else null
+	if w is Dictionary and (w as Dictionary).has("_derived"):
+		var dv: Dictionary = (w as Dictionary)["_derived"]
+		if dv.has("sky"):
+			cover = float(WeatherModel.sky_params(String(dv.sky)).get("cover", 0.0))
+	return Vector2(sin_el, cover)
 
 
 ## Шлем и т. п. (camera.json → cockpit.hidden_nodes) — на слой, который кабина не рисует.
@@ -1365,9 +1391,48 @@ func _update_overlay() -> void:
 	overlay.visible = flying_enabled and input_controller.enabled and camera.mode != "cockpit"
 	if shift_indicator != null:  # индикатор смещения — во всех камерах, не в меню и не на буксире
 		shift_indicator.set_active(flying_enabled and input_controller.enabled and tow == null)
+	if clock_label != null:  # часы текстом — только в 3-м лице (PH-К2)
+		clock_label.set_active(flying_enabled and input_controller.enabled and camera.mode != "cockpit")
 
 
 # ---------------------------------------------------------------- сигналы планера
+
+
+## Подошвы пилота для шуршания о траву (PH-4, PH-К6): [{clearance_m, speed_ms, grass_h_m}].
+## Скорость — по смещению подошв между шагами физики; пусто, если трава выключена, пилот выше
+## flight.rustle.feet_max_agl_m или скелета нет.
+func _rustle_feet(t: Telemetry) -> Array:
+	var out: Array = []
+	var rc: Dictionary = Config.get_config("audio").get("flight", {}).get("rustle", {})
+	var feet := PackedVector3Array()
+	if (
+		terrain.grass != null
+		and is_instance_valid(glider.visual)
+		and t.altitude_agl <= float(rc.get("feet_max_agl_m", 2.0))
+	):
+		feet = glider.visual.feet_positions()
+	var now := Time.get_ticks_usec()
+	var dt := float(now - _feet_prev_usec) * 1e-6
+	for i in feet.size():
+		var p := feet[i]
+		var speed := _feet_speed[i] if i < _feet_speed.size() else 0.0
+		if i < _feet_prev.size() and dt > 0.001 and dt < 0.5:
+			speed = (p - _feet_prev[i]).length() / dt
+		var gh := terrain.grass.height_at(p.x, p.z)
+		out.append(
+			{
+				"clearance_m": p.y - terrain.height_at(p.x, p.z),
+				"speed_ms": speed,
+				"grass_h_m": gh,
+			}
+		)
+	if dt > 0.001 or feet.is_empty():
+		_feet_prev = feet
+		_feet_prev_usec = now
+		_feet_speed.resize(out.size())
+		for i in out.size():
+			_feet_speed[i] = out[i].speed_ms
+	return out
 
 
 func _on_telemetry(t: Telemetry) -> void:
@@ -1387,6 +1452,7 @@ func _on_telemetry(t: Telemetry) -> void:
 	}
 	if t.on_ground and air.has_method("mean_wind_at"):
 		extra["ground_wind_ms"] = (air.call("mean_wind_at", t.position) as Vector3).length()
+	extra["feet"] = _rustle_feet(t)
 	flight_audio.update(t, extra)
 	stats.flight_position_started = glider.model.flight_position_started  # FB-К2
 	stats.update(t, _dt)

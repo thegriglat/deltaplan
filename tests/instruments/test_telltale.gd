@@ -102,8 +102,41 @@ func test_anchor_on_every_wing() -> void:
 			check(l.x < -0.15 and r.x > 0.15, "%s: слева и справа %s %s" % [id, l, r])
 			check(absf(l.x + r.x) < 0.02 and l.distance_to(Vector3(-r.x, r.y, r.z)) < 0.02,
 				"%s: симметрично" % id)
-			check(l.y > bb.y + 0.3 and l.y < bb.y + 0.8 and l.z < bb.z, "%s: на переднем тросе, ~30%% высоты трапеции над штангой, впереди неё (%.2f)" % [id, l.y - bb.y])
+			for tt in v.telltales:
+				var an := Telltale.find_anchor(v.wing, tt.side, _cfg())
+				var dist := _seg_dist(tt.position, an.wire_a, an.wire_b)
+				check(dist <= float(an.wire_r) + 0.003, "%s: корень ленты на оси переднего троса: %.1f мм (трос r=%.1f мм)" % [id, dist * 1000.0, float(an.wire_r) * 1000.0])
+				check(an.wire_dir.y > 0.3 and an.wire_dir.z < 0.0, "%s: передний трос идёт вверх-вперёд %s" % [id, an.wire_dir])
+			check(l.y > bb.y + 0.3 and l.y < bb.y + 0.8 and l.z < bb.z + 0.15, "%s: на переднем тросе, ~30%% высоты трапеции над штангой (%.2f, dz %.3f)" % [id, l.y - bb.y, l.z - bb.z])
 		v.free()
+
+
+func _seg_dist(p: Vector3, a: Vector3, b: Vector3) -> float:
+	var ab := b - a
+	var t := clampf((p - a).dot(ab) / ab.length_squared(), 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+
+## Вид ленты: гладкий сплайн, ≤ 200 вершин, кольцо на тросе, рваный конец.
+func test_ribbon_geometry() -> void:
+	var g := Glider.new()
+	g.auto_start = Glider.AutoStart.NONE
+	g.setup("sport")
+	var wind := Vector3(0, 0, 4)
+	g.set_air_fn(func(_p: Vector3) -> Vector3: return wind)
+	add_child(g)
+	g.reset_on_ground(Vector3.ZERO, 0.0)
+	g.control = ControlInput.new()
+	for i in 60:
+		g.step(DT)
+	var t: Telltale = g.visual.telltales[0]
+	t._process(DT)
+	var arr := t._mesh.surface_get_arrays(0)
+	var nv := (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+	check(nv > 30 and nv <= 200, "вершин ленты %d (≤200, больше звеньев цепочки)" % nv)
+	check(t.get_node_or_null("Wrap") != null, "кольцо-обмотка на тросе")
+	check(t._fl[t._fl.size() - 1] == 0.0 and t._fl[t._fl.size() - 4] < 1.0, "конец рваный")
+	g.free()
 
 
 func test_glider_crosswind_on_launch() -> void:

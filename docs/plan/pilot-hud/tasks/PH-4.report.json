@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "Шуршание ног о траву: GrassField.height_at (PH-К6), GliderVisual.feet_positions, процедурный луп (шум с зёрнами) на Effects, уровень от погружения подошв и скорости; нет травы/выше/стоим — тишина.",
+  "commits": [
+    "b33eec7f PH-4: шуршание ног о траву, контракт PH-К6"
+  ],
+  "checks": [
+    {
+      "name": "pilot_hud",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "rustle",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "sound",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "audio",
+      "value": "33/33",
+      "pass": true
+    },
+    {
+      "name": "grass",
+      "value": "16/16",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "tools/dp accept PH-4 --dry",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:_rustle_feet",
+      "why": "скорость подошв считается по смещению между шагами физики (реальное время), а визуал интерполируется по кадрам — возможен шум оценки",
+      "checked": "громкость сглаживается smooth_s 0.2 с; на слух в игре не проверял"
+    },
+    {
+      "where": "scripts/flight/glider_visual.gd:FOOT_BONE_ABOVE_SOLE_M",
+      "why": "низ подошвы = кость Foot минус 0.095 м (hang_height 2.0 − GROUND_FEET 1.905), без учёта наклона стопы",
+      "checked": "тест: две точки, ниже таза"
+    },
+    {
+      "where": "scripts/terrain/grass_field.gd:height_at",
+      "why": "высота — середина диапазона класса (у отрисовки случайна по пучку); кустарник/лес × доля пучков",
+      "checked": "тесты классов, склона, площадки"
+    },
+    {
+      "where": "configs/audio.json flight.rustle",
+      "why": "числа (db -14, полоса 1.2–6.5 кГц, зёрна) подобраны без прослушивания",
+      "checked": "только синтетика/тесты"
+    }
+  ],
+  "dp_feedback": "Нет способа запустить один тест-файл быстро (dp accept --only гоняет по имени проверки); tests/run_tests.gd напрямую не запускается без автозагрузок.",
+  "t": "2026-10-12T22:06:49",
+  "by": "executor"
+}

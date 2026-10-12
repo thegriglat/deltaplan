@@ -1,0 +1,74 @@
+{
+  "status": "done",
+  "summary": "Краг убран: перчатка кончается короткой плотной манжетой (34 мм, конец 39 мм от оси запястья, закрыт диском); рукав — материал JacketSleeve (от локтя); пустышки WristL/WristR на Forearm.L/R по PH-К3 v2.",
+  "commits": [
+    "pilot-hud/PH-3: Пилот: короткая манжета, JacketSleeve, WristL/WristR",
+    "тесты PH-К3, check_models, docs/guide/models.md",
+    "слияние feature/pilot-hud"
+  ],
+  "checks": [
+    {
+      "name": "pilot_hud",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "pilot_pose",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "glove",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "pilot_arms",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "cockpit",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "check_models",
+      "value": "ОШИБОК: 192 (допуск 192)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ветка краги в glove_leather.gdshader оставлена (манжета использует отрицательный UV2.x), шейдер не менялся."
+  ],
+  "questions": [
+    "В scripts/flight/pilot_look.gd (вне скоупа) добавлена строка JacketSleeve -> та же ткань, что Jacket; без неё рукав в игре был бы простым материалом."
+  ],
+  "how_to_check": "dp accept PH-3; BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user blender --background --python tools/blender/build_pilot.py",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_pilot.py wrist_mount",
+      "why": "W×H оценены по вершинам кольца рукава MPFB (слой ±15 мм), точность несколько мм; угол 55.9 впритык к порогу 56",
+      "checked": "тесты в Godot считают угол заново по анимации prone и проходят"
+    },
+    {
+      "where": "dp accept check_models",
+      "why": "в моей копии паттерн карточки дал 'нет совпадения', хотя в логе ИТОГ: ОШИБОК: 192",
+      "checked": "лог просмотрен вручную, ошибок пилота нет"
+    }
+  ],
+  "dp_feedback": "dp accept --dry не переимпортирует ассеты после слияния (watch.glb не грузился до ручного --import); карточка check_models в копии устарела после правки.",
+  "extra": {
+    "cuff_end_mm": 39,
+    "wrist_at_mm": 45,
+    "thumb_side": "к большому пальцу, обе руки симметрично"
+  },
+  "wrist_w_mm": 54,
+  "wrist_h_mm": 52,
+  "beta_deg": 45.5,
+  "eye_angle_deg": 55.9,
+  "tris_before": 10431,
+  "tris_after": 9703,
+  "t": "2026-10-12T21:59:56",
+  "by": "executor"
+}

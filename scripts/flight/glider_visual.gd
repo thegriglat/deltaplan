@@ -38,6 +38,8 @@ const FALLBACK_UPRIGHT_TOP := Vector3(0.055, -0.02, -0.25)
 const GROUND_GRIP := Vector3(0.0, -0.59, -0.43)
 ## Середина ступней (кости Foot) в позе stand относительно карабина без наклона, м.
 const GROUND_FEET := Vector3(0.0, -1.905, 0.17)
+## Кость Foot над низом подошвы, м (hang_height_m 2,0 − GROUND_FEET.y 1,905).
+const FOOT_BONE_ABOVE_SOLE_M := 0.095
 
 var wing: Node3D  ## модель крыла
 var pilot: Node3D  ## нода Pilot (качается маятником вокруг HangPoint), внутри — модель пилота
@@ -59,6 +61,7 @@ var arm_bar := 0.0
 var arm_flare := 0.0
 ## Ленточки на тросах трапеции (Telltale, instruments.json → telltale); шагает Glider.step.
 var telltales: Array[Telltale] = []
+var sky_shade: SkyShade  ## затенение земли крылом (PH-8), null — выключено
 ## Рисуется ли жёсткая стропа модели пилота (на земле скрыта, вместо неё гибкая лента — A3.7).
 var strap_rigid_visible := true
 
@@ -158,6 +161,13 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	add_child(head_marker)
 	_pose = _flight_pose(Vector3.ZERO)
 	set_pose(0.0, 0.0, true, 1.0e6)
+	# Затенение земли крылом (PH-8, PH-К7): одна декаль под парусом, видна всем камерам
+	var ss_cfg: Dictionary = vis_cfg.get("sky_shade", {})
+	sky_shade = null
+	if bool(ss_cfg.get("enabled", false)):
+		sky_shade = SkyShade.new()
+		add_child(sky_shade)
+		sky_shade.setup(float(wing_cfg.get("area_m2", 13.5)), ss_cfg)
 
 
 ## Стропа пилота: поверхность Strap в PilotBody (прячется на земле), нижняя точка подвесной
@@ -397,6 +407,24 @@ func ground_feet_target(pilot_rel: Vector3) -> Vector3:
 ## Ступни нарисованного стоящего пилота (оси визуала): точка ступней позы стоя.
 func ground_feet() -> Vector3:
 	return _pose * _ground_feet_local
+
+
+## PH-К6: мировые точки низа подошв [левая, правая] в текущей позе скелета; нет скелета
+## пилота или ноды вне дерева — пустой массив.
+func feet_positions() -> PackedVector3Array:
+	var out := PackedVector3Array()
+	if _skeleton == null or not _skeleton.is_inside_tree():
+		return out
+	for side in ["L", "R"]:
+		var i := -1
+		for n in ["Foot_" + side, "Foot." + side]:
+			if i < 0:
+				i = _skeleton.find_bone(n)
+		if i < 0:
+			return PackedVector3Array()
+		var w := _skeleton.global_transform * _skeleton.get_bone_global_pose(i).origin
+		out.append(w - Vector3(0.0, FOOT_BONE_ABOVE_SOLE_M, 0.0))
+	return out
 
 
 ## Таз (ЦМ пилота) в осях ноды Pilot: кость Hips по текущей анимации; нет скелета — центр тела

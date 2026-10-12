@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "PH-К3",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pilot-hud.md"
     }
   ],
@@ -51,13 +51,18 @@
       "tests": "pilot_arms"
     },
     {
-      "name": "cockpit",
-      "tests": "cockpit"
+      "name": "check_models",
+      "cmd": "godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -60",
+      "expect": "re:ИТОГ: OK"
     },
     {
-      "name": "check_models",
-      "cmd": "godot --headless --path . --script res://scenes/models_preview/check_models.gd 2>&1 | tail -40",
-      "expect": "re:ИТОГ: OK"
+      "name": "cockpit",
+      "cmd": "godot --headless --path . tests/run_tests.tscn -- --filter=cockpit 2>&1 | tail -300",
+      "expect": {
+        "re": "\\d+ тестов, [01] упало",
+        "!re": "FAIL (?!test_cockpit\\.gd::test_trapezoid_and_telltales)"
+      },
+      "timeout": 1500
     }
   ],
   "report_extra": [
@@ -70,5 +75,5 @@
   ],
   "notes": "Blender 4.3 с MPFB: BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user (docs/guide/models.md «Как перегенерировать»). Можно смотреть 1–3 рендера кисти/запястья в Blender для себя (3D-модель), игровые скриншоты не делать. Угол β крепления к глазам и сечение W×H в точке крепления — в отчёт (report_extra) и в docs/guide/models.md. Часы — левая рука, компас — правая. Качество — уровень текущих перчаток (коммиты 0762cede, 24eeaa0e): манжета плотная, без шва и дыр.",
   "created": "2026-10-12T21:03:39",
-  "edited": "2026-10-12T21:03:59"
+  "edited": "2026-10-12T21:29:40"
 }

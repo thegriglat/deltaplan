@@ -1,0 +1,81 @@
+{
+  "id": "PH-7",
+  "module": "pilot-hud",
+  "type": "dp-engineer",
+  "title": "Часы и компас на руках: крепление и логика стрелок",
+  "goal": "Наручные часы (левая) и компас (правая) на пилоте: стрелки показывают время игры, картушка — реальный курс с инерцией жидкостного компаса; выключаются флажками.",
+  "plan_ref": "PH-7 Часы и компас",
+  "contracts": [
+    {
+      "name": "PH-К2",
+      "version": "1",
+      "ref": "docs/contracts/pilot-hud.md"
+    },
+    {
+      "name": "PH-К3",
+      "version": "2",
+      "ref": "docs/contracts/pilot-hud.md"
+    },
+    {
+      "name": "PH-К4",
+      "version": "2",
+      "ref": "docs/contracts/pilot-hud.md"
+    },
+    {
+      "name": "PH-К5",
+      "version": "1",
+      "ref": "docs/contracts/pilot-hud.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-hud-PH-7",
+  "branch": "pilot-hud/PH-7",
+  "base": "feature/pilot-hud",
+  "scope": [
+    "scripts/flight/wrist_instruments.gd",
+    "scripts/game/game.gd",
+    "scripts/ui/settings_panel.gd",
+    "configs/ui.json",
+    "configs/flight.json",
+    "locale/ui.csv",
+    "tools/blender/watch.json",
+    "tools/blender/wrist_compass.json",
+    "assets/models/watch*",
+    "assets/models/wrist_compass*",
+    "tests/flight",
+    "tests/game",
+    "tests/contracts/test_pilot_hud_contracts.gd",
+    "tools/blender/build_watch.py,tools/blender/build_wrist_compass.py,assets/source/watch.blend,assets/source/wrist_compass.blend",
+    "scripts/flight/glider_visual.gd"
+  ],
+  "dont_touch": [
+    "scripts/instruments/telltale*",
+    "tools/blender/build_pilot.py"
+  ],
+  "accept": [
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "wrist",
+      "tests": "wrist"
+    },
+    {
+      "name": "settings",
+      "tests": "settings"
+    },
+    {
+      "name": "cockpit",
+      "cmd": "godot --headless --path . tests/run_tests.tscn -- --filter=cockpit 2>&1 | tail -300",
+      "expect": {
+        "re": "\\d+ тестов, [01] упало",
+        "!re": "FAIL (?!test_cockpit\\.gd::test_trapezoid_and_telltales)"
+      },
+      "timeout": 1500
+    }
+  ],
+  "report_extra": [],
+  "notes": "Зависит от PH-3, PH-5, PH-6 (влиты в feature/pilot-hud). Ремешки: если W×H из PH-3 отличаются от JSON > 3 мм — правка watch.json/wrist_compass.json и перегенерация скриптами PH-5/PH-6. Компас: демпфированный осциллятор (период ~1,5 с, ζ ≈ 0,6, в конфиге с пояснением), при почти вертикальном циферблате держит угол. Тесты назвать с wrist в имени файла.",
+  "created": "2026-10-12T21:06:01",
+  "edited": "2026-10-12T21:41:53"
+}

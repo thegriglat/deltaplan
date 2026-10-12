@@ -1,0 +1,102 @@
+{
+  "status": "done",
+  "summary": "Тень от неба: узел SkyShade у GliderVisual — одна Decal на слое 1 (видят кабинная и внешние камеры), чёрная текстура 48x48 с альфой = gain*sky_share*F(r,h) (фактор видимости диска паруса, PH-К7), по нормали рельефа, накрывает траву и ноги; выше h_max плавно в ноль; без маркеров, цвета, теней.",
+  "commits": [
+    "9ffeee89 PH-8: затенение земли крылом",
+    "9c487153 PH-8 доработка по ревью: fade, доля неба по погоде, тест стоп"
+  ],
+  "checks": [
+    {
+      "name": "pilot_hud",
+      "value": "2/2, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "sky_shade",
+      "value": "16/16, 0 упало (2 skip GPU)",
+      "pass": true
+    },
+    {
+      "name": "grass",
+      "value": "11/11, 0 упало (2 skip GPU)",
+      "pass": true
+    },
+    {
+      "name": "cockpit",
+      "value": "7/7, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "glider_visual",
+      "value": "5/5, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "GPU: декаль темнит шейдер в стиле травы (tools/gpu_tests.sh --filter=sky_shade)",
+      "value": "test_sky_shade_grass_gpu ok; пятно темнее окрестности >15%",
+      "pass": true
+    },
+    {
+      "name": "пересчёт текстуры (headless)",
+      "value": "1.6 мс за пересчёт, <=10 Гц и только при изменении h>2%; _process 0.03 мс/кадр",
+      "pass": true
+    },
+    {
+      "name": "GPU: яркость в центре пятна = 1 - darkening",
+      "value": "допуск 0.04, test_sky_shade_grass_gpu_matches_darkening_formula ok (lower_fade 0 → 0.784 vs 0.741 было при ложном эталоне в тени; с fov 70 сходится)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Визуал в реальной игре на ландшафте с настоящей травой не смотрел (скриншоты не заказаны); проверено GPU-тестом на шейдере в стиле травы и статикой по grass.gdshader."
+  ],
+  "questions": [],
+  "how_to_check": "dp accept PH-8; GPU: tools/gpu_tests.sh --filter=sky_shade; на сборке: посадка ясно и пасмурно, смотреть под ноги и вперёд из кабины, chase.",
+  "uncertain": [
+    {
+      "where": "scripts/flight/sky_shade.gd:_process (vertical_m/lift)",
+      "why": "Объём декали -0.36..+1.44 м вдоль нормали: на изрезанном рельефе (перепад >0.36 м) или в траве выше 1.44 м декаль не достанет; под пятном могут темнеть ноги пилота и нижняя часть трапеции",
+      "checked": "Рост травы макс 0.9 м (vegetation.json); ноги в тени физически уместны"
+    },
+    {
+      "where": "scripts/flight/sky_shade.gd:_find_center",
+      "why": "Центр паруса = центр AABB меша Sail в осях визуала, считается один раз при первом кадре; при сильном изгибе паруса смещение мало",
+      "checked": "h в тесте 5.2 м у training при ногах 3 м над землёй (центр паруса +2.2 м)"
+    },
+    {
+      "where": "tests/game/test_sky_shade_cockpit.gd",
+      "why": "Под tools/gpu_tests.sh (окно 320x240) автостарт не успел за 600 кадров и тест упал; headless и dp accept проходят",
+      "checked": "dp accept: cockpit 7/7"
+    }
+  ],
+  "dp_feedback": "dp accept --dry: cockpit-фильтр идёт ~570 с, а вывод только в конце — хотелось бы построчный прогресс и опцию --only <проверка>. dp docs check в фоне выдаёт 37 предупреждений research без ключей — шум.",
+  "extra": {
+    "gain": 1.6,
+    "shift_k": 0.5,
+    "stretch": 1.3,
+    "texture": "48x48",
+    "decal_count": 1,
+    "d0_by_h_gain16": {
+      "h2.0": {
+        "share0.15": 0.124,
+        "share0.4": 0.331,
+        "share0.9": 0.746
+      },
+      "h2.5": {
+        "share0.15": 0.098,
+        "share0.4": 0.261,
+        "share0.9": 0.587
+      },
+      "h3.0": {
+        "share0.15": 0.078,
+        "share0.4": 0.207,
+        "share0.9": 0.465
+      }
+    }
+  },
+  "center_darkening_at_touchdown": "h=2.5 м, S=13.5 м2, gain 1.6: ясный полдень (share 0.15) 0.098, пасмурно (0.9) 0.587; доля неба теперь по погоде: ясно 0.15 (+0.35(1-sin h)^2 к горизонту), cover>=0.85 → 0.9",
+  "h_max_m": 12.0,
+  "frame_cost_ms": "CPU: _process 0.03 мс/кадр; пересчёт текстуры 1.6 мс, <=10 Гц только при изменении h (среднее <=0.16 мс/кадр); GPU: одна декаль в Forward+ кластере, оценка <0.1 мс (не мерил); без новых теней",
+  "t": "2026-10-12T21:59:40",
+  "by": "executor"
+}

@@ -8,10 +8,13 @@ const WING_NODES: Array[String] = ["Sail", "Frame", "ControlFrame", "HangPoint",
 	"UprightBottomL", "UprightBottomR", "WingCG"]
 ## Модели не крыльев; крылья — по одному glider_<id>.glb на каждый configs/wings/<id>.json.
 const OTHER := {
-	"res://assets/models/pilot.glb": ["Pilot", "PilotBody", "Helmet", "Head", "HandL", "HandR",
+	"res://assets/models/pilot.glb": ["Pilot", "PilotBody", "Helmet", "Head", "HandL", "HandR", "WristL", "WristR",
 		"CockpitCamera"],
 	"res://assets/models/instrument.glb": ["Body", "Screen"],
 	"res://assets/models/vario_90s.glb": ["Body", "Screen"],
+	"res://assets/models/watch.glb": ["Case", "Strap", "Dial", "Glass", "HourHand", "MinuteHand"],
+	# PH-К4: наручный компас (PH-6)
+	"res://assets/models/wrist_compass.glb": ["Case", "Strap", "Card", "Lubber"],
 }
 const TRI_BUDGET := {"glider": 30000, "wing": 14000, "instrument": 3000}
 
@@ -85,7 +88,8 @@ func _check_axes(path: String, root: Node3D) -> void:
 		var im := _xform(root, "InstrumentMount")
 		# A3.3 v9: приборы на хомуте нижней перекладины — маркер на оси штанги (ломаная
 		# BarGripL–BaseBar–BarGripR, допуск 3 см на изгиб PV3) между хватами; экран (−Z) к глазам
-		# (вверх), верх экрана (+Y маркера) — вперёд (−Z мира)
+		# (назад-вверх: −Z маркера = (0; sin30°; cos30°) при instrument_tilt_deg 60° к горизонту, как
+		# в заглушке glider_visual.gd), верх экрана (+Y маркера) — вверх-вперёд
 		var vm := _xform(root, "VarioMount")
 		var gl := _pos(root, "BarGripL")
 		var gr := _pos(root, "BarGripR")
@@ -95,8 +99,10 @@ func _check_axes(path: String, root: Node3D) -> void:
 			_expect(path, "%s на оси штанги (%.3f м от оси)" % [pair[0], d], d < 0.03)
 			_expect(path, "%s между хватами (|x| %.2f < %.2f)" % [pair[0], absf(o.x), absf(gl.x) - 0.04],
 				absf(o.x) < absf(gl.x) - 0.04)
-			_expect(path, "%s −Z смотрит вверх на пилота" % pair[0], (-pair[1].basis.z).y > 0.6)
-			_expect(path, "%s верх экрана вперёд" % pair[0], pair[1].basis.y.z < -0.7)
+			_expect(path, "%s −Z смотрит назад-вверх на пилота" % pair[0],
+				(-pair[1].basis.z).z > 0.7 and (-pair[1].basis.z).y > 0.3)
+			_expect(path, "%s верх экрана вверх-вперёд" % pair[0],
+				pair[1].basis.y.z < -0.3 and pair[1].basis.y.y > 0.5)
 		_expect(path, "VarioMount слева от планшета", vm.origin.x < im.origin.x - 0.1)
 		print("  InstrumentMount %s −Z %s" % [im.origin, -im.basis.z])
 		print("  VarioMount %s −Z %s" % [vm.origin, -vm.basis.z])
@@ -115,6 +121,17 @@ func _check_axes(path: String, root: Node3D) -> void:
 			and ap.get_animation("walk").loop_mode == Animation.LOOP_LINEAR
 			and ap.get_animation("run").loop_mode == Animation.LOOP_LINEAR)
 		print("  Head %s HandL %s HandR %s" % [head, _pos(root, "HandL"), _pos(root, "HandR")])
+		for w: String in ["WristL", "WristR"]:
+			_expect(path, "%s есть" % w, root.find_child(w, true, false) != null)
+	elif path.ends_with("watch.glb"):
+		# PH-К4: корпус Ø 40 ± 2 по Y, циферблат смотрит в −Z, стрелки — на оси, острие к +Y
+		var cb := (root.find_child("Case", false, false) as MeshInstance3D).get_aabb()
+		_expect(path, "корпус Ø %.1f мм (40 ± 2)" % (cb.size.y * 1000), absf(cb.size.y - 0.04) <= 0.002)
+		_expect(path, "циферблат в −Z", (root.find_child("Dial", false, false) as MeshInstance3D).get_aabb().position.z < 0)
+		for hn in ["HourHand", "MinuteHand"]:
+			var hand := root.find_child(hn, false, false) as MeshInstance3D
+			_expect(path, "%s: острие к +Y, начало на оси" % hn, hand.get_aabb().end.y > 0.008
+				and absf(hand.position.x) < 1e-6 and absf(hand.position.y) < 1e-6)
 	elif path.ends_with("instrument.glb") or path.ends_with("vario_90s.glb"):
 		var scr := root.find_child("Screen", true, false) as MeshInstance3D
 		if scr:
@@ -123,6 +140,19 @@ func _check_axes(path: String, root: Node3D) -> void:
 			print("  Screen AABB %s" % aabb)
 		print("  бюджет прибора %d: %s" % [TRI_BUDGET.instrument,
 			"ok" if _count_tris(root) <= TRI_BUDGET.instrument else "ПРЕВЫШЕН"])
+	elif path.ends_with("wrist_compass.glb"):
+		# PH-К4 (PH-6): диаметр корпуса, высота, картушка, подвижные части на оси циферблата
+		var case_aabb := (root.find_child("Case", true, false) as MeshInstance3D).get_aabb()
+		var card := root.find_child("Card", true, false) as MeshInstance3D
+		_expect(path, "корпус Ø %.1f мм (46 ± 3)" % (case_aabb.size.x * 1000.0),
+			absf(case_aabb.size.x * 1000.0 - 46.0) <= 3.0)
+		_expect(path, "высота корпуса %.1f мм ≤ 16" % (-case_aabb.position.z * 1000.0),
+			-case_aabb.position.z * 1000.0 <= 16.0)
+		_expect(path, "картушка Ø %.1f мм ≥ 34" % (card.get_aabb().size.x * 1000.0),
+			card.get_aabb().size.x * 1000.0 >= 34.0)
+		_expect(path, "Card на оси циферблата (0, 0, z<0)", absf(card.position.x) < 1e-6
+			and absf(card.position.y) < 1e-6 and card.position.z < 0.0)
+		_expect(path, "треугольников %d ≤ 2500" % _count_tris(root), _count_tris(root) <= 2500)
 
 
 func _pos(root: Node3D, n: String) -> Vector3:

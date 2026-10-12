@@ -1,0 +1,44 @@
+{
+  "status": "partial",
+  "summary": "watch.glb собран скриптом build_watch.py + watch.json (W×H 56×51 по PH-3), текстуры 256², тесты PH-К4 для часов зелёные; check_models упал только из-за старых проверок маркеров крыльев (не из-за часов).",
+  "commits": [
+    "b1fc5dbb PH-5: модель наручных часов watch.glb"
+  ],
+  "checks": [
+    {
+      "name": "pilot_hud",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "check_models (блок watch.glb)",
+      "value": "все [ok]; общий ИТОГ: ОШИБОК 192 — все в InstrumentMount/VarioMount 48 крыльев",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "check_models «ИТОГ: OK» недостижим: 192 ошибки у крыльев (маркеры приборов: −Z вверх, верх экрана вперёд), файлы крыльев не менялись — вне скоупа PH-5"
+  ],
+  "questions": [
+    "Контракт: «12» к пальцам и головка на −X, а ремешок идёт по ±X — головка на стороне ушек ремешка (у реальных часов 3 часа = к пальцам). Сделано по контракту, головка над ушком; если нужно иначе — правка PH-К4."
+  ],
+  "how_to_check": "blender --background --python tools/blender/build_watch.py; godot --headless --import; run_tests -- --filter=pilot_hud; dp accept PH-5 --dry",
+  "uncertain": [
+    {
+      "where": "assets/models/watch_watch_*.png",
+      "why": "имена после извлечения Godot с двойным watch_; .import правил вручную (mode=2, мипмапы), Godot их сохраняет",
+      "checked": "повторный --import, тест test_ph_k4_watch_textures"
+    },
+    {
+      "where": "WatchGlass",
+      "why": "альфа 0,08 BLEND, плоское; бликует умеренно, вид в игре не смотрел",
+      "checked": "glb: alphaMode BLEND, specular 0,3; рендер Blender"
+    }
+  ],
+  "dp_feedback": "Нет команды для проверки .import текстур и для запуска check_models с фильтром по модели.",
+  "tris": 1570,
+  "texture_px": "256x256 (циферблат), 256x128 (ремешок)",
+  "case_d_mm": 40,
+  "t": "2026-10-12T21:14:35",
+  "by": "executor"
+}
