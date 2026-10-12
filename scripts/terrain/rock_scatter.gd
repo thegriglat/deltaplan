@@ -194,11 +194,12 @@ func _exit_tree() -> void:
 func _check_key() -> void:
 	var cl: Array = terrain._clearings
 	var k := (
-		"%s|%d|%d"
+		"%s|%d|%d|%d"
 		% [
 			terrain.location_id,
 			terrain.layers[0].get_instance_id(),
-			(cl[0] as Image).get_instance_id() if cl.size() == 3 else 0
+			(cl[0] as Image).get_instance_id() if cl.size() == 3 else 0,
+			terrain.surface_revision
 		]
 	)
 	if k == _key:
@@ -211,6 +212,9 @@ func _check_key() -> void:
 		var sp: Vector3 = s.position
 		var hd := TerrainGeo.heading_vector(float(s.get("heading_deg", 0.0)))
 		_sites.append([Vector2(sp.x, sp.z), Vector2(hd.x, hd.z).normalized(), _keep_start()])
+	# SP-К4: любой пустырь старта (встроенный, с карты, точный) — без камней на разбеге
+	for c: Vector3 in terrain.get_start_clearings():
+		_sites.append([Vector2(c.x, c.y), Vector2.ZERO, _keep_start()])
 	for s in terrain.get_landing_sites():
 		var sp: Vector3 = s.position
 		_sites.append(
@@ -483,7 +487,10 @@ func is_free(x: float, z: float, rad: float) -> bool:
 
 
 func _keep_start() -> float:
-	return float(_cfg.get("keep_off_start_m", 12.0))
+	return maxf(
+		float(_cfg.get("keep_off_start_m", 12.0)),
+		float(Config.value("game", "start_search.runway_m", 40.0))
+	)
 
 
 func _cleared(x: float, z: float) -> bool:
