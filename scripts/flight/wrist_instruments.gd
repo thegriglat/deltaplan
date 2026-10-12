@@ -1,13 +1,19 @@
 class_name WristInstruments
 extends Node
-## Наручные приборы пилота (PH-7; PH-К2, PH-К3, PH-К4, PH-К5): часы на WristL (время суток игры,
-## SunClock.hour — только чтение) и компас на WristR (картушка по реальному курсу, жидкостный
-## компас с инерцией). Модели крепятся к пустышкам без смещения и поворота; пустышки под
-## BoneAttachment3D предплечья, слой по умолчанию — видны всем камерам, в том числе кабинной.
+## Наручные приборы пилота (PH-7; PH-К2, PH-К3, PH-К4, PH-К5): часы на левой кисти (время суток игры,
+## SunClock.hour — только чтение) и компас (картушка по реальному курсу, жидкостный
+## компас с инерцией) на правой. Ремешок с прибором — кольцо на месте запястья вплотную к срезу
+## перчатки (манжеты нет, предплечья от первого лица не видно), жёстко за костью кисти; слой по
+## умолчанию — видны всем камерам, в том числе кабинной.
 ## Параметры — configs/ui.json → clock.enabled (часы), compass.* (компас).
 
 const WATCH_PATH := "res://assets/models/watch.glb"
 const COMPASS_PATH := "res://assets/models/wrist_compass.glb"
+## Размеры моделей ремешка (с пряжкой; tools/blender/watch.json, wrist_compass.json): ширина вдоль
+## кисти, высота эллипса кольца по оси циферблата, перекрытие края перчатки ремешком (минус — ремешок заходит на перчатку, рваный край под ним не виден), м.
+const STRAP_W_M := 0.025
+const RING_H_M := 0.046
+const STRAP_GAP_M := -0.001
 
 var clock: SunClock  ## источник времени (Game.sky.clock); null — часы скрыты (чужой пилот)
 var watch: Node3D  ## корень модели часов
@@ -26,10 +32,13 @@ var _zeta := 0.6
 var _min_proj := 0.12
 
 
-## Прикрепить приборы к пустышкам WristL/WristR модели пилота pm. false — пустышек нет.
-func attach(pm: Node3D) -> bool:
-	var wl := pm.find_child("WristL", true, false) as Node3D
-	var wr := pm.find_child("WristR", true, false) as Node3D
+## Прикрепить приборы к модели пилота pm. openings — срезы перчаток от PilotGloveCut.cut(): прибор
+## с ремешком встаёт на кость кисти вплотную к срезу (кольцо вокруг запястья позади перчатки,
+## циферблатом на тыл кисти), жёстко за кистью. Нет среза или кисти — прежнее крепление к пустышкам
+## WristL/WristR модели. false — крепить некуда.
+func attach(pm: Node3D, openings: Dictionary = {}) -> bool:
+	var wl := _mount(pm, "L", openings)
+	var wr := _mount(pm, "R", openings)
 	if wl == null or wr == null:
 		return false
 	watch = _load(WATCH_PATH)
@@ -45,6 +54,27 @@ func attach(pm: Node3D) -> bool:
 		_card = compass.find_child("Card", true, false) as Node3D
 	reload()
 	return watch != null or compass != null
+
+
+## Точка крепления прибора на руке side ("L"/"R"). Базис — оси кисти: +Y прибора вдоль кисти к
+## пальцам, −Z — на тыл (у левой кости тыл — +Z, у правой — −Z), начало — на тыльной точке ремешка:
+## центр кольца (срез по X/Z кости) на оси запястья, кольцо отстоит от среза на зазор.
+func _mount(pm: Node3D, side: String, openings: Dictionary) -> Node3D:
+	var grip := pm.find_child("Hand" + side, true, false) as Node3D
+	if grip == null or not openings.has(side):
+		return pm.find_child("Wrist" + side, true, false) as Node3D
+	var o: Dictionary = openings[side]
+	var dorsal := 1.0 if side == "L" else -1.0
+	var b := Basis(Vector3(-1, 0, 0), Vector3.UP, Vector3(0, 0, -1)) if side == "L" else Basis.IDENTITY
+	var c: Vector3 = o.center
+	c.y = float(o.y) - STRAP_W_M * 0.5 - STRAP_GAP_M
+	var m := Node3D.new()
+	m.name = "WristMount" + side
+	# начало модели — на тыльной поверхности кольца: от центра кольца на половину высоты к тылу
+	var at := c + Vector3(0, 0, dorsal) * RING_H_M * 0.5
+	m.transform = grip.transform.affine_inverse() * Transform3D(b, at)
+	grip.add_child(m)
+	return m
 
 
 func _load(path: String) -> Node3D:

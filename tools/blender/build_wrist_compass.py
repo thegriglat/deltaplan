@@ -280,9 +280,11 @@ def build_card(mats):
     top = [mb.add_vert(p) for p in ring(ht)]
     uv = [(0.5 - p[0] / (CARD_D * MM), 0.5 + p[2] / (CARD_D * MM))
           for p in (mb.verts[i] for i in top)]
-    mb.add_face(top, "Card", uv=uv, smooth=False)
+    # обход (x, z) против часовой при взгляде с +Y — это нормаль к −Y: лицевая сторона с текстурой
+    # (+Y Blender = циферблат, −Z пустышки) должна идти в обратном порядке, иначе её отсекает cull
+    mb.add_face(list(reversed(top)), "Card", uv=list(reversed(uv)), smooth=False)
     bot = [mb.add_vert(p) for p in ring(-ht)]
-    mb.add_face(list(reversed(bot)), "Card", uv=[bgpix] * n, smooth=False)
+    mb.add_face(bot, "Card", uv=[bgpix] * n, smooth=False)
     mb.add_grid([ring(ht), ring(-ht)], "Card", uv=[[bgpix] * n] * 2, flip=True, wrap=True,
                 smooth=False)
     return mb
