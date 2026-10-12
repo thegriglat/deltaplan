@@ -37,6 +37,12 @@ SOLE_T = 0.02           # толщина подошвы ботинка, м (ни
 FOOT_Z = 0.015          # низ стопы MPFB над землёй, м (внутри подошвы; задаёт скелет и позы)
 BOOT_TOP = 0.15         # верх голенища ботинка над землёй, м (ниже него стопы MPFB удаляются)
 POD_LEN = 0.65          # кокон стоя (висит за ногами)
+POD_SEGS = 3
+POD_BONES = ("PodTail", "PodMid", "PodEnd")
+POD_EMPTY_W = ((0.92, 0.85), (0.72, 0.55), (0.5, 0.4))   # ширина/толщина стоя (пустой мешок)
+POD_PLUMB = 0.85        # стоя: доля отвеса в направлении кокона
+POD_SAG_STAND = 0.11    # стоя: конец заворачивается вперёд (за ноги), на сегмент
+POD_SAG_FLY = 0.05      # лёжа: конец провисает вниз, на сегмент
 POD_ON = 1.45           # кокон лёжа (надет на ноги)
 HEAD_PRONE = 20         # наклон головы лёжа, °: пустышки Head/CockpitCamera заданы так,
                         # что в позе prone взгляд горизонтален / на 10° вверх
@@ -100,6 +106,8 @@ class Pose:
         self.legs = legs
         self.hands = [Vector(h) for h in hands]
         self.pole = Vector(elbow_pole)
+        self.pod_bend = True   # False — прямая цепь кокона (поза покоя скелета)
+        self.width = {}
         self.pod = pod  # 0 — кокон висит за ногами (стоя), 1 — надет на ноги (лёжа)
         self.grips = [Vector(g).normalized() for g in (grips or [(0, 1, 0), (0, 1, 0)])]
         self.splay = splay
@@ -157,9 +165,24 @@ class Pose:
             b["Thigh." + s] = (hip, d_th, f, D.THIGH)
             b["Shin." + s] = (kn, d_sh, f, D.SHIN)
             b["Foot." + s] = (an, d_ft, -d_sh, D.FOOT)
+        # кокон: цепь из 3 костей; стоя — пустой мягкий мешок (короче, уже, концы провисают
+        # и заворачиваются за ноги), лёжа — надет на ноги (полный, конец чуть провисает вниз)
         k = self.pod
-        b["PodTail"] = (h - f * D.POD_BACK * (1 - k) - u * 0.02, -u, f,
-                        POD_LEN + (POD_ON - POD_LEN) * k)
+        seg = (POD_LEN + (POD_ON - POD_LEN) * k) / POD_SEGS
+        pos = h - f * D.POD_BACK * (1 - k) - u * 0.02
+        d = -u
+        if self.pod_bend:   # стоя пустой мешок висит по отвесу, а не по оси наклонённого таза
+            d = (-u * (1 - POD_PLUMB * (1 - k)) + Vector((0, 0, -1)) * POD_PLUMB * (1 - k)
+                 ).normalized()
+        self.width = {}
+        for j, nm in enumerate(POD_BONES):
+            if self.pod_bend and j > 0:
+                d = (d + (Vector((0, 1, 0)) * POD_SAG_STAND * (1 - k) + Vector((0, 0, -1)) * POD_SAG_FLY * k)
+                     * j).normalized()
+            b[nm] = (pos, d, f, seg)
+            if self.pod_bend:
+                self.width[nm] = tuple(1 - (1 - w) * (1 - k) for w in POD_EMPTY_W[j])
+            pos = pos + d * seg
         attach = h + u * 0.28 - f * D.BACK
         b["Strap"] = (Vector((0, 0, -0.03)), (attach - Vector((0, 0, -0.03))).normalized(), -f,
                       (attach - Vector((0, 0, -0.03))).length)
@@ -179,13 +202,14 @@ def two_bone(a: Vector, target: Vector, l1: float, l2: float, pole: Vector):
     return elbow, grip, pn
 
 
-def bone_matrix(head: Vector, y: Vector, zref: Vector, length: float = 1.0) -> Matrix:
+def bone_matrix(head: Vector, y: Vector, zref: Vector, length: float = 1.0,
+                wx: float = 1.0, wz: float = 1.0) -> Matrix:
     y = y.normalized()
     if abs(y.dot(zref.normalized())) > 0.95:
         zref = X.cross(y) if abs(y.dot(X)) < 0.95 else Vector((0, 0, 1))
     x = y.cross(zref).normalized()
     z = x.cross(y).normalized()
-    m = Matrix((x, y * length, z)).transposed().to_4x4()
+    m = Matrix((x * wx, y * length, z * wz)).transposed().to_4x4()
     m.translation = head
     return m
 
@@ -504,7 +528,9 @@ def fit_dims(j: dict, pts: list, reg: list, hand: float) -> tuple:
 
 def rest_pose(rest_args) -> Pose:
     lean, legs, hands, pole, grips = rest_args
-    return Pose(REST_HIPS, lean, 0, legs, hands, pole, grips=grips)
+    p = Pose(REST_HIPS, lean, 0, legs, hands, pole, grips=grips)
+    p.pod_bend = False
+    return p
 
 
 # ------------------------------------------------------------------ перчатки, подвеска, шлем
@@ -638,36 +664,52 @@ def harness(rest: dict, pts: list, reg: list, parts: list, wts: list, waist_z: f
     by = (max(p.y for p in ring) - min(p.y for p in ring)) / 2 + 0.008
     m.add_tube([Vector((0, cy, waist_z - 0.022)), Vector((0, cy, waist_z + 0.022))], bx, "Strap",
                sides=16, ellipse=(1.0, by / bx), cap=False, up=(0, 1, 0))
-    # спинка подвески (жёсткая, с креплением фала)
-    m = part("Spine")
-    zc = h.z + 0.2
-    bk, _ = surf_y(pts, 0.0, zc, 0.03)
-    wid = max(abs(p.x) for p in pts if abs(p.z - zc) < 0.02 and p.y < h.y)
-    m.add_ellipsoid(Vector((0, bk - 0.02, zc)), (wid * 0.85, 0.05, 0.22), "Pod", 12, 7)
     # кокон ног: мешок, в полёте надет на ноги
     hips = [p for p, r in zip(pts, reg) if abs(p.z - h.z) < 0.03 and r == "Pod"]
     rx = max(abs(p.x) for p in hips) + 0.035
     rzz = (max(p.y for p in hips) - min(p.y for p in hips)) / 2 + 0.03
     p, d, fz, _ = rest["PodTail"]
     m = part("PodTail")
-    rings = []
-    prof = [(0.0, 1.0, 1.0), (0.25, 1.0, 1.06), (0.55, 0.86, 0.94), (0.75, 0.77, 0.81),
-            (0.9, 0.5, 0.56), (1.0, 0.09, 0.12)]
+    # профиль (t по длине, ширина, толщина, сдвиг вбок, сдвиг по толщине): складки — модуляция
+    # колец, конец тупой и скруглённый, сечение сплюснутое к концу
+    prof = [(0.0, 1.0, 1.0, 0, 0), (0.12, 1.0, 1.05, 0.004, 0), (0.25, 0.97, 1.0, 0, 0.006),
+            (0.36, 0.86, 0.9, -0.01, 0), (0.46, 0.88, 0.93, 0.008, -0.006),
+            (0.58, 0.8, 0.82, -0.008, 0.006), (0.68, 0.76, 0.72, 0.006, 0),
+            (0.78, 0.7, 0.66, 0, -0.008), (0.87, 0.62, 0.56, -0.01, 0),
+            (0.94, 0.46, 0.4, 0, 0.005), (0.985, 0.24, 0.2, 0, 0), (1.0, 0.0, 0.0, 0, 0)]
+    NS = 16
     side = d.cross(fz).normalized()
     upv = side.cross(d).normalized()
-    for t, kx, kz in prof:
-        rings.append([p + d * (POD_LEN * t) + side * rx * kx * math.cos(a)
-                      + upv * rzz * kz * math.sin(a)
-                      for a in [2 * math.pi * k / 14 for k in range(14)]])
+    rings = []
+    for t, kx, kz, ox, oz in prof:
+        rings.append([p + d * (POD_LEN * t) + side * (ox + rx * kx * math.cos(a))
+                      + upv * (oz + rzz * kz * math.sin(a))
+                      for a in [2 * math.pi * k / NS for k in range(NS)]])
     for i in range(len(rings) - 1):
-        for k in range(14):
-            k2 = (k + 1) % 14
+        for k in range(NS):
+            k2 = (k + 1) % NS
             idx = [m.add_vert(rings[i][k]), m.add_vert(rings[i + 1][k]),
                    m.add_vert(rings[i + 1][k2]), m.add_vert(rings[i][k2])]
-            stripe = abs(math.cos(2 * math.pi * (k + 0.5) / 14)) > 0.92 and 0 < i < 4
+            stripe = abs(math.cos(2 * math.pi * (k + 0.5) / NS)) > 0.92 and 0 < i < 6
             m.add_face(idx, "Stripe" if stripe else "Pod")
     top = [m.add_vert(v) for v in rings[0]]
     m.add_face(list(reversed(top)), "Pod", smooth=False)
+    # веса: плавно между тремя костями цепи (центры сегментов t = 1/6, 1/2, 5/6)
+    wl = []
+    for v in m.verts:
+        t = min(1.0, max(0.0, (Vector(v) - p).dot(d) / POD_LEN))
+        c = [(2 * j + 1) / (2 * POD_SEGS) for j in range(POD_SEGS)]
+        if t <= c[0]:
+            w = [1.0, 0.0, 0.0]
+        elif t >= c[-1]:
+            w = [0.0, 0.0, 1.0]
+        else:
+            j = 0 if t < c[1] else 1
+            f_ = (t - c[j]) / (c[j + 1] - c[j])
+            w = [0.0] * 3
+            w[j], w[j + 1] = 1 - f_, f_
+        wl.append({nm: wi for nm, wi in zip(POD_BONES, w) if wi > 0})
+    parts[-1] = ("PodTail", m, wl)
     a, d, _, ln = rest["Strap"]
     m = part("Strap")
     m.add_tube([a, a + d * ln], 0.012, "Strap", sides=6, ellipse=(2.0, 0.6))
@@ -1059,7 +1101,8 @@ def main() -> None:
     bpy.context.scene.collection.objects.link(arm)
     bpy.context.view_layer.objects.active = arm
     bpy.ops.object.mode_set(mode="EDIT")
-    parent = {"Spine": "Hips", "Chest": "Spine", "Head": "Chest", "PodTail": "Hips"}
+    parent = {"Spine": "Hips", "Chest": "Spine", "Head": "Chest", "PodTail": "Hips",
+              "PodMid": "PodTail", "PodEnd": "PodMid"}
     for s in ("L", "R"):
         parent.update({"UpperArm." + s: "Chest", "Forearm." + s: "UpperArm." + s,
                        "Hand." + s: "Forearm." + s, "Thigh." + s: "Hips",
@@ -1141,8 +1184,9 @@ def main() -> None:
         arm.animation_data.action = act
         gap, gap_f = 0.0, 0
         for fi, pose in enumerate(frames):
-            pm = {n: bone_matrix(h, d, zr, ln / ((rest[n][3]) or 1.0))
-                  for n, (h, d, zr, ln) in pose.bones().items()}
+            bn = pose.bones()
+            pm = {n: bone_matrix(h, d, zr, ln / ((rest[n][3]) or 1.0), *pose.width.get(n, (1, 1)))
+                  for n, (h, d, zr, ln) in bn.items()}
             if max(pose.reach_gap) > gap:
                 gap, gap_f = max(pose.reach_gap), fi + 1
             for name, m in pm.items():
