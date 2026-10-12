@@ -210,6 +210,24 @@ func test_lod_selection() -> void:
 	cam.free()
 
 
+## Нормаль во фрагменте (мипы высот) и промоины: у каждого материала та же текстура высот с
+## мипмапами в height_mip_tex, предел уровня, параметры промоин из terrain_look.
+func test_fragment_normal_inputs() -> void:
+	var t := _altai()
+	var mats := t.renderer.materials()
+	check(not mats.is_empty(), "есть материалы рельефа")
+	for m in mats:
+		var ht: Texture2D = m.get_shader_parameter("height_tex")
+		check(m.get_shader_parameter("height_mip_tex") == ht, "height_mip_tex — та же текстура высот")
+		check(float(m.get_shader_parameter("height_mip_max_lod")) >= 4.0, "уровней мипов ≥ 4")
+		check(m.get_shader_parameter("erosion_enabled") == true, "промоины включены из конфига")
+		check(float(m.get_shader_parameter("erosion_strength")) > 0.0, "сила промоин из конфига")
+	var img := t.layers[0].make_texture().get_image()
+	if img != null:
+		check(img.has_mipmaps(), "текстура высот с мипмапами")
+		check(is_equal_approx(img.get_pixel(3, 5).r, t.layers[0].node(3, 5)), "уровень 0 — узлы как есть")
+
+
 ## Последний тест: освободить общий рельеф (иначе утечки при выходе).
 func test_zz_cleanup() -> void:
 	if _terrain != null:
