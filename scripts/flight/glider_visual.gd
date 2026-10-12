@@ -146,6 +146,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	_build_arms(pm)
 	_fit_neutral_pose()
 	_build_strap(pm)
+	GloveLeather.apply(pm.find_child("PilotBody", true, false) as MeshInstance3D)
 	if _head == null:
 		push_warning("GliderVisual: в модели %s нет ноды Head" % ppath)
 	head_marker = Marker3D.new()

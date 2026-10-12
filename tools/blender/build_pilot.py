@@ -49,7 +49,7 @@ HEAD_PRONE = 20         # наклон головы лёжа, °: пустышк
 FORE_TWIST = 0.5        # доля поворота кисти вокруг предплечья, которую берёт предплечье
 PRONE_SPLAY = -0.6      # лёжа ноги сведены (в коконе), 1 — естественная стойка MPFB
 # бюджет треугольников после прореживания (тело без кистей и головы / кисти / голова с шеей)
-TRIS_BODY, TRIS_HANDS, TRIS_HEAD = 2700, 900, 420
+TRIS_BODY, TRIS_HANDS, TRIS_HEAD = 2700, 4400, 420
 X = Vector((1, 0, 0))
 
 
@@ -467,8 +467,9 @@ def mpfb_body():
     axes ={s: (mt.to_3x3() @ a).normalized() for s, (a, _, _) in fists.items()}
     hand = sum(hd for _, hd, _ in fists.values()) / 2
     print("FIST clearance: %s" % {s: round(c, 4) for s, (_, _, c) in fists.items()})
-    for uv in me.uv_layers[1:]:
-        me.uv_layers.remove(uv)
+    for uv in list(me.uv_layers)[1:]:
+        if uv.name != "UV2":
+            me.uv_layers.remove(uv)
     if me.uv_layers:
         me.uv_layers[0].name = "UVMap"
     ob = bpy.data.objects.new("PilotBodySrc", me)
@@ -535,8 +536,11 @@ def rest_pose(rest_args) -> Pose:
 
 # ------------------------------------------------------------------ перчатки, подвеска, шлем
 
+CUFF_LEN = 0.13        # длина крага вдоль предплечья, м (до середины предплечья)
+CUFF_FLARE = (0.024, 0.030)   # расширение раструба к верху: по ширине и толщине руки, м
+GLOVE_TILE = 0.06      # размер тайла кожи на перчатке, м (текстура Leather037)
 GLOVE_W = 0.3          # грань — перчатка, если средний вес кисти и пальцев не меньше
-GRIP_R = 0.0205        # внутренний радиус кулака, м: базовая штанга 0,017, стойка 0,019
+GRIP_R = 0.0197        # внутренний радиус кулака, м: штанга под руками r 0,0175 (Ø30 + накладка 2,5 мм) + кожа 2,2 мм
 
 
 def glove_frame(bone: tuple, side: int):
@@ -553,7 +557,8 @@ def glove_pt(fr, a: float, w: float, b: float) -> Vector:
     return wr + y * a + x * w + bk * b
 
 
-def loft(mb: U.MeshBuilder, fr, rings: list, mat: str, sides: int = 10, cap: bool = True) -> None:
+def loft(mb: U.MeshBuilder, fr, rings: list, mat: str, sides: int = 10, cap: bool = True,
+         uv2=None) -> None:
     """Эллиптические кольца вдоль кисти: rings = [(a, b центра, полуширина по w, полутолщина)]."""
     _, y, x, bk = fr
     pts = []
@@ -562,9 +567,12 @@ def loft(mb: U.MeshBuilder, fr, rings: list, mat: str, sides: int = 10, cap: boo
         pts.append([c + x * hw * math.cos(2 * math.pi * k / sides)
                     + bk * hb * math.sin(2 * math.pi * k / sides) for k in range(sides)])
     base = len(mb.verts)
-    for ring in pts:
+    for i, ring in enumerate(pts):
         for v in ring:
             mb.add_vert(v)
+            if uv2 is not None:      # (расстояние от кромки, доля обхода) — для строчки шва
+                mb.colors[len(mb.verts) - 1] = (uv2[i][0], (len(mb.verts) - 1 - base) % sides
+                                                / sides)
     # грани наружу при любой руке: нормаль первого четырёхугольника — от оси
     q0 = [pts[0][0], pts[1][0], pts[1][1]]
     c0 = glove_pt(fr, rings[0][0], 0.0, rings[0][1])
@@ -581,29 +589,51 @@ def loft(mb: U.MeshBuilder, fr, rings: list, mat: str, sides: int = 10, cap: boo
 
 
 def cuff(mb: U.MeshBuilder, bone: tuple, side: int, pts: list, glove: list) -> None:
-    """Краг-раструб перчатки поверх рукава (~7 см вверх от начала перчатки) и ремешок-липучка:
-    сечения обнимают меш руки с зазором, к локтю расширяются. Жёстко на кости Hand."""
+    """Краг (кожаный раструб) поверх рукава: от запястья до ~13 см вверх, расширяется к
+    середине предплечья, на запястье лёгкая складка-перетяжка, верхний край — толстый отворот
+    (кромка загибается внутрь). Сечения обнимают меш руки с зазором. Жёстко на кости Hand.
+    UV2 вершин краги = (−расстояние от кромки, м; доля обхода) — по знаку шейдер отличает краг
+    от кисти (у кисти UV2 = потёртость ладони, глянец костяшек)."""
     fr = glove_frame(bone, side)
     wr, y, x, bk = fr
     a1 = min((p - wr).dot(y) for p in glove) + 0.014
-    st = [a1 - 0.082 + 0.082 * i / 5 for i in range(6)]
-    rings = []
-    for a in st:
+    length = CUFF_LEN
+    n = 9
+    base = []
+    for i in range(n + 1):
+        t = i / n                                # 0 — запястье, 1 — верх
+        a = a1 - length * t
         near = [p - wr for p in pts if abs((p - wr).dot(y) - a) < 0.007]
         hw = max(abs(q.dot(x)) for q in near) + 0.004
         hb = max(abs(q.dot(bk)) for q in near) + 0.004
+        base.append([a, hw, hb])
+    for i in range(1, n + 1):                    # раструб: к локтю не уже предыдущего кольца
+        base[i][1] = max(base[i][1], base[i - 1][1])
+        base[i][2] = max(base[i][2], base[i - 1][2])
+    rings = []
+    uv2 = []
+    top = base[-1][0]
+    for i, (a, hw, hb) in enumerate(base):
+        t = i / n
+        fl = t ** 1.6
+        hw += 0.006 + CUFF_FLARE[0] * fl
+        hb += 0.006 + CUFF_FLARE[1] * fl
+        if i == 1:                               # складка-перетяжка у запястья
+            hw -= 0.004
+            hb -= 0.004
+        elif i == 2:
+            hw += 0.001
         rings.append([a, 0.0, hw, hb])
-    for i in range(len(rings) - 2, -1, -1):    # раструб: к локтю не уже, чем ближе к кисти
-        rings[i][2] = max(rings[i][2], rings[i + 1][2] - 0.001)
-        rings[i][3] = max(rings[i][3], rings[i + 1][3] - 0.001)
-    rings[0][2] += 0.005
-    rings[0][3] += 0.005
-    loft(mb, fr, [tuple(r) for r in rings], "Glove", sides=12, cap=False)
-    r1, r2 = rings[1], rings[2]
-    loft(mb, fr, [(r1[0] + 0.004, 0.0, r1[2] + 0.0015, r1[3] + 0.0015),
-                  (r2[0] + 0.003, 0.0, r2[2] + 0.0015, r2[3] + 0.0015)], "GlovePanel", sides=12,
-         cap=False)
-    print("CUFF: краг от %.3f до %.3f м вдоль кисти" % (st[0], st[-1]))
+        uv2.append((-(a - top), 0.0))
+    # отворот: толстая кромка, загиб внутрь и подкладка вниз к запястью
+    a, _, hw, hb = rings[-1]
+    for da, dr in ((-0.0035, 0.0035), (-0.006, 0.0025), (-0.0065, 0.0), (-0.0055, -0.0035),
+                   (-0.0015, -0.0045), (0.03, -0.0045)):
+        rings.append([a + da if da < 0 else top + da, 0.0, hw + dr, hb + dr])
+        uv2.append((-0.0005, 0.0))
+    loft(mb, fr, [tuple(r) for r in rings], "Glove", sides=20, cap=False, uv2=uv2)
+    print("CUFF: краг от %.3f до %.3f м вдоль кисти, раструб +%.0f мм" % (
+        top, a1, 1000 * CUFF_FLARE[0]))
 
 
 def cuff_clearance(pts: list, bone: tuple) -> float:
@@ -1036,6 +1066,8 @@ def build_parts(parts: list, name: str, mats: dict):
         mb.verts += p.verts
         for f, uv, mat, sm in zip(p.faces, p.uvs, p.mats, p.smooth):
             mb.add_face([i + base for i in f], p.mat_names[mat], uv, sm)
+        for i, uv2 in p.colors.items():
+            mb.colors[i + base] = uv2
         wl = vw[0] if vw else [{bone: 1.0}] * len(p.verts)
         for i, wd in enumerate(wl):
             for b, w in wd.items():
@@ -1046,6 +1078,23 @@ def build_parts(parts: list, name: str, mats: dict):
         for i, w in lst:
             vg.add([i], w, "REPLACE")
     return ob
+
+
+def box_uv(ob, mat_name: str, tile: float) -> None:
+    """UV поверхности mat_name — коробочная проекция в осях модели позы покоя (по главной оси
+    нормали грани), 1 тайл кожи = tile м. Жёстко привязана к мешу, не плывёт при анимации."""
+    me = ob.data
+    mi = me.materials.find(mat_name)
+    uvl = me.uv_layers[0]
+    for poly in me.polygons:
+        if poly.material_index != mi:
+            continue
+        nrm = poly.normal
+        ax = max(range(3), key=lambda i: abs(nrm[i]))
+        i1, i2 = [i for i in range(3) if i != ax]
+        for li in poly.loop_indices:
+            co = me.vertices[me.loops[li].vertex_index].co
+            uvl.data[li].uv = (co[i1] / tile, co[i2] / tile)
 
 
 def skin(ob, arm) -> None:
@@ -1079,7 +1128,6 @@ def main() -> None:
         "Visor": U.material("Visor", U.srgb((0.45, 0.48, 0.54)), rough=0.07, metal=0.85),
         "Skin": U.material("Skin", U.srgb((0.85, 0.65, 0.52)), rough=0.6),
         "Glove": U.material("Glove", U.srgb((0.035, 0.035, 0.038)), rough=0.42),
-        "GlovePanel": U.material("GlovePanel", U.srgb((0.2, 0.2, 0.21)), rough=0.6),
         "Strap": U.material("Strap", U.srgb((0.15, 0.15, 0.15)), rough=0.7),
     }
     # тело MPFB
@@ -1133,6 +1181,11 @@ def main() -> None:
         before = tris(parts[nm])
         decimate(parts[nm], tgt)
         print("DECIMATE %s: %d → %d" % (nm, before, tris(parts[nm])))
+    for s_, sd in (("L", -1), ("R", 1)):   # охват после прореживания: зазор до трубы с накладкой
+        hp = [v.co.copy() for v in parts["hands"].data.vertices if v.co.x * sd > 0.2]
+        gap = cuff_clearance(hp, rest["Hand." + s_]) - 0.0175
+        print("GLOVE %s после прореживания: ближайшая вершина кулака к оси %.4f м, зазор до "
+              "штанги с накладкой (r 0,0175) %.1f мм" % (s_, gap + 0.0175, gap * 1000))
     extra = []
     collar = U.MeshBuilder()
     cap_neck(parts["body"], rest["Head"][0], collar)
@@ -1147,6 +1200,7 @@ def main() -> None:
     counts = {"тело": tris(parts["body"]), "кисти": tris(parts["hands"]),
               "подвеска/краги": tris(proc)}
     body = join([parts["body"], parts["hands"], proc], "PilotBody")
+    box_uv(body, "Glove", GLOVE_TILE)
     skin(body, arm)
     hb = U.MeshBuilder()
     helmet(rest, pts, reg, hb)
