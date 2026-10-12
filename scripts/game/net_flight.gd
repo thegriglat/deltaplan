@@ -377,9 +377,7 @@ func queue_status(id: String) -> String:
 func _queue_spots(count: int) -> Array[Dictionary]:
 	var st: Dictionary = game.get_start()
 	var p: Vector3 = st.position
-	var lc: Dictionary = Config.get_config("bots").get("launch", {})
-	var r := float(lc.get("behind_max_m", 70.0)) + float(lc.get("lateral_max_m", 40.0))
-	var obs := BotPilots.obstacles_near(game.terrain, Vector2(p.x, p.z), r)
+	var obs := BotPilots.start_obstacles(game.terrain, game.world_link.objects, p)
 	return NetQueue.spots_for(game.terrain.height_at, p, float(st.heading_deg), count, obs)
 
 

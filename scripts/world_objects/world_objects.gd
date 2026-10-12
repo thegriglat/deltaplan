@@ -295,7 +295,7 @@ func _build_villages(patches: BuiltPatches, height_fn: Callable) -> void:
 
 ## Окружение для TentCamp.plan: рельеф, запреты (лес/вода/застройка), линии (тропы), точки (камни, кусты).
 func _camp_env(start: Vector3, tc: Dictionary, terrain: Node) -> Dictionary:
-	var env := {"lines": [], "points": [], "zone": TentCamp.launch_zone(tc)}
+	var env := {"lines": [], "points": []}
 	var tw := float(tc.get("track_margin_m", 4.0))
 	for pts: PackedVector2Array in start_tracks:
 		env.lines.append([pts, tw + float(cfg.start_tracks.get("width_m", 2.0)) * 0.5])

@@ -4,8 +4,10 @@ extends RefCounted
 ## (купольная 2-местная, туннельная 3-местная, тент-навес; assets/models/world/tents.glb —
 ## tools/blender/build_tents.py, 2 LOD) кучкой на ровном месте в нескольких десятках метров от
 ## старта. Палаток = 1 (игрок) + боты («Другие пилоты в небе», configs/bots.json → count).
-## Не ставятся: в коридоре разбега и на местах ожидания ботов (прямоугольник позади старта из
-## bots.json → launch), впереди линии старта, на тропе к старту, дорогах и реках (OSM), в лесу,
+## Кольцо лагеря (SC-K1): центр в 30–50 м от старта (prefer 40), край любой палатки не ближе
+## camp_min_edge_m; нет места — ступени distance_steps_m. Не ставятся: в коридоре разбега
+## (bots.json → launch.corridor_half_width_m), впереди линии старта, ниже старта больше чем на
+## max_drop_m (не вниз по склону), на тропе к старту, дорогах и реках (OSM), в лесу,
 ## воде, застройке, на склоне круче max_slope_deg и у обрыва, на камнях и кустах.
 ## Детерминированно от места старта: тот же старт — тот же лагерь.
 ## Параметры — configs/world_objects.json → tents. Без нод: plan() — чистая функция (тесты),
@@ -38,21 +40,13 @@ static func _has_bots_config() -> bool:
 	return FileAccess.file_exists("res://configs/bots.json")
 
 
-## Зона старта, где стоят и бегут игрок и боты (в осях старта: along — вперёд по курсу,
-## lat — вправо): {behind_m, lateral_m} — из bots.json → launch (+ cfg.launch_zone_margin_m).
-static func launch_zone(cfg: Dictionary) -> Dictionary:
+## Полуширина коридора разбега (в осях старта), где ничего статичного: bots.json →
+## launch.corridor_half_width_m + cfg.corridor_margin_m (SC-K1).
+static func corridor_half_m(cfg: Dictionary) -> float:
 	var lc: Dictionary = {}
 	if _has_bots_config():
 		lc = Config.get_config("bots").get("launch", {})
-	var margin := float(cfg.get("launch_zone_margin_m", 8.0))
-	return {
-		"behind_m": float(lc.get("behind_max_m", 70.0)) + margin,
-		"lateral_m":
-		(
-			maxf(float(lc.get("lateral_max_m", 40.0)), float(lc.get("corridor_half_width_m", 9.0)))
-			+ margin
-		),
-	}
+	return float(lc.get("corridor_half_width_m", 9.0)) + float(cfg.get("corridor_margin_m", 2.0))
 
 
 ## План лагеря: [{type, position: Vector3, basis: Basis, yaw, color: int, radius}].
@@ -60,8 +54,7 @@ static func launch_zone(cfg: Dictionary) -> Dictionary:
 ## env: height_fn(x, z) (обязательно); blocked_fn(x, z) -> bool — лес, вода, застройка;
 ## lines — [[PackedVector2Array ломаная, полуширина м]] — тропы, дороги, реки;
 ## points — [Vector3(x, z, радиус)] — камни, кусты, здания; points_fn(c: Vector2, r) -> такие же
-## точки в круге (дорогой запрос — зовётся только у пробуемых центров лагеря); zone — как
-## launch_zone().
+## точки в круге (дорогой запрос — зовётся только у пробуемых центров лагеря).
 ## Ровного места нет — палаток меньше или ни одной.
 static func plan(
 	start: Vector3, heading_deg: float, count: int, cfg: Dictionary, env: Dictionary
@@ -74,33 +67,51 @@ static func plan(
 	rng.seed = hash(
 		[int(cfg.get("seed", 1)), roundi(start.x * 2.0), roundi(start.z * 2.0), roundi(heading_deg)]
 	)
-	# центры-кандидаты: сетка в кольце distance_m, ровно и свободно в радиусе camp_flat_m
+	# кольцо 30–50 м; не хватило места на все палатки — ступени distance_steps_m (SC-K1)
 	var d_lo := float(cfg.distance_m[0])
-	var d_hi := float(cfg.distance_m[1])
+	var rings: Array = [float(cfg.distance_m[1])]
+	for step_m: Variant in cfg.get("distance_steps_m", []):
+		rings.append(float(step_m))
+	var best: Array[Dictionary] = []
+	for d_hi: float in rings:
+		var camp := _plan_ring(ctx, rng, d_lo, d_hi, count, env)
+		if camp.size() > best.size():
+			best = camp
+		if best.size() >= count:
+			break
+	for t in best:
+		out.append(ctx.finish(t))
+	return out
+
+
+## Лучший лагерь с центром в кольце [d_lo, d_hi] от старта (пусто — нет места).
+static func _plan_ring(
+	ctx: _Ctx, rng: RandomNumberGenerator, d_lo: float, d_hi: float, count: int, env: Dictionary
+) -> Array[Dictionary]:
+	var cfg := ctx.cfg
 	var step := float(cfg.get("grid_m", 6.0))
-	var prefer := float(cfg.get("prefer_distance_m", 60.0))
+	var prefer := float(cfg.get("prefer_distance_m", 40.0))
 	var cands: Array = []
 	var n := ceili(d_hi / step)
 	for iz in range(-n, n + 1):
 		for ix in range(-n, n + 1):
-			var p := Vector2(start.x + ix * step, start.z + iz * step)
+			var p := Vector2(ctx.s.x + ix * step, ctx.s.y + iz * step)
 			var d := p.distance_to(ctx.s)
 			if d < d_lo or d > d_hi:
 				continue
 			var r := float(cfg.get("camp_flat_m", 5.0))
-			if not ctx.is_free(p, r) or ctx.slope_deg(p, r) > ctx.max_slope:
+			if ctx.too_low(p) or not ctx.is_free(p, r) or ctx.slope_deg(p, r) > ctx.max_slope:
 				continue
 			var score := absf(d - prefer) / 50.0 + ctx.slope_deg(p, r) / ctx.max_slope
 			if not ctx.seen_from_start(p):
 				score += float(cfg.get("hidden_penalty", 1.5))
 			cands.append([score + rng.randf() * 0.5, p])
-	if cands.is_empty():
-		return out
-	cands.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
-	# лучшие несколько центров — пробуем лагерь целиком, берём тот, где встало больше палаток
-	# из них — где встало больше палаток, при равенстве — меньше камней и кустов вокруг (лагерь на
-	# чистой поляне, а не среди глыб) и лучше оценка центра
 	var best: Array[Dictionary] = []
+	if cands.is_empty():
+		return best
+	cands.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+	# лучшие несколько центров — пробуем лагерь целиком, берём тот, где встало больше палаток,
+	# при равенстве — меньше камней и кустов вокруг (чистая поляна) и лучше оценка центра
 	var best_score := INF
 	var points_fn: Callable = env.get("points_fn", Callable())
 	var base_points: Array = ctx.points
@@ -125,9 +136,8 @@ static func plan(
 		if camp.size() > 0 and score < best_score:
 			best = camp
 			best_score = score
-	for t in best:
-		out.append(ctx.finish(t))
-	return out
+	ctx.points = base_points
+	return best
 
 
 ## Радиус кучки из count палаток от её центра, м.
@@ -166,6 +176,8 @@ static func _grow(
 			if p.distance_to(c) > camp_r:
 				continue
 			if not _clear_of(placed, p, r, float(gap[0])):
+				continue
+			if p.distance_to(ctx.s) - r < ctx.min_edge or ctx.too_low(p):
 				continue
 			if not ctx.is_free(p, r) or ctx.slope_deg(p, r) > ctx.max_slope:
 				continue
@@ -310,7 +322,10 @@ class _Ctx:
 	var blocked_fn: Callable
 	var lines: Array
 	var points: Array
-	var zone: Dictionary
+	var corridor_half: float
+	var min_edge: float
+	var max_drop: float
+	var start_h: float
 	var max_slope: float
 	var cliff_slope: float
 	var ahead_m: float
@@ -326,7 +341,10 @@ class _Ctx:
 		blocked_fn = env.get("blocked_fn", Callable())
 		lines = env.get("lines", [])
 		points = env.get("points", [])
-		zone = env.get("zone", TentCamp.launch_zone(c))
+		corridor_half = TentCamp.corridor_half_m(c)
+		min_edge = float(c.get("camp_min_edge_m", 32.0))
+		max_drop = float(c.get("max_drop_m", 5.0))
+		start_h = float(height_fn.call(s.x, s.y))
 		max_slope = float(c.get("max_slope_deg", 8.0))
 		cliff_slope = float(c.get("cliff_slope_deg", 14.0))
 		ahead_m = float(c.get("ahead_m", -5.0))
@@ -339,8 +357,8 @@ class _Ctx:
 		var lat := v.dot(right)
 		if along > ahead_m - r:
 			return false  # впереди линии старта — склон, коридор разбега
-		if along > -float(zone.behind_m) - r and absf(lat) < float(zone.lateral_m) + r:
-			return false  # места ожидания и подход ботов, разбег игрока
+		if along > -8.0 - r and absf(lat) < corridor_half + r:
+			return false  # коридор разбега (SC-K1)
 		for l: Array in lines:
 			var pts: PackedVector2Array = l[0]
 			if TentCamp.dist_to_polyline(p, pts) < float(l[1]) + r:
@@ -354,6 +372,10 @@ class _Ctx:
 				if blocked_fn.call(q.x, q.y):
 					return false
 		return true
+
+	## Ниже старта больше чем на max_drop_m — вниз по склону лагерь не ставим.
+	func too_low(p: Vector2) -> bool:
+		return float(height_fn.call(p.x, p.y)) < start_h - max_drop
 
 	## Лагерь виден с глаз пилота на старте (рельеф не заслоняет верх палаток).
 	func seen_from_start(p: Vector2) -> bool:

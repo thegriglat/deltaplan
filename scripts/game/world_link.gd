@@ -4,8 +4,9 @@ extends Node
 ## объекты мира (ветроуказатели, посадки, OSM, препятствия — WorldObjects), просеки для деревьев
 ## рельефа (WorldClearings), ветер для травы/деревьев, пилот для примятой травы,
 ## столкновения с проводами и препятствиями. Сцена объектов — game.json → world_objects_scene.
-## Лагерь палаток у старта (WorldObjects.place_camp) — когда Game закончил загрузку полёта
-## (status_changed("")): старт выбран, число ботов известно (Game.bots_count или настройка).
+## Лагерь палаток у старта (WorldObjects.place_camp) — Game зовёт place_camp() после выбора старта
+## и до BotPilots.setup_in_world (боты обходят палатки, SC-K1); число ботов — Game.bots_count
+## или настройка.
 
 var objects: Node3D  ## WorldObjects или null (сцены нет)
 
@@ -23,9 +24,6 @@ func _ready() -> void:
 			add_child(objects)
 	else:
 		push_warning("WorldLink: нет сцены объектов мира %s" % path)
-	var game := get_parent()
-	if game != null and game.has_signal(&"status_changed"):
-		game.connect(&"status_changed", _on_game_status)
 
 
 ## Рельеф загружен (или сменилась погода): всё, что зависит от места и воздуха.
@@ -67,12 +65,6 @@ func place_camp() -> void:
 	objects.call(
 		&"place_camp", st.position, float(st.heading_deg), _terrain, TentCamp.tent_count(bots)
 	)
-
-
-## Загрузка полёта закончена (Game.start → status_changed("")) — старт выбран.
-func _on_game_status(text: String) -> void:
-	if text == "":
-		place_camp()
 
 
 ## Столкновение за шаг (отрезок пути от прошлого положения): {kind, point} или {}.
