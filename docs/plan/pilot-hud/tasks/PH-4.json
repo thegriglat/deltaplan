@@ -1,0 +1,61 @@
+{
+  "id": "PH-4",
+  "module": "pilot-hud",
+  "type": "dp-engineer",
+  "title": "Шуршание ног о траву при посадке",
+  "goal": "Когда ноги пилота идут по траве или волочатся в ней на посадке, слышно шуршание — честный сигнал близости земли, только там, где трава есть.",
+  "plan_ref": "PH-4 Шуршание",
+  "contracts": [
+    {
+      "name": "PH-К6",
+      "version": "1",
+      "ref": "docs/contracts/pilot-hud.md"
+    }
+  ],
+  "copy": "~/deltaplan-pilot-hud-PH-4",
+  "branch": "pilot-hud/PH-4",
+  "base": "feature/pilot-hud",
+  "scope": [
+    "scripts/audio",
+    "scripts/terrain/grass_field.gd",
+    "scripts/game/glider_visual.gd",
+    "scripts/game/game.gd",
+    "configs/audio.json",
+    "assets/sounds",
+    "ASSETS.md",
+    "tests/audio",
+    "tests/terrain",
+    "tests/vegetation",
+    "tests/contracts/test_pilot_hud_contracts.gd",
+    "docs/guide/vegetation.md"
+  ],
+  "dont_touch": [
+    "scripts/instruments/telltale*"
+  ],
+  "accept": [
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "rustle",
+      "tests": "rustle"
+    },
+    {
+      "name": "sound",
+      "tests": "sound"
+    },
+    {
+      "name": "audio",
+      "tests": "audio"
+    },
+    {
+      "name": "grass",
+      "tests": "grass"
+    }
+  ],
+  "report_extra": [],
+  "notes": "glider_visual.gd — только feet_positions(); game.gd — только передача данных в звук. Звук процедурный (фильтрованный шум с зёрнами) или из имеющихся run/step_grass_*; новые файлы — только CC0 с записью в assets/sounds/LICENSES.md и ASSETS.md. Шина Effects. Шаги в ходьбе/беге — без изменений. Тесты назвать с rustle в имени файла.",
+  "created": "2026-10-12T21:06:01",
+  "edited": "2026-10-12T21:06:01"
+}
