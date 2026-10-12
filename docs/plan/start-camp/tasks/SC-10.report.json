@@ -1,0 +1,72 @@
+{
+  "status": "done",
+  "summary": "Шина теперь один файл assets/textures/wheel/tire.png (compress/mode=2, мипмапы). 11 glb колёсных крыльев и glider_kit.glb ссылаются на него по uri; 12 копий и assets/source/wheel_tire.png удалены. Вид и геометрия не менялись.",
+  "commits": [
+    "96c91825 Одна общая текстура шины"
+  ],
+  "checks": [
+    {
+      "name": "dp accept SC-10 --dry",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "one_tire",
+      "value": "1 файл",
+      "pass": true
+    },
+    {
+      "name": "размер glb",
+      "value": "крылья 514-545 КБ -> 443-474 КБ (-70 КБ каждое); kit 222 -> 151 КБ",
+      "pass": true
+    },
+    {
+      "name": "треугольники по нодам",
+      "value": "до/после совпадают у всех 12 (13132/13564/13612/13996, kit 4096; sha по списку нода:тр)",
+      "pass": true
+    },
+    {
+      "name": "start_camp_contracts_k3_kit",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "start_camp_wheel_tire",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_glider",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "tire_vram",
+      "value": "compress/mode=2: 1, mipmaps: 1",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "dp accept SC-10",
+  "uncertain": [
+    {
+      "where": "tools/blender/glb_extern.py",
+      "why": "glb не пересобирались в Blender: встроенная картинка заменена на uri прямой правкой JSON/BIN glb",
+      "checked": "число треугольников по нодам идентично, Godot грузит все модели, albedo_texture.resource_path == res://assets/textures/wheel/tire.png (тест на 11 крыльев + аппарат). Скрипты сборки (bl_util.export, build_glider_kit) тоже вызывают glb_extern, но Blender-пересборка не запускалась"
+    },
+    {
+      "where": "godot --import",
+      "why": "в логе 3 'Unrecognized UID' после удаления старых png",
+      "checked": "git grep по этим uid ничего не находит в репо; вероятно кэш .godot"
+    }
+  ],
+  "dp_feedback": "Для задач с glb нет команды сравнения до/после (размер, треугольники по нодам); писал свой скрипт.",
+  "t": "2026-10-12T22:42:06",
+  "by": "executor"
+}
