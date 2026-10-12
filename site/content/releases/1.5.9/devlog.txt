@@ -4,12 +4,13 @@ A round of cheap graphics improvements that also saves video memory: sharper ter
 
 Graphics:
 - Sharper terrain in the middle distance, erosion gullies on steep slopes
+- Sharper mountain ridges, rock texture visible up to 6-12 km, darker high-mountain rock, ragged edges between grass, rock and snow
 - Angular rocks of different sizes, ridges along slopes, screes below crags
 - Roads with soft edges and dusty shoulders; OSM rivers are no longer drawn
 - City buildings in a calm palette, roof details, birches along streets and in gardens
 - Tree branches sway in the wind; strong gusts raise dust over dry fields
 - Metal control frame and tubes, twisted cables, bolts; worn instruments
-- Pilot gloves gripping the base bar, soft harness pod, new helmet, visor and clothing materials
+- Matte leather gloves gripping the base bar (curved too), soft harness pod, new helmet, visor and clothing materials
 - New setting "Haze toward the sun"
 - Compressed, mipmapped textures: much less video memory, less shimmering in the distance
 
