@@ -53,7 +53,20 @@ func link(terrain: Terrain, air: Node, pilot: Node3D) -> void:
 		objects.call("setup", terrain, air)
 
 
-## Палатки у старта Game (get_start): 1 + боты (Game.bots_count ≥ 0 — --bots=N, иначе настройка).
+## Сколько ботов считать в лагере: в сети — Zone.bots_count (настройки создателя, у всех
+## клиентов одинаково — палатки входят в препятствия очереди), иначе Game.bots_count
+## (--bots=N; < 0 — настройка).
+static func camp_bots(game: Object) -> int:
+	if game == null:
+		return -1
+	var net: Variant = game.get(&"net")
+	if net is Object and (net as Object).get(&"zone") is Object:
+		return int(((net as Object).get(&"zone") as Object).get(&"bots_count"))
+	var n: Variant = game.get(&"bots_count")
+	return int(n) if n != null else -1
+
+
+## Палатки у старта Game (get_start): 1 + боты (camp_bots).
 func place_camp() -> void:
 	var game := get_parent()
 	if objects == null or not objects.has_method(&"place_camp") or game == null:
@@ -61,9 +74,12 @@ func place_camp() -> void:
 	if not game.has_method(&"get_start") or not is_instance_valid(_terrain):
 		return
 	var st: Dictionary = game.call(&"get_start")
-	var bots := int(game.get(&"bots_count")) if &"bots_count" in game else -1
 	objects.call(
-		&"place_camp", st.position, float(st.heading_deg), _terrain, TentCamp.tent_count(bots)
+		&"place_camp",
+		st.position,
+		float(st.heading_deg),
+		_terrain,
+		TentCamp.tent_count(camp_bots(game))
 	)
 
 

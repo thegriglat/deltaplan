@@ -42,6 +42,8 @@ func test_k1_ring() -> void:
 		check(rel.length() - float(t.radius) >= 32.0 - 0.01, "край ≥ 32 м (%.1f)" % rel.length())
 		check(rel.dot(fwd) <= -5.0, "along ≤ −5 (%.1f)" % rel.dot(fwd))
 		check(not (rel.dot(fwd) > -8.0 and absf(rel.dot(right)) < 11.0), "вне коридора")
+	# mid — среднее по палаткам, а не заданный центр лагеря (центр лежит в 30–50 м строго,
+	# палатки разбросаны вокруг него на пару метров): допуск ±2 м
 	check(mid.length() >= 28.0 and mid.length() <= 52.0, "центр лагеря 30–50 м: %.1f" % mid.length())
 
 
@@ -105,3 +107,46 @@ func test_k1_bots_avoid_tents() -> void:
 				Vector2(sp.position.x, sp.position.z).distance_to(Vector2(o.x, o.z)) >= o.z,
 				"бот не в палатке"
 			)
+
+
+class _FakeZone:
+	extends RefCounted
+	var bots_count := 0
+
+
+class _FakeNet:
+	extends RefCounted
+	var zone := _FakeZone.new()
+
+
+class _FakeGame:
+	extends RefCounted
+	var net: Object = null
+	var bots_count := -1
+
+
+## В сети число палаток — из зоны, а не из локальной настройки ботов клиента.
+func test_net_camp_count_from_zone() -> void:
+	var cfg: Dictionary = WorldObjects.load_config().tents
+	var plans: Array = []
+	for local_bots: int in [0, 4, 12]:
+		var g := _FakeGame.new()
+		g.net = _FakeNet.new()
+		g.net.zone.bots_count = 6
+		g.bots_count = local_bots - 1 if local_bots > 0 else -1
+		check(WorldLink.camp_bots(g) == 6, "в сети — 6 ботов зоны, не локальные %d" % local_bots)
+		var camp := TentCamp.plan(
+			Vector3(0, 50, 0), 10.0, TentCamp.tent_count(WorldLink.camp_bots(g)), cfg, _flat_env()
+		)
+		plans.append(camp)
+	check(plans[0].size() == 7, "1 + 6 палаток: %d" % plans[0].size())
+	for i in [1, 2]:
+		check(plans[i].size() == plans[0].size(), "одно число палаток у клиентов")
+		for k in plans[0].size():
+			check(
+				(plans[i][k].position as Vector3).is_equal_approx(plans[0][k].position),
+				"палатка %d на том же месте у клиента %d" % [k, i]
+			)
+	var solo := _FakeGame.new()
+	solo.bots_count = 3
+	check(WorldLink.camp_bots(solo) == 3, "одиночная игра — Game.bots_count")
