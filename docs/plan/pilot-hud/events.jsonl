@@ -119,3 +119,7 @@
 {"t": "2026-10-12T22:56:34", "by": "main", "task": "PH-7", "ev": "accepted", "note": "по отчёту: стрелки и картушка по PH-К4 (±3°, демпфирование), флажки «Часы»/«Компас», головка на +Y, ремешки 54×52, текстуры по правилу VRAM; порог юбки компаса 14 мм — принят (юбка облегает изгиб руки)"}
 {"t": "2026-10-12T22:58:50", "by": "coordinator", "task": "PH-9", "ev": "accepted", "commits": ["099b011b"], "note": "5/5 pilot_hud=ok:17/17; pilot_pose=ok:2/2; pilot_view=ok:7/7; glider_visual=ok:6/6; cockpit=ok:9 тестов, 1 упало"}
 {"t": "2026-10-12T22:59:02", "by": "coordinator", "task": "PH-9", "ev": "merged", "commits": ["099b011b"]}
+{"t": "2026-10-12T23:05:17", "by": "coordinator", "task": "PH-7", "ev": "accepted", "commits": ["84fc48b9"], "note": "5/5 pilot_hud=ok:17/17; wrist=ok:7/7; settings=ok:6/6; cockpit=ok:9 тестов, 1 упало; textures=ok:exit 0"}
+{"t": "2026-10-12T23:11:01", "by": "coordinator", "task": "PH-8", "ev": "checked", "note": "4/5 pilot_hud=ok:17/17; sky_shade=ok:16/16 (пропуск 2); grass=ok:18/18 (пропуск 2); cockpit=FAIL:8/9; FAIL test_trapezoid_and_…; glider_visual=ok:6/6"}
+{"t": "2026-10-12T23:11:11", "by": "coordinator", "task": "PH-4", "ev": "checked", "note": "5/5 pilot_hud=ok:17/17; rustle=ok:7/7; sound=ok:12/12; audio=ok:33/33; grass=ok:18/18 (пропуск 2)"}
+{"t": "2026-10-12T23:11:25", "by": "coordinator", "task": "PH-7", "ev": "merged", "commits": ["84fc48b9"]}
