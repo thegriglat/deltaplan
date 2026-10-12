@@ -119,6 +119,10 @@ var _motion_gap := false  ## поток движения прерывался (�
 @onready var overlay: InstrumentOverlay = $InstrumentOverlay
 @onready var vario_audio: VarioAudio = $VarioAudio
 @onready var flight_audio: FlightAudio = $FlightAudio
+# Подошвы пилота на прошлом шаге (шуршание о траву, _rustle_feet).
+var _feet_prev := PackedVector3Array()
+var _feet_prev_usec: int = 0
+var _feet_speed: Array[float] = []
 
 
 func _exit_tree() -> void:
@@ -1370,6 +1374,43 @@ func _update_overlay() -> void:
 # ---------------------------------------------------------------- сигналы планера
 
 
+## Подошвы пилота для шуршания о траву (PH-4, PH-К6): [{clearance_m, speed_ms, grass_h_m}].
+## Скорость — по смещению подошв между шагами физики; пусто, если трава выключена, пилот выше
+## flight.rustle.feet_max_agl_m или скелета нет.
+func _rustle_feet(t: Telemetry) -> Array:
+	var out: Array = []
+	var rc: Dictionary = Config.get_config("audio").get("flight", {}).get("rustle", {})
+	var feet := PackedVector3Array()
+	if (
+		terrain.grass != null
+		and is_instance_valid(glider.visual)
+		and t.altitude_agl <= float(rc.get("feet_max_agl_m", 2.0))
+	):
+		feet = glider.visual.feet_positions()
+	var now := Time.get_ticks_usec()
+	var dt := float(now - _feet_prev_usec) * 1e-6
+	for i in feet.size():
+		var p := feet[i]
+		var speed := _feet_speed[i] if i < _feet_speed.size() else 0.0
+		if i < _feet_prev.size() and dt > 0.001 and dt < 0.5:
+			speed = (p - _feet_prev[i]).length() / dt
+		var gh := terrain.grass.height_at(p.x, p.z)
+		out.append(
+			{
+				"clearance_m": p.y - terrain.height_at(p.x, p.z),
+				"speed_ms": speed,
+				"grass_h_m": gh,
+			}
+		)
+	if dt > 0.001 or feet.is_empty():
+		_feet_prev = feet
+		_feet_prev_usec = now
+		_feet_speed.resize(out.size())
+		for i in out.size():
+			_feet_speed[i] = out[i].speed_ms
+	return out
+
+
 func _on_telemetry(t: Telemetry) -> void:
 	if tow != null:  # буксир: без приборов и статистики, писк молчит, поток — по скорости
 		vario_audio.set_vario(0.0)
@@ -1387,6 +1428,7 @@ func _on_telemetry(t: Telemetry) -> void:
 	}
 	if t.on_ground and air.has_method("mean_wind_at"):
 		extra["ground_wind_ms"] = (air.call("mean_wind_at", t.position) as Vector3).length()
+	extra["feet"] = _rustle_feet(t)
 	flight_audio.update(t, extra)
 	stats.flight_position_started = glider.model.flight_position_started  # FB-К2
 	stats.update(t, _dt)

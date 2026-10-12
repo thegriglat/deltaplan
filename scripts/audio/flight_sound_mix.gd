@@ -9,6 +9,8 @@ extends RefCounted
 const AIRFLOW_LOOPS: PackedStringArray = ["rush", "rumble", "wires", "ears", "fast"]
 const SAIL_LOOPS: PackedStringArray = ["wing", "luff"]
 const RUN_LOOPS: PackedStringArray = ["breath"]
+## Имя слоя шуршания ног о траву (PH-4): процедурный луп, не из файла.
+const RUSTLE_LOOP := "rustle"
 const AMBIENT_LOOPS: PackedStringArray = ["meadow", "birds", "cowbells", "grass", "gusts"]
 
 # Состояние (СИ, кроме скорости в км/ч — формулы из исследования в км/ч).
@@ -22,6 +24,8 @@ var sideslip_deg: float = 0.0
 var load_factor: float = 1.0
 var ground_wind_ms: float = 0.0
 var surface: String = "grass"
+## Подошвы пилота для шуршания (PH-4): [{clearance_m, speed_ms, grass_h_m}]; пусто — нет.
+var feet: Array = []
 
 var _cfg: Dictionary = {}
 var _air: Dictionary = {}
@@ -71,6 +75,7 @@ func set_state(t: Telemetry, extra: Dictionary) -> void:
 	load_factor = float(extra.get("load_factor", 1.0 / cos(bank)))
 	ground_wind_ms = float(extra.get("ground_wind_ms", _amb.get("wind_default_ms", 3.0)))
 	surface = String(extra.get("surface", _run.get("surface_default", "grass")))
+	feet = extra.get("feet", [])
 
 
 ## Громкости и высоты тона: {имя_лупа: Vector2(дБ, pitch_scale)}, плюс "lp_cutoff_hz", "pan".
@@ -79,6 +84,7 @@ func compute() -> Dictionary:
 	_compute_airflow(out)
 	_compute_sail(out)
 	_compute_run(out)
+	_compute_rustle(out)
 	_compute_ambient(out)
 	return out
 
@@ -178,6 +184,16 @@ func _compute_run(out: Dictionary) -> void:
 		var ramp := clampf(_run_time_s / maxf(float(_run.breath_ramp_s), 0.01), 0.0, 1.0)
 		db = lerpf(float(_run.breath_start_db), float(_run.breath_db), ramp)
 	out["breath"] = Vector2(db, 1.0)
+
+
+## Шуршание ног о траву (PH-4): громкость от погружения подошв и скорости, высота — от скорости.
+func _compute_rustle(out: Dictionary) -> void:
+	var rc: Dictionary = _cfg.get("rustle", {})
+	var lvl := GrassRustle.level(feet, rc)
+	var spd := 0.0
+	for f: Dictionary in feet:
+		spd = maxf(spd, float(f.get("speed_ms", 0.0)))
+	out[RUSTLE_LOOP] = Vector2(GrassRustle.level_to_db(lvl, rc, _min_db), GrassRustle.pitch_for(spd, rc))
 
 
 func _compute_ambient(out: Dictionary) -> void:

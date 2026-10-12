@@ -248,3 +248,40 @@ func test_ph_k4_compass_materials_and_import() -> void:
 	var imp := FileAccess.get_file_as_string("res://assets/models/wrist_compass_CompassCard.png.import")
 	check(imp.contains("compress/mode=2") and imp.contains("mipmaps/generate=true"), ".import: VRAM-сжатие и мипмапы")
 	r.free()
+
+
+# ---- PH-К6: трава в точке и подошвы пилота, владелец PH-4 ----
+func test_ph_k6_grass_height_at() -> void:
+	var n := 21
+	var hs := PackedFloat32Array()
+	hs.resize(n * n)
+	var cs := PackedByteArray()
+	cs.resize(n * n)
+	for j in n:
+		for i in n:
+			cs[j * n + i] = SurfaceLayer.GRASS if i < 10 else SurfaceLayer.BARE
+	var g := GrassField.new()
+	g._layer = HeightLayer.from_heights("t", n, n, 10.0, -100.0, -100.0, hs)
+	g._surface = SurfaceLayer.from_classes("t", n, n, 10.0, -100.0, -100.0, cs)
+	g._cfg = Config.get_config("vegetation").grass.duplicate(true)
+	g._cfg["enabled"] = true
+	g._cfg["density_pct"] = 100
+	var open := g.height_at(-50.0, 0.0)
+	check(open > 0.0, "GRASS ровного места: height_at > 0")
+	check(g.height_at(-50.0, 0.0) == open, "детерминирована")
+	check(g.height_at(50.0, 0.0) == 0.0, "BARE → 0")
+	var sites: Array[Dictionary] = [
+		{"position": Vector3(-50, 0, 0), "axis_deg": 0.0, "length_m": 40.0, "width_m": 20.0}
+	]
+	g.set_landing_sites(sites)
+	check(g.height_at(-50.0, 0.0) < g.height_at(-50.0, 60.0), "на площадке ниже, чем рядом")
+	g._cfg["enabled"] = false
+	check(g.height_at(-50.0, 60.0) == 0.0, "трава выключена → 0")
+	g.free()
+
+
+func test_ph_k6_feet_positions_shape() -> void:
+	var v := GliderVisual.new()
+	check(v.feet_positions() is PackedVector3Array, "feet_positions -> PackedVector3Array")
+	check(v.feet_positions().is_empty(), "нет скелета пилота — пустой массив")
+	v.free()
