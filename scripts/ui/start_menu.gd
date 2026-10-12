@@ -39,6 +39,7 @@ func _ready() -> void:
 	if settings == null:
 		settings = FlightSettings.defaults()
 	_build()
+	add_child(MenuAmbient.new())  # фон меню: ветер и далёкие хищные птицы
 
 
 ## Выбор для «Лететь»: последний выбор или значения по умолчанию.

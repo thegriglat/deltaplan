@@ -349,5 +349,57 @@
         "gusts": "res://assets/sounds/ambient/wind_launch_gusts_loop.ogg"
       }
     }
+  },
+  "menu": {
+    "_doc": "Фон меню (главное меню, выбор и настройки до старта полёта): тихий горный ветер с медленными порывами и затишьями и редкие далёкие крики хищных птиц (орёл, коршун, канюк). Логика — MenuAmbientMix, плееры — MenuAmbient. Громкости в дБ на плеере (записи ветра нормированы около −24 LUFS; полётный ветер у ушей при 40 км/ч — flight.airflow.ears_db −17 и rush_db −14 на записях −20 LUFS), дальше шина Ambient и Master, то есть подчиняется общей громкости и громкости окружения.",
+    "enabled": true,
+    "enabled_doc": "Включить фон меню.",
+    "wind_db": -20.0,
+    "wind_db_doc": "Громкость ветра в порыве (максимум), дБ. Ориентир: −24…−18 дБ относительно полётного ветра у ушей при 40 км/ч.",
+    "gust_depth_db": 12.0,
+    "gust_depth_db_doc": "Глубина порывов: в затишье ветер тише порыва на столько дБ.",
+    "gust_period_s": 28.0,
+    "gust_period_s_doc": "Основной период порывов, с (добавляются более быстрые гармоники 0,37 и 0,17 периода со случайной фазой).",
+    "gust_period_jitter": 0.25,
+    "gust_period_jitter_doc": "Случайный разброс периодов по сиду, доля (±).",
+    "lpf_hz": [900.0, 5000.0],
+    "lpf_hz_doc": "Срез ФНЧ ветра: в затишье — первое значение, в порыве — второе, Гц (порыв светлее).",
+    "grass_share_db": -6.0,
+    "grass_share_db_doc": "Второй слой ветра (шелест травы) тише первого на столько дБ; его порывы идут в другой фазе.",
+    "birds_interval_s": [20.0, 60.0],
+    "birds_interval_s_doc": "Интервал между криками, с: случайно в этих границах.",
+    "birds_first_s": [6.0, 20.0],
+    "birds_first_s_doc": "Первый крик после появления меню, с.",
+    "birds_db": [-18.0, -9.0],
+    "birds_db_doc": "Громкость крика (случайно в границах), дБ на плеере; записи нормированы по пику −6 дБ.",
+    "birds_pan": 0.8,
+    "birds_pan_doc": "Панорама крика случайна в ±этого значения (0…1).",
+    "birds_lpf_hz": 6000.0,
+    "birds_lpf_hz_doc": "Срез ФНЧ шины птиц (дальность: высоких нет), Гц.",
+    "fade_in_s": 3.0,
+    "fade_in_s_doc": "Появление фона при показе меню (в том числе при возврате из полёта), с.",
+    "fade_out_s": 1.0,
+    "fade_out_s_doc": "Затухание при старте полёта (и вообще при скрытии меню), с.",
+    "silence_db": -60.0,
+    "silence_db_doc": "Ниже этой громкости плееры ветра останавливаются (экономия).",
+    "bus": "Ambient",
+    "bus_doc": "Шина-приёмник; свои шины MenuWind и MenuBirds идут в неё.",
+    "files": {
+      "wind": "res://assets/sounds/ambient/wind_launch_gusts_loop.ogg",
+      "grass": "res://assets/sounds/ambient/grass_wind_loop.ogg",
+      "birds": [
+        "res://assets/sounds/menu/raptor_buzzard_01.ogg",
+        "res://assets/sounds/menu/raptor_buzzard_02.ogg",
+        "res://assets/sounds/menu/raptor_buzzard_03.ogg",
+        "res://assets/sounds/menu/raptor_hawk_01.ogg",
+        "res://assets/sounds/menu/raptor_hawk_02.ogg",
+        "res://assets/sounds/menu/raptor_kite_01.ogg",
+        "res://assets/sounds/menu/raptor_kite_02.ogg",
+        "res://assets/sounds/menu/raptor_eagle_01.ogg",
+        "res://assets/sounds/menu/raptor_eagle_02.ogg",
+        "res://assets/sounds/menu/raptor_eagle_03.ogg",
+        "res://assets/sounds/menu/raptor_eagle_04.ogg"
+      ]
+    }
   }
 }
