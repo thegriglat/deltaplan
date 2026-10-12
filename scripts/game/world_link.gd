@@ -67,6 +67,19 @@ func place_camp() -> void:
 	objects.call(
 		&"place_camp", st.position, float(st.heading_deg), _terrain, TentCamp.tent_count(bots)
 	)
+	_apply_trample(st.position)
+
+
+## Примятая трава вокруг старта (SC-K6): маска по палаткам, вещам и тропе — в GrassField.
+func _apply_trample(start: Vector3) -> void:
+	var grass: Variant = _terrain.get(&"grass") if is_instance_valid(_terrain) else null
+	if grass == null or not objects.has_method(&"trample_mask"):
+		return
+	var m: Dictionary = objects.call(&"trample_mask", start)
+	if m.is_empty():
+		grass.set_trample_mask(null, Vector2.ZERO, 1.0)
+	else:
+		grass.set_trample_mask(m.image, m.origin, m.cell_m)
 
 
 ## Загрузка полёта закончена (Game.start → status_changed("")) — старт выбран.
