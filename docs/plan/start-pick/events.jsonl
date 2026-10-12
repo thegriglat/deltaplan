@@ -3,3 +3,5 @@
 {"t": "2026-10-12T06:01:58", "by": "coordinator", "task": "SP-4", "ev": "created", "note": "Камни и кусты не на разбеге у любого старта"}
 {"t": "2026-10-12T06:02:38", "by": "coordinator", "task": "SP-1", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-start-pick-SP-1"}
 {"t": "2026-10-12T06:02:39", "by": "coordinator", "task": "SP-4", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-start-pick-SP-4"}
+{"t": "2026-10-12T06:03:15", "by": "coordinator", "task": "SP-2", "ev": "created", "note": "UI осмотра: точка и курс старта, «Лететь отсюда», пункт меню"}
+{"t": "2026-10-12T06:03:15", "by": "coordinator", "task": "SP-3", "ev": "created", "note": "Точный старт в сетевой игре"}

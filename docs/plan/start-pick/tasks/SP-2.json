@@ -1,0 +1,74 @@
+{
+  "id": "SP-2",
+  "module": "start-pick",
+  "type": "dp-engineer",
+  "title": "UI осмотра: точка и курс старта, «Лететь отсюда», пункт меню",
+  "goal": "В осмотре места пилот ставит точку старта и направление разбега на рельефе и сразу летит оттуда; пункт меню — «Выбрать старт на рельефе».",
+  "plan_ref": "SP-2",
+  "contracts": [
+    {
+      "name": "SP-К1",
+      "version": "1",
+      "ref": "docs/contracts/start-pick.md"
+    },
+    {
+      "name": "SP-К2",
+      "version": "1",
+      "ref": "docs/contracts/start-pick.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-pick-SP-2",
+  "branch": "start-pick/SP-2",
+  "base": "feature/start-pick",
+  "scope": [
+    "scripts/game/game.gd",
+    "scenes/main.gd",
+    "scripts/ui/start_menu.gd",
+    "scripts/ui/start_pick_panel.gd",
+    "scripts/game/start_marker.gd",
+    "scripts/game/camera_rig.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/ui/place_pick_row.gd",
+    "locale/ui.csv",
+    "tests/game/",
+    "tests/ui/"
+  ],
+  "dont_touch": [
+    "scripts/ui/settings_panel.gd",
+    "scripts/game/graphics_presets.gd",
+    "scripts/net/",
+    "scripts/game/world_key.gd",
+    "scripts/game/start_spot.gd",
+    "scripts/game/flight_settings.gd"
+  ],
+  "accept": [
+    {
+      "name": "start_pick",
+      "tests": "start_pick"
+    },
+    {
+      "name": "test_inspect_mode",
+      "tests": "test_inspect_mode"
+    },
+    {
+      "name": "tests/ui/test_menu",
+      "tests": "tests/ui/test_menu"
+    },
+    {
+      "name": "tests/ui/test_favorites",
+      "tests": "tests/ui/test_favorites"
+    },
+    {
+      "name": "tests/game/test_start",
+      "tests": "tests/game/test_start"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T06:03:15"
+}
