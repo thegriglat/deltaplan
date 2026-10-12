@@ -24,13 +24,14 @@ var _tex: ImageTexture
 var _bytes := PackedByteArray()
 var _center_local := Vector3.ZERO  ## центр паруса в осях визуала
 var _center_ready := false
-var _sun: DirectionalLight3D
-var _share := 0.3
+var _share := 0.15
 var _share_t := 0.0
 var _baked_h := -1.0
 var _baked_share := -1.0
 var _bake_t := 1.0
 
+## Условия освещения: Vector2(sin высоты солнца, облачность 0..1) — задаёт Game; нет — ясно, солнце высоко.
+var env_fn: Callable = Callable()
 ## Высота земли (x, z) → y; null — берётся у родителя-Glider.
 var ground_fn: Callable = Callable()
 ## Для замеров и тестов: сколько раз пересчитывалась текстура.
@@ -54,8 +55,10 @@ func setup(area_m2: float, cfg: Dictionary) -> void:
 	_decal.name = "Decal"
 	_decal.texture_albedo = _tex
 	_decal.albedo_mix = 1.0
-	_decal.upper_fade = 0.5
-	_decal.lower_fade = 0.5
+	# Forward+: ослабление pow(1 − |y_local|, fade). Нижний 0 — земля (на y_local ≈ −0,6) темнеет ровно
+	# на darkening(); верхний ≈ 0 — вершины травы (до 0,9 м) не слабее земли. Мягкий край — в текстуре.
+	_decal.upper_fade = 0.1
+	_decal.lower_fade = 0.0
 	_decal.normal_fade = 0.0
 	_decal.cull_mask = 0xFFFFF
 	_decal.layers = 1
@@ -93,15 +96,18 @@ static func darkening(r_m: float, h_m: float, area_m2: float, cfg: Dictionary) -
 	return clampf(gain * share * view_factor(absf(r_m), h, disc_radius(area_m2)) * fade, 0.0, 1.0)
 
 
-## Доля рассеянного света неба в освещённости земли по окружению: ambient — сила рассеянного света
-## неба (Environment.ambient_light_energy × вклад неба), sun — энергия солнца × синус высоты.
-## Пасмурно солнце слабое — доля растёт; ясно — мала. Границы — min/max из конфига.
-static func share_from_env(ambient: float, sun: float, cfg: Dictionary) -> float:
-	var lo := float(cfg.get("sky_share_min", 0.15))
-	var hi := float(cfg.get("sky_share_max", 0.9))
-	var tot := ambient + maxf(sun, 0.0)
-	var s := ambient / tot if tot > 1e-4 else lo
-	return clampf(s, lo, hi)
+## Доля рассеянного света неба в освещённости земли (физическая оценка, без яркости сцены игры):
+## ясно — диффузная доля ≈ clear_noon (0,12–0,2 при высоком солнце), растёт к горизонту как
+## clear_noon + clear_low_k·(1 − sin h)²; облачность cover (0..1, пелена прогноза) смешивает её
+## к overcast_share (пасмурно почти весь свет рассеянный, ≈ 0,9) по cover/overcast_cover.
+static func share_from_weather(sin_elev: float, cover: float, cfg: Dictionary) -> float:
+	var clear := float(cfg.get("clear_noon", 0.15))
+	var low := float(cfg.get("clear_low_k", 0.35))
+	var k := 1.0 - clampf(sin_elev, 0.0, 1.0)
+	var clear_share := clear + low * k * k
+	var over := float(cfg.get("overcast_share", 0.9))
+	var t := clampf(cover / maxf(float(cfg.get("overcast_cover", 0.85)), 1e-3), 0.0, 1.0)
+	return clampf(lerpf(clear_share, over, t), 0.0, over)
 
 
 ## Параметры пятна при высоте h: смещение центра вперёд (к виду пилота, ≤ h), полуразмер декали.
@@ -144,28 +150,13 @@ func _update_share(dt: float) -> void:
 	if _share_t > 0.0:
 		return
 	_share_t = 0.5
-	if _sun == null or not is_instance_valid(_sun):
-		_sun = _find_light(get_tree().root)
-	var vp := get_viewport()
-	var env: Environment = vp.world_3d.environment if vp != null and vp.world_3d != null else null
-	if env == null:
-		return
-	var amb := env.ambient_light_energy * env.ambient_light_sky_contribution
-	var sun_e := 0.0
-	if _sun != null:
-		var sin_el := maxf(_sun.global_transform.basis.z.y, 0.0)
-		sun_e = _sun.light_energy * sin_el
-	_share = share_from_env(amb, sun_e, _cfg)
-
-
-func _find_light(n: Node) -> DirectionalLight3D:
-	if n is DirectionalLight3D and (n as DirectionalLight3D).visible:
-		return n as DirectionalLight3D
-	for c in n.get_children():
-		var r := _find_light(c)
-		if r != null:
-			return r
-	return null
+	var sin_el := 1.0
+	var cover := 0.0
+	if env_fn.is_valid():
+		var e: Vector2 = env_fn.call()
+		sin_el = e.x
+		cover = e.y
+	_share = share_from_weather(sin_el, cover, _cfg)
 
 
 ## Центр паруса в осях визуала: середина AABB Sail (иначе узел Wing).

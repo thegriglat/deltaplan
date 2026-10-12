@@ -54,12 +54,16 @@ func test_sky_shade_gain_clamped_and_share_scales() -> void:
 	check(cloudy > 4.0 * clear, "пасмурно заметнее, чем ясно: %.3f vs %.3f" % [cloudy, clear])
 
 
-func test_sky_shade_share_from_environment() -> void:
-	var cfg := {"sky_share_min": 0.15, "sky_share_max": 0.9}
-	var clear := SkyShade.share_from_env(0.56, 1.0, cfg)
-	var overcast := SkyShade.share_from_env(0.56, 0.05, cfg)
-	check(overcast > clear, "пасмурно доля неба больше")
-	check(clear >= 0.15 and overcast <= 0.9, "в границах конфига")
+func test_sky_shade_share_from_weather() -> void:
+	var cfg: Dictionary = Config.get_config("flight").visual.sky_shade
+	var noon := SkyShade.share_from_weather(0.9, 0.0, cfg)
+	check(noon >= 0.12 and noon <= 0.25, "ясный полдень физически: %.3f" % noon)
+	var low := SkyShade.share_from_weather(0.26, 0.0, cfg)
+	check(low > noon and low < 0.5, "ясно, низкое солнце: доля растёт, %.3f" % low)
+	var overcast := SkyShade.share_from_weather(0.9, 0.85, cfg)
+	check(overcast >= 0.85 and overcast <= 0.9, "пасмурно почти весь свет рассеянный: %.3f" % overcast)
+	var partly := SkyShade.share_from_weather(0.9, 0.3, cfg)
+	check(partly > noon and partly < overcast, "переменная между: %.3f" % partly)
 
 
 func test_sky_shade_touchdown_covers_feet() -> void:
