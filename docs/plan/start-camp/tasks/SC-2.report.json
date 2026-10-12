@@ -1,0 +1,74 @@
+{
+  "status": "done",
+  "summary": "StartGear (plan/build_node) у каждого старта локации из WorldObjects.build: 2-4 крыла на базовой штанге носом в землю и в ветер (поза по вершинам glb: нос киля и концы штанги на земле), аппарат kit_bundle+kit_frame, чехлы кучками, рюкзаки, шлемы, бутылки; MultiMesh на вариант x LOD, материалы SC-K3 -> CampFabric (kit_bundle: Fabric->fabric_dark, Sail->sail по замечанию координатора), препятствия gear; конфиг start_gear, тесты.",
+  "commits": [
+    "8a8b9f10 StartGear: крылья на штанге по позе модели, мелочь MultiMesh с материалами SC-K3/K5, препятствия gear, тесты SC-K2",
+    "1922b058 Слияние feature/start-camp в start-camp/SC-2",
+    "2cacd19e StartGear: план и визуал снаряжения у стартов (SC-2, черновик)"
+  ],
+  "checks": [
+    {
+      "name": "start_gear",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "start_camp_contracts_k2",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_world_objects",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "tents",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скриншоты не делались (по заданию). Крен/тангаж крыла на реальном рельефе проверен только числами (нос и концы штанги на земле +-0,05 м на склонах 4-5 градусов в тесте)."
+  ],
+  "questions": [
+    "max_slope_deg для вещей поднят до 16 (cliff 24): старты на склонах 12-15 градусов, при 8 на ongudai/kayancha_south пятачок пуст (ok=0 из 2344 клеток). Устраивает?"
+  ],
+  "how_to_check": "dp accept SC-2; godot --headless --path . res://tests/run_tests.tscn -- --filter=start_gear",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/start_gear.gd:_wing_place",
+      "why": "поза крыла: тангаж ~-72 градуса (нос вниз, парус смотрит вперёд-вниз), крыло почти стоит на штанге; геометрически следует из задания (нос и штанга на земле), но как выглядит - не видел",
+      "checked": "числа: нос и оба конца штанги на земле +-0,05 м на ровном и склонах 5 градусов; нос от курса <=12 градусов (измерен как вектор штанга->нос)"
+    },
+    {
+      "where": "scripts/world_objects/start_gear.gd:_map_materials",
+      "why": "Webbing/Tube/Fitting/Steel/Cap слиты в один материал Hardware (иначе вызовов отрисовки 36 при лимите 20); детали окраски теряются",
+      "checked": "вызовов мелочи 20 при полном наборе; ещё один вид рюкзака на старт ограничен (одна harness-вариация на старт)"
+    },
+    {
+      "where": "scripts/world_objects/world_objects.gd:_build_start_gear",
+      "why": "использует _camp_env (вызов) с terrain из setup(); при прямом build() без setup блокировки леса/воды/камней нет (только высота, тропы, дороги, дома)",
+      "checked": "тесты на реальных ongudai/askarovo через build() без terrain"
+    }
+  ],
+  "dp_feedback": "dp task sync отказал из-за грязной копии - хотелось бы, чтобы сообщал, какие файлы; коммит-хук dp check gd молча переформатирует файл (правки терялись при sed по номерам строк).",
+  "extra": {
+    "plan_ms_cold_first_start": "22-24 мс (загрузка glb крыльев)",
+    "plan_ms_warm": "2.7-7.6 мс",
+    "vertical": "tris вблизи (5 м): худший из 5 курсов на плоской земле",
+    "wings_distinct_per_location": "<=6 (wing_pool)",
+    "small_variants": "temp-меши не нужны: glb SC-K3 есть, временные остались как запасной путь"
+  },
+  "tris_near": 62506,
+  "tris_far": 37024,
+  "draw_calls_small": 20,
+  "plan_ms_per_start": "в среднем ~4 мс (2.7-7.6) на реальных стартах, первый холодный 22-24 мс",
+  "t": "2026-10-12T22:47:31",
+  "by": "executor"
+}
