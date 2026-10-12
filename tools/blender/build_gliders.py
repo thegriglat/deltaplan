@@ -25,6 +25,7 @@ import aframe_geom as G  # noqa: E402
 import frame_parts as F  # noqa: E402
 import sail_maps  # noqa: E402
 import sail_texture  # noqa: E402
+import wheel_parts as W  # noqa: E402
 
 SPAN_STATIONS = 44       # на полуразмах
 CHORD_STATIONS = 22
@@ -430,8 +431,7 @@ def build_control_frame(ws: WingShape, p: dict, cf: dict, mats: dict, tail_y: fl
     if p["wheels"]:
         for s in (-1, 1):
             c = Vector((s * (w + 0.07), y_bb, z_bb))
-            mb.add_tube([c - Vector((0.025, 0, 0)), c + Vector((0.025, 0, 0))], 0.1, "Wheel",
-                        sides=16, up=(0, 1, 0))
+            W.add_wheel(mb, c, s, s * (w + 0.035))
     # нижние тросы: передние к носу, задние к килю, боковые к узлам поперечины; у угла —
     # наконечник (ушко + коуш + втулка), сам трос — материал Wire (по нему ленточка ищет трос)
     nose = Vector((0, ws.y_nose - 0.05, kz))
@@ -488,7 +488,8 @@ def build_wing(key: str, params: dict) -> None:
                            metal=p["tube_metal"]),
         "Dark": U.material("Fitting", U.srgb((0.1, 0.1, 0.11)), rough=0.5),
         "Wire": U.material("Wire", U.srgb((0.55, 0.56, 0.6)), rough=0.4, metal=0.8),
-        "Wheel": U.material("Wheel", U.srgb((0.12, 0.12, 0.12)), rough=0.9),
+        "Wheel": U.material("Wheel", (1, 1, 1), rough=0.88, image=W.tire_texture()),
+        "WheelRim": U.material("WheelRim", U.srgb((0.62, 0.63, 0.62)), rough=0.5),
         "Steel": U.material("Steel", U.srgb((0.62, 0.63, 0.66)), rough=0.3, metal=0.9),
         "Grip": U.material("Grip", U.srgb((0.07, 0.07, 0.075)), rough=0.85),
         "Webbing": U.material("Webbing", U.srgb(p.get("strap_color", (0.12, 0.16, 0.3))), rough=0.9),
