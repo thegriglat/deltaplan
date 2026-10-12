@@ -1,0 +1,57 @@
+{
+  "id": "SP-4",
+  "module": "start-pick",
+  "type": "dp-engineer",
+  "title": "Камни и кусты не на разбеге у любого старта",
+  "goal": "У встроенного старта, точки с карты и точного старта на разбеге нет камней и кустов (сейчас отступ только у встроенных стартов и 12–15 м).",
+  "plan_ref": "SP-4",
+  "contracts": [
+    {
+      "name": "SP-К4",
+      "version": "1",
+      "ref": "docs/contracts/start-pick.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-pick-SP-4",
+  "branch": "start-pick/SP-4",
+  "base": "feature/start-pick",
+  "scope": [
+    "scripts/terrain/shrub_scatter.gd",
+    "scripts/terrain/rock_scatter.gd",
+    "configs/",
+    "tests/terrain/",
+    "tests/contracts/test_start_pick_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/game/game.gd",
+    "scripts/game/flight_settings.gd",
+    "scripts/ui/settings_panel.gd",
+    "scripts/game/graphics_presets.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_start_pick_contracts",
+      "tests": "test_start_pick_contracts"
+    },
+    {
+      "name": "shrub",
+      "tests": "shrub"
+    },
+    {
+      "name": "rock",
+      "tests": "rock"
+    },
+    {
+      "name": "test_start_clearing",
+      "tests": "test_start_clearing"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T06:01:58"
+}
