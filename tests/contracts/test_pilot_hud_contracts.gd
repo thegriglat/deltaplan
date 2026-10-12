@@ -425,3 +425,40 @@ func test_sky_shade_contract_ph_k7() -> void:
 	check(SkyShade.darkening(0.0, 13.0, area, cfg) == 0.0, "ноль выше h_max")
 	var d_touch := SkyShade.darkening(1.0, 2.5, area, cfg)
 	check(d_touch > 0.1 * SkyShade.darkening(0.0, 2.5, area, cfg), "у касания охватывает точку под ногами")
+
+
+# ---- PH-К6: трава в точке и подошвы пилота, владелец PH-4 ----
+func test_ph_k6_grass_height_at() -> void:
+	var n := 21
+	var hs := PackedFloat32Array()
+	hs.resize(n * n)
+	var cs := PackedByteArray()
+	cs.resize(n * n)
+	for j in n:
+		for i in n:
+			cs[j * n + i] = SurfaceLayer.GRASS if i < 10 else SurfaceLayer.BARE
+	var g := GrassField.new()
+	g._layer = HeightLayer.from_heights("t", n, n, 10.0, -100.0, -100.0, hs)
+	g._surface = SurfaceLayer.from_classes("t", n, n, 10.0, -100.0, -100.0, cs)
+	g._cfg = Config.get_config("vegetation").grass.duplicate(true)
+	g._cfg["enabled"] = true
+	g._cfg["density_pct"] = 100
+	var open := g.height_at(-50.0, 0.0)
+	check(open > 0.0, "GRASS ровного места: height_at > 0")
+	check(g.height_at(-50.0, 0.0) == open, "детерминирована")
+	check(g.height_at(50.0, 0.0) == 0.0, "BARE → 0")
+	var sites: Array[Dictionary] = [
+		{"position": Vector3(-50, 0, 0), "axis_deg": 0.0, "length_m": 40.0, "width_m": 20.0}
+	]
+	g.set_landing_sites(sites)
+	check(g.height_at(-50.0, 0.0) < g.height_at(-50.0, 60.0), "на площадке ниже, чем рядом")
+	g._cfg["enabled"] = false
+	check(g.height_at(-50.0, 60.0) == 0.0, "трава выключена → 0")
+	g.free()
+
+
+func test_ph_k6_feet_positions_shape() -> void:
+	var v := GliderVisual.new()
+	check(v.feet_positions() is PackedVector3Array, "feet_positions -> PackedVector3Array")
+	check(v.feet_positions().is_empty(), "нет скелета пилота — пустой массив")
+	v.free()

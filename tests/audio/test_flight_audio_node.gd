@@ -13,7 +13,7 @@ func check(cond: bool, msg: String = "") -> void:
 func test_events_do_not_crash() -> void:
 	var fa := FlightAudio.new()
 	add_child(fa)
-	check(fa._loops.size() == 13, "все 13 лупов загружены (%d)" % fa._loops.size())
+	check(fa._loops.size() == 14, "все 14 лупов (13 + шуршание) загружены (%d)" % fa._loops.size())
 	for list_name in ["snaps", "creaks", "steps_grass", "steps_gravel", "landing_crash"]:
 		check(not fa._lists[list_name].is_empty(), "список %s загружен" % list_name)
 	var t := Telemetry.new()

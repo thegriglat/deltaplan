@@ -38,6 +38,8 @@ const FALLBACK_UPRIGHT_TOP := Vector3(0.055, -0.02, -0.25)
 const GROUND_GRIP := Vector3(0.0, -0.59, -0.43)
 ## Середина ступней (кости Foot) в позе stand относительно карабина без наклона, м.
 const GROUND_FEET := Vector3(0.0, -1.905, 0.17)
+## Кость Foot над низом подошвы, м (hang_height_m 2,0 − GROUND_FEET.y 1,905).
+const FOOT_BONE_ABOVE_SOLE_M := 0.095
 
 var wing: Node3D  ## модель крыла
 var pilot: Node3D  ## нода Pilot (качается маятником вокруг HangPoint), внутри — модель пилота
@@ -405,6 +407,24 @@ func ground_feet_target(pilot_rel: Vector3) -> Vector3:
 ## Ступни нарисованного стоящего пилота (оси визуала): точка ступней позы стоя.
 func ground_feet() -> Vector3:
 	return _pose * _ground_feet_local
+
+
+## PH-К6: мировые точки низа подошв [левая, правая] в текущей позе скелета; нет скелета
+## пилота или ноды вне дерева — пустой массив.
+func feet_positions() -> PackedVector3Array:
+	var out := PackedVector3Array()
+	if _skeleton == null or not _skeleton.is_inside_tree():
+		return out
+	for side in ["L", "R"]:
+		var i := -1
+		for n in ["Foot_" + side, "Foot." + side]:
+			if i < 0:
+				i = _skeleton.find_bone(n)
+		if i < 0:
+			return PackedVector3Array()
+		var w := _skeleton.global_transform * _skeleton.get_bone_global_pose(i).origin
+		out.append(w - Vector3(0.0, FOOT_BONE_ABOVE_SOLE_M, 0.0))
+	return out
 
 
 ## Таз (ЦМ пилота) в осях ноды Pilot: кость Hips по текущей анимации; нет скелета — центр тела
