@@ -17,3 +17,4 @@
 {"t": "2026-10-12T22:25:48", "by": "coordinator", "task": "SC-2", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-start-camp-SC-2"}
 {"t": "2026-10-12T22:25:48", "by": "coordinator", "task": "SC-3", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-start-camp-SC-3"}
 {"t": "2026-10-12T22:25:49", "by": "coordinator", "task": "SC-4", "ev": "started", "note": "dp-engineer (Sonnet), ~/deltaplan-start-camp-SC-4"}
+{"t": "2026-10-12T22:26:21", "by": "coordinator", "task": null, "ev": "note", "note": "шлюз: задания SC-6/SC-7/SC-8 (Blender) переданы главной сессии на запуск; SC-1…SC-4 запущены"}
