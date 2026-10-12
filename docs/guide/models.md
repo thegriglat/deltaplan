@@ -86,6 +86,11 @@ godot --headless --path . --import
 godot --headless --path . --script res://scenes/models_preview/check_models.gd   # контракт имён
 ```
 
+**Общая текстура шины** — один файл `assets/textures/wheel/tire.png` (VRAM-сжатие, мипмапы); glb колёсных крыльев и
+`world/glider_kit.glb` ссылаются на него по uri, встроенной копии нет (`tools/blender/glb_extern.py`, вызывается из
+`bl_util.export` и `build_glider_kit.py`; без этого Godot извлекает отдельный png на каждую модель и держит в памяти
+столько же текстур). Новую модель с шиной не копировать: материал с картинкой `wheel_tire` из `wheel_parts.tire_texture()`.
+
 Файлы: `bl_util.py` (MeshBuilder, материалы, экспорт), `frame_parts.py` (детали трапеции: пластины,
 болты, наконечники тросов, профильная труба, стропы, карабин), `glider_params.json` (форма крыльев, трапеция,
 глаза пилота), `sail_texture.py` (раскраска паруса), `tree_params.json`, `tree_textures.py`,

@@ -11,12 +11,14 @@ import bl_util as U
 R_OUT = 0.1          # внешний радиус шины
 HALF_W = 0.025       # половина ширины
 TEX = 256
+TIRE_PNG = os.path.join(U.ROOT, "assets", "textures", "wheel", "tire.png")  # единственный файл шины
 
 
 def tire_texture() -> "bpy.types.Image":
     """Общая для всех крыльев текстура шины 256² (u — вдоль окружности ×4 повтора, v — поперёк):
     чёрная резина, косые блоки протектора по центру, мелкая зернистость."""
-    path = os.path.join(U.SOURCE, "wheel_tire.png")
+    path = TIRE_PNG
+    os.makedirs(os.path.dirname(TIRE_PNG), exist_ok=True)
     rng = np.random.default_rng(7)
     v, u = np.mgrid[0:TEX, 0:TEX] / TEX
     base = 0.075 + 0.02 * rng.random((TEX, TEX))

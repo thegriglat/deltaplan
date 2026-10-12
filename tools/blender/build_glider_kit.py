@@ -247,6 +247,7 @@ def main() -> None:
                               export_yup=True, use_selection=False, export_apply=True,
                               export_extras=False, export_vertex_color="NONE",
                               export_cameras=False, export_lights=False)
+    U.externalize_shared(os.path.join(OUT, "glider_kit.glb"))
     print(f"EXPORTED glider_kit: {U.tri_count()} tris")
 
 
