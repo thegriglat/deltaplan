@@ -1,7 +1,8 @@
 {
   "status": "done",
-  "summary": "StartGear (plan/build_node) у каждого старта локации из WorldObjects.build: 2-4 крыла на базовой штанге носом в землю и в ветер (поза по вершинам glb: нос киля и концы штанги на земле), аппарат kit_bundle+kit_frame, чехлы кучками, рюкзаки, шлемы, бутылки; MultiMesh на вариант x LOD, материалы SC-K3 -> CampFabric (kit_bundle: Fabric->fabric_dark, Sail->sail по замечанию координатора), препятствия gear; конфиг start_gear, тесты.",
+  "summary": "StartGear (plan/build_node) у каждого старта локации из WorldObjects.build: 2-4 крыла на базовой штанге носом в землю и в ветер (поза по вершинам glb: нос киля и концы штанги на земле), аппарат kit_bundle+kit_frame, чехлы кучками, рюкзаки, шлемы, бутылки; MultiMesh на вариант x LOD, материалы SC-K3 -> CampFabric (kit_bundle: Fabric->fabric_dark, Sail->sail по замечанию координатора), препятствия gear; конфиг start_gear, тесты. Правка по ревью: tents.max_slope_deg возвращён к 8; в configs/world_objects.json вне ключа start_gear изменений нет.",
   "commits": [
+    "997a2230 tents.max_slope_deg возвращён к 8 (случайно задет при правке start_gear)",
     "8a8b9f10 StartGear: крылья на штанге по позе модели, мелочь MultiMesh с материалами SC-K3/K5, препятствия gear, тесты SC-K2",
     "1922b058 Слияние feature/start-camp в start-camp/SC-2",
     "2cacd19e StartGear: план и визуал снаряжения у стартов (SC-2, черновик)"
@@ -69,6 +70,6 @@
   "tris_far": 37024,
   "draw_calls_small": 20,
   "plan_ms_per_start": "в среднем ~4 мс (2.7-7.6) на реальных стартах, первый холодный 22-24 мс",
-  "t": "2026-10-12T22:47:31",
+  "t": "2026-10-12T22:58:32",
   "by": "executor"
 }
