@@ -1,0 +1,30 @@
+Deltaplan 1.5.10 — a living launch, instruments on the wrists, new menu backgrounds
+
+Launches now look like a real flying trip: a camp close to the launch, rigged gliders and gear on the grass, trampled paths, people who walk and wave. In the air you get a wristwatch and a compass on your wrists, your own legs in first person and the wing's shade on the ground on landing. The menu got 16 new backgrounds from the game, from Altai to Everest, with quiet wind and distant birds.
+
+Pilot:
+- Wristwatch (left) and liquid compass (right), visible in first person; time as text in third person
+- Gloves without gauntlets; the hand stays fixed on the base bar
+- Your own legs in first person when leaving the pod below 25 m
+- The wing's shade on the ground on landing, stronger under overcast skies
+- Feet rustle in the grass
+- Bar pressure shown by the thickness of the harness indicator frame
+
+At the launch:
+- Camp 30-50 m from the launch, only on flat ground
+- Two to four rigged gliders, a half-assembled glider and gear at every launch
+- Trampled grass around the camp, the gear and along the path
+- People up close walk, stand and wave
+- Fabric with ripstop, folds and dust
+
+Menu:
+- 16 menu backgrounds taken in the game, changing every 20 s; the same frames on the loading screen
+- Quiet mountain wind and distant birds of prey in the menu
+
+Graphics:
+- Telltales exactly on the front wire, satin ribbon
+- New control frame wheels
+
+Fixes:
+- Other pilots no longer stand between the camera and the player at the launch
+- No more white glowing spots on the frame fittings
