@@ -2,7 +2,7 @@
 type: "guide"
 status: "active"
 module: "terrain"
-updated: "2026-10-09"
+updated: "2026-10-12"
 summary: "Рельеф и мир — FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2."
 related: []
 ---
@@ -19,7 +19,7 @@ FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. Исследование исто
 | `scripts/terrain/cog_reader.gd` (`CogReader`), `worldcover_loader.gd` (`WorldCoverLoader`) | разбор COG GeoTIFF (читают DemStage и SurfaceStage); `WorldCoverLoader` — только имена файлов WorldCover |
 | `scripts/terrain/tree_placer.gd` (`TreePlacer`), `terrain_tree_models.gd` (`TerrainTreeModels`), `tree_model.gdshader` | деревья-модели 5 пород × 3 LOD (MultiMesh), расстановка в рабочем потоке, качание от ветра |
 | `scripts/terrain/forest_impostors.gd` + `.gdshader` (`ForestImpostors`) | средний план леса 0,35–3,5 км: билборды из атласа импостеров |
-| `scripts/terrain/rock_scatter.gd` + `.gdshader` (`RockScatter`) | 3D-камни вокруг камеры (≤ 300 м): глыбы курумника и выходы породы по той же логике, что пятна породы в шейдере, камни на скалах, редкие в траве; не на лесе/воде/полях/просеках/стартах; `configs/world.json → rocks`, подключение `RockScatter.attach(terrain, cam)` |
+| `scripts/terrain/rock_scatter.gd` + `.gdshader` (`RockScatter`) | 3D-камни вокруг камеры: степенной закон размеров (щебень 0,15–0,6 м — слой мелочи только в `small_radius_m` 90 м, `build_small_tile`; глыбы 0,6–3 м, 4 м — только bedrock, — в `radius_m` 300 м, `build_tile`); формы-роли `round/chunk/slab/wedge/tooth/comb` (`tools/blender/build_rocks.py`: плиты, сколы, клин, зуб, гребешок; окатанный — малая доля); неравномерный масштаб, наклон по нормали, плиты плашмя; курумник и выходы породы по логике пятен породы шейдера; **грядки** гребешков 3–8 м вдоль горизонтали (на слоях `terrain_look.strata_m`); **осыпи** — шлейфы щебня по линии падения под обрывом (мелочь ближе к обрыву, крупнее ниже); без коллизий, чисто визуально; детерминированно (хеш клетки); `configs/world.json → rocks`, подключение `RockScatter.attach(terrain, cam)` |
 | `scripts/terrain/grass_field.gd` + `grass.gdshader` (`GrassField`) | травинки вокруг камеры — см. [docs/guide/vegetation.md](vegetation.md) |
 | `scripts/terrain/terrain_wind.gd` + `terrain_wind.gdshaderinc` (`TerrainWind`) | ветер и термики атмосферы → шейдеры рельефа, травы, деревьев (VR-17) |
 | `scripts/terrain/terrain_relief.gd` (`TerrainRelief`) | поля рельефа из DEM любой локации: влажность (сток D8 + вогнутость), сглаженная экспозиция, AO по горизонтам, горизонт к солнцу (тень рельефа) |
