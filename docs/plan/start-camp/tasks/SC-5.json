@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "SC-K4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/start-camp.md"
     },
     {
@@ -52,5 +52,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-12T22:36:45"
+  "created": "2026-10-12T22:36:45",
+  "edited": "2026-10-12T22:39:45"
 }

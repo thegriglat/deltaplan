@@ -1,0 +1,62 @@
+{
+  "id": "SC-11",
+  "module": "start-camp",
+  "type": "dp-engineer",
+  "title": "Модель Blender: человек у лагеря из тела пилота со скелетом (camp_pilot.glb)",
+  "goal": "Люди у лагеря — как пилот (MPFB), но без подвески, кокона, шлема и краг; скелет пилота и свои анимации idle, wave, wave_both, walk; различаются раскраской в игре.",
+  "plan_ref": "SC-11 Модель Blender",
+  "contracts": [
+    {
+      "name": "SC-K4",
+      "version": "2",
+      "ref": "docs/contracts/start-camp.md"
+    },
+    {
+      "name": "SC-K5",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-camp-SC-11",
+  "branch": "start-camp/SC-11",
+  "base": "feature/start-camp",
+  "scope": [
+    "tools/blender/build_camp_pilot.py",
+    "tools/blender/build_pilot.py (только минимальные добавления: вынести шаги в функции; вид pilot.glb не меняется)",
+    "assets/models/world/camp_pilot.glb",
+    "assets/models/world/camp_pilot.glb.import",
+    "assets/source/world/camp_pilot.blend",
+    "tests/contracts/test_start_camp_contracts_k4_pilot.gd"
+  ],
+  "dont_touch": [
+    "assets/models/pilot.glb",
+    "assets/source/pilot.blend",
+    "scripts",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "start_camp_contracts_k4_pilot",
+      "tests": "start_camp_contracts_k4_pilot"
+    },
+    {
+      "name": "pilot",
+      "tests": "pilot"
+    },
+    {
+      "name": "pilot_glb_unchanged",
+      "cmd": "git diff --quiet feature/start-camp...HEAD -- assets/models/pilot.glb",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "tris_by_node",
+    "glb_kb",
+    "anim_lengths_s",
+    "walk_step_m",
+    "image"
+  ],
+  "notes": "",
+  "created": "2026-10-12T22:39:45",
+  "edited": "2026-10-12T22:39:45"
+}
