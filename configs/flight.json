@@ -195,6 +195,21 @@
       "reach_margin_m": 0.01,
       "reach_margin_m_doc": "Тело в полёте не уходит от штанги дальше вытянутых рук (плечо + предплечье с кистью + shoulder_reach_m) минус это: сдвиг по крену/тангажу (pilot_shift_m, pilot_bar_m) при необходимости уменьшается, м"
     },
+    "pilot_look": {
+      "_doc": "Материалы пилота вместо однотонных из glb (scripts/flight/pilot_look.gd + pilot_look.gdshader; процедурный шум в координатах модели, без текстур и VRAM). Каска, визор, подвеска, куртка, брюки, стропа, ботинки, подошва; перчатки (Glove/GlovePanel) и кожа (Skin) не трогаются. Параметры секции — uniform'ы шейдера: period_m шаг плетения, weave_strength, sheen, dust, wear, rough_var, alpha, reflect_k, dirt",
+      "enabled": true,
+      "enabled_doc": "false — материалы как в pilot.glb",
+      "common": {},
+      "helmet": { "wear": 0.6, "rough_var": 0.12, "dust": 0.3, "clearcoat": 1.0 },
+      "visor": { "alpha": 0.88, "reflect_k": 0.55, "rough_var": 0.22, "base_rough": 0.05 },
+      "pod": { "period_m": 0.012, "weave_strength": 0.45, "sheen": 0.3, "dust": 0.3, "rough_var": 0.12 },
+      "pod_stripe": { "period_m": 0.012, "weave_strength": 0.45, "sheen": 0.3, "dust": 0.15, "rough_var": 0.1 },
+      "jacket": { "period_m": 0.007, "weave_strength": 0.3, "sheen": 0.45, "dust": 0.3, "rough_var": 0.15 },
+      "trousers": { "period_m": 0.007, "weave_strength": 0.3, "sheen": 0.4, "dust": 0.3, "rough_var": 0.15 },
+      "strap": { "period_m": 0.004, "weave_strength": 0.5, "sheen": 0.2, "dust": 0.2, "rough_var": 0.1 },
+      "boot": { "wear": 0.7, "dirt": 0.5, "rough_var": 0.2 },
+      "sole": { "dirt": 0.6, "rough_var": 0.1, "base_rough": 0.92 }
+    },
     "buzz": {
       "_doc": "Подёргивание крыла с трапецией относительно пилота (и кабинной камеры) в болтанке и при перегрузке: сумма синусов freqs_hz, амплитуда = turbulence_m × болтанка (0..1, как у паруса: FlightModel.load.jitter / sail.json → turbulence_full_g) + load_m_per_g × (|n − 1| − load_deadzone_g), плюс толчок kick_m_per_g × (мгновенная n − сглаженная n). На прямой в спокойном воздухе — ноль. Руки на штанге трясутся вместе с ней",
       "freqs_hz": [

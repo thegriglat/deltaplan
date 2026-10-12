@@ -135,6 +135,7 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	if pm == null:
 		pm = _fallback_pilot()
 	pm.name = "Model"
+	PilotLook.apply(pm, vis_cfg.get("pilot_look", {}))
 	pilot.add_child(pm)
 	_head = pm.find_child("Head", true, false) as Node3D
 	_animated_stand = false
