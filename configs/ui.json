@@ -39,6 +39,19 @@
     "ring_color": "#d8e4ec",
     "dot_color": "#7fe8ff"
   },
+  "clock": {
+    "_doc": "Часы текстом от 3-го лица (PH-2, scripts/ui/clock_label.gd): «ЧЧ:ММ» справа внизу над угловым прибором; время — sky.clock. Флажок enabled выключает и наручные часы (PH-7)",
+    "enabled": true,
+    "enabled_doc": "Показывать часы (флажок «Часы» в настройках)",
+    "font_frac": 0.026,
+    "font_frac_doc": "Размер шрифта, доля высоты окна",
+    "margin_px": 18,
+    "margin_px_doc": "Отступ от правого края, пикселей",
+    "gap_px": 8,
+    "gap_px_doc": "Зазор над рамкой углового прибора, пикселей",
+    "opacity": 0.8,
+    "color": "#e8eef2"
+  },
   "mass_step_kg": 1.0,
   "mass_step_kg_doc": "Шаг слайдера массы пилота, кг",
   "vario_volume_range_db": [
