@@ -59,6 +59,7 @@ var arm_bar := 0.0
 var arm_flare := 0.0
 ## Ленточки на тросах трапеции (Telltale, instruments.json → telltale); шагает Glider.step.
 var telltales: Array[Telltale] = []
+var sky_shade: SkyShade  ## затенение земли крылом (PH-8), null — выключено
 ## Рисуется ли жёсткая стропа модели пилота (на земле скрыта, вместо неё гибкая лента — A3.7).
 var strap_rigid_visible := true
 
@@ -158,6 +159,13 @@ func build(wing_cfg: Dictionary, pilot_cfg: Dictionary, vis_cfg: Dictionary) -> 
 	add_child(head_marker)
 	_pose = _flight_pose(Vector3.ZERO)
 	set_pose(0.0, 0.0, true, 1.0e6)
+	# Затенение земли крылом (PH-8, PH-К7): одна декаль под парусом, видна всем камерам
+	var ss_cfg: Dictionary = vis_cfg.get("sky_shade", {})
+	sky_shade = null
+	if bool(ss_cfg.get("enabled", false)):
+		sky_shade = SkyShade.new()
+		add_child(sky_shade)
+		sky_shade.setup(float(wing_cfg.get("area_m2", 13.5)), ss_cfg)
 
 
 ## Стропа пилота: поверхность Strap в PilotBody (прячется на земле), нижняя точка подвесной

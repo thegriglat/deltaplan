@@ -1318,6 +1318,8 @@ func _setup_glider() -> void:
 			return Vector3.ZERO
 		return v.body_shift
 	_hide_from_cockpit()
+	if v != null and v.sky_shade != null:
+		v.sky_shade.env_fn = _sky_shade_env
 	for m: Dictionary in _cfg.get("mounted_instruments", []):
 		_mount_instrument(m)
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
@@ -1325,6 +1327,20 @@ func _setup_glider() -> void:
 	camera.glance_nodes.clear()
 	for inst: Node in mounted:
 		camera.glance_nodes.append(inst as Node3D)
+
+
+## Освещение для тени от неба (SkyShade.env_fn): sin высоты солнца и облачность прогноза.
+func _sky_shade_env() -> Vector2:
+	var sin_el := 1.0
+	if sky != null and sky.sun != null:
+		sin_el = maxf(sky.sun.global_transform.basis.z.y, 0.0)
+	var cover := 0.0
+	var w: Variant = air.get("weather") if air != null else null
+	if w is Dictionary and (w as Dictionary).has("_derived"):
+		var dv: Dictionary = (w as Dictionary)["_derived"]
+		if dv.has("sky"):
+			cover = float(WeatherModel.sky_params(String(dv.sky)).get("cover", 0.0))
+	return Vector2(sin_el, cover)
 
 
 ## Шлем и т. п. (camera.json → cockpit.hidden_nodes) — на слой, который кабина не рисует.
