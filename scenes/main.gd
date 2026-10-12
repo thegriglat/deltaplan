@@ -24,6 +24,7 @@ var catch_up_menu: CatchUpMenu
 
 ## Подсказка управления на старте каждого полёта (Q-08): слева клавиши, справа мышь.
 var _start_hint: Control
+var _pick_panel: StartPickPanel
 var _toast: Label  ## строка «Снимок: …»
 var _toast_stamp := 0
 ## Каталог снимков экрана по F12 (Q-11); тесты подменяют.
@@ -293,6 +294,46 @@ static func _new_seed() -> int:
 	return randi() & 0x7fffffff
 
 
+## Панель выбора старта в осмотре (SP-2).
+func _open_pick_panel() -> void:
+	if _pick_panel == null:
+		_pick_panel = StartPickPanel.new()
+		_pick_panel.turn_requested.connect(game.pick_turn)
+		_pick_panel.downhill_requested.connect(game.pick_downhill)
+		_pick_panel.reset_requested.connect(game.pick_clear)
+		_pick_panel.fly_requested.connect(_on_pick_fly)
+		game.pick_changed.connect(_on_pick_changed)
+		$UI.add_child(_pick_panel)
+	_pick_panel.visible = true
+	_pick_panel.show_pick(game.pick)
+
+
+## Выбор старта изменился: в настройки текущего полёта и в «последний полёт» (после «В меню» точка остаётся).
+func _on_pick_changed() -> void:
+	if _pick_panel != null:
+		_pick_panel.show_pick(game.pick)
+	if game.settings == null or flight == null:
+		return
+	if game.settings.has_exact_start():
+		flight.set_exact_start(
+			game.settings.start_lat, game.settings.start_lon, game.settings.start_heading_deg
+		)
+	else:
+		flight.clear_exact_start()
+	if not opts.autostart and game.net == null:
+		UserSettings.save_last_flight(flight)
+
+
+## «Лететь отсюда»: обычный полёт с этими настройками из выбранной точки; место уже загружено.
+func _on_pick_fly() -> void:
+	if not game.inspect_mode or game.pick.is_empty() or not bool(game.pick.ok):
+		return
+	_on_pick_changed()
+	_pick_panel.visible = false
+	game.leave_inspect()
+	await _fly(flight)
+
+
 func _fly(s: FlightSettings, inspect := false) -> void:
 	state = State.LOADING
 	flight = s
@@ -321,6 +362,7 @@ func _fly(s: FlightSettings, inspect := false) -> void:
 	start_menu.visible = false
 	if inspect:
 		game.enter_inspect()
+		_open_pick_panel()
 		state = State.FLYING
 		return
 	game.set_flying(true)
@@ -451,6 +493,8 @@ func _show_menu() -> void:
 	for c: Control in overlays:
 		c.visible = false
 	game.leave_inspect()
+	if _pick_panel != null:
+		_pick_panel.visible = false
 	game.set_flying(false)
 	start_menu.visible = true
 	start_menu.set_settings(flight)

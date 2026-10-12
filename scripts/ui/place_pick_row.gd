@@ -14,6 +14,8 @@ var catalog: Dictionary = {}
 var places_btn: Button
 var places_window: PopularPlacesWindow
 var pick_label: Label
+var exact_label: Label  ## «Старт уточнён на рельефе · курс N°» (SP-2)
+var exact_reset_btn: Button
 
 var _overlay: Control
 var _map_layer: Control
@@ -33,6 +35,9 @@ func build(overlay: Control, path: String = "") -> void:
 	pick_label = UiKit.label(self, "", "HintLabel")
 	pick_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pick_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	exact_label = UiKit.label(self, "", "HintLabel")
+	exact_reset_btn = UiKit.button(self, tr("setup_exact_reset"), _on_exact_reset)
+	_refresh_exact()
 
 
 ## Старт встроенного места из settings (пустой site_id — первый); точка с карты — {}.
@@ -44,6 +49,21 @@ func builtin_site() -> Dictionary:
 		if String(st.get("id", "")) == settings.site_id:
 			return st
 	return starts[0] if not starts.is_empty() else {}
+
+
+func _on_exact_reset() -> void:
+	settings.clear_exact_start()
+	refresh()
+
+
+func _refresh_exact() -> void:
+	if exact_label == null:
+		return  # build() не вызывали
+	var has := settings != null and settings.has_exact_start()
+	exact_label.visible = has
+	exact_reset_btn.visible = has
+	if has:
+		exact_label.text = tr("setup_exact_start") % int(round(settings.start_heading_deg))
 
 
 ## Подпись по текущим settings (и запрос высоты точки, если её ещё нет).
@@ -58,6 +78,7 @@ func refresh() -> void:
 	else:
 		var st := builtin_site()
 		pick_label.text = tr(String(st.get("name", ""))) if not st.is_empty() else ""
+	_refresh_exact()
 	changed.emit()
 
 
@@ -65,6 +86,7 @@ func refresh() -> void:
 func set_pick(lat: float, lon: float) -> void:
 	picked_place_name = ""
 	pick_elev_m = NAN
+	settings.clear_exact_start()
 	settings.pick_lat = lat
 	settings.pick_lon = lon
 	refresh()
@@ -109,6 +131,7 @@ func _build_map() -> void:
 func _on_map_ok() -> void:
 	if is_nan(_map.picked.x):
 		return
+	settings.clear_exact_start()
 	settings.pick_lat = _map.picked.x
 	settings.pick_lon = _map.picked.y
 	picked_place_name = ""
@@ -160,6 +183,7 @@ func _open_places() -> void:
 ## старта, как с карты и из «Недавних мест» (высоту подтянет подпись).
 func choose_place(p: Dictionary) -> void:
 	pick_elev_m = NAN
+	settings.clear_exact_start()
 	if p.has("location") and p.has("site"):
 		picked_place_name = ""
 		settings.location_id = String(p.location)

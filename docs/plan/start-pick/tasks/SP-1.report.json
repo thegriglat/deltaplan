@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "Точный старт в FlightSettings (поля, set/clear, to_dict/from_dict, копирование), StartSpot.check + конфиг start_pick, Game._choose_start применяет точку (иначе автостарт + push_warning), курс не выравнивается по ветру и на restart(), PlacePickRow сбрасывает точку при любом выборе места. Тесты контрактов и игровой тест написаны.",
+  "commits": [
+    "0c3d7cde SP-1: точный старт в FlightSettings, StartSpot.check, применение в Game, сброс в PlacePickRow, тесты"
+  ],
+  "checks": [
+    {
+      "name": "test_start_pick_contracts",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "tests/game/test_start",
+      "value": "14/14 (пропуск 1)",
+      "pass": true
+    },
+    {
+      "name": "test_game_logic",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "test_inspect_mode",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "tests/ui/test_favorites",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "tests/ui/test_menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "test_world_key",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SP-1",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:_align_start_heading",
+      "why": "Контракт: не менять курс 'при has_exact_start()'. Я ввёл флаг _exact_start (точка применена), а не проверку has_exact_start(): если точка недопустима и случился откат на автостарт, курс выравнивается по ветру как раньше. Расхождение с буквой контракта только в случае отката.",
+      "checked": "тест test_bad_exact_start_falls_back; точный старт: курс ±0,01° после restart"
+    },
+    {
+      "where": "scripts/game/start_spot.gd",
+      "why": "slope/downhill берутся через StartPlacement.evaluate со start_search (probe_m) как велит контракт; при нефинитных x,z высота/уклон заменяются 0, ok=false (outside).",
+      "checked": "test_sp_k2_shape_and_finite: конечность в т.ч. при 1e6 и за краем"
+    },
+    {
+      "where": "tests/contracts/test_start_pick_contracts.gd",
+      "why": "Вода, застройка и круче 40° найдены на сетке 100 м в фикстуре ongudai (подставных карт не понадобилось); при отсутствии тест лишь печатает пояснение, не падает.",
+      "checked": "в прогоне пояснений не напечатано, значит все три причины проверены на реальной точке"
+    }
+  ],
+  "dp_feedback": "Новый class_name требует godot --import перед тестами (кэш классов) - dp accept/тесты могли бы делать это сами или подсказывать; .uid новых файлов не коммитил (в корне их много untracked) - непонятно, нужно ли.",
+  "t": "2026-10-12T06:09:29",
+  "by": "executor"
+}

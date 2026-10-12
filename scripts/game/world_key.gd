@@ -12,6 +12,8 @@ extends RefCounted
 ##   bots — число ботов (целое); date — ГГГГ-ММ-ДД (год не влияет, всегда VERSION_YEAR);
 ##   from — откуда ветер, целые градусы, −1 — «встречный»; hour — час старта, 2 знака;
 ##   lat/lon — точка старта, 5 знаков (~1 м): у встроенной локации — координаты её старта;
+##   slat/slon/hdg — точный старт (SP-К3), только если задан: точка 5 знаков, курс 1 знак,
+##   градусы; точка не привязывается к встроенному старту (lat/lon — место, slat/slon — старт);
 ##   seed — сид мира (целое); sky — облачность (clear | partly | overcast); temp — температура
 ##   днём, °C, 1 знак; v — версия генератора мира (VERSION); wind — ветер у земли, м/с, 1 знак.
 ## Разбор (parse): порядок ключей любой, неизвестные ключи пропускаются, нет ключа — значение
@@ -21,7 +23,7 @@ extends RefCounted
 ## Ключ квантует числа — хозяин зоны тоже строит мир из разобранного ключа, как все.
 
 ## Версия генератора мира: менять, когда меняется то, как из ключа получается мир.
-const VERSION := 1
+const VERSION := 2
 const VERSION_YEAR := 2026
 const PREFIX := "deltaplan://world?"
 
@@ -30,8 +32,7 @@ const PREFIX := "deltaplan://world?"
 static func make(s: FlightSettings, world_seed: int, bots_count: int) -> String:
 	var ll := launch_latlon(s)
 	var from := -1 if s.wind_into_launch else int(roundf(fposmod(s.wind_from_deg, 360.0))) % 360
-	return canonical(
-		{
+	var kv := {
 			"bots": str(bots_count),
 			"date": "%04d-%02d-%02d" % [VERSION_YEAR, s.month, s.day],
 			"from": str(from),
@@ -43,8 +44,12 @@ static func make(s: FlightSettings, world_seed: int, bots_count: int) -> String:
 			"temp": "%.1f" % s.temperature_c,
 			"v": str(VERSION),
 			"wind": "%.1f" % (s.wind_speed_kmh / 3.6),
-		}
-	)
+	}
+	if s.has_exact_start():
+		kv["slat"] = "%.5f" % s.start_lat
+		kv["slon"] = "%.5f" % s.start_lon
+		kv["hdg"] = "%.1f" % fposmod(s.start_heading_deg, 360.0)
+	return canonical(kv)
 
 
 ## Первые 16 hex SHA-256 ключа (строчные).
@@ -97,6 +102,10 @@ static func parse(key: String, base: FlightSettings = null) -> Dictionary:
 		s.sky = String(kv.sky)
 	if kv.has("lat") and kv.has("lon"):
 		_place(s, float(kv.lat), float(kv.lon))
+	if kv.has("slat") and kv.has("slon") and kv.has("hdg"):
+		s.set_exact_start(float(kv.slat), float(kv.slon), float(kv.hdg))
+	else:
+		s.clear_exact_start()
 	return {
 		"settings": s,
 		"seed": int(kv.get("seed", str(int(Config.value("atmosphere", "seed", 0))))),

@@ -82,6 +82,7 @@ var inspect_mode := false
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
 var _start_heading := 0.0
+var _exact_start := false  # точный старт пилота применён (SP-К1): курс не выравнивается по ветру
 var _site_heading := 0.0  # курс площадки (до выравнивания по ветру поля)
 var _load_error := ""
 var _dt: float = 1.0 / 120.0
@@ -624,7 +625,7 @@ func restart(keep_clock: bool = false) -> void:
 ## у старта (без пульсаций, по нескольким точкам), но не дальше max_turn_deg от курса площадки.
 ## Штиль (< min_speed_ms), аналитика (поля нет), ветер с румба и сеть — курс площадки.
 func _align_start_heading() -> void:
-	if settings == null or net != null or not settings.wind_into_launch:
+	if settings == null or net != null or not settings.wind_into_launch or _exact_start:
 		return
 	_start_heading = _site_heading
 	if not air.has_method("is_air_field_on") or not air.call("is_air_field_on"):
@@ -780,7 +781,9 @@ func enter_inspect() -> void:
 	camera.locked_free = true
 	camera.set_mode("free")
 	set_input_enabled(true)
+	input_controller.set_mouse_captured(false)  # панель выбора старта кликается мышью
 	debug_overlays.enable(PackedStringArray(["wind"]))
+	_pick_enter()
 
 
 ## Выход из осмотра (в меню): вернуть крыло, режимы камеры и выключить стрелки ветра.
@@ -788,10 +791,157 @@ func leave_inspect() -> void:
 	if not inspect_mode:
 		return
 	inspect_mode = false
+	_pick_leave()
 	camera.locked_free = false
 	glider.visible = true
 	if debug_overlays.wind_on:
 		debug_overlays.toggle_wind()
+
+
+# ------------------------------------------------ выбор старта в осмотре (SP-2)
+
+## Выбор старта изменился (точка, курс, сброс): main сохраняет его как последний полёт.
+signal pick_changed
+## Текущая точка осмотра: {} (нет) или {x, z, heading, ok, reason, height_m, slope_deg, downhill_deg}.
+var pick: Dictionary = {}
+var _pick_marker: StartMarker
+var _pick_drag := false
+
+
+func _pick_enter() -> void:
+	pick = {}
+	if _pick_marker == null:
+		_pick_marker = StartMarker.new()
+		add_child(_pick_marker)
+	if settings != null and settings.has_exact_start():
+		var q := terrain.latlon_to_local(settings.start_lat, settings.start_lon)
+		_pick_apply(q.x, q.y, settings.start_heading_deg, false)
+	else:
+		_pick_marker.visible = false
+
+
+func _pick_leave() -> void:
+	_pick_drag = false
+	pick = {}
+	if _pick_marker != null:
+		_pick_marker.queue_free()
+		_pick_marker = null
+
+
+## Луч (начало, направление) → первая точка на рельефе; Vector3.INF — не попал за max_m.
+static func ray_to_ground(
+	height_at: Callable, origin: Vector3, dir: Vector3, max_m := 30000.0
+) -> Vector3:
+	var d := dir.normalized()
+	if d.is_zero_approx():
+		return Vector3.INF
+	var step := 10.0
+	var t := 0.0
+	var prev := 0.0
+	while t <= max_m:
+		var p := origin + d * t
+		if p.y <= float(height_at.call(p.x, p.z)):
+			var lo := prev
+			var hi := t
+			for i in 20:
+				var mid := 0.5 * (lo + hi)
+				var q := origin + d * mid
+				if q.y <= float(height_at.call(q.x, q.z)):
+					hi = mid
+				else:
+					lo = mid
+			var r := origin + d * hi
+			r.y = float(height_at.call(r.x, r.z))
+			return r
+		prev = t
+		t += step
+		step = minf(step * 1.02, 100.0)
+	return Vector3.INF
+
+
+## Точка рельефа под экранной позицией (при захваченной мыши — центр экрана).
+func pick_ground_at_screen(pos: Vector2) -> Vector3:
+	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		pos = get_viewport().get_visible_rect().size * 0.5
+	return ray_to_ground(
+		terrain.height_at, camera.project_ray_origin(pos), camera.project_ray_normal(pos)
+	)
+
+
+## Новая точка: курс вниз по склону. Недопустимая — маркер красный, старт сбрасывается.
+func pick_point(x: float, z: float) -> void:
+	var chk := StartSpot.check(terrain, x, z)
+	_pick_apply(x, z, float(chk.downhill_deg), true)
+
+
+## Курс к точке (x, z) на земле (протяжка мышью).
+func pick_heading_to(x: float, z: float) -> void:
+	if pick.is_empty():
+		return
+	var dx := x - float(pick.x)
+	var dz := z - float(pick.z)
+	if dx * dx + dz * dz < 1.0:
+		return
+	_pick_apply(float(pick.x), float(pick.z), rad_to_deg(atan2(dx, -dz)), true)
+
+
+func pick_turn(delta_deg: float) -> void:
+	if not pick.is_empty():
+		_pick_apply(float(pick.x), float(pick.z), float(pick.heading) + delta_deg, true)
+
+
+func pick_downhill() -> void:
+	if not pick.is_empty():
+		_pick_apply(float(pick.x), float(pick.z), float(pick.downhill_deg), true)
+
+
+## «Сбросить старт»: автостарт места.
+func pick_clear() -> void:
+	pick = {}
+	if settings != null:
+		settings.clear_exact_start()
+	if _pick_marker != null:
+		_pick_marker.visible = false
+	pick_changed.emit()
+
+
+func _pick_apply(x: float, z: float, heading: float, notify: bool) -> void:
+	var chk := StartSpot.check(terrain, x, z)
+	heading = fposmod(heading, 360.0)
+	pick = chk.duplicate()
+	pick.x = x
+	pick.z = z
+	pick.heading = heading
+	var ll0 := terrain.local_to_latlon(x, z)
+	pick.lat = ll0.x
+	pick.lon = ll0.y
+	if _pick_marker != null:
+		_pick_marker.show_spot(Vector3(x, float(chk.height_m), z), heading, bool(chk.ok))
+	if settings != null:
+		if bool(chk.ok):
+			var ll := terrain.local_to_latlon(x, z)
+			settings.set_exact_start(ll.x, ll.y, heading)
+		else:
+			settings.clear_exact_start()
+	if notify:
+		pick_changed.emit()
+
+
+func _pick_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		_pick_drag = event.pressed
+		if event.pressed:
+			var g := pick_ground_at_screen(event.position)
+			if g != Vector3.INF:
+				pick_point(g.x, g.z)
+	elif event is InputEventMouseMotion and _pick_drag and not pick.is_empty():
+		var p := Vector2(event.position)
+		if (event.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			_pick_drag = false
+			return
+		var g := pick_ground_at_screen(p)
+		if g != Vector3.INF:
+			pick_heading_to(g.x, g.z)
 
 
 ## Ввод игрока и обзор мышью (выключается на паузе и на экране итога).
@@ -840,6 +990,8 @@ func get_start() -> Dictionary:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if inspect_mode:
+		_pick_input(event)
 	if not flying_enabled:
 		return
 	if event.is_action_pressed("instrument_page"):
@@ -1109,6 +1261,17 @@ func _load_terrain() -> bool:
 
 
 func _choose_start() -> void:
+	_exact_start = false
+	if settings.has_exact_start():
+		var q := terrain.latlon_to_local(settings.start_lat, settings.start_lon)
+		var chk := StartSpot.check(terrain, q.x, q.y)
+		if bool(chk.ok):
+			_start_pos = Vector3(q.x, terrain.height_at(q.x, q.y), q.y)
+			_start_heading = settings.start_heading_deg
+			_exact_start = true
+			terrain.add_start_clearing(q.x, q.y, Terrain.start_clearing_radius_m())
+			return
+		push_warning("Game: точный старт недопустим (%s), автостарт" % chk.reason)
 	if settings.has_pick():
 		var p := terrain.latlon_to_local(settings.pick_lat, settings.pick_lon)
 		var cfg: Dictionary = _cfg.start_search

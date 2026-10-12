@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "Центры отступа камней и кустов — Terrain.get_start_clearings(), радиус не меньше start_search.runway_m (40 м); кеш камней теперь сбрасывается по surface_revision (кусты уже сбрасывались). CollisionCheck проверяет только здания и деревья — камни и кусты крыло/пилота не бьют.",
+  "commits": [
+    "c3746d52 SP-4: камни и кусты не на разбеге у любой поляны старта (SP-К4)"
+  ],
+  "checks": [
+    {
+      "name": "test_sp_k4_keep_off: встроенные и добавленная add_start_clearing поляны, 0 камней/кустов в 40 м",
+      "value": "до поляны в 40 м было 4 камня и 37 кустов, после 0",
+      "pass": true
+    },
+    {
+      "name": "dp accept SP-4 --dry",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "test_start_pick_contracts",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "shrub",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "rock",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_start_clearing",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SP-4",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/shrub_scatter.gd, rock_scatter.gd: _keep_start",
+      "why": "keep_off_start_m в конфигах (12/15) оставлен, эффективный отступ = max(конфиг, runway_m); коридор start_run_m у get_start_sites не менялся",
+      "checked": "тесты камней, кустов, поляны зелёные"
+    }
+  ],
+  "dp_feedback": "dp report требует в checks имена проверок accept (test_start_pick_contracts, shrub, rock, test_start_clearing, gd); ошибка не говорит, что формат — checks[].name; dp accept их не подставляет сам.",
+  "t": "2026-10-12T06:07:27",
+  "by": "executor"
+}

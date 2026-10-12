@@ -1,0 +1,72 @@
+{
+  "id": "SP-3",
+  "module": "start-pick",
+  "type": "dp-engineer",
+  "title": "Точный старт в сетевой игре",
+  "goal": "В сетевой игре точка и курс старта хозяина зоны доходят до всех клиентов: у всех один старт.",
+  "plan_ref": "SP-3",
+  "contracts": [
+    {
+      "name": "SP-К3",
+      "version": "1",
+      "ref": "docs/contracts/start-pick.md"
+    },
+    {
+      "name": "SP-К1",
+      "version": "1",
+      "ref": "docs/contracts/start-pick.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-pick-SP-3",
+  "branch": "start-pick/SP-3",
+  "base": "feature/start-pick",
+  "scope": [
+    "server/proto/deltaplan/v1/net.proto",
+    "scripts/net/",
+    "scripts/game/world_key.gd",
+    "scripts/game/net_flight.gd",
+    "scripts/game/flight_settings.gd",
+    "docs/guide/net-protocol.md",
+    "tests/net/",
+    "tests/game/test_world_key.gd",
+    "tests/contracts/test_start_pick_contracts.gd",
+    "server/"
+  ],
+  "dont_touch": [
+    "scripts/ui/settings_panel.gd",
+    "scripts/game/graphics_presets.gd",
+    "scripts/game/game.gd",
+    "scripts/ui/start_menu.gd"
+  ],
+  "accept": [
+    {
+      "name": "tests/net",
+      "tests": "tests/net"
+    },
+    {
+      "name": "test_world_key",
+      "tests": "test_world_key"
+    },
+    {
+      "name": "test_start_pick_contracts",
+      "tests": "test_start_pick_contracts"
+    },
+    {
+      "name": "net_flight",
+      "tests": "net_flight"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T06:03:15"
+}

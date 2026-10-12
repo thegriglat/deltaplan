@@ -1,0 +1,77 @@
+{
+  "id": "SP-1",
+  "module": "start-pick",
+  "type": "dp-engineer",
+  "title": "Данные точного старта и запуск полёта из неё",
+  "goal": "Пилот задаёт точку и курс старта; они хранятся в FlightSettings (последний полёт, избранное) и полёт начинается ровно там; одна проверка допустимости точки для осмотра и старта.",
+  "plan_ref": "SP-1",
+  "contracts": [
+    {
+      "name": "SP-К1",
+      "version": "1",
+      "ref": "docs/contracts/start-pick.md"
+    },
+    {
+      "name": "SP-К2",
+      "version": "1",
+      "ref": "docs/contracts/start-pick.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-pick-SP-1",
+  "branch": "start-pick/SP-1",
+  "base": "feature/start-pick",
+  "scope": [
+    "scripts/game/flight_settings.gd",
+    "scripts/game/start_spot.gd",
+    "scripts/game/game.gd",
+    "scripts/ui/place_pick_row.gd",
+    "configs/game.json",
+    "tests/contracts/test_start_pick_contracts.gd",
+    "tests/game/"
+  ],
+  "dont_touch": [
+    "scripts/ui/settings_panel.gd",
+    "scripts/game/graphics_presets.gd",
+    "scripts/net/",
+    "scripts/game/world_key.gd",
+    "locale/ui.csv"
+  ],
+  "accept": [
+    {
+      "name": "test_start_pick_contracts",
+      "tests": "test_start_pick_contracts"
+    },
+    {
+      "name": "tests/game/test_start",
+      "tests": "tests/game/test_start"
+    },
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
+    },
+    {
+      "name": "test_inspect_mode",
+      "tests": "test_inspect_mode"
+    },
+    {
+      "name": "tests/ui/test_favorites",
+      "tests": "tests/ui/test_favorites"
+    },
+    {
+      "name": "tests/ui/test_menu_setup",
+      "tests": "tests/ui/test_menu_setup"
+    },
+    {
+      "name": "test_world_key",
+      "tests": "test_world_key"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T06:01:58"
+}

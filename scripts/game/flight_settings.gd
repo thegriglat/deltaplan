@@ -27,6 +27,11 @@ var site_id: String = ""
 ## Точка с карты (FR-17): если не NAN — рельеф грузится вокруг неё, старт на ближайшем склоне.
 var pick_lat: float = NAN
 var pick_lon: float = NAN
+## Точный старт (SP-К1): точка и курс разбега, WGS84 / градусы; NAN — не задан. Уточняет место
+## (location_id/site_id/pick_*), а не заменяет его; любой выбор места в PlacePickRow сбрасывает.
+var start_lat: float = NAN
+var start_lon: float = NAN
+var start_heading_deg: float = NAN
 ## Время старта, часы (VR-5); дата — месяц и число. По умолчанию — configs/world.json → time.
 var start_hour: float = 13.0
 var month: int = 7
@@ -149,6 +154,22 @@ func has_pick() -> bool:
 	return not is_nan(pick_lat) and not is_nan(pick_lon)
 
 
+func has_exact_start() -> bool:
+	return is_finite(start_lat) and is_finite(start_lon) and is_finite(start_heading_deg)
+
+
+func set_exact_start(lat: float, lon: float, heading_deg: float) -> void:
+	start_lat = lat
+	start_lon = lon
+	start_heading_deg = fposmod(heading_deg, 360.0)
+
+
+func clear_exact_start() -> void:
+	start_lat = NAN
+	start_lon = NAN
+	start_heading_deg = NAN
+
+
 ## "wings/sport" → "sport" (как ждёт Glider.setup).
 func wing_id() -> String:
 	return wing.get_file()
@@ -171,6 +192,9 @@ func to_dict() -> Dictionary:
 		"site_id": site_id,
 		"pick_lat": null if is_nan(pick_lat) else pick_lat,
 		"pick_lon": null if is_nan(pick_lon) else pick_lon,
+		"start_lat": null if is_nan(start_lat) else start_lat,
+		"start_lon": null if is_nan(start_lon) else start_lon,
+		"start_heading_deg": null if is_nan(start_heading_deg) else start_heading_deg,
 		"start_hour": start_hour,
 		"month": month,
 		"day": day,
@@ -193,6 +217,12 @@ static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSetti
 	var lon: Variant = d.get("pick_lon")
 	s.pick_lat = float(lat) if lat != null else NAN
 	s.pick_lon = float(lon) if lon != null else NAN
+	var slat: Variant = d.get("start_lat")
+	var slon: Variant = d.get("start_lon")
+	var shead: Variant = d.get("start_heading_deg")
+	s.start_lat = float(slat) if slat != null else NAN
+	s.start_lon = float(slon) if slon != null else NAN
+	s.start_heading_deg = float(shead) if shead != null else NAN
 	s.start_hour = float(d.get("start_hour", s.start_hour))
 	s.month = int(d.get("month", s.month))
 	s.day = int(d.get("day", s.day))
@@ -232,6 +262,9 @@ func to_zone(world_seed: int, bots_count: int) -> Dictionary:
 		"siteId": site_id,
 		"pickLat": pick_lat,
 		"pickLon": pick_lon,
+		"startLat": start_lat,
+		"startLon": start_lon,
+		"startHeadingDeg": start_heading_deg,
 		"month": month,
 		"day": day,
 		"startHour": start_hour,
@@ -256,6 +289,9 @@ static func from_zone(zone: Dictionary, base: FlightSettings = null) -> FlightSe
 	s.site_id = String(zone.get("siteId", ""))
 	s.pick_lat = float(zone.get("pickLat", NAN))
 	s.pick_lon = float(zone.get("pickLon", NAN))
+	s.start_lat = float(zone.get("startLat", NAN))
+	s.start_lon = float(zone.get("startLon", NAN))
+	s.start_heading_deg = float(zone.get("startHeadingDeg", NAN))
 	s.month = int(zone.get("month", s.month))
 	s.day = int(zone.get("day", s.day))
 	s.start_hour = float(zone.get("startHour", s.start_hour))
