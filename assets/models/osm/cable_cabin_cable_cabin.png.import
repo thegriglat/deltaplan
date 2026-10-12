@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://crfvjbfjprm83"
-path="res://.godot/imported/cable_cabin_cable_cabin.png-e48b818dcf5dba5dfd9f1608c231f763.ctex"
+path.s3tc="res://.godot/imported/cable_cabin_cable_cabin.png-e48b818dcf5dba5dfd9f1608c231f763.s3tc.ctex"
+path.etc2="res://.godot/imported/cable_cabin_cable_cabin.png-e48b818dcf5dba5dfd9f1608c231f763.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "8835d156aa212d9c63637f45515fde64"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/osm/cable_cabin_cable_cabin.png"
-dest_files=["res://.godot/imported/cable_cabin_cable_cabin.png-e48b818dcf5dba5dfd9f1608c231f763.ctex"]
+dest_files=["res://.godot/imported/cable_cabin_cable_cabin.png-e48b818dcf5dba5dfd9f1608c231f763.s3tc.ctex", "res://.godot/imported/cable_cabin_cable_cabin.png-e48b818dcf5dba5dfd9f1608c231f763.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

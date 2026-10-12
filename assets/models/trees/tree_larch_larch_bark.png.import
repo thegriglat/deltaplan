@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvkhwm8e2rqdk"
-path="res://.godot/imported/tree_larch_larch_bark.png-26e6ca3340fc6a99b6f9c66ce6d80b0d.ctex"
+path.s3tc="res://.godot/imported/tree_larch_larch_bark.png-26e6ca3340fc6a99b6f9c66ce6d80b0d.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_larch_larch_bark.png-26e6ca3340fc6a99b6f9c66ce6d80b0d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "c34a83c0af788efda3adad8429999c8b"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_larch_larch_bark.png"
-dest_files=["res://.godot/imported/tree_larch_larch_bark.png-26e6ca3340fc6a99b6f9c66ce6d80b0d.ctex"]
+dest_files=["res://.godot/imported/tree_larch_larch_bark.png-26e6ca3340fc6a99b6f9c66ce6d80b0d.s3tc.ctex", "res://.godot/imported/tree_larch_larch_bark.png-26e6ca3340fc6a99b6f9c66ce6d80b0d.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0

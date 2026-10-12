@@ -86,12 +86,27 @@ static func apply_viewport(vp: Viewport) -> void:
 			clampf(float(v.get("scale_3d", 1.0)), 0.25, 1.0),
 			sharpness
 		)
+		_apply_sun_shadows(v)
 	if not bool(Config.value("game", "render_scale_auto", true)):
 		var pct := clampf(float(Config.value("game", "render_scale_pct", 100.0)), 50.0, 100.0)
 		if pct >= 100.0:
 			_apply_scaling(vp, "bilinear", 1.0, sharpness)
 		else:
 			_apply_scaling(vp, "fsr", pct / 100.0, sharpness)
+
+
+## Атлас и мягкость теней солнца пресета (глобальные настройки RenderingServer; нет ключей —
+## остаётся из project.godot). Без перезапуска.
+static func _apply_sun_shadows(v: Dictionary) -> void:
+	if v.has("dir_shadow_atlas"):
+		var size := clampi(int(v["dir_shadow_atlas"]), 1024, 8192)
+		RenderingServer.directional_shadow_atlas_set_size(
+			size, bool(ProjectSettings.get_setting("rendering/lights_and_shadows/directional_shadow/16_bits", true))
+		)
+	if v.has("dir_shadow_quality"):
+		RenderingServer.directional_soft_shadow_filter_set_quality(
+			clampi(int(v["dir_shadow_quality"]), 0, 5) as RenderingServer.ShadowQuality
+		)
 
 
 ## Режим и масштаб 3D окна: "fsr" — FSR 1 (Viewport.SCALING_3D_MODE_FSR), иначе — bilinear.

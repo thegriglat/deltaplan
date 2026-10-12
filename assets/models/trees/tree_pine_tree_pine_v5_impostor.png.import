@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://deo7pfmabs8ty"
-path="res://.godot/imported/tree_pine_tree_pine_v5_impostor.png-62146bca6ab70c86e6cc8c9b84167631.ctex"
+path.s3tc="res://.godot/imported/tree_pine_tree_pine_v5_impostor.png-62146bca6ab70c86e6cc8c9b84167631.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_pine_tree_pine_v5_impostor.png-62146bca6ab70c86e6cc8c9b84167631.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "0a84a6faf83955ebde0b3bee9865bff8"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_pine_tree_pine_v5_impostor.png"
-dest_files=["res://.godot/imported/tree_pine_tree_pine_v5_impostor.png-62146bca6ab70c86e6cc8c9b84167631.ctex"]
+dest_files=["res://.godot/imported/tree_pine_tree_pine_v5_impostor.png-62146bca6ab70c86e6cc8c9b84167631.s3tc.ctex", "res://.godot/imported/tree_pine_tree_pine_v5_impostor.png-62146bca6ab70c86e6cc8c9b84167631.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0

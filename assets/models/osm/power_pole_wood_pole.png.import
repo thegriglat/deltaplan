@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://rm22m2chpo5w"
-path="res://.godot/imported/power_pole_wood_pole.png-191d25ab1a4ea820bcf5bcba32239260.ctex"
+path.s3tc="res://.godot/imported/power_pole_wood_pole.png-191d25ab1a4ea820bcf5bcba32239260.s3tc.ctex"
+path.etc2="res://.godot/imported/power_pole_wood_pole.png-191d25ab1a4ea820bcf5bcba32239260.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "8f592dd42f28ff2d964ad046c6e87277"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/osm/power_pole_wood_pole.png"
-dest_files=["res://.godot/imported/power_pole_wood_pole.png-191d25ab1a4ea820bcf5bcba32239260.ctex"]
+dest_files=["res://.godot/imported/power_pole_wood_pole.png-191d25ab1a4ea820bcf5bcba32239260.s3tc.ctex", "res://.godot/imported/power_pole_wood_pole.png-191d25ab1a4ea820bcf5bcba32239260.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
