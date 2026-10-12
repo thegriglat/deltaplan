@@ -3,27 +3,29 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://datuax0hhipyf"
-path="res://.godot/imported/glider_air_sting3_normal.png-7069f2c82a12018eea90e24f0202a663.ctex"
+path.s3tc="res://.godot/imported/glider_air_sting3_normal.png-7069f2c82a12018eea90e24f0202a663.s3tc.ctex"
+path.etc2="res://.godot/imported/glider_air_sting3_normal.png-7069f2c82a12018eea90e24f0202a663.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/shaders/sail/glider_air_sting3_normal.png"
-dest_files=["res://.godot/imported/glider_air_sting3_normal.png-7069f2c82a12018eea90e24f0202a663.ctex"]
+dest_files=["res://.godot/imported/glider_air_sting3_normal.png-7069f2c82a12018eea90e24f0202a663.s3tc.ctex", "res://.godot/imported/glider_air_sting3_normal.png-7069f2c82a12018eea90e24f0202a663.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.9
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

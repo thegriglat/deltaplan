@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwt8o4873e4l3"
-path="res://.godot/imported/tree_larch_tree_larch_v4_impostor.png-80c83612df491db6e237303eff0a2849.ctex"
+path.s3tc="res://.godot/imported/tree_larch_tree_larch_v4_impostor.png-80c83612df491db6e237303eff0a2849.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_larch_tree_larch_v4_impostor.png-80c83612df491db6e237303eff0a2849.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "25a0bc0543fa3bba5bad86272aeca359"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_larch_tree_larch_v4_impostor.png"
-dest_files=["res://.godot/imported/tree_larch_tree_larch_v4_impostor.png-80c83612df491db6e237303eff0a2849.ctex"]
+dest_files=["res://.godot/imported/tree_larch_tree_larch_v4_impostor.png-80c83612df491db6e237303eff0a2849.s3tc.ctex", "res://.godot/imported/tree_larch_tree_larch_v4_impostor.png-80c83612df491db6e237303eff0a2849.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0

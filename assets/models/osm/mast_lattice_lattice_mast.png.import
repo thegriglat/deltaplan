@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwopt3mrurlrg"
-path="res://.godot/imported/mast_lattice_lattice_mast.png-9030e17711826d6856e82847957018dc.ctex"
+path.s3tc="res://.godot/imported/mast_lattice_lattice_mast.png-9030e17711826d6856e82847957018dc.s3tc.ctex"
+path.etc2="res://.godot/imported/mast_lattice_lattice_mast.png-9030e17711826d6856e82847957018dc.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "6b6fd00aaac71fcf1c8d14776007eaf7"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/osm/mast_lattice_lattice_mast.png"
-dest_files=["res://.godot/imported/mast_lattice_lattice_mast.png-9030e17711826d6856e82847957018dc.ctex"]
+dest_files=["res://.godot/imported/mast_lattice_lattice_mast.png-9030e17711826d6856e82847957018dc.s3tc.ctex", "res://.godot/imported/mast_lattice_lattice_mast.png-9030e17711826d6856e82847957018dc.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

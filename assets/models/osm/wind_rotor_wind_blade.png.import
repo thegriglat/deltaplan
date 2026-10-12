@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://n8ifuwcvc1wl"
-path="res://.godot/imported/wind_rotor_wind_blade.png-bb49dd1e77a25f247d8e4fe50c9a9cc0.ctex"
+path.s3tc="res://.godot/imported/wind_rotor_wind_blade.png-bb49dd1e77a25f247d8e4fe50c9a9cc0.s3tc.ctex"
+path.etc2="res://.godot/imported/wind_rotor_wind_blade.png-bb49dd1e77a25f247d8e4fe50c9a9cc0.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "95ac28bf1efcd14fb5f6248da8c82dad"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/osm/wind_rotor_wind_blade.png"
-dest_files=["res://.godot/imported/wind_rotor_wind_blade.png-bb49dd1e77a25f247d8e4fe50c9a9cc0.ctex"]
+dest_files=["res://.godot/imported/wind_rotor_wind_blade.png-bb49dd1e77a25f247d8e4fe50c9a9cc0.s3tc.ctex", "res://.godot/imported/wind_rotor_wind_blade.png-bb49dd1e77a25f247d8e4fe50c9a9cc0.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

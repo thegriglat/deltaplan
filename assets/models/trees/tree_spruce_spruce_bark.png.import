@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://burjshp7wp3xs"
-path="res://.godot/imported/tree_spruce_spruce_bark.png-3a9032f7873dd8a5795381aa0281f69d.ctex"
+path.s3tc="res://.godot/imported/tree_spruce_spruce_bark.png-3a9032f7873dd8a5795381aa0281f69d.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_spruce_spruce_bark.png-3a9032f7873dd8a5795381aa0281f69d.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "d84513c8c19f1d6c3246e1d3a8e518dc"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_spruce_spruce_bark.png"
-dest_files=["res://.godot/imported/tree_spruce_spruce_bark.png-3a9032f7873dd8a5795381aa0281f69d.ctex"]
+dest_files=["res://.godot/imported/tree_spruce_spruce_bark.png-3a9032f7873dd8a5795381aa0281f69d.s3tc.ctex", "res://.godot/imported/tree_spruce_spruce_bark.png-3a9032f7873dd8a5795381aa0281f69d.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0

@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgtm6wo8f2u87"
-path="res://.godot/imported/tree_spruce_tree_spruce_v2_impostor.png-b9174dcad5fb6ca130d69672e9831c00.ctex"
+path.s3tc="res://.godot/imported/tree_spruce_tree_spruce_v2_impostor.png-b9174dcad5fb6ca130d69672e9831c00.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_spruce_tree_spruce_v2_impostor.png-b9174dcad5fb6ca130d69672e9831c00.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "d8d4a079364d1bd28b7238ecff0cf078"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_spruce_tree_spruce_v2_impostor.png"
-dest_files=["res://.godot/imported/tree_spruce_tree_spruce_v2_impostor.png-b9174dcad5fb6ca130d69672e9831c00.ctex"]
+dest_files=["res://.godot/imported/tree_spruce_tree_spruce_v2_impostor.png-b9174dcad5fb6ca130d69672e9831c00.s3tc.ctex", "res://.godot/imported/tree_spruce_tree_spruce_v2_impostor.png-b9174dcad5fb6ca130d69672e9831c00.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0

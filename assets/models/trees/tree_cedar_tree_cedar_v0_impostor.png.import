@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://do5q5yjru8jli"
-path="res://.godot/imported/tree_cedar_tree_cedar_v0_impostor.png-fc51a69139f093a2c4b1c92c25b9a310.ctex"
+path.s3tc="res://.godot/imported/tree_cedar_tree_cedar_v0_impostor.png-fc51a69139f093a2c4b1c92c25b9a310.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_cedar_tree_cedar_v0_impostor.png-fc51a69139f093a2c4b1c92c25b9a310.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "4eb857db1bcb0698e8571903c8d05828"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_cedar_tree_cedar_v0_impostor.png"
-dest_files=["res://.godot/imported/tree_cedar_tree_cedar_v0_impostor.png-fc51a69139f093a2c4b1c92c25b9a310.ctex"]
+dest_files=["res://.godot/imported/tree_cedar_tree_cedar_v0_impostor.png-fc51a69139f093a2c4b1c92c25b9a310.s3tc.ctex", "res://.godot/imported/tree_cedar_tree_cedar_v0_impostor.png-fc51a69139f093a2c4b1c92c25b9a310.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0
