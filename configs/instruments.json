@@ -94,6 +94,41 @@
     "turnpoint_label": true,
     "turnpoint_label_doc": "Подписывать поворотные пункты."
   },
+  "wear": {
+    "_doc": "Поношенный вид приборов в кабине (общий для планшета и вариометра 90-х): шейдер assets/shaders/instruments/worn_body.gdshader по маске износа в цвете вершин моделей (R рёбра, G грязь/AO, B зона кнопок) + шероховатость стекла. Параметры по видам материала: plastic — корпус, rubber — кнопки, metal — хомут/кронштейн/оправа.",
+    "enabled": true,
+    "enabled_doc": "false — материалы как в .glb (новый пластик).",
+    "common": {
+      "scratch_freq": 220.0,
+      "scratch_freq_doc": "Частота царапин в координатах модели, 1/м; мельче пикселя — гаснет по fwidth.",
+      "blotch_freq": 45.0,
+      "blotch_freq_doc": "Частота пятен износа, 1/м.",
+      "seed": 0.0
+    },
+    "plastic": {
+      "worn_color": "#5a5c5e", "edge_amount": 0.85, "edge_rough": 0.3, "edge_width": 0.5,
+      "dirt_amount": 0.8, "dirt_color": "#0a0907", "dirt_rough": 0.95, "scratch_amount": 0.55,
+      "polish_amount": 0.0,
+      "_doc": "Корпус: на рёбрах краска/софт-тач стёрта (светлее и глаже), грязь во впадинах, мелкие царапины."
+    },
+    "rubber": {
+      "worn_color": "#6a6a68", "edge_amount": 0.9, "edge_rough": 0.35, "edge_width": 0.55,
+      "dirt_amount": 0.9, "dirt_color": "#0c0b09", "dirt_rough": 0.95, "scratch_amount": 0.4,
+      "polish_amount": 0.85, "polish_rough": 0.2,
+      "_doc": "Кнопки: центр затёрт до блеска, кромка вытерта до подложки, грязь у основания."
+    },
+    "metal": {
+      "worn_color": "#b8babc", "edge_amount": 0.9, "edge_rough": 0.25, "edge_width": 0.5,
+      "dirt_amount": 0.7, "dirt_color": "#1c1a17", "dirt_rough": 0.9, "scratch_amount": 0.8,
+      "polish_amount": 0.0,
+      "_doc": "Хомут/кронштейн/оправа: на кромках голый металл, царапины, грязь в стыках."
+    },
+    "glass": {
+      "enabled": true, "roughness_max": 0.95, "scratch_count": 45, "scratch_strength": 0.8,
+      "smudge": 0.18, "seed": 1012,
+      "_doc": "Экран/стекло: текстура шероховатости (микроцарапины, разводы) — видна только в блике; цвет и свечение экрана не меняются."
+    }
+  },
   "mount_3d": {
     "_doc": "Корпус планшета в 3D (кабинный вид, центр базовой штанги). Модель — agent models; если её нет — примитивы.",
     "model_path": "res://assets/models/instrument.glb",
