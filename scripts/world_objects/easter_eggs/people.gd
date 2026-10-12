@@ -2,21 +2,25 @@ class_name EggPeople
 extends EasterEgg
 ## Люди на старте (чисто картинка): 3–8 простых фигурок у палаток лагеря пилотов. Переминаются
 ## и прохаживаются около своих мест; когда игрок низко проходит над лагерем, поворачиваются к
-## нему и машут руками (локальная анимация, К3). Один MultiMesh (капсулы): на человека
-## 5 экземпляров — ноги, торс, голова, две руки. Положение и руки — функция ctx.t.
+## нему и машут руками (локальная анимация, К3). По MultiMesh на часть модели camp_person.glb
+## (ноги, торс, голова, правая, левая рука; запасной путь — капсулы), экземпляр i — человек i. Положение и руки — функция ctx.t.
 ## Порядок бросков rng в begin: число людей; на каждого — палатка, угол, расстояние от края
 ## палатки, курс, фазы, рост, цвета (рубашка, штаны, кожа).
 
 const PARTS := 5  ## ноги, торс, голова, левая рука, правая рука
 const SHOULDER_Y := 1.42
+const MODEL := "res://assets/models/world/camp_person.glb"
+const PART_NODES := ["Legs", "Torso", "Head", "ArmR", "ArmL"]
 
 ## Итоги для тестов: [{home: Vector3, tent: int, edge_m: float}]
 var info: Array[Dictionary] = []
 
 var _cfg: Dictionary = {}
 var _people: Array[Dictionary] = []
-var _mm: MultiMesh
-var _mmi: MultiMeshInstance3D
+var _mms: Array[MultiMesh] = []  ## по MultiMesh на часть; экземпляр i — человек i
+var _mmis: Array[MultiMeshInstance3D] = []
+var _hidden: Array[bool] = []  ## человек i скрыт в MultiMesh (ближний LOD рисует его сам)
+var _model := false  ## части из camp_person.glb (иначе запасные капсулы)
 var _center := Vector3.ZERO
 var _camp_r := 0.0
 var _shadow := false
@@ -89,34 +93,71 @@ func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, _t0: fl
 		p.yaw = p.yaw0
 		_people.append(p)
 		info.append({"home": Vector3(home.x, 0.0, home.y), "tent": ti, "edge_m": ecl})
-	_mm = MultiMesh.new()
-	_mm.transform_format = MultiMesh.TRANSFORM_3D
-	_mm.use_colors = true
-	var cap := CapsuleMesh.new()  # единичная: радиус 0,5, высота 2 — масштаб задаёт размеры
-	cap.radius = 0.5
-	cap.height = 2.0
-	cap.radial_segments = 8
-	cap.rings = 3
-	_mm.mesh = cap
-	_mm.instance_count = n * PARTS
-	for i in n:
-		var p: Dictionary = _people[i]
-		_mm.set_instance_color(i * PARTS, p.pants)
-		_mm.set_instance_color(i * PARTS + 1, p.shirt)
-		_mm.set_instance_color(i * PARTS + 2, p.skin)
-		_mm.set_instance_color(i * PARTS + 3, p.shirt)
-		_mm.set_instance_color(i * PARTS + 4, p.shirt)
 	var reach := _camp_r + 20.0
-	_mm.custom_aabb = AABB(Vector3(-reach, -60.0, -reach), Vector3(reach * 2.0, 120.0, reach * 2.0))
-	_mmi = MultiMeshInstance3D.new()
-	_mmi.multimesh = _mm
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.roughness = 1.0
-	_mmi.material_override = mat
-	_mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_mmi.visible = false
-	add_child(_mmi)
+	var aabb := AABB(Vector3(-reach, -60.0, -reach), Vector3(reach * 2.0, 120.0, reach * 2.0))
+	var meshes := _part_meshes()
+	_model = not meshes.is_empty()
+	if not _model:  # модели нет — запасной путь: капсулы
+		var cap := CapsuleMesh.new()  # единичная: радиус 0,5, высота 2 — масштаб задаёт размеры
+		cap.radius = 0.5
+		cap.height = 2.0
+		cap.radial_segments = 8
+		cap.rings = 3
+		var cmat := StandardMaterial3D.new()
+		cmat.vertex_color_use_as_albedo = true
+		cmat.roughness = 1.0
+		cap.material = cmat
+		for k in PARTS:
+			meshes.append(cap)
+	for k in PARTS:
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_colors = true
+		mm.mesh = meshes[k]
+		mm.instance_count = n
+		for i in n:
+			var p: Dictionary = _people[i]
+			# ноги — штаны; голова — кожа; торс и руки — рубашка
+			mm.set_instance_color(i, p.pants if k == 0 else (p.skin if k == 2 else p.shirt))
+		mm.custom_aabb = aabb
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mmi.visible = false
+		add_child(mmi)
+		_mms.append(mm)
+		_mmis.append(mmi)
+
+
+## Меши частей из camp_person.glb (порядок как PARTS) с материалами по именам; пусто, если модели нет.
+func _part_meshes() -> Array[Mesh]:
+	var out: Array[Mesh] = []
+	if not ResourceLoader.exists(MODEL):
+		return out
+	var ps := load(MODEL) as PackedScene
+	if ps == null:
+		return out
+	var root := ps.instantiate()
+	var skin := StandardMaterial3D.new()
+	skin.vertex_color_use_as_albedo = true
+	skin.roughness = 0.8
+	for nm in PART_NODES:
+		var mi := root.get_node_or_null(nm) as MeshInstance3D
+		if mi == null or mi.mesh == null:
+			root.free()
+			out.clear()
+			return out
+		var m: Mesh = mi.mesh.duplicate()
+		for sidx in m.get_surface_count():
+			var old := m.surface_get_material(sidx)
+			var mname := old.resource_name if old != null else ""
+			if mname == "Cloth":
+				m.surface_set_material(sidx, CampFabric.material("cloth"))
+			elif mname == "SkinTint":
+				m.surface_set_material(sidx, skin)
+		out.append(m)
+	root.free()
+	return out
 
 
 func _rand_color(
@@ -138,6 +179,14 @@ func _spot_ok(
 		if h.distance_to(o) < 0.8:
 			return false
 	return true
+
+
+## Скрыть/показать человека i в MultiMesh (нулевой масштаб экземпляров); виден после ближайшего update.
+func set_person_visible(i: int, vis: bool) -> void:
+	while _hidden.size() < _people.size():
+		_hidden.append(false)
+	_hidden[i] = not vis
+	_last_tick = -1.0e9
 
 
 func person_count() -> int:
@@ -167,18 +216,21 @@ func update(ctx: EggContext) -> bool:
 		cam = ctx.camera.global_position
 	var d := cam.distance_to(_center)
 	if d > _camp_r + float(_cfg.get("sleep_m", 1500.0)):
-		_mmi.visible = false
+		for m in _mmis:
+			m.visible = false
 		_last_t = NAN
 		return true
-	_mmi.visible = true
+	for m in _mmis:
+		m.visible = true
 	var want := d < float(_cfg.get("shadow_m", 150.0))
 	if want != _shadow:
 		_shadow = want
-		_mmi.cast_shadow = (
-			GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-			if want
-			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		)
+		for m in _mmis:
+			m.cast_shadow = (
+				GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+				if want
+				else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			)
 	var dt := 0.0  # прыжок времени и первый кадр — без сглаживания (сразу в цель)
 	if not is_nan(_last_t):
 		var raw := t - _last_t
@@ -220,11 +272,10 @@ func update(ctx: EggContext) -> bool:
 		var b := Basis(Vector3.UP, yaw)
 		var s: float = float(p.h) / 1.75
 		var sb := b.scaled(Vector3(s, s, s))
-		var o := i * PARTS
 		# ноги, торс, голова
-		_set_part(o, sb, origin, Vector3(0, 0.43, 0), Vector3(0.3, 0.43, 0.26), Basis.IDENTITY)
-		_set_part(o + 1, sb, origin, Vector3(0, 1.12, 0), Vector3(0.4, 0.33, 0.25), Basis.IDENTITY)
-		_set_part(o + 2, sb, origin, Vector3(0, 1.62, 0), Vector3(0.22, 0.13, 0.22), Basis.IDENTITY)
+		_set_part(0, i, sb, origin, Vector3(0, 0.43, 0), Vector3(0.3, 0.43, 0.26), Basis.IDENTITY)
+		_set_part(1, i, sb, origin, Vector3(0, 1.12, 0), Vector3(0.4, 0.33, 0.25), Basis.IDENTITY)
+		_set_part(2, i, sb, origin, Vector3(0, 1.62, 0), Vector3(0.22, 0.13, 0.22), Basis.IDENTITY)
 		# руки: r — поднять и махать; в покое чуть покачиваются
 		var wave := 0.35 * sin(t * 7.0 + ph.w * TAU)
 		var a_r := lerpf(0.12 + 0.05 * sin(0.5 * t + ph.x), up + wave, r)
@@ -233,9 +284,16 @@ func update(ctx: EggContext) -> bool:
 		for side in 2:
 			var sx := 1.0 if side == 0 else -1.0
 			var a := a_r if side == 0 else a_l
+			if _model:  # шарнир в плече; поворот вокруг Z (рука вдоль −Y → вверх при a = π)
+				if _is_hidden(i):
+					_mms[3 + side].set_instance_transform(i, Transform3D(Basis.from_scale(Vector3.ZERO), origin))
+					continue
+				var tr := Transform3D(sb * Basis(Vector3.BACK, sx * a), origin + sb * Vector3(sx * 0.22, SHOULDER_Y, 0.0))
+				_mms[3 + side].set_instance_transform(i, tr)
+				continue
 			var dir := Vector3(sx * sin(a), -cos(a), 0.0)
 			var c := Vector3(sx * 0.22, SHOULDER_Y, 0.0) + dir * 0.3
-			_set_part(o + 3 + side, sb, origin, c, Vector3(0.1, 0.3, 0.1), Basis(Vector3.BACK, -sx * a))
+			_set_part(3 + side, i, sb, origin, c, Vector3(0.1, 0.3, 0.1), Basis(Vector3.BACK, sx * a))
 	return true
 
 
@@ -244,6 +302,20 @@ func step_on(x: float) -> float:
 	return 1.0 if x > 0.4 else 0.35
 
 
-func _set_part(idx: int, sb: Basis, origin: Vector3, c: Vector3, sc: Vector3, rot: Basis) -> void:
+## Часть idx человека i: у модели — начало в шарнире (c), у капсул — центр c и масштаб sc.
+func _set_part(
+	idx: int, i: int, sb: Basis, origin: Vector3, c: Vector3, sc: Vector3, rot: Basis
+) -> void:
+	if _is_hidden(i):
+		_mms[idx].set_instance_transform(i, Transform3D(Basis.from_scale(Vector3.ZERO), origin))
+		return
+	if _model:
+		var joints := [Vector3.ZERO, Vector3(0, 0.95, 0), Vector3(0, 1.50, 0)]
+		_mms[idx].set_instance_transform(i, Transform3D(sb * rot, origin + sb * joints[idx]))
+		return
 	var bb := sb * rot.scaled(sc)
-	_mm.set_instance_transform(idx, Transform3D(bb, origin + sb * c))
+	_mms[idx].set_instance_transform(i, Transform3D(bb, origin + sb * c))
+
+
+func _is_hidden(i: int) -> bool:
+	return i < _hidden.size() and _hidden[i]
