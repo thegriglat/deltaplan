@@ -27,3 +27,21 @@ func test_versions() -> void:
 			"%s v%d в frontmatter: %s" % [id, VERSIONS[id], line]
 		)
 		check(text.contains("## %s v%d" % [id, VERSIONS[id]]), "%s v%d заголовок" % [id, VERSIONS[id]])
+
+
+# ---------------------------------------------------------------- PH-К1: усилие рук на трапеции
+
+func test_ph_k1_field_and_widget() -> void:
+	var t := Telemetry.new()
+	check(t.bar_force is Vector2 and t.bar_force == Vector2.ZERO, "PH-К1: Telemetry.bar_force Vector2, по умолчанию ноль")
+	var FS := preload("res://tests/flight/flight_sim.gd")
+	var PS := preload("res://tests/flight/pendulum/pendulum_sim.gd")
+	check(FS.make("sport").telemetry.bar_force == Vector2.ZERO, "PH-К1: FlightModel до шага — ноль")
+	check(PS.make("sport").telemetry.bar_force == Vector2.ZERO, "PH-К1: PendulumModel до шага — ноль")
+	var m := FS.make("sport")
+	m.reset_on_ground(Vector3.ZERO, 0.0)
+	FS.run_for(m, 0.5, FS.input())
+	check(m.telemetry.bar_force == Vector2.ZERO, "PH-К1: FlightModel на земле — ноль")
+	var cfg: Dictionary = Config.get_config("ui").pilot_shift
+	check(cfg.has("force_ring_max_frac") and cfg.has("force_full_n"), "PH-К1: force_ring_max_frac, force_full_n в ui.json")
+	# инварианты обеих моделей по скоростям — tests/flight/test_bar_force.gd
