@@ -111,7 +111,10 @@ func test_trapezoid_and_telltales() -> void:
 		# горизонтальная половина кадра 16:9 при FOV 75 — 53,8°, при FOV 90 по умолчанию (camera.json)
 		# — 60,6°; проверяем в FOV игры.
 		cam.fov = float(Config.get_config("camera").fov_deg)
-		# ленточки: найти наклон головы вверх ≤ 55°, при котором обе в кадре
+		# Ленточки — для «Сидячей позы» (back_hidden, по умолчанию: игрок играет из неё). Из «Горизонтальной»
+		# (eye_mode = eyes) они могут быть вне кадра (после 2500ca94 узел точно на оси троса, на 1–3° дальше
+		# от оси взгляда) — это допустимо, там только информационный вывод углов выше.
+		_use_eye_mode("back_hidden")
 		var seen_pitch := -1.0
 		for pit in [10.0, 20.0, 30.0, 40.0, 50.0, 55.0]:
 			_look(game, 0.0, pit)
@@ -122,8 +125,8 @@ func test_trapezoid_and_telltales() -> void:
 			if n == 2:
 				seen_pitch = pit
 				break
-		check(seen_pitch > 0.0, "%s: обе ленточки в кадре при взгляде вверх ≤ 55° (%.0f)" % [wing, seen_pitch])
-		print("         %s: ленточки в кадре при наклоне головы вверх %.0f°" % [wing, seen_pitch])
+		check(seen_pitch > 0.0, "%s: обе ленточки в кадре при взгляде вверх ≤ 55° из сидячей позы (%.0f)" % [wing, seen_pitch])
+		print("         %s: ленточки в кадре (сидячая поза) при наклоне головы вверх %.0f°" % [wing, seen_pitch])
 		await _finish(main)
 
 
