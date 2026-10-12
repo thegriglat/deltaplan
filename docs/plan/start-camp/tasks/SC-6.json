@@ -1,0 +1,51 @@
+{
+  "id": "SC-6",
+  "module": "start-camp",
+  "type": "dp-engineer",
+  "title": "Модель Blender: вещи у старта (start_gear.glb)",
+  "goal": "Простые, но правдоподобные вещи лётного выезда: чехлы крыльев 5,6 и 4,2 м, рюкзак подвески, вытряхнутая подвеска, шлем, бутылка — 2 LOD, материалы по именам для общего шейдера ткани.",
+  "plan_ref": "SC-6, SC-7, SC-8 Модели Blender",
+  "contracts": [
+    {
+      "name": "SC-K3",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    },
+    {
+      "name": "SC-K5",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-camp-SC-6",
+  "branch": "start-camp/SC-6",
+  "base": "feature/start-camp",
+  "scope": [
+    "tools/blender/build_start_gear.py",
+    "assets/models/world/start_gear.glb",
+    "assets/source/world/start_gear.blend",
+    "tests/contracts/test_start_camp_contracts_k3_gear.gd",
+    "ASSETS.md",
+    "assets/models/world/start_gear.glb.import"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools/blender/bl_util.py",
+    "другие glb"
+  ],
+  "accept": [
+    {
+      "name": "start_camp_contracts_k3_gear",
+      "tests": "start_camp_contracts_k3_gear"
+    }
+  ],
+  "report_extra": [
+    "tris_by_node",
+    "glb_kb",
+    "image"
+  ],
+  "notes": "",
+  "created": "2026-10-12T22:23:49",
+  "edited": "2026-10-12T22:23:59"
+}

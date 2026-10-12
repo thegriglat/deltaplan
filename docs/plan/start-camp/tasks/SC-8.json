@@ -1,0 +1,51 @@
+{
+  "id": "SC-8",
+  "module": "start-camp",
+  "type": "dp-engineer",
+  "title": "Модель Blender: человечек у лагеря (camp_person.glb)",
+  "goal": "Люди у палаток — не капсулы: простая лоупольная фигура из 5 частей (ноги, торс, голова, руки) с шарнирами для MultiMesh EggPeople, силуэт куртки/штанов, кисти, обувь, кепка.",
+  "plan_ref": "SC-6, SC-7, SC-8 Модели Blender",
+  "contracts": [
+    {
+      "name": "SC-K4",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    },
+    {
+      "name": "SC-K5",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-camp-SC-8",
+  "branch": "start-camp/SC-8",
+  "base": "feature/start-camp",
+  "scope": [
+    "tools/blender/build_camp_person.py",
+    "assets/models/world/camp_person.glb",
+    "assets/source/world/camp_person.blend",
+    "tests/contracts/test_start_camp_contracts_k4.gd",
+    "ASSETS.md",
+    "assets/models/world/camp_person.glb.import"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools/blender/bl_util.py",
+    "tools/blender/build_pilot.py"
+  ],
+  "accept": [
+    {
+      "name": "start_camp_contracts_k4",
+      "tests": "start_camp_contracts_k4"
+    }
+  ],
+  "report_extra": [
+    "tris_by_node",
+    "glb_kb",
+    "image"
+  ],
+  "notes": "",
+  "created": "2026-10-12T22:23:49",
+  "edited": "2026-10-12T22:23:59"
+}

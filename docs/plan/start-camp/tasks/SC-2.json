@@ -1,0 +1,80 @@
+{
+  "id": "SC-2",
+  "module": "start-camp",
+  "type": "dp-engineer",
+  "title": "Снаряжение и собранные крылья у каждого старта (StartGear)",
+  "goal": "У каждого старта локации — постоянный набор лётного выезда: 2–4 собранных крыла на базовой штанге носом в ветер, полусобранный аппарат, чехлы, рюкзаки, шлемы, бутылки; дёшево по GPU (MultiMesh, LOD, отсечение).",
+  "plan_ref": "SC-2 Снаряжение",
+  "contracts": [
+    {
+      "name": "SC-K1",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    },
+    {
+      "name": "SC-K2",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    },
+    {
+      "name": "SC-K3",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    },
+    {
+      "name": "SC-K5",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-camp-SC-2",
+  "branch": "start-camp/SC-2",
+  "base": "feature/start-camp",
+  "scope": [
+    "scripts/world_objects/start_gear.gd",
+    "scripts/world_objects/world_objects.gd",
+    "configs/world_objects.json",
+    "tests/world_objects/test_start_gear.gd",
+    "tests/contracts/test_start_camp_contracts_k2.gd"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/tent_camp.gd",
+    "scripts/world_objects/obstacle_index.gd",
+    "scripts/game",
+    "scripts/terrain",
+    "assets/models",
+    "assets/shaders/camp"
+  ],
+  "accept": [
+    {
+      "name": "start_gear",
+      "tests": "start_gear"
+    },
+    {
+      "name": "start_camp_contracts_k2",
+      "tests": "start_camp_contracts_k2"
+    },
+    {
+      "name": "test_world_objects",
+      "tests": "test_world_objects"
+    },
+    {
+      "name": "tents",
+      "tests": "tents"
+    },
+    {
+      "name": "gd",
+      "cmd": "f=$(git diff --name-only --diff-filter=AM feature/start-camp...HEAD -- \"*.gd\"); [ -z \"$f\" ] || /home/greg/deltaplan/tools/dp check gd $f",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "tris_near",
+    "tris_far",
+    "draw_calls_small",
+    "plan_ms_per_start"
+  ],
+  "notes": "",
+  "created": "2026-10-12T22:23:34",
+  "edited": "2026-10-12T22:23:59"
+}

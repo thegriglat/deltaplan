@@ -1,0 +1,56 @@
+{
+  "id": "SC-4",
+  "module": "start-camp",
+  "type": "dp-engineer",
+  "title": "Ткань лагеря: общий шейдер, палатки на нём",
+  "goal": "Палатки, чехлы, рюкзаки и одежда людей — не плоский цвет, а ткань (рипстоп, складки, пыль снизу) одним дешёвым общим шейдером в осях объекта; палатки переводятся на него.",
+  "plan_ref": "SC-4 Ткань лагеря",
+  "contracts": [
+    {
+      "name": "SC-K5",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-camp-SC-4",
+  "branch": "start-camp/SC-4",
+  "base": "feature/start-camp",
+  "scope": [
+    "assets/shaders/camp",
+    "assets/textures/camp",
+    "scripts/world_objects/camp_fabric.gd",
+    "scripts/world_objects/tent_camp.gd",
+    "configs/world_objects.json",
+    "ASSETS.md",
+    "tests/world_objects/test_camp_fabric.gd",
+    "tests/contracts/test_start_camp_contracts_k5.gd"
+  ],
+  "dont_touch": [
+    "TentCamp.plan/_grow/_Ctx (место палаток — SC-1)",
+    "assets/models",
+    "tools/blender",
+    "scripts/terrain"
+  ],
+  "accept": [
+    {
+      "name": "camp_fabric",
+      "tests": "camp_fabric"
+    },
+    {
+      "name": "start_camp_contracts_k5",
+      "tests": "start_camp_contracts_k5"
+    },
+    {
+      "name": "tents",
+      "tests": "tents"
+    },
+    {
+      "name": "gd",
+      "cmd": "f=$(git diff --name-only --diff-filter=AM feature/start-camp...HEAD -- \"*.gd\"); [ -z \"$f\" ] || /home/greg/deltaplan/tools/dp check gd $f",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T22:23:34"
+}
