@@ -1,0 +1,69 @@
+{
+  "id": "SC-10",
+  "module": "start-camp",
+  "type": "dp-engineer",
+  "title": "Одна общая текстура шины: 11 колёсных крыльев и полусобранный аппарат",
+  "goal": "Сейчас одна и та же шина 256² лежит 12 копиями (glider_*_wheel_tire.png ×11 и glider_kit_wheel_tire.png, у последней ещё и без VRAM-сжатия): каждая копия — своя текстура в памяти. Свести к одному файлу с VRAM-сжатием и мипмапами, на который ссылаются все модели; вид колёс не меняется.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "SC-K3",
+      "version": "1",
+      "ref": "docs/contracts/start-camp.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-camp-SC-10",
+  "branch": "start-camp/SC-10",
+  "base": "feature/start-camp",
+  "scope": [
+    "tools/blender/wheel_parts.py",
+    "tools/blender/build_gliders.py",
+    "tools/blender/build_glider_kit.py",
+    "tools/blender/bl_util.py",
+    "assets/models/glider_*.glb(.import)",
+    "assets/models/*_wheel_tire.png(.import) — удалить",
+    "assets/models/world/glider_kit.glb",
+    "assets/textures/wheel",
+    "assets/source",
+    "tests/contracts/test_start_camp_contracts_k3_kit.gd",
+    "tests/contracts/test_start_camp_wheel_tire.gd",
+    "docs/guide/models.md",
+    "ASSETS.md"
+  ],
+  "dont_touch": [
+    "scripts/world_objects",
+    "геометрия и материалы крыльев кроме ссылки на текстуру шины"
+  ],
+  "accept": [
+    {
+      "name": "start_camp_contracts_k3_kit",
+      "tests": "start_camp_contracts_k3_kit"
+    },
+    {
+      "name": "start_camp_wheel_tire",
+      "tests": "start_camp_wheel_tire"
+    },
+    {
+      "name": "test_glider",
+      "tests": "test_glider"
+    },
+    {
+      "name": "one_tire",
+      "cmd": "find assets -name '*tire*.png' | wc -l",
+      "expect": "num:(\\d+) <=1"
+    },
+    {
+      "name": "tire_vram",
+      "cmd": "f=$(find assets -name '*tire*.png' | head -1); grep -c 'compress/mode=2' $f.import; grep -c 'mipmaps/generate=true' $f.import",
+      "expect": "!re:^0$"
+    },
+    {
+      "name": "gd",
+      "cmd": "f=$(git diff --name-only --diff-filter=AM feature/start-camp...HEAD -- \"*.gd\"); [ -z \"$f\" ] || /home/greg/deltaplan/tools/dp check gd $f",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-12T22:38:05"
+}
