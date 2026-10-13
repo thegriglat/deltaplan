@@ -156,15 +156,6 @@ func test_band_numbers() -> void:
 	var ms0 := (Time.get_ticks_usec() - t0) / 1000.0
 	print("SL-17: без полосы: build %.0f мс, моделей %d" % [ms0, p.lod_counts_total()])
 	p.lod_k_enabled = true
-	for rad in [500.0, 800.0, 1000.0, 1500.0]:
-		var keep := p.radius
-		p.radius = rad
-		for en in [false, true]:
-			p.lod_k_enabled = en
-			t0 = Time.get_ticks_usec()
-			p.build(c)
-			print("SL-17 radius %d k=%s: build %.0f мс, моделей(экз.) %d, band %d" % [rad, en, (Time.get_ticks_usec() - t0) / 1000.0, p.lod_counts_total(), p.imp_count])
-		p.radius = keep
 	p.lod_k_enabled = true
 
 
