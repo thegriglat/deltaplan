@@ -24,7 +24,8 @@
     "tests/contracts/test_mountain_look_contracts.gd",
     "docs/guide/terrain.md",
     "docs/guide/location-data.md",
-    "tools/bench/cliff_look_probe.gd"
+    "tools/bench/cliff_look_probe.gd",
+    "tests/atmosphere/fixtures/air_model/"
   ],
   "dont_touch": [
     "scripts/terrain/terrain.gdshader",
@@ -77,5 +78,5 @@
   ],
   "notes": "",
   "created": "2026-10-13T21:42:23",
-  "edited": "2026-10-13T21:42:23"
+  "edited": "2026-10-13T22:39:42"
 }
