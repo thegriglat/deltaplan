@@ -81,5 +81,41 @@ static func state_species(
 	return state(doy - lag, lat_deg, alt_m, look)
 
 
+## Подготовка для шейдера (uniform sl_season_pre): всё, что зависит только от даты и широты —
+## Vector4(день берёзы, день лиственницы, сдвиг Хопкинса по широте, множитель тропиков); в пикселе
+## остаётся сдвиг по высоте. Дни — как в state(): южное полушарие +182,5, приведены в 0…365.
+static func pre(doy: float, lat_deg: float, look: Dictionary = {}) -> Vector4:
+	var al := absf(lat_deg)
+	var shift := 182.5 if lat_deg < 0.0 else 0.0
+	var hop: Array = _p(look, "season_hopkins")
+	var days: Array[float] = []
+	for lag in [0.0, float(_p(look, "season_larch_lag"))]:
+		var d: float = doy - lag + shift
+		d -= 365.0 * floorf(d / 365.0)
+		days.append(d)
+	return Vector4(
+		days[0],
+		days[1],
+		float(hop[0]) * clampf(al - float(_p(look, "season_lat_ref")), -15.0, 20.0),
+		smoothstep(20.0, 26.0, al)
+	)
+
+
+## Пересчитать sl_season_pre материала по его текущим sl_doy, sl_lat_deg и параметрам сезона.
+static func apply_pre(m: ShaderMaterial) -> void:
+	var look := {}
+	for k in ["season_hopkins", "season_lat_ref", "season_larch_lag"]:
+		var v: Variant = m.get_shader_parameter("sl_" + k)
+		if v is Vector2:
+			v = [v.x, v.y]
+		if v != null:
+			look[k] = v
+	var doy: Variant = m.get_shader_parameter("sl_doy")
+	var lat: Variant = m.get_shader_parameter("sl_lat_deg")
+	m.set_shader_parameter(
+		"sl_season_pre", pre(196.0 if doy == null else float(doy), 0.0 if lat == null else float(lat), look)
+	)
+
+
 static func _p(look: Dictionary, key: String) -> Variant:
 	return look.get(key, DEFAULTS[key])

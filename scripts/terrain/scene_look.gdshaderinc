@@ -157,18 +157,17 @@ uniform vec3 sl_season_crop_ripe = vec3(0.5, 0.37, 0.12);
 uniform vec3 sl_season_crop_soil = vec3(0.12, 0.085, 0.055);
 uniform vec4 sl_season_crop_days = vec4(10.0, 95.0, 22.0, 30.0);
 
-// Состояние сезона (green, dry, autumn, bare), все 0…1: свежесть весенней травы, добавка к сухости
-// луга, окраска листвы (не убывает до листопада), листва опала. rel — дней от начала вегетации
-// (для полей); день года приведён к северному полушарию.
-vec4 sl_season_x(float doy, float lat, float alt, out float rel) {
+// Всё, что зависит только от даты и широты (нормированный день берёзы/лиственницы, сдвиг Хопкинса по
+// широте, множитель тропиков), считает CPU при смене даты/места (SeasonLook.pre → uniform sl_season_pre
+// = (день берёзы, день лиственницы, сдвиг по широте, тропики)); в пикселе остаётся сдвиг по высоте.
+uniform vec4 sl_season_pre = vec4(196.0, 196.0, 0.0, 1.0);
+
+// Сезон по подготовленным d (день года 0…365, северное полушарие), sh_lat, trop и высоте.
+vec4 sl_season_f(float d, float sh_lat, float trop, float alt, out float rel) {
 	rel = 0.0;
 	if (!sl_season_enabled) {
 		return vec4(0.0);
 	}
-	float al = abs(lat);
-	float d = doy + (lat < 0.0 ? 182.5 : 0.0);
-	d -= 365.0 * floor(d / 365.0);
-	float sh_lat = sl_season_hopkins.x * clamp(al - sl_season_lat_ref, -15.0, 20.0);
 	float sh_alt = sl_season_hopkins.x * max(alt, 0.0) / sl_season_hopkins.y;
 	float spring = sl_season_dates.x + clamp(sh_lat + sh_alt, -60.0, 90.0);
 	float fall = clamp(sl_season_dates.y - sh_lat - sl_season_autumn_alt_k * sh_alt, 200.0, 330.0);
@@ -181,7 +180,18 @@ vec4 sl_season_x(float doy, float lat, float alt, out float rel) {
 			1.0 - smoothstep(spring + sl_season_leafout_days.x, spring + sl_season_leafout_days.y, d));
 	float dorm = 1.0 - smoothstep(spring - 10.0, spring + 10.0, d);
 	float dry = max(sl_season_dry_amount * dsum, sl_season_winter_dry * max(dorm, bare));
-	return smoothstep(20.0, 26.0, al) * vec4(green, dry, autumn, bare);
+	return trop * vec4(green, dry, autumn, bare);
+}
+
+// Состояние сезона (green, dry, autumn, bare), все 0…1: свежесть весенней травы, добавка к сухости
+// луга, окраска листвы (не убывает до листопада), листва опала. rel — дней от начала вегетации
+// (для полей). Полная форма от (день, широта, высота) — то, что считает CPU-зеркало SeasonLook.state.
+vec4 sl_season_x(float doy, float lat, float alt, out float rel) {
+	float al = abs(lat);
+	float d = doy + (lat < 0.0 ? 182.5 : 0.0);
+	d -= 365.0 * floor(d / 365.0);
+	float sh_lat = sl_season_hopkins.x * clamp(al - sl_season_lat_ref, -15.0, 20.0);
+	return sl_season_f(d, sh_lat, smoothstep(20.0, 26.0, al), alt, rel);
 }
 
 vec4 sl_season(float doy, float lat, float alt) {
@@ -189,9 +199,15 @@ vec4 sl_season(float doy, float lat, float alt) {
 	return sl_season_x(doy, lat, alt, rel);
 }
 
+// Берёза/осина на высоте alt по подготовленным uniform-ам (рельеф, трава).
+vec4 sl_season_b(float alt, out float rel) {
+	return sl_season_f(sl_season_pre.x, sl_season_pre.z, sl_season_pre.w, alt, rel);
+}
+
 // Порода: 1 — берёза/осина, 2 — лиственница (позже на season_larch_lag дней); остальные вечнозелёные.
 vec4 sl_season_sp(float kind, float alt) {
-	return sl_season(sl_doy - (kind > 1.5 ? sl_season_larch_lag : 0.0), sl_lat_deg, alt);
+	float rel;
+	return sl_season_f(kind > 1.5 ? sl_season_pre.y : sl_season_pre.x, sl_season_pre.z, sl_season_pre.w, alt, rel);
 }
 
 #ifndef SL_NO_GROUND   // нужен terrain_common (палитра луга, поля); у tree_model.gdshader его нет
@@ -362,6 +378,7 @@ vec3 sl_trails(vec3 c, vec2 p, float h, vec3 nc, float slope_deg, float fh, vec3
 }
 #endif
 
+#ifndef SL_NO_GROUND   // SL-9 использует vnoise/hash12 из terrain_common
 // --- SL-9: анти-тайлинг скал и осыпей, конусы выноса ---
 uniform bool sl_rock_enabled = false;
 uniform float sl_rock_anti = 0.22;                  // размах яркости разрывающего слоя (± доля)
@@ -506,6 +523,7 @@ vec3 sl_rock_nrm(vec3 n, vec3 rg, float w) {
 	return normalize(n - rg * (sl_rock_bump * w));
 }
 
+#endif
 // --- SL-15: волны ветра по траве с высоты — блеск по солнцу и оттенок ---
 // Под порывом стебли наклоняются по ветру d; поверхность листвы обращена против ветра (−d).
 // Блеск — как у половинного вектора h = норм(на солнце + на камеру): наклон к h светлит (серебро изнанки,

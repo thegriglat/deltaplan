@@ -97,7 +97,7 @@ void vertex() {
 		v_n = vec3(0.0, 1.0, 0.0);
 	} else {
 		float h = h_bilinear(xz);
-		float sl_rel; vec4 sl_ss = sl_season_x(sl_doy, sl_lat_deg, h, sl_rel); // SL
+		float sl_rel; vec4 sl_ss = sl_season_b(h, sl_rel); // SL
 		// класс — ближайший узел карты (как Terrain.surface_at)
 		int c = surface_node(ivec2(round((xz - surface_origin) / surface_spacing)));
 		float r = hash12(cell + 2.2);

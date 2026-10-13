@@ -958,7 +958,7 @@ void fragment() {
 
 	// --- луг: сухая трава на южных склонах и пятнами ---
 	vec3 gcol = meadow_ground_color(wp.xz, north, patch2, wet, north_s);
-	float sl_rel; vec4 sl_ss = sl_season_x(sl_doy, sl_lat_deg, h, sl_rel); // SL
+	float sl_rel; vec4 sl_ss = sl_season_b(h, sl_rel); // SL
 	gcol = sl_meadow_season(gcol, sl_ss); // SL
 
 	float tex_w = fade * texture_strength;

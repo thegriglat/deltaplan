@@ -6,15 +6,35 @@ extends Node
 
 var failures: PackedStringArray = []
 
+
+## Ловит ошибки компиляции шейдеров (terrain, grass, forest_impostors не рисуют квад без данных
+## рельефа, поэтому по пикселю их не проверить): любой «SHADER ERROR»/«Shader compilation failed».
+class ShaderErrors:
+	extends Logger
+	var errors: PackedStringArray = []
+
+	func _log_error(
+		_function: String, _file: String, _line: int, code: String, rationale: String,
+		_editor_notify: bool, _error_type: int, _script_backtraces: Array[ScriptBacktrace]
+	) -> void:
+		var t := code + " " + rationale
+		if t.contains("hader") and (t.contains("ompil") or t.contains("rror")):
+			errors.append(t.strip_edges())
+
+
+var logger := ShaderErrors.new()
+
 const PROBE := """
 shader_type spatial;
 render_mode unshaded, cull_disabled;
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
 #include "res://scripts/terrain/scene_look.gdshaderinc"
 uniform vec3 args = vec3(196.0, 51.0, 0.0);
+uniform vec4 pre = vec4(196.0, 196.0, 0.0, 1.0);
 uniform bool second = false;
 void fragment() {
-	vec4 s = sl_season(args.x, args.y, args.z);
+	float rel;
+	vec4 s = sl_season_f(pre.x, pre.z, pre.w, args.z, rel);
 	ALBEDO = second ? vec3(s.w) : s.xyz;
 }
 """
@@ -49,9 +69,11 @@ func _quad(vp: SubViewport, sh: Shader, x: float, y: float, params: Dictionary) 
 
 
 func test_season_mirror_and_compile() -> void:
+	OS.add_logger(logger)
 	var vp := SubViewport.new()
 	vp.size = Vector2i(400, 160)
 	vp.own_world_3d = true
+	vp.transparent_bg = true
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(vp)
 	var cam := Camera3D.new()
@@ -67,21 +89,23 @@ func test_season_mirror_and_compile() -> void:
 		var row := i / 5
 		var x := -0.8 + 0.4 * col
 		var args := Vector3(c[0], c[1], c[2])
-		_quad(vp, sh, x, 0.45 - 0.45 * row, {"args": args}.merged(p))
+		_quad(vp, sh, x, 0.45 - 0.45 * row, {"args": args, "pre": SeasonLook.pre(c[0], c[1], look)}.merged(p))
 	# вторая пачка: канал bare отдельными квадратами ниже
 	for i in CASES.size():
 		var c2: Array = CASES[i]
 		_quad(vp, sh, -0.8 + 0.4 * (i % 5), -0.45 - 0.45 * (i / 5),
-				{"args": Vector3(c2[0], c2[1], c2[2]), "second": true}.merged(p))
+				{"args": Vector3(c2[0], c2[1], c2[2]), "second": true,
+				"pre": SeasonLook.pre(c2[0], c2[1], look)}.merged(p))
 	# остальные шейдеры сезона — просто на экран (компиляция)
-	for path in [
+	var others: Array[String] = [
 		"res://scripts/terrain/terrain.gdshader", "res://scripts/terrain/grass.gdshader",
 		"res://scripts/terrain/forest_impostors.gdshader", "res://scripts/terrain/tree_model.gdshader",
-	]:
-		var s2 := load(path) as Shader
-		check(s2 != null, "шейдер загружен: %s" % path)
+	]
+	for i in others.size():
+		var s2 := load(others[i]) as Shader
+		check(s2 != null, "шейдер загружен: %s" % others[i])
 		if s2 != null:
-			_quad(vp, s2, 1.1, 0.0, {"sl_season_enabled": true})
+			_quad(vp, s2, 1.1, 0.6 - 0.4 * i, {"sl_season_enabled": true})
 	for i in 12:
 		await get_tree().process_frame
 	var img := vp.get_texture().get_image()
@@ -99,3 +123,9 @@ func test_season_mirror_and_compile() -> void:
 		check(absf(a.g - float(s.dry)) < 0.02, "dry %s: gpu %.3f cpu %.3f" % [tag, a.g, float(s.dry)])
 		check(absf(a.b - float(s.autumn)) < 0.02, "autumn %s: gpu %.3f cpu %.3f" % [tag, a.b, float(s.autumn)])
 		check(absf(b.r - float(s.bare)) < 0.02, "bare %s: gpu %.3f cpu %.3f" % [tag, b.r, float(s.bare)])
+	# tree_model рисует квад без данных рельефа: не скомпилировался бы — пусто (прозрачный фон)
+	var pc := cam.unproject_position(Vector3(1.1, 0.6 - 0.4 * 3, -3.0))
+	check(img.get_pixelv(Vector2i(pc)).a > 0.01, "tree_model рисует (компилируется)")
+	OS.remove_logger(logger)
+	for e in logger.errors:
+		check(false, "ошибка шейдера в логе: " + e)
