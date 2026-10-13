@@ -43,6 +43,8 @@ uniform float sp_weight[5];
 uniform float sp_min[5];
 uniform float sp_max[5];
 uniform float sp_aspect[5];
+uniform float sp_gain[5];            // SL-14: множитель альбедо породы (trees.albedo_gain), при sl_tree_albedo_enabled
+
 uniform vec2 sp_height[5];
 uniform float band_blend_m = 200.0;
 // доля воды маски 10 м (канал G, реки/озёра OSM), с которой дерева нет (как TreePlacer.water_max)
@@ -63,6 +65,11 @@ varying float v_cs_sun;
 varying float v_sl_luma;
 varying float v_sl_con;
 varying float v_sl_dir;
+varying float v_sl_gain;   // SL-14: множитель альбедо породы
+// SL-6 сезон: порода (0 — вечнозелёная, 1 — берёза, 2 — лиственница) и состояние (окраска, голое)
+varying float v_sl_kind;
+varying vec4 v_sl_ss;
+const float SL_DECID[5] = float[5](0.0, 0.0, 2.0, 1.0, 0.0); // SL
 // хвойные по породам (pine, cedar, larch, birch, spruce — порядок TreePlacer.SPECIES); лиственница
 // летом — светлая хвоя, по альбедо ближе к лиственным
 const float SL_CONIFER[5] = float[5](1.0, 1.0, 0.0, 0.0, 1.0);
@@ -140,6 +147,9 @@ void vertex() {
 	v_sl_luma = 0.0;
 	v_sl_con = 1.0;
 	v_sl_dir = 1.0;
+	v_sl_gain = 1.0;
+	v_sl_kind = 0.0;
+	v_sl_ss = vec4(0.0);
 	if (present) {
 		float h = h_bilinear(xz);
 		float e = layer_spacing;
@@ -165,12 +175,15 @@ void vertex() {
 			vec2 cell_uv = vec2(float(sp % 4), float(sp / 4));
 			v_uv = (cell_uv + vec2(UV.x, UV.y)) / atlas_cells;
 			v_tint = brightness * (0.85 + 0.3 * hash12(cell + 13.3));
+			v_sl_kind = SL_DECID[sp]; // SL
+			v_sl_gain = sl_tree_gain(sp_gain[sp]); // SL-14
+			if (v_sl_kind > 0.5) v_sl_ss = sl_season_sp(v_sl_kind, h); // SL
 			if (sl_light_enabled) {
 				// средний цвет ячейки: мип, где ячейка — один тексель (прозрачное в атласе чёрное:
 				// среднее rgb / среднее альфы = среднее по кроне)
 				float lod = log2(float(textureSize(atlas, 0).x) / atlas_cells.x);
 				vec4 mc = textureLod(atlas, (cell_uv + 0.5) / atlas_cells, lod);
-				v_sl_luma = dot(mc.rgb, SL_LW) / max(mc.a, 1e-3) * v_tint;
+				v_sl_luma = dot(mc.rgb, SL_LW) / max(mc.a, 1e-3) * v_tint * v_sl_gain;
 				v_sl_con = SL_CONIFER[sp];
 				// полог вдали: видимая доля освещённых крон по солнцу и взгляду (как у полога
 				// рельефа); на билборд постоянна — в вершине
@@ -184,7 +197,7 @@ void vertex() {
 
 void fragment() {
 	vec4 c = texture(atlas, v_uv);
-	vec3 rgb = c.rgb * v_tint;
+	vec3 rgb = c.rgb * v_tint * v_sl_gain; // SL-14: альбедо → (смягчение) → сезон
 	// вдали крона бледнее и мягче контрастом (реальная дымка тут ещё не действует — расстояние
 	// в сотни метров, но собственная контрастность запечённого атласа читается как «резкие точки»)
 	float t = smoothstep(far_soft_start_m, far_soft_full_m, v_dist);
@@ -195,10 +208,12 @@ void fragment() {
 		rgb = mix(rgb, vec3(luma), far_desaturate * t);
 		rgb = mix(rgb, vec3(mix(luma, far_canopy_luma, 0.6)), far_contrast * t);
 	}
+	if (v_sl_kind > 0.5) rgb = sl_tree_season(rgb, v_sl_ss, v_sl_kind); // SL
 	ALBEDO = rgb;
 	// мягкий край силуэта вдали: шире антиалиасинг по производной альфы, скиссор почти отпущен
 	float edge = fwidth(c.a) * mix(0.75, far_edge_soft_k, t);
 	ALPHA = smoothstep(0.5 - edge, 0.5 + edge, c.a);
+	if (v_sl_kind > 0.5 && sl_leaf_gone(v_sl_ss.w, fract(52.9829189 * fract(dot(FRAGCOORD.xy, vec2(0.06711056, 0.00583715)))))) discard; // SL
 	ALPHA_SCISSOR_THRESHOLD = mix(0.5, 0.02, t);
 	AO = cloud_sky_ao(v_cs_sun);
 	v_sl_ny = (INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).y;

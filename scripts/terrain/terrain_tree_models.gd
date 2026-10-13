@@ -178,6 +178,12 @@ func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary, sp
 			m.set_shader_parameter("roughness_value", std.roughness)
 			m.set_shader_parameter("model_height", height)
 			m.set_shader_parameter("backlight", backlight_for(cfg, species))
+			m.set_shader_parameter("sl_tree_kind", season_kind(species))
+			var is_bark := String(std.resource_name).begins_with("Bark")
+			var is_cross := String(std.resource_name).begins_with("Impostor")
+			m.set_shader_parameter(
+				"tree_gain", 1.0 if is_bark else albedo_gain_for(cfg, species, 1 if is_cross else 0)
+			)
 			m.set_shader_parameter("sway_top_m", float(cfg.get("sway_top_m", 0.6)))
 			m.set_shader_parameter("sway_hz", float(cfg.get("sway_hz", 0.25)))
 			var ld: Array = cfg.get("lod_distances_m", [60.0, 180.0])
@@ -187,6 +193,25 @@ func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary, sp
 			materials.append(m)
 		mesh.surface_set_material(s, cache[std.resource_name])
 	return mesh
+
+
+## Сезон породы (scene-look SL-6, tree_model.gdshader sl_tree_kind): 1 — берёза, 2 — лиственница, 0 — вечнозелёные.
+static func season_kind(species: String) -> float:
+	return 2.0 if species == "larch" else (1.0 if species == "birch" else 0.0)
+
+
+## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года) — материалам моделей,
+## тем же путём, что у рельефа (сезон лиственных пород, SL-6).
+func apply_scene_look(sl: Dictionary) -> void:
+	for m in materials:
+		TerrainRenderer.apply_scene_look_params(m, sl)
+
+
+## Множитель альбедо породы (configs/world.json → trees.albedo_gain, SL-14): kind 0 — крона модели,
+## 1 — крест-импостер LOD2, 2 — билборд-импостер (ForestImpostors); нет записи — 1.
+static func albedo_gain_for(cfg: Dictionary, species: String, kind: int) -> float:
+	var g: Array = (cfg.get("albedo_gain", {}) as Dictionary).get(species, [])
+	return float(g[kind]) if kind < g.size() else 1.0
 
 
 ## Просвет кроны породы (configs/world.json → trees.backlight): лиственные больше хвойных.

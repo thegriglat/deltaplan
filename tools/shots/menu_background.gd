@@ -62,9 +62,17 @@ func _run() -> void:
 		_fail("полёт не начался")
 		return
 	var game: Game = main.game
+	if _cfg.has("date"):
+		# дата кадра (menu_art.py --date=MM-DD): солнце по дате и сезон scene-look; погода как есть
+		var md: Array = _cfg.date
+		game.sky.clock.month = int(md[0])
+		game.sky.clock.day = int(md[1])
+		game.terrain.set_flight_date(int(md[0]), int(md[1]))
 	if _cfg.has("clock_hour"):
 		# только освещение: атмосфера (облака) остаётся как есть
 		game.sky.clock.set_hour(float(_cfg.clock_hour))
+	elif _cfg.has("date"):
+		game.sky.clock.set_hour(game.sky.clock.hour)
 	var t_end := float(_cfg.get("sim_time_s", 5.0))
 	while game.sim_time_s < t_end and main.state == main.State.FLYING:
 		await get_tree().physics_frame

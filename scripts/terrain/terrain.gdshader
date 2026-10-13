@@ -961,11 +961,14 @@ void fragment() {
 	vec3 sl_pm = sl_patch_enabled ? sl_patch_mul(wp.xz) : vec3(1.0); // SL
 	float sl_tl = sl_treeline_enabled ? sl_treeline_height(sl_lat_deg) : 0.0; // SL
 	gcol = sl_meadow(gcol, wp, sl_pm, sl_tl); // SL
+	float sl_rel; vec4 sl_ss = sl_season_b(h, sl_rel); // SL
+	gcol = sl_meadow_season(gcol, sl_ss); // SL
 
 	float tex_w = fade * texture_strength;
 
 	// --- пашня/поля: прямоугольные участки разного цвета (пашня, всходы, стерня) ---
 	vec3 fcol = field_plot_color(wp.xz, gcol);
+	if (crop > 0.01) fcol = sl_field_season(fcol, wp.xz, sl_rel); // SL
 	if (crop > 0.01) {
 		fcol = field_detail(wp.xz, fcol, gcol, foot_m);
 	}
@@ -1123,6 +1126,7 @@ void fragment() {
 	}
 	fcolor = sl_canopy_tone(fcolor, sl_fc0, fmean, con_p, dist, canopy_far_shade); // SL
 	fcolor = sl_forest(fcolor, gcol, wp, sl_pm, sl_tl); // SL
+	if (forest > 0.01) fcolor = sl_canopy_season(fcolor, con_p, sl_ss, h); // SL
 	if (use_forest_tex) {
 		fcolor = apply_tex(fcolor, texture(forest_tex, wp.xz / forest_tex_tile_m).rgb, forest_tex_avg, tex_w);
 	}
