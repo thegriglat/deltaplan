@@ -1,0 +1,9 @@
+{
+  "module": "scene-look",
+  "plan": "docs/plan/scene-look.md",
+  "contracts": "docs/contracts/scene-look.md",
+  "branch": "feature/scene-look",
+  "copy": "~/deltaplan-scene-look",
+  "created": "2026-10-13T21:59:10",
+  "code": "SL"
+}
