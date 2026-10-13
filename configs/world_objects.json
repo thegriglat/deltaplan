@@ -375,7 +375,7 @@
       "track": [3.0, 0, 0.55, 0.5, 0.4]
     },
     "look": {
-      "_doc": "L7 (OL-5): вид дорог в шейдере road.gdshader. styles — код вида по классу highway: 0 асфальт, 1 пунктир по оси и краевые линии, 2 сплошная ось и краевые линии, 3 пунктир по оси, 4 грунтовка (колея из двух полос, рваный край); нет в списке — 0. Остальное — uniform'ы шейдера: noise_amp/patch_amp/speck_amp — размах шума, ремонтных заплат и крупы асфальта (доля яркости); detail_fade_start_m/end_m — детали гаснут с расстоянием; mark_color — цвет разметки sRGB; center_w_m/edge_w_m — ширины линий, м; edge_inset_m — отступ краевой линии от края, м; dash_period_m/dash_len_m — пунктир, м; mark_wear — стёртость разметки; rut_*_m — отступ и ширина колеи грунтовки; edge_darken — затемнение краёв ленты (0: вместо него светлая обочина); edge_feather_m — растушёвка края асфальта, м; shoulder_w_m/shoulder_color/shoulder_amt — ширина, цвет sRGB и сила пыльной обочины; far_fade_start_m/end_m — где лента вдали теряет контраст, far_desat/far_tint — потеря насыщенности и подтяжка к цвету обочины.",
+      "_doc": "L7 (OL-5): вид дорог в шейдере road.gdshader. styles — код вида по классу highway: 0 асфальт, 1 пунктир по оси и краевые линии, 2 сплошная ось и краевые линии, 3 пунктир по оси, 4 грунтовка (колея из двух полос, рваный край); нет в списке — 0. Остальное — uniform'ы шейдера: noise_amp/patch_amp/speck_amp — размах шума, ремонтных заплат и крупы асфальта (доля яркости); detail_fade_start_m/end_m — детали гаснут с расстоянием; mark_color — цвет разметки sRGB; center_w_m/edge_w_m — ширины линий, м; edge_inset_m — отступ краевой линии от края, м; dash_period_m/dash_len_m — пунктир, м; mark_wear — стёртость разметки; rut_*_m — отступ и ширина колеи грунтовки; edge_darken — затемнение краёв ленты (0: вместо него светлая обочина); edge_feather_m — растушёвка края асфальта, м; shoulder_w_m/shoulder_color/shoulder_amt — ширина, цвет sRGB и сила пыльной обочины; far_fade_start_m/end_m — где лента вдали теряет контраст, far_desat/far_tint — потеря насыщенности и подтяжка к цвету обочины. SL-4: min_px — минимальная ширина ленты на экране, пикселей (тоньше — лента расширяется, вклад в пиксель = доля покрытия, дизеринг); far_ground_color (sRGB)/far_ground_amt — цвет грунта рельефа вдали и доля подмеса; meadow_luma — линейная яркость луга (из world.json terrain_look.grass_color, справочно), far_luma_max — потолок яркости дороги вдали относительно луга; specular_value/roughness — как у рельефа (terrain_look.specular/roughness).",
       "styles": {
         "motorway": 2, "trunk": 2, "primary": 1, "secondary": 1, "tertiary": 3, "track": 4
       },
@@ -401,7 +401,14 @@
       "far_fade_start_m": 1000.0,
       "far_fade_end_m": 4000.0,
       "far_desat": 0.5,
-      "far_tint": 0.3
+      "far_tint": 0.3,
+      "far_ground_color": [0.42, 0.39, 0.32],
+      "far_ground_amt": 0.75,
+      "meadow_luma": 0.25,
+      "far_luma_max": 1.3,
+      "min_px": 1.5,
+      "specular_value": 0.2,
+      "roughness": 0.95
     },
     "major_visibility_m": 25000,
     "major_visibility_m_doc": "Дальность видимости главных дорог, м (приметы для навигации)",
