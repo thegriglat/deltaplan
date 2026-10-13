@@ -9,22 +9,28 @@
   "layers": [
     {
       "file": "detail.webp",
-      "height": 1601.0,
-      "height_min_m": 245.59375,
+      "height": 1601,
+      "height_min_m": 243.78125,
       "height_step_m": 0.03125,
       "id": "detail",
-      "max_height_m": 1376.21875,
-      "min_height_m": 245.59375,
+      "max_height_m": 1376.25,
+      "min_height_m": 243.78125,
       "origin_x_m": -20000.0,
       "origin_z_m": -20000.0,
+      "smooth_mask_classes": [
+        1,
+        7
+      ],
+      "smooth_mask_sigma_m": 50.0,
+      "smooth_sigma_cells": 0.8,
       "source": "copernicus",
       "spacing_m": 25.0,
       "water_file": "detail_water.webp",
-      "width": 1601.0
+      "width": 1601
     },
     {
       "file": "far.webp",
-      "height": 1601.0,
+      "height": 1601,
       "height_min_m": 154.0,
       "height_step_m": 0.03125,
       "id": "far",
@@ -35,7 +41,7 @@
       "source": "terrarium",
       "spacing_m": 100.0,
       "water_file": "far_water.webp",
-      "width": 1601.0
+      "width": 1601
     }
   ],
   "location": "altai"

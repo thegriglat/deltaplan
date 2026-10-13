@@ -1,0 +1,47 @@
+{
+  "id": "MLK-9",
+  "module": "mountain-look",
+  "type": "dp-engineer",
+  "title": "Тест паритета Аскарово (К1) после слияния MLK-2 с MLK-3/4/8",
+  "goal": "dem_stage::test_parity_with_builtin_askarovo находит 0 узлов в глубоком лесу после слияния MLK-2 с веткой модуля (на 82d3856d проходил) — найти причину и починить тест или код, не ослабляя проверку К1.",
+  "plan_ref": "MLK-2 Сглаживание DSM только в лесу и застройке",
+  "contracts": [
+    {
+      "name": "MLK-К1",
+      "version": 1
+    }
+  ],
+  "copy": "~/deltaplan-mountain-look-MLK-9",
+  "branch": "mountain-look/MLK-9",
+  "base": "feature/mountain-look",
+  "scope": [
+    "tests/terrain/",
+    "scripts/terrain/build/"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gdshader",
+    "configs/world.json"
+  ],
+  "accept": [
+    {
+      "name": "dem_stage",
+      "tests": "dem_stage"
+    },
+    {
+      "name": "location_builder",
+      "tests": "location_builder"
+    },
+    {
+      "name": "mountain_look_contracts",
+      "tests": "mountain_look_contracts"
+    },
+    {
+      "name": "osm_any_contracts",
+      "tests": "osm_any_contracts"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-14T00:02:12",
+  "edited": "2026-10-14T00:02:12"
+}

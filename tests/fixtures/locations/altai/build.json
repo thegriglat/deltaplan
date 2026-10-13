@@ -1,16 +1,19 @@
 {
-  "built_utc": "2026-10-09T14:08:33Z",
+  "built_utc": "2026-10-13T17:03:49Z",
   "center_lat": 51.87,
   "center_lon": 85.87,
-  "complete": true,
-  "format_version": 3,
+  "complete": false,
+  "format_version": 4,
   "key": "altai",
-  "missing": [],
-  "net_requests": 0.0,
+  "missing": [
+    "osm_tiles"
+  ],
+  "net_requests": 0,
   "seconds": {
-    "dem": 3.92,
-    "rivers": 21.09,
-    "surface": 10.05
+    "dem": 5.91,
+    "rivers": 21.77,
+    "smooth": 8.39,
+    "surface": 15.91
   },
   "sources": [
     "copernicus",

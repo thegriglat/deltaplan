@@ -1,0 +1,52 @@
+{
+  "id": "MLK-8",
+  "module": "mountain-look",
+  "type": "dp-engineer",
+  "title": "Юбки чанков без открытых щелей вдали",
+  "goal": "Зонд MLK-3 видит 17–54 открытых щели LOD на место в детальном слое (юбка 40 м мельче перепада высот при шаге вершин 400 м) — в высоких горах это дыры в рельефе вдали. Закрыть без заметной цены.",
+  "plan_ref": "MLK-3",
+  "contracts": [
+    {
+      "name": "MLK-К2",
+      "version": "2",
+      "ref": "docs/contracts/mountain-look.md"
+    },
+    {
+      "name": "MLK-К3",
+      "version": "2",
+      "ref": "docs/contracts/mountain-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-mountain-look-MLK-8",
+  "branch": "mountain-look/MLK-8",
+  "base": "feature/mountain-look",
+  "scope": [
+    "configs/world.json",
+    "configs/locations/",
+    "scripts/terrain/terrain_renderer.gd",
+    "scripts/terrain/terrain.gdshader",
+    "tools/research/mountain_look/",
+    "docs/guide/terrain.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/build/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "mountain_look_contracts",
+      "tests": "mountain_look_contracts"
+    }
+  ],
+  "report_extra": [
+    "open_cracks_before_after",
+    "frame_ms_delta"
+  ],
+  "notes": "",
+  "created": "2026-10-13T23:27:04",
+  "edited": "2026-10-13T23:27:04"
+}

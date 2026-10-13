@@ -1,0 +1,42 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место pt_+45.950_+006.900 загружено за 2.29 с
+MLOOK montblanc_chamonix меш dh=v2 {"layer_seam":{"jump_abs_m_max":141.6132,"jump_abs_m_p50":6.3673,"jump_abs_m_p90":30.7322,"jump_mean_m":3.5596,"n":3196},"layers":[{"dh_far_mean_m":1.4791,"dh_m_max":282.8203,"dh_m_min":-12.1562,"dh_m_p50":-0.0227,"dh_m_p90":2.0977,"dh_m_p99":75.8188,"id":"detail","local_relief_m_p10":229.0207,"local_relief_m_p50":327.3597,"local_relief_m_p90":461.7415,"lod_gap_m_max":145.6348,"lod_gap_m_p50":0.0,"lod_gap_m_p99":56.3145,"lod_gap_n":3108,"lod_gap_over_skirt":57,"skirt_m":40.0,"valley_dh_max_m":273.1392,"valley_dh_mean_m":-0.0824,"valley_dh_p90_m":0.0,"valley_n":26712,"vertices":118060},{"dh_far_mean_m":4.7143,"dh_m_max":386.572,"dh_m_min":-30.0,"dh_m_p50":0.1479,"dh_m_p90":44.1448,"dh_m_p99":195.5935,"id":"far","local_relief_m_p10":117.8986,"local_relief_m_p50":233.0102,"local_relief_m_p90":343.5232,"lod_gap_m_max":219.0065,"lod_gap_m_p50":0.0,"lod_gap_m_p99":122.1938,"lod_gap_n":2840,"lod_gap_over_skirt":14,"skirt_m":150.0,"valley_dh_max_m":372.0376,"valley_dh_mean_m":-0.1597,"valley_dh_p90_m":0.0,"valley_n":21996,"vertices":146748}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+MLOOK montblanc_chamonix старт lat=45.9335 lon=6.8795 h_eye=1353 центр=45.950,6.900
+MLOOK montblanc_chamonix гребни detail [0.0, 3.0] all n=586 curv_ratio=0.5611 drop_p50=4.8125 drop_p90=6.4063 drop_render_p50=5.1875
+MLOOK montblanc_chamonix гребни detail [0.0, 3.0] above_forest n=146 curv_ratio=0.598 drop_p50=5.2188 drop_p90=7.4375 drop_render_p50=5.6165
+MLOOK montblanc_chamonix гребни detail [0.0, 3.0] forest n=361 curv_ratio=0.5441 drop_p50=4.6563 drop_p90=5.9375 drop_render_p50=5.1875
+MLOOK montblanc_chamonix гребни detail [3.0, 8.0] all n=7007 curv_ratio=0.6045 drop_p50=5.1563 drop_p90=7.4375 drop_render_p50=7.3633
+MLOOK montblanc_chamonix гребни detail [3.0, 8.0] above_forest n=4902 curv_ratio=0.6211 drop_p50=5.2813 drop_p90=7.6875 drop_render_p50=7.395
+MLOOK montblanc_chamonix гребни detail [3.0, 8.0] forest n=1209 curv_ratio=0.5515 drop_p50=4.8125 drop_p90=6.6875 drop_render_p50=7.5156
+MLOOK montblanc_chamonix гребни detail [8.0, 14.0] all n=19896 curv_ratio=0.6213 drop_p50=5.2813 drop_p90=7.9063 drop_render_p50=14.314
+MLOOK montblanc_chamonix гребни detail [8.0, 14.0] above_forest n=15268 curv_ratio=0.6339 drop_p50=5.375 drop_p90=8.125 drop_render_p50=14.2169
+MLOOK montblanc_chamonix гребни detail [8.0, 14.0] forest n=2745 curv_ratio=0.5512 drop_p50=4.8125 drop_p90=6.5938 drop_render_p50=14.3187
+MLOOK montblanc_chamonix гребни detail [14.0, 30.0] all n=37793 curv_ratio=0.613 drop_p50=5.1563 drop_p90=7.75 drop_render_p50=24.3699
+MLOOK montblanc_chamonix гребни detail [14.0, 30.0] above_forest n=18213 curv_ratio=0.6497 drop_p50=5.3438 drop_p90=7.9375 drop_render_p50=24.4467
+MLOOK montblanc_chamonix гребни detail [14.0, 30.0] forest n=13419 curv_ratio=0.5492 drop_p50=4.8438 drop_p90=7.1563 drop_render_p50=23.625
+MLOOK montblanc_chamonix гребни far [14.0, 30.0] all n=10769 curv_ratio=0.3033 drop_p50=25.5938 drop_p90=48.125 drop_render_p50=27.3768
+MLOOK montblanc_chamonix гребни far [14.0, 30.0] above_forest n=5378 curv_ratio=0.3477 drop_p50=27.3125 drop_p90=52.625 drop_render_p50=27.375
+MLOOK montblanc_chamonix гребни far [14.0, 30.0] forest n=3660 curv_ratio=0.2313 drop_p50=24.25 drop_p90=41.625 drop_render_p50=27.8281
+MLOOK montblanc_chamonix гребни far [30.0, 40.0] all n=19431 curv_ratio=0.29 drop_p50=24.75 drop_p90=45.9063 drop_render_p50=28.125
+MLOOK montblanc_chamonix гребни far [30.0, 40.0] above_forest n=6995 curv_ratio=0.3276 drop_p50=25.1563 drop_p90=48.8125 drop_render_p50=24.1819
+MLOOK montblanc_chamonix гребни far [30.0, 40.0] forest n=8998 curv_ratio=0.2485 drop_p50=24.5313 drop_p90=42.625 drop_render_p50=30.6563
+MLOOK montblanc_chamonix гребни far [40.0, 50.0] all n=24192 curv_ratio=0.2947 drop_p50=25.2813 drop_p90=47.5313 drop_render_p50=31.6797
+MLOOK montblanc_chamonix гребни far [40.0, 50.0] above_forest n=10141 curv_ratio=0.3328 drop_p50=25.875 drop_p90=49.5625 drop_render_p50=24.9713
+MLOOK montblanc_chamonix гребни far [40.0, 50.0] forest n=10215 curv_ratio=0.2441 drop_p50=24.7188 drop_p90=44.2813 drop_render_p50=36.1875
+Terrain: поля рельефа за 98.93 с
+MLOOK montblanc_chamonix вершина sil_az155.1 d=5.1 км слой=detail raw=3593 game=3589 render=3588 недобор=4.4 м (0.04°) сетка=20.7 источник=-17.3 LOD=1.0
+MLOOK montblanc_chamonix вершина sil_az144.8 d=4.6 км слой=detail raw=3341 game=3339 render=3337 недобор=4.5 м (0.05°) сетка=11.0 источник=-9.0 LOD=2.4
+MLOOK montblanc_chamonix вершина sil_az137.1 d=4.3 км слой=detail raw=3205 game=3197 render=3191 недобор=13.3 м (0.15°) сетка=25.3 источник=-17.4 LOD=5.4
+MLOOK montblanc_chamonix вершина sil_az119.1 d=2.9 км слой=detail raw=2467 game=2464 render=2461 недобор=6.0 м (0.10°) сетка=18.2 источник=-15.5 LOD=3.4
+MLOOK montblanc_chamonix вершина sil_az88.9 d=7.0 км слой=detail raw=4087 game=4083 render=4081 недобор=6.6 м (0.05°) сетка=9.5 источник=-5.5 LOD=2.6
+MLOOK montblanc_chamonix вершина sil_az172.4 d=6.1 км слой=detail raw=3694 game=3688 render=3687 недобор=6.5 м (0.05°) сетка=13.0 источник=-6.9 LOD=0.4
+MLOOK montblanc_chamonix вершина sil_az127.4 d=3.6 км слой=detail raw=2752 game=2748 render=2748 недобор=4.1 м (0.06°) сетка=8.2 источник=-4.4 LOD=0.3
+MLOOK montblanc_chamonix вершина sil_az125.4 d=3.6 км слой=detail raw=2752 game=2748 render=2747 недобор=5.6 м (0.08°) сетка=9.7 источник=-5.1 LOD=1.0
+MLOOK montblanc_chamonix вершина sil_az166.5 d=6.0 км слой=detail raw=3605 game=3599 render=3599 недобор=6.0 м (0.05°) сетка=10.0 источник=-4.0 LOD=-0.1
+MLOOK montblanc_chamonix вершина sil_az328.9 d=3.2 км слой=detail raw=2538 game=2532 render=2530 недобор=8.2 м (0.13°) сетка=25.0 источник=-19.7 LOD=2.9
+MLOOK montblanc_chamonix вершина MontBlanc d=11.2 км слой=detail raw=4808 game=4805 render=4806 недобор=1.8 м (0.01°) сетка=14.2 источник=-11.5 LOD=-0.9
+MLOOK montblanc_chamonix вершина AiguilleVerte d=7.0 км слой=detail raw=4087 game=4082 render=4078 недобор=8.5 м (0.06°) сетка=13.0 источник=-8.7 LOD=4.2
+MLOOK montblanc_chamonix горизонт rough_raw=0.0727 rough_render=0.0728 ratio=1.00 deficit_p50=0.040 max=0.332 far_share=0.00
+mountain_look_probe: OK montblanc_chamonix

@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "Причина была в тесте: на месте Аскарово глубокого леса в ±16 узлах и в ±7 узлах леса нет. Правка e10c57dc (глубокий лес = ±2 узла, просмотр всей зоны detail) оставлена, ветка модуля влита (K3 удалён), приёмка 4/4.",
+  "commits": [
+    "e10c57dc MLK-9: тест паритета Аскарово — глубокий лес ±2 узла, вся зона detail",
+    "слияние feature/mountain-look в mountain-look/MLK-9"
+  ],
+  "checks": [
+    {
+      "name": "dem_stage",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "location_builder",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "mountain_look_contracts",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "osm_any_contracts",
+      "value": "10/10",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept MLK-9 --dry (под systemd-run MemoryMax=8G)",
+  "uncertain": [
+    {
+      "where": "tests/terrain/test_dem_stage.gd:~145-160",
+      "why": "Глубокий лес сужен с ±7 до ±2 узлов (σ маски); на ±1 узел вес маски ещё <1 и разница 0,53 м",
+      "checked": "Порог 0,5 м сохранён; открытое место сравнивается с сырыми и по-прежнему ловит сглаживание вне леса (окрестность ±7 узлов без леса/застройки); лес — сглаживание на месте, иначе разница >0,5 м. Код scripts/terrain/build не менялся."
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-14T00:36:22",
+  "by": "executor"
+}

@@ -1,0 +1,78 @@
+{
+  "id": "MLK-7",
+  "module": "mountain-look",
+  "type": "dp-engineer",
+  "title": "Фоновый слой из Copernicus вместо Terrarium",
+  "goal": "Дальние горы (за 20 км) по данным Copernicus 30 м, а не Terrarium: по MLK-1 фон теряет кривизну гребней (0,18–0,36) и 20–43 м у пиков из-за источника, а не сетки 100 м.",
+  "plan_ref": "MLK-7",
+  "contracts": [
+    {
+      "name": "MLK-К1",
+      "version": "1",
+      "ref": "docs/contracts/mountain-look.md"
+    },
+    {
+      "name": "MLK-К3",
+      "version": "2",
+      "ref": "docs/contracts/mountain-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-mountain-look-MLK-7",
+  "branch": "mountain-look/MLK-7",
+  "base": "feature/mountain-look",
+  "scope": [
+    "scripts/terrain/build/",
+    "configs/world.json",
+    "configs/locations/",
+    "tests/terrain/",
+    "tests/fixtures/locations/",
+    "tests/atmosphere/fixtures/air_model/",
+    "tests/contracts/test_mountain_look_contracts.gd",
+    "tools/research/mountain_look/",
+    "docs/guide/terrain.md",
+    "docs/guide/location-data.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gdshader",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "mountain_look_contracts",
+      "tests": "mountain_look_contracts"
+    },
+    {
+      "name": "dem_stage",
+      "tests": "dem_stage"
+    },
+    {
+      "name": "location_builder",
+      "tests": "location_builder"
+    },
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "no_osm_contracts",
+      "tests": "no_osm_contracts"
+    },
+    {
+      "name": "osm_any_contracts",
+      "tests": "osm_any_contracts"
+    },
+    {
+      "name": "atmosphere",
+      "tests": "atmosphere"
+    }
+  ],
+  "report_extra": [
+    "far_curv_ratio_before_after",
+    "far_peak_deficit_m_before_after",
+    "build_time_s_before_after",
+    "download_mb_before_after"
+  ],
+  "notes": "",
+  "created": "2026-10-13T23:40:43",
+  "edited": "2026-10-13T23:40:43"
+}

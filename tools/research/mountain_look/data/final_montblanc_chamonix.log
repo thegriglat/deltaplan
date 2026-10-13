@@ -1,0 +1,236 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+HTTP > #1 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover header.bin попытка 1/3]
+HTTP < #1 206 65536B 0.73s [worldcover header.bin попытка 1/3]
+HTTP > #2 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_13_26.bin попытка 1/3]
+HTTP > #3 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_12_26.bin попытка 1/3]
+HTTP > #4 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_11_26.bin попытка 1/3]
+HTTP > #5 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_10_26.bin попытка 1/3]
+HTTP < #2 206 54183B 0.42s [worldcover L0_13_26.bin попытка 1/3]
+HTTP > #6 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_9_26.bin попытка 1/3]
+HTTP < #3 206 51411B 0.44s [worldcover L0_12_26.bin попытка 1/3]
+HTTP > #7 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_8_26.bin попытка 1/3]
+HTTP < #5 206 74211B 0.50s [worldcover L0_10_26.bin попытка 1/3]
+HTTP > #8 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_7_26.bin попытка 1/3]
+HTTP < #4 206 65017B 0.53s [worldcover L0_11_26.bin попытка 1/3]
+HTTP > #9 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_13_25.bin попытка 1/3]
+HTTP < #7 206 72058B 0.44s [worldcover L0_8_26.bin попытка 1/3]
+HTTP > #10 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_12_25.bin попытка 1/3]
+HTTP < #8 206 42145B 0.42s [worldcover L0_7_26.bin попытка 1/3]
+HTTP > #11 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_11_25.bin попытка 1/3]
+HTTP < #6 206 85092B 0.52s [worldcover L0_9_26.bin попытка 1/3]
+HTTP > #12 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_10_25.bin попытка 1/3]
+HTTP < #9 206 69524B 0.45s [worldcover L0_13_25.bin попытка 1/3]
+HTTP > #13 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_9_25.bin попытка 1/3]
+HTTP < #10 206 71663B 0.50s [worldcover L0_12_25.bin попытка 1/3]
+HTTP > #14 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_8_25.bin попытка 1/3]
+HTTP < #12 206 59489B 0.44s [worldcover L0_10_25.bin попытка 1/3]
+HTTP > #15 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_7_25.bin попытка 1/3]
+HTTP < #13 206 68206B 0.43s [worldcover L0_9_25.bin попытка 1/3]
+HTTP > #16 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_13_24.bin попытка 1/3]
+HTTP < #11 206 75309B 0.56s [worldcover L0_11_25.bin попытка 1/3]
+HTTP > #17 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_12_24.bin попытка 1/3]
+HTTP < #15 206 51675B 0.48s [worldcover L0_7_25.bin попытка 1/3]
+HTTP > #18 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_11_24.bin попытка 1/3]
+HTTP < #14 206 55530B 0.49s [worldcover L0_8_25.bin попытка 1/3]
+HTTP > #19 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_10_24.bin попытка 1/3]
+HTTP < #16 206 79469B 0.55s [worldcover L0_13_24.bin попытка 1/3]
+HTTP > #20 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_9_24.bin попытка 1/3]
+HTTP < #17 206 80395B 0.56s [worldcover L0_12_24.bin попытка 1/3]
+HTTP > #21 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_8_24.bin попытка 1/3]
+HTTP < #18 206 57272B 0.46s [worldcover L0_11_24.bin попытка 1/3]
+HTTP > #22 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_7_24.bin попытка 1/3]
+HTTP < #19 206 65240B 0.53s [worldcover L0_10_24.bin попытка 1/3]
+HTTP > #23 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_13_23.bin попытка 1/3]
+HTTP < #20 206 60952B 0.52s [worldcover L0_9_24.bin попытка 1/3]
+HTTP > #24 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_12_23.bin попытка 1/3]
+HTTP < #21 206 58357B 0.52s [worldcover L0_8_24.bin попытка 1/3]
+HTTP > #25 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_11_23.bin попытка 1/3]
+HTTP < #22 206 78245B 0.53s [worldcover L0_7_24.bin попытка 1/3]
+HTTP > #26 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_10_23.bin попытка 1/3]
+HTTP < #23 206 51189B 0.46s [worldcover L0_13_23.bin попытка 1/3]
+HTTP > #27 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_9_23.bin попытка 1/3]
+HTTP < #24 206 76363B 0.60s [worldcover L0_12_23.bin попытка 1/3]
+HTTP > #28 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_8_23.bin попытка 1/3]
+HTTP < #25 206 64020B 0.59s [worldcover L0_11_23.bin попытка 1/3]
+HTTP > #29 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_7_23.bin попытка 1/3]
+HTTP < #26 206 82897B 0.56s [worldcover L0_10_23.bin попытка 1/3]
+HTTP > #30 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_13_22.bin попытка 1/3]
+HTTP < #27 206 64140B 0.63s [worldcover L0_9_23.bin попытка 1/3]
+HTTP > #31 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_12_22.bin попытка 1/3]
+HTTP < #28 206 53675B 0.47s [worldcover L0_8_23.bin попытка 1/3]
+HTTP > #32 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_11_22.bin попытка 1/3]
+HTTP < #29 206 56987B 0.44s [worldcover L0_7_23.bin попытка 1/3]
+HTTP > #33 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_10_22.bin попытка 1/3]
+HTTP < #30 206 51595B 0.41s [worldcover L0_13_22.bin попытка 1/3]
+HTTP > #34 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_9_22.bin попытка 1/3]
+HTTP < #32 206 55700B 0.44s [worldcover L0_11_22.bin попытка 1/3]
+HTTP > #35 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_8_22.bin попытка 1/3]
+HTTP < #31 206 51319B 0.51s [worldcover L0_12_22.bin попытка 1/3]
+HTTP > #36 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_7_22.bin попытка 1/3]
+HTTP < #33 206 95163B 0.58s [worldcover L0_10_22.bin попытка 1/3]
+HTTP > #37 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_13_21.bin попытка 1/3]
+HTTP < #34 206 55797B 0.46s [worldcover L0_9_22.bin попытка 1/3]
+HTTP > #38 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_12_21.bin попытка 1/3]
+HTTP < #36 206 50358B 0.46s [worldcover L0_7_22.bin попытка 1/3]
+HTTP > #39 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_11_21.bin попытка 1/3]
+HTTP < #35 206 46709B 0.47s [worldcover L0_8_22.bin попытка 1/3]
+HTTP > #40 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_10_21.bin попытка 1/3]
+HTTP < #38 206 59904B 0.45s [worldcover L0_12_21.bin попытка 1/3]
+HTTP > #41 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_9_21.bin попытка 1/3]
+HTTP < #37 206 75079B 0.54s [worldcover L0_13_21.bin попытка 1/3]
+HTTP > #42 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_8_21.bin попытка 1/3]
+HTTP < #39 206 58582B 0.48s [worldcover L0_11_21.bin попытка 1/3]
+HTTP > #43 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L0_7_21.bin попытка 1/3]
+HTTP < #40 206 65772B 0.58s [worldcover L0_10_21.bin попытка 1/3]
+HTTP < #41 206 45691B 0.44s [worldcover L0_9_21.bin попытка 1/3]
+HTTP < #42 206 47661B 0.48s [worldcover L0_8_21.bin попытка 1/3]
+HTTP < #43 206 45268B 0.43s [worldcover L0_7_21.bin попытка 1/3]
+HTTP > #44 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E003_Map.tif [worldcover header.bin попытка 1/3]
+HTTP < #44 206 65536B 0.60s [worldcover header.bin попытка 1/3]
+HTTP > #45 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E003_Map.tif [worldcover L2_8_8.bin попытка 1/3]
+HTTP > #46 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E003_Map.tif [worldcover L2_8_7.bin попытка 1/3]
+HTTP > #47 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E003_Map.tif [worldcover L2_8_6.bin попытка 1/3]
+HTTP > #48 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E003_Map.tif [worldcover L2_8_5.bin попытка 1/3]
+HTTP < #47 206 106223B 0.55s [worldcover L2_8_6.bin попытка 1/3]
+HTTP > #49 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E003_Map.tif [worldcover L2_8_4.bin попытка 1/3]
+HTTP < #48 206 94347B 0.55s [worldcover L2_8_5.bin попытка 1/3]
+HTTP > #50 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E003_Map.tif [worldcover L2_8_3.bin попытка 1/3]
+HTTP < #45 206 72207B 0.55s [worldcover L2_8_8.bin попытка 1/3]
+HTTP < #46 206 90890B 0.56s [worldcover L2_8_7.bin попытка 1/3]
+HTTP < #49 206 64534B 0.71s [worldcover L2_8_4.bin попытка 1/3]
+HTTP < #50 206 77438B 0.70s [worldcover L2_8_3.bin попытка 1/3]
+HTTP > #51 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_5_8.bin попытка 1/3]
+HTTP > #52 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_4_8.bin попытка 1/3]
+HTTP > #53 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_3_8.bin попытка 1/3]
+HTTP > #54 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_2_8.bin попытка 1/3]
+HTTP < #54 206 93443B 0.65s [worldcover L2_2_8.bin попытка 1/3]
+HTTP > #55 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_1_8.bin попытка 1/3]
+HTTP < #53 206 69933B 0.66s [worldcover L2_3_8.bin попытка 1/3]
+HTTP > #56 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_0_8.bin попытка 1/3]
+HTTP < #52 206 116378B 0.66s [worldcover L2_4_8.bin попытка 1/3]
+HTTP > #57 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_5_7.bin попытка 1/3]
+HTTP < #51 206 118301B 0.80s [worldcover L2_5_8.bin попытка 1/3]
+HTTP > #58 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_4_7.bin попытка 1/3]
+HTTP < #57 206 127919B 0.48s [worldcover L2_5_7.bin попытка 1/3]
+HTTP > #59 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_3_7.bin попытка 1/3]
+HTTP < #56 206 91990B 0.50s [worldcover L2_0_8.bin попытка 1/3]
+HTTP > #60 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_2_7.bin попытка 1/3]
+HTTP < #55 206 104785B 0.50s [worldcover L2_1_8.bin попытка 1/3]
+HTTP > #61 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_1_7.bin попытка 1/3]
+HTTP < #58 206 104319B 0.48s [worldcover L2_4_7.bin попытка 1/3]
+HTTP > #62 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_0_7.bin попытка 1/3]
+HTTP < #60 206 132238B 0.51s [worldcover L2_2_7.bin попытка 1/3]
+HTTP > #63 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_5_6.bin попытка 1/3]
+HTTP < #59 206 136255B 0.55s [worldcover L2_3_7.bin попытка 1/3]
+HTTP > #64 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_4_6.bin попытка 1/3]
+HTTP < #61 206 99769B 0.63s [worldcover L2_1_7.bin попытка 1/3]
+HTTP > #65 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_3_6.bin попытка 1/3]
+HTTP < #62 206 99071B 0.67s [worldcover L2_0_7.bin попытка 1/3]
+HTTP > #66 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_2_6.bin попытка 1/3]
+HTTP < #64 206 129381B 0.66s [worldcover L2_4_6.bin попытка 1/3]
+HTTP > #67 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_1_6.bin попытка 1/3]
+HTTP < #63 206 118002B 0.68s [worldcover L2_5_6.bin попытка 1/3]
+HTTP > #68 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_0_6.bin попытка 1/3]
+HTTP < #65 206 128143B 0.63s [worldcover L2_3_6.bin попытка 1/3]
+HTTP > #69 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_5_5.bin попытка 1/3]
+HTTP < #66 206 127127B 0.71s [worldcover L2_2_6.bin попытка 1/3]
+HTTP > #70 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_4_5.bin попытка 1/3]
+HTTP < #68 206 106187B 0.59s [worldcover L2_0_6.bin попытка 1/3]
+HTTP > #71 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_3_5.bin попытка 1/3]
+HTTP < #67 206 102150B 0.59s [worldcover L2_1_6.bin попытка 1/3]
+HTTP > #72 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_2_5.bin попытка 1/3]
+HTTP < #69 206 128909B 0.70s [worldcover L2_5_5.bin попытка 1/3]
+HTTP > #73 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_1_5.bin попытка 1/3]
+HTTP < #70 206 126148B 0.58s [worldcover L2_4_5.bin попытка 1/3]
+HTTP > #74 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_0_5.bin попытка 1/3]
+HTTP < #71 206 129661B 0.73s [worldcover L2_3_5.bin попытка 1/3]
+HTTP > #75 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_5_4.bin попытка 1/3]
+HTTP < #73 206 107301B 0.64s [worldcover L2_1_5.bin попытка 1/3]
+HTTP > #76 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_4_4.bin попытка 1/3]
+HTTP < #74 206 154039B 0.68s [worldcover L2_0_5.bin попытка 1/3]
+HTTP > #77 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_3_4.bin попытка 1/3]
+HTTP < #72 206 118486B 1.36s [worldcover L2_2_5.bin попытка 1/3]
+HTTP > #78 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_2_4.bin попытка 1/3]
+HTTP < #75 206 116802B 0.69s [worldcover L2_5_4.bin попытка 1/3]
+HTTP > #79 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_1_4.bin попытка 1/3]
+HTTP < #76 206 118412B 0.68s [worldcover L2_4_4.bin попытка 1/3]
+HTTP > #80 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_0_4.bin попытка 1/3]
+HTTP < #77 206 108778B 0.59s [worldcover L2_3_4.bin попытка 1/3]
+HTTP > #81 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_5_3.bin попытка 1/3]
+HTTP < #78 206 106570B 0.59s [worldcover L2_2_4.bin попытка 1/3]
+HTTP > #82 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_4_3.bin попытка 1/3]
+HTTP < #79 206 101980B 0.53s [worldcover L2_1_4.bin попытка 1/3]
+HTTP > #83 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_3_3.bin попытка 1/3]
+HTTP < #81 206 99261B 0.50s [worldcover L2_5_3.bin попытка 1/3]
+HTTP > #84 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_2_3.bin попытка 1/3]
+HTTP < #80 206 98840B 0.63s [worldcover L2_0_4.bin попытка 1/3]
+HTTP > #85 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_1_3.bin попытка 1/3]
+HTTP < #82 206 131596B 0.64s [worldcover L2_4_3.bin попытка 1/3]
+HTTP > #86 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N45E006_Map.tif [worldcover L2_0_3.bin попытка 1/3]
+HTTP < #84 206 121274B 0.55s [worldcover L2_2_3.bin попытка 1/3]
+HTTP < #83 206 135480B 0.73s [worldcover L2_3_3.bin попытка 1/3]
+HTTP < #85 206 111440B 0.64s [worldcover L2_1_3.bin попытка 1/3]
+HTTP < #86 206 82383B 0.56s [worldcover L2_0_3.bin попытка 1/3]
+HTTP > #87 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/254/723.dpt [osm tile 254/723]
+HTTP > #88 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/254/724.dpt [osm tile 254/724]
+HTTP > #89 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/254/725.dpt [osm tile 254/725]
+HTTP > #90 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/255/720.dpt [osm tile 255/720]
+HTTP > #91 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/255/721.dpt [osm tile 255/721]
+HTTP > #92 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/255/722.dpt [osm tile 255/722]
+HTTP > #93 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/256/718.dpt [osm tile 256/718]
+HTTP > #94 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/256/719.dpt [osm tile 256/719]
+HTTP > #95 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/256/720.dpt [osm tile 256/720]
+HTTP < #87 ошибка result=13 (TIMEOUT) http=0 0B 0.01s [osm tile 254/723]
+HTTP < #88 ошибка result=13 (TIMEOUT) http=0 0B 0.01s [osm tile 254/724]
+HTTP < #89 ошибка result=13 (TIMEOUT) http=0 0B 0.01s [osm tile 254/725]
+HTTP < #90 ошибка result=13 (TIMEOUT) http=0 0B 0.01s [osm tile 255/720]
+HTTP < #91 ошибка result=13 (TIMEOUT) http=0 0B 0.01s [osm tile 255/721]
+HTTP < #92 ошибка result=13 (TIMEOUT) http=0 0B 0.01s [osm tile 255/722]
+HTTP < #93 ошибка result=13 (TIMEOUT) http=0 0B 0.01s [osm tile 256/718]
+HTTP < #94 ошибка result=13 (TIMEOUT) http=0 0B 0.01s [osm tile 256/719]
+HTTP < #95 ошибка result=13 (TIMEOUT) http=0 0B 0.01s [osm tile 256/720]
+Terrain: место pt_+45.950_+006.900 загружено за 61.82 с
+MLOOK montblanc_chamonix меш dh=v2 {"layer_seam":{"jump_abs_m_max":142.5483,"jump_abs_m_p50":6.3834,"jump_abs_m_p90":32.2089,"jump_mean_m":3.9,"n":3196,"open_over_skirt":0},"layers":[{"dh_far_mean_m":1.5282,"dh_m_max":290.8438,"dh_m_min":-18.4297,"dh_m_p50":-0.0186,"dh_m_p90":2.9089,"dh_m_p99":77.5381,"id":"detail","local_relief_m_p10":231.611,"local_relief_m_p50":329.9048,"local_relief_m_p90":464.8258,"lod_gap_m_max":149.4187,"lod_gap_m_p50":0.0,"lod_gap_m_p99":58.6094,"lod_gap_n":3108,"lod_gap_over_skirt":0,"skirt_m":300.0,"valley_dh_max_m":275.4973,"valley_dh_mean_m":-0.0962,"valley_dh_p90_m":0.0,"valley_n":27688,"vertices":118060},{"dh_far_mean_m":4.7143,"dh_m_max":386.572,"dh_m_min":-30.0,"dh_m_p50":0.1479,"dh_m_p90":44.1448,"dh_m_p99":195.5935,"id":"far","local_relief_m_p10":117.8986,"local_relief_m_p50":233.0262,"local_relief_m_p90":343.5712,"lod_gap_m_max":219.0065,"lod_gap_m_p50":0.0,"lod_gap_m_p99":122.1938,"lod_gap_n":2840,"lod_gap_over_skirt":0,"skirt_m":400.0,"valley_dh_max_m":372.0376,"valley_dh_mean_m":-0.1598,"valley_dh_p90_m":0.0,"valley_n":21996,"vertices":146748}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+MLOOK montblanc_chamonix старт lat=45.9335 lon=6.8795 h_eye=1353 центр=45.950,6.900
+MLOOK montblanc_chamonix гребни detail [0.0, 3.0] all n=586 curv_ratio=0.7153 drop_p50=3.375 drop_p90=5.125 drop_render_p50=4.2813
+MLOOK montblanc_chamonix гребни detail [0.0, 3.0] above_forest n=148 curv_ratio=1.0 drop_p50=0.0 drop_p90=0.0625 drop_render_p50=0.859
+MLOOK montblanc_chamonix гребни detail [0.0, 3.0] forest n=361 curv_ratio=0.5862 drop_p50=4.1875 drop_p90=5.4063 drop_render_p50=4.75
+MLOOK montblanc_chamonix гребни detail [3.0, 8.0] all n=7007 curv_ratio=1.0 drop_p50=0.0 drop_p90=3.875 drop_render_p50=5.2188
+MLOOK montblanc_chamonix гребни detail [3.0, 8.0] above_forest n=4909 curv_ratio=1.0 drop_p50=0.0 drop_p90=0.0 drop_render_p50=4.2711
+MLOOK montblanc_chamonix гребни detail [3.0, 8.0] forest n=1209 curv_ratio=0.6399 drop_p50=4.0625 drop_p90=5.625 drop_render_p50=7.0859
+MLOOK montblanc_chamonix гребни detail [8.0, 14.0] all n=19896 curv_ratio=1.0 drop_p50=0.0 drop_p90=3.5 drop_render_p50=13.1691
+MLOOK montblanc_chamonix гребни detail [8.0, 14.0] above_forest n=15285 curv_ratio=1.0 drop_p50=0.0 drop_p90=0.0 drop_render_p50=12.7295
+MLOOK montblanc_chamonix гребни detail [8.0, 14.0] forest n=2745 curv_ratio=0.6386 drop_p50=4.0938 drop_p90=5.75 drop_render_p50=14.2677
+MLOOK montblanc_chamonix гребни detail [14.0, 30.0] all n=37793 curv_ratio=0.9964 drop_p50=0.125 drop_p90=4.9375 drop_render_p50=23.7162
+MLOOK montblanc_chamonix гребни detail [14.0, 30.0] above_forest n=18237 curv_ratio=1.0 drop_p50=0.0 drop_p90=0.0 drop_render_p50=22.9957
+MLOOK montblanc_chamonix гребни detail [14.0, 30.0] forest n=13419 curv_ratio=0.6282 drop_p50=4.2188 drop_p90=6.1875 drop_render_p50=23.5859
+MLOOK montblanc_chamonix гребни far [14.0, 30.0] all n=10769 curv_ratio=0.3031 drop_p50=25.5938 drop_p90=48.125 drop_render_p50=27.375
+MLOOK montblanc_chamonix гребни far [14.0, 30.0] above_forest n=5378 curv_ratio=0.3477 drop_p50=27.3125 drop_p90=52.625 drop_render_p50=27.3645
+MLOOK montblanc_chamonix гребни far [14.0, 30.0] forest n=3660 curv_ratio=0.2313 drop_p50=24.25 drop_p90=41.625 drop_render_p50=27.8125
+MLOOK montblanc_chamonix гребни far [30.0, 40.0] all n=19431 curv_ratio=0.29 drop_p50=24.75 drop_p90=45.9063 drop_render_p50=28.125
+MLOOK montblanc_chamonix гребни far [30.0, 40.0] above_forest n=6995 curv_ratio=0.3276 drop_p50=25.1563 drop_p90=48.8125 drop_render_p50=24.1819
+MLOOK montblanc_chamonix гребни far [30.0, 40.0] forest n=8998 curv_ratio=0.2485 drop_p50=24.5313 drop_p90=42.625 drop_render_p50=30.6563
+MLOOK montblanc_chamonix гребни far [40.0, 50.0] all n=24192 curv_ratio=0.2947 drop_p50=25.2813 drop_p90=47.5313 drop_render_p50=31.6797
+MLOOK montblanc_chamonix гребни far [40.0, 50.0] above_forest n=10141 curv_ratio=0.3328 drop_p50=25.875 drop_p90=49.5625 drop_render_p50=24.9713
+MLOOK montblanc_chamonix гребни far [40.0, 50.0] forest n=10215 curv_ratio=0.2441 drop_p50=24.7188 drop_p90=44.2813 drop_render_p50=36.1875
+Terrain: поля рельефа за 121.18 с
+MLOOK montblanc_chamonix вершина sil_az155.1 d=5.1 км слой=detail raw=3593 game=3593 render=3592 недобор=0.9 м (0.01°) сетка=20.7 источник=-20.7 LOD=1.0
+MLOOK montblanc_chamonix вершина sil_az144.8 d=4.6 км слой=detail raw=3341 game=3342 render=3340 недобор=0.9 м (0.01°) сетка=11.0 источник=-11.8 LOD=1.7
+MLOOK montblanc_chamonix вершина sil_az137.1 d=4.3 км слой=detail raw=3205 game=3203 render=3197 недобор=7.6 м (0.08°) сетка=25.3 источник=-23.6 LOD=5.8
+MLOOK montblanc_chamonix вершина sil_az119.1 d=2.9 км слой=detail raw=2467 game=2468 render=2464 недобор=2.6 м (0.05°) сетка=18.2 источник=-19.0 LOD=3.5
+MLOOK montblanc_chamonix вершина sil_az88.9 d=7.0 км слой=detail raw=4087 game=4091 render=4089 недобор=-1.2 м (-0.01°) сетка=9.5 источник=-12.9 LOD=2.2
+MLOOK montblanc_chamonix вершина sil_az172.4 d=6.1 км слой=detail raw=3694 game=3693 render=3692 недобор=2.1 м (0.02°) сетка=13.0 источник=-12.2 LOD=1.3
+MLOOK montblanc_chamonix вершина sil_az127.4 d=3.6 км слой=detail raw=2752 game=2752 render=2751 недобор=1.4 м (0.02°) сетка=8.2 источник=-8.4 LOD=1.7
+MLOOK montblanc_chamonix вершина sil_az125.4 d=3.6 км слой=detail raw=2752 game=2751 render=2749 недобор=2.7 м (0.04°) сетка=9.7 источник=-8.6 LOD=1.6
+MLOOK montblanc_chamonix вершина sil_az166.5 d=6.0 км слой=detail raw=3605 game=3604 render=3603 недобор=1.4 м (0.01°) сетка=10.0 источник=-9.2 LOD=0.6
+MLOOK montblanc_chamonix вершина sil_az328.9 d=3.2 км слой=detail raw=2538 game=2541 render=2536 недобор=1.6 м (0.02°) сетка=25.0 источник=-27.9 LOD=4.5
+MLOOK montblanc_chamonix вершина MontBlanc d=11.2 км слой=detail raw=4808 game=4808 render=4809 недобор=-1.7 м (-0.01°) сетка=14.2 источник=-14.9 LOD=-1.0
+MLOOK montblanc_chamonix вершина AiguilleVerte d=7.0 км слой=detail raw=4087 game=4089 render=4086 недобор=1.0 м (0.01°) сетка=13.0 источник=-15.5 LOD=3.5
+MLOOK montblanc_chamonix горизонт rough_raw=0.0727 rough_render=0.0774 ratio=1.06 deficit_p50=0.005 max=0.341 far_share=0.00
+mountain_look_probe: OK montblanc_chamonix
+WARNING: 19 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 8 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

@@ -37,15 +37,15 @@
  "z_bot": 315.0,
  "x0": -19200.0,
  "y0": -19200.0,
- "z_i": 3362.3291929070538,
+ "z_i": 3362.3301845330525,
  "ctx": {
   "month": 7,
   "day": 15,
   "lat": 50.79,
   "lon": 86.13,
   "utc_offset_h": 7,
-  "valley_msl_m": 889.5235969387754,
-  "mean_msl_m": 1235.7693038624843
+  "valley_msl_m": 889.5248724489794,
+  "mean_msl_m": 1235.6652128133132
  },
  "day": {
   "hour": 12.0,
@@ -71,7 +71,7 @@
    "dtype": "float32",
    "status": "ok",
    "iters": 1101,
-   "t_cupy": 41.836
+   "t_cupy": 49.48
   },
   {
    "U10": 0.0,
@@ -79,7 +79,7 @@
    "dtype": "float32",
    "status": "ok",
    "iters": 11,
-   "t_cupy": 0.328
+   "t_cupy": 0.372
   },
   {
    "U10": 3.0,
@@ -87,7 +87,7 @@
    "dtype": "float32",
    "status": "ok",
    "iters": 201,
-   "t_cupy": 7.662
+   "t_cupy": 8.599
   },
   {
    "U10": 3.0,
@@ -95,7 +95,7 @@
    "dtype": "float32",
    "status": "ok",
    "iters": 221,
-   "t_cupy": 6.436
+   "t_cupy": 6.743
   },
   {
    "U10": 6.0,
@@ -103,7 +103,7 @@
    "dtype": "float32",
    "status": "ok",
    "iters": 191,
-   "t_cupy": 7.268
+   "t_cupy": 8.078
   },
   {
    "U10": 6.0,
@@ -111,7 +111,7 @@
    "dtype": "float32",
    "status": "ok",
    "iters": 181,
-   "t_cupy": 5.287
+   "t_cupy": 6.001
   }
  ],
  "arrays": {

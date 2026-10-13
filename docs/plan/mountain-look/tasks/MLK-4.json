@@ -1,0 +1,43 @@
+{
+  "id": "MLK-4",
+  "module": "mountain-look",
+  "type": "dp-engineer",
+  "title": "Снег WorldCover: рваные кромки, по крутизне и кривизне",
+  "goal": "Снег и ледники WorldCover (Эльбрус) — не наклейки: рваные кромки на шуме 7–25 м, на крутом снег не держится (видна порода), в ложбинах держится, с выпуклых гребней сдут. Только шейдер.",
+  "plan_ref": "MLK-4",
+  "contracts": [],
+  "copy": "~/deltaplan-mountain-look-MLK-4",
+  "branch": "mountain-look/MLK-4",
+  "base": "feature/mountain-look",
+  "scope": [
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "configs/world.json",
+    "tools/bench/cliff_look_probe.gd",
+    "docs/guide/terrain.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/build/",
+    "scripts/terrain/surface_layer.gd",
+    "scripts/terrain/terrain.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "surface",
+      "tests": "surface"
+    }
+  ],
+  "report_extra": [
+    "snow_share_by_slope_before",
+    "snow_share_by_slope_after",
+    "frame_ms_delta"
+  ],
+  "notes": "",
+  "created": "2026-10-13T21:42:30",
+  "edited": "2026-10-13T21:42:30"
+}

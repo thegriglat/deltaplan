@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "К1 реализован по контракту: h = r + w·(G_σ(r) − r), w = max(лес detail10 L, built10) с размытием max(50 м, 2 клетки), clamp [0,1]; без покрова — w = 1 и ERR_UNAVAILABLE с досборкой через missing (сырые в _raw сохраняются, резюм builder их подхватывает); фон патчится по новым высотам; FORMAT_VERSION 4. Скоуп соблюдён, шейдеры и docs/contracts не тронуты, пороги тестов не ослаблены (паритет Аскарово переписан на правило К1 с тем же 0,5 м). Замечания мелкие.",
+  "issues": [
+    {
+      "file": "tests/contracts/test_mountain_look_contracts.gd",
+      "line": 47,
+      "severity": "minor",
+      "what": "Синтетика К1 проверяет только запасной путь веса (класс карты поверхности, forest/built = {}); боевой путь — билинейная выборка масок detail10/built10 (_bilinear, совмещение origin) — покрыт лишь зондом cliff_look_probe на реальных местах.",
+      "fix": "При следующей правке стадии добавить в тест маску 10 м {data,n,spacing,ox,oz} на той же синтетике и сверить w с путём по классам."
+    },
+    {
+      "file": "tests/terrain/test_dem_stage.gd",
+      "line": 161,
+      "severity": "minor",
+      "what": "Защита `n_open + n_deep > 0` пропустит случай, когда одна из двух проверок (открытое/глубокий лес) пуста и worst = 0 проходит тривиально.",
+      "fix": "Требовать n_open > 0 и n_deep > 0 по отдельности."
+    },
+    {
+      "file": "scripts/terrain/build/smooth_stage.gd",
+      "line": 8,
+      "severity": "minor",
+      "what": "RiverStage и SurfaceStage работают на высотах, сглаженных везде (w = 1), а итоговые высоты на открытом — сырые: маска воды в скальных ущельях может разойтись с руслом на метры. План это допускает («реки на сырых высотах допустимы»), но в terrain.md не оговорено.",
+      "fix": "Одной строкой отметить в docs/guide/terrain.md как известное ограничение; переносить стадии не нужно."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept MLK-2 --only mountain_look_contracts --dry",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "dp accept MLK-2 --only location_builder --dry",
+      "value": "7/7",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-13T23:41:48",
+  "by": "reviewer"
+}

@@ -85,6 +85,11 @@ func run(ctx: LocationBuildContext) -> Error:
 		var sigma := float(lc.get("smooth_sigma_cells", 0.0))
 		var q := float(lc.get("quantize_per_m", 32))
 		var h := await _finish(h64, int(g.n), sigma, q)
+		# MLK-К1: сглаживание — только под кронами и крышами. Здесь слой сглажен везде (w = 1, это же
+		# результат без покрова); SmoothStage после SurfaceStage возьмёт сырые из _raw и доделает.
+		var raw := PackedFloat32Array()
+		if sigma > 0.0:
+			raw = await _finish(h64, int(g.n), 0.0, q)
 		ctx.report("dem", base + span * 0.9)
 		var info := {
 			"id": String(lc.id),
@@ -97,6 +102,13 @@ func run(ctx: LocationBuildContext) -> Error:
 			"source": src,
 			"water_file": "%s_water.webp" % lc.id,
 		}
+		if sigma > 0.0:
+			info["smooth_sigma_cells"] = sigma
+			info["smooth_mask_sigma_m"] = float(lc.get("smooth_mask_sigma_m", SmoothStage.DEFAULT_MASK_SIGMA_M))
+			var mc: Array = []
+			for c in lc.get("smooth_mask_classes", SmoothStage.DEFAULT_CLASSES):
+				mc.append(int(c))
+			info["smooth_mask_classes"] = mc
 		# Там, где есть более детальный слой, грубый берёт высоты из него (узлы сеток выровнены).
 		for b in built:
 			_patch_from_finer(h, info, b.h, b.info)
@@ -115,6 +127,14 @@ func run(ctx: LocationBuildContext) -> Error:
 		if werr != OK:
 			ctx.log_line("DemStage: не записан %s" % info.file)
 			return werr
+		if not raw.is_empty():
+			var rmin := _min_max(raw).x
+			info["raw_file"] = "%s_raw.webp" % lc.id
+			info["raw_height_min_m"] = rmin
+			var rimg := HeightLayer.encode_rgb24(raw, int(g.n), int(g.n), rmin, HEIGHT_STEP_M)
+			if rimg.save_webp(ctx.dir.path_join(String(info.raw_file)), false) != OK:
+				ctx.log_line("DemStage: не записан %s" % info.raw_file)
+				return ERR_FILE_CANT_WRITE
 	var f := FileAccess.open(ctx.dir.path_join("meta.json"), FileAccess.WRITE)
 	if f == null:
 		ctx.log_line("DemStage: не записан meta.json")
