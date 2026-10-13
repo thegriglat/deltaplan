@@ -129,3 +129,63 @@ vec3 sl_tree_tone(vec3 rgb, float mean_luma, float con, float dist, float t, flo
 	float target = mix(sl_canopy_albedo.y, sl_canopy_albedo.x, con);
 	return rgb * mix(1.0, target / m, sl_canopy_far(dist));
 }
+
+// --- SL-8: скотные тропы с высоты ---
+// Горизонтальные ступеньки на крутом лугу (шаг по высоте 1–3 м): светлая полка (тропа, ровная —
+// освещена как горизонталь) и подъём уступа (обращён вниз по склону — тень, если солнце с
+// верховой стороны). Тон считается освещённостью: ambient + max(n·l, 0) относительно склона;
+// профиль нормирован на нулевое среднее, поэтому при следе пикселя больше шага амплитуда гаснет
+// к среднему цвету луга (без мерцания и муара).
+uniform bool sl_trails_enabled = false;
+uniform vec2 sl_trails_step_m = vec2(1.2, 2.8);    // шаг по высоте: от и до, м (на каждый участок свой)
+uniform vec2 sl_trails_deg = vec2(16.0, 35.0);     // уклон лестницы: от и до, градусы (края мягкие, 5°)
+uniform float sl_trails_strength = 0.5;            // доля профиля, подмешиваемая к цвету
+uniform float sl_trails_tread_light = 0.25;        // полка светлее (голый грунт), доля
+uniform float sl_trails_ambient = 0.25;            // рассеянный свет относительно прямого при n·l = 1
+uniform vec2 sl_trails_near_m = vec2(60.0, 160.0); // ближе — работают терраски meadow_detail, м
+
+const float SL_TRAIL_RISER_A = 0.6;    // подъём занимает фазу 0,6…0,95
+const float SL_TRAIL_RISER_B = 0.95;
+
+// Доля подъёма (0 полка, 1 подъём) в фазе fr с мягкими краями шириной w (в долях шага).
+float sl_trail_riser(float fr, float w) {
+	return smoothstep(SL_TRAIL_RISER_A - w, SL_TRAIL_RISER_A + w, fr)
+			* (1.0 - smoothstep(SL_TRAIL_RISER_B - w, SL_TRAIL_RISER_B + w, fr));
+}
+
+// Множитель тона луга от ступенек. p — xz, h — высота, nc — нормаль склона, slope_deg — уклон,
+// fh — fwidth(h) (м/пиксель), l — на солнце (мир), dist — расстояние до камеры, м.
+vec3 sl_trails(vec3 c, vec2 p, float h, vec3 nc, float slope_deg, float fh, vec3 l, float dist) {
+	if (!sl_trails_enabled) {
+		return c;
+	}
+	float k = smoothstep(sl_trails_deg.x, sl_trails_deg.x + 5.0, slope_deg)
+			* (1.0 - smoothstep(sl_trails_deg.y - 5.0, sl_trails_deg.y, slope_deg))
+			* smoothstep(sl_trails_near_m.x, sl_trails_near_m.y, dist);
+	if (k <= 0.0) {
+		return c;
+	}
+	// участки с разным шагом (границы неровные); тропы рвутся и бывают не везде
+	vec2 cell = floor(p / 320.0 + (vnoise(p / 90.0) - 0.5) * 0.8);
+	float s = mix(sl_trails_step_m.x, sl_trails_step_m.y, hash12(cell + vec2(3.7, 11.1)));
+	float fw = fh / s;
+	k *= 1.0 - smoothstep(0.3, 0.7, fw);    // мельче пикселя — к среднему
+	k *= smoothstep(0.25, 0.5, vnoise(p / 40.0 + vec2(8.1, 2.9)));
+	if (k <= 0.0) {
+		return c;
+	}
+	float ph = (h + (vnoise(p / 55.0) - 0.5) * 1.4 * s + (vnoise(p / 13.0) - 0.5) * 0.4 * s) / s;
+	float w = clamp(0.05 + fw, 0.05, 0.3);
+	float rm = sl_trail_riser(fract(ph), w);
+	// освещённость: полка — нормаль вверх, подъём — горизонтально вниз по склону
+	vec2 dn = length(nc.xz) > 1e-4 ? normalize(nc.xz) : vec2(1.0, 0.0);
+	vec3 n_riser = vec3(dn.x, 0.15, dn.y);
+	n_riser = normalize(n_riser);
+	float amb = sl_trails_ambient;
+	float e_t = (amb + max(l.y, 0.0)) * (1.0 + sl_trails_tread_light);
+	float e_r = amb + max(dot(n_riser, l), 0.0);
+	float wr = SL_TRAIL_RISER_B - SL_TRAIL_RISER_A;
+	float mean_e = (1.0 - wr) * e_t + wr * e_r;
+	float tone = mix(e_t, e_r, rm) / max(mean_e, 1e-3);
+	return c * mix(1.0, tone, k * sl_trails_strength);
+}
