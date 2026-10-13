@@ -29,8 +29,8 @@ func _rows(buf: PackedFloat32Array, count: int, stride: int) -> Array[Vector3]:
 
 
 func test_k_range_and_distribution() -> void:
-	var kmin := 0.6
-	var kmax := 1.6
+	var kmin := 0.75
+	var kmax := 1.2
 	var sum := 0.0
 	var n := 0
 	var lo := 9.0
@@ -53,7 +53,7 @@ func test_swap_t_symmetric_and_exact() -> void:
 	# монотонна; модель — дополнение (1 − t)
 	var dither := 40.0
 	for k in 40:
-		var db := 500.0 * TreePlacer.lod_k_at(k * 13.7, -k * 5.1, 0.6, 1.6)
+		var db := 500.0 * TreePlacer.lod_k_at(k * 13.7, -k * 5.1, 0.75, 1.2)
 		var prev := -1.0
 		for step in range(-80, 81, 5):
 			var t := TreePlacer.swap_t(db + step, db, dither)

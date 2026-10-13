@@ -95,7 +95,7 @@ var lod_k_min: float = 0.6
 var lod_k_max: float = 1.6
 var lod_dither_m: float = 40.0
 ## Ширина перехода band-импостеров (сетка 8 м) в дальнюю сетку импостеров (12 м), м.
-var imp_ramp_m: float = 150.0
+var imp_ramp_m: float = 100.0
 var rebuild_step_m: float = 16.0
 ## Band-импостеры: imp_buffer — MultiMesh с цветом и custom (IMP_STRIDE), imp_count — число.
 var imp_buffer := PackedFloat32Array()
@@ -143,7 +143,7 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 	water_max = float(cfg.get("water_max", 0.35))
 	var ic: Dictionary = cfg.get("impostors", {})
 	fade_start_k = float(ic.get("fade_start_k", 0.0)) if bool(ic.get("enabled", false)) else 0.0
-	imp_ramp_m = maxf(float(ic.get("ramp_m", 150.0)), 1.0)
+	imp_ramp_m = maxf(float(ic.get("ramp_m", 100.0)), 1.0)
 	if not bool(ic.get("enabled", false)):
 		lod_k_enabled = false
 	# ближайшая граница смены не должна наезжать на границу LOD1↔LOD2
@@ -172,7 +172,7 @@ func swap_band() -> float:
 
 ## Дальше этого расстояния моделей нет и band-импостеры редеют, уступая дальней сетке (12 м), м.
 func ramp_start() -> float:
-	return radius * lod_k_max + 2.0 * swap_band()
+	return radius * lod_k_max + swap_band()
 
 
 ## Дальше этого расстояния band-импостеров нет, м.
@@ -226,6 +226,15 @@ func pick_species(h: float, north: float, u: float) -> int:
 func build(center: Vector2) -> void:
 	var n_buf := SPECIES.size() * variants * 3
 	var imp := PackedFloat32Array()
+	# строки экземпляров переиспользуются (без выделения массива на каждое дерево)
+	var row := PackedFloat32Array()
+	row.resize(STRIDE)
+	var irow := PackedFloat32Array()
+	irow.resize(IMP_STRIDE)
+	irow[0] = 1.0
+	irow[5] = 1.0
+	irow[10] = 1.0
+	irow[15] = 1.0
 	var reach := band_end() if lod_k_enabled else radius
 	var swap_half := swap_band()
 	var ramp0 := ramp_start()
@@ -320,23 +329,32 @@ func build(center: Vector2) -> void:
 					in_swap = absf(d - db) < swap_half
 					to_model = d < db + swap_half
 					if d > db - swap_half:
-						imp.append_array(
-							PackedFloat32Array(
-								[
-									1.0, 0.0, 0.0, x, 0.0, 1.0, 0.0, y, 0.0, 0.0, 1.0, z,
-									sink_for_edge(de), 0.0, 0.0, 1.0,
-									hh, float(sp), ek, hash01(i, j, 7 + k0),
-								]
-							)
-						)
+						irow[3] = x
+						irow[7] = y
+						irow[11] = z
+						irow[12] = sink_for_edge(de)
+						irow[16] = hh
+						irow[17] = float(sp)
+						irow[18] = ek
+						irow[19] = hash01(i, j, 7 + k0)
+						imp.append_array(irow)
 				# строки 3×4 матрицы: поворот вокруг Y с масштабом + сдвиг; затем цвет (альфа — код
 				# растворения FADE_*)
-				var row := PackedFloat32Array(
-					[c, 0.0, sn, x, 0.0, s, 0.0, y, -sn, 0.0, c, z, v, v, v, FADE_NONE]
-				)
 				if not to_model:
-					pass
-				elif in_swap:
+					continue
+				row[0] = c
+				row[2] = sn
+				row[3] = x
+				row[5] = s
+				row[7] = y
+				row[8] = -sn
+				row[10] = c
+				row[11] = z
+				row[12] = v
+				row[13] = v
+				row[14] = v
+				row[15] = FADE_NONE
+				if in_swap:
 					row[15] = FADE_OUT2
 					lists[b + 2].append_array(row)
 				elif absf(d - d0) < band:
