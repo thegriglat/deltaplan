@@ -1,0 +1,40 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место pt_+43.250_+042.500 загружено за 1.35 с
+MLOOK elbrus_menu старт lat=43.2450 lon=42.5100 h_eye=2772 центр=43.250,42.500
+MLOOK elbrus_menu гребни detail [0.0, 3.0] all n=598 curv_ratio=0.6034 drop_p50=4.9375 drop_p90=6.8125 drop_render_p50=3.4875
+MLOOK elbrus_menu гребни detail [0.0, 3.0] above_forest n=399 curv_ratio=0.6226 drop_p50=5.0938 drop_p90=7.125 drop_render_p50=2.9934
+MLOOK elbrus_menu гребни detail [0.0, 3.0] forest n=131 curv_ratio=0.5535 drop_p50=4.6563 drop_p90=6.2813 drop_render_p50=4.6563
+MLOOK elbrus_menu гребни detail [3.0, 8.0] all n=6756 curv_ratio=0.6278 drop_p50=5.2813 drop_p90=7.7188 drop_render_p50=7.625
+MLOOK elbrus_menu гребни detail [3.0, 8.0] above_forest n=6440 curv_ratio=0.6327 drop_p50=5.2813 drop_p90=7.7188 drop_render_p50=7.7532
+MLOOK elbrus_menu гребни detail [3.0, 8.0] forest n=83 curv_ratio=0.5245 drop_p50=4.4688 drop_p90=6.5313 drop_render_p50=7.0313
+MLOOK elbrus_menu гребни detail [8.0, 14.0] all n=15706 curv_ratio=0.626 drop_p50=5.2188 drop_p90=7.5938 drop_render_p50=25.973
+MLOOK elbrus_menu гребни detail [8.0, 14.0] above_forest n=13943 curv_ratio=0.6344 drop_p50=5.2813 drop_p90=7.6563 drop_render_p50=27.1345
+MLOOK elbrus_menu гребни detail [8.0, 14.0] forest n=838 curv_ratio=0.5324 drop_p50=4.8125 drop_p90=6.5625 drop_render_p50=17.3555
+MLOOK elbrus_menu гребни detail [14.0, 30.0] all n=33004 curv_ratio=0.621 drop_p50=5.125 drop_p90=7.3438 drop_render_p50=39.4337
+MLOOK elbrus_menu гребни detail [14.0, 30.0] above_forest n=26455 curv_ratio=0.6352 drop_p50=5.2188 drop_p90=7.5313 drop_render_p50=43.4074
+MLOOK elbrus_menu гребни detail [14.0, 30.0] forest n=3986 curv_ratio=0.5437 drop_p50=4.7188 drop_p90=6.375 drop_render_p50=22.3867
+MLOOK elbrus_menu гребни far [14.0, 30.0] all n=12824 curv_ratio=0.3292 drop_p50=20.6875 drop_p90=49.9063 drop_render_p50=26.4375
+MLOOK elbrus_menu гребни far [14.0, 30.0] above_forest n=7373 curv_ratio=0.3604 drop_p50=20.0625 drop_p90=49.0625 drop_render_p50=26.1843
+MLOOK elbrus_menu гребни far [14.0, 30.0] forest n=4139 curv_ratio=0.2696 drop_p50=22.125 drop_p90=51.0313 drop_render_p50=27.125
+MLOOK elbrus_menu гребни far [30.0, 40.0] all n=23021 curv_ratio=0.3221 drop_p50=21.3125 drop_p90=50.5938 drop_render_p50=29.0938
+MLOOK elbrus_menu гребни far [30.0, 40.0] above_forest n=11979 curv_ratio=0.3573 drop_p50=20.6563 drop_p90=49.6563 drop_render_p50=27.8438
+MLOOK elbrus_menu гребни far [30.0, 40.0] forest n=7622 curv_ratio=0.2682 drop_p50=23.1563 drop_p90=52.4063 drop_render_p50=32.2188
+MLOOK elbrus_menu гребни far [40.0, 50.0] all n=32749 curv_ratio=0.3054 drop_p50=20.3438 drop_p90=49.5625 drop_render_p50=38.7188
+MLOOK elbrus_menu гребни far [40.0, 50.0] above_forest n=12361 curv_ratio=0.3589 drop_p50=19.6563 drop_p90=49.5313 drop_render_p50=45.3003
+MLOOK elbrus_menu гребни far [40.0, 50.0] forest n=13593 curv_ratio=0.2541 drop_p50=21.5 drop_p90=50.6563 drop_render_p50=35.5016
+Terrain: поля рельефа за 94.19 с
+MLOOK elbrus_menu вершина sil_az177.8 d=5.1 км слой=detail raw=4419 game=4417 render=4416 недобор=2.5 м (0.03°) сетка=6.1 источник=-4.4 LOD=0.8
+MLOOK elbrus_menu вершина sil_az258.3 d=2.2 км слой=detail raw=3443 game=3437 render=3437 недобор=6.1 м (0.15°) сетка=24.9 источник=-18.8 LOD=-0.0
+MLOOK elbrus_menu вершина sil_az192.3 d=5.1 км слой=detail raw=4257 game=4250 render=4247 недобор=10.2 м (0.11°) сетка=6.1 источник=0.5 LOD=3.6
+MLOOK elbrus_menu вершина sil_az268.4 d=3.3 км слой=detail raw=3619 game=3612 render=3613 недобор=6.3 м (0.10°) сетка=-1.0 источник=7.5 LOD=-0.1
+MLOOK elbrus_menu вершина sil_az270.4 d=3.6 км слой=detail raw=3675 game=3670 render=3670 недобор=5.4 м (0.08°) сетка=16.6 источник=-11.1 LOD=-0.1
+MLOOK elbrus_menu вершина sil_az161.6 d=4.0 км слой=detail raw=3709 game=3703 render=3701 недобор=7.8 м (0.11°) сетка=10.6 источник=-4.9 LOD=2.1
+MLOOK elbrus_menu вершина sil_az338.2 d=12.2 км слой=detail raw=5608 game=5605 render=5600 недобор=7.9 м (0.04°) сетка=5.5 источник=-2.6 LOD=4.9
+MLOOK elbrus_menu вершина sil_az334.0 d=12.9 км слой=detail raw=5606 game=5603 render=5587 недобор=19.0 м (0.08°) сетка=2.9 источник=-0.7 LOD=16.8
+MLOOK elbrus_menu вершина sil_az149.1 d=4.5 км слой=detail raw=3707 game=3701 render=3698 недобор=9.2 м (0.11°) сетка=12.1 источник=-5.7 LOD=2.8
+MLOOK elbrus_menu вершина sil_az144.6 d=4.5 км слой=detail raw=3707 game=3703 render=3703 недобор=3.7 м (0.05°) сетка=11.1 источник=-7.3 LOD=-0.1
+MLOOK elbrus_menu вершина Elbrus d=13.1 км слой=detail raw=5616 game=5616 render=5615 недобор=0.9 м (0.00°) сетка=3.8 источник=-4.3 LOD=1.4
+MLOOK elbrus_menu горизонт rough_raw=0.0668 rough_render=0.0621 ratio=0.93 deficit_p50=0.043 max=0.537 far_share=0.05
+mountain_look_probe: OK elbrus_menu
