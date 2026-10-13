@@ -70,7 +70,7 @@ func test_placer_models_and_band_share_trees() -> void:
 	var t := _ongudai()
 	var tm := t.trees as TerrainTreeModels
 	var p := tm.placer
-	check(p.lod_k_enabled, "SL-17 включён в конфиге")
+	p.lod_k_enabled = true  # в конфиге выключено по умолчанию (цена перестройки)
 	var c := _site(t)
 	p.build(c)
 	var half := p.swap_band()
@@ -124,6 +124,7 @@ func test_placer_models_and_band_share_trees() -> void:
 func test_band_numbers() -> void:
 	var t := _ongudai()
 	var p := (t.trees as TerrainTreeModels).placer
+	p.lod_k_enabled = true
 	var c := _site(t)
 	var t0 := Time.get_ticks_usec()
 	p.build(c)
