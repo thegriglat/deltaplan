@@ -195,3 +195,105 @@ func test_k2_wiring_game_calls_set_flight_date() -> void:
 	var at_date := g.find("terrain.set_flight_date(settings.month, settings.day)")
 	check(at_date > 0, "К2: game.gd вызывает Terrain.set_flight_date(month, day)")
 	check(at_sun > 0 and absi(at_date - at_sun) < 400, "К2: там же, где солнце (старт полёта)")
+
+
+# --- SL-К2: сезон (SL-6) ---
+
+func _season(doy: float, lat: float, alt: float) -> Dictionary:
+	return SeasonLook.state(doy, lat, alt, _section())
+
+
+func test_k2_season_range() -> void:
+	for lat in [-52.0, -30.0, -5.0, 0.0, 5.0, 24.0, 40.0, 51.0, 64.0]:
+		for alt in [0.0, 500.0, 1500.0, 3500.0]:
+			for doy in range(1, 366, 7):
+				var s := _season(float(doy), lat, alt)
+				for k in ["green", "dry", "autumn", "bare"]:
+					var v := float(s[k])
+					check(v >= 0.0 and v <= 1.0, "К2: %s в [0, 1] (doy %d, φ %.0f, h %.0f: %f)" % [k, doy, lat, alt, v])
+
+
+func test_k2_season_southern_half_year() -> void:
+	for lat in [35.0, 51.0, 60.0]:
+		for alt in [0.0, 1200.0]:
+			for doy in [30.0, 100.0, 150.0, 196.0, 250.0, 290.0, 330.0]:
+				var a := _season(doy, lat, alt)
+				var b := _season(doy + 182.5, -lat, alt)
+				for k in ["green", "dry", "autumn", "bare"]:
+					approx(float(a[k]), float(b[k]), 0.02, "К2: юг = север + полгода (%s, φ %.0f, doy %.0f)" % [k, lat, doy])
+
+
+func test_k2_season_autumn_rises_with_altitude() -> void:
+	for doy in [240.0, 255.0, 270.0, 285.0]:
+		var prev := -1.0
+		for alt in [0.0, 300.0, 600.0, 1000.0, 1500.0, 2200.0, 3000.0]:
+			var a := float(_season(doy, 51.0, alt).autumn)
+			check(a >= prev - 1e-6, "К2: autumn не убывает с высотой (doy %.0f, h %.0f)" % [doy, alt])
+			prev = a
+
+
+func test_k2_season_dates() -> void:
+	var summer := _season(196.0, 51.0, 1000.0)
+	approx(float(summer.autumn), 0.0, 1e-6, "К2: 15 июля, 51°, 1000 м — autumn 0")
+	approx(float(summer.bare), 0.0, 1e-6, "К2: 15 июля, 51°, 1000 м — bare 0")
+	var oct := _season(274.0, 51.0, 1000.0)
+	check(float(oct.autumn) >= 0.5, "К2: 1 октября, 51°, 1000 м — autumn ≥ 0,5 (%f)" % float(oct.autumn))
+	for doy in range(1, 366, 5):
+		for lat in [5.0, -5.0, 0.0, 12.0]:
+			var s := _season(float(doy), lat, 1500.0)
+			approx(float(s.autumn), 0.0, 1e-6, "К2: тропики без осени (φ %.0f, doy %d)" % [lat, doy])
+			approx(float(s.bare), 0.0, 1e-6, "К2: тропики без листопада (φ %.0f, doy %d)" % [lat, doy])
+	# середина зимы в средних широтах: листва опала, мёртвая трава
+	var winter := _season(15.0, 51.0, 300.0)
+	check(float(winter.bare) > 0.99 and float(winter.dry) > 0.3, "К2: январь — голый лес, сухая трава")
+	# выключено — нули
+	var off := SeasonLook.state(274.0, 51.0, 1000.0, {"season_enabled": false})
+	check(float(off.autumn) == 0.0 and float(off.dry) == 0.0 and float(off.green) == 0.0, "К2: season_enabled=false — нули")
+
+
+func test_k2_season_hopkins() -> void:
+	# 4 дня на 1° широты и на 122 м: у весны (rel — дней от начала вегетации) на дату doy
+	var base := float(_season(150.0, 50.0, 0.0).rel)
+	approx(float(_season(150.0, 51.0, 0.0).rel), base - 4.0, 1e-4, "Хопкинс: +1° — весна на 4 дня позже")
+	approx(float(_season(150.0, 50.0, 122.0).rel), base - 4.0, 1e-4, "Хопкинс: +122 м — весна на 4 дня позже")
+	approx(float(_season(150.0, 52.0, 244.0).rel), base - 16.0, 1e-4, "Хопкинс: +2° и +244 м — на 16 дней")
+	# весна позже и севернее: свежая трава на ту же дату — раньше на юге
+	check(float(_season(115.0, 45.0, 0.0).green) > float(_season(115.0, 58.0, 0.0).green), "весна позже к северу")
+	# осень раньше севернее и выше: окраска на ту же дату
+	check(float(_season(255.0, 58.0, 0.0).autumn) > float(_season(255.0, 45.0, 0.0).autumn), "осень раньше к северу")
+	check(float(_season(255.0, 51.0, 1800.0).autumn) > float(_season(255.0, 51.0, 0.0).autumn), "осень раньше выше")
+	# лиственница позже берёзы
+	var b := float(SeasonLook.state_species(1, 262.0, 51.0, 800.0, _section()).autumn)
+	var l := float(SeasonLook.state_species(2, 262.0, 51.0, 800.0, _section()).autumn)
+	check(b > l, "лиственница желтеет позже берёзы (%f > %f)" % [b, l])
+
+
+func test_k2_season_dryness_adds() -> void:
+	# сухость сезона прибавляется к местной: к концу лета больше, чем весной; чем суше место, тем соломеннее
+	var spring := float(_season(150.0, 51.0, 300.0).dry)
+	var late := float(_season(235.0, 51.0, 300.0).dry)
+	check(late > spring + 0.2, "К2: сухость растёт к концу лета (%f → %f)" % [spring, late])
+	check(late <= float(_section().get("season_dry_amount", 0.35)) + 1e-6, "К2: прибавка не больше season_dry_amount")
+
+
+func test_k2_season_shader_mirror() -> void:
+	# CPU-зеркало = шейдер: значения по умолчанию include и config/SeasonLook.DEFAULTS совпадают,
+	# контрактная функция есть
+	var inc := _read(INC)
+	check(inc.contains("vec4 sl_season(float doy, float lat, float alt)"), "К2: vec4 sl_season(doy, lat, alt)")
+	var sec := _section()
+	for key: String in SeasonLook.DEFAULTS:
+		check(sec.has(key), "К2: ключ %s есть в scene_look" % key)
+		check(str(sec.get(key)) == str(SeasonLook.DEFAULTS[key]), "К2: %s: config = SeasonLook.DEFAULTS" % key)
+		if inc.contains("uniform") and not key == "season_enabled":
+			var re := RegEx.create_from_string("uniform\\s+\\w+\\s+sl_%s\\s*=\\s*([^;]+);" % key)
+			var m := re.search(inc)
+			check(m != null, "К2: sl_%s с умолчанием в include" % key)
+			if m != null:
+				var txt := m.get_string(1).replace("vec2", "").replace("vec3", "").replace("vec4", "")
+				txt = txt.replace("(", "").replace(")", "")
+				var parts := txt.split(",")
+				var want: Array = SeasonLook.DEFAULTS[key] if SeasonLook.DEFAULTS[key] is Array else [SeasonLook.DEFAULTS[key]]
+				check(parts.size() == want.size(), "К2: sl_%s: размер" % key)
+				for i in mini(parts.size(), want.size()):
+					approx(float(parts[i]), float(want[i]), 1e-6, "К2: sl_%s[%d] в include = DEFAULTS" % [key, i])

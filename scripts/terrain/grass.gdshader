@@ -11,6 +11,7 @@ render_mode cull_disabled, diffuse_lambert_wrap, world_vertex_coords, specular_d
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/meadow_look.gdshaderinc"
+#include "res://scripts/terrain/scene_look.gdshaderinc" // SL
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
 uniform vec2 grid_center_cell;
@@ -96,6 +97,7 @@ void vertex() {
 		v_n = vec3(0.0, 1.0, 0.0);
 	} else {
 		float h = h_bilinear(xz);
+		float sl_rel; vec4 sl_ss = sl_season_x(sl_doy, sl_lat_deg, h, sl_rel); // SL
 		// класс — ближайший узел карты (как Terrain.surface_at)
 		int c = surface_node(ivec2(round((xz - surface_origin) / surface_spacing)));
 		float r = hash12(cell + 2.2);
@@ -103,7 +105,7 @@ void vertex() {
 		if (c == 2 || c == 0) {
 			hh = mix(blade_height_m.x, blade_height_m.y, r);
 		} else if (c == 3) {
-			hh = mix(crop_height_m.x, crop_height_m.y, r);
+			hh = mix(crop_height_m.x, crop_height_m.y, r) * sl_field_height(xz, sl_rel); // SL
 		} else if (c == 4 && hash12(cell + 8.8) < shrub_density) {
 			hh = mix(blade_height_m.x, blade_height_m.y, r);
 		} else if (c == 1 && hash12(cell + 8.8) < forest_density) {
@@ -179,8 +181,9 @@ void vertex() {
 		float wet = rel.r * 2.0 - 1.0;
 		vec3 base = meadow_ground_color(xz, northness(n), meadow_patch(xz), wet, rel.b * 2.0 - 1.0);
 		base = meadow_macro(xz, base, 0.05, wet, d, 0.0);
+		base = sl_meadow_season(base, sl_ss); // SL
 		if (c == 3) {
-			base = field_plot_color(xz, base);
+			base = sl_field_season(field_plot_color(xz, base), xz, sl_rel); // SL
 		} else if (c == 1) {
 			base *= forest_shade;   // под пологом темнее
 		}
