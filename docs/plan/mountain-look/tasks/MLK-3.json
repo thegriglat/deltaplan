@@ -1,0 +1,66 @@
+{
+  "id": "MLK-3",
+  "module": "mountain-look",
+  "type": "dp-engineer",
+  "title": "Силуэт и заострение дальних вершин высоких гор",
+  "goal": "Дальние пики не теряются между вершинами LOD (сейчас −93…−268 м у Эвереста, Нуптсе, Ама-Даблам), гребни высоких гор заострены сильнее холмов; у камеры картинка = height_at, без швов по LOD и слоям.",
+  "plan_ref": "MLK-3",
+  "contracts": [
+    {
+      "name": "MLK-К2",
+      "version": "1",
+      "ref": "docs/contracts/mountain-look.md"
+    },
+    {
+      "name": "MLK-К3",
+      "version": "1",
+      "ref": "docs/contracts/mountain-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-mountain-look-MLK-3",
+  "branch": "mountain-look/MLK-3",
+  "base": "feature/mountain-look",
+  "scope": [
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "scripts/terrain/terrain_renderer.gd",
+    "scripts/terrain/height_layer.gd",
+    "scripts/terrain/relief_look.gd",
+    "configs/world.json",
+    "tools/bench/mountain_look_probe.gd",
+    "tools/research/mountain_look/",
+    "tests/contracts/test_mountain_look_contracts.gd",
+    "tests/terrain/",
+    "docs/guide/terrain.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/build/",
+    "scripts/terrain/terrain.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "mountain_look_contracts",
+      "tests": "mountain_look_contracts"
+    },
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "surface",
+      "tests": "surface"
+    }
+  ],
+  "report_extra": [
+    "peak_deficit_m_before_after",
+    "rough_ratio_before_after",
+    "ongudai_horizon_change",
+    "valley_inflation_m",
+    "frame_ms_delta",
+    "vram_mb_delta"
+  ],
+  "notes": "",
+  "created": "2026-10-13T22:21:03",
+  "edited": "2026-10-13T22:21:03"
+}

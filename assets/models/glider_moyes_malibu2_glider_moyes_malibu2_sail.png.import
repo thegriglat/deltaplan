@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://klmlwhvquc2h"
-path.bptc="res://.godot/imported/glider_moyes_malibu2_glider_moyes_malibu2_sail.png-f555e7a8baf48d3ab774e142e465e7ce.bptc.ctex"
-path.astc="res://.godot/imported/glider_moyes_malibu2_glider_moyes_malibu2_sail.png-f555e7a8baf48d3ab774e142e465e7ce.astc.ctex"
+path="res://.godot/imported/glider_moyes_malibu2_glider_moyes_malibu2_sail.png-f555e7a8baf48d3ab774e142e465e7ce.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "7ed07eb53802c7456df3223ae0d3e1c3"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_moyes_malibu2_glider_moyes_malibu2_sail.png"
-dest_files=["res://.godot/imported/glider_moyes_malibu2_glider_moyes_malibu2_sail.png-f555e7a8baf48d3ab774e142e465e7ce.bptc.ctex", "res://.godot/imported/glider_moyes_malibu2_glider_moyes_malibu2_sail.png-f555e7a8baf48d3ab774e142e465e7ce.astc.ctex"]
+dest_files=["res://.godot/imported/glider_moyes_malibu2_glider_moyes_malibu2_sail.png-f555e7a8baf48d3ab774e142e465e7ce.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

@@ -1,0 +1,620 @@
+{
+  "agl_m": 300.0,
+  "center_lat": 50.79,
+  "center_lon": 86.13,
+  "crests": [
+    {
+      "band_km": [
+        0.0,
+        3.0
+      ],
+      "curv_ratio": 0.7821,
+      "drop_m_p50": 2.6875,
+      "drop_m_p90": 3.9688,
+      "drop_render_m_p50": 2.6875,
+      "drop_render_m_p90": 3.9688,
+      "layer": "detail",
+      "n": 246,
+      "zone": "all"
+    },
+    {
+      "band_km": [
+        0.0,
+        3.0
+      ],
+      "curv_ratio": null,
+      "drop_m_p50": null,
+      "drop_m_p90": null,
+      "drop_render_m_p50": null,
+      "drop_render_m_p90": null,
+      "layer": "detail",
+      "n": 0,
+      "zone": "above_forest"
+    },
+    {
+      "band_km": [
+        0.0,
+        3.0
+      ],
+      "curv_ratio": 0.7395,
+      "drop_m_p50": 3.0313,
+      "drop_m_p90": 4.0938,
+      "drop_render_m_p50": 3.0313,
+      "drop_render_m_p90": 4.0938,
+      "layer": "detail",
+      "n": 199,
+      "zone": "forest"
+    },
+    {
+      "band_km": [
+        3.0,
+        8.0
+      ],
+      "curv_ratio": 0.8183,
+      "drop_m_p50": 2.375,
+      "drop_m_p90": 3.9688,
+      "drop_render_m_p50": 7.3984,
+      "drop_render_m_p90": 19.6016,
+      "layer": "detail",
+      "n": 1797,
+      "zone": "all"
+    },
+    {
+      "band_km": [
+        3.0,
+        8.0
+      ],
+      "curv_ratio": null,
+      "drop_m_p50": null,
+      "drop_m_p90": null,
+      "drop_render_m_p50": null,
+      "drop_render_m_p90": null,
+      "layer": "detail",
+      "n": 0,
+      "zone": "above_forest"
+    },
+    {
+      "band_km": [
+        3.0,
+        8.0
+      ],
+      "curv_ratio": 0.7414,
+      "drop_m_p50": 3.0313,
+      "drop_m_p90": 4.1875,
+      "drop_render_m_p50": 7.5227,
+      "drop_render_m_p90": 18.4063,
+      "layer": "detail",
+      "n": 1198,
+      "zone": "forest"
+    },
+    {
+      "band_km": [
+        8.0,
+        14.0
+      ],
+      "curv_ratio": 0.778,
+      "drop_m_p50": 2.9688,
+      "drop_m_p90": 4.4375,
+      "drop_render_m_p50": 19.0071,
+      "drop_render_m_p90": 43.0967,
+      "layer": "detail",
+      "n": 5899,
+      "zone": "all"
+    },
+    {
+      "band_km": [
+        8.0,
+        14.0
+      ],
+      "curv_ratio": null,
+      "drop_m_p50": null,
+      "drop_m_p90": null,
+      "drop_render_m_p50": null,
+      "drop_render_m_p90": null,
+      "layer": "detail",
+      "n": 0,
+      "zone": "above_forest"
+    },
+    {
+      "band_km": [
+        8.0,
+        14.0
+      ],
+      "curv_ratio": 0.7418,
+      "drop_m_p50": 3.3125,
+      "drop_m_p90": 4.5938,
+      "drop_render_m_p50": 19.2813,
+      "drop_render_m_p90": 43.3889,
+      "layer": "detail",
+      "n": 4536,
+      "zone": "forest"
+    },
+    {
+      "band_km": [
+        14.0,
+        30.0
+      ],
+      "curv_ratio": 0.8105,
+      "drop_m_p50": 2.6875,
+      "drop_m_p90": 4.2188,
+      "drop_render_m_p50": 28.6719,
+      "drop_render_m_p90": 76.7461,
+      "layer": "detail",
+      "n": 9623,
+      "zone": "all"
+    },
+    {
+      "band_km": [
+        14.0,
+        30.0
+      ],
+      "curv_ratio": 0.9949,
+      "drop_m_p50": 0.0625,
+      "drop_m_p90": 0.1563,
+      "drop_render_m_p50": 9.7531,
+      "drop_render_m_p90": 18.4828,
+      "layer": "detail",
+      "n": 5,
+      "zone": "above_forest"
+    },
+    {
+      "band_km": [
+        14.0,
+        30.0
+      ],
+      "curv_ratio": 0.7686,
+      "drop_m_p50": 3.125,
+      "drop_m_p90": 4.4063,
+      "drop_render_m_p50": 31.251,
+      "drop_render_m_p90": 78.7261,
+      "layer": "detail",
+      "n": 6872,
+      "zone": "forest"
+    },
+    {
+      "band_km": [
+        14.0,
+        30.0
+      ],
+      "curv_ratio": 0.1884,
+      "drop_m_p50": 35.75,
+      "drop_m_p90": 60.1563,
+      "drop_render_m_p50": 38.5,
+      "drop_render_m_p90": 66.5478,
+      "layer": "far",
+      "n": 9735,
+      "zone": "all"
+    },
+    {
+      "band_km": [
+        14.0,
+        30.0
+      ],
+      "curv_ratio": 0.2285,
+      "drop_m_p50": 37.8125,
+      "drop_m_p90": 61.9063,
+      "drop_render_m_p50": 36.3345,
+      "drop_render_m_p90": 57.3562,
+      "layer": "far",
+      "n": 52,
+      "zone": "above_forest"
+    },
+    {
+      "band_km": [
+        14.0,
+        30.0
+      ],
+      "curv_ratio": 0.1961,
+      "drop_m_p50": 36.3125,
+      "drop_m_p90": 60.3125,
+      "drop_render_m_p50": 39.8543,
+      "drop_render_m_p90": 67.3125,
+      "layer": "far",
+      "n": 6967,
+      "zone": "forest"
+    },
+    {
+      "band_km": [
+        30.0,
+        40.0
+      ],
+      "curv_ratio": 0.1825,
+      "drop_m_p50": 36.125,
+      "drop_m_p90": 57.9688,
+      "drop_render_m_p50": 39.7031,
+      "drop_render_m_p90": 69.1219,
+      "layer": "far",
+      "n": 15363,
+      "zone": "all"
+    },
+    {
+      "band_km": [
+        30.0,
+        40.0
+      ],
+      "curv_ratio": 0.2572,
+      "drop_m_p50": 38.0625,
+      "drop_m_p90": 61.875,
+      "drop_render_m_p50": 38.6174,
+      "drop_render_m_p90": 66.5938,
+      "layer": "far",
+      "n": 313,
+      "zone": "above_forest"
+    },
+    {
+      "band_km": [
+        30.0,
+        40.0
+      ],
+      "curv_ratio": 0.1903,
+      "drop_m_p50": 37.0313,
+      "drop_m_p90": 58.0,
+      "drop_render_m_p50": 41.8594,
+      "drop_render_m_p90": 71.0394,
+      "layer": "far",
+      "n": 10292,
+      "zone": "forest"
+    },
+    {
+      "band_km": [
+        40.0,
+        50.0
+      ],
+      "curv_ratio": 0.1872,
+      "drop_m_p50": 34.875,
+      "drop_m_p90": 56.125,
+      "drop_render_m_p50": 39.7686,
+      "drop_render_m_p90": 77.6348,
+      "layer": "far",
+      "n": 15289,
+      "zone": "all"
+    },
+    {
+      "band_km": [
+        40.0,
+        50.0
+      ],
+      "curv_ratio": 0.2686,
+      "drop_m_p50": 40.875,
+      "drop_m_p90": 62.0625,
+      "drop_render_m_p50": 38.88,
+      "drop_render_m_p90": 84.1205,
+      "layer": "far",
+      "n": 1298,
+      "zone": "above_forest"
+    },
+    {
+      "band_km": [
+        40.0,
+        50.0
+      ],
+      "curv_ratio": 0.1878,
+      "drop_m_p50": 35.3438,
+      "drop_m_p90": 55.5,
+      "drop_render_m_p50": 42.8281,
+      "drop_render_m_p90": 78.724,
+      "layer": "far",
+      "n": 9555,
+      "zone": "forest"
+    }
+  ],
+  "dh": "v2",
+  "format_version": 4,
+  "h_eye_m": 2168.75668852787,
+  "horizon": {
+    "az_step_deg": 0.1,
+    "deficit_deg_max": 0.179051274657769,
+    "deficit_deg_p50": 0.0306185107495507,
+    "deficit_deg_p90": 0.079480670215617,
+    "deficit_grid100_deg_p50": 0.00334721958012929,
+    "deficit_grid100_deg_p90": 0.0142948122004697,
+    "deficit_lod_deg_p50": 0.00104592607751108,
+    "deficit_lod_deg_p90": 0.0196531222847712,
+    "deficit_source_deg_p50": 0.0260513553506336,
+    "deficit_source_deg_p90": 0.0612367546948369,
+    "elev_raw_max_deg": 0.612935946753361,
+    "far_layer_share": 0.95,
+    "far_layer_share_game": 0.944444444444444,
+    "range_km": 45.0,
+    "rough_game_deg": 0.0394929163741402,
+    "rough_ratio": 0.895234979656176,
+    "rough_raw100_deg": 0.0432491883232917,
+    "rough_raw_deg": 0.0440949440328016,
+    "rough_render_deg": 0.0394753363241454
+  },
+  "lat": 50.7870788574219,
+  "layers": [
+    {
+      "id": "detail",
+      "size_km": 40.0,
+      "spacing_m": 25.0,
+      "treeline_est_m": 1850.8438
+    },
+    {
+      "id": "far",
+      "size_km": 160.0,
+      "spacing_m": 100.0,
+      "treeline_est_m": 1984.0
+    }
+  ],
+  "lon": 86.232780456543,
+  "look_override": "",
+  "memory": {
+    "far_layer_mb": 15.5,
+    "mask_spacing_m": 10.0,
+    "note": "VRAM: высоты RF с мипами 4·4/3 Б/клетку, классы R8, маска RG8 2 Б/клетку без мипов; relief-поля ограничены grid_max 801 (не растут)",
+    "rows": [
+      {
+        "classes_r8_mb": 2.4,
+        "detail_km": 40.0,
+        "detail_total_mb": 46.0,
+        "heights_cpu_f32_mb": 9.8,
+        "heights_rf_mips_mb": 13.0,
+        "mask10_rg8_mb": 30.5
+      },
+      {
+        "classes_r8_mb": 5.5,
+        "detail_km": 60.0,
+        "detail_total_mb": 103.5,
+        "heights_cpu_f32_mb": 22.0,
+        "heights_rf_mips_mb": 29.3,
+        "mask10_rg8_mb": 68.7
+      },
+      {
+        "classes_r8_mb": 9.8,
+        "detail_km": 80.0,
+        "detail_total_mb": 184.0,
+        "heights_cpu_f32_mb": 39.1,
+        "heights_rf_mips_mb": 52.1,
+        "mask10_rg8_mb": 122.1
+      }
+    ]
+  },
+  "mesh": {
+    "layer_seam": {
+      "jump_abs_m_max": 121.0717,
+      "jump_abs_m_p50": 1.7845,
+      "jump_abs_m_p90": 20.0699,
+      "jump_mean_m": 1.2345,
+      "n": 3196,
+      "open_over_skirt": 0
+    },
+    "layers": [
+      {
+        "dh_far_mean_m": 0.4063,
+        "dh_m_max": 145.2336,
+        "dh_m_min": -8.6328,
+        "dh_m_p50": -0.0607,
+        "dh_m_p90": 1.7402,
+        "dh_m_p99": 45.4304,
+        "id": "detail",
+        "local_relief_m_p10": 125.0777,
+        "local_relief_m_p50": 172.3494,
+        "local_relief_m_p90": 226.3435,
+        "lod_gap_m_max": 140.6475,
+        "lod_gap_m_p50": 0.0,
+        "lod_gap_m_p99": 32.7656,
+        "lod_gap_n": 2690,
+        "lod_gap_over_skirt": 0,
+        "skirt_m": 300.0,
+        "valley_dh_max_m": 130.5768,
+        "valley_dh_mean_m": -0.0659,
+        "valley_dh_p90_m": 0.0,
+        "valley_n": 29328,
+        "vertices": 154980
+      },
+      {
+        "dh_far_mean_m": 2.5367,
+        "dh_m_max": 253.0094,
+        "dh_m_min": -13.4313,
+        "dh_m_p50": 0.3566,
+        "dh_m_p90": 49.8094,
+        "dh_m_p99": 130.6892,
+        "id": "far",
+        "local_relief_m_p10": 75.6378,
+        "local_relief_m_p50": 140.7926,
+        "local_relief_m_p90": 217.5851,
+        "lod_gap_m_max": 237.2484,
+        "lod_gap_m_p50": 0.0,
+        "lod_gap_m_p99": 92.8281,
+        "lod_gap_n": 2334,
+        "lod_gap_over_skirt": 0,
+        "skirt_m": 400.0,
+        "valley_dh_max_m": 220.3521,
+        "valley_dh_mean_m": -0.2646,
+        "valley_dh_p90_m": 0.0,
+        "valley_n": 9861,
+        "vertices": 142998
+      }
+    ],
+    "valley_lap": 0.05,
+    "valley_min_km": 3.0,
+    "valley_scale_m": 100.0
+  },
+  "peaks": [
+    {
+      "deficit_deg": 0.0007,
+      "disc_radius_m": 350.0,
+      "dist_km": 27.234,
+      "elev_raw_deg": 0.7192,
+      "h_game": 2510.6318,
+      "h_raw": 2510.6329,
+      "h_raw100": 2507.1709,
+      "h_render": 2510.2779,
+      "lat": 50.6402,
+      "layer": "detail",
+      "lon": 85.9228,
+      "loss_grid_m": 3.462,
+      "loss_lod_m": 0.3539,
+      "loss_source_m": -3.4609,
+      "name": "sil_az233.1",
+      "vertex_step_m": 400.0
+    },
+    {
+      "deficit_deg": 0.0831,
+      "disc_radius_m": 250.0,
+      "dist_km": 30.8069,
+      "elev_raw_deg": 0.6714,
+      "h_game": 2484.0634,
+      "h_raw": 2529.7564,
+      "h_raw100": 2519.649,
+      "h_render": 2485.0625,
+      "lat": 50.5389,
+      "layer": "far",
+      "lon": 86.0381,
+      "loss_grid_m": 10.1074,
+      "loss_lod_m": -0.9991,
+      "loss_source_m": 35.5856,
+      "name": "sil_az206.4",
+      "vertex_step_m": 200.0
+    },
+    {
+      "deficit_deg": 0.101,
+      "disc_radius_m": 250.0,
+      "dist_km": 31.71,
+      "elev_raw_deg": 0.6633,
+      "h_game": 2472.8977,
+      "h_raw": 2535.8959,
+      "h_raw100": 2520.8356,
+      "h_render": 2480.0079,
+      "lat": 50.7682,
+      "layer": "far",
+      "lon": 86.6829,
+      "loss_grid_m": 15.0603,
+      "loss_lod_m": -7.1102,
+      "loss_source_m": 47.9379,
+      "name": "sil_az93.8",
+      "vertex_step_m": 200.0
+    },
+    {
+      "deficit_deg": 0.0001,
+      "disc_radius_m": 350.0,
+      "dist_km": 26.97,
+      "elev_raw_deg": 0.6232,
+      "h_game": 2462.2598,
+      "h_raw": 2462.1353,
+      "h_raw100": 2461.7611,
+      "h_render": 2462.0746,
+      "lat": 50.6309,
+      "layer": "detail",
+      "lon": 85.9393,
+      "loss_grid_m": 0.3741,
+      "loss_lod_m": 0.1852,
+      "loss_source_m": -0.4987,
+      "name": "sil_az229.9",
+      "vertex_step_m": 400.0
+    },
+    {
+      "deficit_deg": 0.0349,
+      "disc_radius_m": 250.0,
+      "dist_km": 32.7098,
+      "elev_raw_deg": 0.6196,
+      "h_game": 2501.8434,
+      "h_raw": 2522.4713,
+      "h_raw100": 2520.3792,
+      "h_render": 2502.5625,
+      "lat": 50.5697,
+      "layer": "far",
+      "lon": 85.9192,
+      "loss_grid_m": 2.0921,
+      "loss_lod_m": -0.7191,
+      "loss_source_m": 18.5358,
+      "name": "sil_az222.4",
+      "vertex_step_m": 200.0
+    },
+    {
+      "deficit_deg": 0.0881,
+      "disc_radius_m": 250.0,
+      "dist_km": 31.89,
+      "elev_raw_deg": 0.6012,
+      "h_game": 2452.5821,
+      "h_raw": 2503.3607,
+      "h_raw100": 2488.7686,
+      "h_render": 2454.3233,
+      "lat": 50.7591,
+      "layer": "far",
+      "lon": 86.6843,
+      "loss_grid_m": 14.5922,
+      "loss_lod_m": -1.7413,
+      "loss_source_m": 36.1865,
+      "name": "sil_az95.6",
+      "vertex_step_m": 200.0
+    },
+    {
+      "deficit_deg": 0.0421,
+      "disc_radius_m": 350.0,
+      "dist_km": 43.8869,
+      "elev_raw_deg": 0.6522,
+      "h_game": 2614.0579,
+      "h_raw": 2668.3502,
+      "h_raw100": 2657.4286,
+      "h_render": 2636.0711,
+      "lat": 50.3945,
+      "layer": "far",
+      "lon": 86.1679,
+      "loss_grid_m": 10.9216,
+      "loss_lod_m": -22.0132,
+      "loss_source_m": 43.3707,
+      "name": "sil_az186.0",
+      "vertex_step_m": 400.0
+    },
+    {
+      "deficit_deg": 0.0818,
+      "disc_radius_m": 250.0,
+      "dist_km": 31.95,
+      "elev_raw_deg": 0.4952,
+      "h_game": 2395.8258,
+      "h_raw": 2444.8922,
+      "h_raw100": 2434.3067,
+      "h_render": 2399.2819,
+      "lat": 50.5238,
+      "layer": "far",
+      "lon": 86.0508,
+      "loss_grid_m": 10.5855,
+      "loss_lod_m": -3.4561,
+      "loss_source_m": 38.4809,
+      "name": "sil_az203.6",
+      "vertex_step_m": 200.0
+    },
+    {
+      "deficit_deg": 0.0768,
+      "disc_radius_m": 250.0,
+      "dist_km": 33.18,
+      "elev_raw_deg": 0.4089,
+      "h_game": 2360.1645,
+      "h_raw": 2405.5684,
+      "h_raw100": 2388.2161,
+      "h_render": 2361.0938,
+      "lat": 50.492,
+      "layer": "far",
+      "lon": 86.1622,
+      "loss_grid_m": 17.3523,
+      "loss_lod_m": -0.9293,
+      "loss_source_m": 28.0516,
+      "name": "sil_az188.6",
+      "vertex_step_m": 200.0
+    },
+    {
+      "deficit_deg": 0.092,
+      "disc_radius_m": 250.0,
+      "dist_km": 37.92,
+      "elev_raw_deg": 0.4145,
+      "h_game": 2378.7443,
+      "h_raw": 2443.0888,
+      "h_raw100": 2422.963,
+      "h_render": 2382.1926,
+      "lat": 50.466,
+      "layer": "far",
+      "lon": 86.0509,
+      "loss_grid_m": 20.1258,
+      "loss_lod_m": -3.4482,
+      "loss_source_m": 44.2187,
+      "name": "sil_az199.7",
+      "vertex_step_m": 200.0
+    }
+  ],
+  "probe_version": 2,
+  "range_km": 45.0,
+  "raw": "copernicus",
+  "tag": "ongudai"
+}

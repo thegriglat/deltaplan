@@ -1,0 +1,50 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место pt_+27.800_+086.700 загружено за 4.65 с
+MLOOK everest_namche look relief_high_m=100000,200000
+MLOOK everest_namche меш dh=v2 {"layer_seam":{"jump_abs_m_max":247.108,"jump_abs_m_p50":9.6593,"jump_abs_m_p90":48.2415,"jump_mean_m":2.7667,"n":3196},"layers":[{"dh_far_mean_m":2.9197,"dh_m_max":369.627,"dh_m_min":-16.844,"dh_m_p50":0.0132,"dh_m_p90":2.2468,"dh_m_p99":92.9287,"id":"detail","local_relief_m_p10":293.8988,"local_relief_m_p50":408.8523,"local_relief_m_p90":514.0064,"lod_gap_m_max":394.804,"lod_gap_m_p50":0.5876,"lod_gap_m_p99":94.3259,"lod_gap_n":3224,"lod_gap_over_skirt":140,"skirt_m":40.0,"valley_dh_max_m":369.627,"valley_dh_mean_m":0.4761,"valley_dh_p90_m":0.0,"valley_n":41446,"vertices":162060},{"dh_far_mean_m":7.5562,"dh_m_max":408.0,"dh_m_min":-8.0,"dh_m_p50":0.3223,"dh_m_p90":59.343,"dh_m_p99":222.1104,"id":"far","local_relief_m_p10":154.8534,"local_relief_m_p50":258.0239,"local_relief_m_p90":422.5755,"lod_gap_m_max":491.5732,"lod_gap_m_p50":0.0,"lod_gap_m_p99":160.2563,"lod_gap_n":2840,"lod_gap_over_skirt":35,"skirt_m":150.0,"valley_dh_max_m":395.6689,"valley_dh_mean_m":0.7146,"valley_dh_p90_m":0.0,"valley_n":29259,"vertices":148673}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+MLOOK everest_namche старт lat=27.8050 lon=86.7140 h_eye=3820 центр=27.800,86.700
+MLOOK everest_namche гребни detail [0.0, 3.0] all n=1049 curv_ratio=0.5961 drop_p50=4.9375 drop_p90=6.4375 drop_render_p50=4.4006
+MLOOK everest_namche гребни detail [0.0, 3.0] above_forest n=94 curv_ratio=0.6511 drop_p50=4.9688 drop_p90=6.625 drop_render_p50=3.4438
+MLOOK everest_namche гребни detail [0.0, 3.0] forest n=407 curv_ratio=0.5799 drop_p50=4.9375 drop_p90=6.4063 drop_render_p50=4.9375
+MLOOK everest_namche гребни detail [3.0, 8.0] all n=8733 curv_ratio=0.6547 drop_p50=5.1875 drop_p90=7.5625 drop_render_p50=5.4092
+MLOOK everest_namche гребни detail [3.0, 8.0] above_forest n=6541 curv_ratio=0.6649 drop_p50=5.25 drop_p90=7.7813 drop_render_p50=4.8501
+MLOOK everest_namche гребни detail [3.0, 8.0] forest n=790 curv_ratio=0.6327 drop_p50=4.9688 drop_p90=6.9375 drop_render_p50=9.9609
+MLOOK everest_namche гребни detail [8.0, 14.0] all n=18875 curv_ratio=0.6567 drop_p50=5.25 drop_p90=7.7813 drop_render_p50=14.6335
+MLOOK everest_namche гребни detail [8.0, 14.0] above_forest n=16775 curv_ratio=0.6594 drop_p50=5.2813 drop_p90=7.875 drop_render_p50=13.7814
+MLOOK everest_namche гребни detail [8.0, 14.0] forest n=1073 curv_ratio=0.6125 drop_p50=4.8438 drop_p90=6.5313 drop_render_p50=18.7969
+MLOOK everest_namche гребни detail [14.0, 30.0] all n=45896 curv_ratio=0.6609 drop_p50=5.1875 drop_p90=7.4063 drop_render_p50=27.4844
+MLOOK everest_namche гребни detail [14.0, 30.0] above_forest n=39499 curv_ratio=0.6673 drop_p50=5.25 drop_p90=7.5625 drop_render_p50=27.3413
+MLOOK everest_namche гребни detail [14.0, 30.0] forest n=4217 curv_ratio=0.6193 drop_p50=4.875 drop_p90=6.4063 drop_render_p50=26.9664
+MLOOK everest_namche гребни far [14.0, 30.0] all n=15722 curv_ratio=0.2779 drop_p50=20.625 drop_p90=61.0 drop_render_p50=18.2361
+MLOOK everest_namche гребни far [14.0, 30.0] above_forest n=11067 curv_ratio=0.2964 drop_p50=21.5 drop_p90=63.625 drop_render_p50=15.9375
+MLOOK everest_namche гребни far [14.0, 30.0] forest n=3602 curv_ratio=0.2238 drop_p50=19.75 drop_p90=56.0313 drop_render_p50=24.3125
+MLOOK everest_namche гребни far [30.0, 40.0] all n=26936 curv_ratio=0.2734 drop_p50=22.75 drop_p90=65.5313 drop_render_p50=21.8906
+MLOOK everest_namche гребни far [30.0, 40.0] above_forest n=16174 curv_ratio=0.3003 drop_p50=22.4688 drop_p90=68.0313 drop_render_p50=15.6553
+MLOOK everest_namche гребни far [30.0, 40.0] forest n=7998 curv_ratio=0.2192 drop_p50=25.875 drop_p90=64.5313 drop_render_p50=31.8878
+MLOOK everest_namche гребни far [40.0, 50.0] all n=32831 curv_ratio=0.2559 drop_p50=24.125 drop_p90=63.9063 drop_render_p50=32.0938
+MLOOK everest_namche гребни far [40.0, 50.0] above_forest n=13785 curv_ratio=0.3031 drop_p50=24.3438 drop_p90=64.5313 drop_render_p50=29.0859
+MLOOK everest_namche гребни far [40.0, 50.0] forest n=14457 curv_ratio=0.2018 drop_p50=24.0313 drop_p90=61.9375 drop_render_p50=33.5938
+Terrain: поля рельефа за 134.13 с
+WARNING: Terrain: загрузка стоит 90 с — отмена
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _watch_stall (res://scripts/terrain/terrain.gd:289)
+MLOOK everest_namche вершина sil_az103.0 d=7.2 км слой=detail raw=6558 game=6556 render=6559 недобор=-1.1 м (-0.01°) сетка=5.2 источник=-3.3 LOD=-3.1
+MLOOK everest_namche вершина sil_az351.1 d=4.9 км слой=detail raw=5456 game=5451 render=5453 недобор=3.3 м (0.04°) сетка=9.6 источник=-4.5 LOD=-1.8
+MLOOK everest_namche вершина sil_az352.4 d=4.9 км слой=detail raw=5453 game=5451 render=5453 недобор=0.7 м (0.01°) сетка=4.4 источник=-2.3 LOD=-1.4
+MLOOK everest_namche вершина sil_az256.9 d=6.6 км слой=detail raw=5981 game=5981 render=5971 недобор=10.7 м (0.08°) сетка=10.4 источник=-10.2 LOD=10.4
+MLOOK everest_namche вершина sil_az358.0 d=4.9 км слой=detail raw=5422 game=5418 render=5420 недобор=1.9 м (0.02°) сетка=14.6 источник=-10.6 LOD=-2.1
+MLOOK everest_namche вершина sil_az235.1 d=6.4 км слой=detail raw=5848 game=5847 render=5851 недобор=-2.2 м (-0.02°) сетка=6.7 источник=-4.9 LOD=-4.0
+MLOOK everest_namche вершина sil_az242.7 d=6.7 км слой=detail raw=5832 game=5831 render=5835 недобор=-3.1 м (-0.02°) сетка=7.7 источник=-6.2 LOD=-4.6
+MLOOK everest_namche вершина sil_az5.9 d=4.6 км слой=detail raw=5159 game=5155 render=5157 недобор=2.4 м (0.03°) сетка=9.1 источник=-4.8 LOD=-2.0
+MLOOK everest_namche вершина sil_az266.3 d=8.0 км слой=detail raw=6005 game=6002 render=6007 недобор=-2.7 м (-0.02°) сетка=9.2 источник=-6.5 LOD=-5.4
+MLOOK everest_namche вершина sil_az326.7 d=6.6 км слой=detail raw=5589 game=5584 render=5588 недобор=1.1 м (0.01°) сетка=19.3 источник=-14.5 LOD=-3.7
+MLOOK everest_namche вершина Everest d=29.2 км слой=far raw=8735 game=8699 render=8709 недобор=26.0 м (0.05°) сетка=5.3 источник=30.3 LOD=-9.7
+MLOOK everest_namche вершина Lhotse d=27.7 км слой=far raw=8412 game=8370 render=8382 недобор=30.4 м (0.06°) сетка=18.8 источник=23.7 LOD=-12.1
+MLOOK everest_namche вершина Nuptse d=24.8 км слой=detail raw=7793 game=7788 render=7785 недобор=8.1 м (0.02°) сетка=16.2 источник=-12.0 LOD=3.8
+MLOOK everest_namche вершина AmaDablam d=15.8 км слой=detail raw=6658 game=6653 render=6660 недобор=-1.5 м (-0.01°) сетка=14.6 источник=-9.3 LOD=-6.9
+MLOOK everest_namche вершина Makalu d=38.1 км слой=far raw=8241 game=8191 render=8199 недобор=42.1 м (0.06°) сетка=7.3 источник=43.0 LOD=-8.2
+MLOOK everest_namche горизонт rough_raw=0.1126 rough_render=0.1398 ratio=1.24 deficit_p50=-0.012 max=0.489 far_share=0.06
+mountain_look_probe: OK everest_namche

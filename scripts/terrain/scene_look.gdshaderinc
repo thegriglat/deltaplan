@@ -355,3 +355,38 @@ vec3 sl_trails(vec3 c, vec2 p, float h, vec3 nc, float slope_deg, float fh, vec3
 	return c * mix(1.0, tone, k * sl_trails_strength);
 }
 #endif
+
+// --- SL-15: волны ветра по траве с высоты — блеск по солнцу и оттенок ---
+// Под порывом стебли наклоняются по ветру d; поверхность листвы обращена против ветра (−d).
+// Блеск — как у половинного вектора h = норм(на солнце + на камеру): наклон к h светлит (серебро изнанки,
+// рассеяние вперёд), наклон от h темнит. s = −d·h_xz / |h| ∈ [−1, 1]: знак даёт азимут ветра
+// относительно солнца и взгляда, величина — высоту (солнце в зените и камера над головой → 0).
+// far — маска порыва grass_wind_far (уже посчитана, 0…~1), base — прежнее равномерное посветление
+// wind_far_shade (заменяется направленным, чтобы в тёмной полосе не было «плюс-минус»).
+uniform bool sl_grass_wind_sheen_enabled = false;
+uniform float sl_grass_wind_sheen_gain = 0.3;    // ±доля яркости при s = ±1 и far = 1
+uniform float sl_grass_wind_sheen_tint = 0.6;    // доля сдвига оттенка (светлая полоса к сизо-жёлтому, тёмная к глубокой зелени)
+
+// Знак и сила эффекта (−1…1): wind — ветер xz (м/с), l — на солнце (мир), v — на камеру (мир, единичный).
+float sl_wind_sheen_sign(vec2 wind, vec3 l, vec3 v) {
+	float spd = length(wind);
+	if (spd < 1e-3) {
+		return 0.0;
+	}
+	vec3 h = normalize(l + v);
+	return clamp(-dot(wind / spd, h.xz) / max(length(h), 1e-3) * 1.6, -1.0, 1.0);
+}
+
+vec3 sl_wind_sheen(vec3 c, float far, float base, vec2 wind, vec3 v) {
+	if (!sl_grass_wind_sheen_enabled || far <= 0.0) {
+		return c;
+	}
+	float s = sl_wind_sheen_sign(wind, sl_sun_dir, v);
+	float luma = dot(c, SL_LW);
+	c /= 1.0 + base * far;    // убрать равномерное посветление
+	vec3 lit = mix(c, vec3(luma) * vec3(1.04, 1.0, 0.9) + (c - vec3(luma)) * 0.5, 0.5);   // светлая полоса: серебристо-жёлтоватая, мягче по цвету
+	vec3 dark = c * vec3(0.92, 1.0, 0.9);                                                  // тёмная: глубже зелёная
+	float a = abs(s) * far * sl_grass_wind_sheen_tint;
+	c = mix(c, s > 0.0 ? lit : dark, clamp(a, 0.0, 1.0));
+	return c * (1.0 + sl_grass_wind_sheen_gain * s * far);
+}

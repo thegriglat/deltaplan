@@ -22,7 +22,9 @@ static func apply(sail: MeshInstance3D, model: String) -> ShaderMaterial:
 		mat.set_shader_parameter("albedo_tex", src.albedo_texture)
 		mat.set_shader_parameter("albedo_tint", src.albedo_color)
 	for map_name: String in ["normal", "trans"]:
-		var path := DIR + "%s_%s.png" % [model, map_name]
+		# Одинаковые карты разных крыльев хранятся одним файлом (sail_maps.json, tools/blender/sail_dedupe.py).
+		var shared: String = str(_maps().get(model, {}).get(map_name, model))
+		var path := DIR + "%s_%s.png" % [shared, map_name]
 		if ResourceLoader.exists(path):
 			mat.set_shader_parameter(map_name + "_tex", load(path))
 		else:
@@ -51,6 +53,19 @@ static func set_flight(mat: ShaderMaterial, airspeed_ms: float, stall_amount: fl
 	mat.set_shader_parameter("airspeed_ms", airspeed_ms)
 	mat.set_shader_parameter("stall_amount", clampf(stall_amount, 0.0, 1.0))
 	mat.set_shader_parameter("turbulence", clampf(turbulence, 0.0, 1.0))
+
+
+static var _maps_cache: Dictionary = {}
+
+
+static func _maps() -> Dictionary:
+	if _maps_cache.is_empty():
+		var f := FileAccess.open(DIR + "sail_maps.json", FileAccess.READ)
+		if f != null:
+			var d: Variant = JSON.parse_string(f.get_as_text())
+			if d is Dictionary:
+				_maps_cache = d
+	return _maps_cache
 
 
 static func _params() -> Dictionary:

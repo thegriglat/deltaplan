@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "Зонд К3 final_* на 8 местах (elbrus_cheget перезапущен), final_tables.md (compare.py --after=final), итог в README, 6 кадров after_*, сборка Linux.",
+  "commits": [
+    "c3d4be7e замер после, таблицы, README",
+    "6458aa5d уточнение итога в README"
+  ],
+  "checks": [
+    {
+      "name": "probe",
+      "value": "8",
+      "pass": true
+    },
+    {
+      "name": "table",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "6",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Сборка build/linux в копии: pck 212 МБ, всего 285 МБ — ветка модуля не содержит сжатия текстур крыльев из main (там 86 МБ); норма до слияния в main?"
+  ],
+  "images": [],
+  "how_to_check": "dp accept MLK-5",
+  "uncertain": [],
+  "dp_feedback": "",
+  "extra": {
+    "build": "/home/greg/deltaplan-mountain-look-MLK-5/build/linux/deltaplan.x86_64 (70 МБ, pck 212 МБ, каталог 285 МБ)"
+  },
+  "t": "2026-10-14T00:47:44",
+  "by": "executor"
+}

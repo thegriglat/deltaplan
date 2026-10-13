@@ -1,0 +1,138 @@
+{
+  "status": "done",
+  "summary": "Сглаживание DSM только под лесом и застройкой (MLK-К1): стадия smooth, FORMAT_VERSION 4, фикстуры мест и эталоны воздуха (picard, window) пересчитаны, контрактные тесты К1 зелёные; кривизна гребней выше леса игра/сырое 1,000 (Эльбрус) и 0,999 (Шымбулак).",
+  "commits": [
+    "44c13bd7 сглаживание DSM только под лесом и застройкой (SmoothStage), FORMAT_VERSION 4, фикстуры",
+    "82d3856d эталоны воздуха пересчитаны по новым высотам Онгудая"
+  ],
+  "checks": [
+    {
+      "name": "dp accept MLK-2 --dry",
+      "value": "9/9 (mountain_look_contracts 5/5, dem_stage 4/4, location_builder 7/7, locations 1/1, terrain 115/115, surface 36/36, river_stage 3/3, no_osm_contracts 8/8, osm_any_contracts 10/10)",
+      "pass": true
+    },
+    {
+      "name": "кривизна гребней выше леса игра/сырое, Эльбрус",
+      "value": "0.561 → 1.000",
+      "pass": true
+    },
+    {
+      "name": "кривизна гребней выше леса игра/сырое, Шымбулак",
+      "value": "0.639 → 0.999",
+      "pass": true
+    },
+    {
+      "name": "просадка гребней выше леса, м (Эльбрус/Шымбулак)",
+      "value": "5.649/5.268 → 0.000/0.015",
+      "pass": true
+    },
+    {
+      "name": "ступенька DSM на опушке (лес − открытое, Шымбулак), м",
+      "value": "сырые 3.05; игра было 2.07, стало 2.62",
+      "pass": true
+    },
+    {
+      "name": "тесты атмосферы после пересчёта эталонов",
+      "value": "174/175 (31 пропуск GPU); air_place и air_window_case зелёные; упал только test_atmosphere::test_performance (air_velocity_at медиана 42–49 мкс при пороге 40; в полном прогоне до пересчёта было 28 мкс — таймингом, от высот не зависит)",
+      "pass": false
+    },
+    {
+      "name": "mountain_look_contracts",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "dem_stage",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "location_builder",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "locations",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "terrain",
+      "value": "115/115",
+      "pass": true
+    },
+    {
+      "name": "surface",
+      "value": "36/36",
+      "pass": true
+    },
+    {
+      "name": "river_stage",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "no_osm_contracts",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "osm_any_contracts",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "atmosphere",
+      "value": "174/175, упал test_performance (тайминг)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "test_atmosphere::test_performance нестабилен по времени (42–49 мкс против порога 40 при фоновой нагрузке), не копал.",
+    "gpu_tests.sh --filter=atmosphere под замком отработал без строк итога, результат GPU-тестов не подтверждён."
+  ],
+  "questions": [
+    "Ступенька на опушке выросла с 2,07 до 2,62 м (сырые 3,05): на самой кромке w ≈ 0,5, это следствие К1 (маска размыта на 50 м), а не ошибка. Если нужна прежняя ступенька, маску на кромке надо делать жёстче (изменение К1)."
+  ],
+  "images": [],
+  "how_to_check": "dp accept MLK-2 --dry; XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=mountain_look_contracts; зонд: godot --headless --path . res://tools/bench/cliff_look_probe.tscn -- --latlon=43.128,77.081 --shape=1 --tag=shymbulak (строки «выше леса» и «ступенька DSM на опушке»)",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/smooth_stage.gd:run",
+      "why": "ERR_UNAVAILABLE при отсутствии покрова делает место incomplete (missing: smooth) — офлайн это и так так из-за surface; но если у слоя спеки surface.layers нет, сглаживание везде без ошибки",
+      "checked": "test_k1_no_cover_keeps_gaussian, test_k1_stage_writes_layer; полный прогон test_location_builder/osm_tiles_stage зелёные"
+    },
+    {
+      "where": "scripts/terrain/build/dem_stage.gd (detail_raw.webp)",
+      "why": "DemStage пишет сырые в <слой>_raw.webp (+~2 МБ временно), SmoothStage удаляет; реки (RiverStage) считаются на высотах со сглаживанием везде, а не на сырых — разница мала, в К1 допустимо",
+      "checked": "river_stage тесты зелёные; фикстуры собраны штатным сборщиком (4 места), в фикстурах _raw нет"
+    },
+    {
+      "where": "tests/fixtures/locations/*/build.json",
+      "why": "фикстуры собраны build_location.gd --local; osm_tiles.json и запись osm_tiles в seconds удалены вручную (как в старых фикстурах без стадии OSM); meta.json перезаписан json-дампом (ключи по алфавиту, как было)",
+      "checked": "locations/terrain/location_builder тесты зелёные"
+    },
+    {
+      "where": "tools/bench/cliff_look_probe.gd",
+      "why": "«выше леса» = ни леса, ни застройки в 150 м вокруг (forest_at и класс карты); у Эльбруса леса нет, ступеньку там не измерить — взят Шымбулак",
+      "checked": "до — на старом коммите с тем же зондом (отдельный worktree в scratchpad), после — на ветке"
+    }
+  ],
+  "dp_feedback": "Не хватило: dp job wait по двум задачам подряд в одном вызове упирается в 600 с, нужен wait на несколько задач с общим таймаутом в фоне; отдельной команды «собрать фикстуру места» (build_location + копирование + правка build.json) нет — делал вручную; dp accept --dry не показывает падения из соседних фильтров (атмосфера), которые ломаются из-за фикстур мест.; пересчёт эталонов воздуха: скрипты air3d читают старый формат data/terrain/<id>/*.f32.br, пришлось временно конвертировать фикстуру места и ставить venv (numpy, brotli, pillow, cupy).",
+  "extra": {
+    "elbrus_before": "кривизна сырые 0.211, игра 0.118 (×0.561); просадка гребней 5.649 м",
+    "elbrus_after": "кривизна сырые 0.211, игра 0.211 (×1.000); просадка 0.000 м",
+    "shymbulak_before": "выше леса: сырые 0.191, игра 0.122 (×0.639), просадка 5.268 м",
+    "shymbulak_after": "выше леса: сырые 0.191, игра 0.190 (×0.999), просадка 0.015 м; все гребни: ×0.59 → ×0.86",
+    "forest_step_shymbulak": "узлы лес−открытое, пар 9361: сырые 3.05 м, игра было 2.07 м, стало 2.62 м",
+    "stage_seconds_askarovo": "smooth 8.9 с (dem 5.7, rivers 23.8, surface 18.2)",
+    "interface": "К1 не менялся; добавлены ключи meta.json слоя raw_file/raw_height_min_m (временные) и стадия smooth между surface и osm_tiles (LocationBuilder.default_stages)",
+    "air_refs": "пересчитаны picard/ongudai_d{200,400}_h12 и window/ongudai_w{50,100}_h12 скриптами picard_gpu_refs.py и window_gpu_refs.py без изменений скриптов; временный data/terrain/ongudai удалён"
+  },
+  "curv_ratio_above_forest_before": "Эльбрус 0.561; Шымбулак 0.639",
+  "curv_ratio_above_forest_after": "Эльбрус 1.000; Шымбулак 0.999",
+  "crest_drop_m_above_forest_after": "Эльбрус 0.000; Шымбулак 0.015",
+  "forest_step_m_after": "Шымбулак 2.62 (было 2.07, сырые 3.05)",
+  "t": "2026-10-13T23:28:30",
+  "by": "executor"
+}

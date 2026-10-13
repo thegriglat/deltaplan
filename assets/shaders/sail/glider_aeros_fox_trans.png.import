@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://by6ojemwt8bnc"
-path.s3tc="res://.godot/imported/glider_aeros_fox_trans.png-9c16f281bf32a3e351ddb12cad23173e.s3tc.ctex"
-path.etc2="res://.godot/imported/glider_aeros_fox_trans.png-9c16f281bf32a3e351ddb12cad23173e.etc2.ctex"
+path="res://.godot/imported/glider_aeros_fox_trans.png-9c16f281bf32a3e351ddb12cad23173e.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://assets/shaders/sail/glider_aeros_fox_trans.png"
-dest_files=["res://.godot/imported/glider_aeros_fox_trans.png-9c16f281bf32a3e351ddb12cad23173e.s3tc.ctex", "res://.godot/imported/glider_aeros_fox_trans.png-9c16f281bf32a3e351ddb12cad23173e.etc2.ctex"]
+dest_files=["res://.godot/imported/glider_aeros_fox_trans.png-9c16f281bf32a3e351ddb12cad23173e.ctex"]
 
 [params]
 
-compress/mode=2
-compress/high_quality=false
+compress/mode=4
+compress/high_quality=true
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
