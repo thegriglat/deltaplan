@@ -849,7 +849,6 @@ void fragment() {
 
 	// --- луг: сухая трава на южных склонах и пятнами ---
 	vec3 gcol = meadow_ground_color(wp.xz, north, patch2, wet, north_s);
-	gcol = sl_meadow(gcol, wp, n_class, north, north_s, dry_south_k, aspect_dry_k, grass_color, straw_color); // SL
 
 	float tex_w = fade * texture_strength;
 
@@ -1009,7 +1008,6 @@ void fragment() {
 		fcolor *= 1.0 - forest_wet_dark * clamp(0.6 * wet + 0.6 * north_s, -1.0, 1.0);
 	}
 	fcolor = sl_canopy_tone(fcolor, sl_fc0, fmean, con_p, dist, canopy_far_shade); // SL
-	fcolor = sl_forest(fcolor, gcol, wp, n_class, dist); // SL
 	if (use_forest_tex) {
 		fcolor = apply_tex(fcolor, texture(forest_tex, wp.xz / forest_tex_tile_m).rgb, forest_tex_avg, tex_w);
 	}
@@ -1304,10 +1302,6 @@ void fragment() {
 	float bank = use_forest_mask
 			? smoothstep(0.02, 0.22, water_g) * (1.0 - smoothstep(0.22, 0.4, water_g))
 			: 0.0;
-	if (sl_riparian_enabled && use_forest_mask && dist < sl_riparian_fade_m.y && wa.y + shrub > 0.01) { // SL
-		float sl_rw = sl_riparian_w(sl_riparian_ring(wp.xz), water, dist) * (wa.y + shrub) * (1.0 - snow) * (1.0 - rock) * (1.0 - bare); // SL
-		col = sl_riparian_color(col, grass_color, sl_rw); // SL
-	} // SL
 	vec3 bank_color = mix(bare_color, rock_color, 0.3) * 0.55;
 	col = mix(col, bank_color, bank * (1.0 - water));
 	float water_rough = water_roughness;
