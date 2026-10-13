@@ -15,17 +15,18 @@ func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out_path: String = args[0] if args.size() > 0 else "measure.csv"
 	var step := int(args[1]) if args.size() > 1 else 1
+	# Крылья и файлы карт — по sail_maps.json (одинаковые карты хранятся одним файлом).
+	var maps: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAIL + "sail_maps.json"))
 	var names: Array[String] = []
-	for f in DirAccess.get_files_at(SAIL):
-		if f.ends_with("_trans.png"):
-			names.append(f.trim_suffix("_trans.png"))
+	for k in maps:
+		names.append(k)
 	names.sort()
 	var lines: PackedStringArray = []
 	for i in range(0, names.size(), step):
 		var n := names[i]
 		lines.append(_one("sail", n, MODELS + "%s_%s_sail.png" % [n, n]))
-		lines.append(_one("normal", n, SAIL + n + "_normal.png"))
-		lines.append(_one("trans", n, SAIL + n + "_trans.png"))
+		lines.append(_one("normal", n, SAIL + maps[n].normal + "_normal.png"))
+		lines.append(_one("trans", n, SAIL + maps[n].trans + "_trans.png"))
 	var f := FileAccess.open(out_path, FileAccess.WRITE)
 	f.store_string("\n".join(lines) + "\n")
 	f.close()
