@@ -64,6 +64,8 @@ var _start_clearings: Array[Vector3] = []
 var _sun_dir: Vector3 = Vector3.UP
 ## Солнце по классам поверхности с запаздыванием прогрева (SurfaceHeating); пусто — _sun_dir.
 var _class_sun := PackedVector3Array()
+## Застройка после заката (SurfaceHeating.built_night; пусто — солнце над горизонтом), FBW-К2 v3.
+var _class_night := {}
 ## terrain_look после переопределений локации (палитра — get_grass_palette).
 var _look: Dictionary = {}
 var _builder: LocationBuilder
@@ -659,7 +661,7 @@ func get_forest_mask() -> Array:
 ## set_water_heat, не задан → 0). Границы классов-триггеров (поле–лес, луг–лес, пашня–луг) усиливают.
 ## Сигнатура как у sun_fn в Atmosphere.set_ground.
 func thermal_source_strength_at(x: float, z: float) -> float:
-	return thermal_source_strength_for(x, z, _class_sun, _sun_dir)
+	return thermal_source_strength_water(x, z, _class_sun, _sun_dir, _water_heat, _class_night)
 
 
 ## Контекст воды для потока тепла (SurfaceHeat.water_flux): температуры воды и воздуха, °C, ветер, м/с.
@@ -682,8 +684,14 @@ func thermal_source_strength_for(
 
 ## То же с явным контекстом воды {t_water_c, t_air_c, u_ms} (пусто — вода 0): для AtmoDay, где вода
 ## зависит от часа, а не от текущего состояния Terrain.
+## night — застройка после заката (SurfaceHeating.built_night; пусто — нет).
 func thermal_source_strength_water(
-	x: float, z: float, class_sun: PackedVector3Array, to_sun: Vector3, water: Dictionary
+	x: float,
+	z: float,
+	class_sun: PackedVector3Array,
+	to_sun: Vector3,
+	water: Dictionary,
+	night: Dictionary = {}
 ) -> float:
 	var n := normal_at(x, z)
 	var c := _surface_class(x, z, n)
@@ -699,7 +707,7 @@ func thermal_source_strength_water(
 		n,
 		sun,
 		moisture_at(x, z),
-		_HEAT_SKY,
+		_HEAT_SKY if night.is_empty() else {"cover": 0.0, "sky_heat": 1.0, "night": night},
 		water,
 		_heat_cfg
 	)
@@ -757,8 +765,10 @@ func relief_horizon_at(x: float, z: float) -> float:
 ## рельефа) пересчитывается в фоне, когда азимут ушёл дальше surface.relief.shadow_recompute_deg.
 ## Солнце для источников термиков по классам (инерция прогрева: камни и деревни греют и вечером,
 ## SurfaceHeating.directions). Пустой массив — всем классам текущее солнце.
-func set_class_sun(dirs: PackedVector3Array) -> void:
+## night — застройка после заката (SurfaceHeating.built_night; пусто — нет).
+func set_class_sun(dirs: PackedVector3Array, night: Dictionary = {}) -> void:
 	_class_sun = dirs
+	_class_night = night
 
 
 func set_sun(to_sun: Vector3) -> void:

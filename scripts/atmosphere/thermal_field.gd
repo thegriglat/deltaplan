@@ -681,7 +681,7 @@ func _env_at(t: float) -> Dictionary:
 	var ins := insolation
 	var cb := cloudbase_msl
 	if day.has_weather():
-		ins = 1.0 - clampf(float(w.get("cirrus_cover", 0.0)), 0.0, 1.0) * cirrus_block
+		ins = 1.0 - WeatherModel.sun_block_cover(w) * cirrus_block
 		if not cloudbase_fixed:
 			cb = cloudbase_ref + day.value_at(t, "cloudbase_agl_m", float(_w.cloudbase_agl_m))
 	var sd := day.sun_at(t)
@@ -803,7 +803,10 @@ func _spawn_air(ia: int, ic: int, id: int, t_start: float, period: float) -> Atm
 	rng.seed = id
 	var env := _env_at(t_start)
 	var w: Dictionary = env.w
-	if rng.randf() > float(w.thermal_duty):
+	# Облачность неба — уже в потоке тепла поля (cover → K↓): доля циклов без неё (FBW-К2, один
+	# раз). Солнце под горизонтом — доля 0 (ход дня в thermal_duty): рождений нет, и над водой тоже.
+	var duty := float(w.thermal_duty) / maxf(float(w.get("sky_duty_k", 1.0)), 0.01)
+	if rng.randf() > duty:
 		return null
 	var th := AtmoThermal.new()
 	th.id = id
