@@ -5,14 +5,14 @@ module: scene-look
 updated: 2026-10-13
 summary: "Контракты scene-look: свой include и секция конфига без правок кода mountain-look (SL-К1), широта/дата/сезон для шейдеров с CPU-зеркалом (SL-К2), бюджет и замер GPU (SL-К3)."
 related: ["docs/plan/scene-look.md", "docs/guide/terrain.md"]
-contracts: [{"id": "SL-К1", "version": 1}, {"id": "SL-К2", "version": 1}, {"id": "SL-К3", "version": 1}]
+contracts: [{"id": "SL-К1", "version": 2}, {"id": "SL-К2", "version": 1}, {"id": "SL-К3", "version": 1}]
 ---
 # Контракты scene-look
 
 Контрактный тест — `tests/contracts/test_scene_look_contracts.gd` (`test_k1_*` и проводка `test_k2_wiring_*` — SL-2, сезон `test_k2_season_*` — SL-6).
 Правка интерфейса — только через координатора: версия +1, этот файл и тест — в том же шаге.
 
-## SL-К1 v1 — свой include, своя секция конфига, стык с mountain-look
+## SL-К1 v2 — свой include, своя секция конфига, стык с mountain-look
 - Владелец: SL-2. Потребители: SL-4…SL-10, mountain-look (не должен ломаться при слиянии).
 - Весь новый шейдерный код — в `scripts/terrain/scene_look.gdshaderinc`: функции `sl_*`, uniform-ы `sl_*`. Подключается в `terrain.gdshader`
   (после `terrain_common`), может подключаться в `grass.gdshader`, `forest_impostors.gdshader`, `tree_model.gdshader`, `road.gdshader`.
@@ -27,6 +27,18 @@ contracts: [{"id": "SL-К1", "version": 1}, {"id": "SL-К2", "version": 1}, {"id
 - Пресеты качества (`configs/game.json → graphics_presets`) могут выключать пункты через `world.scene_look.*` — только если не влезаем в SL-К3.
 - В шейдере рельефа — без циклов с `break` и с числом шагов из uniform (проход теней дорожает).
 - Документ — `docs/guide/scene-look.md` (SL-12); в `docs/guide/terrain.md` — только строка в «Что где».
+- v2 (SL-2, 13.10): что уже есть — потребители пользуются этим, а не дублируют.
+  - Рантайм-uniform-ы (ставит `Terrain`, не ключи конфига): `sl_lat_deg`, `sl_doy`, `sl_sun_dir` (к солнцу, мир), `sl_sky_up`, `sl_ground_low`
+    (линейные RGB освещённости от неба сверху и от земли снизу, CPU-оценка `TerrainRenderer.scene_look_sky(to_sun)`).
+  - Ключи `scene_look` SL-2: `light_enabled`, `ground_albedo` (vec3 лин.), `ground_local`, `canopy_albedo` (vec2: хвойный, лиственный),
+    `canopy_near_m` (vec2), `canopy_floor`, `canopy_shadow_k`, `canopy_hide_p`, `canopy_hotspot` (vec2), `tree_far_desat`.
+    Массивы 2/3/4 → vec2/3/4 без перевода из sRGB (цвета в `scene_look` — линейные).
+  - Функции include: `sl_ground_light(inout vec3 diffuse, vec3 light_color, bool directional, vec3 albedo, float ny, float ao, float cs)` (в `light()`),
+    `sl_relief_shadow(...)`, `sl_canopy_lit(n, v, l)`, `sl_canopy_direct(n, v, w)`, `sl_canopy_far(dist)`, `sl_canopy_tone(...)`, `sl_tree_tone(...)`;
+    varying-и из fragment в `light()`: `v_sl_ny`, `v_sl_ao`, `v_sl_sun`.
+  - GDScript: `TerrainRenderer.apply_scene_look(sl)`, `apply_scene_look_params(m, sl)`, `scene_look_sky(to_sun)`; `Terrain.set_flight_date(month, day)`,
+    `Terrain.day_of_year(month, day)`, `Terrain.scene_look_params()`, `Terrain.flight_doy`; `ForestImpostors.apply_scene_look(sl)`. Другие материалы
+    (трава, модели деревьев) получают параметры, если у них есть метод `apply_scene_look(sl)`.
 - Инварианты теста: include существует и подключён; каждый ключ `scene_look` есть uniform-ом в шейдере рельефа; в `terrain.gdshader`
   нет uniform-ов `sl_*`, объявленных вне include.
 
