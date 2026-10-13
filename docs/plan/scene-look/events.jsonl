@@ -161,3 +161,4 @@
 {"t": "2026-10-14T03:06:40", "by": "main", "task": "SL-12", "ev": "created", "note": "Документ scene-look и CHANGELOG"}
 {"t": "2026-10-14T03:06:53", "by": "main", "task": "SL-11", "ev": "edited", "note": "copy", "diff": {"copy": ["\"~/deltaplan-scene-look-SL-11\"", "\"~/deltaplan-scene-look\""]}}
 {"t": "2026-10-14T03:06:53", "by": "main", "task": "SL-11", "ev": "edited", "note": "branch", "diff": {"branch": ["\"scene-look/SL-11\"", "\"feature/scene-look\""]}}
+{"t": "2026-10-14T03:12:10", "by": "coordinator", "task": "SL-12", "ev": "started", "note": "dp-writer (sonnet), ~/deltaplan-scene-look-SL-12; по принятым задачам, SL-5/SL-10/SL-11 — дописать сообщением"}
