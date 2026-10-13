@@ -29,3 +29,5 @@
 {"t": "2026-10-13T22:21:07", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp report принял uncertain строкой и --show печатает её по символу (SL-4) — проверять тип или принимать строку; нужен способ пометить известное падение базы (test_city_ground_mask) в проверке карточки; нет команды GPU-замера произвольной сцены"}
 {"t": "2026-10-13T22:21:18", "by": "coordinator", "task": "SL-3", "ev": "merged"}
 {"t": "2026-10-13T22:21:18", "by": "coordinator", "task": "SL-4", "ev": "merged"}
+{"t": "2026-10-13T22:21:26", "by": "coordinator", "task": "SL-1", "ev": "merged", "note": "без коммитов (кадры в build/), копия удалена"}
+{"t": "2026-10-13T22:21:26", "by": "coordinator", "task": null, "ev": "note", "note": "dp: в каждой новой копии появляется неотслеживаемый tests/contracts/test_feedback_1013_contracts.gd.uid (в main не закоммичен) — git worktree remove отказывает, нужен --force; хорошо бы dp gc/merge это учитывали"}
