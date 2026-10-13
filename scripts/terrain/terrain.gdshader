@@ -1123,7 +1123,7 @@ void fragment() {
 		fcolor *= 1.0 - forest_wet_dark * clamp(0.6 * wet + 0.6 * north_s, -1.0, 1.0);
 	}
 	fcolor = sl_canopy_tone(fcolor, sl_fc0, fmean, con_p, dist, canopy_far_shade); // SL
-	fcolor = sl_forest(fcolor, gcol, wp); // SL
+	if (forest > 0.01) fcolor = sl_forest(fcolor, gcol, wp); // SL
 	if (forest > 0.01) fcolor = sl_canopy_season(fcolor, con_p, sl_ss, h); // SL
 	if (use_forest_tex) {
 		fcolor = apply_tex(fcolor, texture(forest_tex, wp.xz / forest_tex_tile_m).rgb, forest_tex_avg, tex_w);
