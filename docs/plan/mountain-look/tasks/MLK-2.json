@@ -68,6 +68,10 @@
     {
       "name": "osm_any_contracts",
       "tests": "osm_any_contracts"
+    },
+    {
+      "name": "atmosphere",
+      "tests": "atmosphere"
     }
   ],
   "report_extra": [
@@ -78,5 +82,5 @@
   ],
   "notes": "",
   "created": "2026-10-13T21:42:23",
-  "edited": "2026-10-13T22:39:42"
+  "edited": "2026-10-13T23:17:19"
 }
