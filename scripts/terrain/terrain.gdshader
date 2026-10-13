@@ -389,6 +389,9 @@ uniform float terrace_strength = 0.45;
 uniform vec2 tone_scale_m = vec2(380.0, 1500.0); // крупные пятна тона, м
 uniform float tone_strength = 0.18;
 // --- выходы породы и курумник на гребнях/выпуклостях и крутых лугах ---
+uniform vec2 snow_slope_deg = vec2(38.0, 52.0);   // снег WorldCover: держится / гаснет по уклону, градусы
+uniform float snow_hollow_deg = 6.0;            // в ложбине снег держится круче на столько градусов (при вогнутости outcrop_convex_k)
+uniform float snow_ridge_blow = 0.6;            // выпуклый гребень: доля снега, сдуваемая ветром (0..1)
 uniform float outcrop_convex_k = 0.035;        // выпуклость (м/м), с которой гребень каменистый
 uniform vec2 outcrop_slope_deg = vec2(25.0, 36.0); // уклон начала/полной силы выходов породы
 uniform float outcrop_patch_m = 45.0;         // размер пятен породы, м
@@ -814,6 +817,20 @@ void fragment() {
 	float bare = wb.x;
 	float built = wb.z;
 	float snow = wb.w;
+	// снег класса 8: на крутом гаснет (порода видна), в ложбинах держится, с выпуклых гребней сдут;
+	// кромка рваная (как у скал); освободившаяся доля — грунт под снегом (скалы подхватят по уклону)
+	float snow_freed = 0.0;
+	float snow_rest = 1.0;
+	if (snow > 0.001) {
+		float cv = v_convex / outcrop_convex_k;
+		float s_eff = slope_deg - snow_hollow_deg * smoothstep(0.0, 1.0, -cv);
+		float keep = (1.0 - smoothstep(snow_slope_deg.x, snow_slope_deg.y, s_eff))
+				* (1.0 - snow_ridge_blow * smoothstep(0.7, 1.6, cv));
+		float snow_new = ragged_edge(snow * keep, wp.xz + 31.0, foot_m);
+		snow_freed = max(snow - snow_new, 0.0);
+		snow_rest = snow_new > snow ? (1.0 - snow_new) / max(1.0 - snow, 1e-3) : 1.0;
+		snow = snow_new;
+	}
 	float north = northness(n_class);
 	float patch2 = meadow_patch(wp.xz);
 
@@ -952,7 +969,7 @@ void fragment() {
 	if (use_snow_tex) {
 		wcol = apply_tex(wcol, texture(snow_tex, wp.xz / snow_tex_tile_m).rgb, snow_tex_avg, tex_w);
 	}
-	col += bcol * bare + ucol * built + wcol * snow;
+	col = (col + bcol * (bare + snow_freed) + ucol * built) * snow_rest + wcol * snow;
 
 	// --- лес: полог из крон (ячейки canopy_cell_m) с освещением и тенями; вдали — средний тон ---
 	float con_p = conifer_share(patch2, north);
@@ -1016,7 +1033,7 @@ void fragment() {
 	// --- скалы: крутые склоны без леса (луг, кустарник, грунт на крутизне — выходы породы) ---
 	float rnoise = fbm(wp.xz / 40.0 + vec2(5.1, 2.3), 3);
 	float rock = ragged_edge(smoothstep(rock_slope_deg - rock_blend_deg * 0.5, rock_slope_deg + rock_blend_deg * 0.5,
-			slope_deg + 10.0 * (rnoise - 0.5)), wp.xz, foot_m) * (wa.y + crop + shrub + bare) / land;
+			slope_deg + 10.0 * (rnoise - 0.5)), wp.xz, foot_m) * (wa.y + crop + shrub + bare + snow_freed) / land;
 	// цвет породы — только там, где есть скалы или выходы породы (текстуры — с производными,
 	// посчитанными до ветвления)
 	vec3 rcol = rock_color;

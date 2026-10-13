@@ -14,7 +14,7 @@ extends Node
 ##               слоя игры и сетки LOD (узлы через 2/4/8) — уклоны, гребни и ложбины
 ## Печатает строки «CLIFF …» и «cliff_look_probe: OK».
 
-const BINS := [0.0, 15.0, 25.0, 32.0, 38.0, 45.0, 90.0]
+const BINS := [0.0, 15.0, 25.0, 30.0, 38.0, 45.0, 55.0, 90.0]
 
 var _lat := NAN
 var _lon := NAN
@@ -88,6 +88,11 @@ func _measure(t: Terrain, c: Vector2) -> void:
 	var oc_sl: Array = look.get("outcrop_slope_deg", [25.0, 36.0])
 	var snow_line := float(look.get("gully_snow_line_m", 2500.0))
 	var e_sl: Array = look.get("erosion_slope_deg", [5.0, 18.0])
+	var sn_sl: Array = look.get("snow_slope_deg", [38.0, 52.0])
+	var sn_hollow := float(look.get("snow_hollow_deg", 6.0))
+	var sn_blow := float(look.get("snow_ridge_blow", 0.6))
+	var cvx_k := float(look.get("outcrop_convex_k", 0.035))
+	var cvx_m := float(look.get("outcrop_scale_m", 35.0))
 	var sp := L.spacing
 	print("CLIFF %s layer spacing=%.1f m, rock_slope_deg=%.0f±%.0f, outcrop=%s, snow_line=%.0f"
 			% [_tag, sp, rock_deg, rock_bl * 0.5, str(oc_sl), snow_line])
@@ -96,7 +101,7 @@ func _measure(t: Terrain, c: Vector2) -> void:
 	cnt.resize(nb)
 	var acc := {}
 	for k in ["forest", "grass", "shrub", "bare", "snow", "other", "rock", "outcrop", "gsnow",
-			"eros", "plain", "tex", "h"]:
+			"eros", "plain", "tex", "h", "snow2"]:
 		var a := PackedFloat64Array()
 		a.resize(nb)
 		acc[k] = a
@@ -122,6 +127,13 @@ func _measure(t: Terrain, c: Vector2) -> void:
 			var shrub := float(cl == SurfaceLayer.SHRUB)
 			var bare := float(cl == SurfaceLayer.BARE)
 			var snow := float(cl == SurfaceLayer.SNOW)
+			# снег класса 8 после MLK-4 (CPU-зеркало шейдера; шум кромки — средним: ступенька по 0,5)
+			var cg := maxf(cvx_m, sp)
+			var cv := -(L.sample(p.x + cg, p.y) + L.sample(p.x - cg, p.y) + L.sample(p.x, p.y + cg)
+					+ L.sample(p.x, p.y - cg) - 4.0 * h) / (4.0 * cg) / cvx_k
+			var s_eff := slope - sn_hollow * _ss(0.0, 1.0, -cv)
+			var keep := (1.0 - _ss(float(sn_sl[0]), float(sn_sl[1]), s_eff)) * (1.0 - sn_blow * _ss(0.7, 1.6, cv))
+			var snow2 := snow * _ss(0.44, 0.56, snow * keep)
 			var other := 1.0 - forest - grass - shrub - bare - snow
 			var open_w := grass + shrub + bare
 			# скалы (шум rnoise — средним)
@@ -144,12 +156,17 @@ func _measure(t: Terrain, c: Vector2) -> void:
 			total += 1
 			var vals := {"forest": forest, "grass": grass, "shrub": shrub, "bare": bare, "snow": snow,
 					"other": other, "rock": rock, "outcrop": outcrop, "gsnow": gsnow, "eros": eros,
-					"plain": plain, "tex": tex, "h": h}
+					"plain": plain, "tex": tex, "h": h, "snow2": snow2}
 			for k: String in vals:
 				var a: PackedFloat64Array = acc[k]
 				a[b] += vals[k]
 				acc[k] = a
 	print("CLIFF %s точек=%d (шаг %.0f м, радиус %.0f м)" % [_tag, total, _step, _radius])
+	print("CLIFF %s снег класса 8 по уклону: доля клеток снега до -> после (MLK-4)" % _tag)
+	for b in nb:
+		if cnt[b] > 0.0:
+			print("CLIFF %s SNOWBAND %2.0f-%2.0f° n=%d before=%.3f after=%.3f"
+					% [_tag, BINS[b], BINS[b + 1], int(cnt[b]), acc["snow"][b] / cnt[b], acc["snow2"][b] / cnt[b]])
 	print("CLIFF %s уклон    площ%%  высота  лес  луг  куст грунт снег | скалы выход снегКул промоин | фактура ровно" % _tag)
 	for b in nb:
 		if cnt[b] <= 0.0:
