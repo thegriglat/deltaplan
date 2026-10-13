@@ -38,7 +38,7 @@ uniform float sl_tree_far_desat = 0.3;     // импостеры вдали: о�
 // Множитель k ∈ [trees.lod_k_min, trees.lod_k_max] — хеш мировых координат дерева по сетке 4 м (без
 // камеры и кадра); модель видна до radius_m·k, импостер дальше. Зеркало на CPU — TreePlacer.lod_k_at
 // (правятся вместе, тест сравнивает). Диапазон ставят TerrainTreeModels и ForestImpostors.
-uniform vec2 sl_lod_k_range = vec2(0.6, 1.6);
+uniform vec2 sl_lod_k_range = vec2(0.75, 1.2);
 float sl_lod_hash(vec2 xz, uint salt) {
 	ivec2 q = ivec2(floor(xz * 0.25));
 	uint h = uint(q.x) * 374761393u + uint(q.y) * 668265263u + salt * 1442695041u;
