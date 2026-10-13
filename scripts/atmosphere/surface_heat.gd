@@ -136,9 +136,23 @@ static func water_flux(
 	return rcp * float(w.get("c_h", 1.4e-3)) * maxf(u_ms, float(w.get("u_min_ms", 1.0))) * (t_water_c - t_air_c)
 
 
+## H застройки после заката (FBW-К2 v3, эмпирика): тепло, накопленное зданиями и асфальтом, уходит
+## с запаздыванием — H = H_пол + (H_зак − H_пол)⁺·exp(−dt/τ); H_зак — поток застройки по её солнцу (с
+## запаздыванием класса) в момент заката, H_пол — наблюдаемый ночной поток города (classes.built.
+## night_floor_wm2), τ — night_tau_h. night = SurfaceHeating.built_night.
+static func built_night_flux(night: Dictionary, cover: float, m: float, cfg: Dictionary) -> float:
+	var k := _class_cfg(SurfaceLayer.BUILT, cfg)
+	var floor_h := float(k.get("night_floor_wm2", 0.0))
+	var sin_s := float(night.get("sin_s", 0.0))
+	var h_s := land_flux(SurfaceLayer.BUILT, shortwave(sin_s, sin_s, cover, 1.0, cfg), cover, m, cfg)
+	var tau := maxf(float(k.get("night_tau_h", 1.5)), 0.01)
+	return floor_h + maxf(h_s - floor_h, 0.0) * exp(-float(night.get("dt_h", 0.0)) / tau)
+
+
 ## H клетки/точки: Σ f_c·H_c, веса fracs[off + c] (нормируются; сумма 0 → весь вес NONE).
 ## class_sun[c] — единичный вектор НА солнце класса (нулевой — солнце под горизонтом, K↓ = 0).
-## sky = {cover, sky_heat (не используется)}; water = {t_water_c, t_air_c, u_ms, z_m (необяз., 0)} (пусто → H воды 0); T_воды ≤ ice_c → вода как SNOW.
+## sky = {cover, sky_heat (не используется), night (необяз.: SurfaceHeating.built_night — застройка
+## после заката, built_night_flux)}; water = {t_water_c, t_air_c, u_ms, z_m (необяз., 0)} (пусто → H воды 0); T_воды ≤ ice_c → вода как SNOW.
 static func mix_flux(
 	fracs: PackedFloat32Array,
 	off: int,
@@ -171,6 +185,9 @@ static func mix_flux(
 			else:
 				h += f * water_flux(tw, float(water.get("t_air_c", tw)), float(water.get("u_ms", 0.0)), cfg, float(water.get("z_m", 0.0)))
 				continue
+		if cls == SurfaceLayer.BUILT and not (sky.get("night", {}) as Dictionary).is_empty():
+			h += f * built_night_flux(sky.night, cover, m, cfg)
+			continue
 		var sun := class_sun[cls] if cls < class_sun.size() else Vector3.ZERO
 		var k := 0.0
 		if sun != Vector3.ZERO:

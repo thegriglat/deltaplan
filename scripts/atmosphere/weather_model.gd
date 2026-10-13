@@ -288,6 +288,9 @@ static func diurnal_state(
 	var el_noon := SunClock.solar_position(lat, lon, doy, noon, utc).y
 	var heat := maxf(sin(deg_to_rad(el)), 0.0) / maxf(sin(deg_to_rad(el_noon)), 0.05)
 	heat = clampf(heat, 0.0, 1.0)
+	# Солнце сейчас под горизонтом — притока тепла нет, запаздывание не тянет его за закат (FBW-К2).
+	if SunClock.solar_position(lat, lon, doy, hour, utc).y <= 0.0:
+		heat = 0.0
 	var sd: Dictionary = d.get("soft", {})
 	var sharp_min := float(sd.get("sharp_min", 0.5))
 	var soft := clampf((1.0 - heat) / maxf(1.0 - sharp_min, 0.01), 0.0, 1.0)
@@ -345,6 +348,10 @@ static func _apply_heat(w: Dictionary, st: Dictionary, sky: Dictionary, c: Dicti
 	w.cb_thermal_chance = float(w.cb_thermal_chance) * cb_k
 	w.overdevelopment_chance = float(w.overdevelopment_chance) * cb_k
 	w.cirrus_cover = maxf(float(w.cirrus_cover), float(sky.get("cover", 0.0)))
+	# Облачность уже учтена в прогреве (heat — аналитика; cover → K↓ — поле): пелена неба больше не
+	# гасит солнце повторно (sun_block_cover), доля рождений поля — без duty_k (FBW-К2: один раз).
+	w.sky_cover = float(sky.get("cover", 0.0))
+	w.sky_duty_k = float(sky.get("duty_k", 1.0))
 	w.thermal_edge_k = 1.0 - float(sd.get("edge_k", 0.4)) * soft
 	w.mech_turbulence_k = float(st.get("mech_k", 1.0))
 	w.haze_k = float(st.get("haze_k", 1.0)) * float(sky.get("haze_k", 1.0))
@@ -352,6 +359,15 @@ static func _apply_heat(w: Dictionary, st: Dictionary, sky: Dictionary, c: Dicti
 	dv.merge(st, true)
 	dv.heat = heat
 	dv.soft = soft
+
+
+## Покрытие пелены, которое ещё гасит солнце источникам термиков (Atmosphere/ThermalField: доля
+## cirrus.sun_block): пелена сверх облачности неба прогноза — облачность неба уже в прогреве
+## (_apply_heat), второй раз её не считать (FBW-К2).
+static func sun_block_cover(w: Dictionary) -> float:
+	return clampf(
+		float(w.get("cirrus_cover", 0.0)) - float(w.get("sky_cover", 0.0)), 0.0, 1.0
+	)
 
 
 ## Высота солнца в истинный полдень, градусы.

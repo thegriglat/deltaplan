@@ -89,14 +89,15 @@ static func domain_case(
 	return c
 
 
-## Контекст места для погоды: дата (reference_context), широта/долгота/пояс, долина и среднее.
+## Контекст места для погоды: дата полёта (loc.month, loc.day; нет — reference_context), широта/
+## долгота/пояс, долина и среднее (FBW-К2: солнце и ход дня — по дате полёта).
 static func context(detail: HeightLayer, loc: Dictionary, cfg: Dictionary) -> Dictionary:
 	var rc := WeatherModel.reference_context(cfg)
 	var lat := float(loc.get("center_lat", rc.get("lat", 52.0)))
 	var lon := float(loc.get("center_lon", rc.get("lon", 0.0)))
 	var ctx := {
-		month = int(rc.get("month", 7)),
-		day = int(rc.get("day", 15)),
+		month = int(loc.get("month", rc.get("month", 7))),
+		day = int(loc.get("day", rc.get("day", 15))),
 		lat = lat,
 		lon = lon,
 		utc_offset_h = float(loc.get("utc_offset_h", roundf(lon / 15.0))),
@@ -803,7 +804,9 @@ static func surface_flux(
 	if sun.is_empty():  # инерция прогрева выключена — всем классам текущее солнце
 		sun.resize(SurfaceLayer.CLASS_COUNT)
 		sun.fill(heating.sun_at(hour))
-	var sky := {cover = float(d.cover), sky_heat = float(d.sky_heat)}
+	var sky := {
+		cover = float(d.cover), sky_heat = float(d.sky_heat), night = heating.built_night(hour)
+	}
 	var fr: PackedFloat32Array = cells.fr
 	var mo: PackedFloat32Array = cells.m
 	var nc := SurfaceLayer.CLASS_COUNT
