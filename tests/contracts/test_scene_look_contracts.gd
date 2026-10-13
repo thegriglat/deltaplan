@@ -4,7 +4,7 @@ extends TestCase
 ## полёта. Сезон (test_k2_season_*) — SL-6.
 
 const DOC := "res://docs/contracts/scene-look.md"
-const VERSIONS := {"SL-К1": 1, "SL-К2": 1}
+const VERSIONS := {"SL-К1": 2, "SL-К2": 1}
 const INC := "res://scripts/terrain/scene_look.gdshaderinc"
 const TERRAIN := "res://scripts/terrain/terrain.gdshader"
 const IMPOSTORS := "res://scripts/terrain/forest_impostors.gdshader"
@@ -109,6 +109,17 @@ func test_k1_defaults_off_in_shader() -> void:
 		n += 1
 		check(m.get_string(2) == "false", "К1: %s по умолчанию false" % m.get_string(1))
 	check(n >= 1, "К1: выключатели в include")
+
+
+func test_k1_v2_runtime_uniforms() -> void:
+	# v2: рантайм-uniform-ы ставит Terrain (не ключи конфига)
+	for path in [TERRAIN, IMPOSTORS]:
+		var u := _uniforms(path)
+		for n in ["sl_lat_deg", "sl_doy", "sl_sun_dir", "sl_sky_up", "sl_ground_low"]:
+			check(u.has(n), "К1 v2: %s в %s" % [n, path])
+	var sky := TerrainRenderer.scene_look_sky(Vector3(0.0, 0.8, -0.6))
+	for n in ["sun_dir", "sky_up", "ground_low"]:
+		check(sky.get(n) is Vector3, "К1 v2: scene_look_sky → %s (Vector3)" % n)
 
 
 func test_k1_params_to_material() -> void:
