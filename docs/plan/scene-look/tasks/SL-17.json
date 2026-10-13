@@ -35,7 +35,8 @@
     "configs/world.json",
     "tests/vegetation/",
     "tests/terrain/",
-    "tests/contracts/test_scene_look_contracts.gd"
+    "tests/contracts/test_scene_look_contracts.gd",
+    "configs/game.json"
   ],
   "dont_touch": [
     "scripts/terrain/terrain_common.gdshaderinc",
@@ -70,5 +71,5 @@
   ],
   "notes": "",
   "created": "2026-10-14T03:46:04",
-  "edited": "2026-10-14T03:46:04"
+  "edited": "2026-10-14T04:04:06"
 }
