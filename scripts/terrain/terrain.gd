@@ -812,8 +812,25 @@ func scene_look_params() -> Dictionary:
 	)
 	sl["lat_deg"] = center_lat
 	sl["doy"] = flight_doy
+	sl["treeline_h"] = treeline_height(center_lat, sl)
 	sl.merge(TerrainRenderer.scene_look_sky(_sun_dir), true)
 	return sl
+
+
+## Высота границы леса (м) на широте lat_deg: линейно по узлам treeline_lat / treeline_m (SL-5);
+## считается один раз на место, шейдер берёт uniform sl_treeline_h.
+static func treeline_height(lat_deg: float, sl: Dictionary) -> float:
+	var la: Array = sl.get("treeline_lat", [])
+	var hm: Array = sl.get("treeline_m", [])
+	if la.size() < 2 or la.size() != hm.size():
+		return 0.0
+	var a := clampf(absf(lat_deg), float(la[0]), float(la[la.size() - 1]))
+	var r := float(hm[0])
+	for i in la.size() - 1:
+		if a >= float(la[i]):
+			var t := clampf((a - float(la[i])) / maxf(float(la[i + 1]) - float(la[i]), 1e-3), 0.0, 1.0)
+			r = lerpf(float(hm[i]), float(hm[i + 1]), t)
+	return r
 
 
 ## Раздать параметры scene-look материалам: рельеф, импостеры; трава и деревья — если умеют

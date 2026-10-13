@@ -1,0 +1,50 @@
+{
+  "status": "partial",
+  "summary": "Написан docs/guide/scene-look.md (устройство, по пункту физика/ключи/выключатель/цена GPU, таблица GPU с оговоркой о шуме, «Границы модели»), строка в «Что где» terrain.md, 9 пунктов в CHANGELOG «В работе». Места «будет дописано» оставлены для SL-5, SL-10 и итоговой таблицы GPU (SL-11).",
+  "commits": [
+    "f4613533 Документ scene-look, строка в terrain.md, CHANGELOG «В работе» по принятым задачам модуля"
+  ],
+  "checks": [
+    {
+      "name": "dp docs check",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "dp accept SL-12 --dry",
+      "value": "1/1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Разделы SL-5, SL-10 и итог GPU (SL-11) — заглушки «Будет дописано»; в CHANGELOG пунктов про SL-5/SL-10 нет"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SL-12",
+  "uncertain": [
+    {
+      "where": "docs/guide/scene-look.md, раздел «Сезон»",
+      "why": "Диапазон уборки +98…+120 и разброс тона полей ±8 %/±5 % я вывел из формул шейдера (hash×22; 0,16·±0,5; 0,10·±0,5), в отчётах этих чисел нет",
+      "checked": "сверил с sl_field_season"
+    },
+    {
+      "where": "docs/guide/scene-look.md, «Дымка» и «Дороги»",
+      "why": "Ключи haze.* и roads.look.* взяты из world.json/world_objects.json (roads.look — в world_objects.json, не world.json); физика дороги — из отчёта SL-4",
+      "checked": "значения прочитал из конфигов"
+    },
+    {
+      "where": "docs/guide/scene-look.md, «Границы модели» (сезон)",
+      "why": "Фраза про региональные климаты (океанический, муссонный) — моя оговорка, в отчётах её нет",
+      "checked": "нет; при желании убрать"
+    },
+    {
+      "where": "docs/guide/scene-look.md, «Цена GPU модуля»",
+      "why": "Числа SL-8 (full +0,15, relief +0,33) — разности медиан из отчёта; SL-2 принят выше бюджета решением координатора (журнал 13.10 23:43)",
+      "checked": "сверил с отчётами и журналом"
+    }
+  ],
+  "dp_feedback": "Нужна dp report <ID> --show --brief/--field (summary, uncertain, gpu_*) — полный вывод 9 отчётов пришлось резать python-ом; и dp docs init для нового guide (frontmatter писал по образцу вручную).",
+  "t": "2026-10-14T03:15:34",
+  "by": "executor"
+}
