@@ -2,22 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cyotwogvmi52f"
-path="res://.godot/imported/45_shadow_biyagoda_e_afternoon.webp-87d53699ff6dfc5d49f765ba7c84698f.ctex"
+uid="uid://n75e3k2ji825"
+path="res://.godot/imported/45_shadow_ongudai_afternoon.webp-bf82f56b60d1aa677630d87e50027586.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/backdrops/45_shadow_biyagoda_e_afternoon.webp"
-dest_files=["res://.godot/imported/45_shadow_biyagoda_e_afternoon.webp-87d53699ff6dfc5d49f765ba7c84698f.ctex"]
+source_file="res://assets/ui/backdrops/45_shadow_ongudai_afternoon.webp"
+dest_files=["res://.godot/imported/45_shadow_ongudai_afternoon.webp-bf82f56b60d1aa677630d87e50027586.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.9
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
@@ -36,5 +36,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=2560
+process/size_limit=0
 detect_3d/compress_to=1
