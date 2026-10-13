@@ -43,7 +43,7 @@ func setup(layer: HeightLayer, surface: SurfaceLayer, cfg: Dictionary) -> bool:
 			var mh := lods[0].get_aabb().end.y
 			placer.model_height[k * nv + v] = mh
 			for lod in 3:
-				lods[lod] = _with_sway(lods[lod], mh, cfg, cache)
+				lods[lod] = _with_sway(lods[lod], mh, cfg, cache, sp)
 			meshes.append(lods)
 	_rebuild_step = float(cfg.get("rebuild_step_m", 16.0))
 	_max_agl = float(cfg.get("max_agl_m", 900.0))
@@ -160,7 +160,7 @@ func _apply() -> void:
 
 ## Копия меша, где материалы .glb заменены на tree_model.gdshader (те же текстуры + качание).
 ## cache — материалы по имени исходного (общие для LOD одной породы).
-func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary) -> Mesh:
+func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary, species: String = "") -> Mesh:
 	var mesh := src.duplicate() as Mesh
 	for s in mesh.get_surface_count():
 		var std := mesh.surface_get_material(s) as BaseMaterial3D
@@ -177,6 +177,7 @@ func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary) ->
 			m.set_shader_parameter("alpha_threshold", std.alpha_scissor_threshold)
 			m.set_shader_parameter("roughness_value", std.roughness)
 			m.set_shader_parameter("model_height", height)
+			m.set_shader_parameter("backlight", backlight_for(cfg, species))
 			m.set_shader_parameter("sway_top_m", float(cfg.get("sway_top_m", 0.6)))
 			m.set_shader_parameter("sway_hz", float(cfg.get("sway_hz", 0.25)))
 			var ld: Array = cfg.get("lod_distances_m", [60.0, 180.0])
@@ -186,6 +187,12 @@ func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary) ->
 			materials.append(m)
 		mesh.surface_set_material(s, cache[std.resource_name])
 	return mesh
+
+
+## Просвет кроны породы (configs/world.json → trees.backlight): лиственные больше хвойных.
+static func backlight_for(cfg: Dictionary, species: String) -> float:
+	var bl: Dictionary = cfg.get("backlight", {})
+	return clampf(float(bl.get(species, bl.get("default", 0.0))), 0.0, 1.0)
 
 
 ## Меши LOD0, LOD1, LOD2 варианта variant из .glb (ноды V{n}_LOD{k}; материалы — как в модели).

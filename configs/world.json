@@ -916,6 +916,15 @@
       "spruce": "res://assets/models/trees/tree_spruce.glb"
     },
     "models_doc": "Модели пород (.glb: variants вариантов, у варианта n меши V{n}_LOD0, V{n}_LOD1, V{n}_LOD2; основание ствола в 0; tools/blender/build_trees.py). Нет файла — процедурные кроны",
+    "backlight": {
+      "default": 0.2,
+      "birch": 0.55,
+      "larch": 0.35,
+      "pine": 0.2,
+      "cedar": 0.2,
+      "spruce": 0.15
+    },
+    "backlight_doc": "Просвет крон моделей на солнце (SL-7), 0..1: доля света, проходящая сквозь листву/хвою на теневую сторону карточки (BACKLIGHT Godot, × цвет кроны). Лиственные (берёза) больше хвойных; лиственница — между; default — для пород без записи",
     "variants": 8,
     "variants_doc": "Вариантов модели на породу (как lod.variants в tools/blender/tree_params.json): вариант — хеш места, одно место — всегда то же дерево",
     "lod_distances_m": [

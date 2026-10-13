@@ -17,6 +17,7 @@ uniform vec4 albedo_color : source_color = vec4(1.0);
 uniform bool alpha_clip = false;
 uniform float alpha_threshold = 0.5;
 uniform float roughness_value = 0.9;
+uniform float backlight = 0.0;         // просвет кроны на солнце 0..1 (лиственные больше хвойных; configs/world.json → trees.backlight)
 uniform float model_height = 20.0;     // высота модели (меша), м
 uniform float sway_top_m = 0.6;        // отклонение макушки при ветре wind_full_ms, м
 uniform float sway_hz = 0.25;          // частота качания, Гц
@@ -131,12 +132,14 @@ void fragment() {
 	// у крон нормали смотрят вверх/наружу — на скользящем взгляде издали блик неба (Френель)
 	// выбеливал лес в серые «призраки»; хвоя и листва матовые
 	SPECULAR = v_crown > 0.5 ? 0.0 : 0.2;
+	// крона на просвет (SL-7): свет сквозь листву/хвою на теневой стороне карточек; кора и импостор — нет
+	BACKLIGHT = vec3(backlight * step(0.5, v_crown)) * ALBEDO;
 	AO = cloud_sky_ao(v_cs_sun);
 }
 
 // Встроенное освещение, прямое солнце — в тени облаков слабее (cloud_shadow.gdshaderinc).
 void light() {
 	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
-			ALBEDO, ROUGHNESS, METALLIC, v_crown > 0.5 ? 0.0 : 0.2, vec3(0.0), CS_BURLEY, SPECULAR_AMOUNT,
+			ALBEDO, ROUGHNESS, METALLIC, v_crown > 0.5 ? 0.0 : 0.2, BACKLIGHT, CS_BURLEY, SPECULAR_AMOUNT,
 			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 }
