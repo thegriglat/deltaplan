@@ -1,0 +1,48 @@
+{
+  "verdict": "rework",
+  "summary": "Контракт SL-К4 выполнен по существу: CPU и GPU используют одну хеш-функцию k, маски дополняют друг друга (горизонтальная дистанция и один и тот же шум экрана у моделей и импостеров), модели и band-импостеры стоят на общих позициях, это проверено тестом. Но при AGL выше max_agl_m band-импостеры остаются со старым буфером, а дальняя сетка начинается только с band_end≈1054 м, поэтому лес вокруг пилота пропадает почти на километр. Кроме того, tree_placer.gd правился вне скоупа. Радиусы по пресетам не сделаны (честно указано в partial).",
+  "issues": [
+    {
+      "file": "scripts/terrain/terrain_tree_models.gd",
+      "line": 92,
+      "severity": "major",
+      "what": "При agl ≥ max_agl_m (900) модели скрыты и перестройка останавливается, но BandImpostors (forest_impostors.gd:150, visible = count>0) остаются со старым буфером вокруг прежнего центра. Дальняя сетка 12 м теперь начинается с inner_m=ramp_start≈904 м (раньше 0,7·radius=350 м). В результате вокруг камеры нет импостеров в радиусе ~1 км (раньше ~350 м), а когда камера уходит, старое пятно band-импостеров остаётся: в шейдере band_mode у них нет дальней отсечки, и они накладываются на сетку.",
+      "fix": "Связать видимость band с видимостью Trees (скрывать или обнулять band, когда модели скрыты) и на это время возвращать сетке inner_m/inner_end_m к прежним (или к 0). Для надёжности в шейдере band_mode добавить отсечку d < band_end."
+    },
+    {
+      "file": "scripts/terrain/tree_placer.gd",
+      "line": 185,
+      "severity": "major",
+      "what": "Файл вне скоупа карточки: в скоупе terrain_tree_models.gd, а tree_placer.gd там нет. В нём CPU-зеркало lod_k_at, swap_band/ramp_start/band_end, сборка imp_buffer и подъём lod_k_min. Сама правка нужна по контракту, но скоуп не согласован.",
+      "fix": "Координатору дописать tree_placer.gd в скоуп SL-17 задним числом (или подтвердить); код менять не нужно."
+    },
+    {
+      "file": "tests/contracts/test_scene_look_contracts.gd",
+      "line": 333,
+      "severity": "minor",
+      "what": "Проверка «сумма видимостей 1» тавтологична: (1−t)+t−1 всегда 0. То же в test_tree_swap.gd:test_visibility_sums_to_one (vm=1−t, vi=t). Реальный инвариант «ровно одна форма» проверяет только test_placer_models_and_band_share_trees.",
+      "fix": "Убрать тавтологию или проверять суммы по фактическим буферам (код FADE_OUT2 у модели + наличие в imp_buffer) — частично это уже есть в test_placer_models_and_band_share_trees."
+    },
+    {
+      "file": "scripts/terrain/forest_impostors.gd",
+      "line": 138,
+      "severity": "minor",
+      "what": "band_sink назначается в ForestImpostors._ready через соседа «Trees». Если первая перестройка Trees завершится раньше, первый буфер band потеряется до следующего шага (16 м), и на старте на месте полосы будет пусто.",
+      "fix": "В _ready после назначения band_sink сразу вызвать set_band(placer.imp_buffer, placer.imp_count), если он уже построен."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept SL-17 --only scene_look_contracts --dry",
+      "value": "22/22 (совпадает с отчётом)",
+      "pass": true
+    },
+    {
+      "name": "dp accept SL-17 --only vegetation --dry",
+      "value": "29/29 (совпадает с отчётом)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-14T04:23:46",
+  "by": "reviewer"
+}
