@@ -803,7 +803,12 @@
             "source": "copernicus",
             "zoom": 12,
             "quantize_per_m": 32,
-            "smooth_sigma_cells": 0.8
+            "smooth_sigma_cells": 0.8,
+            "smooth_mask_sigma_m": 50,
+            "smooth_mask_classes": [
+              1,
+              7
+            ]
           },
           {
             "id": "far",
