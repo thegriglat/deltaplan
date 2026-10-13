@@ -1,0 +1,17 @@
+Deltaplan 1.5.12 — evenings without summer thermals
+
+A pilot reported strong thermals near the ground on an overcast October evening at 20:00. The cause: the air field was always computed for 15 July, whatever date you picked. Now thermals follow the flight date and the sun.
+
+Thermals:
+- The air field uses the flight date instead of a fixed summer day
+- After sunset the ground no longer heats the air; rocks and towns no longer keep heating with a delay
+- Cloud cover weakens heating once, not twice
+- Towns cool down over about 1.5 hours after sunset to a weak night-time heat flux
+- Lakes still give off heat on cold evenings, but no new thermals are born after sunset
+- Lift at a slope in strong wind stays: that is flow over the terrain, not a thermal
+
+Menu:
+- The wind setting is now labelled "Forecast wind": it is the weather wind, not a reading at launch
+
+Known issues:
+- Before sunrise towns are treated as ordinary ground (flights start at 6:00)
