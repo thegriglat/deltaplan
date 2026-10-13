@@ -1040,6 +1040,7 @@ void fragment() {
 			const vec3 LS = vec3(0.2126, 0.7152, 0.0722);
 			vec3 silver = vec3(dot(col, LS)) * vec3(0.97, 1.0, 1.04);
 			col = mix(col, silver, clamp(wind_far_silver * far, 0.0, 1.0)) * (1.0 + wind_far_shade * far);
+			col = sl_wind_sheen(col, far, wind_far_shade, wind_vec, normalize(CAMERA_POSITION_WORLD - wp)); // SL
 		}
 	}
 
