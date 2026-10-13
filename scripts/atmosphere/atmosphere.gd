@@ -322,7 +322,8 @@ func _apply_day(t: float) -> void:
 	)
 	var sb := float(cfg.cirrus.sun_block)
 	field.insolation = (
-		1.0 - clampf(_lerp_key(w0, w1, f, "cirrus_cover", 0.0), 0.0, 1.0) * sb
+		1.0
+		- lerpf(WeatherModel.sun_block_cover(w0), WeatherModel.sun_block_cover(w1), f) * sb
 	)
 	var cb := _lerp_key(w0, w1, f, "cloudbase_agl_m", _cloudbase_agl)
 	if absf(cb - _cloudbase_agl) > 1.0e-6:
@@ -1040,8 +1041,7 @@ func cloud_density_at(pos: Vector3) -> float:
 ## Доля солнечного прогрева земли под перистой пеленой 0..1 (1 — ясно). Интегратор может
 ## ослабить по ней и солнце мира (VR-28).
 func get_insolation() -> float:
-	var cover := clampf(float(weather.get("cirrus_cover", 0.0)), 0.0, 1.0)
-	return 1.0 - cover * float(cfg.cirrus.sun_block)
+	return 1.0 - WeatherModel.sun_block_cover(weather) * float(cfg.cirrus.sun_block)
 
 
 ## Условия устойчивости профиля ветра (WindProfile, C2 v4) из погоды: (высота солнца часа, °;

@@ -224,8 +224,11 @@ func setup(atmo: Object, place: Dictionary, cond_fn: Callable) -> void:
 
 ## Место для расчёта по рельефу игры (Terrain): слой detail (25 м), маска воды, снимок поверхности
 ## (AirPlace.surface_of: классы и влажность узлов 25 м — ждёт поля рельефа; звать после полян у
-## стартов), координаты, пояс часов (как у неба: NAN — солнечное время). C2 v8.
-static func place_of(terrain: Node, utc_offset_h: float) -> Dictionary:
+## стартов), координаты, пояс часов (как у неба: NAN — солнечное время), дата полёта (month, day; 0 —
+## опорная дата weather_model.json → reference_context, только для тестов). C2 v8, FBW-К2.
+static func place_of(
+	terrain: Node, utc_offset_h: float, month: int = 0, day: int = 0
+) -> Dictionary:
 	var detail: HeightLayer = null
 	for l: HeightLayer in terrain.get("layers"):
 		if l.id == "detail":
@@ -237,16 +240,20 @@ static func place_of(terrain: Node, utc_offset_h: float) -> Dictionary:
 			water = water.duplicate()
 			if water.is_compressed():
 				water.decompress()
+	var loc := {
+		id = String(terrain.get("location_id")),
+		center_lat = float(terrain.get("center_lat")),
+		center_lon = float(terrain.get("center_lon")),
+		utc_offset_h = utc_offset_h,
+	}
+	if month > 0 and day > 0:
+		loc.month = month
+		loc.day = day
 	return {
 		detail = detail,
 		water = water,
 		surface = AirPlace.surface_of(terrain, detail, water, _domain_steps()),
-		loc = {
-			id = String(terrain.get("location_id")),
-			center_lat = float(terrain.get("center_lat")),
-			center_lon = float(terrain.get("center_lon")),
-			utc_offset_h = utc_offset_h,
-		},
+		loc = loc,
 	}
 
 
@@ -1253,7 +1260,9 @@ static func _hour_text(h: float) -> String:
 static func _key_of(place: Dictionary) -> String:
 	var d: Variant = place.get("detail")
 	var loc: Dictionary = place.get("loc", {})
-	return "%s|%s" % [d.get_instance_id() if d != null else 0, loc.get("id", "")]
+	return "%s|%s|%s.%s" % [
+		d.get_instance_id() if d != null else 0, loc.get("id", ""), loc.get("month", 0), loc.get("day", 0)
+	]
 
 
 ## Случай, подготовленный заранее (в рабочем потоке): prepare() обоих решений (~0,7 с на 400 м)

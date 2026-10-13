@@ -428,7 +428,11 @@ func start(s: FlightSettings) -> bool:
 ## (каждые air_model.recompute_game_min игровых минут и при смене ветра/погоды).
 func _load_air_field(progress: LoadProgress) -> void:
 	var cond := AirRuntime.conditions_of.bind(sky.clock, air, settings)
-	air_runtime.setup(air, AirRuntime.place_of(terrain, _clock_utc_offset()), cond)
+	air_runtime.setup(
+		air,
+		AirRuntime.place_of(terrain, _clock_utc_offset(), settings.month, settings.day),
+		cond
+	)
 	air_runtime.set_focus(camera if inspect_mode else glider, _start_pos)
 	if air_runtime.unavailable_reason() == "":
 		progress.stage("wind", tr(wind_stage_key(air_runtime.engine())))
@@ -511,14 +515,19 @@ func _make_day() -> AtmoDay:
 	d.sun_fn = sun
 	if terrain.has_method("thermal_source_strength_for"):
 		var heating := _heating
-		var cache := {"h": NAN, "dirs": PackedVector3Array(), "sun": Vector3.UP, "water": {}}
+		var cache := {
+			"h": NAN, "dirs": PackedVector3Array(), "sun": Vector3.UP, "water": {}, "night": {}
+		}
 		d.source_fn = func(x: float, z: float, h: float) -> float:
 			if h != float(cache.h):
 				cache.h = h
 				cache.dirs = heating.directions(h)
 				cache.sun = sun.call(h)
 				cache.water = _water_heat_at(h)
-			return terrain.thermal_source_strength_water(x, z, cache.dirs, cache.sun, cache.water)
+				cache.night = heating.built_night(h)
+			return terrain.thermal_source_strength_water(
+				x, z, cache.dirs, cache.sun, cache.water, cache.night
+			)
 	return d
 
 
@@ -587,7 +596,8 @@ func _on_sun_changed(to_sun: Vector3) -> void:
 	if air.has_method("set_sun_direction"):
 		air.call("set_sun_direction", to_sun)
 	if terrain.has_method("set_class_sun"):
-		terrain.set_class_sun(_heating.directions(sky.clock.hour))
+		var h: float = sky.clock.hour
+		terrain.set_class_sun(_heating.directions(h), _heating.built_night(h))
 		_update_water_heat()
 
 
