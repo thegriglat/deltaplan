@@ -1,0 +1,71 @@
+{
+  "id": "SL-10",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Свежий снег по дате и широте, ледники",
+  "goal": "Выше сезонной снеговой линии (дата, широта) — свежий снег поверх снега mountain-look; ледник в пологой долине ниже линии — грязно-серый язык с поперечными трещинами. Только шейдер, высоты и физику не трогать.",
+  "plan_ref": "SL-10 Свежий снег по дате и широте, ледники (п. 13) — после mountain-look",
+  "contracts": [
+    {
+      "name": "SL-К1",
+      "version": "3",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К2",
+      "version": "2",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-10",
+  "branch": "scene-look/SL-10",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/season_look.gd",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_renderer.gd",
+    "configs/world.json",
+    "tests/terrain/",
+    "tests/contracts/test_scene_look_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "scripts/terrain/meadow_look.gdshaderinc",
+    "scripts/terrain/build/",
+    "docs/contracts/",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "vegetation",
+      "tests": "vegetation"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_full_ms_base",
+    "gpu_full_ms_after",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-14T02:14:28",
+  "edited": "2026-10-14T02:14:28"
+}

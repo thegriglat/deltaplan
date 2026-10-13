@@ -1257,6 +1257,8 @@ void fragment() {
 		col = mix(col, ocol, ocw);
 	}
 	col = mix(col, rcol, rock);
+	vec3 sl_rg; // SL
+	col = sl_rock_look(col, wp, n_class, dist, max(rock, ocw), scree, clamp(open_w, 0.0, 1.0), slope_deg, slope_up, clamp(v_convex / outcrop_convex_k, -1.0, 1.0), scree_color, rock_tex_tile_m, rock_macro_k, scree_tex_tile_m, sl_rg); // SL
 
 	// --- скальная поверхность (скалы и выходы породы): крупный слой текстуры породы по трём
 	// проекциям — рисунок (яркость) и нормаль, видны до rock_macro_fade_m, когда мелкий тайл уже
@@ -1399,6 +1401,7 @@ void fragment() {
 
 	n = normalize(n + vec3(grass_bend.x, 0.0, grass_bend.y) + gn_add + rn_add * max(rock, outcrop * (1.0 - kurum))
 			+ rs_n * rsw);
+	n = sl_rock_nrm(n, sl_rg, clamp(max(rsw, scree * (1.0 - rock)), 0.0, 1.0)); // SL
 	// нормали крон (освещение полога)
 	n = normalize(mix(n, normalize(n + vec3(crown_n.x, 0.0, crown_n.z) * 1.5), forest * crown_k * 0.6));
 	// возмущение нормали шумом (кроны/кочки), чтобы вблизи поверхность не была «пластиковой»
