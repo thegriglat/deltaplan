@@ -1,0 +1,41 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место pt_+43.300_+041.650 загружено за 2.35 с
+MLOOK dombay меш dh=v2 {"layer_seam":{"jump_abs_m_max":163.1629,"jump_abs_m_p50":8.0139,"jump_abs_m_p90":43.5312,"jump_mean_m":4.5617,"n":3196},"layers":[{"dh_far_mean_m":1.7353,"dh_m_max":265.8394,"dh_m_min":-17.0378,"dh_m_p50":-0.0234,"dh_m_p90":2.4243,"dh_m_p99":72.5999,"id":"detail","local_relief_m_p10":260.7173,"local_relief_m_p50":344.3099,"local_relief_m_p90":455.3773,"lod_gap_m_max":127.546,"lod_gap_m_p50":0.0,"lod_gap_m_p99":53.9175,"lod_gap_n":3045,"lod_gap_over_skirt":49,"skirt_m":40.0,"valley_dh_max_m":215.0354,"valley_dh_mean_m":-0.1306,"valley_dh_p90_m":0.0,"valley_n":29039,"vertices":118060},{"dh_far_mean_m":3.6828,"dh_m_max":359.2471,"dh_m_min":-29.1094,"dh_m_p50":0.3218,"dh_m_p90":42.5454,"dh_m_p99":162.5374,"id":"far","local_relief_m_p10":93.8332,"local_relief_m_p50":233.8772,"local_relief_m_p90":331.7246,"lod_gap_m_max":281.3969,"lod_gap_m_p50":0.0,"lod_gap_m_p99":124.0244,"lod_gap_n":2840,"lod_gap_over_skirt":15,"skirt_m":150.0,"valley_dh_max_m":359.2471,"valley_dh_mean_m":-0.9025,"valley_dh_p90_m":0.0,"valley_n":28552,"vertices":146748}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+MLOOK dombay старт lat=43.2800 lon=41.6300 h_eye=2372 центр=43.300,41.650
+MLOOK dombay гребни detail [0.0, 3.0] all n=739 curv_ratio=0.6114 drop_p50=5.0313 drop_p90=7.0313 drop_render_p50=4.8068
+MLOOK dombay гребни detail [0.0, 3.0] above_forest n=200 curv_ratio=0.6592 drop_p50=5.2188 drop_p90=6.75 drop_render_p50=4.1392
+MLOOK dombay гребни detail [0.0, 3.0] forest n=369 curv_ratio=0.5899 drop_p50=4.8125 drop_p90=6.9375 drop_render_p50=5.0938
+MLOOK dombay гребни detail [3.0, 8.0] all n=6952 curv_ratio=0.6427 drop_p50=5.25 drop_p90=7.6875 drop_render_p50=7.2305
+MLOOK dombay гребни detail [3.0, 8.0] above_forest n=5111 curv_ratio=0.6595 drop_p50=5.3438 drop_p90=7.875 drop_render_p50=6.9218
+MLOOK dombay гребни detail [3.0, 8.0] forest n=1206 curv_ratio=0.5866 drop_p50=4.9375 drop_p90=7.2188 drop_render_p50=8.0625
+MLOOK dombay гребни detail [8.0, 14.0] all n=18453 curv_ratio=0.634 drop_p50=5.25 drop_p90=7.6875 drop_render_p50=15.3262
+MLOOK dombay гребни detail [8.0, 14.0] above_forest n=11713 curv_ratio=0.6594 drop_p50=5.4063 drop_p90=7.875 drop_render_p50=14.7446
+MLOOK dombay гребни detail [8.0, 14.0] forest n=4126 curv_ratio=0.5735 drop_p50=4.875 drop_p90=7.125 drop_render_p50=17.1602
+MLOOK dombay гребни detail [14.0, 30.0] all n=42616 curv_ratio=0.625 drop_p50=5.2188 drop_p90=7.7813 drop_render_p50=30.3318
+MLOOK dombay гребни detail [14.0, 30.0] above_forest n=26550 curv_ratio=0.6473 drop_p50=5.4063 drop_p90=8.1875 drop_render_p50=34.1799
+MLOOK dombay гребни detail [14.0, 30.0] forest n=10720 curv_ratio=0.5733 drop_p50=4.875 drop_p90=6.875 drop_render_p50=25.9453
+MLOOK dombay гребни far [14.0, 30.0] all n=15464 curv_ratio=0.3149 drop_p50=22.1875 drop_p90=47.9375 drop_render_p50=25.0625
+MLOOK dombay гребни far [14.0, 30.0] above_forest n=5819 curv_ratio=0.3483 drop_p50=21.8438 drop_p90=53.3438 drop_render_p50=19.7928
+MLOOK dombay гребни far [14.0, 30.0] forest n=7982 curv_ratio=0.2827 drop_p50=22.5938 drop_p90=44.0 drop_render_p50=28.2188
+MLOOK dombay гребни far [30.0, 40.0] all n=25850 curv_ratio=0.3007 drop_p50=24.7813 drop_p90=52.4063 drop_render_p50=29.0464
+MLOOK dombay гребни far [30.0, 40.0] above_forest n=9912 curv_ratio=0.3383 drop_p50=25.5938 drop_p90=56.2188 drop_render_p50=24.8557
+MLOOK dombay гребни far [30.0, 40.0] forest n=12965 curv_ratio=0.259 drop_p50=24.5313 drop_p90=49.4063 drop_render_p50=31.6875
+MLOOK dombay гребни far [40.0, 50.0] all n=28043 curv_ratio=0.2819 drop_p50=24.3125 drop_p90=49.1563 drop_render_p50=33.8755
+MLOOK dombay гребни far [40.0, 50.0] above_forest n=6952 curv_ratio=0.3424 drop_p50=23.6563 drop_p90=50.75 drop_render_p50=22.4238
+MLOOK dombay гребни far [40.0, 50.0] forest n=18138 curv_ratio=0.2448 drop_p50=24.5938 drop_p90=48.2188 drop_render_p50=36.9913
+Terrain: поля рельефа за 99.30 с
+MLOOK dombay вершина sil_az172.3 d=1.7 км слой=detail raw=3028 game=3024 render=3025 недобор=2.7 м (0.08°) сетка=5.6 источник=-1.4 LOD=-1.5
+MLOOK dombay вершина sil_az245.6 d=4.2 км слой=detail raw=3703 game=3700 render=3698 недобор=5.1 м (0.06°) сетка=18.2 источник=-14.5 LOD=1.3
+MLOOK dombay вершина sil_az155.0 d=4.1 км слой=detail raw=3632 game=3630 render=3629 недобор=3.1 м (0.04°) сетка=4.7 источник=-2.7 LOD=1.0
+MLOOK dombay вершина sil_az151.2 d=4.8 км слой=detail raw=3758 game=3753 render=3751 недобор=6.1 м (0.07°) сетка=20.9 источник=-16.5 LOD=1.7
+MLOOK dombay вершина sil_az160.8 d=4.1 км слой=detail raw=3632 game=3630 render=3628 недобор=3.6 м (0.05°) сетка=8.3 источник=-6.0 LOD=1.3
+MLOOK dombay вершина sil_az146.0 d=4.8 км слой=detail raw=3757 game=3754 render=3753 недобор=3.8 м (0.04°) сетка=7.9 источник=-5.3 LOD=1.2
+MLOOK dombay вершина sil_az237.1 d=5.3 км слой=detail raw=3748 game=3745 render=3742 недобор=6.0 м (0.06°) сетка=10.1 источник=-6.5 LOD=2.5
+MLOOK dombay вершина sil_az229.7 d=5.3 км слой=detail raw=3660 game=3656 render=3656 недобор=3.3 м (0.03°) сетка=11.5 источник=-8.0 LOD=-0.2
+MLOOK dombay вершина sil_az214.2 d=5.8 км слой=detail raw=3761 game=3760 render=3759 недобор=1.7 м (0.02°) сетка=-0.1 источник=1.1 LOD=0.7
+MLOOK dombay вершина sil_az139.1 d=4.3 км слой=detail raw=3567 game=3559 render=3560 недобор=6.8 м (0.09°) сетка=14.5 источник=-6.9 LOD=-0.8
+MLOOK dombay вершина DombayUlgen d=9.2 км слой=detail raw=3687 game=3688 render=3688 недобор=-0.7 м (-0.00°) сетка=8.7 источник=-9.7 LOD=0.3
+MLOOK dombay горизонт rough_raw=0.0801 rough_render=0.0765 ratio=0.96 deficit_p50=0.026 max=0.333 far_share=0.00
+mountain_look_probe: OK dombay

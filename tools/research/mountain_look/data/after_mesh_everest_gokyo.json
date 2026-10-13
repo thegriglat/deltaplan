@@ -1,0 +1,70 @@
+{
+  "dh": "v2",
+  "h_eye_m": 5042.29572525027,
+  "lat": 27.9500007629395,
+  "lon": 86.6900024414062,
+  "mesh": {
+    "layer_seam": {
+      "jump_abs_m_max": 198.9761,
+      "jump_abs_m_p50": 11.6198,
+      "jump_abs_m_p90": 48.6149,
+      "jump_mean_m": 3.9729,
+      "n": 3196,
+      "open_over_skirt": 2
+    },
+    "layers": [
+      {
+        "dh_far_mean_m": 1.8109,
+        "dh_m_max": 390.499,
+        "dh_m_min": -12.2061,
+        "dh_m_p50": -0.0103,
+        "dh_m_p90": 2.0469,
+        "dh_m_p99": 64.9321,
+        "id": "detail",
+        "local_relief_m_p10": 174.9976,
+        "local_relief_m_p50": 276.0117,
+        "local_relief_m_p90": 409.5435,
+        "lod_gap_m_max": 155.2305,
+        "lod_gap_m_p50": 0.0,
+        "lod_gap_m_p99": 60.7773,
+        "lod_gap_n": 2858,
+        "lod_gap_over_skirt": 40,
+        "skirt_m": 40.0,
+        "valley_dh_max_m": 390.499,
+        "valley_dh_mean_m": -0.0452,
+        "valley_dh_p90_m": 0.0,
+        "valley_n": 37268,
+        "vertices": 156580
+      },
+      {
+        "dh_far_mean_m": 6.2605,
+        "dh_m_max": 413.1172,
+        "dh_m_min": -30.0,
+        "dh_m_p50": 0.1475,
+        "dh_m_p90": 38.6582,
+        "dh_m_p99": 179.9897,
+        "id": "far",
+        "local_relief_m_p10": 128.8662,
+        "local_relief_m_p50": 235.4763,
+        "local_relief_m_p90": 409.3838,
+        "lod_gap_m_max": 268.5,
+        "lod_gap_m_p50": 0.0,
+        "lod_gap_m_p99": 124.3,
+        "lod_gap_n": 2840,
+        "lod_gap_over_skirt": 13,
+        "skirt_m": 150.0,
+        "valley_dh_max_m": 389.7822,
+        "valley_dh_mean_m": -2.3312,
+        "valley_dh_p90_m": 0.0,
+        "valley_n": 27323,
+        "vertices": 146748
+      }
+    ],
+    "valley_lap": 0.05,
+    "valley_min_km": 3.0,
+    "valley_scale_m": 100.0
+  },
+  "probe_version": 2,
+  "quick": true,
+  "tag": "everest_gokyo"
+}

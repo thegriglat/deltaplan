@@ -201,3 +201,141 @@ func make_texture() -> ImageTexture:
 	)
 	img.generate_mipmaps()
 	return ImageTexture.create_from_image(img)
+
+
+## Пирамида максимумов высот (MLK-К2 v2, силуэт вдали): уровень k ≥ 1 — сетка max(1, W>>k) ×
+## max(1, H>>k), тексель (i, j) — максимум узлов [i·2^k, (i+1)·2^k − 1] (последний тексель уровня
+## захватывает и остаток нечётного края, без потерь). Возвращает [PackedFloat32Array уровня 1, 2, …]
+## до 1×1; уровень 0 — сами heights.
+func max_pyramid() -> Array:
+	if _max_pyr.is_empty():
+		_max_pyr = _build_max_pyramid()
+	return _max_pyr
+
+
+## Пирамида средних высот (как Image.generate_mipmaps для FORMAT_RF: 2×2 среднее, у нечётного края
+## последний столбец/строка отбрасывается) — CPU-зеркало textureLod(height_mip_tex) для ReliefLook.
+func mean_pyramid() -> Array:
+	if not _mean_pyr.is_empty():
+		return _mean_pyr
+	var out: Array = []
+	var src := heights
+	var sw := width
+	var sh := height
+	while sw > 1 or sh > 1:
+		var dw := maxi(1, sw >> 1)
+		var dh := maxi(1, sh >> 1)
+		var dst := PackedFloat32Array()
+		dst.resize(dw * dh)
+		for j in dh:
+			var j0 := mini(2 * j, sh - 1)
+			var j1 := mini(2 * j + 1, sh - 1)
+			for i in dw:
+				var i0 := mini(2 * i, sw - 1)
+				var i1 := mini(2 * i + 1, sw - 1)
+				dst[j * dw + i] = (
+					(src[j0 * sw + i0] + src[j0 * sw + i1] + src[j1 * sw + i0] + src[j1 * sw + i1]) * 0.25
+				)
+		out.append(dst)
+		src = dst
+		sw = dw
+		sh = dh
+	_mean_pyr = out
+	return out
+
+
+## [heights, уровень 1, 2, …] пирамиды средних — цепочка мипов height_mip_tex (кешируется).
+func mean_levels() -> Array:
+	if _mean_levels.is_empty():
+		_mean_levels = [heights]
+		_mean_levels.append_array(mean_pyramid())
+	return _mean_levels
+
+
+## Максимум уровня k ≥ 1 пирамиды в текселе (i, j) (с обрезкой по краю); k = 0 — узел.
+func max_texel(k: int, i: int, j: int) -> float:
+	if k <= 0:
+		return node(i, j)
+	var pyr := max_pyramid()
+	k = mini(k, pyr.size())
+	var w := maxi(1, width >> k)
+	var h := maxi(1, height >> k)
+	var a: PackedFloat32Array = pyr[k - 1]
+	return a[clampi(j, 0, h - 1) * w + clampi(i, 0, w - 1)]
+
+
+## Текстура пирамиды максимумов: базовый уровень = уровень 1 пирамиды (уровень 0 — сама высота,
+## его хранить незачем), мипы — уровни 2, 3, … (свои, max, не среднее). FORMAT_RF: ~1/3 памяти
+## текстуры высот без мипов (1601² → 3,4 МБ). Пирамида на CPU не кешируется (только на время сборки).
+func make_max_texture() -> ImageTexture:
+	var pyr := _max_pyr if not _max_pyr.is_empty() else _build_max_pyramid()
+	if pyr.is_empty():
+		return null
+	var data := PackedByteArray()
+	for a: PackedFloat32Array in pyr:
+		data.append_array(a.to_byte_array())
+	var img := Image.create_from_data(
+		maxi(1, width >> 1), maxi(1, height >> 1), true, Image.FORMAT_RF, data
+	)
+	return ImageTexture.create_from_image(img)
+
+
+var _max_pyr: Array = []
+var _mean_pyr: Array = []
+var _mean_levels: Array = []
+
+
+func _build_max_pyramid() -> Array:
+	var out: Array = []
+	var src := heights
+	var sw := width
+	var sh := height
+	while sw > 1 or sh > 1:
+		var dw := maxi(1, sw >> 1)
+		var dh := maxi(1, sh >> 1)
+		out.append(_max_level(src, sw, sh, dw, dh))
+		src = out[out.size() - 1]
+		sw = dw
+		sh = dh
+	return out
+
+
+## Уровень пирамиды максимумов из src (sw×sh) в dw×dh: строки делятся по ядрам.
+static func _max_level(
+	src: PackedFloat32Array, sw: int, sh: int, dw: int, dh: int
+) -> PackedFloat32Array:
+	var rows_per := maxi(1, CHUNK / dw)
+	var n_jobs := (dh + rows_per - 1) / rows_per
+	var slots := []
+	slots.resize(n_jobs)
+	var job := func(ci: int) -> void:
+		var r0: int = ci * rows_per
+		var r1: int = mini(r0 + rows_per, dh)
+		var out := PackedFloat32Array()
+		out.resize((r1 - r0) * dw)
+		for j in range(r0, r1):
+			var ja := 2 * j
+			var jb := sh - 1 if j == dh - 1 else 2 * j + 1   # остаток нечётного края — в последний
+			var o := (j - r0) * dw
+			var ra := ja * sw
+			var rb := (ja + 1) * sw
+			var last := dw - 1
+			if jb == ja + 1:
+				# обычный случай — 2×2 (кроме последнего столбца)
+				for i in last:
+					var c := 2 * i
+					out[o + i] = maxf(maxf(src[ra + c], src[ra + c + 1]), maxf(src[rb + c], src[rb + c + 1]))
+			else:
+				last = 0
+			for i in range(last, dw):
+				var ia := 2 * i
+				var ib := sw - 1 if i == dw - 1 else 2 * i + 1
+				var m := -INF
+				for jj in range(ja, jb + 1):
+					var row := jj * sw
+					for ii in range(ia, ib + 1):
+						m = maxf(m, src[row + ii])
+				out[o + i] = m
+		slots[ci] = out
+	_run_chunks(job, n_jobs)
+	return _join(slots)
