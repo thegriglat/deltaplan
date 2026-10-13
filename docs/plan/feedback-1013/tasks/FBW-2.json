@@ -1,0 +1,36 @@
+{
+  "id": "FBW-2",
+  "module": "feedback-1013",
+  "type": "dp-mechanic",
+  "title": "Подпись «Ветер по прогнозу» в меню настройки полёта",
+  "goal": "Пилот принял фоновый ветер 7 м/с за ветер на старте; подпись поля должна говорить, что это прогноз.",
+  "plan_ref": "FBW-2",
+  "contracts": [],
+  "copy": "~/deltaplan-feedback-1013-FBW-2",
+  "branch": "feedback-1013/FBW-2",
+  "base": "feature/feedback-1013",
+  "scope": [
+    "scenes/ui",
+    "scripts/ui",
+    "locale",
+    "translations"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    }
+  ],
+  "report_extra": [],
+  "notes": "Найди подпись поля фонового ветра в меню настройки полёта (сцена/скрипт меню и файлы перевода: ru и en). Текст → «Ветер по прогнозу» / «Forecast wind» (подсказку к полю, если есть, — в том же духе, коротко, без пояснений о безопасности). Ключи перевода не переименовывать, только текст. Больше ничего не менять.",
+  "created": "2026-10-13T19:29:55",
+  "edited": "2026-10-13T19:30:07"
+}

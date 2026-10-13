@@ -1,0 +1,93 @@
+{
+  "id": "FBW-1",
+  "module": "feedback-1013",
+  "type": "dp-engineer",
+  "title": "Термики вечером осенью при облачности: причина и починка; замер ветра на старте",
+  "goal": "Пилот видит +4 м/с у земли 15.10 в 20:00 облачно (фон 7 м/с, горный старт) — по модели солнца нет, конвекции быть не должно. Найти причину(ы), починить физически, замерить до/после; плюс короткий замер усиления ветра на старте.",
+  "plan_ref": "FBW-1",
+  "contracts": [
+    {
+      "name": "FBW-К2",
+      "version": "1",
+      "ref": "docs/contracts/feedback-1013.md"
+    }
+  ],
+  "copy": "~/deltaplan-feedback-1013-FBW-1",
+  "branch": "feedback-1013/FBW-1",
+  "base": "feature/feedback-1013",
+  "scope": [
+    "scripts/atmosphere",
+    "scripts/world/sun_clock.gd",
+    "scripts/world/surface_heating.gd",
+    "scripts/game/game.gd",
+    "scripts/terrain",
+    "configs/weather_model.json",
+    "configs/surface_heat.json",
+    "configs/atmosphere.json",
+    "configs/world.json",
+    "tests/atmosphere",
+    "tests/world",
+    "tests/contracts/test_feedback_1013_contracts.gd",
+    "tools/research/fb1013_evening",
+    "docs/guide/atmosphere.md",
+    "docs/guide/air-model.md",
+    "docs/guide/game.md"
+  ],
+  "dont_touch": [
+    "docs/plan",
+    "docs/contracts",
+    "project.godot",
+    "scenes/ui"
+  ],
+  "accept": [
+    {
+      "name": "contracts",
+      "tests": "contracts"
+    },
+    {
+      "name": "test_atmosphere",
+      "tests": "test_atmosphere"
+    },
+    {
+      "name": "air_thermals",
+      "tests": "air_thermals"
+    },
+    {
+      "name": "weather",
+      "tests": "weather"
+    },
+    {
+      "name": "surface_heat",
+      "tests": "surface_heat"
+    },
+    {
+      "name": "sun_clock",
+      "tests": "sun_clock"
+    },
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "air_model_atmo",
+      "tests": "air_model_atmo"
+    },
+    {
+      "name": "air_place",
+      "tests": "air_place"
+    },
+    {
+      "name": "scenario",
+      "cmd": "bash tools/research/fb1013_evening/run.sh",
+      "expect": "re:ИТОГ: термики вечером OK"
+    }
+  ],
+  "report_extra": [
+    "causes",
+    "before_after",
+    "start_wind"
+  ],
+  "notes": "Гипотезы и условия — dp plan feedback-1013 FBW-1 (проверить, не принимать на веру; особенно: не динамический ли это подъём склона при 7 м/с). Скрипт сценария tools/research/fb1013_evening/run.sh пишешь сам: headless, условия пилота (15.10 20:00 облачно фон 7 м/с, ≥3 места/широты) + контроль 15.07 13:00 ясно; печатает таблицу (место, путь термиков поле/аналитика, ψ, H, z_i, w* , термическая w на 20–300 м AGL макс/среднее, рождений за 10 мин, w у земли по составляющим, |ветер у колдуна|/7) и строку «ИТОГ: термики вечером OK» только при выполнении инварианта FBW-К2 и наличии термиков днём. Godot только с XDG_DATA_HOME=$(mktemp -d); тяжёлые прогоны — systemd-run --user --scope -p MemoryMax=12G, не больше 4 godot одновременно. Нужен файл вне скоупа — напиши координатору. Числа до/после — в report: causes (список причин с числами), before_after (таблица), start_wind (1–2 строки).",
+  "created": "2026-10-13T19:29:55",
+  "edited": "2026-10-13T19:30:07"
+}
