@@ -80,7 +80,7 @@
         7000,
         14000
       ],
-      "skirt_depth_m": 40
+      "skirt_depth_m": 300
     },
     "far": {
       "chunk_cells": 200,
@@ -89,7 +89,7 @@
         25000,
         45000
       ],
-      "skirt_depth_m": 150
+      "skirt_depth_m": 400
     }
   },
   "start_position_agl_m": 0.0,

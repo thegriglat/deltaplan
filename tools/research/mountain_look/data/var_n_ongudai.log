@@ -1,0 +1,44 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место ongudai загружено за 4.87 с
+MLOOK ongudai меш dh=v2 {"layer_seam":{"jump_abs_m_max":124.9411,"jump_abs_m_p50":1.5771,"jump_abs_m_p90":19.9683,"jump_mean_m":1.0888,"n":3196},"layers":[{"dh_far_mean_m":0.4192,"dh_m_max":170.7869,"dh_m_min":-7.996,"dh_m_p50":-0.0474,"dh_m_p90":1.4404,"dh_m_p99":47.6526,"id":"detail","local_relief_m_p10":124.5335,"local_relief_m_p50":171.4007,"local_relief_m_p90":225.0982,"lod_gap_m_max":119.8549,"lod_gap_m_p50":0.0,"lod_gap_m_p99":34.3123,"lod_gap_n":2690,"lod_gap_over_skirt":20,"skirt_m":40.0,"valley_dh_max_m":149.9231,"valley_dh_mean_m":0.0749,"valley_dh_p90_m":0.0,"valley_n":28669,"vertices":154980},{"dh_far_mean_m":3.2524,"dh_m_max":300.0077,"dh_m_min":-13.4313,"dh_m_p50":0.6414,"dh_m_p90":61.0569,"dh_m_p99":148.8145,"id":"far","local_relief_m_p10":75.6378,"local_relief_m_p50":140.7926,"local_relief_m_p90":217.5851,"lod_gap_m_max":187.9073,"lod_gap_m_p50":0.0,"lod_gap_m_p99":95.4531,"lod_gap_n":2334,"lod_gap_over_skirt":4,"skirt_m":150.0,"valley_dh_max_m":236.71,"valley_dh_mean_m":0.4454,"valley_dh_p90_m":0.0,"valley_n":9861,"vertices":142998}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+MLOOK ongudai старт lat=50.7871 lon=86.2328 h_eye=2169 центр=50.790,86.130
+MLOOK ongudai гребни detail [0.0, 3.0] all n=246 curv_ratio=0.5841 drop_p50=4.625 drop_p90=5.6563 drop_render_p50=4.5313
+MLOOK ongudai гребни detail [0.0, 3.0] above_forest n=0 curv_ratio=<null> drop_p50=<null> drop_p90=<null> drop_render_p50=<null>
+MLOOK ongudai гребни detail [0.0, 3.0] forest n=199 curv_ratio=0.5734 drop_p50=4.625 drop_p90=5.6875 drop_render_p50=4.625
+MLOOK ongudai гребни detail [3.0, 8.0] all n=1797 curv_ratio=0.5965 drop_p50=4.625 drop_p90=5.5938 drop_render_p50=8.4405
+MLOOK ongudai гребни detail [3.0, 8.0] above_forest n=0 curv_ratio=<null> drop_p50=<null> drop_p90=<null> drop_render_p50=<null>
+MLOOK ongudai гребни detail [3.0, 8.0] forest n=1198 curv_ratio=0.5881 drop_p50=4.5938 drop_p90=5.625 drop_render_p50=8.4302
+MLOOK ongudai гребни detail [8.0, 14.0] all n=5899 curv_ratio=0.614 drop_p50=4.7188 drop_p90=5.8438 drop_render_p50=18.5434
+MLOOK ongudai гребни detail [8.0, 14.0] above_forest n=0 curv_ratio=<null> drop_p50=<null> drop_p90=<null> drop_render_p50=<null>
+MLOOK ongudai гребни detail [8.0, 14.0] forest n=4536 curv_ratio=0.6109 drop_p50=4.7188 drop_p90=5.875 drop_render_p50=18.6458
+MLOOK ongudai гребни detail [14.0, 30.0] all n=9623 curv_ratio=0.6234 drop_p50=4.75 drop_p90=5.9063 drop_render_p50=29.4511
+MLOOK ongudai гребни detail [14.0, 30.0] above_forest n=5 curv_ratio=0.494 drop_p50=4.4688 drop_p90=4.8438 drop_render_p50=10.5313
+MLOOK ongudai гребни detail [14.0, 30.0] forest n=6872 curv_ratio=0.6297 drop_p50=4.7813 drop_p90=5.9688 drop_render_p50=31.8537
+MLOOK ongudai гребни far [14.0, 30.0] all n=9735 curv_ratio=0.1884 drop_p50=35.75 drop_p90=60.1563 drop_render_p50=38.3556
+MLOOK ongudai гребни far [14.0, 30.0] above_forest n=52 curv_ratio=0.2285 drop_p50=37.8125 drop_p90=61.9063 drop_render_p50=31.1353
+MLOOK ongudai гребни far [14.0, 30.0] forest n=6967 curv_ratio=0.1961 drop_p50=36.3125 drop_p90=60.3125 drop_render_p50=39.8438
+MLOOK ongudai гребни far [30.0, 40.0] all n=15363 curv_ratio=0.1825 drop_p50=36.125 drop_p90=57.9688 drop_render_p50=38.8438
+MLOOK ongudai гребни far [30.0, 40.0] above_forest n=313 curv_ratio=0.2572 drop_p50=38.0625 drop_p90=61.875 drop_render_p50=36.3677
+MLOOK ongudai гребни far [30.0, 40.0] forest n=10292 curv_ratio=0.1903 drop_p50=37.0313 drop_p90=58.0 drop_render_p50=41.3125
+MLOOK ongudai гребни far [40.0, 50.0] all n=15289 curv_ratio=0.1872 drop_p50=34.875 drop_p90=56.125 drop_render_p50=40.8563
+MLOOK ongudai гребни far [40.0, 50.0] above_forest n=1298 curv_ratio=0.2686 drop_p50=40.875 drop_p90=62.0625 drop_render_p50=40.0612
+MLOOK ongudai гребни far [40.0, 50.0] forest n=9555 curv_ratio=0.1878 drop_p50=35.3438 drop_p90=55.5 drop_render_p50=43.5625
+Terrain: поля рельефа за 95.06 с
+WARNING: Terrain: загрузка стоит 90 с — отмена
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _watch_stall (res://scripts/terrain/terrain.gd:289)
+MLOOK ongudai вершина sil_az233.1 d=27.2 км слой=detail raw=2511 game=2510 render=2510 недобор=0.4 м (0.00°) сетка=3.5 источник=-3.1 LOD=0.0
+MLOOK ongudai вершина sil_az206.4 d=30.8 км слой=far raw=2530 game=2484 render=2485 недобор=44.7 м (0.08°) сетка=10.1 источник=35.6 LOD=-1.0
+MLOOK ongudai вершина sil_az93.8 d=31.7 км слой=far raw=2536 game=2473 render=2480 недобор=55.9 м (0.10°) сетка=15.1 источник=47.9 LOD=-7.1
+MLOOK ongudai вершина sil_az229.9 d=27.0 км слой=detail raw=2462 game=2462 render=2462 недобор=0.2 м (0.00°) сетка=0.4 источник=-0.2 LOD=0.0
+MLOOK ongudai вершина sil_az222.4 d=32.7 км слой=far raw=2522 game=2502 render=2503 недобор=19.9 м (0.03°) сетка=2.1 источник=18.5 LOD=-0.7
+MLOOK ongudai вершина sil_az95.6 d=31.9 км слой=far raw=2503 game=2453 render=2453 недобор=50.6 м (0.09°) сетка=14.6 источник=36.2 LOD=-0.2
+MLOOK ongudai вершина sil_az186.0 d=43.9 км слой=far raw=2668 game=2614 render=2630 недобор=38.0 м (0.05°) сетка=10.9 источник=43.4 LOD=-16.2
+MLOOK ongudai вершина sil_az203.6 d=32.0 км слой=far raw=2445 game=2396 render=2393 недобор=51.8 м (0.09°) сетка=10.6 источник=38.5 LOD=2.8
+MLOOK ongudai вершина sil_az188.6 d=33.2 км слой=far raw=2406 game=2360 render=2361 недобор=44.5 м (0.08°) сетка=17.4 источник=28.1 LOD=-0.9
+MLOOK ongudai вершина sil_az199.7 d=37.9 км слой=far raw=2443 game=2379 render=2382 недобор=60.9 м (0.09°) сетка=20.1 источник=44.2 LOD=-3.4
+MLOOK ongudai горизонт rough_raw=0.0441 rough_render=0.0401 ratio=0.91 deficit_p50=0.028 max=0.185 far_share=0.95
+mountain_look_probe: OK ongudai

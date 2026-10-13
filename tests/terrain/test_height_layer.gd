@@ -43,3 +43,41 @@ func test_wrong_size_is_error() -> void:
 	HeightLayer.encode_rgb24(hs, 2, 2, 1.0, 0.03125).save_webp(path, false)
 	check(HeightLayer.load_from_file(path, _info(3, 3, 1.0, 0.03125)) == null, "размер не совпал — null")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+## Пирамида максимумов (MLK-К2 v2): каждый тексель уровня k — максимум своих узлов, нечётный край не
+## теряется; текстура — уровень 1 + свои мипы (max), не среднее.
+func test_max_pyramid_matches_brute_force() -> void:
+	var w := 37
+	var h := 23
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 11
+	var hs := PackedFloat32Array()
+	hs.resize(w * h)
+	for k in hs.size():
+		hs[k] = rng.randf() * 1000.0
+	var l := HeightLayer.from_heights("t", w, h, 25.0, 0.0, 0.0, hs)
+	var pyr := l.max_pyramid()
+	check(pyr.size() == 5, "уровни до 1×1 (37×23 → 18×11 … 1×1): %d" % pyr.size())
+	var bad := 0
+	for k in range(1, pyr.size() + 1):
+		var kw := maxi(1, w >> k)
+		var kh := maxi(1, h >> k)
+		for j in kh:
+			for i in kw:
+				var i1 := w - 1 if i == kw - 1 else ((i + 1) << k) - 1
+				var j1 := h - 1 if j == kh - 1 else ((j + 1) << k) - 1
+				var m := -INF
+				for jj in range(j << k, j1 + 1):
+					for ii in range(i << k, i1 + 1):
+						m = maxf(m, hs[jj * w + ii])
+				if l.max_texel(k, i, j) != m:
+					bad += 1
+	check(bad == 0, "максимумы совпадают с перебором (расхождений %d)" % bad)
+	check(l.max_texel(pyr.size(), 0, 0) == l.max_h, "верхний уровень = максимум слоя")
+	var tex := l.make_max_texture()
+	var img := tex.get_image()
+	check(img.get_width() == 18 and img.get_height() == 11 and img.has_mipmaps(), "текстура: уровень 1 + мипы")
+	var mip_ofs := img.get_mipmap_offset(1)
+	var top := img.get_data().slice(mip_ofs, mip_ofs + 4).decode_float(0)
+	check(is_equal_approx(top, l.max_texel(2, 0, 0)), "мип 1 текстуры — уровень 2 пирамиды (max)")

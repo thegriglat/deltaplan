@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место pt_+43.300_+041.650 загружено за 4.18 с
+MLOOK dombay меш dh=v1 {"layer_seam":{"jump_abs_m_max":144.4098,"jump_abs_m_p50":6.7088,"jump_abs_m_p90":34.834,"jump_mean_m":0.9775,"n":3196,"open_over_skirt":0},"layers":[{"dh_far_mean_m":-0.0032,"dh_m_max":15.1377,"dh_m_min":-16.4915,"dh_m_p50":-0.0437,"dh_m_p90":1.2188,"dh_m_p99":4.0562,"id":"detail","local_relief_m_p10":260.7173,"local_relief_m_p50":344.3099,"local_relief_m_p90":455.3773,"lod_gap_m_max":79.1096,"lod_gap_m_p50":0.0,"lod_gap_m_p99":41.8943,"lod_gap_n":3045,"lod_gap_over_skirt":34,"skirt_m":40.0,"valley_dh_max_m":2.4688,"valley_dh_mean_m":-0.517,"valley_dh_p90_m":0.0,"valley_n":29039,"vertices":118060},{"dh_far_mean_m":0.0342,"dh_m_max":8.0,"dh_m_min":-8.0,"dh_m_p50":-0.021,"dh_m_p90":5.6375,"dh_m_p99":8.0,"id":"far","local_relief_m_p10":93.8332,"local_relief_m_p50":233.8772,"local_relief_m_p90":331.7246,"lod_gap_m_max":245.2656,"lod_gap_m_p50":0.0,"lod_gap_m_p99":102.8689,"lod_gap_n":2840,"lod_gap_over_skirt":8,"skirt_m":150.0,"valley_dh_max_m":0.0,"valley_dh_mean_m":-1.6162,"valley_dh_p90_m":0.0,"valley_n":28552,"vertices":146748}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+mountain_look_probe: OK dombay
+Terrain: поля рельефа за 10.76 с

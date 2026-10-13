@@ -1,0 +1,76 @@
+{
+  "status": "done",
+  "summary": "Зонд К3 v1 (mountain_look_probe.gd/.tscn), контрактный тест test_k3_*, замер «до» по 8 местам (everest_namche/gokyo/menu, elbrus_cheget/menu, montblanc_chamonix, dombay, ongudai), README и summary_tables.md. Эверест с Намче (29 км) и Гокио (23,5 км) рисует фон; недобор 128 м (0,25°) и 40 м (0,10°); на Намче главное шаг LOD (93 м), источник фона 30 м, сетка 100 м 5 м. σ 0,8: кривизна гребней ×0,60–0,67 выше леса, ×0,49–0,63 в лесу, просадка ~5 м.",
+  "commits": [
+    "7f4a55f7 зонд, тест, run_all.sh",
+    "ce31833a замер до по 8 местам, README",
+    "(+ коммит uid зонда)"
+  ],
+  "checks": [
+    {
+      "name": "mountain_look_contracts",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "json_k3",
+      "value": "8 файлов",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "картинки/графики для статьи не строились (по заданию)"
+  ],
+  "questions": [],
+  "how_to_check": "dp accept MLK-1; tools/research/mountain_look/run_all.sh <тег>",
+  "uncertain": [
+    {
+      "where": "tools/bench/mountain_look_probe.gd:dh_v1",
+      "why": "копия формулы без шума границ классов, градиент промоин разностью на шаге мипа",
+      "checked": "сверено построчно с vertex(); влияет только в радиусе ~2 км; сравнение с GPU не делалось"
+    },
+    {
+      "where": "tools/research/mountain_look/README.md (разложение сетка/источник/LOD)",
+      "why": "в детальной части горизонта компоненты «сетка 100 м» и «источник» не физичны (игра берёт 25 м)",
+      "checked": "в README оговорено, для вывода использована фоновая группа и вершины"
+    },
+    {
+      "where": "tests/contracts/test_mountain_look_contracts.gd",
+      "why": "тест идёт ~85 с (поля рельефа места) и при загрузке фикстуры Terrain дёргает сеть (404 Copernicus N00E000), не зависит от зонда",
+      "checked": "зонд с --raw=game сети не использует"
+    }
+  ],
+  "dp_feedback": "Нет команды для ожидания фоновой задачи с выводом строк по шаблону; dp job wait блокирует. Нет способа получить из dp список координат стартов tools/shots/menu_art.json.",
+  "extra": {
+    "everest_namche": {
+      "Everest_deficit_m": 128.4,
+      "deg": 0.25,
+      "loss_grid_m": 5.3,
+      "loss_source_m": 30.3,
+      "loss_lod_m": 92.8
+    },
+    "everest_gokyo": {
+      "Everest_deficit_m": 40.4,
+      "loss_grid_m": 13.5,
+      "loss_source_m": 24.7,
+      "loss_lod_m": 2.2
+    },
+    "sigma08": {
+      "above_forest_curv": "0.60-0.67",
+      "forest_curv": "0.49-0.63",
+      "drop_p50_m": "5.2-5.4 / 4.4-5.1"
+    },
+    "memory_mib": {
+      "now": 61.5,
+      "detail60": 119.0,
+      "detail80": 199.5
+    }
+  },
+  "t": "2026-10-13T22:08:51",
+  "by": "executor"
+}

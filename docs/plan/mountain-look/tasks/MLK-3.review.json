@@ -1,0 +1,43 @@
+{
+  "verdict": "accept",
+  "summary": "Всё в скоупе, docs/contracts и terrain.gd не тронуты, project.godot не менялся. К2 v2 сохраняет инварианты: dh зависит только от узла, параметров и камеры, окно считается по порогам LOD слоя, а не по шагу чанка; у камеры 0; на лесе, воде и застройке 0; юбка висит от h без подъёма. Недобор пиков 1001 → 229 м. По плану нужна шероховатость ≥ 0,7, а самопоставленный порог 0,95 Эльбрус с Чегета не прошёл на 0,002 (0,948) — это не провал приёмки.",
+  "issues": [
+    {
+      "file": "docs/contracts/mountain-look.md",
+      "line": 0,
+      "severity": "minor",
+      "what": "Текст К2 v2 (юбка skirt+max(dh,0), окно максимумов, новые ключи relief_peak_*/relief_high_m/relief_subgrid_k) и версия зонда К3 v2 (новые поля mesh, dh, look_override) в контракт не внесены: файл вне скоупа, исполнитель задал вопрос",
+      "fix": "Координатору внести К2 v2 и К3 v2 в контракт до слияния"
+    },
+    {
+      "file": "scripts/terrain/terrain.gdshader",
+      "line": 370,
+      "severity": "minor",
+      "what": "Отдельные вогнутые узлы на плечах вершин поднимаются на 250–400 м (max-дилатация окна; в среднем ≤ 0, p90 = 0). Вдали это может дать «плато» или горб рядом с пиком",
+      "fix": "Проверить на тестовой сборке Linux; если виден горб — снизить relief_peak_max_m или ужесточить вес по выпуклости. Отдельной переделки не нужно"
+    },
+    {
+      "file": "configs/world.json",
+      "line": 475,
+      "severity": "minor",
+      "what": "relief_sharpen_high=1.0, relief_peak_convex=0.25 и relief_peak_summit=0.5 — веса вида без физического источника. relief_subgrid_k обоснован (шаг/2·tg/2)",
+      "fix": "В docs/guide/terrain.md пометить их как параметры вида, подобранные по зонду, с таблицей compare_tables.md как обоснованием"
+    },
+    {
+      "file": "scripts/terrain/height_layer.gd",
+      "line": 260,
+      "severity": "minor",
+      "what": "make_max_texture строится в главном потоке renderer.build: около 50 мс на слой",
+      "fix": "При заметном рывке загрузки перенести в фоновую сборку рельефа (задача модуля perf)"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept MLK-3 --only mountain_look_contracts --dry",
+      "value": "5/5, совпадает с отчётом",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-13T23:24:05",
+  "by": "reviewer"
+}

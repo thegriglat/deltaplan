@@ -232,7 +232,56 @@ uniform vec2 relief_slope_deg = vec2(15.0, 30.0);  // с уклона: появ�
 uniform float relief_sharpen = 0.8;                 // доля кривизны ±1 узла, добавляемая обратно
 uniform float relief_sharpen_max_m = 8.0;           // предел заострения, м
 uniform float relief_gully = 1.0;
-uniform float relief_lod_m = 1000.0;               // оценка шага вершин: шаг слоя × дальность / это, м                   // глубина промоин в форме (× рисунка нормалей)
+uniform float relief_lod_m = 1000.0;               // оценка шага вершин для промоин: шаг слоя × дальность / это, м
+// MLK-К2 v2. (а) Силуэт без потери пиков между вершинами LOD: вершина выпуклого места (гребень, пик)
+// поднимается к максимуму высот в окне вокруг своего узла (пирамида максимумов height_max_tex);
+// размер окна — от дальности до камеры через пороги LOD слоя (lod_dist_m), не от шага LOD чанка:
+// одна точка на любом LOD — тот же dh. В долинах и на ровных склонах вес 0 (не «надуваются»). Ближе
+// relief_peak_near_m — нет: там окно сдвигает гребень к камере (угол h/r² · сдвиг) сильнее, чем LOD его срезает.
+// (б) Заострение гребней (relief_sharpen) у высоких гор сильнее: перепад высот max − среднее на
+// relief_scale_m — от холмов (relief_high_m.x) до высоких гор (.y): доля кривизны relief_sharpen →
+// relief_sharpen_high, предел relief_sharpen_max_m → подсеточный гребень relief_subgrid_k·шаг·tg уклона
+// (не больше relief_sharpen_cap_m).
+uniform sampler2D height_max_tex : filter_linear_mipmap, repeat_disable;
+uniform bool use_height_max = false;
+uniform vec4 lod_dist_m = vec4(1e9);                 // пороги LOD слоя (render.<слой>.lod_distances_m), м
+uniform float relief_peak = 1.0;                     // доля недобора пика в окне (max − h), возвращаемая вершине
+uniform float relief_peak_level = -1.0;              // уровень окна относительно шага вершин LOD, log2
+uniform float relief_peak_ramp = 0.25;               // окно растёт перед порогом LOD на эту долю порога
+uniform vec2 relief_peak_near_m = vec2(5000.0, 10000.0); // подъём пиков: нет ближе / полностью дальше, м
+uniform float relief_peak_convex = 0.25;             // выпуклость (h − среднее)/(max − h) для полного веса
+uniform float relief_peak_summit = 0.5;              // вершина горы в окне: (max вдвое шире − max)/(max − h) до этого
+uniform float relief_peak_max_m = 400.0;             // предел подъёма вершины, м
+uniform float relief_scale_m = 1000.0;               // масштаб перепада высот «холмы / высокие горы», м
+uniform vec2 relief_high_m = vec2(150.0, 400.0);     // перепад max − среднее: холмы / высокие горы, м
+uniform float relief_sharpen_high = 1.0;             // доля кривизны у высоких гор
+uniform float relief_subgrid_k = 0.25;               // подсеточный гребень: k · шаг слоя · tg уклона, м
+uniform float relief_sharpen_cap_m = 30.0;           // верхний предел заострения, м
+
+// Уровень окна максимумов (log2 шага вершин в узлах слоя) по дальности d: сумма ступеней LOD,
+// каждая — плавно на relief_peak_ramp доли порога перед ним (без ступеньки по дальности).
+float relief_lod_level(float d) {
+	vec4 r = lod_dist_m * (1.0 - relief_peak_ramp);
+	vec4 k = smoothstep(r, lod_dist_m, vec4(d));
+	return k.x + k.y + k.z + k.w;
+}
+
+// Максимум высот узлов в окне ±2^(L−1) узла вокруг ij (по блокам 2^L пирамиды: 2×2 текселя уровня L
+// покрывают окно; L = 0 — сам узел).
+float relief_max_window(ivec2 ij, int L) {
+	if (L <= 0) {
+		return h_node(ij);
+	}
+	ivec2 sz = max(ivec2(layer_texels) >> L, ivec2(1));
+	int hw = 1 << (L - 1);
+	ivec2 a = clamp((ij - ivec2(hw)) >> L, ivec2(0), sz - ivec2(1));
+	ivec2 b = clamp((ij + ivec2(hw)) >> L, ivec2(0), sz - ivec2(1));
+	float m0 = texelFetch(height_max_tex, a, L - 1).r;
+	float m1 = texelFetch(height_max_tex, ivec2(b.x, a.y), L - 1).r;
+	float m2 = texelFetch(height_max_tex, ivec2(a.x, b.y), L - 1).r;
+	float m3 = texelFetch(height_max_tex, b, L - 1).r;
+	return max(max(m0, m1), max(m2, m3));
+}
 
 // Промоины по высоте: ячейка — значение cos фазы (z) и его производная по p (xy), как gully_cell.
 vec3 gully_cell3(vec2 ip, vec2 fp, vec2 o, vec2 dir) {
@@ -287,35 +336,71 @@ void vertex() {
 	// COLOR.r = 1 у вершин «юбки»: опускаем их вниз
 	float dh = 0.0;
 	if (relief_detail_enabled) {
-		float dcam = length(wp.xz - MAIN_CAM_INV_VIEW_MATRIX[3].xz);
+		vec3 cam = MAIN_CAM_INV_VIEW_MATRIX[3].xyz;
+		float dcam = length(wp.xz - cam.xz);
 		float kd = smoothstep(relief_near_m.x, relief_near_m.y, dcam);
 		// всё — от мира и дальности, не от шага LOD: на стыках чанков разных LOD одна и та же высота
 		vec2 g1 = vec2(h_node(ij + ivec2(1, 0)) - h_node(ij - ivec2(1, 0)),
 				h_node(ij + ivec2(0, 1)) - h_node(ij - ivec2(0, 1))) / (2.0 * layer_spacing);
 		float ks = kd * smoothstep(relief_slope_deg.x, relief_slope_deg.y, degrees(atan(length(g1))));
-		if (ks > 0.0) {
+		// (а) окно максимумов по дальности (3D — как выбор LOD по AABB чанка)
+		float lw = 0.0;
+		float kp = smoothstep(relief_peak_near_m.x, relief_peak_near_m.y, dcam);
+		if (use_height_max && relief_peak > 0.0 && kp > 0.0) {
+			lw = clamp(relief_lod_level(length(vec3(wp.x, h, wp.z) - cam)) + relief_peak_level, 0.0, 6.0);
+		}
+		float ko = 1.0;
+		if (ks > 0.0 || lw > 0.0) {
 			// открытые склоны (не лес — ступеньки крон DSM, не вода/застройка)
 			vec4 swa;
 			vec4 swb;
 			surface_weights(wp.xz, swa, swb);
-			ks *= (1.0 - swa.x) * (1.0 - swb.y) * (1.0 - swb.z);
+			ko = (1.0 - swa.x) * (1.0 - swb.y) * (1.0 - swb.z);
+			ks *= ko;
+		}
+		if (lw > 0.0 && ko > 0.0) {
+			int l0 = int(floor(lw));
+			float fw = lw - float(l0);
+			float m1 = relief_max_window(ij, l0 + 1);
+			float m = mix(relief_max_window(ij, l0), m1, fw);
+			// вершина в окне своей вершины горы: в окне вдвое шире максимум не выше (иначе это склон —
+			// окно лишь «дотянулось» вверх по склону)
+			float m2 = mix(m1, relief_max_window(ij, l0 + 2), fw);
+			vec2 uvm = ((wp.xz - layer_origin) / layer_spacing + 0.5) / layer_texels;
+			float mean = textureLod(height_mip_tex, uvm, lw + 1.0).r;
+			float up = m - h + 0.5;
+			float w = smoothstep(0.0, relief_peak_convex, (h - mean) / up)
+					* (1.0 - smoothstep(0.0, relief_peak_summit, (m2 - m) / up));
+			dh += relief_peak * w * clamp(m - h, 0.0, relief_peak_max_m) * kp * ko;
 		}
 		if (ks > 0.0) {
+			// (б) перепад высот на relief_scale_m: холмы — как v1, высокие горы — сильнее
+			float kr = 0.0;
+			if (use_height_max) {
+				float lr = log2(relief_scale_m / layer_spacing);
+				vec2 uvr = ((wp.xz - layer_origin) / layer_spacing + 0.5) / (2.0 * vec2(max(ivec2(layer_texels) >> 1, ivec2(1))));
+				vec2 uvh = ((wp.xz - layer_origin) / layer_spacing + 0.5) / layer_texels;
+				float rl = textureLod(height_max_tex, uvr, max(lr - 1.0, 0.0)).r - textureLod(height_mip_tex, uvh, lr).r;
+				kr = smoothstep(relief_high_m.x, relief_high_m.y, rl);
+			}
+			float cap = mix(relief_sharpen_max_m,
+					clamp(relief_subgrid_k * layer_spacing * length(g1), relief_sharpen_max_m, relief_sharpen_cap_m), kr);
 			float l1 = (h_node(ij + ivec2(1, 0)) + h_node(ij - ivec2(1, 0)) + h_node(ij + ivec2(0, 1))
 					+ h_node(ij - ivec2(0, 1))) * 0.25 - h;
-			dh = clamp(-relief_sharpen * l1, -relief_sharpen_max_m, relief_sharpen_max_m);
+			float ds = clamp(-mix(relief_sharpen, relief_sharpen_high, kr) * l1, -cap, cap);
 			if (erosion_enabled && relief_gully > 0.0) {
 				float lod_e = clamp(log2(0.5 * erosion_scale_m / layer_spacing), 0.0, height_mip_max_lod);
 				vec2 ge = height_grad(wp.xz, lod_e);
 				float ek = smoothstep(erosion_slope_deg.x, erosion_slope_deg.y, degrees(atan(length(ge))));
 				// шаг вершин по дальности (LOD ×2 на каждом пороге ~1,5/3,5/7 км) — непрерывно
 				float vs = layer_spacing * max(1.0, dcam / relief_lod_m);
-				dh += relief_gully * erosion_height(wp.xz, ge, vs, ek);
+				ds += relief_gully * erosion_height(wp.xz, ge, vs, ek);
 			}
-			dh *= ks;
+			dh += ds * ks;
 		}
 	}
-	VERTEX.y = h + dh - COLOR.r * skirt_depth;
+	// юбка — от высоты узла без подъёма (dh > 0): поднятая вершина не укорачивает юбку (щели LOD как в v1)
+	VERTEX.y = h + dh - COLOR.r * (skirt_depth + max(dh, 0.0));
 	NORMAL = n;   // только смещение теней; освещение — нормаль фрагмента (height_grad)
 	v_world = vec3(wp.x, VERTEX.y, wp.z);
 	int k = max(int(round(outcrop_scale_m / layer_spacing)), s);
@@ -389,6 +474,10 @@ uniform float terrace_strength = 0.45;
 uniform vec2 tone_scale_m = vec2(380.0, 1500.0); // крупные пятна тона, м
 uniform float tone_strength = 0.18;
 // --- выходы породы и курумник на гребнях/выпуклостях и крутых лугах ---
+uniform vec2 snow_slope_deg = vec2(35.0, 45.0);   // снег WorldCover: держится / гаснет по уклону, градусы
+uniform float snow_hollow_deg = 6.0;            // в ложбине снег держится круче на столько градусов (при вогнутости outcrop_convex_k)
+uniform float snow_bare_merge = 1.0;          // выше снеговой линии голый грунт WorldCover — в один пул со снегом (0 — как класс)
+uniform float snow_ridge_blow = 0.6;            // выпуклый гребень: доля снега, сдуваемая ветром (0..1)
 uniform float outcrop_convex_k = 0.035;        // выпуклость (м/м), с которой гребень каменистый
 uniform vec2 outcrop_slope_deg = vec2(25.0, 36.0); // уклон начала/полной силы выходов породы
 uniform float outcrop_patch_m = 45.0;         // размер пятен породы, м
@@ -814,6 +903,25 @@ void fragment() {
 	float bare = wb.x;
 	float built = wb.z;
 	float snow = wb.w;
+	// снег класса 8: на крутом гаснет (порода видна), в ложбинах держится, с выпуклых гребней сдут;
+	// выше снеговой линии голый грунт (класс 5, пёстрая смесь с 8) — тот же пул: снег или порода решает
+	// уклон/вогнутость, а не пёстрая карта классов; кромка рваная (как у скал), без завитков карты классов
+	float snow_rest = 1.0;
+	float snow_alp = snow_bare_merge * smoothstep(gully_snow_line_m - 150.0, gully_snow_line_m + 150.0, h);
+	float snow_pool = snow + bare * snow_alp;
+	if (snow_pool > 0.001) {
+		float cv = v_convex / outcrop_convex_k;
+		float s_eff = slope_deg - snow_hollow_deg * smoothstep(0.0, 1.0, -cv);
+		float keep = (1.0 - smoothstep(snow_slope_deg.x, snow_slope_deg.y, s_eff))
+				* (1.0 - snow_ridge_blow * smoothstep(0.7, 1.6, cv) * smoothstep(22.0, 32.0, slope_deg));
+		float snow_new = ragged_edge(snow_pool * keep, wp.xz + 31.0, foot_m);
+		float dsn = snow_new - snow;
+		float rest_old = max(1.0 - snow - bare, 0.0);
+		float excess = max(dsn - bare, 0.0);
+		snow_rest = rest_old > 1e-3 ? max(rest_old - excess, 0.0) / rest_old : 1.0;
+		bare = max(bare - dsn, 0.0);   // освободившаяся доля — грунт; скалы подхватят её по уклону
+		snow = snow_new;
+	}
 	float north = northness(n_class);
 	float patch2 = meadow_patch(wp.xz);
 
@@ -952,7 +1060,7 @@ void fragment() {
 	if (use_snow_tex) {
 		wcol = apply_tex(wcol, texture(snow_tex, wp.xz / snow_tex_tile_m).rgb, snow_tex_avg, tex_w);
 	}
-	col += bcol * bare + ucol * built + wcol * snow;
+	col = (col + ucol * built) * snow_rest + bcol * bare + wcol * snow;
 
 	// --- лес: полог из крон (ячейки canopy_cell_m) с освещением и тенями; вдали — средний тон ---
 	float con_p = conifer_share(patch2, north);

@@ -159,7 +159,7 @@ func test_parity_with_builtin_askarovo() -> void:
 			elif deep_forest:
 				n_deep += 1
 				worst_deep = maxf(worst_deep, absf(mine_d.sample(x, z) - ref_d.sample(x, z)))
-	check(half == 40 and n_open + n_deep > 0, "есть узлы для сравнения: открытых %d, в глубоком лесу %d" % [n_open, n_deep])
+	check(half == 40 and n_open > 0 and n_deep > 0, "есть узлы для сравнения: открытых %d, в глубоком лесу %d" % [n_open, n_deep])
 	check(worst_open < 0.5, "сырые detail совпадают с эталоном на открытом (%d узлов): %.3f м" % [n_open, worst_open])
 	check(worst_deep < 0.5, "сглаженные detail совпадают с эталоном в глубоком лесу (%d узлов): %.3f м" % [n_deep, worst_deep])
 	var worst_f := 0.0
