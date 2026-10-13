@@ -21,6 +21,7 @@ uniform float spacing_m = 10.0;
 uniform float inner_m = 350.0;                    // ближе — 3D-модели (плавный переход до inner_end_m)
 uniform float inner_end_m = 500.0;
 uniform bool band_mode = false;                   // SL-К4: экземпляр — дерево полосы смены (позиция и признаки из CPU: TreePlacer.imp_buffer)
+uniform float band_end_m = 1e9;                   // SL-К4: дальше полоса не рисуется (дальше — сетка 12 м)
 uniform float lod_swap_m = 500.0;                 // SL-К4: базовое расстояние смены модель → импостер (trees.radius_m); у дерева × sl_lod_k
 uniform float lod_dither_m = 40.0;                // SL-К4: ширина дизеринга смены формы (trees.lod_dither_m)
 uniform float outer_m = 2000.0;                   // дальше — только полог рельефа
@@ -139,7 +140,7 @@ void vertex() {
 	if (band_mode) {
 		// дерево полосы смены: есть всегда (лес, просеки и опушку учёл TreePlacer); доля — по личной границе
 		v_lod_t = sl_lod_swap_t(d, lod_swap_m * sl_lod_k(xz), lod_dither_m);
-		present = v_lod_t > 0.0;
+		present = v_lod_t > 0.0 && d < band_end_m;
 	}
 	if (present && has_clearings && !band_mode) {
 		vec2 cu = (xz - clear_origin) / (clear_cell_m * clear_size);

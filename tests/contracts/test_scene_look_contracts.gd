@@ -319,15 +319,11 @@ func test_k4_function_in_include_and_config() -> void:
 	check(_read(IMPOSTORS).contains("sl_lod_k(xz)"), "К4: импостеры зовут sl_lod_k")
 
 
-func test_k4_cpu_mirror_range_and_sum() -> void:
+func test_k4_cpu_mirror_range() -> void:
 	var kmin := float(Config.get_config("world").trees.lod_k_min)
 	var kmax := float(Config.get_config("world").trees.lod_k_max)
-	var dither := float(Config.get_config("world").trees.lod_dither_m)
 	for i in 400:
 		var x := fposmod(i * 37.31, 3000.0) - 1500.0
 		var z := fposmod(i * 91.77, 3000.0) - 1500.0
 		var k := TreePlacer.lod_k_at(x, z, kmin, kmax)
 		check(k >= kmin and k <= kmax, "К4: k в диапазоне")
-		for d in [100.0, 300.0, 500.0, 500.0 * k, 700.0, 900.0]:
-			var t := TreePlacer.swap_t(d, 500.0 * k, dither)
-			check(absf((1.0 - t) + t - 1.0) < 1e-9, "К4: сумма видимостей 1")

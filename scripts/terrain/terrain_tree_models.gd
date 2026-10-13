@@ -90,6 +90,8 @@ func _process(_delta: float) -> void:
 		_last_center = _pending_center
 	var agl := p.y - placer.layer.sample(p.x, p.z)
 	visible = agl < _max_agl
+	if is_instance_valid(band_sink):
+		band_sink.set_band_active(visible)  # модели скрыты и перестройка стоит — полоса не нужна
 	if not visible:
 		return
 	var c := Vector2(p.x, p.z)

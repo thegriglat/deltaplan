@@ -48,18 +48,22 @@ func test_k_range_and_distribution() -> void:
 	approx(TreePlacer.lod_k_at(10.1, 20.2, kmin, kmax), TreePlacer.lod_k_at(11.9, 23.9, kmin, kmax), 1e-9, "клетка 4 м")
 
 
-func test_visibility_sums_to_one() -> void:
+func test_swap_t_symmetric_and_exact() -> void:
+	# доля импостера: 0 ближе db − dither/2, 1 дальше db + dither/2, симметрична (t(db+x) + t(db−x) = 1),
+	# монотонна; модель — дополнение (1 − t)
 	var dither := 40.0
 	for k in 40:
 		var db := 500.0 * TreePlacer.lod_k_at(k * 13.7, -k * 5.1, 0.6, 1.6)
+		var prev := -1.0
 		for step in range(-80, 81, 5):
-			var d := db + step
-			var t := TreePlacer.swap_t(d, db, dither)
-			var vm := 1.0 - t
-			var vi := t
-			approx(vm + vi, 1.0, 1e-9, "сумма видимостей")
-			if absf(step) > dither * 0.5:
-				check((vm == 1.0) != (vi == 1.0), "вне дизеринга ровно одна форма (d−db = %d)" % step)
+			var t := TreePlacer.swap_t(db + step, db, dither)
+			check(t >= prev, "монотонна")
+			prev = t
+			approx(t + TreePlacer.swap_t(db - step, db, dither), 1.0, 1e-9, "симметрия")
+			if step <= -20:
+				check(t == 0.0, "ближе зоны — только модель")
+			if step >= 20:
+				check(t == 1.0, "дальше зоны — только импостер")
 
 
 func test_placer_models_and_band_share_trees() -> void:
@@ -156,6 +160,13 @@ func test_band_numbers() -> void:
 	var ms0 := (Time.get_ticks_usec() - t0) / 1000.0
 	print("SL-17: без полосы: build %.0f мс, моделей %d" % [ms0, p.lod_counts_total()])
 	p.lod_k_enabled = true
+	# главный поток: _apply моделей + set_band импостеров (headless, без реальной загрузки в видеопамять)
+	var tm := t.trees as TerrainTreeModels
+	p.build(c)
+	t0 = Time.get_ticks_usec()
+	tm._apply()
+	t.impostors.set_band(p.imp_buffer, p.imp_count)
+	print("SL-17: _apply + set_band на главном потоке: %.2f мс (headless)" % ((Time.get_ticks_usec() - t0) / 1000.0))
 	p.lod_k_enabled = true
 
 

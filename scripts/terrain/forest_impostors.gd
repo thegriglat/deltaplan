@@ -15,6 +15,9 @@ var material: ShaderMaterial
 ## свой материал (тот же шейдер, band_mode) — все set_shader_parameter идут в оба (_set_all).
 var band_material: ShaderMaterial
 var _band: MultiMeshInstance3D
+var _band_active := true
+var _grid_inner := Vector2.ZERO  # inner_m / inner_end_m сетки при активной полосе
+var _grid_legacy := Vector2.ZERO  # то же без полосы (прежнее кольцо)
 
 var _spacing: float = 10.0
 ## Маска леса и просек на CPU — для present_positions (тесты); шейдер берёт те же из текстур.
@@ -70,13 +73,12 @@ func setup(
 	m.set_shader_parameter("spacing_m", _spacing)
 	var r := float(cfg.radius_m)
 	_mask.setup(layer, surface, cfg)
-	if _mask.lod_k_enabled:
-		# SL-К4: дальняя сетка (12 м) включается там, где band-импостеры (сетка моделей, 8 м) заканчиваются
-		m.set_shader_parameter("inner_m", _mask.ramp_start())
-		m.set_shader_parameter("inner_end_m", _mask.band_end())
-	else:
-		m.set_shader_parameter("inner_m", r * float(ic.fade_start_k))
-		m.set_shader_parameter("inner_end_m", r)
+	_grid_legacy = Vector2(r * float(ic.fade_start_k), r)
+	_grid_inner = Vector2(_mask.ramp_start(), _mask.band_end()) if _mask.lod_k_enabled else _grid_legacy
+	# SL-К4: дальняя сетка (12 м) включается там, где band-импостеры (сетка моделей, 8 м) заканчиваются
+	m.set_shader_parameter("inner_m", _grid_inner.x)
+	m.set_shader_parameter("inner_end_m", _grid_inner.y)
+	m.set_shader_parameter("band_end_m", _mask.band_end())
 	m.set_shader_parameter("lod_swap_m", r)
 	m.set_shader_parameter("lod_dither_m", _mask.lod_dither_m)
 	m.set_shader_parameter("sl_lod_k_range", Vector2(_mask.lod_k_min, _mask.lod_k_max))
@@ -147,7 +149,7 @@ func set_band(buf: PackedFloat32Array, count: int) -> void:
 		mm.mesh = _quad()
 		_band.multimesh = mm
 	mm.instance_count = count
-	_band.visible = count > 0
+	_band.visible = count > 0 and _band_active
 	if count > 0:
 		mm.buffer = buf
 
@@ -157,6 +159,22 @@ func _ready() -> void:
 	var models := get_parent().get_node_or_null("Trees") if get_parent() != null else null
 	if models is TerrainTreeModels and _band != null:
 		(models as TerrainTreeModels).band_sink = self
+		var pl := (models as TerrainTreeModels).placer
+		if pl.imp_count > 0:  # первая расстановка уже готова
+			set_band(pl.imp_buffer, pl.imp_count)
+
+
+## Видимость полосы привязана к видимости моделей (Trees выше max_agl_m скрыты, перестройка стоит и
+## буфер устарел): неактивна — полоса скрыта, сетка 12 м снова с прежнего кольца.
+func set_band_active(on: bool) -> void:
+	if _band == null or on == _band_active:
+		return
+	_band_active = on
+	var mm := _band.multimesh
+	_band.visible = on and mm != null and mm.instance_count > 0
+	var g := _grid_inner if on else _grid_legacy
+	_set_all("inner_m", g.x)
+	_set_all("inner_end_m", g.y)
 
 
 func _materials() -> Array[ShaderMaterial]:
