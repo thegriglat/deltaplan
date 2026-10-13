@@ -167,6 +167,8 @@ uniform float sl_riparian_bright = 0.18;   // добавка яркости
 uniform vec2 sl_riparian_fade_m = vec2(800.0, 3000.0);  // вдали полоса уже мельче пикселя — гаснет
 // Граница леса от широты: высота (м) в узлах широты (градусы, по |lat|), между ними линейно
 uniform bool sl_treeline_enabled = false;
+uniform vec4 sl_treeline_lat = vec4(0.0, 30.0, 47.0, 70.0);  // таблица границы леса (SL-К1: каждый ключ — uniform); шейдер берёт готовую sl_treeline_h
+uniform vec4 sl_treeline_m = vec4(3900.0, 3500.0, 2100.0, 300.0);
 uniform float sl_treeline_h = 0.0;        // высота границы леса на широте места, м (считает Terrain.treeline_height по treeline_lat/_m)
 uniform float sl_treeline_thin_m = 300.0;  // ниже границы лес редеет на столько (просветы луга)
 uniform vec2 sl_treeline_blend_m = vec2(80.0, 250.0);  // альпийский луг: от границы − x до границы + y
