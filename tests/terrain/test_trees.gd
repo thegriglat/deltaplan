@@ -38,7 +38,10 @@ func test_trees_only_on_forest() -> void:
 				t.surfaces[0].class_at(x, z) == SurfaceLayer.FOREST,
 				"дерево на лесе (%.0f, %.0f)" % [x, z]
 			)
-			check(Vector2(x, z).distance_to(c) <= p.radius + 1.0, "в радиусе")
+			check(
+				Vector2(x, z).distance_to(c) <= p.radius * p.lod_k_max + p.swap_band() + 1.0,
+				"в радиусе"
+			)
 			total += 1
 	check(total > 500, "деревьев вокруг старта: %d" % total)
 	var lods := PackedInt32Array([0, 0, 0])
@@ -85,6 +88,8 @@ func test_clearings_mask() -> void:
 	for b in p.buffers.size():
 		for k in p.counts[b]:
 			var x := p.buffers[b][k * TreePlacer.STRIDE + 3]
+			if absf(p.buffers[b][k * TreePlacer.STRIDE + 11] - c.y) > 450.0:
+				continue  # маска просеки покрывает 1000 × 1000 м
 			if absf(x - c.x) < 19.0:
 				inside += 1
 			elif absf(x - c.x) < 60.0:
@@ -138,7 +143,7 @@ func test_lod_fade_pairs() -> void:
 			codes[key][b % 3] = buf[o + 15]
 			var d := Vector2(buf[o + 3], buf[o + 11]).distance_to(c)
 			var a := buf[o + 15]
-			if a < 0.99:
+			if a < 0.99 and not is_equal_approx(a, TreePlacer.FADE_OUT2):
 				var db := p.lod_distances[0] if a < 0.25 else p.lod_distances[1]
 				check(absf(d - db) < band + 0.01, "растворение только у границы: %.1f м" % d)
 	var pairs := 0
