@@ -1,0 +1,48 @@
+{
+  "id": "MLK-5",
+  "module": "mountain-look",
+  "type": "dp-mechanic",
+  "title": "Замер «после», скриншоты «после» Эвереста и Эльбруса",
+  "goal": "Итоговые числа модуля (зонд К3 на тех же местах после MLK-2/3/4/8) против замера «до» MLK-1 и кадры «после» тех же ракурсов, что MLK-6.",
+  "plan_ref": "MLK-5 Замер «после» и тестовая сборка Linux",
+  "contracts": [
+    {
+      "name": "MLK-К3",
+      "version": 2
+    }
+  ],
+  "copy": "~/deltaplan-mountain-look-MLK-5",
+  "branch": "mountain-look/MLK-5",
+  "base": "feature/mountain-look",
+  "scope": [
+    "tools/research/mountain_look/",
+    "/home/greg/deltaplan/build/screenshots/mountain-look/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tools/bench/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "probe",
+      "cmd": "ls tools/research/mountain_look/data/final_*.json | grep -v _mesh_ | wc -l",
+      "expect": "num:^(\\d+) >=8"
+    },
+    {
+      "name": "table",
+      "cmd": "test -s tools/research/mountain_look/final_tables.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/mountain-look/after_*.jpg | wc -l",
+      "expect": "num:^(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-13T23:52:19",
+  "edited": "2026-10-13T23:52:24"
+}
