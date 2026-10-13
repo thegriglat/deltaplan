@@ -76,6 +76,11 @@ func _run() -> void:
 	_cam = game.camera
 	_game = game
 	_target = _cam.target
+	# камера по умолчанию — кабина: тело скрыто (видны только руки/ноги) и маска слоёв кабинная;
+	# кадр снаружи — режим chase (маска) и тело целиком
+	_cam.set_mode("chase")
+	_game.glider.visual.set_cockpit_body("full")
+	_game.overlay.visible = false  # смена режима камеры возвращает прибор (game._update_overlay)
 	_cam.process_mode = Node.PROCESS_MODE_DISABLED
 	_locked = true
 	_place_camera()
