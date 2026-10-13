@@ -267,7 +267,9 @@ func _bench(delta: float) -> void:
 
 ## Замер GPU на неподвижной камере (T01): N кадров после разгона, среднее и 95-й перцентиль.
 func _bench_static() -> void:
-	if _frames < 10:
+	if _frames == 5:
+		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+	if _frames < 20:
 		return
 	_bench_static_samples.append(
 		RenderingServer.viewport_get_measured_render_time_gpu(get_viewport().get_viewport_rid())
