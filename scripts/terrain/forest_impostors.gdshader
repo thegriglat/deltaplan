@@ -9,6 +9,7 @@ shader_type spatial;
 render_mode cull_disabled, diffuse_lambert_wrap, world_vertex_coords, specular_disabled;
 
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
+#include "res://scripts/terrain/scene_look.gdshaderinc"
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
@@ -58,6 +59,14 @@ varying float v_tint;
 varying float v_dist;
 // тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
 varying float v_cs_sun;
+// scene-look (SL-2): средняя яркость ячейки атласа × tint, хвойное (1) / лиственное (0), нормаль склона
+varying float v_sl_luma;
+varying float v_sl_con;
+varying vec3 v_sl_n;
+varying float v_sl_dir;
+// хвойные по породам (pine, cedar, larch, birch, spruce — порядок TreePlacer.SPECIES); лиственница
+// летом — светлая хвоя, по альбедо ближе к лиственным
+const float SL_CONIFER[5] = float[5](1.0, 1.0, 0.0, 0.0, 1.0);
 
 bool is_forest(vec2 xz) {
 	if (use_forest_mask) {
@@ -129,6 +138,9 @@ void vertex() {
 	v_uv = vec2(0.0);
 	v_tint = 0.0;
 	v_dist = d;
+	v_sl_luma = 0.0;
+	v_sl_con = 1.0;
+	v_sl_n = vec3(0.0, 1.0, 0.0);
 	if (present) {
 		float h = h_bilinear(xz);
 		float e = layer_spacing;
@@ -154,6 +166,15 @@ void vertex() {
 			vec2 cell_uv = vec2(float(sp % 4), float(sp / 4));
 			v_uv = (cell_uv + vec2(UV.x, UV.y)) / atlas_cells;
 			v_tint = brightness * (0.85 + 0.3 * hash12(cell + 13.3));
+			if (sl_light_enabled) {
+				// средний цвет ячейки: мип, где ячейка — один тексель (прозрачное в атласе чёрное:
+				// среднее rgb / среднее альфы = среднее по кроне)
+				float lod = log2(float(textureSize(atlas, 0).x) / atlas_cells.x);
+				vec4 mc = textureLod(atlas, (cell_uv + 0.5) / atlas_cells, lod);
+				v_sl_luma = dot(mc.rgb, SL_LW) / max(mc.a, 1e-3) * v_tint;
+				v_sl_con = SL_CONIFER[sp];
+				v_sl_n = n;
+			}
 		}
 	}
 	VERTEX = v;
@@ -167,19 +188,29 @@ void fragment() {
 	// в сотни метров, но собственная контрастность запечённого атласа читается как «резкие точки»)
 	float t = smoothstep(far_soft_start_m, far_soft_full_m, v_dist);
 	float luma = dot(rgb, vec3(0.299, 0.587, 0.114));
-	rgb = mix(rgb, vec3(luma), far_desaturate * t);
-	rgb = mix(rgb, vec3(mix(luma, far_canopy_luma, 0.6)), far_contrast * t);
+	if (sl_light_enabled) {
+		rgb = sl_tree_tone(rgb, v_sl_luma, v_sl_con, v_dist, t, far_contrast);
+	} else {
+		rgb = mix(rgb, vec3(luma), far_desaturate * t);
+		rgb = mix(rgb, vec3(mix(luma, far_canopy_luma, 0.6)), far_contrast * t);
+	}
 	ALBEDO = rgb;
 	// мягкий край силуэта вдали: шире антиалиасинг по производной альфы, скиссор почти отпущен
 	float edge = fwidth(c.a) * mix(0.75, far_edge_soft_k, t);
 	ALPHA = smoothstep(0.5 - edge, 0.5 + edge, c.a);
 	ALPHA_SCISSOR_THRESHOLD = mix(0.5, 0.02, t);
 	AO = cloud_sky_ao(v_cs_sun);
+	// полог вдали: видимая доля освещённых крон по солнцу и взгляду (как у полога рельефа)
+	v_sl_dir = sl_canopy_direct(normalize(v_sl_n), normalize(CAMERA_POSITION_WORLD - (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz), sl_canopy_far(v_dist));
+	v_sl_ny = (INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).y;
+	v_sl_ao = AO;
+	v_sl_sun = v_cs_sun;
 }
 
 // Встроенное освещение, прямое солнце — в тени облаков слабее (cloud_shadow.gdshaderinc).
 void light() {
-	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
-			ALBEDO, ROUGHNESS, METALLIC, 0.0, vec3(0.0), CS_LAMBERT_WRAP, SPECULAR_AMOUNT,
-			DIFFUSE_LIGHT, SPECULAR_LIGHT);
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL,
+			v_cs_sun * v_sl_dir, ALBEDO, ROUGHNESS, METALLIC, 0.0, vec3(0.0), CS_LAMBERT_WRAP,
+			SPECULAR_AMOUNT, DIFFUSE_LIGHT, SPECULAR_LIGHT);
+	sl_ground_light(DIFFUSE_LIGHT, LIGHT_COLOR, LIGHT_IS_DIRECTIONAL, ALBEDO, v_sl_ny, v_sl_ao, v_sl_sun);
 }

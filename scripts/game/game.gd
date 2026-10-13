@@ -354,6 +354,9 @@ func start(s: FlightSettings) -> bool:
 		if not sky.clock.sun_changed.is_connected(terrain.set_sun):
 			sky.clock.sun_changed.connect(terrain.set_sun)
 		terrain.set_sun(sky.clock.to_sun())
+	# Дата полёта — шейдерам (сезон, scene-look SL-К2): там же, где солнце.
+	if terrain.has_method("set_flight_date"):
+		terrain.set_flight_date(settings.month, settings.day)
 	_heating.setup(
 		float(_weather_ctx.lat),
 		float(_weather_ctx.lon),

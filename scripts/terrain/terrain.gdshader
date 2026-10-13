@@ -6,6 +6,7 @@ shader_type spatial;
 render_mode cull_back, diffuse_burley, specular_schlick_ggx;
 
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
+#include "res://scripts/terrain/scene_look.gdshaderinc"
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/meadow_look.gdshaderinc"
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
@@ -993,6 +994,7 @@ void fragment() {
 		fcolor = mix(fcolor, ctint * cs, crown_k);
 		crown_n = normalize(mix(crown_n, cn, crown_k));
 	}
+	vec3 sl_fc0 = fcolor; // SL
 	// древостои: светлее/темнее пятнами 50–200 м (возраст, состав, густота)
 	// + крупнее (массивы 300–800 м) — видны с 2 км, когда отдельные кроны и куртины уже мельче пикселя
 	if (forest > 0.01) {
@@ -1005,6 +1007,7 @@ void fragment() {
 		// гуще в сырых ложбинах и на северных склонах, реже на сухих южных
 		fcolor *= 1.0 - forest_wet_dark * clamp(0.6 * wet + 0.6 * north_s, -1.0, 1.0);
 	}
+	fcolor = sl_canopy_tone(fcolor, sl_fc0, fmean, con_p, dist, canopy_far_shade); // SL
 	if (use_forest_tex) {
 		fcolor = apply_tex(fcolor, texture(forest_tex, wp.xz / forest_tex_tile_m).rgb, forest_tex_avg, tex_w);
 	}
@@ -1330,6 +1333,10 @@ void fragment() {
 	NORMAL = normalize((VIEW_MATRIX * vec4(n, 0.0)).xyz);
 	v_cs_spec = SPECULAR;
 	AO *= cloud_sky_ao(v_cs_sun);
+	v_sl_ny = n.y; v_sl_ao = AO; v_sl_sun = v_cs_sun; // SL
+	vec2 sl_rs = sl_relief_shadow(use_relief, n, hz_deg, dist, relief_shadow_ambient, relief_shadow_soft_deg, relief_shadow_strength, relief_shadow_near_m); // SL
+	ALBEDO = min(ALBEDO / sl_rs.x, vec3(1.0)); // SL
+	v_cs_sun *= sl_rs.y * sl_canopy_direct(n_class, normalize(CAMERA_POSITION_WORLD - wp), forest * sl_canopy_far(dist)); // SL
 }
 
 // Встроенное освещение (burley + schlick_ggx), прямое солнце — в тени облаков слабее.
@@ -1337,4 +1344,5 @@ void light() {
 	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
 			ALBEDO, ROUGHNESS, METALLIC, v_cs_spec, vec3(0.0), CS_BURLEY, SPECULAR_AMOUNT,
 			DIFFUSE_LIGHT, SPECULAR_LIGHT);
+	sl_ground_light(DIFFUSE_LIGHT, LIGHT_COLOR, LIGHT_IS_DIRECTIONAL, ALBEDO, v_sl_ny, v_sl_ao, v_sl_sun); // SL
 }
