@@ -8,6 +8,11 @@
   "contracts": [
     {
       "name": "SL-К1",
+      "version": "3",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К2",
       "version": "2",
       "ref": "docs/contracts/scene-look.md"
     },
@@ -61,5 +66,10 @@
   ],
   "notes": "",
   "created": "2026-10-13T23:44:58",
-  "edited": "2026-10-13T23:44:59"
+  "edited": "2026-10-14T02:14:36",
+  "contract": [
+    "SL-К1@3",
+    "SL-К2@2",
+    "SL-К3@1"
+  ]
 }
