@@ -28,9 +28,9 @@ const DEFAULTS := {
 	"season_larch_lag": 8.0,
 	"snow_enabled": true,
 	"snow_lats": [10.0, 46.0, 60.0, 70.0],
-	"snow_line_summer": [4900.0, 3000.0, 1500.0, 500.0],
-	"snow_line_winter_drop": [0.0, 600.0, 800.0, 400.0],
-	"snow_min_day": 75.0,
+	"snow_line_summer": [4900.0, 3200.0, 1500.0, 500.0],
+	"snow_line_winter_drop": [0.0, 2000.0, 1700.0, 500.0],
+	"snow_min_day": 60.0,
 	"snow_fresh_band_m": 300.0,
 }
 

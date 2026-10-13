@@ -672,9 +672,9 @@ vec3 sl_wind_sheen(vec3 c, float far, float base, vec2 wind, vec3 v) {
 // высота линии, м; SeasonLook.apply_pre), в пикселе — только сравнение с высотой. ---
 uniform bool sl_snow_enabled = false;
 uniform vec4 sl_snow_lats = vec4(10.0, 46.0, 60.0, 70.0);            // узлы таблицы линии, градусы широты
-uniform vec4 sl_snow_line_summer = vec4(4900.0, 3000.0, 1500.0, 500.0);  // высота линии летом (наивысшая), м
-uniform vec4 sl_snow_line_winter_drop = vec4(0.0, 600.0, 800.0, 400.0);  // зимнее опускание линии, м
-uniform float sl_snow_min_day = 75.0;                // день, когда линия ниже всего (конец зимы)
+uniform vec4 sl_snow_line_summer = vec4(4900.0, 3200.0, 1500.0, 500.0);  // высота линии летом (наивысшая), м
+uniform vec4 sl_snow_line_winter_drop = vec4(0.0, 2000.0, 1700.0, 500.0);  // зимнее опускание линии, м
+uniform float sl_snow_min_day = 60.0;                // день, когда линия ниже всего (конец зимы)
 uniform float sl_snow_fresh_band_m = 300.0;          // полоса плавного перехода выше линии, м
 uniform vec2 sl_snow_fresh_slope = vec2(38.0, 55.0); // свежий снег держится до уклона / сползает к уклону, градусы
 uniform vec4 sl_snow_pre = vec4(3000.0, 0.0, 0.0, 0.0);  // (высота линии на дату и широту, ...) считает CPU
@@ -740,8 +740,9 @@ vec3 sl_glacier(vec3 wcol, vec2 xz, vec3 n_class, float slope_deg, float cv, flo
 	if (!sl_glacier_enabled) {
 		return wcol;
 	}
-	float g = (1.0 - sl_snow_fresh_b(h)) * (1.0 - smoothstep(sl_glacier_slope_deg.x, sl_glacier_slope_deg.y, slope_deg))
-			* (1.0 - smoothstep(0.0, 0.6, cv));
+	float g = (1.0 - smoothstep(sl_snow_pre.x, sl_snow_pre.x + sl_snow_fresh_band_m, h))
+			* (1.0 - smoothstep(sl_glacier_slope_deg.x, sl_glacier_slope_deg.y, slope_deg))
+			* (1.0 - smoothstep(-0.3, 0.05, cv));
 	if (g < 0.01) {
 		return wcol;
 	}

@@ -287,6 +287,7 @@ func test_k2_snow_range_monotonic_symmetric() -> void:
 func test_k2_snow_numbers() -> void:
 	check(float(_season(196.0, 51.0, 1000.0).snow_fresh) == 0.0, "К2 v2: 15 июля, 51°, 1000 м — снега нет")
 	check(float(_season(15.0, 51.0, 2500.0).snow_fresh) >= 0.9, "К2 v2: 15 января, 51°, 2500 м ≥ 0,9")
+	check(float(_season(15.0, 51.0, 1200.0).snow_fresh) > 0.0, "К2 v2: 15 января, 51°, 1200 м — снег есть")
 	for doy in range(1, 366, 7):
 		check(float(_season(float(doy), 5.0, 3000.0).snow_fresh) == 0.0, "К2 v2: 5°, 3000 м — 0 круглый год (%d)" % doy)
 	var line := float(_season(196.0, 46.0, 0.0).snow_line_m)
