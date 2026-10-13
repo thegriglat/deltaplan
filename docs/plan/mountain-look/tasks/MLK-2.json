@@ -1,0 +1,81 @@
+{
+  "id": "MLK-2",
+  "module": "mountain-look",
+  "type": "dp-engineer",
+  "title": "Сглаживание DSM только в лесу и застройке",
+  "goal": "Высоты места как в данных Copernicus на скалах, снегу и камне (острые гребни в физике и картинке), сглаживание σ 0,8 — только под кронами и крышами, переход плавный. height_at меняется — это правильно.",
+  "plan_ref": "MLK-2",
+  "contracts": [
+    {
+      "name": "MLK-К1",
+      "version": "1",
+      "ref": "docs/contracts/mountain-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-mountain-look-MLK-2",
+  "branch": "mountain-look/MLK-2",
+  "base": "feature/mountain-look",
+  "scope": [
+    "scripts/terrain/build/",
+    "configs/world.json",
+    "configs/locations/",
+    "tests/terrain/",
+    "tests/fixtures/locations/",
+    "tests/contracts/test_mountain_look_contracts.gd",
+    "docs/guide/terrain.md",
+    "docs/guide/location-data.md",
+    "tools/bench/cliff_look_probe.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "mountain_look_contracts",
+      "tests": "mountain_look_contracts"
+    },
+    {
+      "name": "dem_stage",
+      "tests": "dem_stage"
+    },
+    {
+      "name": "location_builder",
+      "tests": "location_builder"
+    },
+    {
+      "name": "locations",
+      "tests": "locations"
+    },
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "surface",
+      "tests": "surface"
+    },
+    {
+      "name": "river_stage",
+      "tests": "river_stage"
+    },
+    {
+      "name": "no_osm_contracts",
+      "tests": "no_osm_contracts"
+    },
+    {
+      "name": "osm_any_contracts",
+      "tests": "osm_any_contracts"
+    }
+  ],
+  "report_extra": [
+    "curv_ratio_above_forest_before",
+    "curv_ratio_above_forest_after",
+    "crest_drop_m_above_forest_after",
+    "forest_step_m_after"
+  ],
+  "notes": "",
+  "created": "2026-10-13T21:42:23",
+  "edited": "2026-10-13T21:42:23"
+}
