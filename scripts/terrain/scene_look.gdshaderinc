@@ -294,6 +294,7 @@ bool sl_leaf_gone(float bare, float n) {
 	return n < bare * 0.85;
 }
 
+#ifndef SL_NO_GROUND   // SL-8 использует vnoise/hash12 из terrain_common
 // --- SL-8: скотные тропы с высоты ---
 // Горизонтальные ступеньки на крутом лугу (шаг по высоте 1–3 м): светлая полка (тропа, ровная —
 // освещена как горизонталь) и подъём уступа (обращён вниз по склону — тень, если солнце с
@@ -353,3 +354,4 @@ vec3 sl_trails(vec3 c, vec2 p, float h, vec3 nc, float slope_deg, float fh, vec3
 	float tone = mix(e_t, e_r, rm) / max(mean_e, 1e-3);
 	return c * mix(1.0, tone, k * sl_trails_strength);
 }
+#endif
