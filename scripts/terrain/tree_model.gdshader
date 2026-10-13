@@ -38,6 +38,7 @@ uniform float far_desaturate = 0.4;
 uniform float far_contrast = 0.35;
 uniform float far_canopy_luma = 0.32;
 uniform float far_edge_soft_k = 3.0;
+uniform float tree_gain = 1.0;         // SL-14: множитель альбедо породы (trees.albedo_gain; кора — 1), действует при sl_tree_albedo_enabled
 uniform float sl_tree_kind = 0.0;      // SL-6 сезон: 0 — вечнозелёная, 1 — берёза/осина, 2 — лиственница (ставит TerrainTreeModels)
 uniform vec2 lod_d = vec2(60.0, 180.0); // границы LOD, м (configs/world.json → trees.lod_distances_m)
 uniform float lod_fade_m = 10.0;        // ширина растворения, м (trees.lod_fade_m)
@@ -112,7 +113,7 @@ void fragment() {
 		discard;
 	}
 	vec4 c = texture(albedo_tex, UV) * albedo_color;
-	vec3 rgb = c.rgb * v_color;
+	vec3 rgb = c.rgb * v_color * sl_tree_gain(tree_gain); // SL-14: альбедо → сезон → просвет
 	if (sl_tree_kind > 0.5 && v_crown > 0.5) {  // SL
 		rgb = sl_tree_season(rgb, v_sl_ss, sl_tree_kind);
 		if (sl_leaf_gone(v_sl_ss.w, n)) discard;
