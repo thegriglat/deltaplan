@@ -354,7 +354,8 @@ func test_k4_function_in_include_and_config() -> void:
 		approx(float(m.get_string(2)), float(trees.lod_k_max), 1e-6, "К4: умолчание include = lod_k_max")
 	# потребители подключают одну функцию, у моделей и импостеров одна и та же граница
 	check(_read("res://scripts/terrain/tree_model.gdshader").contains("sl_lod_k(base.xz)"), "К4: модели зовут sl_lod_k")
-	check(_read(IMPOSTORS).contains("sl_lod_k(xz)"), "К4: импостеры зовут sl_lod_k")
+	# К4 v2 (SL-18): дальняя граница модели — стык с LOD2-крестом в шейдере (band-импостеры сняты)
+	check(_read("res://scripts/terrain/tree_cross.gdshader").contains("sl_lod_k(p)"), "К4 v2: кресты зовут sl_lod_k")
 
 
 func test_k4_cpu_mirror_range() -> void:

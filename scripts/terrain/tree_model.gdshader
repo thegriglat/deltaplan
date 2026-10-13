@@ -3,8 +3,8 @@
 // чем выше над основанием, тем сильнее (квадратично), порывы — тем же полем, что колышет траву.
 // Параметры задают TerrainTreeModels (материал) и TerrainWind (ветер).
 // Мягкая смена LOD: у границы экземпляр стоит в обоих LOD (TreePlacer), код в альфе цвета экземпляра
-// (1 — нет; 0,1/0,2 — уходит/проявляется у lod_d.x; 0,3/0,4 — у lod_d.y; 0,5 — уходит на импостер у
-// lod_swap_m·sl_lod_k(дерево), SL-К4). Доля t по живому
+// (1 — нет; 0,1/0,2 — уходит/проявляется у lod_d.x; 0,3/0,4 — у lod_d.y). Ближний стык с LOD2-крестом
+// (SL-К4 v2): у всех моделей уходит на cross_near_m·sl_lod_k(дерево), если кресты есть. Доля t по живому
 // расстоянию до камеры; пиксель виден у уходящего при шум ≥ t, у проявляющегося при шум < t —
 // с одним шумом экрана оба LOD дополняют друг друга, без прозрачности (discard).
 shader_type spatial;
@@ -44,7 +44,6 @@ uniform float tree_gain = 1.0;         // SL-14: множитель альбед
 uniform float sl_tree_kind = 0.0;      // SL-6 сезон: 0 — вечнозелёная, 1 — берёза/осина, 2 — лиственница (ставит TerrainTreeModels)
 uniform vec2 lod_d = vec2(60.0, 180.0); // границы LOD, м (configs/world.json → trees.lod_distances_m)
 uniform float lod_fade_m = 10.0;        // ширина растворения, м (trees.lod_fade_m)
-uniform float lod_swap_m = 500.0;       // SL-К4: базовое расстояние смены модель → импостер, м (trees.radius_m); у дерева × sl_lod_k
 uniform float lod_dither_m = 40.0;      // SL-К4: ширина дизеринга при смене формы, м (trees.lod_dither_m)
 uniform float cross_near_m = 0.0;       // SL-К4 v2: модель уступает LOD2-кресту (tree_cross.gdshader) на cross_near_m·sl_lod_k(дерево); 0 — крестов нет (ставит TreeCrosses)
 
@@ -65,10 +64,6 @@ void vertex() {
 	if (code >= 1 && code <= 4) {
 		float t = clamp((v_dist - (code <= 2 ? lod_d.x : lod_d.y)) / lod_fade_m + 0.5, 0.0, 1.0);
 		v_fade = (code % 2 == 1) ? vec2(t, 2.0) : vec2(0.0, t);
-	}
-	if (code == 5) { // SL-К4: личная граница смены на импостер (шум экрана — дополнение к импостеру)
-		float ti = sl_lod_swap_t(v_dist, lod_swap_m * sl_lod_k(base.xz), lod_dither_m);
-		v_fade = vec2(ti, 2.0);
 	}
 	float spd = length(wind_vec);
 	vec2 d = spd > 0.05 ? wind_vec / spd : vec2(1.0, 0.0);
