@@ -1,0 +1,49 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место pt_+27.950_+086.700 загружено за 5.61 с
+MLOOK everest_gokyo меш dh=v2 {"layer_seam":{"jump_abs_m_max":198.9761,"jump_abs_m_p50":11.6198,"jump_abs_m_p90":48.6149,"jump_mean_m":3.9729,"n":3196},"layers":[{"dh_far_mean_m":1.8109,"dh_m_max":390.499,"dh_m_min":-12.2061,"dh_m_p50":-0.0103,"dh_m_p90":2.0469,"dh_m_p99":64.9321,"id":"detail","local_relief_m_p10":174.9976,"local_relief_m_p50":276.0117,"local_relief_m_p90":409.5435,"lod_gap_m_max":155.2305,"lod_gap_m_p50":0.0,"lod_gap_m_p99":60.7773,"lod_gap_n":2858,"lod_gap_over_skirt":56,"skirt_m":40.0,"valley_dh_max_m":390.499,"valley_dh_mean_m":-0.0452,"valley_dh_p90_m":0.0,"valley_n":37268,"vertices":156580},{"dh_far_mean_m":6.2605,"dh_m_max":413.1172,"dh_m_min":-30.0,"dh_m_p50":0.1475,"dh_m_p90":38.6582,"dh_m_p99":179.9897,"id":"far","local_relief_m_p10":128.8662,"local_relief_m_p50":235.4763,"local_relief_m_p90":409.3838,"lod_gap_m_max":268.5,"lod_gap_m_p50":0.0,"lod_gap_m_p99":124.3,"lod_gap_n":2840,"lod_gap_over_skirt":16,"skirt_m":150.0,"valley_dh_max_m":389.7822,"valley_dh_mean_m":-2.3312,"valley_dh_p90_m":0.0,"valley_n":27323,"vertices":146748}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+MLOOK everest_gokyo старт lat=27.9500 lon=86.6900 h_eye=5042 центр=27.950,86.700
+MLOOK everest_gokyo гребни detail [0.0, 3.0] all n=1359 curv_ratio=0.6575 drop_p50=5.25 drop_p90=7.7813 drop_render_p50=3.1421
+MLOOK everest_gokyo гребни detail [0.0, 3.0] above_forest n=1359 curv_ratio=0.6575 drop_p50=5.25 drop_p90=7.7813 drop_render_p50=3.1421
+MLOOK everest_gokyo гребни detail [0.0, 3.0] forest n=0 curv_ratio=<null> drop_p50=<null> drop_p90=<null> drop_render_p50=<null>
+MLOOK everest_gokyo гребни detail [3.0, 8.0] all n=7151 curv_ratio=0.6625 drop_p50=5.25 drop_p90=7.5313 drop_render_p50=8.3323
+MLOOK everest_gokyo гребни detail [3.0, 8.0] above_forest n=7150 curv_ratio=0.6625 drop_p50=5.25 drop_p90=7.5313 drop_render_p50=8.3347
+MLOOK everest_gokyo гребни detail [3.0, 8.0] forest n=0 curv_ratio=<null> drop_p50=<null> drop_p90=<null> drop_render_p50=<null>
+MLOOK everest_gokyo гребни detail [8.0, 14.0] all n=16708 curv_ratio=0.6552 drop_p50=5.2188 drop_p90=7.4688 drop_render_p50=17.097
+MLOOK everest_gokyo гребни detail [8.0, 14.0] above_forest n=16218 curv_ratio=0.6575 drop_p50=5.2188 drop_p90=7.5 drop_render_p50=17.0449
+MLOOK everest_gokyo гребни detail [8.0, 14.0] forest n=44 curv_ratio=0.5122 drop_p50=5.0938 drop_p90=7.4375 drop_render_p50=22.6953
+MLOOK everest_gokyo гребни detail [14.0, 30.0] all n=43163 curv_ratio=0.6612 drop_p50=5.2813 drop_p90=7.7813 drop_render_p50=26.008
+MLOOK everest_gokyo гребни detail [14.0, 30.0] above_forest n=41450 curv_ratio=0.6642 drop_p50=5.2813 drop_p90=7.8438 drop_render_p50=26.356
+MLOOK everest_gokyo гребни detail [14.0, 30.0] forest n=669 curv_ratio=0.5954 drop_p50=4.9063 drop_p90=6.625 drop_render_p50=21.8398
+MLOOK everest_gokyo гребни far [14.0, 30.0] all n=15360 curv_ratio=0.2972 drop_p50=22.3125 drop_p90=62.9063 drop_render_p50=20.2808
+MLOOK everest_gokyo гребни far [14.0, 30.0] above_forest n=14131 curv_ratio=0.3012 drop_p50=22.25 drop_p90=63.8438 drop_render_p50=19.5313
+MLOOK everest_gokyo гребни far [14.0, 30.0] forest n=588 curv_ratio=0.2254 drop_p50=26.625 drop_p90=51.0 drop_render_p50=30.0
+MLOOK everest_gokyo гребни far [30.0, 40.0] all n=25661 curv_ratio=0.2821 drop_p50=23.3438 drop_p90=61.0625 drop_render_p50=25.2491
+MLOOK everest_gokyo гребни far [30.0, 40.0] above_forest n=19614 curv_ratio=0.2992 drop_p50=23.625 drop_p90=60.625 drop_render_p50=24.262
+MLOOK everest_gokyo гребни far [30.0, 40.0] forest n=3807 curv_ratio=0.2103 drop_p50=21.625 drop_p90=58.8438 drop_render_p50=28.5
+MLOOK everest_gokyo гребни far [40.0, 50.0] all n=28951 curv_ratio=0.2657 drop_p50=20.9375 drop_p90=58.5938 drop_render_p50=25.4712
+MLOOK everest_gokyo гребни far [40.0, 50.0] above_forest n=14932 curv_ratio=0.2928 drop_p50=19.3438 drop_p90=59.9688 drop_render_p50=16.1023
+MLOOK everest_gokyo гребни far [40.0, 50.0] forest n=9979 curv_ratio=0.2212 drop_p50=23.7813 drop_p90=55.9063 drop_render_p50=36.0156
+Terrain: поля рельефа за 118.10 с
+WARNING: Terrain: загрузка стоит 90 с — отмена
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _watch_stall (res://scripts/terrain/terrain.gd:289)
+MLOOK everest_gokyo вершина sil_az201.3 d=2.5 км слой=detail raw=6023 game=6016 render=6017 недобор=5.9 м (0.12°) сетка=21.0 источник=-13.5 LOD=-1.6
+MLOOK everest_gokyo вершина sil_az225.7 d=2.4 км слой=detail raw=5808 game=5802 render=5802 недобор=5.9 м (0.13°) сетка=22.6 источник=-16.3 LOD=-0.4
+MLOOK everest_gokyo вершина sil_az212.4 d=2.5 км слой=detail raw=6021 game=6015 render=6018 недобор=3.0 м (0.06°) сетка=14.6 источник=-9.3 LOD=-2.3
+MLOOK everest_gokyo вершина sil_az188.8 d=2.7 км слой=detail raw=5702 game=5710 render=5711 недобор=-8.8 м (-0.18°) сетка=5.5 источник=-13.8 LOD=-0.5
+MLOOK everest_gokyo вершина sil_az331.0 d=1.4 км слой=detail raw=5338 game=5333 render=5333 недобор=4.4 м (0.17°) сетка=14.6 источник=-10.4 LOD=0.2
+MLOOK everest_gokyo вершина sil_az37.9 d=4.8 км слой=detail raw=6018 game=6015 render=6015 недобор=3.1 м (0.04°) сетка=9.0 источник=-5.9 LOD=-0.0
+MLOOK everest_gokyo вершина sil_az335.5 d=2.2 км слой=detail raw=5462 game=5458 render=5457 недобор=4.7 м (0.12°) сетка=5.9 источник=-1.4 LOD=0.1
+MLOOK everest_gokyo вершина sil_az349.3 d=16.6 км слой=detail raw=8150 game=8147 render=8148 недобор=2.1 м (0.01°) сетка=11.5 источник=-8.9 LOD=-0.5
+MLOOK everest_gokyo вершина sil_az290.1 d=4.3 км слой=detail raw=5830 game=5822 render=5821 недобор=9.9 м (0.13°) сетка=19.9 источник=-11.6 LOD=1.5
+MLOOK everest_gokyo вершина sil_az17.8 d=17.3 км слой=detail raw=7925 game=7920 render=7918 недобор=7.2 м (0.02°) сетка=14.4 источник=-9.8 LOD=2.6
+MLOOK everest_gokyo вершина Everest d=23.5 км слой=far raw=8735 game=8696 render=8704 недобор=31.0 м (0.07°) сетка=13.5 источник=24.7 LOD=-7.2
+MLOOK everest_gokyo вершина Lhotse d=23.8 км слой=far raw=8412 game=8368 render=8388 недобор=24.6 м (0.06°) сетка=14.8 источник=29.9 LOD=-20.1
+MLOOK everest_gokyo вершина Nuptse d=19.4 км слой=detail raw=7792 game=7788 render=7778 недобор=14.5 м (0.04°) сетка=23.8 источник=-19.2 LOD=9.8
+MLOOK everest_gokyo вершина AmaDablam d=19.4 км слой=detail raw=6660 game=6654 render=6655 недобор=4.9 м (0.01°) сетка=9.3 источник=-3.0 LOD=-1.5
+MLOOK everest_gokyo вершина Makalu d=39.7 км слой=far raw=8241 game=8191 render=8210 недобор=31.9 м (0.05°) сетка=13.9 источник=36.1 LOD=-18.1
+MLOOK everest_gokyo горизонт rough_raw=0.1072 rough_render=0.1028 ratio=0.96 deficit_p50=0.024 max=0.699 far_share=0.07
+mountain_look_probe: OK everest_gokyo

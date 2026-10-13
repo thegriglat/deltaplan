@@ -2,17 +2,17 @@
 type: contract
 status: active
 module: scene-look
-updated: 2026-10-13
+updated: 2026-10-14
 summary: "Контракты scene-look: свой include и секция конфига без правок кода mountain-look (SL-К1), широта/дата/сезон для шейдеров с CPU-зеркалом (SL-К2), бюджет и замер GPU (SL-К3)."
 related: ["docs/plan/scene-look.md", "docs/guide/terrain.md"]
-contracts: [{"id": "SL-К1", "version": 2}, {"id": "SL-К2", "version": 1}, {"id": "SL-К3", "version": 1}]
+contracts: [{"id": "SL-К1", "version": 3}, {"id": "SL-К2", "version": 1}, {"id": "SL-К3", "version": 1}]
 ---
 # Контракты scene-look
 
 Контрактный тест — `tests/contracts/test_scene_look_contracts.gd` (`test_k1_*` и проводка `test_k2_wiring_*` — SL-2, сезон `test_k2_season_*` — SL-6).
 Правка интерфейса — только через координатора: версия +1, этот файл и тест — в том же шаге.
 
-## SL-К1 v2 — свой include, своя секция конфига, стык с mountain-look
+## SL-К1 v3 — свой include, своя секция конфига, стык с mountain-look
 - Владелец: SL-2. Потребители: SL-4…SL-10, mountain-look (не должен ломаться при слиянии).
 - Весь новый шейдерный код — в `scripts/terrain/scene_look.gdshaderinc`: функции `sl_*`, uniform-ы `sl_*`. Подключается в `terrain.gdshader`
   (после `terrain_common`), может подключаться в `grass.gdshader`, `forest_impostors.gdshader`, `tree_model.gdshader`, `road.gdshader`.
@@ -41,6 +41,7 @@ contracts: [{"id": "SL-К1", "version": 2}, {"id": "SL-К2", "version": 1}, {"id
     (трава, модели деревьев) получают параметры, если у них есть метод `apply_scene_look(sl)`.
 - Инварианты теста: include существует и подключён; каждый ключ `scene_look` есть uniform-ом в шейдере рельефа; в `terrain.gdshader`
   нет uniform-ов `sl_*`, объявленных вне include.
+- v3 (14.10, координатор): mountain-look влит в main (755a44c7), ветка модуля синхронизирована (19f68e7f) — волна 3 открыта. SL-9 и SL-10 правят результат скал, осыпей и снега строками вызовов `// SL` после существующих функций (`rock_*`, `scree_*`, `gully_*`, `snow_*`, класс 8); сами эти функции, вершинный шейдер, `relief_*`, ReliefLook/SmoothStage (MLK-К1/К2) не меняются. Форма данных и тесты К1 не меняются; потребителям SL-5…SL-8 правка не требуется.
 
 ## SL-К2 v1 — широта, дата, сезон
 - Владелец проводки — SL-2, владелец сезона — SL-6. Потребители: SL-5, SL-6, SL-10, трава, импостеры, модели деревьев.

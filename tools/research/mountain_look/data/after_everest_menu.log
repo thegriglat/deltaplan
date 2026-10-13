@@ -1,0 +1,49 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место pt_+28.000_+086.850 загружено за 3.95 с
+MLOOK everest_menu меш dh=v2 {"layer_seam":{"jump_abs_m_max":283.0124,"jump_abs_m_p50":10.1126,"jump_abs_m_p90":48.055,"jump_mean_m":5.0273,"n":3196},"layers":[{"dh_far_mean_m":2.3034,"dh_m_max":341.8828,"dh_m_min":-19.4595,"dh_m_p50":0.0151,"dh_m_p90":2.7612,"dh_m_p99":81.853,"id":"detail","local_relief_m_p10":219.8741,"local_relief_m_p50":344.5279,"local_relief_m_p90":532.3665,"lod_gap_m_max":178.136,"lod_gap_m_p50":0.0,"lod_gap_m_p99":49.7676,"lod_gap_n":2982,"lod_gap_over_skirt":49,"skirt_m":40.0,"valley_dh_max_m":337.9844,"valley_dh_mean_m":-0.1152,"valley_dh_p90_m":0.0,"valley_n":26010,"vertices":118460},{"dh_far_mean_m":6.6241,"dh_m_max":411.3672,"dh_m_min":-30.0,"dh_m_p50":0.1714,"dh_m_p90":41.9038,"dh_m_p99":176.6948,"id":"far","local_relief_m_p10":119.8478,"local_relief_m_p50":230.2746,"local_relief_m_p90":404.3251,"lod_gap_m_max":296.1467,"lod_gap_m_p50":0.0,"lod_gap_m_p99":152.0762,"lod_gap_n":2840,"lod_gap_over_skirt":31,"skirt_m":150.0,"valley_dh_max_m":370.729,"valley_dh_mean_m":-2.432,"valley_dh_p90_m":0.0,"valley_n":27014,"vertices":146748}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+MLOOK everest_menu старт lat=27.9957 lon=86.8285 h_eye=5898 центр=28.000,86.850
+MLOOK everest_menu гребни detail [0.0, 3.0] all n=1196 curv_ratio=0.6243 drop_p50=5.2188 drop_p90=8.1875 drop_render_p50=3.1226
+MLOOK everest_menu гребни detail [0.0, 3.0] above_forest n=1196 curv_ratio=0.6243 drop_p50=5.2188 drop_p90=8.1875 drop_render_p50=3.1226
+MLOOK everest_menu гребни detail [0.0, 3.0] forest n=0 curv_ratio=<null> drop_p50=<null> drop_p90=<null> drop_render_p50=<null>
+MLOOK everest_menu гребни detail [3.0, 8.0] all n=8433 curv_ratio=0.6583 drop_p50=5.3125 drop_p90=7.9688 drop_render_p50=8.0938
+MLOOK everest_menu гребни detail [3.0, 8.0] above_forest n=8433 curv_ratio=0.6583 drop_p50=5.3125 drop_p90=7.9688 drop_render_p50=8.0938
+MLOOK everest_menu гребни detail [3.0, 8.0] forest n=0 curv_ratio=<null> drop_p50=<null> drop_p90=<null> drop_render_p50=<null>
+MLOOK everest_menu гребни detail [8.0, 14.0] all n=16495 curv_ratio=0.6415 drop_p50=5.1875 drop_p90=7.6563 drop_render_p50=17.1119
+MLOOK everest_menu гребни detail [8.0, 14.0] above_forest n=16495 curv_ratio=0.6415 drop_p50=5.1875 drop_p90=7.6563 drop_render_p50=17.1119
+MLOOK everest_menu гребни detail [8.0, 14.0] forest n=0 curv_ratio=<null> drop_p50=<null> drop_p90=<null> drop_render_p50=<null>
+MLOOK everest_menu гребни detail [14.0, 30.0] all n=33294 curv_ratio=0.6641 drop_p50=5.2188 drop_p90=7.5313 drop_render_p50=26.8635
+MLOOK everest_menu гребни detail [14.0, 30.0] above_forest n=32304 curv_ratio=0.6667 drop_p50=5.2188 drop_p90=7.5625 drop_render_p50=26.8607
+MLOOK everest_menu гребни detail [14.0, 30.0] forest n=224 curv_ratio=0.5893 drop_p50=4.7813 drop_p90=6.8438 drop_render_p50=43.0307
+MLOOK everest_menu гребни far [14.0, 30.0] all n=14316 curv_ratio=0.3055 drop_p50=22.8438 drop_p90=58.7813 drop_render_p50=20.4727
+MLOOK everest_menu гребни far [14.0, 30.0] above_forest n=13513 curv_ratio=0.3107 drop_p50=22.8125 drop_p90=59.6875 drop_render_p50=20.1553
+MLOOK everest_menu гребни far [14.0, 30.0] forest n=339 curv_ratio=0.2183 drop_p50=23.875 drop_p90=46.5313 drop_render_p50=26.4375
+MLOOK everest_menu гребни far [30.0, 40.0] all n=22115 curv_ratio=0.2858 drop_p50=19.3438 drop_p90=58.9063 drop_render_p50=19.3188
+MLOOK everest_menu гребни far [30.0, 40.0] above_forest n=19533 curv_ratio=0.2953 drop_p50=19.3125 drop_p90=59.3125 drop_render_p50=19.0703
+MLOOK everest_menu гребни far [30.0, 40.0] forest n=1272 curv_ratio=0.1843 drop_p50=21.5313 drop_p90=55.3125 drop_render_p50=25.1094
+MLOOK everest_menu гребни far [40.0, 50.0] all n=29107 curv_ratio=0.273 drop_p50=20.5313 drop_p90=58.9688 drop_render_p50=24.8359
+MLOOK everest_menu гребни far [40.0, 50.0] above_forest n=18654 curv_ratio=0.2796 drop_p50=22.7188 drop_p90=60.5313 drop_render_p50=22.6787
+MLOOK everest_menu гребни far [40.0, 50.0] forest n=6808 curv_ratio=0.2472 drop_p50=16.4063 drop_p90=55.4375 drop_render_p50=31.1094
+Terrain: поля рельефа за 111.84 с
+MLOOK everest_menu вершина sil_az357.6 d=2.2 км слой=detail raw=7105 game=7102 render=7102 недобор=3.3 м (0.07°) сетка=7.8 источник=-4.7 LOD=0.1
+MLOOK everest_menu вершина sil_az94.8 d=9.6 км слой=detail raw=8736 game=8732 render=8736 недобор=0.3 м (0.00°) сетка=13.4 источник=-9.8 LOD=-3.4
+MLOOK everest_menu вершина sil_az118.5 d=5.3 км слой=detail raw=7452 game=7449 render=7447 недобор=5.1 м (0.05°) сетка=6.9 источник=-3.9 LOD=2.1
+MLOOK everest_menu вершина sil_az334.2 d=3.0 км слой=detail raw=6601 game=6595 render=6595 недобор=6.2 м (0.11°) сетка=3.2 источник=3.4 LOD=-0.5
+MLOOK everest_menu вершина sil_az110.3 d=10.9 км слой=detail raw=8413 game=8409 render=8411 недобор=2.6 м (0.01°) сетка=13.2 источник=-8.7 LOD=-1.8
+MLOOK everest_menu вершина sil_az297.1 d=4.5 км слой=detail raw=6840 game=6837 render=6837 недобор=3.4 м (0.04°) сетка=15.3 источник=-12.4 LOD=0.5
+MLOOK everest_menu вершина sil_az325.9 d=3.3 км слой=detail raw=6558 game=6556 render=6556 недобор=2.1 м (0.04°) сетка=17.8 источник=-15.6 LOD=-0.0
+MLOOK everest_menu вершина sil_az105.2 d=10.5 км слой=detail raw=7941 game=7938 render=7938 недобор=3.7 м (0.02°) сетка=6.4 источник=-3.6 LOD=0.8
+MLOOK everest_menu вершина sil_az304.6 d=4.6 км слой=detail raw=6752 game=6747 render=6746 недобор=6.0 м (0.07°) сетка=7.2 источник=-2.4 LOD=1.2
+MLOOK everest_menu вершина sil_az67.1 d=8.7 км слой=detail raw=7434 game=7431 render=7430 недобор=4.3 м (0.03°) сетка=2.7 источник=0.3 LOD=1.2
+MLOOK everest_menu вершина Everest d=9.6 км слой=detail raw=8735 game=8732 render=8735 недобор=-0.7 м (-0.00°) сетка=13.6 источник=-11.0 LOD=-3.3
+MLOOK everest_menu вершина Lhotse d=10.9 км слой=detail raw=8411 game=8408 render=8413 недобор=-2.5 м (-0.01°) сетка=14.9 источник=-11.6 LOD=-5.7
+MLOOK everest_menu вершина Nuptse d=6.5 км слой=detail raw=7793 game=7789 render=7787 недобор=6.2 м (0.05°) сетка=16.3 источник=-12.2 LOD=2.1
+MLOOK everest_menu вершина AmaDablam d=15.2 км слой=detail raw=6659 game=6653 render=6657 недобор=1.7 м (0.01°) сетка=22.5 источник=-16.3 LOD=-4.5
+MLOOK everest_menu вершина Makalu d=28.0 км слой=far raw=8241 game=8196 render=8211 недобор=30.0 м (0.06°) сетка=7.1 источник=37.8 LOD=-14.9
+MLOOK everest_menu горизонт rough_raw=0.1124 rough_render=0.1165 ratio=1.04 deficit_p50=0.027 max=0.459 far_share=0.23
+mountain_look_probe: OK everest_menu
+WARNING: Terrain: загрузка стоит 90 с — отмена
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _watch_stall (res://scripts/terrain/terrain.gd:289)

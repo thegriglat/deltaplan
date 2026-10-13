@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dfm5ug2p3evrb"
-path.bptc="res://.godot/imported/glider_air_rev_glider_air_rev_sail.png-9f07cd343aa9ddf26eea6045e52a7107.bptc.ctex"
-path.astc="res://.godot/imported/glider_air_rev_glider_air_rev_sail.png-9f07cd343aa9ddf26eea6045e52a7107.astc.ctex"
+path="res://.godot/imported/glider_air_rev_glider_air_rev_sail.png-9f07cd343aa9ddf26eea6045e52a7107.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "cb3475c550fea726cf3211513938f95b"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_air_rev_glider_air_rev_sail.png"
-dest_files=["res://.godot/imported/glider_air_rev_glider_air_rev_sail.png-9f07cd343aa9ddf26eea6045e52a7107.bptc.ctex", "res://.godot/imported/glider_air_rev_glider_air_rev_sail.png-9f07cd343aa9ddf26eea6045e52a7107.astc.ctex"]
+dest_files=["res://.godot/imported/glider_air_rev_glider_air_rev_sail.png-9f07cd343aa9ddf26eea6045e52a7107.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

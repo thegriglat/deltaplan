@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cc8a7t075s6x8"
-path.bptc="res://.godot/imported/glider_icaro_mastr_glider_icaro_mastr_sail.png-9aa7ae2d4515c524fc4de7c48ad02991.bptc.ctex"
-path.astc="res://.godot/imported/glider_icaro_mastr_glider_icaro_mastr_sail.png-9aa7ae2d4515c524fc4de7c48ad02991.astc.ctex"
+path="res://.godot/imported/glider_icaro_mastr_glider_icaro_mastr_sail.png-9aa7ae2d4515c524fc4de7c48ad02991.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "098ddb222ff4df40449247bfde53f2a7"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_icaro_mastr_glider_icaro_mastr_sail.png"
-dest_files=["res://.godot/imported/glider_icaro_mastr_glider_icaro_mastr_sail.png-9aa7ae2d4515c524fc4de7c48ad02991.bptc.ctex", "res://.godot/imported/glider_icaro_mastr_glider_icaro_mastr_sail.png-9aa7ae2d4515c524fc4de7c48ad02991.astc.ctex"]
+dest_files=["res://.godot/imported/glider_icaro_mastr_glider_icaro_mastr_sail.png-9aa7ae2d4515c524fc4de7c48ad02991.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

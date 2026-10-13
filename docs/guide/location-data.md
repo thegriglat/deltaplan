@@ -2,7 +2,7 @@
 type: "guide"
 status: "active"
 module: "no-osm"
-updated: "2026-10-10"
+updated: "2026-10-13"
 summary: "Откуда берутся данные места без OSM: стадии dem, rivers, surface (рельеф, реки, покров, лес, вода и застройка 10 м), файлы в WebP, версии формата и источника, кеш user://locations, встроенные места собираются при первом выборе, счётчик загрузки, как собрать встроенное место."
 related: ["docs/plan/no-osm.md", "docs/contracts/no-osm.md", "docs/contracts/osm-any.md", "docs/research/lakes_worldcover.md", "docs/research/location_compression.md", "docs/guide/terrain.md", "docs/guide/world-objects.md", "docs/registry/findings.md"]
 ---
@@ -17,7 +17,7 @@ no-osm, решение пользователя): ни файла OSM в пап�
 (`Locations.fixtures_root`, ставит `tests/run_tests.gd`). Формат папки — контракты OA-К1/К2 (`docs/contracts/osm-any.md`) и
 N1/N5 (`docs/contracts/no-osm.md`); планы — `docs/plan/osm-any.md`, `docs/plan/no-osm.md`.
 
-Версия формата: `Locations.FORMAT_VERSION` (`scripts/terrain/build/locations.gd`, сейчас 3) пишется в `build.json → format_version`; её поднимают при любом изменении файлов места. Кеш места `user://locations/<ключ>` с другой версией (или без поля) удаляется целиком и собирается заново — старый кеш пилота пересобирается сам. Сырые блоки источника (`user://terrain_cache`) имеют отдельную версию, `LocationCache.SOURCE_VERSION`: сбрасываются только при её смене (меняется источник или нарезка блоков), не при смене `FORMAT_VERSION`.
+Версия формата: `Locations.FORMAT_VERSION` (`scripts/terrain/build/locations.gd`, сейчас 4) пишется в `build.json → format_version`; её поднимают при любом изменении файлов места. Кеш места `user://locations/<ключ>` с другой версией (или без поля) удаляется целиком и собирается заново — старый кеш пилота пересобирается сам. Сырые блоки источника (`user://terrain_cache`) имеют отдельную версию, `LocationCache.SOURCE_VERSION`: сбрасываются только при её смене (меняется источник или нарезка блоков), не при смене `FORMAT_VERSION`.
 
 ## Файлы в WebP
 Основа — `docs/research/location_compression.md` (сравнение форматов: PNG, WebP lossless, brotli/zstd поверх float32).
@@ -37,9 +37,10 @@ N1/N5 (`docs/contracts/no-osm.md`); планы — `docs/plan/osm-any.md`, `docs
 
 | Стадия | Класс | Источник | Что пишет |
 |---|---|---|---|
-| Рельеф (`dem`) | `DemStage` | detail: Copernicus GLO-30 (COG на S3, HTTP range по внутренним тайлам), 40 км, шаг 25 м, σ = 0,8 клетки; far: Terrarium z10, 160 км, шаг 100 м, detail вклеен в far | `detail.webp`, `far.webp` (24 бит, шаг 1/32 м), `meta.json` |
+| Рельеф (`dem`) | `DemStage` | detail: Copernicus GLO-30 (COG на S3, HTTP range по внутренним тайлам), 40 км, шаг 25 м, σ = 0,8 клетки везде (без покрова так и остаётся; сырые — в `detail_raw.webp`); far: Terrarium z10, 160 км, шаг 100 м, detail вклеен в far | `detail.webp`, `far.webp` (24 бит, шаг 1/32 м), `meta.json`; временно `detail_raw.webp` (сырые высоты для стадии `smooth`) |
 | Реки (`rivers`) | `RiverStage` | сам рельеф: сток по far (priority-flood, накопление, привязка к долине), ширина от площади водосбора | `detail_water.webp`, `far_water.webp` (255 — русло) |
 | Покров (`surface`) | `SurfaceStage` | ESA WorldCover 2021 (COG, HTTP range): класс узла — мода 3×3 подвыборок; лес, вода и застройка 10 м | `detail_surface.webp`, `far_surface.webp` (классы игры 0..8), `detail_detail10.webp`, `detail_built10.webp`, `built_patches.json`, `surface.json` |
+| Сглаживание (`smooth`) | `SmoothStage` | сырые высоты (`detail_raw.webp`) и покров: `h = r + w·(G_σ(r) − r)`, `w` — лес (канал L маски 10 м) и застройка (`built10`), размытые на `smooth_mask_sigma_m` = 50 м; грубые слои берут высоты из нового detail; нет покрова — `ERR_UNAVAILABLE` (w = 1, досборка) | перезаписывает `detail.webp`, `far.webp`, `meta.json`; удаляет `detail_raw.webp` |
 
 **Вода 10 м** — канал A файла `detail_detail10.webp`: `A = max(round(255 · n_w / 9), маска рек по рельефу на этой сетке)`, где
 n_w — число подвыборок 3×3 класса «вода» WorldCover (код 80), маска рек — `detail_water`, переведённая билинейно с сетки

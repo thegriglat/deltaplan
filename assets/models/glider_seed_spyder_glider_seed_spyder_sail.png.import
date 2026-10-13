@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dv8ufhmacocpe"
-path.bptc="res://.godot/imported/glider_seed_spyder_glider_seed_spyder_sail.png-ef0160505289555fe436251a055967e2.bptc.ctex"
-path.astc="res://.godot/imported/glider_seed_spyder_glider_seed_spyder_sail.png-ef0160505289555fe436251a055967e2.astc.ctex"
+path="res://.godot/imported/glider_seed_spyder_glider_seed_spyder_sail.png-ef0160505289555fe436251a055967e2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "60054b1ee874e6bbb164a2d8a2efb3f4"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_seed_spyder_glider_seed_spyder_sail.png"
-dest_files=["res://.godot/imported/glider_seed_spyder_glider_seed_spyder_sail.png-ef0160505289555fe436251a055967e2.bptc.ctex", "res://.godot/imported/glider_seed_spyder_glider_seed_spyder_sail.png-ef0160505289555fe436251a055967e2.astc.ctex"]
+dest_files=["res://.godot/imported/glider_seed_spyder_glider_seed_spyder_sail.png-ef0160505289555fe436251a055967e2.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

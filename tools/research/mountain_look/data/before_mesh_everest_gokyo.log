@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место pt_+27.950_+086.700 загружено за 5.97 с
+MLOOK everest_gokyo меш dh=v1 {"layer_seam":{"jump_abs_m_max":186.1339,"jump_abs_m_p50":9.0523,"jump_abs_m_p90":39.0465,"jump_mean_m":0.2355,"n":3196,"open_over_skirt":3},"layers":[{"dh_far_mean_m":0.0187,"dh_m_max":11.0454,"dh_m_min":-11.9058,"dh_m_p50":-0.0205,"dh_m_p90":1.3125,"dh_m_p99":4.0083,"id":"detail","local_relief_m_p10":174.9976,"local_relief_m_p50":276.0117,"local_relief_m_p90":409.5435,"lod_gap_m_max":153.5032,"lod_gap_m_p50":0.0,"lod_gap_m_p99":47.5935,"lod_gap_n":2858,"lod_gap_over_skirt":41,"skirt_m":40.0,"valley_dh_max_m":1.7939,"valley_dh_mean_m":-0.5225,"valley_dh_p90_m":0.0,"valley_n":37268,"vertices":156580},{"dh_far_mean_m":0.0615,"dh_m_max":8.0,"dh_m_min":-8.0,"dh_m_p50":-0.0264,"dh_m_p90":5.7783,"dh_m_p99":8.0,"id":"far","local_relief_m_p10":128.8662,"local_relief_m_p50":235.4763,"local_relief_m_p90":409.3838,"lod_gap_m_max":268.5,"lod_gap_m_p50":0.0,"lod_gap_m_p99":120.6565,"lod_gap_n":2840,"lod_gap_over_skirt":15,"skirt_m":150.0,"valley_dh_max_m":0.0,"valley_dh_mean_m":-2.8383,"valley_dh_p90_m":0.0,"valley_n":27323,"vertices":146748}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+mountain_look_probe: OK everest_gokyo
+Terrain: поля рельефа за 15.03 с
