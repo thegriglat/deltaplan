@@ -1,0 +1,8 @@
+Deltaplan 1.5.13 — half the disk space
+
+The game data is now 86 MB instead of 212 MB, and the whole Linux build is about 155 MB instead of 285. Almost three quarters of the old game data were glider sail textures, stored uncompressed and often duplicated.
+
+Size:
+- Glider textures (sail colour, seams and battens, translucency) are stored compressed with Basis Universal
+- Identical seam maps shared by gliders of the same layout are kept as one file
+- The sails look the same as before
