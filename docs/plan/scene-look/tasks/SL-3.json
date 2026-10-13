@@ -1,0 +1,48 @@
+{
+  "id": "SL-3",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Дымка с ореолом вокруг солнца (Рэлей + Хеньи–Гринстейн)",
+  "goal": "К солнцу дымка теплее и светлее, против солнца горы слоями силуэтов; фаза рассеяния физическая вместо лепестка cos^6.",
+  "plan_ref": "SL-3 Дымка с ореолом вокруг солнца (п. 7)",
+  "contracts": [
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-3",
+  "branch": "scene-look/SL-3",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/world/haze.gdshader",
+    "scripts/world/sky_environment.gd",
+    "configs/world.json",
+    "tests/terrain/test_haze.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "haze",
+      "tests": "haze"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_ms_base",
+    "gpu_ms_after",
+    "side_brightness_ratio",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-13T22:07:38",
+  "edited": "2026-10-13T22:07:39"
+}

@@ -1,0 +1,48 @@
+{
+  "id": "SL-4",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Дороги вдали — тонкая нитка в цвет грунта",
+  "goal": "Дороги вдали не белые меловые линии, а тонкая серо-бежевая нитка в цвет грунта, с тенью облаков и светом как у рельефа.",
+  "plan_ref": "SL-4 Дороги вдали — тонкая нитка в цвет грунта (п. 3)",
+  "contracts": [
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-4",
+  "branch": "scene-look/SL-4",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/world_objects/osm/road.gdshader",
+    "scripts/world_objects/osm/osm_roads.gd",
+    "configs/world_objects.json",
+    "tests/world_objects/"
+  ],
+  "dont_touch": [
+    "scripts/terrain/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "osm_road",
+      "tests": "osm_road"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_ms_base",
+    "gpu_ms_after",
+    "far_road_luma_ratio",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-13T22:07:39",
+  "edited": "2026-10-13T22:07:40"
+}

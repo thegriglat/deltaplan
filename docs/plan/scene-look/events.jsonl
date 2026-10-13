@@ -1,1 +1,12 @@
 {"t": "2026-10-13T21:59:10", "by": "main", "task": null, "ev": "note", "note": "модуль заведён от main"}
+{"t": "2026-10-13T22:07:27", "by": "coordinator", "task": "SL-1", "ev": "created", "note": "Кадры и GPU «до»"}
+{"t": "2026-10-13T22:07:28", "by": "coordinator", "task": "SL-2", "ev": "created", "note": "Свет: небо сверху, земля снизу; дальний лес; include и проводка даты/широты"}
+{"t": "2026-10-13T22:07:38", "by": "coordinator", "task": "SL-2", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"gpu_full_ms_base\", \"gpu_full_ms_after\", \"gpu_relief_ms_base\", \"gpu_relief_ms_after\", \"uncertain\"]"]}}
+{"t": "2026-10-13T22:07:38", "by": "coordinator", "task": "SL-3", "ev": "created", "note": "Дымка с ореолом вокруг солнца (Рэлей + Хеньи–Гринстейн)"}
+{"t": "2026-10-13T22:07:39", "by": "coordinator", "task": "SL-3", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"gpu_ms_base\", \"gpu_ms_after\", \"side_brightness_ratio\", \"uncertain\"]"]}}
+{"t": "2026-10-13T22:07:39", "by": "coordinator", "task": "SL-4", "ev": "created", "note": "Дороги вдали — тонкая нитка в цвет грунта"}
+{"t": "2026-10-13T22:07:40", "by": "coordinator", "task": "SL-4", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"gpu_ms_base\", \"gpu_ms_after\", \"far_road_luma_ratio\", \"uncertain\"]"]}}
+{"t": "2026-10-13T22:10:22", "by": "coordinator", "task": "SL-1", "ev": "started", "note": "dp-mechanic, ~/deltaplan-scene-look-SL-1"}
+{"t": "2026-10-13T22:10:23", "by": "coordinator", "task": "SL-2", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-scene-look-SL-2"}
+{"t": "2026-10-13T22:10:23", "by": "coordinator", "task": "SL-3", "ev": "started", "note": "dp-engineer, ~/deltaplan-scene-look-SL-3"}
+{"t": "2026-10-13T22:10:23", "by": "coordinator", "task": "SL-4", "ev": "started", "note": "dp-engineer, ~/deltaplan-scene-look-SL-4"}
