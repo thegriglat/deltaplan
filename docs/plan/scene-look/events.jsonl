@@ -10,3 +10,10 @@
 {"t": "2026-10-13T22:10:23", "by": "coordinator", "task": "SL-2", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-scene-look-SL-2"}
 {"t": "2026-10-13T22:10:23", "by": "coordinator", "task": "SL-3", "ev": "started", "note": "dp-engineer, ~/deltaplan-scene-look-SL-3"}
 {"t": "2026-10-13T22:10:23", "by": "coordinator", "task": "SL-4", "ev": "started", "note": "dp-engineer, ~/deltaplan-scene-look-SL-4"}
+{"t": "2026-10-13T22:17:16", "by": "main", "task": "SL-1", "ev": "reported", "note": "partial: Кадры «до» сняты: 8 из 8 в build/screenshots/scene-look/before/. bench.json скопирован, но gpu_ms = 0.0 во всех замерах…", "dp_feedback": "dp accept --dry пишет PASS bench, хотя проверяет только парсинг json; нулевые gpu_ms не ловятся. Стоит добавить проверку gpu_ms_mean > 0."}
+{"t": "2026-10-13T22:17:42", "by": "coordinator", "task": "SL-1", "ev": "edited", "note": "scope, dont_touch", "diff": {"scope": ["[\"/home/greg/deltaplan/build/screenshots/scene-look/before/\"]", "[\"/home/greg/deltaplan/build/screenshots/scene-look/before/\", \"tools/terrain/shots.sh\"]"], "dont_touch": ["[\"scripts/\", \"configs/\", \"tools/\"]", "[\"scripts/\", \"configs/\"]"]}}
+{"t": "2026-10-13T22:18:56", "by": "executor", "task": "SL-1", "ev": "accepted", "note": "2/2 shots=ok:8; bench=ok:ok"}
+{"t": "2026-10-13T22:18:57", "by": "executor", "task": "SL-1", "ev": "note", "note": "кадры «до» приняты; bench.json с нулями (замер GPU сломан) — эталон GPU переснимает SL-13"}
+{"t": "2026-10-13T22:18:59", "by": "coordinator", "task": "SL-13", "ev": "created", "note": "Замер GPU стенда даёт 0 мс"}
+{"t": "2026-10-13T22:18:59", "by": "coordinator", "task": "SL-13", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"gpu_full_ms_base\", \"gpu_relief_ms_base\", \"cause\", \"uncertain\"]"]}}
+{"t": "2026-10-13T22:18:59", "by": "coordinator", "task": "SL-13", "ev": "started", "note": "dp-engineer, ~/deltaplan-scene-look-SL-13"}
