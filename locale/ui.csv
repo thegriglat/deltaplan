@@ -11,7 +11,7 @@ result_circling_pct,В кружении: %.0f%% времени,Circling: %.0f%% 
 setup_wind_into_launch,Встречный,Headwind
 pause_to_menu,В меню,Main menu
 result_to_menu,В главное меню,Main menu
-setup_wind,Ветер,Wind
+setup_wind,Ветер по прогнозу,Forecast wind
 result_launch_failed,Взлёт сорван,Launch failed
 result_flight_time,Время полёта: %s,Flight time: %s
 map_pick,Выбрать,Go
