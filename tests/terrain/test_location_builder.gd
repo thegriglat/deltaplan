@@ -190,7 +190,7 @@ func test_default_stages_without_osm() -> void:
 	var names: Array = []
 	for st in LocationBuilder.default_stages():
 		names.append(st.name)
-	check(names == ["dem", "rivers", "surface", "osm_tiles"], "стадии игры: %s" % str(names))
+	check(names == ["dem", "rivers", "surface", "smooth", "osm_tiles"], "стадии игры: %s" % str(names))
 
 
 func test_dem_failure_is_error() -> void:

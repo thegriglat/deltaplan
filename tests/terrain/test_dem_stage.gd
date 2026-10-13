@@ -124,11 +124,44 @@ func test_parity_with_builtin_askarovo() -> void:
 	check(mine_d != null and mine_f != null, "слои читаются с диска")
 	if mine_d == null or mine_f == null:
 		return
-	var worst_d := 0.0
+	# MLK-К1: эталон — стадия smooth (сырые на открытом, σ 0,8 под лесом и застройкой). DemStage один даёт
+	# сглаживание везде (w = 1) и сырые в detail_raw.webp: на открытом месте (нет леса/застройки в ±7 узлах
+	# эталона) сырые совпадают с эталоном, под лесом сглаженные не дальше полуметра от эталона глубоко в лесу.
+	var raw_info: Dictionary = (meta.layers[0] as Dictionary).duplicate()
+	raw_info["height_min_m"] = float(raw_info.raw_height_min_m)
+	var raw_d := HeightLayer.load_from_file(ctx.dir + "/" + String(raw_info.raw_file), raw_info)
+	var cls := Image.load_from_file(Locations.data_dir("askarovo") + "/detail_surface.webp")
+	check(raw_d != null and cls != null, "сырые высоты и карта поверхности читаются")
+	if raw_d == null or cls == null:
+		return
+	var half := int((mine_d.width - 1) / 2)
+	var fc := int((ref_d.width - 1) / 2)
+	var worst_open := 0.0
+	var n_open := 0
+	var worst_deep := 0.0
+	var n_deep := 0
 	for j in range(-16, 17):
 		for i in range(-16, 17):
-			worst_d = maxf(worst_d, absf(mine_d.sample(i * 25.0, j * 25.0) - ref_d.sample(i * 25.0, j * 25.0)))
-	check(worst_d < 0.5, "detail совпадает со встроенным (центр 800 м): %.3f м" % worst_d)
+			var x := i * 25.0
+			var z := j * 25.0
+			var near_cover := false
+			var deep_forest := true
+			for dj in range(-7, 8):
+				for di in range(-7, 8):
+					var c := int(cls.get_pixel(fc + i + di, fc + j + dj).r * 255.0 + 0.5)
+					if c == SurfaceLayer.FOREST or c == SurfaceLayer.BUILT:
+						near_cover = true
+					if c != SurfaceLayer.FOREST:
+						deep_forest = false
+			if not near_cover:
+				n_open += 1
+				worst_open = maxf(worst_open, absf(raw_d.sample(x, z) - ref_d.sample(x, z)))
+			elif deep_forest:
+				n_deep += 1
+				worst_deep = maxf(worst_deep, absf(mine_d.sample(x, z) - ref_d.sample(x, z)))
+	check(half == 40 and n_open + n_deep > 0, "есть узлы для сравнения: открытых %d, в глубоком лесу %d" % [n_open, n_deep])
+	check(worst_open < 0.5, "сырые detail совпадают с эталоном на открытом (%d узлов): %.3f м" % [n_open, worst_open])
+	check(worst_deep < 0.5, "сглаженные detail совпадают с эталоном в глубоком лесу (%d узлов): %.3f м" % [n_deep, worst_deep])
 	var worst_f := 0.0
 	for p: Vector2 in [Vector2(-30000, -30000), Vector2(40000, 25000), Vector2(0, 30000), Vector2(-25000, 0)]:
 		worst_f = maxf(worst_f, absf(mine_f.sample(p.x, p.y) - ref_f.sample(p.x, p.y)))
@@ -137,6 +170,7 @@ func test_parity_with_builtin_askarovo() -> void:
 	check(absf(mine_f.sample(0.0, 0.0) - mine_d.sample(0.0, 0.0)) < 0.5, "far в зоне detail вклеен из detail")
 	check(ctx.heights.has("detail") and ctx.layers.has("far"), "ctx.heights/ctx.layers заполнены")
 	DirAccess.remove_absolute(ctx.dir + "/detail.webp")
+	DirAccess.remove_absolute(ctx.dir + "/detail_raw.webp")
 	DirAccess.remove_absolute(ctx.dir + "/far.webp")
 	DirAccess.remove_absolute(ctx.dir + "/meta.json")
 

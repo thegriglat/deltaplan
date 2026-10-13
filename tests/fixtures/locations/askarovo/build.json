@@ -1,16 +1,17 @@
 {
-  "built_utc": "2026-10-09T14:08:29Z",
+  "built_utc": "2026-10-13T17:03:53Z",
   "center_lat": 53.26,
   "center_lon": 58.54,
   "complete": true,
-  "format_version": 3,
+  "format_version": 4,
   "key": "askarovo",
   "missing": [],
-  "net_requests": 0.0,
+  "net_requests": 0,
   "seconds": {
-    "dem": 3.69,
-    "rivers": 21.78,
-    "surface": 10.06
+    "dem": 5.66,
+    "rivers": 23.8,
+    "smooth": 8.94,
+    "surface": 18.21
   },
   "sources": [
     "copernicus",
