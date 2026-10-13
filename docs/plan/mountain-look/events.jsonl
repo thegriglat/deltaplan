@@ -53,3 +53,5 @@
 {"t": "2026-10-13T23:34:19", "by": "executor", "task": "MLK-8", "ev": "reported", "commits": ["571a0648"], "note": "done: Юбки увеличены конфигом: детальный слой 40 -> 300 м, фон 150 -> 400 м (render.*.skirt_depth_m). Открытых щелей LOD 0 на…", "dp_feedback": "dp job start не говорит, наследует ли env (MLK_*); сработало. Хотелось бы dp job wait, не падающий при уже завершённом окне. Первый godot --import упал (signal 11), повтор прошёл."}
 {"t": "2026-10-13T23:35:30", "by": "executor", "task": "MLK-8", "ev": "checked", "note": "2/2 terrain=ok:116/116 (пропуск 1); mountain_look_contracts=ok:5/5"}
 {"t": "2026-10-13T23:35:37", "by": "coordinator", "task": "MLK-8", "ev": "accepted", "note": "по отчёту: юбки 40→300 / 150→400 м, щелей 0 на 8 местах, кадр в шуме; места pt_* пересоберутся по FORMAT_VERSION 4 (MLK-2)"}
+{"t": "2026-10-13T23:36:43", "by": "coordinator", "task": "MLK-8", "ev": "accepted", "commits": ["b3deb43e"], "note": "2/2 terrain=ok:116/116 (пропуск 1); mountain_look_contracts=ok:5/5"}
+{"t": "2026-10-13T23:36:43", "by": "coordinator", "task": "MLK-8", "ev": "merged", "commits": ["b3deb43e"]}
