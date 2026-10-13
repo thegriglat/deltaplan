@@ -810,6 +810,7 @@ void fragment() {
 	}
 	float slope_deg = degrees(acos(clamp(n_class.y, 0.0, 1.0)));
 	float forest = wa.x;
+	float sl_fh = fwidth(h); // SL
 	float crop = wa.z;
 	float shrub = wa.w;
 	float bare = wb.x;
@@ -862,6 +863,7 @@ void fragment() {
 		gcol = meadow_detail(
 			wp.xz, gcol, foot_m, h, n_class, slope_deg, (1.0 + 6.0 * outcrop) * painted_k
 		);
+		gcol = sl_trails(gcol, wp.xz, h, n_class, slope_deg, sl_fh, sun_dir, dist); // SL
 	}
 	// пятна с высоты: оттенок/яркость 20 м … 2 км, выгоревшие пятна, покосы (после фактуры
 	// луга — её полосы не смывают оттенок пятен)

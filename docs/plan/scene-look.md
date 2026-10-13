@@ -24,6 +24,7 @@ related: ["docs/contracts/scene-look.md", "docs/guide/terrain.md", "TODO.md"]
   `systemd-run --user --scope -p MemoryMax=12G`, не больше 4 тестов Godot параллельно.
 - Скриншоты до/после — только `tools/shots/menu_art.py`, одни ракурсы, в `/home/greg/deltaplan/build/screenshots/scene-look/`;
   исполнители картинки не разглядывают (кроме паруса — 3D-модель, 1–2 кадра). В конце — тестовая сборка Linux. В main — только с одобрения.
+- **Каждый запуск godot (тесты, бенчи, скриншоты, dp accept) — только под systemd-run --user --scope -q -p MemoryMax=8G -p MemorySwapMax=0; не больше 4 godot на всю машину (вместе с mountain-look); исполнитель — по одному godot за раз** (2026-10-14) — зависания машины 13.10 23:47 от нехватки памяти
 
 ## 2. Что есть (инвентаризация 13.10, main 7509a732)
 | Пункт | Есть | Чего нет |
