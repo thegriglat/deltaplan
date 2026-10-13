@@ -10,6 +10,7 @@
 # Скриншоты и замер GPU идут в Forward+, окну нужен настоящий дисплей: запуск через DISPLAY=:0,
 # звук отключён (--audio-driver Dummy), на случай зависания — под timeout.
 set -euo pipefail
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$(mktemp -d)}"
 cd "$(dirname "$0")/../.."
 
 out="${1:-/tmp/terrain_shots}"
@@ -19,11 +20,12 @@ for a in "$@"; do
 done
 mkdir -p "$out"
 
+GODOT_EXTRA=""
 export DISPLAY="${DISPLAY:-:0}"
 t0=$(date +%s)
 
 run_godot() {
-  timeout 120 godot --path . --audio-driver Dummy --resolution 1920x1080 \
+  timeout 120 godot --path . --audio-driver Dummy --resolution 1920x1080 $GODOT_EXTRA \
     res://scenes/terrain/terrain_preview.tscn -- "$@"
 }
 
@@ -41,6 +43,7 @@ PY
 )
 
 echo "== бенч GPU: полностью / рельеф =="
+GODOT_EXTRA="--fullscreen --gpu-profile"  # без него окно WM ужимается до 958 px и замер нерепрезентативен
 bench_args=(--location=ongudai --site=kayancha_south --agl=800 --clearings "--bench-static=$bench_frames")
 full_line=$(run_godot "${bench_args[@]}" | grep BENCH_STATIC_JSON | sed 's/^.*BENCH_STATIC_JSON://')
 relief_line=$(run_godot "${bench_args[@]}" --no-trees --no-grass --no-haze | grep BENCH_STATIC_JSON | sed 's/^.*BENCH_STATIC_JSON://')

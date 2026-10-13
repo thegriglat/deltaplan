@@ -1,0 +1,34 @@
+{
+  "status": "done",
+  "summary": "Настоящая причина 0 и 0.49 мс: бенч считал кадры, пока _ready ещё ждал загрузку (await) — мерилась пустая сцена (renderer=Nil, 30 draw calls). Теперь _process ничего не делает до конца _ready; GPU-кадр берётся по меткам RenderingDevice (--gpu-profile в shots.sh, как frame_profile.gd) с разбивкой по проходам, плюс gpu_ms_viewport. Замер включается на 5-м кадре. Эталон 'до' пересн ят.",
+  "commits": [
+    "e3c7bd4d Стенд: бенч не считает кадры до конца загрузки, полный кадр по меткам GPU и проходы",
+    "(ранее) Стенд: замер GPU на 5-м кадре, бенч fullscreen, XDG_DATA_HOME"
+  ],
+  "checks": [
+    {
+      "name": "bench_nonzero",
+      "value": "full 5.725 relief 5.853",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Критерий 'full заметно больше relief (>=0.3 мс)' не выполняется: relief >= full"
+  ],
+  "questions": [
+    "relief не меньше full: деревья/трава/дымка стоят ~0 мс на этой точке, весь кадр — рельеф (шейдер terrain)? Подтвердить на другой точке при необходимости."
+  ],
+  "how_to_check": "dp accept SL-13; tools/terrain/shots.sh <выход>",
+  "uncertain": "Метки RenderingDevice и viewport-замер сходятся (5.72 против 5.70 мс), 1080p fullscreen, RTX 4070 SUPER, ожидание было 1.5-4 мс, получили ~5.7 — выше, но это реальный кадр (160 чанков, 328 draw calls). relief (91 draw calls) ~5.85 мс ≥ full: флаги --no-trees/--no-grass/--no-haze действительно режут draw calls 328->91, но время не падает — дорогое именно рельеф; разница в пределах шума (p95 6.2-6.6). Во время прогона на машине шли чужие тесты godot (возможен шум); первый прогон shots.sh упал в 'загрузка стоит 90 с' на S1, повтор прошёл. Разбивка по проходам в bench.json (passes).",
+  "dp_feedback": "",
+  "gpu_full_ms_base": 5.725,
+  "gpu_relief_ms_base": 5.853,
+  "cause": "Бенч стартовал и мерил кадры во время await загрузки в _ready (пустая сцена); плюс замер включался слишком рано. Теперь кадры считаются после загрузки.",
+  "t": "2026-10-13T22:37:32",
+  "by": "executor"
+}

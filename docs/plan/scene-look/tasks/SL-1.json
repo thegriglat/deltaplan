@@ -1,0 +1,42 @@
+{
+  "id": "SL-1",
+  "module": "scene-look",
+  "type": "dp-mechanic",
+  "title": "Кадры и GPU «до»",
+  "goal": "Эталон «до» для сравнения: 8 кадров menu_art с тех же ракурсов и время кадра GPU стенда рельефа.",
+  "plan_ref": "SL-1 Кадры и GPU «до»",
+  "contracts": [
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-1",
+  "branch": "scene-look/SL-1",
+  "base": "feature/scene-look",
+  "scope": [
+    "/home/greg/deltaplan/build/screenshots/scene-look/before/",
+    "tools/terrain/shots.sh"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/scene-look/before/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "bench",
+      "cmd": "python3 -c \"import json;d=json.load(open('/home/greg/deltaplan/build/screenshots/scene-look/before/bench.json'));print('ok',d)\"",
+      "expect": "re:^ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-13T22:07:27",
+  "edited": "2026-10-13T22:17:42"
+}

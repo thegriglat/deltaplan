@@ -1,0 +1,94 @@
+{
+  "status": "partial",
+  "summary": "Заложена основа модуля: scripts/terrain/scene_look.gdshaderinc (uniform-ы и функции sl_*), секция configs/world.json → scene_look в конце файла, ключ <k> → uniform sl_<k> в материалах рельефа и импостеров, sl_lat_deg/sl_doy от широты места и даты полёта (Terrain.set_flight_date из game.gd рядом с солнцем). Свет: земля снизу вместо серо-зелёной нижней полусферы неба Godot; дальняя тень рельефа гасит только прямое солнце (в тени остаётся голубое небо); дальний лес — альбедо полога 0,05/0,08 вместо ~0,007 и видимая доля освещённых крон по солнцу и взгляду; пятна не темнее ×0,5; импостеры приведены к тому же альбедо. Замера GPU нет: стенд сломан (SL-13).",
+  "commits": [
+    "b22cc3b3 SL-2: свет — земля снизу, дальняя тень рельефа только от прямого солнца, дальний лес по альбедо полога и доле освещённых крон; include, секция scene_look, широта и дата полёта в шейдеры"
+  ],
+  "checks": [
+    {
+      "name": "terrain",
+      "value": "117/117",
+      "pass": true
+    },
+    {
+      "name": "vegetation",
+      "value": "21/21",
+      "pass": true
+    },
+    {
+      "name": "scene_look_contracts",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "дальний хвойный лес на ровном, Y (CPU-зеркало, солнце 52°, взгляд с 1000 м на 5 км)",
+      "value": "было 0,0070; стало 0,052 по солнцу / 0,025 против / 0,035 сбоку",
+      "pass": true
+    },
+    {
+      "name": "по солнцу / против (ровно)",
+      "value": "2,04 (k_dir 0,99 / 0,43); склон к солнцу 1,94, от солнца 2,3",
+      "pass": true
+    },
+    {
+      "name": "лес / луг",
+      "value": "было 0,09 во всех случаях; стало 0,28–0,73 (по солнцу 0,66–0,73, против 0,28–0,38)",
+      "pass": true
+    },
+    {
+      "name": "GPU full/relief (SL-К3)",
+      "value": "стенд даёт 0 мс и в базе, и в задаче (4 прогона)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "GPU не замерен: tools/terrain/shots.sh даёт gpu_ms_mean = 0 (по 2 прогона вперемежку база/задача, /home/greg/deltaplan/build/dp/SL-2/{base,task}{1,2}/bench.json). Кадры стенда тоже пустые (яркость ~174 и контраст ~0,4 по всему кадру и в базе, и в задаче), поэтому metrics.json для сравнения лес/луг не годится. После влития SL-13: dp task sync SL-2 и перезапуск /home/greg/deltaplan/build/dp/SL-2/run_shots.sh (сначала удалить старые каталоги base*/task*).",
+    "Трава и модели деревьев sl_* пока не получают: в их скрипты (вне скоупа) нужен метод apply_scene_look(sl). Terrain._apply_scene_look уже вызывает его у trees и grass, если метод есть."
+  ],
+  "questions": [
+    "Модели деревьев (ближе 500 м) и атлас импостеров по альбедо в 3–5 раз темнее настоящего полога (Y ель 0,011, кедр 0,012, сосна 0,025, берёза 0,11 — замер атласа). Поэтому полог рельефа и импостеры подтягиваются к альбедо полога только с 500 м до 2 км (canopy_near_m), иначе модели стояли бы тёмными пятнами на светлом пологе. Честнее поднять альбедо текстур моделей и импостеров — отдельная задача (tree_model.gdshader / атлас)?",
+    "Нужна ли запись в контракт SL-К1 про рантайм-uniform-ы sl_sun_dir, sl_sky_up, sl_ground_low (их ставит Terrain, это не ключи конфига) и про TerrainRenderer.apply_scene_look_params / Terrain.scene_look_params()?"
+  ],
+  "images": [],
+  "how_to_check": "dp accept SL-2; числа: godot --headless --path ~/deltaplan-scene-look-SL-2 res://tests/run_tests.tscn -- --filter=scene_look_light (печатает таблицу); визуально — тестовая сборка Linux (scene_look.light_enabled=false — картинка как до модуля)",
+  "uncertain": "1) GPU не замерен (стенд сломан). Оценка по коду: рельеф +~25 ALU и 1 exp, 1 pow, 1 acos на фрагмент (полог и тень), в light() +~8 ALU, без выборок текстур; у импостеров +1 textureLod в вершине. Бюджет 0,12 мс, по моей оценке, держится, но это не замер. 2) Земля снизу: Godot не даёт прочитать свой рассеянный свет в шейдере, поэтому нижняя полусфера неба Godot (sl_ground_low) оценивается на CPU из sky.* и time.light (TerrainRenderer.scene_look_sky): верх — цвет зенита, низ — ground_bottom_color × exposure × ambient_light_energy·sky_energy × ambient_sky_contribution. Если свёртка Godot (кубокарта, гало солнца) заметно другая, поправка неточная по величине. На ровном рельефе она около 0 (доля нижней полусферы (1 − n_y)/2), на склоне 45° даёт +~0,006 к рассеянному свету. Проверить, что DIFFUSE_LIGHT в light() Godot сам умножает на альбедо (так написан cloud_light, исходник Godot я не смотрел). 3) Дальняя тень рельефа: прежнее затемнение ALBEDO снимается делением в конце fragment (функция повторяет ту же формулу sh) и переносится в множитель прямого солнца v_cs_sun. Строки relief-блока mountain-look не тронуты, но при правке формулы sh у них надо поправить и sl_relief_shadow. 4) Множитель полога v_cs_sun ставится после AO *= cloud_sky_ao(v_cs_sun), чтобы облачный AO не принял тень рельефа за облако; на свет земли идёт облачный множитель до него (v_sl_sun). 5) Альбедо полога 0,05/0,08 взято у нижней границы диапазонов из плана, потому что луг игры (~0,072) тоже ниже реального; лес/луг 0,3–0,7 — в пределах реальных 0,4–0,6 и с разбросом по солнцу. 6) Модель полога своя, упрощённая (Ли–Страхлер / горячее пятно Хапке): доля тени 1 − exp(−k·tg θs), скрытие ((1 + cos ξ)/2)^p, бока крон при взгляде вскользь (константа 0,5); с измеренными BRDF не сверял. Сделано 2 попытки (вторая добавила бока крон: отношение по солнцу/против 1,49 → 2,04), взята вторая. 7) Средний цвет ячейки импостера берётся из мипа атласа (среднее rgb / среднее альфы; прозрачное в атласе чёрное, rgb ~0,002). Мипы Godot строит в sRGB, ошибка — несколько процентов. 8) Широта: sl_lat_deg = Terrain.center_lat при сборке. Рядом с set_sun в game.gd вызывается set_flight_date. Проводку проверяет контрактный тест: материал рельефа и импостеров получает sl_doy и sl_lat_deg.",
+  "dp_feedback": "Стенд shots.sh молча пишет нули (gpu_ms_mean 0 и пустые кадры), при этом выходит с кодом 0. Нужна проверка в dp или в стенде: gpu_ms_mean == 0 или кадр однотонный — это ошибка. Ещё полезна команда dp, которая сама гоняет «база/задача по 2 прогона вперемежку → медиана → поля gpu_* для отчёта» по SL-К3: я писал для этого свой run_shots.sh.",
+  "extra": {
+    "new_keys_scene_look": {
+      "light_enabled": "bool, выключатель SL-2",
+      "ground_albedo": "vec3 линейный (0,06; 0,09; 0,04), альбедо окрестной земли",
+      "ground_local": "float 0,5, доля собственного цвета точки в «земле снизу»",
+      "canopy_albedo": "vec2 (0,05; 0,08), альбедо Y полога: хвойный, лиственный",
+      "canopy_near_m": "vec2 (500; 2000), с какого удаления тон полога и импостеров тянется к альбедо полога",
+      "canopy_floor": "float 0,5, пол затемнения пятнами/опушкой/сыростью",
+      "canopy_shadow_k": "float 0,8, доля тени крон 1 − exp(−k·tg θs)",
+      "canopy_hide_p": "float 2, скрытие теней ((1 + cos ξ)/2)^p",
+      "canopy_hotspot": "vec2 (0,3; 0,12), горячее пятно: добавка, полуширина в радианах",
+      "tree_far_desat": "float 0,3, обесцвечивание импостеров вдали"
+    },
+    "runtime_uniforms": "sl_lat_deg (float), sl_doy (float, 196 по умолчанию), sl_sun_dir (vec3), sl_sky_up (vec3), sl_ground_low (vec3), ставит Terrain",
+    "include_functions": [
+      "void sl_ground_light(inout vec3 diffuse, vec3 light_color, bool directional, vec3 albedo, float ny, float ao, float cs) — в light()",
+      "vec2 sl_relief_shadow(bool on, vec3 n, float hz_deg, float dist, float amb, float soft_deg, float strength, vec2 near_m) — (делитель ALBEDO, множитель прямого солнца)",
+      "float sl_canopy_lit(vec3 n, vec3 v, vec3 l) — видимая доля освещённого полога",
+      "float sl_canopy_direct(vec3 n, vec3 v, float w) — множитель прямого солнца на пологе (нормировка: надир, солнце 45°)",
+      "float sl_canopy_far(float dist) — вес «дальнего» леса по canopy_near_m",
+      "vec3 sl_canopy_tone(vec3 fc, vec3 fc0, vec3 fmean, float con_p, float dist, float far_shade) — пол пятен и альбедо полога",
+      "vec3 sl_tree_tone(vec3 rgb, float mean_luma, float con, float dist, float t, float contrast) — тон импостера"
+    ],
+    "varyings_include": "v_sl_ny, v_sl_ao, v_sl_sun (из fragment в light)",
+    "gdscript_api": "TerrainRenderer.apply_scene_look(sl), static apply_scene_look_params(m, sl), static scene_look_sky(to_sun) -> {sun_dir, sky_up, ground_low}; Terrain.set_flight_date(month, day), static day_of_year(month, day), scene_look_params(), flight_doy; ForestImpostors.apply_scene_look(sl)",
+    "terrain_gdshader_lines": "include после terrain_common + 7 строк // SL: sl_fc0 до пятен древостоев, sl_canopy_tone после блока пятен, 4 строки в конце fragment (varyings, тень рельефа, ALBEDO, v_cs_sun), 1 строка в light()"
+  },
+  "gpu_full_ms_base": null,
+  "gpu_full_ms_after": null,
+  "gpu_relief_ms_base": null,
+  "gpu_relief_ms_after": null,
+  "t": "2026-10-13T22:35:52",
+  "by": "main"
+}

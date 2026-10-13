@@ -1,0 +1,81 @@
+{
+  "id": "SL-6",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Цвет по сезону и дате полёта; поля по сезону",
+  "goal": "Весной трава свежая, к концу лета степь соломенная, осенью лиственницы и берёзы золотые, выше в горах раньше; поля летом зелень/рожь, осенью стерня и пашня — по дате полёта и широте.",
+  "plan_ref": "SL-6 Цвет по сезону и дате полёта, поля по сезону (п. 4, 11)",
+  "contracts": [
+    {
+      "name": "SL-К1",
+      "version": "2",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К2",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-6",
+  "branch": "scene-look/SL-6",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/season_look.gd",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/forest_impostors.gdshader",
+    "scripts/terrain/forest_impostors.gd",
+    "scripts/terrain/tree_model.gdshader",
+    "scripts/terrain/terrain_tree_models.gd",
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/grass_field.gd",
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/terrain_renderer.gd",
+    "configs/world.json",
+    "tools/shots/",
+    "tests/terrain/",
+    "tests/vegetation/",
+    "tests/contracts/test_scene_look_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "scripts/terrain/meadow_look.gdshaderinc",
+    "scripts/terrain/build/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "vegetation",
+      "tests": "vegetation"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_full_ms_base",
+    "gpu_full_ms_after",
+    "gpu_relief_ms_base",
+    "gpu_relief_ms_after",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-13T22:38:10",
+  "edited": "2026-10-13T22:38:11"
+}

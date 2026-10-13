@@ -118,7 +118,7 @@ static func _add_strip(
 			for s in [-1.0, 1.0]:
 				var p: Vector2 = pts[j] + side * s
 				a.v.append(Vector3(p.x - o.x, float(height_fn.call(p.x, p.y)) + lift, p.y - o.z))
-				a.n.append(Vector3.UP)
+				a.n.append(Vector3(side.x, 0.0, side.y).normalized() * s)  # наружу поперёк ленты: шейдер расширяет тонкую ленту до пикселя
 				a.c.append(col)
 				a.uv.append(Vector2(0.5 + 0.5 * s, along[j]))
 				a.uv2.append(Vector2(style, width))
