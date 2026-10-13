@@ -2,7 +2,7 @@
   "id": "SL-18",
   "module": "scene-look",
   "type": "dp-engineer",
-  "title": "LOD2-кресты в вершинном шейдере до 900/1100/1500 м, общий хеш «дерево в клетке» с ближними моделями",
+  "title": "LOD2-кресты в вершинном шейдере до 900/1100/1500 м по пресетам, хеш «дерево в клетке» в GLSL, полоса смены формы в шейдере",
   "goal": "Объём склонам вдали: LOD2-кресты рисуются вершинным шейдером (кольцо клеток, без CPU-перестройки) до радиуса по пресету (low ≈ 900, medium ≈ 1100, high ≈ 1500 м), с тем же деревом в клетке, что у ближних CPU-моделей LOD0/1 — без дублей и дыр на стыке; полоса смены формы — в шейдере.",
   "plan_ref": "3. Задачи",
   "contracts": [
@@ -31,12 +31,9 @@
   "branch": "scene-look/SL-18",
   "base": "feature/scene-look",
   "scope": [
-    "scripts/terrain/tree_placer.gd",
-    "scripts/terrain/terrain_tree_models.gd",
     "scripts/terrain/tree_model.gdshader",
     "scripts/terrain/tree_cross.gdshader",
     "scripts/terrain/tree_cell.gdshaderinc",
-    "scripts/terrain/tree_cell.gd",
     "scripts/terrain/forest_impostors.gd",
     "scripts/terrain/forest_impostors.gdshader",
     "scripts/terrain/scene_look.gdshaderinc",
@@ -47,7 +44,8 @@
     "tests/vegetation/",
     "tests/terrain/",
     "tests/contracts/test_scene_look_contracts.gd",
-    "TODO.md"
+    "TODO.md",
+    "scripts/terrain/tree_crosses.gd"
   ],
   "dont_touch": [
     "assets/",
@@ -81,5 +79,5 @@
   ],
   "notes": "",
   "created": "2026-10-14T04:33:23",
-  "edited": "2026-10-14T04:33:23"
+  "edited": "2026-10-14T04:34:09"
 }
