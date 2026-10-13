@@ -17,7 +17,8 @@ var materials: Array[ShaderMaterial] = []
 
 ## _mmis[(вид * variants + вариант) * 3 + lod]
 var _mmis: Array[MultiMeshInstance3D] = []
-## SL-К4: куда отдавать band-импостеры (деревья за личной границей смены; ставит Terrain).
+## SL-19: CPU-полоса band-импостеров снята (SL-К4 v2; рисует шейдер, SL-18) — поле осталось, чтобы Terrain/ForestImpostors
+## собирались до их правки SL-18; не используется.
 var band_sink: ForestImpostors
 var _rebuild_step: float = 16.0
 var _max_agl: float = 900.0
@@ -90,8 +91,6 @@ func _process(_delta: float) -> void:
 		_last_center = _pending_center
 	var agl := p.y - placer.layer.sample(p.x, p.z)
 	visible = agl < _max_agl
-	if is_instance_valid(band_sink):
-		band_sink.set_band_active(visible)  # модели скрыты и перестройка стоит — полоса не нужна
 	if not visible:
 		return
 	var c := Vector2(p.x, p.z)
@@ -160,8 +159,6 @@ func _apply() -> void:
 		_mmis[b].visible = placer.counts[b] > 0
 		if placer.counts[b] > 0:
 			mm.buffer = placer.buffers[b]
-	if is_instance_valid(band_sink):
-		band_sink.set_band(placer.imp_buffer, placer.imp_count)
 
 
 ## Копия меша, где материалы .glb заменены на tree_model.gdshader (те же текстуры + качание).

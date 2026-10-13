@@ -70,6 +70,21 @@ static func pos(c: Vector2i, cell_m: float) -> Vector2:
 	return (Vector2(c) + Vector2(0.5, 0.5) + offset(c)) * cell_m
 
 
+## Второй хеш (SL-К5, уточнение): PCG2D от переставленных 32 бит h — Vector2i(h.y, h.x).
+static func hash2(h: Vector2i) -> Vector2i:
+	return TreeCell.hash(Vector2i(h.y, h.x))
+
+
+## Высота дерева: доля 0…1 между границами height_m породы — (h2.x & 0xFFFF) / 65536.
+static func height_t(h2: Vector2i) -> float:
+	return float(h2.x & 0xFFFF) / 65536.0
+
+
+## Разброс цвета: доля 0…1 — (h2.y & 0xFFFF) / 65536; множитель v = 1 + color_variation · (t − 0,5) · 2.
+static func color_t(h2: Vector2i) -> float:
+	return float(h2.y & 0xFFFF) / 65536.0
+
+
 ## Случайное 0…1 для породы (h.y & 255).
 static func species_u(h: Vector2i) -> float:
 	return float(hy(h) & 255) / 256.0

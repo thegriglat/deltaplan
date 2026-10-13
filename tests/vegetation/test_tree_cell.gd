@@ -59,3 +59,18 @@ func test_set_properties() -> void:
 				pres += 1
 	approx(float(pres) / n, 204.0 / 256.0, 0.02, "доля деревьев ≈ d8/256")
 	check(TreeCell.variant(TreeCell.hash(Vector2i(3, 4)), 8) < 8, "вариант в диапазоне")
+
+
+func test_hash2_reference() -> void:
+	var ref := [
+		[Vector2i(0, 0), 3950707002, 1804504796],
+		[Vector2i(-5, 3), 2398967729, 1290884097],
+		[Vector2i(123, -457), 3273034277, 241142256],
+		[Vector2i(-1, -1), 1722971982, 3424893512],
+	]
+	for r in ref:
+		var h2 := TreeCell.hash2(TreeCell.hash(r[0]))
+		check(TreeCell.hx(h2) == r[1] and TreeCell.hy(h2) == r[2], "hash2 %s" % r[0])
+	var h2 := TreeCell.hash2(TreeCell.hash(Vector2i(0, 0)))
+	approx(TreeCell.height_t(h2), float(3950707002 & 0xFFFF) / 65536.0, 1e-9, "height_t")
+	approx(TreeCell.color_t(h2), float(1804504796 & 0xFFFF) / 65536.0, 1e-9, "color_t")

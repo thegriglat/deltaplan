@@ -1,5 +1,5 @@
 extends TestCase
-## SL-17 (SL-К4): у каждого дерева своё расстояние смены модель → импостер (множитель k из хеша мировых
+## SL-17/SL-19: у каждого дерева своё расстояние смены модель → импостер (множитель k из хеша мировых
 ## координат); в каждый момент дерево — ровно одна форма (вне дизеринга), плотность в полосе не
 ## меняется (модели и импостеры полосы берут одни и те же позиции TreePlacer).
 
@@ -66,109 +66,64 @@ func test_swap_t_symmetric_and_exact() -> void:
 				check(t == 1.0, "дальше зоны — только импостер")
 
 
-func test_placer_models_and_band_share_trees() -> void:
-	var t := _ongudai()
-	var tm := t.trees as TerrainTreeModels
-	var p := tm.placer
-	p.lod_k_enabled = true  # в конфиге выключено по умолчанию (цена перестройки)
-	var c := _site(t)
-	p.build(c)
-	var half := p.swap_band()
-	var models := {}
-	var n_models := 0
-	for b in p.buffers.size():
-		for r in _rows(p.buffers[b], p.counts[b], TreePlacer.STRIDE):
-			var d := Vector2(r.x, r.y).distance_to(c)
-			var db := p.radius * TreePlacer.lod_k_at(r.x, r.y, p.lod_k_min, p.lod_k_max)
-			n_models += 1
-			if b % 3 == 2:
-				models[Vector2(r.x, r.y)] = true
-			check(d < db + half + 0.01, "модель не дальше границы смены + запас: d %.1f db %.1f" % [d, db])
-	var imps := _rows(p.imp_buffer, p.imp_count, TreePlacer.IMP_STRIDE)
-	check(imps.size() > 100, "импостеры полосы есть: %d" % imps.size())
-	var both := 0
-	var worst_far := 0.0
-	for r in imps:
-		var d := Vector2(r.x, r.y).distance_to(c)
-		var db := p.radius * TreePlacer.lod_k_at(r.x, r.y, p.lod_k_min, p.lod_k_max)
-		check(d > db - half - 0.01, "импостер не ближе границы − запас: d %.1f db %.1f" % [d, db])
-		worst_far = maxf(worst_far, d)
-		if absf(d - db) < half:
-			# зона смены: дерево есть в обеих формах (у моделей — в LOD2 с кодом растворения)
-			check(models.has(Vector2(r.x, r.y)), "в зоне смены модель на той же позиции")
-			both += 1
-		elif d >= db + half:
-			check(not models.has(Vector2(r.x, r.y)), "дальше зоны — только импостер")
-		else:
-			check(false, "импостер ближе зоны смены")
-	check(both > 20, "в зоне смены деревьев в обеих формах: %d" % both)
-	check(worst_far <= p.band_end() + 1.0, "полоса кончается у band_end")
-	# не зависит от камеры: сдвинули центр — у общих деревьев та же личная граница (чистая функция координат)
-	var c2 := c + Vector2(37.0, -21.0)
-	p.build(c2)
-	var imps2 := _rows(p.imp_buffer, p.imp_count, TreePlacer.IMP_STRIDE)
-	var seen := {}
-	for r in imps:
-		seen[Vector2(r.x, r.y)] = TreePlacer.lod_k_at(r.x, r.y, p.lod_k_min, p.lod_k_max)
-	var common := 0
-	for r in imps2:
-		var key := Vector2(r.x, r.y)
-		if seen.has(key):
-			common += 1
-			approx(seen[key], TreePlacer.lod_k_at(r.x, r.y, p.lod_k_min, p.lod_k_max), 1e-9, "k не зависит от камеры")
-	check(common > 100, "общих деревьев при сдвиге камеры: %d" % common)
-
-
-## Числа для отчёта: доля деревьев в виде модели по расстоянию (сумма видимостей модели «при ровно
-## одной форме»), число моделей и band-импостеров, время расстановки.
-func test_band_numbers() -> void:
+func test_near_models_follow_tree_cell() -> void:
+	# SL-19 (SL-К5): каждая модель стоит в позиции TreeCell.pos своей клетки, d8 > хеш; дальше
+	# near_reach() моделей нет; band-импостеров на CPU нет.
 	var t := _ongudai()
 	var p := (t.trees as TerrainTreeModels).placer
-	p.lod_k_enabled = true
 	var c := _site(t)
-	var t0 := Time.get_ticks_usec()
 	p.build(c)
-	var ms := (Time.get_ticks_usec() - t0) / 1000.0
-	var bins_m := PackedFloat64Array()
-	var bins_all := PackedFloat64Array()
-	bins_m.resize(30)
-	bins_all.resize(30)
+	var reach := p.near_reach()
+	var n := 0
+	for b in p.buffers.size():
+		check(b % 3 != 2 or p.counts[b] == 0, "LOD2 на CPU пуст")
+		for r in _rows(p.buffers[b], p.counts[b], TreePlacer.STRIDE):
+			var q := Vector2(r.x, r.y)
+			var cell := TreeCell.cell_of(q.x, q.y, p.cell_m)
+			var pos := TreeCell.pos(cell, p.cell_m)
+			check(pos.distance_to(q) < 0.01, "позиция = TreeCell.pos: %s" % cell)
+			check(p.d8_at((cell.x + 0.5) * p.cell_m, (cell.y + 0.5) * p.cell_m) > (TreeCell.hash(cell).x & 255), "present по d8")
+			check(q.distance_to(c) <= reach + 0.01, "не дальше near_reach")
+			n += 1
+	check(n > 300, "моделей: %d" % n)
+	check(p.imp_count == 0 and p.imp_buffer.is_empty(), "CPU-полосы нет")
+	# сдвиг камеры не меняет набор деревьев в мире (общая часть кругов)
+	var seen := {}
 	for b in p.buffers.size():
 		for r in _rows(p.buffers[b], p.counts[b], TreePlacer.STRIDE):
-			var d := Vector2(r.x, r.y).distance_to(c)
-			var db := p.radius * TreePlacer.lod_k_at(r.x, r.y, p.lod_k_min, p.lod_k_max)
-			var bi := mini(int(d / 50.0), 29)
-			bins_all[bi] += 1
-			bins_m[bi] += 1.0 - TreePlacer.swap_t(d, db, p.lod_dither_m)
-	for r in _rows(p.imp_buffer, p.imp_count, TreePlacer.IMP_STRIDE):
-		var d := Vector2(r.x, r.y).distance_to(c)
-		var db := p.radius * TreePlacer.lod_k_at(r.x, r.y, p.lod_k_min, p.lod_k_max)
-		var bi := mini(int(d / 50.0), 29)
-		if d >= db + p.swap_band():
-			bins_all[bi] += 1
-	var line := PackedStringArray()
-	for bi in range(4, 24):
-		line.append("%d:%.2f" % [bi * 50, bins_m[bi] / maxf(bins_all[bi], 1.0)])
-	var counts := p.lod_counts_total()
-	print("SL-17: build %.0f мс, моделей %d, band-импостеров %d, k %.2f…%.2f, ramp %.0f…%.0f м" % [
-		ms, counts, p.imp_count, p.lod_k_min, p.lod_k_max, p.ramp_start(), p.band_end()])
-	print("SL-17: доля моделей по расстоянию (м:доля) %s" % " ".join(line))
-	check(counts > 1000, "модели есть")
-	# для сравнения: расстановка «как раньше» (общая граница, без полосы)
-	p.lod_k_enabled = false
-	t0 = Time.get_ticks_usec()
-	p.build(c)
-	var ms0 := (Time.get_ticks_usec() - t0) / 1000.0
-	print("SL-17: без полосы: build %.0f мс, моделей %d" % [ms0, p.lod_counts_total()])
-	p.lod_k_enabled = true
-	# главный поток: _apply моделей + set_band импостеров (headless, без реальной загрузки в видеопамять)
+			seen[Vector2(r.x, r.y)] = true
+	var c2 := c + Vector2(37.0, -21.0)
+	p.build(c2)
+	var miss := 0
+	var common := 0
+	for b in p.buffers.size():
+		for r in _rows(p.buffers[b], p.counts[b], TreePlacer.STRIDE):
+			var q := Vector2(r.x, r.y)
+			if q.distance_to(c) < reach - 50.0:
+				if seen.has(q):
+					common += 1
+				else:
+					miss += 1
+	check(common > 200 and miss == 0, "тот же набор при сдвиге: общих %d, новых внутри круга %d" % [common, miss])
+
+
+## Числа для отчёта: время перестройки ближнего слоя (цель ≤ ~234 мс), число моделей.
+func test_rebuild_numbers() -> void:
+	var t := _ongudai()
+	var p := (t.trees as TerrainTreeModels).placer
+	var c := _site(t)
+	p.build(c)  # прогрев
+	var best := 1e9
+	for k in 5:
+		var t0 := Time.get_ticks_usec()
+		p.build(c + Vector2(k * 16.0, 0.0))
+		best = minf(best, (Time.get_ticks_usec() - t0) / 1000.0)
+	print("SL-19: rebuild_ms_near %.0f мс (лучший из 5), моделей %d, near_reach %.0f м" % [best, p.lod_counts_total(), p.near_reach()])
+	check(best <= 234.0, "перестройка ближнего слоя %.0f мс ≤ 234" % best)
 	var tm := t.trees as TerrainTreeModels
-	p.build(c)
-	t0 = Time.get_ticks_usec()
+	var t1 := Time.get_ticks_usec()
 	tm._apply()
-	t.impostors.set_band(p.imp_buffer, p.imp_count)
-	print("SL-17: _apply + set_band на главном потоке: %.2f мс (headless)" % ((Time.get_ticks_usec() - t0) / 1000.0))
-	p.lod_k_enabled = true
+	print("SL-19: _apply на главном потоке: %.2f мс (headless)" % ((Time.get_ticks_usec() - t1) / 1000.0))
 
 
 func test_zz_cleanup() -> void:
