@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://da0j78twpmy7u"
-path.bptc="res://.godot/imported/glider_slavutich_ut_glider_slavutich_ut_sail.png-34772c38d887b79c80dea591e257c86e.bptc.ctex"
-path.astc="res://.godot/imported/glider_slavutich_ut_glider_slavutich_ut_sail.png-34772c38d887b79c80dea591e257c86e.astc.ctex"
+path="res://.godot/imported/glider_slavutich_ut_glider_slavutich_ut_sail.png-34772c38d887b79c80dea591e257c86e.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "d5aeb68c3956cb3f7dd60307f735d3eb"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_slavutich_ut_glider_slavutich_ut_sail.png"
-dest_files=["res://.godot/imported/glider_slavutich_ut_glider_slavutich_ut_sail.png-34772c38d887b79c80dea591e257c86e.bptc.ctex", "res://.godot/imported/glider_slavutich_ut_glider_slavutich_ut_sail.png-34772c38d887b79c80dea591e257c86e.astc.ctex"]
+dest_files=["res://.godot/imported/glider_slavutich_ut_glider_slavutich_ut_sail.png-34772c38d887b79c80dea591e257c86e.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

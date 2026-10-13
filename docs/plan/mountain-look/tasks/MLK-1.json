@@ -1,0 +1,53 @@
+{
+  "id": "MLK-1",
+  "module": "mountain-look",
+  "type": "dp-researcher",
+  "title": "Замер: слои, сглаживание, силуэт гор (до)",
+  "goal": "Числами подтвердить или опровергнуть: пики дальних гор (Эверест) рисует фоновый слой 100 м и/или шаг LOD; сглаживание σ 0,8 срезает гребни выше леса. Зонд по К3 — для замера «после».",
+  "plan_ref": "MLK-1",
+  "contracts": [
+    {
+      "name": "MLK-К3",
+      "version": "1",
+      "ref": "docs/contracts/mountain-look.md"
+    },
+    {
+      "name": "MLK-К2",
+      "version": "1",
+      "ref": "docs/contracts/mountain-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-mountain-look-MLK-1",
+  "branch": "mountain-look/MLK-1",
+  "base": "feature/mountain-look",
+  "scope": [
+    "tools/bench/mountain_look_probe.gd",
+    "tools/bench/mountain_look_probe.tscn",
+    "tools/research/mountain_look/",
+    "tests/contracts/test_mountain_look_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "mountain_look_contracts",
+      "tests": "mountain_look_contracts"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -s tools/research/mountain_look/README.md && grep -c 'far_layer_share\\|curv_ratio' tools/research/mountain_look/README.md",
+      "expect": "num:^(\\d+) >=2"
+    },
+    {
+      "name": "json_k3",
+      "cmd": "python3 -I -c \"import json,glob,sys; fs=sorted(glob.glob('tools/research/mountain_look/data/before_*.json')); ok=[f for f in fs if all(k in json.load(open(f)) for k in ('probe_version','peaks','crests','horizon','layers'))]; print('json_ok', len(ok)); sys.exit(0 if len(ok)>=4 else 1)\"",
+      "expect": "num:json_ok (\\d+) >=4"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-13T21:42:14"
+}

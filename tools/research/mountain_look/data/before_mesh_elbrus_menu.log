@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место pt_+43.250_+042.500 загружено за 2.98 с
+MLOOK elbrus_menu меш dh=v1 {"layer_seam":{"jump_abs_m_max":124.6253,"jump_abs_m_p50":7.2528,"jump_abs_m_p90":30.1702,"jump_mean_m":0.1759,"n":3196,"open_over_skirt":0},"layers":[{"dh_far_mean_m":0.0039,"dh_m_max":10.2344,"dh_m_min":-8.5254,"dh_m_p50":-0.0376,"dh_m_p90":1.1128,"dh_m_p99":3.175,"id":"detail","local_relief_m_p10":204.7074,"local_relief_m_p50":297.5979,"local_relief_m_p90":398.4194,"lod_gap_m_max":170.5845,"lod_gap_m_p50":0.0,"lod_gap_m_p99":37.5657,"lod_gap_n":3060,"lod_gap_over_skirt":24,"skirt_m":40.0,"valley_dh_max_m":1.4875,"valley_dh_mean_m":-0.5411,"valley_dh_p90_m":0.0,"valley_n":38793,"vertices":160820},{"dh_far_mean_m":0.0391,"dh_m_max":8.0,"dh_m_min":-8.0,"dh_m_p50":-0.0276,"dh_m_p90":5.6313,"dh_m_p99":8.0,"id":"far","local_relief_m_p10":79.4417,"local_relief_m_p50":230.5952,"local_relief_m_p90":346.7542,"lod_gap_m_max":261.2856,"lod_gap_m_p50":0.0,"lod_gap_m_p99":122.5313,"lod_gap_n":2840,"lod_gap_over_skirt":12,"skirt_m":150.0,"valley_dh_max_m":0.0,"valley_dh_mean_m":-2.1079,"valley_dh_p90_m":0.0,"valley_n":30300,"vertices":148673}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+mountain_look_probe: OK elbrus_menu
+Terrain: поля рельефа за 13.68 с

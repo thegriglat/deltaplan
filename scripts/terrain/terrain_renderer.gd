@@ -66,6 +66,7 @@ func build(
 			continue
 		var mat := _make_material(layer, surfaces[li], skirt, look)
 		set_relief(mat, reliefs[li] if li < reliefs.size() else null)
+		set_lod_distances(mat, lod_d)
 		if li > 0:
 			var f: HeightLayer = layers[li - 1]
 			mat.set_shader_parameter("hole_min", Vector2(f.origin_x, f.origin_z))
@@ -244,6 +245,11 @@ func _make_material(
 	m.set_shader_parameter(
 		"height_mip_max_lod", floorf(log(float(maxi(layer.width, layer.height))) / log(2.0))
 	)
+	# пирамида максимумов высот — силуэт вдали без потери пиков между вершинами LOD (MLK-К2 v2)
+	var mtex := layer.make_max_texture()
+	m.set_shader_parameter("use_height_max", mtex != null)
+	if mtex != null:
+		m.set_shader_parameter("height_max_tex", mtex)
 	m.set_shader_parameter("layer_origin", Vector2(layer.origin_x, layer.origin_z))
 	m.set_shader_parameter("layer_spacing", layer.spacing)
 	m.set_shader_parameter("layer_texels", Vector2(layer.width, layer.height))
@@ -310,6 +316,15 @@ static func set_surface(m: ShaderMaterial, surface: SurfaceLayer, tex: Texture2D
 	m.set_shader_parameter("surface_origin", Vector2(surface.origin_x, surface.origin_z))
 	m.set_shader_parameter("surface_spacing", surface.spacing)
 	m.set_shader_parameter("surface_texels", Vector2(surface.width, surface.height))
+
+
+## Пороги LOD слоя (render.<слой>.lod_distances_m, до 4) → lod_dist_m: окно пирамиды максимумов
+## по дальности (MLK-К2 v2); недостающие — 1e9 (ступени нет).
+static func set_lod_distances(m: ShaderMaterial, lod_d: PackedFloat32Array) -> void:
+	var v := Vector4(1e9, 1e9, 1e9, 1e9)
+	for k in mini(lod_d.size(), 4):
+		v[k] = lod_d[k]
+	m.set_shader_parameter("lod_dist_m", v)
 
 
 ## Поля рельефа слоёв (посчитаны в фоне после build) → все материалы.

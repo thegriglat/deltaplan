@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cmktvrxitcyyv"
-path.bptc="res://.godot/imported/glider_bautek_fizz_glider_bautek_fizz_sail.png-997740dc93f1f6526fec00cd46f14ead.bptc.ctex"
-path.astc="res://.godot/imported/glider_bautek_fizz_glider_bautek_fizz_sail.png-997740dc93f1f6526fec00cd46f14ead.astc.ctex"
+path="res://.godot/imported/glider_bautek_fizz_glider_bautek_fizz_sail.png-997740dc93f1f6526fec00cd46f14ead.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "fd2ab43e5349a2d66acc16a031144c88"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_bautek_fizz_glider_bautek_fizz_sail.png"
-dest_files=["res://.godot/imported/glider_bautek_fizz_glider_bautek_fizz_sail.png-997740dc93f1f6526fec00cd46f14ead.bptc.ctex", "res://.godot/imported/glider_bautek_fizz_glider_bautek_fizz_sail.png-997740dc93f1f6526fec00cd46f14ead.astc.ctex"]
+dest_files=["res://.godot/imported/glider_bautek_fizz_glider_bautek_fizz_sail.png-997740dc93f1f6526fec00cd46f14ead.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

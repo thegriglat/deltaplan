@@ -1,0 +1,24 @@
+{
+  "status": "done",
+  "summary": "Сняты 6 кадров «до» (Эверест 25–27, Эльбрус 28–30) по коду main, 1920x1080, через menu_art.py; файлы before_NN_место_сюжет.jpg в build/screenshots/mountain-look/. Код не менялся, project.godot не переписан.",
+  "commits": [
+    "7509a732 база кадров «до» (код main); коммитов нет — снимки в build/, не под git"
+  ],
+  "checks": [
+    {
+      "name": "shots",
+      "value": "6",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Копия mountain-look-MLK-6 стоит на ветке mountain-look/MLK-6 (от feature/mountain-look, cb2d6207); отличие от main только в docs/plan и docs/contracts (8 файлов, все *.gd/*.tscn/*.py/scripts/configs/tools совпадают с main). Кадры сняты с этой копией; считаю, что код = main. Подтвердить?"
+  ],
+  "images": [],
+  "how_to_check": "cd /home/greg/deltaplan-mountain-look-MLK-6 && XDG_DATA_HOME=$(mktemp -d) godot --headless --path . --import && systemd-run --user --scope -p MemoryMax=12G python3 tools/shots/menu_art.py --size=1920x1080 --only=25,26,27,28,29,30 --jobs=2 --out=<каталог> ; затем переименовать NN_место_сюжет.jpg → before_/after_NN_место_сюжет.jpg в build/screenshots/mountain-look/. Для «после» — та же команда из копии с кодом после правок. Проверка: dp accept MLK-6 --dry",
+  "uncertain": [],
+  "dp_feedback": "1) menu_art.py не принимает --out с готовым префиксом имени: файлы идут как NN_место_сюжет.jpg, пришлось копировать с префиксом before_ вручную; стоило бы --prefix или --names. 2) Нет способа в dp задать «код = main» для копии задачи: карточка указывает ветку модуля, а задание — main; dp task show не показывает, какой коммит снимков. 3) В копии остаётся нетрекаемый tests/contracts/*.uid из main — шум в git status.",
+  "t": "2026-10-13T21:59:19",
+  "by": "main"
+}

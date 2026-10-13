@@ -14,7 +14,7 @@ extends Node
 ##               слоя игры и сетки LOD (узлы через 2/4/8) — уклоны, гребни и ложбины
 ## Печатает строки «CLIFF …» и «cliff_look_probe: OK».
 
-const BINS := [0.0, 15.0, 25.0, 32.0, 38.0, 45.0, 90.0]
+const BINS := [0.0, 15.0, 25.0, 30.0, 38.0, 45.0, 55.0, 90.0]
 
 var _lat := NAN
 var _lon := NAN
@@ -88,6 +88,12 @@ func _measure(t: Terrain, c: Vector2) -> void:
 	var oc_sl: Array = look.get("outcrop_slope_deg", [25.0, 36.0])
 	var snow_line := float(look.get("gully_snow_line_m", 2500.0))
 	var e_sl: Array = look.get("erosion_slope_deg", [5.0, 18.0])
+	var sn_sl: Array = look.get("snow_slope_deg", [35.0, 45.0])
+	var sn_hollow := float(look.get("snow_hollow_deg", 6.0))
+	var sn_merge := float(look.get("snow_bare_merge", 1.0))
+	var sn_blow := float(look.get("snow_ridge_blow", 0.6))
+	var cvx_k := float(look.get("outcrop_convex_k", 0.035))
+	var cvx_m := float(look.get("outcrop_scale_m", 35.0))
 	var sp := L.spacing
 	print("CLIFF %s layer spacing=%.1f m, rock_slope_deg=%.0f±%.0f, outcrop=%s, snow_line=%.0f"
 			% [_tag, sp, rock_deg, rock_bl * 0.5, str(oc_sl), snow_line])
@@ -96,7 +102,7 @@ func _measure(t: Terrain, c: Vector2) -> void:
 	cnt.resize(nb)
 	var acc := {}
 	for k in ["forest", "grass", "shrub", "bare", "snow", "other", "rock", "outcrop", "gsnow",
-			"eros", "plain", "tex", "h"]:
+			"eros", "plain", "tex", "h", "snow2", "az", "abare", "abare2", "asnow", "asnow2"]:
 		var a := PackedFloat64Array()
 		a.resize(nb)
 		acc[k] = a
@@ -122,6 +128,17 @@ func _measure(t: Terrain, c: Vector2) -> void:
 			var shrub := float(cl == SurfaceLayer.SHRUB)
 			var bare := float(cl == SurfaceLayer.BARE)
 			var snow := float(cl == SurfaceLayer.SNOW)
+			# снег класса 8 после MLK-4 (CPU-зеркало шейдера; шум кромки — средним: ступенька по 0,5)
+			var cg := maxf(cvx_m, sp)
+			var cv := -(L.sample(p.x + cg, p.y) + L.sample(p.x - cg, p.y) + L.sample(p.x, p.y + cg)
+					+ L.sample(p.x, p.y - cg) - 4.0 * h) / (4.0 * cg) / cvx_k
+			var s_eff := slope - sn_hollow * _ss(0.0, 1.0, -cv)
+			var keep := (1.0 - _ss(float(sn_sl[0]), float(sn_sl[1]), s_eff)) * (1.0 - sn_blow * _ss(0.7, 1.6, cv) * _ss(22.0, 32.0, slope))
+			var alp := sn_merge * _ss(snow_line - 150.0, snow_line + 150.0, h)
+			var pool := snow + bare * alp
+			var snow2 := _ss(0.44, 0.56, pool * keep) * (1.0 if pool > 0.0 else 0.0)
+			var bare2 := maxf(bare - (snow2 - snow), 0.0)
+			var az := float(h >= snow_line)
 			var other := 1.0 - forest - grass - shrub - bare - snow
 			var open_w := grass + shrub + bare
 			# скалы (шум rnoise — средним)
@@ -144,12 +161,19 @@ func _measure(t: Terrain, c: Vector2) -> void:
 			total += 1
 			var vals := {"forest": forest, "grass": grass, "shrub": shrub, "bare": bare, "snow": snow,
 					"other": other, "rock": rock, "outcrop": outcrop, "gsnow": gsnow, "eros": eros,
-					"plain": plain, "tex": tex, "h": h}
+					"plain": plain, "tex": tex, "h": h, "snow2": snow2, "az": az, "abare": bare * az, "abare2": bare2 * az, "asnow": snow * az, "asnow2": snow2 * az}
 			for k: String in vals:
 				var a: PackedFloat64Array = acc[k]
 				a[b] += vals[k]
 				acc[k] = a
 	print("CLIFF %s точек=%d (шаг %.0f м, радиус %.0f м)" % [_tag, total, _step, _radius])
+	print("CLIFF %s снег класса 8 по уклону: доля клеток снега до -> после (MLK-4)" % _tag)
+	for b in nb:
+		if cnt[b] > 0.0:
+			print("CLIFF %s SNOWBAND %2.0f-%2.0f° n=%d before=%.3f after=%.3f | выше снеговой линии (доля клеток %.2f): грунт/скала до=%.3f после=%.3f, снег до=%.3f после=%.3f"
+					% [_tag, BINS[b], BINS[b + 1], int(cnt[b]), acc["snow"][b] / cnt[b], acc["snow2"][b] / cnt[b],
+					acc["az"][b] / cnt[b], acc["abare"][b] / maxf(acc["az"][b], 1.0), acc["abare2"][b] / maxf(acc["az"][b], 1.0),
+					acc["asnow"][b] / maxf(acc["az"][b], 1.0), acc["asnow2"][b] / maxf(acc["az"][b], 1.0)])
 	print("CLIFF %s уклон    площ%%  высота  лес  луг  куст грунт снег | скалы выход снегКул промоин | фактура ровно" % _tag)
 	for b in nb:
 		if cnt[b] <= 0.0:
@@ -217,6 +241,15 @@ func _measure_shape(t: Terrain, c: Vector2) -> void:
 	var n_vall := 0
 	var curv_raw := 0.0
 	var curv_game := 0.0
+	# выше леса (MLK-2): ни леса, ни застройки в 150 м вокруг
+	var n_crest_open := 0
+	var curv_raw_open := 0.0
+	var curv_game_open := 0.0
+	var drop_open := 0.0
+	var edge_n := 0
+	var edge_raw := 0.0
+	var edge_game := 0.0
+	var S: SurfaceLayer = t.surfaces[0]
 	var n := int(_radius / sp)
 	var ci := int(round((c.x - L.origin_x) / sp))
 	var cj := int(round((c.y - L.origin_z) / sp))
@@ -247,7 +280,19 @@ func _measure_shape(t: Terrain, c: Vector2) -> void:
 					- 4.0 * h0) / (4.0 * sp)
 			var lapg := (L.sample(x + sp, z) + L.sample(x - sp, z) + L.sample(x, z + sp) + L.sample(x, z - sp)
 					- 4.0 * L.sample(x, z)) / (4.0 * sp)
+			# ступенька DSM на опушке: узел леса минус соседний узел открытого места (знак склона усредняется)
+			if t.forest_at(x, z) > 0.5:
+				for dd: Vector2 in [Vector2(sp, 0), Vector2(-sp, 0), Vector2(0, sp), Vector2(0, -sp)]:
+					if R.contains(x + dd.x, z + dd.y) and t.forest_at(x + dd.x, z + dd.y) < 0.1:
+						edge_n += 1
+						edge_raw += R.sample(x, z) - R.sample(x + dd.x, z + dd.y)
+						edge_game += L.sample(x, z) - L.sample(x + dd.x, z + dd.y)
 			if lap < -0.15:
+				if _is_open(t, S, x, z):
+					n_crest_open += 1
+					curv_raw_open += -lap
+					curv_game_open += -lapg
+					drop_open += h0 - float(hs[1])
 				n_crest += 1
 				curv_raw += -lap
 				curv_game += -lapg
@@ -262,6 +307,13 @@ func _measure_shape(t: Terrain, c: Vector2) -> void:
 	if n_crest > 0:
 		print("CLIFF %s кривизна гребней: сырые %.3f м/м, игра %.3f м/м (×%.2f)"
 				% [_tag, curv_raw / n_crest, curv_game / n_crest, curv_game / maxf(curv_raw, 1e-6)])
+	if n_crest_open > 0:
+		print("CLIFF %s выше леса: гребней=%d, кривизна сырые %.3f, игра %.3f, отношение %.3f; просадка гребней %.3f м"
+				% [_tag, n_crest_open, curv_raw_open / n_crest_open, curv_game_open / n_crest_open,
+				curv_game_open / maxf(curv_raw_open, 1e-6), drop_open / n_crest_open])
+	if edge_n > 0:
+		print("CLIFF %s ступенька DSM на опушке (лес − открытое, узлы): пар=%d, сырые %.2f м, игра %.2f м"
+				% [_tag, edge_n, edge_raw / edge_n, edge_game / edge_n])
 	print("CLIFF %s поле          уклон p50  p90  p99  max | гребень ниже сырых, м | ложбина выше, м" % _tag)
 	for k in names.size():
 		var a: Array = slopes[k]
@@ -269,3 +321,16 @@ func _measure_shape(t: Terrain, c: Vector2) -> void:
 		var q := func(p: float) -> float: return a[mini(int(p * a.size()), a.size() - 1)]
 		print("CLIFF %s %-12s %5.1f %5.1f %5.1f %5.1f | %6.2f | %6.2f" % [_tag, names[k], q.call(0.5), q.call(0.9),
 				q.call(0.99), a[a.size() - 1], crest[k] / maxf(n_crest, 1), vall[k] / maxf(n_vall, 1)])
+
+
+## Точка «выше леса»: ни леса, ни застройки в 150 м вокруг (8 направлений, 75 и 150 м).
+static func _is_open(t: Terrain, S: SurfaceLayer, x: float, z: float) -> bool:
+	for r: float in [0.0, 75.0, 150.0]:
+		for a in (1 if r == 0.0 else 8):
+			var q := Vector2(x, z) + Vector2.from_angle(a * TAU / 8.0) * r
+			if t.forest_at(q.x, q.y) > 0.0:
+				return false
+			var cl := S.class_at(q.x, q.y)
+			if cl == SurfaceLayer.FOREST or cl == SurfaceLayer.BUILT:
+				return false
+	return true

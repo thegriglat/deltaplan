@@ -12,6 +12,7 @@ import os
 import numpy as np
 
 import bl_util as U
+import sail_dedupe
 from sail_texture import le_band as _le_band
 
 SIZE = 1024
@@ -69,6 +70,7 @@ def _height_and_trans(p: dict, a, t, lower: bool):
 
 def make(p: dict) -> None:
     os.makedirs(OUT, exist_ok=True)
+    sail_dedupe.expand(OUT)     # вернуть слитые дубликаты: карта канонического файла может измениться
     half = SIZE // 2
     u = (np.arange(SIZE, dtype=np.float32) + 0.5) / SIZE
     v = (np.arange(half, dtype=np.float32) + 0.5) / half
@@ -87,3 +89,4 @@ def make(p: dict) -> None:
                        os.path.join(OUT, p["out"] + "_normal.png"))
     U.image_from_array(p["out"] + "_trans", np.repeat(np.clip(tr, 0, 1)[..., None], 3, axis=2),
                        os.path.join(OUT, p["out"] + "_trans.png"))
+    sail_dedupe.dedupe(OUT)     # одинаковые карты — одним файлом + sail_maps.json

@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "Юбки увеличены конфигом: детальный слой 40 -> 300 м, фон 150 -> 400 м (render.*.skirt_depth_m). Открытых щелей LOD 0 на всех 8 местах (было 17-54 на детальном слое, 0-25 на фоне); время кадра в шуме.",
+  "commits": [
+    "571a0648 Юбки чанков: 40->300 / 150->400 м"
+  ],
+  "checks": [
+    {
+      "name": "terrain",
+      "value": "116/116",
+      "pass": true
+    },
+    {
+      "name": "mountain_look_contracts",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "щели не закрыты юбкой, 8 мест",
+      "value": "0 (было детальный 17-54, фон 0-25)",
+      "pass": true
+    },
+    {
+      "name": "время кадра GPU",
+      "value": "v2 2.558 -> 2.551 мс (-0.3%)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Юбка по локальному перепаду в шейдере не делалась: константы хватает (макс. видимый перепад detail 122-252 м, far 219-359 м)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept MLK-8; MLK_PREFIX=after_mesh MLK_ARGS='--dh=v2 --quick=1' tools/research/mountain_look/run_all.sh; python3 -I tools/research/mountain_look/compare.py",
+  "uncertain": [
+    {
+      "where": "configs/world.json location_builder.template.render",
+      "why": "сгенерированные места (pt_*) хранят render в location.json - у пилота старые 40/150 до пересоздания места",
+      "checked": "в кэше зонда подправил sed; в игре не проверял, совместимость не нужна"
+    },
+    {
+      "where": "GPU-тест",
+      "why": "тест сравнивает v1/v2, а не юбки; 'до/после' получено двумя прогонами с откатом configs",
+      "checked": "v2 2.558 (до) vs 2.551 (после); юбка 4 строки на край чанка, геометрия почти не растёт"
+    },
+    {
+      "where": "tools/research/mountain_look/data",
+      "why": "коммит включает пересчитанные after_mesh_*.json/log и compare_tables.md",
+      "checked": "только быстрый прогон v2"
+    }
+  ],
+  "dp_feedback": "dp job start не говорит, наследует ли env (MLK_*); сработало. Хотелось бы dp job wait, не падающий при уже завершённом окне. Первый godot --import упал (signal 11), повтор прошёл.",
+  "extra": {
+    "skirt_detail_m": "40 -> 300",
+    "skirt_far_m": "150 -> 400",
+    "lod_gap_max_detail_m": "122-252",
+    "lod_gap_max_far_m": "219-359"
+  },
+  "open_cracks_before_after": "детальный 17-54 -> 0, фон 0-25 -> 0 (8 мест); щелей на краю детального слоя 0-7 -> 0",
+  "frame_ms_delta": "-0.007 мс (2.558 -> 2.551, -0.3%, в шуме)",
+  "t": "2026-10-13T23:34:19",
+  "by": "executor"
+}
