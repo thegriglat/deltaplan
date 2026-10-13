@@ -4,7 +4,7 @@ status: active
 module: scene-look
 updated: 2026-10-13
 summary: "Картинка сочнее (T-31, «сочно, но не приторно») только шейдерами: свет «небо сверху, земля снизу», дальний лес, склоны по сторонам света и широте, сезон по дате полёта, дороги вдали, дымка с ореолом, просвет паруса и листвы, тропы, прибрежная зелень, граница леса, поля по сезону; после mountain-look — конусы выноса, свежий снег, ледники, анти-тайлинг скал."
-related: ["docs/contracts/scene-look.md", "docs/guide/terrain.md", "docs/plan/mountain-look.md", "TODO.md"]
+related: ["docs/contracts/scene-look.md", "docs/guide/terrain.md", "TODO.md"]
 ---
 # Картинка сочнее (модуль `scene-look`, код задач SL)
 

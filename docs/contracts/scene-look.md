@@ -4,7 +4,7 @@ status: active
 module: scene-look
 updated: 2026-10-13
 summary: "Контракты scene-look: свой include и секция конфига без правок кода mountain-look (SL-К1), широта/дата/сезон для шейдеров с CPU-зеркалом (SL-К2), бюджет и замер GPU (SL-К3)."
-related: ["docs/plan/scene-look.md", "docs/contracts/mountain-look.md", "docs/guide/terrain.md"]
+related: ["docs/plan/scene-look.md", "docs/guide/terrain.md"]
 contracts: [{"id": "SL-К1", "version": 1}, {"id": "SL-К2", "version": 1}, {"id": "SL-К3", "version": 1}]
 ---
 # Контракты scene-look
