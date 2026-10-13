@@ -9,6 +9,10 @@ extends Node3D
 ## Солнце — по часам clock (SunClock, VR-5): направление, цвет и яркость солнца, неба и дымки
 ## меняются по сигналу clock.sun_changed. Другие потребители подписываются на тот же сигнал.
 
+## Фаза дымки по умолчанию (world.json → haze, см. haze.gdshader).
+const HAZE_PHASE_DEFAULTS := {
+	"haze_g": 0.7, "forward_gain": 3.0, "forward_knee": 6.0, "back_dim": 0.3, "clear_phase_k": 0.5
+}
 const HAZE_SHADER := preload("res://scripts/world/haze.gdshader")
 const SKY_SHADER := preload("res://scripts/world/sky.gdshader")
 
@@ -288,7 +292,8 @@ func _apply_haze(hz: Dictionary) -> void:
 	# haze_color, sun_color, sun_dir — в _apply_sun (зависят от высоты солнца)
 	_haze_base_color = c_clear.lerp(c_turbid, grey)
 	_haze_mat.set_shader_parameter("sun_scatter", fog_sun_scatter())
-	_haze_mat.set_shader_parameter("sun_scatter_power", float(hz.get("sun_scatter_power", 6.0)))
+	for k in ["haze_g", "forward_gain", "forward_knee", "back_dim", "clear_phase_k"]:
+		_haze_mat.set_shader_parameter(k, float(hz.get(k, HAZE_PHASE_DEFAULTS[k])))
 	_haze_mat.set_shader_parameter("max_opacity", float(hz.get("max_opacity", 0.97)))
 	_haze_mat.set_shader_parameter("inscatter_power", float(hz.get("inscatter_power", 1.0)))
 	_haze_mat.set_shader_parameter("extinction_rgb", _vec3(hz.get("extinction_rgb", [1, 1, 1])))
@@ -306,6 +311,28 @@ func _apply_haze(hz: Dictionary) -> void:
 ## Путь в дымке по лучу, приведённый к полной плотности, м — та же аналитика, что в haze.gdshader:
 ## плотность 1 до top_msl − w/2, линейно до 0 к top_msl + w/2. y0 — высота начала луча (MSL),
 ## dir_y — вертикальная составляющая единичного направления, length_m — длина луча.
+## Фаза Хеньи–Гринстейна относительно 90° от солнца (mu = cos угла к солнцу); зеркало haze.gdshader.
+static func haze_hg_ratio(mu: float, g: float) -> float:
+	var g2 := g * g
+	return pow(1.0 + g2, 1.5) / pow(1.0 + g2 - 2.0 * g * mu, 1.5)
+
+
+## Яркость in-scatter мутного слоя на оптической толщине tau (зелёный канал; col_h в шейдере).
+## Возвращает [фон дымки, вклад солнца] — второй множитель на sun_color·sun_scatter.
+static func haze_phase_terms(mu: float, hz: Dictionary) -> Array:
+	var d := HAZE_PHASE_DEFAULTS
+	var r := haze_hg_ratio(mu, float(hz.get("haze_g", d.haze_g)))
+	var fwd := maxf(r - 1.0, 0.0)
+	var halo := fwd / (fwd + float(hz.get("forward_knee", d.forward_knee)))
+	var amb := lerpf(1.0, minf(r, 1.0), float(hz.get("back_dim", d.back_dim)))
+	return [amb, float(hz.get("forward_gain", d.forward_gain)) * halo]
+
+
+## Рэлеевский множитель чистого воздуха (1 на 90°).
+static func clear_rayleigh(mu: float, hz: Dictionary) -> float:
+	return lerpf(1.0, 1.0 + mu * mu, float(hz.get("clear_phase_k", HAZE_PHASE_DEFAULTS.clear_phase_k)))
+
+
 static func haze_path_m(
 	y0: float, dir_y: float, length_m: float, top_msl: float, transition_m: float
 ) -> float:
