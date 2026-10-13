@@ -8,3 +8,5 @@
 {"t": "2026-10-13T21:43:35", "by": "coordinator", "task": "MLK-1", "ev": "started", "note": "dp-researcher sonnet, ~/deltaplan-mountain-look-MLK-1"}
 {"t": "2026-10-13T21:43:35", "by": "coordinator", "task": "MLK-2", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-mountain-look-MLK-2"}
 {"t": "2026-10-13T21:43:35", "by": "coordinator", "task": "MLK-4", "ev": "started", "note": "dp-engineer sonnet, ~/deltaplan-mountain-look-MLK-4"}
+{"t": "2026-10-13T21:51:38", "by": "coordinator", "task": "MLK-6", "ev": "created", "note": "Скриншоты «до»: Эверест и Эльбрус (menu_art)"}
+{"t": "2026-10-13T21:52:07", "by": "coordinator", "task": "MLK-6", "ev": "started", "note": "dp-mechanic, ~/deltaplan-mountain-look-MLK-6, menu_art 25-30"}
