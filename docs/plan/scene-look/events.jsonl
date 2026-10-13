@@ -235,3 +235,4 @@
 {"t": "2026-10-14T04:37:34", "by": "coordinator", "task": "SL-17", "ev": "merged", "note": "e436665d; VERSIONS К4 → 2"}
 {"t": "2026-10-14T04:39:18", "by": "coordinator", "task": "SL-18", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-scene-look-SL-18"}
 {"t": "2026-10-14T04:39:18", "by": "coordinator", "task": "SL-19", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-scene-look-SL-19"}
+{"t": "2026-10-14T04:43:00", "by": "coordinator", "task": "SL-19", "ev": "note", "note": "ранняя часть f16e9d06 (TreeCell + тест эталона) влита в ветку модуля для SL-18"}
