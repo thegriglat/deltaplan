@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Парус: custom light() = cloud_light (как встроенное освещение, плюс тень облака) + рассеяние вперёд pow(dot(-вид, на солнце), forward_exp) x forward_gain x цвет солнца x transmit_tint x маска _trans (латы/швы темнее). Новые параметры configs/sail.json: forward_gain=0.7, forward_exp=5.0. Кроны моделей деревьев: uniform backlight в tree_model.gdshader (только карточки кроны), configs/world.json trees.backlight {default 0.2, birch 0.55, larch 0.35, pine 0.2, cedar 0.2, spruce 0.15}. Трава не менялась (BACKLIGHT 0.85 через cloud_light даёт просвет при низком солнце). Импостеры и рельеф не тронуты.",
+  "commits": [
+    "058fb05e SL-7: просвет паруса против солнца и крон деревьев"
+  ],
+  "checks": [
+    {
+      "name": "flight",
+      "value": "247/247 (пропуск 5)",
+      "pass": true
+    },
+    {
+      "name": "vegetation",
+      "value": "22/22",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "GPU test_sail_forward_gpu (линейная яркость)",
+      "value": "солнце сзади 0.825; сбоку 0.552; спереди 0.812; gain=0: сзади 0.552; лата (trans=0) 0.000",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скриншотов паруса против солнца не снимал (необязательно, экономия); импостеры (BACKLIGHT) не правил — по условию задания их правит SL-2"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SL-7; tools/gpu_tests.sh --filter=sail_forward",
+  "uncertain": [
+    "GPU не замерен (стенд SL-13 чинится): оценка по коду — в light() добавлены 1 pow и несколько умножений на пиксель паруса, плюс 1 текстурная выборка карты теней облаков в вершинном шейдере; парус занимает малую долю экрана, оценка << 0.02 мс",
+    "Парус теперь получает тень облаков и считает освещение через cloud_light (формулы Burley/GGX скопированы с встроенных; в тесте при gain=0 яркость не проверялась против прежнего шейдера) — возможен малый сдвиг яркости паруса; визуально не проверено",
+    "Варying v_fwd пишется во fragment и читается в light() — компилируется и работает в Godot 4.7.2 (проверено GPU-тестом)",
+    "Значения forward_gain/forward_exp и backlight пород подобраны с первой попытки без кадров; 0.7 даёт +49% к фону на просвете (0.55 -> 0.825, без пересвета)"
+  ],
+  "dp_feedback": "dp accept --dry в foreground упирается в таймаут 600 с (flight 718 с) - удобнее сразу фоном/с job",
+  "gpu_ms_base": null,
+  "gpu_ms_after": null,
+  "t": "2026-10-13T22:46:27",
+  "by": "executor"
+}
