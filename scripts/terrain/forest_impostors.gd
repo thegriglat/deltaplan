@@ -85,18 +85,21 @@ func setup(
 	var hi := PackedFloat32Array()
 	var asp := PackedFloat32Array()
 	var hts: Array[Vector2] = []
+	var gain := PackedFloat32Array()
 	for name in TreePlacer.SPECIES:
 		var s: Dictionary = sp.get(name, {})
 		w.append(float(s.get("weight", 0.0)))
 		lo.append(float(s.get("min_m", -1e4)))
 		hi.append(float(s.get("max_m", 1e4)))
 		asp.append(float(s.get("aspect", 0.0)))
+		gain.append(TerrainTreeModels.albedo_gain_for(cfg, name, 2))
 		var hr: Array = s.get("height_m", [15.0, 25.0])
 		hts.append(Vector2(float(hr[0]), float(hr[1])))
 	m.set_shader_parameter("sp_weight", w)
 	m.set_shader_parameter("sp_min", lo)
 	m.set_shader_parameter("sp_max", hi)
 	m.set_shader_parameter("sp_aspect", asp)
+	m.set_shader_parameter("sp_gain", gain)
 	m.set_shader_parameter("sp_height", hts)
 	material_override = m
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

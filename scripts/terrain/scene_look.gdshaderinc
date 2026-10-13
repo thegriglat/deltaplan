@@ -21,7 +21,13 @@ uniform vec3 sl_ground_albedo = vec3(0.06, 0.09, 0.04);  // альбедо ок�
 uniform float sl_ground_local = 0.5;  // доля собственного цвета точки в «земле снизу»
 // Полог вдали: альбедо (яркость Y, линейная, в среднем по полусфере) хвойного / лиственного
 uniform vec2 sl_canopy_albedo = vec2(0.05, 0.08);
-uniform vec2 sl_canopy_near_m = vec2(500.0, 2000.0);  // ближе — тон как у моделей деревьев; дальше — альбедо полога
+// SL-14: ближе — прямое освещение полога как у моделей (они затеняют себя сами); дальше — видимая доля
+// освещённых крон по солнцу и взгляду. Тон (альбедо) от расстояния не зависит: модели и импостеры
+// поднимаются до альбедо полога множителем по породам (trees.albedo_gain), см. sl_tree_albedo_enabled.
+uniform vec2 sl_canopy_near_m = vec2(500.0, 2000.0);
+// SL-14: альбедо крон моделей и импостеров доведено до альбедо полога множителем по породам; полог рельефа
+// и импостеры без сшивки по расстоянию. false — как до SL-14 (сшивка по sl_canopy_near_m).
+uniform bool sl_tree_albedo_enabled = false;
 uniform float sl_canopy_floor = 0.5;       // пятна древостоев, опушка, сырость — не темнее ×floor
 uniform float sl_canopy_shadow_k = 0.8;    // доля полога в тени соседних крон: 1 − exp(−k·tg зенитного угла солнца к склону)
 uniform float sl_canopy_hide_p = 2.0;      // скрытие теней по фазовому углу: ((1 + cos ξ) / 2)^p
@@ -104,6 +110,17 @@ float sl_canopy_far(float dist) {
 	return sl_light_enabled ? smoothstep(sl_canopy_near_m.x, sl_canopy_near_m.y, dist) : 0.0;
 }
 
+// Вес подгонки тона к альбедо полога: с SL-14 везде 1 (деревья уже того же альбедо), без — по удалению.
+float sl_canopy_tone_w(float dist) {
+	return sl_tree_albedo_enabled ? 1.0 : sl_canopy_far(dist);
+}
+
+// Множитель альбедо породы (SL-14): g — trees.albedo_gain; выключено — 1. Применять к базовому цвету
+// (текстура) до сезона SL-6 и просвета SL-7.
+float sl_tree_gain(float g) {
+	return sl_tree_albedo_enabled ? g : 1.0;
+}
+
 // Тон полога рельефа: fc — после пятен/опушки/сырости, fc0 — до них; fmean — цвет пород,
 // con_p — доля хвойных, far_shade — canopy_far_shade (средняя яркость смеси крон и просветов).
 // Пятна не темнее ×sl_canopy_floor; вдали средняя яркость — альбедо полога (цвет не меняется).
@@ -114,7 +131,7 @@ vec3 sl_canopy_tone(vec3 fc, vec3 fc0, vec3 fmean, float con_p, float dist, floa
 	fc = max(fc, sl_canopy_floor * fc0);
 	float target = mix(sl_canopy_albedo.y, sl_canopy_albedo.x, con_p);
 	float base = max(dot(fmean, SL_LW) * far_shade, 1e-4);
-	return fc * mix(1.0, target / base, sl_canopy_far(dist));
+	return fc * mix(1.0, target / base, sl_canopy_tone_w(dist));
 }
 
 // Импостер дерева вдали: rgb — цвет атласа × tint, mean_luma — средняя яркость ячейки атласа × tint,
@@ -126,6 +143,9 @@ vec3 sl_tree_tone(vec3 rgb, float mean_luma, float con, float dist, float t, flo
 	float m = max(mean_luma, 1e-4);
 	rgb *= mix(1.0, mix(luma, m, 0.6) / max(luma, 1e-4), contrast * t);
 	rgb = mix(rgb, vec3(dot(rgb, SL_LW)), sl_tree_far_desat * t);
+	if (sl_tree_albedo_enabled) {
+		return rgb;  // SL-14: альбедо породы уже у полога (множитель gain), сшивки нет
+	}
 	float target = mix(sl_canopy_albedo.y, sl_canopy_albedo.x, con);
 	return rgb * mix(1.0, target / m, sl_canopy_far(dist));
 }
