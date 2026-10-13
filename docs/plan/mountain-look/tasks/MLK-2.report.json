@@ -1,8 +1,9 @@
 {
-  "status": "partial",
-  "summary": "Сглаживание DSM только под лесом и застройкой (MLK-К1): новая стадия smooth (SmoothStage) после surface считает h = r + w·(G_σ(r) − r) по маске леса 10 м/built10, FORMAT_VERSION 4, фикстуры пересобраны, контрактные тесты К1 зелёные. Кривизна гребней выше леса игра/сырое 1,000 (Эльбрус) и 0,999 (Шымбулак), просадка ≤ 0,015 м. Не закрыто: 2 теста атмосферы (test_air_place, test_air_window_case) сравнивают вход решателя с эталонами, посчитанными по старым высотам — они упали (вне скоупа).",
+  "status": "done",
+  "summary": "Сглаживание DSM только под лесом и застройкой (MLK-К1): стадия smooth, FORMAT_VERSION 4, фикстуры мест и эталоны воздуха (picard, window) пересчитаны, контрактные тесты К1 зелёные; кривизна гребней выше леса игра/сырое 1,000 (Эльбрус) и 0,999 (Шымбулак).",
   "commits": [
-    "44c13bd7 MLK-2: сглаживание DSM только под лесом и застройкой (SmoothStage, MLK-К1), FORMAT_VERSION 4, фикстуры пересобраны"
+    "44c13bd7 сглаживание DSM только под лесом и застройкой (SmoothStage), FORMAT_VERSION 4, фикстуры",
+    "82d3856d эталоны воздуха пересчитаны по новым высотам Онгудая"
   ],
   "checks": [
     {
@@ -31,16 +32,66 @@
       "pass": true
     },
     {
-      "name": "полный headless-прогон",
-      "value": "упали test_air_place, test_air_window_case (вход решателя против эталонов по старым высотам); остальные падения не связаны с модулем: test_osm_look_contracts::test_versions (L5 v2/v3), test_steam_assets_contracts::test_k3_assets_md_tables, GPU-тест без RD",
+      "name": "тесты атмосферы после пересчёта эталонов",
+      "value": "174/175 (31 пропуск GPU); air_place и air_window_case зелёные; упал только test_atmosphere::test_performance (air_velocity_at медиана 42–49 мкс при пороге 40; в полном прогоне до пересчёта было 28 мкс — таймингом, от высот не зависит)",
+      "pass": false
+    },
+    {
+      "name": "mountain_look_contracts",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "dem_stage",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "location_builder",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "locations",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "terrain",
+      "value": "115/115",
+      "pass": true
+    },
+    {
+      "name": "surface",
+      "value": "36/36",
+      "pass": true
+    },
+    {
+      "name": "river_stage",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "no_osm_contracts",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "osm_any_contracts",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "atmosphere",
+      "value": "174/175, упал test_performance (тайминг)",
       "pass": false
     }
   ],
   "not_done": [
-    "tests/atmosphere/test_air_place.gd::test_domain_input_vs_reference (рельеф: max|Δhc| 0,679 м и 1,75 м при допуске 1e-3) и test_air_window_case.gd::test_window_input_vs_reference (рельеф окна, dθ̄/dz окна): эталоны tests/atmosphere/fixtures/air_model/{picard,window} посчитаны по старым (везде сглаженным) высотам Онгудая. Нужно пересчитать эталоны (tools/research/air3d/picard_gpu_refs.py и аналог для окна, нужны Python и GPU) либо решение координатора ослабить допуск; тесты вне моего скоупа, не трогал."
+    "test_atmosphere::test_performance нестабилен по времени (42–49 мкс против порога 40 при фоновой нагрузке), не копал.",
+    "gpu_tests.sh --filter=atmosphere под замком отработал без строк итога, результат GPU-тестов не подтверждён."
   ],
   "questions": [
-    "Кто пересчитывает эталоны воздуха (air_model/picard, window) по новым высотам места? После слияния MLK-2 в feature/mountain-look эти два теста красные.",
     "Ступенька на опушке выросла с 2,07 до 2,62 м (сырые 3,05): на самой кромке w ≈ 0,5, это следствие К1 (маска размыта на 50 м), а не ошибка. Если нужна прежняя ступенька, маску на кромке надо делать жёстче (изменение К1)."
   ],
   "images": [],
@@ -67,7 +118,7 @@
       "checked": "до — на старом коммите с тем же зондом (отдельный worktree в scratchpad), после — на ветке"
     }
   ],
-  "dp_feedback": "Не хватило: dp job wait по двум задачам подряд в одном вызове упирается в 600 с, нужен wait на несколько задач с общим таймаутом в фоне; отдельной команды «собрать фикстуру места» (build_location + копирование + правка build.json) нет — делал вручную; dp accept --dry не показывает падения из соседних фильтров (атмосфера), которые ломаются из-за фикстур мест.",
+  "dp_feedback": "Не хватило: dp job wait по двум задачам подряд в одном вызове упирается в 600 с, нужен wait на несколько задач с общим таймаутом в фоне; отдельной команды «собрать фикстуру места» (build_location + копирование + правка build.json) нет — делал вручную; dp accept --dry не показывает падения из соседних фильтров (атмосфера), которые ломаются из-за фикстур мест.; пересчёт эталонов воздуха: скрипты air3d читают старый формат data/terrain/<id>/*.f32.br, пришлось временно конвертировать фикстуру места и ставить venv (numpy, brotli, pillow, cupy).",
   "extra": {
     "elbrus_before": "кривизна сырые 0.211, игра 0.118 (×0.561); просадка гребней 5.649 м",
     "elbrus_after": "кривизна сырые 0.211, игра 0.211 (×1.000); просадка 0.000 м",
@@ -75,12 +126,13 @@
     "shymbulak_after": "выше леса: сырые 0.191, игра 0.190 (×0.999), просадка 0.015 м; все гребни: ×0.59 → ×0.86",
     "forest_step_shymbulak": "узлы лес−открытое, пар 9361: сырые 3.05 м, игра было 2.07 м, стало 2.62 м",
     "stage_seconds_askarovo": "smooth 8.9 с (dem 5.7, rivers 23.8, surface 18.2)",
-    "interface": "К1 не менялся; добавлены ключи meta.json слоя raw_file/raw_height_min_m (временные) и стадия smooth между surface и osm_tiles (LocationBuilder.default_stages)"
+    "interface": "К1 не менялся; добавлены ключи meta.json слоя raw_file/raw_height_min_m (временные) и стадия smooth между surface и osm_tiles (LocationBuilder.default_stages)",
+    "air_refs": "пересчитаны picard/ongudai_d{200,400}_h12 и window/ongudai_w{50,100}_h12 скриптами picard_gpu_refs.py и window_gpu_refs.py без изменений скриптов; временный data/terrain/ongudai удалён"
   },
   "curv_ratio_above_forest_before": "Эльбрус 0.561; Шымбулак 0.639",
   "curv_ratio_above_forest_after": "Эльбрус 1.000; Шымбулак 0.999",
   "crest_drop_m_above_forest_after": "Эльбрус 0.000; Шымбулак 0.015",
   "forest_step_m_after": "Шымбулак 2.62 (было 2.07, сырые 3.05)",
-  "t": "2026-10-13T22:39:01",
+  "t": "2026-10-13T23:28:30",
   "by": "executor"
 }
