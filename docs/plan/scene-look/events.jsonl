@@ -107,3 +107,4 @@
 {"t": "2026-10-14T01:08:12", "by": "main", "task": "SL-16", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"gpu_full_ms_base\", \"gpu_full_ms_after\", \"uncertain\"]"]}}
 {"t": "2026-10-14T01:09:56", "by": "main", "task": "SL-15", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-scene-look-SL-15; пробная, две попытки"}
 {"t": "2026-10-14T01:09:56", "by": "main", "task": "SL-16", "ev": "note", "note": "в очереди: запуск, когда освободится слот исполнителя (сейчас 4: SL-5, SL-6, SL-9, SL-15)"}
+{"t": "2026-10-14T01:13:03", "by": "main", "task": "SL-16", "ev": "cancelled", "note": "отмена по указанию главной сессии: ряды камешков-моделей — нормально, пользователь просил только шершавую поверхность камня (расширение SL-9)"}
