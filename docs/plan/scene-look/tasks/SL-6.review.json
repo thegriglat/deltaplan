@@ -1,27 +1,20 @@
 {
-  "verdict": "rework",
-  "summary": "Сезон (SeasonLook = sl_season, Хопкинс, юг/тропики), проводка и инварианты К2 в порядке, но после слияния SL-9 tree_model.gdshader не компилируется: модели деревьев пропадают. GPU-тест этого не ловит. Бюджет GPU ≤ +0,06 мс не подтверждён.",
+  "verdict": "accept",
+  "summary": "Замечания первого ревью закрыты. Блок SL-9 теперь под #ifndef SL_NO_GROUND, и tree_model компилируется. Сроки по дате и широте считаются на CPU (SeasonLook.pre, uniform sl_season_pre); пересчёт стоит в общем пути apply_scene_look_params, через него идут рельеф, трава, импостеры и модели. GPU-тест сверяет GPU с независимым CPU state и ловит ошибки шейдеров через Logger. Скоуп, параметры Хопкинса с источниками и инварианты К2 в порядке. Открыт один вопрос: бюджет GPU числом не подтверждён.",
   "issues": [
     {
       "file": "scripts/terrain/scene_look.gdshaderinc",
-      "line": 364,
-      "severity": "blocker",
-      "what": "Блок SL-9 (sl_noise_d и дальше, hash12 на стр. 388) стоит вне #ifndef SL_NO_GROUND. tree_model.gdshader (#define SL_NO_GROUND, без terrain_common) падает: «SHADER ERROR: No matching function found for: 'hash12' (scene_look.gdshaderinc:388)». Модели деревьев не рисуются. Регрессия после слияния d6fe44fa (SL-9).",
-      "fix": "Закрыть SL_NO_GROUND-охраной и блок SL-9 (всё, что зависит от terrain_common), либо вынести сезонные функции деревьев в отдельный include без зависимостей. Проверить: в выводе tools/gpu_tests.sh --filter=season не должно быть SHADER ERROR."
+      "line": 166,
+      "severity": "major",
+      "what": "Бюджет GPU (не больше +0,07 мс) не подтверждён. Стенд был под нагрузкой: по медианам +1,9 мс (full), по минимумам +0,15 (full) и +0,29 (relief). На пиксель остаются sl_season_f дважды (берёза и лиственница в пологе) и в полях hash12 ×4 плюс vnoise. Риск превышения реальный, но в этом шуме его не отличить.",
+      "fix": "Координатору: перед слиянием feature/scene-look в main замерить базу и задачу вперемежку на тихой машине. Если выходит больше +0,07 мс — отдельной задачей (сезон берёзы и лиственницы одним вызовом, разброс тона полей без vnoise)."
     },
     {
-      "file": "tests/terrain/test_season_gpu.gd",
-      "line": 76,
-      "severity": "major",
-      "what": "«Проверка компиляции» только загружает Shader и рисует квад. Ошибка компиляции выводится в лог, а тест остаётся ok (1 тестов, 0 упало). Отчёт заявляет «шейдеры компилируются», а по факту tree_model не компилируется.",
-      "fix": "Сделать так, чтобы тест падал при ошибке шейдера: проверять пиксель квада каждого шейдера (непустой и не цвет фона) или искать SHADER ERROR в выводе gpu_tests.sh для этой проверки."
-    },
-    {
-      "file": "scripts/terrain/terrain.gdshader",
-      "line": 961,
-      "severity": "major",
-      "what": "Приёмка плана: GPU ≤ +0,06 мс. Медианы из отчёта: +0,51 мс (full) и +0,81 мс (relief), по минимумам +0,15/+0,37. Бюджет не подтверждён, и даже минимумы выше него.",
-      "fix": "Перемерить base/after вперемежку на тихой машине. Если превышение подтвердится, считать сезон дешевле: в рельефе sl_season_x и sl_season_sp вызываются в пикселе дважды, а дата и широта — uniform-ы, поэтому сроки (spring/fall без высоты) можно посчитать на CPU."
+      "file": "docs/contracts/scene-look.md",
+      "line": 0,
+      "severity": "minor",
+      "what": "В SL-К2 появились новые элементы: uniform sl_season_pre (vec4) и SeasonLook.pre/apply_pre. Имена и формулы контракта не менялись, sl_season и state на месте, но потребители (SL-10, SL-14) про новый uniform не знают.",
+      "fix": "Координатору вписать sl_season_pre в SL-К2, а также правило: после смены sl_doy или sl_lat_deg звать SeasonLook.apply_pre, иначе сезон замрёт на 15 июля."
     }
   ],
   "rerun": [
@@ -31,11 +24,11 @@
       "pass": true
     },
     {
-      "name": "tools/gpu_tests.sh --filter=season (зеркало CPU = GPU)",
-      "value": "0 упало, но SHADER ERROR в tree_model.gdshader (hash12, scene_look.gdshaderinc:388)",
-      "pass": false
+      "name": "tools/gpu_tests.sh --filter=season",
+      "value": "1 тест, 0 упало (зеркало CPU/GPU и компиляция 4 шейдеров)",
+      "pass": true
     }
   ],
-  "t": "2026-10-14T02:16:20",
+  "t": "2026-10-14T02:52:06",
   "by": "reviewer"
 }
