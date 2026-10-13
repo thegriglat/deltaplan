@@ -173,7 +173,7 @@ func test_edge_trees_denser_per_area() -> void:
 	var ratio := (float(trees_edge) / a_edge) / (float(trees_deep) / a_deep)
 	print("V02: у кромки гуще ×%.2f" % ratio)
 	# SL-19 (SL-К5): наличие дерева — по d8 тексельно, опушка не гуще (GPU не считает кромку); не реже
-	check(ratio > 0.6, "у кромки не реже: ×%.2f" % ratio)
+	check(ratio > 0.7, "у кромки не реже: ×%.2f" % ratio)
 
 
 func test_impostor_hash_matches_shader_formula() -> void:

@@ -220,17 +220,20 @@ func near_reach() -> float:
 ## фильтрации (целые): лес (R ≥ 128) и не вода (G < water_max) — round(density · 255), иначе 0. Без
 ## маски — класс «лес» карты 25 м. Одна и та же выборка для CPU-моделей и крестов в шейдере.
 func d8_at(x: float, z: float) -> int:
-	var full := roundi(clampf(density, 0.0, 1.0) * 255.0)
+	return roundi(clampf(density, 0.0, 1.0) * 255.0) if texel_forest(x, z) else 0
+
+
+## SL-К5: лес в тексель маски 10 м (без фильтрации), содержащем (x, z): R ≥ 128 и G < water_max·255 —
+## как на GPU. Без маски — класс «лес» карты 25 м.
+func texel_forest(x: float, z: float) -> bool:
 	if mask_w == 0:
-		return full if surface.class_at(x, z) == SurfaceLayer.FOREST else 0
+		return surface.class_at(x, z) == SurfaceLayer.FOREST
 	var i := clampi(floori((x - mask_node0.x) / mask_cell + 0.5), 0, mask_w - 1)
 	var j := clampi(floori((z - mask_node0.y) / mask_cell + 0.5), 0, mask_h - 1)
 	var o := (j * mask_w + i) * mask_bpp
 	if mask_data[o] < 128:
-		return 0
-	if mask_bpp >= 2 and mask_data[o + 1] >= water_max * 255.0:
-		return 0
-	return full
+		return false
+	return not (mask_bpp >= 2 and mask_data[o + 1] >= water_max * 255.0)
 
 
 ## Расставить ближние модели вокруг center (X/Z мира) по сетке «дерево в клетке» (TreeCell, SL-К5):
@@ -275,8 +278,8 @@ func build(center: Vector2) -> void:
 			if d2 > r2 or not layer.contains(x, z):
 				continue
 			# d8 взят в центре клетки, дерево сдвинуто до ±0,4 клетки: на кромке леса и у воды проверяем ещё
-			# раз на самом месте (берег/вода — как раньше; расхождение с крестом шейдера — редкое, у кромки)
-			if is_cleared(x, z) or not is_forest(x, z):
+			# раз на самом месте, тем же тексельным правилом (texel_forest), что на GPU
+			if is_cleared(x, z) or not texel_forest(x, z):
 				continue
 			var h2 := TreeCell.hash2(h)
 			var de := edge_distance(x, z)
