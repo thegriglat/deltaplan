@@ -1,41 +1,10 @@
 extends TestCase
-## scene-look SL-5: склоны по солнцу в полдень, прибрежная полоса, граница леса — числами
-## (CPU-зеркало формул scene_look.gdshaderinc: sl_noon_sun / sl_aspect / sl_riparian_* /
+## scene-look SL-5: прибрежная полоса, граница леса — числами
+## (CPU-зеркало формул scene_look.gdshaderinc: sl_riparian_* /
 ## sl_treeline_height / sl_forest; правятся вместе). Север — −Z.
-
-const DOY_JULY := 196.0
-const DOY_EQUINOX := 80.0
-
 
 static func _sl() -> Dictionary:
 	return Config.get_config("world").get("scene_look", {})
-
-
-static func decl(doy: float) -> float:
-	return 23.44 * sin(TAU * (doy - 81.0) / 365.0)
-
-
-## = sl_noon_sun
-static func noon_sun(lat: float, doy: float) -> Vector3:
-	var dl := lat - decl(doy)
-	var alt := deg_to_rad(90.0 - absf(dl))
-	return Vector3(0.0, sin(alt), (1.0 if dl >= 0.0 else -1.0) * cos(alt))
-
-
-## = sl_aspect
-static func aspect(n: Vector3, lat: float, doy: float, sl: Dictionary) -> float:
-	var s := noon_sun(lat, doy)
-	var m := float(sl.slope_max)
-	return clampf(n.dot(s) / maxf(s.y, 0.15) - 1.0, -m, m)
-
-
-## Нормаль склона уклона tilt_deg к экватору (to_eq = true) или от него (северное полушарие:
-## к югу = +Z; южное — к северу = −Z).
-static func slope_n(tilt_deg: float, lat: float, to_eq: bool) -> Vector3:
-	var south := lat >= 0.0
-	var dir_z := (1.0 if south else -1.0) * (1.0 if to_eq else -1.0)
-	var t := deg_to_rad(tilt_deg)
-	return Vector3(0.0, cos(t), dir_z * sin(t))
 
 
 ## = sl_treeline_height
@@ -77,40 +46,6 @@ static func gap_share(h: float, lat: float, sl: Dictionary) -> float:
 		var n2 := (k + 0.5) / 200.0
 		acc += smoothstep(0.0, 0.2, p * 1.2 - n2)
 	return acc / 200.0
-
-
-func test_slope_dryness() -> void:
-	var sl := _sl()
-	check(bool(sl.slope_enabled), "slope_enabled в конфиге")
-	var k := float(sl.slope_dry_k)
-	print("         склон 30° к экватору / от экватора: E/E_ровного − 1 и сдвиг сухости")
-	var diffs := {}
-	for c in [["50°N июль", 50.0, DOY_JULY], ["35°S июль", -35.0, DOY_JULY], ["2°N июль", 2.0, DOY_JULY],
-			["2°N равноденствие", 2.0, DOY_EQUINOX], ["50°N декабрь", 50.0, 355.0]]:
-		var to_eq := aspect(slope_n(30.0, c[1], true), c[1], c[2], sl)
-		var away := aspect(slope_n(30.0, c[1], false), c[1], c[2], sl)
-		diffs[c[0]] = to_eq - away
-		print("         %-18s к экватору %+.3f (сухость %+.3f)  от %+.3f (%+.3f)  разница %.3f" % [c[0], to_eq, k * to_eq, away, k * away, to_eq - away])
-	# 50°N, июль: сторона к экватору светлее ровного места, обратная — заметно темнее
-	var n50 := aspect(slope_n(30.0, 50.0, true), 50.0, DOY_JULY, sl)
-	var f50 := aspect(slope_n(30.0, 50.0, false), 50.0, DOY_JULY, sl)
-	check(n50 > 0.05 and f50 < -0.3, "50°N: к экватору %.3f, от %.3f" % [n50, f50])
-	# 35°S: к экватору — к северу (−Z): то же самое зеркально
-	var s35 := aspect(slope_n(30.0, -35.0, true), -35.0, DOY_JULY, sl)
-	var s35a := aspect(slope_n(30.0, -35.0, false), -35.0, DOY_JULY, sl)
-	check(s35 > s35a and s35a < -0.2, "35°S: к экватору %.3f > от %.3f" % [s35, s35a])
-	check(slope_n(30.0, -35.0, true).z < 0.0, "35°S: склон к экватору смотрит на север (−Z)")
-	# экватор в равноденствие: стороны почти не различаются, много меньше, чем на 50°
-	check(diffs["2°N равноденствие"] < 0.05, "2°N в равноденствие разница сторон %.3f" % diffs["2°N равноденствие"])
-	check(diffs["2°N равноденствие"] < 0.15 * diffs["50°N июль"], "экватор ≪ 50°N")
-	# ровное место — ноль
-	approx(aspect(Vector3.UP, 50.0, DOY_JULY, sl), 0.0, 1e-6, "ровное")
-	# сухость итого = k·asp: прежний −Z вклад вычитается: dsk·north + adk·north_s + k·asp
-	var tl: Dictionary = Config.get_config("world").terrain_look
-	var dsk := float(tl.dry_south_k)
-	var old_dry := -dsk * 1.0 - float(tl.aspect_dry_k) * 1.0   # северный склон: было влажнее
-	var new_total := old_dry + (dsk * 1.0 + float(tl.aspect_dry_k) * 1.0 + k * f50)
-	approx(new_total, k * f50, 1e-6, "прежний вклад погашен")
 
 
 func test_riparian_width() -> void:

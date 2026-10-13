@@ -130,13 +130,8 @@ vec3 sl_tree_tone(vec3 rgb, float mean_luma, float con, float dist, float t, flo
 	return rgb * mix(1.0, target / m, sl_canopy_far(dist));
 }
 
-// --- SL-5: склоны по солнцу в полдень, крупные пятна, прибрежная зелень, граница леса ---
-// Склон: освещённость в полдень на широте места против ровного (SL-К2: sl_lat_deg, sl_doy).
-uniform bool sl_slope_enabled = false;
-uniform float sl_slope_dry_k = 0.4;       // сдвиг сухости луга на единицу (E/E_ровного − 1)
-uniform float sl_slope_light = 0.12;      // яркость луга: освещённые склоны светлее, теневые темнее
-uniform float sl_slope_canopy = 0.15;     // то же для тона полога
-uniform float sl_slope_max = 0.6;         // предел |E/E_ровного − 1|
+// --- SL-5: крупные пятна, прибрежная зелень, граница леса ---
+// Широта места — SL-К2: sl_lat_deg.
 // Крупные пятна тона 0,5–3 км (один fbm из 2 октав) на лугах и в лесу
 uniform bool sl_patch_enabled = false;
 uniform float sl_patch_scale_m = 2400.0;  // длина волны первой октавы, м (вторая — вдвое короче)
@@ -158,25 +153,6 @@ uniform vec2 sl_treeline_blend_m = vec2(80.0, 250.0);  // альпийский �
 uniform float sl_treeline_top_m = 700.0;   // выше границы + это альпийский тон сходит на нет (камень — прежний код)
 uniform vec3 sl_treeline_tint = vec3(1.1, 0.98, 0.72);  // альпийский луг: ниже ростом, охристо-зелёный (множитель цвета луга)
 uniform float sl_treeline_gap_m = 70.0;    // размер просветов у границы леса, м
-
-// Склонение солнца по дню года, градусы.
-float sl_decl_deg(float doy) {
-	return 23.44 * sin(6.2831853 * (doy - 81.0) / 365.0);
-}
-
-// Направление на солнце в полдень (мир: север −Z): высота 90° − |lat − δ|, азимут к экватору.
-vec3 sl_noon_sun(float lat_deg, float doy) {
-	float dl = lat_deg - sl_decl_deg(doy);
-	float alt = radians(90.0 - abs(dl));
-	return vec3(0.0, sin(alt), (dl >= 0.0 ? 1.0 : -1.0) * cos(alt));
-}
-
-// Освещённость склона в полдень относительно ровного места, минус 1: >0 — склон к солнцу
-// (суше, светлее), <0 — от солнца (зеленее, темнее).
-float sl_aspect(vec3 n) {
-	vec3 s = sl_noon_sun(sl_lat_deg, sl_doy);
-	return clamp(dot(n, s) / max(s.y, 0.15) - 1.0, -sl_slope_max, sl_slope_max);
-}
 
 // Высота границы леса на широте lat_deg (м): линейно по узлам sl_treeline_lat/_m.
 float sl_treeline_height(float lat_deg) {
@@ -206,36 +182,24 @@ float sl_alpine_w(float h, float tl) {
 			* (1.0 - smoothstep(tl + 0.5 * sl_treeline_top_m, tl + sl_treeline_top_m, h));
 }
 
-// Луг: склон (вместо прежнего −Z и сглаженной экспозиции — они вычитаются), пятна, альпийский тон.
-// north, north_s — прежняя северность и сглаженная, dsk, adk — dry_south_k, aspect_dry_k,
-// grass, straw — цвета свежего и соломенного луга.
-vec3 sl_meadow(vec3 c, vec3 wp, vec3 n, float north, float north_s, float dsk, float adk, vec3 grass, vec3 straw) {
-	if (sl_slope_enabled) {
-		float asp = sl_aspect(n);
-		float ddry = dsk * north + adk * north_s + sl_slope_dry_k * asp;
-		c = max(c + ddry * (straw - grass), vec3(0.0)) * (1.0 + sl_slope_light * asp);
-	}
+// Луг: пятна, альпийский тон.
+vec3 sl_meadow(vec3 c, vec3 wp, vec3 pm, float tl) {
 	if (sl_patch_enabled) {
-		c *= sl_patch_mul(wp.xz);
+		c *= pm;
 	}
 	if (sl_treeline_enabled) {
-		float tl = sl_treeline_height(sl_lat_deg);
 		float w = sl_alpine_w(wp.y + 40.0 * (vnoise(wp.xz / 180.0) - 0.5), tl);
 		c = mix(c, c * sl_treeline_tint, w);
 	}
 	return c;
 }
 
-// Полог: склон (тон), пятна, у границы леса просветы и выше — луг (gcol уже альпийский).
-vec3 sl_forest(vec3 f, vec3 gcol, vec3 wp, vec3 n, float dist) {
-	if (sl_slope_enabled) {
-		f *= 1.0 + sl_slope_canopy * sl_aspect(n);
-	}
+// Полог: пятна, у границы леса просветы и выше — луг (gcol уже альпийский).
+vec3 sl_forest(vec3 f, vec3 gcol, vec3 wp, vec3 pm, float tl) {
 	if (sl_patch_enabled) {
-		f *= sl_patch_mul(wp.xz);
+		f *= pm;
 	}
 	if (sl_treeline_enabled) {
-		float tl = sl_treeline_height(sl_lat_deg);
 		float p = smoothstep(tl - sl_treeline_thin_m, tl, wp.y);
 		if (p > 0.0) {
 			float n2 = vnoise(wp.xz / sl_treeline_gap_m + vec2(4.1, 8.3));
