@@ -1,0 +1,63 @@
+{
+  "id": "SL-15",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Волны ветра по траве с высоты: блеск по солнцу и оттенок (пробная)",
+  "goal": "Полосы порывов на траве с высоты светлеют или темнеют в зависимости от наклона стеблей относительно солнца и взгляда (серебристая изнанка по солнцу, темнее против) и меняют оттенок, а не только яркость. Пробная: максимум две попытки, лучшая или отказ.",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "SL-К1",
+      "version": "3",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-15",
+  "branch": "scene-look/SL-15",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_renderer.gd",
+    "configs/world.json",
+    "tests/terrain/",
+    "tests/contracts/test_scene_look_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "scripts/terrain/meadow_look.gdshaderinc",
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/build/",
+    "docs/contracts/",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_full_ms_base",
+    "gpu_full_ms_after",
+    "attempts",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-14T01:07:38",
+  "edited": "2026-10-14T01:07:38"
+}
