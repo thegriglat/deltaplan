@@ -27,3 +27,5 @@
 {"t": "2026-10-13T22:20:59", "by": "coordinator", "task": "SL-4", "ev": "checked", "commits": ["ec6b645b"], "note": "1/2 osm_road=FAIL:9/10; FAIL test_city_ground_m…; gd=ok:exit 0"}
 {"t": "2026-10-13T22:21:07", "by": "coordinator", "task": "SL-4", "ev": "accepted", "commits": ["ec6b645b"], "note": "после слияния: osm_road 9/10, test_city_ground_mask — падение базы"}
 {"t": "2026-10-13T22:21:07", "by": "coordinator", "task": null, "ev": "note", "note": "dp: dp report принял uncertain строкой и --show печатает её по символу (SL-4) — проверять тип или принимать строку; нужен способ пометить известное падение базы (test_city_ground_mask) в проверке карточки; нет команды GPU-замера произвольной сцены"}
+{"t": "2026-10-13T22:21:18", "by": "coordinator", "task": "SL-3", "ev": "merged"}
+{"t": "2026-10-13T22:21:18", "by": "coordinator", "task": "SL-4", "ev": "merged"}
