@@ -34,3 +34,6 @@
 {"t": "2026-10-13T22:21:39", "by": "coordinator", "task": "SL-7", "ev": "created", "note": "Просвет: парус и листва против солнца"}
 {"t": "2026-10-13T22:21:39", "by": "coordinator", "task": "SL-7", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"gpu_ms_base\", \"gpu_ms_after\", \"uncertain\"]"]}}
 {"t": "2026-10-13T22:21:39", "by": "coordinator", "task": "SL-7", "ev": "started", "note": "dp-engineer, ~/deltaplan-scene-look-SL-7"}
+{"t": "2026-10-13T22:22:29", "by": "executor", "task": "SL-13", "ev": "reported", "commits": ["be9b0f7b"], "note": "done: Замер GPU чинён: viewport_set_measure_render_time включался в _ready (до первого кадра) и давал 0; теперь включается на…"}
+{"t": "2026-10-13T22:23:13", "by": "coordinator", "task": "SL-13", "ev": "note", "note": "замер включён после 1-го кадра: 0,49 мс full≈relief — не полный кадр; на доработку: полный кадр по меткам RenderingDevice (как frame_profile)"}
+{"t": "2026-10-13T22:26:04", "by": "coordinator", "task": "SL-3", "ev": "note", "note": "по указанию пользователя: SL-3 уже принята с первой попытки (числа в допуске) и влита; дальше не трогаем, вид проверит пользователь в тестовой сборке — если плохо, откат одной правкой (haze.* ключи)"}
