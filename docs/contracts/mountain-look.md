@@ -5,7 +5,7 @@ module: mountain-look
 updated: 2026-10-13
 summary: "Контракты mountain-look: высоты места со сглаживанием только в лесу и застройке (MLK-К1), дальнее заострение рельефа — функция мира и дальности с нулём у камеры (MLK-К2), формат зонда силуэта гор (MLK-К3)."
 related: ["docs/plan/mountain-look.md", "docs/guide/terrain.md", "docs/contracts/osm-any.md", "docs/contracts/no-osm.md"]
-contracts: [{"id": "MLK-К1", "version": 1}, {"id": "MLK-К2", "version": 1}, {"id": "MLK-К3", "version": 1}]
+contracts: [{"id": "MLK-К1", "version": 1}, {"id": "MLK-К2", "version": 2}, {"id": "MLK-К3", "version": 2}]
 ---
 # Контракты mountain-look
 
@@ -31,23 +31,25 @@ contracts: [{"id": "MLK-К1", "version": 1}, {"id": "MLK-К2", "version": 1}, {"
   равны сырым до 1/32 м, узлы глубоко в лесу равны `G_σ(r)` до 1/32 м; (3) `w` гладкая: соседние узлы отличаются ≤ 0,5;
   (4) `height_at` в узлах = записанный слой (как раньше); (5) без маски — `h = G_σ(r)` везде.
 
-## MLK-К2 v1 — дальнее заострение рельефа (только картинка)
-- Владелец: MLK-3 (v2). Потребители: вершинный шейдер `terrain.gdshader` (оба слоя, все LOD, проход теней), CPU-зеркало для зонда К3.
-- `VERTEX.y = h_слоя + dh(x, z, d_cam) − юбка`; физика (`height_at`) смещения не видит.
-- `dh` — функция только мировой точки (узлов слоя вокруг неё), параметров `terrain_look.relief_*` и расстояния до камеры `d_cam`;
-  не зависит от шага LOD и чанка → одна и та же точка на любом LOD даёт тот же `dh` (без швов и «дыхания» при смене LOD;
-  допускается переход по `d_cam`, гладкий, без ступеньки).
-- У камеры `dh = 0` при `d_cam ≤ relief_near_m.x`, гладко до полной силы к `relief_near_m.y` — у земли картинка = `height_at`.
-- `|dh| ≤ relief_sharpen_max_m` (м; в v2 может зависеть от рельефа, верхний предел — ключ конфига); нет смещения на воде, в лесу, в застройке.
-- На стыке детального и фонового слоя (≈ 20 км) — разрыв силуэта не больше, чем сейчас (юбка закрывает щель).
-- CPU-зеркало: GDScript-функция с той же формулой (`scripts/terrain/relief_look.gd`, `class_name ReliefLook`, `static func dh(layer: HeightLayer,
-  x: float, z: float, d_cam: float, look: Dictionary) -> float`); зонд К3 считает отрисовку через неё. Шейдер и зеркало правятся вместе.
-- v1 = текущая формула (4-соседний лапласиан × `relief_sharpen`, кламп 8 м, маска уклона 15–30°, промоины `relief_gully`).
-  MLK-3 поднимает до v2 (новые входы — высота над морем, перепад высот, крутизна, пирамида максимумов и т. п.) с теми же инвариантами.
-- Инварианты для теста: `dh = 0` при `d_cam ≤ relief_near_m.x`; `|dh| ≤` предел; на воде/лесе 0; одна точка с узлами на шаге 1 и шаге LOD → тот же `dh`;
-  все `relief_*` ключи `terrain_look` есть uniform-ами шейдера.
+## MLK-К2 v2 — дальнее заострение и силуэт вершин (только картинка)
+Изменено в v2 (MLK-3, 13.10): подъём выпуклых вершин вдали по пирамиде максимумов высот (пики не теряются между вершинами LOD);
+сила заострения от перепада высот (высокие горы — сильнее, холмы — как v1), предел — подсеточный гребень; юбка висит от высоты узла без подъёма;
+зеркало получает карту классов, 3D-камеру и пороги LOD.
+- Владелец: MLK-3. Потребители: вершинный шейдер `terrain.gdshader` (оба слоя, все LOD, проход теней), `TerrainRenderer` (текстура
+  `height_max_tex` — `HeightLayer.make_max_texture`, RF, уровни ≥ 1 — максимум, не среднее), CPU-зеркало для зонда К3.
+- `VERTEX.y = h + dh − юбка·(skirt_depth + max(dh, 0))`; `dh = dh_peak + (заострение + промоины)·маски`; физика (`height_at`) смещения не видит.
+- `dh_peak`: выпуклая вершина вдали поднимается к максимуму окна вокруг узла; уровень окна — по 3D-дальности через пороги LOD слоя
+  (`lod_dist_m`) + `relief_peak_level`, не по шагу LOD чанка; вес — выпуклость × «окно содержит вершину»; гаснет ближе `relief_peak_near_m`;
+  0 … `relief_peak_max_m`.
+- Заострение: доля `relief_sharpen` → `relief_sharpen_high` по перепаду высот (`relief_high_m`, `relief_scale_m`); предел
+  `relief_sharpen_max_m` → `clamp(relief_subgrid_k·шаг·tg(уклон), …, relief_sharpen_cap_m)`; общий предел — `ReliefLook.dh_limit_m(look)`.
+- Инварианты (тест `test_k2_*`): `dh = 0` при горизонтальной дальности ≤ `relief_near_m.x`; `dh = 0` на лесе, воде, застройке; `dh` не зависит
+  от шага LOD чанка; по дальности без ступенек (≤ 2 м на 10 м); подъём в 0 … `relief_peak_max_m`; все ключи `terrain_look.relief_*` — uniform-ы шейдера.
+- CPU-зеркало: `ReliefLook.dh(layer: HeightLayer, surface: SurfaceLayer, x: float, z: float, cam: Vector3, look: Dictionary,
+  lod_m: PackedFloat32Array) -> float` (`scripts/terrain/relief_look.gd`); шейдер и зеркало правятся вместе; зеркало без шума границ классов.
 
-## MLK-К3 v1 — зонд силуэта гор
+## MLK-К3 v2 — зонд силуэта гор
+Изменено в v2 (MLK-3): поля добавлены, смысл прежних не менялся — раздел `mesh` (dh в долинах, открытые щели LOD, скачки на краю детального слоя), `probe_version` 2, аргументы `--dh=v1|v2`, `--quick=1`, `--look=<json>` (переопределение `terrain_look`); `h_render` считается через `ReliefLook.dh` (К2 v2).
 - Владелец: MLK-1 (`tools/bench/mountain_look_probe.gd` + `.tscn`). Потребители: MLK-3, MLK-5, отчёт координатора.
 - Запуск: `XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tools/bench/mountain_look_probe.tscn -- --latlon=LAT,LON
   [--location=<id>] --tag=<имя> --out=<путь.json> [--agl=300] [--az_step=0.1]`; кеш сырых данных — `--cache=<каталог>` (повторный прогон без сети).
