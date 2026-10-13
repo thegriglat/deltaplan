@@ -362,6 +362,150 @@ vec3 sl_trails(vec3 c, vec2 p, float h, vec3 nc, float slope_deg, float fh, vec3
 }
 #endif
 
+// --- SL-9: анти-тайлинг скал и осыпей, конусы выноса ---
+uniform bool sl_rock_enabled = false;
+uniform float sl_rock_anti = 0.22;                  // размах яркости разрывающего слоя (± доля)
+uniform float sl_rock_anti_tint = 0.06;             // тёплый/холодный сдвиг тона (± доля, яркость сохраняется)
+uniform vec3 sl_rock_anti_scale = vec3(2.7, 0.63, 1.9);  // периоды слоёв: мелкий — × тайл породы; крупный — × тайл × rock_macro_k; осыпь — × тайл осыпи
+uniform float sl_rock_bump = 0.35;                  // рваная неровность в нормали (наклон на масштабе неровности)
+uniform vec3 sl_rock_rough_m = vec3(0.7, 3.5, 16.0); // масштабы неровности: мелкая, средняя, крупная, м
+uniform float sl_rock_crevice = 0.35;               // затенение в щелях, доля
+uniform float sl_rock_tone = 0.18;                  // разброс тона глыб, ± доля
+uniform float sl_rock_block_m = 2.6;                // размер глыбы, м
+uniform float sl_rock_crack = 0.4;                  // тёмные трещины, доля
+uniform float sl_fan_strength = 0.6;                // доля светлого веера под обрывом
+uniform vec2 sl_fan_deg = vec2(26.0, 36.0);         // склон, на котором материал копится (угол естественного откоса), градусы; края 4°
+uniform float sl_fan_light = 1.12;                  // светлее свежим сколом, множитель
+uniform float sl_fan_width_m = 28.0;                // ширина лопасти веера, м
+uniform float sl_fan_above_deg = 40.0;              // выше по склону не положе этого, градусы (иначе обрыва нет)
+
+// Шум значений с производной (одна выборка = значение + градиент в координатах шума).
+vec3 sl_noise_d(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	vec2 w = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+	vec2 dw = 30.0 * f * f * (f * (f - 2.0) + 1.0);
+	float a = hash12(i);
+	float b = hash12(i + vec2(1.0, 0.0));
+	float c = hash12(i + vec2(0.0, 1.0));
+	float d = hash12(i + vec2(1.0, 1.0));
+	float k1 = b - a;
+	float k2 = c - a;
+	float k4 = a - b - c + d;
+	return vec3(a + k1 * w.x + k2 * w.y + k4 * w.x * w.y, dw * vec2(k1 + k4 * w.y, k2 + k4 * w.x));
+}
+
+// Результат скал/осыпей/выходов породы (вызывать после col = mix(col, rcol, rock)):
+// анти-тайлинг + светлые конусы выноса под крутыми участками.
+// rs — вес скалы (max(rock, ocw)), sc — осыпи; open_w — доля «не лес».
+vec3 sl_rock_look(vec3 c, vec3 wp, vec3 nc, float dist, float rs, float sc, float open_w,
+		float slope_deg, float slope_up, float cvx, vec3 scree_col,
+		float rock_tile, float rock_macro_k, float scree_tile, out vec3 rg) {
+	rg = vec3(0.0);
+	if (!sl_rock_enabled) {
+		return c;
+	}
+	float pix = dist * 0.0018;
+	float wr = rs;
+	float ws = sc * (1.0 - rs);
+	float w = clamp(wr + ws, 0.0, 1.0);
+	if (w > 0.001) {
+		// координаты: на крутом — вдоль горизонтальной касательной и высоты, на пологом — xz
+		float flat_w = smoothstep(0.6, 0.9, nc.y);
+		vec2 tg = length(nc.xz) > 1e-4 ? normalize(vec2(-nc.z, nc.x)) : vec2(1.0, 0.0);
+		vec2 u = mix(vec2(dot(wp.xz, tg), wp.y), wp.xz, flat_w) + vec2(17.3, 5.1);
+		vec3 tg3 = vec3(tg.x, 0.0, tg.y);
+		float tone = 0.0;
+		float crev = 0.0;
+		// крупный слой (период 2,7 тайла породы — разрывает повтор; тон + нормаль из одной выборки)
+		float p1 = sl_rock_rough_m.z;
+		float f1 = 1.0 - smoothstep(0.12 * p1, 0.4 * p1, pix);
+		if (f1 > 0.0) {
+			vec3 nd = sl_noise_d(u / p1 + 3.1);
+			tone += (nd.x - 0.5) * 2.0 * f1;
+			vec2 gd = nd.yz * 0.5 * f1;
+			rg += mix(tg3 * gd.x + vec3(0.0, gd.y, 0.0), vec3(gd.x, 0.0, gd.y), flat_w);
+		}
+		// средний (щели: низ шума темнее; нормаль из той же выборки)
+		float p2 = sl_rock_rough_m.y;
+		float f2 = 1.0 - smoothstep(0.12 * p2, 0.4 * p2, pix);
+		if (f2 > 0.0) {
+			vec3 nd = sl_noise_d(u / p2 + 7.7);
+			crev = (1.0 - smoothstep(0.25, 0.55, nd.x)) * f2;
+			vec2 gd = nd.yz * f2;
+			rg += mix(tg3 * gd.x + vec3(0.0, gd.y, 0.0), vec3(gd.x, 0.0, gd.y), flat_w);
+		}
+		// мелкий — только вблизи (вдали не считается)
+		float p0 = sl_rock_rough_m.x;
+		float f0 = 1.0 - smoothstep(0.12 * p0, 0.4 * p0, pix);
+		if (f0 > 0.0) {
+			vec3 nd = sl_noise_d(u / p0 + 1.3);
+			vec2 gd = nd.yz * f0;
+			rg += mix(tg3 * gd.x + vec3(0.0, gd.y, 0.0), vec3(gd.x, 0.0, gd.y), flat_w);
+		}
+		// крупнейший (тайл макро-слоя): одна выборка, только тон
+		float pm = rock_tile * rock_macro_k * sl_rock_anti_scale.y;
+		float fm = 1.0 - smoothstep(0.15 * pm, 0.5 * pm, pix);
+		if (fm > 0.0) {
+			tone += (vnoise(u / pm + 31.0) - 0.5) * 2.0 * fm * 0.6;
+		}
+		c *= (1.0 + sl_rock_anti * tone * w) * (1.0 + sl_rock_anti_tint * tone * w * vec3(0.5, 0.0, -0.5));
+		c = max(c, vec3(0.0));
+		c *= 1.0 - sl_rock_crevice * w * crev;
+		// глыбы: клетка, тон по хешу (одна выборка), у границы темнее
+		float bm = sl_rock_block_m;
+		float fb = 1.0 - smoothstep(0.12 * bm, 0.4 * bm, pix);
+		if (fb > 0.0) {
+			vec2 bu = u / bm;
+			vec2 bid = floor(bu);
+			vec2 bf = fract(bu);
+			float edge = min(min(bf.x, 1.0 - bf.x), min(bf.y, 1.0 - bf.y));
+			float bt = hash12(bid + (flat_w > 0.5 ? 0.0 : 91.0)) - 0.5;
+			c *= 1.0 + sl_rock_tone * 2.0 * bt * w * fb;
+			c *= 1.0 - 0.5 * sl_rock_crevice * w * fb * (1.0 - smoothstep(0.02, 0.12, edge));
+			// трещины: линия нулевого уровня шума, вытянута по вертикали; только вблизи
+			float fc = 1.0 - smoothstep(0.1 * bm, 0.5 * bm, pix);
+			if (fc > 0.0) {
+				float cn = vnoise(vec2(u.x / (bm * 0.9), u.y / (bm * 2.5)) + 12.3);
+				float cw = 0.02 + pix / (bm * 0.9) * 0.5;
+				c *= 1.0 - sl_rock_crack * w * (1.0 - smoothstep(0.0, cw, abs(cn - 0.5))) * fc;
+			}
+		}
+	}
+	// конус выноса: склон у угла откоса, выше по склону круче; лопасти вдоль линии падения,
+	// у обрыва узкие, дальше шире; выпуклый поперёк (чуть светлее на гребне лопасти)
+	float up = smoothstep(sl_fan_above_deg - 8.0, sl_fan_above_deg, slope_up);
+	if (up > 0.0 && rs < 0.99) {
+		float band = smoothstep(sl_fan_deg.x - 4.0, sl_fan_deg.x, slope_deg)
+				* (1.0 - smoothstep(sl_fan_deg.y, sl_fan_deg.y + 4.0, slope_deg));
+		if (band > 0.0) {
+			vec2 df = length(nc.xz) > 1e-4 ? normalize(nc.xz) : vec2(1.0, 0.0);
+			float qx = dot(wp.xz, vec2(-df.y, df.x));
+			float qy = dot(wp.xz, df);
+			float near = smoothstep(8.0, 30.0, slope_up - slope_deg);
+			float lobes = vnoise(vec2(qx / sl_fan_width_m, qy / (sl_fan_width_m * 5.0)) + vec2(3.3, 1.7));
+			float thr = mix(0.42, 0.6, near);
+			float fan = smoothstep(thr, thr + 0.15, lobes) * band * up * open_w * (1.0 - rs)
+					* (0.75 + 0.25 * clamp(cvx, -1.0, 1.0));
+			fan *= 1.0 - smoothstep(0.4, 0.9, vnoise(wp.xz / 90.0 + 6.1)) * 0.5;
+			fan *= 1.0 - smoothstep(0.15 * sl_fan_width_m, 0.5 * sl_fan_width_m, pix);   // мельче пикселя — к среднему
+			if (fan > 0.0) {
+				vec3 fc = mix(c, scree_col, 0.5) * sl_fan_light * (0.9 + 0.2 * vnoise(wp.xz / 5.0));
+				c = mix(c, fc, fan * sl_fan_strength);
+			}
+		}
+	}
+	return c;
+}
+
+// Нормаль со шершавостью скал/осыпей (после сборки нормали): rg — мировой градиент из sl_rock_look.
+vec3 sl_rock_nrm(vec3 n, vec3 rg, float w) {
+	if (!sl_rock_enabled) {
+		return n;
+	}
+	return normalize(n - rg * (sl_rock_bump * w));
+}
+
 // --- SL-15: волны ветра по траве с высоты — блеск по солнцу и оттенок ---
 // Под порывом стебли наклоняются по ветру d; поверхность листвы обращена против ветра (−d).
 // Блеск — как у половинного вектора h = норм(на солнце + на камеру): наклон к h светлит (серебро изнанки,
