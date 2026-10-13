@@ -958,6 +958,7 @@ void fragment() {
 
 	// --- луг: сухая трава на южных склонах и пятнами ---
 	vec3 gcol = meadow_ground_color(wp.xz, north, patch2, wet, north_s);
+	gcol = sl_meadow(gcol, wp); // SL
 	float sl_rel; vec4 sl_ss = sl_season_b(h, sl_rel); // SL
 	gcol = sl_meadow_season(gcol, sl_ss); // SL
 
@@ -1067,6 +1068,7 @@ void fragment() {
 	if (use_snow_tex) {
 		wcol = apply_tex(wcol, texture(snow_tex, wp.xz / snow_tex_tile_m).rgb, snow_tex_avg, tex_w);
 	}
+	wcol = sl_glacier(wcol, wp.xz, n_class, slope_deg, v_convex / outcrop_convex_k, h, foot_m); // SL
 	col = (col + ucol * built) * snow_rest + bcol * bare + wcol * snow;
 
 	// --- лес: полог из крон (ячейки canopy_cell_m) с освещением и тенями; вдали — средний тон ---
@@ -1122,6 +1124,7 @@ void fragment() {
 		fcolor *= 1.0 - forest_wet_dark * clamp(0.6 * wet + 0.6 * north_s, -1.0, 1.0);
 	}
 	fcolor = sl_canopy_tone(fcolor, sl_fc0, fmean, con_p, dist, canopy_far_shade); // SL
+	if (forest > 0.01) fcolor = sl_forest(fcolor, gcol, wp); // SL
 	if (forest > 0.01) fcolor = sl_canopy_season(fcolor, con_p, sl_ss, h); // SL
 	if (use_forest_tex) {
 		fcolor = apply_tex(fcolor, texture(forest_tex, wp.xz / forest_tex_tile_m).rgb, forest_tex_avg, tex_w);
@@ -1361,6 +1364,7 @@ void fragment() {
 			h + gully_north_m * max(north, 0.0) + 120.0 * (patch2 - 0.5))
 			* (1.0 - smoothstep(48.0, 58.0, slope_deg)), wp.xz + 17.0, foot_m) * (1.0 - forest);
 	col = mix(col, snow_color * (0.9 + 0.1 * fbm(wp.xz / 9.0, 2)), gsnow);
+	col = sl_fresh_snow(col, snow_color, wp.xz, h, slope_deg, forest); // SL
 
 	// --- мелкая детализация (кочки, пятна) ---
 	float d1 = fbm(wp.xz / detail_scale_m, 3);
@@ -1420,6 +1424,10 @@ void fragment() {
 	float bank = use_forest_mask
 			? smoothstep(0.02, 0.22, water_g) * (1.0 - smoothstep(0.22, 0.4, water_g))
 			: 0.0;
+	if (sl_riparian_enabled && use_forest_mask && dist < sl_riparian_fade_m.y && wa.y + shrub > 0.01) { // SL
+		float sl_rw = sl_riparian_w(sl_riparian_ring(wp.xz), water, dist) * (wa.y + shrub) * (1.0 - snow) * (1.0 - rock) * (1.0 - bare); // SL
+		col = sl_riparian_color(col, grass_color, sl_rw); // SL
+	} // SL
 	vec3 bank_color = mix(bare_color, rock_color, 0.3) * 0.55;
 	col = mix(col, bank_color, bank * (1.0 - water));
 	float water_rough = water_roughness;

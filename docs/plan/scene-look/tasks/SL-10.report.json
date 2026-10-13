@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "Свежий снег выше сезонной снеговой линии (К2 v2: snow_fresh, snow_line_m в SeasonLook.state, sl_snow_fresh в шейдере, линия на CPU в sl_snow_pre) и ледники (грязно-серый язык с поперечными трещинами на пологом вогнутом снеге ниже линии). Две строки // SL в terrain.gdshader.",
+  "commits": [
+    "SL-10: свежий снег по дате и широте и ледники",
+    "SL-10: ледник дешевле (один шум, хэш для разрывов)",
+    "слияние feature/scene-look (f60e3cc)"
+  ],
+  "checks": [
+    {
+      "name": "terrain",
+      "value": "128/128",
+      "pass": true
+    },
+    {
+      "name": "vegetation",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "scene_look_contracts",
+      "value": "23/23",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gpu_tests --filter=season",
+      "value": "0 упало, без SHADER ERROR",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "GPU-замер не закончен по решению пользователя (цену модуля меряет SL-11)"
+  ],
+  "questions": [],
+  "how_to_check": "dp accept SL-10; tools/gpu_tests.sh --filter=season",
+  "uncertain": [
+    "Цена GPU: шумные предварительные замеры (full, ongudai, 120 кадров, вперемешку): первая версия ледника +0,28 мс медиана / +0,30 min p10 относительно базы; без ледника (только свежий снег) около +0,04 min p10, без свежего снега +0,19 — основная цена в леднике. После облегчения ледника (один vnoise + hash12 вместо трёх vnoise) замер зашумлён (выбросы 9–15 мс от параллельных нагрузок), min p10 6,84 против базы 6,69 (+0,15) — вывода нет, проверить в SL-11; если >0,03, ледник можно гейтить пресетом glacier_enabled",
+    "Значения таблицы снеговой линии, зимнего опускания и minimum-day 75 — допущения по порядку величин (в world.json с пояснениями)",
+    "Визуал (рваная кромка свежего снега, вид трещин) не смотрел — только тестовая сборка Linux; файлы glacier_* и snow_* настраиваются в scene_look"
+  ],
+  "dp_feedback": "Нужна команда dp для сравнения вариантов шейдера (набор файлов base/variant, вперемешку, медиана и min p10) — писал bench.sh вручную; ждущие циклы until упираются в 600 с таймаут.",
+  "extra": {
+    "snow_line_46_15jul_m": 2846,
+    "files": "configs/world.json, scripts/terrain/{scene_look.gdshaderinc,season_look.gd,terrain.gdshader,terrain_renderer.gd}, tests/contracts/test_scene_look_contracts.gd"
+  },
+  "gpu_full_ms_base": null,
+  "gpu_full_ms_after": null,
+  "t": "2026-10-14T04:24:21",
+  "by": "executor"
+}

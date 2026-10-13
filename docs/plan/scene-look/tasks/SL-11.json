@@ -47,10 +47,11 @@
     "gpu_module_relief_ms_high",
     "gpu_module_full_ms_low",
     "low_preset_effects",
+    "forest_color",
     "build_path",
     "uncertain"
   ],
   "notes": "",
   "created": "2026-10-14T03:06:40",
-  "edited": "2026-10-14T03:06:53"
+  "edited": "2026-10-14T04:02:28"
 }
