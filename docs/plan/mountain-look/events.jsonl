@@ -30,3 +30,6 @@
 {"t": "2026-10-13T22:25:56", "by": "coordinator", "task": "MLK-4", "ev": "accepted", "note": "по отчёту после доработки: «далматин» — пул снег+грунт выше снеговой линии, решение по уклону/вогнутости; числа зонда в допуске; время кадра не замерено — проверит MLK-3/MLK-5"}
 {"t": "2026-10-13T22:28:24", "by": "coordinator", "task": "MLK-1", "ev": "checked", "commits": ["e415d3ce"], "note": "1/3 mountain_look_contracts=ok:1/1"}
 {"t": "2026-10-13T22:28:30", "by": "coordinator", "task": "MLK-1", "ev": "merged", "commits": ["e415d3ce"]}
+{"t": "2026-10-13T22:28:42", "by": "coordinator", "task": "MLK-3", "ev": "started", "note": "dp-engineer opus, ~/deltaplan-mountain-look-MLK-3"}
+{"t": "2026-10-13T22:29:52", "by": "coordinator", "task": "MLK-4", "ev": "checked", "commits": ["469baeb9"], "note": "0/2 terrain=FAIL:114/115; FAIL test_compute_ti…; surface=FAIL:35/36; FAIL test_forest_mask_…"}
+{"t": "2026-10-13T22:30:09", "by": "coordinator", "task": "MLK-4", "ev": "merged", "commits": ["469baeb9"], "note": "после слияния terrain 114/115, surface 35/36 — только пороги времени под нагрузкой (поля рельефа 3,10 с при ≤3; загрузка Онгудая 3,04 при ≤2,5), шли MLK-2/MLK-3 параллельно — не регрессия"}
