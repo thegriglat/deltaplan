@@ -31,3 +31,6 @@
 {"t": "2026-10-13T22:21:18", "by": "coordinator", "task": "SL-4", "ev": "merged"}
 {"t": "2026-10-13T22:21:26", "by": "coordinator", "task": "SL-1", "ev": "merged", "note": "без коммитов (кадры в build/), копия удалена"}
 {"t": "2026-10-13T22:21:26", "by": "coordinator", "task": null, "ev": "note", "note": "dp: в каждой новой копии появляется неотслеживаемый tests/contracts/test_feedback_1013_contracts.gd.uid (в main не закоммичен) — git worktree remove отказывает, нужен --force; хорошо бы dp gc/merge это учитывали"}
+{"t": "2026-10-13T22:21:39", "by": "coordinator", "task": "SL-7", "ev": "created", "note": "Просвет: парус и листва против солнца"}
+{"t": "2026-10-13T22:21:39", "by": "coordinator", "task": "SL-7", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"gpu_ms_base\", \"gpu_ms_after\", \"uncertain\"]"]}}
+{"t": "2026-10-13T22:21:39", "by": "coordinator", "task": "SL-7", "ev": "started", "note": "dp-engineer, ~/deltaplan-scene-look-SL-7"}
