@@ -416,8 +416,11 @@ static func apply_scene_look_params(m: ShaderMaterial, sl: Dictionary) -> void:
 ## SkyEnvironment и sky.gdshader — небо × exposure (energy_multiplier·lerp(1, sky_energy, 0,4)) ×
 ## ambient_light_energy·sky_energy × ambient_sky_contribution. Верхняя полусфера при sky.curve 0,12 —
 ## почти цвет зенита (горизонт ниже ~7° даёт ~3 % косинусно-взвешенного света), нижняя —
-## ground_bottom_color (ground_curve 0,02: цвет горизонта — только в ~2° под горизонтом).
-## Линейные цвета: {"sun_dir", "sky_up", "ground_low"} (Vector3).
+## ground_bottom_color (ground_curve 0,02: цвет горизонта — только в ~2° под горизонтом);
+## общий множитель AMBIENT_GODOT_K сверен с Godot GPU-тестом. Линейные цвета: {"sun_dir", "sky_up", "ground_low"} (Vector3).
+const AMBIENT_GODOT_K := 1.6
+
+
 static func scene_look_sky(to_sun: Vector3) -> Dictionary:
 	var w: Dictionary = Config.get_config("world")
 	var sky: Dictionary = w.get("sky", {})
@@ -435,7 +438,10 @@ static func scene_look_sky(to_sun: Vector3) -> Dictionary:
 	var hor := (_arr_color(sky.get("horizon_color", [0.66, 0.76, 0.88])) * tint).srgb_to_linear()
 	var low := _arr_color(sky.get("ground_bottom_color", [0.25, 0.28, 0.24])).srgb_to_linear()
 	var up := top.lerp(hor, 0.05)
-	var k := expo * amb
+	# × 1,6: так выходит у Godot на деле (tests/terrain/test_scene_look_ambient_gpu.gd, солнце 52°:
+	# белый ламбертов квадрат нормалью вверх — 1,48 оценки без множителя, вниз — 1,74); причину в
+	# свёртке кубокарты Godot не разбирали
+	var k := expo * amb * AMBIENT_GODOT_K
 	return {
 		"sun_dir": to_sun.normalized(),
 		"sky_up": Vector3(up.r, up.g, up.b) * k,
