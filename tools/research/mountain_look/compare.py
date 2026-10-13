@@ -1,26 +1,33 @@
 #!/usr/bin/env python3
 """MLK-3: «до» (data/before_*.json — MLK-1, dh v1) против «после» (data/after_*.json — dh К2 v2) → compare_tables.md
+(--after=<префикс>, по умолчанию after; --out=<имя md>, по умолчанию compare_tables.md)
 и числа приёмки (stdout, JSON последней строкой). Швы и dh меша «до» — быстрый прогон зонда v2 с --dh=v1 --quick=1
 (data/before_mesh_*.json), «после» — раздел mesh в after_*.json.
 «После» для меша — data/after_mesh_*.json (быстрый прогон v2), если есть, иначе раздел mesh в after_*.json.
 Запуск: python3 -I tools/research/mountain_look/compare.py"""
-import csv, glob, json, os
+import csv, glob, json, os, sys
 
 here = os.path.dirname(os.path.abspath(__file__))
 data = os.path.join(here, "data")
+AFTER, OUT = "after", "compare_tables.md"
+for a in sys.argv[1:]:
+    if a.startswith("--after="):
+        AFTER = a[len("--after="):]
+    elif a.startswith("--out="):
+        OUT = a[len("--out="):]
 
 
 def load(prefix):
     out = {}
     for f in sorted(glob.glob(os.path.join(data, prefix + "_*.json"))):
         tag = os.path.basename(f)[len(prefix) + 1:-5]
-        if prefix in ("before", "after") and tag.startswith("mesh_"):
+        if tag.startswith("mesh_"):
             continue
         out[tag] = json.load(open(f))
     return out
 
 
-B, A, BM, AM = load("before"), load("after"), load("before_mesh"), load("after_mesh")
+B, A, BM, AM = load("before"), load(AFTER), load("before_mesh"), load(AFTER + "_mesh")
 EV = ["Everest", "Lhotse", "Nuptse", "AmaDablam", "Makalu"]
 HIGH = ["everest_namche", "everest_gokyo", "everest_menu", "elbrus_cheget", "elbrus_menu", "montblanc_chamonix", "dombay"]
 lines = []
@@ -67,7 +74,7 @@ def profile(prefix, tag):
 if "ongudai" in A and "ongudai" in B:
     hb, ha = B["ongudai"]["horizon"], A["ongudai"]["horizon"]
     ch = {"rough_render_change": round(ha["rough_render_deg"] / hb["rough_render_deg"] - 1.0, 4)}
-    pb, pa = profile("before", "ongudai"), profile("after", "ongudai")
+    pb, pa = profile("before", "ongudai"), profile(AFTER, "ongudai")
     if pb and pa:
         d = [abs(x - y) for x, y in zip(pa[0], pb[0])]
         ch["mean_abs_change_deg"] = round(sum(d) / len(d), 4)
@@ -76,6 +83,29 @@ if "ongudai" in A and "ongudai" in B:
         defb = [abs(r - x) for x, r in zip(pb[0], pb[1])]
         ch["change_vs_deficit_before"] = round(sum(d) / max(sum(defb), 1e-9), 4)
     res["ongudai_horizon_change"] = ch
+
+def crest_agg(d, layer, zone):
+    cs = [c for c in d["crests"] if c["layer"] == layer and c["zone"] == zone and c["n"] and c["curv_ratio"] is not None]
+    n = sum(c["n"] for c in cs)
+    if not n:
+        return None
+    w = lambda k: sum(c[k] * c["n"] for c in cs) / n
+    return n, w("curv_ratio"), w("drop_m_p50"), w("drop_m_p90")
+
+
+P("\n## Гребни (среднее по полосам, взвешено по n): кривизна игра/сырое (curv) и просадка p50 / p90, м; доля горизонта от фона (рендер) — до → после\n")
+P("| место | слой | зона | curv до → после | просадка p50 до → после | просадка p90 до → после | доля фона до → после |")
+P("|---|---|---|---|---|---|---|")
+for tag in sorted(A):
+    if tag not in B:
+        continue
+    fs = "%.3f → %.3f" % (B[tag]["horizon"]["far_layer_share"], A[tag]["horizon"]["far_layer_share"])
+    for layer in ("detail", "far"):
+        for zone in ("above_forest", "forest"):
+            cb, ca = crest_agg(B[tag], layer, zone), crest_agg(A[tag], layer, zone)
+            if cb and ca:
+                P("| %s | %s | %s | %.2f → %.2f | %.2f → %.2f | %.2f → %.2f | %s |" % (tag, layer, zone, cb[1], ca[1], cb[2], ca[2], cb[3], ca[3], fs))
+                fs = ""
 
 P("\n## Меш: dh вершин, «надувание» долин (вогнутые места дальше 3 км), швы LOD и слоёв — до (v1) / после (v2)\n")
 P("| место | слой | dh p90 до/после, м | dh max | средний dh дальше 3 км | долины: средний dh до / после | щели LOD p99, м | щели не закрыты юбкой, шт | край слоя: скачок p90 / max, м; щелей |")
@@ -108,6 +138,6 @@ for tag in sorted(A):
 res["valley_inflation_m"] = vmax
 res["seams"] = seams
 
-open(os.path.join(here, "compare_tables.md"), "w").write("\n".join(lines) + "\n")
+open(os.path.join(here, OUT), "w").write("\n".join(lines) + "\n")
 print("\n".join(lines))
 print(json.dumps(res, ensure_ascii=False))
