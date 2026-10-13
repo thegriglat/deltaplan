@@ -9,6 +9,8 @@
 shader_type spatial;
 render_mode cull_disabled, diffuse_burley;
 
+#define SL_NO_GROUND // SL
+#include "res://scripts/terrain/scene_look.gdshaderinc" // SL
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
@@ -36,6 +38,7 @@ uniform float far_desaturate = 0.4;
 uniform float far_contrast = 0.35;
 uniform float far_canopy_luma = 0.32;
 uniform float far_edge_soft_k = 3.0;
+uniform float sl_tree_kind = 0.0;      // SL-6 сезон: 0 — вечнозелёная, 1 — берёза/осина, 2 — лиственница (ставит TerrainTreeModels)
 uniform vec2 lod_d = vec2(60.0, 180.0); // границы LOD, м (configs/world.json → trees.lod_distances_m)
 uniform float lod_fade_m = 10.0;        // ширина растворения, м (trees.lod_fade_m)
 
@@ -46,6 +49,7 @@ varying float v_crown;
 varying float v_cs_sun;
 // окно шума, в котором пиксель виден: [v_fade.x, v_fade.y) (растворение на смене LOD)
 varying vec2 v_fade;
+varying vec4 v_sl_ss;   // SL-6: сезон породы на высоте дерева
 
 void vertex() {
 	vec3 base = MODEL_MATRIX[3].xyz;
@@ -94,6 +98,7 @@ void vertex() {
 	v_color = COLOR.rgb;
 	v_crown = UV2.x; // 1 — карточка кроны с нормалями «от центра кроны» (build_trees.py), 0 — кора, импостор
 	v_cs_sun = cloud_sun_at(base);
+	v_sl_ss = sl_tree_kind > 0.5 ? sl_season_sp(sl_tree_kind, base.y) : vec4(0.0); // SL
 	// целиком растворённый экземпляр — вырожденные треугольники (не растеризуется)
 	if (v_fade.x >= 1.0 || v_fade.y <= 0.0) {
 		VERTEX = vec3(0.0);
@@ -108,6 +113,10 @@ void fragment() {
 	}
 	vec4 c = texture(albedo_tex, UV) * albedo_color;
 	vec3 rgb = c.rgb * v_color;
+	if (sl_tree_kind > 0.5 && v_crown > 0.5) {  // SL
+		rgb = sl_tree_season(rgb, v_sl_ss, sl_tree_kind);
+		if (sl_leaf_gone(v_sl_ss.w, n)) discard;
+	}
 	// вдали мягче: та же логика, что у impostor-билбордов (forest_impostors.gdshader) —
 	// бледнее и меньше контраст кроны, мягкий (не бинарный) край альфа-отсечения
 	float ft = smoothstep(far_soft_start_m, far_soft_full_m, v_dist);

@@ -130,6 +130,193 @@ vec3 sl_tree_tone(vec3 rgb, float mean_luma, float con, float dist, float t, flo
 	return rgb * mix(1.0, target / m, sl_canopy_far(dist));
 }
 
+// --- SL-6: сезон по дате полёта, широте и высоте (контракт SL-К2; зеркало — scripts/terrain/season_look.gd,
+// формулы правятся вместе). Фенология — закон Хопкинса: ≈ 4 дня на 1° широты и на 122 м высоты
+// (весна позже, осень раньше); южное полушарие — дата сдвинута на полгода; тропики (|φ| < ~23°) без
+// сезона. Сезон считается в пикселе (рельеф) / вершине (трава, импостеры, модели) только по высоте:
+// дата и широта — uniform-ы. ---
+uniform bool sl_season_enabled = false;
+uniform vec2 sl_season_hopkins = vec2(4.0, 122.0);      // дней и метров на единицу сдвига
+uniform float sl_season_autumn_alt_k = 0.5;             // доля высотного сдвига для осени
+uniform float sl_season_lat_ref = 50.0;
+uniform vec2 sl_season_dates = vec2(100.0, 280.0);      // начало вегетации, середина окраски берёзы (50°, 0 м)
+uniform vec3 sl_season_fresh = vec3(12.0, 40.0, 90.0);
+uniform vec2 sl_season_dry_days = vec2(75.0, 135.0);
+uniform float sl_season_dry_amount = 0.35;
+uniform float sl_season_winter_dry = 0.4;
+uniform vec3 sl_season_spring_tint = vec3(0.95, 1.18, 0.8);
+uniform vec4 sl_season_leaf_days = vec4(-15.0, 10.0, 18.0, 38.0);
+uniform vec2 sl_season_leafout_days = vec2(2.0, 16.0);
+uniform float sl_season_larch_lag = 8.0;
+uniform float sl_season_larch_share = 0.3;
+uniform vec3 sl_season_autumn_color = vec3(0.6, 0.4, 0.07);
+uniform vec2 sl_season_autumn_luma = vec2(1.25, 1.1);
+uniform vec3 sl_season_bare_color = vec3(0.1, 0.085, 0.07);
+uniform vec3 sl_season_crop_green = vec3(0.16, 0.26, 0.05);
+uniform vec3 sl_season_crop_ripe = vec3(0.5, 0.37, 0.12);
+uniform vec3 sl_season_crop_soil = vec3(0.12, 0.085, 0.055);
+uniform vec4 sl_season_crop_days = vec4(10.0, 95.0, 22.0, 30.0);
+
+// Всё, что зависит только от даты и широты (нормированный день берёзы/лиственницы, сдвиг Хопкинса по
+// широте, множитель тропиков), считает CPU при смене даты/места (SeasonLook.pre → uniform sl_season_pre
+// = (день берёзы, день лиственницы, сдвиг по широте, тропики)); в пикселе остаётся сдвиг по высоте.
+uniform vec4 sl_season_pre = vec4(196.0, 196.0, 0.0, 1.0);
+
+// Сезон по подготовленным d (день года 0…365, северное полушарие), sh_lat, trop и высоте.
+vec4 sl_season_f(float d, float sh_lat, float trop, float alt, out float rel) {
+	rel = 0.0;
+	if (!sl_season_enabled) {
+		return vec4(0.0);
+	}
+	float sh_alt = sl_season_hopkins.x * max(alt, 0.0) / sl_season_hopkins.y;
+	float spring = sl_season_dates.x + clamp(sh_lat + sh_alt, -60.0, 90.0);
+	float fall = clamp(sl_season_dates.y - sh_lat - sl_season_autumn_alt_k * sh_alt, 200.0, 330.0);
+	rel = d - spring;
+	float green = smoothstep(spring, spring + sl_season_fresh.x, d)
+			* (1.0 - smoothstep(spring + sl_season_fresh.y, spring + sl_season_fresh.z, d));
+	float dsum = smoothstep(spring + sl_season_dry_days.x, spring + sl_season_dry_days.y, d);
+	float autumn = smoothstep(fall + sl_season_leaf_days.x, fall + sl_season_leaf_days.y, d);
+	float bare = max(smoothstep(fall + sl_season_leaf_days.z, fall + sl_season_leaf_days.w, d),
+			1.0 - smoothstep(spring + sl_season_leafout_days.x, spring + sl_season_leafout_days.y, d));
+	float dorm = 1.0 - smoothstep(spring - 10.0, spring + 10.0, d);
+	float dry = max(sl_season_dry_amount * dsum, sl_season_winter_dry * max(dorm, bare));
+	return trop * vec4(green, dry, autumn, bare);
+}
+
+// Состояние сезона (green, dry, autumn, bare), все 0…1: свежесть весенней травы, добавка к сухости
+// луга, окраска листвы (не убывает до листопада), листва опала. rel — дней от начала вегетации
+// (для полей). Полная форма от (день, широта, высота) — то, что считает CPU-зеркало SeasonLook.state.
+vec4 sl_season_x(float doy, float lat, float alt, out float rel) {
+	float al = abs(lat);
+	float d = doy + (lat < 0.0 ? 182.5 : 0.0);
+	d -= 365.0 * floor(d / 365.0);
+	float sh_lat = sl_season_hopkins.x * clamp(al - sl_season_lat_ref, -15.0, 20.0);
+	return sl_season_f(d, sh_lat, smoothstep(20.0, 26.0, al), alt, rel);
+}
+
+vec4 sl_season(float doy, float lat, float alt) {
+	float rel;
+	return sl_season_x(doy, lat, alt, rel);
+}
+
+// Берёза/осина на высоте alt по подготовленным uniform-ам (рельеф, трава).
+vec4 sl_season_b(float alt, out float rel) {
+	return sl_season_f(sl_season_pre.x, sl_season_pre.z, sl_season_pre.w, alt, rel);
+}
+
+// Порода: 1 — берёза/осина, 2 — лиственница (позже на season_larch_lag дней); остальные вечнозелёные.
+vec4 sl_season_sp(float kind, float alt) {
+	float rel;
+	return sl_season_f(kind > 1.5 ? sl_season_pre.y : sl_season_pre.x, sl_season_pre.z, sl_season_pre.w, alt, rel);
+}
+
+#ifndef SL_NO_GROUND   // нужен terrain_common (палитра луга, поля); у tree_model.gdshader его нет
+// Цвет луга по ряду сухости (как meadow_color_dry в terrain_common, без пятен).
+vec3 sl_meadow_ramp(float dry) {
+	vec3 c = dry < 0.5 ? mix(grass_color, dry_grass_color, dry * 2.0)
+			: mix(dry_grass_color, straw_color, dry * 2.0 - 1.0);
+	return mix(vec3(dot(c, SL_LW)), c, grass_saturation);
+}
+
+// Луг по сезону: сухость сезона складывается с местной (разность цветов ряда от dryness места
+// до dryness + прибавка — пятна и склоны сохраняются), весной — свежая трава светлее и зеленее.
+vec3 sl_meadow_season(vec3 gcol, vec4 s) {
+	if (!sl_season_enabled) {
+		return gcol;
+	}
+	gcol += sl_meadow_ramp(clamp(dryness + s.y, 0.0, 1.0)) - sl_meadow_ramp(clamp(dryness, 0.0, 1.0));
+	return max(gcol, vec3(0.0)) * mix(vec3(1.0), sl_season_spring_tint, s.x);
+}
+
+// Поле: участок (как в field_plot_color; сеяный — fh < 0.45, остальные — залежь = луг) по датам:
+// пашня → всходы → зелень/рожь → спелая нива → стерня (прежний field_color) → часть участков
+// вспахана. Множители яркости/фактуры участка сохраняются (отношение к field_color).
+vec3 sl_field_season(vec3 fcol, vec2 xz, float rel) {
+	if (!sl_season_enabled) {
+		return fcol;
+	}
+	vec2 cell = floor(xz / field_size_m + vec2(floor(xz.y / (field_size_m.y * 6.0)) * 0.37, 0.0));
+	if (hash12(cell) >= 0.45) {
+		return fcol;
+	}
+	float h2 = hash12(cell + 41.3);
+	bool plowed = hash12(cell + 57.9) < 0.6;
+	vec3 stub = field_color;
+	vec3 soil = sl_season_crop_soil;
+	vec3 t = plowed ? soil : stub;                                   // зимнее состояние
+	t = mix(t, soil, smoothstep(-15.0, 0.0, rel));  // весенняя обработка
+	t = mix(t, sl_season_crop_green, smoothstep(sl_season_crop_days.x, sl_season_crop_days.x + 25.0, rel));
+	t = mix(t, sl_season_crop_ripe,
+			smoothstep(sl_season_crop_days.y - 20.0, sl_season_crop_days.y, rel));
+	float harvest = sl_season_crop_days.y + 3.0 + sl_season_crop_days.z * h2;
+	t = mix(t, stub, smoothstep(harvest, harvest + 4.0, rel));
+	t = mix(t, soil, plowed ? smoothstep(harvest + sl_season_crop_days.w,
+			harvest + sl_season_crop_days.w + 10.0, rel) : 0.0);
+	// разброс тона: между полями (хеш участка) и внутри поля (низкочастотно) — яркость и лёгкий
+	// тёплый/холодный сдвиг, без изменения насыщенности
+	float vf = hash12(cell + 7.7) - 0.5;
+	float vi = vnoise(xz / 45.0 + cell * 3.1) - 0.5;
+	float vb = 1.0 + 0.16 * vf + 0.10 * vi;
+	t *= vb * vec3(1.0 + 0.05 * vf, 1.0, 1.0 - 0.05 * vf);
+	return fcol * t / max(field_color, vec3(1e-3));
+}
+
+// Высота посева (множитель к crop_height_m): всходы низкие, нива до уборки в полный рост, стерня и
+// пашня — короткие. Участок и сроки те же, что в sl_field_season.
+float sl_field_height(vec2 xz, float rel) {
+	if (!sl_season_enabled) {
+		return 1.0;
+	}
+	vec2 cell = floor(xz / field_size_m + vec2(floor(xz.y / (field_size_m.y * 6.0)) * 0.37, 0.0));
+	if (hash12(cell) >= 0.45) {
+		return 1.0;
+	}
+	float harvest = sl_season_crop_days.y + 3.0 + sl_season_crop_days.z * hash12(cell + 41.3);
+	float grow = mix(0.25, 1.0, smoothstep(sl_season_crop_days.x, sl_season_crop_days.x + 50.0, rel));
+	return mix(grow, 0.15, smoothstep(harvest, harvest + 4.0, rel));
+}
+
+#endif
+
+// Тон осенней листвы: оттенок season_autumn_color, яркость — от исходного цвета × luma_k (тон
+// отдельно от яркости: множитель альбедо по породам ложится поверх).
+vec3 sl_autumn_tone(vec3 rgb, float luma_k) {
+	vec3 g = sl_season_autumn_color;
+	return g * (dot(rgb, SL_LW) * luma_k / max(dot(g, SL_LW), 1e-4));
+}
+
+// Полог рельефа: берёзово-осиновая доля (1 − con_p) и лиственничная (con_p · season_larch_share)
+// желтеют и оголяются по датам; хвойные остаются зелёными. sb — сезон берёзы на высоте alt.
+vec3 sl_canopy_season(vec3 fc, float con_p, vec4 sb, float alt) {
+	if (!sl_season_enabled) {
+		return fc;
+	}
+	vec4 sg = sl_season_sp(2.0, alt);
+	float wb = 1.0 - con_p;
+	float wl = con_p * sl_season_larch_share;
+	float y = dot(fc, SL_LW);
+	vec3 bare = sl_season_bare_color * clamp(y / 0.17, 0.4, 1.6);
+	vec3 r = mix(fc, sl_autumn_tone(fc, sl_season_autumn_luma.x), wb * sb.z * (1.0 - sb.w));
+	r = mix(r, sl_autumn_tone(fc, sl_season_autumn_luma.y), wl * sg.z * (1.0 - sg.w));
+	r = mix(r, bare, wb * sb.w);
+	return mix(r, bare, wl * sg.w);
+}
+
+// Дерево-модель/импостер лиственной породы: rgb → осенний тон (по сезону s породы); голое — в тон
+// ветвей (листья дополнительно прореживает sl_leaf_gone).
+vec3 sl_tree_season(vec3 rgb, vec4 s, float kind) {
+	float y = dot(rgb, SL_LW);
+	rgb = mix(rgb, sl_autumn_tone(rgb, kind > 1.5 ? sl_season_autumn_luma.y : sl_season_autumn_luma.x),
+			s.z * (1.0 - s.w));
+	return mix(rgb, sl_season_bare_color * clamp(y / 0.17, 0.4, 1.6), 0.6 * s.w);
+}
+
+// Лист опал: шум экрана n (0..1) ниже доли опавшей листвы — пиксель не рисуется (крона редеет).
+bool sl_leaf_gone(float bare, float n) {
+	return n < bare * 0.85;
+}
+
+#ifndef SL_NO_GROUND   // SL-8 использует vnoise/hash12 из terrain_common
 // --- SL-8: скотные тропы с высоты ---
 // Горизонтальные ступеньки на крутом лугу (шаг по высоте 1–3 м): светлая полка (тропа, ровная —
 // освещена как горизонталь) и подъём уступа (обращён вниз по склону — тень, если солнце с
@@ -189,7 +376,9 @@ vec3 sl_trails(vec3 c, vec2 p, float h, vec3 nc, float slope_deg, float fh, vec3
 	float tone = mix(e_t, e_r, rm) / max(mean_e, 1e-3);
 	return c * mix(1.0, tone, k * sl_trails_strength);
 }
+#endif
 
+#ifndef SL_NO_GROUND   // SL-9 использует vnoise/hash12 из terrain_common
 // --- SL-9: анти-тайлинг скал и осыпей, конусы выноса ---
 uniform bool sl_rock_enabled = false;
 uniform float sl_rock_anti = 0.22;                  // размах яркости разрывающего слоя (± доля)
@@ -334,6 +523,7 @@ vec3 sl_rock_nrm(vec3 n, vec3 rg, float w) {
 	return normalize(n - rg * (sl_rock_bump * w));
 }
 
+#endif
 // --- SL-15: волны ветра по траве с высоты — блеск по солнцу и оттенок ---
 // Под порывом стебли наклоняются по ветру d; поверхность листвы обращена против ветра (−d).
 // Блеск — как у половинного вектора h = норм(на солнце + на камеру): наклон к h светлит (серебро изнанки,

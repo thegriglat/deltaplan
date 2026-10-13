@@ -425,6 +425,9 @@ static func apply_scene_look_params(m: ShaderMaterial, sl: Dictionary) -> void:
 		elif v is int:
 			v = float(v)
 		m.set_shader_parameter("sl_" + k, v)
+	if sl.has("doy") or sl.has("lat_deg") or sl.has("season_hopkins") or sl.has("season_lat_ref") \
+			or sl.has("season_larch_lag"):
+		SeasonLook.apply_pre(m)
 
 
 ## Рассеянный свет неба Godot по солнцу to_sun (оценка для sl_ground_light): как его задают

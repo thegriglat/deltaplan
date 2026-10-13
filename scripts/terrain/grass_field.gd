@@ -160,6 +160,13 @@ func materials() -> Array[ShaderMaterial]:
 	return out
 
 
+## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года) — материалам травы
+## (сезон луга и полей, SL-6), тем же путём, что у рельефа.
+func apply_scene_look(sl: Dictionary) -> void:
+	for m in materials():
+		TerrainRenderer.apply_scene_look_params(m, sl)
+
+
 func _process(_delta: float) -> void:
 	if far_layer != null:
 		far_layer.camera = camera

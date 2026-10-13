@@ -958,11 +958,14 @@ void fragment() {
 
 	// --- луг: сухая трава на южных склонах и пятнами ---
 	vec3 gcol = meadow_ground_color(wp.xz, north, patch2, wet, north_s);
+	float sl_rel; vec4 sl_ss = sl_season_b(h, sl_rel); // SL
+	gcol = sl_meadow_season(gcol, sl_ss); // SL
 
 	float tex_w = fade * texture_strength;
 
 	// --- пашня/поля: прямоугольные участки разного цвета (пашня, всходы, стерня) ---
 	vec3 fcol = field_plot_color(wp.xz, gcol);
+	if (crop > 0.01) fcol = sl_field_season(fcol, wp.xz, sl_rel); // SL
 	if (crop > 0.01) {
 		fcol = field_detail(wp.xz, fcol, gcol, foot_m);
 	}
@@ -1119,6 +1122,7 @@ void fragment() {
 		fcolor *= 1.0 - forest_wet_dark * clamp(0.6 * wet + 0.6 * north_s, -1.0, 1.0);
 	}
 	fcolor = sl_canopy_tone(fcolor, sl_fc0, fmean, con_p, dist, canopy_far_shade); // SL
+	if (forest > 0.01) fcolor = sl_canopy_season(fcolor, con_p, sl_ss, h); // SL
 	if (use_forest_tex) {
 		fcolor = apply_tex(fcolor, texture(forest_tex, wp.xz / forest_tex_tile_m).rgb, forest_tex_avg, tex_w);
 	}
