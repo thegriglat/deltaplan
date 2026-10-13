@@ -162,7 +162,17 @@ func _build_osm(loc_id: String, center: Vector2, height_fn: Callable) -> void:
 	osm_layer = OsmLayer.new()
 	osm_layer.name = "Osm"
 	add_child(osm_layer)
-	osm_layer.build(osm, cfg, height_fn, obstacles)
+	var forest_fn := Callable()
+	if _gear_terrain != null and _gear_terrain.has_method(&"forest_at"):
+		forest_fn = Callable(_gear_terrain, &"forest_at")
+	osm_layer.build(osm, cfg, height_fn, obstacles, forest_fn)
+	# город: деревья-модели на местах крон, рельеф кроны на земле там не рисует
+	var ct := osm_layer.get_node_or_null("CityTrees") as CityTrees
+	if _gear_terrain != null and _gear_terrain.has_method(&"set_city_canopy_on"):
+		_gear_terrain.call(&"set_city_canopy_on", false)   # прежнее место могло оставить маску
+	if ct != null and _gear_terrain != null and _gear_terrain.has_method(&"set_city_canopy"):
+		ct.city_mask_ready.connect(Callable(_gear_terrain, &"set_city_canopy"))
+		ct.shown_changed.connect(Callable(_gear_terrain, &"set_city_canopy_on"))
 
 
 ## Конфиг с учётом пресета качества (configs/world_objects.json → quality).

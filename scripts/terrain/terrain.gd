@@ -56,6 +56,9 @@ var _sites: Array[Dictionary] = []
 var _landings: Array[Dictionary] = []
 ## [Image, origin, cell_m] — просеки (set_clearings), переживают перезагрузку деревьев.
 var _clearings: Array = []
+## [ImageTexture, origin, cell_m, размер, радиус деревьев города] — маска города для гашения крон (set_city_canopy).
+var _city_canopy: Array = []
+var _city_canopy_on := false
 ## Пустыри у стартов: Vector3(x, z, радиус), м — встроенные (set_surfaces) и add_start_clearing.
 var _start_clearings: Array[Vector3] = []
 var _sun_dir: Vector3 = Vector3.UP
@@ -351,6 +354,7 @@ func _setup_steps(
 		layers, surfaces, cfg.get("render", {}), look, world.get("rendering", {}), reliefs
 	)
 	renderer.apply_textures(world.get("terrain_textures", {}))
+	_apply_city_canopy()
 	var trees_cfg: Dictionary = Config._deep_merge(world.get("trees", {}), cfg.get("trees", {}))
 	progress.stage("trees", tr("loading_trees"))
 	if async:
@@ -427,6 +431,36 @@ func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
 		(trees as TerrainTreeModels).set_clearings(mask, origin, cell_m)
 	if impostors != null:
 		impostors.set_clearings(mask, origin, cell_m)
+
+
+## Город с деревьями-моделями на местах крон (CityTrees): рельеф не рисует кроны на земле там, где маска
+## города ≥ ~0,45 и ближе radius_m (радиус деревьев города) к камере. mask — Image L8 (узлы сетки cell_m, значение = city_at·255), origin — мир (x, z) центра
+## пикселя (0, 0). Переживает перезагрузку рельефа; включается set_city_canopy_on.
+func set_city_canopy(mask: Image, origin: Vector2, cell_m: float, radius_m: float = 1100.0) -> void:
+	_city_canopy = [ImageTexture.create_from_image(mask), origin, cell_m, mask.get_size(), radius_m]
+	_apply_city_canopy()
+
+
+## Модели города видны (true) или нет (камера выше max_agl_m): гасить кроны на земле или рисовать как раньше.
+func set_city_canopy_on(on: bool) -> void:
+	_city_canopy_on = on
+	_apply_city_canopy()
+
+
+func _apply_city_canopy() -> void:
+	if renderer == null:
+		return
+	var use := _city_canopy_on and _city_canopy.size() == 5
+	for m in renderer.materials():
+		m.set_shader_parameter("use_city_canopy", use)
+		if use:
+			m.set_shader_parameter("city_canopy_tex", _city_canopy[0])
+			m.set_shader_parameter("city_canopy_origin", _city_canopy[1])
+			m.set_shader_parameter("city_canopy_cell_m", _city_canopy[2])
+			m.set_shader_parameter("city_canopy_texels", Vector2(_city_canopy[3]))
+			m.set_shader_parameter(
+				"city_canopy_range_m", Vector2(0.8, 1.0) * float(_city_canopy[4])
+			)
 
 
 ## Палитра травы локации (та же, что у рельефа, meadow_color в terrain_common.gdshaderinc):

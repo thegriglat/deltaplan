@@ -12,7 +12,11 @@ var building_obstacles: ObstacleIndex
 
 
 ## obstacles — общий индекс WorldObjects (опоры, провода и т. п. для OsmRoads/OsmPilot).
-func build(data: OsmData, cfg: Dictionary, height_fn: Callable, obstacles: ObstacleIndex) -> void:
+## forest_fn(x, z) -> доля леса (Terrain.forest_at) — деревья города на местах крон; пусто — без них.
+func build(
+	data: OsmData, cfg: Dictionary, height_fn: Callable, obstacles: ObstacleIndex,
+	forest_fn: Callable = Callable()
+) -> void:
 	var t0 := Time.get_ticks_usec()
 	building_obstacles = ObstacleIndex.new()
 	var parts: Array = [
@@ -24,7 +28,7 @@ func build(data: OsmData, cfg: Dictionary, height_fn: Callable, obstacles: Obsta
 		["Cabins", OsmCableCars.build(data, cfg, height_fn, obstacles)],
 		["Traffic", OsmTraffic.build(data, cfg, height_fn, obstacles)],
 		["Buildings", OsmBuildings.build(data, cfg, height_fn, building_obstacles)],
-		["CityTrees", CityTrees.build(data, cfg, height_fn)],
+		["CityTrees", CityTrees.build(data, cfg, height_fn, forest_fn)],
 	]
 	var made := 0
 	for p: Array in parts:

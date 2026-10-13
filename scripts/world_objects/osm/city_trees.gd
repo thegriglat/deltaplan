@@ -17,6 +17,11 @@ var camera: Camera3D
 ## Сколько деревьев сейчас в MultiMesh'ах по LOD (для замеров) и время работы потока.
 var stats: Dictionary = {}
 
+## Маска города готова (первый кадр после расстановки): рельефу — гасить кроны на земле (Terrain.set_city_canopy).
+signal city_mask_ready(image: Image, origin: Vector2, cell_m: float, radius_m: float)
+## Модели города стали видны / скрыты (камера выше max_agl_m): рельефу — гасить / рисовать кроны.
+signal shown_changed(shown: bool)
+
 var _cfg: Dictionary = {}
 var _height_fn: Callable
 var _mmis: Array[MultiMeshInstance3D] = []
@@ -28,17 +33,21 @@ var _last_center := Vector2(INF, INF)
 var _pending_center := Vector2.ZERO
 var _first_done := false
 var _wind := Vector2.ZERO
+var _first_applied := false
+var _shown_sent := false
 
 
 ## Деревья города: улицы, дворы, сады домов OSM. null — выключено или нечего ставить.
-static func build(data: OsmData, cfg: Dictionary, height_fn: Callable) -> CityTrees:
+static func build(
+	data: OsmData, cfg: Dictionary, height_fn: Callable, forest_fn: Callable = Callable()
+) -> CityTrees:
 	var tc: Dictionary = cfg.get("city_trees", {})
 	if data == null or not bool(tc.get("enabled", true)) or data.buildings.is_empty() and data.roads.is_empty():
 		return null
 	var cell := float((cfg.get("buildings", {}).get("style", {}) as Dictionary).get("cell_m", 200.0))
 	return _make(
 		tc, data.roads, data.rivers, data.buildings, [], cfg.get("roads", {}), cfg.get("city_ground", {}), cell,
-		height_fn
+		height_fn, forest_fn
 	)
 
 
@@ -52,12 +61,12 @@ static func build_gardens(houses: Array, cfg: Dictionary, height_fn: Callable) -
 
 static func _make(
 	tc: Dictionary, roads: Array, rivers: Array, osm_houses: Array, extra: Array, rc: Dictionary,
-	cg: Dictionary, cell: float, height_fn: Callable
+	cg: Dictionary, cell: float, height_fn: Callable, forest_fn: Callable = Callable()
 ) -> CityTrees:
 	var n := CityTrees.new()
 	n.name = "CityTrees"
 	var p := CityTreePlan.new()
-	p.setup(tc, roads, rivers, osm_houses, extra, rc, cg, cell, height_fn)
+	p.setup(tc, roads, rivers, osm_houses, extra, rc, cg, cell, height_fn, forest_fn)
 	if not n.setup(p, tc, height_fn):
 		n.free()
 		return null
@@ -150,6 +159,9 @@ func _process(_delta: float) -> void:
 	var show := agl < float(_cfg.get("max_agl_m", 1000.0))
 	if visible != show:
 		visible = show
+	if show != _shown_sent and _first_applied:
+		_shown_sent = show
+		shown_changed.emit(show)
 	if not show:
 		return
 	var c := Vector2(p.x, p.z)
@@ -239,6 +251,13 @@ func _apply() -> void:
 		_mmis[b].custom_aabb = aabb
 		_counts[b] = mm.instance_count
 	_buffers = []
+	if not _first_applied:
+		_first_applied = true
+		var mask := plan.city_mask()
+		if not mask.is_empty() and bool(plan.cfg.get("crown", {}).get("enabled", true)) and plan.forest_fn.is_valid():
+			city_mask_ready.emit(mask.image, mask.origin, mask.cell, float(_cfg.get("radius_m", 1100.0)))
+			_shown_sent = visible
+			shown_changed.emit(visible)
 	var by_lod := [0, 0, 0]
 	for b in _counts.size():
 		by_lod[b % LODS] += _counts[b]

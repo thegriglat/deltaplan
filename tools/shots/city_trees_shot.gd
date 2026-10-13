@@ -2,7 +2,7 @@ extends Node
 ## Кадры деревьев города (city_trees) над Алматы: как city_look_shot, но деревья расставляются сразу (rebuild_now) и есть --notrees.
 ##   XDG_DATA_HOME=$(mktemp -d) godot --path . --audio-driver Dummy --resolution 1600x900 \
 ##     res://tools/shots/city_trees_shot.tscn -- --out=<каталог> --name=<файл> [--view=top|road|track|x,z] \
-##     [--tiles=<корень с v1/>] [--lat=43.238 --lon=76.945] [--dist=м] [--bench]
+##     [--tiles=<корень с v1/>] [--lat=43.238 --lon=76.945] [--dist=м] [--bench] [--forest=доля: деревья на местах крон, лес города — блоки 40 м]
 ## --view=top — сверху над центром; road — крупно главная дорога; track — крупно грунтовка; x,z — над точкой.
 
 const DEFAULT_TILES := "/home/greg/deltaplan_data/osm_tiles/OT-6/out_a/v1"
@@ -18,6 +18,7 @@ func _ready() -> void:
 	var dist := 0.0
 	var bench := false
 	var notrees := false
+	var forest := 0.0
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--out="):
 			out = a.substr(6)
@@ -35,6 +36,8 @@ func _ready() -> void:
 			dist = float(a.substr(7))
 		elif a == "--bench":
 			bench = true
+		elif a.begins_with("--forest="):
+			forest = float(a.substr(9))
 		elif a == "--notrees":
 			notrees = true
 	var paths: Array = []
@@ -48,7 +51,11 @@ func _ready() -> void:
 		cfg.city_trees.enabled = false
 	var layer := OsmLayer.new()
 	add_child(layer)
-	layer.build(data, cfg, func(_x: float, _z: float) -> float: return 0.0, ObstacleIndex.new())
+	var ffn := Callable()
+	if forest > 0.0:
+		ffn = func(x: float, z: float) -> float:
+			return 1.0 if RockScatter.hash01(floori(x / 40.0), floori(z / 40.0), 999) < forest else 0.0
+	layer.build(data, cfg, func(_x: float, _z: float) -> float: return 0.0, ObstacleIndex.new(), ffn)
 	if layer.get_node_or_null("CityTrees") != null:
 		layer.get_node("CityTrees").set_process(false)
 	print("[shot] дорог %d, домов %d; layer %s" % [data.roads.size(), data.buildings.size(), layer.stats])

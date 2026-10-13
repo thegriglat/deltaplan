@@ -99,6 +99,14 @@ vec4 notile_offsets(vec2 uv, out float blend) {
 // --- полог леса с высоты (кроны-ячейки, их освещение и тени) ---
 uniform vec3 sun_dir = vec3(0.0, 1.0, 0.0);   // направление НА солнце (мир), задаёт Terrain
 uniform float canopy_cell_m = 6.0;            // шаг крон, м
+// Город (CityTrees, деревья-модели на местах крон): рисунок крон на земле гасится, чтобы деревья не двоились.
+// Маска — city_at плана CityTreePlan (R8, узлы сетки cell_m), включает CityTrees, пока модели видны.
+uniform bool use_city_canopy = false;
+uniform sampler2D city_canopy_tex : filter_linear, repeat_disable;
+uniform vec2 city_canopy_origin;              // мир X/Z центра текселя (0,0), м
+uniform float city_canopy_cell_m = 200.0;
+uniform vec2 city_canopy_texels = vec2(1.0);
+uniform vec2 city_canopy_range_m = vec2(900.0, 1100.0);   // дальше радиуса деревьев города кроны рисуются как прежде
 uniform vec2 canopy_crown_k = vec2(0.55, 0.85); // радиус кроны / шаг, мин/макс
 uniform float canopy_gap_dark = 0.35;         // яркость просветов между кронами (тень под пологом)
 uniform float canopy_tone_var = 0.22;         // разброс яркости крон
@@ -960,6 +968,15 @@ void fragment() {
 	// куртины (группы крон, ×3 шага) — видны до нескольких км, когда отдельные кроны уже мельче пикселя
 	float grp_cell = canopy_cell_m * 3.0;
 	float grp_k = 1.0 - smoothstep(0.2 * grp_cell, 0.8 * grp_cell, foot);
+	// город с деревьями-моделями: кроны на земле не рисуем (деревья стоят на местах кроны)
+	float city_k = 0.0;
+	if (use_city_canopy && forest > 0.01) {
+		vec2 cuv = ((wp.xz - city_canopy_origin) / city_canopy_cell_m + 0.5) / city_canopy_texels;
+		city_k = smoothstep(0.4, 0.5, textureLod(city_canopy_tex, cuv, 0.0).r);
+		city_k *= 1.0 - smoothstep(city_canopy_range_m.x, city_canopy_range_m.y, length(wp.xz - CAMERA_POSITION_WORLD.xz));
+		crown_k *= 1.0 - city_k;
+		grp_k *= 1.0 - city_k;
+	}
 	if (forest > 0.01 && grp_k > 0.0) {
 		float gs;
 		vec3 gn;
