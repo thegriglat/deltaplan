@@ -236,6 +236,12 @@ vec3 sl_field_season(vec3 fcol, vec2 xz, float rel) {
 	t = mix(t, stub, smoothstep(harvest, harvest + 4.0, rel));
 	t = mix(t, soil, plowed ? smoothstep(harvest + sl_season_crop_days.w,
 			harvest + sl_season_crop_days.w + 10.0, rel) : 0.0);
+	// разброс тона: между полями (хеш участка) и внутри поля (низкочастотно) — яркость и лёгкий
+	// тёплый/холодный сдвиг, без изменения насыщенности
+	float vf = hash12(cell + 7.7) - 0.5;
+	float vi = vnoise(xz / 45.0 + cell * 3.1) - 0.5;
+	float vb = 1.0 + 0.16 * vf + 0.10 * vi;
+	t *= vb * vec3(1.0 + 0.05 * vf, 1.0, 1.0 - 0.05 * vf);
 	return fcol * t / max(field_color, vec3(1e-3));
 }
 
