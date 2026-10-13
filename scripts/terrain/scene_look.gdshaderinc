@@ -201,11 +201,8 @@ vec3 sl_meadow(vec3 c, vec3 wp) {
 	return c;
 }
 
-// Полог: пятна, у границы леса просветы и выше — луг (gcol уже альпийский).
+// Полог (пятна в лесу не нужны — их даёт полог): у границы леса просветы и выше — луг (gcol уже альпийский).
 vec3 sl_forest(vec3 f, vec3 gcol, vec3 wp) {
-	if (sl_patch_enabled) {
-		f *= sl_patch_mul(wp.xz);
-	}
 	if (sl_treeline_enabled) {
 		float p = smoothstep(sl_treeline_h - sl_treeline_thin_m, sl_treeline_h, wp.y);
 		if (p > 0.0) {
@@ -217,19 +214,12 @@ vec3 sl_forest(vec3 f, vec3 gcol, vec3 wp) {
 	return f;
 }
 
-// Средняя доля воды на двух кольцах по 6 точек (радиусы R и R/2, второе повёрнуто на 30°) вокруг xz:
-// маска G 10 м (как у воды рельефа). 12 выборок вместо одной, чтобы узкие реки не давали полос.
-const vec2 SL_HEX[6] = vec2[6](vec2(1.0, 0.0), vec2(0.5, 0.8660254), vec2(-0.5, 0.8660254),
-		vec2(-1.0, 0.0), vec2(-0.5, -0.8660254), vec2(0.5, -0.8660254));
-const vec2 SL_HEX30[6] = vec2[6](vec2(0.8660254, 0.5), vec2(0.0, 1.0), vec2(-0.8660254, 0.5),
-		vec2(-0.8660254, -0.5), vec2(0.0, -1.0), vec2(0.8660254, -0.5));
+// Средняя доля воды в 4 точках на радиусе 0,65·R (крест, повёрнут на 20°) вокруг xz: маска G 10 м
+// (мипов у неё нет, поэтому 4 выборки вместо 12).
 float sl_riparian_ring(vec2 xz) {
-	float r = sl_riparian_radius_m;
-	float s = 0.0;
-	for (int i = 0; i < 6; i++) {
-		s += forest_mask_g(xz + SL_HEX[i] * r) + forest_mask_g(xz + SL_HEX30[i] * (0.5 * r));
-	}
-	return s / 12.0;
+	float r = 0.65 * sl_riparian_radius_m;
+	return 0.25 * (forest_mask_g(xz + vec2(0.940, 0.342) * r) + forest_mask_g(xz + vec2(-0.342, 0.940) * r)
+			+ forest_mask_g(xz + vec2(-0.940, -0.342) * r) + forest_mask_g(xz + vec2(0.342, -0.940) * r));
 }
 
 // Вес прибрежной полосы по средней доле воды на кольце (на самой воде и далеко от неё — 0).

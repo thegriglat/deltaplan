@@ -19,13 +19,11 @@ static func mask_g(x: float) -> float:
 
 ## = sl_riparian_w (sl_riparian_ring по прямому берегу) на расстоянии d от кромки воды
 static func riparian_w(d: float, sl: Dictionary) -> float:
-	var r := float(sl.riparian_radius_m)
+	var r := 0.65 * float(sl.riparian_radius_m)
 	var s := 0.0
-	for i in 6:
-		var a := deg_to_rad(60.0 * i)
-		var b := deg_to_rad(60.0 * i + 30.0)
-		s += mask_g(d + cos(a) * r) + mask_g(d + cos(b) * 0.5 * r)
-	return smoothstep(0.0, float(sl.riparian_sat), s / 12.0) * (1.0 - mask_g(d))
+	for i in 4:
+		s += mask_g(d + cos(deg_to_rad(20.0 + 90.0 * i)) * r)
+	return smoothstep(0.0, float(sl.riparian_sat), s / 4.0) * (1.0 - mask_g(d))
 
 
 ## Доля лесных пикселей, перекрашенных в просвет луга на высоте h (шум просветов — равномерный 0…1):
