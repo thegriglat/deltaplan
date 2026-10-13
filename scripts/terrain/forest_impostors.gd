@@ -11,6 +11,10 @@ const SHADER := preload("res://scripts/terrain/forest_impostors.gdshader")
 
 var camera: Camera3D
 var material: ShaderMaterial
+## SL-К4: деревья полосы смены (позиции TreePlacer — те же, что у моделей, по одному экземпляру на дерево);
+## свой материал (тот же шейдер, band_mode) — все set_shader_parameter идут в оба (_set_all).
+var band_material: ShaderMaterial
+var _band: MultiMeshInstance3D
 
 var _spacing: float = 10.0
 ## Маска леса и просек на CPU — для present_positions (тесты); шейдер берёт те же из текстур.
@@ -65,8 +69,17 @@ func setup(
 	m.set_shader_parameter("grid_n", n)
 	m.set_shader_parameter("spacing_m", _spacing)
 	var r := float(cfg.radius_m)
-	m.set_shader_parameter("inner_m", r * float(ic.fade_start_k))
-	m.set_shader_parameter("inner_end_m", r)
+	_mask.setup(layer, surface, cfg)
+	if _mask.lod_k_enabled:
+		# SL-К4: дальняя сетка (12 м) включается там, где band-импостеры (сетка моделей, 8 м) заканчиваются
+		m.set_shader_parameter("inner_m", _mask.ramp_start())
+		m.set_shader_parameter("inner_end_m", _mask.band_end())
+	else:
+		m.set_shader_parameter("inner_m", r * float(ic.fade_start_k))
+		m.set_shader_parameter("inner_end_m", r)
+	m.set_shader_parameter("lod_swap_m", r)
+	m.set_shader_parameter("lod_dither_m", _mask.lod_dither_m)
+	m.set_shader_parameter("sl_lod_k_range", Vector2(_mask.lod_k_min, _mask.lod_k_max))
 	m.set_shader_parameter("outer_m", outer)
 	m.set_shader_parameter("dissolve_m", float(ic.get("dissolve_m", 800.0)))
 	m.set_shader_parameter("edge_band_m", float(cfg.get("edge_band_m", 16.0)))
@@ -107,14 +120,64 @@ func setup(
 		Vector3(layer.origin_x, layer.min_h - 100.0, layer.origin_z),
 		Vector3(layer.size_x(), layer.max_h - layer.min_h + 200.0, layer.size_z())
 	)
+	if _mask.lod_k_enabled:
+		band_material = m.duplicate() as ShaderMaterial
+		band_material.set_shader_parameter("band_mode", true)
+		_band = MultiMeshInstance3D.new()
+		_band.name = "BandImpostors"
+		_band.material_override = band_material
+		_band.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_band.custom_aabb = custom_aabb
+		_band.visible = false
+		add_child(_band)
 	return true
+
+
+## SL-К4: деревья полосы смены от TreePlacer.build (TerrainTreeModels._apply): buf — IMP_STRIDE чисел
+## на дерево (матрица 3×4, цвет, custom), count — их число.
+func set_band(buf: PackedFloat32Array, count: int) -> void:
+	if _band == null:
+		return
+	var mm := _band.multimesh
+	if mm == null:
+		mm = MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_colors = true
+		mm.use_custom_data = true
+		mm.mesh = _quad()
+		_band.multimesh = mm
+	mm.instance_count = count
+	_band.visible = count > 0
+	if count > 0:
+		mm.buffer = buf
+
+
+func _ready() -> void:
+	# деревья полосы смены берутся из расстановки моделей (соседний узел Trees)
+	var models := get_parent().get_node_or_null("Trees") if get_parent() != null else null
+	if models is TerrainTreeModels and _band != null:
+		(models as TerrainTreeModels).band_sink = self
+
+
+func _materials() -> Array[ShaderMaterial]:
+	var out: Array[ShaderMaterial] = [material]
+	if band_material != null:
+		out.append(band_material)
+	return out
+
+
+func _set_all(param: StringName, value: Variant) -> void:
+	for m in _materials():
+		m.set_shader_parameter(param, value)
 
 
 ## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года, солнце, небо) —
 ## тем же путём, что у рельефа (TerrainRenderer.apply_scene_look_params).
 func apply_scene_look(sl: Dictionary) -> void:
-	if material != null:
-		TerrainRenderer.apply_scene_look_params(material, sl)
+	if material == null:
+		return
+	for m in _materials():
+		TerrainRenderer.apply_scene_look_params(m, sl)
 
 
 ## Просеки (маска WorldClearings, 255 — расчищено).
@@ -124,11 +187,11 @@ func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
 	_mask.clear_image = mask
 	_mask.clear_origin = origin
 	_mask.clear_cell = cell_m
-	material.set_shader_parameter("clear_tex", ImageTexture.create_from_image(mask))
-	material.set_shader_parameter("has_clearings", true)
-	material.set_shader_parameter("clear_origin", origin)
-	material.set_shader_parameter("clear_cell_m", cell_m)
-	material.set_shader_parameter("clear_size", Vector2(mask.get_width(), mask.get_height()))
+	_set_all("clear_tex", ImageTexture.create_from_image(mask))
+	_set_all("has_clearings", true)
+	_set_all("clear_origin", origin)
+	_set_all("clear_cell_m", cell_m)
+	_set_all("clear_size", Vector2(mask.get_width(), mask.get_height()))
 
 
 ## Маска леса 10 м (Terrain.get_forest_mask → [image, origin — угол пикселя (0, 0), cell_m]):
@@ -141,13 +204,11 @@ func set_forest_mask(mask: Image, origin: Vector2, cell_m: float) -> void:
 	var tex := _shared_mask_texture(mask)
 	if tex == null:
 		tex = ImageTexture.create_from_image(mask)
-	material.set_shader_parameter("forest_mask_tex", tex)
-	material.set_shader_parameter("use_forest_mask", true)
-	material.set_shader_parameter("forest_mask_origin", origin + Vector2(0.5, 0.5) * cell_m)
-	material.set_shader_parameter("forest_mask_spacing", cell_m)
-	material.set_shader_parameter(
-		"forest_mask_texels", Vector2(mask.get_width(), mask.get_height())
-	)
+	_set_all("forest_mask_tex", tex)
+	_set_all("use_forest_mask", true)
+	_set_all("forest_mask_origin", origin + Vector2(0.5, 0.5) * cell_m)
+	_set_all("forest_mask_spacing", cell_m)
+	_set_all("forest_mask_texels", Vector2(mask.get_width(), mask.get_height()))
 
 
 func _shared_mask_texture(mask: Image) -> Texture2D:
@@ -172,7 +233,7 @@ func _process(_delta: float) -> void:
 	var cell := Vector2(floor(p.x / _spacing), floor(p.z / _spacing))
 	if cell != _last_cell:
 		_last_cell = cell
-		material.set_shader_parameter("grid_center_cell", cell)
+		_set_all("grid_center_cell", cell)
 
 
 ## Где стоят билборды (центры X/Z) в кольце [r0, r1] вокруг center — повтор правил шейдера

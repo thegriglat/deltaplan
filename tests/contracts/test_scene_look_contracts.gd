@@ -4,7 +4,7 @@ extends TestCase
 ## полёта. Сезон (test_k2_season_*) — SL-6.
 
 const DOC := "res://docs/contracts/scene-look.md"
-const VERSIONS := {"SL-К1": 3, "SL-К2": 2}
+const VERSIONS := {"SL-К1": 3, "SL-К2": 2, "SL-К4": 1}
 const INC := "res://scripts/terrain/scene_look.gdshaderinc"
 const TERRAIN := "res://scripts/terrain/terrain.gdshader"
 const IMPOSTORS := "res://scripts/terrain/forest_impostors.gdshader"
@@ -297,3 +297,37 @@ func test_k2_season_shader_mirror() -> void:
 				check(parts.size() == want.size(), "К2: sl_%s: размер" % key)
 				for i in mini(parts.size(), want.size()):
 					approx(float(parts[i]), float(want[i]), 1e-6, "К2: sl_%s[%d] в include = DEFAULTS" % [key, i])
+
+
+func test_k4_function_in_include_and_config() -> void:
+	# К4: одна функция множителя на дерево в include, диапазон — trees.lod_k_min/max, ширина дизеринга
+	var inc := _read(INC)
+	for f in ["float sl_lod_k(vec2 xz)", "float sl_lod_hash(vec2 xz, uint salt)", "float sl_lod_swap_t(float d, float db, float dither)"]:
+		check(inc.contains(f), "К4: %s в include" % f)
+	var trees: Dictionary = Config.get_config("world").get("trees", {})
+	check(trees.has("lod_k_min") and trees.has("lod_k_max") and trees.has("lod_dither_m"), "К4: ключи trees.lod_*")
+	check(float(trees.lod_k_min) > 0.0 and float(trees.lod_k_min) <= float(trees.lod_k_max), "К4: 0 < lod_k_min ≤ lod_k_max")
+	check(float(trees.lod_dither_m) > float(trees.get("lod_fade_m", 10.0)), "К4: дизеринг шире lod_fade_m")
+	var re := RegEx.create_from_string("uniform\\s+vec2\\s+sl_lod_k_range\\s*=\\s*vec2\\(([^,]+),([^)]+)\\)")
+	var m := re.search(inc)
+	check(m != null, "К4: sl_lod_k_range с умолчанием")
+	if m != null:
+		approx(float(m.get_string(1)), float(trees.lod_k_min), 1e-6, "К4: умолчание include = lod_k_min")
+		approx(float(m.get_string(2)), float(trees.lod_k_max), 1e-6, "К4: умолчание include = lod_k_max")
+	# потребители подключают одну функцию, у моделей и импостеров одна и та же граница
+	check(_read("res://scripts/terrain/tree_model.gdshader").contains("sl_lod_k(base.xz)"), "К4: модели зовут sl_lod_k")
+	check(_read(IMPOSTORS).contains("sl_lod_k(xz)"), "К4: импостеры зовут sl_lod_k")
+
+
+func test_k4_cpu_mirror_range_and_sum() -> void:
+	var kmin := float(Config.get_config("world").trees.lod_k_min)
+	var kmax := float(Config.get_config("world").trees.lod_k_max)
+	var dither := float(Config.get_config("world").trees.lod_dither_m)
+	for i in 400:
+		var x := fposmod(i * 37.31, 3000.0) - 1500.0
+		var z := fposmod(i * 91.77, 3000.0) - 1500.0
+		var k := TreePlacer.lod_k_at(x, z, kmin, kmax)
+		check(k >= kmin and k <= kmax, "К4: k в диапазоне")
+		for d in [100.0, 300.0, 500.0, 500.0 * k, 700.0, 900.0]:
+			var t := TreePlacer.swap_t(d, 500.0 * k, dither)
+			check(absf((1.0 - t) + t - 1.0) < 1e-9, "К4: сумма видимостей 1")

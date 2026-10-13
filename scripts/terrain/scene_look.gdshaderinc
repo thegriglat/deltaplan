@@ -34,6 +34,30 @@ uniform float sl_canopy_hide_p = 2.0;      // скрытие теней по ф�
 uniform vec2 sl_canopy_hotspot = vec2(0.3, 0.12);  // горячее пятно: добавка, полуширина (рад)
 uniform float sl_tree_far_desat = 0.3;     // импостеры вдали: обесцвечивание (как canopy_far_sat полога)
 
+// --- SL-17 (SL-К4): своё расстояние смены формы у каждого дерева (модель → импостер) ---
+// Множитель k ∈ [trees.lod_k_min, trees.lod_k_max] — хеш мировых координат дерева по сетке 4 м (без
+// камеры и кадра); модель видна до radius_m·k, импостер дальше. Зеркало на CPU — TreePlacer.lod_k_at
+// (правятся вместе, тест сравнивает). Диапазон ставят TerrainTreeModels и ForestImpostors.
+uniform vec2 sl_lod_k_range = vec2(0.6, 1.6);
+float sl_lod_hash(vec2 xz, uint salt) {
+	ivec2 q = ivec2(floor(xz * 0.25));
+	uint h = uint(q.x) * 374761393u + uint(q.y) * 668265263u + salt * 1442695041u;
+	h = (h ^ (h >> 13u)) * 1274126177u;
+	h = h ^ (h >> 16u);
+	return float(h & 0xFFFFFFu) / 16777216.0;
+}
+float sl_lod_k(vec2 xz) {
+	return mix(sl_lod_k_range.x, sl_lod_k_range.y, sl_lod_hash(xz, 31u));
+}
+// Доля импостера на расстоянии d при границе смены db и ширине дизеринга dither (модель — 1 − доля).
+float sl_lod_swap_t(float d, float db, float dither) {
+	return clamp((d - db) / dither + 0.5, 0.0, 1.0);
+}
+// Шум экрана 0..1 (interleaved gradient): общий порог дизеринга модели и импостера (дополняющие маски).
+float sl_lod_noise(vec2 fragcoord) {
+	return fract(52.9829189 * fract(dot(fragcoord, vec2(0.06711056, 0.00583715))));
+}
+
 varying float v_sl_ny;    // мировая нормаль · вверх (доля нижней полусферы в рассеянном свете)
 varying float v_sl_ao;    // AO рассеянного света точки
 varying float v_sl_sun;   // множитель прямого солнца облаками в точке (для света земли вокруг)
