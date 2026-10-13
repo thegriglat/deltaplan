@@ -825,7 +825,7 @@
             7000,
             14000
           ],
-          "skirt_depth_m": 40
+          "skirt_depth_m": 300
         },
         "far": {
           "chunk_cells": 200,
@@ -834,7 +834,7 @@
             25000,
             45000
           ],
-          "skirt_depth_m": 150
+          "skirt_depth_m": 400
         }
       },
       "rivers": {
@@ -896,7 +896,7 @@
           7000,
           14000
         ],
-        "skirt_depth_m": 40
+        "skirt_depth_m": 300
       },
       {
         "id": "far",
@@ -913,7 +913,7 @@
           30000,
           50000
         ],
-        "skirt_depth_m": 150
+        "skirt_depth_m": 400
       }
     ]
   },

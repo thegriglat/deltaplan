@@ -10,7 +10,7 @@
       "jump_abs_m_p90": 45.6544,
       "jump_mean_m": 3.5333,
       "n": 3196,
-      "open_over_skirt": 4
+      "open_over_skirt": 0
     },
     "layers": [
       {
@@ -28,8 +28,8 @@
         "lod_gap_m_p50": 0.0,
         "lod_gap_m_p99": 57.4141,
         "lod_gap_n": 3224,
-        "lod_gap_over_skirt": 53,
-        "skirt_m": 40.0,
+        "lod_gap_over_skirt": 0,
+        "skirt_m": 300.0,
         "valley_dh_max_m": 330.5313,
         "valley_dh_mean_m": -0.3228,
         "valley_dh_p90_m": 0.0,
@@ -51,8 +51,8 @@
         "lod_gap_m_p50": 0.0,
         "lod_gap_m_p99": 124.945,
         "lod_gap_n": 2840,
-        "lod_gap_over_skirt": 9,
-        "skirt_m": 150.0,
+        "lod_gap_over_skirt": 0,
+        "skirt_m": 400.0,
         "valley_dh_max_m": 373.5952,
         "valley_dh_mean_m": -2.0599,
         "valley_dh_p90_m": 0.0,
