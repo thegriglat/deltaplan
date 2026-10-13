@@ -17,6 +17,8 @@ var materials: Array[ShaderMaterial] = []
 
 ## _mmis[(вид * variants + вариант) * 3 + lod]
 var _mmis: Array[MultiMeshInstance3D] = []
+## SL-К4: куда отдавать band-импостеры (деревья за личной границей смены; ставит Terrain).
+var band_sink: ForestImpostors
 var _rebuild_step: float = 16.0
 var _max_agl: float = 900.0
 var _last_center := Vector2(INF, INF)
@@ -88,6 +90,8 @@ func _process(_delta: float) -> void:
 		_last_center = _pending_center
 	var agl := p.y - placer.layer.sample(p.x, p.z)
 	visible = agl < _max_agl
+	if is_instance_valid(band_sink):
+		band_sink.set_band_active(visible)  # модели скрыты и перестройка стоит — полоса не нужна
 	if not visible:
 		return
 	var c := Vector2(p.x, p.z)
@@ -156,6 +160,8 @@ func _apply() -> void:
 		_mmis[b].visible = placer.counts[b] > 0
 		if placer.counts[b] > 0:
 			mm.buffer = placer.buffers[b]
+	if is_instance_valid(band_sink):
+		band_sink.set_band(placer.imp_buffer, placer.imp_count)
 
 
 ## Копия меша, где материалы .glb заменены на tree_model.gdshader (те же текстуры + качание).
@@ -189,6 +195,11 @@ func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary, sp
 			var ld: Array = cfg.get("lod_distances_m", [60.0, 180.0])
 			m.set_shader_parameter("lod_d", Vector2(float(ld[0]), float(ld[1])))
 			m.set_shader_parameter("lod_fade_m", maxf(float(cfg.get("lod_fade_m", 10.0)), 0.01))
+			m.set_shader_parameter("lod_swap_m", float(cfg.get("radius_m", 500.0)))
+			m.set_shader_parameter("lod_dither_m", maxf(float(cfg.get("lod_dither_m", 40.0)), 0.01))
+			m.set_shader_parameter(
+				"sl_lod_k_range", Vector2(placer.lod_k_min, placer.lod_k_max)
+			)
 			cache[std.resource_name] = m
 			materials.append(m)
 		mesh.surface_set_material(s, cache[std.resource_name])

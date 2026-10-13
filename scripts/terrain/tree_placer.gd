@@ -24,6 +24,10 @@ const FADE_OUT0 := 0.1
 const FADE_IN0 := 0.2
 const FADE_OUT1 := 0.3
 const FADE_IN1 := 0.4
+## SL-К4: 0,5 — модель (LOD2) уходит на личной границе смены на импостер (дизеринг tree_model.gdshader).
+const FADE_OUT2 := 0.5
+## Чисел на экземпляр band-импостера: матрица 3×4, цвет (r — доля утопления), custom (высота, порода, ek, оттенок).
+const IMP_STRIDE := 20
 ## Кольца поиска кромки, доли edge_band_m.
 const EDGE_RINGS_K: PackedFloat32Array = [0.25, 0.5, 0.75, 1.0, 1.4]
 ## 8 направлений колец (через 45°).
@@ -82,6 +86,20 @@ var color_variation: float = 0.15
 var band_blend_m: float = 200.0
 ## Высота модели породы и варианта, м (из меша) — для масштаба: model_height[вид * variants + вариант].
 var model_height := PackedFloat32Array()
+## SL-К4 (расстояние смены формы дерева): у каждого дерева свой множитель k ∈ [lod_k_min, lod_k_max]
+## (хеш мировых координат, lod_k), модель видна до radius·k, дальше — импостер на той же позиции
+## (band-импостеры, imp_buffer); растворение — дизерингом шириной lod_dither_m. false — как раньше:
+## общая граница radius, модели редеют с fade_start_k.
+var lod_k_enabled: bool = true
+var lod_k_min: float = 0.6
+var lod_k_max: float = 1.6
+var lod_dither_m: float = 40.0
+## Ширина перехода band-импостеров (сетка 8 м) в дальнюю сетку импостеров (12 м), м.
+var imp_ramp_m: float = 100.0
+var rebuild_step_m: float = 16.0
+## Band-импостеры: imp_buffer — MultiMesh с цветом и custom (IMP_STRIDE), imp_count — число.
+var imp_buffer := PackedFloat32Array()
+var imp_count: int = 0
 ## Результат build(): buffers[(вид * variants + вариант) * 3 + lod] — PackedFloat32Array,
 ## counts — число экземпляров (в полосе растворения экземпляр в двух LOD — учтён в обоих).
 var buffers: Array[PackedFloat32Array] = []
@@ -103,7 +121,12 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 	radius = float(cfg.get("radius_m", 500.0))
 	lod_distances = PackedFloat32Array(cfg.get("lod_distances_m", [60.0, 180.0]))
 	lod_fade_m = float(cfg.get("lod_fade_m", 10.0))
-	fade_margin_m = float(cfg.get("rebuild_step_m", 16.0)) if lod_fade_m > 0.0 else 0.0
+	rebuild_step_m = float(cfg.get("rebuild_step_m", 16.0))
+	fade_margin_m = rebuild_step_m if lod_fade_m > 0.0 else 0.0
+	lod_k_enabled = bool(cfg.get("lod_k_enabled", true))
+	lod_dither_m = maxf(float(cfg.get("lod_dither_m", 40.0)), 0.01)
+	lod_k_max = maxf(float(cfg.get("lod_k_max", 1.6)), 0.1)
+	lod_k_min = clampf(float(cfg.get("lod_k_min", 0.6)), 0.1, lod_k_max)
 	variants = maxi(1, int(cfg.get("variants", 8)))
 	model_height.resize(SPECIES.size() * variants)
 	model_height.fill(20.0)
@@ -120,6 +143,13 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 	water_max = float(cfg.get("water_max", 0.35))
 	var ic: Dictionary = cfg.get("impostors", {})
 	fade_start_k = float(ic.get("fade_start_k", 0.0)) if bool(ic.get("enabled", false)) else 0.0
+	imp_ramp_m = maxf(float(ic.get("ramp_m", 100.0)), 1.0)
+	if not bool(ic.get("enabled", false)):
+		lod_k_enabled = false
+	# ближайшая граница смены не должна наезжать на границу LOD1↔LOD2
+	var d1s := lod_distances[1] if lod_distances.size() > 1 else 180.0
+	lod_k_min = maxf(lod_k_min, (d1s + lod_fade_m + swap_band() + 2.0 * fade_margin_m) / radius)
+	lod_k_max = maxf(lod_k_max, lod_k_min)
 	var sp: Dictionary = cfg.get("species", {})
 	for arr in [_weight, _min_m, _max_m, _aspect, _h_min, _h_max]:
 		arr.resize(SPECIES.size())
@@ -132,6 +162,34 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 		var hr: Array = s.get("height_m", [15.0, 25.0])
 		_h_min[k] = float(hr[0])
 		_h_max[k] = float(hr[1])
+
+
+## Полуширина зоны, где дерево стоит в обеих формах (модель и импостер), м: половина дизеринга +
+## запас на сдвиг камеры до пересчёта и за время пересчёта в рабочем потоке (2 шага rebuild_step_m).
+func swap_band() -> float:
+	return lod_dither_m * 0.5 + 2.0 * rebuild_step_m
+
+
+## Дальше этого расстояния моделей нет и band-импостеры редеют, уступая дальней сетке (12 м), м.
+func ramp_start() -> float:
+	return radius * lod_k_max + swap_band()
+
+
+## Дальше этого расстояния band-импостеров нет, м.
+func band_end() -> float:
+	return ramp_start() + imp_ramp_m
+
+
+## SL-К4: множитель расстояния смены дерева в точке (x, z) — хеш мира по сетке 4 м (CPU-зеркало
+## sl_lod_k в scene_look.gdshaderinc: правятся вместе).
+static func lod_k_at(x: float, z: float, k_min: float, k_max: float) -> float:
+	return lerpf(k_min, k_max, hash01(floori(x * 0.25), floori(z * 0.25), 31))
+
+
+## SL-К4: доля импостера в момент, когда дерево на расстоянии d, а его граница смены — db
+## (модель — 1 − эта доля): 0 — только модель, 1 — только импостер; дизеринг шириной dither.
+static func swap_t(d: float, db: float, dither: float) -> float:
+	return clampf((d - db) / dither + 0.5, 0.0, 1.0)
 
 
 ## Настройки деревьев с добавкой configs/vegetation.json → trees (группа «Растительность», V02):
@@ -167,6 +225,19 @@ func pick_species(h: float, north: float, u: float) -> int:
 ## Расставить деревья в круге radius вокруг center (X/Z мира). Заполняет buffers и counts.
 func build(center: Vector2) -> void:
 	var n_buf := SPECIES.size() * variants * 3
+	var imp := PackedFloat32Array()
+	# строки экземпляров переиспользуются (без выделения массива на каждое дерево)
+	var row := PackedFloat32Array()
+	row.resize(STRIDE)
+	var irow := PackedFloat32Array()
+	irow.resize(IMP_STRIDE)
+	irow[0] = 1.0
+	irow[5] = 1.0
+	irow[10] = 1.0
+	irow[15] = 1.0
+	var reach := band_end() if lod_k_enabled else radius
+	var swap_half := swap_band()
+	var ramp0 := ramp_start()
 	buffers.clear()
 	buffers.resize(n_buf)
 	counts = PackedInt32Array()
@@ -177,8 +248,8 @@ func build(center: Vector2) -> void:
 		lists[b] = PackedFloat32Array()
 	var ci := floori(center.x / spacing)
 	var cj := floori(center.y / spacing)
-	var nr := ceili(radius / spacing)
-	var r2 := radius * radius
+	var nr := ceili(reach / spacing)
+	var r2 := reach * reach
 	var d0 := lod_distances[0] if lod_distances.size() > 0 else 60.0
 	var d1 := lod_distances[1] if lod_distances.size() > 1 else 180.0
 	var e := layer.spacing
@@ -204,7 +275,13 @@ func build(center: Vector2) -> void:
 				if d2 > r2 or not layer.contains(x, z):
 					continue
 				# переход к импостерам среднего плана: модели редеют к краю радиуса
-				if fade_start_k > 0.0:
+				if lod_k_enabled:
+					# band-импостеры уступают дальней сетке импостеров (12 м): плотность падает плавно
+					if d2 > ramp0 * ramp0:
+						var fk := smoothstep(ramp0, reach, sqrt(d2))
+						if hash01(i, j, 8 + k0) < fk:
+							continue
+				elif fade_start_k > 0.0:
 					var fk := smoothstep(radius * fade_start_k, radius, sqrt(d2))
 					if hash01(i, j, 8 + k0) < fk:
 						continue
@@ -245,12 +322,42 @@ func build(center: Vector2) -> void:
 				var v := 1.0 + color_variation * (hash01(i, j, 7 + k0) - 0.5) * 2.0
 				var d := sqrt(d2)
 				var b := mv * 3
+				var to_model := true
+				var in_swap := false
+				if lod_k_enabled:
+					var db := radius * lod_k_at(x, z, lod_k_min, lod_k_max)
+					in_swap = absf(d - db) < swap_half
+					to_model = d < db + swap_half
+					if d > db - swap_half:
+						irow[3] = x
+						irow[7] = y
+						irow[11] = z
+						irow[12] = sink_for_edge(de)
+						irow[16] = hh
+						irow[17] = float(sp)
+						irow[18] = ek
+						irow[19] = hash01(i, j, 7 + k0)
+						imp.append_array(irow)
 				# строки 3×4 матрицы: поворот вокруг Y с масштабом + сдвиг; затем цвет (альфа — код
 				# растворения FADE_*)
-				var row := PackedFloat32Array(
-					[c, 0.0, sn, x, 0.0, s, 0.0, y, -sn, 0.0, c, z, v, v, v, FADE_NONE]
-				)
-				if absf(d - d0) < band:
+				if not to_model:
+					continue
+				row[0] = c
+				row[2] = sn
+				row[3] = x
+				row[5] = s
+				row[7] = y
+				row[8] = -sn
+				row[10] = c
+				row[11] = z
+				row[12] = v
+				row[13] = v
+				row[14] = v
+				row[15] = FADE_NONE
+				if in_swap:
+					row[15] = FADE_OUT2
+					lists[b + 2].append_array(row)
+				elif absf(d - d0) < band:
 					row[15] = FADE_OUT0
 					lists[b].append_array(row)
 					row[15] = FADE_IN0
@@ -265,6 +372,16 @@ func build(center: Vector2) -> void:
 	for b in n_buf:
 		buffers[b] = lists[b]
 		counts[b] = lists[b].size() / STRIDE
+	imp_buffer = imp
+	imp_count = imp.size() / IMP_STRIDE
+
+
+## Число экземпляров моделей во всех LOD (в зоне смены дерево посчитано в двух LOD).
+func lod_counts_total() -> int:
+	var n := 0
+	for c in counts:
+		n += c
+	return n
 
 
 ## Расчищено ли место (маска просек WorldClearings).
