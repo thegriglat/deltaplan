@@ -43,7 +43,7 @@ PY
 )
 
 echo "== бенч GPU: полностью / рельеф =="
-GODOT_EXTRA="--fullscreen"  # без него окно WM ужимается до 958 px и замер нерепрезентативен
+GODOT_EXTRA="--fullscreen --gpu-profile"  # без него окно WM ужимается до 958 px и замер нерепрезентативен
 bench_args=(--location=ongudai --site=kayancha_south --agl=800 --clearings "--bench-static=$bench_frames")
 full_line=$(run_godot "${bench_args[@]}" | grep BENCH_STATIC_JSON | sed 's/^.*BENCH_STATIC_JSON://')
 relief_line=$(run_godot "${bench_args[@]}" --no-trees --no-grass --no-haze | grep BENCH_STATIC_JSON | sed 's/^.*BENCH_STATIC_JSON://')
