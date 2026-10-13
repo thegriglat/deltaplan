@@ -107,6 +107,13 @@ func setup(
 	return true
 
 
+## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года, солнце, небо) —
+## тем же путём, что у рельефа (TerrainRenderer.apply_scene_look_params).
+func apply_scene_look(sl: Dictionary) -> void:
+	if material != null:
+		TerrainRenderer.apply_scene_look_params(material, sl)
+
+
 ## Просеки (маска WorldClearings, 255 — расчищено).
 func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
 	if material == null:
