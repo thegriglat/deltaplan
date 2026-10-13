@@ -1,23 +1,15 @@
 extends TestCase
 ## scene-look SL-5: прибрежная полоса, граница леса — числами
 ## (CPU-зеркало формул scene_look.gdshaderinc: sl_riparian_* /
-## sl_treeline_height / sl_forest; правятся вместе). Север — −Z.
+## Terrain.treeline_height / sl_forest; правятся вместе). Север — −Z.
 
 static func _sl() -> Dictionary:
 	return Config.get_config("world").get("scene_look", {})
 
 
-## = sl_treeline_height
+## = Terrain.treeline_height (результат уходит в uniform sl_treeline_h)
 static func treeline(lat: float, sl: Dictionary) -> float:
-	var la: Array = sl.treeline_lat
-	var hm: Array = sl.treeline_m
-	var a := clampf(absf(lat), float(la[0]), float(la[3]))
-	var r := float(hm[0])
-	for i in 3:
-		var t := clampf((a - float(la[i])) / maxf(float(la[i + 1]) - float(la[i]), 1e-3), 0.0, 1.0)
-		if a >= float(la[i]):
-			r = lerpf(float(hm[i]), float(hm[i + 1]), t)
-	return r
+	return Terrain.treeline_height(lat, sl)
 
 
 ## Прямой берег: вода при x < 0, маска 10 м билинейно (скат шириной 10 м от x = −5 до x = 5)

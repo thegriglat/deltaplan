@@ -167,32 +167,16 @@ uniform float sl_riparian_bright = 0.18;   // добавка яркости
 uniform vec2 sl_riparian_fade_m = vec2(800.0, 3000.0);  // вдали полоса уже мельче пикселя — гаснет
 // Граница леса от широты: высота (м) в узлах широты (градусы, по |lat|), между ними линейно
 uniform bool sl_treeline_enabled = false;
-uniform vec4 sl_treeline_lat = vec4(0.0, 30.0, 47.0, 70.0);
-uniform vec4 sl_treeline_m = vec4(3900.0, 3500.0, 2100.0, 300.0);
+uniform float sl_treeline_h = 0.0;        // высота границы леса на широте места, м (считает Terrain.treeline_height по treeline_lat/_m)
 uniform float sl_treeline_thin_m = 300.0;  // ниже границы лес редеет на столько (просветы луга)
 uniform vec2 sl_treeline_blend_m = vec2(80.0, 250.0);  // альпийский луг: от границы − x до границы + y
 uniform float sl_treeline_top_m = 700.0;   // выше границы + это альпийский тон сходит на нет (камень — прежний код)
 uniform vec3 sl_treeline_tint = vec3(1.1, 0.98, 0.72);  // альпийский луг: ниже ростом, охристо-зелёный (множитель цвета луга)
 uniform float sl_treeline_gap_m = 70.0;    // размер просветов у границы леса, м
 
-// Высота границы леса на широте lat_deg (м): линейно по узлам sl_treeline_lat/_m.
-float sl_treeline_height(float lat_deg) {
-	float a = clamp(abs(lat_deg), sl_treeline_lat.x, sl_treeline_lat.w);
-	float r = sl_treeline_m.x;
-	for (int i = 0; i < 3; i++) {
-		float l0 = sl_treeline_lat[i];
-		float l1 = sl_treeline_lat[i + 1];
-		float t = clamp((a - l0) / max(l1 - l0, 1e-3), 0.0, 1.0);
-		if (a >= l0) {
-			r = mix(sl_treeline_m[i], sl_treeline_m[i + 1], t);
-		}
-	}
-	return r;
-}
-
 // Пятно тона: −1…1 (низкочастотный fbm), множитель цвета.
 vec3 sl_patch_mul(vec2 xz) {
-	float t = clamp((fbm(xz / sl_patch_scale_m + vec2(17.3, 5.9), 2) - 0.5) * 4.0, -1.0, 1.0);
+	float t = clamp((fbm(xz / sl_patch_scale_m + vec2(17.3, 5.9), 1) - 0.5) * 4.0, -1.0, 1.0);
 	float b = sl_patch_k * t;
 	return (1.0 + b) * vec3(1.0 + sl_patch_hue * b, 1.0, 1.0 - sl_patch_hue * b);
 }
