@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Сборка: tools/build.sh [linux|windows|macos|all] [--release]
-# Результат: build/<платформа>/ + архив build/deltaplan-<платформа>.zip
+# Результат: build/<платформа>/ — каталог для butler (архивы не нужны: butler заливает каталог).
 # macOS: Godot сам пакует Deltaplan.app в zip (универсальный x86_64+arm64, подпись ad-hoc без
-# нотаризации); build/macos/ — распакованный .app для butler. configs/ рядом не кладём: внутри .app
+# нотаризации); его распаковываем в build/macos/ и удаляем. configs/ рядом не кладём: внутри .app
 # это ломает подпись, а снаружи Config его не ищет — на Mac настройки только встроенные.
 # Steam: linux-steam|windows-steam|macos-steam — пресеты «… Steam» (метка steam, GodotSteam из
 # tools/steam/fetch_godotsteam.sh), каталог build/<платформа>-steam; в «all» не входят. itch-сборки без GodotSteam.
@@ -59,8 +59,8 @@ build_one() {
 	# Манифест itch: без него приложение itch считает deltaplan.pck вторым кандидатом на запуск
 	# (godot-pck через wine) и спрашивает, что запускать.
 	printf '[[actions]]\nname = "play"\npath = "%s"\n' "$bin" > "build/$dir/.itch.toml"
-	(cd build && rm -f "deltaplan-$dir.zip" && zip -qr "deltaplan-$dir.zip" "$dir")
-	echo "готово: build/$dir/$bin, build/deltaplan-$dir.zip"
+	rm -f "build/deltaplan-$dir.zip"
+	echo "готово: build/$dir/$bin"
 }
 
 [[ "$target" == linux || "$target" == all ]] && build_one Linux linux deltaplan.x86_64
@@ -78,9 +78,10 @@ build_macos() {
 	cmp -s project.godot "build/.project.godot.bak" || cp "build/.project.godot.bak" project.godot
 	rm -f "build/.project.godot.bak"
 	(cd "build/$dir" && unzip -q "../deltaplan-$dir.zip")
+	rm -f "build/deltaplan-$dir.zip"
 	python3 tools/release/third_party_notices.py --out "build/$dir" --preset "$preset"
-	echo "готово: build/$dir/$(ls build/$dir), build/deltaplan-$dir.zip"
-	cp tools/release/README-options.txt "build/$dir/README-options.txt"  # рядом с .app, не внутри (подпись); в zip Godot — нет
+	echo "готово: build/$dir/$(ls build/$dir)"
+	cp tools/release/README-options.txt "build/$dir/README-options.txt"  # рядом с .app, не внутри (подпись)
 }
 [[ "$target" == macos || "$target" == all ]] && build_macos
 [[ "$target" == macos-steam ]] && build_macos "macOS Steam" macos-steam

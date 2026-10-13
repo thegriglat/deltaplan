@@ -76,7 +76,7 @@ Known issues:
 - `tools/build.sh all --release` (нужен дисплей: Shader Baker запекает шейдеры только при экспорте с окном; без дисплея — предупреждение и сборка без запекания). Проверить вывод: «готово: build/linux/…», «готово: build/windows/…», «готово: build/macos/Deltaplan.app…».
 - `data/build_info.json` → коммит без `+` (иначе была незакоммиченная правка — вернуться к шагу 0).
 - Smoke Linux: `XDG_DATA_HOME=$(mktemp -d) build/linux/deltaplan.x86_64 --headless -- --smoke | grep smoke` — все 9 крыльев, 4 места, `terrain data=true`, `about … ok=true`, «300 шагов … фаза flying».
-- Архивы: `unzip -l build/deltaplan-windows.zip | grep -v configs/` — только `deltaplan.exe` + `deltaplan.pck` (нет `*.console.exe`, временных файлов); то же для Linux. macOS: `unzip -l build/deltaplan-macos.zip | grep -E "MacOS/|\.pck"` — бинарник и pck внутри `Deltaplan.app` (запустить негде — проверяет друг с Mac).
+- Каталоги (zip не делаются, butler заливает каталоги): `find build/windows -not -path "*/configs/*"` — только `deltaplan.exe` + `deltaplan.pck` (нет `*.console.exe`, временных файлов); то же для `build/linux`. macOS: `find build/macos -path "*MacOS/*" -o -name "*.pck"` — бинарник и pck внутри `Deltaplan.app` (запустить негде — проверяет друг с Mac).
 
 ## 6. Тег
 `git tag -a vX.Y.Z <коммит сборки> -m "Deltaplan X.Y.Z"` — на коммит из шага 4 (тот, из которого собрано). Пушить (`git push`, `--tags`) — только если пользователь попросит.
@@ -92,4 +92,4 @@ Known issues:
 - Это публикация — выполнять только по явной просьбе выпустить версию (вызов скилла ею и является).
 
 ## 8. Отчёт пользователю
-Коротко: версия, коммит и тег, размеры архивов, итог smoke, статус каналов itch, путь `site/content/releases/X.Y.Z/devlog.txt` и страницы версии после пуша: en https://thegriglat.github.io/deltaplan/releases/X.Y.Z/ и ru https://thegriglat.github.io/deltaplan/ru/releases/X.Y.Z/, что вошло в версию (3–5 пунктов).
+Коротко: версия, коммит и тег, размеры каталогов (`du -sh build/{linux,windows,macos}`), итог smoke, статус каналов itch, путь `site/content/releases/X.Y.Z/devlog.txt` и страницы версии после пуша: en https://thegriglat.github.io/deltaplan/releases/X.Y.Z/ и ru https://thegriglat.github.io/deltaplan/ru/releases/X.Y.Z/, что вошло в версию (3–5 пунктов).
