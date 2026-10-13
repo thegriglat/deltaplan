@@ -1,0 +1,65 @@
+{
+  "id": "SL-14",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Альбедо моделей деревьев и атласа импостеров к реальному пологу",
+  "goal": "Текстуры моделей деревьев и атласа импостеров в 3–5 раз темнее реального полога (ель 0,011 при 0,05–0,09) — лес вблизи тёмный, на дальнем пологе модели стояли бы пятнами; поднять шейдером по породам, без новых текстур, и снять сшивку полога на 500–2000 м.",
+  "plan_ref": "SL-14 Альбедо деревьев",
+  "contracts": [
+    {
+      "name": "SL-К1",
+      "version": "2",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-14",
+  "branch": "scene-look/SL-14",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/tree_model.gdshader",
+    "scripts/terrain/terrain_tree_models.gd",
+    "scripts/terrain/forest_impostors.gdshader",
+    "scripts/terrain/forest_impostors.gd",
+    "scripts/terrain/scene_look.gdshaderinc",
+    "configs/world.json",
+    "tests/vegetation/",
+    "tests/terrain/"
+  ],
+  "dont_touch": [
+    "assets/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "vegetation",
+      "tests": "vegetation"
+    },
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_full_ms_base",
+    "gpu_full_ms_after",
+    "albedo_table",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-13T23:44:58",
+  "edited": "2026-10-13T23:44:59"
+}
