@@ -389,7 +389,7 @@ uniform float terrace_strength = 0.45;
 uniform vec2 tone_scale_m = vec2(380.0, 1500.0); // крупные пятна тона, м
 uniform float tone_strength = 0.18;
 // --- выходы породы и курумник на гребнях/выпуклостях и крутых лугах ---
-uniform vec2 snow_slope_deg = vec2(38.0, 52.0);   // снег WorldCover: держится / гаснет по уклону, градусы
+uniform vec2 snow_slope_deg = vec2(35.0, 45.0);   // снег WorldCover: держится / гаснет по уклону, градусы
 uniform float snow_hollow_deg = 6.0;            // в ложбине снег держится круче на столько градусов (при вогнутости outcrop_convex_k)
 uniform float snow_ridge_blow = 0.6;            // выпуклый гребень: доля снега, сдуваемая ветром (0..1)
 uniform float outcrop_convex_k = 0.035;        // выпуклость (м/м), с которой гребень каменистый

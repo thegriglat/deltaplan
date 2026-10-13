@@ -88,7 +88,7 @@ func _measure(t: Terrain, c: Vector2) -> void:
 	var oc_sl: Array = look.get("outcrop_slope_deg", [25.0, 36.0])
 	var snow_line := float(look.get("gully_snow_line_m", 2500.0))
 	var e_sl: Array = look.get("erosion_slope_deg", [5.0, 18.0])
-	var sn_sl: Array = look.get("snow_slope_deg", [38.0, 52.0])
+	var sn_sl: Array = look.get("snow_slope_deg", [35.0, 45.0])
 	var sn_hollow := float(look.get("snow_hollow_deg", 6.0))
 	var sn_blow := float(look.get("snow_ridge_blow", 0.6))
 	var cvx_k := float(look.get("outcrop_convex_k", 0.035))

@@ -301,7 +301,7 @@
       0.97
     ],
     "snow_color_doc": "Снег",
-    "snow_slope_deg": [38, 52],
+    "snow_slope_deg": [35, 45],
     "snow_slope_deg_doc": "Снег WorldCover (класс 8): держится до / гаснет полностью к уклону, градусы (дальше видна порода); кромка рваная, как у скал",
     "snow_hollow_deg": 6,
     "snow_hollow_deg_doc": "В ложбине (вогнутость outcrop_convex_k, масштаб outcrop_scale_m) снег держится круче на столько градусов",
