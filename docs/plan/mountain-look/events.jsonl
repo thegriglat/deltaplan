@@ -80,3 +80,7 @@
 {"t": "2026-10-14T00:37:01", "by": "coordinator", "task": "MLK-9", "ev": "accepted", "note": "по отчёту: правка только теста (±2 узла глубокого леса), К1 не ослаблен — открытое сверяется с сырыми, лес со сглаженными, порог 0,5 м"}
 {"t": "2026-10-14T00:37:16", "by": "coordinator", "task": "MLK-9", "ev": "accepted", "commits": ["7da50e47"], "note": "4/4 dem_stage=ok:4/4; location_builder=ok:7/7; mountain_look_contracts=ok:9/9; osm_any_contracts=ok:10/10"}
 {"t": "2026-10-14T00:37:23", "by": "coordinator", "task": "MLK-9", "ev": "merged", "note": "7da50e47; на ветке модуля 4/4"}
+{"t": "2026-10-14T00:47:44", "by": "executor", "task": "MLK-5", "ev": "reported", "commits": ["c3d4be7e", "6458aa5d"], "note": "done: Зонд К3 final_* на 8 местах (elbrus_cheget перезапущен), final_tables.md (compare.py --after=final), итог в README, 6 к…"}
+{"t": "2026-10-14T00:48:05", "by": "executor", "task": "MLK-5", "ev": "accepted", "note": "3/3 probe=ok:8; table=ok:exit 0; shots=ok:6"}
+{"t": "2026-10-14T00:48:05", "by": "coordinator", "task": "MLK-5", "ev": "accepted", "commits": ["3ce837f4"], "note": "3/3 probe=ok:8; table=ok:exit 0; shots=ok:6"}
+{"t": "2026-10-14T00:48:17", "by": "coordinator", "task": "MLK-5", "ev": "merged", "note": "3ce837f4; сборка Linux перенесена в /home/greg/deltaplan-mountain-look/build/linux (pck 212 МБ — без сжатия крыльев из main, после слияния в main станет меньше)"}
