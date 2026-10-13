@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://chr041vsxp44d"
-path.bptc="res://.godot/imported/glider_laminar_glider_laminar_sail.png-f14e098e37724f5ab51b6b62129728d4.bptc.ctex"
-path.astc="res://.godot/imported/glider_laminar_glider_laminar_sail.png-f14e098e37724f5ab51b6b62129728d4.astc.ctex"
+path="res://.godot/imported/glider_laminar_glider_laminar_sail.png-f14e098e37724f5ab51b6b62129728d4.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "ff7a263b5136affa57096d16cb89c856"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_laminar_glider_laminar_sail.png"
-dest_files=["res://.godot/imported/glider_laminar_glider_laminar_sail.png-f14e098e37724f5ab51b6b62129728d4.bptc.ctex", "res://.godot/imported/glider_laminar_glider_laminar_sail.png-f14e098e37724f5ab51b6b62129728d4.astc.ctex"]
+dest_files=["res://.godot/imported/glider_laminar_glider_laminar_sail.png-f14e098e37724f5ab51b6b62129728d4.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

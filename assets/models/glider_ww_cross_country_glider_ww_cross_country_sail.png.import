@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxq8xwpnv1oto"
-path.bptc="res://.godot/imported/glider_ww_cross_country_glider_ww_cross_country_sail.png-513818e4c6b5857c9b4cf0b7a3b71020.bptc.ctex"
-path.astc="res://.godot/imported/glider_ww_cross_country_glider_ww_cross_country_sail.png-513818e4c6b5857c9b4cf0b7a3b71020.astc.ctex"
+path="res://.godot/imported/glider_ww_cross_country_glider_ww_cross_country_sail.png-513818e4c6b5857c9b4cf0b7a3b71020.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "ac1c3bfa76a804dcd7666a3ca108955d"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_ww_cross_country_glider_ww_cross_country_sail.png"
-dest_files=["res://.godot/imported/glider_ww_cross_country_glider_ww_cross_country_sail.png-513818e4c6b5857c9b4cf0b7a3b71020.bptc.ctex", "res://.godot/imported/glider_ww_cross_country_glider_ww_cross_country_sail.png-513818e4c6b5857c9b4cf0b7a3b71020.astc.ctex"]
+dest_files=["res://.godot/imported/glider_ww_cross_country_glider_ww_cross_country_sail.png-513818e4c6b5857c9b4cf0b7a3b71020.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
