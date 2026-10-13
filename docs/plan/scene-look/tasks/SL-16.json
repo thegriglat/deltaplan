@@ -1,0 +1,54 @@
+{
+  "id": "SL-16",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Камни-модели без рядов: сбить регулярность расстановки",
+  "goal": "Камешки-модели на скалах и осыпях стоят заметными рядами; сбить регулярность (разброс положения, пропуски, размер) так, чтобы склон выглядел битым, сохранив физический смысл грядок вдоль слоёв породы и шлейфов осыпей.",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-16",
+  "branch": "scene-look/SL-16",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/rock_scatter.gd",
+    "scripts/terrain/rock_scatter.gdshader",
+    "configs/world.json",
+    "tests/terrain/"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "assets/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "rock",
+      "tests": "rock"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_full_ms_base",
+    "gpu_full_ms_after",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-14T01:08:12",
+  "edited": "2026-10-14T01:08:12"
+}
