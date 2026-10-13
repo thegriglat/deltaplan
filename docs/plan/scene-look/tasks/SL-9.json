@@ -1,0 +1,63 @@
+{
+  "id": "SL-9",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Анти-тайлинг скал и осыпей, конусы выноса",
+  "goal": "Скалы и осыпи без видимого повтора текстуры вблизи и вдали; под кулуарами и обрывами — светлые веера осыпей (конусы выноса). Только шейдером, поверх кода mountain-look.",
+  "plan_ref": "SL-9 Анти-тайлинг скал и осыпей, конусы выноса (п. 5, 12) — после mountain-look",
+  "contracts": [
+    {
+      "name": "SL-К1",
+      "version": "3",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-9",
+  "branch": "scene-look/SL-9",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_renderer.gd",
+    "configs/world.json",
+    "tests/terrain/",
+    "tests/contracts/test_scene_look_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "scripts/terrain/meadow_look.gdshaderinc",
+    "scripts/terrain/build/",
+    "docs/contracts/",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_full_ms_base",
+    "gpu_full_ms_after",
+    "gpu_relief_ms_base",
+    "gpu_relief_ms_after",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-14T00:59:52",
+  "edited": "2026-10-14T00:59:59"
+}
