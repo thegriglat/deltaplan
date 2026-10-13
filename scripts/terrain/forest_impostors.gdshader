@@ -62,7 +62,6 @@ varying float v_cs_sun;
 // scene-look (SL-2): средняя яркость ячейки атласа × tint, хвойное (1) / лиственное (0), нормаль склона
 varying float v_sl_luma;
 varying float v_sl_con;
-varying vec3 v_sl_n;
 varying float v_sl_dir;
 // хвойные по породам (pine, cedar, larch, birch, spruce — порядок TreePlacer.SPECIES); лиственница
 // летом — светлая хвоя, по альбедо ближе к лиственным
@@ -140,7 +139,7 @@ void vertex() {
 	v_dist = d;
 	v_sl_luma = 0.0;
 	v_sl_con = 1.0;
-	v_sl_n = vec3(0.0, 1.0, 0.0);
+	v_sl_dir = 1.0;
 	if (present) {
 		float h = h_bilinear(xz);
 		float e = layer_spacing;
@@ -173,7 +172,9 @@ void vertex() {
 				vec4 mc = textureLod(atlas, (cell_uv + 0.5) / atlas_cells, lod);
 				v_sl_luma = dot(mc.rgb, SL_LW) / max(mc.a, 1e-3) * v_tint;
 				v_sl_con = SL_CONIFER[sp];
-				v_sl_n = n;
+				// полог вдали: видимая доля освещённых крон по солнцу и взгляду (как у полога
+				// рельефа); на билборд постоянна — в вершине
+				v_sl_dir = sl_canopy_direct(n, normalize(CAMERA_POSITION_WORLD - v), sl_canopy_far(d));
 			}
 		}
 	}
@@ -200,8 +201,6 @@ void fragment() {
 	ALPHA = smoothstep(0.5 - edge, 0.5 + edge, c.a);
 	ALPHA_SCISSOR_THRESHOLD = mix(0.5, 0.02, t);
 	AO = cloud_sky_ao(v_cs_sun);
-	// полог вдали: видимая доля освещённых крон по солнцу и взгляду (как у полога рельефа)
-	v_sl_dir = sl_canopy_direct(normalize(v_sl_n), normalize(CAMERA_POSITION_WORLD - (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz), sl_canopy_far(v_dist));
 	v_sl_ny = (INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).y;
 	v_sl_ao = AO;
 	v_sl_sun = v_cs_sun;
