@@ -150,6 +150,92 @@ vec3 sl_tree_tone(vec3 rgb, float mean_luma, float con, float dist, float t, flo
 	return rgb * mix(1.0, target / m, sl_canopy_far(dist));
 }
 
+#ifndef SL_NO_GROUND   // SL-5 использует vnoise/fbm/forest_mask_g из terrain_common
+// --- SL-5: крупные пятна, прибрежная зелень, граница леса ---
+// Широта места — SL-К2: sl_lat_deg.
+// Крупные пятна тона 0,5–3 км (один fbm из 2 октав) на лугах и в лесу
+uniform bool sl_patch_enabled = false;
+uniform float sl_patch_scale_m = 2400.0;  // длина волны первой октавы, м (вторая — вдвое короче)
+uniform float sl_patch_k = 0.1;           // ± яркость пятен
+uniform float sl_patch_hue = 0.5;         // сдвиг тёплый/холодный относительно яркости
+// Прибрежная зелень: доля воды маски 10 м в 12 точках двух колец (R, R/2) вокруг пикселя
+uniform bool sl_riparian_enabled = false;
+uniform float sl_riparian_radius_m = 60.0; // полоса до R от воды, в полную силу — до 0,7·R
+uniform float sl_riparian_sat = 0.3;       // средняя доля воды на кольцах, с которой полоса в полную силу
+uniform float sl_riparian_k = 0.6;         // подмес сочного grass_color (яркость сохраняется)
+uniform float sl_riparian_bright = 0.18;   // добавка яркости
+uniform vec2 sl_riparian_fade_m = vec2(800.0, 3000.0);  // вдали полоса уже мельче пикселя — гаснет
+// Граница леса от широты: высота (м) в узлах широты (градусы, по |lat|), между ними линейно
+uniform bool sl_treeline_enabled = false;
+uniform vec4 sl_treeline_lat = vec4(0.0, 30.0, 47.0, 70.0);  // таблица границы леса (SL-К1: каждый ключ — uniform); шейдер берёт готовую sl_treeline_h
+uniform vec4 sl_treeline_m = vec4(3900.0, 3500.0, 2100.0, 300.0);
+uniform float sl_treeline_h = 0.0;        // высота границы леса на широте места, м (считает Terrain.treeline_height по treeline_lat/_m)
+uniform float sl_treeline_thin_m = 300.0;  // ниже границы лес редеет на столько (просветы луга)
+uniform vec2 sl_treeline_blend_m = vec2(80.0, 250.0);  // альпийский луг: от границы − x до границы + y
+uniform float sl_treeline_top_m = 700.0;   // выше границы + это альпийский тон сходит на нет (камень — прежний код)
+uniform vec3 sl_treeline_tint = vec3(1.1, 0.98, 0.72);  // альпийский луг: ниже ростом, охристо-зелёный (множитель цвета луга)
+uniform float sl_treeline_gap_m = 70.0;    // размер просветов у границы леса, м
+
+// Пятно тона: −1…1 (низкочастотный fbm), множитель цвета.
+vec3 sl_patch_mul(vec2 xz) {
+	float t = clamp((fbm(xz / sl_patch_scale_m + vec2(17.3, 5.9), 1) - 0.5) * 4.0, -1.0, 1.0);
+	float b = sl_patch_k * t;
+	return (1.0 + b) * vec3(1.0 + sl_patch_hue * b, 1.0, 1.0 - sl_patch_hue * b);
+}
+
+// Вес альпийского луга на высоте h: растёт от границы леса, сходит выше (камень).
+float sl_alpine_w(float h, float tl) {
+	return smoothstep(tl - sl_treeline_blend_m.x, tl + sl_treeline_blend_m.y, h)
+			* (1.0 - smoothstep(tl + 0.5 * sl_treeline_top_m, tl + sl_treeline_top_m, h));
+}
+
+// Луг: пятна, альпийский тон.
+vec3 sl_meadow(vec3 c, vec3 wp) {
+	if (sl_patch_enabled) {
+		c *= sl_patch_mul(wp.xz);
+	}
+	if (sl_treeline_enabled) {
+		float w = sl_alpine_w(wp.y + 40.0 * (vnoise(wp.xz / 180.0) - 0.5), sl_treeline_h);
+		c = mix(c, c * sl_treeline_tint, w);
+	}
+	return c;
+}
+
+// Полог (пятна в лесу не нужны — их даёт полог): у границы леса просветы и выше — луг (gcol уже альпийский).
+vec3 sl_forest(vec3 f, vec3 gcol, vec3 wp) {
+	if (sl_treeline_enabled) {
+		float p = smoothstep(sl_treeline_h - sl_treeline_thin_m, sl_treeline_h, wp.y);
+		if (p > 0.0) {
+			float n2 = vnoise(wp.xz / sl_treeline_gap_m + vec2(4.1, 8.3));
+			float gap = smoothstep(0.0, 0.2, p * 1.2 - n2);
+			f = mix(f, gcol * 0.85, gap);
+		}
+	}
+	return f;
+}
+
+// Средняя доля воды в 4 точках на радиусе 0,65·R (крест, повёрнут на 20°) вокруг xz: маска G 10 м
+// (мипов у неё нет, поэтому 4 выборки вместо 12).
+float sl_riparian_ring(vec2 xz) {
+	float r = 0.65 * sl_riparian_radius_m;
+	return 0.25 * (forest_mask_g(xz + vec2(0.940, 0.342) * r) + forest_mask_g(xz + vec2(-0.342, 0.940) * r)
+			+ forest_mask_g(xz + vec2(-0.940, -0.342) * r) + forest_mask_g(xz + vec2(0.342, -0.940) * r));
+}
+
+// Вес прибрежной полосы по средней доле воды на кольце (на самой воде и далеко от неё — 0).
+float sl_riparian_w(float ring_mean, float water, float dist) {
+	return smoothstep(0.0, sl_riparian_sat, ring_mean) * (1.0 - water)
+			* (1.0 - smoothstep(sl_riparian_fade_m.x, sl_riparian_fade_m.y, dist));
+}
+
+// Сочнее и зеленее у воды: к свежему grass_color с сохранением яркости, + яркость.
+vec3 sl_riparian_color(vec3 c, vec3 grass, float w) {
+	float l = dot(c, SL_LW);
+	vec3 lush = grass * (l / max(dot(grass, SL_LW), 1e-3));
+	return mix(c, lush, sl_riparian_k * w) * (1.0 + sl_riparian_bright * w);
+}
+
+#endif
 // --- SL-6: сезон по дате полёта, широте и высоте (контракт SL-К2; зеркало — scripts/terrain/season_look.gd,
 // формулы правятся вместе). Фенология — закон Хопкинса: ≈ 4 дня на 1° широты и на 122 м высоты
 // (весна позже, осень раньше); южное полушарие — дата сдвинута на полгода; тропики (|φ| < ~23°) без
