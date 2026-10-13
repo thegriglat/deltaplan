@@ -56,12 +56,12 @@
     "detail": {
       "chunk_cells": 160,
       "lod_distances_m": [1500, 3500, 7000, 14000],
-      "skirt_depth_m": 40
+      "skirt_depth_m": 300
     },
     "far": {
       "chunk_cells": 200,
       "lod_distances_m": [12000, 25000, 45000],
-      "skirt_depth_m": 150
+      "skirt_depth_m": 400
     }
   },
   "start_position_agl_m": 0.0,
