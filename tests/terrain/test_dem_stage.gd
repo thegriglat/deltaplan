@@ -126,7 +126,9 @@ func test_parity_with_builtin_askarovo() -> void:
 		return
 	# MLK-К1: эталон — стадия smooth (сырые на открытом, σ 0,8 под лесом и застройкой). DemStage один даёт
 	# сглаживание везде (w = 1) и сырые в detail_raw.webp: на открытом месте (нет леса/застройки в ±7 узлах
-	# эталона) сырые совпадают с эталоном, под лесом сглаженные не дальше полуметра от эталона глубоко в лесу.
+	# эталона) сырые совпадают с эталоном, под лесом сглаженные не дальше полуметра от эталона глубоко в лесу
+	# (лес в ±2 узлах = ±50 м, один σ маски; шире на этом месте почти нет: ±3 — один узел, ±4 — ни одного;
+	# ±1 узел вес маски ещё не 1 и разница доходит до 0,53 м — потому ±2). Просмотр — вся зона detail.
 	var raw_info: Dictionary = (meta.layers[0] as Dictionary).duplicate()
 	raw_info["height_min_m"] = float(raw_info.raw_height_min_m)
 	var raw_d := HeightLayer.load_from_file(ctx.dir + "/" + String(raw_info.raw_file), raw_info)
@@ -140,8 +142,8 @@ func test_parity_with_builtin_askarovo() -> void:
 	var n_open := 0
 	var worst_deep := 0.0
 	var n_deep := 0
-	for j in range(-16, 17):
-		for i in range(-16, 17):
+	for j in range(-half, half + 1):
+		for i in range(-half, half + 1):
 			var x := i * 25.0
 			var z := j * 25.0
 			var near_cover := false
@@ -151,7 +153,7 @@ func test_parity_with_builtin_askarovo() -> void:
 					var c := int(cls.get_pixel(fc + i + di, fc + j + dj).r * 255.0 + 0.5)
 					if c == SurfaceLayer.FOREST or c == SurfaceLayer.BUILT:
 						near_cover = true
-					if c != SurfaceLayer.FOREST:
+					if c != SurfaceLayer.FOREST and absi(di) <= 2 and absi(dj) <= 2:
 						deep_forest = false
 			if not near_cover:
 				n_open += 1
