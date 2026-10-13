@@ -1,18 +1,21 @@
 extends Node
 ## Зонд силуэта гор MLK-К3 v1 (модуль mountain-look). Не игровой код: грузит место как игра
 ## (Terrain.load_point / load_builtin), строит сырой эталон (Copernicus без сглаживания) и сравнивает
-## его с данными игры и с тем, как рисует меш (LOD-выборка вершин + dh К2 v1, копия формулы из
-## vertex() terrain.gdshader). Печатает «MLOOK <tag> <раздел> …» и пишет JSON.
+## его с данными игры и с тем, как рисует меш (LOD-выборка вершин + dh К2: v2 — ReliefLook.dh, CPU-зеркало
+## vertex() terrain.gdshader; --dh=v1 — прежняя формула, копия в зонде). Печатает «MLOOK <tag> <раздел> …»
+## и пишет JSON. Версия 2 (MLK-3): + раздел "mesh" — швы LOD/слоёв, dh в вогнутых местах, перепад высот;
+## --quick=1 — только меш (без сырого эталона, горизонта, вершин и гребней; быстро).
 ##
 ##   XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tools/bench/mountain_look_probe.tscn -- \
 ##     --latlon=LAT,LON [--location=<id>] --tag=<имя> --out=<путь.json> [--agl=300] [--az_step=0.1] \
 ##     [--cache=<каталог>] [--range_km=45] [--raw=copernicus|game] [--targets="lat,lon,имя;…"]
+##     [--dh=v2|v1] [--quick=1] [--look="ключ=число;ключ=a,b"] (подмена terrain_look — подбор relief_*)
 ##   --raw=game — без сети: «сырым» служат слои игры (форма JSON для теста; curv_ratio = 1).
 ## Приближения: dh — без шума границ классов (surface_edge_noise), градиент промоин — разностью
 ## на шаге мипа, а не trilinear по мипам; меш — треугольники (a,b,c / b,d,c) как в _grid_mesh;
 ## рефракция k = 0,13 (угол горизонта уменьшается на r/2R·(1−k)).
 
-const PROBE_VERSION := 1
+const PROBE_VERSION := 2
 const EARTH_R := 6371008.8
 const REFRACTION_K := 0.13
 const CREST_LAP := -0.15
@@ -20,8 +23,12 @@ const ZONES := ["all", "above_forest", "forest"]
 
 var _opt := {
 	"lat": NAN, "lon": NAN, "location": "", "tag": "", "out": "", "agl": 300.0, "az_step": 0.1,
-	"cache": "", "range_km": 45.0, "raw": "copernicus", "targets": "",
+	"cache": "", "range_km": 45.0, "raw": "copernicus", "targets": "", "dh": "v2", "quick": 0.0, "look": "",
 }
+## Вогнутое место для «надувания долин»: лапласиан игры на масштабе VALLEY_SCALE_M больше этого, м/м.
+const VALLEY_LAP := 0.05
+const VALLEY_SCALE_M := 100.0
+const VALLEY_MIN_KM := 3.0
 var _look: Dictionary = {}
 var _rm: Array = []  # меш отрисовки по слоям (см. _rm_build)
 var _D: HeightLayer
@@ -108,7 +115,14 @@ func measure(t: Terrain, opt: Dictionary) -> Dictionary:
 	var tag := String(opt.tag)
 	_D = t.layers[0]
 	_F = t.layers[t.layers.size() - 1] if t.layers.size() > 1 else null
-	_look = t._look
+	_look = t._look.duplicate(true)
+	for kv in String(opt.get("look", "")).split(";", false):
+		var p := kv.split("=")
+		if p.size() == 2:
+			var vals := p[1].split(",")
+			_look[p[0]] = float(vals[0]) if vals.size() == 1 else Array(vals).map(func(v: String) -> float: return float(v))
+	if String(opt.get("look", "")) != "":
+		print("MLOOK %s look %s" % [tag, String(opt.look)])
 	var site_ll := Vector2(float(opt.lat), float(opt.lon))
 	if is_nan(site_ll.x):
 		var sites := t.get_start_sites()
@@ -124,6 +138,11 @@ func measure(t: Terrain, opt: Dictionary) -> Dictionary:
 	_h_eye = _game_h(_c.x, _c.y) + float(opt.agl)
 	var rcfg: Dictionary = _render_cfg(t)
 	_rm = _rm_build(t.layers, t.surfaces, rcfg, Vector3(_c.x, _h_eye, _c.y))
+	var mesh := _mesh_stats(rcfg)
+	print("MLOOK %s меш dh=%s %s" % [tag, String(opt.get("dh", "v2")), JSON.stringify(mesh)])
+	if float(opt.get("quick", 0.0)) > 0.0:
+		return {"probe_version": PROBE_VERSION, "tag": tag, "dh": String(opt.get("dh", "v2")), "quick": true,
+				"lat": site_ll.x, "lon": site_ll.y, "h_eye_m": _h_eye, "mesh": mesh}
 	print("MLOOK %s старт lat=%.4f lon=%.4f h_eye=%.0f центр=%.3f,%.3f" % [tag, site_ll.x, site_ll.y, _h_eye, t.center_lat, t.center_lon])
 	# сырой эталон
 	if String(opt.raw) == "game":
@@ -165,6 +184,7 @@ func measure(t: Terrain, opt: Dictionary) -> Dictionary:
 		"center_lat": t.center_lat, "center_lon": t.center_lon, "format_version": Locations.FORMAT_VERSION,
 		"agl_m": float(opt.agl), "h_eye_m": _h_eye, "raw": String(opt.raw), "range_km": float(opt.range_km),
 		"layers": layers_out, "peaks": peaks, "crests": crests, "horizon": hj, "memory": _memory(t),
+		"dh": String(opt.get("dh", "v2")), "mesh": mesh, "look_override": String(opt.get("look", "")),
 	}
 	if String(opt.out) != "":
 		_write_profile(String(opt.out).get_basename() + "_profile.csv", hz)
@@ -360,6 +380,8 @@ func _rm_build(layers: Array, surfaces: Array, rcfg: Dictionary, cam: Vector3) -
 			continue
 		var cells := int(rc.chunk_cells)
 		var lod_d: Array = rc.lod_distances_m
+		var lodp := PackedFloat32Array(lod_d)
+		var v1 := String(_opt.get("dh", "v2")) == "v1"
 		var chunk_m := cells * L.spacing
 		var nx := (L.width - 1) / cells
 		var nz := (L.height - 1) / cells
@@ -391,6 +413,8 @@ func _rm_build(layers: Array, surfaces: Array, rcfg: Dictionary, cam: Vector3) -
 				var nv := cells / s + 1
 				var verts := PackedFloat32Array()
 				verts.resize(nv * nv)
+				var dhs := PackedFloat32Array()
+				dhs.resize(nv * nv)
 				for vj in nv:
 					for vi in nv:
 						var gi := ci * cells + vi * s
@@ -398,40 +422,51 @@ func _rm_build(layers: Array, surfaces: Array, rcfg: Dictionary, cam: Vector3) -
 						var wx := L.origin_x + gi * L.spacing
 						var wz := L.origin_z + gj * L.spacing
 						var dc := Vector2(wx - cam.x, wz - cam.z).length()
-						verts[vj * nv + vi] = L.node(gi, gj) + dh_v1(L, surfaces[li], wx, wz, dc, _look)
-				chunks[cj * nx + ci] = {"lod": lod, "s": s, "nv": nv, "verts": verts, "x0": x0, "z0": z0}
-		out.append({"L": L, "cells": cells, "chunk_m": chunk_m, "nx": nx, "nz": nz, "chunks": chunks})
+						var dhv: float = dh_v1(L, surfaces[li], wx, wz, dc, _look) if v1 \
+								else ReliefLook.dh(L, surfaces[li], wx, wz, cam, _look, lodp)
+						verts[vj * nv + vi] = L.node(gi, gj) + dhv
+						dhs[vj * nv + vi] = dhv
+				chunks[cj * nx + ci] = {"lod": lod, "s": s, "nv": nv, "verts": verts, "dhs": dhs, "x0": x0, "z0": z0}
+		out.append({"L": L, "S": surfaces[li], "cells": cells, "chunk_m": chunk_m, "nx": nx, "nz": nz, "chunks": chunks,
+				"skirt": float(rc.skirt_depth_m), "li": li})
 	return out
 
 
 ## Слой, чей чанк рисует точку (индекс в _rm), и сам чанк; -1 — нет.
 func _rm_sample(x: float, z: float) -> float:
 	for lay in _rm:
-		var L: HeightLayer = lay.L
-		if not L.contains(x, z):
-			continue
-		var ci := clampi(int((x - L.origin_x) / lay.chunk_m), 0, lay.nx - 1)
-		var cj := clampi(int((z - L.origin_z) / lay.chunk_m), 0, lay.nz - 1)
-		var ch: Variant = lay.chunks[cj * lay.nx + ci]
-		if ch == null:
-			continue
-		var step: float = L.spacing * float(ch.s)
-		var u: float = (x - float(ch.x0)) / step
-		var v: float = (z - float(ch.z0)) / step
-		var nv: int = ch.nv
-		var iu := clampi(int(floorf(u)), 0, nv - 2)
-		var iv := clampi(int(floorf(v)), 0, nv - 2)
-		var fu: float = u - iu
-		var fv: float = v - iv
-		var vs: PackedFloat32Array = ch.verts
-		var a := vs[iv * nv + iu]
-		var b := vs[iv * nv + iu + 1]
-		var c := vs[(iv + 1) * nv + iu]
-		var d := vs[(iv + 1) * nv + iu + 1]
-		if fu + fv <= 1.0:
-			return a + fu * (b - a) + fv * (c - a)
-		return d + (1.0 - fu) * (c - d) + (1.0 - fv) * (b - d)
+		var v := _rm_sample_layer(lay, x, z)
+		if not is_nan(v):
+			return v
 	return _game_h(x, z)
+
+
+## Высота меша слоя lay в точке; NAN — точка вне слоя или чанк не рисуется.
+func _rm_sample_layer(lay: Dictionary, x: float, z: float, key: String = "verts") -> float:
+	var L: HeightLayer = lay.L
+	if not L.contains(x, z):
+		return NAN
+	var ci := clampi(int((x - L.origin_x) / lay.chunk_m), 0, lay.nx - 1)
+	var cj := clampi(int((z - L.origin_z) / lay.chunk_m), 0, lay.nz - 1)
+	var ch: Variant = lay.chunks[cj * lay.nx + ci]
+	if ch == null:
+		return NAN
+	var step: float = L.spacing * float(ch.s)
+	var u: float = (x - float(ch.x0)) / step
+	var v: float = (z - float(ch.z0)) / step
+	var nv: int = ch.nv
+	var iu := clampi(int(floorf(u)), 0, nv - 2)
+	var iv := clampi(int(floorf(v)), 0, nv - 2)
+	var fu: float = u - iu
+	var fv: float = v - iv
+	var vs: PackedFloat32Array = ch[key]
+	var a := vs[iv * nv + iu]
+	var b := vs[iv * nv + iu + 1]
+	var c := vs[(iv + 1) * nv + iu]
+	var d := vs[(iv + 1) * nv + iu + 1]
+	if fu + fv <= 1.0:
+		return a + fu * (b - a) + fv * (c - a)
+	return d + (1.0 - fu) * (c - d) + (1.0 - fv) * (b - d)
 
 
 ## Шаг вершин (м) в точке и id слоя — для радиуса сравнения пиков и доли фона.
@@ -446,6 +481,191 @@ func _rm_step(x: float, z: float) -> float:
 		if ch != null:
 			return L.spacing * ch.s
 	return 100.0
+
+# ---------------------------------------------------------------- меш: швы, долины, перепад высот
+
+
+## Статистика меша отрисовки (_rm): по слоям — dh вершин (всех; в вогнутых местах дальше VALLEY_MIN_KM —
+## «надувание долин»), перепад высот ReliefLook.local_relief_m (открытые узлы, выборка), щели на стыках
+## чанков разного LOD (|вершина мелкого − линия крупного| против юбки) и скачок силуэта на краю
+## детального слоя (меш детального − меш фона в одной точке).
+func _mesh_stats(_rcfg: Dictionary) -> Dictionary:
+	var layers: Array = []
+	for lay: Dictionary in _rm:
+		var L: HeightLayer = lay.L
+		var S: SurfaceLayer = lay.S
+		var li: int = lay.li
+		var k := maxi(1, int(round(VALLEY_SCALE_M / L.spacing)))
+		var r := k * L.spacing
+		var dh_all: Array = []
+		var dh_far: Array = []
+		var valley: Array = []
+		var rl: Array = []
+		var n_v := 0
+		var sum_far := 0.0
+		for ch: Variant in lay.chunks:
+			if ch == null:
+				continue
+			var nv: int = ch.nv
+			var s: int = ch.s
+			var gi0 := roundi((float(ch.x0) - L.origin_x) / L.spacing)
+			var gj0 := roundi((float(ch.z0) - L.origin_z) / L.spacing)
+			var vs: PackedFloat32Array = ch.verts
+			for vj in nv:
+				for vi in nv:
+					var gi := gi0 + vi * s
+					var gj := gj0 + vj * s
+					var wx := L.origin_x + gi * L.spacing
+					var wz := L.origin_z + gj * L.spacing
+					if li > 0 and _D.contains(wx, wz):
+						continue
+					var h := L.node(gi, gj)
+					var dh := vs[vj * nv + vi] - h
+					n_v += 1
+					var dist := Vector2(wx, wz).distance_to(_c) / 1000.0
+					if absf(dh) > 0.01:
+						dh_all.append(dh)
+					if dist < VALLEY_MIN_KM:
+						continue
+					sum_far += dh
+					dh_far.append(dh)
+					var lap := (L.node(gi + k, gj) + L.node(gi - k, gj) + L.node(gi, gj + k) + L.node(gi, gj - k) - 4.0 * h) / (4.0 * r)
+					if lap > VALLEY_LAP:
+						valley.append(dh)
+					if (vi + 3 * vj) % 7 == 0 and S != null and ReliefLook.open_share(S, wx, wz, _look) > 0.5:
+						rl.append(ReliefLook.local_relief_m(L, wx, wz, _look))
+		var vmean := 0.0
+		for v: float in valley:
+			vmean += v
+		vmean = vmean / valley.size() if valley.size() > 0 else NAN
+		var gr := _lod_gaps(lay)
+		var gaps: Array = gr[0]
+		var over: int = gr[1]
+		layers.append({"id": L.id, "vertices": n_v,
+				"dh_m_p50": _num(_pct(dh_all.duplicate(), 0.5)), "dh_m_p90": _num(_pct(dh_all.duplicate(), 0.9)),
+				"dh_m_p99": _num(_pct(dh_all.duplicate(), 0.99)), "dh_m_max": _num(_pct(dh_all.duplicate(), 1.0)),
+				"dh_m_min": _num(_pct(dh_all.duplicate(), 0.0)),
+				"dh_far_mean_m": _num(sum_far / maxf(dh_far.size(), 1.0)),
+				"valley_n": valley.size(), "valley_dh_mean_m": _num(vmean),
+				"valley_dh_p90_m": _num(_pct(valley.duplicate(), 0.9)), "valley_dh_max_m": _num(_pct(valley.duplicate(), 1.0)),
+				"local_relief_m_p10": _num(_pct(rl.duplicate(), 0.1)), "local_relief_m_p50": _num(_pct(rl.duplicate(), 0.5)),
+				"local_relief_m_p90": _num(_pct(rl.duplicate(), 0.9)),
+				"lod_gap_n": gaps.size(), "lod_gap_m_p50": _num(_pct(gaps.duplicate(), 0.5)),
+				"lod_gap_m_p99": _num(_pct(gaps.duplicate(), 0.99)), "lod_gap_m_max": _num(_pct(gaps.duplicate(), 1.0)),
+				"lod_gap_over_skirt": over, "skirt_m": lay.skirt})
+	var out := {"valley_scale_m": VALLEY_SCALE_M, "valley_lap": VALLEY_LAP, "valley_min_km": VALLEY_MIN_KM, "layers": layers}
+	if _rm.size() > 1:
+		out["layer_seam"] = _layer_seam()
+	return out
+
+
+## Щели на стыках соседних чанков разного LOD: насколько линия крупного чанка на общем ребре выше вершины
+## мелкого (эту щель видно со стороны мелкого, ближнего к камере), м; [щели, сколько не закрыто юбкой крупного
+## (низ юбки — вершина − skirt − max(dh, 0), как в шейдере; v1 — без поправки)].
+func _lod_gaps(lay: Dictionary) -> Array:
+	var gaps: Array = []
+	var open_n := 0
+	var skirt: float = lay.skirt
+	var v2 := String(_opt.get("dh", "v2")) != "v1"
+	var nx: int = lay.nx
+	var nz: int = lay.nz
+	for cj in nz:
+		for ci in nx:
+			var a: Variant = lay.chunks[cj * nx + ci]
+			if a == null:
+				continue
+			for dir in 2:
+				var bi := ci + (1 if dir == 0 else 0)
+				var bj := cj + (0 if dir == 0 else 1)
+				if bi >= nx or bj >= nz:
+					continue
+				var b: Variant = lay.chunks[bj * nx + bi]
+				if b == null or int(a.s) == int(b.s):
+					continue
+				var fine: Dictionary = a if int(a.s) < int(b.s) else b
+				var coarse: Dictionary = b if int(a.s) < int(b.s) else a
+				var f_first: bool = fine == b   # мелкий — правый/нижний: его ребро — первый столбец/строка
+				var fnv: int = fine.nv
+				var cnv: int = coarse.nv
+				var fv: PackedFloat32Array = fine.verts
+				var cv: PackedFloat32Array = coarse.verts
+				var cd: PackedFloat32Array = coarse.dhs
+				var ratio := int(coarse.s) / int(fine.s)
+				for t in fnv:
+					var fi := (t if dir == 1 else (0 if f_first else fnv - 1))
+					var fj := (t if dir == 0 else (0 if f_first else fnv - 1))
+					var hf := fv[fj * fnv + fi]
+					var q := float(t) / ratio
+					var q0 := mini(int(floorf(q)), cnv - 2)
+					var fr := q - q0
+					var e := cnv - 1 if f_first else 0   # ребро крупного — у мелкого справа/снизу
+					var k0 := q0 * cnv + e if dir == 0 else e * cnv + q0
+					var k1 := (q0 + 1) * cnv + e if dir == 0 else e * cnv + q0 + 1
+					var c0 := cv[k0]
+					var c1 := cv[k1]
+					var b0 := c0 - skirt - (maxf(cd[k0], 0.0) if v2 else 0.0)
+					var b1 := c1 - skirt - (maxf(cd[k1], 0.0) if v2 else 0.0)
+					if lerpf(b0, b1, fr) > hf:
+						open_n += 1
+					# видимая щель — крупный выше мелкого (мелкий чанк ближе к камере; обратную щель
+					# закрывает поверхность самого мелкого чанка)
+					gaps.append(maxf(lerpf(c0, c1, fr) - hf, 0.0))
+	return [gaps, open_n]
+
+
+## Скачок силуэта на краю детального слоя: меш детального − меш фона в точках на 1 узел внутри края.
+func _layer_seam() -> Dictionary:
+	var dl: Dictionary = _rm[0]
+	var D: HeightLayer = dl.L
+	var jumps: Array = []
+	var absj: Array = []
+	var r_max := float(_opt.range_km) * 1000.0
+	var v2 := String(_opt.get("dh", "v2")) != "v1"
+	var open_n := 0
+	var step := D.spacing * 2.0
+	var e := 0.5   # детальный — на 0,5 м внутри края, фон — на 0,5 м снаружи (его чанки под детальным не рисуются)
+	var x0 := D.origin_x
+	var z0 := D.origin_z
+	var x1 := D.origin_x + D.size_x()
+	var z1 := D.origin_z + D.size_z()
+	var pts: Array = []   # [точка на краю, нормаль наружу]
+	var n := int((x1 - x0) / step)
+	for k in range(1, n):
+		var u := x0 + k * step
+		pts.append([Vector2(u, z0), Vector2(0, -1)])
+		pts.append([Vector2(u, z1), Vector2(0, 1)])
+		var w := z0 + k * step
+		pts.append([Vector2(x0, w), Vector2(-1, 0)])
+		pts.append([Vector2(x1, w), Vector2(1, 0)])
+	for pn: Array in pts:
+		var p: Vector2 = pn[0]
+		var o: Vector2 = pn[1]
+		if p.distance_to(_c) > r_max:
+			continue
+		var p_in := p - o * e
+		var p_out := p + o * e
+		var hd := _rm_sample_layer(dl, p_in.x, p_in.y)
+		var hf := NAN
+		for k in range(1, _rm.size()):
+			hf = _rm_sample_layer(_rm[k], p_out.x, p_out.y)
+			if not is_nan(hf):
+				break
+		if is_nan(hd) or is_nan(hf):
+			continue
+		jumps.append(hd - hf)
+		absj.append(absf(hd - hf))
+		# камера внутри детального: видна щель, где фон выше края детального глубже юбки фона
+		# (низ юбки — от высоты без подъёма, как в шейдере v2)
+		var lf: Dictionary = _rm[_rm.size() - 1]
+		var dhf := maxf(_rm_sample_layer(lf, p_out.x, p_out.y, "dhs"), 0.0) if v2 else 0.0
+		if hf - float(lf.skirt) - dhf > hd:
+			open_n += 1
+	var mean := 0.0
+	for j: float in jumps:
+		mean += j
+	return {"n": jumps.size(), "open_over_skirt": open_n, "jump_mean_m": _num(mean / maxf(jumps.size(), 1.0)),
+			"jump_abs_m_p50": _num(_pct(absj.duplicate(), 0.5)), "jump_abs_m_p90": _num(_pct(absj.duplicate(), 0.9)),
+			"jump_abs_m_max": _num(_pct(absj.duplicate(), 1.0))}
 
 
 # ---------------------------------------------------------------- горизонт

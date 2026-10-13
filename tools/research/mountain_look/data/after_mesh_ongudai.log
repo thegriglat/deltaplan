@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+Terrain: место ongudai загружено за 4.30 с
+MLOOK ongudai меш dh=v2 {"layer_seam":{"jump_abs_m_max":116.0993,"jump_abs_m_p50":1.7689,"jump_abs_m_p90":19.9791,"jump_mean_m":1.3196,"n":3196,"open_over_skirt":0},"layers":[{"dh_far_mean_m":0.4007,"dh_m_max":143.1674,"dh_m_min":-7.996,"dh_m_p50":-0.05,"dh_m_p90":1.4261,"dh_m_p99":45.2921,"id":"detail","local_relief_m_p10":124.5335,"local_relief_m_p50":171.4007,"local_relief_m_p90":225.0982,"lod_gap_m_max":133.257,"lod_gap_m_p50":0.0,"lod_gap_m_p99":32.0,"lod_gap_n":2690,"lod_gap_over_skirt":17,"skirt_m":40.0,"valley_dh_max_m":127.6971,"valley_dh_mean_m":-0.0359,"valley_dh_p90_m":0.0,"valley_n":28669,"vertices":154980},{"dh_far_mean_m":2.5367,"dh_m_max":253.0094,"dh_m_min":-13.4313,"dh_m_p50":0.3566,"dh_m_p90":49.8094,"dh_m_p99":130.6892,"id":"far","local_relief_m_p10":75.6378,"local_relief_m_p50":140.7926,"local_relief_m_p90":217.5851,"lod_gap_m_max":237.2484,"lod_gap_m_p50":0.0,"lod_gap_m_p99":92.8281,"lod_gap_n":2334,"lod_gap_over_skirt":0,"skirt_m":150.0,"valley_dh_max_m":220.3521,"valley_dh_mean_m":-0.2646,"valley_dh_p90_m":0.0,"valley_n":9861,"vertices":142998}],"valley_lap":0.05,"valley_min_km":3.0,"valley_scale_m":100.0}
+mountain_look_probe: OK ongudai
+Terrain: поля рельефа за 17.32 с

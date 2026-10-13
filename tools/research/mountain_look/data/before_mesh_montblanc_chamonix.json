@@ -1,0 +1,70 @@
+{
+  "dh": "v1",
+  "h_eye_m": 1352.70998136679,
+  "lat": 45.9334983825684,
+  "lon": 6.87949991226196,
+  "mesh": {
+    "layer_seam": {
+      "jump_abs_m_max": 158.1387,
+      "jump_abs_m_p50": 5.4914,
+      "jump_abs_m_p90": 25.9552,
+      "jump_mean_m": 0.8332,
+      "n": 3196,
+      "open_over_skirt": 1
+    },
+    "layers": [
+      {
+        "dh_far_mean_m": -0.0013,
+        "dh_m_max": 7.8999,
+        "dh_m_min": -8.0,
+        "dh_m_p50": -0.0437,
+        "dh_m_p90": 1.075,
+        "dh_m_p99": 2.8813,
+        "id": "detail",
+        "local_relief_m_p10": 229.0207,
+        "local_relief_m_p50": 327.3597,
+        "local_relief_m_p90": 461.7415,
+        "lod_gap_m_max": 109.5211,
+        "lod_gap_m_p50": 0.0,
+        "lod_gap_m_p99": 46.8187,
+        "lod_gap_n": 3108,
+        "lod_gap_over_skirt": 48,
+        "skirt_m": 40.0,
+        "valley_dh_max_m": 1.9624,
+        "valley_dh_mean_m": -0.4758,
+        "valley_dh_p90_m": 0.0,
+        "valley_n": 26712,
+        "vertices": 118060
+      },
+      {
+        "dh_far_mean_m": 0.0449,
+        "dh_m_max": 8.0,
+        "dh_m_min": -8.0,
+        "dh_m_p50": -0.0256,
+        "dh_m_p90": 5.1499,
+        "dh_m_p99": 8.0,
+        "id": "far",
+        "local_relief_m_p10": 117.8986,
+        "local_relief_m_p50": 233.0102,
+        "local_relief_m_p90": 343.5232,
+        "lod_gap_m_max": 218.5156,
+        "lod_gap_m_p50": 0.0,
+        "lod_gap_m_p99": 103.4375,
+        "lod_gap_n": 2840,
+        "lod_gap_over_skirt": 7,
+        "skirt_m": 150.0,
+        "valley_dh_max_m": 0.0,
+        "valley_dh_mean_m": -1.9506,
+        "valley_dh_p90_m": 0.0,
+        "valley_n": 21996,
+        "vertices": 146748
+      }
+    ],
+    "valley_lap": 0.05,
+    "valley_min_km": 3.0,
+    "valley_scale_m": 100.0
+  },
+  "probe_version": 2,
+  "quick": true,
+  "tag": "montblanc_chamonix"
+}
