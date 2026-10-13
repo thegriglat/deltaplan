@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cpl8f4fxgmc7f"
-path.bptc="res://.godot/imported/glider_ww_talon_glider_ww_talon_sail.png-cf56aa39dfe7609aec5b33d11a9739d7.bptc.ctex"
-path.astc="res://.godot/imported/glider_ww_talon_glider_ww_talon_sail.png-cf56aa39dfe7609aec5b33d11a9739d7.astc.ctex"
+path="res://.godot/imported/glider_ww_talon_glider_ww_talon_sail.png-cf56aa39dfe7609aec5b33d11a9739d7.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "fa0b587038577b1d92fa2a2a4f12a01e"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_ww_talon_glider_ww_talon_sail.png"
-dest_files=["res://.godot/imported/glider_ww_talon_glider_ww_talon_sail.png-cf56aa39dfe7609aec5b33d11a9739d7.bptc.ctex", "res://.godot/imported/glider_ww_talon_glider_ww_talon_sail.png-cf56aa39dfe7609aec5b33d11a9739d7.astc.ctex"]
+dest_files=["res://.godot/imported/glider_ww_talon_glider_ww_talon_sail.png-cf56aa39dfe7609aec5b33d11a9739d7.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bnwxawnb3tjyc"
-path.bptc="res://.godot/imported/glider_condor_flex_glider_condor_flex_sail.png-24dcd406fa3baffaa8159d0077be657f.bptc.ctex"
-path.astc="res://.godot/imported/glider_condor_flex_glider_condor_flex_sail.png-24dcd406fa3baffaa8159d0077be657f.astc.ctex"
+path="res://.godot/imported/glider_condor_flex_glider_condor_flex_sail.png-24dcd406fa3baffaa8159d0077be657f.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "aa6ae46248788b0a745466fd6988319d"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_condor_flex_glider_condor_flex_sail.png"
-dest_files=["res://.godot/imported/glider_condor_flex_glider_condor_flex_sail.png-24dcd406fa3baffaa8159d0077be657f.bptc.ctex", "res://.godot/imported/glider_condor_flex_glider_condor_flex_sail.png-24dcd406fa3baffaa8159d0077be657f.astc.ctex"]
+dest_files=["res://.godot/imported/glider_condor_flex_glider_condor_flex_sail.png-24dcd406fa3baffaa8159d0077be657f.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

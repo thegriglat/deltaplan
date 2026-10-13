@@ -1,0 +1,194 @@
+{
+ "glider_aeros_combat_c": {
+  "normal": "glider_aeros_combat_c",
+  "trans": "glider_aeros_combat_c"
+ },
+ "glider_aeros_combat_l": {
+  "normal": "glider_aeros_combat_l",
+  "trans": "glider_aeros_combat_l"
+ },
+ "glider_aeros_discus": {
+  "normal": "glider_aeros_discus",
+  "trans": "glider_aeros_discus"
+ },
+ "glider_aeros_fox": {
+  "normal": "glider_aeros_fox",
+  "trans": "glider_aeros_fox"
+ },
+ "glider_air_c4": {
+  "normal": "glider_aeros_combat_l",
+  "trans": "glider_air_c4"
+ },
+ "glider_air_f2": {
+  "normal": "glider_aeros_fox",
+  "trans": "glider_aeros_fox"
+ },
+ "glider_air_rev": {
+  "normal": "glider_aeros_combat_c",
+  "trans": "glider_air_rev"
+ },
+ "glider_air_sting3": {
+  "normal": "glider_air_sting3",
+  "trans": "glider_air_sting3"
+ },
+ "glider_apogee": {
+  "normal": "glider_apogee",
+  "trans": "glider_apogee"
+ },
+ "glider_atlas": {
+  "normal": "glider_air_sting3",
+  "trans": "glider_atlas"
+ },
+ "glider_bautek_astir": {
+  "normal": "glider_bautek_astir",
+  "trans": "glider_aeros_discus"
+ },
+ "glider_bautek_fizz": {
+  "normal": "glider_bautek_fizz",
+  "trans": "glider_aeros_combat_c"
+ },
+ "glider_bautek_kite": {
+  "normal": "glider_bautek_kite",
+  "trans": "glider_bautek_kite"
+ },
+ "glider_combat": {
+  "normal": "glider_combat",
+  "trans": "glider_combat"
+ },
+ "glider_condor_crex3": {
+  "normal": "glider_aeros_fox",
+  "trans": "glider_condor_crex3"
+ },
+ "glider_condor_flex": {
+  "normal": "glider_condor_flex",
+  "trans": "glider_condor_flex"
+ },
+ "glider_dp_she1": {
+  "normal": "glider_dp_she1",
+  "trans": "glider_dp_she1"
+ },
+ "glider_fs_crossover": {
+  "normal": "glider_aeros_discus",
+  "trans": "glider_fs_crossover"
+ },
+ "glider_fs_funky": {
+  "normal": "glider_aeros_fox",
+  "trans": "glider_aeros_fox"
+ },
+ "glider_fs_space": {
+  "normal": "glider_aeros_fox",
+  "trans": "glider_fs_space"
+ },
+ "glider_icaro_alto": {
+  "normal": "glider_air_sting3",
+  "trans": "glider_icaro_alto"
+ },
+ "glider_icaro_laminar_z9": {
+  "normal": "glider_icaro_laminar_z9",
+  "trans": "glider_icaro_laminar_z9"
+ },
+ "glider_icaro_mastr": {
+  "normal": "glider_icaro_mastr",
+  "trans": "glider_icaro_mastr"
+ },
+ "glider_icaro_piuma": {
+  "normal": "glider_aeros_fox",
+  "trans": "glider_aeros_fox"
+ },
+ "glider_laminar": {
+  "normal": "glider_aeros_discus",
+  "trans": "glider_laminar"
+ },
+ "glider_magic": {
+  "normal": "glider_magic",
+  "trans": "glider_magic"
+ },
+ "glider_moyes_gecko": {
+  "normal": "glider_air_sting3",
+  "trans": "glider_icaro_alto"
+ },
+ "glider_moyes_litespeed_rx": {
+  "normal": "glider_moyes_litespeed_rx",
+  "trans": "glider_moyes_litespeed_rx"
+ },
+ "glider_moyes_litespeed_s": {
+  "normal": "glider_icaro_mastr",
+  "trans": "glider_moyes_litespeed_s"
+ },
+ "glider_moyes_litesport": {
+  "normal": "glider_moyes_litesport",
+  "trans": "glider_moyes_litesport"
+ },
+ "glider_moyes_malibu2": {
+  "normal": "glider_aeros_fox",
+  "trans": "glider_aeros_fox"
+ },
+ "glider_seed_skyrunner_xr": {
+  "normal": "glider_seed_skyrunner_xr",
+  "trans": "glider_seed_skyrunner_xr"
+ },
+ "glider_seed_spyder": {
+  "normal": "glider_seed_spyder",
+  "trans": "glider_seed_spyder"
+ },
+ "glider_slavutich_ut": {
+  "normal": "glider_aeros_fox",
+  "trans": "glider_aeros_fox"
+ },
+ "glider_sport": {
+  "normal": "glider_icaro_mastr",
+  "trans": "glider_sport"
+ },
+ "glider_target": {
+  "normal": "glider_air_sting3",
+  "trans": "glider_atlas"
+ },
+ "glider_training": {
+  "normal": "glider_air_sting3",
+  "trans": "glider_atlas"
+ },
+ "glider_ww_cross_country": {
+  "normal": "glider_moyes_litespeed_rx",
+  "trans": "glider_magic"
+ },
+ "glider_ww_eagle": {
+  "normal": "glider_moyes_litespeed_rx",
+  "trans": "glider_magic"
+ },
+ "glider_ww_fusion": {
+  "normal": "glider_moyes_litespeed_rx",
+  "trans": "glider_ww_fusion"
+ },
+ "glider_ww_spectrum": {
+  "normal": "glider_air_sting3",
+  "trans": "glider_atlas"
+ },
+ "glider_ww_sport3": {
+  "normal": "glider_aeros_fox",
+  "trans": "glider_ww_sport3"
+ },
+ "glider_ww_super_sport": {
+  "normal": "glider_moyes_litespeed_rx",
+  "trans": "glider_magic"
+ },
+ "glider_ww_t2c": {
+  "normal": "glider_icaro_mastr",
+  "trans": "glider_moyes_litespeed_s"
+ },
+ "glider_ww_t3": {
+  "normal": "glider_moyes_litespeed_rx",
+  "trans": "glider_moyes_litespeed_rx"
+ },
+ "glider_ww_talon": {
+  "normal": "glider_moyes_litespeed_rx",
+  "trans": "glider_ww_fusion"
+ },
+ "glider_ww_u2": {
+  "normal": "glider_air_sting3",
+  "trans": "glider_ww_u2"
+ },
+ "glider_ww_ultra_sport": {
+  "normal": "glider_magic",
+  "trans": "glider_magic"
+ }
+}

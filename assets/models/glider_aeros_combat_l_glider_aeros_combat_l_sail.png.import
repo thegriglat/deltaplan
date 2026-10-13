@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cir27vsqfk6a5"
-path.bptc="res://.godot/imported/glider_aeros_combat_l_glider_aeros_combat_l_sail.png-f4ac3b952799df91523b9ce8c4e23b1e.bptc.ctex"
-path.astc="res://.godot/imported/glider_aeros_combat_l_glider_aeros_combat_l_sail.png-f4ac3b952799df91523b9ce8c4e23b1e.astc.ctex"
+path="res://.godot/imported/glider_aeros_combat_l_glider_aeros_combat_l_sail.png-f4ac3b952799df91523b9ce8c4e23b1e.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "6da43dbb12d9297ac339e64c3995ba49"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_aeros_combat_l_glider_aeros_combat_l_sail.png"
-dest_files=["res://.godot/imported/glider_aeros_combat_l_glider_aeros_combat_l_sail.png-f4ac3b952799df91523b9ce8c4e23b1e.bptc.ctex", "res://.godot/imported/glider_aeros_combat_l_glider_aeros_combat_l_sail.png-f4ac3b952799df91523b9ce8c4e23b1e.astc.ctex"]
+dest_files=["res://.godot/imported/glider_aeros_combat_l_glider_aeros_combat_l_sail.png-f4ac3b952799df91523b9ce8c4e23b1e.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

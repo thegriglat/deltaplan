@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dru6yxr7cvvwl"
-path.bptc="res://.godot/imported/glider_ww_super_sport_glider_ww_super_sport_sail.png-0029de111c3d6f02dad9375fd01edefd.bptc.ctex"
-path.astc="res://.godot/imported/glider_ww_super_sport_glider_ww_super_sport_sail.png-0029de111c3d6f02dad9375fd01edefd.astc.ctex"
+path="res://.godot/imported/glider_ww_super_sport_glider_ww_super_sport_sail.png-0029de111c3d6f02dad9375fd01edefd.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "19b5f43f64f4c305d9761d721cc3e0a9"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_ww_super_sport_glider_ww_super_sport_sail.png"
-dest_files=["res://.godot/imported/glider_ww_super_sport_glider_ww_super_sport_sail.png-0029de111c3d6f02dad9375fd01edefd.bptc.ctex", "res://.godot/imported/glider_ww_super_sport_glider_ww_super_sport_sail.png-0029de111c3d6f02dad9375fd01edefd.astc.ctex"]
+dest_files=["res://.godot/imported/glider_ww_super_sport_glider_ww_super_sport_sail.png-0029de111c3d6f02dad9375fd01edefd.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

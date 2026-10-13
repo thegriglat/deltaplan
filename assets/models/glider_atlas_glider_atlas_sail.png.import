@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://deb8s7mboj3oc"
-path.bptc="res://.godot/imported/glider_atlas_glider_atlas_sail.png-9458fd88626253fbf7e5a26760945159.bptc.ctex"
-path.astc="res://.godot/imported/glider_atlas_glider_atlas_sail.png-9458fd88626253fbf7e5a26760945159.astc.ctex"
+path="res://.godot/imported/glider_atlas_glider_atlas_sail.png-9458fd88626253fbf7e5a26760945159.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "a4934066291d7dc29e4489c21d9f425b"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/glider_atlas_glider_atlas_sail.png"
-dest_files=["res://.godot/imported/glider_atlas_glider_atlas_sail.png-9458fd88626253fbf7e5a26760945159.bptc.ctex", "res://.godot/imported/glider_atlas_glider_atlas_sail.png-9458fd88626253fbf7e5a26760945159.astc.ctex"]
+dest_files=["res://.godot/imported/glider_atlas_glider_atlas_sail.png-9458fd88626253fbf7e5a26760945159.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=true
 compress/lossy_quality=0.8
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
