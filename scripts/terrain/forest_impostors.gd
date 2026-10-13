@@ -11,13 +11,11 @@ const SHADER := preload("res://scripts/terrain/forest_impostors.gdshader")
 
 var camera: Camera3D
 var material: ShaderMaterial
-## SL-К4: деревья полосы смены (позиции TreePlacer — те же, что у моделей, по одному экземпляру на дерево);
-## свой материал (тот же шейдер, band_mode) — все set_shader_parameter идут в оба (_set_all).
-var band_material: ShaderMaterial
-var _band: MultiMeshInstance3D
-var _band_active := true
-var _grid_inner := Vector2.ZERO  # inner_m / inner_end_m сетки при активной полосе
-var _grid_legacy := Vector2.ZERO  # то же без полосы (прежнее кольцо)
+## SL-К4 v2: кольцо сетки (inner_m, inner_end_m) — за LOD2-крестами (TreeCrosses.set_cross_ring), пока они
+## видны; без крестов — прежнее кольцо за моделями (radius_m · fade_start_k … radius_m).
+var _grid_cross := Vector2.ZERO
+var _grid_legacy := Vector2.ZERO
+var _cross_active := false
 
 var _spacing: float = 10.0
 ## Маска леса и просек на CPU — для present_positions (тесты); шейдер берёт те же из текстур.
@@ -74,14 +72,8 @@ func setup(
 	var r := float(cfg.radius_m)
 	_mask.setup(layer, surface, cfg)
 	_grid_legacy = Vector2(r * float(ic.fade_start_k), r)
-	_grid_inner = Vector2(_mask.ramp_start(), _mask.band_end()) if _mask.lod_k_enabled else _grid_legacy
-	# SL-К4: дальняя сетка (12 м) включается там, где band-импостеры (сетка моделей, 8 м) заканчиваются
-	m.set_shader_parameter("inner_m", _grid_inner.x)
-	m.set_shader_parameter("inner_end_m", _grid_inner.y)
-	m.set_shader_parameter("band_end_m", _mask.band_end())
-	m.set_shader_parameter("lod_swap_m", r)
-	m.set_shader_parameter("lod_dither_m", _mask.lod_dither_m)
-	m.set_shader_parameter("sl_lod_k_range", Vector2(_mask.lod_k_min, _mask.lod_k_max))
+	m.set_shader_parameter("inner_m", _grid_legacy.x)
+	m.set_shader_parameter("inner_end_m", _grid_legacy.y)
 	m.set_shader_parameter("outer_m", outer)
 	m.set_shader_parameter("dissolve_m", float(ic.get("dissolve_m", 800.0)))
 	m.set_shader_parameter("edge_band_m", float(cfg.get("edge_band_m", 16.0)))
@@ -122,66 +114,42 @@ func setup(
 		Vector3(layer.origin_x, layer.min_h - 100.0, layer.origin_z),
 		Vector3(layer.size_x(), layer.max_h - layer.min_h + 200.0, layer.size_z())
 	)
-	if _mask.lod_k_enabled:
-		band_material = m.duplicate() as ShaderMaterial
-		band_material.set_shader_parameter("band_mode", true)
-		_band = MultiMeshInstance3D.new()
-		_band.name = "BandImpostors"
-		_band.material_override = band_material
-		_band.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		_band.custom_aabb = custom_aabb
-		_band.visible = false
-		add_child(_band)
 	return true
 
 
-## SL-К4: деревья полосы смены от TreePlacer.build (TerrainTreeModels._apply): buf — IMP_STRIDE чисел
-## на дерево (матрица 3×4, цвет, custom), count — их число.
-func set_band(buf: PackedFloat32Array, count: int) -> void:
-	if _band == null:
+## SL-К4 v2: кольцо импостеров за крестами [начало, конец] (м): доля билбордов растёт там, где кресты
+## уходят по своим k (TreeCrosses); включается сразу.
+func set_cross_ring(ring: Vector2) -> void:
+	_grid_cross = ring
+	set_cross_active(true)
+
+
+## Кресты видны (true) — кольцо за ними; скрыты (камера выше cross_max_agl_m) — прежнее кольцо.
+func set_cross_active(on: bool) -> void:
+	_cross_active = on and _grid_cross != Vector2.ZERO
+	if material == null:
 		return
-	var mm := _band.multimesh
-	if mm == null:
-		mm = MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.use_colors = true
-		mm.use_custom_data = true
-		mm.mesh = _quad()
-		_band.multimesh = mm
-	mm.instance_count = count
-	_band.visible = count > 0 and _band_active
-	if count > 0:
-		mm.buffer = buf
+	var g := _grid_cross if _cross_active else _grid_legacy
+	material.set_shader_parameter("inner_m", g.x)
+	material.set_shader_parameter("inner_end_m", g.y)
 
 
-func _ready() -> void:
-	# деревья полосы смены берутся из расстановки моделей (соседний узел Trees)
-	var models := get_parent().get_node_or_null("Trees") if get_parent() != null else null
-	if models is TerrainTreeModels and _band != null:
-		(models as TerrainTreeModels).band_sink = self
-		var pl := (models as TerrainTreeModels).placer
-		if pl.imp_count > 0:  # первая расстановка уже готова
-			set_band(pl.imp_buffer, pl.imp_count)
+## Кольцо сетки сейчас (inner_m, inner_end_m), м — для тестов.
+func grid_ring() -> Vector2:
+	return _grid_cross if _cross_active else _grid_legacy
 
 
-## Видимость полосы привязана к видимости моделей (Trees выше max_agl_m скрыты, перестройка стоит и
-## буфер устарел): неактивна — полоса скрыта, сетка 12 м снова с прежнего кольца.
-func set_band_active(on: bool) -> void:
-	if _band == null or on == _band_active:
-		return
-	_band_active = on
-	var mm := _band.multimesh
-	_band.visible = on and mm != null and mm.instance_count > 0
-	var g := _grid_inner if on else _grid_legacy
-	_set_all("inner_m", g.x)
-	_set_all("inner_end_m", g.y)
+## Полоса band-импостеров SL-17 снята (SL-18); заглушки, пока TerrainTreeModels (SL-19) их зовёт.
+func set_band(_buf: PackedFloat32Array, _count: int) -> void:
+	pass
+
+
+func set_band_active(_on: bool) -> void:
+	pass
 
 
 func _materials() -> Array[ShaderMaterial]:
-	var out: Array[ShaderMaterial] = [material]
-	if band_material != null:
-		out.append(band_material)
-	return out
+	return [material]
 
 
 func _set_all(param: StringName, value: Variant) -> void:

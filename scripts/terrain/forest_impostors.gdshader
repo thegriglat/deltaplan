@@ -20,10 +20,6 @@ uniform int grid_n;
 uniform float spacing_m = 10.0;
 uniform float inner_m = 350.0;                    // ближе — 3D-модели (плавный переход до inner_end_m)
 uniform float inner_end_m = 500.0;
-uniform bool band_mode = false;                   // SL-К4: экземпляр — дерево полосы смены (позиция и признаки из CPU: TreePlacer.imp_buffer)
-uniform float band_end_m = 1e9;                   // SL-К4: дальше полоса не рисуется (дальше — сетка 12 м)
-uniform float lod_swap_m = 500.0;                 // SL-К4: базовое расстояние смены модель → импостер (trees.radius_m); у дерева × sl_lod_k
-uniform float lod_dither_m = 40.0;                // SL-К4: ширина дизеринга смены формы (trees.lod_dither_m)
 uniform float outer_m = 2000.0;                   // дальше — только полог рельефа
 uniform float dissolve_m = 800.0;                 // полоса у outer_m, где билборды по одному растворяются
 uniform float density = 0.85;
@@ -63,7 +59,6 @@ uniform vec2 clear_size = vec2(1.0);
 varying vec2 v_uv;
 varying float v_tint;
 varying float v_dist;
-varying float v_lod_t;   // SL-К4: порог дизеринга band-импостера (виден при шум < v_lod_t); у сетки — 2
 // тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
 varying float v_cs_sun;
 // scene-look (SL-2): средняя яркость ячейки атласа × tint, хвойное (1) / лиственное (0), нормаль склона
@@ -123,12 +118,7 @@ void vertex() {
 	vec2 cell = grid_center_cell + vec2(float(id % grid_n), float(id / grid_n)) - float(grid_n / 2);
 	vec2 jit = vec2(hash12(cell * 1.37 + 3.1), hash12(cell * 0.71 + 11.3)) - 0.5;
 	vec2 xz = (cell + 0.5 + jit * 0.8) * spacing_m;
-	if (band_mode) {
-		xz = MODEL_MATRIX[3].xz;
-		cell = floor(xz);
-	}
 	float d = length(xz - CAMERA_POSITION_WORLD.xz);
-	v_lod_t = 2.0;
 	// переход с 3D-моделями: доля импостеров растёт от inner_m к inner_end_m;
 	// у outer_m билборды растворяются по одному (порог — хеш клетки), без полосы.
 	// Сначала дешёвые проверки; нет дерева — вырожденный квад и выход (без выборок высот).
@@ -137,20 +127,15 @@ void vertex() {
 	float u = hash12(cell + 5.7);
 	bool present = d < outer_m && u < max(density, edge_density) * ring
 			&& hash12(cell + 7.9) >= fade_out && is_forest(xz);
-	if (band_mode) {
-		// дерево полосы смены: есть всегда (лес, просеки и опушку учёл TreePlacer); доля — по личной границе
-		v_lod_t = sl_lod_swap_t(d, lod_swap_m * sl_lod_k(xz), lod_dither_m);
-		present = v_lod_t > 0.0 && d < band_end_m;
-	}
-	if (present && has_clearings && !band_mode) {
+	if (present && has_clearings) {
 		vec2 cu = (xz - clear_origin) / (clear_cell_m * clear_size);
 		if (all(greaterThanEqual(cu, vec2(0.0))) && all(lessThan(cu, vec2(1.0)))) {
 			present = texture(clear_tex, cu).r < 0.5;
 		}
 	}
 	// опушка: ближе к кромке — гуще и шире (стена деревьев)
-	float ek = band_mode ? INSTANCE_CUSTOM.z : 0.0;
-	if (present && !band_mode) {
+	float ek = 0.0;
+	if (present) {
 		ek = min(1.0, 2.0 * max(open_frac(xz, edge_band_m * 0.5, 0.0), 0.5 * open_frac(xz, edge_band_m, 0.785)));
 		present = u < mix(density, edge_density, ek) * ring;
 	}
@@ -172,13 +157,13 @@ void vertex() {
 				h_bilinear(xz - vec2(0.0, e)) - h_bilinear(xz + vec2(0.0, e))));
 		float horiz = length(n.xz);
 		float north = horiz > 1e-4 ? clamp(-n.z / horiz, -1.0, 1.0) * clamp(horiz / n.y / 0.25, 0.0, 1.0) : 0.0;
-		int sp = band_mode ? int(INSTANCE_CUSTOM.y + 0.5) : pick_species(h, north, hash12(cell + 4.1));
+		int sp = pick_species(h, north, hash12(cell + 4.1));
 		if (sp >= 0) {
-			float hh = band_mode ? INSTANCE_CUSTOM.x : mix(sp_height[sp].x, sp_height[sp].y, hash12(cell + 2.2));
+			float hh = mix(sp_height[sp].x, sp_height[sp].y, hash12(cell + 2.2));
 			// вдали дерево чуть крупнее — чтобы не рябило и сливалось с пологом
 			hh *= 1.0 + 0.4 * smoothstep(outer_m * 0.5, outer_m, d);
 			// утопление: в глубине леса sink_fraction (кроны в DSM), у кромки меньше — стволы видны
-			float sink = band_mode ? COLOR.r : mix(edge_sink_fraction, sink_fraction, 1.0 - open_frac(xz, edge_probe_m, 0.785));
+			float sink = mix(edge_sink_fraction, sink_fraction, 1.0 - open_frac(xz, edge_probe_m, 0.785));
 			// цилиндрический билборд: поворот к камере вокруг вертикали
 			vec2 to_cam = CAMERA_POSITION_WORLD.xz - xz;
 			vec2 fwd = length(to_cam) > 0.01 ? normalize(to_cam) : vec2(0.0, 1.0);
@@ -189,7 +174,7 @@ void vertex() {
 			NORMAL = normalize(vec3(fwd.x, 1.2, fwd.y));
 			vec2 cell_uv = vec2(float(sp % 4), float(sp / 4));
 			v_uv = (cell_uv + vec2(UV.x, UV.y)) / atlas_cells;
-			v_tint = brightness * (0.85 + 0.3 * (band_mode ? INSTANCE_CUSTOM.w : hash12(cell + 13.3)));
+			v_tint = brightness * (0.85 + 0.3 * hash12(cell + 13.3));
 			v_sl_kind = SL_DECID[sp]; // SL
 			v_sl_gain = sl_tree_gain(sp_gain[sp]); // SL-14
 			if (v_sl_kind > 0.5) v_sl_ss = sl_season_sp(v_sl_kind, h); // SL
@@ -211,9 +196,6 @@ void vertex() {
 }
 
 void fragment() {
-	if (v_lod_t < 1.5 && sl_lod_noise(FRAGCOORD.xy) >= v_lod_t) {
-		discard;   // SL-К4: дизеринг смены формы — дополнение к модели (она видна при шум ≥ t)
-	}
 	vec4 c = texture(atlas, v_uv);
 	vec3 rgb = c.rgb * v_tint * v_sl_gain; // SL-14: альбедо → (смягчение) → сезон
 	// вдали крона бледнее и мягче контрастом (реальная дымка тут ещё не действует — расстояние

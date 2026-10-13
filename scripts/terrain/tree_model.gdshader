@@ -14,6 +14,7 @@ render_mode cull_disabled, diffuse_burley;
 #include "res://scripts/terrain/scene_look.gdshaderinc" // SL
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
+#include "res://scripts/terrain/tree_cell.gdshaderinc"
 
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform vec4 albedo_color : source_color = vec4(1.0);
@@ -45,6 +46,7 @@ uniform vec2 lod_d = vec2(60.0, 180.0); // границы LOD, м (configs/world
 uniform float lod_fade_m = 10.0;        // ширина растворения, м (trees.lod_fade_m)
 uniform float lod_swap_m = 500.0;       // SL-К4: базовое расстояние смены модель → импостер, м (trees.radius_m); у дерева × sl_lod_k
 uniform float lod_dither_m = 40.0;      // SL-К4: ширина дизеринга при смене формы, м (trees.lod_dither_m)
+uniform float cross_near_m = 0.0;       // SL-К4 v2: модель уступает LOD2-кресту (tree_cross.gdshader) на cross_near_m·sl_lod_k(дерево); 0 — крестов нет (ставит TreeCrosses)
 
 varying vec3 v_color;
 varying float v_dist;
@@ -107,6 +109,8 @@ void vertex() {
 	v_crown = UV2.x; // 1 — карточка кроны с нормалями «от центра кроны» (build_trees.py), 0 — кора, импостор
 	v_cs_sun = cloud_sun_at(base);
 	v_sl_ss = sl_tree_kind > 0.5 ? sl_season_sp(sl_tree_kind, base.y) : vec4(0.0); // SL
+	// SL-К4 v2: ближний стык с крестом — модель видна при шуме ≥ t (крест — при шуме < t, тот же шум)
+	v_fade.x = max(v_fade.x, tc_model_t(v_dist, sl_lod_k(base.xz), cross_near_m, lod_dither_m));
 	// целиком растворённый экземпляр — вырожденные треугольники (не растеризуется)
 	if (v_fade.x >= 1.0 || v_fade.y <= 0.0) {
 		VERTEX = vec3(0.0);
@@ -115,7 +119,7 @@ void vertex() {
 
 void fragment() {
 	// шум экрана (interleaved gradient noise) — порог растворения
-	float n = fract(52.9829189 * fract(dot(FRAGCOORD.xy, vec2(0.06711056, 0.00583715))));
+	float n = sl_lod_noise(FRAGCOORD.xy);
 	if (n < v_fade.x || n >= v_fade.y) {
 		discard;
 	}

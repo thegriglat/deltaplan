@@ -45,6 +45,8 @@ var trees: Node3D
 var grass: GrassField
 ## Средний план леса (билборды), null — нет атласа.
 var impostors: ForestImpostors
+## LOD2-кресты деревьев в шейдере (SL-18), null — выключены (trees.crosses_enabled) или нет моделей.
+var crosses: TreeCrosses
 ## Передаёт ветер и термики атмосферы шейдерам земли, травы и деревьев.
 var wind: TerrainWind
 ## Поля рельефа каждого слоя (влажность, AO, горизонт к солнцу) — тот же порядок, что layers.
@@ -436,6 +438,8 @@ func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
 		(trees as TerrainTreeModels).set_clearings(mask, origin, cell_m)
 	if impostors != null:
 		impostors.set_clearings(mask, origin, cell_m)
+	if crosses != null:
+		crosses.set_clearings(mask, origin, cell_m)
 
 
 ## Город с деревьями-моделями на местах крон (CityTrees): рельеф не рисует кроны на земле там, где маска
@@ -544,6 +548,9 @@ func _make_trees(trees_cfg: Dictionary, look: Dictionary) -> Node3D:
 	if impostors != null:
 		impostors.queue_free()
 		impostors = null
+	if crosses != null:
+		crosses.queue_free()
+		crosses = null
 	if models.setup(layers[0], surfaces[0], trees_cfg):
 		add_child(models)
 		impostors = ForestImpostors.new()
@@ -559,6 +566,21 @@ func _make_trees(trees_cfg: Dictionary, look: Dictionary) -> Node3D:
 		else:
 			impostors.free()
 			impostors = null
+		crosses = TreeCrosses.new()
+		crosses.name = "TreeCrosses"
+		if crosses.setup(
+			layers[0],
+			renderer.height_textures[0],
+			surfaces[0],
+			renderer.surface_textures[0],
+			trees_cfg,
+			models,
+			impostors
+		):
+			add_child(crosses)
+		else:
+			crosses.free()
+			crosses = null
 		if _clearings.size() == 3:
 			set_clearings(_clearings[0], _clearings[1], _clearings[2])
 		_pass_forest_mask(models)
@@ -583,7 +605,7 @@ func _pass_forest_mask(models: Node) -> void:
 	var fm := get_forest_mask()
 	if fm.is_empty():
 		return
-	for n: Object in [models, impostors]:
+	for n: Object in [models, impostors, crosses]:
 		if n != null and n.has_method("set_forest_mask"):
 			n.call("set_forest_mask", fm[0], fm[1], fm[2])
 
@@ -838,7 +860,7 @@ static func treeline_height(lat_deg: float, sl: Dictionary) -> float:
 func _apply_scene_look(sl: Dictionary) -> void:
 	if renderer != null:
 		renderer.apply_scene_look(sl)
-	for node: Node in [impostors, trees, grass]:
+	for node: Node in [impostors, crosses, trees, grass]:
 		if is_instance_valid(node) and node.has_method("apply_scene_look"):
 			node.call("apply_scene_look", sl)
 
