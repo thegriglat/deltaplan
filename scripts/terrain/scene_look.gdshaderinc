@@ -558,3 +558,98 @@ vec3 sl_wind_sheen(vec3 c, float far, float base, vec2 wind, vec3 v) {
 	c = mix(c, s > 0.0 ? lit : dark, clamp(a, 0.0, 1.0));
 	return c * (1.0 + sl_grass_wind_sheen_gain * s * far);
 }
+
+// --- SL-10: свежий снег выше сезонной снеговой линии и ледники (контракт SL-К2 v2; зеркало —
+// scripts/terrain/season_look.gd, формулы правятся вместе). Линия: летняя высота по широте (кусочно-
+// линейная таблица по узлам sl_snow_lats) минус зимнее опускание по сезонному косинусу с минимумом
+// в sl_snow_min_day (конец зимы); южное полушарие — дата +182,5. Дата и широта — на CPU (sl_snow_pre.x =
+// высота линии, м; SeasonLook.apply_pre), в пикселе — только сравнение с высотой. ---
+uniform bool sl_snow_enabled = false;
+uniform vec4 sl_snow_lats = vec4(10.0, 46.0, 60.0, 70.0);            // узлы таблицы линии, градусы широты
+uniform vec4 sl_snow_line_summer = vec4(4900.0, 3000.0, 1500.0, 500.0);  // высота линии летом (наивысшая), м
+uniform vec4 sl_snow_line_winter_drop = vec4(0.0, 600.0, 800.0, 400.0);  // зимнее опускание линии, м
+uniform float sl_snow_min_day = 75.0;                // день, когда линия ниже всего (конец зимы)
+uniform float sl_snow_fresh_band_m = 300.0;          // полоса плавного перехода выше линии, м
+uniform vec2 sl_snow_fresh_slope = vec2(38.0, 55.0); // свежий снег держится до уклона / сползает к уклону, градусы
+uniform vec4 sl_snow_pre = vec4(3000.0, 0.0, 0.0, 0.0);  // (высота линии на дату и широту, ...) считает CPU
+
+float sl_snow_interp(vec4 v, float al) {
+	float t = clamp(al, sl_snow_lats.x, sl_snow_lats.w);
+	float a = mix(v.x, v.y, clamp((t - sl_snow_lats.x) / (sl_snow_lats.y - sl_snow_lats.x), 0.0, 1.0));
+	float b = mix(v.y, v.z, clamp((t - sl_snow_lats.y) / (sl_snow_lats.z - sl_snow_lats.y), 0.0, 1.0));
+	float c = mix(v.z, v.w, clamp((t - sl_snow_lats.z) / (sl_snow_lats.w - sl_snow_lats.z), 0.0, 1.0));
+	return t < sl_snow_lats.y ? a : (t < sl_snow_lats.z ? b : c);
+}
+
+// Высота сезонной снеговой линии, м.
+float sl_snow_line(float doy, float lat) {
+	float al = abs(lat);
+	float d = doy + (lat < 0.0 ? 182.5 : 0.0);
+	d -= 365.0 * floor(d / 365.0);
+	float w = 0.5 * (1.0 + cos(6.2831853 * (d - sl_snow_min_day) / 365.0));
+	return sl_snow_interp(sl_snow_line_summer, al) - sl_snow_interp(sl_snow_line_winter_drop, al) * w;
+}
+
+// Свежий снег 0…1 на высоте alt: не убывает с высотой, плавный переход в полосе sl_snow_fresh_band_m.
+float sl_snow_fresh(float doy, float lat, float alt) {
+	if (!sl_snow_enabled) {
+		return 0.0;
+	}
+	float line = sl_snow_line(doy, lat);
+	return smoothstep(line, line + sl_snow_fresh_band_m, alt);
+}
+
+// То же по подготовленной на CPU линии (рельеф).
+float sl_snow_fresh_b(float alt) {
+	if (!sl_snow_enabled) {
+		return 0.0;
+	}
+	return smoothstep(sl_snow_pre.x, sl_snow_pre.x + sl_snow_fresh_band_m, alt);
+}
+
+#ifndef SL_NO_GROUND   // SL-10 использует vnoise из terrain_common
+uniform bool sl_glacier_enabled = false;
+uniform vec3 sl_glacier_color = vec3(0.3, 0.31, 0.33);   // грязный лёд/фирн, линейный RGB
+uniform float sl_glacier_dirt = 0.7;                     // доля серого цвета на леднике
+uniform vec2 sl_glacier_slope_deg = vec2(14.0, 26.0);    // ледник на пологом: полностью до первого, исчезает к второму
+uniform vec2 sl_glacier_crevasse_m = vec2(14.0, 45.0);   // шаг трещин поперёк течения, м; период по длине (разломы)
+uniform float sl_glacier_crevasse = 0.6;                 // сила трещин, доля
+
+// Свежий снег поверх готового цвета: выше линии на дату и широту, не на крутом (сползает); кромка рваная.
+vec3 sl_fresh_snow(vec3 col, vec3 snow_col, vec2 xz, float h, float slope_deg, float forest) {
+	float f = sl_snow_fresh_b(h);
+	if (f < 0.002) {
+		return col;
+	}
+	float n = vnoise(xz / 70.0 + vec2(5.3, 1.7));
+	f = smoothstep(0.0, 1.0, f * 1.6 - 0.3 + 0.7 * (n - 0.5));
+	f *= 1.0 - smoothstep(sl_snow_fresh_slope.x, sl_snow_fresh_slope.y, slope_deg);
+	f *= 1.0 - 0.5 * forest;
+	return mix(col, snow_col * (0.94 + 0.06 * n), f);
+}
+
+// Цвет снега класса на леднике (ниже сезонной линии, полого, в вогнутости): грязно-серый, поперёк
+// течения (поперёк линии падения) полосы трещин. cv — выпуклость (−1…1, <0 вогнуто), foot — след пикселя, м.
+vec3 sl_glacier(vec3 wcol, vec2 xz, vec3 n_class, float slope_deg, float cv, float h, float foot) {
+	if (!sl_glacier_enabled) {
+		return wcol;
+	}
+	float g = (1.0 - sl_snow_fresh_b(h)) * (1.0 - smoothstep(sl_glacier_slope_deg.x, sl_glacier_slope_deg.y, slope_deg))
+			* (1.0 - smoothstep(0.0, 0.6, cv));
+	if (g < 0.01) {
+		return wcol;
+	}
+	float dirt = 0.6 + 0.4 * vnoise(xz / 55.0 + vec2(2.1, 8.4));
+	vec3 col = mix(wcol, sl_glacier_color * dirt, g * sl_glacier_dirt);
+	// трещины: линии вдоль изолиний (u — координата по течению), разорваны по ширине, чаще на уклоне
+	vec2 dn = length(n_class.xz) > 1e-4 ? normalize(n_class.xz) : vec2(1.0, 0.0);
+	float u = dot(xz, dn) / sl_glacier_crevasse_m.x + 1.6 * vnoise(xz / 35.0);
+	float w = dot(xz, vec2(-dn.y, dn.x)) / sl_glacier_crevasse_m.y;
+	float line = smoothstep(0.4, 0.46, abs(fract(u) - 0.5));
+	float seg = smoothstep(0.45, 0.6, vnoise(vec2(w * 3.0, floor(u) * 1.7)));
+	float steep = smoothstep(2.0, 9.0, slope_deg);
+	float kf = 1.0 - smoothstep(2.0, 8.0, foot);
+	float cr = line * seg * steep * g * sl_glacier_crevasse;
+	return mix(col, col * vec3(0.18, 0.24, 0.32), cr * kf) * (1.0 - 0.1 * cr * (1.0 - kf));
+}
+#endif

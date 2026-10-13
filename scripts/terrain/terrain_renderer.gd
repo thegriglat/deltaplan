@@ -426,7 +426,8 @@ static func apply_scene_look_params(m: ShaderMaterial, sl: Dictionary) -> void:
 			v = float(v)
 		m.set_shader_parameter("sl_" + k, v)
 	if sl.has("doy") or sl.has("lat_deg") or sl.has("season_hopkins") or sl.has("season_lat_ref") \
-			or sl.has("season_larch_lag"):
+			or sl.has("season_larch_lag") \
+			or sl.has("snow_lats") or sl.has("snow_line_summer") or sl.has("snow_line_winter_drop") or sl.has("snow_min_day"):
 		SeasonLook.apply_pre(m)
 
 

@@ -10,6 +10,8 @@ extends RefCounted
 ## середина окраски берёзы ≈ 7 октября (Киев ≈ 5–15 октября, Москва ≈ 20–25 сентября).
 ## Осень слабее зависит от высоты, чем весна (season_autumn_alt_k = 0,5 — допущение).
 ## Южное полушарие — дата сдвинута на полгода; |φ| < ~23° — сезона нет (всё 0).
+## Свежий снег (SL-10, К2 v2): сезонная снеговая линия по широте и дате (snow_line), snow_fresh —
+## плавный переход выше неё; зеркало sl_snow_line/sl_snow_fresh в scene_look.gdshaderinc.
 
 const DEFAULTS := {
 	"season_enabled": true,
@@ -24,6 +26,12 @@ const DEFAULTS := {
 	"season_leaf_days": [-15.0, 10.0, 18.0, 38.0],
 	"season_leafout_days": [2.0, 16.0],
 	"season_larch_lag": 8.0,
+	"snow_enabled": true,
+	"snow_lats": [10.0, 46.0, 60.0, 70.0],
+	"snow_line_summer": [4900.0, 3000.0, 1500.0, 500.0],
+	"snow_line_winter_drop": [0.0, 600.0, 800.0, 400.0],
+	"snow_min_day": 75.0,
+	"snow_fresh_band_m": 300.0,
 }
 
 
@@ -31,8 +39,15 @@ const DEFAULTS := {
 ## (нарастает к осени и держится до листопада), листва опала — все 0…1; rel — дней от начала
 ## вегетации (для полей). look — секция scene_look (нет ключа — значение по умолчанию).
 static func state(doy: float, lat_deg: float, alt_m: float, look: Dictionary = {}) -> Dictionary:
+	var line := snow_line(doy, lat_deg, look)
+	var snow := 0.0
+	if bool(_p(look, "snow_enabled")):
+		snow = smoothstep(line, line + float(_p(look, "snow_fresh_band_m")), alt_m)
 	if not bool(_p(look, "season_enabled")):
-		return {"green": 0.0, "dry": 0.0, "autumn": 0.0, "bare": 0.0, "rel": 0.0}
+		return {
+			"green": 0.0, "dry": 0.0, "autumn": 0.0, "bare": 0.0, "rel": 0.0,
+			"snow_fresh": snow, "snow_line_m": line,
+		}
 	var hop: Array = _p(look, "season_hopkins")
 	var dates: Array = _p(look, "season_dates")
 	var fresh: Array = _p(look, "season_fresh")
@@ -70,7 +85,32 @@ static func state(doy: float, lat_deg: float, alt_m: float, look: Dictionary = {
 		"autumn": trop * autumn,
 		"bare": trop * bare,
 		"rel": d - spring,
+		"snow_fresh": snow,
+		"snow_line_m": line,
 	}
+
+
+## Высота сезонной снеговой линии, м (зеркало sl_snow_line): летняя по широте (кусочно-линейно по
+## snow_lats) минус зимнее опускание × сезонный косинус с минимумом в snow_min_day.
+static func snow_line(doy: float, lat_deg: float, look: Dictionary = {}) -> float:
+	var d := doy + (182.5 if lat_deg < 0.0 else 0.0)
+	d -= 365.0 * floorf(d / 365.0)
+	var w := 0.5 * (1.0 + cos(TAU * (d - float(_p(look, "snow_min_day"))) / 365.0))
+	var al := absf(lat_deg)
+	return (
+		_snow_interp(_p(look, "snow_line_summer"), al, look)
+		- _snow_interp(_p(look, "snow_line_winter_drop"), al, look) * w
+	)
+
+
+static func _snow_interp(v: Array, al: float, look: Dictionary) -> float:
+	var lats: Array = _p(look, "snow_lats")
+	var t := clampf(al, float(lats[0]), float(lats[3]))
+	for i in 3:
+		if t < float(lats[i + 1]) or i == 2:
+			var k := clampf((t - float(lats[i])) / (float(lats[i + 1]) - float(lats[i])), 0.0, 1.0)
+			return lerpf(float(v[i]), float(v[i + 1]), k)
+	return float(v[3])
 
 
 ## Сезон породы: 1 — берёза/осина, 2 — лиственница (позже на season_larch_lag дней), как sl_season_sp.
@@ -101,20 +141,31 @@ static func pre(doy: float, lat_deg: float, look: Dictionary = {}) -> Vector4:
 	)
 
 
-## Пересчитать sl_season_pre материала по его текущим sl_doy, sl_lat_deg и параметрам сезона.
+## Подготовка снега для шейдера (uniform sl_snow_pre): Vector4(высота снеговой линии, м, 0, 0, 0).
+static func snow_pre(doy: float, lat_deg: float, look: Dictionary = {}) -> Vector4:
+	return Vector4(snow_line(doy, lat_deg, look), 0.0, 0.0, 0.0)
+
+
+## Пересчитать sl_season_pre и sl_snow_pre материала по его текущим sl_doy, sl_lat_deg и параметрам сезона.
 static func apply_pre(m: ShaderMaterial) -> void:
 	var look := {}
-	for k in ["season_hopkins", "season_lat_ref", "season_larch_lag"]:
+	for k in [
+		"season_hopkins", "season_lat_ref", "season_larch_lag", "snow_lats", "snow_line_summer",
+		"snow_line_winter_drop", "snow_min_day",
+	]:
 		var v: Variant = m.get_shader_parameter("sl_" + k)
 		if v is Vector2:
 			v = [v.x, v.y]
+		elif v is Vector4:
+			v = [v.x, v.y, v.z, v.w]
 		if v != null:
 			look[k] = v
 	var doy: Variant = m.get_shader_parameter("sl_doy")
 	var lat: Variant = m.get_shader_parameter("sl_lat_deg")
-	m.set_shader_parameter(
-		"sl_season_pre", pre(196.0 if doy == null else float(doy), 0.0 if lat == null else float(lat), look)
-	)
+	var d0 := 196.0 if doy == null else float(doy)
+	var l0 := 0.0 if lat == null else float(lat)
+	m.set_shader_parameter("sl_season_pre", pre(d0, l0, look))
+	m.set_shader_parameter("sl_snow_pre", snow_pre(d0, l0, look))
 
 
 static func _p(look: Dictionary, key: String) -> Variant:

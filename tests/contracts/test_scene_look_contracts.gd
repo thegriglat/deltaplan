@@ -268,6 +268,43 @@ func test_k2_season_hopkins() -> void:
 	check(b > l, "лиственница желтеет позже берёзы (%f > %f)" % [b, l])
 
 
+# --- SL-К2 v2: свежий снег и снеговая линия (SL-10) ---
+
+func test_k2_snow_range_monotonic_symmetric() -> void:
+	for lat in [-60.0, -46.0, -5.0, 0.0, 5.0, 30.0, 46.0, 51.0, 64.0, 75.0]:
+		for doy in range(1, 366, 9):
+			var prev := 0.0
+			for alt in range(0, 6001, 250):
+				var s := _season(float(doy), lat, float(alt))
+				var v := float(s.snow_fresh)
+				check(v >= 0.0 and v <= 1.0, "К2 v2: snow_fresh в [0, 1] (%d, %.0f, %d: %f)" % [doy, lat, alt, v])
+				check(v >= prev - 1e-6, "К2 v2: snow_fresh не убывает с высотой (%d, %.0f, %d)" % [doy, lat, alt])
+				prev = v
+				var m := _season(doy + 182.5, -lat, float(alt))
+				approx(float(m.snow_fresh), v, 0.02, "К2 v2: симметрия полушарий (%d, %.0f, %d)" % [doy, lat, alt])
+
+
+func test_k2_snow_numbers() -> void:
+	check(float(_season(196.0, 51.0, 1000.0).snow_fresh) == 0.0, "К2 v2: 15 июля, 51°, 1000 м — снега нет")
+	check(float(_season(15.0, 51.0, 2500.0).snow_fresh) >= 0.9, "К2 v2: 15 января, 51°, 2500 м ≥ 0,9")
+	for doy in range(1, 366, 7):
+		check(float(_season(float(doy), 5.0, 3000.0).snow_fresh) == 0.0, "К2 v2: 5°, 3000 м — 0 круглый год (%d)" % doy)
+	var line := float(_season(196.0, 46.0, 0.0).snow_line_m)
+	check(line >= 2600.0 and line <= 3400.0, "К2 v2: линия 15 июля на 46° — 2600…3400 м (%f)" % line)
+	check(float(_season(15.0, 51.0, 0.0).snow_line_m) < float(_season(250.0, 51.0, 0.0).snow_line_m), "К2 v2: зимой линия ниже")
+	var off := SeasonLook.state(15.0, 51.0, 3000.0, {"snow_enabled": false})
+	check(float(off.snow_fresh) == 0.0, "К2 v2: snow_enabled=false — snow_fresh 0")
+
+
+func test_k2_snow_shader_mirror() -> void:
+	var inc := _read(INC)
+	check(inc.contains("float sl_snow_fresh(float doy, float lat, float alt)"), "К2 v2: float sl_snow_fresh(doy, lat, alt)")
+	check(inc.contains("uniform vec4 sl_snow_pre"), "К2 v2: sl_snow_pre (линия считается на CPU)")
+	check(inc.contains("vec4 sl_season(float doy, float lat, float alt)"), "К2 v2: sl_season не меняется")
+	var tg := _read("res://scripts/terrain/terrain.gdshader")
+	check(tg.contains("sl_fresh_snow(") and tg.contains("// SL"), "К2 v2: вызов свежего снега в рельефе — строкой // SL")
+
+
 func test_k2_season_dryness_adds() -> void:
 	# сухость сезона прибавляется к местной: к концу лета больше, чем весной; чем суше место, тем соломеннее
 	var spring := float(_season(150.0, 51.0, 300.0).dry)
@@ -285,7 +322,7 @@ func test_k2_season_shader_mirror() -> void:
 	for key: String in SeasonLook.DEFAULTS:
 		check(sec.has(key), "К2: ключ %s есть в scene_look" % key)
 		check(str(sec.get(key)) == str(SeasonLook.DEFAULTS[key]), "К2: %s: config = SeasonLook.DEFAULTS" % key)
-		if inc.contains("uniform") and not key == "season_enabled":
+		if inc.contains("uniform") and not key.ends_with("_enabled"):
 			var re := RegEx.create_from_string("uniform\\s+\\w+\\s+sl_%s\\s*=\\s*([^;]+);" % key)
 			var m := re.search(inc)
 			check(m != null, "К2: sl_%s с умолчанием в include" % key)

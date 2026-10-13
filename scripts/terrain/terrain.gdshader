@@ -1067,6 +1067,7 @@ void fragment() {
 	if (use_snow_tex) {
 		wcol = apply_tex(wcol, texture(snow_tex, wp.xz / snow_tex_tile_m).rgb, snow_tex_avg, tex_w);
 	}
+	wcol = sl_glacier(wcol, wp.xz, n_class, slope_deg, v_convex / outcrop_convex_k, h, foot_m); // SL
 	col = (col + ucol * built) * snow_rest + bcol * bare + wcol * snow;
 
 	// --- лес: полог из крон (ячейки canopy_cell_m) с освещением и тенями; вдали — средний тон ---
@@ -1361,6 +1362,7 @@ void fragment() {
 			h + gully_north_m * max(north, 0.0) + 120.0 * (patch2 - 0.5))
 			* (1.0 - smoothstep(48.0, 58.0, slope_deg)), wp.xz + 17.0, foot_m) * (1.0 - forest);
 	col = mix(col, snow_color * (0.9 + 0.1 * fbm(wp.xz / 9.0, 2)), gsnow);
+	col = sl_fresh_snow(col, snow_color, wp.xz, h, slope_deg, forest); // SL
 
 	// --- мелкая детализация (кочки, пятна) ---
 	float d1 = fbm(wp.xz / detail_scale_m, 3);
