@@ -190,24 +190,24 @@ float sl_alpine_w(float h, float tl) {
 }
 
 // Луг: пятна, альпийский тон.
-vec3 sl_meadow(vec3 c, vec3 wp, vec3 pm, float tl) {
+vec3 sl_meadow(vec3 c, vec3 wp) {
 	if (sl_patch_enabled) {
-		c *= pm;
+		c *= sl_patch_mul(wp.xz);
 	}
 	if (sl_treeline_enabled) {
-		float w = sl_alpine_w(wp.y + 40.0 * (vnoise(wp.xz / 180.0) - 0.5), tl);
+		float w = sl_alpine_w(wp.y + 40.0 * (vnoise(wp.xz / 180.0) - 0.5), sl_treeline_h);
 		c = mix(c, c * sl_treeline_tint, w);
 	}
 	return c;
 }
 
 // Полог: пятна, у границы леса просветы и выше — луг (gcol уже альпийский).
-vec3 sl_forest(vec3 f, vec3 gcol, vec3 wp, vec3 pm, float tl) {
+vec3 sl_forest(vec3 f, vec3 gcol, vec3 wp) {
 	if (sl_patch_enabled) {
-		f *= pm;
+		f *= sl_patch_mul(wp.xz);
 	}
 	if (sl_treeline_enabled) {
-		float p = smoothstep(tl - sl_treeline_thin_m, tl, wp.y);
+		float p = smoothstep(sl_treeline_h - sl_treeline_thin_m, sl_treeline_h, wp.y);
 		if (p > 0.0) {
 			float n2 = vnoise(wp.xz / sl_treeline_gap_m + vec2(4.1, 8.3));
 			float gap = smoothstep(0.0, 0.2, p * 1.2 - n2);
