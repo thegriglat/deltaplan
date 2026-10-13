@@ -150,3 +150,85 @@ func test_village_gardens() -> void:
 			n += int(d.garden)
 			check(int(d.street) == 0 and int(d.yard) == 0, "в селе только сады")
 	check(n >= 15, "садов у 20 домов села: %d" % n)
+
+
+## Деревья на местах крон рельефа: только в лесных клетках города, на сетке 6 м как в terrain.gdshader.
+func _crown_plan(forest: Callable) -> CityTreePlan:
+	var w := _world()
+	var p := CityTreePlan.new()
+	var wc := Config.get_config("world_objects")
+	p.setup(_cfg(), w.roads, [], w.houses, [], wc.roads, wc.city_ground, 200.0, func(_x: float, _z: float) -> float: return 0.0, forest)
+	p.model_height.fill(14.0)
+	p.prepare()
+	return p
+
+
+func _crowns(p: CityTreePlan, rng: float) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	var t := 192.0
+	for tz in range(floori(-rng / t), floori(rng / t) + 1):
+		for tx in range(floori(-rng / t), floori(rng / t) + 1):
+			var d := p.build_tile(tx, tz)
+			# крон-деревья идут последними в буфере тайла
+			var n := int(d.crown)
+			var xf: PackedFloat32Array = d.xf
+			out.append_array(xf.slice(xf.size() - n * 12))
+	return out
+
+
+func test_crown_trees_in_city_only_where_forest() -> void:
+	var none := _crowns(_crown_plan(Callable()), 800.0)
+	check(none.is_empty(), "без маски леса крон-деревьев нет")
+	var zero := _crowns(_crown_plan(func(_x: float, _z: float) -> float: return 0.0), 800.0)
+	check(zero.is_empty(), "лес 0 — крон-деревьев нет")
+	var half := func(x: float, _z: float) -> float: return 1.0 if x < 200.0 else 0.0
+	var a := _crowns(_crown_plan(half), 800.0)
+	var all := _crowns(_crown_plan(func(_x: float, _z: float) -> float: return 1.0), 800.0)
+	check(a.size() / 12 > 20, "крон-деревья есть: %d" % (a.size() / 12))
+	check(all.size() > a.size(), "лесная клетка даёт больше деревьев")
+	for i in a.size() / 12:
+		check(a[i * 12 + 3] < 200.0, "дерево только в лесной клетке")
+	# вне города (далеко от домов) деревьев нет
+	for i in all.size() / 12:
+		var x := all[i * 12 + 3]
+		var z := all[i * 12 + 11]
+		if x > 2000.0 or z > 2000.0 or x < -2000.0 or z < -2000.0:
+			check(false, "крон-дерево вне города: %.0f %.0f" % [x, z])
+	check(_crowns(_crown_plan(half), 800.0) == a, "расстановка детерминирована")
+
+
+func test_crown_trees_on_shader_grid_and_off_houses() -> void:
+	var w := _world()
+	var a := _crowns(_crown_plan(func(_x: float, _z: float) -> float: return 1.0), 800.0)
+	var bad_cell := 0
+	var bad_h := 0
+	for i in a.size() / 12:
+		var x := a[i * 12 + 3]
+		var z := a[i * 12 + 11]
+		# центр кроны в клетке: (c + 0.5 ± 0.35) · 6 м
+		var fx := fposmod(x / 6.0, 1.0)
+		var fz := fposmod(z / 6.0, 1.0)
+		if fx < 0.15 - 1e-3 or fx > 0.85 + 1e-3 or fz < 0.15 - 1e-3 or fz > 0.85 + 1e-3:
+			bad_cell += 1
+		for h: Array in w.houses:
+			if absf(x - float(h[0])) < float(h[2]) * 0.5 and absf(z - float(h[1])) < float(h[3]) * 0.5 and float(h[4]) == 0.0:
+				bad_h += 1
+	check(bad_cell == 0, "все деревья на сетке крон шейдера: %d вне" % bad_cell)
+	check(bad_h == 0, "ни одного дерева на доме: %d" % bad_h)
+
+
+func test_city_mask_and_shader_gate() -> void:
+	var p := _crown_plan(Callable())
+	var m := p.city_mask()
+	check(not m.is_empty(), "маска города есть")
+	var img: Image = m.image
+	check(img.get_format() == Image.FORMAT_L8, "маска L8")
+	var o: Vector2 = m.origin
+	var cell: float = m.cell
+	var ix := clampi(int((200.0 - o.x) / cell + 0.5), 0, img.get_width() - 1)
+	var iz := clampi(int((200.0 - o.y) / cell + 0.5), 0, img.get_height() - 1)
+	check(img.get_pixel(ix, iz).r > 0.9, "центр города в маске: %.2f" % img.get_pixel(ix, iz).r)
+	check(img.get_pixel(0, 0).r < 0.05, "край вне города 0")
+	# вне города (и без CityTrees) рельеф рисует кроны как раньше: шейдер выключен по умолчанию
+	var src := FileAccess.get_file_as_string("res://scripts/terrain/terrain.gdshader")
+	check(src.contains("uniform bool use_city_canopy = false;"), "гашение крон по умолчанию выключено")

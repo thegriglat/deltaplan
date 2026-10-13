@@ -5,6 +5,9 @@ extends RefCounted
 ##    доля площади под домами по клеткам, сглаженная), на отступе ширина/2 + offset_m, шаг ~spacing_m с пропусками;
 ##    не на дома, не на другие дороги и реки (перекрёстки), не в тоннелях и на мостах;
 ##  - дворы: в городе по клеткам yard.cell_m редкие группы 1–3 дерева, где нет домов и дорог;
+##  - кроны: в лесных (WorldCover) клетках города на местах крон рельефа (клетка crown.cell_m, центр со сдвигом, как
+##    canopy_nearest в terrain.gdshader) — по дереву-модели; рельеф там крон на земле не рисует (маска city_mask());
+##    не на дома и дороги (рельеф в городе кроны гасит целиком, где модели нет — просто земля);
 ##  - сады: у малых жилых домов (частный сектор, сёла; в т. ч. процедурные дома посёлков) 1–4 дерева рядом.
 ## Всё детерминировано: хеш (RockScatter.hash01) от целых координат и индекса дороги/дома, не от порядка вызовов.
 ## Дерево принадлежит тайлу tile_m по своему положению (улицы, дворы) или по центру дома (сады).
@@ -17,6 +20,8 @@ const GARDEN_TYPES: PackedStringArray = ["yes", "house", "detached", "farm", "hu
 
 var cfg: Dictionary = {}
 var height_fn: Callable
+## (x, z) -> доля леса 0..1 (Terrain.forest_at); не задан — деревьев на местах крон нет
+var forest_fn: Callable
 var prepared := false
 var species: PackedStringArray = []
 var sp_weight := PackedFloat32Array()
@@ -68,8 +73,10 @@ var _style_cell := 200.0
 ## osm_houses — OsmData.buildings (маска города + дома), extra_houses — процедурные дома посёлков (только сады).
 func setup(
 	c: Dictionary, roads: Array, rivers: Array, osm_houses: Array, extra_houses: Array,
-	roads_cfg: Dictionary, cg: Dictionary, style_cell: float, hfn: Callable
+	roads_cfg: Dictionary, cg: Dictionary, style_cell: float, hfn: Callable,
+	ffn: Callable = Callable()
 ) -> void:
+	forest_fn = ffn
 	cfg = c
 	_roads_src = roads
 	_rivers_src = rivers
@@ -295,7 +302,8 @@ func build_tile(tx: int, tz: int) -> Dictionary:
 		"var": PackedInt32Array(),
 		"street": 0,
 		"yard": 0,
-		"garden": 0
+		"garden": 0,
+		"crown": 0
 	}
 	if species.is_empty():
 		return out
@@ -305,6 +313,8 @@ func build_tile(tx: int, tz: int) -> Dictionary:
 		_yard_tile(tx, tz, out)
 	if bool(cfg.get("garden", {}).get("enabled", true)):
 		_garden_tile(tx, tz, out)
+	if forest_fn.is_valid() and bool(cfg.get("crown", {}).get("enabled", true)):
+		_crown_tile(tx, tz, out)
 	return out
 
 
@@ -419,6 +429,50 @@ func _garden_tile(tx: int, tz: int, out: Dictionary) -> void:
 			if not _free(px, pz, 1.5, 2.0):
 				continue
 			_emit(out, px, pz, ix, iz, 100 + r * 8, hr, "garden")
+
+
+## Деревья на местах крон: клетка c, центр (c + 0,5 + (h − 0,5)·0,7)·cell, как в terrain.gdshader (canopy_nearest);
+## хеш целочисленный (RockScatter.hash01) — расстановка не зависит от порядка и float-шума GPU. Клетка целиком
+## внутри тайла (центр не выходит за её пределы), поэтому тайл владеет своими клетками.
+func _crown_tile(tx: int, tz: int, out: Dictionary) -> void:
+	var cc: Dictionary = cfg.crown
+	var cell := float(cc.get("cell_m", 6.0))
+	var hr: Array = cc.get("height_m", [7.0, 12.0])
+	var keep := float(cc.get("keep", 1.0))
+	var n := int(round(_tile / cell))
+	for j in n:
+		for i in n:
+			var cx := tx * n + i
+			var cz := tz * n + j
+			var px := (cx + 0.5 + (RockScatter.hash01(cx, cz, 301) - 0.5) * 0.7) * cell
+			var pz := (cz + 0.5 + (RockScatter.hash01(cx, cz, 302) - 0.5) * 0.7) * cell
+			if city_at(px, pz) < 0.5:
+				continue
+			if RockScatter.hash01(cx, cz, 303) >= keep:
+				continue
+			if float(forest_fn.call(px, pz)) < 0.5:
+				continue
+			if not _free(px, pz, 2.0, 1.5):
+				continue
+			_emit(out, px, pz, cx, cz, 310, hr, "crown")
+
+
+## Маска города для рельефа (гашение крон на земле): {image: L8 (node = city_at·255), origin: центр пикселя (0, 0),
+## cell: шаг, м}. Нужен prepare(); пусто — это не город.
+func city_mask() -> Dictionary:
+	if _cov.is_empty():
+		return {}
+	var data := PackedByteArray()
+	data.resize(_cnx * _cnz)
+	for j in _cnz:
+		for i in _cnx:
+			var v := city_at(_cx0 + (i + 0.5) * _ccell, _cz0 + (j + 0.5) * _ccell)
+			data[j * _cnx + i] = int(round(v * 255.0))
+	return {
+		"image": Image.create_from_data(_cnx, _cnz, false, Image.FORMAT_L8, data),
+		"origin": Vector2(_cx0 + 0.5 * _ccell, _cz0 + 0.5 * _ccell),
+		"cell": _ccell
+	}
 
 
 func _emit(out: Dictionary, px: float, pz: float, ia: int, ib: int, salt: int, hr: Array, kind: String) -> void:
