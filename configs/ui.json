@@ -18,9 +18,9 @@
     "res://assets/ui/backdrops/40_shadow_biyagoda_noon.webp",
     "res://assets/ui/backdrops/41_shadow_biyagoda_afternoon.webp",
     "res://assets/ui/backdrops/42_shadow_aushtau_noon.webp",
-    "res://assets/ui/backdrops/43_shadow_aushtau_afternoon.webp",
-    "res://assets/ui/backdrops/44_shadow_biyagoda_e_noon.webp",
-    "res://assets/ui/backdrops/45_shadow_biyagoda_e_afternoon.webp"
+    "res://assets/ui/backdrops/43_shadow_aushtau_evening.webp",
+    "res://assets/ui/backdrops/44_shadow_ongudai_noon.webp",
+    "res://assets/ui/backdrops/45_shadow_ongudai_afternoon.webp"
   ],
   "backdrops_doc": "Кадры игры для фона главного меню (сменяются по кругу) и экрана загрузки (случайный на каждую загрузку); снимаются tools/shots/menu_art.py, 2560×1440 WebP. Пусто — сплошной тёмный фон",
   "menu_backdrop_interval_s": 20.0,
