@@ -1,0 +1,56 @@
+{
+  "id": "SL-11",
+  "module": "scene-look",
+  "type": "dp-mechanic",
+  "title": "Кадры и GPU «после», замер на «Высоком» и «Низком», тестовая сборка Linux",
+  "goal": "Итог модуля: цена кадра scene-look (A/B main и ветка модуля вперемежку на тихой машине, Высокий; один замер на Низком), кадры «после» и по сезону, тестовая сборка Linux для пользователя.",
+  "plan_ref": "SL-11 Кадры и GPU «после», тестовая сборка Linux",
+  "contracts": [
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look",
+  "branch": "feature/scene-look",
+  "base": "feature/scene-look",
+  "scope": [
+    "/home/greg/deltaplan/build/screenshots/scene-look/",
+    "build/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/scene-look/after/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "season",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/scene-look/season/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "build",
+      "cmd": "ls -1 build/linux/ 2>/dev/null | wc -l",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [
+    "gpu_table",
+    "gpu_module_full_ms_high",
+    "gpu_module_relief_ms_high",
+    "gpu_module_full_ms_low",
+    "low_preset_effects",
+    "build_path",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-14T03:06:40",
+  "edited": "2026-10-14T03:06:53"
+}

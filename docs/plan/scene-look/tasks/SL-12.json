@@ -1,0 +1,31 @@
+{
+  "id": "SL-12",
+  "module": "scene-look",
+  "type": "dp-writer",
+  "title": "Документ scene-look и CHANGELOG",
+  "goal": "docs/guide/scene-look.md: как устроено, ключи scene_look, цена GPU, границы модели; строка в «Что где» terrain.md; CHANGELOG «В работе» — по отчётам задач.",
+  "plan_ref": "SL-12 Документ и CHANGELOG",
+  "contracts": [],
+  "copy": "~/deltaplan-scene-look-SL-12",
+  "branch": "scene-look/SL-12",
+  "base": "feature/scene-look",
+  "scope": [
+    "docs/guide/scene-look.md",
+    "docs/guide/terrain.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/tools/dp docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-14T03:06:40"
+}

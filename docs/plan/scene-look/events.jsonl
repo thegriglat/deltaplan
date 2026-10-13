@@ -156,3 +156,8 @@
 {"t": "2026-10-14T03:04:51", "by": "main", "task": "SL-14", "ev": "accepted", "note": "по отчёту: множители альбедо по породам (модель/крест/билборд) к 0,05 хвойные / 0,08 лиственные, сшивка тона canopy_near_m снята (ключ оставлен для доли освещённых крон), выключатель tree_albedo_enabled; GPU ≈ 0; берёза вблизи темнее вдвое — смотреть тестовой сборкой"}
 {"t": "2026-10-14T03:06:14", "by": "coordinator", "task": "SL-14", "ev": "accepted", "commits": ["09bf2d52"], "note": "4/4 vegetation=ok:24/24; terrain=ok:126/126 (пропуск 3); scene_look_contracts=ok:20/20; gd=ok:exit 0"}
 {"t": "2026-10-14T03:06:21", "by": "coordinator", "task": "SL-14", "ev": "merged", "note": "09bf2d52"}
+{"t": "2026-10-14T03:06:40", "by": "main", "task": "SL-11", "ev": "created", "note": "Кадры и GPU «после», замер на «Высоком» и «Низком», тестовая сборка Linux"}
+{"t": "2026-10-14T03:06:40", "by": "main", "task": "SL-11", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"gpu_table\", \"gpu_module_full_ms_high\", \"gpu_module_relief_ms_high\", \"gpu_module_full_ms_low\", \"low_preset_effects\", \"build_path\", \"uncertain\"]"]}}
+{"t": "2026-10-14T03:06:40", "by": "main", "task": "SL-12", "ev": "created", "note": "Документ scene-look и CHANGELOG"}
+{"t": "2026-10-14T03:06:53", "by": "main", "task": "SL-11", "ev": "edited", "note": "copy", "diff": {"copy": ["\"~/deltaplan-scene-look-SL-11\"", "\"~/deltaplan-scene-look\""]}}
+{"t": "2026-10-14T03:06:53", "by": "main", "task": "SL-11", "ev": "edited", "note": "branch", "diff": {"branch": ["\"scene-look/SL-11\"", "\"feature/scene-look\""]}}
