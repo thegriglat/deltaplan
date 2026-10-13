@@ -1,0 +1,36 @@
+{
+  "status": "partial",
+  "summary": "Подпись поля ветра в меню полёта (ключ setup_wind) заменена на «Ветер по прогнозу» / «Forecast wind», переимпорт перевода выполнен. menu_setup 12/12 проходит; language 4/6 — два упавших проверки не связаны с правкой (см. not_done).",
+  "commits": [
+    "8062ae41 Меню полёта: подпись поля фонового ветра — «Ветер по прогнозу» / «Forecast wind»"
+  ],
+  "checks": [
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "4/6; FAIL test_every_csv_key_has_ru_and_en, test_code_keys_exist_and_are_not_russian",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "language: test_every_csv_key_has_ru_and_en — «en по-русски у settings_motion_on_hint: пока включено» (строка locale/ui.csv:495, не моя правка). test_code_keys_exist_and_are_not_russian — «ключа launch_fail_ / setup_app_ / start_pick_bad_ нет в ui.csv» (префиксные ключи в game.gd, flight_setup_screen.gd, start_pick_panel.gd). Вне скоупа карточки, не правил."
+  ],
+  "questions": [
+    "Чинить ли две упавшие проверки language отдельной задачей (en-строка settings_motion_on_hint и префиксные ключи)?"
+  ],
+  "how_to_check": "dp accept FBW-2 --dry; подпись: locale/ui.csv:14",
+  "uncertain": [
+    {
+      "where": "locale/ui.csv:14",
+      "why": "в карточке подпись названа «ветер на старте», в исходнике ключ setup_wind был «Ветер» — заменил значение ключа на новое; возможно, пилот видел текст «Ветер» с единицами м/с",
+      "checked": "ключ setup_wind используется только в scripts/ui/flight_setup_screen.gd:399; подсказки/тултипа у поля нет"
+    }
+  ],
+  "dp_feedback": "dp accept --dry не показывает, какие падения уже были на базе ветки; пришлось разбирать лог вручную. Тип сверки «в карточке — одно, в исходнике — другое» проще видеть в отчёте dp.",
+  "t": "2026-10-13T19:34:16",
+  "by": "main"
+}
