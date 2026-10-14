@@ -2,13 +2,14 @@
 type: "guide"
 status: "active"
 module: "scene-look"
-updated: "2026-10-14"
-summary: "Таблицы ключей модуля scene-look: configs/world.json → scene_look (по пунктам), trees.* (кресты, смена формы, альбедо), trees.impostors.seam_*, haze.*, roads.look, sail — значение по умолчанию и смысл."
+area: "world"
+updated: "2026-10-15"
+summary: "Таблицы ключей scene-look: scene_look, trees.*, trees.impostors.seam_*, haze.*, roads.look, sail — по умолчанию и смысл."
 related: ["docs/guide/scene-look.md", "docs/contracts/scene-look.md"]
 ---
 # scene-look — ключи
 
-Таблицы ключей модуля; как устроен модуль, физика пунктов, цена GPU и границы модели — в [scene-look.md](scene-look.md). Источник правды — `configs/world.json` (у каждого ключа есть `<k>_doc`, здесь он повторён). Ключ `scene_look.<k>` попадает в uniform `sl_<k>`; цвета — линейные RGB. Выключатель пункта — `<пункт>_enabled`.
+Таблицы ключей модуля; как устроен модуль — в [scene-look.md](scene-look.md), физика пунктов — в [light-atmosphere](scene-look/light-atmosphere.md), [ground](scene-look/ground.md) и [forest-cost](scene-look/forest-cost.md) (там же цена GPU и границы модели). Источник правды — `configs/world.json` (у каждого ключа есть `<k>_doc`, здесь он повторён). Ключ `scene_look.<k>` попадает в uniform `sl_<k>`; цвета — линейные RGB. Выключатель пункта — `<пункт>_enabled`.
 
 
 ## Свет неба и земли (SL-2), `world.json → scene_look`

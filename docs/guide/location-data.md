@@ -1,21 +1,23 @@
 ---
 type: "guide"
 status: "active"
-module: "no-osm"
-updated: "2026-10-13"
-summary: "Откуда берутся данные места без OSM: стадии dem, rivers, surface (рельеф, реки, покров, лес, вода и застройка 10 м), файлы в WebP, версии формата и источника, кеш user://locations, встроенные места собираются при первом выборе, счётчик загрузки, как собрать встроенное место."
-related: ["docs/plan/no-osm.md", "docs/contracts/no-osm.md", "docs/contracts/osm-any.md", "docs/research/lakes_worldcover.md", "docs/research/location_compression.md", "docs/guide/terrain.md", "docs/guide/world-objects.md", "docs/registry/findings.md"]
+module: "terrain"
+area: "world"
+updated: "2026-10-15"
+summary: "Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, osm_tiles, WebP, кеш, догрузка, --prefetch."
+related: ["docs/guide/terrain.md", "docs/guide/osm-tiles.md", "docs/guide/world-objects/villages-osm.md", "docs/contracts/no-osm.md", "docs/contracts/osm-any.md", "docs/contracts/osm-tiles.md", "docs/research/lakes_worldcover.md", "docs/research/location_compression.md", "docs/registry/findings.md"]
 ---
 # Данные места: один путь для встроенных мест и любой точки
 
 Игра на встроенном месте и на любой точке с карты получает один и тот же набор слоёв того же объёма и детальности.
-Код один — сборщик места в игре (`scripts/terrain/build/`, GDScript). Данных OpenStreetMap в месте нет вообще (модуль
-no-osm, решение пользователя): ни файла OSM в папке места, ни стадии OSM, ни сетевых запросов к OSM. Встроенных данных в паке игры тоже
+Код один — сборщик места в игре (`scripts/terrain/build/`, GDScript). Рельеф, реки, покров и сглаживание считаются из открытых растров
+(без OSM: вода и застройка — из WorldCover, модуль no-osm); объекты OpenStreetMap приходят отдельной последней стадией `osm_tiles` — это
+список готовых тайлов 20 км собственной раздачи ([osm-tiles.md](osm-tiles.md)), а не запросы к Overpass. Встроенных данных в паке игры
 нет: четыре встроенных места (altai, ongudai, askarovo, aushkul) **собираются при первом выборе** в `user://locations/<id>`
-тем же сборщиком (первая сборка aushkul с пустым кешем: 55,8 с, 166 запросов — рельеф 16,5 с, реки 19,3 с, покров
+тем же сборщиком (первая сборка aushkul с пустым кешем, до стадий `smooth` и `osm_tiles`: 55,8 с, 166 запросов — рельеф 16,5 с, реки 19,3 с, покров
 18,2 с; пак игры 102,9 → 79,8 МБ). Тесты используют заранее собранные фикстуры `tests/fixtures/locations/<id>`
-(`Locations.fixtures_root`, ставит `tests/run_tests.gd`). Формат папки — контракты OA-К1/К2 (`docs/contracts/osm-any.md`) и
-N1/N5 (`docs/contracts/no-osm.md`); планы — `docs/plan/osm-any.md`, `docs/plan/no-osm.md`.
+(`Locations.fixtures_root`, ставит `tests/run_tests.gd`). Формат папки — контракты OA-К1/К2 (`docs/contracts/osm-any.md`), N1/N5 (`docs/contracts/no-osm.md`) и O9
+(`docs/contracts/osm-tiles.md`).
 
 Версия формата: `Locations.FORMAT_VERSION` (`scripts/terrain/build/locations.gd`, сейчас 4) пишется в `build.json → format_version`; её поднимают при любом изменении файлов места. Кеш места `user://locations/<ключ>` с другой версией (или без поля) удаляется целиком и собирается заново — старый кеш пилота пересобирается сам. Сырые блоки источника (`user://terrain_cache`) имеют отдельную версию, `LocationCache.SOURCE_VERSION`: сбрасываются только при её смене (меняется источник или нарезка блоков), не при смене `FORMAT_VERSION`.
 
@@ -41,6 +43,7 @@ N1/N5 (`docs/contracts/no-osm.md`); планы — `docs/plan/osm-any.md`, `docs
 | Реки (`rivers`) | `RiverStage` | сам рельеф: сток по far (priority-flood, накопление, привязка к долине), ширина от площади водосбора | `detail_water.webp`, `far_water.webp` (255 — русло) |
 | Покров (`surface`) | `SurfaceStage` | ESA WorldCover 2021 (COG, HTTP range): класс узла — мода 3×3 подвыборок; лес, вода и застройка 10 м | `detail_surface.webp`, `far_surface.webp` (классы игры 0..8), `detail_detail10.webp`, `detail_built10.webp`, `built_patches.json`, `surface.json` |
 | Сглаживание (`smooth`) | `SmoothStage` | сырые высоты (`detail_raw.webp`) и покров: `h = r + w·(G_σ(r) − r)`, `w` — лес (канал L маски 10 м) и застройка (`built10`), размытые на `smooth_mask_sigma_m` = 50 м; грубые слои берут высоты из нового detail; нет покрова — `ERR_UNAVAILABLE` (w = 1, досборка) | перезаписывает `detail.webp`, `far.webp`, `meta.json`; удаляет `detail_raw.webp` |
+| Тайлы OSM (`osm_tiles`) | `OsmTilesStage` | тайлы мировой сетки 20 км (O1), 3×3 вокруг центра места: из кеша `user://osm_tiles/v1/<j>/<i>.dpt` или по сети (`configs/osm_tiles.json → base_url`, URL или локальный каталог; переменная `DELTAPLAN_OSM_TILES_URL`); до `max_parallel` 9 запросов, общее ожидание `timeout_s` 5 с; 200 → файл, 404 → метка `<i>.none` (пустой тайл), остальное — тайл `missing` | `osm_tiles.json` в папке места: `{"tiles": [[j, i, "ok"\|"none"\|"missing"], …]}`; сами тайлы — в общем кеше, не в папке места |
 
 **Вода 10 м** — канал A файла `detail_detail10.webp`: `A = max(round(255 · n_w / 9), маска рек по рельефу на этой сетке)`, где
 n_w — число подвыборок 3×3 класса «вода» WorldCover (код 80), маска рек — `detail_water`, переведённая билинейно с сетки
@@ -71,26 +74,27 @@ Mapzen/AWS Open Data) и `surface.json` (© ESA WorldCover 2021, CC-BY 4.0); в 
 - **Ключ** — центр точки, привязанный к сетке `snap_deg` = 0,05° (≈ 5 км): `LocationCache.key_for(lat, lon)`,
   например `pt_+53.250_+058.550`. Соседние точки в одной клетке сетки берут одно место; детальный квадрат
   (±20 км) вокруг центра охватывает точку старта с запасом не меньше 17 км до края.
-- **Полное место** — есть `build.json` с `complete: true` и `builder_version` равным
-  `location_builder.version` (`world.json`). Версия другая — место собирается заново. `build.json` пишется последним:
-  `builder_version, key, center_lat/lon, built_utc, complete, missing, seconds` (по стадиям), `net_requests, sources`.
+- **Полное место** — есть `build.json` с `complete: true`, `format_version` равным `Locations.FORMAT_VERSION` и временем каждой
+  стадии из списка (`seconds`: стадия, которой в месте ещё не было, считается недостающей). Версия другая — место удаляется и собирается заново.
+  `build.json` пишется последним: `format_version, key, center_lat/lon, built_utc, complete, missing, seconds` (по стадиям), `net_requests, sources`.
 - **Сборка** идёт во временной `user://locations/.tmp_<ключ>`, затем папка переименовывается — оборванная сборка
   не оставляет полуместо.
 - **Состав папки** — `meta.json`, `detail.webp`, `far.webp`, `*_water.webp`, `*_surface.webp`, `detail_detail10.webp`,
-  `detail_built10.webp`, `built_patches.json`, `surface.json`, `build.json` плюс `location.json` (у точки) — конфиг места по
+  `detail_built10.webp`, `built_patches.json`, `surface.json`, `osm_tiles.json`, `build.json` плюс `location.json` (у точки) — конфиг места по
   шаблону: `center_lat/lon`, `utc_offset_h = round(lon/15)` (часовой пояс по долготе, границы поясов не знаем), `name` —
   координаты точки (имён посёлков без OSM нет), `start_sites` пуст (старт — в выбранной точке по уклону). У встроенного
   места имя и ручные данные (старты, посадки) — в `configs/locations/<id>.json`.
-- Все чтения конфига места — через `Locations` (`config`, `data_dir`, `is_builtin`, `builtin_at`).
+- Все чтения конфига места — через `Locations` (`config`, `data_dir`, `is_builtin`, `builtin_at`). Кеш тайлов OSM — общий, `user://osm_tiles/v1`, вне папки места.
 
 ## Отказ слоя и догрузка
 - Нет покрова (сеть, сервер, ответ не разобран) — летаем без слоя: покров — процедурный, воды 10 м и пятен застройки нет
   (домов нет). В `build.json` → `missing` имя стадии, `complete: false`.
-- Следующий запуск той же точки догружает **только** недостающие стадии; готовые слои сеть не трогают.
+- Нет тайлов OSM (сеть, сервер, `base_url` пуст, таймаут) — стадия `osm_tiles` в `missing`, слой OSM не строится (процедурные дома и остальное остаются); играть можно.
+- Следующий запуск той же точки догружает **только** недостающие стадии; готовые слои сеть не трогают. «Без OSM» совсем: `configs/osm_tiles.json → enabled: false`.
 - Отказ рельефа — ошибка для пилота («нет связи», «нет данных рельефа», «здесь море»), назад в меню.
 
 ## Счётчик загрузки
-На экране загрузки под названием этапа — счётчик запросов: «Рельеф: N/M», «Покров: N/M», «Всего: N/M» (ru/en; N — выполнено,
+На экране загрузки под названием этапа — счётчик запросов: «Рельеф: N/M», «Покров: N/M», «OSM: N/M» (или «OSM: пропущено»), «Всего: N/M» (ru/en; N — выполнено,
 M — запланировано); полоса идёт по счётчику, запросы, взятые из кеша блоков, засчитываются сразу. Оценок времени нет.
 M покрова растёт по мере планирования тайлов пакетами (в одной сборке 42 → 119), M рельефа известен сразу. Холодная сборка точки
 (43,2; 76,9, пустой кеш): 61,5 с, 135 запросов (рельеф 55/55, покров 119/119). Код — `scripts/ui/loading_screen.gd`, `LoadProgress`.
@@ -113,16 +117,16 @@ M покрова растёт по мере планирования тайло�
 
 В профиле пользователя собирает `user://locations/<ключ>`, дописывает недостающие стадии, печатает стадии, ключ и путь,
 `итог: complete|incomplete (missing: …)`, размер, время, число запросов. Точка внутри встроенного места — об этом
-сообщается (игра возьмёт встроенное), кеш всё равно собирается. Код выхода: 0 — все точки полные, 1 — нет или ошибка
-разбора, 2 — точек нет. Повторный запуск того же места — 0 запросов. Запросы пишутся в лог игры (`HttpLog`, см. ниже).
+сообщается (игра возьмёт встроенное), кеш всё равно собирается. Код выхода: 0 — все точки полные, 1 — какая-то точка не полная (или была ошибка
+разбора), 2 — точек нет. Повторный запуск того же места — 0 запросов. Запросы пишутся в лог игры (`HttpLog`, см. ниже).
 
 ## Лог сетевых запросов
 Все HTTP-запросы игры идут через `HttpLog.fetch` (`scripts/core/http_log.gd`) и пишут две строки в лог игры
-(`user://logs/godot.log`, у itch-установки ещё `logs/godot.log` рядом с игрой):
+(`user://logs/godot.log`, у itch-установки ещё `logs/godot.log` рядом с игрой; метка — стадия и попытка, например `[dem tile 1/5]`):
 
-    HTTP > #12 GET <хост>/<путь> [surface попытка 1/2]
-    HTTP < #12 206 48213B 0.42s [surface попытка 1/2]
-    HTTP < #13 ошибка result=2 (CANT_CONNECT) http=0 0B 0.05s [dem попытка 1/2]
+    HTTP > #12 GET <хост>/<путь> [dem tile 1/5]
+    HTTP < #12 200 48213B 1.42s [dem tile 1/5]
+    HTTP < #13 ошибка result=2 (RESULT_CANT_CONNECT) http=0 0B 0.05s [...]
 
 Номер запроса, метод, хост+путь (без query и userinfo — ключи и токены не попадают), метка (стадия и попытка), для
 POST — размер и начало тела (80 символов, `key/token/…=` маскируются); итог — код, размер, время или ошибка.
