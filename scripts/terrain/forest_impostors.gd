@@ -160,14 +160,15 @@ func apply_scene_look(sl: Dictionary) -> void:
 		TerrainRenderer.apply_scene_look_params(m, sl)
 
 
-## Просеки (маска WorldClearings, 255 — расчищено).
-func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
+## Просеки (маска WorldClearings, 255 — расчищено); tex — готовая текстура маски (общая с крестами),
+## null — сделать здесь.
+func set_clearings(mask: Image, origin: Vector2, cell_m: float, tex: Texture2D = null) -> void:
 	if material == null:
 		return
 	_mask.clear_image = mask
 	_mask.clear_origin = origin
 	_mask.clear_cell = cell_m
-	_set_all("clear_tex", ImageTexture.create_from_image(mask))
+	_set_all("clear_tex", tex if tex != null else ImageTexture.create_from_image(mask))
 	_set_all("has_clearings", true)
 	_set_all("clear_origin", origin)
 	_set_all("clear_cell_m", cell_m)

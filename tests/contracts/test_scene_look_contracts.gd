@@ -4,7 +4,7 @@ extends TestCase
 ## полёта. Сезон (test_k2_season_*) — SL-6. SL-К6 — варианты шейдера рельефа (тело terrain_main, #ifndef T_*_OFF).
 
 const DOC := "res://docs/contracts/scene-look.md"
-const VERSIONS := {"SL-К1": 4, "SL-К2": 2, "SL-К4": 2, "SL-К6": 2}
+const VERSIONS := {"SL-К1": 4, "SL-К2": 2, "SL-К4": 2, "SL-К6": 2, "SL-К7": 1}
 const INC := "res://scripts/terrain/scene_look.gdshaderinc"
 const TERRAIN := "res://scripts/terrain/terrain.gdshader"
 ## тело шейдера рельефа (SL-К6): include-ы и строки // SL — здесь; TERRAIN — вариант «full»
@@ -452,3 +452,14 @@ func test_k6_variant_selection() -> void:
 				ResourceLoader.exists(TerrainRenderer.variant_path(String(pt.variant_far))),
 				"К6: дальний вариант пресета %s есть" % p
 			)
+
+
+# ---------------------------------------------------------------- SL-К7 (упаковка карт рельефа)
+func test_k7_relief_shadow_in_alpha() -> void:
+	var main := _read(TERRAIN_MAIN)
+	check(not main.contains("relief_shadow_tex"), "К7: relief_shadow_tex удалён из рельефа")
+	check(main.contains("hz_deg = rel.a * 60.0"), "К7: горизонт — канал A relief_tex")
+	check(not _read("res://scripts/terrain/terrain_renderer.gd").contains("relief_shadow_tex"), "К7: renderer не ставит relief_shadow_tex")
+	var r := TerrainRelief.new()
+	check(not ("shadow_texture" in r), "К7: у TerrainRelief нет отдельной shadow_texture")
+	check(TerrainRelief.HORIZON_MAX_DEG == 60.0, "К7: A = горизонт / 60°")

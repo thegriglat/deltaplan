@@ -31,10 +31,9 @@ var ao := PackedFloat32Array()
 var horizon_deg := PackedFloat32Array()
 ## Азимут солнца, для которого посчитан horizon_deg (0 — север, по часовой).
 var horizon_azimuth_deg := NAN
-## RGBA8: R — влажность, G — AO, B — северность·0,5 + 0,5.
+## RGBA8: R — влажность, G — AO, B — северность·0,5 + 0,5, A — угол горизонта к солнцу /
+## HORIZON_MAX_DEG (SL-К7 v1: бывшая отдельная R8 тени рельефа; смена азимута переписывает только A).
 var texture: ImageTexture
-## R8: угол горизонта к солнцу / HORIZON_MAX_DEG.
-var shadow_texture: ImageTexture
 ## Время расчёта, с.
 var compute_s := 0.0
 ## Время этапов расчёта, с (отладка).
@@ -44,6 +43,8 @@ var _cfg: Dictionary = {}
 var _t_last := 0
 var _gx := PackedFloat32Array()
 var _gz := PackedFloat32Array()
+## Байты texture (RGBA8): A переписывается при смене азимута без пересборки RGB.
+var _rgba := PackedByteArray()
 
 
 ## Посчитать поля слоя. cfg — world.json → surface.relief, sun_azimuth_deg — азимут солнца,
@@ -84,14 +85,21 @@ static func compute(
 	return r
 
 
-## Текстуры полей и горизонта (главный поток).
+## Текстура полей с горизонтом в A (главный поток).
 func make_textures() -> void:
-	update_shadow_texture()
-	texture = ImageTexture.create_from_image(_fields_image())
+	_rgba = _fields_bytes()
+	texture = ImageTexture.create_from_image(
+		Image.create_from_data(width, height, false, Image.FORMAT_RGBA8, _rgba)
+	)
+
+
+## Байты RGBA8 текстуры полей (тесты SL-К7: каналы = исходные поля).
+func texture_bytes() -> PackedByteArray:
+	return _rgba
 
 
 ## Пересчитать горизонт к солнцу для нового азимута (можно из не-главного потока;
-## shadow_texture обновится — вызывать update_shadow_texture в главном).
+## канал A texture обновится — вызывать update_shadow_texture в главном).
 func recompute_horizon(sun_azimuth_deg: float) -> void:
 	var az := deg_to_rad(sun_azimuth_deg)
 	var dx := sin(az)
@@ -128,25 +136,26 @@ func recompute_horizon(sun_azimuth_deg: float) -> void:
 	horizon_azimuth_deg = sun_azimuth_deg
 
 
-## Текстура горизонта из horizon_deg (главный поток).
+## Горизонт из horizon_deg → канал A текстуры полей (главный поток); RGB не меняются.
 func update_shadow_texture() -> void:
+	if texture == null or _rgba.size() != width * height * 4:
+		make_textures()
+		return
 	var hz := horizon_deg
 	var w := width
+	var src := _rgba
 	var kq := 255.0 / HORIZON_MAX_DEG
 	var job := func(j0: int, j1: int) -> PackedByteArray:
-		var out := PackedByteArray()
-		out.resize((j1 - j0) * w)
+		var out := src.slice(j0 * w * 4, j1 * w * 4)
+		var base := j0 * w
 		for k in range(j0 * w, j1 * w):
-			out[k - j0 * w] = mini(int(hz[k] * kq + 0.5), 255)
+			out[(k - base) * 4 + 3] = mini(int(hz[k] * kq + 0.5), 255)
 		return out
 	var data := PackedByteArray()
 	for b: PackedByteArray in _par(height, job):
 		data.append_array(b)
-	var img := Image.create_from_data(width, height, false, Image.FORMAT_R8, data)
-	if shadow_texture == null or shadow_texture.get_width() != width:
-		shadow_texture = ImageTexture.create_from_image(img)
-	else:
-		shadow_texture.update(img)
+	_rgba = data
+	texture.update(Image.create_from_data(width, height, false, Image.FORMAT_RGBA8, _rgba))
 
 
 ## Влажность 0..1 в точке мира (билинейно).
@@ -438,10 +447,12 @@ func _ray_offsets(dx: float, dz: float, range_m: float, ratio: float) -> Array:
 	return [di, dj, inv]
 
 
-func _fields_image() -> Image:
+func _fields_bytes() -> PackedByteArray:
 	var m := moisture
 	var o := ao
 	var nr := north
+	var hz := horizon_deg
+	var kq := 255.0 / HORIZON_MAX_DEG
 	var w := width
 	var job := func(j0: int, j1: int) -> PackedByteArray:
 		var out := PackedByteArray()
@@ -451,12 +462,12 @@ func _fields_image() -> Image:
 			out[q] = int(clampf(m[k], 0.0, 1.0) * 255.0 + 0.5)
 			out[q + 1] = int(clampf(o[k], 0.0, 1.0) * 255.0 + 0.5)
 			out[q + 2] = int(clampf(nr[k] * 0.5 + 0.5, 0.0, 1.0) * 255.0 + 0.5)
-			out[q + 3] = 255
+			out[q + 3] = mini(int(hz[k] * kq + 0.5), 255)
 		return out
 	var data := PackedByteArray()
 	for b: PackedByteArray in _par(height, job):
 		data.append_array(b)
-	return Image.create_from_data(width, height, false, Image.FORMAT_RGBA8, data)
+	return data
 
 
 ## Размытие поля (нативно: уменьшение и увеличение Image), радиус ~blur_m.

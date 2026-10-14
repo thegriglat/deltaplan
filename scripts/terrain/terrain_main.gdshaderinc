@@ -171,8 +171,7 @@ uniform float forest_edge_warp_m = 4.0;       // извилистость кро
 uniform float canopy_dsm_height_m = 10.0;
 #endif
 // --- поля рельефа (TerrainRelief, считаются из DEM при загрузке): R — влажность, G — AO,
-// B — сглаженная северность; горизонт к солнцу (R8, 0..60°) — тень рельефа при низком солнце ---
-uniform sampler2D relief_shadow_tex : filter_linear, repeat_disable;
+// B — сглаженная северность, A — горизонт к солнцу (0..60°, SL-К7) — тень рельефа при низком солнце ---
 uniform float forest_wet_dark = 0.12;    // лес в ложбинах и на северных склонах гуще (темнее)
 uniform float relief_ao_albedo = 0.25;   // AO ложбин в цвете
 uniform float relief_ao_ambient = 0.8;   // AO ложбин в рассеянном свете
@@ -975,12 +974,11 @@ void fragment() {
 	}
 	// поля рельефа: влажность (−1 сухо … +1 сыро), AO, сглаженная северность, горизонт к солнцу
 	vec4 rel = vec4(0.5, 1.0, 0.5, 0.0);
-	float hz_deg = 0.0;
 	if (use_relief) {
 		vec2 ruv = ((wp.xz - relief_origin) / relief_cell_m + 0.5) / relief_texels;
 		rel = textureLod(relief_tex, ruv, 0.0);
-		hz_deg = textureLod(relief_shadow_tex, ruv, 0.0).r * 60.0;
 	}
+	float hz_deg = rel.a * 60.0;   // SL-К7: горизонт — канал A relief_tex (без полей A = 0)
 	float wet = rel.r * 2.0 - 1.0;
 	float north_s = rel.b * 2.0 - 1.0;
 	// глубина внутри леса 0..1 (затемнение опушки — только внутри)
