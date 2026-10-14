@@ -30,13 +30,14 @@
     "docs/contracts",
     "docs/archive",
     "site/content",
-    "docs/research/itch_multiplayer.md"
+    "docs/research/itch_multiplayer.md",
+    "docs/research/air_phase.md",
+    "docs/research/openfreemap_vs_overpass.md"
   ],
   "dont_touch": [
     "docs/plan/docs-rework",
     "docs/contracts/docs-rework.md",
     "docs/guide",
-    "docs/research",
     "docs/registry",
     "docs/INDEX.md",
     "tools",

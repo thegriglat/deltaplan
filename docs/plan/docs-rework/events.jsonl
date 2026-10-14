@@ -89,3 +89,4 @@
 {"t": "2026-10-15T02:08:42", "by": "executor", "task": "DR-15", "ev": "accepted", "note": "3/3 docs=ok:exit 0; hugo=ok:exit 0; only_md=ok:exit 0"}
 {"t": "2026-10-15T02:08:47", "by": "coordinator", "task": "DR-15", "ev": "accepted", "commits": ["4a81de2c"], "note": "3/3 docs=ok:exit 0; hugo=ok:exit 0; only_md=ok:exit 0"}
 {"t": "2026-10-15T02:08:47", "by": "coordinator", "task": "DR-15", "ev": "merged"}
+{"t": "2026-10-15T02:11:35", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: module init не меняет/не очищает plan/contracts у существующего модуля (нужны --plan/--contracts/--no-plan); нужен шаг «починить ссылки по перемещениям» для всех слоёв (docs, site, tools) — конфликт scope↔hugo при git mv"}
