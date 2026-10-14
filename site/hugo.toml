@@ -234,12 +234,13 @@ disableKinds = ['taxonomy', 'term']
     target = 'layouts'
 
   # --- Описания систем и контракты: docs/guide, docs/contracts ---
-  # Не подключены: раздел про пасхалки (в «Объектах мира», контрактах и планах пасхалок) на сайт не выносим.
+  # Не подключены: «Объекты мира» целиком — world-objects.md и его части world-objects/* (раздел про пасхалки, лагерь и людей),
+  # а также контракт пасхалок. Гайды terrain, scene-look и др. разбиты на вход <имя>.md и части <имя>/*.md.
   [[module.mounts]]
     source = '../docs/guide'
     target = 'content/docs/guide'
     sites = { matrix = { languages = ['ru'] } }
-    files = ['! world-objects.md', '*.md']
+    files = ['! world-objects.md', '! world-objects/**', '*.md', '**/*.md']
   [[module.mounts]]
     source = '../docs/contracts'
     target = 'content/docs/contracts'
