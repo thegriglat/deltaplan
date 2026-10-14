@@ -170,6 +170,10 @@
           }
         },
         "world": {
+          "terrain": {
+            "variant": "full",
+            "variant_far": ""
+          },
           "trees": {
             "radius_m": 250,
             "cross_radius_m": 900,
@@ -206,6 +210,10 @@
           }
         },
         "world": {
+          "terrain": {
+            "variant": "full",
+            "variant_far": ""
+          },
           "trees": {
             "radius_m": 400,
             "cross_radius_m": 1100,
@@ -237,6 +245,10 @@
           }
         },
         "world": {
+          "terrain": {
+            "variant": "full",
+            "variant_far": ""
+          },
           "trees": {
             "radius_m": 500,
             "cross_radius_m": 1500,

@@ -7,6 +7,12 @@ extends Node3D
 ## Грубый слой не рисуется там, где его полностью перекрывает более детальный.
 
 const SHADER := preload("res://scripts/terrain/terrain.gdshader")
+## Варианты шейдера рельефа (контракт SL-К6): scripts/terrain/variants/terrain_<имя>.gdshader — те же
+## shader_type/render_mode, строки #define T_<ЧАСТЬ>_OFF и include тела; «full» — SHADER. Выбор —
+## configs/world.json → terrain.variant / variant_far / variant_far_lod (пресет графики правит их).
+const VARIANTS_DIR := "res://scripts/terrain/variants/"
+## Сколько кадров держать прогревочные куски (компиляция используемых вариантов на экране загрузки).
+const WARM_FRAMES := 30
 ## Текстура плавного шума для пятен лугов и волн ветра с высоты (macro_noise_tex): размер, пятно
 ## шума в текселях (шейдер считает масштаб из них — MACRO_NOISE_FEATURE там же).
 const MACRO_NOISE_SIZE := 256
@@ -30,6 +36,11 @@ var _timer: float = 0.0
 var _materials: Array[ShaderMaterial] = []
 ## Материалы (все LOD) по слоям — для полей рельефа, пришедших после build.
 var _layer_mats: Array[Array] = []
+## Конфиг вариантов шейдера, по которому собраны материалы (variant_config()).
+var _variant_cfg: Dictionary = {}
+## Прогревочные куски (по одному на используемый вариант), сколько кадров им осталось.
+var _warm: Array[MeshInstance3D] = []
+var _warm_frames := 0
 
 
 ## Построить чанки. layers — от детального к грубому, surfaces — карта поверхности каждого слоя
@@ -46,6 +57,9 @@ func build(
 ) -> void:
 	clear()
 	_update_interval_s = float(world_render.get("lod_update_interval_s", 0.1))
+	_variant_cfg = variant_config()
+	if not Config.reloaded.is_connected(_on_config_reloaded):
+		Config.reloaded.connect(_on_config_reloaded)
 	for li in layers.size():
 		var layer: HeightLayer = layers[li]
 		var rc: Dictionary = render_cfg.get(layer.id, {})
@@ -81,6 +95,7 @@ func build(
 		for lod in n_lod:
 			var lm := mat if lod == 0 else mat.duplicate() as ShaderMaterial
 			lm.set_shader_parameter("lod_stride", float(1 << lod))
+			lm.shader = variant_shader(pick_variant(_variant_cfg, li, lod))
 			lod_mats.append(lm)
 			_materials.append(lm)
 			_layer_mats[li].append(lm)
@@ -129,11 +144,13 @@ func build(
 					)
 				)
 	update_lods(true)
+	_warm_up()
 
 
 func clear() -> void:
 	for c in _chunks:
 		(c.mi as Node).queue_free()
+	_free_warm()
 	_chunks.clear()
 	_materials.clear()
 	_layer_mats.clear()
@@ -157,6 +174,10 @@ func apply_look(look: Dictionary) -> void:
 
 
 func _process(delta: float) -> void:
+	if _warm_frames > 0:
+		_warm_frames -= 1
+		if _warm_frames == 0:
+			_free_warm()
 	_timer += delta
 	if _timer >= _update_interval_s:
 		_timer = 0.0
@@ -192,6 +213,106 @@ func update_lods(force: bool) -> void:
 			var mi: MeshInstance3D = c.mi
 			mi.mesh = c.meshes[lod]
 			mi.material_override = c.mats[lod]
+
+
+## Путь файла варианта шейдера: "" / "full" — terrain.gdshader; иначе variants/[подкаталог/]terrain_<имя>.gdshader
+## (имя может быть с подкаталогом: "_bench/no_sl_light" — временный вариант замера).
+static func variant_path(variant_name: String) -> String:
+	if variant_name == "" or variant_name == "full":
+		return SHADER.resource_path
+	var d := variant_name.get_base_dir()
+	return VARIANTS_DIR + (d + "/" if d != "" else "") + "terrain_" + variant_name.get_file() + ".gdshader"
+
+
+## Шейдер варианта; нет файла — предупреждение и «full».
+static func variant_shader(variant_name: String) -> Shader:
+	var p := variant_path(variant_name)
+	if p == SHADER.resource_path:
+		return SHADER
+	if not ResourceLoader.exists(p):
+		push_warning("TerrainRenderer: нет варианта шейдера рельефа «%s» (%s) — full" % [variant_name, p])
+		return SHADER
+	var sh := load(p) as Shader
+	return sh if sh != null else SHADER
+
+
+## Конфиг вариантов: configs/world.json → terrain (пресет графики правит его в user://configs).
+static func variant_config() -> Dictionary:
+	var t: Dictionary = Config.get_config("world").get("terrain", {})
+	return {
+		"variant": String(t.get("variant", "full")),
+		"variant_far": String(t.get("variant_far", "")),
+		"variant_far_lod": int(t.get("variant_far_lod", 2)),
+	}
+
+
+## Вариант для слоя li (0 — детальный, дальше — фоновые) и LOD куска: variant_far — фоновым слоям и
+## LOD детального не ближе variant_far_lod (если variant_far задан), иначе variant; пусто — «full».
+static func pick_variant(cfg: Dictionary, li: int, lod: int) -> String:
+	var far := String(cfg.get("variant_far", ""))
+	if far != "" and (li > 0 or lod >= int(cfg.get("variant_far_lod", 2))):
+		return far
+	var v := String(cfg.get("variant", ""))
+	return v if v != "" else "full"
+
+
+## Варианты, которыми сейчас рисует рельеф (пути файлов шейдеров).
+func used_variants() -> PackedStringArray:
+	var out: PackedStringArray = []
+	for li in _layer_mats.size():
+		for m: ShaderMaterial in _layer_mats[li]:
+			if not m.shader.resource_path in out:
+				out.append(m.shader.resource_path)
+	return out
+
+
+## Конфиг вариантов поменялся (смена пресета графики → Config.reload): шейдеры материалов — по новому
+## выбору (параметры материалов остаются), прогрев используемых вариантов.
+func apply_variants() -> void:
+	_variant_cfg = variant_config()
+	for li in _layer_mats.size():
+		for lod in _layer_mats[li].size():
+			var m := _layer_mats[li][lod] as ShaderMaterial
+			m.shader = variant_shader(pick_variant(_variant_cfg, li, lod))
+	_warm_up()
+
+
+func _on_config_reloaded() -> void:
+	if not _layer_mats.is_empty() and variant_config() != _variant_cfg:
+		apply_variants()
+
+
+## Прогрев: по куску на каждый используемый вариант (копия материала детального слоя, весь отброшен
+## discard — hole на весь мир; рисуется WARM_FRAMES кадров), чтобы шейдер и его пайплайны собрались
+## на экране загрузки, а не при первой смене LOD куска.
+func _warm_up() -> void:
+	_free_warm()
+	if _layer_mats.is_empty() or _layer_mats[0].is_empty():
+		return
+	var base := _layer_mats[0][0] as ShaderMaterial
+	var mesh := _grid_mesh(1, 1.0)
+	for p in used_variants():
+		var m := base.duplicate() as ShaderMaterial
+		m.shader = load(p) as Shader
+		m.set_shader_parameter("hole_min", Vector2(-1e9, -1e9))
+		m.set_shader_parameter("hole_max", Vector2(1e9, 1e9))
+		var mi := MeshInstance3D.new()
+		mi.name = "Warm_" + p.get_file().get_basename()
+		mi.mesh = mesh
+		mi.material_override = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.custom_aabb = AABB(Vector3(-1e6, -1e5, -1e6), Vector3(2e6, 2e5, 2e6))
+		add_child(mi)
+		_warm.append(mi)
+	_warm_frames = WARM_FRAMES
+
+
+func _free_warm() -> void:
+	for mi in _warm:
+		if is_instance_valid(mi):
+			mi.queue_free()
+	_warm.clear()
+	_warm_frames = 0
 
 
 ## Сколько чанков сейчас на каждом LOD (для отладки/тестов).

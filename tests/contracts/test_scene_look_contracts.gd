@@ -1,12 +1,15 @@
 extends TestCase
 ## Контрактные тесты scene-look (docs/contracts/scene-look.md). SL-К1 — свой include, своя секция
 ## конфига, стык с mountain-look; SL-К2 (проводка, SL-2) — uniform-ы sl_lat_deg, sl_doy от даты
-## полёта. Сезон (test_k2_season_*) — SL-6.
+## полёта. Сезон (test_k2_season_*) — SL-6. SL-К6 — варианты шейдера рельефа (тело terrain_main, #ifndef T_*_OFF).
 
 const DOC := "res://docs/contracts/scene-look.md"
-const VERSIONS := {"SL-К1": 4, "SL-К2": 2, "SL-К4": 2}
+const VERSIONS := {"SL-К1": 4, "SL-К2": 2, "SL-К4": 2, "SL-К6": 2}
 const INC := "res://scripts/terrain/scene_look.gdshaderinc"
 const TERRAIN := "res://scripts/terrain/terrain.gdshader"
+## тело шейдера рельефа (SL-К6): include-ы и строки // SL — здесь; TERRAIN — вариант «full»
+const TERRAIN_MAIN := "res://scripts/terrain/terrain_main.gdshaderinc"
+const VARIANTS_DIR := "res://scripts/terrain/variants"
 const IMPOSTORS := "res://scripts/terrain/forest_impostors.gdshader"
 
 
@@ -51,10 +54,10 @@ func test_versions() -> void:
 
 func test_k1_include_exists_and_included() -> void:
 	check(FileAccess.file_exists(INC), "К1: есть %s" % INC)
-	var t := _read(TERRAIN)
+	var t := _read(TERRAIN_MAIN)
 	var common := t.find('#include "res://scripts/terrain/terrain_common.gdshaderinc"')
 	var sl := t.find('#include "%s"' % INC)
-	check(sl >= 0, "К1: include подключён в terrain.gdshader")
+	check(sl >= 0, "К1: include подключён в terrain_main.gdshaderinc")
 	check(common >= 0 and sl > common, "К1: include — после terrain_common")
 	check(_read(IMPOSTORS).contains('#include "%s"' % INC), "К1: include в forest_impostors.gdshader")
 
@@ -93,9 +96,10 @@ func test_k1_every_key_is_uniform() -> void:
 
 func test_k1_no_sl_uniforms_outside_include() -> void:
 	var re := RegEx.create_from_string("(?m)^\\s*uniform\\s+[^;]*\\bsl_\\w+")
-	check(re.search(_read(TERRAIN)) == null, "К1: в terrain.gdshader нет uniform-ов sl_* вне include")
+	for path in [TERRAIN, TERRAIN_MAIN]:
+		check(re.search(_read(path)) == null, "К1: в %s нет uniform-ов sl_* вне include" % path.get_file())
 	# строки рельефа, вызывающие код scene-look, помечены // SL
-	for line in _read(TERRAIN).split("\n"):
+	for line in _read(TERRAIN_MAIN).split("\n"):
 		if line.contains("sl_") and not line.strip_edges().begins_with("//"):
 			check(line.ends_with("// SL"), "К1: строка с sl_* помечена // SL: %s" % line.strip_edges())
 
@@ -366,3 +370,71 @@ func test_k4_cpu_mirror_range() -> void:
 		var z := fposmod(i * 91.77, 3000.0) - 1500.0
 		var k := TreePlacer.lod_k_at(x, z, kmin, kmax)
 		check(k >= kmin and k <= kmax, "К4: k в диапазоне")
+
+
+# --- SL-К6: варианты шейдера рельефа ---
+
+
+func test_k6_full_is_header_and_include() -> void:
+	# «full» — только shader_type/render_mode и include тела (без #define): тот же код, что до распила
+	var t := _read(TERRAIN)
+	check(not t.contains("#define"), "К6: в terrain.gdshader нет #define")
+	check(t.contains('#include "%s"' % TERRAIN_MAIN), "К6: terrain.gdshader подключает terrain_main")
+	check(not _read(TERRAIN_MAIN).contains("shader_type"), "К6: shader_type — в файле варианта, не в теле")
+
+
+func test_k6_variant_files_format() -> void:
+	# v2: файл варианта — shader_type, render_mode (как у full), строки #define T_*_OFF, include тела
+	var head := ""
+	for ln in _read(TERRAIN).split("\n"):
+		if ln.begins_with("render_mode"):
+			head = ln
+	var n := 0
+	for f in DirAccess.get_files_at(VARIANTS_DIR):
+		if not f.ends_with(".gdshader"):
+			continue
+		n += 1
+		check(f.begins_with("terrain_"), "К6: имя варианта terrain_<имя>: %s" % f)
+		var body := 0
+		for ln: String in _read(VARIANTS_DIR + "/" + f).split("\n"):
+			var l := ln.strip_edges()
+			if l == "" or l.begins_with("//"):
+				continue
+			var ok := l == "shader_type spatial;" or l == head or l == '#include "%s"' % TERRAIN_MAIN
+			if l.begins_with("#define T_") and l.ends_with("_OFF"):
+				ok = true
+			check(ok, "К6: %s — лишняя строка: %s" % [f, l])
+			if not ok:
+				body += 1
+		check(_uniforms(VARIANTS_DIR + "/" + f).has("layer_spacing"), "К6: %s разбирается" % f)
+	check(n >= 1, "К6: есть закоммиченные варианты")
+
+
+func test_k6_variant_selection() -> void:
+	check(TerrainRenderer.variant_path("full") == TERRAIN, "К6: full → terrain.gdshader")
+	check(TerrainRenderer.variant_path("") == TERRAIN, "К6: пусто → full")
+	check(TerrainRenderer.variant_path("min") == VARIANTS_DIR + "/terrain_min.gdshader", "К6: min → variants/terrain_min")
+	check(
+		TerrainRenderer.variant_path("_bench/no_sl_light") == VARIANTS_DIR + "/_bench/terrain_no_sl_light.gdshader",
+		"К6: временный вариант замера — variants/_bench/"
+	)
+	check(TerrainRenderer.variant_shader("нет_такого") == TerrainRenderer.SHADER, "К6: нет файла → full")
+	var cfg := {"variant": "min", "variant_far": "", "variant_far_lod": 2}
+	check(TerrainRenderer.pick_variant(cfg, 0, 0) == "min", "К6: ближний LOD — variant")
+	check(TerrainRenderer.pick_variant(cfg, 1, 3) == "min", "К6: variant_far пуст — везде variant")
+	cfg["variant_far"] = "far"
+	check(TerrainRenderer.pick_variant(cfg, 0, 1) == "min", "К6: LOD 1 < variant_far_lod — variant")
+	check(TerrainRenderer.pick_variant(cfg, 0, 2) == "far", "К6: LOD ≥ variant_far_lod — variant_far")
+	check(TerrainRenderer.pick_variant(cfg, 1, 0) == "far", "К6: фоновый слой — variant_far")
+	check(TerrainRenderer.pick_variant({}, 0, 0) == "full", "К6: нет ключей — full")
+	# конфиг: ключи есть, все пресеты сейчас full
+	var t: Dictionary = Config.get_config("world").get("terrain", {})
+	check(t.has("variant") and t.has("variant_far") and t.has("variant_far_lod"), "К6: world.json → terrain.variant*")
+	var presets: Dictionary = Config.get_config("game").get("graphics_presets", {})
+	for p: String in presets:
+		if p.begins_with("_"):
+			continue
+		var pt: Dictionary = presets[p].get("configs", {}).get("world", {}).get("terrain", {})
+		check(pt.has("variant"), "К6: пресет %s задаёт terrain.variant" % p)
+		if pt.has("variant"):
+			check(ResourceLoader.exists(TerrainRenderer.variant_path(String(pt.variant))), "К6: вариант пресета %s есть" % p)
