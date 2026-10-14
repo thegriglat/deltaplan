@@ -65,3 +65,5 @@
 {"t": "2026-10-15T02:02:38", "by": "coordinator", "task": "DR-15", "ev": "started", "note": "general-purpose (sonnet) с телом dp-writer"}
 {"t": "2026-10-15T02:03:08", "by": "executor", "task": "DR-11", "ev": "reported", "commits": ["01d1604b"], "note": "done: У 11 исследований: summary ≤140, статусы по коду main (все active: вывод применён, пути проверены), area/conclusion/dat…", "dp_feedback": "Нет команды переписать frontmatter с сохранением тела (делал скриптом); docs check не проверяет существование путей в applied_in. Входящих ссылок на якоря zheglov-1983 не было, команды поиска ссылок на файл нет (использовал git grep)."}
 {"t": "2026-10-15T02:03:22", "by": "executor", "task": "DR-11", "ev": "accepted", "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
+{"t": "2026-10-15T02:03:30", "by": "coordinator", "task": "DR-11", "ev": "accepted", "commits": ["73cb4bcc"], "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
+{"t": "2026-10-15T02:03:30", "by": "coordinator", "task": "DR-11", "ev": "merged"}
