@@ -1,0 +1,55 @@
+{
+  "id": "DR-7",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Гайды модели воздуха: разбить и сверить с кодом",
+  "goal": "air-model.md, air-model-gpu.md, atmosphere.md описывают код main (фазы + GPU-Пикар, атмосфера), каждый файл ≤40 КБ.",
+  "plan_ref": "Разбиение и сверка гайдов",
+  "contracts": [
+    {
+      "name": "docs-rework.D2",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D4",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-7",
+  "branch": "docs-rework/DR-7",
+  "base": "feature/docs-rework",
+  "scope": [
+    "docs/guide/air-model.md",
+    "docs/guide/air-model",
+    "docs/guide/air-model-gpu.md",
+    "docs/guide/air-model-gpu",
+    "docs/guide/atmosphere.md",
+    "docs/guide/atmosphere",
+    "docs/research",
+    "tools/research",
+    "site/content"
+  ],
+  "dont_touch": [
+    "docs/INDEX.md",
+    "docs/registry",
+    "docs/plan",
+    "site/hugo.toml"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/guide/air-model.md docs/guide/air-model docs/guide/air-model-gpu.md docs/guide/air-model-gpu docs/guide/atmosphere.md docs/guide/atmosphere 2>&1 | grep ОШИБКА | grep -v 'нет файла'; true",
+      "expect": "!re:\\S"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T02:00:37"
+}

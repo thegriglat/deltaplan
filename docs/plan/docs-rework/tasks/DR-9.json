@@ -1,0 +1,64 @@
+{
+  "id": "DR-9",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Гайды мира: разбить и сверить с кодом",
+  "goal": "terrain, world-objects, vegetation, location-data, osm-tiles, scene-look, scene-look-keys описывают код main, каждый ≤40 КБ; пасхалки не попадают на сайт.",
+  "plan_ref": "Разбиение и сверка гайдов",
+  "contracts": [
+    {
+      "name": "docs-rework.D2",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D4",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-9",
+  "branch": "docs-rework/DR-9",
+  "base": "feature/docs-rework",
+  "scope": [
+    "docs/guide/terrain.md",
+    "docs/guide/terrain",
+    "docs/guide/world-objects.md",
+    "docs/guide/world-objects",
+    "docs/guide/vegetation.md",
+    "docs/guide/location-data.md",
+    "docs/guide/osm-tiles.md",
+    "docs/guide/scene-look.md",
+    "docs/guide/scene-look",
+    "docs/guide/scene-look-keys.md",
+    "site/hugo.toml",
+    "docs/research",
+    "tools/research",
+    "site/content"
+  ],
+  "dont_touch": [
+    "docs/INDEX.md",
+    "docs/registry",
+    "docs/plan"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/guide/terrain.md docs/guide/terrain docs/guide/world-objects.md docs/guide/world-objects docs/guide/vegetation.md docs/guide/location-data.md docs/guide/osm-tiles.md docs/guide/scene-look.md docs/guide/scene-look docs/guide/scene-look-keys.md 2>&1 | grep ОШИБКА | grep -v 'нет файла'; true",
+      "expect": "!re:\\S"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "eggs_off_site",
+      "cmd": "cd site && d=$(mktemp -d) && hugo --minify -d $d >/dev/null 2>&1 && grep -rl -i -E 'пасхал|easter' $d/docs/guide 2>/dev/null | head -3; true",
+      "expect": "!re:\\S"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T02:00:43"
+}

@@ -1,0 +1,73 @@
+{
+  "id": "DR-5",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Статусы и area модулей по коду: архив влитого, отклонённое с «почему»",
+  "goal": "У всех модулей area и статус по коду и git (таблица docs/plan/docs-rework/modules.tsv); в docs/plan/ — только живые планы; влитое — в docs/archive/, отклонённое — в docs/archive/rejected/ с причиной; docs/archive/README.md — влито/отклонено.",
+  "plan_ref": "Статусы и area модулей",
+  "contracts": [
+    {
+      "name": "docs-rework.D1",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D2",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D3",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-5",
+  "branch": "docs-rework/DR-5",
+  "base": "feature/docs-rework",
+  "scope": [
+    "docs/plan",
+    "docs/contracts",
+    "docs/archive"
+  ],
+  "dont_touch": [
+    "docs/plan/docs-rework",
+    "docs/contracts/docs-rework.md",
+    "docs/guide",
+    "docs/research",
+    "docs/registry",
+    "docs/INDEX.md",
+    "tools",
+    "site"
+  ],
+  "accept": [
+    {
+      "name": "no_area_err",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | grep -c 'нет area'; true",
+      "expect": "num:(\\d+) ==0"
+    },
+    {
+      "name": "plans_live",
+      "cmd": "ls docs/plan/*.md | wc -l",
+      "expect": "num:(\\d+) <=5"
+    },
+    {
+      "name": "plan_contract_docs",
+      "cmd": ".dpcli/dpcli docs check docs/plan docs/contracts 2>&1 | grep ОШИБКА | grep -v -E 'contracts/(air-model|air-phase|easter-eggs)\\.md: [0-9]+ КБ' | grep -v -E 'нет файла|битая|ссылк'; true",
+      "expect": "!re:\\S"
+    },
+    {
+      "name": "rejected_readme",
+      "cmd": "test -f docs/archive/README.md -a -d docs/archive/rejected",
+      "expect": "exit=0"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T02:00:34"
+}
