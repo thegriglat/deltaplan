@@ -1,0 +1,64 @@
+{
+  "id": "DR-15",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "tools/research и perf: frontmatter, summary, разбить большие",
+  "goal": "Паспорта исследований tools/research/**/{README,summary}.md, docs/perf/*, REQUIREMENTS.md, TODO.md проходят docs check: frontmatter, summary ≤140, статус по коду main, ≤40 КБ.",
+  "plan_ref": "findings и tools/research",
+  "contracts": [
+    {
+      "name": "docs-rework.D1",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D2",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D4",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-15",
+  "branch": "docs-rework/DR-15",
+  "base": "feature/docs-rework",
+  "scope": [
+    "tools/research",
+    "docs/perf",
+    "docs/research/perf",
+    "REQUIREMENTS.md",
+    "TODO.md",
+    "site/hugo.toml",
+    "site/content"
+  ],
+  "dont_touch": [
+    "tools/research/pendulum",
+    "docs/INDEX.md",
+    "docs/registry",
+    "docs/plan",
+    "docs/guide"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check tools/research docs/perf REQUIREMENTS.md TODO.md 2>&1 | grep ОШИБКА | grep -v 'нет файла'; true",
+      "expect": "!re:\\S"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "only_md",
+      "cmd": "git diff --name-only feature/docs-rework...HEAD -- tools/research | grep -v -E '\\.md$'; true",
+      "expect": "!re:\\S"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T02:02:35"
+}
