@@ -79,6 +79,8 @@ docs:
   exclude:
     - "docs/archive/**"
     - "docs/.obsidian/**"
+    - "**/.venv/**"
+    - "**/node_modules/**"
   types: [guide, plan, contract, research, reference, journal, registry]
   statuses: [active, idea, postponed, closed, superseded]
   max_kb: 40
