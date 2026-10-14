@@ -2,11 +2,12 @@
 type: "research"
 status: "active"
 module: "air-model"
-updated: "2026-10-05"
-summary: "Литература к air_phase.md: пороги режимов обтекания (Fr, срыв, волны, блокирование), конвекции (−z_i/L), устойчивого слоя (стоки, озёра холода), карт режимов двухфазного течения, Пикара и бифуркаций, быстрых моделей — с пометкой надёжности каждой ссылки и числа"
+area: "air"
+updated: "2026-10-15"
+summary: "Литература к air-phase: пороги Fr, срыва, конвекции, стоков, Пикара; у каждой ссылки и числа — пометка надёжности"
 conclusion: "Надёжно проверены (библиография и числа по первоисточнику/абстракту): Lin & Wang 1996 (регимы по F = U/(Nh): I ≥ 1,12; II 0,9–1,12; III 0,6–0,9; IV 0,3–0,6), Snyder et al. 1985 (H_c = h(1 − Fr) — хорошая оценка для симметричных холмов), Vosper 2004 (оси Fr_i, h/z_i; четыре режима), Salesky et al. 2017 (переход валы→ячейки плавный, −z_i/L ≈ 15–20), Finnigan et al. 2020 (срыв 15°/20°, линейные модели при h/a < 0,2, Smax ≈ 1,25), Mortensen et al. 2006 (ln(U_p/U_m) = 1,508·ΔRIX), Wagenbrenner et al. 2019 (RMSE массосогласованной и RANS по позициям), Van de Wiel 2012 (порог ветра 5–7 м/с), Sun et al. 2012 (HOST), Zardi & Whiteman 2013 (стоки 1–4 м/с, 3–100 м), Anfossi 2005 (меандрирование < 1–2 м/с), Taitel & Dukler 1976, Scheffer 2009, Jackson 1987. Остальные числа — по памяти, помечены."
 data: "отчёты поисковых субагентов 05.10.2026 (в репозитории не хранятся); извлечённые тексты Wagenbrenner 2019 и Mortensen 2006 — во временных файлах сессии"
-applied_in: "docs/research/air_phase.md"
+applied_in: "docs/research/air_phase.md; пороги в configs/atmosphere.json → air_phase (поле _doc у ключей)"
 related: ["docs/research/air_phase.md", "docs/research/air_physics_primer.md"]
 ---
 # Литература к air-phase
