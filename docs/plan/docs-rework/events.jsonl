@@ -58,3 +58,5 @@
 {"t": "2026-10-15T02:02:07", "by": "coordinator", "task": "DR-9", "ev": "started", "note": "general-purpose (sonnet) с телом dp-writer"}
 {"t": "2026-10-15T02:02:08", "by": "coordinator", "task": "DR-16", "ev": "started", "note": "general-purpose (sonnet) с телом dp-writer"}
 {"t": "2026-10-15T02:02:12", "by": "executor", "task": "DR-3", "ev": "accepted", "note": "3/3 hugo=ok:exit 0; no_plans_links=ok:exit 0; no_parents=ok:exit 0"}
+{"t": "2026-10-15T02:02:15", "by": "coordinator", "task": "DR-3", "ev": "accepted", "commits": ["f9241ee9"], "note": "3/3 hugo=ok:exit 0; no_plans_links=ok:exit 0; no_parents=ok:exit 0"}
+{"t": "2026-10-15T02:02:16", "by": "coordinator", "task": "DR-3", "ev": "merged"}
