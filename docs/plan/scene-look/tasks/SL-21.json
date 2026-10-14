@@ -18,7 +18,7 @@
     },
     {
       "name": "SL-К6",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/scene-look.md"
     }
   ],
@@ -74,5 +74,5 @@
   ],
   "notes": "",
   "created": "2026-10-14T14:30:03",
-  "edited": "2026-10-14T14:30:03"
+  "edited": "2026-10-14T14:37:36"
 }
