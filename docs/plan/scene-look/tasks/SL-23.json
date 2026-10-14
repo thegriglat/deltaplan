@@ -1,0 +1,70 @@
+{
+  "id": "SL-23",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Варианты шейдера по пресетам: «Низкий» = low_a, far для LOD ≥ 2; прогрев; аномалия grass_wind; итоговый замер и сборка",
+  "goal": "Включить решённый состав: low — вариант low_a, на всех пресетах дальние LOD (≥ 2, дальше ~3,5 км) — far; варианты прогреты, без рывка при смене; разобрать, почему выключение grass_wind дорожает; итоговый замер против main до scene-look (5,72/5,81/5,93) и тестовая сборка Linux.",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "SL-К6",
+      "version": "2",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-23",
+  "branch": "scene-look/SL-23",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/variants/",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "scripts/terrain/meadow_look.gdshaderinc",
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/terrain_renderer.gd",
+    "scripts/terrain/terrain.gd",
+    "configs/game.json",
+    "configs/world.json",
+    "tests/terrain/",
+    "tests/contracts/test_scene_look_contracts.gd",
+    "tools/terrain/",
+    "docs/guide/scene-look.md"
+  ],
+  "dont_touch": [
+    "assets/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "vegetation",
+      "tests": "vegetation"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_table",
+    "grass_wind_cause",
+    "build_path",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-14T15:42:06",
+  "edited": "2026-10-14T15:42:06"
+}
