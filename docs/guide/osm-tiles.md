@@ -5,11 +5,11 @@ module: "osm-tiles"
 area: "world"
 updated: "2026-10-15"
 summary: "Тайлы OSM 20 км: что в них (O1–O3), как собрать тест и весь мир, где итог, что делать при падении; клиент игры и состояние прогона."
-related: ["docs/contracts/osm-tiles.md", "docs/plan/osm-tiles.md", "docs/contracts/osm-look.md", "docs/guide/location-data.md", "docs/guide/world-objects/villages-osm.md", "tools/osm_tiles/README.md"]
+related: ["docs/contracts/osm-tiles.md", "docs/archive/plan/osm-tiles.md", "docs/contracts/osm-look.md", "docs/guide/location-data.md", "docs/guide/world-objects/villages-osm.md", "tools/osm_tiles/README.md"]
 ---
 # Тайлы OSM 20 км: устройство и запуск
 
-Игра берёт дороги, реки, ж/д, дома, ЛЭП, мачты, канатки, аэродромы, вершины и перевалы из готовых тайлов OSM, а не из Overpass (он недоступен). Тайлы собираются один раз на всю планету из выгрузок Geofabrik и потом раздаются статикой (Cloudflare R2, `configs/osm_tiles.json → base_url`). Эта страница — как устроено (кратко), как запустить сборку самому и как их берёт игра. Точные форматы — в `docs/contracts/osm-tiles.md`, план и решения — `docs/plan/osm-tiles.md`.
+Игра берёт дороги, реки, ж/д, дома, ЛЭП, мачты, канатки, аэродромы, вершины и перевалы из готовых тайлов OSM, а не из Overpass (он недоступен). Тайлы собираются один раз на всю планету из выгрузок Geofabrik и потом раздаются статикой (Cloudflare R2, `configs/osm_tiles.json → base_url`). Эта страница — как устроено (кратко), как запустить сборку самому и как их берёт игра. Точные форматы — в `docs/contracts/osm-tiles.md`, план и решения — `docs/archive/plan/osm-tiles.md`.
 
 ## Что внутри (кратко, контракт O1–O3)
 - **Сетка (O1).** Пояса по широте шириной 0,18° (`j = floor(lat / 0,18)`, 1000 поясов), в каждом поясе тайлов `n(j) = max(1, floor(360·kx / 20000))`, где `kx` — метров на градус долготы на широте центра пояса. Тайл ≈ 20 км × 20 км (ширина 20 000–20 500 м, высота 20 015 м), проекция равнопромежуточная по широте центра пояса (на краю пояса масштаб по x отличается от истинного на ±0,27 % при 60° — граница модели). Координаты внутри тайла — метры от юго-западного угла. Игра по точке берёт 3×3 тайла вокруг (`neighbors`).

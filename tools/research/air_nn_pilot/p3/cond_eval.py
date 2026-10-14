@@ -12,7 +12,7 @@
 
 Сеть П-2:
   cd tools/research/air_nn_pilot
-  /home/greg/deltaplan/tools/dp lock cpu cond -- env CUDA_VISIBLE_DEVICES= .venv/bin/python p3/cond_eval.py all \
+  /home/greg/deltaplan/.dpcli/dpcli lock cpu cond -- env CUDA_VISIBLE_DEVICES= .venv/bin/python p3/cond_eval.py all \
       --run $AIR_NN_DATA/pilot/runs/2026-10-03_p2b --out p3/out/cond_p2b
 Сеть П-3: тот же вызов с `--run <каталог прогона П-3>` (берутся `main/model.onnx`, `run_info.json`, `split.json`) или
 `--onnx <путь>/model.onnx` с `--run` прогона, чьи данные/разбиение нужны; `--out p3/out/cond_p3`. Если вход П-3 иной

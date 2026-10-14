@@ -10,7 +10,7 @@ related: ["docs/guide/air-model.md", "docs/guide/air-model-gpu/blocks.md", "docs
 
 # Модель воздуха на GPU
 
-Решатель среднего поля воздуха (масштаб 1) на compute-шейдерах Godot (`RenderingDevice`). Что делает поле в игре — [air-model.md](air-model.md); здесь — как оно считается на GPU. Код — `scripts/atmosphere/air_model/`. Сетка — декартова с маской «под землёй» (решение AM-01, `tools/research/air3d/reference.md`); план — `docs/plan/air_model.md` (AM-02…AM-04), решатель — `docs/archive/plan/wind-field.md` → «Решатель на GPU», WF-02/WF-03.
+Решатель среднего поля воздуха (масштаб 1) на compute-шейдерах Godot (`RenderingDevice`). Что делает поле в игре — [air-model.md](air-model.md); здесь — как оно считается на GPU. Код — `scripts/atmosphere/air_model/`. Сетка — декартова с маской «под землёй» (решение AM-01, `tools/research/air3d/reference.md`); план — `docs/archive/plan/air-model.md` (AM-02…AM-04), решатель — `docs/archive/plan/wind-field.md` → «Решатель на GPU», WF-02/WF-03.
 
 Слои по порядку снизу вверх:
 

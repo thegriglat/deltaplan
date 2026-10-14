@@ -5,10 +5,10 @@ module: pendulum
 area: flight
 updated: 2026-10-12
 summary: "Умолчания «Аппарата» по классам из ответов пилота 11.10, подвеска ЦМ +2–3 см вперёд; сверка игры с прототипом: расхождений >15 % нет"
-related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "tools/research/pendulum/README.md"]
+related: ["docs/research/pendulum.md", "docs/archive/plan/pendulum.md", "tools/research/pendulum/README.md"]
 conclusion: "Один опрошенный пилот и качественные оценки дали умолчания «Аппарата» по классам; игра против прототипа — 110 чисел, расхождений > 15 % нет."
 data: "tools/research/pendulum/out/ (calib_classes.md, calib_verify.md, game_vs_proto.md, pd8_*.jsonl)"
-applied_in: "docs/plan/pendulum.md"
+applied_in: "docs/archive/plan/pendulum.md"
 ---
 # Ответы пилота, умолчания «Аппарата» и сверка игры с прототипом
 

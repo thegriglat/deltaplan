@@ -1,7 +1,7 @@
 """P9 v1: счёт «фазы + Пикар» по выборке SY-12 (как AP-17) против холодного Пикара той же версии решателя.
 
     run_hybrid.py prep  [--out DIR] [--workers 16]          # CPU: классификатор, сборка + G → DIR/_prep/prep-*.h5
-    run_hybrid.py gpu   [--out DIR] [--variants cold,hybrid,fallback,cold_omap,timing] [--batch 4]   # GPU, под dp job --lock gpu
+    run_hybrid.py gpu   [--out DIR] [--variants cold,hybrid,fallback,cold_omap,timing] [--batch 4]   # GPU, под .dpcli/dpcli job --lock gpu
     run_hybrid.py final [--out DIR] [--workers 16]          # CPU: сшивка → DIR/part-*.h5 (P9) + metrics-*.jsonl
     run_hybrid.py clean [--out DIR]                         # удалить промежуточное (_prep, raw полей вариантов)
 

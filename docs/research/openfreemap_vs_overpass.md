@@ -5,10 +5,10 @@ module: "osm-any"
 area: "world"
 updated: "2026-10-15"
 summary: "Заменено: OFM z14 совпадал с Overpass на 99–100 % (нет ЛЭП), но игра берёт OSM из своих тайлов 20 км (osm-tiles)."
-related: ["tools/research/openfreemap/README.md", "docs/guide/location-data.md", "docs/plan/osm-tiles.md", "docs/guide/osm-tiles.md"]
+related: ["tools/research/openfreemap/README.md", "docs/guide/location-data.md", "docs/archive/plan/osm-tiles.md", "docs/guide/osm-tiles.md"]
 conclusion: "OFM z14 годится вместо Overpass для дорог (включая track), воды, посёлков и зданий; ЛЭП в схеме OpenMapTiles нет."
 data: "tools/research/openfreemap/results/"
-applied_in: "нет: заменено своими тайлами OSM 20 км (docs/plan/osm-tiles.md, configs/osm_tiles.json, scripts/terrain/build/osm_tiles_stage.gd)"
+applied_in: "нет: заменено своими тайлами OSM 20 км (docs/archive/plan/osm-tiles.md, configs/osm_tiles.json, scripts/terrain/build/osm_tiles_stage.gd)"
 ---
 # OpenFreeMap вместо Overpass
 

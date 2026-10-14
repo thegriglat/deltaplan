@@ -25,7 +25,7 @@ def load_proto(npz=None):
 
 
 def load_corpus(corpus_dir, ids, corpus_io_dir=None):
-    """Корпус S1 v3 (HDF5, docs/contracts/air-synth.md): файлы corpus.h5 или part-*.h5 в каталоге; наборы relief/id,
+    """Корпус S1 v3 (HDF5, docs/archive/rejected/air-synth-contracts.md): файлы corpus.h5 или part-*.h5 в каталоге; наборы relief/id,
     relief/h100, relief/h400 (int16), атрибуты offset_m, scale_m: h = offset_m + scale_m * q. Читает h5py напрямую
     (corpus_io не нужен; corpus_io_dir игнорируется). ids — номера рельефов. Не проверено на настоящем корпусе (его ещё нет)."""
     import h5py

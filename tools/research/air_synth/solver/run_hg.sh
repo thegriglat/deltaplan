@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # весь счёт SY-10 одной очередью: места игры (game), затем места дельтаплана (holdout, затем train). Продолжение — той же командой.
-# Запуск: tools/dp job --lock gpu start sy10-solve 200000 tools/research/air_synth/solver/run_hg.sh
+# Запуск: .dpcli/dpcli job --lock gpu start sy10-solve 200000 tools/research/air_synth/solver/run_hg.sh
 cd "$(dirname "$0")"; PY=../../air_nn_pilot/.venv/bin/python; D=${AIR_SYNTH_DATA:-$HOME/air_synth_data}
 export OMP_NUM_THREADS=1
 P=out_solve_hg/progress.json

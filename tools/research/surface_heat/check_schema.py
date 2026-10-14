@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Проверка вывода замера против контракта SH5: python3 check_schema.py <папка out/<метка>>.
-Обязательные поля — по `dp plan surface-heat --contracts SH5`; null допустим только там, где
+Обязательные поля — по `.dpcli/dpcli plan surface-heat --contracts SH5`; null допустим только там, где
 контракт разрешает (вода: t_water_c, h_mean_wm2 до SH-4). Exit 0 — всё в порядке."""
 import csv
 import json

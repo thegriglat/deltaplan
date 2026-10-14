@@ -44,7 +44,7 @@ CPU потока отрисовки — 1–2 мс, вызовов отрисо�
 
 ```bash
 # всё (≈ 50 мин на 4 прогона по 3 отметки; под замком GPU):
-/home/greg/deltaplan/tools/dp job --lock gpu start pf1 5400 \
+/home/greg/deltaplan/.dpcli/dpcli job --lock gpu start pf1 5400 \
   tools/bench/frame_profile.sh build/perf/run1 "medium low high" "ongudai" --sample=2
 tools/bench/frame_profile.sh build/perf/run1 "medium" "altai" --sample=2
 # опыты без облаков (фон):

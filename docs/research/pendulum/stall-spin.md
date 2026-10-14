@@ -5,10 +5,10 @@ module: pendulum
 area: flight
 updated: 2026-10-12
 summary: "Срыв по Viterna вместо 2D-пластины, место срыва по критическому сечению, C_N 90° ≈ 1,2; сваливание и штопор в прототипе (PD-22)"
-related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "tools/research/pendulum/README.md"]
+related: ["docs/research/pendulum.md", "docs/archive/plan/pendulum.md", "tools/research/pendulum/README.md"]
 conclusion: "Срыв: Viterna вместо 2D-пластины, место срыва по критическому сечению, C_N 90° ≈ 1,2; в болтанке на триме без переворотов."
 data: "tools/research/pendulum/out/"
-applied_in: "docs/plan/pendulum.md"
+applied_in: "docs/archive/plan/pendulum.md"
 ---
 # Срыв, сваливание, штопор (PD-22)
 

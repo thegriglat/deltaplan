@@ -39,7 +39,7 @@ applied_in: "не применено: в scripts/motion_rig/ только фор
 
 Источники (открытый код, оба сгенерированы редактором SimHub 9.11.x):
 - Galactic Racer UEVR: https://github.com/elliotttate/galactic-racer-uevr-motion (файлы `src/SimHubGenerated.hpp`, `simhub/GalacticRacer.generated.cpp`, `simhub/GalacticRacer.simdef`). Игра шлёт пакет сама, без экстрактора.
-- FlatOut 4 VR: https://github.com/Dteyn/FlatOut4VR-SimHub (MIT; `simdef/FlatOut4VR.simdef`, `docs/ARCHITECTURE.md`, `docs/FLATOUT-4-VR-TELEMETRY.md`). Экстрактор `extractor.exe`, SimHub запускает его сам.
+- FlatOut 4 VR: https://github.com/Dteyn/FlatOut4VR-SimHub (MIT; `simdef/FlatOut4VR.simdef`, `docs/guide/architecture.md`, `docs/FLATOUT-4-VR-TELEMETRY.md`). Экстрактор `extractor.exe`, SimHub запускает его сам.
 
 Транспорт: UDP, одна датаграмма на кадр, на `127.0.0.1:DefaultUDPPort` (в примерах 20778 и 30777; порт задаёт simdef, у нас выберем свой). Порядок байт: little-endian, структура упакована (`#pragma pack(1)`, без выравнивания), размер пакета = 55 + сумма размеров объявленных полей (проверка в генераторе: `static_assert(sizeof == ExpectedPacketLength)`; пакет другой длины считаем отвергаемым, выведено).
 

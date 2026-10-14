@@ -22,7 +22,7 @@ GraphicsPresets.select); viewport-часть пресета (scale_3d/FSR, MSAA,
 run продолжает с места (results.jsonl: строка на прогон; уже снятые пропускаются), в конце пишет
 summary.csv / summary.md (мс кадра и «цена части» = no_X − full со знаком минус: сколько снимает
 выключение). Профиль Godot — постоянный ~/.cache/dp-xdg/<копия> (кэш шейдеров); в конце вариант
-в профиле возвращается на "full". Запускать только под dp lock gpu (замер GPU — один на машину).
+в профиле возвращается на "full". Запускать только под .dpcli/dpcli lock gpu (замер GPU — один на машину).
 """
 from __future__ import annotations
 

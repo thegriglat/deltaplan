@@ -5,10 +5,10 @@ module: pendulum
 area: flight
 updated: 2026-10-12
 summary: "Боковой канал и рыскание (PD-21/23/24): голландский шаг 1,7–2,1 рад/с против 0,92 у Hiway Demon; Cnβ, Cnp, Cnr, Clp подогнаны к литературе"
-related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "tools/research/pendulum/README.md"]
+related: ["docs/research/pendulum.md", "docs/archive/plan/pendulum.md", "tools/research/pendulum/README.md"]
 conclusion: "Боковой канал и рыскание подогнаны к литературе (Cook & Spottiswoode, Kroo): голландский шаг 1,7–2,1 рад/с против 0,92 у Hiway Demon."
 data: "tools/research/pendulum/out/"
-applied_in: "docs/plan/pendulum.md"
+applied_in: "docs/archive/plan/pendulum.md"
 ---
 # Боковой канал и рыскание: литература и данные
 

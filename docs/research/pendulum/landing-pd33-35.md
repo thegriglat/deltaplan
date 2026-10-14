@@ -5,10 +5,10 @@ module: pendulum
 area: flight
 updated: 2026-10-12
 summary: "Посадка PD-33/35: в штиль горизонтальная при касании 5,9–7,2 м/с против выбегаемых 5 м/с — мягкой посадки в квазистационарной модели нет"
-related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "tools/research/pendulum/README.md"]
+related: ["docs/research/pendulum.md", "docs/archive/plan/pendulum.md", "tools/research/pendulum/README.md"]
 conclusion: "Посадка в штиль: горизонтальная при касании 5,9–7,2 м/с против выбегаемых 5 м/с; во встречный 3 м/с мягкая; подгонки нет."
 data: "tools/research/pendulum/out/"
-applied_in: "docs/plan/pendulum.md"
+applied_in: "docs/archive/plan/pendulum.md"
 ---
 # Посадка: PD-33, PD-35
 

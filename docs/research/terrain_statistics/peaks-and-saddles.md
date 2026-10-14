@@ -7,7 +7,7 @@ updated: "2026-10-04"
 summary: "Вершин prominence ≥ 30 м на квадрат 40 × 40 км: 26–67 (Урал), 83–138 (Алтай), 91–116 (Онгудай); b = 1,1–1,9."
 conclusion: "Плотность сильно зависит от сетки (25 → 400 м сохраняет 50–75 % вершин ≥ 100 м и убирает 50–70 % вершин 30 м); типы различаются числом вершин ≥ 100 м (13–16 → 41–52 → 41); глубину седловины нельзя вывести из расстояния между вершинами — задавать из распределения prominence."
 data: "tools/research/air_synth/terrain_stats/out/ (stats_tables.md, compare_tables.md, decomp.json, fastscape_metrics.json, forms_gen_metrics.json); код — tools/research/air_synth/terrain_stats/README.md"
-applied_in: "в игре напрямую нет: вход генератора корпуса air-synth (docs/plan/air-synth.md §2)"
+applied_in: "в игре напрямую нет: вход генератора корпуса air-synth (docs/archive/rejected/air-synth.md §2)"
 related: ["docs/research/terrain_statistics.md"]
 ---
 # Вершины и седловины: плотность вершин по prominence (литература и замеры), седловины и перекрытие гор

@@ -16,7 +16,7 @@ applied_in: "configs/surface_heat.json (radiation); scripts/atmosphere/surface_h
 
 ## 9. Использование в игре (surface-heat)
 
-Задача SH-1 (модуль surface-heat, 09.10.2026). Числа для `configs/surface_heat.json` (контракт SH1); физика — `docs/plan/surface-heat.md`, §1.
+Задача SH-1 (модуль surface-heat, 09.10.2026). Числа для `configs/surface_heat.json` (контракт SH1); физика — `docs/archive/plan/surface-heat.md`, §1.
 Классы и их числа — разделы 1–2 (строки CSV по соответствию SH1). Здесь — то, чего в таблице П4 нет: радиация, влажность, вода, H_ref.
 Каждое число — с источником или пометкой **EST** (оценка с рассуждением; не подбор под старые числа игры).
 

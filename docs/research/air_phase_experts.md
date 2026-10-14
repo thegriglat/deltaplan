@@ -8,7 +8,7 @@ summary: "Фазы почти аналитичны; целевая архите�
 conclusion: "Ядра фаз A, D, E/F, G описываются почти аналитически (линейная теория по БПФ, разделяющая линия тока + послойный Лаплас, подобие слоя перемешивания, сток Прандтля + заполнение долин); сложность — в C и на границах. Несошедшиеся случаи (status 1, ~10 %) сейчас входят в обучение SY-11 как «среднее поздних» — шумный эталон, фаза позволяет их исключить/ослабить. Рекомендация: целевая архитектура — сборка по фазам на GPU (классификатор по клеткам → механизмы A/D/F/G в compute, C — существующий Пикар, сшивка по параметрам порядка с одним шагом проекции V-циклом, который уже есть в air_mg.glsl); сеть — только как поправка к аналитике в A/B/D и только если опыт на идеальном рельефе покажет, что поправка нужна. Смесь экспертов-сетей — запасной путь: те же распределитель и эталоны, но без объяснимости."
 data: "числа SY-12/SY-11 — docs/research/air_phase.md §5–6 и tools/research/air_phase/out/; замеры GPU — docs/guide/air-model-gpu.md"
 applied_in: "scripts/atmosphere/air_model/air_phase.gd, air_phase_job.gd, air_phase.glsl (§15: классификатор по клеткам, механизмы A/B/C/D/F/G/H на GPU, сшивка проекцией); docs/guide/air-model/phases.md. Смесь экспертов-сетей (§13) не применена: сети в игре нет"
-related: ["docs/research/air_phase.md", "docs/research/air_phase_refs.md", "docs/plan/air_model.md", "docs/guide/air-model-gpu.md", "docs/plan/ann2.md"]
+related: ["docs/research/air_phase.md", "docs/research/air_phase_refs.md", "docs/archive/plan/air-model.md", "docs/guide/air-model-gpu.md", "docs/archive/rejected/ann2.md"]
 ---
 # air-phase, часть 2: почти аналитика по фазам, эксперты, эталоны, сборка на GPU
 

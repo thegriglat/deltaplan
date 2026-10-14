@@ -63,14 +63,6 @@ disableKinds = ['taxonomy', 'term']
   repoCommit = 'https://github.com/thegriglat/deltaplan/commit/'
   itch = 'https://thegriglat.itch.io/deltaplan'
 
-  # Разделов сайта, которых больше нет: ссылки на них ведут в папки репозитория (на GitHub).
-  [[params.movedPaths]]
-    from = 'plans/archive'
-    repo = 'docs/archive/plan'
-  [[params.movedPaths]]
-    from = 'plans'
-    repo = 'docs/plan'
-
   # Соответствие «путь в content/ ↔ путь в репозитории» для подключённых документов.
   # Нужен ссылкам и картинкам: относительная ссылка в документе считается от его места в репозитории.
   # Порядок важен: сначала более длинные префиксы.

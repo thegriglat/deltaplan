@@ -1,4 +1,4 @@
-"""Контрактный тест S1 v3 / S2 v2 (docs/contracts/air-synth.md): HDF5, части, вид VDS; на искусственных полях, без генератора."""
+"""Контрактный тест S1 v3 / S2 v2 (docs/archive/rejected/air-synth-contracts.md): HDF5, части, вид VDS; на искусственных полях, без генератора."""
 import os
 import h5py
 import numpy as np

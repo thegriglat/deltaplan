@@ -13,7 +13,7 @@
   4. лучший из (1)–(4) по медиане ошибки ветра на 60 м, (г) сошедшиеся (при разнице в пределах разброса
      |(0) − curve_100| — по p90) → обучение на 300 местах (списки main П-2) → оценка;
   5. таблица p3/variants_table.py → reports/<run>/variants.md, variants.json.
-GPU — замком пилота (GpuLock, тот же файл, что `dp lock gpu`), кусками внутри train/evaluate.
+GPU — замком пилота (GpuLock, тот же файл, что `.dpcli/dpcli lock gpu`), кусками внутри train/evaluate.
 """
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Контрактный тест П1 «Образец набора пилота» v1, v2 и v3 (docs/contracts/air-nn.md) на готовых случаях набора.
+"""Контрактный тест П1 «Образец набора пилота» v1, v2 и v3 (docs/archive/rejected/air-nn-contracts.md) на готовых случаях набора.
 
   .venv/bin/python tests/test_contract_sample.py [--dataset smoke] [--root КАТАЛОГ] [--data-root R] [--max N]
   (или .venv/bin/python -m pytest tests/test_contract_sample.py — набор из AIRNN_P1_DATASET, по умолчанию smoke)

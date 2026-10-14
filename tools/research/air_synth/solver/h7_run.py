@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """H7 (SY-4): замер цены одного случая решателя P2 на модельных рельефах. Один фоновый прогон, строка на случай в
-out_h7/cases.jsonl, продолжение (готовые id пропускаются). GPU-замок: запускать под `dp job --lock gpu start …`
+out_h7/cases.jsonl, продолжение (готовые id пропускаются). GPU-замок: запускать под `.dpcli/dpcli job --lock gpu start …`
 (замок держит запуск, воркеры — внутри него, как в dataset.py пилота) либо с --own-lock (flock /tmp/heat_ca_gpu.lock).
 
-  dp job --lock gpu start h7 3000 env OMP_NUM_THREADS=1 ../../air_nn_pilot/.venv/bin/python h7_run.py --source proto --workers 2
+  .dpcli/dpcli job --lock gpu start h7 3000 env OMP_NUM_THREADS=1 ../../air_nn_pilot/.venv/bin/python h7_run.py --source proto --workers 2
 Источник рельефа: --source proto [--npz файл] | corpus --corpus-dir D --ids 1,2,3|auto5 [--conditions DIR_S2] (auto5 — 5 рельефов
 с разным mix и перепадом; --conditions — условия из набора S2 вместо plan()).
 Условия — как plan_rows P2 (час x облачность по кругу, направление и t_max равномерно), только механический режим:

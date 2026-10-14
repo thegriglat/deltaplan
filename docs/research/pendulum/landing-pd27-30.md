@@ -5,10 +5,10 @@ module: pendulum
 area: flight
 updated: 2026-10-12
 summary: "Посадка PD-27/29/30: полосы гасят скорость медленнее, чем за 0,3–0,9 с до касания; запаздывание отрыва даёт 3,3–4,4 м/с, но качает sport"
-related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "tools/research/pendulum/README.md"]
+related: ["docs/research/pendulum.md", "docs/archive/plan/pendulum.md", "tools/research/pendulum/README.md"]
 conclusion: "Правильная посадка в штиль жёсткая: квазистационарная аэродинамика полос не гасит скорость за 0,3–0,9 с; запаздывание отрыва (A) выключено в configs/pendulum.json."
 data: "tools/research/pendulum/out/"
-applied_in: "docs/plan/pendulum.md"
+applied_in: "docs/archive/plan/pendulum.md"
 ---
 # Посадка: PD-27, PD-29, PD-30
 

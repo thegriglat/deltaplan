@@ -45,9 +45,9 @@ p50 по z8 ≥ 0,12, 15 + 3 запасных равномерно по укло
 ```bash
 cp $AIR_NN_DATA/pilot/tmp/terrain_v1/screen.json $AIR_NN_DATA/pilot/tmp/terrain_v2/   # (mkdir -p) либо screen с нуля, ~12 мин
 .venv/bin/python terrain_cut.py select
-/home/greg/deltaplan/tools/dp job start nn16_fetch 3600 .venv/bin/python terrain_cut.py fetch   # докачивает только недостающие тайлы в общий raw/
-/home/greg/deltaplan/tools/dp lock cpu nn16_cut -- .venv/bin/python terrain_cut.py cut
-/home/greg/deltaplan/tools/dp lock cpu nn16_fig -- .venv/bin/python terrain_cut.py figures   # complete = true; копия картинок — figures/p2_terrain_v2/
+/home/greg/deltaplan/.dpcli/dpcli job start nn16_fetch 3600 .venv/bin/python terrain_cut.py fetch   # докачивает только недостающие тайлы в общий raw/
+/home/greg/deltaplan/.dpcli/dpcli lock cpu nn16_cut -- .venv/bin/python terrain_cut.py cut
+/home/greg/deltaplan/.dpcli/dpcli lock cpu nn16_fig -- .venv/bin/python terrain_cut.py figures   # complete = true; копия картинок — figures/p2_terrain_v2/
 ```
 | Стадия (v2) | Результат | Время |
 |---|---|---|
@@ -78,8 +78,8 @@ cp $AIR_NN_DATA/pilot/tmp/terrain_v1/screen.json $AIR_NN_DATA/pilot/tmp/terrain_
 Состав — как v2 (пул 300, 4 × 15). `tiles/v1`, `tiles/v2` не тронуты. Команды (из `tools/research/air_nn_pilot/`):
 ```bash
 .venv/bin/python terrain_cut.py screen && .venv/bin/python terrain_cut.py select && .venv/bin/python terrain_cut.py fetch
-/home/greg/deltaplan/tools/dp lock cpu nnp8_cut -- .venv/bin/python terrain_cut.py cut
-/home/greg/deltaplan/tools/dp lock cpu nnp8_fig -- .venv/bin/python terrain_cut.py figures   # копия картинок — figures/p2_terrain_v3/
+/home/greg/deltaplan/.dpcli/dpcli lock cpu nnp8_cut -- .venv/bin/python terrain_cut.py cut
+/home/greg/deltaplan/.dpcli/dpcli lock cpu nnp8_fig -- .venv/bin/python terrain_cut.py figures   # копия картинок — figures/p2_terrain_v3/
 .venv/bin/python tests/test_contract_terrain.py
 ```
 | Стадия (v3) | Результат | Время |

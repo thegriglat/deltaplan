@@ -7,7 +7,7 @@ updated: "2026-10-04"
 summary: "Для 40 км выбран Fastscape (SPL + диффузия + порог уклона): 6,4 с на рельеф 384²; параметры по двум типам рельефа."
 conclusion: "Процедурные шумы без эрозии не дают долинной сети и согласованных седловин, гидравлическая эрозия не тянет масштаб 40 км; stream power law с неявной схемой Braun и Willett — O(N); параметры подобраны грубо, равновесие за 4 млн лет не достигнуто."
 data: "tools/research/air_synth/terrain_stats/out/ (stats_tables.md, compare_tables.md, decomp.json, fastscape_metrics.json, forms_gen_metrics.json); код — tools/research/air_synth/terrain_stats/README.md"
-applied_in: "в игре напрямую нет: вход генератора корпуса air-synth (docs/plan/air-synth.md §2)"
+applied_in: "в игре напрямую нет: вход генератора корпуса air-synth (docs/archive/rejected/air-synth.md §2)"
 related: ["docs/research/terrain_statistics.md"]
 ---
 # Методы генерации модельного рельефа: процедурные, эрозия, поднятие и речная эрозия (SPL), параметры Fastscape-прототипа

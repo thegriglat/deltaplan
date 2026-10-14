@@ -1,6 +1,6 @@
 ## Порог несходимости U/N ≈ 340–440 м: физика или решатель (планы ap_v3, ap_v3_calm)
 
-`/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python tools/research/air_phase/analysis/AP-13/run.py` (CPU, ≈ 3 мин; числа — `summary.json`, все таблицы — `tables.md`; планы — `plan_build.py --name ap_v3 --series threshold` и `--name ap_v3_calm --series calm`, счёт — `AP_PLAN=ap_v3 run_all.sh` под `dp job --lock gpu`)
+`/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python tools/research/air_phase/analysis/AP-13/run.py` (CPU, ≈ 3 мин; числа — `summary.json`, все таблицы — `tables.md`; планы — `plan_build.py --name ap_v3 --series threshold` и `--name ap_v3_calm --series calm`, счёт — `AP_PLAN=ap_v3 run_all.sh` под `.dpcli/dpcli job --lock gpu`)
 
 **Вывод: решатель (`threshold_cause = solver`), а решающий довод — один: недорелаксация.** ω = 0,5 не меняет уравнения, но поднимает N_c на 0,14 порядка (×1,4, пять шагов сетки) при всех трёх ветрах; при U_sat = 6 м/с сходится вся сетка до N = 0,019. Вариант omega считался 2000 итераций против 1000 у контроля, но длинный счёт без ω (3000 итераций) даёт лишь +1 шаг, значит сдвиг в основном от ω. Порог AP-7 — это граница сходимости итераций Пикара при ω = 1, а не граница фазы течения.
 

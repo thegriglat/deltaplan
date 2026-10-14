@@ -1,5 +1,5 @@
 #!/bin/bash
-# AP-18 (P9): «фазы + Пикар» по SY-12. Стадии: prep (CPU) → gpu (под dp job --lock gpu) → final (CPU) → разбор → clean.
+# AP-18 (P9): «фазы + Пикар» по SY-12. Стадии: prep (CPU) → gpu (под .dpcli/dpcli job --lock gpu) → final (CPU) → разбор → clean.
 #   bash run_all.sh prep | gpu | final | analysis | clean
 # gpu: сначала тесты P4 v6 (test_batch_solver -k v6); холодный Пикар считается в любом случае, гибрид и варианты — если тесты прошли.
 set -e

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # A/B кадра над городом по координатам (osm-look OL-4): одна копия проекта (аргумент 1), один пресет, один прогон.
 #   tools/bench/osm_ab.sh <копия_проекта> <метка A|B> <пресет> <прогон> <out_dir> [lat,lon] [air-start]
-# Профиль Godot — постоянный out_dir/xdg_<пресет> (кеш места общий для A и B). Нужен DISPLAY=:0, под dp job.
+# Профиль Godot — постоянный out_dir/xdg_<пресет> (кеш места общий для A и B). Нужен DISPLAY=:0, под .dpcli/dpcli job.
 set -uo pipefail
 proj=${1:?копия}; tag=${2:?метка}; preset=${3:?пресет}; run=${4:?прогон}; out=${5:?out_dir}
 latlon=${6:-43.238,76.945}; air=${7:-0,450}

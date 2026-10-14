@@ -18,7 +18,7 @@
     хребет s 0,3 и 0,5 при λ 40 / 80 / 160 м, уступ вниз STEP_DOWN s 0,5 при 40 / 160 м (Numerics.lam_m, P4 v5).
 
 Прогон — run_phase.Runner (P5: части P3, тёплые цепочки, ckpt), с двумя добавками без правки run_phase/phase_io
-(их правит AP-14): серия PROBE в порядке счёта и lam_m в Numerics. GPU — под замком: dp job --lock gpu.
+(их правит AP-14): серия PROBE в порядке счёта и lam_m в Numerics. GPU — под замком: .dpcli/dpcli job --lock gpu.
 """
 from __future__ import annotations
 

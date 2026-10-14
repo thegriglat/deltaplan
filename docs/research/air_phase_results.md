@@ -8,7 +8,7 @@ summary: "Опыты на идеальном рельефе (7686+296+231 слу
 conclusion: "Резкие (w 0,01–0,05 декады, Fr ≈ 0,8–1,1 по неподвижным точкам после пересчёта при ω = 0,5): застой, обход, обратное течение, ротор, привязка источников; промежуточные (0,1–0,2): торможение, снос, ΔU, потолок термиков (ось −z_i/L); гистерезиса нет. Несходимость без нагрева — N > N_c(U) (U/N ≲ 340–440 м): граница итераций Пикара («не сошлось при ω = 1»); ω = 0,5 и 2000 итераций сходятся в GRID при Fr ≥ 0,45 почти всегда (граница сходимости 0,8 → 0,4), позднее среднее несошедшегося счёта — не неподвижная точка (0,5 U_sat). В штиле Fr ≲ 0,25 при ω ≥ 0,5 Пикар стационарного решения модели не находит: поле — статистика. Срыв: угол тени 9,9° (хребет занижен K-замыканием), порог по крутизне 0,20–0,30; огибающая лечит несходимость с ветром на крутых местах, но поле над склоном не улучшает. Перенос на эрозию частичный (0,60 порогов в ДИ): скорость и подъём да, ротор и застой нет."
 data: "tools/research/air_phase/analysis/AP-{7,8,9,10,11,13,14}/ (section.md, summary.json, fig_*.png); ~/air_synth_data/phase/ap_v1__s1-74644c4, ap_v2__s1-74644c4, ap_v3__s1-ee7be55, ap_v3_calm__s1-ee7be55, ap_v1r__s1-ee7be55, features_ap_v1.h5, features_ap_v2.h5, features_ap_v1r.h5, features_ap_v{1,2}_merged.h5; рисунки — docs/research/air_phase/ap*_fig_*.png"
 applied_in: "configs/atmosphere.json → air_phase.classifier (ось H по U10, сильное D по U/N), air_phase.omega, air_phase.nonconv, lee (угол тени по AP-10); scripts/atmosphere/air_model/air_phase.gd; docs/guide/air-model/phases.md"
-related: ["docs/research/air_phase.md", "docs/research/air_phase_experts.md", "docs/research/air_phase_refs.md", "docs/research/air_phase_results_tables.md", "docs/plan/air-phase.md", "docs/contracts/air-phase.md"]
+related: ["docs/research/air_phase.md", "docs/research/air_phase_experts.md", "docs/research/air_phase_refs.md", "docs/research/air_phase_results_tables.md", "docs/archive/plan/air-phase.md", "docs/contracts/air-phase.md"]
 ---
 # air-phase, часть 3: итоги опытов на идеальном рельефе
 
@@ -43,7 +43,7 @@ related: ["docs/research/air_phase.md", "docs/research/air_phase_experts.md", "d
 
 ## 1. Опыты и данные
 
-Область 38,4 км, клетка 400 м, ветер с запада поперёк формы, h = 500 м, N = 0,01 с⁻¹ над z_i; формы — холм, хребет (20 км), уступ, s = 0,15 / 0,3 / 0,5; H = 0 / 100 / 250 Вт/м²; h/z_i = 0,3 / 1 / 3; Fr = U_sat/(N·h) (в GRID U_sat = 5·Fr). План — `docs/plan/air-phase.md` §2–3, контракты — `docs/contracts/air-phase/experiments-solver.md` (P1–P7).
+Область 38,4 км, клетка 400 м, ветер с запада поперёк формы, h = 500 м, N = 0,01 с⁻¹ над z_i; формы — холм, хребет (20 км), уступ, s = 0,15 / 0,3 / 0,5; H = 0 / 100 / 250 Вт/м²; h/z_i = 0,3 / 1 / 3; Fr = U_sat/(N·h) (в GRID U_sat = 5·Fr). План — `docs/archive/plan/air-phase.md` §2–3, контракты — `docs/contracts/air-phase/experiments-solver.md` (P1–P7).
 
 **ap_v1 — 7686 случаев** (статусы: сошлось 5212, 1000 итераций без сходимости 2474, разошедшихся 0):
 
@@ -204,7 +204,7 @@ N_c, 1/с при U_sat 3 / 4,5 / 6 м/с: ctrl 0,0087 / 0,0113 / 0,0142 (N_c ∝
 
 ```bash
 $PY tools/research/air_phase/run_phase.py plan --name ap_v1        # план P2; ap_v3: plan_build.py --name ap_v3 --series threshold; ap_v3_calm: --series calm
-/home/greg/deltaplan/tools/dp job --lock gpu start air-phase-run <таймаут_с> $PWD/tools/research/air_phase/run_all.sh   # весь счёт, AP_PLAN=ap_v3 для ap_v3
+/home/greg/deltaplan/.dpcli/dpcli job --lock gpu start air-phase-run <таймаут_с> $PWD/tools/research/air_phase/run_all.sh   # весь счёт, AP_PLAN=ap_v3 для ap_v3
 $PY tools/research/air_phase/run_phase.py status --plan ~/air_synth_data/phase/ap_v1
 $PY tools/research/air_phase/features.py --plan <план> --results <результаты>   # таблица признаков P6, CPU
 $PY tools/research/air_phase/analysis/AP-<N>/run.py   # N = 7 (≈1 мин), 9 (≈1), 13 (≈3), 11 (≈4), 10 (--jobs 16, ≈2), 8 (--workers 16, ≈70; --stage pairs|fits|fits_ok|report), 14 (--workers 14, ≈60)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AP-2: построитель плана опытов air-phase (контракты P1, P2 v1: docs/contracts/air-phase.md; состав — docs/plan/air-phase.md §2–§3).
+"""AP-2: построитель плана опытов air-phase (контракты P1, P2 v1: docs/contracts/air-phase.md; состав — docs/archive/plan/air-phase.md §2–§3).
 
   plan_build.py --name ap_v1 --out ~/air_synth_data/phase [--series grid,sweep,relax,separation,eroded,envelope,envelope_real] [--corpus-out DIR]
   plan_build.py --name ap_v1r --rerun ap_v1,ap_v2      # серия RERUN (P2 v6, AP-14): несошедшиеся случаи с ω = 0,5, 2000 итераций

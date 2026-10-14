@@ -5,7 +5,7 @@
 
     PY=/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python
     $PY tools/research/air_phase/analysis/AP-23/rerun.py select          # selection.json (CPU, из кэша run.py prep)
-    dp job --lock gpu start ap23-rerun 14400 $PY …/rerun.py solve      # GPU, с продолжением после обрыва
+    .dpcli/dpcli job --lock gpu start ap23-rerun 14400 $PY …/rerun.py solve      # GPU, с продолжением после обрыва
 
 Выход: $AIR_SYNTH_DATA/phase/ap23_rerun/part-*.h5 — `cases` (case, decision 0 m / 1 h, status, iters, spread, …),
 `fields` (B, 4, 13, 96, 96) f2 (у «m» θ′ = 0), `inputs/hc`; журнал runs.jsonl.

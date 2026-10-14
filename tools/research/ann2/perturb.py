@@ -1,7 +1,7 @@
 """AN-1, шаг 6: чувствительность цели к малому сдвигу условий (U10 × 1,02; направление +1°) — нижняя граница «непредсказуемости»
 цели для сети, которая видит те же входы. Путь решения — тот же, что у набора terrain (airlite_gen.solve_case с late_mean 500/50, max_outer 1000;
 цель — d400_h). Сохраняет по случаю out/perturb/<id>.npz (поле 60 м, исходное и два возмущённых) и продолжает после прерывания.
-Запуск: dp job --lock gpu start ... python perturb.py --list out/sample.json"""
+Запуск: .dpcli/dpcli job --lock gpu start ... python perturb.py --list out/sample.json"""
 import json
 import os
 import sys

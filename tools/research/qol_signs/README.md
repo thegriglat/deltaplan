@@ -4,7 +4,7 @@ status: "closed"
 module: "qol"
 updated: "2026-10-07"
 summary: "QL-5: почему не видно птиц (размер 1,6 м → 1–2 px на типичных 1–1,5 км) и сколько признаков термика за 10 минут на 4 местах × 13:00/15:00."
-related: ["docs/plan/qol.md"]
+related: ["docs/archive/plan/qol.md"]
 conclusion: "Птицы есть всегда (3 стаи, 8–13 птиц), но на дальности 1,1 км (медиана) модель 1,6 м даёт ~1,4 px; ≥ 2 px — 11–24 % птице-секунд, ≥ 5 px — 0–1,5 %. Главная причина — размер/дальность, не отсутствие термиков."
 data: "локально, не в git: tools/research/qol_signs/out/ (воспроизводится скриптами)"
 applied_in: ""
@@ -23,8 +23,8 @@ applied_in: ""
 
 ```
 # из корня копии; GPU-часть под замком, ~25 мин
-tools/dp job --lock gpu start ql5 3300 tools/research/qol_signs/run.sh
-tools/dp job wait ql5 3300
+.dpcli/dpcli job --lock gpu start ql5 3300 tools/research/qol_signs/run.sh
+.dpcli/dpcli job wait ql5 3300
 python3 tools/research/qol_signs/summarize.py   # (run.sh вызывает сам) -> table_*.csv, summary_numbers.json
 ```
 
@@ -135,7 +135,7 @@ px = размах / дальность · 540 / tan(fov/2).
 (`ahead_bias` 1); до 3 одиночных хищных птиц (`max_raptors`, размах 1,8–2,2 м) в термиках `near_thermals` глубже 760 м,
 кружат выше 700 м над источником. Порог силы и огибающая не менялись.
 
-Повтор: `tools/dp job --lock gpu start ql8 3600 tools/research/qol_signs/run.sh` → данные в `out_ql8/` (QL-5 остался в `out/`),
+Повтор: `.dpcli/dpcli job --lock gpu start ql8 3600 tools/research/qol_signs/run.sh` → данные в `out_ql8/` (QL-5 остался в `out/`),
 сводка — раздел `qol8` в `summary_numbers.json` (QL-5-числа не тронуты). `summarize.py` считает размер птицы с минимумом
 так же, как шейдер (`eff_px`). Точки A/B, 4 места × 13/15 ч, 600 с.
 
@@ -159,10 +159,10 @@ px = размах / дальность · 540 / tan(fov/2).
 Замер сделан при min_span_px 5, итог пересчитан для 3 (`QL8_MIN_PX=3 python3 summarize.py`; симуляция от размера не зависит).
 
 Сырые данные повтора QL-8 (`out_ql8/*.json`, 16 файлов, ~16 МБ) в git не хранятся (в `.gitignore`); лежат локально в `tools/research/qol_signs/out_ql8/`
-рабочей копии задачи. Воспроизвести: `tools/dp job --lock gpu start ql8 3600 tools/research/qol_signs/run.sh`, затем `summarize.py`
+рабочей копии задачи. Воспроизвести: `.dpcli/dpcli job --lock gpu start ql8 3600 tools/research/qol_signs/run.sh`, затем `summarize.py`
 (сводка — `summary_numbers.json`, раздел `qol8`).
 
 ## QL-9: ласточки и пух над молодыми термиками (повтор после ревью)
 
-Замер: `tools/dp job --lock gpu start ql9 3300 tools/research/qol_signs/run9.sh` → `out/s9_gpu_<место>_<час>.json` (~1 МБ, в git), итог — раздел `qol9` в summary_numbers.json.
+Замер: `.dpcli/dpcli job --lock gpu start ql9 3300 tools/research/qol_signs/run9.sh` → `out/s9_gpu_<место>_<час>.json` (~1 МБ, в git), итог — раздел `qol9` в summary_numbers.json.
 После ревью: пух поднимается со скоростью воздуха (сила·огибающая − оседание 0,3 м/с), раздувание на экране ≤ 3,5 раза (разрешение глаза ~0,3 мрад), дальность видимости = размер / 0,3 мрад (ласточка ~1,1 км, пух 0,4 км). Результат: признаков за 10 мин в 3 км (минимум по местам) 0,8 (до 6,2; среднее 1,2: altai 1,5, askarovo 0,8, aushkul 1,0, ongudai 1,5). Порог ≥ 3 не достигнут — числа записаны как есть. Проверка «off_thermal» = 0 — это проверка наличия живого термика с силой ≥ порога; геометрическая часть (у оси, до 0,85 радиуса) тривиальна по построению.

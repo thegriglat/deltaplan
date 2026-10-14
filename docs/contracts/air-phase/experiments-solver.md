@@ -168,7 +168,7 @@ run_phase.py run    --plan DIR [--series …] [--batch B] [--limit N] [--out DIR
 run_phase.py trial  --plan DIR [--out DIR]       # малый набор по всем сериям → trial.json (время/случай по сериям, оценка часов и ГБ)
 run_phase.py bench  [--batch 1,2,4,8,16,32] [--n 32]   # → bench.json (P4)
 run_phase.py status --plan DIR [--out DIR]       # готово/всего по сериям, ETA, объём
-tools/research/air_phase/run_all.sh              # plan (если нет) + run всех серий; для dp job --lock gpu
+tools/research/air_phase/run_all.sh              # plan (если нет) + run всех серий; для .dpcli/dpcli job --lock gpu
 ```
 - `run` — все серии одной командой, порядок GRID → SEPARATION → SWEEP → RELAX → ERODED; продолжение — той же командой
   (посчитанное по частям P3 пропускается, тёплые цепочки — с `ckpt/`; нет ckpt — пересчитать предыдущий случай линии).
@@ -178,7 +178,7 @@ tools/research/air_phase/run_all.sh              # plan (если нет) + run 
 - Пакет: поперёк линий (точка k многих линий); случаи одной цепочки WARM_PREV — строго последовательно.
 - Убийство процесса в любой момент не портит каталог (части атомарны); код выхода 0 — всё посчитано, ≠ 0 — ошибка
   (NaN, исключение) с записью в `run.jsonl`.
-- Без Godot; GPU — только под общим замком (`dp job --lock gpu start air-phase-run <таймаут> …/run_all.sh`).
+- Без Godot; GPU — только под общим замком (`.dpcli/dpcli job --lock gpu start air-phase-run <таймаут> …/run_all.sh`).
 
 ## P6. Метрики слоёв и таблица признаков (версия 2)
 **Владелец:** AP-6 (`tools/research/air_phase/layer_metrics.py`, `features.py`). **Потребители:** AP-7…AP-11.

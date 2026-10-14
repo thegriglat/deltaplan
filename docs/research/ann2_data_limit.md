@@ -4,14 +4,14 @@ status: "closed"
 module: "ann2"
 updated: "2026-10-04"
 summary: "AN-1: ошибка сети P2 против шума цели решателя — шум цели на 1–3 порядка меньше ошибки, дело в сети (вариант б)."
-related: ["docs/plan/ann2.md", "docs/archive/plan/air-nn-p3.md"]
+related: ["docs/archive/rejected/ann2.md", "docs/archive/rejected/air-nn-p3.md"]
 conclusion: "Цель решателя почти без шума: сошедшиеся состояния дрейфуют на 0,003 м/с (p90 0,011), среднее 11 снимков у несошедших отличается от среднего 51 снимка на 0,009 м/с, сдвиг условий на 2 % U10 или 1° двигает цель на 0,02–0,28 м/с; ошибка P2 — 0,26–1,5 м/с (медиана 0,4–0,6), в 12–24 раза больше. Ошибка растёт с ветром (≈ 17–30 % от |V|), и на сошедшихся случаях без всякого разброса она та же. Вариант (б): ограничение в сети/постановке, чинить цель бессмысленно."
 data: "/home/greg/air_nn_data/ann2/an1/snaps, tools/research/ann2/out"
 applied_in: []
 ---
 # AN-1. Предел данных: ошибка P2 против шума цели
 
-Вопрос плана `docs/plan/ann2.md` §2: ошибка сети P2 (U-Net + FiLM, `runs/2026-10-03_p2b`) — неумение сети или шум самой цели
+Вопрос плана `docs/archive/rejected/ann2.md` §2: ошибка сети P2 (U-Net + FiLM, `runs/2026-10-03_p2b`) — неумение сети или шум самой цели
 (у несошедшихся решений цель — среднее снимков 500…1000, они колеблются)? Ответ: **(б), дело в сети**; цель не шумит.
 
 ## Метод и границы применимости
@@ -98,5 +98,5 @@ applied_in: []
 - Шум самого решателя относительно физики атмосферы (точность модели, сетка 400 м) — вне вопроса AN-1.
 
 ## Воспроизведение
-`tools/research/ann2/README.md` (команды по шагам; venv пилота; решатель под замком GPU — `dp job --lock gpu`). Таблицы и json — `tools/research/ann2/out/`
+`tools/research/ann2/README.md` (команды по шагам; venv пилота; решатель под замком GPU — `.dpcli/dpcli job --lock gpu`). Таблицы и json — `tools/research/ann2/out/`
 (`cells_cases.json`, `tables.md`, `snap_cases.json`, `snap_tables.md`, `perturb_cases.json`, `perturb_tables.md`); снимки — `/home/greg/air_nn_data/ann2/an1/snaps` (361 МБ, локально).

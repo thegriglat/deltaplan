@@ -51,7 +51,7 @@ applied_in: "scripts/atmosphere/air_model/air_case.gd (LAM_FRAC, NEUTRAL_BL_K)"
 
 **Воспроизведение** (из корня копии, venv калибровки готов, GPU-замеры под `flock`):
 ```bash
-dp job start am09b-probes 12600 sh tools/research/tune/run_am09b.sh   # ~1,5 ч; сделанные шаги пропускаются (out/am09b/steps.jsonl)
+.dpcli/dpcli job start am09b-probes 12600 sh tools/research/tune/run_am09b.sh   # ~1,5 ч; сделанные шаги пропускаются (out/am09b/steps.jsonl)
 tools/research/tune/.venv/bin/python tools/research/tune/am09b_summary.py    # таблица → out/am09b/summary.{md,json}
 ```
 Картинки: `tools/research/air_thermals/out/` (термики), `tools/research/air_turb/out/spectrum.png`.

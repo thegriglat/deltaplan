@@ -1,4 +1,4 @@
-"""Формат корпуса air-synth в HDF5 (контракты S1 v3 рельеф, S2 v2 условия — docs/contracts/air-synth.md).
+"""Формат корпуса air-synth в HDF5 (контракты S1 v3 рельеф, S2 v2 условия — docs/archive/rejected/air-synth-contracts.md).
 Части part-{k:05d}.h5 (пишет один процесс: временное имя .tmp -> fsync -> os.replace) + общий вид corpus.h5 /
 conditions.h5 из виртуальных наборов (VDS), собираемый детерминированно из частей."""
 import datetime

@@ -5,7 +5,7 @@
 пересчитаны своими сетями тем же кодом; обучающие места — как p3/train_eval.py.
 
   .venv/bin/python p3/p3e8_conv.py && .venv/bin/python p3/p3e8.py [--only train|eval|train_eval|table]
-GPU — замок пилота (GpuLock) кусками внутри train/evaluate. Запуск: dp job start p3e8 <таймаут> ... (без --lock gpu).
+GPU — замок пилота (GpuLock) кусками внутри train/evaluate. Запуск: .dpcli/dpcli job start p3e8 <таймаут> ... (без --lock gpu).
 """
 from __future__ import annotations
 

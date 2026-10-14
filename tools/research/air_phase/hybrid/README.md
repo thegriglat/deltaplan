@@ -26,9 +26,9 @@ applied_in: "вход для AP-19 (перенос в игру)"
 ```
 PY=/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python
 $PY -m pytest -q tools/research/air_phase/tests/test_hybrid.py           # CPU, заглушка решателя
-dp lock gpu t -- $PY -m pytest -q tools/research/air_phase/tests/test_batch_solver.py -k v6   # GPU
+.dpcli/dpcli lock gpu t -- $PY -m pytest -q tools/research/air_phase/tests/test_batch_solver.py -k v6   # GPU
 bash tools/research/air_phase/hybrid/run_all.sh prep                      # CPU, ≈ 5 мин на 14 процессах
-dp job --lock gpu start ap18-run 43200 bash tools/research/air_phase/hybrid/run_all.sh gpu
+.dpcli/dpcli job --lock gpu start ap18-run 43200 bash tools/research/air_phase/hybrid/run_all.sh gpu
 bash tools/research/air_phase/hybrid/run_all.sh final                     # CPU: сшивка, метрики слоёв
 bash tools/research/air_phase/hybrid/run_all.sh analysis                  # → analysis/AP-18/summary.json, tables.md, fig_*.png
 bash tools/research/air_phase/hybrid/run_all.sh clean                     # удалить _prep и raw (≈ 3 ГБ)

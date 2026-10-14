@@ -5,10 +5,10 @@ module: pendulum
 area: flight
 updated: 2026-10-12
 summary: "Прототип этапа A (16 полос, цепь из 3 звеньев): трим ±0,3 км/ч, фугоида T 5,2–5,7 с, подвеска 0,4–0,9 км/ч на см; параметры «Аппарата»"
-related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "tools/research/pendulum/README.md"]
+related: ["docs/research/pendulum.md", "docs/archive/plan/pendulum.md", "tools/research/pendulum/README.md"]
 conclusion: "Тангаж и трим получаются честно без подгонки: сумма 16 полос даёт поляру и трим, фугоида T 5,2–5,7 с, подвеска 0,4–0,9 км/ч на см."
 data: "tools/research/pendulum/out/ (results.json, tables.md, summary.json, fig/*.png)"
-applied_in: "docs/plan/pendulum.md"
+applied_in: "docs/archive/plan/pendulum.md"
 ---
 # Прототип: источники, модель, параметры, результаты, выводы
 
