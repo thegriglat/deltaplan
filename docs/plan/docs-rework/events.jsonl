@@ -81,3 +81,5 @@
 {"t": "2026-10-15T02:04:19", "by": "executor", "task": "DR-14", "ev": "accepted", "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:04:24", "by": "coordinator", "task": "DR-14", "ev": "accepted", "commits": ["120a5fa4"], "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:04:25", "by": "coordinator", "task": "DR-14", "ev": "merged"}
+{"t": "2026-10-15T02:04:25", "by": "executor", "task": "DR-12", "ev": "reported", "commits": ["c5ba9a87"], "note": "done: air_phase.md (62 КБ) и air_field_cache.md (54 КБ) разбиты на входы 12 и 10 КБ и по 4 части в docs/research/<имя>/; у вс…", "dp_feedback": "Общий scratchpad: чужой r.json перезаписал мой — имена отчётов лучше брать с ID задачи (подсказка в report --template). docs check: «КБ» на деле КиБ. Не хватает проверки якорей #раздел и того, что часть разбитого документа ссылается на вход."}
+{"t": "2026-10-15T02:04:45", "by": "executor", "task": "DR-12", "ev": "accepted", "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
