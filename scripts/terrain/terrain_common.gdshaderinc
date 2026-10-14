@@ -141,7 +141,11 @@ void surface_onehot(int c, out vec4 a, out vec4 b) {
 // surface_edge_sharpness — полуширина размытия границы (доля клетки).
 void surface_weights(vec2 xz, out vec4 wa, out vec4 wb) {
 	float sc = surface_spacing * 1.5;
+#ifndef T_SURFACE_WARP_OFF
 	vec2 warp = vec2(fbm(xz / sc, 3), fbm(xz / sc + vec2(7.3, 1.9), 3)) - 0.5;
+#else
+	vec2 warp = vec2(0.0);   // кромки классов без извилин шумом (изолиния 0,5 билинейной доли)
+#endif
 	vec2 f = (xz + warp * surface_edge_noise * surface_spacing - surface_origin) / surface_spacing;
 	vec2 i = floor(f);
 	vec2 t = f - i;

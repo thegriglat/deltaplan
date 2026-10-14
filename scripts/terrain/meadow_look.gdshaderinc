@@ -17,6 +17,7 @@ uniform float wet_bright = 0.0;          // яркость сырых ложби
 uniform float wet_sat = 1.5;             // насыщенность сочной травы ложбин (1 — как grass_color)
 uniform float aspect_dry_k = 0.2;        // южные склоны степнее, северные зеленее (сглаженная экспозиция)
 
+#ifndef T_MEADOW_MACRO_OFF
 // --- пятна лугов с высоты (terrain_look: macro_*, burn_*, mow_*): многомасштабные неподвижные
 // пятна оттенка «сочнее ↔ суше» и яркости 20 м … 1–2 км, выгоревшие пятна, полосы покоса ---
 uniform vec4 macro_scales_m = vec4(22.0, 80.0, 280.0, 1100.0);   // масштабы пятен, м
@@ -32,6 +33,7 @@ uniform vec2 mow_cell_m = vec2(190.0, 120.0);  // размер покоса, м
 uniform float mow_row_m = 8.0;         // шаг валков/проходов косилки, м
 uniform float mow_strength = 0.16;     // контраст полос покоса
 uniform float mow_max_slope_deg = 9.0; // покосы — только на пологом
+#endif
 
 // Бесшовная текстура плавного шума (4 независимых канала, пятно = MACRO_NOISE_FEATURE текселей,
 // мипмапы; TerrainRenderer.macro_noise_texture) — дешевле хешей и сама гасит пятна мельче пикселя.
@@ -39,6 +41,7 @@ uniform sampler2D macro_noise_tex : filter_linear_mipmap, repeat_enable;
 const float MACRO_NOISE_FEATURE = 16.0;   // = TerrainRenderer.MACRO_NOISE_FEATURE
 const float MACRO_NOISE_SIZE = 256.0;     // = TerrainRenderer.MACRO_NOISE_SIZE
 
+#ifndef T_MEADOW_MACRO_OFF
 // Шум с пятнами размера s, м (4 канала 0..1), в точке q; foot — след пикселя, м (выбор мипа,
 // +0,5 уровня — без мерцания пятен в пару пикселей).
 vec4 macro_tex(vec2 q, float s, float foot) {
@@ -110,6 +113,7 @@ vec3 meadow_macro(vec2 p, vec3 c, float foot, float wet, float dist, float flat_
 	}
 	return c;
 }
+#endif
 
 // Цвет луга до пятен с высоты: сухость по локации, пятнам, склону (north — «северность» склона,
 // patch2 — meadow_patch), влажность wet −1..1 и сглаженная северность north_s из полей рельефа.
