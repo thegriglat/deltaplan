@@ -16,7 +16,7 @@ contracts: [{"id": "O1", "version": 1}, {"id": "O2", "version": 1}, {"id": "O3",
 
 План — `docs/archive/rejected/air-onnx.md`. Источник правды по входу и выходу сети — код пилота
 `tools/research/air_nn_pilot/pilotnn/prep.py` (П2 v4, `docs/archive/rejected/air-nn-contracts.md`) и экспорт
-`pilotnn/evaluate.py:export_onnx`; поле в игре — контракты C3, C4, C9 (`docs/contracts/air-model.md`).
+`pilotnn/evaluate.py:export_onnx`; поле в игре — контракты C3 (`docs/contracts/air-model/input-solver.md`), C4 (`field-consumers.md`), C9 (`runtime-calibration.md` в том же каталоге).
 Менять интерфейс — только через координатора: версия +1, запись «что изменилось», правка потребителей в том же шаге.
 Новые коммиты air-nn вливаются в `feature/air-onnx` (`git merge feature/air-nn`); после каждого — контрактный тест O1.
 
