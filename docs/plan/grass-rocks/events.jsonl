@@ -31,3 +31,7 @@
 {"t": "2026-10-15T04:56:06", "by": "executor", "task": "GR-1", "ev": "reported", "commits": ["see"], "note": "done: docs/perf/offscreen_audit.md: главная таблица (9 строк), обоснование по строкам, незаметное списком, запас при быстром …", "dp_feedback": "Поле report.commits требует хеш, а не описание; accept --dry печатает схему только отдельной командой. Хотелось бы подсказки правил docs check (summary ≤140) до первого прогона."}
 {"t": "2026-10-15T04:56:11", "by": "coordinator", "task": "GR-1", "ev": "checked", "note": "3/3 docs=ok:exit 0; table=ok:23; speed=ok:4"}
 {"t": "2026-10-15T04:56:18", "by": "coordinator", "task": "GR-1", "ev": "accepted", "note": "по отчёту (анализ, кода нет)"}
+{"t": "2026-10-15T04:56:24", "by": "coordinator", "task": "GR-1", "ev": "accepted", "commits": ["5f1a5440"], "note": "3/3 docs=ok:exit 0; table=ok:23; speed=ok:4"}
+{"t": "2026-10-15T04:56:24", "by": "coordinator", "task": "GR-1", "ev": "merged", "commits": ["5f1a5440"]}
+{"t": "2026-10-15T04:57:07", "by": "reviewer", "task": "GR-3", "ev": "reviewed", "note": "Отсечение консервативно и сделано верно: плоскости из строк PROJECTION_MATRIX в пространстве вида (world_vertex_coords), нормированы; столбик h−0,02…h+h_max ра…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/grass-rocks/tasks/GR-3.review.json"}
+{"t": "2026-10-15T04:57:20", "by": "coordinator", "task": "GR-3", "ev": "accepted", "note": "по ревью; minor: множители высоты >1 (mowed.w, landing_hk) не в запасе — учесть в GR-6"}
