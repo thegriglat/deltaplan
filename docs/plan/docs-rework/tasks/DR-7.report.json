@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "air-model.md (144 КБ), air-model-gpu.md (52 КБ), atmosphere.md (62 КБ) разбиты по D4: входы 5–15 КБ и 16 частей в docs/guide/<имя>/ (макс. 32 КБ), у всех frontmatter, summary ≤140. Текст сверен с кодом main: исправлены danger_sink 0,7 → 0,08, d_strong_c 270 → 250, λ масштаба 3 (0,0158·h), NCOL 14, XcPilot → BotPilot, бюджеты порций AirRuntime, F3/F4, шейдер воды, H из SurfaceHeat; убраны упоминания нейросети, «итог для координатора», гонка xc_pilot.gd; добавлен раздел «Детерминизм» (на него ссылаются комментарии в atmo_day.gd и atmo_fingerprint.gd). Ссылки на разделы перенаправлены в docs/research, tools/research, site/content.",
+  "commits": [
+    "c858c38a Гайды модели воздуха: разбиты на вход и части (D4), сверены с кодом main"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "0 ошибок",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope (accept)",
+      "value": "44 файла в границах",
+      "pass": true
+    },
+    {
+      "name": "hugo с mounts '**/*.md' (временно, откат)",
+      "value": "собирается, 16 частей становятся страницами сайта",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "site/hugo.toml не менялся (не в скоупе): mount docs/guide имеет files = ['! world-objects.md', '*.md'] — без '**/*.md' части в подкаталогах air-model/, air-model-gpu/, atmosphere/ не попадают на сайт как страницы, ссылки на них ведут на GitHub. Нужна правка координатором: добавить '**/*.md' (проверено: сборка проходит, части становятся страницами).",
+    "Входящие текстовые ссылки на разделы вне скоупа не перенаправлены (входы остались на месте, поэтому ссылки на файл целы): docs/guide/gpu-validation.md («Переносимость» → air-model-gpu/blocks.md), docs/guide/net-protocol.md («Масштаб 2» → air-model/thermals.md), docs/guide/game.md («Погода из прогноза» → atmosphere/weather.md), docs/contracts/air-model.md («Стык с атмосферой» → air-model/field-cpu.md, «Масштаб 3» → air-model/turbulence.md), docs/perf/frame_profile.md («Замеры» → air-model-gpu/blocks.md, picard.md), docs/guide/terrain.md; конфиги configs/atmosphere.json (_doc: «Поле на CPU», «Фазы»), configs/game.json; комментарии в scripts/atmosphere/gust_spectrum.gd, tools/research/air_thermals/probe.gd, tools/research/air_turb/turb_probe.gd (.gd — хук pre-commit требует tools/dp, которого нет в копии).",
+    "Числа замеров AM-08/AM-08в/AS-2 (аналитика, база AM-00) сняты до AP-10 (опускание за гребнем 0,7·u → 0,08·u) и после не перемерялись — помечено в turbulence.md; таблица «Слова пилота против модели» снята на λ/h = 0,25 (AM-09), после Б1 не пересчитывалась — помечено в limits.md."
+  ],
+  "questions": [
+    "Можно ли добавить '**/*.md' в mount docs/guide в site/hugo.toml (координатором)? Иначе части гайдов открываются на GitHub, а не на сайте."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept DR-7",
+  "uncertain": [
+    {
+      "where": "docs/guide/air-model/*.md, docs/guide/air-model-gpu/*.md",
+      "why": "числа замеров (время, итерации, ошибки) в таблицах не перемерялись и не сверялись с кодом — только пути, идентификаторы, ключи конфигов и константы",
+      "checked": "все пути и идентификаторы из обратных кавычек найдены в репозитории (скрипт-проверка); таблицы surface_heat, ключи air_model, lee, air_phase, weather/*.json, константы Дирдорфа/Аллена, LAM_FRAC, INFLOW_P, NCOL сверены вручную"
+    },
+    {
+      "where": "docs/guide/atmosphere/calibration.md",
+      "why": "матрица проходимости маршрута описана «до калибровки» и не перемерялась; strength medium в configs/weather/medium.json теперь [2,4; 4,4], не [2,0; 4,0]",
+      "checked": "значения weak/strong/radius/spacing/cloud_size_factor совпадают с configs/weather/*.json"
+    }
+  ],
+  "dp_feedback": "1) pre-commit-хук main (tools/hooks) зовёт tools/dp, которого нет в копии задачи — коммит с .gd невозможен без --no-verify; нужен вызов .dpcli/dpcli. 2) В общем scratchpad лежат чужие файлы с теми же именами (chk.py перезаписан) — писать в подкаталог задачи. 3) Нет команды проверки относительных md-ссылок и ссылок «путь → раздел» (docs check не ловит ссылки на разделы). 4) Скоуп не включает site/hugo.toml, хотя разбиение гайдов требует правки mounts.",
+  "t": "2026-10-15T02:26:31",
+  "by": "executor"
+}
