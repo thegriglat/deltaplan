@@ -399,6 +399,80 @@ static func apply_look_params(m: ShaderMaterial, look: Dictionary) -> void:
 		m.set_shader_parameter(uniform_name, v)
 
 
+## scene-look (SL-К1): параметры секции configs/world.json → scene_look (и рантайм-параметры
+## Terrain: lat_deg, doy, sun_dir, sky_up, ground_low) — во все материалы рельефа.
+func apply_scene_look(sl: Dictionary) -> void:
+	for m in _materials:
+		apply_scene_look_params(m, sl)
+
+
+## Ключ <k> → uniform sl_<k> (scene_look.gdshaderinc); массивы чисел 2/3/4 → vec2/vec3/vec4
+## (без перевода sRGB → линейный: цвета в scene_look — линейные), числа и bool — как есть.
+static func apply_scene_look_params(m: ShaderMaterial, sl: Dictionary) -> void:
+	for key in sl:
+		var k := String(key)
+		if k.begins_with("_") or k.ends_with("_doc"):
+			continue
+		var v: Variant = sl[key]
+		if v is Array:
+			var a: Array = v
+			if a.size() == 2:
+				v = Vector2(float(a[0]), float(a[1]))
+			elif a.size() == 3:
+				v = Vector3(float(a[0]), float(a[1]), float(a[2]))
+			elif a.size() == 4:
+				v = Vector4(float(a[0]), float(a[1]), float(a[2]), float(a[3]))
+		elif v is int:
+			v = float(v)
+		m.set_shader_parameter("sl_" + k, v)
+	if sl.has("doy") or sl.has("lat_deg") or sl.has("season_hopkins") or sl.has("season_lat_ref") \
+			or sl.has("season_larch_lag") \
+			or sl.has("snow_lats") or sl.has("snow_line_summer") or sl.has("snow_line_winter_drop") or sl.has("snow_min_day"):
+		SeasonLook.apply_pre(m)
+
+
+## Рассеянный свет неба Godot по солнцу to_sun (оценка для sl_ground_light): как его задают
+## SkyEnvironment и sky.gdshader — небо × exposure (energy_multiplier·lerp(1, sky_energy, 0,4)) ×
+## ambient_light_energy·sky_energy × ambient_sky_contribution. Верхняя полусфера при sky.curve 0,12 —
+## почти цвет зенита (горизонт ниже ~7° даёт ~3 % косинусно-взвешенного света), нижняя —
+## ground_bottom_color (ground_curve 0,02: цвет горизонта — только в ~2° под горизонтом);
+## общий множитель AMBIENT_GODOT_K сверен с Godot GPU-тестом. Линейные цвета: {"sun_dir", "sky_up", "ground_low"} (Vector3).
+const AMBIENT_GODOT_K := 1.6
+
+
+static func scene_look_sky(to_sun: Vector3) -> Dictionary:
+	var w: Dictionary = Config.get_config("world")
+	var sky: Dictionary = w.get("sky", {})
+	var elev := rad_to_deg(asin(clampf(to_sun.y, -1.0, 1.0)))
+	var lt := SunClock.light_at(elev)
+	var sky_k := float(lt.sky_energy)
+	var tint: Color = lt.horizon_tint
+	var expo := float(sky.get("energy_multiplier", 1.0)) * lerpf(1.0, sky_k, 0.4)
+	var amb := (
+		float(sky.get("ambient_light_energy", 1.0))
+		* sky_k
+		* float(sky.get("ambient_sky_contribution", 1.0))
+	)
+	var top := _arr_color(sky.get("top_color", [0.23, 0.42, 0.75])).srgb_to_linear()
+	var hor := (_arr_color(sky.get("horizon_color", [0.66, 0.76, 0.88])) * tint).srgb_to_linear()
+	var low := _arr_color(sky.get("ground_bottom_color", [0.25, 0.28, 0.24])).srgb_to_linear()
+	var up := top.lerp(hor, 0.05)
+	# × 1,6: так выходит у Godot на деле (tests/terrain/test_scene_look_ambient_gpu.gd, солнце 52°:
+	# белый ламбертов квадрат нормалью вверх — 1,48 оценки без множителя, вниз — 1,74); причину в
+	# свёртке кубокарты Godot не разбирали
+	var k := expo * amb * AMBIENT_GODOT_K
+	return {
+		"sun_dir": to_sun.normalized(),
+		"sky_up": Vector3(up.r, up.g, up.b) * k,
+		"ground_low": Vector3(low.r, low.g, low.b) * k,
+	}
+
+
+static func _arr_color(a: Variant) -> Color:
+	var arr: Array = a
+	return Color(float(arr[0]), float(arr[1]), float(arr[2]))
+
+
 ## Подключить текстуры поверхностей из configs/world.json → terrain_textures:
 ## {"grass": {"albedo": "res://…png", "tile_m": 4}, …}. Пустой путь — процедурная заглушка;
 ## путь есть, а файла нет — предупреждение в лог и тоже заглушка.

@@ -32,6 +32,8 @@ signal load_failed(message: String)
 var location: Dictionary = {}
 var center_lat: float = 0.0
 var center_lon: float = 0.0
+## День года даты полёта 1…366 (set_flight_date; scene-look SL-К2 → uniform sl_doy), по умолчанию 15 июля.
+var flight_doy: float = 196.0
 ## Слои высот от детального к грубому.
 var layers: Array[HeightLayer] = []
 ## Карта поверхности каждого слоя (тот же порядок, что layers).
@@ -43,6 +45,8 @@ var trees: Node3D
 var grass: GrassField
 ## Средний план леса (билборды), null — нет атласа.
 var impostors: ForestImpostors
+## LOD2-кресты деревьев в шейдере (SL-18), null — выключены (trees.crosses_enabled) или нет моделей.
+var crosses: TreeCrosses
 ## Передаёт ветер и термики атмосферы шейдерам земли, травы и деревьев.
 var wind: TerrainWind
 ## Поля рельефа каждого слоя (влажность, AO, горизонт к солнцу) — тот же порядок, что layers.
@@ -371,6 +375,7 @@ func _setup_steps(
 		await get_tree().process_frame
 	_make_grass(Config.get_config("vegetation").get("grass", {}), look)
 	_setup_wind(world.get("wind_visual", {}))
+	_apply_scene_look(scene_look_params())
 
 
 ## Процедурные карты поверхности для слоёв без готовой (SurfaceClassifier) — в рабочем потоке.
@@ -433,6 +438,8 @@ func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
 		(trees as TerrainTreeModels).set_clearings(mask, origin, cell_m)
 	if impostors != null:
 		impostors.set_clearings(mask, origin, cell_m)
+	if crosses != null:
+		crosses.set_clearings(mask, origin, cell_m)
 
 
 ## Город с деревьями-моделями на местах крон (CityTrees): рельеф не рисует кроны на земле там, где маска
@@ -541,6 +548,9 @@ func _make_trees(trees_cfg: Dictionary, look: Dictionary) -> Node3D:
 	if impostors != null:
 		impostors.queue_free()
 		impostors = null
+	if crosses != null:
+		crosses.queue_free()
+		crosses = null
 	if models.setup(layers[0], surfaces[0], trees_cfg):
 		add_child(models)
 		impostors = ForestImpostors.new()
@@ -556,6 +566,21 @@ func _make_trees(trees_cfg: Dictionary, look: Dictionary) -> Node3D:
 		else:
 			impostors.free()
 			impostors = null
+		crosses = TreeCrosses.new()
+		crosses.name = "TreeCrosses"
+		if crosses.setup(
+			layers[0],
+			renderer.height_textures[0],
+			surfaces[0],
+			renderer.surface_textures[0],
+			trees_cfg,
+			models,
+			impostors
+		):
+			add_child(crosses)
+		else:
+			crosses.free()
+			crosses = null
 		if _clearings.size() == 3:
 			set_clearings(_clearings[0], _clearings[1], _clearings[2])
 		_pass_forest_mask(models)
@@ -580,7 +605,7 @@ func _pass_forest_mask(models: Node) -> void:
 	var fm := get_forest_mask()
 	if fm.is_empty():
 		return
-	for n: Object in [models, impostors]:
+	for n: Object in [models, impostors, crosses]:
 		if n != null and n.has_method("set_forest_mask"):
 			n.call("set_forest_mask", fm[0], fm[1], fm[2])
 
@@ -777,6 +802,7 @@ func set_sun(to_sun: Vector3) -> void:
 	_sun_dir = to_sun.normalized()
 	if renderer != null:
 		renderer.apply_look({"sun_dir": _sun_dir})
+	_apply_scene_look(TerrainRenderer.scene_look_sky(_sun_dir))
 	if reliefs.is_empty():
 		return
 	var az := _sun_azimuth_deg()
@@ -784,6 +810,59 @@ func set_sun(to_sun: Vector3) -> void:
 	var step := float(_relief_cfg.get("shadow_recompute_deg", 2.0))
 	if is_nan(old) or absf(angle_difference(deg_to_rad(az), deg_to_rad(old))) >= deg_to_rad(step):
 		_start_horizon(az)
+
+
+## Дата полёта (FlightSettings.month/day; игра — при старте полёта, там же, где солнце):
+## день года → uniform sl_doy рельефа, импостеров (и травы/деревьев с apply_scene_look), SL-К2.
+func set_flight_date(month: int, day: int) -> void:
+	flight_doy = day_of_year(month, day)
+	_apply_scene_look({"doy": flight_doy})
+
+
+## День года 1…365 (год не високосный: на сезон сутки не влияют).
+static func day_of_year(month: int, day: int) -> float:
+	const CUM := [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+	return float(CUM[clampi(month, 1, 12) - 1] + clampi(day, 1, 31))
+
+
+## Параметры scene-look для шейдеров (ключ k → uniform sl_k): configs/world.json → scene_look
+## (с переопределением локации scene_look), широта места lat_deg, день года doy, солнце и небо
+## (TerrainRenderer.scene_look_sky).
+func scene_look_params() -> Dictionary:
+	var sl: Dictionary = Config._deep_merge(
+		Config.get_config("world").get("scene_look", {}), location.get("scene_look", {})
+	)
+	sl["lat_deg"] = center_lat
+	sl["doy"] = flight_doy
+	sl["treeline_h"] = treeline_height(center_lat, sl)
+	sl.merge(TerrainRenderer.scene_look_sky(_sun_dir), true)
+	return sl
+
+
+## Высота границы леса (м) на широте lat_deg: линейно по узлам treeline_lat / treeline_m (SL-5);
+## считается один раз на место, шейдер берёт uniform sl_treeline_h.
+static func treeline_height(lat_deg: float, sl: Dictionary) -> float:
+	var la: Array = sl.get("treeline_lat", [])
+	var hm: Array = sl.get("treeline_m", [])
+	if la.size() < 2 or la.size() != hm.size():
+		return 0.0
+	var a := clampf(absf(lat_deg), float(la[0]), float(la[la.size() - 1]))
+	var r := float(hm[0])
+	for i in la.size() - 1:
+		if a >= float(la[i]):
+			var t := clampf((a - float(la[i])) / maxf(float(la[i + 1]) - float(la[i]), 1e-3), 0.0, 1.0)
+			r = lerpf(float(hm[i]), float(hm[i + 1]), t)
+	return r
+
+
+## Раздать параметры scene-look материалам: рельеф, импостеры; трава и деревья — если умеют
+## (apply_scene_look), как sun_dir — через Terrain.
+func _apply_scene_look(sl: Dictionary) -> void:
+	if renderer != null:
+		renderer.apply_scene_look(sl)
+	for node: Node in [impostors, crosses, trees, grass]:
+		if is_instance_valid(node) and node.has_method("apply_scene_look"):
+			node.call("apply_scene_look", sl)
 
 
 ## Идёт ли фоновый расчёт полей рельефа (влажность ложбин — в силе источников термиков).

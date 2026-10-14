@@ -1,0 +1,60 @@
+{
+  "id": "SL-8",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Скотные тропы с высоты",
+  "goal": "На крутых травянистых склонах с 100–800 м видны горизонтальные ступеньки троп (нормалью и тенью уступа), без мерцания.",
+  "plan_ref": "SL-8 Скотные тропы с высоты (п. 8)",
+  "contracts": [
+    {
+      "name": "SL-К1",
+      "version": "2",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-8",
+  "branch": "scene-look/SL-8",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/terrain.gdshader",
+    "configs/world.json",
+    "tests/terrain/"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "scripts/terrain/meadow_look.gdshaderinc",
+    "scripts/terrain/build/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_full_ms_base",
+    "gpu_full_ms_after",
+    "gpu_relief_ms_base",
+    "gpu_relief_ms_after",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-13T22:38:11",
+  "edited": "2026-10-13T23:38:24"
+}

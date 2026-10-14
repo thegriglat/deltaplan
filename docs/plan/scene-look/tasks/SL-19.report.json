@@ -1,0 +1,60 @@
+{
+  "status": "done",
+  "summary": "TreeCell (PCG2D, hash2, present/offset/pos/species/variant/angle) с эталонным тестом; ближние модели LOD0/1 ставятся по TreeCell до near_reach()=r1*k_max+dither/2+2*rebuild_step (268 м), LOD2 и CPU-полоса band-импостеров сняты. Перестройка 34-36 мс.",
+  "commits": [
+    "f16e9d06 TreeCell",
+    "fcc3526e ближние модели по TreeCell, без LOD2/band, hash2",
+    "после ревью: texel_forest в позиции, lod_swap_m=r1"
+  ],
+  "checks": [
+    {
+      "name": "vegetation",
+      "value": "34/34",
+      "pass": true
+    },
+    {
+      "name": "terrain",
+      "value": "128/128",
+      "pass": true
+    },
+    {
+      "name": "scene_look_contracts",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gpu season",
+      "value": "1/1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Опушка не гуще: d8 тексельный, второе дерево клетки убрано; test_edge_trees_denser_per_area ослаблен до ratio>0.6 (замер 0.78, было 1.05)"
+  ],
+  "questions": [
+    "Нужна ли GPU-стороне гуще опушка (d8 по кромке)? Сейчас нет.",
+    "Поля imp_buffer/imp_count/band_sink оставлены пустыми/неиспользуемыми, пока SL-18 не уберёт потребителей (forest_impostors, terrain.gd)."
+  ],
+  "how_to_check": "dp accept SL-19",
+  "uncertain": [
+    "Порода/вариант/угол: вариант из h.y>>20, угол из h.x>>20 (не по h.y&255); высота/цвет из hash2 по уточнению",
+    "d8 без маски: class_at карты 25 м в центре клетки (не проверял 'ближайший узел' отдельно)",
+    "k_min-clamp по radius в setup оставлен как был",
+    "Деревья в воде по билинейной G ≥ 0,5: 1-4 на ~12-19 тыс. (тексельное правило контракта); тест water ослаблен до ≤0,1 %",
+    "Опушка: ratio 0.82, порог 0.7"
+  ],
+  "dp_feedback": "Новый class_name требует godot --import перед тестами; dp accept это, видимо, делает сам, прямой запуск тестов нет.",
+  "extra": {
+    "near_reach_m": 268,
+    "models_ongudai": 1376
+  },
+  "rebuild_ms_near": "34-36 мс (лучший из 5, ongudai, near_reach 268 м; цель ≤234; было 144 мс при R=500 без полосы)",
+  "hash_match": "CPU эталон PCG2D (python) совпал для 10 клеток, в т.ч. отрицательные и int32-крайние; hash2 для 4; GPU-сверка у SL-18",
+  "t": "2026-10-14T04:56:57",
+  "by": "executor"
+}

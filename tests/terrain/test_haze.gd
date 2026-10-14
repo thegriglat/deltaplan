@@ -69,3 +69,44 @@ func test_top_follows_inversion() -> void:
 		# чистый воздух у горизонта и в небе — иначе край дальнего рельефа виден поверх неба
 		check(float(mat.get_shader_parameter("clear_sky_height_m")) > 0.0, "чистый воздух в небе")
 	sky.free()
+
+
+## CPU-зеркало фазы дымки (haze.gdshader): яркость in-scatter к солнцу / сбоку / против на 2/10/30 км.
+func _scatter_g(mu: float, d_m: float, hz: Dictionary, sun_scatter: float, new_phase: bool) -> float:
+	# зелёный канал: haze_color 0.75, sun 0.95, клин. extinction мутного слоя 3.912/60 км
+	var tau := 3.912 / 60000.0 * d_m
+	var op := 1.0 - exp(-tau)
+	var col: float
+	if new_phase:
+		var t := SkyEnvironment.haze_phase_terms(mu, hz)
+		col = 0.75 * float(t[0]) + 0.95 * sun_scatter * float(t[1])
+	else:
+		col = 0.75 + 0.95 * sun_scatter * pow(maxf(mu, 0.0), 6.0)
+	return col * op
+
+
+func test_phase_side_front_back() -> void:
+	var hz: Dictionary = Config.get_config("world").get("haze", {})
+	var ss := float(Config.value("world", "fog.sun_scatter", 0.35))
+	var side_ratio := 0.0
+	for d in [2000.0, 10000.0, 30000.0]:
+		var nf := _scatter_g(1.0, d, hz, ss, true)
+		var ns := _scatter_g(0.0, d, hz, ss, true)
+		var nb := _scatter_g(-1.0, d, hz, ss, true)
+		var of := _scatter_g(1.0, d, hz, ss, false)
+		var os := _scatter_g(0.0, d, hz, ss, false)
+		side_ratio = ns / os
+		print("haze %.0f км: к солнцу %.3f (было %.3f), сбоку %.3f (%.3f), против %.3f" % [d / 1000.0, nf, of, ns, os, nb])
+		check(absf(side_ratio - 1.0) <= 0.15, "%.0f км: сбоку новая/старая %.3f в пределах ±15 %%" % [d / 1000.0, side_ratio])
+		check(nf > 1.3 * ns, "%.0f км: к солнцу светлее, чем сбоку (%.3f / %.3f)" % [d / 1000.0, nf, ns])
+		check(nf >= of, "%.0f км: ореол не слабее прежнего" % [d / 1000.0])
+		check(nb < ns and nb > 0.5 * ns, "%.0f км: против солнца темнее сбоку, но не чернота (%.3f / %.3f)" % [d / 1000.0, nb, ns])
+	# против солнца силуэты читаются: рост яркости с расстоянием монотонен и не упирается в 1 на 2 км
+	var prev := 0.0
+	for d in [2000.0, 10000.0, 30000.0, 60000.0]:
+		var b := _scatter_g(-1.0, d, hz, ss, true)
+		check(b > prev, "против солнца in-scatter растёт с расстоянием (%.0f км: %.3f)" % [d / 1000.0, b])
+		prev = b
+	check(_scatter_g(-1.0, 2000.0, hz, ss, true) < 0.5 * _scatter_g(-1.0, 30000.0, hz, ss, true), "слои: 2 км вдвое прозрачнее 30 км")
+	approx(SkyEnvironment.clear_rayleigh(0.0, hz), 1.0, 1e-6, "Рэлей сбоку = 1")
+	check(SkyEnvironment.clear_rayleigh(1.0, hz) > 1.2, "Рэлей к солнцу ярче")

@@ -23,6 +23,7 @@ extends Node3D
 
 var _args := {}
 var _frames := 0
+var _ready_done := false
 var _cfg: Dictionary
 var _yaw := 0.0
 var _pitch := 0.0
@@ -31,6 +32,11 @@ var _bench_frames := 0
 var _bench_worst_ms := 0.0
 var _bench_gpu_ms := 0.0
 var _bench_static_samples: Array[float] = []
+var _bench_vp_ms := 0.0
+var _bench_ts_frame := -1
+var _bench_ts_n := 0
+var _bench_ts_total := 0.0
+var _bench_passes := {}
 var _series_i := 0
 var _series_t := 0.0
 
@@ -81,6 +87,7 @@ func _ready() -> void:
 		env.set_inversion_height_msl(float(_args.inversion))
 	if _args.has("no-haze") and env.haze != null:
 		env.haze.visible = false
+	_ready_done = true
 	if _args.has("bench") or _args.has("bench-static"):
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
@@ -178,6 +185,8 @@ func _vec(s: String) -> Vector3:
 
 
 func _process(delta: float) -> void:
+	if not _ready_done:
+		return  # _ready ждёт загрузки (await): кадры до её конца — пустая сцена, не считаем
 	_frames += 1
 	if _frames < 0:
 		return
@@ -267,11 +276,38 @@ func _bench(delta: float) -> void:
 
 ## Замер GPU на неподвижной камере (T01): N кадров после разгона, среднее и 95-й перцентиль.
 func _bench_static() -> void:
-	if _frames < 10:
+	if _frames == 5:
+		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+	if _frames < 20:
 		return
-	_bench_static_samples.append(
-		RenderingServer.viewport_get_measured_render_time_gpu(get_viewport().get_viewport_rid())
+	var vp_ms := RenderingServer.viewport_get_measured_render_time_gpu(
+		get_viewport().get_viewport_rid()
 	)
+	_bench_vp_ms += vp_ms
+	# полная длительность кадра по меткам RenderingDevice (нужен --gpu-profile), как в frame_profile.gd
+	var rd := RenderingServer.get_rendering_device()
+	var total := vp_ms
+	if rd != null:
+		var n := rd.get_captured_timestamps_count()
+		var f := rd.get_captured_timestamps_frame()
+		if n > 1 and f != _bench_ts_frame:
+			_bench_ts_frame = f
+			total = (
+				(rd.get_captured_timestamp_gpu_time(n - 1) - rd.get_captured_timestamp_gpu_time(0))
+				/ 1e6
+			)
+			for i in n - 1:
+				var nm := rd.get_captured_timestamp_name(i)
+				var d := (
+					(rd.get_captured_timestamp_gpu_time(i + 1) - rd.get_captured_timestamp_gpu_time(i))
+					/ 1e6
+				)
+				_bench_passes[nm] = float(_bench_passes.get(nm, 0.0)) + d
+			_bench_ts_n += 1
+			_bench_ts_total += total
+		else:
+			return  # кадр без новых меток — не считаем
+	_bench_static_samples.append(total)
 	if _bench_static_samples.size() >= int(_args["bench-static"]):
 		var arr := _bench_static_samples.duplicate()
 		arr.sort()
@@ -285,10 +321,22 @@ func _bench_static() -> void:
 			"gpu_ms_p95": arr[p95_i],
 			"gpu_ms_p10": arr[int(0.1 * arr.size())],
 			"n": arr.size(),
+			"gpu_ms_viewport": _bench_vp_ms / maxf(1.0, _bench_static_samples.size()),
+			"passes": _bench_passes_mean(),
+			"draw_calls": RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME),
+			"primitives": RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME),
+			"chunks": terrain.renderer.chunk_count(),
 			"w": get_viewport().size.x,
 		}
 		print("BENCH_STATIC_JSON:" + JSON.stringify(res))
 		get_tree().quit()
+
+
+func _bench_passes_mean() -> Dictionary:
+	var r := {}
+	for k: String in _bench_passes:
+		r[k] = snappedf(_bench_passes[k] / maxf(1.0, _bench_ts_n), 0.001)
+	return r
 
 
 func _unhandled_input(event: InputEvent) -> void:

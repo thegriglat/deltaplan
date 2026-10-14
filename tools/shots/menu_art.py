@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Кадры-кандидаты для фона меню и экранов загрузки — пачкой через tools/shots/menu_background.sh.
 
-    tools/shots/menu_art.py [--size=1920x1080] [--out=каталог] [--only=01,07,…] [--jobs=3]
+    tools/shots/menu_art.py [--size=1920x1080] [--out=каталог] [--only=01,07,…] [--jobs=3] [--date=MM-DD]
+
+--date=MM-DD — дата кадров (по умолчанию в игре 15 июля): сезон scene-look (трава, листва, поля)
+и положение солнца по дате; погода (температура, снег) остаётся как в сюжете. В имя файла дата не
+входит — для разных дат задавайте разные --out.
 
 Сюжеты — tools/shots/menu_art.json: места (каталог стартов или --latlon у знаковых гор), ракурсы
 камеры (от третьего лица, планер не по центру), время суток и облачность. Номер кадра стабилен:
@@ -11,6 +15,7 @@
 Пишет <out>/NN_<сюжет>.jpg|png и <out>/index.md; лог каждого кадра — <out>/logs/NN.log.
 """
 import argparse
+import datetime
 import json
 import math
 import os
@@ -89,6 +94,16 @@ def expand(spec):
     return shots
 
 
+def parse_date(text):
+    """MM-DD → [месяц, день]; ошибка формата — SystemExit."""
+    try:
+        m, d = (int(x) for x in text.split("-"))
+        datetime.date(2001, m, d)  # проверка календаря (год не високосный: 29 февраля не нужен)
+    except ValueError:
+        raise SystemExit("--date=MM-DD, например 10-01 (получено %r)" % text)
+    return [m, d]
+
+
 def run_shot(s, size, out, ext, xdg_root, tmp):
     cfg = Path(tmp) / ("%s.json" % s["n"])
     cfg.write_text(json.dumps(s["cfg"], ensure_ascii=False))
@@ -123,10 +138,15 @@ def main():
     ap.add_argument("--out", default="/home/greg/deltaplan/build/screenshots/menu_art")
     ap.add_argument("--only", default="")
     ap.add_argument("--jobs", type=int, default=3)
+    ap.add_argument("--date", default="", help="MM-DD: дата кадров (сезон и солнце), по умолчанию 15 июля")
     ap.add_argument("--xdg", default="/home/greg/deltaplan/build/menu_art_xdg")
     a = ap.parse_args()
     spec = json.loads((ROOT / "tools/shots/menu_art.json").read_text())
     shots = expand(spec)
+    if a.date:
+        date = parse_date(a.date)
+        for s in shots:
+            s["cfg"]["date"] = date
     if a.only:
         keep = {"%02d" % int(x) for x in a.only.split(",")}
         shots = [s for s in shots if s["n"] in keep]

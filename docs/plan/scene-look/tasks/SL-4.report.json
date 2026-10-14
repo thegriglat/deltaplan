@@ -1,0 +1,38 @@
+{
+  "status": "partial",
+  "summary": "Дороги вдали: вертикальное расширение ленты до min_px=1.5 пикселя с долей покрытия в альфе (дизеринг IGN, без мерцания), цвет вдали к серо-бежевому грунту с потолком яркости 1,3x луга, specular 0,2/roughness 0,95 и тень облаков (cloud_shadow.gdshaderinc, light()) как у рельефа. Новые ключи roads.look: far_ground_color, far_ground_amt, meadow_luma, far_luma_max, min_px, specular_value, roughness. Правка вне скоупа: road_mesher.gd пишет в NORMAL направление наружу поперёк ленты (шейдер сам ставит NORMAL=UP).",
+  "commits": [
+    "SL-4: дороги вдали — нитка в цвет грунта"
+  ],
+  "checks": [
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "osm_road",
+      "value": "9/10; упал test_city_ground_mask — падает и на базе (feature/scene-look) без моих правок",
+      "pass": false
+    },
+    {
+      "name": "test_far_road_not_chalk",
+      "value": "far_road_luma_ratio=0.578",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "test_city_ground_mask падает на базе, не связан с задачей"
+  ],
+  "questions": [
+    "road_mesher.gd (NORMAL) вне скоупа карточки — подтвердить"
+  ],
+  "how_to_check": "godot --headless ... --filter=osm_road; dp accept SL-4",
+  "uncertain": "GPU: viewport_get_measured_render_time_gpu в сцене roads_shot (1080p, Алматы, воздух) дал ненулевые значения, замер вперемежку 5 пар: медианы базы 0.209 мс, после 0.216 мс (+0.007, один выброс 0.364 в after; шум между запусками ±0.03). Базовый шейдер подменялся в той же сцене. SL-13 не ждал. Дизеринг по IGN даёт вдали зернистую нитку, не проверено глазами (скриншоты не заказаны). Минимальная ширина при крутом наклоне камеры не проверена. Яркость: meadow_luma=0.25 — линейная яркость mix(grass,dry_grass) из world.json, справочная константа.",
+  "dp_feedback": "Нет готовой команды GPU-замера произвольной сцены; dp accept не отличает падения базы от новых.",
+  "gpu_ms_base": 0.209,
+  "gpu_ms_after": 0.216,
+  "far_road_luma_ratio": 0.578,
+  "t": "2026-10-13T22:19:03",
+  "by": "executor"
+}

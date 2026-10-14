@@ -5,6 +5,7 @@
 //   1 — задняя), у нижней обшивки UV2.y + 2. Смещение — вдоль +Y модели (вверх по крылу), м.
 // Значения по умолчанию совпадают с assets/shaders/sail/sail_params.json (их ставит SailMaterial).
 shader_type spatial;
+#include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 // shadows_disabled — парус не принимает тени (свою тоже): тень верхней обшивки иначе гасит
 // просвечивание нижней. Отбрасывает тень как обычно (на землю и пилота, VR-6).
 render_mode cull_disabled, diffuse_burley, specular_schlick_ggx, shadows_disabled;
@@ -22,6 +23,12 @@ uniform float roughness : hint_range(0.0, 1.0) = 0.72;
 uniform float normal_strength = 0.8;
 uniform float translucency : hint_range(0.0, 3.0) = 0.8;  // сила света насквозь
 uniform vec3 transmit_tint : source_color = vec3(1.0, 0.97, 0.9);
+// Просвет против солнца (SL-7): рассеяние вперёд через ткань ∝ pow(cos угла между взглядом и
+// солнцем, forward_exp) × пропускание (маска _trans: латы и швы темнее) × цвет солнца.
+uniform float forward_gain : hint_range(0.0, 3.0) = 0.7;
+uniform float forward_exp : hint_range(1.0, 32.0) = 5.0;
+varying float v_cs_sun;
+varying vec3 v_fwd;  // пропускание для рассеяния вперёд: оттенок × маска _trans (из fragment в light)
 
 // параметры полёта — выставляет код (GliderVisual) каждый кадр
 uniform float airspeed_ms = 10.0;
@@ -71,6 +78,7 @@ void vertex() {
 	float d = body * (billow + st + tb) + te * fl;
 	d *= mix(1.0, lower_surface_factor, low);
 	VERTEX.y += d;
+	v_cs_sun = cloud_sun_at((MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz);
 }
 
 void fragment() {
@@ -89,4 +97,17 @@ void fragment() {
 	NORMAL_MAP_DEPTH = normal_strength;
 	float tr = texture(trans_tex, UV).r;
 	BACKLIGHT = a.rgb * transmit_tint * tr * translucency;
+	v_fwd = transmit_tint * tr;
+}
+
+// Встроенное освещение (cloud_light — как diffuse_burley/schlick_ggx, прямое солнце × тень облака)
+// плюс рассеяние вперёд: солнце за тканью (dot(-взгляд, на солнце) > 0) — лобовой свет проходит
+// сквозь, светится цветом ткани и солнца. DIFFUSE_LIGHT потом × ALBEDO, поэтому цвет ткани уже в нём.
+void light() {
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
+			ALBEDO, ROUGHNESS, METALLIC, 0.35, BACKLIGHT, CS_BURLEY, SPECULAR_AMOUNT,
+			DIFFUSE_LIGHT, SPECULAR_LIGHT);
+	float a = ATTENUATION * (LIGHT_IS_DIRECTIONAL ? v_cs_sun : 1.0);
+	float fwd = pow(max(dot(-VIEW, LIGHT), 0.0), forward_exp);
+	DIFFUSE_LIGHT += LIGHT_COLOR * a * fwd * forward_gain * (1.0 / PI) * v_fwd;
 }

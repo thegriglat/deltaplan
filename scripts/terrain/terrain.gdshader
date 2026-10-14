@@ -6,6 +6,7 @@ shader_type spatial;
 render_mode cull_back, diffuse_burley, specular_schlick_ggx;
 
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
+#include "res://scripts/terrain/scene_look.gdshaderinc"
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/meadow_look.gdshaderinc"
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
@@ -898,6 +899,7 @@ void fragment() {
 	}
 	float slope_deg = degrees(acos(clamp(n_class.y, 0.0, 1.0)));
 	float forest = wa.x;
+	float sl_fh = fwidth(h); // SL
 	float crop = wa.z;
 	float shrub = wa.w;
 	float bare = wb.x;
@@ -956,11 +958,15 @@ void fragment() {
 
 	// --- луг: сухая трава на южных склонах и пятнами ---
 	vec3 gcol = meadow_ground_color(wp.xz, north, patch2, wet, north_s);
+	gcol = sl_meadow(gcol, wp); // SL
+	float sl_rel; vec4 sl_ss = sl_season_b(h, sl_rel); // SL
+	gcol = sl_meadow_season(gcol, sl_ss); // SL
 
 	float tex_w = fade * texture_strength;
 
 	// --- пашня/поля: прямоугольные участки разного цвета (пашня, всходы, стерня) ---
 	vec3 fcol = field_plot_color(wp.xz, gcol);
+	if (crop > 0.01) fcol = sl_field_season(fcol, wp.xz, sl_rel); // SL
 	if (crop > 0.01) {
 		fcol = field_detail(wp.xz, fcol, gcol, foot_m);
 	}
@@ -969,6 +975,7 @@ void fragment() {
 		gcol = meadow_detail(
 			wp.xz, gcol, foot_m, h, n_class, slope_deg, (1.0 + 6.0 * outcrop) * painted_k
 		);
+		gcol = sl_trails(gcol, wp.xz, h, n_class, slope_deg, sl_fh, sun_dir, dist); // SL
 	}
 	// пятна с высоты: оттенок/яркость 20 м … 2 км, выгоревшие пятна, покосы (после фактуры
 	// луга — её полосы не смывают оттенок пятен)
@@ -1037,6 +1044,7 @@ void fragment() {
 			const vec3 LS = vec3(0.2126, 0.7152, 0.0722);
 			vec3 silver = vec3(dot(col, LS)) * vec3(0.97, 1.0, 1.04);
 			col = mix(col, silver, clamp(wind_far_silver * far, 0.0, 1.0)) * (1.0 + wind_far_shade * far);
+			col = sl_wind_sheen(col, far, wind_far_shade, wind_vec, normalize(CAMERA_POSITION_WORLD - wp)); // SL
 		}
 	}
 
@@ -1060,6 +1068,7 @@ void fragment() {
 	if (use_snow_tex) {
 		wcol = apply_tex(wcol, texture(snow_tex, wp.xz / snow_tex_tile_m).rgb, snow_tex_avg, tex_w);
 	}
+	wcol = sl_glacier(wcol, wp.xz, n_class, slope_deg, v_convex / outcrop_convex_k, h, foot_m); // SL
 	col = (col + ucol * built) * snow_rest + bcol * bare + wcol * snow;
 
 	// --- лес: полог из крон (ячейки canopy_cell_m) с освещением и тенями; вдали — средний тон ---
@@ -1101,6 +1110,7 @@ void fragment() {
 		fcolor = mix(fcolor, ctint * cs, crown_k);
 		crown_n = normalize(mix(crown_n, cn, crown_k));
 	}
+	vec3 sl_fc0 = fcolor; // SL
 	// древостои: светлее/темнее пятнами 50–200 м (возраст, состав, густота)
 	// + крупнее (массивы 300–800 м) — видны с 2 км, когда отдельные кроны и куртины уже мельче пикселя
 	if (forest > 0.01) {
@@ -1113,6 +1123,9 @@ void fragment() {
 		// гуще в сырых ложбинах и на северных склонах, реже на сухих южных
 		fcolor *= 1.0 - forest_wet_dark * clamp(0.6 * wet + 0.6 * north_s, -1.0, 1.0);
 	}
+	fcolor = sl_canopy_tone(fcolor, sl_fc0, fmean, con_p, dist, canopy_far_shade); // SL
+	if (forest > 0.01) fcolor = sl_forest(fcolor, gcol, wp); // SL
+	if (forest > 0.01) fcolor = sl_canopy_season(fcolor, con_p, sl_ss, h); // SL
 	if (use_forest_tex) {
 		fcolor = apply_tex(fcolor, texture(forest_tex, wp.xz / forest_tex_tile_m).rgb, forest_tex_avg, tex_w);
 	}
@@ -1247,6 +1260,8 @@ void fragment() {
 		col = mix(col, ocol, ocw);
 	}
 	col = mix(col, rcol, rock);
+	vec3 sl_rg; // SL
+	col = sl_rock_look(col, wp, n_class, dist, max(rock, ocw), scree, clamp(open_w, 0.0, 1.0), slope_deg, slope_up, clamp(v_convex / outcrop_convex_k, -1.0, 1.0), scree_color, rock_tex_tile_m, rock_macro_k, scree_tex_tile_m, sl_rg); // SL
 
 	// --- скальная поверхность (скалы и выходы породы): крупный слой текстуры породы по трём
 	// проекциям — рисунок (яркость) и нормаль, видны до rock_macro_fade_m, когда мелкий тайл уже
@@ -1349,6 +1364,7 @@ void fragment() {
 			h + gully_north_m * max(north, 0.0) + 120.0 * (patch2 - 0.5))
 			* (1.0 - smoothstep(48.0, 58.0, slope_deg)), wp.xz + 17.0, foot_m) * (1.0 - forest);
 	col = mix(col, snow_color * (0.9 + 0.1 * fbm(wp.xz / 9.0, 2)), gsnow);
+	col = sl_fresh_snow(col, snow_color, wp.xz, h, slope_deg, forest); // SL
 
 	// --- мелкая детализация (кочки, пятна) ---
 	float d1 = fbm(wp.xz / detail_scale_m, 3);
@@ -1389,6 +1405,7 @@ void fragment() {
 
 	n = normalize(n + vec3(grass_bend.x, 0.0, grass_bend.y) + gn_add + rn_add * max(rock, outcrop * (1.0 - kurum))
 			+ rs_n * rsw);
+	n = sl_rock_nrm(n, sl_rg, clamp(max(rsw, scree * (1.0 - rock)), 0.0, 1.0)); // SL
 	// нормали крон (освещение полога)
 	n = normalize(mix(n, normalize(n + vec3(crown_n.x, 0.0, crown_n.z) * 1.5), forest * crown_k * 0.6));
 	// возмущение нормали шумом (кроны/кочки), чтобы вблизи поверхность не была «пластиковой»
@@ -1407,6 +1424,10 @@ void fragment() {
 	float bank = use_forest_mask
 			? smoothstep(0.02, 0.22, water_g) * (1.0 - smoothstep(0.22, 0.4, water_g))
 			: 0.0;
+	if (sl_riparian_enabled && use_forest_mask && dist < sl_riparian_fade_m.y && wa.y + shrub > 0.01) { // SL
+		float sl_rw = sl_riparian_w(sl_riparian_ring(wp.xz), water, dist) * (wa.y + shrub) * (1.0 - snow) * (1.0 - rock) * (1.0 - bare); // SL
+		col = sl_riparian_color(col, grass_color, sl_rw); // SL
+	} // SL
 	vec3 bank_color = mix(bare_color, rock_color, 0.3) * 0.55;
 	col = mix(col, bank_color, bank * (1.0 - water));
 	float water_rough = water_roughness;
@@ -1438,6 +1459,10 @@ void fragment() {
 	NORMAL = normalize((VIEW_MATRIX * vec4(n, 0.0)).xyz);
 	v_cs_spec = SPECULAR;
 	AO *= cloud_sky_ao(v_cs_sun);
+	v_sl_ny = n.y; v_sl_ao = AO; v_sl_sun = v_cs_sun; // SL
+	vec2 sl_rs = sl_relief_shadow(use_relief, n, hz_deg, dist, relief_shadow_ambient, relief_shadow_soft_deg, relief_shadow_strength, relief_shadow_near_m); // SL
+	ALBEDO = min(ALBEDO / sl_rs.x, vec3(1.0)); // SL
+	v_cs_sun *= sl_rs.y * sl_canopy_direct(n_class, normalize(CAMERA_POSITION_WORLD - wp), forest * sl_canopy_far(dist)); // SL
 }
 
 // Встроенное освещение (burley + schlick_ggx), прямое солнце — в тени облаков слабее.
@@ -1445,4 +1470,5 @@ void light() {
 	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
 			ALBEDO, ROUGHNESS, METALLIC, v_cs_spec, vec3(0.0), CS_BURLEY, SPECULAR_AMOUNT,
 			DIFFUSE_LIGHT, SPECULAR_LIGHT);
+	sl_ground_light(DIFFUSE_LIGHT, LIGHT_COLOR, LIGHT_IS_DIRECTIONAL, ALBEDO, v_sl_ny, v_sl_ao, v_sl_sun); // SL
 }

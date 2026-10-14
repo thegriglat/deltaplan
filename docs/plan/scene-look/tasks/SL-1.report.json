@@ -1,0 +1,49 @@
+{
+  "status": "partial",
+  "summary": "Кадры «до» сняты: 8 из 8 в build/screenshots/scene-look/before/. bench.json скопирован, но gpu_ms = 0.0 во всех замерах (full и relief, n=120) — замер GPU не работает в этом прогоне, числа недостоверны; нужна отдельная разборка.",
+  "commits": [],
+  "checks": [
+    {
+      "name": "shots",
+      "value": "8 jpg (dp accept --dry: 8)",
+      "pass": true
+    },
+    {
+      "name": "bench",
+      "value": "bench.json читается, но gpu_ms_mean full=0.0 relief=0.0",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Осмысленный GPU «до»: shots.sh отработал за 42 с, все gpu_ms = 0.0 при n=120; вероятно таймстемпы GPU не возвращаются (headless/DISPLAY/Dummy или версия рендера). Не чинил — это разбор, не механика."
+  ],
+  "questions": [
+    "Нужна ли разборка причины нулевого gpu_ms до переснятия эталона?"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/scene-look/before/02_ongudai_cu_behind.jpg",
+    "/home/greg/deltaplan/build/screenshots/scene-look/before/06_sinyukha_w_cu_side.jpg",
+    "/home/greg/deltaplan/build/screenshots/scene-look/before/09_sinyukha_e_sunset_tele.jpg",
+    "/home/greg/deltaplan/build/screenshots/scene-look/before/17_biyagoda_sw_cu_tele.jpg",
+    "/home/greg/deltaplan/build/screenshots/scene-look/before/30_elbrus_sunset.jpg",
+    "/home/greg/deltaplan/build/screenshots/scene-look/before/35_montblanc_behind.jpg",
+    "/home/greg/deltaplan/build/screenshots/scene-look/before/41_shadow_biyagoda_afternoon.jpg",
+    "/home/greg/deltaplan/build/screenshots/scene-look/before/45_shadow_ongudai_afternoon.jpg"
+  ],
+  "how_to_check": "ls /home/greg/deltaplan/build/screenshots/scene-look/before/*.jpg | wc -l; cat /home/greg/deltaplan/build/screenshots/scene-look/before/bench.json",
+  "uncertain": [
+    {
+      "where": "/home/greg/deltaplan/build/screenshots/scene-look/before/bench.json",
+      "why": "gpu_ms = 0.0 во всех полях — измерение не состоялось, приёмка по bench формально пройдёт, но числа не годятся как эталон",
+      "checked": "shots.sh отработал без ошибок, n=120, w=958; кадры стенда есть"
+    }
+  ],
+  "dp_feedback": "dp accept --dry пишет PASS bench, хотя проверяет только парсинг json; нулевые gpu_ms не ловятся. Стоит добавить проверку gpu_ms_mean > 0.",
+  "extra": {
+    "gpu_ms_mean_full": 0.0,
+    "gpu_ms_mean_relief": 0.0,
+    "stand_dir": "/home/greg/deltaplan/build/screenshots/scene-look/before/stand"
+  },
+  "t": "2026-10-13T22:17:16",
+  "by": "main"
+}

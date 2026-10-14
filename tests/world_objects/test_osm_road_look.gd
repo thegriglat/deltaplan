@@ -91,3 +91,40 @@ func test_city_ground_mask() -> void:
 	node.free()
 	cfg.city_ground.enabled = false
 	check(OsmCityGround.build(d, cfg, _flat) == null, "enabled=false — слоя нет")
+
+
+func test_far_road_not_chalk() -> void:
+	# SL-4: цвет дороги вдали (все классы, полное far) — не светлее луга в far_luma_max раз; тонкая лента расширяется до min_px
+	var rc: Dictionary = _cfg().roads
+	var look: Dictionary = rc.look
+	var ground := Color(look.far_ground_color[0], look.far_ground_color[1], look.far_ground_color[2]).srgb_to_linear()
+	var meadow := float(look.meadow_luma)
+	var cap := float(look.far_luma_max)
+	var worst := 0.0
+	for k: String in rc.classes:
+		if k.begins_with("_"):
+			continue
+		var a: Array = rc.classes[k]
+		var c := Color(a[2], a[3], a[4]).srgb_to_linear()
+		var lum := c.r * 0.299 + c.g * 0.587 + c.b * 0.114
+		c = c.lerp(Color(lum, lum, lum), float(look.far_desat))
+		var sh := Color(look.shoulder_color[0], look.shoulder_color[1], look.shoulder_color[2]).srgb_to_linear()
+		c = c.lerp(sh, float(look.far_tint)).lerp(ground, float(look.far_ground_amt))
+		var l2 := c.r * 0.299 + c.g * 0.587 + c.b * 0.114
+		l2 *= minf(1.0, cap * meadow / maxf(l2, 1e-4))
+		worst = maxf(worst, l2 / meadow)
+	print("far_road_luma_ratio=%.3f" % worst)
+	check(worst <= 1.3 + 1e-4, "дорога вдали не светлее луга в 1,3 раза: %f" % worst)
+	var gl := ground.r * 0.299 + ground.g * 0.587 + ground.b * 0.114
+	check(gl / meadow <= 1.3, "грунт вдали не светлее луга: %f" % (gl / meadow))
+	check(float(look.min_px) >= 1.0, "min_px >= 1")
+	# меш: NORMAL — единичное направление наружу поперёк ленты (шейдер расширяет)
+	var pts := PackedVector2Array([Vector2(0, 0), Vector2(100, 0)])
+	var out := RoadMesher.build([{"t": "primary", "p": pts}], rc, _flat)
+	for key in out:
+		var ar: Array = out[key].arrays
+		var nn: PackedVector3Array = ar[Mesh.ARRAY_NORMAL]
+		var uv: PackedVector2Array = ar[Mesh.ARRAY_TEX_UV]
+		for i in nn.size():
+			check(absf(nn[i].length() - 1.0) < 1e-3 and absf(nn[i].z - (1.0 if uv[i].x > 0.5 else -1.0)) < 1e-3, "нормаль — наружу поперёк: %s" % nn[i])
+			break

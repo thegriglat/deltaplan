@@ -11,6 +11,9 @@
 // Свет от дымки (in-scatter) = Σ τᵢ·цветᵢ / Σ τᵢ · (1 − e^(−τ)) по каналам: на коротком пути он
 // голубой и тёмный (насыщается только синий), на длинном — светлый, к цвету горизонта.
 // Пропускание сцены — по зелёному каналу (яркостный контраст), смешение premultiplied.
+// Фаза: чистый воздух — Рэлей (1+cos²θ), мутный слой — Хеньи–Гринстейн (g = haze_g); обе
+// нормированы на 90° от солнца, поэтому сбоку дымка такая же, как была; к солнцу светлее и теплее
+// (цвет солнца), против солнца мутный слой темнее. Зеркало формул — SkyEnvironment.haze_phase_*.
 // Параметры задаёт scripts/world/sky_environment.gd из configs/world.json → haze.
 shader_type spatial;
 render_mode unshaded, blend_premul_alpha, depth_draw_never, depth_test_disabled, cull_disabled, fog_disabled;
@@ -29,7 +32,11 @@ uniform vec3 haze_color : source_color = vec3(0.75, 0.76, 0.76);
 uniform vec3 sun_color : source_color = vec3(1.0, 0.95, 0.85);
 uniform vec3 sun_dir = vec3(0.0, 1.0, 0.0); // направление НА солнце
 uniform float sun_scatter = 0.35;        // подсветка дымки против солнца
-uniform float sun_scatter_power = 6.0;   // узость ореола
+uniform float haze_g = 0.7;             // анизотропия Хеньи–Гринстейна мутного слоя (0 — изотропно, → 1 — узкий ореол)
+uniform float forward_gain = 3.0;        // яркость ореола у самого солнца относительно прежнего cos^6
+uniform float forward_knee = 6.0;        // сжатие ореола: x/(x+knee), x = HG(θ)/HG(90°) − 1
+uniform float back_dim = 0.3;            // насколько мутный слой темнее против солнца (0..1)
+uniform float clear_phase_k = 0.5;       // доля фазы Рэлея (1+cos²θ) у чистого воздуха (0 — изотропно)
 uniform float inscatter_power = 1.0;    // свет дымки ∝ (1 − e^(−τ))^p: >1 — тонкая дымка светит слабее
 uniform float max_opacity = 0.97;        // дымка никогда не закрывает всё полностью
 
@@ -84,7 +91,13 @@ void fragment() {
 	} else {
 		path = len * haze_profile(y0);
 	}
-	float s = pow(max(dot(dir, normalize(sun_dir)), 0.0), sun_scatter_power);
+	// фазы нормированы на 90° от солнца (там = 1): сбоку яркость как раньше
+	float mu = dot(dir, normalize(sun_dir));
+	float hg_ratio = (1.0 - haze_g * haze_g) / pow(1.0 + haze_g * haze_g - 2.0 * haze_g * mu, 1.5)
+			* pow(1.0 + haze_g * haze_g, 1.5) / (1.0 - haze_g * haze_g);
+	float fwd = max(hg_ratio - 1.0, 0.0);
+	float halo = fwd / (fwd + forward_knee);
+	float rayleigh = mix(1.0, 1.0 + mu * mu, clear_phase_k);
 	vec3 tau_h = extinction * max(path, 0.0) * extinction_rgb;
 	float clear_len = len;
 	if (sky) {
@@ -93,8 +106,9 @@ void fragment() {
 	vec3 tau_c = clear_extinction * clear_len * clear_rgb;
 	vec3 tau = tau_h + tau_c;
 	vec3 opacity = min(vec3(1.0) - exp(-tau), vec3(max_opacity));
-	vec3 col_h = haze_color + sun_color * sun_scatter * s;
-	vec3 col = (tau_h * col_h + tau_c * clear_color) / max(tau, vec3(1e-6));
+	vec3 col_h = haze_color * mix(1.0, min(hg_ratio, 1.0), back_dim)
+			+ sun_color * sun_scatter * forward_gain * halo;
+	vec3 col = (tau_h * col_h + tau_c * clear_color * rayleigh) / max(tau, vec3(1e-6));
 	ALBEDO = col * pow(opacity, vec3(inscatter_power));
 	ALPHA = opacity.g;
 }

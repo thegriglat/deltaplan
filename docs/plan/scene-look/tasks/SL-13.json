@@ -1,0 +1,49 @@
+{
+  "id": "SL-13",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Замер GPU стенда даёт 0 мс",
+  "goal": "Вернуть замер GPU-времени кадра (terrain_preview --bench-static / tools/terrain/shots.sh → bench.json), без него не проверить бюджет модуля; снять эталон «до».",
+  "plan_ref": "SL-К3 v1 — бюджет и замер GPU",
+  "contracts": [
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-13",
+  "branch": "scene-look/SL-13",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/terrain_preview.gd",
+    "tools/terrain/shots.sh",
+    "tools/bench/"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gdshader",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "bench_nonzero",
+      "cmd": "python3 -c \"import json;d=json.load(open('/home/greg/deltaplan/build/screenshots/scene-look/before/bench.json'));print('full %.3f relief %.3f'%(d['full']['gpu_ms_mean'],d['relief']['gpu_ms_mean']))\"",
+      "expect": "num:relief ([\\d.]+) >0.3"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_full_ms_base",
+    "gpu_relief_ms_base",
+    "cause",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-13T22:18:59",
+  "edited": "2026-10-13T22:18:59"
+}

@@ -1,0 +1,36 @@
+{
+  "status": "done",
+  "summary": "Документ scene-look.md и scene-look-keys.md, строка в terrain.md, CHANGELOG готовы; «Цена GPU модуля» заполнена по SL-11 (+1,6…2,0 мс на всех пресетах, выше бюджета 0,4; выключатели цену не снимают; T-79).",
+  "commits": [
+    "f4613533",
+    "cb6b066c",
+    "9506cf9d",
+    "scene-look: итоговая цена GPU модуля (SL-11) в документе"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0, без предупреждения о размере",
+      "pass": true
+    },
+    {
+      "name": "dp accept SL-12 --dry",
+      "value": "1/1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": "dp accept SL-12",
+  "uncertain": [
+    {
+      "where": "docs/guide/scene-look.md, «Цена GPU модуля»",
+      "why": "Один прогон на вариант, шум 0,2–0,6 мс; viewport-часть пресета стенд не применяет; в «Границах» одной строкой про цвет леса (V 0,20→0,36) по сообщению координатора",
+      "checked": "числа сверены с отчётом SL-11"
+    }
+  ],
+  "dp_feedback": "dp review SL-17 падает (tools/dp:981, checks-строка); нужны dp report --show --brief и dp docs keys <секция> для таблиц ключей.",
+  "t": "2026-10-14T05:51:39",
+  "by": "executor"
+}

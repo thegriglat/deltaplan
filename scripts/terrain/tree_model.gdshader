@@ -3,20 +3,25 @@
 // чем выше над основанием, тем сильнее (квадратично), порывы — тем же полем, что колышет траву.
 // Параметры задают TerrainTreeModels (материал) и TerrainWind (ветер).
 // Мягкая смена LOD: у границы экземпляр стоит в обоих LOD (TreePlacer), код в альфе цвета экземпляра
-// (1 — нет; 0,1/0,2 — уходит/проявляется у lod_d.x; 0,3/0,4 — у lod_d.y). Доля t по живому
+// (1 — нет; 0,1/0,2 — уходит/проявляется у lod_d.x; своего ухода у LOD1 нет). Ближний стык с LOD2-крестом
+// (SL-К4 v2): у всех моделей уходит на cross_near_m·sl_lod_k(дерево), если кресты есть. Доля t по живому
 // расстоянию до камеры; пиксель виден у уходящего при шум ≥ t, у проявляющегося при шум < t —
 // с одним шумом экрана оба LOD дополняют друг друга, без прозрачности (discard).
 shader_type spatial;
 render_mode cull_disabled, diffuse_burley;
 
+#define SL_NO_GROUND // SL
+#include "res://scripts/terrain/scene_look.gdshaderinc" // SL
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
+#include "res://scripts/terrain/tree_cell.gdshaderinc"
 
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform vec4 albedo_color : source_color = vec4(1.0);
 uniform bool alpha_clip = false;
 uniform float alpha_threshold = 0.5;
 uniform float roughness_value = 0.9;
+uniform float backlight = 0.0;         // просвет кроны на солнце 0..1 (лиственные больше хвойных; configs/world.json → trees.backlight)
 uniform float model_height = 20.0;     // высота модели (меша), м
 uniform float sway_top_m = 0.6;        // отклонение макушки при ветре wind_full_ms, м
 uniform float sway_hz = 0.25;          // частота качания, Гц
@@ -35,8 +40,12 @@ uniform float far_desaturate = 0.4;
 uniform float far_contrast = 0.35;
 uniform float far_canopy_luma = 0.32;
 uniform float far_edge_soft_k = 3.0;
+uniform float tree_gain = 1.0;         // SL-14: множитель альбедо породы (trees.albedo_gain; кора — 1), действует при sl_tree_albedo_enabled
+uniform float sl_tree_kind = 0.0;      // SL-6 сезон: 0 — вечнозелёная, 1 — берёза/осина, 2 — лиственница (ставит TerrainTreeModels)
 uniform vec2 lod_d = vec2(60.0, 180.0); // границы LOD, м (configs/world.json → trees.lod_distances_m)
 uniform float lod_fade_m = 10.0;        // ширина растворения, м (trees.lod_fade_m)
+uniform float lod_dither_m = 40.0;      // SL-К4: ширина дизеринга при смене формы, м (trees.lod_dither_m)
+uniform float cross_near_m = 0.0;       // SL-К4 v2: модель уступает LOD2-кресту (tree_cross.gdshader) на cross_near_m·sl_lod_k(дерево); 0 — крестов нет (ставит TreeCrosses)
 
 varying vec3 v_color;
 varying float v_dist;
@@ -45,16 +54,14 @@ varying float v_crown;
 varying float v_cs_sun;
 // окно шума, в котором пиксель виден: [v_fade.x, v_fade.y) (растворение на смене LOD)
 varying vec2 v_fade;
+varying vec4 v_sl_ss;   // SL-6: сезон породы на высоте дерева
 
 void vertex() {
 	vec3 base = MODEL_MATRIX[3].xyz;
 	v_dist = length(base.xz - CAMERA_POSITION_WORLD.xz);
-	v_fade = vec2(0.0, 2.0);
-	int code = int(COLOR.a * 10.0 + 0.5);
-	if (code >= 1 && code <= 4) {
-		float t = clamp((v_dist - (code <= 2 ? lod_d.x : lod_d.y)) / lod_fade_m + 0.5, 0.0, 1.0);
-		v_fade = (code % 2 == 1) ? vec2(t, 2.0) : vec2(0.0, t);
-	}
+	// растворение на смене LOD0→LOD1 и ближний стык с крестом (SL-К4 v2) — одна функция tree_cell
+	v_fade = tc_model_window(int(COLOR.a * 10.0 + 0.5), v_dist, lod_d.x, lod_fade_m, sl_lod_k(base.xz),
+			cross_near_m, lod_dither_m);
 	float spd = length(wind_vec);
 	vec2 d = spd > 0.05 ? wind_vec / spd : vec2(1.0, 0.0);
 	float amp = smoothstep(0.3, wind_full_ms, spd);
@@ -93,6 +100,7 @@ void vertex() {
 	v_color = COLOR.rgb;
 	v_crown = UV2.x; // 1 — карточка кроны с нормалями «от центра кроны» (build_trees.py), 0 — кора, импостор
 	v_cs_sun = cloud_sun_at(base);
+	v_sl_ss = sl_tree_kind > 0.5 ? sl_season_sp(sl_tree_kind, base.y) : vec4(0.0); // SL
 	// целиком растворённый экземпляр — вырожденные треугольники (не растеризуется)
 	if (v_fade.x >= 1.0 || v_fade.y <= 0.0) {
 		VERTEX = vec3(0.0);
@@ -101,12 +109,16 @@ void vertex() {
 
 void fragment() {
 	// шум экрана (interleaved gradient noise) — порог растворения
-	float n = fract(52.9829189 * fract(dot(FRAGCOORD.xy, vec2(0.06711056, 0.00583715))));
+	float n = sl_lod_noise(FRAGCOORD.xy);
 	if (n < v_fade.x || n >= v_fade.y) {
 		discard;
 	}
 	vec4 c = texture(albedo_tex, UV) * albedo_color;
-	vec3 rgb = c.rgb * v_color;
+	vec3 rgb = c.rgb * v_color * sl_tree_gain(tree_gain); // SL-14: альбедо → сезон → просвет
+	if (sl_tree_kind > 0.5 && v_crown > 0.5) {  // SL
+		rgb = sl_tree_season(rgb, v_sl_ss, sl_tree_kind);
+		if (sl_leaf_gone(v_sl_ss.w, n)) discard;
+	}
 	// вдали мягче: та же логика, что у impostor-билбордов (forest_impostors.gdshader) —
 	// бледнее и меньше контраст кроны, мягкий (не бинарный) край альфа-отсечения
 	float ft = smoothstep(far_soft_start_m, far_soft_full_m, v_dist);
@@ -131,12 +143,14 @@ void fragment() {
 	// у крон нормали смотрят вверх/наружу — на скользящем взгляде издали блик неба (Френель)
 	// выбеливал лес в серые «призраки»; хвоя и листва матовые
 	SPECULAR = v_crown > 0.5 ? 0.0 : 0.2;
+	// крона на просвет (SL-7): свет сквозь листву/хвою на теневой стороне карточек; кора и импостор — нет
+	BACKLIGHT = vec3(backlight * step(0.5, v_crown)) * ALBEDO;
 	AO = cloud_sky_ao(v_cs_sun);
 }
 
 // Встроенное освещение, прямое солнце — в тени облаков слабее (cloud_shadow.gdshaderinc).
 void light() {
 	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
-			ALBEDO, ROUGHNESS, METALLIC, v_crown > 0.5 ? 0.0 : 0.2, vec3(0.0), CS_BURLEY, SPECULAR_AMOUNT,
+			ALBEDO, ROUGHNESS, METALLIC, v_crown > 0.5 ? 0.0 : 0.2, BACKLIGHT, CS_BURLEY, SPECULAR_AMOUNT,
 			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 }

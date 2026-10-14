@@ -1,0 +1,53 @@
+{
+  "status": "done",
+  "summary": "Кадры after (9, включая 13 Тугая близко), сезон (4), лес до/после и средний цвет; GPU по пресетам low/medium/high под dp lock gpu; сборка Linux. Модуль стоит +1.6-2.0 мс на 4070S на всех пресетах (в основном в шейдере рельефа), выключатели rock/glacier/crosses и радиус крестов цену не снимают.",
+  "commits": [
+    "none: коммитов нет (только build/ и кадры)"
+  ],
+  "checks": [
+    {
+      "name": "shots",
+      "value": "9",
+      "pass": true
+    },
+    {
+      "name": "season",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "build",
+      "value": "7",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Низкий: viewport-часть пресета (scale_3d 0.75 + FSR) на стенде terrain_preview не применяется -- замер low только по world-конфигам, без масштаба; встроенного стенда по пресетам нет."
+  ],
+  "questions": [
+    "Основная цена модуля (~2 мс на 4070S) не в rock/glacier/crosses: отдельный опыт по ключам light/season/patch/riparian/treeline/trails/snow (по одному) или оптимизация шейдера (T-79)?"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/scene-look/after/02_ongudai_cu_behind.jpg",
+    "/home/greg/deltaplan/build/screenshots/scene-look/before/13_tugaya_start_close.jpg",
+    "/home/greg/deltaplan/build/screenshots/scene-look/after/13_tugaya_start_close.jpg"
+  ],
+  "how_to_check": "dp accept SL-11",
+  "uncertain": [
+    "Один прогон на вариант: различия <0.6 мс -- шум; rock off -0.3 мс на границе шума.",
+    "Стенд terrain_preview в статичной точке (Онгудай kayancha_south, AGL 800), деревья дают почти ноль в full-relief на обеих ветках -- сцена слабо нагружает лес; viewport-часть пресетов не применяется.",
+    "Маска леса грубая (цвет, не карта классов); для кадра 06 непригодна.",
+    "Кадр 13 (Тугая близко) добавлен как третий ракурс леса; before/13 снят на main (тот же сид, профиль ~/.cache/dp-xdg/...); кеш мест menu_art -- общий build/menu_art_xdg.",
+    "В git status копии остались чужие изменения docs/plan/scene-look/* (не мои)."
+  ],
+  "dp_feedback": "Нет команды для A/B-замера GPU по пресетам и вариантам конфига (пришлось писать bench.sh: set_preset + deep-merge user-конфига + shots-бенч); нужен dp bench gpu --preset --override. Стенд shots.sh не умеет принимать пресет и не применяет viewport-часть пресета.",
+  "gpu_table": "GPU кадра, мс (RTX 4070 SUPER, 1920x1080 fullscreen, bench-static 120 кадров Онгудай/kayancha_south AGL 800; full | relief = --no-trees --no-grass --no-haze). Один прогон на вариант после прогрева каждой копии. Пресет задан user-конфигом (set_preset.tscn); viewport-часть пресета (scale_3d 0.75 FSR на low, MSAA) стенд terrain_preview НЕ применяет.\nвариант | low full/relief | medium full/relief | high full/relief\nmain | 5.72/5.55 | 5.81/5.91 | 5.93/6.03 (повтор в конце: 5.92/6.02)\nмодуль как есть (кресты 900/1100/1500) | 7.35/7.59 | 7.64/7.86 | 7.92/7.93 (повтор: 7.92/7.97)\nмодуль, кресты 600/800/1000 | 7.41/7.62 | 7.57/7.81 | 7.85/7.94\nмодуль high без rock | - | - | 7.62/7.60\nмодуль high без glacier | - | - | 7.66/7.73\nмодуль high без crosses | - | - | 7.94/7.71\nМодуль минус main: +1.6..1.8 мс (low), +1.8..1.9 (medium), +2.0 (high); relief растёт так же (+1.6..2.0), т.е. цена в шейдере рельефа, а не в деревьях/крестах. Дрейф между повторами <=0.05 мс; шум замера 0.2-0.6 мс.\nВыводы: радиус крестов (600 vs 900, 800 vs 1100, 1000 vs 1500) -- в пределах шума. crosses off, glacier off -- в пределах шума; rock off даёт -0.3 мс (на границе шума, ~15% от цены модуля). Ни один из трёх выключателей не снимает основную цену (~2 мс); откатывать rock/glacier/crosses смысла нет. Цена высокая (в 4-5 раз выше порога 0.4 мс на 4070S) и лежит в остальных ветках scene_look в шейдере рельефа (light/season/patch/riparian/treeline/trails/snow, rock частично) -- нужен отдельный опыт по ключам (светлых/сезон/тропы) или оптимизация шейдера (T-79); решение координатору. На low тоже +1.6..1.8 мс (~+30%), все эффекты включены (см. low_preset_effects).",
+  "gpu_module_full_ms_high": "7.92 мс (main 5.93; +2.0)",
+  "gpu_module_relief_ms_high": "7.93 мс (main 6.03; +1.9)",
+  "gpu_module_full_ms_low": "7.35 мс (main 5.72; +1.6), relief 7.59 против 5.55",
+  "low_preset_effects": "На «Низком» пресет game.json → graphics_presets.low НЕ трогает world.json → scene_look вообще (правит только trees.radius_m 250, cross_radius_m 900, cast_shadows false, sun.shadow_max_distance_m 1200, ssao/glow off, траву 0, облака). Значит все эффекты scene_look работают как в world.json: включены light, tree_albedo, patch, riparian, treeline, season, trails, rock, grass_wind_sheen, snow, glacier (все *_enabled=true; снимается только флагом-uniform: в scene_look.gdshaderinc/ шейдерах рельефа везде `uniform bool sl_*_enabled`, код остаётся в шейдере, регистры не освобождаются, цена ветки у выключенного — только динамический if). Не-uniform: trees.crosses_enabled (кресты LOD2 — настоящая вкл/выкл, отдельный вершинный шейдер; на low включены, радиус 900). Выключенных по-настоящему эффектов scene_look на low нет. Параметры вроде trails_near_m/canopy_near_m от пресета не зависят. Низкий не отличается от высокого по scene_look -> мама на RX 5600 XT получает полную цену модуля.",
+  "forest_color": "Маска: нижние 60% кадра, hue 70-170 град, S>0.2, V<0.75 (грубо, считает по JPEG, скрипт scratchpad/sl11/forest.py). До -> после (sRGB среднее; HSV H град S V):\n02 Онгудай (доля маски 46% -> 50%): (37,52,24) H102 S0.59 V0.20 -> (73,92,44) H88 S0.53 V0.36 -- светлее ~в 1.8 раза по V, оттенок жёлтее на 14 град, насыщенность чуть ниже.\n13 Тугая вблизи (27% -> 29%): (48,66,29) H103 S0.65 V0.26 -> (57,79,38) H100 S0.60 V0.31 -- светлее на 20%.\n06 Синюха (маска 2% -- лес вдали в дымке не проходит порог S>0.2, цифры ненадёжны): (98,118,94) -> (94,115,93), без изменений.\nВывод: ближний/средний лес стал светлее и жёлтее, но не ярче-зелёнее (S не выросла, H сместился к жёлтому); субъективное решение остаётся за пользователем. Кадры не смотрел.",
+  "build_path": "/home/greg/deltaplan-scene-look/build/linux/deltaplan.x86_64",
+  "t": "2026-10-14T05:50:19",
+  "by": "coordinator"
+}

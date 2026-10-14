@@ -31,6 +31,7 @@ FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. Исследование исто
 | `scripts/terrain/terrarium_loader.gd` (`TerrariumLoader`) | тайлы Terrarium для высоты точки на карте выбора (`elevation_at`), кеш `user://terrain_cache` |
 | `scripts/terrain/map_picker.gd` + `raster_tile_loader.gd` (`MapPicker`, `RasterTileLoader`) | карта выбора точки: растровая топокарта (OpenTopoMap / OSM, кеш `user://map_cache`), высота точки из Terrarium z12, щелчок / ввод координат → `point_picked(lat, lon)`, `elevation_ready` |
 | `scripts/world/sky_environment.gd` (`SkyEnvironment`), `haze.gdshader`, `scenes/world/environment.tscn` | небо, солнце с мягкими тенями, голубая дымка, мутный слой под инверсией (VR-3), glow |
+| `scripts/terrain/scene_look.gdshaderinc`, `season_look.gd` (`SeasonLook`), `configs/world.json → scene_look` | модуль scene-look («картинка сочнее»): свет неба и земли, дальний лес, сезон, тропы, скалы, ветер по траве — см. [docs/guide/scene-look.md](scene-look.md) |
 | `scenes/terrain/terrain_preview.tscn`, `map_picker_preview.tscn` | отдельный запуск модуля |
 | `scripts/terrain/build/` (`DemStage`, `RiverStage`, `SurfaceStage`, `OsmStage`, `LocationBuilder`, `LocationCache`, `Locations`), `tools/terrain/build_location.gd` | сборка данных места (высоты, реки, карта поверхности, OSM) — одна для встроенных мест и точек; см. `docs/guide/location-data.md` |
 | `configs/locations/<id>.json` | локация: центр, слои DEM, LOD, старты, посадки, реки, карта поверхности, переопределения вида и пород деревьев |

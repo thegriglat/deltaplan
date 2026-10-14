@@ -1,0 +1,55 @@
+{
+  "id": "SL-7",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Просвет: парус и листва против солнца",
+  "goal": "Солнце за крылом — ткань светится, на просвет видны латы и швы; листва деревьев и трава светятся на просвет при низком солнце.",
+  "plan_ref": "SL-7 Просвет: парус и листва (п. 6)",
+  "contracts": [
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-7",
+  "branch": "scene-look/SL-7",
+  "base": "feature/scene-look",
+  "scope": [
+    "assets/shaders/sail/",
+    "scripts/flight/",
+    "scripts/terrain/tree_model.gdshader",
+    "scripts/terrain/grass.gdshader",
+    "configs/",
+    "tests/flight/",
+    "tests/vegetation/"
+  ],
+  "dont_touch": [
+    "scripts/terrain/forest_impostors.gdshader",
+    "scripts/terrain/terrain.gdshader",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "flight",
+      "tests": "flight"
+    },
+    {
+      "name": "vegetation",
+      "tests": "vegetation"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "gpu_ms_base",
+    "gpu_ms_after",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-13T22:21:39",
+  "edited": "2026-10-13T22:21:39"
+}
