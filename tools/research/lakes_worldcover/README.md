@@ -3,7 +3,7 @@ type: "research"
 status: "closed"
 module: "terrain"
 updated: "2026-10-10"
-summary: "Озёра: WorldCover 10 м против OSM на Аушкуле, Алтае, Онгудае, Аскарове — площади воды на каждом шаге сборки и в H, IoU, где WorldCover воду не видит."
+summary: "Озёра: WorldCover 10 м против OSM на 4 местах — IoU по крупным озёрам 0,86–0,97, вода не теряется на шагах сборки и в H"
 conclusion: "WorldCover видит озёра (IoU с OSM по крупным озёрам 0,86–0,97); вода не теряется ни в SurfaceStage, ни в снимке узлов, ни в H. Итог: docs/research/lakes_worldcover.md."
 ---
 

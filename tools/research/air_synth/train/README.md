@@ -1,9 +1,9 @@
 ---
 type: "reference"
-status: "active"
+status: "closed"
 module: "air-synth"
 updated: "2026-10-05"
-summary: "SY-11: обучение сети P2 (U-Net + FiLM, без изменений) на счёте решателя по местам дельтаплана (S7 v1): загрузчик S5 v4, ускоренный цикл, оценка, ONNX"
+summary: "SY-11: обучение сети P2 (U-Net+FiLM) на счёте решателя по местам дельтаплана; сеть заменена фазовой сборкой"
 related: ["docs/contracts/air-synth.md", "docs/plan/air-synth.md", "tools/research/air_nn_pilot/README.md", "tools/research/air_synth/solver/README.md"]
 ---
 # SY-11: обучение P2 на местах дельтаплана (S7 v1)

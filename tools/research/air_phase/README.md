@@ -3,7 +3,7 @@ type: "reference"
 status: "active"
 module: "air-model"
 updated: "2026-10-06"
-summary: "air-phase: код и команды воспроизведения эмпирической фазовой карты по полям решателя SY-12 (признаки на случай, таблицы, рисунки) и схемы фазовой диаграммы"
+summary: "Код воспроизведения эмпирической фазовой карты по полям решателя SY-12: признаки на случай, таблицы, схема диаграммы"
 related: ["docs/research/air_phase.md", "docs/research/air_phase_experts.md", "docs/research/air_phase_refs.md"]
 ---
 # air-phase: воспроизведение

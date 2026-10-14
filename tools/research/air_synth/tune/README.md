@@ -1,6 +1,6 @@
 ---
 type: "reference"
-status: "active"
+status: "closed"
 module: "air-synth"
 updated: "2026-10-04"
 summary: "Код и команды воспроизведения настройки параметров генератора рельефа схемой Professor (SY-5): эталон, прогоны, подгонка, облако θ"

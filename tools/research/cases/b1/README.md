@@ -3,7 +3,7 @@ type: "research"
 status: "closed"
 module: ""
 updated: "2026-10-03"
-summary: "Б1 — совместная калибровка Askervein + Perdigão (волна Б, контракт C10 v2) — Этап 1 (постановка и сопоставимость) и этап 2 (пачка, совместная подгонка, проверка у лучшей точки, регрессия А2) сделаны; записка — docs/archive/plan/air-model-b1.md."
+summary: "Б1: совместная калибровка Askervein + Perdigão (C10 v2): 765 прогонов, подгонка, проверка у лучшей точки, регрессия А2"
 related: []
 conclusion: ""
 data: "tools/research/cases/b1/"

@@ -1,6 +1,6 @@
 ---
 type: "reference"
-status: "active"
+status: "closed"
 module: "air-synth"
 updated: "2026-10-05"
 summary: "SY-8: счёт решателя P2 по рельефам × условиям p2c12 (S5 v2) — скрипты, команды, пробный прогон и оценка"
