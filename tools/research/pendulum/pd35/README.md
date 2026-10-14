@@ -3,7 +3,7 @@ type: "research"
 status: "active"
 module: "pendulum"
 updated: "2026-10-11"
-summary: "PD-35: посадка маятника — ход рук у земли по досягаемости, касание «встал на ноги / пробежал / жёстко», C_N 90° полос × cos²Λ, центр давления в обратном потоке; скрипты пачек и замеров."
+summary: "PD-35: посадка маятника — ход рук по досягаемости, касание «встал на ноги / пробежал / жёстко», C_N 90° × cos²Λ; скрипты пачек"
 related: ["docs/research/pendulum.md", "tools/research/pendulum/README.md"]
 conclusion: "Правильная посадка в штиль жёсткая (гор. 5,9–7,2 м/с > 5), во встречный 3 м/с мягкая (3–4 шага); C_N 90° крыла 1,54–1,62 → 1,21–1,26; полёт как в 1.5.5, болтанка sport 0/66, --dive-all 0/48; точный угол полосы выключен (плоский штопор учебного)."
 data: "tools/research/pendulum/out/pd19_pd35*.jsonl"
@@ -11,7 +11,7 @@ applied_in: "docs/research/pendulum.md"
 ---
 # PD-35: посадка «Маятника»
 
-Разбор — `docs/research/pendulum.md` → «Посадка (PD-35)».
+Разбор — `docs/research/pendulum/landing-pd33-35.md` → «Посадка (PD-35)».
 
 | Файл | Что |
 |---|---|
