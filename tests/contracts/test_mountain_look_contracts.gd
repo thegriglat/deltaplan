@@ -42,7 +42,7 @@ func _k2_surface(cls: int) -> SurfaceLayer:
 
 
 func test_k2_relief_keys_are_uniforms() -> void:
-	var src := FileAccess.get_file_as_string("res://scripts/terrain/terrain.gdshader")
+	var src := FileAccess.get_file_as_string("res://scripts/terrain/terrain_main.gdshaderinc")  # тело шейдера рельефа (SL-К6)
 	for key: String in _k2_look():
 		if not key.begins_with("relief_") or key.ends_with("_doc"):
 			continue

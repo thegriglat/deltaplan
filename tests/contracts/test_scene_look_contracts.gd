@@ -306,7 +306,7 @@ func test_k2_snow_shader_mirror() -> void:
 	check(inc.contains("float sl_snow_fresh(float doy, float lat, float alt)"), "К2 v2: float sl_snow_fresh(doy, lat, alt)")
 	check(inc.contains("uniform vec4 sl_snow_pre"), "К2 v2: sl_snow_pre (линия считается на CPU)")
 	check(inc.contains("vec4 sl_season(float doy, float lat, float alt)"), "К2 v2: sl_season не меняется")
-	var tg := _read("res://scripts/terrain/terrain.gdshader")
+	var tg := _read(TERRAIN_MAIN)
 	check(tg.contains("sl_fresh_snow(") and tg.contains("// SL"), "К2 v2: вызов свежего снега в рельефе — строкой // SL")
 
 
@@ -377,10 +377,19 @@ func test_k4_cpu_mirror_range() -> void:
 
 func test_k6_full_is_header_and_include() -> void:
 	# «full» — только shader_type/render_mode и include тела (без #define): тот же код, что до распила
-	var t := _read(TERRAIN)
+	var t := _code(_read(TERRAIN))
 	check(not t.contains("#define"), "К6: в terrain.gdshader нет #define")
 	check(t.contains('#include "%s"' % TERRAIN_MAIN), "К6: terrain.gdshader подключает terrain_main")
-	check(not _read(TERRAIN_MAIN).contains("shader_type"), "К6: shader_type — в файле варианта, не в теле")
+	check(not _code(_read(TERRAIN_MAIN)).contains("shader_type"), "К6: shader_type — в файле варианта, не в теле")
+
+
+## Текст шейдера без строк-комментариев.
+static func _code(t: String) -> String:
+	var out: PackedStringArray = []
+	for ln in t.split("\n"):
+		if not ln.strip_edges().begins_with("//"):
+			out.append(ln)
+	return "\n".join(out)
 
 
 func test_k6_variant_files_format() -> void:

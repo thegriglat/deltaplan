@@ -174,43 +174,42 @@ func test_variants_compile_and_draw() -> void:
 			check(ok, "К6: %s рисует кусок рельефа (альфа %.2f)" % [names[i0 + k], c.a])
 		vp.queue_free()
 		i0 += batch
-	# смена шейдера материала не теряет параметры
+	# смена шейдера материала не теряет параметры: тот же кусок до смены и после full → min → full
 	var full := load(FULL) as Shader
 	var mn := load(VARIANTS_DIR + "/terrain_min.gdshader") as Shader
 	var vp2 := SubViewport.new()
-	vp2.size = Vector2i(160, 80)
+	vp2.size = Vector2i(80, 80)
 	vp2.own_world_3d = true
 	vp2.transparent_bg = true
 	vp2.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(vp2)
 	var cam2 := Camera3D.new()
 	cam2.projection = Camera3D.PROJECTION_ORTHOGONAL
-	cam2.size = 20.0
-	cam2.position = Vector3(5.0, 50.0, 0.0)
+	cam2.size = 6.0
+	cam2.position = Vector3(0.0, 50.0, 0.0)
 	cam2.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
 	vp2.add_child(cam2)
 	var sun2 := DirectionalLight3D.new()
 	sun2.rotation_degrees = Vector3(-50.0, 30.0, 0.0)
 	vp2.add_child(sun2)
-	var fresh := _material(full, params)
 	var swapped := _material(full, params)
-	_patch(vp2, fresh, 0.0)
-	_patch(vp2, swapped, 10.0)
-	for f in 4:
+	_patch(vp2, swapped, 0.0)
+	var px := Vector2i(cam2.unproject_position(Vector3.ZERO))
+	for f in 8:
 		await get_tree().process_frame
+	var a := vp2.get_texture().get_image().get_pixelv(px)
 	swapped.shader = mn
-	for f in 4:
+	for f in 8:
 		await get_tree().process_frame
+	var m := vp2.get_texture().get_image().get_pixelv(px)
 	swapped.shader = full
 	for f in 8:
 		await get_tree().process_frame
-	var img2 := vp2.get_texture().get_image()
-	var a := img2.get_pixelv(Vector2i(cam2.unproject_position(Vector3(0.0, 0.0, 0.0))))
-	var b := img2.get_pixelv(Vector2i(cam2.unproject_position(Vector3(10.0, 0.0, 0.0))))
-	check(a.a > 0.5 and b.a > 0.5, "К6: оба куска нарисованы")
+	var b := vp2.get_texture().get_image().get_pixelv(px)
+	check(a.a > 0.5 and m.a > 0.5 and b.a > 0.5, "К6: кусок нарисован full, min и снова full")
 	check(
 		absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b) < 0.02,
-		"К6: full → min → full: параметры сохранились (%s vs %s)" % [a, b]
+		"К6: full → min → full: параметры сохранились (%s vs %s; min %s)" % [a, b, m]
 	)
 	vp2.queue_free()
 	OS.remove_logger(logger)

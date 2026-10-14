@@ -230,5 +230,5 @@ func test_city_mask_and_shader_gate() -> void:
 	check(img.get_pixel(ix, iz).r > 0.9, "центр города в маске: %.2f" % img.get_pixel(ix, iz).r)
 	check(img.get_pixel(0, 0).r < 0.05, "край вне города 0")
 	# вне города (и без CityTrees) рельеф рисует кроны как раньше: шейдер выключен по умолчанию
-	var src := FileAccess.get_file_as_string("res://scripts/terrain/terrain.gdshader")
+	var src := FileAccess.get_file_as_string("res://scripts/terrain/terrain_main.gdshaderinc")  # тело шейдера рельефа (SL-К6)
 	check(src.contains("uniform bool use_city_canopy = false;"), "гашение крон по умолчанию выключено")
