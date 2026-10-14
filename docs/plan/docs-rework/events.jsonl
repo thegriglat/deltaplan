@@ -50,3 +50,4 @@
 {"t": "2026-10-15T02:01:17", "by": "executor", "task": "DR-10", "ev": "accepted", "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:01:21", "by": "coordinator", "task": "DR-10", "ev": "accepted", "commits": ["5e202e36"], "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:01:22", "by": "coordinator", "task": "DR-10", "ev": "merged"}
+{"t": "2026-10-15T02:01:30", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: report падает UnicodeEncodeError на строке, обрезанной посреди кириллического символа; docs check не проверяет якоря после разбиения — нужна команда «входящие ссылки на файл»; status скрывает accepted-задачи (для скриптов — log)"}
