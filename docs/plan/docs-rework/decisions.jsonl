@@ -1,0 +1,1 @@
+{"t": "2026-10-15T02:11:27", "by": "coordinator", "text": "DR-5: ссылки сайта на перенесённые планы чинит сам DR-5 (scope + site/content, docs/research/itch_multiplayer.md), чтобы hugo проходил", "why": "приёмка hugo и перенос — одно действие; иначе ветка модуля с битым сайтом", "kind": "decision"}

@@ -46,10 +46,10 @@ The boundaries between regimes were measured on ideal terrain (about 8000 comput
 ## How the field is assembled
 
 1. The **classifier** computes phase weights for each cell — from terrain, wind, stability (temperature profile and inversion), mixing-layer height and the cell's heating (sun by slope and azimuth). This is a parallel computation on the graphics card; the weights are smoothed to avoid a "checkerboard".
-2. The **mechanisms** D, F, G, H are computed in cells where they are the main one; A, B, C get an inflow profile with a mechanism correction. From them the **initial approximation** is assembled.
-3. **Picard on the GPU** starts not from zero but from this assembly (a "warm start"), and a per-cell **under-relaxation ω** is set by the phase map: in clean flow over terrain a full step, near regime boundaries more careful, so as not to rock the iteration. If there is no convergence by a set number of iterations, ω is reduced across the whole field. Columns handed to mechanisms (calm, convection, drainage, strong blocking) are not recomputed by Picard — their field stays as it is, and the residual is counted over the rest.
+2. The **mechanisms** D, F, G, H are computed in cells where they are the main one; A, B, C get an inflow profile with a mechanism correction. From them the mechanism field is assembled; it is needed for the columns that Picard does not recompute (next item) and for the fallback.
+3. **Picard on the GPU.** At place load it starts from a coarse Picard (cell ×3 = 1200 m, a 32 × 32 grid, `air_model.picard_start = coarse`), whose solution is interpolated to 400 m; in flight and on the second load pass it starts from the previous field. Columns handed to mechanisms (calm, strong blocking, convection, drainage) are not recomputed by Picard — their field stays the mechanism field, and the residual is counted over the rest. The under-relaxation ω is 1 everywhere in the game: the per-phase ω map is computed but not used (with it the total iteration count is higher, 1560 against 1140, while the field is the same). ω drops to 0.5 only by the fallback rule: if there is no convergence in 300 iterations.
 4. **Stitching by projection.** A mixture of velocities by weights breaks continuity at zone boundaries. One projection step (a multigrid pressure solver with a terrain mask) removes the divergence and keeps the rotational part of the mixture.
-5. **Fallback on convergence.** If Picard still did not converge, in cells with a calm or blocking weight the mechanism field is taken, in the rest the late mean of the iterations; then projection. If the computation failed altogether — at load the formulas of the [Heuristic mode](/mechanics/air-model/heuristic/) are used, in flight the previous field stays.
+5. **Fallback on convergence.** If Picard still did not converge (iteration limit), in cells where the calm or blocking weight is above a threshold the mechanism field is taken, in the rest the late mean of the iterations; then projection. If the computation failed altogether — at load the formulas of the [Heuristic mode](/mechanics/air-model/heuristic/) are used, in flight the previous field stays.
 
 Recomputation is every 15 game minutes and when the wind or weather changes: in the morning phases G and D turn into E/F, in the evening back, and the morning break of the inversion simply raises the mixing layer. The new field is blended in smoothly over 60 seconds.
 
@@ -67,11 +67,12 @@ Recomputation is every 15 game minutes and when the wind or weather changes: in 
 - **One Picard for the whole field** — was there before; non-convergence in weak wind and needless computation in convection.
 - **A neural network instead of computation** — it is no longer in the game: in calm and in convection the training reference is noisy, and in the wave band the target is two-valued; physics with an understandable mechanism per regime suits better.
 - **Assembly by phases + Picard (chosen):** every cell is explainable ("here a bypass under the inversion", "here separation"), and ready blocks are used (the classifier is trivial, the pressure solver and Picard already existed).
+- **What to start Picard from.** Compared (total iterations of the pair of solutions over 6 cases: Ongudai, Askarovo, Aushkul at 3 and 6 m/s): from the background 1140, from the phase assembly 1090, from a coarse Picard at 800 m 850, at 1200 m 793. The 1200 m coarse start was taken; in GPU time the gain is smaller (4.34 → 3.75 s) because a fine grid loads the card worse.
+- **The phase ω map.** It is computed (ω ≈ 0.5 near regime boundaries), but the iteration total with it is higher (1560 against 1140), so the game uses ω = 1.
 
 ## More
 
 - [Phase diagram research](/docs/research/air_phase.md) — phases, order parameters, thresholds from the literature.
 - [Measurements on ideal terrain](/docs/research/air_phase_results.md) — what is sharp, what is smooth, hysteresis, transfer to eroded terrain.
 - [Experts and assembly by phases](/docs/research/air_phase_experts.md) (§15) — mechanisms and stitching.
-- [air-phase plan](/docs/plan/air-phase.md).
 - [The air model in the game](/docs/guide/air-model.md), [overview page](/mechanics/air-model/).

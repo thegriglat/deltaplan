@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "У всех README/summary в tools/research, docs/perf, REQUIREMENTS.md, TODO.md frontmatter и summary ≤140; 7 файлов без frontmatter дописаны. air_nn_pilot/README (76 КБ) и perf/frame_profile (46 КБ) разбиты на входы и части; текст сохранён.",
+  "commits": [
+    "0c648cbf Документация исследований и perf: frontmatter, summary, разбиение больших"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "0 ошибок",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "only_md",
+      "value": "только .md",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Статус по коду main менял выборочно: a1, a1/review, air3d, as2 -> active (Pr_t 0,85 и θ'_d в air_picard); air_nn_pilot и air_synth -> closed (сеть заменена фазовой сборкой). Остальные статусы оставлены как были, поштучно по коду не проверялись."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept DR-15",
+  "uncertain": [
+    {
+      "where": "tools/research/air_nn_pilot/README.md",
+      "why": "AP-21 как причина удаления сети взят из задания и findings, в git-логе не проверял",
+      "checked": "docs/registry/findings.md, раздел air-nn"
+    },
+    {
+      "where": "REQUIREMENTS.md",
+      "why": "убрал упоминания папы и родителей по правилу публичных текстов (строки 13, 27, 88, 218); остальной текст не сверял с кодом",
+      "checked": "grep"
+    }
+  ],
+  "dp_feedback": "docs check не проверяет статус research по коду; nested md (p3e8.md, p3e6.md и т.п.) проверяются иначе, чем README/summary; docs init не умеет дописывать frontmatter в существующий файл с готовой заготовкой summary.",
+  "t": "2026-10-15T02:08:31",
+  "by": "executor"
+}

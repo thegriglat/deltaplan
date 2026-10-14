@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "У 11 исследований: summary ≤140, статусы по коду main (все active: вывод применён, пути проверены), area/conclusion/data/applied_in. zheglov-1983.md (42 КБ) разбит: вход 9 КБ и 6 частей в docs/research/zheglov-1983/ (текст перенесён без сокращений). Устаревшие места помечены (Cnβ 0,06 → 0,05 в pendulum-yaw-literature и в сравнении Жеглова, recal выполнен, control-bar принят).",
+  "commits": [
+    "01d1604b DR-11: исследования крыла и пилота — frontmatter, статусы по коду main, zheglov-1983 разбит на части"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "17 файлов, 0 ошибок, 0 предупреждений",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0, части zheglov-1983 собираются",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept DR-11 --dry",
+  "uncertain": [
+    {
+      "where": "docs/research/competition_rules.md",
+      "why": "active: scripts/tasks и тесты есть, но architecture.md пишет, что в Game.tick() задания не подключены; в статусе только код/тесты/приборы",
+      "checked": "TaskTracker используется в scripts/instruments/*, scripts/tasks/*"
+    },
+    {
+      "where": "docs/research/experimental_data.md",
+      "why": "module=air-model, area=air вместо прежнего flight (документ про модель воздуха)",
+      "checked": "plan air-model существует"
+    },
+    {
+      "where": "docs/research/zheglov-1983/model-comparison.md",
+      "why": "в примечании связал пункты 6, 9, 10 с PD-22/PD-28/FB-3 по упоминаниям Жеглова в тестах и конфигах, полной сверки пунктов с кодом не делал",
+      "checked": "grep по Жеглов/zheglov в scripts, tests, configs"
+    }
+  ],
+  "dp_feedback": "Нет команды переписать frontmatter с сохранением тела (делал скриптом); docs check не проверяет существование путей в applied_in. Входящих ссылок на якоря zheglov-1983 не было, команды поиска ссылок на файл нет (использовал git grep).",
+  "t": "2026-10-15T02:03:08",
+  "by": "executor"
+}

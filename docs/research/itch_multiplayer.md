@@ -2,9 +2,10 @@
 type: "research"
 status: "closed"
 module: "net"
-updated: "2026-10-03"
-summary: "Сетевая игра «через itch.io»: что даёт itch и какие есть альтернативы — Дата: 01.10.2026. Контекст: семья и друзья (2–10 человек), голос внешний, свой сервер на Go уже есть (server/, docs/guide/net-protocol.md, docs/plan/multiplayer.md)."
-related: []
+area: "net"
+updated: "2026-10-15"
+summary: "У itch.io нет сетевого функционала; без VPS — сервер на ПК пилота поверх Tailscale/ZeroTier; решение 01.10.2026: отложено."
+related: ["docs/guide/net-protocol.md", "docs/plan/multiplayer.md"]
 conclusion: "У itch нет сетевого функционала; вариант без VPS — сервер на ПК пилота поверх Tailscale/ZeroTier; решение пользователя 01.10.2026: отложено."
 data: ""
 applied_in: "не применено (отложено)"

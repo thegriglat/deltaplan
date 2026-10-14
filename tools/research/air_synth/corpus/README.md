@@ -1,6 +1,6 @@
 ---
 type: "reference"
-status: "active"
+status: "closed"
 module: "air-synth"
 updated: "2026-10-04"
 summary: "Корпус air-synth: чтение/запись S1/S2 (corpus_io.py), запуск корпуса (run_corpus.py), тесты, замер времени"

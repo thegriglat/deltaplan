@@ -26,6 +26,10 @@ This works through UDP broadcast: while a game with a built-in server has a zone
 
 ![Zone created — code](/releases/0.8.0/screenshots/02_сетевая_игра_зона_код.jpg "Zone created: the code for friends")
 
+### Via Steam
+
+In the Steam build the zone host (the game's built-in server) creates a friends-only lobby of up to 16 members; friends join by an overlay invitation, by "Join" in the friends list, or from the "Friends in game" list on the Multiplayer screen. The protocol frames are the same, but they travel over Steam Networking Messages instead of WebSocket; pilots via Steam, via the local network and via WebSocket can be in one zone. As with "Nearby", the creator leaving closes the zone. Details and what is unverified — [docs/guide/steam.md](/docs/guide/steam.md).
+
 ### Your own Go server
 
 For play over the internet (pilots on different networks) a separate server is needed — the [server/](/server/README.md) folder in the repository, written in Go, deployed with a single command in Docker:
@@ -47,7 +51,7 @@ The leader is the live pilot with the lowest join order in the zone; the server 
 
 The `=` key opens a quick semi-transparent menu over the flight: a list of the zone's pilots other than yourself, live ones first, then bots; the nearest live pilot in the air is selected by default. Arrows choose, `Enter` — the wing flies by itself to the chosen pilot and hands control back next to them; `Esc` or `=` again closes the menu with no action.
 
-The transfer is not a teleport but kinematic motion over the terrain (flight physics is switched off for that time, no collisions and no stall): usually ~10 s — smooth acceleration, a fast middle, smooth braking (smootherstep profile — acceleration at the start and end is zero, no jerk); the arrival altitude is the target's altitude, with the same smooth profile, even if that is a kilometre of climb. Within 60 m behind and to the side of the target, speed and heading are brought to the target's within 2–3 s, and control returns to the pilot. Others see the transfer as ordinary motion — "Catch up" has no separate network messages, it is all on the client.
+The transfer is not a teleport but kinematic motion over the terrain (flight physics is switched off for that time, no collisions and no stall): 10 s for any distance (`configs/net.json → catch_up.t_target_s`) until the speed relative to the target hits the 1000 km/h ceiling (`v_max_kmh`, the world-streaming limit), after which the time grows; clearance over the terrain ahead is 50 m. The speed profile is — smooth acceleration, a fast middle, smooth braking (smootherstep profile — acceleration at the start and end is zero, no jerk); the arrival altitude is the target's altitude, with the same smooth profile, even if that is a kilometre of climb. Within 60 m behind and to the side of the target, speed and heading are brought to the target's within 2–3 s, and control returns to the pilot. Others see the transfer as ordinary motion — "Catch up" has no separate network messages, it is all on the client.
 
 You can catch up from anywhere on the ground — from the launch, from the queue, from the landing spot or after a crash (the pilot then leaves the start queue). If you enter a zone and the leader is already in the air, the transfer to them starts automatically. After landing or a crash, the flight summary window has a "Continue nearby" button (focused by default): it is the quick path into "Catch up" to the nearest friend in the air.
 
@@ -63,7 +67,7 @@ The number of bots in a zone comes from the creator's settings ("Other pilots in
 
 ## World determinism
 
-The atmosphere is not transmitted over the network at all. Thermals, clouds and wind are a pure function of place, date, time of day, weather and seed: knowing these parameters, each client builds the same world on its own, including a "jump" straight to the zone's current time (it is not necessary to compute everything from scratch). Only the zone parameters, the zone clock, the start queue and the pilots' states go over the network — not a single cloud or thermal in the traffic.
+The atmosphere is not transmitted over the network. Each client builds thermals, clouds and wind itself from place, date, time of day, weather and seed, including a "jump" straight to the zone's current time (no need to compute everything from scratch). One exception — thermal sources from the wind field: the field computed on the GPU differs slightly between clients (noise of about 1e-3 of the wind speed), and without agreement some source columns would diverge (measured: 51 of 229 columns of a 100 m window). So the leader picks the sources on its own field and sends the grid signature and the column bits in `ZoneState.thermalSources` (a 96 × 96 grid is about 1.5 KB in base64); each client computes the strength, ceiling and drift of a thermal from its own field. A client with a different grid or no field picks sources itself; a new leader switches to its own choice. The rest of the traffic is zone parameters, the clock, the start queue and pilot states; no clouds or thermals themselves.
 
 To check that the worlds have not diverged (different generator versions, different rounding), the zone creator puts a "world key" into its parameters — all the world parameters in one string in URL form, for example:
 
@@ -77,11 +81,11 @@ and the first 16 hex characters of its SHA-256 (`worldHash`). The joining client
 
 The message contract is the single source of truth: [server/proto/deltaplan/v1/net.proto](/server/proto/deltaplan/v1/net.proto) (Protocol Buffers), a human-readable description with examples of each message — [docs/guide/net-protocol.md](/docs/guide/net-protocol.md); if the text and the `.proto` disagree, the `.proto` is right. The server's Go code is generated from it — generated code is not edited by hand.
 
-**Transport** — one WebSocket per client (`ws://IP:port/v1/ws`), in Godot the built-in `WebSocketPeer`, with no third-party add-ons. Each text frame is exactly one `Envelope` message (with a `oneof` — `hello`, `pilotState`, `zoneState` and so on). **Encoding** — proto3 JSON (Go — `protojson`, Godot — the built-in `JSON`): readable by eye when debugging traffic, while the contract is still the same `.proto`; binary protobuf (the GDScript generator `godobuf`) is planned for later, without changing the contract.
+**Transport** — one WebSocket per client (`ws://IP:port/v1/ws`), in Godot the built-in `WebSocketPeer`, with no third-party add-ons. Each text frame is exactly one `Envelope` message (with a `oneof` — `hello`, `pilotState`, `zoneState` and so on). **Encoding** — proto3 JSON (Go — `protojson`, Godot — the built-in `JSON`): readable by eye when debugging traffic, while the contract is still the same `.proto`; binary protobuf is not used (see "What was considered").
 
 **Why not gRPC.** Godot has no gRPC (HTTP/2) — neither in the engine nor as a ready, maintained add-on; building a GDExtension with C++ grpc for each platform (Windows/Linux/macOS) is heavy and fragile for a project of this size. A bidirectional stream is provided by plain WebSocket, which Godot has out of the box.
 
-Main messages: `Hello`/`Welcome` (handshake and game version), `CreateZone`/`ZoneCreated`, `JoinZone`/`ZoneJoined`, `PeerJoined`/`PeerLeft`/`LeaderChanged`, `Ping`/`Pong` (every 2 s — latency and server clock), and the messages forwarded within a zone: `PilotState` (10 Hz per pilot/bot — position, orientation, velocity, phase, wing, livery) and `ZoneState` (1 Hz, only from the leader — clock and queue). Traffic savings: numbers are rounded (position to 0.01 m, speed to 0.01 m/s), name/wing/livery are sent once a second, not in every packet — the result is about 1.9 KB/s for sending one's own state for an ordinary client.
+Main messages: `Hello`/`Welcome` (handshake and game version), `CreateZone`/`ZoneCreated`, `JoinZone`/`ZoneJoined`, `PeerJoined`/`PeerLeft`/`LeaderChanged`, `Ping`/`Pong` (every 2 s — latency and server clock), and the messages forwarded within a zone: `PilotState` (10 Hz per pilot/bot — position, orientation, velocity, phase, wing, livery) and `ZoneState` (1 Hz, only from the leader — clock, queue and thermal sources). Traffic savings: numbers are rounded (position to 0.01 m, speed to 0.01 m/s), name/wing/livery are sent once a second, not in every packet — the result is about 1.9 KB/s for sending one's own state for an ordinary client.
 
 Below is a simplified diagram of entering a zone (without the `PilotState`/`ZoneState` stream, details in [docs/guide/net-protocol.md](/docs/guide/net-protocol.md)):
 
@@ -118,18 +122,18 @@ sequenceDiagram
 
 ## What was considered and rejected
 
-From [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) — the multiplayer plan, written before implementation:
+Choices made when designing multiplayer:
 
 - **Accounts, authorization, lobbies, server scaling** — rejected right away: multiplayer has about ten users (family and friends), not a public audience; this needs neither a separate registration service nor load balancing.
 - **A Telegram bot and similar services** for exchanging zone codes — rejected: pilots already dictate the zone code to each other by voice or in an ordinary messenger, a separate bot is an extra part that has to be maintained.
 - **gRPC instead of WebSocket** — rejected because of the lack of working support in Godot (see above).
-- **WebRTC mesh** (P2P between clients, the server only for establishing the connection) instead of a relay through the server — left "for later": the protocol is deliberately not tied to the transport, so such a replacement can be made later without changing the game logic.
-- **Binary protobuf on the wire** instead of proto3 JSON — also "for later": first it matters more that the traffic is easy to read when debugging; the traffic saving of a binary format will be needed if bandwidth starts to run short.
+- **WebRTC mesh** (P2P between clients, the server only for establishing the connection) instead of a relay through the server — not done: a relay is simpler and enough for 16 pilots; the protocol is not tied to the transport (WebSocket, the built-in server and Steam Networking Messages carry the same frames), so a replacement is possible without changing the game logic.
+- **Binary protobuf on the wire** instead of proto3 JSON — not done: it matters more that the traffic is readable by eye when debugging; ~1.9 KB/s for sending fits the budget.
 
 ## Model limits
 
 - **There is no in-game chat** — by design: voice communication goes through external programs (for example, an ordinary voice chat in a messenger), the game does not try to replace it with its own channel.
-- The atmosphere is not synchronized over the network at all — if two clients' world generator versions have diverged (which is what `worldHash` checks), their thermals and clouds will differ, although the game keeps running without stopping, only with a warning in the log.
+- The atmosphere is not transmitted over the network — if two clients' world generator versions have diverged (which is what `worldHash` checks), their thermals and clouds will differ, although the game keeps running, only with a warning in the log. Even with one version the wind field differs slightly between GPUs: thermal sources match (the leader picks them), while strength and drift are within the field noise.
 - Network latency is smoothed by interpolation and limited extrapolation at the receiver of other pilots' `PilotState`, but this is an estimate of position, not an exact copy — with large latency or packet loss another pilot may for a short time move not quite as they really do.
 - The built-in server (for "Nearby" on the local network) does not survive the creator leaving — there is no leader change there, the zone closes immediately.
 - There are no collisions between live pilots in the game — multiplayer, like single-player, does not compute the physics of wings colliding with each other.
@@ -137,7 +141,7 @@ From [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) — the multiplayer p
 ## Details
 
 - [docs/guide/game.md](/docs/guide/game.md) — the overall design of the game.
-- [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) — the multiplayer plan and architecture (roles, the NET-xx task roadmap, risks, what is "for later").
+- [docs/guide/steam.md](/docs/guide/steam.md) — multiplayer via Steam (lobby, transport).
 - [docs/guide/net-protocol.md](/docs/guide/net-protocol.md) — the full protocol: all messages, error codes, JSON examples, scenario diagrams.
 - [server/README.md](/server/README.md) — how to bring up the Go server (locally and on a VPS via Docker).
 - [server/proto/deltaplan/v1/net.proto](/server/proto/deltaplan/v1/net.proto) — the source message contract.
@@ -145,4 +149,4 @@ From [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) — the multiplayer p
 - [scripts/net/lan_discovery.gd](/scripts/net/lan_discovery.gd) — search for "Nearby" zones on the local network.
 - [scripts/game/net_queue.gd](/scripts/game/net_queue.gd) — the start queue over the network.
 - [scripts/ui/catch_up_menu.gd](/scripts/ui/catch_up_menu.gd) — the "Catch up" menu.
-- [CHANGELOG.md](/CHANGELOG.md) — the "build 0.8.0" section.
+- [CHANGELOG.md](/CHANGELOG.md) — the "build 0.8.0" (network) and "build 1.2.0" (Steam) sections.

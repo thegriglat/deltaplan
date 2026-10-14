@@ -3,7 +3,7 @@ type: "research"
 status: "closed"
 module: ""
 updated: "2026-09-29"
-summary: "Askervein Hill — данные измерений — Поле измерений на холме Askervein (о. Южный Уист, Шотландия), сентябрь–октябрь 1982–1983: классический эталон обтекания изолированного пологого холма (H ≈ 116 м над окружающей местностью, нейтральная атмосфера, ветер ~210°)."
+summary: "Данные Askervein Hill (Zenodo 4095052, CC BY 4.0): мачты, профиль притока, рельеф; FSR на вершине на 10 м ≈ 0,8"
 related: []
 conclusion: ""
 data: "tools/research/data/askervein/"

@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "air_phase.md (62 КБ) и air_field_cache.md (54 КБ) разбиты на входы 12 и 10 КБ и по 4 части в docs/research/<имя>/; у всех семи документов summary ≤140 и статусы по коду main. Сквозная нумерация § сохранена, таблица § → часть во входе.",
+  "commits": [
+    "c5ba9a87 Исследования фазовой сборки ветра и кэша поля: разбиение, summary, статусы"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0, ошибок 0, предупреждений 0",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0; части собираются как /research/docs/air_phase/*",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ссылки «air_phase.md §N» в docs/plan, docs/contracts, tools/research, registry не менял (вне скоупа/не трогать): они находят часть по таблице § во входе air_phase.md. Якорей #раздел ни у кого нет."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept DR-12",
+  "uncertain": [
+    {
+      "where": "docs/research/air_physics_primer.md (status)",
+      "why": "поставил closed: справочник по физике не устарел, но §8.3 и §9 (решатель AM-01, сеть) написаны до сборки по фазам; добавил пометку в тело и правку в site/content/research/_index.*",
+      "checked": "docs/guide/air-model.md: в игре фазы + Пикар, сети нет"
+    },
+    {
+      "where": "docs/research/air_phase_results_tables.md, air_phase_refs.md (status active)",
+      "why": "приложение и литература active по связи с применёнными air_phase и results, не сами по себе",
+      "checked": "configs/atmosphere.json → air_phase, lee; scripts/atmosphere/air_model/air_phase*.gd"
+    },
+    {
+      "where": "docs/research/air_field_cache.md (status closed)",
+      "why": "кеша на диске в main нет (нет save_file, TODO T-04); время расчёта в тексте — до air-phase, пометил в 'Статус по коду main'",
+      "checked": "git grep save_file/air_cache в scripts; docs/guide/air-model.md"
+    }
+  ],
+  "dp_feedback": "Общий scratchpad: чужой r.json перезаписал мой — имена отчётов лучше брать с ID задачи (подсказка в report --template). docs check: «КБ» на деле КиБ. Не хватает проверки якорей #раздел и того, что часть разбитого документа ссылается на вход.",
+  "extra": {
+    "новых_файлов": 8,
+    "site": "в site/content/research/_index.{ru,en}.md добавлена строка про фазы ветра, поправлена фраза о статусах"
+  },
+  "t": "2026-10-15T02:04:25",
+  "by": "executor"
+}

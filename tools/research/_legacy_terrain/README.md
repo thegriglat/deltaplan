@@ -3,7 +3,7 @@ type: "reference"
 status: "closed"
 module: "osm-any"
 updated: "2026-10-09"
-summary: "Замороженная копия Python-сборки данных мест (fetch_dem, fetch_landcover, cog, rivers, fetch_osm) — только для воспроизводимости исследований perdigao, osm_pack, hg_sites."
+summary: "Замороженная Python-сборка данных мест (fetch_dem, landcover, rivers, osm) — только для воспроизведения perdigao, osm_pack, hg_sites"
 related: []
 conclusion: ""
 data: "tools/research/_legacy_terrain/"

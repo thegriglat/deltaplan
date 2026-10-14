@@ -1,9 +1,9 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: ""
 updated: "2026-10-03"
-summary: "А1.3 — ревью структурных правок решателя воздуха (А1.2) — Воспроизведение (из этого каталога; venv с CuPy — tools/research/morris/README.md): bash PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python /home/greg/deltaplan/tools/dp job start a1rev 3600 sh run_all.sh # …"
+summary: "А1.3: ревью правок А1.2 — числа проб совпали, χ² Askervein 68,06/44, диагноз несходимости эталона 200 м, цена итерации"
 related: []
 conclusion: ""
 data: "tools/research/a1/review/"

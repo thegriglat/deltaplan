@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "Пять исследований разбиты по D4: входы 6-16 КБ (оглавление частей, «Состояние по коду main», исходное «Коротко»), 29 частей со своим frontmatter; текст частей дословно из оригинала (проверено построчно), добавлены только входы и заголовки частей. Статусы: air-model-tune и surface_params и air-model-sensitivity active, calibration_data и slope_wind closed; устаревшие части (AM-09 результат, перекалибровка RS) superseded.",
+  "commits": [
+    "2d27fd0a docs: исследования калибровки воздуха, склонового ветра и поверхности разбиты на вход и части (D4)"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0, 34 файла, 0 ошибок/предупреждений",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "размеры входов, КБ",
+      "value": "tune 9,1; sensitivity 9,4; calibration_data 15,6; slope_wind 6,3; surface_params 8,6",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ссылки вида «slope_wind.md §9», «surface_params.md §9.1», «calibration_data.md §2.2» в коде, конфигах, docs/archive и чужих docs не правились (вне скоупа); вход содержит таблицу «§ -> часть»",
+    "В scripts/atmosphere/air_model/air_place.gd ссылка на surface_params.md §5.4, такого раздела нет (смесь z0 описана в §5 п. 4); комментарий не правился"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept DR-13 --dry",
+  "uncertain": [
+    {
+      "where": "docs/research/air-model-tune.md (Что действует в игре сейчас)",
+      "why": "значения LAM_FRAC 0,0158, NEUTRAL_BL_K 0,3, shear_exponent_neutral 0,24, pr_t 0,85 взяты из air_case.gd/atmosphere.json, но применение max_profile_factor/α=0,23 из «Перекалибровки» в main не нашёл — написал «в этом виде не применялось»",
+      "checked": "grep air_case.gd, atmosphere.json, air.py"
+    },
+    {
+      "where": "docs/research/slope_wind.md (Состояние)",
+      "why": "что склон считает поле Пикара вместо вариантов A/B — вывод из конфига air_model.enabled=auto и guide; соответствие слов пилота (×1,5 в седловине) полю не проверялось",
+      "checked": "air_velocity_at в atmosphere.gd, configs/atmosphere.json"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения координатора без --full; docs check не проверяет, что related/applied_in указывают на существующие файлы и что § в чужих ссылках существуют; хотелось бы dpcli docs split <файл> с нарезкой по номерам строк и проверкой, что текст не потерян.",
+  "extra": {
+    "части": 29,
+    "строк оригинала потеряно": 0
+  },
+  "t": "2026-10-15T02:03:36",
+  "by": "executor"
+}

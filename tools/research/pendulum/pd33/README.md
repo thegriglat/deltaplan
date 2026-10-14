@@ -9,7 +9,7 @@ conclusion: "Квазистационарно правильная посадк�
 data: "tools/research/pendulum/pd33/"
 applied_in: "docs/research/pendulum.md"
 ---
-PD-33 — разбор правильной посадки «Маятника» (docs/research/pendulum.md → «Посадка (PD-33)»).
+PD-33 — разбор правильной посадки «Маятника» (docs/research/pendulum/landing-pd33-35.md → «Посадка (PD-33)»).
 
 - `base_*`, `B06_*`, `X_*`, `A_B06_*` — ход посадки по шагам 0,05 с (`PD27_TRACE=крыло,0,0.5 PD33_DIAG=1`;
   B06 — `PD27_PUSH=0.6`; X — `PD27_PUSH=1.2 PD29_FMAX=2000 PD30_REACH=0`; A_B06 — `PD29_DS=1 PD27_PUSH=0.6`).

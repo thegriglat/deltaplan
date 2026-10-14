@@ -2,11 +2,12 @@
 type: "research"
 status: "active"
 module: "air-phase"
-updated: "2026-10-06"
-summary: "air-phase, часть 3: итоги опытов на идеальном рельефе (ap_v1 7686, ap_v2 296, ap_v3 231; пересчёт несошедшихся при ω = 0,5 — ap_v1r 1875) — оси Fr и ветер, порог U/N как свойство итераций Пикара, штилевая граница, резкость и гистерезис границ фаз, срыв за бровкой и огибающая, перенос на рельеф с эрозией; краткий итог для сборки по фазам"
+area: "air"
+updated: "2026-10-15"
+summary: "Опыты на идеальном рельефе (7686+296+231 случаев): блокирование резкое при Fr ≈ 0,8–1,1, гистерезиса нет, U/N ≲ 340–440 м — граница Пикара"
 conclusion: "Резкие (w 0,01–0,05 декады, Fr ≈ 0,8–1,1 по неподвижным точкам после пересчёта при ω = 0,5): застой, обход, обратное течение, ротор, привязка источников; промежуточные (0,1–0,2): торможение, снос, ΔU, потолок термиков (ось −z_i/L); гистерезиса нет. Несходимость без нагрева — N > N_c(U) (U/N ≲ 340–440 м): граница итераций Пикара («не сошлось при ω = 1»); ω = 0,5 и 2000 итераций сходятся в GRID при Fr ≥ 0,45 почти всегда (граница сходимости 0,8 → 0,4), позднее среднее несошедшегося счёта — не неподвижная точка (0,5 U_sat). В штиле Fr ≲ 0,25 при ω ≥ 0,5 Пикар стационарного решения модели не находит: поле — статистика. Срыв: угол тени 9,9° (хребет занижен K-замыканием), порог по крутизне 0,20–0,30; огибающая лечит несходимость с ветром на крутых местах, но поле над склоном не улучшает. Перенос на эрозию частичный (0,60 порогов в ДИ): скорость и подъём да, ротор и застой нет."
 data: "tools/research/air_phase/analysis/AP-{7,8,9,10,11,13,14}/ (section.md, summary.json, fig_*.png); ~/air_synth_data/phase/ap_v1__s1-74644c4, ap_v2__s1-74644c4, ap_v3__s1-ee7be55, ap_v3_calm__s1-ee7be55, ap_v1r__s1-ee7be55, features_ap_v1.h5, features_ap_v2.h5, features_ap_v1r.h5, features_ap_v{1,2}_merged.h5; рисунки — docs/research/air_phase/ap*_fig_*.png"
-applied_in: "не применено: вход для сборки по фазам (air_phase_experts.md §15) и решения главной сессии по `lee` (configs/atmosphere.json)"
+applied_in: "configs/atmosphere.json → air_phase.classifier (ось H по U10, сильное D по U/N), air_phase.omega, air_phase.nonconv, lee (угол тени по AP-10); scripts/atmosphere/air_model/air_phase.gd; docs/guide/air-model.md, «Фазы»"
 related: ["docs/research/air_phase.md", "docs/research/air_phase_experts.md", "docs/research/air_phase_refs.md", "docs/research/air_phase_results_tables.md", "docs/plan/air-phase.md", "docs/contracts/air-phase.md"]
 ---
 # air-phase, часть 3: итоги опытов на идеальном рельефе
