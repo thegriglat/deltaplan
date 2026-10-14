@@ -143,8 +143,8 @@ func test_lod_fade_pairs() -> void:
 			codes[key][b % 3] = buf[o + 15]
 			var d := Vector2(buf[o + 3], buf[o + 11]).distance_to(c)
 			var a := buf[o + 15]
-			if a < 0.99 and not is_equal_approx(a, TreePlacer.FADE_OUT2):
-				var db := p.lod_distances[0] if a < 0.25 else p.lod_distances[1]
+			if a < 0.99:
+				var db := p.lod_distances[0]
 				check(absf(d - db) < band + 0.01, "растворение только у границы: %.1f м" % d)
 	var pairs := 0
 	for key in codes:

@@ -3,7 +3,7 @@
 // чем выше над основанием, тем сильнее (квадратично), порывы — тем же полем, что колышет траву.
 // Параметры задают TerrainTreeModels (материал) и TerrainWind (ветер).
 // Мягкая смена LOD: у границы экземпляр стоит в обоих LOD (TreePlacer), код в альфе цвета экземпляра
-// (1 — нет; 0,1/0,2 — уходит/проявляется у lod_d.x; 0,3/0,4 — у lod_d.y). Ближний стык с LOD2-крестом
+// (1 — нет; 0,1/0,2 — уходит/проявляется у lod_d.x; своего ухода у LOD1 нет). Ближний стык с LOD2-крестом
 // (SL-К4 v2): у всех моделей уходит на cross_near_m·sl_lod_k(дерево), если кресты есть. Доля t по живому
 // расстоянию до камеры; пиксель виден у уходящего при шум ≥ t, у проявляющегося при шум < t —
 // с одним шумом экрана оба LOD дополняют друг друга, без прозрачности (discard).
@@ -59,12 +59,9 @@ varying vec4 v_sl_ss;   // SL-6: сезон породы на высоте де�
 void vertex() {
 	vec3 base = MODEL_MATRIX[3].xyz;
 	v_dist = length(base.xz - CAMERA_POSITION_WORLD.xz);
-	v_fade = vec2(0.0, 2.0);
-	int code = int(COLOR.a * 10.0 + 0.5);
-	if (code >= 1 && code <= 4) {
-		float t = clamp((v_dist - (code <= 2 ? lod_d.x : lod_d.y)) / lod_fade_m + 0.5, 0.0, 1.0);
-		v_fade = (code % 2 == 1) ? vec2(t, 2.0) : vec2(0.0, t);
-	}
+	// растворение на смене LOD0→LOD1 и ближний стык с крестом (SL-К4 v2) — одна функция tree_cell
+	v_fade = tc_model_window(int(COLOR.a * 10.0 + 0.5), v_dist, lod_d.x, lod_fade_m, sl_lod_k(base.xz),
+			cross_near_m, lod_dither_m);
 	float spd = length(wind_vec);
 	vec2 d = spd > 0.05 ? wind_vec / spd : vec2(1.0, 0.0);
 	float amp = smoothstep(0.3, wind_full_ms, spd);
@@ -104,8 +101,6 @@ void vertex() {
 	v_crown = UV2.x; // 1 — карточка кроны с нормалями «от центра кроны» (build_trees.py), 0 — кора, импостор
 	v_cs_sun = cloud_sun_at(base);
 	v_sl_ss = sl_tree_kind > 0.5 ? sl_season_sp(sl_tree_kind, base.y) : vec4(0.0); // SL
-	// SL-К4 v2: ближний стык с крестом — модель видна при шуме ≥ t (крест — при шуме < t, тот же шум)
-	v_fade.x = max(v_fade.x, tc_model_t(v_dist, sl_lod_k(base.xz), cross_near_m, lod_dither_m));
 	// целиком растворённый экземпляр — вырожденные треугольники (не растеризуется)
 	if (v_fade.x >= 1.0 || v_fade.y <= 0.0) {
 		VERTEX = vec3(0.0);

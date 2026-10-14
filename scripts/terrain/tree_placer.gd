@@ -19,14 +19,11 @@ const SPECIES: PackedStringArray = ["pine", "cedar", "larch", "birch", "spruce"]
 ## Чисел на экземпляр в буфере MultiMesh (TRANSFORM_3D + цвет).
 const STRIDE := 16
 ## Коды растворения на границе LOD (альфа цвета экземпляра, tree_model.gdshader): 1 — без растворения;
-## 0,1/0,2 — уходит/проявляется на границе LOD0↔LOD1; 0,3/0,4 — на границе LOD1↔LOD2.
+## 0,1/0,2 — уходит/проявляется на границе LOD0↔LOD1. Своего ухода у LOD1 нет: уходит только на стыке с
+## LOD2-крестом (tree_model.gdshader, cross_near_m·k, SL-К4 v2).
 const FADE_NONE := 1.0
 const FADE_OUT0 := 0.1
 const FADE_IN0 := 0.2
-const FADE_OUT1 := 0.3
-const FADE_IN1 := 0.4
-## SL-К4: 0,5 — модель (LOD2) уходит на личной границе смены на импостер (дизеринг tree_model.gdshader).
-const FADE_OUT2 := 0.5
 ## Чисел на экземпляр band-импостера: матрица 3×4, цвет (r — доля утопления), custom (высота, порода, ek, оттенок).
 const IMP_STRIDE := 20
 ## Кольца поиска кромки, доли edge_band_m.

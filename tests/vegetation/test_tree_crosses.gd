@@ -57,14 +57,16 @@ func test_include_self_contained() -> void:
 	for fn in ["uvec2 tc_hash(ivec2 c)", "tc_present", "tc_offset", "tc_model_t", "tc_cross_window"]:
 		check(src.find(fn) >= 0, "есть %s" % fn)
 	var model := FileAccess.get_file_as_string("res://scripts/terrain/tree_model.gdshader")
-	check(model.find("tc_model_t(") >= 0, "tree_model: маска ближнего стыка")
+	check(model.find("tc_model_window(") >= 0, "tree_model: окно модели (LOD0/1 и ближний стык) из tree_cell")
 	var imp := FileAccess.get_file_as_string("res://scripts/terrain/forest_impostors.gdshader")
 	check(imp.find("band_mode") < 0, "band-импостеры SL-17 сняты")
 
 
-func test_crosses_off_by_default() -> void:
+func test_crosses_on_by_default() -> void:
+	# SL-20: LOD2 на CPU нет (SL-19) — кресты включены по умолчанию, Terrain их создаёт
 	var t := _ongudai()
-	check(not bool(_trees_cfg().get("crosses_enabled", true)) == (t.crosses == null), "по умолчанию крестов нет, пока CPU рисует LOD2")
+	check(bool(_trees_cfg().get("crosses_enabled", false)), "trees.crosses_enabled = true")
+	check(t.crosses != null, "Terrain.crosses создан")
 
 
 func test_setup_stitches_models_and_impostors() -> void:
@@ -76,6 +78,7 @@ func test_setup_stitches_models_and_impostors() -> void:
 	var cfg := _trees_cfg()
 	cfg["crosses_enabled"] = true
 	cfg["cross_radius_m"] = 1500.0
+	t.impostors.set_cross_active(false)
 	var legacy := t.impostors.grid_ring()
 	var tc := TreeCrosses.new()
 	var ok := tc.setup(t.layers[0], t.renderer.height_textures[0], t.surfaces[0], t.renderer.surface_textures[0],
@@ -92,9 +95,17 @@ func test_setup_stitches_models_and_impostors() -> void:
 		check(t.impostors.grid_ring() == legacy, "кресты скрыты — прежнее кольцо импостеров")
 		t.impostors.set_cross_active(true)
 		check(t.impostors.grid_ring() == ring, "снова за крестами")
-		# вернуть как было (общий Terrain тестов)
-		for m in models.materials:
-			m.set_shader_parameter("cross_near_m", 0.0)
-		t.impostors.set_cross_active(false)
-		t.impostors.set_cross_ring(Vector2.ZERO)
+		# вернуть как было (общий Terrain тестов: его собственные кресты)
+		if t.crosses != null:
+			t.impostors.set_cross_ring(
+				Vector2(t.crosses.r_far * t.crosses.k_min - 0.5 * t.crosses.dither,
+						t.crosses.r_far * t.crosses.k_max + 0.5 * t.crosses.dither))
 	tc.free()
+
+
+## Последним: освободить общий Terrain файла (без него — утечки RID при выходе).
+func test_zz_free_terrain() -> void:
+	if _terrain != null:
+		_terrain.free()
+		_terrain = null
+	check(true)

@@ -85,3 +85,17 @@ float tc_model_t(float d, float k, float r_near, float dither) {
 vec2 tc_cross_window(float d, float k, float r_near, float r_far, float dither) {
 	return vec2(tc_swap_t(d, r_far * k, dither), r_near > 0.0 ? tc_swap_t(d, r_near * k, dither) : 1.0);
 }
+
+// Окно шума модели [x, y) (tree_model.gdshader): code — код растворения в альфе цвета экземпляра
+// (TreePlacer: 1 — нет, 0,1 — LOD0 уходит, 0,2 — LOD1 проявляется у lod0_m; других уходов у моделей
+// нет — последний LOD уходит только на стыке с крестом r_near·k). Сумма окон LOD0 и LOD1 одного дерева
+// и окна креста — ровно [0, 1).
+vec2 tc_model_window(int code, float d, float lod0_m, float fade_m, float k, float r_near, float dither) {
+	vec2 w = vec2(0.0, 2.0);
+	if (code == 1 || code == 2) {
+		float t = clamp((d - lod0_m) / fade_m + 0.5, 0.0, 1.0);
+		w = code == 1 ? vec2(t, 2.0) : vec2(0.0, t);
+	}
+	w.x = max(w.x, tc_model_t(d, k, r_near, dither));
+	return w;
+}
