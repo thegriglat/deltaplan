@@ -78,3 +78,4 @@
 {"t": "2026-10-15T02:04:04", "by": "executor", "task": "DR-4", "ev": "accepted", "note": "2/2 hugo=ok:exit 0; no_plans_links=ok:exit 0"}
 {"t": "2026-10-15T02:04:08", "by": "coordinator", "task": "DR-4", "ev": "accepted", "commits": ["b3fc59a4"], "note": "2/2 hugo=ok:exit 0; no_plans_links=ok:exit 0"}
 {"t": "2026-10-15T02:04:09", "by": "coordinator", "task": "DR-4", "ev": "merged"}
+{"t": "2026-10-15T02:04:19", "by": "executor", "task": "DR-14", "ev": "accepted", "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
