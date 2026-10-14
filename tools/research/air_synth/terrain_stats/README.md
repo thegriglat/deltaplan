@@ -1,6 +1,6 @@
 ---
 type: "reference"
-status: "active"
+status: "closed"
 module: "air-synth"
 updated: "2026-10-04"
 summary: "Код и команды воспроизведения статистик рельефа, разложения на формы и генерации (Fastscape, сумма форм) для air-synth"

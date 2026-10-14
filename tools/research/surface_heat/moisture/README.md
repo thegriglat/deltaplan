@@ -3,7 +3,7 @@ type: "research"
 status: "closed"
 module: "surface-heat"
 updated: "2026-10-09"
-summary: "Перцентили поля влажности рельефа TerrainRelief.moisture по суше слоя detail на 4 местах (altai, askarovo, aushkul, ongudai) для порогов m_dry/m_norm/m_wet (SH-1)."
+summary: "Перцентили влажности рельефа по 4 местам: медиана 0,475, p10 0,26, p90 0,68; пороги m_dry 0,25, m_norm 0,47, m_wet 0,70"
 related: ["docs/research/surface_params.md"]
 conclusion: "Поле центрировано около 0,47 (медиана по 4 местам 0,475), p10 = 0,26, p90 = 0,68; предложено m_dry = 0,25, m_norm = 0,47, m_wet = 0,70."
 data: "moisture_percentiles.csv, moisture_percentiles.json"
