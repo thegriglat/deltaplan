@@ -11,6 +11,11 @@ const SHADER := preload("res://scripts/terrain/forest_impostors.gdshader")
 
 var camera: Camera3D
 var material: ShaderMaterial
+## SL-К4 v2: кольцо сетки (inner_m, inner_end_m) — за LOD2-крестами (TreeCrosses.set_cross_ring), пока они
+## видны; без крестов — прежнее кольцо за моделями (radius_m · fade_start_k … radius_m).
+var _grid_cross := Vector2.ZERO
+var _grid_legacy := Vector2.ZERO
+var _cross_active := false
 
 var _spacing: float = 10.0
 ## Маска леса и просек на CPU — для present_positions (тесты); шейдер берёт те же из текстур.
@@ -65,14 +70,19 @@ func setup(
 	m.set_shader_parameter("grid_n", n)
 	m.set_shader_parameter("spacing_m", _spacing)
 	var r := float(cfg.radius_m)
-	m.set_shader_parameter("inner_m", r * float(ic.fade_start_k))
-	m.set_shader_parameter("inner_end_m", r)
+	_mask.setup(layer, surface, cfg)
+	_grid_legacy = Vector2(r * float(ic.fade_start_k), r)
+	m.set_shader_parameter("inner_m", _grid_legacy.x)
+	m.set_shader_parameter("inner_end_m", _grid_legacy.y)
 	m.set_shader_parameter("outer_m", outer)
 	m.set_shader_parameter("dissolve_m", float(ic.get("dissolve_m", 800.0)))
 	m.set_shader_parameter("edge_band_m", float(cfg.get("edge_band_m", 16.0)))
 	m.set_shader_parameter("edge_density", float(cfg.get("edge_density", 1.0)))
 	m.set_shader_parameter("edge_scale_k", float(cfg.get("edge_scale_k", 0.15)))
 	m.set_shader_parameter("density", float(ic.density))
+	m.set_shader_parameter("seam_density", float(ic.get("seam_density", ic.density)))
+	m.set_shader_parameter("seam_size_k", float(ic.get("seam_size_k", 1.0)))
+	m.set_shader_parameter("seam_fade_m", maxf(float(ic.get("seam_fade_m", 1000.0)), 1.0))
 	m.set_shader_parameter("brightness", float(ic.brightness))
 	m.set_shader_parameter("sink_fraction", float(cfg.sink_fraction))
 	m.set_shader_parameter("edge_sink_fraction", float(cfg.get("edge_sink_fraction", 0.05)))
@@ -110,11 +120,44 @@ func setup(
 	return true
 
 
+## SL-К4 v2: кольцо импостеров за крестами [начало, конец] (м): доля билбордов растёт там, где кресты
+## уходят по своим k (TreeCrosses); включается сразу.
+func set_cross_ring(ring: Vector2) -> void:
+	_grid_cross = ring
+	set_cross_active(true)
+
+
+## Кресты видны (true) — кольцо за ними; скрыты (камера выше cross_max_agl_m) — прежнее кольцо.
+func set_cross_active(on: bool) -> void:
+	_cross_active = on and _grid_cross != Vector2.ZERO
+	if material == null:
+		return
+	var g := _grid_cross if _cross_active else _grid_legacy
+	material.set_shader_parameter("inner_m", g.x)
+	material.set_shader_parameter("inner_end_m", g.y)
+
+
+## Кольцо сетки сейчас (inner_m, inner_end_m), м — для тестов.
+func grid_ring() -> Vector2:
+	return _grid_cross if _cross_active else _grid_legacy
+
+
+func _materials() -> Array[ShaderMaterial]:
+	return [material]
+
+
+func _set_all(param: StringName, value: Variant) -> void:
+	for m in _materials():
+		m.set_shader_parameter(param, value)
+
+
 ## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года, солнце, небо) —
 ## тем же путём, что у рельефа (TerrainRenderer.apply_scene_look_params).
 func apply_scene_look(sl: Dictionary) -> void:
-	if material != null:
-		TerrainRenderer.apply_scene_look_params(material, sl)
+	if material == null:
+		return
+	for m in _materials():
+		TerrainRenderer.apply_scene_look_params(m, sl)
 
 
 ## Просеки (маска WorldClearings, 255 — расчищено).
@@ -124,11 +167,11 @@ func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
 	_mask.clear_image = mask
 	_mask.clear_origin = origin
 	_mask.clear_cell = cell_m
-	material.set_shader_parameter("clear_tex", ImageTexture.create_from_image(mask))
-	material.set_shader_parameter("has_clearings", true)
-	material.set_shader_parameter("clear_origin", origin)
-	material.set_shader_parameter("clear_cell_m", cell_m)
-	material.set_shader_parameter("clear_size", Vector2(mask.get_width(), mask.get_height()))
+	_set_all("clear_tex", ImageTexture.create_from_image(mask))
+	_set_all("has_clearings", true)
+	_set_all("clear_origin", origin)
+	_set_all("clear_cell_m", cell_m)
+	_set_all("clear_size", Vector2(mask.get_width(), mask.get_height()))
 
 
 ## Маска леса 10 м (Terrain.get_forest_mask → [image, origin — угол пикселя (0, 0), cell_m]):
@@ -141,13 +184,11 @@ func set_forest_mask(mask: Image, origin: Vector2, cell_m: float) -> void:
 	var tex := _shared_mask_texture(mask)
 	if tex == null:
 		tex = ImageTexture.create_from_image(mask)
-	material.set_shader_parameter("forest_mask_tex", tex)
-	material.set_shader_parameter("use_forest_mask", true)
-	material.set_shader_parameter("forest_mask_origin", origin + Vector2(0.5, 0.5) * cell_m)
-	material.set_shader_parameter("forest_mask_spacing", cell_m)
-	material.set_shader_parameter(
-		"forest_mask_texels", Vector2(mask.get_width(), mask.get_height())
-	)
+	_set_all("forest_mask_tex", tex)
+	_set_all("use_forest_mask", true)
+	_set_all("forest_mask_origin", origin + Vector2(0.5, 0.5) * cell_m)
+	_set_all("forest_mask_spacing", cell_m)
+	_set_all("forest_mask_texels", Vector2(mask.get_width(), mask.get_height()))
 
 
 func _shared_mask_texture(mask: Image) -> Texture2D:
@@ -172,7 +213,7 @@ func _process(_delta: float) -> void:
 	var cell := Vector2(floor(p.x / _spacing), floor(p.z / _spacing))
 	if cell != _last_cell:
 		_last_cell = cell
-		material.set_shader_parameter("grid_center_cell", cell)
+		_set_all("grid_center_cell", cell)
 
 
 ## Где стоят билборды (центры X/Z) в кольце [r0, r1] вокруг center — повтор правил шейдера

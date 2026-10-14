@@ -38,14 +38,17 @@ func test_trees_only_on_forest() -> void:
 				t.surfaces[0].class_at(x, z) == SurfaceLayer.FOREST,
 				"дерево на лесе (%.0f, %.0f)" % [x, z]
 			)
-			check(Vector2(x, z).distance_to(c) <= p.radius + 1.0, "в радиусе")
+			check(
+				Vector2(x, z).distance_to(c) <= p.near_reach() + 1.0,
+				"в радиусе"
+			)
 			total += 1
 	check(total > 500, "деревьев вокруг старта: %d" % total)
 	var lods := PackedInt32Array([0, 0, 0])
 	for b in p.counts.size():
 		lods[b % 3] += p.counts[b]
-	check(lods[0] > 0 and lods[1] > 0 and lods[2] > 0, "все LOD заняты: %s" % lods)
-	check(lods[0] < lods[1] and lods[1] < lods[2], "ближе — меньше деревьев: %s" % lods)
+	check(lods[0] > 0 and lods[1] > 0 and lods[2] == 0, "LOD0/1 заняты, LOD2 на CPU нет (кресты — шейдер): %s" % lods)
+	check(lods[0] < lods[1], "ближе — меньше деревьев: %s" % lods)
 
 
 ## Точка в лесу рядом с первым стартом (там LOD0 не пуст).
@@ -85,6 +88,8 @@ func test_clearings_mask() -> void:
 	for b in p.buffers.size():
 		for k in p.counts[b]:
 			var x := p.buffers[b][k * TreePlacer.STRIDE + 3]
+			if absf(p.buffers[b][k * TreePlacer.STRIDE + 11] - c.y) > 450.0:
+				continue  # маска просеки покрывает 1000 × 1000 м
 			if absf(x - c.x) < 19.0:
 				inside += 1
 			elif absf(x - c.x) < 60.0:
@@ -139,16 +144,13 @@ func test_lod_fade_pairs() -> void:
 			var d := Vector2(buf[o + 3], buf[o + 11]).distance_to(c)
 			var a := buf[o + 15]
 			if a < 0.99:
-				var db := p.lod_distances[0] if a < 0.25 else p.lod_distances[1]
+				var db := p.lod_distances[0]
 				check(absf(d - db) < band + 0.01, "растворение только у границы: %.1f м" % d)
 	var pairs := 0
 	for key in codes:
 		var cs: Array = codes[key]
 		if is_equal_approx(cs[0], TreePlacer.FADE_OUT0):
 			check(is_equal_approx(cs[1], TreePlacer.FADE_IN0), "пара LOD0→LOD1")
-			pairs += 1
-		if is_equal_approx(cs[1], TreePlacer.FADE_OUT1):
-			check(is_equal_approx(cs[2], TreePlacer.FADE_IN1), "пара LOD1→LOD2")
 			pairs += 1
 	check(pairs > 20, "пар растворения: %d" % pairs)
 

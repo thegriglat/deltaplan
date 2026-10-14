@@ -189,6 +189,10 @@ func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary, sp
 			var ld: Array = cfg.get("lod_distances_m", [60.0, 180.0])
 			m.set_shader_parameter("lod_d", Vector2(float(ld[0]), float(ld[1])))
 			m.set_shader_parameter("lod_fade_m", maxf(float(cfg.get("lod_fade_m", 10.0)), 0.01))
+			m.set_shader_parameter("lod_dither_m", maxf(float(cfg.get("lod_dither_m", 40.0)), 0.01))
+			m.set_shader_parameter(
+				"sl_lod_k_range", Vector2(placer.lod_k_min, placer.lod_k_max)
+			)
 			cache[std.resource_name] = m
 			materials.append(m)
 		mesh.surface_set_material(s, cache[std.resource_name])
