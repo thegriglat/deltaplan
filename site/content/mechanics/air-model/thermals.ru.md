@@ -159,15 +159,15 @@ $$ \hat w / w_* = (z/z_i)^{1/3} (1 - 1{,}1\, z/z_i) $$
 
 ## Подробнее
 
-- [Поле ветра: фазы и Пикар](/mechanics/air-model/wind-phases/), [болтанка и ротор](/mechanics/air-model/turbulence/), [модель воздуха](/mechanics/air-model/); [docs/guide/air-model.md](/docs/guide/air-model.md) → «Масштаб 2: термики из поля».
+- [Поле ветра: фазы и Пикар](/mechanics/air-model/wind-phases/), [болтанка и ротор](/mechanics/air-model/turbulence/), [модель воздуха](/mechanics/air-model/); [docs/guide/air-model/thermals.md](/docs/guide/air-model/thermals.md) → «Масштаб 2: термики из поля».
 - [docs/research/thermals.md](/docs/research/thermals.md) — формулы и источники: Гедеон, Аллен,
   Леншоу и Стивенс, Деардорф.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md) — таблица наблюдаемых с
   погрешностями (§1 «Термики»).
 - [docs/research/xc_reference.md](/docs/research/xc_reference.md) — эталоны маршрутных полётов
   (набор, доля времени в кружении, число термиков на 10 км).
-- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) — устройство модуля атмосферы, таблица «слова пилота в
-  числах».
+- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) — устройство модуля атмосферы; таблица «слова пилота в
+  числах» — [docs/guide/atmosphere/wind-field.md](/docs/guide/atmosphere/wind-field.md).
 - [scripts/atmosphere/thermal_field.gd](/scripts/atmosphere/thermal_field.gd),
   [scripts/atmosphere/atmo_thermal.gd](/scripts/atmosphere/atmo_thermal.gd),
   [scripts/atmosphere/storm_field.gd](/scripts/atmosphere/storm_field.gd),

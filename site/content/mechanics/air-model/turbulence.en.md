@@ -57,7 +57,7 @@ For comparison with the field, pilots' words: sinks and downward jolts behind a 
 
 ## More
 
-- [The air model in the game](/docs/guide/air-model.md) → "Scale 3: disturbances from the field".
+- [The air model in the game](/docs/guide/air-model/turbulence.md) → "Scale 3: disturbances from the field".
 - [Measurements on ideal terrain](/docs/research/air_phase_results.md) (separation behind the brow, envelope), [turbulence from the field research](/tools/research/air_turb/README.md).
 - [Atmosphere](/docs/guide/atmosphere.md) — the lee zone in the simplified formulas.
 - Pages: [air model](/mechanics/air-model/), [wind field: phases and Picard](/mechanics/air-model/wind-phases/), [thermals](/mechanics/air-model/thermals/).

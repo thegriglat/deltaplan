@@ -8,7 +8,7 @@ summary: "Альбедо, Боуэн (влажно/норма/сухо), z0 и G
 related: ["docs/research/surface_params.csv", "docs/plan/surface-heat.md", "docs/contracts/surface-heat.md", "docs/guide/air-model.md", "docs/guide/atmosphere.md"]
 conclusion: "Таблица α, β (влажно/норма/сухо), z0, G/Rn по классам WorldCover из литературы; числа без источника помечены EST (раздел 6); §9 — радиация, влажность, вода и H_ref для игры."
 data: "docs/research/surface_params.csv (те же числа, столбцы П4; читает tests/contracts/test_surface_heat_contracts.gd)"
-applied_in: "configs/surface_heat.json; scripts/atmosphere/surface_heat.gd; docs/plan/surface-heat.md; docs/guide/air-model.md (вход решателя); docs/guide/atmosphere.md (сила источника термиков)"
+applied_in: "configs/surface_heat.json; scripts/atmosphere/surface_heat.gd; docs/plan/surface-heat.md; docs/guide/air-model/surface-heat.md (вход решателя); docs/guide/atmosphere/calibration.md (сила источника термиков)"
 ---
 # Параметры поверхности по классам покрова (контракт П4 v1)
 

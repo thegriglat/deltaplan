@@ -165,7 +165,7 @@ an input parameter stayed the same; the field takes them as input. More: [air mo
 
 ## Details
 
-- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) → "Weather from the forecast": how it is wired into
+- [docs/guide/atmosphere/weather.md](/docs/guide/atmosphere/weather.md) → "Weather from the forecast": how it is wired into
   the game.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md): tables for calibration
   (§1 "Thermals", §6 "Atmosphere profiles, clouds").
