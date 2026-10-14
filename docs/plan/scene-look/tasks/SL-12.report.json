@@ -1,14 +1,13 @@
 {
   "status": "partial",
-  "summary": "Дописаны разделы SL-5, SL-10, SL-17 (в работе), строки в таблице GPU, граница модели для снега/леса; убрана оговорка про климаты; CHANGELOG +2 пункта. Остаётся итог GPU (SL-11) и итог SL-17.",
+  "summary": "Раздел «Лес вдали» (SL-17…SL-20, SL-К4 v2, SL-К5) вместо заглушки; линия снега исправлена на 2890 м; документ разделён на scene-look.md (40 КБ, без предупреждения) и scene-look-keys.md (таблицы ключей из world.json); CHANGELOG +пункт про лес. Осталась цена GPU модуля (SL-11).",
   "commits": [
-    "f4613533 Документ scene-look...",
-    "cb6b066c scene-look: разделы SL-5, SL-10, SL-17 (в работе), CHANGELOG, убрана оговорка про климаты"
+    "9506cf9d scene-look: лес вдали (SL-17…SL-20), ключи вынесены в scene-look-keys.md, линия снега 2890 м, CHANGELOG"
   ],
   "checks": [
     {
       "name": "dp docs check",
-      "value": "ошибок 0; предупреждение: scene-look.md 44 КБ > 40",
+      "value": "ошибок 0, предупреждения о размере нет",
       "pass": true
     },
     {
@@ -18,26 +17,29 @@
     }
   ],
   "not_done": [
-    "Цена GPU модуля (SL-11) и итог SL-17 — «будет дописано»"
+    "Цена GPU модуля (SL-11) — заглушка; GPU леса вдали не замерена"
   ],
-  "questions": [
-    "Документ 44 КБ (предупреждение 40 КБ): вынести таблицы ключей/границы в отдельный файл или оставить?"
-  ],
+  "questions": [],
   "images": [],
   "how_to_check": "dp accept SL-12",
   "uncertain": [
     {
-      "where": "docs/guide/scene-look.md, SL-5 и SL-10",
-      "why": "Вес ледника «в вогнутости» и независимость линии от snow_enabled взяты из замечаний ревью, код после правок f59700ed в шейдере я не перечитывал; пороги и значение сил по конфигу",
-      "checked": "ключи и числа сверены с configs/world.json"
+      "where": "docs/guide/scene-look.md, раздел «Лес вдали»",
+      "why": "Отчёта и ревью SL-20 нет в журнале (ревью — «ревью нет»), числа по отчёту; dp review SL-17 падает (AttributeError на строковом checks)",
+      "checked": "числа сверены с отчётами SL-17…SL-20 и конфигом"
     },
     {
-      "where": "CHANGELOG",
-      "why": "Про 'в тропиках граница леса выше, к северу ниже' — по таблице treeline_*",
-      "checked": "таблица"
+      "where": "scene-look-keys.md",
+      "why": "Таблицы сгенерированы из world.json (в т.ч. _doc); trees.lod_k_* описания устарели относительно SL-18 (тексты SL-17)",
+      "checked": "значения по умолчанию из конфига"
+    },
+    {
+      "where": "scene-look.md",
+      "why": "Для влезания в 40 КБ сократил описания (убрал часть чисел, они есть в keys.md); «Ключи» в разделах — ссылки на таблицу",
+      "checked": "dp docs check"
     }
   ],
-  "dp_feedback": "dp task sync вернул влитое без диффа — удобно; нужны --brief/--field для dp report --show и dp docs init для guide.",
-  "t": "2026-10-14T04:31:38",
+  "dp_feedback": "dp review SL-17 падает: AttributeError в cmd_review, checks в перезапуске — строка, не dict (tools/dp:981). Нужны dp report --show --brief и генерация таблицы ключей конфига в docs (dp docs keys <секция>).",
+  "t": "2026-10-14T05:21:26",
   "by": "executor"
 }

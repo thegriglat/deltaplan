@@ -12,7 +12,8 @@
   "scope": [
     "docs/guide/scene-look.md",
     "docs/guide/terrain.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "docs/guide/scene-look-keys.md"
   ],
   "dont_touch": [
     "scripts/",
@@ -27,5 +28,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-14T03:06:40"
+  "created": "2026-10-14T03:06:40",
+  "edited": "2026-10-14T05:18:18"
 }
