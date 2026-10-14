@@ -1,0 +1,11 @@
+{
+  "module": "pendulum-body-vg",
+  "plan": "docs/plan/pendulum-body-vg.md",
+  "contracts": "docs/contracts/pendulum-body-vg.md",
+  "branch": "feature/pendulum-body-vg",
+  "copy": "~/deltaplan-pendulum-body-vg",
+  "created": "2026-10-15T04:52:58",
+  "code": "PB",
+  "area": "flight",
+  "base": "main"
+}
