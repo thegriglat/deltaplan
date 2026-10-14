@@ -50,10 +50,16 @@ void fragment() {
 	ROUGHNESS = 0.92;
 	SPECULAR = 0.3;
 	if (use_normal) {
-		// трипланарная нормаль по доминирующей оси (дёшево): берём проекцию с наибольшим весом
-		vec2 uv = w.y > max(w.x, w.z) ? p.xz : (w.x > w.z ? p.zy : p.xy);
-		NORMAL_MAP = texture(rock_normal, uv).rgb;
-		NORMAL_MAP_DEPTH = 0.8;
+		// трипланарная нормаль-деталь (whiteout-смешение трёх проекций в мировом пространстве)
+		vec3 n = normalize(v_wn);
+		vec3 tx = (texture(rock_normal, p.zy).rgb * 2.0 - 1.0) * vec3(0.8, 0.8, 1.0);
+		vec3 ty = (texture(rock_normal, p.xz).rgb * 2.0 - 1.0) * vec3(0.8, 0.8, 1.0);
+		vec3 tz = (texture(rock_normal, p.xy).rgb * 2.0 - 1.0) * vec3(0.8, 0.8, 1.0);
+		tx = vec3(tx.xy + n.zy, abs(tx.z) * n.x);
+		ty = vec3(ty.xy + n.xz, abs(ty.z) * n.y);
+		tz = vec3(tz.xy + n.xy, abs(tz.z) * n.z);
+		vec3 wn = normalize(tx.zyx * w.x + ty.xzy * w.y + tz.xyz * w.z);
+		NORMAL = normalize((VIEW_MATRIX * vec4(wn, 0.0)).xyz);
 	}
 	AO = cloud_sky_ao(v_cs_sun);
 }
