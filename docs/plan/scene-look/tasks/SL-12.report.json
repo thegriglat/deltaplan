@@ -1,13 +1,16 @@
 {
-  "status": "partial",
-  "summary": "Раздел «Лес вдали» (SL-17…SL-20, SL-К4 v2, SL-К5) вместо заглушки; линия снега исправлена на 2890 м; документ разделён на scene-look.md (40 КБ, без предупреждения) и scene-look-keys.md (таблицы ключей из world.json); CHANGELOG +пункт про лес. Осталась цена GPU модуля (SL-11).",
+  "status": "done",
+  "summary": "Документ scene-look.md и scene-look-keys.md, строка в terrain.md, CHANGELOG готовы; «Цена GPU модуля» заполнена по SL-11 (+1,6…2,0 мс на всех пресетах, выше бюджета 0,4; выключатели цену не снимают; T-79).",
   "commits": [
-    "9506cf9d scene-look: лес вдали (SL-17…SL-20), ключи вынесены в scene-look-keys.md, линия снега 2890 м, CHANGELOG"
+    "f4613533",
+    "cb6b066c",
+    "9506cf9d",
+    "scene-look: итоговая цена GPU модуля (SL-11) в документе"
   ],
   "checks": [
     {
-      "name": "dp docs check",
-      "value": "ошибок 0, предупреждения о размере нет",
+      "name": "docs",
+      "value": "ошибок 0, без предупреждения о размере",
       "pass": true
     },
     {
@@ -16,30 +19,18 @@
       "pass": true
     }
   ],
-  "not_done": [
-    "Цена GPU модуля (SL-11) — заглушка; GPU леса вдали не замерена"
-  ],
+  "not_done": [],
   "questions": [],
   "images": [],
   "how_to_check": "dp accept SL-12",
   "uncertain": [
     {
-      "where": "docs/guide/scene-look.md, раздел «Лес вдали»",
-      "why": "Отчёта и ревью SL-20 нет в журнале (ревью — «ревью нет»), числа по отчёту; dp review SL-17 падает (AttributeError на строковом checks)",
-      "checked": "числа сверены с отчётами SL-17…SL-20 и конфигом"
-    },
-    {
-      "where": "scene-look-keys.md",
-      "why": "Таблицы сгенерированы из world.json (в т.ч. _doc); trees.lod_k_* описания устарели относительно SL-18 (тексты SL-17)",
-      "checked": "значения по умолчанию из конфига"
-    },
-    {
-      "where": "scene-look.md",
-      "why": "Для влезания в 40 КБ сократил описания (убрал часть чисел, они есть в keys.md); «Ключи» в разделах — ссылки на таблицу",
-      "checked": "dp docs check"
+      "where": "docs/guide/scene-look.md, «Цена GPU модуля»",
+      "why": "Один прогон на вариант, шум 0,2–0,6 мс; viewport-часть пресета стенд не применяет; в «Границах» одной строкой про цвет леса (V 0,20→0,36) по сообщению координатора",
+      "checked": "числа сверены с отчётом SL-11"
     }
   ],
-  "dp_feedback": "dp review SL-17 падает: AttributeError в cmd_review, checks в перезапуске — строка, не dict (tools/dp:981). Нужны dp report --show --brief и генерация таблицы ключей конфига в docs (dp docs keys <секция>).",
-  "t": "2026-10-14T05:21:26",
+  "dp_feedback": "dp review SL-17 падает (tools/dp:981, checks-строка); нужны dp report --show --brief и dp docs keys <секция> для таблиц ключей.",
+  "t": "2026-10-14T05:51:39",
   "by": "executor"
 }
