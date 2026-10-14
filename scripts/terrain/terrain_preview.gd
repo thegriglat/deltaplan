@@ -326,6 +326,9 @@ func _bench_static() -> void:
 			"draw_calls": RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME),
 			"primitives": RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME),
 			"chunks": terrain.renderer.chunk_count(),
+			# видеопамять (SL-25): текстуры и всего, МБ
+			"vram_tex_mb": RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TEXTURE_MEM_USED) / 1048576.0,
+			"vram_mb": RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_VIDEO_MEM_USED) / 1048576.0,
 			"w": get_viewport().size.x,
 		}
 		print("BENCH_STATIC_JSON:" + JSON.stringify(res))

@@ -436,10 +436,14 @@ func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
 	_clearings = [mask, origin, cell_m]
 	if trees is TerrainTreeModels:
 		(trees as TerrainTreeModels).set_clearings(mask, origin, cell_m)
+	# одна текстура просек на импостеры и кресты (SL-К7 v1: не две копии 4000² в видеопамяти)
+	var tex: ImageTexture = null
+	if impostors != null or crosses != null:
+		tex = ImageTexture.create_from_image(mask)
 	if impostors != null:
-		impostors.set_clearings(mask, origin, cell_m)
+		impostors.set_clearings(mask, origin, cell_m, tex)
 	if crosses != null:
-		crosses.set_clearings(mask, origin, cell_m)
+		crosses.set_clearings(mask, origin, cell_m, tex)
 
 
 ## Город с деревьями-моделями на местах крон (CityTrees): рельеф не рисует кроны на земле там, где маска

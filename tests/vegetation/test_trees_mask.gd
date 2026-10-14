@@ -58,6 +58,18 @@ func test_mask_passed() -> void:
 	)
 
 
+## SL-К7 v1: одна текстура просек на импостеры и кресты (не две копии 4000² в видеопамяти).
+func test_one_clearings_texture() -> void:
+	var t := _ongudai()
+	if t.impostors == null or t.crosses == null or t.crosses.material == null:
+		check(false, "нужны импостеры и кресты")
+		return
+	var a := t.impostors.material.get_shader_parameter("clear_tex") as Texture2D
+	var b := t.crosses.material.get_shader_parameter("clear_tex") as Texture2D
+	check(a != null and b != null, "просеки у обоих")
+	check(a == b, "одна текстура просек у импостеров и крестов")
+
+
 func test_trees_on_mask_forest() -> void:
 	# ≥ 98 % деревьев (модели + импостеры) — при доле леса ≥ 0,5; ни одного центра дальше 5 м в луг
 	var t := _ongudai()

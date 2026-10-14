@@ -248,11 +248,12 @@ func _set_model_stitch(on: bool) -> void:
 		m.set_shader_parameter("sl_lod_k_range", Vector2(k_min, k_max))
 
 
-## Просеки (маска WorldClearings, 255 — расчищено).
-func set_clearings(mask: Image, origin: Vector2, cell: float) -> void:
+## Просеки (маска WorldClearings, 255 — расчищено); tex — готовая текстура маски (общая с импостерами),
+## null — сделать здесь.
+func set_clearings(mask: Image, origin: Vector2, cell: float, tex: Texture2D = null) -> void:
 	if material == null:
 		return
-	material.set_shader_parameter("clear_tex", ImageTexture.create_from_image(mask))
+	material.set_shader_parameter("clear_tex", tex if tex != null else ImageTexture.create_from_image(mask))
 	material.set_shader_parameter("has_clearings", true)
 	material.set_shader_parameter("clear_origin", origin)
 	material.set_shader_parameter("clear_cell_m", cell)

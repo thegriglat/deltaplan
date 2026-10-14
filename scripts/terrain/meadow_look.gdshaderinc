@@ -4,7 +4,7 @@
 // вдали луг одного тона, трава бесшовно переходит в землю. Нужен terrain_common.gdshaderinc.
 
 // --- поля рельефа (TerrainRelief, считаются из DEM при загрузке): R — влажность, G — AO,
-// B — сглаженная северность (тень рельефа relief_shadow_tex — в terrain.gdshader) ---
+// B — сглаженная северность, A — горизонт к солнцу (тень рельефа, читает terrain_main; SL-К7) ---
 uniform bool use_relief = false;
 uniform sampler2D relief_tex : filter_linear, repeat_disable;
 uniform vec2 relief_origin;

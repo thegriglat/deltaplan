@@ -181,7 +181,8 @@ def run(o: argparse.Namespace) -> None:
             rec["shader_error"] = "SHADER ERROR" in log
             (out / f"fail_{p}_{v.replace('/', '_')}_{m}.log").write_text(log, encoding="utf-8")
         else:
-            rec.update({q: r.get(q) for q in ("gpu_ms_mean", "gpu_ms_p95", "gpu_ms_p10", "n", "w", "draw_calls", "passes")})
+            rec.update({q: r.get(q) for q in ("gpu_ms_mean", "gpu_ms_p95", "gpu_ms_p10", "n", "w", "draw_calls", "passes",
+                                          "vram_tex_mb", "vram_mb")})
         with res_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         el = time.time() - t0

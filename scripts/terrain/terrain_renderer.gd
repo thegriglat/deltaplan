@@ -512,7 +512,6 @@ static func set_relief(m: ShaderMaterial, relief: TerrainRelief) -> void:
 	if relief == null:
 		return
 	m.set_shader_parameter("relief_tex", relief.texture)
-	m.set_shader_parameter("relief_shadow_tex", relief.shadow_texture)
 	m.set_shader_parameter("relief_origin", Vector2(relief.origin_x, relief.origin_z))
 	m.set_shader_parameter("relief_cell_m", relief.cell_m)
 	m.set_shader_parameter("relief_texels", Vector2(relief.width, relief.height))
