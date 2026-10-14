@@ -12,7 +12,7 @@ applied_in: "нет: заменено своими тайлами OSM 20 км (d
 ---
 # OpenFreeMap вместо Overpass
 
-> Заменено: OpenFreeMap z14 как замена Overpass в игру не вошёл — OSM-слой берётся из собственных тайлов 20 км (Geofabrik, раздача с R2): [план osm-tiles](../plan/osm-tiles.md), [guide](../guide/osm-tiles.md). Сравнение с эталоном ниже остаётся материалом исследования.
+> Заменено: OpenFreeMap z14 как замена Overpass в игру не вошёл — OSM-слой берётся из собственных тайлов 20 км (Geofabrik, раздача с R2): [план osm-tiles](../archive/plan/osm-tiles.md), [guide](../guide/osm-tiles.md). Сравнение с эталоном ниже остаётся материалом исследования.
 
 ## Источник и условия
 - TileJSON: `https://tiles.openfreemap.org/planet` → шаблон `https://tiles.openfreemap.org/planet/20261004_113936_pt/{z}/{x}/{y}.pbf` (в пути — версия планеты, дата данных 2026-10-04, **менять путь по TileJSON, не зашивать**). Схема OpenMapTiles 3.16, MVT, minzoom 0, maxzoom 14, gzip.
