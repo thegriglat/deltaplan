@@ -1,0 +1,49 @@
+{
+  "id": "GR-5",
+  "module": "grass-rocks",
+  "type": "dp-researcher",
+  "title": "Замер после раннего выхода травы",
+  "goal": "Замер по протоколу G3 на feature/grass-rocks после слияния GR-3 (medium и high, ongudai, отметки 2/30/60): раздел ## GR-5 в docs/perf/grass_rocks.md с таблицей и сравнением цены травы с базой GR-2 (мс и %), плюс архив данных.",
+  "plan_ref": "GR-5. Замер «после» раннего выхода",
+  "contracts": [
+    {
+      "name": "G3",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-5",
+  "branch": "grass-rocks/GR-5",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "docs/perf/grass_rocks.md",
+    "docs/perf/data/grass_rocks_GR-5.tar.gz"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools",
+    "assets",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "section",
+      "cmd": "grep -c '^## GR-5' docs/perf/grass_rocks.md",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "data",
+      "cmd": "tar tzf docs/perf/data/grass_rocks_GR-5.tar.gz | grep -c 'jsonl$'",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check docs/perf/grass_rocks.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:57:53"
+}
