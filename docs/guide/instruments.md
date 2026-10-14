@@ -2,9 +2,10 @@
 type: "guide"
 status: "active"
 module: "instruments"
-updated: "2026-10-12"
-summary: "Приборы и звук вариометра — Instrument3D: экран смотрит в локальную +Z, верх — +Y, начало — центр корпуса, хомут сзади снизу."
-related: []
+area: "game"
+updated: "2026-10-15"
+summary: "Планшет и вариометр 90-х (Vario, страницы, ветер, центровка), звук вариометра и звуки полёта; API, настройки и проверки."
+related: ["docs/guide/telltale.md", "docs/guide/models/instruments-3d.md", "docs/guide/flight/api.md"]
 ---
 # Приборы и звук вариометра
 
@@ -55,18 +56,18 @@ x.instrument                                                         # встр�
 audio.set_vario(ms), audio.set_volume_db(db), audio.set_enabled(on), audio.get_skips()
 ```
 
-### Подключение в главной сцене (для интегратора)
+### Подключение в игре
 
-```gdscript
-glider.telemetry_updated.connect(func(t):
-    instrument3d.update(t)
-    vario_audio.set_vario(instrument3d.instrument.get_vario().vario_ms))
-overlay.use_instrument(instrument3d.instrument)  # один SubViewport на оба вида
-overlay.visible = camera_mode != "cockpit"       # в кабине прибор видно на трапеции
-```
+В `Game` (`scripts/game/game.gd`) один `FlightInstrument` (`instrument`) получает `instrument.update(t, dt)` каждый шаг
+физики; `InstrumentOverlay` показывает его экран в углу во внешних камерах (`overlay.use_instrument(instrument)`, один
+`SubViewport` на оба вида); клавиши 1…5 (`controls.json → instrument_page_1…5`) и `instrument_page` ставят страницу.
+На трапецию приборы вешает `Game._mount_instrument` по `game.json → mounted_instruments`: `Instrument3D` на маркер
+`InstrumentMount` (общий экран планшета, `shares_tablet`) и `VarioDisplay90s` через `Vario90s3D` на `VarioMount`
+(свой вариометр, необязателен); оба с `rotate_y_deg` = 180° — экран сцены смотрит в +Z, маркер — −Z на глаза.
+Звук берёт `vario_audio.set_vario(...)` от `_sound_vario()` — датчика выбранного прибора (по пресету звука).
 
 `Instrument3D`: экран смотрит в локальную +Z, верх — +Y, начало — центр корпуса, хомут сзади снизу.
-Повесить на базовую штангу трапеции чуть наклонив к пилоту.
+Модель — [models/instruments-3d.md](models/instruments-3d.md).
 
 Звук берёт **отфильтрованное** значение (`Vario.vario_ms`) — как у реального прибора, писк и цифры совпадают.
 
@@ -80,11 +81,11 @@ overlay.visible = camera_mode != "cockpit"       # в кабине прибор 
   Время полёта, точка взлёта, расстояние и след считаются от этого момента.
 
 ## Экран — планшет (FR-25)
-Один полётный компьютер-планшет на центре базовой штанги, как Kobo с XCSoar: e-ink 6", портрет 3:4
+Один полётный компьютер-планшет на базовой штанге, как Kobo с XCSoar: e-ink 6", портрет 3:4
 (`screen.width_px × height_px`, по умолчанию 720×960), монохром высокой контрастности, перерисовка 10 Гц
 (SubViewport в режиме UPDATE_ONCE — рендер только при новых данных). Поля как InfoBox у XCSoar:
 подпись слева сверху, единицы справа, значение крупно. Стиль сегментного LCD включается в конфиге
-(`digits_font` = DSEG7, `ghost_digits` = true).
+(`screen.digits_font` = DSEG7 Classic, `ghost_digits` = true; в `instruments.json` сейчас стоят Noto Sans Condensed Bold и `ghost_digits` = false).
 
 Страницы (клавиши 1–5 привязывает главная сцена → `set_page(0..4)`, сигнал `page_changed`):
 1. **ПОЛЁТ** — сегментная шкала вариометра ±5 м/с (среднее — треугольник), ВАРИО, СРЕДНЕЕ, КАЧ, ВЫСОТА,
@@ -159,11 +160,12 @@ albedo и эмиссия экрана не тронуты. Параметры �
 Тест: `tests/instruments/test_instrument_wear.gd`.
 
 ## Вариометр 1990-х (FR-25a)
-`VarioDisplay90s` (`scenes/instruments/vario_90s.tscn`) — отдельный прибор на стойке трапеции,
+`VarioDisplay90s` (`scenes/instruments/vario_90s.tscn`) — отдельный прибор на базовой штанге слева от планшета (маркер `VarioMount`),
 обобщённый дизайн без марок: сегментный LCD без подсветки. Дуга из сегментов ±5 м/с, 0 вверху, в центре
 цифровой вариометр, внизу высота крупно, по бокам среднее и время. Свой `Vario` с датчиком медленнее
-(τ 1 с, среднее 20 с). API: `update(t)`, `get_texture()`, `get_vario()`, `reset()`. Модель корпуса —
-агент models (`assets/models/vario_90s.glb`). Звук к нему — `VarioAudio` с пресетом `classic_90s`.
+(τ 1 с, среднее 20 с). API: `update(t, dt := -1)`, `get_texture()`, `get_vario()`, `reset()`. Корпус в 3D — `Vario90s3D`, модель
+`assets/models/vario_90s.glb` ([models/instruments-3d.md](models/instruments-3d.md)). Звук к нему — `VarioAudio` с пресетом
+`classic_90s`: пищит вариометр, заданный в `game.json → vario_sound_from` по пресету (иначе планшета).
 
 ## Звук вариометра
 Пресеты звучания (`vario_audio.presets`, выбор — `preset` или `VarioAudio.set_preset(name)`); громкость и
@@ -187,14 +189,14 @@ albedo и эмиссия экрана не тронуты. Параметры �
 API звука: `set_vario`, `set_preset`, `get_preset`, `get_preset_names`, `set_thresholds`, `set_volume_db`,
 `set_enabled`, `get_settings()` (для страницы 4 планшета).
 
-Между точками — линейная интерполяция. Снижение ниже −2,5 м/с — непрерывное гудение 400 → 220 Гц (−2,5 → −10 м/с).
+Между точками — линейная интерполяция. Снижение ниже −2,5 м/с — непрерывное гудение: xctracer 400 → 220 Гц, classic_90s 650 → 380 Гц (−2,5 → −10 м/с).
 Между порогами — тишина. Гистерезис 0,05 м/с.
 
 Как сделано без щелчков:
 - фаза генератора (волновая таблица, нечётные гармоники — тембр пьезопищалки) непрерывна между буферами;
-- огибающая писка: линейный ход 6/8 мс + S-форма (smoothstep);
-- частота скользит (τ 30 мс), период и скважность фиксируются в начале каждого писка;
-- лёгкий подъём частоты внутри писка на 4 % (`climb_chirp_pct`, 0 — ровный тон);
+- огибающая писка: линейный ход `attack_ms`/`release_ms` (classic_90s 2/3 мс, xctracer 6/8 мс) + S-форма (smoothstep);
+- частота скользит (`frequency_glide_s`: classic_90s 10 мс, xctracer 30 мс), период и скважность фиксируются в начале каждого писка;
+- у xctracer лёгкий подъём частоты внутри писка на 4 % (`climb_chirp_pct`; у classic_90s 0 — ровный тон);
 - результат синтеза не зависит от нарезки буфера (проверено тестом побитово).
 
 Буфер 0,12 с дозаполняется в `_process`. Проверено на стенде: 0 пропусков при 165, 60, 30 и даже 12 FPS
@@ -209,13 +211,13 @@ xvfb-run -a godot --path . --rendering-method gl_compatibility res://scenes/inst
 ```
 Стенд: Tab/Пробел — страница; 1…9 — подъём N м/с; «−» — −3 м/с; 0 — снова синус.
 
-# Звуки полёта (FR-28)
+## Звуки полёта (FR-28)
 
 Компонент `FlightAudio` (`scripts/audio/flight_audio.gd`, сцена `scenes/audio/flight_audio.tscn`).
 Логика — `FlightSoundMix` (RefCounted, тесты `tests/audio/`), нода только держит плееры и шины.
 Алгоритмы — `docs/research/sounds.md` §3; все числа и пути к файлам — `configs/audio.json → flight`.
 
-## API
+### API
 ```gdscript
 flight_audio.update(t: Telemetry, extra := {})  # каждый шаг физики
 # extra (всё необязательно): phase "standing"/"walking"/"running"/"flying"/"landed",
@@ -226,10 +228,10 @@ flight_audio.play_step(surface := "")  # обычно шаги идут сами
 flight_audio.play_carabiner()
 flight_audio.set_enabled(on)
 ```
-Подключение: `glider.telemetry_updated → flight_audio.update(t, {"phase": glider.phase(), ...})`,
-`glider.landed → flight_audio.play_landing`.
+Подключение: `Game` зовёт `flight_audio.update(t, extra)` на каждый шаг телеметрии (`extra` — фаза, срыв, болтанка, ветер у земли),
+`flight_audio.play_landing(result)` — при посадке.
 
-## Слои
+### Слои
 | Слой | Шина | Громкость / тон |
 |---|---|---|
 | rush, rumble, wires (синтез) | Wind | ∝ V^n от v_ref 40 км/ч, с пределами; pitch ∝ V; тросы включаются 25→40 км/ч; бафтинг + болтанка + сваливание |
@@ -237,21 +239,21 @@ flight_audio.set_enabled(on)
 | ФНЧ шины Wind | — | срез 800 + 60·V Гц (до 16 кГц) |
 | панорама шины Wind | — | скольжение/20° · 0,6 |
 | wing (гул паруса) | Effects | ∝ q·n_z |
-| luff + хлопки | Effects | малая скорость (26→33 км/ч) или сваливание; хлопки — пуассон λ = 3 Гц · s² |
+| luff (+ хлопки, выключены) | Effects | малая скорость (26→33 км/ч) или сваливание; хлопки (`sail.snap_rate_hz`, пуассон) сейчас выключены — 0 Гц |
 | скрипы каркаса | Effects | пуассон по перегрузке (1,15→1,8) и болтанке, только в полёте |
-| шаги, дыхание, одышка | Effects | шаг = длина шага / путевая скорость; дыхание нарастает за 4 с бега; одышка после остановки/посадки |
+| шаги, дыхание, одышка, шорох травы под ногами (`rustle`) | Effects | шаг = длина шага / путевая скорость; дыхание нарастает за 4 с бега; одышка после остановки/посадки |
 | посадка | Effects | набор файлов по оценке, громкость ± по вертикальной скорости |
 | луг, птицы, трава, порывы, колокольчики | Ambient | затухание по AGL 20→150 м (колокольчики 50→400 м), трава/порывы ∝ ветер у земли |
 
 Громкость сглаживается (τ 0,2 с); луп ниже −60 дБ останавливается и потом стартует со случайного места.
 
-## Аудиошины
+### Аудиошины
 `scenes/audio/bus_layout.tres`: Master ← Vario, Wind (ФНЧ → панорама → компрессор −6 дБ, 2:1), Effects, Ambient.
 Интегратору: в `project.godot` → `[audio] buses/default_bus_layout="res://scenes/audio/bus_layout.tres"`.
 Без этого `FlightAudio` сам создаёт недостающие шины при запуске (`create_missing_buses`).
 Вариометр — на шине Vario (`vario_audio.bus`), поверх потока.
 
-## Стенд
+### Стенд
 `scenes/audio/flight_audio_preview.tscn`: карабин → шаг → разбег → взлёт → 30–80 км/ч, виражи, болтанка →
 сваливание → посадка → одышка (70 с). Запись в WAV:
 ```
