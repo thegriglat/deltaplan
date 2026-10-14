@@ -1,0 +1,70 @@
+{
+  "id": "DR-18",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Волна 3: dp → dpcli везде, битые ссылки, docs check и hugo без ошибок",
+  "goal": "Упоминаний старого dp не осталось (кроме истории: CHANGELOG, дневник, версии, архив, журналы); все ссылки и related живые; .dpcli/dpcli docs check — 0 ошибок; сайт собирается.",
+  "plan_ref": "Замена dp → dpcli и сборка",
+  "contracts": [
+    {
+      "name": "docs-rework.D1",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D2",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-18",
+  "branch": "docs-rework/DR-18",
+  "base": "feature/docs-rework",
+  "scope": [
+    "docs",
+    "tools",
+    "site/content",
+    "site/hugo.toml",
+    "site/layouts",
+    ".claude/skills",
+    "TODO.md",
+    "README.md",
+    "REQUIREMENTS.md"
+  ],
+  "dont_touch": [
+    "docs/plan/docs-rework",
+    "docs/contracts/docs-rework.md",
+    "site/content/diary",
+    "site/content/releases",
+    "CHANGELOG.md",
+    ".dpcli",
+    "scripts",
+    "tests",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0,"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_dp",
+      "cmd": "git grep -n -E 'tools/dp([^a-z_]|$)|tools/dp_|`dp (task|event|accept|report|status|plan|docs|search|job|lock|decide|inbox|merge|sync|index|render|log|digest|module|questions|answer|review|gc|init|check)\\b|DP_ROLE|DP_CPU_SLOTS|DP_NO_REEXEC' -- . ':!docs/plan/*/**' ':!docs/archive/**' ':!CHANGELOG.md' ':!site/content/diary/**' ':!site/content/releases/**' ':!.dpcli/**' ':!docs/plan/docs-rework*' ':!docs/contracts/docs-rework.md'; true",
+      "expect": "!re:\\S"
+    },
+    {
+      "name": "no_plans_on_site",
+      "cmd": "grep -rn -E '\\]\\(/plans|movedPaths' site/content site/hugo.toml site/layouts; true",
+      "expect": "!re:\\S"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T02:44:19"
+}
