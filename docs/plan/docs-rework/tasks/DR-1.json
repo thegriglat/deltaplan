@@ -1,0 +1,63 @@
+{
+  "id": "DR-1",
+  "module": "docs-rework",
+  "type": "dp-mechanic",
+  "title": "Хвосты dp: убрать tools/dp*, check gd отдельным скриптом, скиллы на dpcli",
+  "goal": "Старые tools/dp, tools/dp.md, tools/dp_docs.py, tools/dp_migrate.py удалены; проверка .gd из хука pre-commit (dp check gd) работает как раньше отдельным tools/check_gd.py; скиллы diary и new-release зовут .dpcli/dpcli.",
+  "plan_ref": "dpcli-хвосты",
+  "contracts": [
+    {
+      "name": "docs-rework.D1",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-1",
+  "branch": "docs-rework/DR-1",
+  "base": "feature/docs-rework",
+  "scope": [
+    "tools/dp",
+    "tools/dp.md",
+    "tools/dp_docs.py",
+    "tools/dp_migrate.py",
+    "tools/check_gd.py",
+    "tools/hooks/pre-commit",
+    ".claude/skills/diary",
+    ".claude/skills/new-release",
+    ".claude/settings.json"
+  ],
+  "dont_touch": [
+    "docs",
+    "site",
+    ".dpcli",
+    ".claude/agents",
+    ".claude/workflow.md",
+    "tools/research",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "removed",
+      "cmd": "test ! -e tools/dp -a ! -e tools/dp.md -a ! -e tools/dp_docs.py -a ! -e tools/dp_migrate.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "check_gd_help",
+      "cmd": "python3 tools/check_gd.py -h",
+      "expect": "exit=0"
+    },
+    {
+      "name": "hook_points",
+      "cmd": "grep -c 'tools/check_gd.py' tools/hooks/pre-commit",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "no_dp_refs",
+      "cmd": "git grep -n -E 'tools/dp([^a-z_]|$)|tools/dp_|dp_docs|dp_migrate|DP_ROLE|tools/dp\\.md' -- . ':!docs' ':!tools/research' ':!site' ':!.dpcli' ':!CHANGELOG.md'; true",
+      "expect": "!re:\\S"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T01:52:53"
+}
