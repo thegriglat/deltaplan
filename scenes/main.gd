@@ -346,7 +346,11 @@ func _fly(s: FlightSettings, inspect := false) -> void:
 	game.air_start_agl_m = opts.air_start_agl_m
 	game.inspect_mode = inspect
 	game.bots_count = 0 if inspect else (opts.bots if game.net == null else 0)  # боты зоны — NET-44
+	_note_crash_settings(s, inspect)
 	var ok: bool = await game.start(s)
+	CrashReporter.note_stage("flight" if ok else "")
+	if ok:
+		CrashReporter.note_setting("bots", game.bots_count)
 	if ok and game.net != null:
 		ok = await game.net.join_world()  # мир — на время зоны, сверка ключа мира
 	loading_screen.close()
@@ -481,6 +485,7 @@ func _show_menu() -> void:
 	_end_look_around(false)
 	_end_net()
 	state = State.MENU
+	CrashReporter.note_stage("")
 	get_tree().paused = false
 	var overlays: Array[Control] = [
 		pause_menu,
@@ -1239,6 +1244,28 @@ func _perf() -> void:
 	)
 	print("PERF cloud_build_ms=%.1f" % CloudCompositorEffect.build_ms)
 	_quit(0)
+
+
+## Что выбрано для полёта — в метку сессии (отчёт о вылете, CrashReporter).
+func _note_crash_settings(s: FlightSettings, inspect: bool) -> void:
+	var place := s.location_id
+	if s.has_pick():
+		place = "точка %.4f, %.4f" % [s.pick_lat, s.pick_lon]
+	elif s.site_id != "":
+		place += " / " + s.site_id
+	var wind := "%.1f км/ч, %s" % [
+		s.wind_speed_kmh, "в лоб старту" if s.wind_into_launch else "с %d°" % int(s.wind_from_deg)
+	]
+	CrashReporter.note_setting("graphics", GraphicsPresets.current())
+	CrashReporter.note_setting("place", place)
+	CrashReporter.note_setting("wind", wind)
+	CrashReporter.note_setting(
+		"wind_model", String(Config.value("atmosphere", "air_model.enabled", "auto"))
+	)
+	CrashReporter.note_setting("bots", 0 if inspect else opts.bots)
+	CrashReporter.note_setting("multiplayer", game.net != null)
+	CrashReporter.note_setting("inspect", inspect)
+	CrashReporter.note_stage("start")
 
 
 func _quit(code: int) -> void:

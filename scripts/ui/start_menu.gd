@@ -117,6 +117,7 @@ func _build() -> void:
 		UiKit.heading(self, tr("app_title"), 56.0)
 	_add_quote(tr("menu_quote"))
 	_add_version()
+	_add_crash_report_note()
 	# Полупрозрачная подложка — только под колонкой кнопок, не во весь экран.
 	var box := _scrolling_column()
 	_status = UiKit.label(box, "", "HintLabel")
@@ -283,6 +284,23 @@ func _add_quote(text: String) -> void:
 
 
 ## Версия (и короткий коммит сборки) мелким текстом в правом нижнем углу.
+## Неприметная строка внизу слева: отчёт о прошлом вылете отправлен (CrashReporter).
+func _add_crash_report_note() -> void:
+	var l := Label.new()
+	l.name = "CrashReportLabel"
+	l.text = tr("menu_crash_report_sent")
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	l.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	l.offset_left = 16.0
+	l.offset_bottom = -10.0
+	l.add_theme_font_size_override("font_size", 14)
+	l.add_theme_color_override("font_color", Color(1, 1, 1, 0.4))
+	l.visible = CrashReporter.sent
+	add_child(l)
+	CrashReporter.report_sent.connect(func() -> void: l.visible = true)
+
+
 func _add_version() -> void:
 	var c := BuildInfo.commit()
 	var l := Label.new()
