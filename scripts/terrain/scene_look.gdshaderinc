@@ -11,8 +11,11 @@ uniform float sl_lat_deg = 0.0;      // широта центра места, г
 uniform float sl_doy = 196.0;        // день года 1…366 (по умолчанию 15 июля)
 
 // --- SL-2: свет — небо сверху, земля снизу ---
+#ifndef T_SL_LIGHT_OFF
 uniform bool sl_light_enabled = false;
+#endif
 uniform vec3 sl_sun_dir = vec3(0.0, 1.0, 0.0);   // направление НА солнце (мир)
+#ifndef T_SL_LIGHT_OFF
 // Рассеянный свет Godot (небо sky.gdshader × ambient_light_energy × sky_energy × доля неба), линейный:
 // верхняя полусфера (≈ цвет зенита) и нижняя (sky.ground_bottom_color — серо-зелёная, без солнца).
 uniform vec3 sl_sky_up = vec3(0.0);
@@ -33,6 +36,7 @@ uniform float sl_canopy_shadow_k = 0.8;    // доля полога в тени 
 uniform float sl_canopy_hide_p = 2.0;      // скрытие теней по фазовому углу: ((1 + cos ξ) / 2)^p
 uniform vec2 sl_canopy_hotspot = vec2(0.3, 0.12);  // горячее пятно: добавка, полуширина (рад)
 uniform float sl_tree_far_desat = 0.3;     // импостеры вдали: обесцвечивание (как canopy_far_sat полога)
+#endif
 
 // --- SL-17 (SL-К4): своё расстояние смены формы у каждого дерева (модель → импостер) ---
 // Множитель k ∈ [trees.lod_k_min, trees.lod_k_max] — хеш мировых координат дерева по сетке 4 м (без
@@ -58,12 +62,15 @@ float sl_lod_noise(vec2 fragcoord) {
 	return fract(52.9829189 * fract(dot(fragcoord, vec2(0.06711056, 0.00583715))));
 }
 
+#ifndef T_SL_LIGHT_OFF
 varying float v_sl_ny;    // мировая нормаль · вверх (доля нижней полусферы в рассеянном свете)
 varying float v_sl_ao;    // AO рассеянного света точки
 varying float v_sl_sun;   // множитель прямого солнца облаками в точке (для света земли вокруг)
+#endif
 
 const vec3 SL_LW = vec3(0.2126, 0.7152, 0.0722);
 
+#ifndef T_SL_LIGHT_OFF
 // Земля снизу (вызывать в light(), прибавляет к DIFFUSE_LIGHT): нижняя полусфера неба Godot
 // (sl_ground_low) заменяется светом, отражённым от земли: ρ_земли · (солнце на горизонтальную
 // поверхность + небо). Доля нижней полусферы в косинусно-взвешенном свете — (1 − n_y) / 2.
@@ -173,15 +180,19 @@ vec3 sl_tree_tone(vec3 rgb, float mean_luma, float con, float dist, float t, flo
 	float target = mix(sl_canopy_albedo.y, sl_canopy_albedo.x, con);
 	return rgb * mix(1.0, target / m, sl_canopy_far(dist));
 }
+#endif
 
 #ifndef SL_NO_GROUND   // SL-5 использует vnoise/fbm/forest_mask_g из terrain_common
 // --- SL-5: крупные пятна, прибрежная зелень, граница леса ---
 // Широта места — SL-К2: sl_lat_deg.
 // Крупные пятна тона 0,5–3 км (один fbm из 2 октав) на лугах и в лесу
+#ifndef T_SL_PATCH_OFF
 uniform bool sl_patch_enabled = false;
 uniform float sl_patch_scale_m = 2400.0;  // длина волны первой октавы, м (вторая — вдвое короче)
 uniform float sl_patch_k = 0.1;           // ± яркость пятен
 uniform float sl_patch_hue = 0.5;         // сдвиг тёплый/холодный относительно яркости
+#endif
+#ifndef T_SL_RIPARIAN_OFF
 // Прибрежная зелень: доля воды маски 10 м в 12 точках двух колец (R, R/2) вокруг пикселя
 uniform bool sl_riparian_enabled = false;
 uniform float sl_riparian_radius_m = 60.0; // полоса до R от воды, в полную силу — до 0,7·R
@@ -189,6 +200,8 @@ uniform float sl_riparian_sat = 0.3;       // средняя доля воды �
 uniform float sl_riparian_k = 0.6;         // подмес сочного grass_color (яркость сохраняется)
 uniform float sl_riparian_bright = 0.18;   // добавка яркости
 uniform vec2 sl_riparian_fade_m = vec2(800.0, 3000.0);  // вдали полоса уже мельче пикселя — гаснет
+#endif
+#ifndef T_SL_TREELINE_OFF
 // Граница леса от широты: высота (м) в узлах широты (градусы, по |lat|), между ними линейно
 uniform bool sl_treeline_enabled = false;
 uniform vec4 sl_treeline_lat = vec4(0.0, 30.0, 47.0, 70.0);  // таблица границы леса (SL-К1: каждый ключ — uniform); шейдер берёт готовую sl_treeline_h
@@ -199,34 +212,44 @@ uniform vec2 sl_treeline_blend_m = vec2(80.0, 250.0);  // альпийский �
 uniform float sl_treeline_top_m = 700.0;   // выше границы + это альпийский тон сходит на нет (камень — прежний код)
 uniform vec3 sl_treeline_tint = vec3(1.1, 0.98, 0.72);  // альпийский луг: ниже ростом, охристо-зелёный (множитель цвета луга)
 uniform float sl_treeline_gap_m = 70.0;    // размер просветов у границы леса, м
+#endif
 
+#ifndef T_SL_PATCH_OFF
 // Пятно тона: −1…1 (низкочастотный fbm), множитель цвета.
 vec3 sl_patch_mul(vec2 xz) {
 	float t = clamp((fbm(xz / sl_patch_scale_m + vec2(17.3, 5.9), 1) - 0.5) * 4.0, -1.0, 1.0);
 	float b = sl_patch_k * t;
 	return (1.0 + b) * vec3(1.0 + sl_patch_hue * b, 1.0, 1.0 - sl_patch_hue * b);
 }
+#endif
 
+#ifndef T_SL_TREELINE_OFF
 // Вес альпийского луга на высоте h: растёт от границы леса, сходит выше (камень).
 float sl_alpine_w(float h, float tl) {
 	return smoothstep(tl - sl_treeline_blend_m.x, tl + sl_treeline_blend_m.y, h)
 			* (1.0 - smoothstep(tl + 0.5 * sl_treeline_top_m, tl + sl_treeline_top_m, h));
 }
+#endif
 
 // Луг: пятна, альпийский тон.
 vec3 sl_meadow(vec3 c, vec3 wp) {
+#ifndef T_SL_PATCH_OFF
 	if (sl_patch_enabled) {
 		c *= sl_patch_mul(wp.xz);
 	}
+#endif
+#ifndef T_SL_TREELINE_OFF
 	if (sl_treeline_enabled) {
 		float w = sl_alpine_w(wp.y + 40.0 * (vnoise(wp.xz / 180.0) - 0.5), sl_treeline_h);
 		c = mix(c, c * sl_treeline_tint, w);
 	}
+#endif
 	return c;
 }
 
 // Полог (пятна в лесу не нужны — их даёт полог): у границы леса просветы и выше — луг (gcol уже альпийский).
 vec3 sl_forest(vec3 f, vec3 gcol, vec3 wp) {
+#ifndef T_SL_TREELINE_OFF
 	if (sl_treeline_enabled) {
 		float p = smoothstep(sl_treeline_h - sl_treeline_thin_m, sl_treeline_h, wp.y);
 		if (p > 0.0) {
@@ -235,9 +258,11 @@ vec3 sl_forest(vec3 f, vec3 gcol, vec3 wp) {
 			f = mix(f, gcol * 0.85, gap);
 		}
 	}
+#endif
 	return f;
 }
 
+#ifndef T_SL_RIPARIAN_OFF
 // Средняя доля воды в 4 точках на радиусе 0,65·R (крест, повёрнут на 20°) вокруг xz: маска G 10 м
 // (мипов у неё нет, поэтому 4 выборки вместо 12).
 float sl_riparian_ring(vec2 xz) {
@@ -258,6 +283,7 @@ vec3 sl_riparian_color(vec3 c, vec3 grass, float w) {
 	vec3 lush = grass * (l / max(dot(grass, SL_LW), 1e-3));
 	return mix(c, lush, sl_riparian_k * w) * (1.0 + sl_riparian_bright * w);
 }
+#endif
 
 #endif
 // --- SL-6: сезон по дате полёта, широте и высоте (контракт SL-К2; зеркало — scripts/terrain/season_look.gd,
@@ -265,6 +291,7 @@ vec3 sl_riparian_color(vec3 c, vec3 grass, float w) {
 // (весна позже, осень раньше); южное полушарие — дата сдвинута на полгода; тропики (|φ| < ~23°) без
 // сезона. Сезон считается в пикселе (рельеф) / вершине (трава, импостеры, модели) только по высоте:
 // дата и широта — uniform-ы. ---
+#ifndef T_SL_SEASON_OFF
 uniform bool sl_season_enabled = false;
 uniform vec2 sl_season_hopkins = vec2(4.0, 122.0);      // дней и метров на единицу сдвига
 uniform float sl_season_autumn_alt_k = 0.5;             // доля высотного сдвига для осени
@@ -339,8 +366,10 @@ vec4 sl_season_sp(float kind, float alt) {
 	float rel;
 	return sl_season_f(kind > 1.5 ? sl_season_pre.y : sl_season_pre.x, sl_season_pre.z, sl_season_pre.w, alt, rel);
 }
+#endif
 
 #ifndef SL_NO_GROUND   // нужен terrain_common (палитра луга, поля); у tree_model.gdshader его нет
+#ifndef T_SL_SEASON_OFF
 // Цвет луга по ряду сухости (как meadow_color_dry в terrain_common, без пятен).
 vec3 sl_meadow_ramp(float dry) {
 	vec3 c = dry < 0.5 ? mix(grass_color, dry_grass_color, dry * 2.0)
@@ -405,9 +434,11 @@ float sl_field_height(vec2 xz, float rel) {
 	float grow = mix(0.25, 1.0, smoothstep(sl_season_crop_days.x, sl_season_crop_days.x + 50.0, rel));
 	return mix(grow, 0.15, smoothstep(harvest, harvest + 4.0, rel));
 }
+#endif
 
 #endif
 
+#ifndef T_SL_SEASON_OFF
 // Тон осенней листвы: оттенок season_autumn_color, яркость — от исходного цвета × luma_k (тон
 // отдельно от яркости: множитель альбедо по породам ложится поверх).
 vec3 sl_autumn_tone(vec3 rgb, float luma_k) {
@@ -445,8 +476,10 @@ vec3 sl_tree_season(vec3 rgb, vec4 s, float kind) {
 bool sl_leaf_gone(float bare, float n) {
 	return n < bare * 0.85;
 }
+#endif
 
 #ifndef SL_NO_GROUND   // SL-8 использует vnoise/hash12 из terrain_common
+#ifndef T_SL_TRAILS_OFF
 // --- SL-8: скотные тропы с высоты ---
 // Горизонтальные ступеньки на крутом лугу (шаг по высоте 1–3 м): светлая полка (тропа, ровная —
 // освещена как горизонталь) и подъём уступа (обращён вниз по склону — тень, если солнце с
@@ -507,8 +540,10 @@ vec3 sl_trails(vec3 c, vec2 p, float h, vec3 nc, float slope_deg, float fh, vec3
 	return c * mix(1.0, tone, k * sl_trails_strength);
 }
 #endif
+#endif
 
 #ifndef SL_NO_GROUND   // SL-9 использует vnoise/hash12 из terrain_common
+#ifndef T_SL_ROCK_OFF
 // --- SL-9: анти-тайлинг скал и осыпей, конусы выноса ---
 uniform bool sl_rock_enabled = false;
 uniform float sl_rock_anti = 0.22;                  // размах яркости разрывающего слоя (± доля)
@@ -652,6 +687,7 @@ vec3 sl_rock_nrm(vec3 n, vec3 rg, float w) {
 	}
 	return normalize(n - rg * (sl_rock_bump * w));
 }
+#endif
 
 #endif
 // --- SL-15: волны ветра по траве с высоты — блеск по солнцу и оттенок ---
@@ -661,6 +697,7 @@ vec3 sl_rock_nrm(vec3 n, vec3 rg, float w) {
 // относительно солнца и взгляда, величина — высоту (солнце в зените и камера над головой → 0).
 // far — маска порыва grass_wind_far (уже посчитана, 0…~1), base — прежнее равномерное посветление
 // wind_far_shade (заменяется направленным, чтобы в тёмной полосе не было «плюс-минус»).
+#ifndef T_SL_WIND_SHEEN_OFF
 uniform bool sl_grass_wind_sheen_enabled = false;
 uniform float sl_grass_wind_sheen_gain = 0.3;    // ±доля яркости при s = ±1 и far = 1
 uniform float sl_grass_wind_sheen_tint = 0.6;    // доля сдвига оттенка (светлая полоса к сизо-жёлтому, тёмная к глубокой зелени)
@@ -688,13 +725,16 @@ vec3 sl_wind_sheen(vec3 c, float far, float base, vec2 wind, vec3 v) {
 	c = mix(c, s > 0.0 ? lit : dark, clamp(a, 0.0, 1.0));
 	return c * (1.0 + sl_grass_wind_sheen_gain * s * far);
 }
+#endif
 
 // --- SL-10: свежий снег выше сезонной снеговой линии и ледники (контракт SL-К2 v2; зеркало —
 // scripts/terrain/season_look.gd, формулы правятся вместе). Линия: летняя высота по широте (кусочно-
 // линейная таблица по узлам sl_snow_lats) минус зимнее опускание по сезонному косинусу с минимумом
 // в sl_snow_min_day (конец зимы); южное полушарие — дата +182,5. Дата и широта — на CPU (sl_snow_pre.x =
 // высота линии, м; SeasonLook.apply_pre), в пикселе — только сравнение с высотой. ---
+#ifndef T_SL_SNOW_OFF
 uniform bool sl_snow_enabled = false;
+#endif
 uniform vec4 sl_snow_lats = vec4(10.0, 46.0, 60.0, 70.0);            // узлы таблицы линии, градусы широты
 uniform vec4 sl_snow_line_summer = vec4(4900.0, 3200.0, 1500.0, 500.0);  // высота линии летом (наивысшая), м
 uniform vec4 sl_snow_line_winter_drop = vec4(0.0, 2000.0, 1700.0, 500.0);  // зимнее опускание линии, м
@@ -720,6 +760,7 @@ float sl_snow_line(float doy, float lat) {
 	return sl_snow_interp(sl_snow_line_summer, al) - sl_snow_interp(sl_snow_line_winter_drop, al) * w;
 }
 
+#ifndef T_SL_SNOW_OFF
 // Свежий снег 0…1 на высоте alt: не убывает с высотой, плавный переход в полосе sl_snow_fresh_band_m.
 float sl_snow_fresh(float doy, float lat, float alt) {
 	if (!sl_snow_enabled) {
@@ -736,15 +777,19 @@ float sl_snow_fresh_b(float alt) {
 	}
 	return smoothstep(sl_snow_pre.x, sl_snow_pre.x + sl_snow_fresh_band_m, alt);
 }
+#endif
 
 #ifndef SL_NO_GROUND   // SL-10 использует vnoise из terrain_common
+#ifndef T_SL_GLACIER_OFF
 uniform bool sl_glacier_enabled = false;
 uniform vec3 sl_glacier_color = vec3(0.3, 0.31, 0.33);   // грязный лёд/фирн, линейный RGB
 uniform float sl_glacier_dirt = 0.7;                     // доля серого цвета на леднике
 uniform vec2 sl_glacier_slope_deg = vec2(14.0, 26.0);    // ледник на пологом: полностью до первого, исчезает к второму
 uniform vec2 sl_glacier_crevasse_m = vec2(14.0, 45.0);   // шаг трещин поперёк течения, м; период по длине (разломы)
 uniform float sl_glacier_crevasse = 0.6;                 // сила трещин, доля
+#endif
 
+#ifndef T_SL_SNOW_OFF
 // Свежий снег поверх готового цвета: выше линии на дату и широту, не на крутом (сползает); кромка рваная.
 vec3 sl_fresh_snow(vec3 col, vec3 snow_col, vec2 xz, float h, float slope_deg, float forest) {
 	float f = sl_snow_fresh_b(h);
@@ -757,7 +802,9 @@ vec3 sl_fresh_snow(vec3 col, vec3 snow_col, vec2 xz, float h, float slope_deg, f
 	f *= 1.0 - 0.5 * forest;
 	return mix(col, snow_col * (0.94 + 0.06 * n), f);
 }
+#endif
 
+#ifndef T_SL_GLACIER_OFF
 // Цвет снега класса на леднике (ниже сезонной линии, полого, в вогнутости): грязно-серый, поперёк
 // течения (поперёк линии падения) полосы трещин. cv — выпуклость (−1…1, <0 вогнуто), foot — след пикселя, м.
 vec3 sl_glacier(vec3 wcol, vec2 xz, vec3 n_class, float slope_deg, float cv, float h, float foot) {
@@ -783,4 +830,5 @@ vec3 sl_glacier(vec3 wcol, vec2 xz, vec3 n_class, float slope_deg, float cv, flo
 	float cr = line * seg * steep * g * sl_glacier_crevasse;
 	return mix(col, col * vec3(0.18, 0.24, 0.32), cr * kf) * (1.0 - 0.1 * cr * (1.0 - kf));
 }
+#endif
 #endif

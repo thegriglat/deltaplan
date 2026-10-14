@@ -1,0 +1,125 @@
+{
+  "status": "done",
+  "summary": "Шейдер рельефа распилен по SL-К6 v2. Тело перенесено в terrain_main.gdshaderinc, 28 дорогих частей (10 из scene-look и 18 частей самого рельефа) стоят под #ifndef T_*_OFF вместе со своими uniform-ами. terrain.gdshader стал вариантом full, кадры стенда до и после распила совпадают побитово. Добавлен закоммиченный вариант min, где все части выключены. TerrainRenderer выбирает вариант по world.terrain.variant / variant_far / variant_far_lod (сейчас у всех пресетов full); при смене пресета меняются шейдеры материалов, используемые варианты прогреваются при загрузке. Для SL-22 готов скрипт замера «без части X» tools/terrain/variant_bench.py.",
+  "commits": [
+    "abb82134 распил: тело в terrain_main, 28 частей под #ifndef T_*_OFF, вариант min, .gitignore для variants/_bench",
+    "25f43ed4 uid варианта min",
+    "e75bb56d TerrainRenderer: выбор варианта по пресету/LOD, прогрев, Config.reloaded; configs world.terrain.* и пресеты (full); variant_bench.py + variant_setup.tscn; GPU-тест вариантов; контрактные тесты К6",
+    "d2d5573b влита feature/scene-look (SL-24, контракт К6 v2)",
+    "1518824b тесты читают тело шейдера из terrain_main (scene_look_contracts, mountain_look_contracts, city_trees); проверка смены шейдера на одном куске"
+  ],
+  "checks": [
+    {
+      "name": "terrain",
+      "value": "128/128 (пропуск 8)",
+      "pass": true
+    },
+    {
+      "name": "vegetation",
+      "value": "44/44",
+      "pass": true
+    },
+    {
+      "name": "scene_look_contracts",
+      "value": "28/28",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gpu terrain_variants",
+      "value": "30 вариантов (2 закоммиченных + 28 «без X»): ошибок шейдера 0, все рисуют кусок; full→min→full параметры сохраняются",
+      "pass": true
+    },
+    {
+      "name": "gpu season",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "mountain_look_contracts, city_trees (тесты, читающие текст шейдера)",
+      "value": "9/9, 9/9",
+      "pass": true
+    },
+    {
+      "name": "full до/после распила",
+      "value": "S1, S3, S5: разница 0; U1: max 1/255 на 0,24 % пикселей (повтор базы без правок тоже даёт 0,05 %)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Полный замер «эффект → мс» не делал: это задача SL-22. Сделан только пробный прогон на пресете low.",
+    "Стенд terrain_preview не применяет viewport-часть пресета (scale_3d 0,75 + FSR, MSAA, атлас и качество теней солнца); замер идёт только по config-части пресета. Чтобы это исправить, нужна правка scripts/terrain/terrain_preview.gd (вызов GraphicsPresets.apply_viewport), а этот файл вне моего скоупа.",
+    "Общие для нескольких частей uniform-ы и функции не обёрнуты, потому что их используют другие части: wind_far_* и wind_far_gusts (трава и вода), band_size_m и fall_bands (луг и выходы породы), canopy_cell_m, rock_tex_tile_m, rock_macro_k, scree_tex_tile_m (их получает sl_rock_look), uniform-ы линии снега (нужны леднику), sl_sun_dir (нужен SL-15). Неиспользуемые функции компилятор выбрасывает сам."
+  ],
+  "questions": [
+    "Без согласования поправил тесты вне скоупа: в tests/contracts/test_mountain_look_contracts.gd и tests/world_objects/test_city_trees.gd путь чтения текста шейдера terrain.gdshader → terrain_main.gdshaderinc (по одной строке). Без этого они падали после распила. Устраивает такое решение?",
+    "Дальний вариант применяется к фоновому слою целиком и к LOD детального слоя начиная с variant_far_lod (по умолчанию 2, то есть дальше ~3,5 км). Порог задаётся ключом конфига, так что SL-23 может его менять."
+  ],
+  "images": [],
+  "how_to_check": "dp accept SL-21; tools/gpu_tests.sh --filter=terrain_variants; tools/gpu_tests.sh --filter=season; python3 tools/terrain/variant_bench.py parts. Пробный замер: /home/greg/deltaplan/tools/dp lock gpu sl22 -- python3 tools/terrain/variant_bench.py run --out=build/variant_bench --presets=low --variants=full,min",
+  "uncertain": [
+    "Прогрев: на каждый используемый вариант добавляется кусок 1×1 клетка (копия материала детального слоя). Весь кусок отбрасывается discard (hole на весь мир), он рисуется 30 кадров и затем удаляется. Расчёт на то, что Godot собирает шейдер и пайплайн, как только кусок попадает в отрисовку, но заминку при первой смене LOD на другой вариант я не измерял: сейчас все пресеты full, и прогревать нечего.",
+    "Смена пресета: TerrainRenderer слушает Config.reloaded и при изменении world.terrain.* ставит материалам новый шейдер. GPU-тест подтверждает, что параметры материала при смене шейдера full→min→full сохраняются. Живую смену пресета в игре не проверял.",
+    "Пробный прогон, low, Онгудай AGL 800, по одному прогону: full 7,23 мс, min 2,39, без relief_detail 7,04, без sl_light 7,28, все SL-части выключены 5,87, все части рельефа выключены 2,68. Это ориентиры для SL-22, а не замер.",
+    "draw_calls в кадре бенча: full 141, min 78. При этом у групп «все SL выключены» и «все части рельефа выключены» по 141. Число снимается в последнем кадре, разницу я не разбирал. Скорее всего это кадровый артефакт, но SL-22 стоит на него посмотреть.",
+    "Замены для выключенных частей рельефа (не scene-look) — мой выбор. FOREST_EDGE: кромка леса по карте классов 25 м. CANOPY: полог средним тоном, без крон, гашение крон в городе тоже выключено. SCREE: нет осыпей и, вслед за ними, конусов выноса SL-9 (slope_up = 0). ROCK_DETAIL: ровный rock_color плюс текстура. ROCK_SURFACE: скала выглядит как дальше rock_macro_fade_m. WATER_WIND: вода как в штиль, зеркало. SURFACE_WARP: кромки классов без извилин (в том числе в вершинном шейдере). RELIEF_DETAIL и EROSION: как при relief_detail_enabled / erosion_enabled = false. Визуально ни одну замену не проверял.",
+    "При слиянии с feature/scene-look кадры S1/S3/U1 изменились из-за SL-24 (tree_cross.gdshader). Чтобы отделить это, сверял кадры с tree_cross.gdshader от до-слияния: разница 0."
+  ],
+  "dp_feedback": "dp lock gpu <имя> -- <команда> запускает команду как job в tmux и пишет «PID…, лог…»; по выводу непонятно, ждёт ли он конца (по факту ждёт). Стоит явно печатать «готово, код N». dp task sync отказывает на грязной копии; хотелось бы режима --commit-first или подсказки, какие файлы мешают. Нет команды для A/B-кадров стенда «до/после» с числовой разницей; написал свой shots_eq.sh + cmp.py в scratchpad, просится в dp как «dp shots diff <копия> <ref> --frames=S1,S3».",
+  "extra": {
+    "trial_bench_low_ms": {
+      "full": 7.23,
+      "min": 2.39,
+      "no_relief_detail": 7.04,
+      "no_sl_light": 7.28,
+      "all_sl_off": 5.87,
+      "all_terrain_parts_off": 2.68
+    },
+    "trial_dir": "~/deltaplan-scene-look-SL-21/build/variant_bench_trial (results.jsonl, summary.csv/md)"
+  },
+  "parts": {
+    "T_SL_LIGHT_OFF": "SL-2/SL-14 свет: sl_ground_light в light() (на каждый источник), дальняя тень sl_relief_shadow (asin, smoothstep), полог sl_canopy_direct (exp, acos, pow ×2), sl_canopy_tone; 3 varying. Текстур 0, ~40 ALU и 5 трансцендентных на пиксель. Выкл = light_enabled=false",
+    "T_SL_PATCH_OFF": "SL-5 пятна 0,5–3 км: fbm в 1 октаву (vnoise, 4 хеша) на пиксель луга. Выкл = patch_enabled=false",
+    "T_SL_TREELINE_OFF": "SL-5 граница леса: vnoise на лугу и vnoise в лесу у границы. Выкл = treeline_enabled=false",
+    "T_SL_RIPARIAN_OFF": "SL-5 прибрежная зелень: 4 выборки маски 10 м на луге/кустарнике ближе 3 км. Выкл = riparian_enabled=false",
+    "T_SL_SEASON_OFF": "SL-6 сезон: sl_season_f ×2 (~10 smoothstep), поле: 3 хеша и vnoise, осенний тон полога. Текстур 0. Выкл = season_enabled=false",
+    "T_SL_TRAILS_OFF": "SL-8 скотные тропы: 4 vnoise, хеш и fwidth на склонах 16–35° дальше 60 м. Выкл = trails_enabled=false",
+    "T_SL_ROCK_OFF": "SL-9 анти-тайлинг скал и осыпей: до 3 sl_noise_d (по 4 хеша), 2–3 vnoise, хеш глыб; конусы выноса — 3 vnoise; только скалы и осыпи. Выкл = rock_enabled=false",
+    "T_SL_WIND_SHEEN_OFF": "SL-15 блеск ветра: несколько ALU внутри пятна порыва. Выкл = grass_wind_sheen_enabled=false",
+    "T_SL_SNOW_OFF": "SL-10 свежий снег: vnoise выше сезонной линии. Выкл = snow_enabled=false",
+    "T_SL_GLACIER_OFF": "SL-10 ледник: 3 vnoise на снегу класса 8 ниже линии. Выкл = glacier_enabled=false",
+    "T_RELIEF_DETAIL_OFF": "Форма гор вдали (mountain-look, вершинный шейдер, а также проход теней и глубины): до 12 texelFetch высот, surface_weights (6 vnoise + 4 fetch), окно максимумов 3×4 texelFetch, 2 textureLod, на вершину. Выкл = relief_detail_enabled=false (силуэт по высотам физики)",
+    "T_EROSION_OFF": "Промоины: фрагмент — 4 выборки высот и до 4 октав × 4 ячейки (хеш, sin); вершина — 3 октавы cos/sin внутри relief_detail; до 7–14 км. Выкл = erosion_enabled=false",
+    "T_CANOPY_OFF": "Кроны полога: canopy() ×2 (куртины и кроны), в каждой canopy_nearest ×2 по 9 клеток × 3 хеша, то есть ~108 хешей на пиксель леса вблизи; плюс маска крон города (1 выборка). Выкл: полог средним тоном, как вдали (crown_k=0)",
+    "T_MEADOW_DETAIL_OFF": "Фактура луга meadow_detail: тон 2 vnoise, fall_bands до 3 vnoise, терраски 2 vnoise, куртины fbm2, кочки 2 vnoise + fbm2 + vnoise, мелочь vnoise, камни 5 хешей и 2 vnoise — около 15 vnoise вблизи. Выкл: луг без фактуры 5–200 м",
+    "T_FIELD_DETAIL_OFF": "Фактура поля: fbm2, хеш, sin; только пашня. Выкл: участки без борозд, колей и меж",
+    "T_MEADOW_MACRO_OFF": "Пятна луга с высоты meadow_macro (meadow_look): 5 выборок macro_noise_tex с мипами, хеши покосов. Выкл: луг без пятен 20 м…2 км",
+    "T_GRASS_TEX_OFF": "Текстура травы: notile ×2 (vnoise) и 4 textureGrad альбедо + 2 нормали в пределах detail_fade_m. Выкл = use_grass_tex=false",
+    "T_GRASS_WIND_OFF": "Ветер по траве: grass_wind (5 wind_noise, 1 выборка поля ветра, цикл термиков до 8 × 2 шума) и grass_wind_far (2–3 выборки macro_noise); до 3–3,5 км. Выкл: без волн ветра на рельефе (травинки качаются как раньше); SL-15 тоже выключается",
+    "T_WATER_WIND_OFF": "Вода от ветра: поле ветра 1, маска 4, macro_noise 2 выборки и 6 vnoise; только вода. Выкл: штиль, зеркало (water_roughness)",
+    "T_ROCK_TEX_OFF": "Текстуры скал и осыпей: скала 2–3 альбедо + 2 нормали, крупный слой трипланаром до 3 + 3, осыпь 1–2, коренная порода 1 (textureGrad). Выкл = use_rock_tex=use_scree_tex=false",
+    "T_ROCK_DETAIL_OFF": "Процедурная порода на скалах: 4 fbm (11 vnoise), слоистость sin, лишайник. Выкл: ровный rock_color (с текстурой, если она есть)",
+    "T_ROCK_SURFACE_OFF": "Скальная поверхность на средней дистанции: альпийский тон fbm2, тон 2 vnoise, трещины и полосы 2 vnoise, уступы fbm2 + vnoise, крупная текстура (под ROCK_TEX); скалы ближе 12 км. Выкл: как дальше rock_macro_fade_m",
+    "T_OUTCROP_OFF": "Выходы породы и курумник на гребнях и крутых лугах: 2 vnoise, fbm2, fall_bands (3 vnoise), vnoise; блок цвета: 3 vnoise, хеши глыб, текстуры. Выкл: outcrop=kurum=0 (3D-камни RockScatter не меняются)",
+    "T_SCREE_OFF": "Осыпи под обрывами: bilinear_normal (4 texelFetch), маска 4 выборки, fbm3, ragged_edge 2 vnoise, цвет fbm3; склоны круче 14°. Выкл: нет осыпей, slope_up=0, поэтому нет и конусов выноса SL-9",
+    "T_GULLY_SNOW_OFF": "Снег в кулуарах: 5 h_bilinear (20 texelFetch), ragged_edge 2 vnoise, fbm2; выше gully_snow_line − 450 м. Выкл: gsnow=0",
+    "T_FOREST_EDGE_OFF": "Кромка леса по маске 10 м: 3 vnoise и 5 выборок маски (плюс 4 в осыпях), вблизи (след пикселя < 25 м). Выкл: лес по карте классов 25 м, как вдали",
+    "T_DETAIL_OFF": "Мелкая детализация: цвет fbm3 + 3 vnoise; шум нормали 3×fbm3 (9 vnoise); в пределах detail_fade_m. Выкл: как за detail_fade_m",
+    "T_SURFACE_WARP_OFF": "Извилистость кромок классов в surface_weights (terrain_common): 2×fbm3 = 6 vnoise на каждый пиксель и на вершину relief_detail. Выкл: кромки — гладкие изолинии 0,5 билинейной доли. На другие шейдеры (трава, деревья) не влияет",
+    "не обёрнуто (база или дёшево)": "surface_weights 4 texelFetch; height_grad 4 textureLod; поля рельефа 2 выборки; built_soft 1; meadow_ground_color fbm3 + meadow_patch fbm4; куст fbm3, грунт fbm3 и rnoise fbm3 считаются всегда, даже без кустарника, грунта и скал (кандидаты для SL-23: перенести под условие); ragged_edge скал 2 vnoise; вода по маске 1–5 выборок; тень облаков 1 выборка + свой light(); снег класса. Дымки, дорог и города в этом шейдере нет: это отдельные материалы"
+  },
+  "variants": {
+    "files": "scripts/terrain/terrain.gdshader = full (shader_type, render_mode, include тела); scripts/terrain/variants/terrain_min.gdshader = все 28 частей выключены (нижняя граница для замера). Временные: scripts/terrain/variants/_bench/terrain_no_<часть>.gdshader (в .gitignore, пишет variant_bench.py gen/run)",
+    "config": "configs/world.json → terrain {variant: \"full\", variant_far: \"\", variant_far_lod: 2}; configs/game.json → graphics_presets.{low,medium,high}.configs.world.terrain {variant: \"full\", variant_far: \"\"}",
+    "selection": "TerrainRenderer.pick_variant(cfg, слой, LOD): variant_far, если он задан, — фоновым слоям (li > 0) и LOD детального слоя ≥ variant_far_lod; иначе variant; пусто — full. Имя → variants/[подкаталог/]terrain_<имя>.gdshader (variant_path); нет файла — предупреждение и full",
+    "runtime": "build(): шейдер на каждый материал (слой × LOD), затем прогрев used_variants() (кусок с discard на 30 кадров). Config.reloaded (смена пресета) → apply_variants(): новые шейдеры тем же материалам и прогрев"
+  },
+  "full_equal_check": "Стенд terrain_preview 1920x1080 fullscreen, профиль ~/.cache/dp-xdg/deltaplan-scene-look-SL-21, кадры S1 (2 м), S3 (300 м), S5 (2000 м), U1 (Аушкуль 500 м). До распила (25bc1434) и после (с TerrainRenderer и прогревом, tree_cross.gdshader — от до-слияния): S1, S3, S5 — разница 0 во всех пикселях; U1 — max 1/255 на 0,24 % пикселей. Повтор базы без правок даёт на U1 то же самое: max 1, 0,05 %. Значит, U1 в пределах шума кадра. Скрипты: scratchpad sl21/shots_eq.sh и cmp.py",
+  "bench_cmd": "cd <копия> && /home/greg/deltaplan/tools/dp lock gpu sl22-variants -- python3 tools/terrain/variant_bench.py run --out=build/variant_bench --presets=low,medium,high [--relief] [--variants=full,min,no_canopy,...] [--frames=120] [--no-warm] — по прогону на (пресет, вариант): full, min и 28 «без X» = 30 вариантов × 3 пресета ≈ 90 прогонов по ~12 с (+ прогрев каждого варианта на первом пресете) ≈ 25 мин; с --relief вдвое дольше. Продолжает с места (results.jsonl), в конце summary.csv/summary.md (мс и «снимает» = full − вариант); profile возвращается на variant=full. Список частей: python3 tools/terrain/variant_bench.py parts",
+  "t": "2026-10-14T15:00:58",
+  "by": "executor"
+}

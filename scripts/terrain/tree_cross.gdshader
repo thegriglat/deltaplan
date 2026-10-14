@@ -198,8 +198,15 @@ void fragment() {
 	}
 	float ft = smoothstep(far_soft_start_m, far_soft_full_m, v_dist);
 	float luma = dot(rgb, vec3(0.299, 0.587, 0.114));
-	rgb = mix(rgb, vec3(luma), far_desaturate * ft);
-	rgb = mix(rgb, vec3(mix(luma, far_canopy_luma, 0.6)), far_contrast * ft);
+	if (sl_light_enabled) {
+		// SL-24: как у импостеров — вдали к своей средней (= альбедо полога породы, множитель gain его
+		// выставил), а не к общим 0,32 (ALBEDO линейный: 0,32 вдвое-втрое светлее хвои 0,05 → «седые» кресты)
+		float con = v_kind < 0.5 ? 1.0 : 0.0;
+		rgb = sl_tree_tone(rgb, mix(sl_canopy_albedo.y, sl_canopy_albedo.x, con), con, v_dist, ft, far_contrast);
+	} else {
+		rgb = mix(rgb, vec3(luma), far_desaturate * ft);
+		rgb = mix(rgb, vec3(mix(luma, far_canopy_luma, 0.6)), far_contrast * ft);
+	}
 	ALBEDO = rgb;
 	// нормали креста — как у карточек кроны: изнанка светится так же
 	NORMAL = FRONT_FACING ? NORMAL : -NORMAL;

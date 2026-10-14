@@ -1507,6 +1507,15 @@
     "sink": 0.2,
     "sink_doc": "Утопление в землю, доля высоты камня (плюс по уклону для неналегших), чтобы край не висел"
   },
+  "terrain": {
+    "_doc": "Варианты шейдера рельефа (контракт SL-К6, scene-look): дорогие части шейдера выключаются при компиляции, а не флагом. Вариант — scripts/terrain/variants/terrain_<имя>.gdshader (строки #define T_<ЧАСТЬ>_OFF + include тела terrain_main.gdshaderinc), \"full\" — scripts/terrain/terrain.gdshader. Пресеты графики (configs/game.json → graphics_presets.*.configs.world.terrain) задают свой вариант; смена пресета пересобирает материалы (TerrainRenderer), используемые варианты прогреваются при загрузке. Список частей — tools/terrain/variant_bench.py parts, замер «без части» — variant_bench.py run.",
+    "variant": "full",
+    "variant_doc": "Вариант для ближних LOD детального слоя: имя файла без terrain_ (\"full\" — все части; \"min\" — все выключены, нижняя граница для замера)",
+    "variant_far": "",
+    "variant_far_doc": "Вариант для дальних LOD (с variant_far_lod) детального слоя и всего фонового слоя; пусто — как variant",
+    "variant_far_lod": 2,
+    "variant_far_lod_doc": "С какого LOD детального слоя действует variant_far (пороги — render.detail.lod_distances_m локации: 1,5/3,5/7/14 км; LOD 2 — дальше ~3,5 км)"
+  },
   "scene_look": {
     "_doc": "Картинка сочнее (модуль scene-look, контракты SL-К1…К3): ключ <k> → uniform sl_<k> шейдеров рельефа и импостеров (scripts/terrain/scene_look.gdshaderinc, TerrainRenderer.apply_scene_look_params); вложенных объектов нет. Выключатель пункта — <пункт>_enabled; всё выключено — картинка как до модуля. Цвета — линейные RGB (без sRGB).",
     "light_enabled": true,

@@ -1,0 +1,30 @@
+{
+  "id": "SL-22",
+  "module": "scene-look",
+  "type": "dp-mechanic",
+  "title": "Замер «часть → мс» по low/medium/high (variant_bench)",
+  "goal": "Таблица вклада каждой части шейдера рельефа по пресетам для решения о составе «Низкого».",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "SL-К6",
+      "version": "2",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look",
+  "branch": "feature/scene-look",
+  "base": "feature/scene-look",
+  "scope": [],
+  "dont_touch": [],
+  "accept": [
+    {
+      "name": "summary",
+      "cmd": "test -s /home/greg/deltaplan-scene-look/build/variant_bench/summary.md && echo ok",
+      "expect": "re:^ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-14T15:03:35"
+}

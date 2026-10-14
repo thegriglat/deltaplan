@@ -1,0 +1,32 @@
+// Вариант «min» (SL-К6): все части выключены — нижняя граница цены шейдера рельефа для замера (tools/terrain/variant_bench.py).
+shader_type spatial;
+render_mode cull_back, diffuse_burley, specular_schlick_ggx;
+#define T_CANOPY_OFF
+#define T_DETAIL_OFF
+#define T_EROSION_OFF
+#define T_FIELD_DETAIL_OFF
+#define T_FOREST_EDGE_OFF
+#define T_GRASS_TEX_OFF
+#define T_GRASS_WIND_OFF
+#define T_GULLY_SNOW_OFF
+#define T_MEADOW_DETAIL_OFF
+#define T_MEADOW_MACRO_OFF
+#define T_OUTCROP_OFF
+#define T_RELIEF_DETAIL_OFF
+#define T_ROCK_DETAIL_OFF
+#define T_ROCK_SURFACE_OFF
+#define T_ROCK_TEX_OFF
+#define T_SCREE_OFF
+#define T_SL_GLACIER_OFF
+#define T_SL_LIGHT_OFF
+#define T_SL_PATCH_OFF
+#define T_SL_RIPARIAN_OFF
+#define T_SL_ROCK_OFF
+#define T_SL_SEASON_OFF
+#define T_SL_SNOW_OFF
+#define T_SL_TRAILS_OFF
+#define T_SL_TREELINE_OFF
+#define T_SL_WIND_SHEEN_OFF
+#define T_SURFACE_WARP_OFF
+#define T_WATER_WIND_OFF
+#include "res://scripts/terrain/terrain_main.gdshaderinc"

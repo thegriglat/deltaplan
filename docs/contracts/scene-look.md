@@ -5,14 +5,14 @@ module: scene-look
 updated: 2026-10-14
 summary: "Контракты scene-look: свой include и секция конфига без правок кода mountain-look (SL-К1), широта/дата/сезон для шейдеров с CPU-зеркалом (SL-К2), бюджет и замер GPU (SL-К3)."
 related: ["docs/plan/scene-look.md", "docs/guide/terrain.md"]
-contracts: [{"id": "SL-К1", "version": 3}, {"id": "SL-К2", "version": 2}, {"id": "SL-К3", "version": 1}, {"id": "SL-К4", "version": 2}, {"id": "SL-К5", "version": 1}]
+contracts: [{"id": "SL-К1", "version": 4}, {"id": "SL-К2", "version": 2}, {"id": "SL-К3", "version": 1}, {"id": "SL-К4", "version": 2}, {"id": "SL-К5", "version": 1}, {"id": "SL-К6", "version": 2}]
 ---
 # Контракты scene-look
 
 Контрактный тест — `tests/contracts/test_scene_look_contracts.gd` (`test_k1_*` и проводка `test_k2_wiring_*` — SL-2, сезон `test_k2_season_*` — SL-6).
 Правка интерфейса — только через координатора: версия +1, этот файл и тест — в том же шаге.
 
-## SL-К1 v3 — свой include, своя секция конфига, стык с mountain-look
+## SL-К1 v4 — свой include, своя секция конфига, стык с mountain-look
 - Владелец: SL-2. Потребители: SL-4…SL-10, mountain-look (не должен ломаться при слиянии).
 - Весь новый шейдерный код — в `scripts/terrain/scene_look.gdshaderinc`: функции `sl_*`, uniform-ы `sl_*`. Подключается в `terrain.gdshader`
   (после `terrain_common`), может подключаться в `grass.gdshader`, `forest_impostors.gdshader`, `tree_model.gdshader`, `road.gdshader`.
@@ -42,6 +42,7 @@ contracts: [{"id": "SL-К1", "version": 3}, {"id": "SL-К2", "version": 2}, {"id
 - Инварианты теста: include существует и подключён; каждый ключ `scene_look` есть uniform-ом в шейдере рельефа; в `terrain.gdshader`
   нет uniform-ов `sl_*`, объявленных вне include.
 - v3 (14.10, координатор): mountain-look влит в main (755a44c7), ветка модуля синхронизирована (19f68e7f) — волна 3 открыта. SL-9 и SL-10 правят результат скал, осыпей и снега строками вызовов `// SL` после существующих функций (`rock_*`, `scree_*`, `gully_*`, `snow_*`, класс 8); сами эти функции, вершинный шейдер, `relief_*`, ReliefLook/SmoothStage (MLK-К1/К2) не меняются. Форма данных и тесты К1 не меняются; потребителям SL-5…SL-8 правка не требуется.
+- v4 (14.10, этап T-79): шейдер рельефа распиливается (SL-К6): terrain.gdshader → terrain_main.gdshaderinc + варианты; в этом этапе разрешено оборачивать #ifndef части в terrain_main/terrain_common/meadow_look и scene_look.gdshaderinc без изменения их результата; mountain-look влит, его код — так же только обёртки.
 
 ## SL-К2 v2 — широта, дата, сезон
 - Владелец проводки — SL-2, владелец сезона — SL-6. Потребители: SL-5, SL-6, SL-10, трава, импостеры, модели деревьев.
@@ -98,3 +99,11 @@ contracts: [{"id": "SL-К1", "version": 3}, {"id": "SL-К2", "version": 2}, {"id
 - Дальний стык (крест → импостер/рисунок крон): радиус крестов по пресету (`graphics_presets.*.configs.world.trees.cross_radius_m`, цель low ≈ 900, medium ≈ 1100, high ≈ 1500 м) с тем же множителем `k` и дизерингом; что за ним — как сейчас, если импостеры не переведены на К5.
 - CPU-полоса band-импостеров SL-17 (v1) снимается.
 - Уточнение (14.10): маску модели на ближнем стыке ставит tree_model.gdshader (SL-18) для всех моделей по позиции дерева и sl_lod_k(p), без кодов LOD с CPU; CPU (SL-19) передаёт uniform lod_swap_m = r1 = lod_distances[1] и строит модели до r1·k_max + dither/2 + запас на сдвиг.
+
+## SL-К6 v2 — варианты шейдера рельефа через #ifdef (этап T-79, 14.10)
+- Владелец: SL-21. Потребители: SL-22 (замер), SL-23 (состав пресетов), TerrainRenderer, тесты.
+- Тело шейдера рельефа — `scripts/terrain/terrain_main.gdshaderinc` (бывший `terrain.gdshader` целиком, include-ы те же). Вариант — крошечный файл `scripts/terrain/variants/terrain_<имя>.gdshader`: `shader_type spatial;` и `render_mode cull_back, diffuse_burley, specular_schlick_ggx;` (в самом файле варианта — Godot 4.7.2 определяет тип шейдера по тексту файла до препроцессора; в include они дают mode=0 и пустые uniform-ы), затем строки `#define T_<ЧАСТЬ>_OFF` и `#include "res://scripts/terrain/terrain_main.gdshaderinc"`; render_mode у всех вариантов одинаковый (v2, 14.10, по проверке SL-21). `scripts/terrain/terrain.gdshader` = вариант «full» (без `#define`).
+- Каждый эффект scene-look и каждая дорогая часть рельефа (список и имена — по инвентаризации SL-21, в отчёте) обёрнуты `#ifndef T_<ЧАСТЬ>_OFF … #endif` так, что выключенная часть не компилируется вовсе (uniform-ы части тоже под `#ifndef`, где они не нужны другим частям); результат без части = картинка, как при выключенном флаге-uniform той же части (для scene-look) или разумная замена (для частей рельефа — в отчёте). Флаги-uniform `sl_*_enabled` остаются для настройки внутри варианта.
+- Выбор варианта: `TerrainRenderer` по ключу пресета `graphics_presets.<p>.configs.world.terrain.variant` (имя файла без `terrain_`) и, если задано, по LOD куска (`terrain.variant_far` для дальних LOD/фонового слоя); нет ключа — «full». Смена пресета пересобирает материалы; все используемые варианты прогреваются на экране загрузки.
+- Замер «без части X»: стенд/скрипт создаёт временный вариант с одним `#define T_X_OFF` (во временном файле в `scripts/terrain/variants/_bench/`, не коммитится, .gitignore) — без правок кода.
+- Инварианты теста: все закоммиченные варианты компилируются (GPU-тест, без SHADER ERROR, пиксель квада); для каждой части `T_X_OFF` вариант компилируется; «full» побитово тот же код, что до распила (сравнение кадра стенда full до/после распила — разница 0 или в пределах шума кадра).
