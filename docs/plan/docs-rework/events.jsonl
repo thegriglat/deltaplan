@@ -51,3 +51,10 @@
 {"t": "2026-10-15T02:01:21", "by": "coordinator", "task": "DR-10", "ev": "accepted", "commits": ["5e202e36"], "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:01:22", "by": "coordinator", "task": "DR-10", "ev": "merged"}
 {"t": "2026-10-15T02:01:30", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: report падает UnicodeEncodeError на строке, обрезанной посреди кириллического символа; docs check не проверяет якоря после разбиения — нужна команда «входящие ссылки на файл»; status скрывает accepted-задачи (для скриптов — log)"}
+{"t": "2026-10-15T02:01:39", "by": "executor", "task": "DR-3", "ev": "reported", "commits": ["e5de044c"], "note": "done: Главная (ru/en): убраны «Планы», ссылка на ветер ведёт на фазы, добавлен раздел «Что игра не умеет». «Подходы» (ru/en) …", "dp_feedback": "docs check на всём репозитории даёт 267 ошибок вне скоупа (research без ключей), шум мешает проверить свои файлы; нужен docs check <пути>."}
+{"t": "2026-10-15T02:02:07", "by": "coordinator", "task": "DR-5", "ev": "started", "note": "general-purpose (sonnet) с телом dp-writer"}
+{"t": "2026-10-15T02:02:07", "by": "coordinator", "task": "DR-7", "ev": "started", "note": "general-purpose (sonnet) с телом dp-writer"}
+{"t": "2026-10-15T02:02:07", "by": "coordinator", "task": "DR-8", "ev": "started", "note": "general-purpose (sonnet) с телом dp-writer"}
+{"t": "2026-10-15T02:02:07", "by": "coordinator", "task": "DR-9", "ev": "started", "note": "general-purpose (sonnet) с телом dp-writer"}
+{"t": "2026-10-15T02:02:08", "by": "coordinator", "task": "DR-16", "ev": "started", "note": "general-purpose (sonnet) с телом dp-writer"}
+{"t": "2026-10-15T02:02:12", "by": "executor", "task": "DR-3", "ev": "accepted", "note": "3/3 hugo=ok:exit 0; no_plans_links=ok:exit 0; no_parents=ok:exit 0"}
