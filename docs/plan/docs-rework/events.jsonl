@@ -67,3 +67,5 @@
 {"t": "2026-10-15T02:03:22", "by": "executor", "task": "DR-11", "ev": "accepted", "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:03:30", "by": "coordinator", "task": "DR-11", "ev": "accepted", "commits": ["73cb4bcc"], "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:03:30", "by": "coordinator", "task": "DR-11", "ev": "merged"}
+{"t": "2026-10-15T02:03:36", "by": "executor", "task": "DR-13", "ev": "reported", "commits": ["2d27fd0a"], "note": "done: Пять исследований разбиты по D4: входы 6-16 КБ (оглавление частей, «Состояние по коду main», исходное «Коротко»), 29 ча…", "dp_feedback": "task show обрезает дополнения координатора без --full; docs check не проверяет, что related/applied_in указывают на существующие файлы и что § в чужих ссылках существуют; хотелось бы dpcli docs split <файл> с нарезкой по номерам строк и проверкой, что текст не потерян."}
+{"t": "2026-10-15T02:03:48", "by": "executor", "task": "DR-13", "ev": "accepted", "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
