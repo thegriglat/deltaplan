@@ -75,7 +75,15 @@ static func read_token() -> String:
 
 func _other_instance(old: Dictionary) -> bool:
 	var pid := int(old.get("pid", 0))
-	return pid > 0 and pid != OS.get_process_id() and OS.is_process_running(pid)
+	if pid <= 0 or pid == OS.get_process_id():
+		return false
+	# на unix OS.is_process_running видит только дочерние процессы (и пишет ошибку в лог)
+	match OS.get_name():
+		"Windows":
+			return OS.is_process_running(pid)
+		"Linux":
+			return DirAccess.dir_exists_absolute("/proc/%d" % pid)
+	return false
 
 
 ## Запомнить пару в метке (настройка, стадия).
