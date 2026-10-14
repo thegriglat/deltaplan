@@ -147,6 +147,16 @@
     {{- end -}}
   {{- end -}}
 
+  {{- /* 3. удалённый раздел сайта → папка репозитория на GitHub (params.movedPaths) */ -}}
+  {{- if and (not $found) (strings.HasPrefix $p "/") -}}
+    {{- $trim := strings.TrimSuffix "/" (strings.TrimPrefix "/" $p) -}}
+    {{- range site.Params.movedPaths -}}
+      {{- if and (not $found) (eq $trim .from) -}}
+        {{- $found = true -}}{{- $url = printf "%s%s" (replace site.Params.repoBlob "/blob/" "/tree/") .repo -}}{{- $kind = "github" -}}{{- $repo = .repo -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+
   {{- if $found -}}
     {{- with $u.RawQuery -}}{{- $url = print $url "?" . -}}{{- end -}}
     {{- with $u.Fragment -}}{{- $url = print $url "#" . -}}{{- end -}}
