@@ -1,0 +1,96 @@
+{
+  "status": "done",
+  "summary": "game.md (48 КБ) разбит по D4: вход 10 КБ + 8 частей в docs/guide/game/ (13, 13, 12, 12, 12, 10, 9, 7 КБ). Семь гайдов (game, net-protocol, architecture, steam, tasks, gpu-validation, crash-report) сверены с кодом main, у всех frontmatter с area, summary ≤140.",
+  "commits": [
+    "edbf28e5 DR-16: гайд game разбит на вход и 8 частей, гайды игры, сети и процесса сверены с кодом main"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0, 15 файлов, 0 ошибок",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "19 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "размер файла",
+      "value": "максимум 33,9 КБ (net-protocol), все ≤ 40 КБ",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Входящие ссылки с текстовыми якорями вне скоупа не переписаны: docs/guide/terrain.md:141 («game.md → …» про радиус пустыря — теперь game/launch.md), docs/perf/frame_profile.md:22 (старая таблица FPS в «Графике» убрана как устаревшая — актуальное в самом frame_profile.md), docs/plan/*, комментарии в scripts/*.gd и configs/*.json («docs/guide/game.md → «Другие пилоты»» и т. п.); вход game.md перечисляет разделы частей, ссылки по смыслу находятся.",
+    "Части docs/guide/game/*.md на сайт не попадут: mount в site/hugo.toml — files = ['! world-objects.md', '*.md'] (без подпапок). Вход game.md на сайте есть, ссылки на части ведут на GitHub (hugo собирается). Чтобы части были на сайте, нужен '**/*.md' и исключение '! world-objects/**' (hugo.toml не трогал по заданию)."
+  ],
+  "questions": [
+    "docs/INDEX.md и registry нужно пересобрать (dpcli docs index) — 8 новых документов в docs/guide/game/.",
+    "Ожидаемая правка вне скоупа: docs/guide/models.md не содержит раздела «Пилот» (на него ссылаются game.json, pilot_animator.gd), docs/guide/atmosphere.md не содержит «Детерминизм» (ссылка в scripts/atmosphere/atmo_day.gd). Кто сверяет эти гайды — учесть."
+  ],
+  "how_to_check": ".dpcli/dpcli accept DR-16",
+  "uncertain": [
+    {
+      "where": "docs/guide/game/network.md",
+      "why": "описание очереди на старт, NetBots и «Догнать» взято из заголовков кода (комментарии к классам) и net.json; в игре вживую не прогонял",
+      "checked": "константы IDLE_S, NEAR_LAUNCH_M, HANDOVER_S, DRIFT_SNAP_S, AUTO_CATCH_UP_WAIT_S и net.json → catch_up сверены с кодом"
+    },
+    {
+      "where": "docs/guide/game/world-air-time.md",
+      "why": "старую таблицу FPS и время загрузки убрал целиком (устарели: нет compute-облаков, травы, поля воздуха), нового замера не делал",
+      "checked": "docs/perf/frame_profile.md сам называет таблицу устаревшей"
+    },
+    {
+      "where": "docs/guide/tasks.md",
+      "why": "модуль заданий не подключён в Game.tick и меню — описал как есть, раздел «Подключение» оставил как инструкцию",
+      "checked": "grep по scripts/scenes: TaskTracker/FlightRecords/TrainingMode используют только tasks/, instruments/ (set_task, set_task_state) и тесты"
+    },
+    {
+      "where": "docs/guide/steam.md",
+      "why": "ручные проверки на двух аккаунтах и Windows/macOS не воспроизводил — сверял только имена, константы, пути и поведение по коду",
+      "checked": "SteamService.configure, SteamLobby (MAX_MEMBERS 16, FRIENDS_REFRESH_S 5), auto_cloud.json, LOCAL_KEYS"
+    }
+  ],
+  "dp_feedback": "docs section полезен; не хватает команды «покажи входящие ссылки на файл/якорь» (пришлось grep) и проверки целостности относительных ссылок внутри docs/guide при разбиении. dp task show --full хорош. docs check не ловит устаревшие ссылки вида «файл.md → «Раздел»» — только размер и frontmatter.",
+  "extra": {
+    "размеры_КБ": {
+      "game.md": 10.3,
+      "cameras-input": 12.7,
+      "flight-flow": 12.4,
+      "network": 12.5,
+      "menus-settings": 11.4,
+      "world-air-time": 10.1,
+      "launch": 8.6,
+      "cli-tests": 9.1,
+      "bots": 6.7
+    },
+    "убрано_как_отсутствующее_в_коде": [
+      "столкновения с проводами/опорами/заборами и crash_wire (убраны вместе с Overpass)",
+      "wire_hit в WorldObjects",
+      "scripts/vegetation (плановая папка)",
+      "configs/visuals.json",
+      "старая таблица FPS и времена загрузки 2026",
+      "Взведение полёта по ≥10 с в воздухе (теперь только геометрия)",
+      "«Автовыбор графики выключен» (включён)",
+      "мир за меню (не грузится)",
+      "«Autoload — только Config»"
+    ],
+    "добавлено_по_коду": [
+      "сетевой полёт, очередь, боты ведущего, Догнать",
+      "осмотр карты и выбор старта",
+      "точный старт и выравнивание курса по ветру",
+      "AirRuntime и ход дня через AtmoDay",
+      "вкладки настроек, слои конфигов",
+      "транспорты и серверы в net-protocol",
+      "отладочные слои F1–F6"
+    ]
+  },
+  "t": "2026-10-15T02:23:41",
+  "by": "executor"
+}

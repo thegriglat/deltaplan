@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "terrain, world-objects и scene-look разбиты на вход + части (D4, все файлы ≤ 27 КБ); семь гайдов мира сверены с кодом main и исправлены (формат WebP, стадии smooth и osm_tiles, OSM-слой, дымка, трава, кусты, кресты, варианты шейдера). world-objects и его части исключены из сайта, остальные части подключены.",
+  "commits": [
+    "dfcd4cd2 Гайды мира: terrain, world-objects, scene-look разбиты на вход и части (D4), сверка с кодом main"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "docs check по 18 файлам: ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "hugo --minify без ошибок, ru/docs/guide/{terrain,scene-look}/ собираются",
+      "pass": true
+    },
+    {
+      "name": "eggs_off_site",
+      "value": "пасхал|easter в ru/docs/guide: 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "20 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "примитивная сверка путей/идентификаторов",
+      "value": "все `код`-идентификаторы и пути гайдов найдены в scripts/shaders/configs/tools/tests (остались только ложные срабатывания на имена файлов); 88 ключей scene_look и значения по умолчанию в scene-look-keys.md совпали с world.json",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Входящие ссылки вне скоупа не тронуты: docs/guide/game.md:200 (terrain.md «Рантайм-загрузка с карты» → теперь docs/guide/terrain/runtime.md), docs/guide/models.md:165 (world-objects.md «Ткань лагеря» → docs/guide/world-objects/start-camp.md), docs/contracts/osm-any.md:50 (world-objects.md, раздел OSM → world-objects/villages-osm.md), docs/plan/osm-any.md:112 и docs/plan/start-camp.md:147 (план — не трогать). Файлы-входы на месте, ссылки на файл не ломаются, ломаются только указатели на раздел по названию.",
+    "Числа замеров (GPU, времена загрузки, S5/T04, V01/V02) не перемерены; помечено, где они сняты при прежнем коде (дымка 58 км, радиус травы 30 м, CPU-радиус деревьев 500 м). docs/guide/air-model.md, atmosphere.md и flight/game/models не сверялись (не мои)."
+  ],
+  "questions": [
+    "Мировой прогон тайлов OSM выполнен 2026-10-10/11 (290 заданий, 836 819 тайлов, 6,39 ГБ, ≈ 6,7 ч), а docs/registry/findings.md (osm-tiles, строка про планету) всё ещё пишет «Мировой прогон не выполнялся» — реестр мне не принадлежит, обновить отдельно."
+  ],
+  "how_to_check": ".dpcli/dpcli accept DR-9 --dry",
+  "uncertain": [
+    {
+      "where": "docs/guide/terrain/forest-sky.md, раздел «Дымка и инверсия»",
+      "why": "числа дымки взяты из world.json (visibility_km 60, clear_visibility_km 84, суммарно 35 км и 12 % на 20 км — из `_doc` конфига, пропускание не пересчитывал)",
+      "checked": "значения ключей сверены с configs/world.json; формулы и фаза — с scripts/world/haze.gdshader; старые итоги стенда T04 помечены как снятые при видимости 58 км"
+    },
+    {
+      "where": "docs/guide/world-objects/villages-osm.md, раздел «OSM-слой»",
+      "why": "раздел написан заново по заголовкам кода и configs/world_objects.json, osm_tiles.json и contracts/osm-look.md; в игре не запускался",
+      "checked": "имена классов, узлов OsmLayer, ключи конфигов и значения по умолчанию сверены с кодом"
+    },
+    {
+      "where": "docs/guide/terrain/relief.md, surface.md, forest-sky.md",
+      "why": "длинные описания шейдерной раскраски (кулуары, полог, вода от ветра) проверены на существование ключей и численных значений конфига, но не на соответствие каждой формуле шейдера",
+      "checked": "ключи terrain_look/trees/surface/wind_visual, имена функций и uniform-ов, основные числа (юбки, LOD, пороги)"
+    },
+    {
+      "where": "docs/guide/terrain/runtime.md «Точка на карте»; location-data.md «Лог сетевых запросов»",
+      "why": "про «у itch-установки ещё logs/godot.log рядом с игрой» не проверял (app_dir_log.gd существует)",
+      "checked": "формат строк HttpLog и коды выхода --prefetch сверены с кодом"
+    }
+  ],
+  "dp_feedback": "Не хватает команды «сверить гайд с кодом»: dpcli docs check проверяет ссылки и размер, но не существование упомянутых в тексте путей, классов и ключей конфигов (пришлось писать одноразовый скрипт в scratchpad: backtick-токены против слов в scripts/shaders/configs/tools/tests). Не хватает и `dpcli docs split <файл> <заголовок:часть,…>` — разбиение по разделам с frontmatter и перенаправлением относительных ссылок я делал руками на Python. `dpcli docs section` режет по заголовкам, а гайды написаны жирными абзацами без ## — они плохо читаются командой. rtk режет вывод grep (--- more lines), приходилось `rtk proxy grep`.",
+  "t": "2026-10-15T02:25:10",
+  "by": "executor"
+}
