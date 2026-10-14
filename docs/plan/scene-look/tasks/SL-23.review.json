@@ -1,0 +1,36 @@
+{
+  "verdict": "accept",
+  "summary": "Состав по решению Q2 выполнен: low = low_a (outcrop, surface_warp, rock_surface и 8 эффектов SL), far и low_far на LOD ≥ 2 и фоновом слое, стык LOD гашением far_fade_m, прогрев всех вариантов пресетов. Скоуп и SL-К6 v2 соблюдены, project.godot и docs/contracts не тронуты. Одно отступление от Q2 (в far оставлен RELIEF_DETAIL) исполнитель сам вынес в вопрос, решает координатор.",
+  "issues": [
+    {
+      "file": "scripts/terrain/terrain_main.gdshaderinc",
+      "line": 1203,
+      "severity": "minor",
+      "what": "Исправление аномалии GRASS_WIND (вернули цикл термиков в OFF-ветку, чтобы компилятор лучше собрал шейдер) подтверждено замером только на NVIDIA. На целевой RX 5600 XT эффект может быть другим.",
+      "fix": "На тестовой сборке у мамы сравнить кадр medium и low, другого не нужно. Если AMD не выигрывает, оставить как есть: термики над травой полезны и сами по себе."
+    },
+    {
+      "file": "scripts/terrain/terrain_main.gdshaderinc",
+      "line": 766,
+      "severity": "minor",
+      "what": "grass_thermals повторяет цикл термиков из terrain_wind.gdshaderinc (файл вне скоупа), и при правке одного копии разойдутся.",
+      "fix": "Отдельной задачей вынести цикл в terrain_wind и вызывать его из обоих мест, как предлагает исполнитель."
+    },
+    {
+      "file": "scripts/terrain/terrain_renderer.gd",
+      "line": 260,
+      "severity": "minor",
+      "what": "Гашение far_fade_m рассчитано на то, что LOD куска совпадает с текущей дальностью. LOD пересчитывается по таймеру, поэтому при быстром подлёте кусок LOD 2 может кадр-другой остаться far ближе порога, и на стыке будет небольшой скачок.",
+      "fix": "Ничего не делать, если на тестовой сборке шов не заметен."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "dp accept SL-23 --only scene_look_contracts --dry",
+      "value": "28/28",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-14T16:26:24",
+  "by": "reviewer"
+}
