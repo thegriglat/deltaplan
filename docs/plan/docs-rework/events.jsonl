@@ -24,3 +24,7 @@
 {"t": "2026-10-15T01:56:26", "by": "executor", "task": "DR-2", "ev": "reported", "commits": ["4ba184c6"], "note": "done: Версии в сайдбаре свёрнуты (bookCollapseSection: true в releases/_index.ru/en). Раздел планов убран: mounts docs/plan и…", "dp_feedback": "dpcli docs check выдаёт 267 ошибок вне задачи (docs/research frontmatter) - шум для задач сайта; хотелось бы фильтр по путям скоупа."}
 {"t": "2026-10-15T01:56:43", "by": "executor", "task": "DR-1", "ev": "accepted", "note": "4/4 removed=ok:exit 0; check_gd_help=ok:exit 0; hook_points=ok:1; no_dp_refs=ok:exit 0"}
 {"t": "2026-10-15T01:56:57", "by": "executor", "task": "DR-2", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; hugo_no_err=ok:exit 0; collapse=ok:exit 0; no_plans_mount=ok:0"}
+{"t": "2026-10-15T01:57:02", "by": "coordinator", "task": "DR-1", "ev": "accepted", "commits": ["acb1da73"], "note": "4/4 removed=ok:exit 0; check_gd_help=ok:exit 0; hook_points=ok:1; no_dp_refs=ok:exit 0"}
+{"t": "2026-10-15T01:57:02", "by": "coordinator", "task": "DR-1", "ev": "merged"}
+{"t": "2026-10-15T01:57:08", "by": "coordinator", "task": "DR-2", "ev": "accepted", "commits": ["9659f05d"], "note": "4/4 hugo=ok:exit 0; hugo_no_err=ok:exit 0; collapse=ok:exit 0; no_plans_mount=ok:0"}
+{"t": "2026-10-15T01:57:09", "by": "coordinator", "task": "DR-2", "ev": "merged"}
