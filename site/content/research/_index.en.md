@@ -9,13 +9,14 @@ description: "Deltaplan research by topic: what we found out, on what data, and 
 
 Where the game's numbers and models came from: literature reviews, analyses of wing passports, prototypes and computational experiments. The documents are included as they are, from the `docs/research/` and `tools/research/` folders of the repository. A condensed summary of the conclusions is in the [findings registry](/research/findings/); the story "what we tried and what we chose" is on the page ["Approaches and results"](/approaches/).
 
-The studies are closed (status `closed` in the document header), except the air physics review, which is alive. If a document is not connected to the site, the link leads to the repository on GitHub.
+Status in the document header: `active` means the conclusion is applied in the game, `closed` means the study is finished, `superseded` means replaced or refuted. The wind phase studies are applied in the game. If a document is not connected to the site, the link leads to the repository on GitHub.
 
 ## Wind, thermals, air model
 
 | Document | What it is about |
 |---|---|
-| [Air physics over terrain: review](/docs/research/air_physics_primer.md) | Equations and scales, boundary layer, flow around obstacles, stratification, saddles, thermals, turbulence; our solver and its limits. Conclusion: the solver on a 400 m grid underestimates the speed-up at the brow by 15–20 %; the main error of the inflow profile over mountains is deceleration (+2.3 m/s), which linear theory does not give. Status: active. |
+| [Air physics over terrain: review](/docs/research/air_physics_primer.md) | Equations and scales, boundary layer, flow around obstacles, stratification, saddles, thermals, turbulence; our solver and its limits. Conclusion: the solver on a 400 m grid underestimates the speed-up at the brow by 15–20 %; the main error of the inflow profile over mountains is deceleration (+2.3 m/s), which linear theory does not give. Status: closed (a reference; the solver and network sections are out of date). |
+| [Wind phases over terrain](/docs/research/air_phase.md) | Phase diagram of solution classes, order parameters, Picard iteration as a probe of phases; continued in [experts and phase assembly](/docs/research/air_phase_experts.md), [ideal-terrain experiments](/docs/research/air_phase_results.md), [literature](/docs/research/air_phase_refs.md). Conclusion: Picard non-convergence comes from weak wind (U10 < 2.5 m/s) and Fr < 0.3, not from heating; the in-game phase classifier is built on this. Status: applied. |
 | [Wind flow over a slope](/docs/research/slope_wind.md) | What was in the game (formulas), how it is in real life, what can be done; the basis of the air model plan. |
 | [Models of thermals, ridge lift and lee flows](/docs/research/thermals.md) | Convective layer, thermal profile by radius (Gedeon), formulas implemented in `scripts/atmosphere/`. |
 | [Calibration using the Professor scheme](/docs/research/air-model-tune.md) | Fitting the air model parameters to the Askervein and Perdigão measurements. |
