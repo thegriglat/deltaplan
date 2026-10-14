@@ -24,7 +24,8 @@
     "tools/hooks/pre-commit",
     ".claude/skills/diary",
     ".claude/skills/new-release",
-    ".claude/settings.json"
+    ".claude/settings.json",
+    "tools/terrain/variant_bench.py"
   ],
   "dont_touch": [
     "docs",

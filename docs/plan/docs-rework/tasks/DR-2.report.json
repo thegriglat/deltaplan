@@ -1,0 +1,39 @@
+{
+  "status": "done",
+  "summary": "Версии в сайдбаре свёрнуты (bookCollapseSection: true в releases/_index.ru/en). Раздел планов убран: mounts docs/plan и docs/archive/plan, content/plans, repoMap и cascade для /plans удалены. Ссылки на /plans/ и /plans/archive/ в файлах вне скоупа (главная, approaches) разрешаются через params.movedPaths в layouts/_partials/repo/resolve.html в папки docs/plan и docs/archive/plan на GitHub; в docs/_index и research/_index упоминания убраны.",
+  "commits": [
+    "4ba184c6 Сайт: версии в сайдбаре свёрнуты, раздел планов убран"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "hugo_no_err",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "collapse",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_plans_mount",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Главная и approaches (вне скоупа) всё ещё называют 'Планы' разделом сайта; ссылка ведёт на GitHub-папку. Нужна правка текстов отдельной задачей."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept DR-2",
+  "uncertain": [],
+  "dp_feedback": "dpcli docs check выдаёт 267 ошибок вне задачи (docs/research frontmatter) - шум для задач сайта; хотелось бы фильтр по путям скоупа.",
+  "t": "2026-10-15T01:56:26",
+  "by": "executor"
+}
