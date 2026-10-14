@@ -57,7 +57,7 @@ sem:
   globs:
     - "docs/**/*.md"
     - "tools/research/**/README.md"
-    - "site/content/diary/**/*.md"
+    - "diary/**/*.md"
     - "CHANGELOG.md"
 
 jobs:

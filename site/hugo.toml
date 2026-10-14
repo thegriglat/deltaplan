@@ -32,7 +32,7 @@ disableKinds = ['taxonomy', 'term']
 [pagination]
   pagerSize = 20
 
-# Дата записи дневника — из имени файла (2026-09-30.md или 2026-09-30-что-угодно.md)
+# Дата страницы — из имени файла (2026-09-30.md), иначе из frontmatter
 [frontmatter]
   date = [':filename', ':default']
 
@@ -99,10 +99,6 @@ disableKinds = ['taxonomy', 'term']
   bookHidden = true
   [cascade.target]
     path = '{/research/docs,/research/docs/**,/research/heat_ca,/research/heat_ca/**,/research/air3d,/research/air3d/**,/research/askervein,/research/askervein/**}'
-[[cascade]]
-  type = 'posts'
-  [cascade.target]
-    path = '{/diary,/diary/**}'
 
 # Порядок и заголовки подключённых разделов/таблиц без шапки
 [[cascade]]

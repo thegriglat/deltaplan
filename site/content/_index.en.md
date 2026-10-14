@@ -77,5 +77,4 @@ The result is the [Wing models](/wings/) section: 48 wings with data and a mark 
 - [Releases](/releases/) — what is new in each build, with screenshots
 - [Approaches and results](/approaches/) — which ways of computing wind, thermals, wings and world data were tried, what came out and what is in the game now
 - [Research](/research/) — where the game's numbers and models come from: surveys, prototypes, computational experiments
-- [Diary](/diary/) — the development diary: the decisions of the day and why
 - [Module documentation](/docs/) — technical documentation of the game's modules

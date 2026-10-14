@@ -8,19 +8,16 @@ description: "Which ways of computing wind over terrain, thermals, wings and wor
 
 The game is built on physics, and physics can be computed in different ways. This page is a map of what we tried on the key topics: the numbers, the choice, the reason for it and what is in the game now (version 1.5.15). The longest topic is wind over terrain: it went from formulas through a GPU solver and a neural network to a field assembled by flow phases.
 
-How to read it: for each approach — what was done, what came out, what was decided and why. All numbers are taken from the repository documents — the [findings registry](/research/findings/), [research](/research/), the [CHANGELOG](/releases/) and the [diary](/diary/); where a number is an estimate rather than a measurement, it says so. The selection criterion is the same everywhere (the author's decision): first physics within the model's limits, then accuracy, then cost. "The pilot likes it" is a reference, not a requirement: tuning coefficients "so that it feels right" is a dead end, so tuning follows a scheme with measurements and uncertainties. Build numbers and dates follow the CHANGELOG; the pages of old builds describe what was true then.
+How to read it: for each approach — what was done, what came out, what was decided and why. All numbers are taken from the repository documents — the [findings registry](/research/findings/), [research](/research/), the [CHANGELOG](/releases/) and the [diary](https://github.com/thegriglat/deltaplan/tree/main/diary); where a number is an estimate rather than a measurement, it says so. The selection criterion is the same everywhere (the author's decision): first physics within the model's limits, then accuracy, then cost. "The pilot likes it" is a reference, not a requirement: tuning coefficients "so that it feels right" is a dead end, so tuning follows a scheme with measurements and uncertainties. Build numbers and dates follow the CHANGELOG; the pages of old builds describe what was true then.
 
 ## What is in the game now
 
-| Topic | Now |
-|---|---|
-| Wind over terrain | The "Wind over terrain" setting: "GPU solver" (default) — the field is assembled by flow phases and refined by the Picard method on the GPU; "Heuristic" — formulas without a field. Without a GPU there is no solver, the formulas apply |
-| Neural network for wind | Removed in build 1.3.0 (Oct 7, 2026); it is neither in the game nor in the builds |
-| Thermals and turbulence | Sources, strength, ceiling and drift are taken from the wind field and from ground heating by land cover; the thermal's shape is a formula (Gedeon, Allen) |
-| Wings | 48 models in four groups, numbers from DHV and manufacturer datasheets, the origin of every number is marked |
-| Takeoff | Physics only: liftoff when lift is not less than weight; there are no fixed times |
-| Multiplayer | WebSocket and protobuf, a built-in server for the local network, a Go server for the internet; Steam lobbies in the Steam builds |
-| World data | Copernicus terrain at 25 m, ESA WorldCover land cover, OpenStreetMap objects from our own 20 km tiles |
+- **Wind over terrain.** The "Wind over terrain" setting: "GPU solver" (default) — the field is assembled by flow phases and refined by the Picard method on the GPU; "Heuristic" — formulas without a field. Without a GPU there is no solver, the formulas apply.
+- **Thermals and turbulence.** Sources, strength, ceiling and drift are taken from the wind field and from ground heating by land cover; the thermal's shape is a formula (Gedeon, Allen).
+- **Wings.** 48 models in four groups, numbers from DHV and manufacturer datasheets, the origin of every number is marked.
+- **Takeoff.** Physics only: liftoff when lift is not less than weight; there are no fixed times.
+- **Multiplayer.** WebSocket and protobuf, a built-in server for the local network, a Go server for the internet; Steam lobbies in the Steam builds.
+- **World data.** Copernicus terrain at 25 m, ESA WorldCover land cover, OpenStreetMap objects from our own 20 km tiles.
 
 Where the simulator simplifies or errs is said in the sections below and under "Model limits" on the [«Air model»](/mechanics/air-model/) and [«Flight»](/mechanics/flight/) pages.
 
@@ -47,7 +44,7 @@ $$ u = u_{ref} \cdot \left(\frac{agl}{10\,\text{m}}\right)^{0.14} \cdot \left(1 
 
 Slope lift is $w_{ridge} = \mathrm{clamp}(0.85 \cdot u \cdot (\hat w \cdot \nabla h) \cdot e^{-agl_s / 250}, \pm 6\ \text{m/s})$ with the slope point shifted upwind by $0.8\,agl$ (no more than 400 m). The lee zone is the "shadow line": below a line sloping at 12° from the ridge the air is in a rotor (sink $0.25\ldots0.7\,u$, turbulence $0.5\ldots0.9\,u$, downward gusts, reverse flow). Details — [the "Heuristic" mode](/mechanics/air-model/heuristic/).
 
-**What came out.** The consultant pilot said the flow around terrain is "not physical". The analysis ([research](/docs/research/slope_wind.md)) found three discrepancies with real life: no wind speed-up at the brow, the lift band is a fixed 250 m, and the "pipe" in a saddle works the wrong way round. The pilot's reference points: speed-up up to about two mountain heights from the foot, laminar at 2.5 heights, the steeper the slope the stronger, saddle ×1.5 along the axis even with an oblique wind of 15° ([diary Sep 29](/diary/2026-09-29/)).
+**What came out.** The consultant pilot said the flow around terrain is "not physical". The analysis ([research](/docs/research/slope_wind.md)) found three discrepancies with real life: no wind speed-up at the brow, the lift band is a fixed 250 m, and the "pipe" in a saddle works the wrong way round. The pilot's reference points: speed-up up to about two mountain heights from the foot, laminar at 2.5 heights, the steeper the slope the stronger, saddle ×1.5 along the axis even with an oblique wind of 15° ([diary Sep 29](https://github.com/thegriglat/deltaplan/blob/main/diary/2026-09-29.en.md)).
 
 When the solver was put next to it, defects in the formulas themselves turned up as well: at 9 m/s the heuristics' "downward gusts" gave −13…−18 m/s (in the formula they are proportional to the highest wind above the ridge), and the heuristics' reverse flow duplicated the solver's flow — the minimum along-wind speed at the start was −4.66 m/s instead of −0.52 m/s (a double rotor). Literature check: the maximum reverse flow behind ridges is 0.22 ± 0.08 of the wind at ridge level (Menke et al. 2019); the field gives ≈ 0.2, with the heuristics ≈ 0.4. So in the "GPU solver" mode the heuristics weight is 1 − smoothstep(2, 4, excess/dx), i.e. it fades out where the solver itself resolves separation; gusts are 0.42·ΔU (3σ<sub>w</sub>).
 
@@ -67,7 +64,7 @@ When the solver was put next to it, defects in the formulas themselves turned up
 
 **Prototype on a 2D ridge section** (500 m ridge, slopes up to 33° and 16°, heating up to 250 W/m², [results](/research/heat_ca/)). Over the heated slope — lift 1.65 m/s (both slopes — 2.47 m/s over the ridge), inflow to the foot ≈ 0.5 m/s, sink over the valley −0.08…−0.2 m/s; an inversion at 1500–1800 m stops the column at 1550 m (without it, 1800). Conservation: mass residual ~10⁻¹¹ of the domain mass. Cell convergence: at 200 m there is no slope wind, 100 m is the coarsest grid with the right picture, at 50 m the lift has an error of about 15 %, finer than 25 m makes no sense.
 
-**Six experiments: how to get a steady field quickly without thousands of time steps** ([summary](/research/heat_ca/out/summary/), [diary Sep 29](/diary/2026-09-29/)):
+**Six experiments: how to get a steady field quickly without thousands of time steps** ([summary](/research/heat_ca/out/summary/), [diary Sep 29](https://github.com/thegriglat/deltaplan/blob/main/diary/2026-09-29.en.md)):
 
 | Experiment | What was checked | Result |
 |---|---|---|
@@ -99,7 +96,7 @@ Incidentally it turned out that the reference solutions in the database are unde
 
 ### 5. Simplified mode "as in 0.8.0"
 
-**What happened.** A pilot reported that the game sometimes crashes and that rolling back to 0.8.0 saves the day: "in 0.8.0 the physics is not as plausible, but tolerable for the sake of flying" ([diary Oct 3](/diary/2026-10-03/)).
+**What happened.** A pilot reported that the game sometimes crashes and that rolling back to 0.8.0 saves the day: "in 0.8.0 the physics is not as plausible, but tolerable for the sake of flying" ([diary Oct 3](https://github.com/thegriglat/deltaplan/blob/main/diary/2026-10-03.en.md)).
 
 **What was done.** In [1.0.3](/releases/1.0.3/) — a settings item "Wind over terrain": calculation from terrain or a simplified mode (the GPU solver is not started, the "Computing wind" stage is skipped). Slope, lee zones, thermals and turbulence in it are the same; what changed is the wind profile with height — in 1.x it depended on the hour and cloudiness. In [1.0.4](/releases/1.0.4/) the profile in the simplified mode is as in 0.8.0: power law, α = 0.14, no more than ×1.8 of the wind at 10 m. Automatic switch-off after a crash was not implemented (the author's decision): the settings item is enough.
 
@@ -137,7 +134,7 @@ There is no bias; on the non-converged ones the network errs at the level of the
 
 **P3 outcome:** neither encoding, nor architecture, nor stratification, nor cleaning the targets gave more than a few percent (width ×2 — −2.6 %; U-FNO worse by 7 %); on the training places the error of all variants is ≈ 0.36 m/s — the network does not fit even clean training cases. The best is the P2 network on 300 places: data matter more than tweaks. Replaceability was not achieved by any variant.
 
-**What was in the game and what is now.** The P2 network (on the CPU) appeared in 1.0.5 (Oct 4) as an experimental settings item; the first flight on it at Askarovo: "on the whole even 'flyable', nothing really unusual" ([diary Oct 3](/diary/2026-10-03/)). In 1.2.0 (Oct 5) a new network trained on 305 starts from the OpenStreetMap catalogue arrived: median error at 60 m on held-out places 0.69 m/s against 0.92 for the previous one, on game places 0.59 against 0.76; it worked up to 12 m/s and became the default. In 1.3.0 (Oct 7) the network was **removed** together with ONNX Runtime: it is neither in the game nor in the builds, and the research stays offline in `tools/research/`. The reasons are in item 8: every flow regime has its own clear mechanism while the network was a black box, in calm and convection the training reference is noisy, and in the wave band the target is ambiguous. The question "why the network does not fit even the training cases" stays open.
+**What was in the game and what is now.** The P2 network (on the CPU) appeared in 1.0.5 (Oct 4) as an experimental settings item; the first flight on it at Askarovo: "on the whole even 'flyable', nothing really unusual" ([diary Oct 3](https://github.com/thegriglat/deltaplan/blob/main/diary/2026-10-03.en.md)). In 1.2.0 (Oct 5) a new network trained on 305 starts from the OpenStreetMap catalogue arrived: median error at 60 m on held-out places 0.69 m/s against 0.92 for the previous one, on game places 0.59 against 0.76; it worked up to 12 m/s and became the default. In 1.3.0 (Oct 7) the network was **removed** together with ONNX Runtime: it is neither in the game nor in the builds, and the research stays offline in `tools/research/`. The reasons are in item 8: every flow regime has its own clear mechanism while the network was a black box, in calm and convection the training reference is noisy, and in the wave band the target is ambiguous. The question "why the network does not fit even the training cases" stays open.
 
 ### 7. WindNinja
 
@@ -236,4 +233,4 @@ Details — [«Multiplayer»](/mechanics/multiplayer/).
 - Numbers and sources for closed work — the [findings registry](/research/findings/).
 - Research and prototypes by topic — [«Research»](/research/).
 - How all this works in the game — [«Mechanics»](/mechanics/): [air model](/mechanics/air-model/), [the "Heuristic" mode](/mechanics/air-model/heuristic/), [thermals](/mechanics/air-model/thermals/), [flight and wing](/mechanics/flight/).
-- Chronology of decisions and pilots' feedback — the [diary](/diary/).
+- Chronology of decisions and pilots' feedback — the [diary](https://github.com/thegriglat/deltaplan/tree/main/diary).
