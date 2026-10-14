@@ -1,0 +1,42 @@
+{
+  "id": "GR-1",
+  "module": "grass-rocks",
+  "type": "dp-researcher",
+  "title": "Аудит работы за спиной камеры",
+  "goal": "Таблица всего, что рисуется или считается вне поля зрения камеры (шейдерные позиции с рамкой на весь слой, объекты без отсечения, GPU-проходы и CPU-перестройки по кругу, лишние проходы теней/отражений): как отсекается, оценка потери, что сделать, нужный запас при быстром повороте. Только заметные потери. Код не меняется.",
+  "plan_ref": "GR-1. Аудит работы за спиной камеры",
+  "contracts": [],
+  "copy": "~/deltaplan-grass-rocks-GR-1",
+  "branch": "grass-rocks/GR-1",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "docs/perf/offscreen_audit.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools",
+    "assets",
+    "docs/perf/grass_rocks.md"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check docs/perf/offscreen_audit.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "table",
+      "cmd": "grep -c '^|' docs/perf/offscreen_audit.md",
+      "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "speed",
+      "cmd": "grep -ci 'скорост[ьи] поворота' docs/perf/offscreen_audit.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:44:10"
+}

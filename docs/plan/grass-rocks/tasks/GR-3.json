@@ -1,0 +1,49 @@
+{
+  "id": "GR-3",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Ранний выход травы вне поля зрения",
+  "goal": "Вершинный шейдер травы до всех выборок высоты и цвета отбрасывает пучки вне пирамиды камеры (как прячутся прореженные), с запасом по размеру пучка; пучки ближе ~2 м — всегда. Вид не меняется ни при каком направлении камеры и быстром повороте.",
+  "plan_ref": "GR-3. Ранний выход травы",
+  "contracts": [
+    {
+      "name": "G2",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-3",
+  "branch": "grass-rocks/GR-3",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/grass_field.gd",
+    "tests/vegetation/"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/terrain.gdshader",
+    "configs/game.json",
+    "tools/bench",
+    "scripts/terrain/tree_crosses.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "gpu_grass_cull",
+      "cmd": "DISPLAY=:0 tools/gpu_tests.sh --filter=grass_cull",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:45:00"
+}
