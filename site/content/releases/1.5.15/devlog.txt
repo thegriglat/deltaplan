@@ -1,0 +1,10 @@
+Deltaplan 1.5.15 — crash reports
+
+A small update to help hunt down crashes on graphics cards we can't test ourselves.
+
+- If the game closes unexpectedly, on the next start it sends the developer a short report: version, graphics card and driver, last flight settings and the end of the game log
+- Paths with your user name are removed from the log
+- Nothing to do on your side; the menu shows a short "Crash report sent" line
+
+Known issues:
+- Some players see a crash while loading a place with several bots and full wind calculation; workaround: fly with one bot
