@@ -85,3 +85,5 @@
 {"t": "2026-10-15T02:04:45", "by": "executor", "task": "DR-12", "ev": "accepted", "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:04:54", "by": "coordinator", "task": "DR-12", "ev": "accepted", "commits": ["7ba4453c"], "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:04:55", "by": "coordinator", "task": "DR-12", "ev": "merged"}
+{"t": "2026-10-15T02:08:31", "by": "executor", "task": "DR-15", "ev": "reported", "commits": ["0c648cbf"], "note": "done: У всех README/summary в tools/research, docs/perf, REQUIREMENTS.md, TODO.md frontmatter и summary ≤140; 7 файлов без fr…", "dp_feedback": "docs check не проверяет статус research по коду; nested md (p3e8.md, p3e6.md и т.п.) проверяются иначе, чем README/summary; docs init не умеет дописывать frontmatter в существующий файл с готовой заготовкой summary."}
+{"t": "2026-10-15T02:08:42", "by": "executor", "task": "DR-15", "ev": "accepted", "note": "3/3 docs=ok:exit 0; hugo=ok:exit 0; only_md=ok:exit 0"}
