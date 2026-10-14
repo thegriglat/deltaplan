@@ -61,6 +61,7 @@ func setup(
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_custom_data = true
 	mm.mesh = clump_mesh(int(cfg.blades_per_clump), float(cfg.blade_width_m), int(cfg.segments))
+	var reach := mesh_reach(mm.mesh)
 	mm.instance_count = n
 	# Пучки только в кольце inner..radius: смещение клетки от центральной — в INSTANCE_CUSTOM.xy.
 	var buf := PackedFloat32Array()
@@ -112,6 +113,7 @@ func setup(
 	material.set_shader_parameter("height_fade_k", float(cfg.get("height_fade_k", 0.6)))
 	material.set_shader_parameter("height_k", float(cfg.get("height_k", 1.0)))
 	material.set_shader_parameter("landing_count", 0)
+	material.set_shader_parameter("clump_reach_m", reach)
 	var spots := mowed_spots.slice(0, MAX_MOWED)
 	while spots.size() < MAX_MOWED:
 		spots.append(Vector4(1e9, 1e9, 0.0, 1.0))
@@ -383,6 +385,15 @@ static func press_factor(
 	var near_ground := near_ground_factor(agl_m, full_m, zero_m)
 	var radial := 1.0 - smoothstep(press_radius_m * 0.4, press_radius_m, dist_xz)
 	return near_ground * radial
+
+
+## Радиус пучка в плане, м (GR-3, clump_reach_m): наибольшее |VERTEX.xz| сетки — корни, изгиб и
+## полуширина травинок; шейдер умножает на ширину вдали и добавляет наклон.
+static func mesh_reach(mesh: Mesh) -> float:
+	var r := 0.0
+	for v in mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		r = maxf(r, Vector2(v.x, v.z).length())
+	return r
 
 
 ## Пучок травинок: blades штук в круге ~0,15 м, каждая — полоска из segments отрезков,
