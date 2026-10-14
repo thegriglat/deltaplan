@@ -1,13 +1,14 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "game"
-updated: "2026-09-27"
-summary: "Эталоны маршрутных XC-полётов на дельтаплане (карточка 02) — Ориентиры для сравнения с ботом (tests/atmosphere/xc/, tools/atmosphere/xc_matrix.sh)."
-related: []
+area: "air"
+updated: "2026-10-15"
+summary: "Эталоны XC: набор 1–2 / 2–3,5 м/с, маршрутная 20–30 / 30–45 км/ч, 2–4 / 1,5–3 термика на 10 км (средний / сильный день)"
+related: ["docs/research/thermals.md", "docs/research/competition_rules.md"]
 conclusion: "Бот без облаков (--clouds не задан) находит термики хуже: на реальном Онгудае садится через 5–6 км даже в средний день."
-data: ""
-applied_in: ""
+data: "таблица в тексте со ссылками на литературу; IGC-треки не выкачивались"
+applied_in: "tools/atmosphere/xc_matrix.sh; tests/atmosphere/xc/ (бот xc_run.gd)"
 ---
 # Эталоны маршрутных XC-полётов на дельтаплане (карточка 02)
 

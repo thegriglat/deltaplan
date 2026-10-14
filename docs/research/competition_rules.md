@@ -1,13 +1,14 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "game"
-updated: "2026-09-27"
-summary: "Правила маршрутных соревнований (дельтапланеризм) — Кратко — то, что нужно для FR-35. Первоисточники: FAI Sporting Code Section 7A (Cross Country — общие правила, класс 1 = дельтапланы) и Section 7F (XC Scoring — формула GAP, геометрия заданий)."
-related: []
-conclusion: "Доступные очки = 1000 × валидность задания (валидность старта × дистанции × времени)."
-data: ""
-applied_in: ""
+area: "game"
+updated: "2026-10-15"
+summary: "Правила XC-соревнований (FAI S7A/S7F): типы заданий, цилиндры, оптимизированный маршрут, GAP, формат .xctsk; сделано в scripts/tasks"
+related: ["docs/guide/tasks.md", "docs/research/xc_reference.md"]
+conclusion: "Доступные очки GAP = 1000 × валидность задания (старта × дистанции × времени); в одиночной игре очков нет — итог без очков: время скоростного участка или пройденная дистанция + локальные рекорды (FR-37). Допуск цилиндра 0,5 % радиуса, не меньше 5 м; дистанция задания — кратчайший путь через цилиндры."
+data: "ссылки на S7F 2024, S7A 2021, GlideComp, XCTrack; формат .xctsk v1 разобран в тексте"
+applied_in: "scripts/tasks/{task,task_point,task_tracker,route_optimizer,xctsk_importer}.gd; configs/tasks/settings.json; tests/tasks/; docs/guide/tasks.md"
 ---
 # Правила маршрутных соревнований (дельтапланеризм)
 

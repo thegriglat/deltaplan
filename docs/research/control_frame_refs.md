@@ -1,13 +1,14 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "flight"
-updated: "2026-09-28"
-summary: "Референсы: трапеция (control frame) и вид с места пилота — Собрано для повышения реалистичности процедурных Blender-моделей трапеции и деталей, видимых с точки обзора пилота."
-related: []
-conclusion: "1. Мануал Wills Wing T2/T2C — https://www.delta-club-82.com/bible/manuels/t2c-manual_id798.pdf (даёт точные мм/дюймы и текстовые описания узлов апекс-бракета, углов, тросов)."
-data: ""
-applied_in: ""
+area: "flight"
+updated: "2026-10-15"
+summary: "Размеры и узлы трапеции, подвески и вид из кабины для Blender-моделей: мануал Wills Wing T2/T2C, советские аппараты"
+related: ["docs/research/atlas_wing.md", "docs/research/zheglov-1983.md"]
+conclusion: "Числа берутся из сервисного мануала Wills Wing T2/T2C (размеры в мм) и учебника ОФСЛА «Учись летать на дельтаплане» (диаметры труб советской школы, Ø25–28 мм); значения со знаком «?» не подтверждены. По ним переделаны стойки, углы, тросы и подвеска трапеции в процедурных моделях; штанга у советских крыльев — прямая труба, спидбар только у современных."
+data: "ссылки на мануалы и статьи в тексте (PDF не храним); кадры кабины — tools/shots/frame_shot.tscn"
+applied_in: "tools/blender/frame_parts.py; tools/blender/glider_params.json; tools/research/basebar_curve/"
 ---
 # Референсы: трапеция (control frame) и вид с места пилота
 

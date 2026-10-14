@@ -1,13 +1,14 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "wings"
-updated: "2026-10-03"
-summary: "Паспорта крыльев → конфиги configs/wings/*.json: что изменено, источники, противоречия — Принципы: физика прежде «нравится»; число меняется, только если есть паспорт той же модели и размера (или явно помеченный аналог); абсолютным L/D из заявок не верим; при противоречии не подгоняем молча, а фиксир"
-related: []
-conclusion: ""
-data: ""
-applied_in: "configs/wings/*.json"
+area: "flight"
+updated: "2026-10-15"
+summary: "Паспорта → configs/wings/*.json: поправлены массы и двойная поверхность, противоречия не подгонялись; приоритет у DHV"
+related: ["docs/research/glider_polars_sources.md", "docs/research/glider_models.md", "docs/research/glider_3d_tz.md", "tools/research/data/wing_passports/sources.md"]
+conclusion: "Число в конфиге меняется только при паспорте той же модели и размера (или помеченном аналоге); при расхождении источников приоритет у DHV, поляры без точек DHV не трогаем. Поправлены wing_mass_kg и double_surface_pct у training, sport, combat, laminar (например, sport 34,0 → 34,4 кг и 90 → 92 %). Не подгонялись: combat best_glide 16 на 50 км/ч против класса T2C, поляра Falcon выше 42 км/ч чище официальной WW, на высокой скорости наши поляры дают на 4–35 % меньшее снижение, чем точки WW."
+data: "tools/research/data/wing_passports/ (wings_merged.json: у каждого числа цитата и файл разбора; sources.md)"
+applied_in: "configs/wings/{training,sport,combat,laminar}.json"
 ---
 # Паспорта крыльев → конфиги `configs/wings/*.json`: что изменено, источники, противоречия
 

@@ -1,13 +1,14 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "wings"
-updated: "2026-09-30"
-summary: "Учебно-тренировочный дельтаплан «Атлас» (СССР): данные из статьи — Выписка для модели крыла configs/wings/atlas.json и 3D-модели glider_atlas.glb."
-related: []
-conclusion: ""
-data: ""
-applied_in: ""
+area: "flight"
+updated: "2026-10-15"
+summary: "Дельтаплан «Атлас» (СССР): S 15,5 м², размах 9,8 м, 25 кг, срыв 29–30 км/ч; выписка для configs/wings/atlas.json и модели"
+related: ["docs/research/glider_polars_sources.md", "docs/research/wings_config_sources.md", "docs/research/control_frame_refs.md"]
+conclusion: "Из статьи «Крылья Родины» (Кареткин, Рябцев, Бабкин): S 15,5 м², размах 9,8 м, удлинение 6,2, угол при вершине 120°, масса 25 кг, пилот 65–95 кг, срыв 29–30 км/ч при пилоте ≤ 70 кг, снижение 1 м/с. В configs/wings/atlas.json площадь, размах, массы и пилот совпадают; root_chord_m и sweep_m — не длина киля и угол из статьи, сверять с моделью (§5)."
+data: "PDF статьи вне репозитория (авторское право); в тексте числа и пересказ, скан плохой, нечитаемое помечено"
+applied_in: "configs/wings/atlas.json; assets/models/glider_atlas.glb (исходник assets/source/glider_atlas.blend)"
 ---
 # Учебно-тренировочный дельтаплан «Атлас» (СССР): данные из статьи
 
