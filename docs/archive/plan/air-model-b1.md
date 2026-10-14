@@ -1,6 +1,6 @@
 # Б1 «Совместная калибровка Askervein + Perdigão» — записка
 
-Волна Б модели воздуха, исполнитель Б1, ветка `air/b1`. Контракт — C10 v3 (`docs/contracts/air-model.md`): общая схема
+Волна Б модели воздуха, исполнитель Б1, ветка `air/b1`. Контракт — C10 v3 (`docs/contracts/air-model/runtime-calibration.md`): общая схема
 `tools/research/cases/scheme.py`, общие правила постановки `tools/research/cases/rules.py`. Код, данные, команды —
 `tools/research/cases/b1/README.md`. Решатель (`air.py`, `solver.py`), код игры и конфиги не менялись.
 

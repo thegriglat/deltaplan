@@ -244,7 +244,7 @@ disableKinds = ['taxonomy', 'term']
     source = '../docs/contracts'
     target = 'content/docs/contracts'
     sites = { matrix = { languages = ['ru'] } }
-    files = ['! easter-eggs.md', '*.md']
+    files = ['! easter-eggs.md', '! easter-eggs/**', '*.md', '**/*.md']
 
   # --- Реестр выводов: docs/registry/findings.md ---
   [[module.mounts]]

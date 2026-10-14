@@ -1,7 +1,7 @@
 # Б2 «α и λ в игре: профиль притока по устойчивости, пересчёт эталонов и цена» — записка
 
 Волна Б модели воздуха, исполнитель Б2, ветка `air/b2` (feature/air-model 00ae28a + air/b1). Контракт — C2 v4
-(`docs/contracts/air-model.md`). Код, данные, команды — `tools/research/b2/README.md`.
+(`docs/contracts/air-model/input-solver.md`). Код, данные, команды — `tools/research/b2/README.md`.
 
 ## Коротко
 - **Одна функция профиля** `WindProfile` (`scripts/atmosphere/wind_profile.gd`, static) для решателя (`AirPlace.domain_case`,

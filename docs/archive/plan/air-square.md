@@ -22,7 +22,7 @@ related: ["docs/contracts/air-model.md", "docs/archive/rejected/air-nn-contracts
 та же функция, что П6 air-nn и эталон `air3d/terrain.block_mean`. Тогда область ровно 38,4 км с центром в точке
 старта, а слой рантайма (≥ 40 км, центр у старта) вмещает её на любой широте — п. 1 исправляется п. 2 без
 скачивания слоя с запасом и без сдвига окна. Решателю, окнам AM-04 и входу сети — одни и те же клетки, dx = 400.
-Контракт — C2 v7 (`docs/contracts/air-model.md`), тест `test_c2_cell_geometry`.
+Контракт — C2 v7 (`docs/contracts/air-model/input-solver.md`), тест `test_c2_cell_geometry`.
 
 ## Задачи
 ### AQ-1. Клетка ровно dx и область в слое
