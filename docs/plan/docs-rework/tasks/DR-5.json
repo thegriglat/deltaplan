@@ -28,7 +28,9 @@
   "scope": [
     "docs/plan",
     "docs/contracts",
-    "docs/archive"
+    "docs/archive",
+    "site/content",
+    "docs/research/itch_multiplayer.md"
   ],
   "dont_touch": [
     "docs/plan/docs-rework",
@@ -38,7 +40,8 @@
     "docs/registry",
     "docs/INDEX.md",
     "tools",
-    "site"
+    "site/hugo.toml",
+    "site/layouts"
   ],
   "accept": [
     {
