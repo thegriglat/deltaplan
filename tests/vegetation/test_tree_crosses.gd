@@ -103,6 +103,18 @@ func test_setup_stitches_models_and_impostors() -> void:
 	tc.free()
 
 
+## SL-24: вдали крест тянется к своей средней (альбедо полога), а не к общим far_canopy_luma = 0,32
+## (линейный ALBEDO: 0,32 в 2–6 раз светлее хвои 0,05 → «седые» кресты). Формула прежнего хвоста:
+## при 1200 м и яркости 0,05 прежний код давал ~0,107 (×2,1); шейдер теперь зовёт sl_tree_tone.
+func test_far_tone_not_pulled_to_old_luma() -> void:
+	var src := FileAccess.get_file_as_string("res://scripts/terrain/tree_cross.gdshader")
+	check(src.contains("sl_tree_tone(rgb, mix(sl_canopy_albedo.y, sl_canopy_albedo.x, con)"),
+			"крест вдали: sl_tree_tone к альбедо полога породы")
+	var l := 0.05
+	var old := l + 0.35 * (0.6 * 0.32 + 0.4 * l - l)
+	check(old > 2.0 * l, "прежний хвост поднимал яркость хвои ×%.1f" % (old / l))
+
+
 ## Последним: освободить общий Terrain файла (без него — утечки RID при выходе).
 func test_zz_free_terrain() -> void:
 	if _terrain != null:
