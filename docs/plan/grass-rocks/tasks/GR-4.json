@@ -27,7 +27,9 @@
     "scripts/terrain/rock_scatter.gdshader",
     "tests/terrain/test_rocks.gd",
     "docs/perf/grass_rocks.md",
-    "docs/perf/data/grass_rocks_GR-4.tar.gz"
+    "docs/perf/data/grass_rocks_GR-4.tar.gz",
+    "ASSETS.md",
+    "data/terrain/textures/"
   ],
   "dont_touch": [
     "scripts/terrain/rock_scatter.gd",
@@ -53,5 +55,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-15T04:45:30"
+  "created": "2026-10-15T04:45:30",
+  "edited": "2026-10-15T04:46:25"
 }
