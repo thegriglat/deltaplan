@@ -117,3 +117,5 @@
 {"t": "2026-10-15T02:40:55", "by": "coordinator", "task": "DR-6", "ev": "checked", "commits": ["d7c08bf4"], "note": "3/4 docs=ok:exit 0; hugo=ok:exit 0; eggs_off_site=ok:exit 0; contract_tests=FAIL:таймаут"}
 {"t": "2026-10-15T02:40:56", "by": "coordinator", "task": "DR-6", "ev": "merged"}
 {"t": "2026-10-15T02:41:12", "by": "executor", "task": "DR-16", "ev": "accepted", "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
+{"t": "2026-10-15T02:41:16", "by": "coordinator", "task": "DR-16", "ev": "accepted", "commits": ["06b2e697"], "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
+{"t": "2026-10-15T02:41:16", "by": "coordinator", "task": "DR-16", "ev": "merged"}
