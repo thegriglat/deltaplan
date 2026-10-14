@@ -1,0 +1,26 @@
+Deltaplan 1.5.14 — new look of mountains and forest
+
+The scenery got a big overhaul: forest, meadows, snow, light and the mountains themselves look closer to what you see from a glider. Seasons now follow the flight date, latitude and altitude. Also includes 1.5.13: the game takes almost half the disk space.
+
+Forest and meadows:
+- Distant forest has volume and no visible switch ring; near forest rebuilds several times faster
+- Large tone patches on meadows, lusher grass near water, tree line by latitude, alpine meadow above it
+- Cattle trails on steep meadows, wind gusts show as streaks on the grass
+- Sail and foliage glow against the sun
+
+Seasons and snow:
+- Spring grass, summer burn-out, golden autumn, bare crowns; fields from ploughland to stubble
+- Fresh snow line and glaciers by date and latitude; snow does not stick to steep rock
+
+Mountains and light:
+- Sharper ridges and rocks as in Copernicus data; distant peaks no longer sink; no cracks at seams
+- Sky and ground light the slopes differently; mountain shadows keep the blue sky light
+- Mountain shadow now also falls around the pilot
+- Haze depends on direction to the sun
+
+Performance and size:
+- Low preset is noticeably lighter (own terrain shader variant); no preset is more expensive than before
+- Game data 212 MB -> 86 MB (compressed glider textures)
+
+Known issues:
+- A faint light ring around the pilot can still show on snow in mountain shadow
