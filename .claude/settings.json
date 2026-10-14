@@ -2,5 +2,10 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(.dpcli/dpcli *)"
+    ]
   }
 }
