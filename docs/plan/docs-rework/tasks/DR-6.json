@@ -21,16 +21,11 @@
   "branch": "docs-rework/DR-6",
   "base": "feature/docs-rework",
   "scope": [
-    "docs/contracts/air-model.md",
-    "docs/contracts/air-model",
-    "docs/contracts/air-phase.md",
-    "docs/contracts/air-phase",
-    "docs/contracts/easter-eggs.md",
-    "docs/contracts/easter-eggs",
     "site/hugo.toml",
     "site/content",
     "docs/research",
-    "docs/archive"
+    "docs/archive",
+    "docs/contracts"
   ],
   "dont_touch": [
     "docs/INDEX.md",
@@ -53,6 +48,10 @@
       "name": "eggs_off_site",
       "cmd": "cd site && d=$(mktemp -d) && hugo --minify -d $d >/dev/null 2>&1 && ls $d/docs/contracts 2>/dev/null | grep -i easter; true",
       "expect": "!re:\\S"
+    },
+    {
+      "name": "contract_tests",
+      "tests": "contract"
     }
   ],
   "report_extra": [],
