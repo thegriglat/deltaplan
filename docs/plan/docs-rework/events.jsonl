@@ -76,3 +76,5 @@
 {"t": "2026-10-15T02:03:55", "by": "coordinator", "task": "DR-13", "ev": "merged"}
 {"t": "2026-10-15T02:03:56", "by": "executor", "task": "DR-14", "ev": "reported", "commits": ["f9376112"], "note": "done: У 13 документов summary ≤140, статусы по коду main (D1), area и applied_in; terrain_statistics.md (58 КБ) разбит на вхо…", "dp_feedback": "docs check не ловит summary >140 после правки регулярками (только при запуске); нет подсказки, сколько байт до лимита 40 КБ у файла (steam_godotsteam впритык); git log в копии обрезан до 50 коммитов, статус модуля по истории проверить нельзя."}
 {"t": "2026-10-15T02:04:04", "by": "executor", "task": "DR-4", "ev": "accepted", "note": "2/2 hugo=ok:exit 0; no_plans_links=ok:exit 0"}
+{"t": "2026-10-15T02:04:08", "by": "coordinator", "task": "DR-4", "ev": "accepted", "commits": ["b3fc59a4"], "note": "2/2 hugo=ok:exit 0; no_plans_links=ok:exit 0"}
+{"t": "2026-10-15T02:04:09", "by": "coordinator", "task": "DR-4", "ev": "merged"}
