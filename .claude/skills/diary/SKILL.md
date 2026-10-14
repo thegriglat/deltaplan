@@ -29,7 +29,7 @@ description: Запись в дневник разработки Deltaplan (ра
 - `# Заголовок` в теле НЕ писать — тема печатает title сама. Разделы — `##` (при необходимости `###`).
 
 ## 2. Что писать
-Источники: разговор в сессии, `git log --since=<дата> --format="%h %ad %s" --date=format:%H:%M` (через `rtk proxy git log`, чтобы не обрезало), CHANGELOG.md, docs/plan/, docs/research/.
+Источники: разговор в сессии, `.dpcli/dpcli digest --since today` (решения, принятые задачи, правки плана, коммиты главной ветки), `git log --since=<дата> --format="%h %ad %s" --date=format:%H:%M` (через `rtk proxy git log`, чтобы не обрезало), CHANGELOG.md, docs/plan/, docs/research/.
 
 Разделы по темам дня, внутри — факты:
 - **что сделали** — функционально, с коммитами шорткодом `{{< commit abc1234 >}}` (хеш проверить `git cat-file -t`), версии — ссылкой на страницу версии `/releases/X.Y.Z/`;

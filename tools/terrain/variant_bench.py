@@ -11,7 +11,7 @@ GraphicsPresets.select); viewport-часть пресета (scale_3d/FSR, MSAA,
 
   python3 tools/terrain/variant_bench.py parts                 # список частей (define → вариант)
   python3 tools/terrain/variant_bench.py gen                   # только записать _bench-варианты
-  /home/greg/deltaplan/tools/dp lock gpu terrain-variants -- \\
+  .dpcli/dpcli lock gpu terrain-variants -- \\
     python3 tools/terrain/variant_bench.py run --out=build/variant_bench \\
       [--presets=low,medium,high] [--variants=full,min,no_sl_light,preset,...] [--relief] [--frames=120]
       [--no-warm] [--repeat=N]
