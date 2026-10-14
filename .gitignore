@@ -41,3 +41,6 @@ tools/research/qol_signs/out*/
 
 # Rust
 /tools/osm_tiles/packer/target/
+
+# Временные варианты шейдера рельефа для замера (tools/terrain/variant_bench.py, SL-К6)
+scripts/terrain/variants/_bench/
