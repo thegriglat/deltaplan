@@ -99,11 +99,13 @@ func test_compute_time_40km() -> void:
 		FileAccess.get_file_as_string(dir.path_join("meta.json"))
 	)
 	var total := 0.0
-	var k := 0
-	for info: Dictionary in meta.layers:
+	# как Terrain: от фона к детальному, горизонт детального продолжается по высотам фона (SL-26)
+	var outer: TerrainRelief = null
+	for k in range(meta.layers.size() - 1, -1, -1):
+		var info: Dictionary = meta.layers[k]
 		var l := HeightLayer.load_from_file(dir.path_join(String(info.file)), info)
-		var r := TerrainRelief.compute(l, _cfg(), 200.0, k)
+		var r := TerrainRelief.compute(l, _cfg(), 200.0, k, true, outer)
 		total += r.compute_s
 		print("         поля %s (%d²): %.2f с %s" % [l.id, r.width, r.compute_s, r.timings])
-		k += 1
+		outer = r
 	check(total < 3.0, "поля локации 40 км + фон ≤ 3 с, было %.2f с" % total)
