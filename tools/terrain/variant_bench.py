@@ -13,7 +13,10 @@ GraphicsPresets.select); viewport-часть пресета (scale_3d/FSR, MSAA,
   python3 tools/terrain/variant_bench.py gen                   # только записать _bench-варианты
   /home/greg/deltaplan/tools/dp lock gpu terrain-variants -- \\
     python3 tools/terrain/variant_bench.py run --out=build/variant_bench \\
-      [--presets=low,medium,high] [--variants=full,min,no_sl_light,...] [--relief] [--frames=120] [--no-warm]
+      [--presets=low,medium,high] [--variants=full,min,no_sl_light,preset,...] [--relief] [--frames=120]
+      [--no-warm] [--repeat=N]
+  (вариант "preset" — как в игре: variant/variant_far пресета; "full+far" — ближний + дальний;
+   имя закоммиченного варианта — как есть, иное — _bench/<имя>)
   python3 tools/terrain/variant_bench.py summary --out=build/variant_bench
 
 run продолжает с места (results.jsonl: строка на прогон; уже снятые пропускаются), в конце пишет
@@ -42,6 +45,7 @@ INC_RE = re.compile(r'#include\s+"res://([^"]+)"')
 PART_RE = re.compile(r"#ifndef\s+(T_[A-Z0-9_]+_OFF)\b")
 BENCH_ARGS = ["--location=ongudai", "--site=kayancha_south", "--agl=800", "--clearings"]
 RELIEF_ARGS = ["--no-trees", "--no-grass", "--no-haze"]
+PRESET = "preset"   # вариант «как в игре»: variant/variant_far пресета, без подмены
 
 
 def _sources() -> list[Path]:
@@ -108,7 +112,11 @@ def _godot(args: list[str], timeout_s: int, headless: bool = False) -> str:
 
 
 def _setup(preset: str | None, variant: str) -> None:
-    a = ["res://tools/terrain/variant_setup.tscn", "--", f"--variant={variant}", "--variant-far="]
+    # "preset" — варианты как в игре: terrain.variant / variant_far из пресета (GraphicsPresets.select)
+    a = ["res://tools/terrain/variant_setup.tscn", "--"]
+    if variant != PRESET:
+        near, _, far = variant.partition("+")   # "full+far" — ближний + дальний (LOD ≥ variant_far_lod)
+        a += [f"--variant={near}", f"--variant-far={far}"]
     if preset:
         a.insert(2, f"--preset={preset}")
     log = _godot(a, 120, headless=True)
@@ -137,7 +145,12 @@ def run(o: argparse.Namespace) -> None:
     variants = all_v
     if o.variants:
         want = [v.strip() for v in o.variants.split(",") if v.strip()]
-        variants = [v if v in ("full", "min") or v.startswith("_bench/") else "_bench/" + v for v in want]
+        def norm(v: str) -> str:
+            if v in ("full", "min", PRESET, "") or v.startswith("_bench/") or (VARIANTS / f"terrain_{v}.gdshader").exists():
+                return v
+            return "_bench/" + v
+
+        variants = ["+".join(norm(x) for x in v.split("+")) for v in want]
     presets = [p.strip() for p in o.presets.split(",") if p.strip()]
     modes = ["full", "relief"] if o.relief else ["full"]
     res_path = out / "results.jsonl"
@@ -146,13 +159,15 @@ def run(o: argparse.Namespace) -> None:
         for ln in res_path.read_text(encoding="utf-8").splitlines():
             if ln.strip():
                 r = json.loads(ln)
-                done.add((r["preset"], r["variant"], r["mode"]))
-    plan = [(p, v, m) for p in presets for v in variants for m in modes if (p, v, m) not in done]
-    print(f"variant_bench: {len(plan)} прогонов (всего {len(presets) * len(variants) * len(modes)}), выход {out}")
+                done.add((r["preset"], r["variant"], r["mode"], int(r.get("rep", 0))))
+    # --repeat=N: N кругов по всем вариантам подряд (A B C A B C …) — шум и дрейф видны по кругам
+    plan = [(p, v, m, k) for k in range(o.repeat) for p in presets for v in variants for m in modes
+            if (p, v, m, k) not in done]
+    print(f"variant_bench: {len(plan)} прогонов (всего {o.repeat * len(presets) * len(variants) * len(modes)}), выход {out}")
     t0 = time.time()
     warmed: set[str] = set()
     cur = None
-    for i, (p, v, m) in enumerate(plan):
+    for i, (p, v, m, k) in enumerate(plan):
         if cur != (p, v):
             _setup(p, v)
             cur = (p, v)
@@ -160,13 +175,13 @@ def run(o: argparse.Namespace) -> None:
             _bench(10, False)   # прогрев: компиляция шейдера варианта в кэш профиля
             warmed.add(v)
         r, log = _bench(o.frames, m == "relief")
-        rec = {"preset": p, "variant": v, "mode": m, "t": time.strftime("%Y-%m-%d %H:%M:%S")}
+        rec = {"preset": p, "variant": v, "mode": m, "rep": k, "t": time.strftime("%Y-%m-%d %H:%M:%S")}
         if r is None:
             rec["error"] = "нет BENCH_STATIC_JSON"
             rec["shader_error"] = "SHADER ERROR" in log
             (out / f"fail_{p}_{v.replace('/', '_')}_{m}.log").write_text(log, encoding="utf-8")
         else:
-            rec.update({k: r.get(k) for k in ("gpu_ms_mean", "gpu_ms_p95", "gpu_ms_p10", "n", "w", "draw_calls")})
+            rec.update({q: r.get(q) for q in ("gpu_ms_mean", "gpu_ms_p95", "gpu_ms_p10", "n", "w", "draw_calls", "passes")})
         with res_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         el = time.time() - t0
@@ -180,11 +195,16 @@ def summary(out: Path) -> None:
     out = Path(out)
     if not out.is_absolute():
         out = ROOT / out
-    rows: dict[tuple[str, str, str], dict] = {}
+    runs: dict[tuple[str, str, str], list[dict]] = {}
     for ln in (out / "results.jsonl").read_text(encoding="utf-8").splitlines():
         if ln.strip():
             r = json.loads(ln)
-            rows[(r["preset"], r["variant"], r["mode"])] = r   # последний прогон — в силе
+            runs.setdefault((r["preset"], r["variant"], r["mode"]), []).append(r)
+    # несколько кругов (--repeat) — среднее по прогонам с числом
+    rows: dict[tuple[str, str, str], dict] = {}
+    for key, rs in runs.items():
+        xs = [float(r["gpu_ms_mean"]) for r in rs if r.get("gpu_ms_mean") is not None]
+        rows[key] = {"gpu_ms_mean": sum(xs) / len(xs) if xs else None}
     presets = list(dict.fromkeys(k[0] for k in rows))
     modes = list(dict.fromkeys(k[2] for k in rows))
     variants = list(dict.fromkeys(k[1] for k in rows))
@@ -227,6 +247,7 @@ def main() -> None:
     r.add_argument("--relief", action="store_true")
     r.add_argument("--frames", type=int, default=120)
     r.add_argument("--no-warm", action="store_true")
+    r.add_argument("--repeat", type=int, default=1)
     s = sp.add_parser("summary")
     s.add_argument("--out", default="build/variant_bench")
     o = ap.parse_args()

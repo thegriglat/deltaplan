@@ -436,7 +436,7 @@ func test_k6_variant_selection() -> void:
 	check(TerrainRenderer.pick_variant(cfg, 0, 2) == "far", "К6: LOD ≥ variant_far_lod — variant_far")
 	check(TerrainRenderer.pick_variant(cfg, 1, 0) == "far", "К6: фоновый слой — variant_far")
 	check(TerrainRenderer.pick_variant({}, 0, 0) == "full", "К6: нет ключей — full")
-	# конфиг: ключи есть, все пресеты сейчас full
+	# конфиг: ключи есть; пресеты задают свой вариант и дальний (SL-23: low/low_far, far)
 	var t: Dictionary = Config.get_config("world").get("terrain", {})
 	check(t.has("variant") and t.has("variant_far") and t.has("variant_far_lod"), "К6: world.json → terrain.variant*")
 	var presets: Dictionary = Config.get_config("game").get("graphics_presets", {})
@@ -447,3 +447,8 @@ func test_k6_variant_selection() -> void:
 		check(pt.has("variant"), "К6: пресет %s задаёт terrain.variant" % p)
 		if pt.has("variant"):
 			check(ResourceLoader.exists(TerrainRenderer.variant_path(String(pt.variant))), "К6: вариант пресета %s есть" % p)
+		if String(pt.get("variant_far", "")) != "":
+			check(
+				ResourceLoader.exists(TerrainRenderer.variant_path(String(pt.variant_far))),
+				"К6: дальний вариант пресета %s есть" % p
+			)

@@ -1511,10 +1511,12 @@
     "_doc": "Варианты шейдера рельефа (контракт SL-К6, scene-look): дорогие части шейдера выключаются при компиляции, а не флагом. Вариант — scripts/terrain/variants/terrain_<имя>.gdshader (строки #define T_<ЧАСТЬ>_OFF + include тела terrain_main.gdshaderinc), \"full\" — scripts/terrain/terrain.gdshader. Пресеты графики (configs/game.json → graphics_presets.*.configs.world.terrain) задают свой вариант; смена пресета пересобирает материалы (TerrainRenderer), используемые варианты прогреваются при загрузке. Список частей — tools/terrain/variant_bench.py parts, замер «без части» — variant_bench.py run.",
     "variant": "full",
     "variant_doc": "Вариант для ближних LOD детального слоя: имя файла без terrain_ (\"full\" — все части; \"min\" — все выключены, нижняя граница для замера)",
-    "variant_far": "",
+    "variant_far": "far",
     "variant_far_doc": "Вариант для дальних LOD (с variant_far_lod) детального слоя и всего фонового слоя; пусто — как variant",
     "variant_far_lod": 2,
-    "variant_far_lod_doc": "С какого LOD детального слоя действует variant_far (пороги — render.detail.lod_distances_m локации: 1,5/3,5/7/14 км; LOD 2 — дальше ~3,5 км)"
+    "variant_far_lod_doc": "С какого LOD детального слоя действует variant_far (пороги — render.detail.lod_distances_m локации: 1,5/3,5/7/14 км; LOD 2 — дальше ~3,5 км)",
+    "variant_far_fade_k": 0.7,
+    "variant_far_fade_k_doc": "Стык с дальним вариантом (SL-23): части, которых в нём нет (выходы породы, скальная поверхность, рисунок породы, фактура луга, извилины кромок классов), в ближнем гаснут по дальности от этой доли порога LOD variant_far_lod до самого порога — на стыке LOD скачка нет"
   },
   "scene_look": {
     "_doc": "Картинка сочнее (модуль scene-look, контракты SL-К1…К3): ключ <k> → uniform sl_<k> шейдеров рельефа и импостеров (scripts/terrain/scene_look.gdshaderinc, TerrainRenderer.apply_scene_look_params); вложенных объектов нет. Выключатель пункта — <пункт>_enabled; всё выключено — картинка как до модуля. Цвета — линейные RGB (без sRGB).",
