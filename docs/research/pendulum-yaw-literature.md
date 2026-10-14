@@ -1,15 +1,19 @@
 ---
-type: research
-status: active
-module: pendulum
-updated: 2026-10-11
-summary: "Литература для сверки рыскания дельтаплана в модели «Маятник» (Cnβ 0,06 — оценка): боковые производные Hiway Demon (Cook & Spottiswoode через Kochi Univ. of Tech.), моды голландского шага и спирали (откуда ωn 0,92 / ζ 0,29), данные трубы Kroo и NASA по гибким крыльям, обратная реакция при смещении веса, эталоны с допусками."
+type: "research"
+status: "active"
+module: "pendulum"
+area: "flight"
+updated: "2026-10-15"
+summary: "Боковые производные Hiway Demon (Cook): Cnβ 0,0275, голландский шаг 0,92 рад/с, спираль устойчива; в игре Cnβ 0,05"
+related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "docs/research/zheglov-1983.md", "tools/research/pendulum/README.md", "docs/research/glider_models.md"]
 conclusion: "Единственный полный набор боковых производных в открытом доступе — Hiway Demon, 10,8 м/с (Cook & Spottiswoode 2005 по трубе Kilkenny, таблица в работе Kochi 2020): Cnβ 0,0275, Clβ −0,322, CYβ −0,226, Clp −0,93, Clr +0,326, Cnr −0,058 (опорные S 16,26 м², b 10 м; Cn = N/(qSb)). Наш Cnβ 0,06 вдвое выше (0,03 — ближе); голландский шаг 0,92 рад/с, ζ 0,29 — из модели Cook (не лётное измерение), спираль в ней устойчива (−0,51 1/с), крен-мода быстрая (≈ −23 1/с). Обратная реакция при смещении веса — «значительная мгновенная» у Cook, «малая» у Ochi; скольжение 30–40° в перекладке источниками не подтверждается (трубные данные линейны по β до 20°); лётных измерений β нет. Чего нет: таблиц самой статьи Cook, диссертации Spottiswoode, Kroo 1983, русских количественных данных."
-related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "tools/research/pendulum/README.md", "docs/research/glider_models.md"]
-applied_in: "docs/plan/pendulum.md"
+data: "таблицы производных и эталонов — в тексте (§2–3); PDF не храним, ссылки в §1"
+applied_in: "configs/pendulum.json (cn_beta 0,05 с ссылкой на Hiway Demon; PD-21, PD-23, PD-24); scripts/flight/pendulum/pendulum_model.gd"
 ---
 
 # Рыскание дельтаплана: литература для сверки модели «Маятник»
+
+> Статус 2026-10-15: сверка выполнена в PD-21; Cnβ в игре понижен с 0,06 до 0,05 (PD-23, `configs/pendulum.json`: 0,03 давало перевороты sport в болтанке). Фразы «у нас 0,06» ниже — состояние на 11.10.2026.
 
 Зачем: в прототипе рыскание — «эквивалентный киль» на 1,6 м позади ЦМ крыла, `cn_beta = 0,06` 1/рад (`tools/research/pendulum/pendulum/params.py`), нормировка `Cn = N/(q·S·b)`; параметр отнесён к этапу B (`docs/plan/pendulum.md`, «Что уходит в этап B»). Здесь — что нашлось в открытых источниках за ~1 час поиска (11.10.2026), с оценкой применимости. Сам PDF не хранится, только числа и ссылки.
 

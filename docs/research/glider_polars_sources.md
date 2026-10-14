@@ -1,15 +1,18 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "flight"
-updated: "2026-09-30"
-summary: "Открытые источники характеристик и поляр современных дельтапланов — Разведка от 2026-09-30. Всё, что ниже, проверено скачиванием (кроме помеченного «не проверено»)."
-related: []
-conclusion: "Готовой базы поляр современных дельтапланов в открытом доступе нет."
-data: ""
-applied_in: "configs/wings/*.json (поляры)"
+area: "flight"
+updated: "2026-10-15"
+summary: "Готовых поляр современных дельтапланов в открытых данных нет: берём паспорта, поляру строим по якорям с пометкой «оценка»"
+related: ["docs/research/wings_config_sources.md", "docs/research/pilot_mass.md", "docs/research/glider_models.md"]
+conclusion: "Готовой базы поляр современных дельтапланов в открытом доступе нет (XCSoar/LK8000: «Delta USHPA-2/3/4» и одна T2C-класса; Wills Wing не публикует L/D). Паспортные поля (площадь, масса, диапазон полётной массы, скорости) есть почти у всех и разбираются машинно. Принятый путь: паспорта из открытых данных, поляра по якорям (мин. снижение, лучшее качество, скорости) с пометкой «оценка, не измерение»."
+data: "скрипты и разобранные паспорта — tools/research/data/wing_passports/ (hang_passports.json, wings_merged.json, sources.md); сырьё записки вне репозитория"
+applied_in: "configs/wings/*.json (polar.points_kmh_ms, reference); tools/research/data/wing_passports/"
 ---
 # Открытые источники характеристик и поляр современных дельтапланов
+
+> Статус 2026-10-15: шаг «автоматизировать сбор паспортов» (§6, п. 1) выполнен — `tools/research/data/wing_passports/` (вместо `glider_specs.json` из записки); результат по конфигам — [wings_config_sources](/docs/research/wings_config_sources.md).
 
 Разведка от 2026-09-30. Всё, что ниже, проверено скачиванием (кроме помеченного «не проверено»). Сырьё лежит
 вне репозитория: `~/projects/.tmp/claude-1000/-home-greg-deltaplan/efb5779e-4595-4d4a-afb9-0460dce6d3a1/scratchpad/raw/`
