@@ -21,25 +21,97 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
 
 ## Стыки и части
 
-Контракт разбит по D4 (`docs/contracts/docs-rework.md`): каждый стык целиком в одной части, номера P1…P15 и версии не менялись.
-
-| Стык | Версия | Что | Часть |
-|---|---|---|---|
-| P1 | v1 | идеальные рельефы (`reliefs.py`, корпус `ideal_v1`) | [experiments-solver](air-phase/experiments-solver.md) |
-| P2 | v6 | план опытов — манифест protobuf | [experiments-solver](air-phase/experiments-solver.md) |
-| P3 | v3 | результаты замеров — HDF5 + jsonl | [experiments-solver](air-phase/experiments-solver.md) |
-| P4 | v6 | решатель: пакетный вызов и опции | [experiments-solver](air-phase/experiments-solver.md) |
-| P5 | v1 | скрипт прогона `run_phase.py` | [experiments-solver](air-phase/experiments-solver.md) |
-| P6 | v2 | метрики слоёв и таблица признаков | [experiments-solver](air-phase/experiments-solver.md) |
-| P7 | v1 | выход задач разбора | [experiments-solver](air-phase/experiments-solver.md) |
-| P8 | v1 | прототип сборки поля по фазам | [assembly-game](air-phase/assembly-game.md) |
-| P9 | v2 | прототип «фазы + Пикар» | [assembly-game](air-phase/assembly-game.md) |
-| P10 | v5 | классификатор и механизмы фаз в игре | [assembly-game](air-phase/assembly-game.md) |
-| P11 | v3 | GPU-Пикар: тёплый старт от сборки, карта ω, заморозка колонн | [assembly-game](air-phase/assembly-game.md) |
-| P12 | v4 | `AirRuntime` без сети: фазы → Пикар → проекция (заменяет O5) | [assembly-game](air-phase/assembly-game.md) |
-| P13 | v2 | удаление нейросети из игры | [assembly-game](air-phase/assembly-game.md) |
-| P14 | v2 | проверки в игре | [assembly-game](air-phase/assembly-game.md) |
-| P15 | v1 | проверка классификатора фаз — шлюз перед облётом | [assembly-game](air-phase/assembly-game.md) |
+Контракт разбит по D4 (`docs/contracts/docs-rework.md`): каждый стык целиком в одной части, номера и версии не менялись (на них ссылаются код и тесты). Во входе — заголовки стыков с версиями (их читают контрактные тесты игры), подробности — в частях.
 
 - [air-phase/experiments-solver.md](air-phase/experiments-solver.md) — P1–P7: опыты, пакетный решатель, метрики.
 - [air-phase/assembly-game.md](air-phase/assembly-game.md) — P8–P15: сборка по фазам, Пикар, перенос в игру.
+
+## P1. Идеальные рельефы (версия 1)
+
+**Владелец:** AP-2. **Потребители:** AP-3 (P5), разбор.
+
+Подробности — [air-phase/experiments-solver.md](air-phase/experiments-solver.md).
+
+## P2. План опытов — манифест protobuf (версия 6)
+
+**Владелец:** AP-2 (`.proto` — координатор, `tools/research/air_phase/proto/phase_plan.proto`). **Потребители:** AP-3, разбор.
+
+Подробности — [air-phase/experiments-solver.md](air-phase/experiments-solver.md).
+
+## P3. Результаты замеров — HDF5 + jsonl (версия 3)
+
+**Владелец:** AP-3. **Потребители:** разбор (следующий этап), отчёт на шлюзе.
+
+Подробности — [air-phase/experiments-solver.md](air-phase/experiments-solver.md).
+
+## P4. Решатель: пакетный вызов и опции (версия 6)
+
+**Владелец:** AP-1 (`tools/research/air_phase/batch_solver.py`; правки `air3d` допустимы при соблюдении инварианта 1).
+
+Подробности — [air-phase/experiments-solver.md](air-phase/experiments-solver.md).
+
+## P5. Скрипт прогона `run_phase.py` (версия 1)
+
+**Владелец:** AP-3. **Потребители:** большой запуск, координатор (шлюз).
+
+Подробности — [air-phase/experiments-solver.md](air-phase/experiments-solver.md).
+
+## P6. Метрики слоёв и таблица признаков (версия 2)
+
+**Владелец:** AP-6 (`tools/research/air_phase/layer_metrics.py`, `features.py`). **Потребители:** AP-7…AP-11.
+
+Подробности — [air-phase/experiments-solver.md](air-phase/experiments-solver.md).
+
+## P7. Выход задач разбора (версия 1)
+
+**Владелец:** каждая задача AP-7…AP-11. **Потребитель:** AP-12 (сборка `docs/research/air_phase_results.md`).
+
+Подробности — [air-phase/experiments-solver.md](air-phase/experiments-solver.md).
+
+## P8. Прототип сборки поля по фазам (версия 1)
+
+**Владелец:** AP-17 (`tools/research/air_phase/assembly/`). **Потребители:** шлюз «можно ли убрать сеть», будущий модуль сборки на GPU.
+
+Подробности — [air-phase/assembly-game.md](air-phase/assembly-game.md).
+
+## P9. Прототип «фазы + Пикар» (версия 2)
+
+**Владелец:** AP-18 (`tools/research/air_phase/assembly/` + `hybrid/`). **Потребители:** шлюз пользователя, AP-19 (перенос в игру).
+
+Подробности — [air-phase/assembly-game.md](air-phase/assembly-game.md).
+
+## P10. Классификатор и механизмы фаз в игре (версия 5)
+
+**Владелец:** AP-19 (`air_phase_job.gd` + `air_phase.glsl` — GPU на каркасе `AirGpu`; `air_phase_cpu.gd` — тот же код на CPU).
+
+Подробности — [air-phase/assembly-game.md](air-phase/assembly-game.md).
+
+## P11. GPU-Пикар: тёплый старт от сборки, карта ω, заморозка колонн (версия 3)
+
+**Владелец:** AP-20 (`air_picard_job.gd`, `air_picard.glsl`). **Потребители:** `AirRuntime` (P12), проверки P14.
+
+Подробности — [air-phase/assembly-game.md](air-phase/assembly-game.md).
+
+## P12. `AirRuntime` без сети: фазы → Пикар → проекция (версия 4, заменяет O5)
+
+**Владелец:** AP-20 (`air_runtime.gd`, `settings_panel.gd`, `configs/atmosphere.json → air_model`). **Потребители:** игра.
+
+Подробности — [air-phase/assembly-game.md](air-phase/assembly-game.md).
+
+## P13. Удаление нейросети из игры (версия 2)
+
+**Владелец:** AP-21. **Потребители:** сборка, пользователь.
+
+Подробности — [air-phase/assembly-game.md](air-phase/assembly-game.md).
+
+## P14. Проверки в игре (версия 2)
+
+**Владелец:** AP-19 (F/G/H против литературы), AP-20 (A/B/C, время). **Потребители:** приёмка, облёт.
+
+Подробности — [air-phase/assembly-game.md](air-phase/assembly-game.md).
+
+## P15. Проверка классификатора фаз (версия 1) — шлюз перед облётом
+
+**Владелец:** AP-23 (`tools/research/air_phase/analysis/AP-23/`). **Потребители:** конфиг `air_phase` (пороги и ширины), шлюз.
+
+Подробности — [air-phase/assembly-game.md](air-phase/assembly-game.md).

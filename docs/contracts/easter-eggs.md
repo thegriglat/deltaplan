@@ -48,27 +48,74 @@ E1, E2, E5 (небо) К8 не нужен, их условия уже в К2.
 
 ## Стыки и части
 
-Контракт разбит по D4 (`docs/contracts/docs-rework.md`): каждый стык целиком в одной части, номера К1…К16 не менялись (на них ссылаются код и тесты). Версия стыка в таблице — по заголовку раздела; у К1–К7 в заголовках версии нет, там указан номер версии модуля последней правки по истории выше; у К8 в заголовке v4 (пятно застройки без OSM), текущая v9 (поле `lat_deg`).
-
-| Стык | Версия | Что | Часть |
-|---|---|---|---|
-| К1 | v2 | планировщик ↔ Game | [framework](easter-eggs/framework.md) |
-| К2 | v3 | контекст пасхалки `EggContext` | [framework](easter-eggs/framework.md) |
-| К3 | v2 | пасхалка `EasterEgg` | [framework](easter-eggs/framework.md) |
-| К4 | v2 | расписание и детерминизм | [framework](easter-eggs/framework.md) |
-| К5 | v2 | конфиг `configs/easter_eggs.json` | [framework](easter-eggs/framework.md) |
-| К6 | v4 | форс для кадров — ключ запуска | [framework](easter-eggs/framework.md) |
-| К7 | v5 | тест «не трогает физику» | [framework](easter-eggs/framework.md) |
-| К8 | v9 | место и условия — `EggPlace` и поля контекста | [place-world](easter-eggs/place-world.md) |
-| К9 | v5 | другая группа — доп. боты пасхалки | [place-world](easter-eggs/place-world.md) |
-| К10 | v7 | участки полей `FieldPlots` | [place-world](easter-eggs/place-world.md) |
-| К11 | v7 | модель рулона сена | [place-world](easter-eggs/place-world.md) |
-| К12 | v7 | стёкла машин `OsmTraffic.glass()` (не реализуется, EE-5 отменена) | [place-world](easter-eggs/place-world.md) |
-| К13 | v8 | модель гуся | [models-sound](easter-eggs/models-sound.md) |
-| К14 | v8 | звук гусиной стаи | [models-sound](easter-eggs/models-sound.md) |
-| К15 | v10 | модель брелока-чайки | [models-sound](easter-eggs/models-sound.md) |
-| К16 | v10 | брелок на трапеции `bar_charm` | [models-sound](easter-eggs/models-sound.md) |
+Контракт разбит по D4 (`docs/contracts/docs-rework.md`): каждый стык целиком в одной части, номера и версии не менялись (на них ссылаются код и тесты). Во входе — заголовки стыков с версиями (их читают контрактные тесты игры), подробности — в частях.
 
 - [easter-eggs/framework.md](easter-eggs/framework.md) — К1–К7: каркас.
 - [easter-eggs/place-world.md](easter-eggs/place-world.md) — К8–К12: место, группа, поля, рулоны, стёкла.
 - [easter-eggs/models-sound.md](easter-eggs/models-sound.md) — К13–К16: модели и звук.
+
+У К1–К7 в заголовках версий нет: во frontmatter стоит номер версии модуля последней правки по истории выше. У К8 в заголовке v4 (пятно застройки без OSM), текущая v9 (поле `lat_deg`).
+
+## К1. Планировщик ↔ Game (владелец E0)
+
+Подробности — [easter-eggs/framework.md](easter-eggs/framework.md). Версия во frontmatter: v2.
+
+## К2. Контекст пасхалки — `EggContext` (владелец E0)
+
+Подробности — [easter-eggs/framework.md](easter-eggs/framework.md). Версия во frontmatter: v3.
+
+## К3. Пасхалка — `EasterEgg` (владелец E0; реализуют E1–E11)
+
+Подробности — [easter-eggs/framework.md](easter-eggs/framework.md). Версия во frontmatter: v2.
+
+## К4. Расписание и детерминизм (владелец E0)
+
+Подробности — [easter-eggs/framework.md](easter-eggs/framework.md). Версия во frontmatter: v2.
+
+## К5. Конфиг `configs/easter_eggs.json` (владелец E0; блок `eggs.<id>` — задача пасхалки)
+
+Подробности — [easter-eggs/framework.md](easter-eggs/framework.md). Версия во frontmatter: v2.
+
+## К6. Форс для кадров — ключ запуска (владелец E0)
+
+Подробности — [easter-eggs/framework.md](easter-eggs/framework.md). Версия во frontmatter: v4.
+
+## К7. Тест «не трогает физику» (владелец E0; каждая пасхалка обязана держать его зелёным)
+
+Подробности — [easter-eggs/framework.md](easter-eggs/framework.md). Версия во frontmatter: v5.
+
+## К8. Место и условия — `EggPlace` и поля контекста (v4, владелец E0б; потребители E3, E6–E11)
+
+Подробности — [easter-eggs/place-world.md](easter-eggs/place-world.md).
+
+## К9. Другая группа — доп. боты пасхалки (v5, владелец E10)
+
+Подробности — [easter-eggs/place-world.md](easter-eggs/place-world.md).
+
+## К10. Участки полей — `FieldPlots` (v7, владелец EE-1; потребители EE-3 рисунки на полях, EE-4 рулоны сена)
+
+Подробности — [easter-eggs/place-world.md](easter-eggs/place-world.md).
+
+## К11. Модель рулона сена (v7, владелец EE-2; потребитель EE-4)
+
+Подробности — [easter-eggs/place-world.md](easter-eggs/place-world.md).
+
+## К12. Стёкла машин — `OsmTraffic.glass()` (v7, владелец EE-5; потребитель — блики EE-5)
+
+Подробности — [easter-eggs/place-world.md](easter-eggs/place-world.md).
+
+## К13. Модель гуся (v8, владелец EE-7; потребитель EE-6 «Клин гусей»)
+
+Подробности — [easter-eggs/models-sound.md](easter-eggs/models-sound.md).
+
+## К14. Звук гусиной стаи (v8, владелец EE-7; потребитель EE-6)
+
+Подробности — [easter-eggs/models-sound.md](easter-eggs/models-sound.md).
+
+## К15. Модель брелока-чайки (v10, владелец EE-9; потребитель EE-10)
+
+Подробности — [easter-eggs/models-sound.md](easter-eggs/models-sound.md).
+
+## К16. Брелок на трапеции — `bar_charm` (v10, владелец EE-10)
+
+Подробности — [easter-eggs/models-sound.md](easter-eggs/models-sound.md).

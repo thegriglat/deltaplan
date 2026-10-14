@@ -45,22 +45,69 @@ contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 9}, {"id": "C3",
 
 ## Стыки и части
 
-Контракт разбит по D4 (`docs/contracts/docs-rework.md`): каждый стык целиком в одной части, номера C1…C10 и версии не менялись (на них ссылаются код и тесты).
-
-| Стык | Версия | Что | Часть |
-|---|---|---|---|
-| C1 | v2 | эталон AM-01 → GPU AM-03: дискретизация, фикстуры `ref/` | [input-solver](air-model/input-solver.md) |
-| C2 | v9 | вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, поверхность, погода, солнце | [input-solver](air-model/input-solver.md) |
-| C3 | v2 | выход решателя → `WindField` (AM-05) | [input-solver](air-model/input-solver.md) |
-| C4 | v4 | `WindField` / `AirFieldSet` → атмосфера, термики, возмущения, визуал | [field-consumers](air-model/field-consumers.md) |
-| C5 | v1 | источники термиков → сеть (AM-07) | [field-consumers](air-model/field-consumers.md) |
-| C6 | v1 | часы старта и файл поля (библиотеки нет) | [field-consumers](air-model/field-consumers.md) |
-| C7 | v4 | клипмапы AM-04 → `WindField` / `AirFieldSet` | [field-consumers](air-model/field-consumers.md) |
-| C8 | v2 | фоновый пересчёт / подмена (AM-06Б) → `set_field` | [field-consumers](air-model/field-consumers.md) |
-| C9 | v3 | жизненный цикл поля в игре `AirRuntime` (AM-06Б, окна — AM-04) | [runtime-calibration](air-model/runtime-calibration.md) |
-| C10 | v3 | случай калибровки (обёртка прогона air.py) → совместная калибровка | [runtime-calibration](air-model/runtime-calibration.md) |
+Контракт разбит по D4 (`docs/contracts/docs-rework.md`): каждый стык целиком в одной части, номера и версии не менялись (на них ссылаются код и тесты). Во входе — заголовки стыков с версиями (их читают контрактные тесты игры), подробности — в частях.
 
 - [air-model/input-solver.md](air-model/input-solver.md) — C1–C3: эталон → GPU, вход места, выход решателя.
 - [air-model/field-consumers.md](air-model/field-consumers.md) — C4–C8: WindField и его потребители.
 - [air-model/runtime-calibration.md](air-model/runtime-calibration.md) — C9–C10: AirRuntime и калибровка.
 - [air-model/divergences-journal.md](air-model/divergences-journal.md) — Расхождения и журнал версий.
+
+## C1 v2 — эталон AM-01 → GPU AM-03
+
+**Владелец:** AM-01. **Потребители:** AM-02 (блоки), AM-03 (Пикар), AM-09.
+
+Подробности — [air-model/input-solver.md](air-model/input-solver.md).
+
+## C2 v9 — вход места `AirPlace` / `AirCase` (AM-03) ← рельеф, поверхность, погода, солнце
+
+**Владелец:** AM-03. **Потребители:** AM-06Б (загрузка/пересчёт, C9), AM-04.
+
+Подробности — [air-model/input-solver.md](air-model/input-solver.md).
+
+## C3 v2 — выход решателя → `WindField` (AM-05)
+
+**Владелец:** AM-05 (`scripts/atmosphere/air_model/wind_field.gd`). **Поставщики:** AM-03
+
+Подробности — [air-model/input-solver.md](air-model/input-solver.md).
+
+## C4 v4 — `WindField` / `AirFieldSet` → атмосфера, термики, возмущения, визуал
+
+**Владелец:** AM-05 (`air_field_set.gd`, ветка поля в `atmosphere.gd`). **Потребители:** AM-07,
+
+Подробности — [air-model/field-consumers.md](air-model/field-consumers.md).
+
+## C5 v1 — источники термиков → сеть (AM-07)
+
+**Владелец:** AM-07. **Потребители:** сеть (`net_zone.gd`, `net_flight.gd`, сервер Go), AM-11.
+
+Подробности — [air-model/field-consumers.md](air-model/field-consumers.md).
+
+## C6 v1 — часы старта и файл поля (библиотеки нет)
+
+**Владелец:** AM-06 (часы — часть А, готово; файл поля — AM-05). **Потребители:** AM-06Б, AM-04, AM-11, инструменты.
+
+Подробности — [air-model/field-consumers.md](air-model/field-consumers.md).
+
+## C7 v4 — клипмапы AM-04 → `WindField` / `AirFieldSet`
+
+**Владелец:** AM-04 (`air_clipmap.gd`, `air_window_job.gd`, `air_window_case.gd`, `air_window.glsl`).
+
+Подробности — [air-model/field-consumers.md](air-model/field-consumers.md).
+
+## C8 v2 — фоновый пересчёт / подмена (AM-06Б) → `set_field`
+
+**Владелец:** AM-05 (подмена); вызывающий — AM-06Б (`AirRuntime`, C9), AM-04 (сдвиг окон).
+
+Подробности — [air-model/field-consumers.md](air-model/field-consumers.md).
+
+## C9 v3 — жизненный цикл поля в игре `AirRuntime` (AM-06Б, окна — AM-04)
+
+**Владелец:** AM-06Б (`scripts/atmosphere/air_model/air_runtime.gd`). **Потребители:** `game.gd`
+
+Подробности — [air-model/runtime-calibration.md](air-model/runtime-calibration.md).
+
+## C10 v3 — случай калибровки (обёртка прогона air.py) → совместная калибровка
+
+**Владелец:** А4 (Perdigão, `tools/research/cases/perdigao.py`); Askervein — адаптер к той же форме
+
+Подробности — [air-model/runtime-calibration.md](air-model/runtime-calibration.md).
