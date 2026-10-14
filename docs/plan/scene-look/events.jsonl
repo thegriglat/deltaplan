@@ -336,3 +336,5 @@
 {"t": "2026-10-14T17:06:27", "by": "main", "task": "SL-26", "ev": "created", "note": "Баг: на ближнем рельефе нет тени от горизонта (Шимбулачка, «Высокий»)"}
 {"t": "2026-10-14T17:06:27", "by": "main", "task": "SL-26", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"bisect\", \"cause\", \"uncertain\"]"]}}
 {"t": "2026-10-14T17:07:35", "by": "executor", "task": "SL-26", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-scene-look-SL-26"}
+{"t": "2026-10-14T17:20:33", "by": "coordinator", "task": "SL-26", "ev": "note", "note": "перезапуск: прежний координатор и исполнитель остановлены, правок в копии нет; новый dp-engineer (opus) в ~/deltaplan-scene-look-SL-26"}
+{"t": "2026-10-14T17:20:52", "by": "coordinator", "task": "SL-26", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-scene-look-SL-26, перезапуск"}
