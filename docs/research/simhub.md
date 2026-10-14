@@ -1,15 +1,18 @@
 ---
 type: "research"
-status: "active"
+status: "closed"
 module: "motion-rig"
-updated: "2026-10-12"
-summary: "Как заставить игру работать в SimHub (Motion, Wind): SRS-пакет и DPMR SimHub не принимает; штатный путь — «External sim integration» (simdef + бинарный UDP, SimHub 9.11.5+, бета), с готовой к реализации спецификацией пакета; плагин на C# и притворство другой игрой не нужны"
+area: "game"
+updated: "2026-10-15"
+summary: "SimHub не читает SRS и DPMR; путь — «External sim integration» (simdef + UDP 55 байт заголовка, бета, Windows); не реализовано."
 related: ["docs/research/motion-rig-protocols.md", "docs/guide/motion-rig.md", "docs/contracts/motion-rig.md"]
 conclusion: "SRS v102 и DPMR SimHub не читает. Минимальный путь — третий формат вывода «SimHub external»: своё описание игры (.simdef) + UDP-пакет 55 байт заголовка и поля по порядку simdef на 127.0.0.1:порт из simdef, ≥60 Гц, без плагина и SDK. Оценка: 1-2 дня (формат + simdef, сгенерированный в редакторе SimHub, + проверка на Windows). Риск: функция в бете, Windows-only, не проверено на живом SimHub"
 data: "нет"
-applied_in: ""
+applied_in: "не применено: в scripts/motion_rig/ только форматы srs и generic (DPMR), вывода SimHub нет"
 ---
 # SimHub: что нужно, чтобы игра работала
+
+> Состояние на main (2026-10-15): вывод для SimHub не реализован — в `scripts/motion_rig/` только форматы `srs` и `generic` (DPMR). Спецификация ниже — вход для будущей задачи.
 
 Вопрос: у нас есть форматы `srs` (Sim Racing Studio API v102, UDP 33001) и `generic` (DPMR, 64 байта). Владелец DOF Reality: «couldn't get it to run with my SimHub». Что нужно для SimHub (Motion, ShakeIt, Wind). Исследование по веб-источникам, без запуска SimHub (у нас нет Windows-стенда): всё, что ниже помечено «выведено», взято из чужого кода, а не из официальной спецификации.
 

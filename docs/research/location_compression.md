@@ -1,15 +1,18 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "no-osm"
-updated: "2026-10-10"
-summary: "Почему данные мест выросли после перехода сборки на GDScript (brotli -> zstd уровня 3) и чем их ужать средствами Godot 4.7: WebP lossless 24 бит, уровень zstd 19, шаг 1/32 м"
-related: []
+area: "world"
+updated: "2026-10-15"
+summary: "Данные мест в WebP lossless (24 бит в RGB8, шаг 1/32 м): высоты 11 → ≈5,5 МБ на место, чтение 0,12 с; применено (NO-8, NO-9)."
+related: ["tools/research/location_compression/README.md", "docs/guide/location-data.md"]
 conclusion: "Высоты — WebP lossless (24 бит в RGB8, шаг 1/32 м, ошибка 0): 11 -> ≈5,5 МБ на место (при шаге 1/8 было бы 4,2), чтение 0,12 с; минимальная правка без кода — zstd уровня 19 в project.godot (-27%)"
 data: "tools/research/location_compression/results/"
-applied_in: "не применено"
+applied_in: "NO-8, NO-9: scripts/terrain/build/dem_stage.gd (HEIGHT_STEP_M = 1/32), scripts/terrain/height_layer.gd (load_from_file), docs/guide/location-data.md"
 ---
 # Сжатие данных мест
+
+> Состояние на main (2026-10-15): рекомендация применена в NO-8 и NO-9 — высоты в WebP lossless (RGB8, шаг 1/32 м, `HEIGHT_STEP_M` в `dem_stage.gd`), растровые слои тоже в WebP; формат описан в [location-data.md](../guide/location-data.md), «Файлы в WebP».
 
 Скрипты, числа, команды — `tools/research/location_compression/`.
 
