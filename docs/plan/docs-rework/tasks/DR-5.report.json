@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "area и статусы по modules.tsv во всех планах, контрактах и module.json; влитое в docs/archive/plan, отклонённое в docs/archive/rejected с причиной; docs/archive/README.md; osm_vector_pack разбит по D4; ссылки починены в docs, site/content и трёх файлах research.",
+  "commits": [
+    "192b2907 area, статусы, архив, README",
+    "f6c9b977 ссылки сайта",
+    "1f7dddeb ссылки трёх исследований"
+  ],
+  "checks": [
+    {
+      "name": "no_area_err",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "plans_live",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "plan_contract_docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "rejected_readme",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "142 файла",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ссылки на перенесённое в docs/guide, docs/registry, docs/INDEX.md, остальном docs/research, tools/research, tools/wind_field, tools/osm_tiles, .claude/skills/diary, TODO.md не тронуты (волна 3); tools/research/air_nn_pilot/tests читают docs/contracts/air-nn*.md и могут упасть"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept DR-5",
+  "uncertain": [
+    {
+      "where": "docs/archive/rejected/ann2.md",
+      "why": "причина 'ошибка ≈22 %' взята из modules.tsv, в decisions.jsonl записано '+6–10 % к P2, критерий не выполнен'",
+      "checked": "даты и источники сверены с decisions.jsonl, CHANGELOG 1.3.0, коммитами a9fca9fa и 0f079330"
+    }
+  ],
+  "dp_feedback": "module init не умеет менять и очищать plan/contracts у существующего модуля: пришлось править module.json руками; убранный ключ module_meta подменяет мёртвым путём по умолчанию. Нужны module init --plan/--contracts для существующих и --no-plan. accept не учитывает конфликт hugo и scope при переносе файлов: нужен шаг починки ссылок по moves.tsv для всех слоёв. Пересечение scope и dont_touch (родитель в dont_touch, файл в scope) стоит разрешать в пользу более точного пути.",
+  "t": "2026-10-15T02:12:30",
+  "by": "executor"
+}
