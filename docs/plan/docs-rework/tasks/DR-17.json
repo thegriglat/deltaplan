@@ -1,0 +1,49 @@
+{
+  "id": "DR-17",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "findings.md: строка на вывод, ≤40 КБ, без дублей",
+  "goal": "docs/registry/findings.md — короткий реестр выводов: раздел на модуль, пункт — одна строка с числом и ссылкой путь#раздел; ≤40 КБ; выводы отклонённых модулей помечены.",
+  "plan_ref": "findings и tools/research",
+  "contracts": [
+    {
+      "name": "docs-rework.D1",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-17",
+  "branch": "docs-rework/DR-17",
+  "base": "feature/docs-rework",
+  "scope": [
+    "docs/registry/findings.md"
+  ],
+  "dont_touch": [
+    "docs/INDEX.md",
+    "docs/registry/research.md",
+    "docs/registry/contracts.md",
+    "docs/guide",
+    "docs/research",
+    "site"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/registry/findings.md 2>&1 | grep ОШИБКА | grep -v -E 'нет файла|якор'; true",
+      "expect": "!re:\\S"
+    },
+    {
+      "name": "size",
+      "cmd": "wc -c < docs/registry/findings.md",
+      "expect": "num:(\\d+) <=38000"
+    },
+    {
+      "name": "findings_cmd",
+      "cmd": ".dpcli/dpcli docs findings ветер | head -3",
+      "expect": "re:\\S"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T02:13:27"
+}
