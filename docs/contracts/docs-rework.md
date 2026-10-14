@@ -5,7 +5,7 @@ module: "docs-rework"
 area: "process"
 updated: "2026-10-15"
 summary: "Схема документации Deltaplan под dpcli: каталоги docs/, frontmatter (type, status, area), список area, правила разбиения и архива."
-related: ["plan/docs-rework.md", "../.claude/workflow.md"]
+related: ["docs/plan/docs-rework.md", ".claude/workflow.md"]
 contracts: [{id: "D1", version: 1}, {id: "D2", version: 1}, {id: "D3", version: 1}, {id: "D4", version: 1}]
 ---
 

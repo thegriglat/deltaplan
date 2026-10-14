@@ -5,7 +5,7 @@ module: "docs-rework"
 area: "process"
 updated: "2026-10-15"
 summary: "dp → dpcli, area и статусы модулей по коду, раскладка docs (действующее / исследования / архив), docs check без ошибок, сайт без планов."
-related: ["../contracts/docs-rework.md", "../../.claude/workflow.md"]
+related: ["docs/contracts/docs-rework.md", ".claude/workflow.md"]
 ---
 
 # docs-rework — документация, dpcli и сайт
