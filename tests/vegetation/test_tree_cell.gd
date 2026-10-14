@@ -59,3 +59,36 @@ func test_set_properties() -> void:
 				pres += 1
 	approx(float(pres) / n, 204.0 / 256.0, 0.02, "доля деревьев ≈ d8/256")
 	check(TreeCell.variant(TreeCell.hash(Vector2i(3, 4)), 8) < 8, "вариант в диапазоне")
+
+
+func test_hash2_reference() -> void:
+	var ref := [
+		[Vector2i(0, 0), 3950707002, 1804504796],
+		[Vector2i(-5, 3), 2398967729, 1290884097],
+		[Vector2i(123, -457), 3273034277, 241142256],
+		[Vector2i(-1, -1), 1722971982, 3424893512],
+	]
+	for r in ref:
+		var h2 := TreeCell.hash2(TreeCell.hash(r[0]))
+		check(TreeCell.hx(h2) == r[1] and TreeCell.hy(h2) == r[2], "hash2 %s" % r[0])
+	var h2 := TreeCell.hash2(TreeCell.hash(Vector2i(0, 0)))
+	approx(TreeCell.height_t(h2), float(3950707002 & 0xFFFF) / 65536.0, 1e-9, "height_t")
+	approx(TreeCell.color_t(h2), float(1804504796 & 0xFFFF) / 65536.0, 1e-9, "color_t")
+
+
+func test_texel_forest_edges() -> void:
+	# маска 10 м: 0 — лес, 1 — не лес, 2 — вода (G ≥ 0,35), 3 — лес; origin (0, 0)
+	var img := Image.create(4, 1, false, Image.FORMAT_RG8)
+	img.set_pixel(0, 0, Color(200 / 255.0, 0 / 255.0, 0.0))
+	img.set_pixel(1, 0, Color(127 / 255.0, 0 / 255.0, 0.0))
+	img.set_pixel(2, 0, Color(200 / 255.0, 90 / 255.0, 0.0))
+	img.set_pixel(3, 0, Color(128 / 255.0, 88 / 255.0, 0.0))
+	var p := TreePlacer.new()
+	p.density = 0.8
+	p.water_max = 0.35
+	p.set_forest_mask(img, Vector2.ZERO, 10.0)
+	check(p.texel_forest(0.1, 5.0) and p.texel_forest(9.9, 0.0), "тексель 0 — лес")
+	check(not p.texel_forest(10.1, 5.0) and not p.texel_forest(19.9, 5.0), "тексель 1 — не лес")
+	check(not p.texel_forest(25.0, 5.0), "тексель 2 — вода")
+	check(p.texel_forest(35.0, 5.0), "тексель 3: R = 128, G = 88 < 89,25 — лес")
+	check(p.d8_at(5.0, 5.0) == 204 and p.d8_at(15.0, 5.0) == 0, "d8: лес — 204, иначе 0")

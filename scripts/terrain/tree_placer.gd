@@ -1,5 +1,6 @@
 class_name TreePlacer
 extends RefCounted
+## SL-19: ставятся по сетке «дерево в клетке» (TreeCell, SL-К5) до near_reach(); LOD2 и band-импостеров на CPU нет.
 ## Расстановка деревьев-моделей вокруг точки (без нод, тестируется headless).
 ## Дерево стоит в клетке сетки spacing_m там, где доля леса по маске 10 м ≥ 0,5 и доля воды
 ## (канал G, реки/озёра OSM, T03) меньше water_max (set_forest_mask, V02; без маски — на классе
@@ -45,6 +46,8 @@ const RING8: PackedVector2Array = [
 var layer: HeightLayer
 var surface: SurfaceLayer
 var spacing: float = 8.0
+## Клетка «дерева в клетке» (SL-К5), м: trees.cell_m, по умолчанию spacing_m.
+var cell_m: float = 8.0
 var radius: float = 500.0
 ## Границы LOD, м: [конец LOD0, конец LOD1]; дальше до radius — LOD2.
 var lod_distances := PackedFloat32Array([60.0, 180.0])
@@ -118,6 +121,7 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 	layer = height_layer
 	surface = surface_layer
 	spacing = float(cfg.get("spacing_m", 8.0))
+	cell_m = maxf(float(cfg.get("cell_m", spacing)), 0.5)
 	radius = float(cfg.get("radius_m", 500.0))
 	lod_distances = PackedFloat32Array(cfg.get("lod_distances_m", [60.0, 180.0]))
 	lod_fade_m = float(cfg.get("lod_fade_m", 10.0))
@@ -202,178 +206,133 @@ static func with_vegetation(cfg: Dictionary) -> Dictionary:
 ## Порода для точки (−1 — ни одна не подходит): высота над морем h, «северность» north −1..1,
 ## u — случайное 0..1.
 func pick_species(h: float, north: float, u: float) -> int:
-	var w := PackedFloat32Array()
-	w.resize(SPECIES.size())
-	var total := 0.0
-	for k in SPECIES.size():
-		var band := (
-			clampf((h - _min_m[k]) / band_blend_m + 0.5, 0.0, 1.0)
-			* clampf((_max_m[k] - h) / band_blend_m + 0.5, 0.0, 1.0)
-		)
-		w[k] = _weight[k] * band * maxf(0.05, 1.0 + _aspect[k] * north)
-		total += w[k]
-	if total <= 0.0:
-		return -1
-	var t := u * total
-	for k in SPECIES.size():
-		t -= w[k]
-		if t <= 0.0:
-			return k
-	return SPECIES.size() - 1
+	return TreeCell.species(h, north, u, _weight, _min_m, _max_m, _aspect, band_blend_m)
 
 
-## Расставить деревья в круге radius вокруг center (X/Z мира). Заполняет buffers и counts.
+## Досягаемость ближних моделей, м: конец LOD1 × lod_k_max + половина дизеринга (SL-К4 v2, дальше модель
+## уступает кресту в шейдере) + запас на сдвиг камеры до пересчёта и за время пересчёта (2 шага rebuild_step_m).
+func near_reach() -> float:
+	var d1 := lod_distances[1] if lod_distances.size() > 1 else 180.0
+	return d1 * lod_k_max + swap_band()
+
+
+## SL-К5: плотность леса d8 (0…255) в центре клетки: тексель маски 10 м, содержащий точку (x, z), без
+## фильтрации (целые): лес (R ≥ 128) и не вода (G < water_max) — round(density · 255), иначе 0. Без
+## маски — класс «лес» карты 25 м. Одна и та же выборка для CPU-моделей и крестов в шейдере.
+func d8_at(x: float, z: float) -> int:
+	return roundi(clampf(density, 0.0, 1.0) * 255.0) if texel_forest(x, z) else 0
+
+
+## SL-К5: лес в тексель маски 10 м (без фильтрации), содержащем (x, z): R ≥ 128 и G < water_max·255 —
+## как на GPU. Без маски — класс «лес» карты 25 м.
+func texel_forest(x: float, z: float) -> bool:
+	if mask_w == 0:
+		return surface.class_at(x, z) == SurfaceLayer.FOREST
+	var i := clampi(floori((x - mask_node0.x) / mask_cell + 0.5), 0, mask_w - 1)
+	var j := clampi(floori((z - mask_node0.y) / mask_cell + 0.5), 0, mask_h - 1)
+	var o := (j * mask_w + i) * mask_bpp
+	if mask_data[o] < 128:
+		return false
+	return not (mask_bpp >= 2 and mask_data[o + 1] >= water_max * 255.0)
+
+
+## Расставить ближние модели вокруг center (X/Z мира) по сетке «дерево в клетке» (TreeCell, SL-К5):
+## до near_reach() (но не дальше radius). Заполняет buffers и counts; band-импостеров на CPU нет.
 func build(center: Vector2) -> void:
 	var n_buf := SPECIES.size() * variants * 3
-	var imp := PackedFloat32Array()
-	# строки экземпляров переиспользуются (без выделения массива на каждое дерево)
+	# строка экземпляра переиспользуется (без выделения массива на каждое дерево)
 	var row := PackedFloat32Array()
 	row.resize(STRIDE)
-	var irow := PackedFloat32Array()
-	irow.resize(IMP_STRIDE)
-	irow[0] = 1.0
-	irow[5] = 1.0
-	irow[10] = 1.0
-	irow[15] = 1.0
-	var reach := band_end() if lod_k_enabled else radius
-	var swap_half := swap_band()
-	var ramp0 := ramp_start()
+	var reach := minf(radius, near_reach())
 	buffers.clear()
 	buffers.resize(n_buf)
 	counts = PackedInt32Array()
 	counts.resize(n_buf)
+	imp_buffer = PackedFloat32Array()
+	imp_count = 0
 	var lists: Array[PackedFloat32Array] = []
 	lists.resize(n_buf)
 	for b in n_buf:
 		lists[b] = PackedFloat32Array()
-	var ci := floori(center.x / spacing)
-	var cj := floori(center.y / spacing)
-	var nr := ceili(reach / spacing)
+	var cm := cell_m
+	var ci := floori(center.x / cm)
+	var cj := floori(center.y / cm)
+	var nr := ceili(reach / cm)
 	var r2 := reach * reach
 	var d0 := lod_distances[0] if lod_distances.size() > 0 else 60.0
-	var d1 := lod_distances[1] if lod_distances.size() > 1 else 180.0
 	var e := layer.spacing
 	var band := lod_fade_m * 0.5 + fade_margin_m if lod_fade_m > 0.0 else -1.0
 	for dj in range(-nr, nr + 1):
 		for di in range(-nr, nr + 1):
-			var i := ci + di
-			var j := cj + dj
-			# 0 — основное дерево клетки, 1 — второе (только у опушки: если основное там)
-			var cell_ek := 0.0
-			for extra in 2:
-				var k0 := 20 * extra
-				var u := hash01(i, j, 1 + k0)
-				if extra == 1 and u >= edge_extra * cell_ek:
-					continue
-				if extra == 0 and u >= maxf(density, edge_density):
-					continue
-				var x := (i + 0.5 + (hash01(i, j, 2 + k0) - 0.5) * 0.8) * spacing
-				var z := (j + 0.5 + (hash01(i, j, 3 + k0) - 0.5) * 0.8) * spacing
-				var dx := x - center.x
-				var dz := z - center.y
-				var d2 := dx * dx + dz * dz
-				if d2 > r2 or not layer.contains(x, z):
-					continue
-				# переход к импостерам среднего плана: модели редеют к краю радиуса
-				if lod_k_enabled:
-					# band-импостеры уступают дальней сетке импостеров (12 м): плотность падает плавно
-					if d2 > ramp0 * ramp0:
-						var fk := smoothstep(ramp0, reach, sqrt(d2))
-						if hash01(i, j, 8 + k0) < fk:
-							continue
-				elif fade_start_k > 0.0:
-					var fk := smoothstep(radius * fade_start_k, radius, sqrt(d2))
-					if hash01(i, j, 8 + k0) < fk:
-						continue
-				if not is_forest(x, z) or is_cleared(x, z):
-					continue
-				# сверх density дерево бывает только у опушки: в глубине леса сразу мимо
-				if u >= density and _ring_forest(x, z, edge_band_m):
-					continue
-				var de := edge_distance(x, z)
-				var ek := 1.0 - smoothstep(0.0, edge_band_m, de)
-				if extra == 0:
-					cell_ek = ek
-				var dens := lerpf(density, edge_density, ek) if extra == 0 else edge_extra * ek
-				if u >= dens:
-					continue
-				var h := layer.sample(x, z)
-				var gx := (layer.sample(x + e, z) - h) / e
-				var gz := (layer.sample(x, z + e) - h) / e
-				var grad := sqrt(gx * gx + gz * gz)
-				# «северность»: склон смотрит на −Z (север), т. е. высота растёт к +Z
-				var north := (
-					clampf(gz / grad, -1.0, 1.0) * clampf(grad / 0.25, 0.0, 1.0)
-					if grad > 1e-4
-					else 0.0
-				)
-				var sp := pick_species(h, north, hash01(i, j, 4 + k0))
-				if sp < 0:
-					continue
-				var hh := lerpf(_h_min[sp], _h_max[sp], hash01(i, j, 5 + k0))
-				var mv := sp * variants + int(hash01(i, j, 9 + k0) * 16777216.0) % variants
-				var s := hh / maxf(model_height[mv], 0.1)
-				# опушечное дерево раскидистее: крона шире (не выше — меньше нависает над лугом)
-				var sw := s * (1.0 + edge_scale_k * ek)
-				var a := hash01(i, j, 6 + k0) * TAU
-				var c := cos(a) * sw
-				var sn := sin(a) * sw
-				var y := h - sink_for_edge(de) * hh
-				var v := 1.0 + color_variation * (hash01(i, j, 7 + k0) - 0.5) * 2.0
-				var d := sqrt(d2)
-				var b := mv * 3
-				var to_model := true
-				var in_swap := false
-				if lod_k_enabled:
-					var db := radius * lod_k_at(x, z, lod_k_min, lod_k_max)
-					in_swap = absf(d - db) < swap_half
-					to_model = d < db + swap_half
-					if d > db - swap_half:
-						irow[3] = x
-						irow[7] = y
-						irow[11] = z
-						irow[12] = sink_for_edge(de)
-						irow[16] = hh
-						irow[17] = float(sp)
-						irow[18] = ek
-						irow[19] = hash01(i, j, 7 + k0)
-						imp.append_array(irow)
-				# строки 3×4 матрицы: поворот вокруг Y с масштабом + сдвиг; затем цвет (альфа — код
-				# растворения FADE_*)
-				if not to_model:
-					continue
-				row[0] = c
-				row[2] = sn
-				row[3] = x
-				row[5] = s
-				row[7] = y
-				row[8] = -sn
-				row[10] = c
-				row[11] = z
-				row[12] = v
-				row[13] = v
-				row[14] = v
-				row[15] = FADE_NONE
-				if in_swap:
-					row[15] = FADE_OUT2
-					lists[b + 2].append_array(row)
-				elif absf(d - d0) < band:
-					row[15] = FADE_OUT0
-					lists[b].append_array(row)
-					row[15] = FADE_IN0
-					lists[b + 1].append_array(row)
-				elif absf(d - d1) < band:
-					row[15] = FADE_OUT1
-					lists[b + 1].append_array(row)
-					row[15] = FADE_IN1
-					lists[b + 2].append_array(row)
-				else:
-					lists[b + (0 if d < d0 else (1 if d < d1 else 2))].append_array(row)
+			var c := Vector2i(ci + di, cj + dj)
+			var h := TreeCell.hash(c)
+			var d8 := d8_at((c.x + 0.5) * cm, (c.y + 0.5) * cm)
+			if (h.x & 255) >= d8:
+				continue
+			var o := TreeCell.offset_h(h)
+			var x := (c.x + 0.5 + o.x) * cm
+			var z := (c.y + 0.5 + o.y) * cm
+			var dx := x - center.x
+			var dz := z - center.y
+			var d2 := dx * dx + dz * dz
+			if d2 > r2 or not layer.contains(x, z):
+				continue
+			# d8 взят в центре клетки, дерево сдвинуто до ±0,4 клетки: на кромке леса и у воды проверяем ещё
+			# раз на самом месте, тем же тексельным правилом (texel_forest), что на GPU
+			if is_cleared(x, z) or not texel_forest(x, z):
+				continue
+			var h2 := TreeCell.hash2(h)
+			var de := edge_distance(x, z)
+			var ek := 1.0 - smoothstep(0.0, edge_band_m, de)
+			var hg := layer.sample(x, z)
+			var gx := (layer.sample(x + e, z) - hg) / e
+			var gz := (layer.sample(x, z + e) - hg) / e
+			var grad := sqrt(gx * gx + gz * gz)
+			# «северность»: склон смотрит на −Z (север), т. е. высота растёт к +Z
+			var north := (
+				clampf(gz / grad, -1.0, 1.0) * clampf(grad / 0.25, 0.0, 1.0) if grad > 1e-4 else 0.0
+			)
+			var sp := TreeCell.species(
+				hg, north, TreeCell.species_u(h), _weight, _min_m, _max_m, _aspect, band_blend_m
+			)
+			if sp < 0:
+				continue
+			var hh := lerpf(_h_min[sp], _h_max[sp], TreeCell.height_t(h2))
+			var mv := sp * variants + TreeCell.variant(h, variants)
+			var s := hh / maxf(model_height[mv], 0.1)
+			# опушечное дерево раскидистее: крона шире (не выше — меньше нависает над лугом)
+			var sw := s * (1.0 + edge_scale_k * ek)
+			var a := TreeCell.angle(h)
+			var cs := cos(a) * sw
+			var sn := sin(a) * sw
+			var y := hg - sink_for_edge(de) * hh
+			var v := 1.0 + color_variation * (TreeCell.color_t(h2) - 0.5) * 2.0
+			var d := sqrt(d2)
+			var b := mv * 3
+			# строки 3×4 матрицы: поворот вокруг Y с масштабом + сдвиг; затем цвет (альфа — код
+			# растворения FADE_*)
+			row[0] = cs
+			row[2] = sn
+			row[3] = x
+			row[5] = s
+			row[7] = y
+			row[8] = -sn
+			row[10] = cs
+			row[11] = z
+			row[12] = v
+			row[13] = v
+			row[14] = v
+			row[15] = FADE_NONE
+			if absf(d - d0) < band:
+				row[15] = FADE_OUT0
+				lists[b].append_array(row)
+				row[15] = FADE_IN0
+				lists[b + 1].append_array(row)
+			else:
+				lists[b + (0 if d < d0 else 1)].append_array(row)
 	for b in n_buf:
 		buffers[b] = lists[b]
 		counts[b] = lists[b].size() / STRIDE
-	imp_buffer = imp
-	imp_count = imp.size() / IMP_STRIDE
 
 
 ## Число экземпляров моделей во всех LOD (в зоне смены дерево посчитано в двух LOD).

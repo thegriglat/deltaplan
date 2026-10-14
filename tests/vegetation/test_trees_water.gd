@@ -129,7 +129,8 @@ func _check_location(id: String, t: Terrain) -> void:
 	if spots.is_empty():
 		return
 	check(n_trees > 1000, "%s: деревьев %d" % [id, n_trees])
-	check(in_water == 0, "%s: деревьев в воде %d (макс. G %.2f)" % [id, in_water, worst_g])
+	# SL-К5: тексельное правило (G < water_max в текселе позиции) — у кромки воды билинейная G бывает выше 0,5: доля ≤ 0,1 %
+	check(in_water <= n_trees * 0.001, "%s: деревьев в воде %d из %d (макс. G %.2f)" % [id, in_water, n_trees, worst_g])
 	# у берега лес остаётся: плотность моделей в прибрежной полосе ≥ половины средней по лесу
 	check(bank_area > 100 and bank_trees > 50, "%s: у берега %d / %d" % [id, bank_trees, bank_area])
 	check(bank_k >= 0.5, "%s: у берега плотность ×%.2f" % [id, bank_k])
