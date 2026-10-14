@@ -1700,13 +1700,20 @@ void fragment() {
 	v_sl_ny = n.y; v_sl_ao = AO; v_sl_sun = v_cs_sun; // SL
 	vec2 sl_rs = sl_relief_shadow(use_relief, n, hz_deg, dist, relief_shadow_ambient, relief_shadow_soft_deg, relief_shadow_strength, relief_shadow_near_m); // SL
 	ALBEDO = min(ALBEDO / sl_rs.x, vec3(1.0)); // SL
-	v_cs_sun *= sl_rs.y * sl_canopy_direct(n_class, normalize(CAMERA_POSITION_WORLD - wp), forest * sl_canopy_far(dist)); // SL
+	// SL-27: тень горизонта — отдельно, в light() min с тенью Godot
+	v_sl_relief = sl_rs.y; // SL
+	v_cs_sun *= sl_canopy_direct(n_class, normalize(CAMERA_POSITION_WORLD - wp), forest * sl_canopy_far(dist)); // SL
 #endif
 }
 
 // Встроенное освещение (burley + schlick_ggx), прямое солнце — в тени облаков слабее.
 void light() {
-	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
+	float atten = ATTENUATION;
+#ifndef T_SL_LIGHT_OFF
+	// тень горизонта рельефа и тень Godot — одна тень солнца: берём более тёмную (SL-27)
+	atten = LIGHT_IS_DIRECTIONAL ? min(atten, v_sl_relief) : atten; // SL
+#endif
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, atten, LIGHT_IS_DIRECTIONAL, v_cs_sun,
 			ALBEDO, ROUGHNESS, METALLIC, v_cs_spec, vec3(0.0), CS_BURLEY, SPECULAR_AMOUNT,
 			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 #ifndef T_SL_LIGHT_OFF

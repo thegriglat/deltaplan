@@ -66,6 +66,7 @@ float sl_lod_noise(vec2 fragcoord) {
 varying float v_sl_ny;    // мировая нормаль · вверх (доля нижней полусферы в рассеянном свете)
 varying float v_sl_ao;    // AO рассеянного света точки
 varying float v_sl_sun;   // множитель прямого солнца облаками в точке (для света земли вокруг)
+varying float v_sl_relief; // доля прямого солнца по горизонту рельефа: в light() — min с тенью Godot
 #endif
 
 const vec3 SL_LW = vec3(0.2126, 0.7152, 0.0722);
@@ -86,9 +87,12 @@ void sl_ground_light(inout vec3 diffuse, vec3 light_color, bool directional, vec
 	diffuse += (rho * e - sl_ground_low) * lower * ao;
 }
 
-// Дальняя тень рельефа (relief_shadow_*) — только прямое солнце: возвращает (на что разделить
-// ALBEDO — снять прежнее затемнение цвета, множитель прямого солнца). Тень остаётся под небом
-// (голубая) и светом земли, как тени Godot вблизи. Выключено — (1, 1).
+// Тень рельефа (relief_shadow_*) — только прямое солнце: возвращает (на что разделить ALBEDO —
+// снять прежнее затемнение цвета, с тем же гашением ближе near_m; доля прямого солнца по горизонту —
+// без гашения: в light() берётся min(тень Godot, она), SL-27). Тени Godot от далёких гор у пилота
+// бледные (мягкая тень PCSS при заслоне за километры, затухание к shadow_max_distance), поэтому
+// горизонт рельефа работает и вблизи; там, где Godot темнее (мелкие заслоны, деревья), — Godot.
+// Тень остаётся под небом (голубая) и светом земли, как тени Godot. Выключено — (1, 1).
 vec2 sl_relief_shadow(bool on, vec3 n, float hz_deg, float dist, float amb, float soft_deg,
 		float strength, vec2 near_m) {
 	if (!sl_light_enabled || !on) {
@@ -100,7 +104,7 @@ vec2 sl_relief_shadow(bool on, vec3 n, float hz_deg, float dist, float amb, floa
 	float ndl = max(dot(n, sd), 0.0);
 	float k = strength * smoothstep(near_m.x, near_m.y, dist);
 	float sh = (amb + vis * ndl) / (amb + ndl);
-	return vec2(mix(1.0, sh, k), mix(1.0, vis, k));
+	return vec2(mix(1.0, sh, k), mix(1.0, vis, strength));
 }
 
 // Доля освещённого полога, видимая с направления v, при солнце l на склоне n (геометрическая
