@@ -12,7 +12,7 @@ applied_in: "scripts/atmosphere/air_model/air_case.gd (LAM_FRAC 0,0158, NEUTRAL_
 ---
 # Калибровка модели воздуха по схеме Professor (AM-09)
 
-Задача AM-09 плана `docs/plan/air_model.md` (метод — WF-16 в `docs/archive/plan/wind-field.md`). Модель — `docs/guide/air-model.md`, эталон масштаба 1 — `tools/research/air3d/` (`air.py`, `reference.md`). Скрипты, данные прогонов и картинки — `tools/research/tune/`, воспроизведение описано в конце документа.
+Задача AM-09 плана `docs/plan/air_model.md` (метод — WF-16 в `docs/archive/plan/wind-field.md`). Модель — `docs/guide/air-model.md` (границы и калибровка — `docs/guide/air-model/limits.md`), эталон масштаба 1 — `tools/research/air3d/` (`air.py`, `reference.md`). Скрипты, данные прогонов и картинки — `tools/research/tune/`, воспроизведение описано в конце документа.
 
 ## Что действует в игре сейчас
 

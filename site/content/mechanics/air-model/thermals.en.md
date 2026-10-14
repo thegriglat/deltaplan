@@ -159,15 +159,15 @@ strength is a rare natural disaster, not an ordinary thunderstorm).
 
 ## Details
 
-- [Wind field: phases and Picard](/mechanics/air-model/wind-phases/), [turbulence and rotor](/mechanics/air-model/turbulence/), [air model](/mechanics/air-model/); [docs/guide/air-model.md](/docs/guide/air-model.md) → "Scale 2: thermals from the field".
+- [Wind field: phases and Picard](/mechanics/air-model/wind-phases/), [turbulence and rotor](/mechanics/air-model/turbulence/), [air model](/mechanics/air-model/); [docs/guide/air-model/thermals.md](/docs/guide/air-model/thermals.md) → "Scale 2: thermals from the field".
 - [docs/research/thermals.md](/docs/research/thermals.md): formulas and sources: Gedeon, Allen,
   Lenschow and Stevens, Deardorff.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md): the table of observables with
   uncertainties (§1 "Thermals").
 - [docs/research/xc_reference.md](/docs/research/xc_reference.md): references for cross-country flights
   (climb, share of time spent circling, number of thermals per 10 km).
-- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md): the structure of the atmosphere module, the table "pilot's words
-  in numbers".
+- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md): the structure of the atmosphere module; the table "pilot's words
+  in numbers" is in [docs/guide/atmosphere/wind-field.md](/docs/guide/atmosphere/wind-field.md).
 - [scripts/atmosphere/thermal_field.gd](/scripts/atmosphere/thermal_field.gd),
   [scripts/atmosphere/atmo_thermal.gd](/scripts/atmosphere/atmo_thermal.gd),
   [scripts/atmosphere/storm_field.gd](/scripts/atmosphere/storm_field.gd),

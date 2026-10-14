@@ -157,7 +157,7 @@ LCL (уровень конденсации) ≈ 122–125 м на градус �
 
 ## Подробнее
 
-- [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) → «Погода из прогноза» — как это подключено в игре.
+- [docs/guide/atmosphere/weather.md](/docs/guide/atmosphere/weather.md) → «Погода из прогноза» — как это подключено в игре.
 - [docs/research/calibration_data.md](/docs/research/calibration_data.md) — таблицы для калибровки
   (§1 «Термики», §6 «Профили атмосферы, облака»).
 - [scripts/atmosphere/weather_model.gd](/scripts/atmosphere/weather_model.gd),
