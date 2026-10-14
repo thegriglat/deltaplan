@@ -1,8 +1,8 @@
 {
-  "status": "done",
-  "summary": "air-model (4 части), air-phase (2), easter-eggs (3) разбиты по D4: вход со списком стыков (id, версия, строка, часть) и общими правилами; каждый стык целиком в одной части, части 17–30 КБ, номера и версии не менялись, текст не сокращён. Каталог easter-eggs/ исключён из сайта, mount контрактов получил **/*.md.",
+  "status": "partial",
+  "summary": "Доработка: во входах air-model/air-phase/easter-eggs вернул заголовки стыков '## Cn vN — …' / '## Pn …' / '## Кn …' (К8 с '(v4,') с владельцем и ссылкой на часть; подробности в частях. Тесты air_contracts и no_osm проходят. Входы 9/8/9 КБ.",
   "commits": [
-    "fdb83bf5 Контракты air-model, air-phase, easter-eggs разбиты по D4"
+    "a7c01fb4 Контракты: во входе заголовки стыков с версиями для контрактных тестов"
   ],
   "checks": [
     {
@@ -21,32 +21,21 @@
       "pass": true
     },
     {
-      "name": "размеры, КБ",
-      "value": "air-model вход 7, части 30/21/17/16; air-phase вход 4, части 28/28; easter-eggs вход 7, части 17/18/9",
-      "pass": true
+      "name": "contract_tests",
+      "value": "352/354, 2 упало: test_osm_look_contracts.gd::test_versions (check failed: L5 v2 в frontmatter ...; L5 v2 заголовок), test_steam_assets_contracts.gd::test_k3_assets_md_tables (check failed: Модели и текстуры: 5 колонок ...)",
+      "pass": false
     }
   ],
   "not_done": [
-    "docs/guide и tools не трогались (волна 3): ссылки docs/guide/air-model.md:154,366,946 и docs/guide/world-objects.md:384 на вход работают, якорей нет",
-    "Тесты читают контракты как один файл и сломаются: tests/contracts/test_air_contracts.gd (DOC, regex '## C\\d+ v\\d+' — читать три части air-model/*.md), tests/contracts/test_no_osm_contracts{,_k8,_n1,_n4}.gd (EGGS_DOC, ищет '## К8.' с '(v4,' — теперь в docs/contracts/easter-eggs/place-world.md). Вне скоупа DR-6."
+    "test_osm_look_contracts::test_versions ждёт L5 v2, а в osm-look.md заголовок '## L5 v3' и frontmatter L5 3 уже на main (DR-5 менял только status/area/summary/related, git diff main) — тест устарел, документ не правил, чтобы не писать ложную версию",
+    "test_steam_assets_contracts::test_k3_assets_md_tables разбирает ASSETS.md (строка assets/ui/backdrops с 3 колонками вместо 5); ASSETS.md не менялся относительно main — падение не из docs/contracts; main отдельно не прогонял"
   ],
   "questions": [
-    "Кто правит перечисленные тесты (вне скоупа)? Ссылки в коде/tools на docs/contracts/<имя>.md остаются валидными (вход сохранён)."
+    "Оба падения предположительно есть на main — подтвердить прогоном на main; править L5 в тесте (код) или документе?"
   ],
-  "how_to_check": ".dpcli/dpcli accept DR-6",
-  "uncertain": [
-    {
-      "where": "docs/contracts/easter-eggs.md (frontmatter contracts)",
-      "why": "в заголовках К1–К7 версий нет; поставил номер версии модуля последней правки по истории (К1 2, К2 3, К3 2, К4 2, К5 2, К6 4, К7 5), оговорено в тексте входа",
-      "checked": "история версий входа"
-    },
-    {
-      "where": "docs/contracts/easter-eggs/place-world.md",
-      "why": "предупреждение docs check: К8 во frontmatter v9 (DR-5), в заголовке v4; заголовок не менял — его читают тесты no-osm",
-      "checked": "тесты no-osm, история v9"
-    }
-  ],
-  "dp_feedback": "docs check: предупреждение contracts≠заголовкам не умеет версии стыков без 'v' в заголовке и ожидает их в заголовке; хорошо бы команду разбиения контракта (split по ##).",
-  "t": "2026-10-15T02:18:11",
+  "how_to_check": ".dpcli/dpcli accept DR-6 --dry",
+  "uncertain": [],
+  "dp_feedback": "Хорошо бы, чтобы accept перед контрактными тестами сам проверял наличие .godot (импорт долгий). Хорошо бы сравнивать падения с main автоматически.",
+  "t": "2026-10-15T02:22:28",
   "by": "executor"
 }

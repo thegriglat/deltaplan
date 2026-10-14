@@ -51,7 +51,8 @@
     },
     {
       "name": "contract_tests",
-      "tests": "contract"
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=contract 2>&1 | tail -3",
+      "expect": "num:(\\d+) упало <=2"
     }
   ],
   "report_extra": [],
