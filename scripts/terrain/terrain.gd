@@ -921,9 +921,12 @@ func _compute_reliefs(cfg: Dictionary) -> void:
 	_relief_thread = Thread.new()
 	_relief_thread.start(
 		func() -> Array:
+			# от грубого к детальному: горизонт слоя продолжается по высотам следующего (outer, SL-26)
 			var out: Array[TerrainRelief] = []
-			for k in ls.size():
-				out.append(TerrainRelief.compute(ls[k], cfg, az, k, false))
+			out.resize(ls.size())
+			for k in range(ls.size() - 1, -1, -1):
+				var o: TerrainRelief = out[k + 1] if k + 1 < ls.size() else null
+				out[k] = TerrainRelief.compute(ls[k], cfg, az, k, false, o)
 			return out
 	)
 

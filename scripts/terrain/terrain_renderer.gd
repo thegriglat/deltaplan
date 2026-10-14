@@ -116,7 +116,6 @@ func build(
 		var finer: Array[HeightLayer] = []
 		for k in li:
 			finer.append(layers[k])
-		var cast := li == 0
 		for cj in (layer.height - 1) / cells:
 			for ci in (layer.width - 1) / cells:
 				var x0 := layer.origin_x + ci * chunk_m
@@ -129,11 +128,9 @@ func build(
 				mi.mesh = meshes[n_lod - 1]
 				mi.material_override = lod_mats[n_lod - 1]
 				mi.position = Vector3(x0, 0.0, z0)
-				mi.cast_shadow = (
-					GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-					if cast
-					else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-				)
+				# тени Godot отбрасывают все слои: гора фона (за детальным слоем) затеняет землю у
+				# пилота, где тень рельефа погашена (relief_shadow_near_m) — SL-26; цена — в шуме кадра
+				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 				mi.custom_aabb = AABB(
 					Vector3(0.0, hr.x - skirt, 0.0), Vector3(chunk_m, hr.y - hr.x + skirt, chunk_m)
 				)
