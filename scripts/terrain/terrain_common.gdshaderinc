@@ -139,10 +139,14 @@ void surface_onehot(int c, out vec4 a, out vec4 b) {
 // узлов интерполируются билинейно и обрезаются по уровню 0.5 (изолиния — плавная кривая, а не
 // «лесенка» клеток); порог слегка сдвигается шумом — извилистые границы (surface_edge_noise).
 // surface_edge_sharpness — полуширина размытия границы (доля клетки).
-void surface_weights(vec2 xz, out vec4 wa, out vec4 wb) {
+// warp_k — доля извилин (0..1): рельеф гасит их к порогу дальнего варианта (far_fade_m, SL-23).
+void surface_weights_k(vec2 xz, float warp_k, out vec4 wa, out vec4 wb) {
 	float sc = surface_spacing * 1.5;
 #ifndef T_SURFACE_WARP_OFF
-	vec2 warp = vec2(fbm(xz / sc, 3), fbm(xz / sc + vec2(7.3, 1.9), 3)) - 0.5;
+	vec2 warp = vec2(0.0);
+	if (warp_k > 0.0) {
+		warp = (vec2(fbm(xz / sc, 3), fbm(xz / sc + vec2(7.3, 1.9), 3)) - 0.5) * warp_k;
+	}
 #else
 	vec2 warp = vec2(0.0);   // кромки классов без извилин шумом (изолиния 0,5 билинейной доли)
 #endif
@@ -165,6 +169,10 @@ void surface_weights(vec2 xz, out vec4 wa, out vec4 wb) {
 	float k = smoothstep(0.05, 0.3, sum);
 	wa = mix(la, sa / max(sum, 1e-4), k);
 	wb = mix(lb, sb / max(sum, 1e-4), k);
+}
+
+void surface_weights(vec2 xz, out vec4 wa, out vec4 wb) {
+	surface_weights_k(xz, 1.0, wa, wb);
 }
 
 // «Северность» склона −1..1 (нормаль к −Z), на пологом — 0.

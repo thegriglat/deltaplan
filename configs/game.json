@@ -171,8 +171,8 @@
         },
         "world": {
           "terrain": {
-            "variant": "full",
-            "variant_far": ""
+            "variant": "low",
+            "variant_far": "low_far"
           },
           "trees": {
             "radius_m": 250,
@@ -212,7 +212,7 @@
         "world": {
           "terrain": {
             "variant": "full",
-            "variant_far": ""
+            "variant_far": "far"
           },
           "trees": {
             "radius_m": 400,
@@ -247,7 +247,7 @@
         "world": {
           "terrain": {
             "variant": "full",
-            "variant_far": ""
+            "variant_far": "far"
           },
           "trees": {
             "radius_m": 500,
