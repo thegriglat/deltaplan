@@ -17,6 +17,7 @@ result_flight_time,Время полёта: %s,Flight time: %s
 map_pick,Выбрать,Go
 setup_pick_on_map,Выбрать на карте…,Pick on map…
 menu_quit,Выход,Quit
+menu_crash_report_sent,Отчёт о вылете отправлен,Crash report sent
 settings_vario_volume,Громкость вариометра,Vario volume
 app_title,Дельтаплан,Deltaplan
 result_distance,Дистанция от старта по прямой: %.2f км,Straight-line distance from launch: %.2f km

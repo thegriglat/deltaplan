@@ -18,6 +18,19 @@ commit="$(git rev-parse --short=6 HEAD 2>/dev/null || echo "")"
 [[ -n "$commit" && -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ]] && commit="$commit+"
 printf '{"commit": "%s"}\n' "$commit" > data/build_info.json
 
+# Токен отчётов о вылете (fine-grained PAT, только Issues: write на deltaplan-reports) — вне git:
+# файл ~/.config/deltaplan/crash_report_token или переменная DELTAPLAN_CRASH_REPORT_TOKEN.
+# Нет токена — отчёты в сборке выключены (CrashReporter молчит).
+token_file="${DELTAPLAN_CRASH_REPORT_TOKEN_FILE:-$HOME/.config/deltaplan/crash_report_token}"
+rm -f data/crash_report_token.txt
+if [[ -n "${DELTAPLAN_CRASH_REPORT_TOKEN:-}" ]]; then
+	printf '%s' "$DELTAPLAN_CRASH_REPORT_TOKEN" > data/crash_report_token.txt
+elif [[ -s "$token_file" ]]; then
+	tr -d '[:space:]' < "$token_file" > data/crash_report_token.txt
+else
+	echo "отчёты о вылете: токена нет ($token_file) — в этой сборке выключены"
+fi
+
 [[ "$target" == *-steam ]] && tools/steam/fetch_godotsteam.sh
 # Временный профиль (XDG_DATA_HOME=$(mktemp -d), как у агентов) — без шаблонов экспорта:
 # подложить ссылку на шаблоны из обычного профиля.

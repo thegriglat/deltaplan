@@ -49,6 +49,7 @@ func begin() -> void:
 ## Новый этап key (из loading.stage_weights) с текстом для экрана. Доля — начало этапа;
 ## этапы, которых в весах нет, долю не двигают.
 func stage(key: String, stage_text: String) -> void:
+	CrashReporter.note_stage(key)
 	_close_stage()
 	_key = key
 	var total := 0.0
