@@ -287,3 +287,5 @@
 {"t": "2026-10-14T14:30:03", "by": "main", "task": "SL-21", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"parts\", \"variants\", \"full_equal_check\", \"bench_cmd\", \"uncertain\"]"]}}
 {"t": "2026-10-14T14:30:03", "by": "main", "task": "SL-24", "ev": "created", "note": "«Седые» дальние деревья: серо-белые LOD2-кресты"}
 {"t": "2026-10-14T14:30:03", "by": "main", "task": "SL-24", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"cause\", \"uncertain\"]"]}}
+{"t": "2026-10-14T14:32:00", "by": "coordinator", "task": "SL-21", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-scene-look-SL-21"}
+{"t": "2026-10-14T14:32:00", "by": "coordinator", "task": "SL-24", "ev": "started", "note": "dp-engineer (sonnet), ~/deltaplan-scene-look-SL-24"}
