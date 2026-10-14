@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 # Хук git (core.hooksPath=tools/hooks): разбор/типы .gd, входящих в коммит. Обойти — git commit --no-verify.
-git diff --cached --name-only --diff-filter=ACMR | grep -q '\.gd$' || exit 0
+gd=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.gd$') || exit 0
+# .uid, созданный Godot рядом с коммитящимся .gd, едет в том же коммите — иначе он всплывает неотслеживаемым в main
+miss=$(for f in $gd; do [ -f "$f.uid" ] && ! git ls-files --error-unmatch "$f.uid" >/dev/null 2>&1 && echo "$f.uid"; done)
+if [ -n "$miss" ]; then
+    echo "pre-commit: добавь в коммит .uid к своим .gd:" >&2; echo "$miss" | sed 's/^/  /' >&2; exit 1
+fi
 command -v godot >/dev/null || exit 0
 exec "$(git rev-parse --show-toplevel)/tools/dp" check gd
