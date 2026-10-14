@@ -1,0 +1,10 @@
+{
+  "module": "docs-rework",
+  "plan": "docs/plan/docs-rework.md",
+  "contracts": "docs/contracts/docs-rework.md",
+  "branch": "feature/docs-rework",
+  "copy": "/home/greg/deltaplan-docs-rework",
+  "created": "2026-10-15T01:50:50",
+  "code": "DR",
+  "area": "process"
+}
