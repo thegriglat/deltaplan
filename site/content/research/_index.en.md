@@ -7,7 +7,7 @@ description: "Deltaplan research by topic: what we found out, on what data, and 
 
 # Research
 
-Where the game's numbers and models came from: literature reviews, analyses of wing passports, prototypes and computational experiments. The documents are included as they are, from the `docs/research/` and `tools/research/` folders of the repository. A condensed summary of the conclusions is in the [findings registry](/research/findings/); the story "what we tried and what we chose" is on the page ["Approaches and results"](/approaches/); plans are in the ["Plans"](/plans/) section.
+Where the game's numbers and models came from: literature reviews, analyses of wing passports, prototypes and computational experiments. The documents are included as they are, from the `docs/research/` and `tools/research/` folders of the repository. A condensed summary of the conclusions is in the [findings registry](/research/findings/); the story "what we tried and what we chose" is on the page ["Approaches and results"](/approaches/).
 
 The studies are closed (status `closed` in the document header), except the air physics review, which is alive. If a document is not connected to the site, the link leads to the repository on GitHub.
 

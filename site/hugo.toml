@@ -63,15 +63,17 @@ disableKinds = ['taxonomy', 'term']
   repoCommit = 'https://github.com/thegriglat/deltaplan/commit/'
   itch = 'https://thegriglat.itch.io/deltaplan'
 
+  # Разделов сайта, которых больше нет: ссылки на них ведут в папки репозитория (на GitHub).
+  [[params.movedPaths]]
+    from = 'plans/archive'
+    repo = 'docs/archive/plan'
+  [[params.movedPaths]]
+    from = 'plans'
+    repo = 'docs/plan'
+
   # Соответствие «путь в content/ ↔ путь в репозитории» для подключённых документов.
   # Нужен ссылкам и картинкам: относительная ссылка в документе считается от его места в репозитории.
   # Порядок важен: сначала более длинные префиксы.
-  [[params.repoMap]]
-    content = 'plans/archive/'
-    repo = 'docs/archive/plan/'
-  [[params.repoMap]]
-    content = 'plans/'
-    repo = 'docs/plan/'
   [[params.repoMap]]
     content = 'research/findings'
     repo = 'docs/registry/findings'
@@ -98,13 +100,13 @@ disableKinds = ['taxonomy', 'term']
 [[cascade]]
   bookCollapseSection = true
   [cascade.target]
-    path = '{/plans/game,/plans/archive,/plans/archive/*,/research/heat_ca,/research/heat_ca/*,/research/air3d,/research/air3d/*,/research/docs,/docs}'
+    path = '{/research/heat_ca,/research/heat_ca/*,/research/air3d,/research/air3d/*,/research/docs,/docs}'
     kind = 'section'
 # Детали подключённых документов не засоряют боковое меню: они доступны из страниц-оглавлений
 [[cascade]]
   bookHidden = true
   [cascade.target]
-    path = '{/plans/**,/research/docs,/research/docs/**,/research/heat_ca,/research/heat_ca/**,/research/air3d,/research/air3d/**,/research/askervein,/research/askervein/**}'
+    path = '{/research/docs,/research/docs/**,/research/heat_ca,/research/heat_ca/**,/research/air3d,/research/air3d/**,/research/askervein,/research/askervein/**}'
 [[cascade]]
   type = 'posts'
   [cascade.target]
@@ -243,23 +245,6 @@ disableKinds = ['taxonomy', 'term']
     target = 'content/docs/contracts'
     sites = { matrix = { languages = ['ru'] } }
     files = ['! easter-eggs.md', '*.md']
-
-  # --- Планы (живые и отложенные): docs/plan/ ---
-  [[module.mounts]]
-    source = '../docs/plan'
-    target = 'content/plans'
-    sites = { matrix = { languages = ['ru'] } }
-    files = ['! README.md', '! **/README.md', '*.md', '**/*.md']
-  # --- Архив закрытых планов и журналов: docs/archive/plan/ ---
-  [[module.mounts]]
-    source = '../docs/archive/plan'
-    target = 'content/plans/archive'
-    sites = { matrix = { languages = ['ru'] } }
-    files = ['! world-easter-eggs*.md', '! game/README.md', '*.md', '**/*.md']
-  [[module.mounts]]
-    source = '../docs/archive/plan/game/README.md'
-    target = 'content/plans/archive/game/_index.md'
-    sites = { matrix = { languages = ['ru'] } }
 
   # --- Реестр выводов: docs/registry/findings.md ---
   [[module.mounts]]

@@ -1,6 +1,7 @@
 ---
 title: Releases
 weight: 20
+bookCollapseSection: true
 ---
 
 # Releases
