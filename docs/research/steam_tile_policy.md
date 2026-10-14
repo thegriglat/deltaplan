@@ -1,15 +1,18 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "steam-assets"
-updated: "2026-10-05"
-summary: "Соответствие карты выбора старта правилам tile.openstreetmap.org и OpenTopoMap: таблица пункт правил → код → вывод → правка; 3 нарушения и 3 замечания."
-related: []
+area: "release"
+updated: "2026-10-15"
+summary: "Карта выбора старта и правила OSM/OpenTopoMap: из 3 нарушений закрыты User-Agent с версией, пауза после 403/429, 2 потока OSM."
+related: ["docs/plan/steam-assets.md", "docs/contracts/start-map.md", "docs/research/terrain_sources.md"]
 conclusion: "Подложку не меняем. Критичны: User-Agent с «non-commercial» (для платной игры неверен, контакта нет) и повторные запросы упавших тайлов при каждой перерисовке. Список правок — ниже, код в этой задаче не правился."
 data: ""
-applied_in: ""
+applied_in: "SA-8: configs/world.json (map_picker: user_agent с {version}, retry_after_s, blocked_backoff_s, max_parallel osm = 2), scripts/terrain/raster_tile_loader.gd"
 ---
 # Карта выбора старта и правила серверов тайлов (SA-2)
+
+> Состояние на main (2026-10-15): правки 1–3 из «Итога» применены в SA-8 — User-Agent `deltaplan/{version} (+URL проекта)`, пауза после ошибок (`retry_after_s`) и после 403/429 (`blocked_backoff_s`), для OSM 2 параллельных запроса; см. `configs/world.json`, раздел `map_picker`.
 
 Решение пользователя 05.10.2026: подложку не заменять (OSM standard по умолчанию, OpenTopoMap второй). Проверено по коду ветки `steam-assets/SA-2` (= `feature/steam-assets`) и правилам на 05.10.2026.
 

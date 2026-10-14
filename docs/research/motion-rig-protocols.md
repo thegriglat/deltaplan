@@ -2,14 +2,17 @@
 type: "research"
 status: "active"
 module: "motion-rig"
-updated: "2026-10-10"
-summary: "Протоколы платформ подвижности DOF Reality H-серии: что реально принимает вход от «неизвестной» игры (Sim Racing Studio API, UDP 33001), что нет (SimTools, FlyPT Mover); выбор формата пакета"
-related: []
+area: "game"
+updated: "2026-10-15"
+summary: "Платформы DOF Reality принимают SRS API v102 (UDP 33001, 236 байт); SimTools и FlyPT Mover без своего плагина — нет."
+related: ["docs/research/simhub.md", "docs/guide/motion-rig.md", "docs/contracts/motion-rig.md"]
 conclusion: "Делаем один формат: бинарный UDP-пакет Sim Racing Studio API v102 (236 байт, порт 33001, MIT). SimTools и FlyPT Mover не имеют общего UDP-входа без собственного плагина/кода"
 data: "нет"
-applied_in: "docs/contracts/motion-rig.md"
+applied_in: "scripts/motion_rig/motion_packet.gd (SRS v102, 236 байт; кроме него добавлен generic DPMR), scripts/motion_rig/motion_output.gd (порт 33001), docs/contracts/motion-rig.md"
 ---
 # Протоколы платформ подвижности (DOF Reality H2/H3/H4R/H6)
+
+> Состояние на main (2026-10-15): формат SRS API v102 реализован (`scripts/motion_rig/motion_packet.gd`, порт 33001); дополнительно есть формат `generic` (DPMR, 64 байта) — см. [simhub.md](simhub.md).
 
 Вопрос: как отдать движение дельтаплана из Godot на платформу DOF Reality H4R (4 оси: pitch, roll, yaw, heave) так, чтобы игроку не писать код. Сначала искали generic UDP у SimTools и FlyPT Mover; оказалось, что у производителя есть свой открытый вход. Что не нашлось или не проверено — в конце.
 

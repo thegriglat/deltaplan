@@ -1,15 +1,18 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "terrain"
-updated: "2026-09-27"
-summary: "Источники рельефа и карт (FR-17 … FR-20) — Дата проверки: 2026-09-27. Всё ниже проверено запросами с этой машины, кроме помеченного «(по документации)»."
-related: []
-conclusion: ""
-data: ""
-applied_in: ""
+area: "world"
+updated: "2026-10-15"
+summary: "Источники высот и подложки карты: Copernicus GLO-30 (детально) и Terrarium (фон) бесплатны без ключа; оба DSM, лес +15…25 м."
+related: ["docs/guide/terrain.md", "docs/guide/location-data.md", "docs/research/steam_tile_policy.md"]
+conclusion: "Высоты: Copernicus GLO-30 (детальный слой) и AWS Terrain Tiles/Terrarium (фон и рантайм) — открытый HTTPS без ключа; оба — DSM (лес +15…25 м), поэтому детальный слой сглажен (σ = 0,8 клетки). FABDEM не подходит по лицензии (CC-BY-NC). Прототип FR-17: Эльбрус, холодная загрузка 24 с, из кеша 0,8 с, ≈ 90 тайлов ≈ 4 МБ."
+data: "нет"
+applied_in: "scripts/terrain/build/dem_stage.gd (Copernicus GLO-30 + Terrarium z10), scripts/terrain/terrarium_loader.gd; подложка выбора места — растровые OSM/OpenTopoMap (scripts/terrain/raster_tile_loader.gd), не отмывка"
 ---
 # Источники рельефа и карт (FR-17 … FR-20)
+
+> Состояние на main (2026-10-15): детальный слой мест — Copernicus GLO-30, фон — Terrarium z10 (`scripts/terrain/build/dem_stage.gd`). Подложка карты выбора места — растровые OSM и OpenTopoMap с правилами из [steam_tile_policy.md](steam_tile_policy.md), а не отмывка рельефа, как в «Решениях» ниже.
 
 Дата проверки: 2026-09-27. Всё ниже проверено запросами с этой машины, кроме помеченного «(по документации)».
 
