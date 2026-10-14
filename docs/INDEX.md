@@ -252,7 +252,7 @@ generated: true
 - [docs/research/terrain_statistics/peaks-and-saddles.md](research/terrain_statistics/peaks-and-saddles.md) — Вершин prominence ≥ 30 м на квадрат 40 × 40 км: 26–67 (Урал), 83–138 (Алтай), 91–116 (Онгудай); b = 1,1–1,9. [closed]
 - [docs/research/terrain_statistics.md](research/terrain_statistics.md) — Горный рельеф 40 × 40 км, 4 места: Fastscape ближе к реальному, чем сумма форм (вершин в 1,5–6 раз меньше); сводка и 5 частей. [closed]
 - [docs/research/terrain_tuning.md](research/terrain_tuning.md) — Настройка 8 параметров генератора рельефа fs1 по 367 квадратам: медиана χ²/ndf 1,47 против 1,79; настроенные θ лучше ручных. [closed]
-- [docs/research/thermals.md](research/thermals.md) — Модели термиков, склонового подъёма и подветренных потоков — Исследование для модуля атмосферы (FR-8, FR-11…FR-16). [closed]
+- [docs/research/thermals.md](research/thermals.md) — Термик — профиль Gedeon с радиусом по Allen (∝ξ^⅓), наклон ветром, распад снизу; склон и ротор — по градиенту рельефа; детерминированно. [closed]
 - [docs/research/vario_sounds.md](research/vario_sounds.md) — Пресет classic_90s: меандр до 11-й гармоники, резонанс 3,2 кГц, 700 → 2000 Гц и 2 → 11 писков/с; звучание по умолчанию.
 - [docs/research/visual_cues.md](research/visual_cues.md) — Визуальные признаки для пилота: что должно быть видно в симуляторе — Исследование к FR-14a, FR-19, FR-20, FR-21, FR-22, FR-26. [closed]
 - [docs/research/wing_sources.md](research/wing_sources.md) — Источники по моделям дельтапланов — Где искать внешний вид и характеристики крыльев (для линейки — docs/archive/plan/wings-lineup.md). [closed]
