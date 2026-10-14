@@ -127,3 +127,5 @@
 {"t": "2026-10-15T02:41:40", "by": "executor", "task": "DR-8", "ev": "accepted", "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:41:44", "by": "coordinator", "task": "DR-8", "ev": "accepted", "commits": ["95cd673b"], "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
 {"t": "2026-10-15T02:41:45", "by": "coordinator", "task": "DR-8", "ev": "merged"}
+{"t": "2026-10-15T02:42:15", "by": "coordinator", "task": "DR-7", "ev": "accepted", "commits": ["d4661c40"], "note": "2/2 docs=ok:exit 0; hugo=ok:exit 0"}
+{"t": "2026-10-15T02:42:15", "by": "coordinator", "task": "DR-7", "ev": "note", "note": "слияние повторено вручную: конфликт docs/research/air_phase.md (ссылка guide + архив плана) решён координатором; d4661c40"}
