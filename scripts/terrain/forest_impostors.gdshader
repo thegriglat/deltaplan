@@ -23,6 +23,12 @@ uniform float inner_end_m = 500.0;
 uniform float outer_m = 2000.0;                   // дальше — только полог рельефа
 uniform float dissolve_m = 800.0;                 // полоса у outer_m, где билборды по одному растворяются
 uniform float density = 0.85;
+// SL-20: у кольца за LOD2-крестами (сетка 8 м, ~12 тыс. дер./км²) билбордов вдвое меньше (сетка 12 м) —
+// у стыка гуще (seam_density) и крупнее (seam_size_k), чтобы площадь силуэтов на м² не падала ступенью;
+// к inner_end_m + seam_fade_m — обычные density и размер
+uniform float seam_density = 0.85;
+uniform float seam_size_k = 1.0;
+uniform float seam_fade_m = 1000.0;
 uniform float sink_fraction = 0.4;
 uniform float edge_sink_fraction = 0.05;
 uniform float edge_probe_m = 30.0;
@@ -123,9 +129,12 @@ void vertex() {
 	// у outer_m билборды растворяются по одному (порог — хеш клетки), без полосы.
 	// Сначала дешёвые проверки; нет дерева — вырожденный квад и выход (без выборок высот).
 	float ring = smoothstep(inner_m, inner_end_m, d);
+	float seam = 1.0 - smoothstep(inner_end_m, inner_end_m + seam_fade_m, d);
+	float dens = mix(density, max(density, seam_density), seam);
+	float edens = max(edge_density, dens);
 	float fade_out = smoothstep(outer_m - dissolve_m, outer_m, d);
 	float u = hash12(cell + 5.7);
-	bool present = d < outer_m && u < max(density, edge_density) * ring
+	bool present = d < outer_m && u < edens * ring
 			&& hash12(cell + 7.9) >= fade_out && is_forest(xz);
 	if (present && has_clearings) {
 		vec2 cu = (xz - clear_origin) / (clear_cell_m * clear_size);
@@ -137,7 +146,7 @@ void vertex() {
 	float ek = 0.0;
 	if (present) {
 		ek = min(1.0, 2.0 * max(open_frac(xz, edge_band_m * 0.5, 0.0), 0.5 * open_frac(xz, edge_band_m, 0.785)));
-		present = u < mix(density, edge_density, ek) * ring;
+		present = u < mix(dens, edens, ek) * ring;
 	}
 	// нет дерева — вырожденный квад (все вершины в одной точке)
 	vec3 v = vec3(0.0);
@@ -161,7 +170,7 @@ void vertex() {
 		if (sp >= 0) {
 			float hh = mix(sp_height[sp].x, sp_height[sp].y, hash12(cell + 2.2));
 			// вдали дерево чуть крупнее — чтобы не рябило и сливалось с пологом
-			hh *= 1.0 + 0.4 * smoothstep(outer_m * 0.5, outer_m, d);
+			hh *= (1.0 + 0.4 * smoothstep(outer_m * 0.5, outer_m, d)) * mix(1.0, seam_size_k, seam);
 			// утопление: в глубине леса sink_fraction (кроны в DSM), у кромки меньше — стволы видны
 			float sink = mix(edge_sink_fraction, sink_fraction, 1.0 - open_frac(xz, edge_probe_m, 0.785));
 			// цилиндрический билборд: поворот к камере вокруг вертикали

@@ -221,6 +221,7 @@ static func _texture_array(images: Array[Image]) -> Texture2DArray:
 			and im.has_mipmaps() == first.has_mipmaps()
 		)
 	if not same:
+		push_warning("TreeCrosses: текстуры крестов разного размера/формата — массив в RGBA8 (больше видеопамяти)")
 		var out: Array[Image] = []
 		for im in images:
 			var c := im.duplicate() as Image

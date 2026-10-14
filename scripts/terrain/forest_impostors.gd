@@ -80,6 +80,9 @@ func setup(
 	m.set_shader_parameter("edge_density", float(cfg.get("edge_density", 1.0)))
 	m.set_shader_parameter("edge_scale_k", float(cfg.get("edge_scale_k", 0.15)))
 	m.set_shader_parameter("density", float(ic.density))
+	m.set_shader_parameter("seam_density", float(ic.get("seam_density", ic.density)))
+	m.set_shader_parameter("seam_size_k", float(ic.get("seam_size_k", 1.0)))
+	m.set_shader_parameter("seam_fade_m", maxf(float(ic.get("seam_fade_m", 1000.0)), 1.0))
 	m.set_shader_parameter("brightness", float(ic.brightness))
 	m.set_shader_parameter("sink_fraction", float(cfg.sink_fraction))
 	m.set_shader_parameter("edge_sink_fraction", float(cfg.get("edge_sink_fraction", 0.05)))
@@ -137,15 +140,6 @@ func set_cross_active(on: bool) -> void:
 ## Кольцо сетки сейчас (inner_m, inner_end_m), м — для тестов.
 func grid_ring() -> Vector2:
 	return _grid_cross if _cross_active else _grid_legacy
-
-
-## Полоса band-импостеров SL-17 снята (SL-18); заглушки, пока TerrainTreeModels (SL-19) их зовёт.
-func set_band(_buf: PackedFloat32Array, _count: int) -> void:
-	pass
-
-
-func set_band_active(_on: bool) -> void:
-	pass
 
 
 func _materials() -> Array[ShaderMaterial]:

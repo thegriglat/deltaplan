@@ -55,7 +55,7 @@ const MASK_PROBE := """
 shader_type canvas_item;
 render_mode blend_disabled, unshaded;
 #include "res://scripts/terrain/tree_cell.gdshaderinc"
-uniform sampler2D cases_tex : filter_nearest;  // x — d, y — k, z — r_near
+uniform sampler2D cases_tex : filter_nearest;  // x — d, y — k, z — r_near, w — вид модели (0 — LOD1 код 1, 1 — пара LOD0 0,1 + LOD1 0,2, 2 — код 0,3)
 uniform float r_far = 1100.0;
 uniform float dither = 40.0;
 uniform int n_cases = 1;
@@ -63,12 +63,16 @@ void fragment() {
 	ivec2 px = ivec2(floor(UV * vec2(256.0, float(n_cases))));
 	vec4 cs = texelFetch(cases_tex, ivec2(px.y, 0), 0);
 	float n = (float(px.x) + 0.5) / 256.0;
-	float tm = tc_model_t(cs.x, cs.y, cs.z, dither);
 	vec2 win = tc_cross_window(cs.x, cs.y, cs.z, r_far, dither);
-	bool model = n >= tm && cs.z > 0.0;
+	// окна модели — той же функцией, что tree_model.gdshader (lod_d.x = 60 м, lod_fade_m = 10 м)
+	int kind = int(cs.w + 0.5);
+	vec2 wa = tc_model_window(kind == 0 ? 10 : (kind == 1 ? 1 : 3), cs.x, 60.0, 10.0, cs.y, cs.z, dither);
+	vec2 wb = kind == 1 ? tc_model_window(2, cs.x, 60.0, 10.0, cs.y, cs.z, dither) : vec2(0.0);
+	int nm = int(n >= wa.x && n < wa.y) + int(n >= wb.x && n < wb.y);
+	bool model = nm == 1 && cs.z > 0.0;   // r_near = 0 — модели скрыты (выше их max_agl)
 	bool cross = n >= win.x && n < win.y;
 	bool imp = n < win.x;
-	COLOR = vec4(model ? 1.0 : 0.0, cross ? 1.0 : 0.0, imp ? 1.0 : 0.0, 1.0);
+	COLOR = vec4(model ? 1.0 : (nm > 1 ? 0.25 : 0.0), cross ? 1.0 : 0.0, imp ? 1.0 : 0.0, 1.0);
 }
 """
 
@@ -104,6 +108,7 @@ func _probe(code: String, size: Vector2i, params: Dictionary) -> Image:
 		await get_tree().process_frame
 	var img := vp.get_texture().get_image()
 	vp.queue_free()
+	await get_tree().process_frame
 	return img
 
 
@@ -172,19 +177,26 @@ func test_stitch_masks_one_form() -> void:
 	var r_near := 180.0
 	var r_far := 1100.0
 	var dither := 40.0
-	var cases: Array[Vector3] = []
+	var cases: Array[Vector4] = []  # d, k, r_near, вид модели (0 — LOD1, 1 — пара LOD0/LOD1 у 60 м, 2 — код 0,3)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 18
 	for i in 60:
 		var k := rng.randf_range(0.75, 1.2)
 		var rn := r_near if i % 6 != 5 else 0.0  # каждое шестое — модели скрыты (кресты до камеры)
 		var around := r_near * k if i % 2 == 0 else r_far * k
-		cases.append(Vector3(maxf(around + rng.randf_range(-1.5, 1.5) * dither, 1.0), k, rn))
+		cases.append(Vector4(maxf(around + rng.randf_range(-1.5, 1.5) * dither, 1.0), k, rn, 0.0))
 	for i in 20:
-		cases.append(Vector3(rng.randf_range(5.0, 2000.0), rng.randf_range(0.75, 1.2), r_near))
+		cases.append(Vector4(rng.randf_range(5.0, 2000.0), rng.randf_range(0.75, 1.2), r_near, 0.0))
+	# SL-20: пара LOD0→LOD1 у 60 м (коды 0,1/0,2) и экземпляр с кодом 0,3 у lod_d.y = 180 м и у r1·k (k > 1):
+	# своего ухода у LOD1 нет — до r1·k модель, дальше крест, без дыры [r1; r1·k]
+	for i in 20:
+		cases.append(Vector4(60.0 + rng.randf_range(-8.0, 8.0), rng.randf_range(0.75, 1.2), r_near, 1.0))
+	for i in 30:
+		var k := rng.randf_range(1.0, 1.2)
+		cases.append(Vector4(rng.randf_range(170.0, r_near * k + 30.0), k, r_near, 2.0))
 	var img_c := Image.create(cases.size(), 1, false, Image.FORMAT_RGBAF)
 	for i in cases.size():
-		img_c.set_pixel(i, 0, Color(cases[i].x, cases[i].y, cases[i].z, 1.0))
+		img_c.set_pixel(i, 0, Color(cases[i].x, cases[i].y, cases[i].z, cases[i].w))
 	var tex := ImageTexture.create_from_image(img_c)
 	var img: Image = await _probe(MASK_PROBE, Vector2i(256, cases.size()), {
 		"cases_tex": tex, "r_far": r_far, "dither": dither, "n_cases": cases.size()})
@@ -236,20 +248,13 @@ func test_crosses_render_on_terrain() -> void:
 	t.location_id = ""
 	vp.add_child(t)
 	check(t.load_location("ongudai"), "место ongudai")
-	var cfg: Dictionary = (Config.get_config("world").get("trees", {}) as Dictionary).duplicate(true)
-	cfg["crosses_enabled"] = true
-	var tc := TreeCrosses.new()
-	var ok := tc.setup(t.layers[0], t.renderer.height_textures[0], t.surfaces[0], t.renderer.surface_textures[0],
-			cfg, t.trees as TerrainTreeModels, t.impostors)
-	check(ok, "TreeCrosses.setup")
-	if not ok:
-		tc.free()
+	# SL-20: кресты включены по умолчанию — Terrain создал их сам (с маской леса и просеками)
+	var tc := t.crosses
+	check(tc != null, "Terrain.crosses при trees.crosses_enabled = true")
+	if tc == null:
 		vp.queue_free()
+		await get_tree().process_frame
 		return
-	t.add_child(tc)
-	var fm := t.get_forest_mask()
-	if not fm.is_empty():
-		tc.set_forest_mask(fm[0], fm[1], fm[2])
 	# только кресты: модели и импостеры скрыты, рельеф остаётся
 	if t.trees != null:
 		t.trees.process_mode = Node.PROCESS_MODE_DISABLED
@@ -298,3 +303,5 @@ func test_crosses_render_on_terrain() -> void:
 		tc.instance_total, diff, frac * 100.0])
 	check(diff > 50, "кресты видны в кадре (%d пикселей)" % diff)
 	vp.queue_free()
+	await get_tree().process_frame
+	await get_tree().process_frame
