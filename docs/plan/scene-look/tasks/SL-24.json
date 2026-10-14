@@ -1,0 +1,64 @@
+{
+  "id": "SL-24",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "«Седые» дальние деревья: серо-белые LOD2-кресты",
+  "goal": "Дальние LOD2-кресты местами серо-белые (правый склон в after/02, опушка у озера в after/06) — найти причину (альбедо/текстура/мипы/альфа/сезон/снег/туман) и починить без новых текстур.",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "SL-К4",
+      "version": "2",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К5",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-24",
+  "branch": "scene-look/SL-24",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/tree_cross.gdshader",
+    "scripts/terrain/tree_crosses.gd",
+    "scripts/terrain/tree_cell.gdshaderinc",
+    "scripts/terrain/scene_look.gdshaderinc",
+    "configs/world.json",
+    "tests/vegetation/",
+    "tests/terrain/"
+  ],
+  "dont_touch": [
+    "assets/",
+    "docs/contracts/",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_main.gdshaderinc"
+  ],
+  "accept": [
+    {
+      "name": "vegetation",
+      "tests": "vegetation"
+    },
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "cause",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-14T14:30:03",
+  "edited": "2026-10-14T14:30:03"
+}

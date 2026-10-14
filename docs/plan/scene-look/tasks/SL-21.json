@@ -1,0 +1,78 @@
+{
+  "id": "SL-21",
+  "module": "scene-look",
+  "type": "dp-engineer",
+  "title": "Распил шейдера рельефа: части под #ifndef, варианты по пресету/LOD, скрипт замера «без части»",
+  "goal": "Сделать цену шейдера рельефа управляемой: каждая дорогая часть (эффекты scene-look и прочие тяжёлые куски рельефа) выключается при компиляции, а не флагом-uniform; варианты шейдера по пресету и LOD; инструмент замера «без части X» — для таблицы «эффект → мс».",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "SL-К1",
+      "version": "4",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К3",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    },
+    {
+      "name": "SL-К6",
+      "version": "1",
+      "ref": "docs/contracts/scene-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-scene-look-SL-21",
+  "branch": "scene-look/SL-21",
+  "base": "feature/scene-look",
+  "scope": [
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/terrain/variants/",
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "scripts/terrain/meadow_look.gdshaderinc",
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/terrain_renderer.gd",
+    "scripts/terrain/terrain.gd",
+    "configs/game.json",
+    "configs/world.json",
+    "tests/terrain/",
+    "tests/contracts/test_scene_look_contracts.gd",
+    "tools/terrain/",
+    ".gitignore"
+  ],
+  "dont_touch": [
+    "assets/",
+    "docs/contracts/",
+    "scripts/terrain/tree_cross.gdshader"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "vegetation",
+      "tests": "vegetation"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "gd",
+      "cmd": "/home/greg/deltaplan/tools/dp check gd --changed",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [
+    "parts",
+    "variants",
+    "full_equal_check",
+    "bench_cmd",
+    "uncertain"
+  ],
+  "notes": "",
+  "created": "2026-10-14T14:30:03",
+  "edited": "2026-10-14T14:30:03"
+}
