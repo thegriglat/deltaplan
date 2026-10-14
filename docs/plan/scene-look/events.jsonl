@@ -253,3 +253,9 @@
 {"t": "2026-10-14T04:58:57", "by": "main", "task": "SL-18", "ev": "note", "note": "на ревью (GPU, новый механизм, стык К4/К5); после — слияние вместе с SL-19 и crosses_enabled=true; пункт T-81 «импостеры и рисунок крон на хеш К5 (сетка 8 м)» — в TODO при закрытии модуля (T-81 есть только в main)"}
 {"t": "2026-10-14T05:00:45", "by": "reviewer", "task": "SL-18", "ev": "reviewed", "note": "Скоуп и «не трогать» соблюдены, хеш К5 в GLSL совпадает с эталоном побитово (перезапуск GPU-теста: 0 расхождений на 20402 клетках), ближний стык модель→крест п…", "verdict": "accept", "issues": {"major": 2, "minor": 3}, "review": "docs/plan/scene-look/tasks/SL-18.review.json"}
 {"t": "2026-10-14T05:01:07", "by": "main", "task": "SL-18", "ev": "accepted", "note": "по ревью (accept, 2M 3m): стык LOD1 модели (lod_d.y без k) и дальняя плотность крест/импостер — в интеграции с SL-19 тем же исполнителем"}
+{"t": "2026-10-14T05:02:04", "by": "coordinator", "task": "SL-18", "ev": "accepted", "commits": ["251e39c3"], "note": "4/4 vegetation=ok:39/39; terrain=ok:128/128 (пропуск 7); scene_look_contracts=ok:25/25; gd=ok:exit 0"}
+{"t": "2026-10-14T05:02:18", "by": "coordinator", "task": "SL-18", "ev": "merged", "note": "251e39c3; на ветке модуля 4/4; кресты пока выкл. — включение в SL-20"}
+{"t": "2026-10-14T05:02:18", "by": "coordinator", "task": "SL-19", "ev": "merged", "note": "ee41b746; на ветке модуля 4/4; кресты пока выкл. — включение в SL-20"}
+{"t": "2026-10-14T05:02:19", "by": "main", "task": "SL-20", "ev": "created", "note": "Интеграция леса: включить кресты, стык LOD1→крест без дыр, плотность на дальнем стыке"}
+{"t": "2026-10-14T05:02:19", "by": "main", "task": "SL-20", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"density_far_seam\", \"uncertain\"]"]}}
+{"t": "2026-10-14T05:03:20", "by": "executor", "task": "SL-20", "ev": "started", "note": "dp-engineer (opus) — исполнитель SL-18 продолжает, ~/deltaplan-scene-look-SL-20"}
