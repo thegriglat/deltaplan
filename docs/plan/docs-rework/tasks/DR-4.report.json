@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "Страницы «Механики» (включая air-model) и вводные «Крыльев» (ru/en) сверены с кодом main, guide и CHANGELOG до 1.5.15: исправлены устаревшие факты, добавлено новое, убраны планы и ссылки на docs/plan, docs/archive.",
+  "commits": [
+    "58653411 Сайт: «Механики» и вводная «Крыльев» приведены к текущему состоянию игры"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "no_plans_links",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "28 файлов",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept DR-4",
+  "uncertain": [
+    {
+      "where": "docs/guide/flight.md, location-data.md, terrain.md, air-model.md",
+      "why": "guide устарел: умолчание режима крена (FR-5), OSM нет/одна стадия smooth, danger_sink 0,7·u против 0,08 в конфиге",
+      "checked": "страницы написаны по коду/конфигам; guide не трогал (вне скоупа)"
+    },
+    {
+      "where": "mechanics/air-model/thermals.*, wind-phases.*, heuristic.*",
+      "why": "числа примеров (Онгудай, 7320/8000 расчётов, таблица гроз) не пересчитаны; у heating.lag_h в weather_model.json _doc расходится со значениями (0,6/0,9/1,2 взяты из конфига)",
+      "checked": "сверено с docs/research и конфигами"
+    },
+    {
+      "where": "mechanics/flight.*",
+      "why": "числа режима «Маятник» взяты из guide, не из pendulum.json",
+      "checked": "структура и 48 крыльев сверены по configs"
+    },
+    {
+      "where": "mechanics/terrain.*",
+      "why": "размер OSM-тайлов и замеры SL-23 не перепроверены; раздел «Загрузка/Ошибки» не сверен",
+      "checked": "стадии, пресеты, лес по коду и CHANGELOG"
+    },
+    {
+      "where": "mechanics/multiplayer.*, instruments.*",
+      "why": "Steam-подраздел и ThermalSources по guide, не запускались; птицы/ласточки (3 стаи, 3-6) из atmosphere.md",
+      "checked": "configs/net.json, audio.json"
+    }
+  ],
+  "dp_feedback": "Параллельные писатели в одной копии работают без конфликтов, если файлы разведены; хотелось бы dpcli-команды проверки ссылок на существующие файлы репозитория (/docs/..., картинки) — hugo их не валидирует.",
+  "t": "2026-10-15T02:03:51",
+  "by": "executor"
+}

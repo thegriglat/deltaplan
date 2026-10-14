@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Подставной индекс П6 и подставной набор terrain (П1 v2 + метаданные решений П1 v3) («только область») для smoke П-2 — до настоящих данных
-NN-P4 (вырезки) и NN-P6 (генератор). Формат — по контрактам П6 v1 и П1 v2 (docs/air_nn_contracts.md):
+NN-P4 (вырезки) и NN-P6 (генератор). Формат — по контрактам П6 v1 и П1 v2 (docs/archive/rejected/air-nn-contracts.md):
 
   <out>/tiles/v1/index.csv, manifest.json           — индекс П6: столбцы контракта, по строке на место t_0000…t_0009,
                                                        part pool/holdout, stratum, system (cut/ не пишется — пилоту

@@ -33,8 +33,9 @@ at every node.
 **Horizontal wind** grows with height above the ground under the pilot by a power law and, separately,
 with altitude above sea level:
 
-$$ u = u_{ref} \cdot \left(\frac{agl}{10\,\text{m}}\right)^{0.14} \cdot \left(1 + 0.6 \cdot \frac{msl - msl_{start}}{1000\,\text{m}}\right) $$
+$$ u = u_{ref} \cdot \min\Big(\big(\tfrac{agl}{10\,\text{m}}\big)^{0.14},\ 1.8\Big) \cdot \mathrm{clamp}\Big(1 + 0.6 \cdot \frac{msl - msl_{start}}{1000\,\text{m}},\ 0.5,\ 2.0\Big) $$
 
+The numbers are from `configs/atmosphere.json → wind_profile_simple` (`alpha` 0.14, `max_factor` 1.8) and `wind` (`altitude_gain_per_km` 0.6, altitude factor 0.5…2). The profile does not depend on the hour or cloudiness; in "Calculation" mode a profile with an exponent by stability class works instead.
 The wind direction is one for the whole world; the terrain does not turn it.
 
 **Slope lift.** Right at the ground the air follows the terrain: the steeper the slope facing the wind, the
@@ -52,26 +53,18 @@ wind, the flow separation zone begins: `s(p) = maxᵢ(h(p − ŵ·dᵢ) − dᵢ
 60…1600 m). A pilot below this line is in the rotor. The zone's strength grows with depth below the line and with the height of the
 obstacle itself and gives:
 
-- sink `0.25…0.7 · u · lee` (the share grows with wind — "hazard" `g` from 2 to 5 m/s);
-- turbulence σ `0.5…0.9 · u · lee`;
-- rare downward jerks in noise patches carried by the wind;
-- reverse flow right at the ground.
+- sink `0.08 · u · lee` (`lee.sink_per_wind`, `danger_sink_per_wind`): measurements AP-10 give a few percent of the wind, not tens of percent;
+- turbulence σ `0.5…0.9 · u · lee` (the share grows with wind — "hazard" from 2 to 5 m/s, `danger_min_wind_ms`, `danger_full_wind_ms`);
+- rare downward jerks `1.0 · u` in noise patches of 120 m scale carried by the wind (`burst_per_wind`, noise threshold 0.8);
+- reverse flow right at the ground `0.65 · u` (`rotor_reverse`), decaying with height over `0.6` of the crest excess (`rotor_height_fraction`); the wind in the zone is reduced by 60 % (`wind_reduction`).
 
-Measurement on a model 300 m ridge (`tests/atmosphere/test_lee_rotor.gd`):
-
-| wind at takeoff | mean w in the rotor | σ | windward w / σ |
-|---|---|---|---|
-| 2 m/s | −0.74 m/s | 0.94 | +1.2 / 0.6 |
-| 5 m/s | −3.8 m/s | 3.4 | +3.0 / 1.5 |
-| 8 m/s | −6.0 m/s | 5.0 | +4.8 / 2.4 |
-
-A trimmed flight over a 50 m crest, 50 m above it, in a 6 m/s wind: −126 m in 30 s (in calm air, −25 m).
+Heating suppresses the rotor: at a heat flux of 300 W/m² and more (`heat_kill_wm2`) the separation bubble vanishes, below that it weakens. The shear layer above the line is 350 m (`shear_layer_m`). All these coefficients are heuristics taken from the AP-10 series of measurements on ideal terrain (shadow angle 12°, rotor 0.6–0.7, shear layer 300–400 m, sink 0.05–0.1), not a physical derivation. The check (`tests/atmosphere/test_lee_rotor.gd`, a 300 m ridge) is a regression: at wind above 4 m/s sink in the zone is no deeper than 0.35 u, rotor σ is at least 0.45 u, there is reverse or zero flow at the lee slope, and a trimmed flight over the crest loses in 30 s at least twice the height it loses in calm air.
 
 **Wave** (`wave_field.gd`) is Scorer's linear theory along the wind direction: the displacement of streamlines is a
 convolution of the terrain slope with `cos(k·d)·exp(−d/L)`, wavelength `λ = 2πU/N` (N is the Brunt–Väisälä frequency).
 In the wave crests there is lift, under them near the ground there are rotors, and over the high points of the terrain there are lenticular clouds.
 The word "wave" is never shown to the pilot (it is unfamiliar to them); the interface has only "Wind" and
-"Wind from". By default the wave is off (`wave_strength = 0` in all current weather scenarios);
+"Wind from". The wave is on only in the `wave` weather preset (`wave_strength` 1.0); in the other presets `wave_strength = 0`, and the weather model (`weather_model.json → wave.enabled`) does not turn it on by default;
 the lee zone and rotor work at all times, from the wind alone.
 
 ## Physics: laws and approximations
@@ -137,18 +130,17 @@ The rework options considered (from cheap to expensive):
 - **Offline CFD**: separation and real rotors, but only for built-in locations, hundreds of MB of data, and even
   CFD predicts the turbulence in the wake poorly (checked on the Askervein test site).
 
-None of the options was chosen on its own: instead of a point rework of the slope it was decided to compute
-**one physical air field** at once for wind, lift and thermals (the plan
-[docs/plan/air_model.md](/docs/plan/air_model.md)), and this has been done — see the [air model](/mechanics/air-model/). A narrower plan was also considered: a wind field on a
-grid, mass-consistent only ([docs/archive/plan/wind-field.md](/docs/archive/plan/wind-field.md)) — but it had
+None of these options was taken: instead of a point rework of the slope the air is computed as
+**one physical field** at once for wind, lift and thermals — the "Calculation" mode, see the [air model](/mechanics/air-model/). "Heuristic" was left as it is, without rework. A narrower solution was also considered: a wind field on a
+grid, mass-consistent only (WindNinja-like) — but it would have
 no heat (so no thermals and no difference between a heated and a cold slope), and no inertia
-(an instant recomputation when the weather changes); the three-scale air plan replaced it.
+(an instant recomputation when the weather changes); the three-scale air model replaced it.
 
 ## Next
 
 The air model at three scales ([page](/mechanics/air-model/), [docs/guide/air-model.md](/docs/guide/air-model.md))
 gives the acceleration at the brow, the saddle, flow around hills from the sides and the rotor not as separate formulas for the slope,
-but as a consequence of one equation for the whole air field. It also lists what it cannot do yet:
+but as a consequence of one equation for the whole air field. It also lists what it cannot do:
 for example, the speed-up at the brow is underestimated by 15–20 %, and the saddle gives ×2.05 instead of ×1.5.
 
 ## Details

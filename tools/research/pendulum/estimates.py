@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Оценки для плана модуля pendulum (docs/plan/pendulum.md): частоты мод, инерции, Cm_alpha по
+"""Оценки для плана модуля pendulum (docs/archive/plan/pendulum.md): частоты мод, инерции, Cm_alpha по
 точкам балансировки, устойчивость интегратора. Только numpy-free python. Вывод — estimates.json
 и таблица в stdout. Воспроизведение: python3 tools/research/pendulum/estimates.py
 """

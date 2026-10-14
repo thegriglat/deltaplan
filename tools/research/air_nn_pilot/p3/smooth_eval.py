@@ -12,7 +12,7 @@ sub_steep_lee нет — тайлов в кеше нет). Спектр — ра
   report  — csv и summary.md в <out>;  all — оба
 
   cd tools/research/air_nn_pilot
-  /home/greg/deltaplan/tools/dp lock cpu smooth -- env CUDA_VISIBLE_DEVICES= .venv/bin/python p3/smooth_eval.py all \
+  /home/greg/deltaplan/.dpcli/dpcli lock cpu smooth -- env CUDA_VISIBLE_DEVICES= .venv/bin/python p3/smooth_eval.py all \
       --run $AIR_NN_DATA/pilot/runs/2026-10-03_p2b --out p3/out/smooth_p2b
 Сеть П-3: `--run <каталог прогона П-3>` (main/model.onnx, run_info.json, split.json) или `--onnx <путь>/model.onnx`;
 `--out p3/out/smooth_p3`. Другой вход сети — заменить `cond_eval.predict_case`.

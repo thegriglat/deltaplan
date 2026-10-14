@@ -1,0 +1,56 @@
+{
+  "id": "DR-2",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Сайт: версии в сайдбаре свёрнуты, раздел планов убран",
+  "goal": "В боковом меню сайта версии игры спрятаны в раскрывающийся список, как «Механики»; раздела «Планы» на сайте нет (только текущее состояние), ссылки на него не ломают сборку.",
+  "plan_ref": "Сайт: сайдбар и планы",
+  "contracts": [],
+  "copy": "~/deltaplan-docs-rework-DR-2",
+  "branch": "docs-rework/DR-2",
+  "base": "feature/docs-rework",
+  "scope": [
+    "site/hugo.toml",
+    "site/content/releases/_index.ru.md",
+    "site/content/releases/_index.en.md",
+    "site/content/plans",
+    "site/layouts",
+    "site/content/diary",
+    "site/content/docs",
+    "site/content/research"
+  ],
+  "dont_touch": [
+    "site/themes",
+    "site/content/_index.ru.md",
+    "site/content/_index.en.md",
+    "site/content/approaches.ru.md",
+    "site/content/approaches.en.md",
+    "site/content/mechanics",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "hugo_no_err",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "!re:ERROR"
+    },
+    {
+      "name": "collapse",
+      "cmd": "grep -h -c 'bookCollapseSection: true' site/content/releases/_index.ru.md site/content/releases/_index.en.md",
+      "expect": "!re:^0"
+    },
+    {
+      "name": "no_plans_mount",
+      "cmd": "grep -c \"target = 'content/plans\" site/hugo.toml; true",
+      "expect": "re:^0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T01:53:35"
+}

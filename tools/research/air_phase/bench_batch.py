@@ -87,7 +87,7 @@ def main(argv=None):
     import os
     import subprocess
     from pathlib import Path
-    ap = argparse.ArgumentParser(description="Замер пакетного решателя AP-1 → out/bench.json (под dp lock gpu)")
+    ap = argparse.ArgumentParser(description="Замер пакетного решателя AP-1 → out/bench.json (под .dpcli/dpcli lock gpu)")
     ap.add_argument("--worker", type=int, default=0, help="служебное: один процесс из N (B = 1, n случаев)")
     ap.add_argument("--n", type=int, default=4)
     ap.add_argument("--batches", default="1,2,4,8,16,32")

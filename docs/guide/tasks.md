@@ -1,16 +1,17 @@
 ---
 type: "guide"
 status: "active"
-module: "game"
-updated: "2026-10-03"
-summary: "Задания, тренировки, рекорды — FR-35 (маршрутный полёт), FR-36 (тренировки), FR-37 (рекорды), NFR-6, NFR-7."
-related: []
+module: "tasks"
+area: "game"
+updated: "2026-10-15"
+summary: "Задания, тренировки, рекорды: логика на RefCounted и конфиги готовы, в игре (Game.tick, меню) не подключены; форматы, API, критерии."
+related: ["docs/guide/game.md", "docs/guide/instruments.md", "docs/research/competition_rules.md"]
 ---
 # Задания, тренировки, рекорды
 
 FR-35 (маршрутный полёт), FR-36 (тренировки), FR-37 (рекорды), NFR-6, NFR-7. Правила соревнований и
 формат `.xctsk` — [research/competition_rules.md](../research/competition_rules.md).
-Вся логика — `RefCounted` без нод (NFR-8), тесты `tests/tasks/`.
+Вся логика — `RefCounted` без нод (NFR-8), тесты `tests/tasks/`. **Состояние в `main`:** модуль (`scripts/tasks/`, `configs/tasks/`) и страницы прибора «карта»/«задание» (`FlightInstrument.set_task`, `set_task_state`) есть; в `Game.tick()`, главном меню и экране итога задания и тренировки **не подключены** — ни `TaskTracker`, ни `FlightRecords`, ни `TrainingMode` игра сейчас не создаёт (кроме превью `task_preview.tscn` и тестов). Раздел «Подключение» ниже — как это делается, а не описание кода игры.
 
 ## Что где
 | Файл | Что |
@@ -52,15 +53,8 @@ FR-35 (маршрутный полёт), FR-36 (тренировки), FR-37 (р
 `xctsk.start_lead_s` (20 мин) до первого окна (`Task.clock_origin_s` — часы UTC в момент time_s = 0).
 
 **Демо-задания.**
-- `ongudai_demo`: взлёт — южный склон горы Каянча у «Онгудайского ретранслятора» → старт на выход 3 км →
-  Шашикман → Улита (ESS) → гоул у Онгудая (пойма Урсула); 27,8 км. ⚠ **Сверить**: координаты взлёта
-  (50.7862N 86.2355E, ~1780 м) взяты по описанию на форуме deltaplanerizm.ru («Онгудай — Горный Алтай»:
-  старт — лужайка в кедраче у вышки ретранслятора, на юг) и рельефу Terrarium; когда появится
-  `configs/locations/ongudai.json`, поставить `start_site` и выровнять пункт `takeoff` по нему (тест
-  `test_ongudai_demo_inside_detail_area` сам возьмёт центр и размер детальной зоны из конфига локации;
-  пока его нет — центр 50.75N 86.14E, зона 40×40 км). Посадка — тоже сверить.
-- `altai_demo`: Синюха-запад → старт 2 км → Соузга → Черемшанка → Манжерок (ESS) → Озёрное; 14,8 км, все
-  пункты в детальной зоне 40×40 км (тест). Сёла — координаты OSM.
+- `ongudai_demo` (`start_site: kayancha_south`): взлёт (пункт `takeoff`, 50.7862N 86.2355E) → старт на выход 3 км → Шашикман → Улита (ESS) → гоул у Онгудая (пойма Урсула, 50.745N 86.15E); окна 15/25/35 мин, срок 3,5 ч. Пилот ставится на площадку `kayancha_south` локации (`configs/locations/ongudai.json`, 50.78708N 86.23278E); пункт `takeoff` лежит в ≈ 0,2 км от неё и по площадке не выровнен (у `altai_demo` совпадает — `test_altai_demo_start_matches_site`). Все пункты внутри детальной зоны локации (тест `test_ongudai_demo_inside_detail_area`).
+- `altai_demo` (`start_site: sinyukha_west`): Синюха-запад → старт 2 км → Соузга → Черемшанка → Манжерок (ESS) → Озёрное (гоул); срок 3 ч, все пункты в детальной зоне 40×40 км (тест). Сёла — координаты OSM.
 
 Превью: `godot --path . res://scenes/tasks/task_preview.tscn -- --task=ongudai_demo [--shot=file.png]`
 или `--file=user://tasks/x.xctsk`.
@@ -126,7 +120,7 @@ tracker.setup(task)
 instrument.set_task(tracker.instrument_points(), tracker.instrument_active_index())   # стр. 2 и 4
 tracker.turnpoint_reached.connect(func(_i, _n, _s):
 	instrument.set_task(tracker.instrument_points(), tracker.instrument_active_index()))
-tracker.start_taken.connect(...)       # звук/мигание на приборе — у агента instruments
+tracker.start_taken.connect(...)       # звук/мигание на приборе — по желанию
 tracker.goal_reached.connect(_show_result)   # экран итога: result() + records.add_flight(...)
 tracker.task_failed.connect(_show_result)
 
@@ -141,8 +135,4 @@ r.merge({"location": loc_id, "wing": wing_id})
 if tracker: r["task"] = tracker.result()   # рекорды задания: время скоростного участка, дистанция
 var new_records := records.add_flight(r)   # показать «Новый рекорд!» на экране итога
 ```
-**Прибор.** Страницы 2 (карта) и 4 (задание) уже рисуют пункты из `FlightInstrument.set_task(points, active)`.
-Для страницы 3/4 полезно добавить показ из `tracker.get_state()`: время до открытия старта / «старт взят»,
-оставшаяся оптимизированная дистанция, требуемое качество **до гоула** (`required_glide`; сейчас
-`InstrumentTask` считает до активного пункта напрямую) — это задача агента instruments (метод вроде
-`set_task_state(state: Dictionary)`).
+**Прибор.** Страницы «карта» и «задание» рисуют пункты из `FlightInstrument.set_task(points, active)`; состояние гонки — `FlightInstrument.set_task_state(tracker.get_state())` (`InstrumentTask.race`: активный пункт, оставшаяся оптимизированная дистанция, требуемое качество до гоула `required_glide`, время до открытия старта, ESS/гоул; пустой словарь — гонки нет). Страницы прибора — `docs/guide/instruments.md`.

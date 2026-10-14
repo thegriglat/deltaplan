@@ -55,4 +55,4 @@
 
 (база 96² × 13 высот, 1 поток CPU, медиана по 830 случаям, p90 36.6 мс; замер при параллельной нагрузке других задач)
 
-Воспроизведение: `cd tools/research/air_nn_pilot && /home/greg/deltaplan/tools/dp lock cpu .venv/bin/python p3/base_eval.py`
+Воспроизведение: `cd tools/research/air_nn_pilot && /home/greg/deltaplan/.dpcli/dpcli lock cpu .venv/bin/python p3/base_eval.py`

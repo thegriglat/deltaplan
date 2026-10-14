@@ -2,16 +2,17 @@
 type: "research"
 status: "closed"
 module: "net"
-updated: "2026-10-03"
-summary: "Сетевая игра «через itch.io»: что даёт itch и какие есть альтернативы — Дата: 01.10.2026. Контекст: семья и друзья (2–10 человек), голос внешний, свой сервер на Go уже есть (server/, docs/guide/net-protocol.md, docs/plan/multiplayer.md)."
-related: []
+area: "net"
+updated: "2026-10-15"
+summary: "У itch.io нет сетевого функционала; без VPS — сервер на ПК пилота поверх Tailscale/ZeroTier; решение 01.10.2026: отложено."
+related: ["docs/guide/net-protocol.md", "docs/archive/plan/multiplayer.md"]
 conclusion: "У itch нет сетевого функционала; вариант без VPS — сервер на ПК пилота поверх Tailscale/ZeroTier; решение пользователя 01.10.2026: отложено."
 data: ""
 applied_in: "не применено (отложено)"
 ---
 # Сетевая игра «через itch.io»: что даёт itch и какие есть альтернативы
 
-Дата: 01.10.2026. Контекст: семья и друзья (2–10 человек), голос внешний, свой сервер на Go уже есть (`server/`, `docs/guide/net-protocol.md`, `docs/plan/multiplayer.md`).
+Дата: 01.10.2026. Контекст: семья и друзья (2–10 человек), голос внешний, свой сервер на Go уже есть (`server/`, `docs/guide/net-protocol.md`, `docs/archive/plan/multiplayer.md`).
 
 ## Короткий ответ
 
@@ -39,7 +40,7 @@ applied_in: "не применено (отложено)"
 
 | Вариант | Свой сервер | NAT | Сложность внедрения | Лицензия / цена | Win + Linux | Источник |
 |---|---|---|---|---|---|---|
-| **Наш текущий relay на Go** (WebSocket-ретранслятор, код зоны) | Да, один маленький (Docker, статический бинарник) | Нет проблемы: клиенты ходят на сервер сами | Уже сделано | Своё; цена = VPS | Да (клиент Godot; сервер — Linux/Docker) | [server/README.md](../../server/README.md), [multiplayer.md](../plan/multiplayer.md) |
+| **Наш текущий relay на Go** (WebSocket-ретранслятор, код зоны) | Да, один маленький (Docker, статический бинарник) | Нет проблемы: клиенты ходят на сервер сами | Уже сделано | Своё; цена = VPS | Да (клиент Godot; сервер — Linux/Docker) | [server/README.md](../../server/README.md), [multiplayer.md](../archive/plan/multiplayer.md) |
 | **WebRTC + сигнальный сервер + STUN/TURN** (`WebRTCMultiplayerPeer`) | Сигнальный — да (лёгкий WebSocket), игровой трафик p2p | STUN решает часть NAT; для остального нужен TURN (бесплатные: Google STUN `stun.l.google.com:19302`; Open Relay от Metered — 20 ГБ TURN/мес на бесплатном плане) | Средняя-высокая: на нативных платформах нужен плагин `webrtc-native` (GDExtension); сигналинг и ICE писать самим; полная сетка p2p для 10 пилотов с нашей логикой «ведущего» — переделка | webrtc-native — MIT; STUN бесплатно; Open Relay — бесплатный лимит (условия сервиса могут меняться) | Да: Windows, Linux, macOS, Android, iOS (Godot 4.1+) | [Godot WebRTC](https://docs.godotengine.org/en/stable/tutorials/networking/webrtc.html), [webrtc-native](https://github.com/godotengine/webrtc-native), [Metered Open Relay](https://www.metered.ca/tools/openrelay/), [список STUN Google](https://dev.to/alakkadshaw/google-stun-server-list-21n4) |
 | **Epic Online Services** (плагин EOSG) | Нет (Epic держит P2P-relay и лобби) | Встроенные hole-punching и relay | Средняя: аккаунт разработчика Epic, регистрация продукта (Product/Sandbox/Deployment/Client ID и Secret), принять условия EOS, политика приватности, `EOSGMultiplayerPeer` под Godot high-level API; наш протокол пришлось бы переложить на него | EOSG — MIT, Godot 4.2+; сам EOS бесплатен, без роялти и платы за хостинг (по данным Edgegap/Epic) | Да: Windows x64, Linux x64/arm64, macOS, Android, iOS | [EOSG](https://github.com/3ddelano/epic-online-services-godot), [EOS: бесплатно, relay](https://edgegap.com/comparison/edgegap-vs-epic-online-services-eos), [EOS overview](https://dev.epicgames.com/docs/epic-online-services/eos-overview) |
 | **netfox + noray** | Да — свой noray (Bun/Docker, TCP 8890 и UDP 49152–51200 под relay); есть публичный «для прототипов» без гарантий (`tomfol.io:8890`) | NAT punchthrough, при неудаче relay (только UDP) | Средняя: ENet-кошелёк + `netfox.noray`; всё равно свой сервер, т.е. не проще нашего | MIT; Godot 4.x | Да (Godot-клиент; noray — Bun, есть Docker) | [netfox](https://github.com/foxssake/netfox), [noray](https://github.com/foxssake/noray) |
@@ -50,7 +51,7 @@ applied_in: "не применено (отложено)"
 
 ## 3. Соотношение с нашим сервером и рекомендация
 
-Что у нас сейчас: один ретранслятор на Go (WebSocket + protobuf), код зоны из 4 цифр, ведущий — первый подключившийся, без авторизации, всё в памяти, Docker на VPS; сервер не считает физику, только пересылает. Игроки вводят `IP:порт` и код ([multiplayer.md](../plan/multiplayer.md), [server/README.md](../../server/README.md)).
+Что у нас сейчас: один ретранслятор на Go (WebSocket + protobuf), код зоны из 4 цифр, ведущий — первый подключившийся, без авторизации, всё в памяти, Docker на VPS; сервер не считает физику, только пересылает. Игроки вводят `IP:порт` и код ([multiplayer.md](../archive/plan/multiplayer.md), [server/README.md](../../server/README.md)).
 
 Единственная реальная слабость для семьи — нужен VPS с открытым портом (и адрес, который надо дать игрокам). Остальные варианты избавляют от VPS ценой другой сложности:
 - WebRTC/noray/EOS не снимают нужды в серверной части совсем (WebRTC — сигналинг; noray — свой сервер) или требуют переписать сетевой слой (EOS, WebRTC) ради экономии одного маленького сервера.

@@ -1,0 +1,56 @@
+{
+  "id": "DR-8",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Гайды полёта и моделей: разбить и сверить с кодом",
+  "goal": "flight.md, models.md, instruments.md, motion-rig.md, telltale.md описывают код main, каждый ≤40 КБ.",
+  "plan_ref": "Разбиение и сверка гайдов",
+  "contracts": [
+    {
+      "name": "docs-rework.D2",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D4",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-8",
+  "branch": "docs-rework/DR-8",
+  "base": "feature/docs-rework",
+  "scope": [
+    "docs/guide/flight.md",
+    "docs/guide/flight",
+    "docs/guide/models.md",
+    "docs/guide/models",
+    "docs/guide/instruments.md",
+    "docs/guide/motion-rig.md",
+    "docs/guide/telltale.md",
+    "docs/research",
+    "tools/research",
+    "site/content"
+  ],
+  "dont_touch": [
+    "docs/INDEX.md",
+    "docs/registry",
+    "docs/plan",
+    "site/hugo.toml"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/guide/flight.md docs/guide/flight docs/guide/models.md docs/guide/models docs/guide/instruments.md docs/guide/motion-rig.md docs/guide/telltale.md 2>&1 | grep ОШИБКА | grep -v 'нет файла'; true",
+      "expect": "!re:\\S"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T02:00:40"
+}

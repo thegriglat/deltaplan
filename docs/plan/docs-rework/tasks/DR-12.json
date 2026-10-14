@@ -1,0 +1,63 @@
+{
+  "id": "DR-12",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Исследования фазовой сборки ветра и кэша поля: разбить, summary, статусы",
+  "goal": "air_phase.md и air_field_cache.md ≤40 КБ (вход + части), у всех air_phase* и air_physics_primer — статус по коду main и короткие summary.",
+  "plan_ref": "Разбиение исследований",
+  "contracts": [
+    {
+      "name": "docs-rework.D1",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D2",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D4",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-12",
+  "branch": "docs-rework/DR-12",
+  "base": "feature/docs-rework",
+  "scope": [
+    "docs/research/air_phase.md",
+    "docs/research/air_field_cache.md",
+    "docs/research/air_phase_experts.md",
+    "docs/research/air_phase_refs.md",
+    "docs/research/air_phase_results.md",
+    "docs/research/air_phase_results_tables.md",
+    "docs/research/air_physics_primer.md",
+    "docs/research/air_phase",
+    "docs/research/air_field_cache",
+    "site/content"
+  ],
+  "dont_touch": [
+    "docs/INDEX.md",
+    "docs/registry",
+    "docs/plan",
+    "docs/contracts",
+    "docs/guide",
+    "site/hugo.toml"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/air_phase.md docs/research/air_field_cache.md docs/research/air_phase_experts.md docs/research/air_phase_refs.md docs/research/air_phase_results.md docs/research/air_phase_results_tables.md docs/research/air_physics_primer.md docs/research/air_phase docs/research/air_field_cache",
+      "expect": "exit=0"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T01:55:36"
+}

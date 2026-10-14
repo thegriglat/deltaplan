@@ -1,5 +1,5 @@
 """AP-1: инварианты P4 (docs/contracts/air-phase.md) и опции пакетного решателя. GPU — под замком:
-  dp lock gpu ap1-test -- .venv/bin/python -m pytest -q tools/research/air_phase/tests/test_batch_solver.py
+  .dpcli/dpcli lock gpu ap1-test -- .venv/bin/python -m pytest -q tools/research/air_phase/tests/test_batch_solver.py
 Измеренные расхождения инвариантов 2 и 4 пишутся в out/invariants.json."""
 from __future__ import annotations
 

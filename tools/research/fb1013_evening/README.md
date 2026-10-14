@@ -3,7 +3,7 @@ type: "research"
 status: "closed"
 module: "feedback-1013"
 updated: "2026-10-13"
-summary: "FBW-1: термики вечером осенью при облачности (отзыв на 1.5.11) — сценарий пилота 15.10 20:00 облачно 7 м/с, разложение w у старта, до/после починки."
+summary: "FBW-1: вечерние термики осенью при облачности — поле считалось на 15 июля при любой дате; разбор у старта до/после починки"
 data: "tools/research/fb1013_evening/out/*.csv"
 applied_in: "scripts/atmosphere (weather_model, surface_heat, surface_heating, thermal_field, atmosphere, air_model/air_place, air_runtime), scripts/game/game.gd, scripts/terrain/terrain.gd, configs/surface_heat.json"
 conclusion: "Главная причина — поле (масштаб 1) считалось на 15 июля при любой дате полёта; +4 у земли на старте — динамика склона и болтанка (σw ≈ 1 м/с в поле), не термики; вечером после починки H суши ≤ 0, рождений 0."
@@ -31,4 +31,4 @@ H чистых классов (суша/застройка/вода), w*, рож
 400 м с наибольшей долей застройки в 15 км): доля, H, w.
 
 Данные: `out/before_*.csv` — код до починки, `out/after_*.csv` — после (`headless` / `gpu`),
-`out/headless.csv` — последний прогон `run.sh`. Итоги — отчёт FBW-1 (`dp log FBW-1`).
+`out/headless.csv` — последний прогон `run.sh`. Итоги — отчёт FBW-1 (`.dpcli/dpcli log FBW-1`).

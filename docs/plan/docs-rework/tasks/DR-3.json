@@ -1,0 +1,44 @@
+{
+  "id": "DR-3",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Сайт: главная и «Подходы» — текущее состояние игры",
+  "goal": "Главная (ru/en) и «Подходы» (approaches ru/en) описывают игру такой, какая она в main сейчас: без планов и «скоро», честно, где симулятор врёт; публичные правила соблюдены.",
+  "plan_ref": "Сайт: тексты",
+  "contracts": [],
+  "copy": "~/deltaplan-docs-rework-DR-3",
+  "branch": "docs-rework/DR-3",
+  "base": "feature/docs-rework",
+  "scope": [
+    "site/content/_index.ru.md",
+    "site/content/_index.en.md",
+    "site/content/approaches.ru.md",
+    "site/content/approaches.en.md"
+  ],
+  "dont_touch": [
+    "site/hugo.toml",
+    "site/layouts",
+    "docs",
+    "site/content/mechanics"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_plans_links",
+      "cmd": "grep -n -E '\\(/plans|\\]\\(plans/|/plans/' site/content/_index.ru.md site/content/_index.en.md site/content/approaches.ru.md site/content/approaches.en.md; true",
+      "expect": "!re:\\S"
+    },
+    {
+      "name": "no_parents",
+      "cmd": "grep -n -i -E 'мама|папа|отец|мать|\\bmom\\b|\\bdad\\b|mother|father' site/content/_index.ru.md site/content/_index.en.md site/content/approaches.ru.md site/content/approaches.en.md; true",
+      "expect": "!re:\\S"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T01:53:38"
+}

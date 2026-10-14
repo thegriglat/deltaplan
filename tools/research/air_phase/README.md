@@ -3,7 +3,7 @@ type: "reference"
 status: "active"
 module: "air-model"
 updated: "2026-10-06"
-summary: "air-phase: код и команды воспроизведения эмпирической фазовой карты по полям решателя SY-12 (признаки на случай, таблицы, рисунки) и схемы фазовой диаграммы"
+summary: "Код воспроизведения эмпирической фазовой карты по полям решателя SY-12: признаки на случай, таблицы, схема диаграммы"
 related: ["docs/research/air_phase.md", "docs/research/air_phase_experts.md", "docs/research/air_phase_refs.md"]
 ---
 # air-phase: воспроизведение
@@ -24,15 +24,15 @@ cp tools/research/air_phase/out/fig_{phase_schematic,nonconv_fr_hg,slowing_hg,or
 
 ## Замеры фаз на идеальном рельефе (модуль air-phase, AP-3): прогон всех серий
 
-Контракты — `docs/contracts/air-phase.md` (P2 план, P3 результаты, P4 решатель, P5 этот скрипт); план — `docs/plan/air-phase.md`.
+Контракты — `docs/contracts/air-phase.md` (P2 план, P3 результаты, P4 решатель, P5 этот скрипт); план — `docs/archive/plan/air-phase.md`.
 
 ```bash
 PY=/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python
 D=${AIR_SYNTH_DATA:-$HOME/air_synth_data}
 $PY tools/research/air_phase/run_phase.py plan --name ap_v1                  # план P2 (plan_build.build_plan, AP-2)
-/home/greg/deltaplan/tools/dp lock gpu ap3-trial -- $PY tools/research/air_phase/run_phase.py trial --plan $D/phase/ap_v1
+/home/greg/deltaplan/.dpcli/dpcli lock gpu ap3-trial -- $PY tools/research/air_phase/run_phase.py trial --plan $D/phase/ap_v1
                                                                              # → $D/phase/ap_v1_trial__<v>/ + out/trial.json
-/home/greg/deltaplan/tools/dp job --lock gpu start air-phase-run <таймаут_с> $PWD/tools/research/air_phase/run_all.sh
+/home/greg/deltaplan/.dpcli/dpcli job --lock gpu start air-phase-run <таймаут_с> $PWD/tools/research/air_phase/run_all.sh
                                                                              # весь счёт; продолжение — та же команда
 $PY tools/research/air_phase/run_phase.py status --plan $D/phase/ap_v1      # готово/всего по сериям, ETA, объём
 $PY -m pytest -q tools/research/air_phase/tests                             # контракт + каркас на заглушке (+ GPU-тест под замком)

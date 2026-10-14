@@ -1,7 +1,7 @@
 # Модуль «воздух у старта» (air-start)
 
 Ветка `feature/air-start`, копия `~/deltaplan-air-start` (от `main` 938d1ea). Журнал — `docs/archive/plan/air-start-progress.md`.
-Фон: `docs/plan/air_model.md`, `docs/contracts/air-model.md`, `docs/archive/plan/air-model-progress.md` (AM-11/AM-12 — не здесь).
+Фон: `docs/archive/plan/air-model.md`, `docs/contracts/air-model.md`, `docs/archive/plan/air-model-progress.md` (AM-11/AM-12 — не здесь).
 
 ## Цель
 Жалоба пилота на 1.0.0: при 6 м/с на старте «сдувает», нос гуляет, крыло само отрывается и падает. Две находки

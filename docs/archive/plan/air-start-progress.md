@@ -1,6 +1,6 @@
 # Журнал модуля «воздух у старта» (air-start)
 
-План — `docs/archive/plan/air-start.md`; контракты — `docs/contracts/air-model.md` (C2 v6, C7 v3, C9 v3). Ветка
+План — `docs/archive/plan/air-start.md`; контракты — `docs/contracts/air-model/input-solver.md` (C2 v6), `docs/contracts/air-model/field-consumers.md` (C7 v3), `docs/contracts/air-model/runtime-calibration.md` (C9 v3). Ветка
 `feature/air-start`, копия `~/deltaplan-air-start` (от `main` 938d1ea).
 
 ## Решения

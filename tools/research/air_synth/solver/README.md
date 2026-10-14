@@ -1,10 +1,10 @@
 ---
 type: "reference"
-status: "active"
+status: "closed"
 module: "air-synth"
 updated: "2026-10-05"
 summary: "SY-8: счёт решателя P2 по рельефам × условиям p2c12 (S5 v2) — скрипты, команды, пробный прогон и оценка"
-related: ["docs/contracts/air-synth.md", "docs/plan/air-synth.md"]
+related: ["docs/archive/rejected/air-synth-contracts.md", "docs/archive/rejected/air-synth.md"]
 ---
 # SY-8: счёт решателя P2 (S5 v2)
 
@@ -22,8 +22,8 @@ PY=../../air_nn_pilot/.venv/bin/python
 OMP_NUM_THREADS=1 $PY make_p2c12.py --relief-corpus ~/air_synth_data/real/p6v3 --plan real --out ~/air_synth_data/conditions/p6v3_p2c12
 OMP_NUM_THREADS=1 $PY make_p2c12.py --relief-corpus ~/air_synth_data/corpus/fs1_10k --plan model --out ~/air_synth_data/conditions/fs1_360_p2c12
 $PY -m pytest -q tests
-tools/dp job --lock gpu start sy8-trial 3000 tools/research/air_synth/solver/run_trial.sh     # пробный: 2 × 12 случаев
-tools/dp job --lock gpu start sy8-solve 200000 tools/research/air_synth/solver/run_all.sh     # весь счёт; продолжение — той же командой
+.dpcli/dpcli job --lock gpu start sy8-trial 3000 tools/research/air_synth/solver/run_trial.sh     # пробный: 2 × 12 случаев
+.dpcli/dpcli job --lock gpu start sy8-solve 200000 tools/research/air_synth/solver/run_all.sh     # весь счёт; продолжение — той же командой
 ```
 Результат: `~/air_synth_data/solve/{p6v3,fs1_360}__p2c12__<версия решателя>/`; сводка — `out_solve/progress.json`.
 
@@ -52,9 +52,9 @@ PY=../../air_nn_pilot/.venv/bin/python; D=~/air_synth_data; export OMP_NUM_THREA
 $PY make_hgw24.py --relief-corpus $D/real/hg_v1  --out $D/conditions/hg_v1_hgw24     # 7296 условий, 13 с
 $PY make_hgw24.py --relief-corpus $D/real/game_hg --out $D/conditions/game_hgw24     # 96 условий
 $PY -m pytest -q tests/test_contract_s5.py tests/test_hgw24.py
-tools/dp lock gpu sy10-test -- $PY -m pytest -q tests/test_hgw24_gpu.py                # ~12 с
-tools/dp job --lock gpu start sy10-trial 3000 $PWD/run_trial_hg.sh                     # 24 случая, корзины час × ветер
-tools/dp job --lock gpu start sy10-solve 200000 $PWD/run_hg.sh                         # весь счёт: game -> holdout -> train; продолжение — той же командой
+.dpcli/dpcli lock gpu sy10-test -- $PY -m pytest -q tests/test_hgw24_gpu.py                # ~12 с
+.dpcli/dpcli job --lock gpu start sy10-trial 3000 $PWD/run_trial_hg.sh                     # 24 случая, корзины час × ветер
+.dpcli/dpcli job --lock gpu start sy10-solve 200000 $PWD/run_hg.sh                         # весь счёт: game -> holdout -> train; продолжение — той же командой
 ```
 Результат: `$D/solve/game__hgw24__s0-939a467/`, `$D/solve/hg_v1__hgw24__s0-939a467/` (S5 v4); сводка — `out_solve_hg/progress.json`.
 
@@ -67,5 +67,5 @@ tools/dp job --lock gpu start sy10-solve 200000 $PWD/run_hg.sh                  
 
 # SY-12: счёт по hg_v2 (геометрия C2 v7)
 `run_trial_hg2.sh` (пробные 20 случаев, `out_solve_hg2/progress.json`), `run_hg2.sh` (весь счёт: game2 → holdout → train; ставить только по команде координатора после первого обучения SY-11):
-`tools/dp job --lock gpu start sy12-solve 200000 tools/research/air_synth/solver/run_hg2.sh`. Условия: `make_hgw24.py --relief-corpus ~/air_synth_data/real/hg_v2 --out ~/air_synth_data/conditions/hg_v2_hgw24`
+`.dpcli/dpcli job --lock gpu start sy12-solve 200000 tools/research/air_synth/solver/run_hg2.sh`. Условия: `make_hgw24.py --relief-corpus ~/air_synth_data/real/hg_v2 --out ~/air_synth_data/conditions/hg_v2_hgw24`
 (и `game_hg2` → `game2_hgw24`). Результат: `solve/game2__hgw24__<версия>`, `solve/hg_v2__hgw24__<версия>`. Оценка полного счёта — по пробному прогону (см. журнал SY-12).

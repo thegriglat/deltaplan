@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "wind-limits"
-updated: "2026-10-05"
+area: "flight"
+updated: "2026-10-15"
 summary: "Контракты модуля wind-limits: класс крыла и предел ветра в конфигах (WL-К1), таблицы ветра сноса и удержания на старте (WL-К2)."
-related: ["docs/plan/wind-limits.md", "docs/contracts/wing-physics-check.md"]
+related: ["docs/archive/plan/wind-limits.md", "docs/contracts/wing-physics-check.md"]
 contracts: [{"id": "WL-К1", "version": 2}, {"id": "WL-К2", "version": 1}]
 ---
 # Контракты модуля wind-limits
 
-План — `docs/plan/wind-limits.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей). Используются без изменений: К1 v2, К2 v1, К3 v1, К6 v1 (`docs/contracts/wing-physics-check.md`); С1–С3 (`docs/contracts/control-fix.md`). Правка формулы ветра меню (К3) — только задачей WL-3 через координатора (К3 → v2).
+План — `docs/archive/plan/wind-limits.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей). Используются без изменений: К1 v2, К2 v1, К3 v1, К6 v1 (`docs/contracts/wing-physics-check.md`); С1–С3 (`docs/contracts/control-fix.md`). Правка формулы ветра меню (К3) — только задачей WL-3 через координатора (К3 → v2).
 
 ## WL-К1. Класс крыла и предельный ветер класса (v2)
 Владелец: WL-2. Потребители: `WingCatalog` (`scripts/game/wing_catalog.gd`), меню (`scripts/ui/flight_setup_screen.gd`), WL-1/WL-4 (сводная таблица), тесты.

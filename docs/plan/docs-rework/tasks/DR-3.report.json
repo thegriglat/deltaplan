@@ -1,0 +1,53 @@
+{
+  "status": "done",
+  "summary": "Главная (ru/en): убраны «Планы», ссылка на ветер ведёт на фазы, добавлен раздел «Что игра не умеет». «Подходы» (ru/en) переписаны под 1.5.15: таблица «Что в игре сейчас», п. 8 про сборку по фазам, нейросеть удалена в 1.3.0, «Упрощённый» = «Эвристика», OSM через тайлы 20 км, 48 крыльев; убраны ссылки на планы, устаревшие детали P1/P3 сокращены (45 -> ~37 КБ).",
+  "commits": [
+    "e5de044c Сайт: главная и «Подходы» описывают текущее состояние игры (1.5.15)"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "no_plans_links",
+      "value": "пусто",
+      "pass": true
+    },
+    {
+      "name": "no_parents",
+      "value": "пусто",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "4 файла",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept DR-3",
+  "uncertain": [
+    {
+      "where": "site/content/approaches.ru.md: п. 8",
+      "why": "числа (7320 расчётов, 3,3–3,9 с, 60 с) взяты со страниц mechanics/wind-phases и docs/guide/air-model.md, а не из исходных замеров",
+      "checked": "сверено с обеими страницами"
+    },
+    {
+      "where": "site/content/mechanics/flight.ru.md:4",
+      "why": "вне скоупа: описание говорит «линейка из девяти крыльев», в игре 48",
+      "checked": "configs/wings = 48 файлов"
+    },
+    {
+      "where": "site/content/approaches.*.md ссылки /docs/guide/osm-tiles.md, /docs/guide/location-data.md",
+      "why": "пути docs могут измениться в волнах 2-3 docs-rework",
+      "checked": "сейчас файлы есть, hugo собирается"
+    }
+  ],
+  "dp_feedback": "docs check на всём репозитории даёт 267 ошибок вне скоупа (research без ключей), шум мешает проверить свои файлы; нужен docs check <пути>.",
+  "t": "2026-10-15T02:01:39",
+  "by": "executor"
+}

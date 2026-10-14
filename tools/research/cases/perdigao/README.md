@@ -3,7 +3,7 @@ type: "research"
 status: "closed"
 module: ""
 updated: "2026-10-03"
-summary: "Случай Perdigão (А4) — C10 v1 → v2 (Б1) — Б1 (01.10.2026): модуль приведён к C10 v2 — общая схема ../scheme.py, сетка/область/губки/профиль притока по общим правилам ../rules.py (dx 30 м, область 6 км, потолок 1748 м над нулём, губки 1050 м / от высшей точки рельефа, m…"
+summary: "Случай Perdigão (А4) для калибровки: модуль C10 v2 (dx 30 м, область 6 км, NE и SW), пробный прогон А4 — история"
 related: []
 conclusion: ""
 data: "tools/research/cases/perdigao/"
@@ -38,7 +38,7 @@ PY=/home/greg/deltaplan-wf-morris/tools/research/tune/.venv/bin/python
 uv pip install --python $PY brotli tifffile imagecodecs pyproj          # один раз
 cd perdigao
 $PY terrain.py                      # сеть: тайлы Copernicus N39W008 и WorldCover N39W009 (кеш ~/.cache/deltaplan_terrain)
-/home/greg/deltaplan/tools/dp job start a4-trial 4000 $PY trial.py      # 14 прогонов; ~25 мин при занятом GPU
+/home/greg/deltaplan/.dpcli/dpcli job start a4-trial 4000 $PY trial.py      # 14 прогонов; ~25 мин при занятом GPU
 $PY table.py; $PY figs.py
 cd ..; $PY check_c10.py perdigao perdigao/out/trial_runs.jsonl          # контрактный тест, без GPU
 ```

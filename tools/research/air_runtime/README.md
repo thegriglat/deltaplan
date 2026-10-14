@@ -16,4 +16,4 @@ applied_in: "scripts/atmosphere (AirRuntime, подмена поля)"
 
 **Что лежит.** `plot_blend.py` — график хода поля; вход — CSV из GPU-теста `AirRuntime` (переменная `AIR_RUNTIME_TRACE`). `out/blend_trace.csv`, `out/blend_trace.png` — данные и рисунок.
 
-**Данные.** `tools/research/air_runtime/out/`. Описание — `docs/guide/air-model.md` (пересчёт и подмена, контракт C8).
+**Данные.** `tools/research/air_runtime/out/`. Описание — `docs/guide/air-model/runtime.md` и `docs/guide/air-model/field-cpu.md` (пересчёт и подмена, контракт C8).

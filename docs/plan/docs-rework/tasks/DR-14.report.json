@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "У 13 документов summary ≤140, статусы по коду main (D1), area и applied_in; terrain_statistics.md (58 КБ) разбит на вход 10 КБ и 5 частей в terrain_statistics/ с сохранённой нумерацией разделов.",
+  "commits": [
+    "f9376112 Исследования рельефа, данных мира, Steam, звука: summary, статусы, разбиение terrain_statistics"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept DR-14",
+  "uncertain": [
+    {
+      "where": "docs/research/steam_godotsteam.md",
+      "why": "40865 байт при лимите 40960: любая правка выше сломает docs check; разбить нельзя — части вне скоупа",
+      "checked": "в тело заметку о состоянии не добавлял, состояние только во frontmatter applied_in"
+    },
+    {
+      "where": "docs/plan/air-synth.md:102, tools/research/air_synth/tune/manual_vs_tuned.py:1, corpus/conditions.py:369",
+      "why": "ссылки на terrain_statistics.md §5.4 остались; вне скоупа",
+      "checked": "вход содержит таблицу «разделы → части», §5.4 лежит в terrain_statistics/generation-methods.md; поправил ссылку только в terrain_tuning.md"
+    },
+    {
+      "where": "docs/research/openfreemap_vs_overpass.md",
+      "why": "superseded по факту (игра берёт OSM из своих тайлов), но решения «отказаться от OFM» в журналах не нашёл; дату замены не указывал",
+      "checked": "docs/plan/osm-tiles.md, configs/osm_tiles.json, osm_tiles_stage.gd, grep по журналам"
+    }
+  ],
+  "dp_feedback": "docs check не ловит summary >140 после правки регулярками (только при запуске); нет подсказки, сколько байт до лимита 40 КБ у файла (steam_godotsteam впритык); git log в копии обрезан до 50 коммитов, статус модуля по истории проверить нельзя.",
+  "extra": {
+    "statuses": {
+      "active": [
+        "terrain_sources",
+        "lakes_worldcover",
+        "location_compression",
+        "motion-rig-protocols",
+        "steam_godotsteam",
+        "steam_tile_policy",
+        "vario_sounds"
+      ],
+      "closed": [
+        "terrain_statistics",
+        "terrain_tuning",
+        "itch_multiplayer",
+        "simhub",
+        "steam_license_audit"
+      ],
+      "superseded": [
+        "openfreemap_vs_overpass"
+      ]
+    }
+  },
+  "t": "2026-10-15T02:03:56",
+  "by": "executor"
+}

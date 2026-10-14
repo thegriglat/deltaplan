@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "start-map"
-updated: "2026-10-05"
-summary: "Контракты модуля start-map: растровые подложки карты выбора старта в конфиге (SM-К1), высота точки по Terrarium и интерфейс MapPicker (SM-К2)."
-related: ["docs/plan/start-map.md"]
+area: "game"
+updated: "2026-10-15"
+summary: "Подложки карты выбора старта в конфиге (SM-К1), высота точки по Terrarium и интерфейс MapPicker (SM-К2)."
+related: ["docs/archive/plan/start-map.md"]
 contracts: [{"id": "SM-К1", "version": 3}, {"id": "SM-К2", "version": 1}]
 ---
 # Контракты модуля start-map
 
-План — `docs/plan/start-map.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей). Контрактный тест — `tests/contracts/test_start_map_contracts.gd` (без сети и GPU).
+План — `docs/archive/plan/start-map.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей). Контрактный тест — `tests/contracts/test_start_map_contracts.gd` (без сети и GPU).
 
 ## SM-К1. Растровые подложки карты (v3)
 Владелец: SM-1. Потребители: `MapPicker`, `RasterTileLoader`, `ASSETS.md`, контрактный тест.

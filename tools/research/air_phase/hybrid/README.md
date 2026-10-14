@@ -3,7 +3,7 @@ type: "research"
 status: "closed"
 module: "air-phase"
 updated: "2026-10-06"
-summary: "Прототип «фазы + Пикар» (AP-18, P9 v1): классификатор → веса фаз, карта ω, маска механизмов; сборка P8 + G (вечерний сток); тёплый старт Пикара (P4 v6); сшивка проекцией — против холодного Пикара на SY-12."
+summary: "AP-18, P9 v1: прототип «фазы + Пикар» — код готов и протестирован на CPU, счёт против Пикара не проводился; вход для AP-19"
 conclusion: "Код шагов P9 готов и покрыт CPU-тестами; счёт против Пикара не проводился (решение пользователя — не доводить прототип); спецификация для переноса в игру — analysis/AP-18/section.md. GPU-тесты P4 v6 написаны, не запускались."
 data: "не создано: $AIR_SYNTH_DATA/phase/hybrid_v1 удалён (счёт снят из очереди)"
 applied_in: "вход для AP-19 (перенос в игру)"
@@ -26,9 +26,9 @@ applied_in: "вход для AP-19 (перенос в игру)"
 ```
 PY=/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python
 $PY -m pytest -q tools/research/air_phase/tests/test_hybrid.py           # CPU, заглушка решателя
-dp lock gpu t -- $PY -m pytest -q tools/research/air_phase/tests/test_batch_solver.py -k v6   # GPU
+.dpcli/dpcli lock gpu t -- $PY -m pytest -q tools/research/air_phase/tests/test_batch_solver.py -k v6   # GPU
 bash tools/research/air_phase/hybrid/run_all.sh prep                      # CPU, ≈ 5 мин на 14 процессах
-dp job --lock gpu start ap18-run 43200 bash tools/research/air_phase/hybrid/run_all.sh gpu
+.dpcli/dpcli job --lock gpu start ap18-run 43200 bash tools/research/air_phase/hybrid/run_all.sh gpu
 bash tools/research/air_phase/hybrid/run_all.sh final                     # CPU: сшивка, метрики слоёв
 bash tools/research/air_phase/hybrid/run_all.sh analysis                  # → analysis/AP-18/summary.json, tables.md, fig_*.png
 bash tools/research/air_phase/hybrid/run_all.sh clean                     # удалить _prep и raw (≈ 3 ГБ)

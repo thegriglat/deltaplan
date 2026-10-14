@@ -1,6 +1,7 @@
 ---
 title: Версии
 weight: 20
+bookCollapseSection: true
 ---
 
 # Версии

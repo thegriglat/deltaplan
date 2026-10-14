@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "docs/research/pendulum.md (170 КБ) разбит: вход 22 КБ (вопрос, коротко, выводы, оглавление частей, границы, этап B) и 7 частей docs/research/pendulum/*.md по 10–31 КБ; текст перенесён без потерь (проверено построчно), summary ≤140, у частей conclusion/data/applied_in.",
+  "commits": [
+    "b6c8619c Исследование маятника разбито на вход и 7 частей по D4"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "12 файлов",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ссылки на названия разделов/якоря вне скоупа не правлены: docs/guide/flight.md, docs/plan/pendulum.md, docs/contracts/pendulum.md, docs/research/zheglov-1983.md, scripts/flight/pendulum/pendulum_model.gd, tools/flight/pendulum_params.py, tests/flight/pendulum/*.gd, configs/pendulum.json (PD-30) — они ведут на вход, где оглавление перечисляет названия разделов с частями. Вход 22 КБ, а не 10–15: Коротко и Выводы оставлены целиком (не дубли)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept DR-10",
+  "uncertain": [],
+  "dp_feedback": "docs check не проверяет ссылки на якоря/названия разделов в других файлах после разбиения; удобно было бы dpcli docs refs <файл> для списка входящих ссылок.",
+  "t": "2026-10-15T01:59:54",
+  "by": "executor"
+}

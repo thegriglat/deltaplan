@@ -11,7 +11,7 @@ GraphicsPresets.select); viewport-часть пресета (scale_3d/FSR, MSAA,
 
   python3 tools/terrain/variant_bench.py parts                 # список частей (define → вариант)
   python3 tools/terrain/variant_bench.py gen                   # только записать _bench-варианты
-  /home/greg/deltaplan/tools/dp lock gpu terrain-variants -- \\
+  .dpcli/dpcli lock gpu terrain-variants -- \\
     python3 tools/terrain/variant_bench.py run --out=build/variant_bench \\
       [--presets=low,medium,high] [--variants=full,min,no_sl_light,preset,...] [--relief] [--frames=120]
       [--no-warm] [--repeat=N]
@@ -22,7 +22,7 @@ GraphicsPresets.select); viewport-часть пресета (scale_3d/FSR, MSAA,
 run продолжает с места (results.jsonl: строка на прогон; уже снятые пропускаются), в конце пишет
 summary.csv / summary.md (мс кадра и «цена части» = no_X − full со знаком минус: сколько снимает
 выключение). Профиль Godot — постоянный ~/.cache/dp-xdg/<копия> (кэш шейдеров); в конце вариант
-в профиле возвращается на "full". Запускать только под dp lock gpu (замер GPU — один на машину).
+в профиле возвращается на "full". Запускать только под .dpcli/dpcli lock gpu (замер GPU — один на машину).
 """
 from __future__ import annotations
 

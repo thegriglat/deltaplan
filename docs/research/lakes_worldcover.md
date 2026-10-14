@@ -2,12 +2,18 @@
 type: "research"
 status: "active"
 module: "terrain"
-updated: "2026-10-10"
-summary: "Нужны ли озёра из OSM: сравнение воды ESA WorldCover 10 м, класса карты поверхности, канала A (OSM) и воды в H на Аушкуле, Алтае, Онгудае, Аскарове; где вода теряется (нигде) и где WorldCover её не видит."
+area: "world"
+updated: "2026-10-15"
+summary: "Озёра OSM для H не нужны: WorldCover видит озёра ≥ 10 га (IoU 0,86–0,97); вода в канале A — WorldCover и реки по рельефу."
+related: ["tools/research/lakes_worldcover/README.md", "docs/guide/location-data.md"]
 conclusion: "Для H и класса поверхности озёра OSM не нужны: WorldCover сам видит озёра ≥ 10 га (покрытие полигона OSM 0,85–0,98, IoU 0,86–0,97 у Аушкуля, Чебаркуля, Атавды, Мулдаккуля), вода не теряется ни в моде 3×3 (18,549 → 18,547 км² на Аушкуле), ни в снимке узлов, ни в H. Строка находки surface-heat «озёра OSM теперь вода в H» неверна по атрибуции: 0,0029 → 0,0186 — это маска рек против объединения «маска ∪ класс WorldCover ∪ канал A»; без OSM-озёр и рек из A доля 0,0156 из 0,0207 (узлы круга 10 км). OSM добавляет мелкие пруды (< 2 га WorldCover почти не видит: 6 из 67 озёр < 0,5 га, 42 из 80 в 0,5–2 га) и 10 м-кромку. Канал A предложено брать как WorldCover 10 м ∪ реки OSM."
+data: "tools/research/lakes_worldcover/"
+applied_in: "NO-1: scripts/terrain/build/surface_stage.gd (канал A detail_detail10.webp), docs/guide/location-data.md"
 ---
 
 # Озёра: WorldCover против OSM
+
+> Состояние на main (2026-10-15): рекомендация применена в задаче NO-1 — канал A `detail_detail10.webp` = max(WorldCover «вода» 3×3, маска рек по рельефу), озёра OSM не используются (см. [location-data.md](../guide/location-data.md), «Вода 10 м»). Вместо «рек OSM» в п. 2 рекомендации взяты реки по рельефу.
 
 Скрипты, числа и рисунок — `tools/research/lakes_worldcover/` (`results/*.json`, `results/aushkul_masks.jpg`, README с командами).
 

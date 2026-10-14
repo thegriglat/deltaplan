@@ -1,0 +1,66 @@
+{
+  "id": "DR-11",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Исследования крыла и пилота: summary, статусы, разбить zheglov-1983",
+  "goal": "Исследования про крыло, пилота, управление и источники крыльев — со статусом по коду main и короткими summary; zheglov-1983.md ≤40 КБ.",
+  "plan_ref": "Разбиение исследований",
+  "contracts": [
+    {
+      "name": "docs-rework.D1",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D2",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D4",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-11",
+  "branch": "docs-rework/DR-11",
+  "base": "feature/docs-rework",
+  "scope": [
+    "docs/research/zheglov-1983.md",
+    "docs/research/pendulum-yaw-literature.md",
+    "docs/research/pilot_mass.md",
+    "docs/research/atlas_wing.md",
+    "docs/research/control_frame_refs.md",
+    "docs/research/control-bar-input.md",
+    "docs/research/glider_polars_sources.md",
+    "docs/research/wings_config_sources.md",
+    "docs/research/experimental_data.md",
+    "docs/research/competition_rules.md",
+    "docs/research/xc_reference.md",
+    "docs/research/zheglov-1983",
+    "site/content"
+  ],
+  "dont_touch": [
+    "docs/INDEX.md",
+    "docs/registry",
+    "docs/plan",
+    "docs/contracts",
+    "docs/guide",
+    "site/hugo.toml"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/zheglov-1983.md docs/research/pendulum-yaw-literature.md docs/research/pilot_mass.md docs/research/atlas_wing.md docs/research/control_frame_refs.md docs/research/control-bar-input.md docs/research/glider_polars_sources.md docs/research/wings_config_sources.md docs/research/experimental_data.md docs/research/competition_rules.md docs/research/xc_reference.md docs/research/zheglov-1983",
+      "expect": "exit=0"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T01:55:34"
+}

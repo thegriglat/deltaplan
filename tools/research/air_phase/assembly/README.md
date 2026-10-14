@@ -3,7 +3,7 @@ type: "research"
 status: "active"
 module: "air-phase"
 updated: "2026-10-06"
-summary: "Сборка поля по фазам (AP-17, P8 v1): классификатор фаз и механизмы A, D, LEE, E/F, H из рельефа и условий без поля решателя; используется как тёплый старт Пикара и механизмы в прототипе «фазы + Пикар» (AP-18, P9)."
+summary: "AP-17, P8 v1: сборка поля по фазам — классификатор и механизмы A, D, LEE, E/F, H из рельефа и условий без поля решателя"
 related: []
 conclusion: ""
 data: "tools/research/air_phase/assembly/"

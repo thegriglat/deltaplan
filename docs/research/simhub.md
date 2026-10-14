@@ -1,15 +1,18 @@
 ---
 type: "research"
-status: "active"
+status: "closed"
 module: "motion-rig"
-updated: "2026-10-12"
-summary: "Как заставить игру работать в SimHub (Motion, Wind): SRS-пакет и DPMR SimHub не принимает; штатный путь — «External sim integration» (simdef + бинарный UDP, SimHub 9.11.5+, бета), с готовой к реализации спецификацией пакета; плагин на C# и притворство другой игрой не нужны"
+area: "game"
+updated: "2026-10-15"
+summary: "SimHub не читает SRS и DPMR; путь — «External sim integration» (simdef + UDP 55 байт заголовка, бета, Windows); не реализовано."
 related: ["docs/research/motion-rig-protocols.md", "docs/guide/motion-rig.md", "docs/contracts/motion-rig.md"]
 conclusion: "SRS v102 и DPMR SimHub не читает. Минимальный путь — третий формат вывода «SimHub external»: своё описание игры (.simdef) + UDP-пакет 55 байт заголовка и поля по порядку simdef на 127.0.0.1:порт из simdef, ≥60 Гц, без плагина и SDK. Оценка: 1-2 дня (формат + simdef, сгенерированный в редакторе SimHub, + проверка на Windows). Риск: функция в бете, Windows-only, не проверено на живом SimHub"
 data: "нет"
-applied_in: ""
+applied_in: "не применено: в scripts/motion_rig/ только форматы srs и generic (DPMR), вывода SimHub нет"
 ---
 # SimHub: что нужно, чтобы игра работала
+
+> Состояние на main (2026-10-15): вывод для SimHub не реализован — в `scripts/motion_rig/` только форматы `srs` и `generic` (DPMR). Спецификация ниже — вход для будущей задачи.
 
 Вопрос: у нас есть форматы `srs` (Sim Racing Studio API v102, UDP 33001) и `generic` (DPMR, 64 байта). Владелец DOF Reality: «couldn't get it to run with my SimHub». Что нужно для SimHub (Motion, ShakeIt, Wind). Исследование по веб-источникам, без запуска SimHub (у нас нет Windows-стенда): всё, что ниже помечено «выведено», взято из чужого кода, а не из официальной спецификации.
 
@@ -36,7 +39,7 @@ applied_in: ""
 
 Источники (открытый код, оба сгенерированы редактором SimHub 9.11.x):
 - Galactic Racer UEVR: https://github.com/elliotttate/galactic-racer-uevr-motion (файлы `src/SimHubGenerated.hpp`, `simhub/GalacticRacer.generated.cpp`, `simhub/GalacticRacer.simdef`). Игра шлёт пакет сама, без экстрактора.
-- FlatOut 4 VR: https://github.com/Dteyn/FlatOut4VR-SimHub (MIT; `simdef/FlatOut4VR.simdef`, `docs/ARCHITECTURE.md`, `docs/FLATOUT-4-VR-TELEMETRY.md`). Экстрактор `extractor.exe`, SimHub запускает его сам.
+- FlatOut 4 VR: https://github.com/Dteyn/FlatOut4VR-SimHub (MIT; `simdef/FlatOut4VR.simdef`, `docs/guide/architecture.md`, `docs/FLATOUT-4-VR-TELEMETRY.md`). Экстрактор `extractor.exe`, SimHub запускает его сам.
 
 Транспорт: UDP, одна датаграмма на кадр, на `127.0.0.1:DefaultUDPPort` (в примерах 20778 и 30777; порт задаёт simdef, у нас выберем свой). Порядок байт: little-endian, структура упакована (`#pragma pack(1)`, без выравнивания), размер пакета = 55 + сумма размеров объявленных полей (проверка в генераторе: `static_assert(sizeof == ExpectedPacketLength)`; пакет другой длины считаем отвергаемым, выведено).
 

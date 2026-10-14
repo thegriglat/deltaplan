@@ -1,0 +1,56 @@
+# Решение координатора по сверке с кодом и git (2026-10-15). Колонки: модуль, area, статус плана, куда план, статус контрактов, примечание (для rejected — «почему» и источник)
+module	area	plan_status	plan_to	contracts_status	note
+aframe-geometry	flight	closed	archive	closed	влито 10-05
+air-model	air	closed	archive	closed	GPU-Пикар, клипмапы, WindField в scripts/atmosphere/air_model; AM-11/12 не начаты и устарели
+air-nn	air	superseded	archive/rejected	superseded	Отклонено: сеть не достигла заменимости решателя, вытеснена фазовой сборкой + Пикаром, удалена из игры в AP-21 (docs/plan/air-phase/decisions.jsonl, CHANGELOG 1.3.0). Вместо — air-phase
+air-nn-p3	air	superseded	archive/rejected	superseded	этап P3 air-nn; см. air-nn
+air-onnx	air	superseded	archive/rejected	superseded	Отклонено: ONNX-рантайм сети удалён из игры в AP-21 (коммит a9fca9fa) вместе с сетью. Вместо — air-phase
+air-phase	air	closed	archive	closed	26 задач влиты; фазы + GPU-Пикар в main
+air-square	air	closed	archive	-	клетка 400 м, область 38,4 км (контракты — общие air-model)
+air-start	air	closed	archive(уже)	-	влито 10-02
+air-synth	air	superseded	archive/rejected	superseded	Отклонено: сеть SY-11 влита 10-05, удалена в AP-21 вместе с остальными сетями; корпус остался в tools/research/air_synth. Вместо — air-phase
+ann2	air	superseded	archive/rejected	superseded	Отклонено: AN-4 ошибка ≈22 % при цели 10–15 %, направление отложено 2026-10-04 (docs/plan/ann2/decisions.jsonl), затем сети удалены. Вместо — air-phase
+control-bar	flight	closed	archive	closed	HID-ввод трапеции
+control-fix	flight	closed	archive(уже)	closed	влито 10-02
+debug-draw	release	closed	archive	-	аддон Debug Draw 3D удалён, стрелки F5 своим кодом
+easter-eggs	world	closed	archive(уже: world-easter-eggs*)	closed	16 задач влиты; контракт на сайт не идёт
+feedback-1012	game	closed	archive	closed	FB-1..3 влиты
+feedback-1013	air	closed	archive	closed	FBW-1 влита
+motion-rig	flight	closed	archive	closed	MR-1..6 влиты
+mountain-look	world	closed	archive	closed	MLK-7 перенесён в TODO T-78
+multiplayer	net	closed	archive	-	M0–M5 и сервер на Go влиты (0.8.0); открытое — TODO T-37..T-39
+no-osm	world	closed	archive	closed	9 задач влиты
+offline_world_data	world	postponed	plan	-	пакеты регионов отложены 30.09; кода нет; роль частично закрыли osm-any и osm-tiles
+on_demand_location	world	closed	archive	-	закрыто 09.10: сделано модулем osm-any
+osm-any	world	closed	archive	closed	сборка места в игре
+osm-look	world	closed	archive	closed	влито 10-11
+osm-tiles	world	closed	archive	closed	упаковщик, клиент, R2
+osm_vector_pack	world	postponed	plan	-	§9 (тайлы 20 км) реализован в osm-tiles, офлайн-пакет — нет
+game/04-sled-proshlogo-poleta	game	idea	plan	-	отложено пользователем; кода нет
+game/05-vr	game	idea	plan	-	идея; кода нет
+pendulum	flight	closed	archive	closed	в игре с 1.5.4 как экспериментальный режим; PD-29 выключен
+perf	perf	closed	archive	closed	остатки — TODO T-70, T-79
+pilot-hud	game	closed	archive	closed	PH-1..9 влиты
+pilot-view	game	closed	archive	closed	влито 10-08
+popular-places	world	closed	archive	closed	каталог 684 стартов
+qol	game	closed	archive	closed	11 задач влиты; QL-2/4/6 остановлены пользователем
+run-anim	flight	-	-	-	только журнал; module.json plan/contracts пустые
+run-heading	flight	-	-	-	только журнал; module.json plan/contracts пустые
+scene-look	world	active	plan	active	влито, но открыт вопрос Q4 и TODO T-81, T-82
+site-i18n	release	closed	archive	closed	влито 10-05
+site-update	release	closed	archive(уже)	-	путь контрактов в module.json мёртвый — убрать
+start-camp	world	closed	archive	closed	SC-1..12 влиты
+start-fixes	game	closed	archive(уже)	closed	влито 09-30
+start-map	game	closed	archive	closed	влито 10-05
+start-pick	game	closed	archive	closed	SP-1..4 влиты
+steam	release	closed	archive	closed	scripts/steam, ачивки
+steam-assets	release	closed	archive	closed	SA-5 отменена
+surface-heat	air	closed	archive	closed	влито 10-10
+ui-controls	game	closed	archive(уже)	closed	влито 10-02
+wind-limits	flight	closed	archive	closed	WL-1 отложена пользователем
+wing-physics-check	flight	closed	archive(уже)	closed	влито 10-01
+wings-models3d	flight	closed	archive(уже)	closed	влито 10-01
+wings-passports	flight	closed	archive(уже)	-	пути в module.json мёртвые — поправить
+docs-rework	process	active	plan	active	этот модуль
+# Архив, отклонённое (перенести в archive/rejected): archive/plan/wind-field.md (заменён планом air_model, первая строка файла), archive/plan/air-nn-p3.md, air-nn-progress.md, air-onnx.md
+# Архив, влитое без frontmatter: air-model-*.md, heat-ca-prototype (только исследование), weather-by-temperature, wings-lineup, groups-top-level (старая схема) — frontmatter не обязателен (archive вне docs check), но строка в archive/README.md

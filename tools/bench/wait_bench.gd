@@ -1,7 +1,7 @@
 extends Node
 ## Замер рывков «Подождать час» (Q-17): время кадра во время ожидания (макс., p99, среднее).
 ## Окно, не headless: godot --path . res://tools/bench/wait_bench.tscn -- [--speed=60] [--hour=12]
-## (под dp lock gpu). Пишет строку WAIT_BENCH в stdout.
+## (под .dpcli/dpcli lock gpu). Пишет строку WAIT_BENCH в stdout.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 

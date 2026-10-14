@@ -1,9 +1,10 @@
 {
   "module": "no-osm",
-  "plan": "docs/plan/no-osm.md",
+  "plan": "docs/archive/plan/no-osm.md",
   "contracts": "docs/contracts/no-osm.md",
   "branch": "feature/no-osm",
   "copy": "~/deltaplan-no-osm",
   "created": "2026-10-10T03:40:51",
-  "code": "NO"
+  "code": "NO",
+  "area": "world"
 }

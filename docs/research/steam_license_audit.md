@@ -2,14 +2,17 @@
 type: "research"
 status: "closed"
 module: "steam-assets"
-updated: "2026-10-05"
-summary: "Аудит лицензий сборки Deltaplan перед платной раздачей в Steam: что реально попадает в .pck и рядом с exe, что из этого разрешает коммерческое использование, какие строки ASSETS.md и тексты нужно исправить. Нарушителей (NC) в сборке нет; главные вопросы — VC++ runtime и непокрытые файлы."
-related: ["docs/plan/steam-assets.md", "docs/contracts/steam-assets.md", "ASSETS.md", "tools/release/build_inventory.py", "tools/research/steam_license/README.md"]
+area: "release"
+updated: "2026-10-15"
+summary: "Аудит лицензий сборки для Steam: NC-материалов нет; 100 файлов без строки ASSETS.md, на 15.10 осталось 12 (build_inventory --check)."
+related: ["docs/archive/plan/steam-assets.md", "docs/contracts/steam-assets.md", "ASSETS.md", "tools/release/build_inventory.py", "tools/research/steam_license/README.md"]
 conclusion: "В сборке нет материалов с NC/«личным использованием» (проверено по первоисточникам). 100 файлов сборки без строки ASSETS.md (в основном 87 файлов крыльев, model.onnx, ONNX Runtime, VC++ runtime, движок), 13 файлов рельефа с лицензией «как у высот / то же / открытые данные». Решения пользователя нужны по VC++ runtime (источник DLL) и по названиям реальных крыльев."
 data: "tools/research/steam_license/"
-applied_in: ""
+applied_in: "частично: ASSETS.md (правило, раздел «Движок и библиотеки»), licenses/, tools/release/build_inventory.py, exclude_filter build/* в export_presets.cfg; build_inventory --check на 15.10: без строки 12, commercial_ok != true 16"
 ---
 # Аудит лицензий сборки (SA-1)
+
+> Состояние на 2026-10-15: правки частично применены — правило коммерческого использования, раздел «Движок и библиотеки» и тексты лицензий в `ASSETS.md` и `licenses/`, `build/*` в `exclude_filter`, User-Agent без «non-commercial». `tools/release/build_inventory.py --check` на 15.10 даёт для Linux, Windows и macOS по 12 файлов без строки `ASSETS.md` и 16 с `commercial_ok != true` (в аудите — 100 и 13).
 
 Дата 05.10.2026, копия `steam-assets/SA-1` от `feature/steam-assets` (Godot 4.7.2). Правило модуля (решение пользователя 05.10): всё в сборке, и в itch, и в Steam, разрешает коммерческое использование. Цель аудита - не доверять `ASSETS.md`, а сверить его с тем, что реально лежит в сборке.
 
@@ -84,7 +87,7 @@ applied_in: ""
 
 ### 4.1. `data/air_nn/model.onnx`: чьи данные, есть ли ограничения
 
-Файл - сеть P2 (U-Net + FiLM, 3,22 М параметров, 9 карт 96×96 по 400 м + 18 чисел на входе), обучена на 300 рельефах и дополнительных случаях (коммит `aa136a21`, прогон `2026-10-03_p2b`, `docs/plan/air_nn.md`, `docs/archive/plan/air-nn-p3.md`). Цели обучения - поля ветра **нашего собственного** решателя (`tools/research/air3d/`, MIT). Входные карты:
+Файл - сеть P2 (U-Net + FiLM, 3,22 М параметров, 9 карт 96×96 по 400 м + 18 чисел на входе), обучена на 300 рельефах и дополнительных случаях (коммит `aa136a21`, прогон `2026-10-03_p2b`, `docs/archive/rejected/air-nn.md`, `docs/archive/plan/air-nn-p3.md`). Цели обучения - поля ветра **нашего собственного** решателя (`tools/research/air3d/`, MIT). Входные карты:
 
 - 300 вырезок 38,4 км по горам суши - тайлы Terrarium (**AWS Terrain Tiles**, тот же путь, что у игры в рантайме; источники по списку Mapzen - public domain и открытые лицензии с атрибуцией, NC нет);
 - встроенные места (Алтай и др.: Copernicus GLO-30, маски воды из высот), синтетические и процедурные рельефы (наши).

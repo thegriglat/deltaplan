@@ -1,9 +1,10 @@
 {
   "module": "pilot-hud",
-  "plan": "docs/plan/pilot-hud.md",
+  "plan": "docs/archive/plan/pilot-hud.md",
   "contracts": "docs/contracts/pilot-hud.md",
   "branch": "feature/pilot-hud",
   "copy": "~/deltaplan-pilot-hud",
   "created": "2026-10-12T20:50:27",
-  "code": "PH"
+  "code": "PH",
+  "area": "game"
 }

@@ -1,10 +1,10 @@
 ---
 type: "reference"
-status: "active"
+status: "closed"
 module: "air-synth"
 updated: "2026-10-05"
 summary: "Каталог стартов дельтаплана из OSM (S6): все старты, неясные, только параплан, места 10 км, выжимка для игры; команды выгрузки и сборки"
-related: ["docs/contracts/air-synth.md"]
+related: ["docs/archive/rejected/air-synth-contracts.md"]
 ---
 # Каталог мест дельтаплана из OSM (контракт S6 v1+)
 

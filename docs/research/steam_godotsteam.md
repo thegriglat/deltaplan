@@ -1,13 +1,14 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "steam"
-updated: "2026-10-05"
-summary: "GodotSteam GDExtension 4.22.1 для Godot 4.7.2: версия, MIT, безопасная проверка синглтона Steam, init-коды, Networking Messages, лобби, Rich Presence, ачивки, Cloud, сборка Steam/itch, macOS"
-related: []
+area: "release"
+updated: "2026-10-15"
+summary: "GodotSteam GDExtension 4.22.1 (MIT, Steamworks 1.65): только в пресетах с меткой steam, без аддона в itch; Cloud — Auto-Cloud."
+related: ["docs/guide/steam.md", "docs/archive/plan/steam.md", "docs/contracts/steam.md"]
 conclusion: "Берём GDExtension 4.22.1 (MIT, Steamworks 1.65); одна кодовая база, расширение подключается только в пресете с меткой steam, itch-сборка без аддона; Cloud — Auto-Cloud на 4 файла user://; всё в GDScript через Engine.get_singleton(\"Steam\")"
 data: "tools/research/steam/"
-applied_in: "контракты steam S1/S4/S5 и задачи ST-2…ST-10 (план docs/plan/steam.md)"
+applied_in: "scripts/steam/steam_service.gd, пресеты «* Steam» (export_presets.cfg), steam/partner/auto_cloud.json (шаблонов путей больше 4 файлов из текста), docs/guide/steam.md; S1/S4/S5, ST-2…ST-10"
 ---
 # GodotSteam для Deltaplan: что проверено и что рекомендуем
 

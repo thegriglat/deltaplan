@@ -1,10 +1,10 @@
 ---
 type: "reference"
-status: "active"
+status: "closed"
 module: "air-synth"
 updated: "2026-10-05"
-summary: "SY-10: рельеф мест дельтаплана (каталог S6, 363 места -> 304 в корпусе S1 v4 real/hg_v1) квадратом как в игре; деление train/holdout; сверка с кодом игры"
-related: ["docs/contracts/air-synth.md", "docs/plan/air-synth.md", "tools/research/air_synth/hg_sites/README.md", "tools/research/air_synth/solver/README.md"]
+summary: "SY-10: рельеф мест дельтаплана (363 → 304 места корпуса S1 v4) квадратом как в игре, деление train/holdout, сверка с кодом игры"
+related: ["docs/archive/rejected/air-synth-contracts.md", "docs/archive/rejected/air-synth.md", "tools/research/air_synth/hg_sites/README.md", "tools/research/air_synth/solver/README.md"]
 ---
 # SY-10: рельеф мест дельтаплана (S1 v4)
 

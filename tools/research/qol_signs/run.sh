@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # QL-5/QL-8: весь план одним прогоном. Использование (из корня копии):
-#   dp job --lock gpu start ql5 3000 tools/research/qol_signs/run.sh
+#   .dpcli/dpcli job --lock gpu start ql5 3000 tools/research/qol_signs/run.sh
 # GPU-часть (окно, поле «фазы + Пикар») → out/gpu_<место>_<час>.json,
 # затем headless (аналитика) → out/ana_<место>_<час>.json; итог — summarize.py.
 set -uo pipefail

@@ -1,15 +1,18 @@
 ---
 type: "research"
-status: "closed"
+status: "superseded"
 module: "osm-any"
-updated: "2026-10-10"
-summary: "Можно ли брать дороги, воду, посёлки, здания из векторных тайлов OpenFreeMap z14 вместо Overpass: на aushkul совпадает с эталоном на 99-100%, нет только ЛЭП; вопрос — условия использования для массовой загрузки."
-related: ["tools/research/openfreemap/README.md", "docs/guide/location-data.md"]
+area: "world"
+updated: "2026-10-15"
+summary: "Заменено: OFM z14 совпадал с Overpass на 99–100 % (нет ЛЭП), но игра берёт OSM из своих тайлов 20 км (osm-tiles)."
+related: ["tools/research/openfreemap/README.md", "docs/guide/location-data.md", "docs/archive/plan/osm-tiles.md", "docs/guide/osm-tiles.md"]
 conclusion: "OFM z14 годится вместо Overpass для дорог (включая track), воды, посёлков и зданий; ЛЭП в схеме OpenMapTiles нет."
 data: "tools/research/openfreemap/results/"
-applied_in: "не применено"
+applied_in: "нет: заменено своими тайлами OSM 20 км (docs/archive/plan/osm-tiles.md, configs/osm_tiles.json, scripts/terrain/build/osm_tiles_stage.gd)"
 ---
 # OpenFreeMap вместо Overpass
+
+> Заменено: OpenFreeMap z14 как замена Overpass в игру не вошёл — OSM-слой берётся из собственных тайлов 20 км (Geofabrik, раздача с R2): [план osm-tiles](../archive/plan/osm-tiles.md), [guide](../guide/osm-tiles.md). Сравнение с эталоном ниже остаётся материалом исследования.
 
 ## Источник и условия
 - TileJSON: `https://tiles.openfreemap.org/planet` → шаблон `https://tiles.openfreemap.org/planet/20261004_113936_pt/{z}/{x}/{y}.pbf` (в пути — версия планеты, дата данных 2026-10-04, **менять путь по TileJSON, не зашивать**). Схема OpenMapTiles 3.16, MVT, minzoom 0, maxzoom 14, gzip.

@@ -26,12 +26,22 @@ appear only with overdevelopment.
   denser (the inflow is visible);
 - **decaying**: ragged, translucent, with a raised ragged rim, it sinks and drifts off with the wind.
 
-The base is at the same height for all clouds of the day (the condensation level). In wind, clouds
+The base is at the same height for all clouds of the day (the condensation level). A cloud does not appear or vanish in one frame: a new one fades in over ~40 s, a decaying one disappears in about a minute. In wind, clouds
 stretch along it and can line up into cloud streets along the wind; the noise inside a cloud itself "flows",
 carried by the wind at the height of the rim, while the shape stays above its thermal. A weak day has
 few thermals stronger than `cloud_min_strength_ms`, and the sky is almost cloudless (a "blue day"); on a strong
 day some of the thermals overdevelop: tall towers, a spreading top (more on this level is in
 the "dangerous weather" section of the atmosphere module, including thunderstorm cells and anvils).
+
+**Special clouds** are built by the same shader and come from the same physical model (details in
+[docs/guide/atmosphere.md](/docs/guide/atmosphere.md)):
+- cumulonimbus (`storm_field.gd`): strong mature thermals overdevelop into a tower up to the tropopause with an anvil,
+  and below the base a rain shaft of soft translucent streaks; beneath it a downdraft, outflow along the ground
+  and a gust front. Thunderstorms are rare in the model: from hundredths of a percent per thermal at a small
+  temperature margin to 0.5% at a large one;
+- lenticular lenses and rotor fragments in the crests of a lee wave (`wave_field.gd`);
+- an upper-level cirrus veil (`cirrus_layer.gd`): ribbons of fibres along the wind; it suppresses thermals (lower
+  insolation) and makes cumulus shadows paler.
 
 For details on the thermal itself, its strength, the shape of the flow, the updraft speed and how the
 airflow beneath the cloud is born and dies, see the page [Thermals](/mechanics/air-model/thermals/); only the
@@ -40,8 +50,8 @@ above-ground, visible part is described here.
 ## Cloud shadows
 
 A cloud **blocks only the direct sunlight**; the diffuse light of the sky beneath it remains, so the shadow does not
-turn into a black blot. The shadow is drawn in a separate pass (`CloudShadowMap`): a small map around the
-camera is recomputed several times a second, and for each of its points the transmission of direct light is computed
+turn into a black blot. The shadow is drawn in a separate pass (`CloudShadowMap`): a map around the
+camera (32 km side) is redrawn every 3 frames, and for each of its points the transmission of direct light is computed
 by the Beer absorption formula through the very same cloud density that is drawn overhead. The shadow
 therefore **repeats the cloud's shape exactly**, including the billows and the thinned edges of a decaying one, drifts
 along with it and fades with it.
@@ -69,13 +79,14 @@ the visible shadow on the ground: a pilot reading the shadows below sees exactly
 
 ## Model limits
 
-- **The shadow is not a global map** but a window of fixed size around the camera: clouds beyond it
+- **The shadow is not a global map** but a window of fixed size around the camera (32 km): clouds beyond it
   cast no shadow on the visible scene (nor is that needed, as they cannot be seen anyway).
+- **Thunderstorm cells, wave and cirrus are simplified images**: the anvil has no mammatus, a Cb looks like a "mushroom" from afar (in real ones the body is more massive and wider), the lenticular lenses are smooth and the "stack of plates" is faint.
 - **The cloud density is approximate**: a raymarch over several geometrically growing steps toward the sun, not
   a true multiple-scattering simulation. This is enough for the base to be darker than the edges and
   darker over a live thermal, but there will be no exact photometry.
 - **Different render paths differ in cost and slightly in picture**: the main path (Forward+/Mobile) is
-  one shared raymarch pass per frame with upscaling, the path for integrated graphics (Compatibility) is a box per
+  one shared raymarch pass per frame in a reduced-resolution buffer (0.33/0.5/0.75 by quality preset) with depth-aware upscaling, the path for integrated graphics (Compatibility) is a box per
   cloud. In Compatibility there is a known visual problem: some clouds are split by a
   vertical boundary into two halves of different brightness with a "stepped" edge. It is deliberately not
   fixed; the project's target renderer is Forward+.

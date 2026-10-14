@@ -1,9 +1,10 @@
 {
   "module": "mountain-look",
-  "plan": "docs/plan/mountain-look.md",
+  "plan": "docs/archive/plan/mountain-look.md",
   "contracts": "docs/contracts/mountain-look.md",
   "branch": "feature/mountain-look",
   "copy": "~/deltaplan-mountain-look",
   "created": "2026-10-13T21:34:56",
-  "code": "MLK"
+  "code": "MLK",
+  "area": "world"
 }

@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "aframe-geometry"
-updated: "2026-10-08"
-summary: "Контракты модуля «aframe-geometry»: параметры трапеции и центровки крыла (A1), маркеры стоек в модели крыла (A2), инварианты позы пилота и вида от первого лица (A3)."
-related: ["docs/plan/aframe-geometry.md", "docs/contracts/wings-models3d.md", "docs/guide/models.md"]
+area: "flight"
+updated: "2026-10-15"
+summary: "Трапеция и центровка крыла (A1), маркеры стоек в модели (A2), поза пилота и вид от первого лица (A3)."
+related: ["docs/archive/plan/aframe-geometry.md", "docs/contracts/wings-models3d.md", "docs/guide/models.md"]
 contracts: [{"id": "A1", "version": 4}, {"id": "A2", "version": 1}, {"id": "A3", "version": 12}]
 ---
 # Контракты модуля «aframe-geometry»
 
-Внутренний документ. План — `docs/plan/aframe-geometry.md`. Контрактный тест — `tests/game/test_aframe_contracts.gd` (заводит AF-1; AF-2 и AF-3 дописывают свои инварианты A3). Менять — только через координатора модуля: версия +1, что изменилось, потребители правятся в том же шаге.
+Внутренний документ. План — `docs/archive/plan/aframe-geometry.md`. Контрактный тест — `tests/game/test_aframe_contracts.gd` (заводит AF-1; AF-2 и AF-3 дописывают свои инварианты A3). Менять — только через координатора модуля: версия +1, что изменилось, потребители правятся в том же шаге.
 
 Оси: в `glider_params.json` и Blender — X вправо, +Y нос, Z вверх, начало — HangPoint; в Godot (модель `.glb`, `GliderVisual`) — +X вправо, +Y вверх, −Z вперёд, начало — HangPoint. Метры, градусы. «Наклон стоек» — угол оси стойки в виде сбоку (проекция на плоскость киля) от нормали к килю; плюс — низ стойки впереди верха.
 

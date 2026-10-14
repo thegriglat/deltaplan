@@ -1,4 +1,4 @@
-"""S5 v2: поля решателя P2 по корпусу (docs/contracts/air-synth.md) — запись/чтение частей, вид VDS, план.
+"""S5 v2: поля решателя P2 по корпусу (docs/archive/rejected/air-synth-contracts.md) — запись/чтение частей, вид VDS, план.
 Части part-{k:05d}.h5 (временное имя .tmp -> fsync -> os.replace), общий вид solve.h5 (VDS) детерминированно из частей.
 Часть k — случаи плана [k*S, (k+1)*S). Общие помощники (части, fsync) — из corpus_io SY-1."""
 from __future__ import annotations

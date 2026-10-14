@@ -1,0 +1,39 @@
+{
+  "id": "DR-4",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Сайт: «Механики» и «Крылья» — текущее состояние игры",
+  "goal": "Страницы «Механики» (site/content/mechanics/**, ru/en) и вводные «Крыльев» описывают то, что есть в main сейчас; без планов; честно о границах модели; пасхалок нет.",
+  "plan_ref": "Сайт: тексты",
+  "contracts": [],
+  "copy": "~/deltaplan-docs-rework-DR-4",
+  "branch": "docs-rework/DR-4",
+  "base": "feature/docs-rework",
+  "scope": [
+    "site/content/mechanics",
+    "site/content/wings/_index.ru.md",
+    "site/content/wings/_index.en.md"
+  ],
+  "dont_touch": [
+    "site/hugo.toml",
+    "site/layouts",
+    "docs",
+    "site/content/_index.ru.md",
+    "site/content/approaches.ru.md"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_plans_links",
+      "cmd": "grep -rn -E '\\(/plans|/plans/' site/content/mechanics site/content/wings/_index.ru.md site/content/wings/_index.en.md; true",
+      "expect": "!re:\\S"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T01:53:41"
+}

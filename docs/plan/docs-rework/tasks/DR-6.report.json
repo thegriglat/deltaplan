@@ -1,0 +1,41 @@
+{
+  "status": "partial",
+  "summary": "Доработка: во входах air-model/air-phase/easter-eggs вернул заголовки стыков '## Cn vN — …' / '## Pn …' / '## Кn …' (К8 с '(v4,') с владельцем и ссылкой на часть; подробности в частях. Тесты air_contracts и no_osm проходят. Входы 9/8/9 КБ.",
+  "commits": [
+    "a7c01fb4 Контракты: во входе заголовки стыков с версиями для контрактных тестов"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "0 ошибок",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "eggs_off_site",
+      "value": "пусто",
+      "pass": true
+    },
+    {
+      "name": "contract_tests",
+      "value": "352/354, 2 упало: test_osm_look_contracts.gd::test_versions (check failed: L5 v2 в frontmatter ...; L5 v2 заголовок), test_steam_assets_contracts.gd::test_k3_assets_md_tables (check failed: Модели и текстуры: 5 колонок ...)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "test_osm_look_contracts::test_versions ждёт L5 v2, а в osm-look.md заголовок '## L5 v3' и frontmatter L5 3 уже на main (DR-5 менял только status/area/summary/related, git diff main) — тест устарел, документ не правил, чтобы не писать ложную версию",
+    "test_steam_assets_contracts::test_k3_assets_md_tables разбирает ASSETS.md (строка assets/ui/backdrops с 3 колонками вместо 5); ASSETS.md не менялся относительно main — падение не из docs/contracts; main отдельно не прогонял"
+  ],
+  "questions": [
+    "Оба падения предположительно есть на main — подтвердить прогоном на main; править L5 в тесте (код) или документе?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept DR-6 --dry",
+  "uncertain": [],
+  "dp_feedback": "Хорошо бы, чтобы accept перед контрактными тестами сам проверял наличие .godot (импорт долгий). Хорошо бы сравнивать падения с main автоматически.",
+  "t": "2026-10-15T02:22:28",
+  "by": "executor"
+}

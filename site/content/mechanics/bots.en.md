@@ -16,13 +16,14 @@ The flight model of the bots is the same as the player's — `FlightModel` and `
 
 ### How the bots fly
 
-The bot's "brain" is `BotPilot` ([scripts/game/bot_pilot.gd](/scripts/game/bot_pilot.gd)), the same class as the route bot in the route-passability studies (docs/plan/atmosphere). The bot "feels" only what a live pilot has access to: variometer, altitude, AGL, heading, bank, position, ground speed — it does not peek at the atmosphere's thermal map (`thermals_near`). Flight modes:
+The bot's "brain" is `BotPilot` ([scripts/game/bot_pilot.gd](/scripts/game/bot_pilot.gd)), the same class as the route bot in the route-passability runs (`tests/atmosphere/xc/`; the atmosphere model is described in [docs/guide/atmosphere.md](/docs/guide/atmosphere.md)). The bot "feels" only what a live pilot has access to: variometer, altitude, AGL, heading, bank, position, ground speed — it does not peek at the atmosphere's thermal map (`thermals_near`). Flight modes:
 
 - **CRUISE** — transition by the MacCready calculation;
 - **ENTER** — the averaged variometer is above the threshold (0.5 m/s over its own sink rate; in "rescue" mode below — 0.3 m/s) → a 35–40° turn toward the side where the lift was;
 - **CIRCLE** — centring the thermal by the Reichmann rule (stronger lift — flatter turn, weaker — steeper, the circle shifts toward the maximum), bank 8–50° (nominally 38°), the lift map is remembered for 12 s;
 - **PROBE** — checking the thermal's side after "touched it and lost it";
 - **RIDGE** — "figure eight at the slope": two adjacent turns over one working point, the turn is always from the slope toward the valley; it engages if the headwind at launch is ≥ 4 m/s, soars for 60–300 s (random) or until it has gained 250 m above the launch, then leaves for glides; below 25 m AGL it leaves the slope for the valley;
+- **AVOID** — terrain ahead on the heading is higher than the wing with a margin (checked twice a second at 80–500 m) → turn to the heading with the lowest ground out of ±150° in 30° steps, bank up to 40°; after 5 s of clear path it returns to CRUISE (or RIDGE);
 - below 300 m AGL — "rescue" mode: minimum sink speed, takes any lift, the entry threshold is lower than usual.
 
 Without a target ("other pilots in the sky", class `WanderPilot`, [scripts/game/wander_pilot.gd](/scripts/game/wander_pilot.gd)) the bot hops between random points within a circle of 3500 m radius around the launch (a glide of 800–2500 m, the first — 1200 m from the slope into the valley along the launch heading); if enabled in the config, the glide target is chosen under a growing cloud in a ±30° sector from the heading, as a pilot reads the sky. In one thermal everybody circles in the same direction — it is set by whoever entered first (this may be the player too): circles closer than 300 m to the centre of an "occupied" thermal within the last 60 s count as the same thermal.
@@ -45,9 +46,9 @@ If all the bots were put in the start queue behind the player right away, being 
 
 ## Start queue {#start-queue}
 
-The bots waiting on the ground stand with their wing on level spots behind the launch — not in the player's launch-run corridor, not near rocks, bushes and trees ([scripts/game/bot_pilots.gd](/scripts/game/bot_pilots.gd) → `find_spots`): a grid search with a 3 m step, spots no steeper than 8° (if not enough — 14°, then any), no closer than 12 m to each other (wingspan ~10 m) and no closer than 9 m to the player. While the player is on the ground the bots wait; after his lift-off the bots come to the launch one at a time every 30 s (`launch.interval_s`) and run with the same mechanics as the player (`BotAgent`). If it landed short or crashed, the bot stands for a minute (`landed_stand_s`), then is removed and joins the queue again.
+The bots waiting on the ground stand with their wing on level spots behind the launch — not in the player's launch-run corridor, not near rocks, bushes and trees ([scripts/game/bot_pilots.gd](/scripts/game/bot_pilots.gd) → `find_spots`): a grid search with a 3 m step, spots no steeper than 8° (if not enough — 14°, then any), no closer than 14 m to each other (`launch.spacing_m`, wingspan up to 10.6 m), no closer than 22 m to the player (two wingspans) and outside the third-person camera corridor behind the player (half-width 8 m, length 40 m). While the player is on the ground the bots wait; after his lift-off the bots come to the launch one at a time every 30 s (`launch.interval_s`) and run with the same mechanics as the player (`BotAgent`). If it landed short or crashed, the bot stands for a minute (`landed_stand_s`), then is removed and joins the queue again.
 
-In online play the queue is shared by live pilots and bots ([scripts/game/net_queue.gd](/scripts/game/net_queue.gd), NET-43): the waiting places are the same as for the bots in single-player (place 0 is the launch itself), but the rules are like a live queue at a real launch:
+In online play the queue is shared by live pilots and bots ([scripts/game/net_queue.gd](/scripts/game/net_queue.gd), `NetQueue`): the waiting places are the same as for the bots in single-player (place 0 is the launch itself), but the rules are like a live queue at a real launch:
 
 1. **Live pilots first, then bots.** A live pilot who returns to the queue stands in front of the first bot (except a bot that is already walking to the launch or running first — it is not shifted).
 2. **Only the first may run.** For the rest the launch run is blocked until they become first; once one has taken off, the next steps forward.
@@ -63,7 +64,7 @@ The queue is run by the zone leader (not to be confused with a "senior" in the e
 
 - There are no collisions of bots with the player at all (separation only "on paper" — by the closure forecast); bot-bot collisions were not checked separately, the separation is the same 50 m/15 m.
 - Bots formally have no landing: touching the ground is neither a crash nor a full landing, but a pause of a minute with subsequent placement in the queue.
-- Going around terrain sideways and real manoeuvring between several thermals at once are not modelled — only entry/centring/exit by the variometer, like an honest route bot (without peeking at the thermal map).
+- Terrain avoidance is simple only (AVOID mode: turn away from the slope to the heading with low ground); real manoeuvring between several thermals at once are not modelled — only entry/centring/exit by the variometer, like an honest route bot (without peeking at the thermal map).
 - The "figure eight at the slope" engages by a single threshold — headwind at launch ≥ 4 m/s; crosswind and tailwind at launch are not taken into account separately.
 - There are deliberately no ways around the queue (see above) — this is a game decision, not an oversight.
 
@@ -75,11 +76,11 @@ The queue is run by the zone leader (not to be confused with a "senior" in the e
 
 ## More
 
-- [docs/guide/game.md](/docs/guide/game.md) — the "Other pilots" section and the command line (`--bots=<N>`, `--look-at=bots`).
+- [docs/guide/game/bots.md](/docs/guide/game/bots.md) — how the bots work; [docs/guide/game/cli-tests.md](/docs/guide/game/cli-tests.md) — the command line (`--bots=<N>`, `--look-at=bots`).
 - [scripts/game/bot_pilots.gd](/scripts/game/bot_pilots.gd) — bot management: spawning, the queue at the launch, `_start_airborne`.
 - [scripts/game/bot_pilot.gd](/scripts/game/bot_pilot.gd) — the bot's "brain": modes, centring, figure eight at the slope.
 - [scripts/game/wander_pilot.gd](/scripts/game/wander_pilot.gd) — flight without a target ("other pilots in the sky").
-- [scripts/game/net_queue.gd](/scripts/game/net_queue.gd) — the start queue online (NET-43).
+- [scripts/game/net_queue.gd](/scripts/game/net_queue.gd) — the start queue online.
 - [configs/bots.json](/configs/bots.json), [configs/bot_names.json](/configs/bot_names.json) — all the numbers and the name pool.
-- [docs/plan/multiplayer.md](/docs/plan/multiplayer.md) — items 6–7 (bots and the queue in online play).
+- [docs/guide/net-protocol.md](/docs/guide/net-protocol.md) — how bots and the queue travel over the network (`ZoneState.queue`, the "bot" mark).
 - {{< commit 0e07d62 >}} — half of the bots already in the air at the start of the flight.

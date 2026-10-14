@@ -1,0 +1,68 @@
+{
+  "id": "DR-14",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Исследования рельефа, данных мира, Steam, железа: summary, статусы, разбить terrain_statistics",
+  "goal": "Исследования рельефа/данных мира/Steam/SimHub/звука — статус по коду main и короткие summary; terrain_statistics.md ≤40 КБ.",
+  "plan_ref": "Разбиение исследований",
+  "contracts": [
+    {
+      "name": "docs-rework.D1",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D2",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D4",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-14",
+  "branch": "docs-rework/DR-14",
+  "base": "feature/docs-rework",
+  "scope": [
+    "docs/research/terrain_statistics.md",
+    "docs/research/terrain_tuning.md",
+    "docs/research/terrain_sources.md",
+    "docs/research/lakes_worldcover.md",
+    "docs/research/location_compression.md",
+    "docs/research/openfreemap_vs_overpass.md",
+    "docs/research/itch_multiplayer.md",
+    "docs/research/simhub.md",
+    "docs/research/motion-rig-protocols.md",
+    "docs/research/steam_godotsteam.md",
+    "docs/research/steam_license_audit.md",
+    "docs/research/steam_tile_policy.md",
+    "docs/research/vario_sounds.md",
+    "docs/research/terrain_statistics",
+    "site/content"
+  ],
+  "dont_touch": [
+    "docs/INDEX.md",
+    "docs/registry",
+    "docs/plan",
+    "docs/contracts",
+    "docs/guide",
+    "site/hugo.toml"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/research/terrain_statistics.md docs/research/terrain_tuning.md docs/research/terrain_sources.md docs/research/lakes_worldcover.md docs/research/location_compression.md docs/research/openfreemap_vs_overpass.md docs/research/itch_multiplayer.md docs/research/simhub.md docs/research/motion-rig-protocols.md docs/research/steam_godotsteam.md docs/research/steam_license_audit.md docs/research/steam_tile_policy.md docs/research/vario_sounds.md docs/research/terrain_statistics",
+      "expect": "exit=0"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T01:55:42"
+}

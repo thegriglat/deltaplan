@@ -1,13 +1,14 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "flight"
-updated: "2026-09-29"
-summary: "Масса пилота и поляра дельтаплана (FR-3) — Исследование для модели полёта: как масса пилота меняет скорости, снижение, качество и реакцию крыла, и какие реальные данные взяты для трёх крыльев."
-related: []
-conclusion: ""
-data: ""
-applied_in: "configs крыльев (масса пилота, FR-3); формулы влияния на поляру — подтвердить, в TODO"
+area: "flight"
+updated: "2026-10-15"
+summary: "Масса пилота: поляра растягивается на k = √(M·ρ_эт/(M_эт·ρ)), качество не меняется; τ крена ∝ √M; данные четырёх крыльев"
+related: ["docs/guide/flight.md", "docs/research/glider_polars_sources.md"]
+conclusion: "Вся поляра растягивается по скорости и снижению на k = √(M·ρ_эт/(M_эт·ρ)), M — полная масса (пилот + крыло); качество от массы не зависит. Постоянная времени реакции τ ∝ √M, предельная скорость крена от массы не зависит (показатель 0). Паспорта Litespeed RS 3.5 / RS 4 (+2 % площади, сваливание 29 → 28 км/ч) формулу подтверждают в пределах округления; проверка в полёте с балластом не сделана (TODO T-13)."
+data: "паспортные данные Moyes и Wills Wing — таблица в §3 текста; тест tests/flight/test_mass.gd"
+applied_in: "scripts/flight/flight_model.gd (speed_scale); scripts/flight/pendulum/pendulum_model.gd; configs/flight.json (air_density, inertia.*); configs/wings/*.json (pilot_mass_*_kg)"
 ---
 # Масса пилота и поляра дельтаплана (FR-3)
 

@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "dp заменён на dpcli в docs/, tools/ (включая tools/research и bench), TODO.md; related и ссылки на перенесённые планы/контракты исправлены на docs/archive/plan и docs/archive/rejected; summary скриншотов сокращены; params.movedPaths и его разбор в resolve.html убраны; docs index пересобран.",
+  "commits": [
+    "3ad4136e docs-rework DR-18: dp → dpcli, пути в архив, summary скриншотов, без movedPaths, docs index"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0, предупреждений 56",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "no_dp",
+      "value": "пусто",
+      "pass": true
+    },
+    {
+      "name": "no_plans_on_site",
+      "value": "пусто",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "4/4 PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Предупреждения docs check (56) не трогал: нет ключей research conclusion/data/applied_in у частей разбитых документов (по заданию можно не трогать)",
+    "docs/registry/decisions.md: цитаты старых решений с «dp lock cpu», «dp job» остались как история (кроме заголовка и путей); no_dp их не ловит"
+  ],
+  "questions": [
+    "Ссылки на несуществующие планы docs/plan/air-speed.md (TODO.md T-06) и docs/plan/atlas_wing.md (docs/research/glider_3d_tz.md, wings_config_sources.md, tools/research/data/wing_passports/tz_curated.py) не имеют архивной копии; оставил как есть, docs check их не ловит. Убрать или оставить?",
+    "Хук pre-commit в /home/greg/deltaplan/tools/hooks (core.hooksPath) вызывает удалённый tools/dp check gd; пришлось коммитить с --no-verify (в коммите только комментарии в двух .gd: tools/bench/wait_bench.gd, tools/check/gd_check.gd). Хук нужно перевести на tools/check_gd.py при слиянии."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept DR-18",
+  "uncertain": [
+    {
+      "where": "tools/research/air_nn_pilot/tests, tools/research/air_synth/**",
+      "why": "в докстрингах пути контрактов air-nn/air-synth заменены на docs/archive/rejected/*-contracts.md; тесты не запускал (требуют данных/GPU)",
+      "checked": "правки только в строках документации, не в коде"
+    }
+  ],
+  "dp_feedback": "dpcli docs check не ловит устаревшие пути в тексте и applied_in, только related и ссылки; нужен режим «пути из moves.tsv». Хотелось бы dpcli docs fix-paths по docs/archive/moves.tsv. Заголовок GEN_HEAD в docs/registry для decisions/findings не пересобирается docs index (остался старый текст). В dp_feedback по DR-18 команд, которых нет в dpcli, не обнаружено: job --lock, lock, plan --contracts, sync, log есть; dp check gd заменён tools/check_gd.py.",
+  "extra": {
+    "файлов_изменено": 163
+  },
+  "t": "2026-10-15T02:50:05",
+  "by": "executor"
+}

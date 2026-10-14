@@ -14,7 +14,7 @@ The air in the game is not a set of separate formulas but a physical field: wind
 | 2. Thermals | core, edge, "missed and dropped", life of a bubble | 100–500 m, minutes | [Thermals](/mechanics/air-model/thermals/) |
 | 3. Turbulence and rotor | jolts, downdrafts, shaking behind a ridge | under 50 m, seconds | [Turbulence and rotor](/mechanics/air-model/turbulence/) |
 
-The model is on by default. There is no neural network in the game: the wind field is computed with physics (phases and Picard), not by a trained network. This describes the "Calculation" mode; the simple "Heuristic" mode has a [separate page](/mechanics/air-model/heuristic/).
+Settings ("Wind over terrain") have two modes: "GPU solver (terrain flow)", the default, and "Heuristic (wind profile without terrain)". There is no neural network in the game (it was removed in build 1.3.0): the wind field is computed with physics (phases and Picard), not by a trained network. This page and the level pages describe the solver mode; the heuristic mode has a [separate page](/mechanics/air-model/heuristic/).
 
 {{< children >}}
 
@@ -41,11 +41,11 @@ How the split is checked: where levels meet, mass flux (lift in thermals is comp
 
 ![Section of the field through the launch: lift over heated slopes and sink behind the ridge](/tools/research/air3d/out/fig_section.png "Vertical section of the field through the launch (Ongudai, 13:00): calm, south wind 3 m/s, windows of 100 and 50 m and a 200 m area. Left: vertical velocity, right: how much warmer the air is than the background")
 
-The level 1 field lies on three nested grids: a 400 m area for the whole place (38.4 km), a 100 m window (6.4 km) and a 50 m window (3.2 km) around the pilot. The windows join their parent without a step: 50 m before the window edge the wind at 50 m above ground changes by 9–12 % (inside the window, by 9–18 %). When the pilot has moved a quarter of the window side from its center, the windows are recomputed in the background (1–3 s) while the game uses the old ones. The field is recomputed every 15 game minutes and when the wind or weather changes; the new one is blended in smoothly over 60 seconds.
+The level 1 field lies on three nested grids: a 400 m area for the whole place (38.4 km), a 100 m window (6.4 km) and a 50 m window (3.2 km) around the pilot. The windows join their parent without a step: 50 m before the window edge the wind at 50 m above ground changes by 9–12 % (inside the window, by 9–18 %). When the pilot has moved a quarter of the window side from its center, the windows are recomputed in the background (1–3 s) while the game uses the old ones. The field is recomputed every 15 game minutes (`recompute_game_min`) and when the wind or weather changes; the new one is blended in smoothly over 60 seconds. The field's date is the flight date (sun, heating and thermals depend on it).
 
 ![Seam of the field levels at Kayancha: the levels differ, but what the pilot sees changes smoothly](/tools/research/air_clipmap/out/seam_kayancha_h12_U3.png "Seam of the levels, Ongudai, 12:00, wind 3 m/s: 400 m area, 100 and 50 m windows and what the game sees. Gray is the window edge strip")
 
-The computation runs on the graphics card in Vulkan compute shaders, so it works on AMD as well as NVIDIA. When a place loads there is a "Computing the wind" stage — on the order of a few seconds on a modern card. Without a graphics card the game does not run (clouds are on it too).
+The computation runs on the graphics card in Vulkan compute shaders, so it works on AMD as well as NVIDIA. When a place loads there is a "Computing the wind" stage: 3.3–3.9 s on an RTX 4070 SUPER, up to about 15 s estimated on weak cards (the limit for one computation is 60 s). The menu wind is the wind at 10 m above the launch, while the solver sets the wind at the edge of the area; so loading runs in two passes: after the first the wind above the launch is measured and the inflow is adjusted (factor 0.3–3), and the field of the second pass is the one given to the game. If the GPU computation is unavailable (no GPU, shaders did not build, time limit exceeded), the "Heuristic" mode is used at load; in flight a failed recomputation leaves the previous field in place.
 
 **Multiplayer.** Every client computes the field itself, and on different cards it comes out slightly different. The thermal places are shared: the host chooses the sources and sends them to the others, while each computes strength, ceiling and drift from its own field; the differences are at most 0.008 m/s in strength and 0.4 m in the thermal axis.
 
@@ -93,7 +93,7 @@ Pilots' words against the model after calibration (synthetic case, wind 5 m/s):
 
 Common to the whole model; specific ones are on the level pages.
 
-- **No moisture or clouds in the field.** Cloud base is taken from the weather model. Moisture is for later.
+- **No moisture or clouds in the field.** Cloud base is taken from the weather model; the field does not compute air humidity.
 - **Steady mean, not a time simulation.** The field is the mean circulation over an hour; bubbles and eddies belong to levels 2 and 3.
 - **Speed-up at the brow is underestimated by 15–20 % at 20–100 m above the slope.** The cause is the numerical diffusion of 1st-order advection and the limited terrain resolution. The way to fix it, if pilots say "weak at the brow": 2nd order in the windows (time ×2–3) or a 25 m window.
 - **Saddle ×2.05 instead of ×1.5.** At a Froude number of about 2 the flow goes over the whole range, and the saddle works as a lowered ridge. The day's stability comes from the weather; there is no separate "saddle knob".
@@ -104,11 +104,10 @@ Common to the whole model; specific ones are on the level pages.
 ## More
 
 - [The air model in the game](/docs/guide/air-model.md): the main document, what works, laws, numbers, limits.
-- [Air model plan](/docs/plan/air_model.md) and [work log](/docs/archive/plan/air-model-progress.md): decisions, stages, closing the module.
 - [Calibration](/docs/research/air-model-tune.md), [sensitivity](/docs/research/air-model-sensitivity.md), [GPU solver and windows](/docs/guide/air-model-gpu.md).
-- Calibration on two data sets: [Askervein and Perdigão](/docs/archive/plan/air-model-b1.md).
+- Joint calibration on two data sets: [Askervein and Perdigão](/tools/research/cases/b1/README.md).
 - [Catalog of experimental data](/docs/research/experimental_data.md); data of [Askervein](/tools/research/data/askervein/README.md) and [Perdigão](/tools/research/data/perdigao/README.md).
 - Research: [3D reference on Ongudai terrain](/tools/research/air3d/README.md), [thermals from the field](/tools/research/air_thermals/README.md), [turbulence from the field](/tools/research/air_turb/README.md), [2D prototype](/tools/research/heat_ca/README.md).
-- [Wind phases: research](/docs/research/air_phase.md), [measurements on ideal terrain](/docs/research/air_phase_results.md), [plan](/docs/plan/air-phase.md).
+- [Wind phases: research](/docs/research/air_phase.md), [measurements on ideal terrain](/docs/research/air_phase_results.md).
 - [Wind field: phases and Picard](/mechanics/air-model/wind-phases/), [thermals](/mechanics/air-model/thermals/), [turbulence and rotor](/mechanics/air-model/turbulence/).
-- [Heuristic mode](/mechanics/air-model/heuristic/), [thermals](/mechanics/air-model/thermals/), [weather](/mechanics/weather/); [research and plans](/research/).
+- [Heuristic mode](/mechanics/air-model/heuristic/), [weather](/mechanics/weather/); [research](/research/).

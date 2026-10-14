@@ -3,7 +3,7 @@ type: "research"
 status: "active"
 module: "surface-heat"
 updated: "2026-10-09"
-summary: "SH-3: инструмент замера до/после (контракт SH5) на коде игры — H поля, источники термиков, потолок, подъём на склоне, подветренные зоны, вода; прогон «до»."
+summary: "SH-3: инструмент замера до/после (контракт SH5) — H поля, источники термиков, потолок, подъём на склоне, вода; прогон «до»"
 related: []
 conclusion: ""
 data: "tools/research/surface_heat/out/"
@@ -11,7 +11,7 @@ applied_in: ""
 ---
 # SH-3: замер «до/после» для surface-heat
 
-Контракт вывода — `dp plan surface-heat --contracts SH5`. Измеряется **игра**, а не Python-эталон:
+Контракт вывода — `.dpcli/dpcli plan surface-heat --contracts SH5`. Измеряется **игра**, а не Python-эталон:
 `Terrain.load_location` → `AirRuntime.load_field` (`AirPlace.domain_case` → фазы + Пикар на GPU →
 `WindField` в `Atmosphere`) → `AirThermals.build` по этому полю (`ThermalField._update_air`, синхронно) →
 выборки `Atmosphere.air_velocity_at`.
@@ -25,7 +25,7 @@ python3 tools/research/surface_heat/check_schema.py tools/research/surface_heat/
 python3 tools/research/surface_heat/compare.py tools/research/surface_heat/out/before tools/research/surface_heat/out/after
 python3 tools/research/surface_heat/compare.py --summary tools/research/surface_heat/out/before   # пересобрать summary.csv
 ```
-Долгий прогон — `tools/dp job start <имя> 3000 bash -c 'cd <копия> && tools/research/surface_heat/run.sh <метка>'`.
+Долгий прогон — `.dpcli/dpcli job start <имя> 3000 bash -c 'cd <копия> && tools/research/surface_heat/run.sh <метка>'`.
 `run.sh` сам делает `--import`, временный `XDG_DATA_HOME`, возвращает `project.godot`. Готовые
 `<место>_h<час>.json` пропускаются (продолжение с места). Параметры `measure.gd` (после `--`):
 `--places= --hours= --wind=3 --wdir=<° для всех мест> --radius=10 (км) --lee-hours=12 --lee-sec=120 --node-step=50 --no-lee`.

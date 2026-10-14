@@ -4,11 +4,11 @@
 кривизна (знаки по осям — седловины), устойчивость. Сеть — `runs/2026-10-03_p2b/main/model.onnx` через ORT на CPU
 (вход — кеш подготовки П-2), цель — решатель (`d400_*` образца), группа — сошедшиеся по `h` (`data.case_groups`).
 
-  collect — клетки → $AIR_NN_DATA/pilot/p3/NN-P11/cells_<набор>.npz   (под `dp lock cpu`)
+  collect — клетки → $AIR_NN_DATA/pilot/p3/NN-P11/cells_<набор>.npz   (под `.dpcli/dpcli lock cpu`)
   report  — таблицы → p3/err_by_feature.md и p3/err_by_feature.json
 
   cd tools/research/air_nn_pilot
-  /home/greg/deltaplan/tools/dp lock cpu .venv/bin/python p3/err_by_feature.py collect
+  /home/greg/deltaplan/.dpcli/dpcli lock cpu .venv/bin/python p3/err_by_feature.py collect
   .venv/bin/python p3/err_by_feature.py report
 """
 from __future__ import annotations
@@ -363,7 +363,7 @@ def report():
         # подъём
         lines.append(f"Ошибка подъёма |Δw| (с нагревом, 60 м): медиана {np.median(d['elift'][base]):.2f}, "
                      f"p90 {np.percentile(d['elift'][base], 90):.2f} м/с.\n")
-    lines.append("Воспроизведение:\n```\ncd tools/research/air_nn_pilot\n/home/greg/deltaplan/tools/dp lock cpu "
+    lines.append("Воспроизведение:\n```\ncd tools/research/air_nn_pilot\n/home/greg/deltaplan/.dpcli/dpcli lock cpu "
                  ".venv/bin/python p3/err_by_feature.py collect\n.venv/bin/python p3/err_by_feature.py report\n```\n")
     (HERE / "p3" / "err_by_feature.md").write_text("\n".join(lines))
     (HERE / "p3" / "err_by_feature.json").write_text(json.dumps(res, ensure_ascii=False, indent=1))

@@ -1,7 +1,7 @@
 ---
 title: "Grass, Water and Landmarks"
 weight: 60
-description: "Visual cues of wind and air for the pilot: grass bending with the wind, ripples on water, campfire smoke, windsocks, the telltale — what is done and what is not."
+description: "Visual cues of wind and air for the pilot: grass bending with the wind, ripples on water, campfire smoke, windsocks, the telltale — what the picture shows and where the model is silent."
 ---
 
 # Grass, Water and Landmarks
@@ -18,8 +18,9 @@ patches run across the grass and the grain fields (the grass turns lighter — t
 a thermal near the ground there is a broken, swirled wave converging to the flow axis, and stronger swaying: the grass
 seems to "inhale" into the thermal. The offset of the gust pattern is accumulated on the CPU frame by frame, and is not derived
 from the overall game time — so when the wind direction changes sharply the pattern does not jerk backwards.
-Trees sway too (the amplitude of the treetop grows with the wind). Visible from 50–300 m from the camera, farther away it
-fades out smoothly.
+Trees sway too (the amplitude of the treetop grows with the wind). Individual blades are in rings around the camera:
+a near layer to 14 m, a middle one to 36 m, a far one to 115 m (sparser, wider tufts); the gust waves in the ground colour
+and normals reach farther and fade out at 3 km (`wind_fade_m`, `configs/world.json`).
 
 The grass is trampled at the pilot's feet at the launch and at the landing, and at the official landing fields the grass
 is mown in a rectangle along their real axis. Details of placement, thinning at a distance and trampling are
@@ -41,9 +42,9 @@ terrain and water described on the page [Terrain and places](/mechanics/terrain/
 ## Campfire smoke
 
 At the launch camp there is a campfire (a ring of stones, logs, flame particles, flickering light). The smoke is 26 puffs
-in world coordinates, their velocity relaxes toward the sum "wind + buoyancy"; the wind is taken from the atmosphere model
+(puff life 10 s) in world coordinates, their velocity relaxes toward the sum "wind + buoyancy"; the wind is taken from the atmosphere model
 at the campfire itself at two heights (a puff uses the one closer to its own height), including the vertical
-flow of the slope or thermal. The buoyancy decays with time and is divided by the wind speed: in calm the smoke goes
+flow of the slope or thermal. The buoyancy decays with time (by a factor e in 5 s) and is divided by (1 + 0.1·wind, m/s): in calm the smoke goes
 as a thin stream almost vertically, at 3 m/s it is noticeably tilted, at 7 m/s it is pressed to the ground and trails along the
 wind. It is updated several times a second — gusts sway the whole plume at once, not only the last
 puff.
@@ -60,9 +61,10 @@ gustiness. The design of this instrument, its formulas and tuning — on the pag
 
 ## The telltale on the control frame cable
 
-A separate small detail in the cockpit — a ribbon (a "string") tied to the front cable of the control frame: at
-launch it shows the direction and strength of the wind, in flight — the airflow right at the wing (slip,
-yaw). It is visible at the periphery of vision, as with real pilots, without any hints from above.
+A separate small detail in the cockpit — two ribbons ("strings") on the front cables of the control frame: at
+launch they show the direction and strength of the wind, in flight — the airflow right at the wing. In the
+"Weight shift" control mode the model has no sideslip, and in a steady turn the string points straight back; it
+shows sideslip in the "Pendulum" mode (details and limits — on the Instruments page). It is visible at the periphery of vision, as with real pilots, without any hints from above.
 More about its attachment point and parameters — on the page [Instruments](/mechanics/instruments/) and in
 [docs/guide/telltale.md](/docs/guide/telltale.md).
 
@@ -74,30 +76,25 @@ and improves sharply above its upper boundary. In detail about haze, the inversi
 — on the page [Terrain and places](/mechanics/terrain/) (the section on world and sky) and in
 [docs/guide/atmosphere.md](/docs/guide/atmosphere.md).
 
-## What on the list is done and what is not
+## What is done
 
 The full list of visual cues of the air for the pilot with their importance is collected in the research
-[docs/research/visual_cues.md](/docs/research/visual_cues.md) (the list VR-1…VR-30). According to the code and
-documentation, noticeably more is done today than the "required minimum":
-
-**Done (MVP and part of the "next stage"):**
-- cumulus clouds with a life stage, cloud shadows by shape, haze and inversion, ground color = map of
-  thermal sources, sun and shadows of terrain/trees/wing, detailed grass and objects near the ground,
-  windsocks and the telltale at launch, birds in thermals, navigation over real terrain and OSM,
-  power lines with collision, wing and control frame in the cockpit view, a landing field with a windsock;
-- from the "next stage": ripples and a smooth strip on water from the wind, swaying of grass and trees by waves
-  of gusts, campfire smoke carried by the wind, windsocks that honestly show the rotor (different wind
-  at neighboring cones), a volumetric forest with its edge as a trigger and an obstacle, dust devils by strong
-  thermals over dry ground (`dust_devils.gd`);
-- from "later": part of the dangerous weather already exists — thunderstorm cells with an anvil and rain (`storm_field.gd`),
-  wave lenticular clouds and rotor fragments (`wave_field.gd`), an upper-level cirrus veil
-  that suppresses thermals (`cirrus_layer.gd`).
-
-**Not done yet** (no mentions in the code/docs of the repository): the behavior of birds climbing in weaker
-flow than a hang glider can hold; swallows/swifts over thermal sources and rising
-debris/fluff; a haze dome over dry thermals on a cloudless day; machinery in the fields (a tractor with dust) as a
-trigger for a thermal to break off; different vegetation on the landing field itself (tall grass, crops) —
-for now the landing is mown the same everywhere.
+[docs/research/visual_cues.md](/docs/research/visual_cues.md) (the list VR-1…VR-30, "VR" = visual requirement).
+From it the game has:
+- cumulus clouds with life stages and cloud streets, cloud shadows by shape, haze and inversion, ground colour = map
+  of thermal sources, sun and shadows of terrain, trees and wing, detailed grass and objects near the ground,
+  windsocks and strings, navigation over real terrain and OSM, power lines with collision, wing and control frame
+  in the cockpit view, a landing field with a windsock;
+- ripples and a smooth strip on water from the wind, swaying of grass and trees by waves of gusts, campfire smoke
+  carried by the wind, windsocks that honestly show the rotor (different wind at neighbouring cones), a volumetric
+  forest with its edge as an obstacle, dust devils by strong young thermals over dry ground (`dust_devils.gd`);
+- birds in strong mature thermals (up to 3 flocks of 2–5 birds, within 2.5 km, circling with bank
+  `tg φ = v²/(g·r)`; `bird_flock.gd`); swallows and fluff over a young thermal near its source
+  (`thermal_signs.gd`: a flock of 3–6 birds at 20–150 m, a column of fluff that fades at 140 m) — visible no
+  farther than the eye can tell them apart;
+- dangerous and special weather: thunderstorm cells with an anvil and rain (`storm_field.gd`), wave lenticular
+  clouds and rotor fragments (`wave_field.gd`), an upper-level cirrus veil that suppresses thermals
+  (`cirrus_layer.gd`).
 
 ## Model limits
 
@@ -105,9 +102,11 @@ for now the landing is mown the same everywhere.
   neither grass, nor water, nor smoke will show false motion — but conversely, weak effects (for example,
   a very weak thermal below the cloud visibility threshold) get no visual cue at all —
   a "blue day" without a thermal and a "blue day" with a weak unusable thermal are indistinguishable by the picture.
-- **The range of the cues is limited by a budget**: grass is visible from 50–300 m, smoke up to hundreds of meters, farther
+- **The range of the cues is limited by a budget**: individual grass blades up to 115 m, ground swaying up to 3 km, farther
   the cues fade not because the phenomenon has stopped but by the rendering rules (`wind_fade_m` and
-  similar parameters).
+  the grass layer radii).
+- **Not in the game**: a haze dome over dry thermals on a cloudless day; machinery in the fields (a tractor with dust) as a
+  trigger for a thermal to break off; different vegetation on the landing field itself — landing fields are mown the same everywhere.
 - **Not all cues from the research are equally accurate**: for example, smoke is particles with a wind averaged
   over two height probes, not an honest smoke simulation; the ripples on water are a procedural shader driven by
   wind speed and direction, not a wave computation.
@@ -116,13 +115,12 @@ for now the landing is mown the same everywhere.
 
 - **Only cues tied to physics.** The research `visual_cues.md` originally collected dozens of
   ideas from the literature for pilots (Pagen, the FAA Glider Flying Handbook, SkyNomad articles and other sources
-  on meteorology for glider pilots) and deliberately divides them into "required", "desirable", "later" —
-  the implementation went in that order, not by the beauty of the effect.
+  on meteorology for glider pilots) and deliberately divides them into "required", "desirable" and "later" —
+  the implementation went in that order (most of it is now done), not by the beauty of the effect.
   The general rule (VR-0) — draw nothing decorative that would contradict the model: a decorative
   cue without physics would be worse than its absence, because it would teach the pilot wrongly.
-  The sources were selected and checked separately; some of them need verification when printed books become available
-  (Bradbury, Martens, Pagen "Performance Flying") — this is marked in the research itself as an open
-  question, not a fact.
+  The sources were selected and checked separately; some sources (Bradbury, Martens, Pagen "Performance Flying") are marked in the research as needing
+  verification against the printed books — an open question, not a fact.
 - **The priority is what you cannot fly honestly without a HUD**: windsocks, grass and objects near the ground
   for judging height, the wing's shadow at landing — were done first, because without them the judgment of height
   and speed in the flare turns into a lottery.
@@ -132,7 +130,7 @@ for now the landing is mown the same everywhere.
 - [docs/research/visual_cues.md](/docs/research/visual_cues.md) — the full list of cues, their importance,
   sources on meteorology for pilots.
 - [docs/guide/vegetation.md](/docs/guide/vegetation.md) — grass and trees around the camera.
-- [docs/guide/world-objects.md](/docs/guide/world-objects.md) — windsocks, campfire, camp, power lines.
+- [docs/guide/world-objects.md](/docs/guide/world-objects.md) — windsocks, campfire, camp.
 - [docs/guide/telltale.md](/docs/guide/telltale.md) — the telltale on the control frame cable.
 - [docs/guide/atmosphere.md](/docs/guide/atmosphere.md) — the model of wind, thermals, haze and dangerous weather that
   these cues show.

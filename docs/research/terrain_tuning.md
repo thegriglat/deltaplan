@@ -2,12 +2,13 @@
 type: "research"
 status: "closed"
 module: "air-synth"
-updated: "2026-10-05"
-summary: "Настройка 8 параметров генератора рельефа fs1 (T = 8 млн лет фиксировано) схемой Professor по 367 реальным квадратам 38,4 × 38,4 км (4 detail, 64 far, 299 мест пула air-nn v3), две попытки: χ² по 17 наблюдаемым, облако θ, eigentunes, сравнение с ручными наборами, что дало расширение пределов TUNABLE"
+area: "air"
+updated: "2026-10-15"
+summary: "Настройка 8 параметров генератора рельефа fs1 по 367 квадратам: медиана χ²/ndf 1,47 против 1,79; настроенные θ лучше ручных."
+related: ["docs/research/terrain_statistics.md", "docs/archive/rejected/air-synth.md", "docs/archive/rejected/air-synth-contracts.md", "docs/research/air-model-tune.md"]
 conclusion: "Попытка 2 (пределы k0 5e-7, fourier_amp 1,5, tan_crit 0,35; T = 8 млн лет не настраивается; 160 точек × 4 зерна, 3,8 ядро-часа): медиана χ²/ndf 1,47 против 1,79 в попытке 1 (T свободно, прежние пределы). Настроенные θ лучше ручных наборов §5.4 (Аскарово χ² на наблюдаемую 3,3 против 7,1, Онгудай 2,0 против 4,4) и умолчания. Расширение пределов разгрузило k0 (на границе 21 % вместо 83 %), fourier_amp (47 % вместо 77 %), но tan_crit ушёл на верхнюю границу 0,9 (77 %), diffusion и anisotropy остаются у нижних границ (46 %). Не достигаются: перепад (генератор выше на 1,3σ), плотность русел Dd (+1,5σ), β спектра при 0,4–1 км (+0,6σ), число вершин (занижено на 0,4–0,6σ, особенно ≥ 300 м). Групповые χ²/ndf 13–17 при 9 степенях свободы: одной точкой места не описываются, корпус брать из облака out/theta_cloud.json."
 data: "tools/research/air_synth/tune/out/ (ref_obs.json, ref_obs_pool.json, design.json, runs.jsonl, tune_summary.json, theta_cloud.json, validate.json, manual_vs_tuned.json, cloud_report.md; attempt1/ — первая попытка); код и команды — tools/research/air_synth/tune/README.md"
 applied_in: "не применено: облако θ — вход корпуса air-synth (run_corpus.py --theta-cloud out/theta_cloud.json)"
-related: ["docs/research/terrain_statistics.md", "docs/plan/air-synth.md", "docs/contracts/air-synth.md", "docs/research/air-model-tune.md"]
 ---
 # Настройка генератора рельефа по реальным квадратам (SY-5)
 
@@ -78,7 +79,7 @@ rms (генератор − эталон)/σ = 0,6–2,0 (≥ 1,4 у четыр�
 - Eigentunes (`tune_summary.json: eigentunes[группа]`: θ, σ_u, λ, векторы, точки ±1σ): хорошо определены uplift (σ_u 0,09–0,21) и anisotropy (0,12–0,14); почти не определены fourier_amp (1,0–1,1), tan_crit (0,8–1,6), m_exp (0,6–0,9). Главные оси: пул — fourier_amp (+0,67) с m_exp (+0,56) и k0 (−0,32); game/far — tan_crit (+0,81).
 
 ## 6. Ручные наборы и настроенные θ (попытка 2)
-Средний χ² на наблюдаемую по 17 квадратам места (`manual_vs_tuned.py`; ручные — `terrain_statistics.md` §5.4, но с T = 8 млн лет, как теперь фиксировано в генераторе; умолчание — `TUNABLE[...][2]`; настроенные — подгонка к среднему места):
+Средний χ² на наблюдаемую по 17 квадратам места (`manual_vs_tuned.py`; ручные — [terrain_statistics/generation-methods.md](terrain_statistics/generation-methods.md) §5.4, но с T = 8 млн лет, как теперь фиксировано в генераторе; умолчание — `TUNABLE[...][2]`; настроенные — подгонка к среднему места):
 
 | место | умолчание | ручной | настроенный |
 |---|---|---|---|

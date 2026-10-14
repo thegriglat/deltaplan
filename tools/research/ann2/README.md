@@ -4,7 +4,7 @@ status: "postponed"
 module: "ann2"
 updated: "2026-10-05"
 summary: "Код и команды ann2 (AN-1…AN-4): предел данных, сеть 2,5D-оператор, пилот, AN-4. Отложено 05.10; данные прогонов удалены, таблицы — в out/."
-conclusion: "ann2 лучше P2 на 6–10 %, относительная ошибка ≈ 0,22 при цели 0,10–0,15; предел — постановка или объём данных, не архитектура и не шум цели (docs/plan/ann2.md §0)"
+conclusion: "ann2 лучше P2 на 6–10 %, относительная ошибка ≈ 0,22 при цели 0,10–0,15; предел — постановка или объём данных, не архитектура и не шум цели (docs/archive/rejected/ann2.md §0)"
 data: "out/ (таблицы, метрики, логи); прогоны $AIR_NN_DATA/ann2 удалены 05.10"
 applied_in: "нигде (в игре — сеть P2)"
 related: ["docs/research/ann2_data_limit.md"]
@@ -20,15 +20,15 @@ Python — venv пилота (`/home/greg/deltaplan-air-nn/tools/research/air_nn
 
 ```
 # 1. ошибка сети P2 по клеткам, все наборы (GPU-замок берёт сам скрипт), ~1 мин
-dp job start an1cells 1800 $V eval_cells.py          # → out/cells_cases.json
+.dpcli/dpcli job start an1cells 1800 $V eval_cells.py          # → out/cells_cases.json
 python3 analyze_cases.py                              # → out/tables.json, out/tables.md
 # 2. выборка случаев и пересчёт решателем со всеми снимками (17 с на случай, под замком GPU)
 python3 pick_sample.py                                # → out/sample.json (12), out/sample48.json (56)
-dp job --lock gpu start an1snap48 3000 $V snaps.py --list out/sample48.json   # продолжает после прерывания
+.dpcli/dpcli job --lock gpu start an1snap48 3000 $V snaps.py --list out/sample48.json   # продолжает после прерывания
 # 3. ошибка сети против разброса и дрейфа цели по клеткам
 $V snap_analysis.py && python3 snap_tables.py         # → out/snap_cases.json, out/snap_tables.{json,md}
 # 4. чувствительность цели к сдвигу условий (U10 × 1,02; +1°)
-dp job --lock gpu start an1pert 2400 $V perturb.py --list out/sample.json
+.dpcli/dpcli job --lock gpu start an1pert 2400 $V perturb.py --list out/sample.json
 $V perturb_tables.py                                  # → out/perturb_cases.json, out/perturb_tables.md
 ```
 Вывод и таблицы — `docs/research/ann2_data_limit.md`.
@@ -86,10 +86,10 @@ D = ∂x′u + ∂y′v + ∂ηw − w/H по паре высот (η, 1,15η) �
 cd tools/research/ann2; V=…/.venv/bin/python
 $V tests/test_contract.py                                   # контрактный тест (GPU не нужен)
 $V model.py --count                                         # params_M
-dp lock gpu an2smoke -- $V train.py --smoke --steps 60 --run an2_smoke           # проба, loss_ratio
-dp lock gpu an2eval  -- $V evaluate.py --run an2_smoke --smoke                   # таблица ann2 против P2, p2_selfcheck_diff
-dp lock gpu an2probe -- $V train.py --run an2_probe --steps 400 --batch 16 --max_train 400 --n_val 64
-dp lock gpu an2full  -- $V train.py --run <имя> --steps 40000 --batch 32         # AN-3 (весь набор, ~7 ГБ ОЗУ)
+.dpcli/dpcli lock gpu an2smoke -- $V train.py --smoke --steps 60 --run an2_smoke           # проба, loss_ratio
+.dpcli/dpcli lock gpu an2eval  -- $V evaluate.py --run an2_smoke --smoke                   # таблица ann2 против P2, p2_selfcheck_diff
+.dpcli/dpcli lock gpu an2probe -- $V train.py --run an2_probe --steps 400 --batch 16 --max_train 400 --n_val 64
+.dpcli/dpcli lock gpu an2full  -- $V train.py --run <имя> --steps 40000 --batch 32         # AN-3 (весь набор, ~7 ГБ ОЗУ)
 ```
 Продолжение — тем же `--run` (точка сохранения `ckpt.pt` каждые `--save_every` шагов; `--fresh` — заново).
 Замеры (RTX 4070 SUPER): шаг 115 мс при батче 16 и 123 мс при батче 8 (упирается и в подготовку батча), 163 мс при батче 32
@@ -110,10 +110,10 @@ N случая (в `film_bg.npz` P3E6 есть N_bl и Fr).
 ## Команды
 ```
 V=/home/greg/deltaplan-air-nn/tools/research/air_nn_pilot/.venv/bin/python; cd tools/research/ann2
-dp lock cpu an3bg -- env CUDA_VISIBLE_DEVICES= $V bg_theta.py --out $AIR_NN_DATA/ann2/bg_theta.npz     # ~1 мин, 10 процессов
-dp job --lock gpu start an3lr 4500 $PWD/lr_probe.sh          # пробы lr 5e-4/1e-3/2e-3 по 3000 шагов, батч 32 → out/an3/lr_probe.md (~23 мин)
-dp job --lock gpu start an3 12000 $PWD/run_an3.sh            # 40000 шагов, батч 32, lr 2e-3, косинус, bf16, EMA 0,999 (5818 с = 1,62 ч)
-DP_NO_TMUX=1 dp lock gpu an3eval -- $V evaluate.py --run an3_pilot       # eval.md, metrics.json; p2_selfcheck_diff 0,00003
+.dpcli/dpcli lock cpu an3bg -- env CUDA_VISIBLE_DEVICES= $V bg_theta.py --out $AIR_NN_DATA/ann2/bg_theta.npz     # ~1 мин, 10 процессов
+.dpcli/dpcli job --lock gpu start an3lr 4500 $PWD/lr_probe.sh          # пробы lr 5e-4/1e-3/2e-3 по 3000 шагов, батч 32 → out/an3/lr_probe.md (~23 мин)
+.dpcli/dpcli job --lock gpu start an3 12000 $PWD/run_an3.sh            # 40000 шагов, батч 32, lr 2e-3, косинус, bf16, EMA 0,999 (5818 с = 1,62 ч)
+DP_NO_TMUX=1 .dpcli/dpcli lock gpu an3eval -- $V evaluate.py --run an3_pilot       # eval.md, metrics.json; p2_selfcheck_diff 0,00003
 ```
 Прогон — `$AIR_NN_DATA/ann2/runs/an3_pilot/` (checkpoint 47 МБ вне git); копии eval.md, metrics.json, config.json, train_log.csv, пробы lr — `out/an3/`.
 

@@ -1,13 +1,14 @@
 ---
 type: "research"
-status: "closed"
-module: "flight"
-updated: "2026-10-03"
-summary: "Каталог экспериментальных и эталонных данных для модели воздуха — Единая точка входа: какие данные есть, где лежат, что дают и для чего годятся."
-related: []
-conclusion: ""
-data: ""
-applied_in: ""
+status: "active"
+module: "air-model"
+area: "air"
+updated: "2026-10-15"
+summary: "Каталог данных для калибровки модели воздуха: Askervein, Perdigão, Menke 2019, Lubitz & White; где лежат, что дают, пробелы"
+related: ["docs/research/calibration_data.md", "docs/research/slope_wind.md", "docs/research/air-model-tune.md", "docs/research/air-model-sensitivity.md"]
+conclusion: "Данные для масштаба 1 (разгон над гребнем) закрывают Askervein и Perdigão (мачты, лидары, статистика рециркуляции Menke 2019); для термиков, поверхности и профилей — таблицы в calibration_data.md. Пробелы: нет полевых данных по косому ветру и сравнения нагрева скал и склонов, нейтральный ветер поперёк гряд в Perdigão редок. Bolund не используем (решение пользователя 30.09.2026)."
+data: "tools/research/data/askervein/, tools/research/data/perdigao/ (таблицы и композиты в git, сырьё ~318 МБ вне git); производные — tools/research/tune/out/, tools/research/morris/out/"
+applied_in: "калибровка и проверка модели воздуха: tools/research/tune/, tools/research/morris/, tools/research/recal/"
 ---
 # Каталог экспериментальных и эталонных данных для модели воздуха
 
@@ -35,7 +36,7 @@ applied_in: ""
 | L | Bolund (Bechmann et al. 2011) | пузырь отрыва за уступом 12 м | `calibration_data.md` §2.4, №10 | в тексте | **не используем: нерелевантно низкий уступ (решение пользователя 30.09.2026)** |
 | M | Производные: AM-09 (`tools/research/tune/out/`), Моррис (`tools/research/morris/out/`) | модельные прогоны, не эксперимент | см. §5 | в git | — |
 
-Перекалибровка Askervein (ветка `air/recal`, копия `~/deltaplan-wf-recal`) — в работе; новые числа и файлы здесь не учтены.
+Перекалибровка Askervein (`air/recal`) выполнена 03.10.2026 — итог в `docs/research/air-model-tune.md` (раздел «Перекалибровка (λ/h, α, z0) с профилем RS»), `tools/research/recal/README.md`; числа этого каталога на её результатах не пересобирались.
 
 ## 2. По наборам
 

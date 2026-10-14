@@ -1,6 +1,6 @@
 ---
 type: "reference"
-status: "active"
+status: "closed"
 module: "air-synth"
 updated: "2026-10-04"
 summary: "Код и команды воспроизведения статистик рельефа, разложения на формы и генерации (Fastscape, сумма форм) для air-synth"
@@ -20,7 +20,7 @@ related: ["docs/research/terrain_statistics.md"]
 |---|---|---|---|
 | статистики 4 мест | `.venv/bin/python run_stats.py && .venv/bin/python tables.py` | `stats.json`, `stats_tables.md`, `peaks_*.npz` | ~3 мин |
 | связи prominence, масштабирование перепада | `prom_relations.py`, `relief_scaling.py` | `prom_relations.json`, `relief_scaling.json` | секунды |
-| разложение на формы | `decompose.py` (Pool(18); `dp job start`) | `decomp.json`, `decomp_*.npz` | ~25 мин на 18 ядрах (detail100 — по ~14 мин на задачу) |
+| разложение на формы | `decompose.py` (Pool(18); `.dpcli/dpcli job start`) | `decomp.json`, `decomp_*.npz` | ~25 мин на 18 ядрах (detail100 — по ~14 мин на задачу) |
 | Fastscape (12+12 рельефов) | `run_fastscape.py` | `fastscape_metrics.json`, `fastscape_*.npz` | ~35 с на рельеф на ядро |
 | сумма форм по статистикам | `gen_forms.py` (после decompose) | `forms_gen_*.npz/json` | секунды |
 | сводная таблица, картинки, цена | `compare_tables.py`, `figures.py`, `taskset -c 7 .venv/bin/python timing.py` | `compare_tables.md`, `fig_*.png`, `timing.txt` | |

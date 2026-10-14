@@ -18,4 +18,4 @@ applied_in: "scripts/atmosphere (AirClipmap, AirFieldSet), контракт C7"
 - `seam_plot.py` — график профиля вдоль линии на восток от старта Каянча (Онгудай, 12:00, 3 м/с) через края окон: выборка игры (`AirFieldSet`) и каждый уровень отдельно, на 50 и 300 м над землёй. Вход — CSV GPU-теста.
 - `out/seam_kayancha_h12_U3.csv`, `out/seam_kayancha_h12_U3.png` — данные и рисунок.
 
-**Данные.** `tools/research/air_clipmap/out/`. Выводов в каталоге нет — описание клипмапов в `docs/guide/air-model.md`, контракт C7 — `docs/contracts/air-model.md`.
+**Данные.** `tools/research/air_clipmap/out/`. Выводов в каталоге нет — описание клипмапов в `docs/guide/air-model/field-cpu.md` и `docs/guide/air-model-gpu/clipmap.md`, контракт C7 — `docs/contracts/air-model.md`.

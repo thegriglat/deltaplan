@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "site-i18n"
-updated: "2026-10-05"
-summary: "Контракты модуля site-i18n: языки и URL-схема сайта (en в корне, ru под /ru/), файлы переводов по суффиксу, ключи i18n, ссылки между языками, правила английских текстов, генератор крыльев на два языка."
-related: ["docs/plan/site-i18n.md", "tools/site/check_i18n.py"]
+area: "release"
+updated: "2026-10-15"
+summary: "Языки и URL сайта (en в корне, ru под /ru/), файлы переводов, ключи i18n, ссылки между языками, генератор крыльев (SI-К1–К6)."
+related: ["docs/archive/plan/site-i18n.md", "tools/site/check_i18n.py"]
 contracts: [{"id": "SI-К1", "version": 2}, {"id": "SI-К2", "version": 1}, {"id": "SI-К3", "version": 2}, {"id": "SI-К4", "version": 3}, {"id": "SI-К5", "version": 1}, {"id": "SI-К6", "version": 1}]
 ---
 # Контракты модуля site-i18n
 
-План — `docs/plan/site-i18n.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей).
+План — `docs/archive/plan/site-i18n.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей).
 
 История: v3 SI-К4 и v2 SI-К3 (05.10) — явные id якорей между страницами; подписи галереи en из `captions`. v2 SI-К1/SI-К4 (05.10, по SI-1) — `label` вместо `languageName`, монтирования через `sites.matrix` вместо устаревшего `lang`, редирект Hugo `/en/` допустим, сборка проверяется без `--quiet`.
 Контрактный тест — `python3 tools/site/check_i18n.py [--only=K1,…] [--pages=префикс,…] [--allow-missing]`

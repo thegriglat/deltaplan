@@ -47,3 +47,5 @@ scripts/terrain/variants/_bench/
 
 # Токен отчётов о вылете (кладёт tools/build.sh из ~/.config/deltaplan/crash_report_token)
 /data/crash_report_token.txt
+.read_*
+build/dpcli/

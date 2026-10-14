@@ -1,0 +1,87 @@
+# Конфиг dpcli для Deltaplan (полный список ключей с умолчаниями — .dpcli/dpcli.example.yml).
+project: deltaplan
+main_branch: main
+module_branch: "feature/{module}"
+task_branch: "{module}/{task}"
+
+copies_dir: "~"
+module_copy: "{copies}/{project}-{module}"
+task_copy: "{copies}/{project}-{module}-{task}"
+
+# Новые копии: хуки — абсолютный core.hooksPath (tools/hooks), игнорируемого для переноса нет.
+# Первый запуск Godot в копии — godot --headless --path . --import (делает исполнитель, когда нужен Godot).
+worktree:
+  hooks: true
+  link: []
+  copy: []
+  setup_timeout: 1800
+
+plan_dir: docs/plan
+contracts_dir: docs/contracts
+docs_dir: docs
+
+# Области (area) модулей: чью часть игры закрывает модуль; разделы INDEX.md — в этом порядке.
+# air — модель воздуха и атмосферы; flight — крыло, пилот, управление, физика полёта;
+# world — рельеф, OSM, места, объекты и вид мира; game — UI, HUD, старт, камера, игровой цикл;
+# perf — производительность; net — сеть и совместный полёт; release — сборки, выпуск, магазины, сайт;
+# process — процесс разработки: документация, dpcli, агенты.
+areas: [air, flight, world, game, perf, net, release, process]
+
+checks:
+  # Каждая проверка — со свежим профилем Godot (пачки тестов не делят кэш).
+  env:
+    XDG_DATA_HOME: "{tmpdir}"
+  # Итог run_tests.gd — «N тестов, M упало, K пропущено» (формат по умолчанию dpcli).
+  tests: "godot --headless --path . res://tests/run_tests.tscn -- --filter={filter}"
+  log_dir: build/dpcli
+
+# Скриншоты по задаче — подпапка; для пользователя — в главной копии /home/greg/deltaplan/build/screenshots/<задача>/.
+artifacts_dir: build/screenshots
+
+deliver:
+  keep: [decisions.md, summary.md]
+  archive_tag: "archive/{module}"
+
+# T — реестр TODO.md.
+reserved_codes: [T]
+
+gc:
+  ignore_dirs: [build, __pycache__, .godot]
+  ignore_globs: ["*.uid"]
+
+sem:
+  enabled: true
+  model: bge-m3
+  url: "http://localhost:11434"
+  cache_dir: "~/.cache/dpcli/{project}"
+  globs:
+    - "docs/**/*.md"
+    - "tools/research/**/README.md"
+    - "site/content/diary/**/*.md"
+    - "CHANGELOG.md"
+
+jobs:
+  dir: "~/.cache/dpcli/{project}/jobs"
+  tmux_session: dp
+
+# Замок gpu — /tmp/gpu.lock (у исследовательских скриптов свой GpuLock на /tmp/heat_ca_gpu.lock — см. docs/contracts/docs-rework.md).
+locks: "~/.cache/dpcli/{project}/locks"
+
+agents_dir: .dpcli/agents
+workflow: .claude/workflow.md
+
+docs:
+  extra:
+    - "tools/research/**/README.md"
+    - "tools/research/**/summary.md"
+    - "TODO.md"
+    - "REQUIREMENTS.md"
+  exclude:
+    - "docs/archive/**"
+    - "docs/.obsidian/**"
+  types: [guide, plan, contract, research, reference, journal, registry]
+  statuses: [active, idea, postponed, closed, superseded]
+  max_kb: 40
+  max_kb_mode: error
+  summary_max: 140
+  registries: [research, contracts]

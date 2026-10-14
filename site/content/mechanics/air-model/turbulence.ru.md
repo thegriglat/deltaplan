@@ -57,7 +57,7 @@ description: "Уровень 3 модели воздуха: как из сред
 
 ## Подробнее
 
-- [Модель воздуха в игре](/docs/guide/air-model.md) → «Масштаб 3: возмущения из поля».
+- [Модель воздуха в игре](/docs/guide/air-model/turbulence.md) → «Масштаб 3: возмущения из поля».
 - [Результаты замеров на идеальном рельефе](/docs/research/air_phase_results.md) (срыв за бровкой, огибающая), [исследование болтанки из поля](/tools/research/air_turb/README.md).
 - [Атмосфера](/docs/guide/atmosphere.md) — подветренная зона в упрощённых формулах.
 - Страницы: [модель воздуха](/mechanics/air-model/), [поле ветра: фазы и Пикар](/mechanics/air-model/wind-phases/), [термики](/mechanics/air-model/thermals/).

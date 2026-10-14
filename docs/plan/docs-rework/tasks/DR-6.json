@@ -1,0 +1,61 @@
+{
+  "id": "DR-6",
+  "module": "docs-rework",
+  "type": "dp-writer",
+  "title": "Разбить контракты air-model, air-phase, easter-eggs",
+  "goal": "Контракты air-model (85 КБ), air-phase (56 КБ), easter-eggs (45 КБ) разбиты по D4 на вход и части ≤40 КБ без потери интерфейсов; summary ≤140; пасхалки не на сайте.",
+  "plan_ref": "Разбиение контрактов",
+  "contracts": [
+    {
+      "name": "docs-rework.D2",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    },
+    {
+      "name": "docs-rework.D4",
+      "version": "1",
+      "ref": "docs/contracts/docs-rework.md"
+    }
+  ],
+  "copy": "~/deltaplan-docs-rework-DR-6",
+  "branch": "docs-rework/DR-6",
+  "base": "feature/docs-rework",
+  "scope": [
+    "site/hugo.toml",
+    "site/content",
+    "docs/research",
+    "docs/archive",
+    "docs/contracts"
+  ],
+  "dont_touch": [
+    "docs/INDEX.md",
+    "docs/registry",
+    "docs/guide",
+    "tools"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check docs/contracts/air-model.md docs/contracts/air-model docs/contracts/air-phase.md docs/contracts/air-phase docs/contracts/easter-eggs.md docs/contracts/easter-eggs 2>&1 | grep ОШИБКА | grep -v 'нет файла'; true",
+      "expect": "!re:\\S"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --minify -d \"$(mktemp -d)\" 2>&1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "eggs_off_site",
+      "cmd": "cd site && d=$(mktemp -d) && hugo --minify -d $d >/dev/null 2>&1 && ls $d/docs/contracts 2>/dev/null | grep -i easter; true",
+      "expect": "!re:\\S"
+    },
+    {
+      "name": "contract_tests",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=contract 2>&1 | grep -E \"тестов, [0-9]+ упало\"",
+      "expect": "num:(\\d+) упало <=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T02:13:02"
+}

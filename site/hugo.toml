@@ -67,12 +67,6 @@ disableKinds = ['taxonomy', 'term']
   # Нужен ссылкам и картинкам: относительная ссылка в документе считается от его места в репозитории.
   # Порядок важен: сначала более длинные префиксы.
   [[params.repoMap]]
-    content = 'plans/archive/'
-    repo = 'docs/archive/plan/'
-  [[params.repoMap]]
-    content = 'plans/'
-    repo = 'docs/plan/'
-  [[params.repoMap]]
     content = 'research/findings'
     repo = 'docs/registry/findings'
   [[params.repoMap]]
@@ -98,13 +92,13 @@ disableKinds = ['taxonomy', 'term']
 [[cascade]]
   bookCollapseSection = true
   [cascade.target]
-    path = '{/plans/game,/plans/archive,/plans/archive/*,/research/heat_ca,/research/heat_ca/*,/research/air3d,/research/air3d/*,/research/docs,/docs}'
+    path = '{/research/heat_ca,/research/heat_ca/*,/research/air3d,/research/air3d/*,/research/docs,/docs}'
     kind = 'section'
 # Детали подключённых документов не засоряют боковое меню: они доступны из страниц-оглавлений
 [[cascade]]
   bookHidden = true
   [cascade.target]
-    path = '{/plans/**,/research/docs,/research/docs/**,/research/heat_ca,/research/heat_ca/**,/research/air3d,/research/air3d/**,/research/askervein,/research/askervein/**}'
+    path = '{/research/docs,/research/docs/**,/research/heat_ca,/research/heat_ca/**,/research/air3d,/research/air3d/**,/research/askervein,/research/askervein/**}'
 [[cascade]]
   type = 'posts'
   [cascade.target]
@@ -232,34 +226,18 @@ disableKinds = ['taxonomy', 'term']
     target = 'layouts'
 
   # --- Описания систем и контракты: docs/guide, docs/contracts ---
-  # Не подключены: раздел про пасхалки (в «Объектах мира», контрактах и планах пасхалок) на сайт не выносим.
+  # Не подключены: «Объекты мира» целиком — world-objects.md и его части world-objects/* (раздел про пасхалки, лагерь и людей),
+  # а также контракт пасхалок. Гайды terrain, scene-look и др. разбиты на вход <имя>.md и части <имя>/*.md.
   [[module.mounts]]
     source = '../docs/guide'
     target = 'content/docs/guide'
     sites = { matrix = { languages = ['ru'] } }
-    files = ['! world-objects.md', '*.md']
+    files = ['! world-objects.md', '! world-objects/**', '*.md', '**/*.md']
   [[module.mounts]]
     source = '../docs/contracts'
     target = 'content/docs/contracts'
     sites = { matrix = { languages = ['ru'] } }
-    files = ['! easter-eggs.md', '*.md']
-
-  # --- Планы (живые и отложенные): docs/plan/ ---
-  [[module.mounts]]
-    source = '../docs/plan'
-    target = 'content/plans'
-    sites = { matrix = { languages = ['ru'] } }
-    files = ['! README.md', '! **/README.md', '*.md', '**/*.md']
-  # --- Архив закрытых планов и журналов: docs/archive/plan/ ---
-  [[module.mounts]]
-    source = '../docs/archive/plan'
-    target = 'content/plans/archive'
-    sites = { matrix = { languages = ['ru'] } }
-    files = ['! world-easter-eggs*.md', '! game/README.md', '*.md', '**/*.md']
-  [[module.mounts]]
-    source = '../docs/archive/plan/game/README.md'
-    target = 'content/plans/archive/game/_index.md'
-    sites = { matrix = { languages = ['ru'] } }
+    files = ['! easter-eggs.md', '! easter-eggs/**', '*.md', '**/*.md']
 
   # --- Реестр выводов: docs/registry/findings.md ---
   [[module.mounts]]

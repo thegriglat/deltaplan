@@ -1,10 +1,11 @@
 ---
 type: contract
-status: active
+status: closed
 module: start-camp
-updated: 2026-10-12
-summary: "Контракты start-camp: SC-K1 зона старта (оси, коридор, пятачок вещей, кольцо лагеря), SC-K2 снаряжение у старта StartGear и препятствия, SC-K3 модели вещей и полусобранного аппарата, SC-K4 люди у лагеря (пилот со скелетом вблизи, человечек вдали), SC-K5 ткань лагеря (шейдер), SC-K6 примятая трава."
-related: ["docs/plan/start-camp.md", "docs/guide/world-objects.md", "docs/guide/models.md"]
+area: world
+updated: 2026-10-15
+summary: "Зона старта (SC-K1), снаряжение у старта (SC-K2), модели вещей (SC-K3), люди у лагеря (SC-K4), ткань лагеря и примятая трава (SC-K5–K6)."
+related: ["docs/archive/plan/start-camp.md", "docs/guide/world-objects.md", "docs/guide/models.md"]
 contracts: [{"id": "SC-K1", "version": 1}, {"id": "SC-K2", "version": 1}, {"id": "SC-K3", "version": 1}, {"id": "SC-K4", "version": 2}, {"id": "SC-K5", "version": 1}, {"id": "SC-K6", "version": 1}]
 ---
 # Контракты модуля start-camp

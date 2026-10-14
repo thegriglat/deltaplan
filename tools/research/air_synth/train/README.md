@@ -1,10 +1,10 @@
 ---
 type: "reference"
-status: "active"
+status: "closed"
 module: "air-synth"
 updated: "2026-10-05"
-summary: "SY-11: обучение сети P2 (U-Net + FiLM, без изменений) на счёте решателя по местам дельтаплана (S7 v1): загрузчик S5 v4, ускоренный цикл, оценка, ONNX"
-related: ["docs/contracts/air-synth.md", "docs/plan/air-synth.md", "tools/research/air_nn_pilot/README.md", "tools/research/air_synth/solver/README.md"]
+summary: "SY-11: обучение сети P2 (U-Net+FiLM) на счёте решателя по местам дельтаплана; сеть заменена фазовой сборкой"
+related: ["docs/archive/rejected/air-synth-contracts.md", "docs/archive/rejected/air-synth.md", "tools/research/air_nn_pilot/README.md", "tools/research/air_synth/solver/README.md"]
 ---
 # SY-11: обучение P2 на местах дельтаплана (S7 v1)
 
@@ -55,7 +55,7 @@ cd tools/research/air_synth/train; PY=../../air_nn_pilot/.venv/bin/python       
 $PY -m pytest -q tests                                                           # тесты (CPU; test_recover — на пробном каталоге SY-10)
 $PY s7_cache.py --name hgw24_p2 --workers 8                                      # кеш по готовым частям счёта (повторять по ходу счёта)
 $PY s7_train.py --mode val --cache $AIR_SYNTH_DATA/train/hgw24_p2/cache/hg_v2__hgw24__s0-939a467 --run $AIR_SYNTH_DATA/train/hgw24_p2/val --bench 200   # оценка времени по 200 шагам
-tools/dp job --lock gpu start sy11-all 40000 tools/research/air_synth/train/run_all.sh                                    # весь конвейер (после конца счёта)
+.dpcli/dpcli job --lock gpu start sy11-all 40000 tools/research/air_synth/train/run_all.sh                                    # весь конвейер (после конца счёта)
 ```
 Снимки весов: `ckpt/ep{NNN}.pt` каждые 5 эпох (EMA-веса, val и train loss в файле и в `history.json`), не перезаписываются; рядом `ckpt/best.pt`, `ckpt/last.pt`.
 Финальное (позже): `s7_train.py --mode final --cache <hg_v2> <game2> --run .../final --max-epochs <лучшая эпоха, 1-based> --schedule-epochs 150`.
@@ -66,8 +66,8 @@ tools/dp job --lock gpu start sy11-all 40000 tools/research/air_synth/train/run_
 Оценка по снимкам — `s7_curve.py` (`out/eval_curve.{json,md}`); по holdout медиана убывает до ep130 (0,688 м/с; best ep102: 0,692). Финальное (`run_final.sh`, все места, 130 эпох, ONNX из ep130): 2,12 ч, 120 510 шагов.
 Сравнение со старой сетью игры — `s7_compare.py` (`out/eval_compare_old.{json,md}`, ключ `overlap_old_training`). ONNX: `out/model_hg.onnx` (финал, ep130), `out/model_hg_val.onnx` (первое обучение, best).
 ```bash
-tools/dp job --lock gpu start sy11-a 40000 tools/research/air_synth/train/run_all.sh
+.dpcli/dpcli job --lock gpu start sy11-a 40000 tools/research/air_synth/train/run_all.sh
 $PY s7_curve.py --ckpt-dir $R/val/ckpt --train-cache $HG --holdout-cache $HG --game-cache $GM --out out --device cuda --history $R/val/history.json
-tools/dp job --lock gpu start sy11-final 40000 tools/research/air_synth/train/run_final.sh
+.dpcli/dpcli job --lock gpu start sy11-final 40000 tools/research/air_synth/train/run_final.sh
 $PY s7_compare.py --final-onnx out/model_hg.onnx
 ```

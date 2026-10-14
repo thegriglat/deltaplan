@@ -1,10 +1,11 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "surface-heat"
-updated: "2026-10-10"
-summary: "Контракты surface-heat: SH1 конфиг параметров поверхности, SH2 ядро SurfaceHeat (H по классу и воде), SH3 вход решателя по клеткам (доли классов, влажность, вода), SH4 сила источника термиков из H, SH5 замер до/после"
-related: ["docs/plan/surface-heat.md", "docs/research/surface_params.md", "docs/contracts/air-model.md"]
+area: "air"
+updated: "2026-10-15"
+summary: "Конфиг параметров поверхности (SH1), ядро SurfaceHeat (SH2), вход решателя по клеткам (SH3), сила источника термиков (SH4), замер (SH5)."
+related: ["docs/archive/plan/surface-heat.md", "docs/research/surface_params.md", "docs/contracts/air-model.md"]
 contracts: [{"id": "SH1", "version": 1}, {"id": "SH2", "version": 2}, {"id": "SH3", "version": 1}, {"id": "SH4", "version": 1}, {"id": "SH5", "version": 1}]
 ---
 

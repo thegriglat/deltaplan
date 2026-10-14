@@ -2,21 +2,24 @@
 type: "guide"
 status: "active"
 module: "net"
-updated: "2026-10-03"
-summary: "Сетевой протокол Deltaplan — Единственный источник правды — server/proto/deltaplan/v1/net.proto (пакет deltaplan.v1)."
-related: []
+area: "net"
+updated: "2026-10-15"
+summary: "Сетевой протокол: транспорт, сообщения, роль ведущего, ключ мира, LAN-поиск, примеры JSON и сценарии; правда — net.proto."
+related: ["server/proto/deltaplan/v1/net.proto", "docs/guide/game/network.md", "docs/guide/steam.md", "docs/archive/plan/multiplayer.md"]
 ---
 # Сетевой протокол Deltaplan
 
 Единственный источник правды — `server/proto/deltaplan/v1/net.proto` (пакет `deltaplan.v1`). Этот документ объясняет его простыми словами, показывает пример каждого сообщения и основные сценарии. Если текст и `.proto` расходятся, прав `.proto`.
 
-Все примеры JSON ниже проверяются машинно: `server/proto_examples_test.go` разбирает каждый блок ```` ```json ```` этого файла как `Envelope` (блоки ```` ```json lan-announce ```` — как `LanAnnounce`) и сверяет, что он совпадает с тем, что выдаёт Go `protojson`. Тесты клиента (NET-30) разбирают эти же блоки. Каждый пример стоит под заголовком `#### <ИмяСообщения>`.
+Все примеры JSON ниже проверяются машинно: `server/proto_examples_test.go` разбирает каждый блок ```` ```json ```` этого файла как `Envelope` (блоки ```` ```json lan-announce ```` — как `LanAnnounce`) и сверяет, что он совпадает с тем, что выдаёт Go `protojson`. Тесты клиента (`tests/net/test_messages.gd`, NET-30) разбирают эти же блоки. Каждый пример стоит под заголовком `#### <ИмяСообщения>`.
 
-Генерация Go-кода: `server/gen.sh` (`buf lint` + `buf generate` → `server/gen/deltaplan/v1/net.pb.go`).
+Генерация Go-кода: `server/gen.sh` (`buf lint` + `buf generate` → `server/gen/deltaplan/v1/net.pb.go`). Клиент на GDScript держит ручное зеркало `.proto` в `scripts/net/net_messages.gd` (таблицы `MESSAGES`/`ENUMS`/`ENVELOPE`): новое поле или сообщение добавляют в оба места.
 
 ## Транспорт
 
-- Один WebSocket на клиента: `ws://IP:порт/v1/ws`. В Godot — встроенный `WebSocketPeer`.
+- Один WebSocket на клиента: `ws://IP:порт/v1/ws`. В Godot — встроенный `WebSocketPeer` (`scripts/net/ws_peer.gd`).
+- Соединение клиента — «пир» с интерфейсом сокета (текстовые кадры, состояния, закрытие); тот же кадр `Envelope` ходит по любому транспорту. Кроме WebSocket в игре есть пир поверх Steam Networking Messages (адрес `steam:<steam_id64>`, `scripts/steam/steam_peer.gd`; кадры надёжные, по порядку; `docs/guide/steam.md`) и пара в памяти для тестов (`loopback_peer.gd`).
+- Серверов два с одним контрактом: Go (`server/cmd/deltaplan-server`, `-addr :8080`, плюс `/healthz` и `/v1/status`; проверка пингами раз в 15 с) и встроенный в игру `LocalServer` (`scripts/net/local_server.gd`, GDScript, порт 8080, свой поток; без HTTP-маршрутов; живость — heartbeat WebSocket 60 с). У встроенного сервера смены ведущего нет: выход создателя останавливает сервер и закрывает зону (`docs/guide/game/network.md`).
 - Каждый **текстовый** кадр — ровно одно сообщение `Envelope` в кодировке **proto3 JSON**. В `Envelope` задан ровно один вариант (`hello`, `pilotState`, …).
 - Авторизации нет. Первым сообщением клиент шлёт `Hello`, до `Welcome` остальные сообщения сервер отклоняет (`ERROR_CODE_BAD_MESSAGE`).
 
@@ -89,7 +92,7 @@ related: []
 
 Мир каждый клиент строит сам по полям `Zone`. Чтобы заметить, что у двух клиентов миры разошлись (разные версии генератора мира, разное округление), создатель кладёт в `Zone` два поля:
 
-- `worldKey` — канонический «ключ мира»: все параметры, от которых зависит мир, плюс версия генератора `v`, одной строкой в URL-виде. Ключи по алфавиту, формат чисел фиксирован (`lat`/`lon` точки старта — 5 знаков после точки), все ключи всегда, кроме `slat`/`slon`/`hdg`. Они есть только при точном старте хозяина зоны (SP-К3): `slat`/`slon` — точка старта (5 знаков), `hdg` — курс разбега, градусы (1 знак); точка не притягивается к встроенному старту, а `lat`/`lon` остаются местом. Нет точного старта — этих ключей нет. Версия генератора `v=2`; в примерах ниже стоит `v=1` — они показывают форму, не текущую версию. Часы зоны не входят. Пример: `deltaplan://world?bots=4&date=2026-07-15&from=270&hour=13.00&lat=50.75120&lon=86.12030&seed=4711&sky=clear&temp=26.0&v=1&wind=3.0`. Точный формат задаёт игра (`FlightSettings.world_key(seed, botsCount)`).
+- `worldKey` — канонический «ключ мира»: все параметры, от которых зависит мир, плюс версия генератора `v`, одной строкой в URL-виде. Ключи по алфавиту, формат чисел фиксирован (`lat`/`lon` точки старта — 5 знаков после точки), все ключи всегда, кроме `slat`/`slon`/`hdg`. Они есть только при точном старте хозяина зоны (SP-К3): `slat`/`slon` — точка старта (5 знаков), `hdg` — курс разбега, градусы (1 знак); точка не притягивается к встроенному старту, а `lat`/`lon` остаются местом. Нет точного старта — этих ключей нет. Версия генератора `v=2`; в примерах ниже стоит `v=1` — они показывают форму, не текущую версию. Часы зоны не входят. Пример: `deltaplan://world?bots=4&date=2026-07-15&from=270&hour=13.00&lat=50.75120&lon=86.12030&seed=4711&sky=clear&temp=26.0&v=1&wind=3.0`. Точный формат задаёт игра (`FlightSettings.world_key(seed, botsCount)` → `WorldKey.make`, `scripts/game/world_key.gd`; разбор ключа — `WorldKey.split`/`FlightSettings.from_world_key`).
 - `worldHash` — первые 16 hex-символов (строчные) SHA-256 от `worldKey`; в GDScript `world_key.sha256_text().substr(0, 16)`.
 
 Заполняет клиент создателя (`NetZone.create_zone`), сервер пересылает оба поля как есть и ничего с ними не делает. Вошедший строит мир по `Zone`, считает свой ключ и вызывает `NetZone.check_world(local_key)`: хэши не совпали — сигнал `world_mismatch(expected, actual)` и предупреждение в лог с обоими ключами. `worldHash` пуст (создатель старой версии) — проверка пропускается.

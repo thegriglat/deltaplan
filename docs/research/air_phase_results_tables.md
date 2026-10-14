@@ -2,11 +2,12 @@
 type: "research"
 status: "active"
 module: "air-phase"
-updated: "2026-10-06"
-summary: "air-phase, часть 3, приложение: полные таблицы AP-7…AP-14 (границы фаз и их пересчёт при ω = 0,5, перенос на эрозию, метрики слоёв, RELAX) и вынесенные подробности"
+area: "air"
+updated: "2026-10-15"
+summary: "Приложение к air_phase_results.md: полные таблицы AP-7…AP-14 — границы фаз, пересчёт при ω = 0,5, перенос на рельеф с эрозией"
 conclusion: "Справочное приложение к air_phase_results.md; выводы — там."
 data: "tools/research/air_phase/analysis/<ID>/summary.json, tables.md (AP-14: section.md, tables.md)"
-applied_in: "не применено"
+applied_in: "см. air_phase_results.md"
 related: ["docs/research/air_phase_results.md"]
 ---
 # air-phase, часть 3: приложение — таблицы и подробности

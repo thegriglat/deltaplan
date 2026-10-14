@@ -3,7 +3,7 @@ type: "research"
 status: "closed"
 module: ""
 updated: "2026-09-29"
-summary: "Опыт 2: установившееся без шагов (Пикар + прогонки/многосеточный) — Команды — README.md. Таблицы — out/tables.md, out/results.json; поля — out/runs/*.npz, out/truth/*.npz."
+summary: "Опыт 2, итог: Пикар доходит до неподвижной точки автомата (≤ 10⁻⁴ за 2 ч); схема итерации, точность, время по клеткам 200–25 м"
 related: []
 conclusion: ""
 data: "tools/research/heat_ca/exp2_picard/"

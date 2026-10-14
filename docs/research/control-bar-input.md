@@ -1,15 +1,18 @@
 ---
 type: "research"
-status: "closed"
+status: "active"
 module: "control-bar"
-updated: "2026-10-10"
-summary: "Как подключить самодельную трапецию (абсолютные оси ручки) к игре: готовые HID-решения, датчики, как Godot 4.5+ (SDL3) видит нестандартный джойстик"
-related: []
+area: "flight"
+updated: "2026-10-15"
+summary: "Самодельная трапеция как стандартный USB HID-джойстик с двумя осями: платы, датчики, Godot 4.5+ (SDL3); принято в CB-2/CB-3"
+related: ["docs/archive/plan/control-bar.md", "docs/contracts/control-bar.md", "tools/control_bar/README.md"]
 conclusion: "Поддерживаем стандартный USB HID-джойстик без своего протокола: Godot 4.5+ отдаёт сырые оси неизвестного HID по индексу; самодельщики так и делают (Arduino Leonardo/Pro Micro, FreeJoy). Игре нужны только выбор устройства, оси, инверсия, калибровка."
 data: "tools/research/control-bar/ не создавался; числа — из документации и исходников по ссылкам в тексте"
-applied_in: "не применено: ждёт решения главной сессии по CB-2/CB-3"
+applied_in: "scripts/ui/control_bar_settings.gd (вкладка, CB-2); scripts/game/bar_axis.gd (BarAxis, CB-К2); scripts/game/input_controller.gd; configs/controls.json (gamepad.*); tools/control_bar/README.md (инструкция, CB-3)"
 ---
 # Трапеция как абсолютная ось: протоколы и готовые решения
+
+> Статус 2026-10-15: рекомендация принята. Раздел «Трапеция / джойстик» во вкладке «Управление» и `BarAxis` сданы в CB-2, инструкция — в `tools/control_bar/README.md` (CB-3); описание «Что уже есть в игре» ниже относится к моменту записки (10.10).
 
 Задача CB-1. Решение пользователя: эмулируем только положение ручки (вбок, вперёд-назад); разбег и остальное — клавиатура. Мышь даёт относительные смещения, поэтому для рамы нужен абсолютный путь — джойстик.
 
