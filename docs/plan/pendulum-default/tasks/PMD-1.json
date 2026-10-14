@@ -1,0 +1,72 @@
+{
+  "id": "PMD-1",
+  "module": "pendulum-default",
+  "type": "dp-engineer",
+  "title": "Маятник по умолчанию: конфиг, запасные значения, список, подписи, тесты",
+  "goal": "Режим pendulum — умолчание в конфиге и во всех запасных значениях кода, первым в списке настроек, без пометки «экспериментальный»; подпись вкладки «Аппарат» — по PMD-К1; тесты, зависящие от умолчания, исправлены по смыслу.",
+  "plan_ref": "§PMD-1",
+  "contracts": [
+    {
+      "name": "pendulum-default",
+      "version": "1",
+      "ref": "docs/contracts/pendulum-default.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-default-PMD-1",
+  "branch": "pendulum-default/PMD-1",
+  "base": "feature/pendulum-default",
+  "scope": [
+    "configs/controls.json",
+    "scripts/flight/glider.gd",
+    "scripts/game/input_controller.gd",
+    "scripts/ui/settings_panel.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/game/game.gd",
+    "locale/ui.csv",
+    "tests/"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum",
+    "configs/pendulum.json",
+    "configs/wings",
+    "project.godot",
+    "site",
+    "docs",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "pendulum_default",
+      "tests": "pendulum_default"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "tests/game/",
+      "tests": "tests/game/"
+    },
+    {
+      "name": "tests/net/",
+      "tests": "tests/net/"
+    },
+    {
+      "name": "tests/ui/",
+      "tests": "tests/ui/"
+    },
+    {
+      "name": "roll",
+      "tests": "roll"
+    },
+    {
+      "name": "no-experimental",
+      "cmd": "grep -c -i 'экспериментальн\\|experimental' locale/ui.csv || true",
+      "expect": "num:(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:56:00",
+  "edited": "2026-10-15T04:56:22"
+}
