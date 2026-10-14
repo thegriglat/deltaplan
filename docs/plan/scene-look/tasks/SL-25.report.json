@@ -1,0 +1,81 @@
+{
+  "status": "done",
+  "summary": "SL-К7 v1: горизонт рельефа (бывший relief_shadow_tex R8) упакован в канал A relief_tex, relief_shadow_tex удалён (−1 привязка, −1 выборка в пикселе во всех вариантах); одна текстура просек на ForestImpostors и TreeCrosses вместо двух. Кадры стенда побитово те же, VRAM текстур −16,7 МБ, GPU — без изменений в пределах шума.",
+  "commits": [
+    "672c75d8 горизонт рельефа в канале A relief_tex (SL-К7 v1), одна текстура просек на импостеры и кресты; тесты К7, VERSIONS SL-К7: 1",
+    "0d17dab5 видеопамять (vram_tex_mb, vram_mb) в замере стенда terrain_preview и variant_bench"
+  ],
+  "checks": [
+    {
+      "name": "terrain",
+      "value": "131/131 (пропуск 8), 0 упало",
+      "pass": true
+    },
+    {
+      "name": "vegetation",
+      "value": "45/45, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "scene_look_contracts",
+      "value": "29/29, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "mountain_look",
+      "value": "9/9, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "gpu_tests --filter=terrain_variants",
+      "value": "1/1, без SHADER ERROR",
+      "pass": true
+    },
+    {
+      "name": "gpu_tests --filter=tree_cross",
+      "value": "10/10 (в т. ч. test_hash_matches_cpu — К5 CPU = GPU), без SHADER ERROR",
+      "pass": true
+    },
+    {
+      "name": "gpu_tests --filter=season",
+      "value": "1/1, без SHADER ERROR",
+      "pass": true
+    },
+    {
+      "name": "кадр стенда full до/после (S1,S3,S4 Онгудай; U1 Аушкуль)",
+      "value": "S1/S3/S4: max разница 0 (побитово); U1: max 3, доля >1/255 0,525 % — равно шуму U1 между двумя прогонами базы (0,521 %)",
+      "pass": true
+    },
+    {
+      "name": "test_relief_pack",
+      "value": "RGB = поля, A = горизонт побитово; смена азимута меняет только A",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "built_soft, city_canopy, field_wind, forest_mask не упакованы — по утверждённой v1 (разные сетки/фильтры; forest_mask RG8→RGBA8 удвоил бы 32 МБ)."
+  ],
+  "questions": [
+    "docs (гид рельефа) могут упоминать relief_shadow_tex — docs/ вне моего скоупа, не правил."
+  ],
+  "images": [],
+  "how_to_check": "dp accept SL-25; tools/gpu_tests.sh --filter=terrain_variants / tree_cross / season; кадры: scratchpad sl25/shots.sh + diff.py (до — 8a2c25f7)",
+  "uncertain": [
+    "GPU: выигрыш одной выборки не виден на фоне шума (разброс кругов 0,2–0,4 мс); high full +0,31 и high relief −0,25 мс — шум одного прогона, не эффект. Проверил: 2 круга вперемежку база/после.",
+    "relief в режиме 'relief' (--no-trees) показывает тот же −16,7 МБ — значит, импостеры/кресты создаются и при --no-trees (только скрыты); не проверял глубже.",
+    "Кэш RGBA-байтов relief на CPU (+2,6 МБ детальный, +0,64 МБ фон) — как согласовано; смена азимута пишет A параллельно полосами (slice + замена A), прежняя стоимость.",
+    "test_compute_time_40km один раз упал (3,06 с > 3 с) при параллельных GPU-тестах; отдельно — 1,52 с, в повторном dp accept — зелёный. Шаг textures 0,03 с."
+  ],
+  "dp_feedback": "dp lock gpu ... -- cmd уходит в dp job (tmux) и сразу возвращается — в задании это не сказано, первый раз ждал не то; полезно печатать «ждать: dp job wait <имя>». Не нашёл в dp способа узнать адрес координатора для SendMessage (имя 'scene-look' не резолвится) — пригодилась бы строка в карточке/задании. Нет команды dp для попиксельного сравнения кадров стенда до/после (full_equal_check SL-21 не нашёлся через dp search) — писал свой diff.py.",
+  "packing_table": "relief_tex RGBA8 (сетка relief: дет. 801² × 50 м, фон 401² × 400 м; linear, без мипов): R — влажность, G — AO, B — северность·0,5+0,5 (без изменений), A — горизонт к солнцу / 60° (бывший relief_shadow_tex R8, те же байты). Читают: рельеф (одна выборка), трава relief_at (RGB). CPU — float-массивы TerrainRelief, без изменений. Не упаковка: clear_tex (WorldClearings 4000² L8 × 10 м, nearest) — одна ImageTexture на ForestImpostors и TreeCrosses (Terrain.set_clearings). forest_mask RG8 (К5) — не тронута.",
+  "samplers_before_after": "Шейдер рельефа: sampler-uniform 19 → 18 (relief_shadow_tex удалён); выборок в пикселе −1 во всех вариантах (full/low/low_far/far/min — горизонт читается везде). Импостеры/кресты: привязки те же, но одна текстура вместо двух.",
+  "vram_before_after": "Замер стенда (Онгудай, RENDERING_INFO_TEXTURE_MEM_USED): текстуры 389,6 → 372,9 МБ (−16,7), всего видеопамяти low 499,5 → 482,8, medium 508,4 → 491,7, high 518,3 → 501,7 МБ (−16,7 на всех пресетах). Состав: просеки −15,3 МиБ (4000² L8), relief R8 −0,6 (дет.) −0,15 (фон).",
+  "gpu_table": "variant_bench preset, Онгудай kayancha_south AGL 800, 1920×1080, 2 круга вперемежку, медиана gpu_ms_mean, база 8a2c25f7 → SL-25: low full 4,158 → 4,113 (−0,045); low relief 4,096 → 4,138 (+0,042); medium full 5,717 → 5,778 (+0,061); medium relief 6,145 → 6,155 (+0,009); high full 5,682 → 5,996 (+0,314, круги базы 5,57/5,80, после 5,97/6,02); high relief 6,156 → 5,902 (−0,254). Всё в пределах шума кругов (0,2–0,4 мс); эффект по времени не измерим.",
+  "t": "2026-10-14T16:52:50",
+  "by": "main"
+}

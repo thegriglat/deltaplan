@@ -4,7 +4,7 @@ extends TestCase
 ## полёта. Сезон (test_k2_season_*) — SL-6. SL-К6 — варианты шейдера рельефа (тело terrain_main, #ifndef T_*_OFF).
 
 const DOC := "res://docs/contracts/scene-look.md"
-const VERSIONS := {"SL-К1": 4, "SL-К2": 2, "SL-К4": 2, "SL-К6": 2}
+const VERSIONS := {"SL-К1": 4, "SL-К2": 2, "SL-К4": 2, "SL-К6": 2, "SL-К7": 1}
 const INC := "res://scripts/terrain/scene_look.gdshaderinc"
 const TERRAIN := "res://scripts/terrain/terrain.gdshader"
 ## тело шейдера рельефа (SL-К6): include-ы и строки // SL — здесь; TERRAIN — вариант «full»
@@ -436,7 +436,7 @@ func test_k6_variant_selection() -> void:
 	check(TerrainRenderer.pick_variant(cfg, 0, 2) == "far", "К6: LOD ≥ variant_far_lod — variant_far")
 	check(TerrainRenderer.pick_variant(cfg, 1, 0) == "far", "К6: фоновый слой — variant_far")
 	check(TerrainRenderer.pick_variant({}, 0, 0) == "full", "К6: нет ключей — full")
-	# конфиг: ключи есть, все пресеты сейчас full
+	# конфиг: ключи есть; пресеты задают свой вариант и дальний (SL-23: low/low_far, far)
 	var t: Dictionary = Config.get_config("world").get("terrain", {})
 	check(t.has("variant") and t.has("variant_far") and t.has("variant_far_lod"), "К6: world.json → terrain.variant*")
 	var presets: Dictionary = Config.get_config("game").get("graphics_presets", {})
@@ -447,3 +447,19 @@ func test_k6_variant_selection() -> void:
 		check(pt.has("variant"), "К6: пресет %s задаёт terrain.variant" % p)
 		if pt.has("variant"):
 			check(ResourceLoader.exists(TerrainRenderer.variant_path(String(pt.variant))), "К6: вариант пресета %s есть" % p)
+		if String(pt.get("variant_far", "")) != "":
+			check(
+				ResourceLoader.exists(TerrainRenderer.variant_path(String(pt.variant_far))),
+				"К6: дальний вариант пресета %s есть" % p
+			)
+
+
+# ---------------------------------------------------------------- SL-К7 (упаковка карт рельефа)
+func test_k7_relief_shadow_in_alpha() -> void:
+	var main := _read(TERRAIN_MAIN)
+	check(not main.contains("relief_shadow_tex"), "К7: relief_shadow_tex удалён из рельефа")
+	check(main.contains("hz_deg = rel.a * 60.0"), "К7: горизонт — канал A relief_tex")
+	check(not _read("res://scripts/terrain/terrain_renderer.gd").contains("relief_shadow_tex"), "К7: renderer не ставит relief_shadow_tex")
+	var r := TerrainRelief.new()
+	check(not ("shadow_texture" in r), "К7: у TerrainRelief нет отдельной shadow_texture")
+	check(TerrainRelief.HORIZON_MAX_DEG == 60.0, "К7: A = горизонт / 60°")

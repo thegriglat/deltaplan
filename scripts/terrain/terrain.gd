@@ -436,10 +436,14 @@ func set_clearings(mask: Image, origin: Vector2, cell_m: float) -> void:
 	_clearings = [mask, origin, cell_m]
 	if trees is TerrainTreeModels:
 		(trees as TerrainTreeModels).set_clearings(mask, origin, cell_m)
+	# одна текстура просек на импостеры и кресты (SL-К7 v1: не две копии 4000² в видеопамяти)
+	var tex: ImageTexture = null
+	if impostors != null or crosses != null:
+		tex = ImageTexture.create_from_image(mask)
 	if impostors != null:
-		impostors.set_clearings(mask, origin, cell_m)
+		impostors.set_clearings(mask, origin, cell_m, tex)
 	if crosses != null:
-		crosses.set_clearings(mask, origin, cell_m)
+		crosses.set_clearings(mask, origin, cell_m, tex)
 
 
 ## Город с деревьями-моделями на местах крон (CityTrees): рельеф не рисует кроны на земле там, где маска
@@ -917,9 +921,12 @@ func _compute_reliefs(cfg: Dictionary) -> void:
 	_relief_thread = Thread.new()
 	_relief_thread.start(
 		func() -> Array:
+			# от грубого к детальному: горизонт слоя продолжается по высотам следующего (outer, SL-26)
 			var out: Array[TerrainRelief] = []
-			for k in ls.size():
-				out.append(TerrainRelief.compute(ls[k], cfg, az, k, false))
+			out.resize(ls.size())
+			for k in range(ls.size() - 1, -1, -1):
+				var o: TerrainRelief = out[k + 1] if k + 1 < ls.size() else null
+				out[k] = TerrainRelief.compute(ls[k], cfg, az, k, false, o)
 			return out
 	)
 

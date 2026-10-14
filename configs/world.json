@@ -636,7 +636,7 @@
     "relief_shadow_ambient": 0.35,
     "relief_shadow_ambient_doc": "Доля рассеянного света относительно прямого в тени рельефа (тень не чёрная)",
     "relief_shadow_near_m": [2200, 3000],
-    "relief_shadow_near_m_doc": "Тень рельефа проявляется с этой дальности, м (ближе — тени Godot, sun.shadow_max_distance_m)"
+    "relief_shadow_near_m_doc": "Затемнение цвета тенью рельефа (путь без света scene-look) — с этой дальности, м. Со светом scene-look прямое солнце = min(тень Godot, тень горизонта) на любой дальности: тени Godot от далёких гор бледные (мягкая тень PCSS, затухание к sun.shadow_max_distance_m) — SL-27"
   },
   "surface": {
     "_doc": "Карта поверхности (VR-4, VR-0): классы земного покрова. Из неё же берутся цвет земли (шейдер рельефа), деревья (только на «лесе») и сила источников термиков (Terrain.thermal_source_strength_at). Классы: 1 лес, 2 луг/трава, 3 пашня/поля, 4 кустарник, 5 скалы/голый грунт, 6 вода, 7 застройка, 8 снег/лёд; 0 — нет данных.",
@@ -755,6 +755,8 @@
       "horizon_range_m": 8000,
       "horizon_range_m_doc": "Дальность поиска горизонта к солнцу при клетке 50 м, м",
       "horizon_step_ratio": 1.25,
+      "horizon_outer_step_ratio": 1.08,
+      "horizon_outer_step_ratio_doc": "Шаг луча горизонта (множитель дальности) там, где луч детального слоя идёт дальше по высотам фона — за horizon_range_m и за краем слоя (SL-26): гребни в десятках км, 1,25 их перешагивает",
       "shadow_recompute_deg": 2.0,
       "shadow_recompute_deg_doc": "Пересчёт горизонта (в фоне, ~0,6 с), когда азимут солнца ушёл на столько, градусы"
     },
@@ -1511,10 +1513,12 @@
     "_doc": "Варианты шейдера рельефа (контракт SL-К6, scene-look): дорогие части шейдера выключаются при компиляции, а не флагом. Вариант — scripts/terrain/variants/terrain_<имя>.gdshader (строки #define T_<ЧАСТЬ>_OFF + include тела terrain_main.gdshaderinc), \"full\" — scripts/terrain/terrain.gdshader. Пресеты графики (configs/game.json → graphics_presets.*.configs.world.terrain) задают свой вариант; смена пресета пересобирает материалы (TerrainRenderer), используемые варианты прогреваются при загрузке. Список частей — tools/terrain/variant_bench.py parts, замер «без части» — variant_bench.py run.",
     "variant": "full",
     "variant_doc": "Вариант для ближних LOD детального слоя: имя файла без terrain_ (\"full\" — все части; \"min\" — все выключены, нижняя граница для замера)",
-    "variant_far": "",
+    "variant_far": "far",
     "variant_far_doc": "Вариант для дальних LOD (с variant_far_lod) детального слоя и всего фонового слоя; пусто — как variant",
     "variant_far_lod": 2,
-    "variant_far_lod_doc": "С какого LOD детального слоя действует variant_far (пороги — render.detail.lod_distances_m локации: 1,5/3,5/7/14 км; LOD 2 — дальше ~3,5 км)"
+    "variant_far_lod_doc": "С какого LOD детального слоя действует variant_far (пороги — render.detail.lod_distances_m локации: 1,5/3,5/7/14 км; LOD 2 — дальше ~3,5 км)",
+    "variant_far_fade_k": 0.7,
+    "variant_far_fade_k_doc": "Стык с дальним вариантом (SL-23): части, которых в нём нет (выходы породы, скальная поверхность, рисунок породы, фактура луга, извилины кромок классов), в ближнем гаснут по дальности от этой доли порога LOD variant_far_lod до самого порога — на стыке LOD скачка нет"
   },
   "scene_look": {
     "_doc": "Картинка сочнее (модуль scene-look, контракты SL-К1…К3): ключ <k> → uniform sl_<k> шейдеров рельефа и импостеров (scripts/terrain/scene_look.gdshaderinc, TerrainRenderer.apply_scene_look_params); вложенных объектов нет. Выключатель пункта — <пункт>_enabled; всё выключено — картинка как до модуля. Цвета — линейные RGB (без sRGB).",

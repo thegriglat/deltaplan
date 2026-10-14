@@ -16,6 +16,8 @@ extends RefCounted
 const BANDS := 48
 ## Угол горизонта в R8 текстуре: 0..HORIZON_MAX_DEG.
 const HORIZON_MAX_DEG := 60.0
+## Шаг подсетки дальнего поля горизонта (по высотам outer), узлов своей сетки.
+const OUTER_SUB := 4
 
 var layer_id := ""
 var width := 0
@@ -31,10 +33,14 @@ var ao := PackedFloat32Array()
 var horizon_deg := PackedFloat32Array()
 ## Азимут солнца, для которого посчитан horizon_deg (0 — север, по часовой).
 var horizon_azimuth_deg := NAN
-## RGBA8: R — влажность, G — AO, B — северность·0,5 + 0,5.
+## Поля более грубого слоя, накрывающего этот (детальный → фон): луч горизонта, вышедший за свою
+## дальность или край своей сетки, идёт дальше по его высотам до его дальности (SL-26: без этого
+## детальный слой не видел гор дальше horizon_range_m и за своим краем — тень гор была только на
+## фоне, а вокруг пилота земля светилась). null — луч кончается своей сеткой.
+var outer: TerrainRelief = null
+## RGBA8: R — влажность, G — AO, B — северность·0,5 + 0,5, A — угол горизонта к солнцу /
+## HORIZON_MAX_DEG (SL-К7 v1: бывшая отдельная R8 тени рельефа; смена азимута переписывает только A).
 var texture: ImageTexture
-## R8: угол горизонта к солнцу / HORIZON_MAX_DEG.
-var shadow_texture: ImageTexture
 ## Время расчёта, с.
 var compute_s := 0.0
 ## Время этапов расчёта, с (отладка).
@@ -44,6 +50,8 @@ var _cfg: Dictionary = {}
 var _t_last := 0
 var _gx := PackedFloat32Array()
 var _gz := PackedFloat32Array()
+## Байты texture (RGBA8): A переписывается при смене азимута без пересборки RGB.
+var _rgba := PackedByteArray()
 
 
 ## Посчитать поля слоя. cfg — world.json → surface.relief, sun_azimuth_deg — азимут солнца,
@@ -55,7 +63,8 @@ static func compute(
 	cfg: Dictionary,
 	sun_azimuth_deg: float,
 	layer_index: int = 0,
-	textures: bool = true
+	textures: bool = true,
+	outer_relief: TerrainRelief = null
 ) -> TerrainRelief:
 	var t0 := Time.get_ticks_usec()
 	var r := TerrainRelief.new()
@@ -70,6 +79,7 @@ static func compute(
 	r.cell_m = layer.spacing * s
 	r.origin_x = layer.origin_x
 	r.origin_z = layer.origin_z
+	r.outer = outer_relief
 	r._resample(layer, s)
 	r._lap("resample")
 	r._terrain_pass()
@@ -84,24 +94,38 @@ static func compute(
 	return r
 
 
-## Текстуры полей и горизонта (главный поток).
+## Текстура полей с горизонтом в A (главный поток).
 func make_textures() -> void:
-	update_shadow_texture()
-	texture = ImageTexture.create_from_image(_fields_image())
+	_rgba = _fields_bytes()
+	texture = ImageTexture.create_from_image(
+		Image.create_from_data(width, height, false, Image.FORMAT_RGBA8, _rgba)
+	)
+
+
+## Байты RGBA8 текстуры полей (тесты SL-К7: каналы = исходные поля).
+func texture_bytes() -> PackedByteArray:
+	return _rgba
 
 
 ## Пересчитать горизонт к солнцу для нового азимута (можно из не-главного потока;
-## shadow_texture обновится — вызывать update_shadow_texture в главном).
+## канал A texture обновится — вызывать update_shadow_texture в главном).
+## Луч — по своей сетке до _horizon_range_m() (или до края сетки), дальше — по высотам outer
+## (_outer_horizon): дальние гребни видны и детальному слою (SL-26).
 func recompute_horizon(sun_azimuth_deg: float) -> void:
 	var az := deg_to_rad(sun_azimuth_deg)
 	var dx := sin(az)
 	var dz := -cos(az)
-	var range_m := float(_cfg.get("horizon_range_m", 8000.0)) * maxf(1.0, cell_m / 50.0)
+	var range_m := _horizon_range_m()
 	var ratio := maxf(float(_cfg.get("horizon_step_ratio", 1.25)), 1.01)
 	var offs := _ray_offsets(dx, dz, range_m, ratio)
 	var di: PackedInt32Array = offs[0]
 	var dj: PackedInt32Array = offs[1]
 	var inv: PackedFloat32Array = offs[2]
+	var far := _outer_horizon(dx, dz, offs, range_m)
+	var fa: PackedFloat32Array = far[0]
+	var fb: PackedFloat32Array = far[1]
+	var fw := int(far[2])
+	var fh := int(far[3])
 	var w := width
 	var hh := height
 	var hs := h
@@ -111,6 +135,9 @@ func recompute_horizon(sun_azimuth_deg: float) -> void:
 		var n := di.size()
 		for j in range(j0, j1):
 			var row := j * w
+			var fz := float(j) / OUTER_SUB
+			var jz := mini(int(fz), maxi(fh - 2, 0))
+			var tz := clampf(fz - jz, 0.0, 1.0)
 			for i in w:
 				var h0 := hs[row + i]
 				var best := 0.0
@@ -122,31 +149,147 @@ func recompute_horizon(sun_azimuth_deg: float) -> void:
 					var t := (hs[jj * w + ii] - h0) * inv[k]
 					if t > best:
 						best = t
+				if fw > 1 and fh > 1:
+					# дальнее поле: tan = a − h0·b, a и b билинейно с подсетки
+					var fx := float(i) / OUTER_SUB
+					var ix := mini(int(fx), fw - 2)
+					var tx := clampf(fx - ix, 0.0, 1.0)
+					var q := jz * fw + ix
+					var a := lerpf(lerpf(fa[q], fa[q + 1], tx), lerpf(fa[q + fw], fa[q + fw + 1], tx), tz)
+					var b := lerpf(lerpf(fb[q], fb[q + 1], tx), lerpf(fb[q + fw], fb[q + fw + 1], tx), tz)
+					best = maxf(best, a - h0 * b)
 				out[(j - j0) * w + i] = rad_to_deg(atan(best))
 		return out
 	horizon_deg = _concat_f(_par(height, job))
 	horizon_azimuth_deg = sun_azimuth_deg
 
 
-## Текстура горизонта из horizon_deg (главный поток).
+## Дальнее поле горизонта по высотам outer: на подсетке (каждый OUTER_SUB-й узел) луч от конца
+## своего (дальность сетки или выход за её край) идёт по высотам outer (билинейно, шаг
+## horizon_outer_step_ratio) до outer._horizon_range_m(). Для узла — главный заслон: tan угла
+## = a − h0·b, a = H/s, b = 1/s (H, s — высота и дальность заслона); линейно по h0 — подсетку можно
+## интерполировать на узлы со своими высотами. Возвращает [a, b, ширина, высота подсетки];
+## без outer — пустые (ширина 0).
+func _outer_horizon(dx: float, dz: float, offs: Array, range_m: float) -> Array:
+	if outer == null or outer.h.is_empty():
+		return [PackedFloat32Array(), PackedFloat32Array(), 0, 0]
+	var di: PackedInt32Array = offs[0]
+	var dj: PackedInt32Array = offs[1]
+	var inv: PackedFloat32Array = offs[2]
+	var oh := outer.h
+	var ow := outer.width
+	var ohh := outer.height
+	var oc := outer.cell_m
+	var oox := outer.origin_x
+	var ooz := outer.origin_z
+	var orange := outer._horizon_range_m()
+	var oratio := maxf(float(_cfg.get("horizon_outer_step_ratio", 1.08)), 1.01)
+	var os := PackedFloat32Array()
+	var r := 1.0
+	while r * oc <= orange:
+		if r * oc > cell_m:
+			os.append(r * oc)
+		r = r + 1.0 if r * (oratio - 1.0) < 1.0 else r * oratio
+	var m0 := os.size()
+	for m in os.size():
+		if os[m] > range_m:
+			m0 = m
+			break
+	var fw := ceili((width - 1) / float(OUTER_SUB)) + 1
+	var fh := ceili((height - 1) / float(OUTER_SUB)) + 1
+	var w := width
+	var hh := height
+	var hs := h
+	var c := cell_m
+	var ox := origin_x
+	var oz := origin_z
+	var job := func(j0: int, j1: int) -> PackedFloat32Array:
+		var out := PackedFloat32Array()
+		out.resize((j1 - j0) * fw * 2)
+		var n := di.size()
+		var no := os.size()
+		for sj in range(j0, j1):
+			var j := mini(sj * OUTER_SUB, hh - 1)
+			for si in fw:
+				var i := mini(si * OUTER_SUB, w - 1)
+				var h0 := hs[j * w + i]
+				# где кончается свой луч: край сетки раньше своей дальности — дальше outer
+				var m := m0
+				for k in n:
+					var ii := i + di[k]
+					var jj := j + dj[k]
+					if ii < 0 or jj < 0 or ii >= w or jj >= hh:
+						var cut := 1.0 / inv[k]
+						m = 0
+						while m < no and os[m] < cut:
+							m += 1
+						break
+				var x := ox + i * c
+				var z := oz + j * c
+				var best := -1e9
+				var ba := 0.0
+				var bb := 0.0
+				while m < no:
+					var sm := os[m]
+					m += 1
+					var fx := (x + dx * sm - oox) / oc
+					var fz := (z + dz * sm - ooz) / oc
+					if fx < 0.0 or fz < 0.0 or fx > ow - 1 or fz > ohh - 1:
+						break
+					var ix := mini(int(fx), ow - 2)
+					var iz := mini(int(fz), ohh - 2)
+					var tx := fx - ix
+					var tz := fz - iz
+					var q := iz * ow + ix
+					var hv := lerpf(lerpf(oh[q], oh[q + 1], tx), lerpf(oh[q + ow], oh[q + ow + 1], tx), tz)
+					var t := (hv - h0) / sm
+					if t > best:
+						best = t
+						ba = hv / sm
+						bb = 1.0 / sm
+				if best < -1e8:
+					ba = -1.0   # заслона нет: tan = −1 (ниже любого своего)
+					bb = 0.0
+				var o := ((sj - j0) * fw + si) * 2
+				out[o] = ba
+				out[o + 1] = bb
+		return out
+	var ab := _concat_f(_par(fh, job))
+	var fa := PackedFloat32Array()
+	var fb := PackedFloat32Array()
+	fa.resize(fw * fh)
+	fb.resize(fw * fh)
+	for k in fw * fh:
+		fa[k] = ab[k * 2]
+		fb[k] = ab[k * 2 + 1]
+	return [fa, fb, fw, fh]
+
+
+## Дальность луча горизонта по своей сетке, м: horizon_range_m при клетке 50 м, у грубых — больше.
+func _horizon_range_m() -> float:
+	return float(_cfg.get("horizon_range_m", 8000.0)) * maxf(1.0, cell_m / 50.0)
+
+
+## Горизонт из horizon_deg → канал A текстуры полей (главный поток); RGB не меняются.
 func update_shadow_texture() -> void:
+	if texture == null or _rgba.size() != width * height * 4:
+		make_textures()
+		return
 	var hz := horizon_deg
 	var w := width
+	var src := _rgba
 	var kq := 255.0 / HORIZON_MAX_DEG
 	var job := func(j0: int, j1: int) -> PackedByteArray:
-		var out := PackedByteArray()
-		out.resize((j1 - j0) * w)
+		var out := src.slice(j0 * w * 4, j1 * w * 4)
+		var base := j0 * w
 		for k in range(j0 * w, j1 * w):
-			out[k - j0 * w] = mini(int(hz[k] * kq + 0.5), 255)
+			out[(k - base) * 4 + 3] = mini(int(hz[k] * kq + 0.5), 255)
 		return out
 	var data := PackedByteArray()
 	for b: PackedByteArray in _par(height, job):
 		data.append_array(b)
-	var img := Image.create_from_data(width, height, false, Image.FORMAT_R8, data)
-	if shadow_texture == null or shadow_texture.get_width() != width:
-		shadow_texture = ImageTexture.create_from_image(img)
-	else:
-		shadow_texture.update(img)
+	_rgba = data
+	texture.update(Image.create_from_data(width, height, false, Image.FORMAT_RGBA8, _rgba))
 
 
 ## Влажность 0..1 в точке мира (билинейно).
@@ -438,10 +581,12 @@ func _ray_offsets(dx: float, dz: float, range_m: float, ratio: float) -> Array:
 	return [di, dj, inv]
 
 
-func _fields_image() -> Image:
+func _fields_bytes() -> PackedByteArray:
 	var m := moisture
 	var o := ao
 	var nr := north
+	var hz := horizon_deg
+	var kq := 255.0 / HORIZON_MAX_DEG
 	var w := width
 	var job := func(j0: int, j1: int) -> PackedByteArray:
 		var out := PackedByteArray()
@@ -451,12 +596,12 @@ func _fields_image() -> Image:
 			out[q] = int(clampf(m[k], 0.0, 1.0) * 255.0 + 0.5)
 			out[q + 1] = int(clampf(o[k], 0.0, 1.0) * 255.0 + 0.5)
 			out[q + 2] = int(clampf(nr[k] * 0.5 + 0.5, 0.0, 1.0) * 255.0 + 0.5)
-			out[q + 3] = 255
+			out[q + 3] = mini(int(hz[k] * kq + 0.5), 255)
 		return out
 	var data := PackedByteArray()
 	for b: PackedByteArray in _par(height, job):
 		data.append_array(b)
-	return Image.create_from_data(width, height, false, Image.FORMAT_RGBA8, data)
+	return data
 
 
 ## Размытие поля (нативно: уменьшение и увеличение Image), радиус ~blur_m.

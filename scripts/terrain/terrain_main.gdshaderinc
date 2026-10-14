@@ -15,6 +15,16 @@
 #include "res://scripts/terrain/meadow_look.gdshaderinc"
 #include "res://scripts/terrain/cloud_shadow.gdshaderinc"
 
+// Стык с дальним вариантом (SL-23): части, которых нет в variant_far (выходы породы, скальная
+// поверхность, рисунок породы, фактура луга, извилины кромок классов), гаснут по дальности к порогу
+// его LOD (far_fade_m.y = порог, по 3D-дальности, как выбор LOD по AABB чанка) — на LOD ≥ порога
+// их и так нет, стык без скачка. Задаёт TerrainRenderer; дальнего варианта нет — 1e9 (без гашения).
+uniform vec2 far_fade_m = vec2(1e9, 2e9);
+
+float far_k(float d) {
+	return 1.0 - smoothstep(far_fade_m.x, far_fade_m.y, d);
+}
+
 // шаг между вершинами чанка в узлах сетки (1, 2, 4…) — для нормали вершины (тени)
 uniform float lod_stride = 1.0;  // свой материал на каждый LOD (instance uniform переполняет Compatibility)
 uniform float skirt_depth;      // глубина «юбки», м
@@ -161,8 +171,7 @@ uniform float forest_edge_warp_m = 4.0;       // извилистость кро
 uniform float canopy_dsm_height_m = 10.0;
 #endif
 // --- поля рельефа (TerrainRelief, считаются из DEM при загрузке): R — влажность, G — AO,
-// B — сглаженная северность; горизонт к солнцу (R8, 0..60°) — тень рельефа при низком солнце ---
-uniform sampler2D relief_shadow_tex : filter_linear, repeat_disable;
+// B — сглаженная северность, A — горизонт к солнцу (0..60°, SL-К7) — тень рельефа при низком солнце ---
 uniform float forest_wet_dark = 0.12;    // лес в ложбинах и на северных склонах гуще (темнее)
 uniform float relief_ao_albedo = 0.25;   // AO ложбин в цвете
 uniform float relief_ao_ambient = 0.8;   // AO ложбин в рассеянном свете
@@ -172,11 +181,11 @@ uniform float relief_shadow_ambient = 0.35;   // рассеянный свет �
 uniform vec2 relief_shadow_near_m = vec2(2200.0, 3000.0); // ближе — тени Godot (sun.shadow_max_distance_m)
 uniform vec3 water_color : source_color;
 uniform float water_roughness = 0.08;    // гладь в штиль (зеркало)
-#ifndef T_WATER_WIND_OFF
 // --- вода от ветра (VR-16; configs/world.json → terrain_look: water_*) ---
 uniform float water_rough_wind = 0.32;   // шероховатость при ветре water_wind_full_ms (матовая рябь)
 uniform float water_wind_calm_ms = 0.7;  // до такого ветра — зеркало, м/с
 uniform float water_wind_full_ms = 5.0;  // при таком ветре рябь полная, м/с
+#ifndef T_WATER_WIND_OFF
 uniform float water_ripple_m = 4.0;      // длина мелкой ряби, м (вторая октава — ×3)
 uniform float water_ripple_tilt = 0.18;  // наклон нормали ряби при полном ветре
 uniform float water_gust_rough = 0.35;   // добавка шероховатости в пятне порыва («кошачья лапа»)
@@ -414,7 +423,7 @@ void vertex() {
 			// открытые склоны (не лес — ступеньки крон DSM, не вода/застройка)
 			vec4 swa;
 			vec4 swb;
-			surface_weights(wp.xz, swa, swb);
+			surface_weights_k(wp.xz, far_k(length(vec3(wp.x, h, wp.z) - cam)), swa, swb);
 			ko = (1.0 - swa.x) * (1.0 - swb.y) * (1.0 - swb.z);
 			ks *= ko;
 		}
@@ -750,6 +759,34 @@ float grass_wind_far(vec2 xz, float dist, float foot) {
 }
 #endif
 
+#ifdef T_GRASS_WIND_OFF
+// Подсос над термиками без ветра по траве (замена части GRASS_WIND, SL-23) — цикл термиков из
+// grass_wind (terrain_wind.gdshaderinc), та же картинка у термика.
+void grass_thermals(vec2 xz, float t, float fine, inout float shade, inout vec2 bend) {
+	for (int k = 0; k < wind_thermal_count; k++) {
+		vec4 th = wind_thermals[k];
+		vec2 v = xz - th.xy;
+		float r = length(v);
+		float s = r / max(th.z, 1.0);
+		if (s > thermal_reach) {
+			continue;
+		}
+		float env = th.w * (1.0 - smoothstep(thermal_reach * 0.5, thermal_reach, s))
+				* smoothstep(0.05, 0.35, s);
+		float ang = atan(v.y, v.x);
+		float wob = wind_noise(v / 25.0 + vec2(float(k) * 7.1, t * 0.2));
+		float ph = r / thermal_ring_m + t * thermal_inflow_hz + ang * thermal_arms / 6.2832
+				+ 2.5 * wob;
+		float wave = (0.5 + 0.5 * sin(6.2832 * ph)) * smoothstep(0.2, 0.7, wind_noise(v / 11.0 + 3.7 + t * 0.3));
+		float tw = env * (0.45 + 0.55 * wave * mix(0.6, 1.0, fine)) * thermal_gain;
+		vec2 inward = r > 0.1 ? -v / r : vec2(0.0);
+		vec2 swirl = vec2(-inward.y, inward.x);
+		shade = max(shade, tw);
+		bend = mix(bend, (inward + 0.4 * swirl) * tw, clamp(env, 0.0, 1.0));
+	}
+}
+#endif
+
 #ifndef T_WATER_WIND_OFF
 // Вода от ветра (VR-16): штиль — зеркало; ветер — матовая рябь; в пятнах порывов рябь сильнее
 // («кошачьи лапы»: темнее — меньше отражения неба, против солнца — искрятся); у наветренного
@@ -920,7 +957,8 @@ void fragment() {
 
 	vec4 wa;
 	vec4 wb;
-	surface_weights(wp.xz, wa, wb);
+	float kfar = far_k(dist);   // гашение частей, которых нет в дальнем варианте (стык LOD, SL-23)
+	surface_weights_k(wp.xz, kfar, wa, wb);
 	// Подложка застройки (NO-10): размытая доля detail_built10 вместо квадратов 25 м класса built.
 	if (use_built_soft) {
 		vec2 buv = ((wp.xz - built_soft_origin) / built_soft_spacing + 0.5) / built_soft_texels;
@@ -936,12 +974,11 @@ void fragment() {
 	}
 	// поля рельефа: влажность (−1 сухо … +1 сыро), AO, сглаженная северность, горизонт к солнцу
 	vec4 rel = vec4(0.5, 1.0, 0.5, 0.0);
-	float hz_deg = 0.0;
 	if (use_relief) {
 		vec2 ruv = ((wp.xz - relief_origin) / relief_cell_m + 0.5) / relief_texels;
 		rel = textureLod(relief_tex, ruv, 0.0);
-		hz_deg = textureLod(relief_shadow_tex, ruv, 0.0).r * 60.0;
 	}
+	float hz_deg = rel.a * 60.0;   // SL-К7: горизонт — канал A relief_tex (без полей A = 0)
 	float wet = rel.r * 2.0 - 1.0;
 	float north_s = rel.b * 2.0 - 1.0;
 	// глубина внутри леса 0..1 (затемнение опушки — только внутри)
@@ -1022,7 +1059,7 @@ void fragment() {
 	float kurum = 0.0;
 	float open_w = wa.y + shrub + bare;
 #ifndef T_OUTCROP_OFF
-	if (open_w > 0.01 && outcrop_amount > 0.0) {
+	if (open_w > 0.01 && outcrop_amount > 0.0 && kfar > 0.0) {
 		float convex = smoothstep(0.25, 1.0, v_convex / outcrop_convex_k);
 		float steep = smoothstep(outcrop_slope_deg.x, outcrop_slope_deg.y, slope_deg);
 		float drv = max(convex, steep);
@@ -1041,7 +1078,7 @@ void fragment() {
 			}
 			pn += 0.2 * (brk - 0.5);
 			outcrop = smoothstep(0.5, 0.56, pn + 0.2 * (drv - 1.0)) * smoothstep(0.0, 0.3, drv)
-					* outcrop_amount;
+					* outcrop_amount * kfar;
 			kurum = clamp(smoothstep(0.35, 0.65, vnoise(wp.xz / 160.0 + vec2(3.3, 1.1))
 					+ kurum_share - 0.5) + 0.35 * (steep - convex), 0.0, 1.0);
 		}
@@ -1070,10 +1107,12 @@ void fragment() {
 #endif
 	if (wa.y + wa.w + crop > 0.01) {
 #ifndef T_MEADOW_DETAIL_OFF
-		float painted_k = smoothstep(painted_rocks_fade_m.x, painted_rocks_fade_m.y, dist);
-		gcol = meadow_detail(
-			wp.xz, gcol, foot_m, h, n_class, slope_deg, (1.0 + 6.0 * outcrop) * painted_k
-		);
+		if (kfar > 0.0) {
+			float painted_k = smoothstep(painted_rocks_fade_m.x, painted_rocks_fade_m.y, dist);
+			gcol = mix(gcol, meadow_detail(
+				wp.xz, gcol, foot_m, h, n_class, slope_deg, (1.0 + 6.0 * outcrop) * painted_k
+			), kfar);
+		}
 #endif
 #ifndef T_SL_TRAILS_OFF
 		gcol = sl_trails(gcol, wp.xz, h, n_class, slope_deg, sl_fh, sun_dir, dist); // SL
@@ -1157,6 +1196,17 @@ void fragment() {
 			col = sl_wind_sheen(col, far, wind_far_shade, wind_vec, normalize(CAMERA_POSITION_WORLD - wp)); // SL
 #endif
 		}
+	}
+#else
+	// без колыхания от ветра (порывы, рябь, волны с высоты) остаётся подсос над термиками. Он и
+	// дешёвый (вне термиков — 0 итераций), и нужен компилятору: без этого цикла NVIDIA собирает
+	// весь шейдер хуже — кадр дороже на 0,4–0,7 мс при нулевой работе цикла (SL-23)
+	float sway_w = wa.y + 1.3 * crop + 0.5 * shrub;
+	if (sway_w > 0.01 && dist < wind_fade_m) {
+		float tsh = 0.0;
+		grass_thermals(wp.xz, TIME, 1.0 - smoothstep(wind_fade_m * 0.15, wind_fade_m * 0.5, dist), tsh, grass_bend);
+		col *= 1.0 + wind_shade * tsh * sway_w;
+		grass_bend *= wind_bend * sway_w;
 	}
 #endif
 
@@ -1279,14 +1329,18 @@ void fragment() {
 	if (rock > 0.001) {
 #ifndef T_ROCK_DETAIL_OFF
 		// порода: охра/бурые тона крупными пятнами, светлее/темнее по высоте
-		float rtone = fbm(wp.xz / rock_tone_scale_m + vec2(1.3, 8.8), 3);
-		rcol = mix(rock_color, rock_color2, smoothstep(0.3, 0.7, rtone));
-		rcol *= 0.75 + 0.5 * fbm(wp.xz / 12.0 + vec2(wp.y / 8.0), 3);
-		// горизонтальная слоистость (видна издалека на обрывах)
-		float sy = wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0;
-		float strata = 0.5 + 0.5 * sin(6.2832 * sy / strata_m) * 0.7
-				+ 0.3 * sin(6.2832 * sy / (strata_m * 3.7) + 1.3);
-		rcol *= 1.0 - strata_strength * strata * (1.0 - smoothstep(0.7, 0.95, n_class.y));
+		float rtone = 0.5;
+		if (kfar > 0.0) {
+			rtone = fbm(wp.xz / rock_tone_scale_m + vec2(1.3, 8.8), 3);
+			rcol = mix(rock_color, rock_color2, smoothstep(0.3, 0.7, rtone));
+			rcol *= 0.75 + 0.5 * fbm(wp.xz / 12.0 + vec2(wp.y / 8.0), 3);
+			// горизонтальная слоистость (видна издалека на обрывах)
+			float sy = wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0;
+			float strata = 0.5 + 0.5 * sin(6.2832 * sy / strata_m) * 0.7
+					+ 0.3 * sin(6.2832 * sy / (strata_m * 3.7) + 1.3);
+			rcol *= 1.0 - strata_strength * strata * (1.0 - smoothstep(0.7, 0.95, n_class.y));
+			rcol = mix(rock_color, rcol, kfar);
+		}
 #endif
 #ifndef T_ROCK_TEX_OFF
 		if (use_rock_tex) {
@@ -1312,7 +1366,7 @@ void fragment() {
 #ifndef T_ROCK_DETAIL_OFF
 		// лишайник пятнами на верхних гранях камней
 		float lich = smoothstep(0.55, 0.75, fbm(wp.xz / 7.0 + vec2(wp.y / 5.0, 2.7), 3));
-		rcol = mix(rcol, lichen_color * (0.8 + 0.4 * rtone), lich * lichen_amount * smoothstep(0.3, 0.8, n_class.y));
+		rcol = mix(rcol, lichen_color * (0.8 + 0.4 * rtone), lich * lichen_amount * kfar * smoothstep(0.3, 0.8, n_class.y));
 #endif
 	}
 
@@ -1423,7 +1477,7 @@ void fragment() {
 	float rsw = max(rock, ocw);
 	vec3 rs_n = vec3(0.0);
 #ifndef T_ROCK_SURFACE_OFF
-	float mk = 1.0 - smoothstep(rock_macro_fade_m.x, rock_macro_fade_m.y, dist);
+	float mk = (1.0 - smoothstep(rock_macro_fade_m.x, rock_macro_fade_m.y, dist)) * kfar;
 	if (rsw > 0.001 && mk > 0.0) {
 		// средняя дистанция: тон пятнами 30–150 м, тёмные трещины-кулуары и светлые полосы осыпей
 		// вдоль линии падения, кривизна (гребни светлее, ложбины темнее) — читается без камней
@@ -1611,8 +1665,12 @@ void fragment() {
 #ifndef T_WATER_WIND_OFF
 		water_wind(wp.xz, dist, foot_m, water_rough, nw, ripple);
 #else
-		ripple = 0.0;   // штиль: зеркало
+		// без ряби и порывов: шероховатость по среднему ветру (как вдали у полного — стык LOD без
+		// скачка «зеркало ↔ матовая»), нормаль — гладь
+		ripple = 0.0;
 		nw = vec3(0.0, 1.0, 0.0);
+		water_rough = mix(water_roughness, water_rough_wind,
+				smoothstep(water_wind_calm_ms, water_wind_full_ms, length(wind_vec)));
 #endif
 		col = mix(col, water_color * (1.0 + 0.1 * ripple * fade), water);
 		n = normalize(mix(n, nw, water));
@@ -1642,13 +1700,20 @@ void fragment() {
 	v_sl_ny = n.y; v_sl_ao = AO; v_sl_sun = v_cs_sun; // SL
 	vec2 sl_rs = sl_relief_shadow(use_relief, n, hz_deg, dist, relief_shadow_ambient, relief_shadow_soft_deg, relief_shadow_strength, relief_shadow_near_m); // SL
 	ALBEDO = min(ALBEDO / sl_rs.x, vec3(1.0)); // SL
-	v_cs_sun *= sl_rs.y * sl_canopy_direct(n_class, normalize(CAMERA_POSITION_WORLD - wp), forest * sl_canopy_far(dist)); // SL
+	// SL-27: тень горизонта — отдельно, в light() min с тенью Godot
+	v_sl_relief = sl_rs.y; // SL
+	v_cs_sun *= sl_canopy_direct(n_class, normalize(CAMERA_POSITION_WORLD - wp), forest * sl_canopy_far(dist)); // SL
 #endif
 }
 
 // Встроенное освещение (burley + schlick_ggx), прямое солнце — в тени облаков слабее.
 void light() {
-	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, ATTENUATION, LIGHT_IS_DIRECTIONAL, v_cs_sun,
+	float atten = ATTENUATION;
+#ifndef T_SL_LIGHT_OFF
+	// тень горизонта рельефа и тень Godot — одна тень солнца: берём более тёмную (SL-27)
+	atten = LIGHT_IS_DIRECTIONAL ? min(atten, v_sl_relief) : atten; // SL
+#endif
+	cloud_light(NORMAL, VIEW, LIGHT, LIGHT_COLOR, atten, LIGHT_IS_DIRECTIONAL, v_cs_sun,
 			ALBEDO, ROUGHNESS, METALLIC, v_cs_spec, vec3(0.0), CS_BURLEY, SPECULAR_AMOUNT,
 			DIFFUSE_LIGHT, SPECULAR_LIGHT);
 #ifndef T_SL_LIGHT_OFF
