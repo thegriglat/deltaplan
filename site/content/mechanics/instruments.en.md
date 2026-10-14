@@ -8,7 +8,12 @@ description: "The variometer and its \"90s\" beep, the yaw string on the control
 
 There is no HUD — all flight information comes through instruments that actually hang on the control frame: two
 variometers (a tablet and a separate "90s" display), a string on a wire for the airflow, and sound —
-the variometer beep and the sounds of the flight itself.
+the variometer beep and the sounds of the flight itself. The tablet and the variometer sit on the lower
+crossbar of the control frame (a clamp between the hands, turned toward the eyes); holding Q smoothly moves the gaze
+to them, releasing returns it. The cases look worn: edge wear and dirt in recesses are baked into the model
+vertices, the glass has scratches and smudges (`configs/instruments.json → wear`). In addition, in first person
+a wristwatch (in-game time of day) is visible on the left hand and a liquid compass on the right (magnetic
+declination is not modelled); both are toggled by the "Watch" and "Compass" checkboxes in settings.
 
 ## Variometer
 
@@ -30,10 +35,10 @@ The sound hears **the same filtered value** that the screen shows — the beep a
 
 One flight computer at the centre of the basebar — a generic 6″ e-ink tablet (720×960, portrait,
 high-contrast monochrome, 10 Hz redraw, segmented-LCD style), not tied to any specific
-model. Five pages (keys 1–5): FLIGHT (variometer scale ±5 m/s, average, quality, altitude, time,
+model. Five pages (keys 1–5 directly, Tab — next): FLIGHT (variometer scale ±5 m/s, average, quality, altitude, time,
 air/ground speed, heading), MAP (track, task cylinders, auto-scale; thermals are not shown —
 this is an honest instrument, not a hint), WIND (wind rose, required glide ratio and arrival altitude at the goal),
-TASK (list of waypoints, sound settings), THERMAL (thermal-centring assistant).
+TASK (list of waypoints, race status, variometer sound settings), THERMAL (thermal-centring assistant).
 
 **The centring assistant** uses only what the instrument sees — the filtered variometer and heading, with no
 access to the "real" atmosphere: circling is detected from the smoothed turn rate (≥ 8°/s for at least
@@ -47,12 +52,12 @@ a lower weight). An estimate older than 10 minutes is marked as missing.
 
 ## 1990s variometer
 
-A separate instrument on the control frame upright (`VarioDisplay90s`, `scenes/instruments/vario_90s.tscn`) —
+A separate instrument next to the tablet on the lower crossbar (`VarioDisplay90s`, `scenes/instruments/vario_90s.tscn`) —
 a generic design not tied to a specific brand: an unlit segmented LCD, a ±5 m/s arc with zero
 at the top, large altitude at the bottom, average and time at the sides. Its sensor is slower than the tablet's (τ 1 s,
 20 s average) — like the simple instruments of that era.
 
-![1990s variometer on the control frame upright](/docs/models/screenshots/vario_90s/iso45.png "VarioDisplay90s body")
+![1990s variometer next to the tablet](/docs/models/screenshots/vario_90s/iso45.png "VarioDisplay90s body")
 
 ### Sound — "90s" synthesis
 
@@ -65,20 +70,22 @@ manuals, the general scheme of instruments of that era: as the climb rate grows,
 beep repetition rate** grow, and sink sounds as a separate continuous tone. A specific instrument model
 was deliberately not chosen (the decision is not to tie it to a brand), so the `classic_90s` preset is generic:
 
-- beep 700 → 2000 Hz, 2 → 11 beeps per second, duty cycle 50%;
+- beep 700 Hz (0.1 m/s) → 2000 Hz (10 m/s), 2.1 → 11 beeps per second (period 480 → 90 ms), duty cycle 50%;
 - timbre — a square wave (odd harmonics, like the square signal of a piezo buzzer) plus a piezo resonance
   around 3.2 kHz — this is an engineering estimate of typical properties of piezo beepers of the era, not data from a single instrument;
 - sink tone 650 → 380 Hz.
 
 For comparison there is a modern `xctracer` preset — from the tone table of the real XC Tracer manual
-(0.1 m/s → 400 Hz/1.7 beeps·s⁻¹ … 10 m/s → 1800 Hz/6.7 beeps·s⁻¹, the duty cycle grows from 50% to 70%).
-Between table points — linear interpolation; sink below −2.5 m/s — a continuous 400→220 Hz tone;
+(0.1 m/s → 400 Hz/1.7 beeps·s⁻¹ … 10 m/s → 1800 Hz/6.7 beeps·s⁻¹, the duty cycle grows from 50% to 70%); the preset is chosen on the TASK page of the tablet.
+Between table points — linear interpolation; sink below −2.5 m/s — a continuous 400→220 Hz tone (−2.5 → −10 m/s);
 between the thresholds — silence, hysteresis 0.05 m/s.
 
 So that the beep does not click at buffer joins: the generator phase is continuous between calls, the beep envelope is
-a linear 6–8 ms attack plus smoothing (smoothstep), the frequency glides with a 30 ms time constant, and the
-period and duty cycle are fixed at the start of each beep, within a beep the tone rises slightly (chirp, up to
-4%). On the test bench: 0 buffer underruns at 165, 60, 30 and even 12 frames per second.
+a linear attack plus smoothing (smoothstep): 2/3 ms for `classic_90s`, 6/8 ms for `xctracer`; the frequency glides
+with a 10 ms time constant (`xctracer` — 30 ms), and the period and duty cycle are fixed at the start of each beep.
+`xctracer` raises the tone slightly within a beep (chirp, 4%); `classic_90s` stays flat. The switch-on thresholds
+(climb from 0.1 m/s, sink from −2.5 m/s) and the volume are shared by the presets. On the test bench: 0 buffer
+underruns at 165, 60, 30 and even 12 frames per second.
 
 ## The string on the control frame wire
 
@@ -114,7 +121,7 @@ the wings.
 ## Flight sounds
 
 `FlightAudio` (`scripts/audio/flight_audio.gd`, logic — `FlightSoundMix`) assembles several layers on three
-audio buses (Wind, Effects, Ambient); volume and parameters are in `configs/audio.json`.
+audio buses (Wind, Effects, Ambient; the variometer goes separately, on the Vario bus); volume and parameters are in `configs/audio.json`.
 
 | Layer | Source | What it depends on |
 |---|---|---|
@@ -125,25 +132,27 @@ audio buses (Wind, Effects, Ambient); volume and parameters are in `configs/audi
 | Footsteps, breathing, panting | recordings of footsteps on grass/gravel + breathing | stride length / ground speed; breathing builds up over 4 s of running, panting after stopping |
 | Landing | recordings of falling on grass/ground + a hit on an aluminium tube | landing grade (soft/hard/crash), volume ∝ vertical speed |
 | Meadow, birds, grass, gusts, bells | recordings of a mountain meadow | height above the ground (20–150 m, bells — 50–400 m), wind at the ground |
+| Menu and settings background | mountain wind with gusts and a distant call of a bird of prey every 20–60 s | outside flight only; fades out at launch |
 
-All sounds are CC0 or CC-BY (with authors credited in the credits) from freesound.org and Kenney, the selection and rationale for
+All sounds are CC0 or CC-BY 4.0 (with authors credited in the credits) from freesound.org and Kenney, the selection and rationale for
 each file — [docs/research/sounds.md](/docs/research/sounds.md). The volume is smoothed (0.2 s),
 the low-pass filter on the Wind bus opens with speed (cutoff 800 + 60·V Hz), and the panning shifts with the
 sideslip angle.
 
 ## Model limits
 
-- The string shows lateral flow only to the extent that it exists in the flight model: the flight is
-  without sideslip (the heading follows the airspeed exactly), so in a steady turn the string points straight
-  back — in flight it responds only to the entry into bank (rotation of the attachment point) and to the difference between the wind at the attachment point and at
-  the centre of the wing (turbulence). This was confirmed by the consultant pilot's answer ("in a turn the string points straight
-  back, there is no lateral drift — correct") — it was decided not to add sideslip to the flight model for the sake of a single string;
-  if sideslip appears in the physics itself, the string will respond on its own, without rework.
+- In the "Weight shift" mode (the default) the flight is without sideslip (the heading follows the airspeed exactly),
+  so in a steady turn the string points straight back — it responds only to the entry into bank (rotation of the
+  attachment point) and to the difference between the wind at the attachment point and at the centre of the wing
+  (turbulence). The consultant pilot confirmed: "in a turn the string points straight back, there is no lateral
+  drift — correct"; sideslip was not added to this model for the sake of a single string. In the experimental
+  "Pendulum" mode sideslip arises on its own and the string shows it, with a known error: in a turn the string
+  deflects inward instead of outward (docs/guide/flight.md, "Pendulum"). Bots have no strings.
 - The 90s variometer and its sound are a generic image of the era based on the manuals of several instruments (Flytec, Brauniger),
   not a copy of a specific model; the piezo beeper timbre is an engineering reconstruction, not a measurement of a real
   instrument.
-- The glide path (WIND page) is computed along a straight line as "distance / (altitude − reserve)", without wind and
-  the polar (MacCready) — that is the next step, if needed.
+- The glide path (WIND page) is computed along a straight line as "distance / (altitude − 150 m reserve)", without wind and
+  the polar (MacCready): with a head or tail wind the instrument's required glide ratio is inexact.
 - The flight sounds are a hybrid of ready-made recordings and procedural synthesis; the synthetic version is needed precisely
   because wind recordings stretched in pitch over the whole 20–90 km/h range sound unnaturally
   the same at different speeds.
