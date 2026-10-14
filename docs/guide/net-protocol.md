@@ -5,7 +5,7 @@ module: "net"
 area: "net"
 updated: "2026-10-15"
 summary: "Сетевой протокол: транспорт, сообщения, роль ведущего, ключ мира, LAN-поиск, примеры JSON и сценарии; правда — net.proto."
-related: ["server/proto/deltaplan/v1/net.proto", "docs/guide/game/network.md", "docs/guide/steam.md", "docs/plan/multiplayer.md"]
+related: ["server/proto/deltaplan/v1/net.proto", "docs/guide/game/network.md", "docs/guide/steam.md", "docs/archive/plan/multiplayer.md"]
 ---
 # Сетевой протокол Deltaplan
 

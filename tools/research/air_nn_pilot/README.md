@@ -5,13 +5,13 @@ module: "air-nn"
 area: "air"
 updated: "2026-10-15"
 summary: "Пилот air-nn: сеть U-Net+FiLM как замена решателя поля ветра; в игру сеть вошла и затем заменена фазовой сборкой (AP-21)"
-related: ["docs/plan/air_nn.md", "docs/contracts/air-nn.md", "docs/registry/findings.md"]
+related: ["docs/archive/rejected/air-nn.md", "docs/archive/rejected/air-nn-contracts.md", "docs/registry/findings.md"]
 conclusion: "См. docs/registry/findings.md, раздел air-nn: кодировка и архитектура не узкое место; сеть работала в игре с 1.0.5 и убрана в AP-21 (заменена фазовой сборкой)."
 data: "tools/research/air_nn_pilot/"
 ---
 # Пилот air-nn (этап П): может ли малая сеть заменить решатель поля ветра
 
-План — `docs/plan/air_nn.md` (§8.2, шлюз ШП; правила §3.2–3.4, §4.4–4.6, §5), контракты — `docs/contracts/air-nn.md`
+План — `docs/archive/rejected/air-nn.md` (§8.2, шлюз ШП; правила §3.2–3.4, §4.4–4.6, §5), контракты — `docs/archive/rejected/air-nn-contracts.md`
 (П1 — образец набора, П2 — вход/выход сети, П3 — отчёт). Вопрос пилота: по карте рельефа и числам погоды малая сеть
 (U-Net + FiLM, область 96 × 96 по 400 м) выдаёт поле эталонного решателя AM-01 «как игра» с полезной точностью — в том
 числе на незнакомом рельефе?

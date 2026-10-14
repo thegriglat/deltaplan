@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""SY-8/SY-10: счёт решателя P2 по корпусу рельефов × набору условий -> S5 v2/v4 (docs/contracts/air-synth.md).
+"""SY-8/SY-10: счёт решателя P2 по корпусу рельефов × набору условий -> S5 v2/v4 (docs/archive/rejected/air-synth-contracts.md).
 Решатель и обрамление — как замер H7 (model_place.py S4 + air_nn_pilot/airlite_gen.solve_case: только область 96x96x400 м, решения
 h и m, max_outer и цель «среднее поздних» из configs/dataset.yaml). Условия случая — из таблицы S2 (час, облачность, U10, направление,
 t_max, lat/lon, пояс, месяц/день) — контекст места решателя подменяется на условия случая. Решатель замок GPU сам не берёт:
-запускать под `dp job --lock gpu start <имя> <таймаут> …` (либо --own-lock).
+запускать под `.dpcli/dpcli job --lock gpu start <имя> <таймаут> …` (либо --own-lock).
 
   python solve_corpus.py --relief-corpus ~/air_synth_data/real/p6v3 --conditions ~/air_synth_data/conditions/p6v3_p2c12 --plan real
   python solve_corpus.py --relief-corpus ~/air_synth_data/corpus/fs1_10k --conditions .../fs1_360_p2c12 --plan model

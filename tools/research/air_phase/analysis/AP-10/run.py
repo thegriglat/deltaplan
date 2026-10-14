@@ -44,7 +44,7 @@ EDGE = 5
 GAME_LEE = dict(shadow_angle_deg=12.0, rotor_reverse=0.9, rotor_height_fraction=0.4, depth_scale_m=40.0,
                 relief_scale_m=60.0, shear_layer_m=60.0, wind_reduction=0.6, danger_sink_per_wind=0.7,
                 upwind_distances_m=[60, 150, 300, 600, 1000, 1600])      # configs/atmosphere.json → lee (06.10.2026)
-LIT = {  # литература (docs/plan/air_model_progress.md, AM-08, 01.10.2026; источники — section.md)
+LIT = {  # литература (docs/archive/plan/air-model-progress.md, AM-08, 01.10.2026; источники — section.md)
     "ridge2d_s063_L_over_h": 3.5, "hill3d_s063_L_over_h": 1.6, "perdigao_L_over_h": 2.8,
     "sep_onset_slope_2d": 0.27, "sep_onset_slope_3d": 0.36, "urev_over_U": [-0.2, -0.1],
     "mixing_layer_S": [0.06, 0.11],   # Pope 2000 §5.4: S = (U_c/U_s)·dδ/dx, δ = y_0,9 − y_0,1

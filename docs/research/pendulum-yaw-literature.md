@@ -5,7 +5,7 @@ module: "pendulum"
 area: "flight"
 updated: "2026-10-15"
 summary: "Боковые производные Hiway Demon (Cook): Cnβ 0,0275, голландский шаг 0,92 рад/с, спираль устойчива; в игре Cnβ 0,05"
-related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "docs/research/zheglov-1983.md", "tools/research/pendulum/README.md", "docs/research/glider_models.md"]
+related: ["docs/research/pendulum.md", "docs/archive/plan/pendulum.md", "docs/research/zheglov-1983.md", "tools/research/pendulum/README.md", "docs/research/glider_models.md"]
 conclusion: "Единственный полный набор боковых производных в открытом доступе — Hiway Demon, 10,8 м/с (Cook & Spottiswoode 2005 по трубе Kilkenny, таблица в работе Kochi 2020): Cnβ 0,0275, Clβ −0,322, CYβ −0,226, Clp −0,93, Clr +0,326, Cnr −0,058 (опорные S 16,26 м², b 10 м; Cn = N/(qSb)). Наш Cnβ 0,06 вдвое выше (0,03 — ближе); голландский шаг 0,92 рад/с, ζ 0,29 — из модели Cook (не лётное измерение), спираль в ней устойчива (−0,51 1/с), крен-мода быстрая (≈ −23 1/с). Обратная реакция при смещении веса — «значительная мгновенная» у Cook, «малая» у Ochi; скольжение 30–40° в перекладке источниками не подтверждается (трубные данные линейны по β до 20°); лётных измерений β нет. Чего нет: таблиц самой статьи Cook, диссертации Spottiswoode, Kroo 1983, русских количественных данных."
 data: "таблицы производных и эталонов — в тексте (§2–3); PDF не храним, ссылки в §1"
 applied_in: "configs/pendulum.json (cn_beta 0,05 с ссылкой на Hiway Demon; PD-21, PD-23, PD-24); scripts/flight/pendulum/pendulum_model.gd"
@@ -15,7 +15,7 @@ applied_in: "configs/pendulum.json (cn_beta 0,05 с ссылкой на Hiway De
 
 > Статус 2026-10-15: сверка выполнена в PD-21; Cnβ в игре понижен с 0,06 до 0,05 (PD-23, `configs/pendulum.json`: 0,03 давало перевороты sport в болтанке). Фразы «у нас 0,06» ниже — состояние на 11.10.2026.
 
-Зачем: в прототипе рыскание — «эквивалентный киль» на 1,6 м позади ЦМ крыла, `cn_beta = 0,06` 1/рад (`tools/research/pendulum/pendulum/params.py`), нормировка `Cn = N/(q·S·b)`; параметр отнесён к этапу B (`docs/plan/pendulum.md`, «Что уходит в этап B»). Здесь — что нашлось в открытых источниках за ~1 час поиска (11.10.2026), с оценкой применимости. Сам PDF не хранится, только числа и ссылки.
+Зачем: в прототипе рыскание — «эквивалентный киль» на 1,6 м позади ЦМ крыла, `cn_beta = 0,06` 1/рад (`tools/research/pendulum/pendulum/params.py`), нормировка `Cn = N/(q·S·b)`; параметр отнесён к этапу B (`docs/archive/plan/pendulum.md`, «Что уходит в этап B»). Здесь — что нашлось в открытых источниках за ~1 час поиска (11.10.2026), с оценкой применимости. Сам PDF не хранится, только числа и ссылки.
 
 Соглашения. β — угол скольжения (рад), производные безразмерные, `Cl = L/(qSb)`, `Cn = N/(qSb)`, `CY = Y/(qS)`; по p, r — на `pb/2U`, `rb/2U` (американская форма; в Kochi пересчитано из британской по Cook, *Flight Dynamics Principles*, гл. 13). Оси — важны (см. Kroo ниже): в таблице Hiway Demon — оси связанные с крылом/устойчивые, как в стандартной линеаризации; Kroo предупреждает, что Cnβ и Clβ у дельтапланов сильно зависят от выбранных осей.
 

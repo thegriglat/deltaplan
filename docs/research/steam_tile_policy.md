@@ -5,7 +5,7 @@ module: "steam-assets"
 area: "release"
 updated: "2026-10-15"
 summary: "Карта выбора старта и правила OSM/OpenTopoMap: из 3 нарушений закрыты User-Agent с версией, пауза после 403/429, 2 потока OSM."
-related: ["docs/plan/steam-assets.md", "docs/contracts/start-map.md", "docs/research/terrain_sources.md"]
+related: ["docs/archive/plan/steam-assets.md", "docs/contracts/start-map.md", "docs/research/terrain_sources.md"]
 conclusion: "Подложку не меняем. Критичны: User-Agent с «non-commercial» (для платной игры неверен, контакта нет) и повторные запросы упавших тайлов при каждой перерисовке. Список правок — ниже, код в этой задаче не правился."
 data: ""
 applied_in: "SA-8: configs/world.json (map_picker: user_agent с {version}, retry_after_s, blocked_backoff_s, max_parallel osm = 2), scripts/terrain/raster_tile_loader.gd"

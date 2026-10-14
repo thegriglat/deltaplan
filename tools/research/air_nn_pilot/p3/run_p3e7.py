@@ -2,7 +2,7 @@
 """P3E7: U-FNO вместо U-Net — обучение на 100 местах (задача E0 = v0_ctrl без изменений, кроме сети), оценка, обучающие,
 таблица E0 / E1 / E7.  Запуск: .venv_fno/bin/python p3/run_p3e7.py [--probe]
   --probe — 1 эпоха (каталог probe_v7_fno), без оценки. Готовое пропускается (manifest.json); обучение — с чекпойнта.
-GPU — замком пилота внутри train/evaluate (тот же файл, что `dp lock gpu`); сам запуск — `dp job --lock gpu start`."""
+GPU — замком пилота внутри train/evaluate (тот же файл, что `.dpcli/dpcli lock gpu`); сам запуск — `.dpcli/dpcli job --lock gpu start`."""
 from __future__ import annotations
 
 import argparse, copy, json, os, subprocess, sys, time

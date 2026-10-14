@@ -1,6 +1,6 @@
 ## AP-18: «фазы + Пикар» — спецификация для переноса в игру (счёт против Пикара не проводился)
 
-Воспроизведение (тесты и подготовка): `$PY -m pytest -q tools/research/air_phase/tests/test_hybrid.py` и `dp lock gpu t -- $PY -m pytest -q tools/research/air_phase/tests/test_batch_solver.py -k v6`; подготовка по SY-12 — `bash tools/research/air_phase/hybrid/run_all.sh prep` (`$PY` = `/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python`).
+Воспроизведение (тесты и подготовка): `$PY -m pytest -q tools/research/air_phase/tests/test_hybrid.py` и `.dpcli/dpcli lock gpu t -- $PY -m pytest -q tools/research/air_phase/tests/test_batch_solver.py -k v6`; подготовка по SY-12 — `bash tools/research/air_phase/hybrid/run_all.sh prep` (`$PY` = `/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python`).
 
 **Статус.** Пользователь решил прототип на Python не доводить. Сравнение с холодным Пикаром (итерации, сходимость, слои)
 не считалось: счёт стоял в очереди GPU и был остановлен. Поля P9 в `summary.json` пустые (`null`),

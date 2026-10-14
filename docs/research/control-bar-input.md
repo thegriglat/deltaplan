@@ -5,7 +5,7 @@ module: "control-bar"
 area: "flight"
 updated: "2026-10-15"
 summary: "Самодельная трапеция как стандартный USB HID-джойстик с двумя осями: платы, датчики, Godot 4.5+ (SDL3); принято в CB-2/CB-3"
-related: ["docs/plan/control-bar.md", "docs/contracts/control-bar.md", "tools/control_bar/README.md"]
+related: ["docs/archive/plan/control-bar.md", "docs/contracts/control-bar.md", "tools/control_bar/README.md"]
 conclusion: "Поддерживаем стандартный USB HID-джойстик без своего протокола: Godot 4.5+ отдаёт сырые оси неизвестного HID по индексу; самодельщики так и делают (Arduino Leonardo/Pro Micro, FreeJoy). Игре нужны только выбор устройства, оси, инверсия, калибровка."
 data: "tools/research/control-bar/ не создавался; числа — из документации и исходников по ссылкам в тексте"
 applied_in: "scripts/ui/control_bar_settings.gd (вкладка, CB-2); scripts/game/bar_axis.gd (BarAxis, CB-К2); scripts/game/input_controller.gd; configs/controls.json (gamepad.*); tools/control_bar/README.md (инструкция, CB-3)"

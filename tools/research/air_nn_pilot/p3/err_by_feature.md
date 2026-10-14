@@ -485,6 +485,6 @@
 Воспроизведение:
 ```
 cd tools/research/air_nn_pilot
-/home/greg/deltaplan/tools/dp lock cpu .venv/bin/python p3/err_by_feature.py collect
+/home/greg/deltaplan/.dpcli/dpcli lock cpu .venv/bin/python p3/err_by_feature.py collect
 .venv/bin/python p3/err_by_feature.py report
 ```

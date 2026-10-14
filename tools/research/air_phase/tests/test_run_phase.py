@@ -1,7 +1,7 @@
 """AP-3: run_phase.py — запись P3, продолжение после обрыва, тёплые цепочки (ckpt, фантомы), bubble.
 
 Заглушка решателя (искусственные поля, детерминированные; состояние цепочки накапливается) проверяет каркас без GPU;
-тест с настоящим `batch_solver` (если есть) — короткий счёт max_outer = 150 мини-плана (запускать под `dp lock gpu`).
+тест с настоящим `batch_solver` (если есть) — короткий счёт max_outer = 150 мини-плана (запускать под `.dpcli/dpcli lock gpu`).
 """
 from __future__ import annotations
 
@@ -277,7 +277,7 @@ def test_bubble_analytic():
     assert b0["has_reverse"] == 0 and b0["shadow_angle_deg"] == -1
 
 
-# ------------------------------------------------------------------ настоящий решатель (GPU, под dp lock gpu)
+# ------------------------------------------------------------------ настоящий решатель (GPU, под .dpcli/dpcli lock gpu)
 def _real_solver():
     if importlib.util.find_spec("cupy") is None or not (HERE.parent / "batch_solver.py").exists():
         return None

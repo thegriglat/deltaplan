@@ -7,7 +7,7 @@ updated: "2026-10-04"
 summary: "Сумма форм: 30 форм дают 92–96 % дисперсии на 400 м, вершин в 3–7 раз меньше; у Fastscape в 1,5–6 раз меньше."
 conclusion: "Fastscape совпадает с реальным по перепаду, std, уклонам, плотности русел и спектру 1–10 км, но даёт меньше вершин prominence ≥ 30–100 м; сумма форм — слишком гладкие склоны (средний уклон на 400 м 1,7° против 2,8° у Аскарова)."
 data: "tools/research/air_synth/terrain_stats/out/ (stats_tables.md, compare_tables.md, decomp.json, fastscape_metrics.json, forms_gen_metrics.json); код — tools/research/air_synth/terrain_stats/README.md"
-applied_in: "в игре напрямую нет: вход генератора корпуса air-synth (docs/plan/air-synth.md §2)"
+applied_in: "в игре напрямую нет: вход генератора корпуса air-synth (docs/archive/rejected/air-synth.md §2)"
 related: ["docs/research/terrain_statistics.md"]
 ---
 # Замеры на 4 реальных местах игры: методы, разложение на формы, распределения параметров форм, Fastscape и сумма форм против реального

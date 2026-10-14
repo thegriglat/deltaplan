@@ -1,5 +1,5 @@
 #!/bin/bash
-# SY-11: полный конвейер S7 (после конца счёта SY-10). Запуск: tools/dp job --lock gpu start sy11-all 40000 tools/research/air_synth/train/run_all.sh
+# SY-11: полный конвейер S7 (после конца счёта SY-10). Запуск: .dpcli/dpcli job --lock gpu start sy11-all 40000 tools/research/air_synth/train/run_all.sh
 # Стадии идемпотентны: кеш — по готовым частям, обучение продолжается с last.pt, готовые результаты пропускаются.
 set -euo pipefail
 cd "$(dirname "$0")"

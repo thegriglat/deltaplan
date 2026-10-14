@@ -5,7 +5,7 @@ module: "motion-rig"
 area: "game"
 updated: "2026-10-15"
 summary: "Вывод движения пилота на платформы подвижности по UDP (SRS API v102, свой DPMR): величины, знаки, поток, настройки, проверки, границы."
-related: ["docs/contracts/motion-rig.md", "docs/research/motion-rig-protocols.md", "docs/plan/motion-rig.md", "tools/motion_rig/README.md"]
+related: ["docs/contracts/motion-rig.md", "docs/research/motion-rig-protocols.md", "docs/archive/plan/motion-rig.md", "tools/motion_rig/README.md"]
 ---
 # Вывод движения на платформу подвижности
 

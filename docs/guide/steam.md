@@ -5,7 +5,7 @@ module: "steam"
 area: "release"
 updated: "2026-10-15"
 summary: "Steam: SteamService, ачивки, присутствие, лобби и сеть, облако; включение, тест на App ID 480, ручные проверки, ограничения."
-related: ["docs/plan/steam.md", "docs/contracts/steam.md", "docs/research/steam_godotsteam.md", "steam/partner/README.md", "docs/guide/game/network.md"]
+related: ["docs/archive/plan/steam.md", "docs/contracts/steam.md", "docs/research/steam_godotsteam.md", "steam/partner/README.md", "docs/guide/game/network.md"]
 ---
 # Steam в Deltaplan
 

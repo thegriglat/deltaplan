@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SY-3: условия для сети (контракт S2 v1, docs/contracts/air-synth.md).
+"""SY-3: условия для сети (контракт S2 v1, docs/archive/rejected/air-synth-contracts.md).
 
 Распределения исходных условий — как у случаев P2 (air_nn_pilot/airlite_gen.plan_rows + places.context):
 час 9/12/15/20, облачность clear/partly/overcast, U10 0,5–8 м/с (штиль не берём), откуда дует 0–360°, t_max 18–34 °C,

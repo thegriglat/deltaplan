@@ -4,7 +4,7 @@ status: "closed"
 module: "air-synth"
 updated: "2026-10-05"
 summary: "Реальные места air-nn v3 (360 + 4 места игры) в корпусе S1 v3 (HDF5): конвейер П6, упаковка, команды воспроизведения"
-related: ["docs/contracts/air-synth.md", "docs/plan/air-synth.md"]
+related: ["docs/archive/rejected/air-synth-contracts.md", "docs/archive/rejected/air-synth.md"]
 ---
 # SY-6: реальные места air-nn v3 в корпусе S1 v3 (HDF5)
 

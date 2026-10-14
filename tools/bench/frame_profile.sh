@@ -8,9 +8,9 @@
 #   пример: tools/bench/frame_profile.sh build/perf/run1 "low medium high" "ongudai altai" --sample=2
 # Профиль Godot — временный (XDG_DATA_HOME в out_dir/xdg_<пресет>). Нужен дисплей (DISPLAY=:0);
 # SKIP_FLY=1 — без прогона «полёт»; TAG_SUFFIX — к именам файлов отметок.
-# вызывать под `dp lock gpu` / `dp job --lock gpu`. Итог — tools/bench/frame_profile_report.py <out_dir>.
+# вызывать под `.dpcli/dpcli lock gpu` / `.dpcli/dpcli job --lock gpu`. Итог — tools/bench/frame_profile_report.py <out_dir>.
 set -uo pipefail
-trap 'kill 0' TERM INT  # dp job stop — не оставлять godot сиротой
+trap 'kill 0' TERM INT  # .dpcli/dpcli job stop — не оставлять godot сиротой
 cd "$(dirname "$0")/../.."
 out=${1:?out_dir}; presets=${2:-medium}; locs=${3:-ongudai}; shift 3 || true
 mkdir -p "$out"

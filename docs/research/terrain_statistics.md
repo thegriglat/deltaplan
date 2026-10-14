@@ -7,8 +7,8 @@ updated: "2026-10-15"
 summary: "Горный рельеф 40 × 40 км, 4 места: Fastscape ближе к реальному, чем сумма форм (вершин в 1,5–6 раз меньше); сводка и 5 частей."
 conclusion: "Сумма форм (гребни, пупыри) описывает крупную структуру (30 форм — 92–96 % дисперсии на 400 м), но даёт в 3–7 раз меньше вершин и слишком гладкие склоны. Fastscape (SPL + диффузия + тепловая эрозия, 100 м → 400 м) воспроизводит перепад, уклоны (p99 ≈ 35° на 100 м у Онгудая), плотность русел, спектр 1–10 км, но даёт в 1,5–6 раз меньше вершин prominence ≥ 30–100 м, чем центральный квадрат detail, и не даёт вытянутых структурных хребтов; цена 6,4 с на рельеф 384² на ядро. Рекомендация: Fastscape с полем поднятия из форм плана и неоднородными породами; суммы форм — для чистых случаев."
 data: "tools/research/air_synth/terrain_stats/out/ (stats_tables.md, compare_tables.md, decomp.json, fastscape_metrics.json, forms_gen_metrics.json, fig_compare.png, fig_curves.png); код и команды — tools/research/air_synth/terrain_stats/README.md"
-applied_in: "в игре напрямую нет; вход генератора корпуса fs1 (tools/research/air_synth/corpus/generator.py, docs/plan/air-synth.md §2)"
-related: ["docs/plan/air-synth.md", "docs/research/terrain_sources.md", "docs/plan/ann2.md", "docs/research/terrain_tuning.md"]
+applied_in: "в игре напрямую нет; вход генератора корпуса fs1 (tools/research/air_synth/corpus/generator.py, docs/archive/rejected/air-synth.md §2)"
+related: ["docs/archive/rejected/air-synth.md", "docs/research/terrain_sources.md", "docs/archive/rejected/ann2.md", "docs/research/terrain_tuning.md"]
 ---
 # Статистика горного рельефа для генератора air-synth
 

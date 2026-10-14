@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # QL-9: замер признаков ThermalSigns «после» тем же стендом, что QL-5 (4 места × 13:00/15:00 × 2 точки, 600 с мира).
-#   dp job --lock gpu start ql9 3300 tools/research/qol_signs/run9.sh
+#   .dpcli/dpcli job --lock gpu start ql9 3300 tools/research/qol_signs/run9.sh
 # GPU-поле («фазы + Пикар») → out/s9_gpu_<место>_<час>.json; затем summarize9.py дописывает раздел qol9
 # в summary_numbers.json (чужие разделы не трогает).
 set -uo pipefail

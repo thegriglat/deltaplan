@@ -4,14 +4,14 @@ status: "active"
 module: "pendulum"
 updated: "2026-10-11"
 summary: "Прототип «честного маятника» на Python: крыло — тело с 16 полосами, пилот — точка на цепи из N звеньев (XPBD), руки с пределом силы"
-related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "docs/guide/flight.md"]
+related: ["docs/research/pendulum.md", "docs/archive/plan/pendulum.md", "docs/guide/flight.md"]
 conclusion: "Тангаж и трим получаются честно (трим ±0,3 км/ч, снижение = поляра, фугоида сама затухает, чувствительность к подвеске ≈ 1–2 км/ч на см — как в руководствах); крен жёсткого крыла от одного смещения ЦМ в 3–5 раз медленнее игры, спираль слабо неустойчива, без скольжения (этап A) самовыравнивания нет и счёт неустойчив в болтанке — нужен минимальный этап B и гибкость паруса."
 data: "tools/research/pendulum/out/"
-applied_in: "docs/research/pendulum.md, docs/plan/pendulum.md"
+applied_in: "docs/research/pendulum.md, docs/archive/plan/pendulum.md"
 ---
 # Прототип маятника (модуль pendulum)
 
-Вывод и разбор — [docs/research/pendulum.md](../../../docs/research/pendulum.md), план — [docs/plan/pendulum.md](../../../docs/plan/pendulum.md).
+Вывод и разбор — [docs/research/pendulum.md](../../../docs/research/pendulum.md), план — [docs/archive/plan/pendulum.md](../../../docs/archive/plan/pendulum.md).
 
 ## Что здесь
 | Файл | Что |
@@ -33,12 +33,12 @@ applied_in: "docs/research/pendulum.md, docs/plan/pendulum.md"
 PY=/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python   # numpy + matplotlib (не коммитится)
 cd tools/research/pendulum
 # весь план (283 запуска, ≈ 25 мин на 16 процессах; продолжает с места после прерывания)
-/home/greg/deltaplan/tools/dp job start pd-proto 3600 systemd-run --user --scope -p MemoryMax=12G -q \
+/home/greg/deltaplan/.dpcli/dpcli job start pd-proto 3600 systemd-run --user --scope -p MemoryMax=12G -q \
   $PY run_all.py --jobs 16
 $PY run_all.py --only reversal/sport   # часть плана по подстроке id
 $PY report.py                          # таблицы, сводка, графики
 python3 estimates.py                   # оценки 05.10
-/home/greg/deltaplan/tools/dp job start pd12-calib 3000 systemd-run --user --scope -p MemoryMax=12G -q $PY calibrate_classes.py --jobs 7   # PD-12, ≈ 20 мин; --verify, --levers — см. выше
+/home/greg/deltaplan/.dpcli/dpcli job start pd12-calib 3000 systemd-run --user --scope -p MemoryMax=12G -q $PY calibrate_classes.py --jobs 7   # PD-12, ≈ 20 мин; --verify, --levers — см. выше
 ```
 Шаг физики как в игре — 1/120 с (`configs/sim.json → physics_hz`), 4 подшага XPBD, N = 3 звена, 16 полос — по умолчанию.
 

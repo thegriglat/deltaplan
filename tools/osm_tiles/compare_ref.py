@@ -5,7 +5,7 @@
                            [--ref-dir DIR] [--json out.json]
 
 Код 0 — все проверки PASS, 1 — есть FAIL. Допуски — в TOL ниже
-(docs/plan/osm-tiles.md, «Допуски сверки с эталоном (этап 1)»).
+(docs/archive/plan/osm-tiles.md, «Допуски сверки с эталоном (этап 1)»).
 
 Набор тайлов сравнения: без --cover — только тайлы эталона с inside=true (у Алматы флага нет — все 25);
 с --cover (вывод `osmtiles cover`, строки «j i») — тайлы эталона, пересекающие .poly; cover ограничивается

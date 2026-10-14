@@ -14,7 +14,7 @@
   Берётся худшее из m и h.
 - Применимость: линейная проекция на общие формы; в ошибку не входит ошибка самой сети (она сложится с ней), цель
   в кеше — float16 (K = 13 даёт p90 ≤ 0,001 м/с — это потолок точности кеша).
-- Воспроизведение: `cd tools/research/air_nn_pilot && dp lock cpu nnp10 --timeout 1800 -- .venv/bin/python p3/pod.py --enc v4`
+- Воспроизведение: `cd tools/research/air_nn_pilot && .dpcli/dpcli lock cpu nnp10 --timeout 1800 -- .venv/bin/python p3/pod.py --enc v4`
   (≈ 1,5 мин, 4 процесса, ОЗУ < 2 ГБ); числа — `p3/out/pod_v4.json`, формы — `$AIR_NN_DATA/pilot/p3/NN-P10/pod_v4.npz`
   (`mean [7,13]`, `phi [7,8,13]`).
 
@@ -49,7 +49,7 @@ p90 ≈ 0,23–0,25 м/с (медиана 0,06) — выше порога 0,1 (�
 в тонких слоях у земли/в ядре ротора, их проекция на гладкие формы не передаёт. упаковка (v4, справочно): нет
 
 ## v5 (9 величин, γ = 1 — `base.target_v5` как есть): K → ошибка ветра на 60 м, м/с
-Команда: `dp lock cpu nnp10v5 --timeout 3000 -- tools/research/air_nn_pilot/p3/run_v5.sh` (≈ 7 мин, 4 процесса);
+Команда: `.dpcli/dpcli lock cpu nnp10v5 --timeout 3000 -- tools/research/air_nn_pilot/p3/run_v5.sh` (≈ 7 мин, 4 процесса);
 числа — `p3/out/pod_v5.json`, `p3/out/pod_v5_g0.json`; формы — `$AIR_NN_DATA/pilot/p3/NN-P10/pod_v5.npz`
 (`mean [9,13]`, `phi [9,8,13]`). Обратное преобразование — `base.to_physical_v5` (база по `linear_base`).
 

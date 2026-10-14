@@ -5,7 +5,7 @@ module: "air-model"
 area: "air"
 updated: "2026-10-15"
 summary: "Обтекание склона: в эвристике нет разгона на бровке и полоса подъёма 250 м; варианты A–D; вместо них — поле Пикара"
-related: ["docs/guide/air-model.md", "docs/plan/air_model.md", "docs/research/calibration_data.md", "docs/research/air_physics_primer.md", "docs/research/experimental_data.md"]
+related: ["docs/guide/air-model.md", "docs/archive/plan/air-model.md", "docs/research/calibration_data.md", "docs/research/air_physics_primer.md", "docs/research/experimental_data.md"]
 conclusion: "Эвристика склона расходилась с жизнью по трём пунктам: нет разгона на бровке, полоса подъёма фиксирована 250 м, «труба» в седловине работает наоборот. Предложены варианты A–D; выбран путь через поле воздуха."
 data: ""
 applied_in: "docs/guide/air-model.md: среднее поле воздуха (решение Пикара, air_model.enabled = auto) вместо вариантов A–D; эвристика §1 — резерв без поля (scripts/atmosphere/atmosphere.gd)"
@@ -26,7 +26,7 @@ applied_in: "docs/guide/air-model.md: среднее поле воздуха (р
 
 ## Состояние
 
-Исследование закрыто: поводом был отзыв пилота («обтекание склона ощущается не физично»), итог — план `docs/plan/air_model.md`. Варианты A и B из §5–§6 не делались; склон и обтекание считает среднее поле воздуха (решатель Пикара на GPU при загрузке места, `docs/guide/air-model.md`), параметр `air_model.enabled` = `auto`. Что осталось от §1:
+Исследование закрыто: поводом был отзыв пилота («обтекание склона ощущается не физично»), итог — план `docs/archive/plan/air-model.md`. Варианты A и B из §5–§6 не делались; склон и обтекание считает среднее поле воздуха (решатель Пикара на GPU при загрузке места, `docs/guide/air-model.md`), параметр `air_model.enabled` = `auto`. Что осталось от §1:
 - Формулы §1 (`_ridge_lift`, линия тени, ротор) работают в `scripts/atmosphere/atmosphere.gd`, когда поля нет или точка вне поля: `air_velocity_at` берёт поле, а без него — аналитику.
 - Слова пилота (§8) остаются проверочными условиями для поля (толщина слоя ≈ 2 H, седловина ×1,5, ослабление при косом ветре); сравнение поля со словами пилота — `docs/guide/air-model/limits.md`, «Слова пилота против модели после калибровки AM-09».
 - Пункт T-01 в `TODO.md` ссылается на это исследование и остаётся открытым.

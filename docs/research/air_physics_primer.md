@@ -5,10 +5,10 @@ module: "air-nn"
 area: "air"
 updated: "2026-10-15"
 summary: "Справочник по физике воздуха над рельефом; §8–9 (решатель AM-01, сеть) устарели: в игре фазы + Пикар, сети нет"
-related: ["docs/guide/air-model.md", "docs/research/thermals.md", "docs/research/slope_wind.md", "docs/research/air-model-sensitivity.md", "tools/research/air3d/reference.md", "docs/registry/findings.md", "docs/plan/air_nn.md"]
+related: ["docs/guide/air-model.md", "docs/research/thermals.md", "docs/research/slope_wind.md", "docs/research/air-model-sensitivity.md", "tools/research/air3d/reference.md", "docs/registry/findings.md", "docs/archive/rejected/air-nn.md"]
 conclusion: "Среднее поле — потенциальное обтекание со сдвигом плюс устойчивость, нагрев, турбулентность; решатель 400 м занижает разгон на бровке на 15–20 %, главная ошибка профиля притока над горами — торможение (+2,3 м/с), линейная теория его не даёт; ошибка сети на 75–80 % внутрислучайная."
 data: "tools/research/air3d/reference.md; отчёт П-2 сети; ветка feature/air-nn: tools/research/air_nn_pilot/p3/"
-applied_in: "docs/guide/air-model.md (модель воздуха в трёх масштабах); часть про нейросеть (§9) не применена: сети в игре нет, план docs/plan/air_nn.md"
+applied_in: "docs/guide/air-model.md (модель воздуха в трёх масштабах); часть про нейросеть (§9) не применена: сети в игре нет, план docs/archive/rejected/air-nn.md"
 ---
 # Физика воздуха над рельефом: обзор
 

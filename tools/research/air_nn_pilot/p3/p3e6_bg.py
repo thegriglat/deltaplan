@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """P3E6, шаг 1: фоновый профиль θ̄(z) решателя по условиям случая → числа FiLM фона для всех случаев кеша П-2.
 
-  /home/greg/deltaplan/tools/dp lock cpu p3e6bg -- env CUDA_VISIBLE_DEVICES= .venv/bin/python p3/p3e6_bg.py \
+  /home/greg/deltaplan/.dpcli/dpcli lock cpu p3e6bg -- env CUDA_VISIBLE_DEVICES= .venv/bin/python p3/p3e6_bg.py \
       --p2 $AIR_NN_DATA/pilot/runs/2026-10-03_p2b --out $AIR_NN_DATA/pilot/runs/2026-10-03_p3e6 [--procs 10]
 
 → <out>/film_bg.npz: ids (n,), F (n, 9) f32 (порядок film_bg.FILM_BG_NAMES), raw (json по случаю);

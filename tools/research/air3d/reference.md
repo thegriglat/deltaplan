@@ -1,6 +1,6 @@
 # Эталон масштаба 1 (AM-01): 3D-Пикар — спецификация для переноса на GPU
 
-AM-01 (`docs/plan/air_model.md`): эталон масштаба 1 — решение по сетке, точная дискретизация для
+AM-01 (`docs/archive/plan/air-model.md`): эталон масштаба 1 — решение по сетке, точная дискретизация для
 переноса на GPU (AM-02/AM-03), приёмка числами, ответы на открытые вопросы прикидки. Код — `air.py`
 (+ `weather.py`, `real.py`, `synth.py`, `askervein.py`, `ref_study.py`, `fixtures.py`), данные —
 `out/ref/*.json`, все таблицы — `out/ref/tables.md` (генерирует `ref_tables.py`), картинки — `out/ref/fig_*.png`,

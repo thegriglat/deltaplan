@@ -5,11 +5,11 @@ module: "net"
 area: "net"
 updated: "2026-10-15"
 summary: "Сетевой полёт в игре: экран «Сетевая игра», зона и ведущий, мир по ключу и часам зоны, очередь на старт, боты ведущего, «Догнать»."
-related: ["docs/guide/game.md", "docs/guide/net-protocol.md", "docs/guide/steam.md", "docs/guide/game/bots.md", "docs/plan/multiplayer.md"]
+related: ["docs/guide/game.md", "docs/guide/net-protocol.md", "docs/guide/steam.md", "docs/guide/game/bots.md", "docs/archive/plan/multiplayer.md"]
 ---
 # Сетевой полёт в игре
 
-Часть описания сборки игры (вход — [game.md](../game.md)). Формат сообщений и сценарии протокола — `docs/guide/net-protocol.md`; Steam как транспорт — `docs/guide/steam.md`. Здесь — как это встроено в игру. Код зоны пилоты передают друг другу сами; ни чата, ни голосовой связи в игре нет (`docs/plan/multiplayer.md`).
+Часть описания сборки игры (вход — [game.md](../game.md)). Формат сообщений и сценарии протокола — `docs/guide/net-protocol.md`; Steam как транспорт — `docs/guide/steam.md`. Здесь — как это встроено в игру. Код зоны пилоты передают друг другу сами; ни чата, ни голосовой связи в игре нет (`docs/archive/plan/multiplayer.md`).
 
 ## Компоненты
 

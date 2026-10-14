@@ -1,5 +1,5 @@
 """Прогон WindNinja (массосогласованный) по всем случаям и DEM; время каждого пишется в out/runs.json.
-Запуск (под замком процессора): dp lock cpu windninja -- python run.py [--dems d400,d100,d50] [--veg grass] [--tag mass]
+Запуск (под замком процессора): .dpcli/dpcli lock cpu windninja -- python run.py [--dems d400,d100,d50] [--veg grass] [--tag mass]
 python — любой (нужен только stdlib)."""
 import argparse, json, subprocess, time, re
 from pathlib import Path

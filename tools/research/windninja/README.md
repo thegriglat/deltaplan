@@ -4,10 +4,10 @@ status: "closed"
 module: "air-nn"
 updated: "2026-10-04"
 summary: "WindNinja как эталон: гребневой разгон и поворот потока совпадают с решателем air-nn, торможения массивом нет — как запасной вариант условно"
-related: ["docs/plan/air_nn.md", "docs/registry/findings.md"]
+related: ["docs/archive/rejected/air-nn.md", "docs/registry/findings.md"]
 conclusion: "WindNinja подтверждает гребневой разгон и поворот потока решателя, но торможение горным массивом не воспроизводит (диагностическая модель без импульса); эталоном затенения быть не может, запасным вариантом — условно."
 data: "tools/research/windninja/"
-applied_in: "docs/plan/air_nn.md#7. Проверка (шлюзы Ш3, Ш4)"
+applied_in: "docs/archive/rejected/air-nn.md#7. Проверка (шлюзы Ш3, Ш4)"
 ---
 # WindNinja как независимый эталон ветра над рельефом
 
@@ -34,7 +34,7 @@ applied_in: "docs/plan/air_nn.md#7. Проверка (шлюзы Ш3, Ш4)"
 | что | где | как |
 |---|---|---|
 | **WindNinja 3.13.0** (conda-forge `windninja=3.13.0.1`, CLI, готовый бинарник) | `~/opt/windninja/mamba/envs/wn/bin/WindNinja_cli` | `micromamba create -n wn -c conda-forge windninja=3.13.0.1` (micromamba в `~/opt/windninja/`) |
-| **WindNinja 4.0.0** (из исходников, тег `4.0.0`, CLI, без GUI и OpenFOAM) | исходники `~/opt/windninja/src`, сборка `~/opt/windninja/build400`, установка `~/opt/windninja/inst400/bin/WindNinja_cli` | `dp job --lock cpu start wn_build 3600 bash ~/opt/windninja/build.sh` — зависимости (libgdal-core, libboost-devel, netcdf, geos, proj, shapelib, cmake, ninja) из micromamba-среды `wnbuild`, системный g++ 14; сборка ~15 минут на 10 ядрах |
+| **WindNinja 4.0.0** (из исходников, тег `4.0.0`, CLI, без GUI и OpenFOAM) | исходники `~/opt/windninja/src`, сборка `~/opt/windninja/build400`, установка `~/opt/windninja/inst400/bin/WindNinja_cli` | `.dpcli/dpcli job --lock cpu start wn_build 3600 bash ~/opt/windninja/build.sh` — зависимости (libgdal-core, libboost-devel, netcdf, geos, proj, shapelib, cmake, ninja) из micromamba-среды `wnbuild`, системный g++ 14; сборка ~15 минут на 10 ядрах |
 
 Сборка из исходников собралась с первой попытки без root (ошибки сборки: не нашёлся shapelib — добавлен в среду; при выключенных
 NOMADS/LCP не линкуется `libninja` — эти опции оставлены включёнными). Windows: официальный `win64.zip` 4.0.0 готовый — собирать не нужно.
@@ -233,9 +233,9 @@ NOMADS/LCP не линкуется `libninja` — эти опции оставл
 Из `tools/research/windninja/` (python — venv `tools/research/air_nn_pilot/.venv`, симлинк на venv главной копии):
 ```
 ../air_nn_pilot/.venv/bin/python prep.py                          # случаи, DEM в ~/windninja_work/dem, эталонные поля out/ref_*.npz
-dp job --lock cpu start wn_mass 3000 python3 run.py --dems d400,d100    # 21 случай × 2 DEM, трава (out/runs_mass.json — время)
-dp job --lock cpu start wn_b2 5400 bash batch2.sh                 # лес, кустарник, высоты, плоский DEM, d50 (6 случаев)
-dp job --lock cpu start wn_v4 3000 python3 run.py --ver 4.0 --tag v4 --dems d400,d100   # WindNinja 4.0.0
+.dpcli/dpcli job --lock cpu start wn_mass 3000 python3 run.py --dems d400,d100    # 21 случай × 2 DEM, трава (out/runs_mass.json — время)
+.dpcli/dpcli job --lock cpu start wn_b2 5400 bash batch2.sh                 # лес, кустарник, высоты, плоский DEM, d50 (6 случаев)
+.dpcli/dpcli job --lock cpu start wn_v4 3000 python3 run.py --ver 4.0 --tag v4 --dems d400,d100   # WindNinja 4.0.0
 ../air_nn_pilot/.venv/bin/python compare.py --tag mass --dems d400,d100,d50   # + compare.py --tag trees|brush --dems d400; --tag v4
 ../air_nn_pilot/.venv/bin/python summarize.py; ../air_nn_pilot/.venv/bin/python sens.py
 ../air_nn_pilot/.venv/bin/python analyze2.py; ../air_nn_pilot/.venv/bin/python classes.py; ../air_nn_pilot/.venv/bin/python fig.py ongudai_007

@@ -6,7 +6,7 @@
   run_phase.py trial  --plan DIR [--out DIR] [--batch B]
   run_phase.py bench  [--plan DIR] [--batch 1,2,4,8,16,32] [--n 32]
   run_phase.py status --plan DIR [--out DIR]
-  run_all.sh                       # plan (если нет) + run всех серий; для dp job --lock gpu
+  run_all.sh                       # plan (если нет) + run всех серий; для .dpcli/dpcli job --lock gpu
 
 Порядок счёта — GRID → SEPARATION → ENVELOPE → ENVELOPE_REAL → SWEEP → RELAX → ERODED: готовые случаи сортируются по
 (ранг серии, k, case_id), пакет — первые B случаев группы с тем же шагом сетки (dx_m), что и у первого готового;
@@ -16,7 +16,7 @@
 `cases/case_id` частей; состояние для следующего случая цепочки — из ckpt, если он не новее нужного, иначе предыдущие
 случаи цепочки пересчитываются без записи («фантомы») от ckpt или от холодного k = 0.
 
-GPU — один процесс (этот) под общим замком (`dp job --lock gpu …`); CPU-часть (параметры порядка, bubble, сжатие и
+GPU — один процесс (этот) под общим замком (`.dpcli/dpcli job --lock gpu …`); CPU-часть (параметры порядка, bubble, сжатие и
 запись HDF5, ckpt, progress.jsonl) — процесс-писатель (spawn), очередь не больше 2 пакетов. Код выхода 0 — всё
 (в выбранных сериях) посчитано или достигнут --limit; ≠ 0 — ошибка (исключение решателя, NaN) с записью в run.jsonl.
 """

@@ -10,7 +10,7 @@ related: ["docs/guide/atmosphere.md", "docs/guide/air-model-gpu.md", "docs/guide
 
 # Модель воздуха в трёх масштабах
 
-План и задачи — `docs/plan/air_model.md`; журнал — `docs/archive/plan/air-model-progress.md`; контракты стыков — `docs/contracts/air-model.md` (C1–C10), фаз — `docs/contracts/air-phase.md`. Здесь — описание того, что работает в игре; решатель на GPU — [air-model-gpu.md](air-model-gpu.md), аналитическая атмосфера (профиль ветра, термики по клеткам, облака) — [atmosphere.md](atmosphere.md).
+План и задачи — `docs/archive/plan/air-model.md`; журнал — `docs/archive/plan/air-model-progress.md`; контракты стыков — `docs/contracts/air-model.md` (C1–C10), фаз — `docs/contracts/air-phase.md`. Здесь — описание того, что работает в игре; решатель на GPU — [air-model-gpu.md](air-model-gpu.md), аналитическая атмосфера (профиль ветра, термики по клеткам, облака) — [atmosphere.md](atmosphere.md).
 
 ## Суть
 

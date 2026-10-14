@@ -5,10 +5,10 @@ module: pendulum
 area: flight
 updated: 2026-10-12
 summary: "Разбег и старт PD-28 (пилот: «за 10 м не взлетел — не взлетишь» против 21–31 м модели), подскоки PD-36, ноги PD-38, авария PD-39"
-related: ["docs/research/pendulum.md", "docs/plan/pendulum.md", "tools/research/pendulum/README.md"]
+related: ["docs/research/pendulum.md", "docs/archive/plan/pendulum.md", "tools/research/pendulum/README.md"]
 conclusion: "Разбег: «несёт крыло» → «висит» получается сам; касание ногами и авария без «деревянного» контакта (crash_decel_g 20)."
 data: "tools/research/pendulum/out/"
-applied_in: "docs/plan/pendulum.md"
+applied_in: "docs/archive/plan/pendulum.md"
 ---
 # Разбег, старт и касание земли
 

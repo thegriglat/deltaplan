@@ -3,7 +3,7 @@
 на (г) отложенные горные системы и (б) Онгудай, рядом с профилем притока. Решатель не пересчитывается.
 
   cd tools/research/air_nn_pilot
-  /home/greg/deltaplan/tools/dp lock cpu .venv/bin/python p3/base_eval.py
+  /home/greg/deltaplan/.dpcli/dpcli lock cpu .venv/bin/python p3/base_eval.py
 Выход: p3/base_vs_solver.md, p3/base_vs_solver.json (p3 → мелкое; крупного нет).
 """
 from __future__ import annotations
@@ -161,7 +161,7 @@ def write_md(out):
     t = out["time_case_ms"]
     L += ["", f"время на случай, мс: {t['median']:.1f}", "",
           f"(база 96² × 13 высот, 1 поток CPU, медиана по {t['n']} случаям, p90 {t['p90']:.1f} мс; замер при параллельной нагрузке других задач)", "",
-          "Воспроизведение: `cd tools/research/air_nn_pilot && /home/greg/deltaplan/tools/dp lock cpu .venv/bin/python p3/base_eval.py`"]
+          "Воспроизведение: `cd tools/research/air_nn_pilot && /home/greg/deltaplan/.dpcli/dpcli lock cpu .venv/bin/python p3/base_eval.py`"]
     Path(HERE / "p3/base_vs_solver.md").write_text("\n".join(L) + "\n")
 
 

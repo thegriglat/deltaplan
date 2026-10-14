@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # air-phase (P5): весь счёт одной командой — план (если нет) + все серии; продолжение после обрыва — той же командой.
-# Запуск: /home/greg/deltaplan/tools/dp job --lock gpu start air-phase-run <таймаут_с> <копия>/tools/research/air_phase/run_all.sh
+# Запуск: /home/greg/deltaplan/.dpcli/dpcli job --lock gpu start air-phase-run <таймаут_с> <копия>/tools/research/air_phase/run_all.sh
 # План ap_v2: AP_PLAN=ap_v2 AP_SERIES=fixed_u (если plan.pb есть — не пересобирается).
 # Результаты: $AIR_SYNTH_DATA/phase/<plan>__<solver_version>/ ; прогресс: run_phase.py status --plan $AIR_SYNTH_DATA/phase/<plan>
 set -euo pipefail

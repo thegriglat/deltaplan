@@ -31,4 +31,4 @@ H чистых классов (суша/застройка/вода), w*, рож
 400 м с наибольшей долей застройки в 15 км): доля, H, w.
 
 Данные: `out/before_*.csv` — код до починки, `out/after_*.csv` — после (`headless` / `gpu`),
-`out/headless.csv` — последний прогон `run.sh`. Итоги — отчёт FBW-1 (`dp log FBW-1`).
+`out/headless.csv` — последний прогон `run.sh`. Итоги — отчёт FBW-1 (`.dpcli/dpcli log FBW-1`).

@@ -1,6 +1,6 @@
 ## AP-23: проверка классификатора фаз (P15) — куда классификатор отправляет случай и верно ли это
 
-`PY=/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python; dp lock cpu ap23 -- $PY tools/research/air_phase/analysis/AP-23/run.py --stage all --workers 8` (≈ 1 мин счёта на 8 процессах + 30 с отчёта; решения не пересчитываются, GPU не нужен).
+`PY=/home/greg/deltaplan-air-synth/tools/research/air_nn_pilot/.venv/bin/python; .dpcli/dpcli lock cpu ap23 -- $PY tools/research/air_phase/analysis/AP-23/run.py --stage all --workers 8` (≈ 1 мин счёта на 8 процессах + 30 с отчёта; решения не пересчитываются, GPU не нужен).
 
 **Вывод (`verdict = needs_work`; по реальному рельефу при ω и бюджете игры все условия выполнены, не выполнено одно — на идеальном хребте GRID).**
 - Главное для маршрута — ось штиля. Несходимость Пикара в SY-12 следует **ветру U10**, а не Fr: при U10 ≥ 3 м/с Пикар сходится в 95–100 % случаев при любом Fr, в том числе при сильном блокировании Fr 0,15–0,25.
@@ -120,7 +120,7 @@
 | ω-полоса | Fr 0,3–1,1 или U10 0,6–1,5 м/с | то же | 95 % ошибок «блуждание → Пикар» рекомендованного конфига внутри полосы |
 
 ### 5. Пересчёт при ω = 0,5 (`rerun.py`, `summary.json → rerun_omega05`, `threshold_scan`)
-`dp job --lock gpu start ap23-rerun 21600 $PY tools/research/air_phase/analysis/AP-23/rerun.py solve` (≈ 45 + 60 мин GPU), выборка — `rerun.py select` → `selection.json`. Путь — `batch_solver.solve_batch` с `cond_row` (как ENVELOPE_REAL), холодный старт, ω_u = ω_k = 0,5, до 2000 итераций. Поля — `$AIR_SYNTH_DATA/phase/ap23_rerun/` (317 МБ + доработка, локально).
+`.dpcli/dpcli job --lock gpu start ap23-rerun 21600 $PY tools/research/air_phase/analysis/AP-23/rerun.py solve` (≈ 45 + 60 мин GPU), выборка — `rerun.py select` → `selection.json`. Путь — `batch_solver.solve_batch` с `cond_row` (как ENVELOPE_REAL), холодный старт, ω_u = ω_k = 0,5, до 2000 итераций. Поля — `$AIR_SYNTH_DATA/phase/ap23_rerun/` (317 МБ + доработка, локально).
 
 Пересчитаны **все** решения SY-12, не сошедшиеся при ω = 1, — и те, что рекомендованный конфиг (первой версии, U/N 270) отправляет в Пикар, и те, что он отдаёт механизмам. Множество механизмов при пороге 270 включает множества для любого порога ≤ 270 м, поэтому выбор 200–270 м сравнивается на полных метках.
 

@@ -7,7 +7,7 @@ updated: "2026-10-04"
 summary: "Уклон p99 на 100 м — 35° (Онгудай), на 400 м — 26°; закон Корчака подтверждён по порядку (K = 0,55–0,95)."
 conclusion: "N(≥P) ∝ P^−b, b = 1,1–1,9; потолок уклона 30–35° виден только на мелкой сетке (на 400 м p99 ≈ 26°); амплитуда и ширина форм почти независимы; закон Хака и числа Хортона на наших DEM не проверялись."
 data: "tools/research/air_synth/terrain_stats/out/ (stats_tables.md, compare_tables.md, decomp.json, fastscape_metrics.json, forms_gen_metrics.json); код — tools/research/air_synth/terrain_stats/README.md"
-applied_in: "в игре напрямую нет: вход генератора корпуса air-synth (docs/plan/air-synth.md §2)"
+applied_in: "в игре напрямую нет: вход генератора корпуса air-synth (docs/archive/rejected/air-synth.md §2)"
 related: ["docs/research/terrain_statistics.md"]
 ---
 # Распределения: вершины по prominence и высоте, ширина форм, предельная крутизна склонов, гипсометрия, закон Хака, Хортон

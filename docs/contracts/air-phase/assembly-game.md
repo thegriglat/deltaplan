@@ -188,7 +188,7 @@ GDScript — без магических чисел (кроме математи
 - `tests/atmosphere/test_air_phase.gd` (без GPU — CPU-путь P10): Σ weights = 1, пороги из конфига, F — w*, z_i, доля
   восходящих 0,3–0,5 [LS80] и данные AM-07 (`docs/research/calibration_data.md`), G — скорость стока 1–4 м/с и профиль
   Прандтля [ZW13], H — статистика (разброс > 0, среднее без направленного дрейфа).
-- `tests/atmosphere/test_air_phase_gpu.gd` (GPU, `tools/gpu_tests.sh`, под `dp lock gpu`): P10 GPU = CPU; на 2–3 местах
+- `tests/atmosphere/test_air_phase_gpu.gd` (GPU, `tools/gpu_tests.sh`, под `.dpcli/dpcli lock gpu`): P10 GPU = CPU; на 2–3 местах
   игры, где холодный Пикар сходится, — поле гибрида совпадает с холодным (max|Δu| ≤ 0,05 U_sat в A/B/C-клетках,
   метрики слоёв: термики, наветренный подъём, подветренные зоны — в допусках AP-9 `LM_KEYS`) за меньшее число итераций;
   P11 по умолчанию побитно; время пересчёта (мс: фазы, Пикар, проекция) — в лог теста и `build/dp/<ID>/timing.json`,

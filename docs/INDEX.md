@@ -338,9 +338,9 @@ generated: true
 
 ### Справка (reference)
 
-- [docs/screenshots/cockpit/README.md](screenshots/cockpit/README.md) — Приёмка кабины (карточка game/01, VR-11, FR-25a, VR-6) — Кадры: tools/shots/cockpit.sh (1920×1080, Онгудай, --autopilot, время симуляции 20 с; TS — Аскарово, 172 с).
-- [docs/screenshots/e2e/README.md](screenshots/e2e/README.md) — Скриншоты 12-02 — сквозной тест свободного полёта — Кадры сняты tools/shots/e2e.sh (драйвер tools/shots/e2e_shot.gd/.tscn): та же цепочка, что в tests/game/test_e2e.gd — меню → «Полёт…» → выбор локации/старта → «Лететь» → разбег W+Shift (Autopilot) → полёт по курсу от склона → с…
-- [docs/screenshots/gameplay/README.md](screenshots/gameplay/README.md) — Геймплей свободного полёта — кадры по камерам (карточка game/03) — Снято tools/shots/gameplay.sh (Онгудай, старт по умолчанию, --autopilot, 20 с симуляции, 1920×1080, каждый запуск под timeout 120).
+- [docs/screenshots/cockpit/README.md](screenshots/cockpit/README.md) — Кадры приёмки кабины (VR-11, FR-25a, VR-6): tools/shots/cockpit.sh, Онгудай, 1920×1080, автопилот
+- [docs/screenshots/e2e/README.md](screenshots/e2e/README.md) — Кадры сквозного теста свободного полёта (меню → старт → разбег → полёт): tools/shots/e2e.sh
+- [docs/screenshots/gameplay/README.md](screenshots/gameplay/README.md) — Кадры геймплея свободного полёта по камерам: tools/shots/gameplay.sh, Онгудай, 1920×1080, 20 с
 - [docs/screenshots/site/README.md](screenshots/site/README.md) — Кадры для сайта (октябрь 2026) — Сняты готовыми инструментами tools/shots после обновления крыльев (48 моделей).
 - [docs/screenshots/ui/README.md](screenshots/ui/README.md) — Скриншоты ui/01 — меню, «Полёт…», карта, «Управление» — Сняты godot --rendering-method gl_compatibility под xvfb-run (см.
 - [tools/research/_legacy_terrain/README.md](../tools/research/_legacy_terrain/README.md) — Замороженная Python-сборка данных мест (fetch_dem, landcover, rivers, osm) — только для воспроизведения perdigao, osm_pack, hg_sites [closed]

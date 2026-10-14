@@ -1,6 +1,6 @@
 extends SceneTree
 # Проверка GDScript в контексте проекта (автозагрузки видны, в отличие от --check-only):
-# грузит каждый скрипт из аргументов. Ошибки разбора/компиляции Godot печатает сам — их разбирает dp check gd.
+# грузит каждый скрипт из аргументов. Ошибки разбора/компиляции Godot печатает сам — их разбирает tools/check_gd.py.
 # godot --headless --path . -s res://tools/check/gd_check.gd -- res://a.gd res://b.gd
 
 

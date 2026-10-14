@@ -1,5 +1,5 @@
 """Шаг 2: план прогонов генератора по латинскому гиперкубу в пределах TUNABLE, наблюдаемые на каждый (точка, зерно).
-Запуск (фоном, dp job start): OMP_NUM_THREADS=1 ../corpus/.venv/bin/python run_design.py --points 150 --seeds 4 --workers 12
+Запуск (фоном, .dpcli/dpcli job start): OMP_NUM_THREADS=1 ../corpus/.venv/bin/python run_design.py --points 150 --seeds 4 --workers 12
 Продолжение — той же командой (готовые строки out/runs.jsonl пропускаются). Пробное время: --trial 2 (точки, 1 зерно).
 Генератор: ../corpus/generator.py (S3 v3): TUNABLE, generate(corpus_seed, relief_id, theta) -> (params, z100)."""
 import argparse, json, os, sys, time
