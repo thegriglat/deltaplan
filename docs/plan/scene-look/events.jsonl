@@ -353,3 +353,4 @@
 {"t": "2026-10-14T19:47:11", "by": "coordinator", "task": "SL-27", "ev": "accepted", "note": "по ревью: accept; minor: пол relief_shadow_strength 0.85 (15% солнца в тени) без источника — кандидат на отдельную задачу после правки карты горизонта"}
 {"t": "2026-10-14T19:48:33", "by": "coordinator", "task": "SL-27", "ev": "accepted", "commits": ["8828ce16"], "note": "5/5 terrain=ok:133/133 (пропуск 9); vegetation=ok:45/45; scene_look_contracts=ok:29/29; mountain_look=ok:9/9; gd=ok:exit 0"}
 {"t": "2026-10-14T19:48:42", "by": "coordinator", "task": "SL-27", "ev": "merged", "note": "8828ce16; 5/5 на ветке модуля"}
+{"t": "2026-10-14T19:50:49", "by": "coordinator", "task": null, "ev": "note", "note": "SL-27 влита (8828ce16); GPU-тесты relief_near_shadow и terrain_variants на ветке модуля прошли; тестовая сборка Linux build/linux от d18bd8d5. dp: в карточке нет вида проверки «GPU-тест» (gpu_tests.sh --filter) — dp accept --here его не гоняет, запускал вручную"}
