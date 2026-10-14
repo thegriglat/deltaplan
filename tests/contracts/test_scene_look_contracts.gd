@@ -4,7 +4,7 @@ extends TestCase
 ## полёта. Сезон (test_k2_season_*) — SL-6.
 
 const DOC := "res://docs/contracts/scene-look.md"
-const VERSIONS := {"SL-К1": 3, "SL-К2": 2, "SL-К4": 2}
+const VERSIONS := {"SL-К1": 4, "SL-К2": 2, "SL-К4": 2}
 const INC := "res://scripts/terrain/scene_look.gdshaderinc"
 const TERRAIN := "res://scripts/terrain/terrain.gdshader"
 const IMPOSTORS := "res://scripts/terrain/forest_impostors.gdshader"
