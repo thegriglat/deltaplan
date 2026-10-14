@@ -310,3 +310,4 @@
 {"t": "2026-10-14T15:33:15", "by": "main", "task": "SL-22", "ev": "merged", "note": "без коммитов (замер)"}
 {"t": "2026-10-14T15:42:06", "by": "main", "task": "SL-23", "ev": "created", "note": "Варианты шейдера по пресетам: «Низкий» = low_a, far для LOD ≥ 2; прогрев; аномалия grass_wind; итоговый замер и сборка"}
 {"t": "2026-10-14T15:42:06", "by": "main", "task": "SL-23", "ev": "edited", "note": "report_extra", "diff": {"report_extra": ["[]", "[\"gpu_table\", \"grass_wind_cause\", \"build_path\", \"uncertain\"]"]}}
+{"t": "2026-10-14T15:42:17", "by": "executor", "task": "SL-23", "ev": "started", "note": "dp-engineer (opus), ~/deltaplan-scene-look-SL-23"}
