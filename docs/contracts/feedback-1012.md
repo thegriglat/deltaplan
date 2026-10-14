@@ -1,10 +1,11 @@
 ---
 type: contract
-status: active
+status: closed
 module: feedback-1012
-updated: 2026-10-12
-summary: "Контракты модуля feedback-1012: смещение пилота относительно подвески в телеметрии для индикатора HUD (FB-К1); флаг «начат переход в лётное положение» — граница, с которой касание крылом земли — авария (FB-К2)."
-related: ["docs/plan/feedback-1012.md", "docs/contracts/control-fix.md"]
+area: game
+updated: 2026-10-15
+summary: "Смещение пилота относительно подвески в телеметрии для HUD (FB-К1); флаг начала перехода в лётное положение (FB-К2)."
+related: ["docs/archive/plan/feedback-1012.md", "docs/contracts/control-fix.md"]
 contracts: [{"id": "FB-К1", "version": 1}, {"id": "FB-К2", "version": 1}]
 ---
 # Контракты feedback-1012

@@ -1,10 +1,11 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "air-phase"
-updated: "2026-10-06"
-summary: "Контракты air-phase: P1 идеальные рельефы, P2 план опытов (protobuf), P3 результаты замеров (HDF5 + jsonl), P4 пакетный решатель, P5 скрипт прогона run_phase.py, P6 метрики слоёв и таблица признаков, P7 выход задач разбора, P8 прототип сборки поля по фазам, P9 прототип «фазы + Пикар»; в игре: P10 фазы на GPU/CPU, P11 Пикар с тёплым стартом/ω/маской, P12 AirRuntime без сети, P13 удаление сети, P14 проверки в игре"
-related: ["docs/plan/air-phase.md", "docs/contracts/air-synth.md", "docs/research/air_phase.md"]
+area: "air"
+updated: "2026-10-15"
+summary: "Контракты air-phase (P1–P14): опыты на идеальных рельефах, пакетный решатель, сборка поля по фазам, перенос фаз и Пикара в игру."
+related: ["docs/archive/plan/air-phase.md", "docs/archive/rejected/air-synth-contracts.md", "docs/research/air_phase.md"]
 contracts: [{"id": "P1", "version": 1}, {"id": "P2", "version": 6}, {"id": "P3", "version": 3}, {"id": "P4", "version": 6}, {"id": "P5", "version": 1}, {"id": "P6", "version": 2}, {"id": "P7", "version": 1}, {"id": "P8", "version": 1}, {"id": "P9", "version": 2}, {"id": "P10", "version": 5}, {"id": "P11", "version": 3}, {"id": "P12", "version": 4}, {"id": "P13", "version": 2}, {"id": "P14", "version": 2}, {"id": "P15", "version": 1}]
 ---
 
@@ -32,7 +33,7 @@ j, i]`, j — север, i — восток, u — на восток, v — н�
   - `step_down`: z = h·(1 − tanh(x/a))/2 (спуск по ветру — подветренная бровка).
   s = max|∇z| (тангенс) по формуле — тест: численный max|∇z| на h100 совпадает с s в пределах 3 %
   (на g400 — записывается, но не проверяется: при s = 0,5 форма недоразрешена).
-- Корпус: S1 (`docs/contracts/air-synth.md`; запись — `corpus_io.py`, атрибут `contract` как он пишет, сейчас "S1 v3") в `$AIR_SYNTH_DATA/corpus/ideal_v1/`, `generator_version = "ideal-v1"`,
+- Корпус: S1 (`docs/archive/rejected/air-synth-contracts.md`; запись — `corpus_io.py`, атрибут `contract` как он пишет, сейчас "S1 v3") в `$AIR_SYNTH_DATA/corpus/ideal_v1/`, `generator_version = "ideal-v1"`,
   `relief_id` = `Relief.relief_id` плана P2, имя `place.name` = `<shape>_s<s:.2f>` (+ `_L<км>` для ridge, если не 20).
   Рельефы ERODED не копируются: P2 ссылается на `fs1_10k` по id.
 
@@ -375,7 +376,7 @@ GDScript — без магических чисел (кроме математи
 
 - Удалить: `air_nn_input.gd`, `air_nn_field.gd`, `air_nn_prep.gd` и ссылки; расширение ONNX Runtime (GDExtension
   `AirOnnx`, его библиотеки и `.gdextension`), `data/air_nn/`, `tests/air_onnx/`, фильтр `*.onnx` в `export_presets.cfg`,
-  `--air-nn-model`, ключи `nn_*` в конфигах, пункт меню (если остался после P12). `docs/contracts/air-onnx.md` → status
+  `--air-nn-model`, ключи `nn_*` в конфигах, пункт меню (если остался после P12). `docs/archive/rejected/air-onnx-contracts.md` → status
   superseded (заметка «удалено, см. air-phase P12/P13»). Пикар и сеть в `tools/research/` остаются (эталон, история).
 - **v2 (06.10):** вместе с файлами — переводы и тексты пункта «нейросеть» (ключи перевода, справка в игре, `docs/guide/`),
   если не убраны в P12 v3.

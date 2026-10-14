@@ -1,10 +1,11 @@
 ---
 type: contract
-status: active
+status: closed
 module: start-pick
-updated: 2026-10-12
-summary: "Контракты start-pick: точный старт в FlightSettings и его применение в Game (SP-К1); проверка допустимости точки StartSpot (SP-К2); точный старт в сети — Zone и WorldKey v2 (SP-К3); камни и кусты не на разбеге (SP-К4)."
-related: ["docs/plan/start-pick.md", "docs/contracts/start-fixes.md", "docs/contracts/popular-places.md", "docs/guide/net-protocol.md"]
+area: game
+updated: 2026-10-15
+summary: "Точный старт в FlightSettings (SP-К1), проверка точки StartSpot (SP-К2), старт в сети: Zone и WorldKey v2 (SP-К3), камни на разбеге (SP-К4)."
+related: ["docs/archive/plan/start-pick.md", "docs/contracts/start-fixes.md", "docs/contracts/popular-places.md", "docs/guide/net-protocol.md"]
 contracts: [{"id": "SP-К1", "version": 1}, {"id": "SP-К2", "version": 1}, {"id": "SP-К3", "version": 1}, {"id": "SP-К4", "version": 1}]
 ---
 # Контракты start-pick

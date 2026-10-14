@@ -1,9 +1,10 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "ui-controls"
-updated: "2026-10-03"
-summary: "Контракты модуля «ui-controls» — Действия (имена — смысл, не клавиша): pitch_push_out = [Up] — трапеция от себя → pitch +; pitch_pull_in = [Down] — на себя → pitch −."
+area: "game"
+updated: "2026-10-15"
+summary: "Действия тангажа: pitch_push_out = [Up] (трапеция от себя, pitch +), pitch_pull_in = [Down] (на себя, pitch −)."
 related: []
 contracts: [{"id": "У1", "version": 3}, {"id": "У2", "version": 2}]
 ---

@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "osm-any"
-updated: "2026-10-09"
+area: "world"
+updated: "2026-10-15"
 summary: "Контракты osm-any: папка места (встроенного и кешированного), файл OSM места, API стадий сборки места в игре, сборщик/кеш/реестр мест."
-related: ["docs/plan/osm-any.md", "docs/guide/world-objects.md", "docs/guide/architecture.md"]
+related: ["docs/archive/plan/osm-any.md", "docs/guide/world-objects.md", "docs/guide/architecture.md"]
 contracts: [{"id": "OA-К1", "version": 2}, {"id": "OA-К2", "version": 2}, {"id": "OA-К3", "version": 1}, {"id": "OA-К4", "version": 2}]
 ---
 # Контракты модуля osm-any
 
-План — `docs/plan/osm-any.md`. Менять — только через координатора (версия +1, что изменилось, уведомить
+План — `docs/archive/plan/osm-any.md`. Менять — только через координатора (версия +1, что изменилось, уведомить
 потребителей). Контрактный тест — `tests/contracts/test_osm_any_contracts.gd` (без сети и GPU; фильтр `osm_any`).
 Части, которых ещё нет в коде, в тесте падают — их делают зелёными задачи-владельцы.
 

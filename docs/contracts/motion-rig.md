@@ -1,15 +1,16 @@
 ---
 type: contract
-status: active
+status: closed
 module: motion-rig
-updated: 2026-10-12
-summary: "Контракты модуля motion-rig: точка пилота и величины (MR-К1), поток пакетов UDP — живые/удержание/нейтраль, плавный вход, множитель на земле (MR-К2), настройки (MR-К3)."
-related: ["docs/plan/motion-rig.md", "docs/research/motion-rig-protocols.md"]
+area: flight
+updated: 2026-10-15
+summary: "Точка пилота и величины (MR-К1), поток UDP: живые/удержание/нейтраль, множитель на земле (MR-К2), настройки (MR-К3)."
+related: ["docs/archive/plan/motion-rig.md", "docs/research/motion-rig-protocols.md"]
 contracts: [{"id": "MR-К1", "version": 3}, {"id": "MR-К2", "version": 3}, {"id": "MR-К3", "version": 3}]
 ---
 # Контракты модуля motion-rig
 
-План — `docs/plan/motion-rig.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей).
+План — `docs/archive/plan/motion-rig.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей).
 Контрактный тест — `tests/contracts/test_motion_rig_contracts.gd` (headless, без сети и GPU): проверяет строки «## MR-К<n>. … (v<n>)»
 этого файла, форму классов и полей ниже, разбор пакета по MR-К2.
 

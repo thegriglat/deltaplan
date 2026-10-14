@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "osm-look"
-updated: "2026-10-11"
-summary: "Контракты osm-look (вид объектов OSM): L1 тип дома в записи (O9 v2), L2 стиль домов город/село/промзона и шейдер, L3 трубы и дым, L4 ветер для слоя OSM, L5 модели ЛЭП/мачт/башен/труб, L6 ветряки и кабинки канатки, L7 вид дорог, L8 земля города, L9 шлейфы промышленных труб."
-related: ["docs/plan/osm-look.md", "docs/contracts/osm-tiles.md", "docs/guide/osm-tiles.md"]
+area: "world"
+updated: "2026-10-15"
+summary: "Вид OSM: тип дома (L1), стиль и шейдер домов (L2), дым труб (L3), ветер слоя (L4), ЛЭП, ветряки (L5–L6), дороги, земля, шлейфы (L7–L9)."
+related: ["docs/archive/plan/osm-look.md", "docs/contracts/osm-tiles.md", "docs/guide/osm-tiles.md"]
 contracts: [{"id": "L1", "version": 1}, {"id": "L2", "version": 1}, {"id": "L3", "version": 1}, {"id": "L4", "version": 1}, {"id": "L5", "version": 3}, {"id": "L6", "version": 1}, {"id": "L7", "version": 1}, {"id": "L8", "version": 1}, {"id": "L9", "version": 1}]
 ---
 # Контракты модуля osm-look
 
-План — `docs/plan/osm-look.md`. Только отрисовка мира: тайлы, упаковщик, формат O1–O8 и лётная модель
+План — `docs/archive/plan/osm-look.md`. Только отрисовка мира: тайлы, упаковщик, формат O1–O8 и лётная модель
 не меняются. Контрактные тесты — `tests/contracts/test_osm_look_contracts.gd` (версии, L1, L2, L4) и
 `tests/contracts/test_osm_look_models_l5.gd` (L5, создаёт OL-2) и `test_osm_look_models_l6.gd` (L6, создаёт OL-3). Правка контракта —
 версия +1 здесь, в frontmatter и в тесте, уведомление потребителей.

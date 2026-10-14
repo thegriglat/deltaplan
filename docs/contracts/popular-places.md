@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "popular-places"
-updated: "2026-10-11"
-summary: "Контракты модуля popular-places: файл каталога стартов дельтаплана в игре (PP-К1) и интерфейс данных/окна «Популярные места» в меню полёта (PP-К2)."
-related: ["docs/plan/popular-places.md"]
+area: "world"
+updated: "2026-10-15"
+summary: "Файл каталога стартов дельтаплана (PP-К1), данные и окно «Популярные места» в меню полёта (PP-К2)."
+related: ["docs/archive/plan/popular-places.md"]
 contracts: [{"id": "PP-К1", "version": 3}, {"id": "PP-К2", "version": 1}]
 ---
 # Контракты модуля popular-places
 
-План — `docs/plan/popular-places.md`. Менять — только через координатора (версия +1, что изменилось, уведомить
+План — `docs/archive/plan/popular-places.md`. Менять — только через координатора (версия +1, что изменилось, уведомить
 потребителей). Контрактный тест — `tests/contracts/test_popular_places_contracts.gd` (без сети и GPU; фильтр
 `popular_places`).
 

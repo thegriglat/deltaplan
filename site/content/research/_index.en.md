@@ -37,7 +37,7 @@ Status in the document header: `active` means the conclusion is applied in the g
 
 - [The air-nn pilot: can a small network replace the solver](/tools/research/air_nn_pilot/README.md) — code and reports of the pilots P-1, P-2, P-3.
 - [WindNinja as an independent reference](/tools/research/windninja/README.md) — comparison on 21 cases in 6 places: the speed-up on ridges matches, WindNinja does not give deceleration over the massif.
-- Plans and results — [air-nn plan](/docs/plan/air_nn.md), [P-3](/docs/archive/plan/air-nn-p3.md), [air-onnx](/docs/archive/plan/air-onnx.md); analysis — ["Approaches and results"](/approaches/).
+- Plans and results — [air-nn plan](/docs/archive/rejected/air-nn.md), [P-3](/docs/archive/rejected/air-nn-p3.md), [air-onnx](/docs/archive/rejected/air-onnx.md); analysis — ["Approaches and results"](/approaches/).
 
 ## Wings and flight
 

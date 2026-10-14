@@ -7,5 +7,6 @@
   "created": "2026-10-01T00:00:00",
   "legacy_journal": "docs/archive/plan/wing-physics-check-progress.md",
   "migrated_from": "docs/archive/plan/wing-physics-check-progress.md (tools/dp_migrate.py)",
-  "code": "WPC"
+  "code": "WPC",
+  "area": "flight"
 }

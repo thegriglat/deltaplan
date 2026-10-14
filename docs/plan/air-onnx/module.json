@@ -1,9 +1,10 @@
 {
   "module": "air-onnx",
-  "plan": "docs/archive/plan/air-onnx.md",
-  "contracts": "docs/contracts/air-onnx.md",
+  "plan": "docs/archive/rejected/air-onnx.md",
+  "contracts": "docs/archive/rejected/air-onnx-contracts.md",
   "branch": "feature/air-onnx",
   "copy": "~/deltaplan-air-onnx",
   "created": "2026-10-03T04:29:52",
-  "code": "ON"
+  "code": "ON",
+  "area": "air"
 }

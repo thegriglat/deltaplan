@@ -1,15 +1,16 @@
 ---
 type: contract
-status: active
+status: closed
 module: pendulum
-updated: 2026-10-11
-summary: "Контракты модуля pendulum: поверхность модели полёта «Маятник» для Glider (PD-К1), конфиг маятника и блок pendulum в крыльях (PD-К2), настройки «Аппарат» (PD-К3), сеть — режим и положение пилота (PD-К4), поза пилота в визуале и у чужих (PD-К5), касание земли — гашение вертикальной скорости ногами (PD-К6)."
-related: ["docs/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
+area: flight
+updated: 2026-10-15
+summary: "Модель полёта «Маятник» (PD-К1), конфиг маятника (PD-К2), настройки «Аппарат» (PD-К3), сеть и поза (PD-К4–К5), касание ногами (PD-К6)."
+related: ["docs/archive/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
 contracts: [{"id": "PD-К1", "version": 4}, {"id": "PD-К2", "version": 7}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}, {"id": "PD-К6", "version": 2}]
 ---
 # Контракты модуля pendulum
 
-План — `docs/plan/pendulum.md`, числа — `docs/research/pendulum.md`, эталон — прототип `tools/research/pendulum/` (Python). Менять — только через координатора: версия +1, что изменилось, уведомить потребителей, их правка в том же шаге. Контрактные тесты — у владельца, отдельным файлом на контракт: `tests/contracts/test_pendulum_contracts_k<n>.gd` (проверяют заголовок «## PD-К<n>. … (v<версия>)» этого файла и форму данных).
+План — `docs/archive/plan/pendulum.md`, числа — `docs/research/pendulum.md`, эталон — прототип `tools/research/pendulum/` (Python). Менять — только через координатора: версия +1, что изменилось, уведомить потребителей, их правка в том же шаге. Контрактные тесты — у владельца, отдельным файлом на контракт: `tests/contracts/test_pendulum_contracts_k<n>.gd` (проверяют заголовок «## PD-К<n>. … (v<версия>)» этого файла и форму данных).
 
 Оси игры: X — восток, Y — вверх, −Z — север; оси крыла (Glider) — −Z вперёд по килю, +Y вверх, +X вправо; `Telemetry.basis = Basis.from_euler(Vector3(theta, -heading, -bank))`. Оси конфига крыла (PD-К2) — «оси киля»: `x` — назад вдоль киля от носового узла, м; `z` — вверх перпендикулярно килю в плоскости симметрии, м.
 

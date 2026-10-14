@@ -1,9 +1,10 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "wings-models3d"
-updated: "2026-10-03"
-summary: "Контракты направления «3D-модели и конфиги крыльев» — Владелец: tools/blender/build_gliders.py (WingShape, сборка)."
+area: "flight"
+updated: "2026-10-15"
+summary: "Параметры формы крыла в glider_params.json (К1), конфиг ↔ модель ↔ перевод (К2), спецификация новых крыльев (К3), поляра нового крыла (К4)."
 related: []
 contracts: [{"id": "К1", "version": 1}, {"id": "К2", "version": 1}, {"id": "К3", "version": 2}, {"id": "К4", "version": 2}]
 ---
