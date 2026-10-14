@@ -1,0 +1,39 @@
+{
+  "status": "done",
+  "summary": "findings.md сжат с 55 до 37,7 КБ: разделы по area (air, flight, world, game, release), формат '## модуль' + '- вывод — [файл#раздел](/путь#якорь)', дубли и пересказ хода работ убраны (бисект старта, база AM-00 слиты, пункты про тесты и закрытие модулей удалены), выводы air-nn/air-onnx/ann2/wind-field оставлены с пометкой (отклонено), ссылки ведут в docs/archive/plan и docs/archive/rejected; якоря проверены по реальным заголовкам скриптом.",
+  "commits": [
+    "a2c9f0e9 findings.md: сжат с 55 до 37 КБ"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "0 ошибок",
+      "pass": true
+    },
+    {
+      "name": "size",
+      "value": "37703",
+      "pass": true
+    },
+    {
+      "name": "findings_cmd",
+      "value": "ветер -> 3+ строк",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Новых выводов из docs/perf и tools/research не добавлял (вне задания, только сжатие)"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept DR-17",
+  "uncertain": [
+    {
+      "where": "docs/registry/findings.md, раздел pendulum",
+      "why": "якоря ведут в части docs/research/pendulum/*.md, которые могут переименовать соседние задачи",
+      "checked": "docs check без битых ссылок на момент сдачи"
+    }
+  ],
+  "dp_feedback": "Хорошо бы docs check проверял якоря #раздел (сейчас только файл) и dp docs findings --module принимал пометку отклонённости; метка (отклонено) в пункте, а не в заголовке, чтобы --module работал.",
+  "t": "2026-10-15T02:18:08",
+  "by": "executor"
+}

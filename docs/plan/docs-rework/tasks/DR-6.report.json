@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "summary": "air-model (4 части), air-phase (2), easter-eggs (3) разбиты по D4: вход со списком стыков (id, версия, строка, часть) и общими правилами; каждый стык целиком в одной части, части 17–30 КБ, номера и версии не менялись, текст не сокращён. Каталог easter-eggs/ исключён из сайта, mount контрактов получил **/*.md.",
+  "commits": [
+    "fdb83bf5 Контракты air-model, air-phase, easter-eggs разбиты по D4"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "0 ошибок",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "eggs_off_site",
+      "value": "пусто",
+      "pass": true
+    },
+    {
+      "name": "размеры, КБ",
+      "value": "air-model вход 7, части 30/21/17/16; air-phase вход 4, части 28/28; easter-eggs вход 7, части 17/18/9",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "docs/guide и tools не трогались (волна 3): ссылки docs/guide/air-model.md:154,366,946 и docs/guide/world-objects.md:384 на вход работают, якорей нет",
+    "Тесты читают контракты как один файл и сломаются: tests/contracts/test_air_contracts.gd (DOC, regex '## C\\d+ v\\d+' — читать три части air-model/*.md), tests/contracts/test_no_osm_contracts{,_k8,_n1,_n4}.gd (EGGS_DOC, ищет '## К8.' с '(v4,' — теперь в docs/contracts/easter-eggs/place-world.md). Вне скоупа DR-6."
+  ],
+  "questions": [
+    "Кто правит перечисленные тесты (вне скоупа)? Ссылки в коде/tools на docs/contracts/<имя>.md остаются валидными (вход сохранён)."
+  ],
+  "how_to_check": ".dpcli/dpcli accept DR-6",
+  "uncertain": [
+    {
+      "where": "docs/contracts/easter-eggs.md (frontmatter contracts)",
+      "why": "в заголовках К1–К7 версий нет; поставил номер версии модуля последней правки по истории (К1 2, К2 3, К3 2, К4 2, К5 2, К6 4, К7 5), оговорено в тексте входа",
+      "checked": "история версий входа"
+    },
+    {
+      "where": "docs/contracts/easter-eggs/place-world.md",
+      "why": "предупреждение docs check: К8 во frontmatter v9 (DR-5), в заголовке v4; заголовок не менял — его читают тесты no-osm",
+      "checked": "тесты no-osm, история v9"
+    }
+  ],
+  "dp_feedback": "docs check: предупреждение contracts≠заголовкам не умеет версии стыков без 'v' в заголовке и ожидает их в заголовке; хорошо бы команду разбиения контракта (split по ##).",
+  "t": "2026-10-15T02:18:11",
+  "by": "executor"
+}
