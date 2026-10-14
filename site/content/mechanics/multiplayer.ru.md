@@ -140,7 +140,7 @@ sequenceDiagram
 
 ## Подробнее
 
-- [docs/guide/game.md](/docs/guide/game.md) — общее устройство игры.
+- [docs/guide/game.md](/docs/guide/game.md) — общее устройство игры; [docs/guide/game/network.md](/docs/guide/game/network.md) — сетевой полёт в игре.
 - [docs/guide/steam.md](/docs/guide/steam.md) — сетевая игра через Steam (лобби, транспорт).
 - [docs/guide/net-protocol.md](/docs/guide/net-protocol.md) — полный протокол: все сообщения, коды ошибок, примеры JSON, диаграммы сценариев.
 - [server/README.md](/server/README.md) — как поднять сервер на Go (локально и на VPS через Docker).

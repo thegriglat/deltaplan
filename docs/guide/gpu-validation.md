@@ -2,8 +2,10 @@
 type: "guide"
 status: "active"
 module: "perf"
-updated: "2026-10-14"
-summary: "Проверка GPU на загрузке места (tools/gpu_validate.sh): слой валидации Vulkan (core, GPU-AV, синхронизация) на своей карте и lavapipe, Windows-сборка под wine с vkd3d-proton (d3d12), пики RAM/VRAM, порции ветра; как читать сводку и что каждый режим ловит и не ловит."
+area: "perf"
+updated: "2026-10-15"
+summary: "tools/gpu_validate.sh: загрузка места под слоем валидации Vulkan, lavapipe и wine+vkd3d-proton; пики RAM/VRAM, что ловит каждый режим."
+related: ["docs/guide/air-model-gpu.md", "docs/guide/crash-report.md", "docs/guide/game/cli-tests.md"]
 ---
 
 # Проверка GPU на загрузке места
@@ -19,6 +21,7 @@ tools/gpu_validate.sh [--mode=vk|lvp|wine] [--check=core|gpuav|sync|none]
   [--places=askarovo,altai|<lat>,<lon>] [--presets=low,medium,high] [--bots=1,8]
   [--wind=auto,off] [--secs=8] [--res=1280x720] [--exe=…/deltaplan.exe] [--driver=d3d12|vulkan]
   [--out=папка] [--cold]
+tools/gpu_validate.sh --tests=<фильтр> [--mode=vk|lvp] [--check=…]   # вместо загрузки — GPU-тесты под слоем
 ```
 
 Матрица — места × пресеты × число ботов × режим ветра (`auto` — расчёт поля, `off` — «Эвристика»);

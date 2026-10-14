@@ -140,7 +140,7 @@ Choices made when designing multiplayer:
 
 ## Details
 
-- [docs/guide/game.md](/docs/guide/game.md) — the overall design of the game.
+- [docs/guide/game.md](/docs/guide/game.md) — the overall design of the game; [docs/guide/game/network.md](/docs/guide/game/network.md) — network flight inside the game.
 - [docs/guide/steam.md](/docs/guide/steam.md) — multiplayer via Steam (lobby, transport).
 - [docs/guide/net-protocol.md](/docs/guide/net-protocol.md) — the full protocol: all messages, error codes, JSON examples, scenario diagrams.
 - [server/README.md](/server/README.md) — how to bring up the Go server (locally and on a VPS via Docker).

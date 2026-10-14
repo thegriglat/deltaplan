@@ -76,7 +76,7 @@ The queue is run by the zone leader (not to be confused with a "senior" in the e
 
 ## More
 
-- [docs/guide/game.md](/docs/guide/game.md) — the "Other pilots" section and the command line (`--bots=<N>`, `--look-at=bots`).
+- [docs/guide/game/bots.md](/docs/guide/game/bots.md) — how the bots work; [docs/guide/game/cli-tests.md](/docs/guide/game/cli-tests.md) — the command line (`--bots=<N>`, `--look-at=bots`).
 - [scripts/game/bot_pilots.gd](/scripts/game/bot_pilots.gd) — bot management: spawning, the queue at the launch, `_start_airborne`.
 - [scripts/game/bot_pilot.gd](/scripts/game/bot_pilot.gd) — the bot's "brain": modes, centring, figure eight at the slope.
 - [scripts/game/wander_pilot.gd](/scripts/game/wander_pilot.gd) — flight without a target ("other pilots in the sky").

@@ -2,9 +2,10 @@
 type: "guide"
 status: "active"
 module: "core"
-updated: "2026-10-14"
-summary: "Автоматические отчёты о вылетах: метка сессии, отчёт GitHub issue в deltaplan-reports при следующем запуске, токен, проверка --crash-report-test."
-related: []
+area: "release"
+updated: "2026-10-15"
+summary: "Отчёты о вылетах: метка сессии, issue в deltaplan-reports при следующем запуске, токен, проверка --crash-report-test."
+related: ["docs/guide/gpu-validation.md", "docs/guide/game/cli-tests.md"]
 ---
 # Отчёты о вылетах
 
