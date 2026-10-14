@@ -70,12 +70,59 @@ uniform float inner_fade_m = 0.001;
 uniform float xfade_k = 1.0;
 uniform float height_fade_k = 0.6;
 uniform float height_k = 1.0;   // множитель высоты слоя
+// ранний выход вне поля зрения (GR-3): пучок, целиком лежащий за плоскостью пирамиды камеры,
+// прячется до выборок цвета/класса/ветра. clump_reach_m — радиус пучка в плане (корни + изгиб +
+// полуширина травинки, GrassField по сетке пучка); cull_enabled — только для теста (GR-3).
+uniform float clump_reach_m = 0.35;
+uniform bool cull_enabled = true;
 
 varying vec3 v_col;
 varying float v_t;
 varying vec3 v_n;
 // тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
 varying float v_cs_sun;
+
+// GR-3: пучок целиком вне пирамиды камеры текущего прохода. Тело пучка — вертикальный столбик
+// от корня (h − 0,02) до самой высокой травинки (высота не выше max диапазонов классов × height_k:
+// сезон полей, скос, приминание, затухание вдали её только уменьшают) радиусом
+// reach = clump_reach_m · ширина вдали + наибольший вынос кончика вбок (наклон lean × высота;
+// |lean| не больше наклона ветром+качанием, приминания у пилота 1,5 и примятой травы trample_lean —
+// lean их выпуклая смесь). Отсекается, только если столбик с этим радиусом целиком за одной из
+// боковых плоскостей (из строк PROJECTION_MATRIX — учтены FOV, соотношение сторон, любой вьюпорт)
+// или позади камеры. Ближе 2 м по горизонтали — никогда. Считается в том же кадре, что и
+// рисование, — запаса на поворот камеры не нужно.
+bool clump_out_of_view(vec2 xz, float h, float d, float width_scale, mat4 proj, mat4 view) {
+	if (d < 2.0) {
+		return false;
+	}
+	float h_max = max(max(blade_height_m.y, crop_height_m.y), forest_height_m.y) * height_k;
+	// наклон ветром (terrain_wind.gdshaderinc, grass_wind): пятна порывов |bend| ≤ 1 + gust_gain,
+	// термик |inward + 0,4·swirl|·tw ≤ 1,08·th.w·thermal_gain
+	float bend_max = 1.0 + max(gust_gain, 0.0);
+	for (int k = 0; k < wind_thermal_count; k++) {
+		bend_max = max(bend_max, 1.08 * abs(wind_thermals[k].w) * thermal_gain);
+	}
+	float lean_max = bend_max * abs(bend_amp) + 0.15 + abs(sway_amp);
+	lean_max = max(lean_max, max(1.5, abs(trample_lean)));
+	float reach = clump_reach_m * width_scale + lean_max * h_max;
+	// концы оси столбика в пространстве вида (вид смотрит в −Z; масштаб вида единичный)
+	vec3 a = (view * vec4(xz.x, h - 0.02, xz.y, 1.0)).xyz;
+	vec3 b = (view * vec4(xz.x, h + h_max, xz.y, 1.0)).xyz;
+	if (min(a.z, b.z) > reach) {
+		return true;   // позади камеры
+	}
+	mat4 t = transpose(proj);   // t[i] — строка i проекции: плоскости пирамиды в пространстве вида
+	vec4 pl[4] = vec4[4](t[3] + t[0], t[3] - t[0], t[3] + t[1], t[3] - t[1]);
+	for (int i = 0; i < 4; i++) {
+		float inv = inversesqrt(max(dot(pl[i].xyz, pl[i].xyz), 1e-20));
+		float da = dot(pl[i].xyz, a) + pl[i].w;
+		float db = dot(pl[i].xyz, b) + pl[i].w;
+		if (max(da, db) * inv < -reach) {
+			return true;
+		}
+	}
+	return false;
+}
 
 void vertex() {
 	vec2 cell = grid_center_cell + INSTANCE_CUSTOM.xy;   // смещение клетки в кольце слоя
@@ -90,13 +137,20 @@ void vertex() {
 	density *= 1.0 - smoothstep(area_radius_m * xfade_k, area_radius_m + 1e-3, d);
 	density *= smoothstep(inner_radius_m, inner_radius_m + inner_fade_m, d);
 	float rank = hash12(cell + vec2(20.5, 0.0));
-	if (rank >= density) {
+	float h = 0.0;
+	bool hidden = rank >= density;
+	if (!hidden) {
+		h = h_bilinear(xz);   // единственная выборка высоты до теста; дальше используется как есть
+		hidden = cull_enabled && clump_out_of_view(xz, h, d, mix(1.0, far_width_k, thin_s),
+				PROJECTION_MATRIX, VIEW_MATRIX);
+	}
+	if (hidden) {
 		VERTEX = vec3(xz.x, -1e4, xz.y);   // пучок скрыт: вырожденные треугольники, без выборок
 		v_col = vec3(0.0);
 		v_t = 0.0;
 		v_n = vec3(0.0, 1.0, 0.0);
+		v_cs_sun = 1.0;
 	} else {
-		float h = h_bilinear(xz);
 		float sl_rel; vec4 sl_ss = sl_season_b(h, sl_rel); // SL
 		// класс — ближайший узел карты (как Terrain.surface_at)
 		int c = surface_node(ivec2(round((xz - surface_origin) / surface_spacing)));
@@ -198,8 +252,8 @@ void vertex() {
 		base *= mix(vec3(1.0), trample_tint, tr);
 		v_col = base;
 		v_t = t;
+		v_cs_sun = cloud_sun_at(VERTEX);
 	}
-	v_cs_sun = cloud_sun_at(VERTEX);
 }
 
 void fragment() {
