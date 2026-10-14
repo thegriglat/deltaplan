@@ -1,9 +1,10 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "wing-physics-check"
-updated: "2026-10-03"
-summary: "Контракты модуля wing-physics-check"
+area: "flight"
+updated: "2026-10-15"
+summary: "Конфиг крыла → модель (К1), скорость воздуха (К2), ветер меню (К3), «паспорт против модели» (К4), профили ветра, пачка полётов (К5–К6)."
 related: []
 contracts: [{"id": "К1", "version": 2}, {"id": "К2", "version": 1}, {"id": "К3", "version": 1}, {"id": "К4", "version": 2}, {"id": "К5", "version": 1}, {"id": "К6", "version": 1}]
 ---

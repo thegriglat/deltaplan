@@ -1,9 +1,10 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "start-fixes"
-updated: "2026-10-03"
-summary: "Контракты модуля «start-fixes»"
+area: "game"
+updated: "2026-10-15"
+summary: "Фиксы старта с земли: карта поверхности и поляны (К1), трава по классам (К2), крен на земле (К3), поза крыла на земле (К4)."
 related: []
 contracts: [{"id": "К1", "version": 2}, {"id": "К2", "version": 2}, {"id": "К3", "version": 2}, {"id": "К4", "version": 1}]
 ---

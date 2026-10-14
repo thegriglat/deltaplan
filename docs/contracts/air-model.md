@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "air-model"
-updated: "2026-10-10"
-summary: "Модель воздуха: контракты систем — Интерфейсы на стыках задач плана docs/plan/air_model.md (AM-00…AM-12)."
+area: "air"
+updated: "2026-10-15"
+summary: "Модель воздуха: контракты систем — Интерфейсы на стыках задач плана docs/archive/plan/air-model.md (AM-00…AM-12)."
 related: []
 contracts: [{"id": "C1", "version": 2}, {"id": "C2", "version": 9}, {"id": "C3", "version": 2}, {"id": "C4", "version": 4}, {"id": "C5", "version": 1}, {"id": "C6", "version": 1}, {"id": "C7", "version": 4}, {"id": "C8", "version": 2}, {"id": "C9", "version": 3}, {"id": "C10", "version": 3}]
 ---
 # Модель воздуха: контракты систем
 
-Интерфейсы на стыках задач плана `docs/plan/air_model.md` (AM-00…AM-12). Зафиксировано **то, что
+Интерфейсы на стыках задач плана `docs/archive/plan/air-model.md` (AM-00…AM-12). Зафиксировано **то, что
 есть в коде** на 29.09.2026 (ветка `feature/air-model`); то, чего ещё нет, помечено «проект».
 Контрактные тесты — `tests/contracts/test_air_contracts.gd` (headless, без GPU):
 `godot --headless --path . res://tests/run_tests.tscn -- --filter=test_air_contracts`.

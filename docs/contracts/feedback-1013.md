@@ -1,10 +1,11 @@
 ---
 type: contract
-status: active
+status: closed
 module: feedback-1013
-updated: 2026-10-13
-summary: "Контракты модуля feedback-1013: время суток и солнце для источников тепла и термиков — одно соглашение с SunClock, при солнце под горизонтом нет нового потока тепла и рождения термиков (FBW-К2)."
-related: ["docs/plan/feedback-1013.md", "docs/guide/game.md", "docs/guide/air-model.md"]
+area: air
+updated: 2026-10-15
+summary: "Время суток и солнце для источников тепла и термиков: при солнце под горизонтом нет нового тепла и термиков (FBW-К2)."
+related: ["docs/archive/plan/feedback-1013.md", "docs/guide/game.md", "docs/guide/air-model.md"]
 contracts: [{"id": "FBW-К2", "version": 3}]
 ---
 # Контракты feedback-1013

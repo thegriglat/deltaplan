@@ -1,16 +1,17 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "osm-tiles"
-updated: "2026-10-11"
-summary: "Контракты osm-tiles: мировая сетка 20 км (O1), файл тайла (O2), потоки и кодировка (O3), фрагменты и склейка регионов (O4), CLI упаковщика (O5), сводка stats (O6), манифест (O7), оркестратор и его состояние (O8), клиент в игре (O9)."
-related: ["docs/plan/osm-tiles.md", "docs/plan/osm_vector_pack.md", "docs/plan/no-osm.md", "docs/contracts/osm-any.md"]
+area: "world"
+updated: "2026-10-15"
+summary: "Сетка 20 км (O1), файл тайла (O2), потоки (O3), склейка регионов (O4), CLI упаковщика (O5–O7), оркестратор (O8), клиент (O9)."
+related: ["docs/archive/plan/osm-tiles.md", "docs/plan/osm_vector_pack.md", "docs/archive/plan/no-osm.md", "docs/contracts/osm-any.md"]
 contracts: [{"id": "O1", "version": 1}, {"id": "O2", "version": 1}, {"id": "O3", "version": 1}, {"id": "O4", "version": 1}, {"id": "O5", "version": 1}, {"id": "O6", "version": 1}, {"id": "O7", "version": 1}, {"id": "O8", "version": 2}, {"id": "O9", "version": 2}]
 ---
 # Контракты модуля osm-tiles
 
-План — `docs/plan/osm-tiles.md`. Менять — только через координатора модуля: версия +1, что изменилось,
-уведомить потребителей, их правка в том же шаге. Основа — замер и прототип `docs/plan/osm_vector_pack.md` §9
+План — `docs/archive/plan/osm-tiles.md`. Менять — только через координатора модуля: версия +1, что изменилось,
+уведомить потребителей, их правка в том же шаге. Основа — замер и прототип `docs/plan/osm_vector_pack/tiles-20km.md`
 и `tools/research/osm_pack/build_tiles20.py`, `build_pilot20.py` (эталон; кодировка O3 = эталонная, кроме
 отмеченных «отличие от эталона»).
 

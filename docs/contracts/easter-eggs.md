@@ -1,8 +1,9 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "easter-eggs"
-updated: "2026-10-11"
+area: "world"
+updated: "2026-10-15"
 summary: "Контракты модуля «Пасхалки: живой мир и небо» — Версия: 5 (01.10.2026). v4 → v5: перед E10 — К9 «другая группа»: доп."
 related: []
 contracts: [{"id": "К8", "version": 9}, {"id": "К9", "version": 5}, {"id": "К10", "version": 7}, {"id": "К11", "version": 7}, {"id": "К12", "version": 7}, {"id": "К13", "version": 8}, {"id": "К14", "version": 8}, {"id": "К15", "version": 10}, {"id": "К16", "version": 10}]

@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "no-osm"
-updated: "2026-10-10"
-summary: "Контракты no-osm: N1 файлы застройки 10 м и пятен места, N2 BuiltPatches (чтение пятен), N3 процедурные дома, N4 игра без OSM, N5 файлы места в WebP и версия кеша; К8 v4 — в easter-eggs.md"
-related: ["docs/plan/no-osm.md", "docs/contracts/easter-eggs.md", "docs/contracts/osm-any.md"]
+area: "world"
+updated: "2026-10-15"
+summary: "Застройка 10 м и пятна места (N1–N2), процедурные дома (N3), игра без OSM (N4), файлы места в WebP и версия кеша (N5)."
+related: ["docs/archive/plan/no-osm.md", "docs/contracts/easter-eggs.md", "docs/contracts/osm-any.md"]
 contracts: [{"id": "N1", "version": 1}, {"id": "N2", "version": 2}, {"id": "N3", "version": 1}, {"id": "N4", "version": 3}, {"id": "N5", "version": 1}]
 ---
 # Контракты no-osm
 
-План — `docs/plan/no-osm.md`. Менять интерфейс — только через координатора модуля (версия +1, что
+План — `docs/archive/plan/no-osm.md`. Менять интерфейс — только через координатора модуля (версия +1, что
 изменилось, правка потребителей в том же шаге). Контрактный тест — `tests/contracts/test_no_osm_contracts.gd`
 (версии — в заголовках ниже, тест сверяет). Координаты — мир места: x на восток, z на юг, м, начало — центр
 места (как у `Terrain`, `surface.json → origin_*_m`). Классы — `SurfaceLayer` (BUILT = 7).

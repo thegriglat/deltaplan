@@ -1,15 +1,16 @@
 ---
 type: contract
-status: active
+status: closed
 module: control-bar
-updated: 2026-10-10
-summary: "Контракты модуля control-bar: настройки устройства трапеции в controls.json → gamepad (CB-К1), ход ручки → управление, класс BarAxis (CB-К2)."
-related: ["docs/plan/control-bar.md", "docs/research/control-bar-input.md"]
+area: flight
+updated: 2026-10-15
+summary: "Устройство трапеции в controls.json → gamepad (CB-К1), ход ручки → управление, класс BarAxis (CB-К2)."
+related: ["docs/archive/plan/control-bar.md", "docs/research/control-bar-input.md"]
 contracts: [{"id": "CB-К1", "version": 2}, {"id": "CB-К2", "version": 1}]
 ---
 # Контракты модуля control-bar
 
-План — `docs/plan/control-bar.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей).
+План — `docs/archive/plan/control-bar.md`. Менять — только через координатора (версия +1, что изменилось, уведомить потребителей).
 Контрактный тест — `tests/contracts/test_control_bar_contracts.gd` (headless, без устройства): заголовки «## CB-К<n>. … (v<n>)»,
 ключи и значения по умолчанию в `configs/controls.json`, форма и инварианты `BarAxis`. До CB-2 он красный — это ожидаемо
 (класса и ключей ещё нет); тест грузит `bar_axis.gd` через `load()`, чтобы не ломать разбор раннера.

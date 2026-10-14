@@ -1,10 +1,11 @@
 ---
 type: contract
-status: active
+status: closed
 module: pilot-hud
-updated: 2026-10-12
-summary: "Контракты модуля pilot-hud: усилие на трапеции в телеметрии (PH-К1), время и флажки часов/компаса (PH-К2), крепления на запястьях и материалы пилота (PH-К3), модели часов и компаса (PH-К4), тело в кабинной камере (PH-К5), трава в точке и подошвы (PH-К6), затенение земли крылом (PH-К7)."
-related: ["docs/plan/pilot-hud.md", "docs/contracts/feedback-1012.md", "docs/guide/models.md"]
+area: game
+updated: 2026-10-15
+summary: "Усилие на трапеции (PH-К1), часы и компас (PH-К2, К4), крепления и материалы (PH-К3), тело в кабине (PH-К5), трава, подошвы (PH-К6–К7)."
+related: ["docs/archive/plan/pilot-hud.md", "docs/contracts/feedback-1012.md", "docs/guide/models.md"]
 contracts: [{"id": "PH-К1", "version": 1}, {"id": "PH-К2", "version": 1}, {"id": "PH-К3", "version": 2}, {"id": "PH-К4", "version": 2}, {"id": "PH-К5", "version": 1}, {"id": "PH-К6", "version": 1}, {"id": "PH-К7", "version": 1}]
 ---
 # Контракты pilot-hud

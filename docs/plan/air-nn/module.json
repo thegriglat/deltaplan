@@ -1,9 +1,10 @@
 {
   "module": "air-nn",
-  "plan": "docs/plan/air_nn.md",
-  "contracts": "docs/contracts/air-nn.md",
+  "plan": "docs/archive/rejected/air-nn.md",
+  "contracts": "docs/archive/rejected/air-nn-contracts.md",
   "branch": "feature/air-nn",
   "copy": "/home/greg/deltaplan-air-nn",
   "created": "2026-10-02T22:58:46",
-  "code": "NN"
+  "code": "NN",
+  "area": "air"
 }

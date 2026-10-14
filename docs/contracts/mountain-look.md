@@ -1,10 +1,11 @@
 ---
 type: contract
-status: active
+status: closed
 module: mountain-look
-updated: 2026-10-13
-summary: "Контракты mountain-look: высоты места со сглаживанием только в лесу и застройке (MLK-К1), дальнее заострение рельефа — функция мира и дальности с нулём у камеры (MLK-К2), формат зонда силуэта гор (MLK-К3)."
-related: ["docs/plan/mountain-look.md", "docs/guide/terrain.md", "docs/contracts/osm-any.md", "docs/contracts/no-osm.md"]
+area: world
+updated: 2026-10-15
+summary: "Сглаживание высот в лесу и застройке (MLK-К1), дальнее заострение рельефа (MLK-К2), формат зонда силуэта гор (MLK-К3)."
+related: ["docs/archive/plan/mountain-look.md", "docs/guide/terrain.md", "docs/contracts/osm-any.md", "docs/contracts/no-osm.md"]
 contracts: [{"id": "MLK-К1", "version": 1}, {"id": "MLK-К2", "version": 2}, {"id": "MLK-К3", "version": 2}]
 ---
 # Контракты mountain-look

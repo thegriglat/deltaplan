@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "steam-assets"
-updated: "2026-10-07"
-summary: "Контракты модуля steam-assets: инвентарь сборки (SA-К1), лицензии и атрибуции в сборке (SA-К2), формат ASSETS.md (SA-К3), ассеты страницы Steam (SA-К4)."
-related: ["docs/plan/steam-assets.md", "ASSETS.md"]
+area: "release"
+updated: "2026-10-15"
+summary: "Инвентарь сборки (SA-К1), лицензии и атрибуции (SA-К2), формат ASSETS.md (SA-К3), ассеты страницы Steam (SA-К4)."
+related: ["docs/archive/plan/steam-assets.md", "ASSETS.md"]
 contracts: [{"id": "SA-К1", "version": 3}, {"id": "SA-К2", "version": 5}, {"id": "SA-К3", "version": 4}, {"id": "SA-К4", "version": 3}]
 ---
 # Контракты модуля steam-assets
 
-План — `docs/plan/steam-assets.md`. Менять — только через координатора модуля (версия +1, что изменилось, уведомить потребителей, их правка в том же шаге). Контрактный тест — `tests/contracts/test_steam_assets_contracts.gd` (без сети и GPU; новые проверки задач — в отдельных файлах `tests/contracts/test_steam_assets_contracts_<задача>.gd`, фильтр `steam_assets_contracts` подхватит).
+План — `docs/archive/plan/steam-assets.md`. Менять — только через координатора модуля (версия +1, что изменилось, уведомить потребителей, их правка в том же шаге). Контрактный тест — `tests/contracts/test_steam_assets_contracts.gd` (без сети и GPU; новые проверки задач — в отдельных файлах `tests/contracts/test_steam_assets_contracts_<задача>.gd`, фильтр `steam_assets_contracts` подхватит).
 
 Главное правило модуля (решение пользователя 05.10.2026): **всё, что входит в сборку игры (itch и Steam), должно разрешать коммерческое использование**; NC и «только для личного использования» в сборке запрещены.
 

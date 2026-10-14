@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "pilot-view"
-updated: "2026-10-08"
-summary: "Контракты модуля «pilot-view»: PV1 — направление крена (roll_input bar/body), PV2 — X возвращает мышь-трапецию в нейтраль, PV3 — изгиб базовой штанги по крыльям; правка A3 v7 (высота подвеса, вид из кабины) — в aframe-geometry.md."
-related: ["docs/plan/pilot-view.md", "docs/contracts/ui-controls.md", "docs/contracts/aframe-geometry.md", "docs/contracts/wings-models3d.md"]
+area: "game"
+updated: "2026-10-15"
+summary: "Направление крена (PV1), X возвращает мышь-трапецию в нейтраль (PV2), изгиб базовой штанги по крыльям (PV3)."
+related: ["docs/archive/plan/pilot-view.md", "docs/contracts/ui-controls.md", "docs/contracts/aframe-geometry.md", "docs/contracts/wings-models3d.md"]
 contracts: [{"id": "PV1", "version": 3}, {"id": "PV2", "version": 1}, {"id": "PV3", "version": 2}]
 ---
 # Контракты модуля «pilot-view»
 
-Внутренний документ. План — `docs/plan/pilot-view.md`. Контрактный тест — `tests/game/test_pilot_view_contracts.gd` (заводит PV-3 для PV1–PV2, PV-5 дописывает PV3). Менять — только через координатора: версия +1, что изменилось, потребители правятся в том же шаге. Геометрия подвеса и вида из кабины — A3 v7 в `docs/contracts/aframe-geometry.md` (владелец правки — этот модуль).
+Внутренний документ. План — `docs/archive/plan/pilot-view.md`. Контрактный тест — `tests/game/test_pilot_view_contracts.gd` (заводит PV-3 для PV1–PV2, PV-5 дописывает PV3). Менять — только через координатора: версия +1, что изменилось, потребители правятся в том же шаге. Геометрия подвеса и вида из кабины — A3 v7 в `docs/contracts/aframe-geometry.md` (владелец правки — этот модуль).
 
 ## PV1. Направление крена — `controls.roll_input` — версия 3 (дополняет У1 v3 из `docs/contracts/ui-controls.md`)
 

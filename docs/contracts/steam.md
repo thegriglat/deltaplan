@@ -1,15 +1,16 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "steam"
-updated: "2026-10-05"
-summary: "Контракты модуля steam: SteamService и заглушка «Steam нет» (S1), поток событий полёта для ачивок (S2), активность игры и Rich Presence (S3), транспорт сети с подключаемыми пирами (S4), лобби Steam и адресация (S5), описание ачивок и локальный прогресс (S6), Steam Cloud (S7)."
-related: ["docs/plan/steam.md", "docs/guide/net-protocol.md"]
+area: "release"
+updated: "2026-10-15"
+summary: "SteamService и заглушка (S1), события для ачивок (S2), Rich Presence (S3), транспорт (S4), лобби (S5), ачивки (S6), Cloud (S7)."
+related: ["docs/archive/plan/steam.md", "docs/guide/net-protocol.md"]
 contracts: [{"id": "S1", "version": 1}, {"id": "S2", "version": 3}, {"id": "S3", "version": 2}, {"id": "S4", "version": 2}, {"id": "S5", "version": 1}, {"id": "S6", "version": 2}, {"id": "S7", "version": 1}]
 ---
 # Контракты модуля steam
 
-Внутренний документ. План — `docs/plan/steam.md`. Контрактный тест — `tests/contracts/test_steam_contracts.gd` (координатор завёл проверки версий и S1.1; задачи-владельцы дописывают проверки формы своего стыка). Менять — только через координатора модуля: версия +1, что изменилось, потребители правятся в том же шаге.
+Внутренний документ. План — `docs/archive/plan/steam.md`. Контрактный тест — `tests/contracts/test_steam_contracts.gd` (координатор завёл проверки версий и S1.1; задачи-владельцы дописывают проверки формы своего стыка). Менять — только через координатора модуля: версия +1, что изменилось, потребители правятся в том же шаге.
 
 Общее: единицы СИ (м, м/с, с), углы — градусы; мир Godot: X — восток, Y — вверх, −Z — север (как в `docs/guide/net-protocol.md`). Время — секунды. Steam ID — 64-битное целое; в строках и данных лобби — десятичной строкой.
 
