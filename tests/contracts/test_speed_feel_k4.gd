@@ -13,7 +13,7 @@ func test_doc_heading() -> void:
 	var found := {}
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
-	check(found.get("SPF-К4", 0) == 1, "SPF-К4 (v1) в заголовках: %s" % found)
+	check(found.get("SPF-К4", 0) == 2, "SPF-К4 (v2) в заголовках: %s" % found)
 
 
 func test_cockpit_keys() -> void:
@@ -26,3 +26,7 @@ func test_cockpit_keys() -> void:
 
 func test_trim_pitch_method() -> void:
 	check(FlightModel.new().has_method("trim_pitch"), "FlightModel.trim_pitch()")
+
+
+func test_pendulum_trim_pitch_method() -> void:
+	check(PendulumModel.new().has_method("trim_pitch"), "PendulumModel.trim_pitch()")
