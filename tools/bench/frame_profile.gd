@@ -24,7 +24,7 @@ const AIR_MAX_S := 40.0
 
 const ALL_EXPS := [
 	"base", "scale50", "scale75", "nomsaa", "noshadow", "shadow1k", "noglow", "nocloudfx",
-	"noclouds", "notrees", "notreeshadow", "noimpostors", "nograss", "noscatter", "noobjects",
+	"noclouds", "notrees", "notreeshadow", "noimpostors", "nocrosses", "nograss", "noscatter", "noobjects",
 	"nohaze", "noterrain", "noerosion", "cloudres33", "cloudres25", "cloudit64", "cloudlight3", "clouddetail0",
 	"base2"
 ]
@@ -44,6 +44,7 @@ const HIDE_CLASSES := {
 	"noclouds": ["CloudLayer", "CirrusLayer"],
 	"notrees": ["TerrainTreeModels", "TerrainTrees", "ForestImpostors"],
 	"noimpostors": ["ForestImpostors"],
+	"nocrosses": ["TreeCrosses"],
 	"nograss": ["GrassField"],
 	"noscatter": ["ShrubScatter", "RockScatter"],
 	"noterrain": ["TerrainRenderer"],
