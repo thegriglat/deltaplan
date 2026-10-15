@@ -422,6 +422,10 @@ func _dist_seg(p: Vector3, a: Vector3, b: Vector3) -> float:
 
 ## Главная сцена, автостарт с синтетическим пилотом, шаги вручную до позы prone в полёте.
 func _fly(wing: String, on_run := false) -> Node:
+	# Тест про кабину FlightModel (поза пилота, штанга): режим задан явно, не умолчанием (PMD-К1)
+	var cfg := Config.get_config("controls")
+	var old_mode: Variant = cfg.get("roll_control_mode")
+	cfg["roll_control_mode"] = "weight_shift"
 	var main: Node = MAIN_SCENE.instantiate()
 	var args := PackedStringArray(["--autostart", "--wing=" + wing])
 	if not on_run:
@@ -433,6 +437,7 @@ func _fly(wing: String, on_run := false) -> Node:
 		if main.get("state") == 2:
 			break
 		await get_tree().process_frame
+	cfg["roll_control_mode"] = old_mode
 	check(main.get("state") == 2, "%s: автостарт — в полёте" % wing)
 	if main.get("state") != 2:
 		await _finish(main)
