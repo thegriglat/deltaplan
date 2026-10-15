@@ -109,3 +109,4 @@
 {"t": "2026-10-15T07:50:24", "by": "coordinator", "task": "GR-7", "ev": "accepted", "note": "по ревью; major (press_pos средней травы) исправлен, по отчёту"}
 {"t": "2026-10-15T07:51:04", "by": "coordinator", "task": "GR-7", "ev": "checked", "commits": ["35a4dd03"], "note": "2/4 grass=FAIL:22/24 (пропуск 8); FAIL не,te…; grass_rocks_contracts=FAIL:0/1; FAIL не; gpu_mid=ok:37 тестов, 0 упало; g4_test=ok:2"}
 {"t": "2026-10-15T07:51:04", "by": "coordinator", "task": "GR-7", "ev": "merged", "commits": ["35a4dd03"]}
+{"t": "2026-10-15T07:51:54", "by": "coordinator", "task": "GR-7", "ev": "accepted", "commits": ["ee4128ff"], "note": "4/4 grass=ok:29/29 (пропуск 8); grass_rocks_contracts=ok:6/6; gpu_mid=ok:37 тестов, 0 упало; g4_test=ok:2"}
