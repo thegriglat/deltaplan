@@ -222,3 +222,5 @@
 {"t": "2026-10-15T13:03:23", "by": "coordinator", "task": "GR-9", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-15T13:03:23", "by": "coordinator", "task": "GR-9", "ev": "accepted", "commits": ["c580ffc7"], "note": "4/4 count=ok:8; sizes=ok:1; section=ok:1; data=ok:16"}
 {"t": "2026-10-15T13:03:24", "by": "coordinator", "task": "GR-9", "ev": "merged", "commits": ["c580ffc7"]}
+{"t": "2026-10-15T13:09:38", "by": "coordinator", "task": "GR-20", "ev": "note", "note": "остановлена: пользователь принял слои (shell); прототип режима terrain остаётся в ветке grass-rocks/GR-20, кадры — build/screenshots/grass-look/after-terrain/, в ветку модуля не вливается"}
+{"t": "2026-10-15T13:09:38", "by": "coordinator", "task": null, "ev": "note", "note": "итог: shell по умолчанию, трава medium 0,30–0,60 / high 0,41–0,63 мс (было 0,73–0,86 / 1,14–1,22), камни-многогранники, ранний выход травы/крестов/импостеров; GR-20 terrain — прототип вне модуля; dpcli: NUL-байты в логе ломают re-проверку, job wait упирается в 600 с, правка скрипта во время job ломает job"}
