@@ -1,0 +1,70 @@
+{
+  "id": "GR-22",
+  "module": "grass-rocks",
+  "type": "dp-researcher",
+  "title": "Кадры и замер режима angle",
+  "goal": "На ветке модуля с GR-21: 9 видов grass_look.sh в режиме angle в /home/greg/deltaplan/build/screenshots/grass-look/angle/ и вид 9_slope_ground для shell в /home/greg/deltaplan/build/screenshots/grass-look/final/ (все 1918×1036); замер G3 angle против shell (GR-9) — раздел ## GR-22 в docs/perf/grass_rocks.md, бюджет medium ≤ 0,7 / high ≤ 0,95 мс.",
+  "plan_ref": "GR-22. Кадры и замер angle",
+  "contracts": [
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "4",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-22",
+  "branch": "grass-rocks/GR-22",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "docs/perf/grass_rocks.md",
+    "docs/perf/grass_rocks_2.md",
+    "docs/perf/data/grass_rocks_GR-22.tar.gz"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "assets",
+    "tools",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "angle",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/angle/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=9"
+    },
+    {
+      "name": "final9",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/final/9_slope_ground.jpg",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sizes",
+      "cmd": "file /home/greg/deltaplan/build/screenshots/grass-look/angle/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/final/*.jpg | grep -oE '[0-9]{3,}x[0-9]{3,}' | sort -u | wc -l",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "section",
+      "cmd": "cat docs/perf/grass_rocks*.md | grep -c '^## GR-22'",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "data",
+      "cmd": "tar tzf docs/perf/data/grass_rocks_GR-22.tar.gz | grep -c 'jsonl$'",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check docs/perf",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T14:41:40"
+}
