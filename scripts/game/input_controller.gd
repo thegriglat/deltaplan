@@ -30,7 +30,7 @@ var hands_off := false
 var telemetry_fn: Callable
 ## Режим крена: "rate" — как раньше, "weight_shift" — смещение веса, "pendulum" — то же
 ## положение пилота, но физика маятника (из controls.json).
-var roll_mode := "rate"
+var roll_mode := "pendulum"
 ## Разбег заблокирован (сеть, очередь на старт NET-43: не первый в очереди): Shift не бежит.
 var run_blocked := false
 ## Направление крена (PV1): "bar" — устройство двигает трапецию (вправо = крен влево),
@@ -55,7 +55,9 @@ func _ready() -> void:
 func reload_config() -> void:
 	_cfg = Config.get_config("controls")
 	register_actions(_cfg)
-	roll_mode = String(_cfg.get("roll_control_mode", "rate"))
+	roll_mode = String(_cfg.get("roll_control_mode", "pendulum"))
+	if roll_mode != "weight_shift" and roll_mode != "rate":
+		roll_mode = "pendulum"  # PMD-К1: неизвестное значение → маятник
 	roll_input = String(_cfg.get("roll_input", "body"))
 
 

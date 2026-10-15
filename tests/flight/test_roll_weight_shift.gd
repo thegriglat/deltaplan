@@ -250,12 +250,12 @@ func test_roll_mode_setting() -> void:
 	var txt := FileAccess.get_file_as_string("res://configs/controls.json")
 	var res: Variant = JSON.parse_string(txt)
 	check(
-		String(res.get("roll_control_mode", "")) == "weight_shift", "по умолчанию — смещение веса"
+		String(res.get("roll_control_mode", "")) == "pendulum", "по умолчанию — маятник"
 	)
 	var sp: SettingsPanel = load("res://scenes/ui/settings_panel.tscn").instantiate()
 	sp._ready()  # вне дерева: собрать панель без add_child (раннер занят детьми)
 	sp.config_dir = TMP_DIR
-	(sp.get("_roll_mode") as OptionButton).select(0)
+	(sp.get("_roll_mode") as OptionButton).select(SettingsPanel.ROLL_MODES.find("rate"))
 	check(sp.save(), "записалось")
 	var c := UserSettings.read_json(TMP_DIR.path_join("controls.json"))
 	check(String(c.get("roll_control_mode", "")) == "rate", "режим крена сохранён")
