@@ -124,7 +124,8 @@ func test_forest_grass_reaches_material() -> void:
 				is_equal_approx(float(m.get_shader_parameter("forest_shade")), float(g.forest_shade)),
 				"uniform forest_shade"
 			)
-		check(gf.materials().size() == 3, "ближний, средний и дальний слой")
+		var n_mat := 3 if GrassField.mid_mode(cfg) == "blades" else 2
+		check(gf.materials().size() == n_mat, "ближний и средний/дальний слой: %d" % gf.materials().size())
 		gf.free()
 	var sd := float(g.shrub_density)
 	check(GrassField.class_share(SurfaceLayer.FOREST, sd, fd) == fd, "FOREST — forest_density")

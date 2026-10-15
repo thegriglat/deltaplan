@@ -2,7 +2,7 @@ extends Node
 ## GPU-проверка «чёрной сыпи» и яркости травы (GR-14, tools/gpu_tests.sh --filter=grass_specks):
 ## настоящий GrassField на ровном лугу, MSAA 2× (как пресеты medium/high), глаз 1,5 м.
 ## (1) Сыпь: в полосах кадра, где луч зрения падает на землю в 2–8 м и 8–30 м, пикселей темнее
-## половины медианы полосы — не больше SPECK_MAX, в режимах blades, shell и cards. До GR-14 при MSAA
+## половины медианы полосы — не больше SPECK_MAX, в режимах blades и shell. До GR-14 при MSAA
 ## тонкая травинка закрашивалась в центре пикселя вне треугольника, varying'и экстраполировались
 ## (поперёк листа ±5 → край в минус, нормаль в ноль): 0,24 % на 2–8 м и 1,1 % на 8–30 м (blades),
 ## без MSAA — 0. (2) Яркость: своя нормаль травинки (GR-6) с leaf_tilt_gain даёт ту же среднюю
@@ -32,10 +32,6 @@ func test_grass_specks_blades() -> void:
 
 func test_grass_specks_shell() -> void:
 	await _specks("shell")
-
-
-func test_grass_specks_cards() -> void:
-	await _specks("cards")
 
 
 func test_grass_specks_tilt_brightness() -> void:

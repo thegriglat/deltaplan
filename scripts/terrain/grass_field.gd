@@ -17,11 +17,11 @@ var pilot: Node3D
 var material: ShaderMaterial
 ## Дальний слой пучков (grass.far), дочерний GrassField; null — нет.
 var far_layer: GrassField
-## Средняя дистанция в режиме shell/cards (G4): GrassMidShell или GrassMidCards; null — режим blades.
+## Средняя дистанция в режиме shell (G4): GrassMidShell; null — режим blades.
 var mid_layer: Node3D
 
-## Режимы средней дистанции (G4): blades — кольца травинок, shell — слои, cards — карточки-пучки.
-const MID_MODES: PackedStringArray = ["blades", "shell", "cards"]
+## Режимы средней дистанции (G4 v2): shell — слои (по умолчанию), blades — кольца травинок (для сравнения).
+const MID_MODES: PackedStringArray = ["blades", "shell"]
 
 var _spacing: float = 0.5
 var _max_agl: float = 120.0
@@ -137,7 +137,7 @@ func setup(
 		Vector3(layer.origin_x, layer.min_h - 10.0, layer.origin_z),
 		Vector3(layer.size_x(), layer.max_h - layer.min_h + 20.0, layer.size_z())
 	)
-	# Средняя дистанция (G4): shell/cards — свой узел, колец травинок дальше ближнего нет
+	# Средняя дистанция (G4): shell — свой узел, колец травинок дальше ближнего нет
 	# (дальше ~40 м луг рисует шейдер рельефа).
 	var mode := mid_mode(cfg)
 	if mode == "shell":
@@ -147,14 +147,6 @@ func setup(
 		add_child(sh)
 		sh.setup(material, layer, cfg)
 		mid_layer = sh
-		return
-	if mode == "cards":
-		var cd := GrassMidCards.new()
-		cd.name = "GrassMidCards"
-		cd.camera = camera
-		add_child(cd)
-		cd.setup(material, layer, cfg)
-		mid_layer = cd
 		return
 	# Дальний слой (configs/vegetation.json → grass.far): крупные редкие пучки кольцом за
 	# ближними травинками — те же параметры, переопределённые ключами far.
@@ -195,20 +187,20 @@ func materials() -> Array[ShaderMaterial]:
 	return out
 
 
-## Материал средней дистанции (shell/cards); null — режим blades.
+## Материал средней дистанции (shell); null — режим blades.
 func mid_material() -> ShaderMaterial:
 	return mid_layer.get("material") as ShaderMaterial if mid_layer != null else null
 
 
 ## Итоговый режим средней дистанции (G4): переменная окружения DP_GRASS_MID (для кадров и замеров)
-## сильнее конфига grass.mid.mode; неизвестное значение — как конфиг, неизвестный конфиг — blades.
+## сильнее конфига grass.mid.mode; неизвестное значение — как конфиг, неизвестный или пустой конфиг — shell.
 static func mid_mode(grass_cfg: Dictionary) -> String:
 	var env := OS.get_environment("DP_GRASS_MID").strip_edges().to_lower()
 	if env in MID_MODES:
 		return env
 	var mid: Variant = grass_cfg.get("mid", {})
-	var m := String(mid.get("mode", "blades")).to_lower() if mid is Dictionary else "blades"
-	return m if m in MID_MODES else "blades"
+	var m := String(mid.get("mode", "shell")).to_lower() if mid is Dictionary else "shell"
+	return m if m in MID_MODES else "shell"
 
 
 ## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года) — материалам травы

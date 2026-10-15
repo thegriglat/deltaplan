@@ -102,30 +102,33 @@ func _find_presets(v: Variant, want: Dictionary, found: Dictionary) -> void:
 			_find_presets(x, want, found)
 
 
-## G4: режим из конфига, переменная окружения DP_GRASS_MID сильнее, неизвестное — как конфиг.
+## G4 v2: режим из конфига (по умолчанию shell), переменная окружения DP_GRASS_MID сильнее,
+## неизвестное (в том числе бывший cards) — как конфиг.
 func test_g4_mid_mode_env_and_config() -> void:
 	var old := OS.get_environment("DP_GRASS_MID")
 	OS.unset_environment("DP_GRASS_MID")
 	var grass: Dictionary = Config.get_config("vegetation").grass
 	check(grass.has("mid") and grass.mid.has("mode"), "vegetation.grass.mid.mode есть")
-	check(GrassField.mid_mode(grass) == "blades", "по умолчанию до шлюза 2 — blades: %s" % GrassField.mid_mode(grass))
-	for m in ["blades", "shell", "cards"]:
+	check(GrassField.mid_mode(grass) == "shell", "по умолчанию — shell: %s" % GrassField.mid_mode(grass))
+	check(not (grass.mid as Dictionary).has("cards"), "ключа grass.mid.cards нет")
+	check(not ResourceLoader.exists("res://scripts/terrain/grass_mid_cards.gd"), "режим cards удалён")
+	for m in ["blades", "shell"]:
 		check(GrassField.mid_mode({"mid": {"mode": m}}) == m, "конфиг %s" % m)
-	check(GrassField.mid_mode({}) == "blades", "нет mid — blades")
-	check(GrassField.mid_mode({"mid": {"mode": "fur"}}) == "blades", "неизвестный конфиг — blades")
-	OS.set_environment("DP_GRASS_MID", "cards")
-	check(GrassField.mid_mode({"mid": {"mode": "shell"}}) == "cards", "переменная сильнее конфига")
+	check(GrassField.mid_mode({}) == "shell", "нет mid — shell")
+	check(GrassField.mid_mode({"mid": {"mode": "cards"}}) == "shell", "cards в конфиге — по умолчанию")
+	OS.set_environment("DP_GRASS_MID", "blades")
+	check(GrassField.mid_mode({"mid": {"mode": "shell"}}) == "blades", "переменная сильнее конфига")
 	OS.set_environment("DP_GRASS_MID", "shell")
 	check(GrassField.mid_mode({"mid": {"mode": "blades"}}) == "shell", "переменная shell")
-	OS.set_environment("DP_GRASS_MID", "velvet")
-	check(GrassField.mid_mode({"mid": {"mode": "cards"}}) == "cards", "неизвестная переменная — как конфиг")
+	OS.set_environment("DP_GRASS_MID", "cards")
+	check(GrassField.mid_mode({"mid": {"mode": "blades"}}) == "blades", "cards в переменной — как конфиг")
 	if old.is_empty():
 		OS.unset_environment("DP_GRASS_MID")
 	else:
 		OS.set_environment("DP_GRASS_MID", old)
 
 
-## G4: в shell/cards — узел средней травы потомок GrassField, дальних колец травинок нет;
+## G4: в shell — узел средней травы потомок GrassField, дальних колец травинок нет;
 ## в blades — кольца травинок как были, узла средней травы нет. Headless, без рендера.
 func test_g4_mid_nodes_and_no_far_ring() -> void:
 	var old := OS.get_environment("DP_GRASS_MID")
@@ -147,7 +150,7 @@ func test_g4_mid_nodes_and_no_far_ring() -> void:
 	var stex := ImageTexture.create_from_image(simg)
 	var look: Dictionary = Config.get_config("world").get("terrain_look", {})
 	var spots: Array[Vector4] = []
-	for mode in ["blades", "shell", "cards"]:
+	for mode in ["blades", "shell"]:
 		var cfg: Dictionary = (Config.get_config("vegetation").grass as Dictionary).duplicate(true)
 		cfg.mid.mode = mode
 		var g := GrassField.new()
@@ -155,7 +158,7 @@ func test_g4_mid_nodes_and_no_far_ring() -> void:
 		var mids := 0
 		var blade_rings := 0
 		for c in g.get_children():
-			if c is GrassMidShell or c is GrassMidCards:
+			if c is GrassMidShell:
 				mids += 1
 			if c is GrassField:
 				blade_rings += 1
@@ -165,8 +168,7 @@ func test_g4_mid_nodes_and_no_far_ring() -> void:
 		else:
 			check(g.far_layer == null and blade_rings == 0, "%s: колец травинок дальше ближнего нет" % mode)
 			check(mids == 1 and g.mid_layer != null, "%s: узел средней травы — потомок GrassField" % mode)
-			var typed := g.mid_layer is GrassMidShell if mode == "shell" else g.mid_layer is GrassMidCards
-			check(typed, "%s: тип узла" % mode)
+			check(g.mid_layer is GrassMidShell, "%s: тип узла" % mode)
 			check(g.materials().size() == 2, "%s: материалы — ближний и средний" % mode)
 			var mm: ShaderMaterial = g.mid_material()
 			check(mm != null and mm.get_shader_parameter("height_tex") == htex, "%s: общие uniform'ы скопированы" % mode)

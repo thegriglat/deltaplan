@@ -1,12 +1,21 @@
-// Средняя дистанция травы, режим «shell» (G4, GR-7): горизонтальные слои сетки-кольца над рельефом
+// Средняя дистанция травы, режим «shell» (G4, GR-7, GR-8): горизонтальные слои сетки-кольца над рельефом
 // (GrassMidShell). Слой — доля высоты травы UV.x; во фрагменте шумовая маска (R — высота стебля,
 // G — ранг, B — тон) решает, есть ли в этой точке стебель не ниже слоя. Класс поверхности, высота
-// класса, сезон, скос, посадки, приминание, цвет луга и ветер — как в grass.gdshader (код повторён:
-// grass.gdshader общий с ближним кольцом и в этой задаче не меняется). Ветер сдвигает верхние слои
-// (∝ доле²) — ворс клонится. Края кольца растворяются: густота и высота гаснут на
-// [mid_inner_m; +mid_inner_fade_m] и [mid_outer_m − mid_outer_fade_m; mid_outer_m].
+// класса, скос, посадки, приминание и ветер — как в grass.gdshader (код повторён).
+// Цвет (GR-8): слой — это та же трава, что рельеф рисует лугом, только с объёмом. Поэтому тон
+// берётся из готового кадра рельефа прямо за слоем (hint_screen_texture: палитра, сезон, сухость,
+// пятна, фактура луга, тени деревьев и облаков, освещение склона — всё, что видно у луга в этой
+// точке), а слой лишь модулирует его: ворс у корня темнее (тень соседних стеблей), разброс тона
+// по куртинам и пятнам 1–5 м. Там, где за слоем не земля рядом (гребень на фоне неба, далёкий
+// склон), — свой цвет луга с освещением (meadow_ground_color, как у травинок).
+// Края кольца растворяются: густота, высота и модуляция гаснут на [mid_inner_m; +mid_inner_fade_m]
+// и [mid_outer_m − mid_outer_fade_m; mid_outer_m], радиус края рваный (шум 1–5 м) — на краю слой
+// тождественно равен лугу рельефа, кольца нет ни сбоку, ни сверху.
 shader_type spatial;
-render_mode cull_disabled, diffuse_lambert_wrap, world_vertex_coords, specular_disabled;
+// прозрачный проход: нужен кадр рельефа за слоем; стебли непрозрачны (ALPHA 1 или discard) и пишут
+// глубину — нижние слои, закрытые верхними, отбрасываются тестом глубины (индексы — сверху вниз)
+render_mode cull_disabled, diffuse_lambert_wrap, world_vertex_coords, specular_disabled, blend_mix, fog_disabled,
+		depth_draw_always;
 
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
@@ -58,6 +67,17 @@ uniform float trample_lean = 1.3;
 uniform vec3 trample_tint = vec3(1.12, 1.0, 0.72);
 uniform float height_k = 1.0;
 uniform bool cull_enabled = true;
+uniform sampler2D screen_tex : hint_screen_texture, filter_linear;  // без мипмапов: выборка 1:1
+uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
+// ворс (GR-8): яркость у корня / у кончика относительно луга рельефа (тень соседних стеблей; среднее
+// по видимым сверху и сбоку стеблям ≈ 1 — диск не темнее и не светлее луга)
+uniform vec2 pile_shade = vec2(0.82, 1.1);
+uniform float pile_tone = 0.12;        // разброс тона куртин (канал B маски), доля
+uniform float patch_m = 3.0;           // пятна густоты/высоты/тона ворса, м (1–5 м)
+uniform float patch_density = 0.35;    // разброс густоты пятнами, доля
+uniform float patch_height = 0.3;      // разброс высоты пятнами, доля
+uniform float patch_tone = 0.06;       // разброс тона пятнами, доля
+uniform float edge_jitter_m = 4.0;     // рваность края кольца, м (± половина)
 
 varying vec3 v_col;
 varying vec3 v_n;
@@ -67,6 +87,8 @@ varying float v_hh;      // высота травы класса (верх ди�
 varying float v_lo;      // низ диапазона высоты / верх
 varying float v_share;   // доля стеблей (класс × густота × растворение края)
 varying vec2 v_lean;
+varying float v_fade;    // растворение края 0..1 (1 — внутри кольца)
+varying vec4 v_patch;    // пятна ворса 1–5 м (каналы шума macro_noise_tex)
 
 // Высота и уклон в точке — копия h_grad из grass.gdshader (GR-6): уклон билинейной клетки (поверхность,
 // которую рисует рельеф), те же четыре узла, что у h_bilinear.
@@ -109,8 +131,12 @@ void vertex() {
 	vec2 hg;
 	float h = h_grad(xz, hg);
 	float d = length(xz - CAMERA_POSITION_WORLD.xz);
+	// пятна ворса в мировых координатах (не плывут); тот же шум, что у пятен луга (macro_noise_tex)
+	vec4 pn = textureLod(macro_noise_tex, xz / (patch_m * MACRO_NOISE_FEATURE) + vec2(0.31, 0.17), 0.0);
+	// рваный край: радиус растворения сдвинут шумом (окружности не видно)
+	float dj = d + (pn.w - 0.5) * edge_jitter_m;
 	float fade = smoothstep(mid_inner_m, mid_inner_m + mid_inner_fade_m, d)
-			* (1.0 - smoothstep(mid_outer_m - mid_outer_fade_m, mid_outer_m, d));
+			* (1.0 - smoothstep(mid_outer_m - mid_outer_fade_m, mid_outer_m, dj));
 	float h_max = max(max(blade_height_m.y, crop_height_m.y), forest_height_m.y) * height_k;
 	float bend_max = 1.0 + max(gust_gain, 0.0);
 	for (int k = 0; k < wind_thermal_count; k++) {
@@ -133,6 +159,8 @@ void vertex() {
 		v_col = vec3(0.0);
 		v_n = vec3(0.0, 1.0, 0.0);
 		v_cs_sun = 1.0;
+		v_fade = 0.0;
+		v_patch = vec4(0.5);
 	} else {
 		float sl_rel; vec4 sl_ss = sl_season_b(h, sl_rel); // SL
 		int c = surface_node(ivec2(round((xz - surface_origin) / surface_spacing)));
@@ -183,7 +211,7 @@ void vertex() {
 		float press = near_ground * (1.0 - smoothstep(press_radius_m * 0.4, press_radius_m, pd));
 		hh *= mix(1.0, 0.35, press);
 		// растворение краёв: высота гаснет вместе с густотой
-		hh *= height_k * mix(0.4, 1.0, fade);
+		hh *= height_k * mix(0.4, 1.0, fade) * (1.0 + patch_height * 2.0 * (pn.y - 0.5));
 
 		// ветер: тот же наклон, что у травинок; фаза качания — плавный шум по месту (без «полотна»)
 		float wshade;
@@ -202,7 +230,9 @@ void vertex() {
 		VERTEX = vec3(xz.x, h + y - 0.02, xz.y);
 		v_hh = hh;
 		v_lo = hr.y > 0.0 ? hr.x / hr.y : 1.0;
-		v_share = share * coverage * fade;
+		v_share = share * coverage * fade * clamp(1.0 + patch_density * 2.0 * (pn.x - 0.5), 0.0, 1.0);
+		v_fade = fade;
+		v_patch = pn;
 		v_lean = lean;
 		v_n = normalize(n + vec3(lean.x, 0.0, lean.y) * 0.3);
 
@@ -248,16 +278,31 @@ void fragment() {
 	// высота стебля в долях верха класса: R 0..1 → [низ; верх] диапазона; R = 0 — просвет
 	float stem = m.r > 0.0 ? mix(v_lo, 1.0, m.r) * smoothstep(0.0, 0.1, m.r) : 0.0;
 	stem *= keep;
-	float edge = stem - frac;
-	ALPHA = clamp(edge / max(fwidth(edge), 1e-4) + 0.5, 0.0, 1.0);
-	ALPHA_SCISSOR_THRESHOLD = 0.5;
-	ALPHA_ANTIALIASING_EDGE = 0.3;
+	if (stem - frac < 0.0) {
+		discard;
+	}
+	ALPHA = 1.0;
+	// модуляция ворса относительно луга: у корня темнее, тон куртин и пятен; на краю кольца → 1
+	float mod_l = mix(pile_shade.x, pile_shade.y, frac)
+			* (1.0 + pile_tone * (m.b - 0.5) * 2.0)
+			* (1.0 + patch_tone * (v_patch.z - 0.5) * 2.0);
+	float mod_k = mix(1.0, mod_l, v_fade);
+	// за слоем — земля рядом? Глубина кадра за фрагментом против ожидаемой: луч от слоя высотой y до
+	// земли проходит y / sin(угла к горизонту); заметно дальше — за слоем небо или дальний склон
+	float zb = texture(depth_tex, SCREEN_UV).r;
+	vec4 vb = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, zb, 1.0);
+	float gap = -vb.z / vb.w + VERTEX.z;
+	float sin_el = abs(normalize((INV_VIEW_MATRIX * vec4(VERTEX, 0.0)).xyz).y);
+	float expect = v_hh * frac / max(sin_el, 0.02);
+	float own = smoothstep(2.0 * expect + 1.0, 3.0 * expect + 3.0, gap);
+	vec3 behind = textureLod(screen_tex, SCREEN_UV, 0.0).rgb;
+	EMISSION = behind * mod_k * (1.0 - own);
 	vec3 col = v_col * mix(blade_shade.x, blade_shade.y, frac);
 	col *= 1.0 + color_variation * (m.b - 0.5) * 2.0;
-	ALBEDO = grass_mid_near_tone(col, frac);
+	ALBEDO = grass_mid_near_tone(col, frac) * own;
 	NORMAL = normalize((VIEW_MATRIX * vec4(v_n, 0.0)).xyz);
 	ROUGHNESS = 0.9;
-	BACKLIGHT = vec3(0.85) * v_col;
+	BACKLIGHT = vec3(0.85) * v_col * own;
 	AO = cloud_sky_ao(v_cs_sun);
 }
 
