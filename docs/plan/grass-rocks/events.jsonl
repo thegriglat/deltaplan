@@ -152,3 +152,5 @@
 {"t": "2026-10-15T09:39:12", "by": "coordinator", "task": "GR-14", "ev": "note", "note": "ревью: dp-reviewer (GPU-шейдер, причина сыпи — MSAA-экстраполяция varying)"}
 {"t": "2026-10-15T09:40:46", "by": "reviewer", "task": "GR-14", "ev": "reviewed", "note": "Причина сыпи найдена и подтверждена числом: экстраполяция varying при MSAA 2× (тест specks: до 0,24–1,1 %, после 0, без MSAA 0). Защита стоит в правильном мест…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/grass-rocks/tasks/GR-14.review.json"}
 {"t": "2026-10-15T09:40:59", "by": "coordinator", "task": "GR-14", "ev": "accepted", "note": "по ревью; minor: leaf_tilt_gain 1,15 калибровка по яркости (2–8 м темнее 8b1e160 на 5 %), тест с множителем 1"}
+{"t": "2026-10-15T09:41:48", "by": "coordinator", "task": "GR-14", "ev": "accepted", "commits": ["df93d6ed"], "note": "3/3 grass=ok:29/29 (пропуск 15); grass_rocks_contracts=ok:6/6; gpu_grass=ok:44 тестов, 0 упало"}
+{"t": "2026-10-15T09:41:48", "by": "coordinator", "task": "GR-14", "ev": "merged", "commits": ["df93d6ed"]}
