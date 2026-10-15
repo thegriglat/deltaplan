@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "WireTone: процедурный эоловый тон 4 тросов (f=St*V/d, дрейф частоты, огибающая 0,7 Гц, 2-я гармоника, панорама), плеер AudioStreamGenerator на шине ветра внутри общего пути лупов FlightAudio; луп wires удалён, громкость wires перенастроена.",
+  "commits": [
+    "см. git log speed-feel/SPF-4: SPF-4 эоловый тон тросов"
+  ],
+  "checks": [
+    {
+      "name": "wire_tone",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "flight_sound_mix",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "speed_feel_k3",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "audio",
+      "value": "45/45",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SPF-4",
+  "uncertain": [
+    {
+      "where": "configs/audio.json flight.airflow wires_db/wires_on_kmh",
+      "why": "уровни подобраны по инвариантам и физике, на слух не слушал; тембр (шум vs синус) оценит главная сессия",
+      "checked": "тесты инвариантов wires<rush на 30–90 км/ч"
+    },
+    {
+      "where": "scripts/audio/flight_audio.gd _make_wire_tone",
+      "why": "плеер генератора зарегистрирован в _loops['wires'] (общий путь громкости/старта), реального звука в headless нет",
+      "checked": "тест test_flight_audio_node (14 лупов), play/push_buffer в headless без ошибок"
+    },
+    {
+      "where": "WireTone mix_rate 22050",
+      "why": "в игре 22050 вместо 44100 (дешевле вдвое, потолок 9,9 кГц), тесты спектра идут на 44100",
+      "checked": "fill_cost"
+    }
+  ],
+  "dp_feedback": "Нет команды быстро получить таблицу значений из конфига без godot -s (godot -s с SceneTree зависал в headless).",
+  "extra": {
+    "table": "V км/ч | wires дБ | rush дБ | f тросов Гц (2.4/3.0/3.8/4.8 мм): 30 | -37.5 | -20.2 | 694/556/439/347; 40 | -30.0 | -14.0 | 926/741/585/463; 55 | -21.7 | -7.1 | 1273/1019/804/637; 80 | -11.9 | -3.0 | 1852/1481/1170/926; 90 | -9.0 | -3.0 | 2083/1667/1316/1042",
+    "model_limits": "Модель: чистые тоны с дрейфом, без резонансов троса/каркаса и без эффекта Доплера; тросы всегда 4 фиксированного диаметра; St=0.2 константа."
+  },
+  "t": "2026-10-15T05:05:30",
+  "by": "executor"
+}
