@@ -204,6 +204,18 @@ void vertex() {
 	}
 }
 
+// Тон ближних травинок в среднем (GR-6, grass.gdshader): край листа темнее середины — среднее по
+// ширине 1 − across_shade/3; кончики суше — к соломе той же яркости на верхней трети, средняя по
+// травинкам доля 0,7·tip_dry. Совпадение тона на стыке ближнего и среднего колец (8–14 м).
+uniform float across_shade = 0.12;
+uniform float tip_dry = 0.25;
+vec3 grass_mid_near_tone(vec3 c, float t) {
+	const vec3 LT = vec3(0.2126, 0.7152, 0.0722);
+	vec3 straw = straw_color * (dot(c, LT) / max(dot(straw_color, LT), 1e-3));
+	c = mix(c, straw, 0.7 * tip_dry * smoothstep(0.55, 1.0, t));
+	return c * (1.0 - across_shade / 3.0);
+}
+
 void fragment() {
 	float frac = UV.x;
 	if (v_hh < 0.02 || v_share <= 0.0) {
@@ -223,7 +235,7 @@ void fragment() {
 	ALPHA_ANTIALIASING_EDGE = 0.3;
 	vec3 col = v_col * mix(blade_shade.x, blade_shade.y, frac);
 	col *= 1.0 + color_variation * (m.b - 0.5) * 2.0;
-	ALBEDO = col;
+	ALBEDO = grass_mid_near_tone(col, frac);
 	NORMAL = normalize((VIEW_MATRIX * vec4(v_n, 0.0)).xyz);
 	ROUGHNESS = 0.9;
 	BACKLIGHT = vec3(0.85) * v_col;

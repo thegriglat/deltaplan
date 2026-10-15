@@ -99,6 +99,12 @@ func setup(
 	var tint: Array = cfg.get("blade_tint", [1.08, 1.0, 0.85])
 	material.set_shader_parameter("blade_tint", Vector3(tint[0], tint[1], tint[2]))
 	material.set_shader_parameter("blade_shade", _v2(cfg.get("blade_shade", [1.25, 1.75])))
+	material.set_shader_parameter("leaf_tilt_deg", float(cfg.get("leaf_tilt_deg", 60.0)))
+	material.set_shader_parameter("groove_deg", float(cfg.get("groove_deg", 30.0)))
+	material.set_shader_parameter("blade_normal_fade_m", _v2(cfg.get("blade_normal_fade_m", [8.0, 20.0])))
+	material.set_shader_parameter("across_shade", float(cfg.get("across_shade", 0.12)))
+	material.set_shader_parameter("blade_variation", float(cfg.get("blade_variation", 0.1)))
+	material.set_shader_parameter("tip_dry", float(cfg.get("tip_dry", 0.25)))
 	material.set_shader_parameter("macro_noise_tex", TerrainRenderer.macro_noise_texture())
 	material.set_shader_parameter("dry_clump_share", float(cfg.get("dry_clump_share", 0.0)))
 	material.set_shader_parameter("sway_hz", float(cfg.sway_hz))
@@ -293,13 +299,7 @@ func height_at(x: float, z: float) -> float:
 		_:
 			range_v = _v2(_cfg.get("blade_height_m", [0.25, 0.55]))
 	var h := (range_v.x + range_v.y) * 0.5 * share * float(_cfg.get("height_k", 1.0))
-	var e := _layer.spacing
-	var n := Vector3(
-		_layer.sample(x - e, z) - _layer.sample(x + e, z),
-		2.0 * e,
-		_layer.sample(x, z - e) - _layer.sample(x, z + e)
-	).normalized()
-	var slope := rad_to_deg(acos(clampf(n.y, 0.0, 1.0)))
+	var slope := slope_deg_at(_layer, x, z)
 	h *= 1.0 - smoothstep(_rock_slope_deg - 4.0, _rock_slope_deg + 2.0, slope)
 	var xz := Vector2(x, z)
 	for m in _mowed_spots:
@@ -309,6 +309,24 @@ func height_at(x: float, z: float) -> float:
 		if in_landing_rect(xz, r.center, r.axis_deg, r.length_m, r.width_m):
 			h *= float(r.hk)
 	return h
+
+
+## Уклон рельефа в точке, градусы: уклон билинейной клетки слоя (четыре узла вокруг точки) — как
+## h_grad в grass.gdshader (GR-6).
+static func slope_deg_at(layer: HeightLayer, x: float, z: float) -> float:
+	var fx := (x - layer.origin_x) / layer.spacing
+	var fz := (z - layer.origin_z) / layer.spacing
+	var i := floori(fx)
+	var j := floori(fz)
+	var tx := fx - i
+	var tz := fz - j
+	var h00 := layer.node(i, j)
+	var h10 := layer.node(i + 1, j)
+	var h01 := layer.node(i, j + 1)
+	var h11 := layer.node(i + 1, j + 1)
+	var gx := lerpf(h10 - h00, h11 - h01, tz) / layer.spacing
+	var gz := lerpf(h01 - h00, h11 - h10, tx) / layer.spacing
+	return rad_to_deg(atan(Vector2(gx, gz).length()))
 
 
 static func _v2(a: Variant) -> Vector2:
@@ -450,25 +468,37 @@ static func mesh_reach(mesh: Mesh) -> float:
 
 ## Пучок травинок: blades штук в круге ~0,15 м, каждая — полоска из segments отрезков,
 ## VERTEX.y = t 0..1 (высоту и наклон задаёт шейдер), VERTEX.xz — смещение в метрах.
+## Лист злака сужается к острому кончику выпукло: полуширина width/2·(1 − t^1,5) (GR-6; было линейно
+## до 0,2 и обрыв на кончик — площадь листа и цена закраски почти те же, +4 %).
+## NORMAL — лицо травинки (горизонталь в плане пучка); UV.x — поперёк −1…+1 (кончик 0),
+## UV.y — случайное число травинки 0..1 (яркость, сухость кончика) — для grass.gdshader.
 static func clump_mesh(blades: int, width: float, segments: int) -> ArrayMesh:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var uvs := PackedVector2Array()
 	var idx := PackedInt32Array()
 	for b in blades:
 		var base := Vector2.from_angle(rng.randf() * TAU) * sqrt(rng.randf()) * 0.15
 		var face := Vector2.from_angle(rng.randf() * TAU)
 		var side := Vector2(-face.y, face.x)
 		var curl := face * rng.randf_range(0.02, 0.08)
+		var br := rng.randf()
+		var fn := Vector3(face.x, 0.0, face.y)
 		var start := verts.size()
 		for s in segments:
 			var t := float(s) / segments
-			var w := width * (1.0 - t * 0.8) * 0.5
+			var w := width * (1.0 - t * sqrt(t)) * 0.5
 			var c := base + curl * t * t
 			verts.append(Vector3(c.x - side.x * w, t, c.y - side.y * w))
 			verts.append(Vector3(c.x + side.x * w, t, c.y + side.y * w))
+			normals.append_array(PackedVector3Array([fn, fn]))
+			uvs.append_array(PackedVector2Array([Vector2(-1.0, br), Vector2(1.0, br)]))
 		var tip := base + curl
 		verts.append(Vector3(tip.x, 1.0, tip.y))
+		normals.append(fn)
+		uvs.append(Vector2(0.0, br))
 		for s in segments - 1:
 			var a := start + s * 2
 			idx.append_array(PackedInt32Array([a, a + 2, a + 1, a + 1, a + 2, a + 3]))
@@ -477,6 +507,8 @@ static func clump_mesh(blades: int, width: float, segments: int) -> ArrayMesh:
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
 	arrays[Mesh.ARRAY_INDEX] = idx
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
