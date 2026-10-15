@@ -4,7 +4,7 @@ extends TestCase
 ## test_g4_ — режим средней дистанции травы.
 
 const DOC := "res://docs/contracts/grass-rocks.md"
-const VERSIONS := {"G1": 1, "G2": 1, "G3": 2, "G4": 3}
+const VERSIONS := {"G1": 1, "G2": 1, "G3": 2, "G4": 5}
 
 
 func test_g3_versions_in_doc() -> void:
@@ -102,24 +102,24 @@ func _find_presets(v: Variant, want: Dictionary, found: Dictionary) -> void:
 			_find_presets(x, want, found)
 
 
-## G4 v2: режим из конфига (по умолчанию shell), переменная окружения DP_GRASS_MID сильнее,
-## неизвестное (в том числе бывший cards) — как конфиг.
+## G4 v4: режим из конфига (по умолчанию shell; angle — слои и карточки), переменная окружения
+## DP_GRASS_MID сильнее, неизвестное (в том числе бывший cards) — как конфиг.
 func test_g4_mid_mode_env_and_config() -> void:
 	var old := OS.get_environment("DP_GRASS_MID")
 	OS.unset_environment("DP_GRASS_MID")
 	var grass: Dictionary = Config.get_config("vegetation").grass
 	check(grass.has("mid") and grass.mid.has("mode"), "vegetation.grass.mid.mode есть")
-	check(GrassField.mid_mode(grass) == "shell", "по умолчанию — shell: %s" % GrassField.mid_mode(grass))
-	check(not (grass.mid as Dictionary).has("cards"), "ключа grass.mid.cards нет")
-	check(not ResourceLoader.exists("res://scripts/terrain/grass_mid_cards.gd"), "режим cards удалён")
-	for m in ["blades", "shell"]:
+	check(GrassField.mid_mode(grass) == "angle", "по умолчанию — angle: %s" % GrassField.mid_mode(grass))
+	for m in ["blades", "shell", "angle"]:
 		check(GrassField.mid_mode({"mid": {"mode": m}}) == m, "конфиг %s" % m)
-	check(GrassField.mid_mode({}) == "shell", "нет mid — shell")
-	check(GrassField.mid_mode({"mid": {"mode": "cards"}}) == "shell", "cards в конфиге — по умолчанию")
+	check(GrassField.mid_mode({}) == "angle", "нет mid — angle")
+	check(GrassField.mid_mode({"mid": {"mode": "cards"}}) == "angle", "cards в конфиге — по умолчанию")
 	OS.set_environment("DP_GRASS_MID", "blades")
 	check(GrassField.mid_mode({"mid": {"mode": "shell"}}) == "blades", "переменная сильнее конфига")
 	OS.set_environment("DP_GRASS_MID", "shell")
 	check(GrassField.mid_mode({"mid": {"mode": "blades"}}) == "shell", "переменная shell")
+	OS.set_environment("DP_GRASS_MID", "angle")
+	check(GrassField.mid_mode({"mid": {"mode": "shell"}}) == "angle", "переменная angle")
 	OS.set_environment("DP_GRASS_MID", "cards")
 	check(GrassField.mid_mode({"mid": {"mode": "blades"}}) == "blades", "cards в переменной — как конфиг")
 	if old.is_empty():
@@ -128,7 +128,8 @@ func test_g4_mid_mode_env_and_config() -> void:
 		OS.set_environment("DP_GRASS_MID", old)
 
 
-## G4: в shell — узел средней травы потомок GrassField, дальних колец травинок нет;
+## G4: в shell — узел средней травы потомок GrassField, дальних колец травинок нет; в angle (v4) —
+## слои и карточки, оба потомки GrassField, деление по углу включено у обоих материалов;
 ## в blades — кольца травинок как были, узла средней травы нет. Headless, без рендера.
 func test_g4_mid_nodes_and_no_far_ring() -> void:
 	var old := OS.get_environment("DP_GRASS_MID")
@@ -150,16 +151,19 @@ func test_g4_mid_nodes_and_no_far_ring() -> void:
 	var stex := ImageTexture.create_from_image(simg)
 	var look: Dictionary = Config.get_config("world").get("terrain_look", {})
 	var spots: Array[Vector4] = []
-	for mode in ["blades", "shell"]:
+	for mode in ["blades", "shell", "angle"]:
 		var cfg: Dictionary = (Config.get_config("vegetation").grass as Dictionary).duplicate(true)
 		cfg.mid.mode = mode
 		var g := GrassField.new()
 		g.setup(layer, htex, surf, stex, look, cfg, spots)
 		var mids := 0
+		var cards := 0
 		var blade_rings := 0
 		for c in g.get_children():
 			if c is GrassMidShell:
 				mids += 1
+			if c is GrassMidCards:
+				cards += 1
 			if c is GrassField:
 				blade_rings += 1
 		if mode == "blades":
@@ -169,9 +173,19 @@ func test_g4_mid_nodes_and_no_far_ring() -> void:
 			check(g.far_layer == null and blade_rings == 0, "%s: колец травинок дальше ближнего нет" % mode)
 			check(mids == 1 and g.mid_layer != null, "%s: узел средней травы — потомок GrassField" % mode)
 			check(g.mid_layer is GrassMidShell, "%s: тип узла" % mode)
-			check(g.materials().size() == 2, "%s: материалы — ближний и средний" % mode)
-			var mm: ShaderMaterial = g.mid_material()
-			check(mm != null and mm.get_shader_parameter("height_tex") == htex, "%s: общие uniform'ы скопированы" % mode)
+			var want := 3 if mode == "angle" else 2
+			check(g.materials().size() == want, "%s: материалы — ближний и средние: %d" % [mode, g.materials().size()])
+			check(cards == (1 if mode == "angle" else 0) and (g.mid_cards != null) == (mode == "angle"),
+					"%s: карточки — только в angle: %d" % [mode, cards])
+			for mm in g.mid_materials():
+				check(mm != null and mm.get_shader_parameter("height_tex") == htex, "%s: общие uniform'ы скопированы" % mode)
+				var am: Variant = mm.get_shader_parameter("angle_mode")
+				check(bool(am) == (mode == "angle"), "%s: angle_mode = %s" % [mode, am])
+			if mode == "angle":
+				var cm := g.mid_cards.material
+				check(float(cm.get_shader_parameter("card_angle_full_deg")) == float(cfg.mid.card_angle_full_deg)
+						and float(cm.get_shader_parameter("card_angle_none_deg")) == float(cfg.mid.card_angle_none_deg),
+						"angle: пороги угла из grass.mid")
 		if mode != "blades":
 			# приминание у пилота доходит и до средней травы (вид сзади в ~12 м — пилот в её кольце)
 			var root := Node3D.new()
@@ -188,12 +202,33 @@ func test_g4_mid_nodes_and_no_far_ring() -> void:
 			g.camera = cam
 			g.pilot = pilot
 			g._process(0.016)
-			var mp: Variant = g.mid_material().get_shader_parameter("press_pos")
-			check(mp is Vector3 and (mp as Vector3).is_equal_approx(pilot.global_position),
-					"%s: press_pos средней травы = положение пилота: %s" % [mode, mp])
+			for mm in g.mid_materials():
+				var mp: Variant = mm.get_shader_parameter("press_pos")
+				check(mp is Vector3 and (mp as Vector3).is_equal_approx(pilot.global_position),
+						"%s: press_pos средней травы = положение пилота: %s" % [mode, mp])
 			root.remove_child(g)
 			root.get_parent().remove_child(root)
 			root.free()
 		g.free()
 	if not old.is_empty():
 		OS.set_environment("DP_GRASS_MID", old)
+
+
+## G4 v4: ключи режима angle — пороги угла с _doc (full < none), ключи карточек grass.mid.cards,
+## атлас карточек в ASSETS.md; доля карточек по углу (GrassMidCards.card_share) — 1 до full, 0 от none.
+func test_g4_angle_keys() -> void:
+	var mid: Dictionary = Config.get_config("vegetation").grass.mid
+	for k in ["card_angle_full_deg", "card_angle_none_deg"]:
+		check(mid.has(k) and mid.has(k + "_doc"), "grass.mid.%s и _doc есть" % k)
+	var full := float(mid.get("card_angle_full_deg", 0.0))
+	var none := float(mid.get("card_angle_none_deg", 0.0))
+	check(full > 0.0 and none > full and none < 90.0, "0 < full %.1f < none %.1f < 90" % [full, none])
+	var cc: Dictionary = mid.get("cards", {})
+	for k in ["spacing_m", "planes", "width_m", "height_k", "far_density_min", "far_width_k", "shade", "tone"]:
+		check(cc.has(k) and cc.has(k + "_doc"), "grass.mid.cards.%s и _doc есть" % k)
+	check(ResourceLoader.exists(GrassMidCards.ATLAS_PATH), "атлас карточек есть")
+	var assets := FileAccess.get_file_as_string("res://ASSETS.md")
+	check(assets.contains("grass_cards_atlas.png"), "атлас карточек в ASSETS.md")
+	check(GrassMidCards.card_share(full - 5.0, full, none) == 1.0, "ниже full — только карточки")
+	check(GrassMidCards.card_share(none + 5.0, full, none) == 0.0, "выше none — только слои")
+	check(is_equal_approx(GrassMidCards.card_share((full + none) * 0.5, full, none), 0.5), "посередине — пополам")

@@ -1,0 +1,59 @@
+{
+  "id": "GR-23",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "angle — режим травы по умолчанию",
+  "goal": "Режим средней дистанции по умолчанию — angle (G4 v5): grass.mid.mode = angle в configs/vegetation.json, запасное значение в GrassField.mid_mode — angle, тесты и документация под это; shell и blades остаются через конфиг и DP_GRASS_MID.",
+  "plan_ref": "GR-21. Режим angle: слои + карточки по углу",
+  "contracts": [
+    {
+      "name": "G4",
+      "version": "5",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-23",
+  "branch": "grass-rocks/GR-23",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "configs/vegetation.json",
+    "scripts/terrain/grass_field.gd",
+    "tests/contracts/test_grass_rocks_contracts.gd",
+    "tests/vegetation/",
+    "docs/guide/",
+    "CHANGELOG.md",
+    "site/content/"
+  ],
+  "dont_touch": [
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass.gdshader",
+    "tools",
+    "docs/perf",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "mode",
+      "cmd": "python3 -c \"import json;print(json.load(open('configs/vegetation.json'))['grass']['mid']['mode'])\"",
+      "expect": "re:^angle$"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check docs/guide",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T17:10:59"
+}

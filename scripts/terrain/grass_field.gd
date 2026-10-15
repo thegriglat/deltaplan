@@ -17,11 +17,14 @@ var pilot: Node3D
 var material: ShaderMaterial
 ## Дальний слой пучков (grass.far), дочерний GrassField; null — нет.
 var far_layer: GrassField
-## Средняя дистанция в режиме shell (G4): GrassMidShell; null — режим blades.
+## Средняя дистанция в режимах shell и angle (G4): слои GrassMidShell; null — режим blades.
 var mid_layer: Node3D
+## Карточки-пучки средней дистанции в режиме angle (G4 v4): GrassMidCards; null — другие режимы.
+var mid_cards: GrassMidCards
 
-## Режимы средней дистанции (G4 v2): shell — слои (по умолчанию), blades — кольца травинок (для сравнения).
-const MID_MODES: PackedStringArray = ["blades", "shell"]
+## Режимы средней дистанции (G4 v4): shell — слои, angle — слои и карточки по углу (по умолчанию)
+## взгляда к рельефу, blades — кольца травинок (для сравнения).
+const MID_MODES: PackedStringArray = ["blades", "shell", "angle"]
 
 var _spacing: float = 0.5
 var _max_agl: float = 120.0
@@ -140,13 +143,20 @@ func setup(
 	# Средняя дистанция (G4): shell — свой узел, колец травинок дальше ближнего нет
 	# (дальше ~40 м луг рисует шейдер рельефа).
 	var mode := mid_mode(cfg)
-	if mode == "shell":
+	if mode == "shell" or mode == "angle":
 		var sh := GrassMidShell.new()
 		sh.name = "GrassMidShell"
 		sh.camera = camera
 		add_child(sh)
 		sh.setup(material, layer, cfg)
 		mid_layer = sh
+		if mode == "angle":
+			GrassMidCards.set_angle_params(sh.material, cfg.get("mid", {}))
+			mid_cards = GrassMidCards.new()
+			mid_cards.name = "GrassMidCards"
+			mid_cards.camera = camera
+			add_child(mid_cards)
+			mid_cards.setup(material, layer, cfg)
 		return
 	# Дальний слой (configs/vegetation.json → grass.far): крупные редкие пучки кольцом за
 	# ближними травинками — те же параметры, переопределённые ключами far.
@@ -182,25 +192,42 @@ func materials() -> Array[ShaderMaterial]:
 	var out: Array[ShaderMaterial] = [material]
 	if far_layer != null:
 		out.append_array(far_layer.materials())
-	if mid_layer != null:
-		out.append(mid_material())
+	out.append_array(mid_materials())
 	return out
 
 
-## Материал средней дистанции (shell); null — режим blades.
+## Материал слоёв средней дистанции (shell, angle); null — режим blades.
 func mid_material() -> ShaderMaterial:
 	return mid_layer.get("material") as ShaderMaterial if mid_layer != null else null
 
 
+## Материалы средней дистанции: слои и (режим angle) карточки; пусто — режим blades.
+func mid_materials() -> Array[ShaderMaterial]:
+	var out: Array[ShaderMaterial] = []
+	if mid_layer != null:
+		out.append(mid_material())
+	if mid_cards != null:
+		out.append(mid_cards.material)
+	return out
+
+
+## Узлы средней дистанции (слои, карточки) — показать или скрыть все (кадры «без средней травы»).
+func set_mid_visible(on: bool) -> void:
+	if mid_layer != null:
+		mid_layer.visible = on
+	if mid_cards != null:
+		mid_cards.visible = on
+
+
 ## Итоговый режим средней дистанции (G4): переменная окружения DP_GRASS_MID (для кадров и замеров)
-## сильнее конфига grass.mid.mode; неизвестное значение — как конфиг, неизвестный или пустой конфиг — shell.
+## сильнее конфига grass.mid.mode; неизвестное значение — как конфиг, неизвестный или пустой конфиг — angle.
 static func mid_mode(grass_cfg: Dictionary) -> String:
 	var env := OS.get_environment("DP_GRASS_MID").strip_edges().to_lower()
 	if env in MID_MODES:
 		return env
 	var mid: Variant = grass_cfg.get("mid", {})
-	var m := String(mid.get("mode", "shell")).to_lower() if mid is Dictionary else "shell"
-	return m if m in MID_MODES else "shell"
+	var m := String(mid.get("mode", "angle")).to_lower() if mid is Dictionary else "angle"
+	return m if m in MID_MODES else "angle"
 
 
 ## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года) — материалам травы
@@ -215,6 +242,8 @@ func _process(_delta: float) -> void:
 		far_layer.camera = camera
 	if mid_layer != null:
 		mid_layer.set("camera", camera)
+	if mid_cards != null:
+		mid_cards.camera = camera
 	var cam := camera if camera != null else get_viewport().get_camera_3d()
 	if cam == null or material == null:
 		return
@@ -228,8 +257,8 @@ func _process(_delta: float) -> void:
 		material.set_shader_parameter("grid_center_cell", cell)
 	if pilot != null and pilot.is_inside_tree():
 		material.set_shader_parameter("press_pos", pilot.global_position)
-		if mid_layer != null:
-			mid_material().set_shader_parameter("press_pos", pilot.global_position)
+		for m in mid_materials():
+			m.set_shader_parameter("press_pos", pilot.global_position)
 
 
 ## Густота травы (grass.density_pct: слайдер «Густота травы» в настройках, пресеты графики),
@@ -329,8 +358,8 @@ static func _v2(a: Variant) -> Vector2:
 ## Поля рельефа (влажность, северность) → цвет травинок как у земли под ними; все слои.
 func set_relief(relief: TerrainRelief) -> void:
 	TerrainRenderer.set_relief(material, relief)
-	if mid_layer != null:
-		TerrainRenderer.set_relief(mid_material(), relief)
+	for m in mid_materials():
+		TerrainRenderer.set_relief(m, relief)
 	if far_layer != null:
 		far_layer.set_relief(relief)
 
@@ -372,8 +401,7 @@ func set_landing_sites(sites: Array[Dictionary]) -> void:
 		dir.append(Vector4(1.0, 0.0, 0.0, 1.0))
 		hk.append(1.0)
 	var mats: Array[ShaderMaterial] = [material]
-	if mid_layer != null:
-		mats.append(mid_material())
+	mats.append_array(mid_materials())
 	for m in mats:
 		m.set_shader_parameter("landing_pos", pos)
 		m.set_shader_parameter("landing_dir", dir)

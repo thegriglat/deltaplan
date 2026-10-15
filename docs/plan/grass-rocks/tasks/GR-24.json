@@ -1,0 +1,40 @@
+{
+  "id": "GR-24",
+  "module": "grass-rocks",
+  "type": "dp-writer",
+  "title": "Гайд: новый вид травы (ближние травинки, angle, shell)",
+  "goal": "docs/guide/vegetation.md описывает траву как она есть в ветке: ближние травинки (нормаль, кончик, цвет, ранний выход), средняя дистанция — режим angle по умолчанию (слои сверху, карточки при скользящем взгляде, пороги 15/30°), shell и blades как опции, луг дальше 40 м — шейдер рельефа; findings — строка про выбор angle с ценой.",
+  "plan_ref": "GR-10. Документация",
+  "contracts": [],
+  "copy": "~/deltaplan-grass-rocks-GR-24",
+  "branch": "grass-rocks/GR-24",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "docs/guide/vegetation.md",
+    "docs/registry/findings.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools",
+    "docs/perf",
+    "docs/plan",
+    "docs/contracts",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check docs/guide/vegetation.md docs/registry/findings.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "angle",
+      "cmd": "grep -c 'angle' docs/guide/vegetation.md",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T17:47:10"
+}
