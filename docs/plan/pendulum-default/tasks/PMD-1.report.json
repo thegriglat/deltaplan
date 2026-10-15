@@ -1,0 +1,74 @@
+{
+  "status": "partial",
+  "summary": "Умолчание pendulum: controls.json, запасные значения Glider и InputController (неизвестное значение тоже pendulum), ROLL_MODES = pendulum/weight_shift/rate, подписи по PMD-К1, контрактный тест, test_cockpit и test_roll_weight_shift заданы явно/по смыслу. Единственный красный пункт приёмки — tests/ui/, те же 2 падения, что в базе.",
+  "commits": [
+    "68f20ed4 pendulum-default: журнал dpcli"
+  ],
+  "checks": [
+    {
+      "name": "pendulum_default",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "pendulum",
+      "value": "109/109",
+      "pass": true
+    },
+    {
+      "name": "tests/net/",
+      "value": "31/31",
+      "pass": true
+    },
+    {
+      "name": "tests/ui/",
+      "value": "123/125, те же 2 падения что в базе (test_language: csv-ключи/префикс setup_app_, NUL в csv)",
+      "pass": false
+    },
+    {
+      "name": "roll",
+      "value": "17/17",
+      "pass": true
+    },
+    {
+      "name": "no-experimental",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "test_mouse_bar_flight",
+      "value": "4/4 после sync PMD-2",
+      "pass": true
+    },
+    {
+      "name": "test_net_flight/test_net_bots/test_remote_pilots/test_bots",
+      "value": "7/7, 6/6, 7/7, 7/7",
+      "pass": true
+    },
+    {
+      "name": "tests/flight/test_glider",
+      "value": "3/3 после sync PMD-2",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Полный accept --dry после второго sync не гонял целиком: ключевые test_mouse_bar_flight и test_glider прогнал отдельно"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PMD-1",
+  "uncertain": [
+    {
+      "where": "scripts/game/net_flight.gd:272",
+      "why": "запасное значение weight_shift читается в net_flight — файл PMD-2",
+      "checked": "PMD-2 уже слит, sync сделан"
+    },
+    {
+      "where": "tests/game/",
+      "why": "в базе весь tests/game/ не укладывается в таймаут; прогнал отдельными файлами cockpit, motion_gate, net_*, pilot_view, qol_cycle, remote_pilots, start_, ui, wing, world_ — 0 падений (после явного режима в test_cockpit); test_game_logic::test_pilot_animator_sequence падает в базе",
+      "checked": "4 ключа Аппарат читает только PendulumModel (flight_model берёт pilot.visual.hang_length_m — другой источник), подпись верна"
+    }
+  ],
+  "dp_feedback": "accept --dry для tests/game/ целиком упирается в таймаут; хорошо бы запуск файлов по списку параллельно",
+  "t": "2026-10-15T06:43:15",
+  "by": "executor"
+}

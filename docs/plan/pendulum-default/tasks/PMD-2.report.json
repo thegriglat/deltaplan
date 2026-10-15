@@ -1,0 +1,87 @@
+{
+  "status": "partial",
+  "summary": "Аудит: код игры уже почти везде работает с Маятником (Glider/PD-4, PD-К4/К5 в сети, камера, автопилот, телеметрия). Найдены и починены два скрытых допущения: запасной режим в net_flight и два теста, молча рассчитанных на FlightModel по умолчанию. Для проверки умолчание временно переключено на pendulum и прогнаны по файлам tests/game, net, motion_rig, tasks, instruments, flight, audio.",
+  "commits": [
+    "6eb3ac74 PMD-2: аудит допущений FlightModel; запасной режим сети — Маятник; тесты задают режим явно"
+  ],
+  "checks": [
+    {
+      "name": "pendulum",
+      "value": "104/104",
+      "pass": true
+    },
+    {
+      "name": "tests/net/",
+      "value": "31/31",
+      "pass": true
+    },
+    {
+      "name": "tests/tasks/",
+      "value": "37/37",
+      "pass": true
+    },
+    {
+      "name": "tests/instruments/",
+      "value": "51/51",
+      "pass": true
+    },
+    {
+      "name": "motion_rig",
+      "value": "50/50",
+      "pass": true
+    },
+    {
+      "name": "tests/game/",
+      "value": "таймаут 900 с (в базе тоже); по файлам при умолчании pendulum падают только test_mouse_bar_flight (исправлен) и test_game_logic/test_cockpit (падали и в базе)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "tests/game/ целиком не укладывается в 900 с даже в базе (49 файлов подряд); test_gameplay и test_qol_cycle под параллельной нагрузкой упираются в таймаут 600 с по файлу; test_qol_cycle отдельно на pendulum проходит за 254 с",
+    "tests/flight/test_roll_weight_shift.gd::test_roll_mode_setting ('по умолчанию — смещение веса') упадёт после PMD-1 — тест умолчания, правит PMD-1"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PMD-2 --dry",
+  "uncertain": [
+    {
+      "where": "tests/game/test_game_logic.gd::test_pilot_animator_sequence",
+      "why": "падает 'у земли — выход из кокона' и в базе; юнит PilotAnimator, к Маятнику не относится",
+      "checked": "git stash и прогон без моих правок — тот же отказ"
+    },
+    {
+      "where": "tests/game/test_mouse_bar_flight.gd (новый test_bar_mouse_in_air_pendulum)",
+      "why": "в Маятнике за 1,5 с мышь вправо даёт крен -2° (первые секунды крыло реагирует обратно); за 6 с: вправо +26,6°, влево -49°, нейтраль -7° — несимметрично; проверяю знак и разность >2°. Поведение модели, не чинил (физика Маятника вне скоупа)",
+      "checked": "прогон теста"
+    },
+    {
+      "where": "scripts/game/net_flight.gd:272",
+      "why": "запасное значение теперь pendulum; glider.gd:77 и input_controller.gd:58 — у PMD-1; если выберет иное — разойдутся (только когда ключа нет в controls.json)",
+      "checked": "тест test_control_mode_name"
+    }
+  ],
+  "dp_feedback": "accept --dry для tests/game/ всегда упирается в 900 с (49 файлов последовательно): нужен параллельный запуск по файлам или больший таймаут. Общий scratchpad: чужой агент перезаписал мой r.json — подсказать в шаблоне уникальное имя.",
+  "extra": {
+    "table": [
+      "game.gd:256-265 autopilot.pendulum, control.roll от ПИД — учтено в PD-4 — безвредно",
+      "game.gd:623,1188 reset_in_air — только по явному air_start/буксиру, принудительного старта в воздухе нет — безвредно",
+      "game.gd:1112 start_catch_up (velocity, mode == AIR) — общий enum, PD-К1 — безвредно",
+      "game.gd:1338 + camera_rig.gd:383 body_shift при hang_pose_active не добавляется (PD-К5) — безвредно",
+      "game.gd:1483 flight_position_started, :1490 flare_amount() — есть в PendulumModel/PD-К1 — безвредно",
+      "game.gd _on_landed/_on_takeoff_failed — разбор по сигналам — безвредно",
+      "net_flight.gd:263 pilot_rel только при is_pendulum() — безвредно",
+      "net_flight.gd:272 запасной режим weight_shift при отсутствии ключа — ЧИНЕНО: pendulum + тест",
+      "net_bots.gd:169, bot_*.gd, bot_agent.gd, remote_pilots.gd:294-306 — FlightModel ботов/чужих по PD-К1, режим игрока не читают, weight_shift=false — безвредно; test_net_bots/test_remote_pilots проходят при умолчании pendulum",
+      "catch_up_tow.gd — физики нет, set_kinematic идёт в ветку маятника — безвредно",
+      "flight_telemetry.gd:15-51 — без типа, ветка по 'pilot_rel' in m; pilot_shift/bar_force_wing есть в PendulumModel — безвредно",
+      "glider.gd:123-135,220 по is_pendulum() — безвредно; glider_visual.gd:764 model.load — PD-К1",
+      "ground_run.gd, landing_flare.gd, pilot_legs.gd — типизированы FlightModel, вызываются только из FlightModel.step — безвредно",
+      "motion_rig/, tasks/, instruments/, audio/, core/ — членов FlightModel вне PD-К1 не читают — безвредно",
+      "tests/flight/test_glider.gd test_sail_shader_and_flight_params — stall_amount рассчитан на FlightModel по умолчанию — ЧИНЕНО (режим явно)",
+      "tests/game/test_mouse_bar_flight.gd bar_mouse_in_air — крен за 1,5 с по умолчанию FlightModel — ЧИНЕНО (weight_shift явно + вариант pendulum)",
+      "input_controller.gd:58,138-287 weight_shift() — вне скоупа (PMD-1); при pendulum модель поле не читает",
+      "обучения/сценариев как системы в scripts/ нет"
+    ]
+  },
+  "t": "2026-10-15T06:27:28",
+  "by": "executor"
+}

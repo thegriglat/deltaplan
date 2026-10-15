@@ -64,7 +64,7 @@ v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы н
 
 Инварианты: нет NaN при `dt` 1/30…1/240; в штиле с руками в нейтрали после `reset_in_air` скорость и снижение — трим и поляра крыла (числа прототипа, ±15 %); телеметрия `pilot_*` — из маятника (MR-К1).
 
-Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel` (как сейчас); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
+Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel`; умолчание теперь `pendulum` (PMD-К1, [pendulum-default](pendulum-default.md)); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
 
 ## PD-К2. Конфиг маятника и блок pendulum в крыльях (v7)
 v7 (11.10, PD-35): убран `arms.flare_shift_x_push_m` (ход у земли — из `arms.flare_reach`); + `strips.stall_cd90_sweep_norm`, `strips.sweep_alpha_exact`, `strips.stall_cp_reverse`, `touchdown {run_max_ms, stand_max_ms, step_period_s}`; `contract` — `"PD-К2 v7"`.
@@ -132,7 +132,7 @@ v2 (11.10): настройки — у каждого крыла свои; умо
 | `sail_flex` | безразм. | 0,1…1,0, 0,05 | 0,2 (крыло — своё) | «Гибкость паруса» | множитель перекоса паруса от усилия рук (v5: 1 — самый гибкий) |
 | `dihedral_eff_deg` | ° | −2…+6, 0,5 | 1 (крыло — своё) | «Поперечное V» | эффективное поперечное V полос |
 
-UI: экран «Полёт…» (`scripts/ui/flight_setup_screen.gd`) делится на вкладки «Место» и «Аппарат» (в «Аппарат» — класс и модель крыла, масса пилота, эти 4 ползунка). У всех четырёх — подпись «Важно только при режиме управления «Маятник»». Строки — `locale/ui.csv`.
+UI: экран «Полёт…» (`scripts/ui/flight_setup_screen.gd`) делится на вкладки «Место» и «Аппарат» (в «Аппарат» — класс и модель крыла, масса пилота, эти 4 ползунка). У всех четырёх — подпись вкладки — «Настройки режима «Маятник»; в других режимах не действуют» (PMD-К1). Строки — `locale/ui.csv`.
 
 ## PD-К4. Сеть: режим управления и положение пилота (v2)
 v2 (11.10, PD-7): прирост `PilotState` в двоичном protobuf — ≤ 20 байт (`pilot_rel` — Vec3 из float32, 17 байт; `control_mode` — 2 байта, только в полном пакете раз в секунду); фактически протокол — JSON, `pilotRel` ≈ +45 байт к пакету ≈ 170 байт.
