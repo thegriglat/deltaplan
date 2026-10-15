@@ -33,6 +33,21 @@ func test_airflow_layers_monotonic_in_speed() -> void:
 	check(hi.lp_cutoff_hz > lo.lp_cutoff_hz, "ФНЧ открывается со скоростью")
 
 
+func test_wires_without_file_quieter_than_rush() -> void:
+	# SPF-К3: тон тросов — синтез, не файл; тише шума обтекания; pitch = 1; слышен с 30 км/ч.
+	var m := _mix()
+	var air: Dictionary = Config.get_config("audio").flight.airflow
+	check(not air.files.has("wires"), "в files нет лупа wires")
+	check(not ("wires" in FlightSoundMix.AIRFLOW_LOOPS), "wires не в AIRFLOW_LOOPS")
+	var silence := float(Config.get_config("audio").flight.silence_db)
+	for v in range(30, 91, 5):
+		var lv := _levels_at(m, float(v))
+		check(lv.wires.x < lv.rush.x, "тросы тише шума обтекания на %d км/ч" % v)
+		check(is_equal_approx(lv.wires.y, 1.0), "pitch тросов = 1 на %d км/ч" % v)
+	check(_levels_at(m, 30.0).wires.x >= silence, "тросы не ниже silence_db на 30 км/ч")
+	check(_levels_at(m, 90.0).wires.x > _levels_at(m, 30.0).wires.x + 12.0, "тросы заметно громче на 90")
+
+
 func test_total_airflow_energy_monotonic() -> void:
 	# С учётом кроссфейда записанных слоёв общая громкость потока растёт со скоростью.
 	var m := _mix()
@@ -40,7 +55,7 @@ func test_total_airflow_energy_monotonic() -> void:
 	for v in range(10, 101, 5):
 		var lv := _levels_at(m, float(v))
 		var e := 0.0
-		for layer in FlightSoundMix.AIRFLOW_LOOPS:
+		for layer in FlightSoundMix.AIRFLOW_LOOPS + PackedStringArray(["wires"]):
 			e += pow(db_to_linear(lv[layer].x), 2.0)
 		check(e >= prev * 0.97, "энергия потока растёт (%d км/ч)" % v)
 		prev = e

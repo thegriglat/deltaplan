@@ -13,6 +13,10 @@ var _cfg: Dictionary = {}
 var _loops: Dictionary = {}  # имя → AudioStreamPlayer
 var _gain: Dictionary = {}  # имя → текущая линейная громкость (сглаженная)
 var _pitch: Dictionary = {}  # имя → текущий pitch_scale
+var _wire_tone := WireTone.new()
+var _wire_player: AudioStreamPlayer
+var _wire_playback: AudioStreamGeneratorPlayback
+var _wire_buffer_s: float = 0.12
 var _oneshots: Array[AudioStreamPlayer] = []
 var _next_oneshot: int = 0
 var _lists: Dictionary = {}  # имя списка → Array[AudioStream]
@@ -48,6 +52,7 @@ func setup(cfg: Dictionary, seed_value: int = 0) -> void:
 	var fx := String(buses.get("effects", "Effects"))
 	var amb := String(buses.get("ambient", "Ambient"))
 	_make_loops(cfg.get("airflow", {}), FlightSoundMix.AIRFLOW_LOOPS, wind)
+	_make_wire_tone(cfg.get("airflow", {}).get("wire_tone", {}), wind)
 	_make_loops(cfg.get("sail", {}), FlightSoundMix.SAIL_LOOPS, fx)
 	_make_loops(cfg.get("run", {}), FlightSoundMix.RUN_LOOPS, fx)
 	_make_loops(cfg.get("ambient", {}), FlightSoundMix.AMBIENT_LOOPS, amb)
@@ -135,6 +140,7 @@ func _process(delta: float) -> void:
 		_gain[loop_name] = g
 		_pitch[loop_name] = pitch
 		_apply_loop(p, g, pitch)
+	_update_wire_tone()
 	if _lpf:
 		_lpf.cutoff_hz = float(levels.get("lp_cutoff_hz", 2000.0))
 	if _panner:
@@ -143,6 +149,44 @@ func _process(delta: float) -> void:
 		return
 	for ev in mix.advance(delta):
 		_play_event(ev)
+
+
+## Тон тросов (SPF-К3): AudioStreamGenerator на шине ветра, громкость — mix.compute()["wires"].
+## Плеер в _loops (громкость, старт/стоп — как у лупов); без звука (стоит, enabled = false) генератор не заполняется.
+func _make_wire_tone(wc: Dictionary, bus: String) -> void:
+	_wire_playback = null
+	if wc.is_empty() or not bool(wc.get("enabled", true)):
+		return
+	var rate := float(wc.get("mix_rate_hz", 22050))
+	_wire_tone.setup(wc, rate, int(wc.get("seed", 0)))
+	_wire_buffer_s = float(wc.get("buffer_length_s", 0.12))
+	var gen := AudioStreamGenerator.new()
+	gen.mix_rate = rate
+	gen.buffer_length = _wire_buffer_s
+	_wire_player = AudioStreamPlayer.new()
+	_wire_player.name = "Loop_wires"
+	_wire_player.stream = gen
+	_wire_player.bus = bus
+	_wire_player.volume_db = _min_db
+	add_child(_wire_player)
+	# Общий путь лупов: сглаженная громкость mix.compute()["wires"], старт/стоп по silence_db.
+	_loops["wires"] = _wire_player
+	_gain["wires"] = 0.0
+	_pitch["wires"] = 1.0
+
+
+func _update_wire_tone() -> void:
+	if _wire_player == null or not _wire_player.playing:
+		_wire_playback = null
+		return
+	_wire_tone.set_airspeed(mix.airspeed_kmh / 3.6)
+	if _wire_playback == null:
+		_wire_playback = _wire_player.get_stream_playback() as AudioStreamGeneratorPlayback
+	if _wire_playback == null:
+		return
+	var n := _wire_playback.get_frames_available()
+	if n > 0:
+		_wire_playback.push_buffer(_wire_tone.fill(n))
 
 
 func _apply_loop(p: AudioStreamPlayer, gain: float, pitch: float) -> void:
@@ -250,6 +294,8 @@ func _load(path: String) -> AudioStream:
 func _clear_players() -> void:
 	for c in get_children():
 		c.free()
+	_wire_player = null
+	_wire_playback = null
 	_loops.clear()
 	_gain.clear()
 	_pitch.clear()
