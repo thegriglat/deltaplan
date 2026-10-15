@@ -47,3 +47,5 @@
 {"t": "2026-10-15T08:24:29", "by": "coordinator", "task": null, "ev": "plan", "note": "план 4. Волны: замена «3. PMD-4 — последней, по…»"}
 {"t": "2026-10-15T08:25:33", "by": "executor", "task": "PMD-4", "ev": "reported", "commits": ["1a7d1eaf"], "note": "done: Гайд маятника, flight.md, model.md, контракт pendulum.md (PD-К1 умолчание, PD-К3 подпись) и CHANGELOG «В работе» перепи…", "dp_feedback": "Дополнение координатора в task show обрезано, пришлось --full; вывод больших команд уходит в файл."}
 {"t": "2026-10-15T08:25:38", "by": "coordinator", "task": "PMD-4", "ev": "accepted", "note": "2/2 docs-check=ok:ошибок 0; no-experimental=ok:0"}
+{"t": "2026-10-15T08:25:44", "by": "coordinator", "task": "PMD-4", "ev": "accepted", "commits": ["dedfd33c"], "note": "2/2 docs-check=ok:ошибок 0; no-experimental=ok:0"}
+{"t": "2026-10-15T08:25:44", "by": "coordinator", "task": "PMD-4", "ev": "merged"}
