@@ -111,6 +111,15 @@ func setup(
 	m.set_shader_parameter("sp_aspect", asp)
 	m.set_shader_parameter("sp_gain", gain)
 	m.set_shader_parameter("sp_height", hts)
+	# GR-11: размеры билборда для раннего выхода — высота ×(1 + 0,4 вдали)×seam_size_k, полуширина
+	# hh/4·(1 + edge_scale_k), утопление до sink_fraction·hh
+	var hmax := 1.0
+	for hr in hts:
+		hmax = maxf(hmax, hr.y)
+	hmax *= 1.4 * maxf(1.0, float(ic.get("seam_size_k", 1.0)))
+	m.set_shader_parameter("cull_hmax_m", hmax + 1.0)
+	m.set_shader_parameter("cull_below_m", maxf(float(cfg.sink_fraction), float(cfg.get("edge_sink_fraction", 0.05))) * hmax + 1.0)
+	m.set_shader_parameter("cull_reach_m", 0.25 * hmax * (1.0 + float(cfg.get("edge_scale_k", 0.15))) + 1.0)
 	material_override = m
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	custom_aabb = AABB(

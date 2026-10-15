@@ -120,6 +120,7 @@ func setup(
 	m.set_shader_parameter("sp_gain", gain)
 	m.set_shader_parameter("sp_backlight", bl)
 	m.set_shader_parameter("sp_height", hts)
+	_set_cull_extent(m, tex_dims[1], hts, nv)
 	material_override = m
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	custom_aabb = AABB(
@@ -130,6 +131,28 @@ func setup(
 	if impostors != null:
 		impostors.set_cross_ring(Vector2(r_far * k_min - 0.5 * dither, r_far * k_max + 0.5 * dither))
 	return true
+
+
+## GR-11: размеры креста для раннего выхода (tree_cross.gdshader, column_out_of_view): наибольшие по
+## породам и вариантам — высота над землёй, утопление, радиус от оси (поворот радиус не меняет).
+func _set_cull_extent(m: ShaderMaterial, dims: PackedVector3Array, heights: Array[Vector2], nv: int) -> void:
+	var up := 1.0
+	var down := 0.0
+	var reach := 1.0
+	var sink := maxf(float(m.get_shader_parameter("sink_fraction")), float(m.get_shader_parameter("edge_sink_fraction")))
+	for sp in heights.size():
+		var hmax := heights[sp].y
+		for v in nv:
+			var li := sp * nv + v
+			if li >= MAX_LAYERS:
+				continue
+			var s := hmax / maxf(dims[li].z, 0.1)
+			up = maxf(up, dims[li].y * s)
+			reach = maxf(reach, dims[li].x * s * 0.5)
+		down = maxf(down, sink * hmax)
+	m.set_shader_parameter("cull_up_m", up + 1.0)
+	m.set_shader_parameter("cull_down_m", down + 1.0)
+	m.set_shader_parameter("cull_reach_m", reach + 1.0)
 
 
 ## Радиусы и стык из конфига (без нод — для тестов).
