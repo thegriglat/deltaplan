@@ -63,3 +63,4 @@
 {"t": "2026-10-15T06:05:16", "by": "coordinator", "task": "GR-5", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-15T06:05:18", "by": "coordinator", "task": "GR-5", "ev": "accepted", "commits": ["74f0f985"], "note": "3/3 section=ok:1; data=ok:16; docs=ok:exit 0"}
 {"t": "2026-10-15T06:05:18", "by": "coordinator", "task": "GR-5", "ev": "merged", "commits": ["74f0f985"]}
+{"t": "2026-10-15T06:06:07", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: frame_profile.sh на холодном профиле падает/не долетает до отметки 2 (просят прогрев); job wait под замком молчит об очереди; task show обрезает дополнения; report.commits ждёт хеш"}
