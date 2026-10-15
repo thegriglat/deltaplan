@@ -1,0 +1,66 @@
+{
+  "id": "PMD-5",
+  "module": "pendulum-default",
+  "type": "dp-engineer",
+  "title": "Асимметрия ответа «Маятника» на ввод: причина и починка",
+  "goal": "Найдена причина несимметричного крена «Маятника» при вводе вправо/влево и ухода в нейтрали (test_mouse_bar_flight: +26,6°/−49°/−7° за 6 с); если это ошибка (ввод, знак, ось, стартовые условия, модель) — починена, в штиль ответ симметричен; если физика (боковой ветер/снос) — тест на штиль или зеркальную пару, числа в отчёте.",
+  "plan_ref": "§PMD-5",
+  "contracts": [
+    {
+      "name": "pendulum-default",
+      "version": "1",
+      "ref": "docs/contracts/pendulum-default.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-default-PMD-5",
+  "branch": "pendulum-default/PMD-5",
+  "base": "feature/pendulum-default",
+  "scope": [
+    "scripts/flight/pendulum/",
+    "configs/pendulum.json",
+    "scripts/game/input_controller.gd",
+    "scripts/game/bar_axis.gd",
+    "scripts/flight/glider.gd",
+    "tests/"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "configs/controls.json",
+    "configs/wings",
+    "scripts/ui",
+    "locale",
+    "site",
+    "docs",
+    "CHANGELOG.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_pendulum_symmetry",
+      "tests": "test_pendulum_symmetry"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "test_mouse_bar_flight",
+      "tests": "test_mouse_bar_flight"
+    },
+    {
+      "name": "roll",
+      "tests": "roll"
+    },
+    {
+      "name": "test_net_flight",
+      "tests": "test_net_flight"
+    },
+    {
+      "name": "test_remote_pilots",
+      "tests": "test_remote_pilots"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T08:23:32"
+}
