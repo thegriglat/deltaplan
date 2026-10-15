@@ -1,0 +1,75 @@
+{
+  "id": "GR-7",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Средняя дистанция: прототип слоёв и карточек",
+  "goal": "Два режима средней дистанции травы (~10–40 м) по контракту G4 — shell (слои над рельефом с шумовой маской) и cards (карточки-пучки, alpha scissor + alpha-to-coverage) — переключаются конфигом и DP_GRASS_MID; трава выглядит бархатно; дальше ~40 м геометрии травы нет. Числа цены обоих режимов для выбора на шлюзе 2.",
+  "plan_ref": "GR-7. Средняя дистанция — прототип",
+  "contracts": [
+    {
+      "name": "G2",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-7",
+  "branch": "grass-rocks/GR-7",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/grass_mid_shell.gd",
+    "scripts/terrain/grass_mid_shell.gd.uid",
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_mid_cards.gd",
+    "scripts/terrain/grass_mid_cards.gd.uid",
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/terrain/grass_field.gd",
+    "configs/vegetation.json",
+    "tests/vegetation/test_grass_mid_gpu.gd",
+    "tests/vegetation/test_grass_mid_gpu.gd.uid",
+    "tests/contracts/test_grass_rocks_contracts.gd",
+    "data/vegetation/",
+    "ASSETS.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain.gd",
+    "tools/bench",
+    "configs/game.json",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "gpu_mid",
+      "cmd": "DISPLAY=:0 tools/gpu_tests.sh --filter=grass",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    },
+    {
+      "name": "g4_test",
+      "cmd": "grep -c 'func test_g4_' tests/contracts/test_grass_rocks_contracts.gd",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T06:33:54"
+}
