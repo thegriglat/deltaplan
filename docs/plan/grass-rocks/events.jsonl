@@ -220,3 +220,5 @@
 {"t": "2026-10-15T13:03:09", "by": "executor", "task": "GR-9", "ev": "reported", "commits": ["dafeb99d", "ffb9b3dd"], "note": "done: 8 кадров final/ (1918x1036, shell по умолчанию) и замер G3 shell (прогон + повтор GR-9b). Трава укладывается в бюджет: …", "dp_feedback": "Правка скрипта во время job ломает его (bash читает на ходу) - job start мог бы копировать скрипт. frame_profile.sh не умеет повторять только упавшую отметку без ручного MARKS. Лимит 40 КБ на docs упёрся в perf-раздел - нужен подсказкой заранее."}
 {"t": "2026-10-15T13:03:17", "by": "coordinator", "task": "GR-9", "ev": "checked", "note": "4/4 count=ok:8; sizes=ok:1; section=ok:1; data=ok:16"}
 {"t": "2026-10-15T13:03:23", "by": "coordinator", "task": "GR-9", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-15T13:03:23", "by": "coordinator", "task": "GR-9", "ev": "accepted", "commits": ["c580ffc7"], "note": "4/4 count=ok:8; sizes=ok:1; section=ok:1; data=ok:16"}
+{"t": "2026-10-15T13:03:24", "by": "coordinator", "task": "GR-9", "ev": "merged", "commits": ["c580ffc7"]}
