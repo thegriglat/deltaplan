@@ -14,7 +14,9 @@ extends Node
 ##     (|L − среднее кольца| > 50 %) не больше OUTLIER_MAX. Модуляция ворса (корень/кончик 0,82–1,1,
 ##     тон куртин ±12 %, пятна ±6 %) даёт ~0,02; NOISE_MIN — половина. До GR-8 слой был ровнее
 ##     рельефа (cv 0,015 против 0,07) — вклад 0.
-## Режим shell (G4 v2).
+## Режимы shell (G4 v2) и angle (G4 v4, GR-21): в angle ещё глаз на 5 и 8 м — по кольцам 2 м угол взгляда
+## к лугу проходит 30° → 15° (на 5 м — 9–19 м, на 8 м — 14–30 м, на 13 м — 22–48 м): (2) — растворение
+## слоёв в карточки без шва (соседние полосы ≤ 3 %), (1) — тон карточек = луг рельефа.
 
 const SIZE := Vector2i(320, 180)
 const FOV := 70.0
@@ -22,6 +24,7 @@ const RING_M := 2.0
 const RINGS := 40
 const MIN_PX := 40
 const HEIGHTS: Array[float] = [13.0, 30.0, 60.0]
+const ANGLE_HEIGHTS: Array[float] = [5.0, 8.0, 13.0, 30.0]
 const PITCHES: Array[float] = [-28.0, -65.0]
 const YAWS: Array[float] = [0.0, 90.0, 180.0, 270.0]
 const TONE_TOL := 0.05
@@ -59,12 +62,22 @@ func test_grass_shell_edge_junction() -> void:
 	await _edge("shell", true)
 
 
+func test_grass_shell_edge_angle() -> void:
+	await _edge("angle")
+
+
+func test_grass_shell_edge_angle_junction() -> void:
+	await _edge("angle", true)
+
+
 ## near — ближние травинки видны (стык 8–14 м): кадр «вся трава» против «только рельеф».
 func _edge(mode: String, near := false) -> void:
 	_build(mode)
 	for i in 4:
 		await RenderingServer.frame_post_draw
-	for hgt in HEIGHTS:
+	# стык с ближними травинками — те же высоты, что у shell: с 5 м и в shell скачок 0,031 у ближних
+	# травинок (4–12 м, grass.gdshader), не у средней травы (GR-21, проверено)
+	for hgt in (ANGLE_HEIGHTS if mode == "angle" and not near else HEIGHTS):
 		var with_g := _rings()
 		var no_g := _rings()
 		for yaw in YAWS:
@@ -72,9 +85,9 @@ func _edge(mode: String, near := false) -> void:
 				_pose(hgt, yaw, pitch)
 				# ближние травинки — только в проверке стыка (GrassField сам включает видимость по высоте)
 				_field.multimesh.visible_instance_count = -1 if near else 0
-				_field.mid_layer.visible = true
+				_field.set_mid_visible(true)
 				var a := await _shot()
-				_field.mid_layer.visible = false
+				_field.set_mid_visible(false)
 				_field.multimesh.visible_instance_count = 0
 				var b := await _shot()
 				_accumulate(a, with_g)

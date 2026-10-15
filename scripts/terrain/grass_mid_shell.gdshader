@@ -78,6 +78,15 @@ uniform float patch_density = 0.35;    // разброс густоты пятн
 uniform float patch_height = 0.3;      // разброс высоты пятнами, доля
 uniform float patch_tone = 0.06;       // разброс тона пятнами, доля
 uniform float edge_jitter_m = 4.0;     // рваность края кольца, м (± половина)
+// режим angle (G4 v4, GR-21): угол взгляда к рельефу α = asin(|dot(взгляд, нормаль)|); при α ≤ full —
+// только карточки (GrassMidCards), слоёв нет; при α ≥ none — только слои; между густота слоёв — доля
+// 1 − card_share(α) (карточки — card_share(α), grass_mid_cards.gdshader). Выключен — слои как в shell.
+uniform bool angle_mode = false;
+uniform float card_angle_full_deg = 15.0;
+uniform float card_angle_none_deg = 30.0;
+// вершина с α ниже full на этот запас — вне слоёв целиком (треугольник с ней уже в зоне карточек:
+// уклон α по сетке ≤ ~2,5° на диагональ клетки 1,4 м у ближнего края кольца)
+const float ANGLE_HIDE_MARGIN_DEG = 4.0;
 
 varying vec3 v_col;
 varying vec3 v_n;
@@ -144,6 +153,14 @@ void vertex() {
 	}
 	float lean_max = max(bend_max * abs(bend_amp) + 0.15 + abs(sway_amp), max(1.5, abs(trample_lean)));
 	bool hidden = fade <= 0.0;
+	float shell_k = 1.0;   // доля слоёв по углу взгляда (режим angle)
+	if (!hidden && angle_mode) {
+		vec3 nv = normalize(vec3(-hg.x, 1.0, -hg.y));
+		float sa = abs(dot(normalize(vec3(xz.x, h, xz.y) - CAMERA_POSITION_WORLD), nv));
+		float a_deg = degrees(asin(clamp(sa, 0.0, 1.0)));
+		shell_k = clamp((a_deg - card_angle_full_deg) / max(card_angle_none_deg - card_angle_full_deg, 0.1), 0.0, 1.0);
+		hidden = a_deg < card_angle_full_deg - ANGLE_HIDE_MARGIN_DEG;
+	}
 	if (!hidden && cull_enabled) {
 		hidden = vert_out_of_view(xz, h, h_max, 1.5 * mesh_step_m + lean_max * h_max, PROJECTION_MATRIX,
 				VIEW_MATRIX);
@@ -230,7 +247,7 @@ void vertex() {
 		VERTEX = vec3(xz.x, h + y - 0.02, xz.y);
 		v_hh = hh;
 		v_lo = hr.y > 0.0 ? hr.x / hr.y : 1.0;
-		v_share = share * coverage * fade * clamp(1.0 + patch_density * 2.0 * (pn.x - 0.5), 0.0, 1.0);
+		v_share = share * coverage * fade * shell_k * clamp(1.0 + patch_density * 2.0 * (pn.x - 0.5), 0.0, 1.0);
 		v_fade = fade;
 		v_patch = pn;
 		v_lean = lean;
