@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "Замер G3 после GR-3 (medium, high, ongudai, 2/30/60, два прогона). Цена травы там, где она есть, снизилась на ≈0,2–0,3 мс (−23…−25 %) на high@2/30 и medium@30; среднее по трём отметкам: medium 0,53→0,45 мс, high 0,80→0,61 мс. Примитивы не изменились.",
+  "commits": [
+    "a6f79ed4 GR-5: замер после раннего выхода травы"
+  ],
+  "checks": [
+    {
+      "name": "section",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "data",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept GR-5",
+  "uncertain": [
+    {
+      "where": "docs/perf/grass_rocks.md ## GR-5",
+      "why": "Δ 0,2–0,3 мс близка к разбросу между прогонами (0,1–0,3); medium@2 шум 0,29 в одном прогоне, Δ неразличима",
+      "checked": "два прогона GR-5/GR-5b, сравнение со средним двух прогонов GR-2"
+    }
+  ],
+  "dp_feedback": "Первый запуск в свежем профиле даёт FAIL отметки 2 с (холодная загрузка); frame_profile.sh стоило бы прогревать профиль автоматически. job wait под замком GPU ждёт молча — нет индикации очереди.",
+  "extra": {
+    "grass_cost_ms": {
+      "medium_avg": [
+        0.53,
+        0.45
+      ],
+      "high_avg": [
+        0.8,
+        0.61
+      ]
+    }
+  },
+  "t": "2026-10-15T06:05:02",
+  "by": "executor"
+}
