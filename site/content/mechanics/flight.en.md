@@ -1,188 +1,226 @@
 ---
 title: "Wing and flight"
 weight: 10
-description: "How flight is computed: polar, pilot mass, roll and control frame, Pendulum mode, ground run, stall, landing; groups and classes of 48 wings."
+description: "How flight is computed in the Pendulum mode: a wing of 16 strips, a pilot on the hang chain, arms, ground, stall and spin, telltales, model limits; the older modes; groups and classes of 48 wings."
 ---
 
 # Wing and flight
 
-The flight model is not an arcade with a single "speed–lift" curve, but a point mass with orientation
-that solves the same equations as a real hang glider: lift and drag from the wing polar, pilot mass,
-roll from weight shift, stall, ground run and the flare near the ground. There is also a second level —
-the experimental "Pendulum" mode (wing and pilot as two bodies), described separately below. Below is how
-it is built and which wings are in the game.
+The main control mode is "Pendulum": the wing and the pilot are computed as two bodies. The wing is a rigid
+body whose lift is assembled from strips; the pilot hangs under it on the suspension and steers by moving
+relative to the control bar. Roll, pitch, sideslip and yaw come from forces and moments, not from a commanded
+turn rate. The two older, simpler modes ("Weight shift" and "Simple") are still in the settings; they are
+described in a short section at the end. Below: how it is built, where the model lies, and which wings are in
+the game.
 
 ## How flight is computed
 
-The logic lives in `scripts/flight/` — plain `RefCounted` classes (tested without graphics, by tests);
-the `Glider` node is a thin wrapper around them. The physics step is 120 Hz, semi-implicit Euler.
+The model was first written and verified as a Python prototype (`tools/research/pendulum/`); the game is a
+port, with no discrepancy above 15 % on the 110 numbers compared. The code is `scripts/flight/pendulum/`
+(plain `RefCounted` classes, no graphics, covered by tests); the `Glider` node is a thin wrapper. The physics
+step is 120 Hz; inside a step the hang chain is solved in 4 substeps (XPBD), more when the frame rate drops.
 
-Glider state: position, ground velocity, heading, roll and roll rate, keel pitch, angle of attack, stall
-flag. Forces: lift — perpendicular to the airspeed, tilted by the roll angle; drag — along the flow;
-weight.
-
-$$
-q = \tfrac12\rho V^2 S,\qquad L = q\,C_L(\alpha),\qquad D = q\,C_D(C_L)
-$$
-
-**Polar.** Each wing has a table of "speed (km/h) → sink rate (m/s)" points at a reference pilot mass
-(`configs/wings/<id>.json → polar.points_kmh_ms`). The points are converted to dimensionless \(C_L\to C_D\)
-by
+**The wing** is a rigid body with six degrees of freedom. Lift and drag are not computed as one sum but over
+**16 strips** (8 per half-wing); each strip has its own local velocity
 
 $$
-C_L = \frac{2Mg\cos\gamma}{\rho S V^2},\qquad C_D = C_L\,\mathrm{tg}\,\gamma
+\vec V_i = \vec V_{\text{wing}} + \vec\omega\times\vec r_i - \vec V_{\text{wind}}(\vec x_i),
 $$
 
-and between them the interpolation is linear; in calm air the model reproduces the source polar exactly.
-Beyond the slowest edge of the polar (deeper than there are points) it is a parabola \(C_{D0}+kC_L^2\).
+its own angle of attack and its own stall; the wind is sampled at the strip from the air model. So the
+difference in load between the half-wings, sideslip and the wing's rotation work on their own. Dynamic
+pressure and strip force:
 
-**The control frame sets the angle of attack**, not the speed directly: position 0 is trim, −1 is "fully
-pulled in" (acceleration), +1 is "fully pushed out" (up to the stall); between them the speed is linear
-in the deflection. The layout is the hang glider pilot's: push out (mouse forward, ↑, gamepad stick
-forward) — nose up, braking; pull in (mouse back, ↓) — nose down, acceleration. The mouse always drives
-the wing (the control frame) while it is captured (the M key); without capture the cursor is free and the
-control frame holds its last position. W/S/A/D never move the wing: in flight they turn the head in the
-cockpit (90°/s; release and the view stays; V or the middle button — forward again), on the ground —
-walking and turning on the spot. To look around with the mouse, hold the right button (the control frame
-keeps its position meanwhile). The "Invert pitch" setting (off by default) gives an "airplane-style"
-layout for the arrows, mouse and stick. The wing reaches the commanded angle of attack not instantly but
-with the time constant `pitch_time_constant_s` — inertia. The speed↔height oscillation (the phugoid),
-which in a point model without damping would swing forever, is damped by an addition to the angle of
-attack proportional to \(dV/dt\) (`flight.json → phugoid_damping`, coefficient 1.4 — damping ratio
-ζ≈0.5): a real wing is speed-stable and settles within 1–2 oscillations.
+$$
+q = \tfrac12\rho V^2,\qquad dL = q\,C_L(\alpha_i)\,dS,\qquad dD = q\,C_D\,dS
+$$
 
-**Mass and altitude.** Since the control frame sets \(C_L\), all speeds and the sink rate grow as
-\(\sqrt{M/\rho}\), while the glide ratio (\(C_L/C_D\)) does not depend on mass — a standard result of
-gliding flight theory (the same way a glider's polar is recalculated when filling water ballast). The
-**total** mass is scaled (pilot + wing), not the pilot mass alone. Air density
-\(\rho(h) = 1.225\cdot e^{-h/10400}\) kg/m³ (ISA approximation): at 2000 m the speeds are already ~10 %
-higher than at the ground. A detailed derivation with a check against the manufacturer data for two sizes
-of one wing (Litespeed RS 3.5 and RS 4) — [docs/research/pilot_mass.md](/docs/research/pilot_mass.md).
+**The pilot** is a point (his mass) on a **three-link hang chain** 1.2 m long in total; the strap only pulls.
+The pilot hangs under the wing and swings sideways with a period of about 1.2–1.3 s. **The arms** are a force
+between the pilot and the middle of the base bar (limit 300 N); the pilot is not rigidly tied to the wing, and
+his displacement relative to the bar is the control.
 
-The time constants in roll and pitch grow as \(\sqrt{M/M_{\text{ref}}}\) (moment of inertia ∝ M,
-aerodynamic damping ∝ V ∝ √M) — a heavy pilot enters and leaves a roll more slowly.
+**Yaw is free:** the heading is not tied to the airspeed, and sideslip arises from the strips and an
+"equivalent keel". Without it (checked on the prototype) the wing has no lateral stability and falls apart
+in turbulence.
 
-## Roll and the control frame
+**Polar and trim.** Each wing has a table "speed (km/h) → sink rate (m/s)" at a reference pilot mass
+(`configs/wings/<id>.json → polar.points_kmh_ms`). The sum of the 16 strips in straight flight reproduces this
+polar (one drag multiplier per wing, `cd_scale`) and the data-sheet trim (one sail moment constant `dcm0` =
+0.05–0.14). The pitch stability margin 0.11–0.20 comes from the geometry. The phugoid damps by itself: period
+5.2–5.7 s (Cook, Hiway Demon: 5.4 s), no artificial damping is needed. Moving the hang point 1 cm forward
+changes trim by +0.4 (trainer), +0.7 (kingposted), +0.9 (topless) km/h; the Moyes manual gives ≈ 3.2 km/h per
+hole.
 
-Three roll control modes (`controls.json → roll_control_mode`, the "Roll control" setting). The first two
-(`FlightModel`) are described here; the meaning of `ControlInput.roll` in flight is set by
-`ControlInput.weight_shift`. The third, "Pendulum", is below.
+**Mass and altitude.** At the same angle of attack all speeds and the sink rate grow as \(\sqrt{M/\rho}\),
+while the glide ratio (\(C_L/C_D\)) does not depend on mass — a standard result of gliding-flight theory (the
+polar is rescaled the same way when water ballast is added). The **total** mass is scaled (pilot + wing).
+Air density is \(\rho(h) = 1.225\cdot e^{-h/10400}\) kg/m³ (ISA approximation): at 2000 m the speeds are
+already ~10 % higher than at ground level. A detailed derivation, checked against data-sheet values of two
+sizes of one wing (Litespeed RS 3.5 and RS 4), is in [docs/research/pilot_mass.md](/docs/research/pilot_mass.md).
 
-- **"Weight shift"** (`weight_shift`, the default). Mouse sideways, ←/→ and stick move the pilot's body: right — roll right (the "Roll by mouse and arrows" setting switches to "like the bar": bar right — weight left — roll left); one press of X returns the bar to the centre. Roll input (mouse sideways, ←/→, stick) is the
-  pilot's position across the control frame (−1…+1, 0 — centre). The technique is as in real life: swing
-  to the right — the wing banks and turns; stand in the centre — the wing levels itself and flies
-  straight in the new direction. The roll rate to which the wing settles with the time constant
-  `roll_time_constant_s`:
+## Input and the "Vehicle" tab
+
+Keys, mouse, gamepad and the home-made control frame work as before. The mouse steers the wing while it is
+captured (the M key); W/S/A/D never move the wing: in flight they turn the head, on the ground they walk and
+turn on the spot. What the input means in "Pendulum":
+
+- Roll right or left — the target displacement of the pilot across the bar up to ±0.45 m; the arms pull the
+  pilot to the target (a spring with damping). The technique is as in real life: move the body — the wing
+  banks and turns.
+- "Pull in" — the pilot forward up to 0.45 m, "push out" — back up to 0.30 m (push out — nose up, braking;
+  pull in — acceleration). Full pull-in gives 45–58 km/h, not the 63–103 of "Weight shift": the arms' reach
+  is limited and there is no sail tension regulator (VG).
+- A neutral bar in straight flight is the wing's trim; a released bar — the wing flies straight.
+
+The "Flight settings" screen is split into the "Place" and "Vehicle" tabs. "Vehicle" holds the wing class and
+model, the pilot mass and four parameters that act only in the "Pendulum" mode; the values are stored per
+wing and reset to the wing's defaults.
+
+| Parameter | Range | Default | What it does |
+|---|---|---|---|
+| Hang point along the keel | −4…+4 cm | 0 (data sheet) | forward — faster trim (see above) |
+| Hang length | 1.0…1.4 m | 1.2 | swing period 1.1→1.45 s; longer — slower reversal |
+| Sail flexibility | 0.1…1.0 | per wing | sail twist from the arm force; more — the wing banks more readily |
+| Dihedral | −2…+6° | per wing | more — the spiral is more stable, the reversal slower |
+
+Defaults by class (chosen on the prototype with four reference wings and checked on all 48):
+
+| Class | V, ° | Flexibility | Wing from a 30° turn with neutral arms | Reversal 45→45 (reference wing) |
+|---|---|---|---|---|
+| trainers | 6 | 0.5 | recovers by itself: bank ≈ 1° after 10 s | 5.1 s |
+| Soviet | 5 | 0.45 | recovers by itself | 3.5 s |
+| kingposted | −1.5 | 0.6 | holds and tightens slightly: 51° after 10 s | 4.1 s |
+| topless | +0.5 | 0.6 | the same: 44° after 10 s | 4.5 s |
+
+The classes are separated by the spiral, as the consulting pilot described: on trainers the wing returns by
+itself, on sport wings the exit is by opposite body displacement. Reversal times differ little between classes.
+
+## Ground: run, lift-off, landing
+
+"Pendulum" has its own ground (`PendulumGround`); there are no speed thresholds — everything comes from forces.
+
+- **Standing and the run.** The pilot stands, the wing is on his hands (uprights at the shoulders), the strap
+  is slack. The legs are a spring-damper that only pushes; running is a leg force falling as speed grows. The
+  arms hold the nose and the wing's roll with a moment proportional to the share of weight on the legs.
+- **Lift-off.** The wing builds lift and takes the weight onto the strap; when the feet stop pressing on the
+  ground, the mode switches to "flight" by itself. A second later the arms move to the bar. 15° slope, calm
+  air: lift-off after 2.8–3.4 s, 15–21 m of run, lift-off speed 31–36 km/h; a 6 m/s headwind shortens the run
+  to 2–4 m. If the wing is pushed sideways by the hand during the run, a half-wing touches the slope.
+- **Flare.** Near the ground "push out" raises the nose, but the arm travel is limited by the reach of a
+  standing pilot (grip 0.5 m below the hang point, arm 0.71 m).
+- **Landing on the feet.** The knees absorb the vertical speed. Thresholds on vertical speed and bank are the
+  same as in the other modes: soft — vertical < 5 m/s, bank ≤ 15°; hard — vertical 5…7 m/s; crash —
+  vertical > 7 m/s or bank > 35°. The thresholds were set from consulting pilots' answers ("from 5 m/s the
+  landing is already hard"). The legs decide on the horizontal speed: up to 2 m/s the pilot stands, up to
+  5 m/s he runs it out (a step every 0.33 s), faster — he cannot run it out, a hard landing. Touching with the
+  control frame before the feet is a hard landing; with the nose, a half-wing or the tail — a crash. After the
+  landing the pilot is on his feet again.
+
+![Control frame of the "Apogee": the upright joint and the hang point](/releases/0.7.0/screenshots/106_трапеция_апогей_стойка_до.jpg "The upright joint of the control frame on the Soviet Apogee")
+
+## Stall, wing drop, spin
+
+Stall is computed from the **local** angle of attack of every strip, not of the wing as a whole. A stalled
+strip is a finite-aspect-ratio plate (Viterna & Corrigan, \(C_N\) at 90° ≈ 1.2); the centre of pressure moves
+back along the chord gradually, over 20° (Fage & Johansen). The half-wing that carries more at a given
+sideslip stalls first: in the model's slipping turn it is the **inner** one.
+
+- In a turn of ≈ 30° at low speed with full push-out — a drop onto the inner half-wing, then a spin:
+  rotation, yaw up to 94–136°/s, sink rate up to 11–12 m/s. Altitude lost from stall to recovery: trainer
+  42 m, kingposted 77 m, topless 84 m.
+- **Recovery:** pull in fully and shift the body **against** the rotation until rotation and stall end; then
+  the bar to neutral by speed (straight to neutral — a zoom and a flip, this is the phugoid after the dive).
+  Only pulling in without shifting against the rotation does not recover.
+- The trainer forgives: with a slow push-out or without pushing to the end one or two root strips stall, the
+  wing parachutes (1.6–1.9 m/s), no spin. Kingposted and topless wings spin even then.
+- A sharp full pull-in for 3 s with arms to neutral does not leave the wing in a permanent stall: speed returns
+  to trim in 1.3–2.2 s, then a damped phugoid follows; no one of the 48 wings stays in a permanent stall.
+
+## Telltales
+
+The telltales on the control frame cables show the **model's sideslip**: "Pendulum" has it, and the string
+deflects by the same angle (±3°). For a side jet with β ≈ 8–9° the string shows 9°, in calm air — straight
+back. A known error: in a steady turn the string goes inward (see "Model limits"). Bots have no strings.
+
+## Eye camera
+
+The head is the pilot's centre of mass + 0.75 m forward along the body + 0.15 m toward the hang point, with no
+smoothing on top of the physics: the camera swings with the body on the suspension. The body hangs almost
+vertically, it is the wing that swings (according to the consulting pilot). In turbulence with σ 1 m/s the head
+in wing axes moves by 5–10 cm (RMS).
+
+## Model limits
+
+- **The pilot is a point.** No body rotation, pulling up, postures or body aerodynamics. "Body perpendicular to
+  the bar" is taken as an assumption; in the game the pilot hangs vertically under the hang point.
+- **No VG.** Sail tightening (+~20 % speed on sport wings) is not modelled; full pull-in gives 45–58 km/h
+  instead of 63–103. The elasticity of the edges and battens is not modelled either.
+- **Flexibility is sail twist and an effective dihedral**, fitted to a ≈ 4 s reversal and one flight
+  experience (Ochi) with an imprecise force. Not measured on real wings.
+- **The Dutch roll is faster than in the literature:** 1.7–2.1 rad/s against 0.92 for the Hiway Demon
+  (ζ 0.40–0.53 against 0.29). The wing's Cnβ of 0.03–0.06 is 1.4–2.2 times above the literature; with 0.03
+  the sport wing flips in turbulence, so it was not taken. Strip roll damping is −0.52…−0.59 against −0.93 in
+  Cook.
+- **Sideslip in a reversal is 22–28°** (the literature target ≤ 15–20° is not reached): the sail twist gives
+  adverse yaw.
+- **The telltale in a ≈ 30° turn** shows up to 12° inward, while the pilot says "the string straight back".
+  None of the levers tried fixed this; the test only checks that the string shows the model's sideslip.
+- **Landing in calm air is harder than on a real wing.** The model is quasi-steady: after stall there is no
+  "air brake" of a flat plate. Best flare in calm air: `training` — hard (vertical 6.4 m/s, horizontal 3.8),
+  `laminar` — hard (6.8 and 4.3), `sport` — crash (7.0 m/s against a threshold of 7); into a 3 m/s headwind
+  the landing is soft (3–4 steps). Unsteady lift for a fast release exists in the code but is switched off: it
+  hardly softens the calm-air landing, and in turbulence the `sport` phugoid starts to swing.
+- **Trainers' self-recovery from a turn "within a few seconds"** — the model gives 5–10 s; two numbers (V,
+  flexibility) cannot make it faster.
+- **The hang point was not changed:** the literal "CM + 2–3 cm" in our estimated mass model gives
+  pitch-unstable topless wings (stability margin ≤ 0 on 10 of 15); hence the ±4 cm slider.
+- **Stall is static,** strips have no mutual induction (\(C_{L\alpha}\) = 4.5 for all). The inner half-wing
+  stalls first mainly because of sideslip inward, not because of the difference in tip speeds as in Zheglov.
+- **In turbulence the heading drifts:** the pilot holds the horizon but not the heading; a weakly unstable
+  spiral and sideslip turn this into a slow turn of 1–4°/s. The response is chaotic: for a single gust the
+  game and the prototype differ, on average they agree. `sport` at the stall boundary is sensitive to the step
+  (bank up to 65° at a step of 1/30 s).
+- **The ground** was checked on a flat slope; the flare and landing on uneven terrain were not computed in the
+  prototype.
+- **Bots and remote players over the network** stay on the older model (`FlightModel`); the mode and the body
+  position relative to the suspension go over the network.
+- Load factor is computed, but breaking the wing when it is exceeded is not modelled.
+- The polars are synthesised from manufacturers' data-sheet landmarks (they do not publish full measured
+  polars) and by a method checked on a pair of real sizes of one wing.
+
+Numbers, tables and sources are in [docs/research/pendulum.md](/docs/research/pendulum.md); checked against
+the literature: Cook & Spottiswoode 2005, Takamatsu & Ochi 2022, Kroo 1981, the Moyes, Wills Wing and Airborne
+manuals, Zheglov 1983. The consulting pilot's answers (11 Oct) are used in the class defaults, but it is one
+respondent, qualitative; where an answer disagrees with the model, the model was not tuned to it.
+
+## Older modes
+
+"Settings → Controls → Roll control" also offers the two older modes. They are computed by the `FlightModel`
+class — a point with orientation whose roll and pitch are set kinematically; the heading follows the airspeed
+exactly. They have no sideslip and yaw as a separate degree of freedom, the string in a steady turn points
+straight back, there is no pendulum pilot, and the flare near the ground is a phenomenological model. Bots and
+the autopilot fly on `FlightModel`.
+
+- **"Weight shift"** (`weight_shift`). Mouse sideways, ←/→ and the stick set the pilot's position across the
+  control frame (−1…+1); the wing settles to the roll rate with the time constant `roll_time_constant_s`:
 
   $$
   \dot\varphi = u\cdot k(V)\cdot\text{roll\_rate\_max\_dps} - \big(\text{roll\_stability\_per\_s} +
   \text{roll\_stability\_steep\_per\_s}\cdot(\varphi/45°)^2\big)\cdot\varphi
   $$
 
-  (plus the contribution from the difference of the flows at the wing tips — see below). \(k(V)\) is the
-  weight-shift effectiveness: below trim \((V/V_{\text{trim}})^{\text{roll\_speed\_exponent}}\) (the wing
-  is sluggish), above trim — \((V_{\text{trim}}/V)^{\text{roll\_heavy\_exponent}}\) (heavier at speed).
-  Holding the shift settles a bank proportional to the shift, without winding up into a spiral: at full
-  shift in a turn ≈ 41° for the trainer wing, 45° for the kingposted one (Laminar), 44° for the sport one.
-  From the centre after 2 s of full shift the wing returns to |φ| < 3° in ≈ 2.0 / 2.6 / 3.3 s
-  respectively — the trainer is strongly stable, the sport wing is almost neutral at small bank. Beyond
-  `roll_overbank_deg` (70 / 65 / 60°) the stability fades to nothing within 10° — a spiral begins, and the
-  exit is only by shifting the opposite way. A 45°→45° reversal at full shift takes ≈ 2.2 s.
-- **"As before"** (`rate`). Weight shift directly sets the roll rate (`roll_rate_max_dps`, multiplier
-  \((V/V_{\text{trim}})^{0.5}\)), the wing settles to it with the time constant `roll_time_constant_s`;
-  with no input the bank holds. A 45°→45° reversal ≈ 2.3–2.7 s. The autopilot and the test bots are always
-  in this mode.
+  The turn is coordinated: radius \(V^2/(g\,\mathrm{tg}\varphi)\), in a turn the speed grows as \(\sqrt n\) and
+  the sink rate as \(n^{1.5}\). The control frame sets the angle of attack (0 — trim, −1 — acceleration, +1 —
+  up to the stall); the phugoid is damped by an angle-of-attack term ∝ \(dV/dt\).
+- **"Simple"** (`rate`). The input directly sets the roll rate; with no input the bank holds. A 45°→45°
+  reversal ≈ 2.3–2.7 s.
 
-- **"Pendulum (experimental)"** (`pendulum`). A separate model instead of `FlightModel`: the wing is a rigid
-  body with six degrees of freedom, lift is computed over 16 strips (8 per half-wing), each with its own
-  local speed, local angle of attack and local stall; the pilot is a point on a three-link hang chain
-  1.2 m long (the strap only pulls) and swings sideways with a period of about 1.2–1.3 s. The arms are a
-  force between the pilot and the middle of the base bar (limit 300 N); the pilot's displacement relative
-  to the bar is the control (up to ±0.45 m sideways, forward up to 0.45 m, back up to 0.30 m). Roll, pitch,
-  slip and yaw come from forces and moments, not from a commanded rate. Full pull gives 45–58 km/h, not
-  the 63–103 of "Weight shift": the arms' reach is limited and there is no sail tension regulator (VG).
-  Stall is by the local angle of attack of a strip; in a slipping turn the inner half-wing stalls first;
-  in a turn of ≈ 30° at low speed with full push the wing drops into a spin (recovery: pull in and shift
-  the body against the rotation; the trainer forgives — it parachutes without a spin). It has its own
-  ground (`PendulumGround`): no speed thresholds, the run and lift-off come from forces (15° slope, calm
-  air — lift-off in 5.2–6.5 s over 21–31 m). The mode is chosen at the start of a flight and is for the
-  human pilot only; bots and remote players over the network stay on `FlightModel`. Limits and
-  disagreements with the literature (landing in calm air is harder than on a real wing; the Dutch roll is
-  faster than published; the pilot is a point) are in [docs/guide/flight.md](/docs/guide/flight.md),
-  section "Маятник".
-
-The X key ("to centre") in the "Weight shift" and "As before" modes smoothly puts the control frame to neutral and levels the wing to
-the horizon. The turn is coordinated, without slip: the heading follows the airspeed exactly, the radius
-is \(V^2/(g\,\mathrm{tg}\varphi)\), in a turn the speed grows as \(\sqrt n\), the sink rate as \(n^{1.5}\)
-(n — load factor).
-
-## Stall
-
-Above the critical angle of attack the flow over the time `lift_loss_time_s` goes over to a separated one
-(dynamic stall): the sail works as a plate across the flow,
-
-$$
-C_L = C_N\sin\alpha\cos\alpha,\qquad C_D = C_N\sin^2\alpha
-$$
-
-(\(C_N=2\), like a parachute canopy). After `nose_drop_delay_s` the nose drops by itself by
-`nose_drop_deg`, the wing accelerates and leaves the stall; if you keep holding the control frame out, the
-stalls repeat. In a bank greater than `wing_drop_bank_deg` — a wing-drop stall: the lowered half-wing
-keeps dropping, the roll control is weakened.
-
-## Ground run, take-off, landing
-
-**Ground.** Phases: standing → walking (turn on the spot, walking speed falls on a steep slope) → running
-(leg force falls linearly toward the leg limit `speed_max_ms` = 6.5 m/s, which rises by 30 % as the wing
-unloads the pilot; the slope and the wing's pull accelerate beyond it). With no input the nose on the ground
-sits at the wing's run angle (`launch.alpha_neutral_deg`, 5–17° depending on the wing); the pilot moves it
-from there. The wing rests on the shoulders and rolls about the keel axis: a crosswind and a difference of
-flows bank it (the slip roll moment ∝ \(0.12\,C_L\), so a lower nose is calmer in a crosswind), the hand
-holds the bank within ±15° with limited force. Lift-off only when the vertical component of lift ≥ weight
-and the wing is not stalled; without running and wind the wing does not lift off, in calm air the pilot
-runs as long as needed. There is a single take-off failure — the half-wing lowered by the bank touches the
-ground (the wing is overturned). Nose too high, nose too low and a tailwind give no separate failures:
-there is simply not enough lift and no lift-off. After lift-off the pilot is still on his feet while his
-soles are below 1 m above the ground: the arms set the angle of attack, and a touch resumes the run rather
-than counting as a landing.
-
-**Flare.** Below 4 m above the feet, a control frame "pushed out" beyond a threshold sets the keel to a
-pitch of up to 50° to the horizon in 0.1 s; the nose does not drop in this stall. The sail at a
-post-critical angle briefly brakes more strongly than the static case (normal force ×3, a short-term rise
-of \(C_L\) ×1.5 — the dynamic stall vortex), the wing balloons and "hangs": it lowers the pilot onto his
-feet no faster than 0.7 m/s until he has descended 1.6 m — after that the effect ends and the wing drops.
-This is a phenomenological model (the dynamic stall vortex, ground effect, the pilot stepping under the
-wing — without a physical simulation of the pilot pendulum; in the "Pendulum" mode the landing is computed
-from forces). With a correct flare (~1.2·V_stall) the
-touchdown is ≈ 1.2 m/s vertical; 1 m higher than the point — still soft (~1.3 m/s); 3 m higher — a "plop"
-of ~6.4 m/s, already a hard landing. Into the wind the flare is later (~0.9·V_stall).
-
-**Landing.** The touchdown speed is split into the component normal to the slope ("vertical") and along it
-("horizontal"). The thresholds were chosen from the answers of consulting pilots ("from 5 m/s the landing
-is already hard, with a correct landing the speed ≈ 0"): soft — vertical < 5 m/s, horizontal ≤ 3 m/s,
-bank ≤ 15°; hard — vertical 5…7 m/s or horizontal 3…12 m/s (at trim without a flare — about 10 m/s);
-crash — vertical > 7 m/s (twice the impact energy of the hard-landing threshold), horizontal > 12 m/s or
-bank > 35°.
-
-![Control frame of the "Apogee": the uprights joint and the hang point](/releases/0.7.0/screenshots/106_трапеция_апогей_стойка_до.jpg "The uprights joint of the control frame on the Soviet \"Apogee\"")
-
-## Model limits
-
-- No slip and yaw as a separate degree of freedom, no moment from rotation in heading — the wing always
-  flies "nose into the flow".
-- Pitch is kinematic (first order): no control frame and centre-of-gravity moment, only the approach to the
-  commanded angle of attack with a time constant.
-- No ground effect; on the ground the pilot and the wing are a single point (except the wing's roll on
-  the shoulders). In the "Weight shift" and "As before" modes the flare is a phenomenological model,
-  without a physical pilot pendulum; the "Pendulum" mode computes it, with other limits: the pilot there is
-  a point without body rotation or postures, and the spin and landing in calm air are not calibrated
-  against real wings.
-- The load factor (n = lift / weight) is computed and smoothed, but wing failure when it is exceeded is
-  not modelled.
-- The polars are synthesized from the manufacturers' data-sheet reference points (they do not publish full
-  measured polars) and by a method verified on a pair of real sizes of one wing.
-- The sail tension regulator (VG) is not modelled — the polars of the topless wings are given without it,
-  as an "average working" setting; in "Pendulum" this gives a speed ceiling of 45–58 km/h.
+Their stall is a dynamic stall of the sail as a plate across the flow
+(\(C_L = C_N\sin\alpha\cos\alpha\), \(C_D = C_N\sin^2\alpha\), \(C_N=2\)); the nose drops by itself after
+`nose_drop_delay_s`; in a large bank — a wing drop. The flare uses thresholds and a "hanging" wing.
+Parameters are in `configs/flight.json` and `configs/controls.json`, the full description in
+[docs/guide/flight.md](/docs/guide/flight.md).
 
 ## The wing lineup
 
@@ -202,12 +240,10 @@ manufacturers' data sheets, DHV cards, club tables and (for the "Apogee", about 
 exists in open sources) the answers of a consulting pilot; the polars and parameters of each wing —
 `configs/wings/*.json` and [docs/research/pilot_mass.md](/docs/research/pilot_mass.md).
 
-The handling of each wing is its own, through the same parameters (`weight_shift.*`, `stall.*`): for
-example, the "Apogee" is a very stable wing (`roll_stability_per_s` 1.25, `roll_overbank_deg` 75), with
-the softest and slowest stall (`lift_loss_time_s` 0.6 s, the nose drops at `nose_drop_delay_s` 0.35 s).
-The Icaro Laminar Easy 14, on the contrary, rolls fast (`roll_rate_max_dps` 50), and the topless wings
-(`combat`, `sport`) have low stability at small bank (`roll_stability_per_s` 0.45) and a steep spiral
-beyond 60°.
+The handling of each wing is its own: strip geometry, centre of mass, inertia, sail moment and drag
+multiplier are in the `pendulum` block of `configs/wings/<id>.json`; the "Vehicle" defaults come from the
+wing class (see above). The wing also carries the parameters of the older modes (`weight_shift.*`,
+`stall.*`), but "Pendulum" does not use them.
 
 ![Icaro Piuma from behind in flight](/docs/screenshots/site/06_icaro_piuma_сзади.jpg "Icaro Piuma, a kingposted trainer")
 
@@ -230,10 +266,8 @@ pilots flew. Further decisions:
   game by the user's decision of 28 September 2026: the config, the 3D model and the name key were
   deleted, the id `kingpost` in tests was replaced with `laminar` ({{< commit 8633fa7 >}},
   {{< commit e2704c4 >}}) with no compatibility layer for saved settings — "there are no users".
-- No separate new `FlightModel` parameters were introduced for the "Apogee" handling — the current parameters (stability, roll rate, stall parameters) were enough to convey "very
-  light and stable, forgives gross mistakes".
-- **Wing and pilot as two bodies** instead of one point with kinematic roll: kept as a third, experimental
-  mode rather than a replacement — "Weight shift" is simpler, more robust for bots and the network, and
+- **Wing and pilot as two bodies** instead of one point with kinematic roll: this became the main mode. The
+  older modes remain selectable: they are simpler, bots and the network fly on them, and "Weight shift" was
   calibrated against pilots' answers.
 
 ## Further reading
@@ -243,6 +277,7 @@ pilots flew. Further decisions:
 - [docs/research/pilot_mass.md](/docs/research/pilot_mass.md) — the derivation of the polar scaling with
   mass and the check against data-sheet data.
 - [docs/research/pendulum.md](/docs/research/pendulum.md) — the "Pendulum" mode: prototype, verification, limits.
+- [docs/guide/flight/pendulum.md](/docs/guide/flight/pendulum.md) — how "Pendulum" is built in the game.
 - [docs/research/wings_config_sources.md](/docs/research/wings_config_sources.md) — how the data sheets went into the wing configs.
 - [docs/research/wing_sources.md](/docs/research/wing_sources.md) — sources on the appearance and
   characteristics of the wings.
