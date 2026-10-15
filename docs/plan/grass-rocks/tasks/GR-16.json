@@ -1,0 +1,61 @@
+{
+  "id": "GR-16",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Shell: цвет луга рельефа и растворение краёв",
+  "goal": "В режиме shell трава на 10–40 м по цвету совпадает с лугом рельефа в той же точке (сезон, сухость, пятна, освещение), а внешний край (~30–40 м) и внутренний растворяются без видимого кольца — сбоку и сверху с 13–60 м.",
+  "plan_ref": "GR-16. Shell: цвет луга рельефа и края без кольца",
+  "contracts": [
+    {
+      "name": "G2",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-16",
+  "branch": "grass-rocks/GR-16",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_mid_shell.gd",
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/terrain/grass_field.gd",
+    "configs/vegetation.json",
+    "tests/vegetation/test_grass_mid_gpu.gd",
+    "tests/vegetation/test_grass_shell_edge_gpu.gd",
+    "tests/vegetation/test_grass_shell_edge_gpu.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/terrain/grass_mid_cards.gd",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/terrain/meadow_look.gdshaderinc",
+    "data/vegetation",
+    "tools",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "gpu_grass",
+      "cmd": "DISPLAY=:0 tools/gpu_tests.sh --filter=grass",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T10:44:23",
+  "edited": "2026-10-15T10:44:54"
+}
