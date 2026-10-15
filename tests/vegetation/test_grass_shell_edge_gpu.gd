@@ -73,7 +73,9 @@ func test_grass_shell_edge_angle_junction() -> void:
 ## near — ближние травинки видны (стык 8–14 м): кадр «вся трава» против «только рельеф».
 func _edge(mode: String, near := false) -> void:
 	_build(mode)
-	for i in 4:
+	# в пачке GPU-тестов первые кадры после сборки сцены бывали не те (GR-21: shell 13 м — яркость 1,08,
+	# в одиночном прогоне 1,00; конвейеры шейдеров собираются в фоне) — ждать дольше
+	for i in 30:
 		await RenderingServer.frame_post_draw
 	# стык с ближними травинками — те же высоты, что у shell: с 5 м и в shell скачок 0,031 у ближних
 	# травинок (4–12 м, grass.gdshader), не у средней травы (GR-21, проверено)
