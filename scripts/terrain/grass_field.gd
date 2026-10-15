@@ -17,6 +17,11 @@ var pilot: Node3D
 var material: ShaderMaterial
 ## Дальний слой пучков (grass.far), дочерний GrassField; null — нет.
 var far_layer: GrassField
+## Средняя дистанция в режиме shell (G4): GrassMidShell; null — режим blades.
+var mid_layer: Node3D
+
+## Режимы средней дистанции (G4 v2): shell — слои (по умолчанию), blades — кольца травинок (для сравнения).
+const MID_MODES: PackedStringArray = ["blades", "shell"]
 
 var _spacing: float = 0.5
 var _max_agl: float = 120.0
@@ -94,6 +99,13 @@ func setup(
 	var tint: Array = cfg.get("blade_tint", [1.08, 1.0, 0.85])
 	material.set_shader_parameter("blade_tint", Vector3(tint[0], tint[1], tint[2]))
 	material.set_shader_parameter("blade_shade", _v2(cfg.get("blade_shade", [1.25, 1.75])))
+	material.set_shader_parameter("leaf_tilt_deg", float(cfg.get("leaf_tilt_deg", 60.0)))
+	material.set_shader_parameter("leaf_tilt_gain", float(cfg.get("leaf_tilt_gain", 1.0)))
+	material.set_shader_parameter("groove_deg", float(cfg.get("groove_deg", 30.0)))
+	material.set_shader_parameter("blade_normal_fade_m", _v2(cfg.get("blade_normal_fade_m", [8.0, 20.0])))
+	material.set_shader_parameter("across_shade", float(cfg.get("across_shade", 0.12)))
+	material.set_shader_parameter("blade_variation", float(cfg.get("blade_variation", 0.1)))
+	material.set_shader_parameter("tip_dry", float(cfg.get("tip_dry", 0.25)))
 	material.set_shader_parameter("macro_noise_tex", TerrainRenderer.macro_noise_texture())
 	material.set_shader_parameter("dry_clump_share", float(cfg.get("dry_clump_share", 0.0)))
 	material.set_shader_parameter("sway_hz", float(cfg.sway_hz))
@@ -125,6 +137,17 @@ func setup(
 		Vector3(layer.origin_x, layer.min_h - 10.0, layer.origin_z),
 		Vector3(layer.size_x(), layer.max_h - layer.min_h + 20.0, layer.size_z())
 	)
+	# Средняя дистанция (G4): shell — свой узел, колец травинок дальше ближнего нет
+	# (дальше ~40 м луг рисует шейдер рельефа).
+	var mode := mid_mode(cfg)
+	if mode == "shell":
+		var sh := GrassMidShell.new()
+		sh.name = "GrassMidShell"
+		sh.camera = camera
+		add_child(sh)
+		sh.setup(material, layer, cfg)
+		mid_layer = sh
+		return
 	# Дальний слой (configs/vegetation.json → grass.far): крупные редкие пучки кольцом за
 	# ближними травинками — те же параметры, переопределённые ключами far.
 	var far_cfg: Variant = cfg.get("far", null)
@@ -154,12 +177,30 @@ static func ring_offsets(spacing: float, inner: float, outer: float) -> PackedVe
 	return out
 
 
-## Материалы травы (ближний и дальний слой) — для ветра.
+## Материалы травы (ближний и дальний слой, средняя дистанция) — для ветра.
 func materials() -> Array[ShaderMaterial]:
 	var out: Array[ShaderMaterial] = [material]
 	if far_layer != null:
 		out.append_array(far_layer.materials())
+	if mid_layer != null:
+		out.append(mid_material())
 	return out
+
+
+## Материал средней дистанции (shell); null — режим blades.
+func mid_material() -> ShaderMaterial:
+	return mid_layer.get("material") as ShaderMaterial if mid_layer != null else null
+
+
+## Итоговый режим средней дистанции (G4): переменная окружения DP_GRASS_MID (для кадров и замеров)
+## сильнее конфига grass.mid.mode; неизвестное значение — как конфиг, неизвестный или пустой конфиг — shell.
+static func mid_mode(grass_cfg: Dictionary) -> String:
+	var env := OS.get_environment("DP_GRASS_MID").strip_edges().to_lower()
+	if env in MID_MODES:
+		return env
+	var mid: Variant = grass_cfg.get("mid", {})
+	var m := String(mid.get("mode", "shell")).to_lower() if mid is Dictionary else "shell"
+	return m if m in MID_MODES else "shell"
 
 
 ## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года) — материалам травы
@@ -172,6 +213,8 @@ func apply_scene_look(sl: Dictionary) -> void:
 func _process(_delta: float) -> void:
 	if far_layer != null:
 		far_layer.camera = camera
+	if mid_layer != null:
+		mid_layer.set("camera", camera)
 	var cam := camera if camera != null else get_viewport().get_camera_3d()
 	if cam == null or material == null:
 		return
@@ -185,6 +228,8 @@ func _process(_delta: float) -> void:
 		material.set_shader_parameter("grid_center_cell", cell)
 	if pilot != null and pilot.is_inside_tree():
 		material.set_shader_parameter("press_pos", pilot.global_position)
+		if mid_layer != null:
+			mid_material().set_shader_parameter("press_pos", pilot.global_position)
 
 
 ## Густота травы (grass.density_pct: слайдер «Густота травы» в настройках, пресеты графики),
@@ -247,13 +292,7 @@ func height_at(x: float, z: float) -> float:
 		_:
 			range_v = _v2(_cfg.get("blade_height_m", [0.25, 0.55]))
 	var h := (range_v.x + range_v.y) * 0.5 * share * float(_cfg.get("height_k", 1.0))
-	var e := _layer.spacing
-	var n := Vector3(
-		_layer.sample(x - e, z) - _layer.sample(x + e, z),
-		2.0 * e,
-		_layer.sample(x, z - e) - _layer.sample(x, z + e)
-	).normalized()
-	var slope := rad_to_deg(acos(clampf(n.y, 0.0, 1.0)))
+	var slope := slope_deg_at(_layer, x, z)
 	h *= 1.0 - smoothstep(_rock_slope_deg - 4.0, _rock_slope_deg + 2.0, slope)
 	var xz := Vector2(x, z)
 	for m in _mowed_spots:
@@ -265,6 +304,24 @@ func height_at(x: float, z: float) -> float:
 	return h
 
 
+## Уклон рельефа в точке, градусы: уклон билинейной клетки слоя (четыре узла вокруг точки) — как
+## h_grad в grass.gdshader (GR-6).
+static func slope_deg_at(layer: HeightLayer, x: float, z: float) -> float:
+	var fx := (x - layer.origin_x) / layer.spacing
+	var fz := (z - layer.origin_z) / layer.spacing
+	var i := floori(fx)
+	var j := floori(fz)
+	var tx := fx - i
+	var tz := fz - j
+	var h00 := layer.node(i, j)
+	var h10 := layer.node(i + 1, j)
+	var h01 := layer.node(i, j + 1)
+	var h11 := layer.node(i + 1, j + 1)
+	var gx := lerpf(h10 - h00, h11 - h01, tz) / layer.spacing
+	var gz := lerpf(h01 - h00, h11 - h10, tx) / layer.spacing
+	return rad_to_deg(atan(Vector2(gx, gz).length()))
+
+
 static func _v2(a: Variant) -> Vector2:
 	return Vector2(float(a[0]), float(a[1]))
 
@@ -272,6 +329,8 @@ static func _v2(a: Variant) -> Vector2:
 ## Поля рельефа (влажность, северность) → цвет травинок как у земли под ними; все слои.
 func set_relief(relief: TerrainRelief) -> void:
 	TerrainRenderer.set_relief(material, relief)
+	if mid_layer != null:
+		TerrainRenderer.set_relief(mid_material(), relief)
 	if far_layer != null:
 		far_layer.set_relief(relief)
 
@@ -312,12 +371,16 @@ func set_landing_sites(sites: Array[Dictionary]) -> void:
 		pos.append(Vector4(1e9, 1e9, 0.0, 0.0))
 		dir.append(Vector4(1.0, 0.0, 0.0, 1.0))
 		hk.append(1.0)
-	material.set_shader_parameter("landing_pos", pos)
-	material.set_shader_parameter("landing_dir", dir)
-	material.set_shader_parameter("landing_hk", hk)
-	material.set_shader_parameter("landing_count", mini(sites.size(), MAX_LANDING))
-	# Прямоугольник заменяет круговое скашивание (было до подключения группой «Сцена игры»).
-	material.set_shader_parameter("mowed_count", 0)
+	var mats: Array[ShaderMaterial] = [material]
+	if mid_layer != null:
+		mats.append(mid_material())
+	for m in mats:
+		m.set_shader_parameter("landing_pos", pos)
+		m.set_shader_parameter("landing_dir", dir)
+		m.set_shader_parameter("landing_hk", hk)
+		m.set_shader_parameter("landing_count", mini(sites.size(), MAX_LANDING))
+		# Прямоугольник заменяет круговое скашивание (было до подключения группой «Сцена игры»).
+		m.set_shader_parameter("mowed_count", 0)
 
 
 ## Точка (x, z) в прямоугольнике посадки (та же формула, что в grass.gdshader):
@@ -398,25 +461,37 @@ static func mesh_reach(mesh: Mesh) -> float:
 
 ## Пучок травинок: blades штук в круге ~0,15 м, каждая — полоска из segments отрезков,
 ## VERTEX.y = t 0..1 (высоту и наклон задаёт шейдер), VERTEX.xz — смещение в метрах.
+## Лист злака сужается к острому кончику выпукло: полуширина width/2·(1 − t^1,5) (GR-6; было линейно
+## до 0,2 и обрыв на кончик — площадь листа и цена закраски почти те же, +4 %).
+## NORMAL — лицо травинки (горизонталь в плане пучка); UV.x — поперёк −1…+1 (кончик 0),
+## UV.y — случайное число травинки 0..1 (яркость, сухость кончика) — для grass.gdshader.
 static func clump_mesh(blades: int, width: float, segments: int) -> ArrayMesh:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var uvs := PackedVector2Array()
 	var idx := PackedInt32Array()
 	for b in blades:
 		var base := Vector2.from_angle(rng.randf() * TAU) * sqrt(rng.randf()) * 0.15
 		var face := Vector2.from_angle(rng.randf() * TAU)
 		var side := Vector2(-face.y, face.x)
 		var curl := face * rng.randf_range(0.02, 0.08)
+		var br := rng.randf()
+		var fn := Vector3(face.x, 0.0, face.y)
 		var start := verts.size()
 		for s in segments:
 			var t := float(s) / segments
-			var w := width * (1.0 - t * 0.8) * 0.5
+			var w := width * (1.0 - t * sqrt(t)) * 0.5
 			var c := base + curl * t * t
 			verts.append(Vector3(c.x - side.x * w, t, c.y - side.y * w))
 			verts.append(Vector3(c.x + side.x * w, t, c.y + side.y * w))
+			normals.append_array(PackedVector3Array([fn, fn]))
+			uvs.append_array(PackedVector2Array([Vector2(-1.0, br), Vector2(1.0, br)]))
 		var tip := base + curl
 		verts.append(Vector3(tip.x, 1.0, tip.y))
+		normals.append(fn)
+		uvs.append(Vector2(0.0, br))
 		for s in segments - 1:
 			var a := start + s * 2
 			idx.append_array(PackedInt32Array([a, a + 2, a + 1, a + 1, a + 2, a + 3]))
@@ -425,6 +500,8 @@ static func clump_mesh(blades: int, width: float, segments: int) -> ArrayMesh:
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
 	arrays[Mesh.ARRAY_INDEX] = idx
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)

@@ -1,9 +1,10 @@
 extends TestCase
 ## Контрактные тесты модуля grass-rocks (docs/contracts/grass-rocks.md): test_g1_ — модели камней rocks.glb,
-## test_g2_ — открытый интерфейс GrassField и пресеты густоты, test_g3_ — версии в документе.
+## test_g2_ — открытый интерфейс GrassField и пресеты густоты, test_g3_ — версии в документе,
+## test_g4_ — режим средней дистанции травы.
 
 const DOC := "res://docs/contracts/grass-rocks.md"
-const VERSIONS := {"G1": 1, "G2": 1, "G3": 2}
+const VERSIONS := {"G1": 1, "G2": 1, "G3": 2, "G4": 3}
 
 
 func test_g3_versions_in_doc() -> void:
@@ -99,3 +100,100 @@ func _find_presets(v: Variant, want: Dictionary, found: Dictionary) -> void:
 	elif v is Array:
 		for x in v:
 			_find_presets(x, want, found)
+
+
+## G4 v2: режим из конфига (по умолчанию shell), переменная окружения DP_GRASS_MID сильнее,
+## неизвестное (в том числе бывший cards) — как конфиг.
+func test_g4_mid_mode_env_and_config() -> void:
+	var old := OS.get_environment("DP_GRASS_MID")
+	OS.unset_environment("DP_GRASS_MID")
+	var grass: Dictionary = Config.get_config("vegetation").grass
+	check(grass.has("mid") and grass.mid.has("mode"), "vegetation.grass.mid.mode есть")
+	check(GrassField.mid_mode(grass) == "shell", "по умолчанию — shell: %s" % GrassField.mid_mode(grass))
+	check(not (grass.mid as Dictionary).has("cards"), "ключа grass.mid.cards нет")
+	check(not ResourceLoader.exists("res://scripts/terrain/grass_mid_cards.gd"), "режим cards удалён")
+	for m in ["blades", "shell"]:
+		check(GrassField.mid_mode({"mid": {"mode": m}}) == m, "конфиг %s" % m)
+	check(GrassField.mid_mode({}) == "shell", "нет mid — shell")
+	check(GrassField.mid_mode({"mid": {"mode": "cards"}}) == "shell", "cards в конфиге — по умолчанию")
+	OS.set_environment("DP_GRASS_MID", "blades")
+	check(GrassField.mid_mode({"mid": {"mode": "shell"}}) == "blades", "переменная сильнее конфига")
+	OS.set_environment("DP_GRASS_MID", "shell")
+	check(GrassField.mid_mode({"mid": {"mode": "blades"}}) == "shell", "переменная shell")
+	OS.set_environment("DP_GRASS_MID", "cards")
+	check(GrassField.mid_mode({"mid": {"mode": "blades"}}) == "blades", "cards в переменной — как конфиг")
+	if old.is_empty():
+		OS.unset_environment("DP_GRASS_MID")
+	else:
+		OS.set_environment("DP_GRASS_MID", old)
+
+
+## G4: в shell — узел средней травы потомок GrassField, дальних колец травинок нет;
+## в blades — кольца травинок как были, узла средней травы нет. Headless, без рендера.
+func test_g4_mid_nodes_and_no_far_ring() -> void:
+	var old := OS.get_environment("DP_GRASS_MID")
+	OS.unset_environment("DP_GRASS_MID")
+	var n := 40
+	var hs := PackedFloat32Array()
+	hs.resize(n * n)
+	hs.fill(100.0)
+	var layer := HeightLayer.from_heights("t", n, n, 4.0, -80.0, -80.0, hs)
+	var img := Image.create(n, n, false, Image.FORMAT_RF)
+	img.fill(Color(100.0, 0, 0))
+	var htex := ImageTexture.create_from_image(img)
+	var cls := PackedByteArray()
+	cls.resize(n * n)
+	cls.fill(SurfaceLayer.GRASS)
+	var surf := SurfaceLayer.from_classes("s", n, n, 4.0, -80.0, -80.0, cls)
+	var simg := Image.create(n, n, false, Image.FORMAT_R8)
+	simg.fill(Color(SurfaceLayer.GRASS / 255.0, 0, 0))
+	var stex := ImageTexture.create_from_image(simg)
+	var look: Dictionary = Config.get_config("world").get("terrain_look", {})
+	var spots: Array[Vector4] = []
+	for mode in ["blades", "shell"]:
+		var cfg: Dictionary = (Config.get_config("vegetation").grass as Dictionary).duplicate(true)
+		cfg.mid.mode = mode
+		var g := GrassField.new()
+		g.setup(layer, htex, surf, stex, look, cfg, spots)
+		var mids := 0
+		var blade_rings := 0
+		for c in g.get_children():
+			if c is GrassMidShell:
+				mids += 1
+			if c is GrassField:
+				blade_rings += 1
+		if mode == "blades":
+			check(mids == 0 and g.mid_layer == null, "blades: узла средней травы нет")
+			check(g.far_layer != null and blade_rings == 1, "blades: кольцо травинок за ближним есть")
+		else:
+			check(g.far_layer == null and blade_rings == 0, "%s: колец травинок дальше ближнего нет" % mode)
+			check(mids == 1 and g.mid_layer != null, "%s: узел средней травы — потомок GrassField" % mode)
+			check(g.mid_layer is GrassMidShell, "%s: тип узла" % mode)
+			check(g.materials().size() == 2, "%s: материалы — ближний и средний" % mode)
+			var mm: ShaderMaterial = g.mid_material()
+			check(mm != null and mm.get_shader_parameter("height_tex") == htex, "%s: общие uniform'ы скопированы" % mode)
+		if mode != "blades":
+			# приминание у пилота доходит и до средней травы (вид сзади в ~12 м — пилот в её кольце)
+			var root := Node3D.new()
+			var cam := Camera3D.new()
+			var pilot := Node3D.new()
+			root.add_child(cam)
+			root.add_child(pilot)
+			root.add_child(g)
+			# в дерево — под узел раннера (окно root занято, пока раннер в _ready)
+			var tree_root := (Engine.get_main_loop() as SceneTree).root
+			tree_root.get_child(tree_root.get_child_count() - 1).add_child(root)
+			cam.global_position = Vector3(0.0, 101.5, 0.0)
+			pilot.global_position = Vector3(3.0, 100.2, -12.0)
+			g.camera = cam
+			g.pilot = pilot
+			g._process(0.016)
+			var mp: Variant = g.mid_material().get_shader_parameter("press_pos")
+			check(mp is Vector3 and (mp as Vector3).is_equal_approx(pilot.global_position),
+					"%s: press_pos средней травы = положение пилота: %s" % [mode, mp])
+			root.remove_child(g)
+			root.get_parent().remove_child(root)
+			root.free()
+		g.free()
+	if not old.is_empty():
+		OS.set_environment("DP_GRASS_MID", old)

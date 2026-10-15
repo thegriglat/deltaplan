@@ -1,0 +1,60 @@
+{
+  "id": "GR-9",
+  "module": "grass-rocks",
+  "type": "dp-researcher",
+  "title": "Итоговые кадры и замер shell",
+  "goal": "На ветке модуля с GR-8 (shell по умолчанию): 8 видов tools/shots/grass_look.sh в /home/greg/deltaplan/build/screenshots/grass-look/final/ (1918×1036, как before/), замер G3 режима shell — раздел ## GR-9 в docs/perf/grass_rocks.md со сравнением с GR-2 (blades до правок), GR-15 и бюджетом.",
+  "plan_ref": "GR-9. Итоговый замер",
+  "contracts": [
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "3",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-9",
+  "branch": "grass-rocks/GR-9",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "docs/perf/grass_rocks.md",
+    "docs/perf/data/grass_rocks_GR-9.tar.gz",
+    "tools/shots/grass_look.sh"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "assets",
+    "tools/bench",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "count",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/final/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "sizes",
+      "cmd": "file /home/greg/deltaplan/build/screenshots/grass-look/final/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/before/*.jpg | grep -oE '[0-9]{3,}x[0-9]{3,}' | sort -u | wc -l",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "section",
+      "cmd": "grep -c '^## GR-9' docs/perf/grass_rocks.md",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "data",
+      "cmd": "tar tzf docs/perf/data/grass_rocks_GR-9.tar.gz | grep -c 'jsonl$'",
+      "expect": "num:(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T12:29:36"
+}

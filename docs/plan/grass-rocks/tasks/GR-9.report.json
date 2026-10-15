@@ -1,0 +1,85 @@
+{
+  "status": "done",
+  "summary": "8 кадров final/ (1918x1036, shell по умолчанию) и замер G3 shell (прогон + повтор GR-9b). Трава укладывается в бюджет: medium макс 0,60 (<=0,7), high макс 0,63 (<=0,95). Цена выросла против GR-15 (shell перешёл в прозрачный проход), но ниже GR-2 в 2-3 раза.",
+  "commits": [
+    "dafeb99d GR-9: кадры и замер G3 shell",
+    "ffb9b3dd GR-9: раздел короче"
+  ],
+  "checks": [
+    {
+      "name": "count",
+      "value": "8",
+      "pass": true
+    },
+    {
+      "name": "sizes",
+      "value": "1 размер 1918x1036",
+      "pass": true
+    },
+    {
+      "name": "section",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "data",
+      "value": "16 jsonl",
+      "pass": true
+    },
+    {
+      "name": "budget medium<=0.7",
+      "value": "0.60",
+      "pass": true
+    },
+    {
+      "name": "budget high<=0.95",
+      "value": "0.63",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/grass-look/final/"
+  ],
+  "how_to_check": ".dpcli/dpcli accept GR-9",
+  "uncertain": [
+    {
+      "where": "docs/perf/grass_rocks.md ## GR-9",
+      "why": "Отметка 2 шумит 0,17-0,23 мс (>0,1, негодна по G3); запас medium@2 до 0,7 всего 0,10 мс. Прирост против GR-15 приписан смене прохода/копии экрана - гипотеза, не разделено.",
+      "checked": "Повтор GR-9b воспроизвёл числа (разница <=0,01 на отметке 2, <=0,07 на 30)."
+    },
+    {
+      "where": "docs/perf/grass_rocks.md",
+      "why": "Файл 40910 байт, у лимита 40 КБ docs check; следующий раздел потребует разбиения.",
+      "checked": "docs check без ошибок"
+    }
+  ],
+  "dp_feedback": "Правка скрипта во время job ломает его (bash читает на ходу) - job start мог бы копировать скрипт. frame_profile.sh не умеет повторять только упавшую отметку без ручного MARKS. Лимит 40 КБ на docs упёрся в perf-раздел - нужен подсказкой заранее.",
+  "extra": {
+    "grass_ms": {
+      "medium": {
+        "2": [
+          0.6,
+          0.6
+        ],
+        "30": [
+          0.37,
+          0.3
+        ]
+      },
+      "high": {
+        "2": [
+          0.62,
+          0.63
+        ],
+        "30": [
+          0.42,
+          0.41
+        ]
+      }
+    }
+  },
+  "t": "2026-10-15T13:03:09",
+  "by": "executor"
+}

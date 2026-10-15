@@ -1,0 +1,64 @@
+{
+  "id": "GR-14",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Shell: чёрная сыпь и нет бархата; густота ближней травы",
+  "goal": "Режим shell на 10–30 м без тёмной «сыпи» и выглядит бархатно (плотный мягкий ворс, без точек); ближняя трава после GR-6 не реже и не крупнее прежней (та же густота пучков и травинок, нет одиноких стеблей на голой земле там, где раньше был луг).",
+  "plan_ref": "GR-7. Средняя дистанция — прототип",
+  "contracts": [
+    {
+      "name": "G2",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-14",
+  "branch": "grass-rocks/GR-14",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_mid_shell.gd",
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/grass_field.gd",
+    "configs/vegetation.json",
+    "tests/vegetation/test_grass_mid_gpu.gd",
+    "tests/vegetation/test_grass_look_gpu.gd",
+    "tests/vegetation/test_grass_field.gd",
+    "data/vegetation/",
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/terrain/terrain_wind.gdshaderinc",
+    "tests/vegetation/test_grass_specks_gpu.gd",
+    "tests/vegetation/test_grass_specks_gpu.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gdshader",
+    "tools",
+    "configs/game.json",
+    "docs/perf",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "gpu_grass",
+      "cmd": "DISPLAY=:0 tools/gpu_tests.sh --filter=grass",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T08:30:54",
+  "edited": "2026-10-15T08:45:28"
+}

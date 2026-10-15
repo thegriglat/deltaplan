@@ -1,0 +1,76 @@
+{
+  "id": "GR-20",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Прототип: трава в шейдере рельефа (режим terrain)",
+  "goal": "Режим grass.mid.mode = terrain (G4 v3): ближние травинки как сейчас, средней геометрии и дальнего кольца нет, луг дальше рисует terrain.gdshader с шумной «травой по высоте травы» — без кольца по построению. Кадры 8 видов в after-terrain/ и замер G3 — прототип, можно сырой, кадры как можно раньше.",
+  "plan_ref": "GR-20. Прототип «трава в шейдере рельефа» (режим terrain)",
+  "contracts": [
+    {
+      "name": "G2",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "3",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-20",
+  "branch": "grass-rocks/GR-20",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/terrain/meadow_look.gdshaderinc",
+    "scripts/terrain/terrain_grass_detail.gdshaderinc",
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/terrain_renderer.gd",
+    "scripts/terrain/grass_field.gd",
+    "configs/vegetation.json",
+    "tests/vegetation/test_grass_terrain_gpu.gd",
+    "tests/vegetation/test_grass_terrain_gpu.gd.uid",
+    "tests/contracts/test_grass_rocks_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_mid_shell.gd",
+    "tools",
+    "configs/game.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "gpu_terrain",
+      "cmd": "DISPLAY=:0 tools/gpu_tests.sh --filter=grass_terrain",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/after-terrain/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=8"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T12:11:51"
+}

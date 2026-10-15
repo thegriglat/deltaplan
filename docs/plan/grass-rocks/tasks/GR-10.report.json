@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "vegetation.md: раздел про ранний выход травы (GR-3) с замерами GR-2/GR-5 и тест cull; terrain.md: форма и трипланарная нормаль камней (GR-4); findings: раздел grass-rocks; CHANGELOG: две строки в «В работе».",
+  "commits": [
+    "395fbc33 GR-10: документация"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept GR-10",
+  "uncertain": [
+    {
+      "where": "docs/guide/vegetation.md",
+      "why": "причина неизменных примитивов не проверена",
+      "checked": "написано «причина не проверялась», по GR-5"
+    }
+  ],
+  "dp_feedback": "Дополнение координатора обрезано на «отчёты: …» в task show.",
+  "t": "2026-10-15T06:35:47",
+  "by": "executor"
+}

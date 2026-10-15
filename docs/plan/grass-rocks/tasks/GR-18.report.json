@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "grass_look.sh: добавлены кадры 7_top_30 (600,30) и 8_top_60 (600,60), cockpit, look=0,-60. Кадры before для них сняты на 8b1e160 в build/screenshots/grass-look/before/ (1918x1036). Старые 7/8 удалены.",
+  "commits": [
+    "0b9b75db GR-18: grass_look.sh — кадры сверху 7_top_30 и 8_top_60"
+  ],
+  "checks": [
+    {
+      "name": "script",
+      "value": "bash -n exit=0",
+      "pass": true
+    },
+    {
+      "name": "top",
+      "value": "3 упоминания 7_top_30/8_top_60",
+      "pass": true
+    },
+    {
+      "name": "before",
+      "value": "8 jpg",
+      "pass": true
+    },
+    {
+      "name": "sizes",
+      "value": "1 уникальный размер 1918x1036",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept GR-18 --dry",
+  "uncertain": [
+    {
+      "where": "build/screenshots/grass-look/before/7_top_30.jpg",
+      "why": "первый прогон до смены карточки дал 958x1036 у обоих кадров",
+      "checked": "повтор той же команды дал 1918x1036 у обоих; размер проверен числами"
+    }
+  ],
+  "dp_feedback": "task show обрезает строку дополнения в обычном выводе (нужен --full); report требует summary/commits/checks, иначе отказ.",
+  "t": "2026-10-15T10:54:15",
+  "by": "executor"
+}

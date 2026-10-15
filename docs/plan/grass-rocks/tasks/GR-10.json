@@ -1,0 +1,48 @@
+{
+  "id": "GR-10",
+  "module": "grass-rocks",
+  "type": "dp-writer",
+  "title": "Документация: трава и камни после grass-rocks",
+  "goal": "Гайды и реестры отражают влитое в main: ранний выход травы вне кадра (GR-3), камни-многогранники и трипланарная нормаль (GR-4), замеры G3 (GR-2/GR-5), аудит работы за спиной камеры (GR-1); строка CHANGELOG в «В работе».",
+  "plan_ref": "GR-10. Документация",
+  "contracts": [],
+  "copy": "~/deltaplan-grass-rocks-GR-10",
+  "branch": "grass-rocks/GR-10",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "docs/guide/vegetation.md",
+    "docs/guide/terrain.md",
+    "docs/registry/findings.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools",
+    "docs/perf",
+    "docs/plan",
+    "docs/contracts",
+    "docs/INDEX.md",
+    "site"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check docs/guide/vegetation.md docs/guide/terrain.md docs/registry/findings.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -c '^## grass-rocks' docs/registry/findings.md",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "changelog",
+      "cmd": "sed -n '/^## В работе/,/^## [0-9]/p' CHANGELOG.md | grep -ci 'камн'",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T06:31:33"
+}

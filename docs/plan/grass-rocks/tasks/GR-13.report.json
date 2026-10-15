@@ -1,0 +1,72 @@
+{
+  "status": "done",
+  "summary": "Кадры shell/cards (6+6, 1918x1036) и before переснят в том же размере на 8b1e160; замер G3 по обоим режимам с повтором, раздел ## GR-13. Бюджет выполнен в обоих режимах.",
+  "commits": [
+    "7a9fed80 GR-13: кадры и замер «после» (shell, cards)"
+  ],
+  "checks": [
+    {
+      "name": "shell трава max medium/high, мс",
+      "value": "0.24/0.35 (бюджет 0.7/0.95)",
+      "pass": true
+    },
+    {
+      "name": "cards трава max medium/high, мс",
+      "value": "0.32/0.46",
+      "pass": true
+    },
+    {
+      "name": "accept",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "shell_shots",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "cards_shots",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "section",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "data",
+      "value": "32",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/grass-look/before",
+    "build/screenshots/grass-look/after-shell",
+    "build/screenshots/grass-look/after-cards"
+  ],
+  "how_to_check": ".dpcli/dpcli accept GR-13",
+  "uncertain": [
+    {
+      "where": "docs/perf/grass_rocks.md ## GR-13",
+      "why": "шум >0,1 мс на high@2/30 в обоих режимах (знак стабилен, прогрев), трава там ориентир ±0,2",
+      "checked": "повтор b для обоих режимов; запас до бюджета ≥0,25 мс"
+    }
+  ],
+  "dp_feedback": "Первый кадр 1_cockpit на холодном профиле копии before не снялся — пришлось доснимать вручную; в report нет primitives для nograss, считал сам скриптом.",
+  "extra": {
+    "shell": {
+      "medium@30": 0.19,
+      "high@30": 0.35
+    },
+    "cards": {
+      "medium@30": 0.32,
+      "high@30": 0.44
+    }
+  },
+  "t": "2026-10-15T09:20:28",
+  "by": "executor"
+}

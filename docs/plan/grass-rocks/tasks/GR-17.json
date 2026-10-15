@@ -1,0 +1,52 @@
+{
+  "id": "GR-17",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Cards: рыжие квадраты и пятна сверху",
+  "goal": "Режим cards сверху (13–60 м) без рыжеватых квадратов (края атласа/карточек) и не распадается на тёмные пучки на жёлтом: равномерный ворс с мягкими краями пучков.",
+  "plan_ref": "GR-17. Cards: пятна и рыжие квадраты сверху",
+  "contracts": [
+    {
+      "name": "G4",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-17",
+  "branch": "grass-rocks/GR-17",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/terrain/grass_mid_cards.gd",
+    "data/vegetation/",
+    "ASSETS.md",
+    "tests/vegetation/test_grass_cards_atlas_gpu.gd",
+    "tests/vegetation/test_grass_cards_atlas_gpu.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_field.gd",
+    "scripts/terrain/grass.gdshader",
+    "configs/vegetation.json",
+    "tools",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "gpu_grass",
+      "cmd": "DISPLAY=:0 tools/gpu_tests.sh --filter=grass",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T10:44:55"
+}

@@ -1,0 +1,47 @@
+{
+  "id": "GR-18",
+  "module": "grass-rocks",
+  "type": "dp-mechanic",
+  "title": "Кадры сверху в grass_look.sh и before для них",
+  "goal": "tools/shots/grass_look.sh снимает ещё два кадра сверху — 7_top_30 (30 м) и 8_top_60 (60 м); кадры before для них сняты на коммите 8b1e160 в том же размере, что остальные (1918×1036).",
+  "plan_ref": "GR-18. Кадры сверху",
+  "contracts": [],
+  "copy": "~/deltaplan-grass-rocks-GR-18",
+  "branch": "grass-rocks/GR-18",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "tools/shots/grass_look.sh"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools/bench",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "script",
+      "cmd": "bash -n tools/shots/grass_look.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "before",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/before/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "sizes",
+      "cmd": "file /home/greg/deltaplan/build/screenshots/grass-look/before/*.jpg | grep -oE '[0-9]{3,}x[0-9]{3,}' | sort -u | wc -l",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "top",
+      "cmd": "grep -c '7_top_30\\|8_top_60' tools/shots/grass_look.sh",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T10:45:12",
+  "edited": "2026-10-15T10:51:17"
+}

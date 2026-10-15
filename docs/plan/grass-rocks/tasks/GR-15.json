@@ -1,0 +1,60 @@
+{
+  "id": "GR-15",
+  "module": "grass-rocks",
+  "type": "dp-researcher",
+  "title": "Кадры «после» начисто и замер после GR-14",
+  "goal": "На ветке модуля с GR-14: кадры shell и cards переснять в /home/greg/deltaplan/build/screenshots/grass-look/after-shell/ и after-cards/ (тот же размер, что before/), замер G3 обоих режимов — раздел ## GR-15 в docs/perf/grass_rocks.md со сравнением с GR-13 и бюджетом.",
+  "plan_ref": "GR-15. Кадры «после» начисто",
+  "contracts": [
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-15",
+  "branch": "grass-rocks/GR-15",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "docs/perf/grass_rocks.md",
+    "docs/perf/data/grass_rocks_GR-15.tar.gz"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools",
+    "assets",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "section",
+      "cmd": "grep -c '^## GR-15' docs/perf/grass_rocks.md",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "data",
+      "cmd": "tar tzf docs/perf/data/grass_rocks_GR-15.tar.gz | grep -c 'jsonl$'",
+      "expect": "num:(\\d+) >=12"
+    },
+    {
+      "name": "count",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/before/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/after-shell/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/after-cards/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=18"
+    },
+    {
+      "name": "sizes",
+      "cmd": "file /home/greg/deltaplan/build/screenshots/grass-look/before/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/after-shell/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/after-cards/*.jpg | grep -oE '[0-9]{3,}x[0-9]{3,}' | sort -u | wc -l",
+      "expect": "re:^1$"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T09:42:05",
+  "edited": "2026-10-15T09:42:28"
+}

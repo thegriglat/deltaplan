@@ -1,0 +1,64 @@
+{
+  "id": "GR-6",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Ближняя трава натуральная и дешевле на вершину",
+  "goal": "Ближнее кольцо травы (до ~10–14 м) выглядит натурально: нормаль изгибается поперёк травинки (объём), кончик мягче, цвет меняется вдоль и поперёк; повторный счёт пучка на каждой вершине сокращён. Вся трава на отметках 2/30 не дороже, чем после GR-3 (medium ≤ 0,7 мс, high ≤ 0,95 мс).",
+  "plan_ref": "GR-6. Ближняя трава — натуральная",
+  "contracts": [
+    {
+      "name": "G2",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-6",
+  "branch": "grass-rocks/GR-6",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/grass_field.gd",
+    "configs/vegetation.json",
+    "tests/vegetation/test_grass_field.gd",
+    "tests/vegetation/test_grass_cull_gpu.gd",
+    "tests/vegetation/test_grass_look_gpu.gd",
+    "tests/vegetation/test_grass_look_gpu.gd.uid",
+    "data/vegetation/",
+    "ASSETS.md",
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_mid_cards.gdshader"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain.gd",
+    "tools/bench",
+    "configs/game.json",
+    "scripts/terrain/tree_cross.gdshader",
+    "scripts/terrain/forest_impostors.gdshader",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "gpu_grass",
+      "cmd": "DISPLAY=:0 tools/gpu_tests.sh --filter=grass",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T06:33:21",
+  "edited": "2026-10-15T07:52:06"
+}

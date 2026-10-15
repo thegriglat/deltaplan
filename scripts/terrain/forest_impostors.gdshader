@@ -62,6 +62,11 @@ uniform vec2 clear_origin;
 uniform float clear_cell_m = 10.0;
 uniform vec2 clear_size = vec2(1.0);
 
+uniform bool cull_enabled = true;    // GR-11: ранний выход вне пирамиды камеры (false — для сверки кадров)
+uniform float cull_hmax_m = 40.0;    // наибольшая высота билборда, м (ForestImpostors.setup)
+uniform float cull_below_m = 16.0;   // наибольшее утопление, м
+uniform float cull_reach_m = 12.0;   // наибольшая полуширина, м
+
 varying vec2 v_uv;
 varying float v_tint;
 varying float v_dist;
@@ -119,6 +124,27 @@ int pick_species(float h, float north, float u) {
 	return 4;
 }
 
+// Ранний выход (GR-11, как clump_out_of_view у травы): капсула — ось (xz, y0…y1) с радиусом reach —
+// целиком за боковой плоскостью пирамиды камеры (плоскости из строк PROJECTION_MATRIX, нормированные
+// расстояния) или позади камеры. Считается в том же кадре — запаса на поворот не нужно. Объекты не
+// отбрасывают тень (cast_shadow выключен), проход теней этот шейдер не рисует.
+bool column_out_of_view(vec2 xz, float y0, float y1, float reach, mat4 proj, mat4 view) {
+	vec3 a = (view * vec4(xz.x, y0, xz.y, 1.0)).xyz;   // вид смотрит в −Z; масштаб единичный
+	vec3 b = (view * vec4(xz.x, y1, xz.y, 1.0)).xyz;
+	if (min(a.z, b.z) > reach) {
+		return true;   // позади камеры
+	}
+	mat4 t = transpose(proj);
+	vec4 pl[4] = vec4[4](t[3] + t[0], t[3] - t[0], t[3] + t[1], t[3] - t[1]);
+	for (int i = 0; i < 4; i++) {
+		float inv = inversesqrt(max(dot(pl[i].xyz, pl[i].xyz), 1e-20));
+		if (max(dot(pl[i].xyz, a) + pl[i].w, dot(pl[i].xyz, b) + pl[i].w) * inv < -reach) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void vertex() {
 	int id = INSTANCE_ID;
 	vec2 cell = grid_center_cell + vec2(float(id % grid_n), float(id / grid_n)) - float(grid_n / 2);
@@ -135,7 +161,17 @@ void vertex() {
 	float fade_out = smoothstep(outer_m - dissolve_m, outer_m, d);
 	float u = hash12(cell + 5.7);
 	bool present = d < outer_m && u < edens * ring
-			&& hash12(cell + 7.9) >= fade_out && is_forest(xz);
+			&& hash12(cell + 7.9) >= fade_out;
+	float h = 0.0;
+	bool have_h = false;
+	if (present && cull_enabled) {
+		// ранний выход: одна выборка высоты — до маски леса, просек и остального
+		h = h_bilinear(xz);
+		have_h = true;
+		present = !column_out_of_view(xz, h - cull_below_m, h + cull_hmax_m, cull_reach_m,
+				PROJECTION_MATRIX, VIEW_MATRIX);
+	}
+	present = present && is_forest(xz);
 	if (present && has_clearings) {
 		vec2 cu = (xz - clear_origin) / (clear_cell_m * clear_size);
 		if (all(greaterThanEqual(cu, vec2(0.0))) && all(lessThan(cu, vec2(1.0)))) {
@@ -160,7 +196,9 @@ void vertex() {
 	v_sl_kind = 0.0;
 	v_sl_ss = vec4(0.0);
 	if (present) {
-		float h = h_bilinear(xz);
+		if (!have_h) {
+			h = h_bilinear(xz);
+		}
 		float e = layer_spacing;
 		vec3 n = normalize(vec3(h_bilinear(xz - vec2(e, 0.0)) - h_bilinear(xz + vec2(e, 0.0)), 2.0 * e,
 				h_bilinear(xz - vec2(0.0, e)) - h_bilinear(xz + vec2(0.0, e))));
