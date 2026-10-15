@@ -170,6 +170,28 @@ func test_g4_mid_nodes_and_no_far_ring() -> void:
 			check(g.materials().size() == 2, "%s: материалы — ближний и средний" % mode)
 			var mm: ShaderMaterial = g.mid_material()
 			check(mm != null and mm.get_shader_parameter("height_tex") == htex, "%s: общие uniform'ы скопированы" % mode)
+		if mode != "blades":
+			# приминание у пилота доходит и до средней травы (вид сзади в ~12 м — пилот в её кольце)
+			var root := Node3D.new()
+			var cam := Camera3D.new()
+			var pilot := Node3D.new()
+			root.add_child(cam)
+			root.add_child(pilot)
+			root.add_child(g)
+			# в дерево — под узел раннера (окно root занято, пока раннер в _ready)
+			var tree_root := (Engine.get_main_loop() as SceneTree).root
+			tree_root.get_child(tree_root.get_child_count() - 1).add_child(root)
+			cam.global_position = Vector3(0.0, 101.5, 0.0)
+			pilot.global_position = Vector3(3.0, 100.2, -12.0)
+			g.camera = cam
+			g.pilot = pilot
+			g._process(0.016)
+			var mp: Variant = g.mid_material().get_shader_parameter("press_pos")
+			check(mp is Vector3 and (mp as Vector3).is_equal_approx(pilot.global_position),
+					"%s: press_pos средней травы = положение пилота: %s" % [mode, mp])
+			root.remove_child(g)
+			root.get_parent().remove_child(root)
+			root.free()
 		g.free()
 	if not old.is_empty():
 		OS.set_environment("DP_GRASS_MID", old)

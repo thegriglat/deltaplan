@@ -229,6 +229,8 @@ func _process(_delta: float) -> void:
 		material.set_shader_parameter("grid_center_cell", cell)
 	if pilot != null and pilot.is_inside_tree():
 		material.set_shader_parameter("press_pos", pilot.global_position)
+		if mid_layer != null:
+			mid_material().set_shader_parameter("press_pos", pilot.global_position)
 
 
 ## Густота травы (grass.density_pct: слайдер «Густота травы» в настройках, пресеты графики),
