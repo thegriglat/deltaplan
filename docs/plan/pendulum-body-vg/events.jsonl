@@ -35,3 +35,5 @@
 {"t": "2026-10-15T06:18:44", "by": "coordinator", "task": "PB-2", "ev": "accepted", "note": "по ревью; 3 minor (has_vg null у laminar/gecko, время в README, notes Gecko) — учесть в карточке переноса"}
 {"t": "2026-10-15T06:18:46", "by": "coordinator", "task": "PB-2", "ev": "accepted", "commits": ["1e3573f7"], "note": "2/2 contract=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-10-15T06:18:46", "by": "coordinator", "task": "PB-2", "ev": "merged"}
+{"t": "2026-10-15T06:29:49", "by": "coordinator", "task": null, "ev": "plan", "note": "план Шлюз Q (после PB-1 и PB-2): дописано 2 стр."}
+{"t": "2026-10-15T06:29:57", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: модуль закрыт по Q1 (решение пользователя) — PB-1 (тело пилота: гипотеза не подтвердилась, разрыв голландского шага — знак Cnp) и PB-2 (VG: +15…+26 км/ч, разрыв Vmax при VG 0 — линейный тангаж и ход 0,45 м) приняты и влиты; PB-3–PB-5 отменены (карточек не было); данные исследований в ветке feature/pendulum-body-vg, в main не сливается"}
