@@ -33,3 +33,5 @@
 {"t": "2026-10-15T06:15:59", "by": "coordinator", "task": "PB-1", "ev": "merged"}
 {"t": "2026-10-15T06:18:18", "by": "reviewer", "task": "PB-2", "ev": "reviewed", "note": "Контракты PB-К1/PB-К2 соблюдены (vg.py — только параметры крыла через replace, vg0 == base, крыло без VG без изменений, passport есть), скоуп чистый (15 файлов…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/pendulum-body-vg/tasks/PB-2.review.json"}
 {"t": "2026-10-15T06:18:44", "by": "coordinator", "task": "PB-2", "ev": "accepted", "note": "по ревью; 3 minor (has_vg null у laminar/gecko, время в README, notes Gecko) — учесть в карточке переноса"}
+{"t": "2026-10-15T06:18:46", "by": "coordinator", "task": "PB-2", "ev": "accepted", "commits": ["1e3573f7"], "note": "2/2 contract=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-10-15T06:18:46", "by": "coordinator", "task": "PB-2", "ev": "merged"}
