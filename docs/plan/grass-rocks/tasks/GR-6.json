@@ -29,7 +29,9 @@
     "tests/vegetation/test_grass_look_gpu.gd",
     "tests/vegetation/test_grass_look_gpu.gd.uid",
     "data/vegetation/",
-    "ASSETS.md"
+    "ASSETS.md",
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_mid_cards.gdshader"
   ],
   "dont_touch": [
     "scripts/terrain/terrain.gdshader",
@@ -57,5 +59,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-15T06:33:21"
+  "created": "2026-10-15T06:33:21",
+  "edited": "2026-10-15T07:52:06"
 }

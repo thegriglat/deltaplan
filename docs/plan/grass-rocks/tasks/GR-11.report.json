@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "Ранний выход (капсула против боковых плоскостей PROJECTION_MATRIX и «позади камеры», одна выборка высоты до tc_present/is_forest) в tree_cross.gdshader и forest_impostors.gdshader; опыт nocrosses; GPU-тест 870 кадров совпадает с кадрами без отсечения (≤0,01 %). Замер G3 v2 до/после: выигрыша по GPU в пределах шума.",
+  "commits": [
+    "ранний выход + тест (993fdf23)",
+    "frame_profile nocrosses",
+    "docs/perf GR-11 + архив данных"
+  ],
+  "checks": [
+    {
+      "name": "tree",
+      "value": "54/54",
+      "pass": true
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "gpu_cull",
+      "value": "4 теста, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "section",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "data",
+      "value": "18 jsonl",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Измеримого выигрыша по GPU нет (medium base 4,74 -> 4,80/4,76 мс; цена крестов и импостеров не изменилась); high@2 -0,5 мс, но шум 0,82 в одном прогоне. CPU-выигрыш не измерялся."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept GR-11",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/tree_cross.gdshader:column_out_of_view",
+      "why": "запасы по размеру (cull_up/down/reach) считаются в tree_crosses.gd из наибольших dims и высот пород; нестандартные модели с другой геометрией требуют пересчёта",
+      "checked": "тест с обнулёнными запасами падает на десятки процентов — чувствителен; с реальными запасами 870 кадров ≤0,01 %"
+    },
+    {
+      "where": "tests/vegetation/test_tree_cull_gpu.gd:_frame",
+      "why": "разовые расхождения кадров (подгрузка между снимками) гасятся повтором кадра; ошибка отсечения воспроизводима, но повтор теоретически может скрыть редкий недетерминированный дефект",
+      "checked": "3 прогона подряд зелёные; без повтора один из кадров давал 32 % и 0,4 % в разных местах"
+    },
+    {
+      "where": "docs/perf/grass_rocks.md ## GR-11",
+      "why": "nocrosses даёт положительную Δ (без крестов дороже) — причина не выяснена; шум high@30/60 в прогоне a и high@2 в b выше 0,1",
+      "checked": "повторные прогоны a/b; негодные отметки помечены, годные соответствуют"
+    },
+    {
+      "where": "тени",
+      "why": "кресты и импостеры не отбрасывают тень (cast_shadow OFF), в проходе теней шейдер не работает — отсечение по матрице камеры безопасно",
+      "checked": "код tree_crosses.gd/forest_impostors.gd"
+    }
+  ],
+  "dp_feedback": "После слияния feature/grass-rocks нужно вручную godot --import (новые class_name), иначе accept падает на парсинге; хорошо бы accept сам делал --import. Холодный профиль валит отметку 2 высокого пресета при каждом первом прогоне — хотелось бы прогрев в frame_profile.sh.",
+  "t": "2026-10-15T07:58:15",
+  "by": "executor"
+}
