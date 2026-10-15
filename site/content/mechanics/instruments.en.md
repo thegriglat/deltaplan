@@ -141,13 +141,13 @@ sideslip angle.
 
 ## Model limits
 
-- In the "Weight shift" mode (the default) the flight is without sideslip (the heading follows the airspeed exactly),
-  so in a steady turn the string points straight back — it responds only to the entry into bank (rotation of the
-  attachment point) and to the difference between the wind at the attachment point and at the centre of the wing
-  (turbulence). The consultant pilot confirmed: "in a turn the string points straight back, there is no lateral
-  drift — correct"; sideslip was not added to this model for the sake of a single string. In the experimental
-  "Pendulum" mode sideslip arises on its own and the string shows it, with a known error: in a turn the string
-  deflects inward instead of outward (docs/guide/flight.md, "Pendulum"). Bots have no strings.
+- In the "Pendulum" mode (the default) sideslip arises on its own and the string shows it. A known error: in a
+  steady turn of about 30° the string deflects up to 12° inward, while the consultant pilot says that in a turn
+  the string points straight back (docs/guide/flight/pendulum.md, "Model limits"). In the older "Weight shift"
+  and "Simple" modes the flight is without sideslip (the heading follows the airspeed exactly), so in a steady
+  turn the string points straight back — it responds only to the entry into bank (rotation of the attachment
+  point) and to the difference between the wind at the attachment point and at the centre of the wing
+  (turbulence); sideslip was not added to those models for the sake of a single string. Bots have no strings.
 - The 90s variometer and its sound are a generic image of the era based on the manuals of several instruments (Flytec, Brauniger),
   not a copy of a specific model; the piezo beeper timbre is an engineering reconstruction, not a measurement of a real
   instrument.

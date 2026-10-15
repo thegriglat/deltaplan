@@ -15,6 +15,7 @@ How to read it: for each approach — what was done, what came out, what was dec
 - **Wind over terrain.** The "Wind over terrain" setting: "GPU solver" (default) — the field is assembled by flow phases and refined by the Picard method on the GPU; "Heuristic" — formulas without a field. Without a GPU there is no solver, the formulas apply.
 - **Thermals and turbulence.** Sources, strength, ceiling and drift are taken from the wind field and from ground heating by land cover; the thermal's shape is a formula (Gedeon, Allen).
 - **Wings.** 48 models in four groups, numbers from DHV and manufacturer datasheets, the origin of every number is marked.
+- **Flight.** The default control mode is "Pendulum": a wing of 16 strips and a pilot on the hang chain, sideslip and stall come from forces; "Weight shift" and "Simple" remain selectable, bots and remote players over the network fly on them.
 - **Takeoff.** Physics only: liftoff when lift is not less than weight; there are no fixed times.
 - **Multiplayer.** WebSocket and protobuf, a built-in server for the local network, a Go server for the internet; Steam lobbies in the Steam builds.
 - **World data.** Copernicus terrain at 25 m, ESA WorldCover land cover, OpenStreetMap objects from our own 20 km tiles.
