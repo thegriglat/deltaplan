@@ -15,6 +15,7 @@ const DOWN := Vector3.DOWN
 var dirs: Array[Vector3] = []  ## направления отрезков (мир), от узла к хвосту
 var segment_m := 0.06
 var flutter_angle := 0.0  ## текущая амплитуда трепета, рад (для отладки/кадров)
+var flutter_hz := 0.0  ## частота трепета, применённая на шаге (после предела отображения), Гц
 var time_s := 0.0
 var lateral := Vector3.RIGHT  ## ось трепета (поперёк потока, горизонтально), мир
 
@@ -25,8 +26,11 @@ var _coupling := 0.5
 var _fl_start := 2.0
 var _fl_full := 15.0
 var _fl_max := 0.3
-var _fl_hz_per_ms := 0.5
-var _fl_max_hz := 9.0
+var _fl_st := 0.4
+var _fl_ref_len := 0.13
+var _fl_max_hz := 15.0
+var _fl_decay_from := 12.0
+var _fl_decay_exp := 0.6667
 var _fl_wave := 0.9
 var _max_flow := 60.0
 var _phase := 0.0
@@ -43,8 +47,11 @@ func setup(cfg: Dictionary) -> void:
 	_fl_start = float(cfg.get("flutter_start_ms", 2.0))
 	_fl_full = maxf(float(cfg.get("flutter_full_ms", 15.0)), _fl_start + 0.01)
 	_fl_max = deg_to_rad(float(cfg.get("flutter_max_deg", 18.0)))
-	_fl_hz_per_ms = float(cfg.get("flutter_hz_per_ms", 0.5))
-	_fl_max_hz = float(cfg.get("flutter_max_hz", 9.0))
+	_fl_st = float(cfg.get("flutter_strouhal", 0.4))
+	_fl_ref_len = maxf(float(cfg.get("flutter_ref_len", 0.13)), 0.01)
+	_fl_max_hz = float(cfg.get("flutter_max_hz", 15.0))
+	_fl_decay_from = maxf(float(cfg.get("flutter_amp_decay_from_ms", 12.0)), 0.1)
+	_fl_decay_exp = float(cfg.get("flutter_amp_decay_exp", 0.6667))
 	_fl_wave = float(cfg.get("flutter_wave_rad_per_segment", 0.9))
 	_max_flow = float(cfg.get("max_airflow_ms", 60.0))
 	dirs.clear()
@@ -79,9 +86,14 @@ func step(dt: float, w: Vector3) -> void:
 	var lat := w.cross(Vector3.UP)
 	if lat.length() > 1.0e-3:
 		lateral = lat.normalized()
+	# амплитуда: плато до decay_from, дальше ∝ (decay_from/s)^exp (лента вытянута, мелко дрожит)
 	var fl_amp := _fl_max * smoothstep(_fl_start, _fl_full, s)
+	if s > _fl_decay_from:
+		fl_amp *= pow(_fl_decay_from / s, _fl_decay_exp)
 	flutter_angle = fl_amp
-	var hz := minf(_fl_hz_per_ms * s, _fl_max_hz)
+	# частота: f = St·U/L (Струхаль ленты), показывается не выше предела отображения
+	var hz := minf(_fl_st * s / _fl_ref_len, _fl_max_hz)
+	flutter_hz = hz
 	_phase = fposmod(_phase + TAU * hz * dt, TAU)
 	_phase2 = fposmod(_phase2 + TAU * hz * 0.61 * dt, TAU)
 	var rate := _follow * s / segment_m + _pendulum
