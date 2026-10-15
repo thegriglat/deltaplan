@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "Скрипт tools/shots/grass_look.sh снимает 6 кадров в точках шлюза 2; кадры до GR-6/GR-7 в build/screenshots/grass-look/before/.",
+  "commits": [
+    "a982dd91 grass_look.sh: 6 кадров травы"
+  ],
+  "checks": [
+    {
+      "name": "script",
+      "value": "bash -n exit 0",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "6 из 6 jpg, все > 50 КБ",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/grass-look/before/1_cockpit.jpg",
+    "build/screenshots/grass-look/before/2_chase.jpg",
+    "build/screenshots/grass-look/before/3_side.jpg",
+    "build/screenshots/grass-look/before/4_low_meadow.jpg",
+    "build/screenshots/grass-look/before/5_mid_free.jpg",
+    "build/screenshots/grass-look/before/6_mid_cockpit_far.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept GR-12 --dry",
+  "uncertain": [],
+  "dp_feedback": "Карточка обрезается в выводе task show; для полного текста дополнений нужен --full. Команда dpcli plan выводит только один раздел.",
+  "extra": {
+    "frames_per_run": 6,
+    "prerequisite": "godot --headless --path . --import в копии до первого запуска (иначе parse error в скриптах)"
+  },
+  "t": "2026-10-15T06:57:35",
+  "by": "executor"
+}

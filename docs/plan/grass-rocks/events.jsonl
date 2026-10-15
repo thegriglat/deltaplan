@@ -95,3 +95,5 @@
 {"t": "2026-10-15T06:35:52", "by": "coordinator", "task": "GR-10", "ev": "accepted", "note": "3/3 docs=ok:exit 0; findings=ok:1; changelog=ok:1"}
 {"t": "2026-10-15T06:35:57", "by": "coordinator", "task": "GR-10", "ev": "accepted", "commits": ["e11a3b5e"], "note": "3/3 docs=ok:exit 0; findings=ok:1; changelog=ok:1"}
 {"t": "2026-10-15T06:35:58", "by": "coordinator", "task": "GR-10", "ev": "merged", "commits": ["e11a3b5e"]}
+{"t": "2026-10-15T06:57:35", "by": "executor", "task": "GR-12", "ev": "reported", "commits": ["a982dd91"], "note": "done: Скрипт tools/shots/grass_look.sh снимает 6 кадров в точках шлюза 2; кадры до GR-6/GR-7 в build/screenshots/grass-look/b…", "dp_feedback": "Карточка обрезается в выводе task show; для полного текста дополнений нужен --full. Команда dpcli plan выводит только один раздел."}
+{"t": "2026-10-15T06:57:43", "by": "coordinator", "task": "GR-12", "ev": "accepted", "note": "2/2 script=ok:exit 0; shots=ok:6"}
