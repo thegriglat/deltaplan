@@ -114,6 +114,20 @@ class Params:
     x_hang: float = float("nan")  # м от носа; NaN — из условия трима при dcm0 (см. trim.solve_hang)
     rho: float = RHO
     extra: dict = field(default_factory=dict)
+    # тело пилота (PB-1, PB-К1): "point" — как прежде (изотропное pilot_cda, без инерции тела);
+    # "body" — pilot_body.py: анизотропное сопротивление кокона, момент Мунка, инерция по рысканию и крену
+    pilot_body: str = "point"
+    body_cda_front: float = float("nan")  # м², лобовое CdA тела вдоль оси; NaN — = pilot_cda (Kroo 1981: 0,21; 0,12–0,23)
+    body_len: float = 1.80  # м, EST: пилот 1,75 м лёжа в коконе (configs/pilot.json → visual.height_m) + кокон за ступнями
+    body_width: float = 0.45  # м, EST: ширина кокона по плечам (плановая площадь = len·width ≈ 0,81 м²)
+    body_depth: float = 0.30  # м, EST: толщина кокона (боковая площадь = len·depth ≈ 0,54 м²)
+    body_cd_cross: float = 0.8  # EST: поперечное обтекание конечного цилиндра l/d ≈ 5 (Hoerner 1965, гл. III, Re ≈ 2·10⁵: ≈ 0,8)
+    body_volume: float = 0.12  # м³, EST: тело ≈ 0,085 м³ (85 кг) + кокон с воздухом
+    body_munk: float = 0.78  # (k2 − k1) эллипсоида удлинения 4 (Munk 1924, NACA TR-184, табл. коэффициентов)
+    body_ixx: float = 1.3  # кг·м², EST: инерция тела вокруг продольной оси (de Leva 1996, сегменты; см. pb1_analytic.py)
+    body_izz: float = 28.0  # кг·м², EST: инерция тела лёжа (руки вперёд к штанге) вокруг оси ⊥ телу через ЦМ, 85 кг
+    # по сегментам de Leva 1996 (26,5) + подвесная 5 кг стержнем 1,8 м (1,4) — pb1_analytic.py; без выноса рук ≈ 14
+    body_segments: int = 5  # отрезков по длине тела для местной скорости
 
     @property
     def m_total(self) -> float:
