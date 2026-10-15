@@ -93,3 +93,5 @@
 {"t": "2026-10-15T06:48:31", "by": "coordinator", "task": "SPF-7", "ev": "checked", "note": "5/5 trim_pitch=ok:4/4; head_pitch=ok:5/5; speed_feel_k4=ok:4/4; pendulum=ok:108/108; camera=ok:10/10"}
 {"t": "2026-10-15T06:49:26", "by": "reviewer", "task": "SPF-7", "ev": "reviewed", "note": "Контракт SPF-К4 v2 выполнен: в PendulumModel есть trim_pitch() с кэшем, без побочных эффектов. Бисекция вынесена в _trim_balance(), solve_trim() работает как р…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/speed-feel/tasks/SPF-7.review.json"}
 {"t": "2026-10-15T06:49:42", "by": "coordinator", "task": "SPF-7", "ev": "accepted", "note": "по ревью"}
+{"t": "2026-10-15T06:49:42", "by": "coordinator", "task": "SPF-7", "ev": "merged"}
+{"t": "2026-10-15T06:49:43", "by": "coordinator", "task": null, "ev": "note", "note": "SPF-7 влит: trim_pitch у PendulumModel, голова по тангажу работает и в «Маятнике»; в маятнике Δθ при 1,6·V_трим 24–43° (больше, чем в FlightModel), p упирается в ±10°"}
