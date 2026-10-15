@@ -1,0 +1,36 @@
+{
+  "id": "GR-12",
+  "module": "grass-rocks",
+  "type": "dp-mechanic",
+  "title": "Скрипт кадров травы и кадры «до»",
+  "goal": "Скрипт tools/shots/grass_look.sh снимает 6 кадров травы в одних точках (решение шлюза 2), кадры состояния до GR-6/GR-7 лежат в /home/greg/deltaplan/build/screenshots/grass-look/before/.",
+  "plan_ref": "GR-12. Кадры «до»",
+  "contracts": [],
+  "copy": "~/deltaplan-grass-rocks-GR-12",
+  "branch": "grass-rocks/GR-12",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "tools/shots/grass_look.sh"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools/bench",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "script",
+      "cmd": "bash -n tools/shots/grass_look.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/before/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T06:34:28"
+}

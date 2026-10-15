@@ -4,9 +4,9 @@ status: "active"
 module: "grass-rocks"
 area: "world"
 updated: "2026-10-15"
-summary: "Модели камней rocks.glb (G1), открытый интерфейс GrassField и пресеты густоты (G2), протокол замера цены травы и камней (G3)."
+summary: "Камни rocks.glb (G1), интерфейс GrassField и пресеты (G2), протокол замера (G3), режим средней дистанции травы (G4)."
 related: ["docs/plan/grass-rocks.md", "docs/perf/frame_profile.md"]
-contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 1}, {"id": "G3", "version": 2}]
+contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 1}, {"id": "G3", "version": 2}, {"id": "G4", "version": 1}]
 ---
 # Контракты модуля grass-rocks
 
@@ -71,3 +71,13 @@ contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 1}, {"id": "G3",
   и строка «среднее»; данные — `docs/perf/data/grass_rocks_<ID>.tar.gz` (jsonl + report.md, без xdg_* и логов).
   Таблицы — `python3 tools/bench/frame_profile_report.py build/perf/<ID>`.
 - Сравнение «до/после» — с разделом `## GR-2` (база) того же документа.
+
+## G4. Режим средней дистанции травы — версия 1
+
+- Владелец: GR-7 (пишет и контрактный тест `test_g4_*`). Потребители: GR-6 (ближнее кольцо), GR-13 (кадры, замер), `tools/shots/grass_look.sh`.
+- Режим: `configs/vegetation.json → grass.mid.mode` — `"blades"` (как сейчас: среднее кольцо травинками и дальнее кольцо), `"shell"` (слои над рельефом с шумовой маской), `"cards"` (карточки-пучки, alpha scissor + alpha-to-coverage при MSAA). Значение по умолчанию до шлюза 2 — `"blades"`.
+- Переопределение для кадров и замеров: переменная окружения `DP_GRASS_MID=blades|shell|cards` (читается при `GrassField.setup`, сильнее конфига); неизвестное значение — как конфиг.
+- Статический `GrassField.mid_mode(grass_cfg: Dictionary) -> String` — итоговый режим с учётом переменной окружения.
+- Узлы средней дистанции — потомки узла `GrassField` (опыт `nograss` прячет всю траву); в режимах `shell`/`cards` дальнее кольцо (26–115 м) травинками не строится — дальше ~40 м луг рисует шейдер рельефа.
+- Ближнее кольцо (до ~10–14 м, GR-6) — во всех режимах одно и то же; граница ближнего и среднего — `grass.radius_m` и `grass.mid.inner_radius_m`/`outer_radius_m` (м).
+- Сохраняется всё из G2 (приминание, маска старта, скошенное, площадки, сезон, лес, густота: `density_pct = 0` — нет и средней травы), ранний выход вне кадра (как GR-3) — в любом режиме.
