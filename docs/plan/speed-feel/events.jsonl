@@ -55,3 +55,4 @@
 {"t": "2026-10-15T05:40:32", "by": "executor", "task": "SPF-6", "ev": "reported", "note": "partial: accept --dry: wire_tone PASS 6/6, speed_feel_k3 PASS 3/3, scope PASS; audio FAIL 44/45 (test_feet_positions_with_skelet…", "dp_feedback": "dry-run job wait prints results; import of pilot.glb in fresh profile failed silently"}
 {"t": "2026-10-15T05:43:12", "by": "coordinator", "task": "SPF-6", "ev": "checked", "note": "2/3 wire_tone=FAIL:5/6; FAIL test_fill_cost; audio=ok:45/45; speed_feel_k3=ok:3/3"}
 {"t": "2026-10-15T05:43:21", "by": "coordinator", "task": "SPF-6", "ev": "accepted", "note": "wire_tone 6/6 у исполнителя, audio 45/45 у меня; test_fill_cost — порог времени под нагрузкой (3 копии гоняют godot), не регрессия"}
+{"t": "2026-10-15T05:43:29", "by": "coordinator", "task": "SPF-6", "ev": "merged", "note": "e828ab7"}
