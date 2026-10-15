@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-15"
 summary: "Стыки ощущения скорости: тряска buzz → кабинная камера (SPF-К1), поток → ленточка (SPF-К2), скорость → эоловый тон тросов (SPF-К3)."
 related: ["docs/plan/speed-feel.md"]
-contracts: [{"id": "SPF-К1", "version": 1}, {"id": "SPF-К2", "version": 1}, {"id": "SPF-К3", "version": 1}]
+contracts: [{"id": "SPF-К1", "version": 2}, {"id": "SPF-К2", "version": 1}, {"id": "SPF-К3", "version": 1}]
 ---
 # Контракты модуля speed-feel
 
@@ -15,16 +15,16 @@ contracts: [{"id": "SPF-К1", "version": 1}, {"id": "SPF-К2", "version": 1}, {"
 
 Общее для всех стыков: физика полёта (`scripts/flight/flight_model.gd`, силы, модель крыла) не меняется — только визуальный и звуковой отклик; никаких игровых условностей (FOV, размытие, полосы скорости) и сообщений игроку.
 
-## SPF-К1. Тряска крыла `buzz` → кабинная камера (v1)
+## SPF-К1. Тряска крыла `buzz` → кабинная камера (v2)
 Владелец: SPF-2 (`scripts/flight/glider_visual.gd`, `configs/flight.json → visual.buzz`). Потребители: `scripts/game/camera_rig.gd` (`_shake`: `buzz × cockpit.shake.follow`, без изменений), руки на штанге в `glider_visual.gd` (`bar_grip − buzz`).
+v2 (2026-10-15, по SPF-1): амплитуда без множителя скорости (скорость уже в физике), остался только сдвиг частот; ключ `speed_ratio_range` убран.
 - `GliderVisual.buzz: Vector3` — смещение крыла с трапецией относительно пилота, м, оси визуала; `|buzz| ≤ visual.buzz.max_m` всегда (предел сохраняется).
 - Вход — без смены сигнатуры: `set_flight(airspeed_ms: float, stall_amount: float, turbulence: float)` (воздушная скорость, м/с; болтанка 0..1 = `FlightModel.load.jitter / sail.turbulence_full_g`) и перегрузка `FlightModel.load` (`load_factor`, `load_raw`). `set_flight` дополнительно запоминает `airspeed_ms` для тряски.
-- V_trim — `FlightModel.trim_speed()` модели родителя-`Glider` (м/с, с поправкой на массу и плотность). Нет модели (бот без `Glider`, тесты визуала) или V_trim ≤ 0 → отношение скоростей r = 1, поведение как до модуля.
-- r = clamp(V / V_trim, `speed_ratio_range[0]`, `speed_ratio_range[1]`) — новый ключ `visual.buzz.speed_ratio_range` (с `_doc`).
-- Амплитуда: на r умножается только доля, в которой скорость ещё не учтена физикой (решение — по замеру SPF-1 п. 1, записано в карточке SPF-2); члены, где Δn уже несёт V из физики, на r не умножаются (нет двойного счёта).
-- Частоты: каждая частота `freqs_hz[i]` умножается на r_f = clamp(V / V_trim, `freq_ratio_range`) — частота встречи с порывами (гипотеза Тейлора); фаза каждой составляющей **накапливается** (∫2πf dt), при смене скорости скачков фазы нет.
+- V_trim — `FlightModel.trim_speed()` модели родителя-`Glider` (м/с, с поправкой на массу и плотность). Нет модели (бот без `Glider`, тесты визуала) или V_trim ≤ 0 → r_f = 1, поведение как до модуля.
+- Амплитуда — **без множителя скорости**: все её члены (`turbulence_m × болтанка`, `load_m_per_g`, толчок) идут от `FlightModel.load`, где Δn ∝ V уже есть (замер SPF-1 §1: `load.jitter` на ≈ 2·V_трим в 2,0–3,1 раза больше, ∝ V^1,2–1,5); умножение на V/V_трим было бы двойным счётом.
+- Частоты: каждая частота `freqs_hz[i]` умножается на r_f = clamp(V / V_trim, `freq_ratio_range[0]`, `freq_ratio_range[1]`) — новый ключ `visual.buzz.freq_ratio_range` (с `_doc`), по умолчанию [0,7, 2,0]: частота встречи с порывами ∝ V (порывы `GustSpectrum` заморожены в пространстве — SPF-1 §1, гипотеза Тейлора); верх 2,0 держит max(freqs_hz)·r_f ≤ 15 Гц (≥ 4 кадра на период при 60 кадр/с, как у ленточки). Фаза каждой составляющей **накапливается** (∫2πf dt), при смене скорости скачков фазы нет.
 - Инвариант: болтанка 0, перегрузка 1 g (|n−1| ≤ `load_deadzone_g`, `load_raw = load_factor`) → `buzz = 0` при любой скорости.
-- Инвариант: при r = 1 тряска совпадает с тряской до модуля (те же амплитуды и частоты).
+- Инвариант: при r_f = 1 тряска совпадает с тряской до модуля (те же амплитуды и частоты).
 
 ## SPF-К2. Поток у узла → трепет ленточки (v1)
 Владелец: SPF-3 (`scripts/instruments/telltale_model.gd`, `configs/instruments.json → telltale`). Потребители: `scripts/instruments/telltale.gd` (отрисовка по `dirs`), `tests/instruments/test_telltale.gd`.

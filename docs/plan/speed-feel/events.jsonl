@@ -28,3 +28,5 @@
 {"t": "2026-10-15T05:10:41", "by": "executor", "task": "SPF-1", "ev": "reported", "commits": ["895c84dc"], "note": "done: docs/research/speed-feel.md (разделы 1-5 + передача SPF-2..5) и tools/research/speed-feel/: замеры headless и литератур…", "dp_feedback": "godot -s не видит автозагрузку Config - нужен tscn; docs index правит docs/registry (вне скоупа) - пришлось откатывать вручную."}
 {"t": "2026-10-15T05:16:59", "by": "coordinator", "task": "SPF-1", "ev": "checked", "note": "3/3 doc=ok:exit 0; sections=ok:6; docs=ok:ошибок 0"}
 {"t": "2026-10-15T05:31:50", "by": "coordinator", "task": "SPF-1", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-15T05:32:02", "by": "coordinator", "task": "SPF-1", "ev": "accepted", "commits": ["c15567a"], "note": "3/3 doc=ok:exit 0; sections=ok:6; docs=ok:ошибок 0"}
+{"t": "2026-10-15T05:32:03", "by": "coordinator", "task": "SPF-1", "ev": "merged"}
