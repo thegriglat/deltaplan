@@ -1,0 +1,11 @@
+{
+  "module": "grass-rocks",
+  "plan": "docs/plan/grass-rocks.md",
+  "contracts": "docs/contracts/grass-rocks.md",
+  "branch": "feature/grass-rocks",
+  "copy": "~/deltaplan-grass-rocks",
+  "created": "2026-10-15T04:37:24",
+  "code": "GR",
+  "area": "world",
+  "base": "main"
+}

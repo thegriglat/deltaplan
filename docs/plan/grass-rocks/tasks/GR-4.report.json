@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Доработка по ревью: шейдер — z нормали из x,y, инверсия .y у X и Z, знак касательной по sign(n).",
+  "commits": [
+    "доработка шейдера",
+    "docs: замер G3"
+  ],
+  "checks": [
+    {
+      "name": "rocks",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "section",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Текстуры не генерировал (взяты прежние ambientcg)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept GR-4",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/rock_scatter.gdshader:52",
+      "why": "Шейдер не смотрел глазами; GPU-замер прошёл без ошибок компиляции, но знак/ориентация нормали (OpenGL/DX) не проверены визуально.",
+      "checked": "прогон frame_profile на high/medium без ошибок; тесты зелёные"
+    },
+    {
+      "where": "docs/perf/grass_rocks.md",
+      "why": "В обоих прогонах G3 часть отметок не долетела до FLYING; шум high@2 0,15 > 0,1 в run1. Цена камней в пределах шума (≈0,05-0,17 мс), базы GR-2 нет.",
+      "checked": "два прогона, оба в архиве"
+    }
+  ],
+  "dp_feedback": "frame_profile нестабилен: отметки пропадают (не долетели до FLYING); job wait блокирует сессию - хотелось бы notify без опроса.",
+  "t": "2026-10-15T05:33:16",
+  "by": "executor"
+}

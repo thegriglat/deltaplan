@@ -50,10 +50,19 @@ void fragment() {
 	ROUGHNESS = 0.92;
 	SPECULAR = 0.3;
 	if (use_normal) {
-		// трипланарная нормаль по доминирующей оси (дёшево): берём проекцию с наибольшим весом
-		vec2 uv = w.y > max(w.x, w.z) ? p.xz : (w.x > w.z ? p.zy : p.xy);
-		NORMAL_MAP = texture(rock_normal, uv).rgb;
-		NORMAL_MAP_DEPTH = 0.8;
+		// трипланарная нормаль-деталь (whiteout-смешение трёх проекций в мировом пространстве)
+		vec3 n = normalize(v_wn);
+		// RGTC: z нет в .b — восстанавливаем; .y инвертирован у X и Z (OpenGL-нормаль, UV сверху вниз),
+		// у граней в минус по оси — знак касательной x по sign(n), чтобы рельеф не зеркалился
+		vec2 ax = (texture(rock_normal, p.zy).rg * 2.0 - 1.0) * 0.8;
+		vec2 ay = (texture(rock_normal, p.xz).rg * 2.0 - 1.0) * 0.8;
+		vec2 az = (texture(rock_normal, p.xy).rg * 2.0 - 1.0) * 0.8;
+		vec3 sg = vec3(n.x < 0.0 ? -1.0 : 1.0, n.y < 0.0 ? -1.0 : 1.0, n.z < 0.0 ? -1.0 : 1.0);
+		vec3 tx = vec3(vec2(ax.x * sg.x, -ax.y) + n.zy, sqrt(max(0.0, 1.0 - dot(ax, ax))) * n.x);
+		vec3 ty = vec3(vec2(ay.x * sg.y, ay.y) + n.xz, sqrt(max(0.0, 1.0 - dot(ay, ay))) * n.y);
+		vec3 tz = vec3(vec2(az.x * sg.z, -az.y) + n.xy, sqrt(max(0.0, 1.0 - dot(az, az))) * n.z);
+		vec3 wn = normalize(tx.zyx * w.x + ty.xzy * w.y + tz.xyz * w.z);
+		NORMAL = normalize((VIEW_MATRIX * vec4(wn, 0.0)).xyz);
 	}
 	AO = cloud_sky_ao(v_cs_sun);
 }

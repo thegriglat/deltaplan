@@ -48,10 +48,32 @@ func test_models() -> void:
 	check(names.size() >= 10, "вариантов камней: %d" % names.size())
 	var m := RockScatter.load_meshes(String(cfg.model_path), names)
 	check(m.size() == names.size() * RockScatter.LODS, "все LOD всех вариантов")
+	var small := ["pebble0", "chip0", "flake0", "wedge1"]
 	for v in names.size():
-		var a := (m[v * 3] as ArrayMesh).get_faces().size() / 3
-		var b := (m[v * 3 + 2] as ArrayMesh).get_faces().size() / 3
-		check(a <= 1500 and b < a and (v < cfg.boulders.size() or a <= 400), "%s: треугольников LOD0 %d, LOD2 %d" % [names[v], a, b])
+		var t: Array = []
+		var bb: Array = []
+		for l in 3:
+			var mesh := m[v * 3 + l] as ArrayMesh
+			t.append(mesh.get_faces().size() / 3)
+			bb.append(mesh.get_aabb())
+		var nm: String = names[v]
+		var ok := true
+		if nm == "boulder0":
+			ok = t[0] >= 250 and t[0] <= 400 and t[1] >= 60 and t[1] <= 100 and t[2] >= 12 and t[2] <= 30
+		elif nm in small:
+			ok = t[0] >= 12 and t[0] <= 20 and t[1] >= 12 and t[1] <= 20 and t[2] >= 12 and t[2] <= 20
+		else:
+			ok = t[0] >= 20 and t[0] <= 80 and t[2] >= 12 and t[2] <= 20 and t[2] <= t[1] and t[1] <= t[0]
+		check(ok, "%s: треугольников LOD0/1/2 = %s" % [nm, t])
+		var a0: AABB = bb[0]
+		var h0 := a0.size.y
+		var w0 := maxf(a0.size.x, a0.size.z)
+		for l in [1, 2]:
+			var a: AABB = bb[l]
+			var w := maxf(a.size.x, a.size.z)
+			check(absf(w / w0 - 1.0) <= 0.05 and absf(a.size.y / h0 - 1.0) <= 0.05
+					and absf(a.position.y + 0.15 * a.size.y) <= 0.03,
+					"%s LOD%d: размер %.3f/%.3f, высота %.3f/%.3f, низ %.3f" % [nm, l, w, w0, a.size.y, h0, a.position.y])
 
 
 func _all(t: Terrain, r: RockScatter, rad: float, small: bool) -> Dictionary:

@@ -1,0 +1,60 @@
+{
+  "id": "GR-4",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Камни: выпуклые многогранники вместо икосфер",
+  "goal": "Генератор build_rocks.py строит chunk/slab/wedge/tooth/comb как выпуклые многогранники по плоскостям (плоские грани, острые рёбра, LOD0 20–80, LOD2 12–20 треугольников), boulder0 ≈ 320, мелкие 12–20; LOD — одна форма; мелкий рельеф — трипланарная нормаль в шейдере. Контракт G1 и rock_scatter.gd не ломаются; замер «камни и кусты» после по G3.",
+  "plan_ref": "GR-4. Камни: многогранники",
+  "contracts": [
+    {
+      "name": "G1",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G3",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-4",
+  "branch": "grass-rocks/GR-4",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "tools/blender/build_rocks.py",
+    "assets/models/rocks/",
+    "assets/source/rocks/",
+    "scripts/terrain/rock_scatter.gdshader",
+    "tests/terrain/test_rocks.gd",
+    "docs/perf/grass_rocks.md",
+    "docs/perf/data/grass_rocks_GR-4.tar.gz",
+    "ASSETS.md",
+    "data/terrain/textures/"
+  ],
+  "dont_touch": [
+    "scripts/terrain/rock_scatter.gd",
+    "configs/world.json",
+    "tools/blender/bl_util.py",
+    "assets/models/shrubs",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "rocks",
+      "tests": "rocks"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "section",
+      "cmd": "grep -c '^## GR-4' docs/perf/grass_rocks.md",
+      "expect": "re:^1$"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:45:30",
+  "edited": "2026-10-15T04:46:25"
+}
