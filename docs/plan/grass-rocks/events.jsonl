@@ -125,3 +125,5 @@
 {"t": "2026-10-15T08:18:02", "by": "coordinator", "task": "GR-6", "ev": "note", "note": "ревью: dp-reviewer (GPU-шейдер травы)"}
 {"t": "2026-10-15T08:19:20", "by": "reviewer", "task": "GR-6", "ev": "reviewed", "note": "Правки в скоупе, G2 v1 и G4 v1 не нарушены (slope_deg_at — новый статический метод, сигнатуры прежние). Нормаль травинки, сужение листа, сухой кончик и край сд…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/grass-rocks/tasks/GR-6.review.json"}
 {"t": "2026-10-15T08:19:36", "by": "coordinator", "task": "GR-6", "ev": "accepted", "note": "по ревью; minor: уклон ближнее/среднее различается (стык 8–14 м), запас высоты по всем местам, рост цены по частям не измерен — GR-13"}
+{"t": "2026-10-15T08:20:20", "by": "coordinator", "task": "GR-6", "ev": "accepted", "commits": ["5b0b1c10"], "note": "3/3 grass=ok:29/29 (пропуск 11); grass_rocks_contracts=ok:6/6; gpu_grass=ok:40 тестов, 0 упало"}
+{"t": "2026-10-15T08:20:20", "by": "coordinator", "task": "GR-6", "ev": "merged", "commits": ["5b0b1c10"]}
