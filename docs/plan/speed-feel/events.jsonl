@@ -49,3 +49,5 @@
 {"t": "2026-10-15T05:35:48", "by": "coordinator", "task": "SPF-6", "ev": "started"}
 {"t": "2026-10-15T05:35:58", "by": "coordinator", "task": "SPF-4", "ev": "accepted", "commits": ["94b3df91"], "note": "4/4 wire_tone=ok:6/6; flight_sound_mix=ok:12/12; speed_feel_k3=ok:3/3; audio=ok:45/45"}
 {"t": "2026-10-15T05:36:16", "by": "coordinator", "task": "SPF-4", "ev": "merged"}
+{"t": "2026-10-15T05:36:30", "by": "coordinator", "task": "SPF-4", "ev": "checked", "commits": ["94b3df9"], "note": "2/4 wire_tone=FAIL:таймаут; flight_sound_mix=FAIL:таймаут; speed_feel_k3=ok:3/3; audio=ok:45/45"}
+{"t": "2026-10-15T05:36:31", "by": "coordinator", "task": "SPF-4", "ev": "merged"}
