@@ -84,6 +84,7 @@ var _shoulders: Array[int] = []  ## кости UpperArm.L/R (высота хва
 var _wing_base := Vector3.ZERO  ## положение крыла без тряски
 var _turbulence := 0.0
 var _buzz_time := 0.0
+var _airspeed := 0.0
 var _buzz_amp := 0.0
 var _buzz_kick := 0.0
 var _arms_snap := true
@@ -349,6 +350,7 @@ func step_telltales(
 ## Парус (шейдер): воздушная скорость, м/с; срыв 0..1; болтанка 0..1.
 func set_flight(airspeed_ms: float, stall_amount: float, turbulence: float) -> void:
 	_turbulence = turbulence
+	_airspeed = airspeed_ms
 	SailMaterial.set_flight(sail_material, airspeed_ms, stall_amount, turbulence)
 
 
@@ -710,7 +712,8 @@ func _arm_goal(a: Dictionary, flying: bool) -> Vector2:
 
 ## Тряска крыла с трапецией относительно пилота (flight.json → visual.buzz): амплитуда от болтанки
 ## (turbulence из set_flight) и отклонения перегрузки от 1 g, плюс толчок от мгновенной
-## перегрузки; сумма синусов 2–8 Гц. На прямой в спокойном воздухе — ноль.
+## перегрузки; сумма синусов 2–8 Гц, умноженных на V/V_трим (_buzz_freq_ratio; амплитуду на скорость
+## не множим — она уже в load). На прямой в спокойном воздухе — ноль.
 func _update_buzz(flying: bool, dt: float) -> void:
 	if wing == null:
 		return
@@ -732,7 +735,8 @@ func _update_buzz(flying: bool, dt: float) -> void:
 	var kt := float(b.get("kick_filter_s", 0.03))
 	var kk := 1.0 if kt <= 0.0 or dt > 10.0 else 1.0 - exp(-dtc / kt)
 	_buzz_kick = lerpf(_buzz_kick, clampf(kick, -mx, mx), kk)
-	_buzz_time = fmod(_buzz_time + dtc, 1000.0)
+	# фаза копится как ∫f dt: время тряски течёт в r_f раз быстрее — скачков фазы при смене скорости нет
+	_buzz_time = fmod(_buzz_time + dtc * _buzz_freq_ratio(b), 1000.0)
 	buzz = Vector3.ZERO
 	if _buzz_amp > 1e-5:
 		var w := _vec3(b.get("axis_weights", [0.4, 1.0, 0.3]))
@@ -743,6 +747,19 @@ func _update_buzz(flying: bool, dt: float) -> void:
 	var rot := deg_to_rad(float(b.get("rotation_deg_per_cm", 0.1))) * 100.0
 	var basis := Basis(Vector3.BACK, buzz.x * rot) * Basis(Vector3.RIGHT, -buzz.z * rot)
 	wing.transform = Transform3D(basis, _wing_base + buzz)
+
+
+## Множитель частот тряски r_f = V / V_трим в пределах buzz.freq_ratio_range (частота встречи с
+## порывами ∝ V: порывы заморожены в пространстве, SPF-К1). Нет модели или V_трим ≤ 0 → 1.
+func _buzz_freq_ratio(b: Dictionary) -> float:
+	var g := get_parent() as Glider
+	if g == null or g.model == null or not g.model.has_method("trim_speed"):
+		return 1.0
+	var vt: float = g.model.trim_speed()
+	if vt <= 0.0 or not is_finite(vt):
+		return 1.0
+	var rr: Array = b.get("freq_ratio_range", [0.7, 2.0])
+	return clampf(_airspeed / vt, float(rr[0]), float(rr[1]))
 
 
 ## Сумма синусов на частотах buzz.freqs_hz (фазы сдвинуты на phase), нормирована к ±1.
