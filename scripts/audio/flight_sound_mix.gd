@@ -5,8 +5,9 @@ extends RefCounted
 ## и события разовых звуков (advance). Воспроизведение — в FlightAudio.
 ## Алгоритмы — docs/research/sounds.md §3, числа — configs/audio.json → flight.
 
-## Имена лупов (совпадают с ключами files в конфиге).
-const AIRFLOW_LOOPS: PackedStringArray = ["rush", "rumble", "wires", "ears", "fast"]
+## Имена файловых лупов (совпадают с ключами files в конфиге). Тон тросов "wires" — не файл,
+## а процедурный синтез WireTone (SPF-К3); compute() по-прежнему отдаёт для него out["wires"].
+const AIRFLOW_LOOPS: PackedStringArray = ["rush", "rumble", "ears", "fast"]
 const SAIL_LOOPS: PackedStringArray = ["wing", "luff"]
 const RUN_LOOPS: PackedStringArray = ["breath"]
 ## Имя слоя шуршания ног о траву (PH-4): процедурный луп, не из файла.
@@ -147,7 +148,7 @@ func _compute_airflow(out: Dictionary) -> void:
 	out["rumble"] = Vector2(rumble, 0.7 + 0.3 * r)
 	var wires := _cap(float(_air.wires_db) + 10.0 * float(_air.wires_exp) * lg, "wires_max_db")
 	wires += _db(_smooth(_pair(_air, "wires_on_kmh"), v))
-	out["wires"] = Vector2(wires, r)
+	out["wires"] = Vector2(wires, 1.0)  # частоту задаёт WireTone, не pitch
 	var ears_gain := presence * (1.0 - _smooth(_pair(_air, "ears_fade_kmh"), v))
 	out["ears"] = Vector2(float(_air.ears_db) + _db(ears_gain), 1.0)
 	var fast_gain := _smooth(_pair(_air, "fast_fade_kmh"), v)
