@@ -42,7 +42,13 @@ func test_sail_shader_and_flight_params() -> void:
 	var g: Glider = GLIDER_SCENE.instantiate()
 	g.auto_start = Glider.AutoStart.NONE
 	Engine.get_main_loop().current_scene.add_child(g)
+	# срыв по stall_amount — FlightModel; режим задаём явно, не умолчанием (PMD-2)
+	var cfg := Config.get_config("controls")
+	var old: Variant = cfg.get("roll_control_mode")
+	cfg["roll_control_mode"] = "weight_shift"
 	g.setup("sport")
+	cfg["roll_control_mode"] = old
+	check(g.model is FlightModel, "режим weight_shift → FlightModel")
 	g.reset_in_air(Vector3(0, 500, 0), 0.0)
 	check(g.visual.sail_material != null, "на парусе шейдер SailMaterial")
 	var ci := ControlInput.new()
