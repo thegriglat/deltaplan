@@ -237,3 +237,5 @@
 {"t": "2026-10-15T14:39:33", "by": "coordinator", "task": "GR-21", "ev": "note", "note": "ревью: dp-reviewer; бюджет medium cockpit@2 0,74 > 0,7 (в шуме 0,1–0,2) — на шлюз пользователю"}
 {"t": "2026-10-15T14:40:43", "by": "reviewer", "task": "GR-21", "ev": "reviewed", "note": "Режим angle сделан по G4 v4: α = asin(|взгляд·n|) с одной и той же билинейной нормалью в слоях и карточках, доли 1−s и s в сумме дают 1 (растворение по густоте…", "verdict": "accept", "issues": {"major": 1, "minor": 2}, "review": "docs/plan/grass-rocks/tasks/GR-21.review.json"}
 {"t": "2026-10-15T14:40:59", "by": "coordinator", "task": "GR-21", "ev": "accepted", "note": "по ревью; major: бюджет medium cockpit 0,74 > 0,7 — проверит GR-22, на шлюз; minor: цвет неба у пучка на гребне, ожидание 30 кадров в тесте"}
+{"t": "2026-10-15T14:41:08", "by": "coordinator", "task": "GR-21", "ev": "checked", "commits": ["473c6713"], "note": "1/5 grass_rocks_contracts=ok:7/7"}
+{"t": "2026-10-15T14:41:09", "by": "coordinator", "task": "GR-21", "ev": "merged", "commits": ["473c6713"]}
