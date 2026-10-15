@@ -120,6 +120,11 @@ func get_loop_db(loop_name: String) -> float:
 
 
 func _exit_tree() -> void:
+	# Генератор тросов: отпустить playback и снять поток (как в vario_audio.gd).
+	_wire_playback = null
+	if _wire_player:
+		_wire_player.stop()
+		_wire_player.stream = null
 	# Остановить звуки, чтобы аудиосервер отпустил потоки (без утечек при выходе).
 	for c in get_children():
 		if c is AudioStreamPlayer:
