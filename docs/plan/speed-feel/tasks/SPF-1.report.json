@@ -1,0 +1,82 @@
+{
+  "status": "done",
+  "summary": "docs/research/speed-feel.md (разделы 1-5 + передача SPF-2..5) и tools/research/speed-feel/: замеры headless и литература. Главное: load.jitter растёт как V^1,2-1,5 (на 2xV в 2,0-3,1 раза) - скорость уже в физике; theta киля падает на 15-17 градусов от трима до 62-80 км/ч; лента St_L 0,4 (физ. 37 Гц при 12 м/с, 77 при 25) - различать амплитудой (12/U)^(2/3); тросы 2,0/2,4/3,2 мм (Wills Wing, Bautek), St 0,2, 520-2330 Гц; доля следования головы 0,3 (0,1-0,5).",
+  "commits": [
+    "895c84dc SPF-1: числа и источники для ощущения скорости"
+  ],
+  "checks": [
+    {
+      "name": "jitter(2V)/jitter(Vтрим), учебное/спортивное, L=30/100/300",
+      "value": "2,0-2,8 / 2,3-3,1 (правило >=1,5: в физике)",
+      "pass": true
+    },
+    {
+      "name": "theta киля трим -> быстро, учебное",
+      "value": "+3,6 -> -11,4 градусов (32->62 км/ч)",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "3/3 PASS, docs check ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "doc",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "sections",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "80 км/ч учебное крыло не достигает (упор 62,6) - взято спортивное; V_трим учебного 32,3, не 40"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SPF-1",
+  "uncertain": [
+    {
+      "where": "docs/research/speed-feel.md §5",
+      "why": "доля следования головы 0,3 - суждение по обзору (Goldberg&Cullen 2011); тексты Keshner&Peterson, Pozzo, Gallimore недоступны, числа для тангажа лёжа в подвеске не найдены",
+      "checked": "обзор, пересказы в открытых статьях"
+    },
+    {
+      "where": "docs/research/speed-feel.md §3",
+      "why": "спад амплитуды ленты (12/U)^(2/3) - вывод по аналогии с Jia 2015 (длина волны); прямого замера для ленточки нет; Taneda 1968 по пересказу",
+      "checked": "Eloy 2008, Raynaud&Mulleners 2026, Jia 2015 (тексты прочитаны)"
+    },
+    {
+      "where": "docs/research/speed-feel.md §1",
+      "why": "одна форма спектра, sigma=1 м/с, 5 сидов (SD среднего 20-30 %); средняя V в порывах на 10-40 % выше штилевой",
+      "checked": "три масштаба L, два крыла"
+    },
+    {
+      "where": "docs/research/speed-feel.md §4",
+      "why": "Ø3,8 и 4,8 мм из sounds.md источником не подтверждены; Ø ПВХ-оболочки передних тросов неизвестен; Blender WIRE_R даёт Ø9 мм",
+      "checked": "паспорта, control_frame_refs, Жеглов 1983"
+    }
+  ],
+  "dp_feedback": "godot -s не видит автозагрузку Config - нужен tscn; docs index правит docs/registry (вне скоупа) - пришлось откатывать вручную.",
+  "extra": {
+    "jitter_exponent_p": "1,2-1,5",
+    "freq_wires_hz_30_55_80_d2.0": [
+      833,
+      1528,
+      2222
+    ],
+    "telltale_f_hz_12_25_St0.4": [
+      37,
+      77
+    ],
+    "head_follow": 0.3
+  },
+  "t": "2026-10-15T05:10:41",
+  "by": "executor"
+}

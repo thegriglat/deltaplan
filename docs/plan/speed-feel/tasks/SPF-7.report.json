@@ -1,0 +1,72 @@
+{
+  "status": "done",
+  "summary": "В PendulumModel добавлен trim_pitch() с кэшем; бисекция вынесена в _trim_balance(), solve_trim() использует её и поведение прежнее. camera_rig.gd не менялся: тангаж −Z базиса wing_basis() совпадает с trim_pitch() (проверено тестом).",
+  "commits": [
+    "424e46fc SPF-7: PendulumModel.trim_pitch()"
+  ],
+  "checks": [
+    {
+      "name": "trim_pitch",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "head_pitch",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "speed_feel_k4",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "pendulum",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "camera",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SPF-7",
+  "uncertain": [
+    {
+      "where": "scripts/flight/pendulum/pendulum_model.gd: trim_pitch()",
+      "why": "кэш считается при solve_trim (плотность на высоте старта) или лениво; при дрейфе плотности с высотой в полёте не пересчитывается (разница доли градуса)",
+      "checked": "в штиле средний θ = trim_pitch ±0,2° для трёх крыльев"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "trim_pitch_deg": {
+      "training": 3.63,
+      "laminar": 5.18,
+      "sport": 6.49
+    },
+    "push_to_1.6Vtrim": {
+      "training": {
+        "d_theta_deg": -23.9,
+        "p_deg": -7.17
+      },
+      "laminar": {
+        "d_theta_deg": -39.3,
+        "p_deg": -11.79,
+        "note": "камера ограничит ±10"
+      },
+      "sport": {
+        "d_theta_deg": -42.8,
+        "p_deg": -12.85,
+        "note": "камера ограничит ±10"
+      }
+    },
+    "model_limits": "штанга pitch=-1 держится до 1,6 Vтрим; Δθ большой, потому что крыло пикирует, p в камере ограничен ±10°"
+  },
+  "t": "2026-10-15T06:45:05",
+  "by": "executor"
+}

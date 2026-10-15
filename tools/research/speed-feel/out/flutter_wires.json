@@ -1,0 +1,291 @@
+{
+ "telltale_physical": [
+  {
+   "St_L": 0.25,
+   "U_ms": 2.0,
+   "f_hz": 3.8
+  },
+  {
+   "St_L": 0.25,
+   "U_ms": 5.0,
+   "f_hz": 9.6
+  },
+  {
+   "St_L": 0.25,
+   "U_ms": 8.0,
+   "f_hz": 15.4
+  },
+  {
+   "St_L": 0.25,
+   "U_ms": 12.0,
+   "f_hz": 23.1
+  },
+  {
+   "St_L": 0.25,
+   "U_ms": 25.0,
+   "f_hz": 48.1
+  },
+  {
+   "St_L": 0.4,
+   "U_ms": 2.0,
+   "f_hz": 6.2
+  },
+  {
+   "St_L": 0.4,
+   "U_ms": 5.0,
+   "f_hz": 15.4
+  },
+  {
+   "St_L": 0.4,
+   "U_ms": 8.0,
+   "f_hz": 24.6
+  },
+  {
+   "St_L": 0.4,
+   "U_ms": 12.0,
+   "f_hz": 36.9
+  },
+  {
+   "St_L": 0.4,
+   "U_ms": 25.0,
+   "f_hz": 76.9
+  },
+  {
+   "St_L": 0.55,
+   "U_ms": 2.0,
+   "f_hz": 8.5
+  },
+  {
+   "St_L": 0.55,
+   "U_ms": 5.0,
+   "f_hz": 21.2
+  },
+  {
+   "St_L": 0.55,
+   "U_ms": 8.0,
+   "f_hz": 33.8
+  },
+  {
+   "St_L": 0.55,
+   "U_ms": 12.0,
+   "f_hz": 50.8
+  },
+  {
+   "St_L": 0.55,
+   "U_ms": 25.0,
+   "f_hz": 105.8
+  }
+ ],
+ "telltale_jia": [
+  {
+   "linear_g_per_m": 0.5,
+   "areal_kg_m2": 0.05,
+   "U_ms": 12.0,
+   "f_hz": 93.6,
+   "St_L": 1.01
+  },
+  {
+   "linear_g_per_m": 0.5,
+   "areal_kg_m2": 0.05,
+   "U_ms": 25.0,
+   "f_hz": 195.0,
+   "St_L": 1.01
+  },
+  {
+   "linear_g_per_m": 1.0,
+   "areal_kg_m2": 0.1,
+   "U_ms": 12.0,
+   "f_hz": 46.8,
+   "St_L": 0.51
+  },
+  {
+   "linear_g_per_m": 1.0,
+   "areal_kg_m2": 0.1,
+   "U_ms": 25.0,
+   "f_hz": 97.5,
+   "St_L": 0.51
+  },
+  {
+   "linear_g_per_m": 2.0,
+   "areal_kg_m2": 0.2,
+   "U_ms": 12.0,
+   "f_hz": 23.4,
+   "St_L": 0.25
+  },
+  {
+   "linear_g_per_m": 2.0,
+   "areal_kg_m2": 0.2,
+   "U_ms": 25.0,
+   "f_hz": 48.7,
+   "St_L": 0.25
+  }
+ ],
+ "telltale_amp_shape": [
+  {
+   "U_ms": 12,
+   "rel_to_12": 1.0
+  },
+  {
+   "U_ms": 15,
+   "rel_to_12": 0.86
+  },
+  {
+   "U_ms": 18,
+   "rel_to_12": 0.76
+  },
+  {
+   "U_ms": 22,
+   "rel_to_12": 0.67
+  },
+  {
+   "U_ms": 25,
+   "rel_to_12": 0.61
+  }
+ ],
+ "wires": [
+  {
+   "wire": "front/rear 5/64in (WW T2C)",
+   "d_mm": 2.0,
+   "V_kmh": 30,
+   "Re": 1142,
+   "f_hz_St0.20": 833,
+   "f_hz_St0.19": 792,
+   "f_hz_St0.21": 875
+  },
+  {
+   "wire": "front/rear 5/64in (WW T2C)",
+   "d_mm": 2.0,
+   "V_kmh": 40,
+   "Re": 1522,
+   "f_hz_St0.20": 1111,
+   "f_hz_St0.19": 1056,
+   "f_hz_St0.21": 1167
+  },
+  {
+   "wire": "front/rear 5/64in (WW T2C)",
+   "d_mm": 2.0,
+   "V_kmh": 55,
+   "Re": 2093,
+   "f_hz_St0.20": 1528,
+   "f_hz_St0.19": 1451,
+   "f_hz_St0.21": 1604
+  },
+  {
+   "wire": "front/rear 5/64in (WW T2C)",
+   "d_mm": 2.0,
+   "V_kmh": 80,
+   "Re": 3044,
+   "f_hz_St0.20": 2222,
+   "f_hz_St0.19": 2111,
+   "f_hz_St0.21": 2333
+  },
+  {
+   "wire": "side 3/32in (WW T2C)",
+   "d_mm": 2.38,
+   "V_kmh": 30,
+   "Re": 1358,
+   "f_hz_St0.20": 700,
+   "f_hz_St0.19": 665,
+   "f_hz_St0.21": 735
+  },
+  {
+   "wire": "side 3/32in (WW T2C)",
+   "d_mm": 2.38,
+   "V_kmh": 40,
+   "Re": 1811,
+   "f_hz_St0.20": 934,
+   "f_hz_St0.19": 887,
+   "f_hz_St0.21": 980
+  },
+  {
+   "wire": "side 3/32in (WW T2C)",
+   "d_mm": 2.38,
+   "V_kmh": 55,
+   "Re": 2490,
+   "f_hz_St0.20": 1284,
+   "f_hz_St0.19": 1220,
+   "f_hz_St0.21": 1348
+  },
+  {
+   "wire": "side 3/32in (WW T2C)",
+   "d_mm": 2.38,
+   "V_kmh": 80,
+   "Re": 3623,
+   "f_hz_St0.20": 1867,
+   "f_hz_St0.19": 1774,
+   "f_hz_St0.21": 1961
+  },
+  {
+   "wire": "Bautek Fizz lower/top",
+   "d_mm": 2.5,
+   "V_kmh": 30,
+   "Re": 1427,
+   "f_hz_St0.20": 667,
+   "f_hz_St0.19": 633,
+   "f_hz_St0.21": 700
+  },
+  {
+   "wire": "Bautek Fizz lower/top",
+   "d_mm": 2.5,
+   "V_kmh": 40,
+   "Re": 1903,
+   "f_hz_St0.20": 889,
+   "f_hz_St0.19": 844,
+   "f_hz_St0.21": 933
+  },
+  {
+   "wire": "Bautek Fizz lower/top",
+   "d_mm": 2.5,
+   "V_kmh": 55,
+   "Re": 2616,
+   "f_hz_St0.20": 1222,
+   "f_hz_St0.19": 1161,
+   "f_hz_St0.21": 1283
+  },
+  {
+   "wire": "Bautek Fizz lower/top",
+   "d_mm": 2.5,
+   "V_kmh": 80,
+   "Re": 3805,
+   "f_hz_St0.20": 1778,
+   "f_hz_St0.19": 1689,
+   "f_hz_St0.21": 1867
+  },
+  {
+   "wire": "sprog 1/8in (WW T2C)",
+   "d_mm": 3.2,
+   "V_kmh": 30,
+   "Re": 1826,
+   "f_hz_St0.20": 521,
+   "f_hz_St0.19": 495,
+   "f_hz_St0.21": 547
+  },
+  {
+   "wire": "sprog 1/8in (WW T2C)",
+   "d_mm": 3.2,
+   "V_kmh": 40,
+   "Re": 2435,
+   "f_hz_St0.20": 694,
+   "f_hz_St0.19": 660,
+   "f_hz_St0.21": 729
+  },
+  {
+   "wire": "sprog 1/8in (WW T2C)",
+   "d_mm": 3.2,
+   "V_kmh": 55,
+   "Re": 3349,
+   "f_hz_St0.20": 955,
+   "f_hz_St0.19": 907,
+   "f_hz_St0.21": 1003
+  },
+  {
+   "wire": "sprog 1/8in (WW T2C)",
+   "d_mm": 3.2,
+   "V_kmh": 80,
+   "Re": 4871,
+   "f_hz_St0.20": 1389,
+   "f_hz_St0.19": 1319,
+   "f_hz_St0.21": 1458
+  }
+ ]
+}

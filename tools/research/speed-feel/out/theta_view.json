@@ -1,0 +1,200 @@
+[
+ {
+  "wing": "training",
+  "v_kmh": 29.9,
+  "theta_deg": 5.65,
+  "gamma_deg": -7.33,
+  "alpha_deg": 12.99,
+  "sink_ms": 1.06,
+  "keel_above_horizon_deg": 5.65,
+  "bar_center_from_axis_deg": 62.5,
+  "wire_corner_from_axis_deg": 74.6,
+  "wire_nose_from_axis_deg": 77.5,
+  "wire_closest_from_axis_deg": 63.0,
+  "wire_min_vfov_deg": 87.8,
+  "bar_min_vfov_deg": 124.9,
+  "bar_in_frame_fov90": false,
+  "wire_in_frame_fov90": true,
+  "bar_center_cam_m": [
+   0.0,
+   -0.465,
+   0.243
+  ]
+ },
+ {
+  "wing": "training",
+  "v_kmh": 32.2,
+  "theta_deg": 3.58,
+  "gamma_deg": -6.8,
+  "alpha_deg": 10.38,
+  "sink_ms": 1.06,
+  "keel_above_horizon_deg": 3.58,
+  "bar_center_from_axis_deg": 64.5,
+  "wire_corner_from_axis_deg": 75.7,
+  "wire_nose_from_axis_deg": 75.4,
+  "wire_closest_from_axis_deg": 62.0,
+  "wire_min_vfov_deg": 85.3,
+  "bar_min_vfov_deg": 129.1,
+  "bar_in_frame_fov90": false,
+  "wire_in_frame_fov90": true,
+  "bar_center_cam_m": [
+   0.0,
+   -0.474,
+   0.226
+  ]
+ },
+ {
+  "wing": "training",
+  "v_kmh": 39.9,
+  "theta_deg": -1.69,
+  "gamma_deg": -6.37,
+  "alpha_deg": 4.68,
+  "sink_ms": 1.23,
+  "keel_above_horizon_deg": -1.69,
+  "bar_center_from_axis_deg": 69.8,
+  "wire_corner_from_axis_deg": 78.6,
+  "wire_nose_from_axis_deg": 70.2,
+  "wire_closest_from_axis_deg": 59.3,
+  "wire_min_vfov_deg": 79.5,
+  "bar_min_vfov_deg": 139.6,
+  "bar_in_frame_fov90": false,
+  "wire_in_frame_fov90": true,
+  "bar_center_cam_m": [
+   0.0,
+   -0.493,
+   0.181
+  ]
+ },
+ {
+  "wing": "training",
+  "v_kmh": 54.7,
+  "theta_deg": -8.49,
+  "gamma_deg": -8.14,
+  "alpha_deg": -0.35,
+  "sink_ms": 2.15,
+  "keel_above_horizon_deg": -8.49,
+  "bar_center_from_axis_deg": 76.6,
+  "wire_corner_from_axis_deg": 82.4,
+  "wire_nose_from_axis_deg": 63.4,
+  "wire_closest_from_axis_deg": 55.6,
+  "wire_min_vfov_deg": 71.3,
+  "bar_min_vfov_deg": 153.2,
+  "bar_in_frame_fov90": false,
+  "wire_in_frame_fov90": true,
+  "bar_center_cam_m": [
+   0.0,
+   -0.511,
+   0.121
+  ]
+ },
+ {
+  "wing": "training",
+  "v_kmh": 62.1,
+  "theta_deg": -11.38,
+  "gamma_deg": -9.74,
+  "alpha_deg": -1.64,
+  "sink_ms": 2.92,
+  "keel_above_horizon_deg": -11.38,
+  "bar_center_from_axis_deg": 79.5,
+  "wire_corner_from_axis_deg": 84.0,
+  "wire_nose_from_axis_deg": 60.5,
+  "wire_closest_from_axis_deg": 54.0,
+  "wire_min_vfov_deg": 68.5,
+  "bar_min_vfov_deg": 159.0,
+  "bar_in_frame_fov90": false,
+  "wire_in_frame_fov90": true,
+  "bar_center_cam_m": [
+   0.0,
+   -0.516,
+   0.096
+  ]
+ },
+ {
+  "wing": "sport",
+  "v_kmh": 35.3,
+  "theta_deg": 6.59,
+  "gamma_deg": -5.26,
+  "alpha_deg": 11.85,
+  "sink_ms": 0.9,
+  "keel_above_horizon_deg": 6.59,
+  "bar_center_from_axis_deg": 53.2,
+  "wire_corner_from_axis_deg": 73.2,
+  "wire_nose_from_axis_deg": 78.9,
+  "wire_closest_from_axis_deg": 60.9,
+  "wire_min_vfov_deg": 83.0,
+  "bar_min_vfov_deg": 106.4,
+  "bar_in_frame_fov90": false,
+  "wire_in_frame_fov90": true,
+  "bar_center_cam_m": [
+   0.0,
+   -0.487,
+   0.364
+  ]
+ },
+ {
+  "wing": "sport",
+  "v_kmh": 39.9,
+  "theta_deg": 3.36,
+  "gamma_deg": -4.62,
+  "alpha_deg": 7.98,
+  "sink_ms": 0.89,
+  "keel_above_horizon_deg": 3.36,
+  "bar_center_from_axis_deg": 56.4,
+  "wire_corner_from_axis_deg": 75.1,
+  "wire_nose_from_axis_deg": 75.7,
+  "wire_closest_from_axis_deg": 59.3,
+  "wire_min_vfov_deg": 79.3,
+  "bar_min_vfov_deg": 112.9,
+  "bar_in_frame_fov90": false,
+  "wire_in_frame_fov90": true,
+  "bar_center_cam_m": [
+   0.0,
+   -0.507,
+   0.336
+  ]
+ },
+ {
+  "wing": "sport",
+  "v_kmh": 54.9,
+  "theta_deg": -2.51,
+  "gamma_deg": -3.91,
+  "alpha_deg": 1.4,
+  "sink_ms": 1.04,
+  "keel_above_horizon_deg": -2.51,
+  "bar_center_from_axis_deg": 62.3,
+  "wire_corner_from_axis_deg": 78.8,
+  "wire_nose_from_axis_deg": 69.8,
+  "wire_closest_from_axis_deg": 56.4,
+  "wire_min_vfov_deg": 73.1,
+  "bar_min_vfov_deg": 124.6,
+  "bar_in_frame_fov90": false,
+  "wire_in_frame_fov90": true,
+  "bar_center_cam_m": [
+   0.0,
+   -0.538,
+   0.282
+  ]
+ },
+ {
+  "wing": "sport",
+  "v_kmh": 79.8,
+  "theta_deg": -8.88,
+  "gamma_deg": -6.37,
+  "alpha_deg": -2.5,
+  "sink_ms": 2.46,
+  "keel_above_horizon_deg": -8.88,
+  "bar_center_from_axis_deg": 68.7,
+  "wire_corner_from_axis_deg": 82.9,
+  "wire_nose_from_axis_deg": 63.4,
+  "wire_closest_from_axis_deg": 53.1,
+  "wire_min_vfov_deg": 66.3,
+  "bar_min_vfov_deg": 137.4,
+  "bar_in_frame_fov90": false,
+  "wire_in_frame_fov90": true,
+  "bar_center_cam_m": [
+   0.0,
+   -0.566,
+   0.221
+  ]
+ }
+]

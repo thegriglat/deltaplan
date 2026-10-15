@@ -1,0 +1,11 @@
+{
+  "module": "speed-feel",
+  "plan": "docs/plan/speed-feel.md",
+  "contracts": "docs/contracts/speed-feel.md",
+  "branch": "feature/speed-feel",
+  "copy": "~/deltaplan-speed-feel",
+  "created": "2026-10-15T04:46:00",
+  "code": "SPF",
+  "area": "flight",
+  "base": "main"
+}

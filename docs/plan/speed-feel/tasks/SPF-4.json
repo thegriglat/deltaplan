@@ -1,0 +1,65 @@
+{
+  "id": "SPF-4",
+  "module": "speed-feel",
+  "type": "dp-engineer",
+  "title": "Эоловый тон тросов — процедурный синтез",
+  "goal": "Свист тросов синтезируется в реальном времени (WireTone + AudioStreamGenerator) с частотами f_i = St·V/d_i вместо файла-лупа: тон растёт со скоростью, слышен в кабине, тише общего шума ветра.",
+  "plan_ref": "SPF-4",
+  "contracts": [
+    {
+      "name": "SPF-К3",
+      "version": "1",
+      "ref": "docs/contracts/speed-feel.md"
+    }
+  ],
+  "copy": "~/deltaplan-speed-feel-SPF-4",
+  "branch": "speed-feel/SPF-4",
+  "base": "feature/speed-feel",
+  "scope": [
+    "scripts/audio/wire_tone.gd",
+    "scripts/audio/wire_tone.gd.uid",
+    "scripts/audio/flight_audio.gd",
+    "scripts/audio/flight_sound_mix.gd",
+    "configs/audio.json",
+    "tests/audio/test_wire_tone.gd",
+    "tests/audio/test_wire_tone.gd.uid",
+    "tests/audio/test_flight_sound_mix.gd",
+    "tests/contracts/test_speed_feel_k3.gd",
+    "tests/contracts/test_speed_feel_k3.gd.uid",
+    "assets/sounds/airflow/wires_whistle_loop.ogg",
+    "assets/sounds/airflow/wires_whistle_loop.ogg.import",
+    "ASSETS.md",
+    "docs/research/sounds.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/game/camera_rig.gd",
+    "scripts/instruments/",
+    "configs/flight.json",
+    "configs/sail.json",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "wire_tone",
+      "tests": "wire_tone"
+    },
+    {
+      "name": "flight_sound_mix",
+      "tests": "flight_sound_mix"
+    },
+    {
+      "name": "speed_feel_k3",
+      "tests": "speed_feel_k3"
+    },
+    {
+      "name": "audio",
+      "tests": "audio"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:51:47"
+}

@@ -232,6 +232,14 @@ func trim_speed() -> float:
 	return _v_trim_ref * speed_scale()
 
 
+## Тангаж киля в установившемся планировании на trim_speed() при текущих массе и плотности, рад
+## (формула reset_in_air). Только чтение: состояние не меняет (SPF-К4).
+func trim_pitch() -> float:
+	var v := trim_speed()
+	var gamma := -asin(clampf(steady_glide(v).y / v, -1.0, 1.0))
+	return gamma + _alpha_for_cl(2.0 * mass * Units.G / (rho * area * v * v))
+
+
 ## Скорость сваливания в прямолинейном полёте при текущей массе и плотности, м/с.
 func stall_speed() -> float:
 	return sqrt(2.0 * mass * Units.G / (rho * area * polar.cl_max))
