@@ -82,6 +82,12 @@ uniform bool cull_enabled = true;
 // нормалью лица; поперёк листа нормаль поворачивается на ±groove_deg («желобок»). Вдали (blade_normal_fade_m)
 // — к нормали полога, как было: среднее и дальнее кольца сходятся с рельефом.
 uniform float leaf_tilt_deg = 60.0;
+// Яркость листа при своей нормали (GR-14): наклонённая к камере нормаль в среднем ловит меньше прямого
+// солнца, чем нормаль полога (≈cos leaf_tilt_deg по азимутам), а цвет травинки подобран к лугу,
+// освещённому по нормали полога (земля, дальние кольца). Множитель альбедо, гаснет вместе со своей
+// нормалью (blade_normal_fade_m): средняя яркость ближней травы = яркость при нормали полога (замер —
+// tests/vegetation/test_grass_specks_gpu.gd); перепад по солнцу (лицо/изнанка) остаётся.
+uniform float leaf_tilt_gain = 1.0;
 uniform float groove_deg = 30.0;
 uniform vec2 blade_normal_fade_m = vec2(8.0, 20.0);
 // цвет вдоль/поперёк/между травинками (GR-6): край листа темнее середины на across_shade (доля),
@@ -93,8 +99,16 @@ uniform float tip_dry = 0.25;
 
 varying vec3 v_col;
 varying float v_t;
+// нормаль освещения — во фрагменте из трёх частей (GR-14): v_n — полог·cos(наклон листа),
+// v_nf/v_ns — лицо/бок травинки·sin(наклон листа); желобок (поворот к боку на groove_deg·поперёк)
+// считается по поперёк, зажатому в −1…+1. При MSAA фрагмент тонкой травинки закрашивается в центре
+// пикселя вне треугольника — varying'и экстраполируются (поперёк ±5 и дальше): без зажима край
+// листа уходил в отрицательную яркость и интерполированная нормаль — в ноль, «чёрная сыпь».
 varying vec3 v_n;
+varying vec3 v_nf;
+varying vec3 v_ns;
 varying float v_across;   // поперёк травинки −1…+1
+varying float v_gain;     // множитель альбедо своей нормали (leaf_tilt_gain по bk)
 // тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
 varying float v_cs_sun;
 
@@ -190,7 +204,10 @@ void vertex() {
 		v_col = vec3(0.0);
 		v_t = 0.0;
 		v_n = vec3(0.0, 1.0, 0.0);
+		v_nf = vec3(0.0);
+		v_ns = vec3(0.0);
 		v_across = 0.0;
+		v_gain = 1.0;
 		v_cs_sun = 1.0;
 	} else {
 		float sl_rel; vec4 sl_ss = sl_season_b(h, sl_rel); // SL
@@ -242,7 +259,10 @@ void vertex() {
 			v_col = vec3(0.0);
 			v_t = 0.0;
 			v_n = vec3(0.0, 1.0, 0.0);
+			v_nf = vec3(0.0);
+			v_ns = vec3(0.0);
 			v_across = 0.0;
+			v_gain = 1.0;
 			v_cs_sun = 1.0;
 		} else {
 
@@ -289,14 +309,18 @@ void vertex() {
 				vec3 tg = normalize(vec3(2.0 * t * lean.x, ik * ik * ik, 2.0 * t * lean.y));
 				fn = normalize(fn - tg * dot(fn, tg));
 				vec3 sd = cross(tg, fn);
-				float gr = radians(groove_deg) * UV.x;
-				vec3 nb = fn * cos(gr) + sd * sin(gr);
 				float lt = radians(leaf_tilt_deg) * bk;
-				v_n = normalize(nc * cos(lt) + nb * sin(lt));
+				// нормаль = полог·cos lt + (лицо·cos gr + бок·sin gr)·sin lt, gr = groove·поперёк (во фрагменте)
+				v_n = nc * cos(lt);
+				v_nf = fn * sin(lt);
+				v_ns = sd * sin(lt);
 			} else {
 				v_n = nc;
+				v_nf = vec3(0.0);
+				v_ns = vec3(0.0);
 			}
 			v_across = UV.x;
+			v_gain = mix(1.0, leaf_tilt_gain, bk);
 
 			// цвет подложки: тот же луг, что рисует рельеф под травой (включая пятна с высоты)
 			vec4 rel = relief_at(xz);
@@ -333,12 +357,19 @@ void vertex() {
 void fragment() {
 	// у корня темнее (затенение в гуще), к кончику светлее
 	// поперёк — край листа темнее середины (желобок затеняет края)
-	ALBEDO = v_col * mix(blade_shade.x, blade_shade.y, v_t) * (1.0 - across_shade * v_across * v_across);
+	// varying'и зажаты в пределы травинки (MSAA: центр пикселя вне тонкого треугольника, см. v_n)
+	float across = clamp(v_across, -1.0, 1.0);
+	ALBEDO = v_col * mix(blade_shade.x, blade_shade.y, clamp(v_t, 0.0, 1.0)) * v_gain
+			// край темнее середины без потери средней яркости (GR-14): среднее 1 − across_shade/3 по ширине
+			* (1.0 - across_shade * across * across) / (1.0 - across_shade / 3.0);
 	// освещение как у земли под травой (обе стороны травинки): нормаль явная и одна и та же
 	// для лица и изнанки (render_mode cull_disabled, без FRONT_FACING-переворота — иначе
 	// изнанка темнеет); тонкий стебель просвечивает — BACKLIGHT держит изнанку не темнее
 	// лица против солнца (VR-6, S1 yaw+180).
-	NORMAL = normalize((VIEW_MATRIX * vec4(v_n, 0.0)).xyz);
+	float gr = radians(groove_deg) * across;
+	vec3 n = v_n + v_nf * cos(gr) + v_ns * sin(gr);
+	n = dot(n, n) > 1e-8 ? n : vec3(0.0, 1.0, 0.0);
+	NORMAL = normalize((VIEW_MATRIX * vec4(n, 0.0)).xyz);
 	ROUGHNESS = 0.9;
 	BACKLIGHT = vec3(0.85) * v_col;
 	AO = cloud_sky_ao(v_cs_sun);

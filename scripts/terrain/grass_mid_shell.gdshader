@@ -20,7 +20,11 @@ uniform float mid_inner_m = 8.4;
 uniform float mid_inner_fade_m = 5.6;
 uniform float mid_outer_m = 40.0;
 uniform float mid_outer_fade_m = 8.0;
-uniform sampler2D mask_tex : filter_linear_mipmap, repeat_enable;
+// анизотропная фильтрация (GR-14): луг на 10–30 м виден под скользящим углом 3–8°, плитка маски
+// сжата по глубине в 10–20 раз сильнее, чем поперёк; изотропный мипмап берёт уровень по сжатию вдоль
+// взгляда и усредняет куртины (15 см) и поперёк — ворс становится ровным «ковром». Анизотропный
+// оставляет куртины и просветы поперёк взгляда.
+uniform sampler2D mask_tex : filter_linear_mipmap_anisotropic, repeat_enable;
 uniform float mask_tile_m = 4.0;       // плитка маски, м
 uniform float coverage = 1.0;          // густота (density_pct/100, не больше 1)
 // общие с grass.gdshader (копируются из материала ближнего кольца)
@@ -64,6 +68,21 @@ varying float v_lo;      // низ диапазона высоты / верх
 varying float v_share;   // доля стеблей (класс × густота × растворение края)
 varying vec2 v_lean;
 
+// Высота и уклон в точке — копия h_grad из grass.gdshader (GR-6): уклон билинейной клетки (поверхность,
+// которую рисует рельеф), те же четыре узла, что у h_bilinear.
+float h_grad(vec2 xz, out vec2 g) {
+	vec2 f = (xz - layer_origin) / layer_spacing;
+	vec2 i = floor(f);
+	vec2 t = f - i;
+	ivec2 ij = ivec2(i);
+	float h00 = h_node(ij);
+	float h10 = h_node(ij + ivec2(1, 0));
+	float h01 = h_node(ij + ivec2(0, 1));
+	float h11 = h_node(ij + ivec2(1, 1));
+	g = vec2(mix(h10 - h00, h11 - h01, t.y), mix(h01 - h00, h11 - h10, t.x)) / layer_spacing;
+	return mix(mix(h00, h10, t.x), mix(h01, h11, t.x), t.y);
+}
+
 // Вершина вне пирамиды камеры: столбик от земли до h_max радиусом reach целиком за плоскостью
 // или позади камеры (как clump_out_of_view в grass.gdshader). reach включает 1,5 шага сетки:
 // треугольник, у которого хоть одна вершина отсечена, целиком вне кадра.
@@ -87,7 +106,8 @@ bool vert_out_of_view(vec2 xz, float h, float h_max, float reach, mat4 proj, mat
 void vertex() {
 	float frac = UV.x;
 	vec2 xz = grid_origin + VERTEX.xz;
-	float h = h_bilinear(xz);
+	vec2 hg;
+	float h = h_grad(xz, hg);
 	float d = length(xz - CAMERA_POSITION_WORLD.xz);
 	float fade = smoothstep(mid_inner_m, mid_inner_m + mid_inner_fade_m, d)
 			* (1.0 - smoothstep(mid_outer_m - mid_outer_fade_m, mid_outer_m, d));
@@ -132,9 +152,8 @@ void vertex() {
 			share = 0.0;
 		}
 		float hh = hr.y;
-		float e = layer_spacing;
-		vec3 n = normalize(vec3(h_bilinear(xz - vec2(e, 0.0)) - h_bilinear(xz + vec2(e, 0.0)), 2.0 * e,
-				h_bilinear(xz - vec2(0.0, e)) - h_bilinear(xz + vec2(0.0, e))));
+		// уклон — уклон билинейной клетки, как у ближних травинок (h_grad, grass.gdshader)
+		vec3 n = normalize(vec3(-hg.x, 1.0, -hg.y));
 		float slope_deg = degrees(acos(clamp(n.y, 0.0, 1.0)));
 		hh *= 1.0 - smoothstep(rock_slope_deg - 4.0, rock_slope_deg + 2.0, slope_deg);
 		for (int k = 0; k < mowed_count; k++) {
@@ -204,16 +223,16 @@ void vertex() {
 	}
 }
 
-// Тон ближних травинок в среднем (GR-6, grass.gdshader): край листа темнее середины — среднее по
-// ширине 1 − across_shade/3; кончики суше — к соломе той же яркости на верхней трети, средняя по
-// травинкам доля 0,7·tip_dry. Совпадение тона на стыке ближнего и среднего колец (8–14 м).
+// Тон ближних травинок в среднем (GR-6, grass.gdshader): перепад «край листа темнее середины»
+// нормирован (GR-14) — в среднем по ширине множителя нет; кончики суше — к соломе той же яркости на
+// верхней трети, средняя по травинкам доля 0,7·tip_dry. Совпадение тона на стыке ближнего и среднего колец (8–14 м).
 uniform float across_shade = 0.12;
 uniform float tip_dry = 0.25;
 vec3 grass_mid_near_tone(vec3 c, float t) {
 	const vec3 LT = vec3(0.2126, 0.7152, 0.0722);
 	vec3 straw = straw_color * (dot(c, LT) / max(dot(straw_color, LT), 1e-3));
 	c = mix(c, straw, 0.7 * tip_dry * smoothstep(0.55, 1.0, t));
-	return c * (1.0 - across_shade / 3.0);
+	return c;
 }
 
 void fragment() {
