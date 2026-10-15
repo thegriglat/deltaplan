@@ -82,3 +82,4 @@
 {"t": "2026-10-15T06:31:48", "by": "reviewer", "task": "SPF-5", "ev": "reviewed", "note": "SPF-К4 v1 выполнен: trim_pitch() только читает (формула reset_in_air), p = 0,3·(θ−θ_трим) с экспонентой τ=2 с и пределом ±10°, Basis(UP)·Basis(BACK)·Basis(RIGH…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/speed-feel/tasks/SPF-5.review.json"}
 {"t": "2026-10-15T06:31:59", "by": "coordinator", "task": "SPF-5", "ev": "accepted", "note": "по ревью"}
 {"t": "2026-10-15T06:32:00", "by": "coordinator", "task": "SPF-5", "ev": "merged"}
+{"t": "2026-10-15T06:36:05", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: --test фильтр по пути файла, 0 найденных тестов = FAIL без пояснения (две мои ошибки фильтра в SPF-5). Итог: SPF-1..6 влиты в feature/speed-feel (4e67463c); тестовых сборок не было — пользователь уехал; режим маятника без следования головы по тангажу."}
