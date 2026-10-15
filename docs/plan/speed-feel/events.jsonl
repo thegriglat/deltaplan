@@ -64,3 +64,5 @@
 {"t": "2026-10-15T05:48:00", "by": "coordinator", "task": "SPF-2", "ev": "checked", "note": "4/4 buzz_speed=ok:4/4; speed_feel_k1=ok:2/2; glider_visual=ok:6/6; pilot_arms=ok:7/7"}
 {"t": "2026-10-15T05:48:11", "by": "coordinator", "task": "SPF-2", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-15T05:48:12", "by": "coordinator", "task": "SPF-2", "ev": "merged"}
+{"t": "2026-10-15T05:50:57", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: первый прогон тестов в свежей копии без godot --import висит до таймаута 900 с (accept --here в копии модуля) — accept мог бы сам делать импорт или предупреждать; запоздалый фоновый accept дописал устаревшее checked после accepted; docs index правит docs/registry вне скоупа исследователя (SPF-1)"}
+{"t": "2026-10-15T05:50:57", "by": "coordinator", "task": null, "ev": "note", "note": "состояние: SPF-1,2,3,4,6 влиты в feature/speed-feel; SPF-5 ждёт ответа на Q1; запрошена тестовая сборка Linux"}
