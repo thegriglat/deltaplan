@@ -48,10 +48,6 @@
       "tests": "tests/net/"
     },
     {
-      "name": "tests/ui/",
-      "tests": "tests/ui/"
-    },
-    {
       "name": "roll",
       "tests": "roll"
     },
@@ -83,10 +79,26 @@
     {
       "name": "tests/flight/test_glider",
       "tests": "tests/flight/test_glider"
+    },
+    {
+      "name": "tests/ui/test_settings",
+      "tests": "tests/ui/test_settings"
+    },
+    {
+      "name": "test_setup_apparatus",
+      "tests": "test_setup_apparatus"
+    },
+    {
+      "name": "test_menu_setup",
+      "tests": "test_menu_setup"
+    },
+    {
+      "name": "tests/ui/test_screens",
+      "tests": "tests/ui/test_screens"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-15T04:56:00",
-  "edited": "2026-10-15T06:28:00"
+  "edited": "2026-10-15T06:43:38"
 }
