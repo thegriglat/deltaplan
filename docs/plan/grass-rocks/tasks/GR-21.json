@@ -1,0 +1,79 @@
+{
+  "id": "GR-21",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Режим angle: слои + карточки по углу взгляда",
+  "goal": "Режим grass.mid.mode = angle (G4 v4): на средней дистанции слои shell там, где взгляд к рельефу круче 30°, карточки-пучки там, где взгляд скользит (< 15°), между — растворение без шва; цвет карточек = луг рельефа, без рыжих квадратов; цена всей травы medium ≤ 0,7, high ≤ 0,95 мс.",
+  "plan_ref": "GR-21. Режим angle: слои + карточки по углу",
+  "contracts": [
+    {
+      "name": "G2",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "4",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-21",
+  "branch": "grass-rocks/GR-21",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/terrain/grass_mid_cards.gdshader.uid",
+    "scripts/terrain/grass_mid_cards.gd",
+    "scripts/terrain/grass_mid_cards.gd.uid",
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_mid_shell.gd",
+    "scripts/terrain/grass_field.gd",
+    "configs/vegetation.json",
+    "data/vegetation/",
+    "ASSETS.md",
+    "tests/vegetation/",
+    "tests/contracts/test_grass_rocks_contracts.gd",
+    "tools/shots/grass_look.sh"
+  ],
+  "dont_touch": [
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "tools/bench",
+    "configs/game.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "gpu_grass",
+      "cmd": "DISPLAY=:0 .dpcli/dpcli lock gpu -- tools/gpu_tests.sh --filter=grass",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    },
+    {
+      "name": "angle_cfg",
+      "cmd": "python3 -c \"import json;m=json.load(open('configs/vegetation.json'))['grass']['mid'];print(m['card_angle_full_deg'],m['card_angle_none_deg'],'card_angle_full_deg_doc' in m,'card_angle_none_deg_doc' in m)\"",
+      "expect": "re:^15(\\.0)? 30(\\.0)? True True$"
+    },
+    {
+      "name": "view9",
+      "cmd": "grep -c '9_slope_ground' tools/shots/grass_look.sh",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T13:15:31"
+}
