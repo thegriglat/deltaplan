@@ -25,3 +25,6 @@
 {"t": "2026-10-15T05:05:30", "by": "executor", "task": "SPF-4", "ev": "reported", "commits": ["см."], "note": "done: WireTone: процедурный эоловый тон 4 тросов (f=St*V/d, дрейф частоты, огибающая 0,7 Гц, 2-я гармоника, панорама), плеер …", "dp_feedback": "Нет команды быстро получить таблицу значений из конфига без godot -s (godot -s с SceneTree зависал в headless)."}
 {"t": "2026-10-15T05:05:57", "by": "coordinator", "task": "SPF-4", "ev": "checked", "note": "4/4 wire_tone=ok:6/6; flight_sound_mix=ok:12/12; speed_feel_k3=ok:3/3; audio=ok:45/45"}
 {"t": "2026-10-15T05:05:57", "by": "coordinator", "task": "SPF-4", "ev": "accepted", "note": "по ревью; доделка _exit_tree"}
+{"t": "2026-10-15T05:10:41", "by": "executor", "task": "SPF-1", "ev": "reported", "commits": ["895c84dc"], "note": "done: docs/research/speed-feel.md (разделы 1-5 + передача SPF-2..5) и tools/research/speed-feel/: замеры headless и литератур…", "dp_feedback": "godot -s не видит автозагрузку Config - нужен tscn; docs index правит docs/registry (вне скоупа) - пришлось откатывать вручную."}
+{"t": "2026-10-15T05:16:59", "by": "coordinator", "task": "SPF-1", "ev": "checked", "note": "3/3 doc=ok:exit 0; sections=ok:6; docs=ok:ошибок 0"}
+{"t": "2026-10-15T05:31:50", "by": "coordinator", "task": "SPF-1", "ev": "accepted", "note": "по отчёту"}
