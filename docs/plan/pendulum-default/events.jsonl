@@ -15,3 +15,5 @@
 {"t": "2026-10-15T04:57:40", "by": "coordinator", "task": "PMD-1", "ev": "started"}
 {"t": "2026-10-15T04:57:40", "by": "coordinator", "task": "PMD-2", "ev": "started"}
 {"t": "2026-10-15T04:57:40", "by": "coordinator", "task": "PMD-3", "ev": "started"}
+{"t": "2026-10-15T05:02:29", "by": "executor", "task": "PMD-3", "ev": "reported", "commits": ["2845ae73"], "note": "done: Страница «Полёт» (ru/en) переписана: основной режим «Маятник» (полосы, подвеска, ввод и «Аппарат», земля, срыв и штопор…", "dp_feedback": "task show обрезает дополнения координатора до 300 символов; полный текст только через --full."}
+{"t": "2026-10-15T05:02:38", "by": "coordinator", "task": "PMD-3", "ev": "accepted", "note": "2/2 no-experimental=ok:0; hugo=ok:EXIT=0"}
