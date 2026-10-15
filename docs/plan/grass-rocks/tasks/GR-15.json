@@ -33,16 +33,6 @@
   ],
   "accept": [
     {
-      "name": "sizes",
-      "cmd": "file /home/greg/deltaplan/build/screenshots/grass-look/{before,after-shell,after-cards}/*.jpg | grep -o '[0-9]*x[0-9]*,' | sort -u | wc -l",
-      "expect": "re:^1$"
-    },
-    {
-      "name": "count",
-      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/{before,after-shell,after-cards}/*.jpg | wc -l",
-      "expect": "num:(\\d+) >=18"
-    },
-    {
       "name": "section",
       "cmd": "grep -c '^## GR-15' docs/perf/grass_rocks.md",
       "expect": "re:^1$"
@@ -51,9 +41,20 @@
       "name": "data",
       "cmd": "tar tzf docs/perf/data/grass_rocks_GR-15.tar.gz | grep -c 'jsonl$'",
       "expect": "num:(\\d+) >=12"
+    },
+    {
+      "name": "count",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/before/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/after-shell/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/after-cards/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=18"
+    },
+    {
+      "name": "sizes",
+      "cmd": "file /home/greg/deltaplan/build/screenshots/grass-look/before/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/after-shell/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/after-cards/*.jpg | grep -oE '[0-9]{3,}x[0-9]{3,}' | sort -u | wc -l",
+      "expect": "re:^1$"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-15T09:42:05"
+  "created": "2026-10-15T09:42:05",
+  "edited": "2026-10-15T09:42:28"
 }
