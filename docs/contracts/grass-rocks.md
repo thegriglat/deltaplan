@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-15"
 summary: "Модели камней rocks.glb (G1), открытый интерфейс GrassField и пресеты густоты (G2), протокол замера цены травы и камней (G3)."
 related: ["docs/plan/grass-rocks.md", "docs/perf/frame_profile.md"]
-contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 1}, {"id": "G3", "version": 1}]
+contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 1}, {"id": "G3", "version": 2}]
 ---
 # Контракты модуля grass-rocks
 
@@ -51,9 +51,10 @@ contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 1}, {"id": "G3",
 - Поведение, которое сохраняется: приминание у пилота (press), примятая трава у старта, скошенные места
   (`mowed_spots`) и посадочные площадки, сезон, трава под пологом леса, тень облаков на траве.
 
-## G3. Протокол замера травы и камней — версия 1
+## G3. Протокол замера травы и камней — версия 2
 
-- Владелец: координатор. Потребители: GR-2, GR-4, GR-5, GR-7, GR-9.
+- Владелец: координатор. Потребители: GR-2, GR-4, GR-5, GR-7, GR-9, GR-11.
+- v2 (2026-10-15): опыт `nocrosses` (кресты деревьев, класс `TreeCrosses`) в `tools/bench/frame_profile.gd`; для задач деревьев список опытов — `base,nocrosses,noimpostors,base2`.
 - Машина: RTX 4070 SUPER, дисплей `DISPLAY=:0`, 1920×1080 полноэкранно. Под замком GPU, в своей копии:
   ```bash
   /home/greg/deltaplan/.dpcli/dpcli job --lock gpu start <ID>-perf 3600 env SKIP_FLY=1 TAG_SUFFIX=_noclouds \
@@ -63,7 +64,7 @@ contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 1}, {"id": "G3",
   ```
   Отметки — по умолчанию `MARKS="2:cockpit 30:chase 60:chase"` (те же, что в `docs/perf/frame_profile/measurements.md`).
 - Величины (GPU окна, мс, на каждую отметку и среднее по отметкам): `base` (кадр без облаков);
-  **цена травы** = base − nograss; **камни и кусты** = base − noscatter; шум = |base2 − base|.
+  **цена травы** = base − nograss; **камни и кусты** = base − noscatter; **кресты** = base − nocrosses; **импостеры** = base − noimpostors; шум = |base2 − base|.
   Примитивов на кадре (монитор `primitives`) для base и nograss.
 - Годен, если шум ≤ 0,1 мс на каждой отметке; иначе повторить прогон (один раз), в отчёт — оба.
 - Итог — раздел `## <ID>` в `docs/perf/grass_rocks.md`: таблица «пресет × отметка: base, трава, камни+кусты, шум, примитивы, млн»

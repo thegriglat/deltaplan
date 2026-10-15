@@ -3,7 +3,7 @@ extends TestCase
 ## test_g2_ — открытый интерфейс GrassField и пресеты густоты, test_g3_ — версии в документе.
 
 const DOC := "res://docs/contracts/grass-rocks.md"
-const VERSIONS := {"G1": 1, "G2": 1, "G3": 1}
+const VERSIONS := {"G1": 1, "G2": 1, "G3": 2}
 
 
 func test_g3_versions_in_doc() -> void:
