@@ -75,10 +75,26 @@ uniform float height_k = 1.0;   // множитель высоты слоя
 // полуширина травинки, GrassField по сетке пучка); cull_enabled — только для теста (GR-3).
 uniform float clump_reach_m = 0.35;
 uniform bool cull_enabled = true;
+// своя нормаль травинки (GR-6). Сетка пучка (GrassField.clump_mesh): NORMAL — лицо травинки
+// (горизонталь, в плане пучка), UV.x — поперёк −1…+1 (0 — кончик), UV.y — случайное число травинки.
+// Нормаль освещения — наклон нормали листа от вертикали leaf_tilt_deg (средний угол наклона листа
+// злаков от горизонта ~60–70°, эректофильный полог) между нормалью полога (земля + наклон ветром) и
+// нормалью лица; поперёк листа нормаль поворачивается на ±groove_deg («желобок»). Вдали (blade_normal_fade_m)
+// — к нормали полога, как было: среднее и дальнее кольца сходятся с рельефом.
+uniform float leaf_tilt_deg = 60.0;
+uniform float groove_deg = 30.0;
+uniform vec2 blade_normal_fade_m = vec2(8.0, 20.0);
+// цвет вдоль/поперёк/между травинками (GR-6): край листа темнее середины на across_shade (доля),
+// разброс яркости травинок пучка ±blade_variation, кончики суше: доля tip_dry к соломе на верхней
+// трети (кончики злаков отмирают первыми), разброс сухости кончика по травинкам.
+uniform float across_shade = 0.12;
+uniform float blade_variation = 0.1;
+uniform float tip_dry = 0.25;
 
 varying vec3 v_col;
 varying float v_t;
 varying vec3 v_n;
+varying float v_across;   // поперёк травинки −1…+1
 // тень облаков: множитель прямого солнца (cloud_shadow.gdshaderinc) — в light()
 varying float v_cs_sun;
 
@@ -91,11 +107,35 @@ varying float v_cs_sun;
 // боковых плоскостей (из строк PROJECTION_MATRIX — учтены FOV, соотношение сторон, любой вьюпорт)
 // или позади камеры. Ближе 2 м по горизонтали — никогда. Считается в том же кадре, что и
 // рисование, — запаса на поворот камеры не нужно.
+// Высота и уклон в точке (GR-6): те же четыре узла, что у h_bilinear, — уклон билинейной клетки
+// (поверхность, которую рисует рельеф), без четырёх лишних билинейных выборок на вершину.
+float h_grad(vec2 xz, out vec2 g) {
+	vec2 f = (xz - layer_origin) / layer_spacing;
+	vec2 i = floor(f);
+	vec2 t = f - i;
+	ivec2 ij = ivec2(i);
+	float h00 = h_node(ij);
+	float h10 = h_node(ij + ivec2(1, 0));
+	float h01 = h_node(ij + ivec2(0, 1));
+	float h11 = h_node(ij + ivec2(1, 1));
+	g = vec2(mix(h10 - h00, h11 - h01, t.y), mix(h01 - h00, h11 - h10, t.x)) / layer_spacing;
+	return mix(mix(h00, h10, t.x), mix(h01, h11, t.x), t.y);
+}
+
 bool clump_out_of_view(vec2 xz, float h, float d, float width_scale, mat4 proj, mat4 view) {
 	if (d < 2.0) {
 		return false;
 	}
 	float h_max = max(max(blade_height_m.y, crop_height_m.y), forest_height_m.y) * height_k;
+	// множители высоты > 1 (скошенные места mowed.w, площадки landing_hk, приминание) — в запас:
+	// перекрывающиеся места перемножаются, поэтому произведение max(1, k)
+	for (int k = 0; k < mowed_count; k++) {
+		h_max *= max(mowed[k].w, 1.0);
+	}
+	for (int k = 0; k < landing_count; k++) {
+		h_max *= max(landing_hk[k], 1.0);
+	}
+	h_max *= max(trample_height_k, 1.0);
 	// наклон ветром (terrain_wind.gdshaderinc, grass_wind): пятна порывов |bend| ≤ 1 + gust_gain,
 	// термик |inward + 0,4·swirl|·tw ≤ 1,08·th.w·thermal_gain
 	float bend_max = 1.0 + max(gust_gain, 0.0);
@@ -138,9 +178,10 @@ void vertex() {
 	density *= smoothstep(inner_radius_m, inner_radius_m + inner_fade_m, d);
 	float rank = hash12(cell + vec2(20.5, 0.0));
 	float h = 0.0;
+	vec2 hg = vec2(0.0);
 	bool hidden = rank >= density;
 	if (!hidden) {
-		h = h_bilinear(xz);   // единственная выборка высоты до теста; дальше используется как есть
+		h = h_grad(xz, hg);   // единственная выборка высоты (и уклона) на вершину
 		hidden = cull_enabled && clump_out_of_view(xz, h, d, mix(1.0, far_width_k, thin_s),
 				PROJECTION_MATRIX, VIEW_MATRIX);
 	}
@@ -149,6 +190,7 @@ void vertex() {
 		v_col = vec3(0.0);
 		v_t = 0.0;
 		v_n = vec3(0.0, 1.0, 0.0);
+		v_across = 0.0;
 		v_cs_sun = 1.0;
 	} else {
 		float sl_rel; vec4 sl_ss = sl_season_b(h, sl_rel); // SL
@@ -165,9 +207,7 @@ void vertex() {
 		} else if (c == 1 && hash12(cell + 8.8) < forest_density) {
 			hh = mix(forest_height_m.x, forest_height_m.y, r);
 		}
-		float e = layer_spacing;
-		vec3 n = normalize(vec3(h_bilinear(xz - vec2(e, 0.0)) - h_bilinear(xz + vec2(e, 0.0)), 2.0 * e,
-				h_bilinear(xz - vec2(0.0, e)) - h_bilinear(xz + vec2(0.0, e))));
+		vec3 n = normalize(vec3(-hg.x, 1.0, -hg.y));
 		float slope_deg = degrees(acos(clamp(n.y, 0.0, 1.0)));
 		hh *= 1.0 - smoothstep(rock_slope_deg - 4.0, rock_slope_deg + 2.0, slope_deg);
 		for (int k = 0; k < mowed_count; k++) {
@@ -221,14 +261,34 @@ void vertex() {
 		// поворот пучка
 		float a = hash12(cell + 6.6) * 6.2832;
 		// дальние пучки шире (компенсация прореживания, рекомендация 1)
-		vec2 o = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a))) * VERTEX.xz * width_scale;   // м
+		mat2 rot = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a)));
+		vec2 o = rot * VERTEX.xz * width_scale;   // м
 		float y = t * hh * inversesqrt(1.0 + l2 * t * t);   // стебель не вытягивается при наклоне
 		vec2 off = lean * hh * t * t;
 		VERTEX = vec3(xz.x + o.x + off.x, h + y - 0.02, xz.y + o.y + off.y);
 		if (hh < 0.02) {
 			VERTEX = vec3(xz.x, h - 1.0, xz.y);   // нет травы — пучок прячется под землю
 		}
-		v_n = normalize(n + vec3(lean.x, 0.0, lean.y) * 0.3);
+		// нормаль полога (как было) и своя нормаль травинки (GR-6)
+		vec3 nc = normalize(n + vec3(lean.x, 0.0, lean.y) * 0.3);
+		float bk = 1.0 - smoothstep(blade_normal_fade_m.x, blade_normal_fade_m.y, d);
+		if (bk > 0.0) {
+			vec2 f2 = rot * NORMAL.xz;
+			vec3 fn = vec3(f2.x, 0.0, f2.y);
+			// лицом к камере (решение по центру пучка — у всех вершин травинки одно)
+			fn *= dot(f2, CAMERA_POSITION_WORLD.xz - xz) < 0.0 ? -1.0 : 1.0;
+			// касательная стебля по изгибу: d/dt (lean·t², t/√(1 + l2·t²)), без множителя hh
+			vec3 tg = normalize(vec3(2.0 * t * lean.x, pow(1.0 + l2 * t * t, -1.5), 2.0 * t * lean.y));
+			fn = normalize(fn - tg * dot(fn, tg));
+			vec3 sd = cross(tg, fn);
+			float gr = radians(groove_deg) * UV.x;
+			vec3 nb = fn * cos(gr) + sd * sin(gr);
+			float lt = radians(leaf_tilt_deg) * bk;
+			v_n = normalize(nc * cos(lt) + nb * sin(lt));
+		} else {
+			v_n = nc;
+		}
+		v_across = UV.x;
 
 		// цвет подложки: тот же луг, что рисует рельеф под травой (включая пятна с высоты)
 		vec4 rel = relief_at(xz);
@@ -250,6 +310,11 @@ void vertex() {
 		base *= 1.0 + color_variation * (hash12(cell + 13.3) - 0.5) * 2.0;
 		base *= blade_tint * (1.0 + wind_shade * wshade);
 		base *= mix(vec3(1.0), trample_tint, tr);
+		// травинка пучка: своя яркость, кончик суше (к соломе той же яркости)
+		float br = UV.y;
+		base *= 1.0 + blade_variation * (2.0 * br - 1.0);
+		vec3 straw = straw_color * (dot(base, LB) / max(dot(straw_color, LB), 1e-3));
+		base = mix(base, straw, tip_dry * mix(0.4, 1.0, fract(br * 7.31)) * smoothstep(0.55, 1.0, t));
 		v_col = base;
 		v_t = t;
 		v_cs_sun = cloud_sun_at(VERTEX);
@@ -258,7 +323,8 @@ void vertex() {
 
 void fragment() {
 	// у корня темнее (затенение в гуще), к кончику светлее
-	ALBEDO = v_col * mix(blade_shade.x, blade_shade.y, v_t);
+	// поперёк — край листа темнее середины (желобок затеняет края)
+	ALBEDO = v_col * mix(blade_shade.x, blade_shade.y, v_t) * (1.0 - across_shade * v_across * v_across);
 	// освещение как у земли под травой (обе стороны травинки): нормаль явная и одна и та же
 	// для лица и изнанки (render_mode cull_disabled, без FRONT_FACING-переворота — иначе
 	// изнанка темнеет); тонкий стебель просвечивает — BACKLIGHT держит изнанку не темнее
