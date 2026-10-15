@@ -29,10 +29,13 @@
     "tests/vegetation/test_grass_mid_gpu.gd",
     "tests/vegetation/test_grass_look_gpu.gd",
     "tests/vegetation/test_grass_field.gd",
-    "data/vegetation/"
+    "data/vegetation/",
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/terrain/terrain_wind.gdshaderinc",
+    "tests/vegetation/test_grass_specks_gpu.gd",
+    "tests/vegetation/test_grass_specks_gpu.gd.uid"
   ],
   "dont_touch": [
-    "scripts/terrain/grass_mid_cards.gdshader",
     "scripts/terrain/terrain.gdshader",
     "tools",
     "configs/game.json",
@@ -56,5 +59,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-15T08:30:54"
+  "created": "2026-10-15T08:30:54",
+  "edited": "2026-10-15T08:45:28"
 }
