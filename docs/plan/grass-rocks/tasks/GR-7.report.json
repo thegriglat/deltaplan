@@ -1,0 +1,170 @@
+{
+  "status": "done",
+  "summary": "Средняя дистанция травы по G4: режимы shell (6 слоёв сетки-кольца 8,4–40 м над рельефом, шумовая маска 256² с мипмапами) и cards (3 креста-квада на пучок, процедурный атлас 4×128² BC3+мипмапы, alpha scissor + alpha-to-coverage). Переключение — grass.mid.mode (по умолчанию blades) и DP_GRASS_MID; в shell/cards колец травинок дальше ближнего нет. Цена всей травы в обоих режимах 0,1–0,3 мс против 0,65–1,0 мс у blades (GR-5). Доработка по ревью: press_pos каждый кадр передаётся и материалу средней травы (shell/cards).",
+  "commits": [
+    "add49f92 grass-rocks GR-7: средняя дистанция травы — режимы shell и cards (G4)",
+    "4b34a36d слияние feature/grass-rocks (task sync)",
+    "46c54b3d приминание у пилота — и в материале средней травы (ревью)"
+  ],
+  "checks": [
+    {
+      "name": "grass",
+      "value": "29/29, 8 пропущено (GPU)",
+      "pass": true
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "value": "6/6 (test_g4_mid_mode_env_and_config, test_g4_mid_nodes_and_no_far_ring)",
+      "pass": true
+    },
+    {
+      "name": "gpu_mid",
+      "value": "37 тестов, 0 упало; test_grass_mid_gpu: на 20–40 м средняя трава меняет ≥71 % (shell) / ≥83 % (cards) пикселей; cull on/off — 106 кадров на режим, отличие 0,0000 %",
+      "pass": true
+    },
+    {
+      "name": "g4_test",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "бюджет травы (G3, вся трава): medium ≤ 0,7, high ≤ 0,95 мс",
+      "value": "shell: medium 0,13–0,16 / high 0,15–0,19 мс на отметке 30; cards: medium 0,16–0,21 / high 0,18–0,27 мс",
+      "pass": true
+    },
+    {
+      "name": "ревью major: press_pos средней травы",
+      "value": "test_g4_mid_nodes_and_no_far_ring: после GrassField._process press_pos материала shell/cards = положение пилота (без правки — падает, проверено)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Раздел в docs/perf/grass_rocks.md и архив данных — не здесь (GR-13), данные лежат в build/perf/GR-7-{shell,shellb,cards,cardsb} копии GR-7.",
+    "Переход ближнее→среднее и среднее→луг рельефа — только растворение по густоте/высоте (8,4–14 м и 30–40 м), доводка — GR-8."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept GR-7; кадры: DP_GRASS_MID=shell|cards tools/shots/grass_look.sh; быстрый взгляд — DP_GRASS_MID_SHOT=<префикс> DISPLAY=:0 tools/gpu_tests.sh --filter=grass_mid (сохранит <префикс>_shell.png и _cards.png 1280×720)",
+  "uncertain": [
+    {
+      "where": "замер G3, отметка 2 с",
+      "why": "шум |base2−base| на отметке 2 > 0,1 мс в обоих прогонах во всех 4 сочетаниях режим×пресет (0,16–0,26), как и в GR-2/GR-5 на этой отметке; на 30 и 60 с шум ≤ 0,14 (shell 0,10–0,14, cards 0,03–0,13 — на 30 с тоже местами > 0,1)",
+      "checked": "повтор прогона (GR-7-<режим>b, тёплый кэш): трава=base−nograss на 30 с совпадает между прогонами в пределах 0,1 мс; на 2 с shell −0,13…−0,07, cards 0,10…0,21 — ориентир"
+    },
+    {
+      "where": "замер — что такое «трава»",
+      "why": "base−nograss прячет весь GrassField: ближнее кольцо травинок + средняя дистанция; отдельно цену средней травы не мерил. Слои/карточки закрывают рельеф в полосе 10–40 м и подменяют дорогой шейдер рельефа (prepass отбрасывает его фрагменты), поэтому чистая цена может быть около нуля и даже отрицательной (shell на 2 с: −0,1)",
+      "checked": "примитивы: base/nograss medium@30 shell 2,76/2,25 млн, cards 2,84/2,25 млн (у blades в GR-5 3,88/2,29); high@30 shell 3,44/2,72, cards 3,60/2,72"
+    },
+    {
+      "where": "scripts/terrain/grass_mid_shell.gdshader",
+      "why": "shell при взгляде почти вдоль земли — слои видны как ровный «ковёр» на средней высоте травы (мипмапы маски усредняют стебли), силуэта отдельных стеблей нет; с высоты (до max_agl 120 м) должен выглядеть лучше карточек. Сравнение по виду — шлюз 2 (GR-13)",
+      "checked": "два кадра 1280×720 из GPU-теста (по одному на режим, на тестовом рельефе с ровной землёй): у shell ворс ровный, переход от травинок — без резкого края; у cards пучки кустиками, видна зернистость на 30–40 м"
+    },
+    {
+      "where": "scripts/terrain/grass_mid_shell.gdshader: vert_out_of_view",
+      "why": "ранний выход по вершине сетки: запас 1,5 шага сетки + наклон × высота, треугольник с отсечённой вершиной целиком вне кадра — доказательство в комментарии; положение отсечённой вершины не точное (у земли)",
+      "checked": "GPU-тест cull on/off: 3 FOV × 8 курсов × 4 тангажа + быстрый поворот, рельеф с буграми ±1,5 м — 0 отличающихся пикселей в обоих режимах"
+    },
+    {
+      "where": "scripts/terrain/grass_mid_*.gdshader",
+      "why": "код класса/высоты/скоса/посадок/приминания/цвета повторён из grass.gdshader (его трогать нельзя, GR-6 меняет его параллельно) — при правках grass.gdshader нужно синхронно править копии; общие uniform'ы копируются из материала ближнего кольца (GrassMidShell.copy_shared_params), set_relief/set_landing_sites/set_trample_mask/apply_scene_look/ветер доходят через materials()",
+      "checked": "test_g4_mid_nodes_and_no_far_ring проверяет копирование height_tex и что materials() отдаёт оба материала"
+    },
+    {
+      "where": "scripts/terrain/*.gdshader.uid",
+      "why": "закоммичены grass_mid_shell.gdshader.uid и grass_mid_cards.gdshader.uid — в списке скоупа их нет, но это спутники новых шейдеров (как grass.gdshader.uid)",
+      "checked": "accept --dry: scope 13 файлов в границах"
+    },
+    {
+      "where": "tests/contracts/test_grass_rocks_contracts.gd: test_g4_mid_nodes_and_no_far_ring",
+      "why": "узлы для проверки press_pos кладутся в дерево под последний дочерний узел root (узел раннера) — окно root занято, пока раннер в _ready; держится на устройстве раннера",
+      "checked": "headless-прогон 6/6; с удалённой строкой в _process тест падает на shell и cards"
+    }
+  ],
+  "dp_feedback": "frame_profile_report печатает Δ опыта как exp−base (минус = цена) — сначала прочитал как обратное; отметки в таблице опытов идут не по времени (30, 60, 2). Было бы удобно, чтобы report считал сразу G3-таблицу «трава = base−nograss, шум, примитивы base/nograss» (пришлось доставать из jsonl своим скриптом).",
+  "extra": {
+    "grass_ms_base_minus_nograss": {
+      "shell": {
+        "medium@2": [
+          -0.07,
+          -0.13
+        ],
+        "medium@30": [
+          0.16,
+          0.13
+        ],
+        "high@2": [
+          -0.1,
+          -0.1
+        ],
+        "high@30": [
+          0.19,
+          0.15
+        ]
+      },
+      "cards": {
+        "medium@2": [
+          0.16,
+          0.1
+        ],
+        "medium@30": [
+          0.21,
+          0.16
+        ],
+        "high@2": [
+          0.21,
+          0.14
+        ],
+        "high@30": [
+          0.18,
+          0.27
+        ]
+      },
+      "blades_GR-5_для_сравнения": {
+        "medium@2": [
+          0.87,
+          0.54
+        ],
+        "medium@30": [
+          0.67,
+          0.63
+        ],
+        "high@2": [
+          0.79,
+          1.0
+        ],
+        "high@30": [
+          0.96,
+          0.88
+        ]
+      },
+      "note": "[прогон 1, прогон 2]; отметка 60 — травы в кадре нет (±0,02); шум на 2 с 0,16–0,26 в обоих прогонах"
+    },
+    "gpu_base_ms": {
+      "shell": {
+        "medium@30": 4.29,
+        "high@30": 4.76
+      },
+      "cards": {
+        "medium@30": 4.32,
+        "high@30": 4.83
+      },
+      "blades_GR-5": {
+        "medium@30": 4.84,
+        "high@30": 5.57
+      }
+    },
+    "vram_textures_MB": {
+      "shell_mask_rgba8_256_mips": 0.34,
+      "cards_atlas_bc3_512x128_mips": 0.085
+    },
+    "geometry": {
+      "shell": "6 слоёв × ~5,4 тыс. квадов (шаг 1 м) ≈ 65 тыс. треугольников, одна отрисовка",
+      "cards": "~28 тыс. пучков при 100 % (шаг 0,45 м), 41 тыс. при 150 %, 6 треугольников на пучок"
+    },
+    "data": "build/perf/GR-7-shell, GR-7-shellb, GR-7-cards, GR-7-cardsb в ~/deltaplan-grass-rocks-GR-7"
+  },
+  "t": "2026-10-15T07:49:38",
+  "by": "executor"
+}
