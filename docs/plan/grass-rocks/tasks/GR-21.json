@@ -58,11 +58,6 @@
       "tests": "grass_rocks_contracts"
     },
     {
-      "name": "gpu_grass",
-      "cmd": "DISPLAY=:0 .dpcli/dpcli lock gpu -- tools/gpu_tests.sh --filter=grass",
-      "expect": "re:[1-9][0-9]* тестов, 0 упало"
-    },
-    {
       "name": "angle_cfg",
       "cmd": "python3 -c \"import json;m=json.load(open('configs/vegetation.json'))['grass']['mid'];print(m['card_angle_full_deg'],m['card_angle_none_deg'],'card_angle_full_deg_doc' in m,'card_angle_none_deg_doc' in m)\"",
       "expect": "re:^15(\\.0)? 30(\\.0)? True True$"
@@ -71,9 +66,15 @@
       "name": "view9",
       "cmd": "grep -c '9_slope_ground' tools/shots/grass_look.sh",
       "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "gpu_grass",
+      "cmd": "DISPLAY=:0 /home/greg/deltaplan/.dpcli/dpcli lock gpu GR-21-gputest --no-tmux -- tools/gpu_tests.sh --filter=grass",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-15T13:15:31"
+  "created": "2026-10-15T13:15:31",
+  "edited": "2026-10-15T13:15:51"
 }
