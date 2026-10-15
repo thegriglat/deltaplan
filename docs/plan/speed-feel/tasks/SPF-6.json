@@ -1,0 +1,46 @@
+{
+  "id": "SPF-6",
+  "module": "speed-feel",
+  "type": "dp-mechanic",
+  "title": "Диаметры тросов по источникам",
+  "goal": "В configs/audio.json → flight.airflow.wire_tone.diameters_m поставить [0.002, 0.0024, 0.0025, 0.0032] и обновить _doc с источниками; тесты звука проходят.",
+  "plan_ref": "SPF-4",
+  "contracts": [
+    {
+      "name": "SPF-К3",
+      "version": "1",
+      "ref": "docs/contracts/speed-feel.md"
+    }
+  ],
+  "copy": "~/deltaplan-speed-feel-SPF-6",
+  "branch": "speed-feel/SPF-6",
+  "base": "feature/speed-feel",
+  "scope": [
+    "configs/audio.json",
+    "tests/audio/test_wire_tone.gd",
+    "docs/research/sounds.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "docs/contracts/",
+    "CHANGELOG.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "wire_tone",
+      "tests": "wire_tone"
+    },
+    {
+      "name": "audio",
+      "tests": "audio"
+    },
+    {
+      "name": "speed_feel_k3",
+      "tests": "speed_feel_k3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T05:35:34"
+}

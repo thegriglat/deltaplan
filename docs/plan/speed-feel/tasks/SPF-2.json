@@ -1,0 +1,58 @@
+{
+  "id": "SPF-2",
+  "module": "speed-feel",
+  "type": "dp-engineer",
+  "title": "Частота тряски кабины по скорости",
+  "goal": "Частоты тряски крыла с трапецией (GliderVisual.buzz) сдвигаются пропорционально V/V_трим (частота встречи с порывами) с непрерывной фазой; амплитуда не меняется — скорость в ней уже есть из физики. Контракт SPF-К1 v2.",
+  "plan_ref": "SPF-2",
+  "contracts": [
+    {
+      "name": "SPF-К1",
+      "version": "2",
+      "ref": "docs/contracts/speed-feel.md"
+    }
+  ],
+  "copy": "~/deltaplan-speed-feel-SPF-2",
+  "branch": "speed-feel/SPF-2",
+  "base": "feature/speed-feel",
+  "scope": [
+    "scripts/flight/glider_visual.gd",
+    "configs/flight.json",
+    "tests/flight/test_buzz_speed.gd",
+    "tests/flight/test_buzz_speed.gd.uid",
+    "tests/contracts/test_speed_feel_k1.gd",
+    "tests/contracts/test_speed_feel_k1.gd.uid",
+    "docs/guide/flight.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/load_meter.gd",
+    "scripts/game/camera_rig.gd",
+    "configs/sail.json",
+    "configs/camera.json",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "buzz_speed",
+      "tests": "buzz_speed"
+    },
+    {
+      "name": "speed_feel_k1",
+      "tests": "speed_feel_k1"
+    },
+    {
+      "name": "glider_visual",
+      "tests": "glider_visual"
+    },
+    {
+      "name": "pilot_arms",
+      "tests": "pilot_arms"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T05:34:09"
+}

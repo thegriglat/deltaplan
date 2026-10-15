@@ -1,0 +1,47 @@
+{
+  "id": "SPF-3",
+  "module": "speed-feel",
+  "type": "dp-engineer",
+  "title": "Ленточка различает скорость до 25 м/с",
+  "goal": "Трепет ленточки: частота ∝ U (St_L = 0,4) с пределом отображения 15 Гц, амплитуда — плато до 12 м/с, затем убывает как (12/U)^(2/3): на малой скорости полощется, на большой вытянута и мелко дрожит; 12 и 25 м/с различимы. Контракт SPF-К2 v1.",
+  "plan_ref": "SPF-3",
+  "contracts": [
+    {
+      "name": "SPF-К2",
+      "version": "1",
+      "ref": "docs/contracts/speed-feel.md"
+    }
+  ],
+  "copy": "~/deltaplan-speed-feel-SPF-3",
+  "branch": "speed-feel/SPF-3",
+  "base": "feature/speed-feel",
+  "scope": [
+    "scripts/instruments/telltale_model.gd",
+    "configs/instruments.json",
+    "tests/instruments/test_telltale.gd",
+    "tests/contracts/test_speed_feel_k2.gd",
+    "tests/contracts/test_speed_feel_k2.gd.uid",
+    "docs/guide/telltale.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/instruments/telltale.gd",
+    "configs/sail.json",
+    "docs/contracts/",
+    "CHANGELOG.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "telltale",
+      "tests": "telltale"
+    },
+    {
+      "name": "speed_feel_k2",
+      "tests": "speed_feel_k2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T05:34:51"
+}
