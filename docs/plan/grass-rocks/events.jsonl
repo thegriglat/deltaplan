@@ -61,3 +61,5 @@
 {"t": "2026-10-15T06:05:02", "by": "executor", "task": "GR-5", "ev": "reported", "commits": ["a6f79ed4"], "note": "done: Замер G3 после GR-3 (medium, high, ongudai, 2/30/60, два прогона). Цена травы там, где она есть, снизилась на ≈0,2–0,3 …", "dp_feedback": "Первый запуск в свежем профиле даёт FAIL отметки 2 с (холодная загрузка); frame_profile.sh стоило бы прогревать профиль автоматически. job wait под замком GPU ждёт молча — нет индикации очереди."}
 {"t": "2026-10-15T06:05:08", "by": "coordinator", "task": "GR-5", "ev": "checked", "note": "3/3 section=ok:1; data=ok:16; docs=ok:exit 0"}
 {"t": "2026-10-15T06:05:16", "by": "coordinator", "task": "GR-5", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-15T06:05:18", "by": "coordinator", "task": "GR-5", "ev": "accepted", "commits": ["74f0f985"], "note": "3/3 section=ok:1; data=ok:16; docs=ok:exit 0"}
+{"t": "2026-10-15T06:05:18", "by": "coordinator", "task": "GR-5", "ev": "merged", "commits": ["74f0f985"]}
