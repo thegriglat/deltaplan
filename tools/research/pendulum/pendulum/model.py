@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from . import geometry
+from . import geometry, pilot_body
 from .params import G, Params
 
 E3 = np.array([0.0, 0.0, 1.0])
@@ -136,6 +136,7 @@ class Sim:
             raise ValueError("x_hang не задан: сначала trim.solve_hang")
         self.mm = geometry.mass_model(p, p.x_hang)
         I = self.mm.inertia_b.copy()
+        I += pilot_body.inertia_add(p)  # PB-1: тело пилота по крену и рысканию держится руками — с крылом
         self.I_struct = I.copy()
         if p.apparent_roll:
             I[0, 0] += geometry.apparent_roll_inertia(p)
@@ -422,7 +423,10 @@ class Sim:
         # сопротивление пилота
         xp, vp = self.xn[-1], self.vn[-1]
         va = vp - self.air_fn(xp[None])[0]
-        F_n[-1] += -0.5 * p.rho * p.pilot_cda * np.linalg.norm(va) * va
+        # точка — изотропное сопротивление; тело (PB-1) — pilot_body.py, момент тела (рыскание, крен) — крылу
+        fp, mp = pilot_body.pilot_force(p, va, self.w, R, xp - H)
+        F_n[-1] += fp
+        M_w += mp
         if self.control.hands == "bar":
             fh = self._hands_force(H, None)
             F_n[-1] += fh
