@@ -17,6 +17,11 @@ var pilot: Node3D
 var material: ShaderMaterial
 ## Дальний слой пучков (grass.far), дочерний GrassField; null — нет.
 var far_layer: GrassField
+## Средняя дистанция в режиме shell/cards (G4): GrassMidShell или GrassMidCards; null — режим blades.
+var mid_layer: Node3D
+
+## Режимы средней дистанции (G4): blades — кольца травинок, shell — слои, cards — карточки-пучки.
+const MID_MODES: PackedStringArray = ["blades", "shell", "cards"]
 
 var _spacing: float = 0.5
 var _max_agl: float = 120.0
@@ -125,6 +130,25 @@ func setup(
 		Vector3(layer.origin_x, layer.min_h - 10.0, layer.origin_z),
 		Vector3(layer.size_x(), layer.max_h - layer.min_h + 20.0, layer.size_z())
 	)
+	# Средняя дистанция (G4): shell/cards — свой узел, колец травинок дальше ближнего нет
+	# (дальше ~40 м луг рисует шейдер рельефа).
+	var mode := mid_mode(cfg)
+	if mode == "shell":
+		var sh := GrassMidShell.new()
+		sh.name = "GrassMidShell"
+		sh.camera = camera
+		add_child(sh)
+		sh.setup(material, layer, cfg)
+		mid_layer = sh
+		return
+	if mode == "cards":
+		var cd := GrassMidCards.new()
+		cd.name = "GrassMidCards"
+		cd.camera = camera
+		add_child(cd)
+		cd.setup(material, layer, cfg)
+		mid_layer = cd
+		return
 	# Дальний слой (configs/vegetation.json → grass.far): крупные редкие пучки кольцом за
 	# ближними травинками — те же параметры, переопределённые ключами far.
 	var far_cfg: Variant = cfg.get("far", null)
@@ -154,12 +178,30 @@ static func ring_offsets(spacing: float, inner: float, outer: float) -> PackedVe
 	return out
 
 
-## Материалы травы (ближний и дальний слой) — для ветра.
+## Материалы травы (ближний и дальний слой, средняя дистанция) — для ветра.
 func materials() -> Array[ShaderMaterial]:
 	var out: Array[ShaderMaterial] = [material]
 	if far_layer != null:
 		out.append_array(far_layer.materials())
+	if mid_layer != null:
+		out.append(mid_material())
 	return out
+
+
+## Материал средней дистанции (shell/cards); null — режим blades.
+func mid_material() -> ShaderMaterial:
+	return mid_layer.get("material") as ShaderMaterial if mid_layer != null else null
+
+
+## Итоговый режим средней дистанции (G4): переменная окружения DP_GRASS_MID (для кадров и замеров)
+## сильнее конфига grass.mid.mode; неизвестное значение — как конфиг, неизвестный конфиг — blades.
+static func mid_mode(grass_cfg: Dictionary) -> String:
+	var env := OS.get_environment("DP_GRASS_MID").strip_edges().to_lower()
+	if env in MID_MODES:
+		return env
+	var mid: Variant = grass_cfg.get("mid", {})
+	var m := String(mid.get("mode", "blades")).to_lower() if mid is Dictionary else "blades"
+	return m if m in MID_MODES else "blades"
 
 
 ## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года) — материалам травы
@@ -172,6 +214,8 @@ func apply_scene_look(sl: Dictionary) -> void:
 func _process(_delta: float) -> void:
 	if far_layer != null:
 		far_layer.camera = camera
+	if mid_layer != null:
+		mid_layer.set("camera", camera)
 	var cam := camera if camera != null else get_viewport().get_camera_3d()
 	if cam == null or material == null:
 		return
@@ -185,6 +229,8 @@ func _process(_delta: float) -> void:
 		material.set_shader_parameter("grid_center_cell", cell)
 	if pilot != null and pilot.is_inside_tree():
 		material.set_shader_parameter("press_pos", pilot.global_position)
+		if mid_layer != null:
+			mid_material().set_shader_parameter("press_pos", pilot.global_position)
 
 
 ## Густота травы (grass.density_pct: слайдер «Густота травы» в настройках, пресеты графики),
@@ -272,6 +318,8 @@ static func _v2(a: Variant) -> Vector2:
 ## Поля рельефа (влажность, северность) → цвет травинок как у земли под ними; все слои.
 func set_relief(relief: TerrainRelief) -> void:
 	TerrainRenderer.set_relief(material, relief)
+	if mid_layer != null:
+		TerrainRenderer.set_relief(mid_material(), relief)
 	if far_layer != null:
 		far_layer.set_relief(relief)
 
@@ -312,12 +360,16 @@ func set_landing_sites(sites: Array[Dictionary]) -> void:
 		pos.append(Vector4(1e9, 1e9, 0.0, 0.0))
 		dir.append(Vector4(1.0, 0.0, 0.0, 1.0))
 		hk.append(1.0)
-	material.set_shader_parameter("landing_pos", pos)
-	material.set_shader_parameter("landing_dir", dir)
-	material.set_shader_parameter("landing_hk", hk)
-	material.set_shader_parameter("landing_count", mini(sites.size(), MAX_LANDING))
-	# Прямоугольник заменяет круговое скашивание (было до подключения группой «Сцена игры»).
-	material.set_shader_parameter("mowed_count", 0)
+	var mats: Array[ShaderMaterial] = [material]
+	if mid_layer != null:
+		mats.append(mid_material())
+	for m in mats:
+		m.set_shader_parameter("landing_pos", pos)
+		m.set_shader_parameter("landing_dir", dir)
+		m.set_shader_parameter("landing_hk", hk)
+		m.set_shader_parameter("landing_count", mini(sites.size(), MAX_LANDING))
+		# Прямоугольник заменяет круговое скашивание (было до подключения группой «Сцена игры»).
+		m.set_shader_parameter("mowed_count", 0)
 
 
 ## Точка (x, z) в прямоугольнике посадки (та же формула, что в grass.gdshader):
