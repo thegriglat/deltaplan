@@ -117,3 +117,5 @@
 {"t": "2026-10-15T07:59:38", "by": "coordinator", "task": "GR-11", "ev": "note", "note": "ревью: dp-reviewer (GPU, повтор кадра в тесте, выигрыша нет)"}
 {"t": "2026-10-15T08:01:26", "by": "reviewer", "task": "GR-11", "ev": "reviewed", "note": "Ранний выход в обоих шейдерах корректен: запасы сверены с геометрией (cross_mesh ±0,5×[0,1], dims×s, s=hmax/dims.z; билборд w=hh/2·(1+edge_scale_k·ek), ×1,4×se…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/grass-rocks/tasks/GR-11.review.json"}
 {"t": "2026-10-15T08:01:43", "by": "coordinator", "task": "GR-11", "ev": "accepted", "note": "по ревью; 3 minor (тест в одном SubViewport с повтором кадра; nocrosses Δ>0 не объяснена; >64 слоёв крестов) — в отчёт главной"}
+{"t": "2026-10-15T08:03:06", "by": "coordinator", "task": "GR-11", "ev": "accepted", "commits": ["a802548b"], "note": "5/5 tree=ok:54/54 (пропуск 5); grass_rocks_contracts=ok:6/6; gpu_cull=ok:4 тестов, 0 упало; section=ok:1; data=ok:18"}
+{"t": "2026-10-15T08:03:06", "by": "coordinator", "task": "GR-11", "ev": "merged", "commits": ["a802548b"]}
