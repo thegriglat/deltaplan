@@ -49,3 +49,7 @@
 {"t": "2026-10-15T05:33:16", "by": "executor", "task": "GR-4", "ev": "reported", "commits": ["доработка", "docs:"], "note": "done: Доработка по ревью: шейдер — z нормали из x,y, инверсия .y у X и Z, знак касательной по sign(n).", "dp_feedback": "frame_profile нестабилен: отметки пропадают (не долетели до FLYING); job wait блокирует сессию - хотелось бы notify без опроса."}
 {"t": "2026-10-15T05:35:02", "by": "coordinator", "task": "GR-4", "ev": "checked", "note": "3/3 rocks=ok:12/12; grass_rocks_contracts=ok:4/4; section=ok:1"}
 {"t": "2026-10-15T05:35:02", "by": "coordinator", "task": "GR-4", "ev": "accepted", "note": "по ревью + доработка minor по отчёту"}
+{"t": "2026-10-15T05:35:51", "by": "coordinator", "task": "GR-4", "ev": "checked", "commits": ["37d90059"], "note": "2/3 rocks=FAIL:11/12; FAIL test_models; grass_rocks_contracts=ok:4/4; section=ok:1"}
+{"t": "2026-10-15T05:35:51", "by": "coordinator", "task": "GR-4", "ev": "merged", "commits": ["37d90059"]}
+{"t": "2026-10-15T05:40:42", "by": "coordinator", "task": "GR-4", "ev": "checked", "commits": ["37d90059"], "note": "2/3 rocks=FAIL:11/12; FAIL test_tile_time; grass_rocks_contracts=ok:4/4; section=ok:1"}
+{"t": "2026-10-15T05:41:11", "by": "coordinator", "task": "GR-4", "ev": "note", "note": "после слияния: rocks 11/12 — падает только порог времени test_tile_time под нагрузкой (замеры GR-2/GR-5), известное; до слияния 12/12"}
