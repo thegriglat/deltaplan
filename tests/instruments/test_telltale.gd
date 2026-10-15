@@ -157,3 +157,28 @@ func test_glider_crosswind_on_launch() -> void:
 		var w: Vector3 = wind - g.model.velocity
 		check(_deg(d, w) < 15.0, "на старте ленточка по ветру: %.1f° (%s, %s)" % [_deg(d, w), d, w])
 	g.free()
+
+
+func _steady(s: float) -> TelltaleModel:
+	var m := TelltaleModel.new()
+	m.setup(_cfg())
+	m.snap(Vector3(s, 0, 0))
+	for i in 180:
+		m.step(1.0 / 60.0, Vector3(s, 0, 0))
+	return m
+
+
+func test_flutter_speed_feel() -> void:
+	var prev := -1.0
+	for s in [2.0, 5.0, 8.0, 12.0, 18.0, 25.0]:
+		var hz := _steady(s).flutter_hz
+		check(hz >= prev, "flutter_hz не убывает: %s м/с -> %s Гц" % [s, hz])
+		check(hz <= 15.0 + 1.0e-6, "flutter_hz <= 15 (%s)" % hz)
+		prev = hz
+	var a8 := _steady(8.0).flutter_angle
+	var a12 := _steady(12.0).flutter_angle
+	var a25 := _steady(25.0).flutter_angle
+	check(a25 < a8, "амплитуда 25 < 8 м/с: %s < %s" % [a25, a8])
+	var h12 := _steady(12.0).flutter_hz
+	var h25 := _steady(25.0).flutter_hz
+	check(h25 >= 1.3 * h12 or a25 <= 0.7 * a12, "12 и 25 м/с различимы: %s/%s Гц, %s/%s рад" % [h12, h25, a12, a25])
