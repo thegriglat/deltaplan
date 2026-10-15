@@ -1,0 +1,71 @@
+{
+  "id": "SPF-5",
+  "module": "speed-feel",
+  "type": "dp-engineer",
+  "title": "Голова следует за тангажом крыла на 0,3",
+  "goal": "Кабинная камера медленно повторяет 0,3 отклонения тангажа крыла от трима (на скорости горизонт в кадре поднимается ≈ на 4,5°), тряску не повторяет; на триме кадр как раньше. Контракт SPF-К4 v1, решение Q1.",
+  "plan_ref": "SPF-5",
+  "contracts": [
+    {
+      "name": "SPF-К4",
+      "version": "1",
+      "ref": "docs/contracts/speed-feel.md"
+    },
+    {
+      "name": "SPF-К1",
+      "version": "2",
+      "ref": "docs/contracts/speed-feel.md"
+    }
+  ],
+  "copy": "~/deltaplan-speed-feel-SPF-5",
+  "branch": "speed-feel/SPF-5",
+  "base": "feature/speed-feel",
+  "scope": [
+    "scripts/game/camera_rig.gd",
+    "configs/camera.json",
+    "scripts/flight/flight_model.gd",
+    "tests/game/test_camera_head_pitch.gd",
+    "tests/game/test_camera_head_pitch.gd.uid",
+    "tests/contracts/test_speed_feel_k4.gd",
+    "tests/contracts/test_speed_feel_k4.gd.uid",
+    "docs/guide/models/instruments-3d.md",
+    "docs/guide/flight.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/glider_visual.gd",
+    "scripts/flight/glider.gd",
+    "configs/flight.json",
+    "docs/contracts/",
+    "CHANGELOG.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "head_pitch",
+      "tests": "head_pitch"
+    },
+    {
+      "name": "speed_feel",
+      "tests": "speed_feel"
+    },
+    {
+      "name": "camera",
+      "tests": "camera"
+    },
+    {
+      "name": "helmet_fov",
+      "tests": "helmet_fov"
+    },
+    {
+      "name": "pendulum_visual",
+      "tests": "pendulum_visual"
+    },
+    {
+      "name": "flight_model",
+      "tests": "flight_model"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T06:21:49"
+}
