@@ -63,8 +63,9 @@ gustiness. The design of this instrument, its formulas and tuning — on the pag
 
 A separate small detail in the cockpit — two ribbons ("strings") on the front cables of the control frame: at
 launch they show the direction and strength of the wind, in flight — the airflow right at the wing. In the
-"Weight shift" control mode the model has no sideslip, and in a steady turn the string points straight back; it
-shows sideslip in the "Pendulum" mode (details and limits — on the Instruments page). It is visible at the periphery of vision, as with real pilots, without any hints from above.
+"Pendulum" control mode (the default) the model has sideslip and the string shows it; in the older
+"Weight shift" and "Simple" modes there is no sideslip, and in a steady turn the string points straight back
+(details and limits — on the Instruments page). It is visible at the periphery of vision, as with real pilots, without any hints from above.
 More about its attachment point and parameters — on the page [Instruments](/mechanics/instruments/) and in
 [docs/guide/telltale.md](/docs/guide/telltale.md).
 
