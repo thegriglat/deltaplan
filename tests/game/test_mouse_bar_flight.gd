@@ -19,7 +19,11 @@ func check(cond: bool, msg: String = "") -> void:
 
 ## Игра в воздухе (--air-start), мышь «захвачена» (headless курсор не захватить —
 ## Input.mouse_mode остаётся VISIBLE, но InputController смотрит на свой mouse_captured).
-func _open(air: bool) -> Node:
+func _open(air: bool, mode := "weight_shift") -> Node:
+	# режим крена задан явно, не умолчанием (PMD-2): читается при создании Glider/InputController
+	var cfg := Config.get_config("controls")
+	var old: Variant = cfg.get("roll_control_mode")
+	cfg["roll_control_mode"] = mode
 	var args := ["--autostart"]
 	if air:
 		args.append("--air-start=600,150")
@@ -30,6 +34,7 @@ func _open(air: bool) -> Node:
 		if main.get("state") == 2:
 			break
 		await get_tree().process_frame
+	cfg["roll_control_mode"] = old
 	check(main.get("state") == 2, "автостарт — в полёте")
 	if main.get("state") != 2:
 		await _close(main)
@@ -118,6 +123,29 @@ func test_bar_mouse_moves_bar_and_model_in_air() -> void:
 	check(left[2] < neutral[2] - 5.0, "мышь влево → крен влево: %.1f°" % left[2])
 	check(up[3] > neutral[3] + 1.0, "мышь вверх → нос выше: %.1f°" % up[3])
 	check(down[3] < neutral[3] - 1.0, "мышь вниз → нос ниже: %.1f°" % down[3])
+	await _close(main)
+
+
+## То же в «Маятнике»: знаки ввода и тангажа те же; крен — через пилота на подвеске, медленнее
+## (1,5 с мало: первые секунды крыло реагирует обратно), поэтому окно длиннее, порог — знак.
+func test_bar_mouse_in_air_pendulum() -> void:
+	var main := await _open(true, "pendulum")
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	check(game.glider.is_pendulum(), "модель — PendulumModel")
+	var px := get_viewport().get_visible_rect().size.y * 0.5 * 0.3
+	var dur := 6.0
+	var neutral := _fly_with_mouse(game, Vector2.ZERO, dur)
+	var right := _fly_with_mouse(game, Vector2(px, 0.0), dur)
+	var left := _fly_with_mouse(game, Vector2(-px, 0.0), dur)
+	var up := _fly_with_mouse(game, Vector2(0.0, -px), dur)
+	var down := _fly_with_mouse(game, Vector2(0.0, px), dur)
+	print("PMD-2 bar pendulum: нейтраль %.1f° | вправо %.1f° | влево %.1f° | вверх %.1f° | вниз %.1f°" % [
+		neutral[2], right[2], left[2], up[3], down[3]])
+	check(right[1] > 0.2 and left[1] < -0.2, "roll: вправо > 0, влево < 0")
+	check(up[0] > 0.2 and down[0] < -0.2, "pitch: вверх > 0, вниз < 0")
+	check(right[2] > left[2] + 2.0, "крен: вправо > влево: %.1f° / %.1f°" % [right[2], left[2]])
 	await _close(main)
 
 

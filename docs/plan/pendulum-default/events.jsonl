@@ -27,3 +27,7 @@
 {"t": "2026-10-15T06:30:35", "by": "coordinator", "task": null, "ev": "plan", "note": "план 4. Волны: замена «3. После слияния `pendul…»"}
 {"t": "2026-10-15T06:30:35", "by": "coordinator", "task": null, "ev": "plan", "note": "план 3. Задачи: дописано 7 стр."}
 {"t": "2026-10-15T06:30:43", "by": "coordinator", "task": null, "ev": "plan", "note": "план PMD-4 Документация и CHANGELOG: замена «раздел «Границы модели» …»"}
+{"t": "2026-10-15T06:30:51", "by": "coordinator", "task": null, "ev": "plan", "note": "план 4. Волны: замена «2. PMD-4 — после PMD-1 и…»"}
+{"t": "2026-10-15T06:30:51", "by": "coordinator", "task": null, "ev": "plan", "note": "план 4. Волны: замена «3. PMD-5 — после приёмки…»"}
+{"t": "2026-10-15T06:32:20", "by": "coordinator", "task": "PMD-2", "ev": "checked", "note": "10/10 pendulum=ok:104/104; tests/net/=ok:31/31; motion_rig=ok:50/50; tests/tasks/=ok:37/37; tests/instruments/=ok:51/51; test_mouse_bar_flight=ok:5/5; test_net_flight=ok:8/8; test_net_bots=ok:6/6; test_remote_pilots=ok:7/7; tests/flight/test_glider=ok:3/3"}
+{"t": "2026-10-15T06:32:29", "by": "coordinator", "task": "PMD-2", "ev": "accepted", "note": "по отчёту: 4 файла, аудит — таблица в отчёте; асимметрия — Q1 → PMD-5"}

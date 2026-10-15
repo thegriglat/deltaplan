@@ -269,7 +269,7 @@ func send_local() -> void:
 
 ## controls.roll_control_mode → имя ControlMode без префикса ("RATE" / "WEIGHT_SHIFT" / "PENDULUM").
 static func control_mode_name() -> String:
-	match String(Config.value("controls", "roll_control_mode", "weight_shift")):
+	match String(Config.value("controls", "roll_control_mode", "pendulum")):
 		"pendulum":
 			return "PENDULUM"
 		"rate":
