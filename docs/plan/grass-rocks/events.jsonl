@@ -145,3 +145,5 @@
 {"t": "2026-10-15T09:20:28", "by": "executor", "task": "GR-13", "ev": "reported", "commits": ["7a9fed80"], "note": "done: Кадры shell/cards (6+6, 1918x1036) и before переснят в том же размере на 8b1e160; замер G3 по обоим режимам с повтором,…", "dp_feedback": "Первый кадр 1_cockpit на холодном профиле копии before не снялся — пришлось доснимать вручную; в report нет primitives для nograss, считал сам скриптом."}
 {"t": "2026-10-15T09:20:34", "by": "coordinator", "task": "GR-13", "ev": "checked", "note": "4/4 shell_shots=ok:6; cards_shots=ok:6; section=ok:1; data=ok:32"}
 {"t": "2026-10-15T09:20:40", "by": "coordinator", "task": "GR-13", "ev": "accepted", "note": "по отчёту (замер и кадры; 18 кадров 1918×1036)"}
+{"t": "2026-10-15T09:20:41", "by": "coordinator", "task": "GR-13", "ev": "accepted", "commits": ["c9774637"], "note": "4/4 shell_shots=ok:6; cards_shots=ok:6; section=ok:1; data=ok:32"}
+{"t": "2026-10-15T09:20:41", "by": "coordinator", "task": "GR-13", "ev": "merged", "commits": ["c9774637"]}
