@@ -16,6 +16,12 @@ generated: true
 
 Модули — по подпроектам (area), внутри — по дате плана: строка на модуль, под ней — его прочие документы.
 
+## flight
+
+- **speed-feel** — Скорость ощущается, как у пилота: тряска ∝ V, ленточка различает скорость до 25 м/с, эоловый тон тросов, проверка выравнивания головы. [active 2026-10-15] — [план](plan/speed-feel.md) · [контракты](contracts/speed-feel.md)
+  - [docs/research/speed-feel.md](research/speed-feel.md) — Числа SPF-1: болтанка растёт как V^1,2–1,5, θ(V) −15°, St ленты 0,4, тросы Ø2–3,2 мм St 0,2, голова следует на 0,3
+  - [tools/research/speed-feel/README.md](../tools/research/speed-feel/README.md) — SPF-1: скрипты и таблицы замеров болтанки, тангажа киля, частот ленты и тросов; команды воспроизведения
+
 ## world
 
 - **offline_world_data** — Отложено 30.09: офлайн-пакет региона и подложка поверхности из OSM; кода нет, роль частично закрыли osm-any и osm-tiles. [postponed 2026-10-15] — [план](plan/offline_world_data.md)
