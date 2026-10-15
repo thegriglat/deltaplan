@@ -1,0 +1,23 @@
+{
+  "status": "done",
+  "summary": "Гайд маятника, flight.md, model.md, контракт pendulum.md (PD-К1 умолчание, PD-К3 подпись) и CHANGELOG «В работе» переписаны: «Маятник» основной, остальные запасные; «Границы модели» не тронуты.",
+  "commits": [
+    "1a7d1eaf PMD-4: документация и CHANGELOG"
+  ],
+  "checks": [
+    {
+      "name": "docs-check",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "no-experimental",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "how_to_check": ".dpcli/dpcli accept PMD-4",
+  "dp_feedback": "Дополнение координатора в task show обрезано, пришлось --full; вывод больших команд уходит в файл.",
+  "t": "2026-10-15T08:25:33",
+  "by": "executor"
+}
