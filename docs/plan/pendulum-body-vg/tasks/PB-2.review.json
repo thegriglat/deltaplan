@@ -1,0 +1,51 @@
+{
+  "verdict": "accept",
+  "summary": "Контракты PB-К1/PB-К2 соблюдены (vg.py — только параметры крыла через replace, vg0 == base, крыло без VG без изменений, passport есть), скоуп чистый (15 файлов, dont_touch не задеты, один коммит). Параметры VG обоснованы: 6° крутки — калибровка по сдвигу трима T2C, не по Vmax; остальное помечено EST; нос выключен с объяснением. Формула момента M = Kn·c·W·((V/Vt)²−1) и числа для laminar (325 / 883 Н·м) сходятся; вывод «разрыв — жёсткость по тангажу, не VG» подтверждён пробами calib.md. Отчёт совпадает с summary.json; (б) честно FAIL. Замечания только мелкие.",
+  "issues": [
+    {
+      "file": "tools/research/pendulum/out/pb2/summary.json",
+      "line": 0,
+      "severity": "minor",
+      "what": "passport.laminar.has_vg и passport.moyes_gecko.has_vg = null, при этом в вариантах vg05/vg1 оба крыла изменены (vg.py берёт их из VG_WINGS). Потребитель сводки (PB-3/PB-4) по полю passport решит, что VG у них нет",
+      "fix": "В pb2_run.py report писать has_vg из vg.has_vg(wing) (итоговое решение), а источник «паспорт/по классу/по образцу» — в source"
+    },
+    {
+      "file": "tools/research/pendulum/README.md",
+      "line": 54,
+      "severity": "minor",
+      "what": "README: «364 запуска, ≈ 10 мин», документ vg.md «Воспроизведение»: «≈ 1 ч на 12 процессах» — одно из двух неверно",
+      "fix": "Согласовать с фактическим временем прогона (results.jsonl содержит sec по запуску)"
+    },
+    {
+      "file": "tools/research/pendulum/out/pb2/summary.json",
+      "line": 0,
+      "severity": "minor",
+      "what": "passport.moyes_gecko.vmax_vg100_kmh = null без записи в notes, хотя число 105 есть (цитата DHV в configs/wings/moyes_gecko.json) и используется в документе и таблице (а)",
+      "fix": "Добавить notes['passport/moyes_gecko']: откуда 105 и почему в сводке null (в wings_merged.json поля нет)"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept PB-2 --dry (contract + docs + scope)",
+      "value": "2/2, scope 15 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "variants.base == variants.vg0 (PB-К2)",
+      "value": "True; training в vg05/vg1 = base",
+      "pass": true
+    },
+    {
+      "name": "формула момента п. 1 (laminar Kn 0,116, c 1,41, W 1103, Vt 35)",
+      "value": "58,5 км/ч → 324 Н·м, 85 км/ч → 883 Н·м (в документе 325 / 890)",
+      "pass": true
+    },
+    {
+      "name": "болтанка: поля и шаги как PD-19",
+      "value": "11 полей × 3 шага = 33 на крыло/вариант (PD-19: 33 × 2 конфигурации = 66)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-15T06:18:18",
+  "by": "reviewer"
+}
