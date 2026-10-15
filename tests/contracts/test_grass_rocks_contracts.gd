@@ -109,11 +109,11 @@ func test_g4_mid_mode_env_and_config() -> void:
 	OS.unset_environment("DP_GRASS_MID")
 	var grass: Dictionary = Config.get_config("vegetation").grass
 	check(grass.has("mid") and grass.mid.has("mode"), "vegetation.grass.mid.mode есть")
-	check(GrassField.mid_mode(grass) == "shell", "по умолчанию — shell: %s" % GrassField.mid_mode(grass))
+	check(GrassField.mid_mode(grass) == "angle", "по умолчанию — angle: %s" % GrassField.mid_mode(grass))
 	for m in ["blades", "shell", "angle"]:
 		check(GrassField.mid_mode({"mid": {"mode": m}}) == m, "конфиг %s" % m)
-	check(GrassField.mid_mode({}) == "shell", "нет mid — shell")
-	check(GrassField.mid_mode({"mid": {"mode": "cards"}}) == "shell", "cards в конфиге — по умолчанию")
+	check(GrassField.mid_mode({}) == "angle", "нет mid — angle")
+	check(GrassField.mid_mode({"mid": {"mode": "cards"}}) == "angle", "cards в конфиге — по умолчанию")
 	OS.set_environment("DP_GRASS_MID", "blades")
 	check(GrassField.mid_mode({"mid": {"mode": "shell"}}) == "blades", "переменная сильнее конфига")
 	OS.set_environment("DP_GRASS_MID", "shell")

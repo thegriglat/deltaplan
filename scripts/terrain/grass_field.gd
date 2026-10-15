@@ -22,7 +22,7 @@ var mid_layer: Node3D
 ## Карточки-пучки средней дистанции в режиме angle (G4 v4): GrassMidCards; null — другие режимы.
 var mid_cards: GrassMidCards
 
-## Режимы средней дистанции (G4 v4): shell — слои (по умолчанию), angle — слои и карточки по углу
+## Режимы средней дистанции (G4 v4): shell — слои, angle — слои и карточки по углу (по умолчанию)
 ## взгляда к рельефу, blades — кольца травинок (для сравнения).
 const MID_MODES: PackedStringArray = ["blades", "shell", "angle"]
 
@@ -220,14 +220,14 @@ func set_mid_visible(on: bool) -> void:
 
 
 ## Итоговый режим средней дистанции (G4): переменная окружения DP_GRASS_MID (для кадров и замеров)
-## сильнее конфига grass.mid.mode; неизвестное значение — как конфиг, неизвестный или пустой конфиг — shell.
+## сильнее конфига grass.mid.mode; неизвестное значение — как конфиг, неизвестный или пустой конфиг — angle.
 static func mid_mode(grass_cfg: Dictionary) -> String:
 	var env := OS.get_environment("DP_GRASS_MID").strip_edges().to_lower()
 	if env in MID_MODES:
 		return env
 	var mid: Variant = grass_cfg.get("mid", {})
-	var m := String(mid.get("mode", "shell")).to_lower() if mid is Dictionary else "shell"
-	return m if m in MID_MODES else "shell"
+	var m := String(mid.get("mode", "angle")).to_lower() if mid is Dictionary else "angle"
+	return m if m in MID_MODES else "angle"
 
 
 ## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года) — материалам травы
