@@ -1,0 +1,60 @@
+{
+  "id": "PB-2",
+  "module": "pendulum-body-vg",
+  "type": "dp-researcher",
+  "title": "VG безмачтовых: прототип",
+  "goal": "Разложить разрыв полного «на себя» маятника (45–58 км/ч) и паспорта на причины, смоделировать VG (натяжение паруса 0…1) в прототипе по литературе и паспортам и измерить Vmax, поляру и время перекладки при VG 0 / 0,5 / 1 — без подгонки.",
+  "plan_ref": "PB-2. VG безмачтовых — прототип",
+  "contracts": [
+    {
+      "name": "PB-К1",
+      "version": "1",
+      "ref": "docs/contracts/pendulum-body-vg.md"
+    },
+    {
+      "name": "PB-К2",
+      "version": "1",
+      "ref": "docs/contracts/pendulum-body-vg.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-body-vg-PB-2",
+  "branch": "pendulum-body-vg/PB-2",
+  "base": "feature/pendulum-body-vg",
+  "scope": [
+    "tools/research/pendulum/pendulum/vg.py",
+    "tools/research/pendulum/pendulum/geometry.py",
+    "tools/research/pendulum/pb2_*.py",
+    "tools/research/pendulum/out/pb2/",
+    "tools/research/pendulum/README.md",
+    "docs/research/pendulum/vg.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "tools/research/pendulum/pendulum/model.py",
+    "tools/research/pendulum/pendulum/params.py",
+    "tools/research/pendulum/pendulum/trim.py",
+    "tools/research/pendulum/pendulum/pilot_body.py",
+    "tools/research/pendulum/run_all.py",
+    "tools/research/pendulum/scenarios.py",
+    "tools/research/data/",
+    "docs/guide/",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/pendulum/pb_contract_check.py tools/research/pendulum/out/pb2/summary.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:58:37"
+}

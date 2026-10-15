@@ -1,0 +1,59 @@
+{
+  "id": "PB-1",
+  "module": "pendulum-body-vg",
+  "type": "dp-researcher",
+  "title": "Пилот как тело: прототип и проверка гипотезы",
+  "goal": "В прототипе маятника заменить пилота-точку телом в коконе (анизотропное сопротивление и боковая сила, собственная инерция) и честно измерить до/после, какие расхождения с литературой (Clp, голландский шаг, Cnβ, скольжение в перекладке, лента в вираже) это закрывает, без подгонки коэффициентов.",
+  "plan_ref": "PB-1. Пилот как тело — прототип и проверка гипотезы",
+  "contracts": [
+    {
+      "name": "PB-К1",
+      "version": "1",
+      "ref": "docs/contracts/pendulum-body-vg.md"
+    },
+    {
+      "name": "PB-К2",
+      "version": "1",
+      "ref": "docs/contracts/pendulum-body-vg.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-body-vg-PB-1",
+  "branch": "pendulum-body-vg/PB-1",
+  "base": "feature/pendulum-body-vg",
+  "scope": [
+    "tools/research/pendulum/pendulum/pilot_body.py",
+    "tools/research/pendulum/pendulum/model.py",
+    "tools/research/pendulum/pendulum/trim.py",
+    "tools/research/pendulum/pendulum/params.py",
+    "tools/research/pendulum/pb1_*.py",
+    "tools/research/pendulum/out/pb1/",
+    "tools/research/pendulum/README.md",
+    "docs/research/pendulum/pilot-body.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "tools/research/pendulum/pendulum/geometry.py",
+    "tools/research/pendulum/pendulum/vg.py",
+    "tools/research/pendulum/run_all.py",
+    "tools/research/pendulum/scenarios.py",
+    "docs/guide/",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/pendulum/pb_contract_check.py tools/research/pendulum/out/pb1/summary.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:57:51"
+}
