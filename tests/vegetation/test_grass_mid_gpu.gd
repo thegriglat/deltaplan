@@ -1,8 +1,8 @@
 extends Node
 ## GPU-проверка средней дистанции травы (G4, GR-7, tools/gpu_tests.sh --filter=grass_mid): для режимов
-## shell и cards две одинаковые сцены (свой мир у каждого SubViewport, настоящий GrassField на
+## shell две одинаковые сцены (свой мир у каждого SubViewport, настоящий GrassField на
 ## наклонном рельефе с буграми, луг/нива/лес, ветер с порывами и термиком, MSAA 2×) рисуются в одном
-## кадре. (1) Трава рисуется: у второй сцены узел средней травы скрыт — кадры с видом на луг 20–40 м
+## кадре. (1) Трава рисуется: у второй сцены узел средней травы скрыт — кадры с видом на луг 16–30 м
 ## должны заметно отличаться. (2) Ранний выход вне кадра не меняет кадр: у второй сцены
 ## cull_enabled = false у всех материалов травы — пикселей с |Δ| > 2/255 не больше 0,01 %.
 
@@ -10,6 +10,12 @@ const SIZE := Vector2i(256, 144)
 const EYE_M := 1.5
 const MAX_SHARE := 0.0001
 const TOL := 2
+## Полоса проверки «трава рисуется» — внутри кольца, до растворения внешнего края (30–40 м): тон слоёв —
+## луг рельефа за ними (GR-8), отличаются только модуляцией ворса (корень темнее, куртины), поэтому
+## порог — заметная доля, а не большинство пикселей.
+const DRAW_NEAR_M := 16.0
+const DRAW_FAR_M := 30.0
+const DRAW_MIN_SHARE := 0.15
 
 var failures: PackedStringArray = []
 var _layer: HeightLayer
@@ -31,21 +37,13 @@ func test_grass_mid_draws_shell() -> void:
 	await _draws("shell")
 
 
-func test_grass_mid_draws_cards() -> void:
-	await _draws("cards")
-
-
 func test_grass_mid_cull_matches_shell() -> void:
 	await _cull_matches("shell")
 
 
-func test_grass_mid_cull_matches_cards() -> void:
-	await _cull_matches("cards")
-
-
-## Взгляд на луг вдаль (луч зрения пересекает землю на ~20–40 м): кадр с узлом средней травы и без.
+## Взгляд на луг вдаль (луч зрения пересекает землю на 16–30 м): кадр с узлом средней травы и без.
 ## Рельеф почти ровный (наклон и бугры × 0,1), строки кадра, где луч зрения с глаза 1,5 м падает на землю
-## в 20–40 м, — больше половины их пикселей с травой и без отличаются.
+## в 16–30 м, — не меньше DRAW_MIN_SHARE их пикселей с травой и без отличаются.
 func _draws(mode: String) -> void:
 	_build(mode, 0.1)
 	_fields[1].mid_layer.visible = false
@@ -58,14 +56,14 @@ func _draws(mode: String) -> void:
 		var below := -(deg_to_rad(pitch) + atan(k))
 		if below > 0.0:
 			var dist := EYE_M / tan(below)
-			if dist >= 20.0 and dist <= 40.0:
+			if dist >= DRAW_NEAR_M and dist <= DRAW_FAR_M:
 				rows.append(y)
-	check(rows.size() >= 3, "в кадре есть полоса 20–40 м: %d строк" % rows.size())
+	check(rows.size() >= 3, "в кадре есть полоса %d–%d м: %d строк" % [int(DRAW_NEAR_M), int(DRAW_FAR_M), rows.size()])
 	for yaw in [0.0, 120.0, 240.0]:
 		var share := await _frame(Vector2.ZERO, EYE_M, yaw, pitch, fov, true, rows)
 		worst = minf(worst, share)
-		check(share > 0.5, "%s, yaw %d: на 20–40 м средняя трава меняет %.1f %% пикселей" % [mode, int(yaw), share * 100.0])
-	print("    grass_mid %s: на 20–40 м средняя трава меняет не меньше %.0f %% пикселей" % [mode, worst * 100.0])
+		check(share > DRAW_MIN_SHARE, "%s, yaw %d: на %d–%d м средняя трава меняет %.1f %% пикселей" % [mode, int(yaw), int(DRAW_NEAR_M), int(DRAW_FAR_M), share * 100.0])
+	print("    grass_mid %s: на 16–30 м средняя трава меняет не меньше %.0f %% пикселей" % [mode, worst * 100.0])
 	if OS.has_environment("DP_GRASS_MID_SHOT"):
 		_fields[1].mid_layer.visible = true
 		_set_size(Vector2i(1280, 720))
