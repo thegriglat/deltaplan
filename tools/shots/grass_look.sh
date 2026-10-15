@@ -2,8 +2,10 @@
 # Трава: 6 кадров в одних точках (шлюз 2, docs/plan/grass-rocks.md): Онгудай, ветер 3 м/с.
 # tools/shots/grass_look.sh [выход]   (по умолчанию docs/screenshots/grass-look)
 # Кадры: 1_cockpit, 2_chase, 3_side, 4_low_meadow, 5_mid_free, 6_mid_cockpit_far,
-# 7_top_30, 8_top_60 (.jpg; 7–8 — вид сверху с 30 и 60 м).
-# DP_GRASS_MID=blades|shell|terrain (если задана) передаётся игре в окружении (GrassField.setup).
+# 7_top_30, 8_top_60, 9_slope_ground (.jpg; 7–8 — вид сверху с 30 и 60 м; 9 — у земли вдоль склона
+# старта: пилот на старте смотрит вниз по склону, взгляд вбок на 90° — вдоль склона, угол взгляда к
+# рельефу на 10–40 м ≈ asin(1,5 м / d) = 9…2°, зона карточек режима angle).
+# DP_GRASS_MID=blades|shell|angle|terrain (если задана) передаётся игре в окружении (GrassField.setup).
 # Окну нужен настоящий дисплей (DISPLAY=:0), --fullscreen; звук выключен; каждый запуск — под timeout 120 с.
 # Профиль Godot — постоянный профиль копии (XDG_DATA_HOME=~/.cache/dp-xdg/<копия>); для импорта первого
 # запуска в копии: godot --headless --path . --import.
@@ -38,6 +40,7 @@ shot "$out/5_mid_free.jpg" --camera=free --time=2
 shot "$out/6_mid_cockpit_far.jpg" --camera=cockpit --look=0,-5 --time=2
 shot "$out/7_top_30.jpg" --air-start=600,30 --camera=cockpit --look=0,-60 --time=3
 shot "$out/8_top_60.jpg" --air-start=600,60 --camera=cockpit --look=0,-60 --time=3
+shot "$out/9_slope_ground.jpg" --camera=cockpit --look=90,-3 --time=2
 n=$(file "$out"/*.jpg | grep -oE '[0-9]{3,}x[0-9]{3,}' | sort -u | wc -l)
 if [[ "$n" -ne 1 ]]; then
   echo "WARN: размеры кадров в $out различаются:" >&2
