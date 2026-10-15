@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "Кадры after-shell и after-cards пересняты на ветке с GR-14 (18 кадров, все 1918x1036; 1_cockpit shell переснят отдельно). Замер G3 shell/cards, medium/high, прогон и повтор: цена травы shell 0.0-0.36 мс, cards 0.14-0.48 мс, бюджет 0.7/0.95 выполнен, как в GR-13.",
+  "commits": [
+    "914fc9c7 GR-15: кадры после GR-14 и замер G3 shell/cards"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "4/4 PASS",
+      "pass": true
+    },
+    {
+      "name": "бюджет medium<=0.7",
+      "value": "shell max 0.27, cards max 0.35",
+      "pass": true
+    },
+    {
+      "name": "бюджет high<=0.95",
+      "value": "shell max 0.36, cards max 0.48",
+      "pass": true
+    },
+    {
+      "name": "section",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "data",
+      "value": "32 jsonl",
+      "pass": true
+    },
+    {
+      "name": "count",
+      "value": "18",
+      "pass": true
+    },
+    {
+      "name": "sizes",
+      "value": "1 (1918x1036)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/grass-look/after-shell/",
+    "build/screenshots/grass-look/after-cards/"
+  ],
+  "how_to_check": ".dpcli/dpcli accept GR-15",
+  "uncertain": [
+    {
+      "where": "docs/perf/grass_rocks.md ## GR-15",
+      "why": "Шум 0.1-0.25 мс на отметках 2 и 30 по G3 негоден в обоих прогонах, трава там с погрешностью ±0.1-0.2",
+      "checked": "повтор b снят для обоих режимов; запас до бюджета >= 0.45 мс"
+    }
+  ],
+  "dp_feedback": "job wait в foreground упирается в 600 с лимит Bash; перфпрогоны приходится ждать в фоне.",
+  "extra": {
+    "cost_ms": {
+      "shell": {
+        "medium_max": 0.27,
+        "high_max": 0.36
+      },
+      "cards": {
+        "medium_max": 0.35,
+        "high_max": 0.48
+      }
+    }
+  },
+  "t": "2026-10-15T10:37:46",
+  "by": "executor"
+}
