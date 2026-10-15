@@ -56,3 +56,6 @@
 {"t": "2026-10-15T05:43:12", "by": "coordinator", "task": "SPF-6", "ev": "checked", "note": "2/3 wire_tone=FAIL:5/6; FAIL test_fill_cost; audio=ok:45/45; speed_feel_k3=ok:3/3"}
 {"t": "2026-10-15T05:43:21", "by": "coordinator", "task": "SPF-6", "ev": "accepted", "note": "wire_tone 6/6 у исполнителя, audio 45/45 у меня; test_fill_cost — порог времени под нагрузкой (3 копии гоняют godot), не регрессия"}
 {"t": "2026-10-15T05:43:29", "by": "coordinator", "task": "SPF-6", "ev": "merged", "note": "e828ab7"}
+{"t": "2026-10-15T05:44:20", "by": "executor", "task": "SPF-3", "ev": "reported", "commits": ["4ea95532"], "note": "done: Трепет ленточки: f = St·U/L (St=0,4, L=0,13), предел отображения 15 Гц, поле flutter_hz; амплитуда — плато до 12 м/с, з…", "dp_feedback": "Первый запуск telltale после правок дал 5 упавших (кэш/импорт), повтор — зелёный; фоновый запуск через | tail ничего не выдаёт до конца."}
+{"t": "2026-10-15T05:45:02", "by": "coordinator", "task": "SPF-3", "ev": "checked", "note": "2/2 telltale=ok:13/13; speed_feel_k2=ok:3/3"}
+{"t": "2026-10-15T05:45:12", "by": "coordinator", "task": "SPF-3", "ev": "accepted", "note": "по отчёту"}
