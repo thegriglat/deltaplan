@@ -56,3 +56,5 @@
 {"t": "2026-10-15T05:52:56", "by": "executor", "task": "GR-2", "ev": "reported", "commits": ["69cc72f1"], "note": "done: Замер G3 выполнен (два полных прогона, medium и high, ongudai, отметки 2/30/60). Цена травы: medium ≈0,75–0,85 мс, high…", "dp_feedback": "frame_profile.sh на холодном профиле падает/не долетает до FLYING (лимит 6000 кадров при загрузке 90–120 с); нужен прогрев профиля или лимит по времени. Нет режима «повторить одну отметку» кроме MARKS=…"}
 {"t": "2026-10-15T05:53:14", "by": "coordinator", "task": "GR-2", "ev": "checked", "note": "3/3 section=ok:1; data=ok:16; docs=ok:exit 0"}
 {"t": "2026-10-15T05:53:25", "by": "coordinator", "task": "GR-2", "ev": "accepted", "note": "по отчёту; шум medium@2 0,11–0,30 > 0,1 — отмечен"}
+{"t": "2026-10-15T05:53:53", "by": "coordinator", "task": "GR-2", "ev": "accepted", "commits": ["3ad99cf9"], "note": "3/3 section=ok:1; data=ok:16; docs=ok:exit 0"}
+{"t": "2026-10-15T05:53:55", "by": "coordinator", "task": "GR-2", "ev": "merged", "commits": ["3ad99cf9"]}
