@@ -22,7 +22,8 @@
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
 | — | звук вариометра | сгенерировано процедурно, `scripts/audio/vario_synth.gd` | — | вариометр |
-| `assets/sounds/airflow/wind_rush_loop.ogg, wind_rumble_loop.ogg, wires_whistle_loop.ogg` | поток воздуха: шум обтекания, бафтинг у ушей, свист тросов (лупы, pitch ∝ скорости) | сгенерировано процедурно, `tools/sounds/synth_wind.py` | — | звук полёта (поток воздуха) |
+| `assets/sounds/airflow/wind_rush_loop.ogg, wind_rumble_loop.ogg` | поток воздуха: шум обтекания, бафтинг у ушей (лупы, pitch ∝ скорости) | сгенерировано процедурно, `tools/sounds/synth_wind.py` | — | звук полёта (поток воздуха) |
+| — (ассета нет) `scripts/audio/wire_tone.gd` | эоловый тон тросов: синтез в реальном времени, f = St·V/d | процедурный синтез в коде проекта | — | звук полёта (свист тросов) |
 | `assets/sounds/airflow/wind_ears_loop.ogg` | ветер в ушах на малой скорости (луп) | [freesound 611197](https://freesound.org/s/611197/) klankbeeld | [CC0 1.0](licenses/CC0-1.0.txt) | поток воздуха 20–50 км/ч |
 | `assets/sounds/airflow/air_rush_fast_loop.ogg` | рёв потока на большой скорости (луп) | [freesound 20108](https://freesound.org/s/20108/) cognito perceptu | [CC0 1.0](licenses/CC0-1.0.txt) | поток воздуха 55–90 км/ч |
 | `assets/sounds/sail/wing_under_wind_loop.ogg` | шелест ткани крыла под нагрузкой (луп) | [freesound 836086](https://freesound.org/s/836086/) bruno.auzet | [CC0 1.0](licenses/CC0-1.0.txt) | парус |

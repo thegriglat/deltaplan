@@ -60,6 +60,7 @@ var _snap := true
 var _glance := 0.0  # 0 — свой взгляд, 1 — на прибор
 var _glance_held := false  # look_instrument зажата: голова (_head) заморожена и после отпускания та же
 var _look_locked := false  # голова задана set_look (скриншоты) — мышь её не двигает
+var _head_pitch := 0.0  # сглаженный тангаж головы p (SPF-К4), рад
 var _head_follow := Vector3.ZERO  # сглаженная доля смещения тела, которую повторяет голова
 
 
@@ -283,7 +284,9 @@ func _update_cockpit(t: Transform3D, delta: float) -> void:
 	var c: Dictionary = _cfg.cockpit
 	var lag := float(c.head_lag_s)
 	var k := 1.0 if lag <= 0.0 or _snap else 1.0 - exp(-delta / lag)
-	_head_basis = _head_basis.slerp(_level_head(t.basis, c), k).orthonormalized()
+	var pitch_k := 1.0 - exp(-delta / maxf(float(c.get("head_pitch_follow_s", 0.0)), 1e-6))
+	_head_pitch = _head_pitch_target(t.basis, c) if _snap else lerpf(_head_pitch, _head_pitch_target(t.basis, c), pitch_k)
+	_head_basis = _head_basis.slerp(_level_head(t.basis, c, _head_pitch), k).orthonormalized()
 	var eye: Vector3
 	var shake := Basis.IDENTITY
 	if head != null and is_instance_valid(head) and head.is_inside_tree():
@@ -391,8 +394,22 @@ func _follow_body(delta: float, c: Dictionary) -> Vector3:
 	return _head_follow - shift
 
 
-## Голова пилота: курс — вдоль крыла, тангаж — у горизонта, крен — доля крена крыла.
-static func _level_head(b: Basis, c: Dictionary) -> Basis:
+## Тангаж головы (SPF-К4): доля отклонения тангажа крыла от трима, рад, + нос вверх.
+## Нет модели с trim_pitch() у цели → 0. Берётся из базиса цели: тряска (buzz) в нём не участвует.
+func _head_pitch_target(b: Basis, c: Dictionary) -> float:
+	var follow := float(c.get("head_pitch_follow", 0.0))
+	if follow == 0.0 or target == null or not is_instance_valid(target):
+		return 0.0
+	var model: Variant = target.get("model")
+	if model == null or not model.has_method("trim_pitch"):
+		return 0.0
+	var theta := asin(clampf((-b.z).normalized().y, -1.0, 1.0))
+	var lim := deg_to_rad(float(c.get("head_pitch_max_deg", 10.0)))
+	return clampf(follow * (theta - float(model.trim_pitch())), -lim, lim)
+
+
+## Голова пилота: курс — вдоль крыла, тангаж — доля p от трима (0 — у горизонта), крен — доля крена крыла.
+static func _level_head(b: Basis, c: Dictionary, pitch := 0.0) -> Basis:
 	var f := -b.z
 	f.y = 0.0
 	if f.length() < 1e-3:
@@ -401,7 +418,7 @@ static func _level_head(b: Basis, c: Dictionary) -> Basis:
 	var yaw := atan2(-f.x, -f.z)
 	var bank := -asin(clampf(b.x.normalized().y, -1.0, 1.0))
 	var roll := bank * float(c.get("head_roll_follow", 0.5))
-	return Basis(Vector3.UP, yaw) * Basis(Vector3.BACK, -roll)
+	return Basis(Vector3.UP, yaw) * Basis(Vector3.BACK, -roll) * Basis(Vector3.RIGHT, pitch)
 
 
 ## Поворот головы (рыскание + влево, тангаж + вверх, с учётом look_down), чтобы смотреть на p.

@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "Контракт SPF-К3 v1 соблюдён: сигнатуры WireTone, f=St·V/d, потолок 0,45·mix_rate, нули ниже порога, wires=(дБ,1.0), луп и files.wires удалены. Изменения только в скоупе, project.godot не тронут. Закон громкости сходится с таблицей отчёта (-30+60·lg(V/40), предел -9), параметры с _doc и источниками. Тесты не подогнаны. Есть 2 мелких замечания.",
+  "issues": [
+    {
+      "file": "scripts/audio/flight_audio.gd",
+      "line": 13,
+      "severity": "minor",
+      "what": "_wire_playback (AudioStreamGeneratorPlayback) не отпускается в _exit_tree, а stream генератора не снимается. Вариометр (vario_audio.gd _exit_tree) делает это явно, иначе при выходе утечка.",
+      "fix": "В FlightAudio._exit_tree: _wire_playback = null; при _wire_player вызвать stop() и stream = null."
+    },
+    {
+      "file": "tests/audio/test_wire_tone.gd",
+      "line": 161,
+      "severity": "minor",
+      "what": "Порог test_fill_cost 400 мс на 1 с звука, а замер 44 мс: запас в 9 раз, регрессию производительности тест не поймает. Синтез идёт в основном потоке (_process) и стоит около 4% ядра.",
+      "fix": "Снизить порог, например до 150 мс. Если на машине мамы это окажется заметно, укрупнить блок."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only wire_tone --dry",
+      "value": "6/6, scope PASS",
+      "pass": true
+    },
+    {
+      "name": "WireTone fill 1 с при 22050 Гц",
+      "value": "44 мс",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-15T05:04:51",
+  "by": "reviewer"
+}

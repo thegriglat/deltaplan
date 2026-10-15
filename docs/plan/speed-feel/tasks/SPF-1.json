@@ -1,0 +1,45 @@
+{
+  "id": "SPF-1",
+  "module": "speed-feel",
+  "type": "dp-researcher",
+  "title": "Числа и источники для ощущения скорости",
+  "goal": "Замерами headless и литературой дать числа для SPF-2..5: двойной счёт тряски по скорости, θ(V), Струхаль ленты, диаметр тросов, физиология стабилизации головы по тангажу. Игру не меняет.",
+  "plan_ref": "SPF-1",
+  "contracts": [],
+  "copy": "~/deltaplan-speed-feel-SPF-1",
+  "branch": "speed-feel/SPF-1",
+  "base": "feature/speed-feel",
+  "scope": [
+    "docs/research/speed-feel.md",
+    "tools/research/speed-feel/",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "scenes/",
+    "tests/",
+    "docs/contracts/",
+    "docs/plan/speed-feel.md"
+  ],
+  "accept": [
+    {
+      "name": "doc",
+      "cmd": "test -f docs/research/speed-feel.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sections",
+      "cmd": "grep -c '^## ' docs/research/speed-feel.md",
+      "expect": "num:(\\d+) >=5"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:50:55"
+}

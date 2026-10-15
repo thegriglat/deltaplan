@@ -1,0 +1,11 @@
+{
+  "module": "pendulum-default",
+  "plan": "docs/plan/pendulum-default.md",
+  "contracts": "docs/contracts/pendulum-default.md",
+  "branch": "feature/pendulum-default",
+  "copy": "~/deltaplan-pendulum-default",
+  "created": "2026-10-15T04:53:17",
+  "code": "PMD",
+  "area": "flight",
+  "base": "main"
+}

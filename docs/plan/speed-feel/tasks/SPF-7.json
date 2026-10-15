@@ -1,0 +1,59 @@
+{
+  "id": "SPF-7",
+  "module": "speed-feel",
+  "type": "dp-engineer",
+  "title": "Голова по тангажу в режиме «Маятник»",
+  "goal": "PendulumModel.trim_pitch() (только чтение, с кэшем) — установившийся тангаж киля при нейтральной штанге; кабинная камера в режиме «Маятник» следует за тангажом крыла так же, как в обычном: p = 0,3·(θ − θ_трим), 2 с, ±10°. Контракт SPF-К4 v2.",
+  "plan_ref": "SPF-5",
+  "contracts": [
+    {
+      "name": "SPF-К4",
+      "version": "2",
+      "ref": "docs/contracts/speed-feel.md"
+    }
+  ],
+  "copy": "~/deltaplan-speed-feel-SPF-7",
+  "branch": "speed-feel/SPF-7",
+  "base": "feature/speed-feel",
+  "scope": [
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "scripts/game/camera_rig.gd",
+    "tests/flight/pendulum/test_pendulum_trim_pitch.gd",
+    "tests/flight/pendulum/test_pendulum_trim_pitch.gd.uid",
+    "tests/contracts/test_speed_feel_k4.gd",
+    "tests/game/test_camera_head_pitch.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/glider.gd",
+    "configs/",
+    "docs/contracts/",
+    "CHANGELOG.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "trim_pitch",
+      "tests": "trim_pitch"
+    },
+    {
+      "name": "head_pitch",
+      "tests": "head_pitch"
+    },
+    {
+      "name": "speed_feel_k4",
+      "tests": "speed_feel_k4"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "camera",
+      "tests": "camera"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T06:37:45"
+}

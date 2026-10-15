@@ -1,0 +1,29 @@
+{
+  "verdict": "accept",
+  "summary": "Контракт SPF-К4 v2 выполнен: в PendulumModel есть trim_pitch() с кэшем, без побочных эффектов. Бисекция вынесена в _trim_balance(), solve_trim() работает как раньше. Кэш сбрасывается в setup, а масса, подвеска и V_трим меняются только там. Glider берёт базис из telemetry.basis = wing_basis(), поэтому camera_rig правильно оставлен без правок. Правки только в скоупе.",
+  "issues": [
+    {
+      "file": "tests/flight/pendulum/test_pendulum_trim_pitch.gd",
+      "line": 75,
+      "severity": "minor",
+      "what": "Проверка |p| = 0,3·|Δθ| ничего не проверяет: p считается в самом тесте как FOLLOW·d. Связь p с тангажом в камере на деле проверяет test_camera_with_pendulum_target (−2,4° ± 0,2°), так что покрытие есть.",
+      "fix": "Не обязательно: убрать проверку или считать p через CameraRig."
+    },
+    {
+      "file": "scripts/flight/pendulum/pendulum_model.gd",
+      "line": 720,
+      "severity": "minor",
+      "what": "Кэш привязан к плотности на момент solve_trim. При наборе высоты θ_трим в модели почти не меняется (меняется скорость, угол атаки тот же), поэтому для камеры этим можно пренебречь. Граница модели названа в отчёте.",
+      "fix": "Ничего не делать."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only trim_pitch --dry",
+      "value": "4/4, scope 3 файла в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-15T06:49:26",
+  "by": "reviewer"
+}

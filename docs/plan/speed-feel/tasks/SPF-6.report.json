@@ -1,0 +1,7 @@
+{
+  "status": "partial",
+  "summary": "accept --dry: wire_tone PASS 6/6, speed_feel_k3 PASS 3/3, scope PASS; audio FAIL 44/45 (test_feet_positions_with_skeleton: pilot.glb load error in glider_visual.gd:986, not in changed files)",
+  "dp_feedback": "dry-run job wait prints results; import of pilot.glb in fresh profile failed silently",
+  "t": "2026-10-15T05:40:32",
+  "by": "executor"
+}

@@ -6,11 +6,11 @@ title: Deltaplan
 
 Deltaplan is an open-source free-flight hang gliding simulator for Windows, Linux and macOS.
 It is made for those who already fly and want to fly once more at home, and for those who are simply curious what it is like to
-fly a wing in a thermal over real terrain. The game has weight shift, weather from a forecast the pilot sets, thermals, slope and rotor wind, real places from maps and 48 wing models with parameters from datasheets. It is a simulator with simplifications: where exactly it differs from real flight is in the "What the game does not do" section below.
+fly a wing in a thermal over real terrain. The game has the "Pendulum" mode (wing and pilot as two bodies), weather from a forecast the pilot sets, thermals, slope and rotor wind, real places from maps and 48 wing models with parameters from datasheets. It is a simulator with simplifications: where exactly it differs from real flight is in the "What the game does not do" section below.
 
 ## Features
 
-- [Flight and controls](/mechanics/flight/) — weight shift like on a real wing, the launch run, stall and crash
+- [Flight and controls](/mechanics/flight/) — a wing of strips and a pilot on the hang chain, the launch run, stall, spin and crash
 - [Wing models](/wings/) — 48 wings in four groups: prototype, sizes, masses and where each number comes from
 - [Slope wind](/mechanics/air-model/wind-phases/) — airflow over terrain, separation and rotor behind a ridge, calm and evening drainage; the simple mode is ["Heuristic"](/mechanics/air-model/heuristic/)
 - [Thermals](/mechanics/air-model/thermals/) — strength and frequency by time of day, the edge, dry thermals
@@ -28,7 +28,7 @@ Controls are keyboard, mouse and gamepad, as well as a two-axis USB joystick as 
 ## What the game does not do
 
 - The air is a model, not a measurement: the wind field is computed as an hourly mean, and the position of each thermal is statistics. There is no moisture in the field, clouds come from the weather model. The nocturnal low-level jet is not reproduced; calm and evening drainage are the weakest spots. The speed-up at the brow is underestimated by 15–20 %, wind in a saddle is stronger than in real life, and behind a ridge in strong wind turbulence is 3–4 times stronger than in the literature.
-- The wing: no sideslip and yaw as a separate degree of freedom, pitch is simplified. For many of the 48 wings the sail shape, twist and profile are taken from the class base model, because the datasheets do not contain these numbers; on each wing page every number is marked with where it comes from.
+- The wing: in "Pendulum" the pilot is a point (no postures or body rotation), there is no sail tension regulator (VG), landing in calm air is harder than on a real wing; bots and remote players over the network fly on a simplified model without sideslip. For many of the 48 wings the sail shape, twist and profile are taken from the class base model, because the datasheets do not contain these numbers; on each wing page every number is marked with where it comes from.
 - There is no tuning "so that it feels right": what was checked against measurements and what did not match is on the [Approaches and results](/approaches/) page.
 
 ## Screenshots

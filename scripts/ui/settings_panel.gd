@@ -16,7 +16,7 @@ signal closed(changed: bool)
 
 ## Папка для user-конфигов (тесты подменяют).
 ## Значения controls.roll_control_mode по порядку пунктов списка.
-const ROLL_MODES: Array[String] = ["rate", "weight_shift", "pendulum"]
+const ROLL_MODES: Array[String] = ["pendulum", "weight_shift", "rate"]
 
 var config_dir: String = UserSettings.DEFAULT_DIR
 
@@ -111,9 +111,9 @@ func _ready() -> void:
 	_invert.text = tr("settings_invert_pitch_hint")
 	UiKit.row(box_ctl, tr("settings_invert_pitch"), _invert)
 	_roll_mode = OptionButton.new()
-	_roll_mode.add_item(tr("settings_roll_simple"))
+	_roll_mode.add_item(tr("settings_roll_pendulum"))  # порядок — как в ROLL_MODES
 	_roll_mode.add_item(tr("settings_roll_weight_shift"))
-	_roll_mode.add_item(tr("settings_roll_pendulum"))
+	_roll_mode.add_item(tr("settings_roll_simple"))
 	UiKit.row(box_ctl, tr("settings_roll_control"), _roll_mode)
 	_roll_input = OptionButton.new()
 	_roll_input.add_item(tr("settings_roll_input_bar"))
@@ -330,8 +330,8 @@ func load_values() -> void:
 	_sens.value = float(Config.value("controls", "mouse.look_sensitivity_deg_per_px"))
 	_sens.value_changed.emit(_sens.value)
 	_invert.button_pressed = bool(Config.value("controls", "invert_pitch"))
-	var rm := String(Config.value("controls", "roll_control_mode", "rate"))
-	_roll_mode.select(ROLL_MODES.find(rm) if rm in ROLL_MODES else 0)
+	var rm := String(Config.value("controls", "roll_control_mode", "pendulum"))
+	_roll_mode.select(maxi(ROLL_MODES.find(rm), 0))
 	_roll_input.select(1 if String(Config.value("controls", "roll_input", "body")) == "body" else 0)
 	_bar_ui.load_values()
 	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))

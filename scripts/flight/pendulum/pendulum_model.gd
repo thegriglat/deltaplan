@@ -134,6 +134,8 @@ var _head_up: float = 0.15
 var _v_trim_ref: float = 10.0
 var _alpha0: float = 0.0
 var _neutral_ok := false
+var _trim_theta := 0.0  ## кэш trim_pitch(), рад
+var _trim_theta_ok := false
 var _ground_neutral := Vector3.ZERO  ## pilot_rel в позе стоя при постановке на землю (FB-К1)
 
 # состояние крыла: ЦМ (локальное начало NED), скорость, B→мир, угловая скорость (мир)
@@ -310,6 +312,7 @@ func setup(
 	_contact_pts.append(_r_bar_b)  # середина трапеции — только на посадке
 	touchdown.setup(pendulum.get("touchdown", {}))
 	_neutral_ok = false
+	_trim_theta_ok = false
 	telemetry = Telemetry.new()
 
 
@@ -704,6 +707,27 @@ func glide_balance(a: float, v0: float) -> Dictionary:
 
 ## Угол атаки, при котором момент около подвески 0 (руки без усилия); задаёт нейтраль рук.
 func solve_trim() -> Dictionary:
+	var st := _trim_balance()
+	arms.neutral_rel = Vector3(st.pilot_dir_b) * _hang_len
+	_neutral_ok = true
+	_trim_theta = float(st.theta)
+	_trim_theta_ok = true
+	return st
+
+
+## Установившийся тангаж киля при нейтральной штанге (SPF-К4 v2), рад, + нос вверх — в системе
+## тангажа −Z базиса wing_basis(). Только чтение: нейтраль рук не трогает; значение кэшируется
+## (solve_trim обновляет его при каждом старте, плотность — как в нём).
+func trim_pitch() -> float:
+	if not _trim_theta_ok:
+		_trim_theta = float(_trim_balance().theta)
+		_trim_theta_ok = true
+	return _trim_theta
+
+
+## Бисекция по углу атаки: момент около подвески = 0. Без записи состояния модели
+## (кроме рабочих буферов strips, как у glide_balance).
+func _trim_balance() -> Dictionary:
 	var lo := _alpha0 + deg_to_rad(3.0)
 	var hi := deg_to_rad(28.0)
 	var mlo: float = glide_balance(lo, _v_trim_ref).M
@@ -715,10 +739,7 @@ func solve_trim() -> Dictionary:
 			mlo = mm
 		else:
 			hi = mid
-	var st := glide_balance(0.5 * (lo + hi), _v_trim_ref)
-	arms.neutral_rel = Vector3(st.pilot_dir_b) * _hang_len
-	_neutral_ok = true
-	return st
+	return glide_balance(0.5 * (lo + hi), _v_trim_ref)
 
 
 # ------------------------------------------------------------------ шаг

@@ -74,7 +74,9 @@ func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) 
 
 ## Выбран режим управления «Маятник» (controls.roll_control_mode).
 static func is_pendulum_mode() -> bool:
-	return String(Config.value("controls", "roll_control_mode", "weight_shift")) == "pendulum"
+	# PMD-К1: «Маятник» — умолчание; FlightModel только по явным weight_shift/rate
+	var mode := String(Config.value("controls", "roll_control_mode", "pendulum"))
+	return mode != "weight_shift" and mode != "rate"
 
 
 ## Сейчас модель — PendulumModel.

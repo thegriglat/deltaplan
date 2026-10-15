@@ -1,0 +1,104 @@
+{
+  "id": "PMD-1",
+  "module": "pendulum-default",
+  "type": "dp-engineer",
+  "title": "Маятник по умолчанию: конфиг, запасные значения, список, подписи, тесты",
+  "goal": "Режим pendulum — умолчание в конфиге и во всех запасных значениях кода, первым в списке настроек, без пометки «экспериментальный»; подпись вкладки «Аппарат» — по PMD-К1; тесты, зависящие от умолчания, исправлены по смыслу.",
+  "plan_ref": "§PMD-1",
+  "contracts": [
+    {
+      "name": "pendulum-default",
+      "version": "1",
+      "ref": "docs/contracts/pendulum-default.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-default-PMD-1",
+  "branch": "pendulum-default/PMD-1",
+  "base": "feature/pendulum-default",
+  "scope": [
+    "configs/controls.json",
+    "scripts/flight/glider.gd",
+    "scripts/game/input_controller.gd",
+    "scripts/ui/settings_panel.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/game/game.gd",
+    "locale/ui.csv",
+    "tests/"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum",
+    "configs/pendulum.json",
+    "configs/wings",
+    "project.godot",
+    "site",
+    "docs",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "pendulum_default",
+      "tests": "pendulum_default"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "tests/net/",
+      "tests": "tests/net/"
+    },
+    {
+      "name": "roll",
+      "tests": "roll"
+    },
+    {
+      "name": "no-experimental",
+      "cmd": "grep -c -i 'экспериментальн\\|experimental' locale/ui.csv || true",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "test_mouse_bar_flight",
+      "tests": "test_mouse_bar_flight"
+    },
+    {
+      "name": "test_net_flight",
+      "tests": "test_net_flight"
+    },
+    {
+      "name": "test_net_bots",
+      "tests": "test_net_bots"
+    },
+    {
+      "name": "test_remote_pilots",
+      "tests": "test_remote_pilots"
+    },
+    {
+      "name": "test_bots",
+      "tests": "test_bots"
+    },
+    {
+      "name": "tests/flight/test_glider",
+      "tests": "tests/flight/test_glider"
+    },
+    {
+      "name": "tests/ui/test_settings",
+      "tests": "tests/ui/test_settings"
+    },
+    {
+      "name": "test_setup_apparatus",
+      "tests": "test_setup_apparatus"
+    },
+    {
+      "name": "test_menu_setup",
+      "tests": "test_menu_setup"
+    },
+    {
+      "name": "tests/ui/test_screens",
+      "tests": "tests/ui/test_screens"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:56:00",
+  "edited": "2026-10-15T06:43:38"
+}

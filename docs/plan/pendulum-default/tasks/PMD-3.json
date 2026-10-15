@@ -1,0 +1,57 @@
+{
+  "id": "PMD-3",
+  "module": "pendulum-default",
+  "type": "dp-writer",
+  "title": "Сайт: «Маятник» — основной режим (ru и en)",
+  "goal": "Страница «Полёт» переписана: основной режим — «Маятник» (как считается, ввод, земля, срыв и штопор, ленточки, границы модели честно), старые режимы — коротким разделом; «Приборы», главная, «Подходы»/«Что в игре сейчас» — по факту; на сайте вне releases нет «экспериментальный» про маятник.",
+  "plan_ref": "§PMD-3",
+  "contracts": [
+    {
+      "name": "pendulum-default",
+      "version": "1",
+      "ref": "docs/contracts/pendulum-default.md"
+    }
+  ],
+  "copy": "~/deltaplan-pendulum-default-PMD-3",
+  "branch": "pendulum-default/PMD-3",
+  "base": "feature/pendulum-default",
+  "scope": [
+    "site/content/mechanics/flight.ru.md",
+    "site/content/mechanics/flight.en.md",
+    "site/content/mechanics/instruments.ru.md",
+    "site/content/mechanics/instruments.en.md",
+    "site/content/_index.ru.md",
+    "site/content/_index.en.md",
+    "site/content/approaches.ru.md",
+    "site/content/approaches.en.md",
+    "site/content/mechanics/",
+    "site/content/docs/"
+  ],
+  "dont_touch": [
+    "site/content/releases",
+    "site/layouts",
+    "site/themes",
+    "site/hugo.toml",
+    "scripts",
+    "configs",
+    "docs",
+    "CHANGELOG.md",
+    "diary"
+  ],
+  "accept": [
+    {
+      "name": "no-experimental",
+      "cmd": "grep -rn -i -E 'экспериментальн|experimental' site/content --include=*.md | grep -v '/releases/' | grep -i -E 'маятн|pendul' | wc -l",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "hugo",
+      "cmd": "cd site && hugo --quiet 2>&1; echo EXIT=$?",
+      "expect": "re:EXIT=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T04:57:07",
+  "edited": "2026-10-15T04:57:25"
+}

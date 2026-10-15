@@ -1,0 +1,51 @@
+{
+  "status": "done",
+  "summary": "Частоты freqs_hz тряски умножаются на r_f = clamp(V/V_трим, freq_ratio_range [0,7; 2,0]); фаза копится через масштабированное время тряски, амплитуда не тронута. Нет Glider/модели или V_трим ≤ 0 → r_f = 1.",
+  "commits": [
+    "e74dbb8f SPF-2: частоты тряски кабины ∝ V/V_трим"
+  ],
+  "checks": [
+    {
+      "name": "buzz_speed",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "speed_feel_k1",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "glider_visual",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "pilot_arms",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "пересечения нуля V_трим / 1,6x / 0,8x",
+      "value": "194 / 311 / 157",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "CHANGELOG.md не правился по поправке координатора"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SPF-2",
+  "uncertain": [
+    {
+      "where": "scripts/flight/glider_visual.gd:_buzz_freq_ratio",
+      "why": "V_трим берётся у модели родителя Glider; PendulumModel отдельно не проверял",
+      "checked": "защита has_method, при отсутствии r_f = 1; тесты на FlightModel"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {},
+  "t": "2026-10-15T05:47:27",
+  "by": "executor"
+}
