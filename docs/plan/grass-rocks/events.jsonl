@@ -93,3 +93,5 @@
 {"t": "2026-10-15T06:34:52", "by": "coordinator", "task": "GR-12", "ev": "started", "note": "dp-mechanic haiku; лимит агентов снят пользователем"}
 {"t": "2026-10-15T06:35:47", "by": "executor", "task": "GR-10", "ev": "reported", "commits": ["395fbc33"], "note": "done: vegetation.md: раздел про ранний выход травы (GR-3) с замерами GR-2/GR-5 и тест cull; terrain.md: форма и трипланарная …", "dp_feedback": "Дополнение координатора обрезано на «отчёты: …» в task show."}
 {"t": "2026-10-15T06:35:52", "by": "coordinator", "task": "GR-10", "ev": "accepted", "note": "3/3 docs=ok:exit 0; findings=ok:1; changelog=ok:1"}
+{"t": "2026-10-15T06:35:57", "by": "coordinator", "task": "GR-10", "ev": "accepted", "commits": ["e11a3b5e"], "note": "3/3 docs=ok:exit 0; findings=ok:1; changelog=ok:1"}
+{"t": "2026-10-15T06:35:58", "by": "coordinator", "task": "GR-10", "ev": "merged", "commits": ["e11a3b5e"]}
