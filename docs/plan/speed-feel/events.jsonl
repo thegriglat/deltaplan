@@ -63,3 +63,4 @@
 {"t": "2026-10-15T05:47:27", "by": "executor", "task": "SPF-2", "ev": "reported", "commits": ["e74dbb8f"], "note": "done: Частоты freqs_hz тряски умножаются на r_f = clamp(V/V_трим, freq_ratio_range [0,7; 2,0]); фаза копится через масштабиро…"}
 {"t": "2026-10-15T05:48:00", "by": "coordinator", "task": "SPF-2", "ev": "checked", "note": "4/4 buzz_speed=ok:4/4; speed_feel_k1=ok:2/2; glider_visual=ok:6/6; pilot_arms=ok:7/7"}
 {"t": "2026-10-15T05:48:11", "by": "coordinator", "task": "SPF-2", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-15T05:48:12", "by": "coordinator", "task": "SPF-2", "ev": "merged"}
