@@ -67,7 +67,7 @@ uniform float trample_lean = 1.3;
 uniform vec3 trample_tint = vec3(1.12, 1.0, 0.72);
 uniform float height_k = 1.0;
 uniform bool cull_enabled = true;
-uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
+uniform sampler2D screen_tex : hint_screen_texture, filter_linear;  // без мипмапов: выборка 1:1
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 // ворс (GR-8): яркость у корня / у кончика относительно луга рельефа (тень соседних стеблей; среднее
 // по видимым сверху и сбоку стеблям ≈ 1 — диск не темнее и не светлее луга)

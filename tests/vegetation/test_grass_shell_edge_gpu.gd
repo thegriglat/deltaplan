@@ -9,8 +9,11 @@ extends Node
 ## (2) нет кольца: отношение «с травой / без» между соседними кольцами меняется ≤ 3 % (яркость и
 ##     цветность), 0–80 м.
 ## (3) стык с ближними травинками (8–14 м): то же с ближним кольцом — нет скачка между кольцами 4–24 м;
-## (4) ворс не ровный: разброс яркости пикселей (σ/среднее) на 15–30 м не ниже NOISE_MIN, выбросов
-##     (|L − среднее кольца| > 50 %) не больше OUTLIER_MAX.
+## (4) ворс не ровный: на 15–30 м собственный разброс яркости ворса поверх луга того же кадра —
+##     √(max(cv_трава² − cv_рельеф², 0)), cv = σ/среднее яркости пикселей — не ниже NOISE_MIN; выбросов
+##     (|L − среднее кольца| > 50 %) не больше OUTLIER_MAX. Модуляция ворса (корень/кончик 0,82–1,1,
+##     тон куртин ±12 %, пятна ±6 %) даёт ~0,02; NOISE_MIN — половина. До GR-8 слой был ровнее
+##     рельефа (cv 0,015 против 0,07) — вклад 0.
 ## Режим shell (G4 v2).
 
 const SIZE := Vector2i(320, 180)
@@ -28,7 +31,7 @@ const STEP_TOL := 0.03
 const GROUND_H := 1650.0
 const SLOPE_DEG := 12.0
 const LOCATION := "ongudai"
-const NOISE_MIN := 0.04
+const NOISE_MIN := 0.01
 const OUTLIER_MAX := 0.02
 
 var failures: PackedStringArray = []
@@ -252,8 +255,9 @@ func _judge_noise(mode: String, hgt: float, wg: Dictionary, ng: Dictionary) -> v
 				cnt += a.n[k]
 		cv[j] = sqrt(var_s / maxf(mean_s, 1e-6))
 	var share := float(outs) / maxf(cnt, 1.0)
-	print("    shell_edge %s %d м: ворс 15–30 м — σ/среднее %.3f (рельеф %.3f), выбросов %.4f" % [mode, int(hgt), cv[0], cv[1], share])
-	check(cv[0] >= NOISE_MIN, "%s %d м: ворс ровный, σ/среднее %.3f" % [mode, int(hgt), cv[0]])
+	var own := sqrt(maxf(cv[0] * cv[0] - cv[1] * cv[1], 0.0))
+	print("    shell_edge %s %d м: ворс 15–30 м — σ/среднее %.3f (рельеф %.3f), свой вклад ворса %.3f, выбросов %.4f" % [mode, int(hgt), cv[0], cv[1], own, share])
+	check(own >= NOISE_MIN, "%s %d м: ворс ровный, свой вклад %.3f" % [mode, int(hgt), own])
 	check(share <= OUTLIER_MAX, "%s %d м: выбросов яркости %.4f" % [mode, int(hgt), share])
 
 
