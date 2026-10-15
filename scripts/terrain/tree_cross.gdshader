@@ -55,6 +55,10 @@ uniform float far_contrast = 0.35;
 uniform float far_canopy_luma = 0.32;
 uniform float far_edge_soft_k = 3.0;
 
+uniform bool cull_enabled = true;    // GR-11: ранний выход вне пирамиды камеры (false — для сверки кадров)
+uniform float cull_up_m = 40.0;      // выше земли до верха креста, м (TreeCrosses.setup)
+uniform float cull_down_m = 12.0;    // ниже земли (утопление), м
+uniform float cull_reach_m = 20.0;   // радиус креста от оси, м
 const float SL_KIND[5] = float[5](0.0, 0.0, 2.0, 1.0, 0.0); // SL-6: TerrainTreeModels.season_kind
 
 varying vec3 v_color;
@@ -110,6 +114,27 @@ int pick_species(float h, float north, float u) {
 	return 4;
 }
 
+// Ранний выход (GR-11, как clump_out_of_view у травы): капсула — ось (xz, y0…y1) с радиусом reach —
+// целиком за боковой плоскостью пирамиды камеры (плоскости из строк PROJECTION_MATRIX, нормированные
+// расстояния) или позади камеры. Считается в том же кадре — запаса на поворот не нужно. Объекты не
+// отбрасывают тень (cast_shadow выключен), проход теней этот шейдер не рисует.
+bool column_out_of_view(vec2 xz, float y0, float y1, float reach, mat4 proj, mat4 view) {
+	vec3 a = (view * vec4(xz.x, y0, xz.y, 1.0)).xyz;   // вид смотрит в −Z; масштаб единичный
+	vec3 b = (view * vec4(xz.x, y1, xz.y, 1.0)).xyz;
+	if (min(a.z, b.z) > reach) {
+		return true;   // позади камеры
+	}
+	mat4 t = transpose(proj);
+	vec4 pl[4] = vec4[4](t[3] + t[0], t[3] - t[0], t[3] + t[1], t[3] - t[1]);
+	for (int i = 0; i < 4; i++) {
+		float inv = inversesqrt(max(dot(pl[i].xyz, pl[i].xyz), 1e-20));
+		if (max(dot(pl[i].xyz, a) + pl[i].w, dot(pl[i].xyz, b) + pl[i].w) * inv < -reach) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void vertex() {
 	ivec2 c = grid_center_cell + ivec2(INSTANCE_CUSTOM.xy);
 	uvec2 h = tc_hash(c);
@@ -125,7 +150,17 @@ void vertex() {
 	v_kind = 0.0;
 	v_sl_ss = vec4(0.0);
 	// дешёвое сначала: окно пусто или нет дерева — вырожденный крест (под землю, без выборок высот)
-	bool present = v_win.x < v_win.y && tc_present(h, cell_d8((vec2(c) + 0.5) * cell_m));
+	bool in_win = v_win.x < v_win.y;
+	float hgt = 0.0;
+	bool have_h = false;
+	if (in_win && cull_enabled) {
+		// ранний выход: одна выборка высоты, дальше ни тестов дерева, ни остальных выборок
+		hgt = h_bilinear(p);
+		have_h = true;
+		in_win = !column_out_of_view(p, hgt - cull_down_m, hgt + cull_up_m, cull_reach_m,
+				PROJECTION_MATRIX, VIEW_MATRIX);
+	}
+	bool present = in_win && tc_present(h, cell_d8((vec2(c) + 0.5) * cell_m));
 	vec2 lo = layer_origin;
 	vec2 hi = layer_origin + (layer_texels - 1.0) * layer_spacing;
 	present = present && all(greaterThanEqual(p, lo)) && all(lessThanEqual(p, hi));
@@ -138,10 +173,11 @@ void vertex() {
 		}
 	}
 	int sp = -1;
-	float hgt = 0.0;
 	if (present) {
 		// порода — по высоте и «северности» (вперёд разностями, как TreePlacer)
-		hgt = h_bilinear(p);
+		if (!have_h) {
+			hgt = h_bilinear(p);
+		}
 		float e = layer_spacing;
 		float gx = (h_bilinear(p + vec2(e, 0.0)) - hgt) / e;
 		float gz = (h_bilinear(p + vec2(0.0, e)) - hgt) / e;
