@@ -126,14 +126,17 @@ func test_bar_mouse_moves_bar_and_model_in_air() -> void:
 	await _close(main)
 
 
-## То же в «Маятнике»: знаки ввода и тангажа те же; крен — через пилота на подвеске, медленнее
-## (1,5 с мало: первые секунды крыло реагирует обратно), поэтому окно длиннее, порог — знак.
+## То же в «Маятнике»: знаки ввода и тангажа те же; крен — через пилота на подвеске, медленнее,
+## поэтому окно 6 с. Воздух — штиль (PMD-5): на месте старта поле воздуха порывистое (~4 м/с,
+## вертикаль до ±1,7 м/с, своё на каждом перезапуске) и за 6 с давало вправо +26,6°, влево −49°,
+## нейтраль −7°; в штиль ответ симметричен (вправо = −влево, нейтраль 0).
 func test_bar_mouse_in_air_pendulum() -> void:
 	var main := await _open(true, "pendulum")
 	if main == null:
 		return
 	var game: Game = main.get_node("Game")
 	check(game.glider.is_pendulum(), "модель — PendulumModel")
+	game.glider.set_air_fn(func(_p: Vector3) -> Vector3: return Vector3.ZERO)
 	var px := get_viewport().get_visible_rect().size.y * 0.5 * 0.3
 	var dur := 6.0
 	var neutral := _fly_with_mouse(game, Vector2.ZERO, dur)
@@ -145,7 +148,9 @@ func test_bar_mouse_in_air_pendulum() -> void:
 		neutral[2], right[2], left[2], up[3], down[3]])
 	check(right[1] > 0.2 and left[1] < -0.2, "roll: вправо > 0, влево < 0")
 	check(up[0] > 0.2 and down[0] < -0.2, "pitch: вверх > 0, вниз < 0")
-	check(right[2] > left[2] + 2.0, "крен: вправо > влево: %.1f° / %.1f°" % [right[2], left[2]])
+	check(right[2] > 5.0 and left[2] < -5.0, "крен: вправо > 0, влево < 0: %.1f° / %.1f°" % [right[2], left[2]])
+	check(absf(right[2] + left[2]) <= 0.1 * absf(right[2]), "крен симметричен: %.1f° / %.1f°" % [right[2], left[2]])
+	check(absf(neutral[2]) <= 2.0, "нейтраль — без крена: %.1f°" % neutral[2])
 	await _close(main)
 
 
