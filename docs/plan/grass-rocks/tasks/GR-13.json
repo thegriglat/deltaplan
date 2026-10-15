@@ -1,0 +1,59 @@
+{
+  "id": "GR-13",
+  "module": "grass-rocks",
+  "type": "dp-researcher",
+  "title": "Кадры и замер «после»: shell и cards",
+  "goal": "На ветке модуля с GR-6 и GR-7: кадры tools/shots/grass_look.sh для режимов средней дистанции shell и cards в /home/greg/deltaplan/build/screenshots/grass-look/after-shell/ и after-cards/, замер G3 по каждому режиму — раздел ## GR-13 в docs/perf/grass_rocks.md со сравнением с GR-2/GR-5 и бюджетом (medium ≤ 0,7, high ≤ 0,95 мс).",
+  "plan_ref": "GR-13. Кадры и замер «после»",
+  "contracts": [
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "1",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-13",
+  "branch": "grass-rocks/GR-13",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "docs/perf/grass_rocks.md",
+    "docs/perf/data/grass_rocks_GR-13.tar.gz"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools",
+    "assets",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "shell_shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/after-shell/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "cards_shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/after-cards/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "section",
+      "cmd": "grep -c '^## GR-13' docs/perf/grass_rocks.md",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "data",
+      "cmd": "tar tzf docs/perf/data/grass_rocks_GR-13.tar.gz | grep -c 'jsonl$'",
+      "expect": "num:(\\d+) >=12"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T08:20:42"
+}
