@@ -1,0 +1,59 @@
+{
+  "status": "partial",
+  "summary": "Голова в кабине следует за тангажом крыла на 0,3 от трима (SPF-К4): FlightModel.trim_pitch(), состояние _head_pitch в CameraRig, ключи cockpit.head_pitch_*, док, тесты. Приёмка 5/6: проверка flight_model находит 0 тестов.",
+  "commits": [
+    "56f3768a SPF-5: голова следует за тангажом крыла на 0,3"
+  ],
+  "checks": [
+    {
+      "name": "head_pitch",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "speed_feel",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "camera",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "helmet_fov",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "pendulum_visual",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "flight_model",
+      "value": "0/0: фильтр flight_model не совпадает ни с одним путём тестов",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Проверка flight_model в карточке: --filter ищет по пути файла, файла с таким именем нет; тест trim_pitch лежит в test_camera_head_pitch.gd (проходит). Нужно сменить фильтр (например test_glider/pendulum) или завести файл в скоупе."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SPF-5 --dry",
+  "uncertain": [
+    {
+      "where": "scripts/game/camera_rig.gd:_head_pitch_target",
+      "why": "PendulumModel (режим маятника) не имеет trim_pitch() — там p = 0 (как без модели); границы модели",
+      "checked": "has_method-проверка; добавлять в PendulumModel вне скоупа"
+    },
+    {
+      "where": "configs/camera.json",
+      "why": "источник Goldberg & Cullen 2011 указан по заданию координатора, не перепроверял",
+      "checked": "числа 0,3/2,0/10° по карточке"
+    }
+  ],
+  "dp_feedback": "accept даёт FAIL при 0 найденных тестах без пояснения; фильтр по пути файла неочевиден.",
+  "t": "2026-10-15T06:26:36",
+  "by": "executor"
+}

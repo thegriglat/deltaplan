@@ -61,11 +61,16 @@
       "tests": "pendulum_visual"
     },
     {
-      "name": "flight_model",
-      "tests": "flight_model"
+      "name": "test_glider.gd",
+      "tests": "test_glider.gd"
+    },
+    {
+      "name": "test_air.gd",
+      "tests": "test_air.gd"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-15T06:21:49"
+  "created": "2026-10-15T06:21:49",
+  "edited": "2026-10-15T06:29:32"
 }
