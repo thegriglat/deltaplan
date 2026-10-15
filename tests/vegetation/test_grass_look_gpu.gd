@@ -6,6 +6,7 @@ extends Node
 ## (blade_normal_fade_m до камеры) кадр совпадает с «как земля» — среднее и дальнее кольца не
 ## сломаны; (3) трава с солнцем сзади и против солнца отличается сильнее, чем у «как земля»
 ## (лицо травинки освещено/в тени, просвет), но средняя яркость остаётся в 0,5…1,5 от «как земля».
+## У «как земля» и множитель альбедо своей нормали leaf_tilt_gain = 1 (GR-14) — вид как до GR-6.
 
 const W := 256
 const H := 144
@@ -32,6 +33,7 @@ func check(cond: bool, msg: String = "") -> void:
 func test_grass_look_blade_normal_changes_near_grass() -> void:
 	_build()
 	_set_param(1, "leaf_tilt_deg", 0.0)
+	_set_param(1, "leaf_tilt_gain", 1.0)
 	var r := await _frame(0.0, -35.0)
 	print("    grass_look: доля различающихся пикселей травы %.3f, Δяркости %.4f" % [r.diff_share, r.dlum])
 	check(r.grass_share > 0.5, "трава в кадре: %.2f" % r.grass_share)
@@ -43,6 +45,7 @@ func test_grass_look_fade_matches_ground_normal() -> void:
 	_build()
 	_set_param(0, "blade_normal_fade_m", Vector2(-2.0, -1.0))
 	_set_param(1, "leaf_tilt_deg", 0.0)
+	_set_param(1, "leaf_tilt_gain", 1.0)
 	var r := await _frame(0.0, -35.0)
 	print("    grass_look: нормаль погашена — отличается %.4f %% пикселей" % (r.diff_share * 100.0))
 	check(r.diff_share <= 0.0001, "погашенная нормаль = нормаль полога: %.4f" % r.diff_share)
@@ -52,6 +55,7 @@ func test_grass_look_fade_matches_ground_normal() -> void:
 func test_grass_look_sun_side_contrast_and_brightness() -> void:
 	_build()
 	_set_param(1, "leaf_tilt_deg", 0.0)
+	_set_param(1, "leaf_tilt_gain", 1.0)
 	var front := await _frame(0.0, -35.0)   # солнце за спиной
 	var back := await _frame(180.0, -35.0)  # против солнца
 	var k_blade := float(front.lum0) / maxf(float(back.lum0), 1e-4)

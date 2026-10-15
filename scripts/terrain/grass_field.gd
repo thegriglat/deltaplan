@@ -100,6 +100,7 @@ func setup(
 	material.set_shader_parameter("blade_tint", Vector3(tint[0], tint[1], tint[2]))
 	material.set_shader_parameter("blade_shade", _v2(cfg.get("blade_shade", [1.25, 1.75])))
 	material.set_shader_parameter("leaf_tilt_deg", float(cfg.get("leaf_tilt_deg", 60.0)))
+	material.set_shader_parameter("leaf_tilt_gain", float(cfg.get("leaf_tilt_gain", 1.0)))
 	material.set_shader_parameter("groove_deg", float(cfg.get("groove_deg", 30.0)))
 	material.set_shader_parameter("blade_normal_fade_m", _v2(cfg.get("blade_normal_fade_m", [8.0, 20.0])))
 	material.set_shader_parameter("across_shade", float(cfg.get("across_shade", 0.12)))
