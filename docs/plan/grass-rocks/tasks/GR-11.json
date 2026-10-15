@@ -1,0 +1,66 @@
+{
+  "id": "GR-11",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Ранний выход крестов деревьев и импостеров леса",
+  "goal": "Кресты деревьев и импостеры леса в вершинном шейдере отбрасывают экземпляры вне пирамиды камеры (как трава в GR-3) с запасом по размеру дерева; вид не меняется ни при каком направлении и быстром повороте. Опыт nocrosses в frame_profile, замер до/после по G3 v2.",
+  "plan_ref": "GR-11. Ранний выход крестов деревьев и импостеров леса",
+  "contracts": [
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-11",
+  "branch": "grass-rocks/GR-11",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/tree_cross.gdshader",
+    "scripts/terrain/forest_impostors.gdshader",
+    "scripts/terrain/tree_crosses.gd",
+    "scripts/terrain/forest_impostors.gd",
+    "tools/bench/frame_profile.gd",
+    "tests/vegetation/test_tree_cull_gpu.gd",
+    "tests/vegetation/test_tree_cull_gpu.gd.uid",
+    "docs/perf/grass_rocks.md",
+    "docs/perf/data/grass_rocks_GR-11.tar.gz"
+  ],
+  "dont_touch": [
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/grass_field.gd",
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/terrain_tree_models.gd",
+    "configs",
+    "tests/vegetation/test_grass_cull_gpu.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tree",
+      "tests": "tree"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "gpu_cull",
+      "cmd": "DISPLAY=:0 tools/gpu_tests.sh --filter=cull_gpu",
+      "expect": "re:([3-9]|[1-9][0-9]+) тестов, 0 упало"
+    },
+    {
+      "name": "section",
+      "cmd": "grep -c '^## GR-11' docs/perf/grass_rocks.md",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "data",
+      "cmd": "tar tzf docs/perf/data/grass_rocks_GR-11.tar.gz | grep -c 'jsonl$'",
+      "expect": "num:(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-15T06:14:32"
+}
