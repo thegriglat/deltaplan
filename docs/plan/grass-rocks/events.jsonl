@@ -163,3 +163,5 @@
 {"t": "2026-10-15T10:37:46", "by": "executor", "task": "GR-15", "ev": "reported", "commits": ["914fc9c7"], "note": "done: Кадры after-shell и after-cards пересняты на ветке с GR-14 (18 кадров, все 1918x1036; 1_cockpit shell переснят отдельно…", "dp_feedback": "job wait в foreground упирается в 600 с лимит Bash; перфпрогоны приходится ждать в фоне."}
 {"t": "2026-10-15T10:37:53", "by": "coordinator", "task": "GR-15", "ev": "checked", "note": "4/4 section=ok:1; data=ok:32; count=ok:18; sizes=ok:1"}
 {"t": "2026-10-15T10:37:57", "by": "coordinator", "task": "GR-15", "ev": "accepted", "note": "по отчёту (кадры и замер)"}
+{"t": "2026-10-15T10:37:58", "by": "coordinator", "task": "GR-15", "ev": "accepted", "commits": ["b2540d02"], "note": "4/4 section=ok:1; data=ok:32; count=ok:18; sizes=ok:1"}
+{"t": "2026-10-15T10:37:58", "by": "coordinator", "task": "GR-15", "ev": "merged", "commits": ["b2540d02"]}
