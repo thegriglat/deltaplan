@@ -1,0 +1,78 @@
+{
+  "id": "TI-5",
+  "module": "training-island",
+  "type": "dp-researcher",
+  "title": "Погода стартов и проверка воздуха",
+  "goal": "Подобрать фиксированную погоду (TI-К2 v2) каждого старта острова и доказать числами и кадрами F3/F6: подъём на склоне при 5–8 м/с, термики 1,5–3 м/с в ядре над тёмной пашней/полями (набор крылом ≥ 300 м) и нет над водой, ротор за хребтом, спокойная посадка.",
+  "plan_ref": "TI-5. Наборы погоды стартов, проверка воздуха и запекание",
+  "contracts": [
+    {
+      "name": "TI-К2",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    },
+    {
+      "name": "TI-К1",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-5",
+  "branch": "training-island/TI-5",
+  "base": "feature/training-island",
+  "scope": [
+    "configs/locations/training_island.json",
+    "tools/terrain/island/",
+    "docs/research/training_island_air.md"
+  ],
+  "dont_touch": [
+    "configs/surface_heat.json",
+    "configs/weather_model.json",
+    "configs/atmosphere.json",
+    "configs/weather/",
+    "scripts/",
+    "data/",
+    "tests/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "air",
+      "cmd": "python3 tools/terrain/island/air_check.py --show",
+      "expect": "re:ALL_OK"
+    },
+    {
+      "name": "ridge",
+      "cmd": "python3 tools/terrain/island/air_check.py --show",
+      "expect": "num:ridge_w_6ms=([-0-9.]+) >=1.0"
+    },
+    {
+      "name": "thermal",
+      "cmd": "python3 tools/terrain/island/air_check.py --show",
+      "expect": "num:thermal_core_w_p90=([-0-9.]+) >=1.5"
+    },
+    {
+      "name": "climb",
+      "cmd": "python3 tools/terrain/island/air_check.py --show",
+      "expect": "num:thermal_climb_m=([-0-9.]+) >=300"
+    },
+    {
+      "name": "sea",
+      "cmd": "python3 tools/terrain/island/air_check.py --show",
+      "expect": "num:thermals_over_water=([0-9]+) <=0"
+    },
+    {
+      "name": "rotor",
+      "cmd": "python3 tools/terrain/island/air_check.py --show",
+      "expect": "num:rotor_w_min=([-0-9.]+) <=-1.0"
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/training-island/TI-5/ | grep -c jpg",
+      "expect": "num:(\\d+) >=8"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T23:05:25"
+}
