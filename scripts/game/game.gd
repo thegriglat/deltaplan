@@ -98,6 +98,7 @@ var _graphics := ""
 var _terrain_dirty := false
 var _crashed := false  ## врезался в препятствие — планер стоит до «Ещё раз»
 var _goals_sig := ""  ## ведущий маршрут и активная точка на приборе (смена — set_task)
+var _goal_cylinders: GoalCylinders = null  ## столбы пунктов ведущего маршрута (GL-К4)
 var _goals_sync_s := -1.0  ## Telemetry.time_s последней синхронизации прибора с целями
 var _ended := false  ## flight_ended уже отправлен (до «Ещё раз» / «Продолжить»)
 ## Номер текущего отрезка полёта (QL-К1): +1 при start/restart/continue_on_foot; только растёт.
@@ -1705,6 +1706,8 @@ func _goals_setup() -> void:
 	var had := goals != null
 	goals = null
 	_goals_sig = ""
+	if _goal_cylinders != null:
+		_goal_cylinders.set_points([])
 	if settings != null and net == null and not inspect_mode and not settings.goals.is_empty():
 		var errs := GoalSpec.validate(settings.goals)
 		if errs.is_empty():
@@ -1801,6 +1804,7 @@ func _goals_sync_instrument(force: bool, time_s := NAN) -> void:
 			_goals_sig = ""
 			instrument.set_task([], 0)
 			instrument.set_task_state({})
+			_goals_sync_cylinders()
 		return
 	var lead := goals.lead_tracker()
 	var idx := goals.instrument_active_index()
@@ -1808,7 +1812,21 @@ func _goals_sync_instrument(force: bool, time_s := NAN) -> void:
 	if sig != _goals_sig:
 		_goals_sig = sig
 		instrument.set_task(goals.instrument_points(), maxi(idx, 0))
+		_goals_sync_cylinders()
 	instrument.set_task_state(goals.instrument_state())
+
+
+## Столбы в мире — пункты ведущего маршрута; узел создаётся при первом обращении.
+func _goals_sync_cylinders() -> void:
+	if goals == null:
+		if _goal_cylinders != null:
+			_goal_cylinders.set_points([])
+		return
+	if _goal_cylinders == null:
+		_goal_cylinders = GoalCylinders.new()
+		_goal_cylinders.name = "GoalCylinders"
+		add_child(_goal_cylinders)
+	_goal_cylinders.set_points(goals.world_points())
 
 
 ## Конец полёта: итог по целям и новые рекорды (info.goals, info.new_records). Не в сети.
