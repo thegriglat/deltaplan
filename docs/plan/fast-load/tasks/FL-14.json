@@ -19,12 +19,12 @@
     "tools/research/load_profile/logs",
     "tools/research/load_profile/gate1_miss.json",
     "tools/research/load_profile/gate1_hit.json",
-    "tools/research/load_profile/gate1.md"
-  ],
-  "dont_touch": [
-    "scripts",
+    "tools/research/load_profile/gate1.md",
     "tools/research/load_profile/measure.sh",
     "tools/research/load_profile/measure.py"
+  ],
+  "dont_touch": [
+    "scripts"
   ],
   "accept": [
     {
@@ -40,5 +40,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T04:39:30"
+  "created": "2026-10-17T04:39:30",
+  "edited": "2026-10-17T04:57:10"
 }
