@@ -1,0 +1,126 @@
+uptime:  03:21:40 up 3 days,  3:33,  1 user,  load average: 10,63, 28,90, 37,81
+air_cache: none
+commit: 8843db94
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+load_probe: старт с -27.7176, -48.7799 / 
+[lpfly] START @22.642
+[load] dem          0.23 с  (к 0.23 с)
+[load] mesh         0.33 с  (к 0.55 с)
+[load] classify     0.00 с  (к 0.55 с)
+[gap] 0.00 с: 655 мс
+[load] mesh         1.16 с  (к 1.72 с)
+[gap] 0.66 с: 1159 мс
+[load] trees        2.59 с  (к 4.30 с)
+[gap] 1.81 с: 2585 мс
+Terrain: место pt_-27.700_-048.800 загружено за 4.91 с
+[load] grass        0.60 с  (к 4.91 с)
+[gap] 4.40 с: 604 мс
+Terrain: поля рельефа за 4.42 с
+[load] weather      0.12 с  (к 5.03 с)
+[gap] 5.00 с: 122 мс
+WorldObjects: снаряжение у 0 стартов — 0 вещей за 0 мс
+WorldObjects: 'pt_-27.700_-048.800' за 3.29 с — ветроуказателей 0, посадок 0, троп к стартам 0, домов 18149, OSM тайлов 9/9
+[load] objects     11.15 с  (к 16.18 с)
+[gap] 5.13 с: 11275 мс
+[gap] 16.40 с: 160 мс
+[gap] 19.37 с: 155 мс
+air_model: field (массивы; уровней 3)
+air_model: поле (фазы+Пикар) итераций [120, 120], фазы A 0.09, B 0.02, C 0.01, D 0.61, F 0.26, H 0.00 (522 мс), заморожено 0.00, ω→запас false
+air_model: поле 12:00 ч, 3.0 м/с с 240° (загрузка): 13.84 с, итераций [120, 120], тёплый старт, окна ["100 м [70, 70]", "50 м [90, 90]"]; k притока 1.365, U над стартом на 10 м 3.49 м/с (проход 1: 2.51 м/с), проходов 2 ["1.000 → 2.51 м/с за 7.1 с (область 4.4, GPU 1.03)", "1.365 → 3.49 м/с за 6.7 с (область 3.4, GPU 0.91)"]
+[load] wind        13.85 с  (к 30.02 с)
+WorldObjects: палаток у старта 5 из 5 за 359 мс
+[load] glider       9.80 с  (к 39.82 с)
+[load] всего 39.82 с
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=-27.71760&lon=-48.77990&seed=1909498512&sky=clear&temp=26.0&v=2&wind=3.0
+[lpfly] FLYING @62.565 (от нажатия 39.92 с)
+[gap] 30.12 с: 9817 мс
+[lpfly] первый кадр полёта через 146 мс
+[gap] 39.94 с: 443 мс
+[gap] 40.38 с: 285 мс
+[gap] 40.66 с: 117 мс
+[gap] 40.78 с: 103 мс
+[gap] 41.03 с: 225 мс
+[gap] 41.26 с: 142 мс
+[gap] 41.40 с: 129 мс
+[gap] 41.53 с: 181 мс
+[gap] 41.71 с: 164 мс
+[gap] 41.87 с: 117 мс
+[gap] 42.17 с: 123 мс
+[gap] 42.30 с: 113 мс
+[gap] 42.41 с: 148 мс
+[gap] 42.56 с: 205 мс
+[gap] 42.76 с: 139 мс
+[gap] 42.90 с: 126 мс
+[gap] 43.12 с: 153 мс
+[gap] 43.55 с: 157 мс
+[gap] 43.71 с: 134 мс
+[gap] 43.84 с: 127 мс
+[gap] 44.28 с: 101 мс
+[gap] 44.61 с: 132 мс
+[gap] 44.75 с: 115 мс
+[gap] 44.86 с: 139 мс
+[gap] 45.00 с: 115 мс
+[gap] 45.35 с: 124 мс
+[gap] 45.65 с: 133 мс
+[gap] 45.79 с: 149 мс
+[gap] 45.94 с: 109 мс
+[gap] 46.61 с: 131 мс
+[gap] 46.74 с: 179 мс
+[gap] 46.92 с: 167 мс
+[gap] 47.09 с: 142 мс
+[gap] 47.79 с: 108 мс
+[gap] 47.90 с: 198 мс
+[gap] 48.10 с: 128 мс
+[gap] 48.23 с: 136 мс
+[gap] 48.46 с: 110 мс
+[gap] 48.67 с: 137 мс
+[gap] 48.81 с: 142 мс
+[gap] 48.95 с: 190 мс
+[gap] 49.14 с: 141 мс
+[gap] 49.28 с: 138 мс
+[gap] 49.79 с: 170 мс
+[gap] 49.96 с: 183 мс
+[gap] 50.14 с: 190 мс
+[gap] 50.33 с: 140 мс
+[gap] 50.47 с: 271 мс
+[gap] 50.74 с: 111 мс
+[gap] 51.24 с: 110 мс
+[gap] 51.36 с: 161 мс
+[gap] 51.60 с: 102 мс
+[gap] 52.10 с: 145 мс
+[gap] 52.24 с: 137 мс
+[gap] 52.38 с: 140 мс
+[gap] 52.52 с: 114 мс
+[gap] 52.63 с: 145 мс
+[gap] 52.78 с: 108 мс
+[gap] 52.89 с: 114 мс
+[gap] 53.31 с: 125 мс
+[gap] 53.43 с: 124 мс
+[gap] 53.55 с: 116 мс
+[gap] 53.67 с: 147 мс
+[gap] 54.33 с: 120 мс
+[gap] 54.45 с: 167 мс
+[gap] 54.62 с: 139 мс
+[gap] 54.85 с: 146 мс
+[lpfly] после старта 15 с: кадров 137, макс. интервал 443 мс
+load_probe: итог полёт за 55.13 с, кадров 793
+load_probe: макс. интервал 11275 мс; >100 мс: ["11275@5.1", "9817@30.1", "2585@1.8", "1159@0.7", "655@0.0", "604@4.4", "443@39.9", "285@40.4"]
+load_probe: этап dem          0.23 с
+load_probe: этап mesh         0.33 с
+load_probe: этап classify     0.00 с
+load_probe: этап mesh         1.16 с
+load_probe: этап trees        2.59 с
+load_probe: этап grass        0.60 с
+load_probe: этап weather      0.12 с
+load_probe: этап objects     11.15 с
+load_probe: этап wind        13.85 с
+load_probe: этап glider       9.80 с
+exit=0
+uptime_end:  03:22:59 up 3 days,  3:35,  1 user,  load average: 18,36, 26,34, 36,13

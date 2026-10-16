@@ -1,0 +1,434 @@
+uptime:  02:33:36 up 3 days,  2:45,  1 user,  load average: 15,98, 37,96, 53,76
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+load_probe: старт с -27.7176, -48.7799 / 
+[lpfly] START @22.739
+[lp] T.builder.build 159.9 @22.970
+[load] dem          0.16 с  (к 0.16 с)
+[lp] T.read_location 196.8 @23.167
+[lp] T.mask_tasks_wait 0.0 @23.167
+[lp] T.load_surfaces 105.6 @23.273
+[load] mesh         0.30 с  (к 0.46 с)
+[lp] T.classify_missing 0.0 @23.273
+[lp] T.refresh_sun 0.0 @23.273
+[lp] T.build_sites 0.0 @23.273
+[lp] T.set_surfaces 0.3 @23.274
+[lp] T.compute_reliefs 0.1 @23.274
+[load] classify     0.00 с  (к 0.46 с)
+[gap] 0.00 с: 538 мс
+[lp] R.clear 0.0 @23.292
+[lp] R.mat.height_tex 9.9 @23.518
+[lp] R.mat.max_tex 143.8 @23.662
+[lp] R.mat.surface_tex 0.5 @23.663
+[lp] R.mat.forest_built 11.4 @23.674
+[lp] R.make_material 554.0 @23.846
+[lp] R.grid_meshes 59.2 @24.066
+[lp] R.chunks 24.7 @24.091
+[lp] R.mat.height_tex 9.9 @24.101
+[lp] R.mat.max_tex 40.0 @24.141
+[lp] R.mat.surface_tex 0.5 @24.141
+[lp] R.mat.forest_built 0.0 @24.141
+[lp] R.make_material 51.1 @24.142
+[lp] R.grid_meshes 36.5 @24.181
+[lp] R.chunks 9.9 @24.191
+[lp] R.update_lods 2.0 @24.193
+[lp] R.warm_up 454.6 @24.648
+[lp] T.renderer.build 1356.4 @24.648
+[lp] T.renderer.apply_textures 35.2 @24.683
+[load] mesh         1.41 с  (к 1.87 с)
+[gap] 0.54 с: 1406 мс
+[lp] trees.placer.setup 0.1 @24.781
+[lp] trees.load_lods_files 87.5 @24.869
+[lp] trees.with_sway 88.4 @24.957
+[lp] trees.load_lods_files 41.1 @24.998
+[lp] trees.with_sway 8.5 @25.007
+[lp] trees.load_lods_files 69.5 @25.076
+[lp] trees.with_sway 422.1 @25.499
+[lp] trees.load_lods_files 49.0 @25.548
+[lp] trees.with_sway 6.0 @25.554
+[lp] trees.load_lods_files 27.3 @25.581
+[lp] trees.with_sway 3.9 @25.585
+[lp] trees.load_lods_files 25.7 @25.611
+[lp] trees.with_sway 2.6 @25.614
+[lp] trees.load_lods_files 24.0 @25.638
+[lp] trees.with_sway 2.8 @25.641
+[lp] trees.load_lods_files 23.6 @25.664
+[lp] trees.with_sway 3.0 @25.667
+[lp] trees.load_lods_files 39.9 @25.707
+[lp] trees.with_sway 8.4 @25.716
+[lp] trees.load_lods_files 32.4 @25.748
+[lp] trees.with_sway 7.6 @25.756
+[lp] trees.load_lods_files 45.9 @25.802
+[lp] trees.with_sway 5.0 @25.807
+[lp] trees.load_lods_files 52.5 @25.860
+[lp] trees.with_sway 4.9 @25.865
+[lp] trees.load_lods_files 45.1 @25.910
+[lp] trees.with_sway 4.4 @25.914
+[lp] trees.load_lods_files 45.1 @25.959
+[lp] trees.with_sway 4.9 @25.964
+[lp] trees.load_lods_files 43.7 @26.008
+[lp] trees.with_sway 4.6 @26.013
+[lp] trees.load_lods_files 34.4 @26.047
+[lp] trees.with_sway 4.2 @26.052
+[lp] trees.load_lods_files 43.1 @26.095
+[lp] trees.with_sway 5.7 @26.101
+[lp] trees.load_lods_files 39.2 @26.140
+[lp] trees.with_sway 3.1 @26.143
+[lp] trees.load_lods_files 26.6 @26.170
+[lp] trees.with_sway 10.2 @26.180
+[lp] trees.load_lods_files 42.1 @26.222
+[lp] trees.with_sway 3.3 @26.226
+[lp] trees.load_lods_files 40.0 @26.266
+[lp] trees.with_sway 4.0 @26.270
+[lp] trees.load_lods_files 25.9 @26.296
+[lp] trees.with_sway 2.7 @26.299
+[lp] trees.load_lods_files 33.9 @26.333
+[lp] trees.with_sway 3.3 @26.336
+[lp] trees.load_lods_files 36.8 @26.373
+[lp] trees.with_sway 3.3 @26.376
+[lp] trees.load_lods_files 43.7 @26.420
+[lp] trees.with_sway 4.4 @26.425
+[lp] trees.load_lods_files 48.6 @26.474
+[lp] trees.with_sway 3.4 @26.478
+[lp] trees.load_lods_files 40.1 @26.518
+[lp] trees.with_sway 3.9 @26.522
+[lp] trees.load_lods_files 39.4 @26.561
+[lp] trees.with_sway 3.8 @26.565
+[lp] trees.load_lods_files 38.8 @26.604
+[lp] trees.with_sway 3.1 @26.607
+[lp] trees.load_lods_files 37.0 @26.644
+[lp] trees.with_sway 3.0 @26.647
+[lp] trees.load_lods_files 36.5 @26.684
+[lp] trees.with_sway 2.5 @26.687
+[lp] trees.load_lods_files 33.2 @26.720
+[lp] trees.with_sway 2.9 @26.723
+[lp] trees.load_lods_files 41.7 @26.765
+[lp] trees.with_sway 4.4 @26.769
+[lp] trees.load_lods_files 36.1 @26.805
+[lp] trees.with_sway 3.4 @26.809
+[lp] trees.load_lods_files 26.5 @26.835
+[lp] trees.with_sway 6.2 @26.842
+[lp] trees.load_lods_files 37.9 @26.880
+[lp] trees.with_sway 3.6 @26.883
+[lp] trees.load_lods_files 26.6 @26.910
+[lp] trees.with_sway 3.8 @26.914
+[lp] trees.load_lods_files 24.9 @26.939
+[lp] trees.with_sway 3.2 @26.942
+[lp] trees.load_lods_files 31.6 @26.974
+[lp] trees.with_sway 3.3 @26.977
+[lp] trees.load_lods_files 33.7 @27.011
+[lp] trees.with_sway 3.5 @27.014
+[lp] trees.load_lods 2233.4 @27.014
+[lp] trees.multimeshes 0.9 @27.015
+[lpn] trees.mmi 120
+[lp] T.trees.models.setup 2234.6 @27.015
+[lp] T.trees.impostors.setup 123.5 @27.139
+[lp] T.trees.crosses.setup 397.9 @27.537
+[lp] T.trees.set_clearings 0.0 @27.537
+[lp] T.trees.pass_forest_mask 0.1 @27.537
+[lp] T.make_trees 2756.4 @27.537
+[load] trees        2.85 с  (к 4.73 с)
+[gap] 1.94 с: 2854 мс
+[lp] T.grass.setup 730.8 @28.291
+[lp] T.make_grass 731.0 @28.292
+[lp] T.setup_wind 4.0 @28.296
+[lp] T.apply_scene_look 21.4 @28.317
+[lp] T.setup_async 5044.0 @28.317
+Terrain: место pt_-27.700_-048.800 загружено за 5.51 с
+[lp] G.load_terrain 5508.5 @28.317
+[load] grass        0.78 с  (к 5.51 с)
+[gap] 4.80 с: 780 мс
+Terrain: поля рельефа за 5.12 с
+[lp] G.weather_context 0.7 @28.473
+[lp] G.derive_weather 0.2 @28.473
+[lp] G.air.set_weather 4.0 @28.478
+[lp] G.air.set_ground 0.7 @28.478
+[lp] G.sky.start_flight 0.1 @28.478
+[lp] G.terrain.set_sun 0.7 @28.479
+[lp] G.terrain.set_flight_date 8.2 @28.487
+[lp] G.heating.setup 0.2 @28.488
+[lp] G.on_sun_changed 0.9 @28.489
+[lp] G.make_day 0.6 @28.489
+[lp] G.static_thermals 0.0 @28.489
+[load] weather      0.17 с  (к 5.68 с)
+[gap] 5.58 с: 172 мс
+[lp] W.set_wind_sources 0.0 @28.608
+[lp] W.rock_scatter 33.6 @28.641
+[lp] W.shrub_scatter 457.6 @29.099
+[lp] C.landing_specs 0.0 @29.100
+[lp] C.tracks(height_fn+plan) 550.1 @29.650
+[lp] C.houses.load_height_fn 281.5 @29.932
+[lp] C.houses.plan 4950.7 @34.882
+[lp] C.osm.load_for 493.7 @35.386
+[lp] C.b.image_create 0.9 @35.387
+[lp] C.b.osm_roads_buildings_rails 935.0 @36.322
+[lp] C.b.houses 284.6 @36.607
+[lpn] clearings { "n": 4000, "roads": 13561, "buildings": 9483, "houses": 293275, "stamps": 1191949 }
+[lp] C.build 1220.7 @36.607
+[lp] W.clearings 7525.7 @36.625
+[lp] O.clear 0.0 @36.631
+[lp] O.starts 0.0 @36.632
+[lp] O.landings 0.0 @36.632
+[lp] O.osm.load_for 492.4 @37.124
+[lpn] osm.counts { "roads": 13561, "rivers": 313, "rail": 0, "buildings": 9483, "power": 54, "verticals": 80, "peaks": 107, "tiles_ok": 9 }
+[lp] osm.CityGround 0.0 @37.124
+[lp] roads.groups 11.5 @37.136
+[lp] roads.threads_wait 988.9 @38.126
+[lp] roads.meshes_main 105.2 @38.231
+[lp] roads.add_nodes 44.7 @38.276
+[lp] osm.Roads 1157.4 @38.282
+[lp] pilot.peaks 0.4 @38.283
+[lp] power.plan 28.0 @38.311
+[lp] power.supports 9.6 @38.346
+[lp] power.wires 524.7 @38.873
+[lp] pilot.power 593.1 @38.876
+[lp] pilot.verticals 14.6 @38.891
+[lp] pilot.aerialways 0.0 @38.891
+[lp] pilot.aeroways 22.0 @38.913
+[lp] osm.Pilot 630.6 @38.913
+[lp] osm.ChimneyPlumes 0.1 @38.913
+[lp] osm.Wind 0.0 @38.913
+[lp] osm.Cabins 1.3 @38.914
+[lp] osm.Traffic 27.4 @38.941
+[lp] osm.Buildings 292.4 @39.234
+[lp] osm.CityTrees 35.8 @39.270
+[lpn] osm.stats.Roads { "roads": { "secondary": 1026, "trunk": 183, "residential": 7431, "unclassified": 886, "tertiary": 650, "track": 2127, "motorway": 387, "motorway_link": 147, "secondary_link": 67, "trunk_link": 43, "living_street": 7, "primary": 504, "primary_link": 67, "tertiary_link": 20 }, "rivers": {  }, "rail": {  }, "tiles": 1308, "skipped_tunnels": 16 }
+[lp] O.osm.layer_build 2151.3 @39.276
+[lp] O.osm 2644.0 @39.276
+[lp] O.start_tracks 0.0 @39.276
+[lp] O.vil.patches 0.0 @39.276
+[lp] O.vil.plan 358.6 @39.634
+[lp] O.vil.layer_build 360.2 @39.995
+[lp] O.vil.gardens 41.6 @40.037
+[lp] O.villages 761.3 @40.037
+WorldObjects: снаряжение у 0 стартов — 0 вещей за 0 мс
+[lp] O.start_gear 0.0 @40.037
+WorldObjects: 'pt_-27.700_-048.800' за 3.41 с — ветроуказателей 0, посадок 0, троп к стартам 0, домов 18149, OSM тайлов 9/9
+[lp] W.objects.setup 3412.3 @40.037
+[lp] G.world_link.link 11429.5 @40.037
+[lp] G.choose_start 18.2 @40.055
+[lp] G.set_wind 0.1 @40.055
+[load] objects     12.19 с  (к 17.87 с)
+[gap] 5.75 с: 12327 мс
+[lp] AR.prep.coarse_domain 291.0 @40.974
+[gap] 18.08 с: 161 мс
+[lp] AR.prep.domain 417.9 @41.392
+[lp] AR.prep.prepared_case 440.0 @41.832
+[lpair] PREP -> PHASE @41.838 main 0 ms frames 49
+[lpair] PHASE -> NEXT @42.532 main 82 ms frames 48
+[lpair] NEXT -> COARSE @42.543 main 2 ms frames 1
+[lpair] COARSE -> NEXT @43.062 main 424 ms frames 11
+[lpair] NEXT -> SOLVE @43.179 main 96 ms frames 1
+[gap] 20.34 с: 105 мс
+[gap] 21.04 с: 231 мс
+[gap] 21.53 с: 108 мс
+[lpair] SOLVE -> BUILD @45.187 main 1279 ms frames 30
+[lp] AR.prep.coarse_domain 278.5 @49.091
+[lp] AR.prep.domain 380.6 @49.471
+[lp] AR.prep.prepared_case 337.4 @49.809
+[lpair] PREP -> PHASE @49.811 main 1 ms frames 76
+[lpair] PHASE -> NEXT @50.493 main 63 ms frames 49
+[lpair] NEXT -> SOLVE @50.549 main 50 ms frames 1
+[lpair] SOLVE -> BUILD @51.809 main 1008 ms frames 24
+air_model: field (массивы; уровней 3)
+air_model: поле (фазы+Пикар) итераций [120, 120], фазы A 0.09, B 0.02, C 0.01, D 0.61, F 0.26, H 0.00 (617 мс), заморожено 0.00, ω→запас false
+air_model: поле 12:00 ч, 3.0 м/с с 240° (загрузка): 14.98 с, итераций [120, 120], тёплый старт, окна ["100 м [70, 70]", "50 м [90, 90]"]; k притока 1.365, U над стартом на 10 м 3.49 м/с (проход 1: 2.51 м/с), проходов 2 ["1.000 → 2.51 м/с за 8.1 с (область 5.2, GPU 1.00)", "1.365 → 3.49 м/с за 6.8 с (область 3.6, GPU 0.90)"]
+[lp] G.load_air_field 15605.9 @55.661
+[lp] G.align_start_heading 0.2 @55.662
+[lp] G.place_thermals_near 0.0 @55.662
+[lp] G.apply_haze 0.0 @55.662
+[load] wind        14.98 с  (к 32.85 с)
+[lp] G.setup_glider 360.4 @56.034
+[lp] G.collisions.setup 0.1 @56.034
+WorldObjects: палаток у старта 5 из 5 за 248 мс
+[lp] G.place_camp 264.5 @56.299
+[lp] G.bots.setup 708.6 @57.008
+[lp] G.relief_wait 0.0 @57.008
+[lp] G.goals_setup 0.0 @57.008
+[lp] G.restart 9.6 @57.017
+[lp] F.begin.update_air 3527.2 @60.544
+[lp] A.refresh_begin 3527.3 @60.545
+[lp] F.erase 0.0 @60.545
+[lp] F.gen_begin 6.7 @60.551
+[lp] F.gen 4758.7 @65.310
+[lp] F.prune 11.7 @65.322
+[lp] F.buckets 15.4 @65.337
+[lp] F.params 1.7 @65.339
+[lpn] thermals { "cells": 8035, "thermals": 4606, "active": 470 }
+[lp] F.commit 0.0 @65.339
+[lp] A.step_refresh 4794.6 @65.339
+[lp] A.refresh_finish 10.9 @65.350
+[lp] G.air.refresh_now 8332.9 @65.350
+[load] glider       9.69 с  (к 42.54 с)
+[load] всего 42.54 с
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=-27.71760&lon=-48.77990&seed=1175372128&sky=clear&temp=26.0&v=2&wind=3.0
+[lpfly] FLYING @65.352 (от нажатия 42.61 с)
+[gap] 32.92 с: 9698 мс
+[lpfly] первый кадр полёта через 114 мс
+[gap] 42.62 с: 292 мс
+[gap] 42.91 с: 217 мс
+[gap] 43.13 с: 108 мс
+[gap] 43.32 с: 241 мс
+[gap] 43.56 с: 137 мс
+[gap] 43.70 с: 187 мс
+[lp] F.begin.update_air 0.0 @66.755
+[lp] F.erase 1.5 @66.769
+[lp] F.gen_begin 9.4 @66.779
+[gap] 43.88 с: 161 мс
+[lp] F.gen 1.0 @66.882
+[lp] F.prune 0.0 @66.882
+[gap] 44.04 с: 174 мс
+[lp] F.buckets 0.3 @67.020
+[lp] F.params 1.0 @67.027
+[lpn] thermals { "cells": 8035, "thermals": 4608, "active": 471 }
+[lp] F.commit 3.5 @67.030
+[gap] 44.22 с: 168 мс
+[gap] 44.39 с: 147 мс
+[lp] F.begin.update_air 0.0 @67.807
+[lp] F.erase 2.7 @67.817
+[lp] F.gen_begin 6.4 @67.823
+[lp] F.gen 1.8 @67.892
+[lp] F.prune 0.0 @67.892
+[lp] F.buckets 0.9 @67.948
+[lp] F.params 1.8 @67.950
+[lpn] thermals { "cells": 8035, "thermals": 4610, "active": 471 }
+[lp] F.commit 2.3 @67.952
+[lp] F.begin.update_air 0.0 @68.793
+[lp] F.erase 2.6 @68.803
+[lp] F.gen_begin 6.4 @68.809
+[lp] F.gen 2.0 @68.887
+[lp] F.prune 0.0 @68.887
+[lp] F.buckets 1.8 @68.957
+[lp] F.params 0.7 @68.961
+[lpn] thermals { "cells": 8035, "thermals": 4617, "active": 473 }
+[lp] F.commit 2.7 @68.964
+[lp] F.begin.update_air 0.0 @69.814
+[lp] F.erase 0.2 @69.827
+[lp] F.gen_begin 6.6 @69.834
+[lp] F.gen 2.0 @69.891
+[lp] F.prune 0.0 @69.891
+[lp] F.buckets 1.7 @69.946
+[lp] F.params 0.6 @69.949
+[lpn] thermals { "cells": 8035, "thermals": 4618, "active": 472 }
+[lp] F.commit 2.4 @69.951
+[lp] F.begin.update_air 0.0 @70.779
+[lp] F.erase 2.8 @70.801
+[lp] F.gen_begin 6.6 @70.808
+[lp] F.gen 2.3 @70.859
+[lp] F.prune 0.0 @70.859
+[lp] F.buckets 1.4 @70.970
+[lp] F.params 0.2 @70.974
+[lpn] thermals { "cells": 8035, "thermals": 4622, "active": 474 }
+[lp] F.commit 2.2 @70.976
+[lp] F.begin.update_air 0.0 @71.786
+[lp] F.erase 2.7 @71.795
+[lp] F.gen_begin 6.4 @71.801
+[lp] F.gen 2.9 @71.872
+[lp] F.prune 0.0 @71.872
+[lp] F.buckets 1.5 @71.929
+[lp] F.params 0.3 @71.932
+[lpn] thermals { "cells": 8035, "thermals": 4621, "active": 473 }
+[lp] F.commit 2.4 @71.934
+[lp] F.begin.update_air 0.0 @72.790
+[lp] F.erase 0.8 @72.804
+[lp] F.gen_begin 7.2 @72.812
+[lp] F.gen 0.1 @72.880
+[lp] F.prune 0.0 @72.880
+[lp] F.buckets 0.5 @72.934
+[lp] F.params 2.0 @72.936
+[lpn] thermals { "cells": 8035, "thermals": 4621, "active": 473 }
+[lp] F.commit 2.8 @72.939
+[lp] F.begin.update_air 0.0 @73.803
+[lp] F.erase 0.2 @73.817
+[lp] F.gen_begin 7.1 @73.824
+[lp] F.gen 0.5 @73.882
+[lp] F.prune 0.0 @73.882
+[lp] F.buckets 0.6 @73.954
+[lp] F.params 1.9 @73.956
+[lpn] thermals { "cells": 8035, "thermals": 4618, "active": 474 }
+[lp] F.commit 2.4 @73.958
+[gap] 51.30 с: 111 мс
+[lp] F.begin.update_air 0.0 @74.794
+[lp] F.erase 0.9 @74.843
+[lp] F.gen_begin 12.1 @74.855
+[lp] F.gen 1.6 @74.903
+[lp] F.prune 0.0 @74.903
+[lp] F.buckets 1.2 @74.967
+[lp] F.params 0.1 @74.972
+[lpn] thermals { "cells": 8035, "thermals": 4620, "active": 473 }
+[lp] F.commit 2.5 @74.975
+[lp] F.begin.update_air 0.0 @75.826
+[lp] F.erase 0.8 @75.848
+[lp] F.gen_begin 11.9 @75.860
+[lp] F.gen 3.0 @75.961
+[lp] F.prune 0.0 @75.961
+[gap] 53.13 с: 187 мс
+[lp] F.buckets 2.5 @76.135
+[lp] F.params 2.8 @76.147
+[lpn] thermals { "cells": 8035, "thermals": 4618, "active": 473 }
+[lp] F.commit 3.7 @76.151
+[gap] 53.32 с: 150 мс
+[gap] 53.47 с: 112 мс
+[gap] 53.58 с: 111 мс
+[gap] 54.04 с: 106 мс
+[lp] F.begin.update_air 0.0 @76.930
+[lp] F.erase 2.8 @76.939
+[lp] F.gen_begin 6.5 @76.945
+[lp] F.gen 0.6 @77.002
+[lp] F.prune 0.0 @77.002
+[lp] F.buckets 0.7 @77.036
+[lp] F.params 1.0 @77.044
+[lpn] thermals { "cells": 8035, "thermals": 4623, "active": 474 }
+[lp] F.commit 3.7 @77.048
+[gap] 54.33 с: 127 мс
+[gap] 54.46 с: 114 мс
+[lp] F.begin.update_air 0.0 @77.925
+[lp] F.erase 0.2 @77.985
+[lp] F.gen_begin 12.0 @77.997
+[lp] F.gen 2.8 @78.049
+[lp] F.prune 0.0 @78.049
+[gap] 55.21 с: 111 мс
+[lp] F.buckets 0.7 @78.144
+[lp] F.params 1.9 @78.145
+[lpn] thermals { "cells": 8035, "thermals": 4622, "active": 475 }
+[lp] F.commit 2.3 @78.148
+[gap] 55.32 с: 147 мс
+[lp] F.begin.update_air 0.0 @78.895
+[lp] F.erase 2.9 @78.921
+[lp] F.gen_begin 6.5 @78.927
+[lp] F.gen 0.2 @78.979
+[lp] F.prune 0.0 @78.979
+[lp] F.buckets 3.0 @79.050
+[lp] F.params 1.8 @79.055
+[lpn] thermals { "cells": 8035, "thermals": 4621, "active": 475 }
+[lp] F.commit 2.4 @79.058
+[lp] F.begin.update_air 0.0 @79.903
+[lp] F.erase 2.9 @79.914
+[lp] F.gen_begin 6.7 @79.921
+[lp] F.gen 2.2 @79.962
+[lp] F.prune 0.0 @79.962
+[lp] F.buckets 2.7 @80.021
+[lp] F.params 1.7 @80.048
+[lpn] thermals { "cells": 8035, "thermals": 4624, "active": 477 }
+[lp] F.commit 2.6 @80.051
+[lpfly] после старта 15 с: кадров 310, макс. интервал 292 мс
+load_probe: итог полёт за 57.74 с, кадров 1003
+load_probe: макс. интервал 12327 мс; >100 мс: ["12327@5.7", "9698@32.9", "2854@1.9", "1406@0.5", "780@4.8", "538@0.0", "292@42.6", "241@43.3"]
+load_probe: этап dem          0.16 с
+load_probe: этап mesh         0.30 с
+load_probe: этап classify     0.00 с
+load_probe: этап mesh         1.41 с
+load_probe: этап trees        2.85 с
+load_probe: этап grass        0.78 с
+load_probe: этап weather      0.17 с
+load_probe: этап objects     12.19 с
+load_probe: этап wind        14.98 с
+load_probe: этап glider       9.69 с
+exit=0
+uptime_end:  02:34:57 up 3 days,  2:47,  1 user,  load average: 11,94, 31,18, 49,98

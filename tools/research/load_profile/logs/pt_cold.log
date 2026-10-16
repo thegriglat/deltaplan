@@ -1,0 +1,396 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+load_probe: старт с -27.7176, -48.7799 / 
+[lpfly] START @23.490
+HTTP > #1 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W050_00_DEM/Copernicus_DSM_COG_10_S28_00_W050_00_DEM.tif [dem попытка 1/2]
+[gap] 0.00 с: 187 мс
+HTTP < #1 206 65536B 0.59s [dem попытка 1/2]
+HTTP > #2 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W049_00_DEM/Copernicus_DSM_COG_10_S28_00_W049_00_DEM.tif [dem попытка 1/2]
+HTTP < #2 206 65536B 0.60s [dem попытка 1/2]
+HTTP > #3 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W049_00_DEM/Copernicus_DSM_COG_10_S28_00_W049_00_DEM.tif [dem попытка 1/2]
+HTTP > #4 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W049_00_DEM/Copernicus_DSM_COG_10_S28_00_W049_00_DEM.tif [dem попытка 1/2]
+HTTP > #5 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W049_00_DEM/Copernicus_DSM_COG_10_S28_00_W049_00_DEM.tif [dem попытка 1/2]
+HTTP > #6 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W049_00_DEM/Copernicus_DSM_COG_10_S28_00_W049_00_DEM.tif [dem попытка 1/2]
+HTTP > #7 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W049_00_DEM/Copernicus_DSM_COG_10_S28_00_W049_00_DEM.tif [dem попытка 1/2]
+HTTP > #8 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W049_00_DEM/Copernicus_DSM_COG_10_S28_00_W049_00_DEM.tif [dem попытка 1/2]
+HTTP > #9 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W050_00_DEM/Copernicus_DSM_COG_10_S28_00_W050_00_DEM.tif [dem попытка 1/2]
+HTTP > #10 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W050_00_DEM/Copernicus_DSM_COG_10_S28_00_W050_00_DEM.tif [dem попытка 1/2]
+HTTP < #3 206 649830B 1.21s [dem попытка 1/2]
+HTTP > #11 GET copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S28_00_W050_00_DEM/Copernicus_DSM_COG_10_S28_00_W050_00_DEM.tif [dem попытка 1/2]
+HTTP < #9 206 755706B 1.23s [dem попытка 1/2]
+HTTP < #11 206 1493003B 1.24s [dem попытка 1/2]
+HTTP < #7 206 1917270B 2.46s [dem попытка 1/2]
+HTTP < #8 206 2995666B 2.61s [dem попытка 1/2]
+HTTP < #4 206 1459375B 3.15s [dem попытка 1/2]
+HTTP < #5 206 1862672B 3.87s [dem попытка 1/2]
+HTTP < #6 206 2863626B 5.76s [dem попытка 1/2]
+HTTP < #10 206 1420233B 5.97s [dem попытка 1/2]
+HTTP > #12 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/375/596.png [dem попытка 1/2]
+HTTP > #13 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/374/596.png [dem попытка 1/2]
+HTTP > #14 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/373/596.png [dem попытка 1/2]
+HTTP > #15 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/372/596.png [dem попытка 1/2]
+HTTP > #16 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/371/596.png [dem попытка 1/2]
+HTTP > #17 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/370/596.png [dem попытка 1/2]
+HTTP > #18 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/375/595.png [dem попытка 1/2]
+HTTP > #19 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/374/595.png [dem попытка 1/2]
+[gap] 8.27 с: 1584 мс
+HTTP < #13 200 61877B 1.19s [dem попытка 1/2]
+HTTP > #20 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/373/595.png [dem попытка 1/2]
+HTTP < #12 200 82504B 1.23s [dem попытка 1/2]
+HTTP > #21 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/372/595.png [dem попытка 1/2]
+HTTP < #14 200 82662B 1.28s [dem попытка 1/2]
+HTTP > #22 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/371/595.png [dem попытка 1/2]
+HTTP < #15 200 60105B 1.35s [dem попытка 1/2]
+HTTP > #23 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/370/595.png [dem попытка 1/2]
+HTTP < #16 200 66909B 1.40s [dem попытка 1/2]
+HTTP > #24 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/375/594.png [dem попытка 1/2]
+HTTP < #17 200 69619B 1.41s [dem попытка 1/2]
+HTTP > #25 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/374/594.png [dem попытка 1/2]
+HTTP < #19 200 72527B 1.44s [dem попытка 1/2]
+HTTP > #26 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/373/594.png [dem попытка 1/2]
+HTTP < #18 200 83798B 1.48s [dem попытка 1/2]
+HTTP > #27 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/372/594.png [dem попытка 1/2]
+HTTP < #22 200 73283B 1.07s [dem попытка 1/2]
+HTTP > #28 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/371/594.png [dem попытка 1/2]
+HTTP < #20 200 76835B 1.16s [dem попытка 1/2]
+HTTP > #29 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/370/594.png [dem попытка 1/2]
+HTTP < #23 200 67316B 1.07s [dem попытка 1/2]
+HTTP > #30 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/375/593.png [dem попытка 1/2]
+HTTP < #24 200 81482B 1.10s [dem попытка 1/2]
+HTTP > #31 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/374/593.png [dem попытка 1/2]
+HTTP < #25 200 82301B 1.12s [dem попытка 1/2]
+HTTP > #32 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/373/593.png [dem попытка 1/2]
+HTTP < #26 200 79309B 1.13s [dem попытка 1/2]
+HTTP > #33 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/372/593.png [dem попытка 1/2]
+HTTP < #27 200 72037B 1.13s [dem попытка 1/2]
+HTTP > #34 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/371/593.png [dem попытка 1/2]
+HTTP < #21 200 68124B 1.61s [dem попытка 1/2]
+HTTP > #35 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/370/593.png [dem попытка 1/2]
+HTTP < #28 200 74808B 1.11s [dem попытка 1/2]
+HTTP > #36 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/375/592.png [dem попытка 1/2]
+HTTP < #29 200 64651B 1.12s [dem попытка 1/2]
+HTTP > #37 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/374/592.png [dem попытка 1/2]
+HTTP < #30 200 82820B 1.12s [dem попытка 1/2]
+HTTP > #38 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/373/592.png [dem попытка 1/2]
+HTTP < #32 200 75554B 1.08s [dem попытка 1/2]
+HTTP > #39 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/372/592.png [dem попытка 1/2]
+HTTP < #31 200 83060B 1.15s [dem попытка 1/2]
+HTTP > #40 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/371/592.png [dem попытка 1/2]
+HTTP < #34 200 68785B 1.08s [dem попытка 1/2]
+HTTP > #41 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/370/592.png [dem попытка 1/2]
+HTTP < #33 200 72979B 1.16s [dem попытка 1/2]
+HTTP > #42 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/375/591.png [dem попытка 1/2]
+HTTP < #35 200 63948B 1.12s [dem попытка 1/2]
+HTTP > #43 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/374/591.png [dem попытка 1/2]
+HTTP < #36 200 74780B 1.18s [dem попытка 1/2]
+HTTP > #44 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/373/591.png [dem попытка 1/2]
+HTTP < #37 200 83775B 1.17s [dem попытка 1/2]
+HTTP > #45 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/372/591.png [dem попытка 1/2]
+HTTP < #39 200 74652B 1.13s [dem попытка 1/2]
+HTTP > #46 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/371/591.png [dem попытка 1/2]
+HTTP < #40 200 71479B 1.16s [dem попытка 1/2]
+HTTP > #47 GET s3.amazonaws.com/elevation-tiles-prod/terrarium/10/370/591.png [dem попытка 1/2]
+HTTP < #41 200 63834B 1.21s [dem попытка 1/2]
+HTTP < #42 200 69985B 1.17s [dem попытка 1/2]
+HTTP < #38 200 72885B 1.45s [dem попытка 1/2]
+HTTP < #43 200 61446B 1.20s [dem попытка 1/2]
+HTTP < #44 200 68797B 1.18s [dem попытка 1/2]
+HTTP < #45 200 69514B 1.21s [dem попытка 1/2]
+HTTP < #46 200 70283B 1.11s [dem попытка 1/2]
+HTTP < #47 200 70007B 1.24s [dem попытка 1/2]
+[gap] 16.15 с: 1162 мс
+[gap] 26.09 с: 129 мс
+HTTP > #48 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover header.bin попытка 1/3]
+[gap] 38.41 с: 198 мс
+HTTP < #48 206 65536B 0.64s [worldcover header.bin попытка 1/3]
+HTTP > #49 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_28_10.bin попытка 1/3]
+HTTP > #50 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_27_10.bin попытка 1/3]
+HTTP > #51 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_26_10.bin попытка 1/3]
+HTTP > #52 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_25_10.bin попытка 1/3]
+HTTP < #52 206 8250B 0.42s [worldcover L0_25_10.bin попытка 1/3]
+HTTP > #53 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_24_10.bin попытка 1/3]
+HTTP < #51 206 12459B 0.45s [worldcover L0_26_10.bin попытка 1/3]
+HTTP > #54 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_23_10.bin попытка 1/3]
+HTTP < #49 206 21783B 0.46s [worldcover L0_28_10.bin попытка 1/3]
+HTTP > #55 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_28_9.bin попытка 1/3]
+HTTP < #50 206 63167B 0.63s [worldcover L0_27_10.bin попытка 1/3]
+HTTP > #56 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_27_9.bin попытка 1/3]
+HTTP < #53 206 36859B 0.40s [worldcover L0_24_10.bin попытка 1/3]
+HTTP > #57 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_26_9.bin попытка 1/3]
+HTTP < #54 206 24819B 0.44s [worldcover L0_23_10.bin попытка 1/3]
+HTTP > #58 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_25_9.bin попытка 1/3]
+HTTP < #55 206 22864B 0.45s [worldcover L0_28_9.bin попытка 1/3]
+HTTP > #59 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_24_9.bin попытка 1/3]
+HTTP < #56 206 23289B 0.47s [worldcover L0_27_9.bin попытка 1/3]
+HTTP > #60 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_23_9.bin попытка 1/3]
+HTTP < #57 206 16943B 0.40s [worldcover L0_26_9.bin попытка 1/3]
+HTTP > #61 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_28_8.bin попытка 1/3]
+HTTP < #58 206 15910B 0.36s [worldcover L0_25_9.bin попытка 1/3]
+HTTP > #62 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_27_8.bin попытка 1/3]
+HTTP < #59 206 21590B 0.48s [worldcover L0_24_9.bin попытка 1/3]
+HTTP > #63 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_26_8.bin попытка 1/3]
+HTTP < #60 206 20105B 0.36s [worldcover L0_23_9.bin попытка 1/3]
+HTTP > #64 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_25_8.bin попытка 1/3]
+HTTP < #61 206 20671B 0.43s [worldcover L0_28_8.bin попытка 1/3]
+HTTP > #65 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_24_8.bin попытка 1/3]
+HTTP < #62 206 35684B 0.48s [worldcover L0_27_8.bin попытка 1/3]
+HTTP > #66 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_23_8.bin попытка 1/3]
+HTTP < #63 206 41591B 0.43s [worldcover L0_26_8.bin попытка 1/3]
+HTTP > #67 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_28_7.bin попытка 1/3]
+HTTP < #64 206 33976B 0.47s [worldcover L0_25_8.bin попытка 1/3]
+HTTP > #68 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_27_7.bin попытка 1/3]
+HTTP < #65 206 32583B 0.47s [worldcover L0_24_8.bin попытка 1/3]
+HTTP > #69 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_26_7.bin попытка 1/3]
+HTTP < #66 206 36652B 0.47s [worldcover L0_23_8.bin попытка 1/3]
+HTTP > #70 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_25_7.bin попытка 1/3]
+HTTP < #67 206 29871B 0.48s [worldcover L0_28_7.bin попытка 1/3]
+HTTP > #71 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_24_7.bin попытка 1/3]
+HTTP < #68 206 65490B 0.52s [worldcover L0_27_7.bin попытка 1/3]
+HTTP > #72 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_23_7.bin попытка 1/3]
+HTTP < #69 206 53923B 0.49s [worldcover L0_26_7.bin попытка 1/3]
+HTTP > #73 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_28_6.bin попытка 1/3]
+HTTP < #70 206 39132B 0.42s [worldcover L0_25_7.bin попытка 1/3]
+HTTP > #74 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_27_6.bin попытка 1/3]
+HTTP < #71 206 34332B 0.45s [worldcover L0_24_7.bin попытка 1/3]
+HTTP > #75 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_26_6.bin попытка 1/3]
+HTTP < #72 206 43999B 0.53s [worldcover L0_23_7.bin попытка 1/3]
+HTTP > #76 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_25_6.bin попытка 1/3]
+HTTP < #73 206 16637B 0.40s [worldcover L0_28_6.bin попытка 1/3]
+HTTP > #77 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_24_6.bin попытка 1/3]
+HTTP < #75 206 49084B 0.45s [worldcover L0_26_6.bin попытка 1/3]
+HTTP > #78 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L0_23_6.bin попытка 1/3]
+HTTP < #74 206 62460B 0.60s [worldcover L0_27_6.bin попытка 1/3]
+HTTP < #77 206 35193B 0.45s [worldcover L0_24_6.bin попытка 1/3]
+HTTP < #76 206 45146B 0.47s [worldcover L0_25_6.bin попытка 1/3]
+HTTP < #78 206 34239B 0.45s [worldcover L0_23_6.bin попытка 1/3]
+[load] dem         43.68 с  (к 43.68 с)
+[gap] 43.53 с: 219 мс
+HTTP > #79 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S27W051_Map.tif [worldcover header.bin попытка 1/3]
+[gap] 46.48 с: 3874 мс
+HTTP < #79 206 65536B 0.61s [worldcover header.bin попытка 1/3]
+HTTP > #80 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S27W048_Map.tif [worldcover header.bin попытка 1/3]
+HTTP < #80 206 65536B 0.59s [worldcover header.bin попытка 1/3]
+HTTP > #81 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W048_Map.tif [worldcover header.bin попытка 1/3]
+HTTP < #81 404 349B 0.36s [worldcover header.bin попытка 1/3]
+HTTP > #82 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S27W051_Map.tif [worldcover L2_8_8.bin попытка 1/3]
+HTTP > #83 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S27W051_Map.tif [worldcover L2_7_8.bin попытка 1/3]
+HTTP > #84 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S27W051_Map.tif [worldcover L2_6_8.bin попытка 1/3]
+HTTP > #85 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S27W051_Map.tif [worldcover L2_5_8.bin попытка 1/3]
+HTTP < #83 206 3753B 0.41s [worldcover L2_7_8.bin попытка 1/3]
+HTTP > #86 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S27W051_Map.tif [worldcover L2_4_8.bin попытка 1/3]
+HTTP < #82 206 1669B 0.41s [worldcover L2_8_8.bin попытка 1/3]
+HTTP < #84 206 91887B 0.60s [worldcover L2_6_8.bin попытка 1/3]
+HTTP < #85 206 85238B 0.60s [worldcover L2_5_8.bin попытка 1/3]
+HTTP < #86 206 54777B 0.50s [worldcover L2_4_8.bin попытка 1/3]
+HTTP > #87 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S27W048_Map.tif [worldcover L2_0_8.bin попытка 1/3]
+HTTP < #87 206 1076B 0.40s [worldcover L2_0_8.bin попытка 1/3]
+HTTP > #88 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_8_4.bin попытка 1/3]
+HTTP > #89 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_7_4.bin попытка 1/3]
+HTTP > #90 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_6_4.bin попытка 1/3]
+HTTP > #91 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_5_4.bin попытка 1/3]
+HTTP < #88 206 1076B 0.45s [worldcover L2_8_4.bin попытка 1/3]
+HTTP > #92 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_4_4.bin попытка 1/3]
+HTTP < #89 206 4242B 0.45s [worldcover L2_7_4.bin попытка 1/3]
+HTTP > #93 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_8_3.bin попытка 1/3]
+HTTP < #90 206 55421B 0.61s [worldcover L2_6_4.bin попытка 1/3]
+HTTP > #94 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_7_3.bin попытка 1/3]
+HTTP < #91 206 150178B 0.73s [worldcover L2_5_4.bin попытка 1/3]
+HTTP > #95 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_6_3.bin попытка 1/3]
+HTTP < #93 206 1076B 0.37s [worldcover L2_8_3.bin попытка 1/3]
+HTTP > #96 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_5_3.bin попытка 1/3]
+HTTP < #94 206 4534B 0.40s [worldcover L2_7_3.bin попытка 1/3]
+HTTP > #97 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_4_3.bin попытка 1/3]
+HTTP < #92 206 104913B 0.57s [worldcover L2_4_4.bin попытка 1/3]
+HTTP > #98 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_8_2.bin попытка 1/3]
+HTTP < #95 206 83489B 0.52s [worldcover L2_6_3.bin попытка 1/3]
+HTTP > #99 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_7_2.bin попытка 1/3]
+HTTP < #96 206 130596B 0.56s [worldcover L2_5_3.bin попытка 1/3]
+HTTP > #100 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_6_2.bin попытка 1/3]
+HTTP < #98 206 3675B 0.38s [worldcover L2_8_2.bin попытка 1/3]
+HTTP > #101 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_5_2.bin попытка 1/3]
+HTTP < #97 206 85457B 0.62s [worldcover L2_4_3.bin попытка 1/3]
+HTTP > #102 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_4_2.bin попытка 1/3]
+HTTP < #99 206 15883B 0.45s [worldcover L2_7_2.bin попытка 1/3]
+HTTP > #103 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_8_1.bin попытка 1/3]
+HTTP < #100 206 65711B 0.51s [worldcover L2_6_2.bin попытка 1/3]
+HTTP > #104 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_7_1.bin попытка 1/3]
+HTTP < #101 206 67018B 0.52s [worldcover L2_5_2.bin попытка 1/3]
+HTTP > #105 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_6_1.bin попытка 1/3]
+HTTP < #103 206 4055B 0.36s [worldcover L2_8_1.bin попытка 1/3]
+HTTP > #106 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_5_1.bin попытка 1/3]
+HTTP < #102 206 88568B 0.47s [worldcover L2_4_2.bin попытка 1/3]
+HTTP > #107 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_4_1.bin попытка 1/3]
+HTTP < #104 206 43083B 0.44s [worldcover L2_7_1.bin попытка 1/3]
+HTTP > #108 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_8_0.bin попытка 1/3]
+HTTP < #105 206 90452B 0.55s [worldcover L2_6_1.bin попытка 1/3]
+HTTP > #109 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_7_0.bin попытка 1/3]
+HTTP < #106 206 82044B 0.56s [worldcover L2_5_1.bin попытка 1/3]
+HTTP > #110 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_6_0.bin попытка 1/3]
+HTTP < #107 206 141724B 0.56s [worldcover L2_4_1.bin попытка 1/3]
+HTTP > #111 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_5_0.bin попытка 1/3]
+HTTP < #108 206 4147B 0.37s [worldcover L2_8_0.bin попытка 1/3]
+HTTP > #112 GET esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S30W051_Map.tif [worldcover L2_4_0.bin попытка 1/3]
+HTTP < #109 206 17637B 0.40s [worldcover L2_7_0.bin попытка 1/3]
+HTTP < #111 206 39880B 0.50s [worldcover L2_5_0.bin попытка 1/3]
+HTTP < #110 206 95952B 0.55s [worldcover L2_6_0.bin попытка 1/3]
+HTTP < #112 206 96641B 0.57s [worldcover L2_4_0.bin попытка 1/3]
+[gap] 57.20 с: 1163 мс
+[gap] 59.55 с: 251 мс
+[load] landcover   18.50 с  (к 62.18 с)
+HTTP > #113 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/-155/644.dpt [osm tile -155/644]
+HTTP > #114 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/-155/645.dpt [osm tile -155/645]
+HTTP > #115 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/-155/646.dpt [osm tile -155/646]
+HTTP > #116 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/-154/645.dpt [osm tile -154/645]
+HTTP > #117 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/-154/646.dpt [osm tile -154/646]
+HTTP > #118 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/-154/647.dpt [osm tile -154/647]
+HTTP > #119 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/-153/646.dpt [osm tile -153/646]
+HTTP > #120 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/-153/647.dpt [osm tile -153/647]
+HTTP > #121 GET pub-eb61309798ee4c4aa6a41388cf8e0a98.r2.dev/v1/-153/648.dpt [osm tile -153/648]
+[gap] 60.12 с: 2110 мс
+HTTP < #114 200 21517B 0.57s [osm tile -155/645]
+HTTP < #118 200 145392B 0.60s [osm tile -154/647]
+HTTP < #116 200 104450B 0.61s [osm tile -154/645]
+HTTP < #117 200 155473B 0.65s [osm tile -154/646]
+HTTP < #121 200 47956B 0.67s [osm tile -153/648]
+HTTP < #119 200 41381B 0.67s [osm tile -153/646]
+HTTP < #120 200 67865B 0.71s [osm tile -153/647]
+HTTP < #115 200 17540B 0.79s [osm tile -155/646]
+HTTP < #113 200 38974B 0.90s [osm tile -155/644]
+[lp] T.builder.build 63077.5 @86.613
+[load] osm          0.90 с  (к 63.08 с)
+[lp] T.read_location 153.5 @86.767
+[lp] T.mask_tasks_wait 0.0 @86.767
+[lp] T.load_surfaces 90.4 @86.858
+[load] mesh         0.24 с  (к 63.32 с)
+[lp] T.classify_missing 0.0 @86.858
+[lp] T.refresh_sun 0.0 @86.858
+[lp] T.build_sites 0.0 @86.858
+[lp] T.set_surfaces 0.3 @86.858
+[lp] T.compute_reliefs 0.1 @86.858
+[load] classify     0.00 с  (к 63.32 с)
+[gap] 63.11 с: 260 мс
+[lp] T.renderer.build 1009.9 @87.884
+[lp] T.renderer.apply_textures 28.2 @87.912
+[load] mesh         1.05 с  (к 64.38 с)
+[gap] 63.37 с: 1054 мс
+[lp] T.trees.models.setup 1473.1 @90.478
+[lp] T.trees.impostors.setup 67.8 @90.545
+[lp] T.trees.crosses.setup 577.8 @91.123
+[lp] T.trees.set_clearings 0.0 @91.123
+[lp] T.trees.pass_forest_mask 0.1 @91.124
+[lp] T.make_trees 2119.2 @91.124
+[load] trees        3.21 с  (к 67.59 с)
+[gap] 64.42 с: 3211 мс
+[lp] T.grass.setup 570.9 @91.992
+[lp] T.make_grass 571.1 @91.992
+[lp] T.setup_wind 1.8 @91.994
+[lp] T.apply_scene_look 12.1 @92.006
+[lp] T.setup_async 5148.8 @92.006
+Terrain: место pt_-27.700_-048.800 загружено за 68.47 с
+[lp] G.load_terrain 68472.3 @92.006
+[load] grass        0.88 с  (к 68.47 с)
+[gap] 67.63 с: 883 мс
+Terrain: поля рельефа за 5.19 с
+[lp] G.weather_context 0.4 @92.153
+[lp] G.derive_weather 0.2 @92.153
+[lp] G.air.set_weather 2.2 @92.155
+[lp] G.air.set_ground 0.4 @92.155
+[lp] G.sky.start_flight 0.1 @92.156
+[lp] G.terrain.set_sun 0.4 @92.156
+[lp] G.terrain.set_flight_date 2.0 @92.158
+[lp] G.heating.setup 0.2 @92.158
+[lp] G.on_sun_changed 0.9 @92.159
+[lp] G.make_day 0.6 @92.160
+[lp] G.static_thermals 0.0 @92.160
+[load] weather      0.15 с  (к 68.62 с)
+[gap] 68.52 с: 153 мс
+[lp] W.set_wind_sources 0.0 @92.253
+[lp] W.rock_scatter 9.7 @92.263
+[lp] W.shrub_scatter 587.7 @92.851
+[lp] W.clearings 6336.2 @99.187
+[lp] O.clear 0.0 @99.193
+[lp] O.starts 0.0 @99.194
+[lp] O.landings 0.0 @99.194
+[lp] O.osm.load_for 348.4 @99.543
+[lp] osm.CityGround 0.0 @99.543
+[lp] osm.Roads 1213.1 @100.756
+[lp] osm.Pilot 700.1 @101.456
+[lp] osm.ChimneyPlumes 0.1 @101.456
+[lp] osm.Wind 0.1 @101.456
+[lp] osm.Cabins 153.0 @101.610
+[lp] osm.Traffic 166.0 @101.776
+[lp] osm.Buildings 249.6 @102.025
+[lp] osm.CityTrees 185.8 @102.212
+[lp] O.osm.layer_build 2673.8 @102.217
+[lp] O.osm 3022.6 @102.217
+[lp] O.start_tracks 0.0 @102.217
+[lp] O.vil.patches 0.0 @102.217
+[lp] O.vil.plan 342.0 @102.559
+[lp] O.vil.layer_build 355.3 @102.915
+[lp] O.vil.gardens 45.7 @102.961
+[lp] O.villages 744.0 @102.961
+WorldObjects: снаряжение у 0 стартов — 0 вещей за 0 мс
+[lp] O.start_gear 0.0 @102.961
+WorldObjects: 'pt_-27.700_-048.800' за 3.77 с — ветроуказателей 0, посадок 0, троп к стартам 0, домов 18149, OSM тайлов 9/9
+[lp] W.objects.setup 3773.4 @102.961
+[lp] G.world_link.link 10707.3 @102.961
+[lp] G.choose_start 18.4 @102.979
+[lp] G.set_wind 0.1 @102.979
+[load] objects     11.36 с  (к 79.98 с)
+[gap] 68.67 с: 11499 мс
+[gap] 80.17 с: 232 мс
+air_model: field (массивы; уровней 3)
+air_model: поле (фазы+Пикар) итераций [120, 120], фазы A 0.09, B 0.02, C 0.01, D 0.61, F 0.26, H 0.00 (708 мс), заморожено 0.00, ω→запас false
+air_model: поле 12:00 ч, 3.0 м/с с 240° (загрузка): 14.39 с, итераций [120, 120], тёплый старт, окна ["100 м [70, 70]", "50 м [90, 90]"]; k притока 1.365, U над стартом на 10 м 3.49 м/с (проход 1: 2.51 м/с), проходов 2 ["1.000 → 2.51 м/с за 7.5 с (область 4.6, GPU 1.01)", "1.365 → 3.49 м/с за 6.9 с (область 3.7, GPU 0.91)"]
+[lp] G.load_air_field 14926.8 @117.906
+[lp] G.align_start_heading 0.1 @117.906
+[lp] G.place_thermals_near 0.0 @117.906
+[lp] G.apply_haze 0.0 @117.906
+[load] wind        14.39 с  (к 94.37 с)
+[lp] G.setup_glider 360.0 @118.278
+[lp] G.collisions.setup 0.1 @118.279
+WorldObjects: палаток у старта 5 из 5 за 276 мс
+[lp] G.place_camp 293.3 @118.572
+[lp] G.bots.setup 683.9 @119.256
+[lp] G.relief_wait 0.0 @119.256
+[lp] G.goals_setup 0.0 @119.256
+[lp] G.restart 8.8 @119.265
+[lp] G.air.refresh_now 7166.2 @126.431
+[load] glider       8.52 с  (к 102.90 с)
+[load] всего 102.90 с
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=-27.71760&lon=-48.77990&seed=1383072067&sky=clear&temp=26.0&v=2&wind=3.0
+[gap] 94.42 с: 8535 мс
+[lpfly] FLYING @126.969 (от нажатия 103.48 с)
+[gap] 102.95 с: 528 мс
+[lpfly] первый кадр полёта через 165 мс
+[gap] 103.48 с: 294 мс
+[gap] 103.77 с: 131 мс
+[gap] 108.54 с: 112 мс
+[gap] 113.54 с: 100 мс
+[gap] 118.44 с: 131 мс
+[lpfly] после старта 15 с: кадров 465, макс. интервал 294 мс
+load_probe: итог полёт за 118.69 с, кадров 5068
+load_probe: макс. интервал 11499 мс; >100 мс: ["11499@68.7", "8535@94.4", "3874@46.5", "3211@64.4", "2110@60.1", "1584@8.3", "1163@57.2", "1162@16.1"]
+load_probe: этап dem         43.68 с
+load_probe: этап landcover   18.50 с
+load_probe: этап osm          0.90 с
+load_probe: этап mesh         0.24 с
+load_probe: этап classify     0.00 с
+load_probe: этап mesh         1.05 с
+load_probe: этап trees        3.21 с
+load_probe: этап grass        0.88 с
+load_probe: этап weather      0.15 с
+load_probe: этап objects     11.36 с
+load_probe: этап wind        14.39 с
+load_probe: этап glider       8.52 с
+WARNING: 20 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 8 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+exit=0
