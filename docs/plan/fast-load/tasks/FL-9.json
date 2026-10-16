@@ -1,0 +1,53 @@
+{
+  "id": "FL-9",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "A′: подготовка областей поля воздуха в двух потоках",
+  "goal": "Подготовка областей модели воздуха (place_of/surface_of и domain_case по уровням) идёт параллельно (два и более рабочих потока) и не блокирует главный поток; поле совпадает с прежним бит-в-бит или в допуске; этап ветра без кеша короче.",
+  "plan_ref": "FL-9",
+  "contracts": [
+    {
+      "name": "PF-К4",
+      "version": "2",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-9",
+  "branch": "fast-load/FL-9",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/atmosphere/air_model/air_place.gd",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/terrain/terrain_relief.gd",
+    "tests/atmosphere"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_field_cache.gd",
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/game/game.gd",
+    "scripts/world_objects",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "air_place",
+      "tests": "air_place"
+    },
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "air_contracts",
+      "tests": "air_contracts"
+    },
+    {
+      "name": "fast_load_k1",
+      "tests": "fast_load_k1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T04:38:35"
+}

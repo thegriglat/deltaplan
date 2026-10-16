@@ -1,0 +1,59 @@
+{
+  "status": "done",
+  "summary": "Инструмент measure.sh/measure.py/compare.py перенесён и работает по FL-К3 v1; снят замер «до» (baseline.json, по 3 тёплых запуска, air_cache=none). Медианы: Онгудай 29,2 с, точка 40,2 с — совпадает с исследованием (28 / 43 с).",
+  "commits": [
+    "f75b1dd2 fast-load FL-1: инструмент замера и замер до"
+  ],
+  "checks": [
+    {
+      "name": "measure_py",
+      "value": "selftest exit 0",
+      "pass": true
+    },
+    {
+      "name": "baseline",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "ong median",
+      "value": "to_flying 29.18 с; wind 15.11, objects 3.89, glider 5.72, trees 2.09, mesh 1.69; load_max_gap 5934 мс; запуски 36.3/28.5/29.2",
+      "pass": true
+    },
+    {
+      "name": "pt median",
+      "value": "to_flying 40.18 с; wind 14.92, objects 11.53, glider 9.80, trees 2.59, mesh 1.57; load_max_gap 11660 мс; запуски 40.2/39.9/49.7",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept FL-1; tools/research/load_profile/measure.sh <тег> ong 3 --air-cache=off",
+  "uncertain": [
+    {
+      "where": "tools/research/load_profile/baseline.json",
+      "why": "load average машины 82–91 при замере (чужие задачи) — абсолюты завышены, разброс pt 40–50 с; первый запуск ong 36 с",
+      "checked": "медианы по 3 запуска, сходятся с table_stages.csv исследования (ong 28, pt 43); для сравнения после повторять при низкой нагрузке"
+    },
+    {
+      "where": "measure.sh (cold-пометка)",
+      "why": "cold ставится только если профиль loadprof-* пуст; профили были непусты, прогрев кеша мест не проверялся",
+      "checked": "этап dem 0,16–0,23 с — сетевых загрузок нет"
+    },
+    {
+      "where": "measure.py load_max_gap_ms",
+      "why": "берутся [gap] > 100 мс, начавшиеся до to_flying",
+      "checked": "selftest на синтетическом логе и двух старых логах"
+    }
+  ],
+  "dp_feedback": "job --lock gpu стоит в очереди молча: job status не показывает «ждёт замок <кто>». Общий scratchpad: чужой r.json перезаписал мой отчёт — стоит давать report --template с уникальным именем.",
+  "extra": {
+    "load_avg": {
+      "start": 81.75,
+      "end": 91.47
+    }
+  },
+  "t": "2026-10-17T04:38:30",
+  "by": "executor"
+}
