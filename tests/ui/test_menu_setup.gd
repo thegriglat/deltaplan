@@ -23,6 +23,7 @@ func test_start_menu_has_six_buttons_in_order() -> void:
 		tr("menu_fly"),
 		tr("menu_inspect"),
 		tr("menu_flight_setup"),
+		tr("menu_training"),
 		tr("menu_net_game"),
 		tr("menu_controls"),
 		tr("menu_settings"),
@@ -34,7 +35,7 @@ func test_start_menu_has_six_buttons_in_order() -> void:
 	for b in buttons:
 		if not (b as Button).flat:
 			texts.append((b as Button).text)
-	check(texts.size() == 8, "ровно 8 кнопок, получили %d: %s" % [texts.size(), texts])
+	check(texts.size() == 9, "ровно 9 кнопок, получили %d: %s" % [texts.size(), texts])
 	check(texts == expected, "порядок кнопок FR-27: %s" % [texts])
 	m.queue_free()
 

@@ -599,3 +599,12 @@ result_goal_rec_distance_m,дальность,distance
 result_goal_rec_max_altitude_msl_m,высота над уровнем моря,altitude above sea level
 result_goal_rec_task_speed_section_time_s,время на маршруте,route time
 result_goal_rec_task_distance_m,дальность по маршруту,route distance
+menu_training,Тренировка,Training
+training_ridge,Склон,Ridge
+training_ridge_what,"парение в динамике склона, проходы вдоль хребта",ridge soaring: passes along the ridge in slope lift
+training_thermals,Термики,Thermals
+training_thermals_what,поиск термиков над полями по вариометру и набор,finding thermals over the fields by the variometer and climbing
+training_landing,Посадка,Landing
+training_landing_what,заход и посадка в круг,approach and landing in the circle
+training_rotor,Ротор,Rotor
+training_rotor_what,"полёт в подветренной стороне хребта: нисходящие потоки и болтанка",flying on the lee side of the ridge: sink and turbulence
