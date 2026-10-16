@@ -118,3 +118,5 @@
 {"t": "2026-10-16T23:27:22", "by": "executor", "task": "GL-6", "ev": "reported", "commits": ["342c8c30"], "note": "done: Скрипт кадров tools/shots/goals_shot.gd (стадии gen, a1, a, a4, b) и синтетический IGC Каянча (20 мин, 3 спирали +2,4…+…", "dp_feedback": "Первый --import в копии падал с backtrace и импортировал только часть (1233 из ~3300 файлов), повторные прогоны не доимпортировали; помогло, что обычный запуск не headless догружает. Хорошо бы dpcli prep-копии делал импорт и проверял. Для кадров нужен xvfb-run (на реальном DISPLAY окно режется тайловым менеджером)."}
 {"t": "2026-10-16T23:27:31", "by": "coordinator", "task": "GL-6", "ev": "checked", "note": "1/1 frames=ok:7"}
 {"t": "2026-10-16T23:27:43", "by": "coordinator", "task": "GL-6", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-16T23:27:43", "by": "coordinator", "task": "GL-6", "ev": "accepted", "commits": ["ed3014d5"], "note": "1/1 frames=ok:7"}
+{"t": "2026-10-16T23:27:43", "by": "coordinator", "task": "GL-6", "ev": "merged"}
