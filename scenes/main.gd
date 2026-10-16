@@ -15,6 +15,8 @@ var state: State = State.MENU:
 		_publish_activity()
 var opts: LaunchOptions
 var flight: FlightSettings
+## Полёт запущен из «Тренировки» (TI-16): last_flight не перезаписывается.
+var _training_flight := false
 ## Папка user-конфигов для выбора языка (тесты подменяют, чтобы не трогать профиль).
 var user_config_dir: String = UserSettings.DEFAULT_DIR
 ## «Сетевая игра» (NET-50): создаётся при открытии, удаляется при закрытии.
@@ -279,6 +281,15 @@ func _skip_on_key(event: InputEvent) -> bool:
 ## «Лететь» из меню: новый день — новый случайный сид мира (--seed — заданный). «Ещё раз» и
 ## «Продолжить» сид не меняют; --autostart сюда не ходит (сид из atmosphere.json или --seed).
 func _on_menu_fly(s: FlightSettings) -> void:
+	_training_flight = false
+	game.world_seed = opts.seed if opts.seed >= 0 else _new_seed()
+	await _fly(s)
+
+
+## «Тренировка» (TI-16): полёт по карточке острова; выбор пилота (last_flight) не перетирается,
+## в том числе при «Заново» этого полёта (флаг живёт до следующего запуска из меню).
+func _on_menu_training(s: FlightSettings) -> void:
+	_training_flight = true
 	game.world_seed = opts.seed if opts.seed >= 0 else _new_seed()
 	await _fly(s)
 
@@ -286,6 +297,7 @@ func _on_menu_fly(s: FlightSettings) -> void:
 ## «Осмотр карты»: тот же мир и ветер, но без полёта — сразу свободная камера. Выход — Esc → меню.
 func _on_menu_inspect(s: FlightSettings) -> void:
 	game.world_seed = opts.seed if opts.seed >= 0 else _new_seed()
+	_training_flight = false
 	await _fly(s, true)
 
 
@@ -334,6 +346,11 @@ func _on_pick_fly() -> void:
 	await _fly(flight)
 
 
+## Запоминать ли запуск в last_flight: не --autostart, не сеть, не тренировка.
+static func saves_last_flight(autostart: bool, in_net: bool, training: bool) -> bool:
+	return not autostart and not in_net and not training
+
+
 func _fly(s: FlightSettings, inspect := false) -> void:
 	state = State.LOADING
 	flight = s
@@ -361,7 +378,7 @@ func _fly(s: FlightSettings, inspect := false) -> void:
 		return
 	flight.pilot_mass_kg = game.settings.pilot_mass_kg
 	print("Мир: %s" % game.world_key())  # повторить день: --seed и те же место/время/погода
-	if not opts.autostart and game.net == null:
+	if saves_last_flight(opts.autostart, game.net != null, _training_flight):
 		UserSettings.save_last_flight(s)
 	start_menu.visible = false
 	if inspect:
@@ -722,6 +739,7 @@ func _connect_ui() -> void:
 func _connect_screens() -> void:
 	start_menu.language_requested.connect(_on_language_requested)
 	start_menu.fly_requested.connect(_on_menu_fly)
+	start_menu.training_requested.connect(_on_menu_training)
 	start_menu.inspect_requested.connect(_on_menu_inspect)
 	start_menu.setup_requested.connect(_open_flight_setup)
 	start_menu.net_requested.connect(_open_net_screen)
