@@ -272,7 +272,7 @@ def detail_heights(z100):
 NONE, FOREST, GRASS, CROP, SHRUB, BARE, WATER = 0, 1, 2, 3, 4, 5, 6
 C = {
     "parcel_angle_deg": 14.0, "parcel_u_m": (180.0, 420.0), "parcel_v_m": (120.0, 300.0),
-    "p_crop": 0.50, "p_bare": 0.13, "p_grove": 0.10,            # доли участков равнины: пашня, голый грунт, роща
+    "p_crop": 0.28, "p_bare": 0.30, "p_grove": 0.10,            # доли участков равнины: пашня, голый грунт, роща
     "plain_forms_max": 0.2, "plain_slope_max_deg": 6.0, "plain_coast_m": 80.0,
     "forest_forms_min": 0.12, "rock_slope_deg": 34.0, "beach_m": 50.0, "beach_h_m": 5.0,
     "start_clear_m": 180.0, "landing_clear_m": 220.0,
