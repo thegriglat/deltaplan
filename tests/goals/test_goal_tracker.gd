@@ -360,9 +360,14 @@ func test_speed_counts_to_ess() -> void:
 	check(_status(g, 0) == "pending", "загружено")
 	# до ESS 200 с (в срок), до гоула ещё 400 с (за срок)
 	var t := H.fly(g, H.START, H.at(0, 2000, 1300.0), 0.0, 200.0)
-	check(_status(g, 1) == "done", "по ESS уложился: %s" % g.items()[1])
+	check(_status(g, 1) == "pending", "на ESS без гоула ещё pending")
 	H.fly(g, H.at(0, 2000, 1300.0), H.at(0, 4000, 1300.0), t, 400.0)
-	check(_status(g, 1) == "done", "гоул позже не портит")
+	check(_status(g, 1) == "done", "гоул взят, время до ESS в пределе")
+	var g2 := H.make([_g("return", 2000.0), _g("speed", 600.0)], {"wind_ms": 3.0, "wind_from_deg": 0.0})
+	H.fly(g2, H.START, H.at(0, 2000), 0.0, 100.0)
+	g2.update(H.telem(H.at(0, 2000), 101.0, "landed"))
+	g2.on_landed({"grade": "soft"})
+	check(_status(g2, 1) == "failed", "посадка без гоула — failed")
 
 
 # --- сброс и состояние ---
