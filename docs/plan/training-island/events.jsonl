@@ -199,3 +199,4 @@
 {"t": "2026-10-17T02:21:43", "by": "executor", "task": "TI-11b", "ev": "reported", "commits": ["4028abbf"], "note": "done: Причина: хеш модели читал Config вместе со слоями профиля пилота (user://local/configs: atmosphere.air_model — машинный…"}
 {"t": "2026-10-17T02:24:52", "by": "coordinator", "task": "TI-11b", "ev": "checked", "note": "4/4 training_island=ok:25/25; air_runtime=ok:8/8 (пропуск 4); bake_check=ok:exit 0; bake_check_clean=ok:exit 0"}
 {"t": "2026-10-17T02:25:02", "by": "coordinator", "task": "TI-11b", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-17T02:25:04", "by": "coordinator", "task": "TI-11b", "ev": "merged"}
