@@ -200,3 +200,5 @@
 {"t": "2026-10-17T02:24:52", "by": "coordinator", "task": "TI-11b", "ev": "checked", "note": "4/4 training_island=ok:25/25; air_runtime=ok:8/8 (пропуск 4); bake_check=ok:exit 0; bake_check_clean=ok:exit 0"}
 {"t": "2026-10-17T02:25:02", "by": "coordinator", "task": "TI-11b", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-17T02:25:04", "by": "coordinator", "task": "TI-11b", "ev": "merged"}
+{"t": "2026-10-17T02:26:13", "by": "coordinator", "task": "TI-17", "ev": "created", "note": "Слияние свежего main (CHANGELOG)"}
+{"t": "2026-10-17T02:26:20", "by": "coordinator", "task": "TI-17", "ev": "note", "note": "В своей копии: git merge main (dpcli sync отменился на конфликте CHANGELOG.md). В CHANGELOG.md — оставить записи обеих сторон в «В работе» (у нас — учебный остров, кнопка «Тренировка»; у main — свои), без дублей и маркеров. Если конфликтуют генерируемые docs/INDEX.md, docs/registry/* — взять main и .dpcli/dpcli docs index. Других правок нет. git commit слияния; проверка scope покажет файлы main — нормально для слияния. Отчёт — уникальное имя файла.", "addendum": true}
