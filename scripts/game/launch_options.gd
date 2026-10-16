@@ -248,4 +248,5 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 		if p.size() == 2:
 			r.pick_lat = float(p[0])
 			r.pick_lon = float(p[1])
+	StartWeather.apply(r)  # TI-К2: погода фиксированного старта важнее --wind/--from/--temp/--sky/--hour
 	return r
