@@ -241,6 +241,8 @@ uniform float rock_crack_m = 22.0;                // шаг трещин-кул�
 uniform float rock_crack_dark = 0.3;              // затемнение трещин
 uniform float rock_scree_streaks = 0.45;          // доля светлых полос осыпей вдоль линии падения
 uniform float rock_curv_shade = 0.25;
+uniform vec2 rock_fall_flat_deg = vec2(2.0, 8.0);  // ниже — рисунок по постоянному направлению, выше — по линии падения, °
+uniform float rock_fall_bin_deg = 30.0;           // шаг направлений рисунка (смешиваются два соседних), °
 // порода высокогорья (ниже линии снега в кулуарах на rock_alpine_below_m — полностью): холодная
 // тёмная (гранит, сланец), пятнами 0,5–2 км ржавая; на крутом темнее
 uniform vec3 rock_alpine_color : source_color = vec3(0.22, 0.23, 0.25);
@@ -807,6 +809,43 @@ void water_wind(vec2 xz, float dist, float foot, out float rough, out vec3 nw, o
 	}
 	rough += tilt * (1.0 - kn) * 0.8;
 	rough = clamp(rough, 0.0, 0.8);
+}
+#endif
+
+#ifndef T_ROCK_SURFACE_OFF
+// Трещины-кулуары и полосы осыпей одного направления d (линии вдоль d): x — трещина, y — полоса.
+vec2 rock_fall_lines(vec2 p, vec2 d, float foot) {
+	vec2 q = vec2(dot(p, vec2(-d.y, d.x)), dot(p, d));
+	float cn = vnoise(vec2(q.x / rock_crack_m, q.y / (rock_crack_m * 3.0)) + vec2(5.5, 0.9));
+	float crack = 1.0 - smoothstep(0.0, 0.05 + foot / rock_crack_m * 0.25, abs(cn - 0.5));
+	float sn = vnoise(vec2(q.x / (rock_crack_m * 1.5), q.y / (rock_crack_m * 6.0)) + vec2(2.2, 9.4));
+	return vec2(crack, smoothstep(0.6, 0.72, sn));
+}
+
+// Рисунок вдоль линии падения без сетки: направление уклона (hg — градиент высот) на пологом
+// плавно уходит к постоянному (там оно шумит от ячейки к ячейке текстуры высот); рисунок не
+// поворачивается за направлением непрерывно (q = поворот мировых координат: сдвиг ∝ |p|·Δугла
+// рвал его на каждой ячейке), а берётся у двух соседних фиксированных направлений с шагом
+// rock_fall_bin_deg и смешивается по углу. Ось рисунка без знака: углы по модулю 180°.
+vec2 rock_fall_pattern(vec2 p, vec2 hg, float foot) {
+	float g = length(hg);
+	float kf = smoothstep(tan(radians(rock_fall_flat_deg.x)), tan(radians(rock_fall_flat_deg.y)), g);
+	vec2 v = -hg / max(g, 1e-6) * kf + vec2(1.0, 0.0) * (1.0 - kf);
+	float bin = radians(max(rock_fall_bin_deg, 5.0));
+	float nb = floor(PI / bin + 0.5);
+	float a = mod(atan(v.y, v.x), PI) / (PI / nb);
+	float i0 = floor(a);
+	float t = smoothstep(0.3, 0.7, a - i0);
+	vec2 r = vec2(0.0);
+	if (t < 0.999) {
+		float a0 = mod(i0, nb) * PI / nb;
+		r += rock_fall_lines(p, vec2(cos(a0), sin(a0)), foot) * (1.0 - t);
+	}
+	if (t > 0.001) {
+		float a1 = mod(i0 + 1.0, nb) * PI / nb;
+		r += rock_fall_lines(p, vec2(cos(a1), sin(a1)), foot) * t;
+	}
+	return r;
 }
 #endif
 
@@ -1398,8 +1437,6 @@ void fragment() {
 	if (rsw > 0.001 && mk > 0.0) {
 		// средняя дистанция: тон пятнами 30–150 м, тёмные трещины-кулуары и светлые полосы осыпей
 		// вдоль линии падения, кривизна (гребни светлее, ложбины темнее) — читается без камней
-		vec2 dfall = length(n_class.xz) > 1e-4 ? normalize(n_class.xz) : vec2(1.0, 0.0);
-		vec2 q = vec2(dot(wp.xz, vec2(-dfall.y, dfall.x)), dot(wp.xz, dfall));
 		float tv = vnoise(wp.xz / 35.0 + vec2(7.3, 2.1)) * 0.6 + vnoise(wp.xz / 140.0 + vec2(1.1, 4.7)) * 0.4;
 		float fr = 1.0 + rock_tone_var * 2.0 * (tv - 0.5);
 		float big = fbm(wp.xz / 900.0 + vec2(4.1, 6.6), 2);
@@ -1412,11 +1449,9 @@ void fragment() {
 		}
 		float cr_w = 1.0 - smoothstep(0.15 * rock_crack_m, 0.5 * rock_crack_m, foot_m);
 		if (cr_w > 0.0) {
-			float cn = vnoise(vec2(q.x / rock_crack_m, q.y / (rock_crack_m * 3.0)) + vec2(5.5, 0.9));
-			float crack = 1.0 - smoothstep(0.0, 0.05 + foot_m / rock_crack_m * 0.25, abs(cn - 0.5));
-			fr *= 1.0 - rock_crack_dark * crack * cr_w;
-			float sn = vnoise(vec2(q.x / (rock_crack_m * 1.5), q.y / (rock_crack_m * 6.0)) + vec2(2.2, 9.4));
-			float streak = smoothstep(0.6, 0.72, sn) * rock_scree_streaks * mix(0.5, 1.0, cr_w);
+			vec2 fl = rock_fall_pattern(wp.xz, -n_class.xz / max(n_class.y, 0.05), foot_m);
+			fr *= 1.0 - rock_crack_dark * fl.x * cr_w;
+			float streak = fl.y * rock_scree_streaks * mix(0.5, 1.0, cr_w);
 			col = mix(col, scree_color * (0.85 + 0.3 * tv), streak * rsw * mk);
 		}
 		fr *= 1.0 + rock_curv_shade * clamp(v_convex / outcrop_convex_k, -1.0, 1.0);
