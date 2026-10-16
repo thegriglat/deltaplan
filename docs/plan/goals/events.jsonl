@@ -142,3 +142,5 @@
 {"t": "2026-10-17T00:05:31", "by": "executor", "task": "GL-13", "ev": "reported", "commits": ["b5e93700"], "note": "partial: Написан docs/guide/goals.md (виды целей, оценка, засчёт, список, прибор, столбы, итог, треки, IGC/GPX, границы), правки…", "dp_feedback": "docs index переписывает чужие реестры (contracts.md, research.md) вне скоупа карточки — пришлось откатывать git checkout; limit findings.md 40 КБ почти исчерпан."}
 {"t": "2026-10-17T00:05:49", "by": "coordinator", "task": "GL-13", "ev": "accepted", "note": "1/1 docs=ok:exit 0"}
 {"t": "2026-10-17T00:05:49", "by": "coordinator", "task": "GL-13", "ev": "accepted", "note": "по отчёту; перенос 04 в архив — координатор"}
+{"t": "2026-10-17T00:05:50", "by": "coordinator", "task": "GL-13", "ev": "accepted", "commits": ["8176311e"], "note": "1/1 docs=ok:exit 0"}
+{"t": "2026-10-17T00:05:50", "by": "coordinator", "task": "GL-13", "ev": "merged"}

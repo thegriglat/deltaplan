@@ -6,7 +6,7 @@ area: "game"
 updated: "2026-10-16"
 summary: "Стыки модуля целей: FlightSettings (К1), оценка погоды (К2), GoalTracker (К3), прибор и цилиндры (К4), трек и IGC (К5), полоса (К6)."
 related: ["docs/plan/goals.md", "docs/guide/tasks.md"]
-contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 2}, {"id": "GL-К3", "version": 2}, {"id": "GL-К4", "version": 2}, {"id": "GL-К5", "version": 2}, {"id": "GL-К6", "version": 2}]
+contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 2}, {"id": "GL-К3", "version": 2}, {"id": "GL-К4", "version": 2}, {"id": "GL-К5", "version": 3}, {"id": "GL-К6", "version": 2}]
 ---
 # Контракты модуля goals
 
@@ -95,7 +95,8 @@ v2 (2026-10-16, Q1): альфа столбов растёт с расстоян�
 - `class_name GoalCylinders extends Node3D`: `func set_points(points: Array) -> void` (формат `GoalTracker.world_points()`), видим только при `configs/goals/world.json → cylinders.enabled` (по умолчанию `false`), перечитывается по `Config.reloaded`. Столбы полупрозрачные, от земли вверх (`cylinders.height_m`), активный — заметнее.
 - Настройка «Цилиндры целей» — `SettingsPanel`, вкладка game; сохраняется `UserSettings.save_patch("goals/world", {"cylinders": {"enabled": …}})`.
 
-## GL-К5. Трек: FlightTrack, IGC/GPX, след прошлой попытки (v2)
+## GL-К5. Трек: FlightTrack, IGC/GPX, след прошлой попытки (v3)
+v3 (2026-10-17, по коду GL-7b): `HFDTE` — дата записи (системная), время B-записей — условное от 12:00; дата полёта из `FlightSettings` не пишется.
 Владелец: GL-7 (`scripts/goals/flight_track.gd`, `track_io.gd`, `last_track_store.gd`, `track_recorder.gd`); подключение к `Game` — GL-7b; GPX — GL-10.
 v2 (2026-10-16): добавлен `TrackRecorder`. Потребители: полоса трека (GL-8), окно «Полёт…» (GL-10), `Game`.
 ```gdscript
@@ -129,7 +130,7 @@ func start(local_to_latlon: Callable) -> void           # Callable(x, z) -> Vect
 func update(t: Telemetry) -> void                        # пишет точку не чаще 1 Гц по t.time_s, только в воздухе (не on_ground)
 func track() -> FlightTrack                              # записанное; t_s — от первой точки
 ```
-- IGC (подмножество): запись `A`, `HFDTE` (дата полёта из `FlightSettings`), B-записи 1 Гц (`HHMMSS`, `DDMMmmmN`, `DDDMMmmmE`, `A`, давл. высота 5 цифр, GPS-высота 5 цифр = `alt_m` округлённо); чтение — B-записи, GPS-высота, если вся нулевая — давлением; переход через полночь — +86400 с; прочие записи пропускаются.
+- IGC (подмножество): запись `A`, `HFDTE` (системная дата записи; время B — условное от 12:00), B-записи 1 Гц (`HHMMSS`, `DDMMmmmN`, `DDDMMmmmE`, `A`, давл. высота 5 цифр, GPS-высота 5 цифр = `alt_m` округлённо); чтение — B-записи, GPS-высота, если вся нулевая — давлением; переход через полночь — +86400 с; прочие записи пропускаются.
 - GPX: `trkpt` (`lat`, `lon`, `ele`, `time` ISO 8601); без `time` — по 1 с на точку; без `ele` — трек отвергается.
 - `Game.goal_tracks: Array` (`[FlightTrack]`) — заполняется в `start()` до первого кадра: след прошлой попытки (`show_last_track`), файлы `track_paths`; пусто — ничего не рисуется. В сети — пусто.
 - Запись полёта: 1 Гц от отрыва до конца полёта; сохраняется в `LastTrackStore` при конце полёта, если взлёт был (`stats.summary().took_off`); одна на место.

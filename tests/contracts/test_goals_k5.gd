@@ -2,7 +2,7 @@ extends TestCase
 ## Контракт GL-К5 (docs/contracts/goals.md): версия в заголовке. Владелец стыка дописывает проверку интерфейса.
 
 const DOC := "res://docs/contracts/goals.md"
-const VERSION := 2
+const VERSION := 3
 
 
 func test_doc_heading() -> void:
