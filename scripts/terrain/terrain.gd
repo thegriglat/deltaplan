@@ -115,6 +115,7 @@ func _ready() -> void:
 ## точку (user://locations/<ключ>/) — файлы и путь одни (Locations, OA-К4).
 func load_location(id: String) -> bool:
 	var t0 := Time.get_ticks_usec()
+	_preload_tree_models()
 	var r := _read_location(id)
 	if r.is_empty():
 		return false
@@ -173,6 +174,7 @@ func load_point(lat: float, lon: float, builtin_id: String = "") -> void:
 	var gen := _load_gen
 	var rt: Dictionary = Config.get_config("world").get("runtime_terrain", {})
 	var t0 := Time.get_ticks_usec()
+	_preload_tree_models()
 	progress.begin()
 	_watch_stall(gen, float(rt.get("stall_timeout_s", 90.0)))
 	progress.stage("dem", tr("loading_dem"))
@@ -548,6 +550,13 @@ func _setup_wind(cfg: Dictionary) -> void:
 		wind.add_materials((trees as TerrainTreeModels).materials)
 	if grass != null:
 		wind.add_materials(grass.materials())
+
+
+## Модели деревьев грузятся в фоне с начала загрузки места (FL-7): setup() деревьев дождётся.
+func _preload_tree_models() -> void:
+	var t: Dictionary = Config.get_config("world").get("trees", {})
+	if bool(t.get("enabled", false)):
+		TerrainTreeModels.request_preload(t.get("models", {}))
 
 
 ## Деревья: модели пород, если есть файлы, иначе процедурные кроны.
