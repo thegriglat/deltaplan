@@ -1,12 +1,33 @@
 {
-  "status": "partial",
-  "summary": "Кеш поля воздуха на диске (FL-К1) сделан: AirFieldCache (scripts/atmosphere/air_field_cache.gd) — записи TI-К3 v3 в user://air_cache, имя = sha256[:16] канонического ключа, LRU по index.json (восстанавливается по файлам), max_mb=0 — выключен. AirRuntime: запечённое → кеш → расчёт, cache_ready()/cache_enabled, поле загрузки (ok/not_converged/previous_pass) пишется фоном в WorkerThreadPool, выход ждёт записи; Game пропускает этап «wind» при cache_ready(). Ползунок «Кеш ветра на диске» 0–2000 МБ, шаг 50, на вкладке «Игра». Не сделано: air_cache.max_mb — не машинный ключ (нужен steam/partner/auto_cloud.json вне scope).",
+  "status": "done",
+  "summary": "Кеш поля воздуха на диске (FL-К1): AirFieldCache (scripts/atmosphere/air_field_cache.gd) — записи TI-К3 v3 в user://air_cache, имя = sha256[:16] канонического ключа, LRU по index.json (восстанавливается по файлам), max_mb=0 — выключен. AirRuntime: запечённое → кеш → расчёт, cache_ready(), cache_enabled (по решению координатора по умолчанию false, включает Game); поле загрузки (ok/not_converged/previous_pass) пишется фоном, выход ждёт записи; Game пропускает этап «wind» при cache_ready(). Ползунок 0–2000 МБ на вкладке «Игра»; atmosphere.air_cache — машинный ключ (LOCAL_KEYS + auto_cloud local_keys).",
   "commits": [
     "952d72f6 кеш поля воздуха на диске: AirFieldCache, LRU, попадание в load_field, запись фоном, настройка, тесты",
     "d959b825 air_cache.max_mb пока не машинный ключ — auto_cloud.json вне scope",
-    "ad00d813 уровни поля из файла TI-К3 собираются параллельно — чтение из кеша 2,1 → 0,4 с"
+    "ad00d813 уровни поля из файла TI-К3 собираются параллельно — чтение из кеша 2,1 → 0,4 с",
+    "087758c6 кеш включает только игра (cache_enabled=false по умолчанию), air_cache — машинный ключ"
   ],
   "checks": [
+    {
+      "name": "fast_load_k1",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "air_cache",
+      "value": "3/3 (GPU-тест пропущен headless, отдельно ok)",
+      "pass": true
+    },
+    {
+      "name": "training_island",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "baked",
+      "value": "3/3 (пропуск 2 GPU)",
+      "pass": true
+    },
     {
       "name": "accept --dry (fast_load_k1, air_cache, training_island, baked, scope)",
       "value": "4/4 + scope PASS",
@@ -19,17 +40,17 @@
     },
     {
       "name": "GPU: попадание — чтение и подача",
-      "value": "0,39 с (≤ 1 с); расчёт того же поля 20,2 с",
+      "value": "0,40 с (≤ 1 с); расчёт того же поля 15,8 с (повтор после 087758c6)",
       "pass": true
     },
     {
       "name": "GPU: наибольший кадр главного потока при записи / чтении",
-      "value": "1,2 мс / 5,8 мс (≤ 100 мс)",
+      "value": "4,5 мс / 6,4 мс (≤ 100 мс)",
       "pass": true
     },
     {
       "name": "GPU: запись",
-      "value": "0,33 с в пуле, 6,54 МБ на запись",
+      "value": "0,73 с в пуле, 6,54 МБ на запись",
       "pass": true
     },
     {
@@ -49,16 +70,12 @@
     },
     {
       "name": "tools/gpu_tests.sh --filter=baked_gpu",
-      "value": "air_baked_gpu ok (загрузка из файла 0,41 с); island_baked_gpu FAIL — хеш модели изменился правкой air_runtime.gd (ожидаемо, перепечка — отдельной задачей)",
+      "value": "air_baked_gpu ok (загрузка из файла 0,41 с); island_baked_gpu FAIL — хеш модели изменился правкой air_runtime.gd (ожидаемо, перепечка — отдельной задачей); test_menu_scroll — падение базы",
       "pass": false
     }
   ],
-  "not_done": [
-    "atmosphere.air_cache.max_mb не в UserSettings.LOCAL_KEYS: тест S7 требует совпадения с steam/partner/auto_cloud.json → local_keys, а этот файл вне scope (accept FAIL scope). Сейчас настройка пишется в user://configs (Steam Cloud). Нужно: scope + steam/partner/auto_cloud.json, строка \"atmosphere.air_cache\" в обоих списках (правка готова, откатил в d959b825)."
-  ],
-  "questions": [
-    "Добавить steam/partner/auto_cloud.json в scope FL-2 (или отдельной мелкой задачей) — сделать air_cache машинным ключом по FL-К1."
-  ],
+  "not_done": [],
+  "questions": [],
   "images": [],
   "how_to_check": ".dpcli/dpcli accept FL-2; GPU: .dpcli/dpcli lock gpu x -- tools/gpu_tests.sh --filter=air_cache_gpu",
   "uncertain": [
@@ -66,11 +83,6 @@
       "where": "scripts/atmosphere/air_model/air_runtime.gd cache_key",
       "why": "Сверх контрактных полей в ключ добавлены utc (пояс часов места — солнце/нагрев) и surface (sha256[:16] снимка AirPlace.Surface: классы и влажность узлов 25 м — поляны стартов, просеки, конфиг вида рельефа; built_patches/OSM в place_hash не входят). Не в ключе: k₀ прохода 1 (_k_mem прошлых загрузок того же места в процессе) — итог прохода 2 от него слегка зависит, но цель та же (U над стартом = u10); в новом процессе k₀ = 1. Детерминизм surface между процессами не проверял (влажность считается на CPU, должна совпадать) — FL-11 замер hit покажет.",
       "checked": "Ключ одинаков для двух AirRuntime на одном месте в одном процессе (GPU-тест попал)."
-    },
-    {
-      "where": "scripts/atmosphere/air_model/air_runtime.gd cache_enabled",
-      "why": "Кеш по умолчанию включён и в инструментах tools/ (bake_air, research-пробы, wind_audit): повторный запуск с тем же ключом возьмёт поле из кеша вместо расчёта и исказит замеры времени. tools/ вне scope — им стоит ставить rt.cache_enabled = false. В тестах tests/atmosphere/*_gpu и test_air_runtime_baked выставил cache_enabled = false.",
-      "checked": "test_air_contracts headless — не пишет (без GPU)."
     },
     {
       "where": "scripts/atmosphere/air_model/air_baked_field.gd load_file",
@@ -83,7 +95,7 @@
       "checked": "прогон с HEAD-версией settings_panel.gd — тот же FAIL"
     }
   ],
-  "dp_feedback": "accept проверяет scope только в конце — было бы удобно `.dpcli/dpcli task scope-check FL-2` сразу; в карточке не было видно, что LOCAL_KEYS дублируется в steam/partner/auto_cloud.json (тест S7) — стоит вписывать такие связки в scope при выдаче. dpcli lock gpu ждёт молча: строчка «жду gpu, занят X» в вывод помогла бы (мой первый запуск упал по внешнему timeout в очереди).",
+  "dp_feedback": "accept проверяет scope только в конце — было бы удобно `.dpcli/dpcli task scope-check FL-2` сразу; в карточке не было видно, что LOCAL_KEYS дублируется в steam/partner/auto_cloud.json (тест S7) — стоит вписывать такие связки в scope при выдаче. dpcli lock gpu ждёт молча: строчка «жду gpu, занят X» в вывод помогла бы (мой первый запуск упал по внешнему timeout в очереди). Общая scratchpad-папка у агентов одной сессии: мой r.json перезаписал чужой отчёт ревью — шаблону стоит предлагать имя с ID задачи.",
   "extra": {
     "gpu_ongudai": {
       "calc_s": 20.23,
@@ -93,8 +105,16 @@
       "frame_write_ms": 1.2,
       "frame_read_ms": 5.8,
       "max_err_ms": 0.00391
+    },
+    "gpu_ongudai_rerun": {
+      "calc_s": 15.75,
+      "write_s": 0.73,
+      "hit_s": 0.4,
+      "frame_write_ms": 4.5,
+      "frame_read_ms": 6.4,
+      "max_err_ms": 0.00391
     }
   },
-  "t": "2026-10-17T03:50:17",
+  "t": "2026-10-17T03:53:01",
   "by": "executor"
 }
