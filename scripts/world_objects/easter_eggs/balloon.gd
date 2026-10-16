@@ -26,12 +26,15 @@ var _bask: MultiMeshInstance3D
 var _mats: Array[ShaderMaterial] = []
 
 
-## Утро (солнце в окне и час ≤ max_hour), сезон, слабый ветер, не overcast, есть точка старта.
+## Утро (час ≤ max_hour) или вечер (час ≥ evening_hour, солнце не ниже evening_sun_min_deg),
+## сезон, слабый ветер, не overcast, есть точка старта.
 static func can_appear(ctx: EggContext, cfg: Dictionary) -> bool:
-	var sun: Array = cfg.get("sun_elev_deg", [0, 25])
-	if ctx.sun_elev_deg < float(sun[0]) or ctx.sun_elev_deg > float(sun[1]):
-		return false
-	if ctx.hour > float(cfg.get("max_hour", 10.0)):
+	var morning := ctx.hour <= float(cfg.get("max_hour", 10.5)) and ctx.sun_elev_deg >= 0.0
+	var evening := (
+		ctx.hour >= float(cfg.get("evening_hour", 18.0))
+		and ctx.sun_elev_deg >= float(cfg.get("evening_sun_min_deg", -1.0))
+	)
+	if not morning and not evening:
 		return false
 	var months: Array = cfg.get("months", [4, 10])
 	if ctx.month < int(months[0]) or ctx.month > int(months[1]):
@@ -66,20 +69,27 @@ static func dist_to_segment(q: Vector2, a: Vector2, b: Vector2) -> float:
 	return q.distance_to(a + ab * t)
 
 
-## Точка старта (центр набора): на своей долине или равнине не ближе min_dist_flying_zone_m (плюс
-## разброс фестиваля) ни к одному старту локации на всём пути сноса за время жизни, ни к пилоту
-## в момент появления; ≤ village_max_m от посёлка (пятна застройки); не горы, рельеф ≤ max_ground_m, под точкой
-## не снег/скалы/лес/вода. Vector3 на рельефе или null (шара нет).
+## Точка старта (центр набора): от min_dist_start_m до max_dist_start_m от пилота в момент
+## появления; не ближе min_dist_flying_zone_m (плюс разброс фестиваля) ни к одному старту локации
+## на пути сноса за первые see_path_s секунд и ни к пилоту; через see_path_s шар ещё не дальше
+## see_max_m от пилота (иначе он уносится из виду, пока пилот в воздухе). ≤ village_max_m от
+## посёлка (пятна застройки); не горы, рельеф ≤ max_ground_m, под точкой не снег/скалы/лес/вода.
+## Vector3 на рельефе или null (шара нет).
 static func find_site(ctx: EggContext, rng: RandomNumberGenerator, cfg: Dictionary) -> Variant:
 	var place := ctx.place
 	if place == null:
 		return null
 	var cnt: Array = cfg.get("count", [1, 1])
-	var margin := float(cfg.get("min_dist_flying_zone_m", 5000.0))
+	var margin := float(cfg.get("min_dist_flying_zone_m", 1000.0))
 	if int(cnt[1]) > 1:
 		margin += float(cfg.get("spread_m", 1500.0))
-	var alt_max := float((cfg.get("altitude_m", [200, 1200]) as Array)[1])
-	var path := drift_speed(ctx, cfg, alt_max) * float(cfg.get("lifetime_s", 4500.0))
+	var d_min := maxf(margin, float(cfg.get("min_dist_start_m", 1000.0)))
+	var d_max := float(cfg.get("max_dist_start_m", 6000.0))
+	var see_s := float(cfg.get("see_path_s", 1200.0))
+	var see_max := float(cfg.get("see_max_m", 9000.0))
+	var alt_r := cfg.get("altitude_m", [200, 1200]) as Array
+	var alt_mid := 0.5 * (float(alt_r[0]) + float(alt_r[1]))
+	var path := drift_speed(ctx, cfg, alt_mid) * see_s
 	var dir := wind_dir(ctx)
 	var d2 := Vector2(dir.x, dir.z)
 	var starts: Array[Vector2] = []
@@ -90,7 +100,10 @@ static func find_site(ctx: EggContext, rng: RandomNumberGenerator, cfg: Dictiona
 	var village_max := float(cfg.get("village_max_m", 10000.0))
 	var accept := func(x: float, z: float) -> bool:
 		var q := Vector2(x, z)
-		if q.distance_to(pilot) < margin:
+		var dp := q.distance_to(pilot)
+		if dp < d_min or dp > d_max or (q + d2 * path).distance_to(pilot) > see_max:
+			return false
+		if dist_to_segment(pilot, q, q + d2 * path) < margin:
 			return false
 		for st in starts:
 			if dist_to_segment(st, q, q + d2 * path) < margin:
@@ -108,7 +121,7 @@ static func find_site(ctx: EggContext, rng: RandomNumberGenerator, cfg: Dictiona
 		var v := place.nearest_place(x, z)
 		return not v.is_empty() and float(v.dist_m) <= village_max
 	return place.find_point(
-		rng, Vector2.ZERO, float(cfg.get("search_radius_m", 16000.0)), accept, 200
+		rng, pilot, float(cfg.get("search_radius_m", d_max)), accept, 300
 	)
 
 
@@ -216,6 +229,25 @@ func _envelope_mesh(cfg: Dictionary) -> ArrayMesh:
 	return mesh
 
 
+## Корзина (куб) и четыре стропы от её верхних углов к горловине оболочки (STRING_M выше).
+func _basket_mesh() -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var box := BoxMesh.new()
+	box.size = Vector3.ONE * _basket_m
+	st.append_from(box, 0, Transform3D.IDENTITY)
+	var h := _basket_m * 0.5
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			var a := Vector3(sx * h * 0.9, h, sz * h * 0.9)
+			var b := Vector3(sx * 0.8, h + STRING_M, sz * 0.8)
+			var rope := BoxMesh.new()
+			rope.size = Vector3(0.05, 0.05, a.distance_to(b))
+			var basis := Basis.looking_at(b - a, Vector3.UP)
+			st.append_from(rope, 0, Transform3D(basis, (a + b) * 0.5))
+	return st.commit()
+
+
 func _build(cfg: Dictionary, colors: Array[Color], customs: Array[Color]) -> void:
 	var n := _base.size()
 	# границы экземпляров в локальных осях узла (узел двигается только по X, Z)
@@ -239,9 +271,7 @@ func _build(cfg: Dictionary, colors: Array[Color], customs: Array[Color]) -> voi
 	mm_e.custom_aabb = box
 	var mm_b := MultiMesh.new()
 	mm_b.transform_format = MultiMesh.TRANSFORM_3D
-	var bm := BoxMesh.new()
-	bm.size = Vector3.ONE * _basket_m
-	mm_b.mesh = bm
+	mm_b.mesh = _basket_mesh()
 	mm_b.instance_count = n
 	mm_b.custom_aabb = box
 	for i in n:
