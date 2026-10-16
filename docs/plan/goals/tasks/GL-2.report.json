@@ -1,8 +1,8 @@
 {
   "status": "done",
-  "summary": "Доработка по ревью: speed считает до ESS (иначе до гоула), возврат/треугольник type elapsed, мишень TrainingSpotLanding берёт y из height_fn (новое поле), тесты добавлены.",
+  "summary": "Доработка 2: speed done при взятии гоула и (ESS − старт) ≤ value (нет ESS — время гоула); на ESS без гоула pending, посадка без гоула failed. height_fn мишени TrainingSpotLanding добавлен как поле, но пока нигде не задаётся (подключение — за интеграцией, scripts/game не трогал).",
   "commits": [
-    "fd207108 goals GL-2: speed до ESS, возврат/треугольник elapsed, высота мишени из height_fn"
+    "ac7f07b9 goals GL-2: speed засчитывается на гоуле по времени до ESS"
   ],
   "checks": [
     {
@@ -52,7 +52,7 @@
     },
     {
       "where": "scripts/goals/goal_tracker.gd _update_speed",
-      "why": "speed судит ведущий маршрут на начало шага, чтобы смена ведущего после гоула не сбивала; время считается от взлёта (нет SSS), от старта окна — если у задания есть sss",
+      "why": "speed: гоул взят и время (ESS−старт, иначе гоул−старт) ≤ value; старт — start_time_s ведущего (SSS, у возврата/треугольника — взлёт); судится ведущий на начало шага",
       "checked": "test_speed_judges_leading_route_finish, too_slow, in_time"
     },
     {
@@ -66,7 +66,7 @@
       "checked": "тесты геометрии и поворота"
     }
   ],
-  "dp_feedback": "scope включал scripts/tasks/training_spot_landing.gd и tests/tasks/test_training.gd без пояснения, зачем; не трогал. check_gd без импорта молча пропускается.",
-  "t": "2026-10-16T21:41:15",
+  "dp_feedback": "scope включал training_spot_landing.gd без пояснения; поле height_fn там никто не задаёт — нужна интеграция в Game. check_gd без импорта молча пропускается.",
+  "t": "2026-10-16T21:43:55",
   "by": "executor"
 }

@@ -1,0 +1,66 @@
+{
+  "id": "GL-8",
+  "module": "goals",
+  "type": "dp-engineer",
+  "title": "Полоса трека в мире",
+  "goal": "TrackRibbon (К6): весь FlightTrack одной полупрозрачной полосой постоянной экранной ширины, цвет по вертикальной скорости (красный набор, синий снижение, около нуля почти бесцветно), пороги в configs/goals/track.json; сцена-превью для проверки.",
+  "plan_ref": "GL-8",
+  "contracts": [
+    {
+      "name": "GL-К6",
+      "version": "1",
+      "ref": "docs/contracts/goals.md"
+    },
+    {
+      "name": "GL-К5",
+      "version": "2",
+      "ref": "docs/contracts/goals.md"
+    }
+  ],
+  "copy": "~/deltaplan-goals-GL-8",
+  "branch": "goals/GL-8",
+  "base": "feature/goals",
+  "scope": [
+    "scripts/goals/track_ribbon.gd",
+    "scripts/goals/track_ribbon.gd.uid",
+    "scripts/goals/track_ribbon.gdshader",
+    "scripts/goals/track_ribbon.gdshader.uid",
+    "configs/goals/track.json",
+    "tests/goals/test_track_ribbon.gd",
+    "tests/goals/test_track_ribbon.gd.uid",
+    "tests/contracts/test_goals_k6.gd",
+    "scenes/goals/track_ribbon_preview.tscn",
+    "scripts/goals/track_ribbon_preview.gd",
+    "scripts/goals/track_ribbon_preview.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/game",
+    "scripts/ui",
+    "scripts/world_objects/wire.gdshader",
+    "scripts/goals/flight_track.gd",
+    "scripts/goals/track_io.gd",
+    "docs/contracts/goals.md"
+  ],
+  "accept": [
+    {
+      "name": "test_track_ribbon",
+      "tests": "test_track_ribbon"
+    },
+    {
+      "name": "test_goals_k6",
+      "tests": "test_goals_k6"
+    },
+    {
+      "name": "test_flight_track",
+      "tests": "test_flight_track"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/goals/track_ribbon.gd tests/goals/test_track_ribbon.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T21:44:36"
+}
