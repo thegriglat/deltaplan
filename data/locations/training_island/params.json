@@ -48,8 +48,8 @@
     "beach_m": 50.0,
     "forest_forms_min": 0.12,
     "landing_clear_m": 220.0,
-    "p_bare": 0.13,
-    "p_crop": 0.5,
+    "p_bare": 0.3,
+    "p_crop": 0.28,
     "p_grove": 0.1,
     "parcel_angle_deg": 14.0,
     "parcel_u_m": [
