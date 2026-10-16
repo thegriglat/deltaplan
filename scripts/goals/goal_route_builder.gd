@@ -101,4 +101,4 @@ static func _task(id: String, home: Vector2, tps: Array[Vector2], cfg: Dictionar
 	list.append(
 		{"name": "goal", "type": "goal", "x_m": home.x, "z_m": home.y, "radius_m": home_r}
 	)
-	return {"id": id, "name": id, "type": "race", "turnpoints": list}
+	return {"id": id, "name": id, "type": "elapsed", "turnpoints": list}

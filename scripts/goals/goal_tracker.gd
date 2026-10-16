@@ -331,8 +331,9 @@ func _update_speed(i: int, lead_kind: String) -> void:
 	if is_nan(tr.start_time_s):
 		item.current = 0.0
 		return
-	if tr.phase == TaskTracker.Phase.GOAL:
-		item.current = tr.goal_time_s - tr.start_time_s
+	if not is_nan(tr.ess_time_s) or tr.phase == TaskTracker.Phase.GOAL:
+		var end_s := tr.ess_time_s if not is_nan(tr.ess_time_s) else tr.goal_time_s
+		item.current = end_s - tr.start_time_s
 		_finish(i, item.current <= item.value)
 		if item.status == "failed":
 			item.reason = "позже предела"

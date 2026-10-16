@@ -337,6 +337,34 @@ func test_speed_judges_leading_route_finish() -> void:
 	check(_status(g, 2) == "done", "speed: %s" % g.items()[2])
 
 
+func test_speed_counts_to_ess() -> void:
+	var path := "user://gl2_ess_task.json"
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(
+		JSON.stringify(
+			{
+				"id": "gl2e",
+				"name": "С ESS",
+				"turnpoints":
+				[
+					{"type": "takeoff", "x_m": 0, "z_m": 0, "radius_m": 200},
+					{"type": "ess", "x_m": 0, "z_m": -2000, "radius_m": 300},
+					{"type": "goal", "x_m": 0, "z_m": -4000, "radius_m": 300}
+				]
+			}
+		)
+	)
+	f.close()
+	var g := H.make([_g("route", 0.0, "medium", path), _g("speed", 250.0)])
+	DirAccess.remove_absolute(path)
+	check(_status(g, 0) == "pending", "загружено")
+	# до ESS 200 с (в срок), до гоула ещё 400 с (за срок)
+	var t := H.fly(g, H.START, H.at(0, 2000, 1300.0), 0.0, 200.0)
+	check(_status(g, 1) == "done", "по ESS уложился: %s" % g.items()[1])
+	H.fly(g, H.at(0, 2000, 1300.0), H.at(0, 4000, 1300.0), t, 400.0)
+	check(_status(g, 1) == "done", "гоул позже не портит")
+
+
 # --- сброс и состояние ---
 
 

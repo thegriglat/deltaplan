@@ -11,6 +11,8 @@ var rings: Array = []
 var grade_factor: Dictionary = {}
 var time_limit_s: float = 1800.0
 var location: String = ""
+## Высота земли height_fn(x, z) -> float (Terrain.height_at) для y мишени; не задан — y = 0.
+var height_fn: Callable = Callable()
 
 ## Последняя телеметрия в воздухе — для оценки посадки, если результат не пришёл сигналом.
 var _last_velocity := Vector3.ZERO
@@ -22,6 +24,8 @@ func get_mode_id() -> String:
 
 
 func set_target(pos: Vector3) -> void:
+	if height_fn.is_valid():
+		pos.y = float(height_fn.call(pos.x, pos.z))
 	target = pos
 	has_target = true
 

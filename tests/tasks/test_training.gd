@@ -114,6 +114,14 @@ func test_spot_landing_target_from_latlon() -> void:
 	approx(Vector2(m.target.x, m.target.z).distance_to(expect), 0.0, 0.5, "координаты мишени")
 
 
+func test_spot_landing_target_height_from_terrain() -> void:
+	var m := TrainingSpotLanding.new()
+	m.height_fn = func(x: float, _z: float) -> float: return 700.0 + x * 0.1
+	m.set_target(Vector3(100, 0, 5))
+	approx(m.target.y, 710.0, 0.001, "y мишени — из height_fn")
+	approx(m.distance_to_target(Vector3(100, 900, 5)), 0.0, 0.001, "расстояние горизонтальное")
+
+
 ## Без сигнала landed оценка посадки — по последней скорости в воздухе (LandingJudge).
 func test_spot_landing_fallback_grade() -> void:
 	var m := TrainingSpotLanding.new()
