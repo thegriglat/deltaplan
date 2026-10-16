@@ -41,6 +41,18 @@ var start_gear_plan_ms: Array[float] = []
 var _air_fn: Callable
 var _gear_terrain: Node = null
 var _height_fn: Callable
+## Высота для рабочих потоков (PlaceData.height_at) или height_fn, если расчёт на главном потоке.
+var _work_fn: Callable
+var _threaded := false
+var _building := false
+## Номер сборки: clear/новый build обрывает build_async прежнего.
+var _gen := 0
+var _t0 := 0
+var _osm_done := false
+var _village_task := -1
+var _village_res: Dictionary = {}
+var _village_steps: Array[Callable] = []
+var _vi := 0
 var _clearings: WorldClearings
 ## Общие данные места (FL-К2): OSM и план домов берутся отсюда, не читаются заново; null — читать самим.
 var _place: PlaceData
@@ -54,6 +66,22 @@ var _update_dt: float = 1.0 / 30.0
 
 ## Главный вход: зависимости передаются явно. atmosphere может быть null (ветроуказатели — штиль).
 func setup(terrain: Node, atmosphere: Node) -> void:
+	var a := _setup_args(terrain, atmosphere)
+	_gear_terrain = terrain
+	build(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8])
+	_gear_terrain = null
+
+
+## То же порциями (FL-6): расчёт OSM и домов — в рабочих потоках, узлы — не дольше budget_ms за кадр
+## (await process_frame между порциями). Узел должен быть в дереве.
+func setup_async(terrain: Node, atmosphere: Node, budget_ms: float = 50.0) -> void:
+	var a := _setup_args(terrain, atmosphere)
+	_gear_terrain = terrain
+	if await build_async(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], budget_ms):
+		_gear_terrain = null
+
+
+func _setup_args(terrain: Node, atmosphere: Node) -> Array:
 	var air := Callable()
 	if atmosphere != null:
 		air = Callable(atmosphere, &"air_velocity_at")
@@ -65,8 +93,7 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 	if terrain is Terrain:
 		place = PlaceData.for_terrain(terrain)
 		patches = place.patches
-	_gear_terrain = terrain
-	build(
+	return [
 		String(terrain.get(&"location_id")),
 		terrain.call(&"get_start_sites"),
 		landings,
@@ -75,9 +102,8 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 		Callable(terrain, &"latlon_to_local"),
 		Vector2(float(terrain.get(&"center_lat")), float(terrain.get(&"center_lon"))),
 		patches,
-		place
-	)
-	_gear_terrain = null
+		place,
+	]
 
 
 ## То же без нод (тесты, другие источники рельефа).
@@ -86,6 +112,8 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 ## latlon_fn(lat, lon) -> Vector2(x, z); center — (lat, lon).
 ## patches — пятна застройки места (BuiltPatches) для домов; null — берутся из данных локации по id.
 ## place — общие данные места (PlaceData, FL-К2): OSM и план домов из него; null — OSM и план считаются здесь.
+## С place расчёт слоя OSM и домов посёлков идёт в рабочих потоках по place.height_at (FL-6), без него — на
+## главном потоке по height_fn (её объект может быть узлом сцены).
 func build(
 	loc_id: String,
 	start_sites: Array,
@@ -97,33 +125,127 @@ func build(
 	patches: BuiltPatches = null,
 	place: PlaceData = null
 ) -> void:
-	var t0 := Time.get_ticks_usec()
+	_begin(loc_id, start_sites, landings, height_fn, air_fn, latlon_fn, center, patches, place)
+	_wait_jobs()
+	_advance(1 << 62)
+	_end(start_sites)
+
+
+## build порциями (FL-6): между порциями сборки узлов (не дольше budget_ms) — await process_frame, пока
+## рабочие потоки считают — тоже. Новый build/clear во время сборки обрывает эту (тогда false).
+func build_async(
+	loc_id: String,
+	start_sites: Array,
+	landings: Array,
+	height_fn: Callable,
+	air_fn: Callable,
+	latlon_fn: Callable,
+	center: Vector2,
+	patches: BuiltPatches = null,
+	place: PlaceData = null,
+	budget_ms: float = 50.0
+) -> bool:
+	_begin(loc_id, start_sites, landings, height_fn, air_fn, latlon_fn, center, patches, place)
+	var gen := _gen
+	var tree := get_tree()
+	while not _advance(int(budget_ms * 1000.0)):
+		await tree.process_frame
+		if gen != _gen:
+			return false  # место сменилось — эту сборку бросили
+	_end(start_sites)
+	return true
+
+
+## Сборка идёт (build_async не закончил).
+func is_building() -> bool:
+	return _building
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		_wait_villages()  # поток держит план и конфиг
+
+
+## Начало: всё лёгкое — на главном потоке; OSM и дома посёлков — запуск расчёта в рабочих потоках.
+func _begin(
+	loc_id: String,
+	start_sites: Array,
+	landings: Array,
+	height_fn: Callable,
+	air_fn: Callable,
+	latlon_fn: Callable,
+	center: Vector2,
+	patches: BuiltPatches,
+	place: PlaceData
+) -> void:
+	_t0 = Time.get_ticks_usec()
 	clear()
+	_building = true
 	_clearings = null
 	_place = place if place != null and place.location_id == loc_id else null
 	location_id = loc_id
 	cfg = WorldObjects.load_config()
 	_air_fn = air_fn
 	_height_fn = height_fn
+	_threaded = _place != null
+	# в рабочих потоках — только потокобезопасная высота из общих данных места (FL-К2)
+	_work_fn = _place.height_at if _threaded else height_fn
 	_update_dt = 1.0 / maxf(float(cfg.windsock.update_hz), 1.0)
 	obstacles = ObstacleIndex.new()
 	for s in start_sites:
 		_build_start(s, height_fn)
 	for site in WorldObjects.landing_specs(cfg.landing, loc_id, landings):
 		_build_landing(site, height_fn, latlon_fn)
-	_build_osm(loc_id, center, height_fn)
+	_start_osm(loc_id, center)
+	_start_villages(patches, height_fn)
 	if bool(cfg.start_tracks.get("enabled", true)):
 		start_tracks = StartTracks.plan(start_sites, cfg.start_tracks, height_fn)
 		_build_start_tracks(height_fn)
-	_build_villages(patches, height_fn)
+
+
+## Дождаться рабочих потоков (сборка без кадров).
+func _wait_jobs() -> void:
+	if osm_layer != null:
+		osm_layer.finish()
+	_wait_villages()
+
+
+## Порция сборки узлов на главном потоке; true — OSM и посёлки собраны.
+func _advance(budget_us: int) -> bool:
+	var t := Time.get_ticks_usec()
+	if osm_layer != null and not _osm_done:
+		if not osm_layer.step(budget_us):
+			return false
+		_osm_done = true
+		_finish_osm()
+	if not _village_steps.is_empty() or _village_task >= 0 or not _village_res.is_empty():
+		if _village_task >= 0:
+			if not WorkerThreadPool.is_task_completed(_village_task):
+				return false
+			_wait_villages()
+		if not _village_res.is_empty():
+			_assemble_villages()
+		while _vi < _village_steps.size():
+			if Time.get_ticks_usec() - t >= budget_us:
+				return false
+			(_village_steps[_vi] as Callable).call()
+			_vi += 1
+		_village_steps = []
+		_vi = 0
+	return true
+
+
+## Конец: снаряжение у стартов, ветроуказатели, итог.
+func _end(start_sites: Array) -> void:
 	_build_start_gear(start_sites)
 	_reset_indicators()
-	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
+	_building = false
+	build_time_s = (Time.get_ticks_usec() - _t0) / 1.0e6
 	print(
 		(
 			"WorldObjects: '%s' за %.2f с — ветроуказателей %d, посадок %d, троп к стартам %d, домов %d, OSM %s"
 			% [
-				loc_id,
+				location_id,
 				build_time_s,
 				indicators.size(),
 				landing_sites.size(),
@@ -137,6 +259,13 @@ func build(
 
 
 func clear() -> void:
+	_gen += 1
+	_building = false
+	_wait_villages()
+	_village_res = {}
+	_village_steps = []
+	_vi = 0
+	_osm_done = false
 	for c in get_children():
 		c.queue_free()
 	indicators.clear()
@@ -153,9 +282,9 @@ func clear() -> void:
 	_active.clear()
 
 
-## Данные OSM места (osm_tiles.json в папке места + кеш тайлов) → OsmData и каркас OsmLayer.
-## Нет тайлов — пустой OsmData, слой не создаётся.
-func _build_osm(loc_id: String, center: Vector2, height_fn: Callable) -> void:
+## Данные OSM места (osm_tiles.json в папке места + кеш тайлов) → OsmData и каркас OsmLayer (расчёт запущен,
+## сборка — _advance). Нет тайлов — пустой OsmData, слой не создаётся.
+func _start_osm(loc_id: String, center: Vector2) -> void:
 	var ocfg: Dictionary = Config.get_config("osm_tiles")
 	osm = OsmData.new()
 	if _place != null:
@@ -172,8 +301,11 @@ func _build_osm(loc_id: String, center: Vector2, height_fn: Callable) -> void:
 	var forest_fn := Callable()
 	if _gear_terrain != null and _gear_terrain.has_method(&"forest_at"):
 		forest_fn = Callable(_gear_terrain, &"forest_at")
-	osm_layer.build(osm, cfg, height_fn, obstacles, forest_fn)
-	# город: деревья-модели на местах крон, рельеф кроны на земле там не рисует
+	osm_layer.start(osm, cfg, _work_fn, obstacles, forest_fn, _threaded)
+
+
+## Слой OSM собран: город — деревья-модели на местах крон, рельеф кроны на земле там не рисует.
+func _finish_osm() -> void:
 	var ct := osm_layer.get_node_or_null("CityTrees") as CityTrees
 	if _gear_terrain != null and _gear_terrain.has_method(&"set_city_canopy_on"):
 		_gear_terrain.call(&"set_city_canopy_on", false)   # прежнее место могло оставить маску
@@ -346,8 +478,9 @@ func _update_campfire() -> void:
 	_since_fire = 0.0
 
 
-## Дома посёлков по пятнам застройки (VillageLayer) — отрисовка, препятствия.
-func _build_villages(patches: BuiltPatches, height_fn: Callable) -> void:
+## Дома посёлков по пятнам застройки (VillageLayer) — отрисовка, препятствия: план и запуск расчёта
+## (BuildingPlacer.place — в рабочем потоке при общих данных места), узлы — _advance.
+func _start_villages(patches: BuiltPatches, height_fn: Callable) -> void:
 	var bc: Dictionary = cfg.buildings
 	if not bool(bc.get("enabled", true)):
 		return
@@ -361,14 +494,42 @@ func _build_villages(patches: BuiltPatches, height_fn: Callable) -> void:
 		)
 	if houses.is_empty():
 		return
+	var res := {}
+	_village_res = res
+	var h := houses
+	var c := cfg
+	var fn := _work_fn
+	var job := func() -> void: res.merge(VillageLayer.prepare(h, c, fn))
+	if _threaded:
+		_village_task = WorkerThreadPool.add_task(job, false, "village houses")
+	else:
+		job.call()
+
+
+func _wait_villages() -> void:
+	if _village_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_village_task)
+		_village_task = -1
+
+
+## Расчёт домов готов: слой, препятствия, шаги узлов (по тайлу) и сады.
+func _assemble_villages() -> void:
+	var res := _village_res
+	_village_res = {}
 	village_layer = VillageLayer.new()
 	village_layer.name = "Villages"
 	add_child(village_layer)
-	village_layer.build(houses, cfg, height_fn)
-	var gardens := CityTrees.build_gardens(houses, cfg, height_fn)
-	if gardens != null:
-		gardens.name = "Gardens"
-		village_layer.add_child(gardens)
+	_village_steps = village_layer.assemble(res, cfg)
+	_vi = 0
+	var vl := village_layer
+	var h := houses
+	var c := cfg
+	var fn := _height_fn
+	_village_steps.append(func() -> void:
+		var gardens := CityTrees.build_gardens(h, c, fn)
+		if gardens != null:
+			gardens.name = "Gardens"
+			vl.add_child(gardens))
 
 
 ## Окружение для TentCamp.plan: рельеф, запреты (лес/вода/застройка), линии (тропы), точки (камни, кусты).

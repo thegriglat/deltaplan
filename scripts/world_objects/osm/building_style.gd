@@ -24,6 +24,8 @@ static var _grid_cell := 0.0
 static var _grid_ext := 0.0
 static var _grid: PackedFloat32Array = PackedFloat32Array()
 static var _grid_dim := 0
+## Кеш сетки — под замком: classify / adjust зовутся из рабочих потоков (FL-6).
+static var _grid_mx := Mutex.new()
 
 
 ## Стиль на запись (CITY / VILLAGE / INDUSTRIAL), в порядке записей. cfg — world_objects.json → buildings.style.
@@ -41,7 +43,7 @@ static func classify(buildings: Array, cfg: Dictionary) -> PackedByteArray:
 	var cell := float(cfg.get("cell_m", 200.0))
 	var ext := float(cfg.get("extent_m", 32000.0))
 	var grid := _area_grid(buildings, cell, ext)
-	var dim := _grid_dim
+	var dim := _grid_side(cell, ext)
 	var inv := 1.0 / cell
 	var cell_a := cell * cell
 	var ind_a := float(cfg.get("industrial_min_area_m2", 1200.0))
@@ -88,7 +90,7 @@ static func adjust(buildings: Array, style: PackedByteArray, rule: Dictionary) -
 	var cell := float(m.get("cell_m", 200.0))
 	var ext := float(m.get("extent_m", 32000.0))
 	var grid := _area_grid(buildings, cell, ext)
-	var dim := _grid_dim
+	var dim := _grid_side(cell, ext)
 	var inv := 1.0 / cell
 	# интегральное изображение: ii[(z)*(dim+1)+x] — сумма клеток [0,x)×[0,z)
 	var d1 := dim + 1
@@ -184,9 +186,11 @@ static func adjust(buildings: Array, style: PackedByteArray, rule: Dictionary) -
 
 ## Освободить кеш сетки (держит ссылку на массив домов).
 static func release() -> void:
+	_grid_mx.lock()
 	_grid_src = []
 	_grid_n = -1
 	_grid = PackedFloat32Array()
+	_grid_mx.unlock()
 
 
 # ---------- палитры (контраст крыша / стены) ----------
@@ -233,11 +237,15 @@ static func _type_table(cfg: Dictionary) -> PackedByteArray:
 
 ## Площадь под домами по клеткам cell × cell, квадрат ±ext вокруг центра; результат кешируется для того же массива.
 static func _area_grid(buildings: Array, cell: float, ext: float) -> PackedFloat32Array:
+	_grid_mx.lock()
 	if (
 		is_same(buildings, _grid_src) and buildings.size() == _grid_n and cell == _grid_cell and ext == _grid_ext
 	):
-		return _grid
-	var dim := maxi(1, int(ceil(2.0 * ext / cell)))
+		var cached := _grid
+		_grid_mx.unlock()
+		return cached
+	_grid_mx.unlock()
+	var dim := _grid_side(cell, ext)
 	var g := PackedFloat32Array()
 	g.resize(dim * dim)
 	var inv := 1.0 / cell
@@ -250,13 +258,20 @@ static func _area_grid(buildings: Array, cell: float, ext: float) -> PackedFloat
 			var bw: float = b[2]
 			var bl: float = b[3]
 			g[cz * dim + cx] += bw * bl
+	_grid_mx.lock()
 	_grid = g
 	_grid_src = buildings
 	_grid_n = buildings.size()
 	_grid_cell = cell
 	_grid_ext = ext
 	_grid_dim = dim
+	_grid_mx.unlock()
 	return g
+
+
+## Сторона сетки, клеток.
+static func _grid_side(cell: float, ext: float) -> int:
+	return maxi(1, int(ceil(2.0 * ext / cell)))
 
 
 ## Сумма клеток в квадрате радиуса r клеток вокруг (cx, cz) по интегральному изображению.

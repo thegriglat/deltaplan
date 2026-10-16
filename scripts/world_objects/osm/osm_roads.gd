@@ -10,57 +10,73 @@ const DRAPED_SHADER := preload("res://scripts/world_objects/draped.gdshader")
 const ROAD_SHADER := preload("res://scripts/world_objects/osm/road.gdshader")
 
 
+## Кусков на группу (не больше; по числу лент /400): куски одного тайла дают отдельные меши (ключ с номером куска).
+## Постоянное число, а не число ядер — мир одинаков на любой машине.
+const CHUNKS := 8
+
+
 static func build(data: OsmData, cfg: Dictionary, height_fn: Callable, _obstacles: ObstacleIndex) -> Node3D:
-	if data == null:
+	var prep := prepare(data, cfg, height_fn)
+	if prep.is_empty():
 		return null
+	var jobs: Array = prep.jobs
+	if bool(cfg.get("threaded_build", true)):
+		var task := WorkerThreadPool.add_group_task(func(i: int) -> void: (jobs[i] as Callable).call(), jobs.size())
+		WorkerThreadPool.wait_for_group_task_completion(task)
+	else:
+		for j: Callable in jobs:
+			j.call()
+	return OsmLayer.run_all(assemble(prep))
+
+
+## Подготовка (FL-6, главный поток, дёшево): группы и куски; jobs — расчёт кусков (RoadMesher.build), каждый —
+## в своём рабочем потоке при потокобезопасной height_fn. Строить нечего — {}.
+static func prepare(data: OsmData, cfg: Dictionary, height_fn: Callable) -> Dictionary:
+	if data == null:
+		return {}
 	var groups := _groups(data, cfg)
 	if groups.is_empty():
-		return null
-	var threaded := bool(cfg.get("threaded_build", true))
-	# группа режется на куски по числу потоков: куски одного тайла дают отдельные меши (ключ с номером куска)
-	var jobs: Array = []
-	var nchunk := clampi(OS.get_processor_count(), 1, 8) if threaded else 1
+		return {}
+	var jobs: Array[Callable] = []
 	for g: Dictionary in groups:
 		var items: Array = g.items
-		var n := clampi(items.size() / 400, 1, nchunk)
+		var n := clampi(items.size() / 400, 1, CHUNKS)
 		g.parts = []
 		for k in n:
 			var part := {"items": items.slice(k * items.size() / n, (k + 1) * items.size() / n), "tiles": {}, "counts": {}}
 			(g.parts as Array).append(part)
-			jobs.append([g, part])
-	var run := func(j: Array) -> void:
-		var g: Dictionary = j[0]
-		var part: Dictionary = j[1]
-		part.tiles = RoadMesher.build(part.items, g.cfg, height_fn, part.counts)
-	var tasks: Array[int] = []
-	for j: Array in jobs:
-		if threaded:
-			tasks.append(WorkerThreadPool.add_task(run.bind(j), true))
-		else:
-			run.call(j)
-	for t in tasks:
-		WorkerThreadPool.wait_for_task_completion(t)
+			jobs.append(_run_part.bind(part, g.cfg, height_fn))
+	return {"groups": groups, "jobs": jobs}
+
+
+static func _run_part(part: Dictionary, gcfg: Dictionary, height_fn: Callable) -> void:
+	part.tiles = RoadMesher.build(part.items, gcfg, height_fn, part.counts)
+
+
+## Сборка на главном потоке (FL-6) после всех jobs: {root, steps}; root в meta "stats". Нечего — root null.
+static func assemble(prep: Dictionary) -> Dictionary:
+	if prep.is_empty():
+		return {"root": null, "steps": []}
+	var groups: Array = prep.groups
+	var stats := {"roads": {}, "rivers": {}, "rail": {}, "tiles": 0, "skipped_tunnels": 0}
+	var steps: Array[Callable] = []
+	var root := Node3D.new()
 	for g: Dictionary in groups:
 		var parts: Array = g.parts
-		for part: Dictionary in parts:
-			RoadMesher.meshes(part.tiles)  # ArrayMesh — только на главном потоке
 		for k in parts.size():
 			for c in parts[k].counts:
 				g.counts[c] = int(g.counts.get(c, 0)) + int(parts[k].counts[c])
 			for key in parts[k].tiles:
 				g.tiles["%s#%d" % [key, k]] = parts[k].tiles[key]
-	var root := Node3D.new()
-	var stats := {"roads": {}, "rivers": {}, "rail": {}, "tiles": 0, "skipped_tunnels": 0}
-	for g: Dictionary in groups:
 		stats[g.kind] = g.counts
 		stats.skipped_tunnels += int(g.tunnels)
 		stats.tiles += (g.tiles as Dictionary).size()
-		_add_group(root, g)
+		_group_steps(root, g, steps)
 	root.set_meta(&"stats", stats)
-	if root.get_child_count() == 0:
+	if steps.is_empty():
 		root.free()
-		return null
-	return root
+		return {"root": null, "steps": []}
+	return {"root": root, "steps": steps}
 
 
 ## Группы построения: роады, реки/каналы, ж/д — {kind, name, items, cfg, counts, tunnels, water}.
@@ -115,7 +131,7 @@ static func _without_tunnels(arr: Array) -> Dictionary:
 	return {"items": items, "tunnels": tunnels}
 
 
-static func _add_group(parent: Node3D, g: Dictionary) -> void:
+static func _group_steps(parent: Node3D, g: Dictionary, steps: Array[Callable]) -> void:
 	var tiles: Dictionary = g.tiles
 	if tiles.is_empty():
 		return
@@ -132,17 +148,20 @@ static func _add_group(parent: Node3D, g: Dictionary) -> void:
 	var tile := float(gcfg.tile_m)
 	var root := Node3D.new()
 	root.name = g.name
-	parent.add_child(root)
+	steps.append(parent.add_child.bind(root))
 	for k in tiles:
 		var t: Dictionary = tiles[k]
-		var mi := MeshInstance3D.new()
-		mi.mesh = t.mesh
-		mi.material_override = mat
-		mi.position = t.origin
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		var r := float(gcfg.get("major_visibility_m", 12000.0) if t.major else gcfg.get("minor_visibility_m", 3000.0))
-		mi.visibility_range_end = WorldTiles.tile_range(r, tile)
-		root.add_child(mi)
+		steps.append(func() -> void:
+			var mesh := ArrayMesh.new()
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, t.arrays)
+			var mi := MeshInstance3D.new()
+			mi.mesh = mesh
+			mi.material_override = mat
+			mi.position = t.origin
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			var r := float(gcfg.get("major_visibility_m", 12000.0) if t.major else gcfg.get("minor_visibility_m", 3000.0))
+			mi.visibility_range_end = WorldTiles.tile_range(r, tile)
+			root.add_child(mi))
 
 
 ## roads.look (L7) → uniform'ы шейдера дорог: числа и цвета (массив [r, g, b] sRGB — для uniform с source_color).
