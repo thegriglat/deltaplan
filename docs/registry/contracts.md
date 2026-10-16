@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-16"
+updated: "2026-10-17"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -30,6 +30,7 @@ generated: true
 - easter-eggs: К1 v2, К2 v3, К3 v2, К4 v2, К5 v2, К6 v4, К7 v5, К8 v9, К9 v5, К10 v7, К11 v7, К12 v7, К13 v8, К14 v8, К15 v10, К16 v10 — [docs/contracts/easter-eggs.md](../contracts/easter-eggs.md)
 - feedback-1012: FB-К1 v1, FB-К2 v1 — [docs/contracts/feedback-1012.md](../contracts/feedback-1012.md)
 - feedback-1013: FBW-К2 v3 — [docs/contracts/feedback-1013.md](../contracts/feedback-1013.md)
+- goals: GL-К1 v1, GL-К2 v2, GL-К3 v2, GL-К4 v2, GL-К5 v3, GL-К6 v2 — [docs/contracts/goals.md](../contracts/goals.md)
 - grass-rocks: G1 v1, G2 v2, G3 v2, G4 v5 — [docs/contracts/grass-rocks.md](../contracts/grass-rocks.md)
 - motion-rig: MR-К1 v3, MR-К2 v3, MR-К3 v3 — [docs/contracts/motion-rig.md](../contracts/motion-rig.md)
 - mountain-look: MLK-К1 v1, MLK-К2 v2, MLK-К3 v2 — [docs/contracts/mountain-look.md](../contracts/mountain-look.md)

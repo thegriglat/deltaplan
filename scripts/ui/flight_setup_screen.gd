@@ -73,6 +73,7 @@ var _month_opt: OptionButton
 var _day: SpinBox
 var _done_btn: Button
 var _tabs: TabContainer
+var _goals_tab: GoalsTab  ## вкладка «Цели» (GL-3); null в сетевой зоне
 var _apparatus: Dictionary = {}  ## ключ PD-К3 → HSlider
 var _app_user: Dictionary = {}  ## {wing_id: {ключ: значение}} — изменённое пилотом (PD-К3 v2)
 var _app_wing: String = ""  ## крыло, значения которого сейчас на ползунках
@@ -138,6 +139,10 @@ func _build() -> void:
 	box.add_child(_tabs)
 	var box_place := _add_tab(_tabs, tr("setup_tab_place"))
 	var box_app := _add_tab(_tabs, tr("setup_tab_apparatus"))
+	if not GoalsTab.net_blocked():
+		_goals_tab = GoalsTab.new()
+		_goals_tab.context_fn = _collect
+		_add_tab(_tabs, tr("setup_tab_goals")).add_child(_goals_tab)
 	_tabs.tab_changed.connect(func(_i: int) -> void: sp["scroll"].scroll_vertical = 0)
 
 	_build_wing(box_app)
@@ -161,6 +166,7 @@ func _build() -> void:
 	_row.build(self, popular_places_path)
 	_row.changed.connect(_update_dir_hint)
 	_row.changed.connect(_update_weather_lock)
+	_connect_goals_refresh()
 	_build_recent(box_place)
 
 	UiKit.separator(sp["footer"])
@@ -220,6 +226,8 @@ func _apply_settings() -> void:
 	_day.value = settings.day
 	_row.refresh()
 	_fill_recent()
+	if _goals_tab != null:
+		_goals_tab.load_settings(settings)
 
 
 ## Класс крыла (группы WingCatalog, с диапазоном качества и ветра), модель и строка описания.
@@ -491,7 +499,29 @@ func _collect() -> FlightSettings:
 	s.day = int(_day.value)
 	s.apparatus = FlightSettings.from_dict({"apparatus": _app_user}).apparatus
 	StartWeather.apply(s)  # точные значения набора (элементы меню округляют)
+	if _goals_tab != null:
+		s.goals = _goals_tab.collect()
+		s.show_last_track = _goals_tab.collect_show_last_track()
+		s.track_paths = _goals_tab.collect_track_paths()
+	else:
+		s.goals = []
+		s.show_last_track = false
 	return s
+
+
+## Погода, время и место меняют числа целей (GL-3).
+func _connect_goals_refresh() -> void:
+	if _goals_tab == null:
+		return
+	var dirty := func(_x: Variant = null) -> void: _goals_tab.mark_dirty()
+	_temp.value_changed.connect(dirty)
+	_wind.value_changed.connect(dirty)
+	_dir_opt.item_selected.connect(dirty)
+	_sky_opt.item_selected.connect(dirty)
+	_hour.item_selected.connect(dirty)
+	_month_opt.item_selected.connect(dirty)
+	_day.value_changed.connect(dirty)
+	_row.changed.connect(_goals_tab.mark_dirty)
 
 
 ## «В избранное»: текущие условия экрана — в user://favorites.json (без выхода с экрана).

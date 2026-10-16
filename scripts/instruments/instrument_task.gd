@@ -112,3 +112,22 @@ func arrival_height(pos: Vector3, altitude_msl: float, glide: float) -> float:
 		return NAN
 	var tp: Vector3 = target().get("position", Vector3.ZERO)
 	return altitude_msl - tp.y - distance_to_target(pos) / glide
+
+
+## Азимут из точки from на точку to, градусы 0..360 (0 — север, 90 — восток; север = −Z, восток = +X).
+static func bearing_deg(from: Vector3, to: Vector3) -> float:
+	return fposmod(rad_to_deg(atan2(to.x - from.x, -(to.z - from.z))), 360.0)
+
+
+## Пеленг на точку относительно путевого курса, градусы (−180..180]: 0 — прямо по курсу,
+## +90 — справа, ±180 — сзади.
+static func relative_bearing_deg(from: Vector3, to: Vector3, track_deg: float) -> float:
+	var r := fposmod(bearing_deg(from, to) - track_deg + 180.0, 360.0) - 180.0
+	return 180.0 if r <= -180.0 else r
+
+
+## Пеленг на активную точку относительно путевого курса; NAN — цели нет.
+func target_relative_bearing_deg(pos: Vector3, track_deg: float) -> float:
+	if not has_target():
+		return NAN
+	return relative_bearing_deg(pos, target().get("position", Vector3.ZERO), track_deg)

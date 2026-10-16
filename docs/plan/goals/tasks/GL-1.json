@@ -1,0 +1,52 @@
+{
+  "id": "GL-1",
+  "module": "goals",
+  "type": "dp-engineer",
+  "title": "Оценка погоды → значения целей",
+  "goal": "GoalEstimator: по прогнозу окна «Полёт…» детерминированно даёт числа лёгкой/средней/трудной цели для высоты, времени, дальности, возврата, треугольника, скорости и радиуса посадки; формулы в configs/goals/estimate.json с _doc.",
+  "plan_ref": "GL-1",
+  "contracts": [
+    {
+      "name": "GL-К2",
+      "version": "2",
+      "ref": "docs/contracts/goals.md"
+    }
+  ],
+  "copy": "~/deltaplan-goals-GL-1",
+  "branch": "goals/GL-1",
+  "base": "feature/goals",
+  "scope": [
+    "scripts/goals/goal_estimator.gd",
+    "scripts/goals/goal_estimator.gd.uid",
+    "configs/goals/estimate.json",
+    "tests/goals/test_goal_estimator.gd",
+    "tests/goals/test_goal_estimator.gd.uid",
+    "tests/contracts/test_goals_k2.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere",
+    "configs/weather_model.json",
+    "scripts/ui",
+    "scripts/game",
+    "docs/contracts/goals.md"
+  ],
+  "accept": [
+    {
+      "name": "test_goal_estimator",
+      "tests": "test_goal_estimator"
+    },
+    {
+      "name": "test_goals_k2",
+      "tests": "test_goals_k2"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/goals/goal_estimator.gd tests/goals/test_goal_estimator.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T21:32:27",
+  "edited": "2026-10-16T21:43:26"
+}

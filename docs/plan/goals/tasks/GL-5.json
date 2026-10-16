@@ -1,0 +1,77 @@
+{
+  "id": "GL-5",
+  "module": "goals",
+  "type": "dp-engineer",
+  "title": "Прибор: стрелка на точку; цилиндры целей в мире",
+  "goal": "На странице прибора с расстоянием и требуемым качеством — стрелка направления на активную точку относительно путевого курса; полупрозрачные столбы-цилиндры пунктов ведущего маршрута в мире по настройке «Цилиндры целей» (выкл. по умолчанию) — по контракту GL-К4.",
+  "plan_ref": "GL-5",
+  "contracts": [
+    {
+      "name": "GL-К4",
+      "version": "1",
+      "ref": "docs/contracts/goals.md"
+    },
+    {
+      "name": "GL-К3",
+      "version": "1",
+      "ref": "docs/contracts/goals.md"
+    }
+  ],
+  "copy": "~/deltaplan-goals-GL-5",
+  "branch": "goals/GL-5",
+  "base": "feature/goals",
+  "scope": [
+    "scripts/instruments/instrument_page_wind.gd",
+    "scripts/instruments/instrument_task.gd",
+    "scripts/goals/goal_cylinders.gd",
+    "scripts/goals/goal_cylinders.gd.uid",
+    "scripts/goals/goal_cylinders.gdshader",
+    "scripts/goals/goal_cylinders.gdshader.uid",
+    "configs/goals/world.json",
+    "scripts/ui/settings_panel.gd",
+    "scripts/game/game.gd",
+    "locale/ui.csv",
+    "tests/goals/test_goal_cylinders.gd",
+    "tests/goals/test_goal_cylinders.gd.uid",
+    "tests/instruments/test_task_bearing.gd",
+    "tests/instruments/test_task_bearing.gd.uid",
+    "tests/contracts/test_goals_k4.gd"
+  ],
+  "dont_touch": [
+    "scripts/goals/goal_tracker.gd",
+    "scripts/instruments/flight_instrument.gd",
+    "scripts/tasks",
+    "docs/contracts/goals.md"
+  ],
+  "accept": [
+    {
+      "name": "test_goal_cylinders",
+      "tests": "test_goal_cylinders"
+    },
+    {
+      "name": "test_task_bearing",
+      "tests": "test_task_bearing"
+    },
+    {
+      "name": "test_goals_k4",
+      "tests": "test_goals_k4"
+    },
+    {
+      "name": "tests/instruments",
+      "tests": "tests/instruments"
+    },
+    {
+      "name": "lang_goals",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_language",
+      "expect": "!re:(goals_|settings_goal)"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/instruments/instrument_page_wind.gd scripts/goals/goal_cylinders.gd scripts/ui/settings_panel.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T22:15:08"
+}

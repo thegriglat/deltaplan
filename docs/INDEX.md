@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-16"
+updated: "2026-10-17"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -40,6 +40,12 @@ generated: true
   - [docs/guide/scene-look-keys.md](guide/scene-look-keys.md) — Таблицы ключей scene-look: scene_look, trees.*, trees.impostors.seam_*, haze.*, roads.look, sail — по умолчанию и смысл.
   - [docs/guide/scene-look.md](guide/scene-look.md) — Модуль scene-look («картинка сочнее»): принцип, шейдерный include sl_*, конфиг и выключатели; пункты SL-2…SL-23 разнесены по частям.
 - **training-island** — Учебный остров: синтетическое место в море, старты «склон», «термики», «посадка», «ротор»; фиксированная погода и запечённый ветер. [active 2026-10-16] — [план](plan/training-island.md) · [контракты](contracts/training-island.md)
+  - [docs/research/training_island_air.md](research/training_island_air.md) — TI-5: погода четырёх стартов учебного острова (TI-К2) и проверка воздуха в игре — склон, термики, ротор, посадка
+
+## game
+
+- **goals** — Цели полёта перед стартом (высота, время, дальность, возврат, треугольник, маршрут, скорость, посадка), зачёт, след попытки, IGC/GPX. [active 2026-10-16] — [план](plan/goals.md) · [контракты](contracts/goals.md)
+  - [docs/guide/goals.md](guide/goals.md) — Цели полёта и треки: вкладка «Цели», оценка по погоде, засчёт в полёте, итог, прибор, столбы, запись и показ треков, IGC/GPX.
 
 ## process
 
@@ -104,7 +110,7 @@ generated: true
 - [docs/guide/net-protocol.md](guide/net-protocol.md) — Сетевой протокол: транспорт, сообщения, роль ведущего, ключ мира, LAN-поиск, примеры JSON и сценарии; правда — net.proto.
 - [docs/guide/osm-tiles.md](guide/osm-tiles.md) — Тайлы OSM 20 км: что в них (O1–O3), как собрать тест и весь мир, где итог, что делать при падении; клиент игры и состояние прогона.
 - [docs/guide/steam.md](guide/steam.md) — Steam: SteamService, ачивки, присутствие, лобби и сеть, облако; включение, тест на App ID 480, ручные проверки, ограничения.
-- [docs/guide/tasks.md](guide/tasks.md) — Задания, тренировки, рекорды: логика на RefCounted и конфиги готовы, в игре (Game.tick, меню) не подключены; форматы, API, критерии.
+- [docs/guide/tasks.md](guide/tasks.md) — Задания, тренировки, рекорды: логика и конфиги; в игре — через цели полёта (goals.md), меню заданий и тренировок нет; форматы, API.
 - [docs/guide/telltale.md](guide/telltale.md) — Ленточка на переднем тросе трапеции: узел из геометрии модели, физика потока и цепочки, рисунок, ограничение модели без скольжения.
 - [docs/guide/terrain/forest-sky.md](guide/terrain/forest-sky.md) — Деревья-модели и средний план леса, полог с высоты, небо, солнце, дымка с инверсией, ослепление, ветер на траве и деревьях.
 - [docs/guide/terrain/relief.md](guide/terrain/relief.md) — Слои высот (WebP, 25 м и 100 м), height_at, чанки и LOD, юбки, нормали, форма гор вдали, DSM под лесом, поля рельефа.
@@ -121,7 +127,6 @@ generated: true
 
 ### Планы (plan)
 
-- [docs/plan/game/04-sled-proshlogo-poleta.md](plan/game/04-sled-proshlogo-poleta.md) — 04. След прошлого полёта (полупрозрачная линия) — ОТЛОЖЕНО (решение пользователя): относится к блоку соревнований (этап 5), пока не делаем. [idea]
 - [docs/plan/game/05-vr.md](plan/game/05-vr.md) — VR (OpenXR): голова — шлем, ручка — джойстик. Идея (05.10), не в работе; риск — производительность, первый шаг — замер. [idea]
 
 ### Контракты стыков (contract)
@@ -372,4 +377,4 @@ generated: true
 - [TODO.md](../TODO.md) — Реестр задач T-NN по блокам (воздух, полёт, мир, графика, сеть, релиз): строка с состоянием и ссылкой на план
 - [REQUIREMENTS.md](../REQUIREMENTS.md) — Требования к игре: физика, атмосфера, мир, интерфейс, звук, управление, визуал (MVP → позже) и нефункциональные NFR-1…7
 
-архив: 114 документов — `.dpcli/dpcli docs find --status closed`
+архив: 115 документов — `.dpcli/dpcli docs find --status closed`

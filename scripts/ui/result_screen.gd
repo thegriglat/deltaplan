@@ -125,7 +125,42 @@ static func lines_for(kind: String, info: Dictionary) -> PackedStringArray:
 		out.append(_t("result_circling_pct") % (float(info.circling_fraction) * 100.0))
 	if info.has("avg_glide_ratio") and float(info.avg_glide_ratio) > 0.0:
 		out.append(_t("result_avg_glide") % float(info.avg_glide_ratio))
+	out.append_array(goal_lines(info))
 	return out
+
+
+## Цели полёта (GL-4): итог «выполнено n из m», строка на цель, новые рекорды. Нет целей — пусто.
+static func goal_lines(info: Dictionary) -> PackedStringArray:
+	var out: PackedStringArray = []
+	var g: Dictionary = info.get("goals", {}) if info.get("goals") is Dictionary else {}
+	if not g.is_empty():
+		out.append("")
+		out.append(_t("result_goal_header") % [int(g.get("done", 0)), int(g.get("total", 0))])
+		for item: Variant in g.get("goals", []):
+			var d: Dictionary = item
+			var line := GoalList.row_text(d)
+			if String(d.get("status", "")) in ["unavailable", "failed"] and String(d.get("reason", "")) != "":
+				line += " (%s)" % _t("goals_reason_" + String(d.reason))
+			out.append(line)
+	var recs: Dictionary = info.get("new_records", {}) if info.get("new_records") is Dictionary else {}
+	for cat: String in recs:
+		var r: Dictionary = recs[cat]
+		var what := _t("result_goal_rec_" + cat)
+		var v := record_value(cat, float(r.get("value", 0.0)))
+		if r.get("previous") == null:
+			out.append(_t("result_goal_new_record_first") % [what, v])
+		else:
+			out.append(_t("result_goal_new_record") % [what, v, record_value(cat, float(r.previous))])
+	return out
+
+
+## Значение рекорда с единицей: время — м:с, дальность — км, высота — м.
+static func record_value(cat: String, v: float) -> String:
+	if cat.ends_with("time_s"):
+		return format_time(v)
+	if cat.ends_with("distance_m"):
+		return "%.1f %s" % [v / 1000.0, _t("unit_km")]
+	return "%d %s" % [roundi(v), _t("unit_m")]
 
 
 static func format_time(s: float) -> String:

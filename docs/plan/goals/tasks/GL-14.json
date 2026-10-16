@@ -1,0 +1,74 @@
+{
+  "id": "GL-14",
+  "module": "goals",
+  "type": "dp-engineer",
+  "title": "Правки по кадрам: причины в итоге, ширина уровня",
+  "goal": "Причины невыполнения/недоступности целей — кодом в GoalTracker (К3 v2) и переводом ru/en на экране итога и в HUD; список уровня у строки «Скорость» в окне «Цели» не обрезается (en и ru).",
+  "plan_ref": "GL-14",
+  "contracts": [
+    {
+      "name": "GL-К3",
+      "version": "2",
+      "ref": "docs/contracts/goals.md"
+    }
+  ],
+  "copy": "~/deltaplan-goals-GL-14",
+  "branch": "goals/GL-14",
+  "base": "feature/goals",
+  "scope": [
+    "scripts/goals/goal_tracker.gd",
+    "scripts/goals/goal_route_builder.gd",
+    "scripts/ui/result_screen.gd",
+    "scripts/ui/goal_list.gd",
+    "scripts/ui/goals_tab.gd",
+    "locale/ui.csv",
+    "tests/goals/test_goal_tracker.gd",
+    "tests/ui/test_goal_list.gd",
+    "tests/ui/test_goals_tab.gd",
+    "tests/contracts/test_goals_k3.gd"
+  ],
+  "dont_touch": [
+    "scripts/game",
+    "scripts/ui/flight_setup_screen.gd",
+    "docs/contracts/goals.md"
+  ],
+  "accept": [
+    {
+      "name": "test_goal_tracker",
+      "tests": "test_goal_tracker"
+    },
+    {
+      "name": "test_goal_list",
+      "tests": "test_goal_list"
+    },
+    {
+      "name": "test_goals_tab",
+      "tests": "test_goals_tab"
+    },
+    {
+      "name": "test_goals_k3",
+      "tests": "test_goals_k3"
+    },
+    {
+      "name": "test_screens",
+      "tests": "test_screens"
+    },
+    {
+      "name": "test_goals_game",
+      "tests": "test_goals_game"
+    },
+    {
+      "name": "lang_goals",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_language",
+      "expect": "!re:(goals_|goal_list|result_goal)"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/goals/goal_tracker.gd scripts/ui/result_screen.gd scripts/ui/goal_list.gd scripts/ui/goals_tab.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T23:28:23"
+}

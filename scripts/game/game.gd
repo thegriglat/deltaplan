@@ -73,6 +73,11 @@ var queue_walk: Dictionary = {}
 ## Индикатор смещения пилота внизу экрана (FB-1).
 var shift_indicator: PilotShiftIndicator
 var clock_label: ClockLabel
+## Цели полёта (GL-4, GL-К3): null — целей нет (пусто, сеть, осмотр карты или неверный список).
+var goals: GoalTracker = null
+var goal_list: GoalList
+## Файл рекордов (FlightRecords); "" — из настроек (user://records.json). Тесты подменяют.
+var records_path := ""
 ## Отладочные слои F1/F5/F6 (DebugOverlays).
 var debug_overlays: DebugOverlays
 
@@ -92,6 +97,9 @@ var _animator := PilotAnimator.new()
 var _graphics := ""
 var _terrain_dirty := false
 var _crashed := false  ## врезался в препятствие — планер стоит до «Ещё раз»
+var _goals_sig := ""  ## ведущий маршрут и активная точка на приборе (смена — set_task)
+var _goal_cylinders: GoalCylinders = null  ## столбы пунктов ведущего маршрута (GL-К4)
+var _goals_sync_s := -1.0  ## Telemetry.time_s последней синхронизации прибора с целями
 var _ended := false  ## flight_ended уже отправлен (до «Ещё раз» / «Продолжить»)
 ## Номер текущего отрезка полёта (QL-К1): +1 при start/restart/continue_on_foot; только растёт.
 var flight_no := 0
@@ -173,6 +181,10 @@ func _ready() -> void:
 	clock_label.clock = sky.clock
 	add_child(clock_label)
 	Config.reloaded.connect(clock_label.reload)
+	goal_list = GoalList.new()
+	goal_list.name = "GoalList"
+	add_child(goal_list)
+	Config.reloaded.connect(goal_list.reload)
 	Config.reloaded.connect(_reload_wrist)
 	var wfd := get_node_or_null("WindFieldDebug")
 	if wfd != null and wfd.has_signal("toggled"):
@@ -299,6 +311,7 @@ func _motion_step(dt: float) -> void:
 ## Асинхронно (рельеф с карты грузится из сети). Возвращает false при ошибке.
 func start(s: FlightSettings) -> bool:
 	flight_no += 1
+	_tracks_finish()
 	stop_wait()
 	settings = s.duplicate()
 	StartWeather.apply(settings)  # TI-К2: последняя страховка
@@ -417,6 +430,7 @@ func start(s: FlightSettings) -> bool:
 			terrain.wait_relief()
 			break
 		await get_tree().process_frame
+	_goals_setup()
 	restart()
 	# Термики вокруг старта — ещё на экране загрузки (первое обновление — самое долгое).
 	if air.has_method("refresh_now"):
@@ -607,12 +621,76 @@ func _on_sun_changed(to_sun: Vector3) -> void:
 		_update_water_heat()
 
 
+## Треки (GL-К5, GL-К6): запись полёта с отрыва, след прошлой попытки места полосой. В сети — ничего.
+var goal_tracks: Array = []  ## [FlightTrack]: след прошлой попытки (source "last") и др.
+var _track_rec: TrackRecorder = null
+var _track_key := ""  ## ключ места записи; пусто — не пишем / уже сохранено
+var _track_ribbons: Array[TrackRibbon] = []
+
+
+func _tracks_active() -> bool:
+	return net == null and not inspect_mode and settings != null
+
+
+## Новая попытка: след прошлой (если нужен) в goal_tracks и полосы, запись с нуля.
+func _tracks_begin() -> void:
+	goal_tracks = goal_tracks.filter(
+		func(f: FlightTrack) -> bool: return f.source != "last" and not f.source.is_absolute_path()
+	)
+	_track_rec = null
+	_track_key = ""
+	if _tracks_active():
+		_track_key = LastTrackStore.place_key(settings)
+		_track_rec = TrackRecorder.new()
+		_track_rec.start(terrain.local_to_latlon)
+		if settings.show_last_track:
+			var last := LastTrackStore.load(_track_key)
+			if last != null:
+				goal_tracks.append(last)
+		for path in settings.track_paths:  # загруженные IGC/GPX (GL-10); чужого места — пропуск
+			var ft := TrackIO.read(path)
+			if ft != null and ft.inside_fraction(terrain.detail_bounds(), terrain.latlon_to_local) >= 0.5:
+				ft.source = path
+				goal_tracks.append(ft)
+	for r in _track_ribbons:
+		remove_child(r)
+		r.queue_free()
+	_track_ribbons.clear()
+	if net != null:
+		return
+	for f: FlightTrack in goal_tracks:
+		var r := TrackRibbon.new()
+		r.name = "TrackRibbon"
+		add_child(r)
+		r.set_track(f, terrain.latlon_to_local)
+		_track_ribbons.append(r)
+
+
+func _tracks_record(t: Telemetry) -> void:
+	if _track_rec != null and _track_key != "":
+		_track_rec.update(t)
+
+
+## Конец попытки: если взлёт был — запись заменяет след прошлой попытки места.
+func _tracks_finish() -> void:
+	if _track_rec == null or _track_key == "":
+		return
+	var key := _track_key
+	_track_key = ""
+	if not stats.took_off or _track_rec.track().size() < 2:
+		return
+	var f := _track_rec.track()
+	f.name = key
+	LastTrackStore.save(key, f)
+
+
 ## Заново с того же старта (клавиша R, «Ещё раз», «На старт»). keep_clock = true — одиночная
 ## «На старт»: часы и день не сбрасываются (время идёт дальше); в сети часы и так не трогаем.
 func restart(keep_clock: bool = false) -> void:
 	if settings == null:
 		return
 	flight_no += 1
+	_tracks_finish()
 	stop_wait()
 	if autopilot != null:
 		autopilot.reset()
@@ -645,9 +723,11 @@ func restart(keep_clock: bool = false) -> void:
 			_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
 	stats.reset(glider.get_telemetry().position)
 	instrument.reset()
+	_goals_reset()
 	for n in mounted:
 		if not bool(n.get_meta("shares_tablet", false)) and n.get("vario90s") != null:
 			(n.get("vario90s") as VarioDisplay90s).reset()
+	_tracks_begin()
 	camera.snap()
 
 
@@ -695,9 +775,12 @@ func air_start_position(forward_m := -1.0, agl_m := -1.0) -> Vector3:
 ## После итога «Продолжить»: пилот на земле ходит дальше; новый разбег — новый полёт.
 func continue_on_foot() -> void:
 	flight_no += 1
+	_tracks_finish()
 	_ended = false
 	_touchdown = {}
+	_tracks_begin()
 	stats.reset(glider.get_telemetry().position)
+	_goals_reset()
 
 
 ## «Подождать час» (Q-17): одиночная игра, пилот стоит на старте. Время мира идёт в wait_speed раз
@@ -1197,6 +1280,7 @@ func _end_catch_up(r: Dictionary) -> void:
 	stats.reset(pos)
 	stats.armed = glider.phase() == "flying"
 	instrument.reset()
+	_goals_reset()
 	catch_up_ended.emit(String(r.get("state", "")))
 
 
@@ -1422,6 +1506,8 @@ func _update_overlay() -> void:
 		shift_indicator.set_active(flying_enabled and input_controller.enabled and tow == null)
 	if clock_label != null:  # часы текстом — только в 3-м лице (PH-К2)
 		clock_label.set_active(flying_enabled and input_controller.enabled and camera.mode != "cockpit")
+	if goal_list != null:  # список целей — в любой камере, пока есть цели
+		goal_list.set_active(flying_enabled and input_controller.enabled and goals != null)
 
 
 # ---------------------------------------------------------------- сигналы планера
@@ -1470,6 +1556,7 @@ func _on_telemetry(t: Telemetry) -> void:
 		flight_audio.update(t, {"phase": t.phase, "stall_amount": 0.0, "load_factor": 1.0})
 		_animator.update(t.phase, t.altitude_agl, 0.0, 0.0, _dt)
 		return
+	_tracks_record(t)
 	instrument.update(t, _dt)
 	shift_indicator.update(t)
 	for n in mounted:
@@ -1490,6 +1577,7 @@ func _on_telemetry(t: Telemetry) -> void:
 	if t.phase == "flying" and not (_prev_phase in ["flying", "running", "walking"]):
 		stats.armed = true
 	_prev_phase = t.phase
+	_goals_update(t)
 	_animator.update(t.phase, t.altitude_agl, t.vario, glider.model.flare_amount(), _dt)
 
 
@@ -1570,7 +1658,9 @@ func _emit_end(kind: String, info: Dictionary) -> void:
 	if not info.has("finish_reason"):
 		info["finish_reason"] = kind
 	info["flight_no"] = flight_no
+	_goals_finish(kind, info)
 	_ended = true
+	_tracks_finish()
 	feed.finish(kind, info, glider.get_telemetry())
 	flight_ended.emit(kind, info)
 
@@ -1615,3 +1705,159 @@ func _on_takeoff_failed(reason: String) -> void:
 	var info := {"reason": reason, "text": text}
 	info.merge(stats.summary(glider.get_telemetry().position), true)
 	_emit_end("takeoff_failed", info)
+
+
+# ---------------------------------------------------------------- цели полёта (GL-4)
+
+
+## Цели из настроек: GoalTracker (К3) — не в сети, не в осмотре карты и только с верным списком.
+## До restart(): он же и сбросит трекер, и поставит маршрут на прибор.
+func _goals_setup() -> void:
+	var had := goals != null
+	goals = null
+	_goals_sig = ""
+	if _goal_cylinders != null:
+		_goal_cylinders.set_points([])
+	if settings != null and net == null and not inspect_mode and not settings.goals.is_empty():
+		var errs := GoalSpec.validate(settings.goals)
+		if errs.is_empty():
+			goals = GoalTracker.new()
+			goals.setup(settings.goals, _goals_ctx())
+			goals.goal_done.connect(func(_i: int) -> void: _goals_sync_instrument(true))
+			goals.goal_failed.connect(func(_i: int) -> void: _goals_sync_instrument(true))
+		else:
+			push_warning("Game: цели пропущены: %s" % "; ".join(errs))
+	goal_list.set_tracker(goals)
+	if goals != null:
+		_goals_sync_instrument(true)
+	elif had:  # прошлый полёт был с целями — маршрут с прибора долой
+		instrument.set_task([], 0)
+		instrument.set_task_state({})
+	_update_overlay()
+
+
+## Контекст GoalTracker (GL-К3): старт, ветер, карта, круг посадки.
+func _goals_ctx() -> Dictionary:
+	var ctx := {
+		"start_pos": _start_pos,
+		"start_heading_deg": _start_heading,
+		"wind_from_deg": _site_heading if settings.wind_into_launch else settings.wind_from_deg,
+		"wind_ms": settings.wind_speed_kmh / 3.6,
+		"latlon_fn": terrain.latlon_to_local,
+		"height_fn": terrain.height_at,
+		"bounds": terrain.detail_bounds(),
+		"location_id": settings.location_id,
+	}
+	var target: Variant = _goals_landing_target()
+	if target is Vector3:
+		ctx["landing_target"] = target
+	return ctx
+
+
+## Круг посадки: ближайшая к старту посадочная площадка локации, иначе мишень тренировки
+## «точность приземления» для встроенной локации; нет — null.
+func _goals_landing_target() -> Variant:
+	var best: Variant = null
+	var best_d := INF
+	for site: Dictionary in terrain.get_landing_sites():
+		var p: Vector3 = site.position
+		var d := Vector2(p.x - _start_pos.x, p.z - _start_pos.z).length()
+		if d < best_d:
+			best_d = d
+			best = p
+	if best != null or settings.has_pick():
+		return best
+	var targets: Dictionary = Config.get_config("tasks/training_spot_landing").get("targets", {})
+	var t: Variant = targets.get(settings.location_id)
+	if not t is Dictionary:
+		return null
+	var x := 0.0
+	var z := 0.0
+	if t.has("lat") and t.has("lon"):
+		var q := terrain.latlon_to_local(float(t.lat), float(t.lon))
+		x = q.x
+		z = q.y
+	elif t.has("x_m") and t.has("z_m"):
+		x = float(t.x_m)
+		z = float(t.z_m)
+	else:
+		return null
+	return Vector3(x, terrain.height_at(x, z), z)
+
+
+## Новая попытка (restart, «Продолжить», конец буксира): те же цели, всё заново.
+func _goals_reset() -> void:
+	if goals == null:
+		return
+	goals.reset()
+	_goals_sig = ""
+	_goals_sync_instrument(true)
+	goal_list.refresh()
+
+
+func _goals_update(t: Telemetry) -> void:
+	if goals == null:
+		return
+	goals.update(t)
+	_goals_sync_instrument(false, t.time_s)
+
+
+## Ведущий маршрут — на прибор: точки при смене маршрута/активной точки, состояние ≤ 4 Гц.
+## Без маршрута (или без целей) прибор пуст.
+func _goals_sync_instrument(force: bool, time_s := NAN) -> void:
+	if not force and not is_nan(time_s):
+		if time_s >= _goals_sync_s and time_s - _goals_sync_s < 0.25:
+			return
+		_goals_sync_s = time_s
+	if goals == null:
+		if _goals_sig != "":
+			_goals_sig = ""
+			instrument.set_task([], 0)
+			instrument.set_task_state({})
+			_goals_sync_cylinders()
+		return
+	var lead := goals.lead_tracker()
+	var idx := goals.instrument_active_index()
+	var sig := "%d:%d" % [lead.get_instance_id() if lead != null else 0, idx]
+	if sig != _goals_sig:
+		_goals_sig = sig
+		instrument.set_task(goals.instrument_points(), maxi(idx, 0))
+		_goals_sync_cylinders()
+	instrument.set_task_state(goals.instrument_state())
+
+
+## Столбы в мире — пункты ведущего маршрута; узел создаётся при первом обращении.
+func _goals_sync_cylinders() -> void:
+	if goals == null:
+		if _goal_cylinders != null:
+			_goal_cylinders.set_points([])
+		return
+	if _goal_cylinders == null:
+		_goal_cylinders = GoalCylinders.new()
+		_goal_cylinders.name = "GoalCylinders"
+		add_child(_goal_cylinders)
+	_goal_cylinders.set_points(goals.world_points())
+
+
+## Конец полёта: итог по целям и новые рекорды (info.goals, info.new_records). Не в сети.
+func _goals_finish(kind: String, info: Dictionary) -> void:
+	if goals == null or kind != "landed":
+		return
+	goals.on_landed(info)
+	_goals_sync_instrument(true)
+	goal_list.refresh()
+	var res := goals.result()
+	info["goals"] = res
+	if not stats.took_off:
+		return
+	var flight := info.duplicate()
+	flight["location"] = (
+		"pick_%.3f_%.3f" % [settings.pick_lat, settings.pick_lon]
+		if settings.has_pick()
+		else settings.location_id
+	)
+	flight["wing"] = settings.wing_id()
+	if not (res.route as Dictionary).is_empty():
+		flight["task"] = res.route
+	flight.erase("goals")
+	info["new_records"] = FlightRecords.new(records_path).add_flight(flight)

@@ -1,0 +1,38 @@
+{
+  "id": "GL-12",
+  "module": "goals",
+  "type": "dp-researcher",
+  "title": "Цена GPU: feature/goals против main",
+  "goal": "Один общий замер времени кадра (GPU и CPU) на типичном полёте: main против feature/goals с включёнными целями (треугольник → цилиндры включены), списком целей, следом прошлой попытки и одним загруженным IGC; итог — таблица разницы в отчёте и раздел «Цена» в docs/guide/goals.md.",
+  "plan_ref": "GL-12",
+  "contracts": [],
+  "copy": "~/deltaplan-goals-GL-12",
+  "branch": "goals/GL-12",
+  "base": "feature/goals",
+  "scope": [
+    "tools/bench/frame_profile.gd",
+    "tools/bench/goals_bench.sh",
+    "docs/guide/goals.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "scenes",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "table",
+      "cmd": "grep -c 'Цена' docs/guide/goals.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T00:08:11"
+}
