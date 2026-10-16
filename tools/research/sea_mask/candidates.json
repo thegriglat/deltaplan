@@ -1,0 +1,182 @@
+[
+ {
+  "id": "florianopolis",
+  "kind": "sea",
+  "water_cells": 976809,
+  "far_cells": 853948,
+  "a_water_h<=0.5": {
+   "marked": 936669,
+   "far_marked": 851901
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 35703,
+   "far_marked": 12298
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 963,
+   "far_marked": 400
+  }
+ },
+ {
+  "id": "rapa_nui",
+  "kind": "sea",
+  "water_cells": 2546961,
+  "far_cells": 2532885,
+  "a_water_h<=0.5": {
+   "marked": 2546675,
+   "far_marked": 2532885
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 108625,
+   "far_marked": 94796
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 0,
+   "far_marked": 0
+  }
+ },
+ {
+  "id": "training_island",
+  "kind": "sea",
+  "water_cells": 2551460,
+  "far_cells": 2542099,
+  "a_water_h<=0.5": {
+   "marked": 2551429,
+   "far_marked": 2542099
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 2551429,
+   "far_marked": 2542099
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 2551429,
+   "far_marked": 2542099
+  }
+ },
+ {
+  "id": "bukhtarma",
+  "kind": "reservoir",
+  "water_cells": 102897,
+  "far_cells": 12733,
+  "a_water_h<=0.5": {
+   "marked": 1,
+   "far_marked": 0
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 0,
+   "far_marked": 0
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 0,
+   "far_marked": 0
+  }
+ },
+ {
+  "id": "katun_altai_ongudai",
+  "kind": "river",
+  "water_cells": 8699,
+  "far_cells": 0,
+  "a_water_h<=0.5": {
+   "marked": 0,
+   "far_marked": 0
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 0,
+   "far_marked": 0
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 0,
+   "far_marked": 0
+  }
+ },
+ {
+  "id": "ladoga",
+  "kind": "lake",
+  "water_cells": 1667602,
+  "far_cells": 1454430,
+  "a_water_h<=0.5": {
+   "marked": 150284,
+   "far_marked": 130634
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 1252244,
+   "far_marked": 1117559
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 1233442,
+   "far_marked": 1110013
+  }
+ },
+ {
+  "id": "baikal",
+  "kind": "lake",
+  "water_cells": 700895,
+  "far_cells": 597349,
+  "a_water_h<=0.5": {
+   "marked": 1,
+   "far_marked": 0
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 0,
+   "far_marked": 0
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 0,
+   "far_marked": 0
+  }
+ },
+ {
+  "id": "caspian_baku",
+  "kind": "edge",
+  "water_cells": 1711635,
+  "far_cells": 1589794,
+  "a_water_h<=0.5": {
+   "marked": 1710465,
+   "far_marked": 1589794
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 78281,
+   "far_marked": 53700
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 0,
+   "far_marked": 0
+  }
+ },
+ {
+  "id": "ijsselmeer",
+  "kind": "edge",
+  "water_cells": 1023658,
+  "far_cells": 782098,
+  "a_water_h<=0.5": {
+   "marked": 1010577,
+   "far_marked": 782098
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 213887,
+   "far_marked": 125230
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 31592,
+   "far_marked": 17361
+  }
+ },
+ {
+  "id": "dead_sea",
+  "kind": "edge",
+  "water_cells": 122175,
+  "far_cells": 61043,
+  "a_water_h<=0.5": {
+   "marked": 119624,
+   "far_marked": 61043
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 134,
+   "far_marked": 0
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 14,
+   "far_marked": 0
+  }
+ }
+]
