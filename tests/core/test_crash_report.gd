@@ -67,3 +67,21 @@ func test_should_track() -> void:
 	check(not CrashReporter.should_track(true, true, PackedStringArray()), "headless — нет")
 	check(not CrashReporter.should_track(true, false, PackedStringArray(["--smoke"])), "smoke — нет")
 	check(CrashReporter.should_track(true, false, PackedStringArray()), "обычный запуск сборки — да")
+
+
+func test_stage_snapshot_in_lock_and_body() -> void:
+	var snap := CrashReport.stage_snapshot()
+	check(String(snap.get("uptime", "")).ends_with(" с"), "время с запуска есть")
+	check(String(snap.get("mem", "")).ends_with(" МБ"), "память Godot есть")
+	var lock := {"version": "1.5.19", "stage": "trees", "vram": "512 МБ"}
+	lock.merge(snap, true)
+	var path := "user://test_stage.lock"
+	check(CrashReport.write_json(path, lock), "метка записана")
+	var back := CrashReport.read_json(path)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	check(back.get("stage") == "trees" and back.has("uptime") and back.has("mem"), "в метке время и память")
+	var body := CrashReport.build_body(back, {}, "лог")
+	check(body.contains("Время с запуска") and body.contains("Память игры"), "в отчёте время и память")
+	check(body.contains("стадия: trees") and body.contains("VRAM"), "стадия и VRAM рядом")
+	var line := CrashReport.stage_line("trees", back)
+	check(line.begins_with("[stage] trees t=") and line.contains("mem="), "строка стадии: " + line)

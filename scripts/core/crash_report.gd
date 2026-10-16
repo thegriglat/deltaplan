@@ -101,6 +101,9 @@ static func build_body(lock: Dictionary, sysinfo: Dictionary, log_text: String, 
 		["Процессор", "cpu"],
 		["RAM", "ram"],
 		["VRAM (занято перед обрывом)", "vram"],
+		["Память игры (Godot) перед обрывом", "mem"],
+		["Память процесса (RSS) перед обрывом", "rss"],
+		["Время с запуска до последней стадии", "uptime"],
 	]:
 		var key: String = pair[1]
 		var v: String = String(lock.get(key, sysinfo.get(key, "")))
@@ -157,6 +160,47 @@ static func system_info() -> Dictionary:
 		"cpu": OS.get_processor_name(),
 		"ram": "%.1f ГБ" % (ram_b / 1073741824.0) if ram_b > 0.0 else "",
 	}
+
+
+## Снимок на смене стадии: время с запуска, память Godot, RSS процесса (только Linux: /proc).
+static func stage_snapshot() -> Dictionary:
+	var d := {
+		"uptime": "%.1f с" % (Time.get_ticks_msec() / 1000.0),
+		"mem": "%.0f МБ" % (float(OS.get_static_memory_usage()) / 1048576.0),
+	}
+	var rss := rss_text()
+	if rss != "":
+		d["rss"] = rss
+	return d
+
+
+static func rss_text() -> String:
+	if OS.get_name() != "Linux" or not FileAccess.file_exists("/proc/self/statm"):
+		return ""
+	var parts := FileAccess.get_file_as_string("/proc/self/statm").split(" ")
+	if parts.size() < 2:
+		return ""
+	return "%.0f МБ" % (float(parts[1]) * 4096.0 / 1048576.0)
+
+
+## Строка стадии в лог. Лог Godot буферизован и сбрасывается на диск только на строках
+## ошибок (printerr/push_error), поэтому пишем через printerr: строка и всё, что было до неё,
+## доходит до файла сразу — на любой ОС, без настроек движка и без сброса на каждый print.
+static func stage_line(stage: String, lock: Dictionary) -> String:
+	return (
+		"[stage] %s t=%s mem=%s rss=%s vram=%s"
+		% [
+			stage if stage != "" else "menu",
+			lock.get("uptime", "?"),
+			lock.get("mem", "?"),
+			lock.get("rss", "-"),
+			lock.get("vram", "-") if String(lock.get("vram", "")) != "" else "-",
+		]
+	)
+
+
+static func log_stage_line(stage: String, lock: Dictionary) -> void:
+	printerr(stage_line(stage, lock))
 
 
 static func vram_text() -> String:
