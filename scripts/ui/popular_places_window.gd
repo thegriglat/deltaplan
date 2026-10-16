@@ -142,7 +142,7 @@ func _refresh() -> void:
 		_title.text = tr("places_title")
 		if query.strip_edges() == "":
 			for g: Dictionary in _groups:
-				_add_row(tr("places_country_row") % [_country_text(String(g.code), String(g.name)), g.count], enter_country.bind(g.code))
+				_add_row(tr("places_country_row") % [String(g.name), g.count], enter_country.bind(g.code))
 		else:
 			var all: Array = []
 			for g: Dictionary in _groups:
@@ -163,16 +163,12 @@ func _fill_places(places: Array, with_country: bool) -> void:
 		_add_row(_place_text(p, with_country), _choose.bind(p))
 
 
-## Пустая страна (вымышленное место — учебный остров) показывается как «—».
-func _country_text(code: String, name: String) -> String:
-	return "—" if code == "" else name
-
-
 func _place_text(p: Dictionary, with_country: bool) -> String:
 	var parts: PackedStringArray = [PopularPlaces.display_name(p)]
 	if with_country:
 		var code := String(p.get("country", ""))
-		parts.append(_country_text(code, PopularPlaces.country_name(_catalog, code, _lang)))
+		if code != "":  # без страны (учебный остров) — страну не пишем
+			parts.append(PopularPlaces.country_name(_catalog, code, _lang))
 	var ele: Variant = p.get("ele")
 	parts.append(tr("places_ele") % roundi(float(ele)) if ele != null else "—")
 	var ori := PopularPlaces.orientation_text(p)

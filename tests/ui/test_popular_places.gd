@@ -55,6 +55,34 @@ func test_countries_and_enter() -> void:
 	TranslationServer.set_locale("ru")
 
 
+## Место без страны (учебный остров): строка без «—» вместо страны, группа называется по месту.
+func test_no_country_row() -> void:
+	TranslationServer.set_locale("ru")
+	var cat := {
+		"countries": {},
+		"takeoffs":
+		[
+			{"name": "Склон", "lat": 43.2, "lon": 33.9, "country": "", "location": "training_island", "ele": null, "orientation": ["W"]},
+			{"name": "Ротор", "lat": 43.1, "lon": 33.9, "country": "", "location": "training_island", "ele": null, "orientation": []},
+		],
+	}
+	var w := _window(cat, self)
+	var rows := w.row_texts()
+	check(rows.size() == 1 and rows[0] == "Учебный остров — 2", "строка группы: %s" % [rows])
+	w.enter_country("")
+	var places := w.row_texts()
+	check(places.size() == 2 and not places[0].contains("Страна"), "места: %s" % [places])
+	w.queue_free()
+	w = _window(cat, self)
+	var le: LineEdit = w.get("_search")
+	le.text = "Склон"
+	le.text_changed.emit("Склон")
+	var found := w.row_texts()
+	check(found.size() == 1 and not found[0].begins_with("Склон · —  ") and not found[0].contains("· — ·  "), "поиск: %s" % [found])
+	check(not found[0].contains("Учебный") and not found[0].contains("Страна"), "без страны в поиске: %s" % [found])
+	w.queue_free()
+
+
 func test_search_in_country_and_global() -> void:
 	var cat := PopularPlaces.load_catalog(FIXTURE)
 	var w := _window(cat, self)
