@@ -549,3 +549,18 @@ start_pick_bad_built,застройка,built-up
 start_pick_bad_steep,слишком круто,too steep
 setup_exact_start,Старт уточнён на рельефе · курс %d°,Launch set on terrain · heading %d°
 setup_exact_reset,Сбросить,Reset
+setup_tab_goals,Цели,Goals
+goals_kind_height,Набор высоты,Height gain
+goals_kind_duration,Время в воздухе,Time aloft
+goals_kind_distance,Дальность,Distance
+goals_kind_return,Возврат,Out and return
+goals_kind_triangle,Треугольник,Triangle
+goals_kind_route,Маршрут,Route
+goals_kind_speed,Скорость (предел времени),Speed (time limit)
+goals_kind_landing,Посадка в круг,Landing circle
+goals_level_easy,лёгкая,easy
+goals_level_medium,средняя,medium
+goals_level_hard,трудная,hard
+goals_level_custom,своя,custom
+goals_last_track,След прошлой попытки,Last attempt track
+unit_min,мин,min
