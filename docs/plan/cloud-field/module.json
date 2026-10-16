@@ -1,0 +1,11 @@
+{
+  "module": "cloud-field",
+  "plan": "docs/plan/cloud-field.md",
+  "contracts": "docs/contracts/cloud-field.md",
+  "branch": "feature/cloud-field",
+  "copy": "~/deltaplan-cloud-field",
+  "created": "2026-10-17T03:05:02",
+  "code": "CLF",
+  "area": "air",
+  "base": "main"
+}
