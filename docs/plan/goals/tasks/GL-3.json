@@ -1,0 +1,71 @@
+{
+  "id": "GL-3",
+  "module": "goals",
+  "type": "dp-engineer",
+  "title": "Раздел «Цели» в окне «Полёт…»",
+  "goal": "В окне «Полёт…» третья вкладка «Цели»: 8 целей галочками с уровнем и числом (оценка GoalEstimator), выбор маршрута, галочка «след прошлой попытки»; выбор уходит в FlightSettings.goals/show_last_track (К1); ru/en; в сетевой зоне вкладки нет.",
+  "plan_ref": "GL-3",
+  "contracts": [
+    {
+      "name": "GL-К1",
+      "version": "1",
+      "ref": "docs/contracts/goals.md"
+    },
+    {
+      "name": "GL-К2",
+      "version": "2",
+      "ref": "docs/contracts/goals.md"
+    },
+    {
+      "name": "GL-К5",
+      "version": "2",
+      "ref": "docs/contracts/goals.md"
+    }
+  ],
+  "copy": "~/deltaplan-goals-GL-3",
+  "branch": "goals/GL-3",
+  "base": "feature/goals",
+  "scope": [
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/ui/goals_tab.gd",
+    "scripts/ui/goals_tab.gd.uid",
+    "scripts/game/flight_settings.gd",
+    "locale/ui.csv",
+    "tests/ui/test_goals_tab.gd",
+    "tests/ui/test_goals_tab.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/goals",
+    "scripts/game/game.gd",
+    "scenes/main.gd",
+    "configs/locations",
+    "scripts/ui/popular_places_window.gd",
+    "docs/contracts/goals.md"
+  ],
+  "accept": [
+    {
+      "name": "test_goals_tab",
+      "tests": "test_goals_tab"
+    },
+    {
+      "name": "test_language",
+      "tests": "test_language"
+    },
+    {
+      "name": "test_menu_setup",
+      "tests": "test_menu_setup"
+    },
+    {
+      "name": "test_goals_k1",
+      "tests": "test_goals_k1"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/ui/goals_tab.gd scripts/ui/flight_setup_screen.gd scripts/game/flight_settings.gd tests/ui/test_goals_tab.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T21:47:06"
+}
