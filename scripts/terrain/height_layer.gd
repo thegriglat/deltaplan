@@ -16,6 +16,12 @@ var heights: PackedFloat32Array = PackedFloat32Array()
 ## Маска рек (0..1) на той же сетке или null.
 var water_texture: Texture2D
 
+## Файл высот, из которого слой прочитан (load_from_file), и ключ кеша производных (HeightCache:
+## sha256[:16] файла и его размер); у слоя из массива — пусто, кеш не используется.
+var source_path: String = ""
+var source_key: PackedByteArray = PackedByteArray()
+var source_size: int = 0
+
 var _inv_spacing: float = 1.0
 
 
@@ -41,8 +47,9 @@ static func from_heights(
 static func load_from_file(path: String, info: Dictionary) -> HeightLayer:
 	var w := int(info.width)
 	var h := int(info.height)
-	var img := _read_webp(path)
-	if img == null:
+	var bytes := FileAccess.get_file_as_bytes(path)
+	var img := Image.new()
+	if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
 		push_error("HeightLayer: не прочитан %s" % path)
 		return null
 	if img.get_width() != w or img.get_height() != h:
@@ -63,26 +70,25 @@ static func load_from_file(path: String, info: Dictionary) -> HeightLayer:
 	l.max_h = float(info.get("max_height_m", 0.0))
 	if l.max_h <= l.min_h:
 		l.update_min_max()
+	l.source_path = path
+	l.source_key = HeightCache.key_of(bytes)
+	l.source_size = bytes.size()
 	return l
 
 
 ## Все слои сразу (файлы читаются параллельно): [HeightLayer или null] в порядке infos.
+## Пирамида максимумов берётся из кеша места, если он есть (FL-8), — в том же рабочем потоке.
 static func load_files(dir: String, infos: Array) -> Array:
 	var out := []
 	out.resize(infos.size())
 	var job := func(i: int) -> void:
-		out[i] = load_from_file(dir.path_join(String(infos[i].file)), infos[i])
+		var l := load_from_file(dir.path_join(String(infos[i].file)), infos[i])
+		if l != null:
+			l.load_cached_max_pyramid()
+		out[i] = l
 	var gid := WorkerThreadPool.add_group_task(job, infos.size(), -1, true)
 	WorkerThreadPool.wait_for_group_task_completion(gid)
 	return out
-
-
-static func _read_webp(path: String) -> Image:
-	var bytes := FileAccess.get_file_as_bytes(path)
-	var img := Image.new()
-	if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
-		return null
-	return img
 
 
 ## Высоты (float32) -> картинка RGB8 с 24-битным кодом от минимума. Код вне 0..2^24-1 обрезается.
@@ -266,21 +272,78 @@ func max_texel(k: int, i: int, j: int) -> float:
 
 ## Текстура пирамиды максимумов: базовый уровень = уровень 1 пирамиды (уровень 0 — сама высота,
 ## его хранить незачем), мипы — уровни 2, 3, … (свои, max, не среднее). FORMAT_RF: ~1/3 памяти
-## текстуры высот без мипов (1601² → 3,4 МБ). Пирамида на CPU не кешируется (только на время сборки).
+## текстуры высот без мипов (1601² → 3,4 МБ). Посчитанная здесь пирамида на CPU не остаётся
+## (только на время сборки), но пишется в кеш места (HeightCache, фоном), если слой из файла.
 func make_max_texture() -> ImageTexture:
-	var pyr := _max_pyr if not _max_pyr.is_empty() else _build_max_pyramid()
-	if pyr.is_empty():
-		return null
-	var data := PackedByteArray()
-	for a: PackedFloat32Array in pyr:
-		data.append_array(a.to_byte_array())
+	var data := _max_blob
+	if data.is_empty():
+		var pyr := _max_pyr if not _max_pyr.is_empty() else _build_max_pyramid()
+		if pyr.is_empty():
+			return null
+		for a: PackedFloat32Array in pyr:
+			data.append_array(a.to_byte_array())
+		if source_path != "":
+			var d := _max_levels()
+			_cache_task = HeightCache.write_async(
+				max_cache_path(), source_key, source_size, d.levels, d.bytes, data
+			)
 	var img := Image.create_from_data(
 		maxi(1, width >> 1), maxi(1, height >> 1), true, Image.FORMAT_RF, data
 	)
+	_max_blob = PackedByteArray()  # тело нужно один раз; пирамида для ReliefLook — в _max_pyr
 	return ImageTexture.create_from_image(img)
 
 
+## Файл кеша пирамиды максимумов слоя (пусто — слой не из файла).
+func max_cache_path() -> String:
+	return HeightCache.path_for(source_path, id, "maxpyr") if source_path != "" else ""
+
+
+## Пирамида максимумов из кеша места: true — прочитана (ключ файла высот и уровни совпали),
+## _max_pyr и тело текстуры заполнены; false — кеша нет или он чужой/битый (посчитается в
+## make_max_texture и перезапишется). Звать до раздачи слоя потокам (load_files).
+func load_cached_max_pyramid() -> bool:
+	if source_path == "" or (width < 2 and height < 2):
+		return false
+	var d := _max_levels()
+	var blob := HeightCache.read(max_cache_path(), source_key, source_size, d.levels, d.bytes)
+	if blob.is_empty():
+		return false
+	var pyr: Array = []
+	var ofs := 0
+	for b: int in d.bytes:
+		pyr.append(blob.slice(ofs, ofs + b).to_float32_array())
+		ofs += b
+	_max_pyr = pyr
+	_max_blob = blob
+	return true
+
+
+## Дождаться фоновой записи кеша (тесты; в игре ждать незачем).
+func wait_cache_write() -> void:
+	if _cache_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_cache_task)
+		_cache_task = -1
+
+
+## Уровни пирамиды максимумов (1, 2, … до 1×1): {levels: [Vector3i(w, h, FORMAT_RF)], bytes}.
+func _max_levels() -> Dictionary:
+	var levels: Array = []
+	var bytes := PackedInt64Array()
+	var sw := width
+	var sh := height
+	while sw > 1 or sh > 1:
+		sw = maxi(1, sw >> 1)
+		sh = maxi(1, sh >> 1)
+		levels.append(Vector3i(sw, sh, Image.FORMAT_RF))
+		bytes.append(sw * sh * 4)
+	return {"levels": levels, "bytes": bytes}
+
+
 var _max_pyr: Array = []
+## Тело текстуры пирамиды из кеша (уровни подряд) — make_max_texture не склеивает заново.
+var _max_blob: PackedByteArray = PackedByteArray()
+var _cache_task: int = -1
 var _mean_pyr: Array = []
 var _mean_levels: Array = []
 
