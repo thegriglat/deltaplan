@@ -395,6 +395,10 @@ func baked_lookup(c: Dictionary) -> Dictionary:
 	if h.is_empty():
 		out.reason = "нет файла %s" % out.path
 		return out
+	if not AirBakedField.model_hash_ok(h):
+		out.reason = "модель воздуха другой версии (хеш %s ≠ %s)" % [h.get("model_hash", "?"), AirBakedField.model_hash()]
+		out.warn = true
+		return out
 	var diff := AirBakedField.conditions_diff(
 		site.weather, c, int(loc.get("month", 0)), int(loc.get("day", 0))
 	)
@@ -443,9 +447,6 @@ func _load_baked(c: Dictionary) -> bool:
 	if fs == null:
 		push_warning("air_model: запечённое поле %s не прочиталось — расчёт" % look.path)
 		return false
-	var h := AirBakedField.read_header(look.path)
-	if not AirBakedField.model_hash_ok(h):
-		push_warning("air_model: запечённое поле %s собрано другой версией модели воздуха" % look.path)
 	var lv: Array[WindField] = fs.levels
 	atmosphere.call("set_air_field", lv, 0.0)
 	var k := float(lv[0].meta.get("inflow_k", 1.0))

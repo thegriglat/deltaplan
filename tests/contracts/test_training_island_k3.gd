@@ -167,16 +167,21 @@ func test_k3_key_mismatch_refused() -> void:
 	check(AirBakedField.key_diff(AirBakedField.read_header(path).key, key()) == "", "key после JSON равен")
 
 
-func test_k3_model_hash_is_warning_only() -> void:
+func test_k3_model_hash_mismatch_refuses() -> void:
 	var path := DIR.path_join("mh.json")
 	var h := _header()
 	h.model_hash = "0000000000000000"
 	check(AirBakedField.save(synthetic_set(), h, path), "save")
 	var rd := AirBakedField.read_header(path)
 	check(not AirBakedField.model_hash_ok(rd), "model_hash_ok: устарело (для --check)")
-	check(AirBakedField.load_file(path, key()) != null, "поле всё равно читается (только предупреждение)")
+	check(AirBakedField.load_file(path, key()) == null, "хеш модели не совпал — поле не берётся")
+	check(AirBakedField.load_file(path) != null, "без key (без проверок) — читается")
 	var now := AirBakedField.model_hash()
-	check(now == "" or now.length() == 16, "model_hash: 16 символов или пусто без исходников")
+	check(now.length() == 16, "model_hash: 16 символов (исходники читаются)")
+	check(AirBakedField.code_hash() == AirBakedField.code_hash_of_sources(), "код: из исходников")
+	h.model_hash = now
+	check(AirBakedField.save(synthetic_set(), h, path), "save с текущим хешем")
+	check(AirBakedField.load_file(path, key()) != null, "хеш совпал — берётся")
 	check(now == AirBakedField.model_hash(), "model_hash детерминирован")
 
 
