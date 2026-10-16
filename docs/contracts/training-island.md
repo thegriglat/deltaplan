@@ -55,11 +55,11 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 1}, {"id
   повтор полёта, сеть, TI-4 (условия запекания), TI-5 (подбор наборов), модуль goals (тренировки на острове).
 - Ключ `start_sites[].weather` (необязательный) в конфиге места:
   ```json
-  "weather": {"wind_from_deg": 270, "wind_speed_ms": 6.0, "start_hour": 13.0, "month": 7, "day": 15,
+  "weather": {"wind_from_deg": 270, "wind_speed_ms": 6.0, "start_hour": 12.0, "month": 7, "day": 15,
               "sky": "partly", "temperature_c": 24.0}
   ```
   Все поля обязательны внутри `weather`: `wind_from_deg` — откуда ветер, ° (0 — север, 90 — восток); `wind_speed_ms` — ветер по прогнозу
-  у земли, м/с; `start_hour` — час старта (поясное время места); `month`, `day`; `sky` — `"clear"|"partly"|"overcast"`
+  у земли, м/с; `start_hour` — час старта (поясное время места), одно из `configs/world.json → time.start_hours` (9, 12, 15, 20); `month`, `day`; `sky` — `"clear"|"partly"|"overcast"`
   (`configs/weather_model.json → sky`); `temperature_c` — максимум у земли, °C.
 - Соответствие `FlightSettings`: `wind_from_deg` → `wind_from_deg`, `wind_into_launch` = false, `wind_speed_ms·3.6` → `wind_speed_kmh`,
   `start_hour`, `month`, `day`, `sky`, `temperature_c` — одноимённые.
