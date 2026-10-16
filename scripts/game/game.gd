@@ -310,6 +310,7 @@ func _motion_step(dt: float) -> void:
 ## Асинхронно (рельеф с карты грузится из сети). Возвращает false при ошибке.
 func start(s: FlightSettings) -> bool:
 	flight_no += 1
+	_tracks_finish()
 	stop_wait()
 	settings = s.duplicate()
 	eggs.reset()
@@ -616,12 +617,69 @@ func _on_sun_changed(to_sun: Vector3) -> void:
 		_update_water_heat()
 
 
+## Треки (GL-К5, GL-К6): запись полёта с отрыва, след прошлой попытки места полосой. В сети — ничего.
+var goal_tracks: Array = []  ## [FlightTrack]: след прошлой попытки (source "last") и др.
+var _track_rec: TrackRecorder = null
+var _track_key := ""  ## ключ места записи; пусто — не пишем / уже сохранено
+var _track_ribbons: Array[TrackRibbon] = []
+
+
+func _tracks_active() -> bool:
+	return net == null and not inspect_mode and settings != null
+
+
+## Новая попытка: след прошлой (если нужен) в goal_tracks и полосы, запись с нуля.
+func _tracks_begin() -> void:
+	goal_tracks = goal_tracks.filter(func(f: FlightTrack) -> bool: return f.source != "last")
+	_track_rec = null
+	_track_key = ""
+	if _tracks_active():
+		_track_key = LastTrackStore.place_key(settings)
+		_track_rec = TrackRecorder.new()
+		_track_rec.start(terrain.local_to_latlon)
+		if settings.show_last_track:
+			var last := LastTrackStore.load(_track_key)
+			if last != null:
+				goal_tracks.append(last)
+	for r in _track_ribbons:
+		remove_child(r)
+		r.queue_free()
+	_track_ribbons.clear()
+	if net != null:
+		return
+	for f: FlightTrack in goal_tracks:
+		var r := TrackRibbon.new()
+		r.name = "TrackRibbon"
+		add_child(r)
+		r.set_track(f, terrain.latlon_to_local)
+		_track_ribbons.append(r)
+
+
+func _tracks_record(t: Telemetry) -> void:
+	if _track_rec != null and _track_key != "":
+		_track_rec.update(t)
+
+
+## Конец попытки: если взлёт был — запись заменяет след прошлой попытки места.
+func _tracks_finish() -> void:
+	if _track_rec == null or _track_key == "":
+		return
+	var key := _track_key
+	_track_key = ""
+	if not stats.took_off or _track_rec.track().size() < 2:
+		return
+	var f := _track_rec.track()
+	f.name = key
+	LastTrackStore.save(key, f)
+
+
 ## Заново с того же старта (клавиша R, «Ещё раз», «На старт»). keep_clock = true — одиночная
 ## «На старт»: часы и день не сбрасываются (время идёт дальше); в сети часы и так не трогаем.
 func restart(keep_clock: bool = false) -> void:
 	if settings == null:
 		return
 	flight_no += 1
+	_tracks_finish()
 	stop_wait()
 	if autopilot != null:
 		autopilot.reset()
@@ -658,6 +716,7 @@ func restart(keep_clock: bool = false) -> void:
 	for n in mounted:
 		if not bool(n.get_meta("shares_tablet", false)) and n.get("vario90s") != null:
 			(n.get("vario90s") as VarioDisplay90s).reset()
+	_tracks_begin()
 	camera.snap()
 
 
@@ -705,8 +764,10 @@ func air_start_position(forward_m := -1.0, agl_m := -1.0) -> Vector3:
 ## После итога «Продолжить»: пилот на земле ходит дальше; новый разбег — новый полёт.
 func continue_on_foot() -> void:
 	flight_no += 1
+	_tracks_finish()
 	_ended = false
 	_touchdown = {}
+	_tracks_begin()
 	stats.reset(glider.get_telemetry().position)
 	_goals_reset()
 
@@ -1484,6 +1545,7 @@ func _on_telemetry(t: Telemetry) -> void:
 		flight_audio.update(t, {"phase": t.phase, "stall_amount": 0.0, "load_factor": 1.0})
 		_animator.update(t.phase, t.altitude_agl, 0.0, 0.0, _dt)
 		return
+	_tracks_record(t)
 	instrument.update(t, _dt)
 	shift_indicator.update(t)
 	for n in mounted:
@@ -1587,6 +1649,7 @@ func _emit_end(kind: String, info: Dictionary) -> void:
 	info["flight_no"] = flight_no
 	_goals_finish(kind, info)
 	_ended = true
+	_tracks_finish()
 	feed.finish(kind, info, glider.get_telemetry())
 	flight_ended.emit(kind, info)
 

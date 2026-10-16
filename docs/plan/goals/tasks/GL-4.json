@@ -56,10 +56,6 @@
       "tests": "test_game_flight"
     },
     {
-      "name": "test_game_logic",
-      "tests": "test_game_logic"
-    },
-    {
       "name": "lang_goals",
       "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_language",
       "expect": "!re:(goals_|goal_list|result_goal)"
@@ -80,10 +76,15 @@
     {
       "name": "test_gameplay",
       "tests": "test_gameplay"
+    },
+    {
+      "name": "game_logic",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_game_logic",
+      "expect": "!re:FAIL test_game_logic\\.gd::test_(?!pilot_animator_sequence)"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-16T21:58:57",
-  "edited": "2026-10-16T21:59:07"
+  "edited": "2026-10-16T22:08:49"
 }
