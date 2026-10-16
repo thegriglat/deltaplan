@@ -86,7 +86,7 @@ func test_main_menu_button_starts_flight() -> void:
 		m.queue_free()
 		return
 	var flown: Array = []
-	m.fly_requested.connect(func(s: FlightSettings) -> void: flown.append(s))
+	m.training_requested.connect(func(s: FlightSettings) -> void: flown.append(s))
 	btn.pressed.emit()
 	var t: TrainingMenu = null
 	for c in m.get_children():
@@ -95,7 +95,7 @@ func test_main_menu_button_starts_flight() -> void:
 	check(t != null, "окно открылось")
 	if t != null:
 		t.press_card(3)
-		check(flown.size() == 1, "клик сразу даёт fly_requested")
+		check(flown.size() == 1, "клик сразу даёт training_requested")
 		if flown.size() == 1:
 			check(flown[0].site_id == "lee_bowl" and flown[0].goals.size() == 1, "ротор: старт и цель")
 	m.queue_free()

@@ -7,6 +7,8 @@ extends Control
 
 signal fly_requested(settings: FlightSettings)
 signal setup_requested
+## «Тренировка» (TI-16): полёт по карточке острова; last_flight пилота не перезаписывается.
+signal training_requested(settings: FlightSettings)
 ## «Осмотр карты»: то же место и условия, но без полёта (свободная камера, поле ветра).
 signal inspect_requested(settings: FlightSettings)
 ## «Сетевая игра» (NET-50): открыть экран NetScreen.
@@ -348,4 +350,4 @@ func _close_training() -> void:
 func _on_training_chosen(card: Dictionary) -> void:
 	var s := TrainingMenu.settings_for(card, settings, _training.location_id)
 	_close_training()
-	fly_requested.emit(s)
+	training_requested.emit(s)
