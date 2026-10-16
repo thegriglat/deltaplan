@@ -107,6 +107,8 @@ def config(starts, lands):
     for lid, name in LANDINGS.items():
         lat, lon = ll(lands[lid])
         ls.append({"id": lid, "name": name, "lat": lat, "lon": lon})
+    import apply_weather   # TI-5: фиксированная погода стартов (TI-К2) — weather_sets.json
+    apply_weather.add_weather(ss)
     return {
         "_doc": "Учебный остров (TI-К1): вымышленный остров ~14 × 10 км в открытом море, рельеф и карта классов — "
                 "процедурно (tools/terrain/island/, не править руками: build_island.py перезаписывает файл). "

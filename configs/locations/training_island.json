@@ -51,7 +51,17 @@
       "lat": 43.2060254,
       "lon": 33.9379455,
       "name": "site_training_island_ridge_west",
-      "name_doc": "Склон: верх наветренного склона хребта С–Ю над морем, разбег на запад (ветер наборов 270°)"
+      "name_doc": "Склон: верх наветренного склона хребта С–Ю над морем, разбег на запад (ветер наборов 270°)",
+      "weather": {
+        "day": 15,
+        "month": 7,
+        "sky": "overcast",
+        "start_hour": 12.0,
+        "temperature_c": 20.0,
+        "wind_from_deg": 270,
+        "wind_ref": "start",
+        "wind_speed_ms": 6.0
+      }
     },
     {
       "heading_deg": 180,
@@ -59,7 +69,17 @@
       "lat": 43.1684339,
       "lon": 33.9553405,
       "name": "site_training_island_thermal_plain",
-      "name_doc": "Термики: южный конец хребта над равниной с полями, голым грунтом, рощами и озером"
+      "name_doc": "Термики: южный конец хребта над равниной с полями, голым грунтом, рощами и озером",
+      "weather": {
+        "day": 15,
+        "month": 7,
+        "sky": "partly",
+        "start_hour": 12.0,
+        "temperature_c": 25.0,
+        "wind_from_deg": 180,
+        "wind_ref": "start",
+        "wind_speed_ms": 2.0
+      }
     },
     {
       "heading_deg": 270,
@@ -67,7 +87,17 @@
       "lat": 43.2135797,
       "lon": 34.0433025,
       "name": "site_training_island_landing_hill",
-      "name_doc": "Посадка: учебный холм; поле-мишень landing_target в 1–1,5 км"
+      "name_doc": "Посадка: учебный холм; поле-мишень landing_target в 1–1,5 км",
+      "weather": {
+        "day": 15,
+        "month": 7,
+        "sky": "clear",
+        "start_hour": 9.0,
+        "temperature_c": 22.0,
+        "wind_from_deg": 270,
+        "wind_ref": "start",
+        "wind_speed_ms": 1.0
+      }
     },
     {
       "heading_deg": 270,
@@ -75,7 +105,17 @@
       "lat": 43.206655,
       "lon": 33.9607687,
       "name": "site_training_island_lee_bowl",
-      "name_doc": "Ротор: восточный борт чаши за главным хребтом, разбег на запад — в подветренной зоне хребта"
+      "name_doc": "Ротор: восточный борт чаши за главным хребтом, разбег на запад — в подветренной зоне хребта",
+      "weather": {
+        "day": 15,
+        "month": 7,
+        "sky": "overcast",
+        "start_hour": 12.0,
+        "temperature_c": 20.0,
+        "wind_from_deg": 270,
+        "wind_ref": "inflow",
+        "wind_speed_ms": 8.5
+      }
     }
   ],
   "synthetic": true,
