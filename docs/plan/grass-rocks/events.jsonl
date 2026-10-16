@@ -298,3 +298,4 @@
 {"t": "2026-10-16T19:28:23", "by": "coordinator", "task": "GR-25", "ev": "accepted", "note": "по ревью; minor: запасной цвет у корня — кадр за карточкой, проверка вида рельефа разовая, кромка породы в доли метра"}
 {"t": "2026-10-16T19:28:33", "by": "coordinator", "task": "GR-25", "ev": "checked", "commits": ["e162df9a"], "note": "1/7 grass_rocks_contracts=ok:7/7"}
 {"t": "2026-10-16T19:28:33", "by": "coordinator", "task": "GR-25", "ev": "merged", "commits": ["e162df9a"]}
+{"t": "2026-10-16T19:38:55", "by": "coordinator", "task": "GR-26", "ev": "cancelled", "note": "решение пользователя: камень рельефа не правим; ветка grass-rocks/GR-26 и кадры rock-grid/ сохранены"}
