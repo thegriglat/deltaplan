@@ -1,0 +1,49 @@
+{
+  "id": "GR-27",
+  "module": "grass-rocks",
+  "type": "dp-researcher",
+  "title": "Общий замер: feature/grass-rocks против main",
+  "goal": "Замер G3 (medium и high, ongudai, отметки 2/30/60, как в GR-22) ветки модуля против main 3157c330: base полного кадра без облаков и трава (base − nograss) по отметкам, разница мс и %, — раздел ## GR-27 в docs/perf/grass_rocks_2.md.",
+  "plan_ref": "GR-22. Кадры и замер angle",
+  "contracts": [
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-27",
+  "branch": "grass-rocks/GR-27",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "docs/perf/grass_rocks_2.md",
+    "docs/perf/data/grass_rocks_GR-27.tar.gz"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools",
+    "assets",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "section",
+      "cmd": "grep -c '^## GR-27' docs/perf/grass_rocks_2.md",
+      "expect": "re:^1$"
+    },
+    {
+      "name": "data",
+      "cmd": "tar tzf docs/perf/data/grass_rocks_GR-27.tar.gz | grep -c 'jsonl$'",
+      "expect": "num:(\\d+) >=12"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check docs/perf/grass_rocks_2.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T19:39:12"
+}
