@@ -41,6 +41,7 @@ generated: true
   - [docs/guide/scene-look.md](guide/scene-look.md) — Модуль scene-look («картинка сочнее»): принцип, шейдерный include sl_*, конфиг и выключатели; пункты SL-2…SL-23 разнесены по частям.
 - **training-island** — Учебный остров: синтетическое место в море, старты «склон», «термики», «посадка», «ротор»; фиксированная погода и запечённый ветер. [active 2026-10-16] — [план](plan/training-island.md) · [контракты](contracts/training-island.md)
   - [docs/research/training_island_air.md](research/training_island_air.md) — TI-5: погода четырёх стартов учебного острова (TI-К2) и проверка воздуха в игре — склон, термики, ротор, посадка
+- **volcano-island** — Второй учебный остров на реальном рельефе: данные в сборке, старты, погода, запечённые поля, карточки «Тренировки». [active 2026-10-17] — [план](plan/volcano-island.md) · [контракты](contracts/volcano-island.md)
 
 ## game
 
