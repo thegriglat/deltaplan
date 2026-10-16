@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "Измеритель исправлен (тег с «_», путь кеша Deltaplan/air_cache, метка кеша по логу), JSON собран из 8 снятых логов без перезапуска замера. Кеш поля попадает между процессами: hit без этапа wind, to_flying ong 29,2→18,5 с, pt 40,2→20,9 с (baseline n=3 против hit n=3). Acceptance PASS 2/2.",
+  "commits": [
+    "e4c460bb логи замера шлюза 1",
+    "d2898e46 измеритель, gate1 JSON и gate1.md"
+  ],
+  "checks": [
+    {
+      "name": "hit",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "miss",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "13 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "measure.py --selftest",
+      "value": "selftest ok",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Таблица miss против baseline — n=1 на место, цифры ориентировочные"
+  ],
+  "questions": [
+    "Нагрузка машины при замере высокая (load 149 на старте первого промаха); при возможности перемерить на спокойной машине"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept FL-14 --dry",
+  "uncertain": [
+    {
+      "where": "tools/research/load_profile/gate1.md",
+      "why": "сравнение миss против baseline по одному запуску и при высокой нагрузке",
+      "checked": "load average в начале и конце записаны в gate1.md"
+    }
+  ],
+  "dp_feedback": "--dry печатает FAIL без причины, если JSON нет (видно только «нет совпадения»); task show без --full не показывает добавление к карточке (2-е пояснение пришло только через --full)",
+  "extra": {
+    "ong_hit_to_flying_s": 18.46,
+    "pt_hit_to_flying_s": 20.91,
+    "ong_miss_to_flying_s": 30.42,
+    "pt_miss_to_flying_s": 42.62
+  },
+  "t": "2026-10-17T04:58:11",
+  "by": "executor"
+}
