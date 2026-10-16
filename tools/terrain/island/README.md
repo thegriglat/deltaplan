@@ -131,3 +131,5 @@ python3 tools/terrain/island/air_check.py --show          # ключ=значе�
 Данные синтетические, источник — этот генератор (Deltaplan, лицензия проекта); внешних данных нет. Библиотеки:
 numpy, scipy (BSD-3), numba (BSD-2), fastscapelib (GPL-3.0, только инструмент сборки — в игру не входит),
 Pillow (MIT-CMU). Метод fs1 и θ — `docs/research/terrain_tuning.md`, `tools/research/air_synth/corpus/generator.py`.
+
+Запекание полей ветра стартов острова — общим скриптом `tools/terrain/bake_all.sh [--check] [--id training_island]` (см. `docs/guide/location-data.md`).
