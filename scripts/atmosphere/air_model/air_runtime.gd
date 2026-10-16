@@ -95,6 +95,20 @@ var inflow_k := 1.0
 ## Запечённое поле старта (TI-К3, AirBakedField): при совпадении key берётся из файла вместо
 ## расчёта. false — всегда считать (замеры расчёта, тесты расчёта).
 var baked_enabled := true
+## Кеш поля на диске (FL-К1, AirFieldCache, user://air_cache): после запечённого — поле прошлых
+## загрузок при тех же месте, старте и условиях; посчитанное при загрузке поле туда пишется (фоном).
+## Включает только игра (Game); по умолчанию false — инструменты, замеры и тесты расчёта кеш не
+## читают и не пишут.
+var cache_enabled := false
+## Свой кеш (тесты: папка, предел); null — AirFieldCache.from_config() при каждой загрузке.
+var cache_override: AirFieldCache
+## Ключ записи текущей загрузки ({} — поле не пишется) и задачи записи в пуле.
+var _cache_key := {}
+var _cache_tasks: Array[int] = []
+## Поле текущей загрузки взято из кеша.
+var _cache_hit := false
+## Хеш снимка поверхности места (AirPlace.Surface) для ключа кеша; "" — не считан.
+var _surface_hash := ""
 ## Запечённое поле подано, фоновый пересчёт (окна у пилота, тёплый старт) ещё не запущен: запуск —
 ## когда игра включит recompute_enabled.
 var _baked_pending := false
@@ -226,6 +240,8 @@ func setup(atmo: Object, place: Dictionary, cond_fn: Callable) -> void:
 		inflow_k = 1.0
 	_place = place
 	_place_key = key
+	_surface_hash = ""
+	_cache_hit = false
 
 
 ## Место для расчёта по рельефу игры (Terrain): слой detail (25 м), маска воды, снимок поверхности
@@ -326,13 +342,18 @@ func load_field() -> bool:
 	var why := unavailable_reason()
 	if why == CMD_FIELD:
 		return false  # поле из файла подаёт сама атмосфера
+	_cache_key = {}
+	_cache_hit = false
 	var c: Dictionary = conditions_fn.call() if conditions_fn.is_valid() else {}
-	# запечённое поле старта (TI-К3) — раньше проверки GPU: поле из файла GPU не требует
-	if baked_enabled and not c.is_empty() and not _baked_blocked():
+	# запечённое поле старта (TI-К3), затем кеш (FL-К1) — раньше проверки GPU: поле из файла GPU не
+	# требует
+	if not c.is_empty() and not _baked_blocked() and (baked_enabled or _cache_on()):
 		if _cur_key == _place_key and needs_recompute(_cur, c, _step_min()) == "":
 			progress_changed.emit(1.0)
 			return true  # то же место и условия: поле уже в атмосфере
-		if await _load_baked(c):
+		if baked_enabled and await _load_baked(c):
+			return true
+		if _cache_on() and await _load_cached(c):
 			return true
 	if why != "":
 		_analytic(why)
@@ -341,6 +362,8 @@ func load_field() -> bool:
 	if _cur_key == _place_key and needs_recompute(_cur, c, _step_min()) == "":
 		progress_changed.emit(1.0)
 		return true  # то же место и условия: поле уже в атмосфере
+	if _cache_on():
+		_cache_key = cache_key(c)
 	_begin(c, "загрузка", true)
 	while _stage != Stage.IDLE:
 		await get_tree().process_frame
@@ -474,6 +497,205 @@ func _load_baked(c: Dictionary) -> bool:
 	progress_changed.emit(1.0)
 	field_applied.emit(last_info)
 	return true
+
+
+## Кеш поля применим: включён здесь и в конфиге (air_cache.max_mb > 0).
+func _cache_on() -> bool:
+	return cache_enabled and _cache().enabled()
+
+
+func _cache() -> AirFieldCache:
+	return cache_override if cache_override != null else AirFieldCache.from_config()
+
+
+## Папка данных места: встроенное — Locations.data_dir, точка — LocationCache.dir_for.
+static func _place_dir(loc_id: String) -> String:
+	return Locations.data_dir(loc_id) if Locations.is_builtin(loc_id) else LocationCache.dir_for(loc_id)
+
+
+## Ключ записи кеша (FL-К1) для условий c при текущем месте; {} — места на диске нет (поле не
+## кешируется). Сверх контрактных полей — входы поля, что не следуют из данных места: utc (пояс
+## часов места, world.json → time.utc_offset_h; солнце и нагрев) и surface (хеш снимка поверхности
+## AirPlace.surface_of: поляны стартов и просеки, правки конфига вида рельефа).
+func cache_key(c: Dictionary) -> Dictionary:
+	var loc: Dictionary = _place.get("loc", {})
+	var lid := String(loc.get("id", ""))
+	if lid == "" or c.is_empty():
+		return {}
+	var dh := AirBakedField.place_hash(_place_dir(lid))
+	if dh == "":
+		return {}
+	var start := Vector3(NAN, NAN, NAN)
+	if _focus_wanted():
+		# точка, что возьмёт _begin при загрузке (фокус загрузки — старт, не пилот)
+		var was := _loading
+		_loading = true
+		start = focus_fn.call()
+		_loading = was
+	var utc := float(loc.get("utc_offset_h", NAN))
+	return AirFieldCache.make_key(
+		lid,
+		float(loc.get("center_lat", 0.0)),
+		float(loc.get("center_lon", 0.0)),
+		dh,
+		start,
+		DX,
+		_cfg.get("window_levels_m", []),
+		int(loc.get("month", 0)),
+		int(loc.get("day", 0)),
+		c,
+		_step_min(),
+		{"utc": null if is_nan(utc) else snappedf(utc, 0.01), "surface": _surface_key()}
+	)
+
+
+## Хеш снимка поверхности места (классы и влажность узлов 25 м); "" — снимка нет.
+func _surface_key() -> String:
+	var sf: Variant = _place.get("surface")
+	if sf == null:
+		return ""
+	if _surface_hash == "":
+		var ctx := HashingContext.new()
+		ctx.start(HashingContext.HASH_SHA256)
+		ctx.update(PackedFloat64Array([sf.origin_x, sf.origin_z, sf.width, sf.height]).to_byte_array())
+		for a: PackedByteArray in [sf.cls, (sf.moist as PackedFloat32Array).to_byte_array()]:
+			if not a.is_empty():
+				ctx.update(a)
+		_surface_hash = ctx.finish().hex_encode().substr(0, 16)
+	return _surface_hash
+
+
+## Поиск записи кеша для условий c: {name, path, header, reason ("" — есть)} (AirFieldCache.lookup).
+func cache_lookup(c: Dictionary) -> Dictionary:
+	if not _cache_on() or _baked_blocked() or c.is_empty():
+		return {reason = "кеш не применим", path = "", name = "", header = {}}
+	var key := cache_key(c)
+	if key.is_empty():
+		return {reason = "у места нет данных на диске", path = "", name = "", header = {}}
+	return _cache().lookup(key)
+
+
+## Для экрана загрузки: поле будет взято из кеша (этап «Рассчитываем ветер» не нужен). После
+## загрузки — поле взято из кеша.
+func cache_ready() -> bool:
+	if _cache_hit:
+		return true
+	if not conditions_fn.is_valid():
+		return false
+	return cache_lookup(conditions_fn.call()).reason == ""
+
+
+## Загрузка поля из кеша (как _load_baked): чтение в рабочем потоке, подача без подмены, состояние
+## как после расчёта при загрузке; фоновый пересчёт — по включению recompute_enabled. false — промах
+## (запись нет, чужая модель, испорчена — тогда удалена).
+func _load_cached(c: Dictionary) -> bool:
+	var t0 := Time.get_ticks_usec()
+	var cache := _cache()
+	var look := cache_lookup(c)
+	if look.reason != "":
+		if look.reason != AirFieldCache.MISS and look.path != "":
+			print("air_model: кеш поля не берётся (%s) — расчёт" % look.reason)
+		return false
+	var res := {}
+	var tid := WorkerThreadPool.add_task(
+		func() -> void: res["fs"] = cache.load_record(look), false, "AirFieldCache"
+	)
+	while not WorkerThreadPool.is_task_completed(tid):
+		await get_tree().process_frame
+	WorkerThreadPool.wait_for_task_completion(tid)
+	var fs: AirFieldSet = res.get("fs")
+	if fs == null:
+		return false
+	cache.touch(String(look.name))
+	var lv: Array[WindField] = fs.levels
+	atmosphere.call("set_air_field", lv, 0.0)
+	var h: Dictionary = look.header
+	var k := float(h.get("inflow_k", lv[0].meta.get("inflow_k", 1.0)))
+	_cur = c.duplicate()
+	_cur.reason = "кеш поля"
+	_cur_key = _place_key
+	_warm = {}
+	_warm_next = {}
+	_warm_pass = {}
+	inflow_k = k
+	_k_mem[_dir_key(float(c.wdir))] = k
+	_baked_pending = true
+	_cache_hit = true
+	var wall := (Time.get_ticks_usec() - t0) / 1e6
+	last_info = _cur.duplicate()
+	last_info.merge(
+		{
+			cache = true, path = look.path, status = h.get("status", ""), levels = lv.size(),
+			inflow_k = k, wall_s = wall, loading = true,
+		}
+	)
+	last_error = ""
+	applied_count += 1
+	phase_map = {}
+	_ok = true
+	print(
+		"air_model: поле из кеша %s (%s), уровней %d, k притока %.3f, %.2f с"
+		% [look.name, h.get("status", "?"), lv.size(), k, wall]
+	)
+	progress_changed.emit(1.0)
+	field_applied.emit(last_info)
+	return true
+
+
+## Поле загрузки — в кеш: снимок массивов здесь, упаковка и запись — в пуле (главный поток не ждёт).
+## Не пишутся: аналитика (сюда не доходит), запечённое и кешированное (не через _apply), пересчёты
+## в полёте (_loading = false).
+func _cache_store(levels: Array[WindField]) -> void:
+	var key := _cache_key
+	_cache_key = {}
+	if key.is_empty() or levels.is_empty():
+		return
+	_cache_prune()
+	var status := "ok"
+	if _req.has("pass_failed"):
+		status = "previous_pass"
+	elif bool(_req.get("not_converged", false)):
+		status = "not_converged"
+	var extra := {status = status, inflow_k = _k, wall_s = snappedf(float(_req.get("wall_s", 0.0)), 0.01)}
+	var fs := AirFieldCache.snapshot(levels)
+	_cache_tasks.append(
+		WorkerThreadPool.add_task(
+			_cache_store_task.bind(_cache(), fs, key, extra), false, "AirFieldCache.store"
+		)
+	)
+
+
+## Рабочий поток: запись кеша.
+static func _cache_store_task(
+	cache: AirFieldCache, fs: AirFieldSet, key: Dictionary, extra: Dictionary
+) -> void:
+	var t := Time.get_ticks_usec()
+	if cache.store(fs, key, extra):
+		print(
+			"air_cache: записано %s (%s), %.2f с"
+			% [AirFieldCache.name_of(key), extra.status, (Time.get_ticks_usec() - t) / 1e6]
+		)
+
+
+## Завершённые задачи записи — убрать (ожидание готовой задачи не блокирует).
+func _cache_prune() -> void:
+	for tid in _cache_tasks.duplicate():
+		if WorkerThreadPool.is_task_completed(tid):
+			WorkerThreadPool.wait_for_task_completion(tid)
+			_cache_tasks.erase(tid)
+
+
+## Дождаться записей кеша (выход из игры, тесты).
+func cache_wait() -> void:
+	for tid in _cache_tasks:
+		WorkerThreadPool.wait_for_task_completion(tid)
+	_cache_tasks.clear()
+
+
+## Идёт запись кеша (тесты, замеры).
+func cache_writing() -> bool:
+	_cache_prune()
+	return not _cache_tasks.is_empty()
 
 
 ## Внеочередной пересчёт по текущим условиям (в полёте). Идёт расчёт — не копится.
@@ -1312,6 +1534,8 @@ func _apply(levels: Array[WindField]) -> void:
 	_ok = true
 	_stage = Stage.IDLE
 	phase_map = _req.get("phase_map", {})
+	if _loading:
+		_cache_store(levels)
 	print(
 		(
 			"air_model: поле (%s) итераций %s, фазы %s (%.0f мс), заморожено %.2f, ω→запас %s"
@@ -1414,6 +1638,7 @@ func _analytic(reason: String) -> void:
 
 func _exit_tree() -> void:
 	stop()
+	cache_wait()
 	if _gpu != null:
 		_gpu.destroy()
 		_gpu = null

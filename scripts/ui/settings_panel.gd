@@ -58,6 +58,8 @@ var _compass: CheckBox
 var _grass: HSlider
 var _haze_sun: HSlider
 var _wind_model: OptionButton
+## Предел кеша поля воздуха на диске, МБ (FL-К1: atmosphere.json → air_cache.max_mb; 0 — выключен).
+var _air_cache: HSlider
 var _language: OptionButton
 var _language_codes: Array = []
 var _pilot_name: LineEdit
@@ -179,6 +181,7 @@ func _ready() -> void:
 	_wind_model.add_item(tr("settings_wind_model_calc"), 0)
 	_wind_model.add_item(tr("settings_wind_model_simple"), 1)
 	UiKit.row(box_game, tr("settings_wind_model"), _wind_model)
+	_air_cache = UiKit.slider_row(box_game, tr("settings_air_cache_mb"), 0.0, 2000.0, 50.0, "%.0f " + tr("unit_mb"))
 	_time_speed = OptionButton.new()
 	_speeds = Config.value("world", "time.speed_options", [1, 10, 60, 0])
 	for v: Variant in _speeds:
@@ -358,6 +361,8 @@ func load_values() -> void:
 	_haze_sun.value_changed.emit(_haze_sun.value)
 	var wm := String(Config.value("atmosphere", "air_model.enabled", "auto"))
 	_wind_model.select(_wind_model.get_item_index(1 if wm == "off" else 0))
+	_air_cache.value = float(Config.value("atmosphere", "air_cache.max_mb", 200.0))
+	_air_cache.value_changed.emit(_air_cache.value)
 	var sp := float(Config.value("world", "time.speed", 1.0))
 	var si := 0
 	for i in _speeds.size():
@@ -479,7 +484,8 @@ func save() -> bool:
 		"air_model":
 		{
 			"enabled": "off" if _wind_model.get_selected_id() == 1 else "auto",
-		}
+		},
+		"air_cache": {"max_mb": int(_air_cache.value)},
 	}
 	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
 	ok = _save_motion() and ok
