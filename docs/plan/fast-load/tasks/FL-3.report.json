@@ -1,0 +1,40 @@
+{
+  "status": "done",
+  "summary": "Проба is_sea в load_point идёт по выбранной точке (lat/lon -> локальные метры относительно центра места через TerrainGeo.latlon_to_local); is_sea получила необязательные x, z (по умолчанию 0,0). Добавлен tests/terrain/test_sea_point.gd.",
+  "commits": [
+    "79644e7c Проверка «Здесь море» по выбранной точке"
+  ],
+  "checks": [
+    {
+      "name": "sea",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_locations",
+      "value": "1/1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ручная проверка Ханга-Роа по сети не делалась (по желанию)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept FL-3",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:1391",
+      "why": "Старт точки карты ставится в выбранную точку (StartPlacement.evaluate вокруг latlon_to_local(pick)), не в центр ячейки; поэтому проверка моря по выбранной точке согласована со стартом.",
+      "checked": "чтение кода"
+    },
+    {
+      "where": "scripts/terrain/terrain.gd:220",
+      "why": "Выбранная точка вне детального слоя: sample/class_at зажимаются к краю; не проверял на реальном месте у берега.",
+      "checked": "синтетический тест"
+    }
+  ],
+  "dp_feedback": "Фильтр sea цепляет и test_tree_seams; в карточке правки скоупа .uid нового теста не упомянут, но pre-commit требует.",
+  "t": "2026-10-17T03:01:54",
+  "by": "executor"
+}
