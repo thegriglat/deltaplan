@@ -234,6 +234,42 @@
   }
  },
  {
+  "id": "dead_sea_edge",
+  "kind": "lake",
+  "water_cells": 27421,
+  "far_cells": 13478,
+  "a_water_h<=0.5": {
+   "marked": 27028,
+   "far_marked": 13478
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 0,
+   "far_marked": 0
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 0,
+   "far_marked": 0
+  }
+ },
+ {
+  "id": "salton_sea",
+  "kind": "lake",
+  "water_cells": 38484,
+  "far_cells": 21035,
+  "a_water_h<=0.5": {
+   "marked": 32121,
+   "far_marked": 21035
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 82,
+   "far_marked": 0
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 0,
+   "far_marked": 0
+  }
+ },
+ {
   "id": "superior",
   "kind": "lake",
   "water_cells": 2330789,
