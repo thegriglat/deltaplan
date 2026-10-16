@@ -1,0 +1,113 @@
+{
+  "status": "partial",
+  "summary": "Наборы погоды четырёх стартов (TI-К2 v2) подобраны и проверены в игре (air_check.py, 6 запусков главной сцены, поле GPU): склон, термики только погодой набора (глобальные параметры не тронуты), набор крылом, ротор, посадка — в порогах; 8 кадров F3/F6. Не выполнен один порог: 3 источника термиков поля над водой (озеро и берег моря, все дальше 4 км от старта) — дефект AirThermals.pick_in_column, погодой не убирается.",
+  "commits": [
+    "0f03ef25 TI-5: погода стартов учебного острова и проверка воздуха в игре"
+  ],
+  "checks": [
+    {
+      "name": "ridge (ridge_w_6ms)",
+      "value": "1.831 (5 м/с: 1.414, 8 м/с: 2.523; подъём во всех 153 точках)",
+      "pass": true
+    },
+    {
+      "name": "thermal (thermal_core_w_p90)",
+      "value": "2.663 (p50 1.975, max 4.125)",
+      "pass": true
+    },
+    {
+      "name": "climb (thermal_climb_m)",
+      "value": "898.1 (вылеты 135/711/898)",
+      "pass": true
+    },
+    {
+      "name": "thermal_base_m",
+      "value": "1741 м н. у. м. на 12:00",
+      "pass": true
+    },
+    {
+      "name": "sea (thermals_over_water)",
+      "value": "6 циклов / 3 источника; в 4 км от старта — 0",
+      "pass": false
+    },
+    {
+      "name": "rotor (rotor_w_min)",
+      "value": "-1.668, обратный ветер 55.6 % точек, приток k 1.0",
+      "pass": true
+    },
+    {
+      "name": "landing_wind_ms",
+      "value": "1.157",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "8 JPEG; слой меняет F3 0,6–1,4 %, F6 3,5–9,8 % пикселей",
+      "pass": true
+    },
+    {
+      "name": "air (ALL_OK)",
+      "value": "NOT_OK thermals_over_water=6",
+      "pass": false
+    },
+    {
+      "name": "verify.sh / check_sites.py / docs check",
+      "value": "совпало 12 файлов + конфиг / OK / 0 ошибок",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "thermals_over_water = 0: не выходит погодой набора. Термики поля (AirThermals, уровень 400 м): столбец у воды с слабым H > 0 (2,4–35 Вт/м²) проходит отбор, AirThermals.pick_in_column (scripts/atmosphere/air_model/air_thermals.gd ~562) берёт лучшую по ground.sun из случайных точек — если все на воде (sun 0), берётся первая. Итог: термики 0,6–0,9 м/с над озером (r 24 м, верх 366 м) и у берега моря. Предложение (модуль воздуха): при лучшей силе 0 столбец не ставить источником (build пропускает, поток — соседям).",
+    "Запекание полей стартов — по карточке не в этой задаче (TI-9)."
+  ],
+  "questions": [
+    "Кому чинить pick_in_column (scripts/, вне скоупа TI-5)? После правки — перезапуск air_check.py без смены наборов.",
+    "Считать thermals_over_water по всему полю (как сейчас, строго) или в зоне 4 км старта (там 0)? Озеро — в 5,4 км."
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-5/ridge_west_f3.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-5/ridge_west_f6.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-5/thermal_plain_f3.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-5/thermal_plain_f6.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-5/landing_hill_f3.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-5/landing_hill_f6.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-5/lee_bowl_f3.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-5/lee_bowl_f6.jpg"
+  ],
+  "how_to_check": "python3 tools/terrain/island/air_check.py --show (числа из out/air_check.json); пересчёт: DISPLAY=:0 XDG_DATA_HOME=~/.cache/dp-xdg/<копия> python3 tools/terrain/island/air_check.py (~10 мин); .dpcli/dpcli accept TI-5 --dry",
+  "uncertain": [
+    {
+      "where": "tools/terrain/island/air_check_run.gd:_climb_flight",
+      "why": "набор крылом — кинематика (идеальное центрирование, крен 30°, поляра sport эталонной массы, без болтанки), не FlightModel; реальный пилот наберёт меньше",
+      "checked": "запас к порогу 300 м большой (711 и 898 м в двух вылетах из трёх); радиус 25 м, снижение 1,11 м/с — по поляре"
+    },
+    {
+      "where": "tools/terrain/island/out/air_check.json → thermal_climb_m",
+      "why": "повтор того же прогона даёт 787–898 м (фоновые сборки источников/обновление поля по кадрам — не побитно)",
+      "checked": "два полных прогона: p90 ядра 2,663 оба раза, набор 787 и 898"
+    },
+    {
+      "where": "tools/terrain/island/weather_sets.json → thermal_plain",
+      "why": "база 1741 м и сила — сухая модель погоды (точка росы июля), над морским островом в жизни база ниже",
+      "checked": "перебор weather_sweep: 24–26 °C дают базу 1568–1903 м; при «ясно» 25 °C p90 3,07 > 3 — взята переменная облачность"
+    },
+    {
+      "where": "zone_by_class (air_check.json)",
+      "why": "в 4 км больше всего термиков от леса (53), голый грунт 38, пашня 12 — «тёмная пашня» не главный источник: лес в модели нагрева 0,72 против 0,70 у грунта (TI-1)",
+      "checked": "p90 ядра по классу почти одинаков (2,52–2,70)"
+    }
+  ],
+  "dp_feedback": "accept: при FAIL «air» лог содержит только «нет совпадения» — полезно печатать хвост вывода команды (строку NOT_OK). job wait: удобно; не хватает подсказки, где лежат файлы, которые написала команда. Карточка: в дополнениях обрезанные строки (…) — полный текст пришлось искать через --full, которого в справке task show нет.",
+  "extra": {
+    "weather_sets": {
+      "ridge_west": "6 м/с с 270°, start, 12 ч, 15.07, overcast, 20 °C",
+      "thermal_plain": "2 м/с с 180°, start, 12 ч, 15.07, partly, 25 °C",
+      "landing_hill": "1 м/с с 270°, start, 9 ч, 15.07, clear, 22 °C",
+      "lee_bowl": "8,5 м/с с 270°, inflow, 12 ч, 15.07, overcast, 20 °C"
+    },
+    "doc": "docs/research/training_island_air.md",
+    "data": "tools/terrain/island/out/air_check.json, out/check_*.json"
+  },
+  "t": "2026-10-16T23:35:02",
+  "by": "executor"
+}

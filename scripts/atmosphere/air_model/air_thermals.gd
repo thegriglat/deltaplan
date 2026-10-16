@@ -339,6 +339,19 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 				grid[k] = PackedInt32Array()
 			grid[k].append(c)
 		chosen.sort()
+	# --- столбцы без точки источника (вода): не источники; pick_fn детерминирован (столбец, сид),
+	# у ведущего и клиентов одинаков
+	var pick_fn: Callable = cfg.get("pick_fn", Callable())
+	var picked := {}
+	if pick_fn.is_valid():
+		var kept := PackedInt32Array()
+		for c in chosen:
+			var pp: Vector2 = pick_fn.call(c % f.nx, c / f.nx)
+			if pp == NO_SOURCE:
+				continue
+			picked[c] = pp
+			kept.append(c)
+		chosen = kept
 	# --- водосборы: каждый воздушный столбец — ближайшему источнику в досягаемости (2 радиуса
 	# плотности источника); равные расстояния — меньший номер
 	var ns := chosen.size()
@@ -430,7 +443,6 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		if owner[c] >= 0:
 			hsum[owner[c]] += maxf(heat[c], 0.0) * cell_a
 	var height_fn: Callable = cfg.get("height_fn", Callable())
-	var pick_fn: Callable = cfg.get("pick_fn", Callable())
 	carried_flux = 0.0
 	for s in ns:
 		var c := chosen[s]
@@ -438,8 +450,8 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		var j := c / f.nx
 		var hc := hcs[c]
 		var p := Vector2(f.x0 + (i + 0.5) * f.dx, -(f.y0 + (j + 0.5) * f.dx))
-		if pick_fn.is_valid():
-			p = pick_fn.call(i, j)
+		if picked.has(c):
+			p = picked[c]
 		var y := hc
 		if height_fn.is_valid():
 			y = float(height_fn.call(p.x, p.y))
@@ -557,6 +569,10 @@ func sources_in(c: Vector2, r: float, half := Vector2.ZERO) -> PackedInt32Array:
 	return out
 
 
+## Признак «в столбце источника нет» (pick_fn / pick_in_column): лучшая точка с силой 0 (вода).
+const NO_SOURCE := Vector2(INF, INF)
+
+
 ## Точка источника в столбце (i, j) уровня f: лучшая по освещённости земли (скалы, опушки —
 ## GroundField.sun) из candidates точек столбца; сид — столбец и сид мира (у всех клиентов одна).
 static func pick_in_column(
@@ -566,13 +582,17 @@ static func pick_in_column(
 	rng.seed = hash(Vector3i(seed_value, i, j))
 	var best := Vector2(f.x0 + (i + 0.5) * f.dx, -(f.y0 + (j + 0.5) * f.dx))
 	var best_s := -1.0
+	var has_g := ground != null and ground.has_ground
 	for k in candidates:
 		var x := f.x0 + (i + rng.randf_range(0.1, 0.9)) * f.dx
 		var z := -(f.y0 + (j + rng.randf_range(0.1, 0.9)) * f.dx)
-		var s := ground.sun(x, z) if ground != null and ground.has_ground else 0.0
+		var s := ground.sun(x, z) if has_g else 0.0
 		if s > best_s:
 			best_s = s
 			best = Vector2(x, z)
+	# все кандидаты без силы источника (вода) — столбец не источник
+	if has_g and best_s <= 0.0:
+		return NO_SOURCE
 	return best
 
 

@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Остров описан в docs/guide/location-data.md (bundled-место, формат 4, старты, weather/wind_ref, запечённое поле, допущения, описание ru/en без семьи), runtime.md, CHANGELOG «В работе», ASSETS.md, findings (раздел training-island); индексы пересобраны.",
+  "commits": [
+    "2fa9f43d TI-6: документация и тексты учебного острова"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "assets",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "без ошибок",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Наборов weather у стартов в конфиге острова пока нет (TI-5) и запечённых air/ нет - в тексте так и сказано",
+    "Описание места ru/en лежит в location-data.md; ключи locale/ui.csv вне скоупа"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TI-6",
+  "uncertain": [
+    {
+      "where": "docs/registry/findings.md",
+      "why": "файл 40947 байт при пределе 40 КБ; следующая запись потребует разбиения",
+      "checked": "docs check ошибок 0"
+    }
+  ],
+  "dp_feedback": "Лимит 40 КБ у findings.md исчерпан; нужен механизм разбиения реестра по модулям. docs index правит research.md/contracts.md/INDEX.md - полезно сказать об этом в справке.",
+  "t": "2026-10-16T23:09:06",
+  "by": "executor"
+}

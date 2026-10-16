@@ -1,0 +1,66 @@
+{
+  "id": "TI-6",
+  "module": "training-island",
+  "type": "dp-writer",
+  "title": "Документация и тексты острова",
+  "goal": "Учебный остров описан в документации (место из файлов игры, фиксированная погода старта, запечённое поле ветра, генератор), в CHANGELOG «В работе» и ASSETS.md; публичные тексты ru/en без семьи.",
+  "plan_ref": "TI-6. Тексты и документация",
+  "contracts": [
+    {
+      "name": "TI-К1",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    },
+    {
+      "name": "TI-К2",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    },
+    {
+      "name": "TI-К3",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-6",
+  "branch": "training-island/TI-6",
+  "base": "feature/training-island",
+  "scope": [
+    "docs/guide/location-data.md",
+    "docs/guide/air-model/",
+    "docs/guide/game.md",
+    "CHANGELOG.md",
+    "ASSETS.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/",
+    "tools/",
+    "site/",
+    "docs/plan/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | tail -1'",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -c -i 'остров' CHANGELOG.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "assets",
+      "cmd": "grep -c 'training_island' ASSETS.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T23:06:28"
+}
