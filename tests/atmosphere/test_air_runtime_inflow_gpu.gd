@@ -60,7 +60,6 @@ func _run(wind_ref: String) -> Dictionary:
 	var atmo := _atmo(detail)
 	_c = {hour = 12.0, u10 = U_MS, wdir = WDIR, t_max = 25.0, sky = "clear", wind_ref = wind_ref}
 	var rt := AirRuntime.new()
-	rt.cache_enabled = false  # расчёт, не кеш поля (FL-К1)
 	await Engine.get_main_loop().process_frame
 	(Engine.get_main_loop() as SceneTree).root.add_child(rt)
 	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _cond)

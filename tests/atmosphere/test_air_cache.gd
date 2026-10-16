@@ -59,6 +59,7 @@ func _runtime(atmo: Object) -> AirRuntime:
 	var pos := Vector3(p.x, (lw[0] as HeightLayer).sample(p.x, p.y), p.y)
 	var rt := AirRuntime.new()
 	rt.baked_enabled = false
+	rt.cache_enabled = true
 	rt.cache_override = _cache()
 	_c = {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = 25.0, sky = "clear", wind_ref = "start"}
 	rt.setup(atmo, {detail = lw[0], water = lw[1], loc = loc}, _cond)

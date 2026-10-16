@@ -50,7 +50,6 @@ func _runtime(atmo: Object, w: Dictionary) -> AirRuntime:
 	)
 	var pos := Vector3(p.x, (lw[0] as HeightLayer).sample(p.x, p.y), p.y)
 	var rt := AirRuntime.new()
-	rt.cache_enabled = false  # расчёт, не кеш поля (FL-К1)
 	var place := {
 		detail = lw[0], water = lw[1], loc = loc,
 		start_sites = [{id = SITE, position = pos, weather = w}],

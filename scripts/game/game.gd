@@ -159,6 +159,7 @@ func _ready() -> void:
 	add_child(air)
 	air.set_physics_process(false)
 	air_runtime = AirRuntime.new()
+	air_runtime.cache_enabled = true  # кеш поля на диске (FL-К1) — только в игре
 	add_child(air_runtime)
 	if air.has_signal("weather_updated"):
 		air.connect("weather_updated", _apply_haze)  # ход дня (AtmoDay): дымка за погодой

@@ -93,7 +93,6 @@ func test_ongudai_runtime() -> void:
 	var atmo := _atmo(detail)
 	_c = {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = NAN, sky = "clear"}
 	var rt := AirRuntime.new()
-	rt.cache_enabled = false  # расчёт, не кеш поля (FL-К1)
 	await Engine.get_main_loop().process_frame  # корень занят в _ready — добавить после кадра
 	(Engine.get_main_loop() as SceneTree).root.add_child(rt)
 	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _cond)
@@ -346,7 +345,6 @@ func test_phase_picard_pipeline() -> void:
 	var atmo := _atmo(detail)
 	_c = {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = NAN, sky = "clear"}
 	var rt := AirRuntime.new()
-	rt.cache_enabled = false  # расчёт, не кеш поля (FL-К1)
 	await Engine.get_main_loop().process_frame
 	(Engine.get_main_loop() as SceneTree).root.add_child(rt)
 	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _cond)

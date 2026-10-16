@@ -48,7 +48,6 @@ func _runtime(place: Dictionary) -> Array:
 	var atmo := AR._atmo(place.detail)
 	atmo.field.air_async = false
 	var rt := AirRuntime.new()
-	rt.cache_enabled = false  # расчёт, не кеш поля (FL-К1)
 	(Engine.get_main_loop() as SceneTree).root.add_child(rt)
 	rt.setup(atmo, place, _cond)
 	var pos: Vector3 = place.start_sites[0].position

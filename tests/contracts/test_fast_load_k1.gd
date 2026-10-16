@@ -220,14 +220,16 @@ func test_k1_disabled() -> void:
 
 func test_k1_public_api() -> void:
 	var rt := AirRuntime.new()
-	check("cache_enabled" in rt and rt.cache_enabled == true, "AirRuntime.cache_enabled := true")
+	check("cache_enabled" in rt and rt.cache_enabled == false, "AirRuntime.cache_enabled — по умолчанию false (включает игра)")
 	check(rt.has_method("cache_ready"), "AirRuntime.cache_ready()")
 	rt.free()
 	check(AirFieldCache.DEFAULT_DIR == "user://air_cache", "место user://air_cache")
 	check(int(Config.value("atmosphere", "air_cache.max_mb", -1)) >= 0, "air_cache.max_mb в конфиге")
 	var res: Dictionary = AirBakedField._model_config("atmosphere")
 	check(int((res.get("air_cache", {}) as Dictionary).get("max_mb", -1)) == 200, "по умолчанию 200 МБ")
-	# машинный ключ (LOCAL_KEYS) — после правки steam/partner/auto_cloud.json (тест S7), вне scope FL-2
+	check(UserSettings.is_local_key("atmosphere.air_cache.max_mb"), "машинный ключ (LOCAL_KEYS)")
+	var game_src := FileAccess.get_file_as_string("res://scripts/game/game.gd")
+	check(game_src.contains("air_runtime.cache_enabled = true"), "Game включает кеш")
 	var src := FileAccess.get_file_as_string("res://scripts/atmosphere/air_field_cache.gd")
 	check(src.contains("class_name AirFieldCache"), "AirFieldCache — scripts/atmosphere/air_field_cache.gd")
 	check(not FileAccess.file_exists("res://scripts/atmosphere/air_model/air_field_cache.gd"), "не в air_model/ (code_hash)")

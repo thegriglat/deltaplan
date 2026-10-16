@@ -45,6 +45,7 @@ func _runtime(place: Dictionary) -> Array:
 	atmo.field.air_async = false
 	var rt := AirRuntime.new()
 	rt.baked_enabled = false
+	rt.cache_enabled = true
 	rt.cache_override = _cache()
 	(Engine.get_main_loop() as SceneTree).root.add_child(rt)
 	rt.setup(atmo, {detail = place.detail, water = place.water, loc = place.loc}, _cond)

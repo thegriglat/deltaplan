@@ -61,7 +61,6 @@ func test_island_baked_every_start() -> void:
 		var atmo := AR._atmo(terrain.layers[0] if terrain.layers[0].id == "detail" else terrain.layers[1])
 		atmo.field.air_async = false
 		var rt := AirRuntime.new()
-		rt.cache_enabled = false  # расчёт, не кеш поля (FL-К1)
 		root.add_child(rt)
 		var cond := c
 		rt.setup(atmo, AirRuntime.place_of(terrain, 3.0, int(weather.month), int(weather.day)), func() -> Dictionary: return cond)
