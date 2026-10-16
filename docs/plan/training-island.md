@@ -80,6 +80,9 @@ related: ["docs/contracts/training-island.md", "docs/guide/location-data.md", "d
 #### TI-9. Запекание полей стартов (dp-engineer, sonnet)
 После TI-5 и TI-10: поля четырёх стартов острова по их наборам погоды (TI-К2 v2) → data/locations/training_island/air/ (TI-К3 v2); --check; размер в сборке; тест, что каждый старт берёт запечённое поле (ключ совпадает).
 
+#### TI-9b. wind_ref в запекании (dp-engineer, sonnet)
+По TI-9: lee_bowl запечён с inflow_k = 3 — AirBakedField.conditions_of не передаёт wind_ref, запекание шло с подгонкой под ветер у старта. Передать wind_ref, тест inflow_k = 1 у запечённого поля старта с wind_ref inflow, перепечь.
+
 ### Шлюз 1 (после TI-1, TI-2)
 Главной: кадры TI-1, таблица w, предложение (если вид тренировки на острове не выходит — отдельный малый рельеф с обоснованием; нужен ли подкласс «тёмная пашня» в нагреве).
 
