@@ -4,7 +4,7 @@ extends TestCase
 ## test_g4_ — режим средней дистанции травы.
 
 const DOC := "res://docs/contracts/grass-rocks.md"
-const VERSIONS := {"G1": 1, "G2": 1, "G3": 2, "G4": 5}
+const VERSIONS := {"G1": 1, "G2": 2, "G3": 2, "G4": 5}
 
 
 func test_g3_versions_in_doc() -> void:
