@@ -144,3 +144,7 @@ related: ["docs/archive/README.md"]
 ## site-update
 
 - **Рендеры крыльев**: iso45 из `.glb` (под 3/4 форма читается лучше, чем under34); карточки DHV — только номер и ссылка на поиск портала; `hugo --minify` 248 страниц без WARN/ERROR — [site-update-progress.md#Развилки (развил…](/docs/archive/plan/site-update-progress.md#развилки-развилка--решение--почему)
+
+## training-island
+
+- **Воздух на острове**: склон 6 м/с w +1,55 м/с; ротор 9 м/с: w −2,0, обратный ветер −1,7 м/с; ветер «на старте» в чаше — приток в пределе 3, `wind_ref: inflow` — k 1, max|u| 11,2 м/с. Запечённое поле: 1 с против 14–18 с — [location-data.md](/docs/guide/location-data.md#встроенное-место-из-файлов-игры-учебный-остров)

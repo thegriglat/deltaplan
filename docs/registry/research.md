@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-15"
+updated: "2026-10-16"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -19,6 +19,9 @@ generated: true
 - [docs/perf/frame_profile/proposals.md](../perf/frame_profile/proposals.md) — Ранжированные предложения по ускорению кадра и грубая оценка для RX 5600 XT + Ryzen 5 4500 (оценка, не замер)
 - [docs/perf/frame_profile/render-settings.md](../perf/frame_profile/render-settings.md) — Проверка настроек рендера Godot: пресеты, шейдер рельефа, почему assets/shaders весит 23 МБ
 - [docs/perf/frame_profile.md](../perf/frame_profile.md) — GPU-кадр на medium/high на 56–93 % — облака (compute-raymarch в CompositorEffect), цена ∝ числу пикселей буфера облаков; без облаков кадр medium 5–6 мс, из них трава 2 мс (36 %), рельеф 1,6 мс. Рывки… (data: docs/perf/data/pf1_run1.tar.gz («до») и docs/perf/data/pf10_run1.tar.gz («после…; applied_in: PF-4, PF-5, PF-7, PF-8, PF-9, PF-11, PF-12 (ветка feature/perf); итоговый замер…)
+- [docs/perf/grass_rocks.md](../perf/grass_rocks.md) — Замеры цены травы и камней модуля grass-rocks по протоколу G3: база (GR-2) и после каждой правки, medium и high, ongudai.
+- [docs/perf/grass_rocks_2.md](../perf/grass_rocks_2.md) — Продолжение замеров grass-rocks: GR-22, режим angle против shell (G3, medium и high, ongudai), кадры angle/ и final/9.
+- [docs/perf/offscreen_audit.md](../perf/offscreen_audit.md) — Рамки (custom_aabb) почти всех шейдерных MultiMesh — на весь слой рельефа или круг вокруг камеры, поэтому движок не отсекает ни одного экземпляра, и вершинный шейдер идёт по всему кольцу: в кадре ≤ 3… (data: расчёты в этом документе (команды воспроизведения — раздел «Как считали»); сыры…; applied_in: [])
 - [docs/research/air-model-sensitivity/conclusions.md](../research/air-model-sensitivity/conclusions.md) — Модель не жёсткая; перекалибровать Askervein по (λ/h, α, z0) с профилем RS, λ — по следу за гребнем; Pr_t, τ выхолаживания — правки схемы
 - [docs/research/air-model-sensitivity/figures-reproduction.md](../research/air-model-sensitivity/figures-reproduction.md) — Список картинок и таблиц tools/research/morris/out, команды воспроизведения (5,3 ч GPU, SALib), источники
 - [docs/research/air-model-sensitivity/method-factors.md](../research/air-model-sensitivity/method-factors.md) — Метод Морриса (12 траекторий × 17 точек), 16 факторов с диапазонами и обоснованием границ, 6 случаев, наблюдаемые и пороги (applied_in: tools/research/morris/)
@@ -88,6 +91,7 @@ generated: true
 - [docs/research/slope_wind/thermals-network.md](../research/slope_wind/thermals-network.md) — Ветер не видит термики и облака; ложная турбулентность mean_wind_at; ветер постоянен на полёт; GPU не мешает сети (физика на клиенте)
 - [docs/research/slope_wind.md](../research/slope_wind.md) — Эвристика склона расходилась с жизнью по трём пунктам: нет разгона на бровке, полоса подъёма фиксирована 250 м, «труба» в седловине работает наоборот. Предложены варианты A–D; выбран путь через поле … (applied_in: docs/guide/air-model.md: среднее поле воздуха (решение Пикара, air_model.enable…)
 - [docs/research/sounds.md](../research/sounds.md) — Звук: ассеты и процедурный синтез (FR-28, FR-29) — Итог: 51 файл, 8,2 МБ в assets/sounds/ (ориентир был ≤ 30 МБ).
+- [docs/research/speed-feel.md](../research/speed-feel.md) — (1) load.jitter при той же σ порывов растёт быстрее V (показатель 1,2–1,5, при 2·V_трим в 2,0–3,1 раза): скорость уже в физике, умножать тряску на V/V_трим второй раз нельзя (правило ≥1,5), частота в… (data: tools/research/speed-feel/ (jitter_theta.gd, theta_view.py, flutter_wires.py, o…; applied_in: SPF-2, SPF-3, SPF-4, SPF-5)
 - [docs/research/steam_godotsteam.md](../research/steam_godotsteam.md) — Берём GDExtension 4.22.1 (MIT, Steamworks 1.65); одна кодовая база, расширение подключается только в пресете с меткой steam, itch-сборка без аддона; Cloud — Auto-Cloud на 4 файла user://; всё в GDScr… (data: tools/research/steam/; applied_in: scripts/steam/steam_service.gd, пресеты «* Steam» (export_presets.cfg), steam/p…)
 - [docs/research/steam_license_audit.md](../research/steam_license_audit.md) — В сборке нет материалов с NC/«личным использованием» (проверено по первоисточникам). 100 файлов сборки без строки ASSETS.md (в основном 87 файлов крыльев, model.onnx, ONNX Runtime, VC++ runtime, движ… (data: tools/research/steam_license/; applied_in: частично: ASSETS.md (правило, раздел «Движок и библиотеки»), licenses/, tools/r…)
 - [docs/research/steam_tile_policy.md](../research/steam_tile_policy.md) — Подложку не меняем. Критичны: User-Agent с «non-commercial» (для платной игры неверен, контакта нет) и повторные запросы упавших тайлов при каждой перерисовке. Список правок — ниже, код в этой задаче… (applied_in: SA-8: configs/world.json (map_picker: user_agent с {version}, retry_after_s, bl…)
@@ -162,6 +166,7 @@ generated: true
 - [tools/research/qol_load/README.md](../../tools/research/qol_load/README.md) — не сделан; частичные числа в table.csv (data: table.csv, table.json, logs/; applied_in: не применено)
 - [tools/research/qol_signs/README.md](../../tools/research/qol_signs/README.md) — Птицы есть всегда (3 стаи, 8–13 птиц), но на дальности 1,1 км (медиана) модель 1,6 м даёт ~1,4 px; ≥ 2 px — 11–24 % птице-секунд, ≥ 5 px — 0–1,5 %. Главная причина — размер/дальность, не отсутствие т… (data: локально, не в git: tools/research/qol_signs/out/ (воспроизводится скриптами))
 - [tools/research/recal/README.md](../../tools/research/recal/README.md) — Перекалибровка Askervein по (λ/h, α, z0) с профилем мачты RS: сетка 495 прогонов, подгонка χ² iminuit (data: tools/research/recal/)
+- [tools/research/speed-feel/README.md](../../tools/research/speed-feel/README.md) — Итог и выводы — docs/research/speed-feel.md; здесь только код, данные и команды воспроизведения. (data: out/jitter.json, out/jitter_ratio.csv, out/theta_view.json, out/flutter_wires.j…; applied_in: SPF-2, SPF-3, SPF-4, SPF-5)
 - [tools/research/steam/README.md](../../tools/research/steam/README.md) — см. docs/research/steam_godotsteam.md (data: tools/research/steam/; applied_in: —)
 - [tools/research/steam_license/README.md](../../tools/research/steam_license/README.md) — Команды воспроизведения аудита лицензий сборки SA-1: настоящий экспорт, разбор PCK, сверка с эмуляцией, сводки. (data: tools/research/steam_license/)
 - [tools/research/surface_heat/README.md](../../tools/research/surface_heat/README.md) — SH-3: инструмент замера до/после (контракт SH5) — H поля, источники термиков, потолок, подъём на склоне, вода; прогон «до» (data: tools/research/surface_heat/out/)
