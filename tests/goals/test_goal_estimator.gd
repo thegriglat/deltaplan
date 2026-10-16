@@ -86,19 +86,52 @@ func test_monotonic() -> void:
 	check(bad == 0, "монотонность, нарушений %d" % bad)
 
 
-func test_honesty_weak_weather() -> void:
-	# Пасмурно и слабо — трудная высота выше базы облаков (недостижима).
-	for wx in [_wx(0.5, 800.0, 6.0), _wx(1.0, 1500.0, 6.0), _wx(0.8, 2400.0, 4.0)]:
-		var h := GoalEstimator.suggest("height", "hard", wx)
-		check(h > float(wx.cloudbase_agl_m), "hard height %s > база %s" % [h, wx.cloudbase_agl_m])
+func _ongudai(temp: float, wind_kmh: float, sky: String) -> Dictionary:
 	var s := FlightSettings.defaults()
 	s.location_id = "ongudai"
-	s.sky = "overcast"
-	var wx := GoalEstimator.weather_for(s)
-	check(
-		GoalEstimator.suggest("height", "hard", wx) > float(wx.cloudbase_agl_m),
-		"пасмурно на Онгудае: hard height > база %s" % wx
-	)
+	s.month = 7
+	s.day = 15
+	s.start_hour = 13.0
+	s.temperature_c = temp
+	s.wind_speed_kmh = wind_kmh
+	s.sky = sky
+	return GoalEstimator.weather_for(s)
+
+
+func _avail(wx: Dictionary) -> float:
+	var hc: Dictionary = Config.get_config("goals/estimate").height
+	return float(wx.cloudbase_agl_m) - float(hc.start_above_mean_m)
+
+
+## GL-К2 v2: в слабую/пасмурную погоду пороги уровней больше доступного — трудное недостижимо.
+func test_honesty_weak_weather() -> void:
+	var c := Config.get_config("goals/estimate")
+	for wx in [_wx(0.5, 800.0, 6.0), _wx(1.0, 1200.0, 6.0), _wx(0.8, 1300.0, 4.0)]:
+		var h := GoalEstimator.suggest("height", "hard", wx)
+		check(h > _avail(wx), "hard height %s > запас до базы %s" % [h, _avail(wx)])
+	var wx := _ongudai(22.0, 10.0, "overcast")
+	var h := GoalEstimator.suggest("height", "hard", wx)
+	check(h > _avail(wx), "пасмурно на Онгудае: hard height %s > запас %s (%s)" % [h, _avail(wx), wx])
+	# Маршрутные и время — порог уровня, а не погода (погода даёт меньше).
+	var keys := {"distance": "floor_m", "return": "floor_m", "triangle": "floor_m", "duration": "floor_s"}
+	for k in keys:
+		var floor_hard := float(c[k][keys[k]].hard)
+		approx(GoalEstimator.suggest(k, "hard", wx), floor_hard, 1e-6, "пасмурно: %s.hard = порог" % k)
+
+
+## GL-К2 v2: в «ясно, сильные» трудное достижимо без облака и задаётся погодой, а не порогом.
+func test_good_weather_reachable() -> void:
+	var c := Config.get_config("goals/estimate")
+	var wx := _ongudai(30.0, 5.0, "clear")
+	var h := GoalEstimator.suggest("height", "hard", wx)
+	check(h <= _avail(wx), "ясно: hard height %s ≤ запас до базы %s" % [h, _avail(wx)])
+	check(h > float(c.height.floor_m.hard), "ясно: hard height по погоде, не порог")
+	var keys := {"distance": "floor_m", "triangle": "floor_m", "duration": "floor_s"}
+	for k in keys:
+		check(
+			GoalEstimator.suggest(k, "hard", wx) > float(c[k][keys[k]].hard),
+			"ясно: %s.hard выше порога" % k
+		)
 
 
 func test_rules() -> void:

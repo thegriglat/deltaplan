@@ -106,20 +106,20 @@ static func _levels(kind: String, wx: Dictionary, route_m: float) -> Dictionary:
 	var xc_s := t_h * 3600.0 * stay
 	match kind:
 		"height":
-			return _ladder(kc, b, kc.round_m, kc.min_m)
+			return _ladder(kc, b - float(kc.start_above_mean_m), kc.round_m, kc.floor_m)
 		"duration":
 			var q_min := float(kc.q_min)
 			var q := q_min + (1.0 - q_min) * minf(climb / float(kc.full_climb_ms), 1.0)
-			return _ladder(kc, t_h * 3600.0 * q, kc.round_s, kc.min_s)
+			return _ladder(kc, t_h * 3600.0 * q, kc.round_s, kc.floor_s)
 		"distance":
 			var a := minf((v_air + wind) * xc_s, float(kc.max_m))
-			return _ladder(kc, a, kc.round_m, kc.min_m)
+			return _ladder(kc, a, kc.round_m, kc.floor_m)
 		"return":
 			var a := minf(_closed_speed(v_air, wind, kc) * xc_s * 0.5, float(kc.max_m))
-			return _ladder(kc, a, kc.round_m, kc.min_m)
+			return _ladder(kc, a, kc.round_m, kc.floor_m)
 		"triangle":
 			var a := minf(_closed_speed(v_air, wind, kc) * xc_s, float(kc.max_m))
-			return _ladder(kc, a, kc.round_m, kc.min_m)
+			return _ladder(kc, a, kc.round_m, kc.floor_m)
 		"speed":
 			if route_m <= 0.0:
 				return zero
@@ -171,13 +171,12 @@ static func _round(x: float, step: float) -> float:
 	return roundf(x / step) * step
 
 
-## Уровни frac × a + add, округление, нижние границы, строго easy < medium < hard (шаг).
+## Уровни frac × a, округление, нижние пороги уровней, строго easy < medium < hard (шаг).
 static func _ladder(kc: Dictionary, a: float, step_v: Variant, mins: Dictionary) -> Dictionary:
 	var step := float(step_v)
-	var add: Dictionary = kc.get("add_m", {})
 	var out := {}
 	for lv in LEVELS:
-		var x := float(kc.frac[lv]) * a + float(add.get(lv, 0.0))
+		var x := float(kc.frac[lv]) * maxf(a, 0.0)
 		out[lv] = maxf(_round(x, step), float(mins[lv]))
 	out.medium = maxf(out.medium, out.easy + step)
 	out.hard = maxf(out.hard, out.medium + step)
