@@ -1,0 +1,11 @@
+{
+  "module": "fast-load",
+  "plan": "docs/plan/fast-load.md",
+  "contracts": "docs/contracts/fast-load.md",
+  "branch": "feature/fast-load",
+  "copy": "~/deltaplan-fast-load",
+  "created": "2026-10-17T02:45:07",
+  "code": "FL",
+  "area": "perf",
+  "base": "main"
+}
