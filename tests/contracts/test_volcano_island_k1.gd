@@ -1,7 +1,7 @@
 extends TestCase
 ## Контракт VI-К1, часть «данные» (docs/contracts/volcano-island.md): встроенное место volcano_island —
 ## папка формата 4 в res://data/locations/volcano_island/ (реальные данные, собраны обычным сборщиком) и конфиг
-## configs/locations/volcano_island.json. Части «код» (is_training_only, osm_root) — VI-2.
+## configs/locations/volcano_island.json. Часть «код» (is_training_only, osm_root, OSM из папки) — ниже (VI-2).
 
 const ID := "volcano_island"
 const DIR := "res://data/locations/volcano_island"
@@ -185,3 +185,41 @@ func test_volcano_island_git_files() -> void:
 	check(lines.size() > 10, "в git есть файлы места (%d)" % lines.size())
 	for f: String in lines:
 		check(not f.ends_with(".import") and not f.ends_with(".remap") and not f.ends_with("location.json"), "в git нет служебного: %s" % f)
+
+
+## Часть «код» (VI-2): training_only, builtin_at, каталог, корень тайлов OSM, last_flight.
+func test_volcano_island_training_only_code() -> void:
+	check(Locations.is_training_only(ID), "volcano_island: training_only")
+	check(not Locations.is_training_only("training_island"), "training_island: не training_only")
+	check(not Locations.is_training_only("altai") and not Locations.is_training_only("nope"), "altai/неизвестное: не training_only")
+	check(Locations.builtin_at(-27.12, -109.35) == "", "builtin_at над островом — пусто")
+	check(Locations.builtin_at(-27.1, -109.35) == "", "builtin_at в центре острова — пусто")
+	var cat: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/places/hg_takeoffs.json"))
+	var n := 0
+	for t: Dictionary in (cat as Dictionary).get("takeoffs", []):
+		n += 1 if String(t.get("location", "")) == ID else 0
+	check(n == 0, "в каталоге «Популярные места» острова нет (%d)" % n)
+	# last_flight с таким местом — место по умолчанию
+	var dir := OS.get_cache_dir().path_join("dp_vi2_last")
+	DirAccess.make_dir_recursive_absolute(dir)
+	var path := dir.path_join("last_flight.json")
+	var s := FlightSettings.defaults()
+	s.location_id = ID
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(JSON.stringify(s.to_dict()))
+	f.close()
+	var back := UserSettings.load_last_flight(path)
+	check(back.location_id == FlightSettings.defaults().location_id, "last_flight с volcano_island → место по умолчанию (%s)" % back.location_id)
+	DirAccess.remove_absolute(path)
+	DirAccess.remove_absolute(dir)
+
+
+func test_volcano_island_osm_from_place_dir() -> void:
+	check(Locations.osm_root(ID) == DIR + "/osm", "osm_root острова = папка места/osm (%s)" % Locations.osm_root(ID))
+	check(Locations.osm_root("training_island") == "res://data/locations/training_island/osm", "osm_root training_island — в его папке")
+	check(Locations.osm_root("altai") == OsmTilesStage.cache_root(), "osm_root небандл-места — кеш тайлов")
+	var cfg := Locations.config(ID)
+	var d := OsmData.load_for(DIR, float(cfg.center_lat), float(cfg.center_lon), 20000.0, Locations.osm_root(ID))
+	check(d.tiles_missing == 0, "тайлы острова все прочитаны (нет missing: %d)" % d.tiles_missing)
+	check(d.tiles_ok >= 1, "тайлов найдено: %d" % d.tiles_ok)
+	check(not d.is_empty(), "OsmData острова не пуст (дороги/дома из тайлов папки)")

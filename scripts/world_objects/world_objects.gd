@@ -156,7 +156,7 @@ func _build_osm(loc_id: String, center: Vector2, height_fn: Callable) -> void:
 	var lc: Dictionary = Locations.config(loc_id)
 	var clat := float(lc.get("center_lat", center.x))
 	var clon := float(lc.get("center_lon", center.y))
-	osm = OsmData.load_for(Locations.data_dir(loc_id), clat, clon, float(ocfg.get("half_m", 20000.0)))
+	osm = OsmData.load_for(Locations.data_dir(loc_id), clat, clon, float(ocfg.get("half_m", 20000.0)), Locations.osm_root(loc_id))
 	if osm.is_empty():
 		return
 	osm_layer = OsmLayer.new()
