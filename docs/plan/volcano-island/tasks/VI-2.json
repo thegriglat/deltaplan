@@ -1,0 +1,77 @@
+{
+  "id": "VI-2",
+  "module": "volcano-island",
+  "type": "dp-engineer",
+  "title": "«Только для тренировки» и тайлы OSM из папки bundled-места",
+  "goal": "Код VI-К1: training_only — место только из «Тренировки» (нет в builtin_at, каталоге «Популярные места», списках мест меню полёта; последний полёт с ним в меню полёта — место по умолчанию); OSM bundled-места — из data_dir/osm без сети и user://osm_tiles; файлы osm/ в экспорте; тесты мест под новое место.",
+  "plan_ref": "VI-2. «Только для тренировки» и OSM из папки места",
+  "contracts": [
+    {
+      "name": "VI-К1",
+      "version": "1",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "TI-К1",
+      "version": "1",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-2",
+  "branch": "volcano-island/VI-2",
+  "base": "feature/volcano-island",
+  "scope": [
+    "scripts/terrain/build/locations.gd",
+    "scripts/world_objects/",
+    "scripts/terrain/terrain.gd",
+    "scripts/ui/",
+    "scripts/game/",
+    "tools/places/add_builtin_places.py",
+    "data/places/hg_takeoffs.json",
+    "export_presets.cfg",
+    "tests/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/",
+    "data/locations/",
+    "configs/locations/",
+    "configs/training.json",
+    "scripts/ui/training_menu.gd",
+    "scripts/ui/start_menu.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "volcano_island",
+      "tests": "volcano_island"
+    },
+    {
+      "name": "locations",
+      "tests": "locations"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "popular_places",
+      "tests": "popular_places"
+    },
+    {
+      "name": "osm",
+      "tests": "osm"
+    },
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "catalog",
+      "cmd": "python3 -c \"import json;print(sum(t.get('location')=='volcano_island' for t in json.load(open('data/places/hg_takeoffs.json'))['takeoffs']))\"",
+      "expect": "num:(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T04:02:17"
+}
