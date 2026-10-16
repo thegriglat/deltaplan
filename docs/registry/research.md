@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-16"
+updated: "2026-10-17"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -111,6 +111,7 @@ generated: true
 - [docs/research/terrain_statistics.md](../research/terrain_statistics.md) — Сумма форм (гребни, пупыри) описывает крупную структуру (30 форм — 92–96 % дисперсии на 400 м), но даёт в 3–7 раз меньше вершин и слишком гладкие склоны. Fastscape (SPL + диффузия + тепловая эрозия, … (data: tools/research/air_synth/terrain_stats/out/ (stats_tables.md, compare_tables.md…; applied_in: в игре напрямую нет; вход генератора корпуса fs1 (tools/research/air_synth/corp…)
 - [docs/research/terrain_tuning.md](../research/terrain_tuning.md) — Попытка 2 (пределы k0 5e-7, fourier_amp 1,5, tan_crit 0,35; T = 8 млн лет не настраивается; 160 точек × 4 зерна, 3,8 ядро-часа): медиана χ²/ndf 1,47 против 1,79 в попытке 1 (T свободно, прежние преде… (data: tools/research/air_synth/tune/out/ (ref_obs.json, ref_obs_pool.json, design.jso…; applied_in: не применено: облако θ — вход корпуса air-synth (run_corpus.py --theta-cloud ou…)
 - [docs/research/thermals.md](../research/thermals.md) — Термик — профиль Gedeon с радиусом по Allen (∝ξ^⅓), наклон ветром, распад снизу; склон и ротор — по градиенту рельефа; детерминированно.
+- [docs/research/training_island_air.md](../research/training_island_air.md) — Погодой набора без правки глобальных параметров выходит всё: склон 6 м/с — w +1,83 м/с (5 м/с — +1,41, 8 м/с — +2,52, подъём во всех 153 точках); термики 15 июля, 12 ч, переменная облачность, 25 °C —… (data: tools/terrain/island/out/air_check.json (итог), out/check_*.json (сырые), кадры…; applied_in: configs/locations/training_island.json → start_sites[].weather (источник — tool…)
 - [docs/research/vario_sounds.md](../research/vario_sounds.md) — Тембр — меандр до 11-й гармоники + резонанс 3,2 кГц (Q 4, +9 дБ), фронты 2–3 мс, частота 44,1 кГц. (data: нет; applied_in: configs/audio.json (пресет classic_90s, по умолчанию), scripts/audio/vario_audi…)
 - [docs/research/visual_cues.md](../research/visual_cues.md) — Визуальные признаки для пилота: что должно быть видно в симуляторе — Исследование к FR-14a, FR-19, FR-20, FR-21, FR-22, FR-26.
 - [docs/research/wing_sources.md](../research/wing_sources.md) — Источники по моделям дельтапланов — Где искать внешний вид и характеристики крыльев (для линейки — docs/archive/plan/wings-lineup.md).

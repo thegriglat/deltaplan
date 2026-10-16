@@ -1,0 +1,41 @@
+{
+  "status": "partial",
+  "summary": "Написан docs/guide/goals.md (виды целей, оценка, засчёт, список, прибор, столбы, итог, треки, IGC/GPX, границы), правки tasks.md и instruments.md, страницы сайта ru/en, TODO (T-54, T-55, T-57, T-58 закрыты; T-56, T-59 сокращены), CHANGELOG «В работе», строка в findings.",
+  "commits": [
+    "b5e93700 GL-13: документация целей и треков"
+  ],
+  "checks": [
+    {
+      "name": "docs check",
+      "value": "0 ошибок",
+      "pass": true
+    },
+    {
+      "name": "hugo --minify",
+      "value": "без ошибок",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "План 04 не перенесён в архив: docs/plan/goals.md (вне скоупа) ссылается на него в related, перенос ломает docs check. 04 помечен superseded с указателем на goals.md; после правки related в плане — git mv в docs/archive/plan/game и строка в docs/archive/moves.tsv"
+  ],
+  "questions": [
+    "Контракт К6 v2 даёт dead_band 0,3 и climb/sink_full 3,0, а configs/goals/track.json в ветке пока 0,5 и 3,5; в документах числа не приведены, только ссылка на track.json. Проверить при слиянии GL-14/15."
+  ],
+  "how_to_check": ".dpcli/dpcli accept GL-13",
+  "uncertain": [
+    {
+      "where": "docs/guide/goals.md: раздел Треки",
+      "why": "дата и время IGC описаны по track_io.write_igc и last_track_store.save (системная дата, 12:00); контракт говорит про дату из FlightSettings",
+      "checked": "прочитан код write_igc и LastTrackStore.save"
+    }
+  ],
+  "dp_feedback": "docs index переписывает чужие реестры (contracts.md, research.md) вне скоупа карточки — пришлось откатывать git checkout; limit findings.md 40 КБ почти исчерпан.",
+  "t": "2026-10-17T00:05:31",
+  "by": "executor"
+}

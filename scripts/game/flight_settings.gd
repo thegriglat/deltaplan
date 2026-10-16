@@ -39,6 +39,12 @@ var day: int = 15
 ## Настройки «Аппарат» (PD-К3 v2): {wing_id: {ключ: значение}} — только то, что пилот менял.
 ## Полный набор ключей для модели — resolved_apparatus(wing_id).
 var apparatus: Dictionary = {}
+## Цели полёта (GL-К1): [GoalSpec-словарь]; пусто — полёт без целей.
+var goals: Array = []
+## Показать след прошлой попытки на этом месте (GL-К1).
+var show_last_track: bool = false
+## Загруженные IGC/GPX (GL-К1), абсолютные пути.
+var track_paths: PackedStringArray = []
 
 ## Ключи PD-К3: [мин, макс, шаг, запасное умолчание] (docs/contracts/pendulum.md).
 const APPARATUS_SPEC := {
@@ -199,6 +205,9 @@ func to_dict() -> Dictionary:
 		"month": month,
 		"day": day,
 		"apparatus": apparatus.duplicate(true),
+		"goals": goals.duplicate(true),
+		"show_last_track": show_last_track,
+		"track_paths": Array(track_paths),
 	}
 
 
@@ -226,6 +235,18 @@ static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSetti
 	s.start_hour = float(d.get("start_hour", s.start_hour))
 	s.month = int(d.get("month", s.month))
 	s.day = int(d.get("day", s.day))
+	var gl: Variant = d.get("goals")
+	if gl is Array:
+		s.goals = []
+		for g: Variant in gl:
+			if g is Dictionary:
+				s.goals.append((g as Dictionary).duplicate(true))
+	s.show_last_track = bool(d.get("show_last_track", s.show_last_track))
+	var tp: Variant = d.get("track_paths")
+	if tp is Array or tp is PackedStringArray:
+		s.track_paths = PackedStringArray()
+		for p: Variant in tp:
+			s.track_paths.append(String(p))
 	var ap: Variant = d.get("apparatus")
 	if ap is Dictionary:
 		s.apparatus = {}

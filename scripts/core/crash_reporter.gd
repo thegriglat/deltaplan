@@ -101,10 +101,14 @@ func note_setting(key: String, value: Variant) -> void:
 		_write()
 
 
+## Смена стадии: строка в лог со сбросом на диск (CrashReport.log_stage_line) и снимок
+## времени/памяти в метку — по ним видно, на чём и в каком состоянии оборвалась игра.
 func note_stage(stage: String) -> void:
 	if _active and _lock.get("stage", "") != stage:
 		_lock["stage"] = stage
 		_lock["vram"] = CrashReport.vram_text()
+		_lock.merge(CrashReport.stage_snapshot(), true)
+		CrashReport.log_stage_line(stage, _lock)
 		_write()
 
 

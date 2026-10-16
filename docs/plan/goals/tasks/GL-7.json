@@ -1,0 +1,63 @@
+{
+  "id": "GL-7",
+  "module": "goals",
+  "type": "dp-engineer",
+  "title": "Трек: FlightTrack, IGC, след прошлой попытки (библиотека)",
+  "goal": "FlightTrack, TrackIO (IGC чтение/запись), LastTrackStore (одна попытка на место) и TrackRecorder по контракту GL-К5 v2 — библиотека с тестами, без подключения к игре.",
+  "plan_ref": "GL-7",
+  "contracts": [
+    {
+      "name": "GL-К5",
+      "version": "2",
+      "ref": "docs/contracts/goals.md"
+    }
+  ],
+  "copy": "~/deltaplan-goals-GL-7",
+  "branch": "goals/GL-7",
+  "base": "feature/goals",
+  "scope": [
+    "scripts/goals/flight_track.gd",
+    "scripts/goals/flight_track.gd.uid",
+    "scripts/goals/track_io.gd",
+    "scripts/goals/track_io.gd.uid",
+    "scripts/goals/last_track_store.gd",
+    "scripts/goals/last_track_store.gd.uid",
+    "scripts/goals/track_recorder.gd",
+    "scripts/goals/track_recorder.gd.uid",
+    "tests/goals/test_flight_track.gd",
+    "tests/goals/test_flight_track.gd.uid",
+    "tests/goals/test_track_io.gd",
+    "tests/goals/test_track_io.gd.uid",
+    "tests/goals/data",
+    "tests/contracts/test_goals_k5.gd"
+  ],
+  "dont_touch": [
+    "scripts/game",
+    "scripts/ui",
+    "scripts/goals/goal_tracker.gd",
+    "scripts/goals/goal_spec.gd",
+    "docs/contracts/goals.md"
+  ],
+  "accept": [
+    {
+      "name": "test_flight_track",
+      "tests": "test_flight_track"
+    },
+    {
+      "name": "test_track_io",
+      "tests": "test_track_io"
+    },
+    {
+      "name": "test_goals_k5",
+      "tests": "test_goals_k5"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/goals/flight_track.gd scripts/goals/track_io.gd scripts/goals/last_track_store.gd scripts/goals/track_recorder.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T21:39:37"
+}
