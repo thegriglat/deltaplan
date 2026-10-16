@@ -34,7 +34,7 @@ for i in $(seq 1 "$n"); do
   f=$L/${tag}_${pl}_$i.log
   ac=none
   shopt -s nullglob
-  dirs=("$X"/godot/app_userdata/*/air_cache)
+  dirs=("$X/Deltaplan/air_cache")  # проект: use_custom_user_dir, имя Deltaplan
   shopt -u nullglob
   if [ "$mode" = clear ]; then rm -rf "${dirs[@]}"; ac=miss
   elif [ "$mode" = keep ]; then
