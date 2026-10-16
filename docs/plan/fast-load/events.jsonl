@@ -36,3 +36,4 @@
 {"t": "2026-10-17T03:19:56", "by": "coordinator", "task": null, "ev": "plan", "note": "план Волна 3: замена «После всех правок модели…»"}
 {"t": "2026-10-17T03:32:42", "by": "coordinator", "task": "FL-3", "ev": "checked", "commits": ["341db6d2"], "note": "0/2 sea=FAIL:таймаут; test_locations=FAIL:таймаут"}
 {"t": "2026-10-17T03:32:42", "by": "coordinator", "task": "FL-3", "ev": "merged"}
+{"t": "2026-10-17T03:32:56", "by": "coordinator", "task": "FL-7", "ev": "started"}
