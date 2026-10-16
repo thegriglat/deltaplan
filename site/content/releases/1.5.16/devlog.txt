@@ -1,0 +1,13 @@
+Deltaplan 1.5.16 — new grass and speed feel
+
+Grass is back to volumetric blades up close. On mid range it now draws as blade cards when you look along a gentle slope and as layers on steep ground, blending smoothly between them. The far ring is gone, so grass costs less per frame.
+
+Rocks are convex polyhedra with fewer faces, and the Pendulum roll mode is now the default.
+
+- Grass: close blades, cards on gentle slopes, layers on steep ground; far ring removed, about 0.2-0.3 ms cheaper where grass is visible
+- Rocks: convex low-poly shapes, triplanar surface detail
+- Pendulum is the default roll mode and the first in settings
+- Turbulence shakes the cockpit more often as airspeed grows
+- Tether ribbon flutters more with speed
+- Tether whistle is synthesized from airspeed
+- The head follows the wing pitch by 0.3 with a short lag
