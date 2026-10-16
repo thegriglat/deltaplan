@@ -1,0 +1,176 @@
+{
+  "status": "done",
+  "summary": "Учебный остров 14,8 × 9,8 км (суша 117 км²) собирается детерминированно (fs1 100 м → 25 м, карта классов 25 м + маски 10 м процедурно) в data/locations/training_island (формат 4, TI-К1) с конфигом configs/locations/training_island.json: старты ridge_west, thermal_plain, landing_hill, lee_bowl, посадки landing_target и plain_field; имена в locale/ui.csv, площадки в world_objects.json, контрактный тест TI-К1. Место грузится из кеша профиля без сети (16 с), сделано 7 кадров, быстрая проверка воздуха на поле GPU: склон w = +1,55 м/с, ротор — обратный ветер до −1,7 м/с.",
+  "commits": [
+    "07a13ca6 TI-1: учебный остров — рельеф fs1 и карта классов, место формата 4, конфиг, контрактный тест TI-К1, проверка воздуха",
+    "bbd9a478 Слияние feature/training-island в training-island/TI-1"
+  ],
+  "checks": [
+    {
+      "name": "training_island",
+      "value": "22/22",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "5/6: test_code_keys_exist_and_are_not_russian — ключи с динамическим префиксом в scripts/ (launch_fail_, setup_app_, start_pick_bad_, setup_sky_ из TI-3); было и до TI-1, scripts/ вне скоупа",
+      "pass": false
+    },
+    {
+      "name": "determinism",
+      "value": "12 файлов + конфиг совпали побитно",
+      "pass": true
+    },
+    {
+      "name": "sites",
+      "value": "4 старта: уклоны 15,3/15,3/11,0/15,0°, по курсу −15…−19 м за 60 м; посадки 1,4° и 0,1°; центр 49,4 м, пашня",
+      "pass": true
+    },
+    {
+      "name": "air_quick",
+      "value": "ridge_w_ms=1.545, rotor_w_min_ms=-2.017, rotor_reverse=0.286, thermal_w_fields_ms=-0.035 (p90 0.249), thermal_w_water_ms=-0.053 (p90 0.004)",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "7 jpg",
+      "pass": true
+    },
+    {
+      "name": "место грузится в игре (terrain_preview, кеш профиля)",
+      "value": "16,3 с, без сети",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tests/ui/test_menu_setup.gd::test_flight_setup_lists_all_locations падает (число мест +1) — tests/ui в «не трогать»; поправить там, где разрешено (TI-2 или координатор)",
+    "ASSETS.md не трогал (вне скоупа): внешних данных нет, всё синтетическое; лицензии библиотек — в README"
+  ],
+  "questions": [
+    "Старт lee_bowl: ветер меню задаётся «на старте» (AirRuntime подгоняет приток под u10 над стартом); в роторе приток упирается в INFLOW_K_MAX = 3 — над чашей 20–28 м/с, w до −5,3, два прогона дали обратный ветер 29 % и 0,7 %. Нужна калибровка по наветренной точке для этого старта (TI-5 / воздух) — иначе ротор нефизичен.",
+    "Контраст нагрева: источник термиков у пашни 0,56 ниже луга 0,60 (голый грунт 0,70) — пашня термиков не даёт; решать на шлюзе вопрос «тёмной пашни» или опираться на bare.",
+    "Отдельный малый рельеф не нужен: склон, ротор и термики вышли на одном острове."
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-1/00_top.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-1/01_ridge_west.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-1/02_thermal_plain.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-1/03_landing_hill.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-1/04_lee_bowl.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-1/05_lee_bowl_back.jpg",
+    "/home/greg/deltaplan/build/screenshots/training-island/TI-1/06_landing_target.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TI-1; подробности и команды — tools/terrain/island/README.md",
+  "uncertain": [
+    {
+      "where": "tools/terrain/island/island_gen.py:P (uplift_max 1.6e-4, k_logsd 0.5)",
+      "why": "θ Онгудая (uplift 4,4e-4, k_logsd 1,6) давали хребет 1,5 км и случайные участки равнины до 600 м; взял меньше, итог ×0,592 под вершину 500 м — абсолютные высоты по плану, не равновесие θ",
+      "checked": "профили и высоты форм после fs1; эрозионный рисунок от расчёта"
+    },
+    {
+      "where": "tools/terrain/island/air_quick.py thermal",
+      "why": "решатель в наборе термиков not_converged = true; средние w_conv по площади ≈ 0 по определению, поэтому смотрел p90 и долю подъёмов (суша 59 % против воды 10 %)",
+      "checked": "один прогон; ridge и rotor (калибровка на ridge_west) повторились одинаково в двух прогонах"
+    },
+    {
+      "where": "tools/terrain/island/README.md, проверка воздуха",
+      "why": "главный ротор посчитан с ветром «на старте» ridge_west (приток k 0,94), а не со старта lee_bowl, как будет в игре",
+      "checked": "оба варианта в out/air_quick.json (rotor, rotor_lee)"
+    },
+    {
+      "where": "data/locations/training_island/*.webp",
+      "why": "Godot импортирует .webp как текстуры (.import рядом) — в git не идут (.gitignore в папке); экспорт — TI-2",
+      "checked": "verify.sh пропускает *.import"
+    }
+  ],
+  "dp_feedback": "Карточка ждёт language → 0 упало, но test_code_keys падает на динамических ключах в scripts/ (вне скоупа) — проверка не зависит от исполнителя. После task sync accept дал «не загрузился» для чужих тестов, пока не сделан godot --import — accept мог бы делать import сам или подсказывать это.",
+  "extra": {
+    "island": {
+      "land_km2": 117.5,
+      "x_km": [
+        -6.8,
+        8.0
+      ],
+      "z_km": [
+        -5.1,
+        4.7
+      ],
+      "max_h_m": 503.5,
+      "fs1_scale": 0.592,
+      "lake_level_m": 53.6,
+      "land_fractions": {
+        "crop": 0.382,
+        "grass": 0.322,
+        "forest": 0.195,
+        "bare": 0.101
+      }
+    },
+    "sites": {
+      "ridge_west": [
+        -5030,
+        -670,
+        455.1,
+        270
+      ],
+      "thermal_plain": [
+        -3620,
+        3510,
+        187.7,
+        180
+      ],
+      "landing_hill": [
+        3510,
+        -1510,
+        126.6,
+        270
+      ],
+      "lee_bowl": [
+        -3180,
+        -740,
+        146.9,
+        270
+      ],
+      "landing_target": [
+        2235,
+        -1560,
+        25.4
+      ],
+      "plain_field": [
+        -2875,
+        700,
+        35.4
+      ]
+    },
+    "ridge_w_table_ms": {
+      "300m_up/50m_above": 2.04,
+      "200m_up/100m_above": 1.67,
+      "100m_up/150m_above": 0.98
+    },
+    "rotor_ground_30m": {
+      "750m_down": {
+        "u_east": -0.99,
+        "w": 0.22
+      },
+      "1000m_down": {
+        "u_east": -1.21,
+        "w": 0.15
+      },
+      "1250m_down": {
+        "u_east": -0.59,
+        "w": -0.38
+      }
+    },
+    "thermal_src": {
+      "bare": 0.698,
+      "grass": 0.595,
+      "crop": 0.556,
+      "forest": 0.719,
+      "water": 0.0
+    },
+    "build_s": 18,
+    "load_s": 16.3,
+    "data_size_kb": 248
+  },
+  "t": "2026-10-16T22:26:27",
+  "by": "executor"
+}

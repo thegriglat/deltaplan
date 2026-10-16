@@ -1,0 +1,27 @@
+{
+  "status": "done",
+  "summary": "Строка training-island сокращена; файл 40746 Б (<=40750). Ссылка путь#раздел оставлена целиком, поэтому строка ~280 Б, не 250.",
+  "commits": [
+    "0cf8b38e Findings: запись training-island сокращена до одной короткой строки"
+  ],
+  "checks": [
+    {
+      "name": "size",
+      "value": "40746",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TI-6c",
+  "uncertain": [],
+  "dp_feedback": "",
+  "t": "2026-10-17T00:53:37",
+  "by": "executor"
+}

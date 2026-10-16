@@ -1,0 +1,36 @@
+{
+  "id": "TI-6c",
+  "module": "training-island",
+  "type": "dp-writer",
+  "title": "Findings: сократить запись модуля",
+  "goal": "Раздел training-island в docs/registry/findings.md сокращён до 1–3 строк-выводов с числами и ссылками путь#раздел; чужие записи не тронуты; файл ≤ 40 КБ с запасом.",
+  "plan_ref": "Условия сдачи (Q3, 2026-10-17)",
+  "contracts": [],
+  "copy": "~/deltaplan-training-island-TI-6c",
+  "branch": "training-island/TI-6c",
+  "base": "feature/training-island",
+  "scope": [
+    "docs/registry/findings.md"
+  ],
+  "dont_touch": [
+    "docs/guide/",
+    "docs/research/",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | tail -1'",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "size",
+      "cmd": "wc -c < docs/registry/findings.md",
+      "expect": "num:(\\d+) <=40750"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T00:52:25",
+  "edited": "2026-10-17T00:53:18"
+}

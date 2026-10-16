@@ -92,6 +92,12 @@ var failed_count := 0
 ## Множитель притока поля в атмосфере (C2 v6, C9 v3): U меню / U поля на 10 м над стартом после
 ## прохода 1 загрузки; пересчёт в полёте — с ним же. 1 — без подстройки (штиль, без старта).
 var inflow_k := 1.0
+## Запечённое поле старта (TI-К3, AirBakedField): при совпадении key берётся из файла вместо
+## расчёта. false — всегда считать (замеры расчёта, тесты расчёта).
+var baked_enabled := true
+## Запечённое поле подано, фоновый пересчёт (окна у пилота, тёплый старт) ещё не запущен: запуск —
+## когда игра включит recompute_enabled.
+var _baked_pending := false
 ## Проход 2 загрузки — с тёплого старта от прохода 1 (область и окна).
 var warm_second_pass := true
 ## Проходов загрузки (C9 v3: 2; 1 — без подстройки, k = 1: тесты против эталонов). Сверх двух — секущая, пока |U/u10 − 1| > pass_tol (исследование
@@ -249,11 +255,16 @@ static func place_of(
 	if month > 0 and day > 0:
 		loc.month = month
 		loc.day = day
+	var sites: Array = []
+	if terrain.has_method("get_start_sites"):
+		for st: Dictionary in terrain.call("get_start_sites"):
+			sites.append({id = String(st.id), position = st.position})
 	return {
 		detail = detail,
 		water = water,
 		surface = AirPlace.surface_of(terrain, detail, water, _domain_steps()),
 		loc = loc,
+		start_sites = sites,
 	}
 
 
@@ -277,6 +288,7 @@ static func conditions_of(clock: Object, atmo: Object, settings: Object) -> Dict
 		wdir = float(w.get("wind_from_deg", 0.0)),
 		t_max = float(settings.get("temperature_c")),
 		sky = String(settings.get("sky")),
+		wind_ref = StartWeather.wind_ref_of(settings as FlightSettings),
 	}
 
 
@@ -309,15 +321,23 @@ static func _is_cmd_field(a: String) -> bool:
 ## подмены). true — поле есть (посчитано или то же место и условия — уже в атмосфере).
 func load_field() -> bool:
 	recompute_enabled = false
+	_baked_pending = false
 	stop()
 	var why := unavailable_reason()
 	if why == CMD_FIELD:
 		return false  # поле из файла подаёт сама атмосфера
+	var c: Dictionary = conditions_fn.call() if conditions_fn.is_valid() else {}
+	# запечённое поле старта (TI-К3) — раньше проверки GPU: поле из файла GPU не требует
+	if baked_enabled and not c.is_empty() and not _baked_blocked():
+		if _cur_key == _place_key and needs_recompute(_cur, c, _step_min()) == "":
+			progress_changed.emit(1.0)
+			return true  # то же место и условия: поле уже в атмосфере
+		if await _load_baked(c):
+			return true
 	if why != "":
 		_analytic(why)
 		fallback.emit(why)
 		return false
-	var c: Dictionary = conditions_fn.call()
 	if _cur_key == _place_key and needs_recompute(_cur, c, _step_min()) == "":
 		progress_changed.emit(1.0)
 		return true  # то же место и условия: поле уже в атмосфере
@@ -325,6 +345,135 @@ func load_field() -> bool:
 	while _stage != Stage.IDLE:
 		await get_tree().process_frame
 	return _ok
+
+
+## Запечённое поле не применимо вообще (расчёт выключен, поле из командной строки, нет места или
+## атмосферы) — без попыток и без строк в лог.
+func _baked_blocked() -> bool:
+	return (
+		String(_cfg.get("enabled", "auto")) == "off"
+		or Array(OS.get_cmdline_user_args()).any(_is_cmd_field)
+		or _place.get("detail") == null
+		or atmosphere == null
+		or not atmosphere.has_method("set_air_field")
+	)
+
+
+## Старт места, у которого загружается поле: площадка из place.start_sites в пределах 1 м от
+## точки фокуса (старт). {} — нет. weather — из записи площадки (тесты), иначе из конфига места.
+func _baked_site() -> Dictionary:
+	var f := _focus_start
+	if focus_fn.is_valid():
+		f = focus_fn.call()
+	for st: Dictionary in _place.get("start_sites", []):
+		var p: Vector3 = st.position
+		if Vector2(p.x - f.x, p.z - f.z).length() > 1.0:
+			continue
+		var out := {id = String(st.id), position = p, weather = st.get("weather", {})}
+		if (out.weather as Dictionary).is_empty():
+			for cs: Dictionary in Locations.config(String(_place.loc.get("id", ""))).get("start_sites", []):
+				if String(cs.get("id", "")) == out.id and cs.get("weather") is Dictionary:
+					out.weather = cs.weather
+		return out
+	return {}
+
+
+## Подходит ли запечённое поле под условия c: {path, key, site, reason ("" — подходит), warn}.
+## warn — несовпадение стоит предупреждения (файл есть, а не сошёлся), иначе обычная строка лога
+## (у старта нет набора погоды, нет файла, игрок сменил условия).
+func baked_lookup(c: Dictionary) -> Dictionary:
+	var out := {path = "", key = {}, site = {}, reason = "", warn = false}
+	var site := _baked_site()
+	if site.is_empty() or (site.weather as Dictionary).is_empty():
+		out.reason = "у старта нет набора погоды"
+		return out
+	var loc: Dictionary = _place.loc
+	var lid := String(loc.get("id", ""))
+	out.site = site
+	out.path = AirBakedField.path_of(lid, String(site.id))
+	var h := AirBakedField.read_header(out.path)
+	if h.is_empty():
+		out.reason = "нет файла %s" % out.path
+		return out
+	if not AirBakedField.model_hash_ok(h):
+		out.reason = "модель воздуха другой версии (хеш %s ≠ %s)" % [h.get("model_hash", "?"), AirBakedField.model_hash()]
+		out.warn = true
+		return out
+	var diff := AirBakedField.conditions_diff(
+		site.weather, c, int(loc.get("month", 0)), int(loc.get("day", 0))
+	)
+	if diff != "":
+		out.reason = "условия не как в наборе погоды старта (%s)" % diff
+		return out
+	var dh := AirBakedField.place_hash(Locations.data_dir(lid))
+	out.key = AirBakedField.make_key(
+		lid, float(loc.get("center_lat", 0.0)), float(loc.get("center_lon", 0.0)),
+		String(site.id), site.weather, site.position, dh, _cfg.get("window_levels_m", [])
+	)
+	out.reason = AirBakedField.key_diff(h.get("key"), out.key)
+	out.warn = out.reason != ""
+	return out
+
+
+## Для экрана загрузки: поле старта будет взято из файла (этап «Рассчитываем ветер» не нужен).
+func baked_ready() -> bool:
+	if not baked_enabled or _baked_blocked() or not conditions_fn.is_valid():
+		return false
+	return baked_lookup(conditions_fn.call()).reason == ""
+
+
+## Загрузка запечённого поля: уровни из файла (рабочий поток), в атмосферу без подмены, состояние
+## выставлено так, что поле старта не пересчитывается сразу (needs_recompute пуст); источники
+## термиков строит атмосфера по поданному полю, как после расчёта. Фоновый пересчёт (окна у
+## пилота, тёплый старт) — по включению recompute_enabled. false — файла нет или key не совпал.
+func _load_baked(c: Dictionary) -> bool:
+	var t0 := Time.get_ticks_usec()
+	var look := baked_lookup(c)
+	if look.reason != "":
+		var line := "air_model: запечённое поле не берётся (%s) — расчёт" % look.reason
+		if look.warn:
+			push_warning(line)
+		elif look.path != "":
+			print(line)
+		return false
+	var res := {}
+	var tid := WorkerThreadPool.add_task(
+		func() -> void: res["fs"] = AirBakedField.load_file(look.path, look.key), false, "AirBakedField"
+	)
+	while not WorkerThreadPool.is_task_completed(tid):
+		await get_tree().process_frame
+	WorkerThreadPool.wait_for_task_completion(tid)
+	var fs: AirFieldSet = res.get("fs")
+	if fs == null:
+		push_warning("air_model: запечённое поле %s не прочиталось — расчёт" % look.path)
+		return false
+	var lv: Array[WindField] = fs.levels
+	atmosphere.call("set_air_field", lv, 0.0)
+	var k := float(lv[0].meta.get("inflow_k", 1.0))
+	_cur = c.duplicate()
+	_cur.reason = "запечённое поле"
+	_cur_key = _place_key
+	_warm = {}
+	_warm_next = {}
+	_warm_pass = {}
+	inflow_k = k
+	_k_mem[_dir_key(float(c.wdir))] = k
+	_baked_pending = true
+	var wall := (Time.get_ticks_usec() - t0) / 1e6
+	last_info = _cur.duplicate()
+	last_info.merge(
+		{baked = true, path = look.path, levels = lv.size(), inflow_k = k, wall_s = wall, loading = true}
+	)
+	last_error = ""
+	applied_count += 1
+	phase_map = {}
+	_ok = true
+	print(
+		"air_model: запечённое поле %s, уровней %d, k притока %.3f, %.2f с" % [look.path, lv.size(), k, wall]
+	)
+	progress_changed.emit(1.0)
+	field_applied.emit(last_info)
+	return true
 
 
 ## Внеочередной пересчёт по текущим условиям (в полёте). Идёт расчёт — не копится.
@@ -393,6 +542,8 @@ static func needs_recompute(have: Dictionary, want: Dictionary, step_min: float)
 	var dd := angle_difference(deg_to_rad(float(have.wdir)), deg_to_rad(float(want.wdir)))
 	if absf(dd) > deg_to_rad(DIR_TOL_DEG):
 		return "смена ветра"
+	if String(have.get("wind_ref", "start")) != String(want.get("wind_ref", "start")):
+		return "смена ветра"
 	var ta := float(have.t_max)
 	var tb := float(want.t_max)
 	var t_changed := is_nan(ta) != is_nan(tb) or absf(ta - tb) > TMAX_TOL_C
@@ -413,6 +564,25 @@ static func slot_hour(hour: float, step_min: float) -> float:
 	return slot(hour, step_min) * maxf(step_min, 1.0) / 60.0
 
 
+## Пилот ушёл от центра окна запечённого поля дальше window_shift_frac его стороны (как в
+## AirClipmap.update): окна надо пересчитать вокруг него.
+func _pilot_left_baked_windows() -> bool:
+	if not focus_fn.is_valid() or atmosphere == null:
+		return false
+	var fs: Variant = atmosphere.get("air_field")
+	if fs == null or fs.levels.size() < 2:
+		return false
+	var lv: Array = fs.levels
+	var frac := float(_cfg.get("window_shift_frac", 0.25))
+	var p: Vector3 = focus_fn.call()
+	for i in range(1, lv.size()):
+		var f: WindField = lv[i]
+		var c := f.center_xz()
+		if maxf(absf(p.x - c.x), absf(p.z - c.y)) > frac * f.size_x():
+			return true
+	return false
+
+
 func _step_min() -> float:
 	return float(_cfg.get("recompute_game_min", 15.0))
 
@@ -425,7 +595,12 @@ func _process(_dt: float) -> void:
 			if recompute_enabled and not _cur.is_empty() and conditions_fn.is_valid():
 				var c: Dictionary = conditions_fn.call()
 				var why := needs_recompute(_cur, c, _step_min())
+				# запечённое поле при тех же условиях не пересчитывается: только срок/смена условий
+				# (needs_recompute) или уход пилота из окон поля (окон-clipmap ещё нет)
+				if why == "" and _baked_pending and _pilot_left_baked_windows():
+					why = "сдвиг окон (запечённое поле)"
 				if why != "" and unavailable_reason() == "":
+					_baked_pending = false
 					_begin(c, why, false)
 				else:
 					_update_windows()
@@ -491,12 +666,14 @@ func _begin(c: Dictionary, reason: String, loading: bool) -> void:
 		if _focus_wanted():
 			_start_pt = focus_fn.call()
 		# штиль (ниже порога трогания анемометра, WindProfile.U10_MIN) — один проход, k = 1
-		var two := _focus_wanted() and u10 >= WindProfile.U10_MIN and max_passes >= 2
+		# wind_ref "inflow" (TI-К2 v2): ветер меню — набегающий поток, k = 1 без подгонки под старт
+		var inflow := String(c.get("wind_ref", "start")) == "inflow"
+		var two := _focus_wanted() and u10 >= WindProfile.U10_MIN and max_passes >= 2 and not inflow
 		_passes = max_passes if two else 1
 		_k = float(_k_mem.get(_dir_key(float(c.wdir)), 1.0)) if two else 1.0
 	else:
 		_passes = 1
-		_k = inflow_k
+		_k = 1.0 if String(c.get("wind_ref", "start")) == "inflow" else inflow_k
 	_start_prep()
 	if loading:
 		progress_changed.emit(0.0)
@@ -1230,6 +1407,7 @@ func _analytic(reason: String) -> void:
 	_cur = {}
 	_cur_key = ""
 	_warm = {}
+	_baked_pending = false
 	inflow_k = 1.0
 	print("air_model: analytic (%s)" % reason)
 

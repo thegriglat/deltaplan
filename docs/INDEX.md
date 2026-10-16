@@ -39,6 +39,8 @@ generated: true
   - [docs/guide/scene-look/light-atmosphere.md](guide/scene-look/light-atmosphere.md) — Свет неба и земли, дымка с ореолом, дороги вдали, просвет паруса и листвы (SL-2, SL-3, SL-4, SL-7): физика и цена.
   - [docs/guide/scene-look-keys.md](guide/scene-look-keys.md) — Таблицы ключей scene-look: scene_look, trees.*, trees.impostors.seam_*, haze.*, roads.look, sail — по умолчанию и смысл.
   - [docs/guide/scene-look.md](guide/scene-look.md) — Модуль scene-look («картинка сочнее»): принцип, шейдерный include sl_*, конфиг и выключатели; пункты SL-2…SL-23 разнесены по частям.
+- **training-island** — Учебный остров: синтетическое место в море, старты «склон», «термики», «посадка», «ротор»; фиксированная погода и запечённый ветер. [active 2026-10-16] — [план](plan/training-island.md) · [контракты](contracts/training-island.md)
+  - [docs/research/training_island_air.md](research/training_island_air.md) — TI-5: погода четырёх стартов учебного острова (TI-К2) и проверка воздуха в игре — склон, термики, ротор, посадка
 
 ## game
 

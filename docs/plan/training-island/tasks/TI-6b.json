@@ -1,0 +1,43 @@
+{
+  "id": "TI-6b",
+  "module": "training-island",
+  "type": "dp-writer",
+  "title": "Документация: итоги погоды и запекания",
+  "goal": "Документы острова приведены к итогу: наборы погоды стартов (TI-5), запечённые поля четырёх стартов в data/locations/training_island/air (25,9 МБ, загрузка 0,7 с против 14–58 с), как перепечь после правки модели воздуха; без устаревших «пока нет».",
+  "plan_ref": "TI-6. Тексты и документация",
+  "contracts": [],
+  "copy": "~/deltaplan-training-island-TI-6b",
+  "branch": "training-island/TI-6b",
+  "base": "feature/training-island",
+  "scope": [
+    "docs/guide/location-data.md",
+    "docs/guide/air-model/",
+    "CHANGELOG.md",
+    "tools/terrain/island/README.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/",
+    "docs/plan/",
+    "docs/contracts/",
+    "docs/research/training_island_air.md"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | tail -1'",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "stale",
+      "cmd": "grep -c -i 'пока нет\\|ещё нет' docs/guide/location-data.md",
+      "expect": "num:(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T00:47:26"
+}

@@ -164,7 +164,9 @@ func join_zone() -> void:
 
 ## Параметры новой зоны: последний «Полёт…» + место (встроенное, из каталога или точка с карты).
 func zone_params() -> FlightSettings:
-	return settings.duplicate()
+	var z := settings.duplicate()
+	StartWeather.apply(z)  # TI-К2
+	return z
 
 
 func _begin() -> void:
@@ -469,6 +471,7 @@ func _on_fly() -> void:
 	var s := backend.zone_settings()
 	if s == null:
 		s = zone_params()
+	StartWeather.apply(s)
 	fly_requested.emit(s)
 
 

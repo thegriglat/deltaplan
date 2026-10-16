@@ -1,0 +1,48 @@
+{
+  "id": "TI-2b",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Остров в сетевой игре (ключ мира)",
+  "goal": "Ключ мира со стартом на острове у клиента разбирается в location_id=training_island (а не точку с карты в море): world_key._inside для bundled-места без dem; synthetic по-прежнему вне Locations.builtin_at.",
+  "plan_ref": "TI-2. Место из файлов игры",
+  "contracts": [
+    {
+      "name": "TI-К1",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-2b",
+  "branch": "training-island/TI-2b",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/game/world_key.gd",
+    "tests/game/",
+    "tests/net/",
+    "tests/contracts/test_training_island_k1.gd"
+  ],
+  "dont_touch": [
+    "scripts/terrain/",
+    "scripts/ui/",
+    "configs/",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "world_key",
+      "tests": "world_key"
+    },
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "net_screen",
+      "tests": "net_screen"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T22:54:30"
+}

@@ -1,7 +1,7 @@
 extends TestCase
 ## Все встроенные локации: данные на месте, старты на склоне вниз по курсу, посадки пологие.
 
-const LOCATIONS := ["altai", "ongudai", "askarovo", "aushkul"]
+const LOCATIONS := ["altai", "ongudai", "askarovo", "aushkul", "training_island"]
 
 
 func test_locations() -> void:
@@ -15,9 +15,11 @@ func test_locations() -> void:
 			continue
 		check(t.last_load_time_s < 10.0, "%s: загрузка %.2f с (NFR-2)" % [id, t.last_load_time_s])
 		for s in t.surfaces:
-			check(s.source == "worldcover", "%s/%s: карта WorldCover" % [id, s.id])
+			# вымышленное место: карта классов синтетическая, не WorldCover (источник слой не хранит)
+			check(Locations.is_synthetic(id) or s.source == "worldcover", "%s/%s: карта WorldCover" % [id, s.id])
 		var sites := t.get_start_sites()
-		check(sites.size() >= 1 and sites.size() <= 3, "%s: 1–3 старта" % id)
+		var max_sites := 4 if Locations.is_synthetic(id) else 3
+		check(sites.size() >= 1 and sites.size() <= max_sites, "%s: 1–%d старта" % [id, max_sites])
 		for site in sites:
 			_check_site(t, id, site)
 		for land in t.get_landing_sites():

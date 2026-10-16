@@ -45,6 +45,10 @@ if [[ -n "${XDG_DATA_HOME:-}" && -d "$tpl_home" && ! -L "$tpl_tmp" ]]; then
 	fi
 fi
 
+# Хеш кода модели воздуха для проверки запечённых полей в сборке (исходники из pck не прочитать).
+godot --headless --path . --script res://tools/terrain/air_model_hash.gd >/dev/null 2>&1 || true
+[[ -s data/air_model_hash.txt ]] || echo "ВНИМАНИЕ: data/air_model_hash.txt не создан — запечённые поля в сборке не возьмутся" >&2
+
 # Импорт регистрирует расширения и ресурсы.
 godot --headless --path . --import >/dev/null 2>&1 || true
 

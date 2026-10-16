@@ -1,0 +1,11 @@
+{
+  "module": "training-island",
+  "plan": "docs/plan/training-island.md",
+  "contracts": "docs/contracts/training-island.md",
+  "branch": "feature/training-island",
+  "copy": "~/deltaplan-training-island",
+  "created": "2026-10-16T21:24:37",
+  "code": "TI",
+  "area": "world",
+  "base": "main"
+}

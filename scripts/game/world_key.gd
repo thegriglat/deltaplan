@@ -132,7 +132,7 @@ static func launch_latlon(s: FlightSettings) -> Vector2:
 static func _place(s: FlightSettings, lat: float, lon: float) -> void:
 	for name in Config.list_configs("locations"):
 		var loc: Dictionary = Config.get_config(name)
-		if not _inside(loc, lat, lon):
+		if not _inside(loc, lat, lon, name.get_file()):
 			continue
 		s.location_id = name.get_file()
 		s.pick_lat = NAN
@@ -150,15 +150,32 @@ static func _place(s: FlightSettings, lat: float, lon: float) -> void:
 
 
 ## Точка в квадрате детального рельефа локации (первый слой dem, size_km вокруг центра)?
-static func _inside(loc: Dictionary, lat: float, lon: float) -> bool:
-	var layers: Array = loc.get("dem", {}).get("layers", [])
-	if layers.is_empty() or not loc.has("center_lat"):
+## Bundled-место без dem (TI-К1): квадрат первого слоя meta.json в паке (size = width · spacing_m).
+static func _inside(loc: Dictionary, lat: float, lon: float, id: String = "") -> bool:
+	if not loc.has("center_lat"):
 		return false
-	var half := float(layers[0].get("size_km", 0.0)) * 0.5
+	var layers: Array = loc.get("dem", {}).get("layers", [])
+	var half := 0.0
+	if not layers.is_empty():
+		half = float(layers[0].get("size_km", 0.0)) * 0.5
+	elif bool(loc.get("bundled", false)) and id != "":
+		half = _bundled_half_km(id)
+	if half <= 0.0:
+		return false
 	var clat := float(loc.center_lat)
 	var dy := (lat - clat) * 111.32
 	var dx := (lon - float(loc.center_lon)) * 111.32 * cos(deg_to_rad(clat))
 	return absf(dx) <= half and absf(dy) <= half
+
+
+static func _bundled_half_km(id: String) -> float:
+	var meta: Variant = JSON.parse_string(FileAccess.get_file_as_string(Locations.BUNDLED_ROOT.path_join(id).path_join("meta.json")))
+	if not meta is Dictionary:
+		return 0.0
+	var layers: Array = meta.get("layers", [])
+	if layers.is_empty():
+		return 0.0
+	return float(layers[0].get("width", 0)) * float(layers[0].get("spacing_m", 0.0)) * 0.0005
 
 
 static func _dist_km(lat0: float, lon0: float, lat1: float, lon1: float) -> float:

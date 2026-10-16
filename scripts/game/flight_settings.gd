@@ -255,6 +255,7 @@ static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSetti
 				var c := _clean_user_apparatus(ap[w])
 				if not c.is_empty():
 					s.apparatus[String(w)] = c
+	StartWeather.apply(s)  # TI-К2: у старта с фиксированной погодой она важнее сохранённой
 	return s
 
 

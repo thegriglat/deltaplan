@@ -1,0 +1,94 @@
+{
+  "status": "done",
+  "summary": "AirBakedField (save/load_file, float16+zstd, key, model_hash), загрузка запечённого поля в AirRuntime.load_field (без расчёта, без немедленного пересчёта, термики строит атмосфера, фоновый пересчёт по recompute_enabled), tools/terrain/bake_air (+ --check). Формат состояния модели воздуха не менялся.",
+  "commits": [
+    "38f24bf8 TI-4: запечённое поле ветра старта"
+  ],
+  "checks": [
+    {
+      "name": "training_island",
+      "value": "5/5, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "wind_field",
+      "value": "9/9, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "air_runtime",
+      "value": "8/8 (пропуск 2), 0 упало",
+      "pass": true
+    },
+    {
+      "name": "air_thermals",
+      "value": "7/7, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "4 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "файл на старт (ongudai, 3 уровня)",
+      "value": "6,5–6,7 МБ (.bin; float16+zstd)",
+      "pass": true
+    },
+    {
+      "name": "загрузка из файла против расчёта",
+      "value": "0,9–1,1 с против 13,7–17,9 с (RTX 4070 SUPER, 2 прохода)",
+      "pass": true
+    },
+    {
+      "name": "ошибка float16",
+      "value": "0,0039 м/с на реальном поле; ≤0,01 по контрактному тесту (±12 м/с)",
+      "pass": true
+    },
+    {
+      "name": "bake_air → --check",
+      "value": "ongudai/kayancha_south записан за 14,8 с, --check: актуально, код 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Этап «Рассчитываем ветер» на экране загрузки всё же показывается на ~1 с: подпись ставит game.gd (вне скоупа). Нужна правка в game.gd _load_air_field: условие `unavailable_reason() == \"\" and not air_runtime.baked_ready()` (метод baked_ready() готов).",
+    "Запечённых файлов в data/ нет (острова ещё нет; по карточке)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TI-4",
+  "uncertain": [
+    {
+      "where": "air_runtime.gd:_baked_site / place_of",
+      "why": "Старт определяется по place.start_sites (добавлено в place_of из terrain.get_start_sites()) и совпадению с точкой фокуса ≤1 м; набор погоды берётся из Locations.config(...).start_sites[].weather. Game.gd не менялся. Если у игры старт «точный»/с карты, поле не берётся (корректно).",
+      "checked": "тесты с записью площадки; на реальном острове не проверено (его нет)."
+    },
+    {
+      "where": "air_baked_field.gd:make_key",
+      "why": "key содержит: location, site, weather (как в конфиге), center (lat/lon места), start (x,z, округл. 0,01 м — центры окон), domain_dx, window_dx, data_hash, format. Центр области по данным места (в data_hash), не отдельным полем. data_hash = sha256 от meta.json, surface.json и всех detail* файлов папки Locations.data_dir(id) — в экспорте файлы должны читаться как raw (иначе хеш пуст и поле не берётся — безопасно).",
+      "checked": "контрактный тест: различие любого поля key даёт отказ."
+    },
+    {
+      "where": "формат тела",
+      "why": "Добавлены массивы уровня сверх контракта: meta.<ключ> (z0-карта, gam — если упакованные массивы) и поле JSON meta уровня; в контракте перечислены u,v,w_mech,w_conv,theta,hc,heat. Совместимо, но стоит дописать в TI-К3.",
+      "checked": "круговой проход с gam/z_i/heat/inflow_k/cond."
+    },
+    {
+      "where": "air_runtime.gd:_load_baked",
+      "why": "Запечённое поле используется и без GPU (headless/без RD) — раньше была бы аналитика; фоновый пересчёт тогда не идёт. Предупреждение при несовпадении model_hash — только push_warning.",
+      "checked": "тест без GPU."
+    },
+    {
+      "where": "bake_air.gd",
+      "why": "Окно нужно с --disable-vsync, иначе расчёт упирается в 60-секундный таймаут (низкий fps). Атмосфера для замера U над стартом собрана по образцу passes_probe, без Game; условия берутся из набора по AirBakedField.conditions_of (одна точка разбора TI-К2, при слиянии TI-3 можно заменить).",
+      "checked": "запуск на ongudai с --fixtures --weather, затем --check."
+    }
+  ],
+  "dp_feedback": "dpcli lock gpu внутри фонового Bash уходит в свой job (лог в ~/.cache/dpcli/jobs/<имя>.log), а перенаправленный лог остаётся пустым — путается; удобнее была бы подсказка в выводе lock.",
+  "extra": {
+    "after_load": "поле старта из файла подано сразу (без подмены); _cur выставлен, needs_recompute пуст; k притока из файла; при включении recompute_enabled запускается один фоновый пересчёт (область и окна у пилота, холодный старт с грубым Пикаром ~8–11 с на ongudai, подмена 60 с), далее обычные сроки.",
+    "api": "AirBakedField.save(fs, header, path) / load_file(path, key) / read_header / make_key / key_diff / place_hash / model_hash; AirRuntime.baked_ready(), baked_lookup(c), baked_enabled; place_of добавляет start_sites."
+  },
+  "t": "2026-10-16T22:09:31",
+  "by": "executor"
+}

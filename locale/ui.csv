@@ -302,6 +302,11 @@ site_aushkul_south,Ауштау — южный склон,Aushtau — south slop
 site_aushkul_ridge_west,Хребет у Старобайрамгулово — западный склон,Ridge near Starobayramgulovo — west slope
 loc_ongudai,Алтай — Онгудай,Altai — Ongudai
 site_ongudai_south,Онгудайский ретранслятор — южный старт (перевал Каянча),Ongudai relay mast — south launch (Kayancha pass)
+loc_training_island,Учебный остров,Training Island
+site_training_island_ridge_west,Склон,Ridge
+site_training_island_thermal_plain,Термики,Thermals
+site_training_island_landing_hill,Посадка,Spot landing
+site_training_island_lee_bowl,Ротор,Rotor
 vario_preset_classic,"Классический, 1990-е","Classic, 1990s"
 vario_preset_xctracer,XC Tracer (современный),XC Tracer (modern)
 err_no_location_config,нет конфига локации %s,no location config %s
@@ -316,6 +321,7 @@ setup_wind_calm,штиль,calm
 setup_wind_from,Откуда ветер,Wind from
 setup_wind_launch_faces,встречный для этого старта — %s,headwind for this launch: %s
 setup_sky,Облачность,Cloud cover
+setup_weather_fixed,"Погода старта фиксирована: ветер %d м/с с %d°, %s, %s, %d °C","Start weather is fixed: wind %d m/s from %d°, %s, %s, %d °C"
 setup_sky_clear,Ясно,Clear
 setup_sky_partly,Переменная,Partly cloudy
 setup_sky_overcast,Облачно,Overcast
@@ -498,7 +504,7 @@ settings_tab_controls,Управление,Controls
 settings_tab_sound,Звук,Sound
 settings_tab_motion,Платформа,Motion platform
 settings_motion_on,Вывод движения,Motion output
-settings_motion_on_hint,Слать движение пилота на платформу по UDP (пакеты идут всегда, пока включено, в т. ч. в меню и на паузе),Send pilot motion to a platform over UDP (packets flow whenever on, including menu and pause)
+settings_motion_on_hint,"Слать движение пилота на платформу по UDP (пакеты идут всегда, пока включено, в т. ч. в меню и на паузе)",Send pilot motion to a platform over UDP (packets flow whenever on, including menu and pause)
 settings_motion_addr,Адрес (хост:порт),Address (host:port)
 settings_motion_rate,Частота,Rate
 settings_motion_ramp,"Плавный вход, с","Ease-in, s"
@@ -595,3 +601,12 @@ result_goal_rec_distance_m,дальность,distance
 result_goal_rec_max_altitude_msl_m,высота над уровнем моря,altitude above sea level
 result_goal_rec_task_speed_section_time_s,время на маршруте,route time
 result_goal_rec_task_distance_m,дальность по маршруту,route distance
+menu_training,Тренировка,Training
+training_ridge,Склон,Ridge
+training_ridge_what,"парение в динамике склона, проходы вдоль хребта",ridge soaring: passes along the ridge in slope lift
+training_thermals,Термики,Thermals
+training_thermals_what,поиск термиков над полями по вариометру и набор,finding thermals over the fields by the variometer and climbing
+training_landing,Посадка,Landing
+training_landing_what,заход и посадка в круг,approach and landing in the circle
+training_rotor,Ротор,Rotor
+training_rotor_what,"полёт в подветренной стороне хребта: нисходящие потоки и болтанка",flying on the lee side of the ridge: sink and turbulence

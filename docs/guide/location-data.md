@@ -3,9 +3,9 @@ type: "guide"
 status: "active"
 module: "terrain"
 area: "world"
-updated: "2026-10-15"
+updated: "2026-10-16"
 summary: "Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, osm_tiles, WebP, кеш, догрузка, --prefetch."
-related: ["docs/guide/terrain.md", "docs/guide/osm-tiles.md", "docs/guide/world-objects/villages-osm.md", "docs/contracts/no-osm.md", "docs/contracts/osm-any.md", "docs/contracts/osm-tiles.md", "docs/research/lakes_worldcover.md", "docs/research/location_compression.md", "docs/registry/findings.md"]
+related: ["docs/guide/terrain.md", "docs/guide/osm-tiles.md", "docs/guide/world-objects/villages-osm.md", "docs/contracts/no-osm.md", "docs/contracts/osm-any.md", "docs/contracts/osm-tiles.md", "docs/research/lakes_worldcover.md", "docs/research/location_compression.md", "docs/registry/findings.md", "docs/contracts/training-island.md", "tools/terrain/island/README.md"]
 ---
 # Данные места: один путь для встроенных мест и любой точки
 
@@ -101,7 +101,7 @@ M покрова растёт по мере планирования тайло�
 
 ## Точка внутри встроенного места
 `Locations.builtin_at(lat, lon)`: если точка не ближе `location_builder.builtin_margin_km` (10 км) к краю детального
-квадрата встроенного места — грузится само встроенное место (`user://locations/<id>`; если его там ещё нет — собирается при первом выборе) со стартом в точке. Иначе — обычный путь через кеш. `location_id` в настройках и сети — id встроенного места или ключ точки.
+квадрата встроенного места — грузится само встроенное место (`user://locations/<id>`; если там его не оказалось — собирается при первом выборе) со стартом в точке. Иначе — обычный путь через кеш. `location_id` в настройках и сети — id встроенного места или ключ точки.
 
 ## Повтор без сети
 Полное место в кеше грузится с диска, `net_requests` = 0. Командой можно проверить: повторная сборка той же точки с
@@ -140,7 +140,68 @@ POST — размер и начало тела (80 символов, `key/token/
    Фикстуру для тестов копируют из собранной папки в `tests/fixtures/locations/<id>`.
 3. Проверить старты и посадки (`tests/terrain/test_locations.gd`), посадки — `configs/world_objects.json → landing`,
    превью — `terrain_preview.tscn -- --location=<id>`, `world_objects_preview.tscn`.
-4. Строка по данным места в `ASSETS.md`, если у места появились свои данные.
+4. Встроенное место из файлов игры (без сети) — см. «учебный остров» выше. Строка по данным места в `ASSETS.md`, если у места появились свои данные.
+
+## Встроенное место из файлов игры: учебный остров
+
+Место `training_island` не собирается из сети: его данные лежат в репозитории и в паке игры (`res://data/locations/training_island/`),
+конфиг — `configs/locations/training_island.json` с ключами `"bundled": true` и `"synthetic": true` (контракт TI-К1,
+[training-island.md](../contracts/training-island.md)). Остров вымышленный, процедурный (рельеф — эрозионная модель fs1, карта классов
+и маски — скрипты `tools/terrain/island/`), внешних данных нет; генерация детерминирована (`verify.sh` — побитное сравнение).
+
+- **Загрузка**: `Locations.is_bundled(id)` — данные читаются из `res://`, `LocationBuilder`, сеть и `user://locations/` не используются;
+  `Locations.is_synthetic(id)` — `builtin_at` остров не возвращает (точка с карты в него не превращается). Нет папки или файла слоя —
+  загрузка падает с сообщением, а не пытается собрать место. Ключ мира со стартом на острове разбирается в `training_island`
+  (`WorldKey`: квадрат — первый слой `meta.json`, 40 × 40 км, шире суши 14,8 × 9,8 км).
+- **Папка данных** — формат 4, как у собранного места: `meta.json`, `detail` (1601², 25 м) и `far` (1601², 100 м) в WebP,
+  `*_surface.webp`, `*_water.webp`, `detail_detail10.webp`, `surface.json`, `osm_tiles.json` (пустой список), `build.json`
+  (`complete`, `net_requests` 0), `params.json` (зерно и параметры генератора). Застройки нет. Файлы `*.webp.import` Godot создаёт сам и в git не идут.
+- **Размер и рельеф**: суша 117,5 км² (x −6,8…8,0 км, z −5,1…4,7 км), высшая точка 503,5 м, озеро 53,6 м; центр 43,2° с. ш., 34,0° в. д.,
+  UTC+3, в открытом море. Класс покрова: пашня 28 %, голый грунт 30 %, луг 32 %, рощи 10 % на равнине.
+- **Старты** (`start_sites`): `ridge_west` — склон над морем, разбег на запад; `thermal_plain` — южный конец хребта над полями;
+  `landing_hill` — учебный холм, посадка-мишень `landing_target` в 1,3 км; `lee_bowl` — подветренная чаша за главным хребтом (ротор).
+  Посадки: `landing_target`, `plain_field`. Все проходят правила `tests/terrain/test_locations.gd`.
+- **Фиксированная погода старта** (TI-К2): необязательный `start_sites[].weather` — `wind_from_deg`, `wind_speed_ms`, `start_hour`, `month`,
+  `day`, `sky`, `temperature_c` (все поля обязательны) и необязательный `wind_ref`: `"start"` (по умолчанию — приток подгоняется так,
+  чтобы ветер у старта равнялся `wind_speed_ms`) или `"inflow"` (значения — набегающий поток на краю области, коэффициент притока 1, один проход; нужен
+  старту в подветренной зоне). Разбор и применение — `StartWeather` (`scripts/game/start_weather.gd`), одна функция для меню, последнего полёта, повтора,
+  сети и командной строки; у такого старта в меню погода не выбирается. Время при этом идёт как обычно. Наборы острова (TI-5, 15.07; проверены в игре `tools/terrain/island/air_check.py`, поле на GPU):
+
+  | старт | ветер | `wind_ref` | час | небо | °C |
+  |---|---|---|---|---|---|
+  | `ridge_west` | 6 м/с с 270° | start | 12 | пасмурно | 20 |
+  | `thermal_plain` | 2 м/с с 180° | start | 12 | переменная | 25 |
+  | `landing_hill` | 1 м/с с 270° | start | 9 | ясно | 22 |
+  | `lee_bowl` | 8,5 м/с с 270° | inflow | 12 | пасмурно | 20 |
+
+  Что показала проверка: склон — w +1,83 м/с (5 м/с: 1,41; 8 м/с: 2,52), подъём во всех 153 точках; термики — p90 ядра 2,66 м/с, база 1741 м на 12:00,
+  над морем термиков нет; ротор в чаше — w −1,67 м/с, обратный ветер в 55,6 % точек; ветер у посадки 1,16 м/с. Термики старта дают только погода набора.
+- **Запечённое поле ветра** (TI-К3, [air_field_cache.md](../research/air_field_cache.md)): файлы `air/<site_id>.json` + `.bin` рядом с данными места
+  (float16 + zstd, 6,5–6,7 МБ на старт на Онгудае). Если `key` (место, старт, `weather`, координаты окон, хеш данных места, версия формата) совпал, `AirRuntime`
+  берёт поле из файла: загрузка 0,9–1,1 с против 13,7–17,9 с расчёта, этап «Рассчитываем ветер» не показывается, немедленного пересчёта нет —
+  дальше фоновый по сроку, смене условий или когда пилот ушёл от центра окон. Расхождение с холодным расчётом: max|Δu| 0,007 м/с, max|Δw| 0,001 м/с (Онгудай).
+  Нет файла или `key` не совпал — обычный расчёт и строка в лог. Запекание: `tools/terrain/bake_air.gd` (окно с `--disable-vsync`), проверка актуальности —
+  `--check` (код 1 — поле устарело после правки модели воздуха или данных места).
+- **Запечённые поля острова** (TI-9): `data/locations/training_island/air/<старт>.json` + `.bin` для четырёх стартов, 25,9 МБ всего
+  (ridge_west 7,0; thermal_plain 6,7; landing_hill 6,1; lee_bowl 6,7). Загрузка из файла 0,69–0,75 с на старт против 14–58 с расчёта. У `lee_bowl` `wind_ref: inflow`
+  входит в `key` (после TI-9b коэффициент притока в файле 1,0, раньше 3,0). У `thermal_plain` коэффициент притока 3,0 — верхняя граница подбора под ветер 2 м/с у старта; поле у него может быть не подогнано точно.
+  **Как перепечь** после правки модели воздуха, данных острова или `weather` старта: `tools/terrain/island/bake_all.sh` (GPU, окно, под `.dpcli/dpcli lock gpu bake -- …`;
+  порядок: сначала `bake_all.sh --check` без GPU — код 1, если хоть один файл устарел или отсутствует, затем `bake_all.sh`, снова `--check`). Устаревший файл игра не использует — считает заново (14–58 с).
+  Один раз первый запуск записал в `key` чужой центр; повтор дал верный, причина не выяснена — после запекания проверять `--check`.
+- **Допущения и границы**: перепад высот подогнан масштабом 0,592 после расчёта эрозии (рисунок долин — от расчёта, высоты — по плану, не равновесие);
+  класс 25 м и маска 10 м согласованы с точностью до клетки; лес и участки полей случайны (зерно в `params.json`). Старт `lee_bowl` с ветром «на старте»
+  упирает приток в предел 3 (над чашей 20–28 м/с) — для него `wind_ref: "inflow"`. Проверка воздуха — один час и одна дата, без пузырей термиков;
+  числа — в [findings.md](../registry/findings.md) (раздел training-island) и [README генератора](../../tools/terrain/island/README.md).
+
+### Описание места (для меню и страниц игры)
+
+RU: «Учебный остров — вымышленный остров 15 × 10 км в открытом море: наветренный склон хребта для динамического подъёма, равнина с полями и рощами для термиков,
+учебный холм с полем-мишенью для посадки и подветренная чаша за хребтом, где воздух рвёт. Рельеф сгенерирован, реального места за ним нет; воздух считается той же
+моделью, что и везде, со своими ограничениями (см. страницу «Модель воздуха»).»
+
+EN: "Training Island is a fictional island, about 15 × 10 km, in open sea: a windward ridge slope for ridge lift, a plain of fields and groves for thermals, a training hill
+with a target field for landing practice, and a lee bowl behind the ridge with rotor. The terrain is generated; it does not model a real place. The air is computed by the same
+model as everywhere else, with its usual limits."
 
 ## Границы
 Часовой пояс — по долготе; посадки и именованные старты — только у встроенных мест (ручные данные); имён посёлков и

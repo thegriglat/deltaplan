@@ -339,6 +339,26 @@
             }
           ]
         }
+      ],
+      "training_island": [
+        {
+          "id": "landing_target",
+          "_source_doc": "Учебный остров (TI-К1): точка — configs/locations/training_island.json → landing_sites (собирает tools/terrain/island/build_island.py). Поле-мишень в 1–1,5 км к западу от учебного холма; ось запад–восток — под ветер наборов 270°.",
+          "length_m": 220.0,
+          "width_m": 120.0,
+          "axis_deg": 90.0,
+          "windsock_at": [0.42, -0.56],
+          "trees": []
+        },
+        {
+          "id": "plain_field",
+          "_source_doc": "Учебный остров: поле на равнине у южного конца хребта (посадка после склона и термиков); ось запад–восток.",
+          "length_m": 260.0,
+          "width_m": 140.0,
+          "axis_deg": 90.0,
+          "windsock_at": [0.42, -0.56],
+          "trees": []
+        }
       ]
     }
   },

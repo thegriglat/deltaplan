@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "Запечены поля четырёх стартов острова (data/locations/training_island/air, TI-К3 v2), bake_all.sh (запекание/--check), GPU-тест island_baked: key совпадает, AirRuntime берёт поле из файла без пересчёта.",
+  "commits": [
+    "87c8c7a2 TI-9: запечённые поля стартов, bake_all.sh, тест"
+  ],
+  "checks": [
+    {
+      "name": "training_island",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "bake_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "size_mb",
+      "value": "25",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "1 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "размер",
+      "value": "25,85 МБ всего: ridge_west 7,03; thermal_plain 6,69; landing_hill 6,10; lee_bowl 6,03",
+      "pass": true
+    },
+    {
+      "name": "загрузка из файла",
+      "value": "0,69-0,75 с на старт (расчёт 14-58 с)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TI-9",
+  "uncertain": [
+    {
+      "where": "data/locations/training_island/air/lee_bowl.json",
+      "why": "первый запуск запекания записал в key чужой center (51.87/85.87) - повтор дал верный; причина не ясна (возможно гонка с остановленным ранее заданием)",
+      "checked": "перепечён, --check и тест зелёные; повтор не воспроизвёл"
+    },
+    {
+      "where": "air/thermal_plain, lee_bowl",
+      "why": "inflow_k = 3.000 (похоже на верхнюю границу подбора k) - поле у этих стартов может быть не подогнано до целевого ветра",
+      "checked": "не разбирал, физику воздуха не правил"
+    }
+  ],
+  "dp_feedback": "job stop не убивает дочерний процесс lock gpu - замок gpu остаётся занятым; пришлось kill по PID. Первый --import в копии нужно дождаться до запуска задач.",
+  "t": "2026-10-17T00:40:41",
+  "by": "executor"
+}
