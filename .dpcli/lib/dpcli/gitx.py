@@ -88,6 +88,8 @@ def copy_of(branch):
 
 def status_entries(path, *flags, pathspec=()):
     """[(XY, путь)] из `git status --porcelain -z`: пути без кавычек и escape (пробелы, кириллица); у переименования — новый."""
+    if path and not Path(path).is_dir():
+        return []  # копию уже сняли (gc --remove в том же проходе)
     args = ["-c", "core.quotepath=off", "status", "--porcelain", "-z", *flags] + (["--", *pathspec] if pathspec else [])
     parts = gitr(*args, cwd=path).stdout.split("\0")
     res, i = [], 0

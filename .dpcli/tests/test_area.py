@@ -219,6 +219,9 @@ class FeatureBase(DeliverBase):
         super().setUp()
         sh("checkout", "-q", "-b", "feat", cwd=self.main)  # главная копия — на фичеветке задачи
 
+    def cfg(self, **over):
+        return super().cfg(**{"protect_main": True, **over})  # путь ashoo2: в main — только MR
+
     def journal(self, root, accepted=True):
         home = super().journal(root, accepted)
         (home / "module.json").write_text(json.dumps({"module": self.MOD, "branch": "feature/pay", "base": "feat"}))

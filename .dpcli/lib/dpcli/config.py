@@ -17,6 +17,8 @@ NAMES = ("dpcli.json", "dpcli.yml", "dpcli.yaml")
 DEFAULTS = {
     "project": None,  # по умолчанию — имя каталога главной рабочей копии
     "main_branch": "main",
+    # true — в main_branch dpcli вливает только по явному --into и только модуль, заведённый от неё (обычный путь — MR)
+    "protect_main": False,
     "module_branch": "feature/{module}",
     "task_branch": "{module}/{task}",
     "copies_dir": "~",

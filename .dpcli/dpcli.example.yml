@@ -7,6 +7,9 @@
 
 # Основная ветка, куда вливаются модули.
 main_branch: main
+# true — в main_branch dpcli вливает (merge/deliver) только по явному --into и только модуль, заведённый от неё:
+# обычный путь в main — MR фичеветки, который вливает человек.
+protect_main: false
 # Ветка модуля.
 module_branch: "feature/{module}"
 # Ветка задачи (от ветки модуля).
@@ -32,7 +35,7 @@ worktree:
   # Обычной копией.
   copy: [.env, ".env.*"]
   # Команда bash после подготовки: cwd — новая копия; env DPCLI_COPY, DPCLI_MAIN_COPY, DPCLI_BRANCH.
-  # Ошибка не откатывает копию. Пример: "cd backend && npx prisma generate"
+  # Ошибка не откатывает копию. Пример: "make prepare"
   # setup: "..."
   setup_timeout: 1800
 

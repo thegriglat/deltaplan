@@ -44,9 +44,9 @@
 
 `dpcli.json` или `dpcli.yml`/`dpcli.yaml` в корне проекта (ищется вверх от текущего каталога до корня git; при обоих json приоритетнее). Все ключи необязательны. Полный список с комментариями и умолчаниями — [`dpcli.example.yml`](dpcli.example.yml). Кратко:
 
-- `project`, `main_branch`, `module_branch` (`feature/{module}`), `task_branch` (`{module}/{task}`);
+- `project`, `main_branch`, `protect_main` (`false`; `true` — в `main_branch` только явным `--into`), `module_branch` (`feature/{module}`), `task_branch` (`{module}/{task}`);
 - `copies_dir`, `module_copy`, `task_copy` — где создаются рабочие копии (подстановки `{project}`, `{module}`, `{task}`, `{copies}`);
-- `worktree` — подготовка новых копий (проектная специфика — здесь: `copy` переносит игнорируемые каталоги вроде `.quasar`, `setup` — любая команда подготовки) (см. «Рабочие копии»): `hooks` (`true`), `link` (`[node_modules]`), `copy` (`[.env, .env.*]`), `setup` (команда), `setup_timeout` (1800 с);
+- `worktree` — подготовка новых копий (проектная специфика — здесь: `copy` переносит игнорируемые каталоги вроде кешей генераторов, `setup` — любая команда подготовки) (см. «Рабочие копии»): `hooks` (`true`), `link` (`[node_modules]`), `copy` (`[.env, .env.*]`), `setup` (команда), `setup_timeout` (1800 с);
 - `plan_dir` (`docs/plan`), `contracts_dir` (`docs/contracts`), `docs_dir` (`docs`);
 - `checks.env`, `checks.tests` (шаблон команды для проверок `{tests: …}`, `{filter}`), `checks.log_dir` (`build/dpcli`);
 - `artifacts_dir`, `reserved_codes`, `gc.ignore_dirs`, `gc.ignore_globs`;
@@ -93,7 +93,7 @@ roles:
 
 ## Флоу работы
 
-1. **Главная сессия** (пользователь + Claude) стоит на фичеветке задачи и создаёт модуль: `.dpcli/dpcli module new payments --code PY --area pro` — ветка модуля **от фичеветки** (база модуля, пишется в `module.json`), рабочая копия и журнал `<plan_dir>/payments/`. Пишет план (`<plan_dir>/payments/…`) и контракты.
+1. **Главная сессия** (пользователь + Claude) стоит на фичеветке задачи и создаёт модуль: `.dpcli/dpcli module new payments --code PY --area web` — ветка модуля **от фичеветки** (база модуля, пишется в `module.json`), рабочая копия и журнал `<plan_dir>/payments/`. Пишет план (`<plan_dir>/payments/…`) и контракты.
 2. Запускает **координатора** модуля (агент `dp-coordinator`) в копии модуля.
 3. Координатор заводит задачи:
    ```
@@ -114,7 +114,7 @@ roles:
    Исполнитель коммитит свои файлы в ветке задачи (`git commit -- <пути>`); слияния веток — координатор и главная сессия (правила — `.claude/dpcli-workflow.md`).
 5. Координатор принимает: `.dpcli/dpcli accept PY-1 -j 4`. FAIL — на доработку; PASS у типа с `dpcli_review: true` — состояние `checked` (ждёт ревью, `--no-review` — сразу принято), без ревью — `accepted`.
 6. Ревью (свежий `dp-reviewer`): `.dpcli/dpcli review PY-1 --verdict rework --from - < review.json`; координатор смотрит `review PY-1 --show` и решает: `event PY-1 accepted --note "по ревью"` или доработка.
-7. Слияние: ветка задачи → ветка модуля (в копии модуля), `.dpcli/dpcli event PY-1 merged --commit <хэш>`; свежее из базы модуля — `.dpcli/dpcli sync payments`; готовый модуль в базу (фичеветку) — сдача: `.dpcli/dpcli deliver payments` (squash, журнал → `decisions.md` и `summary.md`). В `main_branch` фичеветка идёт MR, который вливает человек: `deliver`/`merge` туда — только явным `--into` и только для модуля, заведённого от неё.
+7. Слияние: ветка задачи → ветка модуля (в копии модуля), `.dpcli/dpcli event PY-1 merged --commit <хэш>`; свежее из базы модуля — `.dpcli/dpcli sync payments`; готовый модуль в базу (фичеветку) — сдача: `.dpcli/dpcli deliver payments` (squash, журнал → `decisions.md` и `summary.md`). Фичеветка в `main_branch` — по решению пользователя (обычно MR); при `protect_main: true` `deliver`/`merge` туда — только явным `--into` и только для модуля, заведённого от неё.
 8. Уборка: `.dpcli/dpcli gc` (список), `.dpcli/dpcli gc --remove`.
 
 Наблюдение: `.dpcli/dpcli status`, `digest --since today`, `log payments`, `questions`.
@@ -170,7 +170,7 @@ ID задачи: `<КОД>-[этап]<n>[буква]` (`PY-7`, `PY-7a`, `PY-P8`)
 .dpcli/dpcli task sync <ID> [--message М] [--trailer Т]   # влить ветку модуля в ветку задачи в её копии
 ```
 
-Карточка (`<plan_dir>/<модуль>/tasks/<ID>.json`) — обычный JSON: `id, module, type, title, goal, plan_ref, contracts[], copy, branch, base, scope[], dont_touch[], accept[], report_extra[], notes`; можно править руками. Контракт `<имя>.Cx` с именем другого модуля (`app-pro.C5`) в `task show` указывает на `<contracts_dir>/<имя>.md`, а не на файл контрактов текущего модуля. `task set` порядок: сначала `--drop-check`, потом `--check`/`--test` (замена проверки одним вызовом); значение — JSON или строка, для списочных полей строка — список через запятую.
+Карточка (`<plan_dir>/<модуль>/tasks/<ID>.json`) — обычный JSON: `id, module, type, title, goal, plan_ref, contracts[], copy, branch, base, scope[], dont_touch[], accept[], report_extra[], notes`; можно править руками. Контракт `<имя>.Cx` с именем другого модуля (`billing.C5`) в `task show` указывает на `<contracts_dir>/<имя>.md`, а не на файл контрактов текущего модуля. `task set` порядок: сначала `--drop-check`, потом `--check`/`--test` (замена проверки одним вызовом); значение — JSON или строка, для списочных полей строка — список через запятую.
 
 `task brief` отказывает (код 1, список недостающего), если у карточки нет `goal`, `scope` или ни одной проверки — карточка не готова к выдаче; `task new` при таких пропусках предупреждает. `EXPECT` проверок разбирается сразу в `task new`/`task set` (неверный — отказ).
 
@@ -278,7 +278,7 @@ Frontmatter читается как YAML (списки `related` — блочн�
 3. из `<plan_dir>/<модуль>/` убирает всё, кроме `deliver.keep` (по умолчанию `decisions.md`, `summary.md`), и пишет эти файлы из журнала:
    - `decisions.md` — вопросы с ответами (ответ под вопросом) и решения по авторам, с «почему»; даты `ГГГГ-ММ-ДД` без времени; у решения пользователя без причины (или с одной ссылкой на источник вроде «ответ пользователя 2026-10-09») — «утверждено разработчиком»;
    - `summary.md` — по задачам: итог (`summary` отчёта), статус и вердикт ревью, «не сделано», «не уверен», вопросы исполнителя;
-4. один коммит «<модуль>: <заголовок плана>» со списком задач в теле — через хуки (lint-staged проверяет весь модуль); не прошёл — изменения остаются в индексе;
+4. один коммит «<модуль>: <заголовок плана>» со списком задач в теле — через хуки (pre-commit проверяет весь модуль); не прошёл — изменения остаются в индексе;
    во frontmatter обоих — `area` модуля и `archive` (тег с полным журналом, если `deliver.archive_tag` задан);
    план и контракты модуля (`module` во frontmatter) → `status: closed`, `updated`, `area`; `INDEX.md` и реестры пересобираются (`docs index`) — всё в том же коммите;
 5. событие `delivered` в журнал модуля и тег `deliver.archive_tag` (`archive/{module}`; `false` — без тега, тогда и `archive` в md не пишется) на ветку модуля — полный журнал остаётся там.
