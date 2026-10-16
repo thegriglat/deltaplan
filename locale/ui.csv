@@ -569,7 +569,6 @@ goals_track_filter,Треки IGC и GPX,IGC and GPX tracks
 goals_track_remove,Убрать,Remove
 goals_track_foreign,Трек не из этого места,Track is not from this place
 goals_track_unreadable,Не удалось прочитать трек,Could not read the track
-||||||| 2a9d510e
 goal_list_left,осталось %s,%s left
 result_goal_header,Цели: выполнено %d из %d,Goals: %d of %d done
 result_goal_new_record,Новый рекорд: %s — %s (было %s),New record: %s — %s (was %s)
