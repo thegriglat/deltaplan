@@ -76,7 +76,7 @@ Known issues:
 ## 5. Сборка
 - `tools/build.sh all --release` (нужен дисплей: Shader Baker запекает шейдеры только при экспорте с окном; без дисплея — предупреждение и сборка без запекания). Проверить вывод: «готово: build/linux/…», «готово: build/windows/…», «готово: build/macos/Deltaplan.app…».
 - `data/build_info.json` → коммит без `+` (иначе была незакоммиченная правка — вернуться к шагу 0).
-- Smoke Linux: `XDG_DATA_HOME=$(mktemp -d) build/linux/deltaplan.x86_64 --headless -- --smoke | grep smoke` — все 9 крыльев, 4 места, `terrain data=true`, `about … ok=true`, «300 шагов … фаза flying».
+- Smoke Linux: `XDG_DATA_HOME=$(mktemp -d) build/linux/deltaplan.x86_64 --headless -- --smoke | grep smoke` — все крылья из configs/wings, 4 места, `terrain data=true`, `about … ok=true`, «300 шагов … фаза flying».
 - Каталоги (zip не делаются, butler заливает каталоги): `find build/windows -not -path "*/configs/*"` — только `deltaplan.exe` + `deltaplan.pck` (нет `*.console.exe`, временных файлов); то же для `build/linux`. macOS: `find build/macos -path "*MacOS/*" -o -name "*.pck"` — бинарник и pck внутри `Deltaplan.app` (запустить негде — проверяет друг с Mac).
 
 ## 6. Тег
