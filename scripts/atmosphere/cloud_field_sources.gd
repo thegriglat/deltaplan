@@ -100,12 +100,14 @@ static func prepare(cf: CloudField, inp: Dictionary, cfg: Dictionary) -> Diction
 		var owner := air.owner
 		var carried := air.carried
 		var area := air.area
+		var z_i := wf.z_i() if wf != null else NAN
+		var eps := float(cfg.get("overshoot_flux_frac", 0.2))
 		for c in n:
 			var top := ctop[c]
 			if is_nan(top) or top <= base:
 				continue
 			var h := hc[c]
-			var pen := 2.0 * clampf(1.0 - (base - h) / maxf(top - h, 1.0), 0.0, 1.0)
+			var pen := penetration(base, h, z_i, top, eps)
 			var share := 0.0
 			var o := owner[c]
 			if o >= 0 and o < carried.size():
@@ -131,7 +133,7 @@ static func prepare(cf: CloudField, inp: Dictionary, cfg: Dictionary) -> Diction
 			if i < 0 or i >= nx or j < 0 or j >= ny:
 				continue
 			var c := j * nx + i
-			var pen := 2.0 * clampf(1.0 - (base - p.y) / maxf(top - p.y, 1.0), 0.0, 1.0)
+			var pen := penetration(base, p.y, z_i, top, eps)
 			var w_u := maxf(w_k * air.wstar[s], w_min)
 			au[c] += pen * air.carried[s] / (dx * dx * w_u)
 			ds[c] = maxf(ds[c], k_moist * (top - base))
@@ -178,6 +180,19 @@ static func prepare(cf: CloudField, inp: Dictionary, cfg: Dictionary) -> Diction
 	for c in n:
 		au[c] = minf(au[c], 1.0)
 	return {au = au, ds = ds, vx = vx, vz = vz, hc = hc, mean_v = mean_v}
+
+
+## Доля потока массы столбца, доходящая до высоты z (0..2): профиль Холтслага–Бовилля F = 2F̄(1 − ζ),
+## ζ = (z − hc)/(z_i − hc), не меньше eps в слое; выше z_i — хвост проникающих частиц: eps у z_i,
+## 0 у потолка частицы c_top (eps — отношение потока на верху слоя к приземному, как
+## entrainment ratio A ≈ 0,2, Stull 1988).
+static func penetration(z: float, hc: float, z_i: float, top: float, eps: float) -> float:
+	if is_nan(top) or z >= top:
+		return 0.0
+	var zi := maxf(z_i, hc + 300.0) if not is_nan(z_i) else top
+	if z <= zi:
+		return 2.0 * maxf(1.0 - (z - hc) / maxf(zi - hc, 1.0), eps)
+	return 2.0 * eps * clampf((top - z) / maxf(top - zi, 1.0), 0.0, 1.0)
 
 
 ## dθ̄/dz на высоте основания, К/м: gam поля на уровне LCL, иначе N² погоды (N² = g/θ₀·dθ/dz),
