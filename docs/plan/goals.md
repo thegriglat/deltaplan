@@ -4,7 +4,7 @@ status: "active"
 module: "goals"
 area: "game"
 updated: "2026-10-16"
-summary: "Цели полёта перед стартом (высота, время, дальность, возврат, треугольник, маршрут, скорость, посадка), зачёт, прибор, след прошлой попытки, IGC/GPX."
+summary: "Цели полёта перед стартом (высота, время, дальность, возврат, треугольник, маршрут, скорость, посадка), зачёт, след попытки, IGC/GPX."
 related: ["docs/contracts/goals.md", "docs/guide/tasks.md", "docs/plan/game/04-sled-proshlogo-poleta.md"]
 ---
 

@@ -4,7 +4,7 @@ status: "active"
 module: "goals"
 area: "game"
 updated: "2026-10-16"
-summary: "Стыки модуля целей: цели в FlightSettings (К1), оценка погоды (К2), GoalTracker (К3), прибор и цилиндры (К4), трек и IGC (К5), полоса трека (К6)."
+summary: "Стыки модуля целей: FlightSettings (К1), оценка погоды (К2), GoalTracker (К3), прибор и цилиндры (К4), трек и IGC (К5), полоса (К6)."
 related: ["docs/plan/goals.md", "docs/guide/tasks.md"]
 contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 1}, {"id": "GL-К3", "version": 1}, {"id": "GL-К4", "version": 1}, {"id": "GL-К5", "version": 1}, {"id": "GL-К6", "version": 1}]
 ---
