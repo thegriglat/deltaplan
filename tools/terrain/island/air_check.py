@@ -73,6 +73,8 @@ def run_case(name, prof, shots):
     if p.returncode != 0 or not raw.exists():
         raise SystemExit(f"{name}: код {p.returncode}, лог {log}")
     d = json.loads(raw.read_text())
+    if not d["info"].get("air_field_on"):   # таймаут расчёта поля (холодный кеш шейдеров) — аналитика, не годится
+        raise SystemExit(f"{name}: поле воздуха не посчитано (аналитика), лог {log} — повторить")
     ar = d["info"].get("air_runtime") or {}
     d["info"]["air_runtime"] = {k: ar.get(k) for k in ("engine", "inflow_k", "not_converged", "frozen_frac", "gpu_s", "hour")}
     raw.write_text(json.dumps(_round(d), ensure_ascii=False))
