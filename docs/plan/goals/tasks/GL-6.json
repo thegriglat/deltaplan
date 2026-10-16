@@ -1,0 +1,46 @@
+{
+  "id": "GL-6",
+  "module": "goals",
+  "type": "dp-engineer",
+  "title": "Кадры этапов A и B",
+  "goal": "Набор кадров для пользователя: окно «Цели», полёт со списком целей и прибором со стрелкой, цилиндры, экран итога, полоса трека с 100–300 м и вблизи — в /home/greg/deltaplan/build/screenshots/goals/GL-6/.",
+  "plan_ref": "GL-6",
+  "contracts": [
+    {
+      "name": "GL-К3",
+      "version": "1",
+      "ref": "docs/contracts/goals.md"
+    },
+    {
+      "name": "GL-К6",
+      "version": "1",
+      "ref": "docs/contracts/goals.md"
+    }
+  ],
+  "copy": "~/deltaplan-goals-GL-6",
+  "branch": "goals/GL-6",
+  "base": "feature/goals",
+  "scope": [
+    "tools/shots/goals_shot.gd",
+    "tools/shots/goals_shot.gd.uid",
+    "tools/shots/goals_shot.tscn",
+    "tools/shots/goals_track.igc"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "scenes",
+    "locale",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/goals/GL-6/ | grep -cE '\\.(jpg|png)$'",
+      "expect": "num:(\\d+) >=7"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T22:46:11"
+}
