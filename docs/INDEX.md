@@ -39,6 +39,7 @@ generated: true
   - [docs/guide/scene-look/light-atmosphere.md](guide/scene-look/light-atmosphere.md) — Свет неба и земли, дымка с ореолом, дороги вдали, просвет паруса и листвы (SL-2, SL-3, SL-4, SL-7): физика и цена.
   - [docs/guide/scene-look-keys.md](guide/scene-look-keys.md) — Таблицы ключей scene-look: scene_look, trees.*, trees.impostors.seam_*, haze.*, roads.look, sail — по умолчанию и смысл.
   - [docs/guide/scene-look.md](guide/scene-look.md) — Модуль scene-look («картинка сочнее»): принцип, шейдерный include sl_*, конфиг и выключатели; пункты SL-2…SL-23 разнесены по частям.
+- **start-dog** — Пасхалка: собака у стартового лагеря на части стартов — лежит и бродит, на разбеге бежит рядом и лает, у бровки останавливается. [active 2026-10-17] — [план](plan/start-dog.md) · [контракты](contracts/start-dog.md)
 
 ## game
 
