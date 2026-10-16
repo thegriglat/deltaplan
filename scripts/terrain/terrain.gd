@@ -215,7 +215,9 @@ func load_point(lat: float, lon: float, builtin_id: String = "") -> void:
 		WorkerThreadPool.wait_for_task_completion(task_id)
 	var new_surfaces := _load_surfaces(r.dir, r.layers, r.masks.get("images", {}))
 	var surf0: SurfaceLayer = new_surfaces[0] if not new_surfaces.is_empty() else null
-	if is_sea(r.layers[0], surf0, float(rt.get("sea_depth_m", -450.0))):
+	# проба моря — в выбранной точке (центр места — узел сетки 0,05°, может отличаться)
+	var pq := TerrainGeo.latlon_to_local(lat, lon, float(r.meta.center_lat), float(r.meta.center_lon))
+	if is_sea(r.layers[0], surf0, float(rt.get("sea_depth_m", -450.0)), pq.x, pq.y):
 		_fail(gen, tr("err_sea"))
 		return
 	location_id = String(res.key)
@@ -253,14 +255,16 @@ func cancel_load() -> void:
 
 ## Точка — море: ниже sea_depth_m — всегда; не выше нуля (тайлы Terrarium крупного уровня дают
 ## над океаном ровно 0) — если карта покрова говорит «вода» или её нет (у океана нет файлов
-## WorldCover). Выше нуля — суша.
-static func is_sea(detail: HeightLayer, surf: SurfaceLayer, sea_depth_m: float) -> bool:
-	var h := detail.sample(0.0, 0.0)
+## WorldCover). Выше нуля — суша. (x, z) — проба в локальных метрах места (выбранная точка).
+static func is_sea(
+	detail: HeightLayer, surf: SurfaceLayer, sea_depth_m: float, x: float = 0.0, z: float = 0.0
+) -> bool:
+	var h := detail.sample(x, z)
 	if h > 0.5:
 		return false
 	if h < sea_depth_m:
 		return true
-	return surf == null or surf.class_at(0.0, 0.0) == SurfaceLayer.WATER
+	return surf == null or surf.class_at(x, z) == SurfaceLayer.WATER
 
 
 func _fail(gen: int, message: String) -> void:
