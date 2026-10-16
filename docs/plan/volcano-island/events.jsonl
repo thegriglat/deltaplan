@@ -51,3 +51,4 @@
 {"t": "2026-10-17T04:08:12", "by": "coordinator", "task": "VI-3", "ev": "accepted", "note": "по отчёту; вид вкладок — тестовая сборка главной"}
 {"t": "2026-10-17T04:08:44", "by": "coordinator", "task": "VI-3", "ev": "checked", "commits": ["2ada5443"], "note": "2/3 volcano_island=FAIL:8/9; FAIL test_config_groups; training=ok:39/39; language=ok:6/6"}
 {"t": "2026-10-17T04:08:45", "by": "coordinator", "task": "VI-3", "ev": "merged"}
+{"t": "2026-10-17T04:09:37", "by": "coordinator", "task": "VI-3", "ev": "note", "note": "accept --here: test_config_groups упал из-за устаревшего импорта переводов в копии модуля; после godot --import тесты volcano_island 9/9"}
