@@ -614,3 +614,9 @@ training_landing,Посадка,Landing
 training_landing_what,заход и посадка в круг,approach and landing in the circle
 training_rotor,Ротор,Rotor
 training_rotor_what,"полёт в подветренной стороне хребта: нисходящие потоки и болтанка",flying on the lee side of the ridge: sink and turbulence
+training_volcano_cliffs,Обрывы,Cliffs
+training_volcano_cliffs_what,"динамика у обрывов восточного плато: проходы вдоль края, работа с ветром",dynamic lift at the east plateau cliffs: passes along the edge and wind handling
+training_volcano_crater,Кратер,Crater
+training_volcano_crater_what,"гребень кратера: парение вдоль гребня, подветренная сторона и турбулентность",crater ridge: soaring along the crest; the lee side and turbulence
+training_volcano_landing,Посадка на плато,Plateau landing
+training_volcano_landing_what,"короткий подлёт и посадка в круг на плато",short approach and landing in the circle on the plateau
