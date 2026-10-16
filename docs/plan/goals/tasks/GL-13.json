@@ -1,0 +1,44 @@
+{
+  "id": "GL-13",
+  "module": "goals",
+  "type": "dp-writer",
+  "title": "Документация, сайт, TODO, CHANGELOG по целям и трекам",
+  "goal": "По факту кода feature/goals описаны цели полёта, итог, прибор, цилиндры, след прошлой попытки, полоса трека и загрузка IGC/GPX: docs/guide (как устроено), страница сайта ru/en, CHANGELOG «В работе», TODO T-54…T-59, старый план 04 — в архив, строка в findings.",
+  "plan_ref": "GL-13",
+  "contracts": [],
+  "copy": "~/deltaplan-goals-GL-13",
+  "branch": "goals/GL-13",
+  "base": "feature/goals",
+  "scope": [
+    "docs/guide/goals.md",
+    "docs/guide/tasks.md",
+    "docs/guide/instruments.md",
+    "docs/plan/game/04-sled-proshlogo-poleta.md",
+    "docs/archive",
+    "docs/INDEX.md",
+    "docs/registry/findings.md",
+    "TODO.md",
+    "CHANGELOG.md",
+    "site/content/docs/goals.ru.md",
+    "site/content/docs/goals.en.md",
+    "site/content/docs/_index.ru.md",
+    "site/content/docs/_index.en.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "docs/plan/goals.md",
+    "docs/contracts/goals.md",
+    "site/content/releases"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T00:00:35"
+}
