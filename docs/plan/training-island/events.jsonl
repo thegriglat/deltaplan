@@ -166,3 +166,4 @@
 {"t": "2026-10-17T01:15:35", "by": "executor", "task": "TI-11", "ev": "reported", "commits": ["50b2a0a5", "aabcfe15"], "note": "done: model_hash (код + живые конфиги) в key: baked_lookup и load_file отказывают при несовпадении (push_warning, расчёт в иг…", "dp_feedback": "job wait на lock gpu возвращается по выводу обёртки, внутренняя задача идёт отдельно; пришлось проверять результат через --check/git status."}
 {"t": "2026-10-17T01:16:44", "by": "coordinator", "task": "TI-11", "ev": "checked", "note": "5/5 training_island=ok:24/24; air_runtime=ok:8/8 (пропуск 4); bake_check=ok:exit 0; gpu=ok:1 тестов, 0 упало; smoke=ok:baked_from_pck=4/4"}
 {"t": "2026-10-17T01:16:52", "by": "coordinator", "task": "TI-11", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-17T01:16:53", "by": "coordinator", "task": "TI-11", "ev": "merged"}

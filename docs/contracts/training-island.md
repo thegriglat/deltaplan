@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-16"
 summary: "Учебный остров: папка встроенного синтетического места (TI-К1), фиксированная погода старта (TI-К2), запечённое поле ветра (TI-К3)."
 related: ["docs/plan/training-island.md", "docs/guide/location-data.md", "docs/research/air_field_cache.md"]
-contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 2}, {"id": "TI-К3", "version": 2}]
+contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 2}, {"id": "TI-К3", "version": 3}]
 ---
 # Контракты модуля training-island
 
@@ -74,7 +74,7 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 2}, {"id
   в меню погода для такого старта не выбирается (видно, какой набор). Нет `weather` — всё как сейчас.
 - Время полёта идёт как обычно (погода «фиксирована» на старте, не останавливает часы).
 
-## TI-К3. Запечённое поле ветра — версия 2
+## TI-К3. Запечённое поле ветра — версия 3
 
 - Владелец: TI-4. Потребители: `AirRuntime` (`scripts/atmosphere/air_model/air_runtime.gd`), инструмент `tools/terrain/bake_air.gd`, TI-5.
 - Файлы: `res://data/locations/<id>/air/<site_id>.json` (заголовок) + `<site_id>.bin` (тело). Заголовок:
@@ -89,11 +89,16 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 2}, {"id
   `window_dx`, `data_hash` (sha256 `meta.json`, `surface.json` и файлов `detail*` папки `Locations.data_dir(id)`), `format`.
   API: `AirBakedField.save(fs, header, path)`, `load_file(path, key)`, `read_header`, `make_key`, `key_diff`, `place_hash`, `model_hash`;
   `AirRuntime.baked_ready()`, `baked_lookup(c)`, `baked_enabled`. Без GPU запечённое поле тоже берётся (фонового пересчёта нет).
+- v3 (2026-10-17, Q3, TI-11): `model_hash` = sha256(хеш кода модели воздуха + секции `air_model`, `air_phase` `configs/atmosphere.json`,
+  `configs/weather_model.json`, `configs/surface_heat.json`); хеш кода — sha256 `scripts/atmosphere/air_model/*.gd`, `*.glsl` (кроме
+  `air_baked_field.gd`), в экспорте — из `res://data/air_model_hash.txt` (пишет `tools/terrain/air_model_hash.gd` из `tools/build.sh`
+  перед экспортом; файл в `.gitignore`). В игре проверяется (`baked_lookup`, `load_file`): не совпал или хеша кода нет — поле не берётся,
+  `push_warning`, расчёт в игре. `data_hash` — без служебных `.import`/`.remap`. new-release: `bash tools/terrain/island/bake_all.sh --check`
+  перед сборкой, код 1 — перепечь.
 - `key` — условия, от которых зависит поле старта: `location`, `site`, `weather` (TI-К2 как есть), координаты центра области и окон, хеш данных
   места (`meta.json` + файлы слоёв `detail`), версия формата. В игре поле берётся только при точном совпадении `key`.
 - `model_hash` — sha256 исходников модели воздуха (`scripts/atmosphere/air_model/*.gd`, `*.glsl`, секции `air_model`, `air_phase`
-  `configs/atmosphere.json`, `configs/weather_model.json`, `configs/surface_heat.json`). В игре не проверяется (в экспорте исходников нет);
-  проверяет `tools/terrain/bake_air.gd --check` (код 1 — поле устарело, перепечь) и контрактный тест (предупреждение, не падение).
+  `configs/atmosphere.json`, `configs/weather_model.json`, `configs/surface_heat.json`). До v3 в игре не проверялся; с v3 — см. выше; `tools/terrain/bake_air.gd --check` (код 1 — поле устарело, перепечь).
 - Поведение в игре: совпал `key` → поле из файла, без этапа «Рассчитываем ветер»; текущее состояние `AirRuntime` выставлено так, что
   поле старта не пересчитывается сразу; источники термиков построены; затем обычный фоновый пересчёт (сдвиг окон, ход времени).
   Нет файла или `key` не совпал → обычный расчёт и строка в лог. Формат состояния модели воздуха (`AirPicardJob`, `WindField`,
