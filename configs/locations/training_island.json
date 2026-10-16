@@ -1,0 +1,84 @@
+{
+  "_doc": "Учебный остров (TI-К1): вымышленный остров ~14 × 10 км в открытом море, рельеф и карта классов — процедурно (tools/terrain/island/, не править руками: build_island.py перезаписывает файл). Хребет С–Ю на западе (склон), равнина с полями на юге/юго-востоке (термики), учебный холм с полем-мишенью (посадка), чаша за хребтом (ротор). Координаты мира: X — восток, −Z — север.",
+  "bundled": true,
+  "bundled_doc": "Данные места — res://data/locations/training_island/ (без сборки и сети)",
+  "center_lat": 43.2,
+  "center_lon": 34.0,
+  "country": "",
+  "landing_sites": [
+    {
+      "id": "landing_target",
+      "lat": 43.2140294,
+      "lon": 34.0275729,
+      "name": "Поле-мишень у учебного холма"
+    },
+    {
+      "id": "plain_field",
+      "lat": 43.1937048,
+      "lon": 33.9645314,
+      "name": "Поле на равнине у южного конца хребта"
+    }
+  ],
+  "landing_sites_doc": "Посадочные площадки {id, name, lat, lon}; детали — configs/world_objects.json → landing.sites.training_island",
+  "name": "loc_training_island",
+  "render": {
+    "detail": {
+      "chunk_cells": 160,
+      "lod_distances_m": [
+        1500,
+        3500,
+        7000,
+        14000
+      ],
+      "skirt_depth_m": 300
+    },
+    "far": {
+      "chunk_cells": 200,
+      "lod_distances_m": [
+        12000,
+        25000,
+        45000
+      ],
+      "skirt_depth_m": 400
+    }
+  },
+  "start_clearing_radius_m": 70,
+  "start_position_agl_m": 0.0,
+  "start_sites": [
+    {
+      "heading_deg": 270,
+      "id": "ridge_west",
+      "lat": 43.2060254,
+      "lon": 33.9379455,
+      "name": "site_training_island_ridge_west",
+      "name_doc": "Склон: верх наветренного склона хребта С–Ю над морем, разбег на запад (ветер наборов 270°)"
+    },
+    {
+      "heading_deg": 180,
+      "id": "thermal_plain",
+      "lat": 43.1684339,
+      "lon": 33.9553405,
+      "name": "site_training_island_thermal_plain",
+      "name_doc": "Термики: южный конец хребта над равниной с полями, голым грунтом, рощами и озером"
+    },
+    {
+      "heading_deg": 270,
+      "id": "landing_hill",
+      "lat": 43.2135797,
+      "lon": 34.0433025,
+      "name": "site_training_island_landing_hill",
+      "name_doc": "Посадка: учебный холм; поле-мишень landing_target в 1–1,5 км"
+    },
+    {
+      "heading_deg": 270,
+      "id": "lee_bowl",
+      "lat": 43.206655,
+      "lon": 33.9607687,
+      "name": "site_training_island_lee_bowl",
+      "name_doc": "Ротор: восточный борт чаши за главным хребтом, разбег на запад — в подветренной зоне хребта"
+    }
+  ],
+  "synthetic": true,
+  "synthetic_doc": "Вымышленное место: точка с карты в него не превращается",
+  "utc_offset_h": 3
+}

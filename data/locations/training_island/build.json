@@ -1,0 +1,12 @@
+{
+  "center_lat": 43.2,
+  "center_lon": 34.0,
+  "complete": true,
+  "format_version": 4,
+  "key": "training_island",
+  "missing": [],
+  "net_requests": 0,
+  "sources": [
+    "synthetic"
+  ]
+}

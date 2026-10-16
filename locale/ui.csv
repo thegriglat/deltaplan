@@ -299,6 +299,11 @@ site_aushkul_south,Ауштау — южный склон,Aushtau — south slop
 site_aushkul_ridge_west,Хребет у Старобайрамгулово — западный склон,Ridge near Starobayramgulovo — west slope
 loc_ongudai,Алтай — Онгудай,Altai — Ongudai
 site_ongudai_south,Онгудайский ретранслятор — южный старт (перевал Каянча),Ongudai relay mast — south launch (Kayancha pass)
+loc_training_island,Учебный остров,Training Island
+site_training_island_ridge_west,Склон,Ridge
+site_training_island_thermal_plain,Термики,Thermals
+site_training_island_landing_hill,Посадка,Spot landing
+site_training_island_lee_bowl,Ротор,Rotor
 vario_preset_classic,"Классический, 1990-е","Classic, 1990s"
 vario_preset_xctracer,XC Tracer (современный),XC Tracer (modern)
 err_no_location_config,нет конфига локации %s,no location config %s
@@ -494,7 +499,7 @@ settings_tab_controls,Управление,Controls
 settings_tab_sound,Звук,Sound
 settings_tab_motion,Платформа,Motion platform
 settings_motion_on,Вывод движения,Motion output
-settings_motion_on_hint,Слать движение пилота на платформу по UDP (пакеты идут всегда, пока включено, в т. ч. в меню и на паузе),Send pilot motion to a platform over UDP (packets flow whenever on, including menu and pause)
+settings_motion_on_hint,"Слать движение пилота на платформу по UDP (пакеты идут всегда, пока включено, в т. ч. в меню и на паузе)",Send pilot motion to a platform over UDP (packets flow whenever on, including menu and pause)
 settings_motion_addr,Адрес (хост:порт),Address (host:port)
 settings_motion_rate,Частота,Rate
 settings_motion_ramp,"Плавный вход, с","Ease-in, s"
