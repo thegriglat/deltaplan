@@ -2,7 +2,7 @@ class_name WorldLink
 extends Node
 ## Связь полётного мира с объектами и рельефом (вызов вниз из Game):
 ## объекты мира (ветроуказатели, посадки, OSM, препятствия — WorldObjects), просеки для деревьев
-## рельефа (WorldClearings), ветер для травы/деревьев, пилот для примятой травы,
+## рельефа (WorldClearings) — оба по общим данным места (PlaceData, FL-К2), ветер для травы/деревьев, пилот для примятой травы,
 ## столкновения с проводами и препятствиями. Сцена объектов — game.json → world_objects_scene.
 ## Лагерь палаток у старта (WorldObjects.place_camp) — Game зовёт place_camp() после выбора старта
 ## и до BotPilots.setup_in_world (боты обходят палатки, SC-K1); число ботов — Game.bots_count
@@ -45,8 +45,10 @@ func link(terrain: Terrain, air: Node, pilot: Node3D) -> void:
 	if loc == _location and not terrain.layers.is_empty():
 		return  # та же локация — объекты и просеки уже стоят
 	_location = loc
-	if loc != "" and terrain.has_method("set_clearings"):
-		var c := WorldClearings.build_for(loc)
+	# общие данные места (FL-К2): OSM и план домов — один раз, для маски просек и объектов
+	var place: PlaceData = PlaceData.for_terrain(terrain) if loc != "" else null
+	if place != null and terrain.has_method("set_clearings"):
+		var c := WorldClearings.build_from(place)
 		if c != null:
 			terrain.set_clearings(c.image, c.origin, c.cell_m)
 	if objects != null and objects.has_method("setup"):

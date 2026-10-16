@@ -42,6 +42,8 @@ var _air_fn: Callable
 var _gear_terrain: Node = null
 var _height_fn: Callable
 var _clearings: WorldClearings
+## Общие данные места (FL-К2): OSM и план домов берутся отсюда, не читаются заново; null — читать самим.
+var _place: PlaceData
 var _active: Array[WindIndicator] = []
 var _since_update: float = 0.0
 var _since_active: float = INF
@@ -59,8 +61,10 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 	if terrain.has_method(&"get_landing_sites"):
 		landings = terrain.call(&"get_landing_sites")
 	var patches: BuiltPatches = null
+	var place: PlaceData = null
 	if terrain is Terrain:
-		patches = BuiltPatches.for_terrain(terrain)
+		place = PlaceData.for_terrain(terrain)
+		patches = place.patches
 	_gear_terrain = terrain
 	build(
 		String(terrain.get(&"location_id")),
@@ -70,7 +74,8 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 		air,
 		Callable(terrain, &"latlon_to_local"),
 		Vector2(float(terrain.get(&"center_lat")), float(terrain.get(&"center_lon"))),
-		patches
+		patches,
+		place
 	)
 	_gear_terrain = null
 
@@ -80,6 +85,7 @@ func setup(terrain: Node, atmosphere: Node) -> void:
 ## ({id, name, lat, lon}; подробности поля — configs/world_objects.json → landing.sites по id);
 ## latlon_fn(lat, lon) -> Vector2(x, z); center — (lat, lon).
 ## patches — пятна застройки места (BuiltPatches) для домов; null — берутся из данных локации по id.
+## place — общие данные места (PlaceData, FL-К2): OSM и план домов из него; null — OSM и план считаются здесь.
 func build(
 	loc_id: String,
 	start_sites: Array,
@@ -88,11 +94,13 @@ func build(
 	air_fn: Callable,
 	latlon_fn: Callable,
 	center: Vector2,
-	patches: BuiltPatches = null
+	patches: BuiltPatches = null,
+	place: PlaceData = null
 ) -> void:
 	var t0 := Time.get_ticks_usec()
 	clear()
 	_clearings = null
+	_place = place if place != null and place.location_id == loc_id else null
 	location_id = loc_id
 	cfg = WorldObjects.load_config()
 	_air_fn = air_fn
@@ -150,13 +158,12 @@ func clear() -> void:
 func _build_osm(loc_id: String, center: Vector2, height_fn: Callable) -> void:
 	var ocfg: Dictionary = Config.get_config("osm_tiles")
 	osm = OsmData.new()
-	if loc_id == "" or not bool(ocfg.get("enabled", true)):
+	if _place != null:
+		osm = _place.osm  # прочитан один раз за загрузку (FL-К2)
+	elif loc_id == "" or not bool(ocfg.get("enabled", true)):
 		return
-	# центр места — в double из конфига локации (Vector2 — float32, сдвиг объектов до ~0,5 м)
-	var lc: Dictionary = Locations.config(loc_id)
-	var clat := float(lc.get("center_lat", center.x))
-	var clon := float(lc.get("center_lon", center.y))
-	osm = OsmData.load_for(Locations.data_dir(loc_id), clat, clon, float(ocfg.get("half_m", 20000.0)))
+	else:
+		_load_osm(loc_id, center, ocfg)
 	if osm.is_empty():
 		return
 	osm_layer = OsmLayer.new()
@@ -173,6 +180,15 @@ func _build_osm(loc_id: String, center: Vector2, height_fn: Callable) -> void:
 	if ct != null and _gear_terrain != null and _gear_terrain.has_method(&"set_city_canopy"):
 		ct.city_mask_ready.connect(Callable(_gear_terrain, &"set_city_canopy"))
 		ct.shown_changed.connect(Callable(_gear_terrain, &"set_city_canopy_on"))
+
+
+## OSM места без PlaceData (build без общих данных): центр — в double из конфига локации
+## (Vector2 — float32, сдвиг объектов до ~0,5 м).
+func _load_osm(loc_id: String, center: Vector2, ocfg: Dictionary) -> void:
+	var lc: Dictionary = Locations.config(loc_id)
+	var clat := float(lc.get("center_lat", center.x))
+	var clon := float(lc.get("center_lon", center.y))
+	osm = OsmData.load_for(Locations.data_dir(loc_id), clat, clon, float(ocfg.get("half_m", 20000.0)))
 
 
 ## Конфиг с учётом пресета качества (configs/world_objects.json → quality).
@@ -335,11 +351,14 @@ func _build_villages(patches: BuiltPatches, height_fn: Callable) -> void:
 	var bc: Dictionary = cfg.buildings
 	if not bool(bc.get("enabled", true)):
 		return
-	if patches == null:
-		patches = WorldClearings.patches_for_location(location_id)
-	houses = VillagePlacer.plan(
-		patches, location_id, cfg.villages, height_fn, osm.buildings if osm != null else []
-	)
+	if _place != null:
+		houses = _place.house_plan  # тот же план, по которому вырублена маска просек (FL-К2)
+	else:
+		if patches == null:
+			patches = WorldClearings.patches_for_location(location_id)
+		houses = VillagePlacer.plan(
+			patches, location_id, cfg.villages, height_fn, osm.buildings if osm != null else []
+		)
 	if houses.is_empty():
 		return
 	village_layer = VillageLayer.new()
@@ -394,7 +413,9 @@ func _camp_env(start: Vector3, tc: Dictionary, terrain: Node) -> Dictionary:
 ## Расчищено ли место в текущей локации (застройка, посадка) — деревьев не ставить.
 func is_clear_at(x: float, z: float) -> bool:
 	if _clearings == null and location_id != "":
-		_clearings = WorldClearings.build_for(location_id)
+		_clearings = (
+			WorldClearings.build_from(_place) if _place != null else WorldClearings.build_for(location_id)
+		)
 	return _clearings != null and _clearings.is_clear_at(x, z)
 
 
