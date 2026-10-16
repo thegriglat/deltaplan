@@ -28,7 +28,9 @@
     "configs/training.json",
     "locale/ui.csv",
     "tests/ui/",
-    "tools/shots/"
+    "tools/shots/",
+    "scenes/main.gd",
+    "tests/game/"
   ],
   "dont_touch": [
     "scripts/goals/",
@@ -67,5 +69,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T01:34:59"
+  "created": "2026-10-17T01:34:59",
+  "edited": "2026-10-17T01:41:41"
 }
