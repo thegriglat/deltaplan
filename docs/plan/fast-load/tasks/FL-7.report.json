@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Сцена породы грузится/разбирается один раз вместо 40; load_threaded_request в начале load_location/load_point. Замер load_probe (ongudai, профиль fl7-ong, 3 тёплых до/после): этап trees 3,57/3,87/2,72 с (ср. 3,39) -> 1,24/1,22/1,53 с (ср. 1,33), выигрыш ~2,1 с (>=0,7).",
+  "commits": [
+    "05aa2f37 Деревья: одна сборка сцены на породу, фоновая загрузка"
+  ],
+  "checks": [
+    {
+      "name": "trees до -> после, с",
+      "value": "3,39 -> 1,33 (выигрыш 2,1)",
+      "pass": true
+    },
+    {
+      "name": "наибольший [gap] до/после, мс",
+      "value": "6151/6693/3789 (этап ветра) -> 4472/4770/4509; gap этапа trees 3573/3868/2715 -> 1245/1216/1526",
+      "pass": true
+    },
+    {
+      "name": "tree",
+      "value": "55/55",
+      "pass": true
+    },
+    {
+      "name": "vegetation",
+      "value": "54/54",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Пункт (3) заметки (статический кеш разобранных мешей на процесс) не делал: выигрыш уже набран, повторная загрузка той же сцены идёт через кеш ResourceLoader",
+    "Тест тождества: свой tests/vegetation/test_tree_models_load.gd (меши по вариантам = старый путь _load_lods, AABB LOD0), эталон по числу вершин/instantiate не снимал"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept FL-7",
+  "uncertain": [
+    {
+      "where": "tests/vegetation/test_tree_models_load.gd",
+      "why": "тождество проверено по AABB LOD0 и числу LOD, не по числу вершин/именам",
+      "checked": "_load_lods теперь обёртка над новым путём, так что сравнение с ним слабое; меши берутся из тех же узлов V{n}_LOD{k}"
+    }
+  ],
+  "dp_feedback": "заметка карточки в task show обрезана «…», полный текст только в events.jsonl",
+  "t": "2026-10-17T03:47:38",
+  "by": "executor"
+}
