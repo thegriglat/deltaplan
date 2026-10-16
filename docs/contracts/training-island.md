@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-16"
 summary: "Учебный остров: папка встроенного синтетического места (TI-К1), фиксированная погода старта (TI-К2), запечённое поле ветра (TI-К3)."
 related: ["docs/plan/training-island.md", "docs/guide/location-data.md", "docs/research/air_field_cache.md"]
-contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 1}, {"id": "TI-К3", "version": 2}]
+contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 2}, {"id": "TI-К3", "version": 2}]
 ---
 # Контракты модуля training-island
 
@@ -49,7 +49,7 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 1}, {"id
   (уклон < 10°, не лес и не вода); у старта «посадка» — посадка-мишень с id `landing_target`.
 - Нет папки данных или файла слоя — загрузка места падает с сообщением (как нет рельефа), не сборкой из сети.
 
-## TI-К2. Фиксированная погода старта — версия 1
+## TI-К2. Фиксированная погода старта — версия 2
 
 - Владелец: TI-3. Потребители: меню полёта (`scripts/ui/flight_setup_screen.gd`), запуск полёта (`scripts/game/game.gd`),
   повтор полёта, сеть, TI-4 (условия запекания), TI-5 (подбор наборов), модуль goals (тренировки на острове).
@@ -61,6 +61,12 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 1}, {"id
   Все поля обязательны внутри `weather`: `wind_from_deg` — откуда ветер, ° (0 — север, 90 — восток); `wind_speed_ms` — ветер по прогнозу
   у земли, м/с; `start_hour` — час старта (поясное время места), одно из `configs/world.json → time.start_hours` (9, 12, 15, 20); `month`, `day`; `sky` — `"clear"|"partly"|"overcast"`
   (`configs/weather_model.json → sky`); `temperature_c` — максимум у земли, °C.
+- v2 (2026-10-16, Q2): необязательное поле `wind_ref` — `"start"` (по умолчанию, как сейчас: `AirRuntime` подгоняет приток так,
+  чтобы ветер у старта был равен `wind_speed_ms`) | `"inflow"` — `wind_speed_ms` и `wind_from_deg` — набегающий поток на краю области
+  (коэффициент притока 1, без подгонки под ветер у старта; для старта в подветренной стороне — «Ротор»). Входит в ключ запечённого поля
+  (TI-К3: `weather` как в конфиге). Реализация — `AirRuntime` (калибровка притока), формат состояния модели воздуха не меняется.
+  Реализация в игре: `StartWeather` (`scripts/game/start_weather.gd`) — разбор и `apply(FlightSettings)`; `wind_ref` передаётся
+  в условия воздуха (`AirRuntime.conditions_of`) из настроек полёта.
 - Соответствие `FlightSettings`: `wind_from_deg` → `wind_from_deg`, `wind_into_launch` = false, `wind_speed_ms·3.6` → `wind_speed_kmh`,
   `start_hour`, `month`, `day`, `sky`, `temperature_c` — одноимённые.
 - Поведение: у выбранного старта есть `weather` → эти поля `FlightSettings` берутся из набора (при выборе старта в меню, при восстановлении
