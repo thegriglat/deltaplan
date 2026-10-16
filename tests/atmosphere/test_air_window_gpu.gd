@@ -550,6 +550,7 @@ func test_runtime_with_windows() -> void:
 	host.add_child(pilot)
 	tree.root.add_child(host)
 	var rt := AirRuntime.new()
+	rt.cache_enabled = false  # расчёт, не кеш поля (FL-К1)
 	tree.root.add_child(rt)
 	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _rt_conditions)
 	rt.set_focus(pilot, start)

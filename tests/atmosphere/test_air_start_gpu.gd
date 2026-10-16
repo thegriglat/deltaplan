@@ -59,6 +59,7 @@ func test_start_wind_matches_menu() -> void:
 		var detail: HeightLayer = lw[0]
 		var loc := TestAirPlace.load_loc(loc_id)
 		var rt := AirRuntime.new()
+		rt.cache_enabled = false  # расчёт, не кеш поля (FL-К1)
 		tree.root.add_child(rt)
 		for site: Dictionary in loc.start_sites:
 			var heading := float(site.heading_deg)
@@ -153,6 +154,7 @@ func test_failed_second_pass_keeps_first() -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	await tree.process_frame
 	var rt := AirRuntime.new()
+	rt.cache_enabled = false  # расчёт, не кеш поля (FL-К1)
 	tree.root.add_child(rt)
 	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _cond)
 	rt.focus_fn = func() -> Vector3: return sp

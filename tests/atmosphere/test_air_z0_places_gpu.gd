@@ -130,6 +130,7 @@ func test_places_z0() -> void:
 		)
 		# подбор inflow_k AirRuntime со снимком (как test_air_start, но place с surface)
 		var rt := AirRuntime.new()
+		rt.cache_enabled = false  # расчёт, не кеш поля (FL-К1)
 		tree.root.add_child(rt)
 		for site: Dictionary in loc.start_sites:
 			var heading := float(site.heading_deg)

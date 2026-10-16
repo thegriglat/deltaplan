@@ -452,8 +452,8 @@ func _load_air_field(progress: LoadProgress) -> void:
 		cond
 	)
 	air_runtime.set_focus(camera if inspect_mode else glider, _start_pos)
-	if air_runtime.baked_ready():
-		pass  # поле старта берётся из файла (TI-К3): этапа «Рассчитываем ветер» нет
+	if air_runtime.baked_ready() or air_runtime.cache_ready():
+		pass  # поле — из запечённого файла (TI-К3) или кеша (FL-К1): этапа «Рассчитываем ветер» нет
 	elif air_runtime.unavailable_reason() == "":
 		progress.stage("wind", tr(wind_stage_key(air_runtime.engine())))
 		air_runtime.progress_changed.connect(_on_air_progress.bind(progress))
