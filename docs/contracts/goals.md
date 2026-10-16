@@ -6,7 +6,7 @@ area: "game"
 updated: "2026-10-16"
 summary: "Стыки модуля целей: FlightSettings (К1), оценка погоды (К2), GoalTracker (К3), прибор и цилиндры (К4), трек и IGC (К5), полоса (К6)."
 related: ["docs/plan/goals.md", "docs/guide/tasks.md"]
-contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 2}, {"id": "GL-К3", "version": 1}, {"id": "GL-К4", "version": 1}, {"id": "GL-К5", "version": 2}, {"id": "GL-К6", "version": 1}]
+contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 2}, {"id": "GL-К3", "version": 2}, {"id": "GL-К4", "version": 1}, {"id": "GL-К5", "version": 2}, {"id": "GL-К6", "version": 1}]
 ---
 # Контракты модуля goals
 
@@ -58,7 +58,8 @@ static func suggest_all(wx: Dictionary, route_m := 0.0) -> Dictionary   # {kind:
 - Честность (v2, 2026-10-16): уровни не подгоняются под плохую погоду, но в хорошую погоду все достижимы без облака. Высота: запас до базы над стартом `avail = cloudbase_agl_m − estimate.json → height.start_above_mean_m` (высоты старта до загрузки рельефа нет — грубое число с `_doc`); `easy/medium/hard` — доли `avail` (hard ≤ avail), но не меньше нижних порогов уровней (`height.floor_m` по уровням). В слабую/пасмурную погоду пороги больше `avail` → трудное недостижимо; в «ясно, сильные» hard ≤ avail. Так же для маршрутных: нижние пороги уровней в километрах, в плохую погоду больше реально пролетаемого.
 v2: честность — через нижние пороги уровней, а не «hard выше базы всегда».
 
-## GL-К3. GoalTracker — цели в полёте (v1)
+## GL-К3. GoalTracker — цели в полёте (v2)
+v2 (2026-10-16, по кадрам GL-6): `reason` — код латиницей, текст — в интерфейсе через `tr("goals_reason_<код>")`.
 Владелец: GL-2 (`scripts/goals/goal_tracker.gd`, `configs/goals/tracker.json`). Потребители: `Game` (GL-4), HUD-список, экран итога (GL-4), цилиндры (GL-5).
 ```gdscript
 class_name GoalTracker extends RefCounted
@@ -79,6 +80,7 @@ func result() -> Dictionary                  # {goals: items(), done: int, total
 `ctx`: `{start_pos: Vector3` (точка взлёта, y — земля), `start_heading_deg: float, wind_from_deg: float, wind_ms: float, latlon_fn: Callable(lat, lon) -> Vector2(x, z), height_fn: Callable(x, z) -> float, bounds: Rect2` (детальная зона XZ, `Terrain.detail_bounds()`), `landing_target` (Vector3 центр круга на земле; нет ключа или `null` — посадки нет), `location_id: String}`.
 
 Элемент `items()`: `{kind, value, task_name: String, status: "pending"|"done"|"failed"|"unavailable", current: float, best: float, reason: String}`.
+- `reason` — код (`[a-z_]+`), не текст: `landed` (сел, не выполнив), `crash`, `outside_circle`, `too_slow`, `no_room`, `no_target`, `task_error`, `no_goal`; пусто — нет причины. Перевод — `locale/ui.csv` ключи `goals_reason_<код>` (ru, en).
 - `current`/`best` в единицах К1: `height` — набор над стартом сейчас / лучший удержанный; `duration` — с в воздухе; `distance` — м от взлёта сейчас / наибольшее; маршрутные — пройдено пунктов (`best` — оставшаяся дистанция, м); `speed` — с с начала маршрута; `landing` — м от центра (после посадки).
 - Засчёт: `height` — набор ≥ value непрерывно `hold_s`; `duration` — время в воздухе ≥ value; `distance` — горизонтальное расстояние от взлёта ≥ value; `route`/`triangle`/`return` — гоул ведущего `TaskTracker`; `speed` — гоул ведущего маршрута за время ≤ value (иначе `failed`); `landing` — посадка в круге и `grade != "crash"`. После посадки все `pending` → `failed`.
 - `unavailable` (с `reason`): `return`/`triangle` не помещаются в `bounds` ни при каком повороте (шаг ±15°), `landing` без `landing_target`, `route` с ошибкой загрузки задания. Такие цели не влияют на остальные.
