@@ -189,11 +189,23 @@ static func load_file(path: String, key: Variant = null) -> AirFieldSet:
 	if body.size() != raw_n or raw_n <= 0:
 		push_warning("AirBakedField: %s.bin не распаковался" % base)
 		return null
+	# уровни собираются параллельно (WindField.from_arrays — столбцы и пограничный слой, сотни мс на
+	# уровень): чтение из кеша/файла за ~1 с, а не за сумму уровней (FL-2)
+	var lvs: Array = h.get("levels", [])
+	var built: Array = []
+	built.resize(lvs.size())
+	if lvs.size() > 1:
+		var gid := WorkerThreadPool.add_group_task(
+			func(i: int) -> void: built[i] = _level(lvs[i], body), lvs.size(), -1, true, "AirBakedField.levels"
+		)
+		WorkerThreadPool.wait_for_group_task_completion(gid)
+	elif lvs.size() == 1:
+		built[0] = _level(lvs[0], body)
 	var levels: Array[WindField] = []
-	for lv: Dictionary in h.get("levels", []):
-		var f := _level(lv, body)
+	for i in lvs.size():
+		var f: WindField = built[i]
 		if f == null:
-			push_warning("AirBakedField: %s — уровень %s не собрался" % [base, lv.get("name", "?")])
+			push_warning("AirBakedField: %s — уровень %s не собрался" % [base, lvs[i].get("name", "?")])
 			return null
 		f.meta["path_baked"] = base
 		levels.append(f)
