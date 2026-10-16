@@ -1,0 +1,47 @@
+{
+  "id": "TI-15",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Строка места без страны в окне мест",
+  "goal": "У места без страны (учебный остров) в окне популярных мест нет «— — 4»: строка выглядит как у других мест, только без страны (например «Учебный остров · 4 старта»).",
+  "plan_ref": "Условия сдачи (Q3, 2026-10-17)",
+  "contracts": [],
+  "copy": "~/deltaplan-training-island-TI-15",
+  "branch": "training-island/TI-15",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/ui/popular_places_window.gd",
+    "scripts/ui/popular_places.gd",
+    "tests/ui/test_popular_places.gd",
+    "tools/shots/"
+  ],
+  "dont_touch": [
+    "configs/",
+    "data/",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/ui/place_pick_row.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "popular_places",
+      "tests": "popular_places"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    },
+    {
+      "name": "shot",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/training-island/menu/ | grep -c '^01_places_fix.jpg'",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T01:18:25"
+}
