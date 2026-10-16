@@ -365,7 +365,7 @@ static func model_hash_ok(header: Dictionary) -> bool:
 # ---------------------------------------------------------------- условия (TI-К2)
 
 
-## Условия расчёта AirRuntime ({hour, u10, wdir, t_max, sky}) по набору погоды TI-К2 — ключ
+## Условия расчёта AirRuntime ({hour, u10, wdir, t_max, sky, wind_ref}) по набору погоды TI-К2 — ключ
 ## weather конфига старта. Единственное место разбора набора на стороне поля: те же числа, что
 ## FlightSettings получает из набора (wind_speed_ms·3,6 км/ч → u10 = wind_speed_ms).
 static func conditions_of(weather: Dictionary) -> Dictionary:
@@ -375,6 +375,7 @@ static func conditions_of(weather: Dictionary) -> Dictionary:
 		wdir = float(weather.wind_from_deg),
 		t_max = float(weather.temperature_c),
 		sky = String(weather.sky),
+		wind_ref = String(weather.get("wind_ref", "start")),
 	}
 
 
@@ -388,6 +389,8 @@ static func conditions_diff(weather: Dictionary, c: Dictionary, month: int, day:
 	var dd := angle_difference(deg_to_rad(float(c.wdir)), deg_to_rad(float(w.wdir)))
 	if absf(dd) > deg_to_rad(AirRuntime.DIR_TOL_DEG):
 		return "направление %.1f ≠ %.1f°" % [float(c.wdir), float(w.wdir)]
+	if String(c.get("wind_ref", "start")) != String(w.wind_ref):
+		return "опора ветра %s ≠ %s" % [c.get("wind_ref", "start"), w.wind_ref]
 	if absf(float(c.get("t_max", NAN)) - float(w.t_max)) > AirRuntime.TMAX_TOL_C:
 		return "температура %s ≠ %s" % [c.get("t_max"), w.t_max]
 	if String(c.get("sky", "")) != String(w.sky):
