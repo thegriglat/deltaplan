@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "sea-ships",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/sea-ships.md"
     }
   ],
@@ -48,17 +48,28 @@
       "expect": "num:n (\\d+) >=3"
     },
     {
-      "name": "inland_places",
-      "cmd": "python3 -c \"import json;print('n', sum(p['kind'] in ('lake','reservoir','river') for p in json.load(open('tools/research/sea_mask/summary.json'))['places']))\"",
-      "expect": "num:n (\\d+) >=4"
-    },
-    {
       "name": "works",
       "cmd": "python3 -c \"import json;print('works', json.load(open('tools/research/sea_mask/summary.json'))['works'])\"",
       "expect": "re:works True"
+    },
+    {
+      "name": "inland_places",
+      "cmd": "python3 -c \"import json;print('n', sum(p['kind'] in ('lake','reservoir','river') for p in json.load(open('tools/research/sea_mask/summary.json'))['places']))\"",
+      "expect": "num:n (\\d+) >=6"
+    },
+    {
+      "name": "dead_sea_lake",
+      "cmd": "python3 -c \"import json;ps=json.load(open('tools/research/sea_mask/summary.json'))['places'];print('dead', sum(1 for p in ps if p['kind']=='lake' and abs(p['lat']-31.5)<0.5 and abs(p['lon']-35.5)<0.5 and p['sea_cells']==0))\"",
+      "expect": "num:dead (\\d+) >=1"
+    },
+    {
+      "name": "margin",
+      "cmd": "python3 -c \"import json;print('m', json.load(open('tools/research/sea_mask/summary.json'))['level_margin_m'])\"",
+      "expect": "num:m ([0-9.]+) >=0.5"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T02:14:08"
+  "created": "2026-10-17T02:14:08",
+  "edited": "2026-10-17T02:37:28"
 }
