@@ -70,3 +70,7 @@
 {"t": "2026-10-16T22:47:02", "by": "executor", "task": "TI-8", "ev": "reported", "commits": ["e97afb28"], "note": "done: weather.wind_ref (start|inflow) разбирается в StartWeather; AirRuntime.conditions_of передаёт его в условия; при inflow…", "dp_feedback": "Общий scratchpad у параллельных агентов: r.json перезаписал соседний исполнитель; подсказка в шаблоне про уникальное имя файла отчёта помогла бы."}
 {"t": "2026-10-16T22:48:05", "by": "coordinator", "task": "TI-8", "ev": "checked", "note": "4/4 training_island=ok:22/22; air_runtime=ok:8/8 (пропуск 4); start_weather=ok:3/3; gpu=ok:2 тестов, 0 упало"}
 {"t": "2026-10-16T22:48:14", "by": "coordinator", "task": "TI-8", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-16T22:48:14", "by": "coordinator", "task": "TI-8", "ev": "merged"}
+{"t": "2026-10-16T22:53:09", "by": "executor", "task": "TI-2", "ev": "reported", "commits": ["4249ab10"], "note": "done: Остров грузится как bundled из res://data/locations/training_island (Locations.is_bundled/is_synthetic, data_dir приори…", "dp_feedback": "Долгие тесты стабильности/e2e без фильтра по месту — прогон >9 мин."}
+{"t": "2026-10-16T22:53:51", "by": "coordinator", "task": "TI-2", "ev": "checked", "note": "7/7 training_island=ok:24/24; locations=ok:1/1; menu_setup=ok:12/12; language=ok:6/6; osm_any=ok:10/10; popular_places=ok:12/12; map_picker=ok:3/3"}
+{"t": "2026-10-16T22:54:15", "by": "coordinator", "task": "TI-2", "ev": "accepted", "note": "по отчёту; сеть (world_key) — TI-2b; экспорт не проверен сборкой — у главной"}
