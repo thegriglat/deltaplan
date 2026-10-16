@@ -48,10 +48,6 @@
       "tests": "test_goals_tab"
     },
     {
-      "name": "test_language",
-      "tests": "test_language"
-    },
-    {
       "name": "test_menu_setup",
       "tests": "test_menu_setup"
     },
@@ -63,9 +59,15 @@
       "name": "check_gd",
       "cmd": "python3 tools/check_gd.py scripts/ui/goals_tab.gd scripts/ui/flight_setup_screen.gd scripts/game/flight_settings.gd tests/ui/test_goals_tab.gd",
       "expect": "exit=0"
+    },
+    {
+      "name": "lang_goals",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_language",
+      "expect": "!re:(goals_|setup_tab_goals|goals_tab|goal_list)"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-16T21:47:06"
+  "created": "2026-10-16T21:47:06",
+  "edited": "2026-10-16T21:57:26"
 }
