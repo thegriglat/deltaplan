@@ -1,0 +1,71 @@
+{
+  "id": "TI-16",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Кнопка «Тренировка» в главном меню",
+  "goal": "В главном меню кнопка «Тренировка» рядом с «Полёт» открывает окно с 4 карточками стартов острова (Склон, Термики, Посадка, Ротор) — строка «что отрабатываем» и цель; клик по карточке сразу начинает полёт на этом старте с фиксированной погодой и целью, без окна настроек.",
+  "plan_ref": "TI-16. Кнопка «Тренировка» в главном меню",
+  "contracts": [
+    {
+      "name": "TI-К2",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    },
+    {
+      "name": "TI-К1",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-16",
+  "branch": "training-island/TI-16",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/ui/start_menu.gd",
+    "scripts/ui/training_menu.gd",
+    "scripts/ui/training_menu.gd.uid",
+    "scenes/ui/training_menu.tscn",
+    "configs/training.json",
+    "locale/ui.csv",
+    "tests/ui/",
+    "tools/shots/"
+  ],
+  "dont_touch": [
+    "scripts/goals/",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/atmosphere/",
+    "configs/locations/",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_menu",
+      "tests": "training_menu"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    },
+    {
+      "name": "screens",
+      "tests": "screens"
+    },
+    {
+      "name": "goals",
+      "tests": "goals"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/training-island/menu/ | grep -c '^1[0-9]_.*jpg'",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T01:34:59"
+}

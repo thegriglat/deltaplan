@@ -83,6 +83,9 @@ related: ["docs/contracts/training-island.md", "docs/guide/location-data.md", "d
 #### TI-9b. wind_ref в запекании (dp-engineer, sonnet)
 По TI-9: lee_bowl запечён с inflow_k = 3 — AirBakedField.conditions_of не передаёт wind_ref, запекание шло с подгонкой под ветер у старта. Передать wind_ref, тест inflow_k = 1 у запечённого поля старта с wind_ref inflow, перепечь.
 
+#### TI-16. Кнопка «Тренировка» в главном меню (dp-engineer, sonnet)
+Решение пользователя (2026-10-17): остров — в главное меню. Кнопка «Тренировка» (en Training) рядом с «Полёт» → окно с 4 карточками (Склон, Термики, Посадка, Ротор): строка «что отрабатываем» и предустановленная цель goals (склон — duration 600 с; термики — height 300 м; посадка — landing, круг 25 м; ротор — duration 300 с: продержаться в подветренной зоне); клик → сразу полёт (место, старт, погода, цель заданы, без окна настроек). В общем списке мест остров остаётся.
+
 #### TI-13. Замер цены GPU ветки против main (dp-researcher, sonnet)
 Условие Q3: протокол G3 (docs/contracts/grass-rocks.md), medium и high, остров и ongudai, ветка модуля против main; таблица и вывод главной.
 
