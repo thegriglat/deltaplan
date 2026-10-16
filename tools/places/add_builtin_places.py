@@ -14,7 +14,7 @@ ELE = {  # м над уровнем моря, из name_doc места
     "askarovo/biyagoda_east": 630, "askarovo/biyagoda_south_west": 725,
     "aushkul/aushtau_east": 645, "aushkul/aushtau_south": 645,
 }
-COUNTRY = "RU"  # все четыре встроенных места — Россия (Алтай, Башкирия, Южный Урал)
+COUNTRY = "RU"  # по умолчанию (нет ключа country в конфиге места): Алтай, Башкирия, Южный Урал; вымышленное место — "" (без страны)
 
 ru = {}
 with open("locale/ui.csv", encoding="utf8", newline="") as f:
@@ -26,16 +26,18 @@ cat = json.load(open(CAT, encoding="utf8"))
 cat["takeoffs"] = [t for t in cat["takeoffs"] if not t["id"].startswith(("builtin/", "manual/"))]
 for path in sorted(glob.glob("configs/locations/*.json")):
     loc = os.path.basename(path)[:-5]
-    for st in json.load(open(path, encoding="utf8")).get("start_sites", []):
+    cfg = json.load(open(path, encoding="utf8"))
+    country = cfg.get("country", COUNTRY)
+    for st in cfg.get("start_sites", []):
         key = f"{loc}/{st['id']}"
         h = float(st["heading_deg"])
         cat["takeoffs"].append({
             "id": f"builtin/{key}", "name": ru[st["name"]], "lat": st["lat"], "lon": st["lon"],
-            "country": COUNTRY, "ele": ELE.get(key), "orientation": [DIRS[round(h / 22.5) % 16]],
+            "country": country, "ele": ELE.get(key), "orientation": [DIRS[round(h / 22.5) % 16]],
             "location": loc, "site": st["id"], "heading_deg": st["heading_deg"],
         })
 cat["takeoffs"] += json.load(open("tools/places/manual_takeoffs.json", encoding="utf8"))["takeoffs"]
-assert COUNTRY in cat["countries"]
+assert all(t["country"] == "" or t["country"] in cat["countries"] for t in cat["takeoffs"])
 with open(CAT, "w", encoding="utf8") as f:
     json.dump(cat, f, ensure_ascii=False, sort_keys=True, indent=1)
     f.write("\n")

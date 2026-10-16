@@ -14,11 +14,13 @@ const START_LATLON := Vector2(50.78708, 86.23278)
 class StubAtmo:
 	extends RefCounted
 	var field: Variant = null
+	var air_field: AirFieldSet = AirFieldSet.new()
 	var calls := 0
 	var blend := -1.0
 
 	func set_air_field(f: Variant, b: float) -> void:
 		field = f
+		air_field.set_field(f, 0.0)
 		blend = b
 		calls += 1
 
@@ -106,6 +108,19 @@ func test_baked_taken_when_key_matches() -> void:
 	)
 	check(is_equal_approx(rt.inflow_k, 0.85), "k притока взят из поля: %.3f" % rt.inflow_k)
 	check(rt.applied_count == 1 and rt.failed_count == 0, "applied_count 1")
+	# фоновый пересчёт — только когда пилот ушёл из окон поля (или срок/смена условий), не сразу
+	var pos := {"p": Vector3.ZERO}
+	rt.focus_fn = func() -> Vector3: return pos.p
+	var lv: Array[WindField] = atmo.air_field.levels
+	var cen := (lv[1] as WindField).center_xz()
+	pos.p = Vector3(cen.x, 0.0, cen.y)
+	check(not rt._pilot_left_baked_windows(), "пилот в центре окна запечённого поля — сдвиг не нужен")
+	rt.recompute_enabled = true
+	await Engine.get_main_loop().process_frame
+	check(rt._baked_pending and not rt.busy(), "recompute_enabled: пересчёта сразу нет")
+	pos.p = Vector3(cen.x + 200000.0, 0.0, cen.y)
+	check(rt._pilot_left_baked_windows(), "пилот далеко от окон — пересчёт нужен")
+	rt.recompute_enabled = false
 	# повторная загрузка тех же условий — поле уже в атмосфере
 	var ok2: bool = await rt.load_field()
 	check(ok2 and atmo.calls == 1, "те же место и условия — повторно не подаётся")

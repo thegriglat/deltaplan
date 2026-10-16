@@ -8178,6 +8178,62 @@
    "site": "kayancha_south"
   },
   {
+   "country": "",
+   "ele": null,
+   "heading_deg": 270,
+   "id": "builtin/training_island/ridge_west",
+   "lat": 43.2060254,
+   "location": "training_island",
+   "lon": 33.9379455,
+   "name": "Склон",
+   "orientation": [
+    "W"
+   ],
+   "site": "ridge_west"
+  },
+  {
+   "country": "",
+   "ele": null,
+   "heading_deg": 180,
+   "id": "builtin/training_island/thermal_plain",
+   "lat": 43.1684339,
+   "location": "training_island",
+   "lon": 33.9553405,
+   "name": "Термики",
+   "orientation": [
+    "S"
+   ],
+   "site": "thermal_plain"
+  },
+  {
+   "country": "",
+   "ele": null,
+   "heading_deg": 270,
+   "id": "builtin/training_island/landing_hill",
+   "lat": 43.2135797,
+   "location": "training_island",
+   "lon": 34.0433025,
+   "name": "Посадка",
+   "orientation": [
+    "W"
+   ],
+   "site": "landing_hill"
+  },
+  {
+   "country": "",
+   "ele": null,
+   "heading_deg": 270,
+   "id": "builtin/training_island/lee_bowl",
+   "lat": 43.206655,
+   "location": "training_island",
+   "lon": 33.9607687,
+   "name": "Ротор",
+   "orientation": [
+    "W"
+   ],
+   "site": "lee_bowl"
+  },
+  {
    "country": "RU",
    "ele": null,
    "id": "manual/yutsa/south",

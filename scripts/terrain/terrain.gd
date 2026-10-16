@@ -103,7 +103,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	if location_id != "" and layers.is_empty():
-		if Locations.is_builtin(location_id) and Locations.fixtures_root == "":
+		if Locations.is_builtin(location_id) and Locations.fixtures_root == "" and not Locations.is_bundled(location_id):
 			var id := location_id
 			location_id = ""
 			await load_builtin(id)  # нет в кеше — соберётся при первом запуске
@@ -233,7 +233,8 @@ func load_point(lat: float, lon: float, builtin_id: String = "") -> void:
 ## тем же сборщиком, что и точка, дальше берётся из кеша. Ход и ошибки — как у load_point.
 ## В тестах (Locations.fixtures_root) — готовые файлы без сети.
 func load_builtin(id: String) -> void:
-	if Locations.fixtures_root != "":
+	if Locations.fixtures_root != "" or Locations.is_bundled(id):
+		# bundled (TI-К1): файлы в паке — без сборщика и сети; нет папки — load_failed из _read_location
 		load_location(id)
 		return
 	var cfg: Dictionary = Locations.config(id)

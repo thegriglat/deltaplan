@@ -1,0 +1,74 @@
+{
+  "status": "done",
+  "summary": "Остров грузится как bundled из res://data/locations/training_island (Locations.is_bundled/is_synthetic, data_dir приоритетнее fixtures_root; Terrain без LocationBuilder). synthetic исключён из builtin_at; каталог стартов пересобран (страна из конфига, остров пустая, окно показывает «—»); сырые webp в экспорт через importer keep; тесты обновлены.",
+  "commits": [
+    "4249ab10 TI-2: bundled-загрузка острова"
+  ],
+  "checks": [
+    {
+      "name": "training_island",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "locations",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "osm_any",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "popular_places",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "map_picker",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tests/stability/test_matrix.gd и tests/game/test_e2e.gd не прогнаны до конца (>9 мин в headless, обрыв по таймауту); остров они подхватывают сами через list_configs, правок в них не потребовалось"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TI-2",
+  "uncertain": [
+    {
+      "where": "data/locations/training_island/*.webp.import",
+      "why": "фактический состав экспортного пака не проверен (экспорт запрещён); keep-файлы в pack идут сырыми по документации Godot, include_filter data/**/* уже был",
+      "checked": "тест на importer=keep у каждого webp и на фильтры всех пресетов; FileAccess/Image читают res:// в редакторе"
+    },
+    {
+      "where": "tests/ui/test_language.gd",
+      "why": "допустимы динамические ключи с префиксом (launch_fail_, setup_app_, start_pick_bad_, setup_sky_): достаточно ключа с таким префиксом в ui.csv",
+      "checked": "язык 6/6"
+    },
+    {
+      "where": "tests/terrain/test_locations.gd",
+      "why": "для synthetic: источник карты классов не проверяется (слой хранит worldcover), допустимо до 4 стартов",
+      "checked": "locations 1/1, остров проходит правила стартов и посадок"
+    },
+    {
+      "where": "scripts/game/world_key.gd:133",
+      "why": "_inside требует dem в конфиге — остров там не находится по координатам (нужно, чтобы точка не превращалась в остров); место по location_id работает",
+      "checked": "чтение кода, вне скоупа"
+    }
+  ],
+  "dp_feedback": "Долгие тесты стабильности/e2e без фильтра по месту — прогон >9 мин.",
+  "t": "2026-10-16T22:53:09",
+  "by": "executor"
+}

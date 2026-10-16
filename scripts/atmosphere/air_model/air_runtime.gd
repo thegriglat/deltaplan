@@ -288,6 +288,7 @@ static func conditions_of(clock: Object, atmo: Object, settings: Object) -> Dict
 		wdir = float(w.get("wind_from_deg", 0.0)),
 		t_max = float(settings.get("temperature_c")),
 		sky = String(settings.get("sky")),
+		wind_ref = StartWeather.wind_ref_of(settings as FlightSettings),
 	}
 
 
@@ -540,6 +541,8 @@ static func needs_recompute(have: Dictionary, want: Dictionary, step_min: float)
 	var dd := angle_difference(deg_to_rad(float(have.wdir)), deg_to_rad(float(want.wdir)))
 	if absf(dd) > deg_to_rad(DIR_TOL_DEG):
 		return "смена ветра"
+	if String(have.get("wind_ref", "start")) != String(want.get("wind_ref", "start")):
+		return "смена ветра"
 	var ta := float(have.t_max)
 	var tb := float(want.t_max)
 	var t_changed := is_nan(ta) != is_nan(tb) or absf(ta - tb) > TMAX_TOL_C
@@ -560,6 +563,25 @@ static func slot_hour(hour: float, step_min: float) -> float:
 	return slot(hour, step_min) * maxf(step_min, 1.0) / 60.0
 
 
+## Пилот ушёл от центра окна запечённого поля дальше window_shift_frac его стороны (как в
+## AirClipmap.update): окна надо пересчитать вокруг него.
+func _pilot_left_baked_windows() -> bool:
+	if not focus_fn.is_valid() or atmosphere == null:
+		return false
+	var fs: Variant = atmosphere.get("air_field")
+	if fs == null or fs.levels.size() < 2:
+		return false
+	var lv: Array = fs.levels
+	var frac := float(_cfg.get("window_shift_frac", 0.25))
+	var p: Vector3 = focus_fn.call()
+	for i in range(1, lv.size()):
+		var f: WindField = lv[i]
+		var c := f.center_xz()
+		if maxf(absf(p.x - c.x), absf(p.z - c.y)) > frac * f.size_x():
+			return true
+	return false
+
+
 func _step_min() -> float:
 	return float(_cfg.get("recompute_game_min", 15.0))
 
@@ -572,10 +594,12 @@ func _process(_dt: float) -> void:
 			if recompute_enabled and not _cur.is_empty() and conditions_fn.is_valid():
 				var c: Dictionary = conditions_fn.call()
 				var why := needs_recompute(_cur, c, _step_min())
-				if why == "" and _baked_pending:
-					why = "запечённое поле: окна и пересчёт"
-				_baked_pending = false
+				# запечённое поле при тех же условиях не пересчитывается: только срок/смена условий
+				# (needs_recompute) или уход пилота из окон поля (окон-clipmap ещё нет)
+				if why == "" and _baked_pending and _pilot_left_baked_windows():
+					why = "сдвиг окон (запечённое поле)"
 				if why != "" and unavailable_reason() == "":
+					_baked_pending = false
 					_begin(c, why, false)
 				else:
 					_update_windows()
@@ -641,12 +665,14 @@ func _begin(c: Dictionary, reason: String, loading: bool) -> void:
 		if _focus_wanted():
 			_start_pt = focus_fn.call()
 		# штиль (ниже порога трогания анемометра, WindProfile.U10_MIN) — один проход, k = 1
-		var two := _focus_wanted() and u10 >= WindProfile.U10_MIN and max_passes >= 2
+		# wind_ref "inflow" (TI-К2 v2): ветер меню — набегающий поток, k = 1 без подгонки под старт
+		var inflow := String(c.get("wind_ref", "start")) == "inflow"
+		var two := _focus_wanted() and u10 >= WindProfile.U10_MIN and max_passes >= 2 and not inflow
 		_passes = max_passes if two else 1
 		_k = float(_k_mem.get(_dir_key(float(c.wdir)), 1.0)) if two else 1.0
 	else:
 		_passes = 1
-		_k = inflow_k
+		_k = 1.0 if String(c.get("wind_ref", "start")) == "inflow" else inflow_k
 	_start_prep()
 	if loading:
 		progress_changed.emit(0.0)
