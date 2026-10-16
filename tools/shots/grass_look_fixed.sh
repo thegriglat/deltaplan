@@ -9,10 +9,13 @@
 #   9  9_slope_ground       старт, кабина, взгляд вбок 90° вдоль склона, вниз 3°
 #   10 10_meadow_side       600 м от старта, 2 м над лугом, кабина, взгляд вбок 90°, вниз 3° (карточки 8–40 м)
 #   11 11_meadow_side_down  то же, вниз 10°
-#   e1 e1_rock_near         старт, кабина, вниз 25°: порода у ног и стык с лугом справа в 5–15 м
-#   e2 e2_rock_edge_right   старт, кабина, взгляд вправо 40°, вниз 12°: стык порода/луг вблизи
-#   e3 e3_rock_edge_left    старт, кабина, взгляд влево 35°, вниз 5°: стык на 40–80 м (средняя дистанция)
-#   e4 e4_rock_mid          старт, кабина, вперёд, вниз 6°: порода и луг на 20–100 м
+#   e1 e1_rock_edge         150 м от старта по курсу, 4 м над рельефом, вперёд-вниз 12°: пятно породы
+#                           на 8–30 м, вокруг луг — стык порода/луг вблизи и на средней дистанции
+#   e2 e2_rock_near         то же, вниз 25°: порода вблизи
+#   e3 e3_rock_edge_mid     80 м от старта, 4 м, вниз 12°: луг вблизи, пятно породы справа на ~30 м
+#   t30 top30               600 м от старта, 30 м над травяным склоном, кабина, вперёд-вниз 35°
+#   t60 top60               то же с 60 м
+#   e4 e4_rock_mid          150 м от старта, 10 м над рельефом, вниз 30°: пятно породы сверху
 # Переменные окружения игры (DP_GRASS_MID, DP_GRASS_CARDS, DP_GRASS_DENSITY) передаются как есть.
 # Окну нужен дисплей (DISPLAY=:0), --fullscreen; запуск — под замком GPU (иначе окна делят экран).
 set -uo pipefail
@@ -34,10 +37,12 @@ for v in "${views[@]}"; do
     9) f=9_slope_ground; a=(--camera=cockpit --look=90,-3 --time=1) ;;
     10) f=10_meadow_side; a=(--air-start=600,2 --camera=cockpit --look=90,-3 --time=0.1) ;;
     11) f=11_meadow_side_down; a=(--air-start=600,2 --camera=cockpit --look=90,-10 --time=0.1) ;;
-    e1) f=e1_rock_near; a=(--camera=cockpit --look=0,-25 --time=1) ;;
-    e2) f=e2_rock_edge_right; a=(--camera=cockpit --look=40,-12 --time=1) ;;
-    e3) f=e3_rock_edge_left; a=(--camera=cockpit --look=-35,-5 --time=1) ;;
-    e4) f=e4_rock_mid; a=(--camera=cockpit --look=0,-6 --time=1) ;;
+    e1) f=e1_rock_edge; a=(--air-start=150,4 --camera=cockpit --look=0,-12 --time=0.1) ;;
+    e2) f=e2_rock_near; a=(--air-start=150,4 --camera=cockpit --look=0,-25 --time=0.1) ;;
+    e3) f=e3_rock_edge_mid; a=(--air-start=80,4 --camera=cockpit --look=0,-12 --time=0.1) ;;
+    e4) f=e4_rock_mid; a=(--air-start=150,10 --camera=cockpit --look=0,-30 --time=0.1) ;;
+    t30) f=top30; a=(--air-start=600,30 --camera=cockpit --look=0,-35 --time=0.1) ;;
+    t60) f=top60; a=(--air-start=600,60 --camera=cockpit --look=0,-35 --time=0.1) ;;
     *) echo "WARN: неизвестный вид $v" >&2; continue ;;
   esac
   rm -f "$out/$f.jpg"

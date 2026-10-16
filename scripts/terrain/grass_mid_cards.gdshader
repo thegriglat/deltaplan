@@ -196,9 +196,9 @@ void vertex() {
 			hh = mix(forest_height_m.x, forest_height_m.y, r);
 		}
 		// порода рельефа (ground_cover, G2 v2): пучок остаётся с долей луга
-			if (hh > 0.0 && hash12(cell + 23.7) >= gc_grass_keep_fast(xz, n, c)) {
-				hh = 0.0;
-			}
+		if (hh > 0.0 && hash12(cell + 23.7) >= gc_grass_keep_fast(xz, n, c)) {
+			hh = 0.0;
+		}
 		for (int k = 0; k < mowed_count; k++) {
 			if (length(xz - mowed[k].xy) < mowed[k].z) {
 				hh *= mowed[k].w;
@@ -225,6 +225,15 @@ void vertex() {
 		hh *= height_k * card_height_k * mix(0.5, 1.0, edge)
 				* mix(card_height_var.x, card_height_var.y, hash12(cell + 15.1));
 
+		// травы нет (порода, класс, скос) — пучок скрыт до ветра, сетки и цвета (выборок атласа и кадра
+		// нет: треугольники вырождены)
+		if (hh < 0.02) {
+			VERTEX = vec3(xz.x, -1e4, xz.y);
+			v_t = 0.0;
+			v_uv = vec3(0.0);
+			v_root = vec4(0.0, 0.0, 0.0, 1.0);
+			v_mod = 1.0;
+		} else {
 		float t = VERTEX.y;
 		float wshade;
 		vec2 bend;
@@ -261,9 +270,6 @@ void vertex() {
 		float y = t * hh * inversesqrt(1.0 + l2 * t * t);
 		vec2 off = lean * hh * t * t;
 		VERTEX = vec3(xz.x + o.x + off.x, hb + y - 0.02, xz.y + o.y + off.y);
-		if (hh < 0.02) {
-			VERTEX = vec3(xz.x, -1e4, xz.y);
-		}
 		// кадр по пучку; зеркально — по чётности ещё одного хеша (вдвое больше вариантов)
 		float u = hash12(cell + 7.7) < 0.5 ? UV.x : 1.0 - UV.x;
 		v_uv = vec3(u, UV.y, floor(hash12(cell + 5.5) * 3.999));
@@ -273,6 +279,7 @@ void vertex() {
 		v_mod = 1.0 + card_tone * (hash12(cell + 13.3) - 0.5) * 2.0;
 
 		v_t = t;
+		}
 	}
 }
 
