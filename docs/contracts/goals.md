@@ -89,7 +89,7 @@ func result() -> Dictionary                  # {goals: items(), done: int, total
 - Времена — от `Telemetry.time_s`; новая попытка (`Game` сбросил полёт) — `reset()`.
 
 ## GL-К4. Прибор: направление на точку; цилиндры в мире (v2)
-v2 (2026-10-16, Q1): альфа столбов растёт с расстоянием до камеры (вблизи — как в v1, вдали заметнее), ключи `cylinders.alpha_near/alpha_far/fade_near_m/fade_far_m` в `world.json`.
+v2 (2026-10-16, Q1): альфа столбов растёт с расстоянием до камеры (вблизи — как в v1, вдали заметнее), ключи `cylinders.alpha_near/alpha_far/alpha_active_near/alpha_active_far/fade_near_m/fade_far_m` в `world.json`.
 Владелец: GL-5 (`scripts/instruments/…`, `scripts/goals/goal_cylinders.gd`, `configs/goals/world.json`). Потребитель: `Game` (GL-4/GL-5), `SettingsPanel`.
 - Прибор: `FlightInstrument.set_task(points, active)` и `set_task_state(state)` — без изменений сигнатур; на странице с расстоянием и требуемым качеством до цели — стрелка направления на активную точку относительно путевого курса (`Telemetry.track_deg`); нет цели — стрелки нет.
 - `class_name GoalCylinders extends Node3D`: `func set_points(points: Array) -> void` (формат `GoalTracker.world_points()`), видим только при `configs/goals/world.json → cylinders.enabled` (по умолчанию `false`), перечитывается по `Config.reloaded`. Столбы полупрозрачные, от земли вверх (`cylinders.height_m`), активный — заметнее.
