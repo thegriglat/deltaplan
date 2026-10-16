@@ -567,3 +567,12 @@ goals_level_hard,трудная,hard
 goals_level_custom,своя,custom
 goals_last_track,След прошлой попытки,Last attempt track
 unit_min,мин,min
+goal_list_left,осталось %s,%s left
+result_goal_header,Цели: выполнено %d из %d,Goals: %d of %d done
+result_goal_new_record,Новый рекорд: %s — %s (было %s),New record: %s — %s (was %s)
+result_goal_new_record_first,Новый рекорд: %s — %s,New record: %s — %s
+result_goal_rec_flight_time_s,время в воздухе,time aloft
+result_goal_rec_distance_m,дальность,distance
+result_goal_rec_max_altitude_msl_m,высота над уровнем моря,altitude above sea level
+result_goal_rec_task_speed_section_time_s,время на маршруте,route time
+result_goal_rec_task_distance_m,дальность по маршруту,route distance
