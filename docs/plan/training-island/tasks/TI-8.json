@@ -1,0 +1,66 @@
+{
+  "id": "TI-8",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Ветер набора как набегающий поток",
+  "goal": "weather.wind_ref = \"inflow\" (TI-К2 v2): прогнозный ветер набора — набегающий поток на краю области (коэффициент притока 1, без подгонки под ветер у старта); для старта «Ротор» в чаше за хребтом нет разгона притока до 20–28 м/с.",
+  "plan_ref": "TI-8. Ветер набора как набегающий поток",
+  "contracts": [
+    {
+      "name": "TI-К2",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    },
+    {
+      "name": "TI-К3",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-8",
+  "branch": "training-island/TI-8",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/game/start_weather.gd",
+    "scripts/game/flight_settings.gd",
+    "scripts/game/game.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "tests/atmosphere/",
+    "tests/game/",
+    "tests/contracts/test_training_island_k2.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_picard_job.gd",
+    "scripts/atmosphere/air_model/wind_field.gd",
+    "scripts/atmosphere/air_model/air_case.gd",
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "scripts/atmosphere/air_model/*.glsl",
+    "configs/",
+    "data/",
+    "scripts/ui/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "start_weather",
+      "tests": "start_weather"
+    },
+    {
+      "name": "gpu",
+      "cmd": "bash tools/gpu_tests.sh --filter=inflow",
+      "expect": "re:\\n(?:[1-9]\\d*) тестов, 0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T22:33:49"
+}
