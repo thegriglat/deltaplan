@@ -126,3 +126,55 @@ func test_training_island_config() -> void:
 		lands.append(String(l.id))
 	check(lands.has("landing_target"), "посадка-мишень landing_target")
 	check(Locations.builtin_at(float(cfg.center_lat), float(cfg.center_lon)) == "", "точка с карты — не остров")
+
+
+## TI-2: загрузчик bundled-места — файлы из res://, без LocationBuilder, сети и записи в кеш.
+func test_training_island_loader() -> void:
+	check(Locations.is_bundled("training_island") and Locations.is_synthetic("training_island"), "bundled + synthetic")
+	check(Locations.data_dir("training_island") == DIR, "data_dir: res://data/locations/training_island (при fixtures_root тоже)")
+	check(not Locations.is_bundled("altai"), "altai не bundled")
+	check("training_island" in Locations.builtin_ids(), "остров в реестре встроенных")
+	var cache := Locations.cache_dir().path_join("training_island")
+	var cache_before := DirAccess.dir_exists_absolute(cache)
+	var t := Terrain.new()
+	t.location_id = ""
+	await t.load_builtin("training_island")
+	check(t.location_id == "training_island" and not t.layers.is_empty(), "остров загружен из res://")
+	check(t._builder == null, "LocationBuilder не создавался")
+	check(DirAccess.dir_exists_absolute(cache) == cache_before, "в кеш user:// ничего не писалось")
+	if not t.layers.is_empty():
+		check(t.height_at(0.0, 0.0) > 0.5, "точка (0,0) — суша (%.1f м)" % t.height_at(0.0, 0.0))
+		check(t.surface_at(0.0, 0.0) != SurfaceLayer.WATER, "точка (0,0): не вода")
+		check(not Terrain.is_sea(t.layers[0], t.surfaces[0], -450.0), "остров не море (is_sea)")
+		var edge := 9500.0
+		check(t.height_at(-edge, 0.0) == 0.0 and t.surface_at(-edge, 0.0) == SurfaceLayer.WATER, "край: вода, 0 м")
+		check(t.surface_at(0.0, edge) == SurfaceLayer.WATER, "край (юг): вода")
+	t.free()
+	# нет папки — понятная ошибка, а не сборка из сети
+	var fails: Array[String] = []
+	var t2 := Terrain.new()
+	t2.location_id = ""
+	t2.load_failed.connect(func(m: String) -> void: fails.append(m))
+	check(not t2.load_location("no_such_bundled_place"), "нет конфига — false")
+	check(fails.size() == 1, "нет конфига — load_failed")
+	t2.free()
+
+
+## TI-2: сырые файлы острова идут в экспорт — importer="keep" у каждого .webp и фильтр data/**/* в пресетах.
+func test_training_island_export() -> void:
+	for f: String in FILES:
+		if f.ends_with(".webp"):
+			var imp := FileAccess.get_file_as_string(DIR.path_join(f + ".import"))
+			check(imp.contains('importer="keep"'), "%s.import: importer keep" % f)
+	var cfg := ConfigFile.new()
+	check(cfg.load("res://export_presets.cfg") == OK, "export_presets.cfg читается")
+	var n := 0
+	for sec: String in cfg.get_sections():
+		if sec.ends_with(".options"):
+			continue
+		n += 1
+		var inc := String(cfg.get_value(sec, "include_filter", ""))
+		var exc := String(cfg.get_value(sec, "exclude_filter", ""))
+		check(inc.contains("data/**/*"), "%s: include data/**/*" % sec)
+		check(not exc.contains("data/locations") and not exc.contains("*.webp"), "%s: данные мест не исключены" % sec)
+	check(n >= 1, "пресеты есть")
