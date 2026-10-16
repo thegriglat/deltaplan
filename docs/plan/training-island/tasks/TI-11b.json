@@ -1,0 +1,55 @@
+{
+  "id": "TI-11b",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Воспроизводимый хеш модели воздуха",
+  "goal": "model_hash запечённого поля одинаков в любой копии/профиле при одинаковых исходниках модели воздуха и конфигах: bake_all.sh --check в ветке модуля проходит без перепекания (или после одного перепекания — устойчиво при повторе в другой копии и чистом профиле).",
+  "plan_ref": "Условия сдачи (Q3, 2026-10-17)",
+  "contracts": [
+    {
+      "name": "TI-К3",
+      "version": "3",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-11b",
+  "branch": "training-island/TI-11b",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "tools/terrain/bake_air.gd",
+    "tools/terrain/island/bake_all.sh",
+    "tools/terrain/air_model_hash.gd",
+    "data/locations/training_island/air/",
+    "tests/contracts/test_training_island_k3.gd",
+    "tests/atmosphere/"
+  ],
+  "dont_touch": [
+    "configs/",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "bake_check",
+      "cmd": "bash tools/terrain/island/bake_all.sh --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "bake_check_clean",
+      "cmd": "bash -c 'XDG_DATA_HOME=$(mktemp -d) bash tools/terrain/island/bake_all.sh --check'",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:09:15"
+}
