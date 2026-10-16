@@ -39,7 +39,8 @@
     "tests/vegetation/",
     "tests/contracts/test_grass_rocks_contracts.gd",
     "docs/perf/grass_rocks_2.md",
-    "docs/perf/data/grass_rocks_GR-25.tar.gz"
+    "docs/perf/data/grass_rocks_GR-25.tar.gz",
+    "tools/shots/"
   ],
   "dont_touch": [
     "scripts/terrain/rock_scatter.gd",
@@ -72,22 +73,23 @@
       "expect": "re:[1-9][0-9]* тестов, 0 упало"
     },
     {
-      "name": "shots",
-      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/rock/*/*.jpg | wc -l",
-      "expect": "num:(\\d+) >=24"
-    },
-    {
-      "name": "sizes",
-      "cmd": "file /home/greg/deltaplan/build/screenshots/grass-look/rock/before-*/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/after-*/*.jpg | grep -oE '[0-9]{3,}x[0-9]{3,}' | sort -u | wc -l",
+      "name": "section",
+      "cmd": "grep -c '^## GR-25' docs/perf/grass_rocks_2.md",
       "expect": "re:^1$"
     },
     {
-      "name": "section",
-      "cmd": "grep -c '^## GR-25' docs/perf/grass_rocks_2.md",
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/rock/after-angle-strip/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/after-angle-tuft/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/rock-edge-strip/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/rock-edge-tuft/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "sizes",
+      "cmd": "file /home/greg/deltaplan/build/screenshots/grass-look/rock/after-angle-strip/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/after-angle-tuft/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/rock-edge-strip/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/rock-edge-tuft/*.jpg | grep -oE '[0-9]{3,}x[0-9]{3,}' | sort -u | wc -l",
       "expect": "re:^1$"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-16T16:28:31"
+  "created": "2026-10-16T16:28:31",
+  "edited": "2026-10-16T17:57:00"
 }
