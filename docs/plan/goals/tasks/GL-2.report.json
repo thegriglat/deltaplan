@@ -1,0 +1,72 @@
+{
+  "status": "done",
+  "summary": "GoalSpec, GoalTracker (все 8 целей по К1/К3), GoalRouteBuilder (возврат и равносторонний треугольник с поворотом в bounds, шаг 15 градусов), configs/goals/tracker.json; 30 тестов трекера, 3 спеки, контрактные проверки интерфейса К1 и К3.",
+  "commits": [
+    "8eaf74de goals GL-2: GoalSpec, GoalTracker, построение возврата и треугольника, тесты"
+  ],
+  "checks": [
+    {
+      "name": "test_goal_tracker",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goal_spec",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k1",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k3",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "tests/tasks",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept GL-2",
+  "uncertain": [
+    {
+      "where": "scripts/goals/goal_tracker.gd result()",
+      "why": "контракт не уточняет total: считаю только доступные цели (unavailable исключены)",
+      "checked": "тест test_landing_unavailable_without_target"
+    },
+    {
+      "where": "scripts/goals/goal_tracker.gd _attach",
+      "why": "route с open_distance или без гоула считается unavailable (гоул недостижим)",
+      "checked": "логика, отдельного теста нет"
+    },
+    {
+      "where": "scripts/goals/goal_tracker.gd _update_speed",
+      "why": "speed судит ведущий маршрут на начало шага, чтобы смена ведущего после гоула не сбивала; время считается от взлёта (нет SSS), от старта окна — если у задания есть sss",
+      "checked": "test_speed_judges_leading_route_finish, too_slow, in_time"
+    },
+    {
+      "where": "scripts/goals/goal_tracker.gd height",
+      "why": "набор = position.y − start_pos.y только в полёте; best — скользящий минимум за hold_s; граница модели: нет учёта высоты площадки отрыва выше/ниже start_pos",
+      "checked": "test_height_hold, test_height_best_held_value"
+    },
+    {
+      "where": "scripts/goals/goal_route_builder.gd",
+      "why": "ветер: первое плечо против ветра (wind_from_deg), треугольник пробует правый и левый поворот; wind_ms<min_wind_ms — start_heading_deg; bounds без площади = без ограничений",
+      "checked": "тесты геометрии и поворота"
+    }
+  ],
+  "dp_feedback": "scope включал scripts/tasks/training_spot_landing.gd и tests/tasks/test_training.gd без пояснения, зачем; не трогал. check_gd без импорта молча пропускается.",
+  "t": "2026-10-16T21:38:34",
+  "by": "executor"
+}

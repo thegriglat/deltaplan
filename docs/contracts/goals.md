@@ -6,7 +6,7 @@ area: "game"
 updated: "2026-10-16"
 summary: "Стыки модуля целей: FlightSettings (К1), оценка погоды (К2), GoalTracker (К3), прибор и цилиндры (К4), трек и IGC (К5), полоса (К6)."
 related: ["docs/plan/goals.md", "docs/guide/tasks.md"]
-contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 1}, {"id": "GL-К3", "version": 1}, {"id": "GL-К4", "version": 1}, {"id": "GL-К5", "version": 1}, {"id": "GL-К6", "version": 1}]
+contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 2}, {"id": "GL-К3", "version": 1}, {"id": "GL-К4", "version": 1}, {"id": "GL-К5", "version": 2}, {"id": "GL-К6", "version": 1}]
 ---
 # Контракты модуля goals
 
@@ -42,7 +42,7 @@ GoalSpec-словарь: `{"kind": String, "level": String, "value": float, "tas
 `GoalSpec` (RefCounted, статика): `const KINDS := ["height","duration","distance","return","triangle","route","speed","landing"]` (порядок показа), `const LEVELS := ["easy","medium","hard","custom"]`, `static func make(kind: String, level: String, value: float, task := "") -> Dictionary`, `static func validate(goals: Array) -> PackedStringArray` (ошибки; пусто — годно).
 Инварианты: каждый `kind` не больше одного раза; `speed` — только вместе с `route`, `triangle` или `return`; `value > 0` у всех, кроме `route`; `route` — непустой `task`. Неизвестный `kind` — ошибка `validate`, `Game` такую цель пропускает.
 
-## GL-К2. Оценка погоды → значения целей (v1)
+## GL-К2. Оценка погоды → значения целей (v2)
 Владелец: GL-1 (`scripts/goals/goal_estimator.gd`, `configs/goals/estimate.json`). Потребители: окно «Полёт…» (GL-3).
 ```gdscript
 class_name GoalEstimator extends RefCounted
@@ -55,7 +55,8 @@ static func suggest_all(wx: Dictionary, route_m := 0.0) -> Dictionary   # {kind:
 - Детерминированно (одни входы — одно число), формулы и коэффициенты — в `estimate.json` с `_doc` у каждого ключа. Округление: высота — 50 м, дальность/возврат/треугольник — 1 км, продолжительность — 5 мин, скорость — 1 мин, посадка — 5 м.
 - Порядок уровней: `easy < medium < hard` для всех, кроме `landing` и `speed` (там строже = меньше: `easy > medium > hard`).
 - Монотонность: высота, дальность, возврат, треугольник, продолжительность не убывают с `thermal_ms` и `cloudbase_agl_m`; дальность/возврат/треугольник/продолжительность не убывают с `hours_left`.
-- Честность: значения уровней не подгоняются под плохую погоду — в пасмурную/слабую погоду `hard` для `height` больше `cloudbase_agl_m` (недостижимо).
+- Честность (v2, 2026-10-16): уровни не подгоняются под плохую погоду, но в хорошую погоду все достижимы без облака. Высота: запас до базы над стартом `avail = cloudbase_agl_m − estimate.json → height.start_above_mean_m` (высоты старта до загрузки рельефа нет — грубое число с `_doc`); `easy/medium/hard` — доли `avail` (hard ≤ avail), но не меньше нижних порогов уровней (`height.floor_m` по уровням). В слабую/пасмурную погоду пороги больше `avail` → трудное недостижимо; в «ясно, сильные» hard ≤ avail. Так же для маршрутных: нижние пороги уровней в километрах, в плохую погоду больше реально пролетаемого.
+v2: честность — через нижние пороги уровней, а не «hard выше базы всегда».
 
 ## GL-К3. GoalTracker — цели в полёте (v1)
 Владелец: GL-2 (`scripts/goals/goal_tracker.gd`, `configs/goals/tracker.json`). Потребители: `Game` (GL-4), HUD-список, экран итога (GL-4), цилиндры (GL-5).
@@ -91,8 +92,9 @@ func result() -> Dictionary                  # {goals: items(), done: int, total
 - `class_name GoalCylinders extends Node3D`: `func set_points(points: Array) -> void` (формат `GoalTracker.world_points()`), видим только при `configs/goals/world.json → cylinders.enabled` (по умолчанию `false`), перечитывается по `Config.reloaded`. Столбы полупрозрачные, от земли вверх (`cylinders.height_m`), активный — заметнее.
 - Настройка «Цилиндры целей» — `SettingsPanel`, вкладка game; сохраняется `UserSettings.save_patch("goals/world", {"cylinders": {"enabled": …}})`.
 
-## GL-К5. Трек: FlightTrack, IGC/GPX, след прошлой попытки (v1)
-Владелец: GL-7 (`scripts/goals/flight_track.gd`, `track_io.gd`, `last_track_store.gd`); GPX — GL-10. Потребители: полоса трека (GL-8), окно «Полёт…» (GL-10), `Game`.
+## GL-К5. Трек: FlightTrack, IGC/GPX, след прошлой попытки (v2)
+Владелец: GL-7 (`scripts/goals/flight_track.gd`, `track_io.gd`, `last_track_store.gd`, `track_recorder.gd`); подключение к `Game` — GL-7b; GPX — GL-10.
+v2 (2026-10-16): добавлен `TrackRecorder`. Потребители: полоса трека (GL-8), окно «Полёт…» (GL-10), `Game`.
 ```gdscript
 class_name FlightTrack extends RefCounted
 var lat := PackedFloat64Array()      # градусы
@@ -118,6 +120,11 @@ static func place_key(s: FlightSettings) -> String      # location_id встро
 static func path_for(key: String) -> String             # "user://tracks/last/<key>.igc"
 static func save(key: String, track: FlightTrack) -> Error   # заменяет прошлую
 static func load(key: String) -> FlightTrack            # нет — null
+
+class_name TrackRecorder extends RefCounted
+func start(local_to_latlon: Callable) -> void           # Callable(x, z) -> Vector2(lat, lon); новый пустой трек
+func update(t: Telemetry) -> void                        # пишет точку не чаще 1 Гц по t.time_s, только в воздухе (не on_ground)
+func track() -> FlightTrack                              # записанное; t_s — от первой точки
 ```
 - IGC (подмножество): запись `A`, `HFDTE` (дата полёта из `FlightSettings`), B-записи 1 Гц (`HHMMSS`, `DDMMmmmN`, `DDDMMmmmE`, `A`, давл. высота 5 цифр, GPS-высота 5 цифр = `alt_m` округлённо); чтение — B-записи, GPS-высота, если вся нулевая — давлением; переход через полночь — +86400 с; прочие записи пропускаются.
 - GPX: `trkpt` (`lat`, `lon`, `ele`, `time` ISO 8601); без `time` — по 1 с на точку; без `ele` — трек отвергается.
