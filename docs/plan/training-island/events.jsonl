@@ -167,3 +167,5 @@
 {"t": "2026-10-17T01:16:44", "by": "coordinator", "task": "TI-11", "ev": "checked", "note": "5/5 training_island=ok:24/24; air_runtime=ok:8/8 (пропуск 4); bake_check=ok:exit 0; gpu=ok:1 тестов, 0 упало; smoke=ok:baked_from_pck=4/4"}
 {"t": "2026-10-17T01:16:52", "by": "coordinator", "task": "TI-11", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-17T01:16:53", "by": "coordinator", "task": "TI-11", "ev": "merged"}
+{"t": "2026-10-17T01:17:33", "by": "executor", "task": "TI-14", "ev": "reported", "commits": ["29e50076", "TI-14:"], "note": "done: main (с goals) влит в training-island/TI-14, конфликты CHANGELOG/INDEX/findings/flight_setup_screen разрешены (обе стор…", "dp_feedback": "Конфликты слияния в diff3-стиле (маркер |||||||) — удобной команды разрешения «оставить обе стороны» нет; сделал sed. dpcli sync отменён, ручное слияние ок."}
+{"t": "2026-10-17T01:17:51", "by": "coordinator", "task": "TI-14", "ev": "accepted", "note": "по отчёту; scope FAIL — файлы main при слиянии (ожидаемо); findings.md > 40 КБ уже на main"}

@@ -1,0 +1,79 @@
+{
+  "status": "done",
+  "summary": "main (с goals) влит в training-island/TI-14, конфликты CHANGELOG/INDEX/findings/flight_setup_screen разрешены (обе стороны); тесты 6 групп зелёные; 4 кадра меню сняты.",
+  "commits": [
+    "29e50076 Слияние main (goals)",
+    "TI-14: кадры меню с учебным островом (tools/shots)"
+  ],
+  "checks": [
+    {
+      "name": "menu_setup",
+      "value": "12/12 0 упало",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "training_island",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "popular_places",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "goals",
+      "value": "96/96",
+      "pass": true
+    },
+    {
+      "name": "start_weather",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "merged",
+      "value": "yes",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "вне scope файлы main (ожидаемо для слияния)",
+      "pass": false
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/training-island/menu/01_places.jpg",
+    "build/screenshots/training-island/menu/02_island_starts.jpg",
+    "build/screenshots/training-island/menu/03_setup_island.jpg",
+    "build/screenshots/training-island/menu/04_goals.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TI-14",
+  "uncertain": [
+    {
+      "where": "docs/registry/findings.md",
+      "why": "docs check: ошибка размера 41108 > 40 КБ; на main уже 40812 байт (ошибка и там), наша короткая строка добавила ~300 байт",
+      "checked": "сравнил размеры main и ветки; сокращать findings вне задачи"
+    },
+    {
+      "where": "build/screenshots/training-island/menu/03_setup_island.jpg",
+      "why": "выбран первый старт каталога — «Посадка», не «Склон»; строка в списке стран показана как «— — 4» (пустая страна)",
+      "checked": "кадр просмотрен, блок фиксированной погоды виден"
+    }
+  ],
+  "dp_feedback": "Конфликты слияния в diff3-стиле (маркер |||||||) — удобной команды разрешения «оставить обе стороны» нет; сделал sed. dpcli sync отменён, ручное слияние ок.",
+  "t": "2026-10-17T01:17:33",
+  "by": "executor"
+}
