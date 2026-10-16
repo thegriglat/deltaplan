@@ -67,7 +67,8 @@ related: ["docs/contracts/goals.md", "docs/guide/tasks.md", "docs/plan/game/04-s
 Тип `dp-engineer`. После GL-4. Контракт GL-К4. Стрелка направления на следующую точку на странице прибора с расстоянием и требуемым качеством (`scripts/instruments/`); `scripts/goals/goal_cylinders.gd` — полупрозрачные столбы пунктов ведущего маршрута, активный выделен; настройка «Цилиндры целей» (выкл. по умолчанию) в `SettingsPanel`, ключ `configs/goals/world.json`. Визуал — не больше 2 заходов.
 
 #### GL-6. Кадры этапа A
-Тип `dp-engineer`. После GL-5. Кадры в `/home/greg/deltaplan/build/screenshots/goals/GL-6/`: окно «Цели», полёт со списком целей и прибором (страница со стрелкой), цилиндры включены, экран итога. Скриптом headless/offscreen, ничего в игре не меняет (скрипт — `tools/goals/`). → шлюз главной.
+
+Тип `dp-engineer`. После GL-5, GL-7b, GL-8, GL-10 (этапы A и B готовы раньше плана — кадры обоих этапов одной задачей, GL-9 в неё включена). Скрипты кадров — `tools/shots/goals_*` (по образцу `tools/shots/*_shot.gd`), ничего в игре не меняет. Кадры в `/home/greg/deltaplan/build/screenshots/goals/GL-6/`: A — окно «Цели», полёт со списком целей и прибором (страница со стрелкой), цилиндры включены, экран итога; B — полоса трека с высоты 100–300 м и вблизи. → шлюз главной (кадры A и B).
 
 ### Этап B — след прошлой попытки, полоса трека
 
@@ -82,7 +83,8 @@ related: ["docs/contracts/goals.md", "docs/guide/tasks.md", "docs/plan/game/04-s
 Тип `dp-engineer`, opus. Контракт GL-К6 (данные — GL-К5). `scripts/goals/track_ribbon.gd` + шейдер, `configs/goals/track.json`: весь трек одной полосой постоянной экранной ширины, полупрозрачная, цвет по вертикальной скорости (пороги в конфиге), без z-fighting с рельефом, рисует все `game.goal_tracks`. Параллельно с GL-7 на синтетическом треке; подключение — после слияния GL-7 (`task sync`).
 
 #### GL-9. Кадры этапа B
-Тип `dp-engineer`. После GL-7, GL-8. `/home/greg/deltaplan/build/screenshots/goals/GL-9/`: полоса трека с высоты 100–300 м и вблизи. → шлюз главной.
+
+Включена в GL-6 (2026-10-16): этап B закончен раньше кадров A.
 
 ### Этап C — чужие треки
 
@@ -103,7 +105,7 @@ related: ["docs/contracts/goals.md", "docs/guide/tasks.md", "docs/plan/game/04-s
 ## Волны
 1. GL-1, GL-2.
 2. GL-3, затем GL-4 (после GL-2, GL-3).
-3. GL-5 → GL-6 → **шлюз главной (кадры A)**.
+3. GL-5, GL-7b, GL-10 → GL-6 → **шлюз главной (кадры A и B)**.
 4. GL-7 (с волны 1), GL-7b, GL-8 → GL-9 → **шлюз главной (кадры B)**.
 5. GL-10 → решение по GL-11.
 6. GL-12, GL-13 → `goals done`.
