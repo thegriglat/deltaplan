@@ -19,3 +19,5 @@
 {"t": "2026-10-17T03:06:56", "by": "coordinator", "task": "SEA-1", "ev": "checked", "note": "10/10 files=ok:exit 0; fp_inland=ok:0; tp_sea=ok:1; sea_places=ok:3; works=ok:works True; inland_places=ok:9; dead_sea_lake=ok:1; margin=ok:1; dead_sea_edge=ok:1; salton_edge=ok:1"}
 {"t": "2026-10-17T03:10:37", "by": "reviewer", "task": "SEA-1", "ev": "reviewed", "note": "Признак (уровень ≤0,25 м, край far, q99 ≥ −1 м) воспроизводится: перезапуск sea_mask.py на кеше копии дал те же числа по 16 местам (fp 0, tp 1,0, margin 1,0, w…", "verdict": "accept", "issues": {"major": 1, "minor": 3}, "review": "docs/plan/sea-ships/tasks/SEA-1.review.json"}
 {"t": "2026-10-17T03:10:54", "by": "coordinator", "task": "SEA-1", "ev": "accepted", "note": "по ревью"}
+{"t": "2026-10-17T03:10:58", "by": "coordinator", "task": "SEA-1", "ev": "accepted", "commits": ["b2c83202"], "note": "10/10 files=ok:exit 0; fp_inland=ok:0; tp_sea=ok:1; sea_places=ok:3; works=ok:works True; inland_places=ok:9; dead_sea_lake=ok:1; margin=ok:1; dead_sea_edge=ok:1; salton_edge=ok:1"}
+{"t": "2026-10-17T03:10:58", "by": "coordinator", "task": "SEA-1", "ev": "merged"}
