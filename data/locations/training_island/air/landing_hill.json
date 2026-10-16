@@ -6,7 +6,7 @@
 			43.2,
 			34.0
 		],
-		"data_hash": "27866cae753046af",
+		"data_hash": "a49fb9ea1b803627",
 		"domain_dx": 400.0,
 		"format": 1,
 		"location": "training_island",
@@ -247,7 +247,7 @@
 		}
 	],
 	"location": "training_island",
-	"model_hash": "e4b23a7929fd1693",
+	"model_hash": "513ddc94c087b012",
 	"raw_bytes": 8934048,
 	"site": "landing_hill",
 	"version": 1

@@ -177,6 +177,9 @@ static func load_file(path: String, key: Variant = null) -> AirFieldSet:
 		if why != "":
 			push_warning("AirBakedField: %s — key не совпал (%s), поле не берётся" % [base, why])
 			return null
+		if not model_hash_ok(h):
+			push_warning("AirBakedField: %s — собрано другой версией модели воздуха, поле не берётся" % base)
+			return null
 	var comp := FileAccess.get_file_as_bytes(base + ".bin")
 	if comp.is_empty():
 		push_warning("AirBakedField: нет %s.bin" % base)
@@ -314,7 +317,7 @@ static func key_diff(a: Variant, b: Variant, path: String = "key") -> String:
 	return "" if typeof(a) == typeof(b) and a == b else "%s: %s ≠ %s" % [path, a, b]
 
 
-## Хеш данных места: meta.json, surface.json и файлы слоя detail (detail*) папки места. "" — места
+## Хеш данных места: meta.json, surface.json и файлы слоя detail (detail*, без служебных .import) папки места. "" — места
 ## нет (нет meta.json). Кеш по папке — сведения места в игре не меняются.
 static func place_hash(dir: String) -> String:
 	if _hash_cache.has(dir):
@@ -325,6 +328,9 @@ static func place_hash(dir: String) -> String:
 		var names := Array(DirAccess.get_files_at(dir))
 		names.sort()
 		for n: String in names:
+			# .import — служебные файлы редактора: в экспорте их нет, хеш был бы другим
+			if n.ends_with(".import") or n.ends_with(".remap"):
+				continue
 			if n == "meta.json" or n == "surface.json" or n.begins_with("detail"):
 				lines.append("%s:%s" % [n, FileAccess.get_sha256(dir.path_join(n))])
 		out = "\n".join(lines).sha256_text().substr(0, 16)
@@ -332,10 +338,16 @@ static func place_hash(dir: String) -> String:
 	return out
 
 
-## Хеш исходников модели воздуха (TI-К3): *.gd и *.glsl каталога модели (кроме этого файла),
-## секции air_model и air_phase configs/atmosphere.json, weather_model.json, surface_heat.json.
-## Исходников нет (экспорт) — "". Нужен инструменту и тесту, в игре не проверяется.
-static func model_hash() -> String:
+## Файл с хешем кода модели в экспорте (.gd токенизированы, .glsl импортированы — исходники из pck
+## не прочитать); пишет tools/terrain/air_model_hash.gd перед экспортом (tools/build.sh).
+const CODE_HASH_FILE := "res://data/air_model_hash.txt"
+
+static var _code_hash_cache := ""
+
+
+## Хеш кода модели по исходникам: *.gd и *.glsl каталога модели (кроме этого файла). "" — исходники
+## не читаются (экспорт).
+static func code_hash_of_sources() -> String:
 	var dir := "res://scripts/atmosphere/air_model"
 	var names := Array(DirAccess.get_files_at(dir))
 	names.sort()
@@ -345,6 +357,30 @@ static func model_hash() -> String:
 			lines.append("%s:%s" % [n, FileAccess.get_sha256(dir.path_join(n))])
 	if lines.is_empty():
 		return ""
+	return "\n".join(lines).sha256_text()
+
+
+## Хеш кода модели: по исходникам, а если они не читаются (экспорт) — из CODE_HASH_FILE. "" — нет ни
+## того, ни другого.
+static func code_hash() -> String:
+	if _code_hash_cache != "":
+		return _code_hash_cache
+	var h := code_hash_of_sources()
+	if h == "" and FileAccess.file_exists(CODE_HASH_FILE):
+		h = FileAccess.get_file_as_string(CODE_HASH_FILE).strip_edges()
+	_code_hash_cache = h
+	return h
+
+
+## Хеш модели воздуха (TI-К3 v3): код (code_hash) и секции air_model и air_phase configs/atmosphere.json,
+## weather_model.json, surface_heat.json — конфиги читаются живыми (пилот правит configs/ рядом с
+## игрой: изменённая модель — запечённое поле не берётся). "" — кода не узнать: запечённое не брать.
+static func model_hash() -> String:
+	var lines := PackedStringArray()
+	var code := code_hash()
+	if code == "":
+		return ""
+	lines.append("code:" + code)
 	var atm: Dictionary = Config.get_config("atmosphere")
 	for part: Array in [
 		["air_model", atm.get("air_model", {})],
@@ -356,10 +392,10 @@ static func model_hash() -> String:
 	return "\n".join(lines).sha256_text().substr(0, 16)
 
 
-## Хеш модели в заголовке совпадает с текущим (нет исходников — считается совпавшим).
+## Хеш модели в заголовке совпадает с текущим. Текущий не узнать — не совпал.
 static func model_hash_ok(header: Dictionary) -> bool:
 	var now := model_hash()
-	return now == "" or String(header.get("model_hash", "")) == now
+	return now != "" and String(header.get("model_hash", "")) == now
 
 
 # ---------------------------------------------------------------- условия (TI-К2)
