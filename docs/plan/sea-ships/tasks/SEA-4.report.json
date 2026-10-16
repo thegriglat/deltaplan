@@ -1,0 +1,78 @@
+{
+  "status": "blocked",
+  "summary": "ShipPlacer (S3) и ShipLayer сделаны и подключены к WorldObjects.build (маска и расстановка в WorkerThreadPool, узлы в главном потоке); тесты ship_placer 5/5, ship_layer 4/4, sea_ships_contracts 7/7. Блок по условию координатора: вода за пределами detail (±20 км) рисуется на высоте дна far, судно на y = 0 висит над ней (Рапа-Нуи — на 2,3–3,6 км).",
+  "commits": [
+    "a8674054 SEA-4: суда на море — ShipPlacer, ShipLayer, подключение, конфиг, тесты, ASSETS.md, раздел «Суда» в docs/guide/world-objects.md"
+  ],
+  "checks": [
+    {
+      "name": "ship_placer",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "ship_layer",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "sea_ships_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "194/196: test_city_ground_mask падает и на базе (HEAD~1, без моих правок); test_flights_share_and_cpu (порог времени кадра) — отдельно проходит 5/5",
+      "pass": false
+    },
+    {
+      "name": "scope",
+      "value": "10 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "вода far над батиметрией",
+      "value": "Рапа-Нуи: высота far в клетках моря медиана −3042 м, p10 −3285, min −3621; вне detail ±20 км 100 % клеток моря ниже −10 м. Флорианополис: медиана −58 м, p10 −91, min −156; вне detail 85,5 % ниже −10 м. Под судами h_far: Рапа-Нуи −1598…−3552 м (кроме двух ближних в detail, 0 м), Флорианополис −8…−99 м",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Поверхность моря вдали: рельеф рисует far как есть (scripts/terrain/terrain_main.gdshaderinc:466 VERTEX.y = h + dh, h — texelFetch(height_tex) из HeightLayer.make_texture без отсечки 0) — дно Terrarium вместо воды; scripts/terrain/ вне границ, по карточке не чинил",
+    "accept --dry не PASS: world_objects 194/196 (два падения не от SEA-4, см. checks)"
+  ],
+  "questions": [
+    "Кто и как поднимает воду far до 0 м (отсечка max(h, 0) в клетках маски S2 при загрузке far или в шейдере)? После этого слой судов готов без правок."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SEA-4",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/ship_placer.gd (ships_for)",
+      "why": "контракт S2 называет origin «углом пикселя (0,0)», а HeightLayer/SeaMask.load_for — узлом (0,0); беру ближайший узел round((x − origin)/cell_m), разница ≤ 50 м при запасе 2 км",
+      "checked": "test_shore_distance: под каждым судном маска ≥ 21"
+    },
+    {
+      "where": "scripts/world_objects/world_objects.gd (_start_ships/_ships_done)",
+      "why": "асинхронность: итог через call_deferred, старое поколение отбрасывается, задача ждётся в _ships_done, при EXIT_TREE и PREDELETE",
+      "checked": "временный тест: Рапа-Нуи 45 судов → 135 узлов LOD (сигнал ships_ready через ~150 мс после build), повторный build на Флорианополис — 11, пустой id — 0 узлов, ошибок нет"
+    },
+    {
+      "where": "configs/game.json (graphics_presets)",
+      "why": "добавил sea_ships.render.cast_shadow_lod0 во все три пресета (low false, medium/high true), иначе выбор «Низкое» оставил бы false навсегда",
+      "checked": "JSON валиден; дальности LOD одинаковы на всех пресетах"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения координатора многоточием — полный текст только в task show --full, в кратком виде стоит подсказать флаг. git commit -- <пути> не принимает новые файлы без git add -N — в правилах можно упомянуть.",
+  "extra": {
+    "число_судов": {
+      "Флорианополис −27.7176,−48.7799 (место pt_-27.700_-048.800)": "11, ближайшее к центру 36,3 км",
+      "Рапа-Нуи −27.12,−109.35 (pt_-27.100_-109.350)": "45, ближайшее 9,9 км"
+    },
+    "время": "SeaMask.load_for из файла ≈ 115–120 мс, ships_for ≈ 1 мс (в рабочем потоке)",
+    "рендер": "MeshInstance3D на LOD с visibility_range (0–6 км, 6–25 км, 25 км–camera_far 110 км): судов ≤ ~50 на место, ≤ 150 узлов; движок отсекает по дальности и пирамиде по каждому судну, MultiMesh отсекал бы только всей рамкой. Судно 250 м при 1080p и FOV 90°: 22 пикс. на 6 км, 5 пикс. на 25 км, ~1 пикс. на 110 км",
+    "материал": "свой StandardMaterial3D (vertex_color_use_as_albedo, roughness 0,6) как material_override на всех LOD; .import не трогал",
+    "веса": "placement.types: tanker 1, bulk 0, container 0 (контрактный тест: вес > 0 только у вида с .glb)"
+  },
+  "t": "2026-10-17T04:53:57",
+  "by": "executor"
+}
