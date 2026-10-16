@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-15"
 summary: "Камни rocks.glb (G1), интерфейс GrassField и пресеты (G2), протокол замера (G3), режим средней дистанции травы (G4)."
 related: ["docs/plan/grass-rocks.md", "docs/perf/frame_profile.md"]
-contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 1}, {"id": "G3", "version": 2}, {"id": "G4", "version": 5}]
+contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 2}, {"id": "G3", "version": 2}, {"id": "G4", "version": 5}]
 ---
 # Контракты модуля grass-rocks
 
@@ -29,7 +29,7 @@ contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 1}, {"id": "G3",
   Бюджеты формы — в приёмке GR-4, не в контракте.
 - Нет файла или ноды — `load_meshes` даёт пустой меш, вариант пропускается (как сейчас).
 
-## G2. Открытый интерфейс травы — версия 1
+## G2. Открытый интерфейс травы — версия 2
 
 - Владелец: задачи травы (GR-3, GR-6, GR-7, GR-8). Потребители: `scripts/terrain/terrain.gd`,
   `scripts/game/world_link.gd`, `scripts/audio/grass_rustle.gd`, `scripts/terrain/tree_crosses.gd`,
@@ -47,6 +47,7 @@ contracts: [{"id": "G1", "version": 1}, {"id": "G2", "version": 1}, {"id": "G3",
     `ring_offsets(spacing: float, inner: float, outer: float) -> PackedVector2Array` (его использует `tree_crosses.gd`).
 - Конфиг `configs/vegetation.json → grass`: ключи `enabled`, `density_pct`, `density_range_pct`, `density_step_pct`
   сохраняются; `density_pct = 0` — травы нет (узел не создаётся); прочие ключи задачи меняют свободно.
+- v2 (2026-10-16, GR-25): отладочная переменная окружения `DP_GRASS_DENSITY=<pct>` (для кадров и замеров) сильнее `density_pct` в `density_k`/`is_enabled`; `0` — травы нет. Трава не растёт там, где шейдер рельефа рисует камень, осыпь или голый грунт: одно правило для ближних травинок, слоёв, карточек и `height_at` (CPU).
 - Пресеты (`configs/game.json`): low — `density_pct` 0, medium — 100, high — 150.
 - Поведение, которое сохраняется: приминание у пилота (press), примятая трава у старта, скошенные места
   (`mowed_spots`) и посадочные площадки, сезон, трава под пологом леса, тень облаков на траве.

@@ -1,0 +1,59 @@
+{
+  "id": "GR-26",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Камень рельефа без квадратной сетки (SL-9)",
+  "goal": "На камне рельефа нет видимой квадратной решётки тона (шахматки 2–3 м с краями по осям мира): глыбы SL-9 без решётки, с мягкими краями и плавным тоном; цена кадра не выше.",
+  "plan_ref": "GR-26. Камень рельефа без квадратной сетки",
+  "contracts": [
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-26",
+  "branch": "grass-rocks/GR-26",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/scene_look.gdshaderinc",
+    "configs/world.json",
+    "tests/terrain/test_rock_grid_gpu.gd",
+    "tests/terrain/test_rock_grid_gpu.gd.uid",
+    "docs/perf/grass_rocks_2.md",
+    "docs/perf/data/grass_rocks_GR-26.tar.gz"
+  ],
+  "dont_touch": [
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/terrain/ground_cover.gdshaderinc",
+    "tools",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "scene_look",
+      "tests": "scene_look"
+    },
+    {
+      "name": "gpu_grid",
+      "cmd": "DISPLAY=:0 /home/greg/deltaplan/.dpcli/dpcli lock gpu GR-26-gputest --no-tmux -- tools/gpu_tests.sh --filter=rock_grid",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/rock-grid/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=4"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T18:43:52",
+  "edited": "2026-10-16T18:44:40"
+}

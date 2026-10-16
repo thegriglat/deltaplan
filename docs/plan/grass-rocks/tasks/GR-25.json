@@ -1,0 +1,90 @@
+{
+  "id": "GR-25",
+  "module": "grass-rocks",
+  "type": "dp-engineer",
+  "title": "Трава на каменистой поверхности; карточки не спрайтами",
+  "goal": "Выяснить, что за серо-бежевая поверхность на 20–80 м на кадрах релиза 1.5.16 и откуда цвет пучков на ней (да/нет: трава растёт на камне рельефа?); маска травы всех трёх слоёв и height_at — одно правило с рельефом (камень/осыпь/голый грунт — без травы); карточки — без ровного верха и прямоугольных «мазков», цвет у корня не берётся с объектов переднего плана.",
+  "plan_ref": "GR-25. Трава на каменистой поверхности",
+  "contracts": [
+    {
+      "name": "G2",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G4",
+      "version": "5",
+      "ref": "docs/contracts/grass-rocks.md"
+    },
+    {
+      "name": "G3",
+      "version": "2",
+      "ref": "docs/contracts/grass-rocks.md"
+    }
+  ],
+  "copy": "~/deltaplan-grass-rocks-GR-25",
+  "branch": "grass-rocks/GR-25",
+  "base": "feature/grass-rocks",
+  "scope": [
+    "scripts/terrain/grass.gdshader",
+    "scripts/terrain/grass_mid_shell.gdshader",
+    "scripts/terrain/grass_mid_cards.gdshader",
+    "scripts/terrain/grass_mid_cards.gd",
+    "scripts/terrain/grass_field.gd",
+    "scripts/terrain/ground_cover.gdshaderinc",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "configs/vegetation.json",
+    "data/vegetation/",
+    "ASSETS.md",
+    "tests/vegetation/",
+    "tests/contracts/test_grass_rocks_contracts.gd",
+    "docs/perf/grass_rocks_2.md",
+    "docs/perf/data/grass_rocks_GR-25.tar.gz",
+    "tools/shots/"
+  ],
+  "dont_touch": [
+    "scripts/terrain/rock_scatter.gd",
+    "scripts/terrain/terrain.gd",
+    "tools/bench",
+    "configs/world.json",
+    "configs/game.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "grass",
+      "tests": "grass"
+    },
+    {
+      "name": "terrain",
+      "tests": "terrain"
+    },
+    {
+      "name": "rocks",
+      "tests": "rocks"
+    },
+    {
+      "name": "grass_rocks_contracts",
+      "tests": "grass_rocks_contracts"
+    },
+    {
+      "name": "gpu_grass",
+      "cmd": "DISPLAY=:0 /home/greg/deltaplan/.dpcli/dpcli lock gpu GR-25-gputest --no-tmux -- tools/gpu_tests.sh --filter=grass",
+      "expect": "re:[1-9][0-9]* тестов, 0 упало"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/rock/after-angle-strip/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/after-angle-tuft/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/rock-edge-strip/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/rock-edge-tuft/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "sizes",
+      "cmd": "file /home/greg/deltaplan/build/screenshots/grass-look/rock/after-angle-strip/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/after-angle-tuft/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/rock-edge-strip/*.jpg /home/greg/deltaplan/build/screenshots/grass-look/rock/rock-edge-tuft/*.jpg | grep -oE '[0-9]{3,}x[0-9]{3,}' | sort -u | wc -l",
+      "expect": "re:^1$"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T16:28:31",
+  "edited": "2026-10-16T18:44:40"
+}
