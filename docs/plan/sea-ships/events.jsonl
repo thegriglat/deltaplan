@@ -45,3 +45,6 @@
 {"t": "2026-10-17T03:41:07", "by": "executor", "task": "SEA-2", "ev": "reported", "commits": ["SEA-2"], "note": "done: Счёт маски ускорен в 2–4 раза без смены результата: 5 мест по-прежнему побайтно совпадают с эталоном SEA-1 (0 расхожден…", "dp_feedback": "dpcli lock cpu запускает job и возвращается сразу (результат в логе jobs/<имя>.log, нужен job wait): в справке не сказано."}
 {"t": "2026-10-17T03:41:24", "by": "coordinator", "task": "SEA-2", "ev": "checked", "note": "3/3 sea_ships_contracts=ok:6/6; sea_mask=ok:13/13; location_builder=ok:7/7"}
 {"t": "2026-10-17T03:41:25", "by": "coordinator", "task": "SEA-2", "ev": "accepted", "note": "по отчёту: побайтно с эталоном SEA-1 на 5 местах, 1,1–2,7 с"}
+{"t": "2026-10-17T04:26:26", "by": "coordinator", "task": "SEA-2", "ev": "checked", "commits": ["ff8e8235"], "note": "0/3 sea_ships_contracts=FAIL:таймаут; sea_mask=FAIL:таймаут; location_builder=FAIL:таймаут"}
+{"t": "2026-10-17T04:26:28", "by": "coordinator", "task": "SEA-2", "ev": "merged"}
+{"t": "2026-10-17T04:26:55", "by": "coordinator", "task": "SEA-2", "ev": "note", "note": "accept --here в копии модуля: таймаут 900 с (нет импорта .godot, load avg 120) — не регрессия; в копии задачи 3/3"}
