@@ -147,7 +147,7 @@ related: ["docs/archive/README.md"]
 
 ## training-island
 
-- **Воздух острова**: склон w +1,55, ротор w −2,0 — [training_island_air](/docs/research/training_island_air.md)
+- **Воздух острова**: [training_island_air](/docs/research/training_island_air.md)
 
 ## goals
 
