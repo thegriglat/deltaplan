@@ -156,11 +156,12 @@
   "render_scale_step_pct": 5.0,
   "render_scale_range_pct_doc": "Диапазон и шаг слайдера «Масштаб рендера» в настройках, %",
   "graphics_presets": {
-    "_doc": "Пресеты графики: для каждого — правки конфигов (как в user://configs), которые пишутся при выборе. viewport — настройки окна (msaa_3d 0/2/4, scale_3d — доля разрешения 3D, scaling_mode — bilinear/fsr (FSR 1), fsr_sharpness — резкость FSR, по умолчанию Годо 0.2, dir_shadow_atlas — атлас теней солнца, пикс. (1024..4096), dir_shadow_quality — мягкость теней солнца 0..5: 0 жёсткие, 1 очень низкое, 2 низкое, 3 среднее, 4 высокое, 5 ультра; без них остаётся из project.godot). configs.atmosphere.clouds.max_clouds — предел числа облаков, штук; configs.world.trees.radius_m — дальность 3D-моделей деревьев, м; configs.world.trees.cross_radius_m — радиус LOD2-крестов деревьев в шейдере (SL-18), м; configs.world.sun.shadow_max_distance_m — дальность теней от солнца, м; configs.vegetation.grass.density_pct — густота травы, % (0 — выключена; слайдер «Густота травы» в настройках её переопределяет)",
+    "_doc": "Пресеты графики: для каждого — правки конфигов (как в user://configs), которые пишутся при выборе. viewport — настройки окна (msaa_3d 0/2/4, scale_3d — доля разрешения 3D, scaling_mode — bilinear/fsr (FSR 1), fsr_sharpness — резкость FSR, по умолчанию Годо 0.2, dir_shadow_atlas — атлас теней солнца, пикс. (1024..4096), dir_shadow_quality — мягкость теней солнца 0..5: 0 жёсткие, 1 очень низкое, 2 низкое, 3 среднее, 4 высокое, 5 ультра; без них остаётся из project.godot). configs.atmosphere.clouds.max_clouds — предел числа облаков, штук; configs.world.trees.radius_m — дальность 3D-моделей деревьев, м; configs.world.trees.cross_radius_m — радиус LOD2-крестов деревьев в шейдере (SL-18), м; configs.world.sun.shadow_max_distance_m — дальность теней от солнца, м; configs.sea_ships.render.cast_shadow_lod0 — тени ближних судов; configs.vegetation.grass.density_pct — густота травы, % (0 — выключена; слайдер «Густота травы» в настройках её переопределяет)",
     "low": {
       "name": "gfx_low",
       "configs": {
         "world_objects": {"city_trees": {"density_mult": 0.35, "radius_m": 400, "cast_shadows": false}},
+        "sea_ships": {"render": {"cast_shadow_lod0": false}},
         "vegetation": {"grass": {"density_pct": 0}},
         "atmosphere": {
           "clouds": {
@@ -201,6 +202,7 @@
       "name": "gfx_medium",
       "configs": {
         "world_objects": {"city_trees": {"density_mult": 0.7, "radius_m": 700, "cast_shadows": false}},
+        "sea_ships": {"render": {"cast_shadow_lod0": true}},
         "vegetation": {"grass": {"density_pct": 100}},
         "atmosphere": {
           "clouds": {
@@ -236,6 +238,7 @@
       "name": "gfx_high",
       "configs": {
         "world_objects": {"city_trees": {"density_mult": 1.0, "radius_m": 1100, "cast_shadows": true}},
+        "sea_ships": {"render": {"cast_shadow_lod0": true}},
         "vegetation": {"grass": {"density_pct": 150}},
         "atmosphere": {
           "clouds": {

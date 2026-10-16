@@ -36,6 +36,11 @@ var village_layer: VillageLayer
 var start_gear: Array = []
 ## Время плана снаряжения на один старт, мс (последняя сборка; отчёт SC-2).
 var start_gear_plan_ms: Array[float] = []
+## Суда на море (ShipPlacer, S3): записи последней расстановки; слой — после счёта в рабочем потоке.
+var ships: Array[Dictionary] = []
+var ship_layer: ShipLayer
+## Суда готовы (слой построен или моря нет).
+signal ships_ready
 
 
 var _air_fn: Callable
@@ -48,6 +53,9 @@ var _since_active: float = INF
 var _since_fire: float = INF
 var _since_osm_wind: float = INF
 var _update_dt: float = 1.0 / 30.0
+## Счёт маски моря и судов в WorkerThreadPool: id задачи (-1 — нет), поколение сборки (старый итог — в мусор).
+var _ship_task: int = -1
+var _ship_gen: int = 0
 
 
 ## Главный вход: зависимости передаются явно. atmosphere может быть null (ветроуказатели — штиль).
@@ -109,6 +117,7 @@ func build(
 		_build_start_tracks(height_fn)
 	_build_villages(patches, height_fn)
 	_build_start_gear(start_sites)
+	_start_ships(loc_id, center)
 	_reset_indicators()
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 	print(
@@ -143,6 +152,52 @@ func clear() -> void:
 	camp.clear()
 	campfire = null
 	_active.clear()
+	ships = []
+	ship_layer = null
+	_ship_gen += 1
+
+
+## Суда (S3): маска моря места (SeaMask.load_for — файл или счёт 1–3 с) и расстановка — в рабочем потоке,
+## узлы — в главном (_ships_done). Нет моря — ни одного узла.
+func _start_ships(loc_id: String, center: Vector2) -> void:
+	if loc_id == "":
+		return
+	var lc: Dictionary = Locations.config(loc_id)
+	var clat := float(lc.get("center_lat", center.x))
+	var clon := float(lc.get("center_lon", center.y))
+	var dir := Locations.data_dir(loc_id)
+	var params := ShipPlacer.params_from_config()
+	var gen := _ship_gen
+	_wait_ships()
+	_ship_task = WorkerThreadPool.add_task(func() -> void:
+		var res := ShipPlacer.ships_for(SeaMask.load_for(dir), clat, clon, params)
+		call_deferred(&"_ships_done", res, gen)
+	, false, "sea ships")
+
+
+func _ships_done(res: Array[Dictionary], gen: int) -> void:
+	_wait_ships()
+	if gen != _ship_gen:
+		return
+	ships = res
+	if not ships.is_empty():
+		ship_layer = ShipLayer.new()
+		ship_layer.name = "Ships"
+		add_child(ship_layer)
+		ship_layer.build(ships)
+		print("WorldObjects: судов %d (без модели %d)" % [ship_layer.ship_count, ship_layer.skipped])
+	ships_ready.emit()
+
+
+func _wait_ships() -> void:
+	if _ship_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_ship_task)
+		_ship_task = -1
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE or what == NOTIFICATION_EXIT_TREE:
+		_wait_ships()
 
 
 ## Данные OSM места (osm_tiles.json в папке места + кеш тайлов) → OsmData и каркас OsmLayer.
