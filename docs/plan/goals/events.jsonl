@@ -97,3 +97,7 @@
 {"t": "2026-10-16T22:22:51", "by": "executor", "task": "GL-10", "ev": "reported", "commits": ["Цели:"], "note": "done: TrackIO.read_gpx (XMLParser, все trkseg, ISO 8601 с дробными секундами и смещением, без time 1 с/точку, без ele или бит…", "dp_feedback": "accept --dry упёрся в грязную копию при task sync до коммита — штатно, замечаний нет."}
 {"t": "2026-10-16T22:28:56", "by": "coordinator", "task": "GL-4", "ev": "checked", "note": "9/9 test_goals_game=ok:3/3; test_goal_list=ok:4/4; test_game_flight=ok:5/5; lang_goals=ok:exit 1; check_gd=ok:exit 0; test_screens=ok:9/9; tests/game/test_ui=ok:15/15; test_gameplay=ok:13/13; game_logic=ok:exit 1"}
 {"t": "2026-10-16T22:29:04", "by": "coordinator", "task": "GL-4", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-16T22:36:22", "by": "coordinator", "task": "GL-4", "ev": "accepted", "commits": ["13a16b12"], "note": "9/9 test_goals_game=ok:3/3; test_goal_list=ok:4/4; test_game_flight=ok:5/5; lang_goals=ok:exit 1; check_gd=ok:exit 0; test_screens=ok:9/9; tests/game/test_ui=ok:15/15; test_gameplay=ok:13/13; game_logic=ok:exit 1"}
+{"t": "2026-10-16T22:36:23", "by": "coordinator", "task": "GL-4", "ev": "merged"}
+{"t": "2026-10-16T22:37:53", "by": "coordinator", "task": "GL-10", "ev": "checked", "note": "7/7 test_track_io=ok:6/6; test_track_files=ok:8/8; test_goals_tab=ok:9/9; test_goal_tracks_game=ok:1/1; test_goals_k5=ok:2/2; lang_goals=ok:exit 1; check_gd=ok:exit 0"}
+{"t": "2026-10-16T22:38:01", "by": "coordinator", "task": "GL-10", "ev": "accepted", "note": "по отчёту"}
