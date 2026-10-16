@@ -240,6 +240,7 @@ generated: true
 - [docs/research/pendulum/takeoff-ground.md](research/pendulum/takeoff-ground.md) — Разбег и старт PD-28 (пилот: «за 10 м не взлетел — не взлетишь» против 21–31 м модели), подскоки PD-36, ноги PD-38, авария PD-39
 - [docs/research/pendulum-yaw-literature.md](research/pendulum-yaw-literature.md) — Боковые производные Hiway Demon (Cook): Cnβ 0,0275, голландский шаг 0,92 рад/с, спираль устойчива; в игре Cnβ 0,05
 - [docs/research/pendulum.md](research/pendulum.md) — Маятник: прототип с 16 полосами даёт трим ±0,3 км/ч и фугоиду T 5,2–5,7 с; крен задаёт гибкость паруса; мягкой посадки в штиль нет
+- [docs/research/pendulum_pitch.md](research/pendulum_pitch.md) — Тангаж «Маятника»: «нос −24…−43°» — пикирование при резком «на себя», не жёсткость; на 1,6·V_трим Δθ −9,6° (эталон −9,5°) [closed]
 - [docs/research/pilot_mass.md](research/pilot_mass.md) — Масса пилота: поляра растягивается на k = √(M·ρ_эт/(M_эт·ρ)), качество не меняется; τ крена ∝ √M; данные четырёх крыльев
 - [docs/research/simhub.md](research/simhub.md) — SimHub не читает SRS и DPMR; путь — «External sim integration» (simdef + UDP 55 байт заголовка, бета, Windows); не реализовано. [closed]
 - [docs/research/slope_wind/coupled-system.md](research/slope_wind/coupled-system.md) — Связанная система по этапам; рекомендация: этап 1 (WF-13) и T по N из погоды сразу, крышку по инверсии и термики-источники — позже [closed]
@@ -322,6 +323,7 @@ generated: true
 - [tools/research/pendulum/README.md](../tools/research/pendulum/README.md) — Прототип «честного маятника» на Python: крыло — тело с 16 полосами, пилот — точка на цепи из N звеньев (XPBD), руки с пределом силы
 - [tools/research/pendulum/pd33/README.md](../tools/research/pendulum/pd33/README.md) — Данные разбора правильной посадки маятника (PD-33): ход посадки по шагам, варианты, сильный ветер.
 - [tools/research/pendulum/pd35/README.md](../tools/research/pendulum/pd35/README.md) — PD-35: посадка маятника — ход рук по досягаемости, касание «встал на ноги / пробежал / жёстко», C_N 90° × cos²Λ; скрипты пачек
+- [tools/research/pendulum_pitch/README.md](../tools/research/pendulum_pitch/README.md) — Тангаж «Маятника» на разгоне: скрипт замеров (pendulum_pitch.gd), разбор против точечной массы с полярой, фугоида; команды воспроизведения [closed]
 - [tools/research/pilot_view/README.md](../tools/research/pilot_view/README.md) — PV-1: геометрия пилота лёжа и вид из кабины — штанга позади глаз на 112–120°; нужна ~0,5 м впереди плеч, FOV ~90°
 - [tools/research/qol_load/README.md](../tools/research/qol_load/README.md) — QL-6: замер времени «Рассчитываем ветер» после air-phase — прервано, отменено решением пользователя 07.10 (Q-07 отложен); 20 из 32 строк [postponed]
 - [tools/research/qol_signs/README.md](../tools/research/qol_signs/README.md) — QL-5: почему не видно птиц (размер 1,6 м → 1–2 px на типичных 1–1,5 км) и сколько признаков термика за 10 минут на 4 местах × 13:00/15:00. [closed]

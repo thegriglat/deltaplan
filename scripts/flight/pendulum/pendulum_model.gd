@@ -805,8 +805,11 @@ func _substep(h: float, input: ControlInput) -> void:
 	else:
 		# скорость пилота относительно подвески во вращающихся осях крыла
 		var vrel: Vector3 = Rt * (vp - _vel) - wb.cross(_r_hang_b + rel)
+		# кажущийся вес пилота в осях крыла: подвеска ускоряется с системой, (A_крыла + D_п)/M + g
+		var d_p := f_p - E3 * (pilot_mass * Units.G)
+		var load_b: Vector3 = Rt * (d_p - (R * _aero_f_b + d_p) * (pilot_mass / mass))
 		fb = arms.compute(
-			rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y
+			rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y, load_b
 		)
 		_hands_p = R * fb
 	if fb != Vector3.ZERO:

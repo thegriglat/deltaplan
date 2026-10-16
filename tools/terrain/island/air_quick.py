@@ -31,7 +31,7 @@ RES = OUT / "air_quick.json"
 CASES = {
     "ridge": dict(site="ridge_west", wind=6.0, wdir=270.0, hour=12, tmax="nan", sky="partly"),
     # ветер меню задаётся «на старте» (AirRuntime: приток подгоняется под u10 на 10 м над стартом): у старта в
-    # роторе приток упирается в INFLOW_K_MAX = 3, поэтому главный ротор — с калибровкой на наветренном старте,
+    # тени приток не поднимается (INFLOW_K_MAX = 1, U у старта ниже меню), поэтому главный ротор — с калибровкой на наветренном старте,
     # rotor_lee — как в игре со старта lee_bowl (для сравнения)
     "rotor": dict(site="ridge_west", wind=9.0, wdir=270.0, hour=12, tmax="nan", sky="partly"),
     "rotor_lee": dict(site="lee_bowl", wind=9.0, wdir=270.0, hour=12, tmax="nan", sky="partly"),
