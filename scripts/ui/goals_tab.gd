@@ -293,7 +293,7 @@ func _on_load_pressed() -> void:
 		_dialog = FileDialog.new()
 		_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILES
 		_dialog.access = FileDialog.ACCESS_FILESYSTEM
-		_dialog.use_native_dialog = true
+		_dialog.use_native_dialog = false  # нативный на Linux зависит от портала; встроенный — везде одинаков
 		_dialog.add_filter("*.igc, *.gpx", tr("goals_track_filter"))
 		_dialog.files_selected.connect(add_track_files)
 		add_child(_dialog)

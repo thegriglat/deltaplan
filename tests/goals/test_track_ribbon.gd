@@ -61,6 +61,15 @@ func test_colors_climb_sink_zero() -> void:
 	approx(TrackRibbon.vs_color(mid_w, cfg).a, 0.5 * (float(cfg.alpha_zero) + float(cc[3])), 1e-4, "между — линейно")
 
 
+func test_thresholds_q1() -> void:
+	var cfg := _cfg()
+	approx(float(cfg.dead_band_ms), 0.3, 1e-9, "мёртвая зона 0,3 м/с (Q1)")
+	approx(float(cfg.climb_full_ms), 3.0, 1e-9, "насыщение набора 3,0 м/с")
+	approx(float(cfg.sink_full_ms), 3.0, 1e-9, "насыщение снижения 3,0 м/с")
+	approx(TrackRibbon.vs_color(0.29, cfg).a, float(cfg.alpha_zero), 1e-5, "0,29 — ещё бесцветно")
+	approx(TrackRibbon.vs_color(3.0, cfg).a, float(cfg.color_climb[3]), 1e-5, "3,0 — насыщено")
+
+
 func test_ribbon_vertex_colors_on_track() -> void:
 	var up := _ribbon(_straight(4.0, 30))
 	var down := _ribbon(_straight(-4.0, 30))
