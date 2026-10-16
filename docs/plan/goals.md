@@ -72,7 +72,11 @@ related: ["docs/contracts/goals.md", "docs/guide/tasks.md", "docs/plan/game/04-s
 ### Этап B — след прошлой попытки, полоса трека
 
 #### GL-7. Трек: модель, IGC, след прошлой попытки
-Тип `dp-engineer`. Контракт GL-К5. `scripts/goals/flight_track.gd`, `track_io.gd` (IGC чтение/запись), `last_track_store.gd`; запись трека полёта 1 Гц в `game.gd`, сохранение по концу полёта (взлёт был) — одна на место; при старте с галочкой — в `game.goal_tracks`. Тесты (круговой IGC, замена прошлой попытки, другое место — пусто).
+
+Тип `dp-engineer`. Контракт GL-К5. Только библиотека, без `game.gd`: `scripts/goals/flight_track.gd`, `track_io.gd` (IGC чтение/запись), `last_track_store.gd`, `track_recorder.gd` (запись телеметрии 1 Гц в `FlightTrack`). Тесты (круговой IGC, замена прошлой попытки, другое место — пусто, полночь, нулевая GPS-высота). Идёт параллельно с этапом A.
+
+#### GL-7b. Трек в игре: запись, след прошлой попытки
+Тип `dp-engineer`. После GL-4, GL-7. Контракт GL-К5. `game.gd`: `TrackRecorder` с отрыва, сохранение в `LastTrackStore` по концу полёта (взлёт был), при старте с `show_last_track` — `game.goal_tracks`; не в сети.
 
 #### GL-8. Полоса трека в мире
 Тип `dp-engineer`, opus. Контракт GL-К6 (данные — GL-К5). `scripts/goals/track_ribbon.gd` + шейдер, `configs/goals/track.json`: весь трек одной полосой постоянной экранной ширины, полупрозрачная, цвет по вертикальной скорости (пороги в конфиге), без z-fighting с рельефом, рисует все `game.goal_tracks`. Параллельно с GL-7 на синтетическом треке; подключение — после слияния GL-7 (`task sync`).
@@ -100,7 +104,7 @@ related: ["docs/contracts/goals.md", "docs/guide/tasks.md", "docs/plan/game/04-s
 1. GL-1, GL-2.
 2. GL-3, затем GL-4 (после GL-2, GL-3).
 3. GL-5 → GL-6 → **шлюз главной (кадры A)**.
-4. GL-7, GL-8 → GL-9 → **шлюз главной (кадры B)**.
+4. GL-7 (с волны 1), GL-7b, GL-8 → GL-9 → **шлюз главной (кадры B)**.
 5. GL-10 → решение по GL-11.
 6. GL-12, GL-13 → `goals done`.
 
