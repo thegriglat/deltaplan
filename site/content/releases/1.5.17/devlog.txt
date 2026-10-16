@@ -1,0 +1,10 @@
+Deltaplan 1.5.17 — no grass on bare rock
+
+Grass no longer grows on the bare terrain rock: cliffs, rock outcrops and scree stay bare. One rule now applies to blades, layers and cards.
+
+Mid-range grass cards are low strips with ragged tops made of separate blades. They draw less often, with no density jump next to the close blades and no dark patches at the wheel and the tethers. Grass costs no more than in 1.5.16.
+
+- Grass is not drawn on bare rock, outcrops or scree
+- Mid-range cards: low strips with ragged tops, no dark patches at the wheel and tethers
+- Fewer cards at mid range, no density jump near the blades
+- Grass cost is not higher than in 1.5.16
