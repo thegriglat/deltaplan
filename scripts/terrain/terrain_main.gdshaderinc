@@ -10,6 +10,7 @@
 // terrain_renderer.gd из configs/world.json → terrain_look (числа в шейдере — только технические).
 
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
+#include "res://scripts/terrain/ground_cover.gdshaderinc" // скалы, выходы породы, осыпь — правило общее с травой (GR-25)
 #include "res://scripts/terrain/scene_look.gdshaderinc"
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/meadow_look.gdshaderinc"
@@ -82,10 +83,6 @@ uniform float lichen_amount = 0.35;
 uniform float strata_m = 7.0;          // шаг слоёв на обрывах, м
 #ifndef T_ROCK_DETAIL_OFF
 uniform float strata_strength = 0.28;
-#endif
-#ifndef T_SCREE_OFF
-uniform float scree_probe_m = 35.0;    // где искать обрыв выше по склону, м
-uniform float scree_min_deg = 18.0;    // осыпь лежит на склоне круче этого (и положе скал)
 #endif
 uniform float gully_snow_line_m = 2500.0;  // ниже снега в кулуарах нет, м
 #ifndef T_GULLY_SNOW_OFF
@@ -237,13 +234,6 @@ uniform vec2 ledge_slope_deg = vec2(25.0, 45.0);  // уступы появляю
 #ifndef T_EROSION_OFF
 uniform float erosion_rock_boost = 1.0;          // промоины на скальной поверхности сильнее (× 1 + boost)
 #endif
-#ifndef T_OUTCROP_OFF
-uniform float outcrop_ribs = 0.6;
-#endif
-// кромки материалов (трава/скала/осыпь/снег в кулуарах): узкий переход по рваной кромке вместо
-// широкой плавной смеси; ширина не уже ~пикселя
-uniform float material_edge_noise = 0.5;          // сдвиг кромки шумом 7–25 м (доля веса)
-uniform float material_edge_hw = 0.06;            // полуширина перехода (доля веса)
 #ifndef T_ROCK_SURFACE_OFF
 // фактура скальной зоны на средней дистанции (300–2000 м), без моделей камней
 uniform float rock_tone_var = 0.35;               // разброс яркости породы пятнами 30–150 м
@@ -263,8 +253,7 @@ varying vec3 v_world;
 // тень облаков: множитель прямого солнца и SPECULAR — в light() (cloud_shadow.gdshaderinc)
 varying float v_cs_sun;
 varying float v_cs_spec;
-// выпуклость рельефа (−лапласиан, м/м) в масштабе outcrop_scale_m — в вершине, дёшево
-uniform float outcrop_scale_m = 35.0;         // масштаб кривизны (гребни, бугры), м
+// выпуклость рельефа (−лапласиан, м/м) в масштабе outcrop_scale_m (ground_cover) — в вершине, дёшево
 varying float v_convex;
 
 // Градиент высоты (dh/dx, dh/dz) центральными разностями с шагом d = тексель мип-уровня lod:
@@ -542,7 +531,6 @@ uniform float stone_density = 0.08;           // доля клеток с кам
 uniform vec2 stone_size_m = vec2(0.4, 1.3);   // радиус камня мин/макс, м
 uniform vec3 stone_color : source_color = vec3(0.44, 0.42, 0.38);
 #endif
-uniform vec2 band_size_m = vec2(28.0, 170.0); // полосы травы: поперёк × вдоль линии падения, м
 #ifndef T_MEADOW_DETAIL_OFF
 uniform float band_strength = 0.85;
 uniform float terrace_m = 2.2;                // шаг скотобойных тропинок по склону, м
@@ -556,11 +544,7 @@ uniform vec2 snow_slope_deg = vec2(35.0, 45.0);   // снег WorldCover: дер
 uniform float snow_hollow_deg = 6.0;            // в ложбине снег держится круче на столько градусов (при вогнутости outcrop_convex_k)
 uniform float snow_bare_merge = 1.0;          // выше снеговой линии голый грунт WorldCover — в один пул со снегом (0 — как класс)
 uniform float snow_ridge_blow = 0.6;            // выпуклый гребень: доля снега, сдуваемая ветром (0..1)
-uniform float outcrop_convex_k = 0.035;        // выпуклость (м/м), с которой гребень каменистый
 #ifndef T_OUTCROP_OFF
-uniform vec2 outcrop_slope_deg = vec2(25.0, 36.0); // уклон начала/полной силы выходов породы
-uniform float outcrop_patch_m = 45.0;         // размер пятен породы, м
-uniform float outcrop_amount = 0.9;
 uniform float kurum_share = 0.5;              // доля курумника среди выходов (остальное — коренная порода)
 uniform float kurum_block_m = 2.2;            // шаг глыб курумника, м
 #endif
@@ -570,25 +554,6 @@ uniform vec2 painted_rocks_fade_m = vec2(220.0, 300.0);
 uniform vec3 kurum_color : source_color = vec3(0.3, 0.29, 0.27);
 #endif
 
-// Анизотропный шум полос вдоль линии падения d (гориз. вектор вниз по склону): три фиксированных
-// направления 0/60/120° смешиваются по близости к d — без поворота координат (он рвёт шум
-// там, где меняется экспозиция).
-float fall_bands(vec2 p, vec2 d) {
-	float acc = 0.0;
-	float wsum = 1e-4;
-	for (int i = 0; i < 3; i++) {
-		float a = float(i) * 1.0472;
-		vec2 e = vec2(cos(a), sin(a));
-		float c2 = dot(d, e);
-		float w = max(pow(c2 * c2, 4.0) - 0.03, 0.0);   // малые веса — без выборки, без скачка
-		vec2 q = vec2(dot(p, vec2(-e.y, e.x)) / band_size_m.x, dot(p, e) / band_size_m.y);
-		if (w > 0.0) {
-			acc += w * vnoise(q + float(i) * 17.3);
-			wsum += w;
-		}
-	}
-	return acc / wsum;
-}
 
 #ifndef T_MEADOW_DETAIL_OFF
 // Фактура луга: 5–20 м (куртины, кочки, камни), 20–200 м (полосы вдоль склона, скотобойные
@@ -901,36 +866,6 @@ vec2 erosion_grad(vec2 xz, vec2 g, float foot, float k) {
 }
 #endif
 
-#ifndef T_SCREE_OFF
-// Нормаль по билинейной поверхности в точке (градиент внутри клетки сетки).
-vec3 bilinear_normal(vec2 xz) {
-	vec2 f = (xz - layer_origin) / layer_spacing;
-	vec2 i = floor(f);
-	vec2 t = f - i;
-	ivec2 ij = ivec2(i);
-	float a = h_node(ij);
-	float b = h_node(ij + ivec2(1, 0));
-	float c = h_node(ij + ivec2(0, 1));
-	float d = h_node(ij + ivec2(1, 1));
-	float dhdx = mix(b - a, d - c, t.y) / layer_spacing;
-	float dhdz = mix(c - a, d - b, t.x) / layer_spacing;
-	return normalize(vec3(-dhdx, 1.0, -dhdz));
-}
-#endif
-
-// Рваная узкая кромка материала: вес w (0..1, плавный) → почти ступенька по изолинии 0,5,
-// сдвинутой шумом 7–25 м (мелкий слой гаснет, когда мельче пикселя: подставляется его среднее);
-// переход не уже ~1,5 пикселя foot (без «лесенки»).
-float ragged_edge(float w, vec2 p, float foot) {
-	if (w <= 0.0 || w >= 1.0) {
-		return w;
-	}
-	float kf = 1.0 - smoothstep(2.0, 6.0, foot);
-	float nz = vnoise(p / 23.0 + vec2(3.7, 8.1)) * 0.6
-			+ mix(0.5, vnoise(p / 7.0 + vec2(1.3, 5.9)), kf) * 0.4;
-	float hw = clamp(material_edge_hw + foot * 0.015, material_edge_hw, 0.5);
-	return smoothstep(0.5 - hw, 0.5 + hw, w + material_edge_noise * (nz - 0.5));
-}
 
 void fragment() {
 	vec3 wp = v_world;
@@ -1060,25 +995,12 @@ void fragment() {
 	float open_w = wa.y + shrub + bare;
 #ifndef T_OUTCROP_OFF
 	if (open_w > 0.01 && outcrop_amount > 0.0 && kfar > 0.0) {
-		float convex = smoothstep(0.25, 1.0, v_convex / outcrop_convex_k);
-		float steep = smoothstep(outcrop_slope_deg.x, outcrop_slope_deg.y, slope_deg);
-		float drv = max(convex, steep);
+		float convex;
+		float steep;
+		float drv;
+		outcrop = gc_outcrop(wp.xz, slope_deg, n_class, v_convex / outcrop_convex_k, foot_m, kfar,
+				convex, steep, drv);
 		if (drv > 0.01) {
-			// пятна породы рваные: крупный шум + дробление 3–10 м (гаснет, когда мельче пикселя)
-			float kf = 1.0 - smoothstep(2.0, 8.0, foot_m);
-			float brk = vnoise(wp.xz / (outcrop_patch_m * 0.18));
-			if (kf > 0.0) {
-				brk = mix(brk, brk * 0.6 + vnoise(wp.xz / (outcrop_patch_m * 0.06) + vec2(3.7, 0.4)) * 0.4, kf);
-			}
-			float pn = fbm(wp.xz / outcrop_patch_m + vec2(12.7, 3.1), 2);
-			// на крутом порода выходит рёбрами между кулуарами (вытянуты вдоль линии падения)
-			if (steep > 0.01 && outcrop_ribs > 0.0) {
-				vec2 dn0 = length(n_class.xz) > 1e-4 ? normalize(n_class.xz) : vec2(1.0, 0.0);
-				pn = mix(pn, fall_bands(wp.xz + vec2(31.3, 17.9), dn0), outcrop_ribs * steep);
-			}
-			pn += 0.2 * (brk - 0.5);
-			outcrop = smoothstep(0.5, 0.56, pn + 0.2 * (drv - 1.0)) * smoothstep(0.0, 0.3, drv)
-					* outcrop_amount * kfar;
 			kurum = clamp(smoothstep(0.35, 0.65, vnoise(wp.xz / 160.0 + vec2(3.3, 1.1))
 					+ kurum_share - 0.5) + 0.35 * (steep - convex), 0.0, 1.0);
 		}
@@ -1311,9 +1233,8 @@ void fragment() {
 	col /= land;
 
 	// --- скалы: крутые склоны без леса (луг, кустарник, грунт на крутизне — выходы породы) ---
-	float rnoise = fbm(wp.xz / 40.0 + vec2(5.1, 2.3), 3);
-	float rock = ragged_edge(smoothstep(rock_slope_deg - rock_blend_deg * 0.5, rock_slope_deg + rock_blend_deg * 0.5,
-			slope_deg + 10.0 * (rnoise - 0.5)), wp.xz, foot_m) * (wa.y + crop + shrub + bare) / land;
+	float rnoise = fbm(wp.xz / 40.0 + vec2(5.1, 2.3), 3);   // тот же шум, что в gc_rock (кулуары снега ниже)
+	float rock = gc_rock(wp.xz, slope_deg, foot_m) * (wa.y + crop + shrub + bare) / land;
 	// цвет породы — только там, где есть скалы или выходы породы (текстуры — с производными,
 	// посчитанными до ветвления)
 	vec3 rcol = rock_color;
@@ -1390,11 +1311,7 @@ void fragment() {
 #endif
 		slope_up = degrees(acos(clamp(n_up.y, 0.0, 1.0)));
 	}
-	float scree = ragged_edge(smoothstep(rock_slope_deg - 2.0, rock_slope_deg + 8.0, slope_up)
-			* smoothstep(6.0, 14.0, slope_up - slope_deg)
-			* smoothstep(scree_min_deg - 4.0, scree_min_deg + 4.0, slope_deg)
-			* smoothstep(0.35, 0.6, fbm(wp.xz / 30.0 + vec2(4.4, 0.7), 3) + 0.15), wp.xz + 41.0, foot_m)
-			* 0.85 * (1.0 - rock) * (wa.y + shrub + bare) / land;
+	float scree = gc_scree(wp.xz, slope_deg, slope_up, foot_m) * (1.0 - rock) * (wa.y + shrub + bare) / land;
 #else
 	float scree = 0.0;   // без осыпей (и без конусов выноса SL: slope_up = 0)
 #endif

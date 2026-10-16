@@ -18,6 +18,7 @@ render_mode cull_disabled, diffuse_lambert_wrap, world_vertex_coords, specular_d
 		depth_draw_always;
 
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
+#include "res://scripts/terrain/ground_cover.gdshaderinc"   // скалы, выходы породы, осыпь — как у рельефа (GR-25)
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/meadow_look.gdshaderinc"
 #include "res://scripts/terrain/scene_look.gdshaderinc" // SL
@@ -199,8 +200,10 @@ void vertex() {
 		float hh = hr.y;
 		// уклон — уклон билинейной клетки, как у ближних травинок (h_grad, grass.gdshader)
 		vec3 n = normalize(vec3(-hg.x, 1.0, -hg.y));
-		float slope_deg = degrees(acos(clamp(n.y, 0.0, 1.0)));
-		hh *= 1.0 - smoothstep(rock_slope_deg - 4.0, rock_slope_deg + 2.0, slope_deg);
+		// порода рельефа (ground_cover, G2 v2): густота — доля луга
+		if (hh > 0.0 && share > 0.0) {
+			share *= gc_grass_keep_fast(xz, n, c);
+		}
 		for (int k = 0; k < mowed_count; k++) {
 			if (length(xz - mowed[k].xy) < mowed[k].z) {
 				hh *= mowed[k].w;
