@@ -144,3 +144,6 @@
 {"t": "2026-10-17T00:05:49", "by": "coordinator", "task": "GL-13", "ev": "accepted", "note": "по отчёту; перенос 04 в архив — координатор"}
 {"t": "2026-10-17T00:05:50", "by": "coordinator", "task": "GL-13", "ev": "accepted", "commits": ["8176311e"], "note": "1/1 docs=ok:exit 0"}
 {"t": "2026-10-17T00:05:50", "by": "coordinator", "task": "GL-13", "ev": "merged"}
+{"t": "2026-10-17T00:07:05", "by": "executor", "task": "GL-15", "ev": "reported", "commits": ["f2ed9e7f"], "note": "done: Полоса: dead_band 0,3, насыщение 3,0 м/с. Цилиндры — свой шейдер, альфа растёт с расстоянием (smoothstep 500..4000 м; о…", "dp_feedback": "Дополнение к карточке в task show обрезано; полный текст только через --full."}
+{"t": "2026-10-17T00:07:15", "by": "coordinator", "task": "GL-15", "ev": "checked", "note": "7/7 test_goal_cylinders=ok:2/2; test_track_ribbon=ok:7/7; test_goals_k4=ok:2/2; test_goals_k6=ok:3/3; test_goals_tab=ok:9/9; frames=ok:7; check_gd=ok:exit 0"}
+{"t": "2026-10-17T00:07:21", "by": "coordinator", "task": "GL-15", "ev": "accepted", "note": "по отчёту; FileDialog — встроенный на всех платформах"}

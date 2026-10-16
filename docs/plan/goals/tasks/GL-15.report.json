@@ -1,0 +1,68 @@
+{
+  "status": "done",
+  "summary": "Полоса: dead_band 0,3, насыщение 3,0 м/с. Цилиндры — свой шейдер, альфа растёт с расстоянием (smoothstep 500..4000 м; обычный 0,12→0,35, активный 0,3→0,6). FileDialog на Linux переведён на встроенный (use_native_dialog=false): нативный в запуске не показался, встроенный открывается, фильтр igc/gpx работает, files_selected добавляет трек в список.",
+  "commits": [
+    "f2ed9e7f GL-15: полоса 0,3/3,0; альфа цилиндров от расстояния; встроенный FileDialog"
+  ],
+  "checks": [
+    {
+      "name": "test_goal_cylinders",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "test_track_ribbon",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k4",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k6",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_goals_tab",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "7",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/goals/GL-15/a3_cylinders.jpg",
+    "build/screenshots/goals/GL-15/b1_track_high.jpg",
+    "build/screenshots/goals/GL-15/a5_file_dialog.jpg",
+    "build/screenshots/goals/GL-15/a6_track_added.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept GL-15",
+  "uncertain": [
+    {
+      "where": "scripts/ui/goals_tab.gd:295",
+      "why": "нативный диалог на Linux: в запуске visible=false, кадр без окна; причина (портал/окружение) не выяснялась",
+      "checked": "перешёл на встроенный на всех платформах; кадр и выбор проверены"
+    },
+    {
+      "where": "configs/goals/world.json",
+      "why": "ключи alpha/alpha_active переименованы в alpha_near/alpha_active_near (+far); пользовательские патчи старых ключей игнорируются",
+      "checked": "grep по scripts — других читателей нет"
+    }
+  ],
+  "dp_feedback": "Дополнение к карточке в task show обрезано; полный текст только через --full.",
+  "t": "2026-10-17T00:07:05",
+  "by": "executor"
+}
