@@ -20,8 +20,18 @@ var cell_m: float = 10.0
 var build_time_s: float = 0.0
 
 
-## Маска для локации. null — нет конфига локации.
+## Маска для локации без живого рельефа (превью, инструменты): PlaceData из файлов. null — нет конфига.
 static func build_for(location_id: String) -> WorldClearings:
+	return build_from(PlaceData.from_files(location_id))
+
+
+## Маска по общим данным места (FL-К2): рельеф, OSM и план домов — из PlaceData, без чтения файлов.
+## Расчищено только там, где объекты стоят: дома плана (тот же, что расставляет WorldObjects), дворы,
+## дороги и ж/д OSM, тропы к стартам, посадки. null — нет данных или конфига места.
+static func build_from(pd: PlaceData) -> WorldClearings:
+	if pd == null:
+		return null
+	var location_id := pd.location_id
 	var loc: Dictionary = Locations.config(location_id)
 	if loc.is_empty():
 		return null
@@ -37,27 +47,14 @@ static func build_for(location_id: String) -> WorldClearings:
 		var p := TerrainGeo.latlon_to_local(float(spec.lat), float(spec.lon), lat0, lon0)
 		landings.append(spec.merged({"x": p.x, "z": p.y}, true))
 	var tracks: Array = []
-	if bool(cfg.start_tracks.get("enabled", true)):
+	if bool(cfg.start_tracks.get("enabled", true)) and not pd.layers.is_empty():
 		var starts: Array = []
 		for s in loc.get("start_sites", []):
 			var p := TerrainGeo.latlon_to_local(float(s.lat), float(s.lon), lat0, lon0)
 			starts.append({"position": Vector3(p.x, 0.0, p.y)})
-		var dem_dir := Locations.data_dir(location_id)
-		var height_fn := _load_height_fn(dem_dir)
-		if height_fn.is_valid():
-			tracks = StartTracks.plan(starts, cfg.start_tracks, height_fn)
-	var houses: Array = []
-	var dem_dir2 := Locations.data_dir(location_id)
-	var hf := _load_height_fn(dem_dir2)
-	if hf.is_valid():
-		houses = VillagePlacer.plan(patches_for_location(location_id), location_id, cfg.villages, hf)
-	# просеки вдоль дорог и ж/д из тайлов OSM (OT-9); нет тайлов — пустой OsmData
-	var ocfg: Dictionary = Config.get_config("osm_tiles")
-	var osm: OsmData = null
-	if bool(ocfg.get("enabled", true)):
-		osm = OsmData.load_for(Locations.data_dir(location_id), lat0, lon0, float(ocfg.get("half_m", 20000.0)))
+		tracks = StartTracks.plan(starts, cfg.start_tracks, pd.height_at)
 	var c := WorldClearings.new()
-	c.build(landings, cfg, half, tracks, houses, osm)
+	c.build(landings, cfg, half, tracks, pd.house_plan, pd.osm)
 	return c
 
 
@@ -69,27 +66,6 @@ static func patches_for_location(location_id: String) -> BuiltPatches:
 	return VillagePlacer.patches_for_dir(
 		Locations.data_dir(location_id)
 	)
-
-
-## Высота по данным рельефа локации (<data_dir>/meta.json), как Terrain.height_at, но без
-## живой ноды Terrain — только для процедурных троп (StartTracks). Невалидный Callable — нет данных.
-static func _load_height_fn(dir: String) -> Callable:
-	var meta_text := FileAccess.get_file_as_string(dir.path_join("meta.json"))
-	var meta: Variant = JSON.parse_string(meta_text)
-	if not meta is Dictionary or not (meta as Dictionary).has("layers"):
-		return Callable()
-	var layers: Array[HeightLayer] = []
-	for info in meta.layers:
-		var l := HeightLayer.load_from_file(dir.path_join(String(info.file)), info)
-		if l != null:
-			layers.append(l)
-	if layers.is_empty():
-		return Callable()
-	return func(x: float, z: float) -> float:
-		for l in layers:
-			if l.contains(x, z):
-				return l.sample(x, z)
-		return layers[layers.size() - 1].sample(x, z)
 
 
 ## landings — спецификации посадок с x, z (мир).
@@ -109,16 +85,21 @@ func build(
 	var n := ceili(2.0 * half_size_m / cell_m)
 	origin = Vector2(-half_size_m, -half_size_m)
 	image = Image.create_empty(n, n, false, Image.FORMAT_L8)
-	if osm != null:
-		_roads(osm.roads, cfg.get("roads", {}).get("classes", {}), float(cc.get("road_margin_m", 3.0)))
-		_buildings(osm.buildings, float(cc.get("building_margin_m", 4.0)))
-		_rails(osm.rail, cfg.get("rail", {}).get("classes", {}), float(cc.get("road_margin_m", 3.0)))
-	for l in landings:
-		_landing(l, float(cc.landing_margin_m))
+	# линии (дороги, ж/д, тропы) — основная работа маски
+	var lines: Array = []
 	var track_half := float(cfg.start_tracks.width_m) * 0.5 + float(cc.start_track_margin_m)
 	for pts in tracks:
 		if (pts as PackedVector2Array).size() >= 2:
-			stamp_line(pts, track_half)
+			lines.append([pts, track_half])
+	if osm != null:
+		var rm := float(cc.get("road_margin_m", 3.0))
+		_line_list(lines, osm.roads, cfg.get("roads", {}).get("classes", {}), rm)
+		_line_list(lines, osm.rail, cfg.get("rail", {}).get("classes", {}), rm)
+	stamp_lines(lines)
+	if osm != null:
+		_buildings(osm.buildings, float(cc.get("building_margin_m", 4.0)))
+	for l in landings:
+		_landing(l, float(cc.landing_margin_m))
 	var margin := float(cc.get("house_margin_m", 3.0))
 	for b: Array in houses:
 		stamp(float(b[0]), float(b[1]), maxf(float(b[2]), float(b[3])) * 0.5 + margin)
@@ -159,21 +140,23 @@ func stamp_line(pts: PackedVector2Array, half: float) -> void:
 			stamp(p.x, p.y, half)
 
 
-func _roads(roads: Array, classes: Dictionary, margin: float) -> void:
-	for r: Dictionary in roads:
-		if classes.has(r.t) and not bool(r.get("tunnel", false)):
-			stamp_line(r.p, float(classes[r.t][0]) * 0.5 + margin)
+## Полосы [[ломаная, полуширина], …] (stamp_line каждой). Подряд на вызывающем потоке: проба по полосам
+## картинки на WorkerThreadPool (FL-4) была вдвое медленнее (13,5 тыс. линий точки −27.7, −48.8: 1,3 с против 0,67 с).
+func stamp_lines(lines: Array) -> void:
+	for ln: Array in lines:
+		stamp_line(ln[0], float(ln[1]))
+
+
+## Дороги / ж/д нужных классов (не тоннели) → [ломаная, полуширина просеки] в lines.
+static func _line_list(lines: Array, items: Array, classes: Dictionary, margin: float) -> void:
+	for r: Dictionary in items:
+		if classes.has(r.t) and not bool(r.get("tunnel", false)) and (r.p as PackedVector2Array).size() >= 2:
+			lines.append([r.p, float(classes[r.t][0]) * 0.5 + margin])
 
 
 func _buildings(buildings: Array, margin: float) -> void:
 	for b: Array in buildings:
 		stamp(float(b[0]), float(b[1]), Vector2(float(b[2]), float(b[3])).length() * 0.5 + margin)
-
-
-func _rails(rails: Array, classes: Dictionary, margin: float) -> void:
-	for r: Dictionary in rails:
-		if classes.has(r.t) and not bool(r.get("tunnel", false)):
-			stamp_line(r.p, float(classes[r.t][0]) * 0.5 + margin)
 
 
 func _landing(l: Dictionary, margin: float) -> void:
