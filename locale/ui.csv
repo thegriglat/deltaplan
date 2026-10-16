@@ -307,6 +307,10 @@ site_training_island_ridge_west,Склон,Ridge
 site_training_island_thermal_plain,Термики,Thermals
 site_training_island_landing_hill,Посадка,Spot landing
 site_training_island_lee_bowl,Ротор,Rotor
+loc_volcano_island,Вулканический остров,Volcanic Island
+site_volcano_island_east_cliffs,Восточные обрывы,East Cliffs
+site_volcano_island_crater_ridge,Гребень кратера,Crater Ridge
+site_volcano_island_plateau_landing,Посадка на плато,Plateau Landing
 vario_preset_classic,"Классический, 1990-е","Classic, 1990s"
 vario_preset_xctracer,XC Tracer (современный),XC Tracer (modern)
 err_no_location_config,нет конфига локации %s,no location config %s
