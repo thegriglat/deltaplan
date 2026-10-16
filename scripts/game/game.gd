@@ -618,7 +618,9 @@ func _tracks_active() -> bool:
 
 ## Новая попытка: след прошлой (если нужен) в goal_tracks и полосы, запись с нуля.
 func _tracks_begin() -> void:
-	goal_tracks = goal_tracks.filter(func(f: FlightTrack) -> bool: return f.source != "last")
+	goal_tracks = goal_tracks.filter(
+		func(f: FlightTrack) -> bool: return f.source != "last" and not f.source.is_absolute_path()
+	)
 	_track_rec = null
 	_track_key = ""
 	if _tracks_active():
@@ -629,6 +631,11 @@ func _tracks_begin() -> void:
 			var last := LastTrackStore.load(_track_key)
 			if last != null:
 				goal_tracks.append(last)
+		for path in settings.track_paths:  # загруженные IGC/GPX (GL-10); чужого места — пропуск
+			var ft := TrackIO.read(path)
+			if ft != null and ft.inside_fraction(terrain.detail_bounds(), terrain.latlon_to_local) >= 0.5:
+				ft.source = path
+				goal_tracks.append(ft)
 	for r in _track_ribbons:
 		remove_child(r)
 		r.queue_free()

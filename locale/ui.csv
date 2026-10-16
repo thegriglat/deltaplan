@@ -564,3 +564,8 @@ goals_level_hard,трудная,hard
 goals_level_custom,своя,custom
 goals_last_track,След прошлой попытки,Last attempt track
 unit_min,мин,min
+goals_track_load,Загрузить трек…,Load track…
+goals_track_filter,Треки IGC и GPX,IGC and GPX tracks
+goals_track_remove,Убрать,Remove
+goals_track_foreign,Трек не из этого места,Track is not from this place
+goals_track_unreadable,Не удалось прочитать трек,Could not read the track
