@@ -12,6 +12,11 @@ extends Node
 ##   --gpu-profile   нужен для разбивки GPU по проходам (метки RenderingDevice движка)
 ##   --latlon=lat,lon  место по координатам вместо --location (метка остаётся в журнале);
 ##   --game-args=a,b   доп. аргументы игры через запятую (например --air-start=0,400)
+##   --goals=1       (GL-12) цели полёта как в goals_shot.gd: height, distance, triangle, speed, landing
+##                   по GoalEstimator (уровни medium/easy); на ветке без модуля целей — игнорируется
+##   --cylinders=1   (GL-12) включить цилиндры целей (user-конфиг goals/world → cylinders.enabled)
+##   --last-track=1  (GL-12) показывать след прошлой попытки (файл user://tracks/last/<место>.igc кладёт скрипт)
+##   --igc=<путь>    (GL-12) загрузить трек IGC (FlightSettings.track_paths), можно несколько через «;»
 ##   --air=T         после отметок (без паузы): на сим.времени T запросить пересчёт поля воздуха
 ##                   (AirRuntime.request_recompute) и мерить кадры, пока он идёт (не дольше 40 с)
 ## Пишет по строке JSON на опыт в --out (кадр CPU/GPU средн. и 1%-худших, проходы GPU,
@@ -58,6 +63,10 @@ var _sample_s := 2.0
 var _marks: Array = []
 var _exps: Array = ALL_EXPS.duplicate()
 var _air_t := -1.0
+var _goals_on := false
+var _cylinders_on := false
+var _last_track_on := false
+var _igc_paths := PackedStringArray()
 var _pause := true
 var _cpu_t := -1.0
 var _keep: Array = []  # опыты, включённые на весь замер отметки (фон для остальных)
@@ -78,6 +87,14 @@ func _ready() -> void:
 			_location = a.substr(11)
 		elif a.begins_with("--latlon="):
 			_latlon = a.substr(9)
+		elif a.begins_with("--goals="):
+			_goals_on = a.substr(8) == "1"
+		elif a.begins_with("--cylinders="):
+			_cylinders_on = a.substr(12) == "1"
+		elif a.begins_with("--last-track="):
+			_last_track_on = a.substr(13) == "1"
+		elif a.begins_with("--igc="):
+			_igc_paths = PackedStringArray(Array(a.substr(6).split(";", false)))
 		elif a.begins_with("--game-args="):
 			_game_args = Array(a.substr(12).split(",", false))
 		elif a.begins_with("--tag="):
@@ -115,7 +132,7 @@ func _ready() -> void:
 		args.append("--location=" + _location)
 	args.append_array(PackedStringArray(_game_args))
 	_main = MAIN_SCENE.instantiate()
-	_main.set("opts", LaunchOptions.parse(args))
+	_main.set("opts", _make_opts(LaunchOptions.parse(args)))
 	add_child(_main)
 	for i in 6000:
 		if int(_main.get("state")) == 2:  # State.FLYING
@@ -125,6 +142,7 @@ func _ready() -> void:
 		_fail("не долетели до FLYING")
 		return
 	_game = _main.get_node("Game")
+	_print_goals_state()
 	print("PROFILE osm_buildings %s %s: %s" % [_location, _tag, JSON.stringify(OsmBuildings.last_stats)])
 	_write({loc = _location, tag = _tag, exp = "_osm_buildings", stats = OsmBuildings.last_stats})
 	_no_vsync()
@@ -185,6 +203,62 @@ func _ready() -> void:
 	print("PROFILE hitches %s %s: %s" % [_location, _tag, JSON.stringify(_hitches)])
 	print("frame_profile: OK %s" % _location)
 	await _quit(0)
+
+
+## Настройки запуска (GL-12): цели, след прошлой попытки и загруженный трек — только если заданы
+## флаги; на ветке без модуля целей (нет scripts/goals) они молча не применяются.
+class BenchOpts:
+	extends LaunchOptions
+	var goals: Array = []
+	var last_track := false
+	var tracks := PackedStringArray()
+
+	func apply_to(s: FlightSettings) -> FlightSettings:
+		var r := super.apply_to(s)
+		if "goals" in r:
+			r.goals = goals.duplicate(true)
+			r.show_last_track = last_track
+			r.track_paths = tracks
+		return r
+
+
+func _make_opts(base: LaunchOptions) -> LaunchOptions:
+	if not (_goals_on or _last_track_on or not _igc_paths.is_empty()):
+		return base
+	var o := BenchOpts.new()
+	for p in base.get_property_list():  # поля LaunchOptions переносим как есть
+		if int(p.usage) & PROPERTY_USAGE_SCRIPT_VARIABLE and p.name in base:
+			o.set(p.name, base.get(p.name))
+	o.last_track = _last_track_on
+	o.tracks = _igc_paths
+	if _goals_on and ResourceLoader.exists("res://scripts/goals/goal_estimator.gd"):
+		var est: GDScript = load("res://scripts/goals/goal_estimator.gd")
+		var spec: GDScript = load("res://scripts/goals/goal_spec.gd")
+		var s := o.apply_to(FlightSettings.defaults())
+		var wx: Dictionary = est.call("weather_for", s)
+		var tri_m: float = est.call("suggest", "triangle", "medium", wx)
+		for kind in ["height", "distance", "triangle", "speed", "landing"]:
+			var level := "easy" if kind in ["distance", "landing"] else "medium"
+			var v: float = est.call("suggest", kind, level, wx, tri_m * 1.0)
+			o.goals.append(spec.call("make", kind, level, v))
+		print("PROFILE goals_specs %s" % JSON.stringify(o.goals))
+		if _cylinders_on:
+			UserSettings.save_patch("goals/world", {"cylinders": {"enabled": true}})
+	return o
+
+
+## Что реально включилось (GL-12): цели, полосы треков, столбы.
+func _print_goals_state() -> void:
+	var info := {goals = false}
+	if _game != null and "goals" in _game and _game.get("goals") != null:
+		info.goals = true
+	if _game != null and "goal_tracks" in _game:
+		info.tracks = (_game.get("goal_tracks") as Array).size()
+		info.ribbons = (_game.get("_track_ribbons") as Array).size()
+		var cyl: Object = _game.get("_goal_cylinders")
+		info.cylinders = cyl != null and bool(cyl.get("visible"))
+	print("PROFILE goals_state %s %s: %s" % [_location, _tag, JSON.stringify(info)])
+	_write({loc = _location, tag = _tag, exp = "_goals_state", state = info})
 
 
 ## Игра ставит VSync и предел кадров из game.json → display (QL-13) поверх --disable-vsync —
