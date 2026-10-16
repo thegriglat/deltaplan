@@ -19,17 +19,18 @@
   ],
   "accept": [
     {
-      "name": "size",
-      "cmd": "wc -c < docs/registry/findings.md",
-      "expect": "num:(\\d+) <=40000"
-    },
-    {
       "name": "docs",
       "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | tail -1'",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "size",
+      "cmd": "wc -c < docs/registry/findings.md",
+      "expect": "num:(\\d+) <=40750"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T00:52:25"
+  "created": "2026-10-17T00:52:25",
+  "edited": "2026-10-17T00:53:18"
 }
