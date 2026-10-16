@@ -48,6 +48,22 @@ static func draw_page(d: InstrumentDisplay, area: Rect2) -> void:
 	if t.is_race():
 		target = String(t.race.get("next_name", target)) + " → " + d.tr("tab_goal_short")
 	d.text(Vector2(x0 + 4.0, y), d.tr("tab_target") % target, d.text_px, d.ink, 0, area.size.x)
+	_draw_bearing(d, rose_rect, t.target_relative_bearing_deg(v.position, v.track_deg))
+
+
+## Стрелка на активную точку относительно путевого курса (вверх — прямо по курсу) в углу розы.
+## rel_deg NAN — цели нет, стрелки нет.
+static func _draw_bearing(d: InstrumentDisplay, rose: Rect2, rel_deg: float) -> void:
+	if is_nan(rel_deg):
+		return
+	var r := minf(rose.size.x, rose.size.y) * 0.16
+	var c := Vector2(rose.end.x - r - 12.0, rose.position.y + r + float(d.label_px) + 10.0)
+	d.draw_arc(c, r, 0.0, TAU, 48, d.ink, d.border * 0.5, true)
+	d.draw_line(c + Vector2(0.0, -r), c + Vector2(0.0, -r * 0.8), d.ink, d.border)
+	var a := deg_to_rad(rel_deg)
+	var dir := Vector2(sin(a), -cos(a))
+	d.arrow(c - dir * r * 0.45, c + dir * r * 0.85, 4.0, 16.0)
+	d.text(c + Vector2(-40.0, -r - 6.0), d.tr("tab_bearing"), d.label_px, d.ink, 1, 80.0)
 
 
 static func _method_name(d: InstrumentDisplay, w: WindEstimator) -> String:

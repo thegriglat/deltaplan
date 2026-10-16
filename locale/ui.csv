@@ -164,6 +164,8 @@ settings_peak_names_hint,вершины и перевалы с высотой,pe
 settings_pilot_shift,Смещение пилота,Pilot shift
 settings_pilot_shift_hint,круг внизу экрана: куда смещён вес,circle at screen bottom: where the weight is shifted
 settings_clock,Часы,Clock
+settings_goal_cylinders,Цилиндры целей,Goal cylinders
+settings_goal_cylinders_hint,полупрозрачные столбы пунктов маршрута в мире,translucent columns at route points in the world
 settings_clock_hint,время суток игры внизу справа и на запястье,in-game time of day at bottom right and on the wrist
 settings_compass,Компас,Compass
 settings_compass_hint,компас на правом запястье (курс по реальному направлению),compass on the right wrist (shows your real heading)
@@ -284,6 +286,7 @@ tab_arrival,ПРИБЫТИЕ,ARRIVAL
 tab_no_target,нет цели,no target
 tab_goal_short,гоул,goal
 tab_target,ЦЕЛЬ: %s,TARGET: %s
+tab_bearing,НА ТОЧКУ,TO POINT
 tab_no_data,нет данных,no data
 tab_circles,круги,circles
 tab_straight,по курсу,straight
