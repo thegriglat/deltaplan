@@ -79,6 +79,7 @@ VI-К2: `configs/training.json` v2 (группы), вкладки в `TrainingMe
 проверка воздуха числами, как `tools/terrain/island/air_check.py` / `docs/research/training_island_air.md`: склоны — подъём при 5–8 м/с, ротор — за обрывами
 (где и насколько), термики — над сушей есть, над морем нет; запечь все старты (`tools/terrain/bake_all.sh --id volcano_island`), `--check` = 0, размер;
 тест, что каждый старт берёт запечённое поле. Если термик-старт есть — карточка термиков (VI-К2 v2). Кадры F3/F6 — `…/volcano-island/VI-5/`.
+Первым шагом (Q1): перенести east_cliffs на кромку морского обрыва (правила tools/terrain/volcano/check_sites.py; не проходит — оставить, в отчёт), посадку у него — в пределах планирования; кадры нового старта. Все числа стартов — заново после fix/lee-start-calibration (k притока ≤ 1).
 
 #### VI-6. Тексты и документация (dp-writer, sonnet)
 `docs/guide/location-data.md` (раздел о втором острове: реальные данные в сборке, `training_only`, OSM из папки места), `CHANGELOG.md` «В работе»,
