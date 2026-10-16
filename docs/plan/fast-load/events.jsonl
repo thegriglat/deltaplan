@@ -74,3 +74,5 @@
 {"t": "2026-10-17T04:37:41", "by": "coordinator", "task": "FL-4", "ev": "accepted", "commits": ["451b308c"], "note": "4/4 fast_load_k2=ok:5/5; clearing=ok:3/3; village=ok:6/6; world_objects=ok:187/187"}
 {"t": "2026-10-17T04:37:49", "by": "coordinator", "task": "FL-4", "ev": "merged", "note": "village: один прогон упал signal 11 (SIGSEGV), повтор PASS — следить"}
 {"t": "2026-10-17T04:37:50", "by": "coordinator", "task": "FL-2", "ev": "merged"}
+{"t": "2026-10-17T04:38:15", "by": "coordinator", "task": "FL-8", "ev": "accepted", "commits": ["43cb1065"], "note": "2/2 height=ok:6/6; relief=ok:10/10 (пропуск 2)"}
+{"t": "2026-10-17T04:38:15", "by": "coordinator", "task": "FL-8", "ev": "merged"}
