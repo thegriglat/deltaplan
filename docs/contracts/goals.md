@@ -6,7 +6,7 @@ area: "game"
 updated: "2026-10-16"
 summary: "Стыки модуля целей: FlightSettings (К1), оценка погоды (К2), GoalTracker (К3), прибор и цилиндры (К4), трек и IGC (К5), полоса (К6)."
 related: ["docs/plan/goals.md", "docs/guide/tasks.md"]
-contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 1}, {"id": "GL-К3", "version": 1}, {"id": "GL-К4", "version": 1}, {"id": "GL-К5", "version": 1}, {"id": "GL-К6", "version": 1}]
+contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 1}, {"id": "GL-К3", "version": 1}, {"id": "GL-К4", "version": 1}, {"id": "GL-К5", "version": 2}, {"id": "GL-К6", "version": 1}]
 ---
 # Контракты модуля goals
 
@@ -91,8 +91,9 @@ func result() -> Dictionary                  # {goals: items(), done: int, total
 - `class_name GoalCylinders extends Node3D`: `func set_points(points: Array) -> void` (формат `GoalTracker.world_points()`), видим только при `configs/goals/world.json → cylinders.enabled` (по умолчанию `false`), перечитывается по `Config.reloaded`. Столбы полупрозрачные, от земли вверх (`cylinders.height_m`), активный — заметнее.
 - Настройка «Цилиндры целей» — `SettingsPanel`, вкладка game; сохраняется `UserSettings.save_patch("goals/world", {"cylinders": {"enabled": …}})`.
 
-## GL-К5. Трек: FlightTrack, IGC/GPX, след прошлой попытки (v1)
-Владелец: GL-7 (`scripts/goals/flight_track.gd`, `track_io.gd`, `last_track_store.gd`); GPX — GL-10. Потребители: полоса трека (GL-8), окно «Полёт…» (GL-10), `Game`.
+## GL-К5. Трек: FlightTrack, IGC/GPX, след прошлой попытки (v2)
+Владелец: GL-7 (`scripts/goals/flight_track.gd`, `track_io.gd`, `last_track_store.gd`, `track_recorder.gd`); подключение к `Game` — GL-7b; GPX — GL-10.
+v2 (2026-10-16): добавлен `TrackRecorder`. Потребители: полоса трека (GL-8), окно «Полёт…» (GL-10), `Game`.
 ```gdscript
 class_name FlightTrack extends RefCounted
 var lat := PackedFloat64Array()      # градусы
@@ -118,6 +119,11 @@ static func place_key(s: FlightSettings) -> String      # location_id встро
 static func path_for(key: String) -> String             # "user://tracks/last/<key>.igc"
 static func save(key: String, track: FlightTrack) -> Error   # заменяет прошлую
 static func load(key: String) -> FlightTrack            # нет — null
+
+class_name TrackRecorder extends RefCounted
+func start(local_to_latlon: Callable) -> void           # Callable(x, z) -> Vector2(lat, lon); новый пустой трек
+func update(t: Telemetry) -> void                        # пишет точку не чаще 1 Гц по t.time_s, только в воздухе (не on_ground)
+func track() -> FlightTrack                              # записанное; t_s — от первой точки
 ```
 - IGC (подмножество): запись `A`, `HFDTE` (дата полёта из `FlightSettings`), B-записи 1 Гц (`HHMMSS`, `DDMMmmmN`, `DDDMMmmmE`, `A`, давл. высота 5 цифр, GPS-высота 5 цифр = `alt_m` округлённо); чтение — B-записи, GPS-высота, если вся нулевая — давлением; переход через полночь — +86400 с; прочие записи пропускаются.
 - GPX: `trkpt` (`lat`, `lon`, `ele`, `time` ISO 8601); без `time` — по 1 с на точку; без `ele` — трек отвергается.
