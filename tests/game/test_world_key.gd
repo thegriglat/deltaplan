@@ -123,3 +123,21 @@ func test_every_param_changes_hash() -> void:
 		var h := (r[0] as FlightSettings).world_hash(int(r[1]), int(r[2]))
 		check(not seen.has(h), "%s меняет хэш" % name)
 		seen[h] = name
+
+
+func test_training_island_key_resolves_to_island() -> void:
+	var s := FlightSettings.defaults()
+	s.location_id = "training_island"
+	s.site_id = "plain_field"
+	s.pick_lat = NAN
+	s.pick_lon = NAN
+	var ll := WorldKey.launch_latlon(s)
+	var r: Dictionary = WorldKey.parse(s.world_key(1, 0))
+	check(r.has("settings"), "ключ разобран")
+	var t: FlightSettings = r.settings
+	check(t.location_id == "training_island", "место — остров, не точка в море: %s" % t.location_id)
+	check(not t.has_pick(), "точки с карты нет")
+	var far := FlightSettings.defaults()
+	WorldKey._place(far, 43.2 + 2.0, 34.0)
+	check(far.location_id != "training_island" and far.has_pick(), "вне острова — точка с карты")
+	check(Locations.builtin_at(ll.x, ll.y) == "", "synthetic вне builtin_at")
