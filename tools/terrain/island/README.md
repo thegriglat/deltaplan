@@ -24,6 +24,8 @@ python3 tools/terrain/island/check_sites.py               # правила ст�
 tools/terrain/island/shots.sh                             # кадры → /home/greg/deltaplan/build/screenshots/training-island/TI-1/
 tools/terrain/island/.venv/bin/python tools/terrain/island/air_quick.py      # поле GPU, 4 набора (~4 мин, окно DISPLAY=:0)
 python3 tools/terrain/island/air_quick.py --show          # главные числа из out/air_quick.json
+python3 tools/terrain/island/air_check.py                 # TI-5: воздух по наборам погоды стартов (~10 мин, окно) + кадры
+python3 tools/terrain/island/air_check.py --show          # ключ=значение, ALL_OK|NOT_OK (docs/research/training_island_air.md)
 ```
 
 `build_island.py --out <папка> --config <файл|->` — сборка в другое место (verify.sh так и делает). `params.json` в папке
@@ -43,6 +45,9 @@ python3 tools/terrain/island/air_quick.py --show          # главные чи�
 | `shots.sh` | кадры для проверки мест (terrain_preview) |
 | `air_probe.gd/.tscn`, `air_quick.py` | быстрая проверка воздуха: поле GPU игры, выборка в точках |
 | `out/air_quick.json`, `out/probe_*.json` | итог и сырые выборки проверки воздуха |
+| `weather_sets.json`, `apply_weather.py` | TI-5: фиксированная погода стартов (TI-К2) → `start_sites[].weather` конфига |
+| `air_check.py`, `air_check_run.gd/.tscn` | TI-5: проверка воздуха в игре по наборам стартов, кадры F3/F6 → `out/air_check.json`, `out/check_*.json` |
+| `weather_sweep.gd/.tscn` | TI-5: перебор погоды (WeatherModel.derive) над островом |
 
 ## Рельеф
 

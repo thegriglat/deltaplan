@@ -1,0 +1,7 @@
+{
+  "_doc": "TI-5: фиксированная погода стартов учебного острова (TI-К2 v2) — источник для build_island.py/apply_weather.py (ключ start_sites[].weather в configs/locations/training_island.json). Подбор и проверка — air_check.py, docs/research/training_island_air.md.",
+  "ridge_west": {"wind_from_deg": 270, "wind_speed_ms": 6.0, "start_hour": 12.0, "month": 7, "day": 15, "sky": "overcast", "temperature_c": 20.0, "wind_ref": "start"},
+  "thermal_plain": {"wind_from_deg": 180, "wind_speed_ms": 2.0, "start_hour": 12.0, "month": 7, "day": 15, "sky": "partly", "temperature_c": 25.0, "wind_ref": "start"},
+  "landing_hill": {"wind_from_deg": 270, "wind_speed_ms": 1.0, "start_hour": 9.0, "month": 7, "day": 15, "sky": "clear", "temperature_c": 22.0, "wind_ref": "start"},
+  "lee_bowl": {"wind_from_deg": 270, "wind_speed_ms": 8.5, "start_hour": 12.0, "month": 7, "day": 15, "sky": "overcast", "temperature_c": 20.0, "wind_ref": "inflow"}
+}

@@ -1,2 +1,4 @@
 points_*.json
 probe_*.log
+shots_raw/
+check_*.log
