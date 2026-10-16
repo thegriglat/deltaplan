@@ -1,0 +1,54 @@
+{
+  "id": "FL-5",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "B: первая расстановка термиков порциями, без замирания",
+  "goal": "Первая расстановка термиков при загрузке идёт порциями/в рабочем потоке сразу по готовности поля (расчёт, кеш или запечённое), без кадра главного потока > 200 мс; итог тот же, что у refresh_now; время до полёта не больше, чем сейчас.",
+  "plan_ref": "FL-5",
+  "contracts": [
+    {
+      "name": "PF-К4",
+      "version": "2",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-5",
+  "branch": "fast-load/FL-5",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/air_model/air_thermals.gd",
+    "scripts/game/game.gd",
+    "tests/atmosphere",
+    "tests/contracts/test_perf_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_field_cache.gd",
+    "scripts/world_objects",
+    "scripts/terrain",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "thermal",
+      "tests": "thermal"
+    },
+    {
+      "name": "atmosphere",
+      "tests": "atmosphere"
+    },
+    {
+      "name": "determinism",
+      "tests": "determinism"
+    },
+    {
+      "name": "perf_contracts",
+      "tests": "perf_contracts"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T04:18:54"
+}

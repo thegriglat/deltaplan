@@ -1,0 +1,65 @@
+{
+  "id": "FL-6",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "D: OsmLayer.build и дома посёлков в рабочем потоке",
+  "goal": "Тяжёлые расчёты OsmLayer.build (дороги, ЛЭП и провода, здания, деревья города и др.) и домов посёлков идут в рабочих потоках на данных PlaceData (FL-К2); на главном потоке — только создание узлов и мешей из готовых массивов; этап objects на точке без кадра > 1 с, мир тот же.",
+  "plan_ref": "FL-6",
+  "contracts": [
+    {
+      "name": "FL-К2",
+      "version": "1",
+      "ref": "docs/contracts/fast-load.md"
+    },
+    {
+      "name": "PF-К4",
+      "version": "2",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-6",
+  "branch": "fast-load/FL-6",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/world_objects/osm",
+    "scripts/world_objects/osm_layer.gd",
+    "scripts/world_objects/village_layer.gd",
+    "scripts/world_objects/building_placer.gd",
+    "scripts/world_objects/world_objects.gd",
+    "scripts/world_objects/obstacle_index.gd",
+    "scripts/world_objects/power_line_planner.gd",
+    "scripts/world_objects/road_mesher.gd",
+    "scripts/game/world_link.gd",
+    "tests/world_objects"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/place_data.gd",
+    "scripts/world_objects/world_clearings.gd",
+    "scripts/world_objects/village_placer.gd",
+    "scripts/atmosphere",
+    "scripts/terrain",
+    "scripts/game/game.gd",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "osm",
+      "tests": "osm"
+    },
+    {
+      "name": "village",
+      "tests": "village"
+    },
+    {
+      "name": "fast_load_k2",
+      "tests": "fast_load_k2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T04:19:50"
+}
