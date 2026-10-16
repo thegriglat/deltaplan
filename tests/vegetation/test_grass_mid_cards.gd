@@ -103,3 +103,34 @@ func _to_mip(img: Image, k: int) -> void:
 	var sz := img.get_width() >> k
 	var data := img.get_data().slice(off, off + sz * sz * 4)
 	img.set_data(sz, sz, false, Image.FORMAT_RGBA8, data)
+
+
+## GR-25: атлас полос (strip) — кадры STRIP_CELL с мипмапами, кайма сверху (MARGIN_PX/2) и по торцам
+## (MARGIN_PX) прозрачна, у торцов стебли ниже (огибающая): верхняя половина у торцов почти пуста.
+func test_strip_atlas() -> void:
+	var a := GrassMidCards.load_atlas("strip")
+	var cs := GrassMidCards.STRIP_CELL
+	check(a.get_layers() == GrassMidCards.VARIANTS, "кадров полосы")
+	check(a.get_width() == cs.x and a.get_height() == cs.y, "кадр полосы %dx%d" % [a.get_width(), a.get_height()])
+	check(a.has_mipmaps(), "мипмапы полосы")
+	var m := GrassMidCards.MARGIN_PX
+	for img in GrassMidCards._layer_images(a):
+		var worst := 0.0
+		var end_top := 0.0
+		var mid_top := 0.0
+		for y in cs.y:
+			for x in cs.x:
+				var al := img.get_pixel(x, y).a
+				if x < m or x >= cs.x - m or y < m / 2:
+					worst = maxf(worst, al)
+				if y < cs.y / 2:
+					if x < m + cs.x / 20 or x >= cs.x - m - cs.x / 20:
+						end_top += al
+					elif absf(x - cs.x * 0.5) < cs.x / 20:
+						mid_top += al
+		check(worst < 0.1, "кайма полосы прозрачна: альфа до %.3f" % worst)
+		check(end_top < mid_top, "у торцов стебли ниже: %.1f против %.1f" % [end_top, mid_top])
+	var s := GrassMidCards.coverage_scales(a)
+	check(s.size() == GrassMidCards.MIP_LEVELS and s[0] >= 1.0, "поправка покрытия полосы")
+	var mm := GrassMidCards.mean_modulation(a, Vector2(0.8, 1.1))
+	check(mm > 0.7 and mm < 1.1, "средняя модуляция полосы %.3f" % mm)

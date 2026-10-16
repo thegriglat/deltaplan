@@ -18,6 +18,13 @@
 // пикселя — выборки атласа и кадра, без цикла источников (замер GR-21: с освещением и своим цветом
 // луга в вершинах трава в кабине 1,03 мс на high).
 // Альфа — порог alpha_cut с поправкой покрытия по мипам (mip_alpha_scale): пучок не тает вдали.
+// Форма (GR-25): пучок (planes квадов, случайный поворот) или полоса (strip_mode: один квад к камере
+// по рыску, низ — по рельефу в каждой вершине); у каждой карточки своя высота (card_height_var) и
+// наклон (card_tilt) — верх соседних карточек не складывается в ровную кромку.
+// Цвет у корня (GR-25): берётся из кадра, только если глубина кадра в точке корня — земля у корня
+// (|z − z_корня| ≤ root_depth_tol.x + .y·z_корня); иначе (колесо, тросы, рука перед корнем; корень за
+// краем кадра или на небе) — кадр прямо за пикселем карточки, если там земля в нескольких метрах за
+// пучком; иначе — корень как есть.
 shader_type spatial;
 // прозрачный проход (нужен кадр рельефа); пиксели непрозрачны (ALPHA 1 или discard) и пишут глубину
 render_mode cull_disabled, unshaded, world_vertex_coords, blend_mix, fog_disabled, depth_draw_always;
@@ -39,11 +46,15 @@ uniform float card_angle_full_deg = 15.0;
 uniform float card_angle_none_deg = 30.0;
 uniform float card_width_m = 0.55;
 uniform float card_height_k = 1.1;     // высота карточки / высота травы (кончики в атласе не до верха)
+uniform vec2 card_height_var = vec2(1.0, 1.0);   // множитель высоты карточки, мин/макс (по хешу)
+uniform float card_tilt = 0.0;         // случайный наклон карточки (доля высоты)
+uniform bool strip_mode = false;       // полоса к камере с низом по рельефу (иначе пучок квадов)
+uniform vec2 root_depth_tol = vec2(0.3, 0.25);  // допуск глубины корня: м + доля дальности
 uniform float far_density_min = 0.5;   // доля пучков у внешнего края
 uniform float far_width_k = 1.4;       // ширина пучков у внешнего края (компенсация)
 // RGB — тон травинки (серый, среднее ≈0,9), A — покрытие; кадры — слои массива (свои мипмапы)
 uniform sampler2DArray atlas_tex : filter_linear_mipmap, repeat_disable;
-uniform float atlas_cell_px = 128.0;
+uniform vec2 atlas_cell_px = vec2(128.0);
 uniform float alpha_cut = 0.5;
 uniform float mip_alpha_scale[8];      // поправка покрытия по мипам (GrassMidCards.coverage_scales)
 uniform vec2 card_shade = vec2(0.8, 1.1);   // яркость у корня / у кончика относительно луга
@@ -211,7 +222,8 @@ void vertex() {
 		// у краёв ниже — растворение вместе с рангом
 		float edge = smoothstep(mid_inner_m, mid_inner_m + mid_inner_fade_m, d)
 				* (1.0 - smoothstep(mid_outer_m - mid_outer_fade_m, mid_outer_m, d));
-		hh *= height_k * card_height_k * mix(0.5, 1.0, edge);
+		hh *= height_k * card_height_k * mix(0.5, 1.0, edge)
+				* mix(card_height_var.x, card_height_var.y, hash12(cell + 15.1));
 
 		float t = VERTEX.y;
 		float wshade;
@@ -230,19 +242,34 @@ void vertex() {
 		lean = mix(lean, (pd > 0.01 ? pv / pd : vec2(0.0)) * 1.5, press);
 		float ta = hash12(cell + 9.3) * 6.2832;
 		lean = mix(lean, vec2(cos(ta), sin(ta)) * trample_lean, tr * 0.85);
+		float tb = hash12(cell + 16.6) * 6.2832;
+		lean += vec2(cos(tb), sin(tb)) * card_tilt * hash12(cell + 17.7);
 		float l2 = min(dot(lean, lean), 2.0);
-		float a = hash12(cell + 6.6) * 6.2832;
-		vec2 o = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a))) * VERTEX.xz * card_width_m * width_scale;
+		vec2 o;
+		float hb = h;
+		if (strip_mode) {
+			// полоса поперёк взгляда (по рыску к камере), низ — высота земли под вершиной
+			vec2 tc = xz - CAMERA_POSITION_WORLD.xz;
+			vec2 rt = length(tc) > 1e-3 ? normalize(vec2(-tc.y, tc.x)) : vec2(1.0, 0.0);
+			o = rt * VERTEX.x * card_width_m * width_scale;
+			vec2 gv;
+			hb = h_grad(xz + o, gv);
+		} else {
+			float a = hash12(cell + 6.6) * 6.2832;
+			o = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a))) * VERTEX.xz * card_width_m * width_scale;
+		}
 		float y = t * hh * inversesqrt(1.0 + l2 * t * t);
 		vec2 off = lean * hh * t * t;
-		VERTEX = vec3(xz.x + o.x + off.x, h + y - 0.02, xz.y + o.y + off.y);
+		VERTEX = vec3(xz.x + o.x + off.x, hb + y - 0.02, xz.y + o.y + off.y);
 		if (hh < 0.02) {
 			VERTEX = vec3(xz.x, -1e4, xz.y);
 		}
 		// кадр по пучку; зеркально — по чётности ещё одного хеша (вдвое больше вариантов)
 		float u = hash12(cell + 7.7) < 0.5 ? UV.x : 1.0 - UV.x;
 		v_uv = vec3(u, UV.y, floor(hash12(cell + 5.5) * 3.999));
-		v_root = PROJECTION_MATRIX * (VIEW_MATRIX * vec4(xz.x, h, xz.y, 1.0));
+		// корень — под вершиной (у полосы — свой по длине, у пучка — центр)
+		vec2 rxz = strip_mode ? xz + o : xz;
+		v_root = PROJECTION_MATRIX * (VIEW_MATRIX * vec4(rxz.x, hb, rxz.y, 1.0));
 		v_mod = 1.0 + card_tone * (hash12(cell + 13.3) - 0.5) * 2.0;
 
 		v_t = t;
@@ -262,17 +289,23 @@ void fragment() {
 	}
 	ALPHA = 1.0;
 	float m = card_norm * (tex.r / 0.9) * mix(card_shade.x, card_shade.y, v_t) * v_mod;
-	// корень пучка в кадре рельефа: глубина кадра там — земля у корня (или ближе: закрыто травинками,
-	// камнем — цвет всё равно луговой); заметно дальше — корень за краем кадра на небе: кадр за пикселем
+	// корень пучка в кадре рельефа: глубина кадра там ≈ глубина корня — земля у корня; ближе (колесо,
+	// тросы, рука) или дальше (небо, корень за краем кадра) — кадр за пикселем карточки, если там земля
 	vec2 ruv = v_root.xy / max(v_root.w, 1e-4) * 0.5 + 0.5;
 	vec2 cuv = clamp(ruv, vec2(0.002), vec2(0.998));
 	float zb = texture(depth_tex, cuv).r;
 	vec4 vb = INV_PROJECTION_MATRIX * vec4(cuv * 2.0 - 1.0, zb, 1.0);
 	float d_root = v_root.w;
-	float own = smoothstep(1.0 + 0.1 * d_root, 3.0 + 0.3 * d_root, -vb.z / vb.w - d_root);
+	float tol = root_depth_tol.x + root_depth_tol.y * d_root;
+	float on_scr = step(abs(ruv.x - 0.5), 0.499) * step(abs(ruv.y - 0.5), 0.499);
+	float ok_root = on_scr * (1.0 - smoothstep(tol, 2.0 * tol, abs(-vb.z / vb.w - d_root)));
 	vec3 ground = textureLod(screen_tex, cuv, 0.0).rgb;
-	if (own > 0.0) {
-		ground = mix(ground, textureLod(screen_tex, SCREEN_UV, 0.0).rgb, own);
+	if (ok_root < 1.0) {
+		float zs = texture(depth_tex, SCREEN_UV).r;
+		vec4 vs = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, zs, 1.0);
+		float gap = -vs.z / vs.w + VERTEX.z;   // земля за пикселем карточки, м
+		float ok_behind = 1.0 - smoothstep(tol + 3.0, 2.0 * tol + 6.0, gap);
+		ground = mix(ground, textureLod(screen_tex, SCREEN_UV, 0.0).rgb, (1.0 - ok_root) * ok_behind);
 	}
 	ALBEDO = ground * m;
 }
