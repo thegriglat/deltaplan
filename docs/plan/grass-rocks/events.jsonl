@@ -307,3 +307,6 @@
 {"t": "2026-10-16T20:25:18", "by": "executor", "task": "GR-27", "ev": "reported", "commits": ["6d309b56"], "note": "done: G3 (medium/high, ongudai, 2/30/60) main 3157c330 против feature/grass-rocks 67fce4c4, два полных прогона. Ветка не доро…", "dp_feedback": "Первый godot --import не создаёт locale/*.translation, нужен второй; frame_profile.sh не повторяет упавшую отметку автоматически."}
 {"t": "2026-10-16T20:25:26", "by": "coordinator", "task": "GR-27", "ev": "checked", "note": "3/3 section=ok:1; data=ok:24; docs=ok:exit 0"}
 {"t": "2026-10-16T20:25:33", "by": "coordinator", "task": "GR-27", "ev": "accepted", "note": "по отчёту (замер)"}
+{"t": "2026-10-16T20:25:34", "by": "coordinator", "task": "GR-27", "ev": "accepted", "commits": ["d433743f"], "note": "3/3 section=ok:1; data=ok:24; docs=ok:exit 0"}
+{"t": "2026-10-16T20:25:34", "by": "coordinator", "task": "GR-27", "ev": "merged", "commits": ["d433743f"]}
+{"t": "2026-10-16T20:25:34", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: inbox показывает дополнения обрезанными — полный текст только в task show --full; нет job list; первый --import не создаёт locale/*.translation"}
