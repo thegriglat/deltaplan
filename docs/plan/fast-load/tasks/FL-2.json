@@ -27,7 +27,8 @@
     "locale/ui.csv",
     "tests/contracts/test_fast_load_k1.gd",
     "tests/contracts/test_fast_load_k1.gd.uid",
-    "tests/atmosphere"
+    "tests/atmosphere",
+    "steam/partner/auto_cloud.json"
   ],
   "dont_touch": [
     "scripts/atmosphere/thermal_field.gd",
@@ -57,5 +58,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T02:55:26"
+  "created": "2026-10-17T02:55:26",
+  "edited": "2026-10-17T03:50:26"
 }
