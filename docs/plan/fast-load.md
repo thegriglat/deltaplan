@@ -5,7 +5,7 @@ module: "fast-load"
 area: "perf"
 updated: "2026-10-17"
 summary: "Быстрая загрузка места: кеш поля воздуха на диске (LRU), общие данные места, тяжёлое — в потоки/нативное/кеш, порции без замирания."
-related: ["docs/contracts/fast-load.md", "tools/research/load_profile/README.md", "docs/research/air_field_cache.md", "docs/contracts/training-island.md"]
+related: ["docs/contracts/fast-load.md", "docs/research/air_field_cache.md", "docs/contracts/training-island.md"]
 ---
 
 # fast-load — Быстрая загрузка места
