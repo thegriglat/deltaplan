@@ -185,6 +185,20 @@ func test_k3_model_hash_mismatch_refuses() -> void:
 	check(now == AirBakedField.model_hash(), "model_hash детерминирован")
 
 
+## TI-11b: хеш не зависит от слоёв профиля пилота (user://configs): живой Config с правкой
+## air_model (как из профиля) хеш не меняет.
+func test_k3_model_hash_ignores_profile_layer() -> void:
+	var now := AirBakedField.model_hash()
+	var am: Dictionary = Config.get_config("atmosphere").air_model
+	var old: Variant = am.get("enabled")
+	am["enabled"] = "off-profile-test"
+	am["_ti11b_extra"] = 1
+	var changed := AirBakedField.model_hash()
+	am["enabled"] = old
+	am.erase("_ti11b_extra")
+	check(changed == now, "model_hash не зависит от профиля пилота")
+
+
 func test_k3_weather_conditions() -> void:
 	var w := weather()
 	var c := AirBakedField.conditions_of(w)

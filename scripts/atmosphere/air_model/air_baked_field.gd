@@ -372,21 +372,50 @@ static func code_hash() -> String:
 	return h
 
 
+## Конфиг без слоёв профиля пилота (user://configs, user://local/configs): те — настройки машины и
+## пилота (в т. ч. весь atmosphere.air_model как машинный ключ S7), на модель не влияют, а хеш от
+## профиля делал запечённое поле «устаревшим» в другом профиле. Берутся res://configs и правки
+## рядом с игрой (их пилот правит осознанно: изменённая модель — запечённое не берётся).
+static func _model_config(config_name: String) -> Dictionary:
+	var dirs := PackedStringArray(["res://configs"])
+	if not OS.has_feature("editor"):
+		dirs.append(OS.get_executable_path().get_base_dir().path_join("configs"))
+	var out := {}
+	for d in dirs:
+		var path := d.path_join(config_name + ".json")
+		if not FileAccess.file_exists(path):
+			continue
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if data is Dictionary:
+			out = _merge(out, data)
+	return out
+
+
+static func _merge(base: Dictionary, over: Dictionary) -> Dictionary:
+	var out := base.duplicate(true)
+	for k: Variant in over:
+		if out.has(k) and out[k] is Dictionary and over[k] is Dictionary:
+			out[k] = _merge(out[k], over[k])
+		else:
+			out[k] = over[k]
+	return out
+
+
 ## Хеш модели воздуха (TI-К3 v3): код (code_hash) и секции air_model и air_phase configs/atmosphere.json,
-## weather_model.json, surface_heat.json — конфиги читаются живыми (пилот правит configs/ рядом с
-## игрой: изменённая модель — запечённое поле не берётся). "" — кода не узнать: запечённое не брать.
+## weather_model.json, surface_heat.json (слои конфигов — _model_config, без профиля пилота).
+## "" — кода не узнать: запечённое не брать.
 static func model_hash() -> String:
 	var lines := PackedStringArray()
 	var code := code_hash()
 	if code == "":
 		return ""
 	lines.append("code:" + code)
-	var atm: Dictionary = Config.get_config("atmosphere")
+	var atm := _model_config("atmosphere")
 	for part: Array in [
 		["air_model", atm.get("air_model", {})],
 		["air_phase", atm.get("air_phase", {})],
-		["weather_model", Config.get_config("weather_model")],
-		["surface_heat", Config.get_config("surface_heat")],
+		["weather_model", _model_config("weather_model")],
+		["surface_heat", _model_config("surface_heat")],
 	]:
 		lines.append("%s:%s" % [part[0], JSON.stringify(part[1], "", true).sha256_text()])
 	return "\n".join(lines).sha256_text().substr(0, 16)
