@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "G3 (medium/high, ongudai, 2/30/60) main 3157c330 против feature/grass-rocks 67fce4c4, два полных прогона. Ветка не дороже main: Δ base −0,25…+0,14 мс (−5…+3 %), знак меняется между прогонами; трава high@2 0,74→0,54, high@30 0,53→0,41, medium@30 0,34→0,35 (среднее двух прогонов), на 60 ≈ 0.",
+  "commits": [
+    "6d309b56 GR-27: общий замер feature/grass-rocks против main"
+  ],
+  "checks": [
+    {
+      "name": "section",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "data",
+      "value": "24 jsonl",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "бюджет high ≤0,95 (макс. трава)",
+      "value": "0,62",
+      "pass": true
+    },
+    {
+      "name": "бюджет medium@30 ≤0,7",
+      "value": "≤0,39",
+      "pass": true
+    },
+    {
+      "name": "бюджет medium@2 ≤0,7",
+      "value": "0,12 и 0,73 (спорно)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Кадры не снимались (не требовались)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept GR-27",
+  "uncertain": [
+    {
+      "where": "docs/perf/grass_rocks_2.md ## GR-27, medium@2",
+      "why": "два прогона «после» дают 0,12 и 0,73 мс; шум base2−base превышает 0,1 мс в 6 из 24 пар",
+      "checked": "повтор полного прогона; выводы только в пределах шума"
+    },
+    {
+      "where": "build/perf/GR-27b high@2 после",
+      "why": "один запуск не долетел до FLYING, отметка перезапущена отдельно с теми же аргументами",
+      "checked": "лог сбоя в архиве"
+    }
+  ],
+  "dp_feedback": "Первый godot --import не создаёт locale/*.translation, нужен второй; frame_profile.sh не повторяет упавшую отметку автоматически.",
+  "extra": {
+    "grass_ms_mean_before_after": {
+      "medium@2": "0.76→0.43",
+      "medium@30": "0.34→0.35",
+      "high@2": "0.74→0.54",
+      "high@30": "0.53→0.41"
+    }
+  },
+  "t": "2026-10-16T20:25:18",
+  "by": "executor"
+}
