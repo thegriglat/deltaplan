@@ -17,7 +17,9 @@ def load_avg(line):
 
 def parse_log(text):
     """Один лог зонда → запись run (без place/run)."""
-    stages, gaps, r = {}, [], {"air_cache": "none", "exit": None, "cold": False}
+    stages, gaps, r = {}, [], {"exit": None, "cold": False}
+    header_none = False
+    from_cache = False
     first_la = last_la = None
     for line in text.splitlines():
         m = re.match(r"load_probe: этап (\S+)\s+([\d.]+) с", line)
@@ -35,9 +37,10 @@ def parse_log(text):
         m = re.match(r"exit=(\d+)", line)
         if m:
             r["exit"] = int(m[1])
-        m = re.match(r"air_cache: (none|miss|hit)", line)
-        if m:
-            r["air_cache"] = m[1]
+        if "air_model: поле из кеша" in line:
+            from_cache = True
+        if line.startswith("air_cache: none"):
+            header_none = True
         m = re.match(r"commit: (\S+)", line)
         if m:
             r["commit"] = m[1]
@@ -47,6 +50,8 @@ def parse_log(text):
             first_la = load_avg(line)
         if line.startswith("uptime_end:"):
             last_la = load_avg(line)
+    # метка кеша — по факту из лога (не по заголовку): попадание = поле взято из кеша; без кеша (off) = none
+    r["air_cache"] = "hit" if from_cache else ("none" if header_none else "miss")
     fly = r.get("to_flying_s", 0.0)
     # интервалы, начавшиеся до полёта (t — начало интервала от нажатия «Лететь»)
     g = [d for t, d in gaps if t < fly] if fly else []
@@ -80,8 +85,10 @@ def summarize(runs):
 
 def collect(tag):
     runs, las = [], []
-    for p in sorted((here / "logs").glob(f"{tag}_*_*.log"), key=lambda p: (p.stem.split("_")[1], int(p.stem.split("_")[2]))):
-        _, place, i = p.stem.split("_")
+    # имя <тег>_<место>_<i>.log: тег может содержать «_», поэтому разбираем с конца
+    files = [p for p in (here / "logs").glob(f"{tag}_*_*.log") if p.stem.rsplit("_", 2)[0] == tag]
+    for p in sorted(files, key=lambda p: (p.stem.rsplit("_", 2)[1], int(p.stem.rsplit("_", 2)[2]))):
+        _, place, i = p.stem.rsplit("_", 2)
         r = parse_log(p.read_text(errors="replace"))
         las.append(r.pop("_la"))
         r.update({"place": place, "run": int(i)})
