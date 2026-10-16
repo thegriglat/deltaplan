@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "TrackIO.read_gpx (XMLParser, все trkseg, ISO 8601 с дробными секундами и смещением, без time 1 с/точку, без ele или битый файл — null и last_error); GoalsTab: кнопка «Загрузить трек…» (FileDialog, native, *.igc/*.gpx), список с «Убрать», проверка «из этого места» статикой GoalsTab.track_in_place/place_zone, перепроверка при смене места, сообщения ru/en; Game._tracks_begin грузит track_paths в goal_tracks.",
+  "commits": [
+    "Цели: загрузка IGC и GPX"
+  ],
+  "checks": [
+    {
+      "name": "test_track_io",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "test_track_files",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "test_goals_tab",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "test_goal_tracks_game",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k5",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "lang_goals",
+      "value": "нет ключей goals_/track_",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept GL-10",
+  "uncertain": [
+    {
+      "where": "scripts/ui/goals_tab.gd:_on_load_pressed",
+      "why": "нативный FileDialog на Linux не проверен вручную (в headless не открыть)",
+      "checked": "логика add_track_files покрыта тестом без диалога"
+    },
+    {
+      "where": "scripts/ui/goals_tab.gd:place_zone",
+      "why": "для точки с карты размер зоны из world.json location_builder.template.dem.layers[0], центр — LocationCache.snap",
+      "checked": "тест: точка рядом принята, далеко — нет"
+    }
+  ],
+  "dp_feedback": "accept --dry упёрся в грязную копию при task sync до коммита — штатно, замечаний нет.",
+  "t": "2026-10-16T22:22:51",
+  "by": "executor"
+}
