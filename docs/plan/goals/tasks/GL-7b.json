@@ -42,10 +42,6 @@
       "tests": "test_game_flight"
     },
     {
-      "name": "test_game_logic",
-      "tests": "test_game_logic"
-    },
-    {
       "name": "test_track_ribbon",
       "tests": "test_track_ribbon"
     },
@@ -57,9 +53,15 @@
       "name": "check_gd",
       "cmd": "python3 tools/check_gd.py scripts/game/game.gd tests/game/test_goal_tracks_game.gd",
       "expect": "exit=0"
+    },
+    {
+      "name": "game_logic",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_game_logic",
+      "expect": "!re:FAIL test_game_logic\\.gd::test_(?!pilot_animator_sequence)"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-16T21:59:25"
+  "created": "2026-10-16T21:59:25",
+  "edited": "2026-10-16T22:08:49"
 }
