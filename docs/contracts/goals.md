@@ -6,7 +6,7 @@ area: "game"
 updated: "2026-10-16"
 summary: "Стыки модуля целей: FlightSettings (К1), оценка погоды (К2), GoalTracker (К3), прибор и цилиндры (К4), трек и IGC (К5), полоса (К6)."
 related: ["docs/plan/goals.md", "docs/guide/tasks.md"]
-contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 2}, {"id": "GL-К3", "version": 2}, {"id": "GL-К4", "version": 1}, {"id": "GL-К5", "version": 2}, {"id": "GL-К6", "version": 1}]
+contracts: [{"id": "GL-К1", "version": 1}, {"id": "GL-К2", "version": 2}, {"id": "GL-К3", "version": 2}, {"id": "GL-К4", "version": 2}, {"id": "GL-К5", "version": 2}, {"id": "GL-К6", "version": 2}]
 ---
 # Контракты модуля goals
 
@@ -88,7 +88,8 @@ func result() -> Dictionary                  # {goals: items(), done: int, total
 - Ведущий маршрут — первый не завершённый в порядке `route` → `triangle` → `return`.
 - Времена — от `Telemetry.time_s`; новая попытка (`Game` сбросил полёт) — `reset()`.
 
-## GL-К4. Прибор: направление на точку; цилиндры в мире (v1)
+## GL-К4. Прибор: направление на точку; цилиндры в мире (v2)
+v2 (2026-10-16, Q1): альфа столбов растёт с расстоянием до камеры (вблизи — как в v1, вдали заметнее), ключи `cylinders.alpha_near/alpha_far/fade_near_m/fade_far_m` в `world.json`.
 Владелец: GL-5 (`scripts/instruments/…`, `scripts/goals/goal_cylinders.gd`, `configs/goals/world.json`). Потребитель: `Game` (GL-4/GL-5), `SettingsPanel`.
 - Прибор: `FlightInstrument.set_task(points, active)` и `set_task_state(state)` — без изменений сигнатур; на странице с расстоянием и требуемым качеством до цели — стрелка направления на активную точку относительно путевого курса (`Telemetry.track_deg`); нет цели — стрелки нет.
 - `class_name GoalCylinders extends Node3D`: `func set_points(points: Array) -> void` (формат `GoalTracker.world_points()`), видим только при `configs/goals/world.json → cylinders.enabled` (по умолчанию `false`), перечитывается по `Config.reloaded`. Столбы полупрозрачные, от земли вверх (`cylinders.height_m`), активный — заметнее.
@@ -134,12 +135,13 @@ func track() -> FlightTrack                              # записанное;
 - Запись полёта: 1 Гц от отрыва до конца полёта; сохраняется в `LastTrackStore` при конце полёта, если взлёт был (`stats.summary().took_off`); одна на место.
 - «Из этого места»: `inside_fraction(детальная зона места) >= 0.5`; иначе трек не берётся, в окне — сообщение.
 
-## GL-К6. Полоса трека в мире (v1)
+## GL-К6. Полоса трека в мире (v2)
+v2 (2026-10-16, Q1): `dead_band_ms` 0,3, `climb_full_ms` и `sink_full_ms` 3,0 — планирование бледно-синее, термики красные, сильное снижение ярко-синее.
 Владелец: GL-8 (`scripts/goals/track_ribbon.gd` + шейдер, `configs/goals/track.json`). Потребитель: `Game` (рисует все `goal_tracks`).
 ```gdscript
 class_name TrackRibbon extends MeshInstance3D
 func set_track(track: FlightTrack, latlon_fn: Callable) -> void   # меш строится один раз; позиция точки = (x, alt_m, z)
 ```
 - Весь трек сразу; ширина на экране постоянная (`track.json → width_px`) на любом расстоянии; полупрозрачная, не пишет глубину, не мерцает с рельефом.
-- Цвет участка — `FlightTrack.vertical_speed_ms(i, vs_window_s)`: ≥ `climb_full_ms` (3,5) — насыщенный `color_climb` (красный), ≤ −`sink_full_ms` (3,5) — `color_sink` (синий), |w| ≤ `dead_band_ms` — почти бесцветный (`alpha_zero`); между — линейно. Все пороги и цвета — в `track.json` с `_doc`.
+- Цвет участка — `FlightTrack.vertical_speed_ms(i, vs_window_s)`: ≥ `climb_full_ms` (3,0) — насыщенный `color_climb` (красный), ≤ −`sink_full_ms` (3,0) — `color_sink` (синий), |w| ≤ `dead_band_ms` — почти бесцветный (`alpha_zero`); между — линейно. Все пороги и цвета — в `track.json` с `_doc`.
 - Длинный трек прореживается до `max_points` без потери формы (по расстоянию/углу).
