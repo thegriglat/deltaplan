@@ -317,7 +317,7 @@ static func key_diff(a: Variant, b: Variant, path: String = "key") -> String:
 	return "" if typeof(a) == typeof(b) and a == b else "%s: %s ≠ %s" % [path, a, b]
 
 
-## Хеш данных места: meta.json, surface.json и файлы слоя detail (detail*) папки места. "" — места
+## Хеш данных места: meta.json, surface.json и файлы слоя detail (detail*, без служебных .import) папки места. "" — места
 ## нет (нет meta.json). Кеш по папке — сведения места в игре не меняются.
 static func place_hash(dir: String) -> String:
 	if _hash_cache.has(dir):
@@ -328,6 +328,9 @@ static func place_hash(dir: String) -> String:
 		var names := Array(DirAccess.get_files_at(dir))
 		names.sort()
 		for n: String in names:
+			# .import — служебные файлы редактора: в экспорте их нет, хеш был бы другим
+			if n.ends_with(".import") or n.ends_with(".remap"):
+				continue
 			if n == "meta.json" or n == "surface.json" or n.begins_with("detail"):
 				lines.append("%s:%s" % [n, FileAccess.get_sha256(dir.path_join(n))])
 		out = "\n".join(lines).sha256_text().substr(0, 16)
