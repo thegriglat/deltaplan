@@ -169,3 +169,4 @@
 {"t": "2026-10-17T01:16:53", "by": "coordinator", "task": "TI-11", "ev": "merged"}
 {"t": "2026-10-17T01:17:33", "by": "executor", "task": "TI-14", "ev": "reported", "commits": ["29e50076", "TI-14:"], "note": "done: main (с goals) влит в training-island/TI-14, конфликты CHANGELOG/INDEX/findings/flight_setup_screen разрешены (обе стор…", "dp_feedback": "Конфликты слияния в diff3-стиле (маркер |||||||) — удобной команды разрешения «оставить обе стороны» нет; сделал sed. dpcli sync отменён, ручное слияние ок."}
 {"t": "2026-10-17T01:17:51", "by": "coordinator", "task": "TI-14", "ev": "accepted", "note": "по отчёту; scope FAIL — файлы main при слиянии (ожидаемо); findings.md > 40 КБ уже на main"}
+{"t": "2026-10-17T01:18:03", "by": "coordinator", "task": "TI-14", "ev": "merged"}
