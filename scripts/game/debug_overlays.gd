@@ -4,7 +4,9 @@ extends Node
 ## F1 — производительность простым текстом в левом верхнем углу;
 ## F2 — подробное меню аддона Debug Menu (графики; создаётся при первом нажатии);
 ## F5 — ветер вокруг активной камеры: линии-стрелки (свой ArrayMesh) на сетке нескольких высот над землёй;
-## F6 — термики: полупрозрачные наклонённые столбы от источника до верха.
+## F6 — термики: полупрозрачные наклонённые столбы от источника до верха;
+## F7 — поток тепла от поверхности H, Вт/м²: рельеф вокруг пилота закрашен картой H модели воздуха
+## (сетка поля как есть, полупрозрачно: 0 — синий/прозрачно, от 300–400 — красный) и шкала в углу.
 ## Выключенный слой ничего не считает и не рисует. Воздух — только через публичные функции
 ## (mean_wind_at, air_velocity_at, time_s, field) — годится для любой модели воздуха.
 
@@ -22,6 +24,7 @@ var wind_on := false
 ## F3 (слой WindFieldDebug): состояние сообщает он сам (game.gd подключает сигнал toggled).
 var wind_field_on := false
 var thermals_on := false
+var heat_on := false
 
 var _cfg: Dictionary = {}
 var _period := 1.0 / 3.0
@@ -47,6 +50,15 @@ var _wind_c := PackedColorArray()
 var _wind_mesh: MeshInstance3D  ## сетка стрелок (обновляется по завершении прохода)
 var _wind_pilot: MeshInstance3D  ## крупная стрелка над пилотом (каждый кадр)
 var _wind_mat: StandardMaterial3D
+
+# F7
+const HEAT_FULL_WM2 := 400.0  ## Вт/м², при котором цвет самый тёплый
+var _heat_mesh: MeshInstance3D
+var _heat_layer: CanvasLayer
+var _heat_t := 0.0
+var _heat_center := Vector2.INF  ## где строили в последний раз
+var _heat_key := -1  ## поле, по которому строили (id объекта) и его хеш потока
+var _heat_mat: StandardMaterial3D
 
 # F6
 var _th_mesh: MeshInstance3D
@@ -79,6 +91,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		["debug_menu", toggle_menu],
 		["debug_wind", toggle_wind],
 		["debug_thermals", toggle_thermals],
+		["debug_heat", toggle_heat],
 	]:
 		if InputMap.has_action(pair[0]) and event.is_action_pressed(pair[0]):
 			(pair[1] as Callable).call()
@@ -86,7 +99,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 
-## Включить слои по именам: perf, wind, thermals (флаг запуска --debug=…).
+## Включить слои по именам: perf, wind, thermals, heat (флаг запуска --debug=…).
 func enable(names: PackedStringArray) -> void:
 	if "perf" in names and not perf_on:
 		toggle_perf()
@@ -94,6 +107,8 @@ func enable(names: PackedStringArray) -> void:
 		toggle_wind()
 	if "thermals" in names and not thermals_on:
 		toggle_thermals()
+	if "heat" in names and not heat_on:
+		toggle_heat()
 
 
 func toggle_perf() -> void:
@@ -158,7 +173,7 @@ func toggle_thermals() -> void:
 
 
 func _update_process() -> void:
-	set_process(perf_on or wind_on or thermals_on)
+	set_process(perf_on or wind_on or thermals_on or heat_on)
 
 
 func _process(dt: float) -> void:
@@ -171,6 +186,11 @@ func _process(dt: float) -> void:
 		if _th_t >= _period:
 			_th_t = 0.0
 			_rebuild_thermals()
+	if heat_on:
+		_heat_t += dt
+		if _heat_t >= _period * 3.0:
+			_heat_t = 0.0
+			_rebuild_heat()
 
 
 # ================================================================ F1: производительность
@@ -557,3 +577,133 @@ func _update_labels(shapes: Array[Dictionary]) -> void:
 		l.position = Vector3(ax.x, float(s.y1) + 20.0, ax.y)
 		l.text = "%.1f m/s" % float(s.strength)
 		l.modulate = strength_color(float(s.strength))
+
+
+# ================================================================ F7: поток тепла
+
+
+## H, Вт/м² → цвет с прозрачностью: 0 — синий почти прозрачный, ~200 — жёлтый, от HEAT_FULL_WM2 — красный.
+static func heat_color(h: float) -> Color:
+	var k := clampf(h / HEAT_FULL_WM2, 0.0, 1.0)
+	if k < 0.5:
+		return Color(0.1, 0.3, 0.9, 0.08).lerp(Color(1.0, 0.85, 0.0, 0.45), k / 0.5)
+	return Color(1.0, 0.85, 0.0, 0.45).lerp(Color(1.0, 0.1, 0.05, 0.55), (k - 0.5) / 0.5)
+
+
+func toggle_heat() -> void:
+	heat_on = not heat_on
+	_heat_t = 1.0e9
+	_heat_center = Vector2.INF
+	_heat_key = -1
+	if heat_on:
+		_make_heat_legend()
+	else:
+		if _heat_mesh != null:
+			_heat_mesh.queue_free()
+			_heat_mesh = null
+		if _heat_layer != null:
+			_heat_layer.queue_free()
+			_heat_layer = null
+	_update_process()
+
+
+## Поле, из которого берём H: тот же грубейший уровень, что у источников термиков.
+func _heat_field() -> WindField:
+	if air == null or not ("air_field" in air):
+		return null
+	var set_v: Variant = air.get("air_field")
+	if set_v == null or set_v.levels.is_empty():
+		return null
+	return set_v.levels[set_v.levels.size() - 1]
+
+
+func _make_heat_legend() -> void:
+	_heat_layer = CanvasLayer.new()
+	_heat_layer.layer = 95
+	var box := VBoxContainer.new()
+	box.position = Vector2(12, 120)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_heat_layer.add_child(box)
+	var title := Label.new()
+	title.text = tr("heat_legend")
+	title.add_theme_font_size_override("font_size", 14)
+	title.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	title.add_theme_constant_override("outline_size", 4)
+	box.add_child(title)
+	for h in [400, 300, 200, 100, 0]:
+		var row := HBoxContainer.new()
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sw := ColorRect.new()
+		sw.custom_minimum_size = Vector2(28, 14)
+		sw.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var c := heat_color(float(h))
+		sw.color = Color(c.r, c.g, c.b, 0.9)
+		row.add_child(sw)
+		var l := Label.new()
+		l.text = (" ≥ %d" if h == 400 else " %d") % h
+		l.add_theme_font_size_override("font_size", 13)
+		l.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+		l.add_theme_constant_override("outline_size", 4)
+		row.add_child(l)
+		box.add_child(row)
+	add_child(_heat_layer)
+
+
+## Сетка по клеткам поля вокруг пилота (радиус heat_radius_m): вершина на рельефе +HEAT_LIFT, цвет по H.
+## Пересобирается при смене поля (ход дня) или когда пилот ушёл от центра сетки на четверть радиуса.
+func _rebuild_heat() -> void:
+	var f := _heat_field()
+	if f == null or target == null:
+		return
+	var heat := f.heat_flux()
+	if heat.size() != f.nx * f.ny:
+		return
+	var key: int = hash([f.get_instance_id(), hash(heat)])
+	var p := Vector2(target.global_position.x, target.global_position.z)
+	var rad := float(_cfg.get("heat_radius_m", 4000.0))
+	if key == _heat_key and _heat_center.distance_to(p) < rad * 0.25:
+		return
+	_heat_key = key
+	_heat_center = p
+	# i — по X мира, j — по y = −Z мира (см. WindField.x0/y0)
+	var i0 := clampi(int(floor((p.x - rad - f.x0) / f.dx)), 0, f.nx - 1)
+	var i1 := clampi(int(ceil((p.x + rad - f.x0) / f.dx)), 0, f.nx - 1)
+	var j0 := clampi(int(floor((-p.y - rad - f.y0) / f.dx)), 0, f.ny - 1)
+	var j1 := clampi(int(ceil((-p.y + rad - f.y0) / f.dx)), 0, f.ny - 1)
+	var w := i1 - i0 + 1
+	var h := j1 - j0 + 1
+	if w < 2 or h < 2:
+		return
+	var verts := PackedVector3Array()
+	var cols := PackedColorArray()
+	verts.resize(w * h)
+	cols.resize(w * h)
+	for j in h:
+		for i in w:
+			var x := f.x0 + (i0 + i) * f.dx
+			var z := -(f.y0 + (j0 + j) * f.dx)
+			var y: float = float(height_fn.call(x, z)) if height_fn.is_valid() else 0.0
+			verts[j * w + i] = Vector3(x, y + 3.0, z)
+			cols[j * w + i] = heat_color(heat[(j0 + j) * f.nx + i0 + i])
+	var idx := PackedInt32Array()
+	for j in h - 1:
+		for i in w - 1:
+			var a := j * w + i
+			idx.append_array([a, a + 1, a + w, a + 1, a + w + 1, a + w])
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_COLOR] = cols
+	arr[Mesh.ARRAY_INDEX] = idx
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	if _heat_mat == null:
+		_heat_mat = _material().duplicate()
+		_heat_mat.render_priority = -1
+	mesh.surface_set_material(0, _heat_mat)
+	if _heat_mesh == null:
+		_heat_mesh = MeshInstance3D.new()
+		_heat_mesh.top_level = true
+		_heat_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(_heat_mesh)
+	_heat_mesh.mesh = mesh
