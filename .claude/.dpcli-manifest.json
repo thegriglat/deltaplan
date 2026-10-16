@@ -1,6 +1,6 @@
 {
   "files": {
-    ".claude/agents/dp-coordinator.md": "aa6752f8661cdb188c918b6f686894789b27d4ab42a9f5b66ae692d9e2d8ac4c",
+    ".claude/agents/dp-coordinator.md": "fcd7022303b91343ca8f4e4e5ad51e0a0516d2c41efb3749cbbde289437609ef",
     ".claude/agents/dp-engineer.md": "b21b9d60fdbcd224cb63accfb75eb9bab75e0a02b7219cc64f49fbfa897d61e9",
     ".claude/agents/dp-mechanic.md": "f291ef3363e4874a082a39606a2f0434f5fc8dc34c9669f4f48ef84b9e54dadb",
     ".claude/agents/dp-researcher.md": "b3d823063c113a5662cd3d3d3fb07ab8f04ab688a145fcfdb7cacd6468772d41",
@@ -8,6 +8,6 @@
     ".claude/agents/dp-status.md": "860d9390b0f13bbff633144fb193542438715294851314e35379dc8e76127525",
     ".claude/agents/dp-writer.md": "10062a4989114a76932b97d17381c0928343246b109b565cefb289c7189e0542",
     ".claude/skills/start-to-do/SKILL.md": "cdd3630e4682a359ab29df746ef4bcb426b7164bfbe83783279de54f8b5ee370",
-    ".claude/workflow.md": "c6a8b49b2c08d095bd2f15ef281ba92bcbda927f4bd08595eece1f5082ddb20d"
+    ".claude/workflow.md": "d05dd528894175064d40068da11d8e70b29b852474777f74842dd3e644548bf3"
   }
 }

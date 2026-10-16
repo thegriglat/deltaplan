@@ -156,3 +156,6 @@
 {"t": "2026-10-17T00:32:09", "by": "executor", "task": "GL-12", "ev": "reported", "commits": ["847e62a2"], "note": "done: Цена целей на кадре (medium, ongudai, 2 круга): GPU +0,02…+0,09 мс (<1 %), +35 draw calls; CPU-кадр +0,5…0,9 мс при шум…"}
 {"t": "2026-10-17T00:32:18", "by": "coordinator", "task": "GL-12", "ev": "checked", "note": "2/2 table=ok:1; docs=ok:exit 0"}
 {"t": "2026-10-17T00:32:24", "by": "coordinator", "task": "GL-12", "ev": "accepted", "note": "по отчёту: GPU +0,02…0,09 мс"}
+{"t": "2026-10-17T00:32:25", "by": "coordinator", "task": "GL-12", "ev": "accepted", "commits": ["f46e66f2"], "note": "2/2 table=ok:1; docs=ok:exit 0"}
+{"t": "2026-10-17T00:32:26", "by": "coordinator", "task": "GL-12", "ev": "merged"}
+{"t": "2026-10-17T01:23:25", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: модуль закрыт координатором: GL-1..8, GL-10, GL-12..15 приняты и влиты, GL-11 не делаем (решение), GL-9 в GL-6; feature/goals влит в main 5957740b. GL-13 (docs/guide/goals.md, сайт goals.ru/en, TODO, CHANGELOG, findings, план 04 в архив) — в main через 8176311. Обратная связь: task show обрезает дополнения; accept --here после слияния — нужен import; docs index переписывает чужие реестры."}

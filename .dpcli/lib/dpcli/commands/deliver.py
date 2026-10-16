@@ -321,7 +321,7 @@ def cmd_rerender(a, rel_dir):
 
 def commit(cwd, msg, body):
     args = ["commit", "-q", "-m", msg] + (["-m", body] if body else []) + (["-m", session_line()] if session_line() else [])
-    r = subprocess.run(["git", *args], cwd=cwd, text=True)  # хуки (lint-staged) — с выводом в терминал
+    r = subprocess.run(["git", *args], cwd=cwd, text=True)  # хуки (pre-commit) — с выводом в терминал
     if r.returncode:
         raise DpError(f"git commit не прошёл (код {r.returncode}); изменения оставлены в индексе {pretty(cwd)} — "
                       f"поправить и закоммитить руками или откатить `git reset --merge`")

@@ -102,10 +102,10 @@ def module_base(meta):
 
 
 def guard_main(into, explicit, base=None):
-    """В main_branch dpcli вливает только по явному --into и только модуль, заведённый от неё:
+    """protect_main: в main_branch dpcli вливает только по явному --into и только модуль, заведённый от неё:
     обычный путь в main — MR фичеветки, который вливает человек."""
     main = config.main_branch()
-    if into != main:
+    if into != main or not config.get("protect_main"):
         return
     if not explicit:
         raise DpError(f"в {main} без явного --into {main} не вливаю: обычный путь — фичеветка → MR, вливает человек")
