@@ -288,6 +288,7 @@ static func conditions_of(clock: Object, atmo: Object, settings: Object) -> Dict
 		wdir = float(w.get("wind_from_deg", 0.0)),
 		t_max = float(settings.get("temperature_c")),
 		sky = String(settings.get("sky")),
+		wind_ref = StartWeather.wind_ref_of(settings as FlightSettings),
 	}
 
 
@@ -540,6 +541,8 @@ static func needs_recompute(have: Dictionary, want: Dictionary, step_min: float)
 	var dd := angle_difference(deg_to_rad(float(have.wdir)), deg_to_rad(float(want.wdir)))
 	if absf(dd) > deg_to_rad(DIR_TOL_DEG):
 		return "смена ветра"
+	if String(have.get("wind_ref", "start")) != String(want.get("wind_ref", "start")):
+		return "смена ветра"
 	var ta := float(have.t_max)
 	var tb := float(want.t_max)
 	var t_changed := is_nan(ta) != is_nan(tb) or absf(ta - tb) > TMAX_TOL_C
@@ -662,12 +665,14 @@ func _begin(c: Dictionary, reason: String, loading: bool) -> void:
 		if _focus_wanted():
 			_start_pt = focus_fn.call()
 		# штиль (ниже порога трогания анемометра, WindProfile.U10_MIN) — один проход, k = 1
-		var two := _focus_wanted() and u10 >= WindProfile.U10_MIN and max_passes >= 2
+		# wind_ref "inflow" (TI-К2 v2): ветер меню — набегающий поток, k = 1 без подгонки под старт
+		var inflow := String(c.get("wind_ref", "start")) == "inflow"
+		var two := _focus_wanted() and u10 >= WindProfile.U10_MIN and max_passes >= 2 and not inflow
 		_passes = max_passes if two else 1
 		_k = float(_k_mem.get(_dir_key(float(c.wdir)), 1.0)) if two else 1.0
 	else:
 		_passes = 1
-		_k = inflow_k
+		_k = 1.0 if String(c.get("wind_ref", "start")) == "inflow" else inflow_k
 	_start_prep()
 	if loading:
 		progress_changed.emit(0.0)
