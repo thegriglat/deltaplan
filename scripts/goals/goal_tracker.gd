@@ -52,7 +52,7 @@ func setup(goals: Array, ctx: Dictionary) -> void:
 	# предел времени без маршрута — недоступен
 	for item in _items:
 		if item.kind == "speed" and item.status == "pending" and _trackers.is_empty():
-			_set_unavailable(item, "нет маршрута для предела времени")
+			_set_unavailable(item, "no_route")
 	reset()
 
 
@@ -138,11 +138,11 @@ func on_landed(landing: Dictionary) -> void:
 		if dist <= item.value and grade != "crash":
 			_finish(i, true)
 		else:
-			item.reason = "crash" if grade == "crash" else "мимо круга"
+			item.reason = "crash" if grade == "crash" else "outside_circle"
 			_finish(i, false)
 	for i in _items.size():
 		if _items[i].status == "pending":
-			_items[i].reason = "посадка"
+			_items[i].reason = "landed"
 			_finish(i, false)
 
 
@@ -224,16 +224,16 @@ func _build_item(item: Dictionary, d: Dictionary, route_cfg: Dictionary) -> void
 	match kind:
 		"height", "duration", "distance", "speed":
 			if not item.value > 0.0:
-				_set_unavailable(item, "значение должно быть больше нуля")
+				_set_unavailable(item, "bad_value")
 		"landing":
 			var target: Variant = _ctx.get("landing_target", null)
 			if not target is Vector3:
-				_set_unavailable(item, "нет круга посадки")
+				_set_unavailable(item, "no_target")
 			elif not item.value > 0.0:
-				_set_unavailable(item, "значение должно быть больше нуля")
+				_set_unavailable(item, "bad_value")
 		"return", "triangle":
 			if not item.value > 0.0:
-				_set_unavailable(item, "значение должно быть больше нуля")
+				_set_unavailable(item, "bad_value")
 				return
 			var td: Dictionary
 			if kind == "return":
@@ -241,13 +241,13 @@ func _build_item(item: Dictionary, d: Dictionary, route_cfg: Dictionary) -> void
 			else:
 				td = GoalRouteBuilder.build_triangle(item.value, _ctx, route_cfg)
 			if td.is_empty():
-				_set_unavailable(item, "не помещается в зону с картой")
+				_set_unavailable(item, "no_room")
 				return
 			_attach(item, Task.from_dict(td, _ctx.get("latlon_fn", Callable()), _ctx.get("height_fn", Callable())))
 		"route":
 			_attach(item, _load_route(String(d.get("task", ""))))
 		_:
-			_set_unavailable(item, "неизвестный вид цели")
+			_set_unavailable(item, "unknown_kind")
 
 
 func _load_route(task_id: String) -> Task:
@@ -267,13 +267,13 @@ func _load_route(task_id: String) -> Task:
 
 func _attach(item: Dictionary, task: Task) -> void:
 	if task == null:
-		_set_unavailable(item, "задание не загружено")
+		_set_unavailable(item, "task_error")
 		return
 	if not task.errors.is_empty():
-		_set_unavailable(item, "; ".join(task.errors))
+		_set_unavailable(item, "task_error")
 		return
 	if task.is_open_distance() or not task.has_goal():
-		_set_unavailable(item, "в задании нет гоула")
+		_set_unavailable(item, "no_goal")
 		return
 	var tr := TaskTracker.new()
 	tr.setup(task)
@@ -318,7 +318,7 @@ func _update_route(i: int) -> void:
 		item.best = 0.0
 		_finish(i, true)
 	elif tr.phase == TaskTracker.Phase.FAILED:
-		item.reason = tr.fail_reason
+		item.reason = "deadline" if tr.fail_reason == "deadline" else "landed"
 		_finish(i, false)
 
 
@@ -339,7 +339,7 @@ func _update_speed(i: int, lead_kind: String) -> void:
 	else:
 		item.current = float(tr.get_state().elapsed_s)
 	if item.current > item.value:
-		item.reason = "позже предела"
+		item.reason = "too_slow"
 		_finish(i, false)
 	elif tr.phase == TaskTracker.Phase.GOAL:
 		_finish(i, true)  # гоул взят, время до ESS (нет ESS — до гоула) в пределе

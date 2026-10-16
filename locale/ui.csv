@@ -565,6 +565,18 @@ goals_level_easy,лёгкая,easy
 goals_level_medium,средняя,medium
 goals_level_hard,трудная,hard
 goals_level_custom,своя,custom
+goals_reason_landed,сел раньше,landed first
+goals_reason_crash,авария,crash
+goals_reason_outside_circle,мимо круга,outside the circle
+goals_reason_too_slow,позже предела,over the time limit
+goals_reason_deadline,вышло время задания,task deadline passed
+goals_reason_no_room,не помещается в зону карты,does not fit the map area
+goals_reason_no_target,нет круга посадки,no landing circle
+goals_reason_task_error,задание не загружено,task not loaded
+goals_reason_no_goal,в задании нет гоула,task has no goal
+goals_reason_no_route,нет маршрута для предела времени,no route for the time limit
+goals_reason_bad_value,значение должно быть больше нуля,value must be above zero
+goals_reason_unknown_kind,неизвестный вид цели,unknown goal kind
 goals_last_track,След прошлой попытки,Last attempt track
 unit_min,мин,min
 goals_track_load,Загрузить трек…,Load track…

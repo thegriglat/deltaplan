@@ -80,13 +80,16 @@ func _build_row(kind: String) -> void:
 	add_child(row)
 	var check := CheckBox.new()
 	check.text = tr(KIND_KEYS[kind])
-	check.custom_minimum_size.x = 190
+	check.custom_minimum_size.x = 260
 	row.add_child(check)
 	var r := {"check": check, "row": row}
 	var level := OptionButton.new()
 	for lv: String in GoalSpec.LEVELS:
 		level.add_item(tr(LEVEL_KEYS[lv]))
 	level.select(1)
+	level.fit_to_longest_item = true
+	level.clip_text = false
+	level.custom_minimum_size.x = 130
 	row.add_child(level)
 	r["level"] = level
 	if kind == "route":

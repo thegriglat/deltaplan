@@ -32,3 +32,13 @@ func test_interface() -> void:
 	for s in script.get_script_signal_list():
 		sigs.append(String(s.name))
 	check("goal_done" in sigs and "goal_failed" in sigs, "сигналы: %s" % [sigs])
+
+
+func test_reason_codes_translated() -> void:
+	var codes := ["landed", "crash", "outside_circle", "too_slow", "deadline", "no_room", "no_target", "task_error", "no_goal", "no_route", "bad_value", "unknown_kind"]
+	for lang: String in ["ru", "en"]:
+		TranslationServer.set_locale(lang)
+		for c: String in codes:
+			var key := "goals_reason_" + c
+			check(TranslationServer.translate(key) != key, "перевод %s (%s)" % [key, lang])
+	TranslationServer.set_locale("ru")

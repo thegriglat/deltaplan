@@ -140,7 +140,7 @@ static func goal_lines(info: Dictionary) -> PackedStringArray:
 			var d: Dictionary = item
 			var line := GoalList.row_text(d)
 			if String(d.get("status", "")) in ["unavailable", "failed"] and String(d.get("reason", "")) != "":
-				line += " (%s)" % String(d.reason)
+				line += " (%s)" % _t("goals_reason_" + String(d.reason))
 			out.append(line)
 	var recs: Dictionary = info.get("new_records", {}) if info.get("new_records") is Dictionary else {}
 	for cat: String in recs:
