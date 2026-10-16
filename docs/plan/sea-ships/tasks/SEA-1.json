@@ -66,10 +66,20 @@
       "name": "margin",
       "cmd": "python3 -c \"import json;print('m', json.load(open('tools/research/sea_mask/summary.json'))['level_margin_m'])\"",
       "expect": "num:m ([0-9.]+) >=0.5"
+    },
+    {
+      "name": "dead_sea_edge",
+      "cmd": "python3 -c \"import json;ps=json.load(open('tools/research/sea_mask/summary.json'))['places'];print('dse', sum(1 for p in ps if p['kind']=='lake' and abs(p['lat']-(31.4))<0.3 and abs(p['lon']-(36.35))<0.3 and p['touches_edge'] and p['sea_cells']==0))\"",
+      "expect": "num:dse (\\d+) >=1"
+    },
+    {
+      "name": "salton_edge",
+      "cmd": "python3 -c \"import json;ps=json.load(open('tools/research/sea_mask/summary.json'))['places'];print('sal', sum(1 for p in ps if p['kind']=='lake' and abs(p['lat']-(33.3))<0.3 and abs(p['lon']-(-114.9))<0.3 and p['touches_edge'] and p['sea_cells']==0))\"",
+      "expect": "num:sal (\\d+) >=1"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-17T02:14:08",
-  "edited": "2026-10-17T02:37:28"
+  "edited": "2026-10-17T02:54:08"
 }
