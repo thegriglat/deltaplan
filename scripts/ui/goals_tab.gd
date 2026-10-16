@@ -44,6 +44,9 @@ var _dirty := true
 var _refreshing := false
 var _loading := false
 var _track_paths := PackedStringArray()
+var _tracks_box: VBoxContainer
+var _track_msg: Label
+var _dialog: FileDialog
 var _routes: Array = []  ## [{id, task, name}] для места, GoalsTab._load_routes
 var _route_len: Dictionary = {}  ## task → длина, м (кэш)
 
@@ -68,6 +71,7 @@ func _init() -> void:
 	_last_track = CheckBox.new()
 	_last_track.text = tr("goals_last_track")
 	add_child(_last_track)
+	_build_tracks_ui()
 
 
 func _build_row(kind: String) -> void:
@@ -140,6 +144,7 @@ func load_settings(s: FlightSettings) -> void:
 	for kind: String in _rows:
 		(_rows[kind].check as CheckBox).button_pressed = false
 	_track_paths = s.track_paths.duplicate()
+	_show_tracks(PackedStringArray())
 	_last_track.button_pressed = s.show_last_track
 	_load_routes(s)
 	for g: Variant in s.goals:
@@ -174,6 +179,7 @@ func refresh() -> void:
 	if s == null:
 		return
 	_load_routes(s)
+	recheck_tracks(s)
 	_refresh_from(s)
 
 
@@ -257,6 +263,138 @@ static func _has_landing(s: FlightSettings) -> bool:
 		return true
 	var t: Dictionary = Config.get_config("tasks/training_spot_landing")
 	return (t.get("targets", {}) as Dictionary).has(s.location_id)
+
+
+# ------------------------------------------------------------ чужие треки (GL-10)
+
+## Сторона детальной зоны места по умолчанию, км (шаблон места на карте).
+const DEFAULT_ZONE_KM := 40.0
+
+
+func _build_tracks_ui() -> void:
+	var btn := Button.new()
+	btn.text = tr("goals_track_load")
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	btn.pressed.connect(_on_load_pressed)
+	add_child(btn)
+	_tracks_box = VBoxContainer.new()
+	add_child(_tracks_box)
+	_track_msg = Label.new()
+	_track_msg.add_theme_color_override("font_color", Color(1.0, 0.65, 0.4))
+	_track_msg.visible = false
+	add_child(_track_msg)
+
+
+func _on_load_pressed() -> void:
+	if _dialog == null:
+		_dialog = FileDialog.new()
+		_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILES
+		_dialog.access = FileDialog.ACCESS_FILESYSTEM
+		_dialog.use_native_dialog = true
+		_dialog.add_filter("*.igc, *.gpx", tr("goals_track_filter"))
+		_dialog.files_selected.connect(add_track_files)
+		add_child(_dialog)
+	_dialog.popup_centered_ratio(0.6)
+
+
+## Добавить выбранные файлы: годные (читаются и из этого места) — в список, остальные — сообщение.
+func add_track_files(paths: PackedStringArray) -> void:
+	var s: FlightSettings = context_fn.call() if context_fn.is_valid() else null
+	var msgs := PackedStringArray()
+	for p in paths:
+		if _track_paths.has(p):
+			continue
+		var e := check_track_file(p, s)
+		if e == "":
+			_track_paths.append(p)
+		else:
+			msgs.append("%s: %s" % [p.get_file(), tr(e)])
+	_show_tracks(msgs)
+
+
+## Перепроверить список под текущим местом; чужие убрать с сообщением.
+func recheck_tracks(s: FlightSettings) -> void:
+	var keep := PackedStringArray()
+	var msgs := PackedStringArray()
+	for p in _track_paths:
+		var e := check_track_file(p, s)
+		if e == "":
+			keep.append(p)
+		else:
+			msgs.append("%s: %s" % [p.get_file(), tr(e)])
+	if not msgs.is_empty():
+		_track_paths = keep
+		_show_tracks(msgs)
+
+
+func _show_tracks(msgs: PackedStringArray) -> void:
+	for c in _tracks_box.get_children():
+		_tracks_box.remove_child(c)
+		c.queue_free()
+	for p in _track_paths:
+		var row := HBoxContainer.new()
+		var l := Label.new()
+		l.text = p.get_file()
+		l.tooltip_text = p
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.clip_text = true
+		row.add_child(l)
+		var rm := Button.new()
+		rm.text = tr("goals_track_remove")
+		rm.pressed.connect(_remove_track.bind(p))
+		row.add_child(rm)
+		_tracks_box.add_child(row)
+	_track_msg.text = "\n".join(msgs)
+	_track_msg.visible = not msgs.is_empty()
+
+
+func _remove_track(p: String) -> void:
+	var i := _track_paths.find(p)
+	if i >= 0:
+		_track_paths.remove_at(i)
+	_show_tracks(PackedStringArray())
+
+
+## "" — файл годен; иначе ключ сообщения (goals_track_foreign / goals_track_unreadable).
+static func check_track_file(path: String, s: FlightSettings) -> String:
+	var t := TrackIO.read(path)
+	if t == null:
+		return "goals_track_unreadable"
+	if s != null and not track_in_place(t, s):
+		return "goals_track_foreign"
+	return ""
+
+
+## Детальная зона места без рельефа: {"bounds": Rect2, "fn": Callable(lat, lon) -> Vector2}.
+static func place_zone(s: FlightSettings) -> Dictionary:
+	var clat := 0.0
+	var clon := 0.0
+	var size_km := DEFAULT_ZONE_KM
+	if s.has_pick():
+		var c := LocationCache.snap(s.pick_lat, s.pick_lon)
+		clat = c.x
+		clon = c.y
+		var layers: Variant = Config.value("world", "location_builder.template.dem.layers", [])
+		if layers is Array and not (layers as Array).is_empty():
+			size_km = float((layers as Array)[0].get("size_km", DEFAULT_ZONE_KM))
+	else:
+		var loc := Locations.config(s.location_id)
+		clat = float(loc.get("center_lat", 0.0))
+		clon = float(loc.get("center_lon", 0.0))
+		var ls: Variant = loc.get("dem", {}).get("layers", [])
+		if ls is Array and not (ls as Array).is_empty():
+			size_km = float((ls as Array)[0].get("size_km", DEFAULT_ZONE_KM))
+	var half := size_km * 500.0
+	return {
+		"bounds": Rect2(-half, -half, 2.0 * half, 2.0 * half),
+		"fn": TerrainGeo.latlon_to_local.bind(clat, clon),
+	}
+
+
+## Трек «из этого места»: не меньше половины точек в детальной зоне (GL-К5).
+static func track_in_place(t: FlightTrack, s: FlightSettings) -> bool:
+	var z := place_zone(s)
+	return t.inside_fraction(z.bounds, z.fn) >= 0.5
 
 
 # ------------------------------------------------------------ маршруты
