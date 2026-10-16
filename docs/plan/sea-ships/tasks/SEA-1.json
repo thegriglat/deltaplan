@@ -1,0 +1,64 @@
+{
+  "id": "SEA-1",
+  "module": "sea-ships",
+  "type": "dp-researcher",
+  "title": "Признак «море»: проверка на данных мест",
+  "goal": "Найти и проверить детерминированный признак «море», отличающий море/океан от озёр (включая крупные и низкие), водохранилищ и рек по данным места; итог — summary.json по контракту S1 и вердикт works.",
+  "plan_ref": "SEA-1",
+  "contracts": [
+    {
+      "name": "sea-ships",
+      "version": "1",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-1",
+  "branch": "sea-ships/SEA-1",
+  "base": "feature/sea-ships",
+  "scope": [
+    "tools/research/sea_mask/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/",
+    "assets/",
+    "project.godot",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "files",
+      "cmd": "test -f tools/research/sea_mask/README.md && test -f tools/research/sea_mask/summary.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fp_inland",
+      "cmd": "python3 -c \"import json;print('fp', json.load(open('tools/research/sea_mask/summary.json'))['fp_inland_cells'])\"",
+      "expect": "num:fp (\\d+) <=0"
+    },
+    {
+      "name": "tp_sea",
+      "cmd": "python3 -c \"import json;print('tp', json.load(open('tools/research/sea_mask/summary.json'))['tp_sea_min'])\"",
+      "expect": "num:tp ([0-9.]+) >=0.8"
+    },
+    {
+      "name": "sea_places",
+      "cmd": "python3 -c \"import json;print('n', sum(p['kind']=='sea' for p in json.load(open('tools/research/sea_mask/summary.json'))['places']))\"",
+      "expect": "num:n (\\d+) >=3"
+    },
+    {
+      "name": "inland_places",
+      "cmd": "python3 -c \"import json;print('n', sum(p['kind'] in ('lake','reservoir','river') for p in json.load(open('tools/research/sea_mask/summary.json'))['places']))\"",
+      "expect": "num:n (\\d+) >=4"
+    },
+    {
+      "name": "works",
+      "cmd": "python3 -c \"import json;print('works', json.load(open('tools/research/sea_mask/summary.json'))['works'])\"",
+      "expect": "re:works True"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:14:08"
+}
