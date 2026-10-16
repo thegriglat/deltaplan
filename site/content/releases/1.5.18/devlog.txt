@@ -1,0 +1,6 @@
+Deltaplan 1.5.18 — no square grid on bare rock
+
+Bare rock no longer shows a square grid. Cracks and scree strips on the rock now run evenly along the slope instead of jumping from cell to cell.
+
+- Bare rock: cracks and scree no longer show a square grid
+- Cracks and scree follow the slope evenly
