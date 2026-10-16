@@ -66,6 +66,22 @@ static func _sort_key(s: String) -> String:
 	return s.to_lower().replace("ё", "е")
 
 
+## Название группы: страна; без страны — общее название места (учебный остров: ключ loc_<location>),
+## иначе «Страна не указана».
+static func _group_name(catalog: Dictionary, code: String, language: String, places: Array) -> String:
+	if code == "":
+		var loc := String((places[0] as Dictionary).get("location", ""))
+		for t: Dictionary in places:
+			if String(t.get("location", "")) != loc:
+				loc = ""
+		if loc != "":
+			var key := "loc_" + loc
+			var s := TranslationServer.translate(key)
+			if s != key:
+				return s
+	return country_name(catalog, code, language)
+
+
 ## Страны по алфавиту названия (группа без страны — последней); места внутри — по алфавиту.
 static func group_by_country(catalog: Dictionary, language: String) -> Array:
 	var by_code := {}
@@ -84,7 +100,7 @@ static func group_by_country(catalog: Dictionary, language: String) -> Array:
 		groups.append(
 			{
 				"code": code,
-				"name": country_name(catalog, code, language),
+				"name": _group_name(catalog, code, language, places),
 				"count": places.size(),
 				"places": places
 			}
