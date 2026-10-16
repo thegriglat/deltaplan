@@ -81,3 +81,7 @@
 {"t": "2026-10-16T22:56:52", "by": "executor", "task": "TI-2b", "ev": "reported", "commits": ["f6d8521c"], "note": "done: WorldKey._inside для bundled-места без dem берёт квадрат из первого слоя meta.json (ширина*spacing_m); ключ со стартом …"}
 {"t": "2026-10-16T22:57:05", "by": "coordinator", "task": "TI-2b", "ev": "checked", "note": "3/3 world_key=ok:5/5; training_island=ok:24/24; net_screen=ok:17/17"}
 {"t": "2026-10-16T22:57:10", "by": "coordinator", "task": "TI-2b", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-16T22:57:11", "by": "coordinator", "task": "TI-2b", "ev": "merged"}
+{"t": "2026-10-16T23:04:27", "by": "executor", "task": "TI-1b", "ev": "reported", "commits": ["f58e8f44"], "note": "done: Доли участков равнины: пашня 0,28, голый грунт 0,30 (было 0,50/0,13); данные перегенерированы тем же генератором, verif…", "dp_feedback": "accept --dry с фоном/таймаутом: godot без импорта в копии молча виснет на 'training_island' без вывода; хорошо бы подсказка про --import"}
+{"t": "2026-10-16T23:05:02", "by": "coordinator", "task": "TI-1b", "ev": "checked", "note": "4/4 training_island=ok:24/24; determinism=ok:exit 0; sites=ok:exit 0; plain_bare=ok:0.266"}
+{"t": "2026-10-16T23:05:08", "by": "coordinator", "task": "TI-1b", "ev": "accepted", "note": "по отчёту"}
