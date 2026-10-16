@@ -301,6 +301,7 @@ func start(s: FlightSettings) -> bool:
 	flight_no += 1
 	stop_wait()
 	settings = s.duplicate()
+	StartWeather.apply(settings)  # TI-К2: последняя страховка
 	eggs.reset()
 	_lock_net_clock()
 	var progress := terrain.progress
