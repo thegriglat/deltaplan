@@ -192,6 +192,13 @@ func test_k3_weather_conditions() -> void:
 	var c3 := c.duplicate()
 	c3.sky = "clear"
 	check(AirBakedField.conditions_diff(w, c3, 7, 15) != "", "другое небо — различие")
+	check(c.wind_ref == "start", "набор без wind_ref — start")
+	var wi := w.duplicate()
+	wi.wind_ref = "inflow"
+	var ci := AirBakedField.conditions_of(wi)
+	check(ci.wind_ref == "inflow", "conditions_of передаёт wind_ref (TI-9b)")
+	check(AirBakedField.conditions_diff(wi, ci, 7, 15) == "", "inflow: те же условия")
+	check(AirBakedField.conditions_diff(wi, c, 7, 15) != "", "wind_ref другой — различие")
 
 
 func test_k3_float16_error_bound() -> void:

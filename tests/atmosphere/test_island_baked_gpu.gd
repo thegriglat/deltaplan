@@ -49,6 +49,13 @@ func test_island_baked_every_start() -> void:
 		check(AirBakedField.key_diff(h.get("key"), key) == "", "%s: key совпадает (%s)" % [sid, AirBakedField.key_diff(h.get("key"), key)])
 		var mb := FileAccess.get_file_as_bytes(path.trim_suffix(".json") + ".bin").size() / 1.0e6
 		total += mb
+		# TI-9b: старт с wind_ref inflow запечён с притоком k = 1 (как считает игра), не с подгонкой под ветер
+		if String(weather.get("wind_ref", "start")) == "inflow":
+			var rx := RegEx.create_from_string("\"inflow_k\":\\s*([0-9.eE+-]+)")
+			var ms := rx.search_all(FileAccess.get_file_as_string(path))
+			check(not ms.is_empty(), "%s: в файле есть inflow_k" % sid)
+			for m in ms:
+				check(is_equal_approx(float(m.get_string(1)), 1.0), "%s: inflow_k = 1 (%s)" % [sid, m.get_string(1)])
 		# AirRuntime берёт поле из файла
 		var c := AirBakedField.conditions_of(weather)
 		var atmo := AR._atmo(terrain.layers[0] if terrain.layers[0].id == "detail" else terrain.layers[1])
