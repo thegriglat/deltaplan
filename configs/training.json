@@ -1,10 +1,96 @@
 {
-  "_doc": "Карточки окна «Тренировка» (TI-16, scripts/ui/training_menu.gd): старт учебного острова (TI-К1; погода — набор старта, TI-К2) и предустановленная цель (GL-К1: kind, level=custom, value в единицах цели — с, м). Тексты — ключи locale/ui.csv.",
-  "location": "training_island",
-  "cards": [
-    {"id": "ridge", "title_key": "training_ridge", "what_key": "training_ridge_what", "site": "ridge_west", "goal": {"kind": "duration", "level": "custom", "value": 600}},
-    {"id": "thermals", "title_key": "training_thermals", "what_key": "training_thermals_what", "site": "thermal_plain", "goal": {"kind": "height", "level": "custom", "value": 300}},
-    {"id": "landing", "title_key": "training_landing", "what_key": "training_landing_what", "site": "landing_hill", "goal": {"kind": "landing", "level": "custom", "value": 25}},
-    {"id": "rotor", "title_key": "training_rotor", "what_key": "training_rotor_what", "site": "lee_bowl", "goal": {"kind": "duration", "level": "custom", "value": 300}}
+  "_doc": "Окно «Тренировка» (TI-16, VI-К2; scripts/ui/training_menu.gd): группы мест — вкладки; карточка — старт места группы (TI-К1; погода — набор старта, TI-К2) и предустановленная цель (GL-К1: kind, level=custom, value в единицах цели — с, м). Тексты — ключи locale/ui.csv.",
+  "groups": [
+    {
+      "id": "training_island",
+      "title_key": "loc_training_island",
+      "location": "training_island",
+      "cards": [
+        {
+          "id": "ridge",
+          "title_key": "training_ridge",
+          "what_key": "training_ridge_what",
+          "site": "ridge_west",
+          "goal": {
+            "kind": "duration",
+            "level": "custom",
+            "value": 600
+          }
+        },
+        {
+          "id": "thermals",
+          "title_key": "training_thermals",
+          "what_key": "training_thermals_what",
+          "site": "thermal_plain",
+          "goal": {
+            "kind": "height",
+            "level": "custom",
+            "value": 300
+          }
+        },
+        {
+          "id": "landing",
+          "title_key": "training_landing",
+          "what_key": "training_landing_what",
+          "site": "landing_hill",
+          "goal": {
+            "kind": "landing",
+            "level": "custom",
+            "value": 25
+          }
+        },
+        {
+          "id": "rotor",
+          "title_key": "training_rotor",
+          "what_key": "training_rotor_what",
+          "site": "lee_bowl",
+          "goal": {
+            "kind": "duration",
+            "level": "custom",
+            "value": 300
+          }
+        }
+      ]
+    },
+    {
+      "id": "volcano_island",
+      "title_key": "loc_volcano_island",
+      "location": "volcano_island",
+      "cards": [
+        {
+          "id": "cliffs",
+          "title_key": "training_volcano_cliffs",
+          "what_key": "training_volcano_cliffs_what",
+          "site": "east_cliffs",
+          "goal": {
+            "kind": "duration",
+            "level": "custom",
+            "value": 600
+          }
+        },
+        {
+          "id": "crater",
+          "title_key": "training_volcano_crater",
+          "what_key": "training_volcano_crater_what",
+          "site": "crater_ridge",
+          "goal": {
+            "kind": "duration",
+            "level": "custom",
+            "value": 600
+          }
+        },
+        {
+          "id": "landing",
+          "title_key": "training_volcano_landing",
+          "what_key": "training_volcano_landing_what",
+          "site": "plateau_landing",
+          "goal": {
+            "kind": "landing",
+            "level": "custom",
+            "value": 25
+          }
+        }
+      ]
+    }
   ]
 }
