@@ -1,0 +1,82 @@
+{
+  "_doc": "Вулканический остров (VI-К1): реальное место, только для «Тренировки» (training_only). Данные — res://data/locations/volcano_island/ (собирает tools/terrain/volcano/build.sh; рельеф как есть). Старты — склон над обрывами, гребень кратера, посадка на плато. Координаты мира: X — восток, −Z — север.",
+  "bundled": true,
+  "bundled_doc": "Данные места — res://data/locations/volcano_island/ (без сборки и сети)",
+  "center_lat": -27.1,
+  "center_lon": -109.35,
+  "country": "",
+  "landing_sites": [
+    {
+      "id": "landing_target",
+      "lat": -27.1102972,
+      "lon": -109.2393797,
+      "name": "Мишень на плато у восточной бровки"
+    },
+    {
+      "id": "landing_cliffs",
+      "lat": -27.1087234,
+      "lon": -109.2401677,
+      "name": "Площадка на плато под стартом east_cliffs"
+    },
+    {
+      "id": "landing_crater",
+      "lat": -27.1711272,
+      "lon": -109.4065325,
+      "name": "Площадка у подножия склона под стартом crater_ridge"
+    }
+  ],
+  "landing_sites_doc": "Посадочные площадки {id, name, lat, lon}; детали — configs/world_objects.json → landing.sites.volcano_island",
+  "name": "loc_volcano_island",
+  "render": {
+    "detail": {
+      "chunk_cells": 160,
+      "lod_distances_m": [
+        1500,
+        3500,
+        7000,
+        14000
+      ],
+      "skirt_depth_m": 300
+    },
+    "far": {
+      "chunk_cells": 200,
+      "lod_distances_m": [
+        12000,
+        25000,
+        45000
+      ],
+      "skirt_depth_m": 400
+    }
+  },
+  "start_clearing_radius_m": 70,
+  "start_position_agl_m": 0.0,
+  "start_sites": [
+    {
+      "heading_deg": 101,
+      "id": "east_cliffs",
+      "lat": -27.1087234,
+      "lon": -109.2421882,
+      "name": "site_volcano_island_east_cliffs",
+      "name_doc": "Склон: верх наветренного склона восточного плато над обрывами, разбег на восток (пассат 110°)"
+    },
+    {
+      "heading_deg": 110,
+      "id": "crater_ridge",
+      "lat": -27.1655065,
+      "lon": -109.4065325,
+      "name": "site_volcano_island_crater_ridge",
+      "name_doc": "Склон: гребень кратера на юго-западе, разбег по пассату"
+    },
+    {
+      "heading_deg": 90,
+      "id": "plateau_landing",
+      "lat": -27.1102972,
+      "lon": -109.2414002,
+      "name": "site_volcano_island_plateau_landing",
+      "name_doc": "Посадка: бровка плато, короткий подлёт; мишень landing_target в 200 м"
+    }
+  ],
+  "training_only": true,
+  "training_only_doc": "Только окно «Тренировка» (VI-К2): не в меню полёта, не в «Популярных местах», точка с карты в него не превращается",
+  "utc_offset_h": -6
+}

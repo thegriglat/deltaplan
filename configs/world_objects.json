@@ -359,6 +359,35 @@
           "windsock_at": [0.42, -0.56],
           "trees": []
         }
+      ],
+      "volcano_island": [
+        {
+          "id": "landing_target",
+          "_source_doc": "Вулканический остров (VI-К1): конфиг — configs/locations/volcano_island.json → landing_sites (tools/terrain/volcano/make_config.py). Мишень на плато в 200 м от старта plateau_landing; ось по пассату 110°.",
+          "length_m": 200.0,
+          "width_m": 100.0,
+          "axis_deg": 110.0,
+          "windsock_at": [0.42, -0.56],
+          "trees": []
+        },
+        {
+          "id": "landing_cliffs",
+          "_source_doc": "Вулканический остров: площадка на плато под стартом east_cliffs; ось по пассату 110°.",
+          "length_m": 180.0,
+          "width_m": 90.0,
+          "axis_deg": 110.0,
+          "windsock_at": [0.42, -0.56],
+          "trees": []
+        },
+        {
+          "id": "landing_crater",
+          "_source_doc": "Вулканический остров: площадка у подножия склона под стартом crater_ridge; ось по пассату 110°.",
+          "length_m": 220.0,
+          "width_m": 110.0,
+          "axis_deg": 110.0,
+          "windsock_at": [0.42, -0.56],
+          "trees": []
+        }
       ]
     }
   },
