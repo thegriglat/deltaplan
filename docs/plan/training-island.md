@@ -83,6 +83,9 @@ related: ["docs/contracts/training-island.md", "docs/guide/location-data.md", "d
 #### TI-9b. wind_ref в запекании (dp-engineer, sonnet)
 По TI-9: lee_bowl запечён с inflow_k = 3 — AirBakedField.conditions_of не передаёт wind_ref, запекание шло с подгонкой под ветер у старта. Передать wind_ref, тест inflow_k = 1 у запечённого поля старта с wind_ref inflow, перепечь.
 
+#### TI-13. Замер цены GPU ветки против main (dp-researcher, sonnet)
+Условие Q3: протокол G3 (docs/contracts/grass-rocks.md), medium и high, остров и ongudai, ветка модуля против main; таблица и вывод главной.
+
 ### Условия сдачи (Q3, 2026-10-17)
 1. Ключ запечённого поля включает хеш модели воздуха; несовпадение — поле не берётся, расчёт в игре; шаг bake_all.sh --check в new-release (TI-11).
 2. Экспорт linux (tools/build.sh, без публикации) + smoke острова из собранного каталога: поля грузятся из pck (TI-11).

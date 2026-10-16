@@ -1,0 +1,38 @@
+{
+  "id": "TI-13",
+  "module": "training-island",
+  "type": "dp-researcher",
+  "title": "Замер цены GPU ветки против main",
+  "goal": "Цена кадра GPU ветки feature/training-island против main по протоколу G3 (medium и high, отметки 2/30/60, ongudai и training_island): таблица base, шум, разница с main; вывод — есть ли регрессия на обычном месте и сколько стоит остров.",
+  "plan_ref": "TI-13. Замер цены GPU ветки против main",
+  "contracts": [],
+  "copy": "~/deltaplan-training-island-TI-13",
+  "branch": "training-island/TI-13",
+  "base": "feature/training-island",
+  "scope": [
+    "docs/perf/training_island.md",
+    "docs/perf/data/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/",
+    "tools/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "table",
+      "cmd": "grep -c '^|' docs/perf/training_island.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | tail -1'",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T00:54:23"
+}
