@@ -74,6 +74,9 @@ related: ["docs/contracts/training-island.md", "docs/guide/location-data.md", "d
 #### TI-8. Ветер набора как набегающий поток (dp-engineer, sonnet)
 Решение Q2 (2), TI-К2 v2: weather.wind_ref = "inflow" — коэффициент притока 1 без подгонки под ветер у старта (AirRuntime, калибровка притока ~air_runtime.gd:1229); путь от StartWeather до AirRuntime.conditions_of.
 
+#### TI-10. Источник термика поля не на воде (dp-engineer, sonnet)
+Найдено TI-5: AirThermals.pick_in_column (scripts/atmosphere/air_model/air_thermals.gd) при всех кандидатах на воде берёт первый — термики поля над озером и у берега моря (0,6–0,9 м/с). Правка: лучшая точка с силой 0 → клетка не источник. Дефект общий для всех мест с водой.
+
 ### Шлюз 1 (после TI-1, TI-2)
 Главной: кадры TI-1, таблица w, предложение (если вид тренировки на острове не выходит — отдельный малый рельеф с обоснованием; нужен ли подкласс «тёмная пашня» в нагреве).
 

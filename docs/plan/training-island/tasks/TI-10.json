@@ -1,0 +1,46 @@
+{
+  "id": "TI-10",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Источник термика поля не на воде",
+  "goal": "AirThermals не ставит источник термика поля, если все точки-кандидаты клетки на воде (сила лучшей точки 0): над озером и морем термиков поля нет; на суше всё как было.",
+  "plan_ref": "TI-10. Источник термика поля не на воде",
+  "contracts": [],
+  "copy": "~/deltaplan-training-island-TI-10",
+  "branch": "training-island/TI-10",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/atmosphere/air_model/air_thermals.gd",
+    "tests/atmosphere/test_air_thermals.gd"
+  ],
+  "dont_touch": [
+    "configs/",
+    "data/",
+    "tools/",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/thermal_field.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "air_thermals",
+      "tests": "air_thermals"
+    },
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "gpu",
+      "cmd": "bash tools/gpu_tests.sh --filter=thermal",
+      "expect": "re:\\n(?:[1-9]\\d*) тестов, 0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T23:35:46"
+}
