@@ -168,3 +168,20 @@ uniform vec2 stone_keep = vec2(0.15, 0.65);
 float gc_grass_keep(vec2 xz, vec3 n, int c) {
 	return smoothstep(stone_keep.x, stone_keep.y, gc_meadow(xz, n, c));
 }
+
+// Карта доли пучков вокруг камеры (GrassField: та же gc_grass_keep, запечённая на GPU в текстуру
+// stone_mask_px² на stone_mask_m — раз на сдвиг камеры, не в каждой вершине каждого пучка): одна
+// выборка вместо ~30 выборок высот и шума. Вне карты (кольца травинок режима blades дальше 64 м) или
+// до первого запекания — расчёт на месте.
+uniform sampler2D stone_mask_tex : filter_linear, repeat_disable, hint_default_white;
+uniform vec4 stone_mask_rect = vec4(0.0);   // xy — мировые X/Z угла карты, м; zw — 1 / размер, 1/м
+uniform bool stone_mask_on = false;
+float gc_grass_keep_fast(vec2 xz, vec3 n, int c) {
+	if (stone_mask_on) {
+		vec2 uv = (xz - stone_mask_rect.xy) * stone_mask_rect.zw;
+		if (uv.x > 0.0 && uv.y > 0.0 && uv.x < 1.0 && uv.y < 1.0) {
+			return textureLod(stone_mask_tex, uv, 0.0).r;
+		}
+	}
+	return gc_grass_keep(xz, n, c);
+}

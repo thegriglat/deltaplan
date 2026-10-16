@@ -259,6 +259,7 @@ func _process(_delta: float) -> void:
 	if cell != _last_cell:
 		_last_cell = cell
 		material.set_shader_parameter("grid_center_cell", cell)
+	_update_stone_mask(Vector2(p.x, p.z))
 	if pilot != null and pilot.is_inside_tree():
 		material.set_shader_parameter("press_pos", pilot.global_position)
 		for m in mid_materials():
@@ -357,6 +358,99 @@ static func slope_deg_at(layer: HeightLayer, x: float, z: float) -> float:
 	var gx := lerpf(h10 - h00, h11 - h01, tz) / layer.spacing
 	var gz := lerpf(h01 - h00, h11 - h10, tx) / layer.spacing
 	return rad_to_deg(atan(Vector2(gx, gz).length()))
+
+
+# --- карта доли пучков вокруг камеры (GR-25): gc_grass_keep, запечённая на GPU ---
+
+## Карта: STONE_MASK_PX² текселей на STONE_MASK_M (0,5 м — меньше пучка травинок и пятен породы 3–10 м);
+## перезапекается, когда камера ушла от центра дальше STONE_MASK_MOVE_M (покрыто ≥ 48 м вокруг —
+## средняя дистанция до 40 м). Две карты по очереди: новая включается в траве только после кадра, в
+## котором запеклась (без кадра со старой картой и новым прямоугольником).
+const STONE_MASK_PX := 256
+const STONE_MASK_M := 128.0
+const STONE_MASK_MOVE_M := 16.0
+const STONE_BAKE_SHADER := """
+shader_type canvas_item;
+render_mode unshaded, blend_disabled;
+#include "res://scripts/terrain/terrain_common.gdshaderinc"
+#include "res://scripts/terrain/ground_cover.gdshaderinc"
+uniform vec4 bake_rect;   // xy — мировые X/Z угла, zw — размер, м
+void fragment() {
+	vec2 xz = bake_rect.xy + UV * bake_rect.zw;
+	vec2 f = (xz - layer_origin) / layer_spacing;
+	vec2 i = floor(f);
+	vec2 t = f - i;
+	ivec2 ij = ivec2(i);
+	float h00 = h_node(ij);
+	float h10 = h_node(ij + ivec2(1, 0));
+	float h01 = h_node(ij + ivec2(0, 1));
+	float h11 = h_node(ij + ivec2(1, 1));
+	vec2 g = vec2(mix(h10 - h00, h11 - h01, t.y), mix(h01 - h00, h11 - h10, t.x)) / layer_spacing;
+	vec3 n = normalize(vec3(-g.x, 1.0, -g.y));
+	int c = surface_node(ivec2(round((xz - surface_origin) / surface_spacing)));
+	COLOR = vec4(gc_grass_keep(xz, n, c), 0.0, 0.0, 1.0);
+}
+"""
+
+var _bake: Array[SubViewport] = []
+var _bake_mats: Array[ShaderMaterial] = []
+var _bake_cur := -1
+var _bake_pending := -1
+var _bake_frame := 0
+var _bake_center := Vector2(INF, INF)
+var _bake_next_center := Vector2.ZERO
+
+
+## Карта доли пучков вокруг камеры c (только у верхнего GrassField; дальний слой берёт её же через
+## materials()).
+func _update_stone_mask(c: Vector2) -> void:
+	if get_parent() is GrassField or material == null:
+		return
+	if _bake.is_empty():
+		_make_stone_bake()
+	if _bake_pending >= 0:
+		if Engine.get_frames_drawn() > _bake_frame:
+			_bake_cur = _bake_pending
+			_bake_pending = -1
+			_bake_center = _bake_next_center
+			var o := _bake_center - Vector2.ONE * STONE_MASK_M * 0.5
+			for m in materials():
+				m.set_shader_parameter("stone_mask_tex", _bake[_bake_cur].get_texture())
+				m.set_shader_parameter("stone_mask_rect", Vector4(o.x, o.y, 1.0 / STONE_MASK_M, 1.0 / STONE_MASK_M))
+				m.set_shader_parameter("stone_mask_on", true)
+		return
+	if _bake_cur >= 0 and c.distance_to(_bake_center) < STONE_MASK_MOVE_M:
+		return
+	var k := 1 if _bake_cur == 0 else 0
+	var cell := STONE_MASK_M / STONE_MASK_PX
+	_bake_next_center = (c / cell).floor() * cell
+	var o2 := _bake_next_center - Vector2.ONE * STONE_MASK_M * 0.5
+	_bake_mats[k].set_shader_parameter("bake_rect", Vector4(o2.x, o2.y, STONE_MASK_M, STONE_MASK_M))
+	_bake[k].render_target_update_mode = SubViewport.UPDATE_ONCE
+	_bake_pending = k
+	_bake_frame = Engine.get_frames_drawn()
+
+
+func _make_stone_bake() -> void:
+	var sh := Shader.new()
+	sh.code = STONE_BAKE_SHADER
+	for k in 2:
+		var vp := SubViewport.new()
+		vp.name = "StoneMask%d" % k
+		vp.size = Vector2i(STONE_MASK_PX, STONE_MASK_PX)
+		vp.disable_3d = true
+		vp.transparent_bg = false
+		vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		var m := ShaderMaterial.new()
+		m.shader = sh
+		GrassMidShell.copy_shared_params(material, m)
+		var r := ColorRect.new()
+		r.size = Vector2(STONE_MASK_PX, STONE_MASK_PX)
+		r.material = m
+		vp.add_child(r)
+		add_child(vp)
+		_bake.append(vp)
+		_bake_mats.append(m)
 
 
 # --- порода рельефа под травой (GR-25, G2 v2): копия ground_cover.gdshaderinc на CPU ---

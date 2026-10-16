@@ -202,7 +202,7 @@ void vertex() {
 		vec3 n = normalize(vec3(-hg.x, 1.0, -hg.y));
 		// порода рельефа (ground_cover, G2 v2): густота — доля луга
 		if (hh > 0.0 && share > 0.0) {
-			share *= gc_grass_keep(xz, n, c);
+			share *= gc_grass_keep_fast(xz, n, c);
 		}
 		for (int k = 0; k < mowed_count; k++) {
 			if (length(xz - mowed[k].xy) < mowed[k].z) {

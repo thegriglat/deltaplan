@@ -196,7 +196,7 @@ void vertex() {
 			hh = mix(forest_height_m.x, forest_height_m.y, r);
 		}
 		// порода рельефа (ground_cover, G2 v2): пучок остаётся с долей луга
-			if (hh > 0.0 && hash12(cell + 23.7) >= gc_grass_keep(xz, n, c)) {
+			if (hh > 0.0 && hash12(cell + 23.7) >= gc_grass_keep_fast(xz, n, c)) {
 				hh = 0.0;
 			}
 		for (int k = 0; k < mowed_count; k++) {

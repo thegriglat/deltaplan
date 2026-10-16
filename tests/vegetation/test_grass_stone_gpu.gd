@@ -4,7 +4,8 @@ extends Node
 ## (1) Правило породы ground_cover.gdshaderinc на GPU (доля луга gc_meadow и доля пучков
 ##     gc_grass_keep, вид сверху) совпадает с CPU-копией GrassField.meadow_at/grass_keep_at на сетке.
 ## (2) Настоящий GrassField (ближние травинки; слои shell; карточки angle): густота травы в кадре там,
-##     где по правилу порода (доля пучков 0), — не больше 3 % густоты на лугу (доля пучков 1).
+##     где по правилу порода (доля пучков 0), — не больше 3 % густоты на лугу (доля пучков 1); карта
+##     доли пучков вокруг камеры (запечена на GPU) включена и совпадает с CPU.
 
 const PROBE := """
 shader_type spatial;
@@ -222,8 +223,25 @@ func _density(mode: String, eye_m: float, fov: float, ring: Vector2) -> Dictiona
 			elif kmin >= 1.0:
 				mn += 1
 				mg += 1 if is_grass else 0
+	# карта доли пучков вокруг камеры (запечена на GPU) — та же, что CPU, и включена в материалах
+	var mask_on := g._bake_cur >= 0 and bool(g.material.get_shader_parameter("stone_mask_on"))
+	var mbad := 0
+	var mn2 := 0
+	if mask_on:
+		var mi := g._bake[g._bake_cur].get_texture().get_image()
+		mi.convert(Image.FORMAT_RGBA8)
+		var cell := GrassField.STONE_MASK_M / GrassField.STONE_MASK_PX
+		var o := g._bake_center - Vector2.ONE * GrassField.STONE_MASK_M * 0.5
+		for ty in range(0, GrassField.STONE_MASK_PX, 4):
+			for tx in range(0, GrassField.STONE_MASK_PX, 4):
+				var x := o.x + (tx + 0.5) * cell
+				var z := o.y + (ty + 0.5) * cell
+				mn2 += 1
+				if absf(mi.get_pixel(tx, ty).r - g.grass_keep_at(x, z, SurfaceLayer.GRASS)) > 0.03:
+					mbad += 1
 	vp.queue_free()
 	return {
+		"mask_on": mask_on, "mask_bad": mbad, "mask_n": mn2,
 		"stone": float(sg) / maxi(sn, 1), "meadow": float(mg) / maxi(mn, 1), "sn": sn, "mn": mn
 	}
 
@@ -237,6 +255,9 @@ func _check_mode(mode: String, eye_m: float, fov: float, ring: Vector2) -> void:
 			% [mode, r.stone, r.sn, r.meadow, r.mn]
 		)
 	)
+	print("    grass_stone %s: карта вокруг камеры %s, расходится с CPU в %d из %d текселей" % [mode, r.mask_on, r.mask_bad, r.mask_n])
+	check(r.mask_on, "%s: карта доли пучков включена" % mode)
+	check(r.mask_bad <= r.mask_n / 100, "%s: карта = CPU: %d из %d" % [mode, r.mask_bad, r.mask_n])
 	check(r.sn > 200 and r.mn > 200, "%s: в кадре и порода, и луг: %d / %d" % [mode, r.sn, r.mn])
 	check(r.meadow > 0.05, "%s: трава на лугу видна: %.4f" % [mode, r.meadow])
 	check(r.stone <= 0.03 * r.meadow, "%s: трава над породой: %.4f при %.4f на лугу" % [mode, r.stone, r.meadow])
