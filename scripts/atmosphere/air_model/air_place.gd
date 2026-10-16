@@ -15,6 +15,12 @@ const DOMAIN_L := 38400.0  # сторона области, м (38,4 км = 96·
 const TOP_ABOVE := 3000.0  # потолок над максимумом рельефа, м
 const GAMMA_D := 9.8  # К/км
 
+## Подготовка области в несколько потоков (FL-9): полосы строк клеток block_mean и surface_flux,
+## снимок поверхности (surface_start) — задачей пула. false — прежний путь в одном потоке (только
+## тесты сравнения «старый путь = новый»). Результат от разбиения не зависит: клетки независимы,
+## порядок суммирования внутри клетки тот же.
+static var parallel := true
+
 
 ## Область места (квадрат DOMAIN_L вокруг центра) с клеткой dx на час hour: ветер u10 (на 10 м,
 ## м/с) откуда wdir (°); t_max — дневной максимум (NAN — обычный для даты), sky — облачность;
@@ -188,12 +194,39 @@ static func block_mean(
 		wlen.append(wts.size())
 		woff.append(cw.size())
 		cw.append_array(wts)
+	var rows := func(j0: int, j1: int) -> PackedFloat64Array:
+		return _block_rows(h, w, f, nx, yi, yt, cstart, wlen, woff, cw, j0, j1)
+	if parallel:
+		for b: PackedFloat64Array in TerrainRelief._par(ny, rows):
+			out.append_array(b)
+	else:
+		out = rows.call(0, ny)
+	return out
+
+
+## Строки клеток j0 … j1 − 1 блочного среднего (block_mean): свой кэш сумм строк слоя на полосу —
+## суммы те же, что у одного прохода (порядок сложения внутри клетки не меняется).
+static func _block_rows(
+	h: PackedFloat32Array,
+	w: int,
+	f: int,
+	nx: int,
+	yi: PackedInt32Array,
+	yt: PackedFloat64Array,
+	cstart: PackedInt32Array,
+	wlen: PackedInt32Array,
+	woff: PackedInt32Array,
+	cw: PackedFloat64Array,
+	j0: int,
+	j1: int
+) -> PackedFloat64Array:
+	var out := PackedFloat64Array()
 	var inv_n := 1.0 / (f * f)
-	out.resize(nx * ny)
+	out.resize(nx * (j1 - j0))
 	var cache := {}  # номер строки слоя → суммы по узлам клетки (nx)
 	var acc := PackedFloat64Array()
 	acc.resize(nx)
-	for j in ny:
+	for j in range(j0, j1):
 		acc.fill(0.0)
 		for m in f:
 			var node := j * f + m
@@ -222,9 +255,9 @@ static func block_mean(
 				for i in nx:
 					acc[i] += wr * rs[i]
 		for i in nx:
-			out[j * nx + i] = acc[i] * inv_n
+			out[(j - j0) * nx + i] = acc[i] * inv_n
 		# строки слоя убывают к северу: у следующей клетки максимальна первая строка узлов
-		if j + 1 < ny:
+		if j + 1 < j1:
 			var keep := yi[(j + 1) * f] + 1
 			for r in cache.keys():
 				if r > keep:
@@ -346,9 +379,10 @@ static func gamma(d: Dictionary, z_m: float) -> float:
 
 
 ## Снимок поверхности места для решателя (SH3): на решётке 25 м мира (узлы x = origin_x + 25·i,
-## z = origin_z + 25·j, строки на юг), в пределах слоя detail. Делается один раз на главном потоке
-## (AirPlace.surface_of, после полей рельефа и полян у стартов) и дальше только читается — рабочие
-## потоки решателя Terrain не трогают. cls — класс узла как Terrain._surface_class (карта поверхности,
+## z = origin_z + 25·j, строки на юг), в пределах слоя detail. Входы берутся один раз на главном
+## потоке (AirPlace.surface_start / surface_of, после полей рельефа и полян у стартов), счёт — задачей
+## пула (FL-9); готовый снимок только читается — рабочие потоки решателя Terrain не трогают. Поля
+## cls/moist читать после wait() (или is_ready()); cells() ждёт сам. cls — класс узла как Terrain._surface_class (карта поверхности,
 ## маска 10 м: вода G ≥ 0,5, лес R ≥ 0,5; круче rock_slope_deg → BARE) ∪ маска рек (WATER);
 ## moist — влажность рельефа в узле (TerrainRelief, билинейно), пусто — поля нет (m_norm).
 class Surface:
@@ -363,9 +397,29 @@ class Surface:
 	var build_ms := 0.0
 	var _cells := {}
 	var _mutex := Mutex.new()
+	## Задача пула, что считает снимок (−1 — готов или ещё не запущен); под _wait_mx.
+	var _task := -1
+	var _wait_mx := Mutex.new()
+
+	## Снимок посчитан (не ждёт; главный поток опрашивает по кадрам).
+	func is_ready() -> bool:
+		if not _wait_mx.try_lock():
+			return false  # кто-то ждёт задачу — значит, ещё считается
+		var ok := _task < 0 or WorkerThreadPool.is_task_completed(_task)
+		_wait_mx.unlock()
+		return ok
+
+	## Дождаться снимка (любой поток; задача ожидается ровно один раз).
+	func wait() -> void:
+		_wait_mx.lock()
+		if _task >= 0:
+			WorkerThreadPool.wait_for_task_completion(_task)
+			_task = -1
+		_wait_mx.unlock()
 
 	## Доли классов и влажность клеток сетки (кэш для крупных сеток — область считается часто).
 	func cells(x0: float, y0: float, dx: float, nx: int, ny: int) -> Dictionary:
+		wait()
 		var key := "%s|%s|%s|%d|%d" % [x0, y0, dx, nx, ny]
 		var big := dx >= 200.0
 		if big:
@@ -391,11 +445,22 @@ class Surface:
 		_mutex.unlock()
 
 
-## Снимок поверхности (главный поток): terrain — Terrain (surfaces, reliefs, wait_relief), detail —
-## слой 25 м места, water — маска рек слоя (или null). Ждёт поля рельефа (детерминизм: влажность не
-## «гонится» с потоком). Нет карт поверхности и полей рельефа — null (поведение без снимка).
-## domain_dx — шаги сеток области (domain_case), доли клеток которых посчитать сразу (в пуле).
+## Снимок поверхности (главный поток, готовый): terrain — Terrain (surfaces, reliefs, wait_relief),
+## detail — слой 25 м места, water — маска рек слоя (или null). Ждёт поля рельефа (детерминизм:
+## влажность не «гонится» с потоком). Нет карт поверхности и полей рельефа — null (поведение без
+## снимка). domain_dx — шаги сеток области (domain_case), доли клеток которых посчитать сразу (в пуле).
 static func surface_of(
+	terrain: Object, detail: HeightLayer, water: Image, domain_dx := PackedFloat64Array()
+) -> Surface:
+	var sf := surface_start(terrain, detail, water, domain_dx)
+	if sf != null:
+		sf.wait()
+	return sf
+
+
+## То же, что surface_of, но счёт — задачей пула (parallel; иначе сразу): на главном потоке — только
+## поиск карты и поля рельефа и копии входов (маска леса, маска рек). Снимок — после wait()/is_ready().
+static func surface_start(
 	terrain: Object, detail: HeightLayer, water: Image, domain_dx := PackedFloat64Array()
 ) -> Surface:
 	if terrain == null or detail == null:
@@ -449,16 +514,48 @@ static func surface_of(
 	if sl != null and sl.has_forest_mask():
 		mask = sl.forest_mask_image().get_data()  # копия: поляны у стартов уже вырезаны
 		mw = sl.mask_width
-	var mo := rel.moisture if rel != null else PackedFloat32Array()
-	var rw := rel.width if rel != null else 0
+	var inp := {
+		ax = ax, az = az, rock_cos = rock_cos, riv = riv, riw = riw, cls_src = cls_src, cls_w = cls_w,
+		cls_h = cls_h, mask = mask, mw = mw, mo = rel.moisture if rel != null else PackedFloat32Array(),
+		rw = rel.width if rel != null else 0, hs = detail.heights, d_ox = detail.origin_x,
+		d_oz = detail.origin_z, d_sp = detail.spacing, d_w = detail.width, d_h = detail.height,
+		domain_dx = domain_dx, t0 = t0,
+	}
+	# конфиги — в кэш Config до рабочих потоков (первое чтение пишет общий кэш)
+	SurfaceHeat.config()
+	WeatherModel.config()
+	if parallel:
+		sf._task = WorkerThreadPool.add_task(_surface_fill.bind(sf, inp), true, "AirPlace.surface")
+	else:
+		_surface_fill(sf, inp)
+	return sf
+
+
+## Счёт снимка по входам surface_start (рабочий поток или вызывающий): только PackedArray-копии
+## и снимок sf, ни Terrain, ни слоёв.
+static func _surface_fill(sf: Surface, inp: Dictionary) -> void:
+	var t0 := int(inp.t0)
+	var ax: Dictionary = inp.ax
+	var az: Dictionary = inp.az
+	var rock_cos := float(inp.rock_cos)
+	var riv: PackedByteArray = inp.riv
+	var riw := int(inp.riw)
+	var cls_src: PackedByteArray = inp.cls_src
+	var cls_w := int(inp.cls_w)
+	var cls_h := int(inp.cls_h)
+	var mask: PackedByteArray = inp.mask
+	var mw := int(inp.mw)
+	var mo: PackedFloat32Array = inp.mo
+	var rw := int(inp.rw)
+	var domain_dx: PackedFloat64Array = inp.domain_dx
 	var w := sf.width
 	var h := sf.height
 	# 1) высоты узлов: билинейно по слою, как HeightLayer.sample (у встроенных слоёв 25 м — значения
 	# узлов); оси разделимы, без вызовов методов в цикле
-	var hx := _sample_axis(sf.origin_x, w, detail.origin_x, detail.spacing, detail.width)
-	var hz := _sample_axis(sf.origin_z, h, detail.origin_z, detail.spacing, detail.height)
-	var hs := detail.heights
-	var lw := detail.width
+	var hx := _sample_axis(sf.origin_x, w, float(inp.d_ox), float(inp.d_sp), int(inp.d_w))
+	var hz := _sample_axis(sf.origin_z, h, float(inp.d_oz), float(inp.d_sp), int(inp.d_h))
+	var hs: PackedFloat32Array = inp.hs
+	var lw := int(inp.d_w)
 	var hb := TerrainRelief._par(
 		h,
 		func(j0: int, j1: int) -> PackedFloat32Array:
@@ -585,7 +682,6 @@ static func surface_of(
 		if _grid_ok(-DOMAIN_L / 2.0, -DOMAIN_L / 2.0, ddx):
 			sf.precompute(-DOMAIN_L / 2.0, -DOMAIN_L / 2.0, ddx, n, n)
 	sf.build_ms = (Time.get_ticks_usec() - t0) / 1000.0
-	return sf
 
 
 ## Ось билинейки HeightLayer.sample: узлы o + 25·k → {i: ячейка, t: вес} (за краем — край).
@@ -809,42 +905,73 @@ static func surface_flux(
 	}
 	var fr: PackedFloat32Array = cells.fr
 	var mo: PackedFloat32Array = cells.m
-	var nc := SurfaceLayer.CLASS_COUNT
 	# T воды: water_temp_c = max(0, T̄ − lapse(z)); T̄ — один раз на высоте долины (lapse = 0), дальше
 	# то же выражение, что в SurfaceHeat (побитно равно прямому вызову); T̄ ≤ 0 — прямой вызов по клетке.
 	var zv := float(ctx.get("valley_msl_m", 0.0))
 	var tw_v := SurfaceHeat.water_temp_c(int(ctx.month), int(ctx.day), zv, ctx, wcfg)
 	var ta_v := SurfaceHeat.air_temp_c(hour, t_max, zv, ctx, wcfg)
-	var out := PackedFloat64Array()
-	out.resize(nx * ny)
-	for j in ny:
-		for i in nx:
-			var q := j * nx + i
-			var gx: float
-			var gy: float
-			if i == 0:
-				gx = (hc[q + 1] - hc[q]) / dx
-			elif i == nx - 1:
-				gx = (hc[q] - hc[q - 1]) / dx
-			else:
-				gx = (hc[q + 1] - hc[q - 1]) / (2.0 * dx)
-			if j == 0:
-				gy = (hc[q + nx] - hc[q]) / dx
-			elif j == ny - 1:
-				gy = (hc[q] - hc[q - nx]) / dx
-			else:
-				gy = (hc[q + nx] - hc[q - nx]) / (2.0 * dx)
-			var water := {}
-			if fr[q * nc + SurfaceLayer.WATER] > 0.0:
-				var z := hc[q]
-				var lap := SurfaceHeat._lapse(z, ctx, wcfg)
-				var tw := (
-					maxf(0.0, tw_v - lap)
-					if tw_v > 0.0
-					else SurfaceHeat.water_temp_c(int(ctx.month), int(ctx.day), z, ctx, wcfg)
+	var rows := func(j0: int, j1: int) -> PackedFloat64Array:
+		var o := PackedFloat64Array()
+		o.resize(nx * (j1 - j0))
+		for j in range(j0, j1):
+			for i in nx:
+				o[(j - j0) * nx + i] = _flux_cell(
+					hc, dx, nx, ny, i, j, fr, mo, sun, sky, ctx, wcfg, scfg, tw_v, ta_v, u10
 				)
-				water = {t_water_c = tw, t_air_c = ta_v - lap, u_ms = u10, z_m = z}
-			out[q] = SurfaceHeat.mix_flux(
-				fr, q * nc, Vector3(-gx, 1.0, gy), sun, float(mo[q]), sky, water, scfg
-			)
+		return o
+	if not parallel:
+		return rows.call(0, ny)
+	var out := PackedFloat64Array()
+	for b: PackedFloat64Array in TerrainRelief._par(ny, rows):
+		out.append_array(b)
 	return out
+
+
+## H одной клетки (surface_flux): нормаль сетки, вода, SurfaceHeat.mix_flux.
+static func _flux_cell(
+	hc: PackedFloat64Array,
+	dx: float,
+	nx: int,
+	ny: int,
+	i: int,
+	j: int,
+	fr: PackedFloat32Array,
+	mo: PackedFloat32Array,
+	sun: PackedVector3Array,
+	sky: Dictionary,
+	ctx: Dictionary,
+	wcfg: Dictionary,
+	scfg: Dictionary,
+	tw_v: float,
+	ta_v: float,
+	u10: float
+) -> float:
+	var nc := SurfaceLayer.CLASS_COUNT
+	var q := j * nx + i
+	var gx: float
+	var gy: float
+	if i == 0:
+		gx = (hc[q + 1] - hc[q]) / dx
+	elif i == nx - 1:
+		gx = (hc[q] - hc[q - 1]) / dx
+	else:
+		gx = (hc[q + 1] - hc[q - 1]) / (2.0 * dx)
+	if j == 0:
+		gy = (hc[q + nx] - hc[q]) / dx
+	elif j == ny - 1:
+		gy = (hc[q] - hc[q - nx]) / dx
+	else:
+		gy = (hc[q + nx] - hc[q - nx]) / (2.0 * dx)
+	var water := {}
+	if fr[q * nc + SurfaceLayer.WATER] > 0.0:
+		var z := hc[q]
+		var lap := SurfaceHeat._lapse(z, ctx, wcfg)
+		var tw := (
+			maxf(0.0, tw_v - lap)
+			if tw_v > 0.0
+			else SurfaceHeat.water_temp_c(int(ctx.month), int(ctx.day), z, ctx, wcfg)
+		)
+		water = {t_water_c = tw, t_air_c = ta_v - lap, u_ms = u10, z_m = z}
+	return SurfaceHeat.mix_flux(
+		fr, q * nc, Vector3(-gx, 1.0, gy), sun, float(mo[q]), sky, water, scfg
+	)

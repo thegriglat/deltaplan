@@ -230,6 +230,7 @@ func setup(atmo: Object, place: Dictionary, cond_fn: Callable) -> void:
 	atmosphere = atmo
 	conditions_fn = cond_fn
 	var key := _key_of(place)
+	_wait_surface()  # снимок прежнего места мог ещё считаться — задача пула ожидается
 	if key != _place_key:
 		stop()
 		_clip = null
@@ -245,8 +246,9 @@ func setup(atmo: Object, place: Dictionary, cond_fn: Callable) -> void:
 
 
 ## Место для расчёта по рельефу игры (Terrain): слой detail (25 м), маска воды, снимок поверхности
-## (AirPlace.surface_of: классы и влажность узлов 25 м — ждёт поля рельефа; звать после полян у
-## стартов), координаты, пояс часов (как у неба: NAN — солнечное время), дата полёта (month, day; 0 —
+## (AirPlace.surface_start: классы и влажность узлов 25 м — ждёт поля рельефа; звать после полян у
+## стартов; счёт — задачей пула, FL-9: читать после surface.wait() или place_ready()), координаты,
+## пояс часов (как у неба: NAN — солнечное время), дата полёта (month, day; 0 —
 ## опорная дата weather_model.json → reference_context, только для тестов). C2 v8, FBW-К2.
 static func place_of(
 	terrain: Node, utc_offset_h: float, month: int = 0, day: int = 0
@@ -278,10 +280,31 @@ static func place_of(
 	return {
 		detail = detail,
 		water = water,
-		surface = AirPlace.surface_of(terrain, detail, water, _domain_steps()),
+		surface = AirPlace.surface_start(terrain, detail, water, _domain_steps()),
 		loc = loc,
 		start_sites = sites,
 	}
+
+
+## Снимок поверхности места посчитан (не ждёт; null-снимок — готов). Главный поток опрашивает по
+## кадрам (wait_place), не блокируясь.
+func place_ready() -> bool:
+	var sf: Variant = _place.get("surface")
+	return sf == null or (sf as AirPlace.Surface).is_ready()
+
+
+## Дождаться снимка поверхности опросом по кадрам (главный поток не блокируется).
+func wait_place() -> void:
+	while not place_ready() and is_inside_tree():
+		await get_tree().process_frame
+	_wait_surface()
+
+
+## Дождаться снимка блокирующе (уже готов — сразу): перед чтением снимка на главном потоке.
+func _wait_surface() -> void:
+	var sf: Variant = _place.get("surface")
+	if sf != null:
+		(sf as AirPlace.Surface).wait()
 
 
 ## Шаги сеток области, которые строит _prep_task: DX и, при грубом старте, DX·picard_coarse_factor.
@@ -339,6 +362,7 @@ func load_field() -> bool:
 	recompute_enabled = false
 	_baked_pending = false
 	stop()
+	await wait_place()
 	var why := unavailable_reason()
 	if why == CMD_FIELD:
 		return false  # поле из файла подаёт сама атмосфера
@@ -555,6 +579,7 @@ func _surface_key() -> String:
 	if sf == null:
 		return ""
 	if _surface_hash == "":
+		_wait_surface()
 		var ctx := HashingContext.new()
 		ctx.start(HashingContext.HASH_SHA256)
 		ctx.update(PackedFloat64Array([sf.origin_x, sf.origin_z, sf.width, sf.height]).to_byte_array())
@@ -944,18 +969,29 @@ func _progress(x: float) -> void:
 
 ## Рабочий поток: вход решателя по месту и условиям (~0,5 с на 400 м); k — множитель притока;
 ## phase_job — фазы без порций GPU (P10, run(case)), null — нет; coarse > 1 — ещё случай грубого
-## Пикара (клетка DX·coarse) для старта.
+## Пикара (клетка DX·coarse) для старта. Грубая и основная области — параллельно (AirPlace.parallel,
+## FL-9): входы у них общие только для чтения (place, снимок поверхности), результат тот же.
 static func _prep_task(
 	place: Dictionary, c: Dictionary, k: float, out: Dictionary, phase_job: Object, coarse: int
 ) -> void:
-	if coarse > 1:
-		var cb := _domain(place, c, k, DX * coarse)
-		if cb != null:
-			out.coarse_case = PreparedCase.from_case(cb)
-	var base := _domain(place, c, k, DX)
+	var steps := [DX * coarse, DX] if coarse > 1 else [DX]
+	var built: Array = []
+	built.resize(steps.size())
+	var one := func(i: int) -> void:
+		var dc := _domain(place, c, k, float(steps[i]))
+		built[i] = [dc, PreparedCase.from_case(dc) if dc != null else null]
+	if AirPlace.parallel and steps.size() > 1:
+		var gid := WorkerThreadPool.add_group_task(one, steps.size(), -1, true, "AirRuntime.prep")
+		WorkerThreadPool.wait_for_group_task_completion(gid)
+	else:
+		for i in steps.size():
+			one.call(i)
+	if coarse > 1 and built[0][0] != null:
+		out.coarse_case = built[0][1]
+	var base: AirCase = built[-1][0]
 	if base == null:
 		return
-	var pc := PreparedCase.from_case(base)
+	var pc: PreparedCase = built[-1][1]
 	out.case = pc
 	if pc == null or phase_job == null:
 		return
@@ -1638,6 +1674,7 @@ func _analytic(reason: String) -> void:
 
 func _exit_tree() -> void:
 	stop()
+	_wait_surface()
 	cache_wait()
 	if _gpu != null:
 		_gpu.destroy()
@@ -1678,10 +1715,17 @@ class PreparedCase:
 	static func from_case(src: AirCase) -> PreparedCase:
 		var c := PreparedCase.new()
 		c.copy_from(src)
-		c._prepared = c.prepare()
 		var m := PreparedCase.new()
 		m.copy_from(src.without_heat())
-		m._prepared = m.prepare()
+		# два решения готовятся независимо (свои массивы; общие hc, z0_map, gam — только чтение)
+		var both: Array[PreparedCase] = [c, m]
+		var prep := func(i: int) -> void: both[i]._prepared = both[i].prepare()
+		if AirPlace.parallel:
+			var gid := WorkerThreadPool.add_group_task(prep, 2, -1, true, "AirRuntime.prepare")
+			WorkerThreadPool.wait_for_group_task_completion(gid)
+		else:
+			prep.call(0)
+			prep.call(1)
 		c.mech_case = m
 		return c if c._prepared and m._prepared else null
 
