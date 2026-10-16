@@ -7,6 +7,7 @@ extends Node
 ## Стадии: gen — синтетический IGC у старта Каянча (по рельефу места) в --igc;
 ##   a1 — окно «Полёт…», вкладка «Цели»; a — полёт: a2 список целей и прибор, a3 цилиндры;
 ##   a4 — итог после настоящего полёта автопилота (с земли до посадки);
+##   d — окно «Полёт…», вкладка «Цели», диалог выбора файла трека (a5_file_dialog) и выбор --igc;
 ##   b — полоса следа прошлой попытки: b1 с высоты, b2 издалека, b3 вблизи.
 ## Кадры JPEG q88.
 
@@ -134,6 +135,8 @@ func _run() -> void:
 			await _stage_a4()
 		"b":
 			await _stage_b()
+		"d":
+			await _stage_d()
 		_:
 			await _fail("неизвестная стадия " + _stage)
 			return
@@ -406,3 +409,56 @@ func _stage_b() -> void:
 func _track_point(tr_: FlightTrack, i: int) -> Vector3:
 	var q: Vector2 = _game.terrain.latlon_to_local(tr_.lat[i], tr_.lon[i])
 	return Vector3(q.x, tr_.alt_m[i], q.y)
+
+
+# ------------------------------------------------------------------ d: диалог выбора файла трека
+
+
+func _stage_d() -> void:
+	var o := _base_opts()
+	o.autostart = false
+	_main = MAIN_SCENE.instantiate()
+	_main.set("opts", o)
+	add_child(_main)
+	for i in 30:
+		await get_tree().process_frame
+	_main.set("flight", o.apply_to(FlightSettings.defaults()))
+	_main.call("_open_flight_setup")
+	var screen: FlightSetupScreen = _main.get_node("UI/FlightSetupScreen")
+	var tabs: TabContainer = screen.get("_tabs")
+	for i in tabs.get_tab_count():
+		if tabs.get_tab_title(i) == TranslationServer.translate("setup_tab_goals"):
+			tabs.current_tab = i
+	for i in 30:
+		await get_tree().process_frame
+	var tab := _find_goals_tab(screen)
+	if tab == null:
+		await _fail("нет GoalsTab")
+		return
+	tab.call("_on_load_pressed")
+	var dlg: FileDialog = tab.get("_dialog")
+	print("goals_shot: диалог native=%s visible=%s" % [dlg.use_native_dialog, dlg.visible])
+	dlg.current_dir = ProjectSettings.globalize_path(_igc).get_base_dir()
+	for i in 30:
+		await get_tree().process_frame
+	await _snap("a5_file_dialog")
+	dlg.files_selected.emit(PackedStringArray([ProjectSettings.globalize_path(_igc)]))
+	for i in 10:
+		await get_tree().process_frame
+	var paths: PackedStringArray = tab.get("_track_paths")
+	print("goals_shot: после выбора пути %s" % [paths])
+	if paths.is_empty():
+		await _fail("трек не попал в список")
+		return
+	dlg.hide()
+	await _snap("a6_track_added")
+
+
+func _find_goals_tab(n: Node) -> Node:
+	if n is GoalsTab:
+		return n
+	for ch in n.get_children():
+		var r := _find_goals_tab(ch)
+		if r != null:
+			return r
+	return null

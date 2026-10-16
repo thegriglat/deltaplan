@@ -2,14 +2,15 @@ class_name GoalCylinders
 extends Node3D
 ## Столбы-цилиндры пунктов ведущего маршрута в мире (GL-К4, docs/contracts/goals.md).
 ## Видны только при configs/goals/world.json → cylinders.enabled; активный пункт заметнее.
-## Один меш на столб, два общих материала (без записи глубины, двусторонние, без освещения).
+## Один меш на столб, два общих материала (шейдер goal_cylinders.gdshader: альфа растёт с расстоянием до камеры).
 
 const CONFIG := "goals/world"
 
 var _points: Array = []
 var _cfg: Dictionary = {}
-var _mat := StandardMaterial3D.new()
-var _mat_active := StandardMaterial3D.new()
+var _shader: Shader = preload("res://scripts/goals/goal_cylinders.gdshader")
+var _mat := ShaderMaterial.new()
+var _mat_active := ShaderMaterial.new()
 
 
 func _ready() -> void:
@@ -36,19 +37,18 @@ func _on_reloaded() -> void:
 	_rebuild()
 
 
-func _color(key: String, fallback: Color, alpha: float) -> Color:
+func _color(key: String, fallback: Color) -> Color:
 	var a: Array = _cfg.get(key, [])
-	var c := Color(float(a[0]), float(a[1]), float(a[2])) if a.size() >= 3 else fallback
-	c.a = alpha
-	return c
+	return Color(float(a[0]), float(a[1]), float(a[2])) if a.size() >= 3 else fallback
 
 
-func _setup_material(m: StandardMaterial3D, c: Color) -> void:
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	m.disable_fog = true
-	m.albedo_color = c
+func _setup_material(m: ShaderMaterial, c: Color, a_near: float, a_far: float) -> void:
+	m.shader = _shader
+	m.set_shader_parameter("color", c)
+	m.set_shader_parameter("alpha_near", a_near)
+	m.set_shader_parameter("alpha_far", a_far)
+	m.set_shader_parameter("fade_near_m", float(_cfg.get("fade_near_m", 500.0)))
+	m.set_shader_parameter("fade_far_m", float(_cfg.get("fade_far_m", 4000.0)))
 
 
 func _rebuild() -> void:
@@ -59,8 +59,18 @@ func _rebuild() -> void:
 		ch.queue_free()
 	if not visible:
 		return
-	_setup_material(_mat, _color("color", Color(0.2, 0.75, 1.0), float(_cfg.get("alpha", 0.12))))
-	_setup_material(_mat_active, _color("color_active", Color(1.0, 0.6, 0.1), float(_cfg.get("alpha_active", 0.3))))
+	_setup_material(
+		_mat,
+		_color("color", Color(0.2, 0.75, 1.0)),
+		float(_cfg.get("alpha_near", 0.12)),
+		float(_cfg.get("alpha_far", 0.35))
+	)
+	_setup_material(
+		_mat_active,
+		_color("color_active", Color(1.0, 0.6, 0.1)),
+		float(_cfg.get("alpha_active_near", 0.3)),
+		float(_cfg.get("alpha_active_far", 0.6))
+	)
 	var h := float(_cfg.get("height_m", 2000.0))
 	var seg := int(_cfg.get("segments", 32))
 	for p: Dictionary in _points:
