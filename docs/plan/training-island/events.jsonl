@@ -139,3 +139,5 @@
 {"t": "2026-10-17T00:48:59", "by": "executor", "task": "TI-6b", "ev": "reported", "commits": ["2b222ec5"], "note": "done: location-data.md: таблица наборов погоды и итог проверки воздуха, раздел запечённых полей острова (25,9 МБ, 0,7 с проти…", "dp_feedback": "accept при FAIL stale не показывает совпавшие строки; пришлось grep вручную."}
 {"t": "2026-10-17T00:49:08", "by": "coordinator", "task": "TI-6b", "ev": "accepted", "note": "2/2 docs=ok:ошибок 0; stale=ok:0"}
 {"t": "2026-10-17T00:49:09", "by": "coordinator", "task": "TI-6b", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-17T00:49:09", "by": "coordinator", "task": "TI-6b", "ev": "merged"}
+{"t": "2026-10-17T00:50:49", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: r.json в общем scratchpad перезаписывается параллельными исполнителями (TI-8) — шаблону report нужно уникальное имя; accept не делает --import в свежей копии и молча виснет; accept при FAIL re: не печатает хвост вывода; job stop не снимает дочерний lock gpu; accept --here долгий (e2e/matrix > 9 мин) — фильтр по месту"}
