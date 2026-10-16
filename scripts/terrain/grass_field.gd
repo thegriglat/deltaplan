@@ -37,6 +37,8 @@ var _mowed_height_k: float = 0.3
 var _surface: SurfaceLayer
 var _cfg: Dictionary = {}
 var _rock_slope_deg: float = 38.0
+## Вид рельефа (terrain_look) — для правила породы на CPU (grass_keep_at, как ground_cover.gdshaderinc).
+var _look: Dictionary = {}
 var _mowed_spots: Array[Vector4] = []
 ## Посадки для height_at: {center: Vector2, axis_deg, length_m, width_m, hk}.
 var _landing_rects: Array[Dictionary] = []
@@ -55,6 +57,7 @@ func setup(
 	_surface = surface
 	_cfg = cfg
 	_rock_slope_deg = float(look.get("rock_slope_deg", 38.0))
+	_look = look
 	_mowed_spots = mowed_spots.slice(0, MAX_MOWED)
 	_spacing = float(cfg.clump_spacing_m)
 	if bool(cfg.get("density_scaled", true)):
@@ -91,6 +94,7 @@ func setup(
 	TerrainRenderer.apply_look_params(material, look)
 	TerrainRenderer.set_surface(material, surface, surface_tex)
 	material.set_shader_parameter("clump_spacing_m", _spacing)
+	material.set_shader_parameter("stone_keep", _v2(cfg.get("stone_keep", [0.15, 0.65])))
 	material.set_shader_parameter("area_radius_m", radius)
 	material.set_shader_parameter("blade_height_m", _v2(cfg.blade_height_m))
 	material.set_shader_parameter("crop_height_m", _v2(cfg.crop_height_m))
@@ -262,9 +266,14 @@ func _process(_delta: float) -> void:
 
 
 ## Густота травы (grass.density_pct: слайдер «Густота травы» в настройках, пресеты графики),
-## доля: 1.0 — как задано clump_spacing_m; 0 — трава выключена.
+## доля: 1.0 — как задано clump_spacing_m; 0 — трава выключена. Переменная окружения
+## DP_GRASS_DENSITY=<pct> (G2 v2, кадры и замеры) сильнее density_pct.
 static func density_k(grass_cfg: Dictionary) -> float:
-	return maxf(float(grass_cfg.get("density_pct", 100.0)), 0.0) / 100.0
+	var pct := float(grass_cfg.get("density_pct", 100.0))
+	var env := OS.get_environment("DP_GRASS_DENSITY").strip_edges()
+	if env.is_valid_float():
+		pct = env.to_float()
+	return maxf(pct, 0.0) / 100.0
 
 
 ## Шаг пучков при густоте k: число пучков на площадь ∝ k, шаг — как 1/√k.
@@ -291,10 +300,10 @@ static func class_share(c: int, shrub_density: float, forest_density: float) -> 
 
 
 ## PH-К6: высота верхушек травы над землёй в точке мира, м; 0 — травы нет. Та же классификация,
-## что у отрисовки (grass.gdshader): класс поверхности × class_share, склон круче
-## terrain_look.rock_slope_deg, скошенные места и посадки-прямоугольники (hk). Высота — середина
-## диапазона класса (у отрисовки она случайна по пучку), у кустарника/леса умножена на долю
-## пучков. От камеры и max_agl_m не зависит. Детерминирована, без аллокаций кроме мелких.
+## что у отрисовки (grass.gdshader): класс поверхности × class_share, порода рельефа (скалы, выходы
+## породы, осыпь — grass_keep_at, G2 v2), скошенные места и посадки-прямоугольники (hk). Высота —
+## середина диапазона класса (у отрисовки она случайна по пучку), у кустарника/леса и на краю пятен
+## породы умножена на долю пучков. От камеры и max_agl_m не зависит. Детерминирована.
 func height_at(x: float, z: float) -> float:
 	if _layer == null or _surface == null or not is_enabled(_cfg):
 		return 0.0
@@ -321,8 +330,7 @@ func height_at(x: float, z: float) -> float:
 		_:
 			range_v = _v2(_cfg.get("blade_height_m", [0.25, 0.55]))
 	var h := (range_v.x + range_v.y) * 0.5 * share * float(_cfg.get("height_k", 1.0))
-	var slope := slope_deg_at(_layer, x, z)
-	h *= 1.0 - smoothstep(_rock_slope_deg - 4.0, _rock_slope_deg + 2.0, slope)
+	h *= grass_keep_at(x, z, c)
 	var xz := Vector2(x, z)
 	for m in _mowed_spots:
 		if xz.distance_to(Vector2(m.x, m.y)) < m.z:
@@ -349,6 +357,185 @@ static func slope_deg_at(layer: HeightLayer, x: float, z: float) -> float:
 	var gx := lerpf(h10 - h00, h11 - h01, tz) / layer.spacing
 	var gz := lerpf(h01 - h00, h11 - h10, tx) / layer.spacing
 	return rad_to_deg(atan(Vector2(gx, gz).length()))
+
+
+# --- порода рельефа под травой (GR-25, G2 v2): копия ground_cover.gdshaderinc на CPU ---
+
+
+## Доля пучков травы в точке по породе рельефа (gc_grass_keep): 0 — скала/выход породы/осыпь
+## закрывают пятно, 1 — луг. c — класс поверхности (как у шейдера: ближайший узел карты).
+func grass_keep_at(x: float, z: float, c: int) -> float:
+	var sk := _v2(_cfg.get("stone_keep", [0.15, 0.65]))
+	return smoothstep(sk.x, sk.y, meadow_at(x, z, c))
+
+
+## Доля луга, не закрытая породой (gc_meadow): нормаль и уклон — билинейной клетки (h_grad травы).
+func meadow_at(x: float, z: float, c: int) -> float:
+	if c == SurfaceLayer.FOREST:
+		return 1.0
+	var p := Vector2(x, z)
+	var n := cell_normal(_layer, x, z)
+	var slope := rad_to_deg(acos(clampf(n.y, 0.0, 1.0)))
+	var foot := GC_FOOT_M
+	var rock := _gc_rock(p, slope, foot)
+	if c == SurfaceLayer.CROP:
+		return 1.0 - rock
+	var sp := _layer.spacing
+	var fx := (x - _layer.origin_x) / sp
+	var fz := (z - _layer.origin_z) / sp
+	var i := floori(fx)
+	var j := floori(fz)
+	var tx := fx - i
+	var tz := fz - j
+	var k := maxi(roundi(_lf("outcrop_scale_m", 35.0) / sp), 1)
+	var cvx := lerpf(
+		lerpf(_convex_node(i, j, k), _convex_node(i + 1, j, k), tx),
+		lerpf(_convex_node(i, j + 1, k), _convex_node(i + 1, j + 1, k), tx),
+		tz
+	)
+	var ocw := 0.0
+	if _lf("outcrop_amount", 0.9) > 0.0:
+		ocw = _gc_outcrop(p, slope, n, cvx / _lf("outcrop_convex_k", 0.035), foot) * (1.0 - rock)
+	var scree := 0.0
+	var smin := _lf("scree_min_deg", 18.0)
+	if slope > smin - 4.0:
+		var g := Vector2(n.x, n.z)
+		var up := -g.normalized() if g.length() > 1e-3 else Vector2.ZERO
+		var pu := p + up * _lf("scree_probe_m", 35.0)
+		var nu := cell_normal(_layer, pu.x, pu.y)
+		var slope_up := rad_to_deg(acos(clampf(nu.y, 0.0, 1.0)))
+		scree = _gc_scree(p, slope, slope_up, foot) * (1.0 - rock)
+	return (1.0 - scree) * (1.0 - ocw) * (1.0 - rock)
+
+
+## След пикселя для правила породы у травы (GC_FOOT_M в ground_cover.gdshaderinc), м.
+const GC_FOOT_M := 0.05
+
+
+## Нормаль билинейной клетки слоя (как h_grad в grass.gdshader и bilinear_normal).
+static func cell_normal(layer: HeightLayer, x: float, z: float) -> Vector3:
+	var fx := (x - layer.origin_x) / layer.spacing
+	var fz := (z - layer.origin_z) / layer.spacing
+	var i := floori(fx)
+	var j := floori(fz)
+	var tx := fx - i
+	var tz := fz - j
+	var h00 := layer.node(i, j)
+	var h10 := layer.node(i + 1, j)
+	var h01 := layer.node(i, j + 1)
+	var h11 := layer.node(i + 1, j + 1)
+	var gx := lerpf(h10 - h00, h11 - h01, tz) / layer.spacing
+	var gz := lerpf(h01 - h00, h11 - h10, tx) / layer.spacing
+	return Vector3(-gx, 1.0, -gz).normalized()
+
+
+func _convex_node(i: int, j: int, k: int) -> float:
+	var gr := k * _layer.spacing
+	return (
+		-(
+			_layer.node(i + k, j)
+			+ _layer.node(i - k, j)
+			+ _layer.node(i, j + k)
+			+ _layer.node(i, j - k)
+			- 4.0 * _layer.node(i, j)
+		)
+		/ (4.0 * gr)
+	)
+
+
+func _lf(key: String, def: float) -> float:
+	return float(_look.get(key, def))
+
+
+func _lv2(key: String, def: Vector2) -> Vector2:
+	return _v2(_look[key]) if _look.has(key) else def
+
+
+func _ragged_edge(w: float, p: Vector2, foot: float) -> float:
+	if w <= 0.0 or w >= 1.0:
+		return w
+	var kf := 1.0 - smoothstep(2.0, 6.0, foot)
+	var nz := (
+		RockScatter.vnoise(p / 23.0 + Vector2(3.7, 8.1)) * 0.6
+		+ lerpf(0.5, RockScatter.vnoise(p / 7.0 + Vector2(1.3, 5.9)), kf) * 0.4
+	)
+	var hw0 := _lf("material_edge_hw", 0.06)
+	var hw := clampf(hw0 + foot * 0.015, hw0, 0.5)
+	return smoothstep(0.5 - hw, 0.5 + hw, w + _lf("material_edge_noise", 0.5) * (nz - 0.5))
+
+
+func _gc_rock(p: Vector2, slope: float, foot: float) -> float:
+	var rs := _lf("rock_slope_deg", 38.0)
+	var rb := _lf("rock_blend_deg", 8.0)
+	var rn := fbm(p / 40.0 + Vector2(5.1, 2.3), 3)
+	return _ragged_edge(smoothstep(rs - rb * 0.5, rs + rb * 0.5, slope + 10.0 * (rn - 0.5)), p, foot)
+
+
+func _gc_outcrop(p: Vector2, slope: float, n: Vector3, cv: float, foot: float) -> float:
+	var convex := smoothstep(0.25, 1.0, cv)
+	var sd := _lv2("outcrop_slope_deg", Vector2(25.0, 36.0))
+	var steep := smoothstep(sd.x, sd.y, slope)
+	var drv := maxf(convex, steep)
+	if drv <= 0.01:
+		return 0.0
+	var pm := _lf("outcrop_patch_m", 45.0)
+	var kf := 1.0 - smoothstep(2.0, 8.0, foot)
+	var brk := RockScatter.vnoise(p / (pm * 0.18))
+	if kf > 0.0:
+		brk = lerpf(brk, brk * 0.6 + RockScatter.vnoise(p / (pm * 0.06) + Vector2(3.7, 0.4)) * 0.4, kf)
+	var pn := fbm(p / pm + Vector2(12.7, 3.1), 2)
+	var ribs := _lf("outcrop_ribs", 0.6)
+	if steep > 0.01 and ribs > 0.0:
+		var g := Vector2(n.x, n.z)
+		var dn0 := g.normalized() if g.length() > 1e-4 else Vector2(1.0, 0.0)
+		pn = lerpf(pn, _fall_bands(p + Vector2(31.3, 17.9), dn0), ribs * steep)
+	pn += 0.2 * (brk - 0.5)
+	return (
+		smoothstep(0.5, 0.56, pn + 0.2 * (drv - 1.0))
+		* smoothstep(0.0, 0.3, drv)
+		* _lf("outcrop_amount", 0.9)
+	)
+
+
+func _gc_scree(p: Vector2, slope: float, slope_up: float, foot: float) -> float:
+	var rs := _lf("rock_slope_deg", 38.0)
+	var smin := _lf("scree_min_deg", 18.0)
+	var w := (
+		smoothstep(rs - 2.0, rs + 8.0, slope_up)
+		* smoothstep(6.0, 14.0, slope_up - slope)
+		* smoothstep(smin - 4.0, smin + 4.0, slope)
+		* smoothstep(0.35, 0.6, fbm(p / 30.0 + Vector2(4.4, 0.7), 3) + 0.15)
+	)
+	return _ragged_edge(w, p + Vector2(41.0, 41.0), foot) * 0.85
+
+
+func _fall_bands(p: Vector2, d: Vector2) -> float:
+	var bs := _lv2("band_size_m", Vector2(28.0, 170.0))
+	var acc := 0.0
+	var wsum := 1e-4
+	for i in 3:
+		var a := float(i) * 1.0472
+		var e := Vector2(cos(a), sin(a))
+		var c2 := d.dot(e)
+		var w := maxf(pow(c2 * c2, 4.0) - 0.03, 0.0)
+		var q := Vector2(p.dot(Vector2(-e.y, e.x)) / bs.x, p.dot(e) / bs.y)
+		if w > 0.0:
+			acc += w * RockScatter.vnoise(q + Vector2.ONE * (float(i) * 17.3))
+			wsum += w
+	return acc / wsum
+
+
+## fbm(p, octaves) шейдера (terrain_common.gdshaderinc).
+static func fbm(p: Vector2, octaves: int) -> float:
+	var sum := 0.0
+	var amp := 0.5
+	var norm := 0.0
+	for k in octaves:
+		sum += amp * RockScatter.vnoise(p)
+		norm += amp
+		p = Vector2(1.6 * p.x - 1.2 * p.y, 1.2 * p.x + 1.6 * p.y) + Vector2(17.3, 9.1)
+		amp *= 0.5
+	return sum / norm
 
 
 static func _v2(a: Variant) -> Vector2:

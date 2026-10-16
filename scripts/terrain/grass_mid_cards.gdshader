@@ -23,6 +23,7 @@ shader_type spatial;
 render_mode cull_disabled, unshaded, world_vertex_coords, blend_mix, fog_disabled, depth_draw_always;
 
 #include "res://scripts/terrain/terrain_common.gdshaderinc"
+#include "res://scripts/terrain/ground_cover.gdshaderinc"   // скалы, выходы породы, осыпь — как у рельефа (GR-25)
 #include "res://scripts/terrain/terrain_wind.gdshaderinc"
 #include "res://scripts/terrain/meadow_look.gdshaderinc"
 #include "res://scripts/terrain/scene_look.gdshaderinc" // SL
@@ -183,8 +184,10 @@ void vertex() {
 		} else if (c == 1 && hash12(cell + 8.8) < forest_density) {
 			hh = mix(forest_height_m.x, forest_height_m.y, r);
 		}
-		float slope_deg = degrees(acos(clamp(n.y, 0.0, 1.0)));
-		hh *= 1.0 - smoothstep(rock_slope_deg - 4.0, rock_slope_deg + 2.0, slope_deg);
+		// порода рельефа (ground_cover, G2 v2): пучок остаётся с долей луга
+			if (hh > 0.0 && hash12(cell + 23.7) >= gc_grass_keep(xz, n, c)) {
+				hh = 0.0;
+			}
 		for (int k = 0; k < mowed_count; k++) {
 			if (length(xz - mowed[k].xy) < mowed[k].z) {
 				hh *= mowed[k].w;
