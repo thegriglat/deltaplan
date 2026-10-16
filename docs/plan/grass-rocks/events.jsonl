@@ -263,3 +263,4 @@
 {"t": "2026-10-15T17:49:25", "by": "coordinator", "task": "GR-24", "ev": "accepted", "commits": ["8db0a63f"], "note": "2/2 docs=ok:exit 0; angle=ok:11"}
 {"t": "2026-10-15T17:49:25", "by": "coordinator", "task": "GR-24", "ev": "merged", "commits": ["8db0a63f"]}
 {"t": "2026-10-15T17:49:26", "by": "coordinator", "task": null, "ev": "note", "note": "итог волны 4: angle (слои + карточки по углу) по умолчанию, G4 v5; dpcli: accept --dry параллельно на одной копии и свежий XDG без импорта — таймаут без причины; --filter gpu_tests молча даёт 0 тестов"}
+{"t": "2026-10-15T20:17:12", "by": "main", "task": "GR-20", "ev": "cancelled", "note": "Отменена пользователем 15.10; прототип terrain остаётся в ветке grass-rocks/GR-20, не вливается"}
