@@ -17,3 +17,6 @@
 {"t": "2026-10-17T03:01:02", "by": "executor", "task": "VI-4", "ev": "reported", "commits": ["3e1e32c4"], "note": "done: tools/terrain/bake_all.sh [--check] [--id] по configs/locations (bundled, старты с weather); старый island/bake_all.sh …"}
 {"t": "2026-10-17T03:01:58", "by": "coordinator", "task": "VI-4", "ev": "checked", "note": "5/5 check_all=ok:exit 0; check_id=ok:ridge_west; old_gone=ok:exit 0; no_old_refs=ok:0; docs=ok:ошибок 0"}
 {"t": "2026-10-17T03:02:07", "by": "coordinator", "task": "VI-4", "ev": "accepted", "note": "по отчёту; режим запекания проверит VI-5"}
+{"t": "2026-10-17T03:32:09", "by": "coordinator", "task": "VI-4", "ev": "checked", "commits": ["b1f0e426"], "note": "3/5 check_all=FAIL:таймаут; check_id=FAIL:таймаут; old_gone=ok:exit 0; no_old_refs=ok:0; docs=ok:ошибок 0"}
+{"t": "2026-10-17T03:32:09", "by": "coordinator", "task": "VI-4", "ev": "merged"}
+{"t": "2026-10-17T03:34:38", "by": "coordinator", "task": "VI-4", "ev": "note", "note": "accept --here: таймаут check_all/check_id — первый импорт в копии модуля; после godot --import bake_all.sh --check = 0 (31 с), все старты ok"}
