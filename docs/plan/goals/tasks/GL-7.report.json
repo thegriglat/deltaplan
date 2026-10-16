@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "FlightTrack, TrackIO (IGC чтение/запись, GPX-заглушка с last_error), LastTrackStore (base_dir подменяемый), TrackRecorder 1 Гц в воздухе; тесты: круг, полночь (чтение и запись), нулевая GPS-высота, замена, другое место, place_key.",
+  "commits": [
+    "9fbce094 GL-7: библиотека трека"
+  ],
+  "checks": [
+    {
+      "name": "test_flight_track",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_track_io",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k5",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "read_gpx - GL-10"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept GL-7",
+  "uncertain": [
+    {
+      "where": "scripts/goals/flight_track.gd:inside_fraction",
+      "why": "контракт не уточняет направление latlon_fn; принято Callable(lat, lon)->Vector2(x,z), как для TrackRibbon",
+      "checked": "тест"
+    },
+    {
+      "where": "track_recorder.gd",
+      "why": "Callable возвращает Vector2 (float32): точность lat/lon около 0.4 м",
+      "checked": "тест с допуском 1e-5"
+    },
+    {
+      "where": "track_io.gd:write_igc",
+      "why": "год в meta (по умолчанию текущий), т.к. в FlightSettings года нет; давл. высота пишется равной GPS; отрицательная высота обрезается до 0; HFSIT хранит имя",
+      "checked": "круговой тест"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-16T21:43:22",
+  "by": "executor"
+}

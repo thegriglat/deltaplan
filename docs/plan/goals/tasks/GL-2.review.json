@@ -1,0 +1,29 @@
+{
+  "verdict": "rework",
+  "summary": "Трекер, построитель возврата/треугольника, скользящий минимум высоты и интерфейс по К3 в порядке, вне скоупа правок нет. Одно отклонение от К3: цель speed засчитывается в момент ESS, до гоула, и тест это закрепляет.",
+  "issues": [
+    {
+      "file": "scripts/goals/goal_tracker.gd",
+      "line": 334,
+      "severity": "major",
+      "what": "speed финиширует (done) сразу при достижении ESS, даже если гоул так и не взят. К3: «speed — гоул ведущего маршрута за время ≤ value»; заметка координатора говорит только о том, до какого момента считать время (ESS, иначе гоул). Пилот, севший между ESS и гоулом, получает speed=done при route=failed. tests/goals/test_goal_tracker.gd:340 test_speed_counts_to_ess закрепляет именно это.",
+      "fix": "Решать speed при tr.phase == GOAL: время = ess_time_s − start_time_s (нет ESS — goal_time_s − start_time_s). Раннее failed при превышении elapsed/ESS-времени можно оставить. В тест с ESS добавить случай: ESS вовремя, затем посадка до гоула → speed failed."
+    },
+    {
+      "file": "scripts/tasks/training_spot_landing.gd",
+      "line": 15,
+      "severity": "minor",
+      "what": "Поле height_fn добавлено, но его никто не задаёт: в игре TrainingSpotLanding не создаётся, а scripts/game в dont_touch. Исправление пока ни на что не влияет. Вдобавок dp_feedback в отчёте говорит «не трогал» эти файлы, а в коммите они изменены, и пункт «не уверен» про speed («время от взлёта») устарел. Отчёт расходится с фактом.",
+      "fix": "В отчёте после доработки обновить «не уверен» и dp_feedback. Подключение height_fn — дело того, кто будет подключать режим (записать заметку координатору)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "test_goal_tracker (accept --only --dry)",
+      "value": "31/31",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-16T21:43:05",
+  "by": "reviewer"
+}

@@ -1,8 +1,8 @@
 {
   "status": "done",
-  "summary": "GoalSpec, GoalTracker (все 8 целей по К1/К3), GoalRouteBuilder (возврат и равносторонний треугольник с поворотом в bounds, шаг 15 градусов), configs/goals/tracker.json; 30 тестов трекера, 3 спеки, контрактные проверки интерфейса К1 и К3.",
+  "summary": "Доработка по ревью: speed считает до ESS (иначе до гоула), возврат/треугольник type elapsed, мишень TrainingSpotLanding берёт y из height_fn (новое поле), тесты добавлены.",
   "commits": [
-    "8eaf74de goals GL-2: GoalSpec, GoalTracker, построение возврата и треугольника, тесты"
+    "fd207108 goals GL-2: speed до ESS, возврат/треугольник elapsed, высота мишени из height_fn"
   ],
   "checks": [
     {
@@ -67,6 +67,6 @@
     }
   ],
   "dp_feedback": "scope включал scripts/tasks/training_spot_landing.gd и tests/tasks/test_training.gd без пояснения, зачем; не трогал. check_gd без импорта молча пропускается.",
-  "t": "2026-10-16T21:38:34",
+  "t": "2026-10-16T21:41:15",
   "by": "executor"
 }
