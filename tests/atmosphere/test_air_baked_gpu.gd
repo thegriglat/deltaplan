@@ -134,18 +134,40 @@ func test_baked_roundtrip_ongudai() -> void:
 	atmo2.field._update_air()
 	atmo2.field.air_wait()
 	check(atmo2.field.air_src != null and atmo2.field.air_src.count() > 0, "источники термиков построены")
-	# ---- фоновый пересчёт после включения recompute_enabled: окна у пилота, подмена
+	# ---- recompute_enabled: при тех же условиях и пилоте у старта пересчёта нет
+	var baked_levels: Array[WindField] = atmo2.air_field.levels.duplicate()
 	rt2.recompute_enabled = true
 	var n0 := rt2.applied_count
+	for _i in 120:
+		await Engine.get_main_loop().process_frame
+	check(rt2.applied_count == n0 and not rt2.busy(), "тот же час и условия, пилот у старта — пересчёта нет")
+	# ---- замер: холодный пересчёт при тех же условиях против запечённого поля (окно 50 м у старта)
+	rt2._baked_pending = false
+	rt2._begin(rt2.conditions_fn.call(), "замер", false)
 	var t3 := Time.get_ticks_msec()
 	while rt2.applied_count == n0 and rt2.failed_count == 0 and (Time.get_ticks_msec() - t3) < 90000:
 		await Engine.get_main_loop().process_frame
-	check(rt2.applied_count == n0 + 1, "фоновый пересчёт подан (applied %d, ошибка: %s)" % [rt2.applied_count, rt2.last_error])
-	check(rt2.last_info.get("loading", true) == false, "пересчёт — не загрузка (подмена)")
-	check(atmo2.air_field.blend_fraction() < 1.0 or atmo2.air_field.levels.size() > 0, "поле на месте")
-	print(
-		"  фоновый пересчёт после загрузки из файла: %.1f с (%s)" % [float(rt2.last_info.get("wall_s", 0)), rt2.last_info.get("reason")]
-	)
+	check(rt2.applied_count == n0 + 1, "холодный пересчёт подан (ошибка: %s)" % rt2.last_error)
+	if rt2.applied_count == n0 + 1:
+		var fa := AirFieldSet.new()
+		fa.set_field(baked_levels, 0.0)
+		var fb := AirFieldSet.new()
+		fb.set_field(atmo2.air_field.levels, 0.0)
+		var du := 0.0
+		var dw := 0.0
+		for ix in range(-2, 3):
+			for iz in range(-2, 3):
+				for agl in [10.0, 30.0, 60.0, 100.0, 150.0, 200.0, 300.0]:
+					var q := Vector3(sp.x + ix * 12.5, 0.0, sp.z + iz * 12.5)
+					q.y = (place.detail as HeightLayer).sample(q.x, q.z) + agl
+					var va := fa.sample(q, sp.y)
+					var vb := fb.sample(q, sp.y)
+					du = maxf(du, Vector2(va.x - vb.x, va.z - vb.z).length())
+					dw = maxf(dw, absf(va.y - vb.y))
+		print(
+			"  запечённое против холодного пересчёта, окно 50 м у старта, 0–300 м: max|Δu| %.3f, max|Δw| %.3f м/с (%s)"
+			% [du, dw, rt2.last_info.get("reason")]
+		)
 	rt1.queue_free()
 	rt2.queue_free()
 	atmo1.free()
