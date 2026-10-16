@@ -158,6 +158,11 @@
 | `site/themes/hugo-book/` | тема Hugo Book (копия без exampleSite и .git), коммит `40749065b170062e1821ebc9199656c9acd6870d` (ветка main на 24.09.2026) | [alex-shpak/hugo-book](https://github.com/alex-shpak/hugo-book) | MIT (`site/themes/hugo-book/LICENSE`) | сайт на GitHub Pages (`site/hugo.toml`) |
 | KaTeX (стили, шрифты), MiniSearch, Mermaid в `site/themes/hugo-book/static/` | входят в тему | через Hugo Book: [KaTeX](https://github.com/KaTeX/KaTeX), [MiniSearch](https://github.com/lucaong/minisearch), [Mermaid](https://github.com/mermaid-js/mermaid) | MIT | формулы, поиск, диаграммы на сайте |
 
+## Данные учебного острова (data/locations/training_island/)
+| Файл | Что | Источник | Лицензия | Где используется |
+|---|---|---|---|---|
+| `data/locations/training_island/*.webp`, `meta.json`, `surface.json`, `params.json`, `configs/locations/training_island.json` | рельеф и карта классов вымышленного острова (`training_island`) | свои: процедурная генерация `tools/terrain/island/` (эрозионная модель fs1, зерно в `params.json`); внешних данных нет | лицензия проекта | встроенное место «Учебный остров»; библиотеки генератора (numpy, scipy, numba, Pillow; fastscapelib GPL-3.0 — только инструмент сборки, в игру не входит) — `tools/terrain/island/README.md` |
+
 ## Данные исследований (tools/research/, не входят в игру)
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
