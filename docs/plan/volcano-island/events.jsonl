@@ -49,3 +49,5 @@
 {"t": "2026-10-17T04:07:41", "by": "executor", "task": "VI-3", "ev": "reported", "commits": ["5660bf70"], "note": "done: configs/training.json v2 (groups), TrainingMenu с TabContainer по группам (скрыты группы без существующего места/карточ…", "dp_feedback": "accept --dry падает по scope на .import-файлах, которые создаёт --import; стоит игнорировать *.import в проверке scope."}
 {"t": "2026-10-17T04:08:07", "by": "coordinator", "task": "VI-3", "ev": "checked", "note": "3/3 volcano_island=ok:9/9; training=ok:39/39; language=ok:6/6"}
 {"t": "2026-10-17T04:08:12", "by": "coordinator", "task": "VI-3", "ev": "accepted", "note": "по отчёту; вид вкладок — тестовая сборка главной"}
+{"t": "2026-10-17T04:08:44", "by": "coordinator", "task": "VI-3", "ev": "checked", "commits": ["2ada5443"], "note": "2/3 volcano_island=FAIL:8/9; FAIL test_config_groups; training=ok:39/39; language=ok:6/6"}
+{"t": "2026-10-17T04:08:45", "by": "coordinator", "task": "VI-3", "ev": "merged"}
