@@ -1,0 +1,68 @@
+{
+  "id": "TI-3",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Фиксированная погода старта",
+  "goal": "Ключ start_sites[].weather (TI-К2) задаёт погоду полёта с этого старта: одно правило для меню, восстановления последнего выбора, избранного, повтора, сети и командной строки; в меню погода для такого старта не выбирается.",
+  "plan_ref": "TI-3. Фиксированная погода старта",
+  "contracts": [
+    {
+      "name": "TI-К2",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-3",
+  "branch": "training-island/TI-3",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/game/",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/ui/net_screen.gd",
+    "scripts/ui/start_menu.gd",
+    "tests/contracts/test_training_island_k2.gd",
+    "tests/contracts/test_training_island_k2.gd.uid",
+    "tests/ui/",
+    "tests/game/",
+    "tests/fixtures/",
+    "locale/ui.csv"
+  ],
+  "dont_touch": [
+    "configs/locations/",
+    "scripts/atmosphere/",
+    "scripts/terrain/",
+    "scripts/ui/place_pick_row.gd",
+    "scripts/ui/popular_places_window.gd",
+    "scripts/tasks/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "favorites",
+      "tests": "favorites"
+    },
+    {
+      "name": "catch_up",
+      "tests": "catch_up"
+    },
+    {
+      "name": "net_screen",
+      "tests": "net_screen"
+    },
+    {
+      "name": "e2e",
+      "tests": "e2e"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T21:39:24"
+}

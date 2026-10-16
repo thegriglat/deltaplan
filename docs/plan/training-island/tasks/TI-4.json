@@ -1,0 +1,72 @@
+{
+  "id": "TI-4",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Запечённое поле ветра",
+  "goal": "Поле ветра старта с фиксированной погодой считается заранее (tools/terrain/bake_air.gd) и лежит в данных места (TI-К3, float16+zstd); при совпадении ключа игра берёт его вместо расчёта — без этапа «Рассчитываем ветер», с термиками и обычным фоновым пересчётом дальше.",
+  "plan_ref": "TI-4. Запечённое поле ветра",
+  "contracts": [
+    {
+      "name": "TI-К3",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    },
+    {
+      "name": "TI-К2",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-4",
+  "branch": "training-island/TI-4",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "scripts/atmosphere/air_model/air_baked_field.gd.uid",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "tools/terrain/bake_air.gd",
+    "tools/terrain/bake_air.gd.uid",
+    "tools/terrain/bake_air.tscn",
+    "tests/contracts/test_training_island_k3.gd",
+    "tests/contracts/test_training_island_k3.gd.uid",
+    "tests/atmosphere/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_picard_job.gd",
+    "scripts/atmosphere/air_model/wind_field.gd",
+    "scripts/atmosphere/air_model/air_case.gd",
+    "scripts/atmosphere/air_model/air_place.gd",
+    "scripts/atmosphere/air_model/*.glsl",
+    "configs/",
+    "data/",
+    "scripts/ui/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "wind_field",
+      "tests": "wind_field"
+    },
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "air_thermals",
+      "tests": "air_thermals"
+    },
+    {
+      "name": "gpu",
+      "cmd": "bash tools/gpu_tests.sh --filter=baked",
+      "expect": "re:\\n(?:[1-9]\\d*) тестов, 0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T21:40:06",
+  "edited": "2026-10-16T21:40:40"
+}

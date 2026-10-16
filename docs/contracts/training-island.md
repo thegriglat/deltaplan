@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-16"
 summary: "Учебный остров: папка встроенного синтетического места (TI-К1), фиксированная погода старта (TI-К2), запечённое поле ветра (TI-К3)."
 related: ["docs/plan/training-island.md", "docs/guide/location-data.md", "docs/research/air_field_cache.md"]
-contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 1}, {"id": "TI-К3", "version": 1}]
+contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 1}, {"id": "TI-К3", "version": 2}]
 ---
 # Контракты модуля training-island
 
@@ -55,11 +55,11 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 1}, {"id
   повтор полёта, сеть, TI-4 (условия запекания), TI-5 (подбор наборов), модуль goals (тренировки на острове).
 - Ключ `start_sites[].weather` (необязательный) в конфиге места:
   ```json
-  "weather": {"wind_from_deg": 270, "wind_speed_ms": 6.0, "start_hour": 13.0, "month": 7, "day": 15,
+  "weather": {"wind_from_deg": 270, "wind_speed_ms": 6.0, "start_hour": 12.0, "month": 7, "day": 15,
               "sky": "partly", "temperature_c": 24.0}
   ```
   Все поля обязательны внутри `weather`: `wind_from_deg` — откуда ветер, ° (0 — север, 90 — восток); `wind_speed_ms` — ветер по прогнозу
-  у земли, м/с; `start_hour` — час старта (поясное время места); `month`, `day`; `sky` — `"clear"|"partly"|"overcast"`
+  у земли, м/с; `start_hour` — час старта (поясное время места), одно из `configs/world.json → time.start_hours` (9, 12, 15, 20); `month`, `day`; `sky` — `"clear"|"partly"|"overcast"`
   (`configs/weather_model.json → sky`); `temperature_c` — максимум у земли, °C.
 - Соответствие `FlightSettings`: `wind_from_deg` → `wind_from_deg`, `wind_into_launch` = false, `wind_speed_ms·3.6` → `wind_speed_kmh`,
   `start_hour`, `month`, `day`, `sky`, `temperature_c` — одноимённые.
@@ -68,7 +68,7 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 1}, {"id
   в меню погода для такого старта не выбирается (видно, какой набор). Нет `weather` — всё как сейчас.
 - Время полёта идёт как обычно (погода «фиксирована» на старте, не останавливает часы).
 
-## TI-К3. Запечённое поле ветра — версия 1
+## TI-К3. Запечённое поле ветра — версия 2
 
 - Владелец: TI-4. Потребители: `AirRuntime` (`scripts/atmosphere/air_model/air_runtime.gd`), инструмент `tools/terrain/bake_air.gd`, TI-5.
 - Файлы: `res://data/locations/<id>/air/<site_id>.json` (заголовок) + `<site_id>.bin` (тело). Заголовок:
@@ -77,6 +77,12 @@ contracts: [{"id": "TI-К1", "version": 1}, {"id": "TI-К2", "version": 1}, {"id
   "compression": "zstd", "raw_bytes": N}`. Уровни — от мелкого к грубому, как `AirFieldSet.levels`; массивы уровня — `u`, `v`,
   `w_mech`, `w_conv`, `theta`, `hc`, `heat` (те, что читает `WindField.load_file`); 3D-каналы — float16, по столбцам — float32.
   Тело — `PackedByteArray.compress(FileAccess.COMPRESSION_ZSTD)` от склейки массивов (little-endian).
+- v2 (2026-10-16, по TI-4): кроме этих массивов уровень может нести упакованные массивы `meta.<ключ>` (карта z0, `gam` и др. числовые
+  массивы `meta`) и JSON-поле `meta` уровня (`z_i`, `heat`, `inflow_k`, `cond`); читатель восстанавливает `meta` уровня целиком.
+  `key` = `location`, `site`, `weather` (как в конфиге), `center` (lat/lon места), `start` (x, z центра окон, округл. 0,01 м), `domain_dx`,
+  `window_dx`, `data_hash` (sha256 `meta.json`, `surface.json` и файлов `detail*` папки `Locations.data_dir(id)`), `format`.
+  API: `AirBakedField.save(fs, header, path)`, `load_file(path, key)`, `read_header`, `make_key`, `key_diff`, `place_hash`, `model_hash`;
+  `AirRuntime.baked_ready()`, `baked_lookup(c)`, `baked_enabled`. Без GPU запечённое поле тоже берётся (фонового пересчёта нет).
 - `key` — условия, от которых зависит поле старта: `location`, `site`, `weather` (TI-К2 как есть), координаты центра области и окон, хеш данных
   места (`meta.json` + файлы слоёв `detail`), версия формата. В игре поле берётся только при точном совпадении `key`.
 - `model_hash` — sha256 исходников модели воздуха (`scripts/atmosphere/air_model/*.gd`, `*.glsl`, секции `air_model`, `air_phase`

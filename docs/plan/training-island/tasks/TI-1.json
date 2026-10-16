@@ -1,0 +1,71 @@
+{
+  "id": "TI-1",
+  "module": "training-island",
+  "type": "dp-researcher",
+  "title": "Рельеф и карта классов острова",
+  "goal": "Сгенерировать учебный остров ~14×10 км в море (fs1 + формы под тренировки) с картой классов и упаковать как место формата 4 в data/locations/training_island + конфиг со стартами склон/термики/посадка/ротор; кадры и быстрые числа w для шлюза 1.",
+  "plan_ref": "TI-1. Рельеф и карта классов острова",
+  "contracts": [
+    {
+      "name": "TI-К1",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-1",
+  "branch": "training-island/TI-1",
+  "base": "feature/training-island",
+  "scope": [
+    "tools/terrain/island/",
+    "data/locations/training_island/",
+    "configs/locations/training_island.json",
+    "locale/ui.csv",
+    "configs/world_objects.json",
+    "tests/contracts/test_training_island_k1.gd",
+    "tests/contracts/test_training_island_k1.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/atmosphere.json",
+    "configs/surface_heat.json",
+    "configs/weather_model.json",
+    "tools/research/air_synth/",
+    "data/places/",
+    "tests/terrain/",
+    "tests/ui/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    },
+    {
+      "name": "determinism",
+      "cmd": "bash tools/terrain/island/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sites",
+      "cmd": "python3 tools/terrain/island/check_sites.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "air_quick",
+      "cmd": "python3 tools/terrain/island/air_quick.py --show",
+      "expect": "re:ridge_w_ms="
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/training-island/TI-1/ | grep -c jpg",
+      "expect": "num:(\\d+) >=5"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T21:38:06"
+}
