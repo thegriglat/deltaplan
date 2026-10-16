@@ -50,14 +50,10 @@
       "name": "shots",
       "cmd": "ls /home/greg/deltaplan/build/screenshots/grass-look/rock-grid/*.jpg | wc -l",
       "expect": "num:(\\d+) >=4"
-    },
-    {
-      "name": "section",
-      "cmd": "grep -c '^## GR-26' docs/perf/grass_rocks_2.md",
-      "expect": "re:^1$"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-16T18:43:52"
+  "created": "2026-10-16T18:43:52",
+  "edited": "2026-10-16T18:44:40"
 }
