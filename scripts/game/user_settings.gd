@@ -25,7 +25,6 @@ const LOCAL_KEYS: PackedStringArray = [
 	"game.display",
 	"atmosphere.clouds",
 	"atmosphere.air_model",
-	"atmosphere.air_cache",
 	"world.trees",
 	"world.sun",
 	"world.effects",

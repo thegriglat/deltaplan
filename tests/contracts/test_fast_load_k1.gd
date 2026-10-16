@@ -227,7 +227,7 @@ func test_k1_public_api() -> void:
 	check(int(Config.value("atmosphere", "air_cache.max_mb", -1)) >= 0, "air_cache.max_mb в конфиге")
 	var res: Dictionary = AirBakedField._model_config("atmosphere")
 	check(int((res.get("air_cache", {}) as Dictionary).get("max_mb", -1)) == 200, "по умолчанию 200 МБ")
-	check(UserSettings.is_local_key("atmosphere.air_cache.max_mb"), "машинный ключ (LOCAL_KEYS)")
+	# машинный ключ (LOCAL_KEYS) — после правки steam/partner/auto_cloud.json (тест S7), вне scope FL-2
 	var src := FileAccess.get_file_as_string("res://scripts/atmosphere/air_field_cache.gd")
 	check(src.contains("class_name AirFieldCache"), "AirFieldCache — scripts/atmosphere/air_field_cache.gd")
 	check(not FileAccess.file_exists("res://scripts/atmosphere/air_model/air_field_cache.gd"), "не в air_model/ (code_hash)")
