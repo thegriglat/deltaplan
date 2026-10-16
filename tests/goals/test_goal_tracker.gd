@@ -105,7 +105,7 @@ func test_landing_miss_and_crash() -> void:
 func test_landing_unavailable_without_target() -> void:
 	var g := H.make([_g("landing", 50.0), _g("duration", 10.0)])
 	var it: Dictionary = g.items()[0]
-	check(it.status == "unavailable" and it.reason != "", "нет круга — unavailable с причиной")
+	check(it.status == "unavailable" and it.reason == "no_target", "нет круга — unavailable, код no_target")
 	H.fly(g, H.START, H.at(0, 100), 0.0, 20.0)
 	check(_status(g, 1) == "done", "остальные не страдают")
 	g.on_landed({"grade": "soft"})
