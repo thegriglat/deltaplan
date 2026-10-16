@@ -296,3 +296,5 @@
 {"t": "2026-10-16T19:26:34", "by": "coordinator", "task": "GR-25", "ev": "note", "note": "ревью: dp-reviewer (GPU, общее правило рельефа/травы, запекание карты на GPU); вопрос исполнителя: старт Онгудая — голая порода (outcrop на выпуклой вершине ~100 м)"}
 {"t": "2026-10-16T19:28:11", "by": "reviewer", "task": "GR-25", "ev": "reviewed", "note": "Все изменения в пределах скоупа (18 файлов), контракт G2 v2 соблюдён: сигнатуры не менялись, DP_GRASS_DENSITY есть в density_k, правило породы одно на рельеф, …", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/grass-rocks/tasks/GR-25.review.json"}
 {"t": "2026-10-16T19:28:23", "by": "coordinator", "task": "GR-25", "ev": "accepted", "note": "по ревью; minor: запасной цвет у корня — кадр за карточкой, проверка вида рельефа разовая, кромка породы в доли метра"}
+{"t": "2026-10-16T19:28:33", "by": "coordinator", "task": "GR-25", "ev": "checked", "commits": ["e162df9a"], "note": "1/7 grass_rocks_contracts=ok:7/7"}
+{"t": "2026-10-16T19:28:33", "by": "coordinator", "task": "GR-25", "ev": "merged", "commits": ["e162df9a"]}
