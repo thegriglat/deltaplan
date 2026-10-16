@@ -1,0 +1,67 @@
+{
+  "id": "TI-11",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Хеш модели воздуха в ключе запечённого поля; экспорт и smoke",
+  "goal": "Игра берёт запечённое поле только при совпадении хеша модели воздуха (код и конфиги, влияющие на поле) — в редакторе и в экспортной сборке; иначе считает поле сама. new-release проверяет bake_all.sh --check перед сборкой. Сборка linux (без публикации) и smoke: остров из собранного каталога грузит поля из pck.",
+  "plan_ref": "Условия сдачи (Q3, 2026-10-17)",
+  "contracts": [
+    {
+      "name": "TI-К3",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-11",
+  "branch": "training-island/TI-11",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "tools/terrain/bake_air.gd",
+    "tools/terrain/island/bake_all.sh",
+    "tools/terrain/air_model_hash.gd",
+    "tools/terrain/air_model_hash.gd.uid",
+    "tools/build.sh",
+    "data/locations/training_island/air/",
+    "data/air_model_hash.txt",
+    ".claude/skills/new-release/SKILL.md",
+    ".gitignore",
+    "tests/contracts/test_training_island_k3.gd",
+    "tests/atmosphere/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_picard_job.gd",
+    "configs/",
+    "export_presets.cfg",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "bake_check",
+      "cmd": "bash tools/terrain/island/bake_all.sh --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gpu",
+      "cmd": "bash tools/gpu_tests.sh --filter=island_baked",
+      "expect": "re:\\n(?:[1-9]\\d*) тестов, 0 упало"
+    },
+    {
+      "name": "smoke",
+      "cmd": "test -s build/smoke/TI-11/smoke.txt && cat build/smoke/TI-11/smoke.txt",
+      "expect": "re:baked_from_pck=4/4"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T00:52:08"
+}
