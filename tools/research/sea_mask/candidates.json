@@ -163,6 +163,24 @@
  },
  {
   "id": "dead_sea",
+  "kind": "lake",
+  "water_cells": 87071,
+  "far_cells": 35179,
+  "a_water_h<=0.5": {
+   "marked": 86484,
+   "far_marked": 35179
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 0,
+   "far_marked": 0
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 0,
+   "far_marked": 0
+  }
+ },
+ {
+  "id": "dead_sea_med",
   "kind": "edge",
   "water_cells": 122175,
   "far_cells": 61043,
@@ -176,6 +194,60 @@
   },
   "b2_b_connected_to_edge": {
    "marked": 14,
+   "far_marked": 0
+  }
+ },
+ {
+  "id": "malaren",
+  "kind": "lake",
+  "water_cells": 253651,
+  "far_cells": 6680,
+  "a_water_h<=0.5": {
+   "marked": 38,
+   "far_marked": 0
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 12,
+   "far_marked": 0
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 0,
+   "far_marked": 0
+  }
+ },
+ {
+  "id": "malaren_baltic",
+  "kind": "edge",
+  "water_cells": 408621,
+  "far_cells": 52123,
+  "a_water_h<=0.5": {
+   "marked": 139752,
+   "far_marked": 45219
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 42101,
+   "far_marked": 228
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 329,
+   "far_marked": 0
+  }
+ },
+ {
+  "id": "superior",
+  "kind": "lake",
+  "water_cells": 2330789,
+  "far_cells": 2244031,
+  "a_water_h<=0.5": {
+   "marked": 12,
+   "far_marked": 0
+  },
+  "b_cls6_abs(h)<=1": {
+   "marked": 0,
+   "far_marked": 0
+  },
+  "b2_b_connected_to_edge": {
+   "marked": 0,
    "far_marked": 0
   }
  }

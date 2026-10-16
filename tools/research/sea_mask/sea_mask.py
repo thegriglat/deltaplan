@@ -9,6 +9,7 @@ from sealib import label_runs, edt
 HERE = os.path.dirname(os.path.abspath(__file__))
 LEVEL_M = 0.25      # медиана высот компоненты воды не выше — море
 MIN_CELLS = 100     # компонента меньше (1 км2) не решает
+OPEN_CELLS = 0      # эрозия водной маски до разметки (размыкание проток): 5 клеток пробовали, на 15 местах результат тот же, поэтому выключено
 NEAR0_M = 0.5       # класс 0 (нет покрова WorldCover) считается водой, если h не выше
 FAR_CELLS = 20      # 2 км при шаге 100 м
 
@@ -22,7 +23,11 @@ PLACES = [  # id, ключ кеша (или путь), kind, lat, lon, прим�
     ("baikal", "pt_+51.850_+104.900", "lake", 51.85, 104.9, "озеро, 449 м"),
     ("caspian_baku", "pt_+40.350_+049.900", "edge", 40.35, 49.9, "море-озеро −28 м, есть батиметрия"),
     ("ijsselmeer", "pt_+52.750_+005.350", "edge", 52.75, 5.35, "бывший залив, ~0 м, рядом Северное море"),
-    ("dead_sea", "pt_+31.500_+035.500", "edge", 31.5, 35.5, "−430 м"),
+    ("dead_sea", "pt_+31.500_+035.900", "lake", 31.5, 35.9, "озеро −430 м; центр сдвинут на восток, чтобы квадрат не захватил Средиземное море"),
+    ("dead_sea_med", "pt_+31.500_+035.500", "edge", 31.5, 35.5, "диагностика: тот же квадрат с полоской Средиземного моря на западном краю (море, не озеро)"),
+    ("malaren", "pt_+59.800_+016.000", "lake", 59.8, 16.0, "Мелларен (западная и северная части), ~0,7 м по справочнику; центр сдвинут на северо-запад, чтобы квадрат не захватил Балтику"),
+    ("malaren_baltic", "pt_+59.450_+017.000", "edge", 59.45, 17.0, "диагностика: квадрат с Балтикой и Стокгольмом — озеро соединено с морем протоками"),
+    ("superior", "pt_+47.500_-087.500", "lake", 47.5, -87.5, "Верхнее, 183 м; батиметрии Terrarium нет"),
 ]
 
 
@@ -30,22 +35,51 @@ def water_mask(h, s):
     return (s == 6) | ((s == 0) & (h <= NEAR0_M))
 
 
-def sea_mask(h, s):
-    """Главный признак: компонента воды (8-связность) размером >= MIN_CELLS с медианой высот <= LEVEL_M — море."""
+def _erode(m, r):
+    """Эрозия ромбом радиуса r; за краем квадрата — вода (край не берег)."""
+    for _ in range(r):
+        p = np.pad(m, 1, constant_values=True)
+        m = m & p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:]
+    return m
+
+
+def _grow_within(m, limit, r):
+    """Геодезическое расширение m внутри limit на r клеток (ромб)."""
+    for _ in range(r):
+        p = np.pad(m, 1)
+        m = (m | p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]) & limit
+    return m
+
+
+def sea_mask(h, s, open_cells=OPEN_CELLS):
+    """Главный признак (v2). Вода (класс 6, или класс 0 при h <= 0,5) сначала размыкается: эрозия на open_cells клеток
+    разрывает проливы и протоки уже ≈ 1 км шириной (озеро, соединённое с морем каналом, — не одна компонента).
+    Компонента эродированной воды (8-связность) размером >= MIN_CELLS — море, если одновременно
+    (1) медиана высот far <= LEVEL_M и (2) она касается края far-квадрата. Условия независимы: озеро выше порога
+    отвергается уровнем, озеро любого уровня, целиком лежащее в квадрате, — краем. Помечаются клетки воды в пределах
+    open_cells от ядра компоненты. Возвращает (маска моря, вода, метки ядер, медианы, касание края)."""
     w = water_mask(h, s)
-    lab, n = label_runs(w)
+    core = _erode(w, open_cells) if open_cells else w
+    lab, n = label_runs(core)
     if n == 0:
-        return np.zeros_like(w), w, lab
+        return np.zeros_like(w), w, lab, np.zeros(1), np.zeros(1, bool)
     flat = lab.ravel()
     order = np.argsort(flat, kind="stable")
     hs = h.ravel()[order]
     cnt = np.bincount(flat, minlength=n + 1)
     start = np.concatenate(([0], np.cumsum(cnt)))
+    med = np.zeros(n + 1)
+    edge = np.zeros(n + 1, bool)
+    edge[np.unique(np.concatenate((lab[0], lab[-1], lab[:, 0], lab[:, -1])))] = True
+    edge[0] = False
     sea_ids = np.zeros(n + 1, bool)
     for L in range(1, n + 1):
-        if cnt[L] >= MIN_CELLS and np.median(hs[start[L]:start[L + 1]]) <= LEVEL_M:
-            sea_ids[L] = True
-    return sea_ids[lab], w, lab
+        if cnt[L] >= MIN_CELLS:
+            med[L] = np.median(hs[start[L]:start[L + 1]])
+            sea_ids[L] = med[L] <= LEVEL_M and edge[L]
+    seacore = sea_ids[lab]
+    sea = _grow_within(seacore, w & ~(core & ~seacore), open_cells + 1) if open_cells else seacore
+    return sea, w, lab, med, edge
 
 
 def cand_cell_h(h, s):      # (a) покомпонентно не смотрим: вода и h <= 0,5
@@ -82,17 +116,18 @@ def main():
         _, o = load_place(d)
         h, s = o["far"]["h"], o["far"]["surface"]
         t = time.perf_counter()
-        sea, w, lab = sea_mask(h, s)
+        sea, w, lab, med, edge = sea_mask(h, s)
         dt = (time.perf_counter() - t) * 1000
         costs.append(dt)
         cnts = np.bincount(lab.ravel())[1:]
         big = int(np.argmax(cnts)) + 1 if len(cnts) else 0
-        med_big = float(np.median(h[lab == big])) if big else float("nan")
+        med_big = float(np.median(h[lab == big])) if big else 0.0
+        touch_big = bool(edge[big]) if big else False
         dl = edt(~w)                    # до ближайшей не-воды (края квадрата не берег)
         far = w & (dl > FAR_CELLS)
         nfar, nmark = int(far.sum()), int((far & sea).sum())
         rows.append(dict(id=pid, lat=lat, lon=lon, kind=kind, water_cells=int(w.sum()), sea_cells=int(sea.sum()),
-                         sea_far_cells=nfar, sea_far_marked=nmark,
+                         sea_far_cells=nfar, sea_far_marked=nmark, level_m=round(med_big, 3), touches_edge=touch_big,
                          notes=f"{note}; класс 6: {int((s == 6).sum())}, класс 0 и h<=0,5: {int(((s == 0) & (h <= NEAR0_M)).sum())}; "
                                f"медиана h крупнейшей компоненты воды {med_big:.2f} м; помечено с h>5 м: {int((sea & (h > 5)).sum())}; расчёт {dt:.0f} мс"))
         if kind == "sea":
@@ -107,10 +142,13 @@ def main():
     missing = [r["id"] for r in rows if r["water_cells"] == 0 and r["kind"] != "edge"]
     tp_min = min(tps) if tps else 0.0
     works = (not missing) and fp_total == 0 and tp_min >= 0.8
-    summary = dict(
+    # запас по уровню: внутренние водоёмы, отвергнутые только уровнем (касаются края, но выше порога)
+    lvl = [r["level_m"] for r in rows if r["kind"] not in ("sea", "edge") and r.get("touches_edge") and r["level_m"] > LEVEL_M]
+    margin = min(lvl) if lvl else 0.0
+    summary = dict(level_margin_m=float(margin),
         criterion=("Вода far = класс покрова 6 (far_surface.webp) или класс 0 (нет данных WorldCover: открытый океан) с h <= 0,5 м. "
-                   "Компоненты воды (8-связность, far 1601x1601, шаг 100 м). Компонента размером >= 100 клеток (1 км2) с медианой "
-                   "высот far.webp <= 0,25 м — море, все её клетки помечены морем. Высоты: Copernicus над морем ровно 0 м, "
+                   "Компоненты воды (8-связность, far 1601x1601, шаг 100 м). Море — компонента размером >= 100 клеток (1 км2), у которой "
+                   "одновременно медиана высот far.webp <= 0,25 м и она касается края far-квадрата; все её клетки помечены морем. Высоты: Copernicus над морем ровно 0 м, "
                    "Terrarium в океане даёт отрицательную батиметрию (доживает до far.webp), озёра выше — медиана выше порога."),
         works=bool(works), fp_inland_cells=int(fp_total), tp_sea_min=float(tp_min),
         where="", cost_ms=float(np.mean(costs)) if costs else 0.0, places=rows)
@@ -126,4 +164,5 @@ def main():
         print(c)
 
 
-main()
+if __name__ == "__main__":
+    main()
