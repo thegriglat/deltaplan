@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "Game создаёт GoalTracker при старте с верными целями вне сети, ведёт по телеметрии, сбрасывает на новую попытку, отдаёт ведущий маршрут прибору (≤4 Гц); HUD-список GoalList; в итоге блок целей и новые рекорды (FlightRecords).",
+  "commits": [
+    "3fc9813a Слияние feature/goals в goals/GL-4"
+  ],
+  "checks": [
+    {
+      "name": "test_goals_game",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goal_list",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_game_flight",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "lang_goals",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_screens",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "tests/game/test_ui",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_gameplay",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "game_logic",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept GL-4",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:_goals_finish",
+      "why": "on_landed вызывается из _emit_end (после подтверждения посадки), а не при касании; рекорды пишутся только в полётах с целями и только при взлёте",
+      "checked": "тест посадки и рекордов"
+    },
+    {
+      "where": "scripts/ui/goal_list.gd",
+      "why": "значки зависят от шрифта; вид HUD не смотрел",
+      "checked": "логика строк и видимость в тестах"
+    }
+  ],
+  "dp_feedback": "accept --dry долгий (~7 мин); report требует checks по именам — шаблон мог бы их подставлять.",
+  "t": "2026-10-16T22:22:24",
+  "by": "executor"
+}

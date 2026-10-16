@@ -1,0 +1,69 @@
+{
+  "status": "done",
+  "summary": "reason в GoalTracker — коды; в итоге tr(goals_reason_<код>) ru/en; строка цели в окне Цели шире (флажок 260, список уровня fit_to_longest_item, min 130).",
+  "commits": [
+    "0a3fc057 GL-14 причины кодом, ширина"
+  ],
+  "checks": [
+    {
+      "name": "test_goal_tracker",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goal_list",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goals_tab",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k3",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_screens",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goals_game",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "lang_goals",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Вид цилиндров и полосы по Q1 — ответа в карточке нет, не делал"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept GL-14",
+  "uncertain": [
+    {
+      "where": "scripts/ui/goals_tab.gd:_build_row",
+      "why": "ширину не смотрел глазами (без скриншота), правка по размерам контролов",
+      "checked": "тесты goals_tab проходят"
+    },
+    {
+      "where": "scripts/goals/goal_tracker.gd",
+      "why": "добавлены коды сверх контракта: deadline, no_route, bad_value, unknown_kind; task_error не несёт текст ошибок задания",
+      "checked": "перевод всех кодов проверен тестом test_goals_k3"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-16T23:32:11",
+  "by": "executor"
+}

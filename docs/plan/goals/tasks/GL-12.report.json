@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "Цена целей на кадре (medium, ongudai, 2 круга): GPU +0,02…+0,09 мс (<1 %), +35 draw calls; CPU-кадр +0,5…0,9 мс при шуме стенда ~1 мс. Раздел «Цена» в docs/guide/goals.md.",
+  "commits": [
+    "847e62a2 GL-12: замер цены целей, раздел Цена"
+  ],
+  "checks": [
+    {
+      "name": "table",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "GPU с целями минус без, мс",
+      "value": "+0,02…+0,09",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "high не мерили",
+    "первый запуск main (холодный кэш) исключён"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept GL-12",
+  "uncertain": [
+    {
+      "where": "docs/guide/goals.md: Цена",
+      "why": "CPU-разница 0,5-0,9 мс сравнима с шумом стенда; n=2 круга",
+      "checked": "main и ветка без целей совпали по GPU во втором круге"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "gpu_ms_main_off_on_cockpit2": [
+      8.3,
+      8.32,
+      8.41
+    ],
+    "gpu_ms_main_off_on_chase30": [
+      8.63,
+      8.65,
+      8.68
+    ],
+    "gpu_ms_main_off_on_chase60": [
+      8.44,
+      8.44,
+      8.46
+    ]
+  },
+  "t": "2026-10-17T00:32:09",
+  "by": "executor"
+}

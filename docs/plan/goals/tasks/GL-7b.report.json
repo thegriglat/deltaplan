@@ -1,0 +1,55 @@
+{
+  "status": "partial",
+  "summary": "Game пишет трек (TrackRecorder) с отрыва, при конце попытки/перезапуске сохраняет в LastTrackStore (одна на место), при show_last_track кладёт её в goal_tracks и рисует TrackRibbon; в сети и в inspect — ничего. Все проверки карточки зелёные, кроме test_game_logic: test_pilot_animator_sequence падает и без моих правок (проверено на HEAD~1).",
+  "commits": [
+    "GL-7b: трек в игре"
+  ],
+  "checks": [
+    {
+      "name": "test_goal_tracks_game",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_game_flight",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_track_ribbon",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_track_io",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "test_game_logic",
+      "value": "1 упал (test_pilot_animator_sequence, до моих правок тоже)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "test_game_logic::test_pilot_animator_sequence падает на базе feature/goals — не из GL-7b"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept GL-7b",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd _tracks_begin/_tracks_finish",
+      "why": "запись сохраняется только если stats.took_off; при старте в воздухе (air-start) без взлёта со склона — не сохраняется; _end_catch_up не трогал (только сеть)",
+      "checked": "тест: air-start, 20 с полёта, restart сохраняет ~20 точек; без флага и в сети пусто"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-16T22:08:33",
+  "by": "executor"
+}

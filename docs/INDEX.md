@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-15"
+updated: "2026-10-17"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -18,12 +18,17 @@ generated: true
 
 ## flight
 
+- **pendulum-default** — Режим управления «Маятник» — основной: умолчание везде, без пометки «экспериментальный», первым в списке; сайт и доки — по факту. [active 2026-10-15] — [план](plan/pendulum-default.md) · [контракты](contracts/pendulum-default.md)
 - **speed-feel** — Скорость ощущается, как у пилота: тряска ∝ V, ленточка различает скорость до 25 м/с, эоловый тон тросов, проверка выравнивания головы. [active 2026-10-15] — [план](plan/speed-feel.md) · [контракты](contracts/speed-feel.md)
   - [docs/research/speed-feel.md](research/speed-feel.md) — Числа SPF-1: болтанка растёт как V^1,2–1,5, θ(V) −15°, St ленты 0,4, тросы Ø2–3,2 мм St 0,2, голова следует на 0,3
   - [tools/research/speed-feel/README.md](../tools/research/speed-feel/README.md) — SPF-1: скрипты и таблицы замеров болтанки, тангажа киля, частот ленты и тросов; команды воспроизведения
 
 ## world
 
+- **grass-rocks** — Трава: вблизи натуральная, на 10–40 м бархатная, дальше — шейдер рельефа, цена ≤ 1 мс; камни — честные многогранники на 12–80 треугольников. [active 2026-10-15] — [план](plan/grass-rocks.md) · [контракты](contracts/grass-rocks.md)
+  - [docs/perf/grass_rocks.md](perf/grass_rocks.md) — Замеры цены травы и камней модуля grass-rocks по протоколу G3: база (GR-2) и после каждой правки, medium и high, ongudai.
+  - [docs/perf/grass_rocks_2.md](perf/grass_rocks_2.md) — Продолжение замеров grass-rocks: GR-22, режим angle против shell (G3, medium и high, ongudai), кадры angle/ и final/9.
+  - [docs/perf/offscreen_audit.md](perf/offscreen_audit.md) — Аудит GR-1: работа вне кадра. Заметно: трава (≈ 2 млн вершин за спиной), кресты, импостеры; CPU-отсечение при вращении не годится.
 - **offline_world_data** — Отложено 30.09: офлайн-пакет региона и подложка поверхности из OSM; кода нет, роль частично закрыли osm-any и osm-tiles. [postponed 2026-10-15] — [план](plan/offline_world_data.md)
 - **osm_vector_pack** — Замер размера офлайн-пакета (Словения ≈ 80 МБ); §9 тайлы 20 км реализованы в osm-tiles, офлайн-пакет не сделан (отложен). [postponed 2026-10-15] — [план](plan/osm_vector_pack.md)
   - [docs/plan/osm_vector_pack/minimal-package.md](plan/osm_vector_pack/minimal-package.md) — Минимальный пакет OSM (замер 10.10.2026, Словения): что нужно игре из вектора и сколько это весит. [postponed]
@@ -34,6 +39,11 @@ generated: true
   - [docs/guide/scene-look/light-atmosphere.md](guide/scene-look/light-atmosphere.md) — Свет неба и земли, дымка с ореолом, дороги вдали, просвет паруса и листвы (SL-2, SL-3, SL-4, SL-7): физика и цена.
   - [docs/guide/scene-look-keys.md](guide/scene-look-keys.md) — Таблицы ключей scene-look: scene_look, trees.*, trees.impostors.seam_*, haze.*, roads.look, sail — по умолчанию и смысл.
   - [docs/guide/scene-look.md](guide/scene-look.md) — Модуль scene-look («картинка сочнее»): принцип, шейдерный include sl_*, конфиг и выключатели; пункты SL-2…SL-23 разнесены по частям.
+
+## game
+
+- **goals** — Цели полёта перед стартом (высота, время, дальность, возврат, треугольник, маршрут, скорость, посадка), зачёт, след попытки, IGC/GPX. [active 2026-10-16] — [план](plan/goals.md) · [контракты](contracts/goals.md)
+  - [docs/guide/goals.md](guide/goals.md) — Цели полёта и треки: вкладка «Цели», оценка по погоде, засчёт в полёте, итог, прибор, столбы, запись и показ треков, IGC/GPX.
 
 ## process
 
@@ -68,7 +78,7 @@ generated: true
 - [docs/guide/flight/ground-bank.md](guide/flight/ground-bank.md) — Крен крыла на земле: уравнение моментов, рука пилота, порог бокового ветра, поворот на бегу, границы модели.
 - [docs/guide/flight/ground-pose.md](guide/flight/ground-pose.md) — Поза крыла на земле: зазор над рельефом, крыло стоя на старте (тангаж, флюгер, касания), старт в сильный ветер.
 - [docs/guide/flight/model.md](guide/flight/model.md) — Модель FlightModel: точечная масса с ориентацией, силы, трапеция, крен, срыв, воздух, земля, выравнивание и посадка; допущения.
-- [docs/guide/flight/pendulum.md](guide/flight/pendulum.md) — Режим «Маятник» (экспериментальный): крыло на 16 полосах, пилот на цепи подвески, руки, земля, срыв, границы.
+- [docs/guide/flight/pendulum.md](guide/flight/pendulum.md) — Режим «Маятник» (основной, по умолчанию): крыло на 16 полосах, пилот на цепи подвески, руки, земля, срыв, границы.
 - [docs/guide/flight/polar-table.md](guide/flight/polar-table.md) — Таблица поляры в спокойном воздухе: трапеция, скорость, снижение, качество для учебного, мачтового и безмачтового крыла.
 - [docs/guide/flight/sky-shade.md](guide/flight/sky-shade.md) — Тень от неба под парусом: физика закрытия небосвода, параметры, реализация декалью.
 - [docs/guide/flight/wings.md](guide/flight/wings.md) — Параметры (конфиги крыла, пилота, полёта) и каталог из 48 крыльев по группам и классам ветра.
@@ -98,14 +108,14 @@ generated: true
 - [docs/guide/net-protocol.md](guide/net-protocol.md) — Сетевой протокол: транспорт, сообщения, роль ведущего, ключ мира, LAN-поиск, примеры JSON и сценарии; правда — net.proto.
 - [docs/guide/osm-tiles.md](guide/osm-tiles.md) — Тайлы OSM 20 км: что в них (O1–O3), как собрать тест и весь мир, где итог, что делать при падении; клиент игры и состояние прогона.
 - [docs/guide/steam.md](guide/steam.md) — Steam: SteamService, ачивки, присутствие, лобби и сеть, облако; включение, тест на App ID 480, ручные проверки, ограничения.
-- [docs/guide/tasks.md](guide/tasks.md) — Задания, тренировки, рекорды: логика на RefCounted и конфиги готовы, в игре (Game.tick, меню) не подключены; форматы, API, критерии.
+- [docs/guide/tasks.md](guide/tasks.md) — Задания, тренировки, рекорды: логика и конфиги; в игре — через цели полёта (goals.md), меню заданий и тренировок нет; форматы, API.
 - [docs/guide/telltale.md](guide/telltale.md) — Ленточка на переднем тросе трапеции: узел из геометрии модели, физика потока и цепочки, рисунок, ограничение модели без скольжения.
 - [docs/guide/terrain/forest-sky.md](guide/terrain/forest-sky.md) — Деревья-модели и средний план леса, полог с высоты, небо, солнце, дымка с инверсией, ослепление, ветер на траве и деревьях.
 - [docs/guide/terrain/relief.md](guide/terrain/relief.md) — Слои высот (WebP, 25 м и 100 м), height_at, чанки и LOD, юбки, нормали, форма гор вдали, DSM под лесом, поля рельефа.
 - [docs/guide/terrain/runtime.md](guide/terrain/runtime.md) — Выбор точки на карте и загрузка места (LoadProgress, ошибки), добавление локации, превью-сцена, четыре места, стенд кадров.
 - [docs/guide/terrain/surface.md](guide/terrain/surface.md) — Карта поверхности WorldCover и маска 10 м (лес, вода), раскраска земли, пустыри у стартов, источники термиков, скалы и снег.
 - [docs/guide/terrain.md](guide/terrain.md) — Рельеф и мир (Terrain): файлы, контракт height_at/surface_at/forest_at, пример подключения; детали — в частях terrain/.
-- [docs/guide/vegetation.md](guide/vegetation.md) — Растительность вблизи камеры: три кольца травинок, кусты и одиночные деревья на лугу, расстановка деревьев по кромке маски леса.
+- [docs/guide/vegetation.md](guide/vegetation.md) — Трава по дистанциям (ближние травинки, средняя: angle/shell/blades), кусты, одиночные деревья, деревья по кромке леса.
 - [docs/guide/world-objects/easter-eggs.md](guide/world-objects/easter-eggs.md) — Каркас пасхалок мира: планировщик, как добавить, запреты, место (EggPlace). На сайт не публикуется.
 - [docs/guide/world-objects/start-camp.md](guide/world-objects/start-camp.md) — Старт глазами пилота: тропа, палатки, снаряжение и крылья, примятая трава, ткань, люди, костёр — правила размещения и параметры.
 - [docs/guide/world-objects/villages-osm.md](guide/world-objects/villages-osm.md) — Просеки для деревьев, процедурные дома в пятнах застройки, OSM-слой из тайлов (дороги, дома, ЛЭП, ветряки, трафик), деревья города.
@@ -115,7 +125,6 @@ generated: true
 
 ### Планы (plan)
 
-- [docs/plan/game/04-sled-proshlogo-poleta.md](plan/game/04-sled-proshlogo-poleta.md) — 04. След прошлого полёта (полупрозрачная линия) — ОТЛОЖЕНО (решение пользователя): относится к блоку соревнований (этап 5), пока не делаем. [idea]
 - [docs/plan/game/05-vr.md](plan/game/05-vr.md) — VR (OpenXR): голова — шлем, ручка — джойстик. Идея (05.10), не в работе; риск — производительность, первый шаг — замер. [idea]
 
 ### Контракты стыков (contract)
@@ -366,4 +375,4 @@ generated: true
 - [TODO.md](../TODO.md) — Реестр задач T-NN по блокам (воздух, полёт, мир, графика, сеть, релиз): строка с состоянием и ссылкой на план
 - [REQUIREMENTS.md](../REQUIREMENTS.md) — Требования к игре: физика, атмосфера, мир, интерфейс, звук, управление, визуал (MVP → позже) и нефункциональные NFR-1…7
 
-архив: 114 документов — `.dpcli/dpcli docs find --status closed`
+архив: 115 документов — `.dpcli/dpcli docs find --status closed`

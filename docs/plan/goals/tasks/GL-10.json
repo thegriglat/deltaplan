@@ -1,0 +1,76 @@
+{
+  "id": "GL-10",
+  "module": "goals",
+  "type": "dp-engineer",
+  "title": "Загрузка чужих треков IGC и GPX",
+  "goal": "В разделе «Цели» можно выбрать файлы IGC/GPX; трек не из этого места не берётся и сообщается; принятые уходят в FlightSettings.track_paths, Game загружает их в goal_tracks и рисует полосой; GPX читает TrackIO.read_gpx (К5).",
+  "plan_ref": "GL-10",
+  "contracts": [
+    {
+      "name": "GL-К5",
+      "version": "2",
+      "ref": "docs/contracts/goals.md"
+    },
+    {
+      "name": "GL-К1",
+      "version": "1",
+      "ref": "docs/contracts/goals.md"
+    }
+  ],
+  "copy": "~/deltaplan-goals-GL-10",
+  "branch": "goals/GL-10",
+  "base": "feature/goals",
+  "scope": [
+    "scripts/goals/track_io.gd",
+    "scripts/ui/goals_tab.gd",
+    "scripts/game/game.gd",
+    "locale/ui.csv",
+    "tests/goals/test_track_io.gd",
+    "tests/goals/test_track_files.gd",
+    "tests/goals/test_track_files.gd.uid",
+    "tests/goals/data",
+    "tests/ui/test_goals_tab.gd"
+  ],
+  "dont_touch": [
+    "scripts/goals/flight_track.gd",
+    "scripts/goals/track_ribbon.gd",
+    "scripts/goals/goal_tracker.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "docs/contracts/goals.md"
+  ],
+  "accept": [
+    {
+      "name": "test_track_io",
+      "tests": "test_track_io"
+    },
+    {
+      "name": "test_track_files",
+      "tests": "test_track_files"
+    },
+    {
+      "name": "test_goals_tab",
+      "tests": "test_goals_tab"
+    },
+    {
+      "name": "test_goal_tracks_game",
+      "tests": "test_goal_tracks_game"
+    },
+    {
+      "name": "test_goals_k5",
+      "tests": "test_goals_k5"
+    },
+    {
+      "name": "lang_goals",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_language",
+      "expect": "!re:(goals_|setup_tab_goals|track_)"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/goals/track_io.gd scripts/ui/goals_tab.gd scripts/game/game.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T22:14:31"
+}

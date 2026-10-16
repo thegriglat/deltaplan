@@ -53,6 +53,7 @@ var _names: CheckBox
 var _peak_names: CheckBox
 var _pilot_shift: CheckBox
 var _clock: CheckBox
+var _goal_cylinders: CheckBox
 var _compass: CheckBox
 var _grass: HSlider
 var _haze_sun: HSlider
@@ -222,6 +223,9 @@ func _ready() -> void:
 	_clock = CheckBox.new()
 	_clock.text = tr("settings_clock_hint")
 	UiKit.row(box_game, tr("settings_clock"), _clock)
+	_goal_cylinders = CheckBox.new()
+	_goal_cylinders.text = tr("settings_goal_cylinders_hint")
+	UiKit.row(box_game, tr("settings_goal_cylinders"), _goal_cylinders)
 	_compass = CheckBox.new()
 	_compass.text = tr("settings_compass_hint")
 	UiKit.row(box_game, tr("settings_compass"), _compass)
@@ -372,6 +376,7 @@ func load_values() -> void:
 	_peak_names.button_pressed = bool(Config.value("world_objects", "osm_pilot.peaks.show", true))
 	_pilot_shift.button_pressed = bool(Config.value("ui", "pilot_shift.enabled", true))
 	_clock.button_pressed = bool(Config.value("ui", "clock.enabled", true))
+	_goal_cylinders.button_pressed = bool(Config.value("goals/world", "cylinders.enabled", false))
 	_compass.button_pressed = bool(Config.value("ui", "compass.enabled", true))
 	_motion_on.button_pressed = bool(Config.value("motion_rig", "enabled", false))
 	_motion_addr.text = "%s:%d" % [
@@ -456,6 +461,7 @@ func save() -> bool:
 	var ui_patch := {"pilot_shift": {"enabled": _pilot_shift.button_pressed}, "clock": {"enabled": _clock.button_pressed},
 		"compass": {"enabled": _compass.button_pressed}}
 	ok = UserSettings.save_patch("ui", ui_patch, config_dir) and ok
+	ok = UserSettings.save_patch("goals/world", {"cylinders": {"enabled": _goal_cylinders.button_pressed}}, config_dir) and ok
 	if _language.selected >= 0:
 		var code := String(_language_codes[_language.selected])
 		if code != Language.current():

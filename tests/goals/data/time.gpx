@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1">
+ <trk><name>Тест</name>
+  <trkseg>
+   <trkpt lat="50.0" lon="30.0"><ele>500</ele><time>2024-07-15T10:23:45Z</time></trkpt>
+   <trkpt lat="50.001" lon="30.0"><ele>510</ele><time>2024-07-15T10:23:47.5Z</time></trkpt>
+  </trkseg>
+  <trkseg>
+   <trkpt lat="50.002" lon="30.0"><ele>520</ele><time>2024-07-15T12:23:50+02:00</time></trkpt>
+   <trkpt lat="50.003" lon="30.0"><ele>530</ele><time>2024-07-15T10:23:55.250Z</time></trkpt>
+  </trkseg>
+ </trk>
+</gpx>

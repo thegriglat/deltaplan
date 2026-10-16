@@ -3,15 +3,15 @@ type: "guide"
 status: "active"
 module: "tasks"
 area: "game"
-updated: "2026-10-15"
-summary: "Задания, тренировки, рекорды: логика на RefCounted и конфиги готовы, в игре (Game.tick, меню) не подключены; форматы, API, критерии."
-related: ["docs/guide/game.md", "docs/guide/instruments.md", "docs/research/competition_rules.md"]
+updated: "2026-10-17"
+summary: "Задания, тренировки, рекорды: логика и конфиги; в игре — через цели полёта (goals.md), меню заданий и тренировок нет; форматы, API."
+related: ["docs/guide/goals.md", "docs/guide/game.md", "docs/guide/instruments.md", "docs/research/competition_rules.md"]
 ---
 # Задания, тренировки, рекорды
 
 FR-35 (маршрутный полёт), FR-36 (тренировки), FR-37 (рекорды), NFR-6, NFR-7. Правила соревнований и
 формат `.xctsk` — [research/competition_rules.md](../research/competition_rules.md).
-Вся логика — `RefCounted` без нод (NFR-8), тесты `tests/tasks/`. **Состояние в `main`:** модуль (`scripts/tasks/`, `configs/tasks/`) и страницы прибора «карта»/«задание» (`FlightInstrument.set_task`, `set_task_state`) есть; в `Game.tick()`, главном меню и экране итога задания и тренировки **не подключены** — ни `TaskTracker`, ни `FlightRecords`, ни `TrainingMode` игра сейчас не создаёт (кроме превью `task_preview.tscn` и тестов). Раздел «Подключение» ниже — как это делается, а не описание кода игры.
+Вся логика — `RefCounted` без нод (NFR-8), тесты `tests/tasks/`. **Состояние:** модуль (`scripts/tasks/`, `configs/tasks/`) и страницы прибора «карта»/«задание» (`FlightInstrument.set_task`, `set_task_state`) есть. `TaskTracker`, `Task` и `FlightRecords` игра использует через цели полёта — [goals.md](goals.md): `GoalTracker` строит из целей `route`/`triangle`/`return` ведущий `TaskTracker` (прибор, столбы, итог), а `FlightRecords` пополняется на итоге полёта (время в воздухе, дальность, высота; для маршрута — время и дальность). Отдельного меню «Режим» (задание или тренировка), `TrainingMode` и экрана итога тренировки в игре **нет**: тренировки только в тестах и превью `task_preview.tscn`. Раздел «Подключение» ниже — как подключить отдельное задание или тренировку; цели полёта подключены иначе (в `Game._goals_*`, см. goals.md).
 
 ## Что где
 | Файл | Что |

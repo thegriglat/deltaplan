@@ -1,0 +1,72 @@
+{
+  "status": "done",
+  "summary": "Доработка 2: speed done при взятии гоула и (ESS − старт) ≤ value (нет ESS — время гоула); на ESS без гоула pending, посадка без гоула failed. height_fn мишени TrainingSpotLanding добавлен как поле, но пока нигде не задаётся (подключение — за интеграцией, scripts/game не трогал).",
+  "commits": [
+    "ac7f07b9 goals GL-2: speed засчитывается на гоуле по времени до ESS"
+  ],
+  "checks": [
+    {
+      "name": "test_goal_tracker",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goal_spec",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k1",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k3",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "tests/tasks",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept GL-2",
+  "uncertain": [
+    {
+      "where": "scripts/goals/goal_tracker.gd result()",
+      "why": "контракт не уточняет total: считаю только доступные цели (unavailable исключены)",
+      "checked": "тест test_landing_unavailable_without_target"
+    },
+    {
+      "where": "scripts/goals/goal_tracker.gd _attach",
+      "why": "route с open_distance или без гоула считается unavailable (гоул недостижим)",
+      "checked": "логика, отдельного теста нет"
+    },
+    {
+      "where": "scripts/goals/goal_tracker.gd _update_speed",
+      "why": "speed: гоул взят и время (ESS−старт, иначе гоул−старт) ≤ value; старт — start_time_s ведущего (SSS, у возврата/треугольника — взлёт); судится ведущий на начало шага",
+      "checked": "test_speed_judges_leading_route_finish, too_slow, in_time"
+    },
+    {
+      "where": "scripts/goals/goal_tracker.gd height",
+      "why": "набор = position.y − start_pos.y только в полёте; best — скользящий минимум за hold_s; граница модели: нет учёта высоты площадки отрыва выше/ниже start_pos",
+      "checked": "test_height_hold, test_height_best_held_value"
+    },
+    {
+      "where": "scripts/goals/goal_route_builder.gd",
+      "why": "ветер: первое плечо против ветра (wind_from_deg), треугольник пробует правый и левый поворот; wind_ms<min_wind_ms — start_heading_deg; bounds без площади = без ограничений",
+      "checked": "тесты геометрии и поворота"
+    }
+  ],
+  "dp_feedback": "scope включал training_spot_landing.gd без пояснения; поле height_fn там никто не задаёт — нужна интеграция в Game. check_gd без импорта молча пропускается.",
+  "t": "2026-10-16T21:43:55",
+  "by": "executor"
+}

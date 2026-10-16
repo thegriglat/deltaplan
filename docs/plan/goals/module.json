@@ -1,0 +1,11 @@
+{
+  "module": "goals",
+  "plan": "docs/plan/goals.md",
+  "contracts": "docs/contracts/goals.md",
+  "branch": "feature/goals",
+  "copy": "~/deltaplan-goals",
+  "created": "2026-10-16T21:20:30",
+  "code": "GL",
+  "area": "game",
+  "base": "main"
+}

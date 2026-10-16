@@ -1,0 +1,71 @@
+{
+  "status": "done",
+  "summary": "Скрипт кадров tools/shots/goals_shot.gd (стадии gen, a1, a, a4, b) и синтетический IGC Каянча (20 мин, 3 спирали +2,4…+3,4 м/с, переходы −1,2…−2,2 м/с). 7 кадров 1920x1080 JPEG q88 в /home/greg/deltaplan/build/screenshots/goals/GL-6/: a1..a4, b1..b3. Игру не менял.",
+  "commits": [
+    "342c8c30 GL-6: кадры целей этапов A и B"
+  ],
+  "checks": [
+    {
+      "name": "frames",
+      "value": "7",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "4 файла в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/goals/GL-6/a1_goals_tab.jpg",
+    "build/screenshots/goals/GL-6/a2_flight_list.jpg",
+    "build/screenshots/goals/GL-6/a3_cylinders.jpg",
+    "build/screenshots/goals/GL-6/a4_result.jpg",
+    "build/screenshots/goals/GL-6/b1_track_high.jpg",
+    "build/screenshots/goals/GL-6/b2_track_far.jpg",
+    "build/screenshots/goals/GL-6/b3_track_close.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept GL-6; пересъёмка: xvfb-run -a -s '-screen 0 1920x1080x24' godot --path . --audio-driver Dummy --resolution 1920x1080 res://tools/shots/goals_shot.tscn -- --stage=<a1|a|a4|b> --out=<каталог> (gen — пересоздать tools/shots/goals_track.igc, --igc=)",
+  "uncertain": [
+    {
+      "where": "кадры a2/a3: состояние целей",
+      "why": "Состояния поставлены телепортом (Glider.reset_in_air): высота 'выполнена', над первым пунктом треугольника — но triangle остаётся 'осталось 9,2 км', пункт не засчитан. Не знаю, ошибка трекера (пункт не засчитывается при мгновенном появлении внутри цилиндра / нужен пересечение границы) или артефакт телепорта.",
+      "checked": "tick 4 с над ТР1 на 450 м над землёй внутри радиуса 400 м; items() triangle current=0. Не чинил."
+    },
+    {
+      "where": "result_screen / goal_tracker: reason",
+      "why": "Причины в итоге не локализованы: 'посадка', 'мимо круга' — по-русски при английском интерфейсе, 'landed', 'crash' — сырые ключи (видно на a4).",
+      "checked": "кадр a4, items().reason в логе."
+    },
+    {
+      "where": "goals_tab: уровень скорости",
+      "why": "Список уровня у строки 'Speed (time limit)' обрезан до 'mediu' (a1).",
+      "checked": "кадр a1."
+    },
+    {
+      "where": "a3 цилиндры",
+      "why": "На 3–4 км столбы (alpha 0,12/0,3) еле видны, активный — розоватый на фоне дымки; два из трёх в кадре. Две попытки на кадр израсходованы.",
+      "checked": "кадр a3."
+    },
+    {
+      "where": "час старта",
+      "why": "--hour=13 округляется до 12:00 (start_hours 9/12/15/20, AM-06) — кадры на 12:00, не 13:00.",
+      "checked": "wx.start_hour=12 в логе."
+    },
+    {
+      "where": "a4",
+      "why": "Итог — настоящий полёт автопилота с земли (чтобы статистика была честной; при телепорте получались 754 км/ч). Цели: набор 150 м, время 2 мин, дальность 3 км, треугольник 11 км, посадка 50 м — значения 'своя', подобраны под автопилот; автопилот разбился в лесу (Crash), 2 из 5 выполнено.",
+      "checked": "кадр a4."
+    },
+    {
+      "where": "b1/b2",
+      "why": "Переходы (−1,2…−1,6 м/с) почти бесцветны (между dead_band 0,5 и sink_full 3,5), синий виден слабо; на 4 км полоса — тонкая линия 4 px. Трек иллюстративный: высота подтянута к рельефу+80 м, спираль А почти над стартом.",
+      "checked": "кадры b1, b2."
+    }
+  ],
+  "dp_feedback": "Первый --import в копии падал с backtrace и импортировал только часть (1233 из ~3300 файлов), повторные прогоны не доимпортировали; помогло, что обычный запуск не headless догружает. Хорошо бы dpcli prep-копии делал импорт и проверял. Для кадров нужен xvfb-run (на реальном DISPLAY окно режется тайловым менеджером).",
+  "t": "2026-10-16T23:27:22",
+  "by": "executor"
+}

@@ -1,0 +1,70 @@
+{
+  "status": "done",
+  "summary": "TrackRibbon (GL-К6): весь трек одним ArrayMesh (одна поверхность, без текстур), лента к камере постоянной экранной ширины width_px в track_ribbon.gdshader (по образцу wire.gdshader), depth_draw_never + тест глубины, вершины сдвинуты к камере по лучу (depth_pull_m + depth_pull_frac·d) против z-fighting. Цвет вершин по FlightTrack.vertical_speed_ms(i, vs_window_s): dead_band → color_zero/alpha_zero, линейно до color_climb/color_sink на ±3,5 м/с. Прореживание Дугласа—Пекера по значимости (≤ max_points, отбрасывает < simplify_min_m); configs/goals/track.json с _doc; превью scenes/goals/track_ribbon_preview.tscn (спираль + планирование + участок у земли, камеры 200 м / 30 м / 10 км, клавиши 1/2/3/пробел).",
+  "commits": [
+    "4622a4db GL-8: полоса трека в мире (TrackRibbon)"
+  ],
+  "checks": [
+    {
+      "name": "test_track_ribbon",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k6",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_flight_track",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "прореживание 7200 точек (2 ч × 1 Гц, спираль r=60 м + планирование)",
+      "value": "2000 точек, 127 мс, макс. отклонение ≤ 5 м",
+      "pass": true
+    },
+    {
+      "name": "превью на GPU (окно, 60 кадров)",
+      "value": "шейдер компилируется, ошибок нет",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Подключение к Game — не в задаче (GL-7b). Скриншотов и замеров GPU нет — по карточке не заказаны."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept GL-8; визуально — godot --path . res://scenes/goals/track_ribbon_preview.tscn (1/2/3 — камеры)",
+  "uncertain": [
+    {
+      "where": "scripts/goals/track_ribbon.gdshader:28",
+      "why": "сдвиг к камере 1,5 м + 0,2% расстояния подобран по смыслу (точность глубины), на реальном рельефе с крутыми склонами не проверен; полоса развёрнута к камере, у пологого склона половина её может уйти под землю, если трек ниже ~ширины",
+      "checked": "превью с участком в 3 м над плоскостью запускалось без ошибок, на глаз не смотрел"
+    },
+    {
+      "where": "scripts/goals/track_ribbon.gd:38",
+      "why": "цвет смешивается в sRGB, затем переводится в линейный для unshaded; на остром изломе (вираж) касательная усреднена — лента чуть уже на углах",
+      "checked": "тесты цвета/альфы на +4/−4/0 м/с и середине зоны"
+    },
+    {
+      "where": "scripts/goals/track_ribbon.gd:20",
+      "why": "мировая Y = alt_m (MSL) по контракту; если в Game есть плавающий начало координат/смещение высоты, GL-7b должен учесть в latlon_fn или позиции узла",
+      "checked": "позиции (x, alt_m, z) через latlon_fn в тесте"
+    },
+    {
+      "where": "scripts/goals/track_ribbon.gd",
+      "why": "полупрозрачный меш сортируется целиком; самоперекрытия витков спирали смешиваются в порядке индексов — возможны лёгкие артефакты наложения",
+      "checked": "не проверял визуально"
+    }
+  ],
+  "dp_feedback": "Хвост дополнения в task show обрезан многоточием — полный текст пришлось читать из events.jsonl; хорошо бы dpcli task show --full.",
+  "t": "2026-10-16T21:53:35",
+  "by": "executor"
+}

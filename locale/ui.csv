@@ -164,6 +164,8 @@ settings_peak_names_hint,вершины и перевалы с высотой,pe
 settings_pilot_shift,Смещение пилота,Pilot shift
 settings_pilot_shift_hint,круг внизу экрана: куда смещён вес,circle at screen bottom: where the weight is shifted
 settings_clock,Часы,Clock
+settings_goal_cylinders,Цилиндры целей,Goal cylinders
+settings_goal_cylinders_hint,полупрозрачные столбы пунктов маршрута в мире,translucent columns at route points in the world
 settings_clock_hint,время суток игры внизу справа и на запястье,in-game time of day at bottom right and on the wrist
 settings_compass,Компас,Compass
 settings_compass_hint,компас на правом запястье (курс по реальному направлению),compass on the right wrist (shows your real heading)
@@ -284,6 +286,7 @@ tab_arrival,ПРИБЫТИЕ,ARRIVAL
 tab_no_target,нет цели,no target
 tab_goal_short,гоул,goal
 tab_target,ЦЕЛЬ: %s,TARGET: %s
+tab_bearing,НА ТОЧКУ,TO POINT
 tab_no_data,нет данных,no data
 tab_circles,круги,circles
 tab_straight,по курсу,straight
@@ -549,3 +552,44 @@ start_pick_bad_built,застройка,built-up
 start_pick_bad_steep,слишком круто,too steep
 setup_exact_start,Старт уточнён на рельефе · курс %d°,Launch set on terrain · heading %d°
 setup_exact_reset,Сбросить,Reset
+setup_tab_goals,Цели,Goals
+goals_kind_height,Набор высоты,Height gain
+goals_kind_duration,Время в воздухе,Time aloft
+goals_kind_distance,Дальность,Distance
+goals_kind_return,Возврат,Out and return
+goals_kind_triangle,Треугольник,Triangle
+goals_kind_route,Маршрут,Route
+goals_kind_speed,Скорость (предел времени),Speed (time limit)
+goals_kind_landing,Посадка в круг,Landing circle
+goals_level_easy,лёгкая,easy
+goals_level_medium,средняя,medium
+goals_level_hard,трудная,hard
+goals_level_custom,своя,custom
+goals_reason_landed,сел раньше,landed first
+goals_reason_crash,авария,crash
+goals_reason_outside_circle,мимо круга,outside the circle
+goals_reason_too_slow,позже предела,over the time limit
+goals_reason_deadline,вышло время задания,task deadline passed
+goals_reason_no_room,не помещается в зону карты,does not fit the map area
+goals_reason_no_target,нет круга посадки,no landing circle
+goals_reason_task_error,задание не загружено,task not loaded
+goals_reason_no_goal,в задании нет гоула,task has no goal
+goals_reason_no_route,нет маршрута для предела времени,no route for the time limit
+goals_reason_bad_value,значение должно быть больше нуля,value must be above zero
+goals_reason_unknown_kind,неизвестный вид цели,unknown goal kind
+goals_last_track,След прошлой попытки,Last attempt track
+unit_min,мин,min
+goals_track_load,Загрузить трек…,Load track…
+goals_track_filter,Треки IGC и GPX,IGC and GPX tracks
+goals_track_remove,Убрать,Remove
+goals_track_foreign,Трек не из этого места,Track is not from this place
+goals_track_unreadable,Не удалось прочитать трек,Could not read the track
+goal_list_left,осталось %s,%s left
+result_goal_header,Цели: выполнено %d из %d,Goals: %d of %d done
+result_goal_new_record,Новый рекорд: %s — %s (было %s),New record: %s — %s (was %s)
+result_goal_new_record_first,Новый рекорд: %s — %s,New record: %s — %s
+result_goal_rec_flight_time_s,время в воздухе,time aloft
+result_goal_rec_distance_m,дальность,distance
+result_goal_rec_max_altitude_msl_m,высота над уровнем моря,altitude above sea level
+result_goal_rec_task_speed_section_time_s,время на маршруте,route time
+result_goal_rec_task_distance_m,дальность по маршруту,route distance
