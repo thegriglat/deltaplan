@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "Стрелка пеленга на странице ветра, GoalCylinders с настройкой «Цилиндры целей» (выкл. по умолчанию), подключение в game.gd по ведущему маршруту и активной точке.",
+  "commits": [
+    "33f89ef1 столбы в игре",
+    "часть (1) — коммит до sync: GL-5 стрелка, GoalCylinders, настройка"
+  ],
+  "checks": [
+    {
+      "name": "test_goal_cylinders",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_task_bearing",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_goals_k4",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "tests/instruments",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "lang_goals",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept GL-5",
+  "uncertain": [
+    {
+      "where": "scripts/instruments/instrument_page_wind.gd:_draw_bearing",
+      "why": "положение стрелки в углу розы не смотрел глазами, возможно наложение на подпись N",
+      "checked": "только тесты пеленга"
+    },
+    {
+      "where": "scripts/game/game.gd:_goals_sync_cylinders",
+      "why": "столбы в запущенной игре не смотрел",
+      "checked": "game.gd парсится, тесты столбов структурные"
+    }
+  ],
+  "dp_feedback": "без замечаний",
+  "t": "2026-10-16T22:40:35",
+  "by": "executor"
+}

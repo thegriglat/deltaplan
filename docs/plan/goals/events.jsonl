@@ -101,3 +101,5 @@
 {"t": "2026-10-16T22:36:23", "by": "coordinator", "task": "GL-4", "ev": "merged"}
 {"t": "2026-10-16T22:37:53", "by": "coordinator", "task": "GL-10", "ev": "checked", "note": "7/7 test_track_io=ok:6/6; test_track_files=ok:8/8; test_goals_tab=ok:9/9; test_goal_tracks_game=ok:1/1; test_goals_k5=ok:2/2; lang_goals=ok:exit 1; check_gd=ok:exit 0"}
 {"t": "2026-10-16T22:38:01", "by": "coordinator", "task": "GL-10", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-16T22:40:35", "by": "executor", "task": "GL-5", "ev": "reported", "commits": ["33f89ef1", "часть"], "note": "done: Стрелка пеленга на странице ветра, GoalCylinders с настройкой «Цилиндры целей» (выкл. по умолчанию), подключение в game…", "dp_feedback": "без замечаний"}
+{"t": "2026-10-16T22:41:18", "by": "coordinator", "task": "GL-10", "ev": "checked", "note": "7/7 test_track_io=ok:6/6; test_track_files=ok:8/8; test_goals_tab=ok:9/9; test_goal_tracks_game=ok:1/1; test_goals_k5=ok:2/2; lang_goals=ok:exit 1; check_gd=ok:exit 0"}
