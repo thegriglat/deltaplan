@@ -560,6 +560,25 @@ static func slot_hour(hour: float, step_min: float) -> float:
 	return slot(hour, step_min) * maxf(step_min, 1.0) / 60.0
 
 
+## Пилот ушёл от центра окна запечённого поля дальше window_shift_frac его стороны (как в
+## AirClipmap.update): окна надо пересчитать вокруг него.
+func _pilot_left_baked_windows() -> bool:
+	if not focus_fn.is_valid() or atmosphere == null:
+		return false
+	var fs: Variant = atmosphere.get("air_field")
+	if fs == null or fs.levels.size() < 2:
+		return false
+	var lv: Array = fs.levels
+	var frac := float(_cfg.get("window_shift_frac", 0.25))
+	var p: Vector3 = focus_fn.call()
+	for i in range(1, lv.size()):
+		var f: WindField = lv[i]
+		var c := f.center_xz()
+		if maxf(absf(p.x - c.x), absf(p.z - c.y)) > frac * f.size_x():
+			return true
+	return false
+
+
 func _step_min() -> float:
 	return float(_cfg.get("recompute_game_min", 15.0))
 
@@ -572,10 +591,12 @@ func _process(_dt: float) -> void:
 			if recompute_enabled and not _cur.is_empty() and conditions_fn.is_valid():
 				var c: Dictionary = conditions_fn.call()
 				var why := needs_recompute(_cur, c, _step_min())
-				if why == "" and _baked_pending:
-					why = "запечённое поле: окна и пересчёт"
-				_baked_pending = false
+				# запечённое поле при тех же условиях не пересчитывается: только срок/смена условий
+				# (needs_recompute) или уход пилота из окон поля (окон-clipmap ещё нет)
+				if why == "" and _baked_pending and _pilot_left_baked_windows():
+					why = "сдвиг окон (запечённое поле)"
 				if why != "" and unavailable_reason() == "":
+					_baked_pending = false
 					_begin(c, why, false)
 				else:
 					_update_windows()
