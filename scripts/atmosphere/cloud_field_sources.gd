@@ -8,7 +8,9 @@ extends RefCounted
 ##     a_u = Φ(LCL)/w_u, w_u = max(k·w*, w_min) — скорость ядра у основания; «между» (Φ без доли ядер
 ##     водосбора) — ровным полем, ядра источников — в столбце «источник + снос за время подъёма»;
 ##   подъём склоном (WindField): w_mech у поверхности на наветренном склоне; воздух, вынесенный
-##     к z = hc + w⁺·τ_oro ≥ LCL — в облаке (вершины выше LCL — в облаке);
+##     к z = hc + w⁺·τ_oro ≥ LCL — в облаке. Прогретая вершина выше LCL — через конвекцию: ζ_L ≤ 0,
+##     до основания доходит весь приземный поток 2Φ̄ (воздух у склона сам по себе не насыщен —
+##     LCL считан по долине, а свободный воздух наверху суше);
 ##   аналитика (air == null): живые термики ThermalField — площадь ядра у верха на клетку.
 ## D*: k_moist·(c_top − LCL) — влажная частица над LCL плавучее сухой (θ вдоль влажной адиабаты
 ## растёт на Γ_d − Γ_m ≈ 3,8 К/км), k_moist = gam/(gam − GAM_MOIST) по устойчивости над LCL
@@ -156,23 +158,20 @@ static func prepare(cf: CloudField, inp: Dictionary, cfg: Dictionary) -> Diction
 			au[c] += pen * PI * th.radius * th.radius * th.env / (dx * dx)
 			var d := th.cloud_depth if th.cloud_depth > 0.0 else depth_day
 			ds[c] = maxf(ds[c], d * (1.0 + th.overdevelop))
-	# --- подъём склоном и вершины выше основания (нужен ветер у поверхности)
+	# --- подъём склоном (нужен ветер у поверхности)
 	if same_grid:
 		var tau_oro := float(cfg.get("oro_rise_s", 120.0))
 		var ramp := maxf(float(cfg.get("oro_ramp_m", 150.0)), 1.0)
 		var w_ref := maxf(float(cfg.get("oro_w_ref_ms", 1.0)), 1.0e-3)
-		var phi_ref := maxf(float(cfg.get("oro_phi_ref_ms", 0.05)), 1.0e-6)
-		var phi := air.phi if air != null and air.phi.size() == n else PackedFloat32Array()
 		for c in n:
 			var wp := maxf(w_surf[c], 0.0)
+			if wp <= 0.0:
+				continue
 			var z_reach := hc[c] + wp * tau_oro
 			var reach := clampf((z_reach - base + ramp) / ramp, 0.0, 1.0)
 			if reach <= 0.0:
 				continue
-			var lift := wp / w_ref
-			if phi.size() == n:
-				lift += maxf(phi[c], 0.0) / phi_ref
-			var a_oro := reach * clampf(lift, 0.0, 1.0)
+			var a_oro := reach * clampf(wp / w_ref, 0.0, 1.0)
 			if a_oro <= 0.0:
 				continue
 			au[c] += a_oro

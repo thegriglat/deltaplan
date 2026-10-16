@@ -10,7 +10,8 @@ extends RefCounted
 ## Холтслага–Бовилля, как в AirThermals; w_u — скорость ядра у основания), ядра источников
 ## AirThermals (carried) — отдельными кучевыми над точкой «источник + снос за время подъёма»,
 ## подъём склоном (w_mech у поверхности, вершины выше LCL — в облаке). Динамика:
-##   da/dt = (a_u − a)/τ_form;  dp/dt = a/τ_life − p/τ_evap;  cover = a + p;
+##   da/dt = (a_u − a)/τ_form;  dp/dt = a/τ_life − p/τ_evap(d);  cover = a + p;
+##   τ_evap(d) = τ_evap·clamp(d/d_ref, ½, 2) — мощные облака испаряются дольше тонких;
 ##   dd/dt = (D* − d)/τ_deepen при подъёме, −d/τ_evap без него; D* = min(k_moist·(c_top − LCL), D_cap);
 ##   d(od)/dt = (a_u/a_ref − od)/τ_od — башни переразвития у доли столбцов overdevelopment_chance.
 ## Снос — полулагранжев перенос состояния ветром на высоте основания (по столбцам), шаг переноса —
@@ -222,7 +223,9 @@ func _step(dt: float) -> void:
 	var blending := _blend_s > 0.0 and f < 1.0
 	var ka := minf(dt / maxf(float(cfg.get("tau_form_s", 240.0)), dt), 1.0)
 	var kl := dt / maxf(float(cfg.get("tau_life_s", 900.0)), dt)
-	var ke := minf(dt / maxf(float(cfg.get("tau_evap_s", 1200.0)), dt), 1.0)
+	# испарение пассивного облака — медленнее у мощных: τ_evap(d) = τ_evap·clamp(d/d_ref, ½, 2)
+	var tau_evap := maxf(float(cfg.get("tau_evap_s", 1200.0)), dt)
+	var inv_dref := 1.0 / maxf(float(cfg.get("evap_depth_ref_m", 1000.0)), 1.0)
 	var kd := minf(dt / maxf(float(cfg.get("tau_deepen_s", 600.0)), dt), 1.0)
 	var ko := minf(dt / maxf(float(cfg.get("tau_overdev_s", 1800.0)), dt), 1.0)
 	var inv_aref := 1.0 / maxf(float(cfg.get("overdev_ref_frac", 0.1)), 1.0e-3)
@@ -257,6 +260,7 @@ func _step(dt: float) -> void:
 		var d := d_arr[c]
 		var od := od_arr[c]
 		var q0 := a + p
+		var ke := minf(dt / (tau_evap * clampf(maxf(d, 100.0) * inv_dref, 0.5, 2.0)), 1.0)
 		p += a * kl - p * ke
 		a += (au - a) * ka
 		od += (au * inv_aref - od) * ko
