@@ -6,6 +6,8 @@ extends RefCounted
 ## Точка с карты (pick_lat/lon) — без фиксированной погоды. Время полёта идёт как обычно.
 
 const SKIES: PackedStringArray = ["clear", "partly", "overcast"]
+## weather.wind_ref (TI-К2 v2): "start" — ветер меню у старта (приток подгоняется), "inflow" — набегающий поток (k = 1).
+const WIND_REFS: PackedStringArray = ["start", "inflow"]
 
 
 ## Разбор ключа weather: нормализованный словарь {wind_from_deg, wind_speed_ms, start_hour, month,
@@ -44,7 +46,14 @@ static func parse(w: Variant, where: String = "") -> Dictionary:
 	if speed < 0.0:
 		push_warning("StartWeather %s: wind_speed_ms < 0 — погода не фиксируется" % where)
 		return {}
+	var wind_ref := "start"
+	if d.has("wind_ref"):
+		if not (d.wind_ref is String) or not (String(d.wind_ref) in WIND_REFS):
+			push_warning("StartWeather %s: wind_ref '%s' недопустим — погода не фиксируется" % [where, d.wind_ref])
+			return {}
+		wind_ref = String(d.wind_ref)
 	return {
+		"wind_ref": wind_ref,
 		"wind_from_deg": fposmod(float(d.wind_from_deg), 360.0),
 		"wind_speed_ms": speed,
 		"start_hour": hour,
@@ -74,6 +83,11 @@ static func for_settings(s: FlightSettings) -> Dictionary:
 	if not site.has("weather"):
 		return {}
 	return parse(site.weather, "%s/%s" % [s.location_id, site.get("id", "")])
+
+
+## wind_ref набора старта s: "inflow" или "start" (нет набора — "start"). Единый источник для условий воздуха.
+static func wind_ref_of(s: FlightSettings) -> String:
+	return String(for_settings(s).get("wind_ref", "start"))
 
 
 static func has_fixed(s: FlightSettings) -> bool:
