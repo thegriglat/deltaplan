@@ -1,0 +1,1 @@
+{"t": "2026-10-17T03:19:16", "by": "coordinator", "text": "CLF-1 правит scripts/atmosphere/air_model/air_thermals.gd (хранить c_top, col_wstar) → model_hash запечённых полей учебного острова меняется, нужна перепечка (CLF-2, bake_all.sh). Согласовать с fast-load (кеш поля воздуха, запечённые поля): кто и когда перепекает?", "kind": "question", "id": "Q1"}
