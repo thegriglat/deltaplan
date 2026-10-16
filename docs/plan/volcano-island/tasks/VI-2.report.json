@@ -1,0 +1,65 @@
+{
+  "status": "partial",
+  "summary": "Locations.is_training_only и osm_root; builtin_at пропускает training_only; load_last_flight с таким местом даёт место по умолчанию; OsmData.load_for в world_objects/world_clearings получает Locations.osm_root(id); add_builtin_places.py пропускает training_only (каталог без volcano_island); тесты К1 (код) и меню. Приёмка PASS, кроме osm (2 теста падают и до правок).",
+  "commits": [
+    "fa57c186 VI-2: training_only, osm_root, OSM из папки места, тесты"
+  ],
+  "checks": [
+    {
+      "name": "volcano_island",
+      "value": "PASS 9/9",
+      "pass": true
+    },
+    {
+      "name": "locations",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "PASS 12/12",
+      "pass": true
+    },
+    {
+      "name": "popular_places",
+      "value": "PASS 13/13",
+      "pass": true
+    },
+    {
+      "name": "training_island",
+      "value": "PASS 25/25",
+      "pass": true
+    },
+    {
+      "name": "catalog",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "osm",
+      "value": "103/105: test_osm_look_contracts::test_versions (L5 v2 против v3 в frontmatter) и test_osm_road_look::test_city_ground_mask; оба падают и без моих правок",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "export_presets.cfg не менял: include_filter data/**/* уже берёт osm/*/*.dpt; реальный экспорт не запускал"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VI-2 --dry",
+  "uncertain": [
+    {
+      "where": "tests/stability/test_matrix.gd, tests/game/test_e2e.gd",
+      "why": "не правил, перебирают все места включая volcano_island; тяжёлые прогоны не гонял",
+      "checked": "только фильтры приёмки"
+    },
+    {
+      "where": "export_presets.cfg",
+      "why": "экспорт .dpt сырыми не проверен реальной сборкой",
+      "checked": "по include_filter data/**/*"
+    }
+  ],
+  "dp_feedback": "accept --dry не отличает падения базовой ветки от новых; импорт создаёт .import в data/ и ломает проверку scope; отчёт принимает чужой устаревший json без предупреждения.",
+  "t": "2026-10-17T04:12:32",
+  "by": "executor"
+}

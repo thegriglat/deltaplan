@@ -58,10 +58,6 @@
       "tests": "popular_places"
     },
     {
-      "name": "osm",
-      "tests": "osm"
-    },
-    {
       "name": "training_island",
       "tests": "training_island"
     },
@@ -69,9 +65,22 @@
       "name": "catalog",
       "cmd": "python3 -c \"import json;print(sum(t.get('location')=='volcano_island' for t in json.load(open('data/places/hg_takeoffs.json'))['takeoffs']))\"",
       "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "osm_data",
+      "tests": "osm_data"
+    },
+    {
+      "name": "osm_tiles",
+      "tests": "osm_tiles"
+    },
+    {
+      "name": "test_e2e",
+      "tests": "test_e2e"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T04:02:17"
+  "created": "2026-10-17T04:02:17",
+  "edited": "2026-10-17T04:20:16"
 }
