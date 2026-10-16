@@ -147,7 +147,7 @@ related: ["docs/archive/README.md"]
 
 ## training-island
 
-- **Воздух на острове**: склон 6 м/с w +1,55; ротор 9 м/с w −2,0; поле 1 с против 14–18 с — [location-data.md](/docs/guide/location-data.md#встроенное-место-из-файлов-игры-учебный-остров)
+- **Воздух острова**: склон w +1,55, ротор w −2,0 — [training_island_air](/docs/research/training_island_air.md)
 
 ## goals
 
