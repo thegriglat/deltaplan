@@ -1,0 +1,61 @@
+{
+  "id": "FL-2",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "A: кеш поля воздуха на диске (LRU)",
+  "goal": "Посчитанное при загрузке поле воздуха сохраняется на диск в фоне (float16+zstd, формат TI-К3) и при повторе места и условий берётся из кеша без этапа расчёта ветра; размер кеша — настройка, LRU, по умолчанию 200 МБ.",
+  "plan_ref": "FL-2",
+  "contracts": [
+    {
+      "name": "FL-К1",
+      "version": "1",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-2",
+  "branch": "fast-load/FL-2",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/atmosphere/air_field_cache.gd",
+    "scripts/atmosphere/air_field_cache.gd.uid",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "scripts/game/game.gd",
+    "scripts/game/user_settings.gd",
+    "scripts/ui/settings_panel.gd",
+    "configs/atmosphere.json",
+    "locale/ui.csv",
+    "tests/contracts/test_fast_load_k1.gd",
+    "tests/contracts/test_fast_load_k1.gd.uid",
+    "tests/atmosphere"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/air_model/air_place.gd",
+    "data/locations",
+    "scripts/world_objects",
+    "scripts/terrain"
+  ],
+  "accept": [
+    {
+      "name": "fast_load_k1",
+      "tests": "fast_load_k1"
+    },
+    {
+      "name": "air_cache",
+      "tests": "air_cache"
+    },
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "baked",
+      "tests": "baked"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:55:26"
+}

@@ -1,0 +1,41 @@
+{
+  "id": "FL-1",
+  "module": "fast-load",
+  "type": "dp-researcher",
+  "title": "Инструмент замера загрузки и замер «до»",
+  "goal": "Инструмент замера тёплой загрузки места из research/load-profile перенесён в модуль (measure.sh/measure.py/compare.py по FL-К3) и снят замер «до» на Онгудае и точке.",
+  "plan_ref": "FL-1",
+  "contracts": [
+    {
+      "name": "FL-К3",
+      "version": "1",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-1",
+  "branch": "fast-load/FL-1",
+  "base": "feature/fast-load",
+  "scope": [
+    "tools/research/load_profile"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests"
+  ],
+  "accept": [
+    {
+      "name": "measure_py",
+      "cmd": "python3 -I tools/research/load_profile/measure.py --selftest",
+      "expect": "exit=0"
+    },
+    {
+      "name": "baseline",
+      "cmd": "python3 -I -c \"import json;d=json.load(open('tools/research/load_profile/baseline.json'));r=d['runs'];assert d['version']==1 and len([x for x in r if x['place']=='ong'])>=3 and len([x for x in r if x['place']=='pt'])>=3 and all(x['to_flying_s']>0 and x['exit']==0 for x in r);print('ok')\"",
+      "expect": "re:^ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:55:01"
+}

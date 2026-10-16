@@ -1,0 +1,61 @@
+{
+  "id": "FL-4",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "C: общие данные места, один план домов, маска просек, ошибка вырубки",
+  "goal": "Высоты, OSM, участки застройки и план домов (с домами OSM) читаются/считаются один раз за загрузку (PlaceData, FL-К2) и делятся между маской просек и объектами; ключ кеша плана домов совпадает; лес вырублен только там, где дома и дороги есть.",
+  "plan_ref": "FL-4",
+  "contracts": [
+    {
+      "name": "FL-К2",
+      "version": "1",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-4",
+  "branch": "fast-load/FL-4",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/world_objects/place_data.gd",
+    "scripts/world_objects/place_data.gd.uid",
+    "scripts/world_objects/world_clearings.gd",
+    "scripts/world_objects/village_placer.gd",
+    "scripts/world_objects/world_objects.gd",
+    "scripts/terrain/built_patches.gd",
+    "scripts/world_objects/osm_data.gd",
+    "scripts/game/world_link.gd",
+    "scripts/terrain/terrain_preview.gd",
+    "tests/world_objects",
+    "tests/contracts/test_fast_load_k2.gd",
+    "tests/contracts/test_fast_load_k2.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/osm_layer.gd",
+    "scripts/world_objects/osm_pilot.gd",
+    "scripts/terrain/terrain_tree_models.gd",
+    "scripts/atmosphere",
+    "scripts/game/game.gd"
+  ],
+  "accept": [
+    {
+      "name": "fast_load_k2",
+      "tests": "fast_load_k2"
+    },
+    {
+      "name": "clearing",
+      "tests": "clearing"
+    },
+    {
+      "name": "village",
+      "tests": "village"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:56:26",
+  "edited": "2026-10-17T02:57:03"
+}

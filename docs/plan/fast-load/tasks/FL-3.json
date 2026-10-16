@@ -1,0 +1,35 @@
+{
+  "id": "FL-3",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "Проверка «Здесь море» по выбранной точке",
+  "goal": "Отказ «Здесь море» при выборе точки на карте решается по выбранной точке, а не по центру ячейки 0,05°: суша у побережья (Ханга-Роа −27.15,−109.43) грузится, открытое море — отказ.",
+  "plan_ref": "FL-3",
+  "contracts": [],
+  "copy": "~/deltaplan-fast-load-FL-3",
+  "branch": "fast-load/FL-3",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/terrain/terrain.gd",
+    "tests/terrain"
+  ],
+  "dont_touch": [
+    "scripts/terrain/build",
+    "configs/world.json",
+    "scripts/atmosphere",
+    "scripts/world_objects"
+  ],
+  "accept": [
+    {
+      "name": "sea",
+      "tests": "sea"
+    },
+    {
+      "name": "test_locations",
+      "tests": "test_locations"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:56:07"
+}
