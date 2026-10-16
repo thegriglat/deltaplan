@@ -38,6 +38,7 @@ func _run() -> void:
 		return
 
 	var terrain := Terrain.new()
+	terrain.location_id = ""  # без загрузки умолчания (altai) в _ready
 	add_child(terrain)
 	if not terrain.load_location(loc_id):
 		push_error("нет места")

@@ -2,7 +2,7 @@
 (air_probe.tscn, окно на DISPLAY=:0), итог — out/air_quick.json.
 
   east_cliffs, crater_ridge — 6 м/с с 110° (пассат), 12 ч, 15 января, partly; w на 50–150 м над бровкой и 100–300 м с наветра
-           от неё (бровка — максимум высоты на линии по ветру через старт, ±1 км вдоль фронта, шаг 250 м); ротор — w и доля обратного
+           от неё (бровка: east_cliffs — верх обрыва к морю (самая наветренная точка линии по ветру с h ≥ 100 м, ~950 м от старта), crater_ridge — тоже верх обрыва к морю (~350 м от старта), ±1 км вдоль фронта, шаг 250 м; face — то же в метрах над землёй); ротор — w и доля обратного
            ветра за бровкой с подветра (300–1500 м, 30–150 м над землёй); k притока и ветер у старта — из строки лога air_model;
   thermal — 2 м/с с 110°, 12 ч, 15 января (южное лето), ясно, 27 °C; w_conv поля на 150 и 300 м над землёй по сетке 250 м
            над островом, суша против моря, по классу земли; сила источника.
@@ -31,8 +31,8 @@ sys.path.insert(0, str(HERE))
 
 WDIR = 110.0
 CASES = {
-    "east_cliffs": dict(site="east_cliffs", wind=6.0, wdir=WDIR, hour=12, tmax="nan", sky="partly", kind="slope"),
-    "crater_ridge": dict(site="crater_ridge", wind=6.0, wdir=WDIR, hour=12, tmax="nan", sky="partly", kind="slope"),
+    "east_cliffs": dict(site="east_cliffs", wind=6.0, wdir=WDIR, hour=12, tmax="nan", sky="partly", kind="slope", brink="edge"),
+    "crater_ridge": dict(site="crater_ridge", wind=6.0, wdir=WDIR, hour=12, tmax="nan", sky="partly", kind="slope", brink="edge"),
     "thermal": dict(site="plateau_landing", wind=2.0, wdir=WDIR, hour=12, tmax="27", sky="clear", kind="thermal"),
 }
 CLASS_NAMES = {1: "forest", 2: "grass", 3: "crop", 4: "shrub", 5: "bare", 6: "water", 7: "built"}
@@ -65,9 +65,16 @@ def points(case):
         px, pz = -uz, ux                       # вдоль фронта
         for s in range(-1000, 1001, 250):
             bx, bz = xs + px * s, zs + pz * s
-            ts = np.arange(-1200.0, 200.1, 10.0)
-            hs = [pl.height(bx + ux * float(t), bz + uz * float(t)) for t in ts]
-            k = int(np.argmax(hs))
+            if c["brink"] == "edge":
+                # обрыв к морю: самая наветренная точка линии (до 1,5 км) с высотой ≥ 100 м — верх обрыва
+                ts = np.arange(0.0, 1500.1, 10.0)
+                hs = [pl.height(bx + ux * float(t), bz + uz * float(t)) for t in ts]
+                hi = [i for i, h in enumerate(hs) if h >= 100.0]
+                k = max(hi) if hi else int(np.argmax(hs))     # на краях фронта обрыва может не быть — тогда максимум линии
+            else:                      # "local": гребень у старта — максимум высоты в 300 м за стартом и 100 м перед ним
+                ts = np.arange(-300.0, 100.1, 10.0)
+                hs = [pl.height(bx + ux * float(t), bz + uz * float(t)) for t in ts]
+                k = int(np.argmax(hs))
             t0 = float(ts[k])
             cx, cz, hc = bx + ux * t0, bz + uz * t0, float(hs[k])
             for d in (100, 200, 300):
@@ -75,6 +82,11 @@ def points(case):
                 for a in (50, 100, 150):
                     pts.append([x, z, round(hc + a - pl.height(x, z), 2)])
                     tags.append({"kind": "slope", "s": s, "upwind_m": d, "above_crest_m": a, "crest_h": round(hc, 1), "crest_t": t0})
+            for d in (100, 200, 300):
+                x, z = cx + ux * d, cz + uz * d
+                for a in (30, 60, 100):
+                    pts.append([x, z, a])
+                    tags.append({"kind": "face", "s": s, "upwind_m": d, "agl_m": a, "crest_h": round(hc, 1), "crest_t": t0})
             for d in (300, 600, 900, 1200, 1500):
                 x, z = cx - ux * d, cz - uz * d
                 for a in (30, 60, 100, 150):
@@ -143,6 +155,12 @@ def summarize(res):
         for a, t in slope:
             tab.setdefault(f"{t['upwind_m']}m_up/{t['above_crest_m']}m_above", []).append(a)
         s[f"{case}_table"] = {k: _mean(v) for k, v in sorted(tab.items())}
+        face = [(row[8], t) for row, t in zip(r["rows"], r["tags"]) if t["kind"] == "face"]
+        s[f"{case}_face_w_ms"] = _mean([a for a, _ in face])
+        tab = {}
+        for a, t in face:
+            tab.setdefault(f"{t['upwind_m']}m_up/{t['agl_m']}m_agl", []).append(a)
+        s[f"{case}_face_table"] = {k: _mean(v) for k, v in sorted(tab.items())}
         rot = [(row, t) for row, t in zip(r["rows"], r["tags"]) if t["kind"] == "rotor"]
         along = [-(row[6] * wx + row[7] * wz) for row, _ in rot]       # составляющая по ветру (вниз по потоку)
         s[f"{case}_rotor_w_min_ms"] = round(min(row[8] for row, _ in rot), 3)

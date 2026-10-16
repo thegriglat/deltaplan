@@ -20,9 +20,9 @@
     },
     {
       "id": "landing_crater",
-      "lat": -27.1711272,
-      "lon": -109.4065325,
-      "name": "Площадка у подножия склона под стартом crater_ridge"
+      "lat": -27.1890327,
+      "lon": -109.4154124,
+      "name": "Площадка на уступе под гребнем кратера (старт crater_ridge)"
     }
   ],
   "landing_sites_doc": "Посадочные площадки {id, name, lat, lon}; детали — configs/world_objects.json → landing.sites.volcano_island",
@@ -62,10 +62,10 @@
     {
       "heading_deg": 110,
       "id": "crater_ridge",
-      "lat": -27.1655065,
-      "lon": -109.4065325,
+      "lat": -27.1894824,
+      "lon": -109.4181906,
       "name": "site_volcano_island_crater_ridge",
-      "name_doc": "Склон: гребень кратера на юго-западе, разбег по пассату"
+      "name_doc": "Склон: гребень кратера на юго-западе над обрывом к морю, разбег по пассату"
     },
     {
       "heading_deg": 90,
