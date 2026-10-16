@@ -1,0 +1,65 @@
+{
+  "id": "GL-7b",
+  "module": "goals",
+  "type": "dp-engineer",
+  "title": "Трек в игре: запись, след прошлой попытки, полоса",
+  "goal": "Game пишет трек полёта (TrackRecorder) и по концу попытки сохраняет его как след прошлой попытки места (LastTrackStore, одна на место); при старте с show_last_track загружает его в game.goal_tracks и рисует все goal_tracks полосой TrackRibbon; в сети — ничего.",
+  "plan_ref": "GL-7b",
+  "contracts": [
+    {
+      "name": "GL-К5",
+      "version": "2",
+      "ref": "docs/contracts/goals.md"
+    },
+    {
+      "name": "GL-К6",
+      "version": "1",
+      "ref": "docs/contracts/goals.md"
+    }
+  ],
+  "copy": "~/deltaplan-goals-GL-7b",
+  "branch": "goals/GL-7b",
+  "base": "feature/goals",
+  "scope": [
+    "scripts/game/game.gd",
+    "tests/game/test_goal_tracks_game.gd",
+    "tests/game/test_goal_tracks_game.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/goals",
+    "scripts/ui",
+    "scenes/main.gd",
+    "configs/goals",
+    "docs/contracts/goals.md"
+  ],
+  "accept": [
+    {
+      "name": "test_goal_tracks_game",
+      "tests": "test_goal_tracks_game"
+    },
+    {
+      "name": "test_game_flight",
+      "tests": "test_game_flight"
+    },
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
+    },
+    {
+      "name": "test_track_ribbon",
+      "tests": "test_track_ribbon"
+    },
+    {
+      "name": "test_track_io",
+      "tests": "test_track_io"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/game/game.gd tests/game/test_goal_tracks_game.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T21:59:25"
+}

@@ -1,0 +1,89 @@
+{
+  "id": "GL-4",
+  "module": "goals",
+  "type": "dp-engineer",
+  "title": "Цели в игре: GoalTracker, список целей, итог, рекорды",
+  "goal": "Выбранные цели работают в полёте: Game создаёт GoalTracker (К3) при старте вне сети, ведёт его по телеметрии и посадке, сбрасывает на новую попытку, отдаёт ведущий маршрут прибору; компактный список целей с галочками в HUD; после посадки — итог по целям и новые локальные рекорды (FlightRecords) на экране итога; ru/en.",
+  "plan_ref": "GL-4",
+  "contracts": [
+    {
+      "name": "GL-К1",
+      "version": "1",
+      "ref": "docs/contracts/goals.md"
+    },
+    {
+      "name": "GL-К3",
+      "version": "1",
+      "ref": "docs/contracts/goals.md"
+    }
+  ],
+  "copy": "~/deltaplan-goals-GL-4",
+  "branch": "goals/GL-4",
+  "base": "feature/goals",
+  "scope": [
+    "scripts/game/game.gd",
+    "scripts/ui/goal_list.gd",
+    "scripts/ui/goal_list.gd.uid",
+    "scripts/ui/result_screen.gd",
+    "scenes/main.gd",
+    "configs/goals/hud.json",
+    "locale/ui.csv",
+    "tests/game/test_goals_game.gd",
+    "tests/game/test_goals_game.gd.uid",
+    "tests/ui/test_goal_list.gd",
+    "tests/ui/test_goal_list.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/goals",
+    "scripts/tasks",
+    "scripts/instruments",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/ui/goals_tab.gd",
+    "scripts/flight",
+    "docs/contracts/goals.md"
+  ],
+  "accept": [
+    {
+      "name": "test_goals_game",
+      "tests": "test_goals_game"
+    },
+    {
+      "name": "test_goal_list",
+      "tests": "test_goal_list"
+    },
+    {
+      "name": "test_game_flight",
+      "tests": "test_game_flight"
+    },
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
+    },
+    {
+      "name": "lang_goals",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_language",
+      "expect": "!re:(goals_|goal_list|result_goal)"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/game/game.gd scripts/ui/goal_list.gd scripts/ui/result_screen.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "test_screens",
+      "tests": "test_screens"
+    },
+    {
+      "name": "tests/game/test_ui",
+      "tests": "tests/game/test_ui"
+    },
+    {
+      "name": "test_gameplay",
+      "tests": "test_gameplay"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T21:58:57",
+  "edited": "2026-10-16T21:59:07"
+}
