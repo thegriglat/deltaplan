@@ -37,3 +37,5 @@
 {"t": "2026-10-17T03:27:24", "by": "executor", "task": "SEA-3", "ev": "reported", "commits": ["85ea992c"], "note": "done: Скрипт tools/blender/build_ship_tanker.py строит танкер Aframax: 250×44 м, надводный борт 9 м, бак +2,5 м, под водой 2 …", "dp_feedback": "В карточке не хватает строчки про то, что флаг цвета вершин в Godot выставляет потребитель. Узнал это только после импорта."}
 {"t": "2026-10-17T03:27:36", "by": "coordinator", "task": "SEA-3", "ev": "checked", "note": "6/6 build=ok:exit 0; lod0=ok:1010; lod0_min=ok:1010; lod1=ok:268; lod2=ok:72; size=ok:108"}
 {"t": "2026-10-17T03:27:42", "by": "coordinator", "task": "SEA-3", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-17T03:27:46", "by": "coordinator", "task": "SEA-3", "ev": "accepted", "commits": ["cd7c79c2"], "note": "6/6 build=ok:exit 0; lod0=ok:1010; lod0_min=ok:1010; lod1=ok:268; lod2=ok:72; size=ok:108"}
+{"t": "2026-10-17T03:27:46", "by": "coordinator", "task": "SEA-3", "ev": "merged"}
