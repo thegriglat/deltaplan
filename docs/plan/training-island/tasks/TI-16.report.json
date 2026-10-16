@@ -1,8 +1,8 @@
 {
   "status": "done",
-  "summary": "Кнопка «Тренировка» в главном меню (после «Настройки полёта») открывает окно TrainingMenu с 4 карточками из configs/training.json; клик собирает FlightSettings (остров, старт, цель GoalSpec, погода StartWeather) и шлёт fly_requested.",
+  "summary": "Тренировка не перетирает last_flight: StartMenu.training_requested → main._on_menu_training с флагом _training_flight (живёт и при «Заново»), сохранение через Main.saves_last_flight(autostart, net, training). Кнопка и окно — как раньше.",
   "commits": [
-    "69bd3072 TI-16: кнопка «Тренировка»"
+    "a689e834 TI-16: тренировка не перезаписывает last_flight"
   ],
   "checks": [
     {
@@ -45,17 +45,12 @@
   "how_to_check": ".dpcli/dpcli accept TI-16",
   "uncertain": [
     {
-      "where": "scenes/main.gd:365",
-      "why": "_fly после загрузки делает UserSettings.save_last_flight(s): последний выбор пилота перетрётся настройками тренировки (остров, цель), следующее «Лететь» полетит на остров. main.gd вне скоупа",
-      "checked": "меню само settings не меняет; предлагаю в main не сохранять last_flight для тренировки (флаг в FlightSettings или параметр _fly)"
-    },
-    {
-      "where": "tests/ui/test_menu_setup.gd:20",
-      "why": "существующий тест порядка кнопок обновлён: 9 кнопок, «Тренировка» после «Настройки полёта»",
-      "checked": "menu_setup 12/12"
+      "where": "tests/game/test_training_last_flight.gd",
+      "why": "полный полёт с записью last_flight не гонял (тяжело): проверены правило сохранения и подключение сигнала",
+      "checked": "2/2"
     }
   ],
   "dp_feedback": "",
-  "t": "2026-10-17T01:41:20",
+  "t": "2026-10-17T01:44:32",
   "by": "executor"
 }
