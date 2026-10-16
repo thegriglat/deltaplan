@@ -1,6 +1,6 @@
 class_name LocationBuilder
 extends RefCounted
-## Сборщик места для точки (OA-К4): стадии DemStage → RiverStage → SurfaceStage → SmoothStage → OsmTilesStage во
+## Сборщик места для точки (OA-К4): стадии DemStage → RiverStage → SurfaceStage → SmoothStage → SeaStage → OsmTilesStage во
 ## временной папке user://locations/.tmp_<ключ>, затем переименование; build.json — последним.
 ## Полное место (build.json complete, format_version та же) берётся из кеша без стадий и сети.
 ## Отказ рельефа — ошибка; отказ рек/покрова — место без слоя, имя в build.json → missing,
@@ -210,6 +210,7 @@ static func default_stages() -> Array:
 		["rivers", "river_stage"],
 		["surface", "surface_stage"],
 		["smooth", "smooth_stage"],
+		["sea", "sea_stage"],
 		["osm_tiles", "osm_tiles_stage"],
 	]:
 		var path := "res://scripts/terrain/build/%s.gd" % pair[1]
