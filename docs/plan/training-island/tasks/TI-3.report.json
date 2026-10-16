@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "Новый StartWeather (scripts/game/start_weather.gd): разбор start_sites[].weather по TI-К2 и одна функция apply(FlightSettings), зовётся из FlightSettings.from_dict (last_flight, избранное, недавние, повтор), LaunchOptions.apply_to (CLI), net_screen (zone_params/_on_fly) и Game.start. В меню «Полёт…» погода и время у такого старта заблокированы, показаны значения набора и строка «Погода старта фиксирована…» (ru/en).",
+  "commits": [
+    "faf63698 TI-3: фиксированная погода старта"
+  ],
+  "checks": [
+    {
+      "name": "training_island",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "favorites",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "catch_up",
+      "value": "20/20",
+      "pass": true
+    },
+    {
+      "name": "net_screen",
+      "value": "17/17",
+      "pass": true
+    },
+    {
+      "name": "e2e",
+      "value": "1/2; test_achievements_e2e::test_flight_opens_first_flight падает и на чистом main (не регрессия)",
+      "pass": false
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TI-3 --dry; godot --headless --path . res://tests/run_tests.tscn -- --filter=training_island",
+  "uncertain": [
+    {
+      "where": "scripts/game/start_weather.gd",
+      "why": "Тесты на копии altai с подмененным Config._cache (острова ещё нет); настоящий конфиг острова не проверен. Фиксированный старт перезаписывает --wind/--temp/--sky/--hour командной строки.",
+      "checked": "13 тестов: разбор, соответствие полям, пустой site_id, точка с карты, last_flight, избранное, CLI, сеть, меню"
+    },
+    {
+      "where": "tests e2e",
+      "why": "test_achievements_e2e падает одинаково на main без моих правок (посадка не засчитана)",
+      "checked": "прогон на /home/greg/deltaplan"
+    },
+    {
+      "where": "scripts/game/game.gd:300",
+      "why": "Game.start переписывает погоду и для вошедшего в сетевую зону (там уже набор хоста — совпадает)",
+      "checked": "только чтением"
+    }
+  ],
+  "dp_feedback": "accept --dry идёт >120 с в foreground; хорошо бы сообщать об этом в справке",
+  "t": "2026-10-16T21:51:50",
+  "by": "executor"
+}
