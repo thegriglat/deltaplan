@@ -1,0 +1,38 @@
+{
+  "id": "FL-8",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "F: пирамида высот и текстура высот в кеше места",
+  "goal": "Пирамида максимумов высот (make_max_texture) и, если окупается, текстура высот с мипмапами (make_texture) при повторной загрузке места читаются из кеша в папке места, а не считаются заново; результат бит-в-бит тот же.",
+  "plan_ref": "FL-8",
+  "contracts": [],
+  "copy": "~/deltaplan-fast-load-FL-8",
+  "branch": "fast-load/FL-8",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/terrain/height_layer.gd",
+    "scripts/terrain/terrain_renderer.gd",
+    "scripts/terrain/height_cache.gd",
+    "scripts/terrain/height_cache.gd.uid",
+    "tests/terrain"
+  ],
+  "dont_touch": [
+    "scripts/terrain/build",
+    "scripts/terrain/terrain_tree_models.gd",
+    "scripts/atmosphere",
+    "scripts/world_objects"
+  ],
+  "accept": [
+    {
+      "name": "height",
+      "tests": "height"
+    },
+    {
+      "name": "relief",
+      "tests": "relief"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:59:04"
+}

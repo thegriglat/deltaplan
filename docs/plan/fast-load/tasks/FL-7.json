@@ -1,0 +1,37 @@
+{
+  "id": "FL-7",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "E: деревья — одна сборка сцены на породу, фоновая загрузка",
+  "goal": "Модели деревьев: сцена каждой породы загружается и разбирается один раз (не на каждый из 40 вариантов), загрузка ресурсов — в фоне заранее; результат (меши, LOD, качание) тот же, этап trees короче на ≥ 0,7 с.",
+  "plan_ref": "FL-7",
+  "contracts": [],
+  "copy": "~/deltaplan-fast-load-FL-7",
+  "branch": "fast-load/FL-7",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/terrain/terrain_tree_models.gd",
+    "scripts/terrain/tree_placer.gd",
+    "scripts/terrain/terrain.gd",
+    "tests/vegetation"
+  ],
+  "dont_touch": [
+    "scripts/world_objects",
+    "scripts/atmosphere",
+    "assets",
+    "scripts/game/game.gd"
+  ],
+  "accept": [
+    {
+      "name": "tree",
+      "tests": "tree"
+    },
+    {
+      "name": "vegetation",
+      "tests": "vegetation"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:58:39"
+}
