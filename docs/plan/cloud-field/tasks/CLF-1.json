@@ -1,0 +1,102 @@
+{
+  "id": "CLF-1",
+  "module": "cloud-field",
+  "type": "dp-engineer",
+  "title": "Модель поля облачности и карты",
+  "goal": "CloudField: прогностическое поле облачности на сетке региона (рост от подъёма до LCL, таяние с задержкой, снос ветром основания, мощность от потолка частицы и устойчивости, стадии из динамики) по CLF-К1…К5, обоснованное физикой; карты на Онгудае, учебном острове и Алматы в 3 погодах для шлюза.",
+  "plan_ref": "§CLF-1",
+  "contracts": [
+    {
+      "name": "CLF-К1",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К2",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К3",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К4",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К5",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-field-CLF-1",
+  "branch": "cloud-field/CLF-1",
+  "base": "feature/cloud-field",
+  "scope": [
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/cloud_field_*",
+    "scripts/atmosphere/air_model/air_thermals.gd",
+    "configs/atmosphere.json",
+    "scripts/atmosphere/weather_model.gd",
+    "configs/weather_model.json",
+    "tests/atmosphere/test_cloud_field*",
+    "tests/contracts/test_cloud_field_k*",
+    "tools/research/cloud_field/",
+    "docs/research/cloud_field.md",
+    "docs/research/cloud_field/",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_model.gd",
+    "scripts/atmosphere/cloud_physics.gd",
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/*.gdshader*",
+    "data/locations/training_island/air/",
+    "project.godot",
+    "docs/contracts/cloud-field.md"
+  ],
+  "accept": [
+    {
+      "name": "test_cloud_field",
+      "tests": "test_cloud_field"
+    },
+    {
+      "name": "test_air_thermals",
+      "tests": "test_air_thermals"
+    },
+    {
+      "name": "test_air_contracts",
+      "tests": "test_air_contracts"
+    },
+    {
+      "name": "step_ms",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_cloud_field_perf",
+      "expect": "num:cloud_field_step_ms=([0-9.]+) <=15"
+    },
+    {
+      "name": "maps",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cloud-field/CLF-1/ | grep -c 'png$'",
+      "expect": "num:^([0-9]+) >=9"
+    },
+    {
+      "name": "weak_lt_strong",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/cloud_field/out/summary.json'));print(all(d[p]['weak']['cover_frac']<d[p]['strong']['cover_frac'] for p in ('ongudai','training_island','almaty')))\"",
+      "expect": "re:^True"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T03:18:28"
+}
