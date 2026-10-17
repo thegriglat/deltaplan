@@ -152,3 +152,6 @@
 {"t": "2026-10-17T17:02:37", "by": "coordinator", "task": "CLF-2", "ev": "accepted", "note": "1/1 fresh=ok:rc=0"}
 {"t": "2026-10-17T17:02:43", "by": "coordinator", "task": "CLF-2", "ev": "accepted", "note": "по проверке fresh rc=0"}
 {"t": "2026-10-17T17:02:44", "by": "coordinator", "task": "CLF-2", "ev": "merged", "note": "f597d7f2"}
+{"t": "2026-10-17T17:29:06", "by": "executor", "task": "CLF-7", "ev": "reported", "commits": ["c46614e2", "d8a232b7"], "note": "done: Сильный день Онгудая (13:30, покрытие поля 0,167, основание 3375 м): проход облаков на ветке дешевле main — medium 0,73…", "dp_feedback": "Таймаут job включает ожидание замка GPU (первый запуск на 3000 с умер в очереди с кодом 124) — стоит считать таймаут от получения замка."}
+{"t": "2026-10-17T17:29:14", "by": "coordinator", "task": "CLF-7", "ev": "checked", "note": "2/2 summary=ok:True; docs=ok:ошибок 0; scope=FAIL:вне scope: r-CLF-7.json"}
+{"t": "2026-10-17T17:29:21", "by": "coordinator", "task": "CLF-7", "ev": "accepted", "note": "по отчёту, для справки без порога (scope FAIL — забытый r-CLF-7.json, удалён)"}

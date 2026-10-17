@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Сильный день Онгудая (13:30, покрытие поля 0,167, основание 3375 м): проход облаков на ветке дешевле main — medium 0,73 против 4,35 мс (0,17), high 1,03 против 7,28 мс (0,14); GPU кадра medium 6,16 против 10,14, high 7,10 против 13,58. Удорожания нет. Справка, шейдеры не правились.",
+  "commits": [
+    "c46614e2 CLF-7: цена GPU облаков",
+    "d8a232b7 CLF-7: summary docs короче"
+  ],
+  "checks": [
+    {
+      "name": "summary",
+      "value": "True",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "cloud_pass_ratio_medium / high",
+      "value": "0.169 / 0.141",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Алматы не мерили (необязательно)",
+    "покрытие/облака на main не измерены (поля нет)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CLF-7; python3 tools/bench/clf7_summary.py <out> (см. docs/perf/frame_profile/cloud-field.md)",
+  "uncertain": [
+    {
+      "where": "docs/perf/frame_profile/cloud-field.md",
+      "why": "main (боксы кучевых) и ветка (слой поля) рисуют разные облака, равного числа облаков в обзоре нет; шесть замеров на ячейку, разброс не оценён",
+      "checked": "noclouds-опыт: ветка +0,5 (medium) / +0,9 (high) мс к кадру без облаков, main +4,6 / +7,6"
+    },
+    {
+      "where": "tools/bench/frame_profile.gd",
+      "why": "без --air-start автопилот на ветке разбивался на взлёте во время пересчёта поля после --world-t (причина не исследована: main взлетал); замер сделан со стартом в воздухе",
+      "checked": "прогоны с --air-start прошли на обеих сторонах"
+    }
+  ],
+  "dp_feedback": "Таймаут job включает ожидание замка GPU (первый запуск на 3000 с умер в очереди с кодом 124) — стоит считать таймаут от получения замка.",
+  "t": "2026-10-17T17:29:06",
+  "by": "executor"
+}
