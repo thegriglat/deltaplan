@@ -1,6 +1,7 @@
 extends TestCase
 ## Контракт FL-К1 (docs/contracts/fast-load.md): кеш поля воздуха на диске — имя записи (sha256[:16]
-## канонического ключа), ключ и его округление, запись → чтение в формате TI-К3 (float16, ≤ 0,01 м/с),
+## канонического ключа), ключ и его округление, запись → чтение в формате TI-К3 (v2: без потерь —
+## каналы и числа meta побитно, источники термиков бит-в-бит как из исходного поля),
 ## чужой model_hash / испорченный .bin / испорченный index.json, LRU по used, max_mb = 0 — выключен,
 ## публичное AirRuntime (cache_ready, cache_enabled), настройка — машинный ключ.
 
@@ -49,7 +50,7 @@ func test_k1_key_and_name() -> void:
 		check(k.has(f), "ключ: поле %s" % f)
 	for f in ["hour", "u10", "wdir", "t_max", "sky", "wind_ref"]:
 		check((k.cond as Dictionary).has(f), "ключ: cond.%s" % f)
-	check(int(k.format) == 1, "format = 1")
+	check(int(k.format) == 2, "format = 2")
 	check(is_equal_approx(float(k.cond.hour), 12.0), "час — начало срока 15 мин: %s" % k.cond.hour)
 	check(is_equal_approx(float(k.cond.wdir), 150.0), "направление — 0,1°: %s" % k.cond.wdir)
 	check(is_equal_approx(float(k.cond.t_max), 25.0), "температура — 0,1 °C: %s" % k.cond.t_max)
@@ -90,7 +91,7 @@ func test_k1_roundtrip() -> void:
 	check(not FileAccess.file_exists(DIR.path_join(nm + ".bin.tmp")), "временных файлов нет")
 	var h := AirBakedField.read_header(DIR.path_join(nm))
 	check(h.get("format") == AirBakedField.FORMAT and int(h.get("version", 0)) == AirBakedField.VERSION, "формат TI-К3")
-	check(int(h.get("cache", 0)) == 1, "cache: 1")
+	check(int(h.get("cache", 0)) == AirFieldCache.FORMAT, "cache: формат кеша")
 	check(h.get("status") == "not_converged", "status")
 	check(String(h.get("model_hash", "")) == AirBakedField.model_hash(), "model_hash")
 	check(AirBakedField.key_diff(h.get("key"), key()) == "", "key в заголовке")
@@ -115,6 +116,98 @@ func test_k1_roundtrip() -> void:
 		check(e <= TOL_MS, "уровень %d: |Δu,v,w| %.5f ≤ %.2f м/с" % [q, e, TOL_MS])
 		check(_err(a._theta, b._theta) <= 0.01, "уровень %d: θ в пределах float16" % q)
 		check(a._hc == b._hc, "уровень %d: рельеф побитно" % q)
+	_clean()
+
+
+## Уровень с конвекцией (источники есть): рельеф ~1000 м, слой до 2500 м, нагрев, θ′ и w_conv с «шумом»
+## младших разрядов (float16 их терял бы); z_i и u10 — числа без короткой десятичной записи.
+static func _conv_level(dx: float, n: int, seed_v: int) -> WindField:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_v
+	var nz := 30
+	var nc := n * n * nz
+	var u := PackedFloat32Array()
+	var v := PackedFloat32Array()
+	var wm := PackedFloat32Array()
+	var wc := PackedFloat32Array()
+	var th := PackedFloat32Array()
+	for a: PackedFloat32Array in [u, v, wm, wc, th]:
+		a.resize(nc)
+	for k in nz:
+		for j in n:
+			for i in n:
+				var q := (k * n + j) * n + i
+				u[q] = 3.0 + 2.0 * sin(0.3 * i + 0.1 * k) + rng.randf_range(-0.01, 0.01)
+				v[q] = -1.5 * cos(0.25 * j) + rng.randf_range(-0.01, 0.01)
+				wm[q] = 0.5 * sin(0.4 * i + 0.3 * j) + rng.randf_range(-0.01, 0.01)
+				wc[q] = 1.2 * maxf(0.0, sin(0.7 * i - 0.5 * j)) + rng.randf_range(-0.003, 0.003)
+				th[q] = 0.3 * cos(0.2 * i + 0.3 * j) + rng.randf_range(-0.001, 0.001)
+	var hc := PackedFloat32Array()
+	var heat := PackedFloat32Array()
+	hc.resize(n * n)
+	heat.resize(n * n)
+	for q in n * n:
+		hc[q] = 1000.0 + 7.3 * (q % n) + rng.randf_range(0.0, 1.0)
+		heat[q] = 220.0 + 40.0 * sin(0.9 * q) + rng.randf_range(0.0, 1.0)
+	var gam := PackedFloat32Array()
+	gam.resize(nz)
+	gam.fill(0.001)
+	var m := {
+		dx = dx, dz = 50.0, x0 = -0.5 * n * dx, y0 = -0.5 * n * dx, z_bot = 950.0,
+		nx = n, ny = n, nz = nz, z0 = 0.1, z_i = 2312.3456789012345, u10 = 3.0 + PI * 1.0e-9,
+		heat = heat, gam = gam, label = "synthetic", source = "gpu", cond = {wind = 3.0, wdir = 150.0},
+	}
+	return WindField.from_arrays(m, u, v, wm, wc, th, hc)
+
+
+## Источники термиков по уровню: число, столбцы, точки, Φ, силы, радиусы, потоки, потолки.
+static func sources_of(f: WindField, seed_v: int) -> AirThermals:
+	var cfg: Dictionary = Config.get_config("atmosphere").thermal.duplicate()
+	cfg["duty"] = float(Config.get_config("weather/medium").thermal_duty)
+	cfg["cloudbase_msl"] = INF
+	cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, null, seed_v, int(cfg.get("source_candidates", 4)))
+	var s := AirThermals.new()
+	s.build(f, cfg)
+	return s
+
+
+## "" — источники a и b равны побитно, иначе первое расхождение.
+static func sources_diff(a: AirThermals, b: AirThermals) -> String:
+	if a.count() != b.count():
+		return "число %d ≠ %d" % [a.count(), b.count()]
+	for nm in ["col", "pos", "phi", "w0", "radius", "flux", "top", "wstar", "drift", "owner"]:
+		if a.get(nm) != b.get(nm):
+			return nm
+	if a.phi_ref != b.phi_ref:
+		return "phi_ref"
+	return ""
+
+
+## v2 (находка FL-17): каналы и числа meta — без потерь, источники термиков из кеша бит-в-бит.
+func test_k1_lossless_sources() -> void:
+	_clean()
+	var c := _cache()
+	var lv: Array[WindField] = [_conv_level(400.0, 20, 5), _conv_level(100.0, 24, 6)]
+	var src := AirFieldSet.new()
+	src.set_field(lv, 0.0)
+	check(c.store(src, key(), {status = "ok"}), "запись")
+	var got := c.load_key(key())
+	check(got != null and got.levels.size() == src.levels.size(), "чтение")
+	if got == null:
+		return
+	var n_src := 0
+	for q in src.levels.size():
+		var a: WindField = src.levels[q]
+		var b: WindField = got.levels[q]
+		check(a._vel == b._vel and a._wconv == b._wconv and a._theta == b._theta, "уровень %d: каналы побитно" % q)
+		check(a.z_i() == b.z_i() and a.u10() == b.u10() and a.z0 == b.z0, "уровень %d: z_i, u10, z0 побитно" % q)
+		check(a.heat_flux() == b.heat_flux() and a.gam() == b.gam(), "уровень %d: heat, gam побитно" % q)
+		var sa := sources_of(a, 77)
+		var sb := sources_of(b, 77)
+		n_src += sa.count()
+		var d := sources_diff(sa, sb)
+		check(d == "", "уровень %d: источники бит-в-бит (%d; %s)" % [q, sa.count(), d])
+	check(n_src > 0, "источники есть: %d" % n_src)
 	_clean()
 
 
