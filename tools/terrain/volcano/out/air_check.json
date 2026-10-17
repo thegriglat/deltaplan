@@ -77,6 +77,11 @@
    "sky": "clear",
    "temp": 28.0,
    "wind": 3.0
+  },
+  "thermal_slope": {
+   "site": "thermal_slope",
+   "mode": "thermal",
+   "climb_agl": 100
   }
  },
  "summary": {
@@ -102,40 +107,41 @@
     },
     "inflow_k": 0.981,
     "baked": [
-     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/east_cliffs.json) — расчёт"
+     "air_model: запечённое поле res://data/locations/volcano_island/air/east_cliffs.json, уровней 3, k притока 0.981, 1.31 с",
+     "air_model: поле 12:00 ч, 6.0 м/с с 110° (сдвиг окон (запечённое поле)): 25.30 с, итераций [30, 40], окна [\"100 м [40, 40]\", \"50 м [50, 70]\"]; k притока 0.981, U над стартом на 10 м нет точки старта (проход 1: нет точки старта), проходов 1 [\"0.981 → нет точки старта за 25.3 с (область 15.0, GPU 0.27)\"]"
     ],
-    "u10_start_ms": 5.98,
+    "u10_start_ms": 5.978,
     "w_start_ms": 1.037,
-    "w_mean": 1.416,
-    "w_min": 0.729,
-    "w_max": 2.834,
-    "w_p10": 0.855,
-    "w_p90": 2.254,
+    "w_mean": 1.431,
+    "w_min": 0.745,
+    "w_max": 2.832,
+    "w_p10": 0.889,
+    "w_p90": 2.297,
     "frac_up": 1.0,
     "n": 81,
     "crest_h_mean": 103.411,
     "table": {
-     "100m_up/100m_above": 1.838,
-     "100m_up/150m_above": 1.613,
-     "100m_up/50m_above": 2.006,
-     "200m_up/100m_above": 1.417,
-     "200m_up/150m_above": 1.326,
-     "200m_up/50m_above": 1.452,
-     "300m_up/100m_above": 1.04,
-     "300m_up/150m_above": 1.021,
-     "300m_up/50m_above": 1.034
+     "100m_up/100m_above": 1.851,
+     "100m_up/150m_above": 1.63,
+     "100m_up/50m_above": 2.018,
+     "200m_up/100m_above": 1.434,
+     "200m_up/150m_above": 1.346,
+     "200m_up/50m_above": 1.466,
+     "300m_up/100m_above": 1.054,
+     "300m_up/150m_above": 1.031,
+     "300m_up/50m_above": 1.044
     },
-    "face_w_mean": 1.048,
+    "face_w_mean": 1.056,
     "face_table": {
-     "100m_up/100m_agl": 2.025,
-     "100m_up/30m_agl": 0.741,
-     "100m_up/60m_agl": 1.548,
-     "200m_up/100m_agl": 1.253,
-     "200m_up/30m_agl": 0.669,
-     "200m_up/60m_agl": 1.053,
-     "300m_up/100m_agl": 0.938,
-     "300m_up/30m_agl": 0.419,
-     "300m_up/60m_agl": 0.787
+     "100m_up/100m_agl": 2.037,
+     "100m_up/30m_agl": 0.745,
+     "100m_up/60m_agl": 1.558,
+     "200m_up/100m_agl": 1.266,
+     "200m_up/30m_agl": 0.671,
+     "200m_up/60m_agl": 1.063,
+     "300m_up/100m_agl": 0.947,
+     "300m_up/30m_agl": 0.423,
+     "300m_up/60m_agl": 0.796
     }
    },
    "cliffs5": {
@@ -159,40 +165,41 @@
     },
     "inflow_k": 0.977,
     "baked": [
-     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/east_cliffs.json) — расчёт"
+     "WARNING: air_model: запечённое поле не берётся (key.weather.wind_speed_ms: 6.0 ≠ 5.0) — расчёт",
+     "         [0] _load_baked (res://scripts/atmosphere/air_model/air_runtime.gd:438)"
     ],
     "u10_start_ms": 4.976,
     "w_start_ms": 0.853,
-    "w_mean": 1.185,
-    "w_min": 0.577,
+    "w_mean": 1.192,
+    "w_min": 0.617,
     "w_max": 2.381,
-    "w_p10": 0.714,
+    "w_p10": 0.737,
     "w_p90": 1.918,
     "frac_up": 1.0,
     "n": 81,
     "crest_h_mean": 103.411,
     "table": {
-     "100m_up/100m_above": 1.538,
-     "100m_up/150m_above": 1.341,
-     "100m_up/50m_above": 1.697,
-     "200m_up/100m_above": 1.174,
-     "200m_up/150m_above": 1.097,
-     "200m_up/50m_above": 1.213,
+     "100m_up/100m_above": 1.542,
+     "100m_up/150m_above": 1.353,
+     "100m_up/50m_above": 1.692,
+     "200m_up/100m_above": 1.195,
+     "200m_up/150m_above": 1.118,
+     "200m_up/50m_above": 1.23,
      "300m_up/100m_above": 0.876,
-     "300m_up/150m_above": 0.866,
-     "300m_up/50m_above": 0.863
+     "300m_up/150m_above": 0.854,
+     "300m_up/50m_above": 0.871
     },
-    "face_w_mean": 0.89,
+    "face_w_mean": 0.893,
     "face_table": {
-     "100m_up/100m_agl": 1.732,
-     "100m_up/30m_agl": 0.629,
-     "100m_up/60m_agl": 1.335,
-     "200m_up/100m_agl": 1.058,
+     "100m_up/100m_agl": 1.722,
+     "100m_up/30m_agl": 0.626,
+     "100m_up/60m_agl": 1.327,
+     "200m_up/100m_agl": 1.068,
      "200m_up/30m_agl": 0.564,
-     "200m_up/60m_agl": 0.9,
-     "300m_up/100m_agl": 0.783,
-     "300m_up/30m_agl": 0.35,
-     "300m_up/60m_agl": 0.663
+     "200m_up/60m_agl": 0.903,
+     "300m_up/100m_agl": 0.796,
+     "300m_up/30m_agl": 0.355,
+     "300m_up/60m_agl": 0.675
     }
    },
    "cliffs8": {
@@ -216,13 +223,14 @@
     },
     "inflow_k": 0.985,
     "baked": [
-     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/east_cliffs.json) — расчёт"
+     "WARNING: air_model: запечённое поле не берётся (key.weather.wind_speed_ms: 6.0 ≠ 8.0) — расчёт",
+     "         [0] _load_baked (res://scripts/atmosphere/air_model/air_runtime.gd:438)"
     ],
     "u10_start_ms": 7.987,
     "w_start_ms": 1.406,
-    "w_mean": 1.894,
-    "w_min": 0.998,
-    "w_max": 3.687,
+    "w_mean": 1.895,
+    "w_min": 1.0,
+    "w_max": 3.686,
     "w_p10": 1.192,
     "w_p90": 3.029,
     "frac_up": 1.0,
@@ -235,8 +243,8 @@
      "200m_up/100m_above": 1.901,
      "200m_up/150m_above": 1.796,
      "200m_up/50m_above": 1.923,
-     "300m_up/100m_above": 1.405,
-     "300m_up/150m_above": 1.375,
+     "300m_up/100m_above": 1.406,
+     "300m_up/150m_above": 1.383,
      "300m_up/50m_above": 1.381
     },
     "face_w_mean": 1.362,
@@ -273,148 +281,149 @@
     },
     "inflow_k": 1.0,
     "baked": [
-     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/crater_ridge.json) — расчёт"
+     "air_model: запечённое поле res://data/locations/volcano_island/air/crater_ridge.json, уровней 3, k притока 1.000, 1.17 с",
+     "air_model: поле 12:00 ч, 6.0 м/с с 110° (сдвиг окон (запечённое поле)): 26.29 с, итераций [30, 40], окна [\"100 м [40, 50]\", \"50 м [50, 80]\"]; k притока 1.000, U над стартом на 10 м нет точки старта (проход 1: нет точки старта), проходов 1 [\"1.000 → нет точки старта за 26.3 с (область 15.7, GPU 0.39)\"]"
     ],
-    "u10_start_ms": 4.607,
-    "w_start_ms": 0.863,
-    "w_mean": 1.548,
+    "u10_start_ms": 4.605,
+    "w_start_ms": 0.862,
+    "w_mean": 1.562,
     "w_min": 0.169,
-    "w_max": 3.192,
-    "w_p10": 0.68,
-    "w_p90": 2.26,
+    "w_max": 3.24,
+    "w_p10": 0.681,
+    "w_p90": 2.314,
     "frac_up": 1.0,
     "n": 81,
     "crest_h_mean": 94.067,
     "table": {
-     "100m_up/100m_above": 2.057,
-     "100m_up/150m_above": 1.986,
-     "100m_up/50m_above": 1.991,
-     "200m_up/100m_above": 1.564,
-     "200m_up/150m_above": 1.558,
-     "200m_up/50m_above": 1.486,
-     "300m_up/100m_above": 1.116,
-     "300m_up/150m_above": 1.173,
-     "300m_up/50m_above": 0.999
+     "100m_up/100m_above": 2.069,
+     "100m_up/150m_above": 2.004,
+     "100m_up/50m_above": 1.997,
+     "200m_up/100m_above": 1.582,
+     "200m_up/150m_above": 1.579,
+     "200m_up/50m_above": 1.499,
+     "300m_up/100m_above": 1.132,
+     "300m_up/150m_above": 1.182,
+     "300m_up/50m_above": 1.014
     },
-    "face_w_mean": 0.884,
+    "face_w_mean": 0.889,
     "face_table": {
-     "100m_up/100m_agl": 1.738,
-     "100m_up/30m_agl": 0.672,
-     "100m_up/60m_agl": 1.337,
-     "200m_up/100m_agl": 1.237,
-     "200m_up/30m_agl": 0.476,
-     "200m_up/60m_agl": 0.951,
-     "300m_up/100m_agl": 0.79,
-     "300m_up/30m_agl": 0.232,
-     "300m_up/60m_agl": 0.524
+     "100m_up/100m_agl": 1.743,
+     "100m_up/30m_agl": 0.675,
+     "100m_up/60m_agl": 1.343,
+     "200m_up/100m_agl": 1.245,
+     "200m_up/30m_agl": 0.477,
+     "200m_up/60m_agl": 0.955,
+     "300m_up/100m_agl": 0.801,
+     "300m_up/30m_agl": 0.235,
+     "300m_up/60m_agl": 0.532
     },
     "rotor": {
-     "w_min": -1.255,
+     "w_min": -1.201,
      "w_mean": 0.341,
-     "w_snap_min": -1.346,
+     "w_snap_min": -1.201,
      "u_down_min": -0.701,
      "reverse_frac": 0.033,
      "n": 180,
      "table": {
       "1200m_down/100m_agl": {
-       "w": -0.081,
-       "u_down": 6.093,
+       "w": -0.064,
+       "u_down": 6.09,
        "u_down_min": 1.544
       },
       "1200m_down/150m_agl": {
-       "w": -0.19,
-       "u_down": 7.286,
-       "u_down_min": 3.696
+       "w": -0.177,
+       "u_down": 7.283,
+       "u_down_min": 3.694
       },
       "1200m_down/30m_agl": {
-       "w": 0.082,
-       "u_down": 3.971,
+       "w": 0.089,
+       "u_down": 3.969,
        "u_down_min": -0.701
       },
       "1200m_down/60m_agl": {
-       "w": 0.025,
-       "u_down": 5.002,
+       "w": 0.041,
+       "u_down": 4.999,
        "u_down_min": -0.139
       },
       "1500m_down/100m_agl": {
-       "w": -0.112,
-       "u_down": 5.699,
+       "w": -0.142,
+       "u_down": 5.697,
        "u_down_min": 2.385
       },
       "1500m_down/150m_agl": {
-       "w": -0.198,
-       "u_down": 6.965,
-       "u_down_min": 4.562
+       "w": -0.229,
+       "u_down": 6.962,
+       "u_down_min": 4.561
       },
       "1500m_down/30m_agl": {
-       "w": 0.006,
-       "u_down": 3.439,
+       "w": 0.001,
+       "u_down": 3.437,
        "u_down_min": -0.308
       },
       "1500m_down/60m_agl": {
-       "w": -0.03,
-       "u_down": 4.513,
-       "u_down_min": 0.589
+       "w": -0.051,
+       "u_down": 4.512,
+       "u_down_min": 0.588
       },
       "300m_down/100m_agl": {
-       "w": 1.214,
-       "u_down": 8.727,
+       "w": 1.228,
+       "u_down": 8.724,
        "u_down_min": 5.035
       },
       "300m_down/150m_agl": {
-       "w": 1.336,
-       "u_down": 9.262,
-       "u_down_min": 6.023
+       "w": 1.334,
+       "u_down": 9.258,
+       "u_down_min": 6.021
       },
       "300m_down/30m_agl": {
-       "w": 0.726,
-       "u_down": 6.798,
-       "u_down_min": 3.083
+       "w": 0.737,
+       "u_down": 6.796,
+       "u_down_min": 3.082
       },
       "300m_down/60m_agl": {
-       "w": 1.075,
-       "u_down": 7.95,
-       "u_down_min": 4.475
+       "w": 1.095,
+       "u_down": 7.947,
+       "u_down_min": 4.474
       },
       "600m_down/100m_agl": {
-       "w": 0.738,
-       "u_down": 9.349,
-       "u_down_min": 8.802
+       "w": 0.715,
+       "u_down": 9.345,
+       "u_down_min": 8.8
       },
       "600m_down/150m_agl": {
-       "w": 0.742,
-       "u_down": 9.846,
-       "u_down_min": 9.391
+       "w": 0.737,
+       "u_down": 9.842,
+       "u_down_min": 9.387
       },
       "600m_down/30m_agl": {
-       "w": 0.547,
-       "u_down": 7.403,
-       "u_down_min": 6.335
+       "w": 0.528,
+       "u_down": 7.401,
+       "u_down_min": 6.332
       },
       "600m_down/60m_agl": {
-       "w": 0.69,
-       "u_down": 8.567,
-       "u_down_min": 7.963
+       "w": 0.657,
+       "u_down": 8.563,
+       "u_down_min": 7.96
       },
       "900m_down/100m_agl": {
-       "w": 0.05,
-       "u_down": 8.38,
+       "w": 0.073,
+       "u_down": 8.377,
        "u_down_min": 2.067
       },
       "900m_down/150m_agl": {
-       "w": 0.103,
-       "u_down": 9.179,
-       "u_down_min": 4.648
+       "w": 0.115,
+       "u_down": 9.175,
+       "u_down_min": 4.646
       },
       "900m_down/30m_agl": {
-       "w": 0.105,
-       "u_down": 5.742,
+       "w": 0.117,
+       "u_down": 5.74,
        "u_down_min": 0.118
       },
       "900m_down/60m_agl": {
-       "w": -0.007,
-       "u_down": 7.27,
-       "u_down_min": 0.94
+       "w": 0.019,
+       "u_down": 7.268,
+       "u_down_min": 0.938
       }
      }
     }
@@ -436,70 +445,71 @@
      "temp": 27.0,
      "wind_from": 110.0,
      "wind_kmh": 18.0,
-     "wind_ref": "start"
+     "wind_ref": "inflow"
     },
     "inflow_k": 1.0,
     "baked": [
-     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/crater_ridge.json) — расчёт"
+     "WARNING: air_model: запечённое поле не берётся (key.weather.wind_speed_ms: 6.0 ≠ 5.0) — расчёт",
+     "         [0] _load_baked (res://scripts/atmosphere/air_model/air_runtime.gd:438)"
     ],
     "u10_start_ms": 3.817,
-    "w_start_ms": 0.702,
-    "w_mean": 1.297,
+    "w_start_ms": 0.707,
+    "w_mean": 1.304,
     "w_min": 0.138,
-    "w_max": 2.695,
-    "w_p10": 0.57,
-    "w_p90": 1.933,
+    "w_max": 2.697,
+    "w_p10": 0.571,
+    "w_p90": 1.935,
     "frac_up": 1.0,
     "n": 81,
     "crest_h_mean": 94.067,
     "table": {
-     "100m_up/100m_above": 1.716,
-     "100m_up/150m_above": 1.655,
-     "100m_up/50m_above": 1.668,
-     "200m_up/100m_above": 1.314,
-     "200m_up/150m_above": 1.307,
-     "200m_up/50m_above": 1.252,
-     "300m_up/100m_above": 0.938,
-     "300m_up/150m_above": 0.977,
-     "300m_up/50m_above": 0.842
+     "100m_up/100m_above": 1.727,
+     "100m_up/150m_above": 1.664,
+     "100m_up/50m_above": 1.681,
+     "200m_up/100m_above": 1.322,
+     "200m_up/150m_above": 1.314,
+     "200m_up/50m_above": 1.26,
+     "300m_up/100m_above": 0.941,
+     "300m_up/150m_above": 0.981,
+     "300m_up/50m_above": 0.845
     },
-    "face_w_mean": 0.75,
+    "face_w_mean": 0.756,
     "face_table": {
-     "100m_up/100m_agl": 1.472,
+     "100m_up/100m_agl": 1.483,
      "100m_up/30m_agl": 0.569,
-     "100m_up/60m_agl": 1.146,
-     "200m_up/100m_agl": 1.049,
-     "200m_up/30m_agl": 0.401,
-     "200m_up/60m_agl": 0.812,
-     "300m_up/100m_agl": 0.667,
-     "300m_up/30m_agl": 0.195,
-     "300m_up/60m_agl": 0.445
+     "100m_up/60m_agl": 1.151,
+     "200m_up/100m_agl": 1.057,
+     "200m_up/30m_agl": 0.404,
+     "200m_up/60m_agl": 0.82,
+     "300m_up/100m_agl": 0.671,
+     "300m_up/30m_agl": 0.197,
+     "300m_up/60m_agl": 0.449
     },
     "rotor": {
      "w_min": -1.081,
-     "w_mean": 0.267,
+     "w_mean": 0.27,
      "w_snap_min": -1.081,
      "u_down_min": -0.399,
      "reverse_frac": 0.022,
      "n": 180,
      "table": {
       "1200m_down/100m_agl": {
-       "w": -0.089,
+       "w": -0.085,
        "u_down": 5.097,
        "u_down_min": 1.455
       },
       "1200m_down/150m_agl": {
-       "w": -0.185,
+       "w": -0.18,
        "u_down": 6.04,
        "u_down_min": 3.222
       },
       "1200m_down/30m_agl": {
-       "w": 0.064,
+       "w": 0.065,
        "u_down": 3.384,
        "u_down_min": -0.399
       },
       "1200m_down/60m_agl": {
-       "w": 0.006,
+       "w": 0.009,
        "u_down": 4.223,
        "u_down_min": 0.032
       },
@@ -509,77 +519,77 @@
        "u_down_min": 2.118
       },
       "1500m_down/150m_agl": {
-       "w": -0.192,
+       "w": -0.201,
        "u_down": 5.788,
        "u_down_min": 3.911
       },
       "1500m_down/30m_agl": {
-       "w": -0.01,
+       "w": -0.004,
        "u_down": 3.007,
        "u_down_min": -0.145
       },
       "1500m_down/60m_agl": {
-       "w": -0.06,
+       "w": -0.054,
        "u_down": 3.874,
        "u_down_min": 0.647
       },
       "300m_down/100m_agl": {
-       "w": 0.998,
+       "w": 1.011,
        "u_down": 7.161,
        "u_down_min": 4.175
       },
       "300m_down/150m_agl": {
-       "w": 1.085,
+       "w": 1.095,
        "u_down": 7.572,
        "u_down_min": 4.967
       },
       "300m_down/30m_agl": {
-       "w": 0.602,
+       "w": 0.608,
        "u_down": 5.637,
        "u_down_min": 2.59
       },
       "300m_down/60m_agl": {
-       "w": 0.894,
+       "w": 0.906,
        "u_down": 6.558,
        "u_down_min": 3.736
       },
       "600m_down/100m_agl": {
-       "w": 0.583,
+       "w": 0.582,
        "u_down": 7.668,
        "u_down_min": 7.244
       },
       "600m_down/150m_agl": {
-       "w": 0.602,
+       "w": 0.597,
        "u_down": 8.044,
        "u_down_min": 7.696
       },
       "600m_down/30m_agl": {
-       "w": 0.432,
+       "w": 0.435,
        "u_down": 6.15,
        "u_down_min": 5.284
       },
       "600m_down/60m_agl": {
-       "w": 0.536,
+       "w": 0.54,
        "u_down": 7.069,
        "u_down_min": 6.59
       },
       "900m_down/100m_agl": {
-       "w": 0.042,
+       "w": 0.038,
        "u_down": 6.905,
        "u_down_min": 1.783
       },
       "900m_down/150m_agl": {
-       "w": 0.075,
+       "w": 0.073,
        "u_down": 7.522,
        "u_down_min": 3.917
       },
       "900m_down/30m_agl": {
-       "w": 0.092,
+       "w": 0.089,
        "u_down": 4.792,
        "u_down_min": 0.147
       },
       "900m_down/60m_agl": {
-       "w": 0.001,
+       "w": -0.004,
        "u_down": 6.038,
        "u_down_min": 0.854
       }
@@ -603,100 +613,101 @@
      "temp": 27.0,
      "wind_from": 110.0,
      "wind_kmh": 28.8,
-     "wind_ref": "start"
+     "wind_ref": "inflow"
     },
     "inflow_k": 1.0,
     "baked": [
-     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/crater_ridge.json) — расчёт"
+     "WARNING: air_model: запечённое поле не берётся (key.weather.wind_speed_ms: 6.0 ≠ 8.0) — расчёт",
+     "         [0] _load_baked (res://scripts/atmosphere/air_model/air_runtime.gd:438)"
     ],
     "u10_start_ms": 6.223,
     "w_start_ms": 1.184,
-    "w_mean": 2.063,
+    "w_mean": 2.073,
     "w_min": 0.235,
-    "w_max": 4.305,
-    "w_p10": 0.903,
-    "w_p90": 3.032,
+    "w_max": 4.311,
+    "w_p10": 0.904,
+    "w_p90": 3.065,
     "frac_up": 1.0,
     "n": 81,
     "crest_h_mean": 94.067,
     "table": {
-     "100m_up/100m_above": 2.728,
-     "100m_up/150m_above": 2.668,
-     "100m_up/50m_above": 2.591,
-     "200m_up/100m_above": 2.09,
-     "200m_up/150m_above": 2.096,
-     "200m_up/50m_above": 1.96,
-     "300m_up/100m_above": 1.504,
-     "300m_up/150m_above": 1.587,
-     "300m_up/50m_above": 1.342
+     "100m_up/100m_above": 2.739,
+     "100m_up/150m_above": 2.679,
+     "100m_up/50m_above": 2.605,
+     "200m_up/100m_above": 2.099,
+     "200m_up/150m_above": 2.111,
+     "200m_up/50m_above": 1.965,
+     "300m_up/100m_above": 1.517,
+     "300m_up/150m_above": 1.589,
+     "300m_up/50m_above": 1.35
     },
-    "face_w_mean": 1.14,
+    "face_w_mean": 1.144,
     "face_table": {
-     "100m_up/100m_agl": 2.226,
-     "100m_up/30m_agl": 0.882,
-     "100m_up/60m_agl": 1.699,
-     "200m_up/100m_agl": 1.59,
-     "200m_up/30m_agl": 0.616,
-     "200m_up/60m_agl": 1.196,
-     "300m_up/100m_agl": 1.053,
-     "300m_up/30m_agl": 0.309,
-     "300m_up/60m_agl": 0.689
+     "100m_up/100m_agl": 2.237,
+     "100m_up/30m_agl": 0.88,
+     "100m_up/60m_agl": 1.703,
+     "200m_up/100m_agl": 1.598,
+     "200m_up/30m_agl": 0.618,
+     "200m_up/60m_agl": 1.204,
+     "300m_up/100m_agl": 1.056,
+     "300m_up/30m_agl": 0.311,
+     "300m_up/60m_agl": 0.692
     },
     "rotor": {
-     "w_min": -1.491,
-     "w_mean": 0.491,
-     "w_snap_min": -1.54,
+     "w_min": -1.479,
+     "w_mean": 0.485,
+     "w_snap_min": -1.479,
      "u_down_min": -1.283,
      "reverse_frac": 0.044,
      "n": 180,
      "table": {
       "1200m_down/100m_agl": {
-       "w": -0.033,
+       "w": -0.029,
        "u_down": 8.15,
        "u_down_min": 1.836
       },
       "1200m_down/150m_agl": {
-       "w": -0.169,
+       "w": -0.167,
        "u_down": 9.838,
        "u_down_min": 4.652
       },
       "1200m_down/30m_agl": {
-       "w": 0.132,
+       "w": 0.135,
        "u_down": 5.195,
        "u_down_min": -1.283
       },
       "1200m_down/60m_agl": {
-       "w": 0.09,
+       "w": 0.095,
        "u_down": 6.606,
        "u_down_min": -0.394
       },
       "1500m_down/100m_agl": {
-       "w": -0.156,
+       "w": -0.166,
        "u_down": 7.512,
        "u_down_min": 2.994
       },
       "1500m_down/150m_agl": {
-       "w": -0.255,
+       "w": -0.277,
        "u_down": 9.352,
        "u_down_min": 5.823
       },
       "1500m_down/30m_agl": {
-       "w": 0.002,
+       "w": 0.01,
        "u_down": 4.346,
        "u_down_min": -0.732
       },
       "1500m_down/60m_agl": {
-       "w": -0.056,
+       "w": -0.048,
        "u_down": 5.824,
        "u_down_min": 0.564
       },
       "300m_down/100m_agl": {
-       "w": 1.692,
+       "w": 1.662,
        "u_down": 11.924,
        "u_down_min": 6.751
       },
       "300m_down/150m_agl": {
-       "w": 1.85,
+       "w": 1.813,
        "u_down": 12.726,
        "u_down_min": 8.156
       },
@@ -706,47 +717,47 @@
        "u_down_min": 4.024
       },
       "300m_down/60m_agl": {
-       "w": 1.482,
+       "w": 1.47,
        "u_down": 10.77,
        "u_down_min": 5.911
       },
       "600m_down/100m_agl": {
-       "w": 0.971,
+       "w": 0.986,
        "u_down": 12.793,
        "u_down_min": 11.988
       },
       "600m_down/150m_agl": {
-       "w": 1.006,
+       "w": 1.024,
        "u_down": 13.554,
        "u_down_min": 12.871
       },
       "600m_down/30m_agl": {
-       "w": 0.713,
+       "w": 0.718,
        "u_down": 9.955,
        "u_down_min": 8.485
       },
       "600m_down/60m_agl": {
-       "w": 0.884,
+       "w": 0.895,
        "u_down": 11.617,
        "u_down_min": 10.764
       },
       "900m_down/100m_agl": {
-       "w": 0.175,
+       "w": 0.142,
        "u_down": 11.403,
        "u_down_min": 2.687
       },
       "900m_down/150m_agl": {
-       "w": 0.224,
+       "w": 0.2,
        "u_down": 12.587,
        "u_down_min": 6.142
       },
       "900m_down/30m_agl": {
-       "w": 0.18,
+       "w": 0.172,
        "u_down": 7.682,
        "u_down_min": 0.074
       },
       "900m_down/60m_agl": {
-       "w": 0.09,
+       "w": 0.062,
        "u_down": 9.79,
        "u_down_min": 1.146
       }
@@ -783,9 +794,9 @@
       },
       {
        "agl": 30.0,
-       "h_ms": 1.929,
-       "u": -1.674,
-       "v": -0.959,
+       "h_ms": 1.928,
+       "u": -1.673,
+       "v": -0.958,
        "w": 0.104
       },
       {
@@ -799,23 +810,23 @@
      "landing_crater": [
       {
        "agl": 10.0,
-       "h_ms": 1.039,
+       "h_ms": 1.038,
        "u": -0.803,
-       "v": -0.659,
+       "v": -0.658,
        "w": 0.175
       },
       {
        "agl": 30.0,
-       "h_ms": 1.223,
+       "h_ms": 1.222,
        "u": -0.942,
        "v": -0.779,
        "w": 0.217
       },
       {
        "agl": 60.0,
-       "h_ms": 1.397,
+       "h_ms": 1.396,
        "u": -1.102,
-       "v": -0.858,
+       "v": -0.857,
        "w": 0.27
       }
      ],
@@ -832,14 +843,37 @@
        "h_ms": 1.909,
        "u": -1.776,
        "v": -0.7,
-       "w": 0.211
+       "w": 0.209
       },
       {
        "agl": 60.0,
-       "h_ms": 2.063,
+       "h_ms": 2.062,
        "u": -1.917,
        "v": -0.762,
-       "w": 0.208
+       "w": 0.202
+      }
+     ],
+     "landing_thermal": [
+      {
+       "agl": 10.0,
+       "h_ms": 1.828,
+       "u": -1.489,
+       "v": -1.06,
+       "w": 0.121
+      },
+      {
+       "agl": 30.0,
+       "h_ms": 2.061,
+       "u": -1.741,
+       "v": -1.104,
+       "w": 0.146
+      },
+      {
+       "agl": 60.0,
+       "h_ms": 2.28,
+       "u": -1.99,
+       "v": -1.112,
+       "w": 0.19
       }
      ]
     },
@@ -998,100 +1032,83 @@
       "n": 36
      }
     },
-    "core_w_p50": 0.014,
-    "core_w_p90": 1.888,
-    "core_w_max": 8.996,
-    "core_n": 38200,
+    "core_w_p50": 0.174,
+    "core_w_p90": 3.94,
+    "core_w_max": 8.094,
+    "core_n": 9810,
     "core_by_agl": {
      "300": {
-      "p50": 0.007,
-      "p90": 1.884
+      "p50": 0.151,
+      "p90": 3.911
      },
      "400": {
-      "p50": 0.009,
-      "p90": 1.885
+      "p50": 0.16,
+      "p90": 3.93
      },
      "500": {
-      "p50": 0.011,
-      "p90": 1.886
+      "p50": 0.161,
+      "p90": 3.955
      },
      "600": {
-      "p50": 0.013,
-      "p90": 1.886
+      "p50": 0.169,
+      "p90": 3.952
      },
      "700": {
-      "p50": 0.015,
-      "p90": 1.888
+      "p50": 0.176,
+      "p90": 3.956
      },
      "800": {
-      "p50": 0.016,
-      "p90": 1.888
+      "p50": 0.183,
+      "p90": 3.95
      },
      "900": {
-      "p50": 0.017,
-      "p90": 1.889
+      "p50": 0.184,
+      "p90": 3.944
      },
      "1000": {
-      "p50": 0.018,
-      "p90": 1.89
+      "p50": 0.184,
+      "p90": 3.938
      },
      "1100": {
-      "p50": 0.018,
-      "p90": 1.892
+      "p50": 0.183,
+      "p90": 3.938
      },
      "1200": {
-      "p50": 0.018,
-      "p90": 1.892
+      "p50": 0.183,
+      "p90": 3.926
      }
     },
     "core_by_class": {
-     "0": {
-      "p50": -0.001,
-      "p90": 0.045,
-      "n": 3820
-     },
-     "bare": {
-      "p50": 3.268,
-      "p90": 3.345,
+     "crop": {
+      "p50": 0.052,
+      "p90": 0.126,
       "n": 90
      },
-     "crop": {
-      "p50": 0.049,
-      "p90": 0.124,
-      "n": 190
-     },
      "forest": {
-      "p50": 0.043,
-      "p90": 0.235,
-      "n": 2210
+      "p50": 0.064,
+      "p90": 0.356,
+      "n": 1630
      },
      "grass": {
-      "p50": 0.183,
-      "p90": 3.858,
-      "n": 10200
+      "p50": 0.201,
+      "p90": 3.962,
+      "n": 7970
      },
      "shrub": {
-      "p50": 0.084,
-      "p90": 0.133,
+      "p50": 0.074,
+      "p90": 0.141,
       "n": 120
-     },
-     "water": {
-      "p50": 0.001,
-      "p90": 1.883,
-      "n": 21570
      }
     },
-    "thermals_seen": 1221,
-    "thermals_land": 635,
-    "over_water": 586,
+    "thermals_seen": 231,
+    "thermals_land": 231,
+    "over_water": 0,
     "by_class": {
-     "0": 306,
-     "forest": 71,
-     "grass": 241,
-     "crop": 5,
-     "shrub": 3,
-     "bare": 9,
-     "water": 586
+     "forest": 43,
+     "grass": 171,
+     "crop": 2,
+     "shrub": 2,
+     "bare": 13
     },
     "from": [
      10749.849,
@@ -1264,101 +1281,88 @@
       "n": 36
      }
     },
-    "core_w_p50": 0.014,
-    "core_w_p90": 1.948,
-    "core_w_max": 9.112,
-    "core_n": 39690,
+    "core_w_p50": 0.17,
+    "core_w_p90": 4.076,
+    "core_w_max": 8.778,
+    "core_n": 10140,
     "core_by_agl": {
      "300": {
-      "p50": 0.007,
-      "p90": 1.947
+      "p50": 0.152,
+      "p90": 4.081
      },
      "400": {
-      "p50": 0.009,
-      "p90": 1.947
+      "p50": 0.162,
+      "p90": 4.084
      },
      "500": {
-      "p50": 0.011,
-      "p90": 1.948
+      "p50": 0.167,
+      "p90": 4.083
      },
      "600": {
-      "p50": 0.013,
-      "p90": 1.948
+      "p50": 0.167,
+      "p90": 4.087
      },
      "700": {
-      "p50": 0.015,
-      "p90": 1.948
+      "p50": 0.173,
+      "p90": 4.08
      },
      "800": {
-      "p50": 0.016,
-      "p90": 1.949
+      "p50": 0.173,
+      "p90": 4.074
      },
      "900": {
-      "p50": 0.017,
-      "p90": 1.949
+      "p50": 0.175,
+      "p90": 4.068
      },
      "1000": {
-      "p50": 0.018,
-      "p90": 1.949
+      "p50": 0.175,
+      "p90": 4.066
      },
      "1100": {
-      "p50": 0.018,
-      "p90": 1.949
+      "p50": 0.175,
+      "p90": 4.065
      },
      "1200": {
-      "p50": 0.018,
-      "p90": 1.949
+      "p50": 0.173,
+      "p90": 4.071
      }
     },
     "core_by_class": {
-     "0": {
-      "p50": 0.001,
-      "p90": 0.045,
-      "n": 3960
-     },
      "bare": {
-      "p50": 3.567,
-      "p90": 3.697,
-      "n": 90
+      "p50": 4.491,
+      "p90": 4.592,
+      "n": 60
      },
      "crop": {
-      "p50": 0.047,
-      "p90": 4.128,
-      "n": 310
+      "p50": 0.052,
+      "p90": 0.117,
+      "n": 90
      },
      "forest": {
-      "p50": 0.061,
-      "p90": 0.359,
-      "n": 2550
+      "p50": 0.09,
+      "p90": 4.175,
+      "n": 1890
      },
      "grass": {
-      "p50": 0.177,
-      "p90": 4.033,
-      "n": 9630
+      "p50": 0.193,
+      "p90": 4.068,
+      "n": 7980
      },
      "shrub": {
       "p50": 0.068,
-      "p90": 0.115,
-      "n": 150
-     },
-     "water": {
-      "p50": 0.002,
-      "p90": 1.946,
-      "n": 23000
+      "p90": 0.129,
+      "n": 120
      }
     },
-    "thermals_seen": 1230,
-    "thermals_land": 631,
-    "over_water": 599,
+    "thermals_seen": 241,
+    "thermals_land": 241,
+    "over_water": 0,
     "by_class": {
-     "0": 306,
-     "forest": 68,
-     "grass": 243,
-     "crop": 6,
-     "shrub": 4,
-     "bare": 3,
-     "water": 599,
-     "built": 1
+     "forest": 45,
+     "grass": 189,
+     "crop": 2,
+     "shrub": 2,
+     "bare": 3
     },
     "from": [
      10749.849,
@@ -1422,106 +1426,88 @@
     },
     "inflow_k": 0.906,
     "grid": {},
-    "core_w_p50": 0.016,
-    "core_w_p90": 3.952,
-    "core_w_max": 11.43,
-    "core_n": 52070,
+    "core_w_p50": 0.362,
+    "core_w_p90": 4.277,
+    "core_w_max": 11.629,
+    "core_n": 13690,
     "core_by_agl": {
      "300": {
-      "p50": 0.006,
-      "p90": 3.877
+      "p50": 0.278,
+      "p90": 4.25
      },
      "400": {
-      "p50": 0.009,
-      "p90": 3.918
+      "p50": 0.295,
+      "p90": 4.262
      },
      "500": {
-      "p50": 0.012,
-      "p90": 3.939
+      "p50": 0.272,
+      "p90": 4.268
      },
      "600": {
-      "p50": 0.015,
-      "p90": 3.952
+      "p50": 0.291,
+      "p90": 4.275
      },
      "700": {
-      "p50": 0.017,
-      "p90": 3.966
+      "p50": 0.352,
+      "p90": 4.28
      },
      "800": {
-      "p50": 0.019,
-      "p90": 3.975
+      "p50": 1.443,
+      "p90": 4.286
      },
      "900": {
-      "p50": 0.021,
-      "p90": 3.976
+      "p50": 2.222,
+      "p90": 4.295
      },
      "1000": {
-      "p50": 0.023,
-      "p90": 3.976
+      "p50": 2.498,
+      "p90": 4.294
      },
      "1100": {
-      "p50": 0.024,
-      "p90": 3.97
+      "p50": 2.629,
+      "p90": 4.293
      },
      "1200": {
-      "p50": 0.024,
-      "p90": 3.966
+      "p50": 2.723,
+      "p90": 4.292
      }
     },
     "core_by_class": {
-     "0": {
-      "p50": -0.006,
-      "p90": 0.06,
-      "n": 8400
-     },
      "bare": {
-      "p50": 0.171,
-      "p90": 3.622,
-      "n": 120
-     },
-     "built": {
-      "p50": -0.021,
-      "p90": -0.003,
-      "n": 130
+      "p50": 0.12,
+      "p90": 0.212,
+      "n": 50
      },
      "crop": {
-      "p50": 0.051,
-      "p90": 4.199,
-      "n": 340
+      "p50": 0.046,
+      "p90": 0.14,
+      "n": 140
      },
      "forest": {
-      "p50": 0.173,
-      "p90": 4.379,
-      "n": 4050
+      "p50": 2.569,
+      "p90": 4.408,
+      "n": 2950
      },
      "grass": {
-      "p50": 0.312,
-      "p90": 4.22,
-      "n": 13850
+      "p50": 1.44,
+      "p90": 4.226,
+      "n": 10430
      },
      "shrub": {
-      "p50": 0.109,
-      "p90": 3.633,
-      "n": 290
-     },
-     "water": {
-      "p50": 0.001,
-      "p90": 1.764,
-      "n": 24890
+      "p50": 1.308,
+      "p90": 3.907,
+      "n": 120
      }
     },
-    "thermals_seen": 1870,
-    "thermals_land": 948,
-    "over_water": 922,
+    "thermals_seen": 255,
+    "thermals_land": 255,
+    "over_water": 0,
     "by_class": {
-     "0": 601,
-     "forest": 72,
-     "grass": 258,
-     "crop": 6,
-     "shrub": 6,
-     "bare": 4,
-     "water": 922,
-     "built": 1
+     "forest": 47,
+     "grass": 199,
+     "crop": 2,
+     "shrub": 2,
+     "bare": 5
     },
     "from": [
      -3000.0,
@@ -1530,9 +1516,9 @@
     ],
     "heading": 110.0,
     "climb_m": [
-     1828.4,
-     1837.7,
-     1651.6
+     1835.3,
+     1830.3,
+     1416.3
     ],
     "climb_end": [
      "time",
@@ -1540,7 +1526,7 @@
      "time"
     ],
     "cloudbase_msl_start": 3865.199,
-    "core_land_w_p90": 4.266
+    "core_land_w_p90": 4.277
    },
    "thermal_east": {
     "cond": {
@@ -1586,101 +1572,88 @@
     },
     "inflow_k": 0.906,
     "grid": {},
-    "core_w_p50": 0.014,
-    "core_w_p90": 1.958,
-    "core_w_max": 8.996,
-    "core_n": 42830,
+    "core_w_p50": 0.153,
+    "core_w_p90": 4.125,
+    "core_w_max": 8.777,
+    "core_n": 11890,
     "core_by_agl": {
      "300": {
-      "p50": 0.006,
-      "p90": 1.951
+      "p50": 0.124,
+      "p90": 4.118
      },
      "400": {
-      "p50": 0.008,
-      "p90": 1.953
+      "p50": 0.135,
+      "p90": 4.121
      },
      "500": {
-      "p50": 0.011,
-      "p90": 1.955
+      "p50": 0.138,
+      "p90": 4.129
      },
      "600": {
-      "p50": 0.013,
-      "p90": 1.957
+      "p50": 0.144,
+      "p90": 4.132
      },
      "700": {
-      "p50": 0.015,
-      "p90": 1.959
+      "p50": 0.149,
+      "p90": 4.126
      },
      "800": {
-      "p50": 0.017,
-      "p90": 1.959
+      "p50": 0.155,
+      "p90": 4.122
      },
      "900": {
-      "p50": 0.018,
-      "p90": 1.96
+      "p50": 0.161,
+      "p90": 4.119
      },
      "1000": {
-      "p50": 0.018,
-      "p90": 1.961
+      "p50": 0.163,
+      "p90": 4.119
      },
      "1100": {
-      "p50": 0.019,
-      "p90": 1.962
+      "p50": 0.167,
+      "p90": 4.124
      },
      "1200": {
-      "p50": 0.019,
-      "p90": 1.962
+      "p50": 0.169,
+      "p90": 4.138
      }
     },
     "core_by_class": {
-     "0": {
-      "p50": 0.008,
-      "p90": 0.054,
-      "n": 4990
-     },
      "bare": {
-      "p50": 3.601,
-      "p90": 3.698,
-      "n": 80
+      "p50": 4.49,
+      "p90": 4.591,
+      "n": 60
      },
      "crop": {
-      "p50": 4.11,
-      "p90": 4.209,
-      "n": 310
+      "p50": 4.255,
+      "p90": 4.289,
+      "n": 90
      },
      "forest": {
-      "p50": 0.048,
-      "p90": 0.342,
-      "n": 3070
+      "p50": 0.056,
+      "p90": 2.654,
+      "n": 2310
      },
      "grass": {
-      "p50": 0.165,
-      "p90": 4.08,
-      "n": 11220
+      "p50": 0.181,
+      "p90": 4.114,
+      "n": 9310
      },
      "shrub": {
-      "p50": 0.073,
-      "p90": 0.147,
-      "n": 190
-     },
-     "water": {
-      "p50": 0.001,
-      "p90": 1.946,
-      "n": 22970
+      "p50": 0.068,
+      "p90": 0.129,
+      "n": 120
      }
     },
-    "thermals_seen": 1337,
-    "thermals_land": 691,
-    "over_water": 646,
+    "thermals_seen": 248,
+    "thermals_land": 248,
+    "over_water": 0,
     "by_class": {
-     "0": 355,
-     "forest": 72,
-     "grass": 250,
-     "crop": 6,
-     "shrub": 4,
-     "bare": 3,
-     "water": 646,
-     "built": 1
+     "forest": 47,
+     "grass": 194,
+     "crop": 2,
+     "shrub": 2,
+     "bare": 3
     },
     "from": [
      9350.0,
@@ -1689,9 +1662,9 @@
     ],
     "heading": 140.0,
     "climb_m": [
-     2463.1,
-     3281.5,
-     1453.9
+     1924.6,
+     3281.4,
+     1621.9
     ],
     "climb_end": [
      "time",
@@ -1699,59 +1672,202 @@
      "time"
     ],
     "cloudbase_msl_start": 3865.199,
-    "core_land_w_p90": 4.075
+    "core_land_w_p90": 4.125
+   },
+   "thermal_slope": {
+    "cond": {
+     "day": 15,
+     "heading": 110.0,
+     "hour": 15.0,
+     "mode": "thermal",
+     "month": 1,
+     "site": "thermal_slope",
+     "sky": "clear",
+     "start": [
+      -3000.149,
+      504.352,
+      -1450.037
+     ],
+     "temp": 28.0,
+     "wind_from": 110.0,
+     "wind_kmh": 10.8,
+     "wind_ref": "start"
+    },
+    "weather": {
+     "background_sink_ms": -0.8,
+     "blue": false,
+     "cloudbase_agl_m": 3800.0,
+     "dry_thermal_fraction": 0.509,
+     "heat": 0.955,
+     "temperature_c": 27.946,
+     "thermal_duty": 0.881,
+     "thermal_radius_m": [
+      123.226,
+      236.183
+     ],
+     "thermal_spacing_m": 700.0,
+     "thermal_strength_ms": [
+      3.047,
+      5.585
+     ],
+     "top_agl_m": 3800.0,
+     "wind_from_deg": 110.0,
+     "wind_speed_kmh": 10.8,
+     "z_dry_msl_m": 5766.598,
+     "z_lcl_msl_m": 5727.445
+    },
+    "inflow_k": 0.635,
+    "grid": {},
+    "core_w_p50": 3.514,
+    "core_w_p90": 4.304,
+    "core_w_max": 9.066,
+    "core_n": 12630,
+    "core_by_agl": {
+     "300": {
+      "p50": 2.601,
+      "p90": 4.302
+     },
+     "400": {
+      "p50": 2.924,
+      "p90": 4.314
+     },
+     "500": {
+      "p50": 3.395,
+      "p90": 4.317
+     },
+     "600": {
+      "p50": 3.446,
+      "p90": 4.323
+     },
+     "700": {
+      "p50": 3.501,
+      "p90": 4.319
+     },
+     "800": {
+      "p50": 3.588,
+      "p90": 4.316
+     },
+     "900": {
+      "p50": 3.636,
+      "p90": 4.304
+     },
+     "1000": {
+      "p50": 3.632,
+      "p90": 4.293
+     },
+     "1100": {
+      "p50": 3.628,
+      "p90": 4.286
+     },
+     "1200": {
+      "p50": 3.624,
+      "p90": 4.281
+     }
+    },
+    "core_by_class": {
+     "built": {
+      "p50": -0.079,
+      "p90": -0.029,
+      "n": 160
+     },
+     "crop": {
+      "p50": 0.052,
+      "p90": 0.099,
+      "n": 230
+     },
+     "forest": {
+      "p50": 4.011,
+      "p90": 5.432,
+      "n": 3880
+     },
+     "grass": {
+      "p50": 3.481,
+      "p90": 4.164,
+      "n": 8360
+     }
+    },
+    "thermals_seen": 234,
+    "thermals_land": 234,
+    "over_water": 0,
+    "by_class": {
+     "forest": 66,
+     "grass": 159,
+     "crop": 4,
+     "bare": 3,
+     "built": 2
+    },
+    "from": [
+     -3000.149,
+     504.352,
+     -1450.037
+    ],
+    "heading": 110.0,
+    "climb_m": [
+     3120.3,
+     329.6,
+     1569.9
+    ],
+    "climb_end": [
+     "time",
+     "time",
+     "time"
+    ],
+    "cloudbase_msl_start": 3865.199,
+    "core_land_w_p90": 4.304
    }
   },
-  "east_cliffs_w_ms": 1.416,
-  "east_cliffs_w_p90_ms": 2.254,
-  "east_cliffs_w_max_ms": 2.834,
-  "east_cliffs_w_min_ms": 0.729,
+  "east_cliffs_w_ms": 1.431,
+  "east_cliffs_w_p90_ms": 2.297,
+  "east_cliffs_w_max_ms": 2.832,
+  "east_cliffs_w_min_ms": 0.745,
   "east_cliffs_inflow_k": 0.981,
-  "east_cliffs_u10_start_ms": 5.98,
+  "east_cliffs_u10_start_ms": 5.978,
   "east_cliffs_w_start_ms": 1.037,
-  "east_cliffs_w_5ms": 1.185,
+  "east_cliffs_w_5ms": 1.192,
   "east_cliffs_u10_start_5ms": 4.976,
   "east_cliffs_inflow_k_5ms": 0.977,
-  "east_cliffs_w_8ms": 1.894,
+  "east_cliffs_w_8ms": 1.895,
   "east_cliffs_u10_start_8ms": 7.987,
   "east_cliffs_inflow_k_8ms": 0.985,
-  "crater_ridge_w_ms": 1.548,
-  "crater_ridge_w_p90_ms": 2.26,
-  "crater_ridge_w_max_ms": 3.192,
+  "crater_ridge_w_ms": 1.562,
+  "crater_ridge_w_p90_ms": 2.314,
+  "crater_ridge_w_max_ms": 3.24,
   "crater_ridge_w_min_ms": 0.169,
   "crater_ridge_inflow_k": 1.0,
-  "crater_ridge_u10_start_ms": 4.607,
-  "crater_ridge_w_start_ms": 0.863,
+  "crater_ridge_u10_start_ms": 4.605,
+  "crater_ridge_w_start_ms": 0.862,
   "crater_rotor_reverse_frac": 0.033,
   "crater_rotor_u_min_ms": -0.701,
-  "crater_rotor_w_min_ms": -1.255,
-  "crater_ridge_w_5ms": 1.297,
+  "crater_rotor_w_min_ms": -1.201,
+  "crater_ridge_w_5ms": 1.304,
   "crater_ridge_u10_start_5ms": 3.817,
   "crater_ridge_inflow_k_5ms": 1.0,
-  "crater_ridge_w_8ms": 2.063,
+  "crater_ridge_w_8ms": 2.073,
   "crater_ridge_u10_start_8ms": 6.223,
   "crater_ridge_inflow_k_8ms": 1.0,
   "u10_start_max_ms": 7.987,
   "landing_wind_ms": 1.363,
   "landing_inflow_k": 0.808,
-  "thermal_top_core_land_w_p90": 4.266,
-  "thermal_top_climb_m": 1837.7,
-  "thermal_east_core_land_w_p90": 4.075,
-  "thermal_east_climb_m": 3281.5,
+  "thermal_top_core_land_w_p90": 4.277,
+  "thermal_top_climb_m": 1835.3,
+  "thermal_east_core_land_w_p90": 4.125,
+  "thermal_east_climb_m": 3281.4,
+  "thermal_slope_core_land_w_p90": 4.304,
+  "thermal_slope_climb_m": 3120.3,
+  "thermal_slope_over_water": 0,
+  "thermal_slope_baked": true,
   "thermal_best_case": 15.0,
   "thermal_land_wconv_p90_150m": 0.12,
   "thermal_sea_wconv_p90_150m": 0.019,
   "thermal_land_wconv_p90_300m": 0.148,
   "thermal_sea_wconv_p90_300m": 0.036,
-  "thermal_core_w_p90": 1.948,
-  "thermal_core_w_max": 9.112,
+  "thermal_core_w_p90": 4.076,
+  "thermal_core_w_max": 8.778,
   "thermal_climb_m": 0.0,
-  "thermals_over_water": 599,
-  "thermals_land": 631,
-  "thermal_core_land_w_p90": 4.008,
+  "thermals_over_water": 0,
+  "thermals_land": 241,
+  "thermal_core_land_w_p90": 4.076,
   "thermal_exists": true,
-  "not_ok": [
-   "thermals_over_water=599 (нужно <= 0)"
-  ]
+  "not_ok": []
  }
 }

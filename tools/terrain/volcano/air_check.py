@@ -15,6 +15,7 @@
   landing — старт plateau_landing с набором из конфига: ветер на 10/30/60 м над каждой посадкой.
   thermal12, thermal15 — фокус plateau_landing, погода подменена: ясно, 28 °C, 3 м/с с 110°, 12 и 15 ч; w_conv поля на 150/300 м
       над землёй по сетке 250 м над островом и морем вокруг; ядра термиков (300–1200 м) во всей зоне 15 км; 3 вылета кружения.
+  thermal_slope — старт thermal_slope с погодой из конфига (запечённое поле): ядра 15 км и вылеты кружения со 100 м над стартом (VI-9).
   thermal_top, thermal_east — та же погода (15 ч), ядра и вылеты кружения от кандидатов старта thermal_slope (--from=x,z,курс; вылет —
       со 100 м над стартом, --climb-agl: на пологих склонах простой пилот с земли до термика не долетает).
 w — вертикальная скорость воздуха (Atmosphere.air_velocity_at без болтанки), среднее 5 снимков через 60 с.
@@ -52,6 +53,8 @@ CASES = {
     # кандидаты старта thermal_slope (правила стартов проходят): вершина острова и восточное плато; ядра и вылеты — от них
     "thermal_top": dict(site="plateau_landing", mode="thermal", hour=15, frm="-3000,-1450,110", climb_agl=100, **TH),
     "thermal_east": dict(site="plateau_landing", mode="thermal", hour=15, frm="9350,700,140", climb_agl=100, **TH),
+    # VI-9: сам старт thermal_slope с погодой из конфига (запечённое поле), ядра и вылеты от старта
+    "thermal_slope": dict(site="thermal_slope", mode="thermal", climb_agl=100),
 }
 THERMAL_R_M = 15000.0
 KEYS = ["east_cliffs_w_ms", "east_cliffs_w_p90_ms", "east_cliffs_w_max_ms", "east_cliffs_w_5ms", "east_cliffs_w_8ms",
@@ -62,7 +65,8 @@ KEYS = ["east_cliffs_w_ms", "east_cliffs_w_p90_ms", "east_cliffs_w_max_ms", "eas
         "landing_wind_ms", "landing_inflow_k",
         "thermal_land_wconv_p90_150m", "thermal_land_wconv_p90_300m", "thermal_sea_wconv_p90_150m", "thermal_sea_wconv_p90_300m",
         "thermal_core_w_p90", "thermal_core_land_w_p90", "thermal_core_w_max", "thermal_climb_m",
-        "thermal_top_core_land_w_p90", "thermal_top_climb_m", "thermal_east_core_land_w_p90", "thermal_east_climb_m", "thermals_over_water", "thermals_land", "thermal_exists",
+        "thermal_top_core_land_w_p90", "thermal_top_climb_m", "thermal_east_core_land_w_p90", "thermal_east_climb_m",
+        "thermal_slope_core_land_w_p90", "thermal_slope_climb_m", "thermal_slope_over_water", "thermal_slope_baked", "thermals_over_water", "thermals_land", "thermal_exists",
         "u10_start_max_ms"]
 
 
@@ -297,7 +301,7 @@ def summarize(res):
             if best is None or (t["core_w_p90"] or 0) > (best["core_w_p90"] or 0):
                 best = t
     cand = {}
-    for k in ("thermal_top", "thermal_east"):
+    for k in ("thermal_top", "thermal_east", "thermal_slope"):
         if k in res:
             t = s["cases"][k] = _thermal(res[k])
             land = [c["w"] for c in res[k]["thermal"]["cores"] if c["cls"] not in (6, 0)]
@@ -305,6 +309,9 @@ def summarize(res):
             cand[k] = t
             s[f"{k}_core_land_w_p90"] = t["core_land_w_p90"]
             s[f"{k}_climb_m"] = max(t["climb_m"]) if t["climb_m"] else None
+            if k == "thermal_slope":
+                s["thermal_slope_over_water"] = t["over_water"]
+                s["thermal_slope_baked"] = res[k]["info"]["air_runtime"].get("baked")
     if best is not None:
         s["thermal_best_case"] = best["cond"]["hour"]
         for lev in (150, 300):
