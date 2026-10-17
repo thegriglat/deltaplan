@@ -217,7 +217,7 @@ func test_stage_and_load_for() -> void:
 	var want := SeaMask.compute(g.hs, g.cls, W, W, CELL, SeaMask.params_from_config())
 	check(_sum(want) == W * (W - 40), "ожидаемое море: вся вода, %d" % _sum(want))
 	var sj: Variant = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("sea.json")))
-	check(sj is Dictionary and int(sj.version) == 2 and int(sj.sea_cells) == _sum(want) and int(sj.components) == 1
+	check(sj is Dictionary and int(sj.version) == 3 and int(sj.sea_cells) == _sum(want) and int(sj.components) == 1
 		and sj.has("seconds"), "sea.json: %s" % str(sj))
 	var res := SeaMask.load_for(dir)
 	check(not res.is_empty() and res.cell_m == CELL and res.origin == Vector2(-6000.0, -6000.0), "load_for: поля")
@@ -271,11 +271,13 @@ func _run_stage(dir: String, g: Grid, info_extra: Dictionary = {}) -> Dictionary
 	var ninfo: Dictionary = meta.layers[0]
 	var after := HeightLayer.load_from_file(dir.path_join("far.webp"), ninfo).heights
 	var sj: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("sea.json")))
+	var cls_after := SeaMask.read_l8(dir.path_join("far_surface.webp"), g.w, g.h)
+	var sea_after := SeaMask.read_l8(dir.path_join("far_sea.webp"), g.w, g.h)
 	var abs_dir := ProjectSettings.globalize_path(dir)
 	for fn in ["far.webp", "meta.json", "far_surface.webp", "far_sea.webp", "sea.json"]:
 		DirAccess.remove_absolute(abs_dir.path_join(fn))
 	DirAccess.remove_absolute(abs_dir)
-	return {"err": err, "after": after, "before": before, "meta": ninfo, "sj": sj}
+	return {"err": err, "cls_after": cls_after, "sea_after": sea_after, "after": after, "before": before, "meta": ninfo, "sj": sj}
 
 
 ## Море (основная часть — на уровне воды) с мелководьем и глубинами у края, суша 300 м слева, озеро 300 м (класс 6) внутри суши, «Мёртвое море» −430 м внутри суши.
@@ -329,8 +331,8 @@ func _check_flat(r: Dictionary, g: Grid, level: float, tol: float, tag: String) 
 	check(sea_ok, "%s: клетки моря = %.1f ± %.2f" % [tag, level, tol])
 	check(rest_ok, "%s: суша (в т.ч. ниже уровня моря), малый пруд у берега, озеро и Мёртвое море без изменений" % tag)
 	var sj: Dictionary = r.sj
-	check(int(sj.version) == 2 and int(sj.components) == 1 and int(sj.flattened_cells) > 0 and sj.levels_m is Array
-		and (sj.levels_m as Array).size() == 1 and absf(float(sj.levels_m[0]) - level) <= tol, "%s: sea.json v2: %s" % [tag, str(sj)])
+	check(int(sj.version) == 3 and int(sj.components) == 1 and int(sj.flattened_cells) > 0 and sj.levels_m is Array
+		and (sj.levels_m as Array).size() == 1 and absf(float(sj.levels_m[0]) - level) <= tol, "%s: sea.json v3: %s" % [tag, str(sj)])
 	check(float(r.meta.min_height_m) <= level + tol and float(r.meta.max_height_m) >= 300.0, "%s: meta min/max обновлены" % tag)
 
 
@@ -361,3 +363,32 @@ func test_stage_idempotent() -> void:
 		if absf(r.after[i] - r2.after[i]) > 0.04:
 			same = false
 	check(same, "повторный прогон не двигает высоты")
+
+
+## S2 v3: класс 0 в клетках моря := 6, остальное побайтно; повторный прогон — тот же результат, reclassed 0.
+func test_stage_reclasses_open_ocean() -> void:
+	var g := _sea_world(0.0)
+	for y in 160:  # открытый океан без WorldCover: правая половина моря — класс 0
+		for x in range(100, 160):
+			g.cls[y * 160 + x] = 0
+	var cls0 := g.cls.duplicate()
+	var r := await _run_stage("user://test_sea_recls", g)
+	check(int(r.sj.version) == 3 and int(r.sj.reclassed_cells) > 0, "sea.json v3, reclassed_cells > 0: %s" % str(r.sj))
+	var n0 := 0
+	var ok := true
+	for i in cls0.size():
+		var sea: bool = r.sea_after[i] != 0
+		if sea:
+			if r.cls_after[i] != 6:
+				ok = false
+			if cls0[i] == 0:
+				n0 += 1
+		elif r.cls_after[i] != cls0[i]:
+			ok = false
+	check(ok, "море — класс 6, вне моря классы прежние")
+	check(n0 == int(r.sj.reclassed_cells), "reclassed_cells = число клеток моря класса 0: %d против %d" % [n0, int(r.sj.reclassed_cells)])
+	var g2 := Grid.new(160, 160, 0.0, 0)
+	g2.cls = r.cls_after
+	g2.hs = r.after
+	var r2 := await _run_stage("user://test_sea_recls2", g2)
+	check(int(r2.sj.reclassed_cells) == 0 and r2.cls_after == r.cls_after and r2.sea_after == r.sea_after, "повторный прогон: тот же результат")

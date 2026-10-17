@@ -2,9 +2,9 @@ class_name SeaStage
 extends RefCounted
 ## Стадия сборки места «море» (контракт S2, docs/contracts/sea-ships.md): после smooth, до osm_tiles.
 ## Читает far.webp, meta.json, far_surface.webp из ctx.dir; пишет far_sea.webp (WebP lossless, сетка far,
-## значение — SeaMask.compute) и sea.json {"version": 2, "sea_cells", "components", "levels_m", "flattened_cells", "seconds"}.
+## значение — SeaMask.compute) и sea.json {"version": 3, "sea_cells", "components", "levels_m", "flattened_cells", "reclassed_cells", "seconds"}.
 ## S2 v2: клетки моря в far.webp выравниваются до уровня воды их компоненты (мода высот, SeaMask), остальное не меняется;
-## meta.json — min/max высот слоя.
+## meta.json — min/max высот слоя. S2 v3: класс 0 в клетках моря := 6 в far_surface.webp (reclassed_cells).
 ## Нет far_surface.webp (или слоя far) — ERR_UNAVAILABLE: место без судов, следующая сборка дособерёт стадию.
 ## Счёт идёт в рабочем потоке (тысячи клеток на строку — секунды в GDScript), стадия ждёт по кадрам.
 
@@ -57,12 +57,24 @@ func run(ctx: LocationBuildContext) -> Error:
 		if err != OK:
 			ctx.log_line("sea: не записать выровненный far (%d)" % err)
 			return err
+	# S2 v3: открытый океан без данных WorldCover (класс 0) в клетках моря := 6 (вода). Признак моря посчитан по исходным данным выше.
+	var reclassed := 0
+	var cls2 := cls.duplicate()
+	for i in w * h:
+		if mask[i] != 0 and cls2[i] == 0:
+			cls2[i] = 6
+			reclassed += 1
+	if reclassed > 0:
+		var tmp := spath + ".tmp"
+		if not SeaMask.write_l8(tmp, w, h, cls2) or DirAccess.rename_absolute(tmp, spath) != OK:
+			ctx.log_line("sea: не записать far_surface.webp")
+			return ERR_FILE_CANT_WRITE
 	var f := FileAccess.open(ctx.dir.path_join("sea.json"), FileAccess.WRITE)
 	if f == null:
 		ctx.log_line("sea: не записать sea.json")
 		return ERR_FILE_CANT_WRITE
-	f.store_string(JSON.stringify({"version": 2, "sea_cells": info_res.sea_cells, "components": info_res.components,
-		"levels_m": info_res.levels, "flattened_cells": flat, "seconds": snappedf((Time.get_ticks_usec() - t0) / 1e6, 0.01)}))
+	f.store_string(JSON.stringify({"version": 3, "sea_cells": info_res.sea_cells, "components": info_res.components,
+		"levels_m": info_res.levels, "flattened_cells": flat, "reclassed_cells": reclassed, "seconds": snappedf((Time.get_ticks_usec() - t0) / 1e6, 0.01)}))
 	f.close()
 	ctx.report(STAGE, 1.0)
 	return OK
