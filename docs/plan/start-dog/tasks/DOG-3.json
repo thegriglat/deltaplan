@@ -1,0 +1,47 @@
+{
+  "id": "DOG-3",
+  "module": "start-dog",
+  "type": "dp-engineer",
+  "title": "Кадры: собака на разбеге и в лагере",
+  "goal": "Скрипт кадров и последовательность кадров собаки в игре: разбег с собакой из кабины и сбоку (лежит → срывается → бежит рядом → отрыв → лает у бровки → трусит назад) и собака в движении по лагерю сверху при пролёте; кадры для шлюза пользователю.",
+  "plan_ref": "DOG-3",
+  "contracts": [
+    {
+      "name": "start-dog",
+      "version": "2",
+      "ref": "docs/contracts/start-dog.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-dog-DOG-3",
+  "branch": "start-dog/DOG-3",
+  "base": "feature/start-dog",
+  "scope": [
+    "tools/shots/start_dog_shot.gd",
+    "tools/shots/start_dog_shot.gd.uid",
+    "tools/shots/start_dog_shot.tscn",
+    "tools/shots/start_dog_run.sh"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "assets/",
+    "CHANGELOG.md",
+    "site/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py tools/shots/start_dog_shot.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/start-dog/DOG-3/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=10"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T11:00:21"
+}

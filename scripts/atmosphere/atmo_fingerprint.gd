@@ -161,8 +161,11 @@ static func run_to(a: Atmosphere, t: float, dt: float) -> void:
 
 
 ## Отпечаток: {thermals: [[id, x, z, src_y, top, strength, radius, t_birth, env, cloud, cb], …],
-## clouds: [[id, cx, cz, rx, rz, depth, grow, decay, active], …], air: [[x, y, z, vx, vy, vz], …]}.
-## Термики и облака — по возрастанию id.
+## clouds: [[id, cx, cz, rx, rz, depth, grow, decay, active], …] — облака-объекты (Cb),
+## field: [[столбец, покрытие, мощность, стадия, активность], …] — поле облачности (кучевые),
+## air: [[x, y, z, vx, vy, vz], …]}. Термики и облака — по возрастанию id, поле — по столбцу.
+## Поле зависит от истории (разгон поля при скачке времени ≠ прогон), поэтому «прыжок» с ним не
+## сравнивается (diff по умолчанию без поля, with_field = true — для двух прогонов).
 static func capture(a: Atmosphere) -> Dictionary:
 	var t := a.time_s
 	var ths: Array = []
@@ -189,6 +192,17 @@ static func capture(a: Atmosphere) -> Dictionary:
 			var c := model.center(th, t)
 			var sz := model.size(th, st)
 			clouds.append([id, c.x, c.y, sz.x, sz.y, sz.z, st.x, st.y, st.z])
+	var field_rows: Array = []
+	var f: CloudField = a.cloud_phys.field
+	if f != null and f.nx > 0:
+		for c in f.nx * f.ny:
+			if f.cover[c] < 0.05:
+				continue
+			var cx := f.x0 + (c % f.nx + 0.5) * f.dx
+			var cz := -(f.y0 + (c / f.nx + 0.5) * f.dx)
+			if Vector2(cx - CENTER.x, cz - CENTER.z).length_squared() > r2:
+				continue
+			field_rows.append([c, f.cover[c], f.depth[c], f.stage[c], f.activity[c]])
 	var air: Array = []
 	for s in SPOTS:
 		for h in HEIGHTS_AGL:
@@ -197,13 +211,17 @@ static func capture(a: Atmosphere) -> Dictionary:
 			var p := Vector3(x, height(x, z) + h, z)
 			var v := a.air_velocity_at(p)
 			air.append([p.x, p.y, p.z, v.x, v.y, v.z])
-	return {"t": t, "thermals": ths, "clouds": clouds, "air": air}
+	return {"t": t, "thermals": ths, "clouds": clouds, "field": field_rows, "air": air}
 
 
 ## Сравнить два отпечатка: "" — совпадают до tol, иначе — первые расхождения (текст).
-static func diff(a: Dictionary, b: Dictionary, tol: float = 1.0e-3) -> String:
+static func diff(
+	a: Dictionary, b: Dictionary, tol: float = 1.0e-3, with_field: bool = false
+) -> String:
 	var out: PackedStringArray = []
-	for key in ["thermals", "clouds", "air"]:
+	for key in ["thermals", "clouds", "field", "air"]:
+		if key == "field" and not with_field:
+			continue
 		var la: Array = a[key]
 		var lb: Array = b[key]
 		if la.size() != lb.size():
@@ -233,7 +251,7 @@ static func _ids(rows: Array) -> Array:
 ## Текст отпечатка (для файла и diff между ОС): одна строка на запись, числа %.6f.
 static func to_text(fp: Dictionary) -> String:
 	var lines: PackedStringArray = ["t %.3f" % float(fp.t)]
-	for key in ["thermals", "clouds", "air"]:
+	for key in ["thermals", "clouds", "field", "air"]:
 		lines.append("%s %d" % [key, (fp[key] as Array).size()])
 		for row: Array in fp[key]:
 			var parts: PackedStringArray = []

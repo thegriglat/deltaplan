@@ -1,0 +1,29 @@
+{
+  "verdict": "accept",
+  "summary": "Стыки DOG-K1 (runners с полями pos/vel/phase/heading_deg, camp_start, obstacles_near как Vector3(x, z, r)) сделаны по контракту v2; scripts/game и project.godot не тронуты, все 8 файлов в скоупе. Пороги теста (a)–(j) совпадают с карточкой, подгонки нет; present() и все случайные броски идут через rng (без глобальных randf/randi). Перезапуск test_egg_ — 83/83.",
+  "issues": [
+    {
+      "file": "scripts/world_objects/easter_eggs/start_dog.gd",
+      "line": 690,
+      "severity": "minor",
+      "what": "Обход: в _avoid запас 0,2 м к радиусу препятствия, а в _push_out 0,01 м; в карточке запас 0,3 м. Тест (i) проходит (2,8 м при радиусе 2,5), но на вещах собака может проходить впритирку.",
+      "fix": "Вынести запас в конфиг (avoid_margin_m ≈ 0,3) и брать его в обоих местах; при случае, не отдельным заходом."
+    },
+    {
+      "file": "scripts/world_objects/easter_eggs/start_dog.gd",
+      "line": 629,
+      "severity": "minor",
+      "what": "_allowed_along ищет бровку только по курсу старта на линии lat; обрыв сбоку от курса не виден. Граница модели честно названа в отчёте; на типовых стартах (склон по курсу) этого хватает.",
+      "fix": "Назвать это ограничение в docs/guide/world-objects/easter-eggs.md; в DOG-3 на кадрах проверить старт с косой бровкой."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only test_egg_ --dry",
+      "value": "83/83, scope 8 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-17T10:59:26",
+  "by": "reviewer"
+}

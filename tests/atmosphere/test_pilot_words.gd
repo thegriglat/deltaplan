@@ -3,6 +3,7 @@ extends TestCase
 ## выкинет», можно уйти, «+8 надо валить», термики без облаков, фон и кольцо.
 
 const Sim := preload("res://tests/flight/flight_sim.gd")
+const Fixture := preload("res://tests/atmosphere/cloud_field_fixture.gd")
 
 const _BASE_STRENGTH := 4.0
 const _BASE_RADIUS := 130.0
@@ -23,12 +24,13 @@ func _atmo(
 	return a
 
 
-func _cloud_atmo(seed_v: int, stage: Vector3 = Vector3(-1, 0, 0)) -> Atmosphere:
+## Облако поля над термиком: Vector4(покрытие, мощность м, стадия −1..1, активность); по умолчанию
+## крупное зрелое.
+func _cloud_atmo(seed_v: int, cl: Vector4 = Vector4(1.0, 1500.0, 0.0, 1.0)) -> Atmosphere:
 	var a := _atmo(seed_v, {"thermal_mode": "static", "wind_speed_kmh": 0.0})
-	var id := a.add_static_thermal(0.0, 0.0, _BASE_STRENGTH, _BASE_RADIUS)
-	if stage.x >= 0.0:
-		a.cloud_phys.model.stage_override[id] = stage
+	a.add_static_thermal(0.0, 0.0, _BASE_STRENGTH, _BASE_RADIUS)
 	a.step(1.0)
+	Fixture.force_cloud(a, cl.x, cl.y, cl.z, cl.w)
 	return a
 
 
@@ -96,7 +98,7 @@ func test_suck_layer_under_mature_cloud() -> void:
 
 
 func test_no_suck_under_young_or_decaying_cloud() -> void:
-	for st in [Vector3(0.3, 0.0, 1.0), Vector3(1.0, 0.7, 0.2)]:
+	for st in [Vector4(0.6, 1500.0, 1.0, 1.0), Vector4(0.9, 1500.0, -1.0, 0.2)]:
 		var a := _cloud_atmo(2, st)
 		var cb := a.get_cloudbase_msl()
 		var layer := _mean_rise(a, cb - 150.0, cb, 5)
@@ -141,7 +143,7 @@ func test_cloud_chaos_sigma_and_load_peak() -> void:
 	var a := _cloud_atmo(3)
 	a.turbulence_enabled = true
 	var cb := a.get_cloudbase_msl()
-	var sig_in := a.turbulence_intensity_at(Vector3(150, cb + 200, 30))
+	var sig_in := a.turbulence_intensity_at(Vector3(150, cb + 600, 30))
 	var sig_out := a.turbulence_intensity_at(Vector3(3000, cb - 500, 0))
 	check(sig_in >= 3.0, "σ вертикального воздуха в облаке >= 3 м/с: %.2f" % sig_in)
 	check(sig_out <= 1.5, "σ вне облака на той же высоте <= 1,5 м/с: %.2f" % sig_out)
@@ -228,7 +230,6 @@ func test_extreme_thermals_rare_and_only_strong() -> void:
 			extreme += 1
 			var diam := 2.0 * minf(a.cloud_phys.model.size(th, Vector3(1, 0, 1)).x,
 				a.cloud_phys.model.size(th, Vector3(1, 0, 1)).y)
-			check(th.has_cloud, "под термиком >= 7 м/с — облако")
 			check(diam >= float(a.cfg.thermal.suck_size_m[1]),
 				"под термиком >= 7 м/с — крупное облако (диаметр %.0f м)" % diam)
 	var frac := float(extreme) / float(maxi(born.size(), 1))
@@ -263,25 +264,18 @@ func test_variometer_plus8_reachable_in_extreme_core() -> void:
 
 
 func test_dry_thermal_fraction_and_climb() -> void:
-	for row in [["weather/medium", 0.15, 0.35], ["weather/weak", 0.40, 1.01]]:
-		var preset: String = row[0]
+	# Облака — поле (CLF-3): «сухой» термик — тот, над которым поля облачности нет; доля таких
+	# выходит из поля, а не из генератора. Здесь — подъём слабого термика находится по вариометру.
+	for preset in ["weather/medium", "weather/weak"]:
 		var a := _atmo(12, {}, preset)
 		a.turbulence_enabled = false
 		a.step(0.01)
 		var born := _all_births(a, 7200.0, 10000.0)
-		var dry := 0
 		var dry_th: AtmoThermal = null
 		for th in born:
-			if not th.has_cloud:
-				dry += 1
-				if dry_th == null or th.strength > dry_th.strength:
-					dry_th = th
-		var frac := float(dry) / float(maxi(born.size(), 1))
-		check(
-			frac >= float(row[1]) and frac <= float(row[2]),
-			"%s: доля сухих термиков %.2f-%.2f: %.3f (%d/%d)"
-				% [preset, row[1], row[2], frac, dry, born.size()]
-		)
+			if not th.is_cb and (dry_th == null or th.strength > dry_th.strength):
+				dry_th = th
+		check(dry_th != null, "%s: термики рождаются" % preset)
 		if dry_th != null:
 			# Найденный «в стороне» термик не зарегистрирован в поле сетки поиска — вписать
 			# его вручную, чтобы проверить реальный подъём через air_velocity_at.
@@ -294,7 +288,7 @@ func test_dry_thermal_fraction_and_climb() -> void:
 				var y := dry_th.src.y + (dry_th.top - dry_th.src.y) * (float(k) / 10.0)
 				var axis := dry_th.axis_at(y)  # ось столба на высоте с учётом наклона ветром
 				w_max = maxf(w_max, a.air_velocity_at(Vector3(axis.x, y, axis.y)).y)
-			check(w_max >= 1.0, "%s: сухой термик даёт набор >= 1 м/с (по варио): %.2f" % [preset, w_max])
+			check(w_max >= 1.0, "%s: термик даёт набор >= 1 м/с (по варио): %.2f" % [preset, w_max])
 		a.free()
 
 

@@ -62,8 +62,12 @@ extends Node
 ##   thermal_sources — источники термиков из поля воздуха (AM-07): {"grid", "mask"} (mask —
 ##       base64 битов столбцов, ZoneState.thermalSources) или {} — нет. У ведущего — свои
 ##       (set_thermal_sources, уходят с каждым ZoneState), у остальных — из последнего ZoneState.
+##   cloud_field_wanted — ведущему пора выложить снимок поля облачности (вошёл другой пилот, CLF-К4);
+##       NetFlight сбрасывает после отправки. Сам снимок: set_cloud_field (ведущий, уходит в
+##       ближайшем ZoneState один раз), у остальных — сигнал cloud_field_received.
 ##
 ## Сигналы:
+##   cloud_field_received(data: PackedByteArray) — у не-ведущего пришёл снимок поля облачности;
 ##   zone_entered(code) — вошёл в зону (создал, вошёл по коду, вернулся после переподключения);
 ##   zone_left() — вышел: leave_zone, связь потеряна окончательно, зона пропала при возврате;
 ##   peer_joined(peer: Dictionary) — вошёл другой пилот ({"id", "name", "joinOrder"});
@@ -101,6 +105,7 @@ signal zone_error(code: String, text: String)
 signal pilot_state_received(from_id: String, data: Dictionary)
 signal world_mismatch(expected_hash: String, actual_hash: String)
 signal thermal_sources_changed
+signal cloud_field_received(data: PackedByteArray)
 
 ## Отставание часов, после которого не догоняем плавно, а прыгаем вперёд, с.
 const SNAP_S := 1.0
@@ -128,6 +133,8 @@ var leader_id := ""
 var queue: Array[String] = []
 var has_clock := false
 var thermal_sources: Dictionary = {}
+var cloud_field_wanted := false
+var _cloud_field_out := PackedByteArray()
 var my_id: String:
 	get:
 		return _client.my_id if _client != null else ""
@@ -272,6 +279,15 @@ func set_thermal_sources(grid: String, mask: PackedByteArray) -> void:
 		_broadcast_state()
 
 
+## Только ведущий: снимок поля облачности (CloudField.snapshot, CLF-К4) — один раз, в ZoneState
+## сейчас же; неизменный снимок с каждым ZoneState не шлётся.
+func set_cloud_field(data: PackedByteArray) -> void:
+	if not is_leader() or data.is_empty():
+		return
+	_cloud_field_out = data
+	_broadcast_state()
+
+
 func set_queue(ids: Array) -> void:
 	if not is_leader():
 		push_warning("NetZone.set_queue: не ведущий")
@@ -364,6 +380,9 @@ func _broadcast_state() -> void:
 	var st := {"clock": zone_time(), "queue": queue}
 	if not thermal_sources.is_empty():
 		st["thermalSources"] = thermal_sources
+	if not _cloud_field_out.is_empty():
+		st["cloudField"] = {"data": Marshalls.raw_to_base64(_cloud_field_out)}
+		_cloud_field_out = PackedByteArray()
 	_client.send("zoneState", st)
 
 
@@ -422,6 +441,7 @@ func _on_peer_joined(p: Dictionary) -> void:
 	peers[p.id] = p
 	peer_joined.emit(p)
 	if is_leader():
+		cloud_field_wanted = true  # новичку — снимок поля целиком
 		_queue_add_live(p.id)
 		zone_state_changed.emit()
 		_broadcast_state()
@@ -469,6 +489,9 @@ func _apply_state(data: Dictionary) -> void:
 	if ts != thermal_sources:
 		thermal_sources = ts
 		thermal_sources_changed.emit()
+	var cf: Variant = data.get("cloudField")
+	if cf is Dictionary and String(cf.get("data", "")) != "":
+		cloud_field_received.emit(Marshalls.base64_to_raw(String(cf.data)))
 	zone_state_changed.emit()
 
 
@@ -559,6 +582,8 @@ func _reset() -> void:
 	queue.clear()
 	has_clock = false
 	thermal_sources = {}
+	cloud_field_wanted = false
+	_cloud_field_out = PackedByteArray()
 	_set_clock(0.0, 1.0)
 
 

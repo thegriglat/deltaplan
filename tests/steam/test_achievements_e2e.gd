@@ -53,9 +53,9 @@ func test_flight_opens_first_flight() -> void:
 	game.glider.reset_in_air(p, float(st.heading_deg))
 	for i in 120 * 12:
 		game.tick(DT)
-	# Мягкое касание: у самой земли, почти без скорости относительно неё (как test_landing).
-	p.y = game.terrain.height_at(p.x, p.z) + 1.5
-	game.glider.reset_in_air(p, float(st.heading_deg))
+	# Касание: у самой земли носом в склон (посадка hard засчитывается; по ветру аппарат уносит подъёмом).
+	p.y = game.terrain.height_at(p.x, p.z) + 0.5
+	game.glider.reset_in_air(p, float(st.heading_deg) + 180.0)
 	game.glider.model.velocity = Vector3(0.0, -1.0, 0.0)
 	var ended: Array = []
 	game.flight_ended.connect(func(k: String, _i: Dictionary) -> void: ended.append(k))

@@ -11,6 +11,11 @@ extends RefCounted
 ##   w_m = (u*³ + 0,28 w*³)^(1/3), Δθ = b·H_kin/w_m, b = 6,5 — избыток частицы (Холтслаг–Бовилль);
 ##   F(ζ) = H_kin(1 − ζ)/Δθ = w_m(1 − ζ)/b — поток массы подсеточной конвекции замыкания поля;
 ##   Φ = F̄ + max(W̄, 0) — восходящий поток поля: подсеточный + организованный (w_conv);
+##   опускание W̄_м < 0 (возвратная ветвь горно-равнинной циркуляции, CLF-10): W̄_м — W̄, сглаженный
+##   гауссом σ = subsidence_smooth_m до мезомасштаба циркуляции (ячейки организованной конвекции
+##   2–4 z_i — часть слоя, z_i не опускают); верх слоя столбца z_i − |W̄_м⁻|·τ_s (бюджет
+##   dz_i/dt = w_e − |w_s|, Stull 1988 §11.2), фон θ̄ опущен на столько же — h, w*, F̄, потолок ниже;
+##   τ_s, σ — cfg.subsidence_tau_s, subsidence_smooth_m (thermal, configs/atmosphere.json);
 ##   потолок — частица θ̄ + θ′ + Δθ теряет плавучесть по θ̄ + θ′ поля; её столб над землёй —
 ##   местная толщина слоя z_l (не ниже 300 м);
 ##   ядра — по Аллену (2006): радиус у верха R = r₂(1, z_l), r₂(ζ) = max(10, 0,102ζ^(1/3)(1 −
@@ -89,6 +94,16 @@ var phi := PackedFloat32Array()
 var col_heat := PackedFloat32Array()
 var col_w := PackedFloat32Array()
 var col_f := PackedFloat32Array()
+## По столбцам (CLF-К3): потолок частицы, м над морем (столбец без нагрева — высота земли;
+## пропущенный счётом — NAN), и w* Дирдорфа столбца, м/с.
+var c_top := PackedFloat32Array()
+var col_wstar := PackedFloat32Array()
+## По столбцам (CLF-10): W̄_м — W̄ столбцов, сглаженный до мезомасштаба циркуляции (σ =
+## subsidence_smooth_m), м/с; z_i столбца с компенсирующим опусканием, м над морем (z_i поля − Δz_s), и
+## само опускание верха Δz_s = |W̄_м⁻|·τ_s, м (0 — опускания нет).
+var col_wm := PackedFloat32Array()
+var col_zi := PackedFloat32Array()
+var col_sub := PackedFloat32Array()
 ## Средний по столбу поток ядра на 1 м/с пика (без огибающей и доли циклов), м² — K̄/⟨жизнь⟩.
 var shape_area: float = 0.0
 ## Средняя по времени доля (огибающая × доля циклов с термиком).
@@ -183,6 +198,12 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	grid_sig = signature(f)
 	_hcs = hcs
 	var z_i := f.z_i()
+	# z_i над столбцом (CLF-К6): столбцы поля, иначе скаляр дня
+	var zic := f.z_i_col()
+	if zic.size() != n_col:
+		zic = PackedFloat32Array()
+		zic.resize(n_col)
+		zic.fill(z_i)
 	var gam := f.gam()
 	if gam.size() != f.nz:
 		gam.resize(f.nz)
@@ -195,6 +216,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	# ∫ кольца Гедеона 1..cut² e^(−u)(1 − u) du = cut²·e^(−cut²) − e⁻¹ (< 0)
 	var ring_int := absf(cut * cut * exp(-cut * cut) - CORE_FLUX)
 	var wconv := f.raw_w_conv()
+	var nxy := f.nx * f.ny
 	var theta := f.raw_theta()
 	var vel := f.raw_vel()
 	# θ̄ относительно низа сетки (интеграл dθ̄/dz по центрам уровней)
@@ -206,6 +228,42 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 			acc += 0.5 * (gam[k - 1] + gam[k]) * f.dz
 		tbar[k] = acc
 	col_heat = heat.duplicate()
+	col_w.resize(n_col)
+	col_w.fill(0.0)
+	col_f.resize(n_col)
+	col_f.fill(0.0)
+	var tau_s := maxf(float(cfg.get("subsidence_tau_s", 0.0)), 0.0)
+	# W̄: средний w_conv по воздушным клеткам столбца в слое 0..h поля (h — по z_i столбца поля,
+	# без опускания: W̄ — вход опускания, не его следствие); столбец без воздуха — 0.
+	for c in n_col:
+		var k1 := k1s[c]
+		# столбец без воздуха или без z_i (день/столбец без конвекции) — W̄ = 0, как до CLF-10
+		if k1 >= f.nz or is_nan(zic[c]):
+			continue
+		var h0 := maxf(zic[c] - hcs[c], ZI_MIN)
+		var sw := 0.0
+		var nw := 0
+		for k in range(k1, f.nz):
+			if f.z_bot + (k + 0.5) * f.dz - hcs[c] > h0:
+				break
+			sw += wconv[k * nxy + c]
+			nw += 1
+		col_w[c] = sw / nw if nw > 0 else 0.0
+	# W̄_м: W̄, сглаженный гауссом до мезомасштаба горно-равнинной циркуляции (CLF-10, решение
+	# координатора 2026-10-17): ячейки и валики организованной конвекции (длина волны 2–4 z_i, LeMone
+	# 1973; Young и др. 2002) — часть конвективного слоя, их W̄ < 0 верх слоя не опускает; возвратная
+	# ветвь циркуляции — масштаб массива гор, десятки км (Whiteman 2000, гл. 11; De Wekker & Kossmann
+	# 2015). Сглаживание с отражением на краях сохраняет сумму W̄ по сетке (ядро симметрично).
+	col_wm = col_w.duplicate()
+	var sm := float(cfg.get("subsidence_smooth_m", 0.0)) / f.dx
+	if tau_s > 0.0 and sm > 0.3:
+		var w64 := PackedFloat64Array()
+		w64.resize(n_col)
+		for c in n_col:
+			w64[c] = col_w[c]
+		var g := AirCase.gauss2d(w64, f.nx, f.ny, sm)
+		for c in n_col:
+			col_wm[c] = g[c]
 	var cell_a := f.dx * f.dx
 	land_ms = 0.0
 	land = cfg.get("land", PackedFloat32Array())
@@ -220,10 +278,12 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	# --- столбцы — полосами строк (параллельно, FL-15): Φ, потолок частицы, z_l, n_A, K̄, кандидаты;
 	# полосы склеиваются по порядку строк — как последовательный обход
 	var parts := _run_bands(
-		f.ny, _cols_band.bind(f, cfg, heat, k1s, hcs, z_i, ustar, cb, cut, tbar, wconv, theta, land)
+		f.ny, _cols_band.bind(f, cfg, heat, k1s, hcs, z_i, ustar, cb, cut, tbar, theta, land, zic, col_w, col_wm, tau_s)
 	)
-	var c_top := PackedFloat32Array()
-	var c_ws := PackedFloat32Array()
+	c_top = PackedFloat32Array()
+	col_wstar = PackedFloat32Array()
+	col_zi = PackedFloat32Array()
+	col_sub = PackedFloat32Array()
 	var cand := PackedInt32Array()
 	## Радиус исключения по плотности столба (и досягаемость водосбора = 2 радиуса), м.
 	var cand_r := PackedFloat32Array()
@@ -232,11 +292,10 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	var c_na := PackedFloat32Array()
 	var c_k := PackedFloat32Array()
 	phi = PackedFloat32Array()
-	col_w = PackedFloat32Array()
 	col_f = PackedFloat32Array()
 	for part: Array in parts:
-		c_ws.append_array(part[0])
-		col_w.append_array(part[1])
+		col_wstar.append_array(part[0])
+		col_zi.append_array(part[1])
 		col_f.append_array(part[2])
 		phi.append_array(part[3])
 		c_top.append_array(part[4])
@@ -245,6 +304,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		c_na.append_array(part[7])
 		c_k.append_array(part[8])
 		cand.append_array(part[9])
+		col_sub.append_array(part[10])
 	# --- плотность: живых n_A (Аллен) на площадь, распределённых по Φ (Φ/Φ̂, Φ̂ — средний Φ
 	# кандидатов с весом n_A: Σ n·A = Σ n_A·A), ÷ доля жизни; ядра не несут больше Φ столбца.
 	var s_na := 0.0
@@ -257,7 +317,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		if c_na[c] <= 0.0 or phi_ref <= 0.0:
 			continue
 		var dens := c_na[c] * phi[c] / phi_ref / maxf(alive_frac, 1.0e-3)
-		var cap := phi[c] / maxf(K_ALLEN * c_ws[c] * c_k[c], 1.0e-9)
+		var cap := phi[c] / maxf(K_ALLEN * col_wstar[c] * c_k[c], 1.0e-9)
 		dens = minf(dens, cap)
 		var rc := cand_r[c]
 		cand_r[c] = clampf(RSA_K / sqrt(maxf(dens, 1.0e-12)), rc, maxf(4.0 * c_zl[c], rc))
@@ -402,7 +462,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	var src_parts := _run_bands(
 		ns,
 		_src_band.bind(
-			f, cfg, chosen, picked, hcs, k1s, c_top, c_zl, cb, z_i, hsum, m_i, o_i, a_i, vel, ring_int
+			f, cfg, chosen, picked, hcs, k1s, c_top, c_zl, cb, col_zi, hsum, m_i, o_i, a_i, vel, ring_int
 		)
 	)
 	for part: Array in src_parts:
@@ -488,7 +548,7 @@ static func _wstar(heat_wm2: float, z_i: float, hc: float) -> float:
 	)
 
 
-## Столбцы строк [lo, hi): [w*, W̄, F̄, Φ, потолок, z_l, радиус исключения, n_A, K̄, кандидаты].
+## Столбцы строк [lo, hi): [w*, z_i столбца, F̄, Φ, потолок, z_l, радиус исключения, n_A, K̄, кандидаты, опускание].
 func _cols_band(
 	lo: int,
 	hi: int,
@@ -502,9 +562,12 @@ func _cols_band(
 	cb: float,
 	cut: float,
 	tbar: PackedFloat32Array,
-	wconv: PackedFloat32Array,
 	theta: PackedFloat32Array,
-	land: PackedFloat32Array
+	land: PackedFloat32Array,
+	zic: PackedFloat32Array,
+	col_w_in: PackedFloat32Array,
+	col_wm_in: PackedFloat32Array,
+	tau_s: float
 ) -> Array:
 	# поля уровня — в локальные: обращение к чужому объекту из потоков упирается в общий замок
 	# ObjectDB движка (16 потоков медленнее одного)
@@ -525,10 +588,11 @@ func _cols_band(
 	var nb := (hi - lo) * nx
 	var c0 := lo * nx
 	var c_ws := PackedFloat32Array()
-	var b_w := PackedFloat32Array()
+	var b_zi := PackedFloat32Array()
+	var b_sub := PackedFloat32Array()
 	var b_f := PackedFloat32Array()
 	var b_phi := PackedFloat32Array()
-	var c_top := PackedFloat32Array()
+	var b_ctop := PackedFloat32Array()
 	var c_zl := PackedFloat32Array()
 	var cand_r := PackedFloat32Array()
 	var c_na := PackedFloat32Array()
@@ -538,10 +602,12 @@ func _cols_band(
 	zero.resize(nb)
 	zero.fill(0.0)
 	c_ws = zero.duplicate()
-	b_w = zero.duplicate()
+	b_sub = zero.duplicate()
+	b_zi = zic.slice(c0, c0 + nb)
 	b_f = zero.duplicate()
 	b_phi = zero.duplicate()
-	c_top = zero.duplicate()
+	b_ctop = zero.duplicate()
+	b_ctop.fill(NAN)
 	cand_r = zero.duplicate()
 	c_na = zero.duplicate()
 	c_k = zero.duplicate()
@@ -557,34 +623,47 @@ func _cols_band(
 				continue
 			var hc := hcs[c]
 			var hk := heat[c] / RHO_CP
-			var h := maxf(z_i - hc, ZI_MIN)
-			var ws := _wstar(heat[c], z_i, hc)
+			var wbar := col_w_in[c]
+			# Компенсирующее опускание (CLF-10, Q3): W̄_м < 0 над равниной у хребта — возвратная ветвь
+			# горно-равнинной циркуляции. Бюджет верха слоя dz_i/dt = w_e − |w_s| (Stull 1988, §11.2;
+			# Tennekes 1973): за время действия циркуляции τ_s верх слоя над столбцом ниже на
+			# Δz_s = |W̄_м⁻|·τ_s, и свободная атмосфера над ним опущена на столько же (изэнтропы
+			# при адиабатическом опускании). Один z_i столбца на всё: h, w*, F̄, потолок частицы,
+			# радиус/плотность Аллена; CloudFieldSources берёт col_zi. Предел — столб не ниже ZI_MIN.
+			var dz_s := minf(maxf(-col_wm_in[c], 0.0) * tau_s, maxf(zic[c] - hc - ZI_MIN, 0.0))
+			b_sub[l] = dz_s
+			var zi_c := zic[c] - dz_s
+			b_zi[l] = zi_c
+			var ws := _wstar(heat[c], zi_c, hc)
+			# Фон θ̄ столбца: z_i столбца выше опорного (CLF-К6) — слой перемешивания над столбцом глубже
+			# и теплее, θ̄ = max(θ̄(z), θ̄(z_i_col)) (фон θ̄ дня нейтрален до z_i_ref, выше — свободная
+			# атмосфера: перемешанный слой доходит до её θ на местном верху); z_i столбца ниже опорного
+			# (рельеф ниже уровня долины или опускание) — тот же фон, опущенный на Δ = z_i_ref − z_i
+			# столбца: θ̄(z + Δ), устойчивая часть начинается у местного верха (ревью CLF-9: симметрично).
+			var tb_lift := -INF
+			if zi_c > z_i:
+				var kz := clampf((zi_c - z_bot) / dz - 0.5, 0.0, nz - 1.0)
+				var kk := mini(int(kz), nz - 2)
+				tb_lift = lerpf(tbar[kk], tbar[kk + 1], kz - kk)
+			var dsh := maxf(z_i - zi_c, 0.0) / dz
 			var wm := pow(ustar * ustar * ustar + 0.28 * ws * ws * ws, 1.0 / 3.0)
 			c_ws[l] = ws
 			# F̄: средний по слою 0..h поток массы подсеточной конвекции, w_m/(2b)
 			var fbar := wm / (2.0 * HB_B) if hk > 0.0 else 0.0
-			# W̄: средний w_conv по воздушным клеткам столбца в слое 0..h
-			var sw := 0.0
-			var nw := 0
-			for k in range(k1, nz):
-				var zk := z_bot + (k + 0.5) * dz
-				if zk - hc > h:
-					break
-				sw += wconv[k * nxy + c]
-				nw += 1
-			var wbar := sw / nw if nw > 0 else 0.0
-			b_w[l] = wbar
 			b_f[l] = fbar
-			# источникам — поток только с суши столбца (над водой источника нет)
+			# Φ — восходящий поток: подсеточный (есть, пока греет земля) + организованный подъём; W̄⁻
+			# в Φ не входит — его работа выше (z_i столбца, w*, потолок), пилоту в «между» он
+			# и так приходит как w_conv поля (with_between).
+			# Источникам — поток только с суши столбца (над водой источника нет, VI-7).
 			b_phi[l] = (fbar + maxf(wbar, 0.0)) * (land[c] if has_land else 1.0)
 			# Потолок частицы: θ_p = θ′(k1) + Δθ; выше — θ̄ + θ′ поля.
 			var t_top := z_bot + nz * dz
 			if hk > 0.0:
 				var ex := HB_B * hk / maxf(wm, 1.0e-3)
-				var tp := tbar[k1] + theta[k1 * nxy + c] + ex
-				var prev := tbar[k1] + theta[k1 * nxy + c]
+				var tp := maxf(_tbar_at(tbar, k1 + dsh), tb_lift) + theta[k1 * nxy + c] + ex
+				var prev := maxf(_tbar_at(tbar, k1 + dsh), tb_lift) + theta[k1 * nxy + c]
 				for k in range(k1 + 1, nz):
-					var te := tbar[k] + theta[k * nxy + c]
+					var te := maxf(_tbar_at(tbar, k + dsh), tb_lift) + theta[k * nxy + c]
 					if te >= tp:
 						var fr := (tp - prev) / maxf(te - prev, 1.0e-6)
 						t_top = z_bot + (k - 0.5 + clampf(fr, 0.0, 1.0)) * dz
@@ -592,7 +671,7 @@ func _cols_band(
 					prev = te
 			else:
 				t_top = hc
-			c_top[l] = t_top
+			b_ctop[l] = t_top
 			var d_top := minf(t_top, cb) - hc
 			var zl := maxf(t_top - hc, ZI_MIN)
 			c_zl[l] = zl
@@ -618,7 +697,7 @@ func _cols_band(
 			if ew < 0.5:
 				continue
 			cand.append(c)
-	return [c_ws, b_w, b_f, b_phi, c_top, c_zl, cand_r, c_na, c_k, cand]
+	return [c_ws, b_zi, b_f, b_phi, b_ctop, c_zl, cand_r, c_na, c_k, cand, b_sub]
 
 
 ## Точки источников chosen[lo..hi) (pick_fn детерминирован по столбцу).
@@ -701,10 +780,10 @@ func _src_band(
 	picked: Dictionary,
 	hcs: PackedFloat32Array,
 	k1s: PackedInt32Array,
-	c_top: PackedFloat32Array,
+	s_top: PackedFloat32Array,
 	c_zl: PackedFloat32Array,
 	cb: float,
-	z_i: float,
+	s_zi: PackedFloat32Array,
 	hsum: PackedFloat64Array,
 	m_i: PackedFloat64Array,
 	o_i: PackedFloat64Array,
@@ -762,10 +841,10 @@ func _src_band(
 		if height_fn.is_valid():
 			y = float(height_fn.call(p.x, p.y))
 		b_pos[l] = Vector3(p.x, y, p.y)
-		b_top[l] = c_top[c]
-		var d_top := maxf(minf(c_top[c], cb) - hc, ZI_MIN)
+		b_top[l] = s_top[c]
+		var d_top := maxf(minf(s_top[c], cb) - hc, ZI_MIN)
 		b_depth[l] = d_top
-		b_wstar[l] = _wstar(hsum[s] / maxf(a_i[s], 1.0), z_i, hc)
+		b_wstar[l] = _wstar(hsum[s] / maxf(a_i[s], 1.0), s_zi[c], hc)
 		b_flux[l] = m_i[s]
 		b_area[l] = a_i[s]
 		b_radius[l] = allen_r2(1.0, c_zl[c])
@@ -1055,6 +1134,16 @@ func _shape_mean_exact(d: float, cfg: Dictionary) -> float:
 		var xi := float(n) / (_NQ - 1)
 		s += _q_at(xi, d, cfg) * (0.5 if n == 0 or n == _NQ - 1 else 1.0)
 	return s / (_NQ - 1)
+
+
+## θ̄ фона на дробном уровне x (в единицах уровней; целый x — ровно tbar[x]); выше последнего
+## уровня — продолжение с наклоном последнего шага.
+static func _tbar_at(tbar: PackedFloat32Array, x: float) -> float:
+	var n := tbar.size()
+	var i := int(x)
+	if i >= n - 1:
+		return tbar[n - 1] + (x - (n - 1)) * (tbar[n - 1] - tbar[n - 2]) if n > 1 else tbar[n - 1]
+	return lerpf(tbar[i], tbar[i + 1], x - i)
 
 
 static func _mid(v: Variant) -> float:

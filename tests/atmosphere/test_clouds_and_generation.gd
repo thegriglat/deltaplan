@@ -1,5 +1,8 @@
 extends TestCase
-## Облака (CloudModel), улицы, статичные термики из конфига, отрыв низа распадающегося термика.
+## Облака-объекты (CloudModel: Cb, волновые), тень поля облачности, улицы, статичные термики из
+## конфига, отрыв низа распадающегося термика. Кучевые — поле (test_cloud_field_runtime.gd).
+
+const Fixture := preload("res://tests/atmosphere/cloud_field_fixture.gd")
 
 
 func _atmo(weather_over: Dictionary = {}, preset: String = "weather/medium") -> Atmosphere:
@@ -70,8 +73,9 @@ func test_cloud_over_leaning_column_and_drift() -> void:
 	approx(c2.x - c.x, 5.0 * 100.0, 1.0, "на распаде облако уплывает по ветру")
 
 
-func test_weak_thermal_no_cloud_and_blue_day() -> void:
-	var a := _atmo({"cloud_min_strength_ms": 99.0}, "weather/weak")
+func test_cumulus_are_not_cloud_objects() -> void:
+	# Кучевые — не объекты: has_cloud только у Cb (в сильный день без гроз — ни у одного).
+	var a := _atmo({"cb_thermal_chance": 0.0, "cb_chance": 0.0}, "weather/strong")
 	a.set_ground(_flat, _sun)
 	a.step(0.01)
 	var with_cloud := 0
@@ -79,7 +83,7 @@ func test_weak_thermal_no_cloud_and_blue_day() -> void:
 		if a.field.thermals[id].has_cloud:
 			with_cloud += 1
 	check(a.field.thermals.size() > 0, "термики есть")
-	check(with_cloud == 0, "голубой день — без облаков")
+	check(with_cloud == 0, "кучевых облаков-объектов нет")
 	a.free()
 
 
@@ -177,33 +181,56 @@ func test_set_wind_changes_lean_and_mean_wind() -> void:
 
 
 func test_cloud_shadow_weakens_new_thermals() -> void:
-	# VR-2: источник в тени зрелого облака — слабее.
+	# VR-2: источник в тени облака поля — слабее (CloudField.shade_at).
 	var a := _atmo({"thermal_mode": "static", "wind_speed_kmh": 0.0})
 	a.set_ground(_flat, _sun)
-	a.set_sun_direction(Vector3(0, 1, 0))  # солнце в зените — тень прямо под облаком
 	a.add_static_thermal(0.0, 0.0, 3.0, 100.0)
-	check(a.field._cloud_shade(Vector2(0, 0), 0.0) > 0.9, "под облаком тень")
-	check(a.field._cloud_shade(Vector2(3000, 0), 0.0) == 0.0, "вдали тени нет")
-	a.set_sun_direction(Vector3(0.6, 0.8, 0))  # солнце на востоке — тень к западу
-	check(a.field._cloud_shade(Vector2(-1350, 0), 0.0) > 0.9, "тень смещена от солнца")
-	a.free()
-
-
-func test_dry_and_extreme_thermals() -> void:
-	# Слабый день — много сухих термиков; сильный — изредка 7–9 м/с.
-	var a := _atmo({}, "weather/weak")
-	a.set_ground(_flat, _sun)
 	a.step(0.01)
-	var dry := 0
-	var strong_cloudless := 0
-	for id in a.field.thermals:
-		var th: AtmoThermal = a.field.thermals[id]
-		if not th.has_cloud:
-			dry += 1
-			if th.strength >= float(a.weather.cloud_min_strength_ms):
-				strong_cloudless += 1
-	check(strong_cloudless > 0, "есть сухие термики, сильные для облака: %d" % strong_cloudless)
+	Fixture.force_cloud(a, 1.0, 1500.0, 0.0, 1.0)
+	var up := Vector3(0, 1, 0)  # солнце в зените — тень прямо под облаком
+	check(a.field._cloud_shade_at(Vector2(0, 0), up) > 0.9, "под облаком тень")
+	check(a.field._cloud_shade_at(Vector2(3000, 0), up) == 0.0, "вдали тени нет")
+	var east := Vector3(0.6, 0.8, 0)  # солнце на востоке — тень к западу
+	var off := a.get_cloudbase_msl() / 0.8 * 0.6  # смещение тени от основания (земля на нуле)
+	check(a.field._cloud_shade_at(Vector2(-off, 0), east) > 0.9, "тень смещена от солнца")
+	check(a.field._cloud_shade_at(Vector2(0, 0), east) == 0.0, "под облаком при боковом солнце ясно")
 	a.free()
+
+
+func test_shade_weakens_born_thermals() -> void:
+	# Новые термики под облаком поля слабее: те же циклы, но с тенью — сила × (1 − тень · множитель).
+	var strengths: Array[float] = []
+	for shaded in [false, true]:
+		var a := _atmo({"wind_speed_kmh": 0.0}, "weather/strong")
+		a.set_ground(_flat, _sun)
+		a.set_sun_direction(Vector3(0, 1, 0))
+		if shaded:
+			a.step(0.01)
+			a.cloud_phys.wait_field()
+			a.cloud_phys.inputs_fn = Callable()
+			var f := a.cloud_phys.field
+			f.setup_grid(96, 96, 400.0, -19200.0, -19200.0)
+			f.base_msl = a.get_cloudbase_msl()
+			f.cover.fill(1.0)
+			f.depth.fill(1500.0)
+		# термики рождаются заново с этим полем
+		a.field._clear_dynamic_caches()
+		a.field.thermals.clear()
+		a.time_s = 1000.0
+		a.refresh_now()
+		var s := 0.0
+		var n := 0
+		for id in a.field.thermals:
+			s += a.field.thermals[id].strength
+			n += 1
+		check(n > 0, "термики родились")
+		strengths.append(s / maxi(n, 1))
+		a.free()
+	check(strengths[1] < strengths[0] * 0.8, "в тени облаков термики слабее: %.2f < %.2f" % [strengths[1], strengths[0]])
+
+
+func test_extreme_thermals() -> void:
+	# Сильный день — изредка 7–9 м/с.
 	var b := _atmo({"thermal_extreme_chance": 0.2}, "weather/strong")
 	b.set_ground(_flat, _sun)
 	b.step(0.01)

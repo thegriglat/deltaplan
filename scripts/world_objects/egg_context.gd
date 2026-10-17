@@ -44,5 +44,8 @@ var wind_from_deg := 270.0
 var temp_c := 20.0
 ## Широта места, градусы (sky.clock.latitude_deg; < 0 — южное полушарие, сезоны зеркально) — К8 v9.
 var lat_deg := 45.0
+## Пилоты на земле и в воздухе (DOG-K1): игрок первым (id 0), затем боты (id ≥ 1);
+## [{id: int, pos: Vector3, vel: Vector3, phase: String, heading_deg: float}]. Нет игры — [].
+var runners: Array[Dictionary] = []
 ## Место (EggPlace, только чтение); null — рельеф не загружен (тесты без мира).
 var place: EggPlace

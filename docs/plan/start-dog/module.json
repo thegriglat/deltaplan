@@ -1,0 +1,11 @@
+{
+  "module": "start-dog",
+  "plan": "docs/plan/start-dog.md",
+  "contracts": "docs/contracts/start-dog.md",
+  "branch": "feature/start-dog",
+  "copy": "~/deltaplan-start-dog",
+  "created": "2026-10-17T02:18:20",
+  "code": "DOG",
+  "area": "world",
+  "base": "main"
+}

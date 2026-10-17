@@ -1,0 +1,54 @@
+[
+ {
+  "file": "bark_1.ogg",
+  "freesound_id": "630648",
+  "segments": 1,
+  "dur_s": 0.255,
+  "peak_dbfs": -2.92,
+  "edge_silence_ms": [
+   6.0,
+   12.0
+  ],
+  "f0_hz": 632.0,
+  "centroid_hz": 1554.0
+ },
+ {
+  "file": "bark_2.ogg",
+  "freesound_id": "535457",
+  "segments": 1,
+  "dur_s": 0.215,
+  "peak_dbfs": -3.17,
+  "edge_silence_ms": [
+   0.0,
+   6.0
+  ],
+  "f0_hz": 571.0,
+  "centroid_hz": 1317.0
+ },
+ {
+  "file": "bark_3.ogg",
+  "freesound_id": "277058",
+  "segments": 1,
+  "dur_s": 0.197,
+  "peak_dbfs": -2.61,
+  "edge_silence_ms": [
+   2.0,
+   8.0
+  ],
+  "f0_hz": 552.0,
+  "centroid_hz": 2907.0
+ },
+ {
+  "file": "bark_4.ogg",
+  "freesound_id": "699822",
+  "segments": 1,
+  "dur_s": 0.225,
+  "peak_dbfs": -3.07,
+  "edge_silence_ms": [
+   2.0,
+   6.0
+  ],
+  "f0_hz": 505.0,
+  "centroid_hz": 858.0
+ }
+]
