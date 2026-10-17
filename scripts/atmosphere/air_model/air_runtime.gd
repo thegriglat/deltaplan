@@ -984,8 +984,7 @@ static func _prep_task(
 		var dc := _domain(place, c, k, float(steps[i]))
 		built[i] = [dc, PreparedCase.from_case(dc) if dc != null else null]
 	if AirPlace.parallel and steps.size() > 1:
-		var gid := WorkerThreadPool.add_group_task(one, steps.size(), -1, true, "AirRuntime.prep")
-		WorkerThreadPool.wait_for_group_task_completion(gid)
+		PoolFor.run(one, steps.size(), "AirRuntime.prep")
 	else:
 		for i in steps.size():
 			one.call(i)
@@ -1727,8 +1726,7 @@ class PreparedCase:
 		var both: Array[PreparedCase] = [c, m]
 		var prep := func(i: int) -> void: both[i]._prepared = both[i].prepare()
 		if AirPlace.parallel:
-			var gid := WorkerThreadPool.add_group_task(prep, 2, -1, true, "AirRuntime.prepare")
-			WorkerThreadPool.wait_for_group_task_completion(gid)
+			PoolFor.run(prep, 2, "AirRuntime.prepare")
 		else:
 			prep.call(0)
 			prep.call(1)

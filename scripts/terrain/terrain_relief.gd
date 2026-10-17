@@ -638,8 +638,7 @@ static func _par(rows: int, fn: Callable) -> Array:
 		var j0 := rows * b / nb
 		var j1 := rows * (b + 1) / nb
 		slots[b][0] = fn.call(j0, j1)
-	var gid := WorkerThreadPool.add_group_task(job, nb, -1, true, "TerrainRelief")
-	WorkerThreadPool.wait_for_group_task_completion(gid)
+	PoolFor.run(job, nb, "TerrainRelief")
 	var out := []
 	for s in slots:
 		out.append(s[0])

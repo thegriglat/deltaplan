@@ -21,8 +21,7 @@ static func build(data: OsmData, cfg: Dictionary, height_fn: Callable, _obstacle
 		return null
 	var jobs: Array = prep.jobs
 	if bool(cfg.get("threaded_build", true)):
-		var task := WorkerThreadPool.add_group_task(func(i: int) -> void: (jobs[i] as Callable).call(), jobs.size())
-		WorkerThreadPool.wait_for_group_task_completion(task)
+		PoolFor.run(func(i: int) -> void: (jobs[i] as Callable).call(), jobs.size(), "osm roads")
 	else:
 		for j: Callable in jobs:
 			j.call()
