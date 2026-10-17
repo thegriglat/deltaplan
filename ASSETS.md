@@ -131,6 +131,12 @@
 | `assets/textures/osm/lattice_steel.png`, `lattice_mast.png`, `wood_pole.png`, `chimney.png`, `tv_ostankino.png`, `tv_legs.png`, `tv_cabin.png` (osm-look) | текстуры решётки (альфа), дерева, бетона с красно-белыми поясами, ствола и антенны телебашни | процедурные: numpy в `tools/blender/build_osm_objects.py` | — | модели `assets/models/osm/` |
 | — (osm-look: дороги и земля города) | асфальт с шумом и заплатами, разметка (пунктир/сплошная/краевые), колея грунтовок, серо-бежевая подложка дворов с зеленью | процедурно в шейдерах `scripts/world_objects/osm/road.gdshader`, `city_ground.gdshader`, текстур нет | — | `OsmRoads`, `OsmCityGround` |
 
+### regional-veg: дом tin_house
+
+| Файл | Что | Источник | Лицензия | Где используется |
+|---|---|---|---|---|
+| `assets/models/houses/house_tin_house.glb` (исходник `assets/source/houses/house_tin_house.blend`, текстуры `house_tin_house_{wall,roof,wood}_tin_house.jpg`) | одноэтажный дом 8 × 6 м с низкой крышей из профлиста (12°), ноды LOD0/LOD1/LOD2 (≤ 800/200/40 треугольников), материалы Wall/Roof/Wood_tin_house | своя модель и процедурные текстуры, `tools/blender/build_house_tin_house.py` (Blender 4.3) | CC0 | деревенские дома профилей (RV-К6, расстановка RV-10) |
+
 ### osm-look: ветряк и канатка
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
