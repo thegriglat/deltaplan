@@ -18,3 +18,5 @@
 {"t": "2026-10-17T23:45:59", "by": "executor", "task": "TW-2", "ev": "reported", "commits": ["10b5d2fd"], "note": "done: 0,44 м/с у старта «Термики» (2 м/с, 12:00) — не приток (k = 1) и не нагрев окон: область в полдень целиком заморожена ф…", "dp_feedback": "task show обрезает дополнения координатора («…») — полный текст пришлось доставать из events.jsonl копии модуля; хорошо бы task show --full. job wait дольше 600 с в foreground уходит в фон инструмента — удобнее job wait с выводом прогресса строк лога."}
 {"t": "2026-10-17T23:46:06", "by": "coordinator", "task": "TW-2", "ev": "checked", "note": "5/5 readme=ok:exit 0; causes=ok:5; data=ok:5; patch=ok:2; docs=ok:exit 0"}
 {"t": "2026-10-17T23:47:01", "by": "coordinator", "task": "TW-2", "ev": "accepted", "note": "по отчёту; научная правка — ревью fable на задаче реализации"}
+{"t": "2026-10-17T23:47:07", "by": "coordinator", "task": "TW-2", "ev": "accepted", "commits": ["f433bb11"], "note": "5/5 readme=ok:exit 0; causes=ok:5; data=ok:5; patch=ok:2; docs=ok:exit 0"}
+{"t": "2026-10-17T23:47:07", "by": "coordinator", "task": "TW-2", "ev": "merged"}
