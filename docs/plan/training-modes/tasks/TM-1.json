@@ -1,0 +1,57 @@
+{
+  "id": "TM-1",
+  "module": "training-modes",
+  "type": "dp-engineer",
+  "title": "Тренировки: удалить мёртвые классы, проверить карточки",
+  "goal": "Режимы тренировок живут только как карточки окна «Тренировка» + цели полёта: удалить неподключённые TrainingMode-классы и проверить, что все карточки configs/training.json рабочие.",
+  "plan_ref": "Решения, TM-1",
+  "contracts": [],
+  "copy": "~/deltaplan-training-modes-TM-1",
+  "branch": "training-modes/TM-1",
+  "base": "feature/training-modes",
+  "scope": [
+    "scripts/tasks/training_mode.gd",
+    "scripts/tasks/training_mode.gd.uid",
+    "scripts/tasks/training_ridge_soaring.gd",
+    "scripts/tasks/training_ridge_soaring.gd.uid",
+    "scripts/tasks/training_thermal_centering.gd",
+    "scripts/tasks/training_thermal_centering.gd.uid",
+    "scripts/tasks/training_spot_landing.gd",
+    "scripts/tasks/training_spot_landing.gd.uid",
+    "configs/tasks/training_ridge_soaring.json",
+    "configs/tasks/training_thermal_centering.json",
+    "tests/tasks/test_training.gd",
+    "tests/tasks/test_training.gd.uid",
+    "tests/ui/test_training_menu.gd",
+    "docs/guide/tasks.md",
+    "docs/guide/goals.md",
+    "docs/guide/architecture.md",
+    "docs/guide/volcano-island.md",
+    "tests/tasks/test_task_model.gd"
+  ],
+  "dont_touch": [
+    "scripts/game",
+    "scripts/ui/start_menu.gd",
+    "CHANGELOG.md",
+    "TODO.md",
+    "configs/tasks/training_spot_landing.json",
+    "configs/training.json"
+  ],
+  "accept": [
+    {
+      "name": "training",
+      "tests": "training"
+    },
+    {
+      "name": "task_model",
+      "tests": "task_model"
+    },
+    {
+      "name": "goals",
+      "tests": "goals"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T21:39:54"
+}

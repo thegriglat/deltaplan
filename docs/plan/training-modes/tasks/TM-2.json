@@ -1,0 +1,48 @@
+{
+  "id": "TM-2",
+  "module": "training-modes",
+  "type": "dp-engineer",
+  "title": "Загрузка .xctsk из окна «Полёт…»",
+  "goal": "В GoalsTab кнопка «Загрузить задание…»: выбор .xctsk, проверка (читается, пункты в зоне места), годный файл копируется в user://tasks и выбирается в списке заданий; негодный — сообщение под кнопкой. Редактора заданий нет.",
+  "plan_ref": "Решения, TM-2",
+  "contracts": [],
+  "copy": "~/deltaplan-training-modes-TM-2",
+  "branch": "training-modes/TM-2",
+  "base": "feature/training-modes",
+  "scope": [
+    "scripts/ui/goals_tab.gd",
+    "scripts/tasks/xctsk_importer.gd",
+    "scripts/tasks/task.gd",
+    "locale/ui.csv",
+    "tests/ui/test_goals_tab.gd",
+    "tests/goals",
+    "tests/tasks",
+    "docs/guide/goals.md",
+    "docs/guide/tasks.md"
+  ],
+  "dont_touch": [
+    "scripts/game",
+    "scripts/ui/start_menu.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "CHANGELOG.md",
+    "TODO.md",
+    "scripts/tasks/training_mode.gd"
+  ],
+  "accept": [
+    {
+      "name": "goals_tab",
+      "tests": "goals_tab"
+    },
+    {
+      "name": "xctsk",
+      "tests": "xctsk"
+    },
+    {
+      "name": "goals",
+      "tests": "goals"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T21:40:16"
+}
