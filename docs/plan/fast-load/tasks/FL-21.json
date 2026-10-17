@@ -1,0 +1,30 @@
+{
+  "id": "FL-21",
+  "module": "fast-load",
+  "type": "dp-mechanic",
+  "title": "Полный прогон тестов: модуль против main",
+  "goal": "Полный набор тестов (headless и GPU) на ветке модуля и на main; список падений с пометкой «есть и на main» / «только в модуле».",
+  "plan_ref": "FL-21",
+  "contracts": [],
+  "copy": "~/deltaplan-fast-load-FL-21",
+  "branch": "fast-load/FL-21",
+  "base": "feature/fast-load",
+  "scope": [
+    "tools/research/load_profile/tests_compare.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "tests",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "report",
+      "cmd": "test -s tools/research/load_profile/tests_compare.md && echo ok",
+      "expect": "re:^ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T14:40:50"
+}
