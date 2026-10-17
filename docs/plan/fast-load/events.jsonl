@@ -212,3 +212,4 @@
 {"t": "2026-10-17T13:42:33", "by": "coordinator", "task": "FL-19", "ev": "accepted", "note": "по отчёту: main слит, тесты обеих сторон зелёные; osm test_versions, achievements e2e, test_e2e (взлёт на островах, сид) падают и на main — в отчёт главной; scope — файлы из main"}
 {"t": "2026-10-17T13:42:58", "by": "coordinator", "task": "FL-19", "ev": "checked", "commits": ["e12c072a"], "note": "1/11 fast_load=ok:14/14"}
 {"t": "2026-10-17T13:42:58", "by": "coordinator", "task": "FL-19", "ev": "merged"}
+{"t": "2026-10-17T13:43:08", "by": "coordinator", "task": "FL-20", "ev": "started"}
