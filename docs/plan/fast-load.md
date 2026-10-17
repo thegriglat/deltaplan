@@ -61,6 +61,7 @@ related: ["docs/contracts/fast-load.md", "docs/research/air_field_cache.md", "do
 - **FL-11. Замер «после»** (dp-researcher, sonnet): тем же `measure.sh`, «до/после», попадание в кеш поля.
 - **FL-12. Документация** (dp-writer, sonnet): `docs/guide` (загрузка места, кеш поля, настройка), `registry/findings.md`, `CHANGELOG.md` «В работе» (для пилота: загрузка быстрее, настройка размера кеша).
 - **FL-13. Перепечь поля учебного острова** (dp-mechanic): правки `scripts/atmosphere/air_model/*.gd` (FL-2, FL-5, FL-9) меняют `model_hash` (TI-К3 v3) → `bash tools/terrain/island/bake_all.sh` (GPU), `--check` код 0. Последним шагом перед сдачей: после всех правок модели воздуха и `sync` модуля от свежего `main` (делает главная сессия по запросу); под замком GPU (`.dpcli/dpcli lock gpu …`), `--check` код 0. Пришла в `main` другая правка хеша (cloud-field, fix/lee-start-calibration и др.) — снова sync и перепечь (правило главной сессии 2026-10-17). Модели: FL-7 (E) — sonnet (загрузка через ResourceLoader, расписана в карточке).
+- **FL-15. Источники термиков `AirThermals.build` параллельно** (dp-engineer, opus): после FL-5 главное ожидание экрана загрузки — сборка источников ≈ 6,5 с на точке в одном потоке; полосы в пуле, бит-в-бит. Если не хватит — кеш источников вместе с полем (FL-К1 v2), решение координатора.
 
 ### Шлюз 1 (после FL-2 и замера попадания в кеш)
 `.dpcli/dpcli decide fast-load "…" --ask` → главная сессия. Остальные задачи идут, если не зависят от ответа.
