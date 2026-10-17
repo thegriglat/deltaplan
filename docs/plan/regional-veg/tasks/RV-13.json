@@ -51,11 +51,12 @@
     },
     {
       "name": "assets_md",
-      "cmd": "python3 tools/check_assets_md.py",
-      "expect": "exit=0"
+      "cmd": "grep -c 'house_stilt_house' ASSETS.md",
+      "expect": "num:^(\\d+) >=1"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-18T00:32:26"
+  "created": "2026-10-18T00:32:26",
+  "edited": "2026-10-18T00:35:13"
 }

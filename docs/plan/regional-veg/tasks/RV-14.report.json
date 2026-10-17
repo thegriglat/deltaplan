@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "docs/research/house-models.md: таблица что даёт/теряем/цена и рекомендация — не переводить все дома; гибрид по RV-К6 только для малых сельских домов профиля, город/промзона/дома с высотой OSM остаются коробками.",
+  "commits": [
+    "docs: оценка домов на моделях вместо коробок (RV-14)"
+  ],
+  "checks": [
+    {
+      "name": "doc",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "0 ошибок",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "замеров нет (задание без кода): треугольники и draw calls — расчёт"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RV-14",
+  "uncertain": [
+    {
+      "where": "docs/research/house-models.md таблица",
+      "why": "оценки треугольников/draw calls по предполагаемому числу домов в зонах, не замер",
+      "checked": "коробка 12 тр., призма 8, труба 12; LOD из RV-К6"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "recommendation": "гибрид, village_model_share по умолчанию 0"
+  },
+  "t": "2026-10-18T00:34:40",
+  "by": "executor"
+}
