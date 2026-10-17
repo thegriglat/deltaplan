@@ -107,3 +107,4 @@
 {"t": "2026-10-17T07:48:37", "by": "executor", "task": "VI-9", "ev": "reported", "commits": ["4384ec8c", "0e4ac528"], "note": "done: Все 8 полей встроенных мест перепечены под model_hash 6da65c77ab23e850 (thermal_slope запечён впервые), --check = 0, ai…", "dp_feedback": "job wait дольше 10 мин упирается в предел Bash; удобно было бы job wait --any или уведомление по окончании. Порядок шагов в дополнении карточки сэкономил время."}
 {"t": "2026-10-17T07:51:40", "by": "coordinator", "task": "VI-9", "ev": "checked", "note": "8/8 volcano_island=ok:11/11; training_island=ok:25/25; bake_check=ok:exit 0; bake_thermal=ok:thermal_slope: ok; gpu=ok:6 тестов, 0 упало; air_check=ok:thermal_slope; air_size_mb=ok:20; docs=ok:ошибок 0"}
 {"t": "2026-10-17T07:51:49", "by": "coordinator", "task": "VI-9", "ev": "accepted", "note": "по отчёту (перепекание и замеры, код не менялся)"}
+{"t": "2026-10-17T07:51:50", "by": "coordinator", "task": "VI-9", "ev": "merged"}
