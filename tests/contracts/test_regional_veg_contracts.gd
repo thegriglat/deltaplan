@@ -182,6 +182,8 @@ func test_k4_buildings_keys() -> void:
 	check(String(b.get("village_roof")) == "gable", "village_roof по умолчанию gable")
 	check(String(b.get("city_roof", "")) == "flat", "city_roof по умолчанию flat")
 	check(int(b.get("max_levels", -1)) == 0, "max_levels по умолчанию 0")
+	if b.has("max_levels_osm"):
+		check(b["max_levels_osm"] == false, "max_levels_osm по умолчанию false (RV-К4 v2)")
 	var hp := float(b.get("hip_pitch_deg", 0))
 	check(hp >= 15.0 and hp <= 25.0, "hip_pitch_deg 15…25")
 	check(float(b.get("parapet_h_m", 0)) > 0.0 and float(b.get("parapet_t_m", 0)) > 0.0, "парапет: высота и толщина")

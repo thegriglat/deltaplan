@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-18"
 summary: "Регион места biomes.json и Biome (К1), набор пород места (К2), модели новых пород (К3), профиль домов (К4), полог (К5), модели домов (К6)."
 related: ["docs/plan/regional-veg.md", "docs/research/regional-vegetation.md", "docs/contracts/scene-look.md"]
-contracts: [{"id": "RV-К1", "version": 2}, {"id": "RV-К2", "version": 1}, {"id": "RV-К3", "version": 1}, {"id": "RV-К4", "version": 1}, {"id": "RV-К5", "version": 1}, {"id": "RV-К6", "version": 1}]
+contracts: [{"id": "RV-К1", "version": 2}, {"id": "RV-К2", "version": 1}, {"id": "RV-К3", "version": 1}, {"id": "RV-К4", "version": 2}, {"id": "RV-К5", "version": 1}, {"id": "RV-К6", "version": 1}]
 ---
 # Контракты regional-veg
 
@@ -81,7 +81,7 @@ contracts: [{"id": "RV-К1", "version": 2}, {"id": "RV-К2", "version": 1}, {"id
 - Высота LOD0 (м, по вариантам): oak 15…30, palm 8…25, tropical 20…40. Исходники — `assets/source/trees/` (`tree_<sp>.blend`, `<sp>_leaf.png`, `<sp>_bark.png`, `tree_<sp>_v<v>_impostor.png`).
 - Превью для шлюза: `tools/blender/render_trees.py` → `/home/greg/deltaplan/build/screenshots/regional-veg/models/<sp>/` (4 варианта рядом + один кадр «сверху под 45°, 300 м»).
 
-## RV-К4 v1 — профиль домов
+## RV-К4 v2 — профиль домов
 
 - Владелец: RV-6. Потребители: RV-9 (профили в `biomes.json → profiles.*.buildings`).
 - Ключи `configs/world_objects.json → buildings` (значения по умолчанию = текущее поведение):
@@ -91,6 +91,7 @@ contracts: [{"id": "RV-К1", "version": 2}, {"id": "RV-К2", "version": 1}, {"id
   - `parapet_h_m`: 0,8, `parapet_t_m`: 0,25;
   - `max_levels`: 0 (= без потолка); иначе потолок этажей для домов, высота которых — по правилу (`by_rule`, не из тегов OSM): `wall_h ≤ max_levels · height_rule.level_m`; `metro`-множитель потолок не превышает;
   - палитры `style.<city|village|industrial>.{wall_colors, roof_colors}` и `roof_pitch_deg` — существующие ключи.
+  - v2 (2026-10-18, решение пользователя: на острове Пасхи только одноэтажные дома): `max_levels_osm` (bool, по умолчанию false) — потолок `max_levels` действует и на дома с высотой из тегов OSM (`height`, `building:levels`); профиль `island` ставит true.
 - H1 `flat_parapet`: плоская крыша + парапет — кольцо из 4 тонких коробок по периметру (высота `parapet_h_m`, толщина `parapet_t_m`), цвет стен. H2 `hip`: четырёхскатная крыша (своя `ArrayMesh`, без текстур), цвет крыши из палитры, уклон `hip_pitch_deg`. Обе — MultiMesh, как стены/крыши сейчас; без текстур.
 - Инвариант: без новых ключей вид, число экземпляров и цвета домов — как до правки (тесты `building` проходят без изменений).
 
