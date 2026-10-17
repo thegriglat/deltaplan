@@ -82,3 +82,5 @@
 {"t": "2026-10-17T09:29:21", "by": "reviewer", "task": "CLF-10", "ev": "reviewed", "note": "Опускание учтено в одном месте (AirThermals.col_zi → h, w*, потолок частицы, CloudFieldSources); W̄ сглажен гауссом до мезомасштаба (σ = 10 км, ключ с _doc и и…", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/cloud-field/tasks/CLF-10.review.json"}
 {"t": "2026-10-17T09:31:08", "by": "coordinator", "task": "CLF-4", "ev": "checked", "note": "10/10 test_cloud_field_net=ok:4/4; test_net_flight=ok:8/8; test_zone=ok:4/4; test_messages=ok:8/8; test_local_server=ok:2/2; test_net_bots=ok:6/6; test_perf_contracts=ok:10/10; test_cloud_field_k4=ok:2/2; go=ok:exit 0; main_ms=ok:0.086"}
 {"t": "2026-10-17T09:31:16", "by": "coordinator", "task": "CLF-10", "ev": "accepted", "note": "по ревью (fable); 4 minor — CLF-11 и контракт К3 v2"}
+{"t": "2026-10-17T09:31:17", "by": "coordinator", "task": "CLF-10", "ev": "merged", "note": "d60cc24f"}
+{"t": "2026-10-17T09:31:17", "by": "coordinator", "task": "CLF-4", "ev": "accepted", "note": "по отчёту доработки: major/minor ревью закрыты, main_ms 0,086"}
