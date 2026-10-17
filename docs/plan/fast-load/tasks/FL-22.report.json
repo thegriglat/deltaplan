@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "main (c6b5f113) слит в fast-load/FL-22 слиянием (git merge). Конфликты в реестре и scripts/atmosphere разрешены; тесты thermal 22/22, cloud 61/61, air_runtime 8/8, merged ok.",
+  "commits": [
+    "860f9603 Слияние main в fast-load/FL-22"
+  ],
+  "checks": [
+    {
+      "name": "thermal",
+      "value": "22/22",
+      "pass": true
+    },
+    {
+      "name": "cloud",
+      "value": "61/61 (3 пропуск)",
+      "pass": true
+    },
+    {
+      "name": "air_runtime",
+      "value": "8/8 (4 пропуск)",
+      "pass": true
+    },
+    {
+      "name": "merged",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "scope (авто)",
+      "value": "FAIL: ожидаемо для слияния, дифф к feature/fast-load содержит весь main",
+      "pass": false
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept FL-22 --dry",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/air_thermals.gd (build, _cols_band, _src_band)",
+      "why": "Цикл столбцов fast-load (полосы _cols_band) перенесён вместе с правками cloud-field: W̄ и W̄_м (сглаживание) считаются до полос последовательно, как в main; в полосе — опускание dz_s, z_i столбца, tb_lift/dsh, _tbar_at; наружу col_zi, col_sub, col_wstar, c_top (NAN у пропущенных) — теперь члены класса. _src_band берёт col_zi вместо скаляра z_i.",
+      "checked": "тесты thermal (в т.ч. test_air_thermals_parallel bands_bit_identical), cloud, air_runtime — проходят; побитового сравнения с main на реальном поле не делал."
+    },
+    {
+      "where": "scripts/atmosphere/thermal_field.gd",
+      "why": "main удалил покусочную тень (_static_shade, _cell_shade, _bare_thermal; тень теперь cloud_phys.field.shade_at). Взято main; мёртвые правки FL-5 к ней (_shade_dl, _shade_over, _bare_new, срок порции тени) удалены. Остальное FL-5 (air_prefetch, _air_inputs, _STALE) сохранено.",
+      "checked": "grep: ссылок на удалённое нет; тесты thermal/air_runtime проходят. Первый обход тени без срока порции не замерял."
+    },
+    {
+      "where": "docs/registry/findings.md",
+      "why": "Лимит 40 КБ: раздел volcano-island (main вынес в volcano-island-findings.md) и указатель-раздел fast-load убраны из findings.md; выводы fast-load остаются в fast-load-findings.md. contracts.md: обе строки start-camp/start-dog по main.",
+      "checked": "dpcli docs check — без ошибок"
+    }
+  ],
+  "dp_feedback": "accept: проверка scope для задачи-слияния всегда FAIL (дифф к родительской ветке = весь main); нужен режим «слияние» или сравнение с merge-base обоих родителей.",
+  "t": "2026-10-17T19:02:53",
+  "by": "executor"
+}

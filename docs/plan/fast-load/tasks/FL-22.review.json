@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "Слияние разрешено верно: _cols_band повторяет цикл столбцов main построчно (опускание dz_s, col_zi/col_sub, tb_lift/dsh, Φ, потолок), _src_band берёт w* по col_zi[c] как main, cap — по col_wstar; параллельность (полосы, PoolFor, _owner_band/_pick_band) не потеряна. thermal_field.gd = main + только добавления FL-5, ссылок на удалённую тень нет. thermal перезапущен — 22/22.",
+  "issues": [
+    {
+      "file": "docs/registry/findings.md",
+      "line": 1,
+      "severity": "minor",
+      "what": "findings.md совпадает с main (40954 байт, у лимита 40 КБ); раздел fast-load убран, поэтому `dpcli docs findings fast-load` ничего не находит. Сам вывод остаётся в fast-load-findings.md и в docs/INDEX.md. В main так же выпал volcano-island, это прежнее состояние, не ошибка слияния.",
+      "fix": "Координатору решить при слиянии модуля в main: либо одна строка-указатель fast-load в findings.md за счёт сжатия старого раздела, либо оставить только INDEX."
+    },
+    {
+      "file": "docs/plan/fast-load/tasks/FL-22.report.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "В дополнении координатора просили дополнительно прогнать test_osm_threaded, test_matrix и test_e2e и вынести падения island/volcano в отчёт. В отчёте этих прогонов нет.",
+      "fix": "Прогнать их при FL-13 или при приёмке модуля; на слияние не влияет."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept FL-22 --only thermal --dry",
+      "value": "22/22",
+      "pass": true
+    },
+    {
+      "name": "git show --cc 860f9603: вручную разрешённые файлы",
+      "value": "air_thermals.gd (по существу), bot_pilots.gd (непересекающиеся куски, корректно)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-17T19:09:34",
+  "by": "reviewer"
+}

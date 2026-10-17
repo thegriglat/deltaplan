@@ -1,0 +1,43 @@
+{
+  "id": "FL-22",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "Слить свежий main в ветку задачи, разрешить конфликты",
+  "goal": "Ветка fast-load/FL-22 = feature/fast-load + свежий main (cloud-field c6b5f113, start-dog и др.) без потери правок fast-load (параллельная сборка термиков полосами/PoolFor, FL-5) и cloud-field (облака из поля).",
+  "plan_ref": "FL-13",
+  "contracts": [],
+  "copy": "~/deltaplan-fast-load-FL-22",
+  "branch": "fast-load/FL-22",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/atmosphere",
+    "docs/registry",
+    "docs/plan/fast-load"
+  ],
+  "dont_touch": [
+    "tests",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "thermal",
+      "tests": "thermal"
+    },
+    {
+      "name": "cloud",
+      "tests": "cloud"
+    },
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "merged",
+      "cmd": "git merge-base --is-ancestor main HEAD && echo ok",
+      "expect": "re:^ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T18:54:01"
+}
