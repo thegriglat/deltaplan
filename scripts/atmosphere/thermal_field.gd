@@ -105,6 +105,15 @@ var _j_cut := 0.0
 var _j_keys: Array = []
 var _j_cells: Array[Vector2i] = []
 var _wt: Dictionary = {}  ## набор, с которым работает обновление (thermals или его копия)
+## Срок порции генерации для тени (мкс, Time.get_ticks_usec): тень клетки — окно в километры
+## клеток, при первом обходе — до сотен мс на клетку (FL-5). Срок вышел посреди окна — клетка
+## бросается (_shade_over) и повторяется следующей порцией; «голые» термики окна уже в памяти
+## (_bare — чистая функция клетки и цикла), так что итог тот же, что за один раз.
+## Бросать клетку можно, только если эта попытка уже что-то добавила в память (_bare_new > 0):
+## иначе повтор упирался бы в тот же срок без продвижения.
+var _shade_dl: int = 1 << 62
+var _shade_over := false
+var _bare_new := 0
 var _nb: Dictionary = {}
 var _na: Array[AtmoThermal] = []
 var _ntp := PackedFloat64Array()
@@ -116,8 +125,13 @@ var _air_key: String = ""
 var _air_launched: String = ""
 ## Идущие и неподобранные сборки источников (AirJob).
 var _air_jobs: Array = []
+## Ключ сборки, отброшенной из-за смены входов (air_prefetch): по готовности выбрасывается.
+const _STALE := "~stale"
 ## Собирать источники в рабочем потоке (false — синхронно, как раньше).
 var air_async: bool = true
+## Входы погоды и солнца, с которыми собран air_src (FL-5: сборка, начатая заранее, сверяется
+## с текущими перед первым обновлением).
+var _air_src_inputs: Array = []
 
 # Профиль
 var _ring: float = 1.6
@@ -531,12 +545,21 @@ func _job_gen_begin() -> void:
 
 func _job_gen(dl: int) -> bool:
 	var n := _j_cells.size()
+	_shade_dl = dl
 	while _j_i < n:
 		var c: Vector2i = _j_cells[_j_i]
 		_j_i += 1
+		_bare_new = 0
 		_gen_cell(c.x, c.y, _j_t, _j_cbf)
+		if _shade_over:  # клетку — заново в следующей порции
+			_shade_over = false
+			_j_i -= 1
+			_shade_dl = 1 << 62
+			return false
 		if Time.get_ticks_usec() >= dl:
+			_shade_dl = 1 << 62
 			return _j_i >= n
+	_shade_dl = 1 << 62
 	return true
 
 
@@ -635,6 +658,8 @@ func _gen_cell(ia: int, ic: int, t: float, cbf: float) -> void:
 			if t_start + _reach_of(t_start, pp.x) < t:
 				continue
 		_ensure(ia, ic, cy, t_start, pp.x, t)
+		if _shade_over:
+			return
 
 
 ## Термик цикла cy клетки (ia, ic) — в список живых, если он есть и ещё жив в момент t.
@@ -643,6 +668,8 @@ func _ensure(ia: int, ic: int, cy: int, t_start: float, period: float, t: float)
 	if _wt.has(id) or _empty_cycles.has(id):
 		return
 	var th := _real_thermal(ia, ic, id, t_start, period)
+	if _shade_over:
+		return  # тень не досчитана: ничего не записывать
 	if ia >= _AIR_IA:
 		_air_ids[id] = true
 	if th != null and t <= th.t_end() + cloud_linger_s:
@@ -885,6 +912,9 @@ func _shade_pure(p: Vector2, t: float, env: Dictionary) -> float:
 	for ic in range(floori((c_lo - r) / _spacing), floori((c_hi + r) / _spacing) + 1):
 		for ia in range(floori((a_lo - r) / _spacing), floori((a_hi + r) / _spacing) + 1):
 			shade = maxf(shade, _cell_shade(ia, ic, p, t, sxz, wpm, cbf))
+			if _bare_new > 0 and Time.get_ticks_usec() >= _shade_dl:
+				_shade_over = true
+				return 0.0
 	# Источники поля в том же окне (по месту: p − снос − тень ± облако).
 	if air_src != null and air_src.count() > 0:
 		var lo := p
@@ -896,6 +926,9 @@ func _shade_pure(p: Vector2, t: float, env: Dictionary) -> float:
 		for s in air_src.sources_in(0.5 * (lo + hi), -1.0, 0.5 * (hi - lo) + Vector2(r, r)):
 			var c := air_src.col[s]
 			shade = maxf(shade, _cell_shade(_AIR_IA + c / nx, c % nx, p, t, sxz, wpm, cbf))
+			if _bare_new > 0 and Time.get_ticks_usec() >= _shade_dl:
+				_shade_over = true
+				return 0.0
 	return shade
 
 
@@ -934,6 +967,8 @@ class AirJob:
 	var cfg: Dictionary
 	var field: WindField
 	var forced := PackedByteArray()
+	## Кромка, доля жизни и солнце на момент запуска (_air_inputs).
+	var inputs: Array = []
 	var ok: bool = false
 	var task: int = -1
 
@@ -995,6 +1030,7 @@ func _air_launch(f: WindField, key: String) -> void:
 	cfg["height_fn"] = ground.height
 	cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, ground, _seed, int(_cfg.source_candidates))
 	job.cfg = cfg
+	job.inputs = _air_inputs()
 	job.forced = air_forced if air_forced_sig == AirThermals.signature(f) else PackedByteArray()
 	# ленивые записи в meta поля (heat) — здесь, на главном потоке: поток только читает
 	f.heat_flux()
@@ -1023,6 +1059,7 @@ func _poll_air_jobs() -> void:
 			continue
 		var prev := air_src
 		air_src = job.src if job.ok else null
+		_air_src_inputs = job.inputs
 		# Прежние циклы источников помнили старый список — забыть (живые термики доживают).
 		# Охват поля тот же — клетки сетки (аналитика) от списка не зависят, их кеши остаются:
 		# иначе весь круг генерации пересчитывается за один кадр.
@@ -1030,6 +1067,40 @@ func _poll_air_jobs() -> void:
 			_clear_air_caches()
 		else:
 			_clear_dynamic_caches()
+
+
+## Входы сборки, кроме поля и маски (они в ключе): кромка облаков, доля жизни термиков, солнце
+## (pick_fn — освещённость склонов, ground.sun).
+func _air_inputs() -> Array:
+	return [cloudbase_msl, float(_w.thermal_duty), sun_dir]
+
+
+## Только загрузка места (FL-5): запустить сборку источников для поданного поля, не дожидаясь её
+## (PF-К4), — раньше первого обновления, параллельно остальной загрузке. Сборка, запущенная с
+## другими кромкой/долей/солнцем, чем сейчас (ход дня, сброс часов), отбрасывается и
+## перезапускается — итог тот же, что у первой синхронной сборки в refresh_now().
+## true — первых источников ещё нет и сборка идёт: begin_refresh() сейчас ждал бы её.
+func air_prefetch() -> bool:
+	var cur := _air_inputs()
+	for job: AirJob in _air_jobs:
+		if job.key != _STALE and job.inputs != cur:
+			if job.key == _air_launched:
+				_air_launched = ""
+			job.key = _STALE  # по готовности будет выброшена
+	_poll_air_jobs()
+	if air_src != null and _air_src_inputs != cur:
+		# собрана заранее с другими входами — как будто её не было
+		air_src = null
+		_clear_dynamic_caches()
+		if _air_jobs.all(func(j: AirJob) -> bool: return j.key != _air_launched):
+			_air_launched = ""
+	var f := _air_level()
+	var key := _air_key_of(f)
+	if key == "":
+		return false  # поля нет: begin_refresh() ничего не ждёт
+	_air_key = key
+	_air_launch(f, key)
+	return air_src == null and not _air_jobs.is_empty()
 
 
 ## Дождаться всех сборок источников и принять актуальную (тесты, рассылка маски).
@@ -1120,6 +1191,7 @@ func _bare_thermal(ia: int, ic: int, id: int, t_start: float, period: float) -> 
 	if _bare_empty.has(id):
 		return null
 	var th := _spawn(ia, ic, id, t_start, period, 0.0)
+	_bare_new += 1
 	if ia >= _AIR_IA:
 		_air_ids[id] = true
 	var forget := t_start + _reach_of(t_start, period)

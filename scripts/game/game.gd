@@ -26,6 +26,9 @@ signal catch_up_ended(state: String)
 const TOW_GROUND_AGL_M := 8.0
 ## Буксир: потолок воздушной скорости для звука потока, м/с (на 1000 км/ч звук не «ревёт»).
 const TOW_FLOW_CAP_MS := 28.0
+## Загрузка места: бюджет порции первого обновления термиков на кадр экрана загрузки, мкс (FL-5;
+## кадр — порция + отрисовка + неделимый конец ~25 мс, предел замирания — 200 мс).
+const LOAD_REFRESH_BUDGET_US := 40000
 
 var settings: FlightSettings
 ## Модель воздуха: Atmosphere или запасная CalmAir (game.json → air).
@@ -404,6 +407,9 @@ func start(s: FlightSettings) -> bool:
 	)
 	# Среднее поле на час старта, ветер и погоду полёта — до термиков (их источники — из поля).
 	await _load_air_field(progress)
+	# Источники термиков из поля — в рабочем потоке, пока готовится планер (FL-5).
+	if air.has_method("prefetch_air_sources"):
+		air.call("prefetch_air_sources")
 	_align_start_heading()
 	if air.has_method("place_thermals_near"):
 		air.call("place_thermals_near", _start_pos, _start_heading)
@@ -433,8 +439,13 @@ func start(s: FlightSettings) -> bool:
 		await get_tree().process_frame
 	_goals_setup()
 	restart()
-	# Термики вокруг старта — ещё на экране загрузки (первое обновление — самое долгое).
-	if air.has_method("refresh_now"):
+	# Термики вокруг старта — ещё на экране загрузки (первое обновление — самое долгое, секунды):
+	# порциями по кадрам, без замирания экрана (FL-5); полёт — когда они готовы.
+	if air.has_method("begin_load_refresh"):
+		air.call("begin_load_refresh")
+		while not air.call("load_refresh_step", LOAD_REFRESH_BUDGET_US):
+			await get_tree().process_frame
+	elif air.has_method("refresh_now"):
 		air.call("refresh_now")
 	set_physics_process(true)
 	progress.finish()
