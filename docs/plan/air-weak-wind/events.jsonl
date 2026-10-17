@@ -47,3 +47,4 @@
 {"t": "2026-10-18T03:33:19", "by": "coordinator", "task": "AWW-3", "ev": "accepted", "note": "проверки PASS, 8 ok"}
 {"t": "2026-10-18T03:34:31", "by": "coordinator", "task": "AWW-3", "ev": "accepted", "commits": ["253fae61"], "note": "2/2 bake_check=ok:exit 0; eight_ok=ok:8"}
 {"t": "2026-10-18T03:34:32", "by": "coordinator", "task": "AWW-3", "ev": "merged"}
+{"t": "2026-10-18T03:34:42", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: accept -j параллельно — test_air_phase упал по таймауту под нагрузкой, повтор --only прошёл; опция --lock у job ставится до подкоманды (неочевидно); report отклоняет status=done без commits/checks. Итог: AWW-1..3 приняты и влиты, поля перепечены (--check 8 ok), main влит."}
