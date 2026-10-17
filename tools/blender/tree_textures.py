@@ -259,9 +259,50 @@ def _palm(cv: Canvas, rng, c1, c2) -> None:
                     _mix(c1, c2, 0.9, 1.05))
 
 
+def _tropical(cv: Canvas, rng, c1, c2) -> None:
+    """Тропическое лиственное (Атлантический лес, Амазония): плотная ветка с крупными
+    кожистыми продолговатыми листьями с острым кончиком, по обе стороны побега; листья
+    налегают друг на друга (почти без просветов), тёмные, с глянцевым светлым бликом
+    по средней жилке. Нижний слой темнее — глубина кроны."""
+    twig = np.array([0.2, 0.15, 0.1], dtype=np.float32)
+    x0 = CARD * 0.5
+    axis = [(x0 + 16 * math.sin(2.2 * t), CARD * (0.02 + 0.93 * t)) for t in np.linspace(0, 1, 12)]
+    for a, b in zip(axis[:-1], axis[1:]):
+        _branchlet(cv, a, b, 3.0, twig)
+    leaves = []
+    for i, (ax, ay) in enumerate(axis[2:], 2):
+        t = ay / CARD
+        for sgn in (-1, 1):
+            for _ in range(2):
+                ang = math.radians(90 - sgn * rng.uniform(35, 75))
+                ln = CARD * rng.uniform(0.17, 0.25) * (1.1 - 0.35 * t)
+                leaves.append((ax, ay, ang, ln))
+    leaves.append((axis[-1][0], axis[-1][1], math.radians(90), CARD * 0.2))
+    for ax, ay, ang, ln in leaves:  # черешок
+        cv.line((ax, ay), (ax + math.cos(ang) * ln * 0.2, ay + math.sin(ang) * ln * 0.2),
+                1.5, 1.1, twig)
+    for layer, k in enumerate((0.62, 0.85, 1.05)):
+        for ax, ay, ang, ln in leaves:
+            if rng.random() < 0.25 and layer < 2:
+                continue
+            a = ang + rng.uniform(-0.25, 0.25)
+            la = ln * rng.uniform(0.8, 1.05) * (0.8 + 0.1 * layer)
+            wd = la * 0.2
+            cx, cy = ax + math.cos(a) * la * 0.62, ay + math.sin(a) * la * 0.62
+            col = _mix(c1, c2, rng.uniform(0, 1), k * rng.uniform(0.9, 1.08))
+            cv.ellipse(cx, cy, la * 0.5, wd, a, col)
+            # острый кончик (капля)
+            cv.ellipse(cx + math.cos(a) * la * 0.5, cy + math.sin(a) * la * 0.5,
+                       la * 0.14, wd * 0.4, a, col)
+            if layer == 2:  # блик по жилке
+                hl = _mix(c1, c2, 1.0, 1.35)
+                cv.line((ax + math.cos(a) * la * 0.2, ay + math.sin(a) * la * 0.2),
+                        (ax + math.cos(a) * la * 1.0, ay + math.sin(a) * la * 1.0), 1.3, 0.6, hl)
+
+
 def foliage(kind: str, c1, c2, seed: int) -> np.ndarray:
     """RGBA-карточка (низ картинки — у ветки, верх — конец ветки).
-    kind: pine, cedar, spruce, larch, birch; palm; broad (дуб)."""
+    kind: pine, cedar, spruce, larch, birch; palm; broad (дуб); tropical."""
     rng = np.random.default_rng(seed)
     rs = random.Random(seed)
     cv = Canvas(CARD, CARD)
@@ -277,8 +318,9 @@ def foliage(kind: str, c1, c2, seed: int) -> np.ndarray:
         _broad(cv, rs, c1, c2)
     elif kind == "palm":
         _palm(cv, rs, c1, c2)
+    elif kind == "tropical":
+        _tropical(cv, rs, c1, c2)
     else:
-        # TODO(RV-7): тропическое — своя функция; пока как берёза
         _birch(cv, rng, c1, c2)
     rgba = np.concatenate([cv.rgb, cv.a[..., None]], axis=2)
     return rgba
@@ -316,6 +358,17 @@ def bark(kind: str, col, col_low, seed: int) -> np.ndarray:
         ring = 0.5 + 0.5 * np.sin(2 * np.pi * v * 70 + 1.5 * np.sin(2 * np.pi * u * 3 + v * 9))
         base = low[None, None] * (1 - 0.6 * v[..., None]) + col[None, None] * 0.6 * v[..., None]
         img = base * (0.62 + 0.5 * ring[..., None]) * (0.92 + 0.1 * fur[..., None])
+    elif kind == "smooth":  # тропическая: гладкая серо-бурая, лишайниковые пятна, тёмный комель
+        blot = np.zeros((h, w), dtype=np.float32)
+        for kx, ky in ((3, 4), (7, 11), (13, 23)):
+            ph1, ph2 = rng.uniform(0, 6.28, 2)
+            blot += np.sin(2 * np.pi * kx * u + ph1 + 2 * np.sin(2 * np.pi * ky * v + ph2)) / kx ** 0.5
+        blot = np.clip(0.5 + 0.5 * blot / 1.5, 0, 1)
+        img = (col * (0.82 + 0.25 * blot[..., None])) * (0.93 + 0.07 * fur[..., None])
+        lich = np.clip((blot - 0.72) * 5, 0, 1)[..., None]
+        img = img * (1 - 0.45 * lich) + np.array([0.45, 0.5, 0.4], dtype=np.float32) * 0.45 * lich
+        base_k = np.clip((0.2 - v) / 0.2, 0, 1)[..., None]
+        img = img * (1 - base_k) + low * base_k * (0.8 + 0.3 * fur[..., None])
     else:
         img = (low * (1 - v[..., None]) + col * v[..., None]) * (0.7 + 0.45 * fur[..., None])
     return np.clip(img, 0, 1)

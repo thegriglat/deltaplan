@@ -298,44 +298,54 @@
       ]
     },
     "tropical": {
-      "_doc": "Тропическое дерево: крупная купольная вечнозелёная крона (заготовка RV-3; вид — RV-7)",
+      "_doc": "Тропическое дерево (Атлантический лес Бразилии, Амазония): высокий прямой ствол, широкая плотная купольная вечнозелёная крона с плоским низом, тёмная кожистая листва",
       "variants": 4,
-      "height_m": 30,
-      "trunk_radius_m": 0.5,
-      "trunk_top": 0.92,
-      "crown_base": 0.45,
+      "height_m": 28,
+      "trunk_radius_m": 0.45,
+      "trunk_top": 0.93,
+      "crown_base": 0.46,
       "crown": "dome",
-      "crown_radius": 0.33,
-      "branch_angle_deg": 40,
-      "droop": 0.05,
-      "whorls": 10,
+      "crown_radius": 0.36,
+      "branch_angle_deg": 6,
+      "droop": 0.0,
+      "whorls": 9,
       "per_whorl": 6,
       "clumps_per_branch": 4,
-      "clump_size": 0.13,
+      "clump_size": 0.14,
       "lean": 0.03,
-      "leaf": "broad",
+      "leaf": "tropical",
       "leaf_color": [
-        0.1,
-        0.3,
-        0.08
+        0.07,
+        0.2,
+        0.06
       ],
       "leaf_color2": [
-        0.2,
-        0.43,
-        0.12
+        0.15,
+        0.34,
+        0.1
       ],
       "bark_color": [
-        0.42,
-        0.36,
-        0.3
+        0.5,
+        0.46,
+        0.4
       ],
       "bark_color_low": [
-        0.26,
-        0.22,
-        0.18
+        0.25,
+        0.21,
+        0.17
       ],
-      "bark": "rough",
-      "stubs": 0
+      "bark": "smooth",
+      "stubs": 0,
+      "branch_rise": 0.05,
+      "cards": 3,
+      "clump_from": 0.3,
+      "branch_angle_top_deg": 62,
+      "height_scale": [
+        0.7,
+        0.95,
+        1.15,
+        0.85
+      ]
     }
   },
   "lod": {
