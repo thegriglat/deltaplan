@@ -170,23 +170,22 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 		_h_max[k] = float(hr[1])
 
 
-## Набор пород места (RV-К2): cfg.set — 1…MAX_SPECIES имён из реестра (trees.atlas_cell); нет ключа или набор
-## негоден (пусто, длиннее MAX_SPECIES, повтор, неизвестное имя) — DEFAULT_SET (с предупреждением, если ключ был).
+## Набор пород места (RV-К2): cfg.set - имена из реестра (trees.atlas_cell), порядок = локальный индекс.
+## Нет ключа - DEFAULT_SET. Неизвестное имя и повтор - warning и пропуск породы; больше MAX_SPECIES -
+## warning и обрезка; пустой набор (в т. ч. после пропусков) - пустой: деревьев нет, без падения.
 static func species_set(cfg: Dictionary) -> PackedStringArray:
 	if not cfg.has("set"):
 		return DEFAULT_SET
-	var out := PackedStringArray()
-	for n in cfg["set"]:
-		out.append(String(n))
 	var reg: Dictionary = cfg.get("atlas_cell", {})
-	var ok := out.size() >= 1 and out.size() <= MAX_SPECIES
-	var seen := {}
-	for n in out:
-		ok = ok and not seen.has(n) and (reg.is_empty() or reg.has(n))
-		seen[n] = true
-	if not ok:
-		push_warning("TreePlacer: trees.set %s негоден — набор по умолчанию" % [out])
-		return DEFAULT_SET
+	var out := PackedStringArray()
+	for v in cfg["set"]:
+		var n := String(v)
+		if (not reg.is_empty() and not reg.has(n)) or out.has(n):
+			push_warning("TreePlacer: порода «%s» в trees.set неизвестна или повторена - пропущена" % n)
+		elif out.size() >= MAX_SPECIES:
+			push_warning("TreePlacer: в trees.set больше %d пород - «%s» отброшена" % [MAX_SPECIES, n])
+		else:
+			out.append(n)
 	return out
 
 

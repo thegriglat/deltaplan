@@ -98,6 +98,27 @@ func setup(
 	m.set_shader_parameter("edge_probe_m", float(cfg.get("edge_probe_m", 30.0)))
 	m.set_shader_parameter("color_variation", float(cfg.get("color_variation", 0.15)))
 	m.set_shader_parameter("band_blend_m", maxf(1.0, float(cfg.get("band_blend_m", 200.0))))
+	var u := species_uniforms(cfg, species)
+	for key: String in u:
+		m.set_shader_parameter(key, u[key])
+	var hts: Array[Vector2] = []
+	hts.assign(u["sp_height"])
+	var n_sp := species.size()
+	_set_cull_extent(m, tex_dims[1], hts, nv, n_sp)
+	material_override = m
+	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	custom_aabb = AABB(
+		Vector3(layer.origin_x, layer.min_h - 100.0, layer.origin_z),
+		Vector3(layer.size_x(), layer.max_h - layer.min_h + 200.0, layer.size_z())
+	)
+	_set_model_stitch(true)
+	if impostors != null:
+		impostors.set_cross_ring(Vector2(r_far * k_min - 0.5 * dither, r_far * k_max + 0.5 * dither))
+	return true
+
+
+## Массивы пород для шейдера (sp_*[MAX_SP], sp_count) по набору species и cfg; лишние слоты - нейтральные.
+static func species_uniforms(cfg: Dictionary, species: PackedStringArray) -> Dictionary:
 	var sp: Dictionary = cfg.get("species", {})
 	var w := PackedFloat32Array()
 	var lo := PackedFloat32Array()
@@ -118,8 +139,7 @@ func setup(
 		kind.append(TreePlacer.kind_of(cfg, name))
 		var hr: Array = s.get("height_m", [15.0, 25.0])
 		hts.append(Vector2(float(hr[0]), float(hr[1])))
-	var n_sp := species.size()
-	for _i in range(n_sp, TreePlacer.MAX_SPECIES):  # неиспользуемые слоты массивов шейдера
+	for _i in range(species.size(), TreePlacer.MAX_SPECIES):
 		w.append(0.0)
 		lo.append(-1e4)
 		hi.append(1e4)
@@ -128,26 +148,10 @@ func setup(
 		bl.append(0.0)
 		kind.append(0.0)
 		hts.append(Vector2(15.0, 25.0))
-	m.set_shader_parameter("sp_count", n_sp)
-	m.set_shader_parameter("sp_kind", kind)
-	m.set_shader_parameter("sp_weight", w)
-	m.set_shader_parameter("sp_min", lo)
-	m.set_shader_parameter("sp_max", hi)
-	m.set_shader_parameter("sp_aspect", asp)
-	m.set_shader_parameter("sp_gain", gain)
-	m.set_shader_parameter("sp_backlight", bl)
-	m.set_shader_parameter("sp_height", hts)
-	_set_cull_extent(m, tex_dims[1], hts, nv, n_sp)
-	material_override = m
-	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	custom_aabb = AABB(
-		Vector3(layer.origin_x, layer.min_h - 100.0, layer.origin_z),
-		Vector3(layer.size_x(), layer.max_h - layer.min_h + 200.0, layer.size_z())
-	)
-	_set_model_stitch(true)
-	if impostors != null:
-		impostors.set_cross_ring(Vector2(r_far * k_min - 0.5 * dither, r_far * k_max + 0.5 * dither))
-	return true
+	return {
+		"sp_count": species.size(), "sp_kind": kind, "sp_weight": w, "sp_min": lo, "sp_max": hi,
+		"sp_aspect": asp, "sp_gain": gain, "sp_backlight": bl, "sp_height": hts,
+	}
 
 
 ## GR-11: размеры креста для раннего выхода (tree_cross.gdshader, column_out_of_view): наибольшие по

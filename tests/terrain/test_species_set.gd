@@ -8,6 +8,7 @@ const OLD_SET: PackedStringArray = ["pine", "cedar", "larch", "birch", "spruce"]
 ## альфа-код}. Снят до правки; пересъёмка — DUMP_SPECIES_REF=<файл> и test_dump (только если поведение менялось
 ## осознанно).
 const REF_PATH := "res://tests/fixtures/species_set/ref.json"
+const REF_UNIFORMS_PATH := "res://tests/fixtures/species_set/ref_uniforms.json"
 
 
 static func fingerprint(p: TreePlacer, names: PackedStringArray) -> Dictionary:
@@ -94,9 +95,93 @@ func test_set_validation() -> void:
 	check(TreePlacer.species_set(cfg) == PackedStringArray(["birch", "pine", "oak"]), "набор из трёх, порядок сохранён")
 	cfg["set"] = ["pine", "cedar", "larch", "birch", "spruce", "oak"]
 	check(TreePlacer.species_set(cfg).size() == 6, "шесть допустимо")
-	for bad in [[], ["pine", "cedar", "larch", "birch", "spruce", "oak", "palm"], ["pine", "pine"], ["pine", "baobab"]]:
-		cfg["set"] = bad
-		check(TreePlacer.species_set(cfg) == TreePlacer.DEFAULT_SET, "негодный набор %s — по умолчанию" % [bad])
+	cfg["set"] = ["pine", "cedar", "larch", "birch", "spruce", "oak", "palm"]
+	check(TreePlacer.species_set(cfg).size() == 6, "седьмая отброшена")
+	cfg["set"] = ["pine", "pine", "baobab", "birch"]
+	check(TreePlacer.species_set(cfg) == PackedStringArray(["pine", "birch"]), "повтор и неизвестное имя пропущены, остальные остались")
+	for empty in [[], ["baobab"]]:
+		cfg["set"] = empty
+		check(TreePlacer.species_set(cfg).is_empty(), "пустой набор %s - пусто, не алтайская тайга" % [empty])
+
+
+func test_empty_set_no_trees_no_crash() -> void:
+	var t := Terrain.new()
+	t.location_id = ""
+	check(t.load_location("altai"), "место altai")
+	var cfg: Dictionary = Config.get_config("world").trees.duplicate(true)
+	cfg["set"] = []
+	var p := TreePlacer.new()
+	p.setup(t.layers[0], t.surfaces[0], cfg)
+	var site: Dictionary = t.get_start_sites()[0]
+	p.build(Vector2(site.position.x, site.position.z))
+	check(p.species.is_empty() and p.buffers.is_empty() and p.counts.is_empty(), "деревьев нет")
+	var m := TerrainTreeModels.new()
+	check(m.setup(t.layers[0], t.surfaces[0], cfg), "модели при пустом наборе не падают")
+	check(m.get_child_count() == 0, "MultiMesh'ей нет")
+	m.free()
+	var u := TreeCrosses.species_uniforms(cfg, TreePlacer.species_set(cfg))
+	check(u["sp_count"] == 0 and (u["sp_weight"] as PackedFloat32Array).size() == TreePlacer.MAX_SPECIES, "uniform крестов: sp_count 0, слоты нейтральные")
+	var ui := ForestImpostors.species_uniforms(cfg, TreePlacer.species_set(cfg))
+	check(ui["sp_count"] == 0, "uniform импостеров: sp_count 0")
+	t.free()
+
+
+## Значения uniform крестов и импостеров при наборе по умолчанию совпадают с эталоном (снят до правки с
+## материалов Terrain; ref_uniforms.json), хвост массивов до MAX_SP нейтральный; kind/conifer/cell - прежние константы.
+func test_default_uniforms_unchanged() -> void:
+	var ref: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(REF_UNIFORMS_PATH))
+	var world: Dictionary = Config.get_config("world").trees
+	var all := {}
+	for loc: String in ref:
+		var cfg := TreePlacer.with_vegetation(Config._deep_merge(world, Config.get_config("locations/" + loc).get("trees", {})))
+		var set := TreePlacer.species_set(cfg)
+		all[loc] = {"crosses": TreeCrosses.species_uniforms(cfg, set), "impostors": ForestImpostors.species_uniforms(cfg, set)}
+	for loc: String in ref:
+		var got: Dictionary = all[loc]
+		for kind: String in ref[loc]:
+			var want: Dictionary = ref[loc][kind]
+			for key: String in want:
+				check(got[kind].has(key), "%s.%s: есть %s" % [loc, kind, key])
+				var w: Array = want[key]
+				check(w.size() == 5 and got[kind][key].size() == TreePlacer.MAX_SPECIES, "%s.%s.%s: 5 → 6 слотов" % [loc, kind, key])
+				for k in w.size():
+					var g: Variant = got[kind][key][k]
+					if g is Vector2:
+						approx(g.x, float(w[k][0]), 1e-6, "%s.%s.%s[%d].x" % [loc, kind, key, k])
+						approx(g.y, float(w[k][1]), 1e-6, "%s.%s.%s[%d].y" % [loc, kind, key, k])
+					else:
+						approx(float(g), float(w[k]), 1e-6, "%s.%s.%s[%d]" % [loc, kind, key, k])
+	var got: Dictionary = all["altai"]
+	for kind: String in got:
+		var u: Dictionary = got[kind]
+		check(u["sp_count"] == 5, kind + ": sp_count 5")
+		check(Array(u["sp_kind"]).slice(0, 5) == [0.0, 0.0, 2.0, 1.0, 0.0], kind + ": sp_kind как SL_KIND/SL_DECID")
+		check(float(u["sp_weight"][5]) == 0.0, kind + ": шестой слот не выбирается (вес 0)")
+	check(Array(got["impostors"]["sp_conifer"]).slice(0, 5) == [1.0, 1.0, 0.0, 0.0, 1.0], "sp_conifer как SL_CONIFER")
+	check(Array(got["impostors"]["sp_cell"]).slice(0, 5) == [0.0, 1.0, 2.0, 3.0, 4.0], "sp_cell = прежние sp % 4, sp / 4")
+
+
+## Набор [birch, pine, larch]: sp_count 3, ячейки атласа 3,0,2, kind 1,0,2, conifer 0,1,0; параметры - своих пород.
+func test_three_species_uniforms() -> void:
+	var cfg: Dictionary = Config.get_config("world").trees.duplicate(true)
+	cfg["set"] = ["birch", "pine", "larch"]
+	var set := TreePlacer.species_set(cfg)
+	check(set.size() == 3, "набор из трёх")
+	var ui := ForestImpostors.species_uniforms(cfg, set)
+	var uc := TreeCrosses.species_uniforms(cfg, set)
+	check(ui["sp_count"] == 3 and uc["sp_count"] == 3, "sp_count 3")
+	check(Array(ui["sp_cell"]).slice(0, 3) == [3.0, 0.0, 2.0], "sp_cell 3,0,2")
+	check(Array(ui["sp_kind"]).slice(0, 3) == [1.0, 0.0, 2.0], "импостеры: sp_kind 1,0,2")
+	check(Array(uc["sp_kind"]).slice(0, 3) == [1.0, 0.0, 2.0], "кресты: sp_kind 1,0,2")
+	check(Array(ui["sp_conifer"]).slice(0, 3) == [0.0, 1.0, 0.0], "sp_conifer 0,1,0")
+	var sp: Dictionary = cfg["species"]
+	approx(float(uc["sp_weight"][0]), float(sp["birch"]["weight"]), 1e-6, "вес birch в слоте 0")
+	approx(float(uc["sp_weight"][1]), float(sp["pine"]["weight"]), 1e-6, "вес pine в слоте 1")
+	approx(float(uc["sp_weight"][2]), float(sp["larch"]["weight"]), 1e-6, "вес larch в слоте 2")
+	approx(float(uc["sp_gain"][0]), TerrainTreeModels.albedo_gain_for(cfg, "birch", 1), 1e-6, "gain креста birch")
+	approx(float(ui["sp_gain"][0]), TerrainTreeModels.albedo_gain_for(cfg, "birch", 2), 1e-6, "gain билборда birch")
+	for k in range(3, TreePlacer.MAX_SPECIES):
+		check(float(uc["sp_weight"][k]) == 0.0 and float(ui["sp_weight"][k]) == 0.0, "слот %d не выбирается" % k)
 
 
 func test_placer_uses_set() -> void:
