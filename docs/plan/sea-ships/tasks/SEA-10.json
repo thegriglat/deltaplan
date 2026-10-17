@@ -1,0 +1,57 @@
+{
+  "id": "SEA-10",
+  "module": "sea-ships",
+  "type": "dp-engineer",
+  "title": "Плотность судов по Q3: 2–6 у берега места",
+  "goal": "ShipPlacer по S3 v3: на место 2–6 судов (по ключу места) в полосе 3–15 км от берега и ≤ 30 км от центра, кандидаты по мировым клеткам 0,02°; веса видов 1/1/1; параметры в configs/sea_ships.json с _doc.",
+  "plan_ref": "SEA-10",
+  "contracts": [
+    {
+      "name": "S3",
+      "version": "3",
+      "ref": "docs/contracts/sea-ships.md"
+    },
+    {
+      "name": "S2",
+      "version": "3",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-10",
+  "branch": "sea-ships/SEA-10",
+  "base": "feature/sea-ships",
+  "scope": [
+    "scripts/world_objects/ship_placer.gd",
+    "scripts/world_objects/ship_layer.gd",
+    "configs/sea_ships.json",
+    "tests/world_objects/test_ship_placer.gd",
+    "tests/world_objects/test_ship_layer.gd",
+    "tests/contracts/test_sea_ships_contracts.gd",
+    "docs/guide/world-objects.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/",
+    "assets/",
+    "tools/blender/",
+    "data/",
+    "project.godot",
+    "configs/world.json"
+  ],
+  "accept": [
+    {
+      "name": "ship_placer",
+      "tests": "ship_placer"
+    },
+    {
+      "name": "ship_layer",
+      "tests": "ship_layer"
+    },
+    {
+      "name": "sea_ships_contracts",
+      "tests": "sea_ships_contracts"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T09:49:05"
+}
