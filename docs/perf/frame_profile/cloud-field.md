@@ -4,7 +4,7 @@ status: "active"
 module: "cloud-field"
 area: "perf"
 updated: "2026-10-17"
-summary: "CLF-7: GPU-цена облаков в сильный день (Онгудай 13:30), feature/cloud-field против main: проход облаков medium 4,35 → 0,73 мс, high 7,28 → 1,03 мс; справка, порога нет"
+summary: "CLF-7: проход облаков, сильный день Онгудая: medium 4,35 → 0,73 мс, high 7,28 → 1,03 мс (ветка против main)"
 related: ["docs/perf/frame_profile.md", "docs/plan/cloud-field.md"]
 conclusion: "На сильном дне Онгудая (13:30, покрытие поля 0,17, основание 3375 м) проход «Process Post Transparent Compositor Effects» на feature/cloud-field в 6–7 раз дешевле, чем кучевые боксы main: medium 0,73 против 4,35 мс, high 1,03 против 7,28 мс; GPU кадра medium 6,2 против 10,1 мс, high 7,1 против 13,6 мс. Удорожания нет."
 data: "docs/perf/data/clf7_summary.json, docs/perf/data/clf7_run.tar.gz (сырые jsonl); воспроизведение — tools/bench/clf7_summary.py"
