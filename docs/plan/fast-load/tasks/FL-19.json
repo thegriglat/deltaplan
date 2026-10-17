@@ -1,0 +1,71 @@
+{
+  "id": "FL-19",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "Слить свежий main в модуль: конфликты с volcano-island и др.",
+  "goal": "Ветка задачи = feature/fast-load + свежий main, конфликты решены с сохранением обоих смыслов (volcano-island: OsmData.load_for с корнем тайлов места, термики не над водой; fast-load: PlaceData один раз, полосы AirThermals.build, порядок загрузки FL-10); тесты обеих сторон зелёные.",
+  "plan_ref": "FL-19",
+  "contracts": [
+    {
+      "name": "FL-К1",
+      "version": "2",
+      "ref": "docs/contracts/fast-load.md"
+    },
+    {
+      "name": "FL-К2",
+      "version": "1",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-19",
+  "branch": "fast-load/FL-19",
+  "base": "feature/fast-load",
+  "scope": [
+    "."
+  ],
+  "dont_touch": [
+    "data/locations",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "fast_load",
+      "tests": "fast_load"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "thermal",
+      "tests": "thermal"
+    },
+    {
+      "name": "air_thermals",
+      "tests": "air_thermals"
+    },
+    {
+      "name": "place_data",
+      "tests": "place_data"
+    },
+    {
+      "name": "load_order",
+      "tests": "load_order"
+    },
+    {
+      "name": "island",
+      "tests": "island"
+    },
+    {
+      "name": "volcano",
+      "tests": "volcano"
+    },
+    {
+      "name": "osm",
+      "tests": "osm"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T12:57:14"
+}
