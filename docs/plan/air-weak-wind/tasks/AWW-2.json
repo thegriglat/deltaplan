@@ -1,0 +1,101 @@
+{
+  "id": "AWW-2",
+  "module": "air-weak-wind",
+  "type": "dp-engineer",
+  "title": "Механизм F: перенос теплосодержания θ′·h при смене толщины слоя вдоль ветра",
+  "goal": "Внести правку 1 AWW-1 (θ′_in = E_up/max(h, h_up) в балансе θ′ механизма F, GPU и CPU путь) с тестом сохранения тепла; показать W1 до/после на всех встроенных стартах и вне островов (Онгудай, Аскарово, слабый и сильный день) со списком всего, что сдвинулось.",
+  "plan_ref": "Волна 2 — исправления модели (карточки по итогам AWW-1)",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/air-weak-wind.md"
+    },
+    {
+      "name": "W2",
+      "version": "1",
+      "ref": "docs/contracts/air-weak-wind.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-weak-wind-AWW-2",
+  "branch": "air-weak-wind/AWW-2",
+  "base": "feature/air-weak-wind",
+  "scope": [
+    "scripts/atmosphere/air_model/air_phase.glsl",
+    "scripts/atmosphere/air_model/air_phase_cpu.gd",
+    "tests/atmosphere/test_air_phase.gd",
+    "docs/guide/air-model/phases.md",
+    "docs/guide/air-model/limits.md",
+    "CHANGELOG.md",
+    "tools/research/air_weak_wind/AWW-2/"
+  ],
+  "dont_touch": [
+    "data/",
+    "configs/",
+    "scripts/atmosphere/air_model/air_phase.gd",
+    "scripts/atmosphere/air_model/air_picard.glsl",
+    "scripts/atmosphere/air_model/air_case.gd",
+    "project.godot",
+    "tools/research/air_weak_wind/AWW-1/"
+  ],
+  "accept": [
+    {
+      "name": "test_air_phase",
+      "tests": "test_air_phase"
+    },
+    {
+      "name": "gpu_phase",
+      "cmd": "bash tools/gpu_tests.sh --filter=test_air_phase",
+      "expect": "tests"
+    },
+    {
+      "name": "contracts_tests",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=contract",
+      "expect": "tests"
+    },
+    {
+      "name": "w1_header",
+      "cmd": "head -1 tools/research/air_weak_wind/AWW-2/starts.csv",
+      "expect": "re:^variant,place,site,wind_ms,hour,sky,u2,u10,u50,u100,dir10_deg,r10_100,theta_ml_K,frozen_frac,w_mean10,w_max10,sigma_u10,gust_max10,zi_m,cloud_base_m,cloud_frac,therm_n,therm_w300,wave_w1500$"
+    },
+    {
+      "name": "w1_rows_main",
+      "cmd": "grep -c '^main,' tools/research/air_weak_wind/AWW-2/starts.csv",
+      "expect": "num:(\\d+) >=14"
+    },
+    {
+      "name": "w1_rows_new",
+      "cmd": "grep -c '^AWW-2,' tools/research/air_weak_wind/AWW-2/starts.csv",
+      "expect": "num:(\\d+) >=14"
+    },
+    {
+      "name": "thermal_plain_u10",
+      "cmd": "awk -F, '$1==\"AWW-2\" && $3==\"thermal_plain\"{print $8; exit}' tools/research/air_weak_wind/AWW-2/starts.csv",
+      "expect": "num:([0-9.]+) >=1.1"
+    },
+    {
+      "name": "diff_md",
+      "cmd": "grep -c '^|' tools/research/air_weak_wind/AWW-2/diff.md",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | tail -1'",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "atmosphere_tests",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=tests/atmosphere/",
+      "expect": "tests"
+    },
+    {
+      "name": "flight_tests",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=tests/flight/",
+      "expect": "tests"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T01:31:51",
+  "edited": "2026-10-18T01:32:10"
+}
