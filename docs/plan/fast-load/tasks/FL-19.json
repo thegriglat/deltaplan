@@ -24,8 +24,7 @@
     "."
   ],
   "dont_touch": [
-    "data/locations",
-    "project.godot"
+    "tools/research/load_profile"
   ],
   "accept": [
     {
@@ -72,5 +71,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-17T12:57:14",
-  "edited": "2026-10-17T13:06:26"
+  "edited": "2026-10-17T13:06:38"
 }
