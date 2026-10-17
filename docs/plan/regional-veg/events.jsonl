@@ -113,3 +113,8 @@
 {"t": "2026-10-18T00:48:49", "by": "executor", "task": "RV-10", "ev": "reported", "commits": ["6e75e508"], "note": "done: BuildingPlacer: реестр buildings.models, доля village_model_share малых сельских домов (VILLAGE, высота не из OSM, след…"}
 {"t": "2026-10-18T00:49:54", "by": "coordinator", "task": "RV-10", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:7/7; building=ok:18/18; osm_look=ok:14/14; test_building_models=ok:6/6"}
 {"t": "2026-10-18T00:50:00", "by": "coordinator", "task": "RV-10", "ev": "accepted", "note": "по отчёту; загрузка настоящих glb — проверка в RV-9"}
+{"t": "2026-10-18T00:51:19", "by": "coordinator", "task": "RV-10", "ev": "accepted", "commits": ["f0d4eba2"], "note": "4/4 regional_veg_contracts=ok:7/7; building=ok:18/18; osm_look=ok:14/14; test_building_models=ok:6/6"}
+{"t": "2026-10-18T00:51:20", "by": "coordinator", "task": "RV-10", "ev": "merged"}
+{"t": "2026-10-18T00:51:44", "by": "executor", "task": "RV-12", "ev": "reported", "commits": ["b4699199"], "note": "done: Модель дома tin_house: 8x6 м, стены 2,8 м, двускатная крыша 12 градусов из профлиста со свесами, дверь со ступенью, 5 о…"}
+{"t": "2026-10-18T00:51:52", "by": "coordinator", "task": "RV-12", "ev": "checked", "note": "5/5 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:4; own_files_only=ok:0; assets_md=ok:1"}
+{"t": "2026-10-18T00:51:57", "by": "coordinator", "task": "RV-12", "ev": "accepted", "note": "по отчёту; вид — на шлюз"}

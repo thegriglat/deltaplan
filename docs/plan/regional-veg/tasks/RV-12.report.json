@@ -1,0 +1,56 @@
+{
+  "status": "done",
+  "summary": "Модель дома tin_house: 8x6 м, стены 2,8 м, двускатная крыша 12 градусов из профлиста со свесами, дверь со ступенью, 5 окон, труба; LOD0/1/2 по контракту RV-К6, 3 процедурные текстуры (JPEG, VRAM+мипмапы), glb 38 КБ.",
+  "commits": [
+    "b4699199 regional-veg RV-12: модель дома tin_house"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "glb",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "previews",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "own_files_only",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "assets_md",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RV-12; превью: /home/greg/deltaplan/build/screenshots/regional-veg/models/houses/tin_house/ (side_lod0, top45_lod0, side_lods, top45_lods)",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_house_tin_house.py",
+      "why": "в игре не проверялись цвет экземпляра на кровле и вид LOD1/LOD2 при масштабировании под контур OSM",
+      "checked": "только рендер Blender Eevee, импорт Godot прошёл; LOD-ноды в glb названы LOD0..2"
+    },
+    {
+      "where": "assets/models/houses/*.jpg.import",
+      "why": "Godot вынес текстуры из glb в jpg рядом; я выставил compress/mode=2 (VRAM) вручную, как у деревьев",
+      "checked": "реимпорт, vram_texture true у всех трёх"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "границы модели": "кровля плоскими листами, профиль только в текстуре; окна/дверь накладные, без проёмов"
+  },
+  "t": "2026-10-18T00:51:44",
+  "by": "executor"
+}
