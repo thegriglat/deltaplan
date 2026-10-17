@@ -165,3 +165,17 @@ func test_cloud_source_suppressed() -> void:
 		else:
 			cov_r += cf.cover[c]
 	check(cov_l > 0.0 and cov_r < 0.1 * cov_l, "покрытие над опусканием заметно меньше (%.2f против %.2f)" % [cov_r, cov_l])
+
+
+## День без z_i (нет конвекции): build не строит источников, W̄ не считается — col_w нулевой/пустой,
+## как до CLF-10 (ревью CLF-10: вынесенный цикл W̄ не должен давать ненулевой W̄ без z_i).
+func test_no_zi_day_no_wbar() -> void:
+	var f: WindField = T._flat(T._heat300, _sub_right, NAN)
+	var s := AirThermals.new()
+	check(not s.build(f, _cfg(TAU)), "без z_i источники не строятся")
+	var nz := 0
+	for v in s.col_w:
+		if v != 0.0:
+			nz += 1
+	check(nz == 0, "без z_i col_w нулевой (ненулевых %d)" % nz)
+	check(s.col_zi.is_empty() and s.count() == 0, "без z_i нет z_i столбцов и источников")
