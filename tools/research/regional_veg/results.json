@@ -1,0 +1,177 @@
+{
+ "sets": [
+  "arid",
+  "tropical_wet",
+  "savanna",
+  "mediterranean",
+  "subtropical",
+  "temperate",
+  "boreal",
+  "alpine_ice"
+ ],
+ "n_test": 173156,
+ "n_catalog": 683,
+ "methods": {
+  "cuts_lat_5": {
+   "world_acc": 0.524492365266003,
+   "catalog_acc": 0.705710102489019,
+   "catalog_acc_merged": 0.8740849194729137,
+   "world_acc_merged": 0.6297442768370718,
+   "json_bytes": 60
+  },
+  "cuts_lat_9": {
+   "world_acc": 0.5815045392593962,
+   "catalog_acc": 0.5212298682284041,
+   "catalog_acc_merged": 0.6617862371888726,
+   "world_acc_merged": 0.6639157753701864,
+   "json_bytes": 60
+  },
+  "boxes_hand_43": {
+   "world_acc": 0.7005243826376215,
+   "catalog_acc": 0.7144948755490483,
+   "catalog_acc_merged": 0.8550512445095169,
+   "world_acc_merged": 0.7829182933308693,
+   "json_bytes": 777
+  },
+  "tree_16": {
+   "world_acc": 0.6952574557046824,
+   "catalog_acc": 0.6456808199121523,
+   "catalog_acc_merged": 0.8638360175695461,
+   "world_acc_merged": 0.7630229388528263,
+   "json_bytes": 337
+  },
+  "tree_32": {
+   "world_acc": 0.7801115756889742,
+   "catalog_acc": 0.7144948755490483,
+   "catalog_acc_merged": 0.87701317715959,
+   "world_acc_merged": 0.8194460486497724,
+   "json_bytes": 697
+  },
+  "tree_64": {
+   "world_acc": 0.815420776640717,
+   "catalog_acc": 0.7174231332357247,
+   "catalog_acc_merged": 0.8755490483162518,
+   "world_acc_merged": 0.850331492988981,
+   "json_bytes": 1441
+  },
+  "tree_128": {
+   "world_acc": 0.8518907805678116,
+   "catalog_acc": 0.7349926793557833,
+   "catalog_acc_merged": 0.8945827232796486,
+   "world_acc_merged": 0.8830996327011481,
+   "json_bytes": 2999
+  },
+  "tree_256": {
+   "world_acc": 0.8767469796022084,
+   "catalog_acc": 0.6691068814055637,
+   "catalog_acc_merged": 0.7862371888726208,
+   "world_acc_merged": 0.9051953152070965,
+   "json_bytes": 6128
+  },
+  "tree_512": {
+   "world_acc": 0.895469980826538,
+   "catalog_acc": 0.7130307467057101,
+   "catalog_acc_merged": 0.8272327964860908,
+   "world_acc_merged": 0.9205398600106263,
+   "json_bytes": 12403
+  },
+  "tree_1024": {
+   "world_acc": 0.9136501189678671,
+   "catalog_acc": 0.7452415812591509,
+   "catalog_acc_merged": 0.8916544655929722,
+   "world_acc_merged": 0.9359537064843263,
+   "json_bytes": 25960
+  },
+  "grid_1deg_centre": {
+   "world_acc": 0.8770934879530596,
+   "catalog_acc": 0.6969253294289898,
+   "catalog_acc_merged": 0.8696925329428989,
+   "world_acc_merged": 0.9026253782716164,
+   "json_bytes": 64800
+  }
+ },
+ "catalog_truth_counts": {
+  "arid": 14,
+  "tropical_wet": 3,
+  "savanna": 10,
+  "mediterranean": 49,
+  "subtropical": 14,
+  "temperate": 483,
+  "boreal": 95,
+  "alpine_ice": 15
+ },
+ "spot": {
+  "Бразилия Флорианополис": {
+   "truth": "subtropical",
+   "boxes": "subtropical",
+   "tree128": "subtropical",
+   "grid1": "subtropical"
+  },
+  "Рапа-Нуи": {
+   "truth": "subtropical",
+   "boxes": "subtropical",
+   "tree128": "temperate",
+   "grid1": "море"
+  },
+  "Покхара, Непал": {
+   "truth": "subtropical",
+   "boxes": "alpine_ice",
+   "tree128": "arid",
+   "grid1": "temperate"
+  },
+  "Кейптаун": {
+   "truth": "mediterranean",
+   "boxes": "mediterranean",
+   "tree128": "arid",
+   "grid1": "mediterranean"
+  },
+  "Кернс, Австралия": {
+   "truth": "tropical_wet",
+   "boxes": "savanna",
+   "tree128": "savanna",
+   "grid1": "море"
+  },
+  "Бир, Индия": {
+   "truth": "subtropical",
+   "boxes": "subtropical",
+   "tree128": "arid",
+   "grid1": "temperate"
+  },
+  "Анси, Альпы": {
+   "truth": "temperate",
+   "boxes": "temperate",
+   "tree128": "temperate",
+   "grid1": "temperate"
+  },
+  "Алтай, Манжерок": {
+   "truth": "temperate",
+   "boxes": "arid",
+   "tree128": "temperate",
+   "grid1": "boreal"
+  },
+  "Алматы": {
+   "truth": "temperate",
+   "boxes": "arid",
+   "tree128": "arid",
+   "grid1": "arid"
+  },
+  "Ницца": {
+   "truth": "mediterranean",
+   "boxes": "mediterranean",
+   "tree128": "temperate",
+   "grid1": "море"
+  },
+  "Кения, Накуру": {
+   "truth": "mediterranean",
+   "boxes": "tropical_wet",
+   "tree128": "savanna",
+   "grid1": "temperate"
+  },
+  "Манаус": {
+   "truth": "tropical_wet",
+   "boxes": "tropical_wet",
+   "tree128": "tropical_wet",
+   "grid1": "tropical_wet"
+  }
+ }
+}
