@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "scene_look.evergreen (0..1) -> uniform sl_evergreen: осень и листопад берёзовой доли полога умножаются на 1-evergreen; SeasonLook.state отдаёт canopy_autumn/canopy_bare. По умолчанию 0 - как раньше.",
+  "commits": [
+    "ac03a9f5 regional-veg RV-8: вечнозелёный полог"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "scene_look_contracts",
+      "value": "29/29",
+      "pass": true
+    },
+    {
+      "name": "test_evergreen",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "season",
+      "value": "2/2 на GPU, вкл. новый test_canopy_evergreen_gpu",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "tools/gpu_tests.sh --filter=season; .dpcli/dpcli accept RV-8 --dry (season там 'пропуск 2' из-за headless без GPU)",
+  "uncertain": [
+    {
+      "where": "accept: check season",
+      "why": "headless-прогон пропускает GPU-тесты и даёт FAIL 0/0",
+      "checked": "тот же фильтр на GPU через tools/gpu_tests.sh: 2 теста ok"
+    }
+  ],
+  "dp_feedback": "accept для GPU-тестов (season) гоняет headless и всегда падает с пропуском; нужен запуск через gpu_tests.sh.",
+  "t": "2026-10-18T00:35:54",
+  "by": "executor"
+}
