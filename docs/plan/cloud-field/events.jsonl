@@ -151,3 +151,4 @@
 {"t": "2026-10-17T17:01:36", "by": "executor", "task": "CLF-2", "ev": "reported", "commits": ["889a9fca"], "note": "done: Перепечены поля 8 мест встроенных локаций (training_island, volcano_island) после правки model_hash (CLF-1). Перепечка …", "dp_feedback": "Ожидание замка через job wait в фоне возвращало уведомления сразу, а не по завершении job; пришлось проверять состояние вручную. Ответ blocked, отправленный до завершения job, оказался неверным: нужна возможность отозвать или дополнить отчёт."}
 {"t": "2026-10-17T17:02:37", "by": "coordinator", "task": "CLF-2", "ev": "accepted", "note": "1/1 fresh=ok:rc=0"}
 {"t": "2026-10-17T17:02:43", "by": "coordinator", "task": "CLF-2", "ev": "accepted", "note": "по проверке fresh rc=0"}
+{"t": "2026-10-17T17:02:44", "by": "coordinator", "task": "CLF-2", "ev": "merged", "note": "f597d7f2"}
