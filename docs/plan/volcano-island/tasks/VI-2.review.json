@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "VI-К1 (код) выполнен по контракту: is_training_only/osm_root как описано, builtin_at пропускает training_only, last_flight → место по умолчанию, оба вызова OsmData.load_for получают osm_root (минимально, как согласовано), add_builtin_places.py пропускает место. Правки в скоупе, dont_touch и project.godot не тронуты; тесты не ослаблены — для training_only проверяется обратное (отсутствие в каталоге).",
+  "issues": [
+    {
+      "file": "tests/stability/test_matrix.gd",
+      "line": 0,
+      "severity": "minor",
+      "what": "Все 9 сочетаний volcano_island в матрице не взлетают со старта east_cliffs (отрыв 16 м, takeoff_failed). Причина в данных старта/ветре (VI-1/VI-5), а не в коде VI-2; вопрос исполнителя к координатору обоснован.",
+      "fix": "Координатору: завести/уточнить задачу на старт east_cliffs или weather для него (VI-1 или VI-5); VI-2 не перерабатывать."
+    },
+    {
+      "file": "export_presets.cfg",
+      "line": 9,
+      "severity": "minor",
+      "what": "Попадание osm/**/*.dpt в пак не проверено реальным экспортом; include_filter data/**/* по смыслу покрывает ресурсы, которые не импортируются (.dpt), так что правка и не нужна.",
+      "fix": "Проверить при первой тестовой сборке Linux, что res://data/locations/volcano_island/osm/*/*.dpt читаются из пака (OsmData острова не пуст)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "volcano_island",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "catalog",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-17T05:08:44",
+  "by": "reviewer"
+}
