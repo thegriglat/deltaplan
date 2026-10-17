@@ -87,11 +87,11 @@ func test_air_prep_parallel_field_ongudai() -> void:
 			and fa._hc == fb._hc
 		)
 		check(fa._hc == fb._hc, "рельеф уровня %d побитно" % q)
-	check(ev <= TOL_V, "|Δu,v,w| %.2e ≤ %.0e м/с" % [ev, TOL_V])
-	check(et <= TOL_T, "|Δθ| %.2e ≤ %.0e К" % [et, TOL_T])
+	check(ev <= TOL_V, "|Δu,v,w| %s ≤ %s м/с" % [ev, TOL_V])
+	check(et <= TOL_T, "|Δθ| %s ≤ %s К" % [et, TOL_T])
 	check(a[2] == b[2], "k притока тот же: %.6f / %.6f" % [a[2], b[2]])
 	print(
-		"  FL-9 поле Онгудая: побитно %s, |Δu,v,w| %.2e м/с, |Δθ| %.2e К; загрузка поля %.2f с → %.2f с; k %.4f"
+		"  FL-9 поле Онгудая: побитно %s, |Δu,v,w| %s м/с, |Δθ| %s К; загрузка поля %.2f с → %.2f с; k %.4f"
 		% [same, ev, et, a[1], b[1], b[2]]
 	)
 	t.free()
