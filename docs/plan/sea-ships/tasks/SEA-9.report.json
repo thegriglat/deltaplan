@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "Кадры шлюза переснятых после SEA-8 (море far — вода): 22 кадра в /home/greg/deltaplan/build/screenshots/sea-ships/SEA-9. Код не менялся.",
+  "commits": [
+    "fe8b1afb без нового коммита: кода не менялось, кадры вне git"
+  ],
+  "checks": [
+    {
+      "name": "frames",
+      "value": "22 (>=16)",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "0 файлов вне границ",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SEA-9 --dry",
+  "uncertain": [
+    {
+      "where": "tools/shots/sea_ships.sh (florianopolis_eve_near_300m)",
+      "why": "в логе 'ERROR: NO GRAB' по одному кадру ночной серии",
+      "checked": "кадр florianopolis_eve_near_300m.jpg записан, счётчик судов 16; на остальные кадры ошибка не влияет"
+    },
+    {
+      "where": "прогон prefetch / shot",
+      "why": "в логе повторяющиеся 'ERROR: AirPlace: область вне слоя рельефа' (7 строк)",
+      "checked": "прогон завершён, места pt_-27.700_-048.800 и pt_-27.100_-109.350 собраны, кадры записаны; ошибки не проверялись дальше"
+    }
+  ],
+  "dp_feedback": "Усечённая строка 'bash tools/…' в дополнении карточки: пришлось угадать аргумент выходного каталога; показ полной карточки помог бы.",
+  "extra": {
+    "frames_dir": "/home/greg/deltaplan/build/screenshots/sea-ships/SEA-9",
+    "frames_count": 22
+  },
+  "t": "2026-10-17T06:45:03",
+  "by": "executor"
+}
