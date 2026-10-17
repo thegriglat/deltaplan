@@ -111,3 +111,5 @@
 {"t": "2026-10-17T05:39:23", "by": "coordinator", "task": "FL-5", "ev": "checked", "note": "3/4 thermal=ok:13/13; atmosphere=FAIL:exit -15 · [4] test_baked_not…; determinism=ok:3/3; perf_contracts=ok:12/12"}
 {"t": "2026-10-17T05:39:58", "by": "coordinator", "task": "FL-9", "ev": "accepted", "commits": ["48fb6c85"], "note": "4/4 air_place=ok:8/8; air_runtime=ok:8/8 (пропуск 4); air_contracts=ok:31/31; fast_load_k1=ok:8/8"}
 {"t": "2026-10-17T05:40:07", "by": "coordinator", "task": "FL-9", "ev": "merged"}
+{"t": "2026-10-17T05:49:33", "by": "coordinator", "task": "FL-5", "ev": "checked", "note": "4/4 thermal=ok:13/13; atmosphere=ok:186/186 (пропуск 36); determinism=ok:3/3; perf_contracts=ok:12/12"}
+{"t": "2026-10-17T05:49:48", "by": "coordinator", "task": "FL-15", "ev": "started"}
