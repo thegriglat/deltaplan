@@ -120,3 +120,4 @@
 {"t": "2026-10-17T09:58:13", "by": "coordinator", "task": "SEA-10", "ev": "merged"}
 {"t": "2026-10-17T09:58:15", "by": "executor", "task": "SEA-7", "ev": "reported", "commits": ["1fe5c1a6"], "note": "done: Контейнеровоз Post-Panamax 300 × 48 м (надводный борт 11 м, бак +2,5 м) по образцу танкера SEA-3: тот же FlatMesh, верш…", "dp_feedback": "Scratchpad общий у параллельных исполнителей (SEA-6 и SEA-7 в одной сессии): мой head.py перезаписал соседний агент. Стоит в task brief советовать подпапку <ID>/ в scratchpad."}
 {"t": "2026-10-17T09:58:38", "by": "coordinator", "task": "SEA-7", "ev": "accepted", "note": "по отчёту (accept --dry PASS, детерминизм)"}
+{"t": "2026-10-17T09:58:39", "by": "coordinator", "task": "SEA-7", "ev": "merged"}
