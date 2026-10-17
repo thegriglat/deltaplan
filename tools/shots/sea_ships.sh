@@ -8,12 +8,14 @@ cd "$(dirname "$0")/../.."
 out="${1:-/home/greg/deltaplan/build/screenshots/sea-ships/SEA-5}"
 export DISPLAY="${DISPLAY:-:0}" XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.cache/dp-xdg/$(basename "$PWD")}"
 mkdir -p "$out"
-shoot() {  # shoot <тег> <lat,lon>
+shoot() {  # shoot <тег> <lat,lon> [доп. аргументы]
   timeout 600 godot --path . --fullscreen --audio-driver Dummy --resolution 1920x1080 \
-    res://tools/shots/sea_ships_shot.tscn -- --place="$2" --tag="$1" --out="$out" --game-args=--hour=12 \
+    res://tools/shots/sea_ships_shot.tscn -- --place="$2" --tag="$1" --out="$out" --game-args=${4:---hour=12} ${3:-} \
     2>&1 | grep -E "^sea_ships_shot:|SCRIPT ERROR|ERROR" || true
 }
 shoot florianopolis -27.7176,-48.7799
 shoot rapanui -27.12,-109.35
+shoot florianopolis_eve -27.7176,-48.7799 --mode=eve --hour=20
+shoot rapanui_eve -27.12,-109.35 --mode=eve --hour=20
 git checkout -- project.godot 2>/dev/null
 ls "$out"
