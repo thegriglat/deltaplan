@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-17"
+updated: "2026-10-18"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -23,6 +23,7 @@ generated: true
   - [docs/research/cloud_field/subsidence.md](research/cloud_field/subsidence.md) — CLF-10: опускание циркуляции по мезомасштабному W̄ поля (σ 10 км): z_i столбца −|W̄_м|·3 ч; Алматы низина −130 м, облака 0,25 → 0,23
   - [docs/research/cloud_field.md](research/cloud_field.md) — CLF-1/9/10: поле облачности из поля воздуха (подъём до LCL, таяние, снос), z_i по рельефу (α ⅓) и опускание циркуляции; карты до/после
   - [tools/research/cloud_field/README.md](../tools/research/cloud_field/README.md) — CLF-1/9/10: карты поля облачности (Онгудай, Аскарово, остров, Алматы), z_i по рельефу и опускание до/после; команды, файлы
+- **air-weak-wind** — Модель воздуха при слабом ветре (T-84): холодный θ′ механизма F над сушей, приземный профиль окон u10/u100, порывы у земли. [active 2026-10-18] — [план](plan/air-weak-wind.md) · [контракты](contracts/air-weak-wind.md)
 
 ## flight
 
