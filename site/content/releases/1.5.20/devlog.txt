@@ -1,0 +1,21 @@
+Deltaplan 1.5.20 — regional trees and houses
+
+Trees and houses now follow the region of the place you fly. Brazil no longer looks like Siberia: you fly over tropical forest and palms, the Mediterranean coast gets oak, pines and terracotta roofs, and Rapa Nui has one-storey tin-roof houses.
+
+World:
+- Region chosen from the Koppen-Geiger climate map
+- New tree species: oak, palm, tropical broadleaf; tropical canopy stays green in autumn
+- Regional houses: tin-roof and stilt houses, round thatched huts, hipped terracotta roofs, flat roofs with parapets
+- Altai and the Urals are unchanged
+
+Air model:
+- Near-ground wind over land by the sea no longer dies in weak wind with strong heating (cold sea layer is diluted, not carried over)
+
+Goals and training:
+- Load XCTrack .xctsk tasks from the Goals tab
+- Training modes are cards in the Training window with flight goals
+
+Known issues:
+- Species altitude belts are simplified; no trees above about 1700 m in the tropics
+- The Southern Hemisphere and Africa use the same three new species
+- The Ridge training card counts time aloft, not time on the ridge
