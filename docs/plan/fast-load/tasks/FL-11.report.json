@@ -1,0 +1,82 @@
+{
+  "status": "done",
+  "summary": "Замер «после» на 1b087b01: попадание кеша поля Онгудай 12,5 с (было 29,2), точка 18,0 с (было 40,2), замирание 1,0 / 1,5 с (было 5,9 / 11,7); промах Онгудай 29,9 с (как было), точка 27,4 с. Цель ≈ 10 с на Онгудае не достигнута (+2,5 с), точка на границе. Пул 4 и 2 не виснет, но медленнее: 18,1 / 24,2 с, замирание 2,8 / 6,0 с. Число полос build: разницы нет.",
+  "commits": [
+    "tools/research/load_profile: final.md, final_table.md, final_*.json, логи, README (раздел «Итог модуля fast-load»), measure.sh PROFILE_SUFFIX"
+  ],
+  "checks": [
+    {
+      "name": "final",
+      "value": "ok: hit ong 4, hit pt 4, miss 4, exit=0",
+      "pass": true
+    },
+    {
+      "name": "hit Онгудай ≈ 10 с",
+      "value": "12,5 с (12,2–12,9)",
+      "pass": false
+    },
+    {
+      "name": "hit точка ≈ 17 с",
+      "value": "18,0 с (16,8–19,0)",
+      "pass": false
+    },
+    {
+      "name": "замирания ≤ 1–2 с",
+      "value": "ong 1031 мс, pt 1472 мс (hit); miss 1073/1280",
+      "pass": true
+    },
+    {
+      "name": "miss не хуже baseline",
+      "value": "ong 29,9 против 29,2 (шум 25,8–33,9); pt 27,4 против 40,2",
+      "pass": true
+    },
+    {
+      "name": "пул 4 / 2, Онгудай hit",
+      "value": "18,1 с / 24,2 с, замирание 2786 / 5974 мс, зависаний нет",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Пул мерили ограничением max_threads на 20-поточной машине, не на 4-ядерном железе"
+  ],
+  "questions": [
+    "Цель Онгудай ≈ 10 с не достигнута (остаток: glider 6,8 с в главном потоке + objects 2,5 с): принять 12,5 с или заводить задачу на glider?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept FL-11; tools/research/load_profile/final.md",
+  "uncertain": [
+    {
+      "where": "tools/research/load_profile/final.md (оговорки)",
+      "why": "baseline снят с vsync=on и load average 82–91, «после» — vsync=off и load 0,5–3,6: часть выигрыша от чистой машины",
+      "checked": "vsync вынужденно выключен (монитор Off, FL-20); влияние vsync не мерилось"
+    },
+    {
+      "where": "tools/research/load_profile/final.md, раздел полос",
+      "why": "вывод «build не вызывается при hit» из логов, не из кода; при смене скрипта кеш поля даёт промах (первый запуск bands=1)",
+      "checked": "в логах hit нет этапа wind"
+    },
+    {
+      "where": "miss n=2 на место",
+      "why": "разброс 23–34 с, медиана двух слабая",
+      "checked": "min–max в final_table.md"
+    }
+  ],
+  "dp_feedback": "Хотелось бы, чтобы job wait ждал дольше 590 с одним вызовом; в карточке отсутствовала подсказка про vsync-ключ (нашёл по game.json display).",
+  "extra": {
+    "hit_ong_s": 12.5,
+    "hit_pt_s": 18.0,
+    "miss_ong_s": 29.9,
+    "miss_pt_s": 27.4,
+    "gap_hit_ms": {
+      "ong": 1031,
+      "pt": 1472
+    },
+    "pool4_ong_s": 18.1,
+    "pool2_ong_s": 24.2,
+    "pool4_pt_s": 21.2,
+    "pool2_pt_s": 28.8,
+    "bands1_ong_s": 12.2,
+    "bands1_pt_s": 17.5
+  },
+  "t": "2026-10-17T15:30:24",
+  "by": "executor"
+}
