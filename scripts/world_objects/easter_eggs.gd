@@ -256,7 +256,15 @@ func _fill_ctx(g: Game) -> void:
 	c.to_sun = g.sky.clock.to_sun()
 	c.world_key = g.world_key()
 	c.camera = get_viewport().get_camera_3d()
-	c.pilot_pos = g.glider.get_telemetry().position
+	var tel: Telemetry = g.glider.get_telemetry()
+	c.pilot_pos = tel.position
+	c.runners.clear()
+	c.runners.append(_runner(0, tel))
+	if g.bots != null:
+		for i in g.bots.agents.size():
+			var a: BotAgent = g.bots.agents[i]
+			if a != null:
+				c.runners.append(_runner(i + 1, a.telemetry()))
 	c.weather = g.air.get("weather") if "weather" in g.air else {}
 	c.cloudbase_msl = (
 		float(g.air.call("get_cloudbase_msl")) if g.air.has_method("get_cloudbase_msl") else NAN
@@ -281,3 +289,14 @@ func _fill_ctx(g: Game) -> void:
 		var objs: Node = g.world_link.objects if g.world_link != null else null
 		_place = EggPlace.build(g.terrain, objs, cfg.get("place", {}))
 	c.place = _place
+
+
+## Пилот для EggContext.runners (DOG-K1).
+func _runner(rid: int, tel: Telemetry) -> Dictionary:
+	return {
+		"id": rid,
+		"pos": tel.position,
+		"vel": tel.velocity,
+		"phase": tel.phase,
+		"heading_deg": tel.heading_deg
+	}

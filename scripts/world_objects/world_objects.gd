@@ -27,6 +27,8 @@ var build_time_s: float = 0.0
 ## Лагерь пилотов у старта (place_camp, TentCamp.plan):
 ## [{type, position, basis, yaw, color, radius}].
 var camp: Array[Dictionary] = []
+## Старт, у которого стоит лагерь (DOG-K1): {position: Vector3, heading_deg: float}; лагеря нет — {}.
+var camp_start: Dictionary = {}
 ## Костёр лагеря (Campfire) или null.
 var campfire: Campfire = null
 ## Дома посёлков (VillagePlacer, N3): [x, z, w, l, угол_град, высота_стен_м, крыша].
@@ -150,6 +152,7 @@ func clear() -> void:
 	osm_layer = null
 	osm = null
 	camp.clear()
+	camp_start = {}
 	campfire = null
 	_active.clear()
 	ships = []
@@ -286,6 +289,7 @@ func place_camp(start: Vector3, heading_deg: float, terrain: Node = null, count:
 			remove_child(old)
 			old.queue_free()
 	camp.clear()
+	camp_start = {}
 	campfire = null
 	if obstacles != null:
 		obstacles.remove_kind("tent")
@@ -300,6 +304,7 @@ func place_camp(start: Vector3, heading_deg: float, terrain: Node = null, count:
 	if camp.is_empty():
 		print("WorldObjects: у старта нет ровного места для палаток")
 		return
+	camp_start = {"position": start, "heading_deg": heading_deg}
 	add_child(TentCamp.build_node(camp, tc))
 	_place_campfire(start, heading_deg, tc, env)
 	for t in camp:

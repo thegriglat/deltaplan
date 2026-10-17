@@ -45,6 +45,8 @@ generated: true
   - [docs/guide/world-objects/sea-ships.md](guide/world-objects/sea-ships.md) — Суда на море: три вида и LOD, расстановка S3 v3, маска моря и стадия sea (признак SEA-1, уровень воды far, класс воды), что модель не умеет.
   - [docs/perf/sea_ships.md](perf/sea_ships.md) — SEA-12: цена кадра GPU слоя судов (опыт noships) на учебном острове и ongudai, medium и high; base ветки против base main.
   - [tools/research/sea_mask/README.md](../tools/research/sea_mask/README.md) — Признак «море»: компонента воды far с уровнем ≤ 0,25 м, краем и берегом ≥ −1 м; 16 мест, ложных 0, море 100 % [closed]
+- **start-dog** — Пасхалка: собака у стартового лагеря на части стартов — лежит и бродит, на разбеге бежит рядом и лает, у бровки останавливается. [active 2026-10-17] — [план](plan/start-dog.md) · [контракты](contracts/start-dog.md)
+  - [tools/research/start_dog/README.md](../tools/research/start_dog/README.md) — DOG-1: собака Quaternius Shiba Inu (CC0) по DOG-K2 — 8 клипов, замер speed_ms/cycle_s, 4 гавка CC0
 - **volcano-island** — Второй учебный остров на реальном рельефе: данные в сборке, старты, погода, запечённые поля, карточки «Тренировки». [active 2026-10-17] — [план](plan/volcano-island.md) · [контракты](contracts/volcano-island.md)
   - [docs/guide/volcano-island.md](guide/volcano-island.md) — Вулканический остров: данные в сборке, training_only, OSM места, старты, погода, числа воздуха, окно «Тренировка», границы.
   - [docs/registry/volcano-island-findings.md](registry/volcano-island-findings.md) — Выводы модуля volcano-island: подъём у обрывов, ротор у кратера, термики над водой, граница модели (нет пассатной инверсии).
@@ -105,7 +107,7 @@ generated: true
 - [docs/guide/gpu-validation.md](guide/gpu-validation.md) — tools/gpu_validate.sh: загрузка места под слоем валидации Vulkan, lavapipe и wine+vkd3d-proton; пики RAM/VRAM, что ловит каждый режим.
 - [docs/guide/instruments.md](guide/instruments.md) — Планшет и вариометр 90-х (Vario, страницы, ветер, центровка), звук вариометра и звуки полёта; API, настройки и проверки.
 - [docs/guide/location-data.md](guide/location-data.md) — Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, sea, osm_tiles, WebP, кеш, догрузка, --prefetch.
-- [docs/guide/models/camp.md](guide/models/camp.md) — Модели лагеря у старта (assets/models/world): вещи, полусобранный аппарат, люди; ноды, материалы, бюджеты.
+- [docs/guide/models/camp.md](guide/models/camp.md) — Модели лагеря у старта (assets/models/world): вещи, полусобранный аппарат, люди (и Rocketbox); ноды, материалы, бюджеты.
 - [docs/guide/models/instruments-3d.md](guide/models/instruments-3d.md) — 3D-модели приборов (планшет, вариометр, часы, компас): оси, ноды, крепление к кисти и к штанге, кабинная камера.
 - [docs/guide/models/pilot.md](guide/models/pilot.md) — Модель пилота pilot.glb: меши, кости, пустышки, анимации и порядок фаз, перчатки, кабинный вид, сборка (MPFB), высота в подвеске.
 - [docs/guide/models/references.md](guide/models/references.md) — Скриншоты моделей, приёмка по фото реальных прототипов, что улучшить, источники референсов.
@@ -126,7 +128,7 @@ generated: true
 - [docs/guide/terrain/surface.md](guide/terrain/surface.md) — Карта поверхности WorldCover и маска 10 м (лес, вода), раскраска земли, пустыри у стартов, источники термиков, скалы и снег.
 - [docs/guide/terrain.md](guide/terrain.md) — Рельеф и мир (Terrain): файлы, контракт height_at/surface_at/forest_at, пример подключения; детали — в частях terrain/.
 - [docs/guide/vegetation.md](guide/vegetation.md) — Трава по дистанциям (ближние травинки, средняя: angle/shell/blades), кусты, одиночные деревья, деревья по кромке леса.
-- [docs/guide/world-objects/easter-eggs.md](guide/world-objects/easter-eggs.md) — Каркас пасхалок мира: планировщик, как добавить, запреты, место (EggPlace). На сайт не публикуется.
+- [docs/guide/world-objects/easter-eggs.md](guide/world-objects/easter-eggs.md) — Каркас пасхалок мира: планировщик, как добавить, запреты, место (EggPlace), собака у лагеря. На сайт не публикуется.
 - [docs/guide/world-objects/start-camp.md](guide/world-objects/start-camp.md) — Старт глазами пилота: тропа, палатки, снаряжение и крылья, примятая трава, ткань, люди, костёр — правила размещения и параметры.
 - [docs/guide/world-objects/villages-osm.md](guide/world-objects/villages-osm.md) — Просеки для деревьев, процедурные дома в пятнах застройки, OSM-слой из тайлов (дороги, дома, ЛЭП, ветряки, трафик), деревья города.
 - [docs/guide/world-objects/wind-landing.md](guide/world-objects/wind-landing.md) — Ветроуказатели по локальному воздуху модели и посадочные площадки с лесополосами: устройство, параметры, сверка с фото.
