@@ -18,3 +18,19 @@ func test_species_load_matches_per_variant() -> void:
 				one[0].get_aabb() == (all[v][0] as Mesh).get_aabb(), "вариант %d: LOD0 тот же" % v
 			)
 	check(TerrainTreeModels._load_species("", 8).is_empty(), "нет пути — пусто")
+
+
+## FL-16: без окна (пустой рендер, RID не потокобезопасны) фоновая загрузка не запускается;
+## повторный запрос того же пути не плодит запросов.
+func test_preload_headless_and_once() -> void:
+	var models: Dictionary = Config.get_config("world").get("trees", {}).get("models", {})
+	TerrainTreeModels.request_preload(models)
+	TerrainTreeModels.request_preload(models)
+	if DisplayServer.get_name() == "headless":
+		check(not TerrainTreeModels.threaded_load_safe(), "headless — фоновая загрузка запрещена")
+		check(TerrainTreeModels._requested.is_empty(), "headless — запросов нет")
+	else:
+		check(TerrainTreeModels._requested.size() <= models.size(), "по запросу на путь")
+	var path := String(models.get("pine", ""))
+	check(TerrainTreeModels._scene(path) != null, "сцена породы грузится")
+	check(not TerrainTreeModels._requested.has(path), "запрос забран")
