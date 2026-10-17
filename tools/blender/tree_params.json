@@ -202,6 +202,126 @@
       ],
       "bark": "rough",
       "stubs": 3
+    },
+    "oak": {
+      "_doc": "Дуб/бук: широкая округлая крона на толстом стволе (заготовка RV-3; вид — RV-4)",
+      "variants": 4,
+      "height_m": 22,
+      "trunk_radius_m": 0.4,
+      "trunk_top": 0.92,
+      "crown_base": 0.3,
+      "crown": "ovoid",
+      "crown_radius": 0.32,
+      "branch_angle_deg": 35,
+      "droop": 0.05,
+      "whorls": 11,
+      "per_whorl": 6,
+      "clumps_per_branch": 4,
+      "clump_size": 0.13,
+      "lean": 0.03,
+      "leaf": "broad",
+      "leaf_color": [
+        0.2,
+        0.38,
+        0.12
+      ],
+      "leaf_color2": [
+        0.34,
+        0.5,
+        0.17
+      ],
+      "bark_color": [
+        0.38,
+        0.3,
+        0.24
+      ],
+      "bark_color_low": [
+        0.22,
+        0.19,
+        0.16
+      ],
+      "bark": "rough",
+      "stubs": 2
+    },
+    "palm": {
+      "_doc": "Пальма: тонкий ствол, пучок перьев-карточек на верхушке (заготовка RV-3; вид — RV-5)",
+      "variants": 4,
+      "height_m": 14,
+      "trunk_radius_m": 0.16,
+      "trunk_top": 0.95,
+      "crown_base": 0.8,
+      "crown": "palm",
+      "crown_radius": 0.3,
+      "branch_angle_deg": 30,
+      "droop": 0.35,
+      "whorls": 3,
+      "per_whorl": 9,
+      "clumps_per_branch": 2,
+      "clump_size": 0.2,
+      "lean": 0.06,
+      "leaf": "palm",
+      "leaf_color": [
+        0.14,
+        0.36,
+        0.1
+      ],
+      "leaf_color2": [
+        0.28,
+        0.5,
+        0.15
+      ],
+      "bark_color": [
+        0.5,
+        0.42,
+        0.33
+      ],
+      "bark_color_low": [
+        0.32,
+        0.27,
+        0.22
+      ],
+      "bark": "rough",
+      "stubs": 0
+    },
+    "tropical": {
+      "_doc": "Тропическое дерево: крупная купольная вечнозелёная крона (заготовка RV-3; вид — RV-7)",
+      "variants": 4,
+      "height_m": 30,
+      "trunk_radius_m": 0.5,
+      "trunk_top": 0.92,
+      "crown_base": 0.45,
+      "crown": "dome",
+      "crown_radius": 0.33,
+      "branch_angle_deg": 40,
+      "droop": 0.05,
+      "whorls": 10,
+      "per_whorl": 6,
+      "clumps_per_branch": 4,
+      "clump_size": 0.13,
+      "lean": 0.03,
+      "leaf": "broad",
+      "leaf_color": [
+        0.1,
+        0.3,
+        0.08
+      ],
+      "leaf_color2": [
+        0.2,
+        0.43,
+        0.12
+      ],
+      "bark_color": [
+        0.42,
+        0.36,
+        0.3
+      ],
+      "bark_color_low": [
+        0.26,
+        0.22,
+        0.18
+      ],
+      "bark": "rough",
+      "stubs": 0
     }
   },
   "lod": {

@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bl_util as U  # noqa: E402
 import render_views as RV  # noqa: E402
 
-ORDER = ["pine", "cedar", "larch", "birch", "spruce"]
+ORDER = ["pine", "cedar", "larch", "birch", "spruce", "oak", "palm", "tropical"]
 
 
 def load_tree(key: str, dx: float) -> dict:
@@ -28,6 +28,8 @@ def load_tree(key: str, dx: float) -> dict:
 
 
 def main() -> None:
+    global ORDER
+    ORDER = [k for k in ORDER if os.path.exists(os.path.join(U.MODELS, "trees", "tree_%s.glb" % k))]
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     out = argv[0] if argv else os.path.join(U.ROOT, "docs", "models", "screenshots", "trees")
     os.makedirs(out, exist_ok=True)
