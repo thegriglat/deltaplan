@@ -1,0 +1,34 @@
+{
+  "id": "FL-12",
+  "module": "fast-load",
+  "type": "dp-writer",
+  "title": "Документация: загрузка места, кеш поля воздуха, настройка размера",
+  "goal": "docs/guide описывает загрузку места как она есть после модуля (порядок этапов, что в потоках, кеши: поле воздуха user://air_cache с LRU и настройкой, пирамида высот в папке места, общие данные места), registry/findings.md — выводы модуля с числами, CHANGELOG «В работе» — для пилота.",
+  "plan_ref": "FL-12",
+  "contracts": [],
+  "copy": "~/deltaplan-fast-load-FL-12",
+  "branch": "fast-load/FL-12",
+  "base": "feature/fast-load",
+  "scope": [
+    "docs/guide",
+    "docs/registry/findings.md",
+    "CHANGELOG.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "docs/plan",
+    "docs/contracts",
+    "site"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | tail -1'",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T07:58:06"
+}
