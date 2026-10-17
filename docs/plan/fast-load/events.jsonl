@@ -229,3 +229,5 @@
 {"t": "2026-10-17T15:30:42", "by": "coordinator", "task": "FL-11", "ev": "accepted", "note": "по отчёту: hit Онгудай 29,2 → 12,5 с, точка 40,2 → 18,0 с; замирание 5,9/11,7 → 1,0/1,5 с; miss 29,9 (как было) / 27,4 с; пул 4/2 — без зависаний"}
 {"t": "2026-10-17T15:30:42", "by": "coordinator", "task": "FL-11", "ev": "accepted", "commits": ["8db38146"], "note": "1/1 final=ok:ok"}
 {"t": "2026-10-17T15:30:42", "by": "coordinator", "task": "FL-11", "ev": "merged"}
+{"t": "2026-10-17T15:31:05", "by": "coordinator", "task": "FL-12", "ev": "started"}
+{"t": "2026-10-17T15:31:06", "by": "coordinator", "task": "FL-21", "ev": "started"}
