@@ -167,3 +167,8 @@
 {"t": "2026-10-18T02:48:59", "by": "executor", "task": "RV-5a", "ev": "reported", "commits": ["f7b8c3a7"], "note": "done: Пальма переделана (2 попытки): крона ≈0,57 H в поперечнике (было ≈0,3), перья длиннее, уже и свисают дугой, ствол толще…", "dp_feedback": "godot --import извлекает чужие текстуры (rondavel) в рабочую копию как untracked; приходится удалять вручную. Пересборка glb не обновляет извлечённые png деревьев."}
 {"t": "2026-10-18T02:49:06", "by": "coordinator", "task": "RV-5a", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:2; old_untouched=ok:0"}
 {"t": "2026-10-18T02:49:11", "by": "coordinator", "task": "RV-5a", "ev": "accepted", "note": "по отчёту; крона 0,3→0,57 H (≈ ×1,9), 2 попытки исчерпаны"}
+{"t": "2026-10-18T02:49:12", "by": "coordinator", "task": "RV-5a", "ev": "accepted", "commits": ["8b1d3cc6"], "note": "4/4 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:2; old_untouched=ok:0"}
+{"t": "2026-10-18T02:49:12", "by": "coordinator", "task": "RV-5a", "ev": "merged"}
+{"t": "2026-10-18T02:49:44", "by": "executor", "task": "RV-11a", "ev": "reported", "commits": ["9ee1de63"], "note": "done: Причина: в lathe() ориентация граней определялась по первой грани, которая у конуса LOD2 (2 кольца, верхнее — точка) вы…"}
+{"t": "2026-10-18T02:49:51", "by": "coordinator", "task": "RV-11a", "ev": "checked", "note": "3/3 regional_veg_contracts=ok:7/7; previews=ok:4; own_files_only=ok:0"}
+{"t": "2026-10-18T02:49:57", "by": "coordinator", "task": "RV-11a", "ev": "accepted", "note": "по отчёту; причина — вывернутый конус LOD2, проверка в кадрах Q2"}

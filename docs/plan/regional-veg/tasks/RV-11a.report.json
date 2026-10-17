@@ -1,0 +1,40 @@
+{
+  "status": "done",
+  "summary": "Причина: в lathe() ориентация граней определялась по первой грани, которая у конуса LOD2 (2 кольца, верхнее — точка) вырождена, нормаль нулевая, flip не срабатывал, крыша была вывернута (в Godot с отсечением задних граней — тёмная/сквозная). Ориентация теперь по невырожденной вершине. AABB LOD0/1/2 в Godot совпадают по XZ и высоте 5 м, LOD2 32 треугольника.",
+  "commits": [
+    "9ee1de63 RV-11a: ронделавель — LOD2"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "previews",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "own_files_only",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/regional-veg/models/houses/rondavel_v2/godot_lods.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RV-11a",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_house_rondavel.py:lathe",
+      "why": "исходная жалоба (плоская крыша сбоку) в игре не воспроизведена напрямую; найден и исправлен вывернутый конус LOD2",
+      "checked": "Godot-рендер трёх LOD рядом: LOD2 освещён, крыша по центру; AABB равны"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-18T02:49:44",
+  "by": "executor"
+}
