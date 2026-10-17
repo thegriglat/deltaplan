@@ -4,7 +4,7 @@ status: "active"
 module: "cloud-field"
 area: "air"
 updated: "2026-10-17"
-summary: "Стыки поля облачности: CloudField (К1), текстура рендера (К2), потолок частицы AirThermals (К3), снимок сети (К4), конфиг (К5), z_i по рельефу (К6)."
+summary: "Стыки поля облачности: CloudField, текстура рендера, c_top AirThermals, снимок сети, конфиг, z_i по рельефу (К1…К6)."
 related: ["docs/plan/cloud-field.md", "docs/guide/atmosphere/clouds.md", "docs/guide/air-model/thermals.md"]
 contracts: [{"id": "CLF-К1", "version": 1}, {"id": "CLF-К2", "version": 1}, {"id": "CLF-К3", "version": 1}, {"id": "CLF-К4", "version": 1}, {"id": "CLF-К5", "version": 1}, {"id": "CLF-К6", "version": 1}]
 ---
