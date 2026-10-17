@@ -1,0 +1,35 @@
+{
+  "status": "done",
+  "summary": "Перепечены поля ветра 8 встроенных мест (training_island ×4, volcano_island ×4) скриптом tools/terrain/bake_all.sh. До перепечки --check: 8 «устарело». После: 8 «ok», exit 0.",
+  "commits": [
+    "1011a23 air-weak-wind: AWW-3 перепечка полей ветра встроенных мест после правки θ′·h"
+  ],
+  "checks": [
+    {
+      "name": "bake_check",
+      "value": "exit 0 (bake_all.sh --check)",
+      "pass": true
+    },
+    {
+      "name": "eight_ok",
+      "value": "8",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "11 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept AWW-3",
+  "uncertain": [],
+  "dp_feedback": "Порядок шагов из дополнений карточки сработал без правок. Отчёт с полем status=done сначала отклонён: нужны commits и checks с именами проверок из карточки (шаблон показан в report --template).",
+  "extra": {
+    "bake_job": "aww3-bake, lock gpu, exit 0; plateau_landing 15.8 с, model_hash c7523d751a62acf5"
+  },
+  "t": "2026-10-18T03:31:28",
+  "by": "executor"
+}
