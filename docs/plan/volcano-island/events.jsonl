@@ -92,3 +92,5 @@
 {"t": "2026-10-17T06:08:08", "by": "executor", "task": "VI-8", "ev": "reported", "commits": ["b8639490"], "note": "done: Старт thermal_slope (вершина, 504 м, курс 110°, погода термиков VI-5), посадка landing_thermal и карточка «Термики» (he…"}
 {"t": "2026-10-17T06:08:36", "by": "coordinator", "task": "VI-8", "ev": "checked", "note": "5/5 volcano_island=ok:11/11; training=ok:39/39; language=ok:6/6; sites=ok:exit 0; catalog=ok:0"}
 {"t": "2026-10-17T06:08:43", "by": "coordinator", "task": "VI-8", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-17T06:09:15", "by": "coordinator", "task": "VI-8", "ev": "checked", "commits": ["6531fe29"], "note": "4/5 volcano_island=FAIL:10/11; FAIL test_config_groups; training=ok:39/39; language=ok:6/6; sites=ok:exit 0; catalog=ok:0"}
+{"t": "2026-10-17T06:09:15", "by": "coordinator", "task": "VI-8", "ev": "merged"}
