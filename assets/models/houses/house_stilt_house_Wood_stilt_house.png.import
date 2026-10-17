@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cnjryynoa8w2"
-path="res://.godot/imported/house_stilt_house_Wood_stilt_house.png-335081336952985bb6a3b87dd73e5de6.ctex"
+path.s3tc="res://.godot/imported/house_stilt_house_Wood_stilt_house.png-335081336952985bb6a3b87dd73e5de6.s3tc.ctex"
+path.etc2="res://.godot/imported/house_stilt_house_Wood_stilt_house.png-335081336952985bb6a3b87dd73e5de6.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f8513097dae6550c62f384b63f9ffb24"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/houses/house_stilt_house_Wood_stilt_house.png"
-dest_files=["res://.godot/imported/house_stilt_house_Wood_stilt_house.png-335081336952985bb6a3b87dd73e5de6.ctex"]
+dest_files=["res://.godot/imported/house_stilt_house_Wood_stilt_house.png-335081336952985bb6a3b87dd73e5de6.s3tc.ctex", "res://.godot/imported/house_stilt_house_Wood_stilt_house.png-335081336952985bb6a3b87dd73e5de6.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
