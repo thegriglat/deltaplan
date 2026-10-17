@@ -19,18 +19,26 @@ trap 'cmp -s "$ROOT/project.godot" "$TMP/project.godot.bak" || cp "$TMP/project.
 mkdir -p "$OUT"
 LOC=volcano_island
 WIND="--wind=6 --from=110 --hour=12 --bots=0"
+# Окно иногда сжимается соседними окнами (958x189…330 вместо полной высоты): кадр годен при высоте ≥ 1000, иначе повтор (до 3 раз)
+full_height() { [ "$(identify -format '%h' "$1" 2>/dev/null || echo 0)" -ge 1000 ]; }
 top() {   # сверху: terrain_preview
   local id="$1"; shift
   [[ -z "$ONLY" || "$id" == *"$ONLY"* ]] || return 0
-  (cd "$ROOT" && timeout 240 godot --path . --audio-driver Dummy --resolution 1920x1080 \
-    res://scenes/terrain/terrain_preview.tscn -- --location=$LOC "$@" --shot="$TMP/$id.png") > "$TMP/$id.log" 2>&1
+  for try in 1 2 3; do
+    (cd "$ROOT" && timeout 240 godot --path . --audio-driver Dummy --resolution 1920x1080 \
+      res://scenes/terrain/terrain_preview.tscn -- --location=$LOC "$@" --shot="$TMP/$id.png") > "$TMP/$id.log" 2>&1
+    full_height "$TMP/$id.png" && break
+  done
   grep -q "Скриншот" "$TMP/$id.log" && echo "$id ok" || { echo "$id FAIL"; tail -5 "$TMP/$id.log"; }
 }
 shot() {  # из игры: кабина на старте
   local id="$1"; shift
   [[ -z "$ONLY" || "$id" == *"$ONLY"* ]] || return 0
-  (cd "$ROOT" && timeout 300 godot --path . --audio-driver Dummy --resolution 1920x1080 -- --autostart --location=$LOC $WIND \
-    --camera=cockpit --fov=75 --no-overlay --time=6 "$@" --screenshot="$TMP/$id.png") > "$TMP/$id.log" 2>&1
+  for try in 1 2 3; do
+    (cd "$ROOT" && timeout 300 godot --path . --audio-driver Dummy --resolution 1920x1080 -- --autostart --location=$LOC $WIND \
+      --camera=cockpit --fov=75 --no-overlay --time=6 "$@" --screenshot="$TMP/$id.png") > "$TMP/$id.log" 2>&1
+    full_height "$TMP/$id.png" && break
+  done
   [ -s "$TMP/$id.png" ] && echo "$id ok" || { echo "$id FAIL"; tail -5 "$TMP/$id.log"; }
 }
 top 00_top --pos=1000,22000,22000 --look=1000,0,3500 --no-haze
@@ -41,12 +49,16 @@ shot 04_crater_ridge_back --site=crater_ridge --air-start=0,2 --look=180,-4
 shot 05_plateau_landing --site=plateau_landing --air-start=0,2 --look=0,-8
 shot 06_plateau_landing_back --site=plateau_landing --air-start=0,2 --look=180,-4
 shot 07_landing_target_approach --site=plateau_landing --air-start=0,40 --look=0,-12
-"$HERE/.venv/bin/python" - "$TMP" "$OUT" <<'PY'
-import sys, glob, os
-from PIL import Image
-tmp, out = sys.argv[1], sys.argv[2]
-for p in sorted(glob.glob(os.path.join(tmp, "*.png"))):
-    q = os.path.join(out, os.path.basename(p)[:-4] + ".jpg")
-    Image.open(p).convert("RGB").save(q, quality=88)
-    print("→", q)
-PY
+shot 08_thermal_slope --site=thermal_slope --air-start=0,2 --look=0,-6
+shot 09_thermal_slope_back --site=thermal_slope --air-start=0,2 --look=180,-4
+# окно «Тренировка»: вкладки учебного и вулканического острова (JPEG пишет сама сцена в $OUT)
+if [[ -z "$ONLY" || "training_island_menu" == *"$ONLY"* || "$ONLY" == menu* ]]; then
+  (cd "$ROOT" && XDG_DATA_HOME="$(mktemp -d)" timeout 240 godot --path . --audio-driver Dummy --resolution 1920x1080 \
+    res://tools/shots/training_island_menu_shot.tscn -- --out="$OUT") > "$TMP/training_menu.log" 2>&1
+  grep -q "shot: " "$TMP/training_menu.log" && echo "training_menu ok" || { echo "training_menu FAIL"; tail -5 "$TMP/training_menu.log"; }
+fi
+for p in "$TMP"/*.png; do   # JPEG q88 через ImageMagick (venv с PIL в копии нет)
+  [ -e "$p" ] || continue
+  q="$OUT/$(basename "${p%.png}").jpg"
+  convert "$p" -background white -flatten -quality 88 "$q" && echo "→ $q"
+done
