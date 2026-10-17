@@ -1,0 +1,38 @@
+{
+  "id": "FL-13",
+  "module": "fast-load",
+  "type": "dp-mechanic",
+  "title": "Перепечь поля ветра встроенных мест (остров, вулкан)",
+  "goal": "Запечённые поля ветра всех встроенных мест перепечены под model_hash ветки модуля; bake_all.sh --check = 0.",
+  "plan_ref": "FL-13",
+  "contracts": [],
+  "copy": "~/deltaplan-fast-load-FL-13",
+  "branch": "fast-load/FL-13",
+  "base": "feature/fast-load",
+  "scope": [
+    "data/locations"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests"
+  ],
+  "accept": [
+    {
+      "name": "island",
+      "tests": "island"
+    },
+    {
+      "name": "volcano",
+      "tests": "volcano"
+    },
+    {
+      "name": "fresh",
+      "cmd": "bash -c 'XDG_DATA_HOME=$HOME/.cache/dp-xdg/$(basename $PWD) sh tools/terrain/bake_all.sh --check; echo code=$?'",
+      "expect": "re:code=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T15:31:46"
+}
