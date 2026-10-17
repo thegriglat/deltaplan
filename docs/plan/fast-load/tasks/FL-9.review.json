@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Распараллеливание без смены физики: полосы block_mean/surface_flux через TerrainRelief._par, снимок поверхности задачей пула, две области и два prepare() параллельно; входы общие только для чтения (Packed — копии при записи, кэш cells под мьютексом), поле побитно равно прежнему (GPU-тест). Скоуп соблюдён, game.gd — одна строка по доработке. Контракты не тронуты; смена хеша модели ожидаема (FL-13).",
+  "issues": [
+    {
+      "file": "scripts/atmosphere/air_model/air_place.gd",
+      "line": 405,
+      "severity": "minor",
+      "what": "Surface с запущенной задачей, у которого никто не позвал wait()/cells() (например, place_of в тесте без чтения снимка), уходит с неожиданной задачей пула — Godot ругается при выходе; на поле не влияет.",
+      "fix": "Не обязательно; при желании — ждать задачу при освобождении снимка (NOTIFICATION_PREDELETE) или в тестах звать wait()."
+    },
+    {
+      "file": "scripts/atmosphere/air_model/air_runtime.gd",
+      "line": 980,
+      "severity": "minor",
+      "what": "Ожидания группы задач изнутри задачи пула вложены до трёх уровней (_prep_task → области → _par). В Godot 4.7 рабочий поток при ожидании берёт другие задачи, и на 20 потоках зависаний нет, но на машинах с 4–6 потоками (у пилотов) это не проверено.",
+      "fix": "Координатору: один прогон загрузки при ограниченном пуле (threading/worker_pool/max_threads = 2–4) в последующей задаче или на шлюзе модуля."
+    },
+    {
+      "file": "tools/research/load_profile/measure.sh",
+      "line": 0,
+      "severity": "minor",
+      "what": "Это не дефект FL-9 (вне скоупа): по dp_feedback ключ --air-cache=clear в FL-1 чистит не тот каталог ($X/godot/app_userdata вместо $X/Deltaplan/air_cache), а measure.py ломается на теге с «_». Замер «до» из FL-1, снятый с этим ключом, мог брать поле из кеша.",
+      "fix": "Координатору: завести исправление measure.sh/py; цифры FL-1 по этапу wind перепроверить."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "air_place (accept --only --dry)",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "fast_load_k1 (accept --only --dry)",
+      "value": "8/8",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-17T05:38:58",
+  "by": "reviewer"
+}
