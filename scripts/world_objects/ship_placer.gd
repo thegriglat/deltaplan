@@ -1,11 +1,12 @@
 class_name ShipPlacer
 extends RefCounted
-## Расстановка судов на море (контракт S3, docs/contracts/sea-ships.md). Без нод, static.
+## Расстановка судов на море (контракт S3 v2, docs/contracts/sea-ships.md). Без нод, static.
 ## Детерминизм по миру: мировая клетка cell = (floor(lon / cell_deg), floor(lat / cell_deg)); из хеша клетки
 ## (TreeCell.hash, без RandomNumberGenerator) — есть ли судно (p_cell), точка внутри клетки (lat/lon), вид (веса
 ## placement.types), курс. Одна точка мира в двух местах с разными центрами даёт то же судно: всё считается в
 ## lat/lon, в метры места — только последним шагом (TerrainGeo, как у мест).
 ## Судно ставится, если точка внутри far и значение маски S2 в ближайшем узле far ≥ 1 + ceil(min_shore_m / 100 м).
+## Ватерлиния y — высота рельефа в точке (height_fn, в игре Terrain.height_at): после выравнивания S2 v2 это уровень воды L.
 
 const DEFAULTS := {"cell_deg": 0.1, "p_cell": 0.15, "min_shore_m": 2000.0, "types": {"tanker": 1.0}}
 ## Доля 0…1 из 32-битного значения хеша.
@@ -21,9 +22,11 @@ static func params_from_config() -> Dictionary:
 	return p
 
 
-## Суда места: [{type, x, z (м места, оси Terrain), heading_rad (0 — нос на −Z/север, по часовой), cell: Vector2i}].
-## mask — SeaMask.load_for ({image L8, origin — x,z узла (0,0), cell_m}); пусто — [].
-static func ships_for(mask: Dictionary, center_lat: float, center_lon: float, params: Dictionary) -> Array[Dictionary]:
+## Суда места: [{type, x, y (ватерлиния, м), z (м места, оси Terrain), heading_rad (0 — нос на −Z/север, по часовой),
+## cell: Vector2i}]. mask — SeaMask.load_for ({image L8, origin — x,z узла (0,0), cell_m}); пусто — [].
+## height_fn(x, z) -> м — высота рельефа (недействительный Callable — 0 м). Вызывается из рабочего потока: только чтение.
+static func ships_for(mask: Dictionary, center_lat: float, center_lon: float, params: Dictionary,
+		height_fn: Callable) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if mask.is_empty() or not (mask.get("image") is Image):
 		return out
@@ -78,7 +81,8 @@ static func ships_for(mask: Dictionary, center_lat: float, center_lon: float, pa
 				continue
 			if data[j * w + i] < min_v:
 				continue
-			out.append({"type": s.type, "x": xz.x, "z": xz.y, "heading_rad": s.heading_rad, "cell": cell})
+			var y := float(height_fn.call(xz.x, xz.y)) if height_fn.is_valid() else 0.0
+			out.append({"type": s.type, "x": xz.x, "y": y, "z": xz.y, "heading_rad": s.heading_rad, "cell": cell})
 	return out
 
 

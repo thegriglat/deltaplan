@@ -29,13 +29,13 @@ func _all_sea() -> Dictionary:
 
 func test_deterministic() -> void:
 	var m := _all_sea()
-	var a := ShipPlacer.ships_for(m, -27.7176, -48.7799, _params())
-	var b := ShipPlacer.ships_for(m, -27.7176, -48.7799, _params())
+	var a := ShipPlacer.ships_for(m, -27.7176, -48.7799, _params(), Callable())
+	var b := ShipPlacer.ships_for(m, -27.7176, -48.7799, _params(), Callable())
 	check(a.size() > 20, "в открытом море квадрата 160 км есть суда: %d" % a.size())
 	check(a == b, "одинаковый вход — одинаковые суда")
 	var kinds := {}
 	for s in a:
-		check(s.has_all(["type", "x", "z", "heading_rad", "cell"]), "поля элемента")
+		check(s.has_all(["type", "x", "y", "z", "heading_rad", "cell"]), "поля элемента")
 		check(s.cell is Vector2i and float(s.heading_rad) >= 0.0 and float(s.heading_rad) < TAU, "клетка и курс")
 		kinds[s.type] = true
 	check(kinds.size() == 3, "все три вида при весах 1/1/1: %s" % str(kinds.keys()))
@@ -46,10 +46,10 @@ func test_same_ship_from_two_places() -> void:
 	var c1 := Vector2(-27.7176, -48.7799)
 	var c2 := c1 + Vector2(0.3, 0.3)
 	var by_cell := {}
-	for s in ShipPlacer.ships_for(m, c1.x, c1.y, _params()):
+	for s in ShipPlacer.ships_for(m, c1.x, c1.y, _params(), Callable()):
 		by_cell[s.cell] = s
 	var common := 0
-	for s in ShipPlacer.ships_for(m, c2.x, c2.y, _params()):
+	for s in ShipPlacer.ships_for(m, c2.x, c2.y, _params(), Callable()):
 		if not by_cell.has(s.cell):
 			continue
 		common += 1
@@ -67,7 +67,7 @@ func test_shore_distance() -> void:
 	# значение маски растёт от западного берега: 1 + floor(i·100 / 100) (столбец 0 — суша)
 	var m := _mask(func(i: int) -> int: return 0 if i == 0 else mini(255, 1 + i))
 	var p := _params()
-	var ships := ShipPlacer.ships_for(m, 10.0, 20.0, p)
+	var ships := ShipPlacer.ships_for(m, 10.0, 20.0, p, Callable())
 	check(not ships.is_empty(), "суда есть")
 	var min_v := 1 + int(p.min_shore_m) / 100
 	var img: Image = m.image
@@ -79,13 +79,24 @@ func test_shore_distance() -> void:
 		check(float(s.x) - m.origin.x >= float(p.min_shore_m) - STEP, "не ближе 2 км к берегу: %.0f м" % (float(s.x) - m.origin.x))
 	# берег везде ближе 2 км — судов нет
 	var near := _mask(func(i: int) -> int: return 20 if i > 0 else 0)
-	check(ShipPlacer.ships_for(near, 10.0, 20.0, p).is_empty(), "маска 20 (< 21) — судов нет")
+	check(ShipPlacer.ships_for(near, 10.0, 20.0, p, Callable()).is_empty(), "маска 20 (< 21) — судов нет")
+
+
+func test_waterline_from_height_fn() -> void:
+	var m := _all_sea()
+	var level := func(x: float, _z: float) -> float: return -28.0 if x < 0.0 else 0.0
+	var ships := ShipPlacer.ships_for(m, 42.0, 50.0, _params(), level)
+	check(not ships.is_empty(), "суда есть")
+	for s in ships:
+		check(float(s.y) == (-28.0 if float(s.x) < 0.0 else 0.0), "y = высота рельефа в точке")
+	for s in ShipPlacer.ships_for(m, 42.0, 50.0, _params(), Callable()):
+		check(float(s.y) == 0.0, "без height_fn — 0 м")
 
 
 func test_empty_mask() -> void:
-	check(ShipPlacer.ships_for({}, 0.0, 0.0, _params()).is_empty(), "нет маски — []")
+	check(ShipPlacer.ships_for({}, 0.0, 0.0, _params(), Callable()).is_empty(), "нет маски — []")
 	var zero := _mask(func(_i: int) -> int: return 0)
-	check(ShipPlacer.ships_for(zero, -27.0, -48.0, _params()).is_empty(), "маска без моря — []")
+	check(ShipPlacer.ships_for(zero, -27.0, -48.0, _params(), Callable()).is_empty(), "маска без моря — []")
 
 
 func test_cell_probability_and_weights() -> void:

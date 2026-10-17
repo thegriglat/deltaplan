@@ -3,7 +3,7 @@ extends Node3D
 ## Слой судов (SEA-4): записи ShipPlacer (S3) → на судно по MeshInstance3D на LOD модели S4 с
 ## visibility_range_begin/end (движок сам выбирает LOD и отсекает по дальности и пирамиде видимости; судов
 ## ≤ ~100 на квадрат far — узлов ≤ 300, MultiMesh не нужен: его рамка — весь квадрат, отсечения по судну нет).
-## Ватерлиния — y = 0 (S3), нос модели к −Z, курс по часовой от севера → rotation.y = −heading.
+## Ватерлиния — y записи (S3 v2: уровень воды L), нос модели к −Z, курс по часовой от севера → rotation.y = −heading.
 ## Тени — только LOD0 (render.cast_shadow_lod0; дальше их всё равно режет sun.shadow_max_distance_m).
 ## Без _process: после build() слой ничего не считает. Вид без .glb пропускается.
 ## Параметры — configs/sea_ships.json → render.
@@ -91,7 +91,7 @@ func build(ships: Array, rp: Dictionary = {}) -> void:
 		if ms.is_empty():
 			skipped += 1
 			continue
-		var xf := Transform3D(Basis(Vector3.UP, -float(s.heading_rad)), Vector3(float(s.x), 0.0, float(s.z)))
+		var xf := Transform3D(Basis(Vector3.UP, -float(s.heading_rad)), Vector3(float(s.x), float(s.get("y", 0.0)), float(s.z)))
 		var begin := 0.0
 		for k in LODS:
 			var mi := MeshInstance3D.new()

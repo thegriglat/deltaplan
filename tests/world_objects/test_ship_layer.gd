@@ -13,14 +13,14 @@ func test_no_sea_no_nodes() -> void:
 	l.build([], _rp())
 	check(l.get_child_count() == 0 and l.ship_count == 0, "без судов узлов нет")
 	check(not l.is_processing() and not l.is_physics_processing(), "без _process")
-	l.build(ShipPlacer.ships_for({}, 0.0, 0.0, ShipPlacer.params_from_config()), _rp())
+	l.build(ShipPlacer.ships_for({}, 0.0, 0.0, ShipPlacer.params_from_config(), Callable()), _rp())
 	check(l.get_child_count() == 0, "нет маски — узлов нет")
 	l.free()
 
 
 func test_lod_nodes() -> void:
 	var l := ShipLayer.new()
-	l.build([{"type": "tanker", "x": 1000.0, "z": -2000.0, "heading_rad": PI / 2.0, "cell": Vector2i(1, 2)}], _rp())
+	l.build([{"type": "tanker", "x": 1000.0, "y": -28.0, "z": -2000.0, "heading_rad": PI / 2.0, "cell": Vector2i(1, 2)}], _rp())
 	check(l.ship_count == 1 and l.get_child_count() == 3, "судно — 3 узла LOD: %d" % l.get_child_count())
 	var far := float(Config.value("world", "rendering.camera_far_m", 110000.0))
 	var want := [[0.0, 6000.0], [6000.0, 25000.0], [25000.0, far]]
@@ -33,7 +33,7 @@ func test_lod_nodes() -> void:
 		check(mi.cast_shadow == sh, "LOD%d: тень %d" % [k, mi.cast_shadow])
 		var mat := mi.material_override as StandardMaterial3D
 		check(mat != null and mat.vertex_color_use_as_albedo and mat.albedo_texture == null, "LOD%d: вершинные цвета, без текстур" % k)
-		check(mi.position.is_equal_approx(Vector3(1000, 0, -2000)), "LOD%d: ватерлиния y = 0" % k)
+		check(mi.position.is_equal_approx(Vector3(1000, -28, -2000)), "LOD%d: ватерлиния y записи" % k)
 		var nose := mi.transform.basis * Vector3(0, 0, -1)
 		check(nose.is_equal_approx(Vector3(1, 0, 0)), "курс 90° — нос на восток (+X): %s" % nose)
 	check(l.get_child(1).mesh.get_faces().size() < l.get_child(0).mesh.get_faces().size(), "LOD1 проще LOD0")

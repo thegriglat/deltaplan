@@ -117,7 +117,7 @@ func build(
 		_build_start_tracks(height_fn)
 	_build_villages(patches, height_fn)
 	_build_start_gear(start_sites)
-	_start_ships(loc_id, center)
+	_start_ships(loc_id, center, height_fn)
 	_reset_indicators()
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 	print(
@@ -159,7 +159,7 @@ func clear() -> void:
 
 ## Суда (S3): маска моря места (SeaMask.load_for — файл или счёт 1–3 с) и расстановка — в рабочем потоке,
 ## узлы — в главном (_ships_done). Нет моря — ни одного узла.
-func _start_ships(loc_id: String, center: Vector2) -> void:
+func _start_ships(loc_id: String, center: Vector2, height_fn: Callable) -> void:
 	if loc_id == "":
 		return
 	var lc: Dictionary = Locations.config(loc_id)
@@ -170,7 +170,7 @@ func _start_ships(loc_id: String, center: Vector2) -> void:
 	var gen := _ship_gen
 	_wait_ships()
 	_ship_task = WorkerThreadPool.add_task(func() -> void:
-		var res := ShipPlacer.ships_for(SeaMask.load_for(dir), clat, clon, params)
+		var res := ShipPlacer.ships_for(SeaMask.load_for(dir), clat, clon, params, height_fn)
 		call_deferred(&"_ships_done", res, gen)
 	, false, "sea ships")
 

@@ -1,6 +1,6 @@
 extends TestCase
 ## Контрактные тесты модуля sea-ships (docs/contracts/sea-ships.md): S2 — маска моря и стадия, S3/S4 — конфиг
-## configs/sea_ships.json (расстановка и виды судов), S3 — ShipPlacer.ships_for (сигнатура, поля элемента).
+## configs/sea_ships.json (расстановка и виды судов), S3 v2 — ShipPlacer.ships_for (сигнатура с height_fn, поля элемента с y).
 ## Запуск: godot --headless --path . res://tests/run_tests.tscn -- --filter=sea_ships_contracts
 
 
@@ -93,10 +93,10 @@ func test_s3_ships_for() -> void:
 	for a in args:
 		names.append(a.name)
 		types.append(a.type)
-	check(names == ["mask", "center_lat", "center_lon", "params"], "аргументы ships_for: %s" % str(names))
-	check(types == [TYPE_DICTIONARY, TYPE_FLOAT, TYPE_FLOAT, TYPE_DICTIONARY], "типы аргументов")
+	check(names == ["mask", "center_lat", "center_lon", "params", "height_fn"], "аргументы ships_for: %s" % str(names))
+	check(types == [TYPE_DICTIONARY, TYPE_FLOAT, TYPE_FLOAT, TYPE_DICTIONARY, TYPE_CALLABLE], "типы аргументов")
 	check(int(m.get("flags", 0)) & METHOD_FLAG_STATIC != 0, "static")
-	check(ShipPlacer.ships_for({}, 0.0, 0.0, ShipPlacer.params_from_config()).is_empty(), "нет маски — []")
+	check(ShipPlacer.ships_for({}, 0.0, 0.0, ShipPlacer.params_from_config(), Callable()).is_empty(), "нет маски — []")
 	var n := 401
 	var data := PackedByteArray()
 	data.resize(n * n)
@@ -105,10 +105,10 @@ func test_s3_ships_for() -> void:
 	var mask := {"image": Image.create_from_data(n, n, false, Image.FORMAT_L8, data), "origin": Vector2(-half, -half), "cell_m": 100.0}
 	var p := ShipPlacer.params_from_config()
 	p["p_cell"] = 1.0
-	var ships := ShipPlacer.ships_for(mask, -27.12, -109.35, p)
+	var ships := ShipPlacer.ships_for(mask, -27.12, -109.35, p, func(_x: float, _z: float) -> float: return 0.0)
 	check(not ships.is_empty(), "открытое море, p_cell 1 — суда есть")
 	for s in ships:
-		check(s.type is String and s.x is float and s.z is float and s.heading_rad is float and s.cell is Vector2i, "типы полей элемента")
+		check(s.type is String and s.x is float and s.y is float and s.z is float and s.heading_rad is float and s.cell is Vector2i, "типы полей элемента")
 		check(absf(float(s.x)) <= half and absf(float(s.z)) <= half, "точка внутри far")
 		var ll := TerrainGeo.local_to_latlon(float(s.x), float(s.z), -27.12, -109.35)
 		check(Vector2i(floori(ll.y / 0.1), floori(ll.x / 0.1)) == s.cell, "cell = (floor(lon / cell_deg), floor(lat / cell_deg))")

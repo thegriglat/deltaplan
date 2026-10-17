@@ -78,7 +78,7 @@ var landings := world_objects.get_landing_sites()  # [{id, name, position, axis_
 
 ## Суда
 Контракты S2–S4 (`docs/contracts/sea-ships.md`), параметры — `configs/sea_ships.json`.
-- `ShipPlacer.ships_for(mask, center_lat, center_lon, params)` — без нод: мировая клетка 0,1° (`placement.cell_deg`), из хеша клетки
+- `ShipPlacer.ships_for(mask, center_lat, center_lon, params, height_fn)` — без нод: мировая клетка 0,1° (`placement.cell_deg`), из хеша клетки
   (`TreeCell.hash`) — есть ли судно (`p_cell`), точка в клетке (lat/lon), вид (`placement.types`, веса), курс. В метры места — последним шагом,
   поэтому одна точка мира из разных мест даёт то же судно. Ставится, если маска моря S2 в ближайшем узле far ≥ 1 + `min_shore_m`/100.
 - `WorldObjects.build` → `_start_ships`: `SeaMask.load_for` (файл `far_sea.webp` или счёт 1–3 с для мест из `res://`) и расстановка — в
@@ -86,7 +86,7 @@ var landings := world_objects.get_landing_sites()  # [{id, name, position, axis_
 - `ShipLayer` — на судно по `MeshInstance3D` на каждый LOD модели `assets/models/ships/ship_<вид>.glb` (`<вид>_LOD0..2`) с
   `visibility_range_begin/end` (`render.lod_m`: 6 и 25 км, LOD2 — до `world.json → rendering.camera_far_m`); движок сам отсекает по дальности и
   пирамиде видимости. MultiMesh не взят: рамка MultiMesh — весь квадрат, отсечения по судну нет, а судов ≤ ~50 на место.
-  Ватерлиния y = 0; материал — `StandardMaterial3D` с вершинными цветами (импортёр glTF их как альбедо не включает). Тень — только LOD0
+  Ватерлиния — `y` записи: высота рельефа в точке (`height_fn` = `Terrain.height_at`; стадия `sea` выравнивает море far до уровня L, у океана 0 м); материал — `StandardMaterial3D` с вершинными цветами (импортёр glTF их как альбедо не включает). Тень — только LOD0
   (`render.cast_shadow_lod0`, пресет «Низкое» — без теней). Вид без `.glb` пропускается (вес вида в `placement.types` — 0, пока модели нет).
 - Тесты: `--filter=ship_placer`, `--filter=ship_layer`, `--filter=sea_ships_contracts`.
 
