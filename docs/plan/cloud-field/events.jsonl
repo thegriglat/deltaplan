@@ -106,3 +106,4 @@
 {"t": "2026-10-17T12:11:37", "by": "coordinator", "task": "CLF-12", "ev": "checked", "note": "6/6 test_cloud=ok:61/61 (пропуск 3); test_determinism=ok:4/4; test_hazards=ok:7/7; test_perf_contracts=ok:10/10; main_ms=ok:0.23; start=ok:0.83"}
 {"t": "2026-10-17T12:11:44", "by": "coordinator", "task": "CLF-12", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-17T12:11:44", "by": "coordinator", "task": "CLF-12", "ev": "merged", "note": "6a94e824"}
+{"t": "2026-10-17T12:11:58", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: принято и влито CLF-1,3,4,5,9,10,11,12; ждём Q4 (кадры CLF-5); дальше CLF-6 Compatibility, CLF-7 цена сильного дня против main (Онгудай 13:30, разогнанное поле), CLF-8 доки, sync от main и CLF-2 перепечка. Обратная связь: возобновление исполнителя тем же brief не берёт доработку — нужен новый агент."}
