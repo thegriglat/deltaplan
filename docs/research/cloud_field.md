@@ -8,7 +8,7 @@ summary: "CLF-1/9/10: поле облачности из поля воздуха
 related: ["docs/contracts/cloud-field.md", "docs/plan/cloud-field.md", "tools/research/cloud_field/README.md", "docs/guide/air-model.md", "docs/research/cloud_field/subsidence.md"]
 conclusion: "z_i по рельефу поднимает потолки над хребтами на 100–400 м; мезомасштабное опускание поля (W̄, сглаженный σ 10 км: Алматы низина −1 см/с, хребет +1 см/с) опускает z_i столбца на 130 м (p90 380) и снимает над равниной лишь десятую часть кучевых (0,25 → 0,23, не ≤ 0,1); ячейковое W̄ < 0 — часть слоя, не опускание"
 data: "tools/research/cloud_field/"
-applied_in: "scripts/atmosphere/cloud_field.gd, scripts/atmosphere/cloud_field_sources.gd, scripts/atmosphere/cloud_field_codec.gd, scripts/atmosphere/air_model/air_zi_terrain.gd, scripts/atmosphere/air_model/air_thermals.gd, configs/atmosphere.json → cloud_field, air_model.zi_terrain_*, thermal.subsidence_tau_s, thermal.subsidence_smooth_m"
+applied_in: "docs/guide/atmosphere/clouds.md, scripts/atmosphere/cloud_layer.gd, scripts/atmosphere/cloud_physics.gd, scripts/atmosphere/cloud_common.gdshaderinc, scripts/net/net_zone.gd, scripts/atmosphere/cloud_field.gd, scripts/atmosphere/cloud_field_sources.gd, scripts/atmosphere/cloud_field_codec.gd, scripts/atmosphere/air_model/air_zi_terrain.gd, scripts/atmosphere/air_model/air_thermals.gd, configs/atmosphere.json → cloud_field, air_model.zi_terrain_*, thermal.subsidence_tau_s, thermal.subsidence_smooth_m"
 ---
 # Поле облачности из поля воздуха (CLF-1)
 
