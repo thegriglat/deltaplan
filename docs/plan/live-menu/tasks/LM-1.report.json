@@ -1,0 +1,76 @@
+{
+  "status": "partial",
+  "summary": "Замер main и proto по LM-K1 сделан (startup.json, README с таблицей). Живое меню как есть: мир за меню грузится ~25-30 с после показа меню (тёплое), всё окно меню в рывках (230-256 кадров >50 мс, сумма ~38 с из 40 с, медиана кадра 71-74 мс против 13 у main), затем ещё ~25 с фонового пересчёта воздуха; «Лететь» из proto на другое место роняет release-сборку (SIGSEGV).",
+  "commits": [
+    "см. git log live-menu/LM-1: live-menu LM-1 замер старта"
+  ],
+  "checks": [
+    {
+      "name": "contract-LM-K1",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gd-parse",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "readme-table",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "menu",
+      "value": "32/33, FAIL test_menu_scroll::test_scroll_screens (падает и на чистой базе feature/live-menu без моих правок)",
+      "pass": false
+    },
+    {
+      "name": "main тёплый: до меню с / худший кадр меню мс / рывков",
+      "value": "15.0 / 259 / 3.5",
+      "pass": true
+    },
+    {
+      "name": "proto тёплый: мир готов с / рывков меню / сумма рывков мс",
+      "value": "56.2 / 243 / 38409",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "«Лететь» у proto на другое место не измерен: смена места при живом мире за меню роняет release-сборку (SIGSEGV во второй загрузке рельефа); измерено «Лететь» на то же место (volcano_island/east_cliffs). У main - training_island (без сети, по просьбе координатора).",
+    "Тихой машины не было: load average 75-86 на 20 ядрах и занятый GPU (чужие задачи) - абсолютные числа завышены в разы; нужен повтор скриптом на тихой машине (особенно холодные).",
+    "Подробный разбор шагов game.start для proto не делался."
+  ],
+  "questions": [
+    "Тест menu::test_scroll_screens (прокрутка экрана настроек 1280x720 и 1024x600) падает на базе feature/live-menu - чья задача? Приёмка menu из-за него FAIL."
+  ],
+  "images": [],
+  "how_to_check": "tools/bench/menu_bench.sh build/linux/deltaplan.x86_64 20 3 40 && python3 tools/research/live_menu/check_startup_json.py tools/research/live_menu/startup.json",
+  "uncertain": [
+    {
+      "where": "scenes/main.gd:_proto_world, _perf",
+      "why": "Падение при смене места из-за мира за меню: причина не найдена (release без символов). Обхода в main.gd нет; нужна правка game/world_objects (CityTrees держит Callable на освобождённый рельеф в debug-сборке).",
+      "checked": "без автопилота, на земле, с ботами, set_flying(true/false), restart, _show_menu, отключение 3D, остановка пересчёта воздуха - падение остаётся; смена на то же место и смена после обычного _fly+_show_menu - не падают."
+    },
+    {
+      "where": "заставка-лоадер (оценка без реализации)",
+      "why": "Во время меню главный поток занят game.start (рельеф, WorldObjects/OSM, поле воздуха baked ~1-3 с, термики/облака порциями) ~25-30 с тёплых (на перегруженной машине; на тихой, вероятно, 10-15 с) плюс фоновый пересчёт воздуха ~13-30 с после ухода бота из окон запечённого поля. Заставка-лоадер поможет с первой частью (ждать готовности мира перед показом живого меню; меню без рывков, как main: кадр 13 мс), но не уберёт сами 10-30 с до первого кадра; вторую часть (пересчёт воздуха при движении бота) заставка не лечит - нужна неподвижная/привязанная к окнам камера-бот или отложенный пересчёт.",
+      "checked": "логи proto-прогонов raw/*.log: menu_window, menu_world_ready, menu_air_wait_ms≈25 с; load_profile README для этапов."
+    },
+    {
+      "where": "startup.json (main холодный)",
+      "why": "холодный main: 85 с до меню, 105 с «Лететь» - перегрузка машины плюс первый запуск, число ненадёжно.",
+      "checked": "первая серия при меньшей нагрузке: main тёплый до меню 5-7 с, Лететь 11 с."
+    }
+  ],
+  "dp_feedback": "Нет способа дождаться тихой машины/занять её целиком под замер (lock cpu не мешает чужим неблокирующим headless-задачам). Конфликты по нагрузке стоит видеть в dpcli (load average в task show).",
+  "extra": {
+    "load_average_during_runs": "75-86",
+    "menu_frames_main": 2900,
+    "menu_median_ms_main": 13,
+    "menu_median_ms_proto_warm": "71-74",
+    "menu_air_wait_ms_proto": "~25000"
+  },
+  "t": "2026-10-17T23:30:49",
+  "by": "executor"
+}
