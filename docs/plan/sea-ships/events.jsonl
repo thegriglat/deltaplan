@@ -133,3 +133,4 @@
 {"t": "2026-10-17T10:02:22", "by": "executor", "task": "SEA-13", "ev": "reported", "commits": ["см."], "note": "done: Новая страница docs/guide/world-objects/sea-ships.md (виды, LOD, S3 v3, маска, стадия sea, уровень воды, класс воды, чт…", "dp_feedback": "findings.md на пределе 40 КБ: следующему писателю придётся разбивать; хорошо бы dpcli docs сообщал запас."}
 {"t": "2026-10-17T10:02:31", "by": "coordinator", "task": "SEA-13", "ev": "accepted", "note": "3/3 docs=ok:exit 0; assets=ok:3; changelog=ok:1"}
 {"t": "2026-10-17T10:02:39", "by": "coordinator", "task": "SEA-13", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-17T10:02:40", "by": "coordinator", "task": "SEA-13", "ev": "merged"}
