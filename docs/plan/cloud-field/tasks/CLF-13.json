@@ -1,0 +1,102 @@
+{
+  "id": "CLF-13",
+  "module": "cloud-field",
+  "type": "dp-engineer",
+  "title": "Слить свежий main в модуль (конфликт air_thermals.gd)",
+  "goal": "Ветка задачи = feature/cloud-field + свежий main; конфликт scripts/atmosphere/air_model/air_thermals.gd разрешён с сохранением обеих правок (VI-7 «источник не над водой» из main и CLF-1/9/10/11 модуля: c_top, col_wstar, z_i по рельефу, опускание), тесты модуля и main зелёные.",
+  "plan_ref": "§Волны",
+  "contracts": [
+    {
+      "name": "CLF-К3",
+      "version": "2",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К6",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-field-CLF-13",
+  "branch": "cloud-field/CLF-13",
+  "base": "feature/cloud-field",
+  "scope": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "tools/",
+    "docs/",
+    "data/",
+    "assets/",
+    "scenes/",
+    "server/",
+    "locale/",
+    "CHANGELOG.md",
+    "TODO.md",
+    "ASSETS.md",
+    "README.md",
+    "README.ru.md",
+    "project.godot",
+    "site/",
+    "export_presets.cfg",
+    "REQUIREMENTS.md",
+    "questions.md",
+    "QoL.md",
+    "steam/",
+    "diary/",
+    "addons/",
+    ".github/",
+    ".gitignore",
+    ".gitattributes",
+    "licenses/"
+  ],
+  "dont_touch": [
+    "data/locations/training_island/air/"
+  ],
+  "accept": [
+    {
+      "name": "test_air_thermals",
+      "tests": "test_air_thermals"
+    },
+    {
+      "name": "test_zi_terrain",
+      "tests": "test_zi_terrain"
+    },
+    {
+      "name": "test_subsidence",
+      "tests": "test_subsidence"
+    },
+    {
+      "name": "test_cloud",
+      "tests": "test_cloud"
+    },
+    {
+      "name": "test_air_contracts",
+      "tests": "test_air_contracts"
+    },
+    {
+      "name": "test_determinism",
+      "tests": "test_determinism"
+    },
+    {
+      "name": "test_perf_contracts",
+      "tests": "test_perf_contracts"
+    },
+    {
+      "name": "test_hazards",
+      "tests": "test_hazards"
+    },
+    {
+      "name": "test_bots",
+      "tests": "test_bots"
+    },
+    {
+      "name": "merged",
+      "cmd": "git merge-base --is-ancestor main HEAD && echo merged",
+      "expect": "re:^merged"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T15:30:08"
+}
