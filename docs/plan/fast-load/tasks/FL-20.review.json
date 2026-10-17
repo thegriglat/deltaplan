@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "Тупик вложенных ожиданий групп из рабочих потоков устранён единым правилом PoolFor.run: из пула — задачи с совместным ожиданием, вне пула — прежняя группа. Все элементы пишут только свой слот, так что порядок результата не меняется. Скоуп соблюдён, контракты не тронуты; тест с насыщенным пулом (2×потоков, 3 уровня вложенности) осмыслен, пороги не ослаблены.",
+  "issues": [
+    {
+      "file": "scripts/atmosphere/air_model/air_runtime.gd",
+      "line": 984,
+      "severity": "minor",
+      "what": "Правлены файлы scripts/atmosphere/air_model/ (air_runtime, air_thermals, air_baked_field). По FL-К1 они входят в AirBakedField.code_hash(), поэтому после слияния все записи user://air_cache/ станут недействительными: первая загрузка каждого места пойдёт без кеша. Ошибкой это не является, результат тот же, но замеры «время до полёта» после слияния надо делать со второго запуска.",
+      "fix": "Ничего не менять; координатору учесть при замерах и в CHANGELOG, если нужно."
+    },
+    {
+      "file": "scripts/world_objects/osm/osm_roads.gd",
+      "line": 24,
+      "severity": "minor",
+      "what": "Вне пула группа раньше была низкого приоритета (add_group_task по умолчанию), теперь высокого (PoolFor всегда передаёт true). По grep OsmRoads.build в scripts не вызывается (OsmLayer зовёт prepare/assemble), поэтому влияния сейчас нет.",
+      "fix": "Не требуется; если build оживёт — учесть приоритет."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "fast_load (accept --only --dry)",
+      "value": "18/18, scope 9 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "air_thermals (accept --only --dry)",
+      "value": "17/17",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-17T14:37:55",
+  "by": "reviewer"
+}
