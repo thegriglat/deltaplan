@@ -144,5 +144,5 @@ func test_s2_v2_level_and_compute_info() -> void:
 
 func test_s2_v2_sea_json_fields_doc() -> void:
 	var doc := FileAccess.get_file_as_string("res://docs/contracts/sea-ships.md")
-	for k in ["levels_m", "flattened_cells"]:
+	for k in ["levels_m", "flattened_cells", "reclassed_detail_cells", "water10_cells"]:
 		check(doc.contains(k), "контракт описывает %s" % k)
