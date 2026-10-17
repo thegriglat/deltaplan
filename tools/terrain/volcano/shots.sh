@@ -19,18 +19,26 @@ trap 'cmp -s "$ROOT/project.godot" "$TMP/project.godot.bak" || cp "$TMP/project.
 mkdir -p "$OUT"
 LOC=volcano_island
 WIND="--wind=6 --from=110 --hour=12 --bots=0"
+# Окно иногда сжимается соседними окнами (958x189…330 вместо полной высоты): кадр годен при высоте ≥ 1000, иначе повтор (до 3 раз)
+full_height() { [ "$(identify -format '%h' "$1" 2>/dev/null || echo 0)" -ge 1000 ]; }
 top() {   # сверху: terrain_preview
   local id="$1"; shift
   [[ -z "$ONLY" || "$id" == *"$ONLY"* ]] || return 0
-  (cd "$ROOT" && timeout 240 godot --path . --audio-driver Dummy --resolution 1920x1080 \
-    res://scenes/terrain/terrain_preview.tscn -- --location=$LOC "$@" --shot="$TMP/$id.png") > "$TMP/$id.log" 2>&1
+  for try in 1 2 3; do
+    (cd "$ROOT" && timeout 240 godot --path . --audio-driver Dummy --resolution 1920x1080 \
+      res://scenes/terrain/terrain_preview.tscn -- --location=$LOC "$@" --shot="$TMP/$id.png") > "$TMP/$id.log" 2>&1
+    full_height "$TMP/$id.png" && break
+  done
   grep -q "Скриншот" "$TMP/$id.log" && echo "$id ok" || { echo "$id FAIL"; tail -5 "$TMP/$id.log"; }
 }
 shot() {  # из игры: кабина на старте
   local id="$1"; shift
   [[ -z "$ONLY" || "$id" == *"$ONLY"* ]] || return 0
-  (cd "$ROOT" && timeout 300 godot --path . --audio-driver Dummy --resolution 1920x1080 -- --autostart --location=$LOC $WIND \
-    --camera=cockpit --fov=75 --no-overlay --time=6 "$@" --screenshot="$TMP/$id.png") > "$TMP/$id.log" 2>&1
+  for try in 1 2 3; do
+    (cd "$ROOT" && timeout 300 godot --path . --audio-driver Dummy --resolution 1920x1080 -- --autostart --location=$LOC $WIND \
+      --camera=cockpit --fov=75 --no-overlay --time=6 "$@" --screenshot="$TMP/$id.png") > "$TMP/$id.log" 2>&1
+    full_height "$TMP/$id.png" && break
+  done
   [ -s "$TMP/$id.png" ] && echo "$id ok" || { echo "$id FAIL"; tail -5 "$TMP/$id.log"; }
 }
 top 00_top --pos=1000,22000,22000 --look=1000,0,3500 --no-haze
