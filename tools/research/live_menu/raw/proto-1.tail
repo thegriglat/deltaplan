@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+Terrain: локация 'volcano_island' загружена за 24.30 с, чанков 160
+PERF menu_ms=76098 unix=1792261292.288
+Terrain: поля рельефа за 23.51 с
+PlaceData: 'volcano_island' за 1.89 с — OSM 1.86 с (домов OSM 3437), план домов 0.03 с (484)
+air_model: field (массивы; уровней 3)
+air_model: запечённое поле res://data/locations/volcano_island/air/east_cliffs.json, уровней 3, k притока 0.981, 3.57 с
+WorldObjects: судов 3 (без модели 0)
+WorldObjects: снаряжение у 4 стартов — 53 вещей за 5629 мс
+WorldObjects: 'volcano_island' за 34.64 с — ветроуказателей 24, посадок 4, троп к стартам 4, домов 484, OSM тайлов 9/9
+WorldObjects: палаток у старта 1 из 1 за 470 мс
+air_model: пересчёт не удался (таймаут расчёта (60 с)) — прежнее поле
+PERF menu_world_ready unix=1792261384.716 baked=1
+PERF menu_window s=40 frames=185 median_ms=13 worst_ms=24934 hitches=10 total_ms=42703
+PERF menu_air_wait_ms=0
+WorldObjects: палаток у старта 5 из 5 за 203 мс
+Мир: deltaplan://world?bots=4&date=2026-01-15&from=110&hour=12.00&lat=-27.10917&lon=-109.23312&seed=1414872724&sky=partly&temp=27.0&v=2&wind=6.0
+PERF fly_ms=38480
+PERF hitches=17 total_ms=5851 worst_ms=1278 frames=163 median_ms=68 max_ms=1278 list=[289, 726, 382, 1278, 136, 142, 174, 155, 204, 234, 357, 199, 173, 246, 1016, 72, 68]
+PERF cloud_build_ms=3976.7

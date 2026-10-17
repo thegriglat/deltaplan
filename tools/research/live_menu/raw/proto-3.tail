@@ -1,0 +1,25 @@
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+Terrain: локация 'volcano_island' загружена за 5.38 с, чанков 160
+PERF menu_ms=37254 unix=1792261631.748
+Terrain: поля рельефа за 4.65 с
+PlaceData: 'volcano_island' за 0.18 с — OSM 0.13 с (домов OSM 3437), план домов 0.05 с (484)
+WorldObjects: снаряжение у 4 стартов — 53 вещей за 1347 мс
+WorldObjects: 'volcano_island' за 2.91 с — ветроуказателей 24, посадок 4, троп к стартам 4, домов 484, OSM тайлов 9/9
+air_model: field (массивы; уровней 3)
+air_model: запечённое поле res://data/locations/volcano_island/air/east_cliffs.json, уровней 3, k притока 0.981, 2.03 с
+WorldObjects: судов 3 (без модели 0)
+WorldObjects: палаток у старта 1 из 1 за 233 мс
+PERF menu_world_ready unix=1792261645.342 baked=1
+PERF menu_window s=40 frames=266 median_ms=71 worst_ms=1559 hitches=230 total_ms=38814
+air_model: пересчёт не удался (таймаут расчёта (60 с)) — прежнее поле
+PERF menu_air_wait_ms=25269
+WorldObjects: палаток у старта 5 из 5 за 303 мс
+Мир: deltaplan://world?bots=4&date=2026-01-15&from=110&hour=12.00&lat=-27.10917&lon=-109.23312&seed=1398148254&sky=partly&temp=27.0&v=2&wind=6.0
+ERROR: NO GRAB
+   at: _mouse_update_mode (platform/linuxbsd/x11/display_server_x11.cpp:588)
+PERF fly_ms=34384
+PERF hitches=27 total_ms=7929 worst_ms=785 frames=388 median_ms=23 max_ms=785 list=[208, 585, 135, 785, 104, 158, 79, 98, 141, 87, 222, 220, 247, 194, 317, 280, 118, 239, 301, 339, 430, 454, 518, 381, 458, 395, 436]
+PERF cloud_build_ms=601.0
