@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Удалены TrainingMode и три тренировки (классы, .uid, 2 конфига, test_training); в test_training_menu добавлен тест всех карточек обеих групп (место, старт, цель, перевод, круг посадки) — все рабочие. tasks.md/goals.md/architecture.md обновлены.",
+  "commits": [
+    "см. git log ветки training-modes/TM-1"
+  ],
+  "checks": [
+    {
+      "name": "training",
+      "value": "32/32",
+      "pass": true
+    },
+    {
+      "name": "task_model",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "goals",
+      "value": "96/96",
+      "pass": true
+    },
+    {
+      "name": "docs check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Из configs/tasks/training_spot_landing.json не убраны мёртвые ключи (rings, grade_factor, time_limit_s, title, description): файл в dont_touch, accept даёт FAIL scope. Помечено в tasks.md как наследие. Нужно task set scope, если хотите чистить."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TM-1",
+  "uncertain": [
+    {
+      "where": "docs/guide/tasks.md",
+      "why": "границы карточек описаны по настройкам целей (duration, height с hold_s=10)",
+      "checked": "сверено с docs/guide/goals.md и configs/goals/tracker.json"
+    }
+  ],
+  "dp_feedback": "Дополнение координатора разрешало править файл из dont_touch карточки; accept ловит это только на последнем шаге.",
+  "t": "2026-10-17T21:48:03",
+  "by": "executor"
+}

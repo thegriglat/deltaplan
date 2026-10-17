@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "В GoalsTab под строкой маршрута кнопка «Загрузить задание…» (FileDialog *.xctsk). Файл проверяется (читается как .xctsk-JSON, есть пункты, все пункты в детальной зоне места), годный копируется в user://tasks и выбирается в списке с галочкой «Маршрут»; негодный — сообщение под кнопкой. Список заданий для .xctsk фильтрует по пунктам в зоне места, а не по полю location.",
+  "commits": [
+    "TM-2: загрузка .xctsk из вкладки «Цели»",
+    "TM-2: тест XctskImporter.points_latlon"
+  ],
+  "checks": [
+    {
+      "name": "goals_tab",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "xctsk",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "goals",
+      "value": "98/98",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TM-2",
+  "uncertain": [
+    {
+      "where": "scripts/ui/goals_tab.gd:import_task_file",
+      "why": "Диалог выбора файла и выбор в списке в живом окне не открывал (фильтр accept по имени файла)",
+      "checked": "статические check_task_file/copy_task_file/_task_fits покрыты тестами; import_task_file не вызывался из теста"
+    },
+    {
+      "where": "scripts/ui/goals_tab.gd:copy_task_file",
+      "why": "Одноимённый файл перезаписывается без вопроса",
+      "checked": "решение по KISS"
+    }
+  ],
+  "dp_feedback": "Фильтр тестов в accept идёт по пути файла, а не имени теста: тесты 'xctsk' пришлось положить в файл с xctsk в имени. Было бы полезно сказать это в карточке.",
+  "extra": {},
+  "t": "2026-10-17T21:50:39",
+  "by": "executor"
+}
