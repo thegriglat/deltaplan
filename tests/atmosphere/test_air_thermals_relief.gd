@@ -87,3 +87,29 @@ func test_ready_build_reproducible() -> void:
 	var tid := WorkerThreadPool.add_task(func() -> void: s.build(f, cfg), false, "test FL-17")
 	WorkerThreadPool.wait_for_task_completion(tid)
 	check(P._dump(ref) == P._dump(s), "из рабочего потока — тот же итог")
+
+
+## Сид мира — вход сборки (pick_fn: кандидаты точки по hash(сид, i, j)): тот же сид — тот же итог,
+## другой — другие точки и число источников (вода — где ни один кандидат не греет). «Лететь» из
+## меню без --seed берёт новый сид (main.gd) — разброс числа источников между такими запусками
+## (FL-15: 6994–6998) — от сида, а не от сборки.
+func test_seed_decides_sources() -> void:
+	var f := _field()
+	var t := FakeTerrain.new()
+	t.ready = true
+	var g := GroundField.new()
+	g.set_functions(func(_x: float, _z: float) -> float: return T.GROUND, t.strength)
+	var runs := {}
+	for sd: int in [11, 11, 12]:
+		var cfg := T._cfg()
+		cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, g, sd, 8)
+		cfg["height_fn"] = func(_x: float, _z: float) -> float: return T.GROUND
+		var s := AirThermals.new()
+		s.build(f, cfg)
+		if runs.has(sd):
+			check(P._dump(runs[sd]) == P._dump(s), "сид %d дважды — тот же итог" % sd)
+		else:
+			runs[sd] = s
+	var a: AirThermals = runs[11]
+	var b: AirThermals = runs[12]
+	check(a.pos != b.pos, "другой сид — другие точки (%d / %d источников)" % [a.count(), b.count()])
