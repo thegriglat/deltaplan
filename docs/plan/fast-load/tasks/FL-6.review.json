@@ -1,0 +1,51 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп соблюдён (14 файлов, dont_touch не тронут, project.godot не в коммитах). Расчёт в потоках чистый: OsmPilot/OsmBuildings/CityGround/дороги .prepare без узлов, ресурсов и Config; свой ObstacleIndex с merge; кеш BuildingStyle под Mutex. Равенство мира подтверждено переписью с хешами, снятой со старого кода до правки (2eb3f560); перезапуск совпал. Падение osm — test_versions, база, по решению координатора.",
+  "issues": [
+    {
+      "file": "scripts/world_objects/osm/osm_buildings.gd",
+      "line": 25,
+      "severity": "minor",
+      "what": "BuildingStyle.adjust в рабочем потоке пишет b[5] в общих записях data.buildings (PlaceData), пока OsmPilot.landmark_towers и CityGround._coverage читают те же записи в других потоках. Сейчас читаются только b[0..3], поэтому гонки по значениям нет, но держится это на соглашении, которое нигде не записано",
+      "fix": "Достаточно комментария у prepare (или в FL-К2): параллельные задачи читают только поля 0..3; либо поправку этажности сделать до запуска остальных задач. Без доработки."
+    },
+    {
+      "file": "tests/world_objects/test_osm_threaded.gd",
+      "line": 11,
+      "severity": "minor",
+      "what": "В эталоне переписи нет CityGround и ChimneyPlumes: city_ground.enabled=false в configs/world_objects.json, поэтому расщепление OsmCityGround на prepare/assemble тестом на равенство не покрыто",
+      "fix": "Когда city_ground включат, добавить его в перепись (включить в cfg фикстуры). Сейчас не мешает."
+    },
+    {
+      "file": "scripts/world_objects/osm/osm_roads.gd",
+      "line": 15,
+      "severity": "minor",
+      "what": "CHUNKS = 8 постоянно вместо min(ядра, 8): деление мешей дорог по узлам не зависит от машины. Ленты те же, мир не меняется; на 4–6 потоках шагов сборки больше",
+      "fix": "Принять как есть (мир теперь одинаков на любой машине)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only fast_load_k2 --dry",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "accept --only village --dry",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "tests --filter=osm_threaded (перепись OSM, merge, посёлки = эталон)",
+      "value": "3/3 ok",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "14 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-17T07:13:25",
+  "by": "reviewer"
+}

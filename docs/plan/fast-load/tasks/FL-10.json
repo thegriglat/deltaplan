@@ -39,15 +39,15 @@
     "tests/game",
     "tests/world_objects",
     "tests/atmosphere",
-    "tests/contracts/test_fast_load_k2.gd"
+    "tests/contracts/test_fast_load_k2.gd",
+    "scripts/world_objects/osm/osm_buildings.gd"
   ],
   "dont_touch": [
     "scripts/atmosphere/air_field_cache.gd",
     "scripts/atmosphere/thermal_field.gd",
     "scripts/atmosphere/air_model/air_thermals.gd",
     "scripts/atmosphere/air_model/air_place.gd",
-    "scripts/terrain/terrain_tree_models.gd",
-    "scripts/world_objects/osm"
+    "scripts/terrain/terrain_tree_models.gd"
   ],
   "accept": [
     {
@@ -77,5 +77,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T06:11:45"
+  "created": "2026-10-17T06:11:45",
+  "edited": "2026-10-17T07:13:59"
 }

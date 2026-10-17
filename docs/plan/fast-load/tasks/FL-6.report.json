@@ -1,11 +1,32 @@
 {
-  "status": "partial",
-  "summary": "Построители слоя OSM (земля города, дороги, слой «для пилота» — ЛЭП/провода/вертикали/канатки/ВПП, дома OSM) и дома посёлков разделены на расчёт в WorkerThreadPool (только массивы, Transform3D, свой ObstacleIndex; высота — PlaceData.height_at) и сборку узлов на главном потоке шагами по тайлу. Есть синхронный путь (game.gd как сейчас: расчёт параллельно, сборка в том же кадре) и порционный WorldLink.link_async → WorldObjects.setup_async (≤ 50 мс на кадр). Мир тот же: перепись по построителям (узлы, экземпляры MultiMesh, вершины, препятствия по видам, хеши преобразований и массивов) совпадает с эталоном, снятым со старого кода до правки, во всех трёх режимах.",
+  "status": "done",
+  "summary": "Построители слоя OSM (земля города, дороги, слой «для пилота» — ЛЭП/провода/вертикали/канатки/ВПП, дома OSM) и дома посёлков разделены на расчёт в WorkerThreadPool (только массивы, Transform3D, свой ObstacleIndex; высота — PlaceData.height_at) и сборку узлов на главном потоке шагами по тайлу. Есть синхронный путь (game.gd как сейчас: расчёт параллельно, сборка в том же кадре) и порционный WorldLink.link_async → WorldObjects.setup_async (≤ 50 мс на кадр). Мир тот же: перепись по построителям (узлы, экземпляры MultiMesh, вершины, препятствия по видам, хеши преобразований и массивов) совпадает с эталоном, снятым со старого кода до правки, во всех трёх режимах. После доработки: task sync (FL-5, FL-9), game.gd:398 — await world_link.link_async.",
   "commits": [
     "2eb3f560 FL-6: перепись слоя OSM и посёлков — эталон старого пути до правки",
-    "978f5d65 FL-6: слой OSM и дома посёлков — расчёт в рабочих потоках, узлы порциями на главном"
+    "978f5d65 FL-6: слой OSM и дома посёлков — расчёт в рабочих потоках, узлы порциями на главном",
+    "5bcad0aa FL-6: этап objects — await world_link.link_async (узлы объектов порциями по кадрам)"
   ],
   "checks": [
+    {
+      "name": "world_objects",
+      "value": "190/190",
+      "pass": true
+    },
+    {
+      "name": "osm",
+      "value": "107/108 — test_versions (L5 v2 в тесте против v3 в osm-look.md), падение базы",
+      "pass": false
+    },
+    {
+      "name": "village",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "fast_load_k2",
+      "value": "5/5",
+      "pass": true
+    },
     {
       "name": "osm_threaded: перепись OSM (Бохинь 3x3) = эталон — потоки / главный поток / порции",
       "value": "совпадает во всех трёх, 5 прогонов",
@@ -27,46 +48,23 @@
       "pass": true
     },
     {
-      "name": "accept world_objects",
-      "value": "190/190 (2-й прогон); 1-й прогон — падение процесса в terrain_tree_models._load_species (FL-7)",
+      "name": "точка −27.7176,−48.7799: наибольший кадр этапа objects",
+      "value": "до: 7,07 с; с await link_async: 1,17 / 1,84 с (2 тёплых, тот же путь временной правкой game.gd до sync) — это кадры PlaceData.for_terrain (0,75–1,1 с) и маски просек (FL-10); сборка объектов — кадры ≤ 50 мс. Повторный замер после sync не снят: замок GPU всё время занят CLF-9 (две попытки, одна — таймаут 2400 с)",
       "pass": true
-    },
-    {
-      "name": "accept village",
-      "value": "падение процесса в terrain_tree_models._load_species при Terrain.load_location в test_counts — до кода FL-6; 1-й прогон 6/6",
-      "pass": false
-    },
-    {
-      "name": "accept osm",
-      "value": "107/108: test_versions (L5 v3 в docs/contracts/osm-look.md против v2 в тесте — было до FL-6); 1-й прогон ещё test_update_time_200_cars 1,74 мс > 1 мс под нагрузкой машины",
-      "pass": false
-    },
-    {
-      "name": "accept fast_load_k2",
-      "value": "5/5",
-      "pass": true
-    },
-    {
-      "name": "точка −27.7176,−48.7799: этап objects, наибольший интервал (2 тёплых)",
-      "value": "до: 7,07 с (WorldObjects 2,24 с); после, game.gd как есть: 4,60 / 6,85 с (WorldObjects 1,75 / 3,04 с, машина загружена чужими задачами); после с await link_async (временная правка game.gd, не закоммичена): 1,17 / 1,84 с — это кадры PlaceData (0,75–1,1 с) и маски просек, сборка объектов — порциями",
-      "pass": false
     }
   ],
   "not_done": [
-    "«Этап objects без кадра > 1 с» в игре не достигнут: game.gd (не мой скоуп) зовёт world_link.link без await, поэтому порционный путь не включён; нужна одна строка game.gd:395 → `await world_link.link_async(terrain, air, glider)`. С ней на точке наибольший кадр 1,2–1,8 с — это PlaceData.for_terrain (0,75–1,1 с) и WorldClearings.build_from (~0,7–1,1 с), оба на главном потоке и вне скоупа FL-6 (place_data.gd, world_clearings.gd)",
-    "Малые построители (дым труб, ветряки, канатки, машины, деревья города; на фикстуре < 40 мс вместе) не разделены: каждый — один шаг сборки на главном потоке целиком (грузят модели)"
+    "Кадры PlaceData и маски просек > 1 с остаются — по решению координатора это FL-10",
+    "Малые построители (дым труб, ветряки, канатки, машины, деревья города; < 40 мс вместе) — по шагу целиком на главном потоке"
   ],
-  "questions": [
-    "Разрешить в game.gd:395 `await world_link.link_async(terrain, air, glider)` (здесь или в FL-10)? Код готов и замерен временной правкой.",
-    "Вынести PlaceData.for_terrain и маску просек в рабочий поток (кадры 0,75–1,1 с и ~0,7–1,1 с) — отдельной задачей? OsmData.load_for внутри сам ждёт групповую задачу пула — из рабочего потока нужна проверка."
-  ],
+  "questions": [],
   "images": [],
   "how_to_check": "godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_threaded; .dpcli/dpcli accept FL-6",
   "uncertain": [
     {
       "where": "tests: world_objects / village (падения процесса)",
       "why": "Падения signal 11 в terrain_tree_models._load_species (ps.instantiate() сцены из ResourceLoader.load_threaded_request, FL-7) при Terrain.load_location; на моём коде 2 из ~6 прогонов world_objects и 1 прогон village",
-      "checked": "Тот же набор на базе 0af63bd4 (scripts откатывал локально): 6 прогонов — ошибки гонки RID (2–8 «Initializing already initialized RID»/«wrong RID», как и у меня), один прогон завис до таймаута в тех же тестах с игрой; падение village — в test_counts до любого кода FL-6. Считаю причиной фоновую загрузку моделей FL-7 под dummy-рендером; мои потоки RID не создают (ресурсы и узлы — только в шагах на главном)"
+      "checked": "Тот же набор на базе 0af63bd4 (scripts откатывал локально): 6 прогонов — ошибки гонки RID (2–8 «Initializing already initialized RID»/«wrong RID», как и у меня), один прогон завис до таймаута в тех же тестах с игрой; падение village — в test_counts до любого кода FL-6. Считаю причиной фоновую загрузку моделей FL-7 под dummy-рендером; мои потоки RID не создают (ресурсы и узлы — только в шагах на главном). После доработки accept: world_objects и village прошли без падений; падение _load_species — FL-16"
     },
     {
       "where": "scripts/world_objects/osm/osm_roads.gd CHUNKS",
@@ -93,6 +91,6 @@
   "extra": {
     "probe_logs": "/home/greg/projects/.tmp/claude-1000/-home-greg-deltaplan/3cc788c4-ff03-49e9-923f-c2af6ce76e44/scratchpad/m/{before_1,after_1,after_2,async_1,async_2}.log"
   },
-  "t": "2026-10-17T06:09:18",
+  "t": "2026-10-17T07:10:46",
   "by": "executor"
 }
