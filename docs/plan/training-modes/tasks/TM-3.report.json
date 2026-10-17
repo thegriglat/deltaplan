@@ -1,0 +1,32 @@
+{
+  "status": "done",
+  "summary": "Скрипт tools/shots/training_modes_shot.{gd,tscn} с тремя стадиями (window, goals, flight) и задание training_modes.xctsk; 3 PNG в build/screenshots/training-modes/ (window, goals, flight), просмотрены.",
+  "commits": [
+    "7b1c259c TM-3: кадры шлюза тренировки"
+  ],
+  "checks": [
+    {
+      "name": "frames",
+      "value": "3",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/training-modes/window.png",
+    "build/screenshots/training-modes/goals.png",
+    "build/screenshots/training-modes/flight.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TM-3",
+  "uncertain": [
+    {
+      "where": "tools/shots/training_modes_shot.gd",
+      "why": "язык ru пишется в профиль копии (Language.select); окно Godot ~958 px шириной, не 1920",
+      "checked": "кадры просмотрены: цель «Время в воздухе 10:00 · 0:04», маршрут training_modes выбран с галочкой"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-17T21:59:57",
+  "by": "executor"
+}
