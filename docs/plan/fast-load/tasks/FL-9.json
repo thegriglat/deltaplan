@@ -19,13 +19,13 @@
     "scripts/atmosphere/air_model/air_place.gd",
     "scripts/atmosphere/air_model/air_runtime.gd",
     "scripts/terrain/terrain_relief.gd",
-    "tests/atmosphere"
+    "tests/atmosphere",
+    "scripts/game/game.gd"
   ],
   "dont_touch": [
     "scripts/atmosphere/air_field_cache.gd",
     "scripts/atmosphere/thermal_field.gd",
     "scripts/atmosphere/atmosphere.gd",
-    "scripts/game/game.gd",
     "scripts/world_objects",
     "configs"
   ],
@@ -49,5 +49,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T04:38:35"
+  "created": "2026-10-17T04:38:35",
+  "edited": "2026-10-17T05:28:16"
 }
