@@ -44,6 +44,8 @@ static func prepare(data: OsmData, cfg: Dictionary, height_fn: Callable, rule: D
 	var n := 0
 	for k in tiles:
 		n += (tiles[k].walls as Array).size()
+		for mn: String in tiles[k].models:
+			n += (tiles[k].models[mn].xf as Array).size()
 	return {
 		"tiles": tiles,
 		"obstacles": obstacles,
