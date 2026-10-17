@@ -231,7 +231,7 @@ func test_pf_k4_swap_grid_cycles_before_same_after_like_fresh() -> void:
 		check(sh >= 0.0 and sh <= 1.0, "тень поля в [0,1]")
 		if sh > 0.0:
 			shaded += 1
-	check(a.field.cloud_phys != null and a.field.cloud_phys.field != null, "поле облачности у ThermalField (%d с тенью)" % shaded)
+	check(shaded > 0, "под полем облачности есть тень (%d термиков с тенью)" % shaded)
 	var grid_empties := 0
 	for id in empties_before:
 		if not air_ids_before.has(id):

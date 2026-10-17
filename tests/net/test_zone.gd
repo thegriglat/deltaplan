@@ -160,6 +160,15 @@ func _three_pilots_leader_leaves(srv: NetTestServer) -> void:
 		check(z.thermal_sources == za.thermal_sources, "источники термиков: %s" % [z.thermal_sources])
 		var got := Marshalls.base64_to_raw(String(z.thermal_sources.get("mask", "")))
 		check(got == mask, "маска источников байт в байт: %s" % [got])
+	# снимок поля облачности (CLF-К4): ведущий ставит — у остальных те же байты, один раз
+	var got_cf := {"b": [], "c": []}
+	zb.cloud_field_received.connect(func(d: PackedByteArray) -> void: got_cf.b.append(d))
+	zc.cloud_field_received.connect(func(d: PackedByteArray) -> void: got_cf.c.append(d))
+	var snap := PackedByteArray([1, 2, 3, 250, 0, 7])
+	za.set_cloud_field(snap)
+	await _wait(func() -> bool: return got_cf.b.size() > 0 and got_cf.c.size() > 0, 2.0)
+	await _wait(func() -> bool: return false, 2.2)  # ещё пара ZoneState: снимок не повторяется
+	check(got_cf.b == [snap] and got_cf.c == [snap], "снимок поля облачности дошёл ровно один раз: %s" % [got_cf])
 	# очередь с ботами, затем ведущий уходит
 	za.set_queue([ids[0], ids[1], ids[2], "bot-1", "bot-2"])
 	await _wait(func() -> bool: return zb.queue.size() == 5 and zc.queue.size() == 5, 2.0)

@@ -259,6 +259,28 @@ func _refresh_field(thermals: Dictionary, t: float, focus: Vector3, radius: floa
 		_finish_job()
 
 
+## Снимок поля от ведущего (CLF-К4): подтянуть поле к снимку на долю blend (1 — заменить).
+## Применяется к рабочей копии (её шаг продолжит с подтянутого состояния) и к `field`, между
+## задачами шага: идёт задача — вернуть BUSY (повторить позже; в детерминизме дожидаемся).
+## Возврат: APPLIED, REJECTED (другая версия/сетка — поле не менялось), BUSY.
+enum Net { APPLIED, REJECTED, BUSY }
+
+
+func apply_net_snapshot(b: PackedByteArray, blend: float) -> int:
+	if field == null or _work == null:
+		return Net.REJECTED
+	if _job != null:
+		if not deterministic and _job.task >= 0 and not WorkerThreadPool.is_task_completed(_job.task):
+			return Net.BUSY
+		_finish_job()
+	if field.nx == 0 or _work.nx == 0:
+		return Net.REJECTED
+	if not _work.apply_snapshot(b, blend):
+		return Net.REJECTED
+	field.apply_snapshot(b, blend)
+	return Net.APPLIED
+
+
 func _finish_job() -> void:
 	var job := _job
 	_job = null
@@ -397,7 +419,7 @@ func visible_clouds(thermals: Dictionary, t: float, focus: Vector3) -> Array:
 			{
 				"center": c,
 				"radius": maxf(0.5 * depth / _hw, 0.5 * f.dx * sqrt(s.x)),
-				"growth": smoothstep(cover_min, 0.6, s.x),
+				"growth": smoothstep(0.0, 0.5, s.w),  # стадия поля: >0 — растёт/зрелое
 				"decay": maxf(-s.w, 0.0),
 			}
 		)
