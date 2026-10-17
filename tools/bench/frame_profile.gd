@@ -17,6 +17,8 @@ extends Node
 ##   --cylinders=1   (GL-12) включить цилиндры целей (user-конфиг goals/world → cylinders.enabled)
 ##   --last-track=1  (GL-12) показывать след прошлой попытки (файл user://tracks/last/<место>.igc кладёт скрипт)
 ##   --igc=<путь>    (GL-12) загрузить трек IGC (FlightSettings.track_paths), можно несколько через «;»
+##   --world-t=T     (CLF-7) после старта перевести мир на T с от часа старта (Game.set_world_time) и подождать
+##                   поле облачности (на ветке без поля — просто пауза 8 с); час/погода — через --game-args=--hour=13.5,--temp=30,--wind=3
 ##   --air=T         после отметок (без паузы): на сим.времени T запросить пересчёт поля воздуха
 ##                   (AirRuntime.request_recompute) и мерить кадры, пока он идёт (не дольше 40 с)
 ## Пишет по строке JSON на опыт в --out (кадр CPU/GPU средн. и 1%-худших, проходы GPU,
@@ -63,6 +65,7 @@ var _sample_s := 2.0
 var _marks: Array = []
 var _exps: Array = ALL_EXPS.duplicate()
 var _air_t := -1.0
+var _world_t := -1.0
 var _goals_on := false
 var _cylinders_on := false
 var _last_track_on := false
@@ -103,6 +106,8 @@ func _ready() -> void:
 			_sample_s = float(a.substr(9))
 		elif a.begins_with("--out="):
 			_out_path = a.substr(6)
+		elif a.begins_with("--world-t="):
+			_world_t = float(a.substr(10))
 		elif a.begins_with("--air="):
 			_air_t = float(a.substr(6))
 		elif a.begins_with("--keep="):
@@ -142,6 +147,9 @@ func _ready() -> void:
 		_fail("не долетели до FLYING")
 		return
 	_game = _main.get_node("Game")
+	_game.flight_ended.connect(func(k: String, i: Dictionary) -> void: print("PROFILE flight_ended %s %s" % [k, JSON.stringify(i)]))
+	if _world_t >= 0.0:
+		await _world_jump()
 	_print_goals_state()
 	print("PROFILE osm_buildings %s %s: %s" % [_location, _tag, JSON.stringify(OsmBuildings.last_stats)])
 	_write({loc = _location, tag = _tag, exp = "_osm_buildings", stats = OsmBuildings.last_stats})
@@ -155,7 +163,7 @@ func _ready() -> void:
 			await get_tree().physics_frame
 		if int(_main.get("state")) != 2:
 			if _marks.size() == 1:
-				_fail("сел раньше отметки %s" % t_mark)
+				_fail("сел раньше отметки %s (state %d, sim_time %.1f, высота %.0f)" % [t_mark, int(_main.get("state")), _game.sim_time_s, _game.glider.global_position.y])
 				return
 			print("PROFILE %s %s: сел раньше отметки %s — дальше без отметок" % [_location, _tag, t_mark])
 			break
@@ -203,6 +211,31 @@ func _ready() -> void:
 	print("PROFILE hitches %s %s: %s" % [_location, _tag, JSON.stringify(_hitches)])
 	print("frame_profile: OK %s" % _location)
 	await _quit(0)
+
+
+## CLF-7: мир на _world_t секунд от часа старта; ждём, пока поле облачности (если есть) догонит
+## время атмосферы, и пишем покрытие поля в журнал (_cloud_field).
+func _world_jump() -> void:
+	_game.set_world_time(_world_t)
+	await _wait(8.0)
+	var cp: Variant = _game.air.get("cloud_phys")
+	var f: Variant = cp.get("field") if cp != null else null
+	var info := {world_t = _world_t, field = f != null and int(f.get("nx")) > 0}
+	if info.field:
+		for k in 120:
+			if float(f.get("time")) >= float(_game.air.get("time_s")) - 60.0:
+				break
+			await _wait(1.0)
+		var cover: PackedFloat32Array = f.get("cover") if "cover" in f else PackedFloat32Array()
+		var sum := 0.0
+		for v in cover:
+			sum += v
+		info.time = float(f.get("time"))
+		info.air_time = float(_game.air.get("time_s"))
+		info.coverage_mean = sum / maxf(cover.size(), 1)
+		info.base_msl = float(f.get("base_msl")) if "base_msl" in f else -1.0
+	print("PROFILE world_jump %s %s: %s" % [_location, _tag, JSON.stringify(info)])
+	_write({loc = _location, tag = _tag, exp = "_cloud_field", info = info})
 
 
 ## Настройки запуска (GL-12): цели, след прошлой попытки и загруженный трек — только если заданы
