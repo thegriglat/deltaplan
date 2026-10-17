@@ -1,0 +1,53 @@
+{
+  "id": "CLF-11",
+  "module": "cloud-field",
+  "type": "dp-engineer",
+  "title": "Хвосты ревью CLF-10: W̄ без конвекции, порог теста, край Аскарово",
+  "goal": "AirThermals: col_w = 0 в день без конвекции (как до CLF-10); порог dt в test_air_thermals обоснован; проверено, не артефакт ли края сетки W̄_м < 0 на верхних 20 % рельефа Аскарово.",
+  "plan_ref": "§CLF-10",
+  "contracts": [
+    {
+      "name": "CLF-К3",
+      "version": "2",
+      "ref": "docs/contracts/cloud-field.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-field-CLF-11",
+  "branch": "cloud-field/CLF-11",
+  "base": "feature/cloud-field",
+  "scope": [
+    "scripts/atmosphere/air_model/air_thermals.gd",
+    "tests/atmosphere/test_air_thermals.gd",
+    "tests/atmosphere/test_subsidence.gd",
+    "tools/research/cloud_field/",
+    "docs/research/cloud_field/subsidence.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "data/locations/",
+    "project.godot",
+    "docs/contracts/",
+    "scripts/atmosphere/cloud_layer.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_air_thermals",
+      "tests": "test_air_thermals"
+    },
+    {
+      "name": "test_subsidence",
+      "tests": "test_subsidence"
+    },
+    {
+      "name": "test_air_contracts",
+      "tests": "test_air_contracts"
+    },
+    {
+      "name": "test_zi_terrain",
+      "tests": "test_zi_terrain"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T09:32:19"
+}
