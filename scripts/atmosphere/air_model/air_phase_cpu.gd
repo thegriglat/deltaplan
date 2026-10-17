@@ -506,6 +506,8 @@ static func uml(p: Dictionary, w: PackedFloat64Array, sl: PackedFloat64Array, la
 
 ## θ′ слоя перемешивания — стационарный баланс вдоль ветра (AP-17 theta_march), проходы Якоби
 ## nx + ny раз (цепочка вверх по ветру выходит из области — точное решение) (air_phase.glsl:theta).
+## Переносится теплосодержание E = θ′·h (TW-3): θ′_in = E_up / max(h, h_up) — растущий слой разбавляет
+## тепло, тонеющий сохраняет θ′ (избыток — над слоем); при постоянном h — θ′_in = θ′_up.
 static func theta(p: Dictionary, um: PackedFloat64Array) -> PackedFloat64Array:
 	var a: PackedFloat32Array = p.prm
 	var nx: int = p.nx
@@ -517,9 +519,12 @@ static func theta(p: Dictionary, um: PackedFloat64Array) -> PackedFloat64Array:
 	var tau: float = a[P.P_TAU]
 	var fa := PackedFloat64Array()
 	var src := PackedFloat64Array()
+	var hb := PackedFloat64Array()
 	fa.resize(n2)
 	src.resize(n2)
+	hb.resize(n2)
 	for c in n2:
+		hb[c] = maxf(col[P.CI_HBL * n2 + c], 1.0)
 		var dt: float = a[P.P_DX] / um[c]
 		fa[c] = exp(-dt / tau)
 		src[c] = col[P.CI_HK * n2 + c] / maxf(col[P.CI_HBL * n2 + c], 1.0) * tau * (1.0 - fa[c])
@@ -538,10 +543,19 @@ static func theta(p: Dictionary, um: PackedFloat64Array) -> PackedFloat64Array:
 					var j0 := clampi(floori(fj), 0, ny - 2)
 					var aa := fi - i0
 					var bb := fj - j0
-					v = (
-						(1 - bb) * ((1 - aa) * th[j0 * nx + i0] + aa * th[j0 * nx + i0 + 1])
-						+ bb * ((1 - aa) * th[(j0 + 1) * nx + i0] + aa * th[(j0 + 1) * nx + i0 + 1])
+					var q00 := j0 * nx + i0
+					var q10 := q00 + 1
+					var q01 := q00 + nx
+					var q11 := q01 + 1
+					var eu := (
+						(1 - bb) * ((1 - aa) * th[q00] * hb[q00] + aa * th[q10] * hb[q10])
+						+ bb * ((1 - aa) * th[q01] * hb[q01] + aa * th[q11] * hb[q11])
 					)
+					var hu := (
+						(1 - bb) * ((1 - aa) * hb[q00] + aa * hb[q10])
+						+ bb * ((1 - aa) * hb[q01] + aa * hb[q11])
+					)
+					v = eu / maxf(hb[c], hu)
 				nw[c] = v * fa[c] + src[c]
 		th = nw
 	return th
