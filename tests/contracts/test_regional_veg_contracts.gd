@@ -61,7 +61,8 @@ func test_k1_biomes_format() -> void:
 	if b.is_empty():
 		_skip("configs/biomes.json")
 		return
-	check(FileAccess.get_file_as_bytes("res://configs/biomes.json").size() <= 8192, "biomes.json ≤ 8 КБ")
+	check(FileAccess.get_file_as_bytes("res://configs/biomes.json").size() <= 16384, "biomes.json ≤ 16 КБ (RV-К1 v2)")
+	check(JSON.stringify(b.get("tree", [])).length() <= 8192, "дерево ≤ 8 КБ")
 	check(int(b.get("version", 0)) == 1, "version 1")
 	check(String(b.get("source", "")).contains("Beck"), "source — Beck 2018")
 	check(Array(b.get("classes", [])) == CLASSES, "classes — 8 наборов в порядке контракта")

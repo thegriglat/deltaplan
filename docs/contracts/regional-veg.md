@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-18"
 summary: "Регион места biomes.json и Biome (К1), набор пород места (К2), модели новых пород (К3), профиль домов (К4), полог (К5), модели домов (К6)."
 related: ["docs/plan/regional-veg.md", "docs/research/regional-vegetation.md", "docs/contracts/scene-look.md"]
-contracts: [{"id": "RV-К1", "version": 1}, {"id": "RV-К2", "version": 1}, {"id": "RV-К3", "version": 1}, {"id": "RV-К4", "version": 1}, {"id": "RV-К5", "version": 1}, {"id": "RV-К6", "version": 1}]
+contracts: [{"id": "RV-К1", "version": 2}, {"id": "RV-К2", "version": 1}, {"id": "RV-К3", "version": 1}, {"id": "RV-К4", "version": 1}, {"id": "RV-К5", "version": 1}, {"id": "RV-К6", "version": 1}]
 ---
 # Контракты regional-veg
 
@@ -14,10 +14,10 @@ contracts: [{"id": "RV-К1", "version": 1}, {"id": "RV-К2", "version": 1}, {"id
 (фильтр `regional_veg_contracts`; функции `test_k<n>_*`). Тест пропускает проверку, пока артефакта нет (файл/класс не создан),
 и падает, если артефакт есть, а формат другой. Правка интерфейса — только координатор: версия +1, этот файл и тест — в том же шаге.
 
-## RV-К1 v1 — регион места: `configs/biomes.json` и `Biome`
+## RV-К1 v2 — регион места: `configs/biomes.json` и `Biome`
 
 - Владелец: RV-1. Потребители: RV-9 (`terrain.gd`, конфиг домов), RV-6, RV-8 (ключи профилей).
-- Файл `configs/biomes.json` (UTF-8, ≤ 8 КБ, генерирует `tools/world/bake_biomes.py`; секции `profiles` — вручную в скрипте/шаблоне, перезапекание их сохраняет):
+- Файл `configs/biomes.json` (UTF-8, ≤ 16 КБ — v2, было 8: профили с домами и пологом; само дерево ≤ 8 КБ, генерирует `tools/world/bake_biomes.py`; секции `profiles` — вручную в скрипте/шаблоне, перезапекание их сохраняет):
   ```
   {
     "version": 1,
@@ -36,6 +36,7 @@ contracts: [{"id": "RV-К1", "version": 1}, {"id": "RV-К2", "version": 1}, {"id
   - `static func profile(id: String) -> Dictionary` — копия профиля; неизвестный id — `{}`.
   - `static func classify_tree(lat: float, lon: float) -> String` — только дерево (для теста и отчёта точности).
 - Слияние (делает RV-9): `trees = world.trees ← profile.trees ← location.trees`, так же `terrain_look`, `scene_look`; `buildings = world_objects.buildings ← profile.buildings` (`Config._deep_merge`, место побеждает). Высота не входит в `at`: пояса пород по высоте — существующие `trees.species.*.min_m/max_m`.
+- v2 (2026-10-18, до RV-9): лимит файла 16 КБ; `version` в файле остаётся 1 (формат узлов не менялся).
 - Эталонные точки (тест, `Biome.at`):
 
   | Место | lat, lon | профиль |
