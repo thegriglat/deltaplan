@@ -43,7 +43,13 @@ func _run() -> void:
 	if _a.has("zi_alpha"):
 		# конфиг — живой словарь кеша Config: подмена действует на все расчёты этого запуска
 		Config.get_config("atmosphere").air_model.zi_terrain_alpha = float(_a.zi_alpha)
-	print("cloud_field: zi_terrain_alpha = %s" % Config.get_config("atmosphere").air_model.zi_terrain_alpha)
+	if _a.has("timeout_s"):
+		# предел расчёта поля (air_model.timeout_s 60 с): на занятой машине час поля не успевает
+		Config.get_config("atmosphere").air_model.timeout_s = float(_a.timeout_s)
+	print("cloud_field: zi_terrain_alpha = %s, timeout_s = %s" % [
+		Config.get_config("atmosphere").air_model.zi_terrain_alpha,
+		Config.get_config("atmosphere").air_model.get("timeout_s"),
+	])
 	var places := String(_a.get("places", "ongudai,training_island,almaty")).split(",")
 	var weathers := String(_a.get("weathers", "weak,strong,windy")).split(",")
 	var frames: Array[int] = []

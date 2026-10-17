@@ -41,7 +41,8 @@ $PY tools/research/cloud_field/plot.py --fig /home/greg/deltaplan/build/screensh
 `test_cloud_field_perf`, печатает `cloud_field_step_ms=`).
 
 ## CLF-9: z_i по рельефу — до/после
-`dump.gd --zi_alpha=<α>` подменяет `air_model.zi_terrain_alpha` на время запуска (0 — плоский z_i, как до CLF-9);
+`dump.gd --zi_alpha=<α>` подменяет `air_model.zi_terrain_alpha` на время запуска (0 — плоский z_i, как до CLF-9),
+`--timeout_s=<с>` — предел расчёта часа поля (на занятой машине 60 с не хватает — час выпадает из дня);
 кадр несёт `z_i_col` (z_i по столбцам, м MSL) и `zi_alpha`. Места: `ongudai`, `askarovo` (оба — `user://locations`
 профиля копии), `training_island`, `almaty`. День 9→13 ч, кадр 13 ч:
 ```bash
