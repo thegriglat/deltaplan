@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-17"
 summary: "Собака у стартового лагеря: стык с контекстом пасхалок (бегущие, старт лагеря, препятствия), модель с анимациями, лай, поведение и конфиг."
 related: ["docs/plan/start-dog.md", "docs/contracts/easter-eggs/framework.md", "docs/contracts/start-camp.md"]
-contracts: [{"id": "DOG-K1", "version": 1}, {"id": "DOG-K2", "version": 1}, {"id": "DOG-K3", "version": 1}, {"id": "DOG-K4", "version": 1}]
+contracts: [{"id": "DOG-K1", "version": 2}, {"id": "DOG-K2", "version": 1}, {"id": "DOG-K3", "version": 1}, {"id": "DOG-K4", "version": 1}]
 ---
 # Контракты модуля start-dog
 
@@ -14,7 +14,7 @@ contracts: [{"id": "DOG-K1", "version": 1}, {"id": "DOG-K2", "version": 1}, {"id
 SC-K1 (`docs/contracts/start-camp.md`). Всё, что ниже не сказано, — как там: только картинка и звук, без тел и
 столкновений, случайное — только из `rng`, тест К7 зелёный.
 
-## DOG-K1 v1 — что пасхалка видит: бегущие, старт лагеря, препятствия
+## DOG-K1 v2 — что пасхалка видит: бегущие, старт лагеря, препятствия
 Владелец — DOG-2. Потребитель — `start_dog.gd`. Только чтение, ни одна пасхалка в это не пишет.
 
 - `EggContext.runners: Array[Dictionary]` — пилоты на земле и в воздухе, планировщик заполняет каждый `update()`:
@@ -26,7 +26,7 @@ SC-K1 (`docs/contracts/start-camp.md`). Всё, что ниже не сказа�
   пишет `place_camp(start, heading_deg, …)`; лагеря нет — `{}`.
 - `EggPlace.camp_start() -> Dictionary` — копия `WorldObjects.camp_start` (`{}` — нет).
 - `EggPlace.obstacles_near(c: Vector2, r: float, kinds: PackedStringArray) -> Array[Vector3]` — прокси на
-  `WorldObjects.obstacles.points_near` (только чтение; `x, z` — центр, `y` — радиус, как в `ObstacleIndex`); нет
+  `WorldObjects.obstacles.points_near` (только чтение; элемент — `Vector3(x, z, радиус)`: `.x, .y` — центр по мировым X, Z, `.z` — радиус, как в `ObstacleIndex`; уточнено в v2 по коду); нет
   объектов — `[]`. Виды, нужные собаке: `tent`, `gear`, камни/кусты — какие есть в индексе.
 - Оси старта — SC-K1: `h = deg_to_rad(heading_deg)`, `fwd = Vector2(sin h, −cos h)`, `right = Vector2(cos h, sin h)`;
   `along = (p − s)·fwd`, `lat = (p − s)·right` (по `x, z`).
@@ -81,7 +81,8 @@ presence_share` (≈ 0,6). То есть детерминированно по �
 **Состояния** (`info().state`):
 - `rest` — лежит/сидит (`lie`/`sit`), `wander` — ходит/трусит между точками у палаток и вещей, `sniff` — стоит и нюхает;
   длительности и точки — из `rng` собаки; в покое состояние — функция времени мира и параметров (одно и то же при любом
-  шаге кадра), пока не было погони.
+  шаге кадра), пока не было погони. Без бегущих собака ≈ треть времени в движении (шаг, трусца, пробежки галопом
+  по лагерю и к бровке сбоку от коридора) — пожелание пользователя 2026-10-17: при пролёте над лагерем видно, что живая.
 - `chase` — бегущий (`phase == "running"`) ближе `notice_m` к собаке: через `react_s` (0,3–0,8 с) срывается галопом;
   цель — точка сбоку от бегущего (`side_m`, сторона — та, где собака) и чуть впереди/позади (`lead_m`); скорость
   ≤ `gallop_max_ms` (≈ 9 м/с), разгон/торможение ≤ `accel_ms2`; лает с интервалом `bark_interval_s`.
