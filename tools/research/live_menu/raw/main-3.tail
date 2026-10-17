@@ -1,0 +1,20 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+PERF menu_ms=12232 unix=1792261130.440
+PERF menu_window s=40 frames=2930 median_ms=13 worst_ms=335 hitches=5 total_ms=676
+Terrain: локация 'training_island' загружена за 10.11 с, чанков 160
+Terrain: поля рельефа за 8.77 с
+PlaceData: 'training_island' за 0.00 с — OSM 0.00 с (домов OSM 0), план домов 0.00 с (0)
+WorldObjects: снаряжение у 4 стартов — 72 вещей за 2525 мс
+WorldObjects: 'training_island' за 3.03 с — ветроуказателей 22, посадок 2, троп к стартам 4, домов 0, OSM тайлов 0/0
+air_model: field (массивы; уровней 3)
+air_model: запечённое поле res://data/locations/training_island/air/ridge_west.json, уровней 3, k притока 0.757, 1.19 с
+WorldObjects: палаток у старта 5 из 5 за 223 мс
+WorldObjects: судов 4 (без модели 0)
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=270&hour=12.00&lat=43.20602&lon=33.93795&seed=362765101&sky=overcast&temp=20.0&v=2&wind=6.0
+PERF fly_ms=22870
+PERF hitches=30 total_ms=7421 worst_ms=823 frames=181 median_ms=74 max_ms=823 list=[311, 823, 147, 165, 113, 124, 132, 137, 129, 149, 224, 234, 189, 229, 194, 359, 400, 291, 353, 283, 347, 289, 142, 145, 134, 141, 378, 124, 195, 540]
+PERF cloud_build_ms=235.6

@@ -1,0 +1,8 @@
+PERF menu_ms=37254 unix=1792261631.748
+air_model: запечённое поле res://data/locations/volcano_island/air/east_cliffs.json, уровней 3, k притока 0.981, 2.03 с
+PERF menu_world_ready unix=1792261645.342 baked=1
+PERF menu_window s=40 frames=266 median_ms=71 worst_ms=1559 hitches=230 total_ms=38814
+PERF menu_air_wait_ms=25269
+PERF fly_ms=34384
+PERF hitches=27 total_ms=7929 worst_ms=785 frames=388 median_ms=23 max_ms=785 list=[208, 585, 135, 785, 104, 158, 79, 98, 141, 87, 222, 220, 247, 194, 317, 280, 118, 239, 301, 339, 430, 454, 518, 381, 458, 395, 436]
+PERF cloud_build_ms=601.0

@@ -76,6 +76,7 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	if opts == null:  # тесты задают свои
 		opts = LaunchOptions.parse(OS.get_cmdline_user_args())
+		_parse_proto_flags(OS.get_cmdline_user_args())
 	if opts.prefetch_requested:
 		get_tree().quit(await PrefetchCli.run(self, opts.prefetch, opts.offline, opts.prefetch_errors))
 		return
@@ -120,6 +121,8 @@ func _ready() -> void:
 		await _fly(flight)
 	else:
 		await _show_menu()
+		if _proto_live_menu:
+			_proto_world()  # без await: меню остаётся живым, мир грузится за ним (LM-1)
 		# запуск Steam с «+connect_lobby <id>»: сразу экран «Сетевая игра» и вход
 		if steam_lobby != null and int(steam_lobby.pending_lobby) > 0:
 			_on_steam_join_requested(int(steam_lobby.pending_lobby))
@@ -129,6 +132,53 @@ func _ready() -> void:
 		_perf()
 	elif opts.screenshot != "":
 		_screenshot()
+
+
+## LM-1, только замер: --live-menu-proto (мир за меню) и --perf-menu=<с> (окно кадров меню в --perf).
+var _proto_live_menu := false
+var _proto_done := false
+var _perf_menu_s := 0.0
+var _perf_menu_swap := false
+
+
+func _parse_proto_flags(args: PackedStringArray) -> void:
+	for a in args:
+		if a == "--live-menu-proto":
+			_proto_live_menu = true
+		elif a == "--perf-menu-swap":
+			_perf_menu_swap = true
+		elif a.begins_with("--perf-menu="):
+			_perf_menu_s = float(a.substr(12))
+
+
+## LM-1: прототип «живого меню» — мир (volcano_island/east_cliffs, в воздухе, без ботов, автопилот,
+## камера сзади) грузится за меню обычным game.start; меню остаётся поверх, фон скрыт, когда мир готов.
+func _proto_world() -> void:
+	await RenderingServer.frame_post_draw
+	var s := FlightSettings.defaults()
+	s.location_id = "volcano_island"
+	s.site_id = "east_cliffs"
+	s.pick_lat = NAN
+	s.pick_lon = NAN
+	game.bots_count = 0
+	game.air_start_m = 200.0
+	game.air_start_agl_m = 150.0
+	game.autopilot = Autopilot.new()
+	game.autopilot.circle_after_s = 0.0
+	game.world_seed = opts.seed if opts.seed >= 0 else _new_seed()
+	var ok: bool = await game.start(s)
+	game.set_flying(false)
+	game.overlay.visible = false
+	game.camera.set_mode("chase")
+	if ok:
+		var baked: bool = bool(game.air_runtime.last_info.get("baked", false))
+		for n in start_menu.get_children():
+			if n is BackdropSlideshow:
+				n.visible = false
+		print("PERF menu_world_ready unix=%.3f baked=%d" % [Time.get_unix_time_from_system(), 1 if baked else 0])
+	else:
+		print("PERF menu_world_failed")
+	_proto_done = true
 
 
 func _process(delta: float) -> void:
@@ -1224,8 +1274,36 @@ func _look_point() -> Vector3:
 func _perf() -> void:
 	await RenderingServer.frame_post_draw
 	print("PERF menu_ms=%d unix=%.3f" % [Time.get_ticks_msec(), Time.get_unix_time_from_system()])
+	if _perf_menu_s > 0.0:
+		await _perf_menu_window()
+	if _proto_live_menu:
+		# Чтобы замер «Лететь» не смешался с фоновым пересчётом поля воздуха (уход бота из окон
+		# запечённого поля): остановить его и дождаться конца; ожидание — отдельной строкой.
+		var tw := Time.get_ticks_msec()
+		game.air_runtime.recompute_enabled = false
+		while game.air_runtime.busy():
+			await RenderingServer.frame_post_draw
+		print("PERF menu_air_wait_ms=%d" % (Time.get_ticks_msec() - tw))
+		game.autopilot = null
+		if opts.autopilot:
+			game.autopilot = Autopilot.new()
+	if _perf_menu_s > 0.0:
+		# «Лететь» на встроенное место без сети (место по умолчанию altai качает рельеф из сети).
+		# proto — на то же место, что за меню: смена места при живом мире за меню роняет
+		# release-сборку (SIGSEGV во второй загрузке рельефа); --perf-menu-swap — всё же сменить.
+		if _proto_live_menu and not _perf_menu_swap:
+			flight.location_id = "volcano_island"
+			flight.site_id = "east_cliffs"
+		else:
+			flight.location_id = "training_island"
+			flight.site_id = ""
 	var t0 := Time.get_ticks_usec()
-	await _fly(flight)
+	if _perf_menu_s > 0.0:
+		start_menu.fly_requested.emit(flight)  # тот же путь, что кнопка «Лететь»
+		while state != State.FLYING:
+			await RenderingServer.frame_post_draw
+	else:
+		await _fly(flight)
 	await RenderingServer.frame_post_draw
 	print("PERF fly_ms=%d" % ((Time.get_ticks_usec() - t0) / 1000))
 	# Рывок — кадр > 50 мс и > 2,5 медианы последних 30 кадров (фон загрузки GPU не считается).
@@ -1256,12 +1334,40 @@ func _perf() -> void:
 		worst = maxi(worst, h)
 	print(
 		(
-			"PERF hitches=%d total_ms=%d worst_ms=%d frames=%d median_ms=%d list=%s"
-			% [hitches.size(), total, worst, all_dt.size(), all_dt[all_dt.size() / 2], hitches]
+			"PERF hitches=%d total_ms=%d worst_ms=%d frames=%d median_ms=%d max_ms=%d list=%s"
+			% [hitches.size(), total, worst, all_dt.size(), all_dt[all_dt.size() / 2], all_dt[-1], hitches]
 		)
 	)
 	print("PERF cloud_build_ms=%.1f" % CloudCompositorEffect.build_ms)
 	_quit(0)
+
+
+## LM-1: <perf_menu_s> с кадров меню без ввода; рывок — кадр > 50 мс.
+func _perf_menu_window() -> void:
+	var dts: Array[int] = []
+	var t_prev := Time.get_ticks_usec()
+	var t_end := t_prev + int(_perf_menu_s * 1e6)
+	while t_prev < t_end:
+		await RenderingServer.frame_post_draw
+		var t := Time.get_ticks_usec()
+		dts.append((t - t_prev) / 1000)
+		t_prev = t
+	while _proto_live_menu and not _proto_done:  # мир ещё грузится: дождаться, не считая кадры
+		await RenderingServer.frame_post_draw
+	var hitches := 0
+	var total := 0
+	var worst := 0
+	for d in dts:
+		worst = maxi(worst, d)
+		if d > 50:
+			hitches += 1
+			total += d
+	var sorted := dts.duplicate()
+	sorted.sort()
+	print(
+		"PERF menu_window s=%d frames=%d median_ms=%d worst_ms=%d hitches=%d total_ms=%d"
+		% [int(_perf_menu_s), dts.size(), sorted[sorted.size() / 2], worst, hitches, total]
+	)
 
 
 ## Что выбрано для полёта — в метку сессии (отчёт о вылете, CrashReporter).
