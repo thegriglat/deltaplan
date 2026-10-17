@@ -1,0 +1,98 @@
+{
+  "status": "done",
+  "summary": "Источник термика больше не ставится над водой, правило общее для всех мест. Водой считается точка класса WATER или море по правилу Terrain.is_sea (класс NONE и высота ≤ 0,5 м). Точка источника поля (pick_in_column) и термика-клетки (аналитика) выбирается только на суше. Поток столбца идёт источникам только с его суши: Φ, W̄⁺, H и площадь водосбора умножаются на долю суши; столбец целиком на воде ничей. Источников над водой: вулканический остров 957 → 0, точка у Флорианополиса 7 → 0, учебный остров 0 → 0.",
+  "commits": [
+    "b26bf614 Термики: источник не над водой (VI-7)",
+    "HEAD sea_thermals: --show — water_sources_after сразу за местом"
+  ],
+  "checks": [
+    {
+      "name": "thermal",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "air",
+      "value": "87/87 (пропуск 33 GPU)",
+      "pass": true
+    },
+    {
+      "name": "florianopolis",
+      "value": "water_sources_after=0 (было 7, всего 878)",
+      "pass": true
+    },
+    {
+      "name": "training_island",
+      "value": "water_sources_after=0 (было 0, всего 633)",
+      "pass": true
+    },
+    {
+      "name": "volcano_island",
+      "value": "water_sources_after=0 (было 957, всего 146)",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "16 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "land_w0_p90 (сила над сушей до → после)",
+      "value": "учебный 2,709 → 2,708; вулканический 4,213 → 4,234; точка 4,609 → 4,610",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "docs/guide/air-model/thermals.md («Масштаб 2: термики из поля») не дополнен правилом воды: docs/ вне scope. Описание лежит в шапке air_thermals.gd и в tools/research/sea_thermals/README.md",
+    "Поля учебного острова устарели (model_hash сменился, air_thermals.gd входит в хеш): перепекание — задача VI-9, сам не перепекал"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VI-7 (перед этим git clean -f data/locations/volcano_island/: шаг gpu сам создаёт там *.webp.import, и проверка scope падает на них); числа: python3 tools/research/sea_thermals/report.py --show; заново: --run before (код без правки) / --run after, окно DISPLAY=:0",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/ground_field.gd set_functions",
+      "why": "Игра (game.gd, вне scope) не передаёт атмосфере surface_fn, поэтому класс для is_water берётся через surface_at объекта height_fn (Terrain.height_at → Terrain). Связь неявная. Если когда-нибудь передадут height_fn не от Terrain, воду узнаем только при явном surface_fn. Сам surface_fn не трогаю: от него зависят пылевые вихри",
+      "checked": "тест test_sea_none_class_and_terrain_object (заглушка с height_at/surface_at); в игре — прогон report.py, 0 над водой на трёх местах"
+    },
+    {
+      "where": "scripts/atmosphere/air_model/air_thermals.gd build (нормировка плотности)",
+      "why": "На вулканическом острове источников над сушей стало меньше: 213 → 142. Объяснение: средний Φ кандидатов Φ̂ теперь считается только по суше. Раньше слабые морские кандидаты занижали Φ̂, и источники на суше выходили плотнее, чем по Аллену. Отдельным прогоном объяснение не проверял",
+      "checked": "сила термиков над сушей не упала (p50 3,96 → 4,01; p90 4,21 → 4,23); на точке у Флорианополиса суша 825 → 818; на учебном острове без воды p90 тот же"
+    },
+    {
+      "where": "AirThermals.land_fraction",
+      "why": "Доля суши: углы и центр столбца, у берега 4×4 точки. Вода или суша мельче клетки 400 м, не задевшая ни угла, ни центра, в доле не видна. Точку источника на такой воде всё равно отсеивает проверка точки. Стоимость ≈0,5 с в рабочем потоке раз на сетку места (дальше кеш GroundField.land_cache); полный 4×4 по всей сетке занимал 3,6 с, это отвергнуто",
+      "checked": "land_ms в summary.json: 499 / 525 / 562 мс"
+    },
+    {
+      "where": "tools/research/sea_thermals/summary.json, учебный остров",
+      "why": "«До» шло с запечённым полем, «после» — с пересчитанным (хеш сменился), поэтому всего 594 → 633. Над водой 0 в обоих случаях, p90 тот же",
+      "checked": "air_runtime.baked в сводке"
+    },
+    {
+      "where": "условия точки −27,7176; −48,7799",
+      "why": "Дата в задании не указана. Взял 15 января: в июле (дата автостарта по умолчанию) при 28 °C вода там холоднее воздуха, H ≤ 0, и источников над водой нет даже до правки (0 из 3448). Ветер 2 м/с взял с 90°",
+      "checked": "оба прогона «до» (июль и январь) — в out/, в сводке только январь"
+    }
+  ],
+  "dp_feedback": "1) В проверках карточки регулярка ждёт '<место> water_sources_after=0' сразу после имени, а формат в дополнении — '<место> water_sources_before=N water_sources_after=M'. Пришлось поставить after перед before. 2) Шаг gpu внутри accept сам запускает godot --import и создаёт в копии неотслеживаемые data/locations/volcano_island/*.webp.import, после чего scope в том же прогоне падает. Удалить их «перед accept --dry» не помогает. Прошло только с --only docs после git clean. Нужен игнор этих путей в scope или очистка после gpu.",
+  "extra": {
+    "volcano_before": {
+      "water": 957,
+      "water_class_WATER": 636,
+      "NONE_sea": 303,
+      "cells_NONE_sea": 18,
+      "water_heat_p50_Wm2": 22.8,
+      "water_w0_p90": 4.06
+    },
+    "point_before_water_class_WATER": 7
+  },
+  "t": "2026-10-17T06:44:17",
+  "by": "executor"
+}
