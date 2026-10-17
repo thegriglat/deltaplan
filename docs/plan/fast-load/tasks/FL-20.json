@@ -1,0 +1,56 @@
+{
+  "id": "FL-20",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "Зависание загрузки при малом пуле потоков (2–4)",
+  "goal": "Загрузка места не зависает при пуле рабочих потоков 2, 3, 4 (override.cfg threading/worker_pool/max_threads) с GPU; выяснено, есть ли зависание на main; вложенные ожидания групп пула не могут занять все потоки.",
+  "plan_ref": "FL-20",
+  "contracts": [
+    {
+      "name": "PF-К4",
+      "version": "2",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-20",
+  "branch": "fast-load/FL-20",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts",
+    "tests"
+  ],
+  "dont_touch": [
+    "scripts/ui",
+    "configs",
+    "data"
+  ],
+  "accept": [
+    {
+      "name": "fast_load",
+      "tests": "fast_load"
+    },
+    {
+      "name": "air_place",
+      "tests": "air_place"
+    },
+    {
+      "name": "air_thermals",
+      "tests": "air_thermals"
+    },
+    {
+      "name": "place_data",
+      "tests": "place_data"
+    },
+    {
+      "name": "height",
+      "tests": "height"
+    },
+    {
+      "name": "osm_threaded",
+      "tests": "osm_threaded"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T13:07:02"
+}
