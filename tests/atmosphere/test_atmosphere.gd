@@ -386,6 +386,40 @@ func test_refresh_chunked_equals_sync() -> void:
 	chunk_a.free()
 
 
+## FL-5: тень клетки (окно в километры клеток) при первом обходе дольше любой порции — клетка
+## бросается по сроку и повторяется следующей порцией; итог тот же, что за один раз, и обновление
+## всегда продвигается (каждая попытка добавляет хотя бы один «голый» термик в память).
+func test_refresh_shade_split_equals_sync() -> void:
+	var sync_a := _atmo({}, {}, "weather/strong")
+	var chunk_a := _atmo({}, {}, "weather/strong")
+	for a: Atmosphere in [sync_a, chunk_a]:
+		a.set_ground(_hills, _sun)
+		a.set_focus(Vector3(500.0, 300.0, -300.0))
+		a.time_s = 3000.0
+	sync_a.refresh_now()
+	chunk_a.begin_load_refresh()
+	var steps := 0
+	var retries := 0
+	var prev_i := -1
+	while not chunk_a.load_refresh_step(1) and steps < 1000000:
+		steps += 1
+		var f := chunk_a.field
+		if f._j_ph == ThermalField._PH_GEN:
+			if f._j_i == prev_i:
+				retries += 1
+			prev_i = f._j_i
+	check(steps < 1000000, "обновление закончилось за %d шагов" % steps)
+	check(retries > 0, "клетки с тенью повторялись: %d" % retries)
+	var ia: Array = sync_a.field.thermals.keys()
+	var ib: Array = chunk_a.field.thermals.keys()
+	ia.sort()
+	ib.sort()
+	check(ia == ib and not ia.is_empty(), "набор тот же (%d / %d)" % [ia.size(), ib.size()])
+	check(sync_a.field._tp == chunk_a.field._tp, "сетка поиска та же")
+	sync_a.free()
+	chunk_a.free()
+
+
 ## PF-8: порция, оборванная на середине генерации, не портит следующее обновление: набор тот же,
 ## что у синхронного (чистая функция фокуса и времени).
 func test_refresh_abort_midway_then_sync_equals_sync() -> void:

@@ -1,0 +1,70 @@
+{
+  "status": "done",
+  "summary": "Пирамида максимумов высот слоя кешируется в папке места (cache/<слой>_maxpyr.bin; для res:// — user://height_cache/<путь>), при повторной загрузке читается в рабочем потоке load_files до раздачи слоя потокам (заполняет _max_pyr до потока рельефа); make_max_texture берёт готовое тело. Текстура высот с мипами (make_texture) не кешируется: 10–30 мс < порога 50 мс.",
+  "commits": [
+    "a9d59bad Рельеф: пирамида максимумов высот — в кеше места"
+  ],
+  "checks": [
+    {
+      "name": "height",
+      "value": "6/6 (test_height_cache: кеш = расчёт бит-в-бит; чужой/обрезанный/мусорный/пустой файл — пересчёт и перезапись)",
+      "pass": true
+    },
+    {
+      "name": "relief",
+      "value": "10/10 (2 пропуска)",
+      "pass": true
+    },
+    {
+      "name": "make_max_texture, мс (detail / far)",
+      "value": "до: 122/52, 96/85; после (кеш): 1.9/0.7, 1.9/0.6; первая загрузка без кеша 533/77 (машина под нагрузкой)",
+      "pass": true
+    },
+    {
+      "name": "этап mesh (второй), с",
+      "value": "до 1.59, 1.92; после 1.31, 1.24",
+      "pass": true
+    },
+    {
+      "name": "наибольший [gap] в mesh, мс",
+      "value": "до 1578, 1900; после 1291, 1236",
+      "pass": true
+    },
+    {
+      "name": "make_texture, мс",
+      "value": "9–29 (не кешируется, < 50 мс)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Кеш текстуры высот с мипами — не нужен по замеру (make_texture 10–30 мс)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept FL-8; замер — load_probe на копии профиля fl8-pt (--latlon=-27.7176,-48.7799 --no-shots), логи до/после в scratchpad",
+  "uncertain": [
+    {
+      "where": "tests/terrain/test_relief.gd:111 test_compute_time_40km",
+      "why": "порог 3 с падал при load average 85–106 (16 с, 3.6 с, 3.07 с); код TerrainRelief.compute не менялся",
+      "checked": "при спаде нагрузки 3 прогона accept подряд — PASS; отдельный прогон 2.68 с"
+    },
+    {
+      "where": "scripts/terrain/height_layer.gd load_from_file",
+      "why": "теперь каждый load_from_file считает sha256 файла высот (≈2.7 МБ, единицы мс, в рабочем потоке); вызывают и стадии сборки/world_clearings, им ключ не нужен",
+      "checked": "этап dem/mesh-1 в замере в пределах шума"
+    },
+    {
+      "where": "scripts/terrain/height_cache.gd write_async",
+      "why": "задача записи в пуле не ждётся в игре (как air_picard_job); при выходе во время записи останется .tmp рядом, не мешает (своё имя, rename атомарен)",
+      "checked": "тест ждёт запись и читает файл; обрезанный/битый — отказ"
+    },
+    {
+      "where": "кеш точки",
+      "why": "подпапка cache/ не входит в LocationCache.dir_size (плоский подсчёт); удаление места (remove_dir) рекурсивно её стирает",
+      "checked": "чтение кода location_cache.gd"
+    }
+  ],
+  "dp_feedback": "task show без --full обрезает дополнения координатора многоточием — легко пропустить важное; стоит подсказать --full прямо в строке обрезки.",
+  "t": "2026-10-17T04:33:46",
+  "by": "executor"
+}

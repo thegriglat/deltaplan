@@ -1,0 +1,98 @@
+{
+  "status": "partial",
+  "summary": "Построители слоя OSM (земля города, дороги, слой «для пилота» — ЛЭП/провода/вертикали/канатки/ВПП, дома OSM) и дома посёлков разделены на расчёт в WorkerThreadPool (только массивы, Transform3D, свой ObstacleIndex; высота — PlaceData.height_at) и сборку узлов на главном потоке шагами по тайлу. Есть синхронный путь (game.gd как сейчас: расчёт параллельно, сборка в том же кадре) и порционный WorldLink.link_async → WorldObjects.setup_async (≤ 50 мс на кадр). Мир тот же: перепись по построителям (узлы, экземпляры MultiMesh, вершины, препятствия по видам, хеши преобразований и массивов) совпадает с эталоном, снятым со старого кода до правки, во всех трёх режимах.",
+  "commits": [
+    "2eb3f560 FL-6: перепись слоя OSM и посёлков — эталон старого пути до правки",
+    "978f5d65 FL-6: слой OSM и дома посёлков — расчёт в рабочих потоках, узлы порциями на главном"
+  ],
+  "checks": [
+    {
+      "name": "osm_threaded: перепись OSM (Бохинь 3x3) = эталон — потоки / главный поток / порции",
+      "value": "совпадает во всех трёх, 5 прогонов",
+      "pass": true
+    },
+    {
+      "name": "osm_threaded: перепись посёлков Онгудая (build и build_async) = эталон",
+      "value": "совпадает",
+      "pass": true
+    },
+    {
+      "name": "osm_threaded: ObstacleIndex.merge = добавление по очереди",
+      "value": "массивы те же, 2000/2000 попаданий",
+      "pass": true
+    },
+    {
+      "name": "фикстура: расчёт OSM в потоках / на главном",
+      "value": "0,7–0,9 с / 2,45 с; сборка на главном ~0,25 с; самый долгий шаг 25 мс (слияние препятствий ЛЭП)",
+      "pass": true
+    },
+    {
+      "name": "accept world_objects",
+      "value": "190/190 (2-й прогон); 1-й прогон — падение процесса в terrain_tree_models._load_species (FL-7)",
+      "pass": true
+    },
+    {
+      "name": "accept village",
+      "value": "падение процесса в terrain_tree_models._load_species при Terrain.load_location в test_counts — до кода FL-6; 1-й прогон 6/6",
+      "pass": false
+    },
+    {
+      "name": "accept osm",
+      "value": "107/108: test_versions (L5 v3 в docs/contracts/osm-look.md против v2 в тесте — было до FL-6); 1-й прогон ещё test_update_time_200_cars 1,74 мс > 1 мс под нагрузкой машины",
+      "pass": false
+    },
+    {
+      "name": "accept fast_load_k2",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "точка −27.7176,−48.7799: этап objects, наибольший интервал (2 тёплых)",
+      "value": "до: 7,07 с (WorldObjects 2,24 с); после, game.gd как есть: 4,60 / 6,85 с (WorldObjects 1,75 / 3,04 с, машина загружена чужими задачами); после с await link_async (временная правка game.gd, не закоммичена): 1,17 / 1,84 с — это кадры PlaceData (0,75–1,1 с) и маски просек, сборка объектов — порциями",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "«Этап objects без кадра > 1 с» в игре не достигнут: game.gd (не мой скоуп) зовёт world_link.link без await, поэтому порционный путь не включён; нужна одна строка game.gd:395 → `await world_link.link_async(terrain, air, glider)`. С ней на точке наибольший кадр 1,2–1,8 с — это PlaceData.for_terrain (0,75–1,1 с) и WorldClearings.build_from (~0,7–1,1 с), оба на главном потоке и вне скоупа FL-6 (place_data.gd, world_clearings.gd)",
+    "Малые построители (дым труб, ветряки, канатки, машины, деревья города; на фикстуре < 40 мс вместе) не разделены: каждый — один шаг сборки на главном потоке целиком (грузят модели)"
+  ],
+  "questions": [
+    "Разрешить в game.gd:395 `await world_link.link_async(terrain, air, glider)` (здесь или в FL-10)? Код готов и замерен временной правкой.",
+    "Вынести PlaceData.for_terrain и маску просек в рабочий поток (кадры 0,75–1,1 с и ~0,7–1,1 с) — отдельной задачей? OsmData.load_for внутри сам ждёт групповую задачу пула — из рабочего потока нужна проверка."
+  ],
+  "images": [],
+  "how_to_check": "godot --headless --path . res://tests/run_tests.tscn -- --filter=osm_threaded; .dpcli/dpcli accept FL-6",
+  "uncertain": [
+    {
+      "where": "tests: world_objects / village (падения процесса)",
+      "why": "Падения signal 11 в terrain_tree_models._load_species (ps.instantiate() сцены из ResourceLoader.load_threaded_request, FL-7) при Terrain.load_location; на моём коде 2 из ~6 прогонов world_objects и 1 прогон village",
+      "checked": "Тот же набор на базе 0af63bd4 (scripts откатывал локально): 6 прогонов — ошибки гонки RID (2–8 «Initializing already initialized RID»/«wrong RID», как и у меня), один прогон завис до таймаута в тех же тестах с игрой; падение village — в test_counts до любого кода FL-6. Считаю причиной фоновую загрузку моделей FL-7 под dummy-рендером; мои потоки RID не создают (ресурсы и узлы — только в шагах на главном)"
+    },
+    {
+      "where": "scripts/world_objects/osm/osm_roads.gd CHUNKS",
+      "why": "Число кусков дорог теперь постоянное 8, а было min(ядра, 8): на машинах < 8 потоков деление мешей дорог по узлам другое, чем было у них (сами ленты те же)",
+      "checked": "На этой машине (20 потоков) перепись совпадает с эталоном; мир теперь одинаков на любой машине"
+    },
+    {
+      "where": "scripts/world_objects/osm_layer.gd _on_computed",
+      "why": "Препятствия ЛЭП/вертикалей/канаток собираются потоком в свой индекс и дописываются слиянием в момент сборки слоя Pilot — порядок в общем индексе прежний; ветряки и канатки по-прежнему пишут сами на главном потоке после",
+      "checked": "Хеш массивов и счёт по видам общего индекса и индекса домов совпадает с эталоном; тест попаданий merge"
+    },
+    {
+      "where": "OsmBuildings.prepare / BuildingStyle",
+      "why": "Поправка этажности меняет высоты в OsmData.buildings на месте в рабочем потоке; параллельно другие задачи читают только x, z, w, l (земля города, телебашни); высоты читает CityTreePlan позже, уже после сборки",
+      "checked": "Кеш сетки BuildingStyle под Mutex, сторона сетки считается локально"
+    },
+    {
+      "where": "замеры на точке",
+      "why": "Машина была загружена чужими задачами (vi2-matrix, clf1-day2 и др.) — разброс WorldObjects 1,75–3,04 с в синхронном пути; выигрыш синхронного пути ограничен самой долгой задачей (слой «для пилота» ~0,7–1 с в одном потоке)",
+      "checked": "по 2 тёплых прогона load_probe в копии профиля fl6-pt, до — 1 валидный (2 других шли во время правки и отброшены)"
+    }
+  ],
+  "dp_feedback": "accept падает на чужих нестабильных тестах (osm-look test_versions, тайминг трафика под нагрузкой, падения FL-7) — было бы полезно сравнение с базой ветки модуля (что падало до задачи). measure.sh из FL-1 в ветке модуля нет — мерил tools/loading/load_probe.gd.",
+  "extra": {
+    "probe_logs": "/home/greg/projects/.tmp/claude-1000/-home-greg-deltaplan/3cc788c4-ff03-49e9-923f-c2af6ce76e44/scratchpad/m/{before_1,after_1,after_2,async_1,async_2}.log"
+  },
+  "t": "2026-10-17T06:09:18",
+  "by": "executor"
+}

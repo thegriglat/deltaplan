@@ -1,0 +1,52 @@
+{
+  "id": "FL-15",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "Источники термиков поля (AirThermals.build) — параллельно",
+  "goal": "AirThermals.build (≈ 6,5 с на точке в одном рабочем потоке — главное ожидание экрана загрузки после FL-5) считается параллельно в WorkerThreadPool (полосы/клетки), результат бит-в-бит тот же; ожидание термиков на экране загрузки ≤ 1,5 с.",
+  "plan_ref": "FL-15",
+  "contracts": [
+    {
+      "name": "PF-К4",
+      "version": "2",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-15",
+  "branch": "fast-load/FL-15",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/atmosphere/air_model/air_thermals.gd",
+    "tests/atmosphere",
+    "tests/contracts/test_perf_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_model/air_place.gd",
+    "scripts/game/game.gd",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "thermal",
+      "tests": "thermal"
+    },
+    {
+      "name": "air_thermals",
+      "tests": "air_thermals"
+    },
+    {
+      "name": "perf_contracts",
+      "tests": "perf_contracts"
+    },
+    {
+      "name": "determinism",
+      "tests": "determinism"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T05:28:00"
+}
