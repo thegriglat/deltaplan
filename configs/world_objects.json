@@ -859,6 +859,23 @@
     "sink_m_doc": "Насколько стены уходят в землю под самой низкой точкой пятна, м",
     "roof_pitch_deg": 30.0,
     "roof_pitch_deg_doc": "Уклон двускатной крыши, град",
+    "village_roof": "gable",
+    "city_roof": "flat",
+    "hip_pitch_deg": 20.0,
+    "parapet_h_m": 0.8,
+    "parapet_t_m": 0.25,
+    "max_levels": 0,
+    "max_levels_osm": false,
+    "models": {
+      "rondavel": {"path": "res://assets/models/houses/house_rondavel.glb", "size_m": [5.0, 5.0]},
+      "tin_house": {"path": "res://assets/models/houses/house_tin_house.glb", "size_m": [8.0, 6.0]},
+      "stilt_house": {"path": "res://assets/models/houses/house_stilt_house.glb", "size_m": [8.0, 6.0]}
+    },
+    "village_models": [],
+    "village_model_share": 0.0,
+    "village_model_max_area_m2": 150.0,
+    "models_doc": "Модели домов (RV-К6, RV-10): реестр models{имя: {path: res://assets/models/houses/house_<имя>.glb, size_m: [x, z] — номинальный контур модели}}; профиль места задаёт village_models [{name, weight}] и village_model_share (0…1) — доля домов стиля «село» с высотой не из тегов OSM и площадью следа не больше village_model_max_area_m2, которые рисуются моделью (масштаб X/Z по контуру дома, Y — среднее; LOD0 до 250 м, LOD1 до 1500 м, LOD2 до visibility_m; цвет экземпляра — палитра стен стиля). Выбор по хешу положения дома, без камеры. Нет файла модели — дом остаётся коробкой.",
+    "forms_doc": "Формы домов по профилю региона (RV-К4). village_roof: gable (двускат, roof_pitch_deg) | hip (четырёхскатная, hip_pitch_deg 15…25) | flat_parapet (плоская с парапетом); city_roof: flat | flat_parapet; парапет — кольцо из 4 коробок высотой parapet_h_m и толщиной parapet_t_m цвета стен (трубы на нём не ставятся). max_levels: 0 — без потолка; иначе высота стен домов с высотой по правилу (не из тегов OSM) не больше max_levels · height_rule.level_m. Формы применяются к домам села с двускатной записью и к CITY; промзона и плоские сельские записи не меняются.",
     "_doc_style": "Стиль домов (OL-1, L2): город / село / промзона. Классификация по типу O3, площади следа, вытянутости и плотности застройки клетки; крыша всегда другого цвета, чем стены.",
     "style": {
       "cell_m": 200.0,

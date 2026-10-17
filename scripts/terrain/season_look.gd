@@ -26,6 +26,7 @@ const DEFAULTS := {
 	"season_leaf_days": [-15.0, 10.0, 18.0, 38.0],
 	"season_leafout_days": [2.0, 16.0],
 	"season_larch_lag": 8.0,
+	"evergreen": 0.0,
 	"snow_enabled": true,
 	"snow_lats": [10.0, 46.0, 60.0, 70.0],
 	"snow_line_summer": [4900.0, 3200.0, 1500.0, 500.0],
@@ -37,7 +38,7 @@ const DEFAULTS := {
 
 ## {green, dry, autumn, bare, rel}: свежесть весенней травы, добавка к сухости луга, окраска листвы
 ## (нарастает к осени и держится до листопада), листва опала — все 0…1; rel — дней от начала
-## вегетации (для полей). look — секция scene_look (нет ключа — значение по умолчанию).
+## вегетации (для полей). canopy_autumn/canopy_bare — то же для лиственной доли полога рельефа × (1 − evergreen), RV-К5. look — секция scene_look (нет ключа — значение по умолчанию).
 static func state(doy: float, lat_deg: float, alt_m: float, look: Dictionary = {}) -> Dictionary:
 	var line := snow_line(doy, lat_deg, look)
 	var snow := 0.0
@@ -46,6 +47,7 @@ static func state(doy: float, lat_deg: float, alt_m: float, look: Dictionary = {
 	if not bool(_p(look, "season_enabled")):
 		return {
 			"green": 0.0, "dry": 0.0, "autumn": 0.0, "bare": 0.0, "rel": 0.0,
+			"canopy_autumn": 0.0, "canopy_bare": 0.0,
 			"snow_fresh": snow, "snow_line_m": line,
 		}
 	var hop: Array = _p(look, "season_hopkins")
@@ -79,11 +81,14 @@ static func state(doy: float, lat_deg: float, alt_m: float, look: Dictionary = {
 		float(_p(look, "season_winter_dry")) * maxf(dorm, bare)
 	)
 	var trop := smoothstep(20.0, 26.0, al)
+	var keep := 1.0 - clampf(float(_p(look, "evergreen")), 0.0, 1.0)
 	return {
 		"green": trop * green,
 		"dry": trop * dry,
 		"autumn": trop * autumn,
 		"bare": trop * bare,
+		"canopy_autumn": trop * autumn * keep,
+		"canopy_bare": trop * bare * keep,
 		"rel": d - spring,
 		"snow_fresh": snow,
 		"snow_line_m": line,

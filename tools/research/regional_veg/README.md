@@ -22,3 +22,7 @@ md5 69594689d3cdd8323a0f74ce658125a1), лицензия CC BY 4.0. В репоз
     v/bin/python -I compare.py kg ../../../data/places/hg_takeoffs.json results.json
 
 `results.json` — числа (точность по способам, размер JSON, контрольные места). Высота не используется.
+
+Запекание игрового файла `configs/biomes.json` (RV-1): данные кладутся в `~/.cache/deltaplan/koppen/` (`kg` — tif, `v` — venv),
+затем `v/bin/python -I tools/world/bake_biomes.py kg` (дерево 128 листьев + исключения + профили) и
+`... --check kg` (печатает `world_acc=` против карты 1 км).

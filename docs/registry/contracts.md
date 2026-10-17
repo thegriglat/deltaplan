@@ -48,6 +48,7 @@ generated: true
 - pilot-view: PV1 v3, PV2 v1, PV3 v2 — [docs/contracts/pilot-view.md](../contracts/pilot-view.md)
 - popular-places: PP-К1 v3, PP-К2 v1 — [docs/contracts/popular-places.md](../contracts/popular-places.md)
 - qol: QL-К1 v1, QL-К2 v1, QL-К3 v1 — [docs/contracts/qol.md](../contracts/qol.md)
+- regional-veg: RV-К1 v2, RV-К2 v1, RV-К3 v1, RV-К4 v2, RV-К5 v1, RV-К6 v1 — [docs/contracts/regional-veg.md](../contracts/regional-veg.md)
 - scene-look: SL-К1 v4, SL-К2 v2, SL-К3 v1, SL-К4 v2, SL-К5 v1, SL-К6 v2, SL-К7 v1 — [docs/contracts/scene-look.md](../contracts/scene-look.md)
 - sea-ships: S1 v2, S2 v4, S3 v3, S4 v1 — [docs/contracts/sea-ships.md](../contracts/sea-ships.md)
 - site-i18n: SI-К1 v2, SI-К2 v1, SI-К3 v2, SI-К4 v3, SI-К5 v1, SI-К6 v1 — [docs/contracts/site-i18n.md](../contracts/site-i18n.md)

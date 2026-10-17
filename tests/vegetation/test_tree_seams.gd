@@ -230,7 +230,7 @@ func test_far_seam_density() -> void:
 	# силуэт на дерево в долях hh²: крест — карточка W·H варианта / mh² × доля альфы; билборд — 0,5 × доля альфы
 	var cross_k := 0.0
 	var nk := 0
-	for sp_name in TreePlacer.SPECIES:
+	for sp_name in TreePlacer.DEFAULT_SET:
 		for v in 2:
 			var lods := TerrainTreeModels._load_lods(String((cfg.models as Dictionary).get(sp_name, "")), v)
 			if lods.is_empty():
@@ -247,9 +247,9 @@ func test_far_seam_density() -> void:
 	var cw := atlas.get_width() / 4
 	var chh := atlas.get_height() / 2
 	var imp_k := 0.0
-	for k in TreePlacer.SPECIES.size():
+	for k in TreePlacer.DEFAULT_SET.size():
 		imp_k += 0.5 * _alpha_fill(atlas, Rect2i(Vector2i(k % 4 * cw, k / 4 * chh), Vector2i(cw, chh)))
-	imp_k /= TreePlacer.SPECIES.size()
+	imp_k /= TreePlacer.DEFAULT_SET.size()
 	var cov_c: float = rho_c * 1e-6 * cross_k
 	var cov_i: float = rho_i * 1e-6 * imp_k * f2
 	var cov_i0: float = rho_i0 * 1e-6 * imp_k

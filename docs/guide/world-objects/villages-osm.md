@@ -3,7 +3,7 @@ type: "guide"
 status: "active"
 module: "world"
 area: "world"
-updated: "2026-10-15"
+updated: "2026-10-18"
 summary: "Просеки для деревьев, процедурные дома в пятнах застройки, OSM-слой из тайлов (дороги, дома, ЛЭП, ветряки, трафик), деревья города."
 related: ["docs/guide/world-objects.md"]
 ---
@@ -58,6 +58,10 @@ ongudai 8 462; сборка WorldObjects askarovo 1,66 с. Число и пол�
 
 **Чего нет у процедурных домов:** заборов, полей, имён посёлков. Вода — WorldCover и реки по рельефу ([location-data.md](../location-data.md)); озёра
 объектами не рисуются — они в раскраске рельефа.
+
+### Формы домов по профилю региона (RV-К4, regional-veg)
+
+Ключи `configs/world_objects.json → buildings` (по умолчанию — прежний вид): `village_roof` — `gable` | `hip` (четырёхскатная, `hip_pitch_deg` 15…25, своя `ArrayMesh` в единичном кубе ступенями вытянутости 1/10, квадрат — шатёр) | `flat_parapet`; `city_roof` — `flat` | `flat_parapet` (парапет — кольцо из 4 коробок `parapet_h_m` × `parapet_t_m` цвета стен, трубы нет); `max_levels` — потолок этажей домов с высотой по правилу (`wall_h ≤ max_levels · height_rule.level_m`, 0 — без потолка; дома с высотой из тегов и процедурные записи без `по_правилу` не меняются). Формы применяются к селу с двускатной записью и к CITY; промзона не меняется. Подключение профиля к месту — `biomes.json` (RV-9). Тесты: `test_building_forms`.
 
 ## OSM-слой: объекты из тайлов (osm-tiles, osm-look)
 Источник — тайлы OSM 20 км ([osm-tiles.md](../osm-tiles.md); форматы O1–O9 — `docs/contracts/osm-tiles.md`, вид — `docs/contracts/osm-look.md`, L1–L9).
@@ -140,3 +144,11 @@ low — `density_mult` 0,35, радиус 400 м, без теней; medium — 
 от центра места — 7,5 тыс., у жилых окраин до 7 тыс. в кадре. Замеры, тесты — `tools/shots/city_trees_count.tscn`
 (счёт), `tools/shots/city_trees_shot.tscn` (кадр и `--bench`, `--notrees` — без деревьев),
 `tests/world_objects/test_city_trees.gd`.
+
+## Модели домов (RV-К6, RV-10)
+
+Гибрид: доля малых сельских домов профиля рисуется моделями вместо коробки с крышей. Реестр `configs/world_objects.json → buildings.models{имя: {path, size_m: [x, z]}}`; профиль задаёт `village_models [{name, weight}]` и `village_model_share` (0…1, по умолчанию 0 — всё как раньше). Кандидат: стиль «село», высота не из тегов OSM (запись посёлка или по правилу), след не больше `village_model_max_area_m2` (150). «Модель или коробка» и какая модель — хеш положения дома (детерминированно). Масштаб: X/Z по контуру дома (длинная сторона модели вдоль длинной стороны дома), Y — среднее X/Z; модель стоит на самой низкой точке пятна. MultiMesh на модель × LOD × тайл: LOD0 до 250 м, LOD1 до 1500 м, LOD2 до `visibility_m` (`visibility_range_begin/end`); цвет экземпляра — палитра стен стиля, умножается на альбедо (копия материала с `vertex_color_use_as_albedo`). Нет файла модели — дом остаётся коробкой. Препятствие-коробка дома сохраняется.
+
+## Профиль региона в конфиге домов (RV-9)
+
+`WorldObjects.load_config(lat, lon)` сливает `buildings ← Biome.profile(Biome.at(lat, lon)).buildings` (центр места — из `Locations.config`; без аргументов профиля нет), затем пресет качества. Профили (`configs/biomes.json`, данные — `tools/world/bake_biomes.py`): `island` (Ханга-Роа) — `max_levels` 1, модель `tin_house` 70 %, светлые стены, жестяные крыши; `tropical_wet` — `stilt_house` + `tin_house` 60 %; `savanna` — `rondavel` + `tin_house` 70 %; `subtropical` — `hip` и `tin_house` 30 %; `mediterranean` — `hip`, терракота, светлые стены, `max_levels` 4; `arid` — `flat_parapet`, охра и саман; `temperate`, `boreal`, `alpine_ice` — без изменений. Потолок `max_levels` действует на записи из 7 полей (дома посёлка, `VillageLayer`) и OSM-дома «по правилу» (поле 8 = 1); высота из тегов OSM режется только при `max_levels_osm` (RV-К4 v2; `island` включает — на Рапа-Нуи только одноэтажные). Цвет экземпляра (палитра стен) красит только материал `Wall_*` модели: `Roof_*` и `Wood_*` сохраняют свой цвет (солома не желтеет). Тест — `tests/world/test_region_wiring.gd`.

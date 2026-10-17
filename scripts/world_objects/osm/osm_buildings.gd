@@ -25,7 +25,8 @@ static func build(
 static func prepare(data: OsmData, cfg: Dictionary, height_fn: Callable, rule: Dictionary) -> Dictionary:
 	if data == null or data.buildings.is_empty():
 		return {}
-	var bc: Dictionary = cfg.buildings
+	var bc: Dictionary = (cfg.buildings as Dictionary).duplicate()
+	bc["level_m"] = float(rule.get("level_m", 3.0))
 	if not bool(bc.get("enabled", true)):
 		return {}
 	var t0 := Time.get_ticks_usec()
@@ -43,6 +44,8 @@ static func prepare(data: OsmData, cfg: Dictionary, height_fn: Callable, rule: D
 	var n := 0
 	for k in tiles:
 		n += (tiles[k].walls as Array).size()
+		for mn: String in tiles[k].models:
+			n += (tiles[k].models[mn].xf as Array).size()
 	return {
 		"tiles": tiles,
 		"obstacles": obstacles,

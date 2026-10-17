@@ -129,3 +129,44 @@ func test_season_mirror_and_compile() -> void:
 	OS.remove_logger(logger)
 	for e in logger.errors:
 		check(false, "ошибка шейдера в логе: " + e)
+
+
+const CANOPY_PROBE := """
+shader_type spatial;
+render_mode unshaded, cull_disabled;
+#include "res://scripts/terrain/terrain_common.gdshaderinc"
+#include "res://scripts/terrain/scene_look.gdshaderinc"
+void fragment() {
+	ALBEDO = sl_canopy_season(vec3(0.1, 0.3, 0.1), 0.0, sl_season_sp(1.0, 0.0), 0.0);
+}
+"""
+
+
+## RV-К5: sl_evergreen = 1 возвращает цвет полога без осени и листопада, 0 — окрашивает (осень, 51°).
+func test_canopy_evergreen_gpu() -> void:
+	var vp := SubViewport.new()
+	vp.size = Vector2i(200, 100)
+	vp.own_world_3d = true
+	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(vp)
+	var cam := Camera3D.new()
+	vp.add_child(cam)
+	var sh := Shader.new()
+	sh.code = CANOPY_PROBE
+	var look: Dictionary = Config.get_config("world").get("scene_look", {})
+	for day in [275.0, 310.0]:
+		var pre := SeasonLook.pre(day, 51.0, look)
+		_quad(vp, sh, -0.3, 0.0, {"sl_season_enabled": true, "sl_season_pre": pre, "sl_evergreen": 0.0})
+		_quad(vp, sh, 0.3, 0.0, {"sl_season_enabled": true, "sl_season_pre": pre, "sl_evergreen": 1.0})
+		for i in 12:
+			await get_tree().process_frame
+		var img := vp.get_texture().get_image()
+		var a := img.get_pixelv(Vector2i(cam.unproject_position(Vector3(-0.3, 0.0, -3.0)))).srgb_to_linear()
+		var b := img.get_pixelv(Vector2i(cam.unproject_position(Vector3(0.3, 0.0, -3.0)))).srgb_to_linear()
+		check(absf(b.r - 0.1) < 0.02 and absf(b.g - 0.3) < 0.02, "doy %.0f: evergreen=1 цвет без изменений" % day)
+		check(absf(a.g - 0.3) > 0.03 or absf(a.r - 0.1) > 0.03, "doy %.0f: evergreen=0 красит" % day)
+		for ch in vp.get_children():
+			if ch is MeshInstance3D:
+				ch.queue_free()
+		await get_tree().process_frame
+	vp.queue_free()

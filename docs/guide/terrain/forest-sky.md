@@ -3,7 +3,7 @@ type: "guide"
 status: "active"
 module: "terrain"
 area: "world"
-updated: "2026-10-15"
+updated: "2026-10-18"
 summary: "Деревья-модели и средний план леса, полог с высоты, небо, солнце, дымка с инверсией, ослепление, ветер на траве и деревьях."
 related: ["docs/guide/terrain.md"]
 ---
@@ -87,3 +87,7 @@ LOD2 (`TreeCrosses`, вершинный шейдер, до `trees.cross_radius_m
 вокруг камеры), кусты и одиночные деревья на лугу — [vegetation.md](../vegetation.md); травинки приминаются у ног пилота
 (`Terrain.set_pilot(node)`), на посадочных площадках скошены. **Просеки:** `Terrain.set_clearings(image, origin, cell_m)` (маска
 `WorldClearings.build_for(id)`) — деревья-модели, кресты и импостеры не стоят на дорогах, у зданий, на посадках и на тропах к стартам ([world-objects/villages-osm.md](../world-objects/villages-osm.md)).
+
+## Профиль региона для леса и полога (RV-9)
+
+`Terrain.region_section(world, ключ, место, lat, lon)` сливает `world.<ключ> ← профиль Biome.at(lat, lon) ← место` для `trees`, `terrain_look`, `scene_look` (центр — `center_lat/lon` загрузки). Профиль задаёт набор пород (`trees.set`), веса (`trees.species`), тон полога рельефа (`terrain_look.forest_color/birch_color`: тропики темнее и насыщеннее, саванна суше) и `scene_look.evergreen` (tropical_wet и island 1, subtropical 0,8, savanna 0,6, mediterranean 0,5, остальные 0). Фоновая загрузка моделей стартует с набором места. Пояса новых пород — `world.json → trees.species`: palm 0–450 м, tropical 0–1700 м, oak 0–1200 м. Граница модели: выше пояса всех пород набора деревьев нет (в тропиках выше ≈ 1700 м — без леса-моделей, облачный лес не смоделирован).

@@ -310,6 +310,7 @@ uniform vec4 sl_season_leaf_days = vec4(-15.0, 10.0, 18.0, 38.0);
 uniform vec2 sl_season_leafout_days = vec2(2.0, 16.0);
 uniform float sl_season_larch_lag = 8.0;
 uniform float sl_season_larch_share = 0.3;
+uniform float sl_evergreen = 0.0;   // RV-К5: вечнозелёная доля лиственного полога (осень и листопад гасятся)
 uniform vec3 sl_season_autumn_color = vec3(0.6, 0.4, 0.07);
 uniform vec2 sl_season_autumn_luma = vec2(1.25, 1.1);
 uniform vec3 sl_season_bare_color = vec3(0.1, 0.085, 0.07);
@@ -458,12 +459,13 @@ vec3 sl_canopy_season(vec3 fc, float con_p, vec4 sb, float alt) {
 	}
 	vec4 sg = sl_season_sp(2.0, alt);
 	float wb = 1.0 - con_p;
+	float we = wb * (1.0 - clamp(sl_evergreen, 0.0, 1.0));   // осыпающаяся часть берёзовой доли
 	float wl = con_p * sl_season_larch_share;
 	float y = dot(fc, SL_LW);
 	vec3 bare = sl_season_bare_color * clamp(y / 0.17, 0.4, 1.6);
-	vec3 r = mix(fc, sl_autumn_tone(fc, sl_season_autumn_luma.x), wb * sb.z * (1.0 - sb.w));
+	vec3 r = mix(fc, sl_autumn_tone(fc, sl_season_autumn_luma.x), we * sb.z * (1.0 - sb.w));
 	r = mix(r, sl_autumn_tone(fc, sl_season_autumn_luma.y), wl * sg.z * (1.0 - sg.w));
-	r = mix(r, bare, wb * sb.w);
+	r = mix(r, bare, we * sb.w);
 	return mix(r, bare, wl * sg.w);
 }
 

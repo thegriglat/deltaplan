@@ -202,6 +202,151 @@
       ],
       "bark": "rough",
       "stubs": 3
+    },
+    "oak": {
+      "_doc": "Дуб/бук: широкая округлая лиственная крона на толстом коротком стволе; осенью жёлтый (season_kind 1)",
+      "variants": 4,
+      "height_m": 22,
+      "trunk_radius_m": 0.45,
+      "trunk_top": 0.92,
+      "crown_base": 0.22,
+      "crown": "round",
+      "crown_radius": 0.4,
+      "branch_angle_deg": 22,
+      "droop": 0.08,
+      "whorls": 11,
+      "per_whorl": 6,
+      "clumps_per_branch": 3,
+      "clump_size": 0.17,
+      "lean": 0.03,
+      "leaf": "broad",
+      "leaf_color": [
+        0.2,
+        0.38,
+        0.12
+      ],
+      "leaf_color2": [
+        0.34,
+        0.5,
+        0.17
+      ],
+      "bark_color": [
+        0.38,
+        0.3,
+        0.24
+      ],
+      "bark_color_low": [
+        0.22,
+        0.19,
+        0.16
+      ],
+      "bark": "rough",
+      "stubs": 2,
+      "height_scale": [
+        0.8,
+        1.0,
+        1.2,
+        0.92
+      ],
+      "cards": 3,
+      "clump_up": 0.2
+    },
+    "palm": {
+      "_doc": "Пальма (кокосовая/королевская): тонкий слегка изогнутый ствол с кольцами, венец длинных свисающих перьев на верхушке (RV-5, переделка RV-5a: крона ≈0,6 H, ствол толще). variant_height — масштаб высоты по вариантам (11…21 м).",
+      "variants": 4,
+      "height_m": 16,
+      "trunk_radius_m": 0.24,
+      "trunk_top": 0.95,
+      "crown_base": 0.8,
+      "crown": "palm",
+      "crown_radius": 0.42,
+      "frond_halfwidth": 0.14,
+      "branch_angle_deg": 30,
+      "droop": 0.55,
+      "whorls": 3,
+      "per_whorl": 9,
+      "clumps_per_branch": 2,
+      "clump_size": 0.2,
+      "lean": 0.035,
+      "leaf": "palm",
+      "leaf_color": [
+        0.14,
+        0.36,
+        0.1
+      ],
+      "leaf_color2": [
+        0.28,
+        0.5,
+        0.15
+      ],
+      "bark_color": [
+        0.5,
+        0.42,
+        0.33
+      ],
+      "bark_color_low": [
+        0.32,
+        0.27,
+        0.22
+      ],
+      "bark": "rough",
+      "stubs": 0,
+      "variant_height": [
+        0.7,
+        0.9,
+        1.1,
+        1.3
+      ]
+    },
+    "tropical": {
+      "_doc": "Тропическое дерево (Атлантический лес Бразилии, Амазония): высокий прямой ствол, широкая плотная купольная вечнозелёная крона с плоским низом, тёмная кожистая листва",
+      "variants": 4,
+      "height_m": 28,
+      "trunk_radius_m": 0.45,
+      "trunk_top": 0.93,
+      "crown_base": 0.46,
+      "crown": "dome",
+      "crown_radius": 0.36,
+      "branch_angle_deg": 6,
+      "droop": 0.0,
+      "whorls": 9,
+      "per_whorl": 6,
+      "clumps_per_branch": 4,
+      "clump_size": 0.14,
+      "lean": 0.03,
+      "leaf": "tropical",
+      "leaf_color": [
+        0.07,
+        0.2,
+        0.06
+      ],
+      "leaf_color2": [
+        0.15,
+        0.34,
+        0.1
+      ],
+      "bark_color": [
+        0.5,
+        0.46,
+        0.4
+      ],
+      "bark_color_low": [
+        0.25,
+        0.21,
+        0.17
+      ],
+      "bark": "smooth",
+      "stubs": 0,
+      "branch_rise": 0.05,
+      "cards": 3,
+      "clump_from": 0.3,
+      "branch_angle_top_deg": 62,
+      "height_scale": [
+        0.7,
+        0.95,
+        1.15,
+        0.85
+      ]
     }
   },
   "lod": {

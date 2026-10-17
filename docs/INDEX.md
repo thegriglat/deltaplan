@@ -63,6 +63,8 @@ generated: true
   - [docs/guide/volcano-island.md](guide/volcano-island.md) — Вулканический остров: данные в сборке, training_only, OSM места, старты, погода, числа воздуха, окно «Тренировка», границы.
   - [docs/registry/volcano-island-findings.md](registry/volcano-island-findings.md) — Выводы модуля volcano-island: подъём у обрывов, ротор у кратера, термики над водой, граница модели (нет пассатной инверсии).
   - [tools/research/sea_thermals/README.md](../tools/research/sea_thermals/README.md) — VI-7: источник термика не над водой — число источников над водой до/после правки на трёх местах у моря. [closed]
+- **regional-veg** — Деревья и дома по региону места (T-83, B): дерево Кёппена + исключения, 3 новые породы, набор пород места, профиль домов. [closed 2026-10-18] — [план](plan/regional-veg.md) · [контракты](contracts/regional-veg.md) · [решения](plan/regional-veg/decisions.md) · [сводка](plan/regional-veg/summary.md) · полный журнал: `archive/regional-veg`
+  - [docs/research/house-models.md](research/house-models.md) — Дома: модели вместо коробок только гибридом (малые сельские дома профиля); город и промзона остаются MultiMesh-коробками
 
 ## game
 
