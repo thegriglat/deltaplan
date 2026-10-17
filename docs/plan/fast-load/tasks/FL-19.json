@@ -63,9 +63,14 @@
     {
       "name": "osm",
       "tests": "osm"
+    },
+    {
+      "name": "achievements",
+      "tests": "achievements"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T12:57:14"
+  "created": "2026-10-17T12:57:14",
+  "edited": "2026-10-17T13:06:26"
 }
