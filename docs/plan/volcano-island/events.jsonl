@@ -99,3 +99,4 @@
 {"t": "2026-10-17T06:50:42", "by": "coordinator", "task": "VI-7", "ev": "checked", "note": "7/7 thermal=ok:16/16; air=ok:87/87 (пропуск 33); florianopolis=ok:pt_-27.700_-048.800 water_sou…; training_island=ok:training_island water_sources…; volcano_island=ok:volcano_island water_sources_…; gpu=ok:16 тестов, 0 упало; docs=ok:ошибок 0; scope=FAIL:вне scope: data/locations/volcano_island/detail.webp.import…"}
 {"t": "2026-10-17T06:54:26", "by": "reviewer", "task": "VI-7", "ev": "reviewed", "note": "Правило общее и физически обосновано: точка источника только на суше (класс WATER или NONE при h ≤ 0,5 м — как Terrain.is_sea), поток столбца источникам × доля…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/volcano-island/tasks/VI-7.review.json"}
 {"t": "2026-10-17T06:54:43", "by": "coordinator", "task": "VI-7", "ev": "accepted", "note": "по ревью fable"}
+{"t": "2026-10-17T06:54:53", "by": "coordinator", "task": "VI-7", "ev": "merged"}
