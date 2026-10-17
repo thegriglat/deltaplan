@@ -1,9 +1,13 @@
 extends TestCase
 ## Облачный подсос (FR-14b): под крупным живым облаком подъём у основания сильнее и продолжается
 ## в облако; под молодым и распадающимся — слабеет у кромки; cloud_density_at; болтанка в облаке.
+## Облако — кучевое из поля облачности (CloudField, CLF-К1): заданное в столбце над термиком.
+
+const Fixture := preload("res://tests/atmosphere/cloud_field_fixture.gd")
 
 
-func _atmo_with_cloud(stage: Vector3 = Vector3(-1, 0, 0)) -> Atmosphere:
+## cl: Vector4(покрытие, мощность м, стадия −1..1, активность 0..1) облака над термиком.
+func _atmo_with_cloud(cl: Vector4 = Vector4(1.0, 1500.0, 0.0, 1.0)) -> Atmosphere:
 	var a := Atmosphere.new()
 	var w := Config._deep_merge(
 		Config.get_config("weather/strong"), {"thermal_mode": "static", "wind_speed_kmh": 0.0}
@@ -12,10 +16,9 @@ func _atmo_with_cloud(stage: Vector3 = Vector3(-1, 0, 0)) -> Atmosphere:
 	a.turbulence_enabled = false
 	a.set_ground(func(_x: float, _z: float) -> float: return 0.0,
 		func(_x: float, _z: float) -> float: return 1.0)
-	var id := a.add_static_thermal(0.0, 0.0, 4.0, 130.0)
-	if stage.x >= 0.0:
-		a.cloud_phys.model.stage_override[id] = stage
+	a.add_static_thermal(0.0, 0.0, 4.0, 130.0)
 	a.step(1.0)
+	Fixture.force_cloud(a, cl.x, cl.y, cl.z, cl.w)
 	return a
 
 
@@ -55,7 +58,8 @@ func test_in_cloud_chaos_and_eject() -> void:
 
 
 func test_no_suck_under_young_or_decaying() -> void:
-	for st in [Vector3(0.3, 0.0, 1.0), Vector3(1.0, 0.7, 0.2)]:
+	# молодое (стадия «растёт») и тающее (стадия «тает», подъём почти ушёл)
+	for st in [Vector4(0.6, 1500.0, 1.0, 1.0), Vector4(0.9, 1500.0, -1.0, 0.2)]:
 		var a := _atmo_with_cloud(st)
 		var cb := a.get_cloudbase_msl()
 		var mid := a.air_velocity_at(Vector3(0, cb * 0.5, 0)).y

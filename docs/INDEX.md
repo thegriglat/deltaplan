@@ -16,6 +16,14 @@ generated: true
 
 Модули — по подпроектам (area), внутри — по дате плана: строка на модуль, под ней — его прочие документы.
 
+## air
+
+- **cloud-field** — Облака из поля облачности над местом (рост от подъёма до LCL, таяние, снос ветром) вместо «одно облако на термик»; рендер слоем в raymarch. [closed 2026-10-17] — [план](plan/cloud-field.md) · [контракты](contracts/cloud-field.md) · [решения](plan/cloud-field/decisions.md) · [сводка](plan/cloud-field/summary.md) · полный журнал: `archive/cloud-field`
+  - [docs/perf/frame_profile/cloud-field.md](perf/frame_profile/cloud-field.md) — CLF-7: проход облаков, сильный день Онгудая: medium 4,35 → 0,73 мс, high 7,28 → 1,03 мс (ветка против main)
+  - [docs/research/cloud_field/subsidence.md](research/cloud_field/subsidence.md) — CLF-10: опускание циркуляции по мезомасштабному W̄ поля (σ 10 км): z_i столбца −|W̄_м|·3 ч; Алматы низина −130 м, облака 0,25 → 0,23
+  - [docs/research/cloud_field.md](research/cloud_field.md) — CLF-1/9/10: поле облачности из поля воздуха (подъём до LCL, таяние, снос), z_i по рельефу (α ⅓) и опускание циркуляции; карты до/после
+  - [tools/research/cloud_field/README.md](../tools/research/cloud_field/README.md) — CLF-1/9/10: карты поля облачности (Онгудай, Аскарово, остров, Алматы), z_i по рельефу и опускание до/после; команды, файлы
+
 ## flight
 
 - **pendulum-default** — Режим управления «Маятник» — основной: умолчание везде, без пометки «экспериментальный», первым в списке; сайт и доки — по факту. [active 2026-10-15] — [план](plan/pendulum-default.md) · [контракты](contracts/pendulum-default.md)
@@ -80,7 +88,7 @@ generated: true
 - [docs/guide/air-model.md](guide/air-model.md) — Модель воздуха в трёх масштабах: среднее поле (фазы + Пикар на GPU), термики и возмущения из поля; вход и оглавление частей.
 - [docs/guide/architecture.md](guide/architecture.md) — Архитектура: правила кода и конфигов, координаты, папки модулей, контракты между модулями, заменяемые ассеты.
 - [docs/guide/atmosphere/calibration.md](guide/atmosphere/calibration.md) — Бот-маршрутник и идеальный пилот на матрице погоды, калибровка дней (карточка 03), сила источника термиков из SurfaceHeat.
-- [docs/guide/atmosphere/clouds.md](guide/atmosphere/clouds.md) — Облака (compute и boxes), тени, птицы, признаки термиков, перистая пелена, Cb, волна, пылевые вихри, клубы пыли, известные проблемы.
+- [docs/guide/atmosphere/clouds.md](guide/atmosphere/clouds.md) — Облака из поля облачности, записи (линзы, шапка, Cb), тени, птицы, признаки термиков, Cb, волна, пыль, известные проблемы.
 - [docs/guide/atmosphere/ridge-starts.md](guide/atmosphere/ridge-starts.md) — Парение у склона на 10 стартах четырёх локаций: набор за 5 минут, ridge.efficiency 0,85, два слабых старта.
 - [docs/guide/atmosphere/weather.md](guide/atmosphere/weather.md) — Как прогноз пилота (температура, ветер, облачность) превращается в погоду дня: верх термиков, кромка, ход дня, закат.
 - [docs/guide/atmosphere/wind-field.md](guide/atmosphere/wind-field.md) — Из чего складывается скорость воздуха: пульсации, термик, снос, склон, подветренная зона и ротор, подсос облака, слова пилота в числах.

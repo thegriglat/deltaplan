@@ -5,7 +5,10 @@ extends CompositorEffect
 ## буфера из истории с перепроекцией и свежих соседей и билатеральный апскейл поверх кадра
 ## до прозрачных объектов.
 ## Код формы и света — общий с боксовым шейдером (cloud_common.gdshaderinc).
-## Данные (облака, параметры) выставляет CloudLayer с главного потока.
+## Кучевые региона — слой поля облачности (CLF-5): текстура CLF-К2 (field_tex, прошлый шаг —
+## field_tex_prev) и грубая карта пустых блоков (field_max_tex) в том же проходе; линзы, шапка,
+## Cb — записи (clouds_data). Без облаков в поле (cf_on = 0) слой не марширует.
+## Данные (облака, поле, параметры) выставляет CloudLayer с главного потока.
 
 const COMMON := "res://scripts/atmosphere/cloud_common.gdshaderinc"
 const MARCH := "res://scripts/atmosphere/cloud_raymarch_cs.gdshaderinc"
@@ -32,6 +35,9 @@ const FLOAT_PARAMS := [
 	"virga_density", "virga_period_m",
 ]
 const INT_PARAMS := ["coarse_steps", "max_iterations", "light_steps", "detail_enabled"]
+## Слой поля (CLF-К2 и грубая карта) — сразу за sizes: vec4 и два float (+2 запасных).
+const FIELD_VEC4 := ["cf_rect", "cf_base", "cf_mrect", "cf_misc", "cf_q0", "cf_q1", "cf_q2", "cf_q3"]
+const FIELD_FLOATS := ["cf_edge", "cf_on"]
 
 ## Замер (--perf): сколько заняла последняя сборка шейдеров облаков, мс.
 static var build_ms: float = -1.0
@@ -43,6 +49,13 @@ var cloud_count: int = 0
 var params: Dictionary = {}
 var noise_shape: Texture3D
 var noise_detail: Texture3D
+## Поле облачности (CLF-К2, RGBA8) — новый и прошлый шаг, грубая карта блоков (RG8); null — пусто.
+var field_tex: Texture2D
+var field_tex_prev: Texture2D
+var field_max_tex: Texture2D
+## Кадров, в которых слой поля марширован / пропущен (пустое поле, cf_on = 0) — для проверок.
+var field_frames: int = 0
+var field_skipped: int = 0
 ## Доля разрешения буфера облаков (0,5 — половина по каждой оси).
 var resolution_scale: float = 0.5
 ## Предел площади буфера облаков, пикселей (0 — без предела; PF-К2).
@@ -87,6 +100,8 @@ var _s_linear_rep: RID
 var _s_nearest: RID
 var _frame: int = 0
 var _failed: bool = false
+## Заглушка 1×1 для привязок слоя, пока поля нет.
+var _blank: ImageTexture
 
 
 func _init() -> void:
@@ -141,6 +156,13 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 	var detail_rd := RenderingServer.texture_get_rd_texture(noise_detail.get_rid())
 	if not shape_rd.is_valid() or not detail_rd.is_valid():
 		return
+	var f_rd := _field_rd(field_tex)
+	var fp_rd := _field_rd(field_tex_prev if field_tex_prev != null else field_tex)
+	var fm_rd := _field_rd(field_max_tex)
+	if float(params.get("cf_on", 0.0)) > 0.5:
+		field_frames += 1
+	else:
+		field_skipped += 1
 	var set0 := UniformSetCacheRD.get_cache(_march, 0, [
 		_sampler_u(0, _s_linear_rep, shape_rd),
 		_sampler_u(1, _s_linear_rep, detail_rd),
@@ -149,6 +171,9 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 		_buffer_u(4, RenderingDevice.UNIFORM_TYPE_UNIFORM_BUFFER, _ubo),
 		_buffer_u(5, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, _ssbo),
 		_image_u(6, _low_depth),
+		_sampler_u(7, _s_linear_clamp, f_rd),
+		_sampler_u(8, _s_linear_clamp, fp_rd),
+		_sampler_u(9, _s_nearest, fm_rd),
 	])
 	var cl := _rd.compute_list_begin()
 	_rd.compute_list_bind_compute_pipeline(cl, _march_pipe)
@@ -226,16 +251,32 @@ func _temporal(
 	return dst
 
 
+## RD-текстура слоя поля (заглушка, пока поля нет).
+func _field_rd(tex: Texture2D) -> RID:
+	if tex != null:
+		var r := RenderingServer.texture_get_rd_texture(tex.get_rid())
+		if r.is_valid():
+			return r
+	if _blank == null:
+		_blank = ImageTexture.create_from_image(Image.create(1, 1, false, Image.FORMAT_RGBA8))
+	return RenderingServer.texture_get_rd_texture(_blank.get_rid())
+
+
 # ---------------------------------------------------------------- сборка
 
 func _header() -> String:
-	var h := "#version 450\n"
+	var h := "#version 450\n#define CLOUD_FIELD\n"
 	h += "layout(set = 0, binding = 0) uniform sampler3D noise_shape;\n"
 	h += "layout(set = 0, binding = 1) uniform sampler3D noise_detail;\n"
 	h += "layout(set = 0, binding = 2) uniform sampler2D depth_tex;\n"
 	h += "layout(rgba16f, set = 0, binding = 3) uniform writeonly image2D out_cloud;\n"
 	h += "layout(set = 0, binding = 4, std140) uniform Params {\n"
 	h += "\tmat4 inv_proj;\n\tmat4 cam_to_world;\n\tvec4 sizes;\n"
+	for n in FIELD_VEC4:
+		h += "\tvec4 %s;\n" % n
+	for n in FIELD_FLOATS:
+		h += "\tfloat %s;\n" % n
+	h += "\tfloat cf_pad0;\n\tfloat cf_pad1;\n"
 	for pair in VEC_PARAMS:
 		h += "\tvec3 %s;\n\tfloat %s;\n" % pair
 	for n in FLOAT_PARAMS:
@@ -245,6 +286,9 @@ func _header() -> String:
 	h += "\tint cloud_count;\n\tint frame;\n\tint ofs_x;\n\tint ofs_y;\n};\n"
 	h += "layout(set = 0, binding = 5, std430) readonly buffer Clouds { vec4 d[]; } clouds;\n"
 	h += "layout(rg32f, set = 0, binding = 6) uniform writeonly image2D out_depth;\n"
+	h += "layout(set = 0, binding = 7) uniform sampler2D cf_tex;\n"
+	h += "layout(set = 0, binding = 8) uniform sampler2D cf_tex_prev;\n"
+	h += "layout(set = 0, binding = 9) uniform sampler2D cf_max;\n"
 	return h
 
 
@@ -343,6 +387,12 @@ func _ubo_bytes(
 		f.append_array([v3.x, v3.y, v3.z, 0.0])
 	f.append_array([cam.origin.x, cam.origin.y, cam.origin.z, 1.0])
 	f.append_array([low.x, low.y, full.x, full.y])
+	for n in FIELD_VEC4:
+		var q: Vector4 = params.get(n, Vector4.ZERO)
+		f.append_array([q.x, q.y, q.z, q.w])
+	for n in FIELD_FLOATS:
+		f.append(float(params.get(n, 0.0)))
+	f.append_array([0.0, 0.0])
 	for pair in VEC_PARAMS:
 		var v: Vector3 = params.get(pair[0], Vector3.ZERO)
 		f.append_array([v.x, v.y, v.z, float(params.get(pair[1], 0.0))])
