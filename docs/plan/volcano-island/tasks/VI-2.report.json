@@ -1,13 +1,14 @@
 {
-  "status": "partial",
-  "summary": "Locations.is_training_only и osm_root; builtin_at пропускает training_only; load_last_flight с таким местом даёт место по умолчанию; OsmData.load_for в world_objects/world_clearings получает Locations.osm_root(id); add_builtin_places.py пропускает training_only (каталог без volcano_island); тесты К1 (код) и меню. Приёмка PASS, кроме osm (2 теста падают и до правок).",
+  "status": "done",
+  "summary": "Доработка: test_e2e для training_only-места не требует «Популярных мест» (проверяет их отсутствие, выбор по первому старту конфига); test_e2e и все 9 проверок карточки PASS. Прогон test_matrix: падают только 9 сочетаний volcano_island (все крылья × 3 погоды) — старт east_cliffs не взлетает, см. uncertain.",
   "commits": [
-    "fa57c186 VI-2: training_only, osm_root, OSM из папки места, тесты"
+    "fa57c186 VI-2: training_only, osm_root, OSM из папки места, тесты",
+    "34c5b590 VI-2: e2e — training_only-место не требуется в «Популярных местах»"
   ],
   "checks": [
     {
       "name": "volcano_island",
-      "value": "PASS 9/9",
+      "value": "PASS",
       "pass": true
     },
     {
@@ -17,49 +18,66 @@
     },
     {
       "name": "menu_setup",
-      "value": "PASS 12/12",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "popular_places",
-      "value": "PASS 13/13",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "training_island",
-      "value": "PASS 25/25",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "catalog",
-      "value": "0",
+      "value": "PASS",
       "pass": true
     },
     {
-      "name": "osm",
-      "value": "103/105: test_osm_look_contracts::test_versions (L5 v2 против v3 в frontmatter) и test_osm_road_look::test_city_ground_mask; оба падают и без моих правок",
-      "pass": false
+      "name": "osm_data",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "osm_tiles",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_e2e",
+      "value": "PASS",
+      "pass": true
     }
   ],
   "not_done": [
-    "export_presets.cfg не менял: include_filter data/**/* уже берёт osm/*/*.dpt; реальный экспорт не запускал"
+    "test_matrix для volcano_island не чинил: причина в старте/ветре места (данные VI-1, config в dont_touch)"
   ],
-  "questions": [],
+  "questions": [
+    "Матрица (старт по умолчанию = east_cliffs, ветер в лоб 7/11/18 км/ч, автопилот): отрыв 1,8–1,9 с, 16 м, посадка с takeoff_failed (short_flight), набор 1,3 м. В полной матрице 'взлетел' false во всех 9 сочетаниях. Нужен ли этому старту погодный блок weather (VI-5) или правка старта (VI-1)?"
+  ],
   "images": [],
-  "how_to_check": ".dpcli/dpcli accept VI-2 --dry",
+  "how_to_check": ".dpcli/dpcli accept VI-2",
   "uncertain": [
     {
-      "where": "tests/stability/test_matrix.gd, tests/game/test_e2e.gd",
-      "why": "не правил, перебирают все места включая volcano_island; тяжёлые прогоны не гонял",
-      "checked": "только фильтры приёмки"
+      "where": "tests/stability/test_matrix.gd (не правил)",
+      "why": "падения только volcano_island (9 сочетаний: взлетел; одиночный прогон — взлёт не провален). Остальные места матрицы без падений",
+      "checked": "полный прогон job vi2-matrix; отладочный прогон одного сочетания (training, 7/11/18 км/ч): takeoff_failed, short_flight, перепад ~4 м на 16 м"
+    },
+    {
+      "where": "osm (прежняя проверка карточки)",
+      "why": "test_versions (L5 v2 против v3) и test_city_ground_mask падают и на базовой ветке без моих правок (git stash + --filter=osm_look / osm_road_look)",
+      "checked": "сейчас эти тесты из карточки убраны"
     },
     {
       "where": "export_presets.cfg",
-      "why": "экспорт .dpt сырыми не проверен реальной сборкой",
-      "checked": "по include_filter data/**/*"
+      "why": "не менял, реальный экспорт .dpt не запускал",
+      "checked": "include_filter data/**/*"
     }
   ],
-  "dp_feedback": "accept --dry не отличает падения базовой ветки от новых; импорт создаёт .import в data/ и ломает проверку scope; отчёт принимает чужой устаревший json без предупреждения.",
-  "t": "2026-10-17T04:12:32",
+  "dp_feedback": "Отчёт молча принял устаревший json из общей scratchpad; пробный accept --dry на 195 с блокирует; .import от godot --import в data/ ломает scope.",
+  "t": "2026-10-17T05:04:05",
   "by": "executor"
 }
