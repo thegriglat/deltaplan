@@ -1,48 +1,56 @@
 {
-  "verdict": "rework",
-  "summary": "Код FL-10 (de6f58a0, 902d791b) по замыслу верен: старт до объектов, поле фоном, PlaceData и маска в пуле, этажность OsmBuildings в копии. Но отчёт под FL-10 — чужой (DOG-2a), замеров и итогов приёмки нет; перепрогон «game» — таймаут 900 с и 2 FAIL.",
+  "verdict": "accept",
+  "summary": "Замечания прошлого ревью закрыты: отчёт свой, ensure_loaded перенесён на главный поток, load_order сверяет перепись объектов, план домов и препятствия ботов. Порядок верный: старт и пустырь до снимка поверхности поля, маска просек на forest_at и поле не влияет, копия домов в OsmBuildings не меняет читателей (landmark_towers и маска берут только позиции). e2e падает на test_achievements_e2e::test_flight_opens_first_flight, но так же падает на feature/fast-load без FL-10, то есть это не регрессия FL-10.",
   "issues": [
     {
-      "file": "docs/plan/fast-load (отчёт FL-10)",
-      "line": 0,
-      "severity": "blocker",
-      "what": "Отчёт ≠ факт: под FL-10 подан отчёт задачи start-dog/DOG-2a (перехват собаки, коммит 452f4988 — его нет в fast-load/FL-10). Своего отчёта FL-10 нет: нет коммитов de6f58a0/902d791b, итогов приёмки, замеров до/после (to_flying_s, load_max_gap_ms, этапы, load average, попадание/промах, Онгудай/точка), чисел для пула 2–4 потока, которые требует карточка.",
-      "fix": "Подать отчёт FL-10 заново (`.dpcli/dpcli report FL-10`) с настоящими коммитами, замерами measure.sh/compare.py против gate1_hit/gate1_miss, числами для пула 2–4 потока и итогами `accept FL-10 --dry`. Координатору проверить, что отчёт DOG-2a не потерялся в журнале start-dog."
-    },
-    {
-      "file": "tests/game/test_e2e.gd",
-      "line": 0,
+      "file": "tests/steam/test_achievements_e2e.gd",
+      "line": 19,
       "severity": "major",
-      "what": "Перепрогон `accept FL-10 --only game --dry`: таймаут 900 с, к этому моменту 2 FAIL: test_e2e_all_locations (training_island: kind == landed (takeoff_failed), from=270, wind 6) и test_game_logic::test_pilot_animator_sequence («у земли — выход из кокона»). Не выяснено, регрессия ли это от нового порядка (_setup_glider и prefetch препятствий до _align_start_heading/collisions, вид ботов отложен) или так было на feature/fast-load.",
-      "fix": "Прогнать оба теста на базе feature/fast-load и на ветке; регрессию исправить. Если набор «game» не укладывается в 900 с — сообщить координатору с числами, а не молчать."
+      "what": "Проверка карточки e2e (--filter=e2e) у FL-10 падает 2 раза из 2 (147–164 с): test_flight_opens_first_flight, «посадка: []» и далее. В копии feature/fast-load (8d402c65, отличие от базы FL-10 только в docs) падает так же. Значит, FL-10 тут ни при чём, но accept по карточке не пройдёт. Исполнитель этот тест не прогонял: проверку e2e добавили одновременно с отчётом.",
+      "fix": "Координатору: убрать тест из проверки FL-10 (фильтр test_e2e) и завести отдельную задачу на test_achievements_e2e у feature/fast-load."
     },
     {
-      "file": "tests/game/test_load_order.gd",
-      "line": 97,
-      "severity": "major",
-      "what": "«Тот же мир» сравнивается только по именам дочерних узлов WorldObjects и числу домов. При прежнем порядке объекты строились до add_start_clearing, теперь после: дома, вещи и камни у пустыря могут сдвинуться или пропасть, а имена и число домов останутся теми же. Тождество, которое требует карточка (п. 5), тест не доказывает.",
-      "fix": "Сравнивать хеш позиций: дома (позиции и высоты), ObstacleIndex объектов, start_obstacles ботов. Либо прямо показать, что при старте в лесу объекты пустырь не используют."
-    },
-    {
-      "file": "scripts/world_objects/place_data.gd",
-      "line": 132,
+      "file": "scripts/game/game.gd",
+      "line": 398,
       "severity": "minor",
-      "what": "_assemble в рабочем потоке вызывает pd.patches.ensure_loaded() на BuiltPatches, общем через мету Terrain (BuiltPatches.for_terrain). Раньше это шло на главном потоке («до рабочих потоков»). Если главный поток тронет тот же объект до job.finish() (egg_place, world_objects), будет гонка.",
-      "fix": "Вызвать ensure_loaded() в start_for_terrain на главном потоке (дёшево, растр долей) или показать, что до finish() его никто не трогает."
+      "what": "Поведение изменилось: _choose_start теперь до link_async. Пустырь у старта с карты вырезается до объектов, поэтому городские деревья OSM в круге пустыря больше не ставятся. Мир уже не тот же, что при прежнем порядке, но так правильнее. В load_order на Онгудае это не видно: в фикстуре нет OSM.",
+      "fix": "Ничего не править; отметить в CHANGELOG/журнале как намеренное."
+    },
+    {
+      "file": "docs/plan/fast-load",
+      "line": 0,
+      "severity": "minor",
+      "what": "Из not_done: при пуле 3–4 потока (override.cfg) игра с GPU зависает в меню, при пуле 2 — на этапе mesh. На коде до FL-10 так же. Это зависание вне FL-10 у машин с 2–4 ядрами (у целевого ПК 6 ядер / 12 потоков, но пул может быть меньше).",
+      "fix": "Координатору: отдельная задача на зависание при малом пуле потоков."
     }
   ],
   "rerun": [
     {
-      "name": "accept FL-10 --only game --dry",
-      "value": "таймаут 900 с; 107 ok, 2 FAIL (test_e2e_all_locations, test_pilot_animator_sequence); лог build/dpcli/FL-10/01-game.log в копии",
+      "name": "accept FL-10 --only load_order --dry",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "accept FL-10 --only fast_load_k2 --dry",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "accept FL-10 --only e2e --dry (2 раза)",
+      "value": "1/2: test_e2e_all_locations ok, test_achievements_e2e::test_flight_opens_first_flight FAIL",
       "pass": false
     },
     {
+      "name": "test_achievements_e2e на feature/fast-load без FL-10 (~/deltaplan-fast-load)",
+      "value": "FAIL так же — до FL-10",
+      "pass": true
+    },
+    {
       "name": "scope",
-      "value": "8 файлов в границах; dont_touch не тронут",
+      "value": "8 файлов в границах, dont_touch и project.godot не тронуты",
       "pass": true
     }
   ],
-  "t": "2026-10-17T12:23:29",
+  "t": "2026-10-17T13:05:43",
   "by": "reviewer"
 }

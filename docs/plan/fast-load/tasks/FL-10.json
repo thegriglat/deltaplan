@@ -75,12 +75,12 @@
       "tests": "load_order"
     },
     {
-      "name": "e2e",
-      "tests": "e2e"
+      "name": "test_e2e",
+      "tests": "test_e2e"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-17T06:11:45",
-  "edited": "2026-10-17T12:56:53"
+  "edited": "2026-10-17T13:06:07"
 }
