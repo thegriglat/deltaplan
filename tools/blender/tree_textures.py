@@ -197,9 +197,38 @@ def _birch(cv: Canvas, rng, c1, c2) -> None:
                     cv.ellipse(px + ox, py + oy, sz * 1.35, sz, a, col)
 
 
+def _palm(cv: Canvas, rng, c1, c2) -> None:
+    """Перо пальмы (pinnate): ось-рахис от низа к кончику, по обе стороны узкие листочки под
+    ~55° к оси вперёд, длиннее в первой трети и к кончику короче; между листочками просветы.
+    Полоса в мешe вдвое уже длины (ширина = 0,5 длины) — длины считаем в метрах-долях пера и
+    переводим в пиксели: x ×1024, y ×512."""
+    rach = np.array([0.35, 0.3, 0.16], dtype=np.float32)
+    x0 = CARD * 0.5
+    n = 58
+    for i in range(n + 1):
+        t = i / n
+        y = CARD * (0.01 + 0.98 * t)
+        if i:
+            cv.line((x0, CARD * (0.01 + 0.98 * (i - 1) / n)), (x0, y), 3.2 * (1 - 0.6 * t),
+                    3.2 * (1 - 0.6 * (i / n)), rach)
+    for i in range(6, n):
+        t = i / n
+        env = math.sin(math.pi * min(0.12 + 0.88 * t ** 0.7, 1.0)) ** 0.9
+        ln = 0.235 * max(env, 0.06) * (0.9 + 0.2 * rng.random())
+        y = CARD * (0.01 + 0.98 * t)
+        for sgn in (-1, 1):
+            a = math.radians(rng.uniform(48, 62))
+            dx, dy = math.sin(a) * ln * 1024, math.cos(a) * ln * 512
+            col = _mix(c1, c2, rng.random(), 0.8 + 0.3 * t)
+            cv.line((x0, y), (x0 + sgn * dx, y + dy), 3.0, 1.0, col)
+            # второй, чуть светлее и короче слой — объём листочка
+            cv.line((x0 + sgn * dx * 0.1, y), (x0 + sgn * dx * 0.9, y + dy * 0.9), 1.6, 0.8,
+                    _mix(c1, c2, 0.9, 1.05))
+
+
 def foliage(kind: str, c1, c2, seed: int) -> np.ndarray:
     """RGBA-карточка (низ картинки — у ветки, верх — конец ветки).
-    kind: pine, cedar, spruce, larch, birch; broad, palm — заготовки (= birch)."""
+    kind: pine, cedar, spruce, larch, birch; palm; broad — заготовка (= birch)."""
     rng = np.random.default_rng(seed)
     rs = random.Random(seed)
     cv = Canvas(CARD, CARD)
@@ -211,9 +240,10 @@ def foliage(kind: str, c1, c2, seed: int) -> np.ndarray:
         _spruce(cv, rs, c1, c2, CARD * 0.032)
     elif kind == "larch":
         _larch(cv, rs, c1, c2)
+    elif kind == "palm":
+        _palm(cv, rs, c1, c2)
     else:
-        # TODO(RV-4/RV-5/RV-7): kind "broad" (дуб, тропическое) и "palm" (перо) — свои функции;
-        # до тех пор листва как у берёзы
+        # TODO(RV-4/RV-7): kind "broad" (дуб, тропическое) — своя функция; до тех пор как у берёзы
         _birch(cv, rng, c1, c2)
     rgba = np.concatenate([cv.rgb, cv.a[..., None]], axis=2)
     return rgba
@@ -247,6 +277,10 @@ def bark(kind: str, col, col_low, seed: int) -> np.ndarray:
             img[yy, xx] = low
         base_k = np.clip((0.12 - v) / 0.1, 0, 1)
         img = img * (1 - base_k[..., None]) + low * base_k[..., None]
+    elif kind == "palm":  # серо-бурый ствол с поперечными кольцами листовых рубцов
+        ring = 0.5 + 0.5 * np.sin(2 * np.pi * v * 70 + 1.5 * np.sin(2 * np.pi * u * 3 + v * 9))
+        base = low[None, None] * (1 - 0.6 * v[..., None]) + col[None, None] * 0.6 * v[..., None]
+        img = base * (0.62 + 0.5 * ring[..., None]) * (0.92 + 0.1 * fur[..., None])
     else:
         img = (low * (1 - v[..., None]) + col * v[..., None]) * (0.7 + 0.45 * fur[..., None])
     return np.clip(img, 0, 1)
