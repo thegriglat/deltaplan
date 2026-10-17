@@ -4,9 +4,9 @@ status: "active"
 module: "cloud-field"
 area: "air"
 updated: "2026-10-17"
-summary: "Стыки поля облачности: CloudField (К1), текстура рендера (К2), потолок частицы AirThermals (К3), снимок сети (К4), конфиг (К5)."
+summary: "Стыки поля облачности: CloudField (К1), текстура рендера (К2), потолок частицы AirThermals (К3), снимок сети (К4), конфиг (К5), z_i по рельефу (К6)."
 related: ["docs/plan/cloud-field.md", "docs/guide/atmosphere/clouds.md", "docs/guide/air-model/thermals.md"]
-contracts: [{"id": "CLF-К1", "version": 1}, {"id": "CLF-К2", "version": 1}, {"id": "CLF-К3", "version": 1}, {"id": "CLF-К4", "version": 1}, {"id": "CLF-К5", "version": 1}]
+contracts: [{"id": "CLF-К1", "version": 1}, {"id": "CLF-К2", "version": 1}, {"id": "CLF-К3", "version": 1}, {"id": "CLF-К4", "version": 1}, {"id": "CLF-К5", "version": 1}, {"id": "CLF-К6", "version": 1}]
 ---
 # Контракты модуля cloud-field
 
@@ -79,3 +79,13 @@ func signature() -> String                # "dx,x0,y0,nx,ny" — как AirTherm
 Владелец CLF-1. Потребители: все задачи модуля. Каждый ключ — с `_doc` (что, единицы, откуда число).
 
 Ослабление новых термиков в тени — прежний `thermal.cloud_shade_factor`. Обязательные ключи: `enabled` (bool), `step_s` (игровые с), `spinup_s` (с), `depth_max_m` (м), `edge_fade_m` (м), `net_interval_s` (с), `net_blend_s` (с). Прочие ключи модели — владелец добавляет без смены версии (внутренние параметры, не интерфейс). Раздел `clouds.*` (рендер) и `quality_presets.*` (PF-К2) этим контрактом не меняются.
+
+## CLF-К6. z_i по рельефу — один на модель воздуха (v1)
+Владелец CLF-9. Потребители: `AirPhase` (+ `air_phase.glsl`), `AirCase`/`AirWindowCase`, `WindField` (w* Дирдорфа), `AirThermals` (h, `c_top`, `col_wstar`, потолок источников), `CloudField` (CLF-1), запечённые поля (CLF-2). Решение пользователя Q2 (2026-10-17): верх слоя перемешивания частично следует рельефу, один на всю модель воздуха — потолок термиков и основание/верх облаков совпадают.
+
+- Формула: z_i(x) = z_i_ref + α·(h̃(x) − h_ref); h̃ — рельеф, сглаженный на масштабе L; z_i_ref, h_ref — нынешний z_i дня (`AirPlace.day`) и его опорная высота; α, L — из литературы (De Wekker & Kossmann 2015 и др.), ключи `configs/atmosphere.json → air_model.zi_terrain_alpha`, `air_model.zi_terrain_smooth_m` с `_doc` и источником. Нижняя граница — z_i(x) ≥ h(x) + `ZI_MIN` (как сейчас `maxf(z_i − hc, ZI_MIN)`).
+- `AirCase.z_i_col: PackedFloat32Array` — ny·nx, м MSL; пусто, если `z_i` = NAN (нет конвекции). `AirCase.z_i` остаётся скаляром z_i_ref.
+- `WindField.z_i_col() -> PackedFloat32Array` (ny·nx, м MSL, пусто — нет данных) и `WindField.z_i_at(pos: Vector3) -> float` (билинейно по x, z; NAN — нет конвекции); `WindField.z_i()` — z_i_ref (скаляр, для meta и журналов). Все уровни (регион 400 м и окна) — одна формула от одного h̃ (окно = регион в точке с точностью до интерполяции).
+- Все расчёты модели воздуха, где был скаляр z_i над столбцом (фазы, w*, θ′ над слоем, AirThermals), берут z_i столбца.
+- Инварианты: α = 0 → поведение и числа как до правки (тест); под облаком (c_top ≥ LCL) потолок источника термика ≥ основания облака — пилот упирается в то же основание; без облака потолок < основания.
+- Формат запечённых полей (`AirBakedField`) несёт z_i столбцов (или выводит его из h̃ детерминированно) — перепечка в CLF-2.
