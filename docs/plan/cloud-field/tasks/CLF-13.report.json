@@ -1,8 +1,9 @@
 {
   "status": "done",
-  "summary": "main слит в cloud-field/CLF-13; конфликт air_thermals.gd разрешён: Φ = (fbar + max(W̄,0)) * доля суши (VI-7 из main) с комментарием модуля (W̄⁻ не входит в Φ); c_top, col_wstar, z_i по рельефу, опускание не тронуты. Девять тестовых проверок и merged — PASS.",
+  "summary": "main слит в cloud-field/CLF-13; конфликт air_thermals.gd разрешён: Φ = (fbar + max(W̄,0)) * доля суши (VI-7 из main) с комментарием модуля (W̄⁻ не входит в Φ); c_top, col_wstar, z_i по рельефу, опускание не тронуты. Девять тестовых проверок и merged — PASS. Затем влит feature/cloud-field: CHANGELOG (записи обеих сторон) и findings.md (версия модуля — отличия только в оформлении ссылок) разрешены; docs check 0 ошибок. GPU test_air_phase и test_cloud_render PASS.",
   "commits": [
-    "2b724173 Слияние main в cloud-field/CLF-13"
+    "2b724173",
+    "350e146"
   ],
   "checks": [
     {
@@ -56,9 +57,24 @@
       "pass": true
     },
     {
-      "name": "scope",
-      "value": "FAIL: артефакт слияния",
-      "pass": false
+      "name": "synced",
+      "value": "synced",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "gpu_phase",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "gpu_render",
+      "value": "0 упало",
+      "pass": true
     }
   ],
   "not_done": [],
@@ -72,6 +88,6 @@
     }
   ],
   "dp_feedback": "Проверка scope для задачи-слияния считает файлы, пришедшие из main, нарушением; нужно считать diff относительно main или от родителя слияния.",
-  "t": "2026-10-17T15:57:44",
+  "t": "2026-10-17T16:13:37",
   "by": "executor"
 }
