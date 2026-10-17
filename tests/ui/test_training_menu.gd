@@ -11,7 +11,7 @@ func check(cond: bool, msg: String = "") -> void:
 
 
 func _cards() -> Array:
-	return TrainingMenu.load_cards().get("cards", [])
+	return TrainingMenu.load_cards().groups[0].cards
 
 
 func test_four_cards_with_valid_goals_and_sites() -> void:
@@ -34,7 +34,7 @@ func test_click_gives_island_settings() -> void:
 	add_child(m)
 	var got: Array = []
 	m.chosen.connect(func(c: Dictionary) -> void: got.append(c))
-	check(m.cards.size() == 4, "окно строит 4 карточки")
+	check(m.groups.size() == 2 and (m._buttons[0] as Array).size() == 4, "окно строит 4 карточки учебного острова")
 	var base := FlightSettings.defaults()
 	base.wing = "wings/sport"
 	base.pilot_mass_kg = 83.0
@@ -47,7 +47,7 @@ func test_click_gives_island_settings() -> void:
 	for i in 4:
 		m.press_card(i)
 		var c: Dictionary = got[i]
-		var s := TrainingMenu.settings_for(c, base, m.location_id)
+		var s := TrainingMenu.settings_for(c, base)
 		check(s.location_id == "training_island", "место")
 		check(s.site_id == String(c.site), "старт")
 		check(not s.has_pick() and not s.has_exact_start(), "точка и точный старт сброшены")

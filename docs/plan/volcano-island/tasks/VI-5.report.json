@@ -1,0 +1,196 @@
+{
+  "status": "partial",
+  "summary": "east_cliffs перенесён на кромку морского обрыва (141 м, курс 110°). Подъём теперь прямо у старта: +1,0 м/с на 10 м, над обрывом в среднем +1,42 м/с. Всем трём стартам задана погода TI-К2 v2: пассат с 110°, 15 января. Воздух проверен в игре (склоны при 5/6/8 м/с, ротор у кратера, посадка, термики). Поля запечены (15 МБ), --check по всем местам = 0, GPU-тест volcano_baked 1/0. Матрица стабильности по volcano_island — 9/9 ok. Статус partial: посадки в пределах k ≈ 6 у кромки нет, и accept падает по scope из-за файлов .webp.import, которые создаёт сам прогон проверок.",
+  "commits": [
+    "14871814 Вулканический остров: east_cliffs на кромке морского обрыва, погода стартов (пассат 110°, январь), проверка воздуха в игре, поля запечены"
+  ],
+  "checks": [
+    {
+      "name": "volcano_island (тесты)",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "sites (check_sites.py)",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "bake_check (все места)",
+      "value": "exit 0 (в первом прогоне accept один раз training_island/landing_hill «устарело»; 3 повтора вручную и второй accept — актуально)",
+      "pass": true
+    },
+    {
+      "name": "bake_volcano",
+      "value": "plateau_landing: ok",
+      "pass": true
+    },
+    {
+      "name": "air_size_mb",
+      "value": "15 (5,08 + 5,16 + 5,17 МБ)",
+      "pass": true
+    },
+    {
+      "name": "gpu volcano_baked",
+      "value": "1 тестов, 0 упало; загрузка из файла 0,9–1,3 с",
+      "pass": true
+    },
+    {
+      "name": "air_check --show",
+      "value": "east_cliffs_w_ms=1.416",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "6 JPEG",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "FAIL: data/locations/volcano_island/*.webp.import — их создаёт Godot во время прогона accept (тесты, bake --check); не коммитились, удалены",
+      "pass": false
+    },
+    {
+      "name": "test_matrix volcano_island (дополнение 05:07)",
+      "value": "9/9 ok: training/sport/laminar × weak/medium/strong, взлёт с новой кромки (headless, аналитика; погода старта фиксирована: 6 м/с с 110°)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "landing_cliffs в пределах k ≈ 6 (VI-К1) на кромке невозможна: плато за стартом поднимается вглубь острова, внизу море без пляжа. Наименьшее k до точки с уклоном < 10° по всей восточной кромке — 6,7 (9,7°, голый грунт в 50 м от обрыва). До ровного поля 120×60 — 9,7…11. Взято поле (11825; 600), 96 м, 6,3°, в 491 м от старта: k = 10,9, долёт вдоль кромки в динамике. Ось поля по-прежнему 110°, размер уменьшен до 120×60 м: в 50 м восточнее — обрыв",
+    "Проверка «термиков над морем нет» не проходит: 586–599 термиков из ~1230 с источником над водой (подробнее — в uncertain). Модель и конфиги нагрева не трогал"
+  ],
+  "questions": [
+    "Принять k = 10,9 для landing_cliffs (долёт в динамике обрыва) или вернуть east_cliffs на плато? Старый старт: подъёма у старта нет (−0,1 м/с), до обрыва 950 м; во встречном ветре 6 м/с качество относительно земли ≈ 4, так что до подъёма над обрывом не долететь",
+    "Термики есть: ядра над сушей p90 4,0–4,3 м/с, набор 1,5–3,3 км. Предлагаю старт thermal_slope на вершине острова: −27,0869599; −109,3803069 (x −3000, z −1450), 504 м, курс 110°, уклон 10,3°, луг, правила проходит. Запасной — восточное плато −27,1062952; −109,2555434, 360 м, курс 140°. Карточку VI-К2 не заводил",
+    "Сканы *.webp.import: VI-К1 запрещает их в git, но любой прогон Godot в копии (в том числе сам accept) создаёт их заново, и accept падает по scope. Нужно правило .gitignore для data/locations/volcano_island/*.import (вне моего scope) или importer=keep, как у training_island"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/volcano-island/VI-5/01_east_cliffs.jpg",
+    "/home/greg/deltaplan/build/screenshots/volcano-island/VI-5/02_east_cliffs_back.jpg",
+    "/home/greg/deltaplan/build/screenshots/volcano-island/VI-5/east_cliffs_f3.jpg",
+    "/home/greg/deltaplan/build/screenshots/volcano-island/VI-5/east_cliffs_f6.jpg",
+    "/home/greg/deltaplan/build/screenshots/volcano-island/VI-5/crater_ridge_f3.jpg",
+    "/home/greg/deltaplan/build/screenshots/volcano-island/VI-5/crater_ridge_f6.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept VI-5; числа: python3 tools/terrain/volcano/air_check.py --show; таблицы: tools/terrain/volcano/README.md, разделы «Погода стартов (VI-5)» и «Проверка воздуха (VI-5)»",
+  "uncertain": [
+    {
+      "where": "configs/locations/volcano_island.json (crater_ridge.weather)",
+      "why": "Подгонка притока у crater_ridge упирается в k = 1: при наборе 6 м/с «у старта» там было бы 4,6 м/с, а не 6. Поставил wind_ref inflow (6 м/с, k = 1, поле то же), чтобы подпись в меню была честной. Ветер у старта — 4,6 м/с, w над бровкой +1,55",
+      "checked": "crater 5/6/8 м/с: k 1,0, ветер у старта 3,8/4,6/6,2 м/с; перепрогон с inflow дал те же числа"
+    },
+    {
+      "where": "модель термиков (AirThermals, грубый уровень 400 м)",
+      "why": "Термики над морем: около 90 % из них — столбцы с потоком тепла 24 Вт/м² и силой источника 0,068, но сила термика 1,94 м/с, ядра до 1,9 м/с. Над морем их быть не должно. При этом w_conv поля над морем ≈ 0 (p90 0,02–0,04)",
+      "checked": "thermal12/15/top/east; разбор src/col_heat/src_sun по check_thermal15.json"
+    },
+    {
+      "where": "configs/weather_model.json (кромка)",
+      "why": "Кромка кучёвки 3865 м над морем при t_max 28 °C. Для пассатного острова это высоко: инверсия пассата обычно 1,5–2,5 км. Поэтому набор в термиках доходит до 3,5 км. Параметры не крутил (запрет карточки)",
+      "checked": "info.cloudbase_msl во всех термических случаях"
+    },
+    {
+      "where": "tools/terrain/volcano/air_check_run.gd (_climb_flight)",
+      "why": "Набор считался со 100 м над стартом (--climb-agl=100). С земли простой пилот на пологих склонах 8–10° касается земли через 40–45 с, не дойдя до термика. Значит, взлёт с thermal_slope отдельно не проверен",
+      "checked": "thermal_top/thermal_east без --climb-agl: набор 0, конец ground"
+    },
+    {
+      "where": "tools/terrain/bake_all.sh --check",
+      "why": "Один раз под нагрузкой (параллельно шли test_matrix и другие godot) training_island/landing_hill показал «устарело». Повторы и второй accept — актуально. Похоже на сбой запуска godot, а не на устаревшее поле; скрипт этот случай не отличает (код 1 вместо 2)",
+      "checked": "3 ручных повтора bake_air --check landing_hill — «актуально»"
+    }
+  ],
+  "dp_feedback": "accept сам запускает Godot, Godot создаёт untracked *.webp.import, и тот же accept потом падает по scope. Нужно либо игнорировать файлы, созданные во время проверок, либо гонять scope до тестов. Ещё: dpcli job wait дольше 600 с упирается в таймаут Bash — пришлось ждать циклом по job status.",
+  "extra": {
+    "east_cliffs": {
+      "latlon": [
+        -27.1091731,
+        -109.2331163
+      ],
+      "xz": [
+        11570,
+        1020
+      ],
+      "h_m": 141,
+      "heading": 110,
+      "slope_deg": 8.9,
+      "w_5_6_8": [
+        1.185,
+        1.416,
+        1.894
+      ],
+      "w_p90_6": 2.254,
+      "u10_start_6": 5.98,
+      "w_start_6": 1.037,
+      "inflow_k": 0.981
+    },
+    "crater_ridge": {
+      "w_5_6_8": [
+        1.297,
+        1.547,
+        2.063
+      ],
+      "u10_start_5_6_8": [
+        3.817,
+        4.607,
+        6.223
+      ],
+      "rotor_6": {
+        "reverse_frac": 0.033,
+        "u_down_min": -0.7,
+        "w_min": -1.26
+      },
+      "rotor_8": {
+        "reverse_frac": 0.044,
+        "u_down_min": -1.28,
+        "w_min": -1.49
+      }
+    },
+    "landing_cliffs": {
+      "latlon": [
+        -27.1053959,
+        -109.2305402
+      ],
+      "h_m": 96,
+      "slope_deg": 6.3,
+      "k": 10.9,
+      "size_m": [
+        120,
+        60
+      ]
+    },
+    "plateau_landing_weather": "2 м/с, 9 ч, ясно; ветер у landing_target 1,36 м/с на 10 м (k 0,81)",
+    "weather": "110°, 15 января, t_max 27 °C (средний максимум января 26,9); склоны 6 м/с 12 ч partly; посадка 2 м/с 9 ч clear",
+    "thermals_15h_28C": {
+      "wconv_p90_land_150_300": [
+        0.12,
+        0.148
+      ],
+      "wconv_p90_sea_150_300": [
+        0.019,
+        0.036
+      ],
+      "core_land_p90": 4.0,
+      "climb_top_m": [
+        1828,
+        1838,
+        1652
+      ],
+      "climb_east_m": [
+        2463,
+        3282,
+        1454
+      ],
+      "over_water": 599,
+      "land": 631
+    }
+  },
+  "t": "2026-10-17T05:54:11",
+  "by": "executor"
+}
