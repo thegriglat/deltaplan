@@ -41,6 +41,10 @@ generated: true
   - [docs/guide/scene-look.md](guide/scene-look.md) — Модуль scene-look («картинка сочнее»): принцип, шейдерный include sl_*, конфиг и выключатели; пункты SL-2…SL-23 разнесены по частям.
 - **training-island** — Учебный остров: синтетическое место в море, старты «склон», «термики», «посадка», «ротор»; фиксированная погода и запечённый ветер. [active 2026-10-16] — [план](plan/training-island.md) · [контракты](contracts/training-island.md)
   - [docs/research/training_island_air.md](research/training_island_air.md) — TI-5: погода четырёх стартов учебного острова (TI-К2) и проверка воздуха в игре — склон, термики, ротор, посадка
+- **volcano-island** — Второй учебный остров на реальном рельефе: данные в сборке, старты, погода, запечённые поля, карточки «Тренировки». [active 2026-10-17] — [план](plan/volcano-island.md) · [контракты](contracts/volcano-island.md)
+  - [docs/guide/volcano-island.md](guide/volcano-island.md) — Вулканический остров: данные в сборке, training_only, OSM места, старты, погода, числа воздуха, окно «Тренировка», границы.
+  - [docs/registry/volcano-island-findings.md](registry/volcano-island-findings.md) — Выводы модуля volcano-island: подъём у обрывов, ротор у кратера, термики над водой, граница модели (нет пассатной инверсии).
+  - [tools/research/sea_thermals/README.md](../tools/research/sea_thermals/README.md) — VI-7: источник термика не над водой — число источников над водой до/после правки на трёх местах у моря. [closed]
 
 ## game
 
@@ -313,6 +317,7 @@ generated: true
 - [tools/research/heat_ca/exp4_transfer_sweeps/README.md](../tools/research/heat_ca/exp4_transfer_sweeps/README.md) — Опыт 4: установившееся поле проходами по слоям (матрицы перехода) — код, запуск и файлы; итог — summary.md [closed]
 - [tools/research/heat_ca/exp5_adi/README.md](../tools/research/heat_ca/exp5_adi/README.md) — Опыт 5: чередующиеся прогонки по линиям (ADI) доводят автомат до той же точки за 100–190 раундов, в 9–23× быстрее шагов [closed]
 - [tools/research/lakes_worldcover/README.md](../tools/research/lakes_worldcover/README.md) — Озёра: WorldCover 10 м против OSM на 4 местах — IoU по крупным озёрам 0,86–0,97, вода не теряется на шагах сборки и в H [closed]
+- [tools/research/lee_cal/README.md](../tools/research/lee_cal/README.md) — Подгонка притока под ветер у старта в тени: верхний предел k 3 → 1 — числа до/после на Рапа-Нуи, Онгудае, Аскарово. [closed]
 - [tools/research/location_compression/README.md](../tools/research/location_compression/README.md) — Сжатие данных мест (data/terrain, user://locations): почему выросли после перехода на GDScript и какие форматы Godot 4.7 дают выигрыш [closed]
 - [tools/research/morris/README.md](../tools/research/morris/README.md) — Моррис: чувствительность модели воздуха — Итог и выводы — docs/research/air-model-sensitivity.md. [closed]
 - [tools/research/mountain_look/README.md](../tools/research/mountain_look/README.md) — Замер «до»: как слои, сглаживание σ 0,8 и шаг LOD меняют силуэт гор (Эверест, Эльбрус, Монблан, Домбай, Онгудай); зонд MLK-К3 [closed]

@@ -1,0 +1,64 @@
+{
+  "id": "VI-6",
+  "module": "volcano-island",
+  "type": "dp-writer",
+  "title": "Тексты и документация вулканического острова",
+  "goal": "Документация и тексты по факту ветки: раздел о вулканическом острове в docs/guide/location-data.md (реальные данные в сборке, training_only, OSM из папки места, старты, погода, числа воздуха, границы), правило «источник термика не над водой» в docs/guide/air-model/thermals.md, окно «Тренировка» с вкладками, CHANGELOG «В работе», ASSETS.md (атрибуции данных), описание места ru/en, findings — без названий реального места.",
+  "plan_ref": "VI-6. Тексты и документация",
+  "contracts": [
+    {
+      "name": "VI-К1",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "VI-К2",
+      "version": "2",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "VI-К3",
+      "version": "1",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-6",
+  "branch": "volcano-island/VI-6",
+  "base": "feature/volcano-island",
+  "scope": [
+    "docs/guide/",
+    "CHANGELOG.md",
+    "ASSETS.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/",
+    "tools/",
+    "site/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "no_toponyms",
+      "cmd": "grep -ciE 'пасх|рапа|poike|поике|рано-кау|rano.kau|ханга|hanga|теревак|terevaka|easter island|rapa' CHANGELOG.md docs/guide/location-data.md docs/guide/air-model/thermals.md docs/registry/findings.md | awk -F: '{s+=$2} END {print s}'",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "guide_section",
+      "cmd": "grep -c 'volcano_island' docs/guide/location-data.md",
+      "expect": "num:(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T07:51:51"
+}

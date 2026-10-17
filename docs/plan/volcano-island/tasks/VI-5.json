@@ -1,0 +1,104 @@
+{
+  "id": "VI-5",
+  "module": "volcano-island",
+  "type": "dp-researcher",
+  "title": "Погода стартов, проверка воздуха и запекание полей вулканического острова",
+  "goal": "Старт east_cliffs на кромке морского обрыва (если проходит правила); фиксированная погода (TI-К2 v2) у каждого старта — пассат ВЮВ, январь, честно для 27° ю. ш.; проверка воздуха числами (подъём на склонах, ротор у кратера, термики над сушей/морем) после k притока ≤ 1; поля всех стартов запечены (TI-К3 v3), --check = 0, каждый старт берёт запечённое поле.",
+  "plan_ref": "VI-5. Погода стартов, проверка воздуха, запекание",
+  "contracts": [
+    {
+      "name": "VI-К1",
+      "version": "2",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "TI-К2",
+      "version": "2",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "TI-К3",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "VI-К3",
+      "version": "1",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-5",
+  "branch": "volcano-island/VI-5",
+  "base": "feature/volcano-island",
+  "scope": [
+    "configs/locations/volcano_island.json",
+    "configs/world_objects.json",
+    "tools/terrain/volcano/",
+    "data/locations/volcano_island/air/",
+    "tools/terrain/bake_all.sh",
+    "tests/atmosphere/test_volcano_baked_gpu.gd",
+    "tests/atmosphere/test_volcano_baked_gpu.gd.uid",
+    "tests/contracts/test_volcano_island_k1.gd",
+    "data/locations/volcano_island/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/atmosphere.json",
+    "configs/weather_model.json",
+    "configs/surface_heat.json",
+    "data/locations/volcano_island/detail.webp",
+    "data/locations/training_island/",
+    "configs/training.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "volcano_island",
+      "tests": "volcano_island"
+    },
+    {
+      "name": "sites",
+      "cmd": "python3 tools/terrain/volcano/check_sites.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "bake_check",
+      "cmd": "bash tools/terrain/bake_all.sh --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "bake_volcano",
+      "cmd": "bash tools/terrain/bake_all.sh --check --id volcano_island",
+      "expect": "re:plateau_landing: ok"
+    },
+    {
+      "name": "air_size_mb",
+      "cmd": "du -cm data/locations/volcano_island/air/ | tail -1",
+      "expect": "num:(\\d+) <=30"
+    },
+    {
+      "name": "gpu",
+      "cmd": "bash tools/gpu_tests.sh --filter=volcano_baked",
+      "expect": "re:\\n(?:[1-9]\\d*) тестов, 0 упало"
+    },
+    {
+      "name": "air_check",
+      "cmd": "python3 tools/terrain/volcano/air_check.py --show",
+      "expect": "re:east_cliffs_w_ms="
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/volcano-island/VI-5/ | grep -c jpg",
+      "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T04:06:53",
+  "edited": "2026-10-17T05:55:14"
+}

@@ -163,6 +163,17 @@
 |---|---|---|---|---|
 | `data/locations/training_island/*.webp`, `meta.json`, `surface.json`, `params.json`, `configs/locations/training_island.json` | рельеф и карта классов вымышленного острова (`training_island`) | свои: процедурная генерация `tools/terrain/island/` (эрозионная модель fs1, зерно в `params.json`); внешних данных нет | лицензия проекта | встроенное место «Учебный остров»; библиотеки генератора (numpy, scipy, numba, Pillow; fastscapelib GPL-3.0 — только инструмент сборки, в игру не входит) — `tools/terrain/island/README.md` |
 
+## Данные вулканического острова (data/locations/volcano_island/)
+| Файл | Что | Источник | Лицензия | Где используется |
+|---|---|---|---|---|
+| `data/locations/volcano_island/detail*.webp`, `*_water.webp`, `meta.json` | высоты 40×40 км (25 м), маски рек | Copernicus DEM GLO-30 | [Copernicus DEM licence](licenses/copernicus-dem.txt): «produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA» | встроенное место «Вулканический остров» (только окно «Тренировка») |
+| `data/locations/volcano_island/far*.webp` | высоты фона 160 км (100 м) | AWS Terrain Tiles (Terrarium) | Public domain / CC BY / OGL по источникам Terrarium (список Mapzen, см. выше): https://github.com/tilezen/joerd/blob/master/docs/attribution.md | то же |
+| `data/locations/volcano_island/*_surface.webp`, `surface.json`, `detail_detail10.webp`, `detail_built10.webp`, `built_patches.json` | карта поверхности (классы, лес, вода, застройка 10 м) | ESA WorldCover 2021 | **[CC-BY 4.0](licenses/CC-BY-4.0.txt)**: «© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium» | то же |
+| `data/locations/volcano_island/osm/<j>/<i>.dpt`, `osm_tiles.json` | дороги и здания (2 тайла из 9, остальные пусты) | [OpenStreetMap](https://www.openstreetmap.org/) | **[ODbL 1.0](licenses/ODbL-1.0.txt)**: © участники OpenStreetMap | то же |
+| `configs/locations/volcano_island.json`, `data/locations/volcano_island/build.json`, `air/*.json`, `air/*.bin` | конфиг места, журнал сборки, запечённые поля ветра | свои: сборщик игры (`tools/terrain/volcano/`), расчёт модели воздуха | лицензия проекта | то же |
+
+Рельеф не правился. Название реального места в игре и в этих записях не указывается.
+
 ## Данные исследований (tools/research/, не входят в игру)
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|

@@ -1,0 +1,68 @@
+{
+  "id": "VI-4",
+  "module": "volcano-island",
+  "type": "dp-engineer",
+  "title": "Запекание полей всех встроенных мест одним скриптом",
+  "goal": "tools/terrain/bake_all.sh [--check] [--id <место>] запекает/проверяет поля ветра всех bundled-мест и их стартов с weather по конфигам (VI-К3); tools/terrain/island/bake_all.sh удалён, new-release и документы ссылаются на новый путь; --check учебного острова = 0.",
+  "plan_ref": "VI-4. Запекание всех встроенных мест",
+  "contracts": [
+    {
+      "name": "VI-К3",
+      "version": "1",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "TI-К3",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-4",
+  "branch": "volcano-island/VI-4",
+  "base": "feature/volcano-island",
+  "scope": [
+    "tools/terrain/bake_all.sh",
+    "tools/terrain/island/bake_all.sh",
+    "tools/terrain/island/README.md",
+    ".claude/skills/new-release/SKILL.md",
+    "docs/guide/location-data.md",
+    "docs/guide/air-model/runtime.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tools/terrain/bake_air.gd",
+    "data/",
+    "configs/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "check_all",
+      "cmd": "bash tools/terrain/bake_all.sh --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "check_id",
+      "cmd": "bash tools/terrain/bake_all.sh --check --id training_island",
+      "expect": "re:ridge_west"
+    },
+    {
+      "name": "old_gone",
+      "cmd": "test ! -e tools/terrain/island/bake_all.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_old_refs",
+      "cmd": "grep -rl 'island/bake_all' .claude/skills docs/guide tools/terrain | wc -l",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:55:30"
+}

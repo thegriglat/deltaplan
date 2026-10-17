@@ -1,7 +1,7 @@
 class_name TrainingMenu
 extends Control
-## Окно «Тренировка» (TI-16): четыре карточки стартов учебного острова (configs/training.json) —
-## название, «что отрабатываем», цель словами. Клик — chosen(карточка) и закрытие; «Отмена» — closed.
+## Окно «Тренировка» (TI-16, VI-К2): вкладки по местам (группы configs/training.json), в каждой — карточки стартов:
+## название, «что отрабатываем», цель словами. Клик — chosen(карточка с location) и закрытие; «Отмена» — closed.
 ## Окно ничего не запускает: FlightSettings собирает settings_for, запуск — у главного меню.
 
 signal chosen(card: Dictionary)
@@ -9,23 +9,36 @@ signal closed
 
 const CONFIG_PATH := "res://configs/training.json"
 
-var cards: Array = []
-var location_id := "training_island"
+var groups: Array = []  ## показанные группы (место существует, карточки есть)
 var _panel: PanelContainer
-var _buttons: Array[Button] = []
+var _tabs: TabContainer
+var _buttons: Array = []  ## по группам: Array[Array[Button]]
 
 
-## Карточки из configs/training.json (пусто при ошибке файла).
+## Группы из configs/training.json: {"groups": [...]}; каждой карточке добавлено "location" её группы.
 static func load_cards() -> Dictionary:
 	var f := FileAccess.open(CONFIG_PATH, FileAccess.READ)
 	if f == null:
 		push_error("TrainingMenu: нет %s" % CONFIG_PATH)
-		return {"location": "", "cards": []}
+		return {"groups": []}
 	var d: Variant = JSON.parse_string(f.get_as_text())
 	if not (d is Dictionary):
 		push_error("TrainingMenu: %s — не словарь" % CONFIG_PATH)
-		return {"location": "", "cards": []}
+		return {"groups": []}
+	for g: Dictionary in d.get("groups", []):
+		var cs: Array = g.get("cards", [])
+		for c: Dictionary in cs:
+			c["location"] = String(g.get("location", ""))
 	return d
+
+
+## Группы, которые показывает окно: место существует и есть карточки.
+static func visible_groups() -> Array:
+	var out := []
+	for g: Dictionary in load_cards().get("groups", []):
+		if Locations.exists(String(g.get("location", ""))) and not (g.get("cards", []) as Array).is_empty():
+			out.append(g)
+	return out
 
 
 ## Цель карточки как GoalSpec (GL-К1).
@@ -41,10 +54,10 @@ static func goal_text(card: Dictionary) -> String:
 
 
 ## FlightSettings для клика по карточке: крыло, масса и аппарат — из base (последний выбор пилота),
-## место и старт — острова, точка с карты и точный старт сброшены, цель — карточки, погода — набор старта (TI-К2).
-static func settings_for(card: Dictionary, base: FlightSettings, loc: String = "training_island") -> FlightSettings:
+## место — из карточки (card.location), старт — карточки, точка с карты и точный старт сброшены, цель — карточки, погода — набор старта (TI-К2).
+static func settings_for(card: Dictionary, base: FlightSettings) -> FlightSettings:
 	var s := base.duplicate()
-	s.location_id = loc
+	s.location_id = String(card.get("location", ""))
 	s.site_id = String(card.get("site", ""))
 	s.pick_lat = NAN
 	s.pick_lon = NAN
@@ -59,9 +72,7 @@ static func settings_for(card: Dictionary, base: FlightSettings, loc: String = "
 
 
 func _ready() -> void:
-	var cfg := load_cards()
-	cards = cfg.get("cards", [])
-	location_id = String(cfg.get("location", location_id))
+	groups = visible_groups()
 	_build()
 
 
@@ -87,13 +98,21 @@ func _build() -> void:
 	box.add_theme_constant_override("separation", 10)
 	_panel.add_child(box)
 	UiKit.label(box, tr("menu_training"), "HeaderLabel")
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 10)
-	box.add_child(grid)
-	for c: Dictionary in cards:
-		_buttons.append(_card_button(grid, c))
+	_tabs = TabContainer.new()
+	_tabs.name = "Tabs"
+	box.add_child(_tabs)
+	for g: Dictionary in groups:
+		var grid := GridContainer.new()
+		grid.name = String(g.get("id", ""))
+		grid.columns = 2
+		grid.add_theme_constant_override("h_separation", 10)
+		grid.add_theme_constant_override("v_separation", 10)
+		_tabs.add_child(grid)
+		_tabs.set_tab_title(_tabs.get_tab_count() - 1, tr(String(g.get("title_key", ""))))
+		var bs: Array[Button] = []
+		for c: Dictionary in g.get("cards", []):
+			bs.append(_card_button(grid, c))
+		_buttons.append(bs)
 	UiKit.button(box, tr("common_cancel"), func() -> void: closed.emit())
 
 
@@ -121,5 +140,5 @@ func _card_button(parent: Control, card: Dictionary) -> Button:
 
 
 ## Нажать карточку по номеру (тесты, съёмка).
-func press_card(i: int) -> void:
-	_buttons[i].pressed.emit()
+func press_card(i: int, group: int = 0) -> void:
+	(_buttons[group][i] as Button).pressed.emit()

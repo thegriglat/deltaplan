@@ -1,0 +1,11 @@
+{
+  "module": "volcano-island",
+  "plan": "docs/plan/volcano-island.md",
+  "contracts": "docs/contracts/volcano-island.md",
+  "branch": "feature/volcano-island",
+  "copy": "~/deltaplan-volcano-island",
+  "created": "2026-10-17T02:47:47",
+  "code": "VI",
+  "area": "world",
+  "base": "main"
+}
