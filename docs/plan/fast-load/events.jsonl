@@ -227,3 +227,5 @@
 {"t": "2026-10-17T15:30:24", "by": "executor", "task": "FL-11", "ev": "reported", "commits": ["tools/research/load_profile:"], "note": "done: Замер «после» на 1b087b01: попадание кеша поля Онгудай 12,5 с (было 29,2), точка 18,0 с (было 40,2), замирание 1,0 / 1,…", "dp_feedback": "Хотелось бы, чтобы job wait ждал дольше 590 с одним вызовом; в карточке отсутствовала подсказка про vsync-ключ (нашёл по game.json display)."}
 {"t": "2026-10-17T15:30:41", "by": "coordinator", "task": "FL-11", "ev": "checked", "note": "1/1 final=ok:ok; scope=FAIL:вне scope: r-FL-11.json"}
 {"t": "2026-10-17T15:30:42", "by": "coordinator", "task": "FL-11", "ev": "accepted", "note": "по отчёту: hit Онгудай 29,2 → 12,5 с, точка 40,2 → 18,0 с; замирание 5,9/11,7 → 1,0/1,5 с; miss 29,9 (как было) / 27,4 с; пул 4/2 — без зависаний"}
+{"t": "2026-10-17T15:30:42", "by": "coordinator", "task": "FL-11", "ev": "accepted", "commits": ["8db38146"], "note": "1/1 final=ok:ok"}
+{"t": "2026-10-17T15:30:42", "by": "coordinator", "task": "FL-11", "ev": "merged"}
