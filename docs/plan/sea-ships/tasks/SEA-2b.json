@@ -1,0 +1,52 @@
+{
+  "id": "SEA-2b",
+  "module": "sea-ships",
+  "type": "dp-engineer",
+  "title": "Уровень воды моря: выравнивание far",
+  "goal": "Стадия sea выравнивает клетки моря в far.webp до уровня воды их компоненты (мода высот, бины 0,1 м: океан 0, Каспий ≈ −28), убирая батиметрию Terrarium; озёра, водохранилища и суша — без изменений. Полёт, модель воздуха и рендер видят поверхность моря.",
+  "plan_ref": "SEA-2",
+  "contracts": [
+    {
+      "name": "S2",
+      "version": "2",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-2b",
+  "branch": "sea-ships/SEA-2b",
+  "base": "feature/sea-ships",
+  "scope": [
+    "scripts/terrain/sea_mask.gd",
+    "scripts/terrain/build/sea_stage.gd",
+    "tests/terrain/test_sea_mask.gd",
+    "tests/contracts/test_sea_ships_contracts.gd",
+    "docs/guide/location-data.md",
+    "docs/guide/terrain/relief.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/height_layer.gd",
+    "scripts/world_objects/",
+    "data/",
+    "configs/world.json",
+    "project.godot",
+    "tools/research/sea_mask/"
+  ],
+  "accept": [
+    {
+      "name": "sea_ships_contracts",
+      "tests": "sea_ships_contracts"
+    },
+    {
+      "name": "sea_mask",
+      "tests": "sea_mask"
+    },
+    {
+      "name": "location_builder",
+      "tests": "location_builder"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T04:55:34"
+}

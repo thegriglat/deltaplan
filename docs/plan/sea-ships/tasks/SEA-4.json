@@ -8,12 +8,12 @@
   "contracts": [
     {
       "name": "S2",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/sea-ships.md"
     },
     {
       "name": "S3",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/sea-ships.md"
     },
     {
@@ -71,5 +71,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T04:27:13"
+  "created": "2026-10-17T04:27:13",
+  "edited": "2026-10-17T04:56:10"
 }

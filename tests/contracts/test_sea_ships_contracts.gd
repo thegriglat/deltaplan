@@ -112,3 +112,35 @@ func test_s3_ships_for() -> void:
 		check(absf(float(s.x)) <= half and absf(float(s.z)) <= half, "точка внутри far")
 		var ll := TerrainGeo.local_to_latlon(float(s.x), float(s.z), -27.12, -109.35)
 		check(Vector2i(floori(ll.y / 0.1), floori(ll.x / 0.1)) == s.cell, "cell = (floor(lon / cell_deg), floor(lat / cell_deg))")
+
+
+func test_s2_v2_level_and_compute_info() -> void:
+	var n := 40
+	var hs := PackedFloat32Array()
+	hs.resize(n * n)
+	var cls := PackedByteArray()
+	cls.resize(n * n)
+	cls.fill(6)
+	for y in n:
+		hs[y * n] = 10.0
+		cls[y * n] = 1
+		for x in range(1, n):
+			hs[y * n + x] = -28.0 - x * 3.0 if x > 5 else -28.0
+	var r := SeaMask.compute_info(hs, cls, n, n, 100.0, {"min_cells": 100, "median_max_m": 0.25, "q99_min_m": -1.0})
+	check(r.has("levels") and r.has("heights") and r.has("flattened"), "compute_info: levels/heights/flattened")
+	check(r.sea_cells == 0, "−28 м с батиметрией по медиане — не море по порогу 0,25 (уровень применим только к морю)")
+	var hs2 := hs.duplicate()
+	for i in hs2.size():
+		if cls[i] == 6:
+			hs2[i] = 0.0 if (i % n) < 30 else -300.0
+	var r2 := SeaMask.compute_info(hs2, cls, n, n, 100.0, {"min_cells": 100, "median_max_m": 0.25, "q99_min_m": -1.0})
+	check(r2.components == 1 and r2.levels.size() == 1 and absf(float(r2.levels[0])) < 0.001, "уровень = мода 0 м")
+	var a: PackedFloat32Array = r2.heights
+	check(a[1] == 0.0 and a[n - 1] == 0.0 and a[0] == 10.0 and r2.flattened == 10 * n, "батиметрия выровнена, суша прежняя: %d" % r2.flattened)
+	check(hs2[n - 1] == -300.0, "вход не изменён")
+
+
+func test_s2_v2_sea_json_fields_doc() -> void:
+	var doc := FileAccess.get_file_as_string("res://docs/contracts/sea-ships.md")
+	for k in ["levels_m", "flattened_cells"]:
+		check(doc.contains(k), "контракт описывает %s" % k)
