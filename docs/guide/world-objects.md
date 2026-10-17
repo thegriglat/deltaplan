@@ -5,7 +5,7 @@ module: "world"
 area: "world"
 updated: "2026-10-17"
 summary: "WorldObjects: файлы, подключение к сцене, API; ветроуказатели, посадки, лагерь, посёлки, OSM-слой и пасхалки — в частях world-objects/."
-related: ["docs/guide/world-objects/wind-landing.md", "docs/guide/world-objects/start-camp.md", "docs/guide/world-objects/villages-osm.md", "docs/guide/world-objects/easter-eggs.md", "docs/guide/terrain.md", "docs/guide/location-data.md", "docs/guide/osm-tiles.md"]
+related: ["docs/guide/world-objects/wind-landing.md", "docs/guide/world-objects/start-camp.md", "docs/guide/world-objects/villages-osm.md", "docs/guide/world-objects/easter-eggs.md", "docs/guide/world-objects/sea-ships.md", "docs/guide/terrain.md", "docs/guide/location-data.md", "docs/guide/osm-tiles.md"]
 ---
 # Объекты мира (world_objects)
 
@@ -77,7 +77,7 @@ var landings := world_objects.get_landing_sites()  # [{id, name, position, axis_
   как у полёта), запрос ~мкс (сетка 64 м).
 
 ## Суда
-Контракты S2–S4 (`docs/contracts/sea-ships.md`), параметры — `configs/sea_ships.json`.
+Виды, LOD, ограничения, маска моря и уровень воды — [sea-ships.md](world-objects/sea-ships.md). Контракты S2–S4 (`docs/contracts/sea-ships.md`), параметры — `configs/sea_ships.json`.
 - `ShipPlacer.ships_for(mask, center_lat, center_lon, params, height_fn)` — без нод, контракт S3 v3: на место 2–6 судов (`n_min`…`n_max`,
   по хешу клетки центра 0,05°) в полосе 3–15 км от берега (`shore_min_m`/`shore_max_m` по маске S2: v ∈ [31, 151]) и ≤ 30 км от центра
   (`center_max_m`). Кандидаты — мировые клетки 0,02° (`cell_deg`): из хеша `TreeCell.hash` точка, вид (`placement.types`, веса 1/1/1), курс,
