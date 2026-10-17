@@ -1,0 +1,66 @@
+{
+  "id": "DOG-1",
+  "module": "start-dog",
+  "type": "dp-researcher",
+  "title": "Готовая модель собаки, клипы, лай, кадры в игре",
+  "goal": "Готовая модель собаки под коммерческую лицензию (CC0 предпочтительно), приведённая к DOG-K2 (dog.glb, клипы gallop/trot/idle/bark/lie + желательные, speed_ms/cycle_s), 2–4 гавка по DOG-K3, строки в ASSETS.md, минимальная пасхалка start_dog для показа клипов и кадры каждого клипа в игре на старте.",
+  "plan_ref": "DOG-1",
+  "contracts": [
+    {
+      "name": "start-dog",
+      "version": "1",
+      "ref": "docs/contracts/start-dog.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-dog-DOG-1",
+  "branch": "start-dog/DOG-1",
+  "base": "feature/start-dog",
+  "scope": [
+    "assets/easter_eggs/start_dog/",
+    "ASSETS.md",
+    "configs/easter_eggs.json",
+    "scripts/world_objects/easter_eggs/start_dog.gd",
+    "scripts/world_objects/easter_eggs/start_dog.gd.uid",
+    "tests/world_objects/test_start_dog_assets.gd",
+    "tests/world_objects/test_start_dog_assets.gd.uid",
+    "tools/research/start_dog/",
+    "tools/shots/start_dog_clips.sh"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/easter_eggs.gd",
+    "scripts/world_objects/egg_context.gd",
+    "scripts/world_objects/egg_place.gd",
+    "scripts/world_objects/world_objects.gd",
+    "CHANGELOG.md",
+    "site/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "start_dog_assets",
+      "tests": "start_dog_assets"
+    },
+    {
+      "name": "test_easter_eggs",
+      "tests": "test_easter_eggs"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/world_objects/easter_eggs/start_dog.gd tests/world_objects/test_start_dog_assets.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/start-dog/DOG-1/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=5"
+    },
+    {
+      "name": "assets_md",
+      "cmd": "grep -c 'start_dog' ASSETS.md",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:24:39"
+}

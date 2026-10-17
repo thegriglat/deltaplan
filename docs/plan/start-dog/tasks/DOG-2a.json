@@ -1,0 +1,65 @@
+{
+  "id": "DOG-2a",
+  "module": "start-dog",
+  "type": "dp-engineer",
+  "title": "Собака догоняет пилота на настоящем разбеге",
+  "goal": "На разбеге в игре собака перехватывает бегущего и бежит рядом (у своей точки сбоку ≤ 4 м не меньше 1 с до отрыва), а не скачет в 16–17 м позади; затем кадры разбега заново тем же скриптом.",
+  "plan_ref": "DOG-2",
+  "contracts": [
+    {
+      "name": "start-dog",
+      "version": "2",
+      "ref": "docs/contracts/start-dog.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-dog-DOG-2a",
+  "branch": "start-dog/DOG-2a",
+  "base": "feature/start-dog",
+  "scope": [
+    "scripts/world_objects/easter_eggs/start_dog.gd",
+    "configs/easter_eggs.json",
+    "tests/world_objects/test_egg_start_dog.gd",
+    "docs/guide/world-objects/easter-eggs.md",
+    "tools/shots/start_dog_shot.gd",
+    "tools/shots/start_dog_run.sh"
+  ],
+  "dont_touch": [
+    "assets/",
+    "scripts/game/",
+    "scripts/flight/",
+    "scripts/world_objects/easter_eggs.gd",
+    "scripts/world_objects/egg_place.gd",
+    "docs/contracts/",
+    "CHANGELOG.md",
+    "site/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_egg_start_dog",
+      "tests": "test_egg_start_dog"
+    },
+    {
+      "name": "test_easter_eggs",
+      "tests": "test_easter_eggs"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/world_objects/easter_eggs/start_dog.gd tests/world_objects/test_egg_start_dog.gd tools/shots/start_dog_shot.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/start-dog/DOG-2a/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=10"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T11:15:39"
+}

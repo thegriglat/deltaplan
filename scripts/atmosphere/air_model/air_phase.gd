@@ -40,6 +40,7 @@ enum {
 	CI_GDY,
 	CI_GW,
 	CI_SAL,
+	CI_ZI,
 	NCI
 }
 ## Плоскости мод линейной теории (modes): амплитуда, ℓ, затем по 4 знакам (sk, sl) — Re σ, Re m, Im m.
@@ -341,7 +342,8 @@ static func prepare(case: AirCase, cfg: Dictionary) -> Dictionary:
 	p.n_eff = nbv
 	if zi_agl > p.relief and zi_agl > 0.0:
 		p.n_eff = nbv * minf(1.0, p.relief / zi_agl)
-	# волновая часть θ′ = −γ·η выше z_i (γ = θ0N²/g); нет z_i — весь столб устойчив
+	# волновая часть θ′ = −γ·η выше z_i (γ = θ0N²/g); нет z_i — весь столб устойчив.
+	# P_ZI — опорный z_i (над долиной); в ядрах — z_i столбца, плоскость CI_ZI (CLF-К6)
 	p.zi = case.z_i if is_finite(case.z_i) else case.z_bot - case.dz
 	p.gamw = THETA0 * nbv * nbv / GRAV
 	p.zi_agl = zi_agl
@@ -389,6 +391,8 @@ static func prepare(case: AirCase, cfg: Dictionary) -> Dictionary:
 		col[CI_HK * n2 + q] = case.heat_used[q] / RHO_CP if p.heated else 0.0
 		col[CI_HBL * n2 + q] = case.h_bl[q]
 		col[CI_WST * n2 + q] = case._wst[q]
+		var zq := case.z_i_of(q)
+		col[CI_ZI * n2 + q] = zq if is_finite(zq) else p.zi
 	var heff := envelope(p, hc)
 	for q in n2:
 		col[CI_HEFF * n2 + q] = heff[q]

@@ -634,7 +634,7 @@ static func cell(
 		if zagl < col[P.CI_HBL * n2 + c]:
 			t = th[c]
 		if zmsl >= a[P.P_HCD]:
-			var gw: float = a[P.P_GAMW] if zmsl > a[P.P_ZI] else 0.0
+			var gw: float = a[P.P_GAMW] if zmsl > col[P.CI_ZI * n2 + c] else 0.0
 			t -= gw * m[3]
 	if gact:
 		var wg := w[P.PH_G * n2 + c]

@@ -23,7 +23,7 @@ func _state(layer: CloudLayer) -> Dictionary:
 
 func test_chunked_select_equals_sync() -> void:
 	var a := Atmosphere.new()
-	var w := Config._deep_merge(Config.get_config("weather/medium"), {"wind_speed_kmh": 15.0})
+	var w := Config._deep_merge(Config.get_config("weather/storm"), {"wind_speed_kmh": 15.0})
 	a.configure(Config.get_config("atmosphere"), w)
 	a.turbulence_enabled = false
 	a.set_ground(_flat, _sun)
@@ -72,7 +72,7 @@ func test_chunked_select_equals_sync() -> void:
 ## Родная сортировка по очкам и порционное слияние дают тот же список, что прежние sort_custom + _drop_overlaps.
 func test_sort_and_drop_equal_old() -> void:
 	var a := Atmosphere.new()
-	var w := Config._deep_merge(Config.get_config("weather/medium"), {"wind_speed_kmh": 15.0})
+	var w := Config._deep_merge(Config.get_config("weather/storm"), {"wind_speed_kmh": 15.0})
 	a.configure(Config.get_config("atmosphere"), w)
 	a.turbulence_enabled = false
 	a.set_ground(_flat, _sun)

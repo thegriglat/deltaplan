@@ -458,7 +458,10 @@ func test_host_mask_same_sources_with_noise() -> void:
 		dt = maxf(dt, absf(c2.top[k] - a.top[k]))
 		dd = maxf(dd, (c2.drift[k] - a.drift[k]).length())
 	print("    с маской: |Δw0| ≤ %.5f отн., |Δпотолок| ≤ %.3f м, |Δснос| ≤ %.5f м/с" % [dw, dt, dd])
-	check(dw < 0.01 and dt < 5.0 and dd < 0.01, "параметры — в пределах шума поля")
+	# потолок: шум w_conv ±3 мм/с по клеткам → W̄ столбца ~±0,5 мм/с, после сглаживания σ = 10 км (CLF-10)
+	# ещё в разы меньше; опускание сдвигает верх слоя на |W̄_м⁻|·τ_s = 10 800 м на 1 м/с.
+	# Прогон: |Δпотолок| ≈ 0,3 м (шум, не сдвиг слоя); порог 1 м — ×3 запаса (было 5 м до CLF-10).
+	check(dw < 0.01 and dt < 1.0 and dd < 0.01, "параметры — в пределах шума поля")
 	print("    (без ведущего одинаковы: %s)" % same)
 
 
@@ -619,6 +622,9 @@ static func _atmo(f: WindField) -> Atmosphere:
 	a.seed_value = 7
 	a.configure(Config.get_config("atmosphere"), w)
 	a.field.air_async = false  # тесты — синхронно (поток = синхронно: PF-К4)
+	# Тень поля облачности (CLF-3) зависит от истории поля — здесь проверяются источники поля
+	a.field._cfg = a.field._cfg.duplicate()
+	a.field._cfg.cloud_shade_factor = 0.0
 	a.set_ground(f.ground_height, _sun_one)
 	a.turbulence_enabled = false
 	a.wave.enabled = false

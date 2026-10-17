@@ -3,19 +3,38 @@ extends TestCase
 ## истории кадров (NET-00, найдено в NET-40: вошедший в зону не видел тающих Cb/наковален).
 ## Слой A летит с атмосферой от 0 до t, слой B создан сразу в t (Atmosphere.start_at) — при той же
 ## камере у них тот же набор облаков и та же видимость (до 1e-3) в t = 600 и 3600 с. Второй
-## случай — с урезанным лимитом max_clouds (работает обрезка по дальности).
+## случай — с урезанным лимитом max_clouds (работает обрезка по дальности). Облака-объекты — Cb
+## (кучевые теперь поле облачности), поэтому мир — грозовой день.
 
 const TOL := 1.0e-3
 const EYE := AtmoFingerprint.CENTER + Vector3(0.0, 1500.0, 0.0)
 
 
+static func _flat(_x: float, _z: float) -> float:
+	return 0.0
+
+
+static func _sun(_x: float, _z: float) -> float:
+	return 1.0
+
+
 static func _world(max_clouds: int) -> Atmosphere:
-	var cfg := {}
+	var cfg := Config.get_config("atmosphere").duplicate(true)
+	cfg.thermal.generation_radius_m = AtmoFingerprint.GEN_RADIUS_M
+	# тень поля облачности зависит от истории поля (разгон при скачке времени ≠ прогон) и меняет
+	# силу термиков — здесь проверяется выбор облаков слоем, а не тень
+	cfg.thermal.cloud_shade_factor = 0.0
 	if max_clouds > 0:
-		cfg = Config.get_config("atmosphere").duplicate(true)
-		cfg.thermal.generation_radius_m = AtmoFingerprint.GEN_RADIUS_M
 		cfg.clouds.max_clouds = max_clouds
-	return AtmoFingerprint.make_world(AtmoFingerprint.DEFAULT_KEY, cfg)
+	var a := Atmosphere.new()
+	a.visuals_enabled = false
+	a.seed_value = 4242
+	var w := Config._deep_merge(Config.get_config("weather/storm"), {"wind_speed_kmh": 12.0})
+	a.configure(cfg, w)
+	a.turbulence_enabled = false
+	a.set_ground(_flat, _sun)
+	a.set_focus(AtmoFingerprint.CENTER)
+	return a
 
 
 static func _layer(a: Atmosphere) -> CloudLayer:

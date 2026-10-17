@@ -8,6 +8,8 @@ extends RefCounted
 var build_ms := 0.0  ## сколько строилось, мс (для тестов)
 var _terrain: Terrain
 var _camp: Array[Dictionary] = []
+var _camp_start: Dictionary = {}
+var _obstacles: ObstacleIndex
 var _cfg: Dictionary = {}
 var _valley := 0.0
 var _places: Array[Dictionary] = []
@@ -29,6 +31,12 @@ static func build(terrain: Terrain, objects: Node = null, place_cfg: Dictionary 
 		if c is Array:
 			for d in c:
 				p._camp.append(d)
+		var cs: Variant = objects.get("camp_start")
+		if cs is Dictionary:
+			p._camp_start = (cs as Dictionary).duplicate()
+		var ob: Variant = objects.get("obstacles")
+		if ob is ObstacleIndex:
+			p._obstacles = ob
 	if terrain != null:
 		p._valley = float(
 			WeatherModel.ground_context(
@@ -222,6 +230,19 @@ func start_sites() -> Array[Dictionary]:
 ## Лагерь у старта; [] — нет.
 func camp() -> Array[Dictionary]:
 	return _camp.duplicate()
+
+
+## Старт, у которого стоит лагерь (DOG-K1): {position, heading_deg}; {} — нет.
+func camp_start() -> Dictionary:
+	return _camp_start.duplicate()
+
+
+## Описанные круги препятствий видов kinds у круга (c, r): Vector3(x, z, радиус) — мир x, z центра
+## (DOG-K1, прокси ObstacleIndex.points_near, только чтение); нет объектов — [].
+func obstacles_near(c: Vector2, r: float, kinds: PackedStringArray) -> Array[Vector3]:
+	if _obstacles == null:
+		return [] as Array[Vector3]
+	return _obstacles.points_near(c, r, kinds)
 
 
 ## Случайная точка в круге (from rng), где accept.call(x, z) истинно: Vector3 на рельефе или null.

@@ -16,6 +16,14 @@ generated: true
 
 Модули — по подпроектам (area), внутри — по дате плана: строка на модуль, под ней — его прочие документы.
 
+## air
+
+- **cloud-field** — Облака из поля облачности над местом (рост от подъёма до LCL, таяние, снос ветром) вместо «одно облако на термик»; рендер слоем в raymarch. [closed 2026-10-17] — [план](plan/cloud-field.md) · [контракты](contracts/cloud-field.md) · [решения](plan/cloud-field/decisions.md) · [сводка](plan/cloud-field/summary.md) · полный журнал: `archive/cloud-field`
+  - [docs/perf/frame_profile/cloud-field.md](perf/frame_profile/cloud-field.md) — CLF-7: проход облаков, сильный день Онгудая: medium 4,35 → 0,73 мс, high 7,28 → 1,03 мс (ветка против main)
+  - [docs/research/cloud_field/subsidence.md](research/cloud_field/subsidence.md) — CLF-10: опускание циркуляции по мезомасштабному W̄ поля (σ 10 км): z_i столбца −|W̄_м|·3 ч; Алматы низина −130 м, облака 0,25 → 0,23
+  - [docs/research/cloud_field.md](research/cloud_field.md) — CLF-1/9/10: поле облачности из поля воздуха (подъём до LCL, таяние, снос), z_i по рельефу (α ⅓) и опускание циркуляции; карты до/после
+  - [tools/research/cloud_field/README.md](../tools/research/cloud_field/README.md) — CLF-1/9/10: карты поля облачности (Онгудай, Аскарово, остров, Алматы), z_i по рельефу и опускание до/после; команды, файлы
+
 ## flight
 
 - **pendulum-default** — Режим управления «Маятник» — основной: умолчание везде, без пометки «экспериментальный», первым в списке; сайт и доки — по факту. [active 2026-10-15] — [план](plan/pendulum-default.md) · [контракты](contracts/pendulum-default.md)
@@ -45,6 +53,8 @@ generated: true
   - [docs/guide/world-objects/sea-ships.md](guide/world-objects/sea-ships.md) — Суда на море: три вида и LOD, расстановка S3 v3, маска моря и стадия sea (признак SEA-1, уровень воды far, класс воды), что модель не умеет.
   - [docs/perf/sea_ships.md](perf/sea_ships.md) — SEA-12: цена кадра GPU слоя судов (опыт noships) на учебном острове и ongudai, medium и high; base ветки против base main.
   - [tools/research/sea_mask/README.md](../tools/research/sea_mask/README.md) — Признак «море»: компонента воды far с уровнем ≤ 0,25 м, краем и берегом ≥ −1 м; 16 мест, ложных 0, море 100 % [closed]
+- **start-dog** — Пасхалка: собака у стартового лагеря на части стартов — лежит и бродит, на разбеге бежит рядом и лает, у бровки останавливается. [active 2026-10-17] — [план](plan/start-dog.md) · [контракты](contracts/start-dog.md)
+  - [tools/research/start_dog/README.md](../tools/research/start_dog/README.md) — DOG-1: собака Quaternius Shiba Inu (CC0) по DOG-K2 — 8 клипов, замер speed_ms/cycle_s, 4 гавка CC0
 - **volcano-island** — Второй учебный остров на реальном рельефе: данные в сборке, старты, погода, запечённые поля, карточки «Тренировки». [active 2026-10-17] — [план](plan/volcano-island.md) · [контракты](contracts/volcano-island.md)
   - [docs/guide/volcano-island.md](guide/volcano-island.md) — Вулканический остров: данные в сборке, training_only, OSM места, старты, погода, числа воздуха, окно «Тренировка», границы.
   - [docs/registry/volcano-island-findings.md](registry/volcano-island-findings.md) — Выводы модуля volcano-island: подъём у обрывов, ротор у кратера, термики над водой, граница модели (нет пассатной инверсии).
@@ -84,7 +94,7 @@ generated: true
 - [docs/guide/air-model.md](guide/air-model.md) — Модель воздуха в трёх масштабах: среднее поле (фазы + Пикар на GPU), термики и возмущения из поля; вход и оглавление частей.
 - [docs/guide/architecture.md](guide/architecture.md) — Архитектура: правила кода и конфигов, координаты, папки модулей, контракты между модулями, заменяемые ассеты.
 - [docs/guide/atmosphere/calibration.md](guide/atmosphere/calibration.md) — Бот-маршрутник и идеальный пилот на матрице погоды, калибровка дней (карточка 03), сила источника термиков из SurfaceHeat.
-- [docs/guide/atmosphere/clouds.md](guide/atmosphere/clouds.md) — Облака (compute и boxes), тени, птицы, признаки термиков, перистая пелена, Cb, волна, пылевые вихри, клубы пыли, известные проблемы.
+- [docs/guide/atmosphere/clouds.md](guide/atmosphere/clouds.md) — Облака из поля облачности, записи (линзы, шапка, Cb), тени, птицы, признаки термиков, Cb, волна, пыль, известные проблемы.
 - [docs/guide/atmosphere/ridge-starts.md](guide/atmosphere/ridge-starts.md) — Парение у склона на 10 стартах четырёх локаций: набор за 5 минут, ridge.efficiency 0,85, два слабых старта.
 - [docs/guide/atmosphere/weather.md](guide/atmosphere/weather.md) — Как прогноз пилота (температура, ветер, облачность) превращается в погоду дня: верх термиков, кромка, ход дня, закат.
 - [docs/guide/atmosphere/wind-field.md](guide/atmosphere/wind-field.md) — Из чего складывается скорость воздуха: пульсации, термик, снос, склон, подветренная зона и ротор, подсос облака, слова пилота в числах.
@@ -132,7 +142,7 @@ generated: true
 - [docs/guide/terrain/surface.md](guide/terrain/surface.md) — Карта поверхности WorldCover и маска 10 м (лес, вода), раскраска земли, пустыри у стартов, источники термиков, скалы и снег.
 - [docs/guide/terrain.md](guide/terrain.md) — Рельеф и мир (Terrain): файлы, контракт height_at/surface_at/forest_at, пример подключения; детали — в частях terrain/.
 - [docs/guide/vegetation.md](guide/vegetation.md) — Трава по дистанциям (ближние травинки, средняя: angle/shell/blades), кусты, одиночные деревья, деревья по кромке леса.
-- [docs/guide/world-objects/easter-eggs.md](guide/world-objects/easter-eggs.md) — Каркас пасхалок мира: планировщик, как добавить, запреты, место (EggPlace). На сайт не публикуется.
+- [docs/guide/world-objects/easter-eggs.md](guide/world-objects/easter-eggs.md) — Каркас пасхалок мира: планировщик, как добавить, запреты, место (EggPlace), собака у лагеря. На сайт не публикуется.
 - [docs/guide/world-objects/start-camp.md](guide/world-objects/start-camp.md) — Старт глазами пилота: тропа, палатки, снаряжение и крылья, примятая трава, ткань, люди, костёр — правила размещения и параметры.
 - [docs/guide/world-objects/villages-osm.md](guide/world-objects/villages-osm.md) — Просеки для деревьев, процедурные дома в пятнах застройки, OSM-слой из тайлов (дороги, дома, ЛЭП, ветряки, трафик), деревья города.
 - [docs/guide/world-objects/wind-landing.md](guide/world-objects/wind-landing.md) — Ветроуказатели по локальному воздуху модели и посадочные площадки с лесополосами: устройство, параметры, сверка с фото.

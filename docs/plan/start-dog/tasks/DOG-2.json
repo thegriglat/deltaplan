@@ -1,0 +1,75 @@
+{
+  "id": "DOG-2",
+  "module": "start-dog",
+  "type": "dp-engineer",
+  "title": "Поведение собаки у лагеря и на разбеге",
+  "goal": "Собака start_dog по DOG-K4: живёт у лагеря (лежит, бродит, нюхает), на разбеге любого пилота со старта лагеря догоняет галопом, бежит рядом и лает, у бровки/после отрыва стоит и лает вслед, трусит домой; лапы не скользят, по рельефу, в обход палаток и вещей. Поля контекста по DOG-K1.",
+  "plan_ref": "DOG-2",
+  "contracts": [
+    {
+      "name": "start-dog",
+      "version": "2",
+      "ref": "docs/contracts/start-dog.md"
+    }
+  ],
+  "copy": "~/deltaplan-start-dog-DOG-2",
+  "branch": "start-dog/DOG-2",
+  "base": "feature/start-dog",
+  "scope": [
+    "scripts/world_objects/easter_eggs/start_dog.gd",
+    "scripts/world_objects/egg_context.gd",
+    "scripts/world_objects/easter_eggs.gd",
+    "scripts/world_objects/egg_place.gd",
+    "scripts/world_objects/world_objects.gd",
+    "configs/easter_eggs.json",
+    "tests/world_objects/test_egg_start_dog.gd",
+    "tests/world_objects/test_egg_start_dog.gd.uid",
+    "docs/guide/world-objects/easter-eggs.md"
+  ],
+  "dont_touch": [
+    "assets/easter_eggs/start_dog/",
+    "ASSETS.md",
+    "CHANGELOG.md",
+    "site/",
+    "project.godot",
+    "scripts/flight/",
+    "scripts/game/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "test_egg_",
+      "tests": "test_egg_"
+    },
+    {
+      "name": "test_easter_eggs",
+      "tests": "test_easter_eggs"
+    },
+    {
+      "name": "test_eggs_no_osm",
+      "tests": "test_eggs_no_osm"
+    },
+    {
+      "name": "test_tents",
+      "tests": "test_tents"
+    },
+    {
+      "name": "test_start_gear",
+      "tests": "test_start_gear"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/world_objects/easter_eggs/start_dog.gd scripts/world_objects/egg_context.gd scripts/world_objects/easter_eggs.gd scripts/world_objects/egg_place.gd scripts/world_objects/world_objects.gd tests/world_objects/test_egg_start_dog.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T09:47:32",
+  "edited": "2026-10-17T10:47:33"
+}
