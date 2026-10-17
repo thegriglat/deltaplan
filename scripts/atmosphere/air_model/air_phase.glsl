@@ -482,7 +482,10 @@ void main() {
 #endif
 
 #ifdef K_THETA
-	// проход Якоби θ′(p) = θ′(p − e·dx)·e^{−Δt/τ} + источник (AP-17 theta_march)
+	// проход Якоби θ′(p) = θ′_in·e^{−Δt/τ} + источник (AP-17 theta_march). Вдоль ветра переносится
+	// теплосодержание столба E = θ′·h (TW-3): θ′_in = E_up / max(h, h_up) — слой растёт (тонкий над морем →
+	// толстый над сушей): тепло E_up разбавляется на h; слой тоньше пришедшего: θ′ сохраняется, избыток тепла
+	// остаётся над слоем (остаточный слой). При постоянном h — прежняя формула θ′_in = θ′_up.
 	int src = O_TH0 + pc.i1.x;
 	int dst = O_TH0 + 1 - pc.i1.x;
 	float ex = prm[P_EX], ey = prm[P_EY];
@@ -498,8 +501,13 @@ void main() {
 			int j0 = clamp(int(floor(fj)), 0, ny - 2);
 			float aa = fi - float(i0), bb = fj - float(j0);
 			int b0 = src * n2;
-			val = (1.0 - bb) * ((1.0 - aa) * o2d[b0 + j0 * nx + i0] + aa * o2d[b0 + j0 * nx + i0 + 1])
-					+ bb * ((1.0 - aa) * o2d[b0 + (j0 + 1) * nx + i0] + aa * o2d[b0 + (j0 + 1) * nx + i0 + 1]);
+			int q00 = j0 * nx + i0, q10 = q00 + 1, q01 = q00 + nx, q11 = q01 + 1;
+			float h00 = max(C(CI_HBL, q00), 1.0), h10 = max(C(CI_HBL, q10), 1.0);
+			float h01 = max(C(CI_HBL, q01), 1.0), h11 = max(C(CI_HBL, q11), 1.0);
+			float eu = (1.0 - bb) * ((1.0 - aa) * o2d[b0 + q00] * h00 + aa * o2d[b0 + q10] * h10)
+					+ bb * ((1.0 - aa) * o2d[b0 + q01] * h01 + aa * o2d[b0 + q11] * h11);
+			float hu = (1.0 - bb) * ((1.0 - aa) * h00 + aa * h10) + bb * ((1.0 - aa) * h01 + aa * h11);
+			val = eu / max(max(C(CI_HBL, c), 1.0), hu);
 		}
 		o2d[dst * n2 + c] = val * fa + s0;
 	}
