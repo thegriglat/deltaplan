@@ -1,0 +1,126 @@
+{
+  "status": "done",
+  "summary": "CloudPhysics держит CloudField (field) и шагает его задачей WorkerThreadPool (входы — ThermalField._cloud_inputs; результат подменяется целиком, копии массивов; в headless задача принимается в следующем refresh — детерминизм). Кучевые не объекты (has_cloud только у Cb), тень новых термиков (аналитических и источников поля) — CloudField.shade_at, density/sample/suck/cloud_count/визуальные облака ботов — от поля; тесты облаков переписаны под поле.",
+  "commits": [
+    "d0dbde37 CLF-3: поле облачности в симуляции"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "cloud_refresh_main_ms (30 вызовов)",
+      "value": "0.18",
+      "pass": true
+    },
+    {
+      "name": "refresh при 951 аналитическом термике (снимок в потоке)",
+      "value": "1.4-1.9 мс",
+      "pass": true
+    },
+    {
+      "name": "tests/game, tests/net",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_cloud",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_determinism",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_hazards",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_wave",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_storm",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_bots",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_xc_bot",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_air_thermals",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_thermal_assistant",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "main_ms",
+      "value": "0.18",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tests/contracts/test_perf_contracts.gd::test_pf_k4_swap_grid_cycles_before_same_after_like_fresh использует удалённые ThermalField._bare/_shade_pure (вне скоупа) — нужно переписать (тень — от поля), сейчас упадёт.",
+    "scripts/game/bot_pilots.gd (вне скоупа списка) — правка _visible_clouds на CloudPhysics.visible_clouds, иначе боты не видят облаков; net_flight.gd не тронут (model.stage по Cb работает).",
+    "Ключи clouds.* не удалены: width_per_ms_m, merge_overlap, select_hysteresis, max_clouds читает путь Cb (CloudModel/CloudLayer). Добавлен thermal.cloud_cover_min.",
+    "Удалены/переделаны тесты: test_cloud_layer_history, test_cloud_select_chunked, test_cloud_fade (переведены на Cb — грозовой день), test_cloud_suck, test_pilot_words, test_clouds_and_generation (облако поля через tests/atmosphere/cloud_field_fixture.gd); test_cloud_quarter не менялся (шейдер); test_dry_thermal_fraction переделан в 'термик находится по варио' (доля сухих теперь из поля); новый test_cloud_field_runtime.gd."
+  ],
+  "questions": [
+    "Тень поля зависит от истории поля, поэтому термики (и набор) клиента, вошедшего позже (start_at), и летящего с нуля расходятся по силе; test_determinism прыжок-против-прогона теперь на мире без поля, два прогона с полем совпадают. Принять как цену CLF-К1/сети (CLF-4 синхронизирует поле снимком, но не термики)?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept CLF-3",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/thermal_field.gd:_spawn_air",
+      "why": "тень поля ослабляет силу источников поля воздуха, хотя облачность неба уже в потоке тепла (замер AM-07: двойной счёт ~0,5) — сделано по заданию",
+      "checked": "test_air_thermals проходит с cloud_shade_factor=0 в тесте двух клиентов (иначе разные поля клиентов дают разные термики)"
+    },
+    {
+      "where": "scripts/atmosphere/cloud_physics.gd:_suck_field",
+      "why": "размер облака для подсоса — по силе термика (CloudModel.size), т.к. покрытие столбца 400 м размера не даёт; стадия/активность — из поля. Иначе бот-идеальный пилот (test_xc_bot) застревал у верха термика",
+      "checked": "test_cloud_suck, test_pilot_words, test_xc_bot"
+    },
+    {
+      "where": "scripts/atmosphere/cloud_physics.gd:snapshot_thermals",
+      "why": "в аналитическом пути верх термика для поля = top + cloud_depth (иначе профиль у основания равен 0 и облаков нет); читаются поля термиков из рабочего потока без блокировок",
+      "checked": "test_thread_matches_sync побитно, test_determinism"
+    },
+    {
+      "where": "tests/atmosphere/test_atmosphere.gd::test_performance",
+      "why": "при нагрузке машины 40 мкс не держится (и на базовом коде 48 мкс при load 15); в тишине 28 мкс",
+      "checked": "сравнил с базой через stash"
+    },
+    {
+      "where": "cloud_physics.gd:deterministic",
+      "why": "в headless refresh ждёт предыдущую задачу (первая — разгон 2400 с ≈ 2 с), тесты с Atmosphere стали на ~2 с дольше; в игре с экраном не ждёт",
+      "checked": "test_hazards 2→10 с"
+    }
+  ],
+  "dp_feedback": "Фильтр --filter ищет по имени файла, не по имени теста; полезны подсказка об этом и dpcli job для пачки по каталогам. Скоуп-проверка пропустила bot_pilots.gd вне списка.",
+  "extra": {
+    "visible_clouds": "CloudPhysics.visible_clouds(thermals, t, focus)",
+    "unrelated_fails_contracts": [
+      "test_osm_look_contracts::test_versions",
+      "test_steam_assets_contracts::test_k3_assets_md_tables"
+    ]
+  },
+  "t": "2026-10-17T08:17:11",
+  "by": "executor"
+}
