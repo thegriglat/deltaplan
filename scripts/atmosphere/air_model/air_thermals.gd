@@ -234,7 +234,8 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	# без опускания: W̄ — вход опускания, не его следствие); столбец без воздуха — 0.
 	for c in n_col:
 		var k1 := k1s[c]
-		if k1 >= f.nz:
+		# столбец без воздуха или без z_i (день/столбец без конвекции) — W̄ = 0, как до CLF-10
+		if k1 >= f.nz or is_nan(zic[c]):
 			continue
 		var h0 := maxf(zic[c] - hcs[c], ZI_MIN)
 		var sw := 0.0
