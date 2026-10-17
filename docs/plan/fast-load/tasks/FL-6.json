@@ -30,7 +30,8 @@
     "scripts/world_objects/power_line_planner.gd",
     "scripts/world_objects/road_mesher.gd",
     "scripts/game/world_link.gd",
-    "tests/world_objects"
+    "tests/world_objects",
+    "scripts/game/game.gd"
   ],
   "dont_touch": [
     "scripts/world_objects/place_data.gd",
@@ -38,7 +39,6 @@
     "scripts/world_objects/village_placer.gd",
     "scripts/atmosphere",
     "scripts/terrain",
-    "scripts/game/game.gd",
     "configs"
   ],
   "accept": [
@@ -61,5 +61,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T04:19:50"
+  "created": "2026-10-17T04:19:50",
+  "edited": "2026-10-17T06:09:48"
 }
