@@ -59,6 +59,7 @@ static func _set_field(a: Atmosphere, cover: float, depth: float, time: float) -
 		f.depth[c] = depth if cover > 0.0 else 0.0
 		f.stage[c] = 0.0
 		f.activity[c] = 0.3
+	cp.mark_field_changed()
 
 
 ## Сцена: SubViewport с камерой под основанием, взгляд вверх-вперёд; слой облаков в ней.

@@ -53,6 +53,9 @@ var _job: FieldJob
 var _field_count: int = 0
 var _field_top: float = 0.0
 var _inputs_key: String = ""
+## Версия данных поля: растёт при каждой подмене массивов `field` (готовая задача шага, снимок К4,
+## `mark_field_changed()` после ручной подмены). CloudLayer обновляет текстуру по ней, а не по времени.
+var field_version: int = 0
 var _cf_cfg: Dictionary = {}
 var _depth_max: float = 2500.0
 
@@ -298,6 +301,20 @@ func take_net_rejected() -> bool:
 	return r
 
 
+## Дёшево (раз в кадр, CloudLayer): принять готовую задачу сразу, не ждать следующего refresh.
+## В детерминированном режиме (headless) результат принимает только refresh.
+func poll() -> void:
+	if _job == null or deterministic or _job.task < 0:
+		return
+	if WorkerThreadPool.is_task_completed(_job.task):
+		_finish_job()
+
+
+## Массивы `field` подменены снаружи (тесты, фикстуры): текстуре поля обновиться.
+func mark_field_changed() -> void:
+	field_version += 1
+
+
 func _finish_job() -> void:
 	var job := _job
 	_job = null
@@ -322,6 +339,7 @@ func _finish_job() -> void:
 	f.bg_depth = w.bg_depth
 	f.time = w.time
 	_field_count = job.count
+	field_version += 1
 
 
 func _key_of(inp: Dictionary) -> String:
