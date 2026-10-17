@@ -236,3 +236,5 @@
 {"t": "2026-10-17T15:34:33", "by": "executor", "task": "FL-12", "ev": "reported", "commits": ["FL-12:"], "note": "done: docs/guide/fast-load.md (порядок этапов, потоки, кеш поля и настройка размера, пирамида высот, PlaceData, числа до/посл…", "dp_feedback": "report --show усекает summary до ~300 символов без --full; --full печатает JSON целиком, а grep по нему неудобен. Лимит summary 140 символов узнаётся только после docs check."}
 {"t": "2026-10-17T15:34:43", "by": "coordinator", "task": "FL-12", "ev": "checked", "note": "1/1 docs=ok:ошибок 0; scope=FAIL:вне scope: r-FL-12.json"}
 {"t": "2026-10-17T15:34:56", "by": "coordinator", "task": "FL-12", "ev": "accepted", "note": "1/1 docs=ok:ошибок 0"}
+{"t": "2026-10-17T15:34:57", "by": "coordinator", "task": "FL-12", "ev": "accepted", "commits": ["f800a731"], "note": "1/1 docs=ok:ошибок 0"}
+{"t": "2026-10-17T15:34:57", "by": "coordinator", "task": "FL-12", "ev": "merged"}
