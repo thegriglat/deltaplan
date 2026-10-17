@@ -113,3 +113,5 @@
 {"t": "2026-10-17T05:40:07", "by": "coordinator", "task": "FL-9", "ev": "merged"}
 {"t": "2026-10-17T05:49:33", "by": "coordinator", "task": "FL-5", "ev": "checked", "note": "4/4 thermal=ok:13/13; atmosphere=ok:186/186 (пропуск 36); determinism=ok:3/3; perf_contracts=ok:12/12"}
 {"t": "2026-10-17T05:49:48", "by": "coordinator", "task": "FL-15", "ev": "started"}
+{"t": "2026-10-17T05:53:15", "by": "reviewer", "task": "FL-5", "ev": "reviewed", "note": "Порционный путь загрузки (prefetch источников в потоке, опрос, порции 40 мс, атомарный финиш) согласован с PF-К4 v2: air_src подменяется на главном потоке по г…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/fast-load/tasks/FL-5.review.json"}
+{"t": "2026-10-17T05:53:26", "by": "coordinator", "task": "FL-5", "ev": "accepted", "note": "по ревью: accept, 3 minor; замирание 1,8–1,9 с на _setup_glider+bots — в FL-10"}
