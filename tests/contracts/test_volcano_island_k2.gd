@@ -14,8 +14,8 @@ func test_config_groups() -> void:
 	var gs: Array = TrainingMenu.load_cards().get("groups", [])
 	check(gs.size() == 2, "две группы")
 	check(String(gs[0].id) == "training_island" and gs[0].cards.size() == 4, "первая — учебный остров, 4 карточки")
-	check(String(gs[1].id) == "volcano_island" and gs[1].cards.size() == 3, "вторая — вулканический остров, 3 карточки")
-	var want := {"cliffs": ["east_cliffs", "duration", 600], "crater": ["crater_ridge", "duration", 600], "landing": ["plateau_landing", "landing", 25]}
+	check(String(gs[1].id) == "volcano_island" and gs[1].cards.size() == 4, "вторая — вулканический остров, 4 карточки")
+	var want := {"cliffs": ["east_cliffs", "duration", 600], "crater": ["crater_ridge", "duration", 600], "thermals": ["thermal_slope", "height", 300], "landing": ["plateau_landing", "landing", 25]}
 	var sites := []
 	for s: Dictionary in Locations.config("volcano_island").get("start_sites", []):
 		sites.append(String(s.id))
@@ -45,7 +45,7 @@ func test_window_tabs_and_settings() -> void:
 		check(tabs.get_tab_title(0) == tr("loc_training_island") and tabs.get_tab_title(1) == tr("loc_volcano_island"), "заголовки вкладок")
 	var got: Array = []
 	m.chosen.connect(func(c: Dictionary) -> void: got.append(c))
-	m.press_card(2, 1)
+	m.press_card(3, 1)
 	check(got.size() == 1 and got[0].location == "volcano_island" and got[0].site == "plateau_landing", "chosen с location")
 	var base := FlightSettings.defaults()
 	base.location_id = "altai"
