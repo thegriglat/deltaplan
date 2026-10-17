@@ -1,23 +1,23 @@
 {
  "ongudai": {
   "weak": {
-   "cover_frac": 0.1874,
-   "cloud_area_frac": 0.1469,
-   "n_clouds": 61,
+   "cover_frac": 0.2226,
+   "cloud_area_frac": 0.175,
+   "n_clouds": 81,
    "largest_km": [
-    21.3,
+    21.6,
     11.7
    ],
-   "depth_p50_m": 790.0,
-   "depth_p90_m": 1090.0,
-   "src_under_cloud_ratio": 0.6,
-   "ridge_share": 0.629,
-   "valley_share": 0.179,
+   "depth_p50_m": 793.0,
+   "depth_p90_m": 1098.0,
+   "src_under_cloud_ratio": 0.91,
+   "ridge_share": 0.624,
+   "valley_share": 0.195,
    "base_msl": 2117.3,
    "z_i_msl": 2462.4,
    "cloud_thr": 0.3,
    "peaks_above_lcl_frac": 0.0227,
-   "cover_lowland": 0.1025,
+   "cover_lowland": 0.1503,
    "cover_ridge": null,
    "lowland_frac": 0.3785,
    "zi_alpha": 0.33,
@@ -28,13 +28,13 @@
    ],
    "z_i_lowland_p50": 2563.0,
    "src_top_p10_p50_p90": [
-    2003.0,
-    2848.0,
-    3058.0
+    2807.0,
+    2954.0,
+    3086.0
    ],
-   "n_sources": 7787,
-   "largest_area_km2": 114.6,
-   "src_under_cloud_frac": 0.087,
+   "n_sources": 5508,
+   "largest_area_km2": 124.2,
+   "src_under_cloud_frac": 0.16,
    "cond": {
     "blue": false,
     "cloud_depth_m": 789.921648426544,
@@ -63,23 +63,23 @@
    }
   },
   "strong": {
-   "cover_frac": 0.1832,
-   "cloud_area_frac": 0.1084,
-   "n_clouds": 40,
+   "cover_frac": 0.2336,
+   "cloud_area_frac": 0.1467,
+   "n_clouds": 59,
    "largest_km": [
-    24.3,
-    7.1
+    25.7,
+    10.7
    ],
-   "depth_p50_m": 1870.0,
-   "depth_p90_m": 2006.0,
-   "src_under_cloud_ratio": 0.98,
-   "ridge_share": 0.412,
-   "valley_share": 0.436,
+   "depth_p50_m": 1906.0,
+   "depth_p90_m": 2015.0,
+   "src_under_cloud_ratio": 1.34,
+   "ridge_share": 0.415,
+   "valley_share": 0.442,
    "base_msl": 3459.3,
    "z_i_msl": 4358.9,
    "cloud_thr": 0.3,
    "peaks_above_lcl_frac": 0.0,
-   "cover_lowland": 0.171,
+   "cover_lowland": 0.2294,
    "cover_ridge": null,
    "lowland_frac": 0.3785,
    "zi_alpha": 0.33,
@@ -90,13 +90,13 @@
    ],
    "z_i_lowland_p50": 4460.0,
    "src_top_p10_p50_p90": [
-    2576.0,
-    4396.0,
-    4672.0
+    4351.0,
+    4579.0,
+    4670.0
    ],
-   "n_sources": 2062,
-   "largest_area_km2": 69.6,
-   "src_under_cloud_frac": 0.106,
+   "n_sources": 1298,
+   "largest_area_km2": 92.6,
+   "src_under_cloud_frac": 0.197,
    "cond": {
     "blue": false,
     "cloud_depth_m": 1600.0,
@@ -275,23 +275,23 @@
  },
  "almaty": {
   "weak": {
-   "cover_frac": 0.3207,
-   "cloud_area_frac": 0.3211,
-   "n_clouds": 9,
+   "cover_frac": 0.329,
+   "cloud_area_frac": 0.3343,
+   "n_clouds": 11,
    "largest_km": [
-    40.4,
-    42.1
+    40.5,
+    42.4
    ],
    "depth_p50_m": 692.0,
    "depth_p90_m": 692.0,
-   "src_under_cloud_ratio": 0.12,
-   "ridge_share": 0.439,
-   "valley_share": 0.424,
+   "src_under_cloud_ratio": 0.2,
+   "ridge_share": 0.433,
+   "valley_share": 0.432,
    "base_msl": 2078.8,
    "z_i_msl": 2374.4,
    "cloud_thr": 0.3,
    "peaks_above_lcl_frac": 0.2433,
-   "cover_lowland": 0.0918,
+   "cover_lowland": 0.099,
    "cover_ridge": 0.9998,
    "lowland_frac": 0.5288,
    "zi_alpha": 0.33,
@@ -303,13 +303,13 @@
    "z_i_lowland_p50": 2386.0,
    "z_i_ridge_p50": 3692.0,
    "src_top_p10_p50_p90": [
-    2332.0,
-    2743.0,
-    3051.0
+    2628.0,
+    2842.0,
+    3114.0
    ],
-   "n_sources": 4331,
-   "largest_area_km2": 469.1,
-   "src_under_cloud_frac": 0.038,
+   "n_sources": 3299,
+   "largest_area_km2": 486.6,
+   "src_under_cloud_frac": 0.068,
    "cond": {
     "blue": false,
     "cloud_depth_m": 694.029978952119,
@@ -338,24 +338,24 @@
    }
   },
   "strong": {
-   "cover_frac": 0.2927,
-   "cloud_area_frac": 0.2726,
-   "n_clouds": 15,
+   "cover_frac": 0.3521,
+   "cloud_area_frac": 0.4223,
+   "n_clouds": 16,
    "largest_km": [
-    41.6,
-    18.3
+    50.8,
+    36.6
    ],
-   "depth_p50_m": 1778.0,
-   "depth_p90_m": 1995.0,
-   "src_under_cloud_ratio": 1.06,
-   "ridge_share": 0.415,
-   "valley_share": 0.433,
+   "depth_p50_m": 1808.0,
+   "depth_p90_m": 2031.0,
+   "src_under_cloud_ratio": 1.08,
+   "ridge_share": 0.344,
+   "valley_share": 0.362,
    "base_msl": 3420.8,
    "z_i_msl": 4271.1,
    "cloud_thr": 0.3,
    "peaks_above_lcl_frac": 0.0482,
-   "cover_lowland": 0.1689,
-   "cover_ridge": 0.8278,
+   "cover_lowland": 0.2324,
+   "cover_ridge": 0.8818,
    "lowland_frac": 0.5288,
    "zi_alpha": 0.33,
    "z_i_col_p10_p50_p90": [
@@ -366,13 +366,13 @@
    "z_i_lowland_p50": 4283.0,
    "z_i_ridge_p50": 5006.0,
    "src_top_p10_p50_p90": [
-    3443.0,
-    4745.0,
-    5431.0
+    4185.0,
+    5030.0,
+    5500.0
    ],
-   "n_sources": 1829,
-   "largest_area_km2": 372.5,
-   "src_under_cloud_frac": 0.29,
+   "n_sources": 1006,
+   "largest_area_km2": 594.6,
+   "src_under_cloud_frac": 0.456,
    "cond": {
     "blue": false,
     "cloud_depth_m": 1600.0,
@@ -441,7 +441,7 @@
  },
  "askarovo": {
   "weak": {
-   "cover_frac": 0.0532,
+   "cover_frac": 0.0744,
    "cloud_area_frac": 0.0,
    "n_clouds": 0,
    "largest_km": [
@@ -457,7 +457,7 @@
    "z_i_msl": 1671.9,
    "cloud_thr": 0.3,
    "peaks_above_lcl_frac": 0.0,
-   "cover_lowland": 0.0532,
+   "cover_lowland": 0.0744,
    "cover_ridge": null,
    "lowland_frac": 1.0,
    "zi_alpha": 0.33,
@@ -468,11 +468,11 @@
    ],
    "z_i_lowland_p50": 1700.0,
    "src_top_p10_p50_p90": [
-    1462.0,
-    1956.0,
-    2097.0
+    1961.0,
+    2027.0,
+    2109.0
    ],
-   "n_sources": 8344,
+   "n_sources": 8193,
    "cond": {
     "blue": false,
     "cloud_depth_m": 326.086797995065,
@@ -501,23 +501,23 @@
    }
   },
   "strong": {
-   "cover_frac": 0.0872,
-   "cloud_area_frac": 0.003,
+   "cover_frac": 0.1021,
+   "cloud_area_frac": 0.0029,
    "n_clouds": 3,
    "largest_km": [
-    4.4,
+    4.0,
     2.0
    ],
-   "depth_p50_m": 1466.0,
-   "depth_p90_m": 1529.0,
-   "src_under_cloud_ratio": 1.45,
+   "depth_p50_m": 1469.0,
+   "depth_p90_m": 1527.0,
+   "src_under_cloud_ratio": 1.49,
    "ridge_share": 0.0,
    "valley_share": 0.0,
    "base_msl": 2994.1,
    "z_i_msl": 3568.5,
    "cloud_thr": 0.3,
    "peaks_above_lcl_frac": 0.0,
-   "cover_lowland": 0.0872,
+   "cover_lowland": 0.1021,
    "cover_ridge": null,
    "lowland_frac": 1.0,
    "zi_alpha": 0.33,
@@ -528,12 +528,12 @@
    ],
    "z_i_lowland_p50": 3597.0,
    "src_top_p10_p50_p90": [
-    2847.0,
-    3658.0,
-    3768.0
+    3636.0,
+    3696.0,
+    3743.0
    ],
-   "n_sources": 1816,
-   "largest_area_km2": 3.5,
+   "n_sources": 1373,
+   "largest_area_km2": 3.4,
    "src_under_cloud_frac": 0.004,
    "cond": {
     "blue": false,
