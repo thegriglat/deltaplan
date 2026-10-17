@@ -1,0 +1,49 @@
+{
+  "id": "FL-16",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "Падение в фоновой загрузке моделей деревьев (FL-7)",
+  "goal": "Загрузка места не падает и не даёт ошибок гонки RID из-за фоновой загрузки сцен пород (terrain_tree_models._load_species, load_threaded_request из FL-7); выигрыш FL-7 (одна сборка на породу) сохраняется.",
+  "plan_ref": "FL-16",
+  "contracts": [],
+  "copy": "~/deltaplan-fast-load-FL-16",
+  "branch": "fast-load/FL-16",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/terrain/terrain_tree_models.gd",
+    "scripts/terrain/terrain.gd",
+    "tests/vegetation"
+  ],
+  "dont_touch": [
+    "scripts/world_objects",
+    "scripts/atmosphere",
+    "scripts/game/game.gd",
+    "assets"
+  ],
+  "accept": [
+    {
+      "name": "tree",
+      "tests": "tree"
+    },
+    {
+      "name": "vegetation",
+      "tests": "vegetation"
+    },
+    {
+      "name": "village",
+      "tests": "village"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "stress",
+      "cmd": "bash -c 'p=0; for i in 1 2 3 4 5 6; do d=$(mktemp -d); XDG_DATA_HOME=$d timeout 900 godot --headless --path . res://tests/run_tests.tscn -- --filter=village >$d/o.log 2>&1 && grep -q \" 0 упало\" $d/o.log && p=$((p+1)); rm -rf $d; done; echo pass=$p'",
+      "expect": "num:pass=(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T06:10:08"
+}
