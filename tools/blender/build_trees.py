@@ -48,10 +48,15 @@ def _crown_dome(r: float, zc: float) -> float:
     return r * math.sin(math.pi * (0.12 + 0.85 * zc)) ** 0.6 * (1 - 0.25 * zc)
 
 
+def _crown_round(r: float, zc: float) -> float:
+    # дуб/бук: широкая округлая крона, самая широкая в нижней трети, сверху закруглена
+    return r * math.sin(math.pi * (0.06 + 0.9 * zc ** 0.9)) ** 0.5
+
+
 # Точки расширения: форма кроны → функция (r, zc); порода дописывает своё, общий код не трогает.
-CROWN_EXT = {"palm": _crown_palm, "dome": _crown_dome}
+CROWN_EXT = {"palm": _crown_palm, "dome": _crown_dome, "round": _crown_round}
 # Формы, у которых на вершине ствола пучки (skeleton)
-TOP_CLUMP_CROWNS = ("cone", "ovoid", "umbrella", "palm", "dome")
+TOP_CLUMP_CROWNS = ("cone", "ovoid", "umbrella", "palm", "dome", "round")
 
 
 def crown_radius(sp: dict, zc: float) -> float:
@@ -500,6 +505,9 @@ def _variant(key: str, sp: dict, lod_cfg: dict, mats: dict, seed: int, v: int,
         sk = palm_skeleton(sp, seed)
         build = lambda lod: palm_mesh(sp, lod, sk)  # noqa: E731
     else:
+        hs = sp.get("height_scale")  # высота по вариантам (взрослые деревья разного роста)
+        if hs:
+            sp = dict(sp, height_m=sp["height_m"] * hs[v % len(hs)])
         sk = skeleton(sp, seed)
         build = lambda lod: build_mesh(sp, lod, sk, lod_cfg)  # noqa: E731
     pre = "V%d_" % v

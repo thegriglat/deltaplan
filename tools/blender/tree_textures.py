@@ -197,6 +197,39 @@ def _birch(cv: Canvas, rng, c1, c2) -> None:
                     cv.ellipse(px + ox, py + oy, sz * 1.35, sz, a, col)
 
 
+def _oak_leaf(cv: Canvas, x: float, y: float, ang: float, size: float, col, vein) -> None:
+    """Лист дуба: удлинённая пластина с 3 парами округлых лопастей по краю и жилкой."""
+    c, s_ = math.cos(ang), math.sin(ang)
+    cv.ellipse(x + c * size * 0.5, y + s_ * size * 0.5, size * 0.55, size * 0.22, ang, col)
+    for k, t in enumerate((0.28, 0.5, 0.72)):
+        w = size * (0.2 - 0.03 * abs(t - 0.5) * 4)
+        for sgn in (-1, 1):
+            ox = x + c * size * t - s_ * sgn * size * 0.17
+            oy = y + s_ * size * t + c * sgn * size * 0.17
+            cv.ellipse(ox, oy, w, w * 0.85, ang, col)
+    cv.line((x, y), (x + c * size * 1.0, y + s_ * size * 1.0), 1.0, 0.6, vein)
+
+
+def _broad(cv: Canvas, rng, c1, c2) -> None:
+    """Дуб: короткая облиственная веточка с густой россыпью лопастных листьев; листья в два
+    слоя (нижний темнее), к кончику крупнее и гуще — карточки в кроне сливаются в плотную
+    округлую массу с редкими просветами."""
+    twig = np.array([0.26, 0.2, 0.15], dtype=np.float32)
+    base = (CARD * 0.5, CARD * 0.03)
+    pts = [(base[0] + 22 * math.sin(2.2 * t), CARD * (0.03 + 0.9 * t)) for t in np.linspace(0, 1, 10)]
+    for a, b in zip(pts[:-1], pts[1:]):
+        _branchlet(cv, a, b, 3.0, twig)
+    for pass_k, n, sz in ((0.68, 70, 0.115), (1.0, 90, 0.105)):
+        for _ in range(n):
+            t = rng.uniform(0.12, 1.0) ** 0.8
+            px, py = pts[min(int(t * 9), 9)]
+            px += rng.uniform(-1, 1) * CARD * (0.1 + 0.2 * t)
+            py += rng.uniform(-0.05, 0.05) * CARD
+            ang = math.radians(rng.uniform(0, 360))
+            col = _mix(c1, c2, rng.uniform(0, 1), pass_k * rng.uniform(0.85, 1.1))
+            _oak_leaf(cv, px, py, ang, CARD * sz * rng.uniform(0.8, 1.2), col, col * 0.7)
+
+
 def _palm(cv: Canvas, rng, c1, c2) -> None:
     """Перо пальмы (pinnate): ось-рахис от низа к кончику, по обе стороны узкие листочки под
     ~55° к оси вперёд, длиннее в первой трети и к кончику короче; между листочками просветы.
@@ -228,7 +261,7 @@ def _palm(cv: Canvas, rng, c1, c2) -> None:
 
 def foliage(kind: str, c1, c2, seed: int) -> np.ndarray:
     """RGBA-карточка (низ картинки — у ветки, верх — конец ветки).
-    kind: pine, cedar, spruce, larch, birch; palm; broad — заготовка (= birch)."""
+    kind: pine, cedar, spruce, larch, birch; palm; broad (дуб)."""
     rng = np.random.default_rng(seed)
     rs = random.Random(seed)
     cv = Canvas(CARD, CARD)
@@ -240,10 +273,12 @@ def foliage(kind: str, c1, c2, seed: int) -> np.ndarray:
         _spruce(cv, rs, c1, c2, CARD * 0.032)
     elif kind == "larch":
         _larch(cv, rs, c1, c2)
+    elif kind == "broad":
+        _broad(cv, rs, c1, c2)
     elif kind == "palm":
         _palm(cv, rs, c1, c2)
     else:
-        # TODO(RV-4/RV-7): kind "broad" (дуб, тропическое) — своя функция; до тех пор как у берёзы
+        # TODO(RV-7): тропическое — своя функция; пока как берёза
         _birch(cv, rng, c1, c2)
     rgba = np.concatenate([cv.rgb, cv.a[..., None]], axis=2)
     return rgba

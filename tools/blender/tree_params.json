@@ -204,20 +204,20 @@
       "stubs": 3
     },
     "oak": {
-      "_doc": "Дуб/бук: широкая округлая крона на толстом стволе (заготовка RV-3; вид — RV-4)",
+      "_doc": "Дуб/бук: широкая округлая лиственная крона на толстом коротком стволе; осенью жёлтый (season_kind 1)",
       "variants": 4,
       "height_m": 22,
-      "trunk_radius_m": 0.4,
+      "trunk_radius_m": 0.45,
       "trunk_top": 0.92,
-      "crown_base": 0.3,
-      "crown": "ovoid",
-      "crown_radius": 0.32,
-      "branch_angle_deg": 35,
-      "droop": 0.05,
+      "crown_base": 0.22,
+      "crown": "round",
+      "crown_radius": 0.4,
+      "branch_angle_deg": 22,
+      "droop": 0.08,
       "whorls": 11,
       "per_whorl": 6,
-      "clumps_per_branch": 4,
-      "clump_size": 0.13,
+      "clumps_per_branch": 3,
+      "clump_size": 0.17,
       "lean": 0.03,
       "leaf": "broad",
       "leaf_color": [
@@ -241,7 +241,15 @@
         0.16
       ],
       "bark": "rough",
-      "stubs": 2
+      "stubs": 2,
+      "height_scale": [
+        0.8,
+        1.0,
+        1.2,
+        0.92
+      ],
+      "cards": 3,
+      "clump_up": 0.2
     },
     "palm": {
       "_doc": "Пальма (кокосовая/королевская): тонкий слегка изогнутый ствол с кольцами, венец перьев-полос на верхушке (RV-5). variant_height — масштаб высоты по вариантам (11…21 м).",
