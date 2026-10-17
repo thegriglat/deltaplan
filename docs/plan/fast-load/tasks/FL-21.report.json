@@ -1,0 +1,36 @@
+{
+  "status": "done",
+  "summary": "Полный headless-прогон на модуле и на main: модуль 1956 тестов/10 упало, main 1923/7 упало. 6 общих падений, 4 только в модуле (e2e volcano_island, matrix training_island, 2 переписи OSM), 1 только на main.",
+  "commits": [
+    "c8589c0c FL-21: прогон тестов модуля против main"
+  ],
+  "checks": [
+    {
+      "name": "report",
+      "value": "tests_compare.md есть",
+      "pass": true
+    },
+    {
+      "name": "прогоны",
+      "value": "модуль 1956/10 упало/78 пропущено; main 1923/7 упало/76 пропущено",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "GPU-тесты не запускались: замок gpu занят clf7b, headless их пропускает",
+    "причину 4 падений только в модуле не разбирал"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept FL-21",
+  "uncertain": [
+    {
+      "where": "test_matrix, test_e2e",
+      "why": "предупреждение о хеше модели воздуха: возможно от соседних модулей, не от правок загрузки",
+      "checked": "только журнал падения"
+    }
+  ],
+  "dp_feedback": "job start: --lock до подкоманды (не после) неочевидно; tail --pid не ждёт чужой PID после потери агента; первый прогон через check.sh оборвался молча.",
+  "t": "2026-10-17T18:53:20",
+  "by": "executor"
+}
