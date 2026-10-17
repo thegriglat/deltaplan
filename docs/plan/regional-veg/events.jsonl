@@ -134,3 +134,5 @@
 {"t": "2026-10-18T00:56:56", "by": "coordinator", "task": "RV-4", "ev": "merged"}
 {"t": "2026-10-18T00:58:40", "by": "reviewer", "task": "RV-2", "ev": "reviewed", "note": "Повторное ревью после доработки 099cb50d. Оба major закрыты: species_set пропускает неизвестные породы и повторы с предупреждением, лишние сверх 6 обрезает, пу…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/regional-veg/tasks/RV-2.review.json"}
 {"t": "2026-10-18T00:58:51", "by": "coordinator", "task": "RV-2", "ev": "accepted", "note": "по ревью"}
+{"t": "2026-10-18T01:00:16", "by": "coordinator", "task": "RV-2", "ev": "accepted", "commits": ["c703cceb"], "note": "4/4 regional_veg_contracts=ok:7/7; tree=ok:56/56 (пропуск 5); test_species_set=ok:9/9; scene_look_contracts=ok:29/29"}
+{"t": "2026-10-18T01:00:16", "by": "coordinator", "task": "RV-2", "ev": "merged"}
