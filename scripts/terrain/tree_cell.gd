@@ -101,7 +101,7 @@ static func angle(h: Vector2i) -> float:
 
 
 ## Порода по высоте h над морем, «северности» north −1…1 и u = species_u(hash): веса, границы высот
-## (min_m/max_m), экспозиция (aspect) — массивы по породам (TreePlacer.SPECIES), band_blend — мягкая граница
+## (min_m/max_m), экспозиция (aspect) — массивы по породам (TreePlacer.species), band_blend — мягкая граница
 ## по высоте, м. −1 — ни одна не подходит. Правила — прежние (TreePlacer.pick_species).
 static func species(
 	h: float,

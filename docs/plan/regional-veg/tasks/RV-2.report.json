@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "Набор пород места вместо константы: TreePlacer.species из trees.set (DEFAULT_SET - старые пять, MAX_SPECIES 6), реестр atlas_cell/season_kind/conifer/models в world.json, шейдеры крестов и импостеров на sp_*[MAX_SP], sp_count, sp_kind/sp_conifer/sp_cell; модели и кресты грузят только породы набора. Доработка по ревью: неизвестная порода или повтор в наборе - warning и пропуск, больше 6 - обрезка, пустой набор - деревьев нет и без падения; заполнение uniform вынесено в TreeCrosses.species_uniforms и ForestImpostors.species_uniforms; эталон uniform снят с кода до правки (ref_uniforms.json) и тест набора [birch,pine,larch] добавлен.",
+  "commits": [
+    "786bc0eb regional-veg RV-2: набор пород места (trees.set) и реестр пород вместо константы на 5",
+    "099cb50d regional-veg RV-2: негодный набор - пропуск пород, пустой - без деревьев; тесты uniform"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "tree",
+      "value": "56/56 (пропуск 5)",
+      "pass": true
+    },
+    {
+      "name": "test_species_set",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "scene_look_contracts",
+      "value": "29/29",
+      "pass": true
+    },
+    {
+      "name": "GPU окном (tree, season, lod_k)",
+      "value": "0 упало (первый коммит); tree_cross после доработки 10/10",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "terrain.gd:559 request_preload без набора - по ревью отдано RV-9 (передать TreePlacer.species_set(cfg) вторым аргументом)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RV-2",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/tree_placer.gd:species_set",
+      "why": "Если в cfg нет atlas_cell, неизвестные имена не проверяются (только повторы).",
+      "checked": "test_set_validation, test_empty_set_no_trees_no_crash"
+    },
+    {
+      "where": "tests/fixtures/species_set/ref_uniforms.json",
+      "why": "Эталон uniform снят с материалов Terrain на коде до правки (старые файлы подставлены временно); sp_kind/sp_conifer/sp_cell в старом коде были константами шейдера - в тесте сверены с ними вручную.",
+      "checked": "test_default_uniforms_unchanged для ongudai и altai с локационными переопределениями"
+    }
+  ],
+  "dp_feedback": "Раннер считает ok тест, в котором был SCRIPT ERROR; accept может пропустить сломанную зависимость. И dpcli report удаляет r-<ID>.json - повторный отчёт приходится писать заново.",
+  "t": "2026-10-18T00:54:51",
+  "by": "executor"
+}

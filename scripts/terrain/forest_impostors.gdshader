@@ -45,13 +45,18 @@ uniform float far_contrast = 0.35;        // насколько мягче ко�
 uniform float far_canopy_luma = 0.32;     // характерная средняя яркость полога, к которой тянет контраст
 uniform float far_edge_soft_k = 3.0;      // во сколько раз шире сглаживание края альфы вдали
 // породы: pine, cedar, larch, birch, spruce
-uniform float sp_weight[5];
-uniform float sp_min[5];
-uniform float sp_max[5];
-uniform float sp_aspect[5];
-uniform float sp_gain[5];            // SL-14: множитель альбедо породы (trees.albedo_gain), при sl_tree_albedo_enabled
+// породы места (RV-К2: TreePlacer.species, локальный индекс sp), не больше MAX_SP
+const int MAX_SP = 6;
+uniform int sp_count = 5;
+uniform float sp_weight[MAX_SP];
+uniform float sp_min[MAX_SP];
+uniform float sp_max[MAX_SP];
+uniform float sp_aspect[MAX_SP];
+uniform float sp_gain[MAX_SP];            // SL-14: множитель альбедо породы (trees.albedo_gain), при sl_tree_albedo_enabled
 
-uniform vec2 sp_height[5];
+uniform vec2 sp_height[MAX_SP];
+uniform float sp_kind[MAX_SP];       // SL-6: trees.season_kind (0 вечнозелёная, 1 берёза, 2 лиственница)
+uniform float sp_cell[MAX_SP];       // ячейка атласа породы (trees.atlas_cell; col = cell % cols, row = cell / cols)
 uniform float band_blend_m = 200.0;
 // доля воды маски 10 м (канал G, реки/озёра OSM), с которой дерева нет (как TreePlacer.water_max)
 uniform float water_max = 0.35;
@@ -80,10 +85,8 @@ varying float v_sl_gain;   // SL-14: множитель альбедо поро�
 // SL-6 сезон: порода (0 — вечнозелёная, 1 — берёза, 2 — лиственница) и состояние (окраска, голое)
 varying float v_sl_kind;
 varying vec4 v_sl_ss;
-const float SL_DECID[5] = float[5](0.0, 0.0, 2.0, 1.0, 0.0); // SL
-// хвойные по породам (pine, cedar, larch, birch, spruce — порядок TreePlacer.SPECIES); лиственница
-// летом — светлая хвоя, по альбедо ближе к лиственным
-const float SL_CONIFER[5] = float[5](1.0, 1.0, 0.0, 0.0, 1.0);
+// хвойные по породам места (trees.conifer; лиственница летом — светлая хвоя, по альбедо ближе к лиственным)
+uniform float sp_conifer[MAX_SP];
 
 bool is_forest(vec2 xz) {
 	if (use_forest_mask) {
@@ -103,9 +106,9 @@ float open_frac(vec2 xz, float r, float a0) {
 }
 
 int pick_species(float h, float north, float u) {
-	float w[5];
+	float w[MAX_SP];
 	float total = 0.0;
-	for (int k = 0; k < 5; k++) {
+	for (int k = 0; k < sp_count; k++) {
 		float band = clamp((h - sp_min[k]) / band_blend_m + 0.5, 0.0, 1.0)
 				* clamp((sp_max[k] - h) / band_blend_m + 0.5, 0.0, 1.0);
 		w[k] = sp_weight[k] * band * max(0.05, 1.0 + sp_aspect[k] * north);
@@ -115,13 +118,13 @@ int pick_species(float h, float north, float u) {
 		return -1;
 	}
 	float t = u * total;
-	for (int k = 0; k < 5; k++) {
+	for (int k = 0; k < sp_count; k++) {
 		t -= w[k];
 		if (t <= 0.0) {
 			return k;
 		}
 	}
-	return 4;
+	return sp_count - 1;
 }
 
 // Ранний выход (GR-11, как clump_out_of_view у травы): капсула — ось (xz, y0…y1) с радиусом reach —
@@ -219,10 +222,10 @@ void vertex() {
 			v = vec3(xz.x + right.x * VERTEX.x * w, h - sink * hh + VERTEX.y * hh,
 					xz.y + right.y * VERTEX.x * w);
 			NORMAL = normalize(vec3(fwd.x, 1.2, fwd.y));
-			vec2 cell_uv = vec2(float(sp % 4), float(sp / 4));
+			vec2 cell_uv = vec2(mod(sp_cell[sp], atlas_cells.x), floor(sp_cell[sp] / atlas_cells.x));
 			v_uv = (cell_uv + vec2(UV.x, UV.y)) / atlas_cells;
 			v_tint = brightness * (0.85 + 0.3 * hash12(cell + 13.3));
-			v_sl_kind = SL_DECID[sp]; // SL
+			v_sl_kind = sp_kind[sp]; // SL
 			v_sl_gain = sl_tree_gain(sp_gain[sp]); // SL-14
 			if (v_sl_kind > 0.5) v_sl_ss = sl_season_sp(v_sl_kind, h); // SL
 			if (sl_light_enabled) {
@@ -231,7 +234,7 @@ void vertex() {
 				float lod = log2(float(textureSize(atlas, 0).x) / atlas_cells.x);
 				vec4 mc = textureLod(atlas, (cell_uv + 0.5) / atlas_cells, lod);
 				v_sl_luma = dot(mc.rgb, SL_LW) / max(mc.a, 1e-3) * v_tint * v_sl_gain;
-				v_sl_con = SL_CONIFER[sp];
+				v_sl_con = sp_conifer[sp];
 				// полог вдали: видимая доля освещённых крон по солнцу и взгляду (как у полога
 				// рельефа); на билборд постоянна — в вершине
 				v_sl_dir = sl_canopy_direct(n, normalize(CAMERA_POSITION_WORLD - v), sl_canopy_far(d));

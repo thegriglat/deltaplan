@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "Модель породы oak: 4 варианта × LOD0/1/2 (tree_oak.glb 1,0 МБ), крона round (широкая округлая), листва broad (лопастные листья), кора rough, импостеры; высоты по вариантам 17,6/22/26,4/20,2 м (height_scale). Превью variants.png и iso45.png (с берёзой для масштаба).",
+  "commits": [
+    "9035e417 oak: модель, крона round, листва broad",
+    "69b0faf7 oak пересобран после слияния"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "glb",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "previews",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "old_untouched",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "треугольники LOD0 oak",
+      "value": "1780 (старые: pine 1042, cedar 1780, larch 1870, spruce 1792, birch 2010)",
+      "pass": true
+    },
+    {
+      "name": "LOD1 ≤ LOD0/3",
+      "value": "312 ≤ 593",
+      "pass": true
+    },
+    {
+      "name": "размер glb",
+      "value": "1,0 МБ ≤ 1,5",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/regional-veg/models/oak/variants.png",
+    "build/screenshots/regional-veg/models/oak/iso45.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RV-4",
+  "uncertain": [
+    {
+      "where": "tools/blender/tree_textures.py:_broad",
+      "why": "листья дуба условные (эллипсы-лопасти), осенняя жёлтая окраска делается шейдером season_kind 1, в модели цвет летний",
+      "checked": "смотрел превью с 4 вариантами и вид 45° с 300 м; цвет сверху темнее берёзы — тон ближе к реальному дубу, но сравнения с игрой нет (сцены не запускал)"
+    },
+    {
+      "where": "assets/models/trees/tree_oak.glb",
+      "why": "в сцене/игре не запускал, атлас импостеров (ячейка oak) не пересобирал — вне scope",
+      "checked": "имена нод/материалов V0..V3_LOD0/1/2, Bark_oak, Leaf_oak, Impostor_oak_v<v> проверены тестами regional_veg_contracts"
+    }
+  ],
+  "dp_feedback": "Слияние feature в ветку при каждом соседнем влитии нужно, чтобы old_untouched не падал; хорошо бы, чтобы проверка сравнивала с merge-base.",
+  "extra": {
+    "height_m_variants": [
+      17.6,
+      22,
+      26.4,
+      20.2
+    ],
+    "old_tris_lod0": {
+      "pine": 1042,
+      "cedar": 1780,
+      "larch": 1870,
+      "spruce": 1792,
+      "birch": 2010
+    },
+    "oak_tris_lod0": 1780
+  },
+  "t": "2026-10-18T00:55:01",
+  "by": "executor"
+}

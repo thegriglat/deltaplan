@@ -39,8 +39,8 @@ BAKE_SUN = 1.5    # солнце при запекании (светотень �
 
 
 def _crown_palm(r: float, zc: float) -> float:
-    # TODO(RV-5): форма кроны пальмы (перья из одной точки); пока — как ovoid
-    return r * math.sin(math.pi * (0.12 + 0.85 * zc)) ** 0.6 * (1 - 0.25 * zc)
+    # пальма: все перья растут из верхушки ствола; радиус кроны — длина пера по горизонтали
+    return r
 
 
 def _crown_dome(r: float, zc: float) -> float:
@@ -51,10 +51,15 @@ def _crown_dome(r: float, zc: float) -> float:
     return r * math.sqrt(max(1 - ((zc - 0.3) / 0.74) ** 2, 0.03))
 
 
+def _crown_round(r: float, zc: float) -> float:
+    # дуб/бук: широкая округлая крона, самая широкая в нижней трети, сверху закруглена
+    return r * math.sin(math.pi * (0.06 + 0.9 * zc ** 0.9)) ** 0.5
+
+
 # Точки расширения: форма кроны → функция (r, zc); порода дописывает своё, общий код не трогает.
-CROWN_EXT = {"palm": _crown_palm, "dome": _crown_dome}
+CROWN_EXT = {"palm": _crown_palm, "dome": _crown_dome, "round": _crown_round}
 # Формы, у которых на вершине ствола пучки (skeleton)
-TOP_CLUMP_CROWNS = ("cone", "ovoid", "umbrella", "palm", "dome")
+TOP_CLUMP_CROWNS = ("cone", "ovoid", "umbrella", "palm", "dome", "round")
 
 
 def crown_radius(sp: dict, zc: float) -> float:
@@ -86,6 +91,8 @@ def trunk_path(sp: dict, rng: random.Random) -> list:
 
 def trunk_radius(sp: dict, t: float) -> float:
     r0 = sp["trunk_radius_m"]
+    if sp["crown"] == "palm":  # почти цилиндр, вздутие у земли, к кроне чуть тоньше
+        return r0 * (1 - 0.3 * t) * (1 + 0.5 * max(0.0, 0.06 - t) / 0.06)
     return r0 * (1 - 0.88 * t) * (1 + 0.35 * max(0.0, 0.08 - t) / 0.08)
 
 
@@ -196,6 +203,84 @@ def skeleton(sp: dict, seed: int) -> dict:
         stubs.append((tz, Vector((math.cos(az) * math.cos(el), math.sin(az) * math.cos(el),
                                   math.sin(el))) * L))
     return {"path": path, "branches": branches, "tops": tops, "stubs": stubs}
+
+
+def palm_skeleton(sp: dict, seed: int) -> dict:
+    """Пальма: слегка изогнутый ствол и перья (pinnate), растущие из верхушки. Перо — дуга
+    (направление гнётся вниз под тяжестью: чем ниже ярус, тем круче загиб); ярусы whorls,
+    в каждом per_whorl перьев; сверху — молодой почти вертикальный лист. Один поток rng."""
+    rng = random.Random(seed)
+    H = sp["height_m"]
+    path = trunk_path(sp, rng)
+    top = path[-1]
+    L0 = sp["crown_radius"] * H * 1.15  # длина пера по хорде
+    fronds = []
+    n_wh = sp["whorls"]
+    for k in range(n_wh):
+        zc = k / max(n_wh - 1, 1)             # 0 — верхний ярус, 1 — нижний
+        el0 = math.radians(72 - 62 * zc + rng.uniform(-5, 5))   # угол выхода над горизонтом
+        bend = math.radians(200 * sp["droop"] * (0.6 + 0.9 * zc))  # суммарный загиб вниз
+        n = sp["per_whorl"] - (2 if k == 0 else 0)
+        for j in range(n):
+            az = 2 * math.pi * (j + rng.uniform(-0.25, 0.25)) / n + k * 0.9
+            fronds.append({"az": az, "el0": el0 + rng.uniform(-0.1, 0.1),
+                           "bend": bend * rng.uniform(0.85, 1.15),
+                           "L": L0 * rng.uniform(0.85, 1.1) * (1 - 0.1 * (1 - zc)),
+                           "off": top + Vector((rng.uniform(-1, 1), rng.uniform(-1, 1),
+                                                -0.05 * H * zc)) * 0.08})
+    fronds.append({"az": rng.uniform(0, 6.28), "el0": math.radians(86), "bend": 0.15,
+                   "L": L0 * 0.45, "off": top.copy()})  # копьё — молодой лист
+    return {"path": path, "fronds": fronds}
+
+
+def frond_mesh(mb: U.MeshBuilder, f: dict, segs: int, width_k: float) -> None:
+    """Перо: полоса вдоль дуги, поперёк 3 вершины (кромки ниже оси — листочки свисают),
+    UV: u поперёк, v вдоль (0 — у ствола)."""
+    az, L = f["az"], f["L"]
+    h = Vector((math.cos(az), math.sin(az), 0.0))
+    w = Vector((-math.sin(az), math.cos(az), 0.0))
+    half = 0.25 * L * width_k
+    p = f["off"].copy()
+    pts = [p.copy()]
+    ds = L / segs
+    for i in range(segs):
+        t = (i + 0.5) / segs
+        el = f["el0"] - f["bend"] * t ** 1.3
+        p = p + (h * math.cos(el) + Vector((0, 0, 1)) * math.sin(el)) * ds
+        pts.append(p.copy())
+    rows = []
+    for i, c in enumerate(pts):
+        t = i / segs
+        edge = half * min(1.0, 0.35 + 3 * t)  # у основания полоса уже
+        rows.append([mb.add_vert(c - w * edge - Vector((0, 0, 0.3 * edge))),
+                     mb.add_vert(c),
+                     mb.add_vert(c + w * edge - Vector((0, 0, 0.3 * edge)))])
+        for vi in rows[-1]:
+            mb.colors[vi] = (1.0, 0.0)
+    for i in range(segs):
+        v0, v1 = i / segs, (i + 1) / segs
+        for c in (0, 1):
+            u0, u1 = c * 0.5, c * 0.5 + 0.5
+            q = [rows[i][c], rows[i][c + 1], rows[i + 1][c + 1], rows[i + 1][c]]
+            mb.add_face(q, "Leaf", uv=[(u0, v0), (u1, v0), (u1, v1), (u0, v1)], smooth=True)
+
+
+def palm_mesh(sp: dict, lod: int, sk: dict) -> U.MeshBuilder:
+    """LOD0 — ствол 8 граней, все перья по 6 сегментов; LOD1 — ствол 5 граней, каждое второе
+    перо (шире), по 3 сегмента."""
+    mb = U.MeshBuilder()
+    path = sk["path"]
+    ts = [i / (len(path) - 1) for i in range(len(path))]
+    if lod == 1:
+        path, ts = [path[i] for i in (0, 3, 6, 10)], [ts[i] for i in (0, 3, 6, 10)]
+    mb.add_tube(path, [trunk_radius(sp, t) for t in ts], "Bark", sides=8 if lod == 0 else 5,
+                uv_v=[t * sp["trunk_top"] for t in ts])
+    for i, f in enumerate(sk["fronds"]):
+        if lod == 0:
+            frond_mesh(mb, f, 6, 1.0)
+        elif i % 2 == 0 or i == len(sk["fronds"]) - 1:
+            frond_mesh(mb, f, 3, 1.35)
+    return mb
 
 
 def merge_clumps(cl: list, sp: dict, groups: int, size_k: float) -> list:
@@ -420,13 +505,19 @@ def _variant(key: str, sp: dict, lod_cfg: dict, mats: dict, seed: int, v: int,
              tris: dict) -> None:
     """Вариант v породы: V{v}_LOD0, V{v}_LOD1 из одного каркаса, V{v}_LOD2 — импостор,
     запечённый с V{v}_LOD0 (картинка tree_<вид>_v<v>_impostor.png). Все LOD в начале координат."""
-    hs = sp.get("height_scales")  # высота варианта: ×hs[v] (деревья в лесу разного возраста)
-    if hs:
-        sp = dict(sp, height_m=sp["height_m"] * hs[v % len(hs)])
-    sk = skeleton(sp, seed)
+    if sp["crown"] == "palm":  # высота по вариантам (RV-К3: palm 8…25 м)
+        sp = dict(sp, height_m=sp["height_m"] * sp.get("variant_height", [1.0] * 8)[v])
+        sk = palm_skeleton(sp, seed)
+        build = lambda lod: palm_mesh(sp, lod, sk)  # noqa: E731
+    else:
+        hs = sp.get("height_scale")  # высота по вариантам (взрослые деревья разного роста)
+        if hs:
+            sp = dict(sp, height_m=sp["height_m"] * hs[v % len(hs)])
+        sk = skeleton(sp, seed)
+        build = lambda lod: build_mesh(sp, lod, sk, lod_cfg)  # noqa: E731
     pre = "V%d_" % v
-    lod0 = build_mesh(sp, 0, sk, lod_cfg).build(pre + "LOD0", mats)
-    lod1 = build_mesh(sp, 1, sk, lod_cfg).build(pre + "LOD1", mats)
+    lod0 = build(0).build(pre + "LOD0", mats)
+    lod1 = build(1).build(pre + "LOD1", mats)
     crown_normals(lod0, sp)
     crown_normals(lod1, sp)
     hidden = [o for o in bpy.context.scene.objects if o.type == "MESH" and o != lod0]

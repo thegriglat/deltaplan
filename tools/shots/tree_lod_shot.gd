@@ -124,7 +124,7 @@ func _pairs(out: String, tag: String) -> void:
 	var cfg: Dictionary = Config.get_config("world").trees
 	var models: Dictionary = cfg.get("models", {})
 	var helper := TerrainTreeModels.new()
-	for sp in TreePlacer.SPECIES:
+	for sp in TreePlacer.DEFAULT_SET:
 		var lods := TerrainTreeModels._load_lods(String(models.get(sp, "")))
 		if lods.is_empty():
 			continue

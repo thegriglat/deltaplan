@@ -89,32 +89,17 @@ func setup(
 	m.set_shader_parameter("edge_probe_m", float(cfg.get("edge_probe_m", 30.0)))
 	m.set_shader_parameter("band_blend_m", float(cfg.get("band_blend_m", 200.0)))
 	m.set_shader_parameter("water_max", _mask.water_max)
-	var sp: Dictionary = cfg.get("species", {})
-	var w := PackedFloat32Array()
-	var lo := PackedFloat32Array()
-	var hi := PackedFloat32Array()
-	var asp := PackedFloat32Array()
+	var species := TreePlacer.species_set(cfg)
+	var u := species_uniforms(cfg, species)
+	for key: String in u:
+		m.set_shader_parameter(key, u[key])
 	var hts: Array[Vector2] = []
-	var gain := PackedFloat32Array()
-	for name in TreePlacer.SPECIES:
-		var s: Dictionary = sp.get(name, {})
-		w.append(float(s.get("weight", 0.0)))
-		lo.append(float(s.get("min_m", -1e4)))
-		hi.append(float(s.get("max_m", 1e4)))
-		asp.append(float(s.get("aspect", 0.0)))
-		gain.append(TerrainTreeModels.albedo_gain_for(cfg, name, 2))
-		var hr: Array = s.get("height_m", [15.0, 25.0])
-		hts.append(Vector2(float(hr[0]), float(hr[1])))
-	m.set_shader_parameter("sp_weight", w)
-	m.set_shader_parameter("sp_min", lo)
-	m.set_shader_parameter("sp_max", hi)
-	m.set_shader_parameter("sp_aspect", asp)
-	m.set_shader_parameter("sp_gain", gain)
-	m.set_shader_parameter("sp_height", hts)
+	hts.assign(u["sp_height"])
+	var n_sp := species.size()
 	# GR-11: размеры билборда для раннего выхода — высота ×(1 + 0,4 вдали)×seam_size_k, полуширина
 	# hh/4·(1 + edge_scale_k), утопление до sink_fraction·hh
 	var hmax := 1.0
-	for hr in hts:
+	for hr in hts.slice(0, n_sp):
 		hmax = maxf(hmax, hr.y)
 	hmax *= 1.4 * maxf(1.0, float(ic.get("seam_size_k", 1.0)))
 	m.set_shader_parameter("cull_hmax_m", hmax + 1.0)
@@ -127,6 +112,46 @@ func setup(
 		Vector3(layer.size_x(), layer.max_h - layer.min_h + 200.0, layer.size_z())
 	)
 	return true
+
+
+## Массивы пород для шейдера (sp_*[MAX_SP], sp_count) по набору species и cfg; лишние слоты - нейтральные.
+static func species_uniforms(cfg: Dictionary, species: PackedStringArray) -> Dictionary:
+	var sp: Dictionary = cfg.get("species", {})
+	var w := PackedFloat32Array()
+	var lo := PackedFloat32Array()
+	var hi := PackedFloat32Array()
+	var asp := PackedFloat32Array()
+	var hts: Array[Vector2] = []
+	var gain := PackedFloat32Array()
+	var kind := PackedFloat32Array()
+	var con := PackedFloat32Array()
+	var cell := PackedFloat32Array()
+	for name in species:
+		var s: Dictionary = sp.get(name, {})
+		w.append(float(s.get("weight", 0.0)))
+		lo.append(float(s.get("min_m", -1e4)))
+		hi.append(float(s.get("max_m", 1e4)))
+		asp.append(float(s.get("aspect", 0.0)))
+		gain.append(TerrainTreeModels.albedo_gain_for(cfg, name, 2))
+		kind.append(TreePlacer.kind_of(cfg, name))
+		con.append(1.0 if TreePlacer.conifer_of(cfg, name) else 0.0)
+		cell.append(float(TreePlacer.atlas_cell_of(cfg, name)))
+		var hr: Array = s.get("height_m", [15.0, 25.0])
+		hts.append(Vector2(float(hr[0]), float(hr[1])))
+	for _i in range(species.size(), TreePlacer.MAX_SPECIES):
+		w.append(0.0)
+		lo.append(-1e4)
+		hi.append(1e4)
+		asp.append(0.0)
+		gain.append(1.0)
+		kind.append(0.0)
+		con.append(0.0)
+		cell.append(0.0)
+		hts.append(Vector2(15.0, 25.0))
+	return {
+		"sp_count": species.size(), "sp_kind": kind, "sp_conifer": con, "sp_cell": cell, "sp_weight": w,
+		"sp_min": lo, "sp_max": hi, "sp_aspect": asp, "sp_gain": gain, "sp_height": hts,
+	}
 
 
 ## SL-К4 v2: кольцо импостеров за крестами [начало, конец] (м): доля билбордов растёт там, где кресты

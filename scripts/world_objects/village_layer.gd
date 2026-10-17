@@ -33,6 +33,8 @@ func assemble(p: Dictionary, cfg: Dictionary) -> Array[Callable]:
 	var n := 0
 	for k in tiles:
 		n += (tiles[k].walls as Array).size()
+		for mn: String in tiles[k].models:
+			n += (tiles[k].models[mn].xf as Array).size()
 	stats["buildings"] = n
 	stats["building_tiles"] = tiles.size()
 	stats["place_s"] = p.place_s
