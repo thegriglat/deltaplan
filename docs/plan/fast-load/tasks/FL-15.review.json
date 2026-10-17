@@ -1,0 +1,43 @@
+{
+  "verdict": "accept",
+  "summary": "Код корректен: полосы чистые (только чтение общих данных, свои массивы, склейка по порядку), RSA-выбор и суммы последовательно, сид pick_in_column по столбцу; тест bands 2/7/0/1000 и вложенный вызов = bands 1 бит-в-бит; скоуп соблюдён (air_thermals.gd + тест), контракт PF-К4 не тронут. Цель задачи (ожидание ≤ 1,5 с) не достигнута и честно отмечена как partial; влияние на этап glider не доказано.",
+  "issues": [
+    {
+      "file": "scripts/atmosphere/air_model/air_thermals.gd",
+      "line": 440,
+      "severity": "major",
+      "what": "Этап glider по отчёту стал хуже: точка 8,35 → 8,85 с, Онгудай 5,43 → 7,52 с; списано на нагрузку машины, но есть правдоподобный механизм — 4 полосы build занимают WorkerThreadPool в то время, когда этап glider ждёт свои задачи пула. Без A/B на спокойной машине нельзя сказать, что задача не ухудшила загрузку.",
+      "fix": "Координатору: перемерить measure.sh pt/ong на спокойной машине (job --lock gpu, без соседей) bands=1 против авто, по 3 прогона; если glider с полосами хуже — понизить приоритет групп (high_priority=false уже стоит? сейчас true) или ограничить полосы 2."
+    },
+    {
+      "file": "scripts/atmosphere/air_model/air_thermals.gd",
+      "line": 451,
+      "severity": "minor",
+      "what": "add_group_task вызывается с high_priority=true: фоновая сборка термиков обгоняет в пуле задачи этапа загрузки, которые экран ждёт напрямую.",
+      "fix": "Проверить при замере выше; при необходимости high_priority=false."
+    },
+    {
+      "file": "scripts/atmosphere/air_model/air_thermals.gd",
+      "line": 586,
+      "severity": "minor",
+      "what": "WindField.edge_weight и deardorff_wstar продублированы (_cols_band, _wstar) — при правке WindField разойдутся молча; тест сравнивает только bands N с bands 1 нового кода, не с WindField.",
+      "fix": "Добавить в тест сверку _wstar == WindField.deardorff_wstar и встроенного edge_weight == f.edge_weight на нескольких точках."
+    },
+    {
+      "file": "scripts/atmosphere/thermal_field.gd",
+      "line": 995,
+      "severity": "major",
+      "what": "Вопрос исполнителя: число источников на точке гуляет между запусками с тем же сидом (6994…6998, и при bands 1) — недетерминизм сборки до FL-15 (рельеф/поверхность догружаются во время build). Для сети это важно; FL-15 его не вносит.",
+      "fix": "Координатору: отдельная задача (сборка термиков после полной загрузки рельефа/поверхности или ключ готовности в _air_key_of)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "air_thermals (accept --only air_thermals --dry)",
+      "value": "10/10, scope 2 файла в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-17T07:56:56",
+  "by": "reviewer"
+}
