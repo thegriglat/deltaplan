@@ -197,10 +197,7 @@ static func load_file(path: String, key: Variant = null) -> AirFieldSet:
 	var built: Array = []
 	built.resize(lvs.size())
 	if lvs.size() > 1:
-		var gid := WorkerThreadPool.add_group_task(
-			func(i: int) -> void: built[i] = _level(lvs[i], body), lvs.size(), -1, true, "AirBakedField.levels"
-		)
-		WorkerThreadPool.wait_for_group_task_completion(gid)
+		PoolFor.run(func(i: int) -> void: built[i] = _level(lvs[i], body), lvs.size(), "AirBakedField.levels")
 	elif lvs.size() == 1:
 		built[0] = _level(lvs[0], body)
 	var levels: Array[WindField] = []

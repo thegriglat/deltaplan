@@ -462,8 +462,8 @@ func _band_count(n: int) -> int:
 	return clampi(nb, 1, maxi(n, 1))
 
 
-## fn(lo, hi) по полосам [lo, hi) из n — в WorkerThreadPool (из рабочего потока — вложенная
-## группа, как AirBakedField.load_file); результаты — по порядку полос. fn только читает общие
+## fn(lo, hi) по полосам [lo, hi) из n — в WorkerThreadPool (PoolFor: из рабочего потока — задачи
+## с совместным ожиданием, FL-20); результаты — по порядку полос. fn только читает общие
 ## данные и пишет в свои массивы: итог тот же, что последовательный обход.
 func _run_bands(n: int, fn: Callable) -> Array:
 	var nb := _band_count(n)
@@ -472,14 +472,9 @@ func _run_bands(n: int, fn: Callable) -> Array:
 	if nb == 1:
 		out[0] = fn.call(0, n)
 		return out
-	var gid := WorkerThreadPool.add_group_task(
-		func(b: int) -> void: out[b] = fn.call(n * b / nb, n * (b + 1) / nb),
-		nb,
-		-1,
-		true,
-		"AirThermals.build"
+	PoolFor.run(
+		func(b: int) -> void: out[b] = fn.call(n * b / nb, n * (b + 1) / nb), nb, "AirThermals.build"
 	)
-	WorkerThreadPool.wait_for_group_task_completion(gid)
 	return out
 
 

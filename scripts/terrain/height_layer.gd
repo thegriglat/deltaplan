@@ -86,8 +86,7 @@ static func load_files(dir: String, infos: Array) -> Array:
 		if l != null:
 			l.load_cached_max_pyramid()
 		out[i] = l
-	var gid := WorkerThreadPool.add_group_task(job, infos.size(), -1, true)
-	WorkerThreadPool.wait_for_group_task_completion(gid)
+	PoolFor.run(job, infos.size(), "HeightLayer.load_files")
 	return out
 
 
@@ -140,8 +139,7 @@ static func _chunk_slots(n: int) -> Array:
 
 
 static func _run_chunks(job: Callable, count: int) -> void:
-	var gid := WorkerThreadPool.add_group_task(job, count, -1, true)
-	WorkerThreadPool.wait_for_group_task_completion(gid)
+	PoolFor.run(job, count, "HeightLayer")
 
 
 static func _join(slots: Array) -> Variant:
