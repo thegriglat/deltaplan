@@ -293,3 +293,92 @@ func test_pf_k4_swap_grid_cycles_before_same_after_like_fresh() -> void:
 	check(fresh_n > 0 and same_n == fresh_n, "новые термики сетки как у свежего поля (%d / %d)" % [same_n, fresh_n])
 	a.free()
 	b.free()
+
+
+func _signature_thermals(a: Atmosphere) -> Dictionary:
+	var ids: Array = a.field.thermals.keys()
+	ids.sort()
+	var src := []
+	var w := []
+	for id: int in ids:
+		var th: AtmoThermal = a.field.thermals[id]
+		src.append(th.src)
+		w.append(th.strength)
+	return {ids = ids, src = src, w = w}
+
+
+## FL-5: первое обновление на экране загрузки — сборка источников заранее (поток), опрос, термики
+## порциями — даёт тот же набор (число, позиции, силы) и сетку поиска, что refresh_now().
+func test_fl5_load_refresh_equals_refresh_now() -> void:
+	var ref := _field_atmo(false)
+	ref.time_s = 900.0
+	ref.refresh_now()
+	var a := _field_atmo(true)
+	a.time_s = 900.0
+	a.prefetch_air_sources()
+	a.begin_load_refresh()
+	var steps := 0
+	var waits := 0
+	while not a.load_refresh_step(300) and steps < 200000:
+		steps += 1
+		if a._ld_stage == 1:
+			waits += 1
+			check(a.field.air_src == null, "пока источники собираются — первого air_src нет")
+			OS.delay_usec(200)
+	check(steps > 2, "обновление разбито на шаги: %d (ожидание сборки %d)" % [steps, waits])
+	check(a.field.air_src != null, "источники поля приняты")
+	var sa := _signature_thermals(ref)
+	var sb := _signature_thermals(a)
+	check(not sa.ids.is_empty(), "термики есть: %d" % sa.ids.size())
+	check(sa.ids == sb.ids, "те же термики (%d / %d)" % [sa.ids.size(), sb.ids.size()])
+	check(sa.src == sb.src, "те же позиции источников")
+	check(sa.w == sb.w, "те же силы")
+	check(ref.field._tp == a.field._tp, "та же сетка поиска")
+	check(_signature(ref.field.air_src) == _signature(a.field.air_src), "те же источники поля")
+	ref.free()
+	a.free()
+
+
+func _set_duty(a: Atmosphere, duty: float) -> void:
+	a.field._w = a.field._w.duplicate()
+	a.field._w.thermal_duty = duty
+
+
+## FL-5: сборка, начатая заранее, но с другими входами (кромка, доля жизни термиков или солнце
+## сменились до первого обновления) — отбрасывается и собирается заново: итог как у
+## refresh_now() с новыми входами.
+func test_fl5_prefetch_stale_inputs_rebuilt() -> void:
+	var ref := _field_atmo(false)
+	ref.time_s = 900.0
+	_set_duty(ref, 0.3)
+	ref.refresh_now()
+	var old := _field_atmo(false)
+	old.time_s = 900.0
+	old.refresh_now()
+	check(
+		_signature(old.field.air_src) != _signature(ref.field.air_src),
+		"доля меняет источники (иначе проверка пустая)"
+	)
+	old.free()
+	for async_build in [false, true]:
+		var a := _field_atmo(async_build)
+		a.time_s = 900.0
+		a.prefetch_air_sources()
+		_set_duty(a, 0.3)
+		a.begin_load_refresh()
+		var n := 0
+		while not a.load_refresh_step(-1) and n < 100000:
+			n += 1
+			OS.delay_usec(200)
+		check(a.field.air_src != null, "поток=%s: источники приняты" % async_build)
+		if a.field.air_src != null:
+			check(
+				_signature(a.field.air_src) == _signature(ref.field.air_src),
+				"поток=%s: источники собраны с новой долей" % async_build
+			)
+		check(
+			_signature_thermals(a) == _signature_thermals(ref),
+			"поток=%s: термики как у refresh_now" % async_build
+		)
+		a.free()
+	ref.free()
