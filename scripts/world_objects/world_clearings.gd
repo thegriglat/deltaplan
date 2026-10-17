@@ -55,7 +55,7 @@ static func build_for(location_id: String) -> WorldClearings:
 	var ocfg: Dictionary = Config.get_config("osm_tiles")
 	var osm: OsmData = null
 	if bool(ocfg.get("enabled", true)):
-		osm = OsmData.load_for(Locations.data_dir(location_id), lat0, lon0, float(ocfg.get("half_m", 20000.0)))
+		osm = OsmData.load_for(Locations.data_dir(location_id), lat0, lon0, float(ocfg.get("half_m", 20000.0)), Locations.osm_root(location_id))
 	var c := WorldClearings.new()
 	c.build(landings, cfg, half, tracks, houses, osm)
 	return c
