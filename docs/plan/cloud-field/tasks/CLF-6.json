@@ -1,0 +1,64 @@
+{
+  "id": "CLF-6",
+  "module": "cloud-field",
+  "type": "dp-engineer",
+  "title": "Compatibility: слой поля облачности в boxes-пути",
+  "goal": "В Compatibility (clouds.renderer = boxes, gl_compatibility) кучевые из поля рисуются упрощённо одним боксом над сеткой с той же плотностью слоя (меньше шагов), без падений; линзы/шапка/Cb — как были.",
+  "plan_ref": "§CLF-6",
+  "contracts": [
+    {
+      "name": "CLF-К2",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-field-CLF-6",
+  "branch": "cloud-field/CLF-6",
+  "base": "feature/cloud-field",
+  "scope": [
+    "scripts/atmosphere/cloud_volume.gdshader",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "configs/atmosphere.json",
+    "tests/atmosphere/test_cloud_compat*",
+    "tools/shots/cloud_field_*"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/cloud_field_*",
+    "scripts/atmosphere/cloud_physics.gd",
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "scripts/atmosphere/atmosphere.gd",
+    "project.godot",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "test_cloud",
+      "tests": "test_cloud"
+    },
+    {
+      "name": "test_perf_contracts",
+      "tests": "test_perf_contracts"
+    },
+    {
+      "name": "gpu",
+      "cmd": "tools/gpu_tests.sh --filter=test_cloud_compat",
+      "expect": "re:, 0 упало"
+    },
+    {
+      "name": "gpu_render",
+      "cmd": "tools/gpu_tests.sh --filter=test_cloud_render",
+      "expect": "re:, 0 упало"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cloud-field/CLF-6/ | grep -ciE 'jpg$|png$'",
+      "expect": "num:^([0-9]+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T15:26:06"
+}

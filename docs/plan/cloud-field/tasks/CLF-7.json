@@ -1,0 +1,42 @@
+{
+  "id": "CLF-7",
+  "module": "cloud-field",
+  "type": "dp-researcher",
+  "title": "Цена GPU облаков: feature/cloud-field против main",
+  "goal": "Один замер прохода облаков и GPU кадра в сильный день (поле разогнано) на medium и high: main (кучевые боксами) против feature/cloud-field (слой поля) при той же погоде, часе и маршруте; итог — таблица и отношение, порог прохода облаков ≤ +30 %.",
+  "plan_ref": "§CLF-7",
+  "contracts": [],
+  "copy": "~/deltaplan-cloud-field-CLF-7",
+  "branch": "cloud-field/CLF-7",
+  "base": "feature/cloud-field",
+  "scope": [
+    "tools/bench/",
+    "docs/perf/frame_profile/cloud-field.md",
+    "docs/perf/frame_profile.md",
+    "docs/perf/data/",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "shaders/",
+    "project.godot",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "ratio",
+      "cmd": "python3 -c \"import json;d=json.load(open('docs/perf/data/clf7_summary.json'));print('cloud_pass_ratio_medium=%.3f'%d['cloud_pass_ratio_medium'])\"",
+      "expect": "num:cloud_pass_ratio_medium=([0-9.]+) <=1.3"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T15:26:31"
+}
