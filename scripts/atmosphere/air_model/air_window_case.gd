@@ -29,6 +29,8 @@ func _init() -> void:
 ## ctx — AirPlace.context (дорогой; передать готовый, если есть). null — окно вне слоя.
 ## u10 — ветер меню, inflow_k — множитель притока, как AirPlace.domain_case (C2 v6); surface —
 ## снимок поверхности места (AirPlace.surface_of), H — та же AirPlace.surface_flux на сетке окна (C2 v8).
+## parent — поле-родитель (область или окно крупнее): z_i по столбцам окна — его z_i в точке
+## (CLF-К6, AirZiTerrain.from_parent); нет родителя — от своего рельефа той же формулой.
 static func window_case(
 	detail: HeightLayer,
 	water: Image,
@@ -45,13 +47,14 @@ static func window_case(
 	ctx := {},
 	n := N_WINDOW,
 	inflow_k := 1.0,
-	surface: AirPlace.Surface = null
+	surface: AirPlace.Surface = null,
+	parent: WindField = null
 ) -> AirWindowCase:
 	var half := 0.5 * n * dx
 	var x0 := roundf((cx - half) / 25.0) * 25.0
 	var y0 := roundf((cy - half) / 25.0) * 25.0
 	return window_at(
-		detail, water, loc, dx, x0, y0, hour, u10, wdir, t_max, sky, heat, ctx, n, inflow_k, surface
+		detail, water, loc, dx, x0, y0, hour, u10, wdir, t_max, sky, heat, ctx, n, inflow_k, surface, parent
 	)
 
 
@@ -72,7 +75,8 @@ static func window_at(
 	ctx := {},
 	n := N_WINDOW,
 	inflow_k := 1.0,
-	surface: AirPlace.Surface = null
+	surface: AirPlace.Surface = null,
+	parent: WindField = null
 ) -> AirWindowCase:
 	var hc := AirPlace.block_mean(detail, x0, y0, dx, n, n)
 	if hc.is_empty():
@@ -97,6 +101,14 @@ static func window_at(
 		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
 	var d := AirPlace.day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
+	# z_i по столбцам (CLF-К6): от родителя в точке; без него — от своего рельефа
+	var zp := AirZiTerrain.params()
+	c.zi_alpha = float(zp.alpha)
+	if parent != null:
+		c.z_i_col = AirZiTerrain.from_parent(parent, hc, n, n, dx, x0, y0, float(c.p.zi_min))
+		c.zi_alpha = parent.zi_alpha()
+	if c.z_i_col.is_empty():
+		c.set_zi_terrain(float(ctx.get("valley_msl_m", 0.0)), zp)
 	var cells := {}
 	if heat or surface != null:
 		cells = AirPlace.cell_surface(surface, water, detail, x0, y0, dx, n, n)
@@ -168,6 +180,8 @@ func without_heat() -> AirCase:
 	c.z0_map = z0_map
 	c.gam = gam
 	c.z_i = z_i
+	c.z_i_col = z_i_col
+	c.zi_alpha = zi_alpha
 	c.u10 = u10
 	c.u10_menu = u10_menu
 	c.inflow_k = inflow_k

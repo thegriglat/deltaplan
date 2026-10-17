@@ -96,6 +96,11 @@ var y0 := 0.0
 var hc := PackedFloat64Array()
 var gam := PackedFloat64Array()
 var z_i := NAN
+## Верх слоя перемешивания по столбцам (ny·nx, м над морем; CLF-К6, AirZiTerrain): пусто — везде z_i.
+## Заполняет set_zi_terrain (область) или AirWindowCase.window_at (окно — от родителя).
+var z_i_col := PackedFloat32Array()
+## Доля α, с которой z_i столбцов следует рельефу (0 — не следует; в meta для окон и журналов).
+var zi_alpha := 0.0
 var heat := PackedFloat64Array()
 ## Шероховатость по столбцам, м (ny·nx, j·nx + i; SH-6, C2 v9): эффективная по долям классов клетки
 ## (AirPlace.cell_z0, лог-среднее по площади). Пусто — p.z0 во всех столбцах. Задавать set_z0_map:
@@ -158,6 +163,20 @@ func set_grid(
 	y0 = p_y0
 
 
+## z_i над столбцом c (м над морем): столбец z_i_col, иначе скаляр z_i (NAN — нет конвекции).
+func z_i_of(c: int) -> float:
+	return z_i_col[c] if z_i_col.size() == nx * ny and nx * ny > 0 else z_i
+
+
+## z_i по столбцам от рельефа hc (CLF-К6): z_i_ref = z_i (слой дня над долиной), h_ref — высота долины
+## (ctx.valley_msl_m), α и L — prm (AirZiTerrain.params(): конфиг air_model). Звать после hc и z_i.
+func set_zi_terrain(h_ref: float, prm: Dictionary = AirZiTerrain.params()) -> void:
+	zi_alpha = float(prm.get("alpha", 0.0))
+	z_i_col = AirZiTerrain.columns(
+		hc, nx, ny, dx, z_i, h_ref, zi_alpha, float(prm.get("smooth_m", 5000.0)), float(p.zi_min)
+	)
+
+
 ## Псевдошаг импульса, с: p.dtau_u или (NAN) dtau_per_m·Δx по уровню (эталон с cf64b7b).
 func dtau_u() -> float:
 	var v := float(p.dtau_u)
@@ -199,6 +218,10 @@ func meta() -> Dictionary:
 	}
 	if not is_nan(z_i):
 		m.z_i = z_i
+	# z_i по столбцам (CLF-К6; ny·nx float32 → в запечённом поле — массив тела "meta.z_i_col")
+	if z_i_col.size() == nx * ny and nx * ny > 0:
+		m.z_i_col = z_i_col
+		m.zi_alpha = zi_alpha
 	return m
 
 
@@ -211,6 +234,8 @@ func without_heat() -> AirCase:
 	c.z0_map = z0_map
 	c.gam = gam
 	c.z_i = z_i
+	c.z_i_col = z_i_col
+	c.zi_alpha = zi_alpha
 	c.u10 = u10
 	c.u10_menu = u10_menu
 	c.inflow_k = inflow_k
@@ -524,7 +549,8 @@ func _closure(hk: PackedFloat64Array, any_heat: bool) -> void:
 		var h_mech := NEUTRAL_BL_K * us / float(p.f_cor)
 		var hsv := hs_heat[c]
 		var unst := hsv > 1e-6
-		var h_c := maxf(z_i - hs[c], float(p.zi_min)) if not is_nan(z_i) else float(p.zi_min)
+		var zic := z_i_of(c)
+		var h_c := maxf(zic - hs[c], float(p.zi_min)) if not is_nan(zic) else float(p.zi_min)
 		var h_u := maxf(h_c, h_mech)
 		var ws := pow(G / THETA0 * maxf(hsv, 0.0) * h_u, 1.0 / 3.0) if unst else 0.0
 		var lmo := INF

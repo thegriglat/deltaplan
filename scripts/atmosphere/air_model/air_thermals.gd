@@ -173,6 +173,12 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	grid_sig = signature(f)
 	_hcs = hcs
 	var z_i := f.z_i()
+	# z_i над столбцом (CLF-К6): столбцы поля, иначе скаляр дня
+	var zic := f.z_i_col()
+	if zic.size() != n_col:
+		zic = PackedFloat32Array()
+		zic.resize(n_col)
+		zic.fill(z_i)
 	var gam := f.gam()
 	if gam.size() != f.nz:
 		gam.resize(f.nz)
@@ -230,8 +236,16 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 				continue
 			var hc := hcs[c]
 			var hk := heat[c] / RHO_CP
-			var h := maxf(z_i - hc, ZI_MIN)
-			var ws := WindField.deardorff_wstar(heat[c], z_i, hc)
+			var h := maxf(zic[c] - hc, ZI_MIN)
+			var ws := WindField.deardorff_wstar(heat[c], zic[c], hc)
+			# z_i столбца выше опорного (CLF-К6): слой перемешивания над столбцом глубже и теплее —
+			# θ̄ столбца = max(θ̄(z), θ̄(z_i_col)) (фон θ̄ дня нейтрален до z_i_ref, выше — свободная
+			# атмосфера: перемешанный слой доходит до её θ на местном верху); z_i_col ≤ z_i_ref — фон как есть
+			var tb_lift := -INF
+			if zic[c] > z_i:
+				var kz := clampf((zic[c] - f.z_bot) / f.dz - 0.5, 0.0, f.nz - 1.0)
+				var kk := mini(int(kz), f.nz - 2)
+				tb_lift = lerpf(tbar[kk], tbar[kk + 1], kz - kk)
 			var wm := pow(ustar * ustar * ustar + 0.28 * ws * ws * ws, 1.0 / 3.0)
 			col_wstar[c] = ws
 			# F̄: средний по слою 0..h поток массы подсеточной конвекции, w_m/(2b)
@@ -253,10 +267,10 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 			var t_top := f.z_bot + f.nz * f.dz
 			if hk > 0.0:
 				var ex := HB_B * hk / maxf(wm, 1.0e-3)
-				var tp := tbar[k1] + theta[k1 * nxy + c] + ex
-				var prev := tbar[k1] + theta[k1 * nxy + c]
+				var tp := maxf(tbar[k1], tb_lift) + theta[k1 * nxy + c] + ex
+				var prev := maxf(tbar[k1], tb_lift) + theta[k1 * nxy + c]
 				for k in range(k1 + 1, f.nz):
-					var te := tbar[k] + theta[k * nxy + c]
+					var te := maxf(tbar[k], tb_lift) + theta[k * nxy + c]
 					if te >= tp:
 						var fr := (tp - prev) / maxf(te - prev, 1.0e-6)
 						t_top = f.z_bot + (k - 0.5 + clampf(fr, 0.0, 1.0)) * f.dz
@@ -463,7 +477,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		top[s] = c_top[c]
 		var d_top := maxf(minf(c_top[c], cb) - hc, ZI_MIN)
 		depth[s] = d_top
-		wstar[s] = WindField.deardorff_wstar(hsum[s] / maxf(a_i[s], 1.0), z_i, hc)
+		wstar[s] = WindField.deardorff_wstar(hsum[s] / maxf(a_i[s], 1.0), zic[c], hc)
 		flux[s] = m_i[s]
 		area[s] = a_i[s]
 		radius[s] = allen_r2(1.0, c_zl[c])
