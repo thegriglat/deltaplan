@@ -140,3 +140,4 @@
 {"t": "2026-10-17T07:17:00", "by": "coordinator", "task": "FL-16", "ev": "checked", "commits": ["fcf1b00b"], "note": "4/5 tree=ok:56/56 (пропуск 5); vegetation=ok:55/55 (пропуск 25); village=ok:6/6; world_objects=FAIL:186/187; FAIL test_update_tim…; stress=ok:6"}
 {"t": "2026-10-17T07:17:00", "by": "coordinator", "task": "FL-16", "ev": "merged"}
 {"t": "2026-10-17T07:17:20", "by": "coordinator", "task": "FL-16", "ev": "note", "note": "world_objects при слиянии: test_update_time_200_cars — порог времени под нагрузкой (load 24), не регрессия"}
+{"t": "2026-10-17T07:17:27", "by": "coordinator", "task": "FL-10", "ev": "started"}
