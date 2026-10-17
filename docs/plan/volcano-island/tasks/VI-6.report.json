@@ -1,0 +1,53 @@
+{
+  "status": "done",
+  "summary": "Раздел и новый docs/guide/volcano-island.md (данные в сборке, training_only, OSM из папки, старты, погода, числа воздуха, окно «Тренировка», границы, описание ru/en), правило «источник не над водой» в thermals.md, CHANGELOG «В работе», ASSETS.md (Copernicus, Terrarium, WorldCover CC-BY, OSM ODbL), выводы в registry.",
+  "commits": [
+    "d24be883 Вулканический остров: документация, CHANGELOG, ASSETS, выводы"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "no_toponyms",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "guide_section",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "9 файлов",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VI-6",
+  "uncertain": [
+    {
+      "where": "CHANGELOG.md:5",
+      "why": "в чужой записи было название реального места (острове Пасхи) — заменил на «вулканическом острове», чтобы пройти no_toponyms",
+      "checked": "grep проверки"
+    },
+    {
+      "where": "docs/registry/findings.md",
+      "why": "файл был у предела 40 КБ: выводы вынесены в docs/registry/volcano-island-findings.md, в findings.md одна строка; сократил подписи ссылок в 4 длинных строках",
+      "checked": "docs check"
+    },
+    {
+      "where": "docs/guide/volcano-island.md",
+      "why": "подробный раздел вынесен из location-data.md (лимит 40 КБ); в location-data.md краткий раздел",
+      "checked": "docs check"
+    }
+  ],
+  "dp_feedback": "Лимит 40 КБ заставляет резать реестр findings.md ради одной строки; нужен автосплит или лимит выше для реестров.",
+  "t": "2026-10-17T07:55:35",
+  "by": "executor"
+}
