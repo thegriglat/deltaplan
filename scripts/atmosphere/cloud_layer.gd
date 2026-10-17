@@ -890,11 +890,15 @@ func _highest_ground(eye: Vector3, radius: float) -> Vector3:
 ## шага к новому за step_s (поле само сносится ветром; без перехода облака прыгали бы раз в шаг).
 func _update_field(t: float) -> void:
 	var cp: CloudPhysics = atmo.cloud_phys
+	if cp != null:
+		cp.poll()  # результат разгона/шага подхватить в этом же кадре
 	var f: CloudField = cp.field if cp != null and cp.field_enabled() else null
 	if f == null or f.nx == 0 or f.cover.size() != f.nx * f.ny or not textures_ready():
 		field_params["cf_on"] = 0.0
 		return
-	var key := "%s|%s|%s|%s|%s" % [f.signature(), f.time, f.base_msl, f.bg_cover, f.bg_depth]
+	var key := "%s|%d|%s|%s|%s|%s" % [
+		f.signature(), cp.field_version, f.time, f.base_msl, f.bg_cover, f.bg_depth
+	]
 	if key != _cf_key:
 		_cf_key = key
 		_upload_field(f, t)
