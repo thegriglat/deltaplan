@@ -50,13 +50,10 @@
     {
       "name": "test_evergreen",
       "tests": "test_evergreen"
-    },
-    {
-      "name": "season",
-      "tests": "season"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-18T00:28:20"
+  "created": "2026-10-18T00:28:20",
+  "edited": "2026-10-18T00:36:09"
 }

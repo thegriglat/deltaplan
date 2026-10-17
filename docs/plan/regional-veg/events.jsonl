@@ -69,3 +69,8 @@
 {"t": "2026-10-18T00:35:54", "by": "coordinator", "task": "RV-1", "ev": "accepted", "commits": ["8072cd0a"], "note": "5/5 regional_veg_contracts=ok:7/7; test_biome=ok:4/4; biomes_size=ok:4706; world_acc=ok:0.8404; assets_md=ok:1"}
 {"t": "2026-10-18T00:35:58", "by": "coordinator", "task": "RV-14", "ev": "checked", "note": "2/2 doc=ok:ok; docs_check=ok:exit 0"}
 {"t": "2026-10-18T00:36:03", "by": "coordinator", "task": "RV-14", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-18T00:36:04", "by": "coordinator", "task": "RV-14", "ev": "accepted", "commits": ["9c3d4f4d"], "note": "2/2 doc=ok:ok; docs_check=ok:exit 0"}
+{"t": "2026-10-18T00:36:04", "by": "coordinator", "task": "RV-14", "ev": "merged"}
+{"t": "2026-10-18T00:36:09", "by": "coordinator", "task": "RV-8", "ev": "edited", "note": "accept:-season", "diff": {"accept": ["[{\"name\": \"regional_veg_contracts\", \"tests\": \"regional_veg_contracts\"}, {\"name\": \"scene_look_contracts\", \"tests\": \"scene_look_contracts\"}, {\"name\": \"test_evergreen\", \"tests\": \"test_evergreen\"}, {\"name\": \"season\", \"tests\": \"season\"}]", "[{\"name\": \"regional_veg_contracts\", \"tests\": \"regional_veg_contracts\"}, {\"name\": \"scene_look_contracts\", \"tests\": \"scene_look_contracts\"}, {\"name\": \"test_evergreen\", \"tests\": \"test_evergreen\"}]"]}}
+{"t": "2026-10-18T00:36:12", "by": "coordinator", "task": "RV-8", "ev": "checked", "note": "3/3 regional_veg_contracts=ok:6/6; scene_look_contracts=ok:29/29; test_evergreen=ok:3/3"}
+{"t": "2026-10-18T00:36:16", "by": "coordinator", "task": "RV-8", "ev": "accepted", "note": "по отчёту; GPU-тест season — прогон исполнителя окном"}
