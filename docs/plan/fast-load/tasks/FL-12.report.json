@@ -1,0 +1,39 @@
+{
+  "status": "done",
+  "summary": "docs/guide/fast-load.md (порядок этапов, потоки, кеш поля и настройка размера, пирамида высот, PlaceData, числа до/после, границы), docs/registry/fast-load-findings.md + пункт в findings.md (findings.md остался ~40 КБ, лимит не превышен), CHANGELOG «В работе» для пилота, INDEX пересобран.",
+  "commits": [
+    "FL-12: документация fast-load — гайд загрузки места, выводы, CHANGELOG"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept FL-12",
+  "uncertain": [
+    {
+      "where": "docs/guide/fast-load.md «Числа»",
+      "why": "числа из final.md FL-11; промах n=2, нагрузка машины «до» была выше",
+      "checked": "оговорки перенесены в раздел «Границы»"
+    },
+    {
+      "where": "CHANGELOG.md",
+      "why": "ускорение на 4 ядрах и меньше взято из замера с ограничением пула, не с настоящего железа",
+      "checked": "так и написано"
+    }
+  ],
+  "dp_feedback": "report --show усекает summary до ~300 символов без --full; --full печатает JSON целиком, а grep по нему неудобен. Лимит summary 140 символов узнаётся только после docs check.",
+  "extra": {},
+  "t": "2026-10-17T15:34:33",
+  "by": "executor"
+}
