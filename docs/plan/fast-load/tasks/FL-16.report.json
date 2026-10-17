@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "Причина: в headless (тесты) рендер пустой (RasterizerDummy), его хранилища RID мешей/текстур/материалов — RID_Owner без потокобезопасности (servers/rendering/dummy/storage/*.h 4.7.2), а load_threaded_request из FL-7 строит меши .glb в потоке загрузчика одновременно с главным потоком (terrain_renderer) — «Attempting to initialize the wrong RID», затем signal 11 в _load_species. У RD и GLES3 эти хранилища RID_Owner<…, true>, в игре гонки нет. Исправление: request_preload не запускает фоновую загрузку при DisplayServer headless; заодно один запрос на путь (статический учёт _requested), load_threaded_get только для запрошенного.",
+  "commits": [
+    "5dfcffe1 FL-16: деревья — без фоновой загрузки .glb при пустом рендере, один запрос на путь"
+  ],
+  "checks": [
+    {
+      "name": "tree",
+      "value": "56/56",
+      "pass": true
+    },
+    {
+      "name": "vegetation",
+      "value": "55/55",
+      "pass": true
+    },
+    {
+      "name": "village",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "187/187",
+      "pass": true
+    },
+    {
+      "name": "stress",
+      "value": "pass=6",
+      "pass": true
+    },
+    {
+      "name": "воспроизведение до правки: 8 параллельных village",
+      "value": "1/8 signal 11 в _load_species, перед ним 7 ошибок RID (wrong RID, Parameter m is null) в terrain_renderer._make_material",
+      "pass": true
+    },
+    {
+      "name": "после правки: 7 village + 3 world_objects параллельно (load avg ~40)",
+      "value": "0 падений, 0 ошибок RID; провалы только тайминги NFR-2 (сборка объектов 8 с под нагрузкой), 1 таймаут world_objects 900 с от нагрузки",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "tree 56/56, vegetation 55/55, village 6/6, world_objects 187/187, stress pass=6",
+      "pass": true
+    },
+    {
+      "name": "load_probe ongudai, этап trees (окно, профиль копия loadprof-ong)",
+      "value": "2.28 с и 1.65 с (машина нагружена соседями); фоновая загрузка в окне работает как в FL-7",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept FL-16",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/terrain_tree_models.gd threaded_load_safe",
+      "why": "этап trees в замере 1.65–2.28 с, а не ≈1.3 с из FL-7; код пути с окном не менялся (кроме одного запроса на путь), разброс от нагрузки машины (load avg 30–40, gpu-замеры соседей)",
+      "checked": "2 запуска load_probe; в gate1_hit_ong_1 (до FL-16) trees 2.22 с при похожей нагрузке"
+    },
+    {
+      "where": "игра с окном",
+      "why": "гонка исключена по исходникам Godot (RD/GLES3 RID_Owner потокобезопасны), но не стресс-тестом с окном",
+      "checked": "load_probe с окном 2 раза без ошибок RID"
+    }
+  ],
+  "dp_feedback": "job wait с таймаутом меньше ожидания замка gpu завершает задачу кодом 124 без явного «не дождался замка» — непонятно, запускалась ли команда. Общий scratchpad у агентов одной сессии — имена файлов (probe.sh, accept.log) сталкиваются.",
+  "t": "2026-10-17T06:57:30",
+  "by": "executor"
+}
