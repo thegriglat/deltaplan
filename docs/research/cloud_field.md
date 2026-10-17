@@ -4,11 +4,11 @@ status: "active"
 module: "cloud-field"
 area: "air"
 updated: "2026-10-17"
-summary: "CLF-1/CLF-9: поле облачности из поля воздуха (подъём до LCL, таяние, снос) и z_i, частично следующий рельефу (α ⅓, σ 5 км); карты до/после"
-related: ["docs/contracts/cloud-field.md", "docs/plan/cloud-field.md", "tools/research/cloud_field/README.md", "docs/guide/air-model.md"]
-conclusion: "z_i по рельефу поднимает потолки термиков над хребтами на 100–400 м и облака над горами; над равниной Алматы z_i опорный, кучевые остаются (0,25) — чистота города упёрлась в одну точку росы, не в z_i"
+summary: "CLF-1/9/10: поле облачности из поля воздуха (подъём до LCL, таяние, снос), z_i по рельефу (α ⅓) и опускание циркуляции; карты до/после"
+related: ["docs/contracts/cloud-field.md", "docs/plan/cloud-field.md", "tools/research/cloud_field/README.md", "docs/guide/air-model.md", "docs/research/cloud_field/subsidence.md"]
+conclusion: "z_i по рельефу поднимает потолки над хребтами на 100–400 м; опускание поля (W̄ < 0 у 55–70 % столбцов низины, −5…−9 см/с там, где есть) опускает z_i столбца на 0,3–0,5 км и снимает треть кучевых над равниной (Алматы низина 0,25 → 0,17, не ≤ 0,1): остаток — запас z_i − LCL 850 м и одна точка росы"
 data: "tools/research/cloud_field/"
-applied_in: "scripts/atmosphere/cloud_field.gd, scripts/atmosphere/cloud_field_sources.gd, scripts/atmosphere/cloud_field_codec.gd, scripts/atmosphere/air_model/air_zi_terrain.gd, configs/atmosphere.json → cloud_field, air_model.zi_terrain_*"
+applied_in: "scripts/atmosphere/cloud_field.gd, scripts/atmosphere/cloud_field_sources.gd, scripts/atmosphere/cloud_field_codec.gd, scripts/atmosphere/air_model/air_zi_terrain.gd, scripts/atmosphere/air_model/air_thermals.gd, configs/atmosphere.json → cloud_field, air_model.zi_terrain_*, thermal.subsidence_tau_s"
 ---
 # Поле облачности из поля воздуха (CLF-1)
 
@@ -138,6 +138,14 @@ B = (stage + 1)/2, A = activity; снимок — заголовок + те же
   полями не моделируется.
 - Сверки с наблюдениями нет: ни спутниковых снимков, ни отчётов пилотов по этим местам; эталон — ожидание
   пользователя по Алматы (§5), проверка после счёта, не подгонка.
+- **Опускание (§7)** — по W̄ столбца 400 м поля, а поле на этой сетке даёт не гладкую возвратную ветвь циркуляции,
+  а ячейки организованной конвекции (соседние столбцы ±0,1 м/с): z_i столбца «пятнистый», источники на опущенных
+  столбцах чаще и слабее; над хребтами поле тоже даёт W̄ < 0 (подветренная сторона, лощины) — правило одно на все
+  столбцы, хребет опускается так же. τ_s — постоянная 3 ч, не ход дня: утром опускание переоценено ровно настолько,
+  насколько утреннее W̄ поля само мало. Выше z_i_ref θ′ поля уже несёт нагрев опусканием (−γ·w в уравнении тепла
+  Пикара) — сдвиг фона θ̄ над ним частично это удваивает; потолок определяется положением излома (верха слоя),
+  так что это второй порядок. `tb_lift` (§6) теперь симметричен: z_i столбца ниже опорного (рельеф ниже уровня
+  долины, вода, опускание) — фон θ̄ опущен на разность, устойчивая часть начинается у местного верха.
 
 ## 5. Карты (шлюз Q1)
 
@@ -273,3 +281,8 @@ Kossmann (2015, Front. Earth Sci. 3:77): по наблюдениям над Ал
 за ней); окна берут z_i области с точностью до интерполяции 400 м. Запечённые поля учебного острова z_i столбцов пока
 не несут (перепечка — CLF-2; без ключа — скаляр z_i, как раньше).
 
+## 7. Опускание горно-равнинной циркуляции (CLF-10)
+
+Вынесено в [cloud_field/subsidence.md](cloud_field/subsidence.md): проверка W̄ поля над равниной, схема (z_i столбца
+ниже на |W̄⁻|·τ_s, фон θ̄ опущен; одно место — `AirThermals.build`, `col_zi` → `CloudFieldSources`), карты и числа
+до/после (Алматы низина 0,25 → 0,17, не ≤ 0,1; термики — больше и ниже).
