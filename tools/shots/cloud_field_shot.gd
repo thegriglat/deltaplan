@@ -9,7 +9,8 @@ extends Node
 ##     --out=/tmp/cf --tag=ongudai
 ## --views — через запятую:
 ##   high   — 2,5 км над стартом, взгляд вдаль чуть вниз (по курсу старта);
-##   ground — 2 м над стартом, взгляд на юг на 8° вверх (хребет из города);
+##   ground — 80 м над землёй (крыши) в 60 м к северу от старта, взгляд на юг на 5° вверх
+##            (хребет из города);
 ##   low    — 300 м над стартом, взгляд по курсу старта на 5° вверх.
 ## Пишет <out>/<tag>_<вид>.jpg (JPEG q88) и строку поля (покрытие, мощность, основание). Код 0/1.
 
@@ -21,6 +22,7 @@ var _tag := "field"
 var _wait := 8.0
 var _world_t := -1.0
 var _views: PackedStringArray = ["high"]
+var _gpu_frames := 0
 var _main: Node = null
 var _game: Game = null
 
@@ -40,6 +42,8 @@ func _ready() -> void:
 				_world_t = float(v)
 			"--views":
 				_views = v.split(",", false)
+			"--gpu":
+				_gpu_frames = int(v)
 	if _out == "":
 		push_error("cloud_field_shot: нужен --out=")
 		get_tree().quit(1)
@@ -102,6 +106,9 @@ func _run() -> void:
 	SkyEnvironment.setup_camera(cam)
 	cam.current = true
 	cam.fov = 70.0
+	var g: Variant = _game.get("glider")
+	if g is Node3D:
+		(g as Node3D).visible = false
 	var start: Dictionary = _game.get_start()
 	var sp: Vector3 = start.position
 	var fwd := TerrainGeo.heading_vector(float(start.heading_deg))
@@ -113,8 +120,13 @@ func _run() -> void:
 				eye = sp + Vector3.UP * 2500.0 - fwd * 1500.0
 				dir = (fwd + Vector3.DOWN * 0.12).normalized()
 			"ground":
-				eye = sp + Vector3.UP * 2.0
-				dir = Vector3(0.0, tan(deg_to_rad(8.0)), 1.0).normalized()
+				# 60 м к северу от старта, на высоте крыш (80 м над землёй: в городе дома
+				# закрывают хребет).
+				eye = sp + Vector3(0.0, 80.0, -60.0)
+				var ter: Variant = _game.get("terrain")
+				if ter != null and (ter as Object).has_method("height_at"):
+					eye.y = maxf(eye.y, float(ter.call("height_at", eye.x, eye.z)) + 80.0)
+				dir = Vector3(0.0, tan(deg_to_rad(5.0)), 1.0).normalized()
 			"low":
 				eye = sp + Vector3.UP * 300.0
 				dir = (fwd + Vector3.UP * tan(deg_to_rad(5.0))).normalized()
@@ -160,3 +172,32 @@ func _shoot(view: String) -> void:
 	var path := "%s/%s_%s.jpg" % [_out, _tag, view]
 	var img := get_viewport().get_texture().get_image()
 	print("cloud_field_shot: %s (%s)" % [path, error_string(img.save_jpg(path, 0.88))])
+	if _gpu_frames > 0:
+		await _measure(view)
+
+
+## GPU кадра со слоем и без него (cf_on = 0 до следующей загрузки поля): разница — цена слоя.
+func _measure(view: String) -> void:
+	var layers := get_tree().root.find_children("*", "Node3D", true, false).filter(
+		func(n: Node) -> bool: return n is CloudLayer
+	)
+	if layers.is_empty():
+		return
+	var l: CloudLayer = layers[0]
+	var vp := get_viewport().get_viewport_rid()
+	RenderingServer.viewport_set_measure_render_time(vp, true)
+	var res := []
+	for on in [true, false, true]:
+		var keep: float = float(l.field_params.get("cf_on", 0.0))
+		if not on:
+			l.field_params["cf_on"] = 0.0
+		for i in 20:
+			await RenderingServer.frame_post_draw
+		var g := 0.0
+		for i in _gpu_frames:
+			await RenderingServer.frame_post_draw
+			g += RenderingServer.viewport_get_measured_render_time_gpu(vp)
+		res.append(g / _gpu_frames)
+		l.field_params["cf_on"] = keep if on else 1.0
+	print("cloud_field_shot: GPU %s: кадр со слоем %.2f / без слоя %.2f / со слоем %.2f мс" % [
+		view, res[0], res[1], res[2]])
