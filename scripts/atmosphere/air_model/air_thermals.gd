@@ -100,7 +100,7 @@ var total_flux: float = 0.0
 var carried_flux: float = 0.0
 ## Номер источника по столбцу: Vector2i(j, i) -> s.
 var index: Dictionary = {}
-## Полос параллельной сборки (build, FL-15): 0 — по числу ядер; 1 — последовательно в своём
+## Полос параллельной сборки (build, FL-15): 0 — авто (до 4); 1 — последовательно в своём
 ## потоке. Итог от числа полос не зависит (бит-в-бит).
 var bands: int = 0
 
@@ -425,15 +425,16 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 
 
 ## Полосы на n единиц работы: bands > 0 — столько (1 — последовательно в своём потоке, старый
-## путь); 0 — по числу ядер, если пул больше одного потока.
+## путь); 0 — по числу ядер, не больше 4, если пул больше одного потока.
 func _band_count(n: int) -> int:
 	var nb := bands
 	if nb <= 0:
 		var mt := int(ProjectSettings.get_setting("threading/worker_pool/max_threads", -1))
 		var cores := OS.get_processor_count()
-		# по полосе на ядро: больше — потоки толкаются на общем замке объектов движка (точки
-		# источников зовут рельеф) и медленнее
-		nb = 1 if mt == 1 or cores <= 1 else cores
+		# не больше 4: точки источников зовут рельеф (обращения к объектам — общий замок ObjectDB
+		# движка), и дальше потоки толкаются на нём — замер FL-15 на точке: 1 → 2,65 с, 2 → 1,74,
+		# 4 → 1,24, 8 → 2,27
+		nb = 1 if mt == 1 or cores <= 1 else mini(cores, 4)
 	return clampi(nb, 1, maxi(n, 1))
 
 
