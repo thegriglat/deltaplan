@@ -4,3 +4,4 @@ out/*.json
 !out/subsidence.json
 out/before/
 fig/
+out/cell/

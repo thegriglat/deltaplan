@@ -10,8 +10,9 @@ extends Node
 ## Запуск (GPU, окно): tools/research/cloud_field/run.sh [--places=… --weathers=… --out=…]
 ## CLF-9: --zi_alpha=<α> подменяет air_model.zi_terrain_alpha (0 — плоский z_i, «до»); в кадре —
 ## z_i_col по столбцам и zi_alpha; места ongudai, askarovo, training_island, almaty.
-## CLF-10: --subsidence_tau=<с> подменяет thermal.subsidence_tau_s (0 — без опускания, «до»); в кадре —
-## col_w (W̄ столбца), col_f, col_wstar, col_zi (z_i столбца с опусканием).
+## CLF-10: --subsidence_tau=<с> подменяет thermal.subsidence_tau_s (0 — без опускания, «до»),
+## --subsidence_smooth=<м> — thermal.subsidence_smooth_m (0 — ячейковое W̄, первая редакция); в кадре —
+## col_w (W̄ столбца), col_wm (W̄ мезомасштабное), col_f, col_wstar, col_zi (z_i столбца с опусканием).
 
 const ALMATY := Vector2(43.2, 76.9)
 ## Ветер ветреного дня: откуда, °: Онгудай и остров — запад/северо-запад; Алматы — запад, вдоль
@@ -48,13 +49,17 @@ func _run() -> void:
 	if _a.has("subsidence_tau"):
 		# CLF-10: τ_s опускания горно-равнинной циркуляции (thermal.subsidence_tau_s); 0 — «до»
 		Config.get_config("atmosphere").thermal.subsidence_tau_s = float(_a.subsidence_tau)
+	if _a.has("subsidence_smooth"):
+		# CLF-10: σ сглаживания W̄ до мезомасштаба (thermal.subsidence_smooth_m); 0 — ячейковое W̄
+		Config.get_config("atmosphere").thermal.subsidence_smooth_m = float(_a.subsidence_smooth)
 	if _a.has("timeout_s"):
 		# предел расчёта поля (air_model.timeout_s 60 с): на занятой машине час поля не успевает
 		Config.get_config("atmosphere").air_model.timeout_s = float(_a.timeout_s)
-	print("cloud_field: zi_terrain_alpha = %s, timeout_s = %s, subsidence_tau_s = %s" % [
+	print("cloud_field: zi_terrain_alpha = %s, timeout_s = %s, subsidence_tau_s = %s, subsidence_smooth_m = %s" % [
 		Config.get_config("atmosphere").air_model.zi_terrain_alpha,
 		Config.get_config("atmosphere").air_model.get("timeout_s"),
 		Config.get_config("atmosphere").thermal.get("subsidence_tau_s"),
+		Config.get_config("atmosphere").thermal.get("subsidence_smooth_m"),
 	])
 	var places := String(_a.get("places", "ongudai,training_island,almaty")).split(",")
 	var weathers := String(_a.get("weathers", "weak,strong,windy")).split(",")
@@ -179,6 +184,7 @@ func _write(
 		"c_top": _r(air.c_top, 1.0) if air != null else [],
 		# CLF-10: по столбцам W̄ (средний w_conv слоя 0..h), F̄, w* и z_i столбца с опусканием
 		"col_w": _r(air.col_w, 0.0001) if air != null else [],
+		"col_wm": _r(air.col_wm, 0.0001) if air != null and "col_wm" in air else [],
 		"col_f": _r(air.col_f, 0.0001) if air != null else [],
 		"col_wstar": _r(air.col_wstar, 0.001) if air != null else [],
 		"col_zi": _r(air.col_zi, 1.0) if air != null and "col_zi" in air else [],

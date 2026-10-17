@@ -11,8 +11,9 @@ CLF-9 (z_i по рельефу): --before <папка слепков с α = 0> 
 до/после, карта z_i столбцов, разрезы) + out/zi_tops.json (потолки источников до/после: p10/p50/p90, м MSL;
 основание) + в summary.json cover_lowland (рельеф < LOWLAND_M), cover_ridge (> RIDGE_M), z_i столбцов.
 CLF-10 (опускание): --subsidence <папка слепков с τ_s = 0> → листы fig/<место>_<погода>_sub.png (покрытие до/после,
-карты W̄ столбцов и Δz_s, разрезы, W̄ и покрытие вдоль разреза, потолки источников) + out/subsidence.json
-({место: {погода: {W_lowland_mean, W_ridge_mean, cover_lowland/cover_ridge [до, после], tops before/after p10/p50/p90, …}}}).
+карты W̄ столбцов и W̄_м по мезомасштабу, разрезы, W̄/W̄_м и покрытие вдоль разреза, потолки источников) + out/subsidence.json
+({место: {погода: {W_lowland_mean, W_ridge_mean, Wm_*, cover_lowland/cover_ridge [до, после], tops before/after p10/p50/p90, cell …}}});
+--cell <папка слепков первой редакции, σ = 0> — третий столбик потолков и блок cell.
 """
 from __future__ import annotations
 
@@ -434,11 +435,12 @@ def main_zi(a, out, fig):
 
 
 def band_stats(d, cov_key="cover"):
-    """CLF-10: W̄ столбцов (col_w), Δz_s (z_i_col − col_zi), покрытие и потолок частицы по низине/хребту."""
+    """CLF-10: W̄ столбцов (col_w), W̄_м мезомасштабное (col_wm), Δz_s (z_i_col − col_zi), покрытие и потолок частицы по низине/хребту."""
     hc = grid(d, "hc")
     cov = grid(d, cov_key)
     out = {}
     w = grid(d, "col_w") if d.get("col_w") else None
+    wmeso = grid(d, "col_wm") if d.get("col_wm") else None
     zc = grid(d, "z_i_col") if d.get("z_i_col") else None
     zs = grid(d, "col_zi") if d.get("col_zi") else None
     ct = grid(d, "c_top") if d.get("c_top") else None
@@ -454,6 +456,11 @@ def band_stats(d, cov_key="cover"):
             b["W_mean"] = round(float(np.nanmean(wm)), 4)
             b["W_p10_p50_p90"] = [round(float(np.nanpercentile(wm, q)), 4) for q in (10, 50, 90)]
             b["W_neg_frac"] = round(float(np.mean(wm < 0)), 3)
+        if wmeso is not None:
+            v = wmeso[m]
+            b["Wm_mean"] = round(float(np.nanmean(v)), 4)
+            b["Wm_p10_p50_p90"] = [round(float(np.nanpercentile(v, q)), 4) for q in (10, 50, 90)]
+            b["Wm_neg_frac"] = round(float(np.mean(v < 0)), 3)
         if zc is not None and zs is not None:
             dz = (zc - zs)[m]
             b["dz_s_mean"] = round(float(np.nanmean(dz)), 0)
@@ -466,8 +473,9 @@ def band_stats(d, cov_key="cover"):
     return out
 
 
-def plot_sub_sheet(place, wname, before, after, fig_path):
-    """Лист CLF-10: покрытие до (τ_s = 0) / после, карта W̄ столбцов, карта Δz_s, разрезы, потолки."""
+def plot_sub_sheet(place, wname, before, after, fig_path, cell=None):
+    """Лист CLF-10: покрытие до (τ_s = 0) / после, карты W̄ столбцов и W̄_м (мезомасштаб; Δz_s = |W̄_м⁻|·τ_s),
+    разрезы, потолки (cell — кадр первой редакции с ячейковым W̄, третий столбик потолков)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -478,35 +486,30 @@ def plot_sub_sheet(place, wname, before, after, fig_path):
     shade = hillshade(hr, rel["step"])
     ext = [rel["x0"] / 1e3, (rel["x0"] + rel["nx"] * rel["step"]) / 1e3, rel["y0"] / 1e3, (rel["y0"] + rel["ny"] * rel["step"]) / 1e3]
     draw_cover(axs[0, 0], before, shade, ext, f"до (без опускания), {before['hour']}:00")
-    lext = draw_cover(axs[0, 1], after, shade, ext, f"после (опускание), {after['hour']}:00")
+    lext = draw_cover(axs[0, 1], after, shade, ext, f"после (опускание по W̄_м), {after['hour']}:00")
     axs[0, 0].text(lext[0] + 1, lext[2] + 1, "белое — покрытие, синий контур ≥ %.1f; зелёный пунктир — рельеф %.0f м, красный — %.0f м; точки — источники" % (CLOUD_THR, LOWLAND_M, RIDGE_M), fontsize=6)
     hc = grid(after, "hc")
     xs = np.linspace(lext[0], lext[1], after["nx"]); ys = np.linspace(lext[2], lext[3], after["ny"])
-    for ax, key, title, cmap, sym in ((axs[0, 2], "col_w", "W̄ столбца (средний w_conv слоя 0..h), м/с", "RdBu", True), (axs[0, 3], None, "Δz_s = z_i поля − z_i столбца, м", "magma_r", False)):
+    bs = band_stats(after)
+    low = bs.get("lowland", {}); rid = bs.get("ridge", bs.get("upper20", {}))
+    vw = float(np.nanpercentile(np.abs(grid(after, "col_w")), 95)) if after.get("col_w") else 0.1
+    for ax, key, title, pre in ((axs[0, 2], "col_w", "W̄ столбца (средний w_conv слоя 0..h), м/с", "W"), (axs[0, 3], "col_wm", "W̄_м — W̄ по мезомасштабу (σ гаусса), м/с; Δz_s = |W̄_м⁻|·τ_s", "Wm")):
         ax.imshow(shade, cmap="gray", extent=ext, origin="lower", vmin=0, vmax=1.2)
-        if key is not None and after.get(key):
-            a = grid(after, key)
-        elif key is None and after.get("col_zi") and after.get("z_i_col"):
-            a = grid(after, "z_i_col") - grid(after, "col_zi")
-        else:
+        if not after.get(key):
             ax.set_title(title + " — нет в кадре", fontsize=8)
             continue
-        if sym:
-            v = float(np.nanpercentile(np.abs(a), 95))
-            im = ax.imshow(a, cmap=cmap, extent=lext, origin="lower", alpha=0.85, vmin=-v, vmax=v)
-        else:
-            im = ax.imshow(a, cmap=cmap, extent=lext, origin="lower", alpha=0.85, vmin=0)
+        a = grid(after, key)
+        v = vw if key == "col_w" else max(float(np.nanmax(np.abs(a))), 1e-3)
+        im = ax.imshow(a, cmap="RdBu", extent=lext, origin="lower", alpha=0.85, vmin=-v, vmax=v)
         plt.colorbar(im, ax=ax, shrink=0.7)
+        if key == "col_wm":
+            ax.contour(xs, ys, a, levels=[0.0], colors="k", linewidths=0.6)
         if (hc < LOWLAND_M).any() and (hc >= LOWLAND_M).any():
             ax.contour(xs, ys, hc, levels=[LOWLAND_M], colors="#2ca02c", linewidths=0.7, linestyles="--")
         if (hc > RIDGE_M).any() and (hc <= RIDGE_M).any():
             ax.contour(xs, ys, hc, levels=[RIDGE_M], colors="#d62728", linewidths=0.7, linestyles="--")
-        bs = band_stats(after)
-        low = bs.get("lowland", {}); rid = bs.get("ridge", bs.get("upper20", {}))
-        if key is not None:
-            ax.set_title(f"{title}\nнизина {low.get('W_mean', float('nan')):.3f} (W<0 у {low.get('W_neg_frac', 0):.0%}), хребет/верх {rid.get('W_mean', float('nan')):.3f}", fontsize=8)
-        else:
-            ax.set_title(f"{title}\nнизина p50 {low.get('dz_s_p50_p90', [0, 0])[0]:.0f} м, хребет/верх {rid.get('dz_s_p50_p90', [0, 0])[0]:.0f} м", fontsize=8)
+        extra = "" if key == "col_w" else f"; Δz_s низина p50 {low.get('dz_s_p50_p90', [0, 0])[0]:.0f} м, хребет/верх {rid.get('dz_s_p50_p90', [0, 0])[0]:.0f} м"
+        ax.set_title(f"{title}\nнизина {low.get(pre + '_mean', float('nan')):.3f} ({pre}<0 у {low.get(pre + '_neg_frac', 0):.0%}), хребет/верх {rid.get(pre + '_mean', float('nan')):.3f}{extra}", fontsize=8)
         ax.set_xlim(lext[0], lext[1]); ax.set_ylim(lext[2], lext[3])
     pts, skm, ridge, perp = section_line(hc, after["dx"])
     draw_section(axs[1, 0], before, pts, skm, "разрез до (без опускания)")
@@ -519,8 +522,9 @@ def plot_sub_sheet(place, wname, before, after, fig_path):
     # W̄ и покрытие вдоль разреза
     ax = axs[1, 2]
     if after.get("col_w"):
-        ax.plot(skm, bilin(grid(after, "col_w"), pts), color="#d62728", lw=1, label="W̄ после")
-        ax.plot(skm, bilin(grid(before, "col_w"), pts), color="#d62728", lw=0.8, ls=":", label="W̄ до")
+        ax.plot(skm, bilin(grid(after, "col_w"), pts), color="#d62728", lw=0.8, ls=":", label="W̄ столбца")
+        if after.get("col_wm"):
+            ax.plot(skm, bilin(grid(after, "col_wm"), pts), color="#d62728", lw=1.4, label="W̄_м (мезомасштаб)")
         ax.axhline(0, color="#888", lw=0.5)
         ax.set_ylabel("W̄, м/с")
         ax2 = ax.twinx()
@@ -531,16 +535,19 @@ def plot_sub_sheet(place, wname, before, after, fig_path):
     ax.set_xlabel("вдоль разреза, км"); ax.set_title("W̄ столбца и покрытие вдоль разреза", fontsize=9)
     # потолки источников до/после
     ax = axs[1, 3]
-    tb, ta = tops_of(before), tops_of(after)
-    for k, (t, lab) in enumerate(((tb, "до"), (ta, "после"))):
+    cols = [(tops_of(before), "до (τ_s = 0)")]
+    if cell is not None:
+        cols.append((tops_of(cell), "ячейковое W̄"))
+    cols.append((tops_of(after), "после (W̄_м)"))
+    for k, (t, lab) in enumerate(cols):
         if t["n"]:
             ax.bar(k, t["p90"] - t["p10"], bottom=t["p10"], width=0.5, color="#aec7e8", edgecolor="#1f77b4")
             ax.plot([k - 0.25, k + 0.25], [t["p50"], t["p50"]], color="k", lw=2)
-            ax.text(k, t["p90"] + 50, f"{lab}: p10 {t['p10']:.0f} / p50 {t['p50']:.0f} / p90 {t['p90']:.0f} м, n {t['n']}", ha="center", fontsize=7)
+            ax.text(k, t["p90"] + 50, f"p10 {t['p10']:.0f} / p50 {t['p50']:.0f} / p90 {t['p90']:.0f} м, n {t['n']}", ha="center", fontsize=7)
     ax.axhline(after["base_msl"], color="#1f77b4", ls="--", lw=1, label=f"LCL {after['base_msl']:.0f} м")
     if after.get("z_i") is not None:
         ax.axhline(after["z_i"], color="#888", ls=":", lw=1, label=f"z_i дня {after['z_i']:.0f} м")
-    ax.set_xticks([0, 1]); ax.set_xticklabels(["до", "после"])
+    ax.set_xticks(range(len(cols))); ax.set_xticklabels([c[1] for c in cols])
     ax.set_ylabel("м над морем"); ax.set_title("потолки источников термиков (p10–p90, медиана)", fontsize=9)
     ax.legend(fontsize=7, loc="lower right")
     fig.suptitle(f"{NAMES.get(place, place)} — {WX.get(wname, wname)}: опускание горно-равнинной циркуляции (CLF-10), {after['hour']}:00", fontsize=12)
@@ -552,6 +559,7 @@ def plot_sub_sheet(place, wname, before, after, fig_path):
 def main_sub(a, out, fig):
     """CLF-10: листы до/после, out/subsidence.json, числа в summary.json (слияние с прежними)."""
     before_dir = Path(a.subsidence)
+    cell_dir = Path(a.cell) if a.cell else None
     sp = out / "summary.json"
     summary = json.loads(sp.read_text()) if sp.exists() else {}
     res = {}
@@ -565,8 +573,10 @@ def main_sub(a, out, fig):
                 continue
             after = json.loads(pa.read_text())
             before = json.loads(pb.read_text())
+            pc = cell_dir / f"{place}_{wname}_h{fh}.json" if cell_dir else None
+            cell = json.loads(pc.read_text()) if pc and pc.exists() else None
             png = fig / f"{place}_{wname}_sub.png"
-            plot_sub_sheet(place, wname, before, after, png)
+            plot_sub_sheet(place, wname, before, after, png, cell)
             sb, sa = stats(before), stats(after)
             bb, ba = band_stats(before), band_stats(after)
             e = {
@@ -575,6 +585,13 @@ def main_sub(a, out, fig):
                 "W_ridge_mean": bb.get("ridge", {}).get("W_mean"),
                 "W_upper20_mean": bb.get("upper20", {}).get("W_mean"),
                 "W_lowland_neg_frac": bb.get("lowland", {}).get("W_neg_frac"),
+                "Wm_lowland_mean": ba.get("lowland", {}).get("Wm_mean"),
+                "Wm_ridge_mean": ba.get("ridge", {}).get("Wm_mean"),
+                "Wm_upper20_mean": ba.get("upper20", {}).get("Wm_mean"),
+                "Wm_lowland_neg_frac": ba.get("lowland", {}).get("Wm_neg_frac"),
+                "Wm_ridge_neg_frac": ba.get("ridge", {}).get("Wm_neg_frac"),
+                "Wm_upper20_neg_frac": ba.get("upper20", {}).get("Wm_neg_frac"),
+                "Wm_p10_p50_p90": {k: v.get("Wm_p10_p50_p90") for k, v in ba.items()},
                 "cover_lowland": [sb["cover_lowland"], sa["cover_lowland"]],
                 "cover_ridge": [sb["cover_ridge"], sa["cover_ridge"]],
                 "cover_upper20": [bb.get("upper20", {}).get("cover"), ba.get("upper20", {}).get("cover")],
@@ -587,6 +604,15 @@ def main_sub(a, out, fig):
                 "c_top_above_lcl_frac": {"before": {k: v.get("c_top_above_lcl_frac") for k, v in bb.items()}, "after": {k: v.get("c_top_above_lcl_frac") for k, v in ba.items()}},
                 "solver_errors": after.get("series") and None,
             }
+            if cell is not None:
+                sc, bc = stats(cell), band_stats(cell)
+                e["cell"] = {
+                    "cover_lowland": sc["cover_lowland"], "cover_ridge": sc["cover_ridge"],
+                    "cover_upper20": bc.get("upper20", {}).get("cover"), "cover_frac": sc["cover_frac"],
+                    "cloud_area_frac": sc["cloud_area_frac"], "tops": tops_of(cell),
+                    "dz_s": {k: v.get("dz_s_p50_p90") for k, v in bc.items()},
+                    "c_top_above_lcl_frac": {k: v.get("c_top_above_lcl_frac") for k, v in bc.items()},
+                }
             res.setdefault(place, {})[wname] = e
             st = dict(sa)
             st["cond"] = after.get("cond", {})
@@ -607,6 +633,7 @@ def main():
     ap.add_argument("--before", default="", help="CLF-9: папка слепков с α = 0 → листы до/после и zi_tops.json")
     ap.add_argument("--hour", default="13", help="CLF-9/10: час кадра для сравнения")
     ap.add_argument("--subsidence", default="", help="CLF-10: папка слепков с τ_s = 0 → листы до/после и subsidence.json")
+    ap.add_argument("--cell", default="", help="CLF-10: папка слепков первой редакции (ячейковое W̄, σ = 0) → блок cell и третий столбик потолков")
     a = ap.parse_args()
     out = Path(a.out)
     fig = Path(a.fig)

@@ -11,9 +11,11 @@ extends RefCounted
 ##   w_m = (u*³ + 0,28 w*³)^(1/3), Δθ = b·H_kin/w_m, b = 6,5 — избыток частицы (Холтслаг–Бовилль);
 ##   F(ζ) = H_kin(1 − ζ)/Δθ = w_m(1 − ζ)/b — поток массы подсеточной конвекции замыкания поля;
 ##   Φ = F̄ + max(W̄, 0) — восходящий поток поля: подсеточный + организованный (w_conv);
-##   опускание W̄ < 0 (возвратная ветвь горно-равнинной циркуляции, CLF-10): верх слоя столбца
-##   z_i − |W̄⁻|·τ_s (бюджет dz_i/dt = w_e − |w_s|, Stull 1988 §11.2), фон θ̄ опущен на столько же —
-##   h, w*, F̄, потолок ниже; τ_s — cfg.subsidence_tau_s (thermal, configs/atmosphere.json);
+##   опускание W̄_м < 0 (возвратная ветвь горно-равнинной циркуляции, CLF-10): W̄_м — W̄, сглаженный
+##   гауссом σ = subsidence_smooth_m до мезомасштаба циркуляции (ячейки организованной конвекции
+##   2–4 z_i — часть слоя, z_i не опускают); верх слоя столбца z_i − |W̄_м⁻|·τ_s (бюджет
+##   dz_i/dt = w_e − |w_s|, Stull 1988 §11.2), фон θ̄ опущен на столько же — h, w*, F̄, потолок ниже;
+##   τ_s, σ — cfg.subsidence_tau_s, subsidence_smooth_m (thermal, configs/atmosphere.json);
 ##   потолок — частица θ̄ + θ′ + Δθ теряет плавучесть по θ̄ + θ′ поля; её столб над землёй —
 ##   местная толщина слоя z_l (не ниже 300 м);
 ##   ядра — по Аллену (2006): радиус у верха R = r₂(1, z_l), r₂(ζ) = max(10, 0,102ζ^(1/3)(1 −
@@ -91,8 +93,10 @@ var col_f := PackedFloat32Array()
 ## пропущенный счётом — NAN), и w* Дирдорфа столбца, м/с.
 var c_top := PackedFloat32Array()
 var col_wstar := PackedFloat32Array()
-## По столбцам (CLF-10): z_i столбца с компенсирующим опусканием, м над морем (z_i поля − Δz_s), и
-## само опускание верха Δz_s = |W̄⁻|·τ_s, м (0 — опускания нет).
+## По столбцам (CLF-10): W̄_м — W̄ столбцов, сглаженный до мезомасштаба циркуляции (σ =
+## subsidence_smooth_m), м/с; z_i столбца с компенсирующим опусканием, м над морем (z_i поля − Δz_s), и
+## само опускание верха Δz_s = |W̄_м⁻|·τ_s, м (0 — опускания нет).
+var col_wm := PackedFloat32Array()
 var col_zi := PackedFloat32Array()
 var col_sub := PackedFloat32Array()
 ## Средний по столбу поток ядра на 1 м/с пика (без огибающей и доли циклов), м² — K̄/⟨жизнь⟩.
@@ -226,6 +230,36 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	col_sub.resize(n_col)
 	col_sub.fill(0.0)
 	var tau_s := maxf(float(cfg.get("subsidence_tau_s", 0.0)), 0.0)
+	# W̄: средний w_conv по воздушным клеткам столбца в слое 0..h поля (h — по z_i столбца поля,
+	# без опускания: W̄ — вход опускания, не его следствие); столбец без воздуха — 0.
+	for c in n_col:
+		var k1 := k1s[c]
+		if k1 >= f.nz:
+			continue
+		var h0 := maxf(zic[c] - hcs[c], ZI_MIN)
+		var sw := 0.0
+		var nw := 0
+		for k in range(k1, f.nz):
+			if f.z_bot + (k + 0.5) * f.dz - hcs[c] > h0:
+				break
+			sw += wconv[k * nxy + c]
+			nw += 1
+		col_w[c] = sw / nw if nw > 0 else 0.0
+	# W̄_м: W̄, сглаженный гауссом до мезомасштаба горно-равнинной циркуляции (CLF-10, решение
+	# координатора 2026-10-17): ячейки и валики организованной конвекции (длина волны 2–4 z_i, LeMone
+	# 1973; Young и др. 2002) — часть конвективного слоя, их W̄ < 0 верх слоя не опускает; возвратная
+	# ветвь циркуляции — масштаб массива гор, десятки км (Whiteman 2000, гл. 11; De Wekker & Kossmann
+	# 2015). Сглаживание с отражением на краях сохраняет сумму W̄ по сетке (ядро симметрично).
+	col_wm = col_w.duplicate()
+	var sm := float(cfg.get("subsidence_smooth_m", 0.0)) / f.dx
+	if tau_s > 0.0 and sm > 0.3:
+		var w64 := PackedFloat64Array()
+		w64.resize(n_col)
+		for c in n_col:
+			w64[c] = col_w[c]
+		var g := AirCase.gauss2d(w64, f.nx, f.ny, sm)
+		for c in n_col:
+			col_wm[c] = g[c]
 	var cand := PackedInt32Array()
 	## Радиус исключения по плотности столба (и досягаемость водосбора = 2 радиуса), м.
 	var cand_r := PackedFloat32Array()
@@ -247,26 +281,14 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 				continue
 			var hc := hcs[c]
 			var hk := heat[c] / RHO_CP
-			# W̄: средний w_conv по воздушным клеткам столбца в слое 0..h поля (h — по z_i столбца
-			# поля, без опускания: W̄ — вход опускания, не его следствие)
-			var h0 := maxf(zic[c] - hc, ZI_MIN)
-			var sw := 0.0
-			var nw := 0
-			for k in range(k1, f.nz):
-				var zk := f.z_bot + (k + 0.5) * f.dz
-				if zk - hc > h0:
-					break
-				sw += wconv[k * nxy + c]
-				nw += 1
-			var wbar := sw / nw if nw > 0 else 0.0
-			col_w[c] = wbar
-			# Компенсирующее опускание (CLF-10, Q3): W̄ < 0 над равниной у хребта — возвратная ветвь
+			var wbar := col_w[c]
+			# Компенсирующее опускание (CLF-10, Q3): W̄_м < 0 над равниной у хребта — возвратная ветвь
 			# горно-равнинной циркуляции. Бюджет верха слоя dz_i/dt = w_e − |w_s| (Stull 1988, §11.2;
 			# Tennekes 1973): за время действия циркуляции τ_s верх слоя над столбцом ниже на
-			# Δz_s = |W̄⁻|·τ_s, и свободная атмосфера над ним опущена на столько же (изэнтропы
+			# Δz_s = |W̄_м⁻|·τ_s, и свободная атмосфера над ним опущена на столько же (изэнтропы
 			# при адиабатическом опускании). Один z_i столбца на всё: h, w*, F̄, потолок частицы,
 			# радиус/плотность Аллена; CloudFieldSources берёт col_zi. Предел — столб не ниже ZI_MIN.
-			var dz_s := minf(maxf(-wbar, 0.0) * tau_s, maxf(zic[c] - hc - ZI_MIN, 0.0))
+			var dz_s := minf(maxf(-col_wm[c], 0.0) * tau_s, maxf(zic[c] - hc - ZI_MIN, 0.0))
 			col_sub[c] = dz_s
 			var zi_c := zic[c] - dz_s
 			col_zi[c] = zi_c
