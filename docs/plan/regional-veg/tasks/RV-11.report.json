@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "Модель ронделавеля: house_rondavel.glb (LOD0/1/2 = 420/156/32 треугольника, 83 КБ), стена ⌀5 м h2,3 м, коническая крыша со свесом 0,75 м и коньком 5 м, дверь/перемычка/окно из досок (LOD0), три материала Wall/Roof/Wood_rondavel с процедурными плиточными текстурами 128/128/64.",
+  "commits": [
+    "2076c4a3 RV-11: модель ронделавеля"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "5/5 PASS",
+      "pass": true
+    },
+    {
+      "name": "tris LOD0/1/2",
+      "value": "420/156/32 (лимит 800/200/40)",
+      "pass": true
+    },
+    {
+      "name": "VRAM+мипмапы у текстур",
+      "value": "compress/mode=2, mipmaps=true, vram_texture",
+      "pass": true
+    },
+    {
+      "name": "regional_veg_contracts",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "glb",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "previews",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "own_files_only",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "assets_md",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/regional-veg/models/houses/rondavel/rondavel_side.jpg",
+    "build/screenshots/regional-veg/models/houses/rondavel/rondavel_top45.jpg",
+    "build/screenshots/regional-veg/models/houses/rondavel/rondavel_door_close.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RV-11; пересборка: xvfb-run -a blender --background --python tools/blender/build_house_rondavel.py [-- --preview DIR]",
+  "uncertain": [
+    {
+      "where": "assets/models/houses/house_rondavel.glb",
+      "why": "Цвет экземпляра (палитра стен) множится на все материалы, включая солому и дверь; текстуры светлые, но крыша заметно жёлтая. LOD2 — 8-гранник, грубый по бюджету 40 треугольников; в игре (Godot) модель не загружалась, проверены только рендеры Blender и импорт.",
+      "checked": "Рендеры Blender (Eevee) трёх LOD рядом, вид сбоку, 45° сверху, дверь вблизи; godot --import без ошибок, .import текстур с VRAM и мипмапами."
+    }
+  ],
+  "dp_feedback": "Godot на glb с embedded_image_handling=1 сам выносит текстуры в двойные имена png; в карточке стоило сказать, что сжатие VRAM (compress/mode=2) в .import правится вручную. Первый --import копии долгий (>10 мин).",
+  "t": "2026-10-18T01:23:24",
+  "by": "executor"
+}
