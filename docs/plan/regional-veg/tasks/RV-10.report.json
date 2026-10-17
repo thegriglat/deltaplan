@@ -1,0 +1,56 @@
+{
+  "status": "done",
+  "summary": "BuildingPlacer: реестр buildings.models, доля village_model_share малых сельских домов (VILLAGE, высота не из OSM, след <= village_model_max_area_m2) рисуется моделью; MultiMesh на модель x LOD x тайл (LOD0 до 250 м, LOD1 до 1500, LOD2 до visibility_m), цвет палитры стен через копию материала. Share 0 или нет файла — коробки как раньше.",
+  "commits": [
+    "6e75e508 regional-veg RV-10: модели домов в BuildingPlacer"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "building",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "osm_look",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_building_models",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RV-10",
+  "uncertain": [
+    {
+      "where": "scripts/world_objects/building_placer.gd (_model_lods)",
+      "why": "Реальные glb ещё не существуют (RV-11..13); загрузка LOD0/1/2 через find_child проверена только на подставных мешах (BuildingPlacer.test_models)",
+      "checked": "логика загрузки PackedScene не запускалась на настоящем файле; отсутствие файла даёт коробки (тест)"
+    },
+    {
+      "where": "building_placer.gd, препятствие модели",
+      "why": "Высота коробки-препятствия модели = стены по записи + оценка конька (span/2*pitch), а не реальная высота модели",
+      "checked": "только что препятствие добавляется"
+    },
+    {
+      "where": "building_placer.gd, посадка модели",
+      "why": "Модель ставится на самую низкую точку пятна без заглубления; на крутом склоне фундамент может висеть (коробка заглублена sink_m)",
+      "checked": "не проверялось визуально"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "stats": "buildings в last_stats/VillageLayer.stats считает коробки + экземпляры моделей"
+  },
+  "t": "2026-10-18T00:48:49",
+  "by": "executor"
+}

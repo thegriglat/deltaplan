@@ -105,3 +105,21 @@
 {"t": "2026-10-18T00:46:20", "by": "executor", "task": "RV-5", "ev": "reported", "commits": ["8fa714ce"], "note": "done: Пальма: 4 варианта × LOD0/1/2 (ствол с кольцами, венец из 28 перьев-полос с процедурной текстурой пера), импостеры, имп…", "dp_feedback": "Генератор build_trees.py без аргументов собирает все породы и атлас — случайно легко запустить с --out без породы; render_trees.py был устаревшим (имена LOD0 без V<v>), добавил режим --models."}
 {"t": "2026-10-18T00:46:31", "by": "coordinator", "task": "RV-5", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:2; old_untouched=ok:0"}
 {"t": "2026-10-18T00:46:37", "by": "coordinator", "task": "RV-5", "ev": "accepted", "note": "по отчёту; вид — на шлюз пользователю"}
+{"t": "2026-10-18T00:46:41", "by": "coordinator", "task": "RV-5", "ev": "accepted", "commits": ["8872780e"], "note": "4/4 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:2; old_untouched=ok:0"}
+{"t": "2026-10-18T00:46:42", "by": "coordinator", "task": "RV-5", "ev": "merged"}
+{"t": "2026-10-18T00:47:30", "by": "reviewer", "task": "RV-2", "ev": "reviewed", "note": "Код набора пород и реестр по RV-К2 v1 сделаны аккуратно, скоуп чист, набор по умолчанию на Алтае не меняется (test_species_set перезапущен — 6/6). Но обработка…", "verdict": "rework", "issues": {"major": 2, "minor": 1}, "review": "docs/plan/regional-veg/tasks/RV-2.review.json"}
+{"t": "2026-10-18T00:47:48", "by": "executor", "task": "RV-10", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:7/7; building=ok:18/18; osm_look=ok:14/14; test_building_models=ok:6/6; scope=FAIL:вне scope: r-RV-10.json"}
+{"t": "2026-10-18T00:48:44", "by": "executor", "task": "RV-10", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:7/7; building=ok:18/18; osm_look=ok:14/14; test_building_models=ok:6/6"}
+{"t": "2026-10-18T00:48:49", "by": "executor", "task": "RV-10", "ev": "reported", "commits": ["6e75e508"], "note": "done: BuildingPlacer: реестр buildings.models, доля village_model_share малых сельских домов (VILLAGE, высота не из OSM, след…"}
+{"t": "2026-10-18T00:49:54", "by": "coordinator", "task": "RV-10", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:7/7; building=ok:18/18; osm_look=ok:14/14; test_building_models=ok:6/6"}
+{"t": "2026-10-18T00:50:00", "by": "coordinator", "task": "RV-10", "ev": "accepted", "note": "по отчёту; загрузка настоящих glb — проверка в RV-9"}
+{"t": "2026-10-18T00:51:19", "by": "coordinator", "task": "RV-10", "ev": "accepted", "commits": ["f0d4eba2"], "note": "4/4 regional_veg_contracts=ok:7/7; building=ok:18/18; osm_look=ok:14/14; test_building_models=ok:6/6"}
+{"t": "2026-10-18T00:51:20", "by": "coordinator", "task": "RV-10", "ev": "merged"}
+{"t": "2026-10-18T00:51:44", "by": "executor", "task": "RV-12", "ev": "reported", "commits": ["b4699199"], "note": "done: Модель дома tin_house: 8x6 м, стены 2,8 м, двускатная крыша 12 градусов из профлиста со свесами, дверь со ступенью, 5 о…"}
+{"t": "2026-10-18T00:51:52", "by": "coordinator", "task": "RV-12", "ev": "checked", "note": "5/5 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:4; own_files_only=ok:0; assets_md=ok:1"}
+{"t": "2026-10-18T00:51:57", "by": "coordinator", "task": "RV-12", "ev": "accepted", "note": "по отчёту; вид — на шлюз"}
+{"t": "2026-10-18T00:52:00", "by": "coordinator", "task": "RV-12", "ev": "accepted", "commits": ["4f1cbd58"], "note": "5/5 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:4; own_files_only=ok:0; assets_md=ok:1"}
+{"t": "2026-10-18T00:52:01", "by": "coordinator", "task": "RV-12", "ev": "merged"}
+{"t": "2026-10-18T00:53:45", "by": "executor", "task": "RV-13", "ev": "reported", "commits": ["regional-veg/RV-13:", "regional-veg/RV-13:"], "note": "done: Дом на сваях с верандой: tools/blender/build_house_stilt_house.py -> house_stilt_house.glb (142 КБ), LOD0/1/2 = 278/106…", "dp_feedback": "Untracked-каталог assets/models/houses/ делает own_files_only красным до первого коммита (git status показывает каталог целиком); можно подсказать в карточке."}
+{"t": "2026-10-18T00:53:53", "by": "coordinator", "task": "RV-13", "ev": "checked", "note": "5/5 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:3; own_files_only=ok:0; assets_md=ok:1"}
+{"t": "2026-10-18T00:53:57", "by": "coordinator", "task": "RV-13", "ev": "accepted", "note": "по отчёту; вид — на шлюз"}
