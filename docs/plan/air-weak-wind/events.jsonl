@@ -45,3 +45,5 @@
 {"t": "2026-10-18T03:31:28", "by": "executor", "task": "AWW-3", "ev": "reported", "commits": ["1011a23"], "note": "done: Перепечены поля ветра 8 встроенных мест (training_island ×4, volcano_island ×4) скриптом tools/terrain/bake_all.sh. До …", "dp_feedback": "Порядок шагов из дополнений карточки сработал без правок. Отчёт с полем status=done сначала отклонён: нужны commits и checks с именами проверок из карточки (шаблон показан в report --template)."}
 {"t": "2026-10-18T03:33:14", "by": "coordinator", "task": "AWW-3", "ev": "accepted", "note": "2/2 bake_check=ok:exit 0; eight_ok=ok:8"}
 {"t": "2026-10-18T03:33:19", "by": "coordinator", "task": "AWW-3", "ev": "accepted", "note": "проверки PASS, 8 ok"}
+{"t": "2026-10-18T03:34:31", "by": "coordinator", "task": "AWW-3", "ev": "accepted", "commits": ["253fae61"], "note": "2/2 bake_check=ok:exit 0; eight_ok=ok:8"}
+{"t": "2026-10-18T03:34:32", "by": "coordinator", "task": "AWW-3", "ev": "merged"}
