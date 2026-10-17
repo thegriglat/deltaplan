@@ -87,7 +87,7 @@ generated: true
 - [docs/guide/air-model.md](guide/air-model.md) — Модель воздуха в трёх масштабах: среднее поле (фазы + Пикар на GPU), термики и возмущения из поля; вход и оглавление частей.
 - [docs/guide/architecture.md](guide/architecture.md) — Архитектура: правила кода и конфигов, координаты, папки модулей, контракты между модулями, заменяемые ассеты.
 - [docs/guide/atmosphere/calibration.md](guide/atmosphere/calibration.md) — Бот-маршрутник и идеальный пилот на матрице погоды, калибровка дней (карточка 03), сила источника термиков из SurfaceHeat.
-- [docs/guide/atmosphere/clouds.md](guide/atmosphere/clouds.md) — Облака (compute и boxes), тени, птицы, признаки термиков, перистая пелена, Cb, волна, пылевые вихри, клубы пыли, известные проблемы.
+- [docs/guide/atmosphere/clouds.md](guide/atmosphere/clouds.md) — Облака из поля облачности, записи (линзы, шапка, Cb), тени, птицы, признаки термиков, Cb, волна, пыль, известные проблемы.
 - [docs/guide/atmosphere/ridge-starts.md](guide/atmosphere/ridge-starts.md) — Парение у склона на 10 стартах четырёх локаций: набор за 5 минут, ridge.efficiency 0,85, два слабых старта.
 - [docs/guide/atmosphere/weather.md](guide/atmosphere/weather.md) — Как прогноз пилота (температура, ветер, облачность) превращается в погоду дня: верх термиков, кромка, ход дня, закат.
 - [docs/guide/atmosphere/wind-field.md](guide/atmosphere/wind-field.md) — Из чего складывается скорость воздуха: пульсации, термик, снос, склон, подветренная зона и ротор, подсос облака, слова пилота в числах.

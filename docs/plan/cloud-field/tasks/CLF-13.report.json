@@ -1,0 +1,77 @@
+{
+  "status": "done",
+  "summary": "main слит в cloud-field/CLF-13; конфликт air_thermals.gd разрешён: Φ = (fbar + max(W̄,0)) * доля суши (VI-7 из main) с комментарием модуля (W̄⁻ не входит в Φ); c_top, col_wstar, z_i по рельефу, опускание не тронуты. Девять тестовых проверок и merged — PASS.",
+  "commits": [
+    "2b724173 Слияние main в cloud-field/CLF-13"
+  ],
+  "checks": [
+    {
+      "name": "test_air_thermals",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "test_zi_terrain",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "test_subsidence",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "test_cloud",
+      "value": "61/61 (пропуск 3)",
+      "pass": true
+    },
+    {
+      "name": "test_air_contracts",
+      "value": "31/31",
+      "pass": true
+    },
+    {
+      "name": "test_determinism",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_perf_contracts",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "test_hazards",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "test_bots",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "merged",
+      "value": "merged",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "FAIL: артефакт слияния",
+      "pass": false
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept CLF-13",
+  "uncertain": [
+    {
+      "where": "accept: проверка scope",
+      "why": "scope FAIL: в diff от базы попали файлы из main (.claude/*, .dpcli/agents/*, data/locations/training_island/air/*), пришедшие слиянием; я их не правил",
+      "checked": "изменения только из main; в конфликтном файле правка одна (строка phi)"
+    }
+  ],
+  "dp_feedback": "Проверка scope для задачи-слияния считает файлы, пришедшие из main, нарушением; нужно считать diff относительно main или от родителя слияния.",
+  "t": "2026-10-17T15:57:44",
+  "by": "executor"
+}
