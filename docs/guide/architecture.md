@@ -37,7 +37,7 @@ Godot 4.7.2 (`godot` в PATH), GDScript, рендер Forward+ (`project.godot`)
 | `scripts/atmosphere/`, `configs/weather/`, `atmosphere.json`, `weather_model.json`, `tests/atmosphere/` | термики, ветер, облака, погода из прогноза, поле воздуха | `atmosphere.md`, `air-model.md`, `air-model-gpu.md` |
 | `scripts/instruments/`, `scripts/audio/`, `configs/instruments.json`, `audio.json`, `tests/instruments/` | вариометр, планшет, звук | `instruments.md`, `telltale.md` |
 | `scripts/world_objects/`, `scenes/world_objects/`, `configs/world_objects.json` | объекты мира: ветроуказатели, посадочные площадки, здания из OSM, лагерь у старта, препятствия | `world-objects.md` |
-| `scripts/tasks/`, `scenes/tasks/`, `configs/tasks/`, `tests/tasks/` | задания, тренировки, рекорды (FR-35…37); логика готова, в `Game.tick()` не подключена | `tasks.md` |
+| `scripts/tasks/`, `scenes/tasks/`, `configs/tasks/`, `tests/tasks/` | задания, рекорды (FR-35…37; тренировки — карточки окна «Тренировка»); логика готова, в `Game.tick()` не подключена | `tasks.md` |
 | `scripts/net/`, `server/`, `configs/net.json`, `tests/net/` | клиент сетевой игры, встроенный сервер, Go-сервер | `net-protocol.md`, `game/network.md` |
 | `scripts/steam/`, `steam/`, `configs/steam.json`, `achievements.json`, `tests/steam/` | Steam: сервис, ачивки, присутствие, лобби | `steam.md` |
 | `scripts/motion_rig/`, `configs/motion_rig.json` | вывод в симулятор движения | `motion-rig.md` |
@@ -79,7 +79,7 @@ Godot 4.7.2 (`godot` в PATH), GDScript, рендер Forward+ (`project.godot`)
 - `obstacle_hit(a: Vector3, b: Vector3) -> Dictionary {kind: building|tree, point}` — проверка отрезка движения на столкновение со зданием или деревом посадки (интеграция — `scripts/game/collision_check.gd`).
 - `get_landing_sites() -> Array[Dictionary]`, `is_clear_at(x, z)`, статический `clearing_mask_for(location_id) -> Image`, `WorldClearings.build_for(id)` (`world_clearings.gd`), сигнал `built`.
 
-**Задания** (`scripts/tasks/`, без нод, тестируется headless): `Task.load_config / list_available`, `TaskTracker`, `TrainingMode`, `FlightRecords.add_flight` — `tasks.md`; в `Game.tick()` не подключены.
+**Задания** (`scripts/tasks/`, без нод, тестируется headless): `Task.load_config / list_available`, `TaskTracker`, `FlightRecords.add_flight` — `tasks.md`; в `Game.tick()` не подключены.
 
 **Сеть и Steam:** `NetClient` / `NetZone` / `NetPilots` (автозагрузки), `NetFlight` (связка с `Game`) — `game/network.md`, протокол — `net-protocol.md`; `SteamService` — единственная точка доступа к GodotSteam — `steam.md`.
 

@@ -99,3 +99,30 @@ func test_main_menu_button_starts_flight() -> void:
 		if flown.size() == 1:
 			check(flown[0].site_id == "lee_bowl" and flown[0].goals.size() == 1, "ротор: старт и цель")
 	m.queue_free()
+
+
+## Все группы и карточки configs/training.json: место, старт, цель, круг посадки.
+func test_all_cards_work() -> void:
+	var groups: Array = TrainingMenu.load_cards().groups
+	check(groups.size() >= 2, "группы: %d" % groups.size())
+	var landing_cards := 0
+	for g: Dictionary in groups:
+		var loc := String(g.location)
+		check(Locations.exists(loc), "место есть: " + loc)
+		var sites := []
+		for s: Dictionary in Locations.config(loc).get("start_sites", []):
+			sites.append(String(s.id))
+		for c: Dictionary in g.cards:
+			var tag := "%s/%s" % [loc, c.get("id")]
+			check(String(c.site) in sites, "старт %s среди стартов места" % tag)
+			var errs := GoalSpec.validate([TrainingMenu.goal_of(c)])
+			check(errs.is_empty(), "цель %s: %s" % [tag, errs])
+			check(tr(String(c.title_key)) != String(c.title_key), "название переведено: " + tag)
+			check(tr(String(c.what_key)) != String(c.what_key), "описание переведено: " + tag)
+			if String(c.goal.kind) == "landing":
+				landing_cards += 1
+				var ls: Variant = Locations.config(loc).get("landing_sites")
+				var has_circle: bool = (ls is Array and not (ls as Array).is_empty()) \
+					or (Config.get_config("tasks/training_spot_landing").get("targets", {}) as Dictionary).has(loc)
+				check(has_circle, "круг посадки есть: " + tag)
+	check(landing_cards >= 1, "есть карточка посадки")
