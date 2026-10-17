@@ -4,14 +4,14 @@ status: "active"
 module: "tasks"
 area: "game"
 updated: "2026-10-17"
-summary: "Задания, тренировки, рекорды: логика и конфиги; в игре — через цели полёта (goals.md), меню заданий и тренировок нет; форматы, API."
+summary: "Задания, рекорды: логика и конфиги; в игре — через цели полёта (goals.md); тренировки — карточки окна «Тренировка» + цели; форматы, API."
 related: ["docs/guide/goals.md", "docs/guide/game.md", "docs/guide/instruments.md", "docs/research/competition_rules.md"]
 ---
-# Задания, тренировки, рекорды
+# Задания, тренировки (карточки), рекорды
 
 FR-35 (маршрутный полёт), FR-36 (тренировки), FR-37 (рекорды), NFR-6, NFR-7. Правила соревнований и
 формат `.xctsk` — [research/competition_rules.md](../research/competition_rules.md).
-Вся логика — `RefCounted` без нод (NFR-8), тесты `tests/tasks/`. **Состояние:** модуль (`scripts/tasks/`, `configs/tasks/`) и страницы прибора «карта»/«задание» (`FlightInstrument.set_task`, `set_task_state`) есть. `TaskTracker`, `Task` и `FlightRecords` игра использует через цели полёта — [goals.md](goals.md): `GoalTracker` строит из целей `route`/`triangle`/`return` ведущий `TaskTracker` (прибор, столбы, итог), а `FlightRecords` пополняется на итоге полёта (время в воздухе, дальность, высота; для маршрута — время и дальность). Отдельного меню «Режим» (задание или тренировка), `TrainingMode` и экрана итога тренировки в игре **нет**: тренировки только в тестах и превью `task_preview.tscn`. Раздел «Подключение» ниже — как подключить отдельное задание или тренировку; цели полёта подключены иначе (в `Game._goals_*`, см. goals.md).
+Вся логика — `RefCounted` без нод (NFR-8), тесты `tests/tasks/`. **Состояние:** модуль (`scripts/tasks/`, `configs/tasks/`) и страницы прибора «карта»/«задание» (`FlightInstrument.set_task`, `set_task_state`) есть. `TaskTracker`, `Task` и `FlightRecords` игра использует через цели полёта — [goals.md](goals.md): `GoalTracker` строит из целей `route`/`triangle`/`return` ведущий `TaskTracker` (прибор, столбы, итог), а `FlightRecords` пополняется на итоге полёта (время в воздухе, дальность, высота; для маршрута — время и дальность). Отдельного меню «Режим» и экрана итога тренировки в игре **нет**. Раздел «Подключение» ниже — как подключить отдельное задание; цели полёта подключены иначе (в `Game._goals_*`, см. goals.md).
 
 ## Что где
 | Файл | Что |
@@ -22,11 +22,10 @@ FR-35 (маршрутный полёт), FR-36 (тренировки), FR-37 (р
 | `scripts/tasks/route_optimizer.gd` (`RouteOptimizer`) | оптимизированная дистанция по касательным к цилиндрам |
 | `scripts/tasks/task_tracker.gd` (`TaskTracker`) | прохождение задания по телеметрии, сигналы, состояние для прибора, итог |
 | `scripts/tasks/flight_records.gd` (`FlightRecords`) | локальные рекорды `user://records.json` |
-| `scripts/tasks/training_mode.gd` (`TrainingMode`) + `training_*.gd` | тренировки: центровка, склон, точность посадки |
 | `scripts/tasks/task_preview.gd`, `scenes/tasks/task_preview.tscn` | превью задания в плане (цилиндры + маршрут) |
 | `configs/tasks/settings.json` | допуски, радиусы по умолчанию, оптимизатор, импорт `.xctsk`, рекорды |
 | `configs/tasks/<id>.json` | задания: `ongudai_demo` (основная локация), `altai_demo` (Манжерок) |
-| `configs/tasks/training_*.json` | параметры тренировок |
+| `configs/tasks/training_spot_landing.json` | мишени цели «посадка» (`targets`); прочие ключи — наследие удалённой тренировки |
 
 ## Формат задания (`configs/tasks/<id>.json`)
 ```jsonc
@@ -92,27 +91,16 @@ records.add_flight(result) -> {"<категория>": {value, previous}}   # н
 # result: FlightStats.summary() + {location, wing, [task: tracker.result()]}; категории задания — "task_*"
 records.free_records(location, wing), records.task_records(task_id, wing)
 
-# Тренировки
-var mode: TrainingMode = TrainingSpotLanding.new()   # / TrainingThermalCentering / TrainingRidgeSoaring
-mode.latlon_fn = terrain.latlon_to_local             # для мишени из lat/lon
-var cfg := Config.get_config("tasks/training_spot_landing").duplicate(true)
-cfg.location = current_location_id
-mode.setup(cfg)
-mode.update(t)                   # каждый шаг; тренировка идёт с момента взлёта
-mode.on_landed(landing_result)   # из Glider.landed (оценка посадки для точности)
-mode.is_finished(), mode.result() -> {mode, title, success, score 0..100, reason, elapsed_s, …}
-signal finished(result)
 ```
-Критерии тренировок (всё в `configs/tasks/training_*.json`):
-- **центровка** — набрать `target_gain_m` за `time_limit_s`, пробыв в подъёме (усреднённый вариометр ≥
-  `lift_threshold_ms`) не меньше `required_lift_time_s`; оценка = набор (вес 0,7) + доля времени в подъёме (0,3);
-- **склон** — `duration_s` в полосе высоты `min_agl_m…max_agl_m` над землёй и не дальше `max_distance_m` от
-  взлёта; оценка = время в полосе / max(время попытки, duration_s);
-- **точность посадки** — очки по кольцам мишени × коэффициент оценки посадки (мягкая 1, жёсткая 0,5, авария 0).
+## Тренировки (FR-36)
+Тренировки = карточки окна «Тренировка» (`configs/training.json`, `scripts/ui/training_menu.gd`) + цели полёта ([goals.md](goals.md)): карточка задаёт старт места и одну цель, итог — «выполнено n из m». Отдельных классов тренировок, меню «Режим» и экрана итога нет. Границы:
+- **«Склон»** (`duration`, 600 с) считает время в воздухе, а не время у склона: полёт вдали от склона цель тоже засчитает;
+- **«Центровка»** (`height`, 300 м) — набор высоты над взлётом с удержанием 10 с, а не центровка именно в термике: подъём в динамическом потоке засчитается так же;
+- **«Посадка»** (`landing`, круг 25 м) — круг на посадочной площадке места; для встроенных локаций без площадок круг берётся из `targets` в `configs/tasks/training_spot_landing.json` (остальные ключи файла — кольца, очки, лимит времени — остались от удалённой тренировки и не читаются); нет ни того ни другого — цель недоступна (`no_target`).
 
 ## Подключение (для интегратора)
 ```gdscript
-# меню «Режим»: свободный полёт / задание (Task.list_available()) / тренировка (training_*)
+# меню «Режим»: свободный полёт / задание (Task.list_available())
 var task := Task.load_config(id, terrain.latlon_to_local, terrain.height_at)
 if task.start_site != "": site = <старт локации с этим id>
 else: glider.reset_on_ground(task.points[task.takeoff_index].position, task.takeoff_heading_deg)
@@ -126,8 +114,6 @@ tracker.task_failed.connect(_show_result)
 
 # в Game.tick() после шага планера:
 tracker.update(glider.telemetry)
-training.update(glider.telemetry)
-glider.landed.connect(training.on_landed)
 
 # итог полёта → рекорды (FR-37)
 var r := stats.summary(end_pos)        # FlightStats: flight_time_s, distance_m, max_altitude_msl_m
@@ -136,3 +122,5 @@ if tracker: r["task"] = tracker.result()   # рекорды задания: вр
 var new_records := records.add_flight(r)   # показать «Новый рекорд!» на экране итога
 ```
 **Прибор.** Страницы «карта» и «задание» рисуют пункты из `FlightInstrument.set_task(points, active)`; состояние гонки — `FlightInstrument.set_task_state(tracker.get_state())` (`InstrumentTask.race`: активный пункт, оставшаяся оптимизированная дистанция, требуемое качество до гоула `required_glide`, время до открытия старта, ESS/гоул; пустой словарь — гонки нет). Страницы прибора — `docs/guide/instruments.md`.
+
+Загрузка `.xctsk` пилотом — кнопка в окне «Полёт…» → «Цели» ([goals.md](goals.md)); файл копируется в `user://tasks/`, место определяется по пунктам (`GoalsTab.check_task_file`).

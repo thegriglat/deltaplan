@@ -1,0 +1,15 @@
+{
+  "taskType": "CLASSIC",
+  "version": 1,
+  "earthModel": "WGS84",
+  "turnpoints": [
+    {"type": "TAKEOFF", "radius": 400,
+     "waypoint": {"name": "TAKEOFF", "lat": 50.79, "lon": 86.13, "altSmoothed": 900}},
+    {"radius": 1000,
+     "waypoint": {"name": "TP1", "lat": 50.82, "lon": 86.16, "altSmoothed": 800}},
+    {"radius": 300,
+     "waypoint": {"name": "GOAL", "lat": 50.80, "lon": 86.10, "altSmoothed": 750}}
+  ],
+  "sss": {"type": "RACE", "direction": "EXIT", "timeGates": ["\"08:00:00Z\""]},
+  "goal": {"type": "CYLINDER", "deadline": "\"12:00:00Z\""}
+}

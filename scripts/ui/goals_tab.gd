@@ -47,6 +47,8 @@ var _track_paths := PackedStringArray()
 var _tracks_box: VBoxContainer
 var _track_msg: Label
 var _dialog: FileDialog
+var _task_dialog: FileDialog
+var _task_msg: Label
 var _routes: Array = []  ## [{id, task, name}] для места, GoalsTab._load_routes
 var _route_len: Dictionary = {}  ## task → длина, м (кэш)
 
@@ -67,6 +69,7 @@ func _init() -> void:
 	)
 	for kind: String in GoalSpec.KINDS:
 		_build_row(kind)
+	_build_task_ui()
 	UiKit.separator(self)
 	_last_track = CheckBox.new()
 	_last_track.text = tr("goals_last_track")
@@ -400,6 +403,94 @@ static func track_in_place(t: FlightTrack, s: FlightSettings) -> bool:
 	return t.inside_fraction(z.bounds, z.fn) >= 0.5
 
 
+# ------------------------------------------------------------ загрузка заданий .xctsk (TM-2)
+
+const TASK_DIR := "user://tasks"
+
+
+func _build_task_ui() -> void:
+	var btn := Button.new()
+	btn.text = tr("goals_task_load")
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	btn.pressed.connect(_on_task_load_pressed)
+	add_child(btn)
+	_task_msg = Label.new()
+	_task_msg.add_theme_color_override("font_color", Color(1.0, 0.65, 0.4))
+	_task_msg.visible = false
+	add_child(_task_msg)
+	var at: int = (_rows["route"].row as Control).get_index() + 1
+	move_child(btn, at)
+	move_child(_task_msg, at + 1)
+
+
+func _on_task_load_pressed() -> void:
+	if _task_dialog == null:
+		_task_dialog = FileDialog.new()
+		_task_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+		_task_dialog.access = FileDialog.ACCESS_FILESYSTEM
+		_task_dialog.use_native_dialog = false
+		_task_dialog.add_filter("*.xctsk", tr("goals_task_filter"))
+		_task_dialog.file_selected.connect(import_task_file)
+		add_child(_task_dialog)
+	_task_dialog.popup_centered_ratio(0.6)
+
+
+## Загрузить задание: годное копируется в TASK_DIR и выбирается в списке, негодное — сообщение.
+## Возвращает путь копии или "".
+func import_task_file(path: String, dir: String = TASK_DIR) -> String:
+	var s: FlightSettings = context_fn.call() if context_fn.is_valid() else null
+	var e := check_task_file(path, s)
+	var dest := ""
+	if e == "":
+		dest = copy_task_file(path, dir)
+		if dest == "":
+			e = "goals_task_unreadable"
+	_task_msg.text = "" if e == "" else "%s: %s" % [path.get_file(), tr(e)]
+	_task_msg.visible = e != ""
+	if dest == "":
+		return ""
+	refresh()
+	var idx := _route_index(dest)
+	if idx >= 0 and idx < _routes.size() and _routes[idx].task == dest:
+		(_rows["route"].route as OptionButton).select(idx)
+		var rc: CheckBox = _rows["route"].check
+		if not rc.disabled:
+			rc.button_pressed = true
+		_changed()
+	return dest
+
+
+## "" — файл годен; иначе ключ сообщения: goals_task_unreadable (не читается, не .xctsk-JSON,
+## нет пунктов) или goals_task_foreign (хоть один пункт вне детальной зоны места).
+static func check_task_file(path: String, s: FlightSettings) -> String:
+	if not FileAccess.file_exists(path):
+		return "goals_task_unreadable"
+	var pts := XctskImporter.points_latlon(FileAccess.get_file_as_string(path))
+	if pts.is_empty():
+		return "goals_task_unreadable"
+	if s == null:
+		return ""
+	var z := place_zone(s)
+	var fn: Callable = z.fn
+	for p in pts:
+		if not (z.bounds as Rect2).has_point(fn.call(p.x, p.y)):
+			return "goals_task_foreign"
+	return ""
+
+
+## Копия файла в dir (имя сохраняется, одноимённый перезаписывается); "" — не вышло.
+static func copy_task_file(path: String, dir: String = TASK_DIR) -> String:
+	DirAccess.make_dir_recursive_absolute(dir)
+	var dest := dir.path_join(path.get_file())
+	var text := FileAccess.get_file_as_string(path)
+	var f := FileAccess.open(dest, FileAccess.WRITE)
+	if f == null:
+		return ""
+	f.store_string(text)
+	f.close()
+	return dest
+
+
 # ------------------------------------------------------------ маршруты
 
 
@@ -409,7 +500,7 @@ func _load_routes(s: FlightSettings) -> void:
 	if not s.has_pick():
 		for e: Dictionary in Task.list_available():
 			var key := String(e.id) if e.source == "config" else String(e.path)
-			if _task_location(e) == s.location_id:
+			if _task_fits(e, s):
 				_routes.append({"task": key, "name": String(e.name)})
 	var opt: OptionButton = _rows["route"].route
 	var was := _loading
@@ -436,6 +527,14 @@ func _chosen_task() -> String:
 	if i < 0 or i >= _routes.size():
 		return ""
 	return String(_routes[i].task)
+
+
+## Задание подходит месту: у конфига и .json — по полю location, у .xctsk (локации нет) —
+## все пункты в детальной зоне места.
+static func _task_fits(e: Dictionary, s: FlightSettings) -> bool:
+	if e.source == "file" and String(e.path).get_extension().to_lower() == "xctsk":
+		return check_task_file(String(e.path), s) == ""
+	return _task_location(e) == s.location_id
 
 
 static func _task_location(e: Dictionary) -> String:

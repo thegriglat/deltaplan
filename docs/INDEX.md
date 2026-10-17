@@ -64,6 +64,7 @@ generated: true
 
 - **goals** — Цели полёта перед стартом (высота, время, дальность, возврат, треугольник, маршрут, скорость, посадка), зачёт, след попытки, IGC/GPX. [active 2026-10-16] — [план](plan/goals.md) · [контракты](contracts/goals.md)
   - [docs/guide/goals.md](guide/goals.md) — Цели полёта и треки: вкладка «Цели», оценка по погоде, засчёт в полёте, итог, прибор, столбы, запись и показ треков, IGC/GPX.
+- **training-modes** — Тренировочные режимы (T-59) через карточки окна «Тренировка» + цели полёта и загрузка .xctsk из окна «Полёт…» (T-56); код задач TM. [closed 2026-10-17] — [план](plan/training-modes.md) · [решения](plan/training-modes/decisions.md) · [сводка](plan/training-modes/summary.md) · полный журнал: `archive/training-modes`
 
 ## perf
 
@@ -134,7 +135,7 @@ generated: true
 - [docs/guide/net-protocol.md](guide/net-protocol.md) — Сетевой протокол: транспорт, сообщения, роль ведущего, ключ мира, LAN-поиск, примеры JSON и сценарии; правда — net.proto.
 - [docs/guide/osm-tiles.md](guide/osm-tiles.md) — Тайлы OSM 20 км: что в них (O1–O3), как собрать тест и весь мир, где итог, что делать при падении; клиент игры и состояние прогона.
 - [docs/guide/steam.md](guide/steam.md) — Steam: SteamService, ачивки, присутствие, лобби и сеть, облако; включение, тест на App ID 480, ручные проверки, ограничения.
-- [docs/guide/tasks.md](guide/tasks.md) — Задания, тренировки, рекорды: логика и конфиги; в игре — через цели полёта (goals.md), меню заданий и тренировок нет; форматы, API.
+- [docs/guide/tasks.md](guide/tasks.md) — Задания, рекорды: логика и конфиги; в игре — через цели полёта (goals.md); тренировки — карточки окна «Тренировка» + цели; форматы, API.
 - [docs/guide/telltale.md](guide/telltale.md) — Ленточка на переднем тросе трапеции: узел из геометрии модели, физика потока и цепочки, рисунок, ограничение модели без скольжения.
 - [docs/guide/terrain/forest-sky.md](guide/terrain/forest-sky.md) — Деревья-модели и средний план леса, полог с высоты, небо, солнце, дымка с инверсией, ослепление, ветер на траве и деревьях.
 - [docs/guide/terrain/relief.md](guide/terrain/relief.md) — Слои высот (WebP, 25 м и 100 м), height_at, чанки и LOD, юбки, нормали, форма гор вдали, DSM под лесом, поля рельефа.
