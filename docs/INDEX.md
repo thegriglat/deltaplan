@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-17"
+updated: "2026-10-18"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -23,6 +23,10 @@ generated: true
   - [docs/research/cloud_field/subsidence.md](research/cloud_field/subsidence.md) — CLF-10: опускание циркуляции по мезомасштабному W̄ поля (σ 10 км): z_i столбца −|W̄_м|·3 ч; Алматы низина −130 м, облака 0,25 → 0,23
   - [docs/research/cloud_field.md](research/cloud_field.md) — CLF-1/9/10: поле облачности из поля воздуха (подъём до LCL, таяние, снос), z_i по рельефу (α ⅓) и опускание циркуляции; карты до/после
   - [tools/research/cloud_field/README.md](../tools/research/cloud_field/README.md) — CLF-1/9/10: карты поля облачности (Онгудай, Аскарово, остров, Алматы), z_i по рельефу и опускание до/после; команды, файлы
+- **air-weak-wind** — Модель воздуха при слабом ветре (T-84): холодный θ′ механизма F над сушей, приземный профиль окон u10/u100, порывы у земли. [closed 2026-10-18] — [план](plan/air-weak-wind.md) · [контракты](contracts/air-weak-wind.md) · [решения](plan/air-weak-wind/decisions.md) · [сводка](plan/air-weak-wind/summary.md) · полный журнал: `archive/air-weak-wind`
+  - [tools/research/air_weak_wind/AWW-1/README.md](../tools/research/air_weak_wind/AWW-1/README.md) — AWW-1: диагноз 1 (холодный θ′ F) верен — правка θ′·h (TW-3); диагноз 2 (профиль 0,45) не подтверждён; порывы по теории; W1. [closed]
+  - [tools/research/air_weak_wind/AWW-2/README.md](../tools/research/air_weak_wind/AWW-2/README.md) — AWW-2: правка 1 AWW-1 — F переносит теплосодержание θ′·h; W1 до/после на 8 стартах и Онгудае/Аскарово (слабый и сильный день). [closed]
+  - [tools/research/air_weak_wind/AWW-1/summary.md](../tools/research/air_weak_wind/AWW-1/summary.md) — Вывод AWW-1: диагноз 1 верен (правка θ′·h TW-3: «Термики» 0,44 → 1,27 м/с), диагноз 2 не подтверждён, порывы в полосе теории. [closed]
 
 ## flight
 
@@ -323,6 +327,7 @@ generated: true
 - [tools/research/air_start/as2/README.md](../tools/research/air_start/as2/README.md) — AS-2: болтанка и разворот ветра у земли из поля GPU — зонд 1,5 м над стартом до/после, разбор по членам, регрессионный тест
 - [tools/research/air_thermals/README.md](../tools/research/air_thermals/README.md) — AM-07: термики из поля — замеры — Описание модели — docs/guide/air-model/thermals.md → «Масштаб 2: термики из поля». [closed]
 - [tools/research/air_turb/README.md](../tools/research/air_turb/README.md) — AM-08: возмущения из поля (масштаб 3) — замеры — Описание модели — docs/guide/air-model/turbulence.md → «Масштаб 3: возмущения из поля». [closed]
+- [tools/research/air_weak_wind/AWW-1/tw/README.md](../tools/research/air_weak_wind/AWW-1/tw/README.md) — Ветер 0,44 м/с у старта «Термики»: холодный θ′ замороженной области от моря; прототип 0,44 → 1,27 м/с; «подъём 6 м/с» — фугоида. [closed]
 - [tools/research/ann2/README.md](../tools/research/ann2/README.md) — Код и команды ann2 (AN-1…AN-4): предел данных, сеть 2,5D-оператор, пилот, AN-4. Отложено 05.10; данные прогонов удалены, таблицы — в out/. [postponed]
 - [tools/research/b2/README.md](../tools/research/b2/README.md) — Б2: α и λ в игре — профиль притока по устойчивости, пересчёт эталонов и цена — Записка — docs/archive/plan/air-model-b2.md. [closed]
 - [tools/research/basebar_curve/README.md](../tools/research/basebar_curve/README.md) — Изгиб базовой штанги по 48 крыльям: 37 изогнутых (вынос 0,07–0,11 м, оценка класса), 11 прямых; shape — по руководствам, bow_m — оценка [closed]
@@ -370,6 +375,7 @@ generated: true
 - [tools/research/air_nn_pilot/p3/out/cond_p3e6/summary.md](../tools/research/air_nn_pilot/p3/out/cond_p3e6/summary.md) — Ошибка сети P3E6 на 60 м по условиям: медиана ветра 0,69 м/с у сошедшихся и 0,48 у несошедшихся (720 случаев) [closed]
 - [tools/research/air_nn_pilot/p3/out/smooth_p2b/summary.md](../tools/research/air_nn_pilot/p3/out/smooth_p2b/summary.md) — Размытие выхода сети σ 0–2 клетки не помогает: оптимум медианы ошибки ветра при σ = 0 (720 случаев, 60 м) [closed]
 - [tools/research/air_synth/hg_sites/summary.md](../tools/research/air_synth/hg_sites/summary.md) — Каталог мест дельтаплана из OSM — сводка — Выгрузка Overpass: 2026-10-04. © OpenStreetMap contributors, ODbL. [closed]
+- [tools/research/air_weak_wind/AWW-1/tw/summary.md](../tools/research/air_weak_wind/AWW-1/tw/summary.md) — Вывод TW-2: причина 0,44 м/с у старта «Термики», прототип правки θ′ фаз, остаток — профиль окон. [closed]
 - [tools/research/data/perdigao/menke2019/summary.md](../tools/research/data/perdigao/menke2019/summary.md) — Menke et al. 2019 (ACP 19, 2713) — данные для калибровки зоны рециркуляции — Источник: doi:10.5194/acp-19-2713-2019, CC BY 4.0. [closed]
 - [tools/research/heat_ca/exp1_3_6_kernels/summary.md](../tools/research/heat_ca/exp1_3_6_kernels/summary.md) — Опыты 1, 3, 6: линейность, ядра, «ядро струи» — Команды для каждой картинки — README.md. Выходы — в out/, сырые поля — в out/cache/*.npz. [closed]
 - [tools/research/heat_ca/exp2_picard/summary.md](../tools/research/heat_ca/exp2_picard/summary.md) — Опыт 2, итог: Пикар доходит до неподвижной точки автомата (≤ 10⁻⁴ за 2 ч); схема итерации, точность, время по клеткам 200–25 м [closed]

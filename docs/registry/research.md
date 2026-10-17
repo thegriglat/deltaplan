@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-17"
+updated: "2026-10-18"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -144,6 +144,9 @@ generated: true
 - [tools/research/air_start/as2/README.md](../../tools/research/air_start/as2/README.md) — AS-2: болтанка и разворот ветра у земли из поля GPU — зонд 1,5 м над стартом до/после, разбор по членам, регрессионный тест (data: tools/research/air_start/as2/)
 - [tools/research/air_thermals/README.md](../../tools/research/air_thermals/README.md) — AM-07: термики из поля — замеры — Описание модели — docs/guide/air-model/thermals.md → «Масштаб 2: термики из поля». (data: tools/research/air_thermals/)
 - [tools/research/air_turb/README.md](../../tools/research/air_turb/README.md) — AM-08: возмущения из поля (масштаб 3) — замеры — Описание модели — docs/guide/air-model/turbulence.md → «Масштаб 3: возмущения из поля». (data: tools/research/air_turb/)
+- [tools/research/air_weak_wind/AWW-1/README.md](../../tools/research/air_weak_wind/AWW-1/README.md) — Старт «Термики» 0,44 м/с — цепочка: область заморожена «сильным D» (U_sat/N 178 м по N над z_i, хотя рельеф 472 м внутри слоя 1741 м) → поле = сборка механизмов → F несёт θ′ тонкого слоя моря (h 15 м… (data: tools/research/air_weak_wind/AWW-1/ (starts.csv, diff.md, diag_calc.json, out/*…)
+- [tools/research/air_weak_wind/AWW-1/tw/README.md](../../tools/research/air_weak_wind/AWW-1/tw/README.md) — 0,44 м/с у старта — холодный θ′ (−3,6 К) над сушей в замороженной фазами области: баланс θ′ вдоль ветра (F) делит охлаждение моря на тонкий устойчивый слой (~15 м) и переносит его на слой перемешиван… (data: tools/research/takeoff_wind/TW-2/)
+- [tools/research/air_weak_wind/AWW-2/README.md](../../tools/research/air_weak_wind/AWW-2/README.md) — Правка θ′_in = E_up/max(h, h_up) (GLSL и CPU, GPU = CPU) снимает холодный купол над учебным островом: «Термики» θ′ −3,60 → +0,02 К, u10 0,44 → 1,27 м/с, направление 101° → 187° — те же числа, что у п… (data: tools/research/air_weak_wind/AWW-2/ (starts.csv, diff.md, diag_calc.json, notes…; applied_in: scripts/atmosphere/air_model/air_phase.glsl, scripts/atmosphere/air_model/air_p…)
 - [tools/research/ann2/README.md](../../tools/research/ann2/README.md) — ann2 лучше P2 на 6–10 %, относительная ошибка ≈ 0,22 при цели 0,10–0,15; предел — постановка или объём данных, не архитектура и не шум цели (docs/archive/rejected/ann2.md §0) (data: out/ (таблицы, метрики, логи); прогоны $AIR_NN_DATA/ann2 удалены 05.10; applied_in: нигде (в игре — сеть P2))
 - [tools/research/b2/README.md](../../tools/research/b2/README.md) — Б2: α и λ в игре — профиль притока по устойчивости, пересчёт эталонов и цена — Записка — docs/archive/plan/air-model-b2.md. (data: tools/research/b2/)
 - [tools/research/basebar_curve/README.md](../../tools/research/basebar_curve/README.md) — Форма штанги подтверждена руководствами/страницами производителей (speedbar стандарт у Falcon, Eagle, Sting 3, Aeros Target/Combat; прямая у Alpha, Spectrum, F2, советских). Числа выноса bow_m в откр… (data: tools/research/basebar_curve/basebar_data.json; applied_in: PV-5)
@@ -196,6 +199,8 @@ generated: true
 - [tools/research/air_nn_pilot/p3/out/cond_p3e6/summary.md](../../tools/research/air_nn_pilot/p3/out/cond_p3e6/summary.md) — Ошибка сети P3E6 на 60 м по условиям: медиана ветра 0,69 м/с у сошедшихся и 0,48 у несошедшихся (720 случаев)
 - [tools/research/air_nn_pilot/p3/out/smooth_p2b/summary.md](../../tools/research/air_nn_pilot/p3/out/smooth_p2b/summary.md) — Размытие выхода сети σ 0–2 клетки не помогает: оптимум медианы ошибки ветра при σ = 0 (720 случаев, 60 м)
 - [tools/research/air_synth/hg_sites/summary.md](../../tools/research/air_synth/hg_sites/summary.md) — Каталог мест дельтаплана из OSM — сводка — Выгрузка Overpass: 2026-10-04. © OpenStreetMap contributors, ODbL. (data: tools/research/air_synth/hg_sites/)
+- [tools/research/air_weak_wind/AWW-1/summary.md](../../tools/research/air_weak_wind/AWW-1/summary.md) — Вывод AWW-1: диагноз 1 верен (правка θ′·h TW-3: «Термики» 0,44 → 1,27 м/с), диагноз 2 не подтверждён, порывы в полосе теории.
+- [tools/research/air_weak_wind/AWW-1/tw/summary.md](../../tools/research/air_weak_wind/AWW-1/tw/summary.md) — Баланс θ′ фаз переносит охлаждение моря на слой суши без сохранения тепла; перенос θ′·h — 0,44 → 1,27 м/с. (data: tools/research/takeoff_wind/TW-2/)
 - [tools/research/data/perdigao/menke2019/summary.md](../../tools/research/data/perdigao/menke2019/summary.md) — Menke et al. 2019 (ACP 19, 2713) — данные для калибровки зоны рециркуляции — Источник: doi:10.5194/acp-19-2713-2019, CC BY 4.0. (data: tools/research/data/perdigao/menke2019/)
 - [tools/research/heat_ca/exp1_3_6_kernels/summary.md](../../tools/research/heat_ca/exp1_3_6_kernels/summary.md) — Опыты 1, 3, 6: линейность, ядра, «ядро струи» — Команды для каждой картинки — README.md. Выходы — в out/, сырые поля — в out/cache/*.npz. (data: tools/research/heat_ca/exp1_3_6_kernels/)
 - [tools/research/heat_ca/exp2_picard/summary.md](../../tools/research/heat_ca/exp2_picard/summary.md) — Опыт 2, итог: Пикар доходит до неподвижной точки автомата (≤ 10⁻⁴ за 2 ч); схема итерации, точность, время по клеткам 200–25 м (data: tools/research/heat_ca/exp2_picard/)

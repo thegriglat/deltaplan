@@ -1,0 +1,81 @@
+diff --git a/scripts/atmosphere/air_model/air_phase.glsl b/scripts/atmosphere/air_model/air_phase.glsl
+index 52798910..0047b45f 100644
+--- a/scripts/atmosphere/air_model/air_phase.glsl
++++ b/scripts/atmosphere/air_model/air_phase.glsl
+@@ -482,7 +482,10 @@ void main() {
+ #endif
+ 
+ #ifdef K_THETA
+-	// проход Якоби θ′(p) = θ′(p − e·dx)·e^{−Δt/τ} + источник (AP-17 theta_march)
++	// проход Якоби θ′(p) = θ′_in·e^{−Δt/τ} + источник (AP-17 theta_march). Вдоль ветра переносится
++	// теплосодержание столба E = θ′·h (TW-3): θ′_in = E_up / max(h, h_up) — слой растёт (тонкий над морем →
++	// толстый над сушей): тепло E_up разбавляется на h; слой тоньше пришедшего: θ′ сохраняется, избыток тепла
++	// остаётся над слоем (остаточный слой). При постоянном h — прежняя формула θ′_in = θ′_up.
+ 	int src = O_TH0 + pc.i1.x;
+ 	int dst = O_TH0 + 1 - pc.i1.x;
+ 	float ex = prm[P_EX], ey = prm[P_EY];
+@@ -498,8 +501,13 @@ void main() {
+ 			int j0 = clamp(int(floor(fj)), 0, ny - 2);
+ 			float aa = fi - float(i0), bb = fj - float(j0);
+ 			int b0 = src * n2;
+-			val = (1.0 - bb) * ((1.0 - aa) * o2d[b0 + j0 * nx + i0] + aa * o2d[b0 + j0 * nx + i0 + 1])
+-					+ bb * ((1.0 - aa) * o2d[b0 + (j0 + 1) * nx + i0] + aa * o2d[b0 + (j0 + 1) * nx + i0 + 1]);
++			int q00 = j0 * nx + i0, q10 = q00 + 1, q01 = q00 + nx, q11 = q01 + 1;
++			float h00 = max(C(CI_HBL, q00), 1.0), h10 = max(C(CI_HBL, q10), 1.0);
++			float h01 = max(C(CI_HBL, q01), 1.0), h11 = max(C(CI_HBL, q11), 1.0);
++			float eu = (1.0 - bb) * ((1.0 - aa) * o2d[b0 + q00] * h00 + aa * o2d[b0 + q10] * h10)
++					+ bb * ((1.0 - aa) * o2d[b0 + q01] * h01 + aa * o2d[b0 + q11] * h11);
++			float hu = (1.0 - bb) * ((1.0 - aa) * h00 + aa * h10) + bb * ((1.0 - aa) * h01 + aa * h11);
++			val = eu / max(max(C(CI_HBL, c), 1.0), hu);
+ 		}
+ 		o2d[dst * n2 + c] = val * fa + s0;
+ 	}
+diff --git a/scripts/atmosphere/air_model/air_phase_cpu.gd b/scripts/atmosphere/air_model/air_phase_cpu.gd
+index 75f3857e..3574015a 100644
+--- a/scripts/atmosphere/air_model/air_phase_cpu.gd
++++ b/scripts/atmosphere/air_model/air_phase_cpu.gd
+@@ -506,6 +506,8 @@ static func uml(p: Dictionary, w: PackedFloat64Array, sl: PackedFloat64Array, la
+ 
+ ## θ′ слоя перемешивания — стационарный баланс вдоль ветра (AP-17 theta_march), проходы Якоби
+ ## nx + ny раз (цепочка вверх по ветру выходит из области — точное решение) (air_phase.glsl:theta).
++## Переносится теплосодержание E = θ′·h (TW-3): θ′_in = E_up / max(h, h_up) — растущий слой разбавляет
++## тепло, тонеющий сохраняет θ′ (избыток — над слоем); при постоянном h — θ′_in = θ′_up.
+ static func theta(p: Dictionary, um: PackedFloat64Array) -> PackedFloat64Array:
+ 	var a: PackedFloat32Array = p.prm
+ 	var nx: int = p.nx
+@@ -517,9 +519,12 @@ static func theta(p: Dictionary, um: PackedFloat64Array) -> PackedFloat64Array:
+ 	var tau: float = a[P.P_TAU]
+ 	var fa := PackedFloat64Array()
+ 	var src := PackedFloat64Array()
++	var hb := PackedFloat64Array()
+ 	fa.resize(n2)
+ 	src.resize(n2)
++	hb.resize(n2)
+ 	for c in n2:
++		hb[c] = maxf(col[P.CI_HBL * n2 + c], 1.0)
+ 		var dt: float = a[P.P_DX] / um[c]
+ 		fa[c] = exp(-dt / tau)
+ 		src[c] = col[P.CI_HK * n2 + c] / maxf(col[P.CI_HBL * n2 + c], 1.0) * tau * (1.0 - fa[c])
+@@ -538,10 +543,19 @@ static func theta(p: Dictionary, um: PackedFloat64Array) -> PackedFloat64Array:
+ 					var j0 := clampi(floori(fj), 0, ny - 2)
+ 					var aa := fi - i0
+ 					var bb := fj - j0
+-					v = (
+-						(1 - bb) * ((1 - aa) * th[j0 * nx + i0] + aa * th[j0 * nx + i0 + 1])
+-						+ bb * ((1 - aa) * th[(j0 + 1) * nx + i0] + aa * th[(j0 + 1) * nx + i0 + 1])
++					var q00 := j0 * nx + i0
++					var q10 := q00 + 1
++					var q01 := q00 + nx
++					var q11 := q01 + 1
++					var eu := (
++						(1 - bb) * ((1 - aa) * th[q00] * hb[q00] + aa * th[q10] * hb[q10])
++						+ bb * ((1 - aa) * th[q01] * hb[q01] + aa * th[q11] * hb[q11])
+ 					)
++					var hu := (
++						(1 - bb) * ((1 - aa) * hb[q00] + aa * hb[q10])
++						+ bb * ((1 - aa) * hb[q01] + aa * hb[q11])
++					)
++					v = eu / maxf(hb[c], hu)
+ 				nw[c] = v * fa[c] + src[c]
+ 		th = nw
+ 	return th
