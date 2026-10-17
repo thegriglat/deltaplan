@@ -17,4 +17,5 @@ dpcli_review: true
 - Deltaplan: код и данные — `tools/research/<тема>/`; venv с CuPy — `/home/greg/deltaplan/tools/research/heat_ca/.venv` (не коммитить); долгий GPU-счёт — `{{cli}} lock gpu <имя> -- <cmd>`. Массовые данные — HDF5/protobuf по контракту формата ({{workflow}}, «Deltaplan»).
 - Источники — со ссылками; лицензии данных — в README и `ASSETS.md`. Графики — в файлы для статьи, сам их не открываешь: проверка числами.
 - Готово: `{{cli}} accept <ID> --dry` → `{{cli}} report <ID> < r.json` (главные числа, рекомендация, `uncertain`, `dp_feedback`).
+- r.json пиши инструментом Write (файл в своём черновике), не `cat > файл` без heredoc — без stdin команда висит вечно.
 - Ответ координатору — одна строка: `<ID> reported`.

@@ -80,7 +80,7 @@
 ## Журнал
 - `docs/plan/<м>/` — карточки, отчёты, `events.jsonl`, `decisions.jsonl`; только дописывается командами, руками не править. Это рабочий журнал ветки модуля: коммитить его в ветке модуля можно как угодно, в итоговую ветку он не идёт — `deliver` сворачивает его в `decisions.md` (решения, вопросы с ответами) и `summary.md` (итоги задач, не сделано, сомнения). Полный вид для координатора — `.dpcli/dpcli render <м>`.
 - ID задачи `<КОД>-<n>[буква]`; `task new <м>` без ID берёт следующий номер.
-- Исполнитель: `.dpcli/dpcli task show <ID>` → работа → `.dpcli/dpcli accept <ID> --dry` → `.dpcli/dpcli report <ID> < r.json` (схема `report --template`; `uncertain` — сомнения и что проверено; `dp_feedback`). `report` — единственная запись в копию модуля.
+- Исполнитель: `.dpcli/dpcli task show <ID>` → работа → `.dpcli/dpcli accept <ID> --dry` → `.dpcli/dpcli report <ID> < r.json` (схема `report --template`; `uncertain` — сомнения и что проверено; `dp_feedback`). `report` — единственная запись в копию модуля. r.json пишется инструментом Write, не `cat >` без heredoc (без stdin висит).
 - Координатор: `.dpcli/dpcli inbox <м>` в начале каждого шага; коммит журнала — `git add docs/plan/<м> && git commit -m "…" -- docs/plan/<м>`; в конце — `.dpcli/dpcli event <м> note --note "dpcli: …"`.
 - Прошлые модули — `.dpcli/dpcli search <текст>` (`--sem` — по смыслу, если включён).
 

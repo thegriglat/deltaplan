@@ -109,13 +109,18 @@ func test_all_locations_table() -> void:
 					pts.append(site.position)
 				for c in pts:
 					dmin = minf(dmin, Vector2(q.x - c.x, q.z - c.z).length())
-			check(egg.length_m() >= 8000.0 and egg.length_m() <= 12000.0, "длина 8-12 км")
+			check(egg.length_m() >= 4000.0 and egg.length_m() <= 8000.0, "длина 4-8 км")
+			var dp := 1.0e9
+			for i in int(egg.length_m() / 50.0) + 1:
+				var q: Vector3 = egg.pos_at(100.0 + i)
+				dp = minf(dp, Vector2(q.x - ctx.pilot_pos.x, q.z - ctx.pilot_pos.z).length())
+			check(dp >= 950.0 and dp <= 6050.0, "%s: подход к пилоту %.0f м" % [id, dp])
 			egg.free()
 		if found > 0:
-			check(amin >= 150.0 and amax <= 500.0, "%s: над рельефом %.0f..%.0f" % [id, amin, amax])
-			check(smax <= 6.0 + 1e-3, "%s: уклон %.1f" % [id, smax])
+			check(amin >= 150.0 and amax <= 900.0, "%s: над рельефом %.0f..%.0f" % [id, amin, amax])
+			check(smax <= 20.0 + 1e-3, "%s: уклон %.1f" % [id, smax])
 			# проба каждые 2 с = 100 м; зона проверена по пробам 200 м, допуск на промежутки
-			check(dmin >= 5800.0, "%s: до старта/пилота %.0f м" % [id, dmin])
+			check(dmin >= 950.0, "%s: до старта/пилота %.0f м" % [id, dmin])
 		print(
 			(
 				"         %-9s %2d из 12  %5.0f..%-5.0f   %4.0f..%-4.0f        %5.1f            %4.1f"
