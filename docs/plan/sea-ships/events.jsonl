@@ -134,3 +134,5 @@
 {"t": "2026-10-17T10:02:31", "by": "coordinator", "task": "SEA-13", "ev": "accepted", "note": "3/3 docs=ok:exit 0; assets=ok:3; changelog=ok:1"}
 {"t": "2026-10-17T10:02:39", "by": "coordinator", "task": "SEA-13", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-17T10:02:40", "by": "coordinator", "task": "SEA-13", "ev": "merged"}
+{"t": "2026-10-17T10:11:16", "by": "executor", "task": "SEA-11", "ev": "reported", "commits": ["ad91bcd8"], "note": "done: sea_ships.sh и sea_ships_shot.gd снимают учебный остров (--location=training_island: горизонт, зум 3/6 км, суда вблизи …", "dp_feedback": "Новая копия без .godot: шот падает с ошибками парсинга UiKit/ShipLayer, пока не сделан godot --import; хорошо бы task brief напоминал."}
+{"t": "2026-10-17T10:11:53", "by": "coordinator", "task": "SEA-11", "ev": "accepted", "note": "по отчёту; координатор открыл 3 кадра: остров и Флорианополис годны; Рапа-Нуи — море у берега в детальном квадрате рисуется травой (rapanui_ship_700m_2.jpg) → SEA-14"}
