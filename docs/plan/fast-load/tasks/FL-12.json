@@ -11,9 +11,9 @@
   "base": "feature/fast-load",
   "scope": [
     "docs/guide",
-    "docs/registry/findings.md",
     "CHANGELOG.md",
-    "docs/INDEX.md"
+    "docs/INDEX.md",
+    "docs/registry"
   ],
   "dont_touch": [
     "scripts",
@@ -30,5 +30,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T07:58:06"
+  "created": "2026-10-17T07:58:06",
+  "edited": "2026-10-17T07:58:22"
 }
