@@ -80,7 +80,7 @@ related: ["docs/contracts/cloud-field.md", "docs/guide/atmosphere/clouds.md", "d
 ### Сдача
 
 #### CLF-7. Цена GPU: разница с main
-**Отменена (решение пользователя 2026-10-17): замер не нужен, при жалобах на FPS поправим.** Было: тип `dp-researcher`. После CLF-5. Один замер `tools/bench/frame_profile.sh` medium/high ongudai: `main` против `feature/cloud-field`, проход облаков и кадр. Порог: проход облаков ≤ +30 % к `main`.
+**Возвращена для справки (решение пользователя 2026-10-17): один замер, цифры в docs, шейдеры по замеру не править, приёмка без порога.** Тип `dp-researcher`. После CLF-5. Один замер `tools/bench/frame_profile.sh` medium/high ongudai: `main` против `feature/cloud-field`, проход облаков и кадр. Порог: проход облаков ≤ +30 % к `main`.
 
 #### CLF-8. Документация, CHANGELOG
 Тип `dp-writer`. После CLF-5. `docs/guide/atmosphere/clouds.md`, `docs/guide/air-model/thermals.md` (тень, источники) — по факту; `docs/research/cloud_field.md` → статус; CHANGELOG «В работе»; `registry/findings.md`.
@@ -91,7 +91,7 @@ related: ["docs/contracts/cloud-field.md", "docs/guide/atmosphere/clouds.md", "d
 1. CLF-1 → шлюз «карты».
 2. CLF-9 (Fable) и CLF-3 параллельно, затем CLF-4; CLF-9 → шлюз «карты z_i» (Q3) → CLF-10 (Fable).
 3. CLF-5 (после CLF-3; шлюз «карты» отвечен Q2) → шлюз «кадры» (Q4: вид принят); CLF-6 отменена; CLF-12 — облака с первого кадра.
-4. CLF-8 (CLF-7 отменена) → sync от `main` (Q4: слить main в модуль) → CLF-2 (перепечка) → шлюз «финал» → `cloud-field done`.
+4. CLF-7 (для справки), CLF-8, CLF-13 (слияние main) → sync от `main` (Q4: слить main в модуль) → CLF-2 (перепечка) → шлюз «финал» → `cloud-field done`.
 
 ## Условия остановки (шлюз)
 - Карты поля (CLF-1) и первые кадры рендера (CLF-5) — всегда шлюз главной.
