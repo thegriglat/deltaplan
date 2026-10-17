@@ -126,3 +126,4 @@
 {"t": "2026-10-17T15:30:23", "by": "coordinator", "task": "CLF-13", "ev": "started", "note": "sonnet; sync от main: конфликт air_thermals.gd (VI-7)"}
 {"t": "2026-10-17T15:31:49", "by": "coordinator", "task": "CLF-7", "ev": "created", "note": "Цена GPU облаков для справки: feature/cloud-field против main"}
 {"t": "2026-10-17T15:32:02", "by": "coordinator", "task": "CLF-7", "ev": "note", "note": "Возобновлена (решение пользователя 2026-10-17): замер только для справки — порога нет, по результату шейдеры и настройки НЕ править; cloud_pass_ratio_* в сводке оставить как число. Параллельно CLF-13 сливает свежий main в модуль — мерить ветку cloud-field/CLF-7 как есть (облака от этого не зависят).", "addendum": true}
+{"t": "2026-10-17T15:32:27", "by": "coordinator", "task": "CLF-7", "ev": "started", "note": "sonnet, для справки"}
