@@ -176,3 +176,5 @@
 {"t": "2026-10-17T10:42:42", "by": "coordinator", "task": "FL-18", "ev": "checked", "note": "4/4 fast_load_k1=ok:9/9; air_cache=ok:3/3 (пропуск 1); training_island=ok:25/25; air_thermals=ok:14/14"}
 {"t": "2026-10-17T10:43:35", "by": "reviewer", "task": "FL-18", "ev": "reviewed", "note": "Причины найдены верно: 3D-каналы были в float16, числа meta писались в JSON с потерей точности. Исправление точечное: в AirBakedField.save добавлен флаг lossle…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/fast-load/tasks/FL-18.review.json"}
 {"t": "2026-10-17T10:43:49", "by": "coordinator", "task": "FL-18", "ev": "accepted", "note": "по ревью: accept; формат кеша 2 без потерь, источники из кеша бит-в-бит; запись 6,5 → 17 МБ (≈ 11 мест при 200 МБ) — вопрос пользователю на шлюзе 2"}
+{"t": "2026-10-17T10:46:46", "by": "coordinator", "task": "FL-18", "ev": "accepted", "commits": ["1bba7460"], "note": "4/4 fast_load_k1=ok:9/9; air_cache=ok:3/3 (пропуск 1); training_island=ok:25/25; air_thermals=ok:14/14"}
+{"t": "2026-10-17T10:46:46", "by": "coordinator", "task": "FL-18", "ev": "merged"}
