@@ -218,7 +218,7 @@ def palm_skeleton(sp: dict, seed: int) -> dict:
     n_wh = sp["whorls"]
     for k in range(n_wh):
         zc = k / max(n_wh - 1, 1)             # 0 — верхний ярус, 1 — нижний
-        el0 = math.radians(72 - 62 * zc + rng.uniform(-5, 5))   # угол выхода над горизонтом
+        el0 = math.radians(60 - 55 * zc + rng.uniform(-5, 5))   # угол выхода над горизонтом
         bend = math.radians(200 * sp["droop"] * (0.6 + 0.9 * zc))  # суммарный загиб вниз
         n = sp["per_whorl"] - (2 if k == 0 else 0)
         for j in range(n):
@@ -226,10 +226,10 @@ def palm_skeleton(sp: dict, seed: int) -> dict:
             fronds.append({"az": az, "el0": el0 + rng.uniform(-0.1, 0.1),
                            "bend": bend * rng.uniform(0.85, 1.15),
                            "L": L0 * rng.uniform(0.85, 1.1) * (1 - 0.1 * (1 - zc)),
-                           "off": top + Vector((rng.uniform(-1, 1), rng.uniform(-1, 1),
+                           "hw": sp.get("frond_halfwidth", 0.25), "off": top + Vector((rng.uniform(-1, 1), rng.uniform(-1, 1),
                                                 -0.05 * H * zc)) * 0.08})
     fronds.append({"az": rng.uniform(0, 6.28), "el0": math.radians(86), "bend": 0.15,
-                   "L": L0 * 0.45, "off": top.copy()})  # копьё — молодой лист
+                   "L": L0 * 0.45, "hw": sp.get("frond_halfwidth", 0.25), "off": top.copy()})  # копьё — молодой лист
     return {"path": path, "fronds": fronds}
 
 
@@ -239,7 +239,7 @@ def frond_mesh(mb: U.MeshBuilder, f: dict, segs: int, width_k: float) -> None:
     az, L = f["az"], f["L"]
     h = Vector((math.cos(az), math.sin(az), 0.0))
     w = Vector((-math.sin(az), math.cos(az), 0.0))
-    half = 0.25 * L * width_k
+    half = f.get("hw", 0.25) * L * width_k
     p = f["off"].copy()
     pts = [p.copy()]
     ds = L / segs
