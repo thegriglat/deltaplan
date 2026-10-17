@@ -194,3 +194,5 @@
 {"t": "2026-10-18T03:34:51", "by": "executor", "task": "RV-11b", "ev": "reported", "commits": ["5611e827", "b127f0ec"], "note": "done: Дополнение координатора: в ASSETS.md (строка ронделавели, 158) старые имена текстур заменены на house_rondavel_{wall,ro…", "dp_feedback": "Для проверки .import через grep в rtk нужен обход: rtk grep падает на -h -E."}
 {"t": "2026-10-18T03:34:59", "by": "coordinator", "task": "RV-11b", "ev": "accepted", "note": "4/4 regional_veg_contracts=ok:7/7; new_tracked=ok:3; vram=ok:0; clean=ok:0"}
 {"t": "2026-10-18T03:35:03", "by": "coordinator", "task": "RV-11b", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-18T03:35:05", "by": "coordinator", "task": "RV-11b", "ev": "accepted", "commits": ["316f6ded"], "note": "4/4 regional_veg_contracts=ok:7/7; new_tracked=ok:3; vram=ok:0; clean=ok:0"}
+{"t": "2026-10-18T03:35:05", "by": "coordinator", "task": "RV-11b", "ev": "merged"}
