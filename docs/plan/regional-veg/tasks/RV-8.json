@@ -1,0 +1,62 @@
+{
+  "id": "RV-8",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Сезон: вечнозелёный полог по профилю места",
+  "goal": "Ключ scene_look.evergreen (0…1) гасит осеннюю окраску и листопад лиственной доли полога рельефа; CPU-зеркало SeasonLook отдаёт canopy_autumn/canopy_bare; при 0 всё как сейчас.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "RV-К5",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    },
+    {
+      "name": "SL-К2",
+      "version": "2",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-8",
+  "branch": "regional-veg/RV-8",
+  "base": "feature/regional-veg",
+  "scope": [
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/season_look.gd",
+    "configs/world.json",
+    "tests/terrain/test_evergreen.gd",
+    "tests/terrain/test_evergreen.gd.uid",
+    "tests/terrain/test_season_gpu.gd",
+    "docs/guide/scene-look-keys.md",
+    "docs/guide/scene-look.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/tree_cross.gdshader",
+    "scripts/terrain/forest_impostors.gdshader",
+    "scripts/terrain/terrain_tree_models.gd",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "tests/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "test_evergreen",
+      "tests": "test_evergreen"
+    },
+    {
+      "name": "season",
+      "tests": "season"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T00:28:20"
+}
