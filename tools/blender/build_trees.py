@@ -1,6 +1,6 @@
 """Деревья Алтая: assets/models/trees/tree_<вид>.glb (+ assets/source/trees/*.blend).
 
-    xvfb-run -a blender --background --python tools/blender/build_trees.py [-- pine birch ...]
+    xvfb-run -a blender --background --python tools/blender/build_trees.py [-- pine birch ... | --atlas-only [--atlas-out p] [--compare png] | --out dir]
 
 Виды и параметры — tools/blender/tree_params.json: pine (сосна), cedar (кедр), larch
 (лиственница), birch (берёза), spruce (ель). В каждом .glb — lod.variants вариантов дерева
@@ -12,7 +12,7 @@ V{v}_LOD0, V{v}_LOD1, V{v}_LOD2; текстуры коры и хвои/лист�
   LOD2 — импостор: две скрещённые плоскости с запечённой в Blender картинкой (4 треугольника).
 Начало координат — основание ствола, вверх +Y (Godot), высота — реальная (height_m), 1 ед. = 1 м.
 Ещё пишутся картинки-импосторы assets/source/trees/tree_<вид>_v<v>_impostor.png (не в паке) и общий атлас
-trees_impostor_atlas.png (вариант 0; ячейки 256×512: pine, cedar, larch, birch / spruce) — для
+trees_impostor_atlas.png (вариант 0; ячейки 256×512 по индексу в ORDER, 4 в ряд) — для
 шейдера дальних деревьев. Нужен xvfb-run (Eevee запекает импостор).
 """
 import math
@@ -30,15 +30,36 @@ import tree_textures as TT  # noqa: E402
 
 OUT = os.path.join(U.MODELS, "trees")
 SRC = os.path.join(U.SOURCE, "trees")
-ORDER = ["pine", "cedar", "larch", "birch", "spruce"]
+# Порядок = индекс ячейки атласа (atlas_cell, RV-К2) и основа сида; новые породы — только в конец.
+ORDER = ["pine", "cedar", "larch", "birch", "spruce", "oak", "palm", "tropical"]
+ATLAS_COLS = 4
+# --out <каталог> перенаправляет glb в <каталог>, исходники (blend, png) в <каталог>/source
 BAKE_WORLD = 0.5  # яркость белого неба при запекании импостора
 BAKE_SUN = 1.5    # солнце при запекании (светотень кроны)
+
+
+def _crown_palm(r: float, zc: float) -> float:
+    # TODO(RV-5): форма кроны пальмы (перья из одной точки); пока — как ovoid
+    return r * math.sin(math.pi * (0.12 + 0.85 * zc)) ** 0.6 * (1 - 0.25 * zc)
+
+
+def _crown_dome(r: float, zc: float) -> float:
+    # TODO(RV-7): купол тропического дерева (широкий, плоский низ); пока — как ovoid
+    return r * math.sin(math.pi * (0.12 + 0.85 * zc)) ** 0.6 * (1 - 0.25 * zc)
+
+
+# Точки расширения: форма кроны → функция (r, zc); порода дописывает своё, общий код не трогает.
+CROWN_EXT = {"palm": _crown_palm, "dome": _crown_dome}
+# Формы, у которых на вершине ствола пучки (skeleton)
+TOP_CLUMP_CROWNS = ("cone", "ovoid", "umbrella", "palm", "dome")
 
 
 def crown_radius(sp: dict, zc: float) -> float:
     """Радиус кроны (доля высоты) на относительной высоте кроны zc ∈ [0, 1]."""
     r = sp["crown_radius"]
     shape = sp["crown"]
+    if shape in CROWN_EXT:
+        return CROWN_EXT[shape](r, zc)
     if shape == "cone":
         return r * (1 - zc) ** 0.95 + 0.004
     if shape == "ovoid":
@@ -155,7 +176,7 @@ def skeleton(sp: dict, seed: int) -> dict:
             branches.append({"center": center, "mid": mid, "end": end, "L": L, "tz": tz,
                              "clumps": cl})
     tops = []  # вершина: у хвойных — пучки вдоль верхушки ствола
-    if sp["crown"] in ("cone", "ovoid", "umbrella"):
+    if sp["crown"] in TOP_CLUMP_CROWNS:
         for i in range(3):
             z = top_z * (0.93 + 0.025 * i)
             tops.append((_on_path(path, z / top_z), Vector((rng.uniform(-.2, .2), rng.uniform(
@@ -377,7 +398,7 @@ def build(key: str, params: dict) -> None:
         "Leaf": U.material("Leaf_" + key, (1, 1, 1), rough=0.8, double=True, image=leaf_img,
                            alpha_clip=True),
     }
-    n_var = int(params["lod"].get("variants", 8))
+    n_var = int(sp.get("variants", params["lod"].get("variants", 8)))
     tris = {}
     for v in range(n_var):
         _variant(key, sp, lod_cfg, mats, seed + 1009 * v, v, tris)
@@ -420,29 +441,63 @@ def _variant(key: str, sp: dict, lod_cfg: dict, mats: dict, seed: int, v: int,
         tris[o.name] = sum(len(p.vertices) - 2 for p in o.data.polygons)
 
 
-def atlas(keys: list, px: tuple) -> None:
-    """Общий атлас импосторов 1024×1024: 4 ячейки 256×512 в ряд, два ряда — вариант 0 каждой
-    породы (дальние билборды ForestImpostors; от 350 м разница вариантов не видна)."""
+def atlas(keys: list, px: tuple, out_path: str = "") -> None:
+    """Общий атлас импосторов 1024×1024: ячейки 256×512, 4 в ряд, ячейка = индекс породы в ORDER —
+    вариант 0 каждой породы (дальние билборды ForestImpostors; от 350 м разница вариантов не
+    видна). Нет исходника tree_<вид>_v0_impostor.png — ячейка пустая."""
     cw, ch = px
     out = np.zeros((1024, 1024, 4), dtype=np.float32)
     for i, key in enumerate(keys):
-        img = bpy.data.images.load(os.path.join(SRC, "tree_%s_v0_impostor.png" % key))
+        p = os.path.join(SRC, "tree_%s_v0_impostor.png" % key)
+        if not os.path.exists(p):
+            continue
+        img = bpy.data.images.load(p)
         a = np.array(img.pixels[:], dtype=np.float32).reshape(ch, cw, 4)
-        col, row = i % 4, 1 - i // 4  # ряд 0 — верхний в картинке
+        col, row = i % ATLAS_COLS, 1 - i // ATLAS_COLS  # ряд 0 — верхний в картинке
         out[row * ch:(row + 1) * ch, col * cw:(col + 1) * cw] = a
-    U.image_from_array("atlas", out, os.path.join(OUT, "trees_impostor_atlas.png"))
+    path = out_path or os.path.join(OUT, "trees_impostor_atlas.png")
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    U.image_from_array("atlas", out, path)
+
+
+def compare_png(a: str, b: str) -> int:
+    """Максимальная разница канала (0..255) двух PNG; размеры разные — 255."""
+    x, y = bpy.data.images.load(a), bpy.data.images.load(b)
+    if tuple(x.size) != tuple(y.size):
+        return 255
+    d = np.abs(np.array(x.pixels[:], dtype=np.float32) - np.array(y.pixels[:], dtype=np.float32))
+    return int(round(float(d.max()) * 255))
+
+
+def _opt(args: list, name: str) -> str:
+    return args[args.index(name) + 1] if name in args else ""
 
 
 def main() -> None:
+    global OUT, SRC
     params = U.load_json("tools/blender/tree_params.json")
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    out_dir = _opt(argv, "--out")
+    if out_dir:
+        OUT, SRC = out_dir, os.path.join(out_dir, "source")
+    atlas_only = "--atlas-only" in argv
+    atlas_out, cmp_path = _opt(argv, "--atlas-out"), _opt(argv, "--compare")
+    skip = {a for a in (out_dir, atlas_out, cmp_path) if a}
+    keys = [a for a in argv if not a.startswith("--") and a not in skip]
+    if atlas_only:
+        U.reset_scene()
+        atlas(ORDER, tuple(params["lod"]["impostor_px"]), atlas_out)
+        if cmp_path:
+            print("atlas_maxdiff=%d" % compare_png(
+                atlas_out or os.path.join(OUT, "trees_impostor_atlas.png"), cmp_path))
+        return
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(SRC, exist_ok=True)
-    for key in argv or ORDER:
+    for key in keys or ORDER:
         build(key, params)
-    if not argv:
+    if not keys:
         U.reset_scene()
-        atlas(ORDER, tuple(params["lod"]["impostor_px"]))
+        atlas(ORDER, tuple(params["lod"]["impostor_px"]), atlas_out)
 
 
 if __name__ == "__main__":

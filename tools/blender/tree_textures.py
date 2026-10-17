@@ -199,7 +199,7 @@ def _birch(cv: Canvas, rng, c1, c2) -> None:
 
 def foliage(kind: str, c1, c2, seed: int) -> np.ndarray:
     """RGBA-карточка (низ картинки — у ветки, верх — конец ветки).
-    kind: pine, cedar, spruce, larch, birch."""
+    kind: pine, cedar, spruce, larch, birch; broad, palm — заготовки (= birch)."""
     rng = np.random.default_rng(seed)
     rs = random.Random(seed)
     cv = Canvas(CARD, CARD)
@@ -212,6 +212,8 @@ def foliage(kind: str, c1, c2, seed: int) -> np.ndarray:
     elif kind == "larch":
         _larch(cv, rs, c1, c2)
     else:
+        # TODO(RV-4/RV-5/RV-7): kind "broad" (дуб, тропическое) и "palm" (перо) — свои функции;
+        # до тех пор листва как у берёзы
         _birch(cv, rng, c1, c2)
     rgba = np.concatenate([cv.rgb, cv.a[..., None]], axis=2)
     return rgba
