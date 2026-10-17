@@ -11,6 +11,7 @@ const TIMEOUT_S := 900.0
 const SLOW := 0.25  ## time_scale на разбеге
 const SIDE_M := 15.0  ## боковая камера: расстояние от коридора, м
 const SIDE_H := 2.2  ## и высота над землёй, м
+const RUN_DIST: Array[float] = [14.0, 10.0, 7.0]  ## кадры «бежит рядом»: собака ближе к пилоту, м
 
 var _out := ""
 var _main: Node = null
@@ -22,6 +23,9 @@ var _start := Vector3.ZERO
 var _fwd := Vector3.FORWARD
 var _right := Vector3.RIGHT
 var _done := {}
+var _tr_t := -1.0  ## диагностика: время мира и место собаки на прошлой строке трассы
+var _tr_p := Vector2.ZERO
+var _near_s := 0.0  ## собака у точки сбоку (≤ 4 м) на разбеге до отрыва, с
 
 
 func _ready() -> void:
@@ -115,17 +119,22 @@ func _phase_rest() -> void:
 	await _cockpit_look("cockpit", "rest_до_разбега")
 	_side_at_dog(8.0, 1.2)
 	await _grab("side", "rest_до_разбега")
-	# 2. ждём движения по лагерю (wander, speed > 0.5), ускорив время
+	# 2. ждём пробежки по лагерю (wander, speed > 2,5), ускорив время; не дольше ~3 мин —
+	# иначе снимаем шаг (speed > 0,5)
 	Engine.time_scale = 4.0
 	var info: Dictionary = dog.call("info")
-	var tries := 0
-	while tries < 20000 and not (info.state == "wander" and float(info.speed) > 0.5):
+	var t_wait := Time.get_ticks_msec()
+	var min_v := 2.5
+	while not (info.state == "wander" and float(info.speed) > min_v):
+		if min_v > 1.0 and Time.get_ticks_msec() - t_wait > 180000:
+			print("start_dog_shot: WARN пробежки за 3 мин нет, снимаю шаг")
+			min_v = 0.5
+		if Time.get_ticks_msec() - t_wait > 300000:
+			print("start_dog_shot: WARN wander не дождались, сверху снимаю как есть")
+			break
 		await get_tree().physics_frame
 		info = dog.call("info")
-		tries += 1
 	Engine.time_scale = 1.0
-	if tries >= 20000:
-		print("start_dog_shot: WARN wander не дождались, сверху снимаю как есть")
 	for k in 3:
 		info = dog.call("info")
 		print("start_dog_shot: сверху #%d state=%s speed=%.1f anim=%s" % [k, info.state, info.speed, info.anim])
@@ -161,19 +170,48 @@ func _phase_run() -> void:
 		var dist := Vector2(tel.position.x - p.x, tel.position.z - p.z).length()
 		var st := String(info.state)
 		var sp := float(info.speed)
+		var aim: Vector3 = info.aim
+		var d_side := Vector2(aim.x - p.x, aim.z - p.z).length()
+		if st == "chase" and tel.phase == "running":
+			# время у своей точки сбоку (≤ 4 м) до отрыва, физ. секунды
+			_near_s += get_physics_process_delta_time() if d_side <= 4.0 else 0.0
 		if st == "chase" and i % 15 == 0:
-			print("start_dog_shot: chase trace speed=%.1f anim=%s dist=%.1f pilot_v=%.1f along=%.1f" % [
-				sp, info.anim, dist, tel.groundspeed, (tel.position - _start).dot(_fwd)])
+			var vd: Vector2 = dog.get("_vel")
+			var dp: Vector2 = dog.get("_pos")
+			var rel := p - _start
+			# диагностика: желаемая скорость перехвата, после обхода; путь собаки по времени мира
+			var rv := Vector2(tel.velocity.x, tel.velocity.z)
+			var amax := float((dog.get("_cfg") as Dictionary).get("accel_ms2", 8.0))
+			var want: Vector2 = dog.call("_intercept", rv, amax)
+			var av: Vector2 = dog.call("_avoid", want)
+			var tw := float(dog.get("_last_t"))
+			var v_real := 0.0
+			if _tr_t > 0.0 and tw > _tr_t:
+				v_real = dp.distance_to(_tr_p) / (tw - _tr_t)
+			print("start_dog_shot: chase diag t=%.3f want=%.1f avoid=%.1f (av·vel %.2f) v_real=%.1f rv=(%.1f, %.1f) push=%.2f" % [
+				tw, want.length(), av.length(), av.normalized().dot(vd.normalized()), v_real,
+				Vector3(rv.x, 0, rv.y).dot(_fwd), Vector3(rv.x, 0, rv.y).dot(_right),
+				(dog.call("_push_out", dp) as Vector2).distance_to(dp)])
+			_tr_t = tw
+			_tr_p = dp
+			print(("start_dog_shot: chase trace phase=%s dog_v=%.1f (along %.1f) anim=%s scale=%.2f "
+				+ "dist=%.1f to_side=%.1f pilot_v=%.1f pilot_along=%.1f dog_along=%.1f dog_lat=%.1f "
+				+ "allowed=%.1f near_s=%.2f target=%d") % [
+				tel.phase, sp, Vector3(vd.x, 0, vd.y).dot(_fwd), info.anim, info.anim_scale, dist, d_side,
+				tel.groundspeed, (tel.position - _start).dot(_fwd), rel.dot(_fwd), rel.dot(_right),
+				float(dog.call("_allowed_along", dp)), _near_s, int(info.target_id)])
 		if st == "chase" and not _done.has("chase0") and sp > 0.5:
 			await _both("срыв_chase", tel)
 			_done["chase0"] = true
-		elif st == "chase" and sp > 3.0 and dist < 30.0 and int(_done.get("runs", 0)) < 3 \
-				and i - int(_done.get("run_i", -999)) > 30:
-			_done["run_i"] = i
+		elif st == "chase" and sp > 3.0 and tel.phase == "running" and int(_done.get("runs", 0)) < 3 \
+				and (dist < RUN_DIST[int(_done.get("runs", 0))] or d_side <= 4.0):
+			# бежит рядом: по мере сближения (дистанция до пилота ниже порога) или у своей точки сбоку
 			_done["runs"] = int(_done.get("runs", 0)) + 1
-			await _both("бежит_рядом_%d_%.0fмс" % [_done.runs, sp], tel)
+			await _both("бежит_рядом_%d_%.0fмс_%.0fм" % [_done.runs, sp, dist], tel)
 		if tel.phase == "flying" and not flown:
 			flown = true
+			print("start_dog_shot: отрыв: у точки сбоку ≤ 4 м %.2f с до отрыва, dist=%.1f to_side=%.1f" % [
+				_near_s, dist, d_side])
 		if flown and not _done.has("liftoff") and tel.altitude_agl > 0.8:
 			await _both("отрыв", tel)
 			_done["liftoff"] = true

@@ -18,9 +18,9 @@ class Objs:
 
 
 ## Старт в начале координат, курс 0 (на север, −Z): along = −z, lat = x.
-static func ground(x: float, z: float) -> float:
+static func ground(x: float, z: float, cliff := CLIFF_ALONG) -> float:
 	var along := -z
-	return -tan(deg_to_rad(SLOPE_DEG)) * along - (20.0 if along > CLIFF_ALONG else 0.0) + 0.0 * x
+	return -tan(deg_to_rad(SLOPE_DEG)) * along - (20.0 if along > cliff else 0.0) + 0.0 * x
 
 
 func _cfg() -> Dictionary:
@@ -52,7 +52,7 @@ func _place(tents: Array, blockers: Array = [], gear: Array = []) -> EggPlace:
 	return pl
 
 
-func _ctx(pl: EggPlace, t: float) -> EggContext:
+func _ctx(pl: EggPlace, t: float, cliff := CLIFF_ALONG) -> EggContext:
 	var c := EggContext.new()
 	c.t = t
 	c.world_key = "D"
@@ -60,7 +60,7 @@ func _ctx(pl: EggPlace, t: float) -> EggContext:
 	c.month = 7
 	c.day = 15
 	c.place = pl
-	c.height_at = func(x: float, z: float) -> float: return ground(x, z)
+	c.height_at = func(x: float, z: float) -> float: return ground(x, z, cliff)
 	c.pilot_pos = Vector3(0.0, 1.5, 16.0)
 	return c
 
@@ -326,3 +326,138 @@ func test_moves_third() -> void:
 		check(bad == "", "сид %d: %s" % [seed_i, bad])
 		e.free()
 	print("         start_dog: доля движения по сидам %s" % [share_all])
+
+
+## Настоящий разбег: бегущий из along 0 разгоняется до 10 м/с за 4 с (2,5 м/с²), отрыв на along +20;
+## склон 12° без обрыва до along 40 (вперёд держит max_along_m). Собака в покое у точки (along, lat).
+func _real_runner(t: float, t_run: float) -> Dictionary:
+	var v_max := 10.0
+	var t_acc := 4.0
+	var r := {"id": 0, "heading_deg": 0.0}
+	var fwd := Vector3(0.0, 0.0, -1.0)
+	var tau := t - t_run
+	if tau < 0.0:
+		r.pos = Vector3(0.0, ground(0.0, 0.0, 40.0) + 1.5, 0.0)
+		r.vel = Vector3.ZERO
+		r.phase = "standing"
+		return r
+	var acc := v_max / t_acc
+	var a := 0.5 * acc * tau * tau if tau < t_acc else 0.5 * v_max * t_acc + v_max * (tau - t_acc)
+	var v := minf(acc * tau, v_max)
+	var a_fly := 0.5 * v_max * t_acc
+	if a <= a_fly + 1e-6:
+		r.pos = Vector3(0.0, ground(0.0, -a, 40.0) + 1.5, -a)
+		r.vel = fwd * v
+		r.phase = "running"
+		return r
+	var tf := tau - t_acc
+	r.pos = Vector3(0.0, ground(0.0, -a_fly, 40.0) + 1.5 + 1.5 * tf, -a)
+	r.vel = fwd * v_max + Vector3.UP * 1.5
+	r.phase = "flying"
+	return r
+
+
+## Собака в покое ровно у точки (along, lat): единственная точка отдыха.
+func _dog_at(c: EggContext, along: float, lat: float, seed_i := 3) -> EggStartDog:
+	var e := EggStartDog.new()
+	e.t0 = c.t
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_i
+	e.begin(c, _cfg(), rng, c.t)
+	e._anchors.clear()
+	e._anchors.append(Vector2(lat, -along))
+	e._weights = PackedFloat32Array([1.0])
+	e._ep_anchor = 0
+	e._segs.clear()
+	e._seg_i = 0
+	e.update(c)
+	return e
+
+
+func test_real_run() -> void:
+	var cfg := _cfg()
+	var vmax := float(cfg.gallop_max_ms)
+	var pl := _place([Vector2(-40.0, -30.0)])
+	# (along, lat) старта собаки: 17 м сбоку-позади и 12 м (у вещей, другой бок)
+	for start: Vector2 in [Vector2(-8.0, 15.0), Vector2(-9.0, -8.0)]:
+		for seed_i in [3, 5, 9]:
+			var t0 := 50.0
+			var c := _ctx(pl, t0, 40.0)
+			var e := _dog_at(c, start.x, start.y, seed_i)
+			var p0: Vector3 = e.info().pos
+			check(absf(-p0.z - start.x) < 0.01 and absf(p0.x - start.y) < 0.01, "собака на старте сценария")
+			var t_run := t0 + 2.0
+			var t := t0
+			var near := 0.0
+			var slip_max := 0.0
+			var v_top := 0.0
+			var min_gap := INF
+			var bad_y := 0
+			var max_along := -INF
+			var fin := INF
+			while t < t_run + 4.0:
+				t += DT
+				c.t = t
+				var r := _real_runner(t, t_run)
+				c.runners = [r] as Array[Dictionary]
+				e.update(c)
+				var inf := e.info()
+				var p: Vector3 = inf.pos
+				var aim: Vector3 = inf.aim
+				var v := float(inf.speed)
+				v_top = maxf(v_top, v)
+				max_along = maxf(max_along, -p.z)
+				if absf(e.position.y - ground(e.position.x, e.position.z, 40.0)) > 0.05:
+					bad_y += 1
+				if r.phase == "running":
+					var rp: Vector3 = r.pos
+					min_gap = minf(min_gap, Vector2(rp.x - p.x, rp.z - p.z).length())
+					if inf.state == "chase":
+						var ds := Vector2(aim.x - p.x, aim.z - p.z).length()
+						fin = ds
+						near += DT if ds <= 4.0 else 0.0
+				var sp := float(((cfg.anims as Dictionary).get(inf.anim, {}) as Dictionary).get("speed_ms", 0.0))
+				if v > 0.5:
+					slip_max = maxf(slip_max, INF if sp <= 0.0 else absf(float(inf.anim_scale) * sp - v) / v)
+			var tag := "старт (%.0f, %.0f) сид %d" % [start.x, start.y, seed_i]
+			check(near >= 1.0, "%s: у точки сбоку ≤ 4 м %.2f с ≥ 1 до отрыва (у отрыва %.1f м)" % [tag, near, fin])
+			check(slip_max <= 0.1, "%s: проскальзывание %.3f ≤ 0,1" % [tag, slip_max])
+			check(v_top <= vmax + 0.05, "%s: скорость %.2f ≤ %.1f" % [tag, v_top, vmax])
+			check(min_gap >= 1.5 - 1e-3, "%s: не ближе 1,5 м к бегущему: %.2f" % [tag, min_gap])
+			check(bad_y == 0, "%s: на земле (мимо %d)" % [tag, bad_y])
+			check(max_along <= float(cfg.max_along_m) + 0.05, "%s: along %.2f ≤ max_along" % [tag, max_along])
+			print("         start_dog: %s — у точки сбоку %.2f с, у отрыва %.1f м, скорость ≤ %.1f, скольжение %.3f" % [tag, near, fin, v_top, slip_max])
+			e.free()
+
+
+## Бегущий быстрее собаки (13 м/с): бежит следом не быстрее gallop_max_ms, не телепортируется.
+func test_runner_faster() -> void:
+	var cfg := _cfg()
+	var vmax := float(cfg.gallop_max_ms)
+	var pl := _place([Vector2(-40.0, -30.0)])
+	var t0 := 50.0
+	var c := _ctx(pl, t0, 40.0)
+	var e := _dog_at(c, -8.0, 15.0)
+	var t := t0
+	var v_top := 0.0
+	var jump := 0.0
+	var prev: Vector3 = e.info().pos
+	var chased := false
+	while t < t0 + 4.0:
+		t += DT
+		c.t = t
+		var a := -30.0 + 13.0 * (t - t0)  # из-за спины собаки вперёд 13 м/с
+		var r := {"id": 0, "heading_deg": 0.0, "phase": "running", "vel": Vector3(0.0, 0.0, -13.0)}
+		r.pos = Vector3(0.0, ground(0.0, -a, 40.0) + 1.5, -a)
+		c.runners = [r] as Array[Dictionary]
+		e.update(c)
+		var inf := e.info()
+		var p: Vector3 = inf.pos
+		chased = chased or inf.state == "chase"
+		v_top = maxf(v_top, float(inf.speed))
+		jump = maxf(jump, Vector2(p.x - prev.x, p.z - prev.z).length() / DT)
+		prev = p
+	check(chased, "бегущего быстрее собаки — погоня была")
+	check(v_top <= vmax + 0.05, "скорость %.2f ≤ %.1f" % [v_top, vmax])
+	check(jump <= vmax + 0.5, "без телепорта: шаг %.2f м/с" % jump)
+	e.free()

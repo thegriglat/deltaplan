@@ -3,7 +3,7 @@ extends EasterEgg
 ## Собака у стартового лагеря (DOG-K4, docs/contracts/start-dog.md). Модель — DOG-K2, лай — DOG-K3.
 ## Дом — палатки лагеря и пятачок вещей у старта (SC-K1); в покое — функция времени мира и сида
 ## (сегменты rest / wander / sniff, одинаково при любом шаге кадра). Бегущий (phase running) ближе
-## notice_m — через react_s галопом сбоку от него, лает; у бровки или после отрыва стоит и лает вслед
+## notice_m — через react_s галопом наперехват к точке сбоку от него (встречным курсом), лает; у бровки или после отрыва стоит и лает вслед
 ## (edge), трусцой домой (return), дальше снова покой (новая эпоха расписания с точки прихода).
 ## Только картинка и звук: без тел, лучей и записи в чужое; препятствия — place.obstacles_near.
 ## Режим показа клипов (кадры DOG-1): DP_DOG_CLIP или cfg.showcase_clip ("all" — по очереди) —
@@ -178,8 +178,13 @@ func _build_home(ctx: EggContext, camp: Array[Dictionary], rng: RandomNumberGene
 		_obst.append(Vector3(t.position.x, t.position.z, float(t.get("radius", 2.0)) + margin))
 	var gap := float(_cfg.get("anchor_gap_m", 1.0))
 	var kg := PackedStringArray(["gear"])
+	var near: Array = _cfg.get("near_m", [8.0, 15.0])
 	for g in ctx.place.obstacles_near(_s, float(_cfg.get("gear_search_m", 30.0)), kg):
-		_add_anchor(Vector2(g.x, g.y), g.z + margin + gap, float(_cfg.get("gear_weight", 2.5)), rng)
+		var w := float(_cfg.get("gear_weight", 2.5))
+		var gd := Vector2(g.x, g.y).distance_to(_s)
+		if gd >= float(near[0]) and gd <= float(near[1]):
+			w *= float(_cfg.get("near_weight", 3.0))  # у вещей ближе к коридору — чаще
+		_add_anchor(Vector2(g.x, g.y), g.z + margin + gap, w, rng)
 	for t in camp:
 		var r := float(t.get("radius", 2.0)) + margin + gap
 		_add_anchor(Vector2(t.position.x, t.position.z), r, 1.0, rng)
@@ -541,11 +546,7 @@ func _step_dynamic(ctx: EggContext, t: float, dt: float) -> void:
 			var rp := Vector2(r.pos.x, r.pos.z)
 			var dir := _runner_dir(r)
 			_aim = rp + dir * _lead_m + dir.orthogonal() * _side * _side_m
-			# к точке сбоку: скорость бегущего + сближение, которое успевает погаснуть (без перелёта)
-			var e := _aim - _pos
-			var d := e.length()
-			var close := minf(float(_cfg.get("follow_gain", 1.5)) * d, sqrt(amax * d))
-			want = Vector2(r.vel.x, r.vel.z) + (e / d * close if d > 1e-3 else Vector2.ZERO)
+			want = _intercept(Vector2(r.vel.x, r.vel.z), amax)
 			if _along(_pos) >= _allowed_along(_pos) - 0.3 and _along(rp) > _along(_pos):
 				_to_edge(t, _rand_in(_cfg.get("edge_bark_s", [3.0, 8.0]), _rand(-4, _chases, 0)))
 			elif t >= _next_bark:
@@ -586,6 +587,25 @@ func _step_dynamic(ctx: EggContext, t: float, dt: float) -> void:
 	_pos = np
 	if _bark_clock >= 0.0:
 		_bark_tick(dt)
+
+
+## Перехват точки сбоку _aim, которая едет со скоростью бегущего rv: скорость собаки = rv + сближение
+## u по прямой на точку (в системе бегущего — прямо на неё, в мире — встречный курс наискосок,
+## пеленг не меняется). u — наибольшее, при котором |rv + u·ê| ≤ gallop_max_ms, и не больше того,
+## что успевает погаснуть к точке (без перелёта). Бегущий быстрее собаки — бежит следом изо всех сил.
+func _intercept(rv: Vector2, amax: float) -> Vector2:
+	var vmax := float(_cfg.get("gallop_max_ms", 11.0))
+	var e := _aim - _pos
+	var d := e.length()
+	if d < 1e-3:
+		return rv
+	var dir := e / d
+	var close := minf(float(_cfg.get("follow_gain", 1.5)) * d, sqrt(amax * d))
+	var b := rv.dot(dir)
+	var disc := b * b - rv.length_squared() + vmax * vmax
+	if disc < 0.0 or -b + sqrt(disc) <= 0.0:
+		return dir * vmax
+	return rv + dir * minf(-b + sqrt(disc), close)
 
 
 func _to_edge(t: float, dur: float) -> void:
