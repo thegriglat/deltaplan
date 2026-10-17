@@ -10,7 +10,8 @@ extends RefCounted
 ## (только у села), 1 — плоская; у города и промзоны крыша всегда плоская. 7 полей — процедурный дом посёлка.
 ## Формы по профилю региона (RV-К4, buildings.village_roof / city_roof / hip_pitch_deg / parapet_*): вальмовая крыша
 ## (H2, tile.hips: {ступень вытянутости: {xf, col}}), плоская с парапетом (H1, tile.parapets + parapet_colors, цвет стен).
-## max_levels > 0 ограничивает высоту стен домов по правилу (по_правилу = 1) до max_levels · level_m.
+## max_levels > 0 ограничивает высоту стен домов по правилу (по_правилу = 1; записи из 7 полей — дома посёлка, тоже по правилу)
+## до max_levels · level_m.
 ## Данные экземпляра стен — в альфе цвета (INSTANCE_COLOR.a·32 = стиль + 4 × стекло + 8 × индекс цвета плоской
 ## крыши; кратно 1/32 — точно в половинной точности); зерно разброса окон шейдер берёт из положения экземпляра.
 
@@ -87,7 +88,7 @@ static func place(
 		var rot := Basis(Vector3.UP, -ang)
 		var base := gmin - sink
 		var bh: float = b[5]
-		if max_h > 0.0 and b.size() > 8 and int(b[8]) == 1:
+		if max_h > 0.0 and (b.size() < 8 or (b.size() > 8 and int(b[8]) == 1)):  # 7 полей (дома посёлка) — высота по правилу
 			bh = minf(bh, max_h)
 		var wall_h := bh + (gmax - gmin) + sink
 		var tk := WorldTiles.key(x, z, tile)
@@ -376,7 +377,9 @@ static func _model_lods(nm: String, cfg: Dictionary) -> Array[Mesh]:
 			var cm: StandardMaterial3D = (
 				(mat.duplicate() as StandardMaterial3D) if mat is StandardMaterial3D else StandardMaterial3D.new()
 			)
-			cm.vertex_color_use_as_albedo = true
+			# RV-К6: цвет экземпляра (палитра стен) — только на материале Wall_*; Roof_*/Wood_* свои (солома не желтеет)
+			var mn := String(mat.resource_name) if mat != null else ""
+			cm.vertex_color_use_as_albedo = mn == "" or mn.begins_with("Wall")
 			c.surface_set_material(sidx, cm)
 		out.append(c)
 	return out

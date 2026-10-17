@@ -865,7 +865,11 @@
     "parapet_h_m": 0.8,
     "parapet_t_m": 0.25,
     "max_levels": 0,
-    "models": {},
+    "models": {
+      "rondavel": {"path": "res://assets/models/houses/house_rondavel.glb", "size_m": [5.0, 5.0]},
+      "tin_house": {"path": "res://assets/models/houses/house_tin_house.glb", "size_m": [8.0, 6.0]},
+      "stilt_house": {"path": "res://assets/models/houses/house_stilt_house.glb", "size_m": [8.0, 6.0]}
+    },
     "village_models": [],
     "village_model_share": 0.0,
     "village_model_max_area_m2": 150.0,
