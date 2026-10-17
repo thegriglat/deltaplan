@@ -1,0 +1,69 @@
+{
+  "id": "VI-7",
+  "module": "volcano-island",
+  "type": "dp-engineer",
+  "title": "Источник термика не над водой (все места у моря)",
+  "goal": "Термик не получает источник над морской/водной клеткой: поток тепла над водой для источников 0, общий для всех мест, без особых случаев; на точке −27,7176; −48,7799 и учебном острове источников над водой 0 (до/после), тесты air/thermals проходят.",
+  "plan_ref": "VI-7. Источник термика не над водой",
+  "contracts": [
+    {
+      "name": "TI-К3",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-7",
+  "branch": "volcano-island/VI-7",
+  "base": "feature/volcano-island",
+  "scope": [
+    "scripts/atmosphere/",
+    "tests/atmosphere/",
+    "tools/research/sea_thermals/"
+  ],
+  "dont_touch": [
+    "configs/",
+    "data/",
+    "scripts/terrain/",
+    "scripts/world_objects/",
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "thermal",
+      "tests": "thermal"
+    },
+    {
+      "name": "air",
+      "tests": "air"
+    },
+    {
+      "name": "florianopolis",
+      "cmd": "python3 tools/research/sea_thermals/report.py --show",
+      "expect": "re:pt_-27.700_-048.800 water_sources_after=0\\b"
+    },
+    {
+      "name": "training_island",
+      "cmd": "python3 tools/research/sea_thermals/report.py --show",
+      "expect": "re:training_island water_sources_after=0\\b"
+    },
+    {
+      "name": "volcano_island",
+      "cmd": "python3 tools/research/sea_thermals/report.py --show",
+      "expect": "re:volcano_island water_sources_after=0\\b"
+    },
+    {
+      "name": "gpu",
+      "cmd": "bash tools/gpu_tests.sh --filter=thermal",
+      "expect": "re:\\n(?:[1-9]\\d*) тестов, 0 упало"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T05:56:54"
+}

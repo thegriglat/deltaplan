@@ -116,6 +116,8 @@ static func _inputs(id: String) -> Dictionary:
 	return {
 		"id": id,
 		"dir": Locations.data_dir(id) if id != "" else "",
+		# корень тайлов OSM (VI-К1): bundled — папка места osm/, иначе кеш тайлов
+		"osm_root": Locations.osm_root(id) if id != "" else OsmTilesStage.cache_root(),
 		"loc": Locations.config(id),
 		"ocfg": ocfg,
 		"wcfg": WorldObjects.load_config(),
@@ -139,7 +141,9 @@ static func _assemble(inp: Dictionary, ls: Array[HeightLayer], bp: BuiltPatches)
 	pd.osm = OsmData.new()
 	var ocfg: Dictionary = inp.ocfg
 	if not loc.is_empty() and bool(ocfg.get("enabled", true)):
-		pd.osm = OsmData.load_for(pd.dir, pd.center_lat, pd.center_lon, float(ocfg.get("half_m", 20000.0)))
+		pd.osm = OsmData.load_for(
+			pd.dir, pd.center_lat, pd.center_lon, float(ocfg.get("half_m", 20000.0)), String(inp.osm_root)
+		)
 	var t1 := Time.get_ticks_usec()
 	pd.osm_time_s = (t1 - t0) / 1.0e6
 	var cfg: Dictionary = inp.wcfg

@@ -1,0 +1,48 @@
+{
+  "attribution": [
+    "Copernicus DEM GLO-30: produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA",
+    "Terrain Tiles (Mapzen/AWS Open Data): SRTM, GMTED2010, ETOPO1 и др.; см. https://github.com/tilezen/joerd/blob/master/docs/attribution.md"
+  ],
+  "center_lat": -27.1000003814697,
+  "center_lon": -109.349998474121,
+  "earth_radius_m": 6371008.8,
+  "layers": [
+    {
+      "file": "detail.webp",
+      "height": 1601,
+      "height_min_m": -0.46875,
+      "height_step_m": 0.03125,
+      "id": "detail",
+      "max_height_m": 507.625,
+      "min_height_m": -0.46875,
+      "origin_x_m": -20000.0,
+      "origin_z_m": -20000.0,
+      "smooth_mask_classes": [
+        1,
+        7
+      ],
+      "smooth_mask_sigma_m": 50.0,
+      "smooth_sigma_cells": 0.8,
+      "source": "copernicus",
+      "spacing_m": 25.0,
+      "water_file": "detail_water.webp",
+      "width": 1601
+    },
+    {
+      "file": "far.webp",
+      "height": 1601,
+      "height_min_m": -3621.09375,
+      "height_step_m": 0.03125,
+      "id": "far",
+      "max_height_m": 506.53125,
+      "min_height_m": -3621.09375,
+      "origin_x_m": -80000.0,
+      "origin_z_m": -80000.0,
+      "source": "terrarium",
+      "spacing_m": 100.0,
+      "water_file": "far_water.webp",
+      "width": 1601
+    }
+  ],
+  "location": "volcano_island"
+}

@@ -1,0 +1,117 @@
+{
+  "status": "done",
+  "summary": "Место volcano_island собрано обычным сборщиком (3 МБ, 2 тайла OSM) и лежит в data/locations/volcano_island; повтор build.sh из сети даёт те же высоты и классы. Конфиг (bundled, training_only, UTC-6), старты east_cliffs/crater_ridge/plateau_landing, 3 посадки, имена, world_objects, контрактный тест К1, быстрая проверка воздуха и 8 кадров готовы; thermal_slope не заведён (p90 w_conv над сушей 0,14 м/с).",
+  "commits": [
+    "4d90a12d данные места, конфиг, старты, тест К1",
+    "3f351074 crater_ridge на кромке обрыва, проверка воздуха, README"
+  ],
+  "checks": [
+    {
+      "name": "volcano_island",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "sites",
+      "value": "exit 0: все старты и посадки OK, центр суша 288 м",
+      "pass": true
+    },
+    {
+      "name": "size_mb",
+      "value": "3 (<=12)",
+      "pass": true
+    },
+    {
+      "name": "air_quick",
+      "value": "east_cliffs_w_ms=0.667; crater_ridge_w_ms=0.877",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "8 jpg",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "воспроизводимость build.sh",
+      "value": "высоты detail/far разница 0,000 м; классы и вода 0 % отличий",
+      "pass": true
+    },
+    {
+      "name": "загрузка из res://",
+      "value": "4,4 с, без сети и кеша",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "thermal_slope не заведён: термиков над сушей по модели нет (p90 0,14 м/с < 1 м/с)",
+    "ротор у east_cliffs отсутствует (за кромкой плато нет подветренной чаши)"
+  ],
+  "questions": [
+    "Ровных посадок на острове нет (уклон 4–8°, не поля); приемлемо для тренировки? Жарче t_max для термиков не прогонял — нужно ли?"
+  ],
+  "images": [
+    "build/screenshots/volcano-island/VI-1/00_top.jpg",
+    "build/screenshots/volcano-island/VI-1/01_east_cliffs.jpg",
+    "build/screenshots/volcano-island/VI-1/03_crater_ridge.jpg",
+    "build/screenshots/volcano-island/VI-1/07_landing_target_approach.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept VI-1; python3 tools/terrain/volcano/air_quick.py --show; tools/terrain/volcano/README.md",
+  "uncertain": [
+    {
+      "where": "configs/locations/volcano_island.json: crater_ridge",
+      "why": "Старт перенесён с ориентира (пологий склон, w=-0,29 м/с) на кромку юго-западного обрыва к морю (-6750; 9950, 226 м): это отличается от ориентиров контракта (-27,1805/-109,4131) на ~3 км; подъём там есть (w=+0,88, k=1,55), но это обрыв, не гребень кратера",
+      "checked": "правила check_sites OK, воздух air_quick, кадры 03/04 сделаны с нового места"
+    },
+    {
+      "where": "tools/terrain/volcano/air_quick.py: бровка east_cliffs",
+      "why": "Подъём у east_cliffs есть только над морским обрывом в ~950 м впереди старта; на плато у старта w≈-0,1 м/с. Бровка задана как верх обрыва (h>=100 м), не как кромка плато у старта",
+      "checked": "первый прогон с локальным гребнем дал w=-0,13; с обрывом +0,67"
+    },
+    {
+      "where": "термики (README)",
+      "why": "w_conv слабый (p90 0,14 над сушей) при t_max 27; шкала модели мала и на учебном острове (0,25). Жарче не проверял",
+      "checked": "сетка 250 м по всему острову, поле покрывает 100 %"
+    },
+    {
+      "where": "data/locations/volcano_island/surface.json: class 0",
+      "why": "22 % detail — класс 0 (вне WorldCover/вода); на суше классы корректные, рельеф и карта не правились",
+      "checked": "на всех стартах и посадках класс 2; центр класс 2"
+    }
+  ],
+  "dp_feedback": "Свежая копия без .godot: build_location.gd молча падает ('Nonexistent function new') и godot висит — первым шагом нужен --import, в задании не сказано. lock gpu без видимого ETA очереди: ожидание часами не видно, статус 'идёт'. accept --dry запускает тесты и не пишет вывод в фон до конца.",
+  "extra": {
+    "east_cliffs_w": {
+      "mean": 0.667,
+      "p90": 1.319,
+      "max": 1.653,
+      "k": 1.025,
+      "u10": 6.03
+    },
+    "crater_ridge_w": {
+      "mean": 0.877,
+      "p90": 1.801,
+      "max": 2.704,
+      "k": 1.546,
+      "u10": 6.09,
+      "rotor_reverse_frac": 0.05,
+      "rotor_u_min": -1.43
+    },
+    "thermal": {
+      "land_p90_150m": 0.142,
+      "sea_p90_150m": 0.023,
+      "thermal_exists": false
+    }
+  },
+  "t": "2026-10-17T04:01:26",
+  "by": "executor"
+}

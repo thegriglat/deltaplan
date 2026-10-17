@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "configs/training.json v2 (groups), TrainingMenu с TabContainer по группам (скрыты группы без существующего места/карточек), load_cards добавляет location карточке, settings_for(card, base) берёт место из карточки; 3 карточки volcano_island, тексты ru/en, контрактный тест K2.",
+  "commits": [
+    "5660bf70 Окно «Тренировка»: вкладки по местам"
+  ],
+  "checks": [
+    {
+      "name": "volcano_island",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "training",
+      "value": "39/39",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "6/6",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VI-3",
+  "uncertain": [
+    {
+      "where": "scripts/ui/training_menu.gd",
+      "why": "вид вкладок не смотрел глазами",
+      "checked": "только тесты структуры"
+    }
+  ],
+  "dp_feedback": "accept --dry падает по scope на .import-файлах, которые создаёт --import; стоит игнорировать *.import в проверке scope.",
+  "t": "2026-10-17T04:07:41",
+  "by": "executor"
+}

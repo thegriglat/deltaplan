@@ -1,0 +1,59 @@
+{
+  "id": "SEA-8",
+  "module": "sea-ships",
+  "type": "dp-engineer",
+  "title": "Море far: класс воды; плотность судов",
+  "goal": "Стадия sea ставит класс воды (6) клеткам моря far с классом 0 (открытый океан без WorldCover) — море за детальным квадратом рисуется водой, а не сушей; плотность судов placement.p_cell = 0,5.",
+  "plan_ref": "SEA-2",
+  "contracts": [
+    {
+      "name": "S2",
+      "version": "3",
+      "ref": "docs/contracts/sea-ships.md"
+    },
+    {
+      "name": "S3",
+      "version": "2",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-8",
+  "branch": "sea-ships/SEA-8",
+  "base": "feature/sea-ships",
+  "scope": [
+    "scripts/terrain/sea_mask.gd",
+    "scripts/terrain/build/sea_stage.gd",
+    "tests/terrain/test_sea_mask.gd",
+    "tests/contracts/test_sea_ships_contracts.gd",
+    "configs/sea_ships.json",
+    "docs/guide/location-data.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/world_objects/",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "sea_ships_contracts",
+      "tests": "sea_ships_contracts"
+    },
+    {
+      "name": "sea_mask",
+      "tests": "sea_mask"
+    },
+    {
+      "name": "location_builder",
+      "tests": "location_builder"
+    },
+    {
+      "name": "ship_placer",
+      "tests": "ship_placer"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T06:14:06"
+}

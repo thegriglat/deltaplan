@@ -21,6 +21,9 @@ extends RefCounted
 ##   остаток организованного потока (W̄⁺ сверх несомого ядрами) — широким подъёмом в «между»;
 ##   кольцо ρ = (1 − O/M)·e⁻¹/|кольцо|: подсеточная доля возвращается у пузыря, организованная O —
 ##   вверх; «между» = w_conv − ожидаемый чистый поток пузырей: среднее пилоту = w_conv поля.
+##   Вода (VI-7): источник не над водой — точка источника только на суше (pick_in_column), а поток
+##   столбца источникам — только с его суши: Φ, W̄⁺, H и площадь водосбора × доля суши L (land);
+##   столбец целиком на воде (L = 0) — ничей: его w_conv остаётся пилоту широким средним полем.
 ##
 ## Вход (кроме каналов поля) — в level.meta, их кладёт тот, кто считал поле (как вход решателя):
 ##   heat_array | heat — поток тепла H (ny·nx), Вт/м²;  z_i — верх слоя перемешивания, м над морем;
@@ -53,6 +56,8 @@ const _SM_STEP := 25.0
 const _BUCKET_M := 1000.0
 ## Ячейка поиска источников, столбцов.
 const _B := 4
+## Доля суши столбца — по _LAND_N × _LAND_N точкам (центры подклеток; 100 м на уровне 400 м).
+const _LAND_N := 4
 
 ## Уровень поля, по которому построено.
 var level: WindField
@@ -103,6 +108,11 @@ var index: Dictionary = {}
 ## Полос параллельной сборки (build, FL-15): 0 — авто (до 4); 1 — последовательно в своём
 ## потоке. Итог от числа полос не зависит (бит-в-бит).
 var bands: int = 0
+## По столбцам: доля суши 0..1 (точки не на воде, GroundField.is_water); пусто — воды не знаем
+## (вся суша). Вход cfg.land (кеш по подписи сетки) или считается по cfg.water_fn.
+var land := PackedFloat32Array()
+## Время подсчёта доли суши в этой сборке, мс (0 — из кеша или без воды).
+var land_ms: float = 0.0
 
 var _q := PackedFloat32Array()  ## профиль потока ядра по ξ (0..1), _NQ точек
 var _q_mean: float = 1.0
@@ -157,7 +167,8 @@ static func signature(f: WindField) -> String:
 ##   duty, grow_s/mature_s/decay_s/gap_s, ground_ramp_m,
 ##   top_taper_m, radius_min_factor, profile_cutoff_radii; cloudbase_msl — кромка из погоды;
 ##   height_fn(x, z) — настоящая высота земли (для точки источника; нет — рельеф сетки);
-##   pick_fn(i, j) -> Vector2 — точка источника внутри столбца (мир x, z; нет — центр).
+##   pick_fn(i, j) -> Vector2 — точка источника внутри столбца (мир x, z; нет — центр);
+##   land — доля суши по столбцам (land прежней сборки той же сетки); нет — water_fn(x, z) -> bool.
 ## forced — битовая маска столбцов-источников (сеть: список ведущего); пусто — выбрать самим.
 ## false — нет входа (H, z_i) или размеры не сходятся.
 func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
@@ -196,10 +207,20 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		tbar[k] = acc
 	col_heat = heat.duplicate()
 	var cell_a := f.dx * f.dx
+	land_ms = 0.0
+	land = cfg.get("land", PackedFloat32Array())
+	if land.size() != n_col:
+		land = PackedFloat32Array()
+		var water_fn: Callable = cfg.get("water_fn", Callable())
+		if water_fn.is_valid():
+			var t0 := Time.get_ticks_usec()
+			land = land_fraction(f, water_fn)
+			land_ms = (Time.get_ticks_usec() - t0) / 1000.0
+	var has_land := not land.is_empty()
 	# --- столбцы — полосами строк (параллельно, FL-15): Φ, потолок частицы, z_l, n_A, K̄, кандидаты;
 	# полосы склеиваются по порядку строк — как последовательный обход
 	var parts := _run_bands(
-		f.ny, _cols_band.bind(f, cfg, heat, k1s, hcs, z_i, ustar, cb, cut, tbar, wconv, theta)
+		f.ny, _cols_band.bind(f, cfg, heat, k1s, hcs, z_i, ustar, cb, cut, tbar, wconv, theta, land)
 	)
 	var c_top := PackedFloat32Array()
 	var c_ws := PackedFloat32Array()
@@ -334,7 +355,9 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	owner = PackedInt32Array()
 	for part: PackedInt32Array in _run_bands(
 		n_col,
-		_owner_band.bind(f.nx, f.nz, f.dx, k1s, chosen, reach, s_start, s_list, nbx, nby, ring_max)
+		_owner_band.bind(
+			f.nx, f.nz, f.dx, k1s, land, chosen, reach, s_start, s_list, nbx, nby, ring_max
+		)
 	):
 		owner.append_array(part)
 	var m_i := PackedFloat64Array()
@@ -353,15 +376,16 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		if o < 0:
 			lost_flux += phi[c] * cell_a
 			continue
+		var la := cell_a * (land[c] if has_land else 1.0)
 		m_i[o] += phi[c] * cell_a
-		o_i[o] += maxf(col_w[c], 0.0) * cell_a
-		a_i[o] += cell_a
+		o_i[o] += maxf(col_w[c], 0.0) * la
+		a_i[o] += la
 	# --- параметры источников (параллельно по источникам; суммы — по порядку)
 	var hsum := PackedFloat64Array()
 	hsum.resize(ns)
 	for c in n_col:
 		if owner[c] >= 0:
-			hsum[owner[c]] += maxf(heat[c], 0.0) * cell_a
+			hsum[owner[c]] += maxf(heat[c], 0.0) * cell_a * (land[c] if has_land else 1.0)
 	col = chosen
 	pos = PackedVector3Array()
 	w0 = PackedFloat32Array()
@@ -484,7 +508,8 @@ func _cols_band(
 	cut: float,
 	tbar: PackedFloat32Array,
 	wconv: PackedFloat32Array,
-	theta: PackedFloat32Array
+	theta: PackedFloat32Array,
+	land: PackedFloat32Array
 ) -> Array:
 	# поля уровня — в локальные: обращение к чужому объекту из потоков упирается в общий замок
 	# ObjectDB движка (16 потоков медленнее одного)
@@ -501,6 +526,7 @@ func _cols_band(
 	var e_inv_dz := f._inv_dz
 	var e_z_top := f._z_top
 	var nxy := nx * ny
+	var has_land := not land.is_empty()
 	var nb := (hi - lo) * nx
 	var c0 := lo * nx
 	var c_ws := PackedFloat32Array()
@@ -554,7 +580,8 @@ func _cols_band(
 			var wbar := sw / nw if nw > 0 else 0.0
 			b_w[l] = wbar
 			b_f[l] = fbar
-			b_phi[l] = fbar + maxf(wbar, 0.0)
+			# источникам — поток только с суши столбца (над водой источника нет)
+			b_phi[l] = (fbar + maxf(wbar, 0.0)) * (land[c] if has_land else 1.0)
 			# Потолок частицы: θ_p = θ′(k1) + Δθ; выше — θ̄ + θ′ поля.
 			var t_top := z_bot + nz * dz
 			if hk > 0.0:
@@ -619,6 +646,7 @@ func _owner_band(
 	nz: int,
 	dx: float,
 	k1s: PackedInt32Array,
+	land: PackedFloat32Array,
 	chosen: PackedInt32Array,
 	reach: PackedFloat32Array,
 	s_start: PackedInt32Array,
@@ -630,8 +658,9 @@ func _owner_band(
 	var out := PackedInt32Array()
 	out.resize(hi - lo)
 	out.fill(-1)
+	var has_land := not land.is_empty()
 	for c in range(lo, hi):
-		if k1s[c] >= nz:
+		if k1s[c] >= nz or (has_land and land[c] <= 0.0):
 			continue
 		var ci := c % nx
 		var cj := c / nx
@@ -842,12 +871,55 @@ func sources_in(c: Vector2, r: float, half := Vector2.ZERO) -> PackedInt32Array:
 	return out
 
 
+## Доля суши по столбцам уровня f (ny·nx), water_fn(x, z) мира -> true — вода. Сначала углы (общие у
+## соседей) и центр столбца: все пять одно — столбец целиком вода (0) или суша (1); иначе (берег) —
+## доля из _LAND_N² центров подклеток. Вода/суша мельче столбца, не задевшая ни угла, ни центра, —
+## не видна (её точку источника всё равно отсеет pick_in_column). Столбцы в земле — 1.
+static func land_fraction(f: WindField, water_fn: Callable) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(f.nx * f.ny)
+	out.fill(1.0)
+	var k1s := f.raw_k1()
+	var cw := f.nx + 1
+	var corner := PackedByteArray()
+	corner.resize(cw * (f.ny + 1))
+	for j in f.ny + 1:
+		for i in cw:
+			corner[j * cw + i] = 1 if water_fn.call(f.x0 + i * f.dx, -(f.y0 + j * f.dx)) else 0
+	var step := f.dx / _LAND_N
+	var inv := 1.0 / (_LAND_N * _LAND_N)
+	for j in f.ny:
+		for i in f.nx:
+			var c := j * f.nx + i
+			if k1s[c] >= f.nz:
+				continue
+			var x0 := f.x0 + i * f.dx
+			var y0 := f.y0 + j * f.dx
+			var nc := (
+				corner[j * cw + i] + corner[j * cw + i + 1] + corner[(j + 1) * cw + i]
+				+ corner[(j + 1) * cw + i + 1]
+			)
+			nc += 1 if water_fn.call(x0 + 0.5 * f.dx, -(y0 + 0.5 * f.dx)) else 0
+			if nc == 0 or nc == 5:
+				out[c] = 0.0 if nc == 5 else 1.0
+				continue
+			var nw := 0
+			for b in _LAND_N:
+				var z := -(y0 + (b + 0.5) * step)
+				for a in _LAND_N:
+					if water_fn.call(x0 + (a + 0.5) * step, z):
+						nw += 1
+			out[c] = 1.0 - nw * inv
+	return out
+
+
 ## Признак «в столбце источника нет» (pick_fn / pick_in_column): лучшая точка с силой 0 (вода).
 const NO_SOURCE := Vector2(INF, INF)
 
 
 ## Точка источника в столбце (i, j) уровня f: лучшая по освещённости земли (скалы, опушки —
-## GroundField.sun) из candidates точек столбца; сид — столбец и сид мира (у всех клиентов одна).
+## GroundField.sun) из candidates точек столбца, не на воде (GroundField.is_water); сид — столбец и
+## сид мира (у всех клиентов одна).
 static func pick_in_column(
 	i: int, j: int, f: WindField, ground: GroundField, seed_value: int, candidates: int
 ) -> Vector2:
@@ -868,10 +940,13 @@ static func pick_in_column(
 		var s := 0.0
 		if has_g:
 			s = clampf(float(sun_fn.call(x, z)), 0.0, 1.0) if sun_fn.is_valid() else 1.0
+		# над водой источника нет, как бы ни грела вода (тёплое море — H > 0)
+		if s > maxf(best_s, 0.0) and ground.is_water(x, z):
+			s = 0.0
 		if s > best_s:
 			best_s = s
 			best = Vector2(x, z)
-	# все кандидаты без силы источника (вода) — столбец не источник
+	# все кандидаты без силы источника или на воде — столбец не источник
 	if has_g and best_s <= 0.0:
 		return NO_SOURCE
 	return best

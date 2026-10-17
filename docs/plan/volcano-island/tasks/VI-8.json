@@ -1,0 +1,72 @@
+{
+  "id": "VI-8",
+  "module": "volcano-island",
+  "type": "dp-engineer",
+  "title": "Термик-старт вулканического острова и карточка «Термики»",
+  "goal": "Старт thermal_slope (VI-К1 v3) с фиксированной погодой термиков из проверки VI-5, посадка у него, имя; карточка thermals → thermal_slope, цель набор 300 м (VI-К2 v2), тексты ru/en; тесты и контрактные тесты обновлены. Без запекания.",
+  "plan_ref": "VI-8. Термик-старт и карточка «Термики»",
+  "contracts": [
+    {
+      "name": "VI-К1",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "VI-К2",
+      "version": "2",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "TI-К2",
+      "version": "2",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-8",
+  "branch": "volcano-island/VI-8",
+  "base": "feature/volcano-island",
+  "scope": [
+    "configs/locations/volcano_island.json",
+    "configs/world_objects.json",
+    "configs/training.json",
+    "locale/ui.csv",
+    "tools/terrain/volcano/",
+    "tests/contracts/test_volcano_island_k1.gd",
+    "tests/contracts/test_volcano_island_k2.gd"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "data/",
+    "configs/atmosphere.json",
+    "configs/weather_model.json",
+    "configs/surface_heat.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "volcano_island",
+      "tests": "volcano_island"
+    },
+    {
+      "name": "training",
+      "tests": "training"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    },
+    {
+      "name": "sites",
+      "cmd": "python3 tools/terrain/volcano/check_sites.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "catalog",
+      "cmd": "python3 -c \"import json;print(sum(t.get('location')=='volcano_island' for t in json.load(open('data/places/hg_takeoffs.json'))['takeoffs']))\"",
+      "expect": "num:(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T06:04:20"
+}

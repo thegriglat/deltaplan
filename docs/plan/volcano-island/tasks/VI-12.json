@@ -1,0 +1,58 @@
+{
+  "id": "VI-12",
+  "module": "volcano-island",
+  "type": "dp-engineer",
+  "title": "Экспорт linux и smoke вулканического острова из собранного каталога",
+  "goal": "tools/build.sh linux (без публикации) из ветки модуля; smoke собранного бинарника: каждый из 4 стартов volcano_island грузит место из pck без сети и сборщика, тайлы OSM из pck (дома/дороги есть), запечённое поле из pck (без «Рассчитываем ветер»); то же для 4 стартов учебного острова; итог числами в build/smoke/VI-12/smoke.txt.",
+  "plan_ref": "Шлюз 2 (финал)",
+  "contracts": [
+    {
+      "name": "VI-К1",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "TI-К3",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-12",
+  "branch": "volcano-island/VI-12",
+  "base": "feature/volcano-island",
+  "scope": [
+    "tools/smoke/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/",
+    "export_presets.cfg",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "smoke_volcano",
+      "cmd": "test -s build/smoke/VI-12/smoke.txt && cat build/smoke/VI-12/smoke.txt",
+      "expect": "re:volcano_island baked_from_pck=4/4"
+    },
+    {
+      "name": "smoke_osm",
+      "cmd": "cat build/smoke/VI-12/smoke.txt",
+      "expect": "re:volcano_island osm_tiles_ok=[1-9]"
+    },
+    {
+      "name": "smoke_training",
+      "cmd": "cat build/smoke/VI-12/smoke.txt",
+      "expect": "re:training_island baked_from_pck=4/4"
+    },
+    {
+      "name": "smoke_net",
+      "cmd": "cat build/smoke/VI-12/smoke.txt",
+      "expect": "re:net_requests=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T10:37:27"
+}

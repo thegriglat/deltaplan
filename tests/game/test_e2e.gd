@@ -58,7 +58,14 @@ func _run_location(loc_id: String) -> void:
 	check(fss.visible, "%s: экран «Полёт…» открыт" % loc_id)
 
 	var place := _first_place(fss, loc_id)
-	check(not place.is_empty(), "%s: в «Популярных местах» есть эта локация" % loc_id)
+	if Locations.is_training_only(loc_id):
+		# VI-К1: места только для «Тренировки» в каталоге нет — выбор как у карточки (первый старт конфига)
+		check(place.is_empty(), "%s: training_only — в «Популярных местах» нет" % loc_id)
+		var st0: Dictionary = (Locations.config(loc_id).get("start_sites", []) as Array)[0]
+		place = {"id": "builtin/%s/%s" % [loc_id, st0.id], "lat": st0.lat, "lon": st0.lon, "country": "",
+			"location": loc_id, "site": st0.id, "heading_deg": st0.heading_deg}
+	else:
+		check(not place.is_empty(), "%s: в «Популярных местах» есть эта локация" % loc_id)
 	if place.is_empty():
 		fss.visible = false
 		await _finish(main, catcher)

@@ -1,0 +1,56 @@
+{
+  "status": "done",
+  "summary": "Опыт noships добавлен в frame_profile.gd (плюс лог судов в пирамиде видимости); G3-замер training_island и ongudai, medium и high, два прогона, и base main. Цена GPU судов неотличима от шума: на high на учебном острове |base-noships| <= 0,09 мс, draw calls +1..+4; на ongudai слоя нет, шум тот же.",
+  "commits": [
+    "8a2dae98 SEA-12: опыт noships и замер цены GPU судов",
+    "90e0764e SEA-12: архив данных вне скоупа"
+  ],
+  "checks": [
+    {
+      "name": "doc",
+      "value": "docs/perf/sea_ships.md",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "0 ошибок",
+      "pass": true
+    },
+    {
+      "name": "шум <= 0,1 мс на всех отметках",
+      "value": "только high/training_island; medium 0,3-1,3 мс, ongudai high@30 до 1,8",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Medium не измерим (шум автопилота > 0,1 мс, повтор не помог); medium ongudai@2 во втором прогоне не долетел до FLYING."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SEA-12",
+  "uncertain": [
+    {
+      "where": "docs/perf/sea_ships.md",
+      "why": "main (e9fec4dd) ушёл на ~150 файлов вперёд предка ветки, сравнение base грубое; на high ветка = main в пределах 0,07 мс (прогон 2), прогон 1 ниже на 1,1-1,5 мс без ясной причины",
+      "checked": "draw calls и шум main (<= 0,06 мс)"
+    },
+    {
+      "where": "tools/bench/frame_profile.gd:_log_ships",
+      "why": "суда 'в кадре' считаются по центру узла в пирамиде камеры, без радиуса",
+      "checked": "числа 12/12, 3/12, 9/12 согласуются с draw calls"
+    }
+  ],
+  "dp_feedback": "Свежая копия без .godot: job падает на parse errors до godot --import; хорошо бы в task brief/доках шаг импорта. Данные perf (tar.gz в docs/perf/data) вне скоупа типовой карточки — scope-проверка падает; положил в build/perf_data главной копии.",
+  "extra": {
+    "ships_cost_high_training_island_mean_ms": -0.014,
+    "ships_nodes": 12,
+    "in_frustum_high": [
+      3,
+      9,
+      3
+    ],
+    "data": "/home/greg/deltaplan/build/perf_data/sea_ships_SEA-12.tar.gz"
+  },
+  "t": "2026-10-17T11:34:35",
+  "by": "executor"
+}

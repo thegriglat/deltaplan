@@ -1,0 +1,70 @@
+{
+  "status": "done",
+  "summary": "SeaStage после маски перезаписывает far_surface.webp (временный файл + rename): класс 0 в клетках моря := 6; sea.json v3 с reclassed_cells; повторный прогон даёт тот же результат (тест). configs placement.p_cell = 0,5.",
+  "commits": [
+    "6a0d01df Море far: класс 0 в клетках моря → 6, sea.json v3; p_cell 0,5"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "PASS 4/4",
+      "pass": true
+    },
+    {
+      "name": "Рапа-Нуи: доля класса 6 в клетках моря",
+      "value": "100 % (2546949 клеток; reclassed 2190513)",
+      "pass": true
+    },
+    {
+      "name": "Флорианополис: reclassed_cells",
+      "value": "808871 из 1422709 клеток моря; класс 6 = 100 %",
+      "pass": true
+    },
+    {
+      "name": "Суда (ShipPlacer.ships_for, p_cell 0,5)",
+      "value": "Рапа-Нуи 115, Флорианополис 50; ближайшее к берегу: значение маски даёт ≥3100 м и ≥3200 м",
+      "pass": true
+    },
+    {
+      "name": "sea_ships_contracts",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "sea_mask",
+      "value": "17/17",
+      "pass": true
+    },
+    {
+      "name": "location_builder",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "ship_placer",
+      "value": "6/6",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SEA-8",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/sea_stage.gd",
+      "why": "Шейдер рельефа (не трогал) красит воду по классу 6 far — глазами не проверял, только данные",
+      "checked": "данные пересобраны на обоих местах; кадр не снимал"
+    },
+    {
+      "where": "configs/sea_ships.json types",
+      "why": "Контракт S2 пишет веса types 1/1/1, в конфиге bulk/container 0 (нет моделей) — не менял",
+      "checked": "тест контракта проходит"
+    }
+  ],
+  "dp_feedback": "Для проверки по реальным местам пришлось временно класть тест-файл в tests/ (скрипты --script не видят автозагрузки Config); хотелось бы команды dpcli для разовых проверок со сценой.",
+  "extra": {
+    "flattened_cells_rapanui": 2546949
+  },
+  "t": "2026-10-17T06:34:06",
+  "by": "executor"
+}

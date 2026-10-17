@@ -754,6 +754,9 @@ func _spawn(
 			c = lerpf(c, line + rng.randf_range(-0.1, 0.1) * street.y, street.x)
 		var p := _ax * a + _cx * c
 		var s := _source_at(p.x, p.y, t_start) * rng.randf_range(0.85, 1.0)
+		# над водой источника нет (тёплая вода греет воздух, но термика от неё не будет)
+		if s > maxf(best_sun, 0.0) and ground.is_water(p.x, p.y):
+			s = 0.0
 		if s > best_sun:
 			best_sun = s
 			best = p
@@ -1029,6 +1032,9 @@ func _air_launch(f: WindField, key: String) -> void:
 	cfg["cloudbase_msl"] = cloudbase_msl
 	cfg["height_fn"] = ground.height
 	cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, ground, _seed, int(_cfg.source_candidates))
+	# доля суши столбцов (поток над водой источникам не идёт): раз на сетку места, дальше — кеш
+	cfg["water_fn"] = ground.is_water
+	cfg["land"] = ground.land_cache.get(AirThermals.signature(f), PackedFloat32Array())
 	job.cfg = cfg
 	job.inputs = _air_inputs()
 	job.forced = air_forced if air_forced_sig == AirThermals.signature(f) else PackedByteArray()
@@ -1060,6 +1066,8 @@ func _poll_air_jobs() -> void:
 		var prev := air_src
 		air_src = job.src if job.ok else null
 		_air_src_inputs = job.inputs
+		if air_src != null and not air_src.land.is_empty():
+			ground.land_cache[air_src.grid_sig] = air_src.land
 		# Прежние циклы источников помнили старый список — забыть (живые термики доживают).
 		# Охват поля тот же — клетки сетки (аналитика) от списка не зависят, их кеши остаются:
 		# иначе весь круг генерации пересчитывается за один кадр.

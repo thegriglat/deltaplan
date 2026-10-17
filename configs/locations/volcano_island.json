@@ -1,0 +1,136 @@
+{
+  "_doc": "Вулканический остров (VI-К1): реальное место, только для «Тренировки» (training_only). Данные — res://data/locations/volcano_island/ (собирает tools/terrain/volcano/build.sh; рельеф как есть). Старты — склон над обрывами, гребень кратера, посадка на плато. Координаты мира: X — восток, −Z — север.",
+  "bundled": true,
+  "bundled_doc": "Данные места — res://data/locations/volcano_island/ (без сборки и сети)",
+  "center_lat": -27.1,
+  "center_lon": -109.35,
+  "country": "",
+  "landing_sites": [
+    {
+      "id": "landing_target",
+      "lat": -27.1102972,
+      "lon": -109.2393797,
+      "name": "Мишень на плато у восточной бровки"
+    },
+    {
+      "id": "landing_cliffs",
+      "lat": -27.1053959,
+      "lon": -109.2305402,
+      "name": "Площадка на кромке плато в 0,5 км к северо-востоку от старта east_cliffs (ниже на 45 м)"
+    },
+    {
+      "id": "landing_crater",
+      "lat": -27.1890327,
+      "lon": -109.4154124,
+      "name": "Площадка на уступе под гребнем кратера (старт crater_ridge)"
+    },
+    {
+      "id": "landing_thermal",
+      "lat": -27.0887585,
+      "lon": -109.3765186,
+      "name": "Луг в 0,45 км к ВЮВ от старта thermal_slope (ниже на 37 м, уклон до 3,6°)"
+    }
+  ],
+  "landing_sites_doc": "Посадочные площадки {id, name, lat, lon}; детали — configs/world_objects.json → landing.sites.volcano_island",
+  "name": "loc_volcano_island",
+  "render": {
+    "detail": {
+      "chunk_cells": 160,
+      "lod_distances_m": [
+        1500,
+        3500,
+        7000,
+        14000
+      ],
+      "skirt_depth_m": 300
+    },
+    "far": {
+      "chunk_cells": 200,
+      "lod_distances_m": [
+        12000,
+        25000,
+        45000
+      ],
+      "skirt_depth_m": 400
+    }
+  },
+  "start_clearing_radius_m": 70,
+  "start_position_agl_m": 0.0,
+  "start_sites": [
+    {
+      "heading_deg": 110,
+      "id": "east_cliffs",
+      "lat": -27.1091731,
+      "lon": -109.2331163,
+      "name": "site_volcano_island_east_cliffs",
+      "name_doc": "Склон: кромка морского обрыва восточного плато (~140 м), разбег по пассату к морю",
+      "weather": {
+        "day": 15,
+        "month": 1,
+        "sky": "partly",
+        "start_hour": 12.0,
+        "temperature_c": 27.0,
+        "wind_from_deg": 110.0,
+        "wind_ref": "start",
+        "wind_speed_ms": 6.0
+      }
+    },
+    {
+      "heading_deg": 110,
+      "id": "crater_ridge",
+      "lat": -27.1894824,
+      "lon": -109.4181906,
+      "name": "site_volcano_island_crater_ridge",
+      "name_doc": "Склон: гребень кратера на юго-западе над обрывом к морю, разбег по пассату",
+      "weather": {
+        "day": 15,
+        "month": 1,
+        "sky": "partly",
+        "start_hour": 12.0,
+        "temperature_c": 27.0,
+        "wind_from_deg": 110.0,
+        "wind_ref": "inflow",
+        "wind_speed_ms": 6.0
+      }
+    },
+    {
+      "heading_deg": 110,
+      "id": "thermal_slope",
+      "lat": -27.0869599,
+      "lon": -109.3803069,
+      "name": "site_volcano_island_thermal_slope",
+      "name_doc": "Склон: вершина острова (504 м), пологий луг; в жаркий полдень над склонами растут термики (VI-5)",
+      "weather": {
+        "day": 15,
+        "month": 1,
+        "sky": "clear",
+        "start_hour": 15.0,
+        "temperature_c": 28.0,
+        "wind_from_deg": 110.0,
+        "wind_ref": "start",
+        "wind_speed_ms": 3.0
+      }
+    },
+    {
+      "heading_deg": 90,
+      "id": "plateau_landing",
+      "lat": -27.1102972,
+      "lon": -109.2414002,
+      "name": "site_volcano_island_plateau_landing",
+      "name_doc": "Посадка: бровка плато, короткий подлёт; мишень landing_target в 200 м",
+      "weather": {
+        "day": 15,
+        "month": 1,
+        "sky": "clear",
+        "start_hour": 9.0,
+        "temperature_c": 27.0,
+        "wind_from_deg": 110.0,
+        "wind_ref": "start",
+        "wind_speed_ms": 2.0
+      }
+    }
+  ],
+  "training_only": true,
+  "training_only_doc": "Только окно «Тренировка» (VI-К2): не в меню полёта, не в «Популярных местах», точка с карты в него не превращается",
+  "utc_offset_h": -6
+}

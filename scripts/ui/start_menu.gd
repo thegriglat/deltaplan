@@ -348,6 +348,6 @@ func _close_training() -> void:
 
 
 func _on_training_chosen(card: Dictionary) -> void:
-	var s := TrainingMenu.settings_for(card, settings, _training.location_id)
+	var s := TrainingMenu.settings_for(card, settings)
 	_close_training()
 	training_requested.emit(s)

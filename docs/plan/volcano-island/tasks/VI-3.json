@@ -1,0 +1,55 @@
+{
+  "id": "VI-3",
+  "module": "volcano-island",
+  "type": "dp-engineer",
+  "title": "Окно «Тренировка»: вкладки по местам, карточки вулканического острова",
+  "goal": "VI-К2: configs/training.json v2 с группами мест, вкладки в окне «Тренировка» (первая — учебный остров, его 4 карточки без изменений), вторая — вулканический остров (3 карточки), место берётся из карточки; тексты ru/en; тесты окна и контрактный тест K2.",
+  "plan_ref": "VI-3. Окно «Тренировка» с группами мест",
+  "contracts": [
+    {
+      "name": "VI-К2",
+      "version": "1",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-3",
+  "branch": "volcano-island/VI-3",
+  "base": "feature/volcano-island",
+  "scope": [
+    "configs/training.json",
+    "scripts/ui/training_menu.gd",
+    "scripts/ui/start_menu.gd",
+    "locale/ui.csv",
+    "tests/ui/",
+    "tests/game/test_training_island_rule.gd",
+    "tests/game/test_training_last_flight.gd",
+    "tests/contracts/test_volcano_island_k2.gd",
+    "tests/contracts/test_volcano_island_k2.gd.uid",
+    "tools/shots/training_island_menu_shot.gd"
+  ],
+  "dont_touch": [
+    "configs/locations/",
+    "data/",
+    "scripts/terrain/",
+    "scripts/game/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "volcano_island",
+      "tests": "volcano_island"
+    },
+    {
+      "name": "training",
+      "tests": "training"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T04:02:20",
+  "edited": "2026-10-17T04:03:05"
+}
