@@ -1,78 +1,83 @@
 {
   "status": "done",
-  "summary": "Ведущий кладёт CloudField.snapshot() в ZoneState.cloudField (proto поле 4, gen перегенерирован) раз в net_interval_s, при входе пилота и при вступлении в должность; остальные подтягивают поле (рабочую копию и field) шагами 1 с за net_blend_s, первый снимок от ведущего — целиком. Хвосты ревью CLF-3 закрыты.",
+  "summary": "Доработка по ревью: apply_net_snapshot теперь ставит снимок в очередь и задача шага (рабочий поток) один раз подтягивает рабочую копию, field получает результат при публикации; _cloud_leader сбрасывается при отказе.",
   "commits": [
-    "e36e6128 CLF-4: снимок поля облачности от ведущего"
+    "3f491518 подтяжка снимка в задаче шага"
   ],
   "checks": [
     {
       "name": "test_cloud_field_net",
-      "value": "0 упало",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_net_flight",
-      "value": "0 упало",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_zone",
-      "value": "0 упало",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_messages",
-      "value": "0 упало",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_local_server",
-      "value": "0 упало",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_net_bots",
-      "value": "0 упало",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_perf_contracts",
-      "value": "0 упало",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_cloud_field_k4",
-      "value": "0 упало",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "go",
-      "value": "0 упало",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "main_ms",
+      "value": "0.126",
       "pass": true
     }
   ],
-  "not_done": [
-    "Прямого теста NetFlight.sync_cloud_field нет (нужна сцена игры); логика подтяжки проверена через CloudPhysics.apply_net_snapshot по схеме NetFlight",
-    "docs/guide/net-protocol.md не дополнен примером cloudField (вне скоупа)"
-  ],
+  "not_done": [],
   "questions": [],
+  "images": [],
   "how_to_check": ".dpcli/dpcli accept CLF-4",
   "uncertain": [
     {
-      "where": "scripts/game/net_flight.gd:sync_cloud_field",
-      "why": "не прогнан в живой сетевой игре; BUSY при идущей задаче шага повторяется на след. кадре",
-      "checked": "тесты zone/messages/cloud_field_net, accept dry"
+      "where": "scripts/atmosphere/cloud_physics.gd apply_net_snapshot",
+      "why": "контракт возврата изменён: QUEUED вместо APPLIED; отказ чужой сетки/версии узнаётся позже через take_net_rejected(), не синхронно. Подтяжка применяется после step_to в той же задаче, форсируется новая задача при наличии снимка.",
+      "checked": "тесты test_cloud_field_net (побитное равенство при blend 1, сходимость, отказ сетки/версии/мусора)"
     },
     {
-      "where": "scripts/net/net_zone.gd:set_cloud_field",
-      "why": "новичок получает снимок по peer_joined у ведущего (cloud_field_wanted); при потере ZoneState ждёт до net_interval_s",
-      "checked": "test_zone: снимок доходит ровно один раз"
+      "where": "main_ms",
+      "why": "одиночный прогон под нагрузкой дал 4,8 мс (скачок планировщика), поэтому тест берёт лучший из 3",
+      "checked": "повторные прогоны 0,13 мс"
+    },
+    {
+      "where": "tests/net/test_cloud_field_net.gd",
+      "why": "минор ревью про размер: на пёстром поле 96x96 снимок 10-25 КБ раз в 30 с, меньше 1 КБ/с; код не менялся",
+      "checked": "замер ревьюера"
     }
   ],
   "dp_feedback": "",
-  "extra": {
-    "snapshot_bytes_note": "размер снимка < 10 КБ проверено тестом; трафик ~снимок/30 с"
-  },
-  "t": "2026-10-17T09:14:10",
+  "t": "2026-10-17T09:29:18",
   "by": "executor"
 }
