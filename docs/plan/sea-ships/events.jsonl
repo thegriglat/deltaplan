@@ -143,3 +143,4 @@
 {"t": "2026-10-17T10:12:33", "by": "coordinator", "task": "SEA-14", "ev": "started"}
 {"t": "2026-10-17T10:41:27", "by": "executor", "task": "SEA-14", "ev": "reported", "commits": ["0683c899"], "note": "done: SeaStage (S2 v4): в detail_surface.webp класс 0 := 6 и в канале A detail_detail10.webp A := 255 в клетках, чья ближайша…", "dp_feedback": "job start из shell с экспортированным XDG_DATA_HOME сработал верно; godot -s не видит автозагрузки (Config) - для разовой проверки пришлось делать сцену во временной папке."}
 {"t": "2026-10-17T10:41:50", "by": "coordinator", "task": "SEA-14", "ev": "accepted", "note": "по отчёту; кадр открыт — судно на воде"}
+{"t": "2026-10-17T10:41:51", "by": "coordinator", "task": "SEA-14", "ev": "merged"}
