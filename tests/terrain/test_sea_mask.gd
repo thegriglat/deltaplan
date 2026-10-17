@@ -217,7 +217,7 @@ func test_stage_and_load_for() -> void:
 	var want := SeaMask.compute(g.hs, g.cls, W, W, CELL, SeaMask.params_from_config())
 	check(_sum(want) == W * (W - 40), "ожидаемое море: вся вода, %d" % _sum(want))
 	var sj: Variant = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("sea.json")))
-	check(sj is Dictionary and int(sj.version) == 3 and int(sj.sea_cells) == _sum(want) and int(sj.components) == 1
+	check(sj is Dictionary and int(sj.version) == 4 and int(sj.sea_cells) == _sum(want) and int(sj.components) == 1
 		and sj.has("seconds"), "sea.json: %s" % str(sj))
 	var res := SeaMask.load_for(dir)
 	check(not res.is_empty() and res.cell_m == CELL and res.origin == Vector2(-6000.0, -6000.0), "load_for: поля")
@@ -250,7 +250,8 @@ func test_stage_without_surface_is_unavailable() -> void:
 # ---------- S2 v2: выравнивание до уровня воды ----------
 
 ## Запись места в user://, прогон стадии, чтение far.webp обратно: {"after": heights, "before": heights, "meta": Dictionary, "sj": Dictionary}.
-func _run_stage(dir: String, g: Grid, info_extra: Dictionary = {}) -> Dictionary:
+## detail (необязательно): {"cls": PackedByteArray (L8 25 м), "dw", "dh", "o", "rgba": PackedByteArray (маска 10 м, RGBA8), "w10", "h10"} — детальный слой с surface.json.
+func _run_stage(dir: String, g: Grid, info_extra: Dictionary = {}, detail: Dictionary = {}) -> Dictionary:
 	DirAccess.make_dir_recursive_absolute(dir)
 	var mn := -600.0
 	var step := 0.03125
@@ -263,6 +264,15 @@ func _run_stage(dir: String, g: Grid, info_extra: Dictionary = {}) -> Dictionary
 	f.store_string(JSON.stringify({"layers": [info]}))
 	f.close()
 	SeaMask.write_l8(dir.path_join("far_surface.webp"), g.w, g.h, g.cls)
+	if not detail.is_empty():
+		SeaMask.write_l8(dir.path_join("detail_surface.webp"), int(detail.dw), int(detail.dh), detail.cls)
+		Image.create_from_data(int(detail.w10), int(detail.h10), false, Image.FORMAT_RGBA8, detail.rgba).save_webp(dir.path_join("detail_detail10.webp"), false)
+		var sjf := FileAccess.open(dir.path_join("surface.json"), FileAccess.WRITE)
+		sjf.store_string(JSON.stringify({"layers": [{"id": "detail", "file": "detail_surface.webp", "width": detail.dw, "height": detail.dh,
+			"spacing_m": 25.0, "origin_x_m": detail.o, "origin_z_m": detail.o,
+			"detail10": {"file": "detail_detail10.webp", "width": detail.w10, "height": detail.h10, "spacing_m": 10.0,
+				"origin_x_m": detail.o, "origin_z_m": detail.o}}]}))
+		sjf.close()
 	var before := HeightLayer.load_from_file(dir.path_join("far.webp"), info).heights
 	var c := LocationBuildContext.new()
 	c.dir = dir
@@ -273,11 +283,15 @@ func _run_stage(dir: String, g: Grid, info_extra: Dictionary = {}) -> Dictionary
 	var sj: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("sea.json")))
 	var cls_after := SeaMask.read_l8(dir.path_join("far_surface.webp"), g.w, g.h)
 	var sea_after := SeaMask.read_l8(dir.path_join("far_sea.webp"), g.w, g.h)
+	var det_after := {}
+	if not detail.is_empty():
+		det_after = {"cls": SeaMask.read_l8(dir.path_join("detail_surface.webp"), int(detail.dw), int(detail.dh)),
+			"rgba": Image.load_from_file(dir.path_join("detail_detail10.webp")).get_data()}
 	var abs_dir := ProjectSettings.globalize_path(dir)
-	for fn in ["far.webp", "meta.json", "far_surface.webp", "far_sea.webp", "sea.json"]:
+	for fn in ["far.webp", "meta.json", "far_surface.webp", "far_sea.webp", "sea.json", "detail_surface.webp", "detail_detail10.webp", "surface.json"]:
 		DirAccess.remove_absolute(abs_dir.path_join(fn))
 	DirAccess.remove_absolute(abs_dir)
-	return {"err": err, "cls_after": cls_after, "sea_after": sea_after, "after": after, "before": before, "meta": ninfo, "sj": sj}
+	return {"err": err, "cls_after": cls_after, "sea_after": sea_after, "after": after, "before": before, "meta": ninfo, "sj": sj, "detail": det_after}
 
 
 ## Море (основная часть — на уровне воды) с мелководьем и глубинами у края, суша 300 м слева, озеро 300 м (класс 6) внутри суши, «Мёртвое море» −430 м внутри суши.
@@ -331,7 +345,7 @@ func _check_flat(r: Dictionary, g: Grid, level: float, tol: float, tag: String) 
 	check(sea_ok, "%s: клетки моря = %.1f ± %.2f" % [tag, level, tol])
 	check(rest_ok, "%s: суша (в т.ч. ниже уровня моря), малый пруд у берега, озеро и Мёртвое море без изменений" % tag)
 	var sj: Dictionary = r.sj
-	check(int(sj.version) == 3 and int(sj.components) == 1 and int(sj.flattened_cells) > 0 and sj.levels_m is Array
+	check(int(sj.version) == 4 and int(sj.components) == 1 and int(sj.flattened_cells) > 0 and sj.levels_m is Array
 		and (sj.levels_m as Array).size() == 1 and absf(float(sj.levels_m[0]) - level) <= tol, "%s: sea.json v3: %s" % [tag, str(sj)])
 	check(float(r.meta.min_height_m) <= level + tol and float(r.meta.max_height_m) >= 300.0, "%s: meta min/max обновлены" % tag)
 
@@ -373,7 +387,7 @@ func test_stage_reclasses_open_ocean() -> void:
 			g.cls[y * 160 + x] = 0
 	var cls0 := g.cls.duplicate()
 	var r := await _run_stage("user://test_sea_recls", g)
-	check(int(r.sj.version) == 3 and int(r.sj.reclassed_cells) > 0, "sea.json v3, reclassed_cells > 0: %s" % str(r.sj))
+	check(int(r.sj.version) == 4 and int(r.sj.reclassed_cells) > 0, "sea.json v4, reclassed_cells > 0: %s" % str(r.sj))
 	var n0 := 0
 	var ok := true
 	for i in cls0.size():
@@ -392,3 +406,73 @@ func test_stage_reclasses_open_ocean() -> void:
 	g2.hs = r.after
 	var r2 := await _run_stage("user://test_sea_recls2", g2)
 	check(int(r2.sj.reclassed_cells) == 0 and r2.cls_after == r.cls_after and r2.sea_after == r.sea_after, "повторный прогон: тот же результат")
+
+
+## S2 v4: детальный слой — класс 0 := 6 и A := 255 там, где ближайшая клетка far — море; суша, вода WorldCover и L не меняются; повтор — тот же результат.
+func test_stage_reclasses_detail_layer() -> void:
+	var g := _sea_world(0.0)
+	var o := 5000.0  # детальный квадрат пересекает берег far (море с x ≥ 6000 м)
+	var dn := 200  # 25 м: 5000..9975 м
+	var n10 := 500  # 10 м: 5000..9990 м
+	var cls := PackedByteArray()
+	cls.resize(dn * dn)
+	for i in cls.size():
+		cls[i] = 0
+	for i in range(0, cls.size(), 7):
+		cls[i] = 6  # вода WorldCover среди нулей
+	for i in range(3, cls.size(), 11):
+		cls[i] = 2  # суша WorldCover
+	var rgba := PackedByteArray()
+	rgba.resize(n10 * n10 * 4)
+	for i in n10 * n10:
+		rgba[i * 4] = i % 251  # L — лес
+		rgba[i * 4 + 1] = i % 251
+		rgba[i * 4 + 2] = i % 251
+		rgba[i * 4 + 3] = 40 if i % 13 == 0 else 0  # A — вода (реки)
+	var det := {"cls": cls, "dw": dn, "dh": dn, "o": o, "rgba": rgba, "w10": n10, "h10": n10}
+	var r := await _run_stage("user://test_sea_det", g, {}, det)
+	var sea: PackedByteArray = r.sea_after
+	var dc: PackedByteArray = r.detail.cls
+	var da: PackedByteArray = r.detail.rgba
+	var ok := true
+	var n6 := 0
+	var nw := 0
+	var stray := 0
+	for y in dn:
+		for x in dn:
+			var fx := int(roundf((o + x * 25.0) / CELL))
+			var fy := int(roundf((o + y * 25.0) / CELL))
+			var is_sea: bool = fx < 160 and fy < 160 and sea[fy * 160 + fx] != 0
+			var i := y * dn + x
+			var want: int = 6 if (is_sea and cls[i] == 0) else cls[i]
+			if dc[i] != want:
+				ok = false
+			if want == 6 and cls[i] == 0:
+				n6 += 1
+	check(ok, "detail_surface: класс 0 в море := 6, остальное прежнее")
+	check(n6 > 1000 and n6 == int(r.sj.reclassed_detail_cells), "reclassed_detail_cells = %d (sea.json %s)" % [n6, str(r.sj.get("reclassed_detail_cells"))])
+	ok = true
+	for y in n10:
+		for x in n10:
+			var px := o + x * 10.0
+			var fx := int(roundf(px / CELL))
+			var fy := int(roundf((o + y * 10.0) / CELL))
+			var is_sea: bool = fx < 160 and fy < 160 and sea[fy * 160 + fx] != 0
+			var dxi := int(roundf(x * 10.0 / 25.0))
+			var dyi := int(roundf(y * 10.0 / 25.0))
+			var i := y * n10 + x
+			var in_detail: bool = dxi < dn and dyi < dn  # за краем детального слоя класса нет — не трогается
+			var want_a: int = 255 if (is_sea and in_detail and cls[dxi + dyi * dn] == 0) else rgba[i * 4 + 3]
+			if da[i * 4 + 3] != want_a or da[i * 4] != rgba[i * 4]:
+				ok = false
+			if want_a == 255 and rgba[i * 4 + 3] != 255:
+				nw += 1
+	check(ok, "detail10: A := 255 в море при классе 0, L и остальное прежнее")
+	check(nw > 1000 and nw == int(r.sj.water10_cells), "water10_cells = %d (sea.json %s)" % [nw, str(r.sj.get("water10_cells"))])
+	# повторный прогон на результате: файлы те же
+	var g2 := Grid.new(160, 160, 0.0, 0)
+	g2.cls = r.cls_after
+	g2.hs = r.after
+	var det2 := {"cls": dc, "dw": dn, "dh": dn, "o": o, "rgba": da, "w10": n10, "h10": n10}
+	var r2 := await _run_stage("user://test_sea_det2", g2, {}, det2)
+	check(r2.detail.cls == dc and r2.detail.rgba == da and int(r2.sj.reclassed_detail_cells) == 0, "повторный прогон: тот же результат")

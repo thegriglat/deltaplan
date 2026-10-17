@@ -234,6 +234,69 @@ static func write_l8(path: String, w: int, h: int, data: PackedByteArray) -> boo
 	return img.save_webp(path, false) == OK
 
 
+## Индексы ближайших узлов источника для узлов цели вдоль одной оси: round((o_t + i·s_t − o_s) / s_s); вне 0..n_src−1 → −1.
+static func nearest_index(n_t: int, o_t: float, s_t: float, o_s: float, s_s: float, n_src: int) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	out.resize(n_t)
+	for i in n_t:
+		var k := int(roundf((o_t + i * s_t - o_s) / s_s))
+		out[i] = k if k >= 0 and k < n_src else -1
+	return out
+
+
+## S2 v4: класс 0 детального слоя := 6 там, где ближайшая клетка far — море (маска > 0). Геометрия: {"w","h","ox","oz","cell"}.
+## Возвращает {"classes": PackedByteArray, "cells": int}; остальные классы — как были.
+static func reclass_detail(mask: PackedByteArray, fgeo: Dictionary, cls: PackedByteArray, dgeo: Dictionary) -> Dictionary:
+	var out := cls.duplicate()
+	var cells := 0
+	var dw := int(dgeo.w)
+	var dh := int(dgeo.h)
+	var fw := int(fgeo.w)
+	var cx := nearest_index(dw, float(dgeo.ox), float(dgeo.cell), float(fgeo.ox), float(fgeo.cell), fw)
+	var ry := nearest_index(dh, float(dgeo.oz), float(dgeo.cell), float(fgeo.oz), float(fgeo.cell), int(fgeo.h))
+	for y in dh:
+		if ry[y] < 0:
+			continue
+		var frow: int = ry[y] * fw
+		var row := y * dw
+		for x in dw:
+			var fx: int = cx[x]
+			if fx >= 0 and cls[row + x] == 0 and mask[frow + fx] != 0:
+				out[row + x] = SURFACE_CLASS_WATER
+				cells += 1
+	return {"classes": out, "cells": cells}
+
+
+## S2 v4: канал A маски 10 м (RGBA8: R — лес, A — вода) := 255 в клетках 10 м, чья ближайшая клетка far — море и класс детального
+## слоя (сетка 25 м, исходный, до перекласса) в этой точке 0. L не трогается. {"data": PackedByteArray, "cells": int}.
+static func water10_detail(mask: PackedByteArray, fgeo: Dictionary, cls: PackedByteArray, dgeo: Dictionary, rgba: PackedByteArray, g10: Dictionary) -> Dictionary:
+	var out := rgba.duplicate()
+	var cells := 0
+	var w := int(g10.w)
+	var h := int(g10.h)
+	var fw := int(fgeo.w)
+	var dw := int(dgeo.w)
+	var fx := nearest_index(w, float(g10.ox), float(g10.cell), float(fgeo.ox), float(fgeo.cell), fw)
+	var fy := nearest_index(h, float(g10.oz), float(g10.cell), float(fgeo.oz), float(fgeo.cell), int(fgeo.h))
+	var dx := nearest_index(w, float(g10.ox), float(g10.cell), float(dgeo.ox), float(dgeo.cell), dw)
+	var dy := nearest_index(h, float(g10.oz), float(g10.cell), float(dgeo.oz), float(dgeo.cell), int(dgeo.h))
+	for y in h:
+		if fy[y] < 0 or dy[y] < 0:
+			continue
+		var frow: int = fy[y] * fw
+		var drow: int = dy[y] * dw
+		for x in w:
+			var a: int = fx[x]
+			var b: int = dx[x]
+			if a < 0 or b < 0 or cls[drow + b] != 0 or mask[frow + a] == 0:
+				continue
+			var o := (y * w + x) * 4 + 3
+			if out[o] != 255:
+				out[o] = 255
+				cells += 1
+	return {"data": out, "cells": cells}
+
+
 # ---------------------------------------------------------------------------------------------
 
 static func _find(parent: PackedInt32Array, a: int) -> int:
