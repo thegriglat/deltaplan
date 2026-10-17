@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "main влит в feature/regional-veg (merge --no-ff 54272f0c). Конфликт только в CHANGELOG.md, оставлены обе стороны в разделе «В работе»: строка «Деревья и дома по региону…» (наша) и «Ветер у земли над сушей…» (main). Общие строки «Вкладка «Цели»» и «Тренировочные режимы» сохранены один раз. Другие файлы — без правок (слияние принесло изменения main как есть).",
+  "commits": [
+    "54272f0c feature/regional-veg: влит main"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "merged",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "no_markers",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "0 файл(ов) в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RV-15",
+  "uncertain": [],
+  "dp_feedback": "task show обрезает поле «Дополнения» координатора по ширине строки: полный текст пришлось искать через log/inbox (тоже обрезан). Полезно выводить полный текст в --json или без обрезки.",
+  "extra": {},
+  "t": "2026-10-18T03:38:12",
+  "by": "coordinator"
+}
