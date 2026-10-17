@@ -1,0 +1,59 @@
+{
+  "status": "done",
+  "summary": "Дом на сваях с верандой: tools/blender/build_house_stilt_house.py -> house_stilt_house.glb (142 КБ), LOD0/1/2 = 278/106/32 треугольника, материалы Wall_/Roof_/Wood_stilt_house, процедурные текстуры 256x256 (сжатие VRAM + мипмапы), превью side/iso45/lod0_corner.",
+  "commits": [
+    "regional-veg/RV-13: модель stilt_house",
+    "regional-veg/RV-13: текстуры Godot, сжатие VRAM"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "glb",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "previews",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "own_files_only",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "assets_md",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "треугольники LOD0/1/2",
+      "value": "278/106/32 (лимит 800/200/40)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RV-13; превью в /home/greg/deltaplan/build/screenshots/regional-veg/models/houses/stilt_house/ (side.png, iso45.png, lod0_corner.png)",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_house_stilt_house.py: лесенка, окна",
+      "why": "лесенка — три ступенчатых блока, окна — плоские квады (рама+стекло), без глубины; стекло — полоса v 0,82..0,98 в текстуре Wood; цвет экземпляра может тонировать и дерево/стекло, если RV-10 применит его не только к Wall",
+      "checked": "по превью Blender; в Godot проверен только импорт и тест контракта RV-К6 (7/7)"
+    },
+    {
+      "where": "контур",
+      "why": "веранда 1,0 м + лесенка 0,45 м (1,45 м), крыша спереди 1,3 м, с торцов и сзади 0,6 м - все не более 1,5 м за контуром; LOD0 запас по бюджету большой (278 из 800), перила без балясин",
+      "checked": "расчётом размеров в скрипте"
+    }
+  ],
+  "dp_feedback": "Untracked-каталог assets/models/houses/ делает own_files_only красным до первого коммита (git status показывает каталог целиком); можно подсказать в карточке.",
+  "t": "2026-10-18T00:53:45",
+  "by": "executor"
+}
