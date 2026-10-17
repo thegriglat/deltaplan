@@ -1,0 +1,44 @@
+{
+  "id": "SEA-11",
+  "module": "sea-ships",
+  "type": "dp-researcher",
+  "title": "Кадры итога: учебный остров и три вида судов",
+  "goal": "Итоговые кадры для пользователя: учебный остров (с моря и с высоты), Флорианополис и Рапа-Нуи — горизонт с 300 и 1500 м, зум 3–6 км, суда вблизи; все три вида судов в кадрах; ничего в игре не менять.",
+  "plan_ref": "SEA-11",
+  "contracts": [
+    {
+      "name": "S3",
+      "version": "3",
+      "ref": "docs/contracts/sea-ships.md"
+    },
+    {
+      "name": "S4",
+      "version": "1",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-11",
+  "branch": "sea-ships/SEA-11",
+  "base": "feature/sea-ships",
+  "scope": [
+    "tools/shots/sea_ships.sh",
+    "tools/shots/sea_ships_shot.gd"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "assets/",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/sea-ships/SEA-11/*.jpg | wc -l | sed 's/^/n /'",
+      "expect": "num:n (\\d+) >=12"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T09:59:19"
+}

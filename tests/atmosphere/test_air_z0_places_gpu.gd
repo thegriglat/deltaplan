@@ -152,7 +152,11 @@ func test_places_z0() -> void:
 					"  %s/%s подбор: U₁ %.2f, k %.3f, проходов %d, не сошёлся %s, U атм. на 10 м ÷ меню %.3f"
 					% [loc_id, site.id, float(li.get("u_start10_first", NAN)), float(li.get("inflow_k", NAN)), int(li.get("passes", 0)), bool(li.get("not_converged", false)), r]
 				)
-				if not bool(li.get("not_converged", false)):
+				var lee := int(li.get("passes", 0)) == 1 and float(li.get("inflow_k", NAN)) >= AirRuntime.INFLOW_K_MAX - 1.0e-6
+				if lee:
+					# старт в тени: k = 1 (INFLOW_K_MAX), U над стартом не выше меню
+					check(r <= 1.0 + TOL, "%s/%s: в тени U %.3f × меню не выше меню" % [loc_id, site.id, r])
+				elif not bool(li.get("not_converged", false)):
 					check(absf(r - 1.0) <= TOL, "%s/%s: U на 10 м над стартом %.3f × меню" % [loc_id, site.id, r])
 			atmo.free()
 		rt.stop()

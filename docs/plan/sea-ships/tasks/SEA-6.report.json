@@ -1,0 +1,71 @@
+{
+  "status": "done",
+  "summary": "Процедурный балкер Supramax по образцу SEA-3: 225 × 32 м, надводный борт 8 м, 5 люков 24 × 18 м (комингс + двускатная крышка со стыками), 4 крана по ДП между люками (колонна 12 м, кабина, стрела 24 м уложена к носу на упор), надстройка в корме 5 ярусов + мостик с крыльями, машинная шахта, труба, шлюпка свободного падения, бак с брашпилями и фок-мачтой. Вершинные цвета одним материалом, плоские нормали, оси и узлы как у танкера.",
+  "commits": [
+    "70824dc4 Суда: модель сухогруза-балкера (Supramax) с LOD0/1/2"
+  ],
+  "checks": [
+    {
+      "name": "build",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "lod0",
+      "value": "1250",
+      "pass": true
+    },
+    {
+      "name": "lod0_min",
+      "value": "1250",
+      "pass": true
+    },
+    {
+      "name": "lod1",
+      "value": "386",
+      "pass": true
+    },
+    {
+      "name": "lod2",
+      "value": "72",
+      "pass": true
+    },
+    {
+      "name": "size",
+      "value": "136 КБ",
+      "pass": true
+    },
+    {
+      "name": "детерминизм",
+      "value": "md5 .glb одинаков после повторной сборки",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/sea-ships/SEA-6/bulk_front34.jpg",
+    "/home/greg/deltaplan/build/screenshots/sea-ships/SEA-6/bulk_side.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SEA-6; превью: SHIP_PREVIEW=<папка> blender --background --python tools/blender/build_ship_bulk.py",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_ship_bulk.py:cranes",
+      "why": "упор стрелы стоит на крышке люка (у реальных судов — на комингсе/поперечной палубе); на дистанции не видно",
+      "checked": "превью Workbench LOD0/LOD1, стрелы не выходят за борт"
+    },
+    {
+      "where": "assets/models/ships/ship_bulk.glb.import",
+      "why": "параметры импорта по умолчанию, как у танкера (у ship_tanker.glb.import правок vertex color нет)",
+      "checked": "diff с ship_tanker.glb.import — отличаются только uid/пути"
+    },
+    {
+      "where": "границы модели",
+      "why": "бульб, перо руля и винт не моделируются (под водой только 2 м корпуса, вода непрозрачна); выбрано 5 люков и 4 крана как у типового Supramax",
+      "checked": "-"
+    }
+  ],
+  "dp_feedback": "Дополнения в task show обрезаются многоточием; полный текст виден только в длинном выводе — было бы удобно флаг на вывод только дополнений целиком.",
+  "t": "2026-10-17T09:55:43",
+  "by": "executor"
+}

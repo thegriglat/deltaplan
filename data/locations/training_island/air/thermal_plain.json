@@ -90,10 +90,10 @@
 				"z_bot": -25.0
 			},
 			"meta": {
-				"inflow_k": 3.0,
-				"label": "training_island окно 50.0м (-5225.0, -5100.0) 12.0ч U2.0 k3.000 180.0°",
+				"inflow_k": 1.0,
+				"label": "training_island окно 50.0м (-5225.0, -5100.0) 12.0ч U2.0 180.0°",
 				"level": "window",
-				"u10": 6.0,
+				"u10": 2.0,
 				"u10_menu": 2.0,
 				"wdir": 180.0,
 				"z0_eff": 0.0194299519435561,
@@ -160,10 +160,10 @@
 				"z_bot": -50.0
 			},
 			"meta": {
-				"inflow_k": 3.0,
-				"label": "training_island окно 100.0м (-6825.0, -6700.0) 12.0ч U2.0 k3.000 180.0°",
+				"inflow_k": 1.0,
+				"label": "training_island окно 100.0м (-6825.0, -6700.0) 12.0ч U2.0 180.0°",
 				"level": "window",
-				"u10": 6.0,
+				"u10": 2.0,
 				"u10_menu": 2.0,
 				"wdir": 180.0,
 				"z0_eff": 0.00569904295559393,
@@ -234,10 +234,10 @@
 					"wdir": 180.0,
 					"wind": 2.0
 				},
-				"inflow_k": 3.0,
-				"label": "training_island 400.0м 12.0ч U2.0 k3.000 180.0°",
+				"inflow_k": 1.0,
+				"label": "training_island 400.0м 12.0ч U2.0 180.0°",
 				"source": "gpu",
-				"u10": 6.0,
+				"u10": 2.0,
 				"u10_menu": 2.0,
 				"wdir": 180.0,
 				"z0_eff": 0.000314716427154473,
@@ -247,7 +247,7 @@
 		}
 	],
 	"location": "training_island",
-	"model_hash": "513ddc94c087b012",
+	"model_hash": "6da65c77ab23e850",
 	"raw_bytes": 9589472,
 	"site": "thermal_plain",
 	"version": 1

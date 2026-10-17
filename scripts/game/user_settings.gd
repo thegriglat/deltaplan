@@ -212,7 +212,7 @@ static func load_last_flight(path: String = LAST_FLIGHT) -> FlightSettings:
 		s.wing = FlightSettings.defaults().wing
 	# Прогноз: мусор и числа вне меню — в диапазон.
 	s.clamp_forecast()
-	if not Locations.exists(s.location_id):
+	if not Locations.exists(s.location_id) or Locations.is_training_only(s.location_id):
 		s.location_id = FlightSettings.defaults().location_id
 		s.site_id = FlightSettings.defaults().site_id
 	return s

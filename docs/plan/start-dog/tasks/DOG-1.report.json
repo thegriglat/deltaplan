@@ -1,0 +1,174 @@
+{
+  "status": "done",
+  "summary": "Взята готовая Shiba Inu из Quaternius Ultimate Animated Animal Pack (CC0): dog.glb по DOG-K2 — 1950 треугольников, 1 материал (цвета вершин), холка 0,52 м, морда в −Z; клипы gallop/walk/idle/sniff из пака, trot/bark/lie/sit дописаны ключами на её скелете (IK ног), все зациклены. speed_ms/cycle_s замерены по стопам; 4 гавка Freesound CC0 по DOG-K3; минимальная start_dog.gd, блок конфига, контрактный тест, 8 кадров в игре на старте.",
+  "commits": [
+    "55e847ef DOG-1: собака Quaternius Shiba Inu (CC0) по DOG-K2 — dog.glb, клипы, замер, лай, пасхалка для кадров, тест, ASSETS.md"
+  ],
+  "checks": [
+    {
+      "name": "start_dog_assets",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_easter_eggs",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "8 jpg",
+      "pass": true
+    },
+    {
+      "name": "assets_md",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "треугольники / материалы / текстуры",
+      "value": "1950 / 1 / 0",
+      "pass": true
+    },
+    {
+      "name": "габариты в покое (ш×в×д), м",
+      "value": "0,24 × 0,70 × 0,94; холка 0,52",
+      "pass": true
+    },
+    {
+      "name": "гавки: длина, пик, края",
+      "value": "0,197–0,255 с; −3 dBFS ±0,4; ≤ 12 мс; f0 505–632 Гц",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "summary.md не заведён: вывод — в frontmatter conclusion и тексте tools/research/start_dog/README.md",
+    "Poly Pizza, Kenney, OpenGameArt, Sketchfab не смотрели: первый кандидат по порядку (Quaternius) подошёл; poly.pizza к тому же не отвечал (таймаут Cloudflare)"
+  ],
+  "questions": [
+    "Галоп пака «семенящий»: без проскальзывания при 9 м/с нужен anim_scale ≈ 5,4 (цикл 0,105 с, ~9,5 шага/с при ~3–4 у живой собаки). DOG-2: поднять верх anim_scale до ~5–6, или допустить скольжение на галопе, или снизить gallop_max_ms. Можно отдельной задачей растянуть опору в gallop ключами (не делал — шлифовка)."
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/start-dog/DOG-1/01_gallop.jpg",
+    "/home/greg/deltaplan/build/screenshots/start-dog/DOG-1/02_trot.jpg",
+    "/home/greg/deltaplan/build/screenshots/start-dog/DOG-1/03_walk.jpg",
+    "/home/greg/deltaplan/build/screenshots/start-dog/DOG-1/04_idle.jpg",
+    "/home/greg/deltaplan/build/screenshots/start-dog/DOG-1/05_bark.jpg",
+    "/home/greg/deltaplan/build/screenshots/start-dog/DOG-1/06_lie.jpg",
+    "/home/greg/deltaplan/build/screenshots/start-dog/DOG-1/07_sit.jpg",
+    "/home/greg/deltaplan/build/screenshots/start-dog/DOG-1/08_sniff.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept DOG-1; кадры заново — tools/shots/start_dog_clips.sh (DISPLAY=:0)",
+  "uncertain": [
+    {
+      "where": "configs/easter_eggs.json → eggs.start_dog.anims.*.speed_ms",
+      "why": "в анимации пака задние лапы проходят в опоре больше передних: одна скорость тела даёт скольжение передних/задних ±30 %; записано среднее по 4 лапам",
+      "checked": "по лапам: галоп 1,20/1,60/2,09/2,09, трусца 1,17/1,28/1,98/1,93, шаг 0,44/0,47/0,74/0,74 м/с (measure.json)"
+    },
+    {
+      "where": "assets/easter_eggs/start_dog/dog.glb (trot)",
+      "why": "трусца — шаг пака с ногами, переставленными по фазе в диагональные пары, и сжатым циклом (12 кадров = 0,4 с); доля опоры осталась от шага, не своя анимация трусцы",
+      "checked": "кадр 02_trot.jpg — диагональные пары видны, ноги на земле; speed 1,60 м/с при 1,0"
+    },
+    {
+      "where": "assets/easter_eggs/start_dog/dog.glb (bark)",
+      "why": "челюсти в модели нет — «гав» только рывком шеи/головы и груди; пики 0,25 и 0,70 с (anims.bark.bark_at_s)",
+      "checked": "превью Blender и кадр 05_bark.jpg (поза в момент кадра — между рывками)"
+    },
+    {
+      "where": "tools/shots/start_dog_clips.sh",
+      "why": "не через easter_egg_shot.sh: у того свежий временный профиль, рельеф качается 2–4 мин и не укладывается в его таймаут 180 с; мой — те же аргументы, постоянный профиль копии, без --autopilot (пилот стоит), при DP_DOG_CLIP собака в 5 м сбоку от пилота (лагерь Ongudai за бровкой, со старта не виден)",
+      "checked": "8 кадров сняты одним фоновым прогоном (job dog-shots), lie переснят после правки"
+    },
+    {
+      "where": "assets/easter_eggs/start_dog/dog.glb.import",
+      "why": "544 КБ: Godot разворачивает slice_1…N для каждого из 8 клипов при loop_mode (как pilot.glb.import, camp_pilot.glb.import); внешний материал dog_material.tres — импортёр glTF Godot 4.7 цвет вершин в альбедо сам не включает (без него собака белая)",
+      "checked": "тест проверяет vertex_color_use_as_albedo; кадры цветные"
+    },
+    {
+      "where": "assets/easter_eggs/start_dog/bark_*.ogg",
+      "why": "источник — HQ-превью Freesound (mp3 ~128 кбит/с), не оригиналы (оригинал — после входа)",
+      "checked": "лицензия CC0 на странице каждого звука; длина/пик/края — barks.json"
+    }
+  ],
+  "dp_feedback": "accept --dry удобен (scope считается сам). Не хватило: в карточке — что easter_egg_shot.sh не годится на месте без кэша (таймаут 180 с при свежем профиле); job start и sandbox: процессы godot из задания не видны в ps песочницы — путает при проверке, идёт ли запуск.",
+  "extra": {
+    "clips": {
+      "gallop": {
+        "cycle_s": 0.567,
+        "speed_ms": 1.678,
+        "src": "Gallop"
+      },
+      "trot": {
+        "cycle_s": 0.4,
+        "speed_ms": 1.602,
+        "src": "Walk → диагональные пары, 12 кадров"
+      },
+      "walk": {
+        "cycle_s": 1.067,
+        "speed_ms": 0.599,
+        "src": "Walk"
+      },
+      "idle": {
+        "cycle_s": 3.333,
+        "src": "Idle"
+      },
+      "bark": {
+        "cycle_s": 1.2,
+        "bark_at_s": [
+          0.25,
+          0.7
+        ],
+        "src": "ключи"
+      },
+      "lie": {
+        "cycle_s": 2.0,
+        "src": "ключи (IK)"
+      },
+      "sit": {
+        "cycle_s": 2.0,
+        "src": "ключи (IK)"
+      },
+      "sniff": {
+        "cycle_s": 4.0,
+        "src": "Idle_2_HeadLow"
+      }
+    },
+    "how_measured": "конец кости стопы FF.*/FFB.* по кадрам; опора — z ≤ p30(z)+0,006 ед. и движение назад; speed = Σ смещений назад / Σ времени опоры по 4 лапам, воспроизведение 1,0, масштаб 0,226",
+    "candidates": [
+      {
+        "model": "ShibaInu",
+        "source": "Quaternius UAAP",
+        "license": "CC0",
+        "tris": 1950,
+        "clips": "Gallop, Walk, Idle, Idle_2, Idle_2_HeadLow, Eating, Attack, …",
+        "decision": "взята"
+      },
+      {
+        "model": "Husky",
+        "source": "Quaternius UAAP",
+        "license": "CC0",
+        "tris": 1920,
+        "clips": "те же",
+        "decision": "запасная, тот же скрипт"
+      },
+      {
+        "model": "Wolf/Fox",
+        "source": "Quaternius UAAP",
+        "license": "CC0",
+        "tris": 1962,
+        "clips": "те же",
+        "decision": "не собака"
+      }
+    ],
+    "source_url": "https://quaternius.com/packs/ultimateanimatedanimals.html (Drive пака — Quota exceeded; файлы из зеркала GitHub francisb1996/brave-chicken-assets, тот же License.txt CC0)",
+    "research": "tools/research/start_dog/README.md, measure.json, barks.json"
+  },
+  "t": "2026-10-17T03:23:47",
+  "by": "executor"
+}

@@ -42,17 +42,17 @@
     }
   },
   "summary": {
-    "ridge_w_5ms": 1.413,
+    "ridge_w_5ms": 1.414,
     "ridge_w_6ms": 1.831,
     "ridge_w_8ms": 2.523,
-    "thermal_core_w_p90": 2.662,
-    "thermal_core_w_max": 4.133,
-    "thermal_climb_m": 787.6,
+    "thermal_core_w_p90": 2.724,
+    "thermal_core_w_max": 4.949,
+    "thermal_climb_m": 931.1,
     "thermal_base_m": 1741,
     "thermals_over_water": 0,
     "thermals_over_water_zone": 0,
-    "thermals_over_bare": 38,
-    "thermals_over_crop": 12,
+    "thermals_over_bare": 74,
+    "thermals_over_crop": 20,
     "rotor_w_min": -1.668,
     "rotor_reverse_frac": 0.556,
     "landing_wind_ms": 1.157,
@@ -60,7 +60,7 @@
   },
   "cases": {
     "ridge5": {
-      "w_mean": 1.413,
+      "w_mean": 1.414,
       "w_min": 0.736,
       "w_max": 1.959,
       "w_field_mean": 1.41,
@@ -68,15 +68,15 @@
       "n": 153,
       "along_m": 2000.0,
       "table": {
-        "100m_up/100m_above": 1.081,
-        "100m_up/150m_above": 0.894,
-        "100m_up/50m_above": 1.286,
+        "100m_up/100m_above": 1.084,
+        "100m_up/150m_above": 0.893,
+        "100m_up/50m_above": 1.288,
         "200m_up/100m_above": 1.513,
-        "200m_up/150m_above": 1.277,
-        "200m_up/50m_above": 1.762,
+        "200m_up/150m_above": 1.279,
+        "200m_up/50m_above": 1.76,
         "300m_up/100m_above": 1.64,
         "300m_up/150m_above": 1.419,
-        "300m_up/50m_above": 1.849
+        "300m_up/50m_above": 1.85
       },
       "cond": {
         "day": 15,
@@ -99,7 +99,7 @@
     },
     "ridge6": {
       "w_mean": 1.831,
-      "w_min": 1.028,
+      "w_min": 1.027,
       "w_max": 2.485,
       "w_field_mean": 1.825,
       "frac_up": 1.0,
@@ -107,14 +107,14 @@
       "along_m": 2000.0,
       "table": {
         "100m_up/100m_above": 1.43,
-        "100m_up/150m_above": 1.232,
+        "100m_up/150m_above": 1.231,
         "100m_up/50m_above": 1.637,
-        "200m_up/100m_above": 1.949,
-        "200m_up/150m_above": 1.674,
-        "200m_up/50m_above": 2.237,
-        "300m_up/100m_above": 2.113,
-        "300m_up/150m_above": 1.867,
-        "300m_up/50m_above": 2.344
+        "200m_up/100m_above": 1.948,
+        "200m_up/150m_above": 1.675,
+        "200m_up/50m_above": 2.235,
+        "300m_up/100m_above": 2.112,
+        "300m_up/150m_above": 1.866,
+        "300m_up/50m_above": 2.343
       },
       "cond": {
         "day": 15,
@@ -144,9 +144,9 @@
       "n": 153,
       "along_m": 2000.0,
       "table": {
-        "100m_up/100m_above": 1.986,
+        "100m_up/100m_above": 1.987,
         "100m_up/150m_above": 1.729,
-        "100m_up/50m_above": 2.259,
+        "100m_up/50m_above": 2.258,
         "200m_up/100m_above": 2.685,
         "200m_up/150m_above": 2.333,
         "200m_up/50m_above": 3.058,
@@ -177,7 +177,7 @@
       "w_min": -1.668,
       "w_mean": -0.082,
       "w_field_min": -1.45,
-      "u_down_min": -3.137,
+      "u_down_min": -3.136,
       "reverse_frac": 0.556,
       "n": 275,
       "table": {
@@ -187,11 +187,11 @@
         },
         "1000m_down/10m_agl": {
           "w": 0.307,
-          "u_down": -1.692
+          "u_down": -1.691
         },
         "1000m_down/150m_agl": {
           "w": -0.412,
-          "u_down": 2.098
+          "u_down": 2.097
         },
         "1000m_down/30m_agl": {
           "w": 0.445,
@@ -199,7 +199,7 @@
         },
         "1000m_down/60m_agl": {
           "w": 0.302,
-          "u_down": -1.568
+          "u_down": -1.567
         },
         "1250m_down/100m_agl": {
           "w": -0.452,
@@ -207,31 +207,31 @@
         },
         "1250m_down/10m_agl": {
           "w": -0.021,
-          "u_down": -1.746
+          "u_down": -1.745
         },
         "1250m_down/150m_agl": {
           "w": -0.732,
-          "u_down": 2.757
+          "u_down": 2.755
         },
         "1250m_down/30m_agl": {
           "w": -0.072,
-          "u_down": -1.908
+          "u_down": -1.907
         },
         "1250m_down/60m_agl": {
           "w": -0.231,
           "u_down": -0.934
         },
         "1500m_down/100m_agl": {
-          "w": -0.528,
-          "u_down": 2.709
+          "w": -0.527,
+          "u_down": 2.708
         },
         "1500m_down/10m_agl": {
           "w": -0.106,
           "u_down": -0.702
         },
         "1500m_down/150m_agl": {
-          "w": -0.768,
-          "u_down": 4.729
+          "w": -0.769,
+          "u_down": 4.727
         },
         "1500m_down/30m_agl": {
           "w": -0.191,
@@ -243,42 +243,42 @@
         },
         "500m_down/100m_agl": {
           "w": -0.346,
-          "u_down": 2.694
+          "u_down": 2.693
         },
         "500m_down/10m_agl": {
           "w": 0.242,
           "u_down": -0.564
         },
         "500m_down/150m_agl": {
-          "w": -1.022,
-          "u_down": 6.646
+          "w": -1.02,
+          "u_down": 6.643
         },
         "500m_down/30m_agl": {
           "w": 0.358,
-          "u_down": -0.641
+          "u_down": -0.64
         },
         "500m_down/60m_agl": {
           "w": 0.205,
           "u_down": 0.264
         },
         "750m_down/100m_agl": {
-          "w": 0.193,
+          "w": 0.196,
           "u_down": 0.247
         },
         "750m_down/10m_agl": {
           "w": 0.346,
-          "u_down": -1.161
+          "u_down": -1.16
         },
         "750m_down/150m_agl": {
-          "w": -0.367,
-          "u_down": 2.734
+          "w": -0.369,
+          "u_down": 2.733
         },
         "750m_down/30m_agl": {
-          "w": 0.576,
-          "u_down": -1.665
+          "w": 0.574,
+          "u_down": -1.664
         },
         "750m_down/60m_agl": {
-          "w": 0.543,
+          "w": 0.545,
           "u_down": -1.216
         }
       },
@@ -303,99 +303,99 @@
       "inflow_k": 1.0
     },
     "thermal": {
-      "core_w_p50": 1.97,
-      "core_w_p90": 2.662,
-      "core_w_max": 4.133,
-      "core_n": 7600,
+      "core_w_p50": 2.403,
+      "core_w_p90": 2.724,
+      "core_w_max": 4.949,
+      "core_n": 13980,
       "core_by_agl": {
         "300": {
-          "p50": 1.863,
-          "p90": 2.67
+          "p50": 2.432,
+          "p90": 2.662
         },
         "400": {
-          "p50": 1.911,
-          "p90": 2.671
+          "p50": 2.417,
+          "p90": 2.679
         },
         "500": {
-          "p50": 1.96,
-          "p90": 2.672
+          "p50": 2.413,
+          "p90": 2.687
         },
         "600": {
-          "p50": 1.982,
-          "p90": 2.67
+          "p50": 2.407,
+          "p90": 2.708
         },
         "700": {
-          "p50": 2.002,
-          "p90": 2.671
+          "p50": 2.401,
+          "p90": 2.725
         },
         "800": {
-          "p50": 2.003,
-          "p90": 2.665
+          "p50": 2.395,
+          "p90": 2.738
         },
         "900": {
-          "p50": 2.001,
-          "p90": 2.655
+          "p50": 2.391,
+          "p90": 2.752
         },
         "1000": {
-          "p50": 2.001,
-          "p90": 2.643
+          "p50": 2.391,
+          "p90": 2.758
         },
         "1100": {
-          "p50": 1.997,
-          "p90": 2.644
+          "p50": 2.388,
+          "p90": 2.768
         },
         "1200": {
-          "p50": 1.985,
-          "p90": 2.644
+          "p50": 2.386,
+          "p90": 2.794
         }
       },
       "core_by_class": {
         "bare": {
-          "p50": 1.897,
-          "p90": 2.704,
-          "n": 1900
+          "p50": 2.416,
+          "p90": 2.634,
+          "n": 4180
         },
         "crop": {
-          "p50": 2.433,
-          "p90": 2.659,
-          "n": 600
+          "p50": 2.328,
+          "p90": 2.56,
+          "n": 1160
         },
         "forest": {
-          "p50": 2.217,
-          "p90": 2.676,
-          "n": 2870
+          "p50": 2.457,
+          "p90": 2.935,
+          "n": 5450
         },
         "grass": {
-          "p50": 1.398,
-          "p90": 2.523,
-          "n": 2230
+          "p50": 2.297,
+          "p90": 2.683,
+          "n": 3190
         }
       },
-      "thermals_seen": 613,
+      "thermals_seen": 1042,
       "zone_by_class": {
-        "forest": 53,
-        "grass": 40,
-        "crop": 12,
-        "bare": 38
+        "forest": 100,
+        "grass": 65,
+        "crop": 20,
+        "bare": 74
       },
       "over_water": 0,
       "over_water_sources": 0,
       "over_water_zone": 0,
       "water_detail": [],
       "climb_m": [
-        488.3,
-        154.0,
-        787.6
+        908.1,
+        931.1,
+        0.0
       ],
       "climb_end": [
         "time",
-        "ground",
-        "time"
+        "time",
+        "ground"
       ],
       "circle_r_m": 25.17,
       "circle_sink_ms": 1.111,
       "cloudbase_msl_start": 1741.022,
-      "cloudbase_msl_end": 1864.229,
+      "cloudbase_msl_end": 1863.317,
       "weather": {
         "background_sink_ms": -0.505,
         "blue": false,
@@ -470,14 +470,14 @@
             "agl": 30.0,
             "h_ms": 1.162,
             "u": -0.237,
-            "v": 1.138,
+            "v": 1.137,
             "w": 0.002
           },
           {
             "agl": 60.0,
-            "h_ms": 1.108,
+            "h_ms": 1.107,
             "u": -0.221,
-            "v": 1.086,
+            "v": 1.085,
             "w": -0.001
           }
         ],
@@ -485,7 +485,7 @@
           {
             "agl": 10.0,
             "h_ms": 0.2,
-            "u": 0.079,
+            "u": 0.078,
             "v": -0.184,
             "w": -0.003
           },
@@ -509,20 +509,20 @@
   },
   "frames": {
     "ridge_west": {
-      "f3_overlay_frac": 0.0144707207207207,
-      "f6_overlay_frac": 0.04128861003861
+      "f3_overlay_frac": 0.0145752895752896,
+      "f6_overlay_frac": 0.0410875160875161
     },
     "thermal_plain": {
-      "f3_overlay_frac": 0.0121621621621622,
-      "f6_overlay_frac": 0.066521879021879
+      "f3_overlay_frac": 0.0065958815958816,
+      "f6_overlay_frac": 0.247289253539254
     },
     "landing_hill": {
-      "f3_overlay_frac": 0.00585585585585586,
-      "f6_overlay_frac": 0.097771879021879
+      "f3_overlay_frac": 0.00611325611325611,
+      "f6_overlay_frac": 0.0963481338481338
     },
     "lee_bowl": {
-      "f3_overlay_frac": 0.00876769626769627,
-      "f6_overlay_frac": 0.0694578507078507
+      "f3_overlay_frac": 0.00888835263835264,
+      "f6_overlay_frac": 0.0697956885456885
     }
   }
 }

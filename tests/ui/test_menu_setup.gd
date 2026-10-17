@@ -189,9 +189,13 @@ func test_flight_setup_lists_all_locations() -> void:
 		by_id[String(p.id)] = p
 	for loc_name in locations:
 		var loc: Dictionary = Config.get_config(loc_name)
+		var only_training := Locations.is_training_only(loc_name.get_file())
 		for st: Dictionary in loc.get("start_sites", []):
 			var id := "builtin/%s/%s" % [loc_name.get_file(), st.id]
 			var p: Dictionary = by_id.get(id, {})
+			if only_training:
+				check(p.is_empty(), "старт %s (только для тренировки) не в популярных местах" % id)
+				continue
 			check(not p.is_empty(), "старт %s есть в популярных местах" % id)
 			if p.is_empty():
 				continue

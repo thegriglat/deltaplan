@@ -1,0 +1,80 @@
+{
+  "status": "done",
+  "summary": "SeaStage (S2 v4): в detail_surface.webp класс 0 := 6 и в канале A detail_detail10.webp A := 255 в клетках, чья ближайшая клетка far - море и детальный класс 0; L, суша и вода WorldCover не меняются; запись tmp+rename, повтор идемпотентен. sea.json version 4 с reclassed_detail_cells, water10_cells. Расчёт в SeaMask.reclass_detail / water10_detail (рабочий поток).",
+  "commits": [
+    "0683c899 Море в детальном слое: класс 0 := 6 в detail_surface и A := 255 в маске 10 м (S2 v4)"
+  ],
+  "checks": [
+    {
+      "name": "sea_ships_contracts",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "sea_mask",
+      "value": "18/18 (новый test_stage_reclasses_detail_layer: сверка по всем клеткам, повтор)",
+      "pass": true
+    },
+    {
+      "name": "location_builder",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "Рапа-Нуи reclassed_detail_cells / water10_cells",
+      "value": "569956 / 3556889",
+      "pass": true
+    },
+    {
+      "name": "Флорианополис reclassed_detail_cells / water10_cells",
+      "value": "0 / 0 (WorldCover покрывает море, класс 0 нет)",
+      "pass": true
+    },
+    {
+      "name": "суда Рапа-Нуи: класс detail=6 и A>=128",
+      "value": "2 из 3 внутри детального квадрата - да (6, 255); 3-е вне квадрата (far, класс 6 по v3)",
+      "pass": true
+    },
+    {
+      "name": "суда Флорианополис: класс detail=6 и A>=128",
+      "value": "2 из 4 внутри квадрата - да (6, 255); 2 вне квадрата",
+      "pass": true
+    },
+    {
+      "name": "кадр rapanui_ship_700m_2.jpg: судно на синей воде",
+      "value": "да",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/sea-ships/SEA-14/rapanui_ship_700m_2.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SEA-14",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/build/sea_stage.gd:_reclass_detail",
+      "why": "Соответствие узла far и detail: ближайшая клетка round((x-o)/cell), узлы сеток считаются совпадающими по началу координат; клетка far - ±50 м вокруг узла, как в S2.",
+      "checked": "тест сверяет каждую клетку независимым расчётом; на данных суда стоят на классе 6, A=255."
+    },
+    {
+      "where": "повторный прогон",
+      "why": "На повторе счётчики reclassed_detail_cells/water10_cells = 0 (как у reclassed_cells), файлы побайтно те же.",
+      "checked": "тест повторного прогона."
+    }
+  ],
+  "dp_feedback": "job start из shell с экспортированным XDG_DATA_HOME сработал верно; godot -s не видит автозагрузки (Config) - для разовой проверки пришлось делать сцену во временной папке.",
+  "extra": {
+    "rapanui": {
+      "reclassed_cells": 2189910,
+      "sea_cells": 2546961
+    },
+    "florianopolis": {
+      "reclassed_cells": 347295,
+      "sea_cells": 970254
+    }
+  },
+  "t": "2026-10-17T10:41:27",
+  "by": "executor"
+}

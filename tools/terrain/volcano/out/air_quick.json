@@ -1,0 +1,563 @@
+{
+  "cases": {
+    "east_cliffs": {
+      "site": "east_cliffs",
+      "wind": 6.0,
+      "wdir": 110.0,
+      "hour": 12,
+      "tmax": "nan",
+      "sky": "partly",
+      "kind": "slope",
+      "brink": "edge"
+    },
+    "crater_ridge": {
+      "site": "crater_ridge",
+      "wind": 6.0,
+      "wdir": 110.0,
+      "hour": 12,
+      "tmax": "nan",
+      "sky": "partly",
+      "kind": "slope",
+      "brink": "edge"
+    },
+    "thermal": {
+      "site": "plateau_landing",
+      "wind": 2.0,
+      "wdir": 110.0,
+      "hour": 12,
+      "tmax": "27",
+      "sky": "clear",
+      "kind": "thermal"
+    }
+  },
+  "date": "15 января",
+  "summary": {
+    "east_cliffs_w_ms": 0.667,
+    "east_cliffs_w_min_ms": 0.107,
+    "east_cliffs_w_max_ms": 1.653,
+    "east_cliffs_w_p10_ms": 0.251,
+    "east_cliffs_w_p90_ms": 1.319,
+    "east_cliffs_table": {
+      "100m_up/100m_above": 1.038,
+      "100m_up/150m_above": 0.89,
+      "100m_up/50m_above": 1.112,
+      "200m_up/100m_above": 0.668,
+      "200m_up/150m_above": 0.638,
+      "200m_up/50m_above": 0.63,
+      "300m_up/100m_above": 0.359,
+      "300m_up/150m_above": 0.377,
+      "300m_up/50m_above": 0.295
+    },
+    "east_cliffs_face_w_ms": 0.331,
+    "east_cliffs_face_table": {
+      "100m_up/100m_agl": 1.032,
+      "100m_up/30m_agl": 0.331,
+      "100m_up/60m_agl": 0.61,
+      "200m_up/100m_agl": 0.424,
+      "200m_up/30m_agl": 0.209,
+      "200m_up/60m_agl": 0.211,
+      "300m_up/100m_agl": 0.148,
+      "300m_up/30m_agl": 0.034,
+      "300m_up/60m_agl": -0.017
+    },
+    "east_cliffs_rotor_w_min_ms": -0.434,
+    "east_cliffs_rotor_w_mean_ms": 0.021,
+    "east_cliffs_rotor_reverse": 0.0,
+    "east_cliffs_rotor_u_min_ms": 5.274,
+    "east_cliffs_rotor_table": {
+      "1200m_down/100m_agl": {
+        "w": -0.169,
+        "u_along": 8.007,
+        "u_along_min": 7.654
+      },
+      "1200m_down/150m_agl": {
+        "w": -0.151,
+        "u_along": 8.562,
+        "u_along_min": 8.268
+      },
+      "1200m_down/30m_agl": {
+        "w": -0.033,
+        "u_along": 6.452,
+        "u_along_min": 6.005
+      },
+      "1200m_down/60m_agl": {
+        "w": -0.211,
+        "u_along": 7.31,
+        "u_along_min": 6.882
+      },
+      "1500m_down/100m_agl": {
+        "w": -0.127,
+        "u_along": 8.148,
+        "u_along_min": 7.506
+      },
+      "1500m_down/150m_agl": {
+        "w": -0.133,
+        "u_along": 8.686,
+        "u_along_min": 8.239
+      },
+      "1500m_down/30m_agl": {
+        "w": 0.059,
+        "u_along": 6.571,
+        "u_along_min": 5.433
+      },
+      "1500m_down/60m_agl": {
+        "w": -0.149,
+        "u_along": 7.451,
+        "u_along_min": 6.545
+      },
+      "300m_down/100m_agl": {
+        "w": 0.224,
+        "u_along": 7.945,
+        "u_along_min": 7.75
+      },
+      "300m_down/150m_agl": {
+        "w": 0.273,
+        "u_along": 8.532,
+        "u_along_min": 8.415
+      },
+      "300m_down/30m_agl": {
+        "w": 0.231,
+        "u_along": 6.18,
+        "u_along_min": 5.499
+      },
+      "300m_down/60m_agl": {
+        "w": 0.129,
+        "u_along": 7.142,
+        "u_along_min": 6.879
+      },
+      "600m_down/100m_agl": {
+        "w": 0.098,
+        "u_along": 7.951,
+        "u_along_min": 7.472
+      },
+      "600m_down/150m_agl": {
+        "w": 0.102,
+        "u_along": 8.538,
+        "u_along_min": 8.238
+      },
+      "600m_down/30m_agl": {
+        "w": 0.389,
+        "u_along": 6.159,
+        "u_along_min": 5.328
+      },
+      "600m_down/60m_agl": {
+        "w": 0.106,
+        "u_along": 7.157,
+        "u_along_min": 6.48
+      },
+      "900m_down/100m_agl": {
+        "w": -0.088,
+        "u_along": 8.033,
+        "u_along_min": 7.64
+      },
+      "900m_down/150m_agl": {
+        "w": -0.071,
+        "u_along": 8.586,
+        "u_along_min": 8.333
+      },
+      "900m_down/30m_agl": {
+        "w": 0.063,
+        "u_along": 6.322,
+        "u_along_min": 5.274
+      },
+      "900m_down/60m_agl": {
+        "w": -0.125,
+        "u_along": 7.287,
+        "u_along_min": 6.635
+      }
+    },
+    "east_cliffs_crest_h_m": 103.467,
+    "east_cliffs_inflow_k": 1.025,
+    "east_cliffs_u10_start_ms": 6.03,
+    "east_cliffs_stop": false,
+    "crater_ridge_w_ms": 0.877,
+    "crater_ridge_w_min_ms": -0.308,
+    "crater_ridge_w_max_ms": 2.704,
+    "crater_ridge_w_p10_ms": -0.168,
+    "crater_ridge_w_p90_ms": 1.801,
+    "crater_ridge_table": {
+      "100m_up/100m_above": 1.272,
+      "100m_up/150m_above": 1.294,
+      "100m_up/50m_above": 1.176,
+      "200m_up/100m_above": 0.892,
+      "200m_up/150m_above": 0.942,
+      "200m_up/50m_above": 0.793,
+      "300m_up/100m_above": 0.521,
+      "300m_up/150m_above": 0.6,
+      "300m_up/50m_above": 0.4
+    },
+    "crater_ridge_face_w_ms": 0.421,
+    "crater_ridge_face_table": {
+      "100m_up/100m_agl": 1.09,
+      "100m_up/30m_agl": 0.47,
+      "100m_up/60m_agl": 0.728,
+      "200m_up/100m_agl": 0.637,
+      "200m_up/30m_agl": 0.268,
+      "200m_up/60m_agl": 0.37,
+      "300m_up/100m_agl": 0.25,
+      "300m_up/30m_agl": -0.01,
+      "300m_up/60m_agl": -0.017
+    },
+    "crater_ridge_rotor_w_min_ms": -1.945,
+    "crater_ridge_rotor_w_mean_ms": 0.108,
+    "crater_ridge_rotor_reverse": 0.05,
+    "crater_ridge_rotor_u_min_ms": -1.428,
+    "crater_ridge_rotor_table": {
+      "1200m_down/100m_agl": {
+        "w": -0.547,
+        "u_along": 9.151,
+        "u_along_min": 1.742
+      },
+      "1200m_down/150m_agl": {
+        "w": -0.757,
+        "u_along": 11.034,
+        "u_along_min": 5.678
+      },
+      "1200m_down/30m_agl": {
+        "w": -0.092,
+        "u_along": 5.589,
+        "u_along_min": -0.929
+      },
+      "1200m_down/60m_agl": {
+        "w": -0.417,
+        "u_along": 7.438,
+        "u_along_min": -0.502
+      },
+      "1500m_down/100m_agl": {
+        "w": -0.719,
+        "u_along": 7.257,
+        "u_along_min": 1.716
+      },
+      "1500m_down/150m_agl": {
+        "w": -0.928,
+        "u_along": 9.324,
+        "u_along_min": 3.731
+      },
+      "1500m_down/30m_agl": {
+        "w": -0.216,
+        "u_along": 4.15,
+        "u_along_min": -1.428
+      },
+      "1500m_down/60m_agl": {
+        "w": -0.523,
+        "u_along": 5.546,
+        "u_along_min": 0.162
+      },
+      "300m_down/100m_agl": {
+        "w": 1.226,
+        "u_along": 11.933,
+        "u_along_min": 10.963
+      },
+      "300m_down/150m_agl": {
+        "w": 1.254,
+        "u_along": 12.773,
+        "u_along_min": 11.553
+      },
+      "300m_down/30m_agl": {
+        "w": 0.864,
+        "u_along": 9.018,
+        "u_along_min": 6.243
+      },
+      "300m_down/60m_agl": {
+        "w": 1.043,
+        "u_along": 10.748,
+        "u_along_min": 9.696
+      },
+      "600m_down/100m_agl": {
+        "w": 0.526,
+        "u_along": 12.186,
+        "u_along_min": 6.849
+      },
+      "600m_down/150m_agl": {
+        "w": 0.647,
+        "u_along": 13.04,
+        "u_along_min": 8.325
+      },
+      "600m_down/30m_agl": {
+        "w": 0.524,
+        "u_along": 9.555,
+        "u_along_min": 4.083
+      },
+      "600m_down/60m_agl": {
+        "w": 0.436,
+        "u_along": 11.073,
+        "u_along_min": 5.94
+      },
+      "900m_down/100m_agl": {
+        "w": -0.091,
+        "u_along": 13.215,
+        "u_along_min": 12.3
+      },
+      "900m_down/150m_agl": {
+        "w": -0.086,
+        "u_along": 13.93,
+        "u_along_min": 13.151
+      },
+      "900m_down/30m_agl": {
+        "w": 0.122,
+        "u_along": 10.528,
+        "u_along_min": 8.937
+      },
+      "900m_down/60m_agl": {
+        "w": -0.105,
+        "u_along": 12.134,
+        "u_along_min": 11.144
+      }
+    },
+    "crater_ridge_crest_h_m": 68.911,
+    "crater_ridge_inflow_k": 1.546,
+    "crater_ridge_u10_start_ms": 6.09,
+    "crater_ridge_stop": false,
+    "thermal_wconv_by_class": {
+      "bare@150m": {
+        "w_conv": -0.011,
+        "p90": 0.129,
+        "frac_pos": 0.56,
+        "n": 50
+      },
+      "bare@300m": {
+        "w_conv": -0.037,
+        "p90": 0.046,
+        "frac_pos": 0.28,
+        "n": 50
+      },
+      "built@150m": {
+        "w_conv": -0.048,
+        "p90": -0.008,
+        "frac_pos": 0.067,
+        "n": 15
+      },
+      "built@300m": {
+        "w_conv": -0.071,
+        "p90": -0.023,
+        "frac_pos": 0.067,
+        "n": 15
+      },
+      "crop@150m": {
+        "w_conv": 0.018,
+        "p90": 0.076,
+        "frac_pos": 0.625,
+        "n": 48
+      },
+      "crop@300m": {
+        "w_conv": 0.008,
+        "p90": 0.06,
+        "frac_pos": 0.521,
+        "n": 48
+      },
+      "forest@150m": {
+        "w_conv": 0.02,
+        "p90": 0.123,
+        "frac_pos": 0.576,
+        "n": 384
+      },
+      "forest@300m": {
+        "w_conv": 0.017,
+        "p90": 0.13,
+        "frac_pos": 0.521,
+        "n": 384
+      },
+      "grass@150m": {
+        "w_conv": 0.028,
+        "p90": 0.146,
+        "frac_pos": 0.637,
+        "n": 2098
+      },
+      "grass@300m": {
+        "w_conv": 0.03,
+        "p90": 0.154,
+        "frac_pos": 0.594,
+        "n": 2098
+      },
+      "sea@150m": {
+        "w_conv": -0.0,
+        "p90": 0.023,
+        "frac_pos": 0.568,
+        "n": 6705
+      },
+      "sea@300m": {
+        "w_conv": 0.002,
+        "p90": 0.037,
+        "frac_pos": 0.592,
+        "n": 6705
+      },
+      "shrub@150m": {
+        "w_conv": 0.047,
+        "p90": 0.201,
+        "frac_pos": 0.667,
+        "n": 9
+      },
+      "shrub@300m": {
+        "w_conv": 0.025,
+        "p90": 0.147,
+        "frac_pos": 0.556,
+        "n": 9
+      },
+      "water@150m": {
+        "w_conv": -0.086,
+        "p90": 0.011,
+        "frac_pos": 0.167,
+        "n": 36
+      },
+      "water@300m": {
+        "w_conv": -0.11,
+        "p90": -0.028,
+        "frac_pos": 0.056,
+        "n": 36
+      }
+    },
+    "thermal_src_by_class": {
+      "bare": {
+        "mean": 0.637,
+        "p90": 1.0,
+        "n": 50
+      },
+      "built": {
+        "mean": 0.746,
+        "p90": 0.832,
+        "n": 15
+      },
+      "crop": {
+        "mean": 0.597,
+        "p90": 0.724,
+        "n": 48
+      },
+      "forest": {
+        "mean": 0.821,
+        "p90": 1.0,
+        "n": 384
+      },
+      "grass": {
+        "mean": 0.548,
+        "p90": 0.744,
+        "n": 2098
+      },
+      "shrub": {
+        "mean": 0.564,
+        "p90": 0.727,
+        "n": 9
+      },
+      "water": {
+        "mean": 0.0,
+        "p90": 0.0,
+        "n": 36
+      }
+    },
+    "thermal_land_w_mean_150m_ms": 0.025,
+    "thermal_land_w_p90_150m_ms": 0.142,
+    "thermal_sea_w_mean_150m_ms": -0.0,
+    "thermal_sea_w_p90_150m_ms": 0.023,
+    "thermal_land_w_mean_300m_ms": 0.026,
+    "thermal_land_w_p90_300m_ms": 0.15,
+    "thermal_sea_w_mean_300m_ms": 0.002,
+    "thermal_sea_w_p90_300m_ms": 0.037,
+    "thermal_field_cover_land": 1.0,
+    "thermal_field_cover_sea": 1.0,
+    "thermal_inflow_k": 0.756,
+    "thermal_u10_start_ms": 1.99,
+    "thermal_exists": false,
+    "field_ok": {
+      "east_cliffs": true,
+      "crater_ridge": true,
+      "thermal": true
+    }
+  },
+  "info": {
+    "east_cliffs": {
+      "solver_ok": true,
+      "unavailable": "",
+      "blend_fraction": 1.0,
+      "solver_wall_s": 21.152,
+      "engine": "phase+picard",
+      "not_converged": false,
+      "inflow_k": 1.02520470289873,
+      "levels": [
+        {
+          "dx": 50.0,
+          "nx": 64,
+          "ny": 64,
+          "x0": 9075.0,
+          "y0": -2575.0
+        },
+        {
+          "dx": 100.0,
+          "nx": 64,
+          "ny": 64,
+          "x0": 7475.0,
+          "y0": -4175.0
+        },
+        {
+          "dx": 400.0,
+          "nx": 96,
+          "ny": 96,
+          "x0": -19200.0,
+          "y0": -19200.0
+        }
+      ]
+    },
+    "crater_ridge": {
+      "solver_ok": true,
+      "unavailable": "",
+      "blend_fraction": 1.0,
+      "solver_wall_s": 24.361,
+      "engine": "phase+picard",
+      "not_converged": false,
+      "inflow_k": 1.54552514093262,
+      "levels": [
+        {
+          "dx": 50.0,
+          "nx": 64,
+          "ny": 64,
+          "x0": -8350.0,
+          "y0": -11550.0
+        },
+        {
+          "dx": 100.0,
+          "nx": 64,
+          "ny": 64,
+          "x0": -9950.0,
+          "y0": -13150.0
+        },
+        {
+          "dx": 400.0,
+          "nx": 96,
+          "ny": 96,
+          "x0": -19200.0,
+          "y0": -19200.0
+        }
+      ]
+    },
+    "thermal": {
+      "solver_ok": true,
+      "unavailable": "",
+      "blend_fraction": 1.0,
+      "solver_wall_s": 35.791,
+      "engine": "phase+picard",
+      "not_converged": false,
+      "inflow_k": 0.755736018941451,
+      "levels": [
+        {
+          "dx": 50.0,
+          "nx": 64,
+          "ny": 64,
+          "x0": 9150.0,
+          "y0": -2750.0
+        },
+        {
+          "dx": 100.0,
+          "nx": 64,
+          "ny": 64,
+          "x0": 7550.0,
+          "y0": -4350.0
+        },
+        {
+          "dx": 400.0,
+          "nx": 96,
+          "ny": 96,
+          "x0": -19200.0,
+          "y0": -19200.0
+        }
+      ]
+    }
+  }
+}

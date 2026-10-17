@@ -107,6 +107,13 @@ func test_start_wind_matches_menu() -> void:
 				check(int(li.get("passes", 0)) == 1, "%s/%s: не сошёлся — один проход" % [loc_id, site.id])
 				atmo.free()
 				continue
+			# старт в тени (U₁ < меню при k = 1): k не поднимается выше INFLOW_K_MAX = 1 — один проход,
+			# U над стартом не больше меню
+			if int(li.get("passes", 0)) == 1 and float(li.get("inflow_k", NAN)) >= AirRuntime.INFLOW_K_MAX - 1.0e-6:
+				skipped.append("%s/%s (тень: U %.3f × меню, k 1)" % [loc_id, site.id, r])
+				check(r <= 1.0 + TOL, "%s/%s: в тени U %.3f × меню не выше меню" % [loc_id, site.id, r])
+				atmo.free()
+				continue
 			check(int(li.get("passes", 0)) == 2, "%s/%s: два прохода" % [loc_id, site.id])
 			check(
 				absf(float(li.get("u_start10", NAN)) - u) < 0.05,

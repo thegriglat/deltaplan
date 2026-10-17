@@ -1,0 +1,86 @@
+{
+  "status": "done",
+  "summary": "Скрипт tools/blender/build_ship_tanker.py строит танкер Aframax: 250×44 м, надводный борт 9 м, бак +2,5 м, под водой 2 м корпуса. Есть надстройка в корме (5 ярусов и мостик с крыльями на всю ширину), машинная шахта, труба с полосой, шлюпка свободного падения, трубопроводы по диаметральной плоскости с мостиком, манифольд, краны, горловины танков, фок-мачта. Один белый материал, цвет в вершинах (COLOR_0), нормали плоские, текстур нет. Сборка детерминирована: пересборка даёт тот же .glb (md5 совпадает).",
+  "commits": [
+    "85ea992c SEA-3: процедурный танкер Aframax 250×44 м с LOD0/1/2 (1010/268/72 тр.), вершинные цвета"
+  ],
+  "checks": [
+    {
+      "name": "build",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "lod0",
+      "value": "1010",
+      "pass": true
+    },
+    {
+      "name": "lod0_min",
+      "value": "1010",
+      "pass": true
+    },
+    {
+      "name": "lod1",
+      "value": "268 (≤600)",
+      "pass": true
+    },
+    {
+      "name": "lod2",
+      "value": "72 (≤80)",
+      "pass": true
+    },
+    {
+      "name": "size",
+      "value": "108 КБ",
+      "pass": true
+    },
+    {
+      "name": "godot_import",
+      "value": "узлы tanker_LOD0..2 находит find_child; AABB LOD1: x ±22, y −2…35,8, z −125…125 (нос к −Z)",
+      "pass": true
+    },
+    {
+      "name": "determinism",
+      "value": "md5 .glb одинаковый при пересборке",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/sea-ships/SEA-3/tanker_front34.jpg",
+    "/home/greg/deltaplan/build/screenshots/sea-ships/SEA-3/tanker_side.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SEA-3; кадры: SHIP_PREVIEW=<папка> blender --background --python tools/blender/build_ship_tanker.py",
+  "uncertain": [
+    {
+      "where": "assets/models/ships/ship_tanker.glb (материал)",
+      "why": "Импортёр Godot не включает vertex_color_use_as_albedo для COLOR_0: без этого флага судно будет белым. Его должен включить слой судов, как делает scripts/world_objects/easter_eggs/hay_bales.gd:304. Сам я это не правил: scripts/ вне границ задачи.",
+      "checked": "Импортировал модель headless и загрузил сцену: у материала vertex_color_use_as_albedo=false, COLOR_0 в glb есть."
+    },
+    {
+      "where": "tools/blender/build_ship_tanker.py deck_gear/funnel",
+      "why": "Стрелы кранов выходят за борт примерно на 1 м (у LOD0 AABB по x ±23,1), шлюпка свисает за транец на 1,4 м (длина 251,4 м). Для реальных судов это нормально, но LOD0 немного больше 250×44.",
+      "checked": "AABB в Godot"
+    },
+    {
+      "where": "превью",
+      "why": "Кадры сняты в Workbench на сером поле, вид в игре не проверял. На этих кадрах LOD0 стоит справа сзади, LOD1 слева спереди.",
+      "checked": "Оба кадра посмотрел: силуэт, надстройка, труба и палуба читаются"
+    }
+  ],
+  "dp_feedback": "В карточке не хватает строчки про то, что флаг цвета вершин в Godot выставляет потребитель. Узнал это только после импорта.",
+  "extra": {
+    "dims_m": {
+      "length": 250,
+      "beam": 44,
+      "freeboard": 9,
+      "under_water": 2,
+      "bridge_roof": 25.8,
+      "funnel_top": 35.8
+    }
+  },
+  "t": "2026-10-17T03:27:24",
+  "by": "executor"
+}

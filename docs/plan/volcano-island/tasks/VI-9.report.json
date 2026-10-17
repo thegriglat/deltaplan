@@ -1,0 +1,130 @@
+{
+  "status": "done",
+  "summary": "Все 8 полей встроенных мест перепечены под model_hash 6da65c77ab23e850 (thermal_slope запечён впервые), --check = 0, air/ вулкана 20 МБ. air_check обоих островов прогнан заново, таблицы до/после VI-7 и раздел «Границы» — в README; test_matrix: volcano_island 9/9 ok.",
+  "commits": [
+    "4384ec8c Поля ветра всех встроенных мест перепечены после VI-7, thermal_slope запечён впервые",
+    "0e4ac528 Воздух вулканического и учебного островов после VI-7: числа до/после, случай thermal_slope в air_check, «Границы»"
+  ],
+  "checks": [
+    {
+      "name": "volcano_island",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "training_island",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "bake_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "bake_thermal",
+      "value": "thermal_slope: ok",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "6 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "air_check",
+      "value": "thermal_slope",
+      "pass": true
+    },
+    {
+      "name": "air_size_mb",
+      "value": "20",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "bake_check (все места)",
+      "value": "8/8 ok, exit 0",
+      "pass": true
+    },
+    {
+      "name": "accept VI-9 --dry",
+      "value": "8/8 PASS (volcano_island 11/11, training_island 25/25, gpu 6/0)",
+      "pass": true
+    },
+    {
+      "name": "test_matrix",
+      "value": "1 тест, 0 упало; volcano_island 9 комбинаций ok (старт east_cliffs)",
+      "pass": true
+    },
+    {
+      "name": "thermals_over_water вулкан, 15 ч",
+      "value": "599 -> 0",
+      "pass": true
+    },
+    {
+      "name": "thermal_slope ядра суши p90",
+      "value": "4,30 м/с (ожидание ~4)",
+      "pass": true
+    },
+    {
+      "name": "thermal_slope набор, 3 вылета со 100 м",
+      "value": "3120 / 330 / 1570 м (каждый >= 300)",
+      "pass": true
+    },
+    {
+      "name": "volcano air_check --show",
+      "value": "ALL_OK",
+      "pass": true
+    },
+    {
+      "name": "island air_check --show",
+      "value": "ALL_OK",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VI-9; python3 tools/terrain/volcano/air_check.py --show; python3 tools/terrain/island/air_check.py --show",
+  "uncertain": [
+    {
+      "where": "tools/terrain/volcano/README.md: «Числа воздуха после VI-7»",
+      "why": "термиков над сушей стало меньше: 325 -> 241 (луг 243 -> 189, лес 68 -> 45), их сила не упала (p90 4,01 -> 4,08); причина в правке VI-7 не разбиралась",
+      "checked": "счёт по классам в check_thermal15 до/после; над водой 0, база та же"
+    },
+    {
+      "where": "tools/terrain/island/README.md: «Проверка воздуха после VI-7»",
+      "why": "учебный остров: термиков над грунтом/пашней 38/12 -> 74/20, max ядра 4,13 -> 4,95, набор 788 -> 931 м — один прогон; гипотеза «источники у берега сдвинуты на сушу» не проверялась",
+      "checked": "склон/ротор/посадка совпали до 3-го знака; над водой 0 и до, и после"
+    },
+    {
+      "where": "tools/terrain/volcano/air_check.py CASES[thermal_slope]",
+      "why": "добавил случай thermal_slope (старт, погода из конфига, запечённое поле, вылеты со 100 м над стартом) — нужен проверке air_check (re:thermal_slope); --climb-agl=100 как у кандидатов VI-5, со старта простой пилот до термика не долетает",
+      "checked": "baked=true, over_water=0"
+    },
+    {
+      "where": "README «Границы»",
+      "why": "база ~3,8–3,9 км, нет пассатной инверсии (обычно 1,5–2,5 км); число инверсии — климатология, конкретную статью не цитирую, указал зонды Матавери WMO 85469 для проверки",
+      "checked": "погоду не подгонял"
+    }
+  ],
+  "dp_feedback": "job wait дольше 10 мин упирается в предел Bash; удобно было бы job wait --any или уведомление по окончании. Порядок шагов в дополнении карточки сэкономил время.",
+  "extra": {
+    "model_hash": "c6f6c663a76fe0bf -> 6da65c77ab23e850",
+    "slopes_6ms_w_mean": {
+      "east_cliffs": "1,42 -> 1,43",
+      "crater_ridge": "1,55 -> 1,56"
+    },
+    "rotor_crater": "обратный 3,3 %, min w −1,26 -> −1,20",
+    "landing_wind_ms": 1.363,
+    "thermal15_total_over_water": "1230/599 -> 241/0",
+    "bins_unchanged": "ветровые .bin не изменились, у 7 старых стартов сменился только model_hash в json"
+  },
+  "t": "2026-10-17T07:48:37",
+  "by": "executor"
+}
