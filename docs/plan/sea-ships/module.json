@@ -1,0 +1,11 @@
+{
+  "module": "sea-ships",
+  "plan": "docs/plan/sea-ships.md",
+  "contracts": "docs/contracts/sea-ships.md",
+  "branch": "feature/sea-ships",
+  "copy": "~/deltaplan-sea-ships",
+  "created": "2026-10-17T02:11:49",
+  "code": "SEA",
+  "area": "world",
+  "base": "main"
+}

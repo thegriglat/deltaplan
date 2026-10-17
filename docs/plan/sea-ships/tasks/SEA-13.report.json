@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "Новая страница docs/guide/world-objects/sea-ships.md (виды, LOD, S3 v3, маска, стадия sea, уровень воды, класс воды, что не умеет), CHANGELOG «В работе», ASSETS.md (балкер, контейнеровоз), findings — вывод SEA-1; INDEX и registry пересобраны.",
+  "commits": [
+    "см. git log sea-ships/SEA-13: Суда: страница guide, CHANGELOG, ASSETS, findings"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "assets",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SEA-13",
+  "uncertain": [
+    {
+      "where": "docs/registry/findings.md",
+      "why": "файл упирался в лимит 40 КБ: сократил ссылки в строке weather-by-temperature (одна ссылка вместо двух)",
+      "checked": "docs check без ошибок"
+    },
+    {
+      "where": "docs/guide/world-objects/sea-ships.md",
+      "why": "утверждение 'суда стоят' опирается на отсутствие _process в ship_layer, не на проверку в игре",
+      "checked": "grep ship_layer.gd"
+    }
+  ],
+  "dp_feedback": "findings.md на пределе 40 КБ: следующему писателю придётся разбивать; хорошо бы dpcli docs сообщал запас.",
+  "t": "2026-10-17T10:02:22",
+  "by": "executor"
+}

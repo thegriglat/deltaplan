@@ -1,0 +1,51 @@
+{
+  "id": "SEA-14",
+  "module": "sea-ships",
+  "type": "dp-engineer",
+  "title": "Море в детальном слое: класс воды",
+  "goal": "Стадия sea по S2 v4 ставит класс воды открытому океану без данных WorldCover и в детальном слое (detail_surface класс 0 → 6, маска 10 м A → 255 в клетках моря), чтобы море у берега удалённых островов рисовалось водой, а не травой.",
+  "plan_ref": "SEA-2",
+  "contracts": [
+    {
+      "name": "S2",
+      "version": "4",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-14",
+  "branch": "sea-ships/SEA-14",
+  "base": "feature/sea-ships",
+  "scope": [
+    "scripts/terrain/sea_mask.gd",
+    "scripts/terrain/build/sea_stage.gd",
+    "tests/terrain/test_sea_mask.gd",
+    "tests/contracts/test_sea_ships_contracts.gd",
+    "docs/guide/world-objects/sea-ships.md",
+    "docs/guide/location-data.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/terrain/build/surface_stage.gd",
+    "scripts/world_objects/",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "sea_ships_contracts",
+      "tests": "sea_ships_contracts"
+    },
+    {
+      "name": "sea_mask",
+      "tests": "sea_mask"
+    },
+    {
+      "name": "location_builder",
+      "tests": "location_builder"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T10:12:17"
+}

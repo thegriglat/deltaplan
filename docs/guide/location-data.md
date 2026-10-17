@@ -3,9 +3,9 @@ type: "guide"
 status: "active"
 module: "terrain"
 area: "world"
-updated: "2026-10-16"
-summary: "Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, osm_tiles, WebP, кеш, догрузка, --prefetch."
-related: ["docs/guide/terrain.md", "docs/guide/osm-tiles.md", "docs/guide/world-objects/villages-osm.md", "docs/contracts/no-osm.md", "docs/contracts/osm-any.md", "docs/contracts/osm-tiles.md", "docs/research/lakes_worldcover.md", "docs/research/location_compression.md", "docs/registry/findings.md", "docs/contracts/training-island.md", "tools/terrain/island/README.md"]
+updated: "2026-10-17"
+summary: "Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, sea, osm_tiles, WebP, кеш, догрузка, --prefetch."
+related: ["docs/guide/terrain.md", "docs/guide/osm-tiles.md", "docs/guide/world-objects/villages-osm.md", "docs/contracts/no-osm.md", "docs/contracts/osm-any.md", "docs/contracts/osm-tiles.md", "docs/research/lakes_worldcover.md", "docs/research/location_compression.md", "docs/registry/findings.md", "docs/contracts/training-island.md", "tools/terrain/island/README.md", "docs/guide/volcano-island.md", "docs/contracts/sea-ships.md"]
 ---
 # Данные места: один путь для встроенных мест и любой точки
 
@@ -43,6 +43,7 @@ related: ["docs/guide/terrain.md", "docs/guide/osm-tiles.md", "docs/guide/world-
 | Реки (`rivers`) | `RiverStage` | сам рельеф: сток по far (priority-flood, накопление, привязка к долине), ширина от площади водосбора | `detail_water.webp`, `far_water.webp` (255 — русло) |
 | Покров (`surface`) | `SurfaceStage` | ESA WorldCover 2021 (COG, HTTP range): класс узла — мода 3×3 подвыборок; лес, вода и застройка 10 м | `detail_surface.webp`, `far_surface.webp` (классы игры 0..8), `detail_detail10.webp`, `detail_built10.webp`, `built_patches.json`, `surface.json` |
 | Сглаживание (`smooth`) | `SmoothStage` | сырые высоты (`detail_raw.webp`) и покров: `h = r + w·(G_σ(r) − r)`, `w` — лес (канал L маски 10 м) и застройка (`built10`), размытые на `smooth_mask_sigma_m` = 50 м; грубые слои берут высоты из нового detail; нет покрова — `ERR_UNAVAILABLE` (w = 1, досборка) | перезаписывает `detail.webp`, `far.webp`, `meta.json`; удаляет `detail_raw.webp` |
+| Море (`sea`) | `SeaStage`, `SeaMask` | `far.webp` и `far_surface.webp` (S2, `docs/contracts/sea-ships.md`): вода far = класс 6 или класс 0 при h ≤ 0,5 м; компонента воды (8-связность) ≥ `min_cells` клеток — море, если медиана h ≤ `median_max_m`, она касается края far и 99-й процентиль h ≥ `q99_min_m` (`configs/sea_ships.json → mask`; признак и проверка на 16 местах — `tools/research/sea_mask/README.md`); значение клетки моря = min(255, 1 + floor(d / 100 м)), d — расстояние до ближайшей клетки не-моря внутри квадрата; нет `far_surface.webp` — `ERR_UNAVAILABLE` (место без судов) | `far_sea.webp` (L8 как RGB8, сетка far), `sea.json` (`version` 4, `sea_cells`, `components`, `levels_m`, `flattened_cells`, `reclassed_cells`, `reclassed_detail_cells`, `water10_cells`, `seconds`); **стадия перезаписывает `far.webp`: клетки моря выравниваются до уровня воды своей компоненты** (L — мода высот по бинам 0,1 м: океан 0 м, Каспий ≈ −29 м; батиметрия Terrarium убирается, суша, озёра, водохранилища и Мёртвое море — побайтно прежние; в `meta.json` обновляются `min_height_m`/`max_height_m`, смещение кода `height_min_m` остаётся, пока минимум не ниже его; повторный прогон на выровненных данных высот не двигает; S2 v3: в `far_surface.webp` клетки моря с классом 0 (открытый океан без WorldCover) становятся классом 6 — `reclassed_cells`, запись через временный файл; S2 v4: то же в `detail_surface.webp` (класс 0 := 6) и в канале A `detail_detail10.webp` (A := 255, L не трогается) в клетках, чья ближайшая клетка far — море, где детальный класс 0 — `reclassed_detail_cells`, `water10_cells`); `SeaMask.load_for(dir)` читает файл, а без него (места из `res://`) считает на лету |
 | Тайлы OSM (`osm_tiles`) | `OsmTilesStage` | тайлы мировой сетки 20 км (O1), 3×3 вокруг центра места: из кеша `user://osm_tiles/v1/<j>/<i>.dpt` или по сети (`configs/osm_tiles.json → base_url`, URL или локальный каталог; переменная `DELTAPLAN_OSM_TILES_URL`); до `max_parallel` 9 запросов, общее ожидание `timeout_s` 5 с; 200 → файл, 404 → метка `<i>.none` (пустой тайл), остальное — тайл `missing` | `osm_tiles.json` в папке места: `{"tiles": [[j, i, "ok"\|"none"\|"missing"], …]}`; сами тайлы — в общем кеше, не в папке места |
 
 **Вода 10 м** — канал A файла `detail_detail10.webp`: `A = max(round(255 · n_w / 9), маска рек по рельефу на этой сетке)`, где
@@ -185,7 +186,7 @@ POST — размер и начало тела (80 символов, `key/token/
 - **Запечённые поля острова** (TI-9): `data/locations/training_island/air/<старт>.json` + `.bin` для четырёх стартов, 25,9 МБ всего
   (ridge_west 7,0; thermal_plain 6,7; landing_hill 6,1; lee_bowl 6,7). Загрузка из файла 0,69–0,75 с на старт против 14–58 с расчёта. У `lee_bowl` `wind_ref: inflow`
   входит в `key` (после TI-9b коэффициент притока в файле 1,0, раньше 3,0). У `thermal_plain` коэффициент притока 3,0 — верхняя граница подбора под ветер 2 м/с у старта; поле у него может быть не подогнано точно.
-  **Как перепечь** после правки модели воздуха, данных острова или `weather` старта: `tools/terrain/island/bake_all.sh` (GPU, окно, под `.dpcli/dpcli lock gpu bake -- …`;
+  **Как перепечь** после правки модели воздуха, данных острова или `weather` старта: `tools/terrain/bake_all.sh` (GPU, окно, под `.dpcli/dpcli lock gpu bake -- …`;
   порядок: сначала `bake_all.sh --check` без GPU — код 1, если хоть один файл устарел или отсутствует, затем `bake_all.sh`, снова `--check`). Устаревший файл игра не использует — считает заново (14–58 с).
   Один раз первый запуск записал в `key` чужой центр; повтор дал верный, причина не выяснена — после запекания проверять `--check`.
 - **Допущения и границы**: перепад высот подогнан масштабом 0,592 после расчёта эрозии (рисунок долин — от расчёта, высоты — по плану, не равновесие);
@@ -202,6 +203,12 @@ RU: «Учебный остров — вымышленный остров 15 × 
 EN: "Training Island is a fictional island, about 15 × 10 km, in open sea: a windward ridge slope for ridge lift, a plain of fields and groves for thermals, a training hill
 with a target field for landing practice, and a lee bowl behind the ridge with rotor. The terrain is generated; it does not model a real place. The air is computed by the same
 model as everywhere else, with its usual limits."
+
+## Встроенное место на реальных данных: вулканический остров (`volcano_island`)
+
+Второе место окна «Тренировка» (VI-К1 v3, VI-К2 v2, VI-К3): реальный остров ~24 × 18 км, данные в сборке (`res://data/locations/volcano_island/`), `"training_only": true`,
+тайлы OSM из папки места, четыре старта с погодой и запечёнными полями (`configs/locations/volcano_island.json`). Подробно — [volcano-island.md](volcano-island.md); сборка — `tools/terrain/volcano/build.sh`;
+запекание — `tools/terrain/bake_all.sh` (все встроенные места, `--check` без GPU). Лицензии данных — [ASSETS.md](../../ASSETS.md).
 
 ## Границы
 Часовой пояс — по долготе; посадки и именованные старты — только у встроенных мест (ручные данные); имён посёлков и

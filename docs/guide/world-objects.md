@@ -3,9 +3,9 @@ type: "guide"
 status: "active"
 module: "world"
 area: "world"
-updated: "2026-10-15"
+updated: "2026-10-17"
 summary: "WorldObjects: файлы, подключение к сцене, API; ветроуказатели, посадки, лагерь, посёлки, OSM-слой и пасхалки — в частях world-objects/."
-related: ["docs/guide/world-objects/wind-landing.md", "docs/guide/world-objects/start-camp.md", "docs/guide/world-objects/villages-osm.md", "docs/guide/world-objects/easter-eggs.md", "docs/guide/terrain.md", "docs/guide/location-data.md", "docs/guide/osm-tiles.md"]
+related: ["docs/guide/world-objects/wind-landing.md", "docs/guide/world-objects/start-camp.md", "docs/guide/world-objects/villages-osm.md", "docs/guide/world-objects/easter-eggs.md", "docs/guide/world-objects/sea-ships.md", "docs/guide/terrain.md", "docs/guide/location-data.md", "docs/guide/osm-tiles.md"]
 ---
 # Объекты мира (world_objects)
 
@@ -39,7 +39,7 @@ VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2. Компонент `WorldOb
 | `start_gear.gd` (`StartGear`) | снаряжение у каждого старта: крылья на штанге, полусобранный аппарат, чехлы, рюкзаки, шлемы, бутылки; план — без нод, визуал — MultiMesh и `glider_<id>.glb` |
 | `trample_mask.gd` (`TrampleMask`) | маска примятой травы R8 вокруг старта (палатки, тропинки, вещи, круг разбега, тропа); без нод |
 | `camp_fabric.gd` (`CampFabric`) + `assets/shaders/camp/camp_fabric.gdshader` | общий шейдер ткани и материал на пресет (палатки, чехлы, парус, одежда людей) |
-| `easter_eggs/people.gd` (`EggPeople`) | люди у лагеря: вблизи `camp_pilot.glb` со скелетом, вдали MultiMesh `camp_person.glb` |
+| `easter_eggs/people.gd` (`EggPeople`) | люди у лагеря: вблизи 4 модели Rocketbox со скелетом (`assets/models/world/rocketbox`), вдали MultiMesh `camp_person.glb` |
 | `campfire.gd` (`Campfire`) + `smoke_particles.gdshader`, `smoke_puff.gdshader`, `flame_puff.gdshader` | костёр в лагере: кольцо камней и поленья (процедурный меш), пламя и дым — GPUParticles3D, мерцающий свет; дым сносит локальный ветер |
 | `obstacle_index.gd` (`ObstacleIndex`) | сетка препятствий: цилиндры (деревья), повёрнутые коробки (дома, палатки) |
 | `draped.gdshader` | тропы и покос: сдвиг к камере против утопания в грубом LOD рельефа, растушёвка края дизерингом |
@@ -51,11 +51,12 @@ VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2. Компонент `WorldOb
 | `scenes/world_objects/{windsock,streamer}_visual.tscn` | обёртки визуала (маркер `Pivot`, меш `Sock`/`Ribbon`) |
 | `scenes/world_objects/world_objects_preview.tscn` | тестовая сцена с рельефом и атмосферой |
 | `tools/blender/world_objects/build_world_objects.py` | модели: ветроуказатель, вешка с лентой |
-| `tools/blender/build_start_gear.py`, `build_glider_kit.py`, `build_camp_person.py`, `build_camp_pilot.py` | модели лагеря → `assets/models/world/{start_gear,glider_kit,camp_person,camp_pilot}.glb` (см. `models.md`) |
+| `tools/blender/build_start_gear.py`, `build_glider_kit.py`, `build_camp_person.py`, `build_camp_pilot.py`, `build_camp_rocketbox.sh` | модели лагеря → `assets/models/world/{start_gear,glider_kit,camp_person,camp_pilot}.glb`, `rocketbox/` (см. `models.md`) |
 | `tools/blender/build_tents.py` | палатки: купольная 2-местная, туннельная 3-местная, тент-навес → `assets/models/world/tents.glb` |
 | `tools/shots/tents_shot.tscn` | кадры лагеря в игре (с земли, сбоку, вблизи, сверху) и всех моделей × цветов |
 | `tools/shots/campfire_shot.tscn` | кадры костра с дымом: со старта, вблизи, с воздуха в 300 и 500 м (`--wind=`, `--hour=`) |
 | `configs/world_objects.json` | все параметры, посадки по локациям, пресеты качества |
+| `ship_placer.gd` (`ShipPlacer`), `ship_layer.gd` (`ShipLayer`) | суда на море — раздел «Суда» ниже |
 
 ## Подключение (главная сцена)
 ```gdscript
@@ -74,6 +75,22 @@ var landings := world_objects.get_landing_sites()  # [{id, name, position, axis_
 - Для места точки (`location_id` — ключ кеша `pt_…`) процедурные дома берутся из пятен застройки `built_patches.json` папки места (нет покрова — их нет), OSM-слой — из `osm_tiles.json` той же папки (нет тайлов — слоя нет); ветроуказатели на стартах ставятся всегда.
 - Проверять столкновение стоит для центра и концов крыла; препятствия без физического движка (`height_at`
   как у полёта), запрос ~мкс (сетка 64 м).
+
+## Суда
+Виды, LOD, ограничения, маска моря и уровень воды — [sea-ships.md](world-objects/sea-ships.md). Контракты S2–S4 (`docs/contracts/sea-ships.md`), параметры — `configs/sea_ships.json`.
+- `ShipPlacer.ships_for(mask, center_lat, center_lon, params, height_fn)` — без нод, контракт S3 v3: на место 2–6 судов (`n_min`…`n_max`,
+  по хешу клетки центра 0,05°) в полосе 3–15 км от берега (`shore_min_m`/`shore_max_m` по маске S2: v ∈ [31, 151]) и ≤ 30 км от центра
+  (`center_max_m`). Кандидаты — мировые клетки 0,02° (`cell_deg`): из хеша `TreeCell.hash` точка, вид (`placement.types`, веса 1/1/1), курс,
+  ранг; берутся N годных с наименьшим рангом, не ближе `min_sep_m` (1,5 км). В метры места — последним шагом, поэтому одна точка мира из
+  разных мест даёт то же судно; набор зависит от места, не от пилота.
+- `WorldObjects.build` → `_start_ships`: `SeaMask.load_for` (файл `far_sea.webp` или счёт 1–3 с для мест из `res://`) и расстановка — в
+  `WorkerThreadPool`, узлы — в главном потоке (`_ships_done`, сигнал `ships_ready`). Нет моря — ни одного узла, без `_process`.
+- `ShipLayer` — на судно по `MeshInstance3D` на каждый LOD модели `assets/models/ships/ship_<вид>.glb` (`<вид>_LOD0..2`) с
+  `visibility_range_begin/end` (`render.lod_m`: 6 и 25 км, LOD2 — до `world.json → rendering.camera_far_m`); движок сам отсекает по дальности и
+  пирамиде видимости. MultiMesh не взят: рамка MultiMesh — весь квадрат, отсечения по судну нет, а судов ≤ 6 на место.
+  Ватерлиния — `y` записи: высота рельефа в точке (`height_fn` = `Terrain.height_at`; стадия `sea` выравнивает море far до уровня L, у океана 0 м); материал — `StandardMaterial3D` с вершинными цветами (импортёр glTF их как альбедо не включает). Тень — только LOD0
+  (`render.cast_shadow_lod0`, пресет «Низкое» — без теней). Вид без `.glb` пропускается (вес вида в `placement.types` — 0, пока модели нет).
+- Тесты: `--filter=ship_placer`, `--filter=ship_layer`, `--filter=sea_ships_contracts`.
 
 ## Как добавить локацию
 1. Создать `configs/locations/<id>.json` и собрать место `build_location.gd -- --id <id>` (рельеф, реки и покров

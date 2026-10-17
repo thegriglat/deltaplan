@@ -27,6 +27,8 @@ var build_time_s: float = 0.0
 ## Лагерь пилотов у старта (place_camp, TentCamp.plan):
 ## [{type, position, basis, yaw, color, radius}].
 var camp: Array[Dictionary] = []
+## Старт, у которого стоит лагерь (DOG-K1): {position: Vector3, heading_deg: float}; лагеря нет — {}.
+var camp_start: Dictionary = {}
 ## Костёр лагеря (Campfire) или null.
 var campfire: Campfire = null
 ## Дома посёлков (VillagePlacer, N3): [x, z, w, l, угол_град, высота_стен_м, крыша].
@@ -36,6 +38,11 @@ var village_layer: VillageLayer
 var start_gear: Array = []
 ## Время плана снаряжения на один старт, мс (последняя сборка; отчёт SC-2).
 var start_gear_plan_ms: Array[float] = []
+## Суда на море (ShipPlacer, S3): записи последней расстановки; слой — после счёта в рабочем потоке.
+var ships: Array[Dictionary] = []
+var ship_layer: ShipLayer
+## Суда готовы (слой построен или моря нет).
+signal ships_ready
 
 
 var _air_fn: Callable
@@ -48,6 +55,9 @@ var _since_active: float = INF
 var _since_fire: float = INF
 var _since_osm_wind: float = INF
 var _update_dt: float = 1.0 / 30.0
+## Счёт маски моря и судов в WorkerThreadPool: id задачи (-1 — нет), поколение сборки (старый итог — в мусор).
+var _ship_task: int = -1
+var _ship_gen: int = 0
 
 
 ## Главный вход: зависимости передаются явно. atmosphere может быть null (ветроуказатели — штиль).
@@ -109,6 +119,7 @@ func build(
 		_build_start_tracks(height_fn)
 	_build_villages(patches, height_fn)
 	_build_start_gear(start_sites)
+	_start_ships(loc_id, center, height_fn)
 	_reset_indicators()
 	build_time_s = (Time.get_ticks_usec() - t0) / 1.0e6
 	print(
@@ -141,8 +152,55 @@ func clear() -> void:
 	osm_layer = null
 	osm = null
 	camp.clear()
+	camp_start = {}
 	campfire = null
 	_active.clear()
+	ships = []
+	ship_layer = null
+	_ship_gen += 1
+
+
+## Суда (S3): маска моря места (SeaMask.load_for — файл или счёт 1–3 с) и расстановка — в рабочем потоке,
+## узлы — в главном (_ships_done). Нет моря — ни одного узла.
+func _start_ships(loc_id: String, center: Vector2, height_fn: Callable) -> void:
+	if loc_id == "":
+		return
+	var lc: Dictionary = Locations.config(loc_id)
+	var clat := float(lc.get("center_lat", center.x))
+	var clon := float(lc.get("center_lon", center.y))
+	var dir := Locations.data_dir(loc_id)
+	var params := ShipPlacer.params_from_config()
+	var gen := _ship_gen
+	_wait_ships()
+	_ship_task = WorkerThreadPool.add_task(func() -> void:
+		var res := ShipPlacer.ships_for(SeaMask.load_for(dir), clat, clon, params, height_fn)
+		call_deferred(&"_ships_done", res, gen)
+	, false, "sea ships")
+
+
+func _ships_done(res: Array[Dictionary], gen: int) -> void:
+	_wait_ships()
+	if gen != _ship_gen:
+		return
+	ships = res
+	if not ships.is_empty():
+		ship_layer = ShipLayer.new()
+		ship_layer.name = "Ships"
+		add_child(ship_layer)
+		ship_layer.build(ships)
+		print("WorldObjects: судов %d (без модели %d)" % [ship_layer.ship_count, ship_layer.skipped])
+	ships_ready.emit()
+
+
+func _wait_ships() -> void:
+	if _ship_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_ship_task)
+		_ship_task = -1
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE or what == NOTIFICATION_EXIT_TREE:
+		_wait_ships()
 
 
 ## Данные OSM места (osm_tiles.json в папке места + кеш тайлов) → OsmData и каркас OsmLayer.
@@ -156,7 +214,7 @@ func _build_osm(loc_id: String, center: Vector2, height_fn: Callable) -> void:
 	var lc: Dictionary = Locations.config(loc_id)
 	var clat := float(lc.get("center_lat", center.x))
 	var clon := float(lc.get("center_lon", center.y))
-	osm = OsmData.load_for(Locations.data_dir(loc_id), clat, clon, float(ocfg.get("half_m", 20000.0)))
+	osm = OsmData.load_for(Locations.data_dir(loc_id), clat, clon, float(ocfg.get("half_m", 20000.0)), Locations.osm_root(loc_id))
 	if osm.is_empty():
 		return
 	osm_layer = OsmLayer.new()
@@ -231,6 +289,7 @@ func place_camp(start: Vector3, heading_deg: float, terrain: Node = null, count:
 			remove_child(old)
 			old.queue_free()
 	camp.clear()
+	camp_start = {}
 	campfire = null
 	if obstacles != null:
 		obstacles.remove_kind("tent")
@@ -245,6 +304,7 @@ func place_camp(start: Vector3, heading_deg: float, terrain: Node = null, count:
 	if camp.is_empty():
 		print("WorldObjects: у старта нет ровного места для палаток")
 		return
+	camp_start = {"position": start, "heading_deg": heading_deg}
 	add_child(TentCamp.build_node(camp, tc))
 	_place_campfire(start, heading_deg, tc, env)
 	for t in camp:

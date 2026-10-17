@@ -1,6 +1,6 @@
 extends TestCase
-## Контракт SC-K4 v2, игровая часть (docs/contracts/start-camp.md): EggPeople — ближе near_m
-## экземпляры camp_pilot со скелетом (не больше max_skinned), дальше MultiMesh; гистерезис; скрытый
+## Контракт SC-K4 v3, игровая часть (docs/contracts/start-camp.md): EggPeople — ближе near_m
+## экземпляры моделей Rocketbox со скелетом (не больше max_skinned), дальше MultiMesh; гистерезис; скрытый
 ## в MultiMesh ⇔ показан скелетный; AnimationPlayer только у ближних; анимации по поведению.
 ## godot --headless --path . res://tests/run_tests.tscn -- --filter=start_camp_contracts_k4_near
 
@@ -154,6 +154,25 @@ func test_animations() -> void:
 	for i in e.person_count():
 		if e.is_near(i):
 			check(e.near_anim(i).begins_with("wave"), "низкий пролёт: человек %d машет (%s)" % [i, e.near_anim(i)])
-	# модель: 3714 треугольников на человека, куртка и штаны тонируются отдельно
-	check(e.near_tris() > 3000 and e.near_tris() <= 4500, "треугольников на ближнего: %d" % e.near_tris())
+	# модели Rocketbox: LOD0 — исходник, LOD1 ≤ 5000, LOD2 ≤ 2500 треугольников
+	var lt := e.near_lod_tris()
+	check(lt[0] > 6000 and lt[0] <= 9000, "LOD0 ближнего: %d" % lt[0])
+	check(lt[1] > 4000 and lt[1] <= 5000, "LOD1 ближнего: %d" % lt[1])
+	check(lt[2] > 2000 and lt[2] <= 2500, "LOD2 ближнего: %d" % lt[2])
 	_consistent(e, "анимации")
+
+
+## Первые четверо — разные модели Rocketbox; цвета и рост дальнего LOD — от модели.
+func test_models_distinct() -> void:
+	var cfg := _cfg().duplicate()
+	for sd in 5:
+		var c := _ctx()
+		var e := _spawn(c, cfg, sd)
+		var seen := {}
+		for i in mini(4, e.person_count()):
+			var m := e.person_model(i)
+			check(m != "", "seed %d: у человека %d есть модель" % [sd, i])
+			check(not seen.has(m), "seed %d: модель %s повторяется среди первых четырёх" % [sd, m])
+			seen[m] = true
+			var h := float(e._people[i].h)
+			check(h > 1.6 and h < 1.9, "seed %d: рост дальнего LOD от модели %.2f" % [sd, h])

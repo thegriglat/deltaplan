@@ -1,7 +1,8 @@
 extends TestCase
 ## TI-8, TI-К2 v2: weather.wind_ref на учебном острове, старт lee_bowl (восточный борт чаши за главным
 ## хребтом, ветер 9 м/с с 270°, 12 ч, июль, clear). "inflow" — приток k = 1 без подгонки под ветер у
-## старта: над чашей нет разгона до 20–28 м/с; "start" — прежняя подгонка (k до INFLOW_K_MAX).
+## старта: над чашей нет разгона до 20–28 м/с; "start" — подгонка под ветер у старта, но старт в тени
+## (U₁ < меню при k = 1) k не поднимает (INFLOW_K_MAX = 1): то же поле, один проход.
 ## tools/gpu_tests.sh --filter=inflow
 
 const LOC := "training_island"
@@ -114,9 +115,11 @@ func test_inflow_k1_no_rotor_boost() -> void:
 	check(float(r.max_u) <= 1.3 * U_MS, "max|u| ≤ 1,3 × %.0f м/с: %.1f" % [U_MS, float(r.max_u)])
 
 
-func test_start_ref_fits_inflow() -> void:
+func test_start_ref_in_lee_keeps_inflow() -> void:
 	var r := await _run("start")
 	if r.is_empty():
 		return
-	check(int(r.passes) == 2, "wind_ref=start: два прохода, как раньше (%d)" % int(r.passes))
 	check(float(r.k) >= AirRuntime.INFLOW_K_MIN and float(r.k) <= AirRuntime.INFLOW_K_MAX, "k в пределах (%.3f)" % float(r.k))
+	check(is_equal_approx(float(r.k), 1.0), "старт в тени: k = 1, приток не раздут (%.3f)" % float(r.k))
+	check(int(r.passes) == 1, "k упёрся в предел — второго прохода нет (%d)" % int(r.passes))
+	check(float(r.max_u) <= 1.3 * U_MS, "max|u| ≤ 1,3 × %.0f м/с: %.1f" % [U_MS, float(r.max_u)])

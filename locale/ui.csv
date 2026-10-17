@@ -307,6 +307,11 @@ site_training_island_ridge_west,Склон,Ridge
 site_training_island_thermal_plain,Термики,Thermals
 site_training_island_landing_hill,Посадка,Spot landing
 site_training_island_lee_bowl,Ротор,Rotor
+loc_volcano_island,Вулканический остров,Volcanic Island
+site_volcano_island_east_cliffs,Восточные обрывы,East Cliffs
+site_volcano_island_crater_ridge,Гребень кратера,Crater Ridge
+site_volcano_island_thermal_slope,Термики,Thermals
+site_volcano_island_plateau_landing,Посадка на плато,Plateau Landing
 vario_preset_classic,"Классический, 1990-е","Classic, 1990s"
 vario_preset_xctracer,XC Tracer (современный),XC Tracer (modern)
 err_no_location_config,нет конфига локации %s,no location config %s
@@ -610,3 +615,11 @@ training_landing,Посадка,Landing
 training_landing_what,заход и посадка в круг,approach and landing in the circle
 training_rotor,Ротор,Rotor
 training_rotor_what,"полёт в подветренной стороне хребта: нисходящие потоки и болтанка",flying on the lee side of the ridge: sink and turbulence
+training_volcano_cliffs,Обрывы,Cliffs
+training_volcano_cliffs_what,"динамика у обрывов восточного плато: проходы вдоль края, работа с ветром",dynamic lift at the east plateau cliffs: passes along the edge and wind handling
+training_volcano_crater,Кратер,Crater
+training_volcano_crater_what,"гребень кратера: парение вдоль гребня, подветренная сторона и турбулентность",crater ridge: soaring along the crest; the lee side and turbulence
+training_volcano_thermals,Термики,Thermals
+training_volcano_thermals_what,"поиск и центровка термиков над склонами острова в жаркий полдень",finding and centering thermals over the island slopes at hot midday
+training_volcano_landing,Посадка на плато,Plateau landing
+training_volcano_landing_what,"короткий подлёт и посадка в круг на плато",short approach and landing in the circle on the plateau

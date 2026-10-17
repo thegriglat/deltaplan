@@ -16,4 +16,5 @@ dpcli_review: false
 - Godot — профиль своей копии `XDG_DATA_HOME=~/.cache/dp-xdg/$(basename "$PWD")`; пачки тестов — `XDG_DATA_HOME=$(mktemp -d)`; `project.godot`, переписанный редактором, не коммитить.
 - Сайт — `cd site && hugo --minify` без ошибок.
 - Готово: `{{cli}} accept <ID> --dry` → `{{cli}} report <ID> < r.json` (прогоны: сколько, что упало — дословно; `dp_feedback`).
+- Отчёт пиши инструментом Write в файл `r-<ID>.json` (имя с ID задачи — общий черновик делят параллельные агенты), не `cat > файл` без heredoc — без stdin команда висит вечно.
 - Ответ координатору — одна строка: `<ID> reported`.

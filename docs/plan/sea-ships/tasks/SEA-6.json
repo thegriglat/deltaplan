@@ -1,0 +1,68 @@
+{
+  "id": "SEA-6",
+  "module": "sea-ships",
+  "type": "dp-engineer",
+  "title": "Модель сухогруза с LOD",
+  "goal": "Процедурная модель (bulk) по S4 и образцу танкера SEA-3: LOD0/LOD1/LOD2, реальные размеры, тот же стиль и материал (вершинные цвета).",
+  "plan_ref": "SEA-6, SEA-7",
+  "contracts": [
+    {
+      "name": "S4",
+      "version": "1",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-6",
+  "branch": "sea-ships/SEA-6",
+  "base": "feature/sea-ships",
+  "scope": [
+    "tools/blender/build_ship_bulk.py",
+    "assets/models/ships/ship_bulk.glb",
+    "assets/source/ships/ship_bulk.blend",
+    "assets/models/ships/ship_bulk.glb.import"
+  ],
+  "dont_touch": [
+    "tools/blender/bl_util.py",
+    "tools/blender/build_ship_tanker.py",
+    "assets/models/ships/ship_tanker.glb",
+    "scripts/",
+    "configs/",
+    "ASSETS.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "build",
+      "cmd": "blender --background --python tools/blender/build_ship_bulk.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "lod0",
+      "cmd": "python3 -c \"import json,struct;b=open('assets/models/ships/ship_bulk.glb','rb').read();n=struct.unpack('<I',b[12:16])[0];g=json.loads(b[20:20+n]);m={x['name']:x['mesh'] for x in g['nodes'] if 'mesh' in x};t=lambda i:sum(g['accessors'][p['indices']]['count']//3 for p in g['meshes'][i]['primitives']);print(' '.join('%s=%d'%(k,t(m[k])) for k in ('bulk_LOD0','bulk_LOD1','bulk_LOD2')))\"",
+      "expect": "num:bulk_LOD0=(\\d+) <=4000"
+    },
+    {
+      "name": "lod0_min",
+      "cmd": "python3 -c \"import json,struct;b=open('assets/models/ships/ship_bulk.glb','rb').read();n=struct.unpack('<I',b[12:16])[0];g=json.loads(b[20:20+n]);m={x['name']:x['mesh'] for x in g['nodes'] if 'mesh' in x};t=lambda i:sum(g['accessors'][p['indices']]['count']//3 for p in g['meshes'][i]['primitives']);print(' '.join('%s=%d'%(k,t(m[k])) for k in ('bulk_LOD0','bulk_LOD1','bulk_LOD2')))\"",
+      "expect": "num:bulk_LOD0=(\\d+) >=800"
+    },
+    {
+      "name": "lod1",
+      "cmd": "python3 -c \"import json,struct;b=open('assets/models/ships/ship_bulk.glb','rb').read();n=struct.unpack('<I',b[12:16])[0];g=json.loads(b[20:20+n]);m={x['name']:x['mesh'] for x in g['nodes'] if 'mesh' in x};t=lambda i:sum(g['accessors'][p['indices']]['count']//3 for p in g['meshes'][i]['primitives']);print(' '.join('%s=%d'%(k,t(m[k])) for k in ('bulk_LOD0','bulk_LOD1','bulk_LOD2')))\"",
+      "expect": "num:bulk_LOD1=(\\d+) <=600"
+    },
+    {
+      "name": "lod2",
+      "cmd": "python3 -c \"import json,struct;b=open('assets/models/ships/ship_bulk.glb','rb').read();n=struct.unpack('<I',b[12:16])[0];g=json.loads(b[20:20+n]);m={x['name']:x['mesh'] for x in g['nodes'] if 'mesh' in x};t=lambda i:sum(g['accessors'][p['indices']]['count']//3 for p in g['meshes'][i]['primitives']);print(' '.join('%s=%d'%(k,t(m[k])) for k in ('bulk_LOD0','bulk_LOD1','bulk_LOD2')))\"",
+      "expect": "num:bulk_LOD2=(\\d+) <=80"
+    },
+    {
+      "name": "size",
+      "cmd": "du -k assets/models/ships/ship_bulk.glb | cut -f1 | sed 's/^/kb /'",
+      "expect": "num:kb (\\d+) <=1024"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T09:48:24"
+}

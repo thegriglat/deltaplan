@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "Старт thermal_slope (вершина, 504 м, курс 110°, погода термиков VI-5), посадка landing_thermal и карточка «Термики» (height 300) добавлены; тесты К1/К2 обновлены.",
+  "commits": [
+    "b8639490 Вулканический остров: старт thermal_slope, landing_thermal, карточка Термики"
+  ],
+  "checks": [
+    {
+      "name": "volcano_island",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "training",
+      "value": "39/39",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "sites",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "catalog",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "запекание воздуха для thermal_slope (VI-9)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VI-8",
+  "uncertain": [
+    {
+      "where": "tools/terrain/volcano/make_config.py",
+      "why": "ветер набора термиков взят 3 м/с с 110° из TH в air_check.py (ясно, 28 °C, 15 ч); wind_ref start",
+      "checked": "сверено с TH и thermal_top; check_sites OK"
+    },
+    {
+      "where": "configs/world_objects.json landing_thermal",
+      "why": "посадка в 0,45 км ВЮВ от старта, 37 м ниже, уклон до 3,6° (find_landing); размер 180x90",
+      "checked": "check_sites и test_locations проходят"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-17T06:08:08",
+  "by": "executor"
+}

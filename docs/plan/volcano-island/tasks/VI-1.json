@@ -1,0 +1,81 @@
+{
+  "id": "VI-1",
+  "module": "volcano-island",
+  "type": "dp-researcher",
+  "title": "Данные места, старты и посадки вулканического острова",
+  "goal": "Вулканический остров — встроенное место из файлов игры (VI-К1, данные): папка data/locations/volcano_island/ с тайлами OSM (~8 МБ, без сети), конфиг с training_only, старты east_cliffs/crater_ridge/plateau_landing (+ thermal_slope, если есть термики), посадки, имена; быстрая проверка воздуха и кадры со стартов и сверху для шлюза 1.",
+  "plan_ref": "VI-1. Данные места, старты, посадки",
+  "contracts": [
+    {
+      "name": "VI-К1",
+      "version": "1",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "TI-К1",
+      "version": "1",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-1",
+  "branch": "volcano-island/VI-1",
+  "base": "feature/volcano-island",
+  "scope": [
+    "tools/terrain/volcano/",
+    "data/locations/volcano_island/",
+    "configs/locations/volcano_island.json",
+    "configs/world_objects.json",
+    "locale/ui.csv",
+    "tests/contracts/test_volcano_island_k1.gd",
+    "tests/contracts/test_volcano_island_k1.gd.uid",
+    "tests/terrain/test_locations.gd"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tools/terrain/island/",
+    "data/locations/training_island/",
+    "configs/training.json",
+    "data/places/",
+    "export_presets.cfg",
+    "project.godot",
+    "configs/locations/training_island.json"
+  ],
+  "accept": [
+    {
+      "name": "volcano_island",
+      "tests": "volcano_island"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    },
+    {
+      "name": "sites",
+      "cmd": "python3 tools/terrain/volcano/check_sites.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "size_mb",
+      "cmd": "du -cm --exclude=air data/locations/volcano_island | tail -1",
+      "expect": "num:(\\d+) <=12"
+    },
+    {
+      "name": "air_quick",
+      "cmd": "python3 tools/terrain/volcano/air_quick.py --show",
+      "expect": "re:east_cliffs_w_ms="
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/volcano-island/VI-1/ | grep -c jpg",
+      "expect": "num:(\\d+) >=5"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:54:28"
+}

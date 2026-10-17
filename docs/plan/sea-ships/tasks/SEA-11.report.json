@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "sea_ships.sh и sea_ships_shot.gd снимают учебный остров (--location=training_island: горизонт, зум 3/6 км, суда вблизи + 4 кадра с высоты 1500/4000 м), Флорианополис и Рапа-Нуи (день и вечер); 34 jpg в build/screenshots/sea-ships/SEA-11.",
+  "commits": [
+    "ad91bcd8 SEA-11 кадры итога"
+  ],
+  "checks": [
+    {
+      "name": "frames",
+      "value": "34",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "кадры не просматривались (по правилам); виды судов в каждом кадре не проверены"
+  ],
+  "questions": [],
+  "images": [
+    "build/screenshots/sea-ships/SEA-11/"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SEA-11",
+  "uncertain": [
+    {
+      "where": "tools/shots/sea_ships_shot.gd",
+      "why": "все три вида судов в кадрах не подтверждены: в логе ближайшие суда — container (Флорианополис), bulk (остальные); tanker не искал",
+      "checked": "острова: 4 судна в записях, в aerial_1500m_2/4000m_4 в кадре 4"
+    },
+    {
+      "where": "island_*",
+      "why": "от старта острова нет судов по чистому морю (0 из 4), кадры с берега для острова пропущены; остались near/zoom/ship/aerial",
+      "checked": "лог"
+    }
+  ],
+  "dp_feedback": "Новая копия без .godot: шот падает с ошибками парсинга UiKit/ShipLayer, пока не сделан godot --import; хорошо бы task brief напоминал.",
+  "t": "2026-10-17T10:11:16",
+  "by": "executor"
+}
