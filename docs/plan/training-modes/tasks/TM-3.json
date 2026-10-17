@@ -1,0 +1,34 @@
+{
+  "id": "TM-3",
+  "module": "training-modes",
+  "type": "dp-engineer",
+  "title": "Кадры для шлюза: окно тренировки, вкладка Цели, полёт",
+  "goal": "Скрипт кадров tools/shots/training_modes_shot.{gd,tscn} и 3 кадра в /home/greg/deltaplan/build/screenshots/training-modes/: окно «Тренировка», вкладка «Цели» окна «Полёт…» с загруженным .xctsk (кнопка и задание выбрано), кадр полёта по карточке тренировки со списком цели в углу. Игру не менять.",
+  "plan_ref": "Решения",
+  "contracts": [],
+  "copy": "~/deltaplan-training-modes-TM-3",
+  "branch": "training-modes/TM-3",
+  "base": "feature/training-modes",
+  "scope": [
+    "tools/shots/training_modes_shot.gd",
+    "tools/shots/training_modes_shot.gd.uid",
+    "tools/shots/training_modes_shot.tscn",
+    "tools/shots/training_modes.xctsk"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "locale",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/training-modes/*.png | wc -l",
+      "expect": "num:(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T21:55:51"
+}
