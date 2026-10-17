@@ -27,7 +27,7 @@ G3 v2 (`docs/contracts/grass-rocks.md`): RTX 4070 SUPER, `DISPLAY=:0`, 1920×108
   --sample=2 --keep=nocloudfx --exps=base,base2
 ```
 
-Данные обоих прогонов ветки и main (jsonl, без xdg и логов): `docs/perf/data/sea_ships_SEA-12.tar.gz` (каталоги `SEA-12-run1`, `SEA-12`, `SEA-12-main`). Стадия sea при сборке места на учебном острове не считается (`res://`); на реальных местах — 1,1–3,3 с по отчётам SEA-2 (не GPU).
+Данные обоих прогонов ветки и main (jsonl, без xdg и логов): локально `/home/greg/deltaplan/build/perf_data/sea_ships_SEA-12.tar.gz` (вне скоупа задачи, не в git; каталоги `SEA-12-run1`, `SEA-12`, `SEA-12-main`). Стадия sea при сборке места на учебном острове не считается (`res://`); на реальных местах — 1,1–3,3 с по отчётам SEA-2 (не GPU).
 
 ## Суда в кадре (training_island)
 
