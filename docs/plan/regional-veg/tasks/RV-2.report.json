@@ -1,8 +1,9 @@
 {
   "status": "done",
-  "summary": "TreePlacer.SPECIES заменена полем species (из trees.set, DEFAULT_SET - старые пять, MAX_SPECIES 6) и статическими помощниками реестра; реестр atlas_cell/season_kind/conifer и models для oak/palm/tropical добавлен в configs/world.json; кресты и импостеры - массивы sp_*[MAX_SP], sp_count, sp_kind/sp_conifer/sp_cell вместо SL_KIND/SL_DECID/SL_CONIFER и %4; модели и кресты грузят только породы набора. Тест «Алтай не изменился» (эталон снят до правки на ongudai и altai, по два центра) проходит.",
+  "summary": "Набор пород места вместо константы: TreePlacer.species из trees.set (DEFAULT_SET - старые пять, MAX_SPECIES 6), реестр atlas_cell/season_kind/conifer/models в world.json, шейдеры крестов и импостеров на sp_*[MAX_SP], sp_count, sp_kind/sp_conifer/sp_cell; модели и кресты грузят только породы набора. Доработка по ревью: неизвестная порода или повтор в наборе - warning и пропуск, больше 6 - обрезка, пустой набор - деревьев нет и без падения; заполнение uniform вынесено в TreeCrosses.species_uniforms и ForestImpostors.species_uniforms; эталон uniform снят с кода до правки (ref_uniforms.json) и тест набора [birch,pine,larch] добавлен.",
   "commits": [
-    "786bc0eb regional-veg RV-2: набор пород места (trees.set) и реестр пород вместо константы на 5"
+    "786bc0eb regional-veg RV-2: набор пород места (trees.set) и реестр пород вместо константы на 5",
+    "099cb50d regional-veg RV-2: негодный набор - пропуск пород, пустой - без деревьев; тесты uniform"
   ],
   "checks": [
     {
@@ -12,12 +13,12 @@
     },
     {
       "name": "tree",
-      "value": "56 тестов, 0 упало (после правки test_tree_albedo sp_gain[MAX_SP])",
+      "value": "56/56 (пропуск 5)",
       "pass": true
     },
     {
       "name": "test_species_set",
-      "value": "6/6",
+      "value": "9/9",
       "pass": true
     },
     {
@@ -26,55 +27,29 @@
       "pass": true
     },
     {
-      "name": "tools/gpu_tests.sh tree/season/lod_k (окном)",
-      "value": "test_tree_cross_gpu, test_tree_cull_gpu, test_season_gpu, test_lod_k_gpu - 0 упало",
+      "name": "GPU окном (tree, season, lod_k)",
+      "value": "0 упало (первый коммит); tree_cross после доработки 10/10",
       "pass": true
     }
   ],
   "not_done": [
-    "scripts/terrain/terrain.gd:559 (вне скоупа) зовёт TerrainTreeModels.request_preload(t.get('models')) без набора: фоновая предзагрузка при пустом наборе берёт DEFAULT_SET, для места с другим набором предзагрузки не будет (загрузится синхронно в setup). RV-9 должен передать TreePlacer.species_set(trees_cfg) вторым аргументом.",
-    "Скриншотов и замеров GPU не делал (не заказаны)."
+    "terrain.gd:559 request_preload без набора - по ревью отдано RV-9 (передать TreePlacer.species_set(cfg) вторым аргументом)."
   ],
   "questions": [],
   "how_to_check": ".dpcli/dpcli accept RV-2",
   "uncertain": [
     {
       "where": "scripts/terrain/tree_placer.gd:species_set",
-      "why": "Негодный trees.set (пусто, >6, повтор, имя вне atlas_cell) молча (push_warning) заменяется набором по умолчанию, а не ошибкой; контракт не говорит. Если reg пуст (нет atlas_cell в cfg) имена не проверяются.",
-      "checked": "test_set_validation"
+      "why": "Если в cfg нет atlas_cell, неизвестные имена не проверяются (только повторы).",
+      "checked": "test_set_validation, test_empty_set_no_trees_no_crash"
     },
     {
-      "where": "scripts/terrain/tree_placer.gd:kind_of/conifer_of/atlas_cell_of",
-      "why": "Для пород без записи в реестре берутся значения старых пяти / 0 (запасной вариант), а не ошибка.",
-      "checked": "test_registry_matches_old_constants сверяет с прежними SL_KIND/SL_CONIFER/sp%4"
-    },
-    {
-      "where": "tests/terrain/test_species_set.gd (эталон tests/fixtures/species_set/ref.json)",
-      "why": "Эталон «Алтай не изменился» - числа экземпляров по (порода, вариант, LOD) и суммы x, z, y, масштаба, цвета, альфа-кода у двух центров ongudai/altai; суммы сравниваются с допуском 1e-6 относительным. Uniform-значения шейдеров сверены косвенно (помощники реестра == старые константы + GPU-тесты кадров креста без изменений), а не снимком uniform.",
-      "checked": "эталон снят до правок кода на этой же ветке; GPU-тесты сверки кадров прошли"
-    },
-    {
-      "where": "scripts/terrain/tree_crosses.gd:_load_layers, MAX_LAYERS=64",
-      "why": "6 пород x 8 вариантов = 48 слоёв <= 64, запас есть; при variants > 10 слои обрезаются (как и раньше для 5 x 8 > 64 не было).",
-      "checked": "по коду"
-    },
-    {
-      "where": "tests/",
-      "why": "Раннер печатает 'ok' для теста, в котором был SCRIPT ERROR (Parse error зависимости), - ловил по тексту лога, а не по статусу.",
-      "checked": "перечитывал лог целиком после ошибки парсинга tree_crosses.gd"
+      "where": "tests/fixtures/species_set/ref_uniforms.json",
+      "why": "Эталон uniform снят с материалов Terrain на коде до правки (старые файлы подставлены временно); sp_kind/sp_conifer/sp_cell в старом коде были константами шейдера - в тесте сверены с ними вручную.",
+      "checked": "test_default_uniforms_unchanged для ongudai и altai с локационными переопределениями"
     }
   ],
-  "dp_feedback": "Тест, в котором скрипт упал со SCRIPT ERROR, раннер считает ok (0 упало) - accept может пропустить сломанную зависимость. Было бы полезно считать SCRIPT ERROR/Parse Error в логе провалом.",
-  "extra": {
-    "registry_default_set": [
-      "pine",
-      "cedar",
-      "larch",
-      "birch",
-      "spruce"
-    ],
-    "max_species": 6
-  },
-  "t": "2026-10-18T00:42:10",
+  "dp_feedback": "Раннер считает ok тест, в котором был SCRIPT ERROR; accept может пропустить сломанную зависимость. И dpcli report удаляет r-<ID>.json - повторный отчёт приходится писать заново.",
+  "t": "2026-10-18T00:54:51",
   "by": "executor"
 }
