@@ -94,9 +94,20 @@
       "name": "merged",
       "cmd": "git merge-base --is-ancestor main HEAD && echo merged",
       "expect": "re:^merged"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "synced",
+      "cmd": "git merge-base --is-ancestor feature/cloud-field HEAD && echo synced",
+      "expect": "re:^synced"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T15:30:08"
+  "created": "2026-10-17T15:30:08",
+  "edited": "2026-10-17T16:03:53"
 }
