@@ -79,9 +79,15 @@
       "name": "go",
       "cmd": "bash -c 'cd server && go build ./... && go test ./...'",
       "expect": "exit=0"
+    },
+    {
+      "name": "main_ms",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_cloud_field_net",
+      "expect": "num:net_snapshot_main_ms=([0-9.]+) <=2"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T09:07:02"
+  "created": "2026-10-17T09:07:02",
+  "edited": "2026-10-17T09:22:17"
 }

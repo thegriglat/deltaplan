@@ -1,0 +1,78 @@
+{
+  "status": "done",
+  "summary": "Ведущий кладёт CloudField.snapshot() в ZoneState.cloudField (proto поле 4, gen перегенерирован) раз в net_interval_s, при входе пилота и при вступлении в должность; остальные подтягивают поле (рабочую копию и field) шагами 1 с за net_blend_s, первый снимок от ведущего — целиком. Хвосты ревью CLF-3 закрыты.",
+  "commits": [
+    "e36e6128 CLF-4: снимок поля облачности от ведущего"
+  ],
+  "checks": [
+    {
+      "name": "test_cloud_field_net",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_net_flight",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_zone",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_messages",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_local_server",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_net_bots",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_perf_contracts",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_cloud_field_k4",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "go",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Прямого теста NetFlight.sync_cloud_field нет (нужна сцена игры); логика подтяжки проверена через CloudPhysics.apply_net_snapshot по схеме NetFlight",
+    "docs/guide/net-protocol.md не дополнен примером cloudField (вне скоупа)"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept CLF-4",
+  "uncertain": [
+    {
+      "where": "scripts/game/net_flight.gd:sync_cloud_field",
+      "why": "не прогнан в живой сетевой игре; BUSY при идущей задаче шага повторяется на след. кадре",
+      "checked": "тесты zone/messages/cloud_field_net, accept dry"
+    },
+    {
+      "where": "scripts/net/net_zone.gd:set_cloud_field",
+      "why": "новичок получает снимок по peer_joined у ведущего (cloud_field_wanted); при потере ZoneState ждёт до net_interval_s",
+      "checked": "test_zone: снимок доходит ровно один раз"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "snapshot_bytes_note": "размер снимка < 10 КБ проверено тестом; трафик ~снимок/30 с"
+  },
+  "t": "2026-10-17T09:14:10",
+  "by": "executor"
+}
