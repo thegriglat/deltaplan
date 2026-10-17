@@ -119,3 +119,8 @@
 {"t": "2026-10-17T07:55:43", "by": "coordinator", "task": "VI-6", "ev": "accepted", "note": "3/3 docs=ok:ошибок 0; no_toponyms=ok:0; guide_section=ok:3"}
 {"t": "2026-10-17T07:56:00", "by": "coordinator", "task": "VI-6", "ev": "accepted", "note": "по отчёту; записей findings 70→71, ни одна не удалена"}
 {"t": "2026-10-17T07:56:01", "by": "coordinator", "task": "VI-6", "ev": "merged"}
+{"t": "2026-10-17T08:06:48", "by": "executor", "task": "VI-10", "ev": "reported", "commits": ["06293592"], "note": "done: Добавлены кадры термик-старта thermal_slope по курсу и назад; окно «Тренировка» теперь снимает вкладки учебного и вулка…", "dp_feedback": "dpcli job start: фоновая задача пачки (shots.sh) обрывалась после первого кадра; запуск через setsid тоже. Пачками по фильтру (аргумент 2) отработало. В shots.sh нет .venv с PIL в копии — конвертация заменена на ImageMagick convert."}
+{"t": "2026-10-17T08:06:56", "by": "coordinator", "task": "VI-10", "ev": "accepted", "note": "1/1 frames=ok:12"}
+{"t": "2026-10-17T08:13:17", "by": "executor", "task": "VI-10", "ev": "reported", "commits": ["06293592", "hash"], "note": "done: Кадры VI-10 переснятых полной высоты 1036 px (00_top, 01–09 стартов по 958x1036; раньше сжимались до 189–506 px). Окно …", "dp_feedback": "dpcli job start: фоновая задача пачки (shots.sh) обрывалась после первого кадра; запуск через setsid тоже. Пачками по фильтру (аргумент 2) отработало. В shots.sh нет .venv с PIL в копии — конвертация заменена на ImageMagick convert."}
+{"t": "2026-10-17T08:13:31", "by": "coordinator", "task": "VI-10", "ev": "accepted", "note": "1/1 frames=ok:12"}
+{"t": "2026-10-17T08:13:32", "by": "coordinator", "task": "VI-10", "ev": "accepted", "note": "по отчёту; кадры 958x1036 проверены identify"}
