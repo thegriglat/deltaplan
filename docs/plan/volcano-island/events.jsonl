@@ -118,3 +118,4 @@
 {"t": "2026-10-17T07:55:35", "by": "executor", "task": "VI-6", "ev": "reported", "commits": ["d24be883"], "note": "done: Раздел и новый docs/guide/volcano-island.md (данные в сборке, training_only, OSM из папки, старты, погода, числа воздух…", "dp_feedback": "Лимит 40 КБ заставляет резать реестр findings.md ради одной строки; нужен автосплит или лимит выше для реестров."}
 {"t": "2026-10-17T07:55:43", "by": "coordinator", "task": "VI-6", "ev": "accepted", "note": "3/3 docs=ok:ошибок 0; no_toponyms=ok:0; guide_section=ok:3"}
 {"t": "2026-10-17T07:56:00", "by": "coordinator", "task": "VI-6", "ev": "accepted", "note": "по отчёту; записей findings 70→71, ни одна не удалена"}
+{"t": "2026-10-17T07:56:01", "by": "coordinator", "task": "VI-6", "ev": "merged"}
