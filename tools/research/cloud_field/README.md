@@ -4,9 +4,9 @@ status: "active"
 module: "cloud-field"
 area: "air"
 updated: "2026-10-17"
-summary: "CLF-1/CLF-9: карты поля облачности над Онгудаем, Аскарово, островом, Алматы; z_i по рельефу до/после, потолки термиков; команды, файлы"
+summary: "CLF-1/9/10: карты поля облачности (Онгудай, Аскарово, остров, Алматы), z_i по рельефу и опускание до/после; команды, файлы"
 related: ["docs/research/cloud_field.md", "docs/contracts/cloud-field.md"]
-conclusion: "Карты — build/screenshots/cloud-field/CLF-1/ и CLF-9/; числа — out/summary.json, out/zi_tops.json; вывод — docs/research/cloud_field.md"
+conclusion: "Карты — build/screenshots/cloud-field/CLF-1/, CLF-9/, CLF-10/; числа — out/summary.json, out/zi_tops.json, out/subsidence.json; вывод — docs/research/cloud_field.md"
 data: "tools/research/cloud_field/"
 applied_in: "scripts/atmosphere/cloud_field.gd"
 ---
@@ -64,3 +64,24 @@ $PY tools/research/cloud_field/plot.py --before tools/research/cloud_field/out/b
 главным осям), `depth_p50_m/p90_m`, `ridge_share/valley_share` (TPI 1 км > 15 / < −15 м) — по столбцам с покрытием
 ≥ 0,3; `src_under_cloud_ratio` — доля источников термиков под облаком / доля площади облаков (1 — независимы);
 `peaks_above_lcl_frac` — доля столбцов, где рельеф выше LCL.
+
+## CLF-10: опускание горно-равнинной циркуляции — до/после
+`dump.gd --subsidence_tau=<с>` подменяет `thermal.subsidence_tau_s` (0 — без опускания, «до»), `--subsidence_smooth=<м>` —
+`thermal.subsidence_smooth_m` (σ сглаживания W̄ до мезомасштаба; 0 — ячейковое W̄, первая редакция CLF-10); кадр несёт `col_w`
+(W̄ столбца, средний w_conv слоя 0..h, м/с), `col_wm` (W̄_м — W̄ по мезомасштабу, м/с; Δz_s = |W̄_м⁻|·τ_s), `col_f`, `col_wstar`,
+`col_zi` (z_i столбца с опусканием, м MSL). День 9→13 ч, кадр 13 ч, места ongudai, askarovo, almaty, погоды weak, strong:
+```bash
+P="--places=almaty,ongudai,askarovo --weathers=strong,weak --h0=9 --h1=13 --frames=13 --timeout_s=180"
+.dpcli/dpcli job --lock gpu start clf10-before 5400 tools/research/cloud_field/run.sh $P --subsidence_tau=0 --out=tools/research/cloud_field/out/before
+.dpcli/dpcli job --lock gpu start clf10-cell 5400 tools/research/cloud_field/run.sh $P --subsidence_smooth=0 --out=tools/research/cloud_field/out/cell
+.dpcli/dpcli job --lock gpu start clf10-after 5400 tools/research/cloud_field/run.sh $P --out=tools/research/cloud_field/out
+$PY tools/research/cloud_field/plot.py --subsidence tools/research/cloud_field/out/before --cell tools/research/cloud_field/out/cell \
+    --places almaty,ongudai,askarovo --weathers strong,weak --fig /home/greg/deltaplan/build/screenshots/cloud-field/CLF-10
+```
+`plot.py --subsidence` рисует `fig/<место>_<погода>_sub.png` (покрытие до/после, карты W̄ столбцов и W̄_м с нулевой изолинией,
+разрезы с z_i столбца с опусканием, W̄/W̄_м и покрытие вдоль разреза, потолки источников: до / ячейковое / после) и пишет
+`out/subsidence.json` (`{место: {погода: {W_lowland_mean, W_ridge_mean, W_upper20_mean, W_lowland_neg_frac, Wm_lowland_mean,
+Wm_ridge_mean, Wm_upper20_mean, Wm_*_neg_frac, Wm_p10_p50_p90 по полосам, cover_lowland/cover_ridge/cover_upper20/cover_frac/
+cloud_area_frac [до, после], tops {before, after: n, p10, p50, p90}, dz_s, z_i_eff_p50, c_top, c_top_above_lcl_frac,
+cell {cover_*, tops, dz_s, c_top_above_lcl_frac} — первая редакция}}}`), в `summary.json` — блок `before_subsidence`.
+30 полей ≈ 12 мин на свободном GPU.

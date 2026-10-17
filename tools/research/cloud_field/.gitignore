@@ -1,5 +1,7 @@
 out/*.json
 !out/summary.json
 !out/zi_tops.json
+!out/subsidence.json
 out/before/
 fig/
+out/cell/

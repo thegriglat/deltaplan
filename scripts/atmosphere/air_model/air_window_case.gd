@@ -101,7 +101,9 @@ static func window_at(
 		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
 	var d := AirPlace.day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
-	# z_i по столбцам (CLF-К6): от родителя в точке; без него — от своего рельефа
+	# z_i по столбцам (CLF-К6): от родителя в точке; без него — от своего рельефа. Путь без
+	# родителя — только для тестов: гаусс σ = 5 км на сетке окна 3–6 км шире окна, h̃ и опора
+	# иные, чем у области, — z_i окна не равен z_i области (в игре родитель есть всегда).
 	var zp := AirZiTerrain.params()
 	c.zi_alpha = float(zp.alpha)
 	if parent != null:

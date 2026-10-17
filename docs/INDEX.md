@@ -19,8 +19,9 @@ generated: true
 ## air
 
 - **cloud-field** — Облака из поля облачности над местом (рост от подъёма до LCL, таяние, снос ветром) вместо «одно облако на термик»; рендер слоем в raymarch. [active 2026-10-17] — [план](plan/cloud-field.md) · [контракты](contracts/cloud-field.md)
-  - [docs/research/cloud_field.md](research/cloud_field.md) — CLF-1/CLF-9: поле облачности из поля воздуха (подъём до LCL, таяние, снос) и z_i, частично следующий рельефу (α ⅓, σ 5 км); карты до/после
-  - [tools/research/cloud_field/README.md](../tools/research/cloud_field/README.md) — CLF-1/CLF-9: карты поля облачности над Онгудаем, Аскарово, островом, Алматы; z_i по рельефу до/после, потолки термиков; команды, файлы
+  - [docs/research/cloud_field/subsidence.md](research/cloud_field/subsidence.md) — CLF-10: опускание циркуляции по мезомасштабному W̄ поля (σ 10 км): z_i столбца −|W̄_м|·3 ч; Алматы низина −130 м, облака 0,25 → 0,23
+  - [docs/research/cloud_field.md](research/cloud_field.md) — CLF-1/9/10: поле облачности из поля воздуха (подъём до LCL, таяние, снос), z_i по рельефу (α ⅓) и опускание циркуляции; карты до/после
+  - [tools/research/cloud_field/README.md](../tools/research/cloud_field/README.md) — CLF-1/9/10: карты поля облачности (Онгудай, Аскарово, остров, Алматы), z_i по рельефу и опускание до/после; команды, файлы
 
 ## flight
 
