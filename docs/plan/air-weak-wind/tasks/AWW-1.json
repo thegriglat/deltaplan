@@ -43,17 +43,18 @@
       "expect": "num:(\\d+) >=8"
     },
     {
-      "name": "readme_sections",
-      "cmd": "grep -c '^## \\(Вывод\\|Диагноз 1\\|Диагноз 2\\|Диагноз 3\\|Предложение правок\\|Воспроизведение\\)' tools/research/air_weak_wind/AWW-1/README.md",
-      "expect": "num:(\\d+) >=6"
-    },
-    {
       "name": "docs",
       "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | tail -1'",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "readme_sections",
+      "cmd": "grep -c '^## \\(Вывод\\|Сходимость\\|Диагноз 1\\|Диагноз 2\\|Диагноз 3\\|Предложение правок\\|Воспроизведение\\)' tools/research/air_weak_wind/AWW-1/README.md",
+      "expect": "num:(\\d+) >=7"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-18T00:30:30"
+  "created": "2026-10-18T00:30:30",
+  "edited": "2026-10-18T00:42:35"
 }
