@@ -44,8 +44,11 @@ def _crown_palm(r: float, zc: float) -> float:
 
 
 def _crown_dome(r: float, zc: float) -> float:
-    # TODO(RV-7): купол тропического дерева (широкий, плоский низ); пока — как ovoid
-    return r * math.sin(math.pi * (0.12 + 0.85 * zc)) ** 0.6 * (1 - 0.25 * zc)
+    """Купол тропического дерева: широкий почти плоский низ кроны (ветви стелются, с запасом
+    ширины у основания), максимум на ~0,3 высоты кроны, выше — округлое сужение к макушке."""
+    if zc < 0.3:
+        return r * (0.78 + 0.22 * math.sin(0.5 * math.pi * zc / 0.3))
+    return r * math.sqrt(max(1 - ((zc - 0.3) / 0.74) ** 2, 0.03))
 
 
 # Точки расширения: форма кроны → функция (r, zc); порода дописывает своё, общий код не трогает.
@@ -159,7 +162,9 @@ def skeleton(sp: dict, seed: int) -> dict:
         for j in range(sp["per_whorl"]):
             az = 2 * math.pi * (j + rng.uniform(-0.3, 0.3)) / sp["per_whorl"] + k * 2.4
             L = R * rng.uniform(0.8, 1.1)
-            el = math.radians(sp["branch_angle_deg"] + rng.uniform(-10, 10))
+            ang0 = sp["branch_angle_deg"]  # branch_angle_top_deg — угол ветвей у макушки (купол)
+            ang0 += (sp.get("branch_angle_top_deg", ang0) - ang0) * zc
+            el = math.radians(ang0 + rng.uniform(-10, 10))
             d = Vector((math.cos(az) * math.cos(el), math.sin(az) * math.cos(el), math.sin(el)))
             end = center + d * L - Vector((0, 0, (sp["droop"] - rise) * L))
             mid = center + d * L * 0.5 - Vector((0, 0, sp["droop"] * L * 0.2))
@@ -415,6 +420,9 @@ def _variant(key: str, sp: dict, lod_cfg: dict, mats: dict, seed: int, v: int,
              tris: dict) -> None:
     """Вариант v породы: V{v}_LOD0, V{v}_LOD1 из одного каркаса, V{v}_LOD2 — импостор,
     запечённый с V{v}_LOD0 (картинка tree_<вид>_v<v>_impostor.png). Все LOD в начале координат."""
+    hs = sp.get("height_scales")  # высота варианта: ×hs[v] (деревья в лесу разного возраста)
+    if hs:
+        sp = dict(sp, height_m=sp["height_m"] * hs[v % len(hs)])
     sk = skeleton(sp, seed)
     pre = "V%d_" % v
     lod0 = build_mesh(sp, 0, sk, lod_cfg).build(pre + "LOD0", mats)
