@@ -58,7 +58,7 @@ func test_s2_stage_registered() -> void:
 
 func test_s3_placement_params() -> void:
 	var p: Dictionary = _cfg().placement
-	check(is_equal_approx(float(p.cell_deg), 0.1) and is_equal_approx(float(p.p_cell), 0.15) and int(p.min_shore_m) == 2000, "cell_deg 0,1, p_cell 0,15, min_shore_m 2000")
+	check(is_equal_approx(float(p.cell_deg), 0.1) and is_equal_approx(float(p.p_cell), 0.5) and int(p.min_shore_m) == 2000, "cell_deg 0,1, p_cell 0,5, min_shore_m 2000")
 	var wt: Dictionary = p.types
 	check(wt.size() == 3 and wt.has_all(["tanker", "bulk", "container"]), "виды tanker, bulk, container")
 	for k: String in wt:
