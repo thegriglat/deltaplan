@@ -84,6 +84,10 @@ var phi := PackedFloat32Array()
 var col_heat := PackedFloat32Array()
 var col_w := PackedFloat32Array()
 var col_f := PackedFloat32Array()
+## По столбцам (CLF-К3): потолок частицы, м над морем (столбец без нагрева — высота земли;
+## пропущенный счётом — NAN), и w* Дирдорфа столбца, м/с.
+var c_top := PackedFloat32Array()
+var col_wstar := PackedFloat32Array()
 ## Средний по столбу поток ядра на 1 м/с пика (без огибающей и доли циклов), м² — K̄/⟨жизнь⟩.
 var shape_area: float = 0.0
 ## Средняя по времени доля (огибающая × доля циклов с термиком).
@@ -201,10 +205,10 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	col_w.fill(0.0)
 	col_f.resize(n_col)
 	col_f.fill(0.0)
-	var c_top := PackedFloat32Array()
 	c_top.resize(n_col)
-	var c_ws := PackedFloat32Array()
-	c_ws.resize(n_col)
+	c_top.fill(NAN)
+	col_wstar.resize(n_col)
+	col_wstar.fill(0.0)
 	var cand := PackedInt32Array()
 	## Радиус исключения по плотности столба (и досягаемость водосбора = 2 радиуса), м.
 	var cand_r := PackedFloat32Array()
@@ -229,7 +233,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 			var h := maxf(z_i - hc, ZI_MIN)
 			var ws := WindField.deardorff_wstar(heat[c], z_i, hc)
 			var wm := pow(ustar * ustar * ustar + 0.28 * ws * ws * ws, 1.0 / 3.0)
-			c_ws[c] = ws
+			col_wstar[c] = ws
 			# F̄: средний по слою 0..h поток массы подсеточной конвекции, w_m/(2b)
 			var fbar := wm / (2.0 * HB_B) if hk > 0.0 else 0.0
 			# W̄: средний w_conv по воздушным клеткам столбца в слое 0..h
@@ -288,7 +292,7 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		if c_na[c] <= 0.0 or phi_ref <= 0.0:
 			continue
 		var dens := c_na[c] * phi[c] / phi_ref / maxf(alive_frac, 1.0e-3)
-		var cap := phi[c] / maxf(K_ALLEN * c_ws[c] * c_k[c], 1.0e-9)
+		var cap := phi[c] / maxf(K_ALLEN * col_wstar[c] * c_k[c], 1.0e-9)
 		dens = minf(dens, cap)
 		var rc := cand_r[c]
 		cand_r[c] = clampf(RSA_K / sqrt(maxf(dens, 1.0e-12)), rc, maxf(4.0 * c_zl[c], rc))
