@@ -130,7 +130,7 @@ func test_volcano_island_config() -> void:
 	for s: Dictionary in cfg.get("start_sites", []):
 		ids.append(String(s.id))
 		check(String(s.name) == "site_volcano_island_" + String(s.id), "старт %s: имя-ключ" % s.id)
-		check(not s.has("weather"), "старт %s: weather пишет VI-5" % s.id)
+		check(not StartWeather.parse(s.get("weather"), "volcano_island/" + String(s.id)).is_empty(), "старт %s: weather (TI-К2 v2, VI-5)" % s.id)
 	for want_id: String in ["east_cliffs", "crater_ridge", "plateau_landing"]:
 		check(ids.has(want_id), "старт %s" % want_id)
 	check(ids.size() >= 3 and ids.size() <= 4, "3–4 старта: %s" % [ids])
@@ -184,7 +184,17 @@ func test_volcano_island_git_files() -> void:
 	var lines := String(out[0]).split("\n", false)
 	check(lines.size() > 10, "в git есть файлы места (%d)" % lines.size())
 	for f: String in lines:
-		check(not f.ends_with(".import") and not f.ends_with(".remap") and not f.ends_with("location.json"), "в git нет служебного: %s" % f)
+		check(not f.ends_with(".remap") and not f.ends_with("location.json"), "в git нет служебного: %s" % f)
+		if f.ends_with(".import"):
+			check(f.ends_with(".webp.import") and lines.has(f.trim_suffix(".import")), "в git .import только у .webp: %s" % f)
+	# VI-К1 v2: у каждого .webp — .webp.import с importer="keep" (сырой файл в экспорт, не текстура)
+	for f: String in lines:
+		if not f.ends_with(".webp"):
+			continue
+		var imp := f + ".import"
+		check(lines.has(imp), "%s: .webp.import в git" % f)
+		var txt := FileAccess.get_file_as_string("res://" + imp)
+		check(txt.contains("importer=\"keep\"") and not txt.contains("importer=\"texture\""), "%s: importer=\"keep\"" % imp)
 
 
 ## Часть «код» (VI-2): training_only, builtin_at, каталог, корень тайлов OSM, last_flight.

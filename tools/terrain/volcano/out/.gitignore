@@ -3,3 +3,4 @@ probe_*.log
 shots_raw/
 check_*.log
 probe_*.json
+check_*.json

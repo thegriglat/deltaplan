@@ -1,0 +1,1757 @@
+{
+ "cases": {
+  "cliffs6": {
+   "site": "east_cliffs",
+   "mode": "points",
+   "geo": "slope",
+   "shots": true
+  },
+  "cliffs5": {
+   "site": "east_cliffs",
+   "mode": "points",
+   "geo": "slope",
+   "wind": 5.0
+  },
+  "cliffs8": {
+   "site": "east_cliffs",
+   "mode": "points",
+   "geo": "slope",
+   "wind": 8.0
+  },
+  "crater6": {
+   "site": "crater_ridge",
+   "mode": "points",
+   "geo": "slope+rotor",
+   "shots": true
+  },
+  "crater5": {
+   "site": "crater_ridge",
+   "mode": "points",
+   "geo": "slope+rotor",
+   "wind": 5.0
+  },
+  "crater8": {
+   "site": "crater_ridge",
+   "mode": "points",
+   "geo": "slope+rotor",
+   "wind": 8.0
+  },
+  "landing": {
+   "site": "plateau_landing",
+   "mode": "landing"
+  },
+  "thermal12": {
+   "site": "plateau_landing",
+   "mode": "thermal",
+   "geo": "grid",
+   "hour": 12,
+   "sky": "clear",
+   "temp": 28.0,
+   "wind": 3.0
+  },
+  "thermal15": {
+   "site": "plateau_landing",
+   "mode": "thermal",
+   "geo": "grid",
+   "hour": 15,
+   "sky": "clear",
+   "temp": 28.0,
+   "wind": 3.0
+  },
+  "thermal_top": {
+   "site": "plateau_landing",
+   "mode": "thermal",
+   "hour": 15,
+   "frm": "-3000,-1450,110",
+   "climb_agl": 100,
+   "sky": "clear",
+   "temp": 28.0,
+   "wind": 3.0
+  },
+  "thermal_east": {
+   "site": "plateau_landing",
+   "mode": "thermal",
+   "hour": 15,
+   "frm": "9350,700,140",
+   "climb_agl": 100,
+   "sky": "clear",
+   "temp": 28.0,
+   "wind": 3.0
+  }
+ },
+ "summary": {
+  "cases": {
+   "cliffs6": {
+    "cond": {
+     "day": 15,
+     "heading": 110.0,
+     "hour": 12.0,
+     "mode": "points",
+     "month": 1,
+     "site": "east_cliffs",
+     "sky": "partly",
+     "start": [
+      11569.849,
+      140.907,
+      1019.961
+     ],
+     "temp": 27.0,
+     "wind_from": 110.0,
+     "wind_kmh": 21.6,
+     "wind_ref": "start"
+    },
+    "inflow_k": 0.981,
+    "baked": [
+     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/east_cliffs.json) — расчёт"
+    ],
+    "u10_start_ms": 5.98,
+    "w_start_ms": 1.037,
+    "w_mean": 1.416,
+    "w_min": 0.729,
+    "w_max": 2.834,
+    "w_p10": 0.855,
+    "w_p90": 2.254,
+    "frac_up": 1.0,
+    "n": 81,
+    "crest_h_mean": 103.411,
+    "table": {
+     "100m_up/100m_above": 1.838,
+     "100m_up/150m_above": 1.613,
+     "100m_up/50m_above": 2.006,
+     "200m_up/100m_above": 1.417,
+     "200m_up/150m_above": 1.326,
+     "200m_up/50m_above": 1.452,
+     "300m_up/100m_above": 1.04,
+     "300m_up/150m_above": 1.021,
+     "300m_up/50m_above": 1.034
+    },
+    "face_w_mean": 1.048,
+    "face_table": {
+     "100m_up/100m_agl": 2.025,
+     "100m_up/30m_agl": 0.741,
+     "100m_up/60m_agl": 1.548,
+     "200m_up/100m_agl": 1.253,
+     "200m_up/30m_agl": 0.669,
+     "200m_up/60m_agl": 1.053,
+     "300m_up/100m_agl": 0.938,
+     "300m_up/30m_agl": 0.419,
+     "300m_up/60m_agl": 0.787
+    }
+   },
+   "cliffs5": {
+    "cond": {
+     "day": 15,
+     "heading": 110.0,
+     "hour": 12.0,
+     "mode": "points",
+     "month": 1,
+     "site": "east_cliffs",
+     "sky": "partly",
+     "start": [
+      11569.849,
+      140.907,
+      1019.961
+     ],
+     "temp": 27.0,
+     "wind_from": 110.0,
+     "wind_kmh": 18.0,
+     "wind_ref": "start"
+    },
+    "inflow_k": 0.977,
+    "baked": [
+     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/east_cliffs.json) — расчёт"
+    ],
+    "u10_start_ms": 4.976,
+    "w_start_ms": 0.853,
+    "w_mean": 1.185,
+    "w_min": 0.577,
+    "w_max": 2.381,
+    "w_p10": 0.714,
+    "w_p90": 1.918,
+    "frac_up": 1.0,
+    "n": 81,
+    "crest_h_mean": 103.411,
+    "table": {
+     "100m_up/100m_above": 1.538,
+     "100m_up/150m_above": 1.341,
+     "100m_up/50m_above": 1.697,
+     "200m_up/100m_above": 1.174,
+     "200m_up/150m_above": 1.097,
+     "200m_up/50m_above": 1.213,
+     "300m_up/100m_above": 0.876,
+     "300m_up/150m_above": 0.866,
+     "300m_up/50m_above": 0.863
+    },
+    "face_w_mean": 0.89,
+    "face_table": {
+     "100m_up/100m_agl": 1.732,
+     "100m_up/30m_agl": 0.629,
+     "100m_up/60m_agl": 1.335,
+     "200m_up/100m_agl": 1.058,
+     "200m_up/30m_agl": 0.564,
+     "200m_up/60m_agl": 0.9,
+     "300m_up/100m_agl": 0.783,
+     "300m_up/30m_agl": 0.35,
+     "300m_up/60m_agl": 0.663
+    }
+   },
+   "cliffs8": {
+    "cond": {
+     "day": 15,
+     "heading": 110.0,
+     "hour": 12.0,
+     "mode": "points",
+     "month": 1,
+     "site": "east_cliffs",
+     "sky": "partly",
+     "start": [
+      11569.849,
+      140.907,
+      1019.961
+     ],
+     "temp": 27.0,
+     "wind_from": 110.0,
+     "wind_kmh": 28.8,
+     "wind_ref": "start"
+    },
+    "inflow_k": 0.985,
+    "baked": [
+     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/east_cliffs.json) — расчёт"
+    ],
+    "u10_start_ms": 7.987,
+    "w_start_ms": 1.406,
+    "w_mean": 1.894,
+    "w_min": 0.998,
+    "w_max": 3.687,
+    "w_p10": 1.192,
+    "w_p90": 3.029,
+    "frac_up": 1.0,
+    "n": 81,
+    "crest_h_mean": 103.411,
+    "table": {
+     "100m_up/100m_above": 2.45,
+     "100m_up/150m_above": 2.175,
+     "100m_up/50m_above": 2.637,
+     "200m_up/100m_above": 1.901,
+     "200m_up/150m_above": 1.796,
+     "200m_up/50m_above": 1.923,
+     "300m_up/100m_above": 1.405,
+     "300m_up/150m_above": 1.375,
+     "300m_up/50m_above": 1.381
+    },
+    "face_w_mean": 1.362,
+    "face_table": {
+     "100m_up/100m_agl": 2.627,
+     "100m_up/30m_agl": 0.963,
+     "100m_up/60m_agl": 1.978,
+     "200m_up/100m_agl": 1.639,
+     "200m_up/30m_agl": 0.88,
+     "200m_up/60m_agl": 1.362,
+     "300m_up/100m_agl": 1.235,
+     "300m_up/30m_agl": 0.553,
+     "300m_up/60m_agl": 1.024
+    }
+   },
+   "crater6": {
+    "cond": {
+     "day": 15,
+     "heading": 110.0,
+     "hour": 12.0,
+     "mode": "points",
+     "month": 1,
+     "site": "crater_ridge",
+     "sky": "partly",
+     "start": [
+      -6750.153,
+      225.692,
+      9949.96
+     ],
+     "temp": 27.0,
+     "wind_from": 110.0,
+     "wind_kmh": 21.6,
+     "wind_ref": "inflow"
+    },
+    "inflow_k": 1.0,
+    "baked": [
+     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/crater_ridge.json) — расчёт"
+    ],
+    "u10_start_ms": 4.607,
+    "w_start_ms": 0.863,
+    "w_mean": 1.548,
+    "w_min": 0.169,
+    "w_max": 3.192,
+    "w_p10": 0.68,
+    "w_p90": 2.26,
+    "frac_up": 1.0,
+    "n": 81,
+    "crest_h_mean": 94.067,
+    "table": {
+     "100m_up/100m_above": 2.057,
+     "100m_up/150m_above": 1.986,
+     "100m_up/50m_above": 1.991,
+     "200m_up/100m_above": 1.564,
+     "200m_up/150m_above": 1.558,
+     "200m_up/50m_above": 1.486,
+     "300m_up/100m_above": 1.116,
+     "300m_up/150m_above": 1.173,
+     "300m_up/50m_above": 0.999
+    },
+    "face_w_mean": 0.884,
+    "face_table": {
+     "100m_up/100m_agl": 1.738,
+     "100m_up/30m_agl": 0.672,
+     "100m_up/60m_agl": 1.337,
+     "200m_up/100m_agl": 1.237,
+     "200m_up/30m_agl": 0.476,
+     "200m_up/60m_agl": 0.951,
+     "300m_up/100m_agl": 0.79,
+     "300m_up/30m_agl": 0.232,
+     "300m_up/60m_agl": 0.524
+    },
+    "rotor": {
+     "w_min": -1.255,
+     "w_mean": 0.341,
+     "w_snap_min": -1.346,
+     "u_down_min": -0.701,
+     "reverse_frac": 0.033,
+     "n": 180,
+     "table": {
+      "1200m_down/100m_agl": {
+       "w": -0.081,
+       "u_down": 6.093,
+       "u_down_min": 1.544
+      },
+      "1200m_down/150m_agl": {
+       "w": -0.19,
+       "u_down": 7.286,
+       "u_down_min": 3.696
+      },
+      "1200m_down/30m_agl": {
+       "w": 0.082,
+       "u_down": 3.971,
+       "u_down_min": -0.701
+      },
+      "1200m_down/60m_agl": {
+       "w": 0.025,
+       "u_down": 5.002,
+       "u_down_min": -0.139
+      },
+      "1500m_down/100m_agl": {
+       "w": -0.112,
+       "u_down": 5.699,
+       "u_down_min": 2.385
+      },
+      "1500m_down/150m_agl": {
+       "w": -0.198,
+       "u_down": 6.965,
+       "u_down_min": 4.562
+      },
+      "1500m_down/30m_agl": {
+       "w": 0.006,
+       "u_down": 3.439,
+       "u_down_min": -0.308
+      },
+      "1500m_down/60m_agl": {
+       "w": -0.03,
+       "u_down": 4.513,
+       "u_down_min": 0.589
+      },
+      "300m_down/100m_agl": {
+       "w": 1.214,
+       "u_down": 8.727,
+       "u_down_min": 5.035
+      },
+      "300m_down/150m_agl": {
+       "w": 1.336,
+       "u_down": 9.262,
+       "u_down_min": 6.023
+      },
+      "300m_down/30m_agl": {
+       "w": 0.726,
+       "u_down": 6.798,
+       "u_down_min": 3.083
+      },
+      "300m_down/60m_agl": {
+       "w": 1.075,
+       "u_down": 7.95,
+       "u_down_min": 4.475
+      },
+      "600m_down/100m_agl": {
+       "w": 0.738,
+       "u_down": 9.349,
+       "u_down_min": 8.802
+      },
+      "600m_down/150m_agl": {
+       "w": 0.742,
+       "u_down": 9.846,
+       "u_down_min": 9.391
+      },
+      "600m_down/30m_agl": {
+       "w": 0.547,
+       "u_down": 7.403,
+       "u_down_min": 6.335
+      },
+      "600m_down/60m_agl": {
+       "w": 0.69,
+       "u_down": 8.567,
+       "u_down_min": 7.963
+      },
+      "900m_down/100m_agl": {
+       "w": 0.05,
+       "u_down": 8.38,
+       "u_down_min": 2.067
+      },
+      "900m_down/150m_agl": {
+       "w": 0.103,
+       "u_down": 9.179,
+       "u_down_min": 4.648
+      },
+      "900m_down/30m_agl": {
+       "w": 0.105,
+       "u_down": 5.742,
+       "u_down_min": 0.118
+      },
+      "900m_down/60m_agl": {
+       "w": -0.007,
+       "u_down": 7.27,
+       "u_down_min": 0.94
+      }
+     }
+    }
+   },
+   "crater5": {
+    "cond": {
+     "day": 15,
+     "heading": 110.0,
+     "hour": 12.0,
+     "mode": "points",
+     "month": 1,
+     "site": "crater_ridge",
+     "sky": "partly",
+     "start": [
+      -6750.153,
+      225.692,
+      9949.96
+     ],
+     "temp": 27.0,
+     "wind_from": 110.0,
+     "wind_kmh": 18.0,
+     "wind_ref": "start"
+    },
+    "inflow_k": 1.0,
+    "baked": [
+     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/crater_ridge.json) — расчёт"
+    ],
+    "u10_start_ms": 3.817,
+    "w_start_ms": 0.702,
+    "w_mean": 1.297,
+    "w_min": 0.138,
+    "w_max": 2.695,
+    "w_p10": 0.57,
+    "w_p90": 1.933,
+    "frac_up": 1.0,
+    "n": 81,
+    "crest_h_mean": 94.067,
+    "table": {
+     "100m_up/100m_above": 1.716,
+     "100m_up/150m_above": 1.655,
+     "100m_up/50m_above": 1.668,
+     "200m_up/100m_above": 1.314,
+     "200m_up/150m_above": 1.307,
+     "200m_up/50m_above": 1.252,
+     "300m_up/100m_above": 0.938,
+     "300m_up/150m_above": 0.977,
+     "300m_up/50m_above": 0.842
+    },
+    "face_w_mean": 0.75,
+    "face_table": {
+     "100m_up/100m_agl": 1.472,
+     "100m_up/30m_agl": 0.569,
+     "100m_up/60m_agl": 1.146,
+     "200m_up/100m_agl": 1.049,
+     "200m_up/30m_agl": 0.401,
+     "200m_up/60m_agl": 0.812,
+     "300m_up/100m_agl": 0.667,
+     "300m_up/30m_agl": 0.195,
+     "300m_up/60m_agl": 0.445
+    },
+    "rotor": {
+     "w_min": -1.081,
+     "w_mean": 0.267,
+     "w_snap_min": -1.081,
+     "u_down_min": -0.399,
+     "reverse_frac": 0.022,
+     "n": 180,
+     "table": {
+      "1200m_down/100m_agl": {
+       "w": -0.089,
+       "u_down": 5.097,
+       "u_down_min": 1.455
+      },
+      "1200m_down/150m_agl": {
+       "w": -0.185,
+       "u_down": 6.04,
+       "u_down_min": 3.222
+      },
+      "1200m_down/30m_agl": {
+       "w": 0.064,
+       "u_down": 3.384,
+       "u_down_min": -0.399
+      },
+      "1200m_down/60m_agl": {
+       "w": 0.006,
+       "u_down": 4.223,
+       "u_down_min": 0.032
+      },
+      "1500m_down/100m_agl": {
+       "w": -0.129,
+       "u_down": 4.81,
+       "u_down_min": 2.118
+      },
+      "1500m_down/150m_agl": {
+       "w": -0.192,
+       "u_down": 5.788,
+       "u_down_min": 3.911
+      },
+      "1500m_down/30m_agl": {
+       "w": -0.01,
+       "u_down": 3.007,
+       "u_down_min": -0.145
+      },
+      "1500m_down/60m_agl": {
+       "w": -0.06,
+       "u_down": 3.874,
+       "u_down_min": 0.647
+      },
+      "300m_down/100m_agl": {
+       "w": 0.998,
+       "u_down": 7.161,
+       "u_down_min": 4.175
+      },
+      "300m_down/150m_agl": {
+       "w": 1.085,
+       "u_down": 7.572,
+       "u_down_min": 4.967
+      },
+      "300m_down/30m_agl": {
+       "w": 0.602,
+       "u_down": 5.637,
+       "u_down_min": 2.59
+      },
+      "300m_down/60m_agl": {
+       "w": 0.894,
+       "u_down": 6.558,
+       "u_down_min": 3.736
+      },
+      "600m_down/100m_agl": {
+       "w": 0.583,
+       "u_down": 7.668,
+       "u_down_min": 7.244
+      },
+      "600m_down/150m_agl": {
+       "w": 0.602,
+       "u_down": 8.044,
+       "u_down_min": 7.696
+      },
+      "600m_down/30m_agl": {
+       "w": 0.432,
+       "u_down": 6.15,
+       "u_down_min": 5.284
+      },
+      "600m_down/60m_agl": {
+       "w": 0.536,
+       "u_down": 7.069,
+       "u_down_min": 6.59
+      },
+      "900m_down/100m_agl": {
+       "w": 0.042,
+       "u_down": 6.905,
+       "u_down_min": 1.783
+      },
+      "900m_down/150m_agl": {
+       "w": 0.075,
+       "u_down": 7.522,
+       "u_down_min": 3.917
+      },
+      "900m_down/30m_agl": {
+       "w": 0.092,
+       "u_down": 4.792,
+       "u_down_min": 0.147
+      },
+      "900m_down/60m_agl": {
+       "w": 0.001,
+       "u_down": 6.038,
+       "u_down_min": 0.854
+      }
+     }
+    }
+   },
+   "crater8": {
+    "cond": {
+     "day": 15,
+     "heading": 110.0,
+     "hour": 12.0,
+     "mode": "points",
+     "month": 1,
+     "site": "crater_ridge",
+     "sky": "partly",
+     "start": [
+      -6750.153,
+      225.692,
+      9949.96
+     ],
+     "temp": 27.0,
+     "wind_from": 110.0,
+     "wind_kmh": 28.8,
+     "wind_ref": "start"
+    },
+    "inflow_k": 1.0,
+    "baked": [
+     "air_model: запечённое поле не берётся (нет файла res://data/locations/volcano_island/air/crater_ridge.json) — расчёт"
+    ],
+    "u10_start_ms": 6.223,
+    "w_start_ms": 1.184,
+    "w_mean": 2.063,
+    "w_min": 0.235,
+    "w_max": 4.305,
+    "w_p10": 0.903,
+    "w_p90": 3.032,
+    "frac_up": 1.0,
+    "n": 81,
+    "crest_h_mean": 94.067,
+    "table": {
+     "100m_up/100m_above": 2.728,
+     "100m_up/150m_above": 2.668,
+     "100m_up/50m_above": 2.591,
+     "200m_up/100m_above": 2.09,
+     "200m_up/150m_above": 2.096,
+     "200m_up/50m_above": 1.96,
+     "300m_up/100m_above": 1.504,
+     "300m_up/150m_above": 1.587,
+     "300m_up/50m_above": 1.342
+    },
+    "face_w_mean": 1.14,
+    "face_table": {
+     "100m_up/100m_agl": 2.226,
+     "100m_up/30m_agl": 0.882,
+     "100m_up/60m_agl": 1.699,
+     "200m_up/100m_agl": 1.59,
+     "200m_up/30m_agl": 0.616,
+     "200m_up/60m_agl": 1.196,
+     "300m_up/100m_agl": 1.053,
+     "300m_up/30m_agl": 0.309,
+     "300m_up/60m_agl": 0.689
+    },
+    "rotor": {
+     "w_min": -1.491,
+     "w_mean": 0.491,
+     "w_snap_min": -1.54,
+     "u_down_min": -1.283,
+     "reverse_frac": 0.044,
+     "n": 180,
+     "table": {
+      "1200m_down/100m_agl": {
+       "w": -0.033,
+       "u_down": 8.15,
+       "u_down_min": 1.836
+      },
+      "1200m_down/150m_agl": {
+       "w": -0.169,
+       "u_down": 9.838,
+       "u_down_min": 4.652
+      },
+      "1200m_down/30m_agl": {
+       "w": 0.132,
+       "u_down": 5.195,
+       "u_down_min": -1.283
+      },
+      "1200m_down/60m_agl": {
+       "w": 0.09,
+       "u_down": 6.606,
+       "u_down_min": -0.394
+      },
+      "1500m_down/100m_agl": {
+       "w": -0.156,
+       "u_down": 7.512,
+       "u_down_min": 2.994
+      },
+      "1500m_down/150m_agl": {
+       "w": -0.255,
+       "u_down": 9.352,
+       "u_down_min": 5.823
+      },
+      "1500m_down/30m_agl": {
+       "w": 0.002,
+       "u_down": 4.346,
+       "u_down_min": -0.732
+      },
+      "1500m_down/60m_agl": {
+       "w": -0.056,
+       "u_down": 5.824,
+       "u_down_min": 0.564
+      },
+      "300m_down/100m_agl": {
+       "w": 1.692,
+       "u_down": 11.924,
+       "u_down_min": 6.751
+      },
+      "300m_down/150m_agl": {
+       "w": 1.85,
+       "u_down": 12.726,
+       "u_down_min": 8.156
+      },
+      "300m_down/30m_agl": {
+       "w": 0.998,
+       "u_down": 9.15,
+       "u_down_min": 4.024
+      },
+      "300m_down/60m_agl": {
+       "w": 1.482,
+       "u_down": 10.77,
+       "u_down_min": 5.911
+      },
+      "600m_down/100m_agl": {
+       "w": 0.971,
+       "u_down": 12.793,
+       "u_down_min": 11.988
+      },
+      "600m_down/150m_agl": {
+       "w": 1.006,
+       "u_down": 13.554,
+       "u_down_min": 12.871
+      },
+      "600m_down/30m_agl": {
+       "w": 0.713,
+       "u_down": 9.955,
+       "u_down_min": 8.485
+      },
+      "600m_down/60m_agl": {
+       "w": 0.884,
+       "u_down": 11.617,
+       "u_down_min": 10.764
+      },
+      "900m_down/100m_agl": {
+       "w": 0.175,
+       "u_down": 11.403,
+       "u_down_min": 2.687
+      },
+      "900m_down/150m_agl": {
+       "w": 0.224,
+       "u_down": 12.587,
+       "u_down_min": 6.142
+      },
+      "900m_down/30m_agl": {
+       "w": 0.18,
+       "u_down": 7.682,
+       "u_down_min": 0.074
+      },
+      "900m_down/60m_agl": {
+       "w": 0.09,
+       "u_down": 9.79,
+       "u_down_min": 1.146
+      }
+     }
+    }
+   },
+   "landing": {
+    "cond": {
+     "day": 15,
+     "heading": 90.0,
+     "hour": 9.0,
+     "mode": "landing",
+     "month": 1,
+     "site": "plateau_landing",
+     "sky": "clear",
+     "start": [
+      10749.849,
+      219.262,
+      1144.956
+     ],
+     "temp": 27.0,
+     "wind_from": 110.0,
+     "wind_kmh": 7.2,
+     "wind_ref": "start"
+    },
+    "sites": {
+     "landing_cliffs": [
+      {
+       "agl": 10.0,
+       "h_ms": 1.727,
+       "u": -1.484,
+       "v": -0.883,
+       "w": 0.046
+      },
+      {
+       "agl": 30.0,
+       "h_ms": 1.929,
+       "u": -1.674,
+       "v": -0.959,
+       "w": 0.104
+      },
+      {
+       "agl": 60.0,
+       "h_ms": 2.082,
+       "u": -1.83,
+       "v": -0.993,
+       "w": 0.195
+      }
+     ],
+     "landing_crater": [
+      {
+       "agl": 10.0,
+       "h_ms": 1.039,
+       "u": -0.803,
+       "v": -0.659,
+       "w": 0.175
+      },
+      {
+       "agl": 30.0,
+       "h_ms": 1.223,
+       "u": -0.942,
+       "v": -0.779,
+       "w": 0.217
+      },
+      {
+       "agl": 60.0,
+       "h_ms": 1.397,
+       "u": -1.102,
+       "v": -0.858,
+       "w": 0.27
+      }
+     ],
+     "landing_target": [
+      {
+       "agl": 10.0,
+       "h_ms": 1.363,
+       "u": -1.217,
+       "v": -0.614,
+       "w": 0.138
+      },
+      {
+       "agl": 30.0,
+       "h_ms": 1.909,
+       "u": -1.776,
+       "v": -0.7,
+       "w": 0.211
+      },
+      {
+       "agl": 60.0,
+       "h_ms": 2.063,
+       "u": -1.917,
+       "v": -0.762,
+       "w": 0.208
+      }
+     ]
+    },
+    "inflow_k": 0.808
+   },
+   "thermal12": {
+    "cond": {
+     "day": 15,
+     "heading": 90.0,
+     "hour": 12.0,
+     "mode": "thermal",
+     "month": 1,
+     "site": "plateau_landing",
+     "sky": "clear",
+     "start": [
+      10749.849,
+      219.262,
+      1144.956
+     ],
+     "temp": 28.0,
+     "wind_from": 110.0,
+     "wind_kmh": 10.8,
+     "wind_ref": "start"
+    },
+    "weather": {
+     "background_sink_ms": -0.8,
+     "blue": false,
+     "cloudbase_agl_m": 3800.0,
+     "dry_thermal_fraction": 0.569,
+     "heat": 0.916,
+     "temperature_c": 26.804,
+     "thermal_duty": 0.845,
+     "thermal_radius_m": [
+      126.038,
+      241.574
+     ],
+     "thermal_spacing_m": 700.0,
+     "thermal_strength_ms": [
+      2.957,
+      5.421
+     ],
+     "top_agl_m": 3800.0,
+     "wind_from_deg": 110.0,
+     "wind_speed_kmh": 10.8,
+     "z_dry_msl_m": 5569.577,
+     "z_lcl_msl_m": 5588.033
+    },
+    "inflow_k": 0.909,
+    "grid": {
+     "bare@150m": {
+      "mean": -0.012,
+      "p90": 0.113,
+      "max": 0.14,
+      "n": 50
+     },
+     "bare@300m": {
+      "mean": -0.017,
+      "p90": 0.064,
+      "max": 0.187,
+      "n": 50
+     },
+     "built@150m": {
+      "mean": -0.064,
+      "p90": -0.035,
+      "max": -0.031,
+      "n": 15
+     },
+     "built@300m": {
+      "mean": -0.071,
+      "p90": -0.045,
+      "max": -0.041,
+      "n": 15
+     },
+     "crop@150m": {
+      "mean": 0.007,
+      "p90": 0.047,
+      "max": 0.096,
+      "n": 48
+     },
+     "crop@300m": {
+      "mean": -0.011,
+      "p90": 0.015,
+      "max": 0.136,
+      "n": 48
+     },
+     "forest@150m": {
+      "mean": -0.012,
+      "p90": 0.085,
+      "max": 0.341,
+      "n": 384
+     },
+     "forest@300m": {
+      "mean": -0.019,
+      "p90": 0.044,
+      "max": 0.267,
+      "n": 384
+     },
+     "grass@150m": {
+      "mean": 0.017,
+      "p90": 0.131,
+      "max": 0.354,
+      "n": 2098
+     },
+     "grass@300m": {
+      "mean": 0.027,
+      "p90": 0.162,
+      "max": 0.297,
+      "n": 2098
+     },
+     "land@150m": {
+      "mean": 0.011,
+      "p90": 0.119,
+      "max": 0.354,
+      "n": 2640
+     },
+     "land@300m": {
+      "mean": 0.018,
+      "p90": 0.148,
+      "max": 0.297,
+      "n": 2640
+     },
+     "sea@150m": {
+      "mean": -0.003,
+      "p90": 0.018,
+      "max": 0.307,
+      "n": 6705
+     },
+     "sea@300m": {
+      "mean": -0.003,
+      "p90": 0.035,
+      "max": 0.259,
+      "n": 6705
+     },
+     "shrub@150m": {
+      "mean": 0.064,
+      "p90": 0.215,
+      "max": 0.288,
+      "n": 9
+     },
+     "shrub@300m": {
+      "mean": 0.092,
+      "p90": 0.165,
+      "max": 0.24,
+      "n": 9
+     },
+     "water@150m": {
+      "mean": -0.038,
+      "p90": 0.082,
+      "max": 0.196,
+      "n": 36
+     },
+     "water@300m": {
+      "mean": -0.028,
+      "p90": 0.079,
+      "max": 0.135,
+      "n": 36
+     }
+    },
+    "core_w_p50": 0.014,
+    "core_w_p90": 1.888,
+    "core_w_max": 8.996,
+    "core_n": 38200,
+    "core_by_agl": {
+     "300": {
+      "p50": 0.007,
+      "p90": 1.884
+     },
+     "400": {
+      "p50": 0.009,
+      "p90": 1.885
+     },
+     "500": {
+      "p50": 0.011,
+      "p90": 1.886
+     },
+     "600": {
+      "p50": 0.013,
+      "p90": 1.886
+     },
+     "700": {
+      "p50": 0.015,
+      "p90": 1.888
+     },
+     "800": {
+      "p50": 0.016,
+      "p90": 1.888
+     },
+     "900": {
+      "p50": 0.017,
+      "p90": 1.889
+     },
+     "1000": {
+      "p50": 0.018,
+      "p90": 1.89
+     },
+     "1100": {
+      "p50": 0.018,
+      "p90": 1.892
+     },
+     "1200": {
+      "p50": 0.018,
+      "p90": 1.892
+     }
+    },
+    "core_by_class": {
+     "0": {
+      "p50": -0.001,
+      "p90": 0.045,
+      "n": 3820
+     },
+     "bare": {
+      "p50": 3.268,
+      "p90": 3.345,
+      "n": 90
+     },
+     "crop": {
+      "p50": 0.049,
+      "p90": 0.124,
+      "n": 190
+     },
+     "forest": {
+      "p50": 0.043,
+      "p90": 0.235,
+      "n": 2210
+     },
+     "grass": {
+      "p50": 0.183,
+      "p90": 3.858,
+      "n": 10200
+     },
+     "shrub": {
+      "p50": 0.084,
+      "p90": 0.133,
+      "n": 120
+     },
+     "water": {
+      "p50": 0.001,
+      "p90": 1.883,
+      "n": 21570
+     }
+    },
+    "thermals_seen": 1221,
+    "thermals_land": 635,
+    "over_water": 586,
+    "by_class": {
+     "0": 306,
+     "forest": 71,
+     "grass": 241,
+     "crop": 5,
+     "shrub": 3,
+     "bare": 9,
+     "water": 586
+    },
+    "from": [
+     10749.849,
+     219.262,
+     1144.956
+    ],
+    "heading": 90.0,
+    "climb_m": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "climb_end": [
+     "ground",
+     "ground",
+     "ground"
+    ],
+    "cloudbase_msl_start": 3865.199
+   },
+   "thermal15": {
+    "cond": {
+     "day": 15,
+     "heading": 90.0,
+     "hour": 15.0,
+     "mode": "thermal",
+     "month": 1,
+     "site": "plateau_landing",
+     "sky": "clear",
+     "start": [
+      10749.849,
+      219.262,
+      1144.956
+     ],
+     "temp": 28.0,
+     "wind_from": 110.0,
+     "wind_kmh": 10.8,
+     "wind_ref": "start"
+    },
+    "weather": {
+     "background_sink_ms": -0.8,
+     "blue": false,
+     "cloudbase_agl_m": 3800.0,
+     "dry_thermal_fraction": 0.509,
+     "heat": 0.955,
+     "temperature_c": 27.946,
+     "thermal_duty": 0.881,
+     "thermal_radius_m": [
+      123.226,
+      236.183
+     ],
+     "thermal_spacing_m": 700.0,
+     "thermal_strength_ms": [
+      3.047,
+      5.585
+     ],
+     "top_agl_m": 3800.0,
+     "wind_from_deg": 110.0,
+     "wind_speed_kmh": 10.8,
+     "z_dry_msl_m": 5766.598,
+     "z_lcl_msl_m": 5727.445
+    },
+    "inflow_k": 0.906,
+    "grid": {
+     "bare@150m": {
+      "mean": -0.012,
+      "p90": 0.111,
+      "max": 0.137,
+      "n": 50
+     },
+     "bare@300m": {
+      "mean": -0.018,
+      "p90": 0.063,
+      "max": 0.184,
+      "n": 50
+     },
+     "built@150m": {
+      "mean": -0.065,
+      "p90": -0.033,
+      "max": -0.032,
+      "n": 15
+     },
+     "built@300m": {
+      "mean": -0.071,
+      "p90": -0.041,
+      "max": -0.038,
+      "n": 15
+     },
+     "crop@150m": {
+      "mean": 0.008,
+      "p90": 0.049,
+      "max": 0.099,
+      "n": 48
+     },
+     "crop@300m": {
+      "mean": -0.011,
+      "p90": 0.015,
+      "max": 0.143,
+      "n": 48
+     },
+     "forest@150m": {
+      "mean": -0.013,
+      "p90": 0.085,
+      "max": 0.349,
+      "n": 384
+     },
+     "forest@300m": {
+      "mean": -0.02,
+      "p90": 0.045,
+      "max": 0.273,
+      "n": 384
+     },
+     "grass@150m": {
+      "mean": 0.017,
+      "p90": 0.131,
+      "max": 0.357,
+      "n": 2098
+     },
+     "grass@300m": {
+      "mean": 0.027,
+      "p90": 0.163,
+      "max": 0.3,
+      "n": 2098
+     },
+     "land@150m": {
+      "mean": 0.011,
+      "p90": 0.12,
+      "max": 0.357,
+      "n": 2640
+     },
+     "land@300m": {
+      "mean": 0.017,
+      "p90": 0.148,
+      "max": 0.3,
+      "n": 2640
+     },
+     "sea@150m": {
+      "mean": -0.003,
+      "p90": 0.019,
+      "max": 0.299,
+      "n": 6705
+     },
+     "sea@300m": {
+      "mean": -0.003,
+      "p90": 0.036,
+      "max": 0.26,
+      "n": 6705
+     },
+     "shrub@150m": {
+      "mean": 0.063,
+      "p90": 0.219,
+      "max": 0.289,
+      "n": 9
+     },
+     "shrub@300m": {
+      "mean": 0.09,
+      "p90": 0.165,
+      "max": 0.24,
+      "n": 9
+     },
+     "water@150m": {
+      "mean": -0.039,
+      "p90": 0.082,
+      "max": 0.198,
+      "n": 36
+     },
+     "water@300m": {
+      "mean": -0.029,
+      "p90": 0.08,
+      "max": 0.137,
+      "n": 36
+     }
+    },
+    "core_w_p50": 0.014,
+    "core_w_p90": 1.948,
+    "core_w_max": 9.112,
+    "core_n": 39690,
+    "core_by_agl": {
+     "300": {
+      "p50": 0.007,
+      "p90": 1.947
+     },
+     "400": {
+      "p50": 0.009,
+      "p90": 1.947
+     },
+     "500": {
+      "p50": 0.011,
+      "p90": 1.948
+     },
+     "600": {
+      "p50": 0.013,
+      "p90": 1.948
+     },
+     "700": {
+      "p50": 0.015,
+      "p90": 1.948
+     },
+     "800": {
+      "p50": 0.016,
+      "p90": 1.949
+     },
+     "900": {
+      "p50": 0.017,
+      "p90": 1.949
+     },
+     "1000": {
+      "p50": 0.018,
+      "p90": 1.949
+     },
+     "1100": {
+      "p50": 0.018,
+      "p90": 1.949
+     },
+     "1200": {
+      "p50": 0.018,
+      "p90": 1.949
+     }
+    },
+    "core_by_class": {
+     "0": {
+      "p50": 0.001,
+      "p90": 0.045,
+      "n": 3960
+     },
+     "bare": {
+      "p50": 3.567,
+      "p90": 3.697,
+      "n": 90
+     },
+     "crop": {
+      "p50": 0.047,
+      "p90": 4.128,
+      "n": 310
+     },
+     "forest": {
+      "p50": 0.061,
+      "p90": 0.359,
+      "n": 2550
+     },
+     "grass": {
+      "p50": 0.177,
+      "p90": 4.033,
+      "n": 9630
+     },
+     "shrub": {
+      "p50": 0.068,
+      "p90": 0.115,
+      "n": 150
+     },
+     "water": {
+      "p50": 0.002,
+      "p90": 1.946,
+      "n": 23000
+     }
+    },
+    "thermals_seen": 1230,
+    "thermals_land": 631,
+    "over_water": 599,
+    "by_class": {
+     "0": 306,
+     "forest": 68,
+     "grass": 243,
+     "crop": 6,
+     "shrub": 4,
+     "bare": 3,
+     "water": 599,
+     "built": 1
+    },
+    "from": [
+     10749.849,
+     219.262,
+     1144.956
+    ],
+    "heading": 90.0,
+    "climb_m": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "climb_end": [
+     "ground",
+     "ground",
+     "ground"
+    ],
+    "cloudbase_msl_start": 3865.199
+   },
+   "thermal_top": {
+    "cond": {
+     "day": 15,
+     "heading": 110.0,
+     "hour": 15.0,
+     "mode": "thermal",
+     "month": 1,
+     "site": "plateau_landing",
+     "sky": "clear",
+     "start": [
+      -3000.0,
+      504.344,
+      -1450.0
+     ],
+     "temp": 28.0,
+     "wind_from": 110.0,
+     "wind_kmh": 10.8,
+     "wind_ref": "start"
+    },
+    "weather": {
+     "background_sink_ms": -0.8,
+     "blue": false,
+     "cloudbase_agl_m": 3800.0,
+     "dry_thermal_fraction": 0.509,
+     "heat": 0.955,
+     "temperature_c": 27.946,
+     "thermal_duty": 0.881,
+     "thermal_radius_m": [
+      123.226,
+      236.183
+     ],
+     "thermal_spacing_m": 700.0,
+     "thermal_strength_ms": [
+      3.047,
+      5.585
+     ],
+     "top_agl_m": 3800.0,
+     "wind_from_deg": 110.0,
+     "wind_speed_kmh": 10.8,
+     "z_dry_msl_m": 5766.598,
+     "z_lcl_msl_m": 5727.445
+    },
+    "inflow_k": 0.906,
+    "grid": {},
+    "core_w_p50": 0.016,
+    "core_w_p90": 3.952,
+    "core_w_max": 11.43,
+    "core_n": 52070,
+    "core_by_agl": {
+     "300": {
+      "p50": 0.006,
+      "p90": 3.877
+     },
+     "400": {
+      "p50": 0.009,
+      "p90": 3.918
+     },
+     "500": {
+      "p50": 0.012,
+      "p90": 3.939
+     },
+     "600": {
+      "p50": 0.015,
+      "p90": 3.952
+     },
+     "700": {
+      "p50": 0.017,
+      "p90": 3.966
+     },
+     "800": {
+      "p50": 0.019,
+      "p90": 3.975
+     },
+     "900": {
+      "p50": 0.021,
+      "p90": 3.976
+     },
+     "1000": {
+      "p50": 0.023,
+      "p90": 3.976
+     },
+     "1100": {
+      "p50": 0.024,
+      "p90": 3.97
+     },
+     "1200": {
+      "p50": 0.024,
+      "p90": 3.966
+     }
+    },
+    "core_by_class": {
+     "0": {
+      "p50": -0.006,
+      "p90": 0.06,
+      "n": 8400
+     },
+     "bare": {
+      "p50": 0.171,
+      "p90": 3.622,
+      "n": 120
+     },
+     "built": {
+      "p50": -0.021,
+      "p90": -0.003,
+      "n": 130
+     },
+     "crop": {
+      "p50": 0.051,
+      "p90": 4.199,
+      "n": 340
+     },
+     "forest": {
+      "p50": 0.173,
+      "p90": 4.379,
+      "n": 4050
+     },
+     "grass": {
+      "p50": 0.312,
+      "p90": 4.22,
+      "n": 13850
+     },
+     "shrub": {
+      "p50": 0.109,
+      "p90": 3.633,
+      "n": 290
+     },
+     "water": {
+      "p50": 0.001,
+      "p90": 1.764,
+      "n": 24890
+     }
+    },
+    "thermals_seen": 1870,
+    "thermals_land": 948,
+    "over_water": 922,
+    "by_class": {
+     "0": 601,
+     "forest": 72,
+     "grass": 258,
+     "crop": 6,
+     "shrub": 6,
+     "bare": 4,
+     "water": 922,
+     "built": 1
+    },
+    "from": [
+     -3000.0,
+     504.344,
+     -1450.0
+    ],
+    "heading": 110.0,
+    "climb_m": [
+     1828.4,
+     1837.7,
+     1651.6
+    ],
+    "climb_end": [
+     "time",
+     "time",
+     "time"
+    ],
+    "cloudbase_msl_start": 3865.199,
+    "core_land_w_p90": 4.266
+   },
+   "thermal_east": {
+    "cond": {
+     "day": 15,
+     "heading": 140.0,
+     "hour": 15.0,
+     "mode": "thermal",
+     "month": 1,
+     "site": "plateau_landing",
+     "sky": "clear",
+     "start": [
+      9350.0,
+      359.938,
+      700.0
+     ],
+     "temp": 28.0,
+     "wind_from": 110.0,
+     "wind_kmh": 10.8,
+     "wind_ref": "start"
+    },
+    "weather": {
+     "background_sink_ms": -0.8,
+     "blue": false,
+     "cloudbase_agl_m": 3800.0,
+     "dry_thermal_fraction": 0.509,
+     "heat": 0.955,
+     "temperature_c": 27.946,
+     "thermal_duty": 0.881,
+     "thermal_radius_m": [
+      123.226,
+      236.183
+     ],
+     "thermal_spacing_m": 700.0,
+     "thermal_strength_ms": [
+      3.047,
+      5.585
+     ],
+     "top_agl_m": 3800.0,
+     "wind_from_deg": 110.0,
+     "wind_speed_kmh": 10.8,
+     "z_dry_msl_m": 5766.598,
+     "z_lcl_msl_m": 5727.445
+    },
+    "inflow_k": 0.906,
+    "grid": {},
+    "core_w_p50": 0.014,
+    "core_w_p90": 1.958,
+    "core_w_max": 8.996,
+    "core_n": 42830,
+    "core_by_agl": {
+     "300": {
+      "p50": 0.006,
+      "p90": 1.951
+     },
+     "400": {
+      "p50": 0.008,
+      "p90": 1.953
+     },
+     "500": {
+      "p50": 0.011,
+      "p90": 1.955
+     },
+     "600": {
+      "p50": 0.013,
+      "p90": 1.957
+     },
+     "700": {
+      "p50": 0.015,
+      "p90": 1.959
+     },
+     "800": {
+      "p50": 0.017,
+      "p90": 1.959
+     },
+     "900": {
+      "p50": 0.018,
+      "p90": 1.96
+     },
+     "1000": {
+      "p50": 0.018,
+      "p90": 1.961
+     },
+     "1100": {
+      "p50": 0.019,
+      "p90": 1.962
+     },
+     "1200": {
+      "p50": 0.019,
+      "p90": 1.962
+     }
+    },
+    "core_by_class": {
+     "0": {
+      "p50": 0.008,
+      "p90": 0.054,
+      "n": 4990
+     },
+     "bare": {
+      "p50": 3.601,
+      "p90": 3.698,
+      "n": 80
+     },
+     "crop": {
+      "p50": 4.11,
+      "p90": 4.209,
+      "n": 310
+     },
+     "forest": {
+      "p50": 0.048,
+      "p90": 0.342,
+      "n": 3070
+     },
+     "grass": {
+      "p50": 0.165,
+      "p90": 4.08,
+      "n": 11220
+     },
+     "shrub": {
+      "p50": 0.073,
+      "p90": 0.147,
+      "n": 190
+     },
+     "water": {
+      "p50": 0.001,
+      "p90": 1.946,
+      "n": 22970
+     }
+    },
+    "thermals_seen": 1337,
+    "thermals_land": 691,
+    "over_water": 646,
+    "by_class": {
+     "0": 355,
+     "forest": 72,
+     "grass": 250,
+     "crop": 6,
+     "shrub": 4,
+     "bare": 3,
+     "water": 646,
+     "built": 1
+    },
+    "from": [
+     9350.0,
+     359.938,
+     700.0
+    ],
+    "heading": 140.0,
+    "climb_m": [
+     2463.1,
+     3281.5,
+     1453.9
+    ],
+    "climb_end": [
+     "time",
+     "time",
+     "time"
+    ],
+    "cloudbase_msl_start": 3865.199,
+    "core_land_w_p90": 4.075
+   }
+  },
+  "east_cliffs_w_ms": 1.416,
+  "east_cliffs_w_p90_ms": 2.254,
+  "east_cliffs_w_max_ms": 2.834,
+  "east_cliffs_w_min_ms": 0.729,
+  "east_cliffs_inflow_k": 0.981,
+  "east_cliffs_u10_start_ms": 5.98,
+  "east_cliffs_w_start_ms": 1.037,
+  "east_cliffs_w_5ms": 1.185,
+  "east_cliffs_u10_start_5ms": 4.976,
+  "east_cliffs_inflow_k_5ms": 0.977,
+  "east_cliffs_w_8ms": 1.894,
+  "east_cliffs_u10_start_8ms": 7.987,
+  "east_cliffs_inflow_k_8ms": 0.985,
+  "crater_ridge_w_ms": 1.548,
+  "crater_ridge_w_p90_ms": 2.26,
+  "crater_ridge_w_max_ms": 3.192,
+  "crater_ridge_w_min_ms": 0.169,
+  "crater_ridge_inflow_k": 1.0,
+  "crater_ridge_u10_start_ms": 4.607,
+  "crater_ridge_w_start_ms": 0.863,
+  "crater_rotor_reverse_frac": 0.033,
+  "crater_rotor_u_min_ms": -0.701,
+  "crater_rotor_w_min_ms": -1.255,
+  "crater_ridge_w_5ms": 1.297,
+  "crater_ridge_u10_start_5ms": 3.817,
+  "crater_ridge_inflow_k_5ms": 1.0,
+  "crater_ridge_w_8ms": 2.063,
+  "crater_ridge_u10_start_8ms": 6.223,
+  "crater_ridge_inflow_k_8ms": 1.0,
+  "u10_start_max_ms": 7.987,
+  "landing_wind_ms": 1.363,
+  "landing_inflow_k": 0.808,
+  "thermal_top_core_land_w_p90": 4.266,
+  "thermal_top_climb_m": 1837.7,
+  "thermal_east_core_land_w_p90": 4.075,
+  "thermal_east_climb_m": 3281.5,
+  "thermal_best_case": 15.0,
+  "thermal_land_wconv_p90_150m": 0.12,
+  "thermal_sea_wconv_p90_150m": 0.019,
+  "thermal_land_wconv_p90_300m": 0.148,
+  "thermal_sea_wconv_p90_300m": 0.036,
+  "thermal_core_w_p90": 1.948,
+  "thermal_core_w_max": 9.112,
+  "thermal_climb_m": 0.0,
+  "thermals_over_water": 599,
+  "thermals_land": 631,
+  "thermal_core_land_w_p90": 4.008,
+  "thermal_exists": true,
+  "not_ok": [
+   "thermals_over_water=599 (нужно <= 0)"
+  ]
+ }
+}
