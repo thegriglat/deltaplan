@@ -455,6 +455,8 @@
     "curl_strength_m_doc": "Сила «завихрений» мелких краёв (искажение координат шума), м.",
     "top_period_m": 2500,
     "top_period_m_doc": "Период шума неровности верха и контура, м.",
+    "field_mask_period_m": 8000,
+    "field_mask_period_m_doc": "Слой поля облачности (CLF-5): период крупного шума маски отдельных кучевых, м. 4 клетки Уорли на период — ячейка 2 км, облако при покрытии 0,2–0,4 — 1–1,5 км в поперечнике: кучевые хорошей погоды 0,5–2 км, ширина порядка мощности и высоты слоя перемешивания (Stull 1988, гл. 13); 4,8 км давали «колонны» 0,5 км при мощности 2 км. Площадь под облаками = покрытие поля (порог — квантиль шума).",
     "noise_shape_texture": "res://assets/textures/clouds/cloud_shape.png",
     "noise_shape_texture_doc": "3D-текстура крупного шума (Texture3D, канал R = 1 − плотность клубов, бесшовная); атлас срезов PNG из tools/atmosphere/gen_cloud_noise.py (Perlin-Worley). Пусто или нет файла — процедурный Уорли (FastNoiseLite).",
     "noise_detail_texture": "res://assets/textures/clouds/cloud_detail.png",

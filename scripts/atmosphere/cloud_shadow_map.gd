@@ -6,7 +6,8 @@ extends Node
 ## (cloud_common.gdshaderinc) — тень повторяет форму облака, плывёт с ним, тает вместе с ним.
 ## Карта и её привязка к миру — глобальные параметры шейдеров (project.godot → [shader_globals]);
 ## рельеф, трава, лес, кусты, камни гасят ею только прямое солнце (scripts/terrain/
-## cloud_shadow.gdshaderinc). Настройки — configs/atmosphere.json → clouds.shadow_*.
+## cloud_shadow.gdshaderinc). Слой поля облачности (CLF-5) — квад во всю карту тем же шейдером
+## (field_pass), той же плотностью; без облаков в поле квад скрыт. Настройки — configs/atmosphere.json → clouds.shadow_*.
 
 ## Время последней перерисовки карты на CPU (выбор облаков, данные), мкс — для замеров.
 var last_update_us: int = 0
@@ -15,6 +16,9 @@ var _layer: CloudLayer
 var _cfg: Dictionary
 var _vp: SubViewport
 var _mat: ShaderMaterial
+## Слой поля: квад во всю карту и его материал (тот же шейдер, field_pass).
+var _field_rect: ColorRect
+var _field_mat: ShaderMaterial
 var _mm: MultiMesh
 var _data_tex: ImageTexture
 var _data_rows: int = 0
@@ -50,6 +54,13 @@ func setup(layer: CloudLayer, cloud_material: ShaderMaterial) -> void:
 	mmi.multimesh = _mm
 	mmi.material = _mat
 	_vp.add_child(mmi)
+	_field_mat = ShaderMaterial.new()
+	_field_mat.shader = _mat.shader
+	_field_mat.set_shader_parameter("field_pass", true)
+	_field_rect = ColorRect.new()
+	_field_rect.material = _field_mat
+	_field_rect.visible = false
+	_vp.add_child(_field_rect)
 	add_child(_vp)
 	set_quality(String(_cfg.quality))
 	RenderingServer.global_shader_parameter_set("cloud_shadow_map", _vp.get_texture())
@@ -62,7 +73,9 @@ func set_quality(q: String) -> void:
 	var px := int(p.shadow_map_px)
 	_vp.size = Vector2i(px, px)
 	(_vp.get_child(0) as ColorRect).size = Vector2(px, px)
+	_field_rect.size = Vector2(px, px)
 	_mat.set_shader_parameter("shadow_steps", int(p.shadow_steps))
+	_field_mat.set_shader_parameter("shadow_steps", int(p.shadow_steps))
 	_frames = 0
 
 
@@ -116,8 +129,11 @@ func update(eye: Vector3, sun_dir: Vector3, cloud_material: ShaderMaterial) -> v
 		_data_tex.update(img)
 	for u in _uniforms:
 		if u != "cloud_data" and u != "depth_tex":
-			_mat.set_shader_parameter(u, cloud_material.get_shader_parameter(u))
+			var v: Variant = cloud_material.get_shader_parameter(u)
+			_mat.set_shader_parameter(u, v)
+			_field_mat.set_shader_parameter(u, v)
 	_mat.set_shader_parameter("map_rect", Vector4(x0, z0, m_px, plane))
+	_update_field(Vector4(x0, z0, m_px, plane))
 	_vp.render_target_update_mode = SubViewport.UPDATE_ONCE
 	# Под перистой пеленой тени бледнее (больше рассеянного света).
 	var cover := clampf(float(atmo.weather.get("cirrus_cover", 0.0)), 0.0, 1.0)
@@ -133,3 +149,19 @@ func update(eye: Vector3, sun_dir: Vector3, cloud_material: ShaderMaterial) -> v
 		"cloud_shadow_sun", Vector4(s.x, s.y, plane, float(_cfg.shadow_edge_fade))
 	)
 	last_update_us = Time.get_ticks_usec() - t0
+
+
+## Слой поля облачности: квад во всю карту, если в поле есть облака (параметры — CloudLayer).
+func _update_field(map_rect: Vector4) -> void:
+	var fp: Dictionary = _layer.field_params
+	var on := float(fp.get("cf_on", 0.0)) > 0.5 and _layer.field_tex != null
+	_field_rect.visible = on
+	if not on:
+		return
+	for k: String in fp:
+		if k != "cf_on":
+			_field_mat.set_shader_parameter(k, fp[k])
+	_field_mat.set_shader_parameter("cf_tex", _layer.field_tex)
+	_field_mat.set_shader_parameter("cf_tex_prev", _layer.field_tex_prev)
+	_field_mat.set_shader_parameter("cf_max", _layer.field_max_tex)
+	_field_mat.set_shader_parameter("map_rect", map_rect)

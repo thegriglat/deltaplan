@@ -4,6 +4,8 @@ extends Node3D
 ## - кучевые над термиками: рост → зрелость (плотное, чёткие клубы, тёмное плоское основание) →
 ##   распад (рваное, тает, уплывает); Cb — башня до тропопаузы, наковальня, вирга (VR-26);
 ## - лентикулярные в гребнях подветренных волн, шапка на гребне хребта, роторные клочья (VR-27).
+## Кучевые региона — слой поля облачности (CloudField из atmo.cloud_phys, текстура CLF-К2, CLF-5):
+## в compute-проходе и в карте теней; записи — только линзы, шапка, роторные клочья, Cb.
 ## Два способа рисовать (общий код — cloud_common.gdshaderinc):
 ## - compute (Forward+/Mobile): все облака одним raymarch-проходом в буфере пониженного
 ##   разрешения с апскейлом (CloudCompositorEffect на активной камере);
@@ -88,6 +90,23 @@ var _light_acc: float = 1.0e9
 var _sun: DirectionalLight3D
 var _sun_dir: Vector3 = Vector3.UP
 var _sun_energy: float = 1.3
+
+## Слой поля облачности (CLF-5): параметры шейдеров cf_* (CLF-К2 + грубая карта), текстуры поля
+## (новый и прошлый шаг — переход за step_s), грубая карта блоков (RG8: наибольшие покрытие и
+## мощность блока с соседними клетками). cf_on = 0 — слой пуст, шейдеры его не проходят.
+var field_params: Dictionary = {"cf_on": 0.0}
+var field_tex: ImageTexture
+var field_tex_prev: ImageTexture
+var field_max_tex: ImageTexture
+## Сколько раз текстура поля обновлялась (для проверок: только при смене данных поля).
+var field_uploads: int = 0
+var _cf_key: String = ""
+var _cf_t_upd: float = 0.0
+var _cf_step: float = 20.0
+var _cf_img: Image
+var _cf_quant := PackedFloat32Array()
+## Квантили маски по текстуре шума (путь → 16 значений) — считаются раз на процесс.
+static var _quant_cache: Dictionary = {}
 
 
 func setup(atmosphere: Atmosphere) -> void:
@@ -286,6 +305,7 @@ func _process(delta: float) -> void:
 	var eye := cam.global_position if cam != null else atmo.get_focus()
 	if _effect != null:
 		_attach_effect(cam)
+	_update_field(t)
 	_acc += delta
 	# Выбор — на каждом интервале времени атмосферы (и при движении камеры на паузе).
 	if _sj:
@@ -368,6 +388,11 @@ func _push_to_effect(recs: Array[PackedFloat32Array]) -> void:
 		data.append_array(g)
 	_effect.clouds_data = data
 	_effect.cloud_count = recs.size()
+	for k: String in field_params:
+		_effect.params[k] = field_params[k]
+	_effect.field_tex = field_tex
+	_effect.field_tex_prev = field_tex_prev
+	_effect.field_max_tex = field_max_tex
 
 
 ## Compatibility: боксы от дальних к ближним (порядок смешивания), записи — в float-текстуру.
@@ -856,3 +881,174 @@ func _highest_ground(eye: Vector3, radius: float) -> Vector3:
 			if h > best.z:
 				best = Vector3(x, z, h)
 	return best
+
+
+# ---------------------------------------------------------------- слой поля облачности (CLF-5)
+
+## Поле облачности → текстуры и параметры слоя. Текстура обновляется только при смене данных
+## поля (новый шаг step_s, смена сетки, основания, фона), между шагами — переход от прошлого
+## шага к новому за step_s (поле само сносится ветром; без перехода облака прыгали бы раз в шаг).
+func _update_field(t: float) -> void:
+	var cp: CloudPhysics = atmo.cloud_phys
+	var f: CloudField = cp.field if cp != null and cp.field_enabled() else null
+	if f == null or f.nx == 0 or f.cover.size() != f.nx * f.ny or not textures_ready():
+		field_params["cf_on"] = 0.0
+		return
+	var key := "%s|%s|%s|%s|%s" % [f.signature(), f.time, f.base_msl, f.bg_cover, f.bg_depth]
+	if key != _cf_key:
+		_cf_key = key
+		_upload_field(f, t)
+	var misc: Vector4 = field_params.get("cf_misc", Vector4.ZERO)
+	misc.w = clampf((t - _cf_t_upd) / _cf_step, 0.0, 1.0)
+	field_params["cf_misc"] = misc
+
+
+func _upload_field(f: CloudField, t: float) -> void:
+	var fc: Dictionary = f.cfg
+	_cf_step = maxf(float(fc.get("step_s", 20.0)), 0.1)
+	var img := f.to_image()
+	var same_grid := field_tex != null and _cf_img != null and _cf_img.get_size() == img.get_size()
+	# Переход от прошлого шага — только к соседнему шагу (скачок времени, сброс — сразу новое).
+	var dt := t - _cf_t_upd
+	var prev: Image = _cf_img if same_grid and dt >= 0.0 and dt <= 3.0 * _cf_step else img
+	if same_grid:
+		field_tex_prev.update(prev)
+		field_tex.update(img)
+	else:
+		field_tex_prev = ImageTexture.create_from_image(prev)
+		field_tex = ImageTexture.create_from_image(img)
+	_cf_img = img
+	_cf_t_upd = t
+	field_uploads += 1
+	var dmax := maxf(float(fc.get("depth_max_m", 2500.0)), 1.0)
+	var mm := field_max_map(prev, img, f.nx, f.ny)
+	var b: int = mm.block
+	var mimg: Image = mm.image
+	if field_max_tex != null and field_max_tex.get_size() == Vector2(mimg.get_size()):
+		field_max_tex.update(mimg)
+	else:
+		field_max_tex = ImageTexture.create_from_image(mimg)
+	var top := maxf(float(mm.g_max) / 255.0 * dmax, f.bg_depth)
+	var any_cloud := int(mm.r_max) > 0 or f.bg_cover > 0.0
+	var x_min := f.x0
+	var z_min := -(f.y0 + f.ny * f.dx)
+	field_params["cf_rect"] = Vector4(x_min, z_min, 1.0 / (f.nx * f.dx), 1.0 / (f.ny * f.dx))
+	field_params["cf_base"] = Vector4(f.base_msl, dmax, f.bg_cover, f.bg_depth)
+	field_params["cf_edge"] = float(fc.get("edge_fade_m", 2000.0))
+	field_params["cf_mrect"] = Vector4(
+		x_min, z_min, 1.0 / (mimg.get_width() * b * f.dx), 1.0 / (mimg.get_height() * b * f.dx)
+	)
+	# Верх слоя: купол не выше мощности поля, оболочка — с запасом (cf_envelope: ×1,2 + 40 м).
+	field_params["cf_misc"] = Vector4(
+		top * 1.2 + 60.0, float(cfg.max_distance_m), float(cfg.field_mask_period_m), 0.0
+	)
+	var q := _cf_quantiles()
+	for k in 4:
+		field_params["cf_q%d" % k] = Vector4(q[k * 4], q[k * 4 + 1], q[k * 4 + 2], q[k * 4 + 3])
+	field_params["cf_on"] = 1.0 if any_cloud and top > 1.0 else 0.0
+
+
+## Грубая карта поля: блок B × B клеток (B — делитель nx и ny из 4, 3, 2, 1), в блоке — наибольшие
+## покрытие (R) и мощность (G) по клеткам блока и соседним (билинейная выборка заходит на соседа)
+## у прошлого и нового шага. {image: RG8 nbx × nby (строки — как у текстуры К2), block, r_max, g_max}.
+static func field_max_map(prev: Image, cur: Image, nx: int, ny: int) -> Dictionary:
+	var b := 1
+	for c in [4, 3, 2]:
+		if nx % c == 0 and ny % c == 0:
+			b = c
+			break
+	var pa := prev.get_data()
+	var ca := cur.get_data()
+	var n := nx * ny
+	var r := PackedByteArray()
+	var g := PackedByteArray()
+	r.resize(n)
+	g.resize(n)
+	var r_max := 0
+	var g_max := 0
+	for k in n:
+		var o := k * 4
+		var rv := maxi(pa[o], ca[o])
+		var gv := maxi(pa[o + 1], ca[o + 1]) if rv > 0 else 0
+		r[k] = rv
+		g[k] = gv
+		r_max = maxi(r_max, rv)
+		g_max = maxi(g_max, gv)
+	var nbx := floori(float(nx) / b)
+	var nby := floori(float(ny) / b)
+	var out := PackedByteArray()
+	out.resize(nbx * nby * 2)
+	if r_max > 0:
+		# Сначала по строкам (окно блока ± 1 клетка), затем по столбцам.
+		var hr := PackedByteArray()
+		var hg := PackedByteArray()
+		hr.resize(nbx * ny)
+		hg.resize(nbx * ny)
+		for row in ny:
+			for bx in nbx:
+				var mr := 0
+				var mg := 0
+				for i in range(maxi(bx * b - 1, 0), mini(bx * b + b + 1, nx)):
+					mr = maxi(mr, r[row * nx + i])
+					mg = maxi(mg, g[row * nx + i])
+				hr[row * nbx + bx] = mr
+				hg[row * nbx + bx] = mg
+		for by in nby:
+			for bx in nbx:
+				var mr := 0
+				var mg := 0
+				for row in range(maxi(by * b - 1, 0), mini(by * b + b + 1, ny)):
+					mr = maxi(mr, hr[row * nbx + bx])
+					mg = maxi(mg, hg[row * nbx + bx])
+				out[(by * nbx + bx) * 2] = mr
+				out[(by * nbx + bx) * 2 + 1] = mg
+	var img := Image.create_from_data(nbx, nby, false, Image.FORMAT_RG8, out)
+	return {"image": img, "block": b, "r_max": r_max, "g_max": g_max}
+
+
+## Квантили маски (1 − R крупного шума) на долях 0, 1/15 … 1: порог покрытия c — квантиль 1 − c,
+## над ним ровно доля c объёма шума (площадь под облаком = покрытие поля).
+func _cf_quantiles() -> PackedFloat32Array:
+	if _cf_quant.size() == 16:
+		return _cf_quant
+	var tex: Texture3D = _material.get_shader_parameter("noise_shape")
+	var key := tex.resource_path if tex.resource_path != "" else str(tex.get_instance_id())
+	if not _quant_cache.has(key):
+		_quant_cache[key] = noise_quantiles(tex)
+	_cf_quant = _quant_cache[key]
+	return _cf_quant
+
+
+## 16 квантилей значения 1 − R 3D-текстуры (выборка: каждый 4-й срез, каждый 7-й тексель).
+static func noise_quantiles(tex: Texture3D) -> PackedFloat32Array:
+	var hist := PackedInt32Array()
+	hist.resize(256)
+	var total := 0
+	var slices: Array[Image] = tex.get_data()
+	for zi in range(0, slices.size(), 4):
+		var im := slices[zi].duplicate() as Image
+		if im.is_compressed():
+			im.decompress()
+		im.convert(Image.FORMAT_R8)
+		var d := im.get_data()
+		for k in range(0, d.size(), 7):
+			hist[255 - d[k]] += 1
+			total += 1
+	var q := PackedFloat32Array()
+	q.resize(16)
+	if total == 0:
+		for k in 16:
+			q[k] = k / 15.0
+		return q
+	var cum := 0
+	var k := 1
+	var lo := -1
+	for v in 256:
+		if hist[v] > 0 and lo < 0:
+			lo = v
+		cum += hist[v]
+		while k < 16 and cum >= ceili(total * k / 15.0):
+			q[k] = v / 255.0
+			k += 1
+	q[0] = maxi(lo, 0) / 255.0
+	return q
