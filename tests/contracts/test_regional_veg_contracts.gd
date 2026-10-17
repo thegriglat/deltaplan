@@ -201,3 +201,36 @@ func test_k5_evergreen() -> void:
 	approx(float(ev.get("canopy_bare", -1)), 0.0, 1e-6, "evergreen 1: canopy_bare 0")
 	for k in ["green", "dry", "autumn", "bare", "snow_fresh", "snow_line_m"]:
 		approx(float(ev[k]), float(base[k]), 1e-6, "evergreen не меняет " + k)
+
+
+func test_k6_house_models() -> void:
+	var tri := [800, 200, 40]
+	var any := false
+	for name in ["rondavel", "tin_house", "stilt_house"]:
+		var path := "res://assets/models/houses/house_%s.glb" % name
+		if not ResourceLoader.exists(path):
+			continue
+		any = true
+		check(FileAccess.get_file_as_bytes(path).size() <= 300_000, name + ": glb ≤ 300 КБ")
+		var root := (load(path) as PackedScene).instantiate()
+		for lod in 3:
+			var mi := root.find_child("LOD%d" % lod, true, false) as MeshInstance3D
+			check(mi != null and mi.mesh != null, "%s: LOD%d" % [name, lod])
+			if mi == null or mi.mesh == null:
+				continue
+			var n := 0
+			for s in mi.mesh.get_surface_count():
+				var a := mi.mesh.surface_get_arrays(s)
+				var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX] if a[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+				n += idx.size() / 3 if idx.size() > 0 else (a[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() / 3
+				var m := mi.mesh.surface_get_material(s)
+				var mn := m.resource_name if m != null else ""
+				check(mn in ["Wall_" + name, "Roof_" + name, "Wood_" + name], "%s LOD%d: материал «%s»" % [name, lod, mn])
+			check(n <= tri[lod], "%s LOD%d: треугольников %d ≤ %d" % [name, lod, n, tri[lod]])
+			if lod == 0:
+				var bb := mi.mesh.get_aabb()
+				check(absf(bb.position.y) < 0.05, name + ": низ на y = 0")
+				check(bb.size.x >= bb.size.z - 0.01, name + ": длинная сторона вдоль X")
+		root.free()
+	if not any:
+		_skip("house_{rondavel,tin_house,stilt_house}.glb")

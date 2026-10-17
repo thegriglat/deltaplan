@@ -4,9 +4,9 @@ status: "active"
 module: "regional-veg"
 area: "world"
 updated: "2026-10-18"
-summary: "Регион места biomes.json и Biome (К1), набор пород места (К2), модели новых пород (К3), профиль домов (К4), вечнозелёный полог (К5)."
+summary: "Регион места biomes.json и Biome (К1), набор пород места (К2), модели новых пород (К3), профиль домов (К4), полог (К5), модели домов (К6)."
 related: ["docs/plan/regional-veg.md", "docs/research/regional-vegetation.md", "docs/contracts/scene-look.md"]
-contracts: [{"id": "RV-К1", "version": 1}, {"id": "RV-К2", "version": 1}, {"id": "RV-К3", "version": 1}, {"id": "RV-К4", "version": 1}, {"id": "RV-К5", "version": 1}]
+contracts: [{"id": "RV-К1", "version": 1}, {"id": "RV-К2", "version": 1}, {"id": "RV-К3", "version": 1}, {"id": "RV-К4", "version": 1}, {"id": "RV-К5", "version": 1}, {"id": "RV-К6", "version": 1}]
 ---
 # Контракты regional-veg
 
@@ -100,3 +100,14 @@ contracts: [{"id": "RV-К1", "version": 1}, {"id": "RV-К2", "version": 1}, {"id
 - Uniform `sl_evergreen` (float) во всех материалах с include scene_look (тем же путём, что `sl_season_*`). CPU-зеркало: `SeasonLook.state(...)` дополнительно отдаёт `canopy_autumn` и `canopy_bare` = `autumn·(1 − evergreen)`, `bare·(1 − evergreen)` (`evergreen` из `look`).
 - Деревья-модели, кресты, импостеры: вечнозелёность — через `season_kind` 0 (RV-К2), не через `sl_evergreen`.
 - Инварианты теста: `evergreen` = 0 → всё как до правки; 1 октября, 51°, 1000 м, `evergreen` = 1 → `canopy_autumn = canopy_bare = 0`; при `evergreen` = 1 значения `green`, `dry`, `snow_*` не меняются.
+
+## RV-К6 v1 — модели домов
+
+- Владельцы: RV-11 `rondavel`, RV-12 `tin_house`, RV-13 `stilt_house` (модели), RV-10 (расстановка). Потребители: RV-9 (профили `buildings.village_models`).
+- Модели: `rondavel` — круглая хижина, глинобитная стена, коническая соломенная крыша со свесом (Африка, саванна, тропики); `tin_house` — одноэтажный прямоугольный дом, низкая двускатная или односкатная крыша из профлиста 8…15° (острова Тихого океана, Латинская Америка, Ханга-Роа); `stilt_house` — дом на сваях с верандой и крышей 20…30° (влажные тропики).
+- Сборка: свой скрипт `tools/blender/build_house_<name>.py`, `[xvfb-run -a] blender --background --python tools/blender/build_house_<name>.py` (Blender 4.3; общие помощники — `tools/blender/bl_util.py`, не менять). Исходник — `assets/source/houses/house_<name>.blend`.
+- Файл `assets/models/houses/house_<name>.glb`: ноды `LOD0`, `LOD1`, `LOD2` (`MeshInstance3D`, поиск `find_child`). Треугольники: LOD0 ≤ 800, LOD1 ≤ 200, LOD2 ≤ 40 (коробка + крыша). glb ≤ 300 КБ.
+- Оси и размер: метры, +Y вверх, начало координат — центр контура дома на уровне земли (низ стен/свай y = 0), длинная сторона вдоль X. Номинальный контур (по стенам, без свеса и веранды — они выходят за контур не больше чем на 1,5 м): rondavel — диаметр 5 м, конёк ≈ 5 м; tin_house — 8 × 6 м, стены 2,6…3 м; stilt_house — 8 × 6 м, сваи 1,2…1,8 м. Расстановка масштабирует X/Z под контур OSM, Y — средним масштабом X/Z.
+- Материалы: `Wall_<name>`, `Roof_<name>` (+ необязательный `Wood_<name>`), StandardMaterial3D; текстуры процедурные, ≤ 256 × 256, импорт Godot — сжатие VRAM + мипмапы (как у деревьев). Цвет экземпляра (палитра стен профиля) умножается на альбедо — текстуры светлые, нейтральные по тону стен.
+- Превью для шлюза: `/home/greg/deltaplan/build/screenshots/regional-veg/models/houses/<name>/` (вид сбоку и сверху под 45°).
+- Расстановка (RV-10): реестр `configs/world_objects.json → buildings.models{name: {path, size_m: [x, z]}}`; профиль `buildings.village_models: [{name, weight}]` и `buildings.village_model_share` (0…1, по умолчанию 0) — доля деревенских домов (VILLAGE, без высоты из OSM), которые рисуются моделью вместо коробки; выбор по хешу позиции дома (детерминированно). LOD0 до 250 м, LOD1 до 1500 м, LOD2 дальше (до `visibility_m`). Без ключей (share 0) — дома как до правки.
