@@ -155,7 +155,7 @@
 
 | Файл | Что | Источник | Лицензия | Где используется |
 |---|---|---|---|---|
-| `assets/models/houses/house_rondavel.glb` (+ текстуры `house_rondavel_house_rondavel_{wall,roof,wood}.png`, исходник `assets/source/houses/house_rondavel.blend`) | ронделавель: круглая глинобитная хижина ⌀ 5 м, соломенная коническая крыша; LOD0/1/2 = 420/156/32 треугольника, текстуры 128/128/64 px | своя модель, сгенерирована `tools/blender/build_house_rondavel.py` (процедурно, numpy) | CC0 | расстановка домов деревень (RV-К6) |
+| `assets/models/houses/house_rondavel.glb` (+ текстуры `house_rondavel_{wall,roof,wood}_rondavel.png`, исходник `assets/source/houses/house_rondavel.blend`) | ронделавель: круглая глинобитная хижина ⌀ 5 м, соломенная коническая крыша; LOD0/1/2 = 420/156/32 треугольника, текстуры 128/128/64 px | своя модель, сгенерирована `tools/blender/build_house_rondavel.py` (процедурно, numpy) | CC0 | расстановка домов деревень (RV-К6) |
 
 ## Движок и библиотеки
 | Файл | Что | Источник | Лицензия | Где используется |
