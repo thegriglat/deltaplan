@@ -1,0 +1,69 @@
+{
+  "status": "done",
+  "summary": "Пальма переделана (2 попытки): крона ≈0,57 H в поперечнике (было ≈0,3), перья длиннее, уже и свисают дугой, ствол толще (радиус 0,24 вместо 0,17). Импостер кадрируется по габариту (код bake_impostor уже так делал), перекадрирование не понадобилось.",
+  "commits": [
+    "f7b8c3a7 regional-veg RV-5a: пальма"
+  ],
+  "checks": [
+    {
+      "name": "tri LOD0/LOD1",
+      "value": "796/204 (старые до 1950; LOD1<=LOD0/3)",
+      "pass": true
+    },
+    {
+      "name": "glb размер",
+      "value": "630596 байт (<=1,5 МБ)",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS 4/4 + scope",
+      "pass": true
+    },
+    {
+      "name": "regional_veg_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "glb",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "previews",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "old_untouched",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/regional-veg/models/palm_v2/variants.png",
+    "/home/greg/deltaplan/build/screenshots/regional-veg/models/palm_v2/iso45.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RV-5a",
+  "uncertain": [
+    {
+      "where": "assets/models/trees/tree_palm_tree_palm_v*_impostor.png",
+      "why": "glb хранит картинки встроенными, а Godot берёт извлечённые png рядом; я перезаписал их из нового glb вручную, иначе импостеры остались бы старыми",
+      "checked": "размеры файлов изменились, .import (mode=2 VRAM, мипмапы) прежние, --import без ошибок"
+    },
+    {
+      "where": "tools/blender/tree_params.json palm",
+      "why": "добавлен параметр frond_halfwidth (ширина пера), у перьев листочки только в текстуре, вблизи плоско; ствол 0,6 м у земли — на грани толстого",
+      "checked": "виды сбоку и 45 градусов"
+    }
+  ],
+  "dp_feedback": "godot --import извлекает чужие текстуры (rondavel) в рабочую копию как untracked; приходится удалять вручную. Пересборка glb не обновляет извлечённые png деревьев.",
+  "extra": {
+    "crown_width_over_H": 0.57
+  },
+  "t": "2026-10-18T02:48:59",
+  "by": "executor"
+}
