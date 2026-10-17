@@ -1,0 +1,43 @@
+{
+  "id": "VI-10",
+  "module": "volcano-island",
+  "type": "dp-mechanic",
+  "title": "Кадры финала: термик-старт и окно «Тренировка»",
+  "goal": "Кадры для шлюза 2: старт thermal_slope по курсу и назад, вид на остров сверху и окно «Тренировка» с вкладкой вулканического острова — JPEG q88 в /home/greg/deltaplan/build/screenshots/volcano-island/VI-10/.",
+  "plan_ref": "Шлюз 2 (финал)",
+  "contracts": [
+    {
+      "name": "VI-К1",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "VI-К2",
+      "version": "2",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-10",
+  "branch": "volcano-island/VI-10",
+  "base": "feature/volcano-island",
+  "scope": [
+    "tools/terrain/volcano/shots.sh",
+    "tools/shots/training_island_menu_shot.gd"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/volcano-island/VI-10/ | grep -c jpg",
+      "expect": "num:(\\d+) >=4"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T07:52:09"
+}
