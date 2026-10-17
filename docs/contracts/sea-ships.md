@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-17"
 summary: "Признак «море» (S1), маска моря far_sea.webp и SeaMask (S2), расстановка судов ShipPlacer (S3), модели судов ship_<вид>.glb (S4)."
 related: ["docs/plan/sea-ships.md"]
-contracts: [{"id": "S1", "version": 2}, {"id": "S2", "version": 3}, {"id": "S3", "version": 2}, {"id": "S4", "version": 1}]
+contracts: [{"id": "S1", "version": 2}, {"id": "S2", "version": 3}, {"id": "S3", "version": 3}, {"id": "S4", "version": 1}]
 ---
 # Контракты модуля sea-ships
 
@@ -51,20 +51,21 @@ contracts: [{"id": "S1", "version": 2}, {"id": "S2", "version": 3}, {"id": "S3",
 - Загрузка: `SeaMask.load_for(dir: String) -> Dictionary` → `{"image": Image (L8), "origin": Vector2 (x,z узла (0,0) сетки far в м места; клетка — ±50 м вокруг узла), "cell_m": 100.0}`
   или `{}`, если файла нет; нет файла, но есть far и far_surface (места из `res://`, учебный остров) — считается `compute` в рабочем потоке.
 - Инварианты: без моря — все 0 и судов нет; одинаковый вход — побайтно одинаковый выход.
-- Конфиг `configs/sea_ships.json` создаёт SEA-2 целиком: `mask` (S2), `placement` (S3: `cell_deg` 0.1, `p_cell` 0.5, `min_shore_m` 2000, `types` {tanker 1, bulk 1, container 1}), `types` (S4: tanker 250/44/15, bulk 225/32/12, container 300/48/13 — `length_m`/`beam_m`/`draft_m`), `render` (пусто, `{}` — заполняет SEA-4); у каждого ключа `_doc`.
+- Конфиг `configs/sea_ships.json` создаёт SEA-2 целиком: `mask` (S2), `placement` (S3 v3: `cell_deg` 0.02, `shore_min_m` 3000, `shore_max_m` 15000, `center_max_m` 30000, `n_min` 2, `n_max` 6, `min_sep_m` 1500, `types` {tanker 1, bulk 1, container 1}), `types` (S4: tanker 250/44/15, bulk 225/32/12, container 300/48/13 — `length_m`/`beam_m`/`draft_m`), `render` (пусто, `{}` — заполняет SEA-4); у каждого ключа `_doc`.
 
-## S3. Расстановка судов — версия 2
+## S3. Расстановка судов — версия 3
 
-- Владелец: SEA-4. Потребители: слой судов (рендер), тесты.
+- Владелец: SEA-10 (было SEA-4). Потребители: слой судов (рендер), тесты.
 - `ShipPlacer` (`scripts/world_objects/ship_placer.gd`, static): `ships_for(mask: Dictionary, center_lat: float, center_lon: float, params: Dictionary, height_fn: Callable) -> Array[Dictionary]`,
-  элемент `{"type": String (вид из S4), "x": float, "y": float (уровень воды L, м), "z": float (м места, оси как у Terrain), "heading_rad": float (0 — нос на −Z/север, по часовой), "cell": Vector2i}`.
-- Детерминизм по миру: мировая клетка `cell = Vector2i(floor(lon / cell_deg), floor(lat / cell_deg))`, `cell_deg` — `configs/sea_ships.json → placement.cell_deg` (0,1° ≈ 11 км).
-  Из хеша клетки (`TreeCell.hash` или `RockScatter.hash01`, без `RandomNumberGenerator` с глобальным сидом): есть ли судно (вероятность `placement.p_cell`),
-  точка внутри клетки (lat/lon), вид (`placement.types` с весами), курс. Перевод lat/lon ↔ x,z — `Geo` (`scripts/terrain/geo.gd`), как у мест.
-  Судно ставится, если точка внутри far и значение маски S2 ≥ 1 + `placement.min_shore_m`/100 (по умолчанию 2000 м). Одна и та же точка мира в двух местах
-  с разными центрами даёт то же судно (тест).
-- Высота: ватерлиния y = высота рельефа в точке (`Terrain.height_at`; после выравнивания S2 v2 это уровень воды L, у океана 0 м). `ships_for` получает высоту через параметр `height_fn: Callable` (x, z → м) последним аргументом.
-- Нет маски или пустая — пустой массив; слой судов не создаёт узлов (ноль цены).
+  элемент `{"type": String (вид из S4), "x": float, "y": float (уровень воды, м), "z": float (м места, оси как у Terrain), "heading_rad": float (0 — нос на −Z/север, по часовой), "cell": Vector2i}`.
+- Плотность (v3, ответ пользователя на Q3, 2026-10-17): на место 2–6 судов в полосе 3–15 км от берега, видимые с берега места; не десятки у глухих островов.
+  1. Кандидаты — по мировым клеткам `cell_deg` (`placement.cell_deg`, 0,02° ≈ 2 км): из хеша клетки (`TreeCell.hash`/`RockScatter.hash01`, без глобального сида) — точка в клетке, вид (`placement.types` с весами), курс, ранг `r` ∈ [0,1).
+     Кандидат годен, если точка внутри far, значение маски S2 в ней даёт расстояние до берега в `[placement.shore_min_m, placement.shore_max_m]` (3000…15000) и до центра места ≤ `placement.center_max_m` (30000).
+  2. Число судов места `N = n_min + hash(ключ места) mod (n_max − n_min + 1)` (`placement.n_min` 2, `n_max` 6); ключ места — мировая клетка центра (`LocationCache.key_for`-сетка 0,05°), без сида и без пилота.
+  3. Берутся N годных кандидатов с наименьшим `r` (не ближе `placement.min_sep_m` 1500 м друг к другу); годных меньше N — все.
+  Кандидат одной мировой клетки в двух местах одинаков (точка, вид, курс); набор взятых зависит от места (тест: одно место — один и тот же набор при повторе).
+- Высота: ватерлиния y = высота рельефа в точке (`height_fn(x, z)`, в игре `Terrain.height_at`; после S2 v2 это уровень воды, у океана 0 м).
+- Нет маски, пустая или нет годных кандидатов — пустой массив; слой судов не создаёт узлов (ноль цены).
 
 ## S4. Модели судов — версия 1
 

@@ -65,8 +65,19 @@ related: ["docs/contracts/sea-ships.md", "docs/guide/terrain/surface.md", "docs/
 #### SEA-6, SEA-7. Сухогруз и контейнеровоз (dp-engineer, opus, параллельно)
 После шлюза по кадрам SEA-5 — по образцу SEA-3.
 
+#### SEA-10. Плотность по Q3: 2–6 судов в 3–15 км от берега места (dp-engineer, sonnet)
+S3 v3: кандидаты по мировым клеткам 0,02°, полоса 3–15 км от берега, ≤ 30 км от центра, N = 2–6 по ключу места; веса видов 1/1/1. После SEA-6/7.
+
 ### Сдача
-Кадры, замер цены GPU против `main`, документация (`docs/guide/`), CHANGELOG, ASSETS.md.
+
+#### SEA-11. Кадры: учебный остров и итог (dp-researcher, sonnet)
+Учебный остров (с моря и с высоты) и оба реальных места с тремя видами судов, скрипт tools/shots/sea_ships.sh.
+
+#### SEA-12. Цена GPU: разница с main (dp-researcher, sonnet)
+Протокол G3 (docs/contracts/grass-rocks.md), medium и high, морское место и ongudai (без моря — ноль цены), ветка модуля против main.
+
+#### SEA-13. Документация, CHANGELOG, ASSETS.md (dp-writer, sonnet)
+docs/guide (суда, маска моря, уровень воды far), CHANGELOG «В работе», ASSETS.md — модели, registry/findings — вывод SEA-1.
 
 ## Волны
 1. SEA-1 → шлюз (работает/отмена).
