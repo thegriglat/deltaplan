@@ -1,0 +1,35 @@
+Deltaplan 1.5.19 — clouds from the field, islands and flight goals
+
+Cumulus clouds are now drawn from a shared regional cloud field instead of one cloud per thermal. Clouds grow where lift reaches the condensation level, live and decay over minutes and drift with the wind: cloud streets on strong days, scattered cumulus over crests on weak ones.
+
+Two training islands, flight goals with IGC tracks, ships off the coast and much faster reloads of a place you have already flown.
+
+Clouds:
+- Cumulus from a 400 m regional cloud field; cloud streets, more cloud over ridges
+- Thermals under cloud shade are weaker; mixed-layer top partly follows terrain
+- Network play: the host shares a cloud field snapshot every 30 s
+
+Training:
+- Training island: fictional 15 x 10 km place with ridge, thermal plain, training hill with a target field and a lee bowl with a rotor
+- Volcanic island on real terrain: sea cliffs, crater ridge, summit thermals, spot landing
+- Each launch has fixed weather and a pre-baked wind field, loads in under a second
+
+Flight goals and tracks:
+- Goals tab: height gain, time aloft, distance, out-and-return, triangle, route, spot landing
+- Levels estimated from the weather; goal list in flight, summary and records (single-player)
+- Track saved as IGC; last attempt shown as a ribbon (climb red, sink blue); load your own IGC and GPX
+
+World:
+- Tankers, bulk carriers and container ships 3-15 km off sea coasts
+- Four different people at the launch camp (Microsoft Rocketbox, MIT)
+- No thermals over the sea
+
+Loading and physics:
+- Wind field disk cache: Ongudai reload 12.5 s instead of 29, map point 18 s instead of 40; no long loading freezes
+- Launching in a lee shadow no longer inflates the wind over the whole map
+- Pendulum control: exact bar travel, lower top speed at full pull-in, shallower dive after a sharp pull-in
+
+Known issues:
+- Over Almaty on a strong day the lowland keeps some cloud instead of clear sky
+- No trade-wind inversion on the islands: cloud base is higher than in reality
+- On 4 cores or fewer loading is slower and the loading screen may freeze for 3-6 s
