@@ -203,11 +203,11 @@ func _add_anchor(c: Vector2, r: float, w: float, rng: RandomNumberGenerator) -> 
 			return
 
 
-func _in_corridor(p: Vector2) -> bool:
+func _in_corridor(p: Vector2, margin := 0.0) -> bool:
 	var rel := p - _s
 	return (
-		rel.dot(_fwd) > -float(_cfg.get("corridor_back_m", 8.0))
-		and absf(rel.dot(_right)) < float(_cfg.get("corridor_half_m", 11.0))
+		rel.dot(_fwd) > -float(_cfg.get("corridor_back_m", 8.0)) - margin
+		and absf(rel.dot(_right)) < float(_cfg.get("corridor_half_m", 11.0)) + margin
 	)
 
 
@@ -271,68 +271,110 @@ func _new_epoch(t: float, anchor: int) -> void:
 	_bark_clock = -1.0
 
 
-## Сегмент k эпохи: {kind, t0, t1, anchor, speed, anim | path, cum}.
+## Сегмент k эпохи: {kind, t0, t1, anchor, anim | path, cum, speed, acc}. Движение (wander) —
+## шаг к другой точке отдыха или пробежка (трусца/галоп кругом по лагерю, к вещам, к бровке сбоку
+## от коридора и обратно); покой — лежит/сидит (rest) или нюхает (sniff).
 func _make_seg(k: int, t_start: float, prev: Dictionary) -> Dictionary:
 	var e := _epoch
 	var at: int = prev.get("anchor", _ep_anchor)
-	var kind := "rest"
+	var kind := "wander"
 	if k == 0:
 		kind = "rest" if e == 0 else "sniff"
 	elif String(prev.kind) == "wander":
-		kind = "rest" if _rand(e, k, 0) < float(_cfg.get("rest_share", 0.5)) else "sniff"
-	elif _anchors.size() > 1:
-		kind = "wander"
-	else:
-		kind = "sniff" if String(prev.kind) == "rest" else "rest"
+		kind = "rest" if _rand(e, k, 0) < float(_cfg.get("rest_share", 0.7)) else "sniff"
 	var seg := {"kind": kind, "t0": t_start, "anchor": at, "speed": 0.0, "anim": ""}
 	if kind == "wander":
-		var to := _pick_anchor(_rand(e, k, 1), at)
-		var path := _plan_path(_anchors[at], _anchors[to])
+		var play := _anchors.size() < 2 or _rand(e, k, 6) < float(_cfg.get("play_share", 0.45))
+		var pts: Array[Vector2] = [_anchors[at]]
+		var to := at
+		var v := 0.0
+		if play:
+			var n := int(_rand_in(_cfg.get("play_points", [3, 5]), _rand(e, k, 7)) + 0.5)
+			for q in n:
+				pts.append(_play_point(e, k, q))
+			to = _pick_anchor(_rand(e, k, 1), -1)
+			v = _rand_in(_cfg.get("play_ms", [3.0, 7.0]), _rand(e, k, 3))
+		else:
+			to = _pick_anchor(_rand(e, k, 1), at)
+			var trot := _rand(e, k, 2) < float(_cfg.get("trot_share", 0.2))
+			v = _rand_in(_cfg.get("trot_ms" if trot else "walk_ms", [0.8, 1.3]), _rand(e, k, 3))
+		pts.append(_anchors[to])
+		var path := PackedVector2Array([pts[0]])
+		for q in range(1, pts.size()):
+			var leg := _plan_path(pts[q - 1], pts[q])
+			for w in range(1, leg.size()):
+				path.append(leg[w])
 		var cum := PackedFloat32Array([0.0])
-		for i in range(1, path.size()):
-			cum.append(cum[i - 1] + path[i - 1].distance_to(path[i]))
-		var trot := _rand(e, k, 2) < float(_cfg.get("trot_share", 0.2))
-		var v := _rand_in(_cfg.get("trot_ms" if trot else "walk_ms", [0.8, 1.3]), _rand(e, k, 3))
+		for q in range(1, path.size()):
+			cum.append(cum[q - 1] + path[q - 1].distance_to(path[q]))
+		var total := cum[cum.size() - 1]
+		var acc := float(_cfg.get("move_accel_ms2", 3.0))
+		v = minf(v, sqrt(maxf(total, 1e-3) * acc))  # короткий путь — не успевает разогнаться
 		seg.anchor = to
 		seg.path = path
 		seg.cum = cum
 		seg.speed = v
-		seg.t1 = t_start + maxf(cum[cum.size() - 1] / v, 0.5)
+		seg.acc = acc
+		seg.t1 = t_start + maxf(total / v + v / acc, 0.5)
 	elif kind == "rest":
-		seg.t1 = t_start + _rand_in(_cfg.get("rest_s", [20.0, 90.0]), _rand(e, k, 4))
+		seg.t1 = t_start + _rand_in(_cfg.get("rest_s", [40.0, 120.0]), _rand(e, k, 4))
 		seg.anim = "sit" if _rand(e, k, 5) < float(_cfg.get("sit_share", 0.3)) else "lie"
 	else:
-		seg.t1 = t_start + _rand_in(_cfg.get("sniff_s", [4.0, 15.0]), _rand(e, k, 4))
+		seg.t1 = t_start + _rand_in(_cfg.get("sniff_s", [4.0, 12.0]), _rand(e, k, 4))
 		seg.anim = "sniff"
 	return seg
 
 
-## Путь a → b: в обход коридора разбега (сзади) и кругов препятствий.
+## Точка пробежки: к бровке сбоку от коридора (не дальше бровки), к точке отдыха или в круге
+## play_radius_m вокруг середины между стартом и лагерем; не в препятствии и не в коридоре.
+func _play_point(e: int, k: int, q: int) -> Vector2:
+	var mid := (_s + _home_c) * 0.5
+	var rad := float(_cfg.get("play_radius_m", 25.0))
+	var half := float(_cfg.get("corridor_half_m", 11.0))
+	for tr in 6:
+		var x := _rand(e, k, 10 + q * 8 + tr)
+		var y := _rand(e, k, 60 + q * 8 + tr)
+		var p := Vector2.ZERO
+		if x < float(_cfg.get("play_brow_share", 0.3)):
+			var lat := (half + 2.0 + 8.0 * y) * (1.0 if fmod(y * 10.0, 2.0) < 1.0 else -1.0)
+			var lim := _allowed_along(_s + _right * lat) - 1.5
+			p = _s + _right * lat + _fwd * minf(lim, 6.0 + 10.0 * y)
+		elif x < 0.6:
+			p = _anchors[int(y * _anchors.size()) % _anchors.size()]
+		else:
+			var a := TAU * y
+			var r := rad * sqrt(_rand(e, k, 110 + q * 8 + tr))
+			p = mid + Vector2(cos(a), sin(a)) * r
+		if _in_corridor(p) or _inside_obst(p) >= 0 or _along(p) > _allowed_along(p) - 1.0:
+			continue
+		return p
+	return _anchors[int(_rand(e, k, 200 + q) * _anchors.size()) % _anchors.size()]
+
+
+## Путь a → b: в обход коридора разбега (сбоку или сзади, через углы) и кругов препятствий.
 func _plan_path(a: Vector2, b: Vector2) -> PackedVector2Array:
-	var pts := PackedVector2Array([a])
-	var la := (a - _s).dot(_right)
-	var lb := (b - _s).dot(_right)
-	var back := -float(_cfg.get("corridor_back_m", 8.0)) - 2.0
-	var half := float(_cfg.get("corridor_half_m", 11.0)) + 1.0
-	if signf(la) != signf(lb) and _seg_hits_corridor(a, b):
-		pts.append(_s + _fwd * back + _right * signf(la) * half)
-		pts.append(_s + _fwd * back + _right * signf(lb) * half)
-	pts.append(b)
-	for pass_i in 4:
+	var pts := PackedVector2Array([a, b])
+	for pass_i in 12:
 		var changed := false
 		var out := PackedVector2Array([pts[0]])
 		for i in range(1, pts.size()):
 			var p0 := out[out.size() - 1]
 			var p1 := pts[i]
-			var k := _first_block(p0, p1)
-			if k >= 0:
-				var o := _obst[k]
-				var c := Vector2(o.x, o.y)
-				var n := Geometry2D.get_closest_point_to_segment(c, p0, p1) - c
-				if n.length() < 1e-3:
-					n = (p1 - p0).orthogonal()
-				out.append(c + n.normalized() * (o.z + 0.6))
+			if _seg_hits_corridor(p0, p1):
+				out.append(_corridor_detour(p0, p1))
 				changed = true
+			else:
+				var k := _first_block(p0, p1)
+				if k >= 0:
+					var o := _obst[k]
+					var c := Vector2(o.x, o.y)
+					var n := Geometry2D.get_closest_point_to_segment(c, p0, p1) - c
+					if n.length() < 1e-3:
+						n = (p1 - p0).orthogonal()
+					var w := c + n.normalized() * (o.z + 0.6)
+					if not _in_corridor(w):
+						out.append(w)
+						changed = true
 			out.append(p1)
 		pts = out
 		if not changed:
@@ -340,9 +382,26 @@ func _plan_path(a: Vector2, b: Vector2) -> PackedVector2Array:
 	return pts
 
 
+## Промежуточная точка вне коридора: через него — задний угол со стороны p0 (потом со стороны p1),
+## по краю — сбоку на той же высоте along.
+func _corridor_detour(p0: Vector2, p1: Vector2) -> Vector2:
+	var back := -float(_cfg.get("corridor_back_m", 8.0)) - 2.0
+	var half := float(_cfg.get("corridor_half_m", 11.0)) + 1.0
+	var l0 := (p0 - _s).dot(_right)
+	var l1 := (p1 - _s).dot(_right)
+	if signf(l0) != signf(l1):
+		var c0 := _s + _fwd * back + _right * signf(l0) * half
+		if p0.distance_to(c0) > 0.1:
+			return c0
+		return _s + _fwd * back + _right * signf(l1) * half
+	var m := (p0 + p1) * 0.5
+	return _s + _fwd * maxf(_along(m), back) + _right * signf(l0) * half
+
+
 func _seg_hits_corridor(a: Vector2, b: Vector2) -> bool:
-	for i in 9:
-		if _in_corridor(a.lerp(b, i / 8.0)):
+	var n := maxi(8, int(a.distance_to(b) / 0.2))
+	for i in range(1, n):
+		if _in_corridor(a.lerp(b, float(i) / n), 0.2):
 			return true
 	return false
 
@@ -375,17 +434,34 @@ func _rest_at(t: float) -> void:
 		var path: PackedVector2Array = seg.path
 		var cum: PackedFloat32Array = seg.cum
 		var total := cum[cum.size() - 1]
-		var d := minf((t - float(seg.t0)) * float(seg.speed), total)
+		var dv := _trapezoid(t - float(seg.t0), total, float(seg.speed), float(seg.acc))
+		var d := dv.x
 		var i := 1
 		while i < cum.size() - 1 and cum[i] < d:
 			i += 1
 		var u := clampf((d - cum[i - 1]) / maxf(cum[i] - cum[i - 1], 1e-4), 0.0, 1.0)
 		_pos = _push_out(path[i - 1].lerp(path[i], u))
-		var dir := (path[i] - path[i - 1]).normalized()
-		_vel = dir * float(seg.speed) if d < total else Vector2.ZERO
+		_vel = (path[i] - path[i - 1]).normalized() * dv.y
 	else:
 		_pos = _anchors[int(seg.anchor)]
 		_vel = Vector2.ZERO
+
+
+## Путь и скорость при разгоне и торможении с ускорением acc до скорости v: (s, v) в момент tau.
+func _trapezoid(tau: float, total: float, v: float, acc: float) -> Vector2:
+	var ta := v / acc
+	var da := 0.5 * v * ta
+	var tt := total / v + ta
+	if tau <= 0.0:
+		return Vector2.ZERO
+	if tau < ta:
+		return Vector2(0.5 * acc * tau * tau, acc * tau)
+	if tau < tt - ta:
+		return Vector2(da + v * (tau - ta), v)
+	if tau < tt:
+		var r := tt - tau
+		return Vector2(total - 0.5 * acc * r * r, acc * r)
+	return Vector2(total, 0.0)
 
 
 # ---------------------------------------------------------------- погоня

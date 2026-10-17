@@ -288,3 +288,41 @@ func test_rest_frame_independent() -> void:
 		var pb: Vector3 = b[1]
 		check(pa.distance_to(pb) <= 0.05, "(j) место ±0,05 м: %.3f" % pa.distance_to(pb))
 	check(states.has("wander") and states.has("rest"), "бродит и отдыхает: %s" % [states.keys()])
+
+
+## Без бегущих: ≈ треть времени в движении, есть пробежки (трусца/галоп), не за бровкой, не в коридоре,
+## не сквозь палатки и вещи, на земле.
+func test_moves_third() -> void:
+	var tents := [Vector2(-30.0, -14.0), Vector2(-34.0, -20.0), Vector2(-28.0, 18.0)]
+	var pl := _place(tents, [], [Vector2(-6.0, -14.0), Vector2(-9.0, 16.0)])
+	var share_all: Array = []
+	for seed_i in [7, 21, 33]:
+		var c := _ctx(pl, 0.0)
+		var e := _dog(c, seed_i)
+		var moving := 0
+		var fast := 0
+		var n := 0
+		var bad := ""
+		for i in range(1, 10 * 3600 + 1):
+			c.t = i / 10.0
+			e.update(c)
+			var inf := e.info()
+			var p: Vector3 = inf.pos
+			var v := float(inf.speed)
+			n += 1
+			moving += 1 if v > 0.15 else 0
+			fast += 1 if v > 3.0 else 0
+			if _along(p) > 11.5 or (_along(p) > -8.0 and absf(p.x) < 11.0):
+				bad = "за бровкой/в коридоре: along %.1f lat %.1f" % [_along(p), p.x]
+			for t: Vector2 in tents:
+				if Vector2(p.x - t.y, p.z + t.x).length() < 1.8:
+					bad = "в палатке"
+			if absf(e.position.y - ground(e.position.x, e.position.z)) > 0.05:
+				bad = "не на земле"
+		var share := float(moving) / n
+		share_all.append(share)
+		check(share >= 0.25 and share <= 0.42, "сид %d: в движении %.2f времени (≈ треть)" % [seed_i, share])
+		check(fast > 0, "сид %d: пробежки быстрее 3 м/с есть (%.1f%%)" % [seed_i, 100.0 * fast / n])
+		check(bad == "", "сид %d: %s" % [seed_i, bad])
+		e.free()
+	print("         start_dog: доля движения по сидам %s" % [share_all])
