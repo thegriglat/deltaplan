@@ -407,9 +407,9 @@ func start(s: FlightSettings) -> bool:
 	)
 	# Среднее поле на час старта, ветер и погоду полёта — до термиков (их источники — из поля).
 	await _load_air_field(progress)
-	# Источники термиков из поля — в рабочем потоке, пока готовится планер (FL-5).
-	if air.has_method("prefetch_air_sources"):
-		air.call("prefetch_air_sources")
+	# Источники термиков из поля — в рабочем потоке, пока готовится планер (FL-5); только по
+	# готовым полям рельефа (иначе — после их ожидания ниже).
+	_prefetch_air_sources()
 	_align_start_heading()
 	if air.has_method("place_thermals_near"):
 		air.call("place_thermals_near", _start_pos, _start_heading)
@@ -437,6 +437,7 @@ func start(s: FlightSettings) -> bool:
 			terrain.wait_relief()
 			break
 		await get_tree().process_frame
+	_prefetch_air_sources()  # поля рельефа были не готовы — сборка источников стартует здесь
 	_goals_setup()
 	restart()
 	# Термики вокруг старта — ещё на экране загрузки (первое обновление — самое долгое, секунды):
@@ -451,6 +452,22 @@ func start(s: FlightSettings) -> bool:
 	progress.finish()
 	status_changed.emit("")
 	return true
+
+
+## Источники термиков заранее (FL-5), если поля рельефа готовы (air_sources_ready); иначе ничего —
+## повторный вызов после их готовности запускает сборку, уже запущенную — не трогает.
+func _prefetch_air_sources() -> void:
+	if air.has_method("prefetch_air_sources") and air_sources_ready(terrain):
+		air.call("prefetch_air_sources")
+
+
+## Можно ли собирать источники термиков поля (FL-17): точка источника и его сила (pick_fn →
+## Terrain.thermal_source_strength_at) читают влажность ложбин из полей рельефа, которые считаются
+## в фоне и подменяются на главном потоке. Сборка, начатая до их готовности, видела бы то
+## нейтральную влажность, то настоящую — число и точки источников зависели бы от скорости машины,
+## а ведущий и клиенты сети получали бы разные источники при одном ключе мира.
+static func air_sources_ready(t: Object) -> bool:
+	return t == null or not t.has_method("relief_busy") or not bool(t.call("relief_busy"))
 
 
 ## Этап загрузки «Рассчитываем ветер» (AM-06Б): точное поле для часа старта, ветра и погоды
