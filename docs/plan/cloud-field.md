@@ -30,7 +30,7 @@ related: ["docs/contracts/cloud-field.md", "docs/guide/atmosphere/clouds.md", "d
 - **Что остаётся объектами** — волновые линзы, шапка, ротор (записи `_wave_rec`), Cb (опасная погода VR-26 со своей физикой, не «облако на термик»), перистые (`CirrusLayer`). Кучевые записи `kind=0` уходят. Переразвитие в поле — мощные башни (мощность), не Cb.
 - **Без поля воздуха** (нет GPU, аналитический путь) — поле облачности то же, подъём — от аналитических термиков, растеризованных на ту же сетку.
 - **Физика по облаку** — `Atmosphere.cloud_density_at` (белая мгла `CloudWhiteout`), подсос и поток в облаке (`CloudPhysics`) — от поля.
-- **Compatibility** — один бокс над сеткой с той же плотностью слоя, меньше шагов; известная проблема «серая половина» — не чиним.
+- **Compatibility** — не делаем (решение пользователя 2026-10-17: игра требует Forward+); в boxes-пути кучевых нет.
 
 ## Что известно (разбор 2026-10-17)
 - Облака: `CloudLayer` (`scripts/atmosphere/cloud_layer.gd`, создаёт `Atmosphere._create_visuals`), `CloudModel` (`cloud_model.gd`: стадии, размер, выбор), `CloudPhysics` (`cloud_physics.gd`: подсос, `density_at`), `CloudCompositorEffect` + `cloud_common.gdshaderinc`, `cloud_raymarch_cs`, `cloud_temporal_cs`, `cloud_composite_cs`; запись облака 24 float (`CloudLayer.make_record`, kind 0 кучевое, 1 линза, 2 шапка, 3 Cb), SSBO binding 5; boxes — `cloud_volume.gdshader` на MultiMesh, данные — `ImageTexture` RGBAF 6 × rows.
@@ -75,12 +75,12 @@ related: ["docs/contracts/cloud-field.md", "docs/guide/atmosphere/clouds.md", "d
 Тип `dp-engineer`, Opus. После шлюза «карты» и CLF-3. Контракты CLF-К2, К1. Текстура поля (К2) в `CloudCompositorEffect` (отрезок луча через слой [основание, основание + мощность_max], пропуск пустых областей по текстуре, плотность слоя в `cloud_common.gdshaderinc` — покрытие порогом шума, стадии: растущее рваное, зрелое плотное с тёмным основанием, распад прозрачный), боксы кучевых убраны, линзы/шапка/Cb остаются записями; `CloudShadowMap` — слой полноэкранным квадом с той же плотностью; снос шума — ветер основания из поля. Без облаков в кадре — ноль лишней работы. Кадры: Онгудай с высоты, вид на хребет из Алматы (как фото пользователя), учебный остров → `/home/greg/deltaplan/build/screenshots/cloud-field/CLF-5/`. → **шлюз «кадры»**. Визуал — не больше 2 заходов.
 
 #### CLF-6. Compatibility (boxes)
-Тип `dp-engineer`. После CLF-5. `cloud_volume.gdshader` / `CloudLayer` boxes-путь: один бокс над сеткой с плотностью слоя (меньше шагов), без падений; линзы/шапка/Cb — как есть. Кадр одного вида.
+**Отменена (решение пользователя 2026-10-17): игра требует Forward+, Compatibility не интересует; в boxes-пути кучевых нет.** Было: тип `dp-engineer`. После CLF-5. `cloud_volume.gdshader` / `CloudLayer` boxes-путь: один бокс над сеткой с плотностью слоя (меньше шагов), без падений; линзы/шапка/Cb — как есть. Кадр одного вида.
 
 ### Сдача
 
 #### CLF-7. Цена GPU: разница с main
-Тип `dp-researcher`. После CLF-5, CLF-6. Один замер `tools/bench/frame_profile.sh` medium/high ongudai: `main` против `feature/cloud-field`, проход облаков и кадр. Порог: проход облаков ≤ +30 % к `main`.
+Тип `dp-researcher`. После CLF-5. Один замер `tools/bench/frame_profile.sh` medium/high ongudai: `main` против `feature/cloud-field`, проход облаков и кадр. Порог: проход облаков ≤ +30 % к `main`.
 
 #### CLF-8. Документация, CHANGELOG
 Тип `dp-writer`. После CLF-7. `docs/guide/atmosphere/clouds.md`, `docs/guide/air-model/thermals.md` (тень, источники) — по факту; `docs/research/cloud_field.md` → статус; CHANGELOG «В работе»; `registry/findings.md`.
@@ -90,8 +90,8 @@ related: ["docs/contracts/cloud-field.md", "docs/guide/atmosphere/clouds.md", "d
 ## Волны
 1. CLF-1 → шлюз «карты».
 2. CLF-9 (Fable) и CLF-3 параллельно, затем CLF-4; CLF-9 → шлюз «карты z_i» (Q3) → CLF-10 (Fable).
-3. CLF-5 (после CLF-3; шлюз «карты» отвечен Q2) → шлюз «кадры» → CLF-6.
-4. CLF-7, CLF-8 → sync от `main` → CLF-2 (перепечка) → шлюз «финал» → `cloud-field done`.
+3. CLF-5 (после CLF-3; шлюз «карты» отвечен Q2) → шлюз «кадры» (Q4: вид принят); CLF-6 отменена; CLF-12 — облака с первого кадра.
+4. CLF-7, CLF-8 → sync от `main` (Q4: слить main в модуль) → CLF-2 (перепечка) → шлюз «финал» → `cloud-field done`.
 
 ## Условия остановки (шлюз)
 - Карты поля (CLF-1) и первые кадры рендера (CLF-5) — всегда шлюз главной.

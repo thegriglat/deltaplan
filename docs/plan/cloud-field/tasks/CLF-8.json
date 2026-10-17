@@ -1,0 +1,52 @@
+{
+  "id": "CLF-8",
+  "module": "cloud-field",
+  "type": "dp-writer",
+  "title": "Документация модуля cloud-field, CHANGELOG, находки",
+  "goal": "Руководство описывает облака из поля по факту ветки (поле, связь с термиками, z_i по рельефу, опускание, сеть, рендер, чего не умеет); CHANGELOG «В работе»; находки в registry; исследование — статус.",
+  "plan_ref": "§CLF-8",
+  "contracts": [],
+  "copy": "~/deltaplan-cloud-field-CLF-8",
+  "branch": "cloud-field/CLF-8",
+  "base": "feature/cloud-field",
+  "scope": [
+    "docs/guide/atmosphere/clouds.md",
+    "docs/guide/atmosphere/",
+    "docs/guide/air-model/thermals.md",
+    "docs/guide/air-model/phases.md",
+    "docs/guide/air-model/runtime.md",
+    "docs/guide/net-protocol.md",
+    "docs/guide/atmosphere.md",
+    "docs/guide/air-model.md",
+    "docs/research/cloud_field.md",
+    "docs/research/cloud_field/",
+    "docs/registry/",
+    "docs/INDEX.md",
+    "CHANGELOG.md",
+    "TODO.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "docs/plan/",
+    "site/",
+    "docs/perf/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -c 'облак' CHANGELOG.md",
+      "expect": "num:^([0-9]+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T15:28:36"
+}
