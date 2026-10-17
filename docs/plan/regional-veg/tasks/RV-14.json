@@ -1,0 +1,49 @@
+{
+  "id": "RV-14",
+  "module": "regional-veg",
+  "type": "dp-researcher",
+  "title": "Оценка: дома на модели вместо коробок?",
+  "goal": "Короткая оценка без кода: что даст и что потеряет перевод домов с MultiMesh-коробок по контуру OSM на модели с LOD, и гибрид (модели — малые отдельные дома села/хижины, масштаб по контуру; коробки — город/промзона); рекомендация для шлюза пользователю.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "RV-К4",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    },
+    {
+      "name": "RV-К6",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-14",
+  "branch": "regional-veg/RV-14",
+  "base": "feature/regional-veg",
+  "scope": [
+    "docs/research/house-models.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "assets",
+    "tools",
+    "tests"
+  ],
+  "accept": [
+    {
+      "name": "doc",
+      "cmd": "test -f docs/research/house-models.md && echo ok",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T00:32:52"
+}

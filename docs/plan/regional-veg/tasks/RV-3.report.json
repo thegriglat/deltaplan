@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "build_trees.py знает oak/palm/tropical (в конце ORDER, сиды старых не сдвинулись), variants на породу (4 у новых), флаги --atlas-only/--atlas-out/--compare/--out; точки расширения CROWN_EXT (palm, dome) и листва broad/palm (пока как берёза, TODO для RV-4/5/7).",
+  "commits": [
+    "cc27caf9 RV-3: генератор деревьев — новые породы, --atlas-only"
+  ],
+  "checks": [
+    {
+      "name": "params",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "atlas_same",
+      "value": "atlas_maxdiff=0",
+      "pass": true
+    },
+    {
+      "name": "old_untouched",
+      "value": "assets пуст",
+      "pass": true
+    },
+    {
+      "name": "пробная сборка oak/palm/tropical в build/rv3/o",
+      "value": "без ошибок; LOD0 tris 1648/724/1504; glb 1015/470/892 КБ",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RV-3",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_trees.py: main()",
+      "why": "--out кладёт исходники в <out>/source; атлас читает SRC (с --out — из <out>/source)",
+      "checked": "без --out атлас совпал с эталоном (maxdiff 0)"
+    },
+    {
+      "where": "tools/blender/render_trees.py",
+      "why": "пропускает породы без glb в assets, чтобы не падать",
+      "checked": "только чтение кода, превью не запускал"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-18T00:32:53",
+  "by": "executor"
+}

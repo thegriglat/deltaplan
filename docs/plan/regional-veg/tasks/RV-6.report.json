@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "BuildingPlacer: ключи village_roof/city_roof/hip_pitch_deg/parapet_*/max_levels (RV-К4), H2 вальмовая своя ArrayMesh (ступени вытянутости 1/10, MultiMesh), H1 парапет 4 коробками цвета стен, потолок этажности по правилу; без ключей вывод идентичен (эталон снят до правки).",
+  "commits": [
+    "6d8dfe58 regional-veg RV-6: формы домов H1/H2"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "building",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "osm_look",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_building_forms",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RV-6",
+  "uncertain": [
+    {
+      "where": "building_placer.gd hip_mesh",
+      "why": "единичный куб не держит вытянутость плана, поэтому меш по 10 ступеням S/L; уклон длинных скатов точный, торцевых — с погрешностью до полуступени",
+      "checked": "тест: высота конька = S/2·tan(20°) ±1 см, нормали вверх/наружу"
+    },
+    {
+      "where": "osm_buildings.prepare",
+      "why": "level_m в cfg buildings кладётся копией из height_rule; для village_layer (записи 7 полей, без by_rule) потолок не действует",
+      "checked": "тест max_levels"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-18T00:32:48",
+  "by": "executor"
+}
