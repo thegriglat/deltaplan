@@ -1,0 +1,81 @@
+{
+  "id": "FL-10",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "G: объекты, деревья, боты порциями во время расчёта ветра; общие данные места — в поток",
+  "goal": "Расчёт поля воздуха (при промахе кеша) начинается как можно раньше и идёт в фоне, пока порциями строятся объекты, пилот и боты; PlaceData и маска просек — в рабочем потоке; ни одного кадра экрана загрузки > 1 с; поле и мир те же, что при прежнем порядке.",
+  "plan_ref": "FL-10",
+  "contracts": [
+    {
+      "name": "FL-К1",
+      "version": "1",
+      "ref": "docs/contracts/fast-load.md"
+    },
+    {
+      "name": "FL-К2",
+      "version": "1",
+      "ref": "docs/contracts/fast-load.md"
+    },
+    {
+      "name": "PF-К4",
+      "version": "2",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-10",
+  "branch": "fast-load/FL-10",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/game/game.gd",
+    "scripts/game/world_link.gd",
+    "scripts/game/bot_pilots.gd",
+    "scripts/world_objects/place_data.gd",
+    "scripts/world_objects/world_clearings.gd",
+    "scripts/world_objects/osm_data.gd",
+    "scripts/world_objects/world_objects.gd",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/core/load_progress.gd",
+    "configs/ui.json",
+    "tests/game",
+    "tests/world_objects",
+    "tests/atmosphere",
+    "tests/contracts/test_fast_load_k2.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_field_cache.gd",
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/air_model/air_thermals.gd",
+    "scripts/atmosphere/air_model/air_place.gd",
+    "scripts/terrain/terrain_tree_models.gd",
+    "scripts/world_objects/osm"
+  ],
+  "accept": [
+    {
+      "name": "game",
+      "tests": "game"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    },
+    {
+      "name": "fast_load_k1",
+      "tests": "fast_load_k1"
+    },
+    {
+      "name": "fast_load_k2",
+      "tests": "fast_load_k2"
+    },
+    {
+      "name": "determinism",
+      "tests": "determinism"
+    },
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T06:11:45"
+}
