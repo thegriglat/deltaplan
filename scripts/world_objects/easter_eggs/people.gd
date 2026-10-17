@@ -5,24 +5,20 @@ extends EasterEgg
 ## нему и машут руками (локальная анимация, К3). По MultiMesh на часть модели camp_person.glb
 ## (ноги, торс, голова, правая, левая рука; запасной путь — капсулы), экземпляр i — человек i. Положение и руки — функция ctx.t.
 ## Вблизи (ближе near_m от камеры, с гистерезисом; не больше max_skinned человек) человек рисуется
-## моделью camp_pilot.glb со скелетной анимацией (idle / walk / wave / wave_both, SC-K4 v2), в
-## MultiMesh он скрыт; AnimationPlayer работает только у ближних. Раскраска та же, что у дальнего LOD.
+## моделью Microsoft Rocketbox (4 человека, assets/models/world/rocketbox, SC-K4 v3) со скелетной
+## анимацией idle / walk / wave / wave_both (ретаргет с camp_pilot.glb), в MultiMesh он скрыт;
+## AnimationPlayer работает только у ближних. LOD модели — по расстоянию (visibility range, lod_m).
+## Цвета и рост дальнего LOD — от модели человека (средние цвета её текстур).
 ## Порядок бросков rng в begin: число людей; на каждого — палатка, угол, расстояние от края
-## палатки, курс, фазы, рост, цвета (рубашка, штаны, кожа).
+## палатки, курс, фазы, рост, цвета (рубашка, штаны, кожа); в конце — сдвиг номера модели.
 
 const PARTS := 5  ## ноги, торс, голова, левая рука, правая рука
 const SHOULDER_Y := 1.42
 const MODEL := "res://assets/models/world/camp_person.glb"
 const PART_NODES := ["Legs", "Torso", "Head", "ArmR", "ArmL"]
-const NEAR_MODEL := "res://assets/models/world/camp_pilot.glb"
-const WALK_STRIDE_M := 1.2  ## длина шага цикла walk, м (SC-11)
+const NEAR_DIR := "res://assets/models/world/rocketbox/"
+const LODS := ["Body_LOD0", "Body_LOD1", "Body_LOD2"]
 const BLEND_S := 0.35  ## плавный переход между анимациями, с
-const HAIR_PALETTE: Array[Color] = [
-	Color(0.12, 0.08, 0.05), Color(0.22, 0.15, 0.1), Color(0.4, 0.28, 0.16),
-	Color(0.62, 0.5, 0.3), Color(0.55, 0.55, 0.55)
-]
-static var _skin_mats: Dictionary = {}  ## квантованный тон кожи → общий материал
-static var _hair_mats: Dictionary = {}  ## индекс палитры → общий материал
 
 ## Итоги для тестов: [{home: Vector3, tent: int, edge_m: float}]
 var info: Array[Dictionary] = []
@@ -32,12 +28,10 @@ var _people: Array[Dictionary] = []
 var _mms: Array[MultiMesh] = []  ## по MultiMesh на часть; экземпляр i — человек i
 var _mmis: Array[MultiMeshInstance3D] = []
 var _slot_of: Array[int] = []  ## человек i → номер ближнего экземпляра в _pool (−1 — дальний LOD)
-var _pool: Array[Dictionary] = []  ## {root, ap, a, b, person, anim}; создаются по мере надобности
-var _near_ok := true  ## модель camp_pilot.glb загрузилась
-var _near_meshes: Array[Mesh] = []  ## [куртка+кожа+волосы+обувь, штаны] — тонируются по отдельности
+var _pool: Array[Dictionary] = []  ## {root, ap, meshes, model, person, anim}; создаются по мере надобности
+var _models: Array[Dictionary] = []  ## {name, lib: AnimationLibrary} — модели, что загрузились
 var _near_max := 0  ## максимум одновременно ближних за жизнь
-var _near_tris := 0
-var _walk_mps := 1.1
+var _near_tris: Array[int] = [0, 0, 0]  ## наибольшее число треугольников LOD0..2 среди созданных
 var _hidden: Array[bool] = []  ## человек i скрыт в MultiMesh (ближний LOD рисует его сам)
 var _model := false  ## части из camp_person.glb (иначе запасные капсулы)
 var _center := Vector3.ZERO
@@ -113,6 +107,21 @@ func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, _t0: fl
 		_people.append(p)
 		_slot_of.append(-1)
 		info.append({"home": Vector3(home.x, 0.0, home.y), "tent": ti, "edge_m": ecl})
+	_load_models()
+	var off := rng.randi_range(0, 1023)
+	for i in n:  # модели по кругу: первые четверо — разные люди
+		var p: Dictionary = _people[i]
+		p.model = -1
+		if _models.is_empty():
+			continue
+		p.model = (i + off) % _models.size()
+		var lib: AnimationLibrary = _models[p.model].lib
+		p.h = float(lib.get_meta("height_m", 1.75))
+		var cols: Dictionary = lib.get_meta("colors", {})
+		for pair in [["shirt", "top"], ["pants", "bottom"], ["skin", "skin"]]:
+			var c: Array = cols.get(pair[1], [])
+			if c.size() == 3:
+				p[pair[0]] = Color(float(c[0]), float(c[1]), float(c[2]))
 	var reach := _camp_r + 20.0
 	var aabb := AABB(Vector3(-reach, -60.0, -reach), Vector3(reach * 2.0, 120.0, reach * 2.0))
 	var meshes := _part_meshes()
@@ -347,7 +356,7 @@ func _assign_near() -> void:
 				_release(i)
 			else:
 				used += 1
-	if used < cap and _near_ok:
+	if used < cap and not _models.is_empty():
 		var cand: Array[int] = []
 		for i in _people.size():
 			if _slot_of[i] < 0 and float(_people[i].dist) < near_m:
@@ -383,36 +392,39 @@ func _release(i: int) -> void:
 	_last_tick = -1.0e9
 
 
-## Занять ближний экземпляр человеком i: раскраска, анимация с его фазой.
+## Модели Rocketbox из конфига (near_models): glb и библиотека анимаций рядом; нет файлов — модели нет.
+func _load_models() -> void:
+	_models.clear()
+	for nm in _cfg.get("near_models", []):
+		var glb := "%s%s/%s.glb" % [NEAR_DIR, nm, nm]
+		var res := "%s%s/%s_anims.res" % [NEAR_DIR, nm, nm]
+		if not ResourceLoader.exists(glb) or not ResourceLoader.exists(res):
+			continue
+		var lib := load(res) as AnimationLibrary
+		if lib == null:
+			continue
+		_models.append({"name": String(nm), "glb": glb, "lib": lib})
+
+
+## Занять ближний экземпляр человеком i: свободный своей модели или новый; анимация с его фазой.
 func _acquire(i: int) -> bool:
+	var p: Dictionary = _people[i]
+	var m := int(p.get("model", -1))
+	if m < 0:
+		return false
 	var k := -1
 	for j in _pool.size():
-		if int(_pool[j].person) < 0:
+		if int(_pool[j].person) < 0 and int(_pool[j].model) == m:
 			k = j
 			break
 	if k < 0:
-		k = _make_slot()
+		k = _make_slot(m)
 		if k < 0:
-			_near_ok = false
+			p.model = -1  # модель не собралась — человек остаётся дальним, не пробуем снова
 			return false
 	var sl: Dictionary = _pool[k]
-	var p: Dictionary = _people[i]
 	sl.person = i
 	_slot_of[i] = k
-	var a: MeshInstance3D = sl.a
-	var b: MeshInstance3D = sl.b
-	var sh: Color = p.shirt
-	var pn: Color = p.pants
-	a.set_instance_shader_parameter("tint", Vector3(sh.r, sh.g, sh.b))
-	b.set_instance_shader_parameter("tint", Vector3(pn.r, pn.g, pn.b))
-	var sk := _skin_material(p.skin)
-	var hr := _hair_material(int(float(p.ph.w) * HAIR_PALETTE.size()))
-	for s in a.mesh.get_surface_count():
-		var nm := a.mesh.surface_get_material(s).resource_name
-		if nm == "Skin":
-			a.set_surface_override_material(s, sk)
-		elif nm == "Hair":
-			a.set_surface_override_material(s, hr)
 	var ap: AnimationPlayer = sl.ap
 	ap.process_mode = Node.PROCESS_MODE_INHERIT
 	ap.active = true
@@ -432,16 +444,14 @@ func _pose_near(i: int) -> void:
 	var p: Dictionary = _people[i]
 	var sl: Dictionary = _pool[_slot_of[i]]
 	var root: Node3D = sl.root
-	# рост модели 1,78 м, а не 1,75
-	var sb: Basis = (p.sb as Basis).scaled(Vector3.ONE * (1.75 / 1.78))
-	root.transform = Transform3D(sb, p.origin)
+	root.transform = Transform3D(Basis(Vector3.UP, float(p.yaw)), p.origin)  # рост — свой у модели
 	var mode := (
 		GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		if float(p.dist) < float(_cfg.get("shadow_m", 150.0))
 		else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	)
-	(sl.a as MeshInstance3D).cast_shadow = mode
-	(sl.b as MeshInstance3D).cast_shadow = mode
+	for mi in sl.meshes:
+		(mi as MeshInstance3D).cast_shadow = mode
 	var r: float = p.react
 	var want: String = sl.anim
 	if r > 0.3 or (want.begins_with("wave") and r > 0.1):
@@ -455,56 +465,46 @@ func _pose_near(i: int) -> void:
 		sl.anim = want
 		ap.play(want, BLEND_S)
 	# темп шага под скорость перемещения: иначе ноги скользят
-	ap.speed_scale = clampf(float(p.speed) / _walk_mps, 0.08, 1.6) if want == "walk" else 1.0
+	ap.speed_scale = clampf(float(p.speed) / float(sl.walk_mps), 0.08, 1.6) if want == "walk" else 1.0
 
 
-func _make_slot() -> int:
-	if not ResourceLoader.exists(NEAR_MODEL):
-		return -1
-	var ps := load(NEAR_MODEL) as PackedScene
+## Экземпляр модели m: glb + AnimationPlayer с библиотекой ретаргета; LOD — visibility range мешей.
+func _make_slot(m: int) -> int:
+	var ps := load(_models[m].glb) as PackedScene
 	if ps == null:
 		return -1
 	var root := ps.instantiate() as Node3D
-	var body := root.find_child("PersonBody", true, false) as MeshInstance3D
-	var ap := root.find_child("AnimationPlayer", true, false) as AnimationPlayer
-	if body == null or ap == null:
-		root.free()
-		return -1
-	if _near_meshes.is_empty():
-		_near_meshes = _split_body(body.mesh)
-	var b := MeshInstance3D.new()
-	b.name = "PersonTrousers"
-	body.get_parent().add_child(b)
-	b.skin = body.skin
-	b.skeleton = body.skeleton
-	body.mesh = _near_meshes[0]
-	b.mesh = _near_meshes[1]
+	var meshes: Array[MeshInstance3D] = []
+	for nm in LODS:
+		var mi := root.find_child(nm, true, false) as MeshInstance3D
+		if mi == null:
+			root.free()
+			return -1
+		meshes.append(mi)
+	var lod: Array = _cfg.get("lod_m", [10.0, 25.0])
+	var hy := float(_cfg.get("lod_hyst_m", 1.0))
+	for j in meshes.size():
+		var mi := meshes[j]
+		mi.visibility_range_begin = 0.0 if j == 0 else float(lod[j - 1])
+		mi.visibility_range_end = float(lod[j]) if j < lod.size() else 0.0
+		mi.visibility_range_begin_margin = hy if j > 0 else 0.0
+		mi.visibility_range_end_margin = hy if j < lod.size() else 0.0
+		_near_tris[j] = maxi(_near_tris[j], _mesh_tris(mi.mesh))
+	var ap := AnimationPlayer.new()
+	ap.name = "AnimationPlayer"
+	var lib: AnimationLibrary = _models[m].lib
+	ap.add_animation_library("", lib)
+	root.add_child(ap)
 	root.visible = false
 	add_child(root)
-	_near_tris = _mesh_tris(_near_meshes[0]) + _mesh_tris(_near_meshes[1])
-	_walk_mps = WALK_STRIDE_M / maxf(0.1, ap.get_animation("walk").length)
+	var walk := ap.get_animation("walk")
+	var mps := float(lib.get_meta("stride_m", 1.1)) / maxf(0.1, walk.length if walk != null else 1.0)
 	ap.active = false
 	ap.process_mode = Node.PROCESS_MODE_DISABLED
-	_pool.append({"root": root, "ap": ap, "a": body, "b": b, "person": -1, "anim": ""})
+	_pool.append({
+		"root": root, "ap": ap, "meshes": meshes, "model": m, "person": -1, "anim": "", "walk_mps": mps
+	})
 	return _pool.size() - 1
-
-
-## Тело на два меша: куртка+кожа+волосы+обувь и штаны — у MeshInstance3D один instance-тон на меш.
-func _split_body(src: Mesh) -> Array[Mesh]:
-	var ma := ArrayMesh.new()
-	var mb := ArrayMesh.new()
-	for s in src.get_surface_count():
-		var mat := src.surface_get_material(s)
-		var dst: ArrayMesh = mb if mat.resource_name == "Trousers" else ma
-		dst.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, src.surface_get_arrays(s))
-		var idx := dst.get_surface_count() - 1
-		if mat.resource_name == "Jacket" or mat.resource_name == "Trousers":
-			dst.surface_set_material(idx, CampFabric.material("cloth"))
-			dst.surface_set_name(idx, mat.resource_name)
-		else:
-			dst.surface_set_material(idx, mat)
-	var out: Array[Mesh] = [ma, mb]
-	return out
 
 
 func _mesh_tris(m: Mesh) -> int:
@@ -514,30 +514,6 @@ func _mesh_tris(m: Mesh) -> int:
 		var idx = arr[Mesh.ARRAY_INDEX]
 		n += (idx.size() if idx != null else arr[Mesh.ARRAY_VERTEX].size()) / 3
 	return n
-
-
-## Общий материал кожи по палитре (тон квантуется до 0,05): материалов мало, не по одному на человека.
-func _skin_material(c: Color) -> Material:
-	var q := Color(roundf(c.r * 20.0) / 20.0, roundf(c.g * 20.0) / 20.0, roundf(c.b * 20.0) / 20.0)
-	var key := q.to_html(false)
-	if not _skin_mats.has(key):
-		var m := StandardMaterial3D.new()
-		m.resource_name = "Skin_" + key
-		m.albedo_color = q
-		m.roughness = 0.8
-		_skin_mats[key] = m
-	return _skin_mats[key]
-
-
-func _hair_material(k: int) -> Material:
-	k = clampi(k, 0, HAIR_PALETTE.size() - 1)
-	if not _hair_mats.has(k):
-		var m := StandardMaterial3D.new()
-		m.resource_name = "Hair_%d" % k
-		m.albedo_color = HAIR_PALETTE[k]
-		m.roughness = 0.9
-		_hair_mats[k] = m
-	return _hair_mats[k]
 
 
 ## Для тестов и отчёта: ближний ли человек i, его анимация, играет ли AnimationPlayer.
@@ -556,8 +532,15 @@ func near_count_max() -> int:
 	return _near_max
 
 
-func near_tris() -> int:
+## Наибольшее число треугольников LOD0, LOD1, LOD2 среди созданных ближних экземпляров.
+func near_lod_tris() -> Array[int]:
 	return _near_tris
+
+
+## Модель человека i (имя из near_models) или "" — моделей нет.
+func person_model(i: int) -> String:
+	var m := int(_people[i].get("model", -1))
+	return "" if m < 0 else String(_models[m].name)
 
 
 func near_anim(i: int) -> String:

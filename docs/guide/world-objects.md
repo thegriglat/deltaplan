@@ -39,7 +39,7 @@ VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2. Компонент `WorldOb
 | `start_gear.gd` (`StartGear`) | снаряжение у каждого старта: крылья на штанге, полусобранный аппарат, чехлы, рюкзаки, шлемы, бутылки; план — без нод, визуал — MultiMesh и `glider_<id>.glb` |
 | `trample_mask.gd` (`TrampleMask`) | маска примятой травы R8 вокруг старта (палатки, тропинки, вещи, круг разбега, тропа); без нод |
 | `camp_fabric.gd` (`CampFabric`) + `assets/shaders/camp/camp_fabric.gdshader` | общий шейдер ткани и материал на пресет (палатки, чехлы, парус, одежда людей) |
-| `easter_eggs/people.gd` (`EggPeople`) | люди у лагеря: вблизи `camp_pilot.glb` со скелетом, вдали MultiMesh `camp_person.glb` |
+| `easter_eggs/people.gd` (`EggPeople`) | люди у лагеря: вблизи 4 модели Rocketbox со скелетом (`assets/models/world/rocketbox`), вдали MultiMesh `camp_person.glb` |
 | `campfire.gd` (`Campfire`) + `smoke_particles.gdshader`, `smoke_puff.gdshader`, `flame_puff.gdshader` | костёр в лагере: кольцо камней и поленья (процедурный меш), пламя и дым — GPUParticles3D, мерцающий свет; дым сносит локальный ветер |
 | `obstacle_index.gd` (`ObstacleIndex`) | сетка препятствий: цилиндры (деревья), повёрнутые коробки (дома, палатки) |
 | `draped.gdshader` | тропы и покос: сдвиг к камере против утопания в грубом LOD рельефа, растушёвка края дизерингом |
@@ -51,7 +51,7 @@ VR-6, VR-7, VR-9, VR-10, VR-12, VR-13, NFR-1, NFR-2. Компонент `WorldOb
 | `scenes/world_objects/{windsock,streamer}_visual.tscn` | обёртки визуала (маркер `Pivot`, меш `Sock`/`Ribbon`) |
 | `scenes/world_objects/world_objects_preview.tscn` | тестовая сцена с рельефом и атмосферой |
 | `tools/blender/world_objects/build_world_objects.py` | модели: ветроуказатель, вешка с лентой |
-| `tools/blender/build_start_gear.py`, `build_glider_kit.py`, `build_camp_person.py`, `build_camp_pilot.py` | модели лагеря → `assets/models/world/{start_gear,glider_kit,camp_person,camp_pilot}.glb` (см. `models.md`) |
+| `tools/blender/build_start_gear.py`, `build_glider_kit.py`, `build_camp_person.py`, `build_camp_pilot.py`, `build_camp_rocketbox.sh` | модели лагеря → `assets/models/world/{start_gear,glider_kit,camp_person,camp_pilot}.glb`, `rocketbox/` (см. `models.md`) |
 | `tools/blender/build_tents.py` | палатки: купольная 2-местная, туннельная 3-местная, тент-навес → `assets/models/world/tents.glb` |
 | `tools/shots/tents_shot.tscn` | кадры лагеря в игре (с земли, сбоку, вблизи, сверху) и всех моделей × цветов |
 | `tools/shots/campfire_shot.tscn` | кадры костра с дымом: со старта, вблизи, с воздуха в 300 и 500 м (`--wind=`, `--hour=`) |
