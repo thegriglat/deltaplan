@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-17"
 summary: "Вулканический остров: место только для «Тренировки» (VI-К1), группы окна «Тренировка» (VI-К2), запекание мест (VI-К3)."
 related: ["docs/plan/volcano-island.md", "docs/contracts/training-island.md", "docs/guide/location-data.md"]
-contracts: [{"id": "VI-К1", "version": 1}, {"id": "VI-К2", "version": 1}, {"id": "VI-К3", "version": 1}]
+contracts: [{"id": "VI-К1", "version": 2}, {"id": "VI-К2", "version": 1}, {"id": "VI-К3", "version": 1}]
 ---
 # Контракты модуля volcano-island
 
@@ -21,7 +21,7 @@ contracts: [{"id": "VI-К1", "version": 1}, {"id": "VI-К2", "version": 1}, {"id
 источников данных (Copernicus, ESA WorldCover, OpenStreetMap) — обычные, без названия острова. В журнале модуля и в коде инструментов
 `tools/terrain/volcano/` координаты и рабочие пометки допустимы.
 
-## VI-К1. Вулканический остров — встроенное место только для «Тренировки» — версия 1
+## VI-К1. Вулканический остров — встроенное место только для «Тренировки» — версия 2
 
 - Владелец данных: VI-1 (`tools/terrain/volcano/`); владелец кода (`training_only`, тайлы OSM из папки места): VI-2.
   Потребители: `Locations` (`scripts/terrain/build/locations.gd`), `Terrain`, загрузка OSM (`OsmData.load_for`, `scripts/world_objects/osm_data.gd`),
@@ -42,7 +42,9 @@ contracts: [{"id": "VI-К1", "version": 1}, {"id": "VI-К2", "version": 1}, {"id
 - Папка данных — формат 4 (`Locations.FORMAT_VERSION`), собрана обычным сборщиком (`LocationBuilder`: Copernicus GLO-30, Terrarium, ESA WorldCover,
   реки, сглаживание, тайлы OSM) и скопирована как есть: `meta.json`, `detail.webp` (1601², 25 м), `far.webp` (1601², 100 м), `*_surface.webp`,
   `*_water.webp`, `detail_detail10.webp`, `detail_built10.webp`, `built_patches.json`, `surface.json`, `osm_tiles.json`, `build.json`
-  (`complete: true`, `format_version` 4); без `*.import`, `*.remap`, `location.json`. Рельеф не правится (реальный, как есть).
+  (`complete: true`, `format_version` 4); без `*.remap`, `location.json`. Рельеф не правится (реальный, как есть).
+  - v2 (2026-10-17): у каждого `*.webp` — `*.webp.import` в git с `importer="keep"` (как у `training_island`: `[remap]`, пустая строка,
+    `importer="keep"`), иначе Godot импортирует WebP как текстуру и в экспорт не попадает сырой файл; файлы с `importer="texture"` — ошибка.
   - Тайлы OSM — в папке места: `osm/<j>/<i>.dpt` (байты как в `user://osm_tiles/v1/<j>/<i>.dpt`, формат модуля osm-tiles) для каждого
     тайла со статусом `"ok"` в `osm_tiles.json`; `"none"` — файла нет. Статуса `"missing"` в bundled-месте нет.
   - Загрузка OSM bundled-места (VI-2): корень тайлов — `Locations.osm_root(id)` = `data_dir(id).path_join("osm")` для bundled-места,
@@ -62,7 +64,8 @@ contracts: [{"id": "VI-К1", "version": 1}, {"id": "VI-К2", "version": 1}, {"id
   Каждый старт проходит правила `tests/terrain/test_locations.gd` (уклон 8–35°, земля в 60 м впереди ниже > 5 м, не лес). Подветренных стартов
   (при пассате с 110°) нет. `weather` (TI-К2 v2) — пишет VI-5; до VI-5 у стартов `weather` нет.
 - Посадки `landing_sites` (уклон < 10°, не лес, не вода): `landing_target` — мишень на плато для `plateau_landing` (0,15–1,5 км от старта),
-  у каждого склонового старта — посадка в пределах планирования (k ≈ 6 от высоты старта над ней); детали — `configs/world_objects.json → landing.sites.volcano_island`.
+  у каждого склонового старта — посадка в пределах планирования (k ≈ 6 от высоты старта над ней; v2: если у кромки нет места с уклоном < 10° ближе —
+  до k ≈ 11 при подъёме у старта, решение координатора 2026-10-17 по VI-5: east_cliffs → landing_cliffs k 10,9); детали — `configs/world_objects.json → landing.sites.volcano_island`.
 - Нет папки или файла слоя — загрузка падает с сообщением (TI-К1), не сборкой из сети.
 
 ## VI-К2. Окно «Тренировка»: группы мест — версия 1

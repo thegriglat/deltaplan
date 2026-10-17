@@ -314,6 +314,7 @@ generated: true
 - [tools/research/heat_ca/exp4_transfer_sweeps/README.md](../tools/research/heat_ca/exp4_transfer_sweeps/README.md) — Опыт 4: установившееся поле проходами по слоям (матрицы перехода) — код, запуск и файлы; итог — summary.md [closed]
 - [tools/research/heat_ca/exp5_adi/README.md](../tools/research/heat_ca/exp5_adi/README.md) — Опыт 5: чередующиеся прогонки по линиям (ADI) доводят автомат до той же точки за 100–190 раундов, в 9–23× быстрее шагов [closed]
 - [tools/research/lakes_worldcover/README.md](../tools/research/lakes_worldcover/README.md) — Озёра: WorldCover 10 м против OSM на 4 местах — IoU по крупным озёрам 0,86–0,97, вода не теряется на шагах сборки и в H [closed]
+- [tools/research/lee_cal/README.md](../tools/research/lee_cal/README.md) — Подгонка притока под ветер у старта в тени: верхний предел k 3 → 1 — числа до/после на Рапа-Нуи, Онгудае, Аскарово. [closed]
 - [tools/research/location_compression/README.md](../tools/research/location_compression/README.md) — Сжатие данных мест (data/terrain, user://locations): почему выросли после перехода на GDScript и какие форматы Godot 4.7 дают выигрыш [closed]
 - [tools/research/morris/README.md](../tools/research/morris/README.md) — Моррис: чувствительность модели воздуха — Итог и выводы — docs/research/air-model-sensitivity.md. [closed]
 - [tools/research/mountain_look/README.md](../tools/research/mountain_look/README.md) — Замер «до»: как слои, сглаживание σ 0,8 и шаг LOD меняют силуэт гор (Эверест, Эльбрус, Монблан, Домбай, Онгудай); зонд MLK-К3 [closed]
