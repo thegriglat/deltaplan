@@ -70,7 +70,15 @@ func test_can_appear_conditions() -> void:
 	c = _ctx(0.0, p)
 	c.hour = 19.0
 	c.sun_elev_deg = 10.0
-	check(not EggBalloon.can_appear(c, cfg), "вечером — нет")
+	check(EggBalloon.can_appear(c, cfg), "вечером до заката — да")
+	c = _ctx(0.0, p)
+	c.hour = 15.0
+	c.sun_elev_deg = 35.0
+	check(not EggBalloon.can_appear(c, cfg), "после обеда — нет")
+	c = _ctx(0.0, p)
+	c.hour = 21.0
+	c.sun_elev_deg = -8.0
+	check(not EggBalloon.can_appear(c, cfg), "после заката — нет")
 	c = _ctx(0.0, p)
 	c.wind_ms = 8.0
 	check(not EggBalloon.can_appear(c, cfg), "ветер 8 м/с — нет")
@@ -111,7 +119,6 @@ func test_sites_on_locations() -> void:
 		for from_deg in [270.0, 90.0, 0.0, 180.0]:
 			var c := _loc_ctx(p, from_deg)
 			var e := _egg("balloon", 0.0, c)
-			var life := float(_cfg().lifetime_s)
 			if e.count() == 0:
 				print("         %-9s %4.0f°  нет" % [id, from_deg])
 				e.free()
@@ -121,7 +128,7 @@ func test_sites_on_locations() -> void:
 			var v := p.nearest_place(b0.x, b0.z)
 			var min_st := INF
 			for k in 31:
-				var q := e.balloon_pos(0, life * k / 30.0)
+				var q := e.balloon_pos(0, 1200.0 * k / 30.0)
 				for st in p.start_sites():
 					min_st = minf(
 						min_st, Vector2(q.x - st.position.x, q.z - st.position.z).length()
@@ -135,10 +142,10 @@ func test_sites_on_locations() -> void:
 			)
 			check(float(v.dist_m) <= 10000.0, "%s: до посёлка ≤ 10 км" % id)
 			check(
-				min_st >= 5000.0 - 1.0,
-				"%s/%.0f°: путь ≥ 5 км от стартов (%.0f)" % [id, from_deg, min_st]
+				min_st >= 1000.0 - 60.0,
+				"%s/%.0f°: путь 20 мин ≥ 1 км от стартов (%.0f)" % [id, from_deg, min_st]
 			)
-			check(to_pilot >= 5000.0, "%s: ≥ 5 км от пилота" % id)
+			check(to_pilot >= 1000.0 and to_pilot <= 6000.0, "%s: 1–6 км от пилота (%.0f)" % [id, to_pilot])
 			check(not p.is_mountain(b0.x, b0.z), "%s: точка не в горах" % id)
 			check(b0.y <= 1500.0 + 1.0, "%s: рельеф ≤ 1500 м" % id)
 			var sf := p.surface_at(b0.x, b0.z)

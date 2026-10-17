@@ -1,0 +1,47 @@
+{
+  "id": "FL-17",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "Число источников термиков меняется между запусками с тем же зерном",
+  "goal": "Выяснить, почему AirThermals.build на одном месте и в одних условиях даёт разное число источников (6994–6998 на точке), появилось ли это в модуле (FL-5: сборка заранее, пока рельеф догружается) или есть на main, и сделать итог детерминированным.",
+  "plan_ref": "FL-17",
+  "contracts": [
+    {
+      "name": "PF-К4",
+      "version": "2",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-17",
+  "branch": "fast-load/FL-17",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/air_model/air_thermals.gd",
+    "scripts/game/game.gd",
+    "tests/atmosphere"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_field_cache.gd",
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/world_objects",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "thermal",
+      "tests": "thermal"
+    },
+    {
+      "name": "air_thermals",
+      "tests": "air_thermals"
+    },
+    {
+      "name": "determinism",
+      "tests": "determinism"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T07:52:16"
+}

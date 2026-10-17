@@ -2,7 +2,7 @@ class_name AirFieldCache
 extends RefCounted
 ## Кеш поля воздуха на диске (FL-К1, docs/contracts/fast-load.md): поле, посчитанное при загрузке
 ## места, ложится в user://air_cache записью формата TI-К3 v3 (AirBakedField: <имя>.json — заголовок,
-## <имя>.bin — float16 + zstd); при повторе места, старта и условий AirRuntime.load_field берёт его
+## <имя>.bin — zstd); при повторе места, старта и условий AirRuntime.load_field берёт его
 ## вместо расчёта. <имя> — первые 16 hex sha256 канонического JSON ключа (ключи по алфавиту).
 ## Размер — LRU по index.json, предел — atmosphere.json → air_cache.max_mb (0 — выключен).
 ##
@@ -10,8 +10,9 @@ extends RefCounted
 ## Потоки (PF-К4): store/load_record — в рабочем потоке (сцену не трогают), index.json — под общим
 ## замком; lookup/touch — на главном потоке (заголовок — несколько КБ).
 
-## Номер формата кеша в ключе (key.format).
-const FORMAT := 1
+## Номер формата кеша в ключе (key.format). 2 — без потерь (FL-К1 v2): 3D-каналы float32, числа meta
+## полной точности — источники термиков из кеша бит-в-бит как из посчитанного поля.
+const FORMAT := 2
 const DEFAULT_DIR := "user://air_cache"
 const INDEX_FILE := "index.json"
 const INDEX_VERSION := 1
@@ -227,7 +228,7 @@ func store(fs: AirFieldSet, key: Dictionary, header_extra: Dictionary = {}) -> b
 	}
 	header.merge(header_extra, false)
 	DirAccess.make_dir_recursive_absolute(dir)
-	var ok := AirBakedField.save(fs, header, path_of(rec))
+	var ok := AirBakedField.save(fs, header, path_of(rec), true)
 	_mutex.lock()
 	_writing.erase(rec)
 	var idx := _index()

@@ -92,7 +92,8 @@ func _find_track(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator) -
 	var town_max := float(cfg.get("town_max_m", 10000.0))
 	var h_max := float(cfg.get("terrain_max_msl_m", 1500.0))
 	var slope_max := float(cfg.get("slope_max_deg", 6.0))
-	var radius := float(cfg.get("search_radius_m", 6000.0))
+	var pass_r: Array = cfg.get("pass_m", [1000.0, 6000.0])
+	var pilot := Vector2(ctx.pilot_pos.x, ctx.pilot_pos.z)
 	var accept := func(x: float, z: float) -> bool:
 		var s := place.surface_at(x, z)
 		if s != SurfaceLayer.CROP and s != SurfaceLayer.GRASS and s != SurfaceLayer.NONE:
@@ -104,14 +105,20 @@ func _find_track(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator) -
 		var np := place.nearest_place(x, z)
 		return not np.is_empty() and float(np.dist_m) <= town_max
 	for attempt in int(cfg.get("attempts", 16)):
-		var mid: Variant = place.find_point(rng, Vector2.ZERO, radius, accept)
+		# порядок бросков фиксирован: курс, длина, ближайший подход к пилоту, сдвиг вдоль трассы,
+		# высота (кадры и тесты повторяемы по сиду)
 		var course := rng.randf() * TAU
 		var len_m := rng.randf_range(float(cfg.length_m[0]), float(cfg.length_m[1]))
+		var pass_d := rng.randf_range(float(pass_r[0]), float(pass_r[1]))
+		var side := 1.0 if rng.randf() < 0.5 else -1.0
+		var shift := rng.randf_range(-0.3, 0.3) * len_m
 		var frac := rng.randf()
-		if mid == null:
-			continue
 		var dir := Vector3(cos(course), 0.0, sin(course))
-		var p0: Vector3 = (mid as Vector3) - dir * len_m * 0.5
+		var perp := Vector2(-dir.z, dir.x) * side
+		var mid2 := pilot + perp * pass_d + Vector2(dir.x, dir.z) * shift
+		if not bool(accept.call(mid2.x, mid2.y)):
+			continue
+		var p0 := Vector3(mid2.x, 0.0, mid2.y) - dir * len_m * 0.5
 		var pr := _profile_ok(place, p0, dir, len_m, step, lo, hi)
 		if not pr.ok:
 			continue
@@ -130,15 +137,15 @@ static func _dist_seg(p: Vector2, a: Vector2, b: Vector2) -> float:
 	return p.distance_to(a + ab * t)
 
 
-## Пролёт над плоской равниной вдали от зоны полётов: на каждой пробе не горы, склон не круче
-## slope_max_deg, рельеф не выше terrain_max_msl_m; вся трасса дальше min_dist_flying_zone_m
-## от каждого старта и от пилота.
+## Пролёт в долине вблизи зоны полётов, но не над ней: вся трасса дальше min_dist_flying_zone_m
+## от каждого старта и от пилота; на каждой пробе рельеф не выше terrain_max_msl_m и не круче
+## route_slope_max_deg (не над хребтами; профиль 150–900 м над землёй проверен отдельно).
 func _route_ok(ctx: EggContext, cfg: Dictionary, p0: Vector3, dir: Vector3, len_m: float) -> bool:
 	var place := ctx.place
 	var step := float(cfg.get("probe_step_m", 200.0))
 	var h_max := float(cfg.get("terrain_max_msl_m", 1500.0))
-	var slope_max := float(cfg.get("slope_max_deg", 6.0))
-	var zone := float(cfg.get("min_dist_flying_zone_m", 6000.0))
+	var slope_max := float(cfg.get("route_slope_max_deg", 15.0))
+	var zone := float(cfg.get("min_dist_flying_zone_m", 1000.0))
 	var a := Vector2(p0.x, p0.z)
 	var b := a + Vector2(dir.x, dir.z) * len_m
 	var centers: Array[Vector2] = [Vector2(ctx.pilot_pos.x, ctx.pilot_pos.z)]
@@ -150,9 +157,7 @@ func _route_ok(ctx: EggContext, cfg: Dictionary, p0: Vector3, dir: Vector3, len_
 			return false
 	for i in int(ceil(len_m / step)) + 1:
 		var q := p0 + dir * minf(i * step, len_m)
-		if place.height_at(q.x, q.z) > h_max or place.is_mountain(q.x, q.z):
-			return false
-		if place.slope_deg_at(q.x, q.z) > slope_max:
+		if place.height_at(q.x, q.z) > h_max or place.slope_deg_at(q.x, q.z) > slope_max:
 			return false
 	return true
 
@@ -231,7 +236,10 @@ func _build_model(_cfg: Dictionary, rng: RandomNumberGenerator) -> void:
 	var acc := _new_st()  # полосы, законцовки
 	var dark := _new_st()  # шасси, мотор, стойки
 	# фюзеляж: капот, кабина, хвостовой конус
-	_cyl(dark, 0.72, 0.72, 1.6, Vector3(0, 0, -5.4), Vector3(PI / 2, 0, 0), 14)
+	_cyl(hull, 0.72, 0.72, 1.4, Vector3(0, 0, -5.3), Vector3(PI / 2, 0, 0), 14)  # капот двигателя
+	_cyl(dark, 0.5, 0.5, 0.2, Vector3(0, 0, -6.1), Vector3(PI / 2, 0, 0), 12)  # воздухозаборник
+	for sx in [-1.0, 1.0]:  # остекление кабины
+		_box(dark, Vector3(0.04, 0.5, 2.6), Vector3(sx * 0.79, 0.65, -2.8))
 	_box(hull, Vector3(1.55, 2.0, 4.6), Vector3(0, 0.1, -2.5))
 	_cyl(hull, 0.85, 0.28, 6.0, Vector3(0, 0.25, 3.4), Vector3(-PI / 2, 0, 0), 8)
 	_box(acc, Vector3(1.58, 0.28, 10.0), Vector3(0, 0.05, -0.2))  # полоса вдоль борта

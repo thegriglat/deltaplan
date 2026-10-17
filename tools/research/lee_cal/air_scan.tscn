@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/research/lee_cal/air_scan.gd" id="1"]
+
+[node name="AirScan" type="Node"]
+script = ExtResource("1")

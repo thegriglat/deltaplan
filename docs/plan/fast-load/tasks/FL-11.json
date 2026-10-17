@@ -1,0 +1,36 @@
+{
+  "id": "FL-11",
+  "module": "fast-load",
+  "type": "dp-researcher",
+  "title": "Замер «после»: тёплая загрузка, промах и попадание кеша поля",
+  "goal": "Итоговый замер модуля тем же measure.sh против baseline: Онгудай и точка, промах и попадание кеша поля, наибольшее замирание экрана загрузки; плюс загрузка при пуле 2–4 потока и A/B числа полос сборки источников термиков.",
+  "plan_ref": "FL-11",
+  "contracts": [
+    {
+      "name": "FL-К3",
+      "version": "1",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-11",
+  "branch": "fast-load/FL-11",
+  "base": "feature/fast-load",
+  "scope": [
+    "tools/research/load_profile"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests"
+  ],
+  "accept": [
+    {
+      "name": "final",
+      "cmd": "python3 -I -c \"import json;h=json.load(open('tools/research/load_profile/final_hit.json'))['runs'];m=json.load(open('tools/research/load_profile/final_miss.json'))['runs'];assert sum(1 for x in h if x['air_cache']=='hit' and x['place']=='ong')>=3 and sum(1 for x in h if x['air_cache']=='hit' and x['place']=='pt')>=3 and len(m)>=4 and all(x['exit']==0 for x in h+m);print('ok')\"",
+      "expect": "re:^ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T07:58:01"
+}

@@ -1,0 +1,52 @@
+{
+  "id": "FL-18",
+  "module": "fast-load",
+  "type": "dp-engineer",
+  "title": "Кеш поля: источники термиков из кеша = из посчитанного (FL-К1 v2)",
+  "goal": "Поле, взятое из кеша, даёт те же источники термиков (бит-в-бит, тот же сид), что и посчитанное: каналы и meta, от которых зависят источники, хранятся без потерь; формат кеша 2.",
+  "plan_ref": "FL-18",
+  "contracts": [
+    {
+      "name": "FL-К1",
+      "version": "2",
+      "ref": "docs/contracts/fast-load.md"
+    }
+  ],
+  "copy": "~/deltaplan-fast-load-FL-18",
+  "branch": "fast-load/FL-18",
+  "base": "feature/fast-load",
+  "scope": [
+    "scripts/atmosphere/air_field_cache.gd",
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "tests/contracts/test_fast_load_k1.gd",
+    "tests/atmosphere"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_thermals.gd",
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/game",
+    "data/locations",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "fast_load_k1",
+      "tests": "fast_load_k1"
+    },
+    {
+      "name": "air_cache",
+      "tests": "air_cache"
+    },
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "air_thermals",
+      "tests": "air_thermals"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T10:12:28"
+}

@@ -453,6 +453,7 @@ func start(s: FlightSettings) -> bool:
 	# рождаются только после них, иначе первые термики зависели бы от скорости машины.
 	# Поля доводит Terrain._process; у выключенного узла (тесты шагают сами) — ждать здесь.
 	await _wait_relief()
+	_prefetch_air_sources()  # поля рельефа были не готовы — сборка источников стартует здесь
 	_goals_setup()
 	restart()
 	# Термики вокруг старта — ещё на экране загрузки (первое обновление — самое долгое, секунды):
@@ -493,10 +494,25 @@ func _air_field_job(progress: LoadProgress, job: Dictionary) -> void:
 	await _wait_relief()
 	await _load_air_field(progress, job)
 	# Источники термиков из поля — в рабочем потоке сразу по готовности поля (FL-5), пока строятся объекты и
-	# планер; входы сборки сверяются при первом обновлении (сменились — сборка заново, итог тот же).
-	if air.has_method("prefetch_air_sources"):
-		air.call("prefetch_air_sources")
+	# планер (только по готовым полям рельефа, FL-17); входы сборки сверяются при первом обновлении.
+	_prefetch_air_sources()
 	job.air = false
+
+
+## Источники термиков заранее (FL-5), если поля рельефа готовы (air_sources_ready); иначе ничего —
+## повторный вызов после их готовности запускает сборку, уже запущенную — не трогает.
+func _prefetch_air_sources() -> void:
+	if air.has_method("prefetch_air_sources") and air_sources_ready(terrain):
+		air.call("prefetch_air_sources")
+
+
+## Можно ли собирать источники термиков поля (FL-17): точка источника и его сила (pick_fn →
+## Terrain.thermal_source_strength_at) читают влажность ложбин из полей рельефа, которые считаются
+## в фоне и подменяются на главном потоке. Сборка, начатая до их готовности, видела бы то
+## нейтральную влажность, то настоящую — число и точки источников зависели бы от скорости машины,
+## а ведущий и клиенты сети получали бы разные источники при одном ключе мира.
+static func air_sources_ready(t: Object) -> bool:
+	return t == null or not t.has_method("relief_busy") or not bool(t.call("relief_busy"))
 
 
 ## Этап загрузки «Рассчитываем ветер» (AM-06Б): точное поле для часа старта, ветра и погоды
