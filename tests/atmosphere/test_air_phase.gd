@@ -307,3 +307,64 @@ func test_field_without_picard() -> void:
 	var top := c.hc[(N / 2) * N + N / 2] + 300.0
 	var v := f.sample(Vector3(0.0, top, 0.0))
 	check(v.length() > 0.5, "ветер над вершиной есть (%s)" % v)
+
+
+## Полоса nx × 3 клеток, ветер вдоль +x (e = (1, 0)): море (i < i_sea) — слой h_sea с потоком hk_sea,
+## суша — h_land, hk_land (кинематический поток, К·м/с). Возвращает θ′ механизма F (AirPhaseCpu.theta).
+static func _theta_strip(
+	nx: int, i_sea: int, h_sea: float, hk_sea: float, h_land: float, hk_land: float, sea_first := true
+) -> PackedFloat64Array:
+	var ny := 3
+	var n2 := nx * ny
+	var prm := PackedFloat32Array()
+	prm.resize(AirPhase.NPRM)
+	prm[AirPhase.P_DX] = 400.0
+	prm[AirPhase.P_EX] = 1.0
+	prm[AirPhase.P_EY] = 0.0
+	prm[AirPhase.P_TAU] = 3600.0
+	var col := PackedFloat64Array()
+	col.resize(AirPhase.NCI * n2)
+	var um := PackedFloat64Array()
+	um.resize(n2)
+	um.fill(4.0)
+	for j in ny:
+		for i in nx:
+			var c := j * nx + i
+			var sea := (i < i_sea) == sea_first
+			col[AirPhase.CI_HBL * n2 + c] = h_sea if sea else h_land
+			col[AirPhase.CI_HK * n2 + c] = hk_sea if sea else hk_land
+	return AirPhaseCpu.theta({prm = prm, nx = nx, ny = ny, n2 = n2, col = col}, um)
+
+
+func test_f_heat_content() -> void:
+	# TW-3: F переносит теплосодержание θ′·h. Тонкий холодный слой над морем (h 50 м) почти не меняет
+	# θ′ толстого слоя суши (1500 м): вклад моря разбавлен в h_land/h_sea = 30 раз; обратно (суша → море)
+	# θ′ не раздувается — тонкий слой берёт θ′ пришедшего воздуха, избыток тепла остаётся над ним.
+	var nx := 24
+	var i0 := 8
+	var cold := _theta_strip(nx, i0, 50.0, -0.05, 1500.0, 0.15)
+	var calm := _theta_strip(nx, i0, 50.0, 0.0, 1500.0, 0.15)
+	var c_sea := nx + i0 - 1
+	var c_land := nx + i0
+	var th_sea := cold[c_sea]
+	var d := absf(cold[c_land] - calm[c_land])
+	print("air_phase F θ′·h: море %.3f К, суша у берега %.4f против %.4f (Δ %.4f)" % [
+		th_sea, cold[c_land], calm[c_land], d
+	])
+	check(th_sea < -0.5, "море выхолаживает тонкий слой (θ′ %.2f К)" % th_sea)
+	var fa := exp(-400.0 / 4.0 / 3600.0)
+	check(
+		d <= absf(th_sea) * 50.0 / 1500.0 * fa * 1.001,
+		"суша: Δθ′ = θ′_моря·h_моря/h_суши (%.4f К)" % d
+	)
+	check(d < 0.05 * absf(th_sea), "суша почти не выхоложена (Δ %.4f при θ′ моря %.2f)" % [d, th_sea])
+	# суша → море: θ′ над тонким слоем не превышает пришедший
+	var back := _theta_strip(nx, i0, 50.0, 0.0, 1500.0, 0.15, false)
+	check(
+		back[c_land] <= back[c_sea] * 1.0001 and back[c_land] > 0.0,
+		"суша → море: θ′ не раздувается (%.3f ≤ %.3f)" % [back[c_land], back[c_sea]]
+	)
+	# однородная поверхность: прежняя формула θ′ = H_k/h·τ·(1 − e^{−(i+1)Δt/τ})
+	var flat := _theta_strip(nx, 0, 50.0, 0.0, 1500.0, 0.15)
+	var want := 0.15 / 1500.0 * 3600.0 * (1.0 - pow(fa, 11.0))
+	check(absf(flat[nx + 10] - want) <= 1e-6 * want, "однородно: %.6f = %.6f" % [flat[nx + 10], want])

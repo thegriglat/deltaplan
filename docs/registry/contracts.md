@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-17"
+updated: "2026-10-18"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -21,6 +21,7 @@ generated: true
 - air-phase: P8 v1, P9 v2, P10 v5, P11 v3, P12 v4, P13 v2, P14 v2, P15 v1 — [docs/contracts/air-phase/assembly-game.md](../contracts/air-phase/assembly-game.md)
 - air-phase: P1 v1, P2 v6, P3 v3, P4 v6, P5 v1, P6 v2, P7 v1 — [docs/contracts/air-phase/experiments-solver.md](../contracts/air-phase/experiments-solver.md)
 - air-phase: P1 v1, P2 v6, P3 v3, P4 v6, P5 v1, P6 v2, P7 v1, P8 v1, P9 v2, P10 v5, P11 v3, P12 v4, P13 v2, P14 v2, P15 v1 — [docs/contracts/air-phase.md](../contracts/air-phase.md)
+- air-weak-wind: W1 v1, W2 v1 — [docs/contracts/air-weak-wind.md](../contracts/air-weak-wind.md)
 - cloud-field: CLF-К1 v1, CLF-К2 v1, CLF-К3 v2, CLF-К4 v1, CLF-К5 v1, CLF-К6 v1 — [docs/contracts/cloud-field.md](../contracts/cloud-field.md)
 - control-bar: CB-К1 v2, CB-К2 v1 — [docs/contracts/control-bar.md](../contracts/control-bar.md)
 - control-fix: С1 v2, С2 v3, С3 v3 — [docs/contracts/control-fix.md](../contracts/control-fix.md)

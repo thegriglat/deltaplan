@@ -1,0 +1,49 @@
+diff --git a/scripts/atmosphere/air_model/air_case.gd b/scripts/atmosphere/air_model/air_case.gd
+index ebb65522..8ba069a3 100644
+--- a/scripts/atmosphere/air_model/air_case.gd
++++ b/scripts/atmosphere/air_model/air_case.gd
+@@ -377,6 +377,9 @@ func prepare() -> bool:
+ 	hk.resize(nx * ny)
+ 	var any_heat := false
+ 	var any_pos := false
++	# TW-2 (исследование): масштаб нагрева области / окна из окружения
++	var tw2_env := "TW2_HEAT_WIN" if has_method("prepare_pair") else "TW2_HEAT_DOM"
++	var tw2_scale := float(OS.get_environment(tw2_env)) if OS.get_environment(tw2_env) != "" else 1.0
+ 	if not heat.is_empty():
+ 		var lx2 := nx * dx
+ 		var ly2 := ny * dx
+@@ -391,7 +394,7 @@ func prepare() -> bool:
+ 					var exx := clampf(minf(xe, lx2 - xe) / tm, 0.0, 1.0)
+ 					var f := sin(0.5 * PI * eyy) * sin(0.5 * PI * exx)
+ 					v *= f * f
+-				hk[j * nx + i] = v / RHO_CP
++				hk[j * nx + i] = tw2_scale * v / RHO_CP
+ 				any_heat = any_heat or hk[j * nx + i] != 0.0
+ 				any_pos = any_pos or hk[j * nx + i] > 0.0
+ 	heat_used = PackedFloat64Array()
+diff --git a/scripts/atmosphere/air_model/air_runtime.gd b/scripts/atmosphere/air_model/air_runtime.gd
+index ee286f69..9d42cf0a 100644
+--- a/scripts/atmosphere/air_model/air_runtime.gd
++++ b/scripts/atmosphere/air_model/air_runtime.gd
+@@ -1387,6 +1387,8 @@ func _focus_wanted() -> bool:
+ 
+ 
+ func _windows_wanted() -> bool:
++	if OS.get_environment("TW2_NO_WINDOWS") != "":
++		return false  # TW-2 (исследование): только область
+ 	return focus_fn.is_valid() and not Array(_cfg.get("window_levels_m", [100.0])).is_empty()
+ 
+ 
+diff --git a/scripts/game/start_weather.gd b/scripts/game/start_weather.gd
+index cc649ea6..e507676b 100644
+--- a/scripts/game/start_weather.gd
++++ b/scripts/game/start_weather.gd
+@@ -96,6 +96,8 @@ static func has_fixed(s: FlightSettings) -> bool:
+ 
+ ## Переписать погодные поля s набором его старта. true — набор есть и применён.
+ static func apply(s: FlightSettings) -> bool:
++	if OS.get_environment("TW2_FREE_WEATHER") != "":
++		return false  # TW-2 (исследование): погода из командной строки
+ 	var w := for_settings(s)
+ 	if w.is_empty():
+ 		return false
