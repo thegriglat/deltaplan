@@ -73,6 +73,8 @@ const CLOCK_WAIT_S := 5.0
 const AUTO_CATCH_UP_WAIT_S := 4.0
 ## Как часто сверять источники термиков из поля с ведущим, с.
 const THERMAL_SYNC_S := 1.0
+## Шаг подтяжки поля облачности к снимку ведущего, с (CLF-К4): доля шага = шаг / оставшееся.
+const CLOUD_BLEND_STEP_S := 1.0
 
 ## Автоматический «догнать» ведущего при входе в зону (тесты могут выключить).
 var auto_catch_up := true
@@ -98,6 +100,13 @@ var _queue_k := -1  ## место в очереди, к которому шли 
 var _my_status := ""
 var _thermal_sync_t := 0.0
 var _was_leader := false
+var _cloud_send_t := 0.0  ## ведущий: до следующего снимка поля, с
+var _cloud_was_leader := false
+var _cloud_leader := ""  ## чей снимок уже принимали: смена ведущего — снимок целиком
+var _cloud_snap := PackedByteArray()  ## ждущий применения снимок
+var _cloud_left := 0.0  ## осталось подтягивать к нему, с
+var _cloud_step_t := 0.0
+var _cloud_hooked := false
 
 
 ## p_zone/p_pilots — null: автозагрузки NetZone/NetPilots.
@@ -223,6 +232,7 @@ func _process(_dt: float) -> void:
 	if _thermal_sync_t <= 0.0:
 		_thermal_sync_t = THERMAL_SYNC_S
 		sync_thermal_sources()
+	sync_cloud_field(_dt)
 	var any := friends_airborne()
 	if any != _airborne:
 		_airborne = any
@@ -248,6 +258,67 @@ func sync_thermal_sources() -> void:
 	var mask := Marshalls.base64_to_raw(String(ts.get("mask", ""))) if sig != "" else PackedByteArray()
 	if sig != tf.air_forced_sig or mask != tf.air_forced:
 		tf.set_air_forced(sig, mask)
+
+
+## Поле облачности (CLF-К4): ведущий шлёт снимок раз в net_interval_s, при входе пилота и при
+## вступлении в должность; остальные тянут своё поле к снимку за net_blend_s, шагами по
+## CLOUD_BLEND_STEP_S (первый снимок от этого ведущего — целиком).
+func sync_cloud_field(dt: float) -> void:
+	var air: Atmosphere = game.air as Atmosphere if game != null and is_instance_valid(game) else null
+	if air == null or air.field == null or air.field.cloud_phys == null:
+		return
+	var cp: CloudPhysics = air.field.cloud_phys
+	if cp.field == null or not zone.has_method("set_cloud_field"):
+		return
+	if not _cloud_hooked and zone.has_signal("cloud_field_received"):
+		_cloud_hooked = true
+		zone.connect("cloud_field_received", _on_cloud_field)
+	var cfg: Dictionary = Config.get_config("atmosphere").get("cloud_field", {})
+	if zone.is_leader():
+		_cloud_snap = PackedByteArray()
+		_cloud_send_t -= dt
+		var wanted: bool = bool(zone.get("cloud_field_wanted"))
+		if cp.field.nx > 0 and (_cloud_send_t <= 0.0 or wanted or not _cloud_was_leader):
+			_cloud_send_t = maxf(float(cfg.get("net_interval_s", 30.0)), 1.0)
+			zone.set("cloud_field_wanted", false)
+			zone.call("set_cloud_field", cp.field.snapshot())
+		_cloud_was_leader = true
+		return
+	_cloud_was_leader = false
+	if _cloud_snap.is_empty():
+		return
+	_cloud_step_t -= dt
+	if _cloud_step_t > 0.0:
+		return
+	var step := CLOUD_BLEND_STEP_S
+	var k := 1.0 if _cloud_left <= step else step / _cloud_left
+	if cp.take_net_rejected():
+		_cloud_snap = PackedByteArray()  # задача отвергла: чужая сетка/версия — поле своё
+		_cloud_leader = ""
+		return
+	var r := cp.apply_net_snapshot(_cloud_snap, k)
+	if r == CloudPhysics.Net.BUSY:
+		return  # прежний шаг подтяжки ещё не взят задачей — на следующем кадре
+	if r == CloudPhysics.Net.REJECTED:
+		_cloud_snap = PackedByteArray()  # поле ещё без сетки
+		_cloud_leader = ""  # ведущего «не принимали»: следующий снимок — целиком
+		return
+	_cloud_step_t = step
+	_cloud_left -= step
+	if _cloud_left <= 0.0:
+		_cloud_snap = PackedByteArray()
+
+
+func _on_cloud_field(data: PackedByteArray) -> void:
+	var cfg: Dictionary = Config.get_config("atmosphere").get("cloud_field", {})
+	var lid := String(zone.get("leader_id"))
+	_cloud_snap = data
+	_cloud_step_t = 0.0
+	if lid != _cloud_leader:  # первый снимок от этого ведущего (поздний вход, смена) — целиком
+		_cloud_leader = lid
+		_cloud_left = 0.0
+	else:
+		_cloud_left = maxf(float(cfg.get("net_blend_s", 10.0)), CLOUD_BLEND_STEP_S)
 
 
 ## Своё состояние — в NetPilots (уходит 10 Гц).

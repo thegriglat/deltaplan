@@ -76,6 +76,10 @@ class FieldJob:
 	var stage := PackedFloat32Array()
 	var activity := PackedFloat32Array()
 	var hc := PackedFloat32Array()
+	## Снимок ведущего (CLF-К4): подтяжка рабочей копии в потоке после шага, до копий выходов.
+	var net_b := PackedByteArray()
+	var net_blend := 1.0
+	var net_ok := true
 
 	func run() -> void:
 		if set_inp:
@@ -96,6 +100,8 @@ class FieldJob:
 					if dxx * dxx + dz * dz <= r2:
 						n += 1
 		count = n
+		if not net_b.is_empty():
+			net_ok = work.apply_snapshot(net_b, net_blend)
 		cover = work.cover.duplicate()
 		depth = work.depth.duplicate()
 		stage = work.stage.duplicate()
@@ -236,7 +242,7 @@ func _refresh_field(thermals: Dictionary, t: float, focus: Vector3, radius: floa
 	var key := _key_of(inp)
 	var changed := key != _inputs_key
 	var due := t < _work.time or t - _work.time >= step - 1.0e-6
-	if not changed and not due and _work.nx != 0 and field.nx != 0:
+	if not changed and not due and _work.nx != 0 and field.nx != 0 and _net_b.is_empty():
 		return
 	var job := FieldJob.new()
 	job.work = _work
@@ -244,6 +250,9 @@ func _refresh_field(thermals: Dictionary, t: float, focus: Vector3, radius: floa
 	job.focus = Vector2(focus.x, focus.z)
 	job.radius = radius
 	job.inp = inp
+	job.net_b = _net_b
+	job.net_blend = _net_blend
+	_net_b = PackedByteArray()
 	# Аналитика: живые термики — ссылки, копии на момент t снимает поток (на главном — только список).
 	if inp.get("air") == null:
 		job.thermals = thermals.values()
@@ -259,6 +268,36 @@ func _refresh_field(thermals: Dictionary, t: float, focus: Vector3, radius: floa
 		_finish_job()
 
 
+## Снимок поля от ведущего (CLF-К4): подтянуть поле к снимку на долю blend (1 — заменить).
+## Распаковка и подтяжка идут в задаче следующего шага поля (рабочий поток, один раз): задача
+## подтягивает рабочую копию, `field` получает результат при публикации шага (_finish_job).
+## Возврат: QUEUED (принят, применится в ближайшей задаче), REJECTED (поле ещё без сетки),
+## BUSY (прежний снимок ещё не взят задачей — повторить позже). Чужая сетка/версия выясняется
+## в задаче: поле не меняется, `take_net_rejected()` вернёт true.
+enum Net { QUEUED, REJECTED, BUSY }
+
+var _net_b := PackedByteArray()
+var _net_blend := 1.0
+var _net_rejected := false
+
+
+func apply_net_snapshot(b: PackedByteArray, blend: float) -> int:
+	if field == null or _work == null or field.nx == 0 or _work.nx == 0:
+		return Net.REJECTED
+	if not _net_b.is_empty():
+		return Net.BUSY
+	_net_b = b
+	_net_blend = blend
+	return Net.QUEUED
+
+
+## Последний принятый снимок задача отвергла (чужая сетка/версия) — один раз.
+func take_net_rejected() -> bool:
+	var r := _net_rejected
+	_net_rejected = false
+	return r
+
+
 func _finish_job() -> void:
 	var job := _job
 	_job = null
@@ -268,6 +307,8 @@ func _finish_job() -> void:
 		WorkerThreadPool.wait_for_task_completion(job.task)
 	var w := job.work
 	var f := field
+	if not job.net_ok:
+		_net_rejected = true
 	if f.signature() != w.signature():
 		f.setup_grid(w.nx, w.ny, w.dx, w.x0, w.y0)
 	# массивы подменяются целиком (копии, снятые потоком в конце задачи)
@@ -397,7 +438,7 @@ func visible_clouds(thermals: Dictionary, t: float, focus: Vector3) -> Array:
 			{
 				"center": c,
 				"radius": maxf(0.5 * depth / _hw, 0.5 * f.dx * sqrt(s.x)),
-				"growth": smoothstep(cover_min, 0.6, s.x),
+				"growth": smoothstep(0.0, 0.5, s.w),  # стадия поля: >0 — растёт/зрелое
 				"decay": maxf(-s.w, 0.0),
 			}
 		)

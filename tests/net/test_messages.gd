@@ -195,3 +195,11 @@ func _same(a: Variant, b: Variant) -> bool:
 	else:
 		ok = typeof(a) == typeof(b) and a == b
 	return ok
+
+
+func test_zone_state_cloud_field() -> void:
+	var data := {"clock": 5.0, "queue": ["a"], "cloudField": {"data": Marshalls.raw_to_base64(PackedByteArray([1, 2, 3, 255]))}}
+	var m := NetMessages.decode(NetMessages.encode("zoneState", data))
+	check(m.data.cloudField.data == data.cloudField.data, "снимок поля облачности туда-обратно")
+	var plain := NetMessages.decode(NetMessages.encode("zoneState", {"clock": 1.0, "queue": []}))
+	check(plain.data.get("cloudField") == null, "без снимка — null, не пустая заглушка")

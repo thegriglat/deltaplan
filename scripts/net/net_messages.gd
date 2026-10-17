@@ -125,9 +125,16 @@ const MESSAGES := {
 		"pilotRel": "msg:Vec3",
 	},
 	"ZoneState":
-	{"clock": "double", "queue": "[]string", "thermalSources": "msg:ThermalSources"},
+	{
+		"clock": "double",
+		"queue": "[]string",
+		"thermalSources": "msg:ThermalSources",
+		"cloudField": "msg:CloudFieldSnapshot",
+	},
 	# источники термиков из поля (AM-07): mask — bytes proto, в JSON base64 (строка)
 	"ThermalSources": {"grid": "string", "mask": "string"},
+	# снимок поля облачности (CLF-К4): data — bytes proto, в JSON base64 (строка)
+	"CloudFieldSnapshot": {"data": "string"},
 	# не вариант Envelope: UDP-объявление зоны в локальной сети (LanDiscovery), без конверта
 	"LanAnnounce":
 	{
@@ -146,6 +153,7 @@ const NULLABLE := {
 	"PilotState.colors": true,
 	"PilotState.pilotRel": true,
 	"ZoneState.thermalSources": true,
+	"ZoneState.cloudField": true,
 }
 
 ## Перечисления: имена по порядку номеров (индекс = номер в .proto).
