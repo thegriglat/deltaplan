@@ -1,6 +1,6 @@
 extends TestCase
 ## Контрактные тесты модуля sea-ships (docs/contracts/sea-ships.md): S2 — маска моря и стадия, S3/S4 — конфиг
-## configs/sea_ships.json (расстановка и виды судов), S3 v2 — ShipPlacer.ships_for (сигнатура с height_fn, поля элемента с y).
+## configs/sea_ships.json (расстановка и виды судов), S3 v3 — ShipPlacer.ships_for (сигнатура с height_fn, поля элемента с y).
 ## Запуск: godot --headless --path . res://tests/run_tests.tscn -- --filter=sea_ships_contracts
 
 
@@ -58,15 +58,14 @@ func test_s2_stage_registered() -> void:
 
 func test_s3_placement_params() -> void:
 	var p: Dictionary = _cfg().placement
-	check(is_equal_approx(float(p.cell_deg), 0.1) and is_equal_approx(float(p.p_cell), 0.5) and int(p.min_shore_m) == 2000, "cell_deg 0,1, p_cell 0,5, min_shore_m 2000")
+	check(is_equal_approx(float(p.cell_deg), 0.02) and int(p.shore_min_m) == 3000 and int(p.shore_max_m) == 15000 and int(p.center_max_m) == 30000, "cell_deg 0,02, полоса 3000…15000, центр ≤ 30000")
+	check(int(p.n_min) == 2 and int(p.n_max) == 6 and int(p.min_sep_m) == 1500, "n 2…6, min_sep_m 1500")
+	check(not p.has("p_cell") and not p.has("min_shore_m"), "старые ключи p_cell, min_shore_m убраны")
 	var wt: Dictionary = p.types
 	check(wt.size() == 3 and wt.has_all(["tanker", "bulk", "container"]), "виды tanker, bulk, container")
 	for k: String in wt:
-		# вес > 0 — только у вида с моделью S4 (пока танкер; сухогруз и контейнеровоз включатся весом)
-		if float(wt[k]) > 0.0:
-			check(ResourceLoader.exists("res://assets/models/ships/ship_%s.glb" % k), "вид %s с весом > 0 — есть модель" % k)
-	check(float(wt.get("tanker", 0)) > 0.0, "танкер включён")
-	for k in ["cell_deg", "p_cell", "min_shore_m", "types"]:
+		check(is_equal_approx(float(wt[k]), 1.0), "вес вида %s = 1 (слой пропускает вид без .glb)" % k)
+	for k in ["cell_deg", "shore_min_m", "shore_max_m", "center_max_m", "n_min", "n_max", "min_sep_m", "types"]:
 		check(p.has(k + "_doc"), "%s: пояснение" % k)
 
 
@@ -104,14 +103,17 @@ func test_s3_ships_for() -> void:
 	var half := (n - 1) * 50.0
 	var mask := {"image": Image.create_from_data(n, n, false, Image.FORMAT_L8, data), "origin": Vector2(-half, -half), "cell_m": 100.0}
 	var p := ShipPlacer.params_from_config()
-	p["p_cell"] = 1.0
+	var data2 := data.duplicate()
+	data2.fill(100)
+	mask["image"] = Image.create_from_data(n, n, false, Image.FORMAT_L8, data2)
 	var ships := ShipPlacer.ships_for(mask, -27.12, -109.35, p, func(_x: float, _z: float) -> float: return 0.0)
-	check(not ships.is_empty(), "открытое море, p_cell 1 — суда есть")
+	check(ships.size() >= 2 and ships.size() <= 6, "число судов: %d" % ships.size())
+	check(not ships.is_empty(), "полоса у берега — суда есть, N ∈ [2, 6]")
 	for s in ships:
 		check(s.type is String and s.x is float and s.y is float and s.z is float and s.heading_rad is float and s.cell is Vector2i, "типы полей элемента")
 		check(absf(float(s.x)) <= half and absf(float(s.z)) <= half, "точка внутри far")
 		var ll := TerrainGeo.local_to_latlon(float(s.x), float(s.z), -27.12, -109.35)
-		check(Vector2i(floori(ll.y / 0.1), floori(ll.x / 0.1)) == s.cell, "cell = (floor(lon / cell_deg), floor(lat / cell_deg))")
+		check(Vector2i(floori(ll.y / 0.02), floori(ll.x / 0.02)) == s.cell, "cell = (floor(lon / cell_deg), floor(lat / cell_deg))")
 
 
 func test_s2_v2_level_and_compute_info() -> void:
