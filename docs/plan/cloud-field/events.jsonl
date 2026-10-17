@@ -157,3 +157,4 @@
 {"t": "2026-10-17T17:29:21", "by": "coordinator", "task": "CLF-7", "ev": "accepted", "note": "по отчёту, для справки без порога (scope FAIL — забытый r-CLF-7.json, удалён)"}
 {"t": "2026-10-17T17:29:21", "by": "coordinator", "task": "CLF-7", "ev": "merged", "note": "e6399e0a"}
 {"t": "2026-10-17T17:29:40", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: модуль готов к сдаче (Q5): принято CLF-1,2,3,4,5,7,8,9,10,11,12,13; отменена CLF-6 (Forward+). Обратная связь: возобновление исполнителя тем же brief не берёт доработку; scope при слиянии main ловит файлы main; исполнители оставляют r-<ID>.json в копии (scope FAIL); таймаут job включает ожидание замка GPU."}
+{"t": "2026-10-17T17:30:14", "by": "main", "task": null, "ev": "delivered", "commits": ["c6b5f113"], "note": "squash в main: c6b5f113"}
