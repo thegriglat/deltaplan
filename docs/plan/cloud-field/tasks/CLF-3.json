@@ -37,7 +37,8 @@
     "tests/game/",
     "tests/net/",
     "tests/contracts/test_cloud_field_k1.gd",
-    "scripts/game/bot_pilots.gd"
+    "scripts/game/bot_pilots.gd",
+    "tests/contracts/test_perf_contracts.gd"
   ],
   "dont_touch": [
     "scripts/atmosphere/cloud_field.gd",
@@ -92,10 +93,14 @@
       "name": "main_ms",
       "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_cloud_field_runtime",
       "expect": "num:cloud_refresh_main_ms=([0-9.]+) <=2"
+    },
+    {
+      "name": "test_perf_contracts",
+      "tests": "test_perf_contracts"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-17T05:49:10",
-  "edited": "2026-10-17T07:17:37"
+  "edited": "2026-10-17T08:29:02"
 }
