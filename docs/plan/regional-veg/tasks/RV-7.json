@@ -1,0 +1,61 @@
+{
+  "id": "RV-7",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Модель породы: tropical",
+  "goal": "Тропическая вечнозелёная лиственная: крупная купольная крона, тёмная плотная листва (Атлантический лес Бразилии, Амазония) — генератором build_trees.py в стиле 5 существующих пород: 4 варианта × LOD0/1/2, процедурные текстуры, импостеры; файл по RV-К3; превью для шлюза пользователю.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "RV-К3",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-7",
+  "branch": "regional-veg/RV-7",
+  "base": "feature/regional-veg",
+  "scope": [
+    "tools/blender/build_trees.py",
+    "tools/blender/tree_params.json",
+    "tools/blender/tree_textures.py",
+    "tools/blender/render_trees.py",
+    "assets/models/trees/tree_tropical.glb",
+    "assets/models/trees/tree_tropical.glb.import",
+    "assets/models/trees/tree_tropical_*",
+    "assets/source/trees/tree_tropical*",
+    "assets/source/trees/tropical_*"
+  ],
+  "dont_touch": [
+    "assets/models/trees/trees_impostor_atlas.png",
+    "scripts",
+    "configs",
+    "tests",
+    "ASSETS.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "glb",
+      "cmd": "test -f assets/models/trees/tree_tropical.glb && test -f assets/models/trees/tree_tropical.glb.import && echo ok",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "previews",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/regional-veg/models/tropical/ | grep -cE '\\.(jpg|png)$'",
+      "expect": "num:^(\\d+) >=2"
+    },
+    {
+      "name": "old_untouched",
+      "cmd": "git diff --name-only feature/regional-veg -- assets | grep -vE 'tree_tropical|/tropical_' | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T00:36:56"
+}

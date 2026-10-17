@@ -1,0 +1,62 @@
+{
+  "id": "RV-10",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Модели домов в BuildingPlacer (гибрид)",
+  "goal": "Доля малых сельских домов профиля рисуется моделями из реестра buildings.models (масштаб по контуру OSM, MultiMesh на модель × LOD); город, промзона и дома с высотой из OSM — коробки; без ключей всё как сейчас.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "RV-К6",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    },
+    {
+      "name": "RV-К4",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-10",
+  "branch": "regional-veg/RV-10",
+  "base": "feature/regional-veg",
+  "scope": [
+    "scripts/world_objects/building_placer.gd",
+    "scripts/world_objects/osm/osm_buildings.gd",
+    "scripts/world_objects/village_layer.gd",
+    "scripts/world_objects/osm/building_style.gd",
+    "configs/world_objects.json",
+    "tests/world_objects/test_building_models.gd",
+    "tests/world_objects/test_building_models.gd.uid",
+    "docs/guide/world-objects/villages-osm.md"
+  ],
+  "dont_touch": [
+    "assets",
+    "tools",
+    "scripts/terrain",
+    "configs/biomes.json",
+    "tests/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "building",
+      "tests": "building"
+    },
+    {
+      "name": "osm_look",
+      "tests": "osm_look"
+    },
+    {
+      "name": "test_building_models",
+      "tests": "test_building_models"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T00:41:53"
+}
