@@ -1,0 +1,96 @@
+{
+  "status": "done",
+  "summary": "main слит в fast-load/FL-19, оба смысла сохранены: доля суши (VI-7) встроена в полосный build AirThermals (land считается один раз до полос, Φ×L в _cols_band, столбцы без суши ничьи в _owner_band, M/O/A/H×L, точка источника не на воде); корень тайлов OSM (Locations.osm_root) передаётся в единственную загрузку PlaceData; суда стартуют в WorldObjects._begin. Все тесты модуля зелёные; падающие osm/achievements/test_e2e падают так же на main.",
+  "commits": [
+    "2756471c Слияние main в fast-load/FL-19: volcano-island, суда, люди Rocketbox"
+  ],
+  "checks": [
+    {
+      "name": "fast_load",
+      "value": "14/14",
+      "pass": true
+    },
+    {
+      "name": "world_objects",
+      "value": "205/205",
+      "pass": true
+    },
+    {
+      "name": "thermal",
+      "value": "22/22",
+      "pass": true
+    },
+    {
+      "name": "air_thermals",
+      "value": "17/17 (вкл. test_air_thermals_parallel)",
+      "pass": true
+    },
+    {
+      "name": "place_data",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "load_order",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "island",
+      "value": "36/36",
+      "pass": true
+    },
+    {
+      "name": "volcano",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "osm",
+      "value": "107/108: test_osm_look_contracts::test_versions (L5 v2 ожидается, во frontmatter v3) — известное падение main",
+      "pass": false
+    },
+    {
+      "name": "achievements",
+      "value": "16/17: test_achievements_e2e::test_flight_opens_first_flight («посадка: []») — проверено на чистом main (detached worktree): падает так же",
+      "pass": false
+    },
+    {
+      "name": "test_e2e",
+      "value": "ветка: 3 из 4 прогонов упали (training_island 1, volcano_island 2), с перепечёнными полями 4/4 упали; чистый main: 4/4 упали (training_island 2, volcano_island 2)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "accept --dry не PASS: osm, achievements, test_e2e падают и на main (не следствие модуля); проверка scope ругается на файлы из main (.claude/, .dpcli/ и др., +282) — их принесло слияние"
+  ],
+  "questions": [
+    "test_e2e нестабилен на main: сид мира в каждом прогоне свой, на training_island/volcano_island взлёт иногда takeoff_failed (в воздухе 1–7 с) — нужна отдельная задача в модуле volcano-island/e2e?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept FL-19",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/air_thermals.gd (build, _cols_band, _owner_band, pick_in_column)",
+      "why": "pick_in_column зовёт ground.is_water из потоков полос (обращение к объекту — общий замок движка); вызывается только когда кандидат лучше прежнего, т.е. редко",
+      "checked": "land_fraction считается последовательно до полос, полосы получают готовый land — bands=1 и авто совпадают (test_air_thermals_parallel PASS); тесты thermal/air_thermals/island/volcano PASS"
+    },
+    {
+      "where": "test_e2e training_island/volcano_island takeoff_failed",
+      "why": "гипотеза model_hash не подтвердилась",
+      "checked": "в логе ветки «запечённое поле не берётся (хеш 6da65c77… ≠ 0001d4af…)»; временно перепёк tools/terrain/bake_all.sh под dpcli lock gpu (bake_all --check ok) — 4/4 прогона всё равно упали; данные откатил (git checkout -- data/locations), не коммитил. На чистом main 4/4 упали — причина не в порядке загрузки FL-10, а в случайном сиде мира теста"
+    },
+    {
+      "where": "scripts/world_objects/world_objects.gd _begin",
+      "why": "_start_ships перенесён из конца сборки в начало (в _end auto-merge оставил вызов без нужных переменных); суда теперь считаются параллельно с OSM/посёлками",
+      "checked": "world_objects 205/205, ожидание задачи судов — в _notification (PREDELETE/EXIT_TREE) и clear через _ship_gen"
+    }
+  ],
+  "dp_feedback": "accept: проверка scope на слиянии main считает чужие файлы из main «вне scope» при scope «.» — для задач-слияний её бы отключать или считать только против первого родителя. Дополнение карточки с новой проверкой пришло посреди прогона — удобно было бы task show --since.",
+  "extra": {
+    "e2e_branch": "прогоны 1–4: ok, volcano, training, volcano; после перепечки 5–8: training, volcano, training, volcano",
+    "e2e_main": "1–4: training, volcano, volcano, training"
+  },
+  "t": "2026-10-17T13:42:16",
+  "by": "executor"
+}
