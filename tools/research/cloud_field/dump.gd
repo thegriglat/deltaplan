@@ -8,11 +8,13 @@ extends Node
 ## в кадре h17 (series). Погоды: weak (+20 °C, 6 км/ч), strong (+31 °C, 18 км/ч), windy (+31 °C,
 ## 8 м/с с типичного для места направления).
 ## Запуск (GPU, окно): tools/research/cloud_field/run.sh [--places=… --weathers=… --out=…]
+## CLF-9: --zi_alpha=<α> подменяет air_model.zi_terrain_alpha (0 — плоский z_i, «до»); в кадре —
+## z_i_col по столбцам и zi_alpha; места ongudai, askarovo, training_island, almaty.
 
 const ALMATY := Vector2(43.2, 76.9)
 ## Ветер ветреного дня: откуда, °: Онгудай и остров — запад/северо-запад; Алматы — запад, вдоль
 ## главного хребта Заилийского Алатау (синоптический перенос на уровне хребта).
-const WDIR_WINDY := {"ongudai": 300.0, "training_island": 270.0, "almaty": 270.0}
+const WDIR_WINDY := {"ongudai": 300.0, "training_island": 270.0, "almaty": 270.0, "askarovo": 270.0}
 const WEATHERS := {
 	"weak": {"temperature_c": 20.0, "wind_speed_kmh": 6.0, "wind_from_deg": 270.0},
 	"strong": {"temperature_c": 31.0, "wind_speed_kmh": 18.0, "wind_from_deg": 270.0},
@@ -38,6 +40,10 @@ func _ready() -> void:
 func _run() -> void:
 	var out := String(_a.get("out", "tools/research/cloud_field/out"))
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(out))
+	if _a.has("zi_alpha"):
+		# конфиг — живой словарь кеша Config: подмена действует на все расчёты этого запуска
+		Config.get_config("atmosphere").air_model.zi_terrain_alpha = float(_a.zi_alpha)
+	print("cloud_field: zi_terrain_alpha = %s" % Config.get_config("atmosphere").air_model.zi_terrain_alpha)
 	var places := String(_a.get("places", "ongudai,training_island,almaty")).split(",")
 	var weathers := String(_a.get("weathers", "weak,strong,windy")).split(",")
 	var frames: Array[int] = []
@@ -155,6 +161,7 @@ func _write(
 		"nx": cf.nx, "ny": cf.ny, "dx": cf.dx, "x0": cf.x0, "y0": cf.y0,
 		"base_msl": cf.base_msl, "bg_cover": cf.bg_cover, "bg_depth": cf.bg_depth,
 		"wind_base": [mv.x, mv.y], "z_i": level.z_i(),
+		"z_i_col": _r(level.z_i_col(), 1.0), "zi_alpha": level.zi_alpha(),
 		"cond": sol.cond, "solver": sol.info,
 		"hc": _r(level.raw_hc(), 1.0), "phi": _r(air.phi, 0.0001) if air != null else [],
 		"c_top": _r(air.c_top, 1.0) if air != null else [],
