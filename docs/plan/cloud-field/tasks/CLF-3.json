@@ -36,7 +36,8 @@
     "tests/atmosphere/",
     "tests/game/",
     "tests/net/",
-    "tests/contracts/test_cloud_field_k1.gd"
+    "tests/contracts/test_cloud_field_k1.gd",
+    "scripts/game/bot_pilots.gd"
   ],
   "dont_touch": [
     "scripts/atmosphere/cloud_field.gd",
@@ -96,5 +97,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-17T05:49:10",
-  "edited": "2026-10-17T05:49:24"
+  "edited": "2026-10-17T07:17:37"
 }
