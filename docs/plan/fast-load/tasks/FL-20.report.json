@@ -1,0 +1,96 @@
+{
+  "status": "done",
+  "summary": "Зависание воспроизведено: при пуле 2 загрузка встаёт после dem (mesh) — и на main, и на feature/fast-load; gdb: оба рабочих потока и главный — в ожидании группы (вложенные wait_for_group_task_completion из задач пула; в Godot 4.7 это семафор без помощи очереди). Общее правило — PoolFor.run (scripts/core/pool_for.gd): не из пула — прежняя группа, из задачи пула — задачи высокого приоритета с совместным ожиданием (wait_for_task_completion из рабочего потока сам берёт задачи очереди). Им заменены все групповые ожидания, которые бывают в рабочих потоках (TerrainRelief._par, HeightLayer, AirThermals._run_bands, AirBakedField, AirRuntime ×2, OsmData ×2, OsmRoads). «Зависание в меню при пуле 3–4» из находки FL-10 у меня не связано с пулом: монитор выключен (DPMS Off) + vsync → 1 кадр/с, зонд ждёт 1200 кадров меню; с vsync off в профиле при пуле 3 и 4 меню и загрузка проходят и на старом коде.",
+  "commits": [
+    "e3e6476f FL-20: вложенные параллельные циклы из задач пула — PoolFor (без ожидания групп в рабочих потоках)"
+  ],
+  "checks": [
+    {
+      "name": "fast_load",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "air_place",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "air_thermals",
+      "value": "17/17",
+      "pass": true
+    },
+    {
+      "name": "place_data",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "height",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "osm_threaded",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "старый код, пул 2, GPU (feature/fast-load и main)",
+      "value": "висит после dem, таймаут 320 с; gdb: все WorkerThread и главный в pthread_cond_wait под GDScript-вызовами",
+      "pass": true
+    },
+    {
+      "name": "новый код, пул 2 / 3 / 4, GPU, Онгудай",
+      "value": "полёт за 23,9 / 19,7 / 15,9 с",
+      "pass": true
+    },
+    {
+      "name": "время до полёта, пул по умолчанию (20), 3+3 запуска чередованием",
+      "value": "медиана старый 25,38 с, новый 25,43 с (+0,2 %)",
+      "pass": true
+    },
+    {
+      "name": "время до полёта, пул 4, 3+3 запуска",
+      "value": "медиана старый 31,83 с, новый 31,62 с (−0,7 %)",
+      "pass": true
+    },
+    {
+      "name": "test_fast_load_pool_for: вложенные 3 уровня при занятом пуле",
+      "value": "4/4 ok; с ожиданием групп (подмена) — 2 FAIL по пределу 30 с",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Группы, которые ждёт только главный поток (dem_stage._group, surface_stage._run_group — с ожиданием кадров; OsmLayer — асинхронная низкоприоритетная группа, ждёт главный поток), не менял: ждущий не рабочий поток, тупика нет."
+  ],
+  "questions": [
+    "Находку FL-10 «висит в меню при пуле 3–4» стоит перепроверить с включённым монитором или vsync=false в user://local/configs/game.json профиля: у меня при DPMS Off игра идёт 1 кадр/с (Project FPS: 1), и это выглядит как зависание в меню при любом пуле, в том числе по умолчанию."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept FL-20; вручную: override.cfg в корне копии с [threading] worker_pool/max_threads=2 и tools/loading/load_probe.tscn -- --location=ongudai --timeout=300 (при выключенном мониторе — vsync=false в local/configs/game.json профиля)",
+  "uncertain": [
+    {
+      "where": "scripts/core/pool_for.gd:run",
+      "why": "Отсутствие тупика держится на совместном ожидании задач в Godot 4.7.2 (WorkerThreadPool::_wait_collaboratively); при смене версии движка поведение надо перепроверить тестом test_fast_load_pool_for.",
+      "checked": "Исходник worker_thread_pool.cpp коммита ed1daf0bf: ожидание группы — done_semaphore.wait(), ожидание задачи из рабочего потока — совместное; ERR_BUSY только для более старых задач, а PoolFor ждёт только что созданные. Тест с подменой на группы зависает (пойман пределом 30 с)."
+    },
+    {
+      "where": "рабочие потоки, ждущие более старую задачу",
+      "why": "wait_for_task_completion из рабочего потока на задачу старше текущей в 4.7 сразу возвращает ERR_BUSY без ожидания и без сообщения. В коде модуля такого пути не нашёл (снимок поверхности AirPlace.Surface.wait и записи кешей ждутся с главного потока), но весь проект не проверял.",
+      "checked": "grep всех wait_for_task_completion в scripts; вызовы Surface.wait — главный поток."
+    },
+    {
+      "where": "замер",
+      "why": "Одно место (Онгудай), профиль-копия loadprof-ong с vsync=false (монитор был выключен), air_cache каждый раз пишется; по 3 запуска — разница в пределах шума.",
+      "checked": "старый/новый чередовались в одной очереди под замком GPU."
+    }
+  ],
+  "dp_feedback": "Общий scratchpad у параллельных агентов: имена run.sh/old/ уже заняты другими — полезно в карточке подсказывать подкаталог <ID>/. Находка в «Дополнениях» обрезана в task show (…). report отклоняет checks без имён проверок карточки — шаблон report --template мог бы сразу их перечислять.",
+  "extra": {
+    "logs": "/home/greg/projects/.tmp/claude-1000/-home-greg-deltaplan/3cc788c4-ff03-49e9-923f-c2af6ce76e44/scratchpad/fl20/",
+    "pool_low_priority": "при 4 потоках max low-priority = 1 (ratio 0.3)"
+  },
+  "t": "2026-10-17T14:34:49",
+  "by": "executor"
+}
