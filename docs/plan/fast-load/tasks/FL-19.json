@@ -66,10 +66,14 @@
     {
       "name": "achievements",
       "tests": "achievements"
+    },
+    {
+      "name": "test_e2e",
+      "tests": "test_e2e"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-17T12:57:14",
-  "edited": "2026-10-17T13:06:38"
+  "edited": "2026-10-17T13:16:58"
 }
