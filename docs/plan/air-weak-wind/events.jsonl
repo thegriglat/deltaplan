@@ -19,3 +19,5 @@
 {"t": "2026-10-18T01:29:45", "by": "coordinator", "task": "AWW-1", "ev": "checked", "note": "4/4 w1_header=ok:variant,place,site,wind_ms,ho…; w1_main_rows=ok:8; docs=ok:ошибок 0; readme_sections=ok:8; scope=FAIL:вне scope: r-AWW-1.json"}
 {"t": "2026-10-18T01:29:56", "by": "coordinator", "task": "AWW-1", "ev": "checked", "note": "4/4 w1_header=ok:variant,place,site,wind_ms,ho…; w1_main_rows=ok:8; docs=ok:ошибок 0; readme_sections=ok:8"}
 {"t": "2026-10-18T01:30:18", "by": "coordinator", "task": "AWW-1", "ev": "accepted", "note": "по отчёту: исследование, все проверки PASS; приёмка модуля «Термики» 1,5–2,5 не достигнута прототипом — остаток объяснён склоном, правки волны 2 — отдельными карточками с ревью"}
+{"t": "2026-10-18T01:30:24", "by": "coordinator", "task": "AWW-1", "ev": "accepted", "commits": ["dc73a1b0"], "note": "4/4 w1_header=ok:variant,place,site,wind_ms,ho…; w1_main_rows=ok:8; docs=ok:ошибок 0; readme_sections=ok:8"}
+{"t": "2026-10-18T01:30:24", "by": "coordinator", "task": "AWW-1", "ev": "merged"}
