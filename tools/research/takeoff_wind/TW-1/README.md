@@ -3,7 +3,7 @@ type: "research"
 status: "closed"
 module: "takeoff-wind"
 updated: "2026-10-18"
-summary: "TW-1 (остановлено): срыв взлёта test_e2e на островах — случайный сид + болтанка у земли + разбег автопилота у срыва; test_matrix (T-74) на маятнике не воспроизводится."
+summary: "TW-1 (остановлено): флейк e2e — случайный сид и болтанка у земли, разбег автопилота у срыва; test_matrix 54/54."
 related: ["docs/plan/takeoff-wind.md", "docs/contracts/takeoff-wind.md"]
 conclusion: "Флейк e2e — новый случайный сид на каждое «Лететь»; провалы даёт болтанка у земли (без неё 0 из 80), разбег автопилота у срыва делает их неизбежными в ровном ветре (100 % против 0 % с разбегом VI-11); test_matrix 54/54."
 data: "tools/research/takeoff_wind/TW-1/runs_*.csv, fails_*.csv"
