@@ -169,3 +169,6 @@
 {"t": "2026-10-17T10:12:35", "by": "coordinator", "task": "FL-18", "ev": "started"}
 {"t": "2026-10-17T10:26:15", "by": "coordinator", "task": "FL-17", "ev": "checked", "note": "3/3 thermal=ok:19/19; air_thermals=ok:14/14; determinism=ok:3/3"}
 {"t": "2026-10-17T10:26:30", "by": "coordinator", "task": "FL-17", "ev": "accepted", "note": "по отчёту: разброс — разные сиды мира (не гонка); сборка заранее — только по готовности рельефа; main 6649 против модуля 6996 на точке — k притока (в main предел k ≤ 1, 15b3e270; модулю нужен sync); кеш даёт другие источники — FL-18"}
+{"t": "2026-10-17T10:29:39", "by": "executor", "task": "FL-18", "ev": "reported", "commits": ["f22ccaf0"], "note": "done: Причин расхождения две: 3D-каналы в кеше хранились как float16 (а AirThermals.build читает w_conv и theta, для сноса ещ…", "dp_feedback": "task show обрезает дополнение координатора; полный текст пришлось искать (помог --full). Раздел плана FL-18 в docs/plan/fast-load.md не найден — карточка ссылается на несуществующий раздел."}
+{"t": "2026-10-17T10:35:11", "by": "coordinator", "task": "FL-17", "ev": "accepted", "commits": ["a80b2960"], "note": "3/3 thermal=ok:19/19; air_thermals=ok:14/14; determinism=ok:3/3"}
+{"t": "2026-10-17T10:35:12", "by": "coordinator", "task": "FL-17", "ev": "merged"}

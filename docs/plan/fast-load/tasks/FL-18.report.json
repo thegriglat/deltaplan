@@ -1,0 +1,74 @@
+{
+  "status": "done",
+  "summary": "Причин расхождения две: 3D-каналы в кеше хранились как float16 (а AirThermals.build читает w_conv и theta, для сноса ещё u и v), и числа meta (z_i, u10) писались в JSON без полной точности: Godot по умолчанию теряет разряды, например 1234.5678901234567 -> 1234.567890123457. Теперь кеш пишет через AirBakedField.save(..., lossless = true): каналы float32, JSON с full_precision; формат TI-К3 не менялся (дтип задаётся по массиву), запечённое поле по-прежнему float16. Ключ format и cache в заголовке кеша 1 -> 2, старые записи — промах с удалением.",
+  "commits": [
+    "f22ccaf0 Кеш поля: формат 2 — без потерь (FL-18, FL-К1 v2)"
+  ],
+  "checks": [
+    {
+      "name": "fast_load_k1",
+      "value": "9/9; новый test_k1_lossless_sources: каналы, z_i/u10/z0, heat/gam побитно, источники бит-в-бит (164 и 33). С lossless=false тест падает (phi)",
+      "pass": true
+    },
+    {
+      "name": "air_cache",
+      "value": "3/3 headless (1 пропуск — GPU)",
+      "pass": true
+    },
+    {
+      "name": "air_cache GPU (tools/gpu_tests.sh --filter=air_cache), Онгудай",
+      "value": "источники по уровням [41, 130, 3814] бит-в-бит (число, col, pos, phi, w0, radius, flux, top, wstar, drift, owner, phi_ref); |Δu,v,w| 0.00000 м/с",
+      "pass": true
+    },
+    {
+      "name": "training_island",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "air_thermals",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "размер записи Онгудая",
+      "value": "16.96 МБ (было ~6.5 МБ при float16)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Запись выросла с ~6.5 до ~17 МБ: при пределе 200 МБ помещается около 11 мест вместо 30. Источникам нужны без потерь только w_conv, theta, u и v; w_mech можно оставить float16 (минус ~1/5 размера), но тогда u и v на краю ограничителя скорости (clamp_values при чтении) теоретически могут разойтись. Я оставил float32 для всех каналов: так поле из кеша совпадает побитно целиком, а не только источники. Нужно ли урезать?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept FL-18; GPU: tools/gpu_tests.sh --filter=air_cache",
+  "uncertain": [
+    {
+      "where": "tests/atmosphere/test_air_cache.gd::test_air_cache_miss_paths",
+      "why": "В GPU-прогоне (tools/gpu_tests.sh) падает проверка «cache_enabled = false — обычный путь (headless: аналитика)»: тест рассчитан на запуск без GPU, мои правки его не задевают; headless он проходит",
+      "checked": "headless air_cache 3/3; файл не трогал"
+    },
+    {
+      "where": "scripts/atmosphere/air_model/air_baked_field.gd:save",
+      "why": "Правка в air_model/ нужна: иначе пришлось бы дублировать формат в кеше. Файл исключён из code_hash, model_hash не меняется. По умолчанию lossless=false, поэтому запечённое TI-К3 и его тесты не меняются",
+      "checked": "training_island 25/25"
+    },
+    {
+      "where": "tests/contracts/test_fast_load_k1.gd sources_of",
+      "why": "Источники в тесте строятся с pick_fn = pick_in_column(ground = null), без GroundField и height_fn. Игровой путь ThermalField._air_launch добавляет sun_fn земли; это общий вход для обоих полей и от кеша не зависит",
+      "checked": "на Онгудае совпадают все массивы источников и phi_ref"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнение координатора; полный текст пришлось искать (помог --full). Раздел плана FL-18 в docs/plan/fast-load.md не найден — карточка ссылается на несуществующий раздел.",
+  "extra": {
+    "record_mb_before": 6.5,
+    "record_mb_after": 16.96,
+    "ongudai_sources_by_level": [
+      41,
+      130,
+      3814
+    ]
+  },
+  "t": "2026-10-17T10:29:39",
+  "by": "executor"
+}
