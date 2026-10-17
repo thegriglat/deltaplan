@@ -1,0 +1,65 @@
+{
+  "id": "TW-3",
+  "module": "takeoff-wind",
+  "type": "dp-engineer",
+  "title": "Перенос теплосодержания θ′·h в механизме F фаз",
+  "goal": "Внести в модель воздуха правку TW-2 (proto_theta_energy.patch): механизм F переносит теплосодержание θ′·h, а не θ′, — холодный тонкий слой над морем не охлаждает слой перемешивания суши; у старта «Термики» (2 м/с, 12:00) U10 0,44 → ≥ 1,2 м/с, другие старты ±5 %; GPU и CPU пути одинаково; тесты.",
+  "plan_ref": "Волна 2 — исправления",
+  "contracts": [
+    {
+      "name": "TW-К2",
+      "version": "1",
+      "ref": "docs/contracts/takeoff-wind.md"
+    }
+  ],
+  "copy": "~/deltaplan-takeoff-wind-TW-3",
+  "branch": "takeoff-wind/TW-3",
+  "base": "feature/takeoff-wind",
+  "scope": [
+    "scripts/atmosphere/air_model/air_phase.glsl",
+    "scripts/atmosphere/air_model/air_phase_cpu.gd",
+    "tests/atmosphere/test_air_phase.gd",
+    "tests/atmosphere/test_air_phase_gpu.gd",
+    "docs/guide/air-model/phases.md",
+    "docs/guide/air-model/limits.md",
+    "CHANGELOG.md",
+    "tools/research/takeoff_wind/TW-3/"
+  ],
+  "dont_touch": [
+    "data/",
+    "configs/locations/",
+    "scripts/flight/",
+    "scripts/game/",
+    "tests/game/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "air_phase",
+      "tests": "air_phase"
+    },
+    {
+      "name": "gpu_phase",
+      "cmd": "tools/gpu_tests.sh --filter=air_phase",
+      "expect": "tests"
+    },
+    {
+      "name": "gpu_runtime",
+      "cmd": "tools/gpu_tests.sh --filter=air_runtime",
+      "expect": "tests"
+    },
+    {
+      "name": "numbers",
+      "cmd": "test -s tools/research/takeoff_wind/TW-3/before_after.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T23:47:54"
+}
