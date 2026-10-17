@@ -203,3 +203,4 @@
 {"t": "2026-10-18T03:38:28", "by": "coordinator", "task": "RV-15", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-18T03:38:28", "by": "coordinator", "task": "RV-15", "ev": "merged"}
 {"t": "2026-10-18T03:39:39", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: модуль готов — 18 задач приняты и влиты, main влит (RV-15), тесты regional_veg_contracts/test_region_wiring/building/tree зелёные. Отзывы: accept с GPU-тестами headless даёт FAIL 0/0; r-<ID>.json в копии валит scope; godot --import извлекает текстуры glb под новыми именами после пересборки (RV-11b); docs/registry/findings.md упёрся в 40 КБ — строка regional-veg не добавлена, реестр надо разбить; task show обрезает заметки"}
+{"t": "2026-10-18T03:40:11", "by": "main", "task": null, "ev": "delivered", "commits": ["ba656c14"], "note": "squash в main: ba656c14"}
