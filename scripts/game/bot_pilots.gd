@@ -53,6 +53,10 @@ var _n_air := 0
 ## Доля ботов в воздухе на старте полёта; < 0 — из bots.json → airborne.share (opts.airborne_share).
 var _air_share := -1.0
 var _names_seed := 0
+## Камни, кусты и деревья у старта, собранные заранее (prefetch_obstacles): {start: Vector2, list} или {}.
+var _pre_obstacles := {}
+## Вид ботов строится порциями (setup_in_world_async): следующий бот без вида.
+var _vis_next := -1
 
 
 func _ready() -> void:
@@ -121,8 +125,10 @@ func setup(opts: Dictionary) -> void:
 		agents.append(a)
 	refresh_names()
 	reset()
-	if visuals_enabled:
+	if visuals_enabled and not bool(opts.get("defer_visuals", false)):
 		build_visuals()
+	elif visuals_enabled:
+		_vis_next = 0  # build_visuals_step — по боту за шаг
 
 
 ## Вид ботов (BotGlider) заново — по текущим agents (сеть: после подмены состояний).
@@ -131,13 +137,36 @@ func build_visuals() -> void:
 		if is_instance_valid(v):
 			v.queue_free()
 	_visuals.clear()
+	_vis_next = -1
 	for a in agents:
-		var v := BotGlider.new()
-		v.name = "Bot%d" % a.id
-		add_child(v)
-		v.setup(a, _cfg.get("visual", {}))
-		_visuals.append(v)
+		_add_visual(a)
 	_on_config_reloaded()
+
+
+## Вид ботов порциями (после setup_in_world_async): ботов, пока не вышло budget_us; true — все с видом.
+## Модель крыла и пилота у бота — сотни мс, поэтому по боту на кадр экрана загрузки (FL-10).
+func build_visuals_step(budget_us: int) -> bool:
+	if _vis_next < 0:
+		return true
+	var t0 := Time.get_ticks_usec()
+	while _vis_next < agents.size():
+		_add_visual(agents[_vis_next])
+		_vis_next += 1
+		if Time.get_ticks_usec() - t0 >= budget_us:
+			break
+	if _vis_next < agents.size():
+		return false
+	_vis_next = -1
+	_on_config_reloaded()
+	return true
+
+
+func _add_visual(a: BotAgent) -> void:
+	var v := BotGlider.new()
+	v.name = "Bot%d" % a.id
+	add_child(v)
+	v.setup(a, _cfg.get("visual", {}))
+	_visuals.append(v)
 
 
 ## Новый полёт в игре: воздух (Atmosphere или CalmAir), рельеф (Terrain), старт игрока;
@@ -161,17 +190,70 @@ func setup_in_world(
 		opts.cloudbase_msl = float(air.call("get_cloudbase_msl"))
 	if air is Atmosphere:
 		opts.clouds_fn = _visible_clouds.bind(air)
-	opts.obstacles = start_obstacles(terrain, objects, start)
+	opts.obstacles = start_obstacles(terrain, objects, start, _pre_obstacles)
+	_pre_obstacles = {}
 	setup(opts)
+
+
+## То же для экрана загрузки (FL-10): препятствия у старта — заранее (prefetch_obstacles, пока считается поле
+## воздуха), вид ботов — потом порциями (build_visuals_step), без кадра в секунды.
+func setup_in_world_async(
+	terrain: Node,
+	air: Node,
+	start: Vector3,
+	heading_deg: float,
+	count: int = -1,
+	objects: Node = null,
+	budget_ms: float = 50.0
+) -> void:
+	if _pre_obstacles.is_empty() or Vector2(_pre_obstacles.start) != Vector2(start.x, start.z):
+		await prefetch_obstacles(terrain, start, budget_ms)
+	var opts := {
+		"air_fn": Callable(air, "air_velocity_at"),
+		"ground_fn": Callable(terrain, "height_at"),
+		"start": start,
+		"heading_deg": heading_deg,
+		"count": count,
+		"defer_visuals": true,
+	}
+	if air.has_method("get_cloudbase_msl"):
+		opts.cloudbase_msl = float(air.call("get_cloudbase_msl"))
+	if air is Atmosphere:
+		opts.clouds_fn = _visible_clouds.bind(air)
+	opts.obstacles = start_obstacles(terrain, objects, start, _pre_obstacles)
+	_pre_obstacles = {}
+	setup(opts)
+
+
+## Камни, кусты и деревья у старта (obstacles_near: тайлы RockScatter/ShrubScatter — десятки мс каждый) порциями
+## по кадрам, не дольше budget_ms за кадр; не зависят от курса старта и палаток — можно до выбора курса.
+## Тот же список, что obstacles_near; запоминается для setup_in_world(_async) с тем же стартом.
+func prefetch_obstacles(terrain: Node, start: Vector3, budget_ms: float = 50.0) -> void:
+	_pre_obstacles = {}
+	var c := Vector2(start.x, start.z)
+	var out: Array[Vector3] = []
+	var t0 := Time.get_ticks_usec()
+	for job: Array in _obstacle_jobs(terrain, c, _obstacles_r()):
+		_obstacles_tile(job, c, _obstacles_r(), out)
+		if Time.get_ticks_usec() - t0 >= int(budget_ms * 1000.0):
+			await get_tree().process_frame
+			t0 = Time.get_ticks_usec()
+	_pre_obstacles = {"start": c, "list": out}
 
 
 ## Препятствия для мест ожидания у старта (SC-K1): камни, кусты, деревья рельефа и, если лагерь
 ## уже стоит (objects = WorldObjects), палатки и вещи у старта — ObstacleIndex.points_near.
-static func start_obstacles(terrain: Node, objects: Node, start: Vector3) -> Array[Vector3]:
-	var lc: Dictionary = Config.get_config("bots").get("launch", {})
-	var r := float(lc.get("behind_max_m", 70.0)) + float(lc.get("lateral_max_m", 40.0))
+## pre — собранные заранее камни и кусты (prefetch_obstacles) того же старта; {} — собрать здесь.
+static func start_obstacles(
+	terrain: Node, objects: Node, start: Vector3, pre: Dictionary = {}
+) -> Array[Vector3]:
+	var r := _obstacles_r()
 	var c := Vector2(start.x, start.z)
-	var out := obstacles_near(terrain, c, r)
+	var out: Array[Vector3] = []
+	if not pre.is_empty() and Vector2(pre.start) == c:
+		out.append_array(pre.list)
+	else:
+		out = obstacles_near(terrain, c, r)
 	if objects != null:
 		var idx: Variant = objects.get(&"obstacles")
 		if idx is ObstacleIndex:
@@ -183,6 +265,20 @@ static func start_obstacles(terrain: Node, objects: Node, start: Vector3) -> Arr
 ## от c: [Vector3(x, z, радиус)] — чтобы боты не стояли с крылом в камне.
 static func obstacles_near(terrain: Node, c: Vector2, r: float) -> Array[Vector3]:
 	var out: Array[Vector3] = []
+	for job: Array in _obstacle_jobs(terrain, c, r):
+		_obstacles_tile(job, c, r, out)
+	return out
+
+
+## Радиус сбора препятствий у старта, м: дальнее место ожидания (позади + вбок).
+static func _obstacles_r() -> float:
+	var lc: Dictionary = Config.get_config("bots").get("launch", {})
+	return float(lc.get("behind_max_m", 70.0)) + float(lc.get("lateral_max_m", 40.0))
+
+
+## Тайлы для obstacles_near по порядку: [узел, метод, tx, tz].
+static func _obstacle_jobs(terrain: Node, c: Vector2, r: float) -> Array:
+	var jobs: Array = []
 	for pair: Array in [
 		["Rocks", "build_tile", ""],
 		["Shrubs", "build_tile", ""],
@@ -199,14 +295,18 @@ static func obstacles_near(terrain: Node, c: Vector2, r: float) -> Array[Vector3
 		var tile := float((cfg as Dictionary).get("tile_m", 96.0))
 		for tz in range(floori((c.y - r) / tile), floori((c.y + r) / tile) + 1):
 			for tx in range(floori((c.x - r) / tile), floori((c.x + r) / tile) + 1):
-				var d: Dictionary = n.call(String(pair[1]), tx, tz)
-				var xf: PackedFloat32Array = d.get("xf", PackedFloat32Array())
-				var sz: PackedFloat32Array = d.get("size", PackedFloat32Array())
-				for i in sz.size():
-					var p := Vector2(xf[i * 12 + 3], xf[i * 12 + 11])
-					if p.distance_to(c) <= r + 10.0:
-						out.append(Vector3(p.x, p.y, maxf(sz[i] * 0.5, 0.5)))
-	return out
+				jobs.append([n, String(pair[1]), tx, tz])
+	return jobs
+
+
+static func _obstacles_tile(job: Array, c: Vector2, r: float, out: Array[Vector3]) -> void:
+	var d: Dictionary = (job[0] as Node).call(String(job[1]), int(job[2]), int(job[3]))
+	var xf: PackedFloat32Array = d.get("xf", PackedFloat32Array())
+	var sz: PackedFloat32Array = d.get("size", PackedFloat32Array())
+	for i in sz.size():
+		var p := Vector2(xf[i * 12 + 3], xf[i * 12 + 11])
+		if p.distance_to(c) <= r + 10.0:
+			out.append(Vector3(p.x, p.y, maxf(sz[i] * 0.5, 0.5)))
 
 
 ## Облака, которые видит пилот (как tests/atmosphere/xc/xc_run.gd): центр, радиус, рост, распад.
@@ -257,6 +357,7 @@ func _on_config_reloaded() -> void:
 
 ## Убрать всех ботов.
 func clear() -> void:
+	_vis_next = -1
 	for v in _visuals:
 		if is_instance_valid(v):
 			v.queue_free()

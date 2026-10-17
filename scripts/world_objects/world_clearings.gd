@@ -28,14 +28,18 @@ static func build_for(location_id: String) -> WorldClearings:
 ## Маска по общим данным места (FL-К2): рельеф, OSM и план домов — из PlaceData, без чтения файлов.
 ## Расчищено только там, где объекты стоят: дома плана (тот же, что расставляет WorldObjects), дворы,
 ## дороги и ж/д OSM, тропы к стартам, посадки. null — нет данных или конфига места.
-static func build_from(pd: PlaceData) -> WorldClearings:
+## loc, cfg — конфиг места (Locations.config) и объектов (WorldObjects.load_config), если уже прочитаны: в рабочем
+## потоке (FL-10) их читает главный поток заранее — кеши конфигов пишутся при первом чтении.
+static func build_from(pd: PlaceData, loc: Dictionary = {}, cfg: Dictionary = {}) -> WorldClearings:
 	if pd == null:
 		return null
 	var location_id := pd.location_id
-	var loc: Dictionary = Locations.config(location_id)
+	if loc.is_empty():
+		loc = Locations.config(location_id)
 	if loc.is_empty():
 		return null
-	var cfg := WorldObjects.load_config()
+	if cfg.is_empty():
+		cfg = WorldObjects.load_config()
 	var lat0 := float(loc.center_lat)
 	var lon0 := float(loc.center_lon)
 	var half := DEFAULT_HALF_SIZE_M

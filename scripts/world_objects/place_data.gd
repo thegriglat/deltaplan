@@ -6,6 +6,7 @@ extends RefCounted
 ## После сборки — только чтение; height_at безопасна для рабочих потоков.
 ##   var pd := PlaceData.for_terrain(terrain)   # живой рельеф: те же слои, кеш в мета Terrain "place_data"
 ##   var pd := PlaceData.from_files("ongudai")  # без Terrain: каждый файл читается один раз
+##   var job := PlaceData.start_for_terrain(terrain)   # то же в рабочем потоке: job.done(), job.finish()
 
 const META_KEY := "place_data"
 
@@ -59,24 +60,89 @@ static func from_files(id: String) -> PlaceData:
 
 ## Сборка: OSM (OsmData.load_for) и план домов. layers — готовые слои (не читаются).
 static func build(id: String, ls: Array[HeightLayer], bp: BuiltPatches) -> PlaceData:
+	return _assemble(_inputs(id), ls, bp)
+
+
+## Сборка в рабочем потоке (FL-10): входы из кешей автозагрузок (Config, Locations) — здесь, на главном потоке;
+## расчёт (OSM, план домов) — задачей WorkerThreadPool; готово — job.done(), результат — job.finish() на главном
+## потоке (кладёт в мета Terrain). Данные этого места уже есть — job сразу готов.
+static func start_for_terrain(t: Terrain) -> Job:
+	var job := Job.new()
+	job.terrain = t
+	if t == null:
+		return job
+	if t.has_meta(META_KEY):
+		var cached: PlaceData = t.get_meta(META_KEY)
+		if cached != null and cached._matches(t):
+			job.result = cached
+			return job
+	var inp := _inputs(t.location_id)
+	var ls: Array[HeightLayer] = t.layers.duplicate()
+	var bp := BuiltPatches.for_terrain(t)
+	bp.ensure_loaded()  # растр долей — здесь: экземпляр общий (мета Terrain), в потоке только читается
+	# низкий приоритет: OsmData.load_for внутри ждёт свои группы пула (высокого приоритета) — им остаются потоки
+	job.task = WorkerThreadPool.add_task(
+		func() -> void: job.result = _assemble(inp, ls, bp), false, "PlaceData"
+	)
+	return job
+
+
+## Сборка общих данных места в рабочем потоке (start_for_terrain).
+class Job:
+	extends RefCounted
+	var terrain: Terrain
+	var task := -1
+	var result: PlaceData
+
+	## Расчёт закончен (не ждёт).
+	func done() -> bool:
+		return task < 0 or WorkerThreadPool.is_task_completed(task)
+
+	## Главный поток: дождаться и отдать данные (в мета Terrain, если рельеф тот же; сменился — null).
+	func finish() -> PlaceData:
+		if task >= 0:
+			WorkerThreadPool.wait_for_task_completion(task)
+			task = -1
+		if result == null or not is_instance_valid(terrain) or not result._matches(terrain):
+			return null
+		terrain.set_meta(META_KEY, result)
+		return result
+
+
+## Входы сборки из конфигов (главный поток: кеши Config и Locations пишутся при первом чтении).
+static func _inputs(id: String) -> Dictionary:
+	var ocfg: Dictionary = Config.get_config("osm_tiles")
+	OsmTilesStage.cache_root()
+	return {
+		"id": id,
+		"dir": Locations.data_dir(id) if id != "" else "",
+		"loc": Locations.config(id),
+		"ocfg": ocfg,
+		"wcfg": WorldObjects.load_config(),
+	}
+
+
+## Расчёт по входам _inputs — потокобезопасен (файлы, слои и пятна только читаются).
+static func _assemble(inp: Dictionary, ls: Array[HeightLayer], bp: BuiltPatches) -> PlaceData:
 	var t0 := Time.get_ticks_usec()
 	builds += 1
+	var id := String(inp.id)
 	var pd := PlaceData.new()
 	pd.location_id = id
-	pd.dir = Locations.data_dir(id) if id != "" else ""
+	pd.dir = String(inp.dir)
 	pd.layers = ls
 	pd.patches = bp if bp != null else BuiltPatches.new()
-	pd.patches.ensure_loaded()  # растр долей — до рабочих потоков
-	var loc: Dictionary = Locations.config(id)
+	pd.patches.ensure_loaded()  # растр долей — до потоков плана домов
+	var loc: Dictionary = inp.loc
 	pd.center_lat = float(loc.get("center_lat", 0.0))
 	pd.center_lon = float(loc.get("center_lon", 0.0))
 	pd.osm = OsmData.new()
-	var ocfg: Dictionary = Config.get_config("osm_tiles")
+	var ocfg: Dictionary = inp.ocfg
 	if not loc.is_empty() and bool(ocfg.get("enabled", true)):
 		pd.osm = OsmData.load_for(pd.dir, pd.center_lat, pd.center_lon, float(ocfg.get("half_m", 20000.0)))
 	var t1 := Time.get_ticks_usec()
 	pd.osm_time_s = (t1 - t0) / 1.0e6
-	var cfg := WorldObjects.load_config()
+	var cfg: Dictionary = inp.wcfg
 	if not ls.is_empty() and bool(cfg.buildings.get("enabled", true)):
 		pd.house_plan = VillagePlacer.plan(pd.patches, id, cfg.villages, pd.height_at, pd.osm.buildings)
 	var t2 := Time.get_ticks_usec()

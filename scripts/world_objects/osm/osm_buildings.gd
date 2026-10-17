@@ -19,9 +19,9 @@ static func build(
 	return OsmLayer.run_all(assemble(prep, cfg))
 
 
-## Расчёт (FL-6, рабочий поток при потокобезопасной height_fn): стиль, поправка этажности (меняет высоты в
-## data.buildings на месте), тайлы экземпляров и коробки домов (свой ObstacleIndex). rule — osm_tiles.json →
-## height_rule (читается на главном потоке). Нет домов — {}.
+## Расчёт (FL-6, рабочий поток при потокобезопасной height_fn): стиль, поправка этажности (в своей копии записей:
+## data.buildings — общие данные места, FL-К2, только чтение), тайлы экземпляров и коробки домов (свой
+## ObstacleIndex). rule — osm_tiles.json → height_rule (читается на главном потоке). Нет домов — {}.
 static func prepare(data: OsmData, cfg: Dictionary, height_fn: Callable, rule: Dictionary) -> Dictionary:
 	if data == null or data.buildings.is_empty():
 		return {}
@@ -29,14 +29,16 @@ static func prepare(data: OsmData, cfg: Dictionary, height_fn: Callable, rule: D
 	if not bool(bc.get("enabled", true)):
 		return {}
 	var t0 := Time.get_ticks_usec()
-	# L2: стиль и поправка этажности мегаполиса (меняет высоты в data.buildings на месте) — до расстановки
-	var style := BuildingStyle.classify(data.buildings, bc.style)
+	# L2: стиль и поправка этажности мегаполиса (меняет высоты записей на месте — поэтому в копии: общие
+	# PlaceData.osm.buildings читают маска просек и другие потоки, FL-К2) — до расстановки
+	var houses := data.buildings.duplicate(true)
+	var style := BuildingStyle.classify(houses, bc.style)
 	var tc := Time.get_ticks_usec()
-	var glass := BuildingStyle.adjust(data.buildings, style, rule)
+	var glass := BuildingStyle.adjust(houses, style, rule)
 	BuildingStyle.release()
 	var t1 := Time.get_ticks_usec()
 	var obstacles := ObstacleIndex.new()
-	var tiles := BuildingPlacer.place(data.buildings, bc, height_fn, obstacles, style, glass)
+	var tiles := BuildingPlacer.place(houses, bc, height_fn, obstacles, style, glass)
 	var t2 := Time.get_ticks_usec()
 	var n := 0
 	for k in tiles:

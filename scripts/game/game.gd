@@ -29,6 +29,8 @@ const TOW_FLOW_CAP_MS := 28.0
 ## Загрузка места: бюджет порции первого обновления термиков на кадр экрана загрузки, мкс (FL-5;
 ## кадр — порция + отрисовка + неделимый конец ~25 мс, предел замирания — 200 мс).
 const LOAD_REFRESH_BUDGET_US := 40000
+## Вид ботов на экране загрузки — не дольше за кадр, мкс (по боту, модель крыла — сотни мс).
+const LOAD_BOTS_BUDGET_US := 40000
 
 var settings: FlightSettings
 ## Модель воздуха: Atmosphere или запасная CalmAir (game.json → air).
@@ -393,9 +395,8 @@ func start(s: FlightSettings) -> bool:
 		air.call("load_static_thermals", terrain.location.get("thermals", []))
 	glider.set_ground_fn(terrain.height_at)
 	glider.set_air_fn(air.air_velocity_at)
-	progress.stage("objects", tr("loading_objects"))
-	await get_tree().process_frame
-	await world_link.link_async(terrain, air, glider)
+	# Старт — до объектов и поля воздуха (FL-10): выбор зависит только от рельефа (высоты, карта поверхности,
+	# площадки); пустырь у старта с карты входит в снимок поверхности поля, как и раньше.
 	_choose_start()
 	_site_heading = _start_heading
 	# Ветер прогноза (пилот): встречный или с заданного румба; выше старта сильнее.
@@ -405,11 +406,26 @@ func start(s: FlightSettings) -> bool:
 		_site_heading if settings.wind_into_launch else settings.wind_from_deg,
 		_start_pos.y
 	)
-	# Среднее поле на час старта, ветер и погоду полёта — до термиков (их источники — из поля).
-	await _load_air_field(progress)
-	# Источники термиков из поля — в рабочем потоке, пока готовится планер (FL-5); только по
-	# готовым полям рельефа (иначе — после их ожидания ниже).
-	_prefetch_air_sources()
+	# Среднее поле на час старта (до термиков: их источники — из поля) и объекты мира — одновременно (FL-10):
+	# поле (запечённое → кеш → расчёт) готовится в рабочих потоках и на GPU порциями, объекты — порциями по
+	# кадрам; пока считается ветер, экран показывает его долю, а объекты — строкой под ним.
+	progress.stage("objects", tr("loading_objects"))
+	await get_tree().process_frame
+	var job := {"air": true, "objects": true}
+	_air_field_job(progress, job)
+	await world_link.link_async(terrain, air, glider)
+	job.objects = false
+	if progress.note == tr("loading_objects"):
+		progress.note = ""
+	# Поле ещё считается — планер и препятствия у старта для ботов (от курса и поля не зависят) — сейчас.
+	var glider_ready := false
+	if job.air:
+		await get_tree().process_frame
+		_setup_glider()
+		glider_ready = true
+		await bots.prefetch_obstacles(terrain, _start_pos)
+	while job.air:
+		await get_tree().process_frame
 	_align_start_heading()
 	if air.has_method("place_thermals_near"):
 		air.call("place_thermals_near", _start_pos, _start_heading)
@@ -417,7 +433,9 @@ func start(s: FlightSettings) -> bool:
 	_apply_haze()
 	progress.stage("glider", tr("loading_almost"))
 	await get_tree().process_frame
-	_setup_glider()
+	if not glider_ready:
+		_setup_glider()
+		await get_tree().process_frame
 	collisions.setup(
 		world_link.objects,
 		terrain.forest_at,
@@ -426,32 +444,59 @@ func start(s: FlightSettings) -> bool:
 	)
 	# Лагерь и вещи — до ботов: места ожидания обходят палатки (SC-K1)
 	world_link.place_camp()
-	bots.setup_in_world(
+	await get_tree().process_frame
+	# Боты: места и агенты — сразу, вид — порциями вместе с термиками ниже (FL-10).
+	await bots.setup_in_world_async(
 		terrain, air, _start_pos, _start_heading, bots_count, world_link.objects
 	)
 	# Поля рельефа (влажность ложбин ослабляет источники термиков) считаются в фоне — термики
 	# рождаются только после них, иначе первые термики зависели бы от скорости машины.
 	# Поля доводит Terrain._process; у выключенного узла (тесты шагают сами) — ждать здесь.
+	await _wait_relief()
+	_prefetch_air_sources()  # поля рельефа были не готовы — сборка источников стартует здесь
+	_goals_setup()
+	restart()
+	# Термики вокруг старта — ещё на экране загрузки (первое обновление — самое долгое, секунды):
+	# порциями по кадрам, без замирания экрана (FL-5); полёт — когда они готовы. В тех же кадрах — вид ботов.
+	var thermals_done := true
+	if air.has_method("begin_load_refresh"):
+		air.call("begin_load_refresh")
+		thermals_done = false
+	elif air.has_method("refresh_now"):
+		air.call("refresh_now")
+	var bots_done := false
+	while true:
+		bots_done = bots_done or bots.build_visuals_step(LOAD_BOTS_BUDGET_US)
+		if not thermals_done:
+			thermals_done = air.call("load_refresh_step", LOAD_REFRESH_BUDGET_US)
+		if thermals_done and bots_done:
+			break
+		await get_tree().process_frame
+	set_physics_process(true)
+	progress.finish()
+	status_changed.emit("")
+	return true
+
+
+## Поля рельефа досчитаны: кадрами, пока их доводит Terrain._process; у выключенного узла — ожидание.
+func _wait_relief() -> void:
 	while terrain.has_method("relief_busy") and terrain.relief_busy():
 		if not terrain.can_process() and terrain.has_method("wait_relief"):
 			terrain.wait_relief()
 			break
 		await get_tree().process_frame
-	_prefetch_air_sources()  # поля рельефа были не готовы — сборка источников стартует здесь
-	_goals_setup()
-	restart()
-	# Термики вокруг старта — ещё на экране загрузки (первое обновление — самое долгое, секунды):
-	# порциями по кадрам, без замирания экрана (FL-5); полёт — когда они готовы.
-	if air.has_method("begin_load_refresh"):
-		air.call("begin_load_refresh")
-		while not air.call("load_refresh_step", LOAD_REFRESH_BUDGET_US):
-			await get_tree().process_frame
-	elif air.has_method("refresh_now"):
-		air.call("refresh_now")
-	set_physics_process(true)
-	progress.finish()
-	status_changed.emit("")
-	return true
+
+
+## Поле воздуха загрузки — фоном, одновременно с объектами (FL-10): job.air = false, когда поле подано
+## (или этап пропущен); job.objects — объекты ещё строятся (подпись под этапом ветра).
+func _air_field_job(progress: LoadProgress, job: Dictionary) -> void:
+	# снимок поверхности (AirPlace.surface_start) ждёт поля рельефа — ждать кадрами, а не блокирующе
+	await _wait_relief()
+	await _load_air_field(progress, job)
+	# Источники термиков из поля — в рабочем потоке сразу по готовности поля (FL-5), пока строятся объекты и
+	# планер (только по готовым полям рельефа, FL-17); входы сборки сверяются при первом обновлении.
+	_prefetch_air_sources()
+	job.air = false
 
 
 ## Источники термиков заранее (FL-5), если поля рельефа готовы (air_sources_ready); иначе ничего —
@@ -473,7 +518,8 @@ static func air_sources_ready(t: Object) -> bool:
 ## Этап загрузки «Рассчитываем ветер» (AM-06Б): точное поле для часа старта, ветра и погоды
 ## полёта; без GPU / headless / ошибка — этап пропускается, аналитика. Дальше — пересчёт в полёте
 ## (каждые air_model.recompute_game_min игровых минут и при смене ветра/погоды).
-func _load_air_field(progress: LoadProgress) -> void:
+## job.objects (FL-10) — объекты мира строятся одновременно: строка под этапом, после поля — снова их этап.
+func _load_air_field(progress: LoadProgress, job: Dictionary = {}) -> void:
 	var cond := AirRuntime.conditions_of.bind(sky.clock, air, settings)
 	air_runtime.setup(
 		air,
@@ -482,10 +528,14 @@ func _load_air_field(progress: LoadProgress) -> void:
 	)
 	air_runtime.set_focus(camera if inspect_mode else glider, _start_pos)
 	await air_runtime.wait_place()  # снимок поверхности — задачей пула (FL-9), кадры идут
+	var wind_stage := false
 	if air_runtime.baked_ready() or air_runtime.cache_ready():
 		pass  # поле — из запечённого файла (TI-К3) или кеша (FL-К1): этапа «Рассчитываем ветер» нет
 	elif air_runtime.unavailable_reason() == "":
 		progress.stage("wind", tr(wind_stage_key(air_runtime.engine())))
+		if bool(job.get("objects", false)):
+			progress.note = tr("loading_objects")
+		wind_stage = true
 		air_runtime.progress_changed.connect(_on_air_progress.bind(progress))
 	elif air_runtime.unavailable_reason() != AirRuntime.CMD_FIELD:
 		progress.note = tr(wind_stage_key("simple"))  # выбранный режим недоступен или «упрощённый»
@@ -493,6 +543,9 @@ func _load_air_field(progress: LoadProgress) -> void:
 	if air_runtime.progress_changed.is_connected(_on_air_progress):
 		air_runtime.progress_changed.disconnect(_on_air_progress)
 	air_runtime.recompute_enabled = true
+	if wind_stage and bool(job.get("objects", false)):
+		progress.stage("objects", tr("loading_objects"))  # ветер готов, объекты ещё строятся
+		progress.note = ""
 
 
 ## Ключ подписи ветра на экране загрузки по фактическому режиму: "solver" | иначе упрощённый.

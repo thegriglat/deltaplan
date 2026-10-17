@@ -37,24 +37,54 @@ func link(terrain: Terrain, air: Node, pilot: Node3D) -> void:
 		objects.call("setup", terrain, air)
 
 
-## То же порциями (FL-6): общие данные места, маска просек и объекты — в разных кадрах; объекты — расчёт
-## в рабочих потоках, узлы не дольше budget_ms за кадр (WorldObjects.setup_async). Ждать: await.
+## То же порциями (FL-6, FL-10): общие данные места (PlaceData) и маска просек — в рабочих потоках (кадры идут),
+## объекты — расчёт в рабочих потоках, узлы не дольше budget_ms за кадр (WorldObjects.setup_async); маска
+## считается одновременно с объектами и ставится в рельеф до конца. Ждать: await.
 func link_async(terrain: Terrain, air: Node, pilot: Node3D, budget_ms: float = 50.0) -> void:
-	var place: Variant = _link_begin(terrain, air, pilot)
-	if place is bool:
+	if not _link_prep(terrain, air, pilot):
 		return
-	await get_tree().process_frame
-	_link_clearings(terrain, place)
+	var place: PlaceData = null
+	if terrain.location_id != "":
+		var job := PlaceData.start_for_terrain(terrain)
+		while not job.done():
+			await get_tree().process_frame
+		place = job.finish()
+		if place == null:
+			_location = "\u0000"  # рельеф сменился, пока считались данные места: следующий link — заново
+			return
+	var mask := {}
+	var task := -1
+	if place != null and terrain.has_method("set_clearings"):
+		var loc: Dictionary = Locations.config(place.location_id)
+		var cfg := WorldObjects.load_config()
+		task = WorkerThreadPool.add_task(
+			func() -> void: mask["c"] = WorldClearings.build_from(place, loc, cfg), false, "WorldClearings"
+		)
 	await get_tree().process_frame
 	if objects != null and objects.has_method(&"setup_async"):
 		await objects.setup_async(terrain, air, budget_ms)
 	elif objects != null and objects.has_method("setup"):
 		objects.call("setup", terrain, air)
+	if task >= 0:
+		while not WorkerThreadPool.is_task_completed(task):
+			await get_tree().process_frame
+		WorkerThreadPool.wait_for_task_completion(task)
+		var c: WorldClearings = mask.get("c")
+		if c != null and is_instance_valid(terrain) and terrain.location_id == place.location_id:
+			terrain.set_clearings(c.image, c.origin, c.cell_m)
 
 
 ## Ветер травы и деревьев, пилот, камни и кусты; общие данные места (FL-К2) — PlaceData или null.
 ## Та же локация — false (объекты и просеки уже стоят).
 func _link_begin(terrain: Terrain, air: Node, pilot: Node3D) -> Variant:
+	if not _link_prep(terrain, air, pilot):
+		return false
+	# общие данные места (FL-К2): OSM и план домов — один раз, для маски просек и объектов
+	return PlaceData.for_terrain(terrain) if terrain.location_id != "" else null
+
+
+## Ветер травы и деревьев, пилот, камни и кусты. Та же локация — false (объекты и просеки уже стоят).
+func _link_prep(terrain: Terrain, air: Node, pilot: Node3D) -> bool:
 	if terrain.has_method("set_wind_sources"):
 		var mean := Callable(air, "mean_wind_at") if air.has_method("mean_wind_at") else Callable()
 		var th := Callable(air, "thermals_near") if air.has_method("thermals_near") else Callable()
@@ -72,8 +102,7 @@ func _link_begin(terrain: Terrain, air: Node, pilot: Node3D) -> Variant:
 	if loc == _location and not terrain.layers.is_empty():
 		return false  # та же локация — объекты и просеки уже стоят
 	_location = loc
-	# общие данные места (FL-К2): OSM и план домов — один раз, для маски просек и объектов
-	return PlaceData.for_terrain(terrain) if loc != "" else null
+	return true
 
 
 func _link_clearings(terrain: Terrain, place: PlaceData) -> void:
