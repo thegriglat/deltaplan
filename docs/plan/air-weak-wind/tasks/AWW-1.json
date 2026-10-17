@@ -1,0 +1,59 @@
+{
+  "id": "AWW-1",
+  "module": "air-weak-wind",
+  "type": "dp-researcher",
+  "title": "Независимый разбор модели воздуха при слабом ветре: θ′ механизма F, профиль у земли, порывы",
+  "goal": "Проверить по физике диагноз takeoff-wind 1–3 (холодный θ′ F над сушей, u10/u100≈0,45, порывы у земли) и дать доказанные причины и физически обоснованные правки модели с прототипами и числами; таблица W1 «как сейчас» по всем встроенным местам и стартам.",
+  "plan_ref": "AWW-1",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/air-weak-wind.md"
+    },
+    {
+      "name": "W2",
+      "version": "1",
+      "ref": "docs/contracts/air-weak-wind.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-weak-wind-AWW-1",
+  "branch": "air-weak-wind/AWW-1",
+  "base": "feature/air-weak-wind",
+  "scope": [
+    "tools/research/air_weak_wind/AWW-1/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/",
+    "tests/",
+    "docs/guide/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "w1_header",
+      "cmd": "head -1 tools/research/air_weak_wind/AWW-1/starts.csv",
+      "expect": "re:^variant,place,site,wind_ms,hour,sky,u2,u10,u50,u100,dir10_deg,r10_100,theta_ml_K,frozen_frac,w_mean10,w_max10,sigma_u10,gust_max10,zi_m,cloud_base_m,cloud_frac,therm_n,therm_w300,wave_w1500$"
+    },
+    {
+      "name": "w1_main_rows",
+      "cmd": "grep -c '^main,' tools/research/air_weak_wind/AWW-1/starts.csv",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "readme_sections",
+      "cmd": "grep -c '^## \\(Вывод\\|Диагноз 1\\|Диагноз 2\\|Диагноз 3\\|Предложение правок\\|Воспроизведение\\)' tools/research/air_weak_wind/AWW-1/README.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | tail -1'",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T00:30:30"
+}
