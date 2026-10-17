@@ -1,0 +1,43 @@
+{
+  "id": "RV-15",
+  "module": "regional-veg",
+  "type": "dp-mechanic",
+  "title": "Синхронизация feature/regional-veg с main (конфликт CHANGELOG.md)",
+  "goal": "Влить main в feature/regional-veg; в CHANGELOG.md сохранить строки обеих сторон в разделе «В работе»; прочие файлы — без правок.",
+  "plan_ref": "Волна 3",
+  "contracts": [],
+  "copy": "/home/greg/deltaplan-regional-veg",
+  "branch": "feature/regional-veg",
+  "base": "feature/regional-veg",
+  "scope": [
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "assets",
+    "tools",
+    "tests",
+    "docs",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "merged",
+      "cmd": "git merge-base --is-ancestor main HEAD && echo ok",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "no_markers",
+      "cmd": "grep -c '^<<<<<<<\\|^>>>>>>>\\|^=======$' CHANGELOG.md",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T03:36:45"
+}
