@@ -118,7 +118,7 @@ PROFILES = {
         "terrain_look": {"forest_color": [0.04, 0.105, 0.04], "birch_color": [0.08, 0.17, 0.05]},
         "scene_look": {"evergreen": 1.0},
         "buildings": {
-            "max_levels": 1,
+            "max_levels": 1, "max_levels_osm": True,
             "village_models": [{"name": "tin_house", "weight": 1.0}], "village_model_share": 0.7,
             "style": {**_pal([[0.86, 0.84, 0.78], [0.8, 0.82, 0.74], [0.84, 0.76, 0.66], [0.78, 0.84, 0.86]],
                               [[0.5, 0.25, 0.2], [0.3, 0.4, 0.5], [0.28, 0.42, 0.32]]),

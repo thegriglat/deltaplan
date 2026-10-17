@@ -100,7 +100,7 @@ static func _flat(_x: float, _z: float) -> float:
 	return 0.0
 
 
-## Рапа-Нуи: потолок этажей и на записях из 7 полей (дома посёлка), и на OSM-домах по правилу; высота из тегов не режется.
+## Рапа-Нуи: потолок этажей на всех домах: 7 полей (посёлок), OSM по правилу и по тегам (max_levels_osm).
 func test_rapa_nui_one_floor() -> void:
 	_real()
 	var bc: Dictionary = WorldObjects.load_config(-27.12, -109.35).buildings.duplicate(true)
@@ -110,7 +110,8 @@ func test_rapa_nui_one_floor() -> void:
 		houses.append([100.0 + 30.0 * i, 0.0, 7.0, 9.0, 0.0, 3.2 + 0.1 * i, 0])  # посёлок, 7 полей
 	for i in 10:
 		houses.append([100.0 + 30.0 * i, 200.0, 8.0, 10.0, 0.0, 12.0, 0, 1, 1])  # OSM по правилу, 4 этажа
-	houses.append([900.0, 400.0, 8.0, 10.0, 0.0, 12.0, 0, 1, 0])  # OSM, высота из тегов — не режется
+	houses.append([900.0, 400.0, 8.0, 10.0, 0.0, 12.0, 0, 1, 0])  # OSM, высота из тегов — режется (max_levels_osm)
+	check(bool(bc.get("max_levels_osm", false)), "Рапа-Нуи: max_levels_osm")
 	var tiles := BuildingPlacer.place(houses, bc, _flat)
 	var level := float(bc.get("level_m", 3.0))
 	var max_wall := 0.0
@@ -122,8 +123,11 @@ func test_rapa_nui_one_floor() -> void:
 			if h > level + 0.01:
 				tall += 1
 			max_wall = maxf(max_wall, h)
-	check(tall == 1, "Рапа-Нуи: выше этажа только дом с высотой из тегов (%d)" % tall)
-	check(max_wall > 11.9, "дом с высотой из тегов не обрезан")
+	check(tall == 0, "Рапа-Нуи: все дома не выше этажа (%d выше)" % tall)
+	check(max_wall <= level + 0.01, "максимум стены %.2f" % max_wall)
+	# вне острова (Ницца) высота из тегов не режется
+	var nb: Dictionary = WorldObjects.load_config(43.70, 7.26).buildings.duplicate(true)
+	check(not bool(nb.get("max_levels_osm", false)), "Ницца: max_levels_osm выключен")
 
 
 func _cell_hash(im: Image, c: int) -> int:

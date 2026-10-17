@@ -160,7 +160,3 @@ related: ["docs/archive/README.md"]
 ## goals
 
 - **Оценка целей** — грубая формула по погоде без рельефа: V = 16,7·c/(c + 1,9) м/с (c = 2 → ≈ 31 км/ч); в слабую погоду трудные цели недостижимы — [goals.md](/docs/guide/goals.md#оценка-по-погоде-goalestimator)
-
-## regional-veg
-
-- **Профиль региона** (Biome.at → деревья, полог, дома): 5 мест в `test_region_wiring`, Онгудай равен прежнему; пояса palm ≤ 450 м, tropical ≤ 1700 м, oak ≤ 1200 м — [villages-osm.md](/docs/guide/world-objects/villages-osm.md#профиль-региона-в-конфиге-домов-rv-9)

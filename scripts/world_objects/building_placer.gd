@@ -57,6 +57,7 @@ static func place(
 	var parapet_h := float(cfg.get("parapet_h_m", 0.8))
 	var parapet_t := float(cfg.get("parapet_t_m", 0.25))
 	var max_h := float(cfg.get("max_levels", 0)) * float(cfg.get("level_m", 3.0))
+	var max_osm := bool(cfg.get("max_levels_osm", false))  # RV-К4 v2: потолок и на дома с высотой из тегов OSM
 	var picks := _model_picks(cfg)
 	var model_share := float(cfg.get("village_model_share", 0.0))
 	var model_max_area := float(cfg.get("village_model_max_area_m2", 150.0))
@@ -88,7 +89,7 @@ static func place(
 		var rot := Basis(Vector3.UP, -ang)
 		var base := gmin - sink
 		var bh: float = b[5]
-		if max_h > 0.0 and (b.size() < 8 or (b.size() > 8 and int(b[8]) == 1)):  # 7 полей (дома посёлка) — высота по правилу
+		if max_h > 0.0 and (max_osm or b.size() < 8 or (b.size() > 8 and int(b[8]) == 1)):  # 7 полей (дома посёлка) — высота по правилу
 			bh = minf(bh, max_h)
 		var wall_h := bh + (gmax - gmin) + sink
 		var tk := WorldTiles.key(x, z, tile)

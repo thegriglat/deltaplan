@@ -277,6 +277,6 @@
 "temperate":{"trees":{"set":["spruce","larch","cedar","pine","oak","birch"]}},
 "boreal":{"trees":{"set":["pine","cedar","larch","birch","spruce"]}},
 "alpine_ice":{"trees":{"set":["pine","cedar","larch","birch","spruce"]}},
-"island":{"trees":{"set":["palm","tropical"],"species":{"palm":{"weight":0.6}}},"terrain_look":{"forest_color":[0.04,0.105,0.04],"birch_color":[0.08,0.17,0.05]},"scene_look":{"evergreen":1.0},"buildings":{"max_levels":1,"village_models":[{"name":"tin_house","weight":1.0}],"village_model_share":0.7,"style":{"village":{"wall_colors":[[0.86,0.84,0.78],[0.8,0.82,0.74],[0.84,0.76,0.66],[0.78,0.84,0.86]],"roof_colors":[[0.5,0.25,0.2],[0.3,0.4,0.5],[0.28,0.42,0.32]]},"city":{"wall_colors":[[0.86,0.84,0.78],[0.8,0.82,0.74],[0.84,0.76,0.66]],"roof_colors":[[0.5,0.25,0.2],[0.3,0.4,0.5]]}}}}
+"island":{"trees":{"set":["palm","tropical"],"species":{"palm":{"weight":0.6}}},"terrain_look":{"forest_color":[0.04,0.105,0.04],"birch_color":[0.08,0.17,0.05]},"scene_look":{"evergreen":1.0},"buildings":{"max_levels":1,"max_levels_osm":true,"village_models":[{"name":"tin_house","weight":1.0}],"village_model_share":0.7,"style":{"village":{"wall_colors":[[0.86,0.84,0.78],[0.8,0.82,0.74],[0.84,0.76,0.66],[0.78,0.84,0.86]],"roof_colors":[[0.5,0.25,0.2],[0.3,0.4,0.5],[0.28,0.42,0.32]]},"city":{"wall_colors":[[0.86,0.84,0.78],[0.8,0.82,0.74],[0.84,0.76,0.66]],"roof_colors":[[0.5,0.25,0.2],[0.3,0.4,0.5]]}}}}
 }
 }
