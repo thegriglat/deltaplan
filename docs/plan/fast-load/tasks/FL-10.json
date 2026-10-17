@@ -51,10 +51,6 @@
   ],
   "accept": [
     {
-      "name": "game",
-      "tests": "game"
-    },
-    {
       "name": "world_objects",
       "tests": "world_objects"
     },
@@ -73,10 +69,18 @@
     {
       "name": "air_runtime",
       "tests": "air_runtime"
+    },
+    {
+      "name": "load_order",
+      "tests": "load_order"
+    },
+    {
+      "name": "e2e",
+      "tests": "e2e"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-17T06:11:45",
-  "edited": "2026-10-17T07:13:59"
+  "edited": "2026-10-17T12:56:53"
 }
