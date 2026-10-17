@@ -43,7 +43,12 @@ generated: true
   - [docs/research/training_island_air.md](research/training_island_air.md) — TI-5: погода четырёх стартов учебного острова (TI-К2) и проверка воздуха в игре — склон, термики, ротор, посадка
 - **sea-ships** — Суда на море (танкер, сухогруз, контейнеровоз) — декорация у горизонта; первым шагом — надёжный признак «море» против озёр и водохранилищ. [active 2026-10-17] — [план](plan/sea-ships.md) · [контракты](contracts/sea-ships.md)
   - [docs/guide/world-objects/sea-ships.md](guide/world-objects/sea-ships.md) — Суда на море: три вида и LOD, расстановка S3 v3, маска моря и стадия sea (признак SEA-1, уровень воды far, класс воды), что модель не умеет.
+  - [docs/perf/sea_ships.md](perf/sea_ships.md) — SEA-12: цена кадра GPU слоя судов (опыт noships) на учебном острове и ongudai, medium и high; base ветки против base main.
   - [tools/research/sea_mask/README.md](../tools/research/sea_mask/README.md) — Признак «море»: компонента воды far с уровнем ≤ 0,25 м, краем и берегом ≥ −1 м; 16 мест, ложных 0, море 100 % [closed]
+- **volcano-island** — Второй учебный остров на реальном рельефе: данные в сборке, старты, погода, запечённые поля, карточки «Тренировки». [active 2026-10-17] — [план](plan/volcano-island.md) · [контракты](contracts/volcano-island.md)
+  - [docs/guide/volcano-island.md](guide/volcano-island.md) — Вулканический остров: данные в сборке, training_only, OSM места, старты, погода, числа воздуха, окно «Тренировка», границы.
+  - [docs/registry/volcano-island-findings.md](registry/volcano-island-findings.md) — Выводы модуля volcano-island: подъём у обрывов, ротор у кратера, термики над водой, граница модели (нет пассатной инверсии).
+  - [tools/research/sea_thermals/README.md](../tools/research/sea_thermals/README.md) — VI-7: источник термика не над водой — число источников над водой до/после правки на трёх местах у моря. [closed]
 
 ## game
 

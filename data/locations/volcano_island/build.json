@@ -1,0 +1,22 @@
+{
+  "built_utc": "2026-10-16T20:40:46Z",
+  "center_lat": -27.1000003814697,
+  "center_lon": -109.349998474121,
+  "complete": true,
+  "format_version": 4,
+  "key": "volcano_island",
+  "missing": [],
+  "net_requests": 93,
+  "seconds": {
+    "dem": 12.77,
+    "osm_tiles": 1.4,
+    "rivers": 21.68,
+    "smooth": 4.81,
+    "surface": 10.76
+  },
+  "sources": [
+    "copernicus",
+    "terrarium",
+    "worldcover"
+  ]
+}

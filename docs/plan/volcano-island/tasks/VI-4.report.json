@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "tools/terrain/bake_all.sh [--check] [--id] по configs/locations (bundled, старты с weather); старый island/bake_all.sh удалён, ссылки в new-release, location-data, runtime, README обновлены.",
+  "commits": [
+    "3e1e32c4 Запекание полей всех встроенных мест одним скриптом"
+  ],
+  "checks": [
+    {
+      "name": "check_all",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "check_id",
+      "value": "ridge_west ok",
+      "pass": true
+    },
+    {
+      "name": "old_gone",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "no_old_refs",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VI-4",
+  "uncertain": [
+    {
+      "where": "tools/terrain/bake_all.sh",
+      "why": "режим запекания (без --check) не запускался: GPU не трогать по карточке",
+      "checked": "только --check (все старты ok), неизвестный --id даёт код 2"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-17T03:01:02",
+  "by": "executor"
+}

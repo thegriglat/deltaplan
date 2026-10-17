@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "tools/build.sh linux (debug, без публикации) собрался; tools/smoke/bundled_places.sh гоняет собранный бинарник по 4 стартам volcano_island и 4 training_island: место и поле из pck, без сети. Итог в build/smoke/VI-12/smoke.txt.",
+  "commits": [
+    "de5dd3da tools/smoke/bundled_places.sh: smoke встроенных мест из собранного каталога (VI-12)"
+  ],
+  "checks": [
+    {
+      "name": "smoke_volcano",
+      "value": "volcano_island baked_from_pck=4/4",
+      "pass": true
+    },
+    {
+      "name": "smoke_osm",
+      "value": "volcano_island osm_tiles_ok=36 (9 на старт)",
+      "pass": true
+    },
+    {
+      "name": "smoke_training",
+      "value": "training_island baked_from_pck=4/4",
+      "pass": true
+    },
+    {
+      "name": "smoke_net",
+      "value": "net_requests=0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VI-12",
+  "uncertain": [
+    {
+      "where": "tools/smoke/bundled_places.sh",
+      "why": "net_requests считается по строкам лога (HTTPRequest, http(s)://, LocationBuilder, OsmTilesStage, Overpass, скачива, сборка места), реальные сокеты не трассировались. Нет этапа «Рассчитываем ветер» выводится из строки air_model: запечённое поле res:// (сама подпись этапа в лог не пишется) и отсутствия «запечённое поле не берётся». Формат строк подогнан под регулярки приёмки: на место две строки (baked/net/load_s и osm_tiles_ok).",
+      "checked": "ручной прогон одного старта, затем весь скрипт; accept --dry PASS"
+    },
+    {
+      "where": "training_island osm",
+      "why": "у учебного острова OSM-тайлов нет (WorldObjects: OSM тайлов 0/0, домов 0) — osm_tiles_ok=0, от него приёмка этого не требует",
+      "checked": "лог ridge_west"
+    },
+    {
+      "where": "аргументы запуска",
+      "why": "флаги игры идут после «--»; без --screenshot бинарник не выходит сам (таймаут 124), поэтому скрипт снимает кадр на --time=6 и выходит. Сборка debug (по умолчанию)",
+      "checked": "прогон"
+    }
+  ],
+  "dp_feedback": "Регулярки приёмки требуют место и метрику в одной строке подряд — пришлось разбить на две строки на место; в карточке про это не сказано.",
+  "extra": {
+    "load_s_volcano_avg": 7.97,
+    "load_s_training_avg": 6.46,
+    "build": "build/linux, pck 130 МБ"
+  },
+  "t": "2026-10-17T10:58:54",
+  "by": "executor"
+}

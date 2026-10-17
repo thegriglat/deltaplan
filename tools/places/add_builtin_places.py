@@ -27,6 +27,8 @@ cat["takeoffs"] = [t for t in cat["takeoffs"] if not t["id"].startswith(("builti
 for path in sorted(glob.glob("configs/locations/*.json")):
     loc = os.path.basename(path)[:-5]
     cfg = json.load(open(path, encoding="utf8"))
+    if cfg.get("training_only", False):
+        continue  # VI-К1: место только для «Тренировки» — не в каталоге
     country = cfg.get("country", COUNTRY)
     for st in cfg.get("start_sites", []):
         key = f"{loc}/{st['id']}"
