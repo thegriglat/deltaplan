@@ -1,0 +1,64 @@
+{
+  "status": "done",
+  "summary": "model_hash (код + живые конфиги) в key: baked_lookup и load_file отказывают при несовпадении (push_warning, расчёт в игре). В экспорте хеш кода берётся из data/air_model_hash.txt (пишет tools/terrain/air_model_hash.gd из build.sh, в .gitignore). Linux-сборка + smoke: 4/4 стартов берут поле из pck. 4 старта перепечены.",
+  "commits": [
+    "50b2a0a5 Хеш данных места без служебных .import (в экспорте их нет); перепечены 4 старта",
+    "aabcfe15 Хеш модели воздуха (код + конфиги) в ключе запечённого поля: в экспорте код берётся из data/air_model_hash.txt; несовпадение — поле не берётся; new-release: bake_all --check; перепечены 4 старта"
+  ],
+  "checks": [
+    {
+      "name": "training_island",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "air_runtime",
+      "value": "8/8 (пропуск 4 GPU)",
+      "pass": true
+    },
+    {
+      "name": "bake_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "1 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "smoke",
+      "value": "baked_from_pck=4/4",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TI-11",
+  "uncertain": [
+    {
+      "where": "air_baked_field.gd:place_hash",
+      "why": "в smoke data_hash не сошёлся: в хеш попадали .import (в pck их нет); исключены .import/.remap. Хеш данных места изменился, перепечено.",
+      "checked": "smoke 4/4, bake --check 0"
+    },
+    {
+      "where": "air_baked_field.gd:model_hash",
+      "why": "Контракт K3 v3: model_hash = sha256(code:<sha256 *.gd/*.glsl модели кроме air_baked_field.gd; в экспорте из res://data/air_model_hash.txt> + секции air_model, air_phase, weather_model, surface_heat — живые, правки configs/ рядом с игрой тоже отключают запечённое). Хеша кода нет (ни исходников, ни файла) => model_hash_ok=false, поле не берётся. model_hash_ok строже прежнего (пусто != совпало). Проверка добавлена в baked_lookup (warn) и load_file(key!=null); пост-загрузочное предупреждение убрано. air_baked_field.gd сам в хеш кода не входит (как прежде), поэтому правка его логики хеш не меняет.",
+      "checked": "тесты K3 (несовпадение отказ/совпадение берётся), GPU island_baked, smoke"
+    },
+    {
+      "where": "tools/build.sh",
+      "why": "хеш-скрипт грузит AirBakedField через load() в _initialize: статическая ссылка не компилируется до автозагрузки Config. Сборка Linux debug выполнена без публикации; build/ не коммитилась. Негативный smoke (модель изменена => отказ) в сборке не гонял, покрыто юнит-тестом.",
+      "checked": "запуск скрипта, сборка"
+    },
+    {
+      "where": "new-release SKILL.md",
+      "why": "шаг bake_all.sh --check вставлен в начало раздела 5 «Сборка».",
+      "checked": "diff"
+    }
+  ],
+  "dp_feedback": "job wait на lock gpu возвращается по выводу обёртки, внутренняя задача идёт отдельно; пришлось проверять результат через --check/git status.",
+  "t": "2026-10-17T01:15:35",
+  "by": "executor"
+}

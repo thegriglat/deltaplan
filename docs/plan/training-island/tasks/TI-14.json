@@ -1,0 +1,76 @@
+{
+  "id": "TI-14",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Слияние main (goals) и кадры меню острова",
+  "goal": "Ветка модуля получает свежий main (в т. ч. goals) с разрешёнными конфликтами (CHANGELOG.md, docs/INDEX.md, docs/registry/findings.md, scripts/ui/flight_setup_screen.gd) — обе стороны сохранены; тесты меню и острова зелёные; кадры меню с учебным островом сняты.",
+  "plan_ref": "Условия сдачи (Q3, 2026-10-17)",
+  "contracts": [
+    {
+      "name": "TI-К2",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    },
+    {
+      "name": "TI-К1",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-14",
+  "branch": "training-island/TI-14",
+  "base": "feature/training-island",
+  "scope": [
+    "CHANGELOG.md",
+    "docs/INDEX.md",
+    "docs/registry/",
+    "scripts/ui/flight_setup_screen.gd",
+    "tests/ui/",
+    "tools/shots/"
+  ],
+  "dont_touch": [
+    "configs/",
+    "data/",
+    "scripts/atmosphere/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    },
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "popular_places",
+      "tests": "popular_places"
+    },
+    {
+      "name": "goals",
+      "tests": "goals"
+    },
+    {
+      "name": "start_weather",
+      "tests": "start_weather"
+    },
+    {
+      "name": "merged",
+      "cmd": "git merge-base --is-ancestor main HEAD && echo yes",
+      "expect": "re:yes"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/training-island/menu/ | grep -c jpg",
+      "expect": "num:(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T01:10:24"
+}

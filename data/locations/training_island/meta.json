@@ -1,0 +1,41 @@
+{
+  "attribution": [
+    "Synthetic terrain: Deltaplan project"
+  ],
+  "center_lat": 43.2,
+  "center_lon": 34.0,
+  "earth_radius_m": 6371008.8,
+  "layers": [
+    {
+      "file": "detail.webp",
+      "height": 1601,
+      "height_min_m": 0.0,
+      "height_step_m": 0.03125,
+      "id": "detail",
+      "max_height_m": 503.5,
+      "min_height_m": 0.0,
+      "origin_x_m": -20000.0,
+      "origin_z_m": -20000.0,
+      "source": "synthetic",
+      "spacing_m": 25.0,
+      "water_file": "detail_water.webp",
+      "width": 1601
+    },
+    {
+      "file": "far.webp",
+      "height": 1601,
+      "height_min_m": 0.0,
+      "height_step_m": 0.03125,
+      "id": "far",
+      "max_height_m": 502.46875,
+      "min_height_m": 0.0,
+      "origin_x_m": -80000.0,
+      "origin_z_m": -80000.0,
+      "source": "synthetic",
+      "spacing_m": 100.0,
+      "water_file": "far_water.webp",
+      "width": 1601
+    }
+  ],
+  "location": "training_island"
+}

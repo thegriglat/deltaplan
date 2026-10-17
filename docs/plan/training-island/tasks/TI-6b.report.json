@@ -1,0 +1,29 @@
+{
+  "status": "done",
+  "summary": "location-data.md: таблица наборов погоды и итог проверки воздуха, раздел запечённых полей острова (25,9 МБ, 0,7 с против 14-58 с, как перепечь через bake_all.sh); CHANGELOG и runtime.md обновлены, устаревшие «пока нет» убраны.",
+  "commits": [
+    "2b222ec5 TI-6b: документация острова"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "stale",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "ASSETS.md и registry/findings.md не тронуты: вне скоупа TI-6b"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TI-6b",
+  "uncertain": [],
+  "dp_feedback": "accept при FAIL stale не показывает совпавшие строки; пришлось grep вручную.",
+  "t": "2026-10-17T00:48:59",
+  "by": "executor"
+}

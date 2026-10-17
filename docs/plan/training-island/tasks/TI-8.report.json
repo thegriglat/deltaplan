@@ -1,0 +1,86 @@
+{
+  "status": "done",
+  "summary": "weather.wind_ref (start|inflow) разбирается в StartWeather; AirRuntime.conditions_of передаёт его в условия; при inflow один проход с k=1 без подгонки; смена wind_ref даёт пересчёт. Формат состояния модели воздуха не менялся.",
+  "commits": [
+    "e97afb28 TI-8: weather.wind_ref inflow — ветер набора как набегающий поток"
+  ],
+  "checks": [
+    {
+      "name": "training_island",
+      "value": "22/22, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "air_runtime",
+      "value": "8/8, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "start_weather",
+      "value": "3/3, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "2 теста inflow, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "inflow: k",
+      "value": "1.000, один проход",
+      "pass": true
+    },
+    {
+      "name": "inflow: max|u| в ±100 м у lee_bowl, 10–300 м AGL",
+      "value": "11.2 м/с (предел 1,3x9 = 11,7)",
+      "pass": true
+    },
+    {
+      "name": "inflow: min w / доля обратного ветра на 10 м в чаше",
+      "value": "-1.26 м/с / 0.00",
+      "pass": true
+    },
+    {
+      "name": "start (прежнее): k / max|u| / min w / обратный ветер",
+      "value": "3.0 (упор в INFLOW_K_MAX), 2 прохода / 33.0 м/с / -2.70 м/с / 0.28",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TI-8",
+  "uncertain": [
+    {
+      "where": "scripts/game/start_weather.gd:wind_ref_of",
+      "why": "wind_ref берётся из набора старта (for_settings), а не хранится в FlightSettings; поиск старта на каждый conditions_of",
+      "checked": "Locations.config кеширован; тесты проходят; поле в FlightSettings не заводил, чтобы не было устаревшего значения в last_flight"
+    },
+    {
+      "where": "scripts/atmosphere/air_model/air_baked_field.gd conditions_of",
+      "why": "вне скоупа: wind_ref не выставляет; запечённое поле сверяется без него (wind_ref входит в ключ через weather, TI-К3)",
+      "checked": "baked-тесты проходят; TI-4 при запекании должен считать с wind_ref=inflow"
+    },
+    {
+      "where": "tests/atmosphere/test_air_runtime_inflow_gpu.gd",
+      "why": "окно ±100 м, шаг 25 м, высоты 10–300 м шаг 30 м; обратный ветер только на 10 м",
+      "checked": "числа в checks"
+    }
+  ],
+  "dp_feedback": "Общий scratchpad у параллельных агентов: r.json перезаписал соседний исполнитель; подсказка в шаблоне про уникальное имя файла отчёта помогла бы.",
+  "extra": {
+    "inflow": {
+      "k": 1.0,
+      "max_u": 11.23,
+      "min_w": -1.26,
+      "rev_frac": 0.0
+    },
+    "start": {
+      "k": 3.0,
+      "max_u": 33.04,
+      "min_w": -2.7,
+      "rev_frac": 0.284
+    }
+  },
+  "t": "2026-10-16T22:47:02",
+  "by": "executor"
+}

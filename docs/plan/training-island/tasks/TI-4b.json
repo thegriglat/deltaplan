@@ -1,0 +1,55 @@
+{
+  "id": "TI-4b",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Запечённое поле: без лишнего пересчёта и без этапа «Рассчитываем ветер»",
+  "goal": "После загрузки запечённого поля не запускать немедленный холодный пересчёт при тех же условиях (только при сдвиге окон за пилотом или по плановому сроку), надпись «Рассчитываем ветер» при запечённом поле не показывать; замерить max|Δu| у старта между запечённым и пересчитанным полем.",
+  "plan_ref": "TI-4. Запечённое поле ветра",
+  "contracts": [
+    {
+      "name": "TI-К3",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-4b",
+  "branch": "training-island/TI-4b",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/game/game.gd",
+    "tests/atmosphere/",
+    "tests/contracts/test_training_island_k3.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_picard_job.gd",
+    "scripts/atmosphere/air_model/wind_field.gd",
+    "scripts/atmosphere/air_model/air_case.gd",
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "scripts/ui/",
+    "configs/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "air_runtime",
+      "tests": "air_runtime"
+    },
+    {
+      "name": "game_flight",
+      "tests": "game_flight"
+    },
+    {
+      "name": "gpu",
+      "cmd": "bash tools/gpu_tests.sh --filter=baked",
+      "expect": "re:\\n(?:[1-9]\\d*) тестов, 0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T22:14:49"
+}

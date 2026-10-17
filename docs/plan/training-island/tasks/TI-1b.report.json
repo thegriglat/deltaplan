@@ -1,0 +1,40 @@
+{
+  "status": "done",
+  "summary": "Доли участков равнины: пашня 0,28, голый грунт 0,30 (было 0,50/0,13); данные перегенерированы тем же генератором, verify побитно. Добавлен plain_stats.py, абзац в README.",
+  "commits": [
+    "f58e8f44 Учебный остров: тёмная пашня — голый грунт (класс 5) на равнине, plain_stats.py, данные перегенерированы"
+  ],
+  "checks": [
+    {
+      "name": "plain_bare",
+      "value": "0.266",
+      "pass": true
+    },
+    {
+      "name": "determinism",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "sites",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "training_island",
+      "value": "22/22",
+      "pass": true
+    }
+  ],
+  "how_to_check": ".dpcli/dpcli accept TI-1b",
+  "uncertain": [
+    {
+      "where": "tools/terrain/island/plain_stats.py",
+      "why": "плоскость равнины считается по уклону 25 м из высот detail; определение из карточки, но код писал сам",
+      "checked": "совпадает с ожидаемым диапазоном 0,25–0,35: 0,266"
+    }
+  ],
+  "dp_feedback": "accept --dry с фоном/таймаутом: godot без импорта в копии молча виснет на 'training_island' без вывода; хорошо бы подсказка про --import",
+  "t": "2026-10-16T23:04:27",
+  "by": "executor"
+}

@@ -1,0 +1,81 @@
+{
+  "id": "TI-2",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Место из файлов игры",
+  "goal": "Учебный остров грузится как встроенное место из res://data/locations/training_island (TI-К1: bundled, synthetic) без сборщика и сети, попадает в экспорт, есть в каталоге стартов (страна «—»), не подменяет точку с карты; тесты мест и меню зелёные.",
+  "plan_ref": "TI-2. Место из файлов игры",
+  "contracts": [
+    {
+      "name": "TI-К1",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    },
+    {
+      "name": "TI-К3",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-2",
+  "branch": "training-island/TI-2",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/terrain/locations.gd",
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/build/",
+    "scripts/ui/popular_places_window.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "data/places/hg_takeoffs.json",
+    "tools/places/add_builtin_places.py",
+    "export_presets.cfg",
+    "data/locations/training_island/",
+    "tests/terrain/",
+    "tests/ui/",
+    "tests/contracts/",
+    "tests/stability/",
+    "tests/game/",
+    "tests/run_tests.gd",
+    "locale/ui.csv"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/",
+    "tools/terrain/island/",
+    "configs/atmosphere.json",
+    "scripts/ui/place_pick_row.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "locations",
+      "tests": "locations"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "language",
+      "tests": "language"
+    },
+    {
+      "name": "osm_any",
+      "tests": "osm_any"
+    },
+    {
+      "name": "popular_places",
+      "tests": "popular_places"
+    },
+    {
+      "name": "map_picker",
+      "tests": "map_picker"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T22:28:38"
+}

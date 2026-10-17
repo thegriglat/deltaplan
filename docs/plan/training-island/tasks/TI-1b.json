@@ -1,0 +1,53 @@
+{
+  "id": "TI-1b",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "Тёмная пашня = голый грунт",
+  "goal": "На равнине старта «Термики» тёмная пашня — класс 5 (bare, сильнее источник термиков), не 3 (crop); данные острова перегенерированы тем же генератором, побитно воспроизводимо.",
+  "plan_ref": "TI-1b. Тёмная пашня = голый грунт",
+  "contracts": [
+    {
+      "name": "TI-К1",
+      "version": "1",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-1b",
+  "branch": "training-island/TI-1b",
+  "base": "feature/training-island",
+  "scope": [
+    "tools/terrain/island/",
+    "data/locations/training_island/"
+  ],
+  "dont_touch": [
+    "data/locations/training_island/.gitignore",
+    "configs/",
+    "scripts/",
+    "tests/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "determinism",
+      "cmd": "bash tools/terrain/island/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sites",
+      "cmd": "python3 tools/terrain/island/check_sites.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "plain_bare",
+      "cmd": "python3 tools/terrain/island/plain_stats.py",
+      "expect": "num:plain_bare_frac=([0-9.]+) >=0.15"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-16T22:30:46"
+}

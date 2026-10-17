@@ -1,0 +1,57 @@
+{
+  "id": "TI-9b",
+  "module": "training-island",
+  "type": "dp-engineer",
+  "title": "wind_ref в запекании поля",
+  "goal": "Запекание учитывает weather.wind_ref (TI-К2 v2): поле старта lee_bowl (wind_ref inflow) запечено с коэффициентом притока 1, как считает игра; поля перепечены, --check актуален.",
+  "plan_ref": "TI-9b. wind_ref в запекании",
+  "contracts": [
+    {
+      "name": "TI-К3",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    },
+    {
+      "name": "TI-К2",
+      "version": "2",
+      "ref": "docs/contracts/training-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-training-island-TI-9b",
+  "branch": "training-island/TI-9b",
+  "base": "feature/training-island",
+  "scope": [
+    "scripts/atmosphere/air_model/air_baked_field.gd",
+    "tools/terrain/bake_air.gd",
+    "tools/terrain/island/bake_all.sh",
+    "data/locations/training_island/air/",
+    "tests/contracts/test_training_island_k3.gd",
+    "tests/atmosphere/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_model/air_picard_job.gd",
+    "configs/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "bake_check",
+      "cmd": "bash tools/terrain/island/bake_all.sh --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gpu",
+      "cmd": "bash tools/gpu_tests.sh --filter=island_baked",
+      "expect": "re:\\n(?:[1-9]\\d*) тестов, 0 упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T00:42:16",
+  "edited": "2026-10-17T00:42:27"
+}

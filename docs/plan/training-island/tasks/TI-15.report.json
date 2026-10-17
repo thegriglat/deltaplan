@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Группа без страны называется по месту (loc_<location>): «Учебный остров — 4»; в строках мест без страны страну не пишем, лишних тире нет. Тест test_no_country_row.",
+  "commits": [
+    "5d3d22a6 TI-15 строка места без страны"
+  ],
+  "checks": [
+    {
+      "name": "popular_places",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "shot",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "«· 4 старта» не сделано: нужен новый ключ в locale/ui.csv (вне скоупа), использован places_country_row «%s — %d»"
+  ],
+  "questions": [],
+  "images": [
+    "build/screenshots/training-island/menu/01_places_fix.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TI-15",
+  "uncertain": [
+    {
+      "where": "scripts/ui/popular_places.gd:_group_name",
+      "why": "название берётся из loc_<location> общей локации группы; в строке острова остаётся «—» вместо неизвестной высоты",
+      "checked": "тесты, кадр поиска"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-17T01:22:20",
+  "by": "executor"
+}

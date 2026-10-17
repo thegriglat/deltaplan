@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "Причина: хеш модели читал Config вместе со слоями профиля пилота (user://local/configs: atmosphere.air_model — машинный ключ S7), поэтому в профиле с правкой air_model хеш был другим (06b7c637 против f2e22bc4 по air_model). Теперь model_hash берёт только res://configs и configs рядом с игрой; перепекание не понадобилось, файлы острова актуальны в любом профиле.",
+  "commits": [
+    "4028abbf model_hash не зависит от профиля пилота, тест"
+  ],
+  "checks": [
+    {
+      "name": "training_island",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "air_runtime",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "bake_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "bake_check_clean",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TI-11b",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/air_baked_field.gd:_model_config",
+      "why": "Правки air_model пилота в профиле (в т.ч. enabled, окна) больше не инвалидируют запечённое поле; в профиле меняются в основном рантайм-переключатели, но если пилот правит физические числа air_model через профиль, запечённое останется",
+      "checked": "Правка рядом с игрой (configs у exe) по-прежнему входит в хеш; тест test_k3_model_hash_ignores_profile_layer"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-17T02:21:43",
+  "by": "executor"
+}

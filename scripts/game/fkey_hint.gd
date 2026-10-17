@@ -1,7 +1,7 @@
 class_name FKeyHint
 extends CanvasLayer
 ## Подсказка по F-клавишам в полёте: вверху по центру, мелко, белым полупрозрачным текстом
-## («F1 — частота кадров · F3 — ветер над местностью · F5 — ветер вокруг · F6 — термики»). Показаны только слои, которые сейчас
+## («F1 — частота кадров · F3 — ветер над местностью · F5 — ветер вокруг · F6 — термики · F7 — поток тепла»). Показаны только слои, которые сейчас
 ## выключены: включил — пункт пропал, выключил — вернулся; включены все — подсказки нет.
 ## Клавиша берётся из InputMap (configs/controls.json → debug.keys), состояние — из DebugOverlays.
 ## F3 — сетка стрелок ветра над местностью, F5 — ветер вокруг пилота (средний ветер плотнее и стрелка
@@ -14,6 +14,7 @@ const ITEMS := [
 	["debug_wind_field", "wind_field_on", "fkey_hint_wind_field"],
 	["debug_wind", "wind_on", "fkey_hint_wind"],
 	["debug_thermals", "thermals_on", "fkey_hint_thermals"],
+	["debug_heat", "heat_on", "fkey_hint_heat"],
 ]
 const SEPARATOR := " · "
 

@@ -10,6 +10,9 @@ const KEY_PREFIX := "pt_"
 ## собирается заново. Версия сырых блоков источника — LocationCache.SOURCE_VERSION (отдельная).
 const FORMAT_VERSION := 4
 
+## Корень данных bundled-мест (в паке и экспорте).
+const BUNDLED_ROOT := "res://data/locations"
+
 ## Корень готовых мест вместо кеша (только тесты: tests/run_tests.gd ставит tests/fixtures/locations;
 ## пустой — настоящий кеш user://locations). Встроенные места в паке не лежат (NO-8).
 static var fixtures_root: String = ""
@@ -33,9 +36,22 @@ static func is_builtin(id: String) -> bool:
 	return id != "" and Config.list_configs("locations").has("locations/" + id)
 
 
-## Папка файлов места: фикстуры тестов (если заданы и там есть место) или кеш user://locations/<id>
+## Место с данными в паке игры ("bundled": true в конфиге, TI-К1): папка res://data/locations/<id>,
+## без сборщика, сети и кеша.
+static func is_bundled(id: String) -> bool:
+	return is_builtin(id) and bool(config(id).get("bundled", false))
+
+
+## Вымышленное место ("synthetic": true): точка с карты в него не превращается (builtin_at).
+static func is_synthetic(id: String) -> bool:
+	return is_builtin(id) and bool(config(id).get("synthetic", false))
+
+
+## Папка файлов места: bundled — res://data/locations/<id>; иначе фикстуры тестов (если заданы и там есть место) или кеш user://locations/<id>
 ## (встроенные собираются туда при первом выборе, NO-8; точки — под своим ключом).
 static func data_dir(id: String) -> String:
+	if is_bundled(id):
+		return BUNDLED_ROOT.path_join(id)
 	if fixtures_root != "" and is_builtin(id):
 		return fixtures_root.path_join(id)
 	return cache_dir().path_join(id)
@@ -77,6 +93,8 @@ static func config(id: String) -> Dictionary:
 static func builtin_at(lat: float, lon: float) -> String:
 	var margin := float(Config.value("world", "location_builder.builtin_margin_km", 10.0))
 	for id in builtin_ids():
+		if is_synthetic(id):
+			continue
 		var loc := config(id)
 		var layers: Array = loc.get("dem", {}).get("layers", [])
 		if layers.is_empty() or not loc.has("center_lat"):

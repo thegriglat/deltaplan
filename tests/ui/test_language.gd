@@ -62,7 +62,9 @@ func test_code_keys_exist_and_are_not_russian() -> void:
 			var key := m.get_string(1)
 			used += 1
 			check(not _has_cyrillic(key), "%s: tr() с русским текстом вместо ключа: «%s»" % [p, key])
-			check(rows.has(key), "%s: ключа «%s» нет в ui.csv" % [p, key])
+			# динамический ключ tr("префикс_" + x): достаточно, чтобы в ui.csv был ключ с таким префиксом
+			var known: bool = rows.has(key) or (key.ends_with("_") and _has_key_prefix(rows, key))
+			check(known, "%s: ключа «%s» нет в ui.csv" % [p, key])
 	check(used > 150, "найдены вызовы tr(): %d" % used)
 	# ключи из констант (страницы планшета, месяцы)
 	for key: String in InstrumentDisplay.PAGE_TITLES:
@@ -73,6 +75,13 @@ func test_code_keys_exist_and_are_not_russian() -> void:
 		check(rows.has(key), "румб: нет ключа %s" % key)
 	for sky: String in WeatherModel.config().sky.options:
 		check(rows.has("setup_sky_" + sky), "облачность: нет ключа setup_sky_%s" % sky)
+
+
+func _has_key_prefix(rows: Dictionary, prefix: String) -> bool:
+	for k: String in rows:
+		if k.begins_with(prefix):
+			return true
+	return false
 
 
 ## Названия, которые берутся из конфигов (крылья, места, старты, пресеты, подсказки

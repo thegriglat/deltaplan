@@ -1,0 +1,42 @@
+{
+  "id": "TI-17",
+  "module": "training-island",
+  "type": "dp-writer",
+  "title": "Слияние свежего main (CHANGELOG)",
+  "goal": "Ветка модуля содержит свежий main; конфликт CHANGELOG.md разрешён с сохранением записей обеих сторон.",
+  "plan_ref": "Условия сдачи (Q3, 2026-10-17)",
+  "contracts": [],
+  "copy": "~/deltaplan-training-island-TI-17",
+  "branch": "training-island/TI-17",
+  "base": "feature/training-island",
+  "scope": [
+    "CHANGELOG.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/"
+  ],
+  "accept": [
+    {
+      "name": "merged",
+      "cmd": "git merge-base --is-ancestor main HEAD && echo yes",
+      "expect": "re:yes"
+    },
+    {
+      "name": "markers",
+      "cmd": "grep -c '^<<<<<<<\\|^>>>>>>>\\|^=======$' CHANGELOG.md",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1 | tail -1'",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:26:13"
+}

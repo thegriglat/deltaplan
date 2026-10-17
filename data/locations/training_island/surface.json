@@ -1,0 +1,60 @@
+{
+  "_doc": "Собрано tools/terrain/island/build_island.py — не править руками.",
+  "attribution": [
+    "Synthetic surface map: Deltaplan project"
+  ],
+  "layers": [
+    {
+      "class_fraction": {
+        "0": 0.0,
+        "1": 0.0143,
+        "2": 0.0259,
+        "3": 0.0158,
+        "4": 0.0,
+        "5": 0.0173,
+        "6": 0.9267,
+        "7": 0.0,
+        "8": 0.0
+      },
+      "detail10": {
+        "channels": "L — доля леса (0..255), A — вода (0..255): море и озеро, процедурно",
+        "file": "detail_detail10.webp",
+        "forest_fraction": 0.0143,
+        "height": 4001,
+        "origin_x_m": -20000.0,
+        "origin_z_m": -20000.0,
+        "spacing_m": 10.0,
+        "water_fraction": 0.9266,
+        "width": 4001
+      },
+      "file": "detail_surface.webp",
+      "height": 1601,
+      "id": "detail",
+      "origin_x_m": -20000.0,
+      "origin_z_m": -20000.0,
+      "spacing_m": 25.0,
+      "width": 1601
+    },
+    {
+      "class_fraction": {
+        "0": 0.0,
+        "1": 0.0009,
+        "2": 0.0016,
+        "3": 0.001,
+        "4": 0.0,
+        "5": 0.0011,
+        "6": 0.9954,
+        "7": 0.0,
+        "8": 0.0
+      },
+      "file": "far_surface.webp",
+      "height": 1601,
+      "id": "far",
+      "origin_x_m": -80000.0,
+      "origin_z_m": -80000.0,
+      "spacing_m": 100.0,
+      "width": 1601
+    }
+  ],
+  "source": "synthetic"
+}

@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "AirBakedField.conditions_of теперь передаёт wind_ref (по умолчанию start), conditions_diff сравнивает его. lee_bowl перепечён: inflow_k = 1,0 (было 3,0). Тесты: k3 (conditions_of/diff с inflow) и island_baked_gpu (inflow_k = 1 в файле inflow-старта).",
+  "commits": [
+    "HEAD TI-9b: wind_ref в conditions_of/conditions_diff; lee_bowl перепечён"
+  ],
+  "checks": [
+    {
+      "name": "training_island",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "bake_check",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "1 тестов, 0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TI-9b",
+  "uncertain": [
+    {
+      "where": "data/locations/training_island/air/thermal_plain.json",
+      "why": "inflow_k = 3,0 (верхняя граница) у старта с wind_ref start — это подгонка под ветер 2 м/с у старта, не ошибка wind_ref",
+      "checked": "не перепекал; перепечён только lee_bowl (код остальных не изменился: wind_ref start)"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-17T00:45:48",
+  "by": "executor"
+}

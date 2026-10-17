@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/flight/pendulum_pitch.gd" id="1"]
+
+[node name="PendulumPitch" type="Node"]
+script = ExtResource("1")

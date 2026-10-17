@@ -23,6 +23,7 @@ func test_start_menu_has_six_buttons_in_order() -> void:
 		tr("menu_fly"),
 		tr("menu_inspect"),
 		tr("menu_flight_setup"),
+		tr("menu_training"),
 		tr("menu_net_game"),
 		tr("menu_controls"),
 		tr("menu_settings"),
@@ -34,7 +35,7 @@ func test_start_menu_has_six_buttons_in_order() -> void:
 	for b in buttons:
 		if not (b as Button).flat:
 			texts.append((b as Button).text)
-	check(texts.size() == 8, "ровно 8 кнопок, получили %d: %s" % [texts.size(), texts])
+	check(texts.size() == 9, "ровно 9 кнопок, получили %d: %s" % [texts.size(), texts])
 	check(texts == expected, "порядок кнопок FR-27: %s" % [texts])
 	m.queue_free()
 
@@ -176,12 +177,12 @@ func test_start_menu_shows_choice_summary() -> void:
 	m.queue_free()
 
 
-## 4. Все старты всех 4 встроенных локаций — в «Популярных местах» (страна Россия), с теми же координатами,
+## 4. Все старты всех встроенных локаций — в «Популярных местах» (страна из конфига; остров — пусто), с теми же координатами,
 ## направлением разбега; отдельного списка «Старт» на экране нет.
 func test_flight_setup_lists_all_locations() -> void:
 	var m: FlightSetupScreen = _scene("res://scenes/ui/flight_setup_screen.tscn")
 	var locations := Config.list_configs("locations")
-	check(locations.size() == 4, "4 встроенные локации в configs/locations/ (%d)" % locations.size())
+	check(locations.size() >= 5, "встроенные локации в configs/locations/ (%d)" % locations.size())
 	check(m.get("_site_opt") == null, "списка «Старт» на экране нет")
 	var by_id := {}
 	for p: Dictionary in (m.get("_places_catalog") as Dictionary).get("takeoffs", []):
@@ -194,7 +195,7 @@ func test_flight_setup_lists_all_locations() -> void:
 			check(not p.is_empty(), "старт %s есть в популярных местах" % id)
 			if p.is_empty():
 				continue
-			check(String(p.country) == "RU", "%s: страна Россия" % id)
+			check(String(p.country) == String(loc.get("country", "RU")), "%s: страна из конфига (RU по умолчанию)" % id)
 			check(is_equal_approx(float(p.lat), float(st.lat)) and is_equal_approx(float(p.lon), float(st.lon)), "%s: координаты" % id)
 			check(is_equal_approx(float(p.heading_deg), float(st.heading_deg)), "%s: направление разбега" % id)
 	# выбор такого места — встроенное место и точный старт, без точки

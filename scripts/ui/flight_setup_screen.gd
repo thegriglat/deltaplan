@@ -66,6 +66,7 @@ var _wind: HSlider
 var _dir_opt: OptionButton
 var _dir_hint: Label
 var _sky_opt: OptionButton
+var _fixed_label: Label  ## TI-К2: «Погода старта фиксирована: …»
 var _hour: OptionButton
 var _hours: PackedFloat32Array = []  ## start_hours(); индекс совпадает с пунктами _hour
 var _month_opt: OptionButton
@@ -164,6 +165,7 @@ func _build() -> void:
 	box_place.add_child(_row)
 	_row.build(self, popular_places_path)
 	_row.changed.connect(_update_dir_hint)
+	_row.changed.connect(_update_weather_lock)
 	_connect_goals_refresh()
 	_build_recent(box_place)
 
@@ -430,6 +432,8 @@ func _build_forecast(box: Control) -> void:
 		var key := "setup_sky_" + k  # setup_sky_clear / _partly / _overcast
 		_sky_opt.add_item(tr(key))
 	UiKit.row(box, tr("setup_sky"), _sky_opt)
+	_fixed_label = UiKit.label(box, "", "HintLabel")
+	_fixed_label.visible = false
 
 
 ## Подсказка «встречный для этого старта — З» для выбранного места из встроенных (точка с карты — без неё).
@@ -438,10 +442,46 @@ func _update_dir_hint() -> void:
 		return
 	_dir_hint.text = ""
 	var st := _row.builtin_site()
-	if st.is_empty():
+	if st.is_empty() or StartWeather.has_fixed(_row.settings):
 		return
 	var i := posmod(roundi(float(st.get("heading_deg", 0.0)) / 45.0), 8)
 	_dir_hint.text = tr("setup_wind_launch_faces") % tr(COMPASS[i])
+
+
+## TI-К2: у старта с фиксированной погодой элементы погоды и времени заблокированы, показан набор.
+func _update_weather_lock() -> void:
+	if _temp == null or _hour == null or _fixed_label == null or _row == null:
+		return
+	var w := StartWeather.for_settings(_row.settings)
+	var fixed := not w.is_empty()
+	_fixed_label.visible = fixed
+	for c: Control in [_temp, _wind, _dir_opt, _sky_opt, _hour, _month_opt, _day]:
+		if c is Range:
+			(c as Range).editable = not fixed
+		else:
+			c.set("disabled", fixed)
+	if fixed:
+		_fixed_label.text = StartWeather.describe(w)
+		var tmp := settings.duplicate()
+		tmp.location_id = _row.settings.location_id
+		tmp.site_id = _row.settings.site_id
+		StartWeather.apply(tmp)
+		_show_weather(tmp)
+	else:
+		_wind.value_changed.emit(_wind.value)  # вернуть «направление недоступно при штиле»
+
+
+func _show_weather(s: FlightSettings) -> void:
+	_temp.value = roundf(s.temperature_c)
+	_wind.value = roundf(s.wind_speed_kmh / 3.6)
+	_wind.value_changed.emit(_wind.value)
+	_dir_opt.select(1 + posmod(roundi(s.wind_from_deg / 45.0), 8))
+	_dir_opt.disabled = true
+	_sky_opt.select(maxi(_skies.find(s.sky), 0))
+	_hour.select(maxi(_hours.find(SunClock.nearest_start_hour(s.start_hour)), 0))
+	_month_opt.select(clampi(s.month, 1, 12) - 1)
+	_on_month_selected(_month_opt.selected)
+	_day.value = s.day
 
 
 func _collect() -> FlightSettings:
@@ -458,6 +498,7 @@ func _collect() -> FlightSettings:
 	s.month = _month_opt.selected + 1
 	s.day = int(_day.value)
 	s.apparatus = FlightSettings.from_dict({"apparatus": _app_user}).apparatus
+	StartWeather.apply(s)  # точные значения набора (элементы меню округляют)
 	if _goals_tab != null:
 		s.goals = _goals_tab.collect()
 		s.show_last_track = _goals_tab.collect_show_last_track()

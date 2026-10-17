@@ -39,7 +39,10 @@ generated: true
   - [docs/guide/scene-look/light-atmosphere.md](guide/scene-look/light-atmosphere.md) — Свет неба и земли, дымка с ореолом, дороги вдали, просвет паруса и листвы (SL-2, SL-3, SL-4, SL-7): физика и цена.
   - [docs/guide/scene-look-keys.md](guide/scene-look-keys.md) — Таблицы ключей scene-look: scene_look, trees.*, trees.impostors.seam_*, haze.*, roads.look, sail — по умолчанию и смысл.
   - [docs/guide/scene-look.md](guide/scene-look.md) — Модуль scene-look («картинка сочнее»): принцип, шейдерный include sl_*, конфиг и выключатели; пункты SL-2…SL-23 разнесены по частям.
+- **training-island** — Учебный остров: синтетическое место в море, старты «склон», «термики», «посадка», «ротор»; фиксированная погода и запечённый ветер. [active 2026-10-16] — [план](plan/training-island.md) · [контракты](contracts/training-island.md)
+  - [docs/research/training_island_air.md](research/training_island_air.md) — TI-5: погода четырёх стартов учебного острова (TI-К2) и проверка воздуха в игре — склон, термики, ротор, посадка
 - **sea-ships** — Суда на море (танкер, сухогруз, контейнеровоз) — декорация у горизонта; первым шагом — надёжный признак «море» против озёр и водохранилищ. [active 2026-10-17] — [план](plan/sea-ships.md) · [контракты](contracts/sea-ships.md)
+  - [tools/research/sea_mask/README.md](../tools/research/sea_mask/README.md) — Признак «море»: компонента воды far с уровнем ≤ 0,25 м, краем и берегом ≥ −1 м; 16 мест, ложных 0, море 100 % [closed]
 
 ## game
 
@@ -95,7 +98,7 @@ generated: true
 - [docs/guide/game.md](guide/game.md) — Сборка игры: главная сцена, Game и порядок шага физики; оглавление частей — камеры и ввод, старт, полёт и итог, мир, меню, боты, сеть.
 - [docs/guide/gpu-validation.md](guide/gpu-validation.md) — tools/gpu_validate.sh: загрузка места под слоем валидации Vulkan, lavapipe и wine+vkd3d-proton; пики RAM/VRAM, что ловит каждый режим.
 - [docs/guide/instruments.md](guide/instruments.md) — Планшет и вариометр 90-х (Vario, страницы, ветер, центровка), звук вариометра и звуки полёта; API, настройки и проверки.
-- [docs/guide/location-data.md](guide/location-data.md) — Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, osm_tiles, WebP, кеш, догрузка, --prefetch.
+- [docs/guide/location-data.md](guide/location-data.md) — Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, sea, osm_tiles, WebP, кеш, догрузка, --prefetch.
 - [docs/guide/models/camp.md](guide/models/camp.md) — Модели лагеря у старта (assets/models/world): вещи, полусобранный аппарат, люди; ноды, материалы, бюджеты.
 - [docs/guide/models/instruments-3d.md](guide/models/instruments-3d.md) — 3D-модели приборов (планшет, вариометр, часы, компас): оси, ноды, крепление к кисти и к штанге, кабинная камера.
 - [docs/guide/models/pilot.md](guide/models/pilot.md) — Модель пилота pilot.glb: меши, кости, пустышки, анимации и порядок фаз, перчатки, кабинный вид, сборка (MPFB), высота в подвеске.
@@ -238,6 +241,7 @@ generated: true
 - [docs/research/pendulum/takeoff-ground.md](research/pendulum/takeoff-ground.md) — Разбег и старт PD-28 (пилот: «за 10 м не взлетел — не взлетишь» против 21–31 м модели), подскоки PD-36, ноги PD-38, авария PD-39
 - [docs/research/pendulum-yaw-literature.md](research/pendulum-yaw-literature.md) — Боковые производные Hiway Demon (Cook): Cnβ 0,0275, голландский шаг 0,92 рад/с, спираль устойчива; в игре Cnβ 0,05
 - [docs/research/pendulum.md](research/pendulum.md) — Маятник: прототип с 16 полосами даёт трим ±0,3 км/ч и фугоиду T 5,2–5,7 с; крен задаёт гибкость паруса; мягкой посадки в штиль нет
+- [docs/research/pendulum_pitch.md](research/pendulum_pitch.md) — Тангаж «Маятника»: «нос −24…−43°» — пикирование при резком «на себя», не жёсткость; на 1,6·V_трим Δθ −9,6° (эталон −9,5°) [closed]
 - [docs/research/pilot_mass.md](research/pilot_mass.md) — Масса пилота: поляра растягивается на k = √(M·ρ_эт/(M_эт·ρ)), качество не меняется; τ крена ∝ √M; данные четырёх крыльев
 - [docs/research/simhub.md](research/simhub.md) — SimHub не читает SRS и DPMR; путь — «External sim integration» (simdef + UDP 55 байт заголовка, бета, Windows); не реализовано. [closed]
 - [docs/research/slope_wind/coupled-system.md](research/slope_wind/coupled-system.md) — Связанная система по этапам; рекомендация: этап 1 (WF-13) и T по N из погоды сразу, крышку по инверсии и термики-источники — позже [closed]
@@ -311,6 +315,7 @@ generated: true
 - [tools/research/heat_ca/exp4_transfer_sweeps/README.md](../tools/research/heat_ca/exp4_transfer_sweeps/README.md) — Опыт 4: установившееся поле проходами по слоям (матрицы перехода) — код, запуск и файлы; итог — summary.md [closed]
 - [tools/research/heat_ca/exp5_adi/README.md](../tools/research/heat_ca/exp5_adi/README.md) — Опыт 5: чередующиеся прогонки по линиям (ADI) доводят автомат до той же точки за 100–190 раундов, в 9–23× быстрее шагов [closed]
 - [tools/research/lakes_worldcover/README.md](../tools/research/lakes_worldcover/README.md) — Озёра: WorldCover 10 м против OSM на 4 местах — IoU по крупным озёрам 0,86–0,97, вода не теряется на шагах сборки и в H [closed]
+- [tools/research/lee_cal/README.md](../tools/research/lee_cal/README.md) — Подгонка притока под ветер у старта в тени: верхний предел k 3 → 1 — числа до/после на Рапа-Нуи, Онгудае, Аскарово. [closed]
 - [tools/research/location_compression/README.md](../tools/research/location_compression/README.md) — Сжатие данных мест (data/terrain, user://locations): почему выросли после перехода на GDScript и какие форматы Godot 4.7 дают выигрыш [closed]
 - [tools/research/morris/README.md](../tools/research/morris/README.md) — Моррис: чувствительность модели воздуха — Итог и выводы — docs/research/air-model-sensitivity.md. [closed]
 - [tools/research/mountain_look/README.md](../tools/research/mountain_look/README.md) — Замер «до»: как слои, сглаживание σ 0,8 и шаг LOD меняют силуэт гор (Эверест, Эльбрус, Монблан, Домбай, Онгудай); зонд MLK-К3 [closed]
@@ -320,6 +325,7 @@ generated: true
 - [tools/research/pendulum/README.md](../tools/research/pendulum/README.md) — Прототип «честного маятника» на Python: крыло — тело с 16 полосами, пилот — точка на цепи из N звеньев (XPBD), руки с пределом силы
 - [tools/research/pendulum/pd33/README.md](../tools/research/pendulum/pd33/README.md) — Данные разбора правильной посадки маятника (PD-33): ход посадки по шагам, варианты, сильный ветер.
 - [tools/research/pendulum/pd35/README.md](../tools/research/pendulum/pd35/README.md) — PD-35: посадка маятника — ход рук по досягаемости, касание «встал на ноги / пробежал / жёстко», C_N 90° × cos²Λ; скрипты пачек
+- [tools/research/pendulum_pitch/README.md](../tools/research/pendulum_pitch/README.md) — Тангаж «Маятника» на разгоне: скрипт замеров (pendulum_pitch.gd), разбор против точечной массы с полярой, фугоида; команды воспроизведения [closed]
 - [tools/research/pilot_view/README.md](../tools/research/pilot_view/README.md) — PV-1: геометрия пилота лёжа и вид из кабины — штанга позади глаз на 112–120°; нужна ~0,5 м впереди плеч, FOV ~90°
 - [tools/research/qol_load/README.md](../tools/research/qol_load/README.md) — QL-6: замер времени «Рассчитываем ветер» после air-phase — прервано, отменено решением пользователя 07.10 (Q-07 отложен); 20 из 32 строк [postponed]
 - [tools/research/qol_signs/README.md](../tools/research/qol_signs/README.md) — QL-5: почему не видно птиц (размер 1,6 м → 1–2 px на типичных 1–1,5 км) и сколько признаков термика за 10 минут на 4 местах × 13:00/15:00. [closed]

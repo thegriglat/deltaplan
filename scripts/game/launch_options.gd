@@ -24,7 +24,7 @@ extends RefCounted
 ##                         1) до кадра --time в полёте — кадры обзора с клавиш (У2)
 ##   --helmet=<вид>        каска в кабине: none | open | visor | visor_dark (поверх настройки;
 ##                         применяет SunGlare, configs/helmet.json)
-##   --debug=perf,wind,thermals  сразу включить отладочные слои F1/F5/F6 (DebugOverlays)
+##   --debug=perf,wind,thermals,heat  сразу включить отладочные слои F1/F5/F6/F7 (DebugOverlays)
 ##   --no-overlay          скрыть прибор в углу (InstrumentOverlay) перед скриншотом
 ##                         (чистый кадр мира — для фоновых картинок меню)
 ##   --autopilot-circle=<с>[,<крен>]  автопилот через <с> после отрыва кружит с креном (15°,
@@ -248,4 +248,5 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 		if p.size() == 2:
 			r.pick_lat = float(p[0])
 			r.pick_lon = float(p[1])
+	StartWeather.apply(r)  # TI-К2: погода фиксированного старта важнее --wind/--from/--temp/--sky/--hour
 	return r

@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "main влит, CHANGELOG без маркеров; запись training-island в findings.md сокращена, docs check 0 ошибок. scope-FAIL — файлы из main.",
+  "commits": [
+    "слияние main: CHANGELOG — записи обеих сторон"
+  ],
+  "checks": [
+    {
+      "name": "merged",
+      "value": "yes",
+      "pass": true
+    },
+    {
+      "name": "markers",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "вне scope только файлы из main, влитые слиянием",
+      "pass": false
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TI-17 --dry",
+  "uncertain": [],
+  "dp_feedback": "scope-проверка не должна считать файлы, пришедшие слиянием main; в карточке слияния нужен учёт этого.",
+  "t": "2026-10-17T02:27:54",
+  "by": "executor"
+}

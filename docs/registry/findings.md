@@ -145,6 +145,10 @@ related: ["docs/archive/README.md"]
 
 - **Рендеры крыльев**: iso45 из `.glb` (под 3/4 форма читается лучше, чем under34); карточки DHV — только номер и ссылка на поиск портала; `hugo --minify` 248 страниц без WARN/ERROR — [site-update-progress.md#Развилки (развил…](/docs/archive/plan/site-update-progress.md#развилки-развилка--решение--почему)
 
+## training-island
+
+- **Воздух острова**: [training_island_air](/docs/research/training_island_air.md)
+
 ## goals
 
 - **Оценка целей** — грубая формула по погоде без рельефа: V = 16,7·c/(c + 1,9) м/с (c = 2 → ≈ 31 км/ч); в слабую погоду трудные цели недостижимы — [goals.md#Оценка по погоде…](/docs/guide/goals.md#оценка-по-погоде-goalestimator)

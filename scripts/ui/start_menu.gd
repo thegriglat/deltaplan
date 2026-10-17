@@ -7,6 +7,8 @@ extends Control
 
 signal fly_requested(settings: FlightSettings)
 signal setup_requested
+## «Тренировка» (TI-16): полёт по карточке острова; last_flight пилота не перезаписывается.
+signal training_requested(settings: FlightSettings)
 ## «Осмотр карты»: то же место и условия, но без полёта (свободная камера, поле ветра).
 signal inspect_requested(settings: FlightSettings)
 ## «Сетевая игра» (NET-50): открыть экран NetScreen.
@@ -28,6 +30,8 @@ var _inspect_btn: Button
 var _status: Label
 var _fly_btn: Button
 var _setup_btn: Button
+var _training_btn: Button
+var _training: TrainingMenu
 var _summary: Label
 var _lang_prev: Button
 var _fav_box: VBoxContainer
@@ -61,6 +65,7 @@ func set_busy(on: bool) -> void:
 	_fly_btn.disabled = on
 	_inspect_btn.disabled = on
 	_setup_btn.disabled = on
+	_training_btn.disabled = on
 	refresh_favorites()
 
 
@@ -133,6 +138,7 @@ func _build() -> void:
 	_setup_btn = UiKit.menu_button(
 		box, tr("menu_flight_setup"), func() -> void: setup_requested.emit()
 	)
+	_training_btn = UiKit.menu_button(box, tr("menu_training"), _open_training)
 	UiKit.menu_button(box, tr("menu_net_game"), func() -> void: net_requested.emit())
 	UiKit.menu_button(box, tr("menu_controls"), func() -> void: controls_requested.emit())
 	UiKit.menu_button(box, tr("menu_settings"), func() -> void: settings_requested.emit())
@@ -322,3 +328,26 @@ func _add_version() -> void:
 
 func _on_fly() -> void:
 	fly_requested.emit(settings)
+
+
+## «Тренировка» (TI-16): окно с карточками острова; клик — сразу полёт по настройкам карточки
+## (место, старт, погода, цель), без окна «Полёт…».
+func _open_training() -> void:
+	if _training != null:
+		return
+	_training = (load("res://scenes/ui/training_menu.tscn") as PackedScene).instantiate()
+	_training.closed.connect(_close_training)
+	_training.chosen.connect(_on_training_chosen)
+	add_child(_training)
+
+
+func _close_training() -> void:
+	if _training != null:
+		_training.queue_free()
+		_training = null
+
+
+func _on_training_chosen(card: Dictionary) -> void:
+	var s := TrainingMenu.settings_for(card, settings, _training.location_id)
+	_close_training()
+	training_requested.emit(s)

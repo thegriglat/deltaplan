@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "WorldKey._inside для bundled-места без dem берёт квадрат из первого слоя meta.json (ширина*spacing_m); ключ со стартом на острове разбирается в training_island, вне квадрата - точка с карты; synthetic по-прежнему вне builtin_at.",
+  "commits": [
+    "f6d8521c Ключ мира: старт на bundled-острове -> training_island"
+  ],
+  "checks": [
+    {
+      "name": "world_key",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "training_island",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "net_screen",
+      "value": "17/17",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TI-2b",
+  "uncertain": [
+    {
+      "where": "scripts/game/world_key.gd:_bundled_half_km",
+      "why": "квадрат острова = весь слой detail 40x40 км, а не контур суши 14x10 км",
+      "checked": "точки старта и центр внутри; точка +2 градуса вне"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-16T22:56:52",
+  "by": "executor"
+}

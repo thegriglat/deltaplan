@@ -6,6 +6,7 @@
 # Сборки
 /build/
 /data/build_info.json
+/data/air_model_hash.txt
 *.tmp
 
 # ОС и редакторы

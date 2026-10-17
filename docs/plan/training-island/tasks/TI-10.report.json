@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "pick_in_column возвращает NO_SOURCE, если у лучшей из кандидатов сила источника 0 (вода) при наличии земли; build() отбрасывает такие столбцы из источников до водосборов (и при маске ведущего — pick детерминирован по сиду и столбцу). Суша не менялась.",
+  "commits": [
+    "369896ff TI-10: столбец без силы источника у лучшей точки (вода) не источник"
+  ],
+  "checks": [
+    {
+      "name": "air_thermals",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "air_runtime",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "training_island",
+      "value": "24/24",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "13/0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TI-10",
+  "uncertain": [
+    {
+      "where": "air_thermals.gd build(), фильтр chosen по pick_fn",
+      "why": "отбрасывание делается после жадного отбора: рядом стоящий кандидат, вытесненный водным, не занимает его место; поток водной клетки уходит соседним источникам в досягаемости или в lost_flux",
+      "checked": "тест test_no_source_over_water: на воде 0 источников, на суше есть; не проверял в игре air_check.py (TI-5)"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-16T23:44:25",
+  "by": "executor"
+}

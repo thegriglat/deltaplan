@@ -1,0 +1,56 @@
+{
+  "status": "done",
+  "summary": "Тренировка не перетирает last_flight: StartMenu.training_requested → main._on_menu_training с флагом _training_flight (живёт и при «Заново»), сохранение через Main.saves_last_flight(autostart, net, training). Кнопка и окно — как раньше.",
+  "commits": [
+    "a689e834 TI-16: тренировка не перезаписывает last_flight"
+  ],
+  "checks": [
+    {
+      "name": "training_menu",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "language",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "screens",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "goals",
+      "value": "96/96",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "2",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/training-island/menu/10_main_menu.jpg",
+    "build/screenshots/training-island/menu/11_training.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TI-16",
+  "uncertain": [
+    {
+      "where": "tests/game/test_training_last_flight.gd",
+      "why": "полный полёт с записью last_flight не гонял (тяжело): проверены правило сохранения и подключение сигнала",
+      "checked": "2/2"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-17T01:44:32",
+  "by": "executor"
+}

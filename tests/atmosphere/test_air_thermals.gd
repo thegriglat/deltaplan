@@ -160,6 +160,40 @@ func test_sources_sunny_convergence_not_shade() -> void:
 	check(absf(s.radius[0] - r_allen) < 1.0, "радиус ядра — Аллен (%.0f м)" % s.radius[0])
 
 
+static func _sun_water_east(x: float, _z: float) -> float:
+	return 0.0 if x >= 0.0 else 1.0
+
+
+## Вода (сила источника 0 во всех кандидатах) — столбец не источник; суша — как была.
+func test_no_source_over_water() -> void:
+	var g := GroundField.new()
+	g.set_functions(func(_x: float, _z: float) -> float: return GROUND, _sun_water_east)
+	var f := _flat(_heat300, _zero3)
+	var s := AirThermals.new()
+	var cfg := _cfg()
+	cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, g, 7, 6)
+	cfg["height_fn"] = func(_x: float, _z: float) -> float: return GROUND
+	check(s.build(f, cfg), "источники строятся")
+	var n_land := 0
+	var n_water := 0
+	for k in s.count():
+		if s.pos[k].x >= 0.0:
+			n_water += 1
+		else:
+			n_land += 1
+	check(n_water == 0, "на воде источников нет (%d)" % n_water)
+	check(n_land > 0, "на суше источники есть (%d)" % n_land)
+	# столбец целиком на воде
+	check(
+		AirThermals.pick_in_column(40, 10, f, g, 7, 6) == AirThermals.NO_SOURCE,
+		"pick_in_column над водой — нет источника"
+	)
+	check(
+		AirThermals.pick_in_column(5, 10, f, g, 7, 6) != AirThermals.NO_SOURCE,
+		"pick_in_column на суше — точка"
+	)
+
+
 static func _is_line(x: float) -> bool:
 	return absf(x + 1200.0) < 300.0
 
