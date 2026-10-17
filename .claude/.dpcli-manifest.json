@@ -1,12 +1,12 @@
 {
   "files": {
     ".claude/agents/dp-coordinator.md": "fcd7022303b91343ca8f4e4e5ad51e0a0516d2c41efb3749cbbde289437609ef",
-    ".claude/agents/dp-engineer.md": "cf021fd9dd30ce4415144e3ee3de8ecba7e652b3cdf256a6e7fde8736390de7c",
-    ".claude/agents/dp-mechanic.md": "05d1cd8dec52245f76a19a1731a25acf333656aaa474ef73331ad70c44207467",
-    ".claude/agents/dp-researcher.md": "adcbe68f1f7bb513690095dccbf6e5426cd3f0581bd2efba3f91905d26801b5e",
+    ".claude/agents/dp-engineer.md": "2443d63096b168a51971f467a7009801eed5b62b7e6f6ec72437267979df805e",
+    ".claude/agents/dp-mechanic.md": "c2c354e8d24a0e743f9a5fafba85f7374daa7fe58429d55f38bb70961757382d",
+    ".claude/agents/dp-researcher.md": "557b26fb1a14df98370052a0561743c29381a9e0656f89543f75f9495c941472",
     ".claude/agents/dp-reviewer.md": "a0b350b5e6dbca27c389305ffdf707658f728f05409aa3b0111c74625a999ea4",
     ".claude/agents/dp-status.md": "860d9390b0f13bbff633144fb193542438715294851314e35379dc8e76127525",
-    ".claude/agents/dp-writer.md": "64ab954530f06675091a4215cb870104725e1de16e77307aeae23b1267355643",
+    ".claude/agents/dp-writer.md": "d024434d6fa6f3f05fb12b90f123a5372f66da141fc49411897c329d41616f5b",
     ".claude/skills/start-to-do/SKILL.md": "cdd3630e4682a359ab29df746ef4bcb426b7164bfbe83783279de54f8b5ee370",
     ".claude/workflow.md": "6e63ddd2bd2d5f6d194c970e735f8722622bda3ac27b16db37329f16456f6ee5"
   }
