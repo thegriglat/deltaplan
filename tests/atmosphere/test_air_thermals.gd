@@ -194,6 +194,117 @@ func test_no_source_over_water() -> void:
 	)
 
 
+## Класс поверхности: восток (x ≥ 0) — вода (WATER), запад — луг.
+static func _cls_water_east(x: float, _z: float) -> int:
+	return SurfaceLayer.WATER if x >= 0.0 else SurfaceLayer.GRASS
+
+
+## Тёплое море (VI-7): вода греет воздух (сила источника 0,07 > 0, H поля везде 300 Вт/м²) —
+## источника над ней нет, поток столбцов воды источникам не идёт (доля суши 0, ничьи).
+func test_no_source_over_warm_water() -> void:
+	var g := GroundField.new()
+	g.set_functions(
+		func(_x: float, _z: float) -> float: return GROUND,
+		func(x: float, _z: float) -> float: return 0.07 if x >= 0.0 else 1.0
+	)
+	g.surface_fn = _cls_water_east
+	var f := _flat(_heat300, _zero3)
+	var ref := AirThermals.new()
+	ref.build(f, _cfg())
+	var s := AirThermals.new()
+	var cfg := _cfg()
+	cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, g, 7, 6)
+	cfg["water_fn"] = g.is_water
+	cfg["height_fn"] = func(_x: float, _z: float) -> float: return GROUND
+	check(s.build(f, cfg), "источники строятся")
+	var n_water := 0
+	for k in s.count():
+		if s.pos[k].x >= 0.0:
+			n_water += 1
+	check(n_water == 0, "над тёплой водой источников нет (%d)" % n_water)
+	check(s.count() > 0, "на суше источники есть (%d)" % s.count())
+	var c_sea := 10 * N + 40
+	var c_land := 10 * N + 5
+	check(s.land[c_sea] == 0.0 and s.land[c_land] == 1.0, "доля суши: вода 0, суша 1")
+	check(s.owner[c_sea] < 0 and s.phi[c_sea] == 0.0, "столбец воды — ничей, поток источникам 0")
+	# Половина поля — вода: поток источникам — половина потока без воды.
+	var r := s.total_flux / ref.total_flux
+	check(absf(r - 0.5) < 0.01, "поток источникам — только с суши (%.3f от всего)" % r)
+	# Берег посреди столбца — доля суши между (столбец i = 24: x 0…100 м — вода).
+	check(s.land[10 * N + 23] == 1.0 and s.land[10 * N + 24] == 0.0, "граница по столбцам")
+
+
+## Море без карты поверхности (класс NONE, высота 0 — как Terrain.is_sea): вода; без класса совсем
+## (рельеф без карты) — воды не знаем; класс берётся и у Terrain через height_fn (surface_at).
+func test_sea_none_class_and_terrain_object() -> void:
+	var g := GroundField.new()
+	var sea_h := func(x: float, _z: float) -> float: return 0.0 if x >= 0.0 else 120.0
+	g.set_functions(sea_h, func(_x: float, _z: float) -> float: return 0.68)
+	check(not g.is_water(500.0, 0.0), "класса нет — воды не знаем")
+	g.surface_fn = func(_x: float, _z: float) -> int: return SurfaceLayer.NONE
+	check(g.is_water(500.0, 0.0), "NONE на уровне моря — море")
+	check(not g.is_water(-500.0, 0.0), "NONE выше 0,5 м — суша")
+	var t := _TerrainStub.new()
+	var g2 := GroundField.new()
+	g2.set_functions(t.height_at, t.thermal_source_strength_at)
+	check(g2.is_water(500.0, 0.0) and not g2.is_water(-500.0, 0.0), "класс — surface_at рельефа")
+	var f := _flat(_heat300, _zero3)
+	var s := AirThermals.new()
+	var cfg := _cfg()
+	cfg["pick_fn"] = AirThermals.pick_in_column.bind(f, g2, 7, 6)
+	cfg["water_fn"] = g2.is_water
+	s.build(f, cfg)
+	var n_sea := 0
+	for k in s.count():
+		if s.pos[k].x >= 0.0:
+			n_sea += 1
+	check(n_sea == 0 and s.count() > 0, "над морем NONE источников нет (%d из %d)" % [n_sea, s.count()])
+
+
+## Термики клеток (аналитика, поля нет) тоже не над водой.
+func test_cell_thermals_not_over_water() -> void:
+	var t := _TerrainStub.new()
+	var w: Dictionary = Config.get_config("weather/medium").duplicate(true)
+	w.wind_speed_kmh = 0.0
+	var a := Atmosphere.new()
+	a.visuals_enabled = false
+	a.seed_value = 7
+	a.configure(Config.get_config("atmosphere"), w)
+	a.set_ground(t.height_at, t.thermal_source_strength_at)
+	a.turbulence_enabled = false
+	a.wave.enabled = false
+	a.set_focus(Vector3(0.0, 600.0, 0.0))
+	a.start_at(2000.0)
+	var n_sea := 0
+	var n_land := 0
+	for id in a.field.thermals:
+		var th: AtmoThermal = a.field.thermals[id]
+		if th.is_static:
+			continue
+		if th.src.x >= 0.0:
+			n_sea += 1
+		else:
+			n_land += 1
+	check(n_sea == 0, "термиков клеток над морем нет (%d)" % n_sea)
+	check(n_land > 0, "на суше есть (%d)" % n_land)
+	a.free()
+
+
+## Рельеф для GroundField: восток — море (высота 0, класс NONE — как у океана без WorldCover),
+## запад — луг на 120 м; сила источника одинаковая (как у Terrain с тёплой водой).
+class _TerrainStub:
+	extends RefCounted
+
+	func height_at(x: float, _z: float) -> float:
+		return 0.0 if x >= 0.0 else 120.0
+
+	func surface_at(x: float, _z: float) -> int:
+		return SurfaceLayer.NONE if x >= 0.0 else SurfaceLayer.GRASS
+
+	func thermal_source_strength_at(_x: float, _z: float) -> float:
+		return 0.9
+
+
 static func _is_line(x: float) -> bool:
 	return absf(x + 1200.0) < 300.0
 
