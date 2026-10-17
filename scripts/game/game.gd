@@ -453,6 +453,7 @@ func _load_air_field(progress: LoadProgress) -> void:
 		cond
 	)
 	air_runtime.set_focus(camera if inspect_mode else glider, _start_pos)
+	await air_runtime.wait_place()  # снимок поверхности — задачей пула (FL-9), кадры идут
 	if air_runtime.baked_ready() or air_runtime.cache_ready():
 		pass  # поле — из запечённого файла (TI-К3) или кеша (FL-К1): этапа «Рассчитываем ветер» нет
 	elif air_runtime.unavailable_reason() == "":
