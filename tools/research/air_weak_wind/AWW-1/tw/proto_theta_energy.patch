@@ -1,0 +1,59 @@
+diff --git a/scripts/atmosphere/air_model/air_phase.glsl b/scripts/atmosphere/air_model/air_phase.glsl
+index 52798910..0fad7587 100644
+--- a/scripts/atmosphere/air_model/air_phase.glsl
++++ b/scripts/atmosphere/air_model/air_phase.glsl
+@@ -473,11 +473,12 @@ void main() {
+ #endif
+ 
+ #ifdef K_THINIT
+-	// θ′ баланса: источник H_k/h·τ·(1 − e^{−Δt/τ}), Δt = dx/U
++	// теплосодержание слоя E = θ′·h (К·м, TW-2): источник H_k·τ·(1 − e^{−Δt/τ}), Δt = dx/U; θ′ = E/h в сборке —
++	// тепло тонкого устойчивого слоя (море) не раздувается на толщину слоя перемешивания суши
+ 	GRID_LOOP(n2) {
+ 		int c = t;
+ 		float fa = exp(-prm[P_DX] / o2d[O_UML * n2 + c] / prm[P_TAU]);
+-		o2d[O_TH0 * n2 + c] = C(CI_HK, c) / max(C(CI_HBL, c), 1.0) * prm[P_TAU] * (1.0 - fa);
++		o2d[O_TH0 * n2 + c] = C(CI_HK, c) * prm[P_TAU] * (1.0 - fa);
+ 	}
+ #endif
+ 
+@@ -490,7 +491,7 @@ void main() {
+ 		int c = t;
+ 		int j = c / nx, i = c % nx;
+ 		float fa = exp(-prm[P_DX] / o2d[O_UML * n2 + c] / prm[P_TAU]);
+-		float s0 = C(CI_HK, c) / max(C(CI_HBL, c), 1.0) * prm[P_TAU] * (1.0 - fa);
++		float s0 = C(CI_HK, c) * prm[P_TAU] * (1.0 - fa);
+ 		float fi = float(i) - ex, fj = float(j) - ey;
+ 		float val = 0.0;
+ 		if (fi >= 0.0 && fi <= float(nx - 1) && fj >= 0.0 && fj <= float(ny - 1)) {
+@@ -535,7 +536,7 @@ void main() {
+ 				float ds = max(s, 1e-9);
+ 				u += wf * ua * C(CI_GX, c) / ds * pr;
+ 				vv += wf * ua * C(CI_GY, c) / ds * pr;
+-				if (zagl < C(CI_HBL, c)) th = o2d[thp * n2 + c];
++				if (zagl < C(CI_HBL, c)) th = o2d[thp * n2 + c] / max(C(CI_HBL, c), 1.0);
+ 				if (zmsl >= prm[P_HCD]) th -= (zmsl > C(CI_ZI, c) ? prm[P_GAMW] : 0.0) * m.eta;
+ 			}
+ 			if (gact) {
+diff --git a/scripts/atmosphere/air_model/air_phase_cpu.gd b/scripts/atmosphere/air_model/air_phase_cpu.gd
+index 75f3857e..27c6c238 100644
+--- a/scripts/atmosphere/air_model/air_phase_cpu.gd
++++ b/scripts/atmosphere/air_model/air_phase_cpu.gd
+@@ -522,7 +522,7 @@ static func theta(p: Dictionary, um: PackedFloat64Array) -> PackedFloat64Array:
+ 	for c in n2:
+ 		var dt: float = a[P.P_DX] / um[c]
+ 		fa[c] = exp(-dt / tau)
+-		src[c] = col[P.CI_HK * n2 + c] / maxf(col[P.CI_HBL * n2 + c], 1.0) * tau * (1.0 - fa[c])
++		src[c] = col[P.CI_HK * n2 + c] * tau * (1.0 - fa[c])  # теплосодержание E = θ′·h (TW-2)
+ 	var th := src.duplicate()
+ 	for _pass in nx + ny:
+ 		var nw := PackedFloat64Array()
+@@ -632,7 +632,7 @@ static func cell(
+ 		u += wf * ua * col[P.CI_GX * n2 + c] / ds * pr
+ 		vv += wf * ua * col[P.CI_GY * n2 + c] / ds * pr
+ 		if zagl < col[P.CI_HBL * n2 + c]:
+-			t = th[c]
++			t = th[c] / maxf(col[P.CI_HBL * n2 + c], 1.0)
+ 		if zmsl >= a[P.P_HCD]:
+ 			var gw: float = a[P.P_GAMW] if zmsl > col[P.CI_ZI * n2 + c] else 0.0
+ 			t -= gw * m[3]

@@ -1,0 +1,13 @@
+diff --git a/scripts/atmosphere/air_model/air_phase.gd b/scripts/atmosphere/air_model/air_phase.gd
+index 47cd1384..faf924c5 100644
+--- a/scripts/atmosphere/air_model/air_phase.gd
++++ b/scripts/atmosphere/air_model/air_phase.gd
+@@ -424,7 +424,7 @@ static func case_weights(p: Dictionary, cl: Dictionary) -> void:
+ 	p.w_h = 1.0 - sig_log(xh, float(cl.h_c), float(cl.h_w_dec))
+ 	var ax := String(cl.d_strong_axis)
+ 	var ss := 0.0
+-	var nb := maxf(float(p.n_bv), 1e-6)
++	var nb := maxf(float(p.n_eff), 1e-6)  # AWW-1 (прототип): N на высоте рельефа — n_eff (слой перемешивания выше рельефа)
+ 	p.u_over_n = p.usat / nb
+ 	if ax != "none":
+ 		var xs: float = p.u_over_n
