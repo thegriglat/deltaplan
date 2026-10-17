@@ -21,7 +21,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/../../.." && pwd)
 cd "$root"
 L=$here/logs; mkdir -p "$L"
-X=$HOME/.cache/dp-xdg/loadprof-$pl
+X=$HOME/.cache/dp-xdg/loadprof-$pl${PROFILE_SUFFIX:-}   # суффикс — копия профиля для экспериментов
 mkdir -p "$X"
 cold_first=0
 [ -z "$(ls -A "$X" 2>/dev/null)" ] && cold_first=1

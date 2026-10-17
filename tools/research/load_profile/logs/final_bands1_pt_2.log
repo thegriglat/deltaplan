@@ -1,0 +1,73 @@
+uptime:  15:24:47 up 3 days, 15:36,  1 user,  load average: 2,89, 2,25, 2,54
+air_cache: hit
+commit: 1b087b01
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+load_probe: старт с -27.7176, -48.7799 / 
+[lpfly] START @14.545
+[load] dem          0.19 с  (к 0.19 с)
+[load] mesh         0.33 с  (к 0.53 с)
+[load] classify     0.00 с  (к 0.53 с)
+[gap] 0.00 с: 615 мс
+[load] mesh         0.99 с  (к 1.52 с)
+[gap] 0.62 с: 984 мс
+[load] trees        0.88 с  (к 2.39 с)
+[gap] 1.60 с: 877 мс
+Terrain: место pt_-27.700_-048.800 загружено за 2.95 с
+[load] grass        0.55 с  (к 2.95 с)
+[gap] 2.48 с: 554 мс
+Terrain: поля рельефа за 2.47 с
+[load] weather      0.13 с  (к 3.08 с)
+[gap] 3.03 с: 128 мс
+[gap] 3.16 с: 504 мс
+[gap] 3.74 с: 224 мс
+[gap] 4.51 с: 112 мс
+air_model: field (массивы; уровней 3)
+air_model: поле из кеша 50ef7ac666548ef8 (ok), уровней 3, k притока 1.000, 0.37 с
+PlaceData: 'pt_-27.700_-048.800' за 1.35 с — OSM 0.86 с (домов OSM 9483), план домов 0.49 с (18149)
+[gap] 5.30 с: 104 мс
+WorldObjects: судов 4 (без модели 0)
+[gap] 8.30 с: 116 мс
+[gap] 8.56 с: 194 мс
+WorldObjects: снаряжение у 0 стартов — 0 вещей за 0 мс
+WorldObjects: 'pt_-27.700_-048.800' за 4.06 с — ветроуказателей 0, посадок 0, троп к стартам 0, домов 18149, OSM тайлов 9/9
+[load] objects      5.99 с  (к 9.06 с)
+[gap] 9.14 с: 556 мс
+WorldObjects: палаток у старта 5 из 5 за 336 мс
+[gap] 9.70 с: 495 мс
+[gap] 10.79 с: 259 мс
+[gap] 11.05 с: 155 мс
+[gap] 11.21 с: 135 мс
+[gap] 11.34 с: 128 мс
+[gap] 15.49 с: 102 мс
+[load] glider       8.35 с  (к 17.41 с)
+[load] всего 17.41 с
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=-27.71760&lon=-48.77990&seed=1606701511&sky=clear&temp=26.0&v=2&wind=3.0
+[lpfly] FLYING @32.044 (от нажатия 17.50 с)
+[lpfly] первый кадр полёта через 35 мс
+[gap] 17.50 с: 161 мс
+[gap] 17.66 с: 184 мс
+[gap] 17.99 с: 218 мс
+[lpfly] после старта 15 с: кадров 630, макс. интервал 218 мс
+load_probe: итог полёт за 32.55 с, кадров 1346
+load_probe: макс. интервал 984 мс; >100 мс: ["984@0.6", "877@1.6", "615@0.0", "556@9.1", "554@2.5", "504@3.2", "495@9.7", "259@10.8"]
+load_probe: этап dem          0.19 с
+load_probe: этап mesh         0.33 с
+load_probe: этап classify     0.00 с
+load_probe: этап mesh         0.99 с
+load_probe: этап trees        0.88 с
+load_probe: этап grass        0.55 с
+load_probe: этап weather      0.13 с
+load_probe: этап objects      5.99 с
+load_probe: этап glider       8.35 с
+exit=0
+uptime_end:  15:25:35 up 3 days, 15:37,  1 user,  load average: 3,63, 2,59, 2,64
