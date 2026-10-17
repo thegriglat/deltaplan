@@ -3,7 +3,7 @@ type: "guide"
 status: "active"
 module: "world"
 area: "world"
-updated: "2026-10-15"
+updated: "2026-10-18"
 summary: "Просеки для деревьев, процедурные дома в пятнах застройки, OSM-слой из тайлов (дороги, дома, ЛЭП, ветряки, трафик), деревья города."
 related: ["docs/guide/world-objects.md"]
 ---
@@ -148,3 +148,7 @@ low — `density_mult` 0,35, радиус 400 м, без теней; medium — 
 ## Модели домов (RV-К6, RV-10)
 
 Гибрид: доля малых сельских домов профиля рисуется моделями вместо коробки с крышей. Реестр `configs/world_objects.json → buildings.models{имя: {path, size_m: [x, z]}}`; профиль задаёт `village_models [{name, weight}]` и `village_model_share` (0…1, по умолчанию 0 — всё как раньше). Кандидат: стиль «село», высота не из тегов OSM (запись посёлка или по правилу), след не больше `village_model_max_area_m2` (150). «Модель или коробка» и какая модель — хеш положения дома (детерминированно). Масштаб: X/Z по контуру дома (длинная сторона модели вдоль длинной стороны дома), Y — среднее X/Z; модель стоит на самой низкой точке пятна. MultiMesh на модель × LOD × тайл: LOD0 до 250 м, LOD1 до 1500 м, LOD2 до `visibility_m` (`visibility_range_begin/end`); цвет экземпляра — палитра стен стиля, умножается на альбедо (копия материала с `vertex_color_use_as_albedo`). Нет файла модели — дом остаётся коробкой. Препятствие-коробка дома сохраняется.
+
+## Профиль региона в конфиге домов (RV-9)
+
+`WorldObjects.load_config(lat, lon)` сливает `buildings ← Biome.profile(Biome.at(lat, lon)).buildings` (центр места — из `Locations.config`; без аргументов профиля нет), затем пресет качества. Профили (`configs/biomes.json`, данные — `tools/world/bake_biomes.py`): `island` (Ханга-Роа) — `max_levels` 1, модель `tin_house` 70 %, светлые стены, жестяные крыши; `tropical_wet` — `stilt_house` + `tin_house` 60 %; `savanna` — `rondavel` + `tin_house` 70 %; `subtropical` — `hip` и `tin_house` 30 %; `mediterranean` — `hip`, терракота, светлые стены, `max_levels` 4; `arid` — `flat_parapet`, охра и саман; `temperate`, `boreal`, `alpine_ice` — без изменений. Потолок `max_levels` действует и на записи из 7 полей (дома посёлка, `VillageLayer`), и на OSM-дома «по правилу» (поле 8 = 1); высота из тегов OSM не режется. Цвет экземпляра (палитра стен) красит только материал `Wall_*` модели: `Roof_*` и `Wood_*` сохраняют свой цвет (солома не желтеет). Тест — `tests/world/test_region_wiring.gd`.
