@@ -1,12 +1,10 @@
 extends Node
-## Кадры меню с учебным островом (TI-14): список стран со строкой «—», четыре старта острова,
-## окно «Полёт…» с выбранным стартом (фиксированная погода) и вкладка «Цели».
+## Кадры окна «Тренировка» (TI-16, VI-К2): вкладка учебного острова и вкладка вулканического острова.
 ## Запуск (нужно окно; DISPLAY; XDG_DATA_HOME — временный):
 ##   XDG_DATA_HOME=$(mktemp -d) godot --path . --audio-driver Dummy --resolution 1920x1080 \
 ##     res://tools/shots/training_island_menu_shot.tscn -- --out=<каталог>
-## Пишет <out>/01_places.jpg … 04_goals.jpg (JPEG q88, 1920×1080).
+## Пишет <out>/01_training_island.jpg, 02_training_volcano.jpg (JPEG q88, 1920×1080).
 
-const TMP_RECENT := "user://training_island_menu_shot_recent.json"
 const SIZE := Vector2i(1920, 1080)
 
 var _out := ""
@@ -33,46 +31,33 @@ func _snap(tag: String) -> void:
 	print("shot: ", path, " ", error_string(_vp.get_texture().get_image().save_jpg(path, 0.88)))
 
 
+func _select_tab(w: TrainingMenu, group_id: String) -> void:
+	var tabs: TabContainer = w.get("_tabs")
+	for i in tabs.get_tab_count():
+		if tabs.get_child(i).name == group_id:
+			tabs.current_tab = i
+
+
 func _run() -> void:
 	Language.apply("ru")
-	var screen: FlightSetupScreen = (
-		(load("res://scenes/ui/flight_setup_screen.tscn") as PackedScene).instantiate()
-	)
-	screen.recent_places_path = TMP_RECENT
-	screen.settings = FlightSettings.defaults()
 	_vp = SubViewport.new()
 	_vp.size = SIZE
 	_vp.disable_3d = true
 	_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(_vp)
-	var bg := ColorRect.new()
-	bg.color = Color(0.16, 0.2, 0.26)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_vp.add_child(bg)
-	_vp.add_child(screen)
+	var m: StartMenu = (load("res://scenes/ui/start_menu.tscn") as PackedScene).instantiate()
+	m.favorites_path = "user://training_island_menu_shot_fav.json"
+	_vp.add_child(m)
 	await get_tree().process_frame
-	(screen.get("_places_btn") as Button).pressed.emit()
-	var w: PopularPlacesWindow = screen.get("_places_window")
-	# (а) список стран; строка «—» — в прокрутке, показываем её
+	for b in m.find_children("*", "Button", true, false):
+		if (b as Button).text == tr("menu_training"):
+			(b as Button).pressed.emit()
 	await get_tree().process_frame
-	var sc: ScrollContainer = w.get("_scroll")
-	var list: Control = w.get("_list")
-	for c in list.get_children():
-		if c is Button and (c as Button).text.begins_with("—"):
-			sc.ensure_control_visible(c)
-	await _snap("01_places")
-	# (б) четыре старта острова
-	w.enter_country("")
-	await _snap("02_island_starts")
-	# (в) выбран старт острова — окно «Полёт…»
-	w.press_row(0)
-	await _snap("03_setup_island")
-	# вкладка «Цели»
-	var tabs: TabContainer = screen.get("_tabs")
-	for i in tabs.get_tab_count():
-		if tabs.get_tab_title(i) == tr("setup_tab_goals"):
-			tabs.current_tab = i
-	await _snap("04_goals")
-	if FileAccess.file_exists(TMP_RECENT):
-		DirAccess.remove_absolute(TMP_RECENT)
+	var w: TrainingMenu = m.get("_training")
+	# (а) вкладка учебного острова (первая группа)
+	_select_tab(w, "training_island")
+	await _snap("01_training_island")
+	# (б) вкладка вулканического острова
+	_select_tab(w, "volcano_island")
+	await _snap("02_training_volcano")
 	get_tree().quit(0)

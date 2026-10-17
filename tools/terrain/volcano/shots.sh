@@ -41,12 +41,16 @@ shot 04_crater_ridge_back --site=crater_ridge --air-start=0,2 --look=180,-4
 shot 05_plateau_landing --site=plateau_landing --air-start=0,2 --look=0,-8
 shot 06_plateau_landing_back --site=plateau_landing --air-start=0,2 --look=180,-4
 shot 07_landing_target_approach --site=plateau_landing --air-start=0,40 --look=0,-12
-"$HERE/.venv/bin/python" - "$TMP" "$OUT" <<'PY'
-import sys, glob, os
-from PIL import Image
-tmp, out = sys.argv[1], sys.argv[2]
-for p in sorted(glob.glob(os.path.join(tmp, "*.png"))):
-    q = os.path.join(out, os.path.basename(p)[:-4] + ".jpg")
-    Image.open(p).convert("RGB").save(q, quality=88)
-    print("→", q)
-PY
+shot 08_thermal_slope --site=thermal_slope --air-start=0,2 --look=0,-6
+shot 09_thermal_slope_back --site=thermal_slope --air-start=0,2 --look=180,-4
+# окно «Тренировка»: вкладки учебного и вулканического острова (JPEG пишет сама сцена в $OUT)
+if [[ -z "$ONLY" || "training_island_menu" == *"$ONLY"* || "$ONLY" == menu* ]]; then
+  (cd "$ROOT" && XDG_DATA_HOME="$(mktemp -d)" timeout 240 godot --path . --audio-driver Dummy --resolution 1920x1080 \
+    res://tools/shots/training_island_menu_shot.tscn -- --out="$OUT") > "$TMP/training_menu.log" 2>&1
+  grep -q "shot: " "$TMP/training_menu.log" && echo "training_menu ok" || { echo "training_menu FAIL"; tail -5 "$TMP/training_menu.log"; }
+fi
+for p in "$TMP"/*.png; do   # JPEG q88 через ImageMagick (venv с PIL в копии нет)
+  [ -e "$p" ] || continue
+  q="$OUT/$(basename "${p%.png}").jpg"
+  convert "$p" -background white -flatten -quality 88 "$q" && echo "→ $q"
+done
