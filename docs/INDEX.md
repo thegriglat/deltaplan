@@ -42,6 +42,7 @@ generated: true
 - **training-island** — Учебный остров: синтетическое место в море, старты «склон», «термики», «посадка», «ротор»; фиксированная погода и запечённый ветер. [active 2026-10-16] — [план](plan/training-island.md) · [контракты](contracts/training-island.md)
   - [docs/research/training_island_air.md](research/training_island_air.md) — TI-5: погода четырёх стартов учебного острова (TI-К2) и проверка воздуха в игре — склон, термики, ротор, посадка
 - **sea-ships** — Суда на море (танкер, сухогруз, контейнеровоз) — декорация у горизонта; первым шагом — надёжный признак «море» против озёр и водохранилищ. [active 2026-10-17] — [план](plan/sea-ships.md) · [контракты](contracts/sea-ships.md)
+  - [docs/guide/world-objects/sea-ships.md](guide/world-objects/sea-ships.md) — Суда на море: три вида и LOD, расстановка S3 v3, маска моря и стадия sea (признак SEA-1, уровень воды far, класс воды), что модель не умеет.
   - [tools/research/sea_mask/README.md](../tools/research/sea_mask/README.md) — Признак «море»: компонента воды far с уровнем ≤ 0,25 м, краем и берегом ≥ −1 м; 16 мест, ложных 0, море 100 % [closed]
 
 ## game
