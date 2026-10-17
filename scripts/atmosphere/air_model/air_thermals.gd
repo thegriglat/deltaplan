@@ -100,6 +100,9 @@ var total_flux: float = 0.0
 var carried_flux: float = 0.0
 ## Номер источника по столбцу: Vector2i(j, i) -> s.
 var index: Dictionary = {}
+## Полос параллельной сборки (build, FL-15): 0 — по числу ядер; 1 — последовательно в своём
+## потоке. Итог от числа полос не зависит (бит-в-бит).
+var bands: int = 0
 
 var _q := PackedFloat32Array()  ## профиль потока ядра по ξ (0..1), _NQ точек
 var _q_mean: float = 1.0
@@ -183,7 +186,6 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	var wconv := f.raw_w_conv()
 	var theta := f.raw_theta()
 	var vel := f.raw_vel()
-	var nxy := n_col
 	# θ̄ относительно низа сетки (интеграл dθ̄/dz по центрам уровней)
 	var tbar := PackedFloat32Array()
 	tbar.resize(f.nz)
@@ -192,90 +194,36 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		if k > 0:
 			acc += 0.5 * (gam[k - 1] + gam[k]) * f.dz
 		tbar[k] = acc
-	owner.resize(n_col)
-	owner.fill(-1)
-	phi.resize(n_col)
-	phi.fill(0.0)
 	col_heat = heat.duplicate()
-	col_w.resize(n_col)
-	col_w.fill(0.0)
-	col_f.resize(n_col)
-	col_f.fill(0.0)
+	var cell_a := f.dx * f.dx
+	# --- столбцы — полосами строк (параллельно, FL-15): Φ, потолок частицы, z_l, n_A, K̄, кандидаты;
+	# полосы склеиваются по порядку строк — как последовательный обход
+	var parts := _run_bands(
+		f.ny, _cols_band.bind(f, cfg, heat, k1s, hcs, z_i, ustar, cb, cut, tbar, wconv, theta)
+	)
 	var c_top := PackedFloat32Array()
-	c_top.resize(n_col)
 	var c_ws := PackedFloat32Array()
-	c_ws.resize(n_col)
 	var cand := PackedInt32Array()
 	## Радиус исключения по плотности столба (и досягаемость водосбора = 2 радиуса), м.
 	var cand_r := PackedFloat32Array()
-	cand_r.resize(n_col)
 	## По столбцам: местная толщина слоя z_l (м), живых потоков Аллена n_A (1/м²), K̄ ядра на 1 м/с.
 	var c_zl := PackedFloat32Array()
-	c_zl.resize(n_col)
-	c_zl.fill(ZI_MIN)
 	var c_na := PackedFloat32Array()
-	c_na.resize(n_col)
 	var c_k := PackedFloat32Array()
-	c_k.resize(n_col)
-	var cell_a := f.dx * f.dx
-	for j in f.ny:
-		for i in f.nx:
-			var c := j * f.nx + i
-			var k1 := k1s[c]
-			if k1 >= f.nz or is_nan(z_i):
-				continue
-			var hc := hcs[c]
-			var hk := heat[c] / RHO_CP
-			var h := maxf(z_i - hc, ZI_MIN)
-			var ws := WindField.deardorff_wstar(heat[c], z_i, hc)
-			var wm := pow(ustar * ustar * ustar + 0.28 * ws * ws * ws, 1.0 / 3.0)
-			c_ws[c] = ws
-			# F̄: средний по слою 0..h поток массы подсеточной конвекции, w_m/(2b)
-			var fbar := wm / (2.0 * HB_B) if hk > 0.0 else 0.0
-			# W̄: средний w_conv по воздушным клеткам столбца в слое 0..h
-			var sw := 0.0
-			var nw := 0
-			for k in range(k1, f.nz):
-				var zk := f.z_bot + (k + 0.5) * f.dz
-				if zk - hc > h:
-					break
-				sw += wconv[k * nxy + c]
-				nw += 1
-			var wbar := sw / nw if nw > 0 else 0.0
-			col_w[c] = wbar
-			col_f[c] = fbar
-			phi[c] = fbar + maxf(wbar, 0.0)
-			# Потолок частицы: θ_p = θ′(k1) + Δθ; выше — θ̄ + θ′ поля.
-			var t_top := f.z_bot + f.nz * f.dz
-			if hk > 0.0:
-				var ex := HB_B * hk / maxf(wm, 1.0e-3)
-				var tp := tbar[k1] + theta[k1 * nxy + c] + ex
-				var prev := tbar[k1] + theta[k1 * nxy + c]
-				for k in range(k1 + 1, f.nz):
-					var te := tbar[k] + theta[k * nxy + c]
-					if te >= tp:
-						var fr := (tp - prev) / maxf(te - prev, 1.0e-6)
-						t_top = f.z_bot + (k - 0.5 + clampf(fr, 0.0, 1.0)) * f.dz
-						break
-					prev = te
-			else:
-				t_top = hc
-			c_top[c] = t_top
-			var d_top := minf(t_top, cb) - hc
-			var zl := maxf(t_top - hc, ZI_MIN)
-			c_zl[c] = zl
-			var rc := allen_r2(1.0, zl)
-			cand_r[c] = cut * rc
-			if hk > 0.0 and phi[c] > 0.0:
-				c_na[c] = allen_density(zl)
-				c_k[c] = CORE_FLUX * PI * rc * rc * _shape_mean(maxf(d_top, ZI_MIN), cfg) * life_mean
-			# Кандидат: греется (H > 0), поток есть, столб частицы ≥ ZI_MIN, внутри поля
-			if hk <= 0.0 or phi[c] <= 0.0 or d_top < ZI_MIN:
-				continue
-			var ctr := Vector3(f.x0 + (i + 0.5) * f.dx, hc + 10.0, -(f.y0 + (j + 0.5) * f.dx))
-			if f.edge_weight(ctr) < 0.5:
-				continue
-			cand.append(c)
+	phi = PackedFloat32Array()
+	col_w = PackedFloat32Array()
+	col_f = PackedFloat32Array()
+	for part: Array in parts:
+		c_ws.append_array(part[0])
+		col_w.append_array(part[1])
+		col_f.append_array(part[2])
+		phi.append_array(part[3])
+		c_top.append_array(part[4])
+		c_zl.append_array(part[5])
+		cand_r.append_array(part[6])
+		c_na.append_array(part[7])
+		c_k.append_array(part[8])
+		cand.append_array(part[9])
 	# --- плотность: живых n_A (Аллен) на площадь, распределённых по Φ (Φ/Φ̂, Φ̂ — средний Φ
 	# кандидатов с весом n_A: Σ n·A = Σ n_A·A), ÷ доля жизни; ядра не несут больше Φ столбца.
 	var s_na := 0.0
@@ -344,9 +292,14 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 	var pick_fn: Callable = cfg.get("pick_fn", Callable())
 	var picked := {}
 	if pick_fn.is_valid():
+		# точки — параллельно (FL-15: 8 проб силы источника на столбец — главное время сборки)
+		var pts := PackedVector2Array()
+		for part: PackedVector2Array in _run_bands(chosen.size(), _pick_band.bind(chosen, f.nx, pick_fn)):
+			pts.append_array(part)
 		var kept := PackedInt32Array()
-		for c in chosen:
-			var pp: Vector2 = pick_fn.call(c % f.nx, c / f.nx)
+		for s in chosen.size():
+			var c := chosen[s]
+			var pp := pts[s]
 			if pp == NO_SOURCE:
 				continue
 			picked[c] = pp
@@ -369,41 +322,21 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 			sgrid[k] = PackedInt32Array()
 		sgrid[k].append(s)
 	var ring_max := int(ceil(max_reach / (_B * f.dx))) + 1
-	for c in n_col:
-		if k1s[c] >= f.nz:
-			continue
-		var ci := c % f.nx
-		var cj := c / f.nx
-		var bi := ci / _B
-		var bj := cj / _B
-		var best := -1
-		var bd := INF
-		for ring in ring_max + 1:
-			# после кольца ring всё ближе ring·B·dx уже просмотрено
-			if best >= 0 and bd <= pow(maxf(ring - 1, 0) * _B * f.dx, 2.0):
-				break
-			for dj in range(-ring, ring + 1):
-				var jj := bj + dj
-				if jj < 0 or jj >= nby:
-					continue
-				for di in range(-ring, ring + 1):
-					if maxi(absi(di), absi(dj)) != ring:
-						continue
-					var ii := bi + di
-					if ii < 0 or ii >= nbx:
-						continue
-					var arr: Variant = sgrid[jj * nbx + ii]
-					if arr == null:
-						continue
-					for s2: int in arr:
-						var sc := chosen[s2]
-						var ddx := float(sc % f.nx - ci) * f.dx
-						var ddy := float(sc / f.nx - cj) * f.dx
-						var d2 := ddx * ddx + ddy * ddy
-						if d2 <= reach[s2] * reach[s2] and (d2 < bd or (d2 == bd and s2 < best)):
-							bd = d2
-							best = s2
-		owner[c] = best
+	# ячейки → источники плоско (s_start/s_list): без Variant-массивов в потоках
+	var s_start := PackedInt32Array()
+	s_start.resize(nbx * nby + 1)
+	var s_list := PackedInt32Array()
+	for kb in nbx * nby:
+		s_start[kb] = s_list.size()
+		if sgrid[kb] != null:
+			s_list.append_array(sgrid[kb])
+	s_start[nbx * nby] = s_list.size()
+	owner = PackedInt32Array()
+	for part: PackedInt32Array in _run_bands(
+		n_col,
+		_owner_band.bind(f.nx, f.nz, f.dx, k1s, chosen, reach, s_start, s_list, nbx, nby, ring_max)
+	):
+		owner.append_array(part)
 	var m_i := PackedFloat64Array()
 	m_i.resize(ns)
 	var o_i := PackedFloat64Array()
@@ -423,69 +356,47 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 		m_i[o] += phi[c] * cell_a
 		o_i[o] += maxf(col_w[c], 0.0) * cell_a
 		a_i[o] += cell_a
-	# --- параметры источников
-	col = chosen
-	pos.resize(ns)
-	w0.resize(ns)
-	radius.resize(ns)
-	wstar.resize(ns)
-	top.resize(ns)
-	drift.resize(ns)
-	flux.resize(ns)
-	carried.resize(ns)
-	net.resize(ns)
-	ring.resize(ns)
-	area.resize(ns)
-	depth.resize(ns)
+	# --- параметры источников (параллельно по источникам; суммы — по порядку)
 	var hsum := PackedFloat64Array()
 	hsum.resize(ns)
 	for c in n_col:
 		if owner[c] >= 0:
 			hsum[owner[c]] += maxf(heat[c], 0.0) * cell_a
-	var height_fn: Callable = cfg.get("height_fn", Callable())
+	col = chosen
+	pos = PackedVector3Array()
+	w0 = PackedFloat32Array()
+	radius = PackedFloat32Array()
+	wstar = PackedFloat32Array()
+	top = PackedFloat32Array()
+	drift = PackedVector2Array()
+	flux = PackedFloat32Array()
+	carried = PackedFloat32Array()
+	net = PackedFloat32Array()
+	ring = PackedFloat32Array()
+	area = PackedFloat32Array()
+	depth = PackedFloat32Array()
+	var src_parts := _run_bands(
+		ns,
+		_src_band.bind(
+			f, cfg, chosen, picked, hcs, k1s, c_top, c_zl, cb, z_i, hsum, m_i, o_i, a_i, vel, ring_int
+		)
+	)
+	for part: Array in src_parts:
+		pos.append_array(part[0])
+		top.append_array(part[1])
+		depth.append_array(part[2])
+		wstar.append_array(part[3])
+		flux.append_array(part[4])
+		area.append_array(part[5])
+		radius.append_array(part[6])
+		w0.append_array(part[7])
+		carried.append_array(part[8])
+		net.append_array(part[9])
+		ring.append_array(part[10])
+		drift.append_array(part[11])
 	carried_flux = 0.0
 	for s in ns:
-		var c := chosen[s]
-		var i := c % f.nx
-		var j := c / f.nx
-		var hc := hcs[c]
-		var p := Vector2(f.x0 + (i + 0.5) * f.dx, -(f.y0 + (j + 0.5) * f.dx))
-		if picked.has(c):
-			p = picked[c]
-		var y := hc
-		if height_fn.is_valid():
-			y = float(height_fn.call(p.x, p.y))
-		pos[s] = Vector3(p.x, y, p.y)
-		top[s] = c_top[c]
-		var d_top := maxf(minf(c_top[c], cb) - hc, ZI_MIN)
-		depth[s] = d_top
-		wstar[s] = WindField.deardorff_wstar(hsum[s] / maxf(a_i[s], 1.0), z_i, hc)
-		flux[s] = m_i[s]
-		area[s] = a_i[s]
-		radius[s] = allen_r2(1.0, c_zl[c])
-		var kbar := CORE_FLUX * PI * radius[s] * radius[s] * _shape_mean(d_top, cfg) * life_mean
-		w0[s] = K_ALLEN * wstar[s]
-		carried[s] = w0[s] * kbar
 		carried_flux += carried[s]
-		# Чистый поток пузыря — организованная доля того, что несут ядра; подсеточная доля
-		# возвращается кольцом у самого пузыря: ρ = (1 − O/M)·e⁻¹/|кольцо|.
-		var org := clampf(o_i[s] / maxf(m_i[s], 1.0e-9), 0.0, 1.0)
-		net[s] = carried[s] * org
-		ring[s] = (1.0 - org) * CORE_FLUX / ring_int
-		# снос: средний ветер столба источника от земли до потолка
-		var k1 := k1s[c]
-		var su := 0.0
-		var sv := 0.0
-		var n := 0
-		for k in range(k1, f.nz):
-			var zk := f.z_bot + (k + 0.5) * f.dz
-			if zk > hc + d_top:
-				break
-			var ix := (k * nxy + c) * 3
-			su += vel[ix]
-			sv += vel[ix + 1]
-			n += 1
-		drift[s] = Vector2(su / n, -sv / n) if n > 0 else Vector2.ZERO
 	# --- по столбцам водосбора: поток ядер и чистый поток / A_i (по ξ — профилем q)
 	_u_scale.resize(n_col)
 	_u_scale.fill(0.0)
@@ -508,6 +419,367 @@ func build(f: WindField, cfg: Dictionary, forced := PackedByteArray()) -> bool:
 			_buckets[bk] = PackedInt32Array()
 		_buckets[bk].append(s)
 	return true
+
+
+# ------------------------------------------------- сборка полосами (FL-15, WorkerThreadPool)
+
+
+## Полосы на n единиц работы: bands > 0 — столько (1 — последовательно в своём потоке, старый
+## путь); 0 — по числу ядер, если пул больше одного потока.
+func _band_count(n: int) -> int:
+	var nb := bands
+	if nb <= 0:
+		var mt := int(ProjectSettings.get_setting("threading/worker_pool/max_threads", -1))
+		var cores := OS.get_processor_count()
+		# по полосе на ядро: больше — потоки толкаются на общем замке объектов движка (точки
+		# источников зовут рельеф) и медленнее
+		nb = 1 if mt == 1 or cores <= 1 else cores
+	return clampi(nb, 1, maxi(n, 1))
+
+
+## fn(lo, hi) по полосам [lo, hi) из n — в WorkerThreadPool (из рабочего потока — вложенная
+## группа, как AirBakedField.load_file); результаты — по порядку полос. fn только читает общие
+## данные и пишет в свои массивы: итог тот же, что последовательный обход.
+func _run_bands(n: int, fn: Callable) -> Array:
+	var nb := _band_count(n)
+	var out := []
+	out.resize(nb)
+	if nb == 1:
+		out[0] = fn.call(0, n)
+		return out
+	var gid := WorkerThreadPool.add_group_task(
+		func(b: int) -> void: out[b] = fn.call(n * b / nb, n * (b + 1) / nb),
+		nb,
+		-1,
+		true,
+		"AirThermals.build"
+	)
+	WorkerThreadPool.wait_for_group_task_completion(gid)
+	return out
+
+
+## = WindField.deardorff_wstar (те же выражения) — без обращения к классу из потоков.
+static func _wstar(heat_wm2: float, z_i: float, hc: float) -> float:
+	if heat_wm2 <= 0.0 or not is_finite(z_i):
+		return 0.0
+	return pow(
+		WindField.G / WindField.THETA0 * heat_wm2 / WindField.RHO_CP * maxf(z_i - hc, WindField.ZI_MIN),
+		1.0 / 3.0
+	)
+
+
+## Столбцы строк [lo, hi): [w*, W̄, F̄, Φ, потолок, z_l, радиус исключения, n_A, K̄, кандидаты].
+func _cols_band(
+	lo: int,
+	hi: int,
+	f: WindField,
+	cfg: Dictionary,
+	heat: PackedFloat32Array,
+	k1s: PackedInt32Array,
+	hcs: PackedFloat32Array,
+	z_i: float,
+	ustar: float,
+	cb: float,
+	cut: float,
+	tbar: PackedFloat32Array,
+	wconv: PackedFloat32Array,
+	theta: PackedFloat32Array
+) -> Array:
+	# поля уровня — в локальные: обращение к чужому объекту из потоков упирается в общий замок
+	# ObjectDB движка (16 потоков медленнее одного)
+	var nx := f.nx
+	var ny := f.ny
+	var nz := f.nz
+	var dx := f.dx
+	var dz := f.dz
+	var x0 := f.x0
+	var y0 := f.y0
+	var z_bot := f.z_bot
+	var e_cells := f.edge_cells
+	var e_inv_dx := f._inv_dx
+	var e_inv_dz := f._inv_dz
+	var e_z_top := f._z_top
+	var nxy := nx * ny
+	var nb := (hi - lo) * nx
+	var c0 := lo * nx
+	var c_ws := PackedFloat32Array()
+	var b_w := PackedFloat32Array()
+	var b_f := PackedFloat32Array()
+	var b_phi := PackedFloat32Array()
+	var c_top := PackedFloat32Array()
+	var c_zl := PackedFloat32Array()
+	var cand_r := PackedFloat32Array()
+	var c_na := PackedFloat32Array()
+	var c_k := PackedFloat32Array()
+	# (Packed-массивы — значения: в цикле по списку resize ушёл бы копии)
+	var zero := PackedFloat32Array()
+	zero.resize(nb)
+	zero.fill(0.0)
+	c_ws = zero.duplicate()
+	b_w = zero.duplicate()
+	b_f = zero.duplicate()
+	b_phi = zero.duplicate()
+	c_top = zero.duplicate()
+	cand_r = zero.duplicate()
+	c_na = zero.duplicate()
+	c_k = zero.duplicate()
+	c_zl.resize(nb)
+	c_zl.fill(ZI_MIN)
+	var cand := PackedInt32Array()
+	for j in range(lo, hi):
+		for i in nx:
+			var c := j * nx + i
+			var l := c - c0
+			var k1 := k1s[c]
+			if k1 >= nz or is_nan(z_i):
+				continue
+			var hc := hcs[c]
+			var hk := heat[c] / RHO_CP
+			var h := maxf(z_i - hc, ZI_MIN)
+			var ws := _wstar(heat[c], z_i, hc)
+			var wm := pow(ustar * ustar * ustar + 0.28 * ws * ws * ws, 1.0 / 3.0)
+			c_ws[l] = ws
+			# F̄: средний по слою 0..h поток массы подсеточной конвекции, w_m/(2b)
+			var fbar := wm / (2.0 * HB_B) if hk > 0.0 else 0.0
+			# W̄: средний w_conv по воздушным клеткам столбца в слое 0..h
+			var sw := 0.0
+			var nw := 0
+			for k in range(k1, nz):
+				var zk := z_bot + (k + 0.5) * dz
+				if zk - hc > h:
+					break
+				sw += wconv[k * nxy + c]
+				nw += 1
+			var wbar := sw / nw if nw > 0 else 0.0
+			b_w[l] = wbar
+			b_f[l] = fbar
+			b_phi[l] = fbar + maxf(wbar, 0.0)
+			# Потолок частицы: θ_p = θ′(k1) + Δθ; выше — θ̄ + θ′ поля.
+			var t_top := z_bot + nz * dz
+			if hk > 0.0:
+				var ex := HB_B * hk / maxf(wm, 1.0e-3)
+				var tp := tbar[k1] + theta[k1 * nxy + c] + ex
+				var prev := tbar[k1] + theta[k1 * nxy + c]
+				for k in range(k1 + 1, nz):
+					var te := tbar[k] + theta[k * nxy + c]
+					if te >= tp:
+						var fr := (tp - prev) / maxf(te - prev, 1.0e-6)
+						t_top = z_bot + (k - 0.5 + clampf(fr, 0.0, 1.0)) * dz
+						break
+					prev = te
+			else:
+				t_top = hc
+			c_top[l] = t_top
+			var d_top := minf(t_top, cb) - hc
+			var zl := maxf(t_top - hc, ZI_MIN)
+			c_zl[l] = zl
+			var rc := allen_r2(1.0, zl)
+			cand_r[l] = cut * rc
+			if hk > 0.0 and b_phi[l] > 0.0:
+				c_na[l] = allen_density(zl)
+				c_k[l] = CORE_FLUX * PI * rc * rc * _shape_mean(maxf(d_top, ZI_MIN), cfg) * life_mean
+			# Кандидат: греется (H > 0), поток есть, столб частицы ≥ ZI_MIN, внутри поля
+			if hk <= 0.0 or b_phi[l] <= 0.0 or d_top < ZI_MIN:
+				continue
+			var ctr := Vector3(x0 + (i + 0.5) * dx, hc + 10.0, -(y0 + (j + 0.5) * dx))
+			# = WindField.edge_weight(ctr) < 0.5 (те же выражения)
+			var gx := (ctr.x - x0) * e_inv_dx
+			var gy := (-ctr.z - y0) * e_inv_dx
+			var ed := minf(minf(gx, nx - gx), minf(gy, ny - gy))
+			ed = minf(ed, (e_z_top - ctr.y) * e_inv_dz)
+			var ew := 1.0
+			if ed <= 0.0:
+				ew = 0.0
+			elif ed < e_cells:
+				ew = smoothstep(0.0, e_cells, ed)
+			if ew < 0.5:
+				continue
+			cand.append(c)
+	return [c_ws, b_w, b_f, b_phi, c_top, c_zl, cand_r, c_na, c_k, cand]
+
+
+## Точки источников chosen[lo..hi) (pick_fn детерминирован по столбцу).
+func _pick_band(
+	lo: int, hi: int, chosen: PackedInt32Array, nx: int, pick_fn: Callable
+) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	out.resize(hi - lo)
+	for s in range(lo, hi):
+		var c := chosen[s]
+		out[s - lo] = pick_fn.call(c % nx, c / nx)
+	return out
+
+
+## Водосборы столбцов [lo, hi): ближайший источник в досягаемости (равные — меньший номер), −1 — ничей.
+func _owner_band(
+	lo: int,
+	hi: int,
+	nx: int,
+	nz: int,
+	dx: float,
+	k1s: PackedInt32Array,
+	chosen: PackedInt32Array,
+	reach: PackedFloat32Array,
+	s_start: PackedInt32Array,
+	s_list: PackedInt32Array,
+	nbx: int,
+	nby: int,
+	ring_max: int
+) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	out.resize(hi - lo)
+	out.fill(-1)
+	for c in range(lo, hi):
+		if k1s[c] >= nz:
+			continue
+		var ci := c % nx
+		var cj := c / nx
+		var bi := ci / _B
+		var bj := cj / _B
+		var best := -1
+		var bd := INF
+		for ring_n in ring_max + 1:
+			# после кольца ring_n всё ближе ring_n·B·dx уже просмотрено
+			if best >= 0 and bd <= pow(maxf(ring_n - 1, 0) * _B * dx, 2.0):
+				break
+			for dj in range(-ring_n, ring_n + 1):
+				var jj := bj + dj
+				if jj < 0 or jj >= nby:
+					continue
+				for di in range(-ring_n, ring_n + 1):
+					if maxi(absi(di), absi(dj)) != ring_n:
+						continue
+					var ii := bi + di
+					if ii < 0 or ii >= nbx:
+						continue
+					var kb := jj * nbx + ii
+					for q in range(s_start[kb], s_start[kb + 1]):
+						var s2 := s_list[q]
+						var sc := chosen[s2]
+						var ddx := float(sc % nx - ci) * dx
+						var ddy := float(sc / nx - cj) * dx
+						var d2 := ddx * ddx + ddy * ddy
+						if d2 <= reach[s2] * reach[s2] and (d2 < bd or (d2 == bd and s2 < best)):
+							bd = d2
+							best = s2
+		out[c - lo] = best
+	return out
+
+
+## Параметры источников [lo, hi): [pos, top, depth, w*, M, A, радиус, w0, несут, чистый, кольцо, снос].
+func _src_band(
+	lo: int,
+	hi: int,
+	f: WindField,
+	cfg: Dictionary,
+	chosen: PackedInt32Array,
+	picked: Dictionary,
+	hcs: PackedFloat32Array,
+	k1s: PackedInt32Array,
+	c_top: PackedFloat32Array,
+	c_zl: PackedFloat32Array,
+	cb: float,
+	z_i: float,
+	hsum: PackedFloat64Array,
+	m_i: PackedFloat64Array,
+	o_i: PackedFloat64Array,
+	a_i: PackedFloat64Array,
+	vel: PackedFloat32Array,
+	ring_int: float
+) -> Array:
+	var nx := f.nx
+	var nz := f.nz
+	var dx := f.dx
+	var dz := f.dz
+	var x0 := f.x0
+	var y0 := f.y0
+	var z_bot := f.z_bot
+	var nxy := nx * f.ny
+	var nb := hi - lo
+	var b_pos := PackedVector3Array()
+	b_pos.resize(nb)
+	var b_drift := PackedVector2Array()
+	b_drift.resize(nb)
+	var b_top := PackedFloat32Array()
+	var b_depth := PackedFloat32Array()
+	var b_wstar := PackedFloat32Array()
+	var b_flux := PackedFloat32Array()
+	var b_area := PackedFloat32Array()
+	var b_radius := PackedFloat32Array()
+	var b_w0 := PackedFloat32Array()
+	var b_carried := PackedFloat32Array()
+	var b_net := PackedFloat32Array()
+	var b_ring := PackedFloat32Array()
+	var zero := PackedFloat32Array()
+	zero.resize(nb)
+	zero.fill(0.0)
+	b_top = zero.duplicate()
+	b_depth = zero.duplicate()
+	b_wstar = zero.duplicate()
+	b_flux = zero.duplicate()
+	b_area = zero.duplicate()
+	b_radius = zero.duplicate()
+	b_w0 = zero.duplicate()
+	b_carried = zero.duplicate()
+	b_net = zero.duplicate()
+	b_ring = zero.duplicate()
+	var height_fn: Callable = cfg.get("height_fn", Callable())
+	for s in range(lo, hi):
+		var l := s - lo
+		var c := chosen[s]
+		var i := c % nx
+		var j := c / nx
+		var hc := hcs[c]
+		var p := Vector2(x0 + (i + 0.5) * dx, -(y0 + (j + 0.5) * dx))
+		if picked.has(c):
+			p = picked[c]
+		var y := hc
+		if height_fn.is_valid():
+			y = float(height_fn.call(p.x, p.y))
+		b_pos[l] = Vector3(p.x, y, p.y)
+		b_top[l] = c_top[c]
+		var d_top := maxf(minf(c_top[c], cb) - hc, ZI_MIN)
+		b_depth[l] = d_top
+		b_wstar[l] = _wstar(hsum[s] / maxf(a_i[s], 1.0), z_i, hc)
+		b_flux[l] = m_i[s]
+		b_area[l] = a_i[s]
+		b_radius[l] = allen_r2(1.0, c_zl[c])
+		var kbar := CORE_FLUX * PI * b_radius[l] * b_radius[l] * _shape_mean(d_top, cfg) * life_mean
+		b_w0[l] = K_ALLEN * b_wstar[l]
+		b_carried[l] = b_w0[l] * kbar
+		# Чистый поток пузыря — организованная доля того, что несут ядра; подсеточная доля
+		# возвращается кольцом у самого пузыря: ρ = (1 − O/M)·e⁻¹/|кольцо|.
+		var org := clampf(o_i[s] / maxf(m_i[s], 1.0e-9), 0.0, 1.0)
+		b_net[l] = b_carried[l] * org
+		b_ring[l] = (1.0 - org) * CORE_FLUX / ring_int
+		# снос: средний ветер столба источника от земли до потолка
+		var k1 := k1s[c]
+		var su := 0.0
+		var sv := 0.0
+		var n := 0
+		for k in range(k1, nz):
+			var zk := z_bot + (k + 0.5) * dz
+			if zk > hc + d_top:
+				break
+			var ix := (k * nxy + c) * 3
+			su += vel[ix]
+			sv += vel[ix + 1]
+			n += 1
+		b_drift[l] = Vector2(su / n, -sv / n) if n > 0 else Vector2.ZERO
+	return [
+		b_pos,
+		b_top,
+		b_depth,
+		b_wstar,
+		b_flux,
+		b_area,
+		b_radius,
+		b_w0,
+		b_carried,
+		b_net,
+		b_ring,
+		b_drift
+	]
 
 
 ## Термик источника s (ThermalField): точка, потолок min(частица, кромка cb), сила, кольцо, радиус
@@ -580,13 +852,21 @@ static func pick_in_column(
 ) -> Vector2:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(Vector3i(seed_value, i, j))
-	var best := Vector2(f.x0 + (i + 0.5) * f.dx, -(f.y0 + (j + 0.5) * f.dx))
+	# поля — в локальные (зовётся из потоков сборки: обращения к объектам — общий замок движка)
+	var x0 := f.x0
+	var y0 := f.y0
+	var dx := f.dx
+	var best := Vector2(x0 + (i + 0.5) * dx, -(y0 + (j + 0.5) * dx))
 	var best_s := -1.0
 	var has_g := ground != null and ground.has_ground
+	var sun_fn: Callable = ground.sun_fn if has_g else Callable()
 	for k in candidates:
-		var x := f.x0 + (i + rng.randf_range(0.1, 0.9)) * f.dx
-		var z := -(f.y0 + (j + rng.randf_range(0.1, 0.9)) * f.dx)
-		var s := ground.sun(x, z) if has_g else 0.0
+		var x := x0 + (i + rng.randf_range(0.1, 0.9)) * dx
+		var z := -(y0 + (j + rng.randf_range(0.1, 0.9)) * dx)
+		# = ground.sun(x, z)
+		var s := 0.0
+		if has_g:
+			s = clampf(float(sun_fn.call(x, z)), 0.0, 1.0) if sun_fn.is_valid() else 1.0
 		if s > best_s:
 			best_s = s
 			best = Vector2(x, z)
