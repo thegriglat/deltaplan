@@ -244,3 +244,5 @@
 {"t": "2026-10-17T18:53:20", "by": "executor", "task": "FL-21", "ev": "reported", "commits": ["c8589c0c"], "note": "done: Полный headless-прогон на модуле и на main: модуль 1956 тестов/10 упало, main 1923/7 упало. 6 общих падений, 4 только в…", "dp_feedback": "job start: --lock до подкоманды (не после) неочевидно; tail --pid не ждёт чужой PID после потери агента; первый прогон через check.sh оборвался молча."}
 {"t": "2026-10-17T18:53:30", "by": "coordinator", "task": "FL-21", "ev": "checked", "note": "1/1 report=ok:ok; scope=FAIL:вне scope: r-FL-21.json"}
 {"t": "2026-10-17T18:53:35", "by": "coordinator", "task": "FL-21", "ev": "accepted", "note": "по отчёту; scope FAIL только r-FL-21.json"}
+{"t": "2026-10-17T18:53:36", "by": "coordinator", "task": "FL-21", "ev": "accepted", "commits": ["83121219"], "note": "1/1 report=ok:ok"}
+{"t": "2026-10-17T18:53:36", "by": "coordinator", "task": "FL-21", "ev": "merged"}
