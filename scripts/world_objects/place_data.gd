@@ -79,6 +79,7 @@ static func start_for_terrain(t: Terrain) -> Job:
 	var inp := _inputs(t.location_id)
 	var ls: Array[HeightLayer] = t.layers.duplicate()
 	var bp := BuiltPatches.for_terrain(t)
+	bp.ensure_loaded()  # растр долей — здесь: экземпляр общий (мета Terrain), в потоке только читается
 	# низкий приоритет: OsmData.load_for внутри ждёт свои группы пула (высокого приоритета) — им остаются потоки
 	job.task = WorkerThreadPool.add_task(
 		func() -> void: job.result = _assemble(inp, ls, bp), false, "PlaceData"

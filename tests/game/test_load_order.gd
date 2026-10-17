@@ -3,10 +3,13 @@ extends TestCase
 ## Прежний порядок (объекты → выбор старта → снимок поверхности для поля) и новый (выбор старта → снимок
 ## поверхности → объекты, общие данные места и маска просек — в рабочих потоках) на Онгудае со стартом с карты
 ## в лесу (пустырь у старта меняет карту поверхности): тот же старт, тот же снимок поверхности, тот же ключ кеша
-## поля (AirFieldCache.name_of), та же маска просек и те же объекты.
+## поля (AirFieldCache.name_of), та же маска просек и те же объекты (перепись узлов, преобразований, экземпляров
+## MultiMesh и препятствий), план домов и препятствия у старта для ботов.
 ## godot --headless --path . res://tests/run_tests.tscn -- --filter=load_order
 
 const ID := "ongudai"
+## Перепись поддерева (хеш преобразований, буферов MultiMesh, мешей) и препятствий — как в тесте FL-6.
+const Census := preload("res://tests/world_objects/test_osm_threaded.gd")
 ## Условия поля (как AirRuntime.conditions_of по умолчанию автостарта: 12:00, 3 м/с, ясно, 26 °C).
 const COND := {hour = 12.0, u10 = 3.0, wdir = 270.0, t_max = 26.0, sky = "clear", wind_ref = "start"}
 
@@ -78,13 +81,16 @@ func _run(new_order: bool) -> Dictionary:
 		await wl.link_async(t, air, pilot)  # объекты — после, порциями; данные места и маска — в потоках
 	var mask: Image = t._clearings[0] if t._clearings.size() > 0 else null
 	out["mask"] = hash(mask.get_data()) if mask != null else 0
-	var names := PackedStringArray()
+	var world := {}
 	if wl.objects != null:
 		for ch in wl.objects.get_children():
-			names.append(String(ch.name))
-		names.sort()
-		out["houses"] = (wl.objects.get(&"houses") as Array).size()
-	out["objects"] = names
+			world[String(ch.name)] = Census.census(ch)
+		world["obstacles"] = Census.obstacle_census(wl.objects.get(&"obstacles"))
+		out["houses"] = hash(wl.objects.get(&"houses"))
+	out["objects"] = JSON.stringify(world, "", true)
+	# камни, кусты и деревья у старта — препятствия мест ожидания ботов (BotPilots.start_obstacles)
+	out["bot_obstacles"] = hash(BotPilots.obstacles_near(t, Vector2(start.x, start.z), 110.0))
+	out["place_plan"] = hash(PlaceData.for_terrain(t).house_plan)
 	ar.free()
 	wl.queue_free()
 	air.free()
@@ -106,5 +112,7 @@ func test_same_start_key_and_world() -> void:
 	check(not old.key_empty, "ключ кеша есть (данные места на диске)")
 	check(old.key == now.key, "тот же ключ кеша поля: %s / %s" % [old.key, now.key])
 	check(old.mask != 0 and old.mask == now.mask, "та же маска просек")
-	check(old.objects == now.objects, "те же объекты: %s / %s" % [old.objects, now.objects])
-	check(old.get("houses", -1) == now.get("houses", -2), "те же дома: %s / %s" % [old.get("houses"), now.get("houses")])
+	check(old.objects.length() > 100 and old.objects == now.objects, "те же объекты (узлы, преобразования, экземпляры, препятствия): %s / %s" % [old.objects, now.objects])
+	check(old.get("houses", -1) == now.get("houses", -2), "те же дома (позиции, размеры, высоты)")
+	check(old.place_plan == now.place_plan, "тот же план домов")
+	check(old.bot_obstacles == now.bot_obstacles, "те же препятствия у старта для ботов")
