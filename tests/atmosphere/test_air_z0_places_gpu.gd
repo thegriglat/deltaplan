@@ -63,6 +63,7 @@ func test_places_z0() -> void:
 		if sf == null:
 			t.free()
 			continue
+		sf.wait()  # снимок считается задачей пула (FL-9)
 		var hour := float(settings.start_hour)
 		var site0: Dictionary = loc.start_sites[0]
 		var wdir := float(site0.heading_deg)

@@ -13,7 +13,7 @@ extends Node3D
 ##                      файлы <файл>_0.png … (проверка бегущих волн ветра по траве)
 ##   --bench            пролёт камеры вдоль курса, вывод FPS и выход
 ##   --bench-static=N   N кадров неподвижно, печать JSON {gpu_ms_mean, gpu_ms_p95, n} и выход (T01)
-##   --clearings        построить и применить маску просек (WorldClearings.build_for) для location
+##   --clearings        построить и применить маску просек (WorldClearings.build_from, PlaceData) для location
 ##   --no-trees, --no-shadows, --no-grass  отключить деревья / тени / траву (замер цены)
 ##   --wind=<км/ч>,<откуда°>  ветер для колыхания травы; --thermal=x,z,радиус,м/с — термик
 ##   --gusts[=<м/с>]    фейковая порывистость воздуха (air_fn, T05) — амплитуда пятен то растёт,
@@ -72,7 +72,7 @@ func _ready() -> void:
 	_setup_wind()
 	terrain.set_pilot(cam)
 	if _args.has("clearings") and terrain.location_id != "":
-		var c := WorldClearings.build_for(terrain.location_id)
+		var c := WorldClearings.build_from(PlaceData.for_terrain(terrain))
 		if c != null:
 			terrain.set_clearings(c.image, c.origin, c.cell_m)
 	RockScatter.attach(terrain, cam)

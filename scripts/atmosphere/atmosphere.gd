@@ -75,6 +75,8 @@ var _ra_stage := 0
 var _ra_t := 0.0
 var _ra_focus := Vector3.ZERO
 var _ra_finish_us := 3000
+## Первое обновление на экране загрузки (FL-5): 0 — нет, 1 — ждём источники поля, 2 — порции.
+var _ld_stage := 0
 ## Обновления — по сетке времени атмосферы (номер интервала), а не по накопленному dt: набор
 ## термиков в момент t не зависит от шага и от того, с какого момента атмосферу начали.
 var _refresh_slot: int = -(1 << 62)
@@ -362,6 +364,7 @@ func start_at(t: float) -> void:
 func refresh_now() -> void:
 	field.abort_refresh()
 	_ra_pending = false
+	_ld_stage = 0
 	_refresh_begin(false)
 	field.step_refresh(-1)
 	_refresh_finish()
@@ -369,6 +372,11 @@ func refresh_now() -> void:
 
 ## Общее начало обновления (синхронного и порциями): фокус, интервалы, ход дня.
 func _refresh_begin(chunked: bool) -> void:
+	_refresh_prepare()
+	field.begin_refresh(time_s, _focus, _refresh_dt(), chunked)
+
+
+func _refresh_prepare() -> void:
 	_update_focus()
 	_refresh_slot = floori(time_s / _refresh_dt())
 	_state_slot = floori(time_s / _state_interval)
@@ -378,7 +386,43 @@ func _refresh_begin(chunked: bool) -> void:
 		_apply_day(_state_slot * _state_interval)
 	_ra_t = time_s
 	_ra_focus = _focus
-	field.begin_refresh(time_s, _focus, _refresh_dt(), chunked)
+
+
+## Загрузка места (FL-5): поле воздуха подано — начать сборку источников термиков сейчас, в
+## рабочем потоке (PF-К4), не дожидаясь первого обновления.
+func prefetch_air_sources() -> void:
+	_refresh_prepare()  # погода и солнце на время старта — входы сборки (сверяются потом)
+	field.air_prefetch()
+
+
+## Первое обновление на экране загрузки (FL-5) вместо refresh_now(): тот же итог на текущий
+## time_s, но без замирания — сборку источников ждёт опросом, термики и сетку поиска считает
+## порциями load_refresh_step(бюджет) и подменяет целиком по готовности (PF-8).
+func begin_load_refresh() -> void:
+	field.abort_refresh()
+	_ra_pending = false
+	_ra_stage = 0
+	_refresh_prepare()
+	_ld_stage = 1
+
+
+## Порция первого обновления не дольше budget_us мкс (плюс неделимый конец: бури и физика
+## облаков — десятки мс). true — готово (или не начиналось).
+func load_refresh_step(budget_us: int) -> bool:
+	if _ld_stage == 1:
+		if field.air_prefetch():
+			return false  # источники поля ещё собираются
+		field.begin_refresh(_ra_t, _ra_focus, _refresh_dt(), true)
+		_ld_stage = 2
+	if _ld_stage == 2:
+		if not field.refresh_pending():
+			# поле само бросило порцию (подмена источников): начать заново
+			field.begin_refresh(_ra_t, _ra_focus, _refresh_dt(), true)
+		if not field.step_refresh(budget_us):
+			return false
+		_refresh_finish()
+		_ld_stage = 0
+	return true
 
 
 func _refresh_finish() -> void:

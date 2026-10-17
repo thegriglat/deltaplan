@@ -35,11 +35,13 @@ func setup(layer: HeightLayer, surface: SurfaceLayer, cfg: Dictionary) -> bool:
 	for k in TreePlacer.SPECIES.size():
 		var sp := TreePlacer.SPECIES[k]
 		var cache := {}
+		# сцена породы — один load+instantiate на все варианты (было: на каждый вариант)
+		var variants_lods := _load_species(String(models.get(sp, "")), nv)
+		if variants_lods.is_empty():
+			push_warning("TerrainTreeModels: нет модели %s — процедурные деревья" % sp)
+			return false
 		for v in nv:
-			var lods := _load_lods(String(models.get(sp, "")), v)
-			if lods.is_empty():
-				push_warning("TerrainTreeModels: нет модели %s — процедурные деревья" % sp)
-				return false
+			var lods: Array[Mesh] = variants_lods[v]
 			var mh := lods[0].get_aabb().end.y
 			placer.model_height[k * nv + v] = mh
 			for lod in 3:
@@ -224,25 +226,81 @@ static func backlight_for(cfg: Dictionary, species: String) -> float:
 	return clampf(float(bl.get(species, bl.get("default", 0.0))), 0.0, 1.0)
 
 
-## Меши LOD0, LOD1, LOD2 варианта variant из .glb (ноды V{n}_LOD{k}; материалы — как в модели).
-## Нет такого варианта — вариант по модулю числа имеющихся (V0 есть всегда).
-static func _load_lods(path: String, variant: int = 0) -> Array[Mesh]:
-	var out: Array[Mesh] = []
+## Пути .glb, запрошенные в фоне и ещё не забранные (_scene): один запрос на путь (FL-16).
+static var _requested := {}
+
+
+## Фоновая загрузка .glb пород заранее (FL-7): ResourceLoader.load_threaded_request по путям
+## trees.models; _scene() в setup() дождётся готового. Нет файла — молча пропускается.
+## Без окна (--headless: тесты, инструменты) — не грузит в фоне: у пустого рендера (RasterizerDummy)
+## хранилища RID мешей/текстур/материалов не потокобезопасны, и сборка мешей сцены в потоке загрузчика
+## одновременно с главным потоком портит их (FL-16: «Attempting to initialize the wrong RID», signal 11).
+## У настоящих рендеров (RD, GLES3) эти хранилища потокобезопасны.
+static func request_preload(models: Dictionary) -> void:
+	if not threaded_load_safe():
+		return
+	for sp in models:
+		var path := String(models[sp])
+		if path == "" or _requested.has(path) or not ResourceLoader.exists(path):
+			continue
+		if ResourceLoader.load_threaded_request(path) == OK:
+			_requested[path] = true
+
+
+## Можно ли грузить сцены в фоновом потоке: нельзя при пустом рендере (headless).
+static func threaded_load_safe() -> bool:
+	return DisplayServer.get_name() != "headless"
+
+
+## Сцена породы: забрать фоновую загрузку (главный поток), если была запрошена, иначе load().
+static func _scene(path: String) -> PackedScene:
+	if _requested.has(path):
+		_requested.erase(path)
+		var r := ResourceLoader.load_threaded_get(path) as PackedScene
+		if r != null:
+			return r
+	return load(path) as PackedScene
+
+
+## Меши всех nv вариантов породы из одной сборки сцены: [вариант] → [LOD0, LOD1, LOD2].
+## Варианта нет в модели — по модулю числа имеющихся. Пусто — нет модели / нет LOD.
+static func _load_species(path: String, nv: int) -> Array[Array]:
+	var out: Array[Array] = []
 	if path == "" or not ResourceLoader.exists(path):
 		return out
-	var ps := load(path) as PackedScene
+	var ps := _scene(path)
 	if ps == null:
 		return out
 	var root := ps.instantiate()
 	var n := 0
 	while root.find_child("V%d_LOD0" % n, true, false) != null:
 		n += 1
-	var pre := "V%d_" % (variant % maxi(n, 1))
-	for lod_name in ["LOD0", "LOD1", "LOD2"]:
-		var mi := root.find_child(pre + lod_name, true, false) as MeshInstance3D
-		if mi == null or mi.mesh == null:
+	var by_var := {}
+	for v in nv:
+		var vi := v % maxi(n, 1)
+		if not by_var.has(vi):
+			var lods: Array[Mesh] = []
+			for lod_name in ["LOD0", "LOD1", "LOD2"]:
+				var mi := root.find_child("V%d_%s" % [vi, lod_name], true, false) as MeshInstance3D
+				if mi == null or mi.mesh == null:
+					lods.clear()
+					break
+				lods.append(mi.mesh)
+			by_var[vi] = lods
+		var l: Array[Mesh] = by_var[vi]
+		if l.is_empty():
 			out.clear()
 			break
-		out.append(mi.mesh)
+		out.append(l)
 	root.free()
+	return out
+
+
+## Меши LOD0, LOD1, LOD2 варианта variant из .glb (ноды V{n}_LOD{k}; материалы — как в модели).
+## Нет такого варианта — вариант по модулю числа имеющихся (V0 есть всегда).
+static func _load_lods(path: String, variant: int = 0) -> Array[Mesh]:
+	var all := _load_species(path, variant + 1)
+	var out: Array[Mesh] = []
+	if not all.is_empty():
+		out.assign(all[variant])
 	return out

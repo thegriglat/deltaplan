@@ -43,7 +43,9 @@ static func path_of(loc_id: String, site_id: String, root: String = "") -> Strin
 ## Записать набор: путь — к .json (рядом .bin). header: {location, site, key, model_hash} (остальное
 ## — формат добавляет сам). Тело пишется первым, заголовок — последним (есть заголовок — файл
 ## целый); оба — во временный файл и переименование. true — записано.
-static func save(fs: AirFieldSet, header: Dictionary, path: String) -> bool:
+## lossless — без потерь (кеш поля, FL-К1 v2): 3D-каналы float32, числа meta — полной точности JSON;
+## формат тот же (дтип — по массиву). По умолчанию — запечённое TI-К3: каналы float16.
+static func save(fs: AirFieldSet, header: Dictionary, path: String, lossless := false) -> bool:
 	var base := path.trim_suffix(".json").trim_suffix(".bin")
 	var body := PackedByteArray()
 	var levels: Array = []
@@ -60,7 +62,7 @@ static func save(fs: AirFieldSet, header: Dictionary, path: String) -> bool:
 			else:
 				meta[key] = _json_safe(v)
 		for name in CHANNELS_3D:
-			_append(body, arrays, name, _channel(f, name), "f16")
+			_append(body, arrays, name, _channel(f, name), "f32" if lossless else "f16")
 		_append(body, arrays, "hc", f._hc, "f32")
 		for name: String in packed:
 			_append(body, arrays, name, packed[name], "f32")
@@ -85,7 +87,7 @@ static func save(fs: AirFieldSet, header: Dictionary, path: String) -> bool:
 	DirAccess.make_dir_recursive_absolute(base.get_base_dir())
 	if not _write_atomic(base + ".bin", packed_body):
 		return false
-	return _write_atomic(base + ".json", JSON.stringify(out, "\t", true).to_utf8_buffer())
+	return _write_atomic(base + ".json", JSON.stringify(out, "\t", true, lossless).to_utf8_buffer())
 
 
 static func _write_atomic(path: String, data: PackedByteArray) -> bool:
@@ -189,11 +191,20 @@ static func load_file(path: String, key: Variant = null) -> AirFieldSet:
 	if body.size() != raw_n or raw_n <= 0:
 		push_warning("AirBakedField: %s.bin не распаковался" % base)
 		return null
+	# уровни собираются параллельно (WindField.from_arrays — столбцы и пограничный слой, сотни мс на
+	# уровень): чтение из кеша/файла за ~1 с, а не за сумму уровней (FL-2)
+	var lvs: Array = h.get("levels", [])
+	var built: Array = []
+	built.resize(lvs.size())
+	if lvs.size() > 1:
+		PoolFor.run(func(i: int) -> void: built[i] = _level(lvs[i], body), lvs.size(), "AirBakedField.levels")
+	elif lvs.size() == 1:
+		built[0] = _level(lvs[0], body)
 	var levels: Array[WindField] = []
-	for lv: Dictionary in h.get("levels", []):
-		var f := _level(lv, body)
+	for i in lvs.size():
+		var f: WindField = built[i]
 		if f == null:
-			push_warning("AirBakedField: %s — уровень %s не собрался" % [base, lv.get("name", "?")])
+			push_warning("AirBakedField: %s — уровень %s не собрался" % [base, lvs[i].get("name", "?")])
 			return null
 		f.meta["path_baked"] = base
 		levels.append(f)

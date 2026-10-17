@@ -107,8 +107,7 @@ static func decode_files(paths: Array) -> Array:
 	var task := func(k: int) -> void:
 		var bytes := FileAccess.get_file_as_bytes(paths[k])
 		out[k] = OsmTileReader.read(bytes) if not bytes.is_empty() else {}
-	var gid := WorkerThreadPool.add_group_task(task, paths.size(), -1, true, "osm tiles decode")
-	WorkerThreadPool.wait_for_group_task_completion(gid)
+	PoolFor.run(task, paths.size(), "osm tiles decode")
 	return out
 
 
@@ -122,8 +121,7 @@ static func from_tiles_parallel(tile_dicts: Array, center_lat: float, center_lon
 	parts.resize(tile_dicts.size())
 	var task := func(k: int) -> void:
 		parts[k] = from_tiles([tile_dicts[k]], center_lat, center_lon, half_m, cfg)
-	var gid := WorkerThreadPool.add_group_task(task, tile_dicts.size(), -1, true, "osm tiles to world")
-	WorkerThreadPool.wait_for_group_task_completion(gid)
+	PoolFor.run(task, tile_dicts.size(), "osm tiles to world")
 	var o := OsmData.new()
 	for p: OsmData in parts:
 		o.roads.append_array(p.roads)

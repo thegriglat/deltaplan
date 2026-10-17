@@ -110,15 +110,7 @@ func share_at(x: float, z: float) -> float:
 	if source == "none":
 		return 0.0
 	if not _img_tried:
-		_img_tried = true
-		var img := Image.new()
-		var bytes := FileAccess.get_file_as_bytes(_dir.path_join(_built_file))
-		if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
-			img = null
-		if img != null and img.get_width() == _w and img.get_height() == _h:
-			if img.get_format() != Image.FORMAT_L8:
-				img.convert(Image.FORMAT_L8)
-			_data = img.get_data()
+		ensure_loaded()
 	if _data.is_empty():
 		return 0.0
 	var i := roundi((x - _x0) / _cell)
@@ -126,3 +118,23 @@ func share_at(x: float, z: float) -> float:
 	if i < 0 or j < 0 or i >= _w or j >= _h:
 		return 0.0
 	return _data[j * _w + i] / 255.0
+
+
+## Прочитать растр долей сейчас (share_at читает его лениво — перед рабочими потоками звать здесь).
+func ensure_loaded() -> void:
+	if _img_tried or source == "none":
+		return
+	_img_tried = true
+	var img := Image.new()
+	var bytes := FileAccess.get_file_as_bytes(_dir.path_join(_built_file))
+	if bytes.is_empty() or img.load_webp_from_buffer(bytes) != OK:
+		img = null
+	if img != null and img.get_width() == _w and img.get_height() == _h:
+		if img.get_format() != Image.FORMAT_L8:
+			img.convert(Image.FORMAT_L8)
+		_data = img.get_data()
+
+
+## Ключ данных (кеш плана домов, FL-К2): папка, сетка, пятна и растр — не экземпляр.
+func data_key() -> int:
+	return hash([_dir, source, _built_file, _x0, _z0, _cell, _w, _h, _patches, _data.size()])

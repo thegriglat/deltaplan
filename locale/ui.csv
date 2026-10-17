@@ -189,6 +189,8 @@ settings_haze_sun,Дымка к солнцу,Haze toward the sun
 settings_wind_model,Ветер над рельефом,Wind over terrain
 settings_wind_model_calc,Расчет на GPU (обтекание рельефа),GPU solver (terrain flow)
 settings_wind_model_simple,Эвристика (профиль ветра без рельефа),Heuristic (wind profile without terrain)
+settings_air_cache_mb,Кеш ветра на диске,Wind cache on disk
+unit_mb,МБ,MB
 settings_as_in_preset,Как в пресете,From preset
 recent_title,Недавние места,Recent places
 recent_rename,Переименовать,Rename

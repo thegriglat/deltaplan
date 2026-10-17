@@ -1,0 +1,84 @@
+uptime:  15:22:13 up 3 days, 15:34,  1 user,  load average: 1,33, 1,91, 2,52
+air_cache: hit
+commit: 1b087b01
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+load_probe: старт с nan, nan / ongudai
+[lpfly] START @14.613
+[load] dem          0.19 с  (к 0.19 с)
+[load] mesh         0.34 с  (к 0.53 с)
+[load] classify     0.01 с  (к 0.54 с)
+[gap] 0.00 с: 671 мс
+[load] mesh         1.03 с  (к 1.57 с)
+[gap] 0.67 с: 1023 мс
+[load] trees        0.87 с  (к 2.43 с)
+[gap] 1.69 с: 866 мс
+Terrain: место ongudai загружено за 2.98 с
+[load] grass        0.55 с  (к 2.98 с)
+[gap] 2.56 с: 548 мс
+Terrain: поля рельефа за 2.49 с
+[load] weather      0.11 с  (к 3.09 с)
+[gap] 3.11 с: 107 мс
+[gap] 3.21 с: 502 мс
+PlaceData: 'ongudai' за 0.21 с — OSM 0.15 с (домов OSM 4318), план домов 0.06 с (1199)
+[gap] 3.95 с: 165 мс
+WARNING: AirFieldCache: запись a225273dfdaa7369 — модель воздуха другой версии (хеш 1e8142f77fc07fba ≠ 4fefe579ffc22932), удалена
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] lookup (res://scripts/atmosphere/air_field_cache.gd:138)
+         [1] cache_lookup (res://scripts/atmosphere/air_model/air_runtime.gd:603)
+         [2] cache_ready (res://scripts/atmosphere/air_model/air_runtime.gd:613)
+         [3] _load_air_field (res://scripts/game/game.gd:532)
+         [4] wait_place (res://scripts/atmosphere/air_model/air_runtime.gd:303)
+[load] objects      1.43 с  (к 4.52 с)
+[gap] 4.53 с: 122 мс
+WorldObjects: снаряжение у 1 стартов — 19 вещей за 279 мс
+WorldObjects: 'ongudai' за 1.87 с — ветроуказателей 6, посадок 1, троп к стартам 1, домов 1199, OSM тайлов 9/9
+[gap] 5.49 с: 350 мс
+[gap] 5.84 с: 507 мс
+[gap] 6.35 с: 150 мс
+[gap] 8.02 с: 104 мс
+[gap] 15.08 с: 253 мс
+air_model: field (массивы; уровней 3)
+air_model: поле (фазы+Пикар) итераций [220, 180], фазы A 0.00, B 0.01, C 0.00, D 0.07, F 0.93, H 0.00 (557 мс), заморожено 0.00, ω→запас false
+air_model: поле 12:00 ч, 3.0 м/с с 151° (загрузка): 14.59 с, итераций [220, 180], тёплый старт, окна ["100 м [60, 60]", "50 м [70, 80]"]; k притока 0.861, U над стартом на 10 м 3.01 м/с (проход 1: 3.27 м/с), проходов 2 ["1.000 → 3.27 м/с за 7.3 с (область 4.7, GPU 0.71)", "0.861 → 3.01 м/с за 7.3 с (область 4.3, GPU 1.59)"]
+[load] wind        14.59 с  (к 19.11 с)
+WorldObjects: палаток у старта 5 из 5 за 188 мс
+[gap] 19.24 с: 209 мс
+air_cache: записано a225273dfdaa7369 (ok), 0.36 с
+[gap] 19.45 с: 165 мс
+[gap] 19.71 с: 167 мс
+[gap] 19.87 с: 158 мс
+[load] glider       6.07 с  (к 25.18 с)
+[load] всего 25.18 с
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=1184097437&sky=clear&temp=26.0&v=2&wind=3.0
+[lpfly] FLYING @39.916 (от нажатия 25.30 с)
+[lpfly] первый кадр полёта через 29 мс
+[gap] 25.30 с: 118 мс
+[gap] 25.42 с: 167 мс
+[gap] 25.65 с: 189 мс
+[gap] 35.44 с: 112 мс
+[lpfly] после старта 15 с: кадров 846, макс. интервал 189 мс
+load_probe: итог полёт за 40.34 с, кадров 2174
+load_probe: макс. интервал 1023 мс; >100 мс: ["1023@0.7", "865@1.7", "671@0.0", "548@2.6", "507@5.8", "502@3.2", "350@5.5", "253@15.1"]
+load_probe: этап dem          0.19 с
+load_probe: этап mesh         0.34 с
+load_probe: этап classify     0.01 с
+load_probe: этап mesh         1.03 с
+load_probe: этап trees        0.87 с
+load_probe: этап grass        0.55 с
+load_probe: этап weather      0.11 с
+load_probe: этап objects      1.43 с
+load_probe: этап wind        14.59 с
+load_probe: этап glider       6.07 с
+exit=0
+uptime_end:  15:23:08 up 3 days, 15:35,  1 user,  load average: 1,73, 1,92, 2,48

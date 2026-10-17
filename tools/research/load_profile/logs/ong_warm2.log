@@ -1,0 +1,138 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+load_probe: старт с nan, nan / ongudai
+[lpfly] START @22.374
+[lp] T.builder.build 149.9 @22.559
+[load] dem          0.15 с  (к 0.15 с)
+[lp] T.read_location 222.5 @22.782
+[lp] T.mask_tasks_wait 0.0 @22.782
+[lp] T.load_surfaces 103.8 @22.886
+[load] mesh         0.33 с  (к 0.48 с)
+[lp] T.classify_missing 0.0 @22.886
+[lp] T.refresh_sun 0.0 @22.886
+[lp] T.build_sites 0.0 @22.886
+[lp] T.set_surfaces 7.6 @22.894
+[lp] T.compute_reliefs 0.1 @22.894
+[load] classify     0.01 с  (к 0.49 с)
+[gap] 0.00 с: 524 мс
+[lp] T.renderer.build 1596.8 @24.508
+[lp] T.renderer.apply_textures 35.0 @24.544
+[load] mesh         1.65 с  (к 2.14 с)
+[gap] 0.52 с: 1646 мс
+[lp] T.trees.models.setup 1204.2 @25.860
+[lp] T.trees.impostors.setup 104.4 @25.964
+[lp] T.trees.crosses.setup 393.9 @26.358
+[lp] T.trees.set_clearings 0.0 @26.358
+[lp] T.trees.pass_forest_mask 0.1 @26.359
+[lp] T.make_trees 1702.9 @26.359
+[load] trees        1.81 с  (к 3.95 с)
+[gap] 2.17 с: 1815 мс
+[lp] T.grass.setup 550.1 @26.933
+[lp] T.make_grass 550.2 @26.933
+[lp] T.setup_wind 1.8 @26.935
+[lp] T.apply_scene_look 11.6 @26.946
+[lp] T.setup_async 4060.9 @26.946
+Terrain: место ongudai загружено за 4.54 с
+[lp] G.load_terrain 4538.2 @26.947
+[load] grass        0.59 с  (к 4.54 с)
+[gap] 3.98 с: 588 мс
+Terrain: поля рельефа за 4.12 с
+[lp] G.weather_context 0.4 @27.066
+[lp] G.derive_weather 0.2 @27.066
+[lp] G.air.set_weather 2.4 @27.068
+[lp] G.air.set_ground 0.4 @27.069
+[lp] G.sky.start_flight 0.1 @27.069
+[lp] G.terrain.set_sun 0.5 @27.069
+[lp] G.terrain.set_flight_date 2.1 @27.071
+[lp] G.heating.setup 0.2 @27.072
+[lp] G.on_sun_changed 0.9 @27.073
+[lp] G.make_day 0.6 @27.073
+[lp] G.static_thermals 0.0 @27.073
+[load] weather      0.13 с  (к 4.66 с)
+[gap] 4.57 с: 127 мс
+[lp] W.set_wind_sources 0.0 @27.163
+[lp] W.rock_scatter 44.0 @27.207
+[lp] W.shrub_scatter 321.4 @27.528
+[lp] W.clearings 1015.5 @28.544
+[lp] O.clear 0.0 @28.545
+[lp] O.starts 23.1 @28.569
+[lp] O.landings 52.4 @28.621
+[lp] O.osm.load_for 93.2 @28.715
+[lp] osm.CityGround 0.0 @28.715
+[lp] osm.Roads 378.5 @29.093
+[lp] osm.Pilot 454.2 @29.547
+[lp] osm.ChimneyPlumes 15.2 @29.563
+[lp] osm.Wind 0.0 @29.563
+[lp] osm.Cabins 1.0 @29.564
+[lp] osm.Traffic 26.1 @29.590
+[lp] osm.Buildings 152.7 @29.743
+[lp] osm.CityTrees 31.8 @29.775
+[lp] O.osm.layer_build 1061.9 @29.777
+[lp] O.osm 1155.4 @29.777
+[lp] O.start_tracks 2.4 @29.779
+[lp] O.vil.patches 0.0 @29.779
+[lp] O.vil.plan 105.8 @29.885
+[lp] O.vil.layer_build 24.4 @29.909
+[lp] O.vil.gardens 29.9 @29.939
+[lp] O.villages 160.4 @29.939
+WorldObjects: снаряжение у 1 стартов — 17 вещей за 235 мс
+[lp] O.start_gear 234.9 @30.174
+WorldObjects: 'ongudai' за 1.64 с — ветроуказателей 6, посадок 1, троп к стартам 1, домов 1199, OSM тайлов 9/9
+[lp] W.objects.setup 1638.7 @30.183
+[lp] G.world_link.link 3019.9 @30.183
+[lp] G.choose_start 0.0 @30.183
+[lp] G.set_wind 0.1 @30.183
+[load] objects      3.67 с  (к 8.33 с)
+[gap] 4.70 с: 3684 мс
+[gap] 11.34 с: 147 мс
+air_model: field (массивы; уровней 3)
+air_model: поле (фазы+Пикар) итераций [220, 180], фазы A 0.00, B 0.01, C 0.00, D 0.07, F 0.93, H 0.00 (574 мс), заморожено 0.00, ω→запас false
+air_model: поле 12:00 ч, 3.0 м/с с 151° (загрузка): 14.49 с, итераций [220, 180], тёплый старт, окна ["100 м [60, 60]", "50 м [70, 80]"]; k притока 0.861, U над стартом на 10 м 3.01 м/с (проход 1: 3.27 м/с), проходов 2 ["1.000 → 3.27 м/с за 6.6 с (область 4.0, GPU 0.73)", "0.861 → 3.01 м/с за 7.9 с (область 4.8, GPU 1.66)"]
+[lp] G.load_air_field 15044.0 @45.227
+[lp] G.align_start_heading 0.1 @45.227
+[lp] G.place_thermals_near 0.0 @45.227
+[lp] G.apply_haze 0.0 @45.227
+[load] wind        14.49 с  (к 22.82 с)
+[lp] G.setup_glider 347.0 @45.586
+[lp] G.collisions.setup 0.1 @45.586
+WorldObjects: палаток у старта 5 из 5 за 137 мс
+[lp] G.place_camp 149.3 @45.736
+[lp] G.bots.setup 919.4 @46.655
+[lp] G.relief_wait 0.0 @46.655
+[lp] G.goals_setup 0.0 @46.655
+[lp] G.restart 15.7 @46.671
+[lp] G.air.refresh_now 4404.8 @51.076
+[load] glider       5.85 с  (к 28.67 с)
+[load] всего 28.67 с
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=858570457&sky=clear&temp=26.0&v=2&wind=3.0
+[lpfly] FLYING @51.077 (от нажатия 28.70 с)
+[gap] 22.85 с: 5859 мс
+[lpfly] первый кадр полёта через 118 мс
+[gap] 28.71 с: 263 мс
+[gap] 28.98 с: 270 мс
+[gap] 29.25 с: 109 мс
+[gap] 30.06 с: 111 мс
+[gap] 30.17 с: 131 мс
+[gap] 30.30 с: 177 мс
+[gap] 30.48 с: 140 мс
+[gap] 37.43 с: 173 мс
+[lpfly] после старта 15 с: кадров 664, макс. интервал 270 мс
+load_probe: итог полёт за 43.82 с, кадров 1373
+load_probe: макс. интервал 5859 мс; >100 мс: ["5859@22.9", "3684@4.7", "1815@2.2", "1646@0.5", "588@4.0", "524@0.0", "270@29.0", "263@28.7"]
+load_probe: этап dem          0.15 с
+load_probe: этап mesh         0.33 с
+load_probe: этап classify     0.01 с
+load_probe: этап mesh         1.65 с
+load_probe: этап trees        1.81 с
+load_probe: этап grass        0.59 с
+load_probe: этап weather      0.13 с
+load_probe: этап objects      3.67 с
+load_probe: этап wind        14.49 с
+load_probe: этап glider       5.85 с
+exit=0

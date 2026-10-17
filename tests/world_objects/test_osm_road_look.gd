@@ -71,6 +71,7 @@ func test_city_ground_mask() -> void:
 	for i in 60:
 		d.buildings.append([8000.0 + i * 200.0, 8000.0, 6.0, 6.0, 0.0, 4.0, 1])
 	var cfg := _cfg()
+	cfg.city_ground.enabled = true  # в конфиге подложка выключена; проверяется сама сборка
 	var node := OsmCityGround.build(d, cfg, _flat)
 	check(node != null, "земля города построена")
 	if node == null:

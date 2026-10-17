@@ -64,6 +64,26 @@ func add_box(
 	)
 
 
+## Дописать все препятствия other (собраны в рабочем потоке своим экземпляром, FL-6) в конец этого индекса:
+## тот же результат, что добавление тех же фигур сюда по очереди (порядок, клетки сетки). Сетка — одного шага.
+func merge(other: ObstacleIndex) -> void:
+	if other == null or other.size() == 0:
+		return
+	assert(is_equal_approx(other.cell_m, cell_m), "ObstacleIndex.merge: разный шаг сетки")
+	var off := _types.size()
+	_types.append_array(other._types)
+	_kinds.append_array(other._kinds)
+	_p0.append_array(other._p0)
+	_p1.append_array(other._p1)
+	_p2.append_array(other._p2)
+	for key: Vector2i in other._grid:
+		var arr: Array = _grid.get(key, [])
+		if arr.is_empty():
+			_grid[key] = arr
+		for i: int in other._grid[key]:
+			arr.append(i + off)
+
+
 ## Убрать все препятствия вида kind (лагерь палаток на новом старте той же локации).
 func remove_kind(kind: String) -> void:
 	if not kind in _kinds:

@@ -140,6 +140,11 @@ static func place(
 ## MultiMesh-узлы по тайлам (стены с шейдером стиля, крыши села, трубы) + узел дыма OsmSmoke (группа osm_wind).
 ## Общее для OsmBuildings и VillageLayer; корень без имени.
 static func make_nodes(tiles: Dictionary, cfg: Dictionary) -> Node3D:
+	return OsmLayer.run_all(node_steps(tiles, cfg))
+
+
+## То же порциями (FL-6, главный поток): {root, steps}, шаг — узлы одного тайла; последний — дым.
+static func node_steps(tiles: Dictionary, cfg: Dictionary) -> Dictionary:
 	var scfg: Dictionary = cfg.style
 	var wall := BoxMesh.new()
 	wall.material = wall_material(scfg)
@@ -155,23 +160,26 @@ static func make_nodes(tiles: Dictionary, cfg: Dictionary) -> Node3D:
 	var shadows := bool(cfg.cast_shadows)
 	var root := Node3D.new()
 	var smoke_pts := PackedVector3Array()
+	var steps: Array[Callable] = []
 	for k in tiles:
 		var t: Dictionary = tiles[k]
 		var o := WorldTiles.center(k, tile)
-		root.add_child(WorldTiles.multimesh_node(wall, t.walls, t.wall_colors, o, r, shadows))
-		if not t.roofs.is_empty():
-			root.add_child(WorldTiles.multimesh_node(roof, t.roofs, t.roof_colors, o, r, shadows))
-		if not t.chimneys.is_empty():
-			root.add_child(
-				WorldTiles.multimesh_node(chim, t.chimneys, t.chimney_colors, o, r, false)
-			)
+		steps.append(func() -> void:
+			root.add_child(WorldTiles.multimesh_node(wall, t.walls, t.wall_colors, o, r, shadows))
+			if not t.roofs.is_empty():
+				root.add_child(WorldTiles.multimesh_node(roof, t.roofs, t.roof_colors, o, r, shadows))
+			if not t.chimneys.is_empty():
+				root.add_child(
+					WorldTiles.multimesh_node(chim, t.chimneys, t.chimney_colors, o, r, false)
+				))
 		smoke_pts.append_array(t.smoke)
 	if not smoke_pts.is_empty():
-		var sm := OsmSmoke.new()
-		sm.name = "Smoke"
-		sm.setup(smoke_pts, cfg.get("smoke", {}))
-		root.add_child(sm)
-	return root
+		steps.append(func() -> void:
+			var sm := OsmSmoke.new()
+			sm.name = "Smoke"
+			sm.setup(smoke_pts, cfg.get("smoke", {}))
+			root.add_child(sm))
+	return {"root": root, "steps": steps}
 
 
 ## Материал стен: шейдер building.gdshader с параметрами стиля.

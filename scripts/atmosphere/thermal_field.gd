@@ -112,8 +112,13 @@ var _air_key: String = ""
 var _air_launched: String = ""
 ## Идущие и неподобранные сборки источников (AirJob).
 var _air_jobs: Array = []
+## Ключ сборки, отброшенной из-за смены входов (air_prefetch): по готовности выбрасывается.
+const _STALE := "~stale"
 ## Собирать источники в рабочем потоке (false — синхронно, как раньше).
 var air_async: bool = true
+## Входы погоды и солнца, с которыми собран air_src (FL-5: сборка, начатая заранее, сверяется
+## с текущими перед первым обновлением).
+var _air_src_inputs: Array = []
 
 # Профиль
 var _ring: float = 1.6
@@ -864,6 +869,8 @@ class AirJob:
 	var cfg: Dictionary
 	var field: WindField
 	var forced := PackedByteArray()
+	## Кромка, доля жизни и солнце на момент запуска (_air_inputs).
+	var inputs: Array = []
 	var ok: bool = false
 	var task: int = -1
 
@@ -928,6 +935,7 @@ func _air_launch(f: WindField, key: String) -> void:
 	cfg["water_fn"] = ground.is_water
 	cfg["land"] = ground.land_cache.get(AirThermals.signature(f), PackedFloat32Array())
 	job.cfg = cfg
+	job.inputs = _air_inputs()
 	job.forced = air_forced if air_forced_sig == AirThermals.signature(f) else PackedByteArray()
 	# ленивые записи в meta поля (heat) — здесь, на главном потоке: поток только читает
 	f.heat_flux()
@@ -956,6 +964,7 @@ func _poll_air_jobs() -> void:
 			continue
 		var prev := air_src
 		air_src = job.src if job.ok else null
+		_air_src_inputs = job.inputs
 		if air_src != null and not air_src.land.is_empty():
 			ground.land_cache[air_src.grid_sig] = air_src.land
 		# Прежние циклы источников помнили старый список — забыть (живые термики доживают).
@@ -965,6 +974,40 @@ func _poll_air_jobs() -> void:
 			_clear_air_caches()
 		else:
 			_clear_dynamic_caches()
+
+
+## Входы сборки, кроме поля и маски (они в ключе): кромка облаков, доля жизни термиков, солнце
+## (pick_fn — освещённость склонов, ground.sun).
+func _air_inputs() -> Array:
+	return [cloudbase_msl, float(_w.thermal_duty), sun_dir]
+
+
+## Только загрузка места (FL-5): запустить сборку источников для поданного поля, не дожидаясь её
+## (PF-К4), — раньше первого обновления, параллельно остальной загрузке. Сборка, запущенная с
+## другими кромкой/долей/солнцем, чем сейчас (ход дня, сброс часов), отбрасывается и
+## перезапускается — итог тот же, что у первой синхронной сборки в refresh_now().
+## true — первых источников ещё нет и сборка идёт: begin_refresh() сейчас ждал бы её.
+func air_prefetch() -> bool:
+	var cur := _air_inputs()
+	for job: AirJob in _air_jobs:
+		if job.key != _STALE and job.inputs != cur:
+			if job.key == _air_launched:
+				_air_launched = ""
+			job.key = _STALE  # по готовности будет выброшена
+	_poll_air_jobs()
+	if air_src != null and _air_src_inputs != cur:
+		# собрана заранее с другими входами — как будто её не было
+		air_src = null
+		_clear_dynamic_caches()
+		if _air_jobs.all(func(j: AirJob) -> bool: return j.key != _air_launched):
+			_air_launched = ""
+	var f := _air_level()
+	var key := _air_key_of(f)
+	if key == "":
+		return false  # поля нет: begin_refresh() ничего не ждёт
+	_air_key = key
+	_air_launch(f, key)
+	return air_src == null and not _air_jobs.is_empty()
 
 
 ## Дождаться всех сборок источников и принять актуальную (тесты, рассылка маски).

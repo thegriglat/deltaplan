@@ -14,13 +14,18 @@ const SHADER := preload("res://scripts/world_objects/osm/city_ground.gdshader")
 
 ## Возвращает Node3D "CityGround" (в meta "stats") или null, если города нет.
 static func build(data: OsmData, cfg: Dictionary, height_fn: Callable) -> Node3D:
+	return OsmLayer.run_all(assemble(prepare(data, cfg, height_fn), cfg))
+
+
+## Расчёт (FL-6, рабочий поток при потокобезопасной height_fn): маска и массивы сетки по тайлам. Нечего — {}.
+static func prepare(data: OsmData, cfg: Dictionary, height_fn: Callable) -> Dictionary:
 	var gc: Dictionary = cfg.get("city_ground", {})
 	if data == null or not bool(gc.get("enabled", true)) or data.buildings.size() < 50:
-		return null
+		return {}
 	var cell := float((cfg.get("buildings", {}).get("style", {}) as Dictionary).get("cell_m", gc.get("cell_m", 200.0)))
 	var grid := _coverage(data.buildings, cell)
 	if grid.is_empty():
-		return null
+		return {}
 	var cov_min := float(gc.get("coverage_min", 0.12))
 	var iters := maxi(1, roundi(float(gc.get("fade_m", 250.0)) / cell))
 	var f: PackedFloat32Array = grid.cov
@@ -34,6 +39,30 @@ static func build(data: OsmData, cfg: Dictionary, height_fn: Callable) -> Node3D
 	var nx: int = grid.nx
 	var nz: int = grid.nz
 	var spans := Vector2(nx * cell, nz * cell)
+	var tiles: Array = []
+	var n_verts := 0
+	var tx0 := floori(x0 / tile)
+	var tz0 := floori(z0 / tile)
+	var tx1 := floori((x0 + spans.x) / tile)
+	var tz1 := floori((z0 + spans.y) / tile)
+	for tz in range(tz0, tz1 + 1):
+		for tx in range(tx0, tx1 + 1):
+			var a := _tile_arrays(Vector2i(tx, tz), tile, step, lift, f, grid, cell, cov_min, height_fn)
+			if a.is_empty():
+				continue
+			tiles.append([Vector2i(tx, tz), a])
+			n_verts += (a[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+	if tiles.is_empty():
+		return {}
+	return {"tiles": tiles, "tile": tile, "stats": {"tiles": tiles.size(), "vertices": n_verts, "cells": nx * nz, "cell_m": cell}}
+
+
+## Сборка на главном потоке (FL-6): {root, steps}, шаг — меш одного тайла.
+static func assemble(p: Dictionary, cfg: Dictionary) -> Dictionary:
+	if p.is_empty():
+		return {"root": null, "steps": []}
+	var gc: Dictionary = cfg.get("city_ground", {})
+	var tile: float = p.tile
 	var mat := ShaderMaterial.new()
 	mat.shader = SHADER
 	mat.set_shader_parameter(&"depth_pull", float(cfg.get("roads", {}).get("depth_pull", 0.004)))
@@ -48,33 +77,24 @@ static func build(data: OsmData, cfg: Dictionary, height_fn: Callable) -> Node3D
 	var root := Node3D.new()
 	root.name = "CityGround"
 	var vis := WorldTiles.tile_range(float(gc.get("visibility_m", 6000.0)), tile)
-	var n_tiles := 0
-	var n_verts := 0
-	var tx0 := floori(x0 / tile)
-	var tz0 := floori(z0 / tile)
-	var tx1 := floori((x0 + spans.x) / tile)
-	var tz1 := floori((z0 + spans.y) / tile)
-	for tz in range(tz0, tz1 + 1):
-		for tx in range(tx0, tx1 + 1):
-			var m := _tile_mesh(Vector2i(tx, tz), tile, step, lift, f, grid, cell, cov_min, height_fn)
-			if m == null:
-				continue
+	var steps: Array[Callable] = []
+	for e: Array in p.tiles:
+		var k: Vector2i = e[0]
+		var arrays: Array = e[1]
+		steps.append(func() -> void:
+			var m := ArrayMesh.new()
+			m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 			var mi := MeshInstance3D.new()
 			mi.mesh = m
 			mi.material_override = mat
-			mi.position = WorldTiles.center(Vector2i(tx, tz), tile)
+			mi.position = WorldTiles.center(k, tile)
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			mi.visibility_range_end = vis
 			mi.visibility_range_end_margin = float(gc.get("fade_margin_m", 800.0))
 			mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
-			root.add_child(mi)
-			n_tiles += 1
-			n_verts += (m.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
-	if n_tiles == 0:
-		root.free()
-		return null
-	root.set_meta(&"stats", {"tiles": n_tiles, "vertices": n_verts, "cells": nx * nz, "cell_m": cell})
-	return root
+			root.add_child(mi))
+	root.set_meta(&"stats", p.stats)
+	return {"root": root, "steps": steps}
 
 
 ## Доля площади под домами по клеткам cell_m: {cov: PackedFloat32Array (nx·nz), nx, nz, x0, z0}.
@@ -133,10 +153,11 @@ static func _sample(f: PackedFloat32Array, nx: int, nz: int, gx: float, gz: floa
 	return lerpf(a, b, tz)
 
 
-static func _tile_mesh(
+## Массивы сетки тайла (без ресурсов); пусто — тайл вне города.
+static func _tile_arrays(
 	k: Vector2i, tile: float, step: float, lift: float, f: PackedFloat32Array, grid: Dictionary, cell: float,
 	cov_min: float, height_fn: Callable
-) -> ArrayMesh:
+) -> Array:
 	var o := WorldTiles.center(k, tile)
 	var n := int(round(tile / step))
 	var x_a := o.x - tile * 0.5
@@ -155,7 +176,7 @@ static func _tile_mesh(
 			alpha[j * (n + 1) + i] = a
 			any = any or a > 0.0
 	if not any:
-		return null
+		return []
 	var v := PackedVector3Array()
 	var norm := PackedVector3Array()
 	var col := PackedColorArray()
@@ -183,6 +204,4 @@ static func _tile_mesh(
 	arrays[Mesh.ARRAY_NORMAL] = norm
 	arrays[Mesh.ARRAY_COLOR] = col
 	arrays[Mesh.ARRAY_INDEX] = idx
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	return mesh
+	return arrays

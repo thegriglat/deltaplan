@@ -1,0 +1,91 @@
+{
+ "version": 1,
+ "tag": "gate1_miss",
+ "commit": "9ba9bb00",
+ "date": "2026-10-17T04:57:44+05:00",
+ "machine": {
+  "load_avg_start": 149.41,
+  "load_avg_end": 21.5,
+  "load_avg_max": 149.41
+ },
+ "runs": [
+  {
+   "exit": 0,
+   "cold": false,
+   "terrain_loaded_s": 3.8,
+   "to_flying_s": 30.42,
+   "air_cache": "miss",
+   "stages": {
+    "dem": 0.22,
+    "mesh": 1.6,
+    "classify": 0.01,
+    "trees": 1.35,
+    "grass": 0.62,
+    "weather": 0.15,
+    "objects": 3.48,
+    "wind": 16.03,
+    "glider": 6.73
+   },
+   "load_max_gap_ms": 6745,
+   "load_gaps_over_1s": 4,
+   "place": "ong",
+   "run": 1
+  },
+  {
+   "exit": 0,
+   "cold": false,
+   "terrain_loaded_s": 5.76,
+   "to_flying_s": 42.62,
+   "air_cache": "miss",
+   "stages": {
+    "dem": 0.25,
+    "mesh": 2.62,
+    "classify": 0.0,
+    "trees": 1.84,
+    "grass": 1.04,
+    "weather": 0.25,
+    "objects": 8.69,
+    "wind": 17.06,
+    "glider": 10.76
+   },
+   "load_max_gap_ms": 10776,
+   "load_gaps_over_1s": 5,
+   "place": "pt",
+   "run": 1
+  }
+ ],
+ "median": {
+  "ong/miss": {
+   "n": 1,
+   "to_flying_s": 30.42,
+   "load_max_gap_ms": 6745,
+   "stages": {
+    "classify": 0.01,
+    "dem": 0.22,
+    "glider": 6.73,
+    "grass": 0.62,
+    "mesh": 1.6,
+    "objects": 3.48,
+    "trees": 1.35,
+    "weather": 0.15,
+    "wind": 16.03
+   }
+  },
+  "pt/miss": {
+   "n": 1,
+   "to_flying_s": 42.62,
+   "load_max_gap_ms": 10776,
+   "stages": {
+    "classify": 0.0,
+    "dem": 0.25,
+    "glider": 10.76,
+    "grass": 1.04,
+    "mesh": 2.62,
+    "objects": 8.69,
+    "trees": 1.84,
+    "weather": 0.25,
+    "wind": 17.06
+   }
+  }
+ }
+}

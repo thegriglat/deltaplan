@@ -206,6 +206,12 @@ func _exit_tree() -> void:
 	wait_net()
 
 
+## Узел освобождают вне дерева (тесты, слой не в сцене) — сеть ещё строится в потоке: дождаться.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		wait_net()
+
+
 static func cell_key(x: float, z: float) -> int:
 	return (floori(x) + 1048576) * 2097152 + (floori(z) + 1048576)
 

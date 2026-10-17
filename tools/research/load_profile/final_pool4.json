@@ -1,0 +1,129 @@
+{
+ "version": 1,
+ "tag": "final_pool4",
+ "commit": "1b087b01",
+ "date": "2026-10-17T15:21:44+05:00",
+ "machine": {
+  "load_avg_start": 2.52,
+  "load_avg_end": 1.69,
+  "load_avg_max": 2.52
+ },
+ "runs": [
+  {
+   "exit": 0,
+   "cold": false,
+   "terrain_loaded_s": 4.75,
+   "to_flying_s": 17.68,
+   "air_cache": "hit",
+   "stages": {
+    "dem": 0.19,
+    "mesh": 1.19,
+    "classify": 0.01,
+    "trees": 2.79,
+    "grass": 0.57,
+    "weather": 0.14,
+    "objects": 5.66,
+    "glider": 7.03
+   },
+   "load_max_gap_ms": 2789,
+   "load_gaps_over_1s": 2,
+   "place": "ong",
+   "run": 1
+  },
+  {
+   "exit": 0,
+   "cold": false,
+   "terrain_loaded_s": 4.87,
+   "to_flying_s": 18.48,
+   "air_cache": "hit",
+   "stages": {
+    "dem": 0.22,
+    "mesh": 1.22,
+    "classify": 0.01,
+    "trees": 2.78,
+    "grass": 0.64,
+    "weather": 0.17,
+    "objects": 6.66,
+    "glider": 6.77
+   },
+   "load_max_gap_ms": 2782,
+   "load_gaps_over_1s": 2,
+   "place": "ong",
+   "run": 2
+  },
+  {
+   "exit": 0,
+   "cold": false,
+   "terrain_loaded_s": 4.97,
+   "to_flying_s": 22.5,
+   "air_cache": "hit",
+   "stages": {
+    "dem": 0.19,
+    "mesh": 1.18,
+    "classify": 0.0,
+    "trees": 2.94,
+    "grass": 0.66,
+    "weather": 0.19,
+    "objects": 8.37,
+    "glider": 8.89
+   },
+   "load_max_gap_ms": 2944,
+   "load_gaps_over_1s": 3,
+   "place": "pt",
+   "run": 1
+  },
+  {
+   "exit": 0,
+   "cold": false,
+   "terrain_loaded_s": 4.99,
+   "to_flying_s": 20.0,
+   "air_cache": "hit",
+   "stages": {
+    "dem": 0.19,
+    "mesh": 1.18,
+    "classify": 0.0,
+    "trees": 2.96,
+    "grass": 0.66,
+    "weather": 0.19,
+    "objects": 6.44,
+    "glider": 8.25
+   },
+   "load_max_gap_ms": 2963,
+   "load_gaps_over_1s": 3,
+   "place": "pt",
+   "run": 2
+  }
+ ],
+ "median": {
+  "ong/hit": {
+   "n": 2,
+   "to_flying_s": 18.08,
+   "load_max_gap_ms": 2785.5,
+   "stages": {
+    "classify": 0.01,
+    "dem": 0.205,
+    "glider": 6.9,
+    "grass": 0.605,
+    "mesh": 1.205,
+    "objects": 6.16,
+    "trees": 2.785,
+    "weather": 0.155
+   }
+  },
+  "pt/hit": {
+   "n": 2,
+   "to_flying_s": 21.25,
+   "load_max_gap_ms": 2953.5,
+   "stages": {
+    "classify": 0.0,
+    "dem": 0.19,
+    "glider": 8.57,
+    "grass": 0.66,
+    "mesh": 1.18,
+    "objects": 7.405,
+    "trees": 2.95,
+    "weather": 0.19
+   }
+  }
+ }
+}

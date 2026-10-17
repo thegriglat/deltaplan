@@ -9,7 +9,7 @@ const TYPE_HOUSE := 0
 const TYPE_SHED := 1
 const TYPE_BANYA := 2
 
-## Кеш на (ключ места, путь данных): план считается и для расстановки, и для маски просек.
+## Кеш плана по данным места (FL-К2): повтор с теми же данными в процессе — тот же массив.
 static var _cache: Dictionary = {}
 
 
@@ -19,14 +19,16 @@ static func patches_for_dir(dir: String) -> BuiltPatches:
 
 
 ## Дома места. loc_key — ключ места (идёт в rng), height_fn(x, z) -> высота, м.
-## Результат кешируется по loc_key (место не меняется в процессе).
+## Результат кешируется по данным (loc_key, BuiltPatches.data_key, vcfg, число домов OSM).
 ## osm_houses — дома OSM места (OsmData.buildings): пятно, в котором есть дом OSM, процедурных не получает (O9).
 static func plan(
 	patches: BuiltPatches, loc_key: String, vcfg: Dictionary, height_fn: Callable, osm_houses: Array = []
 ) -> Array:
 	if patches == null or patches.source == "none" or not bool(vcfg.get("enabled", true)):
 		return []
-	var ck := loc_key + "|" + str(patches.get_instance_id()) + "|" + str(osm_houses.size())
+	patches.ensure_loaded()
+	# ключ — из данных (FL-К2): место, пятна, параметры, число домов OSM; не экземпляр BuiltPatches
+	var ck := hash([loc_key, patches.data_key(), vcfg, osm_houses.size()])
 	if _cache.has(ck):
 		return _cache[ck]
 	var skip := osm_patch_ids(patches, osm_houses)

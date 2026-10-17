@@ -29,6 +29,7 @@ generated: true
 - easter-eggs: К13 v8, К14 v8, К15 v10, К16 v10 — [docs/contracts/easter-eggs/models-sound.md](../contracts/easter-eggs/models-sound.md)
 - easter-eggs: К8 v9, К9 v5, К10 v7, К11 v7, К12 v7 — [docs/contracts/easter-eggs/place-world.md](../contracts/easter-eggs/place-world.md)
 - easter-eggs: К1 v2, К2 v3, К3 v2, К4 v2, К5 v2, К6 v4, К7 v5, К8 v9, К9 v5, К10 v7, К11 v7, К12 v7, К13 v8, К14 v8, К15 v10, К16 v10 — [docs/contracts/easter-eggs.md](../contracts/easter-eggs.md)
+- fast-load: FL-К1 v2, FL-К2 v1, FL-К3 v1 — [docs/contracts/fast-load.md](../contracts/fast-load.md)
 - feedback-1012: FB-К1 v1, FB-К2 v1 — [docs/contracts/feedback-1012.md](../contracts/feedback-1012.md)
 - feedback-1013: FBW-К2 v3 — [docs/contracts/feedback-1013.md](../contracts/feedback-1013.md)
 - goals: GL-К1 v1, GL-К2 v2, GL-К3 v2, GL-К4 v2, GL-К5 v3, GL-К6 v2 — [docs/contracts/goals.md](../contracts/goals.md)

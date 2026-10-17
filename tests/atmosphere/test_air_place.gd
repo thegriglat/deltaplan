@@ -345,6 +345,8 @@ func test_surface_determinism_ongudai() -> void:
 	if s1 == null or s2 == null:
 		t.free()
 		return
+	s1.wait()  # снимок считается задачей пула (FL-9)
+	s2.wait()
 	print("  снимок поверхности Онгудая: %.0f мс, %d × %d узлов" % [s1.build_ms, s1.width, s1.height])
 	check(s1.cls == s2.cls and s1.moist == s2.moist, "два снимка — побитно одинаковые")
 	# класс узла снимка = Terrain.surface_at (вода снимка, которой нет у Terrain, — маска рек —
@@ -498,3 +500,85 @@ func test_z0_wind_field_map() -> void:
 	check(tf[WindField.T_USTAR] > tg[WindField.T_USTAR], "u* над лесом больше")
 	m.z0 = PackedFloat32Array([0.1])
 	check(WindField.from_arrays(m, u, z, z, z, z, hc) == null, "карта z0 не того размера — отказ")
+
+
+static func _bits(a: Variant) -> PackedByteArray:
+	if a is PackedByteArray:
+		return a
+	return a.to_byte_array()
+
+
+## Подготовка области в несколько потоков (FL-9): снимок поверхности задачей пула, полосы строк
+## block_mean и surface_flux, грубая и основная области и оба решения PreparedCase параллельно —
+## побитно как прежний путь в одном потоке (AirPlace.parallel = false) на Онгудае.
+func test_parallel_prep_bitwise_ongudai() -> void:
+	var t := Terrain.new()
+	t.location_id = ""
+	t.load_location("ongudai")
+	var loc := load_loc("ongudai")
+	var utc := float(loc.get("utc_offset_h", NAN))
+	var places := []
+	var preps := []
+	var cases := []
+	var ms := []
+	for par: bool in [false, true]:
+		AirPlace.parallel = par
+		var t0 := Time.get_ticks_usec()
+		var p := AirRuntime.place_of(t, utc, 7, 15)
+		var t_main := (Time.get_ticks_usec() - t0) / 1000.0
+		var sf: AirPlace.Surface = p.surface
+		check(sf != null, "снимок у места игры")
+		if sf == null:
+			AirPlace.parallel = true
+			t.free()
+			return
+		sf.wait()
+		var t_sf := (Time.get_ticks_usec() - t0) / 1000.0
+		var dc := []
+		for dx: float in [400.0, 1200.0]:
+			dc.append(AirPlace.domain_case(p.detail, p.water, p.loc, dx, 12.0, 3.0, 150.0, 26.0, "clear", true, 0.9, sf))
+		var c := {hour = 12.0, u10 = 3.0, wdir = 150.0, t_max = 26.0, sky = "clear"}
+		var out := {}
+		t0 = Time.get_ticks_usec()
+		AirRuntime._prep_task(p, c, 0.9, out, null, 3)
+		var t_prep := (Time.get_ticks_usec() - t0) / 1000.0
+		ms.append([t_main, t_sf, t_prep])
+		places.append(p)
+		cases.append(dc)
+		preps.append(out)
+	AirPlace.parallel = true
+	print(
+		"  FL-9 Онгудай: прежний путь — place_of %.0f мс (снимок %.0f), _prep_task %.0f мс; новый — place_of %.0f мс главного потока (снимок готов к %.0f), _prep_task %.0f мс"
+		% [ms[0][0], ms[0][1], ms[0][2], ms[1][0], ms[1][1], ms[1][2]]
+	)
+	var s0: AirPlace.Surface = places[0].surface
+	var s1: AirPlace.Surface = places[1].surface
+	check(s0.cls == s1.cls and _bits(s0.moist) == _bits(s1.moist), "снимок поверхности побитно")
+	for dx: float in [400.0, 1200.0]:
+		var n := roundi(AirPlace.DOMAIN_L / dx)
+		var x0 := -AirPlace.DOMAIN_L / 2.0
+		var c0 := s0.cells(x0, x0, dx, n, n)
+		var c1 := s1.cells(x0, x0, dx, n, n)
+		check(_bits(c0.fr) == _bits(c1.fr) and _bits(c0.m) == _bits(c1.m), "доли клеток %s м побитно" % dx)
+	for i in 2:
+		var a: AirCase = cases[0][i]
+		var b: AirCase = cases[1][i]
+		check(a != null and b != null, "области построены")
+		if a == null or b == null:
+			continue
+		for f: String in ["hc", "heat", "z0_map", "gam"]:
+			check(_bits(a.get(f)) == _bits(b.get(f)), "domain_case %s м: %s побитно" % [a.dx, f])
+	for key: String in ["case", "coarse_case"]:
+		var a: AirRuntime.PreparedCase = preps[0].get(key)
+		var b: AirRuntime.PreparedCase = preps[1].get(key)
+		check(a != null and b != null, "_prep_task: %s" % key)
+		if a == null or b == null:
+			continue
+		for pair: Array in [[a, b], [a.mech_case, b.mech_case]]:
+			for f: String in ["hc", "heat", "z0_map", "gam", "col", "lev", "prm", "n_unk"]:
+				check(
+					_bits(pair[0].get(f)) == _bits(pair[1].get(f)),
+					"_prep_task %s%s: %s побитно" % [key, "" if pair[0] == a else " (без нагрева)", f]
+				)
+			check(pair[0].u10 == pair[1].u10 and pair[0].u_a == pair[1].u_a and pair[0].z_i == pair[1].z_i, "_prep_task %s: приток, z_i" % key)
+	t.free()

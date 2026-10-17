@@ -1,0 +1,63 @@
+uptime:  03:19:13 up 3 days,  3:31,  1 user,  load average: 23,99, 42,04, 42,94
+air_cache: none
+commit: 8843db94
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+load_probe: старт с nan, nan / ongudai
+[lpfly] START @22.983
+[load] dem          0.16 с  (к 0.16 с)
+[load] mesh         0.31 с  (к 0.47 с)
+[load] classify     0.01 с  (к 0.48 с)
+[gap] 0.00 с: 537 мс
+[load] mesh         1.38 с  (к 1.86 с)
+[gap] 0.54 с: 1379 мс
+[load] trees        2.01 с  (к 3.87 с)
+[gap] 1.92 с: 2009 мс
+Terrain: место ongudai загружено за 4.49 с
+[load] grass        0.61 с  (к 4.49 с)
+[gap] 3.93 с: 615 мс
+Terrain: поля рельефа за 4.08 с
+[load] weather      0.13 с  (к 4.62 с)
+[gap] 4.54 с: 129 мс
+WorldObjects: снаряжение у 1 стартов — 17 вещей за 277 мс
+WorldObjects: 'ongudai' за 1.73 с — ветроуказателей 6, посадок 1, троп к стартам 1, домов 1199, OSM тайлов 9/9
+[load] objects      3.89 с  (к 8.50 с)
+[gap] 4.67 с: 3911 мс
+[gap] 11.57 с: 107 мс
+[gap] 11.77 с: 100 мс
+air_model: field (массивы; уровней 3)
+air_model: поле (фазы+Пикар) итераций [220, 180], фазы A 0.00, B 0.01, C 0.00, D 0.07, F 0.93, H 0.00 (750 мс), заморожено 0.00, ω→запас false
+air_model: поле 12:00 ч, 3.0 м/с с 151° (загрузка): 15.11 с, итераций [220, 180], тёплый старт, окна ["100 м [60, 60]", "50 м [70, 80]"]; k притока 0.861, U над стартом на 10 м 3.01 м/с (проход 1: 3.27 м/с), проходов 2 ["1.000 → 3.27 м/с за 7.0 с (область 4.6, GPU 0.72)", "0.861 → 3.01 м/с за 8.1 с (область 5.2, GPU 1.73)"]
+[load] wind        15.11 с  (к 23.61 с)
+WorldObjects: палаток у старта 5 из 5 за 140 мс
+[load] glider       5.51 с  (к 29.12 с)
+[load] всего 29.12 с
+Мир: deltaplan://world?bots=4&date=2026-07-15&from=-1&hour=12.00&lat=50.78708&lon=86.23278&seed=1870730716&sky=clear&temp=26.0&v=2&wind=3.0
+[lpfly] FLYING @52.161 (от нажатия 29.18 с)
+[gap] 23.67 с: 5520 мс
+[lpfly] первый кадр полёта через 120 мс
+[gap] 29.19 с: 270 мс
+[gap] 29.46 с: 203 мс
+[gap] 29.89 с: 115 мс
+[gap] 37.18 с: 162 мс
+[lpfly] после старта 15 с: кадров 642, макс. интервал 270 мс
+load_probe: итог полёт за 44.32 с, кадров 1390
+load_probe: макс. интервал 5520 мс; >100 мс: ["5520@23.7", "3911@4.7", "2009@1.9", "1379@0.5", "615@3.9", "537@0.0", "270@29.2", "203@29.5"]
+load_probe: этап dem          0.16 с
+load_probe: этап mesh         0.31 с
+load_probe: этап classify     0.01 с
+load_probe: этап mesh         1.38 с
+load_probe: этап trees        2.01 с
+load_probe: этап grass        0.61 с
+load_probe: этап weather      0.13 с
+load_probe: этап objects      3.89 с
+load_probe: этап wind        15.11 с
+load_probe: этап glider       5.51 с
+exit=0
+uptime_end:  03:20:21 up 3 days,  3:32,  1 user,  load average: 10,74, 34,36, 40,21
