@@ -1,0 +1,61 @@
+{
+  "id": "RV-11",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Модель дома: rondavel",
+  "goal": "Ронделавель: круглая хижина с глинобитной стеной и соломенной конической крышей — своим скриптом Blender, 3 LOD, малые процедурные текстуры; файл и формат по RV-К6, превью для шлюза пользователю.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "RV-К6",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-11",
+  "branch": "regional-veg/RV-11",
+  "base": "feature/regional-veg",
+  "scope": [
+    "tools/blender/build_house_rondavel.py",
+    "assets/models/houses",
+    "assets/source/houses/house_rondavel.blend",
+    "ASSETS.md"
+  ],
+  "dont_touch": [
+    "tools/blender/bl_util.py",
+    "tools/blender/build_trees.py",
+    "scripts",
+    "configs",
+    "tests",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "glb",
+      "cmd": "test -f assets/models/houses/house_rondavel.glb && test -f assets/models/houses/house_rondavel.glb.import && echo ok",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "previews",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/regional-veg/models/houses/rondavel/ | grep -cE '\\.(jpg|png)$'",
+      "expect": "num:^(\\d+) >=2"
+    },
+    {
+      "name": "own_files_only",
+      "cmd": "git status --porcelain assets/models/houses | grep -v house_rondavel | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "assets_md",
+      "cmd": "python3 tools/check_assets_md.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T00:32:18"
+}
