@@ -1,0 +1,102 @@
+{
+  "status": "done",
+  "summary": "CloudField — прогностическое поле облачности на сетке региона (a активная, p пассивная доля, мощность, переразвитие): источник — подъём, дошедший до LCL (Φ поля по профилю слоя с хвостом проникающих частиц ε = 0,2, ядра источников AirThermals, склоновый w_mech), τ_form/τ_life/τ_evap(d) из литературы, полулагранжев снос у основания, D* = k_moist·(c_top − LCL) с пределом дня и башнями; К2 текстура, К4 снимок zstd, К5 конфиг с _doc, AirThermals.c_top/col_wstar (К3). Карты 3 места × 3 погоды (день 9→17, кадры 11/13/15, разрез, ход) в build/screenshots/cloud-field/CLF-1/, summary.json; doc docs/research/cloud_field.md.",
+  "commits": [
+    "261dad10 CloudField, codec, sources, конфиг cloud_field, AirThermals.c_top/col_wstar, тесты и контрактные проверки",
+    "95804b45 поток к основанию по профилю слоя перемешивания + хвост проникающих частиц (ε = 0,2)",
+    "787778cf испарение пассивного облака ∝ мощности; прогретая вершина выше LCL — через конвекцию",
+    "e478f3a8 инструмент карт tools/research/cloud_field, summary.json, docs/research/cloud_field.md, INDEX/реестр"
+  ],
+  "checks": [
+    {
+      "name": "test_cloud_field",
+      "value": "20/20",
+      "pass": true
+    },
+    {
+      "name": "test_air_thermals",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "test_air_contracts",
+      "value": "31/31",
+      "pass": true
+    },
+    {
+      "name": "step_ms",
+      "value": "5,6–7,0 мс медиана (12,3 под нагрузкой accept), шаг с переносом до 17 мс",
+      "pass": true
+    },
+    {
+      "name": "maps",
+      "value": "9 PNG",
+      "pass": true
+    },
+    {
+      "name": "weak_lt_strong",
+      "value": "True (Онгудай 0,19<0,23; остров 0,001<0,007; Алматы 0,325<0,329)",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Алматы: «над предгорьями и городом ясно» в сильный день не воспроизводится (покрытие над низинами 0,23 против 0,68 над хребтом) — у поля воздуха один z_i над морем на регион и одна точка росы; в слабый день (LCL 2079) картина пользователя есть (хребет 0,99, равнина 0,09). Подробно — docs/research/cloud_field.md §5",
+    "Онгудай 9:00 в штиль поле воздуха не сходится (таймаут решателя) — день карт начат с поля 10:00; это свойство решателя, не поля облачности",
+    "Башни переразвития до depth_max_m в картах не проявились: мощность упирается в cloud_depth_m дня (1600 м), od под снос не успевает накопиться"
+  ],
+  "questions": [
+    "Для Алматы нужен ли z_i, частично следующий рельефу (De Wekker & Kossmann 2015, ~⅓), или точка росы по высоте — это правки модели воздуха/погоды вне scope CLF-1",
+    "Ветреный день для Алматы взят 270° (вдоль хребта); если нужен «с гор» (с юга) — перезапуск run.sh --wdir занимает ~5 мин на погоду"
+  ],
+  "images": [
+    "build/screenshots/cloud-field/CLF-1/ongudai_weak.png",
+    "build/screenshots/cloud-field/CLF-1/ongudai_strong.png",
+    "build/screenshots/cloud-field/CLF-1/ongudai_windy.png",
+    "build/screenshots/cloud-field/CLF-1/training_island_weak.png",
+    "build/screenshots/cloud-field/CLF-1/training_island_strong.png",
+    "build/screenshots/cloud-field/CLF-1/training_island_windy.png",
+    "build/screenshots/cloud-field/CLF-1/almaty_weak.png",
+    "build/screenshots/cloud-field/CLF-1/almaty_strong.png",
+    "build/screenshots/cloud-field/CLF-1/almaty_windy.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept CLF-1; карты — tools/research/cloud_field/README.md (run.sh ~35 мин GPU, plot.py)",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/cloud_field_sources.gd: penetration()",
+      "why": "профиль потока к основанию 2Φ̄·max(1−ζ, ε) с хвостом ε(c_top − z)/(c_top − z_i) — упрощение; ε = 0,2 по аналогии с отношением потока вовлечения",
+      "checked": "масштаб покрытия 0,2 (1,5 окта) в кучевой день; слабый день с LCL над z_i — редкая россыпь"
+    },
+    {
+      "where": "scripts/atmosphere/cloud_field.gd: τ_evap(d)",
+      "why": "зависимость времени испарения от мощности (×½…×2) — по порядку величины из Stull, не калибровано",
+      "checked": "тест задержки таяния (5 мин > 50 %, 90 мин < 10 %), карты слабый < сильный"
+    },
+    {
+      "where": "activity = a/(a+p)",
+      "why": "в равновесии ≈ 0,3–0,45 везде, не отражает силу подъёма — только долю облака под подъёмом; зато снимок К4 обратим (a = cover·activity)",
+      "checked": "контрактный тест К4 roundtrip"
+    },
+    {
+      "where": "visual: карты",
+      "why": "белое покрытие поверх отмывки читается слабо при cover ~0,2 (2 захода по правилу); контур ≥ 0,3 и панель a_u несут структуру",
+      "checked": "просмотрены almaty_strong и ongudai_strong"
+    },
+    {
+      "where": "CloudField._init",
+      "why": "без cfg читает Config.get_config('atmosphere').cloud_field — автолоад Config нужен и в рабочем потоке (только чтение словаря)",
+      "checked": "тесты headless"
+    }
+  ],
+  "dp_feedback": "tools/research под .gdignore — uid для .gd там нужно создавать руками (ResourceUID.create_id), pre-commit это не подсказал; task show обрезает дополнения, --full не работает, помог sed по выводу; accept --dry гонял step_ms под нагрузкой других тестов (12,3 против 6–7 мс в отдельном прогоне)",
+  "extra": {
+    "summary_13h": "tools/research/cloud_field/out/summary.json",
+    "run_time": "9 часов поля × 9 дней ≈ 35 мин GPU (Онгудай 33 с/час, Алматы 17–27 с, остров 15–20 с)"
+  },
+  "t": "2026-10-17T05:32:52",
+  "by": "executor"
+}
