@@ -1,0 +1,95 @@
+{
+  "status": "done",
+  "summary": "Пальма: 4 варианта × LOD0/1/2 (ствол с кольцами, венец из 28 перьев-полос с процедурной текстурой пера), импостеры, импорт Godot с VRAM+мипмапами, превью variants.png и iso45.png (рядом берёза).",
+  "commits": [
+    "8fa714ce regional-veg RV-5: модель пальмы"
+  ],
+  "checks": [
+    {
+      "name": "tri LOD0 palm / старые (V0)",
+      "value": "796 / pine 1042, cedar 1780, larch 1870, birch 1950, spruce 1786",
+      "pass": true
+    },
+    {
+      "name": "tri LOD1",
+      "value": "204 ≤ 796/3=265",
+      "pass": true
+    },
+    {
+      "name": "glb размер",
+      "value": "584 КБ ≤ 1,5 МБ",
+      "pass": true
+    },
+    {
+      "name": "высота LOD0 по вариантам",
+      "value": "10,7 / 13,7 / 16,7 / 19,8 м (8…25)",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS 4/4",
+      "pass": true
+    },
+    {
+      "name": "regional_veg_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "glb",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "previews",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "old_untouched",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/regional-veg/models/palm/variants.png",
+    "/home/greg/deltaplan/build/screenshots/regional-veg/models/palm/iso45.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RV-5",
+  "uncertain": [
+    {
+      "where": "tools/blender/tree_params.json palm",
+      "why": "перья короче натуральных (хорда ~0,2 H, у кокосовой ~0,3 H): крона уже, чтобы импостер влезал в ячейку 256×512 без раздувания высоты (при ширине >0,245 H bake_impostor растягивает квад выше дерева)",
+      "checked": "пересобрал с уменьшенными crown_radius/lean, превью 2 попытки; вид сверху читается, крона тёмная и редкая"
+    },
+    {
+      "where": "tools/blender/build_trees.py palm_skeleton/frond_mesh",
+      "why": "перо — полоса из 3 вершин поперёк (изгиб кромок), листочки только в текстуре; вблизи плоско; нормали кроны из общего crown_normals (центр crown_base..верх)",
+      "checked": "визуально сбоку и 45°; в Godot шейдер не запускал"
+    },
+    {
+      "where": "assets/models/trees/*.import",
+      "why": "Godot сгенерировал compress/mode=0 для новых png; заменил на параметры birch (mode=2 VRAM, мипмапы), удалив uid/path и переимпортировав",
+      "checked": "leaf.import: compress/mode=2, mipmaps true"
+    }
+  ],
+  "dp_feedback": "Генератор build_trees.py без аргументов собирает все породы и атлас — случайно легко запустить с --out без породы; render_trees.py был устаревшим (имена LOD0 без V<v>), добавил режим --models.",
+  "extra": {
+    "lod_tris_old_v0": {
+      "pine": 1042,
+      "cedar": 1780,
+      "larch": 1870,
+      "birch": 1950,
+      "spruce": 1786
+    },
+    "palm_v": {
+      "lod0": 796,
+      "lod1": 204,
+      "lod2": 4
+    }
+  },
+  "t": "2026-10-18T00:46:20",
+  "by": "executor"
+}

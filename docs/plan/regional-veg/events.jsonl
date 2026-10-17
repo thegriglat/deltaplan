@@ -102,3 +102,6 @@
 {"t": "2026-10-18T00:42:35", "by": "coordinator", "task": "RV-10", "ev": "started"}
 {"t": "2026-10-18T00:45:40", "by": "coordinator", "task": "RV-2", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:6/6; tree=ok:56/56 (пропуск 5); test_species_set=ok:6/6; scene_look_contracts=ok:29/29"}
 {"t": "2026-10-18T00:45:55", "by": "coordinator", "task": null, "ev": "note", "note": "Предел ≤ 4 снят главной (модели лёгкие, грузим машину). Для RV-9: terrain.gd:559 request_preload(models) без набора — передать набор места (из отчёта RV-2)"}
+{"t": "2026-10-18T00:46:20", "by": "executor", "task": "RV-5", "ev": "reported", "commits": ["8fa714ce"], "note": "done: Пальма: 4 варианта × LOD0/1/2 (ствол с кольцами, венец из 28 перьев-полос с процедурной текстурой пера), импостеры, имп…", "dp_feedback": "Генератор build_trees.py без аргументов собирает все породы и атлас — случайно легко запустить с --out без породы; render_trees.py был устаревшим (имена LOD0 без V<v>), добавил режим --models."}
+{"t": "2026-10-18T00:46:31", "by": "coordinator", "task": "RV-5", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:2; old_untouched=ok:0"}
+{"t": "2026-10-18T00:46:37", "by": "coordinator", "task": "RV-5", "ev": "accepted", "note": "по отчёту; вид — на шлюз пользователю"}
