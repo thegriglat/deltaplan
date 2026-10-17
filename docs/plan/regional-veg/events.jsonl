@@ -136,3 +136,7 @@
 {"t": "2026-10-18T00:58:51", "by": "coordinator", "task": "RV-2", "ev": "accepted", "note": "по ревью"}
 {"t": "2026-10-18T01:00:16", "by": "coordinator", "task": "RV-2", "ev": "accepted", "commits": ["c703cceb"], "note": "4/4 regional_veg_contracts=ok:7/7; tree=ok:56/56 (пропуск 5); test_species_set=ok:9/9; scene_look_contracts=ok:29/29"}
 {"t": "2026-10-18T01:00:16", "by": "coordinator", "task": "RV-2", "ev": "merged"}
+{"t": "2026-10-18T01:04:38", "by": "executor", "task": "RV-7", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:2; old_untouched=ok:0"}
+{"t": "2026-10-18T01:04:50", "by": "executor", "task": "RV-7", "ev": "reported", "commits": ["9b27da5c", "925c075d", "3be91aaf"], "note": "done: Порода tropical собрана генератором: tree_tropical.glb (1,06 МБ), 4 варианта x LOD0/1/2, купольная плотная тёмная вечно…", "dp_feedback": "job start не принимает составные команды (&&), нужен скрипт-обёртка; report требует предварительно accept без --dry; Blender-запекание при нагрузке 100+ занимало минуты."}
+{"t": "2026-10-18T01:04:56", "by": "coordinator", "task": "RV-7", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:7/7; glb=ok:ok; previews=ok:2; old_untouched=ok:0"}
+{"t": "2026-10-18T01:05:03", "by": "coordinator", "task": "RV-7", "ev": "accepted", "note": "по отчёту; вид — на шлюз"}

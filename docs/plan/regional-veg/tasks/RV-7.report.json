@@ -1,0 +1,95 @@
+{
+  "status": "done",
+  "summary": "Порода tropical собрана генератором: tree_tropical.glb (1,06 МБ), 4 варианта x LOD0/1/2, купольная плотная тёмная вечнозелёная крона с плоским низом, процедурные листва (крупные кожистые листья) и кора (гладкая с лишайниковыми пятнами), 4 импостера. Превью для шлюза Q1 — variants.png и iso45.png.",
+  "commits": [
+    "9b27da5c модель породы tropical",
+    "925c075d слияние feature/regional-veg (конфликты tree_textures/build_trees/render_trees: взяты версии oak/palm, мои правки перенесены)",
+    "3be91aaf пересборка tropical после слияния"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "glb",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "previews",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "old_untouched",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "треугольники LOD0",
+      "value": "1804; старые V0: pine 1042, cedar 1780, larch 1870, birch 1950 (самая тяжёлая), spruce 1786",
+      "pass": true
+    },
+    {
+      "name": "LOD1 <= LOD0/3",
+      "value": "264 <= 601",
+      "pass": true
+    },
+    {
+      "name": "высота LOD0 по вариантам, м",
+      "value": "23,4 / 31,5 / 38,2 / 27,6; контракт 20..40",
+      "pass": true
+    },
+    {
+      "name": "размер glb",
+      "value": "1,06 МБ <= 1,5",
+      "pass": true
+    },
+    {
+      "name": "ноды и материалы RV-К3",
+      "value": "V0..V3_LOD0/1/2; Bark_tropical, Leaf_tropical, Impostor_tropical_v0..v3",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Атлас trees_impostor_atlas.png не пересобирался (dont_touch): ячейка tropical пустая, пока владелец атласа не выполнит -- --atlas-only."
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/regional-veg/models/tropical/variants.png",
+    "/home/greg/deltaplan/build/screenshots/regional-veg/models/tropical/iso45.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RV-7; пересборка: xvfb-run -a blender --background --python tools/blender/build_trees.py -- tropical",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_trees.py: _crown_dome, skeleton (branch_angle_top_deg)",
+      "why": "купол задан углом ветвей 6 градусов внизу до 62 вверху и профилем радиуса; стилизация карточками, не реальная архитектура кроны",
+      "checked": "рендер 4 вариантов сбоку и 45 градусов рядом с берёзой"
+    },
+    {
+      "where": "assets/models/trees/tree_tropical.glb",
+      "why": "в игре не смотрено (интеграция RV-9); тон и нормали кроны видел только в Blender",
+      "checked": "импорт Godot проходит, regional_veg_contracts 7/7"
+    },
+    {
+      "where": "tools/blender/tree_params.json: tropical",
+      "why": "один обобщённый тип: база 28 м x height_scale [0.7,0.95,1.15,0.85], разнообразие только высотой и сидом",
+      "checked": "диапазон высот контракта соблюдён"
+    }
+  ],
+  "dp_feedback": "job start не принимает составные команды (&&), нужен скрипт-обёртка; report требует предварительно accept без --dry; Blender-запекание при нагрузке 100+ занимало минуты.",
+  "extra": {
+    "tris_old_lod0_v0": {
+      "pine": 1042,
+      "cedar": 1780,
+      "larch": 1870,
+      "birch": 1950,
+      "spruce": 1786
+    },
+    "tris_tropical_lod0": 1804
+  },
+  "t": "2026-10-18T01:04:50",
+  "by": "executor"
+}
