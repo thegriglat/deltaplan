@@ -16,7 +16,8 @@
   "branch": "regional-veg/RV-11b",
   "base": "feature/regional-veg",
   "scope": [
-    "assets/models/houses"
+    "assets/models/houses",
+    "ASSETS.md"
   ],
   "dont_touch": [
     "tools",
@@ -48,5 +49,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-18T03:31:00"
+  "created": "2026-10-18T03:31:00",
+  "edited": "2026-10-18T03:33:37"
 }

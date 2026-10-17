@@ -1,0 +1,51 @@
+{
+  "status": "done",
+  "summary": "Godot --import создал house_rondavel_{roof,wall,wood}_rondavel.png и .import; в .import выставлен compress/mode=2 (VRAM), mipmaps/generate=true уже был; старые house_rondavel_house_rondavel_{roof,wall,wood}.png(.import) удалены (glb.import их не упоминает).",
+  "commits": [
+    "5611e827 RV-11b: текстуры ронделавели — VRAM-сжатие и мипмапы, старые текстуры убраны"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "new_tracked",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "vram",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "clean",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "6 файл(ов) в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RV-11b --dry",
+  "uncertain": [
+    {
+      "where": "ASSETS.md:158 и tools/blender/build_house_rondavel.py:10",
+      "why": "Упоминают старые имена текстур house_rondavel_house_rondavel_*.png вне скоупа RV-11b",
+      "checked": "Не менял (вне границ задачи); нужна правка координатором или отдельной задачей"
+    }
+  ],
+  "dp_feedback": "Шаг с grep в акцепте и в моих командах: rtk перехватывает grep и на -h -E падает с usage, из-за этого не видно проверок mode в .import; стоит дать явный путь к grep или проверку через python.",
+  "extra": {
+    "import_runs": 2
+  },
+  "t": "2026-10-18T03:33:25",
+  "by": "executor"
+}
