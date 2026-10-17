@@ -105,3 +105,4 @@
 {"t": "2026-10-17T12:07:56", "by": "executor", "task": "CLF-12", "ev": "reported", "commits": ["014241a4"], "note": "done: CloudPhysics.poll() принимает готовую задачу поля каждый кадр (зовёт CloudLayer._update_field) вместо ожидания следующе…", "dp_feedback": "accept --dry идёт >120 с — удобно сразу запускать в фоне; таймаут обёртки в агенте мешает."}
 {"t": "2026-10-17T12:11:37", "by": "coordinator", "task": "CLF-12", "ev": "checked", "note": "6/6 test_cloud=ok:61/61 (пропуск 3); test_determinism=ok:4/4; test_hazards=ok:7/7; test_perf_contracts=ok:10/10; main_ms=ok:0.23; start=ok:0.83"}
 {"t": "2026-10-17T12:11:44", "by": "coordinator", "task": "CLF-12", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-17T12:11:44", "by": "coordinator", "task": "CLF-12", "ev": "merged", "note": "6a94e824"}
