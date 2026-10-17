@@ -1,0 +1,124 @@
+{
+  "status": "done",
+  "summary": "Правка 1 AWW-1 (proto_theta_h.patch) применена как есть: в марше θ′ механизма F θ′_in = E_up/max(h, h_up), GLSL и CPU одинаковы (GPU = CPU, 11/11). Добавлен test_f_heat_content. W1 до/после на 8 встроенных стартах и вне островов (Онгудай, Аскарово, слабый и сильный день): «Термики» u10 0,442 → 1,271 м/с, направление 101° → 187°, θ′ −3,60 → +0,02 К — те же числа, что у прототипа AWW-1. landing_hill +6 %, остальное ≤ 0,007 м/с. Неожиданных сдвигов нет. Обновлены phases.md, limits.md и CHANGELOG.",
+  "commits": [
+    "db8f668c AWW-2: механизм F переносит теплосодержание θ′·h вдоль ветра, тест сохранения тепла",
+    "ea1cae5e AWW-2: замер W1 до/после правки θ′·h, документы, CHANGELOG",
+    "ad892d0b AWW-2: короче summary README"
+  ],
+  "checks": [
+    {
+      "name": "test_air_phase",
+      "value": "9/9 (пропуск 2 GPU)",
+      "pass": true
+    },
+    {
+      "name": "gpu_phase",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "contracts_tests",
+      "value": "460/462; падают test_k3_assets_md_tables, test_licenses_set (licenses/MIT-rocketbox.txt, ASSETS.md) — пришли со слиянием rocketbox, правка их не касается",
+      "pass": false
+    },
+    {
+      "name": "w1_header",
+      "value": "совпадает",
+      "pass": true
+    },
+    {
+      "name": "w1_rows_main",
+      "value": "14",
+      "pass": true
+    },
+    {
+      "name": "w1_rows_new",
+      "value": "14",
+      "pass": true
+    },
+    {
+      "name": "thermal_plain_u10",
+      "value": "1.271",
+      "pass": true
+    },
+    {
+      "name": "diff_md",
+      "value": "26",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "atmosphere_tests",
+      "value": "228/229; падает test_atmosphere.gd::test_refresh_shade_split_equals_sync — падает и без правки (проверено с git apply -R)",
+      "pass": false
+    },
+    {
+      "name": "flight_tests",
+      "value": "220/220",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "17 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "accept --dry: 9/11. Два красных пункта не связаны с правкой: contracts (лицензии/ASSETS.md после слияния rocketbox в ветку модуля) и test_refresh_shade_split_equals_sync (падает на том же коде без правки). Чинить их вне моего scope."
+  ],
+  "questions": [
+    "Кто чинит test_licenses_set/test_k3_assets_md_tables (лишний licenses/MIT-rocketbox.txt, 5 колонок в ASSETS.md) и test_refresh_shade_split_equals_sync в feature/air-weak-wind — sync от main или отдельная задача?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept AWW-2; числа: tools/research/air_weak_wind/AWW-2/starts.csv, diff.md, README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/air_weak_wind/AWW-2/diff.md: ongudai/kayancha_south/слабый w_mean10 −0,04 → −0,17",
+      "why": "сдвиг вертикали на 10 м больше, чем θ′ (−0,004 К) и ветер (+0,007 м/с, −0,7°)",
+      "checked": "повтор прогона дважды — побитно те же числа (детерминировано); старт на краю термика (ось в 196 м, радиус 143 м), снос чуть иной → точечный w на краю меняется (на 50 м 1,23 → 0,90). Оценено как ожидаемое: чувствительность точки, не сдвиг поля"
+    },
+    {
+      "where": "tools/research/air_weak_wind/AWW-2/probe.gd: предел времени расчёта",
+      "why": "пробник поднимает air_model.timeout_s 60 → 1200 с (через _cfg runtime): при общем GPU с соседями расчёт падал по таймауту в аналитику",
+      "checked": "это только предел ожидания; числа островов main совпали с AWW-1/starts.csv до третьего знака"
+    },
+    {
+      "where": "tests/atmosphere/test_air_phase.gd: test_f_heat_content, проверка «однородно»",
+      "why": "в карточке «постоянный h — побитно прежний результат»; в float32 на GPU (θ·h)/h может отличаться от θ в последнем бите",
+      "checked": "на CPU float64 допуск 1e-6 относительный, проходит; GPU = CPU — test_air_phase_gpu (max 3,3e-5)"
+    }
+  ],
+  "dp_feedback": "Параллельные прогоны одного места вне островов в общем XDG-профиле гонятся при сборке места (sea_stage пересобирает, сосед падает «нет meta.json») — стоило бы предупредить в карточке или в dpcli job. Правка run.sh на диске во время работы фонового bash опасна (bash дочитывает скрипт по смещениям) — пришлось остановить пачку и перезапустить.",
+  "extra": {
+    "thermal_plain": {
+      "u10": [
+        0.442,
+        1.271
+      ],
+      "dir10": [
+        100.7,
+        187.3
+      ],
+      "theta_ml_K": [
+        -3.603,
+        0.02
+      ],
+      "u100": [
+        0.32,
+        2.591
+      ]
+    },
+    "landing_hill_u10": [
+      0.527,
+      0.561
+    ],
+    "model_hash": "меняется; запечённые поля data/locations/*/air не перепечены"
+  },
+  "t": "2026-10-18T02:24:41",
+  "by": "executor"
+}
