@@ -23,10 +23,13 @@ var _eve := false  # --mode=eve: один кадр с 300 м (час задаё�
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	var place := ""
+	var loc := ""  # --location=<id>: встроенное место (учебный остров) вместо --place=lat,lon
 	var gargs: Array = []
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--place="):
 			place = a.substr(8)
+		elif a.begins_with("--location="):
+			loc = a.substr(11)
 		elif a.begins_with("--out="):
 			_out = a.substr(6)
 		elif a == "--mode=zoom":
@@ -37,7 +40,8 @@ func _ready() -> void:
 			_tag = a.substr(6)
 		elif a.begins_with("--game-args="):
 			gargs = Array(a.substr(12).split(",", false))
-	var args := PackedStringArray(["--autostart", "--autopilot", "--latlon=" + place, "--air-start=0,600", "--no-overlay"])
+	var args := PackedStringArray(["--autostart", "--autopilot", "--air-start=0,600", "--no-overlay"])
+	args.append("--location=" + loc if loc != "" else "--latlon=" + place)
 	args.append_array(PackedStringArray(gargs))
 	_main = MAIN_SCENE.instantiate()
 	_main.set("opts", LaunchOptions.parse(args))
@@ -71,11 +75,26 @@ func _ready() -> void:
 		get_tree().quit(2)
 		return
 	_game.camera.set_mode("free")
+	if loc != "":
+		await _aerial(ships)
 	await _shots(ships)
 	var f := FileAccess.open("%s/%s_counts.json" % [_out, _tag], FileAccess.WRITE)
 	f.store_string(JSON.stringify({"ships_total": ships.size(), "frames": _counts}, "  "))
 	f.close()
 	get_tree().quit(0)
+
+
+## Учебный остров «с высоты»: камера 1500 и 4000 м над стартом, в 6 км от старта по 2 сторонам, взгляд на старт.
+func _aerial(ships: Array) -> void:
+	var gp: Vector3 = _game.glider.global_position
+	var c := Vector3(gp.x, 0.0, gp.z)
+	var n := 0
+	for h in [1500.0, 4000.0]:
+		for ang in [200.0, 320.0]:
+			n += 1
+			var d := Vector2.from_angle(deg_to_rad(ang)) * 6000.0
+			var cp := Vector3(c.x + d.x, h, c.z + d.y)
+			await _snap("%s_aerial_%dm_%d" % [_tag, int(h), n], cp, Vector3(c.x, _h(c.x, c.z), c.z), false, ships)
 
 
 func _h(x: float, z: float) -> float:
