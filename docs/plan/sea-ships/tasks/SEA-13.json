@@ -1,0 +1,64 @@
+{
+  "id": "SEA-13",
+  "module": "sea-ships",
+  "type": "dp-writer",
+  "title": "Документация, CHANGELOG, ASSETS.md судов",
+  "goal": "Описать по факту ветки: суда на море (виды, LOD, расстановка S3 v3), маска моря и стадия sea (признак SEA-1, уровень воды far, класс воды), что модель не умеет; CHANGELOG «В работе», ASSETS.md — три модели, registry/findings — вывод SEA-1.",
+  "plan_ref": "SEA-13",
+  "contracts": [
+    {
+      "name": "S2",
+      "version": "3",
+      "ref": "docs/contracts/sea-ships.md"
+    },
+    {
+      "name": "S3",
+      "version": "3",
+      "ref": "docs/contracts/sea-ships.md"
+    },
+    {
+      "name": "S4",
+      "version": "1",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-13",
+  "branch": "sea-ships/SEA-13",
+  "base": "feature/sea-ships",
+  "scope": [
+    "docs/guide/",
+    "CHANGELOG.md",
+    "ASSETS.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "assets/",
+    "docs/contracts/",
+    "docs/plan/",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА"
+    },
+    {
+      "name": "assets",
+      "cmd": "grep -c 'ship_tanker\\|ship_bulk\\|ship_container\\|ships/ship_' ASSETS.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -c -i 'суда\\|судов' CHANGELOG.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T09:59:27"
+}

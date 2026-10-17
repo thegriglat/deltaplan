@@ -1,0 +1,67 @@
+{
+  "id": "SEA-2",
+  "module": "sea-ships",
+  "type": "dp-engineer",
+  "title": "Маска моря: SeaMask, стадия sea, конфиг",
+  "goal": "Признак «море» SEA-1 в игре: SeaMask.compute/load_for, стадия сборки sea (far_sea.webp, sea.json), configs/sea_ships.json целиком, контрактный тест S2–S4.",
+  "plan_ref": "SEA-2",
+  "contracts": [
+    {
+      "name": "S2",
+      "version": "1",
+      "ref": "docs/contracts/sea-ships.md"
+    },
+    {
+      "name": "S3",
+      "version": "1",
+      "ref": "docs/contracts/sea-ships.md"
+    },
+    {
+      "name": "S4",
+      "version": "1",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-2",
+  "branch": "sea-ships/SEA-2",
+  "base": "feature/sea-ships",
+  "scope": [
+    "scripts/terrain/sea_mask.gd",
+    "scripts/terrain/sea_mask.gd.uid",
+    "scripts/terrain/build/sea_stage.gd",
+    "scripts/terrain/build/sea_stage.gd.uid",
+    "scripts/terrain/build/location_builder.gd",
+    "configs/sea_ships.json",
+    "tests/contracts/test_sea_ships_contracts.gd",
+    "tests/contracts/test_sea_ships_contracts.gd.uid",
+    "tests/terrain/",
+    "docs/guide/location-data.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "data/",
+    "assets/",
+    "configs/world.json",
+    "project.godot",
+    "tools/research/sea_mask/"
+  ],
+  "accept": [
+    {
+      "name": "sea_ships_contracts",
+      "tests": "sea_ships_contracts"
+    },
+    {
+      "name": "sea_mask",
+      "tests": "sea_mask"
+    },
+    {
+      "name": "location_builder",
+      "tests": "location_builder"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T03:18:17",
+  "edited": "2026-10-17T03:18:40"
+}

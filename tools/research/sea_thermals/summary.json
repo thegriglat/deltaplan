@@ -1,0 +1,239 @@
+{
+ "training_island": {
+  "before": {
+   "total": 594,
+   "water": 0,
+   "sources": 594,
+   "sources_water": 0,
+   "sources_water_class": 0,
+   "cells": 0,
+   "cells_water": 0,
+   "land_w0_p50": 2.543,
+   "land_w0_p90": 2.709,
+   "water_w0_p90": null,
+   "water_heat_p50": null,
+   "air_field_on": true,
+   "level_dx": 400.0,
+   "air_runtime": {
+    "baked": true,
+    "engine": null,
+    "hour": 12.0,
+    "inflow_k": 1.0,
+    "not_converged": null
+   },
+   "cond": {
+    "day": 15,
+    "hour": 12.0,
+    "loc": "training_island",
+    "month": 7,
+    "site": "thermal_plain",
+    "sky": "partly",
+    "start": [
+     -3619.99755859375,
+     187.67008972168,
+     3509.9951171875
+    ],
+    "temp": 25.0,
+    "wind_from": 180.0,
+    "wind_kmh": 7.2
+   }
+  },
+  "after": {
+   "total": 633,
+   "water": 0,
+   "sources": 633,
+   "sources_water": 0,
+   "sources_water_class": 0,
+   "cells": 0,
+   "cells_water": 0,
+   "land_w0_p50": 2.543,
+   "land_w0_p90": 2.708,
+   "water_w0_p90": null,
+   "water_heat_p50": null,
+   "air_field_on": true,
+   "level_dx": 400.0,
+   "land_ms": 499.028,
+   "air_runtime": {
+    "baked": null,
+    "engine": "phase+picard",
+    "hour": 12.0,
+    "inflow_k": 1.0,
+    "not_converged": false
+   },
+   "cond": {
+    "day": 15,
+    "hour": 12.0,
+    "loc": "training_island",
+    "month": 7,
+    "site": "thermal_plain",
+    "sky": "partly",
+    "start": [
+     -3619.99755859375,
+     187.67008972168,
+     3509.9951171875
+    ],
+    "temp": 25.0,
+    "wind_from": 180.0,
+    "wind_kmh": 7.2
+   }
+  }
+ },
+ "volcano_island": {
+  "before": {
+   "total": 1172,
+   "water": 957,
+   "sources": 1152,
+   "sources_water": 939,
+   "sources_water_class": 636,
+   "cells": 20,
+   "cells_water": 18,
+   "land_w0_p50": 3.96,
+   "land_w0_p90": 4.213,
+   "water_w0_p90": 4.062,
+   "water_heat_p50": 22.8,
+   "air_field_on": true,
+   "level_dx": 400.0,
+   "air_runtime": {
+    "baked": null,
+    "engine": "phase+picard",
+    "hour": 12.0,
+    "inflow_k": 0.756059758187784,
+    "not_converged": false
+   },
+   "cond": {
+    "day": 15,
+    "hour": 12.0,
+    "loc": "volcano_island",
+    "month": 1,
+    "site": "plateau_landing",
+    "sky": "clear",
+    "start": [
+     10749.8486328125,
+     219.262008666992,
+     1144.95556640625
+    ],
+    "temp": 28.0,
+    "wind_from": 110.0,
+    "wind_kmh": 7.2
+   }
+  },
+  "after": {
+   "total": 146,
+   "water": 0,
+   "sources": 142,
+   "sources_water": 0,
+   "sources_water_class": 0,
+   "cells": 4,
+   "cells_water": 0,
+   "land_w0_p50": 4.006,
+   "land_w0_p90": 4.234,
+   "water_w0_p90": null,
+   "water_heat_p50": null,
+   "air_field_on": true,
+   "level_dx": 400.0,
+   "land_ms": 524.982,
+   "air_runtime": {
+    "baked": null,
+    "engine": "phase+picard",
+    "hour": 12.0,
+    "inflow_k": 0.756059758187784,
+    "not_converged": false
+   },
+   "cond": {
+    "day": 15,
+    "hour": 12.0,
+    "loc": "volcano_island",
+    "month": 1,
+    "site": "plateau_landing",
+    "sky": "clear",
+    "start": [
+     10749.8486328125,
+     219.262008666992,
+     1144.95556640625
+    ],
+    "temp": 28.0,
+    "wind_from": 110.0,
+    "wind_kmh": 7.2
+   }
+  }
+ },
+ "pt_-27.700_-048.800": {
+  "before": {
+   "total": 892,
+   "water": 7,
+   "sources": 832,
+   "sources_water": 7,
+   "sources_water_class": 7,
+   "cells": 60,
+   "cells_water": 0,
+   "land_w0_p50": 4.434,
+   "land_w0_p90": 4.609,
+   "water_w0_p90": 1.75,
+   "water_heat_p50": 25.0,
+   "air_field_on": true,
+   "level_dx": 400.0,
+   "air_runtime": {
+    "baked": null,
+    "engine": "phase+picard",
+    "hour": 12.0,
+    "inflow_k": 1.0,
+    "not_converged": true
+   },
+   "cond": {
+    "day": 15,
+    "hour": 12.0,
+    "loc": "pt_-27.700_-048.800",
+    "month": 1,
+    "site": "",
+    "sky": "clear",
+    "start": [
+     1978.79833984375,
+     608.165222167969,
+     1956.94860839844
+    ],
+    "temp": 28.0,
+    "wind_from": 90.0,
+    "wind_kmh": 7.2
+   }
+  },
+  "after": {
+   "total": 878,
+   "water": 0,
+   "sources": 818,
+   "sources_water": 0,
+   "sources_water_class": 0,
+   "cells": 60,
+   "cells_water": 0,
+   "land_w0_p50": 4.439,
+   "land_w0_p90": 4.61,
+   "water_w0_p90": null,
+   "water_heat_p50": null,
+   "air_field_on": true,
+   "level_dx": 400.0,
+   "land_ms": 561.901,
+   "air_runtime": {
+    "baked": null,
+    "engine": "phase+picard",
+    "hour": 12.0,
+    "inflow_k": 1.0,
+    "not_converged": true
+   },
+   "cond": {
+    "day": 15,
+    "hour": 12.0,
+    "loc": "pt_-27.700_-048.800",
+    "month": 1,
+    "site": "",
+    "sky": "clear",
+    "start": [
+     1978.79833984375,
+     608.165222167969,
+     1956.94860839844
+    ],
+    "temp": 28.0,
+    "wind_from": 90.0,
+    "wind_kmh": 7.2
+   }
+  }
+ }
+}

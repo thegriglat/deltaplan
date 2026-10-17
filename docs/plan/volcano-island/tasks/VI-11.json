@@ -1,0 +1,57 @@
+{
+  "id": "VI-11",
+  "module": "volcano-island",
+  "type": "dp-engineer",
+  "title": "test_e2e: takeoff_failed на островах в ветке модуля",
+  "goal": "Найти, какое слияние ветки модуля ломает tests/game/test_e2e.gd::test_e2e_all_locations (training_island или volcano_island: kind == landed (takeoff_failed); на main da87052e тест проходит), устранить причину в коде или данных без ослабления теста; test_e2e проходит 3 прогона подряд.",
+  "plan_ref": "Шлюз 2 (финал)",
+  "contracts": [
+    {
+      "name": "VI-К1",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "TI-К2",
+      "version": "2",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-11",
+  "branch": "volcano-island/VI-11",
+  "base": "feature/volcano-island",
+  "scope": [
+    "scripts/",
+    "tests/game/test_e2e.gd",
+    "configs/locations/volcano_island.json"
+  ],
+  "dont_touch": [
+    "data/",
+    "configs/atmosphere.json",
+    "configs/weather_model.json",
+    "configs/surface_heat.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "volcano_island",
+      "tests": "volcano_island"
+    },
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "thermal",
+      "tests": "thermal"
+    },
+    {
+      "name": "e2e3",
+      "cmd": "for i in 1 2 3; do XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=test_e2e 2>&1 | grep -E 'тестов,'; done",
+      "expect": "!re:[1-9]\\d* упало"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T08:32:30"
+}

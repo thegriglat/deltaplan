@@ -74,7 +74,7 @@ Known issues:
 `git commit -m "Версия X.Y.Z; CHANGELOG и страница версии" -- project.godot CHANGELOG.md site/content/releases/X.Y.Z` (и `git add site/content/releases/X.Y.Z` перед этим; в папке оба файла — `index.en.md` и `index.ru.md`). После пуша в main сайт пересобирается сам (`.github/workflows/pages.yml`); пушить — только по просьбе.
 
 ## 5. Сборка
-- Сначала `bash tools/terrain/island/bake_all.sh --check` (запечённые поля острова, без GPU). Код 1 — устарели (изменилась модель воздуха или данные): перепечь `bash tools/terrain/island/bake_all.sh` (окно, `DISPLAY=:0`, GPU, ~1 мин на старт), закоммитить `data/locations/training_island/air`, повторить `--check` до 0. Иначе в сборке остров считает ветер сам.
+- Сначала `bash tools/terrain/bake_all.sh --check` (запечённые поля всех встроенных мест, без GPU). Код 1 — устарели (изменилась модель воздуха или данные): перепечь `bash tools/terrain/bake_all.sh` под `.dpcli/dpcli lock gpu bake -- …` (окно, `DISPLAY=:0`, GPU), закоммитить `data/locations/*/air`, повторить `--check` до 0. Иначе в сборке место считает ветер само.
 - `tools/build.sh all --release` (нужен дисплей: Shader Baker запекает шейдеры только при экспорте с окном; без дисплея — предупреждение и сборка без запекания). Проверить вывод: «готово: build/linux/…», «готово: build/windows/…», «готово: build/macos/Deltaplan.app…».
 - `data/build_info.json` → коммит без `+` (иначе была незакоммиченная правка — вернуться к шагу 0).
 - Smoke Linux: `XDG_DATA_HOME=$(mktemp -d) build/linux/deltaplan.x86_64 --headless -- --smoke | grep smoke` — все крылья из configs/wings, 4 места, `terrain data=true`, `about … ok=true`, «300 шагов … фаза flying».

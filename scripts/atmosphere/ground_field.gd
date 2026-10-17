@@ -17,6 +17,17 @@ var height_fn: Callable
 var sun_fn: Callable
 ## Класс поверхности (x, z) -> int (у terrain — surface_at); пусто — неизвестно.
 var surface_fn: Callable
+## Доля суши по столбцам сетки уровня поля (AirThermals.land) — по подписи сетки; считается раз
+## на место (сбрасывается со сменой функций рельефа).
+var land_cache: Dictionary = {}
+
+## Море в точке — как Terrain.is_sea: не выше SEA_H над уровнем моря и класс NONE (у океана нет
+## файлов WorldCover) или WATER.
+const SEA_H := 0.5
+
+## Класс для воды (is_water): surface_fn, иначе surface_at объекта height_fn (Terrain) — источники
+## термиков знают воду и там, где атмосфере класс не передали.
+var _class_fn: Callable
 
 var _cell: float = 30.0
 var _inv_cell: float = 1.0 / 30.0
@@ -51,6 +62,11 @@ func set_functions(h_fn: Callable, s_fn: Callable) -> void:
 	height_fn = h_fn
 	sun_fn = s_fn
 	has_ground = h_fn.is_valid()
+	_class_fn = Callable()
+	var o: Object = h_fn.get_object() if h_fn.is_valid() else null
+	if o != null and o.has_method("surface_at"):
+		_class_fn = Callable(o, "surface_at")
+	land_cache = {}
 	clear()
 
 
@@ -72,6 +88,19 @@ func height(x: float, z: float) -> float:
 
 func sun(x: float, z: float) -> float:
 	return clampf(float(sun_fn.call(x, z)), 0.0, 1.0) if sun_fn.is_valid() else 1.0
+
+
+## Вода в точке (источник термика здесь не ставится): класс WATER (море, озёра, реки — карта и
+## маски места) или море по Terrain.is_sea — класс NONE и высота ≤ SEA_H. Класса нет совсем
+## (рельеф без карты поверхности) — воды не знаем: суша.
+func is_water(x: float, z: float) -> bool:
+	var fn := surface_fn if surface_fn.is_valid() else _class_fn
+	if not has_ground or not fn.is_valid():
+		return false
+	var c := int(fn.call(x, z))
+	if c == SurfaceLayer.WATER:
+		return true
+	return c == SurfaceLayer.NONE and height(x, z) <= SEA_H
 
 
 ## (высота, dh/dx, dh/dz, линия тени) в точке — билинейно по сетке.

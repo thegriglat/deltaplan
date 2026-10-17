@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "ShipPlacer по S3 v3: кандидаты по мировым клеткам 0,02°, годны в полосе 3–15 км от берега (v 31…151) и ≤ 30 км от центра, N = 2–6 по хешу клетки центра 0,05°, min_sep 1,5 км, веса 1/1/1; ключи p_cell/min_shore_m убраны, конфиг с _doc, тесты и docs/guide обновлены.",
+  "commits": [
+    "59ab62c4 Суда: плотность по Q3"
+  ],
+  "checks": [
+    {
+      "name": "ship_placer",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "ship_layer",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "sea_ships_contracts",
+      "value": "9/9",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SEA-10",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_sea_ships_contracts.gd",
+      "why": "снял проверку «вес>0 ⇒ есть .glb»: по карточке веса 1/1/1, слой пропускает вид без модели",
+      "checked": "ship_layer test_missing_model_skipped зелёный"
+    },
+    {
+      "where": "scripts/world_objects/ship_placer.gd:_hash_u32",
+      "why": "хеш ключа места соль (x+7919) — выбор мой, контракт говорит только 'hash'",
+      "checked": "N различается по местам (4,4,3,5 в данных)"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "data_table": "учебный остров N=4: берег 14,0/12,1/8,5/11,1 км, центр 14,6–19,8 км, виды tanker,container,bulk,container; Флорианополис N=4: берег 3,0/3,2/3,5/3,6 км, центр 19,5–29,9 км, bulk x3 + tanker; Рапа-Нуи N=3: берег 6,1/13,9/14,3 км, центр 21,0–29,2 км, bulk,tanker,bulk; Баку N=5: берег 6,0–11,5 км, центр 20,2–25,6 км, tanker x2 + bulk x3. Расстояния до берега — нижняя оценка по маске (v−1)·100 м."
+  },
+  "t": "2026-10-17T09:57:46",
+  "by": "executor"
+}

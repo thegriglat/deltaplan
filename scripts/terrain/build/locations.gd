@@ -47,6 +47,19 @@ static func is_synthetic(id: String) -> bool:
 	return is_builtin(id) and bool(config(id).get("synthetic", false))
 
 
+## Место только для «Тренировки» ("training_only": true, VI-К1): не возвращается builtin_at, нет в каталоге
+## «Популярные места» и списках мест меню полёта; запуск из «Тренировки», по ключу мира и из командной строки работает.
+static func is_training_only(id: String) -> bool:
+	return is_builtin(id) and bool(config(id).get("training_only", false))
+
+
+## Корень тайлов OSM места (VI-К1): bundled — папка места osm/ (без сети и user://osm_tiles), иначе кеш тайлов.
+static func osm_root(id: String) -> String:
+	if is_bundled(id):
+		return data_dir(id).path_join("osm")
+	return OsmTilesStage.cache_root()
+
+
 ## Папка файлов места: bundled — res://data/locations/<id>; иначе фикстуры тестов (если заданы и там есть место) или кеш user://locations/<id>
 ## (встроенные собираются туда при первом выборе, NO-8; точки — под своим ключом).
 static func data_dir(id: String) -> String:
@@ -93,7 +106,7 @@ static func config(id: String) -> Dictionary:
 static func builtin_at(lat: float, lon: float) -> String:
 	var margin := float(Config.value("world", "location_builder.builtin_margin_km", 10.0))
 	for id in builtin_ids():
-		if is_synthetic(id):
+		if is_synthetic(id) or is_training_only(id):
 			continue
 		var loc := config(id)
 		var layers: Array = loc.get("dem", {}).get("layers", [])

@@ -1,0 +1,76 @@
+{
+  "id": "SEA-4",
+  "module": "sea-ships",
+  "type": "dp-engineer",
+  "title": "Расстановка и рендер судов",
+  "goal": "Суда в мире: ShipPlacer по S3 (детерминированно по мировой клетке, только море ≥ 2 км от берега) и слой судов — LOD по экранному размеру, отсечение, тени только у ближних, ноль узлов и ноль цены без моря; подключение к загрузке места.",
+  "plan_ref": "SEA-4",
+  "contracts": [
+    {
+      "name": "S2",
+      "version": "2",
+      "ref": "docs/contracts/sea-ships.md"
+    },
+    {
+      "name": "S3",
+      "version": "2",
+      "ref": "docs/contracts/sea-ships.md"
+    },
+    {
+      "name": "S4",
+      "version": "1",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-4",
+  "branch": "sea-ships/SEA-4",
+  "base": "feature/sea-ships",
+  "scope": [
+    "scripts/world_objects/ship_placer.gd",
+    "scripts/world_objects/ship_placer.gd.uid",
+    "scripts/world_objects/ship_layer.gd",
+    "scripts/world_objects/ship_layer.gd.uid",
+    "scripts/world_objects/world_objects.gd",
+    "configs/sea_ships.json",
+    "configs/game.json",
+    "tests/world_objects/test_ship_placer.gd",
+    "tests/world_objects/test_ship_placer.gd.uid",
+    "tests/world_objects/test_ship_layer.gd",
+    "tests/world_objects/test_ship_layer.gd.uid",
+    "tests/contracts/test_sea_ships_contracts.gd",
+    "ASSETS.md",
+    "docs/guide/world-objects.md",
+    "assets/models/ships/ship_tanker.glb.import"
+  ],
+  "dont_touch": [
+    "scripts/terrain/",
+    "scripts/world/haze.gdshader",
+    "assets/models/ships/ship_tanker.glb",
+    "tools/blender/",
+    "configs/world.json",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "ship_placer",
+      "tests": "ship_placer"
+    },
+    {
+      "name": "ship_layer",
+      "tests": "ship_layer"
+    },
+    {
+      "name": "sea_ships_contracts",
+      "tests": "sea_ships_contracts"
+    },
+    {
+      "name": "world_objects",
+      "tests": "world_objects"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T04:27:13",
+  "edited": "2026-10-17T04:56:10"
+}

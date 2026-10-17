@@ -1,7 +1,7 @@
 extends TestCase
 ## Все встроенные локации: данные на месте, старты на склоне вниз по курсу, посадки пологие.
 
-const LOCATIONS := ["altai", "ongudai", "askarovo", "aushkul", "training_island"]
+const LOCATIONS := ["altai", "ongudai", "askarovo", "aushkul", "training_island", "volcano_island"]
 
 
 func test_locations() -> void:
@@ -18,7 +18,7 @@ func test_locations() -> void:
 			# вымышленное место: карта классов синтетическая, не WorldCover (источник слой не хранит)
 			check(Locations.is_synthetic(id) or s.source == "worldcover", "%s/%s: карта WorldCover" % [id, s.id])
 		var sites := t.get_start_sites()
-		var max_sites := 4 if Locations.is_synthetic(id) else 3
+		var max_sites := 4 if Locations.is_synthetic(id) or id == "volcano_island" else 3
 		check(sites.size() >= 1 and sites.size() <= max_sites, "%s: 1–%d старта" % [id, max_sites])
 		for site in sites:
 			_check_site(t, id, site)

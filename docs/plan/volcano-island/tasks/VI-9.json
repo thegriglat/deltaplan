@@ -1,0 +1,84 @@
+{
+  "id": "VI-9",
+  "module": "volcano-island",
+  "type": "dp-researcher",
+  "title": "Перепекание полей и числа воздуха после правки термиков над водой",
+  "goal": "После VI-7 (model_hash сменился) все поля всех встроенных мест перепечены, --check = 0; числа воздуха вулканического острова (4 старта, термики суша/море) и термиков учебного острова пересчитаны и записаны в README инструментов; test_matrix с volcano_island взлетает.",
+  "plan_ref": "VI-9. Перепекание и числа после VI-7",
+  "contracts": [
+    {
+      "name": "TI-К3",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "VI-К3",
+      "version": "1",
+      "ref": "docs/contracts/volcano-island.md"
+    },
+    {
+      "name": "VI-К1",
+      "version": "3",
+      "ref": "docs/contracts/volcano-island.md"
+    }
+  ],
+  "copy": "~/deltaplan-volcano-island-VI-9",
+  "branch": "volcano-island/VI-9",
+  "base": "feature/volcano-island",
+  "scope": [
+    "data/locations/volcano_island/air/",
+    "data/locations/training_island/air/",
+    "tools/terrain/volcano/",
+    "tools/terrain/island/README.md",
+    "tools/terrain/island/out/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "volcano_island",
+      "tests": "volcano_island"
+    },
+    {
+      "name": "training_island",
+      "tests": "training_island"
+    },
+    {
+      "name": "bake_check",
+      "cmd": "bash tools/terrain/bake_all.sh --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "bake_thermal",
+      "cmd": "bash tools/terrain/bake_all.sh --check --id volcano_island",
+      "expect": "re:thermal_slope: ok"
+    },
+    {
+      "name": "gpu",
+      "cmd": "bash tools/gpu_tests.sh --filter=baked",
+      "expect": "re:\\n(?:[1-9]\\d*) тестов, 0 упало"
+    },
+    {
+      "name": "air_check",
+      "cmd": "python3 tools/terrain/volcano/air_check.py --show",
+      "expect": "re:thermal_slope"
+    },
+    {
+      "name": "air_size_mb",
+      "cmd": "du -cm data/locations/volcano_island/air/ | tail -1",
+      "expect": "num:(\\d+) <=30"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T06:54:53"
+}

@@ -1,0 +1,86 @@
+{
+  "status": "done",
+  "summary": "Добавлено третье условие: 99-й процентиль высот компоненты >= -1 м (у моря берег на 0 м). Мёртвое море (режется краем, 31.4/36.35) и Солтон-Си (-70 м) касаются края, sea_cells=0. 16 мест, ложных 0, море 100 %, margin 1,0.",
+  "commits": [
+    "d079d4b6 SEA-1: условие берега, Мёртвое море у края, Солтон-Си"
+  ],
+  "checks": [
+    {
+      "name": "files",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fp_inland",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "tp_sea",
+      "value": "1.0",
+      "pass": true
+    },
+    {
+      "name": "sea_places",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "works",
+      "value": "True",
+      "pass": true
+    },
+    {
+      "name": "inland_places",
+      "value": "9",
+      "pass": true
+    },
+    {
+      "name": "dead_sea_lake",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "margin",
+      "value": "1.0",
+      "pass": true
+    },
+    {
+      "name": "dead_sea_edge",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "salton_edge",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Copernicus WBM не проверялся"
+  ],
+  "questions": [
+    "Каспий у Баку (q99=0,0) и Эйсселмер помечаются морем как edge, решение шлюза"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SEA-1",
+  "uncertain": [
+    {
+      "where": "условие берега, порог -1 м",
+      "why": "у моря q99 = 0,0 (Рапа-Нуи, учебный остров), запас до порога 1 м; кусок открытого океана без береговых клеток в квадрате не пометится",
+      "checked": "Флорианополис q99=8,5, Рапа-Нуи 0,0; озёра ниже моря -366...-70 м"
+    },
+    {
+      "where": "cost_ms",
+      "why": "314 мс на загруженной машине (110 мс раньше), GDScript оценён в 5-10 раз дольше",
+      "checked": "два прогона"
+    },
+    {
+      "where": "Солтон-Си",
+      "why": "osm_tiles в prefetch не собраны (incomplete), на признак не влияет",
+      "checked": "far и far_surface есть"
+    }
+  ],
+  "dp_feedback": "prefetch выдаёт код incomplete из-за osm_tiles без сети — для задач, которым нужен только рельеф, хотелось бы флаг --stages",
+  "t": "2026-10-17T03:06:40",
+  "by": "executor"
+}
