@@ -267,6 +267,7 @@ generated: true
 - [docs/research/pendulum_pitch.md](research/pendulum_pitch.md) — Тангаж «Маятника»: «нос −24…−43°» — пикирование при резком «на себя», не жёсткость; на 1,6·V_трим Δθ −9,6° (эталон −9,5°) [closed]
 - [docs/research/pilot_mass.md](research/pilot_mass.md) — Масса пилота: поляра растягивается на k = √(M·ρ_эт/(M_эт·ρ)), качество не меняется; τ крена ∝ √M; данные четырёх крыльев
 - [docs/research/regional-vegetation.md](research/regional-vegetation.md) — Регион для деревьев/домов (T-83): дерево решений на lat/lon (3 КБ, 85 % мира) + 7 новых моделей деревьев, ≈ +6…13 МБ в паке
+- [docs/research/house-models.md](research/house-models.md) — Дома на моделях вместо коробок (RV-14): только гибрид для малых сельских домов профиля; город и промзона — коробки
 - [docs/research/simhub.md](research/simhub.md) — SimHub не читает SRS и DPMR; путь — «External sim integration» (simdef + UDP 55 байт заголовка, бета, Windows); не реализовано. [closed]
 - [docs/research/slope_wind/coupled-system.md](research/slope_wind/coupled-system.md) — Связанная система по этапам; рекомендация: этап 1 (WF-13) и T по N из погоды сразу, крышку по инверсии и термики-источники — позже [closed]
 - [docs/research/slope_wind/current-heuristic.md](research/slope_wind/current-heuristic.md) — Эвристика air_velocity_at на 29.09: степенной профиль, w_ridge с полосой 250 м, линия тени 12°; где не физично и что не ломать (провалы) [closed]
