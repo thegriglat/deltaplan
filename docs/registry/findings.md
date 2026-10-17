@@ -153,6 +153,10 @@ related: ["docs/archive/README.md"]
 
 - **Воздух острова**: подъём у обрывов +1,4…+1,6 м/с (6 м/с), термики над водой 957 → 0, инверсии пассата нет — [volcano-island-findings](/docs/registry/volcano-island-findings.md)
 
+## fast-load
+
+- **Быстрая загрузка места**: попадание кеша поля Онгудай 29,2 → 12,5 с, точка 40,2 → 18,0 с; промах без выигрыша — [fast-load-findings](/docs/registry/fast-load-findings.md)
+
 ## goals
 
 - **Оценка целей** — грубая формула по погоде без рельефа: V = 16,7·c/(c + 1,9) м/с (c = 2 → ≈ 31 км/ч); в слабую погоду трудные цели недостижимы — [goals.md#Оценка по погоде…](/docs/guide/goals.md#оценка-по-погоде-goalestimator)

@@ -55,6 +55,12 @@ generated: true
 - **goals** — Цели полёта перед стартом (высота, время, дальность, возврат, треугольник, маршрут, скорость, посадка), зачёт, след попытки, IGC/GPX. [active 2026-10-16] — [план](plan/goals.md) · [контракты](contracts/goals.md)
   - [docs/guide/goals.md](guide/goals.md) — Цели полёта и треки: вкладка «Цели», оценка по погоде, засчёт в полёте, итог, прибор, столбы, запись и показ треков, IGC/GPX.
 
+## perf
+
+- **fast-load** — Быстрая загрузка места: кеш поля воздуха на диске (LRU), общие данные места, тяжёлое — в потоки/нативное/кеш, порции без замирания. [active 2026-10-17] — [план](plan/fast-load.md) · [контракты](contracts/fast-load.md)
+  - [docs/guide/fast-load.md](guide/fast-load.md) — Загрузка места: порядок этапов, потоки, кеш поля воздуха (LRU, настройка размера), пирамида высот, PlaceData, числа и границы.
+  - [docs/registry/fast-load-findings.md](registry/fast-load-findings.md) — fast-load: тёплая загрузка 29,2 → 12,5 с (Онгудай), 40,2 → 18,0 с (точка) при кеше поля; промах без выигрыша; малый пул.
+
 ## process
 
 - **docs-rework** — dp → dpcli, area и статусы модулей по коду, раскладка docs (действующее / исследования / архив), docs check без ошибок, сайт без планов. [active 2026-10-15] — [план](plan/docs-rework.md) · [контракты](contracts/docs-rework.md)
@@ -105,7 +111,7 @@ generated: true
 - [docs/guide/gpu-validation.md](guide/gpu-validation.md) — tools/gpu_validate.sh: загрузка места под слоем валидации Vulkan, lavapipe и wine+vkd3d-proton; пики RAM/VRAM, что ловит каждый режим.
 - [docs/guide/instruments.md](guide/instruments.md) — Планшет и вариометр 90-х (Vario, страницы, ветер, центровка), звук вариометра и звуки полёта; API, настройки и проверки.
 - [docs/guide/location-data.md](guide/location-data.md) — Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, sea, osm_tiles, WebP, кеш, догрузка, --prefetch.
-- [docs/guide/models/camp.md](guide/models/camp.md) — Модели лагеря у старта (assets/models/world): вещи, полусобранный аппарат, люди; ноды, материалы, бюджеты.
+- [docs/guide/models/camp.md](guide/models/camp.md) — Модели лагеря у старта (assets/models/world): вещи, полусобранный аппарат, люди (и Rocketbox); ноды, материалы, бюджеты.
 - [docs/guide/models/instruments-3d.md](guide/models/instruments-3d.md) — 3D-модели приборов (планшет, вариометр, часы, компас): оси, ноды, крепление к кисти и к штанге, кабинная камера.
 - [docs/guide/models/pilot.md](guide/models/pilot.md) — Модель пилота pilot.glb: меши, кости, пустышки, анимации и порядок фаз, перчатки, кабинный вид, сборка (MPFB), высота в подвеске.
 - [docs/guide/models/references.md](guide/models/references.md) — Скриншоты моделей, приёмка по фото реальных прототипов, что улучшить, источники референсов.
@@ -322,6 +328,7 @@ generated: true
 - [tools/research/heat_ca/exp5_adi/README.md](../tools/research/heat_ca/exp5_adi/README.md) — Опыт 5: чередующиеся прогонки по линиям (ADI) доводят автомат до той же точки за 100–190 раундов, в 9–23× быстрее шагов [closed]
 - [tools/research/lakes_worldcover/README.md](../tools/research/lakes_worldcover/README.md) — Озёра: WorldCover 10 м против OSM на 4 местах — IoU по крупным озёрам 0,86–0,97, вода не теряется на шагах сборки и в H [closed]
 - [tools/research/lee_cal/README.md](../tools/research/lee_cal/README.md) — Подгонка притока под ветер у старта в тени: верхний предел k 3 → 1 — числа до/после на Рапа-Нуи, Онгудае, Аскарово. [closed]
+- [tools/research/load_profile/README.md](../tools/research/load_profile/README.md) — Замер загрузки места после «карта загружена»: этапы и функции главного потока (тёпло/холодно, Онгудай и точка −27.7176,−48.7799) [closed]
 - [tools/research/location_compression/README.md](../tools/research/location_compression/README.md) — Сжатие данных мест (data/terrain, user://locations): почему выросли после перехода на GDScript и какие форматы Godot 4.7 дают выигрыш [closed]
 - [tools/research/morris/README.md](../tools/research/morris/README.md) — Моррис: чувствительность модели воздуха — Итог и выводы — docs/research/air-model-sensitivity.md. [closed]
 - [tools/research/mountain_look/README.md](../tools/research/mountain_look/README.md) — Замер «до»: как слои, сглаживание σ 0,8 и шаг LOD меняют силуэт гор (Эверест, Эльбрус, Монблан, Домбай, Онгудай); зонд MLK-К3 [closed]
