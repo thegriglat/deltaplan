@@ -1,0 +1,11 @@
+{
+  "module": "training-modes",
+  "plan": "docs/plan/training-modes.md",
+  "contracts": "docs/contracts/training-modes.md",
+  "branch": "feature/training-modes",
+  "copy": "~/deltaplan-training-modes",
+  "created": "2026-10-17T21:38:10",
+  "code": "TM",
+  "area": "game",
+  "base": "main"
+}
