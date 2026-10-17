@@ -291,7 +291,7 @@ func test_pilot_animator_sequence() -> void:
 	check(pa.current() == "prone", "потом лёжа")
 	for i in 400:  # долго летит, потом снижается к земле
 		pa.update("flying", 200.0, -1.0, 0.0, 0.05)
-	pa.update("flying", 10.0, -1.0, 0.0, 0.05)
+	pa.update("flying", 6.0, -1.0, 0.0, 0.05)
 	check(pa.current() == "climb_out", "у земли — выход из кокона")
 	for i in 40:
 		pa.update("flying", 5.0, -1.0, 0.0, 0.05)
