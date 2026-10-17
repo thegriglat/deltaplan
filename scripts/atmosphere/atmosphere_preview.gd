@@ -218,33 +218,28 @@ func _make_cb() -> void:
 	atmo.step(1.0)
 
 
-func _strongest_cloud(max_dist: float) -> AtmoThermal:
-	var layer := atmo.get_node_or_null("Clouds") as CloudLayer
-	if layer == null:
-		return null
-	var best: AtmoThermal = null
+## Центр кучевого облака поля, ближайшее к типичному размеру (~1,2 км), не дальше max_dist от нуля.
+func _strongest_cloud(max_dist: float) -> Variant:
+	atmo.cloud_phys.wait_field()
+	var best: Variant = null
 	var best_score := -1.0
-	for e: Array in layer.model.select(atmo.field.thermals, atmo.time_s, Vector3.ZERO):
-		var th: AtmoThermal = e[1]
-		var st: Vector3 = e[2]
-		var c: Vector2 = e[3]
-		if st.x < 0.8 or st.y > 0.1 or c.length() > max_dist:
+	for c: Dictionary in atmo.cloud_phys.visible_clouds(atmo.field.thermals, atmo.time_s, Vector3.ZERO):
+		var ctr: Vector2 = c.center
+		if float(c.growth) < 0.8 or float(c.decay) > 0.1 or ctr.length() > max_dist:
 			continue
-		# Ближе к типичному размеру (~1,2 км) — лучше для показа.
-		var score := 1.0 / (1.0 + absf(float(e[4]) - 600.0))
+		var score := 1.0 / (1.0 + absf(float(c.radius) - 600.0))
 		if score > best_score:
 			best_score = score
-			best = th
+			best = ctr
 	return best
 
 
 func _set_view(v: String) -> void:
 	var cb := atmo.get_cloudbase_msl()
-	var th := _strongest_cloud(6000.0)
-	var layer := atmo.get_node_or_null("Clouds") as CloudLayer
 	var c := Vector2.ZERO
-	if th != null and layer != null:
-		c = layer.model.center(th, atmo.time_s)
+	var spot: Variant = _strongest_cloud(6000.0)
+	if spot != null:
+		c = spot
 	var o: Vector3 = _site.get("position", Vector3.ZERO)
 	if not _site.is_empty() and v in ["horizon", "launch", "high"]:
 		# С площадки вдоль курса старта: облака над горами.

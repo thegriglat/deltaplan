@@ -20,11 +20,6 @@ const _THIRD := 1.0 / 3.0
 const _ALLEN_NORM := 1.0 / 0.75
 const _P_STRIDE := 14
 const _KEY_MUL := 1 << 21
-## Тень облака ищется у источников не дальше этого (снос + наклон столба), м — дальние
-## уплывшие облака тени не дают (упрощение: окно поиска конечное и не зависит от истории).
-const _SHADE_REACH_M := 6000.0
-## Смещение тени от солнца не больше этого, м (низкое солнце).
-const _SHADE_SUN_REACH_M := 4000.0
 ## «Клетка» источника поля: ia = _AIR_IA + j столбца, ic = i (далеко за сеткой клеток).
 const _AIR_IA := 1 << 19
 
@@ -37,8 +32,13 @@ var cloud_linger_s: float = 0.0
 var cloud_width_per_ms: float = 300.0
 var cloud_width_min: float = 350.0
 var cloud_width_max: float = 1800.0
-## Облака в физике (подсос, поток в облаке); задаёт Atmosphere.
-var cloud_phys: CloudPhysics
+## Облака в физике (подсос, поток в облаке) и поле облачности; задаёт Atmosphere. Поле берёт входы
+## отсюда (_cloud_inputs), тень поля — на источниках новых термиков (_cloud_shade_at).
+var cloud_phys: CloudPhysics:
+	set(v):
+		cloud_phys = v
+		if v != null:
+			v.inputs_fn = _cloud_inputs
 ## Доля солнечного прогрева земли (перистая пелена её снижает), 0..1.
 var insolation: float = 1.0
 ## Направление на солнце (для теней облаков).
@@ -74,10 +74,6 @@ var _buckets: Dictionary = {}
 var _active: Array[AtmoThermal] = []  ## термики в радиусе физики (обновляются каждый шаг)
 var _tp: PackedFloat64Array = PackedFloat64Array()  ## их параметры подряд, по _P_STRIDE чисел
 var _empty_cycles: Dictionary = {}  ## id цикла без термика -> до какого момента его помнить
-## «Голые» термики (без тени облаков) — для тени при рождении: id -> AtmoThermal, пустые циклы —
-## id -> до какого момента помнить.
-var _bare: Dictionary = {}
-var _bare_empty: Dictionary = {}
 var _prune_t: float = -1.0e18
 ## Клетка -> Vector2i(цикл, номер обновления), когда её последний раз обходили (_generate).
 var _cell_seen: Dictionary = {}
@@ -243,8 +239,6 @@ func _clear_air_caches() -> void:
 	abort_refresh()
 	for id in _air_ids.keys():
 		_empty_cycles.erase(id)
-		_bare.erase(id)
-		_bare_empty.erase(id)
 	_air_ids.clear()
 	for key in _cell_seen.keys():
 		if int(key) / _KEY_MUL - _KEY_OFFSET >= _AIR_IA:
@@ -254,8 +248,6 @@ func _clear_air_caches() -> void:
 func _clear_dynamic_caches() -> void:
 	abort_refresh()
 	_empty_cycles.clear()
-	_bare.clear()
-	_bare_empty.clear()
 	_cell_seen.clear()
 	_air_ids.clear()
 	_prune_t = -1.0e18
@@ -298,8 +290,6 @@ func add_static(x: float, z: float, strength_ms: float, radius_m: float) -> Atmo
 	th.strength = strength_ms
 	th.radius = radius_m
 	_setup_cloud(th, strength_ms, 0.0, _w)
-	# Статичные (MVP) — всегда с облаком, если достаточно сильные.
-	th.has_cloud = strength_ms >= float(_w.cloud_min_strength_ms)
 	_apply_wind(th, _street)
 	th.update_time(0.0)
 	thermals[th.id] = th
@@ -336,14 +326,10 @@ func rmax_extreme(r: float, w: Dictionary = {}) -> float:
 	return maxf(r, float((_w if w.is_empty() else w).thermal_radius_m[1]))
 
 
-func _setup_cloud(
-	th: AtmoThermal, strength_ms: float, rnd: float, w: Dictionary, force_cloud: bool = false
-) -> void:
-	# Сухие («голубые») термики — без облака: их ищут только по вариометру. Термики «+8» —
-	# всегда с крупным облаком (пилот: «по облакам идут — под ними большая скороподъёмность»).
-	var dry := float(w.get("dry_thermal_fraction", 0.0))
-	var rnd_dry := fposmod(rnd * 7.31 + 0.137, 1.0)
-	th.has_cloud = force_cloud or (strength_ms >= float(w.cloud_min_strength_ms) and rnd_dry >= dry)
+func _setup_cloud(th: AtmoThermal, strength_ms: float, rnd: float, w: Dictionary) -> void:
+	# Кучевые облака — поле облачности (CloudField), не объекты: has_cloud только у Cb (_setup_cb).
+	# Мощность и переразвитие — входы поля (аналитический путь, CloudFieldSources).
+	th.has_cloud = false
 	var smax := float(w.thermal_strength_ms[1])
 	var k := clampf(strength_ms / maxf(smax, 0.01), 0.0, 1.0)
 	th.cloud_depth = float(w.cloud_depth_m) * (0.35 + 0.65 * k)
@@ -651,18 +637,11 @@ func _ensure(ia: int, ic: int, cy: int, t_start: float, period: float, t: float)
 		_empty_cycles[id] = t_start + _reach_of(t_start, period)
 
 
-## Термик с тенью облаков: «голый» (без тени) и, если его источник в тени, — заново с тенью
-## (тень только ослабляет: без тени не родился — с тенью тоже).
+## Термик цикла: источник и сила — _spawn (тень поля облачности — на источнике, см. _cloud_shade_at).
 func _real_thermal(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThermal:
-	var bare := _bare_thermal(ia, ic, id, t_start, period)
-	if bare == null or ia >= _AIR_IA:
-		return bare
-	var shade := _shade_pure(Vector2(bare.src.x, bare.src.z), t_start, _env_at(t_start))
-	if shade <= 0.0:
-		return bare
-	var th := _spawn(ia, ic, id, t_start, period, shade)
+	var th := _spawn(ia, ic, id, t_start, period)
 	if th != null:
-		th.cycle_forget = bare.cycle_forget
+		th.cycle_forget = t_start + _reach_of(t_start, period)
 	return th
 
 
@@ -703,10 +682,8 @@ func _source_at(x: float, z: float, t: float) -> float:
 	return ground.sun(x, z)
 
 
-## Термик цикла, рождённого в t_start; shade — тень облаков на источнике 0..1 (0 — «голый»).
-func _spawn(
-	ia: int, ic: int, id: int, t_start: float, period: float, shade_in: float = 0.0
-) -> AtmoThermal:
+## Термик цикла, рождённого в t_start.
+func _spawn(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThermal:
 	if ia >= _AIR_IA:
 		return _spawn_air(ia, ic, id, t_start, period)
 	var rng := RandomNumberGenerator.new()
@@ -733,8 +710,8 @@ func _spawn(
 	# Источник там, где термики берутся из поля, — не рождается (там свои источники).
 	if air_src != null and air_src.covers(best):
 		return null
-	# В тени зрелого облака земля греется слабее (VR-2): меньше шанс и сила термика.
-	var shade := shade_in * float(_cfg.cloud_shade_factor)
+	# В тени облака поля земля греется слабее (VR-2): меньше шанс и сила термика.
+	var shade := _cloud_shade_at(best, env.sun) * float(_cfg.cloud_shade_factor)
 	best_sun *= 1.0 - shade
 	# Перистая пелена ослабляет солнце: источники реже и слабее (VR-28).
 	var ins: float = env.ins
@@ -763,13 +740,11 @@ func _spawn(
 	th.radius = lerpf(rmin, rmax, clampf(0.5 * rng.randf() + 0.5 * u, 0.0, 1.0))
 	# Изредка — очень сильные термики (8–9 м/с): опасные, «по варику +8 уже надо валить».
 	var ext: Array = w.get("thermal_extreme_ms", [])
-	var is_extreme := false
 	if rng.randf() < float(w.get("thermal_extreme_chance", 0.0)) and ext.size() == 2:
 		th.strength = rng.randf_range(float(ext[0]), float(ext[1])) * sun_k * ins
 		th.radius = rmax_extreme(th.radius, w)
-		is_extreme = true
 	_set_life(th, rng, t_start, period)
-	_setup_cloud(th, th.strength, rng.randf(), w, is_extreme)
+	_setup_cloud(th, th.strength, rng.randf(), w)
 	_setup_cb(th, rng.randf(), w)
 	_apply_wind(th, street.x)
 	return th
@@ -790,10 +765,9 @@ func _set_life(th: AtmoThermal, rng: RandomNumberGenerator, t_start: float, peri
 
 
 ## Термик источника поля (столбец j = ia − _AIR_IA, i = ic): точка, сила, потолок и снос — из
-## AirThermals; доля циклов, радиус, жизнь, облако, Cb, крайние — как у клетки. Тень облаков силу
-## не меняет: облачность неба уже в потоке тепла поля (sky.heat), а тень каждого облака на
-## источник без поправки поля вдвое уменьшила бы поток массы пузырей против поля (замер AM-07:
-## 0,48 с тенью, 0,98 без). Потолок частицы ниже кромки — сухой термик (облака нет).
+## AirThermals; доля циклов, радиус, жизнь, Cb, крайние — как у клетки. Силу ослабляет тень облака
+## поля на источнике (CLF-3; облачность неба — отдельно, в потоке тепла поля, sky.heat). Потолок
+## частицы ниже кромки — сухой термик (Cb нет).
 func _spawn_air(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThermal:
 	var v: Variant = air_src.index.get(Vector2i(ia - _AIR_IA, ic)) if air_src != null else null
 	if v == null or air_src == null:
@@ -816,7 +790,11 @@ func _spawn_air(ia: int, ic: int, id: int, t_start: float, period: float) -> Atm
 	if ext < 0:
 		return null
 	_set_life(th, rng, t_start, period)
-	_setup_cloud(th, th.strength, rng.randf(), w, ext == 1)
+	# Тень облака поля на источнике ослабляет термик (VR-2, CLF-3): сила × (1 − тень · множитель).
+	th.strength *= (
+		1.0 - _cloud_shade_at(Vector2(th.src.x, th.src.z), env.sun) * float(_cfg.cloud_shade_factor)
+	)
+	_setup_cloud(th, th.strength, rng.randf(), w)
 	_setup_cb(th, rng.randf(), w)
 	# Частица не дошла до кромки (инверсия ниже) — конденсации нет.
 	if air_src.top[s] < float(env.cb) - 1.0:
@@ -842,85 +820,34 @@ func _setup_cb(th: AtmoThermal, rnd: float, w: Dictionary) -> void:
 	th.overdevelop = 1.0
 
 
-## Насколько точка p в тени облаков (0..1) в момент t (статичные и динамические термики —
-## без тени на них самих, см. _shade_pure). Для тестов и отладки.
-func _cloud_shade(p: Vector2, t: float) -> float:
-	return _shade_pure(p, t, _env_at(t))
-
-
-## Тень облаков в точке p в момент t: облако — над верхом наклонённого столба зрелого термика
-## с облаком, тень смещена от облака против солнца. Динамические термики — «голые» (рождённые
-## без тени) соседних клеток: чистая функция (клетка, цикл), не зависит от того, какие термики
-## сейчас в списке. Ищем в конечном окне против ветра (снос, наклон) и против солнца.
-func _shade_pure(p: Vector2, t: float, env: Dictionary) -> float:
-	var sd: Vector3 = env.sun
-	if sd.y < 0.05:
+## Доля прямого солнца, закрытая полем облачности над точкой земли p (CloudField.shade_at, CLF-К1).
+func _cloud_shade_at(p: Vector2, sun: Vector3) -> float:
+	if cloud_phys == null or cloud_phys.field == null:
 		return 0.0
-	var sxz := Vector2(sd.x, sd.z) / sd.y
-	var wpm: float = env.wpm
-	var shade := 0.0
-	for th in _statics:
-		shade = maxf(shade, _static_shade(th, p, float(env.cb), sxz, wpm))
-	if mode == "static":
-		return shade
-	# Окно источников: p − (снос + наклон)·ось ветра − смещение тени, ± радиус облака.
-	var span := maxf(float(env.cb) - cloudbase_ref, 0.0) + float(_cfg.min_depth_m)
-	var sh := sxz * span
-	if sh.length() > _SHADE_SUN_REACH_M:
-		sh = sh.normalized() * _SHADE_SUN_REACH_M
-	var up := _ax * _SHADE_REACH_M if wind.speed_ref > 0.0 else Vector2.ZERO
-	var r := cloud_width_max * 0.5 + _spacing
-	var a_lo := INF
-	var a_hi := -INF
-	var c_lo := INF
-	var c_hi := -INF
-	for corner: Vector2 in [p, p - up, p + sh, p - up + sh]:
-		var ca := corner.dot(_ax)
-		var cc := corner.dot(_cx)
-		a_lo = minf(a_lo, ca)
-		a_hi = maxf(a_hi, ca)
-		c_lo = minf(c_lo, cc)
-		c_hi = maxf(c_hi, cc)
-	var cbf := _cb_factor()
-	for ic in range(floori((c_lo - r) / _spacing), floori((c_hi + r) / _spacing) + 1):
-		for ia in range(floori((a_lo - r) / _spacing), floori((a_hi + r) / _spacing) + 1):
-			shade = maxf(shade, _cell_shade(ia, ic, p, t, sxz, wpm, cbf))
-	# Источники поля в том же окне (по месту: p − снос − тень ± облако).
-	if air_src != null and air_src.count() > 0:
-		var lo := p
-		var hi := p
-		for corner: Vector2 in [p - up, p + sh, p - up + sh]:
-			lo = lo.min(corner)
-			hi = hi.max(corner)
-		var nx := air_src.level.nx
-		for s in air_src.sources_in(0.5 * (lo + hi), -1.0, 0.5 * (hi - lo) + Vector2(r, r)):
-			var c := air_src.col[s]
-			shade = maxf(shade, _cell_shade(_AIR_IA + c / nx, c % nx, p, t, sxz, wpm, cbf))
-	return shade
+	return cloud_phys.field.shade_at(p, sun)
 
 
-## Тень в p от облаков клетки (ia, ic): текущий цикл; прежние — только Cb (обычный термик
-## кончается до конца цикла).
-func _cell_shade(
-	ia: int, ic: int, p: Vector2, t: float, sxz: Vector2, wpm: float, cbf: float
-) -> float:
-	var shade := 0.0
-	var pp := _cell_params(ia, ic)
-	var cycle := floori((t + pp.y) / pp.x)
-	var k := 0
-	while true:
-		var cy := cycle - k
-		var t_start := cy * pp.x - pp.y
-		k += 1
-		if k > 1:
-			if t_start + pp.x * cbf < t:
-				break
-			if cb_thermal_chance(_weather_at(t_start)) <= 0.0:
-				continue
-		var th := _bare_thermal(ia, ic, _mix(ia, ic, cy) | 1, t_start, pp.x)
-		if th != null:
-			shade = maxf(shade, _shade_of(th, p, t, sxz, wpm))
-	return shade
+## Входы поля облачности (CLF-К1) на момент t: источники поля воздуха, погода и кромка момента t,
+## ветер. Пусто — поля воздуха и ветра нет.
+func _cloud_inputs(t: float) -> Dictionary:
+	if wind == null:
+		return {}
+	var env := _env_at(t)
+	var ref := cloudbase_ref
+	var wm := wind  # лямбда без self: ThermalField не должен освобождаться в рабочем потоке
+	var inp := {
+		"weather": env.w,
+		"cloudbase_msl": float(env.cb),
+		"ground_ref": ref,
+		"seed": _seed,
+		"wind_at": func(z_msl: float) -> Vector2: return wm.vec2_at(maxf(z_msl - ref, 0.0)),
+	}
+	var f := _air_level()
+	if f != null:
+		inp["wind_field"] = f
+	if air_src != null:
+		inp["air"] = air_src
+	return inp
 
 
 # ---------------------------------------------------------------- поле воздуха (AM-07)
@@ -1081,56 +1008,6 @@ func air_sources_mask() -> Dictionary:
 	return {"sig": air_src.grid_sig, "mask": air_src.mask_bytes()}
 
 
-## Тень статичного термика при кромке cb (верх и наклон — на тот момент, не текущие).
-func _static_shade(th: AtmoThermal, p: Vector2, cb: float, sxz: Vector2, wpm: float) -> float:
-	if not th.has_cloud:
-		return 0.0
-	var span := maxf(cb, th.src.y + float(_cfg.min_depth_m)) - th.src.y
-	var rise := maxf(th.strength * float(_cfg.rise_factor), float(_cfg.rise_min_ms))
-	var lean := wind.vec2_at(span * 0.5) / rise
-	var max_lean := tan(deg_to_rad(float(_cfg.max_lean_deg)))
-	if lean.length() > max_lean:
-		lean = lean.normalized() * max_lean
-	var c := Vector2(th.src.x, th.src.z) + lean * span - sxz * span
-	var r := clampf(wpm * th.strength, cloud_width_min, cloud_width_max) * 0.5
-	var d := c.distance_to(p)
-	if d >= r:
-		return 0.0
-	return 1.0 - smoothstep(r * 0.6, r, d)
-
-
-func _shade_of(th: AtmoThermal, p: Vector2, t: float, sxz: Vector2, wpm: float) -> float:
-	if not th.has_cloud:
-		return 0.0
-	var e := th.envelope(t)
-	if e < 0.5:
-		return 0.0
-	var c := th.cloud_center(t) - sxz * (th.top - th.src.y)
-	var r := clampf(wpm * th.strength, cloud_width_min, cloud_width_max) * 0.5
-	var d := c.distance_to(p)
-	if d >= r:
-		return 0.0
-	return e * (1.0 - smoothstep(r * 0.6, r, d))
-
-
-func _bare_thermal(ia: int, ic: int, id: int, t_start: float, period: float) -> AtmoThermal:
-	var v: Variant = _bare.get(id)
-	if v != null:
-		return v
-	if _bare_empty.has(id):
-		return null
-	var th := _spawn(ia, ic, id, t_start, period, 0.0)
-	if ia >= _AIR_IA:
-		_air_ids[id] = true
-	var forget := t_start + _reach_of(t_start, period)
-	if th == null:
-		_bare_empty[id] = forget
-	else:
-		th.cycle_forget = forget
-		_bare[id] = th
-	return th
-
-
 ## Раз в минуту — забыть пустые циклы и «голые» термики, которые уже не понадобятся (с запасом
 ## на самые старые циклы, что ещё рождаются), и клетки далеко от круга.
 func _prune(t: float) -> void:
@@ -1140,21 +1017,11 @@ func _prune(t: float) -> void:
 	for id in _empty_cycles.keys():
 		if t > float(_empty_cycles[id]):
 			_empty_cycles.erase(id)
-	var hi := 0.0
-	for k in ["grow_s", "mature_s", "decay_s", "gap_s"]:
-		hi += float(_cfg[k][1])
-	var old := t - 2.0 * (hi * _cb_factor() + cloud_linger_s)
-	for id in _bare.keys():
-		if (_bare[id] as AtmoThermal).cycle_forget < old:
-			_bare.erase(id)
-	for id in _bare_empty.keys():
-		if float(_bare_empty[id]) < old:
-			_bare_empty.erase(id)
 	for key in _cell_seen.keys():
 		if (_cell_seen[key] as Vector2i).y < _gen_stamp - 1:
 			_cell_seen.erase(key)
 	for id in _air_ids.keys():
-		if not (_empty_cycles.has(id) or _bare.has(id) or _bare_empty.has(id)):
+		if not (_empty_cycles.has(id) or thermals.has(id)):
 			_air_ids.erase(id)
 
 

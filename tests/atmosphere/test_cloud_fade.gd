@@ -116,11 +116,12 @@ func test_cap_prefers_shown() -> void:
 	)
 
 
-## Короткий полёт (3 мин атмосферы, medium; лимит облаков урезан, чтобы работала обрезка):
-## ни одно видимое облако не пропадает скачком и не появляется сразу плотным.
+## Короткий полёт (3 мин атмосферы, грозовой день — облака-объекты теперь только Cb; лимит облаков
+## урезан, чтобы работала обрезка): ни одно видимое облако не пропадает скачком и не появляется
+## сразу плотным. Кучевые — поле облачности (tests/atmosphere/test_cloud_field_runtime.gd).
 ## (Длинный 20-минутный прогон убран по просьбе пользователя — долго.)
 func test_no_instant_disappearance_in_flight() -> void:
-	var r := _fly("weather/medium", 180)
+	var r := _fly("weather/storm", 180)
 	check(r.events.is_empty(), "мгновенные исчезновения/появления: %s" % [r.events])
 	check(int(r.max_vis) > 0, "облака рисовались")
 
@@ -129,7 +130,7 @@ func _fly(weather: String, seconds: int) -> Dictionary:
 	var a := Atmosphere.new()
 	var w := Config._deep_merge(Config.get_config(weather), {"wind_speed_kmh": 15.0})
 	var acfg := Config.get_config("atmosphere").duplicate(true)
-	acfg.clouds.max_clouds = 40
+	acfg.clouds.max_clouds = 6
 	a.configure(acfg, w)
 	a.turbulence_enabled = false
 	a.set_ground(_flat, _sun)

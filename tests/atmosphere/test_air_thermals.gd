@@ -508,6 +508,9 @@ static func _atmo(f: WindField) -> Atmosphere:
 	a.seed_value = 7
 	a.configure(Config.get_config("atmosphere"), w)
 	a.field.air_async = false  # тесты — синхронно (поток = синхронно: PF-К4)
+	# Тень поля облачности (CLF-3) зависит от истории поля — здесь проверяются источники поля
+	a.field._cfg = a.field._cfg.duplicate()
+	a.field._cfg.cloud_shade_factor = 0.0
 	a.set_ground(f.ground_height, _sun_one)
 	a.turbulence_enabled = false
 	a.wave.enabled = false
