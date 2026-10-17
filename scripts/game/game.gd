@@ -426,9 +426,6 @@ func start(s: FlightSettings) -> bool:
 		await bots.prefetch_obstacles(terrain, _start_pos)
 	while job.air:
 		await get_tree().process_frame
-	# Источники термиков из поля — в рабочем потоке, пока готовится планер (FL-5).
-	if air.has_method("prefetch_air_sources"):
-		air.call("prefetch_air_sources")
 	_align_start_heading()
 	if air.has_method("place_thermals_near"):
 		air.call("place_thermals_near", _start_pos, _start_heading)
@@ -495,6 +492,10 @@ func _air_field_job(progress: LoadProgress, job: Dictionary) -> void:
 	# снимок поверхности (AirPlace.surface_start) ждёт поля рельефа — ждать кадрами, а не блокирующе
 	await _wait_relief()
 	await _load_air_field(progress, job)
+	# Источники термиков из поля — в рабочем потоке сразу по готовности поля (FL-5), пока строятся объекты и
+	# планер; входы сборки сверяются при первом обновлении (сменились — сборка заново, итог тот же).
+	if air.has_method("prefetch_air_sources"):
+		air.call("prefetch_air_sources")
 	job.air = false
 
 
