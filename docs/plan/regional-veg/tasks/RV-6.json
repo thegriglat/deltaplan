@@ -1,0 +1,60 @@
+{
+  "id": "RV-6",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Дома: формы H1/H2 и ключи профиля региона",
+  "goal": "BuildingPlacer строит плоскую крышу с парапетом и низкую вальмовую по ключам village_roof/city_roof, ограничивает этажность домов по правилу max_levels; без новых ключей дома как сейчас.",
+  "plan_ref": "Волна 1",
+  "contracts": [
+    {
+      "name": "RV-К4",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-6",
+  "branch": "regional-veg/RV-6",
+  "base": "feature/regional-veg",
+  "scope": [
+    "scripts/world_objects/building_placer.gd",
+    "scripts/world_objects/osm/building_style.gd",
+    "scripts/world_objects/osm/osm_buildings.gd",
+    "scripts/world_objects/village_layer.gd",
+    "scripts/world_objects/osm/building.gdshader",
+    "configs/world_objects.json",
+    "tests/world_objects/test_building_forms.gd",
+    "tests/world_objects/test_building_forms.gd.uid",
+    "tests/world_objects/test_building_style.gd",
+    "tests/world_objects/test_osm_buildings.gd",
+    "docs/guide/world-objects/villages-osm.md"
+  ],
+  "dont_touch": [
+    "tools/osm",
+    "configs/osm_tiles.json",
+    "scripts/terrain",
+    "configs/world.json",
+    "tests/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "building",
+      "tests": "building"
+    },
+    {
+      "name": "osm_look",
+      "tests": "osm_look"
+    },
+    {
+      "name": "test_building_forms",
+      "tests": "test_building_forms"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T00:27:19"
+}

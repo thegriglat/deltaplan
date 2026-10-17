@@ -1,0 +1,66 @@
+{
+  "id": "RV-1",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Регион места: запекание biomes.json и Biome",
+  "goal": "Скрипт запекает из Кёппена (Beck 2018) дерево решений 128 листьев по lat/lon + исключения + заготовки профилей в configs/biomes.json; Biome.at(lat, lon) даёт профиль места; 12 эталонных точек проходят.",
+  "plan_ref": "Волна 1",
+  "contracts": [
+    {
+      "name": "RV-К1",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-1",
+  "branch": "regional-veg/RV-1",
+  "base": "feature/regional-veg",
+  "scope": [
+    "tools/world/bake_biomes.py",
+    "configs/biomes.json",
+    "scripts/world/biome.gd",
+    "scripts/world/biome.gd.uid",
+    "tests/world/test_biome.gd",
+    "tests/world/test_biome.gd.uid",
+    "ASSETS.md",
+    "tools/research/regional_veg/README.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain",
+    "scripts/world_objects",
+    "configs/world.json",
+    "configs/world_objects.json",
+    "configs/locations",
+    "tests/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "test_biome",
+      "tests": "test_biome"
+    },
+    {
+      "name": "biomes_size",
+      "cmd": "stat -c %s configs/biomes.json",
+      "expect": "num:^(\\d+) <=8192"
+    },
+    {
+      "name": "world_acc",
+      "cmd": "/home/greg/.cache/deltaplan/koppen/v/bin/python -I tools/world/bake_biomes.py --check /home/greg/.cache/deltaplan/koppen/kg",
+      "expect": "num:world_acc=([0-9.]+) >=0.83"
+    },
+    {
+      "name": "assets_md",
+      "cmd": "python3 tools/check_assets_md.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T00:25:18",
+  "edited": "2026-10-18T00:25:45"
+}

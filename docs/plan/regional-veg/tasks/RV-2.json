@@ -1,0 +1,68 @@
+{
+  "id": "RV-2",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Набор пород места вместо константы на 5",
+  "goal": "Породы деревьев берутся из набора места trees.set (≤ 6) и реестра в configs/world.json (atlas_cell, season_kind, conifer); грузятся только модели набора; при наборе по умолчанию Алтай не меняется ни в одном экземпляре.",
+  "plan_ref": "Волна 1",
+  "contracts": [
+    {
+      "name": "RV-К2",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-2",
+  "branch": "regional-veg/RV-2",
+  "base": "feature/regional-veg",
+  "scope": [
+    "scripts/terrain/tree_placer.gd",
+    "scripts/terrain/terrain_tree_models.gd",
+    "scripts/terrain/tree_crosses.gd",
+    "scripts/terrain/tree_cross.gdshader",
+    "scripts/terrain/forest_impostors.gd",
+    "scripts/terrain/forest_impostors.gdshader",
+    "scripts/terrain/tree_cell.gd",
+    "configs/world.json",
+    "tests/terrain/test_trees.gd",
+    "tests/vegetation",
+    "tests/terrain/test_species_set.gd",
+    "tests/terrain/test_species_set.gd.uid",
+    "tests/fixtures/species_set",
+    "tools/shots/tree_lod_shot.gd",
+    "docs/guide/models/trees.md",
+    "docs/guide/vegetation.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/scene_look.gdshaderinc",
+    "scripts/terrain/season_look.gd",
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "tools/blender",
+    "assets",
+    "configs/locations",
+    "tests/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "tree",
+      "tests": "tree"
+    },
+    {
+      "name": "test_species_set",
+      "tests": "test_species_set"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T00:26:14"
+}

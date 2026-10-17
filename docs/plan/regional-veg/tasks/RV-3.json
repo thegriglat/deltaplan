@@ -1,0 +1,52 @@
+{
+  "id": "RV-3",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Генератор деревьев: место под 3 новые породы и сборка атласа",
+  "goal": "build_trees.py знает породы oak, palm, tropical (заготовки параметров, 4 варианта, точки расширения кроны и листвы) и собирает атлас импостеров флагом --atlas-only без пересборки пород; старые 5 пород не меняются.",
+  "plan_ref": "Волна 1",
+  "contracts": [
+    {
+      "name": "RV-К3",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-3",
+  "branch": "regional-veg/RV-3",
+  "base": "feature/regional-veg",
+  "scope": [
+    "tools/blender/build_trees.py",
+    "tools/blender/tree_params.json",
+    "tools/blender/tree_textures.py",
+    "tools/blender/render_trees.py"
+  ],
+  "dont_touch": [
+    "assets",
+    "scripts",
+    "configs",
+    "tests",
+    "docs/guide",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "params",
+      "cmd": "python3 -c \"import json;s=json.load(open('tools/blender/tree_params.json'))['species'];print('ok' if all(s[k].get('variants')==4 for k in ['oak','palm','tropical']) and all('variants' not in s[k] for k in ['pine','cedar','larch','birch','spruce']) else 'bad')\"",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "atlas_same",
+      "cmd": "xvfb-run -a blender --background --python tools/blender/build_trees.py -- --atlas-only --atlas-out build/rv3/atlas.png --compare assets/models/trees/trees_impostor_atlas.png",
+      "expect": "num:atlas_maxdiff=(\\d+) <=1"
+    },
+    {
+      "name": "old_untouched",
+      "cmd": "git status --porcelain assets",
+      "expect": "!re:\\S"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T00:26:54"
+}
