@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "start-dog",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/start-dog.md"
     }
   ],
@@ -70,5 +70,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T09:47:32"
+  "created": "2026-10-17T09:47:32",
+  "edited": "2026-10-17T10:47:33"
 }
