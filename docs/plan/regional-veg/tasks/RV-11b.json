@@ -1,0 +1,52 @@
+{
+  "id": "RV-11b",
+  "module": "regional-veg",
+  "type": "dp-mechanic",
+  "title": "Ронделавель: текстуры после пересборки — сжатие VRAM и мипмапы",
+  "goal": "Godot извлекает из пересобранного house_rondavel.glb текстуры под новыми именами (house_rondavel_{roof,wall,wood}_rondavel.png), их нет в git и импорт у них по умолчанию; закоммитить их с VRAM-сжатием и мипмапами, старые неиспользуемые убрать.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "RV-К6",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-11b",
+  "branch": "regional-veg/RV-11b",
+  "base": "feature/regional-veg",
+  "scope": [
+    "assets/models/houses"
+  ],
+  "dont_touch": [
+    "tools",
+    "scripts",
+    "configs",
+    "tests",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "new_tracked",
+      "cmd": "git ls-files assets/models/houses | grep -c '_rondavel\\.png\\.import$'",
+      "expect": "num:^(\\d+) >=3"
+    },
+    {
+      "name": "vram",
+      "cmd": "grep -h 'compress/mode=' assets/models/houses/house_rondavel_*_rondavel.png.import | grep -vc 'compress/mode=2'",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "clean",
+      "cmd": "git status --porcelain assets/models/houses | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T03:31:00"
+}
