@@ -119,8 +119,9 @@ func test_air_cache_miss_paths() -> void:
 	# выключен
 	rt.cache_enabled = false
 	check(not rt.cache_ready(), "cache_enabled = false — не читает")
-	var ok: bool = await rt.load_field()
-	check(not ok and rt.last_info.get("cache", false) != true, "cache_enabled = false — обычный путь (headless: аналитика)")
+	await rt.load_field()
+	# обычный путь: без GPU — аналитика (ok = false), с GPU — расчёт; из кеша — нет
+	check(rt.last_info.get("cache", false) != true, "cache_enabled = false — обычный путь, не из кеша")
 	rt.cache_enabled = true
 	rt.cache_override = _cache(0.0)
 	check(not rt.cache_ready(), "max_mb = 0 — не читает")
