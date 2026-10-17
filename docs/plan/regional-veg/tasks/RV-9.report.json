@@ -1,0 +1,91 @@
+{
+  "status": "done",
+  "summary": "Профиль региона Biome.at(lat, lon) сливается в деревья, terrain_look, scene_look (Terrain.region_section, в т.ч. набор пород для фоновой загрузки моделей) и в buildings (WorldObjects.load_config(lat, lon)); профили настроены в bake_biomes.py → biomes.json (7,2 КБ), реестр моделей домов, пояса oak/palm/tropical, атлас пересобран (ячейки 5–7 не пустые, 0–4 прежние), потолок max_levels действует и на дома посёлка (7 полей), цвет экземпляра красит только Wall_*; кадры 5 мест + «до» для Онгудая и Бразилии.",
+  "commits": [
+    "b1a9205e RV-9: профиль региона в terrain.gd и конфиге домов, профили, реестр моделей, тест",
+    "3a8c84e9 RV-9: атлас импостеров с oak, palm, tropical",
+    "d57c280d RV-9: документация, CHANGELOG, ASSETS, выводы",
+    "1fa71791 убрать случайно закоммиченные импортные текстуры ронделавеля"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "tree",
+      "value": "56/56 (пропуск 5)",
+      "pass": true
+    },
+    {
+      "name": "building",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "test_biome",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_species_set",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "scene_look_contracts",
+      "value": "29/29",
+      "pass": true
+    },
+    {
+      "name": "test_region_wiring",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "places_shots",
+      "value": "32",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "docs check: findings.md уже был у предела 40 КБ (40954 Б), моя строка довела до 41336 Б — ошибка размера реестра; нужно разбить реестр (вне скоупа)",
+    "Ханга-Роа: OSM-дома с высотой из тегов не режутся потолком (по контракту только «по правилу» и дома посёлка); на кадре видны многоэтажные OSM-постройки"
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/regional-veg/places/{brazil,alps,altai_ongudai,mediterranean,rapa_nui,rapa_nui_hanga_roa,brazil_before,altai_ongudai_before}/"
+  ],
+  "how_to_check": ".dpcli/dpcli accept RV-9",
+  "uncertain": [
+    {
+      "where": "configs/biomes.json profiles / configs/world.json trees.species",
+      "why": "веса, пояса (palm ≤450 м, tropical ≤1700 м, oak 0–1200 м), evergreen и тон полога — KISS-ориентиры по заданию, не калибровка по данным; выше пояса всех пород набора деревьев нет",
+      "checked": "кадры Бразилии (полог тёмно-зелёный), Ниццы, Хангa-Роа; Онгудай данные не изменились (тест)"
+    },
+    {
+      "where": "scripts/world_objects/building_placer.gd:90",
+      "why": "потолок для записей: размер < 8 (7 полей, дома посёлка) или поле 8 = 1; 8-польные не режутся (по существующему тесту test_max_levels)",
+      "checked": "building 18/18"
+    },
+    {
+      "where": "scripts/world_objects/building_placer.gd:_model_lods",
+      "why": "цвет экземпляра применяется к материалам без имени или Wall*; Roof*/Wood* не тонируются — по именам материалов glb; внешний вид соломы вблизи не рассматривал",
+      "checked": "тесты building; материалы Wall_/Roof_/Wood_ есть во всех трёх glb"
+    },
+    {
+      "where": "кадры rapa_nui",
+      "why": "центр volcano_island (-27.1) — не посёлок; для домов добавлен кадр rapa_nui_hanga_roa (-27.149,-109.427). Деревья там по виду не пальмы — не разбирал",
+      "checked": "кадры просмотрены"
+    },
+    {
+      "where": "assets/models/houses/house_rondavel_*_rondavel.png",
+      "why": "Godot-импорт создаёт эти текстуры из glb RV-11a; я их по ошибке закоммитил и убрал; у соседей/в feature они могут снова появиться при импорте",
+      "checked": "accept scope PASS"
+    }
+  ],
+  "dp_feedback": "task sync отказывает при грязной копии — неочевидно, что надо сначала коммитить; git add -A подхватывает артефакты импорта Godot, хотелось бы предупреждение в accept до коммита. docs check: лимит findings.md исчерпан.",
+  "t": "2026-10-18T03:20:54",
+  "by": "executor"
+}

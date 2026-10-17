@@ -23,7 +23,7 @@
     },
     {
       "name": "RV-К4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/regional-veg.md"
     },
     {
@@ -106,9 +106,15 @@
       "name": "places_shots",
       "cmd": "ls /home/greg/deltaplan/build/screenshots/regional-veg/places/*/ | grep -cE '\\.(png|jpg)$'",
       "expect": "num:^(\\d+) >=10"
+    },
+    {
+      "name": "docs_check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-18T01:25:08"
+  "created": "2026-10-18T01:25:08",
+  "edited": "2026-10-18T03:21:32"
 }
