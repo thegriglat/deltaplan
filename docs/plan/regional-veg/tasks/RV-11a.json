@@ -1,0 +1,49 @@
+{
+  "id": "RV-11a",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Ронделавель: починить дальний LOD",
+  "goal": "LOD2 ронделавеля — цилиндр-коробка стены с конусом/пирамидой крыши по центру сверху, без висящей сбоку плоской крыши; ≤ 40 треугольников, формат RV-К6 прежний.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "RV-К6",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-11a",
+  "branch": "regional-veg/RV-11a",
+  "base": "feature/regional-veg",
+  "scope": [
+    "tools/blender/build_house_rondavel.py",
+    "assets/models/houses",
+    "assets/source/houses/house_rondavel.blend"
+  ],
+  "dont_touch": [
+    "tools/blender/bl_util.py",
+    "scripts",
+    "configs",
+    "tests",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "previews",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/regional-veg/models/houses/rondavel_v2/ | grep -cE '\\.(jpg|png)$'",
+      "expect": "num:^(\\d+) >=1"
+    },
+    {
+      "name": "own_files_only",
+      "cmd": "git diff --name-only $(git merge-base HEAD feature/regional-veg) -- assets | grep -v rondavel | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T02:43:03"
+}

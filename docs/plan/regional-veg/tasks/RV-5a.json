@@ -1,0 +1,61 @@
+{
+  "id": "RV-5a",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Пальма: переделка по шлюзу Q1",
+  "goal": "Пальма с кроной в 2–3 раза шире нынешней, длинными свисающими дугой листьями и более толстым стволом; формат RV-К3 прежний, импостер вмещает широкую крону.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "RV-К3",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-5a",
+  "branch": "regional-veg/RV-5a",
+  "base": "feature/regional-veg",
+  "scope": [
+    "tools/blender/build_trees.py",
+    "tools/blender/tree_params.json",
+    "tools/blender/tree_textures.py",
+    "tools/blender/render_trees.py",
+    "assets/models/trees/tree_palm.glb",
+    "assets/models/trees/tree_palm.glb.import",
+    "assets/models/trees/tree_palm_*",
+    "assets/source/trees/tree_palm*",
+    "assets/source/trees/palm_*"
+  ],
+  "dont_touch": [
+    "assets/models/trees/trees_impostor_atlas.png",
+    "scripts",
+    "configs",
+    "tests",
+    "ASSETS.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "glb",
+      "cmd": "test -f assets/models/trees/tree_palm.glb && echo ok",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "previews",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/regional-veg/models/palm_v2/ | grep -cE '\\.(jpg|png)$'",
+      "expect": "num:^(\\d+) >=2"
+    },
+    {
+      "name": "old_untouched",
+      "cmd": "git diff --name-only $(git merge-base HEAD feature/regional-veg) -- assets | grep -vE 'tree_palm|/palm_' | wc -l",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T02:42:59"
+}
