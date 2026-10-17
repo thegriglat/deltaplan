@@ -45,17 +45,87 @@ EXCEPTIONS = [
 ]
 
 OLD = ["pine", "cedar", "larch", "birch", "spruce"]
-# Заготовки: только trees.set; тон полога, веса, пояса, дома — RV-9
+
+
+def _pal(walls, roofs):
+    return {"village": {"wall_colors": walls, "roof_colors": roofs}}
+
+
+# Профили региона (RV-К1, RV-9): trees (set, веса species), terrain_look (тон полога), scene_look (evergreen),
+# buildings (форма и модели домов, палитры, потолок этажей). boreal/alpine_ice — ровно {trees:{set}}: Алтай/Урал не меняются.
+# Пояса пород по высоте — общие, configs/world.json -> trees.species (palm ≈ 0–450 м, tropical ≈ 0–1700 м, oak ≈ 0–1200 м).
+# Тон полога (terrain_look.forest_color/birch_color, линейный RGB; по умолчанию 0.06,0.12,0.05 / 0.13,0.20,0.07):
+# тропики темнее и насыщеннее (глубокая листва, много влаги), саванна и средиземноморье суше и светлее.
 PROFILES = {
-    "arid": ["pine", "cedar", "spruce", "birch"],
-    "tropical_wet": ["tropical", "palm"],
-    "savanna": ["tropical", "palm", "pine"],
-    "mediterranean": ["pine", "oak", "palm", "cedar", "spruce"],
-    "subtropical": ["tropical", "palm", "oak", "pine", "cedar", "spruce"],
-    "temperate": ["spruce", "larch", "cedar", "pine", "oak", "birch"],
-    "boreal": OLD,
-    "alpine_ice": OLD,
-    "island": ["palm", "tropical"],
+    "arid": {
+        "trees": {"set": ["pine", "cedar", "spruce", "birch"]},
+        "buildings": {
+            "village_roof": "flat_parapet", "city_roof": "flat_parapet",
+            "style": _pal([[0.74, 0.62, 0.45], [0.68, 0.55, 0.4], [0.78, 0.68, 0.52], [0.7, 0.58, 0.46]],
+                          [[0.4, 0.3, 0.22], [0.36, 0.28, 0.22], [0.42, 0.34, 0.26]]),
+        },
+    },
+    "tropical_wet": {
+        "trees": {"set": ["tropical", "palm"], "species": {"palm": {"weight": 0.4}}},
+        "terrain_look": {"forest_color": [0.035, 0.1, 0.035], "birch_color": [0.07, 0.17, 0.05]},
+        "scene_look": {"evergreen": 1.0},
+        "buildings": {
+            "village_models": [{"name": "stilt_house", "weight": 0.6}, {"name": "tin_house", "weight": 0.4}],
+            "village_model_share": 0.6,
+            "style": _pal([[0.72, 0.66, 0.5], [0.6, 0.7, 0.62], [0.78, 0.74, 0.62], [0.7, 0.55, 0.42]],
+                          [[0.5, 0.25, 0.2], [0.3, 0.38, 0.3], [0.36, 0.4, 0.46]]),
+        },
+    },
+    "savanna": {
+        "trees": {"set": ["tropical", "palm", "pine"], "species": {"palm": {"weight": 0.3}, "tropical": {"weight": 0.7}}},
+        "terrain_look": {"forest_color": [0.085, 0.125, 0.05], "birch_color": [0.15, 0.19, 0.07]},
+        "scene_look": {"evergreen": 0.6},
+        "buildings": {
+            "village_models": [{"name": "rondavel", "weight": 0.6}, {"name": "tin_house", "weight": 0.4}],
+            "village_model_share": 0.7,
+            "style": _pal([[0.72, 0.58, 0.42], [0.66, 0.52, 0.38], [0.76, 0.66, 0.5], [0.7, 0.6, 0.48]],
+                          [[0.4, 0.3, 0.2], [0.45, 0.22, 0.18], [0.34, 0.38, 0.42]]),
+        },
+    },
+    "mediterranean": {
+        "trees": {"set": ["pine", "oak", "palm", "cedar", "spruce"], "species": {"pine": {"weight": 1.0}, "palm": {"weight": 0.2}}},
+        "terrain_look": {"forest_color": [0.07, 0.11, 0.05], "birch_color": [0.12, 0.16, 0.07]},
+        "scene_look": {"evergreen": 0.5},
+        "buildings": {
+            "village_roof": "hip", "max_levels": 4,
+            "style": _pal([[0.85, 0.8, 0.7], [0.88, 0.84, 0.76], [0.8, 0.74, 0.62], [0.84, 0.72, 0.58]],
+                          [[0.58, 0.28, 0.18], [0.52, 0.25, 0.17], [0.62, 0.32, 0.2]]),
+        },
+    },
+    "subtropical": {
+        "trees": {"set": ["tropical", "palm", "oak", "pine", "cedar", "spruce"],
+                  "species": {"palm": {"weight": 0.4}, "oak": {"weight": 0.6}}},
+        "terrain_look": {"forest_color": [0.045, 0.105, 0.04], "birch_color": [0.09, 0.18, 0.055]},
+        "scene_look": {"evergreen": 0.8},
+        "buildings": {
+            "village_roof": "hip",
+            "village_models": [{"name": "tin_house", "weight": 1.0}], "village_model_share": 0.3,
+            "style": _pal([[0.8, 0.76, 0.66], [0.72, 0.7, 0.6], [0.76, 0.66, 0.54], [0.66, 0.72, 0.64]],
+                          [[0.5, 0.25, 0.2], [0.34, 0.4, 0.34], [0.38, 0.38, 0.42]]),
+        },
+    },
+    "temperate": {"trees": {"set": ["spruce", "larch", "cedar", "pine", "oak", "birch"]}},
+    "boreal": {"trees": {"set": OLD}},
+    "alpine_ice": {"trees": {"set": OLD}},
+    # Остров Пасхи / Ханга-Роа: пальма и тропический лес (вечнозелёные), один этаж, жестяные крыши
+    "island": {
+        "trees": {"set": ["palm", "tropical"], "species": {"palm": {"weight": 0.6}}},
+        "terrain_look": {"forest_color": [0.04, 0.105, 0.04], "birch_color": [0.08, 0.17, 0.05]},
+        "scene_look": {"evergreen": 1.0},
+        "buildings": {
+            "max_levels": 1, "max_levels_osm": True,
+            "village_models": [{"name": "tin_house", "weight": 1.0}], "village_model_share": 0.7,
+            "style": {**_pal([[0.86, 0.84, 0.78], [0.8, 0.82, 0.74], [0.84, 0.76, 0.66], [0.78, 0.84, 0.86]],
+                              [[0.5, 0.25, 0.2], [0.3, 0.4, 0.5], [0.28, 0.42, 0.32]]),
+                      "city": {"wall_colors": [[0.86, 0.84, 0.78], [0.8, 0.82, 0.74], [0.84, 0.76, 0.66]],
+                               "roof_colors": [[0.5, 0.25, 0.2], [0.3, 0.4, 0.5]]}},
+        },
+    },
 }
 
 
@@ -134,7 +204,7 @@ def bake(kg_dir, leaves):
         "classes": CLASSES,
         "tree": export_tree(t),
         "exceptions": EXCEPTIONS,
-        "profiles": {k: {"trees": {"set": v}} for k, v in PROFILES.items()},
+        "profiles": PROFILES,
     }
 
 

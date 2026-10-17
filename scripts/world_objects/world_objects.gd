@@ -196,7 +196,8 @@ func _begin(
 	_clearings = null
 	_place = place if place != null and place.location_id == loc_id else null
 	location_id = loc_id
-	cfg = WorldObjects.load_config()
+	var lc0: Dictionary = Locations.config(loc_id)
+	cfg = WorldObjects.load_config(float(lc0.get("center_lat", center.x)), float(lc0.get("center_lon", center.y)))
 	_air_fn = air_fn
 	_height_fn = height_fn
 	_threaded = _place != null
@@ -380,9 +381,14 @@ func _load_osm(loc_id: String, center: Vector2, ocfg: Dictionary) -> void:
 	)
 
 
-## Конфиг с учётом пресета качества (configs/world_objects.json → quality).
-static func load_config() -> Dictionary:
+## Конфиг с учётом пресета качества (configs/world_objects.json → quality) и профиля региона места
+## (RV-К1: buildings ← Biome.profile(Biome.at(lat, lon)).buildings; lat/lon не заданы — без профиля).
+static func load_config(lat: float = NAN, lon: float = NAN) -> Dictionary:
 	var c: Dictionary = Config.get_config("world_objects").duplicate(true)
+	if not is_nan(lat) and not is_nan(lon):
+		var pb: Dictionary = Biome.profile(Biome.at(lat, lon)).get("buildings", {})
+		if not pb.is_empty():
+			c["buildings"] = Config._deep_merge(c.get("buildings", {}), pb)
 	var preset: Dictionary = c.get("quality_presets", {}).get(String(c.get("quality", "high")), {})
 	for section in preset:
 		if c.has(section) and c[section] is Dictionary:

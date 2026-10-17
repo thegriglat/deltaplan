@@ -115,7 +115,8 @@ func _ready() -> void:
 ## точку (user://locations/<ключ>/) — файлы и путь одни (Locations, OA-К4).
 func load_location(id: String) -> bool:
 	var t0 := Time.get_ticks_usec()
-	_preload_tree_models()
+	var lc: Dictionary = Locations.config(id)
+	_preload_tree_models(float(lc.get("center_lat", 0.0)), float(lc.get("center_lon", 0.0)), lc)
 	var r := _read_location(id)
 	if r.is_empty():
 		return false
@@ -174,7 +175,7 @@ func load_point(lat: float, lon: float, builtin_id: String = "") -> void:
 	var gen := _load_gen
 	var rt: Dictionary = Config.get_config("world").get("runtime_terrain", {})
 	var t0 := Time.get_ticks_usec()
-	_preload_tree_models()
+	_preload_tree_models(lat, lon, Locations.config(builtin_id) if builtin_id != "" else {})
 	progress.begin()
 	_watch_stall(gen, float(rt.get("stall_timeout_s", 90.0)))
 	progress.stage("dem", tr("loading_dem"))
@@ -348,9 +349,7 @@ func _setup_steps(
 	center_lat = lat0
 	center_lon = lon0
 	refresh_sun()
-	var look: Dictionary = Config._deep_merge(
-		world.get("terrain_look", {}), cfg.get("terrain_look", {})
-	)
+	var look: Dictionary = region_section(world, "terrain_look", cfg, lat0, lon0)
 	_build_sites()
 	_look = look
 	set_surfaces(new_surfaces, world.get("surface", {}), look)
@@ -368,7 +367,7 @@ func _setup_steps(
 	)
 	renderer.apply_textures(world.get("terrain_textures", {}))
 	_apply_city_canopy()
-	var trees_cfg: Dictionary = Config._deep_merge(world.get("trees", {}), cfg.get("trees", {}))
+	var trees_cfg: Dictionary = region_section(world, "trees", cfg, lat0, lon0)
 	progress.stage("trees", tr("loading_trees"))
 	if async:
 		await get_tree().process_frame
@@ -552,11 +551,20 @@ func _setup_wind(cfg: Dictionary) -> void:
 		wind.add_materials(grass.materials())
 
 
+## Секция конфига места с профилем региона (RV-К1 «Слияние»): world.<key> ← профиль Biome.at(lat, lon) ← location.<key>.
+## key: trees | terrain_look | scene_look.
+static func region_section(world: Dictionary, key: String, loc: Dictionary, lat: float, lon: float) -> Dictionary:
+	var prof: Dictionary = Biome.profile(Biome.at(lat, lon))
+	var base: Dictionary = Config._deep_merge(world.get(key, {}), prof.get(key, {}))
+	return Config._deep_merge(base, loc.get(key, {}))
+
+
 ## Модели деревьев грузятся в фоне с начала загрузки места (FL-7): setup() деревьев дождётся.
-func _preload_tree_models() -> void:
-	var t: Dictionary = Config.get_config("world").get("trees", {})
+## Грузятся только породы набора места (trees.set с профилем региона).
+func _preload_tree_models(lat: float, lon: float, loc: Dictionary) -> void:
+	var t: Dictionary = region_section(Config.get_config("world"), "trees", loc, lat, lon)
 	if bool(t.get("enabled", false)):
-		TerrainTreeModels.request_preload(t.get("models", {}))
+		TerrainTreeModels.request_preload(t.get("models", {}), TreePlacer.species_set(t))
 
 
 ## Деревья: модели пород, если есть файлы, иначе процедурные кроны.
@@ -847,8 +855,8 @@ static func day_of_year(month: int, day: int) -> float:
 ## (с переопределением локации scene_look), широта места lat_deg, день года doy, солнце и небо
 ## (TerrainRenderer.scene_look_sky).
 func scene_look_params() -> Dictionary:
-	var sl: Dictionary = Config._deep_merge(
-		Config.get_config("world").get("scene_look", {}), location.get("scene_look", {})
+	var sl: Dictionary = region_section(
+		Config.get_config("world"), "scene_look", location, center_lat, center_lon
 	)
 	sl["lat_deg"] = center_lat
 	sl["doy"] = flight_doy
