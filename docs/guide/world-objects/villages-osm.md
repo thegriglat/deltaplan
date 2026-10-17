@@ -59,6 +59,10 @@ ongudai 8 462; сборка WorldObjects askarovo 1,66 с. Число и пол�
 **Чего нет у процедурных домов:** заборов, полей, имён посёлков. Вода — WorldCover и реки по рельефу ([location-data.md](../location-data.md)); озёра
 объектами не рисуются — они в раскраске рельефа.
 
+### Формы домов по профилю региона (RV-К4, regional-veg)
+
+Ключи `configs/world_objects.json → buildings` (по умолчанию — прежний вид): `village_roof` — `gable` | `hip` (четырёхскатная, `hip_pitch_deg` 15…25, своя `ArrayMesh` в единичном кубе ступенями вытянутости 1/10, квадрат — шатёр) | `flat_parapet`; `city_roof` — `flat` | `flat_parapet` (парапет — кольцо из 4 коробок `parapet_h_m` × `parapet_t_m` цвета стен, трубы нет); `max_levels` — потолок этажей домов с высотой по правилу (`wall_h ≤ max_levels · height_rule.level_m`, 0 — без потолка; дома с высотой из тегов и процедурные записи без `по_правилу` не меняются). Формы применяются к селу с двускатной записью и к CITY; промзона не меняется. Подключение профиля к месту — `biomes.json` (RV-9). Тесты: `test_building_forms`.
+
 ## OSM-слой: объекты из тайлов (osm-tiles, osm-look)
 Источник — тайлы OSM 20 км ([osm-tiles.md](../osm-tiles.md); форматы O1–O9 — `docs/contracts/osm-tiles.md`, вид — `docs/contracts/osm-look.md`, L1–L9).
 Стадия сборки места `OsmTilesStage` кладёт в папку места `osm_tiles.json` (3×3 тайла вокруг центра: `ok` / `none` / `missing`); сами
