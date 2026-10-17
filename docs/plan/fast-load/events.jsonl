@@ -257,3 +257,5 @@
 {"t": "2026-10-17T19:09:57", "by": "coordinator", "task": "FL-22", "ev": "checked", "commits": ["4a434d7e"], "note": "1/4 thermal=FAIL:11/22; FAIL test_sources_sunn…; cloud=FAIL:21/31; FAIL не,не,не; air_runtime=FAIL:6/8 (пропуск 4); FAIL test_ph…; merged=ok:ok"}
 {"t": "2026-10-17T19:09:58", "by": "coordinator", "task": "FL-22", "ev": "merged"}
 {"t": "2026-10-17T19:10:07", "by": "coordinator", "task": "FL-13", "ev": "note", "note": "Обновление: sync уже сделан (main c6b5f113 влит в ветку модуля, FL-22) — шаг (1) пропустить, копия задачи уже от свежей feature/fast-load (если нет — .dpcli/dpcli task sync FL-13). Вместо отчёта в scratchpad/FL-13/r.json — файл r-FL-13.json в scratchpad (инструмент Write). Дополнительно после перепечки прогнать фильтры osm_threaded, matrix, e2e (упавшие до слияния) и результат (число упавших, имена) внести в отчёт; чинить не нужно. Окно запекания: если монитор выключен — не ждать, сразу blocked.", "addendum": true}
+{"t": "2026-10-17T19:10:20", "by": "coordinator", "task": "FL-13", "ev": "started"}
+{"t": "2026-10-17T20:11:27", "by": "coordinator", "task": "FL-13", "ev": "merged"}
