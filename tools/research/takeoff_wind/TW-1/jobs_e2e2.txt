@@ -1,0 +1,40 @@
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=1..10 --tw-ap=pilot --tw-air=field --tw-trace=1 --tw-tag=ap_pilot
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=1..10 --tw-ap=pilot_rm0.2 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_rm0.2
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=1..10 --tw-ap=pilot_pm0.5_s5 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_pm0.5_s5
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=1..10 --tw-ap=pilot --tw-air=steady --tw-tag=steady_pilot
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=1..10 --tw-ap=vi11 --tw-air=steady --tw-tag=steady_vi11
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=11..20 --tw-ap=pilot --tw-air=field --tw-trace=1 --tw-tag=ap_pilot
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=11..20 --tw-ap=pilot_rm0.2 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_rm0.2
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=11..20 --tw-ap=pilot_pm0.5_s5 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_pm0.5_s5
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=11..20 --tw-ap=pilot --tw-air=steady --tw-tag=steady_pilot
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=11..20 --tw-ap=vi11 --tw-air=steady --tw-tag=steady_vi11
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=21..30 --tw-ap=pilot --tw-air=field --tw-trace=1 --tw-tag=ap_pilot
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=21..30 --tw-ap=pilot_rm0.2 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_rm0.2
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=21..30 --tw-ap=pilot_pm0.5_s5 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_pm0.5_s5
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=21..30 --tw-ap=pilot --tw-air=steady --tw-tag=steady_pilot
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=21..30 --tw-ap=vi11 --tw-air=steady --tw-tag=steady_vi11
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=31..40 --tw-ap=pilot --tw-air=field --tw-trace=1 --tw-tag=ap_pilot
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=31..40 --tw-ap=pilot_rm0.2 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_rm0.2
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=31..40 --tw-ap=pilot_pm0.5_s5 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_pm0.5_s5
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=31..40 --tw-ap=pilot --tw-air=steady --tw-tag=steady_pilot
+--tw-flow=e2e --tw-locs=training_island --tw-seeds=31..40 --tw-ap=vi11 --tw-air=steady --tw-tag=steady_vi11
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=1..10 --tw-ap=pilot --tw-air=field --tw-trace=1 --tw-tag=ap_pilot
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=1..10 --tw-ap=pilot_rm0.2 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_rm0.2
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=1..10 --tw-ap=pilot_pm0.5_s5 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_pm0.5_s5
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=1..10 --tw-ap=pilot --tw-air=steady --tw-tag=steady_pilot
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=1..10 --tw-ap=vi11 --tw-air=steady --tw-tag=steady_vi11
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=11..20 --tw-ap=pilot --tw-air=field --tw-trace=1 --tw-tag=ap_pilot
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=11..20 --tw-ap=pilot_rm0.2 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_rm0.2
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=11..20 --tw-ap=pilot_pm0.5_s5 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_pm0.5_s5
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=11..20 --tw-ap=pilot --tw-air=steady --tw-tag=steady_pilot
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=11..20 --tw-ap=vi11 --tw-air=steady --tw-tag=steady_vi11
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=21..30 --tw-ap=pilot --tw-air=field --tw-trace=1 --tw-tag=ap_pilot
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=21..30 --tw-ap=pilot_rm0.2 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_rm0.2
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=21..30 --tw-ap=pilot_pm0.5_s5 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_pm0.5_s5
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=21..30 --tw-ap=pilot --tw-air=steady --tw-tag=steady_pilot
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=21..30 --tw-ap=vi11 --tw-air=steady --tw-tag=steady_vi11
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=31..40 --tw-ap=pilot --tw-air=field --tw-trace=1 --tw-tag=ap_pilot
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=31..40 --tw-ap=pilot_rm0.2 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_rm0.2
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=31..40 --tw-ap=pilot_pm0.5_s5 --tw-air=field --tw-trace=1 --tw-tag=ap_pilot_pm0.5_s5
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=31..40 --tw-ap=pilot --tw-air=steady --tw-tag=steady_pilot
+--tw-flow=e2e --tw-locs=volcano_island --tw-seeds=31..40 --tw-ap=vi11 --tw-air=steady --tw-tag=steady_vi11

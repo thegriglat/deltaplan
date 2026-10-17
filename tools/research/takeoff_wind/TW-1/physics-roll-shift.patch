@@ -1,0 +1,30 @@
+--- a/scripts/flight/pendulum/pendulum_ground.gd	2026-10-17 22:13:12.181851991 +0500
++++ b/scripts/flight/pendulum/pendulum_ground.gd	2026-10-17 22:13:20.977599749 +0500
+@@ -40,6 +40,9 @@
+ var pitch_ti: float = 0.0  ## интеграл удержания носа, с (≤ 0 — только пружина)
+ var roll_cmd_max: float = deg_to_rad(15.0)
+ var roll_max: float = 200.0
++## Крен руками на стойках, когда ноги разгружены (TW-1): тело висит на стропе, руки двигают его
++## поперёк — момент веса пилота m_п·g·y_shift (как смещение веса в полёте), а не опора о землю.
++var roll_shift_max: float = 0.0
+ var hold_tau: float = 0.3
+ var run_force: float = 420.0
+ var run_vmax: float = 6.5
+@@ -144,6 +147,7 @@
+ 	area = float(wing.area_m2)
+ 	span = float(wing.span_m)
+ 	m_total = m_pilot + m_wing
++	roll_shift_max = m_pilot * Units.G * float(gc.get("roll_shift_y_m", 0.25))
+ 	decel = stop_decel
+ 	min_airspeed = float(flight.min_airspeed_ms)
+ 
+@@ -342,6 +346,8 @@
+ 		_ps_int = 0.0
+ 		var k_wv := 0.5 * rho * flow_h * flow_h * area * span * cn_beta
+ 		m_ps = -2.0 * sqrt(k_wv * I.z.z) * wb.z
+-	var lim := roll_max * feet_load
++	# TW-1: на ногах — опора о землю (∝ доле веса на ногах); разгруженные ноги — смещение тела на
++	# стропе (∝ доле веса на стропе): переход к отрыву без «провала» управления креном
++	var lim := roll_max * feet_load + roll_shift_max * (1.0 - feet_load)
+ 	yaw_moment = clampf(m_ps, -lim_ps, lim_ps)
+ 	return Vector3(clampf(m_ph, -lim, lim), clampf(m_th, -pitch_max, pitch_max), yaw_moment)
