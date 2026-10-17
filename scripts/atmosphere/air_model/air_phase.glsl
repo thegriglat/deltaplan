@@ -67,7 +67,7 @@ const int P_ZL0 = P_NLEV + 1;
 // плоскости col — AirPhase.CI_*
 const int CI_HC = 0, CI_HEFF = 1, CI_T = 2, CI_S = 3, CI_GX = 4, CI_GY = 5, CI_HEAT = 6, CI_HK = 7;
 const int CI_HBL = 8, CI_WST = 9, CI_GL = 10, CI_GDTH = 11, CI_GUS = 12, CI_GON = 13, CI_GLAY = 14;
-const int CI_GD = 15, CI_GUC = 16, CI_GDX = 17, CI_GDY = 18, CI_GW = 19, CI_SAL = 20;
+const int CI_GD = 15, CI_GUC = 16, CI_GDX = 17, CI_GDY = 18, CI_GW = 19, CI_SAL = 20, CI_ZI = 21;
 const int MO_AMP = 0, MO_ELL = 1, MO_S0 = 2;
 const int K = 7, PH_A = 0, PH_B = 1, PH_C = 2, PH_D = 3, PH_F = 4, PH_G = 5, PH_H = 6;
 const int NWS = 4, WS_RAW = 0, WS_TMP = 1, WS_FIN = 3;
@@ -536,7 +536,7 @@ void main() {
 				u += wf * ua * C(CI_GX, c) / ds * pr;
 				vv += wf * ua * C(CI_GY, c) / ds * pr;
 				if (zagl < C(CI_HBL, c)) th = o2d[thp * n2 + c];
-				if (zmsl >= prm[P_HCD]) th -= (zmsl > prm[P_ZI] ? prm[P_GAMW] : 0.0) * m.eta;
+				if (zmsl >= prm[P_HCD]) th -= (zmsl > C(CI_ZI, c) ? prm[P_GAMW] : 0.0) * m.eta;
 			}
 			if (gact) {
 				float wg = wts[widx(v, WS_FIN, PH_G, c)];

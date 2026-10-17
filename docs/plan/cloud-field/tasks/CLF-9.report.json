@@ -1,0 +1,119 @@
+{
+  "status": "partial",
+  "summary": "z_i по рельефу — один на модель воздуха (CLF-К6): AirZiTerrain (z_i_ref + α·(h̃ − h_долины), α 0,33, σ 5 км — De Wekker & Kossmann 2015; не ниже h + 300 м), z_i_col в AirCase/meta/WindField (z_i_col, z_i_at), окна от области, фазы (плоскость CI_ZI в glsl/CPU), w*, AirThermals (h, w* и потолок частицы: слой над столбцом глубже и теплее), CloudFieldSources; α = 0 — побитно как до правки. Карты до/после Онгудай/Аскарово/Алматы, потолки термиков +100…+400 м над горами. Над равниной Алматы покрытие 0,24 → 0,25: ожидание ≤ 0,1 не выполнено — из этой физики не выходит (z_i над равниной = z_i дня, запас над LCL 860 м), без подгонки. Ревью CLF-1: башни помечаются при первом входе и смене доли переразвития, od после снимка.",
+  "commits": [
+    "7115a729 CLF-9: z_i по рельефу — один на модель воздуха (AirZiTerrain, z_i_col, фазы, w*, AirThermals, CloudField); ревью CLF-1",
+    "7e03f716 CLF-9: карты до/после, zi_tops.json, cover низины/хребта, исследование §6"
+  ],
+  "checks": [
+    {
+      "name": "test_zi_terrain",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "test_cloud_field",
+      "value": "21/21",
+      "pass": true
+    },
+    {
+      "name": "test_air_",
+      "value": "73/73 (32 пропуск headless)",
+      "pass": true
+    },
+    {
+      "name": "step_ms",
+      "value": "6.78 мс в accept (load ~20); 11.70 при load 63",
+      "pass": true
+    },
+    {
+      "name": "maps",
+      "value": "6 PNG в build/screenshots/cloud-field/CLF-9/",
+      "pass": true
+    },
+    {
+      "name": "almaty_lowland",
+      "value": "cover_lowland 0.25 (до правки 0.24) > 0.1",
+      "pass": false
+    },
+    {
+      "name": "tops",
+      "value": "zi_tops.json: ongudai, askarovo, almaty — before/after p10/p50/p90",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "gpu: tools/gpu_tests.sh --filter=test_air_phase",
+      "value": "10/10 (CI_ZI в air_phase.glsl против CPU)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "almaty_lowland ≤ 0,1 — не выполнено и не выйдет из физики z_i по рельефу: опора z_i_ref — уровень долины (как у самого z_i дня), над низиной h̃ ≈ h_ref и z_i столбца = z_i дня (4283 против 4271 м) при LCL 3421 м — термики равнины доходят до основания. Чистый город требует более сухого воздуха над равниной (одна точка росы на место — граница CLF-1 §4) или иной опоры z_i; даже опора на средний рельеф даёт −100 м при запасе 860 м. Подгонку не делал (docs/research/cloud_field.md §6).",
+    "_advect 16–17 мс (минор ревью CLF-1) не ускорял: медиана шага 6,8 мс в покое, порог К1 по медиане проходит",
+    "запечённые поля учебного острова z_i столбцов не несут — перепечка CLF-2 (без ключа — скаляр, как раньше)"
+  ],
+  "questions": [
+    "Почему Аскарово в первом прогоне дало valley_msl_m 304 м, а в повторе 408 м (LCL 1532 против 1652) при том же месте — похоже на зависимость ground_context от состояния загрузки Terrain в dump.gd (не в scope CLF-9); до/после пересчитаны одним прогоном и сходятся"
+  ],
+  "images": [
+    "build/screenshots/cloud-field/CLF-9/ongudai_weak_zi.png",
+    "build/screenshots/cloud-field/CLF-9/ongudai_strong_zi.png",
+    "build/screenshots/cloud-field/CLF-9/askarovo_weak_zi.png",
+    "build/screenshots/cloud-field/CLF-9/askarovo_strong_zi.png",
+    "build/screenshots/cloud-field/CLF-9/almaty_weak_zi.png",
+    "build/screenshots/cloud-field/CLF-9/almaty_strong_zi.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept CLF-9 (almaty_lowland упадёт — по физике, см. not_done); GPU: tools/gpu_tests.sh --filter=test_air_phase",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/air_thermals.gd (tb_lift)",
+      "why": "потолок частицы при z_i столбца выше опорного — θ̄ столбца = max(θ̄(z), θ̄(z_i_col)): перемешанный слой доходит до θ свободной атмосферы на местном верху; при z_i столбца ниже опорного фон не меняю (асимметрия)",
+      "checked": "α = 0 — phi/c_top/источники побитно те же (test_zi_terrain); при +600 м z_i потолки выше; карты: Δ потолка ≈ Δ z_i столбца"
+    },
+    {
+      "where": "configs/atmosphere.json air_model.zi_terrain_alpha/smooth_m",
+      "why": "α ⅓ и σ 5 км — порядковые числа из обзора De Wekker & Kossmann 2015 (доля «приглушённого следования», масштаб ≳ 10 км из De Wekker 2008), не калибровка",
+      "checked": "_doc с источником; тест границ: подъём ≤ α·перепад, ≥ h + 300"
+    },
+    {
+      "where": "scripts/atmosphere/air_model/air_clipmap.gd / air_window_case.gd",
+      "why": "окна берут z_i области в точке; окно 50 м от окна 100 м берёт тоже область (поле 100 м ещё не посчитано в очереди) — одна формула, одна сетка h̃",
+      "checked": "test_window_equals_region: max|Δ| < 1e-3 м; test_air_ 73/73, test_air_window_gpu не гонял отдельно (в batch headless пропущен)"
+    },
+    {
+      "where": "AirCase._closure h_c по z_i столбца",
+      "why": "K_b и h_bl теперь по столбцу — Пикар не менялся, но вход его замыкания изменился при α > 0",
+      "checked": "α = 0 побитно; карты сошлись (iters 50–90)"
+    }
+  ],
+  "dp_feedback": "job wait без --quiet печатает Unicode parsing error от Godot в stdout — приходится фильтровать; accept --dry удобно; хотелось бы в карточке видеть, что проверка «ожидание пользователя» допускает честный FAIL (сейчас PASS нужен для report).",
+  "extra": {
+    "load_average_step_ms": "accept: 6.78 мс при load ~20; batch: 11.70 (макс 24.65) при load 63",
+    "tops_delta_p50_p90_m": {
+      "ongudai_weak": "+105/+102",
+      "ongudai_strong": "+101/+135",
+      "askarovo_weak": "+5/+21",
+      "askarovo_strong": "+39/+65",
+      "almaty_weak": "+41/+169",
+      "almaty_strong": "+147/+414"
+    },
+    "cover_before_after": {
+      "ongudai_weak": "0.192→0.223",
+      "ongudai_strong": "0.238→0.256",
+      "askarovo_strong": "0.103→0.107",
+      "almaty_weak": "0.325→0.329",
+      "almaty_strong": "0.345→0.369; низина 0.24→0.25, хребет 0.87→0.89"
+    },
+    "z_i_col_p10_p50_p90": {
+      "almaty_strong": "4256/4410/4904 при z_i дня 4271",
+      "ongudai_strong": "4450/4487/4575 при 4359"
+    }
+  },
+  "t": "2026-10-17T07:23:44",
+  "by": "executor"
+}

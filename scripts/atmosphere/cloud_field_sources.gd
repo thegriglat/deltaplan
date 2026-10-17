@@ -103,13 +103,15 @@ static func prepare(cf: CloudField, inp: Dictionary, cfg: Dictionary) -> Diction
 		var carried := air.carried
 		var area := air.area
 		var z_i := wf.z_i() if wf != null else NAN
+		# z_i над столбцом (CLF-К6): столбцы поля той же сетки, иначе скаляр
+		var zic := wf.z_i_col() if wf != null and same_grid else PackedFloat32Array()
 		var eps := float(cfg.get("overshoot_flux_frac", 0.2))
 		for c in n:
 			var top := ctop[c]
 			if is_nan(top) or top <= base:
 				continue
 			var h := hc[c]
-			var pen := penetration(base, h, z_i, top, eps)
+			var pen := penetration(base, h, zic[c] if not zic.is_empty() else z_i, top, eps)
 			var share := 0.0
 			var o := owner[c]
 			if o >= 0 and o < carried.size():
@@ -135,7 +137,7 @@ static func prepare(cf: CloudField, inp: Dictionary, cfg: Dictionary) -> Diction
 			if i < 0 or i >= nx or j < 0 or j >= ny:
 				continue
 			var c := j * nx + i
-			var pen := penetration(base, p.y, z_i, top, eps)
+			var pen := penetration(base, p.y, wf.z_i_at(p) if wf != null else z_i, top, eps)
 			var w_u := maxf(w_k * air.wstar[s], w_min)
 			au[c] += pen * air.carried[s] / (dx * dx * w_u)
 			ds[c] = maxf(ds[c], k_moist * (top - base))

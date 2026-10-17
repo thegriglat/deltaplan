@@ -4,9 +4,9 @@ status: "active"
 module: "cloud-field"
 area: "air"
 updated: "2026-10-17"
-summary: "CLF-1: карты поля облачности — день 9→17 ч над Онгудаем, островом и Алматы в 3 погодах; команды, файлы, summary.json"
+summary: "CLF-1/CLF-9: карты поля облачности над Онгудаем, Аскарово, островом, Алматы; z_i по рельефу до/после, потолки термиков; команды, файлы"
 related: ["docs/research/cloud_field.md", "docs/contracts/cloud-field.md"]
-conclusion: "Карты — build/screenshots/cloud-field/CLF-1/; числа — out/summary.json; вывод — docs/research/cloud_field.md"
+conclusion: "Карты — build/screenshots/cloud-field/CLF-1/ и CLF-9/; числа — out/summary.json, out/zi_tops.json; вывод — docs/research/cloud_field.md"
 data: "tools/research/cloud_field/"
 applied_in: "scripts/atmosphere/cloud_field.gd"
 ---
@@ -39,6 +39,25 @@ $PY tools/research/cloud_field/plot.py --fig /home/greg/deltaplan/build/screensh
 ```
 Тесты модели: `godot --headless --path . res://tests/run_tests.tscn -- --filter=test_cloud_field` (цена шага —
 `test_cloud_field_perf`, печатает `cloud_field_step_ms=`).
+
+## CLF-9: z_i по рельефу — до/после
+`dump.gd --zi_alpha=<α>` подменяет `air_model.zi_terrain_alpha` на время запуска (0 — плоский z_i, как до CLF-9),
+`--timeout_s=<с>` — предел расчёта часа поля (на занятой машине 60 с не хватает — час выпадает из дня);
+кадр несёт `z_i_col` (z_i по столбцам, м MSL) и `zi_alpha`. Места: `ongudai`, `askarovo` (оба — `user://locations`
+профиля копии), `training_island`, `almaty`. День 9→13 ч, кадр 13 ч:
+```bash
+P="--places=ongudai,askarovo,almaty --weathers=weak,strong --h0=9 --h1=13 --frames=13"
+tools/research/cloud_field/run.sh $P --out=tools/research/cloud_field/out                  # после (α из конфига)
+tools/research/cloud_field/run.sh $P --zi_alpha=0 --out=tools/research/cloud_field/out/before   # до
+$PY tools/research/cloud_field/plot.py --before tools/research/cloud_field/out/before --places ongudai,askarovo,almaty \
+    --weathers weak,strong --fig /home/greg/deltaplan/build/screenshots/cloud-field/CLF-9
+```
+`plot.py --before` рисует `fig/<место>_<погода>_zi.png` (покрытие до/после рядом, карта z_i столбцов, разрезы до/после
+с z_i столбцов и потолком частицы, потолки источников p10–p90), пишет `out/zi_tops.json`
+(`{место: {погода: {before, after: {n, p10, p50, p90, max, base_msl, z_i_ref}}}}`, м MSL) и дописывает в
+`out/summary.json` `cover_lowland` (среднее покрытие над рельефом < 1200 м MSL — город и предгорья Алматы),
+`cover_ridge` (> 3000 м), `z_i_col_p10_p50_p90`, `src_top_p10_p50_p90`, блок `before` с теми же числами при α = 0.
+Запуск обоих дней — один скрипт под `.dpcli/dpcli lock gpu` (CLF-9: 30 полей ≈ 25–60 с каждое на занятой машине).
 
 ## Сводка (summary.json, 13 ч)
 `cover_frac` — среднее покрытие по сетке (доля неба); `cloud_area_frac`, `n_clouds`, `largest_km` (длина, ширина по

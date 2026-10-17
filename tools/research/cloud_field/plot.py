@@ -7,6 +7,9 @@
 {место: {погода: {cover_frac, n_clouds, largest_km, depth_p50_m, depth_p90_m, src_under_cloud_ratio,
 ridge_share, valley_share, base_msl}}}; «облако» — столбцы с покрытием ≥ CLOUD_THR.
   plot.py [--out out] [--fig <папка png>] [--places ongudai,training_island,almaty] [--weathers weak,strong,windy]
+CLF-9 (z_i по рельефу): --before <папка слепков с α = 0> → листы fig/<место>_<погода>_zi.png (карты покрытия
+до/после, карта z_i столбцов, разрезы) + out/zi_tops.json (потолки источников до/после: p10/p50/p90, м MSL;
+основание) + в summary.json cover_lowland (рельеф < LOWLAND_M), cover_ridge (> RIDGE_M), z_i столбцов.
 """
 from __future__ import annotations
 
@@ -20,7 +23,9 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 CLOUD_THR = 0.3
 FRAMES = (11, 13, 15)
-NAMES = {"ongudai": "Онгудай", "training_island": "учебный остров", "almaty": "Алматы (43,20; 76,90)"}
+NAMES = {"ongudai": "Онгудай", "training_island": "учебный остров", "almaty": "Алматы (43,20; 76,90)", "askarovo": "Аскарово"}
+LOWLAND_M = 1200.0  # низина (город и предгорья Алматы): рельеф ниже, м MSL
+RIDGE_M = 3000.0  # хребет: рельеф выше, м MSL
 WX = {"weak": "слабый день (+20 °C, 6 км/ч)", "strong": "сильный день (+31 °C, 18 км/ч)", "windy": "ветреный (+31 °C, 8 м/с)"}
 
 
@@ -110,7 +115,22 @@ def stats(d):
         "z_i_msl": None if d.get("z_i") is None else round(float(d["z_i"]), 1),
         "cloud_thr": CLOUD_THR,
         "peaks_above_lcl_frac": round(float((hc >= d["base_msl"]).mean()), 4),
+        "cover_lowland": None if not (hc < LOWLAND_M).any() else round(float(cov[hc < LOWLAND_M].mean()), 4),
+        "cover_ridge": None if not (hc > RIDGE_M).any() else round(float(cov[hc > RIDGE_M].mean()), 4),
+        "lowland_frac": round(float((hc < LOWLAND_M).mean()), 4),
+        "zi_alpha": d.get("zi_alpha"),
     }
+    if d.get("z_i_col"):
+        zc = grid(d, "z_i_col")
+        out["z_i_col_p10_p50_p90"] = [round(float(np.nanpercentile(zc, q)), 0) for q in (10, 50, 90)]
+        if (hc < LOWLAND_M).any():
+            out["z_i_lowland_p50"] = round(float(np.nanpercentile(zc[hc < LOWLAND_M], 50)), 0)
+        if (hc > RIDGE_M).any():
+            out["z_i_ridge_p50"] = round(float(np.nanpercentile(zc[hc > RIDGE_M], 50)), 0)
+    tops = np.array([s[3] for s in d.get("sources", []) if s[3] is not None], float)
+    if tops.size:
+        out["src_top_p10_p50_p90"] = [round(float(np.percentile(tops, q)), 0) for q in (10, 50, 90)]
+        out["n_sources"] = int(tops.size)
     if comps:
         big = max(comps, key=len)
         out["largest_km"] = extent_km(big, dx)
@@ -262,16 +282,169 @@ def plot_sheet(place, wname, frames, series, fig_path):
     plt.close(fig)
 
 
+def tops_of(d):
+    """Потолки источников термиков кадра (м MSL): p10/p50/p90, число; основание."""
+    tops = np.array([s[3] for s in d.get("sources", []) if s[3] is not None], float)
+    if not tops.size:
+        return {"n": 0, "base_msl": round(float(d["base_msl"]), 0)}
+    return {
+        "n": int(tops.size),
+        "p10": round(float(np.percentile(tops, 10)), 0),
+        "p50": round(float(np.percentile(tops, 50)), 0),
+        "p90": round(float(np.percentile(tops, 90)), 0),
+        "max": round(float(tops.max()), 0),
+        "base_msl": round(float(d["base_msl"]), 0),
+        "z_i_ref": None if d.get("z_i") is None else round(float(d["z_i"]), 0),
+    }
+
+
+def draw_cover(ax, d, shade, ext, title):
+    cov = grid(d, "cover")
+    hc = grid(d, "hc")
+    dx = d["dx"]
+    lext = [d["x0"] / 1e3, (d["x0"] + d["nx"] * dx) / 1e3, d["y0"] / 1e3, (d["y0"] + d["ny"] * dx) / 1e3]
+    ax.imshow(shade * 0.55, cmap="gray", extent=ext, origin="lower", vmin=0, vmax=1.0)
+    rgba = np.zeros(cov.shape + (4,))
+    rgba[..., :3] = (0.95, 0.97, 1.0)
+    rgba[..., 3] = np.clip(0.15 + cov * 1.1, 0, 1) * (cov >= 0.03)
+    ax.imshow(rgba, extent=lext, origin="lower", interpolation="nearest")
+    xs = np.linspace(lext[0], lext[1], d["nx"]); ys = np.linspace(lext[2], lext[3], d["ny"])
+    if (cov >= CLOUD_THR).any():
+        ax.contour(xs, ys, cov, levels=[CLOUD_THR], colors="#1f77b4", linewidths=0.6)
+    if (hc < LOWLAND_M).any() and (hc >= LOWLAND_M).any():
+        ax.contour(xs, ys, hc, levels=[LOWLAND_M], colors="#2ca02c", linewidths=0.7, linestyles="--")
+    if (hc > RIDGE_M).any() and (hc <= RIDGE_M).any():
+        ax.contour(xs, ys, hc, levels=[RIDGE_M], colors="#d62728", linewidths=0.7, linestyles="--")
+    srcs = d.get("sources", [])
+    if srcs:
+        ax.scatter([s[0] / 1e3 for s in srcs], [-s[1] / 1e3 for s in srcs], s=4, c="red", linewidths=0, alpha=0.6)
+    st = stats(d)
+    low = "—" if st["cover_lowland"] is None else f"{st['cover_lowland']:.2f}"
+    rid = "—" if st["cover_ridge"] is None else f"{st['cover_ridge']:.2f}"
+    ax.set_title(f"{title}: покрытие {st['cover_frac']:.2f}, низина (<{LOWLAND_M:.0f} м) {low}, хребет (>{RIDGE_M:.0f} м) {rid}", fontsize=8)
+    ax.set_xlim(lext[0], lext[1]); ax.set_ylim(lext[2], lext[3])
+    ax.set_xlabel("x, км"); ax.set_ylabel("y = −z, км")
+    return lext
+
+
+def draw_section(ax, d, pts, skm, title):
+    hc = grid(d, "hc"); cov = grid(d, "cover"); dep = grid(d, "depth")
+    ctop = grid(d, "c_top") if d.get("c_top") else None
+    zc = grid(d, "z_i_col") if d.get("z_i_col") else None
+    hs = bilin(hc, pts); cs = bilin(cov, pts); ds = bilin(dep, pts)
+    base = d["base_msl"]
+    ax.fill_between(skm, 0, hs, color="#8c7853")
+    ax.axhline(base, color="#1f77b4", ls="--", lw=1, label=f"LCL {base:.0f} м")
+    if d.get("z_i") is not None:
+        ax.axhline(d["z_i"], color="#888", ls=":", lw=1, label=f"z_i дня {d['z_i']:.0f} м")
+    if zc is not None:
+        ax.plot(skm, bilin(zc, pts), color="#9467bd", lw=1.2, label="z_i столбцов")
+    if ctop is not None:
+        ax.plot(skm, bilin(np.nan_to_num(ctop, nan=np.nan), pts), color="#2ca02c", lw=0.8, label="потолок частицы")
+    for s0, c0, d0 in zip(skm, cs, ds):
+        if c0 >= 0.05 and d0 > 0:
+            ax.bar(s0, d0, bottom=base, width=skm[1] - skm[0] if len(skm) > 1 else 0.2, color="white", edgecolor="#555", linewidth=0.2, alpha=min(1.0, 0.3 + c0))
+    ax.set_ylim(max(0, hs.min() - 300), max(base + 2500, hs.max() + 500, (0 if zc is None else float(np.nanmax(zc)) + 300)))
+    ax.set_xlabel("вдоль разреза, км"); ax.set_ylabel("м над морем")
+    ax.set_title(title, fontsize=9)
+    ax.legend(fontsize=7, loc="upper right")
+
+
+def plot_zi_sheet(place, wname, before, after, fig_path):
+    """Лист CLF-9: покрытие до (α = 0) и после (α из конфига) рядом, карта z_i столбцов, разрезы."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    fig, axs = plt.subplots(2, 3, figsize=(19, 12))
+    rel = after["relief"]
+    hr = np.array(rel["height"], float).reshape(rel["ny"], rel["nx"])
+    shade = hillshade(hr, rel["step"])
+    ext = [rel["x0"] / 1e3, (rel["x0"] + rel["nx"] * rel["step"]) / 1e3, rel["y0"] / 1e3, (rel["y0"] + rel["ny"] * rel["step"]) / 1e3]
+    draw_cover(axs[0, 0], before, shade, ext, f"до (α = 0), {before['hour']}:00")
+    lext = draw_cover(axs[0, 1], after, shade, ext, f"после (α = {after.get('zi_alpha', 0):.2f}), {after['hour']}:00")
+    axs[0, 0].text(lext[0] + 1, lext[2] + 1, "белое — покрытие, синий контур ≥ %.1f; зелёный пунктир — рельеф %.0f м, красный — %.0f м; точки — источники" % (CLOUD_THR, LOWLAND_M, RIDGE_M), fontsize=6)
+    ax = axs[0, 2]
+    hc = grid(after, "hc")
+    ax.imshow(shade, cmap="gray", extent=ext, origin="lower", vmin=0, vmax=1.2)
+    if after.get("z_i_col"):
+        zc = grid(after, "z_i_col")
+        im = ax.imshow(zc, cmap="viridis", extent=lext, origin="lower", alpha=0.8)
+        plt.colorbar(im, ax=ax, shrink=0.7, label="z_i столбца, м над морем")
+        st = stats(after)
+        ax.set_title(f"z_i столбцов: p10/p50/p90 {st['z_i_col_p10_p50_p90']}, день {after.get('z_i') or 0:.0f} м; LCL {after['base_msl']:.0f} м", fontsize=8)
+    else:
+        ax.set_title("z_i столбцов — нет в кадре")
+    ax.set_xlim(lext[0], lext[1]); ax.set_ylim(lext[2], lext[3])
+    pts, skm, ridge, perp = section_line(hc, after["dx"])
+    draw_section(axs[1, 0], before, pts, skm, "разрез до (α = 0)")
+    draw_section(axs[1, 1], after, pts, skm, "разрез после")
+    for k in (0, 1):
+        axs[0, k].plot((after["x0"] + (pts[:, 0] + 0.5) * after["dx"]) / 1e3, (after["y0"] + (pts[:, 1] + 0.5) * after["dx"]) / 1e3, color="magenta", lw=1)
+    # потолки источников до/после
+    ax = axs[1, 2]
+    tb, ta = tops_of(before), tops_of(after)
+    for k, (t, lab) in enumerate(((tb, "до"), (ta, "после"))):
+        if t["n"]:
+            ax.bar(k, t["p90"] - t["p10"], bottom=t["p10"], width=0.5, color="#aec7e8", edgecolor="#1f77b4")
+            ax.plot([k - 0.25, k + 0.25], [t["p50"], t["p50"]], color="k", lw=2)
+            ax.text(k, t["p90"] + 50, f"{lab}: p10 {t['p10']:.0f} / p50 {t['p50']:.0f} / p90 {t['p90']:.0f} м, n {t['n']}", ha="center", fontsize=7)
+    ax.axhline(after["base_msl"], color="#1f77b4", ls="--", lw=1, label=f"LCL {after['base_msl']:.0f} м")
+    if after.get("z_i") is not None:
+        ax.axhline(after["z_i"], color="#888", ls=":", lw=1, label=f"z_i дня {after['z_i']:.0f} м")
+    ax.set_xticks([0, 1]); ax.set_xticklabels(["до (α = 0)", "после"])
+    ax.set_ylabel("м над морем"); ax.set_title("потолки источников термиков (p10–p90, медиана)", fontsize=9)
+    ax.legend(fontsize=7, loc="lower right")
+    fig.suptitle(f"{NAMES.get(place, place)} — {WX.get(wname, wname)}: z_i по рельефу (CLF-9), {after['hour']}:00", fontsize=12)
+    fig.tight_layout()
+    fig.savefig(fig_path, dpi=72)
+    plt.close(fig)
+
+
+def main_zi(a, out, fig):
+    """CLF-9: листы до/после, zi_tops.json, числа в summary.json (слияние с прежними)."""
+    before_dir = Path(a.before)
+    sp = out / "summary.json"
+    summary = json.loads(sp.read_text()) if sp.exists() else {}
+    tops = {}
+    fh = int(a.hour)
+    for place in a.places.split(","):
+        for wname in a.weathers.split(","):
+            pa = out / f"{place}_{wname}_h{fh}.json"
+            pb = before_dir / f"{place}_{wname}_h{fh}.json"
+            if not pa.exists() or not pb.exists():
+                print(f"{place} {wname}: нет кадра {fh} ч ({pa.exists()}, {pb.exists()})")
+                continue
+            after = json.loads(pa.read_text())
+            before = json.loads(pb.read_text())
+            png = fig / f"{place}_{wname}_zi.png"
+            plot_zi_sheet(place, wname, before, after, png)
+            st = stats(after)
+            st["cond"] = after.get("cond", {})
+            st["before"] = {k: stats(before)[k] for k in ("cover_frac", "cover_lowland", "cover_ridge", "cloud_area_frac", "n_clouds", "depth_p50_m")}
+            summary.setdefault(place, {})[wname] = st
+            tops.setdefault(place, {})[wname] = {"before": tops_of(before), "after": tops_of(after)}
+            print(f"{place} {wname}: {png}")
+    sp.write_text(json.dumps(summary, ensure_ascii=False, indent=1))
+    (out / "zi_tops.json").write_text(json.dumps(tops, ensure_ascii=False, indent=1))
+    print(json.dumps(tops, ensure_ascii=False, indent=1))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(HERE / "out"))
     ap.add_argument("--fig", default=str(HERE / "fig"))
     ap.add_argument("--places", default="ongudai,training_island,almaty")
     ap.add_argument("--weathers", default="weak,strong,windy")
+    ap.add_argument("--before", default="", help="CLF-9: папка слепков с α = 0 → листы до/после и zi_tops.json")
+    ap.add_argument("--hour", default="13", help="CLF-9: час кадра для сравнения")
     a = ap.parse_args()
     out = Path(a.out)
     fig = Path(a.fig)
     fig.mkdir(parents=True, exist_ok=True)
+    if a.before:
+        main_zi(a, out, fig)
+        return
     summary = {}
     for place in a.places.split(","):
         for wname in a.weathers.split(","):

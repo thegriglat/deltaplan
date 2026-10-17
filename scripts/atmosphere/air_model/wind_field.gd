@@ -368,7 +368,7 @@ func _build_boundary_layer() -> void:
 
 
 ## w* и толщина слоя перемешивания по столбцам (AM-08), если в meta есть поток тепла (heat |
-## heat_array, Вт/м², ny·nx) и z_i: w* = (g/θ0 · H_kin · h)^(1/3), h = max(z_i − hc, ZI_MIN) —
+## heat_array, Вт/м², ny·nx) и z_i (столбца, CLF-К6): w* = (g/θ0 · H_kin · h)^(1/3), h = max(z_i − hc, ZI_MIN) —
 ## масштаб Дирдорфа, как в замыкании решателя; H сглажен квадратом HEAT_SMOOTH_M (конвективная
 ## ячейка ~ z_i, как Params.k_smooth_m). Нет данных — w* = 0 (конвективная болтанка — аналитика).
 func _build_convective() -> void:
@@ -380,6 +380,7 @@ func _build_convective() -> void:
 	var zi := z_i()
 	if heat.size() != _nxy or not is_finite(zi):
 		return
+	var zic := z_i_col()
 	# сглаживание: скользящее среднее по квадрату (2r + 1)² столбцов — по строкам, затем по столбцам
 	var r := maxi(int(round(0.5 * HEAT_SMOOTH_M / dx)), 0)
 	var tmp := PackedFloat32Array()
@@ -400,8 +401,9 @@ func _build_convective() -> void:
 				s += tmp[q * nx + i]
 				n += 1
 			var c := j * nx + i
-			_hmix[c] = maxf(zi - _hc[c], ZI_MIN)
-			_wstar[c] = deardorff_wstar(s / n, zi, _hc[c])
+			var zc := zic[c] if not zic.is_empty() else zi
+			_hmix[c] = maxf(zc - _hc[c], ZI_MIN)
+			_wstar[c] = deardorff_wstar(s / n, zc, _hc[c])
 
 
 ## Масштаб Дирдорфа w* = (g/θ0 · H/(ρc_p) · h)^(1/3), h = max(z_i − hc, ZI_MIN), м/с; H ≤ 0 — 0.
@@ -591,9 +593,46 @@ func heat_flux() -> PackedFloat32Array:
 	return PackedFloat32Array()
 
 
-## Верх слоя перемешивания решения, м над морем; NAN — нет (нет конвекции).
+## Верх слоя перемешивания решения над долиной (z_i_ref), м над морем; NAN — нет (нет конвекции).
+## Над столбцом — z_i_col / z_i_at (CLF-К6).
 func z_i() -> float:
 	return float(meta.z_i) if meta.has("z_i") and meta.z_i != null else NAN
+
+
+## z_i по столбцам (ny·nx, м над морем; meta.z_i_col — CLF-К6, AirZiTerrain); пусто — нет данных
+## (старое поле или нет конвекции) — тогда z_i() везде.
+func z_i_col() -> PackedFloat32Array:
+	if meta.has("z_i_col"):
+		var v: Variant = meta.z_i_col
+		if v is Array:
+			meta.z_i_col = PackedFloat32Array(v)
+			v = meta.z_i_col
+		if v is PackedFloat32Array and (v as PackedFloat32Array).size() == _nxy:
+			return v
+	return PackedFloat32Array()
+
+
+## Доля α, с которой z_i столбцов следует рельефу (meta.zi_alpha; 0 — плоский z_i).
+func zi_alpha() -> float:
+	return float(meta.get("zi_alpha", 0.0))
+
+
+## z_i над точкой (x, z мира), м над морем: билинейно по столбцам z_i_col (вне поля — ближайший
+## край); нет столбцов — z_i(); NAN — нет конвекции.
+func z_i_at(pos: Vector3) -> float:
+	var zic := z_i_col()
+	if zic.is_empty():
+		return z_i()
+	var gx := clampf((pos.x - x0) * _inv_dx - 0.5, 0.0, nx - 1.0)
+	var gy := clampf((-pos.z - y0) * _inv_dx - 0.5, 0.0, ny - 1.0)
+	var i0 := mini(int(gx), nx - 2)
+	var j0 := mini(int(gy), ny - 2)
+	var fx := gx - i0
+	var fy := gy - j0
+	var c := j0 * nx + i0
+	var r0 := lerpf(zic[c], zic[c + 1], fx)
+	var r1 := lerpf(zic[c + nx], zic[c + nx + 1], fx)
+	return lerpf(r0, r1, fy)
 
 
 ## dθ̄/dz фона в центрах уровней (nz), К/м; пусто — нет.

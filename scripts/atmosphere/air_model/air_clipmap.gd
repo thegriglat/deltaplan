@@ -292,8 +292,11 @@ func _next() -> void:
 func _start_tasks() -> void:
 	for row in _pending:
 		row.t_enq = Time.get_ticks_usec()
+		# родитель для z_i столбцов (CLF-К6): область — у первого окна; у следующих — окно крупнее
+		# (его поле ещё не посчитано в этой очереди → область: та же формула, та же сетка h̃)
 		var args := [
-			float(row.dx), float(row.x0), float(row.y0), _hour, _u10, _wdir, _t_max, _sky, _inflow_k
+			float(row.dx), float(row.x0), float(row.y0), _hour, _u10, _wdir, _t_max, _sky, _inflow_k,
+			_domain_field,
 		]
 		row.case = null
 		row.task = WorkerThreadPool.add_task(_prepare_case.bind(args, row))
@@ -324,7 +327,8 @@ func _prepare_case(a: Array, row: Dictionary) -> void:
 		_ctx,
 		cells,
 		a[8],
-		_surface
+		_surface,
+		a[9]
 	)
 	if c != null and not c.prepare_pair():
 		c = null

@@ -63,6 +63,8 @@ static func domain_case(
 		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
 	var d := day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
+	# z_i по столбцам от рельефа (CLF-К6): опора — слой дня над долиной (valley_msl_m)
+	c.set_zi_terrain(float(ctx.get("valley_msl_m", 0.0)))
 	var cells := {}
 	if heat or surface != null:
 		cells = cell_surface(surface, water, detail, x0, y0, dx, n, n)

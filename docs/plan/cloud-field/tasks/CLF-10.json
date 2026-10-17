@@ -1,0 +1,95 @@
+{
+  "id": "CLF-10",
+  "module": "cloud-field",
+  "type": "dp-engineer",
+  "title": "Опускание горно-равнинной циркуляции для термиков и облаков",
+  "goal": "Компенсирующее опускание (W̄ < 0) горно-равнинной циркуляции учтено в одном месте для потолка частицы/источников термиков и источника облачности; если поле воздуха опускания над равниной не даёт — честно в «Границах» доки, без подгонки.",
+  "plan_ref": "§CLF-10",
+  "contracts": [
+    {
+      "name": "CLF-К1",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К3",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К6",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-field-CLF-10",
+  "branch": "cloud-field/CLF-10",
+  "base": "feature/cloud-field",
+  "scope": [
+    "scripts/atmosphere/air_model/air_thermals.gd",
+    "scripts/atmosphere/air_model/air_window_case.gd",
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/cloud_field_*",
+    "configs/atmosphere.json",
+    "tests/atmosphere/test_cloud_field*",
+    "tests/atmosphere/test_zi_terrain*",
+    "tests/atmosphere/test_air_thermals.gd",
+    "tests/atmosphere/test_subsidence*",
+    "tools/research/cloud_field/",
+    "docs/research/cloud_field.md",
+    "docs/research/cloud_field/",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_model/air_picard.glsl",
+    "data/locations/",
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/cloud_physics.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "project.godot",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "test_cloud_field",
+      "tests": "test_cloud_field"
+    },
+    {
+      "name": "test_air_thermals",
+      "tests": "test_air_thermals"
+    },
+    {
+      "name": "test_zi_terrain",
+      "tests": "test_zi_terrain"
+    },
+    {
+      "name": "test_air_contracts",
+      "tests": "test_air_contracts"
+    },
+    {
+      "name": "step_ms",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_cloud_field_perf",
+      "expect": "num:cloud_field_step_ms=([0-9.]+) <=15"
+    },
+    {
+      "name": "maps",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cloud-field/CLF-10/ | grep -c 'png$'",
+      "expect": "num:^([0-9]+) >=3"
+    },
+    {
+      "name": "tops",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/cloud_field/out/subsidence.json'));print(all(k in d for k in ('almaty','ongudai','askarovo')))\"",
+      "expect": "re:^True"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T07:30:34"
+}

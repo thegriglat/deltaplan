@@ -1,0 +1,101 @@
+{
+  "id": "CLF-9",
+  "module": "cloud-field",
+  "type": "dp-engineer",
+  "title": "z_i по рельефу в модели воздуха",
+  "goal": "Верх слоя перемешивания частично следует рельефу (литература, _doc) — один на всю модель воздуха по CLF-К6: фазы, w*, AirThermals, CloudField; потолок термиков и основание облаков согласованы; карты Алматы и Онгудая и потолки термиков до/после для шлюза.",
+  "plan_ref": "§CLF-9",
+  "contracts": [
+    {
+      "name": "CLF-К6",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К1",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К3",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К5",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-field-CLF-9",
+  "branch": "cloud-field/CLF-9",
+  "base": "feature/cloud-field",
+  "scope": [
+    "scripts/atmosphere/air_model/",
+    "configs/atmosphere.json",
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/cloud_field_*",
+    "tests/atmosphere/test_cloud_field*",
+    "tests/atmosphere/test_zi_terrain*",
+    "tests/atmosphere/test_air_*",
+    "tests/contracts/test_cloud_field_k6.gd",
+    "tests/contracts/test_air_contracts.gd",
+    "tools/research/cloud_field/",
+    "docs/research/cloud_field.md",
+    "docs/research/cloud_field/",
+    "docs/INDEX.md",
+    "docs/registry/research.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "data/locations/",
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_physics.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "project.godot",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "test_zi_terrain",
+      "tests": "test_zi_terrain"
+    },
+    {
+      "name": "test_cloud_field",
+      "tests": "test_cloud_field"
+    },
+    {
+      "name": "test_air_",
+      "tests": "test_air_"
+    },
+    {
+      "name": "step_ms",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_cloud_field_perf",
+      "expect": "num:cloud_field_step_ms=([0-9.]+) <=15"
+    },
+    {
+      "name": "maps",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cloud-field/CLF-9/ | grep -c 'png$'",
+      "expect": "num:^([0-9]+) >=4"
+    },
+    {
+      "name": "almaty_lowland",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/cloud_field/out/summary.json'));print('cover_lowland=%.3f'%d['almaty']['strong']['cover_lowland'])\"",
+      "expect": "num:cover_lowland=([0-9.]+) <=0.1"
+    },
+    {
+      "name": "tops",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/cloud_field/out/zi_tops.json'));print(all(k in d for k in ('ongudai','askarovo')))\"",
+      "expect": "re:^True"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T05:47:28"
+}

@@ -50,6 +50,8 @@ var _d := PackedFloat32Array()
 var _od := PackedFloat32Array()
 ## Столбцы-кандидаты на переразвитие (хеш seed+столбец < overdevelopment_chance).
 var _tower := PackedByteArray()
+## Чем помечены кандидаты: [seed, overdevelopment_chance]; пусто — ещё не помечены (ревью CLF-1).
+var _tower_key := []
 ## Входы по столбцам (CloudFieldSources): прежние (au0, ds0) и новые (au1, ds1), снос у основания
 ## (vx, vz, м/с), рельеф столбцов (hc, м над морем).
 var _au0 := PackedFloat32Array()
@@ -97,6 +99,7 @@ func setup_grid(p_nx: int, p_ny: int, p_dx: float, p_x0: float, p_y0: float) -> 
 	_hc.fill(0.0)
 	_tower.resize(n)
 	_tower.fill(0)
+	_tower_key = []
 	_has_inputs = false
 	_blend_s = 0.0
 	_started = false
@@ -128,9 +131,11 @@ func set_inputs(inp: Dictionary) -> void:
 	_depth_day = float(w.get("cloud_depth_m", cfg.get("depth_day_default_m", 800.0)))
 	_overdev = clampf(float(w.get("overdevelopment_chance", 0.0)), 0.0, 1.0)
 	var seed := int(inp.get("seed", 0))
-	if seed != _seed or _tower.size() != nx * ny:
+	# кандидаты на башни — при первом входе и при смене зерна или доли переразвития (n хешей дёшево)
+	if _tower_key != [seed, _overdev] or _tower.size() != nx * ny:
 		_seed = seed
 		_mark_towers()
+		_tower_key = [seed, _overdev]
 	var prep := CloudFieldSources.prepare(self, inp, cfg)
 	# прежние входы — текущее смешанное значение; новые — со следующего шага
 	var blend_s := float(cfg.get("input_blend_s", 60.0))
@@ -453,11 +458,15 @@ func apply_snapshot(b: PackedByteArray, blend: float) -> bool:
 	return CloudFieldCodec.apply_snapshot(self, b, blend)
 
 
-## Состояние из выходов (после снимка): a = cover·activity, p = cover·(1 − activity), d = depth.
+## Состояние из выходов (после снимка): a = cover·activity, p = cover·(1 − activity), d = depth;
+## накопленное переразвитие od — установившееся при таком подъёме, a/a_ref (od в снимке К4 не идёт;
+## у ведущего и клиента башни тогда сходятся к одному за τ_od).
 func _state_from_outputs() -> void:
+	var inv_aref := 1.0 / maxf(float(cfg.get("overdev_ref_frac", 0.1)), 1.0e-3)
 	for c in nx * ny:
 		var q := cover[c]
 		_a[c] = q * activity[c]
 		_p[c] = q * (1.0 - activity[c])
 		_d[c] = depth[c]
+		_od[c] = clampf(_a[c] * inv_aref, 0.0, 1.0)
 	_started = true
