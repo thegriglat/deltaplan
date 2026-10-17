@@ -200,3 +200,48 @@ func test_route_goal_and_speed() -> void:
 		ok = ok or (g.kind == "route" and String(g.task) != "")
 	check(ok, "route с заданием")
 	m.queue_free()
+
+
+## TM-2: загрузка .xctsk — проверка, копия, появление в списке заданий места.
+func test_task_file_check() -> void:
+	var s := FlightSettings.defaults()
+	s.location_id = "ongudai"
+	var ok := "res://tests/goals/data/ongudai_sample.xctsk"
+	check(GoalsTab.check_task_file(ok, s) == "", "годный файл в зоне места")
+	check(
+		GoalsTab.check_task_file("res://tests/tasks/data/altai_sample.xctsk", s) == "goals_task_foreign",
+		"файл из другого региона"
+	)
+	check(
+		GoalsTab.check_task_file("res://tests/goals/data/nope.xctsk", s) == "goals_task_unreadable",
+		"нет файла"
+	)
+	check(
+		GoalsTab.check_task_file("res://configs/world.json", s) == "goals_task_unreadable",
+		"JSON без пунктов"
+	)
+	check(
+		GoalsTab.check_task_file("res://locale/ui.csv", s) == "goals_task_unreadable",
+		"не JSON"
+	)
+
+
+func test_task_import_appears_in_list() -> void:
+	var dir := "user://tm2_test_tasks"
+	var dest := GoalsTab.copy_task_file("res://tests/goals/data/ongudai_sample.xctsk", dir)
+	check(dest == dir + "/ongudai_sample.xctsk", "копия: %s" % dest)
+	var s := FlightSettings.defaults()
+	s.location_id = "ongudai"
+	var found := false
+	var other := false
+	for e: Dictionary in Task.list_available(dir):
+		if e.source == "file":
+			found = found or GoalsTab._task_fits(e, s)
+	s.location_id = "altai"
+	for e: Dictionary in Task.list_available(dir):
+		if e.source == "file":
+			other = other or GoalsTab._task_fits(e, s)
+	check(found, "в списке заданий ongudai")
+	check(not other, "в altai не показывается")
+	DirAccess.remove_absolute(dest)
+	DirAccess.remove_absolute(dir)

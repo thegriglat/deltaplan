@@ -136,3 +136,5 @@ if tracker: r["task"] = tracker.result()   # рекорды задания: вр
 var new_records := records.add_flight(r)   # показать «Новый рекорд!» на экране итога
 ```
 **Прибор.** Страницы «карта» и «задание» рисуют пункты из `FlightInstrument.set_task(points, active)`; состояние гонки — `FlightInstrument.set_task_state(tracker.get_state())` (`InstrumentTask.race`: активный пункт, оставшаяся оптимизированная дистанция, требуемое качество до гоула `required_glide`, время до открытия старта, ESS/гоул; пустой словарь — гонки нет). Страницы прибора — `docs/guide/instruments.md`.
+
+Загрузка `.xctsk` пилотом — кнопка в окне «Полёт…» → «Цели» ([goals.md](goals.md)); файл копируется в `user://tasks/`, место определяется по пунктам (`GoalsTab.check_task_file`).
