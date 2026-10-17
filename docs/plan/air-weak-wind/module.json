@@ -1,0 +1,11 @@
+{
+  "module": "air-weak-wind",
+  "plan": "docs/plan/air-weak-wind.md",
+  "contracts": "docs/contracts/air-weak-wind.md",
+  "branch": "feature/air-weak-wind",
+  "copy": "~/deltaplan-air-weak-wind",
+  "created": "2026-10-18T00:27:42",
+  "code": "AWW",
+  "area": "air",
+  "base": "main"
+}
