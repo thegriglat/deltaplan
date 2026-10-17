@@ -404,6 +404,18 @@ float cloud_density(Cloud cl, vec3 p, int quality) {
 	return cloud_density_raw(cl, p, quality) * cl.vis * cl.vis * cl.vis;
 }
 
+// Свет в точке облака (на единицу σ): прямое солнце — Бир + пологий член многократного
+// рассеяния, powder у краёв, фаза; рассеянный — небо сверху (sky — доля неба, не закрытая
+// облаком над точкой), снизу — отражённый землёй свет (основание серое, не чёрное).
+// od — оптическая толща к солнцу (∫плотность·ds, м), hh — высота точки в долях мощности.
+vec3 cloud_light(float dns, float od, float sky, float hh, float phase, vec3 sun_l) {
+	float beer = exp(-od * extinction * light_absorb) + ms_strength * exp(-od * extinction * light_absorb * 0.2);
+	float powder = 1.0 - exp(-dns * extinction * 60.0) * powder_strength;
+	float up_w = smoothstep(0.0, 0.5, hh);
+	vec3 amb = (ambient_top * mix(sky, 1.0, up_w * 0.5) + ambient_bottom * base_darkness * (1.0 - up_w)) * ambient_energy;
+	return sun_l * beer * phase * powder + amb;
+}
+
 // Грубый шаг луча по боксу облака [tn, tf].
 float cloud_dt_coarse(float rx, float rz, float tn, float tf) {
 	// Дальние облака мельче на экране — им хватает меньше грубых шагов.
@@ -530,9 +542,6 @@ void cloud_march_part(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 				od += cloud_density(cl, lp, 0) * lstep;
 				lstep *= lgrow;
 			}
-			// Бир + пологий член многократного рассеяния, powder у краёв.
-			float beer = exp(-od * extinction * light_absorb) + ms_strength * exp(-od * extinction * light_absorb * 0.2);
-			float powder = 1.0 - exp(-dns * extinction * 60.0) * powder_strength;
 			float hh = clamp((p.y - cl.base) / cl.height, 0.0, 1.0);
 			// Рассеянный свет неба гаснет по толщине облака над точкой: основание под толстой
 			// серединой темнее, чем у тонких краёв; над живым термиком — ещё темнее (подсос).
@@ -551,10 +560,7 @@ void cloud_march_part(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 			if (cl.anvil > 0.0 && hh > 0.8) {
 				sky *= mix(0.35, 1.0, smoothstep(0.88, 0.99, hh));
 			}
-			// Снизу — отражённый землёй свет (основание серое, не чёрное), сверху — небо.
-			float up_w = smoothstep(0.0, 0.5, hh);
-			vec3 amb = (ambient_top * mix(sky, 1.0, up_w * 0.5) + ambient_bottom * base_darkness * (1.0 - up_w)) * ambient_energy;
-			vec3 S = (sun_l * beer * phase * powder + amb) * sigma;
+			vec3 S = cloud_light(dns, od, sky, hh, phase, sun_l) * sigma;
 			float tr = exp(-sigma * dt_s);
 			col += trans * (S - S * tr) / max(sigma, 1e-6);
 			float wgt = trans * (1.0 - tr);
@@ -573,3 +579,167 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 	vec4 st = cloud_march_start(cl.rx, cl.rz, tn, tf, ign);
 	cloud_march_part(cl, ro, rd, tn, tf, ign, 1e30, st, trans, col, t_acc, w_acc);
 }
+
+#ifdef CLOUD_FIELD
+// ---------------------------------------------------------------- слой поля облачности (CLF-5)
+// Кучевые региона — слой из поля облачности (CloudField, текстура CLF-К2), а не облака-записи.
+// Хост объявляет ещё: cf_tex, cf_tex_prev (sampler2D, билинейно, край — clamp), cf_max (sampler2D,
+// по текселю) и cf_rect, cf_base, cf_edge (имена и смысл — CLF-К2), cf_mrect (карта cf_max: x, z
+// угла, 1/ширина, 1/высота блоков, м), cf_misc (верх слоя над основанием по всему полю, м; дальность
+// слоя, м; период маски, м; доля перехода от прошлого шага поля к новому), cf_q0..cf_q3 (квантили
+// маски). Форма: основание плоское (cf_base.x), отдельные облака — порог крупного шума по покрытию
+// (над порогом ровно доля cover площади: квантиль шума), верх — купол до мощности поля; клубы,
+// края, стадии и свет — те же, что у облаков-записей.
+
+// Купол: высота облака ∝ √(превышение порога / CF_DOME_E) — от края к середине облака.
+const float CF_DOME_E = 0.8;
+// Край облака по превышению порога: ширина мягкого бока в долях превышения.
+const float CF_EDGE_E = 0.12;
+
+// Поле в xz: (покрытие, мощность м, стадия −1..1, активность); вне сетки — фон с переходом
+// cf_edge; между шагами поля — переход от прошлой текстуры к новой (cf_misc.w).
+vec4 cf_sample(vec2 xz) {
+	vec2 uv = (xz - cf_rect.xy) * cf_rect.zw;
+	vec4 v = mix(textureLod(cf_tex_prev, uv, 0.0), textureLod(cf_tex, uv, 0.0), cf_misc.w);
+	vec2 o = max(max(-uv, uv - 1.0), vec2(0.0)) / cf_rect.zw;
+	float w = clamp(1.0 - length(o) / max(cf_edge, 1.0), 0.0, 1.0);
+	return vec4(mix(cf_base.z, v.r, w), mix(cf_base.w, v.g * cf_base.y, w), (v.b * 2.0 - 1.0) * w, v.a * w);
+}
+
+float cf_qv(int i) {
+	vec4 q = i < 4 ? cf_q0 : (i < 8 ? cf_q1 : (i < 12 ? cf_q2 : cf_q3));
+	int k = i - (i / 4) * 4;
+	return k == 0 ? q.x : (k == 1 ? q.y : (k == 2 ? q.z : q.w));
+}
+
+// Порог маски для покрытия c: значения шума выше порога занимают долю c объёма текстуры.
+float cf_threshold(float c) {
+	float x = clamp(1.0 - c, 0.0, 1.0) * 15.0;
+	int i = min(int(x), 14);
+	return mix(cf_qv(i), cf_qv(i + 1), x - float(i));
+}
+
+// Маска отдельных облаков: крупный шум (выше — облако), плывёт с клубами (wind_offset). По
+// вертикали почти столб (период ×3,3): основание общее, сечение облака по высоте почти то же.
+// fp — размер пикселя или шага, м (мип не мельче его, но не больше 1,5: квантили — без размытия).
+float cf_mask(vec3 p, float fp) {
+	vec3 q = vec3(p.x + wind_offset.x, (p.y - cf_base.x) * 0.3, p.z + wind_offset.z) / cf_misc.z;
+	float l = clamp(log2(max(fp / (cf_misc.z / shape_tex_size), 1.0)), 0.0, 1.5);
+	return 1.0 - textureLod(noise_shape, q, l).r;
+}
+
+float cf_lod(float fp, float texel_m) {
+	return max(log2(max(fp / texel_m, 1.0)), 0.0);
+}
+
+// Превышение порога маски (0 — край облака, < 0 — между облаками).
+float cf_excess(vec3 p, vec4 f, float fp) {
+	float thr = cf_threshold(f.x);
+	return (cf_mask(p, fp) - thr) / max(1.0 - thr, 1e-3);
+}
+
+// Грубая оболочка слоя (без клубов): > 0 — рядом может быть облако (по ней ищем вход).
+float cf_envelope(vec3 p, vec4 f, float fp) {
+	float h = p.y - cf_base.x;
+	if (h < -30.0 || f.x < 0.004 || f.y < 1.0) {
+		return -1.0;
+	}
+	float e = cf_excess(p, f, fp) + 0.08;
+	if (e <= 0.0) {
+		return -1.0;
+	}
+	return f.y * sqrt(min(e / CF_DOME_E, 1.0)) * 1.2 + 40.0 - h;
+}
+
+// Плотность слоя 0..1 в точке p; f — поле в её xz (cf_sample); fp — размер пикселя/шага, м;
+// quality — как у cloud_density. top — высота облака над основанием в этой точке, м.
+// Стадия: > 0 — растущее (рваное, редкое), ~0 — зрелое (плотное, чёткие клубы, плоское
+// основание), < 0 — распад (прозрачное, рваное, приподнятая кромка) — как у облаков-записей.
+float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
+	top = 0.0;
+	float h = p.y - cf_base.x;
+	if (h < 0.0 || f.x < 0.004 || f.y < 1.0) {
+		return 0.0;
+	}
+	float e = cf_excess(p, f, fp);
+	if (e <= 0.0) {
+		return 0.0;
+	}
+	top = f.y * sqrt(min(e / CF_DOME_E, 1.0));
+	if (h > top * 1.2 + 30.0) {
+		return 0.0;
+	}
+	float growth = 1.0 - 0.7 * max(f.z, 0.0);
+	float decay = max(-f.z, 0.0);
+	float shape = min(1.0 - h / max(top, 1.0), e / CF_EDGE_E);
+	shape -= decay * 0.15;
+	shape = clamp(shape / mix(0.55, 0.8, decay), 0.0, 1.0);
+	if (shape <= 0.0) {
+		return 0.0;
+	}
+	// Клубы Уорли двух масштабов, переносятся ветром и «кипят».
+	vec3 sp = (p + wind_offset) / shape_period_m + vec3(0.0, boil, 0.0);
+	float ls = cf_lod(fp, shape_period_m / shape_tex_size);
+	float billow = smoothstep(0.2, 0.85, 1.0 - textureLod(noise_shape, sp, ls).r);
+	if (quality > 0) {
+		float b2 = smoothstep(0.2, 0.85, 1.0 - textureLod(noise_shape, sp * 2.7 + vec3(0.5), max(ls - 1.43, 0.0)).r);
+		billow = billow * 0.6 + b2 * 0.4;
+	}
+	// Плоская кромка: резкая у живого облака, приподнятая и рваная у тающего (подъём кромки —
+	// доля мощности, но не больше ~250 м: тает снизу пассивное облако, а не вся башня сразу).
+	float base_soft = mix(10.0, 120.0, decay);
+	float base_lift = (base_relief_m + decay * decay * 0.3 * min(top, 800.0)) * (1.0 - billow);
+	float dns = shape * smoothstep(base_lift, base_lift + base_soft, h);
+	if (dns <= 0.0) {
+		return 0.0;
+	}
+	float erosion = mix(0.75, 0.93, decay) + (1.0 - growth) * 0.15;
+	dns = clamp(cloud_remap(dns, erosion * (1.0 - billow), 1.0, 0.0, 1.0), 0.0, 1.0);
+	if (quality == 2 && detail_enabled != 0 && dns > 0.0 && dns < 0.9) {
+		// Мелкие края: искажение («завихрения») + две октавы мелкого шума.
+		vec3 dp = (p + wind_offset * 1.3) / detail_period_m + vec3(boil * 3.0);
+		float ld = cf_lod(fp, detail_period_m / detail_tex_size);
+		vec3 cw = vec3(textureLod(noise_detail, dp * 0.37, ld).r,
+				textureLod(noise_detail, dp.yzx * 0.37 + vec3(0.3), ld).r,
+				textureLod(noise_detail, dp.zxy * 0.37 + vec3(0.6), ld).r) - 0.5;
+		vec3 pw = p + cw * curl_strength_m * (1.0 + decay);
+		float dn = textureLod(noise_detail, (pw + wind_offset * 1.3) / detail_period_m, ld).r;
+		float lh = cf_lod(fp, hf_period_m / detail_tex_size);
+		float hf = textureLod(noise_detail, (pw + wind_offset * 1.5) / hf_period_m, lh).r;
+		float det = dn * 0.65 + hf * 0.35;
+		// Внизу — волокна, вверху — кочаны.
+		det = mix(det, 1.0 - det, smoothstep(0.1, 0.5, h / max(top, 1.0)));
+		dns = clamp(cloud_remap(dns, det * mix(0.4, 0.75, decay), 1.0, 0.0, 1.0), 0.0, 1.0);
+	}
+	dns = smoothstep(0.0, mix(surface_sharpness, 1.0, decay), dns);
+	return dns * mix(0.3, 1.0, growth) * mix(1.0, 0.2, decay * decay);
+}
+
+float cf_density(vec3 p, vec4 f, int quality, float fp) {
+	float top;
+	return cf_density_top(p, f, quality, fp, top);
+}
+
+// Грубая карта cf_max (блоки клеток): (наибольшее покрытие, наибольший верх над основанием, м)
+// блока под xz; box — его границы (x0, z0, x1, z1). За краем карты — фон (в полосе перехода — и
+// крайние блоки), box пустой: прыгать некуда.
+vec2 cf_block(vec2 xz, out vec4 box) {
+	box = vec4(0.0);
+	vec2 um = (xz - cf_mrect.xy) * cf_mrect.zw;
+	ivec2 n = textureSize(cf_max, 0);
+	ivec2 b = ivec2(floor(um * vec2(n)));
+	if (um.x < 0.0 || um.y < 0.0 || um.x >= 1.0 || um.y >= 1.0) {
+		vec2 o = max(max(-um, um - 1.0), vec2(0.0)) / cf_mrect.zw;
+		if (length(o) < cf_edge) {
+			vec4 v = texelFetch(cf_max, clamp(b, ivec2(0), n - ivec2(1)), 0);
+			return vec2(max(v.r, cf_base.z), max(v.g * cf_base.y, cf_base.w));
+		}
+		return vec2(cf_base.z, cf_base.w);
+	}
+	vec2 sz = 1.0 / (vec2(n) * cf_mrect.zw);
+	box.xy = cf_mrect.xy + vec2(b) * sz;
+	box.zw = box.xy + sz;
+	vec4 v = texelFetch(cf_max, b, 0);
+	return vec2(v.r, v.g * cf_base.y);
+}
+#endif

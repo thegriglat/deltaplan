@@ -3,6 +3,8 @@
 // лучу к солнцу. Плотность — та же, что рисуется (cloud_common.gdshaderinc, качество 1): тень
 // повторяет форму облака, его клубы, распад и таяние. Один квад на облако (MultiMesh), квад
 // накрывает проекцию бокса облака вдоль солнца; облака перемножаются (blend_mul по белому фону).
+// Слой поля облачности (CLF-5) — тем же шейдером на квад во всю карту (field_pass): луч к солнцу
+// сквозь слой [основание, верх блока грубой карты] той же плотностью (cf_density, качество 1).
 // Землю этой картой затеняют шейдеры рельефа, травы, леса (scripts/terrain/cloud_shadow.gdshaderinc).
 shader_type canvas_item;
 render_mode blend_mul, unshaded;
@@ -72,13 +74,33 @@ uniform vec3 fog_color = vec3(0.66, 0.74, 0.86);
 uniform float fog_density = 0.00004;
 uniform float fog_sun_scatter = 0.15;
 
+// Слой поля (CLF-К2; смысл — cloud_common.gdshaderinc, раздел CLOUD_FIELD).
+uniform bool field_pass = false;
+uniform sampler2D cf_tex : filter_linear, repeat_disable;
+uniform sampler2D cf_tex_prev : filter_linear, repeat_disable;
+uniform sampler2D cf_max : filter_nearest, repeat_disable;
+uniform vec4 cf_rect = vec4(0.0);
+uniform vec4 cf_base = vec4(0.0);
+uniform float cf_edge = 2000.0;
+uniform vec4 cf_mrect = vec4(0.0);
+uniform vec4 cf_misc = vec4(0.0);
+uniform vec4 cf_q0 = vec4(0.0);
+uniform vec4 cf_q1 = vec4(0.0);
+uniform vec4 cf_q2 = vec4(0.0);
+uniform vec4 cf_q3 = vec4(0.0);
+
 varying flat int v_idx;
 varying vec2 v_w;
 
+#define CLOUD_FIELD
 #include "res://scripts/atmosphere/cloud_common.gdshaderinc"
 
 void vertex() {
 	v_idx = INSTANCE_ID;
+	if (field_pass) {
+		// Квад во всю карту (ColorRect): VERTEX — пиксели карты.
+		v_w = map_rect.xy + VERTEX * map_rect.z;
+	} else {
 	vec4 r0 = texelFetch(cloud_data, ivec2(0, INSTANCE_ID), 0);
 	vec4 r1 = texelFetch(cloud_data, ivec2(1, INSTANCE_ID), 0);
 	// Бокс облака (низ и верх) — вдоль солнца на опорную плоскость.
@@ -91,9 +113,50 @@ void vertex() {
 	// Квад — QuadMesh 1×1 с центром в нуле.
 	v_w = mix(lo, hi, VERTEX + 0.5);
 	VERTEX = (v_w - map_rect.xy) / map_rect.z;
+	}
+}
+
+// Слой поля: луч к солнцу от точки опорной плоскости сквозь [основание, верх слоя у луча] —
+// верх по грубой карте в трёх точках луча (на основании, посередине, на верхе слоя): тонкий
+// слой — мелкие шаги (shadow_steps), пустые блоки — без шагов.
+float field_tau(out float foot) {
+	float sy = max(sun_dir.y, 0.05);
+	vec2 s = sun_dir.xz / sy;
+	float y0 = cf_base.x;
+	vec2 at_base = v_w + s * (y0 - map_rect.w);
+	vec4 box;
+	float top = 0.0;
+	for (int k = 0; k < 3; k++) {
+		vec2 mb = cf_block(at_base + s * cf_misc.x * 0.5 * float(k), box);
+		if (mb.x > 0.0) {
+			top = max(top, mb.y);
+		}
+	}
+	foot = 0.0;
+	if (top <= 0.0) {
+		return 0.0;
+	}
+	top = min(top + 60.0, cf_misc.x);
+	float dy = top / float(shadow_steps);
+	foot = dy / sy;
+	float tau = 0.0;
+	for (int i = 0; i < 32; i++) {
+		if (i >= shadow_steps) {
+			break;
+		}
+		float y = y0 + (float(i) + 0.5) * dy;
+		vec3 q = vec3(v_w.x + s.x * (y - map_rect.w), y, v_w.y + s.y * (y - map_rect.w));
+		tau += cf_density(q, cf_sample(q.xz), 1, foot);
+	}
+	return tau;
 }
 
 void fragment() {
+	if (field_pass) {
+		float foot;
+		float tau = field_tau(foot);
+		COLOR = vec4(vec3(exp(-tau * extinction * foot)), 1.0);
+	} else {
 	vec4 r0 = texelFetch(cloud_data, ivec2(0, v_idx), 0);
 	vec4 r1 = texelFetch(cloud_data, ivec2(1, v_idx), 0);
 	Cloud cl = cloud_make(vec3(r0.x, 0.0, r0.z), vec3(r1.x, 0.0, r1.y),
@@ -116,4 +179,5 @@ void fragment() {
 		tau += cloud_density(cl, q, 1);
 	}
 	COLOR = vec4(vec3(exp(-tau * extinction * cl.foot)), 1.0);
+	}
 }
