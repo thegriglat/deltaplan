@@ -956,9 +956,19 @@
       "cedar": "res://assets/models/trees/tree_cedar.glb",
       "larch": "res://assets/models/trees/tree_larch.glb",
       "birch": "res://assets/models/trees/tree_birch.glb",
-      "spruce": "res://assets/models/trees/tree_spruce.glb"
+      "spruce": "res://assets/models/trees/tree_spruce.glb",
+      "oak": "res://assets/models/trees/tree_oak.glb",
+      "palm": "res://assets/models/trees/tree_palm.glb",
+      "tropical": "res://assets/models/trees/tree_tropical.glb"
     },
-    "models_doc": "Модели пород (.glb: variants вариантов, у варианта n меши V{n}_LOD0, V{n}_LOD1, V{n}_LOD2; основание ствола в 0; tools/blender/build_trees.py). Нет файла — процедурные кроны",
+    "models_doc": "Модели пород (.glb: variants вариантов, у варианта n меши V{n}_LOD0, V{n}_LOD1, V{n}_LOD2; основание ствола в 0; tools/blender/build_trees.py). Загружаются только породы набора места (set). Нет файла у породы набора — процедурные кроны",
+    "atlas_cell": {"pine": 0, "cedar": 1, "larch": 2, "birch": 3, "spruce": 4, "oak": 5, "palm": 6, "tropical": 7},
+    "atlas_cell_doc": "Реестр пород (RV-К2): ячейка общего атласа импостеров 4×2 (col = cell % 4, row = cell / 4); имена реестра — допустимые значения set",
+    "season_kind": {"pine": 0, "cedar": 0, "larch": 2, "birch": 1, "spruce": 0, "oak": 1, "palm": 0, "tropical": 0},
+    "season_kind_doc": "Сезон породы (SL-6): 0 вечнозелёная (не желтеет, не сбрасывает листву), 1 лиственная (сроки берёзы), 2 лиственница",
+    "conifer": {"pine": true, "cedar": true, "larch": false, "birch": false, "spruce": true, "oak": false, "palm": false, "tropical": false},
+    "conifer_doc": "Тон хвойных в импостерах (лиственница летом — светлая хвоя, по альбедо ближе к лиственным)",
+    "set_doc": "set: [имена из atlas_cell] — набор пород места, 1…6, порядок = локальный индекс породы; нет ключа — pine, cedar, larch, birch, spruce (TreePlacer.DEFAULT_SET). Задаёт профиль региона/место (RV-К1, RV-9)",
     "backlight": {
       "default": 0.2,
       "birch": 0.55,

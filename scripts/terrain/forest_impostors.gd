@@ -96,15 +96,37 @@ func setup(
 	var asp := PackedFloat32Array()
 	var hts: Array[Vector2] = []
 	var gain := PackedFloat32Array()
-	for name in TreePlacer.SPECIES:
+	var kind := PackedFloat32Array()
+	var con := PackedFloat32Array()
+	var cell := PackedFloat32Array()
+	var species := TreePlacer.species_set(cfg)
+	for name in species:
 		var s: Dictionary = sp.get(name, {})
 		w.append(float(s.get("weight", 0.0)))
 		lo.append(float(s.get("min_m", -1e4)))
 		hi.append(float(s.get("max_m", 1e4)))
 		asp.append(float(s.get("aspect", 0.0)))
 		gain.append(TerrainTreeModels.albedo_gain_for(cfg, name, 2))
+		kind.append(TreePlacer.kind_of(cfg, name))
+		con.append(1.0 if TreePlacer.conifer_of(cfg, name) else 0.0)
+		cell.append(float(TreePlacer.atlas_cell_of(cfg, name)))
 		var hr: Array = s.get("height_m", [15.0, 25.0])
 		hts.append(Vector2(float(hr[0]), float(hr[1])))
+	var n_sp := species.size()
+	for _i in range(n_sp, TreePlacer.MAX_SPECIES):  # неиспользуемые слоты массивов шейдера
+		w.append(0.0)
+		lo.append(-1e4)
+		hi.append(1e4)
+		asp.append(0.0)
+		gain.append(1.0)
+		kind.append(0.0)
+		con.append(0.0)
+		cell.append(0.0)
+		hts.append(Vector2(15.0, 25.0))
+	m.set_shader_parameter("sp_count", n_sp)
+	m.set_shader_parameter("sp_kind", kind)
+	m.set_shader_parameter("sp_conifer", con)
+	m.set_shader_parameter("sp_cell", cell)
 	m.set_shader_parameter("sp_weight", w)
 	m.set_shader_parameter("sp_min", lo)
 	m.set_shader_parameter("sp_max", hi)
@@ -114,7 +136,7 @@ func setup(
 	# GR-11: размеры билборда для раннего выхода — высота ×(1 + 0,4 вдали)×seam_size_k, полуширина
 	# hh/4·(1 + edge_scale_k), утопление до sink_fraction·hh
 	var hmax := 1.0
-	for hr in hts:
+	for hr in hts.slice(0, n_sp):
 		hmax = maxf(hmax, hr.y)
 	hmax *= 1.4 * maxf(1.0, float(ic.get("seam_size_k", 1.0)))
 	m.set_shader_parameter("cull_hmax_m", hmax + 1.0)

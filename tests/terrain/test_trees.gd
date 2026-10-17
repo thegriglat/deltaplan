@@ -174,7 +174,7 @@ func test_variant_by_place() -> void:
 			common += 1
 			same += int(a[key] == b[key])
 	check(common > 100 and same == common, "тот же вариант: %d из %d" % [same, common])
-	check(used.size() > TreePlacer.SPECIES.size(), "вариантов в ходу: %d" % used.size())
+	check(used.size() > TreePlacer.DEFAULT_SET.size(), "вариантов в ходу: %d" % used.size())
 
 
 func _variants(p: TreePlacer) -> Dictionary:
@@ -203,10 +203,10 @@ func test_species_rules() -> void:
 	var hist_high := _hist(p, 2000.0, 0.0, n)
 	var hist_south := _hist(p, 800.0, -1.0, n)
 	var hist_north := _hist(p, 800.0, 1.0, n)
-	var birch := TreePlacer.SPECIES.find("birch")
-	var cedar := TreePlacer.SPECIES.find("cedar")
-	var pine := TreePlacer.SPECIES.find("pine")
-	var spruce := TreePlacer.SPECIES.find("spruce")
+	var birch := TreePlacer.DEFAULT_SET.find("birch")
+	var cedar := TreePlacer.DEFAULT_SET.find("cedar")
+	var pine := TreePlacer.DEFAULT_SET.find("pine")
+	var spruce := TreePlacer.DEFAULT_SET.find("spruce")
 	check(hist_low[birch] > hist_high[birch], "берёза ниже: %s / %s" % [hist_low, hist_high])
 	check(hist_high[cedar] > hist_low[cedar], "кедр выше")
 	check(hist_south[pine] > hist_north[pine], "сосна на южных сухих склонах")
@@ -220,15 +220,15 @@ func test_location_override_larch_ongudai() -> void:
 	var p := TreePlacer.new()
 	p.setup(_altai().layers[0], _altai().surfaces[0], cfg)
 	var h := _hist(p, 1300.0, 0.0, 2000)
-	var larch := TreePlacer.SPECIES.find("larch")
-	for k in TreePlacer.SPECIES.size():
+	var larch := TreePlacer.DEFAULT_SET.find("larch")
+	for k in TreePlacer.DEFAULT_SET.size():
 		if k != larch:
 			check(h[larch] > h[k], "в Онгудае лиственница преобладает: %s" % h)
 
 
 func _hist(p: TreePlacer, h: float, north: float, n: int) -> PackedInt32Array:
 	var out := PackedInt32Array()
-	out.resize(TreePlacer.SPECIES.size())
+	out.resize(TreePlacer.DEFAULT_SET.size())
 	for k in n:
 		var s := p.pick_species(h, north, (k + 0.5) / n)
 		if s >= 0:

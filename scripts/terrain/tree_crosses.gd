@@ -19,6 +19,8 @@ var models: TerrainTreeModels
 ## Импостеры (дальний стык): кольцо за крестами, пока кресты видны.
 var impostors: ForestImpostors
 
+## Породы места (RV-К2), порядок = локальный индекс sp в шейдере.
+var species: PackedStringArray = TreePlacer.DEFAULT_SET
 var cell_m: float = 8.0
 var r_near: float = 180.0
 var r_far: float = 1100.0
@@ -52,6 +54,7 @@ func setup(
 	read_config(cfg)
 	_max_agl = float(cfg.get("cross_max_agl_m", 2000.0))
 	var nv := maxi(1, int(cfg.get("variants", 8)))
+	species = TreePlacer.species_set(cfg)
 	var tex_dims := _load_layers(cfg.get("models", {}), nv)
 	if tex_dims.is_empty():
 		return false
@@ -102,8 +105,9 @@ func setup(
 	var asp := PackedFloat32Array()
 	var gain := PackedFloat32Array()
 	var bl := PackedFloat32Array()
+	var kind := PackedFloat32Array()
 	var hts: Array[Vector2] = []
-	for name in TreePlacer.SPECIES:
+	for name in species:
 		var s: Dictionary = sp.get(name, {})
 		w.append(float(s.get("weight", 0.0)))
 		lo.append(float(s.get("min_m", -1e4)))
@@ -111,8 +115,21 @@ func setup(
 		asp.append(float(s.get("aspect", 0.0)))
 		gain.append(TerrainTreeModels.albedo_gain_for(cfg, name, 1))
 		bl.append(TerrainTreeModels.backlight_for(cfg, name))
+		kind.append(TreePlacer.kind_of(cfg, name))
 		var hr: Array = s.get("height_m", [15.0, 25.0])
 		hts.append(Vector2(float(hr[0]), float(hr[1])))
+	var n_sp := species.size()
+	for _i in range(n_sp, TreePlacer.MAX_SPECIES):  # неиспользуемые слоты массивов шейдера
+		w.append(0.0)
+		lo.append(-1e4)
+		hi.append(1e4)
+		asp.append(0.0)
+		gain.append(1.0)
+		bl.append(0.0)
+		kind.append(0.0)
+		hts.append(Vector2(15.0, 25.0))
+	m.set_shader_parameter("sp_count", n_sp)
+	m.set_shader_parameter("sp_kind", kind)
 	m.set_shader_parameter("sp_weight", w)
 	m.set_shader_parameter("sp_min", lo)
 	m.set_shader_parameter("sp_max", hi)
@@ -120,7 +137,7 @@ func setup(
 	m.set_shader_parameter("sp_gain", gain)
 	m.set_shader_parameter("sp_backlight", bl)
 	m.set_shader_parameter("sp_height", hts)
-	_set_cull_extent(m, tex_dims[1], hts, nv)
+	_set_cull_extent(m, tex_dims[1], hts, nv, n_sp)
 	material_override = m
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	custom_aabb = AABB(
@@ -135,12 +152,12 @@ func setup(
 
 ## GR-11: размеры креста для раннего выхода (tree_cross.gdshader, column_out_of_view): наибольшие по
 ## породам и вариантам — высота над землёй, утопление, радиус от оси (поворот радиус не меняет).
-func _set_cull_extent(m: ShaderMaterial, dims: PackedVector3Array, heights: Array[Vector2], nv: int) -> void:
+func _set_cull_extent(m: ShaderMaterial, dims: PackedVector3Array, heights: Array[Vector2], nv: int, n_sp: int) -> void:
 	var up := 1.0
 	var down := 0.0
 	var reach := 1.0
 	var sink := maxf(float(m.get_shader_parameter("sink_fraction")), float(m.get_shader_parameter("edge_sink_fraction")))
-	for sp in heights.size():
+	for sp in n_sp:
 		var hmax := heights[sp].y
 		for v in nv:
 			var li := sp * nv + v
@@ -203,9 +220,9 @@ func _load_layers(paths: Dictionary, nv: int) -> Array:
 	var dims := PackedVector3Array()
 	dims.resize(MAX_LAYERS)
 	dims.fill(Vector3(10.0, 20.0, 20.0))
-	for k in TreePlacer.SPECIES.size():
+	for k in species.size():
 		for v in nv:
-			var lods := TerrainTreeModels._load_lods(String(paths.get(TreePlacer.SPECIES[k], "")), v)
+			var lods := TerrainTreeModels._load_lods(String(paths.get(species[k], "")), v)
 			if lods.is_empty():
 				return []
 			var mh := lods[0].get_aabb().end.y

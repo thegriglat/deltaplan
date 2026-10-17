@@ -33,14 +33,17 @@ uniform float edge_probe_m = 30.0;
 uniform float color_variation = 0.15;
 uniform float alpha_threshold = 0.5;
 uniform float band_blend_m = 200.0;
-// породы: pine, cedar, larch, birch, spruce (TreePlacer.SPECIES)
-uniform float sp_weight[5];
-uniform float sp_min[5];
-uniform float sp_max[5];
-uniform float sp_aspect[5];
-uniform vec2 sp_height[5];
-uniform float sp_gain[5];            // SL-14: второе число trees.albedo_gain (крест)
-uniform float sp_backlight[5];       // SL-7: trees.backlight
+// породы места (RV-К2: TreePlacer.species, локальный индекс sp), не больше MAX_SP
+const int MAX_SP = 6;
+uniform int sp_count = 5;
+uniform float sp_weight[MAX_SP];
+uniform float sp_min[MAX_SP];
+uniform float sp_max[MAX_SP];
+uniform float sp_aspect[MAX_SP];
+uniform vec2 sp_height[MAX_SP];
+uniform float sp_gain[MAX_SP];       // SL-14: второе число trees.albedo_gain (крест)
+uniform float sp_backlight[MAX_SP];  // SL-7: trees.backlight
+uniform float sp_kind[MAX_SP];       // SL-6: trees.season_kind (0 вечнозелёная, 1 берёза, 2 лиственница)
 // просеки (WorldClearings): 1 — расчищено
 uniform sampler2D clear_tex : filter_nearest, repeat_disable;
 uniform bool has_clearings = false;
@@ -59,7 +62,6 @@ uniform bool cull_enabled = true;    // GR-11: ранний выход вне п
 uniform float cull_up_m = 40.0;      // выше земли до верха креста, м (TreeCrosses.setup)
 uniform float cull_down_m = 12.0;    // ниже земли (утопление), м
 uniform float cull_reach_m = 20.0;   // радиус креста от оси, м
-const float SL_KIND[5] = float[5](0.0, 0.0, 2.0, 1.0, 0.0); // SL-6: TerrainTreeModels.season_kind
 
 varying vec3 v_color;
 varying float v_dist;
@@ -93,9 +95,9 @@ int cell_d8(vec2 xz) {
 }
 
 int pick_species(float h, float north, float u) {
-	float w[5];
+	float w[MAX_SP];
 	float total = 0.0;
-	for (int k = 0; k < 5; k++) {
+	for (int k = 0; k < sp_count; k++) {
 		float band = clamp((h - sp_min[k]) / band_blend_m + 0.5, 0.0, 1.0)
 				* clamp((sp_max[k] - h) / band_blend_m + 0.5, 0.0, 1.0);
 		w[k] = sp_weight[k] * band * max(0.05, 1.0 + sp_aspect[k] * north);
@@ -105,13 +107,13 @@ int pick_species(float h, float north, float u) {
 		return -1;
 	}
 	float t = u * total;
-	for (int k = 0; k < 5; k++) {
+	for (int k = 0; k < sp_count; k++) {
 		t -= w[k];
 		if (t <= 0.0) {
 			return k;
 		}
 	}
-	return 4;
+	return sp_count - 1;
 }
 
 // Ранний выход (GR-11, как clump_out_of_view у травы): капсула — ось (xz, y0…y1) с радиусом reach —
@@ -214,7 +216,7 @@ void vertex() {
 		v_color = vec3(1.0 + color_variation * (tc_color_t(h2) - 0.5) * 2.0);
 		v_gain = sl_tree_gain(sp_gain[sp]);
 		v_backlight = sp_backlight[sp];
-		v_kind = SL_KIND[sp];
+		v_kind = sp_kind[sp];
 		v_sl_ss = v_kind > 0.5 ? sl_season_sp(v_kind, y) : vec4(0.0); // SL
 		v_cs_sun = cloud_sun_at(vec3(p.x, y, p.y));
 	}

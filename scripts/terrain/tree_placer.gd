@@ -14,8 +14,10 @@ extends RefCounted
 ## rebuild_step_m) экземпляр стоит в обоих соседних LOD с кодом растворения в альфе цвета
 ## (FADE_*): tree_model.gdshader по живому расстоянию до камеры проявляет один и растворяет другой.
 
-## Породы в порядке индексов (ключи trees.species и trees.models).
-const SPECIES: PackedStringArray = ["pine", "cedar", "larch", "birch", "spruce"]
+## Набор пород по умолчанию (RV-К2): без trees.set — прежние пять. Набор места — поле species.
+const DEFAULT_SET: PackedStringArray = ["pine", "cedar", "larch", "birch", "spruce"]
+## Наибольшее число пород в наборе (размер массивов sp_* в шейдерах кре́стов и импостеров).
+const MAX_SPECIES := 6
 ## Чисел на экземпляр в буфере MultiMesh (TRANSFORM_3D + цвет).
 const STRIDE := 16
 ## Коды растворения на границе LOD (альфа цвета экземпляра, tree_model.gdshader): 1 — без растворения;
@@ -40,6 +42,8 @@ const RING8: PackedVector2Array = [
 	Vector2(0.7071, -0.7071),
 ]
 
+## Породы места в порядке локальных индексов sp (RV-К2: trees.set, ключи trees.species и trees.models).
+var species: PackedStringArray = DEFAULT_SET
 var layer: HeightLayer
 var surface: SurfaceLayer
 var spacing: float = 8.0
@@ -128,8 +132,9 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 	lod_dither_m = maxf(float(cfg.get("lod_dither_m", 40.0)), 0.01)
 	lod_k_max = maxf(float(cfg.get("lod_k_max", 1.6)), 0.1)
 	lod_k_min = clampf(float(cfg.get("lod_k_min", 0.6)), 0.1, lod_k_max)
+	species = species_set(cfg)
 	variants = maxi(1, int(cfg.get("variants", 8)))
-	model_height.resize(SPECIES.size() * variants)
+	model_height.resize(species.size() * variants)
 	model_height.fill(20.0)
 	density = float(cfg.get("density", 0.8))
 	sink_fraction = float(cfg.get("sink_fraction", 0.5))
@@ -153,9 +158,9 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 	lod_k_max = maxf(lod_k_max, lod_k_min)
 	var sp: Dictionary = cfg.get("species", {})
 	for arr in [_weight, _min_m, _max_m, _aspect, _h_min, _h_max]:
-		arr.resize(SPECIES.size())
-	for k in SPECIES.size():
-		var s: Dictionary = sp.get(SPECIES[k], {})
+		arr.resize(species.size())
+	for k in species.size():
+		var s: Dictionary = sp.get(species[k], {})
 		_weight[k] = float(s.get("weight", 0.0))
 		_min_m[k] = float(s.get("min_m", -1e4))
 		_max_m[k] = float(s.get("max_m", 1e4))
@@ -163,6 +168,42 @@ func setup(height_layer: HeightLayer, surface_layer: SurfaceLayer, cfg: Dictiona
 		var hr: Array = s.get("height_m", [15.0, 25.0])
 		_h_min[k] = float(hr[0])
 		_h_max[k] = float(hr[1])
+
+
+## Набор пород места (RV-К2): cfg.set — 1…MAX_SPECIES имён из реестра (trees.atlas_cell); нет ключа или набор
+## негоден (пусто, длиннее MAX_SPECIES, повтор, неизвестное имя) — DEFAULT_SET (с предупреждением, если ключ был).
+static func species_set(cfg: Dictionary) -> PackedStringArray:
+	if not cfg.has("set"):
+		return DEFAULT_SET
+	var out := PackedStringArray()
+	for n in cfg["set"]:
+		out.append(String(n))
+	var reg: Dictionary = cfg.get("atlas_cell", {})
+	var ok := out.size() >= 1 and out.size() <= MAX_SPECIES
+	var seen := {}
+	for n in out:
+		ok = ok and not seen.has(n) and (reg.is_empty() or reg.has(n))
+		seen[n] = true
+	if not ok:
+		push_warning("TreePlacer: trees.set %s негоден — набор по умолчанию" % [out])
+		return DEFAULT_SET
+	return out
+
+
+## Реестр пород (RV-К2) по набору species: значения конфига, по умолчанию — для старых пяти.
+static func kind_of(cfg: Dictionary, sp: String) -> float:
+	var d := {"larch": 2, "birch": 1}
+	return float((cfg.get("season_kind", {}) as Dictionary).get(sp, d.get(sp, 0)))
+
+
+static func conifer_of(cfg: Dictionary, sp: String) -> bool:
+	var d := DEFAULT_SET.has(sp) and sp != "larch" and sp != "birch"
+	return bool((cfg.get("conifer", {}) as Dictionary).get(sp, d))
+
+
+static func atlas_cell_of(cfg: Dictionary, sp: String) -> int:
+	var all := ["pine", "cedar", "larch", "birch", "spruce", "oak", "palm", "tropical"]
+	return int((cfg.get("atlas_cell", {}) as Dictionary).get(sp, maxi(all.find(sp), 0)))
 
 
 ## Полуширина зоны, где дерево стоит в обеих формах (модель и импостер), м: половина дизеринга +
@@ -236,7 +277,7 @@ func texel_forest(x: float, z: float) -> bool:
 ## Расставить ближние модели вокруг center (X/Z мира) по сетке «дерево в клетке» (TreeCell, SL-К5):
 ## до near_reach() (но не дальше radius). Заполняет buffers и counts; band-импостеров на CPU нет.
 func build(center: Vector2) -> void:
-	var n_buf := SPECIES.size() * variants * 3
+	var n_buf := species.size() * variants * 3
 	# строка экземпляра переиспользуется (без выделения массива на каждое дерево)
 	var row := PackedFloat32Array()
 	row.resize(STRIDE)

@@ -32,8 +32,8 @@ func setup(layer: HeightLayer, surface: SurfaceLayer, cfg: Dictionary) -> bool:
 	var nv := placer.variants
 	# meshes[вид * nv + вариант] — [LOD0, LOD1, LOD2]; материалы общие на породу (кэш по имени)
 	var meshes: Array[Array] = []
-	for k in TreePlacer.SPECIES.size():
-		var sp := TreePlacer.SPECIES[k]
+	for k in placer.species.size():
+		var sp := placer.species[k]
 		var cache := {}
 		# сцена породы — один load+instantiate на все варианты (было: на каждый вариант)
 		var variants_lods := _load_species(String(models.get(sp, "")), nv)
@@ -62,7 +62,7 @@ func setup(layer: HeightLayer, surface: SurfaceLayer, cfg: Dictionary) -> bool:
 			mm.use_colors = true
 			mm.mesh = meshes[kv][lod]
 			var mmi := MultiMeshInstance3D.new()
-			mmi.name = "%s_v%d_LOD%d" % [TreePlacer.SPECIES[kv / nv], kv % nv, lod]
+			mmi.name = "%s_v%d_LOD%d" % [placer.species[kv / nv], kv % nv, lod]
 			mmi.visible = false
 			mmi.multimesh = mm
 			mmi.custom_aabb = aabb
@@ -180,7 +180,7 @@ func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary, sp
 			m.set_shader_parameter("roughness_value", std.roughness)
 			m.set_shader_parameter("model_height", height)
 			m.set_shader_parameter("backlight", backlight_for(cfg, species))
-			m.set_shader_parameter("sl_tree_kind", season_kind(species))
+			m.set_shader_parameter("sl_tree_kind", TreePlacer.kind_of(cfg, species))
 			var is_bark := String(std.resource_name).begins_with("Bark")
 			var is_cross := String(std.resource_name).begins_with("Impostor")
 			m.set_shader_parameter(
@@ -199,11 +199,6 @@ func _with_sway(src: Mesh, height: float, cfg: Dictionary, cache: Dictionary, sp
 			materials.append(m)
 		mesh.surface_set_material(s, cache[std.resource_name])
 	return mesh
-
-
-## Сезон породы (scene-look SL-6, tree_model.gdshader sl_tree_kind): 1 — берёза, 2 — лиственница, 0 — вечнозелёные.
-static func season_kind(species: String) -> float:
-	return 2.0 if species == "larch" else (1.0 if species == "birch" else 0.0)
 
 
 ## scene-look (SL-К1/К2): параметры scene_look и рантайм (широта, день года) — материалам моделей,
@@ -231,16 +226,16 @@ static var _requested := {}
 
 
 ## Фоновая загрузка .glb пород заранее (FL-7): ResourceLoader.load_threaded_request по путям
-## trees.models; _scene() в setup() дождётся готового. Нет файла — молча пропускается.
+## trees.models пород набора места (set_names; пусто — набор по умолчанию); _scene() в setup() дождётся готового. Нет файла — молча пропускается.
 ## Без окна (--headless: тесты, инструменты) — не грузит в фоне: у пустого рендера (RasterizerDummy)
 ## хранилища RID мешей/текстур/материалов не потокобезопасны, и сборка мешей сцены в потоке загрузчика
 ## одновременно с главным потоком портит их (FL-16: «Attempting to initialize the wrong RID», signal 11).
 ## У настоящих рендеров (RD, GLES3) эти хранилища потокобезопасны.
-static func request_preload(models: Dictionary) -> void:
+static func request_preload(models: Dictionary, set_names: PackedStringArray = PackedStringArray()) -> void:
 	if not threaded_load_safe():
 		return
-	for sp in models:
-		var path := String(models[sp])
+	for sp in (set_names if not set_names.is_empty() else TreePlacer.DEFAULT_SET):
+		var path := String(models.get(sp, ""))
 		if path == "" or _requested.has(path) or not ResourceLoader.exists(path):
 			continue
 		if ResourceLoader.load_threaded_request(path) == OK:

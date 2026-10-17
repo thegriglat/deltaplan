@@ -45,7 +45,7 @@ static func bases(sp: String, cfg: Dictionary) -> Array:
 	var cells: Array = cfg.impostors.atlas_cells
 	var cw := atlas.get_width() / int(cells[0])
 	var ch := atlas.get_height() / int(cells[1])
-	var i := TreePlacer.SPECIES.find(sp)
+	var i := TreePlacer.DEFAULT_SET.find(sp)
 	var cell := Rect2i((i % int(cells[0])) * cw, (i / int(cells[0])) * ch, cw, ch)
 	var b_atlas := luma(atlas, cell, -1.0) * float(cfg.impostors.brightness)
 	return [b_leaf, acc / 8.0, b_atlas]
@@ -78,6 +78,6 @@ func test_shaders_and_sew() -> void:
 	# порядок: альбедо (до сезона) — множитель в базовом цвете раньше sl_tree_season
 	check(model.find("sl_tree_gain(tree_gain)") < model.find("sl_tree_season(rgb"), "модель: альбедо раньше сезона")
 	var imp := (load("res://scripts/terrain/forest_impostors.gdshader") as Shader).code
-	check(imp.contains("sp_gain[5]") and imp.contains("v_sl_gain"), "импостеры: множитель породы")
+	check(imp.contains("sp_gain[MAX_SP]") and imp.contains("v_sl_gain"), "импостеры: множитель породы")
 	check(imp.find("* v_sl_gain") < imp.find("sl_tree_season(rgb"), "импостеры: альбедо раньше сезона")
 	check(TerrainTreeModels.albedo_gain_for({}, "pine", 0) == 1.0, "нет записи — множитель 1")
