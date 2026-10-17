@@ -51,6 +51,26 @@ static func parse(text: String, settings: Dictionary = {}) -> Dictionary:
 	return out
 
 
+## Координаты пунктов .xctsk как Vector2(lat, lon); [] — не JSON-словарь или нет пунктов
+## (без push_error: для проверки файла перед импортом).
+static func points_latlon(text: String) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	var data: Variant = JSON.parse_string(text)
+	if not data is Dictionary:
+		return out
+	var tps: Variant = (data as Dictionary).get("turnpoints", [])
+	if not tps is Array:
+		return out
+	for tp: Variant in tps:
+		if not tp is Dictionary or not (tp as Dictionary).get("waypoint") is Dictionary:
+			return [] as Array[Vector2]
+		var wp: Dictionary = tp.waypoint
+		if not (wp.has("lat") and wp.has("lon")):
+			return [] as Array[Vector2]
+		out.append(Vector2(float(wp.lat), float(wp.lon)))
+	return out
+
+
 ## "HH:MM:SSZ" (в XCTrack бывает в лишних кавычках: "\"12:00:00Z\"") → секунды от полуночи.
 static func parse_time(s: String) -> float:
 	var clean := s.replace('"', "").strip_edges().trim_suffix("Z")
