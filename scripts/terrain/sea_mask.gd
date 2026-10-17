@@ -17,6 +17,8 @@ const DEFAULT_PARAMS := {"min_cells": 100, "median_max_m": 0.25, "q99_min_m": -1
 const BIG := 1.0e12
 ## Шаг значения маски, м.
 const STEP_M := 100.0
+## Бин моды высот при выборе уровня воды компоненты моря, м (S2 v2).
+const LEVEL_BIN_M := 0.1
 
 
 ## Параметры признака из configs/sea_ships.json → mask (нет конфига — значения по умолчанию).
@@ -42,7 +44,7 @@ static func compute_info(heights: PackedFloat32Array, classes: PackedByteArray, 
 	var n := w * h
 	var out := PackedByteArray()
 	out.resize(n)
-	var res := {"mask": out, "sea_cells": 0, "components": 0}
+	var res := {"mask": out, "sea_cells": 0, "components": 0, "levels": [], "heights": heights, "flattened": 0}
 	if n == 0 or heights.size() != n or classes.size() != n:
 		return res
 	var p := DEFAULT_PARAMS.duplicate()
@@ -126,28 +128,42 @@ static func compute_info(heights: PackedFloat32Array, classes: PackedByteArray, 
 	var sea_slot := PackedByteArray()
 	sea_slot.resize(cand_roots.size())
 	var comps := 0
+	var slot_level := PackedFloat32Array()
+	slot_level.resize(cand_roots.size())
+	var levels: Array = []
 	for k in cand_roots.size():
 		var a := lists[k]
 		a.sort()
 		if _quantile(a, 0.5) <= med_max and _quantile(a, UPPER_Q) >= q99_min:
 			sea_slot[k] = 1
 			comps += 1
+			slot_level[k] = _mode_level(a)
+			levels.append(snappedf(slot_level[k], 0.001))
 	ms["stats"] = (Time.get_ticks_usec() - tm) / 1000
 	tm = Time.get_ticks_usec()
 	if comps == 0:
 		res["ms"] = ms
 		return res
 	var sea_cells := 0
+	var aligned := heights.duplicate()
+	var flattened := 0
 	for y in h:
 		for id in range(first[y], first[y + 1]):
 			var k: Variant = slot.get(rroot[id])
 			if k != null and sea_slot[k] == 1:
 				var base := y * w
+				var lv := slot_level[k]
 				for x in range(rs[id], re[id]):
 					out[base + x] = 255
+					if aligned[base + x] != lv:
+						aligned[base + x] = lv
+						flattened += 1
 				sea_cells += re[id] - rs[id]
 	res.sea_cells = sea_cells
 	res.components = comps
+	res.levels = levels
+	res.heights = aligned
+	res.flattened = flattened
 	ms["mark"] = (Time.get_ticks_usec() - tm) / 1000
 	tm = Time.get_ticks_usec()
 	_distance_values(out, w, h, cell_m)
@@ -238,6 +254,31 @@ static func _merge(parent: PackedInt32Array, a: int, b: int) -> int:
 		return ra
 	parent[ra] = rb
 	return rb
+
+
+## Уровень воды компоненты (S2 v2): мода высот по бинам LEVEL_BIN_M (при равенстве — нижний бин), значение —
+## среднее высот модального бина. sorted — отсортированные высоты клеток компоненты.
+static func _mode_level(sorted: PackedFloat32Array) -> float:
+	var best_n := 0
+	var best_sum := 0.0
+	var best_bin := 0
+	var i := 0
+	var n := sorted.size()
+	while i < n:
+		var b := int(floor(sorted[i] / LEVEL_BIN_M))
+		var j := i
+		var sum := 0.0
+		while j < n and int(floor(sorted[j] / LEVEL_BIN_M)) == b:
+			sum += sorted[j]
+			j += 1
+		if j - i > best_n:
+			best_n = j - i
+			best_sum = sum
+			best_bin = b
+		i = j
+	if best_n == 0:
+		return 0.0
+	return best_sum / float(best_n)
 
 
 ## Квантиль q отсортированного массива, линейная интерполяция (как numpy.percentile по умолчанию).

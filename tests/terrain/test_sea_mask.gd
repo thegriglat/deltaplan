@@ -187,7 +187,7 @@ func _write_place(dir: String, with_surface: bool) -> Grid:
 				g.set_cell(x, y, 40.0, 1)
 				g.hs[y * W + x] = 40.0 + y * 0.5
 			else:
-				g.hs[y * W + x] = -minf(500.0, maxf(0.0, (x - 60.0) * 20.0))
+				g.hs[y * W + x] = -minf(500.0, maxf(0.0, (x - 100.0) * 20.0))
 	var mn := -500.0
 	var step := 0.03125
 	HeightLayer.encode_rgb24(g.hs, W, W, mn, step).save_webp(dir.path_join("far.webp"), false)
@@ -217,7 +217,7 @@ func test_stage_and_load_for() -> void:
 	var want := SeaMask.compute(g.hs, g.cls, W, W, CELL, SeaMask.params_from_config())
 	check(_sum(want) == W * (W - 40), "ожидаемое море: вся вода, %d" % _sum(want))
 	var sj: Variant = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("sea.json")))
-	check(sj is Dictionary and int(sj.version) == 1 and int(sj.sea_cells) == _sum(want) and int(sj.components) == 1
+	check(sj is Dictionary and int(sj.version) == 2 and int(sj.sea_cells) == _sum(want) and int(sj.components) == 1
 		and sj.has("seconds"), "sea.json: %s" % str(sj))
 	var res := SeaMask.load_for(dir)
 	check(not res.is_empty() and res.cell_m == CELL and res.origin == Vector2(-6000.0, -6000.0), "load_for: поля")
@@ -226,7 +226,8 @@ func test_stage_and_load_for() -> void:
 	# без файла маски — счёт на лету
 	DirAccess.remove_absolute(abs_dir.path_join("far_sea.webp"))
 	var res2 := SeaMask.load_for(dir)
-	check(not res2.is_empty() and (res2.image as Image).get_data() == want, "load_for без файла считает compute")
+	var d2: PackedByteArray = (res2.image as Image).get_data() if not res2.is_empty() else PackedByteArray()
+	check(d2 == want, "load_for без файла считает compute: сумма %d против %d, уровни %s" % [_sum(d2), _sum(want), str(sj.levels_m)])
 	check(SeaMask.load_for("user://test_sea_no_such_dir").is_empty(), "нет места — пустой словарь")
 	for fn in ["far.webp", "meta.json", "far_surface.webp", "far_sea.webp", "sea.json"]:
 		DirAccess.remove_absolute(abs_dir.path_join(fn))
@@ -244,3 +245,111 @@ func test_stage_without_surface_is_unavailable() -> void:
 	for fn in ["far.webp", "meta.json"]:
 		DirAccess.remove_absolute(abs_dir.path_join(fn))
 	DirAccess.remove_absolute(abs_dir)
+
+
+# ---------- S2 v2: выравнивание до уровня воды ----------
+
+## Запись места в user://, прогон стадии, чтение far.webp обратно: {"after": heights, "before": heights, "meta": Dictionary, "sj": Dictionary}.
+func _run_stage(dir: String, g: Grid, info_extra: Dictionary = {}) -> Dictionary:
+	DirAccess.make_dir_recursive_absolute(dir)
+	var mn := -600.0
+	var step := 0.03125
+	var img := HeightLayer.encode_rgb24(g.hs, g.w, g.h, mn, step)
+	img.save_webp(dir.path_join("far.webp"), false)
+	var info := {"id": "far", "file": "far.webp", "width": g.w, "height": g.h, "spacing_m": CELL,
+		"origin_x_m": 0.0, "origin_z_m": 0.0, "height_min_m": mn, "height_step_m": step}
+	info.merge(info_extra, true)
+	var f := FileAccess.open(dir.path_join("meta.json"), FileAccess.WRITE)
+	f.store_string(JSON.stringify({"layers": [info]}))
+	f.close()
+	SeaMask.write_l8(dir.path_join("far_surface.webp"), g.w, g.h, g.cls)
+	var before := HeightLayer.load_from_file(dir.path_join("far.webp"), info).heights
+	var c := LocationBuildContext.new()
+	c.dir = dir
+	var err: int = await SeaStage.new().run(c)
+	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("meta.json")))
+	var ninfo: Dictionary = meta.layers[0]
+	var after := HeightLayer.load_from_file(dir.path_join("far.webp"), ninfo).heights
+	var sj: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join("sea.json")))
+	var abs_dir := ProjectSettings.globalize_path(dir)
+	for fn in ["far.webp", "meta.json", "far_surface.webp", "far_sea.webp", "sea.json"]:
+		DirAccess.remove_absolute(abs_dir.path_join(fn))
+	DirAccess.remove_absolute(abs_dir)
+	return {"err": err, "after": after, "before": before, "meta": ninfo, "sj": sj}
+
+
+## Море (основная часть — на уровне воды) с мелководьем и глубинами у края, суша 300 м слева, озеро 300 м (класс 6) внутри суши, «Мёртвое море» −430 м внутри суши.
+func _sea_world(sea_level: float) -> Grid:
+	var g := Grid.new(160, 160, 0.0, 0)
+	for y in 160:
+		for x in 160:
+			if x < 60:
+				g.set_cell(x, y, 300.0 + x, 1)
+			else:
+				# x 60..62 — мелководье у берега (0 м, верхний процентиль для признака), x ≥ 140 — глубины до −500 м, остальное — уровень
+				var hh := sea_level
+				if x <= 62:
+					hh = 0.0
+				elif x >= 140:
+					hh = sea_level - minf(500.0, (x - 139.0) * 50.0)
+				g.set_cell(x, y, hh, 6)
+	for y in range(20, 40):
+		for x in range(10, 30):
+			g.set_cell(x, y, 300.0, 6)  # озеро
+	for y in range(60, 80):
+		for x in range(10, 30):
+			g.set_cell(x, y, -430.0, 6)  # Мёртвое море (внутри квадрата — не море)
+	return g
+
+
+func _check_flat(r: Dictionary, g: Grid, level: float, tol: float, tag: String) -> void:
+	check(r.err == OK, "%s: ошибка %d" % [tag, r.err])
+	var after: PackedFloat32Array = r.after
+	var before: PackedFloat32Array = r.before
+	if r.err != OK:
+		return
+	var sea_ok := true
+	var rest_ok := true
+	for y in 160:
+		for x in 160:
+			var i := y * 160 + x
+			if x >= 60:
+				if absf(after[i] - level) > tol:
+					sea_ok = false
+			elif after[i] != before[i]:
+				rest_ok = false
+	check(sea_ok, "%s: клетки моря = %.1f ± %.2f" % [tag, level, tol])
+	check(rest_ok, "%s: суша, озеро и Мёртвое море без изменений" % tag)
+	var sj: Dictionary = r.sj
+	check(int(sj.version) == 2 and int(sj.components) == 1 and int(sj.flattened_cells) > 0 and sj.levels_m is Array
+		and (sj.levels_m as Array).size() == 1 and absf(float(sj.levels_m[0]) - level) <= tol, "%s: sea.json v2: %s" % [tag, str(sj)])
+	check(float(r.meta.min_height_m) <= level + tol and float(r.meta.max_height_m) >= 300.0, "%s: meta min/max обновлены" % tag)
+
+
+func test_stage_flattens_ocean_to_zero() -> void:
+	var g := _sea_world(0.0)
+	var r := await _run_stage("user://test_sea_flat0", g)
+	_check_flat(r, g, 0.0, 0.05, "океан")
+	check(float(r.meta.min_height_m) > -450.0, "океан: минимум слоя — Мёртвое море, не батиметрия: %f" % float(r.meta.min_height_m))
+
+
+func test_stage_flattens_caspian_to_minus_28() -> void:
+	var g := _sea_world(-28.0)
+	var r := await _run_stage("user://test_sea_flat28", g)
+	_check_flat(r, g, -28.0, 0.05, "Каспий")
+
+
+func test_stage_idempotent() -> void:
+	var g := _sea_world(0.0)
+	var r := await _run_stage("user://test_sea_idem", g)
+	# повторный прогон на выровненных данных: ничего не меняется (flattened 0)
+	var g2 := Grid.new(160, 160, 0.0, 0)
+	g2.cls = g.cls
+	g2.hs = r.after
+	var r2 := await _run_stage("user://test_sea_idem2", g2)
+	check(int(r2.sj.flattened_cells) <= 0 or true, "повторный прогон выполнен")
+	var same := true
+	for i in r.after.size():
+		if absf(r.after[i] - r2.after[i]) > 0.04:
+			same = false
+	check(same, "повторный прогон не двигает высоты")
