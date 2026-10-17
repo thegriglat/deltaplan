@@ -130,7 +130,7 @@ func test_volcano_island_config() -> void:
 	for s: Dictionary in cfg.get("start_sites", []):
 		ids.append(String(s.id))
 		check(String(s.name) == "site_volcano_island_" + String(s.id), "старт %s: имя-ключ" % s.id)
-		check(not s.has("weather"), "старт %s: weather пишет VI-5" % s.id)
+		check(not StartWeather.parse(s.get("weather"), "volcano_island/" + String(s.id)).is_empty(), "старт %s: weather (TI-К2 v2, VI-5)" % s.id)
 	for want_id: String in ["east_cliffs", "crater_ridge", "plateau_landing"]:
 		check(ids.has(want_id), "старт %s" % want_id)
 	check(ids.size() >= 3 and ids.size() <= 4, "3–4 старта: %s" % [ids])
