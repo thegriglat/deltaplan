@@ -3,7 +3,7 @@ type: "guide"
 status: "active"
 module: "models"
 area: "flight"
-updated: "2026-10-15"
+updated: "2026-10-17"
 summary: "Вход в гайд по 3D-моделям: крылья, пилот, приборы, лагерь, деревья; как их пересобрать (Blender 4.3) и где контракты имён и осей."
 related: ["docs/guide/models/wings.md", "docs/guide/models/wing-contract.md", "docs/guide/models/pilot.md", "docs/guide/models/instruments-3d.md", "docs/guide/models/camp.md", "docs/guide/models/sail-shader.md", "docs/guide/models/trees.md", "docs/guide/models/references.md"]
 ---
@@ -22,7 +22,7 @@ related: ["docs/guide/models/wings.md", "docs/guide/models/wing-contract.md", "d
 | 48 крыльев | `assets/models/glider_<id>.glb` (11,8…14,0 тыс. треугольников) | [models/wings.md](models/wings.md); контракт нод — [models/wing-contract.md](models/wing-contract.md) |
 | пилот | `assets/models/pilot.glb` (9703 треугольника, 20 костей, 8 анимаций) | [models/pilot.md](models/pilot.md) |
 | приборы | `instrument.glb` (планшет), `vario_90s.glb`, `watch.glb`, `wrist_compass.glb` | [models/instruments-3d.md](models/instruments-3d.md) |
-| лагерь у старта | `assets/models/world/{start_gear,glider_kit,camp_person,camp_pilot}.glb` | [models/camp.md](models/camp.md) |
+| лагерь у старта | `assets/models/world/{start_gear,glider_kit,camp_person,camp_pilot}.glb`, `assets/models/world/rocketbox/` | [models/camp.md](models/camp.md) |
 | деревья | `assets/models/trees/tree_<вид>.glb` — 5 пород, 8 вариантов, 3 LOD | [models/trees.md](models/trees.md) |
 | шейдер паруса | `assets/shaders/sail/` | [models/sail-shader.md](models/sail-shader.md) |
 | скриншоты, приёмка по фото, источники | `docs/models/screenshots/` | [models/references.md](models/references.md) |
@@ -47,7 +47,8 @@ blender --background --python tools/blender/build_wrist_compass.py   # нару�
 blender --background --python tools/blender/build_start_gear.py    # вещи у старта
 blender --background --python tools/blender/build_glider_kit.py    # полусобранный аппарат
 blender --background --python tools/blender/build_camp_person.py   # человек, дальний уровень
-BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user blender --background --python tools/blender/build_camp_pilot.py   # человек, ближний уровень
+BLENDER_USER_RESOURCES=~/.cache/deltaplan/blender_user blender --background --python tools/blender/build_camp_pilot.py   # человек MPFB — источник анимаций лагеря
+tools/blender/build_camp_rocketbox.sh                              # люди лагеря вблизи (Rocketbox: скачать, LOD, текстуры, ретаргет)
 xvfb-run -a blender --background --python tools/blender/build_trees.py   # Eevee печёт импосторы
 tools/blender/render_all.sh                                        # скриншоты → docs/models/screenshots/
 xvfb-run -a blender --background --python tools/blender/render_trees.py

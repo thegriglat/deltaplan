@@ -6,7 +6,7 @@ area: world
 updated: 2026-10-15
 summary: "Зона старта (SC-K1), снаряжение у старта (SC-K2), модели вещей (SC-K3), люди у лагеря (SC-K4), ткань лагеря и примятая трава (SC-K5–K6)."
 related: ["docs/archive/plan/start-camp.md", "docs/guide/world-objects.md", "docs/guide/models.md"]
-contracts: [{"id": "SC-K1", "version": 1}, {"id": "SC-K2", "version": 1}, {"id": "SC-K3", "version": 1}, {"id": "SC-K4", "version": 2}, {"id": "SC-K5", "version": 1}, {"id": "SC-K6", "version": 1}]
+contracts: [{"id": "SC-K1", "version": 1}, {"id": "SC-K2", "version": 1}, {"id": "SC-K3", "version": 1}, {"id": "SC-K4", "version": 3}, {"id": "SC-K5", "version": 1}, {"id": "SC-K6", "version": 1}]
 ---
 # Контракты модуля start-camp
 
@@ -106,7 +106,29 @@ contracts: [{"id": "SC-K1", "version": 1}, {"id": "SC-K2", "version": 1}, {"id":
 - Без логотипов и брендов. Контрактные тесты — у каждого владельца свой: `test_start_camp_contracts_k3_gear.gd`
   (SC-6), `test_start_camp_contracts_k3_kit.gd` (SC-7): ноды, оси/размеры по AABB, бюджеты, имена материалов.
 
-## SC-K4 v2 — люди у лагеря: модель пилота со скелетом (вблизи) + человечек (вдали)
+## SC-K4 v3 — люди у лагеря: модели Rocketbox (вблизи) + человечек (вдали)
+v3 (решение пользователя 17.10, исследование `docs/research/rocketbox.md`): вблизи — 4 человека Microsoft Rocketbox
+(MIT) вместо `camp_pilot`; `camp_pilot.glb` остаётся источником анимаций (ретаргет), `camp_person.glb` — дальним LOD.
+Владелец: start-camp (люди Rocketbox). Потребитель: `EggPeople`.
+- **Модели** `assets/models/world/rocketbox/<имя>/` для имён из `easter_eggs.json → people.near_models`
+  (`Male_Adult_06`, `Male_Adult_10`, `Female_Adult_12`, `Female_Adult_17`); сборка `tools/blender/build_camp_rocketbox.sh`
+  (исходники FBX/TGA в git не кладутся). Лицензия — `LICENSE-rocketbox.md` в каталоге и строка `ASSETS.md`.
+  - `<имя>.glb`: `Skeleton3D` с 20 костями `Bip01 <кость>` (Pelvis, Spine, Spine1, Spine2, Neck, Head, L/R Clavicle,
+    UpperArm, Forearm, Hand, Thigh, Calf, Foot) и меши `Body_LOD0` (исходник, ≤ 9000 треугольников), `Body_LOD1`
+    (≤ 5000), `Body_LOD2` (≤ 2500) — дети `Skeleton3D`, 3 материала с текстурами; начало на земле, лицом к −Z, рост
+    1,6–1,9 м.
+  - Текстуры ≤ 512², VRAM-сжатие, мипмапы; всё в каталоге человека ≤ 5 МБ.
+  - `<имя>_anims.res`: `AnimationLibrary` с `idle`, `wave`, `wave_both`, `walk` (зациклены, без смещения корня; дорожки
+    `Skeleton/Skeleton3D:Bip01 …` от корня экземпляра glb); метаданные `stride_m` (шаг `walk`), `height_m`,
+    `colors` {`top`, `bottom`, `skin`, `hair`: [r, g, b] sRGB}.
+- **Игра** (`EggPeople`): ближе `near_m` — экземпляры моделей (не больше `max_skinned`), человек i — модель
+  `(i + сдвиг) % 4`, первые четверо разные; LOD — visibility range по `lod_m`; дальше `near_m` — MultiMesh
+  `camp_person` с цветами и ростом модели. Гистерезис, `AnimationPlayer` только у ближних, поведение и `info` — как в v2.
+  Методы для тестов: `person_model(i)`, `near_lod_tris()` (вместо `near_tris()`).
+- Контрактные тесты: `test_start_camp_contracts_k4_rocketbox.gd` (модели), `test_start_camp_contracts_k4_near.gd` (игра).
+
+### SC-K4 v2 — люди у лагеря: модель пилота со скелетом (вблизи) + человечек (вдали)
+Заменён v3 в части «вблизи»: `camp_pilot.glb` в игре не рисуется (источник анимаций), требования к модели ниже действуют.
 v2 (решение пользователя 12.10): вблизи — тело модели пилота (MPFB) со скелетной анимацией, без подвески,
 кокона, шлема и краг; люди различаются раскраской. `camp_person.glb` (v1, SC-8) остаётся дальним LOD.
 Владельцы: SC-11 (`camp_pilot.glb`), SC-8 (`camp_person.glb`). Потребители: SC-5 (дальний LOD), SC-12 (ближний).
