@@ -141,3 +141,6 @@
 {"t": "2026-10-17T07:17:00", "by": "coordinator", "task": "FL-16", "ev": "merged"}
 {"t": "2026-10-17T07:17:20", "by": "coordinator", "task": "FL-16", "ev": "note", "note": "world_objects при слиянии: test_update_time_200_cars — порог времени под нагрузкой (load 24), не регрессия"}
 {"t": "2026-10-17T07:17:27", "by": "coordinator", "task": "FL-10", "ev": "started"}
+{"t": "2026-10-17T07:21:06", "by": "coordinator", "task": "FL-6", "ev": "checked", "note": "3/4 world_objects=ok:190/190; osm=FAIL:107/108; FAIL test_versions; village=ok:6/6; fast_load_k2=ok:5/5"}
+{"t": "2026-10-17T07:26:51", "by": "coordinator", "task": "FL-6", "ev": "checked", "commits": ["b1049203"], "note": "3/4 world_objects=ok:190/190; osm=FAIL:107/108; FAIL test_versions; village=ok:6/6; fast_load_k2=ok:5/5"}
+{"t": "2026-10-17T07:27:03", "by": "coordinator", "task": "FL-6", "ev": "merged", "note": "osm: test_versions — падение базы"}
