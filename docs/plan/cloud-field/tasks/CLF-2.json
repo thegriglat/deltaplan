@@ -1,0 +1,31 @@
+{
+  "id": "CLF-2",
+  "module": "cloud-field",
+  "type": "dp-mechanic",
+  "title": "Перепечь запечённые поля мест",
+  "goal": "Запечённые поля ветра всех встроенных мест (учебный остров, вулканический остров) перепечены после изменения model_hash модулем; bake_all.sh --check = 0.",
+  "plan_ref": "§CLF-2",
+  "contracts": [],
+  "copy": "~/deltaplan-cloud-field-CLF-2",
+  "branch": "cloud-field/CLF-2",
+  "base": "feature/cloud-field",
+  "scope": [
+    "data/locations/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tools/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "fresh",
+      "cmd": "bash -c 'XDG_DATA_HOME=$HOME/.cache/dp-xdg/$(basename $PWD) tools/terrain/bake_all.sh --check; echo rc=$?'",
+      "expect": "re:rc=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T16:21:41"
+}
