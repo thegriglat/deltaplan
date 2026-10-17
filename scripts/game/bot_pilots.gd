@@ -209,14 +209,10 @@ static func obstacles_near(terrain: Node, c: Vector2, r: float) -> Array[Vector3
 	return out
 
 
-## Облака, которые видит пилот (как tests/atmosphere/xc/xc_run.gd): центр, радиус, рост, распад.
+## Облака, которые видит пилот (как tests/atmosphere/xc/xc_run.gd): центр, радиус, рост, распад —
+## кучевые из поля облачности над термиками (CloudPhysics.visible_clouds).
 static func _visible_clouds(atmo: Atmosphere) -> Array:
-	var out: Array = []
-	var model := atmo.cloud_phys.model
-	for e: Array in model.select(atmo.field.thermals, atmo.time_s, atmo.get_focus()):
-		var st: Vector3 = e[2]
-		out.append({"center": e[3], "radius": float(e[4]), "growth": st.x, "decay": st.y})
-	return out
+	return atmo.cloud_phys.visible_clouds(atmo.field.thermals, atmo.time_s, atmo.get_focus())
 
 
 ## Имена ботам из пула текущего языка (на новый полёт и при смене языка).

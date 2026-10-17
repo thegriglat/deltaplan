@@ -235,12 +235,7 @@ static func synthetic_thermals(opts: Dictionary, seed_i: int, km: float, course:
 
 
 func _visible_clouds(atmo: Atmosphere, fm: FlightModel) -> Array:
-	var out: Array = []
-	var model := atmo.cloud_phys.model
-	for e: Array in model.select(atmo.field.thermals, atmo.time_s, fm.position):
-		var st: Vector3 = e[2]
-		out.append({"center": e[3], "radius": float(e[4]), "growth": st.x, "decay": st.y})
-	return out
+	return atmo.cloud_phys.visible_clouds(atmo.field.thermals, atmo.time_s, fm.position)
 
 
 ## Диагностика «идеальный пилот» (--ideal, карточка 07): живые термики в 2,5 км — ось на высоте p.
