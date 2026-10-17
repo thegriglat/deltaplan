@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "S3 v2 выполнен по контракту: сигнатура с height_fn, поля элемента, клетка floor(lon/cell_deg), порог маски 1+ceil(min_shore/100)=21, курс по часовой (поворот −heading, нос −Z — сверено с S4). Слой: MeshInstance3D на LOD с visibility_range 0–6/6–25/25–camera_far км, тень только у LOD0, без моря узлов нет. Дальности LOD обоснованы (540/d пикс./м при вертикальном FOV 90°). Правок вне скоупа нет, project.godot не тронут. Падение world_objects (test_city_ground_mask, OsmCityGround) не связано с SEA-4.",
+  "issues": [
+    {
+      "file": "docs/contracts/sea-ships.md",
+      "line": 0,
+      "severity": "minor",
+      "what": "В S2 origin описан как «угол пикселя (0,0)», а SeaMask.load_for (scripts/terrain/sea_mask.gd:177) отдаёт узел (0,0). ShipPlacer берёт ближайший узел — это верно по коду. Расхождение не больше 50 м при пороге 2 км, ни на что не влияет; в чём ошибка — в тексте контракта, а не в SEA-4.",
+      "fix": "Координатору поправить формулировку origin в S2 («x,z узла (0,0)») при следующей правке контракта."
+    },
+    {
+      "file": "configs/sea_ships.json",
+      "line": 30,
+      "severity": "minor",
+      "what": "render._doc говорит «ватерлиния y = 0», а после S3 v2 y берётся из height_fn (уровень воды L, у Каспия −28 м). Шапка tests/world_objects/test_ship_layer.gd тоже говорит «y = 0», хотя сам тест проверяет y = −28.",
+      "fix": "Заменить на «ватерлиния — y записи S3 (уровень воды L)» при случае; переделка ради этого не нужна."
+    },
+    {
+      "file": "scripts/world_objects/world_objects.gd",
+      "line": 162,
+      "severity": "minor",
+      "what": "height_fn (Terrain.height_at) вызывается из рабочего потока. Это безопасно, пока Terrain заменяет layers целиком (terrain.gd:339 — присваивание нового массива, а for держит ссылку на старый). Если массив когда-нибудь начнут менять на месте, возникнет гонка.",
+      "fix": "Ничего не делать сейчас; комментарий-оговорка в _start_ships уже есть."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only ship_placer --dry",
+      "value": "6/6, scope 10 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "accept --only ship_layer --dry",
+      "value": "4/4",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-17T05:23:29",
+  "by": "reviewer"
+}
