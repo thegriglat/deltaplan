@@ -238,3 +238,4 @@
 {"t": "2026-10-17T15:34:56", "by": "coordinator", "task": "FL-12", "ev": "accepted", "note": "1/1 docs=ok:ошибок 0"}
 {"t": "2026-10-17T15:34:57", "by": "coordinator", "task": "FL-12", "ev": "accepted", "commits": ["f800a731"], "note": "1/1 docs=ok:ошибок 0"}
 {"t": "2026-10-17T15:34:57", "by": "coordinator", "task": "FL-12", "ev": "merged"}
+{"t": "2026-10-17T16:35:10", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: общий scratchpad агентов — r.json перезаписывался (чужой отчёт DOG-2a попал под FL-10), нужен подкаталог <ID>/ по умолчанию; accept scope считает неотслеживаемые файлы и файлы из слияния main; accept --timeout не продлевает проверку tests (набор game > 900 с); task show обрезает заметки без --full; job --lock gpu не показывает очередь замка"}
