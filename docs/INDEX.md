@@ -42,6 +42,9 @@ generated: true
 - **training-island** — Учебный остров: синтетическое место в море, старты «склон», «термики», «посадка», «ротор»; фиксированная погода и запечённый ветер. [active 2026-10-16] — [план](plan/training-island.md) · [контракты](contracts/training-island.md)
   - [docs/research/training_island_air.md](research/training_island_air.md) — TI-5: погода четырёх стартов учебного острова (TI-К2) и проверка воздуха в игре — склон, термики, ротор, посадка
 - **volcano-island** — Второй учебный остров на реальном рельефе: данные в сборке, старты, погода, запечённые поля, карточки «Тренировки». [active 2026-10-17] — [план](plan/volcano-island.md) · [контракты](contracts/volcano-island.md)
+  - [docs/guide/volcano-island.md](guide/volcano-island.md) — Вулканический остров: данные в сборке, training_only, OSM места, старты, погода, числа воздуха, окно «Тренировка», границы.
+  - [docs/registry/volcano-island-findings.md](registry/volcano-island-findings.md) — Выводы модуля volcano-island: подъём у обрывов, ротор у кратера, термики над водой, граница модели (нет пассатной инверсии).
+  - [tools/research/sea_thermals/README.md](../tools/research/sea_thermals/README.md) — VI-7: источник термика не над водой — число источников над водой до/после правки на трёх местах у моря. [closed]
 
 ## game
 

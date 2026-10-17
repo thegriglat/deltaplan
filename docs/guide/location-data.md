@@ -3,9 +3,9 @@ type: "guide"
 status: "active"
 module: "terrain"
 area: "world"
-updated: "2026-10-16"
+updated: "2026-10-17"
 summary: "Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, osm_tiles, WebP, кеш, догрузка, --prefetch."
-related: ["docs/guide/terrain.md", "docs/guide/osm-tiles.md", "docs/guide/world-objects/villages-osm.md", "docs/contracts/no-osm.md", "docs/contracts/osm-any.md", "docs/contracts/osm-tiles.md", "docs/research/lakes_worldcover.md", "docs/research/location_compression.md", "docs/registry/findings.md", "docs/contracts/training-island.md", "tools/terrain/island/README.md"]
+related: ["docs/guide/terrain.md", "docs/guide/osm-tiles.md", "docs/guide/world-objects/villages-osm.md", "docs/contracts/no-osm.md", "docs/contracts/osm-any.md", "docs/contracts/osm-tiles.md", "docs/research/lakes_worldcover.md", "docs/research/location_compression.md", "docs/registry/findings.md", "docs/contracts/training-island.md", "tools/terrain/island/README.md", "docs/guide/volcano-island.md"]
 ---
 # Данные места: один путь для встроенных мест и любой точки
 
@@ -202,6 +202,12 @@ RU: «Учебный остров — вымышленный остров 15 × 
 EN: "Training Island is a fictional island, about 15 × 10 km, in open sea: a windward ridge slope for ridge lift, a plain of fields and groves for thermals, a training hill
 with a target field for landing practice, and a lee bowl behind the ridge with rotor. The terrain is generated; it does not model a real place. The air is computed by the same
 model as everywhere else, with its usual limits."
+
+## Встроенное место на реальных данных: вулканический остров (`volcano_island`)
+
+Второе место окна «Тренировка» (VI-К1 v3, VI-К2 v2, VI-К3): реальный остров ~24 × 18 км, данные в сборке (`res://data/locations/volcano_island/`), `"training_only": true`,
+тайлы OSM из папки места, четыре старта с погодой и запечёнными полями (`configs/locations/volcano_island.json`). Подробно — [volcano-island.md](volcano-island.md); сборка — `tools/terrain/volcano/build.sh`;
+запекание — `tools/terrain/bake_all.sh` (все встроенные места, `--check` без GPU). Лицензии данных — [ASSETS.md](../../ASSETS.md).
 
 ## Границы
 Часовой пояс — по долготе; посадки и именованные старты — только у встроенных мест (ручные данные); имён посёлков и
