@@ -47,7 +47,7 @@ contracts: [{"id": "S1", "version": 2}, {"id": "S2", "version": 2}, {"id": "S3",
   `meta.json` — обновить min/max высот слоя, если они изменились. Так полёт (`height_at`), модель воздуха и рендер видят поверхность моря.
   Места из `res://` (учебный остров и др.) стадия не трогает: `load_for` только считает маску, высоты не меняет. Нет `far_surface.webp` → `ERR_UNAVAILABLE` (места без покрова — без судов).
   `Locations.FORMAT_VERSION` не меняется: стадия, которой нет в `build.json`, дособирается.
-- Загрузка: `SeaMask.load_for(dir: String) -> Dictionary` → `{"image": Image (L8), "origin": Vector2 (x,z угла пикселя (0,0) в м места), "cell_m": 100.0}`
+- Загрузка: `SeaMask.load_for(dir: String) -> Dictionary` → `{"image": Image (L8), "origin": Vector2 (x,z узла (0,0) сетки far в м места; клетка — ±50 м вокруг узла), "cell_m": 100.0}`
   или `{}`, если файла нет; нет файла, но есть far и far_surface (места из `res://`, учебный остров) — считается `compute` в рабочем потоке.
 - Инварианты: без моря — все 0 и судов нет; одинаковый вход — побайтно одинаковый выход.
 - Конфиг `configs/sea_ships.json` создаёт SEA-2 целиком: `mask` (S2), `placement` (S3: `cell_deg` 0.1, `p_cell` 0.15, `min_shore_m` 2000, `types` {tanker 1, bulk 1, container 1}), `types` (S4: tanker 250/44/15, bulk 225/32/12, container 300/48/13 — `length_m`/`beam_m`/`draft_m`), `render` (пусто, `{}` — заполняет SEA-4); у каждого ключа `_doc`.
