@@ -1,0 +1,30 @@
+{
+  "status": "done",
+  "summary": "Перепечены поля 8 мест встроенных локаций (training_island, volcano_island) после правки model_hash (CLF-1). Перепечка шла через clf2-bake под замком GPU после ожидания clf7b. bake_all.sh --check = 0, коммит 889a9fca.",
+  "commits": [
+    "889a9fca Перепечка полей мест после cloud-field (model_hash)"
+  ],
+  "checks": [
+    {
+      "name": "fresh",
+      "value": "bake_all.sh --check rc=0, 8 полей ok",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "16 файлов в data/locations/",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept CLF-2 --dry",
+  "uncertain": [],
+  "dp_feedback": "Ожидание замка через job wait в фоне возвращало уведомления сразу, а не по завершении job; пришлось проверять состояние вручную. Ответ blocked, отправленный до завершения job, оказался неверным: нужна возможность отозвать или дополнить отчёт.",
+  "extra": {
+    "rc_bake": 0,
+    "accept_dry": "PASS fresh rc=0; PASS scope"
+  },
+  "t": "2026-10-17T17:01:36",
+  "by": "executor"
+}
