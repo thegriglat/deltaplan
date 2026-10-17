@@ -6,7 +6,7 @@ area: "world"
 updated: "2026-10-17"
 summary: "Вулканический остров: место только для «Тренировки» (VI-К1), группы окна «Тренировка» (VI-К2), запекание мест (VI-К3)."
 related: ["docs/plan/volcano-island.md", "docs/contracts/training-island.md", "docs/guide/location-data.md"]
-contracts: [{"id": "VI-К1", "version": 2}, {"id": "VI-К2", "version": 1}, {"id": "VI-К3", "version": 1}]
+contracts: [{"id": "VI-К1", "version": 3}, {"id": "VI-К2", "version": 2}, {"id": "VI-К3", "version": 1}]
 ---
 # Контракты модуля volcano-island
 
@@ -21,7 +21,7 @@ contracts: [{"id": "VI-К1", "version": 2}, {"id": "VI-К2", "version": 1}, {"id
 источников данных (Copernicus, ESA WorldCover, OpenStreetMap) — обычные, без названия острова. В журнале модуля и в коде инструментов
 `tools/terrain/volcano/` координаты и рабочие пометки допустимы.
 
-## VI-К1. Вулканический остров — встроенное место только для «Тренировки» — версия 2
+## VI-К1. Вулканический остров — встроенное место только для «Тренировки» — версия 3
 
 - Владелец данных: VI-1 (`tools/terrain/volcano/`); владелец кода (`training_only`, тайлы OSM из папки места): VI-2.
   Потребители: `Locations` (`scripts/terrain/build/locations.gd`), `Terrain`, загрузка OSM (`OsmData.load_for`, `scripts/world_objects/osm_data.gd`),
@@ -60,7 +60,7 @@ contracts: [{"id": "VI-К1", "version": 2}, {"id": "VI-К2", "version": 1}, {"id
   | `east_cliffs` | склон восточного плато над обрывами | −27,1049; −109,2384 (199 м) | ≈ 100° |
   | `crater_ridge` | склон/гребень кратера на юго-западе | −27,1805; −109,4131 или гребень −27,170; −109,4136 | 75–110° |
   | `plateau_landing` | посадка: короткий подлёт, мишень на плато | −27,1103; −109,2414 | ≈ 90° |
-  | `thermal_slope` | термики — **только если** VI-1/VI-5 найдут старт с термиками над сушей | — | — |
+  | `thermal_slope` | термики (v3, Q2): вершина острова, луг | −27,0870; −109,3803 (504 м) | 110° |
   Каждый старт проходит правила `tests/terrain/test_locations.gd` (уклон 8–35°, земля в 60 м впереди ниже > 5 м, не лес). Подветренных стартов
   (при пассате с 110°) нет. `weather` (TI-К2 v2) — пишет VI-5; до VI-5 у стартов `weather` нет.
 - Посадки `landing_sites` (уклон < 10°, не лес, не вода): `landing_target` — мишень на плато для `plateau_landing` (0,15–1,5 км от старта),
@@ -68,7 +68,7 @@ contracts: [{"id": "VI-К1", "version": 2}, {"id": "VI-К2", "version": 1}, {"id
   до k ≈ 11 при подъёме у старта, решение координатора 2026-10-17 по VI-5: east_cliffs → landing_cliffs k 10,9); детали — `configs/world_objects.json → landing.sites.volcano_island`.
 - Нет папки или файла слоя — загрузка падает с сообщением (TI-К1), не сборкой из сети.
 
-## VI-К2. Окно «Тренировка»: группы мест — версия 1
+## VI-К2. Окно «Тренировка»: группы мест — версия 2
 
 - Владелец: VI-3. Потребители: `TrainingMenu` (`scripts/ui/training_menu.gd`), главное меню (`scripts/ui/start_menu.gd`),
   тесты (`tests/ui/test_training_menu.gd`, `tests/ui/test_training_island_menu.gd`), съёмка (`tools/shots/training_island_menu_shot.gd`), VI-5.
@@ -82,7 +82,7 @@ contracts: [{"id": "VI-К1", "version": 2}, {"id": "VI-К2", "version": 1}, {"id
   Карточка — как сейчас: `id`, `title_key`, `what_key`, `site`, `goal` (GL-К1: `kind`, `level` = custom, `value`). Ключа `location` верхнего уровня нет.
 - Карточки острова `volcano_island` (v1): `cliffs` → `east_cliffs`, цель duration 600 с; `crater` → `crater_ridge`, цель duration 600 с;
   `landing` → `plateau_landing`, цель landing 25 м. Тексты — `training_volcano_<id>`, `training_volcano_<id>_what` (нейтральные).
-  Карточку термиков добавляет VI-5, если старт `thermal_slope` есть (версия +1).
+  v2 (2026-10-17, Q2): + `thermals` → `thermal_slope`, цель height 300 м; порядок карточек группы: cliffs, crater, thermals, landing.
 - `TrainingMenu.load_cards() -> Dictionary` = `{"groups": [...]}`; каждой карточке при чтении добавлено `"location"` её группы.
   Окно: вкладки (`TabContainer`) по группам в порядке файла, заголовок вкладки — `tr(title_key)`, открыта первая; внутри — сетка 2 столбца, как сейчас.
   Группа, чьё место не существует (`Locations.exists` = false) или без карточек, — не показывается.
