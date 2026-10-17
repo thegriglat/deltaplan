@@ -1,0 +1,11 @@
+{
+  "module": "takeoff-wind",
+  "plan": "docs/plan/takeoff-wind.md",
+  "contracts": "docs/contracts/takeoff-wind.md",
+  "branch": "feature/takeoff-wind",
+  "copy": "~/deltaplan-takeoff-wind",
+  "created": "2026-10-17T21:38:11",
+  "code": "TW",
+  "area": "flight",
+  "base": "main"
+}
