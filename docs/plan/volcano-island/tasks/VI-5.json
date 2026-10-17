@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "VI-К1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/volcano-island.md"
     },
     {
@@ -38,7 +38,8 @@
     "tools/terrain/bake_all.sh",
     "tests/atmosphere/test_volcano_baked_gpu.gd",
     "tests/atmosphere/test_volcano_baked_gpu.gd.uid",
-    "tests/contracts/test_volcano_island_k1.gd"
+    "tests/contracts/test_volcano_island_k1.gd",
+    "data/locations/volcano_island/"
   ],
   "dont_touch": [
     "scripts/",
@@ -98,5 +99,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-17T04:06:53"
+  "created": "2026-10-17T04:06:53",
+  "edited": "2026-10-17T05:55:14"
 }
