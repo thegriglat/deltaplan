@@ -2,9 +2,14 @@ extends TestCase
 ## Кеш поля на GPU (FL-2, FL-К1): поле Онгудая (старт у Каянчи, область 400 м + окна 100 и 50 м)
 ## считается AirRuntime при загрузке и фоном пишется в кеш; новый AirRuntime берёт его из кеша без
 ## расчёта: поле совпадает (|Δu, v, w| ≤ 0,01 м/с), чтение и подача ≤ 1 с, наибольший кадр главного
-## потока при записи и при чтении ≤ 100 мс. tools/gpu_tests.sh --filter=air_cache. Замеры — в вывод.
+## потока при записи и при чтении ≤ 100 мс; источники термиков (AirThermals.build, один сид) по полю из
+## кеша — бит-в-бит как по посчитанному (FL-К1 v2, FL-18). tools/gpu_tests.sh --filter=air_cache.
+## Замеры — в вывод.
 
 const AR := preload("res://tests/atmosphere/test_air_runtime_gpu.gd")
+const K1 := preload("res://tests/contracts/test_fast_load_k1.gd")
+## Сид мира для источников термиков (одинаковый у посчитанного и взятого из кеша поля).
+const SEED := 4242
 const DIR := "user://air_cache_gpu_test"
 const START_LATLON := Vector2(50.78708, 86.23278)
 const TOL_MS := 0.01
@@ -142,14 +147,22 @@ func test_air_cache_gpu_roundtrip_ongudai() -> void:
 		worst = maxf(worst, e)
 		check(e <= TOL_MS, "уровень %d: |Δu,v,w| %.5f ≤ %.2f м/с" % [q, e, TOL_MS])
 		check(a._hc == b._hc, "рельеф побитно (уровень %d)" % q)
+	var n_src := PackedInt32Array()
+	for q in mini(levels1.size(), levels2.size()):
+		var sa: AirThermals = K1.sources_of(levels1[q], SEED)
+		var sb: AirThermals = K1.sources_of(levels2[q], SEED)
+		n_src.append(sa.count())
+		var d: String = K1.sources_diff(sa, sb)
+		check(d == "", "уровень %d: источники термиков бит-в-бит (%d / %d; %s)" % [q, sa.count(), sb.count(), d])
+	check(n_src[n_src.size() - 1] > 0, "источники есть: %s" % [n_src])
 	check(is_equal_approx(rt2.inflow_k, rt1.inflow_k), "k притока как у расчёта: %.3f / %.3f" % [rt2.inflow_k, rt1.inflow_k])
 	check(AirRuntime.needs_recompute(rt2.current_conditions(), _c, 15.0) == "", "поле сразу не пересчитывается")
 	print(
 		(
 			"  FL-2: расчёт %.2f с; запись %.2f с, %.2f МБ, кадр при записи %.1f мс; из кеша %.2f с, кадр %.1f мс; "
-			+ "|Δu,v,w| %.5f м/с; status %s"
+			+ "|Δu,v,w| %.5f м/с; status %s; источники по уровням %s"
 		)
-		% [calc_s, write_s, mb, wr[0], hit_s, read_frame, worst, h.get("status")]
+		% [calc_s, write_s, mb, wr[0], hit_s, read_frame, worst, h.get("status"), n_src]
 	)
 	rt1.queue_free()
 	rt2.queue_free()
