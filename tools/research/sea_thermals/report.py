@@ -3,7 +3,7 @@
 
   python3 tools/research/sea_thermals/report.py --run before   # прогон (окно DISPLAY=:0, поле GPU), код без правки
   python3 tools/research/sea_thermals/report.py --run after    # то же с правкой
-  python3 tools/research/sea_thermals/report.py --show         # строки '<место> water_sources_before=N water_sources_after=M total=T'
+  python3 tools/research/sea_thermals/report.py --show         # строки '<место> water_sources_after=M water_sources_before=N total=T …'
 
 Сырые прогоны — out/<место>_<тег>.json (не в git), сводка — summary.json (в git).
 Вода в точке — как Terrain.is_sea: класс WATER или (класс NONE и высота ≤ 0,5 м).
@@ -85,7 +85,7 @@ def show():
     s = json.loads(SUMMARY.read_text())
     for name in CASES:
         b, a = s.get(name, {}).get("before", {}), s.get(name, {}).get("after", {})
-        print(f"{name} water_sources_before={b.get('water')} water_sources_after={a.get('water')} total={a.get('total')}"
+        print(f"{name} water_sources_after={a.get('water')} water_sources_before={b.get('water')} total={a.get('total')}"
               f" total_before={b.get('total')} land_w0_p90_before={b.get('land_w0_p90')}"
               f" land_w0_p90_after={a.get('land_w0_p90')}")
 
