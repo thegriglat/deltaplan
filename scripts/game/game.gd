@@ -395,7 +395,7 @@ func start(s: FlightSettings) -> bool:
 	glider.set_air_fn(air.air_velocity_at)
 	progress.stage("objects", tr("loading_objects"))
 	await get_tree().process_frame
-	world_link.link(terrain, air, glider)
+	await world_link.link_async(terrain, air, glider)
 	_choose_start()
 	_site_heading = _start_heading
 	# Ветер прогноза (пилот): встречный или с заданного румба; выше старта сильнее.

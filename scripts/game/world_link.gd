@@ -26,8 +26,35 @@ func _ready() -> void:
 		push_warning("WorldLink: нет сцены объектов мира %s" % path)
 
 
-## Рельеф загружен (или сменилась погода): всё, что зависит от места и воздуха.
+## Рельеф загружен (или сменилась погода): всё, что зависит от места и воздуха. Всё в одном кадре
+## (расчёт слоя OSM и домов — в рабочих потоках, FL-6); порциями по кадрам — link_async.
 func link(terrain: Terrain, air: Node, pilot: Node3D) -> void:
+	var place: Variant = _link_begin(terrain, air, pilot)
+	if place is bool:
+		return
+	_link_clearings(terrain, place)
+	if objects != null and objects.has_method("setup"):
+		objects.call("setup", terrain, air)
+
+
+## То же порциями (FL-6): общие данные места, маска просек и объекты — в разных кадрах; объекты — расчёт
+## в рабочих потоках, узлы не дольше budget_ms за кадр (WorldObjects.setup_async). Ждать: await.
+func link_async(terrain: Terrain, air: Node, pilot: Node3D, budget_ms: float = 50.0) -> void:
+	var place: Variant = _link_begin(terrain, air, pilot)
+	if place is bool:
+		return
+	await get_tree().process_frame
+	_link_clearings(terrain, place)
+	await get_tree().process_frame
+	if objects != null and objects.has_method(&"setup_async"):
+		await objects.setup_async(terrain, air, budget_ms)
+	elif objects != null and objects.has_method("setup"):
+		objects.call("setup", terrain, air)
+
+
+## Ветер травы и деревьев, пилот, камни и кусты; общие данные места (FL-К2) — PlaceData или null.
+## Та же локация — false (объекты и просеки уже стоят).
+func _link_begin(terrain: Terrain, air: Node, pilot: Node3D) -> Variant:
 	if terrain.has_method("set_wind_sources"):
 		var mean := Callable(air, "mean_wind_at") if air.has_method("mean_wind_at") else Callable()
 		var th := Callable(air, "thermals_near") if air.has_method("thermals_near") else Callable()
@@ -43,16 +70,17 @@ func link(terrain: Terrain, air: Node, pilot: Node3D) -> void:
 	ShrubScatter.attach(terrain)
 	var loc := terrain.location_id
 	if loc == _location and not terrain.layers.is_empty():
-		return  # та же локация — объекты и просеки уже стоят
+		return false  # та же локация — объекты и просеки уже стоят
 	_location = loc
 	# общие данные места (FL-К2): OSM и план домов — один раз, для маски просек и объектов
-	var place: PlaceData = PlaceData.for_terrain(terrain) if loc != "" else null
+	return PlaceData.for_terrain(terrain) if loc != "" else null
+
+
+func _link_clearings(terrain: Terrain, place: PlaceData) -> void:
 	if place != null and terrain.has_method("set_clearings"):
 		var c := WorldClearings.build_from(place)
 		if c != null:
 			terrain.set_clearings(c.image, c.origin, c.cell_m)
-	if objects != null and objects.has_method("setup"):
-		objects.call("setup", terrain, air)
 
 
 ## Сколько ботов считать в лагере: в сети — Zone.bots_count (настройки создателя, у всех

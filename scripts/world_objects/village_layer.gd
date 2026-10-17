@@ -10,18 +10,37 @@ var building_obstacles: ObstacleIndex
 
 
 func build(houses: Array, cfg: Dictionary, height_fn: Callable) -> void:
+	var steps := assemble(VillageLayer.prepare(houses, cfg, height_fn), cfg)
+	for st in steps:
+		st.call()
+
+
+## Расчёт (FL-6, рабочий поток при потокобезопасной height_fn): тайлы экземпляров и коробки домов.
+static func prepare(houses: Array, cfg: Dictionary, height_fn: Callable) -> Dictionary:
 	var t0 := Time.get_ticks_usec()
-	building_obstacles = ObstacleIndex.new()
-	var bc: Dictionary = cfg.buildings
-	var tiles := BuildingPlacer.place(houses, bc, height_fn, building_obstacles)
-	var t1 := Time.get_ticks_usec()
-	var root := BuildingPlacer.make_nodes(tiles, bc)
+	var obstacles := ObstacleIndex.new()
+	var tiles := BuildingPlacer.place(houses, cfg.buildings, height_fn, obstacles)
+	return {"tiles": tiles, "obstacles": obstacles, "place_s": (Time.get_ticks_usec() - t0) / 1.0e6}
+
+
+## Сборка на главном потоке (FL-6): препятствия и stats — сразу, узлы — шагами (по тайлу).
+func assemble(p: Dictionary, cfg: Dictionary) -> Array[Callable]:
+	building_obstacles = p.obstacles
+	var tiles: Dictionary = p.tiles
+	var a := BuildingPlacer.node_steps(tiles, cfg.buildings)
+	var root: Node3D = a.root
 	root.name = "Buildings"
-	add_child(root)
 	var n := 0
 	for k in tiles:
 		n += (tiles[k].walls as Array).size()
 	stats["buildings"] = n
 	stats["building_tiles"] = tiles.size()
-	stats["place_s"] = (t1 - t0) / 1.0e6
-	stats["nodes_s"] = (Time.get_ticks_usec() - t1) / 1.0e6
+	stats["place_s"] = p.place_s
+	stats["nodes_s"] = 0.0
+	var steps: Array[Callable] = [add_child.bind(root)]
+	for st: Callable in a.steps:
+		steps.append(func() -> void:
+			var t := Time.get_ticks_usec()
+			st.call()
+			stats["nodes_s"] = float(stats["nodes_s"]) + (Time.get_ticks_usec() - t) / 1.0e6)
+	return steps

@@ -23,37 +23,63 @@ static var stats: Dictionary = {}
 static func build(
 	data: OsmData, cfg: Dictionary, height_fn: Callable, obstacles: ObstacleIndex
 ) -> Node3D:
-	stats = {}
+	var prep := prepare(data, cfg, height_fn)
+	if obstacles != null and prep.has("obstacles"):
+		obstacles.merge(prep.obstacles)
+	return OsmLayer.run_all(assemble(prep))
+
+
+## Расчёт (FL-6): только данные — подписи, преобразования экземпляров, массивы лент проводов и ВПП, препятствия
+## (свой ObstacleIndex). Без узлов и ресурсов — безопасно в рабочем потоке при потокобезопасной height_fn.
+static func prepare(data: OsmData, cfg: Dictionary, height_fn: Callable) -> Dictionary:
 	var pc: Dictionary = cfg.get("osm_pilot", {})
 	if data == null or pc.is_empty() or not bool(pc.get("enabled", true)):
-		return null
-	var root := Node3D.new()
+		return {}
+	var p := {"pc": pc, "obstacles": ObstacleIndex.new(), "stats": {}}
 	if bool(pc.peaks.enabled):
-		_peaks(root, data, pc.peaks, height_fn)
+		p.peaks = _peaks_data(data, pc.peaks, height_fn, p.stats)
 	if bool(pc.power.enabled) and not data.power.is_empty():
-		_power(root, data.power, pc.power, height_fn, obstacles)
+		p.power = _power_data(data.power, pc.power, height_fn, p.obstacles, p.stats)
 	if bool(pc.verticals.enabled) and not data.verticals.is_empty():
-		_verticals(root, data, pc.verticals, height_fn, obstacles)
+		p.verticals = _verticals_data(data, pc.verticals, height_fn, p.obstacles, p.stats)
 	if bool(pc.aerialways.enabled) and not data.aerialways.is_empty():
-		_aerialways(root, data.aerialways, pc.aerialways, height_fn, obstacles)
+		p.aerialways = _aerialways_data(data.aerialways, pc.aerialways, height_fn, p.obstacles, p.stats)
 	if bool(pc.aeroways.enabled) and not data.aeroways.is_empty():
-		_aeroways(root, data.aeroways, pc.aeroways, height_fn)
-	if root.get_child_count() == 0:
+		p.aeroways = _aeroways_data(data.aeroways, pc.aeroways, height_fn, p.stats)
+	return p
+
+
+## Сборка на главном потоке (FL-6): {root, steps} — корень и шаги, каждый добавляет немного узлов
+## (OsmLayer.run_all — все сразу). stats — после сборки. Нечего строить — root null.
+static func assemble(p: Dictionary) -> Dictionary:
+	stats = {}
+	if p.is_empty():
+		return {"root": null, "steps": []}
+	stats = (p.stats as Dictionary).duplicate()
+	var pc: Dictionary = p.pc
+	var root := Node3D.new()
+	var steps: Array[Callable] = []
+	if p.has("peaks") and not (p.peaks as Array).is_empty():
+		steps.append(_peaks_node.bind(root, p.peaks, pc.peaks))
+	if p.has("power"):
+		_power_steps(root, p.power, pc.power, steps)
+	if p.has("verticals"):
+		_verticals_steps(root, p.verticals, pc.verticals, steps)
+	if p.has("aerialways"):
+		_aerialways_steps(root, p.aerialways, pc.aerialways, steps)
+	if p.has("aeroways") and not (p.aeroways as Dictionary).is_empty():
+		steps.append(_aeroways_node.bind(root, p.aeroways, pc.aeroways))
+	if steps.is_empty():
 		root.free()
-		return null
-	return root
+		return {"root": null, "steps": []}
+	return {"root": root, "steps": steps}
 
 
 # --- вершины и перевалы -------------------------------------------------------------------------
 
 
-static func _peaks(root: Node3D, data: OsmData, pc: Dictionary, height_fn: Callable) -> void:
-	var labels := PeakLabels.new()
-	labels.name = "PeakLabels"
-	# вид — как у имён ботов, но включение отдельное: world_objects.json → osm_pilot.peaks.show
-	labels.names_cfg = (Config.get_config("bots").get("names", {}) as Dictionary).duplicate()
-	labels.show_labels = bool(pc.get("show", true))
-	labels.update_s = float(pc.update_s)
+static func _peaks_data(data: OsmData, pc: Dictionary, height_fn: Callable, st: Dictionary) -> Array:
+	var items: Array = []
 	var up := float(pc.height_m)
 	var n_peaks := 0
 	var n_passes := 0
@@ -68,16 +94,24 @@ static func _peaks(root: Node3D, data: OsmData, pc: Dictionary, height_fn: Calla
 				"start": float(pc.pass_fade_start_m if pair[1] else pc.fade_start_m),
 				"end": float(pc.pass_fade_end_m if pair[1] else pc.fade_end_m),
 			}
-			labels.items.append(s)
+			items.append(s)
 			if pair[1]:
 				n_passes += 1
 			else:
 				n_peaks += 1
-	stats["peak_labels"] = n_peaks
-	stats["pass_labels"] = n_passes
-	if labels.items.is_empty():
-		labels.free()
-		return
+	st["peak_labels"] = n_peaks
+	st["pass_labels"] = n_passes
+	return items
+
+
+static func _peaks_node(root: Node3D, items: Array, pc: Dictionary) -> void:
+	var labels := PeakLabels.new()
+	labels.name = "PeakLabels"
+	# вид — как у имён ботов, но включение отдельное: world_objects.json → osm_pilot.peaks.show
+	labels.names_cfg = (Config.get_config("bots").get("names", {}) as Dictionary).duplicate()
+	labels.show_labels = bool(pc.get("show", true))
+	labels.update_s = float(pc.update_s)
+	labels.items = items
 	root.add_child(labels)
 
 
@@ -132,17 +166,11 @@ class PeakLabels:
 # --- ЛЭП -----------------------------------------------------------------------------------------
 
 
-static func _power(
-	root: Node3D, lines: Array, pc: Dictionary, height_fn: Callable, obstacles: ObstacleIndex
-) -> void:
+static func _power_data(
+	lines: Array, pc: Dictionary, height_fn: Callable, obstacles: ObstacleIndex, st: Dictionary
+) -> Dictionary:
 	var plan := PowerLinePlanner.plan(lines, pc, height_fn)
-	var node := Node3D.new()
-	node.name = "PowerLines"
-	root.add_child(node)
 	var tile := float(pc.tile_m)
-	var r := WorldTiles.tile_range(float(pc.tower_visibility_m), tile)
-	var meshes := {true: model_mesh("power_tower", float(pc.tower_radius_m), float(pc.tower_height_m), pc.tower_color),
-		false: model_mesh("power_pole", float(pc.pole_radius_m), float(pc.pole_height_m), pc.pole_color)}
 	var heights := {true: float(pc.tower_height_m), false: float(pc.pole_height_m)}
 	var radii := {true: float(pc.tower_radius_m), false: float(pc.pole_radius_m)}
 	var groups := {}
@@ -154,26 +182,34 @@ static func _power(
 			groups[key] = {"tower": s.tower, "tile": tk, "t": [] as Array[Transform3D]}
 		groups[key].t.append(Transform3D(Basis(Vector3.UP, float(s.yaw)), p))
 		obstacles.add_cylinder(p.x, p.z, maxf(0.3, radii[s.tower]), p.y - 1.0, p.y + float(heights[s.tower]), "tower")
+	var wires := _wire_data(plan.wires, pc, obstacles, st)
+	st["supports"] = plan.supports.size()
+	st["wires"] = plan.wires.size()
+	return {"groups": groups, "wires": wires}
+
+
+static func _power_steps(root: Node3D, d: Dictionary, pc: Dictionary, steps: Array[Callable]) -> void:
+	var node := Node3D.new()
+	node.name = "PowerLines"
+	steps.append(root.add_child.bind(node))
+	var tile := float(pc.tile_m)
+	var r := WorldTiles.tile_range(float(pc.tower_visibility_m), tile)
+	var meshes := {}
+	steps.append(func() -> void:
+		meshes[true] = model_mesh("power_tower", float(pc.tower_radius_m), float(pc.tower_height_m), pc.tower_color)
+		meshes[false] = model_mesh("power_pole", float(pc.pole_radius_m), float(pc.pole_height_m), pc.pole_color))
+	var groups: Dictionary = d.groups
 	for key: String in groups:
 		var g: Dictionary = groups[key]
-		node.add_child(WorldTiles.multimesh_node(meshes[g.tower], g.t, PackedColorArray(),
-			WorldTiles.center(g.tile, tile), r, bool(pc.cast_shadows)))
-	_wires(node, plan.wires, pc, obstacles)
-	stats["supports"] = plan.supports.size()
-	stats["wires"] = plan.wires.size()
+		steps.append(func() -> void:
+			node.add_child(WorldTiles.multimesh_node(meshes[g.tower], g.t, PackedColorArray(),
+				WorldTiles.center(g.tile, tile), r, bool(pc.cast_shadows))))
+	_wire_steps(node, d.wires, pc, steps)
 
 
-## Провода лентами wire.gdshader (по тайлам wire_tile_m), каждый отрезок — капсула-препятствие.
-static func _wires(root: Node3D, wires: Array, pc: Dictionary, obstacles: ObstacleIndex) -> void:
+## Провода лентами wire.gdshader (по тайлам wire_tile_m), каждый отрезок — капсула-препятствие: массивы по тайлам.
+static func _wire_data(wires: Array, pc: Dictionary, obstacles: ObstacleIndex, st: Dictionary) -> Dictionary:
 	var tile := float(pc.wire_tile_m)
-	var vis := float(pc.get("wire_visibility_m", pc.get("visibility_m", 500.0)))
-	var mat := ShaderMaterial.new()
-	mat.shader = WIRE_SHADER
-	mat.set_shader_parameter(&"wire_color", _color3(pc.wire_color))
-	mat.set_shader_parameter(&"wire_width_m", float(pc.wire_width_m))
-	mat.set_shader_parameter(&"visibility_boost", float(pc.get("wire_visibility_boost", 1.5)))
-	mat.set_shader_parameter(&"fade_start_m", vis * 0.6)
-	mat.set_shader_parameter(&"fade_end_m", vis)
 	var hit_r := float(pc.wire_hit_radius_m)
 	var acc := {}
 	for w: PackedVector3Array in wires:
@@ -194,47 +230,55 @@ static func _wires(root: Node3D, wires: Array, pc: Dictionary, obstacles: Obstac
 					a.n.append(t)
 					a.uv.append(Vector2(s, 0.0))
 			a.i.append_array(PackedInt32Array([base, base + 1, base + 2, base + 1, base + 3, base + 2]))
+	st["wire_tiles"] = st.get("wire_tiles", 0) + acc.size()
+	return acc
+
+
+static func _wire_steps(root: Node3D, acc: Dictionary, pc: Dictionary, steps: Array[Callable]) -> void:
+	var tile := float(pc.wire_tile_m)
+	var vis := float(pc.get("wire_visibility_m", pc.get("visibility_m", 500.0)))
+	var mat := ShaderMaterial.new()
+	mat.shader = WIRE_SHADER
+	mat.set_shader_parameter(&"wire_color", _color3(pc.wire_color))
+	mat.set_shader_parameter(&"wire_width_m", float(pc.wire_width_m))
+	mat.set_shader_parameter(&"visibility_boost", float(pc.get("wire_visibility_boost", 1.5)))
+	mat.set_shader_parameter(&"fade_start_m", vis * 0.6)
+	mat.set_shader_parameter(&"fade_end_m", vis)
 	for k: Vector2i in acc:
 		var a: Dictionary = acc[k]
-		var arrays := []
-		arrays.resize(Mesh.ARRAY_MAX)
-		arrays[Mesh.ARRAY_VERTEX] = a.v
-		arrays[Mesh.ARRAY_NORMAL] = a.n
-		arrays[Mesh.ARRAY_TEX_UV] = a.uv
-		arrays[Mesh.ARRAY_INDEX] = a.i
-		var mesh := ArrayMesh.new()
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-		var mi := MeshInstance3D.new()
-		mi.mesh = mesh
-		mi.material_override = mat
-		mi.position = WorldTiles.center(k, tile)
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		mi.visibility_range_end = WorldTiles.tile_range(vis, tile)
-		# Провода тоньше пикселя — AABB расширяем на ширину ленты вдали.
-		mi.extra_cull_margin = 2.0
-		root.add_child(mi)
-	stats["wire_tiles"] = stats.get("wire_tiles", 0) + acc.size()
+		steps.append(func() -> void:
+			var arrays := []
+			arrays.resize(Mesh.ARRAY_MAX)
+			arrays[Mesh.ARRAY_VERTEX] = a.v
+			arrays[Mesh.ARRAY_NORMAL] = a.n
+			arrays[Mesh.ARRAY_TEX_UV] = a.uv
+			arrays[Mesh.ARRAY_INDEX] = a.i
+			var mesh := ArrayMesh.new()
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+			var mi := MeshInstance3D.new()
+			mi.mesh = mesh
+			mi.material_override = mat
+			mi.position = WorldTiles.center(k, tile)
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			mi.visibility_range_end = WorldTiles.tile_range(vis, tile)
+			# Провода тоньше пикселя — AABB расширяем на ширину ленты вдали.
+			mi.extra_cull_margin = 2.0
+			root.add_child(mi))
 
 
 # --- мачты, башни, трубы, ветряки ----------------------------------------------------------------
 
 
-static func _verticals(
-	root: Node3D, data: OsmData, pc: Dictionary, height_fn: Callable, obstacles: ObstacleIndex
-) -> void:
+const VERT_TILE := 4000.0
+
+
+static func _verticals_data(
+	data: OsmData, pc: Dictionary, height_fn: Callable, obstacles: ObstacleIndex, st: Dictionary
+) -> Dictionary:
 	var items: Array = data.verticals
 	var landmarks := landmark_towers(items, data.peaks, data.buildings, pc)
-	var node := Node3D.new()
-	node.name = "Verticals"
-	root.add_child(node)
-	var tile := 4000.0
-	var r := WorldTiles.tile_range(float(pc.visibility_m), tile)
+	var tile := VERT_TILE
 	var skip: Array = pc.get("skip", [])
-	var unit := {}  # модель → меш
-	for m: String in ["mast_lattice", "tv_tower", "chimney"]:
-		unit[m] = model_mesh(m, float(pc.radius_m[m]), float(pc.model_h_m[m]), [0.6, 0.6, 0.6])
-	unit["wind"] = _cone(1.0, 1.0, pc.color.wind, 0.6)
-	var blade := _box_mesh(Vector3(0.5, 1.0, 0.2), pc.color.wind)
 	var groups := {}  # "модель:x:z" → {kind, tile, t}
 	var n := 0
 	for idx in items.size():
@@ -279,12 +323,27 @@ static func _verticals(
 				var bas := face * Basis(Vector3.BACK, ang) * Basis.from_scale(Vector3(1, len, 1))
 				_group(groups, "blade", tk).t.append(Transform3D(bas, hub + face * Vector3(0, 0, 2.5)))
 		n += 1
+	st["verticals"] = n
+	return groups
+
+
+static func _verticals_steps(root: Node3D, groups: Dictionary, pc: Dictionary, steps: Array[Callable]) -> void:
+	var node := Node3D.new()
+	node.name = "Verticals"
+	steps.append(root.add_child.bind(node))
+	var tile := VERT_TILE
+	var r := WorldTiles.tile_range(float(pc.visibility_m), tile)
+	var unit := {}  # модель → меш
+	steps.append(func() -> void:
+		for m: String in ["mast_lattice", "tv_tower", "chimney"]:
+			unit[m] = model_mesh(m, float(pc.radius_m[m]), float(pc.model_h_m[m]), [0.6, 0.6, 0.6])
+		unit["wind"] = _cone(1.0, 1.0, pc.color.wind, 0.6)
+		unit["blade"] = _box_mesh(Vector3(0.5, 1.0, 0.2), pc.color.wind))
 	for key: String in groups:
 		var gr: Dictionary = groups[key]
-		var m: Mesh = blade if gr.kind == "blade" else unit[gr.kind]
-		node.add_child(WorldTiles.multimesh_node(m, gr.t, PackedColorArray(),
-			WorldTiles.center(gr.tile, tile), r, bool(pc.cast_shadows)))
-	stats["verticals"] = n
+		steps.append(func() -> void:
+			node.add_child(WorldTiles.multimesh_node(unit[gr.kind], gr.t, PackedColorArray(),
+				WorldTiles.center(gr.tile, tile), r, bool(pc.cast_shadows))))
 
 
 ## Модель по классу OSM (L5): mast → mast_lattice; tower → tv_tower при comm или высоте с тега
@@ -395,12 +454,9 @@ static func _group(groups: Dictionary, kind: String, tk: Vector2i) -> Dictionary
 # --- канатные дороги ------------------------------------------------------------------------------
 
 
-static func _aerialways(
-	root: Node3D, items: Array, pc: Dictionary, height_fn: Callable, obstacles: ObstacleIndex
-) -> void:
-	var node := Node3D.new()
-	node.name = "Aerialways"
-	root.add_child(node)
+static func _aerialways_data(
+	items: Array, pc: Dictionary, height_fn: Callable, obstacles: ObstacleIndex, st: Dictionary
+) -> Dictionary:
 	var poles := {true: [] as Array[Transform3D], false: [] as Array[Transform3D]}
 	var wires: Array[PackedVector3Array] = []
 	var n_poles := 0
@@ -420,33 +476,40 @@ static func _aerialways(
 			n_poles += 1
 		for i in tops.size() - 1:
 			wires.append(PowerLinePlanner.catenary(tops[i], tops[i + 1], float(pc.sag_ratio), int(pc.wire_segments)))
+	var wc := _aerial_wire_cfg(pc)
+	var acc := _wire_data(wires, wc, obstacles, st)
+	st["aerialway_poles"] = n_poles
+	st["aerialway_wires"] = wires.size()
+	return {"poles": poles, "wires": acc}
+
+
+static func _aerial_wire_cfg(pc: Dictionary) -> Dictionary:
+	return {"wire_tile_m": 400.0, "visibility_m": float(pc.visibility_m) * 0.1,
+		"wire_width_m": pc.wire_width_m, "wire_color": [0.12, 0.12, 0.12],
+		"wire_hit_radius_m": pc.wire_hit_radius_m}
+
+
+static func _aerialways_steps(root: Node3D, d: Dictionary, pc: Dictionary, steps: Array[Callable]) -> void:
+	var node := Node3D.new()
+	node.name = "Aerialways"
+	steps.append(root.add_child.bind(node))
+	var poles: Dictionary = d.poles
 	for lift: bool in poles:
 		var list: Array[Transform3D] = poles[lift]
 		if list.is_empty():
 			continue
 		var ph := float(pc.lift_pole_height_m if lift else pc.tow_pole_height_m)
-		var m := _cone(float(pc.pole_radius_m), ph, pc.pole_color)
-		node.add_child(WorldTiles.multimesh_node(m, list, PackedColorArray(), Vector3.ZERO, 1.0e6, true))
-	var wc := {"wire_tile_m": 400.0, "visibility_m": float(pc.visibility_m) * 0.1,
-		"wire_width_m": pc.wire_width_m, "wire_color": [0.12, 0.12, 0.12],
-		"wire_hit_radius_m": pc.wire_hit_radius_m}
-	_wires(node, wires, wc, obstacles)
-	stats["aerialway_poles"] = n_poles
-	stats["aerialway_wires"] = wires.size()
+		steps.append(func() -> void:
+			var m := _cone(float(pc.pole_radius_m), ph, pc.pole_color)
+			node.add_child(WorldTiles.multimesh_node(m, list, PackedColorArray(), Vector3.ZERO, 1.0e6, true)))
+	_wire_steps(node, d.wires, _aerial_wire_cfg(pc), steps)
 
 
 # --- аэродромы и ВПП ------------------------------------------------------------------------------
 
 
-static func _aeroways(root: Node3D, items: Array, pc: Dictionary, height_fn: Callable) -> void:
-	var node := Node3D.new()
-	node.name = "Aeroways"
-	root.add_child(node)
-	var mat := ShaderMaterial.new()
-	mat.shader = DRAPED_SHADER
-	mat.set_shader_parameter(&"depth_pull", float(pc.depth_pull))
-	mat.set_shader_parameter(&"depth_bias_m", float(pc.lift_m) * 2.0)
-	mat.set_shader_parameter(&"edge_darken", 0.0)
+## Ленты и круги аэродромов одним буфером; пусто — {}.
+static func _aeroways_data(items: Array, pc: Dictionary, height_fn: Callable, st: Dictionary) -> Dictionary:
 	var buf := {"v": PackedVector3Array(), "c": PackedColorArray(), "uv": PackedVector2Array(),
 		"i": PackedInt32Array()}
 	var lift := float(pc.lift_m)
@@ -470,8 +533,21 @@ static func _aeroways(root: Node3D, items: Array, pc: Dictionary, height_fn: Cal
 			_ribbon(buf, a.p, float(pc.outline_width_m), step, height_fn, lift, _lin(pc.outline_color), true)
 			strips += 1
 	if strips + points == 0:
-		node.free()
-		return
+		return {}
+	st["aeroway_strips"] = strips
+	st["aeroway_points"] = points
+	return buf
+
+
+static func _aeroways_node(root: Node3D, buf: Dictionary, pc: Dictionary) -> void:
+	var node := Node3D.new()
+	node.name = "Aeroways"
+	root.add_child(node)
+	var mat := ShaderMaterial.new()
+	mat.shader = DRAPED_SHADER
+	mat.set_shader_parameter(&"depth_pull", float(pc.depth_pull))
+	mat.set_shader_parameter(&"depth_bias_m", float(pc.lift_m) * 2.0)
+	mat.set_shader_parameter(&"edge_darken", 0.0)
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = buf.v
@@ -487,8 +563,6 @@ static func _aeroways(root: Node3D, items: Array, pc: Dictionary, height_fn: Cal
 	mi.visibility_range_end = float(pc.visibility_m)
 	mi.extra_cull_margin = 100.0
 	node.add_child(mi)
-	stats["aeroway_strips"] = strips
-	stats["aeroway_points"] = points
 
 
 static func _vert(buf: Dictionary, p: Vector2, height_fn: Callable, lift: float, col: Color, u: float) -> void:
