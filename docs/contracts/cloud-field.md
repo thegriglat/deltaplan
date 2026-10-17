@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-17"
 summary: "Стыки поля облачности: CloudField, текстура рендера, c_top AirThermals, снимок сети, конфиг, z_i по рельефу (К1…К6)."
 related: ["docs/plan/cloud-field.md", "docs/guide/atmosphere/clouds.md", "docs/guide/air-model/thermals.md"]
-contracts: [{"id": "CLF-К1", "version": 1}, {"id": "CLF-К2", "version": 1}, {"id": "CLF-К3", "version": 1}, {"id": "CLF-К4", "version": 1}, {"id": "CLF-К5", "version": 1}, {"id": "CLF-К6", "version": 1}]
+contracts: [{"id": "CLF-К1", "version": 1}, {"id": "CLF-К2", "version": 1}, {"id": "CLF-К3", "version": 2}, {"id": "CLF-К4", "version": 1}, {"id": "CLF-К5", "version": 1}, {"id": "CLF-К6", "version": 1}]
 ---
 # Контракты модуля cloud-field
 
@@ -61,12 +61,16 @@ func signature() -> String                # "dx,x0,y0,nx,ny" — как AirTherm
 - Параметры шейдера (имена фиксированы): `cf_rect = vec4(x_min, z_min, 1/(nx·dx), 1/(ny·dx))`, где x_min = x0, z_min = −(y0 + ny·dx), uv = ((x − x_min)·cf_rect.z, (z − z_min)·cf_rect.w); `cf_base = vec4(base_msl, depth_max_m, bg_cover, bg_depth)`; `cf_edge = edge_fade_m`. Выборка — билинейная, вне [0,1] — фон с переходом `cf_edge`.
 - Обновление текстуры — не чаще раза в `step_s`; без облаков (вся cover = 0 и bg_cover = 0) рендер пропускает слой целиком.
 
-## CLF-К3. AirThermals: потолок частицы по столбцам (v1)
-Владелец CLF-1. Потребители: CloudField. Файл `scripts/atmosphere/air_model/air_thermals.gd`.
+## CLF-К3. AirThermals: потолок частицы по столбцам (v2)
+Владелец CLF-1 (v1), CLF-9/CLF-10 (v2). Потребители: CloudField (`cloud_field_sources.gd`). Файл `scripts/atmosphere/air_model/air_thermals.gd`.
 
 - `var c_top: PackedFloat32Array` — ny·nx, м MSL: потолок частицы столбца, как уже считается в `build` (θ частицы против θ̄ + θ′ поля); столбец без нагрева — высота земли столбца; столбец, пропущенный счётом (k1 ≥ nz или z_i = NAN), — NAN.
 - `var col_wstar: PackedFloat32Array` — ny·nx, м/с, w* Дирдорфа столбца (уже считается как `c_ws`).
-- Заполняются в `build`; размер = `phi.size()`; остальное поведение `build` не меняется (те же источники при тех же входах). Правка меняет `model_hash` запечённых полей острова → CLF-2.
+- `var col_wm: PackedFloat32Array` — ny·nx, м/с: W̄ столбца, сглаженный до мезомасштаба циркуляции (гаусс σ = `thermal.subsidence_smooth_m`).
+- `var col_zi: PackedFloat32Array` — ny·nx, м MSL: z_i столбца (CLF-К6) с компенсирующим опусканием, z_i поля − Δz_s; по нему считаются h, w*, F̄, потолок частицы, плотность источников и проникновение к основанию в CloudField.
+- `var col_sub: PackedFloat32Array` — ny·nx, м: опускание верха Δz_s = |W̄_м⁻|·τ_s (`thermal.subsidence_tau_s`), 0 — опускания нет.
+- Заполняются в `build`; размер = `phi.size()`. При α = 0 (К6) и τ_s = 0 — числа `build` как до модуля; с настройками по умолчанию потолок и источники меняются по решениям Q2/Q3 (2026-10-17). Правка меняет `model_hash` запечённых полей → CLF-2.
+- v2 (2026-10-17): добавлены `col_wm`, `col_zi`, `col_sub`; снято «поведение build не меняется».
 
 ## CLF-К4. Снимок поля для сети (v1)
 Владелец CLF-1 (формат), CLF-4 (передача). Потребители: `NetFlight`, `ZoneState`.

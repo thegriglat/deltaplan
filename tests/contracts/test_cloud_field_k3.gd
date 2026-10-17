@@ -2,7 +2,7 @@ extends TestCase
 ## Контракт CLF-К3 (docs/contracts/cloud-field.md): версия в заголовке. Владелец стыка дописывает проверку интерфейса.
 
 const DOC := "res://docs/contracts/cloud-field.md"
-const VERSION := 1
+const VERSION := 2
 
 
 func test_doc_heading() -> void:
@@ -25,7 +25,7 @@ func test_air_thermals_fields() -> void:
 	var props := {}
 	for p in scr.get_script_property_list():
 		props[p.name] = p
-	for name in ["c_top", "col_wstar", "phi"]:
+	for name in ["c_top", "col_wstar", "phi", "col_wm", "col_zi", "col_sub"]:
 		check(props.has(name) and props[name].type == TYPE_PACKED_FLOAT32_ARRAY, "AirThermals.%s — PackedFloat32Array" % name)
 	var air := AirThermals.new()
 	check(air.c_top.size() == 0 and air.col_wstar.size() == 0, "до build — пусто")

@@ -84,3 +84,4 @@
 {"t": "2026-10-17T09:31:16", "by": "coordinator", "task": "CLF-10", "ev": "accepted", "note": "по ревью (fable); 4 minor — CLF-11 и контракт К3 v2"}
 {"t": "2026-10-17T09:31:17", "by": "coordinator", "task": "CLF-10", "ev": "merged", "note": "d60cc24f"}
 {"t": "2026-10-17T09:31:17", "by": "coordinator", "task": "CLF-4", "ev": "accepted", "note": "по отчёту доработки: major/minor ревью закрыты, main_ms 0,086"}
+{"t": "2026-10-17T09:31:18", "by": "coordinator", "task": "CLF-4", "ev": "merged", "note": "ed74fc82"}
