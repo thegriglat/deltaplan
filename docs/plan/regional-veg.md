@@ -4,7 +4,7 @@ status: "active"
 module: "regional-veg"
 area: "world"
 updated: "2026-10-18"
-summary: "Деревья и дома по региону места (T-83, вариант B): дерево решений Кёппена + исключения, 3 новые породы, набор пород места, профиль домов, вечнозелёные."
+summary: "Деревья и дома по региону места (T-83, B): дерево Кёппена + исключения, 3 новые породы, набор пород места, профиль домов."
 related: ["docs/research/regional-vegetation.md", "docs/contracts/regional-veg.md", "docs/contracts/scene-look.md", "docs/guide/models/trees.md", "docs/guide/world-objects/villages-osm.md"]
 ---
 
