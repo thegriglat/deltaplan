@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "Цикл W̄ пропускает столбцы без z_i (col_w = 0); порог dt теста 25 → 1 м по измеренным 0,3 м; край сетки Аскарово проверен — W̄_м < 0 на верхних 20 % не артефакт края, добавлено в «Границы» subsidence.md.",
+  "commits": [
+    "2e12c2d0 CLF-11: W̄ без z_i, порог dt, край Аскарово"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "4/4 PASS",
+      "pass": true
+    },
+    {
+      "name": "|Δпотолок| с маской",
+      "value": "0,305 м",
+      "pass": true
+    },
+    {
+      "name": "Аскарово upper20 W̄_м<0 по удалению от края 0–3/3–6/6–10/10–19 км",
+      "value": "100/100/99/100 %, W̄_м −1,2/−1,2/−1,2/−0,9 см/с",
+      "pass": true
+    },
+    {
+      "name": "test_air_thermals",
+      "value": "8/8 0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_subsidence",
+      "value": "6/6 0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_air_contracts",
+      "value": "31/31 0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_zi_terrain",
+      "value": "6/6 0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept CLF-11",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/air_thermals.gd:232",
+      "why": "build при NaN z_i поля и так возвращает false до цикла W̄ (col_w пуст), так что гвард достижим лишь для NaN в z_i_col; тест no_zi покрывает день без z_i",
+      "checked": "тест test_no_zi_day_no_wbar; ревьюерское «ненулевой col_w» на деле не воспроизводится при NaN скаляра"
+    },
+    {
+      "where": "docs/research/cloud_field/subsidence.md",
+      "why": "сетка 38 км при σ=10 км: все столбцы в 3σ от края, полностью свободного от края W̄_м не получить; среднее col_wm по сетке (+0,13 см/с) не равно среднему col_w (−0,03 см/с) — сумма сохраняется неточно у края",
+      "checked": "полоса 10–19 км от края даёт тот же знак и величину; несглаженное W̄ тех же столбцов тоже отрицательно"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {},
+  "t": "2026-10-17T10:07:39",
+  "by": "executor"
+}
