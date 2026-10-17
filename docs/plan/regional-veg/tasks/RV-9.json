@@ -1,0 +1,114 @@
+{
+  "id": "RV-9",
+  "module": "regional-veg",
+  "type": "dp-engineer",
+  "title": "Интеграция: профиль региона места — деревья, полог, дома; кадры мест",
+  "goal": "Место берёт профиль Biome.at(lat, lon) и сливает его в конфиги деревьев, полога, сезона и домов; атлас с новыми породами; профили настроены (наборы, пояса, вечнозелёность, тон полога, палитры, формы и модели домов); кадры 5 мест для шлюза пользователю.",
+  "plan_ref": "Волна 3",
+  "contracts": [
+    {
+      "name": "RV-К1",
+      "version": "2",
+      "ref": "docs/contracts/regional-veg.md"
+    },
+    {
+      "name": "RV-К2",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    },
+    {
+      "name": "RV-К3",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    },
+    {
+      "name": "RV-К4",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    },
+    {
+      "name": "RV-К5",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    },
+    {
+      "name": "RV-К6",
+      "version": "1",
+      "ref": "docs/contracts/regional-veg.md"
+    }
+  ],
+  "copy": "~/deltaplan-regional-veg-RV-9",
+  "branch": "regional-veg/RV-9",
+  "base": "feature/regional-veg",
+  "scope": [
+    "scripts/terrain/terrain.gd",
+    "scripts/world_objects/world_objects.gd",
+    "scripts/world_objects/building_placer.gd",
+    "scripts/world_objects/village_layer.gd",
+    "scripts/world_objects/osm/osm_buildings.gd",
+    "tools/world/bake_biomes.py",
+    "configs/biomes.json",
+    "configs/world.json",
+    "configs/world_objects.json",
+    "assets/models/trees/trees_impostor_atlas.png",
+    "assets/models/trees/trees_impostor_atlas.png.import",
+    "tests/world/test_region_wiring.gd",
+    "tests/world/test_region_wiring.gd.uid",
+    "ASSETS.md",
+    "CHANGELOG.md",
+    "docs/guide/models/trees.md",
+    "docs/guide/vegetation.md",
+    "docs/guide/world-objects/villages-osm.md",
+    "docs/guide/world-objects.md",
+    "docs/guide/terrain/forest-sky.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "tools/blender",
+    "assets/models/houses",
+    "scripts/flight",
+    "configs/locations",
+    "data",
+    "tests/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "regional_veg_contracts",
+      "tests": "regional_veg_contracts"
+    },
+    {
+      "name": "tree",
+      "tests": "tree"
+    },
+    {
+      "name": "building",
+      "tests": "building"
+    },
+    {
+      "name": "test_biome",
+      "tests": "test_biome"
+    },
+    {
+      "name": "test_species_set",
+      "tests": "test_species_set"
+    },
+    {
+      "name": "scene_look_contracts",
+      "tests": "scene_look_contracts"
+    },
+    {
+      "name": "test_region_wiring",
+      "tests": "test_region_wiring"
+    },
+    {
+      "name": "places_shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/regional-veg/places/*/ | grep -cE '\\.(png|jpg)$'",
+      "expect": "num:^(\\d+) >=10"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T01:25:08"
+}
