@@ -1,0 +1,19 @@
+{
+  "verdict": "accept",
+  "summary": "Профиль региона подключён по RV-К1: world ← Biome.profile ← location (trees, terrain_look, scene_look), набор пород в request_preload, buildings ← profile в WorldObjects._begin. RV-К4 v2 max_levels_osm по контракту; тон только Wall_* — имена материалов в glb совпадают (Wall_rondavel/tin_house/stilt_house). Параметры по ориентирам координатора (palm ≤ 450, tropical ≤ 1700, oak 0–1200, evergreen 1/1/0,8/0,6/0,5), граница модели названа в species_doc. Правок вне скоупа нет. PlaceData и WorldClearings берут конфиг без профиля, но читают только villages и buildings.enabled, а профиль их не трогает — поведение верное.",
+  "issues": [],
+  "rerun": [
+    {
+      "name": "test_region_wiring",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "building",
+      "value": "18/18",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-18T03:28:48",
+  "by": "reviewer"
+}
