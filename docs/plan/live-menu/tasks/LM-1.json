@@ -1,0 +1,59 @@
+{
+  "id": "LM-1",
+  "module": "live-menu",
+  "type": "dp-researcher",
+  "title": "Замер старта игры: main и прототип живого меню",
+  "goal": "Числа старта игры (до интерактивного меню, кадры меню 40 с, загрузка мира за меню, «Лететь» после) на main и на грубом прототипе живого меню за флагом --live-menu-proto — для шлюза Q1: живое меню без лагов / нужна заставка-лоадер / не стоит свеч.",
+  "plan_ref": "LM-1 — замер старта",
+  "contracts": [
+    {
+      "name": "LM-K1",
+      "version": "1",
+      "ref": "docs/contracts/live-menu.md"
+    }
+  ],
+  "copy": "~/deltaplan-live-menu-LM-1",
+  "branch": "live-menu/LM-1",
+  "base": "feature/live-menu",
+  "scope": [
+    "scenes/main.gd",
+    "tools/bench/menu_bench.sh",
+    "tools/research/live_menu/"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/atmosphere/",
+    "data/locations/",
+    "configs/locations/",
+    "scripts/terrain/",
+    "scripts/world_objects/",
+    "scripts/game/bot_pilot.gd",
+    "scripts/game/wander_pilot.gd",
+    "project.godot",
+    "tools/bench/startup_bench.sh"
+  ],
+  "accept": [
+    {
+      "name": "menu",
+      "tests": "menu"
+    },
+    {
+      "name": "contract-LM-K1",
+      "cmd": "python3 tools/research/live_menu/check_startup_json.py tools/research/live_menu/startup.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gd-parse",
+      "cmd": "python3 tools/check_gd.py scenes/main.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme-table",
+      "cmd": "grep -c '^|' tools/research/live_menu/README.md",
+      "expect": "num:(\\d+) >=4"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T21:33:21"
+}
