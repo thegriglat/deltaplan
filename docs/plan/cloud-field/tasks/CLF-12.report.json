@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "CloudPhysics.poll() принимает готовую задачу поля каждый кадр (зовёт CloudLayer._update_field) вместо ожидания следующего refresh; field_version растёт при любой подмене массивов, ключ обновления текстуры теперь по нему. Поле готово через ~1 с после start_at.",
+  "commits": [
+    "014241a4 CLF-12: облака с первого кадра — покадровый poll задачи поля, версия данных поля для текстуры"
+  ],
+  "checks": [
+    {
+      "name": "test_cloud",
+      "value": "61/61",
+      "pass": true
+    },
+    {
+      "name": "test_determinism",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_hazards",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "test_perf_contracts",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "main_ms",
+      "value": "0.16",
+      "pass": true
+    },
+    {
+      "name": "start",
+      "value": "1.02",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept CLF-12",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/cloud_physics.gd: refresh/poll",
+      "why": "Разгон стартует сразу уже в refresh_now из start_at (atmosphere.gd не менял), 8 с в игре, видимо, давали ожидание приёма результата до следующего refresh (интервал + порционный бюджет); в headless реальный игровой refresh с экраном не воспроизведён.",
+      "checked": "тест с deterministic=false, async, кадры 16 мс, poll каждый кадр: 1.0 с. Без экрана/GPU CloudLayer не гонялся."
+    },
+    {
+      "where": "tests/atmosphere/cloud_field_fixture.gd и др. тесты, подменяющие массивы поля",
+      "why": "Они вне скоупа и mark_field_changed() не зовут; ключ по-прежнему содержит f.time, поэтому они работают как раньше (force_cloud ставит time). Подмена без смены time требует вызова mark_field_changed().",
+      "checked": "test_cloud (61/61) проходит; в test_cloud_render вызов добавлен."
+    },
+    {
+      "where": "приход поля воздуха позже",
+      "why": "Код не менял: сетка аналитики и поля воздуха одна (96x96 по 400 м, AirPlace.DOMAIN_L/AirRuntime.DX), поэтому при смене ключа входов reset не происходит, а поле плавно переходит к новым входам за cloud_field.input_blend_s=60 с (set_inputs). При иной сетке уровня (wf.nx) была бы замена целиком скачком — не проверено."
+    }
+  ],
+  "dp_feedback": "accept --dry идёт >120 с — удобно сразу запускать в фоне; таймаут обёртки в агенте мешает.",
+  "t": "2026-10-17T12:07:56",
+  "by": "executor"
+}
