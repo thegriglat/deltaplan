@@ -1,0 +1,44 @@
+{
+  "id": "AWW-3",
+  "module": "air-weak-wind",
+  "type": "dp-mechanic",
+  "title": "Перепечка полей ветра встроенных мест после правки θ′·h",
+  "goal": "Перепечь запечённые поля всех встроенных мест (training_island ×4, volcano_island ×4) готовым скриптом tools/terrain/bake_all.sh, чтобы bake_all.sh --check давал 0.",
+  "plan_ref": "Волна 3 — перепечка (последним шагом)",
+  "contracts": [
+    {
+      "name": "W2",
+      "version": "1",
+      "ref": "docs/contracts/air-weak-wind.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-weak-wind-AWW-3",
+  "branch": "air-weak-wind/AWW-3",
+  "base": "feature/air-weak-wind",
+  "scope": [
+    "data/locations/training_island/air/",
+    "data/locations/volcano_island/air/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tools/",
+    "tests/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "bake_check",
+      "cmd": "bash -c 'XDG_DATA_HOME=$HOME/.cache/dp-xdg/deltaplan-air-weak-wind-AWW-3 bash tools/terrain/bake_all.sh --check'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "eight_ok",
+      "cmd": "bash -c 'XDG_DATA_HOME=$HOME/.cache/dp-xdg/deltaplan-air-weak-wind-AWW-3 bash tools/terrain/bake_all.sh --check | grep -c \": ok$\"'",
+      "expect": "num:(\\d+) >=8"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-18T03:21:34"
+}
