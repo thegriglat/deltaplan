@@ -104,10 +104,20 @@
       "name": "synced",
       "cmd": "git merge-base --is-ancestor feature/cloud-field HEAD && echo synced",
       "expect": "re:^synced"
+    },
+    {
+      "name": "gpu_phase",
+      "cmd": "tools/gpu_tests.sh --filter=test_air_phase",
+      "expect": "re:, 0 упало"
+    },
+    {
+      "name": "gpu_render",
+      "cmd": "tools/gpu_tests.sh --filter=test_cloud_render",
+      "expect": "re:, 0 упало"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-17T15:30:08",
-  "edited": "2026-10-17T16:03:53"
+  "edited": "2026-10-17T16:05:04"
 }
