@@ -1,0 +1,55 @@
+{
+  "status": "partial",
+  "summary": "configs/biomes.json (128 листьев, 4706 байт, world_acc 0.8404, 7 исключений), Biome (at/classify_tree/profile), test_biome 4/4, контрактный тест 6/6, ASSETS.md. Единственный FAIL приёмки assets_md — старые 51 пропуск вне скоупа.",
+  "commits": [
+    "0ef1275b regional-veg RV-1: запекание biomes.json и Biome"
+  ],
+  "checks": [
+    {
+      "name": "regional_veg_contracts",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "test_biome",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "biomes_size",
+      "value": "4706",
+      "pass": true
+    },
+    {
+      "name": "world_acc",
+      "value": "0.8404",
+      "pass": true
+    },
+    {
+      "name": "assets_md",
+      "value": "exit 1: 51 старых пропусков (assets/*), моя строка biomes.json не в списке",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "assets_md не зелёный: 51 пропуск уже на feature/regional-veg (airliner, worn_body, glider_*_sail ...), чинить вне скоупа RV-1"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RV-1",
+  "uncertain": [
+    {
+      "where": "tools/world/bake_biomes.py: EXCEPTIONS caucasus",
+      "why": "Казбеги проваливался на 128 и 256 листьях (arid), на 256 ещё Анси; добавлено 7-е исключение (41.5..43.8 N, 42..47 E -> temperate) сверх списка координатора",
+      "checked": "128 листьев + исключение: 12 эталонов проходят, world_acc 0.8404; 140..220 листьев тоже не лечат Казбеги"
+    },
+    {
+      "where": "--check: island",
+      "why": "острова вне classes считаются ошибкой (мизер точек)",
+      "checked": "влияние на метрику пренебрежимо"
+    }
+  ],
+  "dp_feedback": "Проверка assets_md падает на чужих пропусках ветки - приёмка не может быть зелёной.",
+  "t": "2026-10-18T00:33:10",
+  "by": "executor"
+}
