@@ -47,3 +47,7 @@
 {"t": "2026-10-18T00:33:15", "by": "coordinator", "task": "RV-3", "ev": "checked", "note": "3/3 params=ok:ok; atlas_same=ok:0; old_untouched=ok:exit 0; scope=FAIL:вне scope: r-RV-3.json"}
 {"t": "2026-10-18T00:33:30", "by": "coordinator", "task": "RV-3", "ev": "checked", "note": "3/3 params=ok:ok; atlas_same=ok:0; old_untouched=ok:exit 0"}
 {"t": "2026-10-18T00:33:35", "by": "coordinator", "task": "RV-3", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-18T00:33:40", "by": "coordinator", "task": "RV-3", "ev": "accepted", "commits": ["21d04529"], "note": "3/3 params=ok:ok; atlas_same=ok:0; old_untouched=ok:exit 0"}
+{"t": "2026-10-18T00:33:40", "by": "coordinator", "task": "RV-3", "ev": "merged"}
+{"t": "2026-10-18T00:34:02", "by": "coordinator", "task": "RV-6", "ev": "checked", "note": "4/4 regional_veg_contracts=ok:6/6; building=ok:12/12; osm_look=ok:14/14; test_building_forms=ok:4/4"}
+{"t": "2026-10-18T00:34:06", "by": "coordinator", "task": "RV-6", "ev": "accepted", "note": "по отчёту"}
