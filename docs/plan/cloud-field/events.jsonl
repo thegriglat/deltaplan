@@ -92,3 +92,4 @@
 {"t": "2026-10-17T10:07:39", "by": "executor", "task": "CLF-11", "ev": "reported", "commits": ["2e12c2d0"], "note": "done: Цикл W̄ пропускает столбцы без z_i (col_w = 0); порог dt теста 25 → 1 м по измеренным 0,3 м; край сетки Аскарово провер…"}
 {"t": "2026-10-17T10:12:55", "by": "coordinator", "task": "CLF-11", "ev": "checked", "note": "4/4 test_air_thermals=ok:8/8; test_subsidence=ok:6/6; test_air_contracts=ok:31/31; test_zi_terrain=ok:6/6"}
 {"t": "2026-10-17T10:13:02", "by": "coordinator", "task": "CLF-11", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-17T10:13:05", "by": "coordinator", "task": "CLF-11", "ev": "merged", "note": "53e04d17"}
