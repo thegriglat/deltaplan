@@ -299,6 +299,14 @@ func _sea_world(sea_level: float) -> Grid:
 	for y in range(60, 80):
 		for x in range(10, 30):
 			g.set_cell(x, y, -430.0, 6)  # Мёртвое море (внутри квадрата — не море)
+	# низменность ниже уровня моря на суше у берега (польдер, дельта; класс 2) и малый пруд рядом с морем (класс 6, < min_cells):
+	# вне компоненты моря — не трогаются (данные Баку/Флорианополис: так и есть, ямы — настоящая суша и внутренние водоёмы)
+	for y in range(100, 130):
+		for x in range(50, 59):
+			g.set_cell(x, y, sea_level - 40.0, 2)
+	for y in range(140, 145):
+		for x in range(50, 55):
+			g.set_cell(x, y, sea_level - 60.0, 6)
 	return g
 
 
@@ -319,7 +327,7 @@ func _check_flat(r: Dictionary, g: Grid, level: float, tol: float, tag: String) 
 			elif after[i] != before[i]:
 				rest_ok = false
 	check(sea_ok, "%s: клетки моря = %.1f ± %.2f" % [tag, level, tol])
-	check(rest_ok, "%s: суша, озеро и Мёртвое море без изменений" % tag)
+	check(rest_ok, "%s: суша (в т.ч. ниже уровня моря), малый пруд у берега, озеро и Мёртвое море без изменений" % tag)
 	var sj: Dictionary = r.sj
 	check(int(sj.version) == 2 and int(sj.components) == 1 and int(sj.flattened_cells) > 0 and sj.levels_m is Array
 		and (sj.levels_m as Array).size() == 1 and absf(float(sj.levels_m[0]) - level) <= tol, "%s: sea.json v2: %s" % [tag, str(sj)])
