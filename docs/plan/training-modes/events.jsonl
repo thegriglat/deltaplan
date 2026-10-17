@@ -36,3 +36,4 @@
 {"t": "2026-10-17T23:36:50", "by": "coordinator", "task": "TM-2", "ev": "merged"}
 {"t": "2026-10-17T23:36:50", "by": "coordinator", "task": "TM-3", "ev": "merged"}
 {"t": "2026-10-17T23:36:51", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: TM-1..TM-3 accepted+merged в feature/training-modes; кадры в build/screenshots/training-modes; ждём шлюз главной"}
+{"t": "2026-10-17T23:37:18", "by": "main", "task": null, "ev": "delivered", "commits": ["ec6099a5"], "note": "squash в main: ec6099a5"}
