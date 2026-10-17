@@ -1,0 +1,43 @@
+{
+  "id": "SEA-12",
+  "module": "sea-ships",
+  "type": "dp-researcher",
+  "title": "Цена GPU судов: замер против main",
+  "goal": "Один общий замер цены кадра судов и моря по протоколу G3: опыт noships (выключить слой судов) на учебном острове и ongudai (без моря — цена ноль), плюс base ветки против base main на учебном острове; таблица и вывод в docs/perf/sea_ships.md.",
+  "plan_ref": "SEA-12",
+  "contracts": [
+    {
+      "name": "S3",
+      "version": "3",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-12",
+  "branch": "sea-ships/SEA-12",
+  "base": "feature/sea-ships",
+  "scope": [
+    "tools/bench/frame_profile.gd",
+    "docs/perf/sea_ships.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "assets/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "doc",
+      "cmd": "test -f docs/perf/sea_ships.md && grep -c 'noships' docs/perf/sea_ships.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "docs",
+      "cmd": "/home/greg/deltaplan/.dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T09:59:23"
+}

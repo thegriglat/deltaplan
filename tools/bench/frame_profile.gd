@@ -29,7 +29,7 @@ const AIR_MAX_S := 40.0
 
 const ALL_EXPS := [
 	"base", "scale50", "scale75", "nomsaa", "noshadow", "shadow1k", "noglow", "nocloudfx",
-	"noclouds", "notrees", "notreeshadow", "noimpostors", "nocrosses", "nograss", "noscatter", "noobjects",
+	"noclouds", "notrees", "notreeshadow", "noimpostors", "nocrosses", "noships", "nograss", "noscatter", "noobjects",
 	"nohaze", "noterrain", "noerosion", "cloudres33", "cloudres25", "cloudit64", "cloudlight3", "clouddetail0",
 	"base2"
 ]
@@ -50,6 +50,7 @@ const HIDE_CLASSES := {
 	"notrees": ["TerrainTreeModels", "TerrainTrees", "ForestImpostors"],
 	"noimpostors": ["ForestImpostors"],
 	"nocrosses": ["TreeCrosses"],
+	"noships": ["ShipLayer"],
 	"nograss": ["GrassField"],
 	"noscatter": ["ShrubScatter", "RockScatter"],
 	"noterrain": ["TerrainRenderer"],
@@ -175,6 +176,7 @@ func _ready() -> void:
 		for k in _keep:
 			_apply(k)
 		_restore.clear()  # фон не откатывается
+		_log_ships(t_mark)
 		for e in _exps:
 			if e == "none":
 				continue
@@ -442,6 +444,20 @@ func _cloud_fx_off() -> void:
 		for fx in comp.compositor_effects:
 			if fx != null:
 				_ovr(fx, "enabled", false)
+
+
+## SEA-12: суда на отметке — всего узлов-LOD слоя судов и сколько в пирамиде видимости камеры.
+func _log_ships(t_mark: Variant) -> void:
+	var total := 0
+	var in_view := 0
+	var cam := get_viewport().get_camera_3d()
+	for n in _nodes_of_classes(_main, ["ShipLayer"]):
+		for c in n.get_children():
+			if c is MeshInstance3D:
+				total += 1
+				if cam != null and cam.is_position_in_frustum((c as Node3D).global_position):
+					in_view += 1
+	print("PROFILE ships %s %s@%s: nodes %d in_frustum %d" % [_location, _tag, str(t_mark), total, in_view])
 
 
 func _hide_classes(classes: Array) -> void:

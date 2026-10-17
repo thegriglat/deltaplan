@@ -41,6 +41,10 @@ generated: true
   - [docs/guide/scene-look.md](guide/scene-look.md) — Модуль scene-look («картинка сочнее»): принцип, шейдерный include sl_*, конфиг и выключатели; пункты SL-2…SL-23 разнесены по частям.
 - **training-island** — Учебный остров: синтетическое место в море, старты «склон», «термики», «посадка», «ротор»; фиксированная погода и запечённый ветер. [active 2026-10-16] — [план](plan/training-island.md) · [контракты](contracts/training-island.md)
   - [docs/research/training_island_air.md](research/training_island_air.md) — TI-5: погода четырёх стартов учебного острова (TI-К2) и проверка воздуха в игре — склон, термики, ротор, посадка
+- **sea-ships** — Суда на море (танкер, сухогруз, контейнеровоз) — декорация у горизонта; первым шагом — надёжный признак «море» против озёр и водохранилищ. [active 2026-10-17] — [план](plan/sea-ships.md) · [контракты](contracts/sea-ships.md)
+  - [docs/guide/world-objects/sea-ships.md](guide/world-objects/sea-ships.md) — Суда на море: три вида и LOD, расстановка S3 v3, маска моря и стадия sea (признак SEA-1, уровень воды far, класс воды), что модель не умеет.
+  - [docs/perf/sea_ships.md](perf/sea_ships.md) — SEA-12: цена кадра GPU слоя судов (опыт noships) на учебном острове и ongudai, medium и high; base ветки против base main.
+  - [tools/research/sea_mask/README.md](../tools/research/sea_mask/README.md) — Признак «море»: компонента воды far с уровнем ≤ 0,25 м, краем и берегом ≥ −1 м; 16 мест, ложных 0, море 100 % [closed]
 - **volcano-island** — Второй учебный остров на реальном рельефе: данные в сборке, старты, погода, запечённые поля, карточки «Тренировки». [active 2026-10-17] — [план](plan/volcano-island.md) · [контракты](contracts/volcano-island.md)
   - [docs/guide/volcano-island.md](guide/volcano-island.md) — Вулканический остров: данные в сборке, training_only, OSM места, старты, погода, числа воздуха, окно «Тренировка», границы.
   - [docs/registry/volcano-island-findings.md](registry/volcano-island-findings.md) — Выводы модуля volcano-island: подъём у обрывов, ротор у кратера, термики над водой, граница модели (нет пассатной инверсии).
@@ -100,7 +104,7 @@ generated: true
 - [docs/guide/game.md](guide/game.md) — Сборка игры: главная сцена, Game и порядок шага физики; оглавление частей — камеры и ввод, старт, полёт и итог, мир, меню, боты, сеть.
 - [docs/guide/gpu-validation.md](guide/gpu-validation.md) — tools/gpu_validate.sh: загрузка места под слоем валидации Vulkan, lavapipe и wine+vkd3d-proton; пики RAM/VRAM, что ловит каждый режим.
 - [docs/guide/instruments.md](guide/instruments.md) — Планшет и вариометр 90-х (Vario, страницы, ветер, центровка), звук вариометра и звуки полёта; API, настройки и проверки.
-- [docs/guide/location-data.md](guide/location-data.md) — Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, osm_tiles, WebP, кеш, догрузка, --prefetch.
+- [docs/guide/location-data.md](guide/location-data.md) — Сборка места для встроенных мест и точек: стадии dem, rivers, surface, smooth, sea, osm_tiles, WebP, кеш, догрузка, --prefetch.
 - [docs/guide/models/camp.md](guide/models/camp.md) — Модели лагеря у старта (assets/models/world): вещи, полусобранный аппарат, люди; ноды, материалы, бюджеты.
 - [docs/guide/models/instruments-3d.md](guide/models/instruments-3d.md) — 3D-модели приборов (планшет, вариометр, часы, компас): оси, ноды, крепление к кисти и к штанге, кабинная камера.
 - [docs/guide/models/pilot.md](guide/models/pilot.md) — Модель пилота pilot.glb: меши, кости, пустышки, анимации и порядок фаз, перчатки, кабинный вид, сборка (MPFB), высота в подвеске.

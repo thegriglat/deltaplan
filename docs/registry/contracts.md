@@ -46,6 +46,7 @@ generated: true
 - popular-places: PP-К1 v3, PP-К2 v1 — [docs/contracts/popular-places.md](../contracts/popular-places.md)
 - qol: QL-К1 v1, QL-К2 v1, QL-К3 v1 — [docs/contracts/qol.md](../contracts/qol.md)
 - scene-look: SL-К1 v4, SL-К2 v2, SL-К3 v1, SL-К4 v2, SL-К5 v1, SL-К6 v2, SL-К7 v1 — [docs/contracts/scene-look.md](../contracts/scene-look.md)
+- sea-ships: S1 v2, S2 v4, S3 v3, S4 v1 — [docs/contracts/sea-ships.md](../contracts/sea-ships.md)
 - site-i18n: SI-К1 v2, SI-К2 v1, SI-К3 v2, SI-К4 v3, SI-К5 v1, SI-К6 v1 — [docs/contracts/site-i18n.md](../contracts/site-i18n.md)
 - speed-feel: SPF-К1 v2, SPF-К2 v1, SPF-К3 v1, SPF-К4 v2 — [docs/contracts/speed-feel.md](../contracts/speed-feel.md)
 - start-camp: SC-K1 v1, SC-K2 v1, SC-K3 v1, SC-K4 v2, SC-K5 v1, SC-K6 v1 — [docs/contracts/start-camp.md](../contracts/start-camp.md)

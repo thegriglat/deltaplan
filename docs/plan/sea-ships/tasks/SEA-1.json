@@ -1,0 +1,85 @@
+{
+  "id": "SEA-1",
+  "module": "sea-ships",
+  "type": "dp-researcher",
+  "title": "Признак «море»: проверка на данных мест",
+  "goal": "Найти и проверить детерминированный признак «море», отличающий море/океан от озёр (включая крупные и низкие), водохранилищ и рек по данным места; итог — summary.json по контракту S1 и вердикт works.",
+  "plan_ref": "SEA-1",
+  "contracts": [
+    {
+      "name": "sea-ships",
+      "version": "2",
+      "ref": "docs/contracts/sea-ships.md"
+    }
+  ],
+  "copy": "~/deltaplan-sea-ships-SEA-1",
+  "branch": "sea-ships/SEA-1",
+  "base": "feature/sea-ships",
+  "scope": [
+    "tools/research/sea_mask/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "data/",
+    "assets/",
+    "project.godot",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "files",
+      "cmd": "test -f tools/research/sea_mask/README.md && test -f tools/research/sea_mask/summary.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fp_inland",
+      "cmd": "python3 -c \"import json;print('fp', json.load(open('tools/research/sea_mask/summary.json'))['fp_inland_cells'])\"",
+      "expect": "num:fp (\\d+) <=0"
+    },
+    {
+      "name": "tp_sea",
+      "cmd": "python3 -c \"import json;print('tp', json.load(open('tools/research/sea_mask/summary.json'))['tp_sea_min'])\"",
+      "expect": "num:tp ([0-9.]+) >=0.8"
+    },
+    {
+      "name": "sea_places",
+      "cmd": "python3 -c \"import json;print('n', sum(p['kind']=='sea' for p in json.load(open('tools/research/sea_mask/summary.json'))['places']))\"",
+      "expect": "num:n (\\d+) >=3"
+    },
+    {
+      "name": "works",
+      "cmd": "python3 -c \"import json;print('works', json.load(open('tools/research/sea_mask/summary.json'))['works'])\"",
+      "expect": "re:works True"
+    },
+    {
+      "name": "inland_places",
+      "cmd": "python3 -c \"import json;print('n', sum(p['kind'] in ('lake','reservoir','river') for p in json.load(open('tools/research/sea_mask/summary.json'))['places']))\"",
+      "expect": "num:n (\\d+) >=6"
+    },
+    {
+      "name": "dead_sea_lake",
+      "cmd": "python3 -c \"import json;ps=json.load(open('tools/research/sea_mask/summary.json'))['places'];print('dead', sum(1 for p in ps if p['kind']=='lake' and abs(p['lat']-31.5)<0.5 and abs(p['lon']-35.5)<0.5 and p['sea_cells']==0))\"",
+      "expect": "num:dead (\\d+) >=1"
+    },
+    {
+      "name": "margin",
+      "cmd": "python3 -c \"import json;print('m', json.load(open('tools/research/sea_mask/summary.json'))['level_margin_m'])\"",
+      "expect": "num:m ([0-9.]+) >=0.5"
+    },
+    {
+      "name": "dead_sea_edge",
+      "cmd": "python3 -c \"import json;ps=json.load(open('tools/research/sea_mask/summary.json'))['places'];print('dse', sum(1 for p in ps if p['kind']=='lake' and abs(p['lat']-(31.4))<0.3 and abs(p['lon']-(36.35))<0.3 and p['touches_edge'] and p['sea_cells']==0))\"",
+      "expect": "num:dse (\\d+) >=1"
+    },
+    {
+      "name": "salton_edge",
+      "cmd": "python3 -c \"import json;ps=json.load(open('tools/research/sea_mask/summary.json'))['places'];print('sal', sum(1 for p in ps if p['kind']=='lake' and abs(p['lat']-(33.3))<0.3 and abs(p['lon']-(-114.9))<0.3 and p['touches_edge'] and p['sea_cells']==0))\"",
+      "expect": "num:sal (\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T02:14:08",
+  "edited": "2026-10-17T02:54:08"
+}
