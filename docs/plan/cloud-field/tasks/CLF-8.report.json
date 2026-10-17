@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "Руководство clouds.md переписано под поле облачности (сетка, рост/таяние, мощность, связь с термиками, вид, сеть, оценка цены, Compatibility без кучевых, честные проблемы Алматы); thermals.md — тень поля, z_i по рельефу, опускание, границы; net-protocol — снимок cloudField; CHANGELOG «В работе», находки cloud-field, research applied_in.",
+  "commits": [
+    "675ca5bf cloud-field: CLF-8 — руководство по облакам из поля, термики, сеть, CHANGELOG, находки"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "20 вхождений 'облак'",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "8 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "phases.md/runtime.md не менял: z_i столбца описанного там не меняет в тексте (проверил grep по облак/cloud — упоминаний нет)",
+    "Цена GPU — только оценка из отчёта CLF-5 (CLF-7 отменена), чисел против main нет"
+  ],
+  "questions": [
+    "findings.md упёрся в лимит 40 КБ (было 40929 Б): чтобы вместить раздел cloud-field, сократил подписи ссылок до имени файла (якорь остался в URL); сейчас 40954 Б — запаса нет, реестр пора делить или поднять docs.max_kb"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CLF-8",
+  "uncertain": [
+    {
+      "where": "docs/guide/atmosphere/clouds.md: абзац «Стадия читается по облаку»",
+      "why": "правила появления/таяния по термикам (delay_factor, linger_s) отнесены к записям и режиму cloud_field.enabled = false; в коде этот путь не прогонял",
+      "checked": "cloud_physics.gd field_enabled(), config enabled_doc"
+    },
+    {
+      "where": "docs/guide/air-model/thermals.md: тень поля",
+      "why": "формулу 'сила × (1 − 0,6 × тень)' взял из thermal_field.gd:714-736 и _doc конфига; совместного замера потока не делал",
+      "checked": "чтение кода и конфига"
+    }
+  ],
+  "dp_feedback": "docs findings ищет только в registry/findings.md, а лимит 40 КБ для него ручной — нужен авто-раздел по модулям или предупреждение до порога; report --show без --full обрезает summary, а --full не печатает строки (грепать пришлось report.json в docs/plan/<м>/tasks).",
+  "extra": {},
+  "t": "2026-10-17T15:34:11",
+  "by": "executor"
+}
