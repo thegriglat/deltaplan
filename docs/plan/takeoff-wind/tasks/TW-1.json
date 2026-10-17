@@ -1,0 +1,63 @@
+{
+  "id": "TW-1",
+  "module": "takeoff-wind",
+  "type": "dp-researcher",
+  "title": "Причины срыва взлёта и ухода по крену на разбеге",
+  "goal": "Для T-85 (takeoff_failed в test_e2e, ~4 из 8) и T-74 (крен 0→14°, курс 30° на разбеге в 5 м/с, test_matrix 4/36) и наблюдения 2 (крах взлёта при пересчёте поля после --world-t) установить причину числами и разделить: автопилот теста / физика разбега / ветер у земли; дать проверенное прототипом предложение правки (файл:функция, эффект в числах).",
+  "plan_ref": "TW-1. Причины срыва взлёта",
+  "contracts": [
+    {
+      "name": "TW-К1",
+      "version": "1",
+      "ref": "docs/contracts/takeoff-wind.md"
+    },
+    {
+      "name": "TW-К2",
+      "version": "1",
+      "ref": "docs/contracts/takeoff-wind.md"
+    }
+  ],
+  "copy": "~/deltaplan-takeoff-wind-TW-1",
+  "branch": "takeoff-wind/TW-1",
+  "base": "feature/takeoff-wind",
+  "scope": [
+    "tools/research/takeoff_wind/TW-1/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "readme",
+      "cmd": "test -s tools/research/takeoff_wind/TW-1/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "causes",
+      "cmd": "grep -cE '\\| *(autopilot|run_physics|ground_wind|other) *\\|' tools/research/takeoff_wind/TW-1/README.md",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "data",
+      "cmd": "ls tools/research/takeoff_wind/TW-1 | grep -cE '\\.(csv|jsonl)$'",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "patch",
+      "cmd": "ls tools/research/takeoff_wind/TW-1 | grep -cE '\\.patch$'",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T21:41:23"
+}

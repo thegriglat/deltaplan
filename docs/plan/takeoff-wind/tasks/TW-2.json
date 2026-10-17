@@ -1,0 +1,63 @@
+{
+  "id": "TW-2",
+  "module": "takeoff-wind",
+  "type": "dp-researcher",
+  "title": "Ветер у старта при сильном нагреве и слабом ветре",
+  "goal": "Найти, почему у старта «Термики» учебного острова (thermal_plain: 2 м/с с 180°, полдень, wind_ref start) ветер у земли 0,43 м/с вместо 2 (T-84) и откуда подъём до 6 м/с у земли у старта (наблюдение 1); дать проверенное прототипом предложение правки модели воздуха (числа до/после, затронутые старты, меняется ли model_hash).",
+  "plan_ref": "TW-2. Ветер у старта при сильном нагреве",
+  "contracts": [
+    {
+      "name": "TW-К1",
+      "version": "1",
+      "ref": "docs/contracts/takeoff-wind.md"
+    },
+    {
+      "name": "TW-К2",
+      "version": "1",
+      "ref": "docs/contracts/takeoff-wind.md"
+    }
+  ],
+  "copy": "~/deltaplan-takeoff-wind-TW-2",
+  "branch": "takeoff-wind/TW-2",
+  "base": "feature/takeoff-wind",
+  "scope": [
+    "tools/research/takeoff_wind/TW-2/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/",
+    "data/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "readme",
+      "cmd": "test -s tools/research/takeoff_wind/TW-2/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "causes",
+      "cmd": "grep -cE '\\| *(autopilot|run_physics|ground_wind|other) *\\|' tools/research/takeoff_wind/TW-2/README.md",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "data",
+      "cmd": "ls tools/research/takeoff_wind/TW-2 | grep -cE '\\.(csv|jsonl|json)$'",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "patch",
+      "cmd": "ls tools/research/takeoff_wind/TW-2 | grep -cE '\\.patch$'",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T21:42:25"
+}
