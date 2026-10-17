@@ -1,0 +1,81 @@
+{
+  "id": "CLF-5",
+  "module": "cloud-field",
+  "type": "dp-engineer",
+  "title": "Слой поля облачности в raymarch и тени",
+  "goal": "Кучевые рисуются из поля облачности (текстура CLF-К2) в том же raymarch-проходе CloudCompositorEffect, тени CloudShadowMap — от того же слоя; стадии читаются; линзы/шапка/Cb — как были; без облаков — ноль лишней работы; цена прохода ≤ +30 % к main.",
+  "plan_ref": "§CLF-5",
+  "contracts": [
+    {
+      "name": "CLF-К2",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К1",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-field-CLF-5",
+  "branch": "cloud-field/CLF-5",
+  "base": "feature/cloud-field",
+  "scope": [
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_temporal_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_composite_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_shadow_map.gd",
+    "scripts/atmosphere/cloud_shadow_map.gdshader",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_volume.gdshader",
+    "configs/atmosphere.json",
+    "tests/atmosphere/test_cloud_render*",
+    "tools/shots/cloud_field_*",
+    "tools/shots/cloud_field/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/cloud_field_*",
+    "scripts/atmosphere/cloud_physics.gd",
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/air_model/",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/terrain/cloud_shadow.gdshaderinc",
+    "project.godot",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "test_cloud",
+      "tests": "test_cloud"
+    },
+    {
+      "name": "test_perf_contracts",
+      "tests": "test_perf_contracts"
+    },
+    {
+      "name": "test_cloud_field_k2",
+      "tests": "test_cloud_field_k2"
+    },
+    {
+      "name": "gpu",
+      "cmd": "tools/gpu_tests.sh --filter=test_cloud_render",
+      "expect": "re:, 0 упало"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cloud-field/CLF-5/ | grep -ciE 'jpg$|png$'",
+      "expect": "num:^([0-9]+) >=3"
+    },
+    {
+      "name": "cost",
+      "cmd": "python3 -c \"import json;print('cloud_pass_ms_medium=%.2f'%json.load(open('/home/greg/deltaplan/build/screenshots/cloud-field/CLF-5/cost.json'))['cloud_pass_ms_medium_max'])\"",
+      "expect": "num:cloud_pass_ms_medium=([0-9.]+) <=4.7"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T09:07:39"
+}

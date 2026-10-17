@@ -1,0 +1,87 @@
+{
+  "id": "CLF-4",
+  "module": "cloud-field",
+  "type": "dp-engineer",
+  "title": "Сеть: снимок поля облачности от ведущего",
+  "goal": "Облака одинаковы у всех в зоне: ведущий шлёт снимок CloudField (CLF-К4) раз в net_interval_s по пути ZoneState (как thermal_sources), остальные подтягиваются к нему за net_blend_s, новый участник берёт снимок целиком.",
+  "plan_ref": "§CLF-4",
+  "contracts": [
+    {
+      "name": "CLF-К4",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К1",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-field-CLF-4",
+  "branch": "cloud-field/CLF-4",
+  "base": "feature/cloud-field",
+  "scope": [
+    "scripts/game/net_flight.gd",
+    "scripts/net/net_zone.gd",
+    "scripts/net/net_messages.gd",
+    "scripts/net/local_server.gd",
+    "server/",
+    "scripts/atmosphere/cloud_physics.gd",
+    "tests/net/",
+    "tests/game/",
+    "tests/contracts/test_cloud_field_k4.gd",
+    "tests/contracts/test_perf_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/cloud_field_*",
+    "scripts/atmosphere/air_model/",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/*.gdshader*",
+    "project.godot",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "test_cloud_field_net",
+      "tests": "test_cloud_field_net"
+    },
+    {
+      "name": "test_net_flight",
+      "tests": "test_net_flight"
+    },
+    {
+      "name": "test_zone",
+      "tests": "test_zone"
+    },
+    {
+      "name": "test_messages",
+      "tests": "test_messages"
+    },
+    {
+      "name": "test_local_server",
+      "tests": "test_local_server"
+    },
+    {
+      "name": "test_net_bots",
+      "tests": "test_net_bots"
+    },
+    {
+      "name": "test_perf_contracts",
+      "tests": "test_perf_contracts"
+    },
+    {
+      "name": "test_cloud_field_k4",
+      "tests": "test_cloud_field_k4"
+    },
+    {
+      "name": "go",
+      "cmd": "bash -c 'cd server && go build ./... && go test ./...'",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T09:07:02"
+}
