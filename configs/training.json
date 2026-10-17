@@ -80,6 +80,17 @@
           }
         },
         {
+          "id": "thermals",
+          "title_key": "training_volcano_thermals",
+          "what_key": "training_volcano_thermals_what",
+          "site": "thermal_slope",
+          "goal": {
+            "kind": "height",
+            "level": "custom",
+            "value": 300
+          }
+        },
+        {
           "id": "landing",
           "title_key": "training_volcano_landing",
           "what_key": "training_volcano_landing_what",
