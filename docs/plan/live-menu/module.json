@@ -1,0 +1,11 @@
+{
+  "module": "live-menu",
+  "plan": "docs/plan/live-menu.md",
+  "contracts": "docs/contracts/live-menu.md",
+  "branch": "feature/live-menu",
+  "copy": "~/deltaplan-live-menu",
+  "created": "2026-10-17T21:28:40",
+  "code": "LM",
+  "area": "game",
+  "base": "main"
+}
