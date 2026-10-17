@@ -292,11 +292,16 @@ func sync_cloud_field(dt: float) -> void:
 		return
 	var step := CLOUD_BLEND_STEP_S
 	var k := 1.0 if _cloud_left <= step else step / _cloud_left
+	if cp.take_net_rejected():
+		_cloud_snap = PackedByteArray()  # задача отвергла: чужая сетка/версия — поле своё
+		_cloud_leader = ""
+		return
 	var r := cp.apply_net_snapshot(_cloud_snap, k)
 	if r == CloudPhysics.Net.BUSY:
-		return  # идёт шаг поля — на следующем кадре
+		return  # прежний шаг подтяжки ещё не взят задачей — на следующем кадре
 	if r == CloudPhysics.Net.REJECTED:
-		_cloud_snap = PackedByteArray()  # чужая сетка/версия — поле своё
+		_cloud_snap = PackedByteArray()  # поле ещё без сетки
+		_cloud_leader = ""  # ведущего «не принимали»: следующий снимок — целиком
 		return
 	_cloud_step_t = step
 	_cloud_left -= step
