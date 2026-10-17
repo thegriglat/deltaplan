@@ -103,8 +103,11 @@ static func prepare(cf: CloudField, inp: Dictionary, cfg: Dictionary) -> Diction
 		var carried := air.carried
 		var area := air.area
 		var z_i := wf.z_i() if wf != null else NAN
-		# z_i над столбцом (CLF-К6): столбцы поля той же сетки, иначе скаляр
-		var zic := wf.z_i_col() if wf != null and same_grid else PackedFloat32Array()
+		# z_i над столбцом: с опусканием горно-равнинной циркуляции — AirThermals.col_zi (CLF-10,
+		# одно место с потолком частицы и w*), иначе столбцы поля (CLF-К6) той же сетки, иначе скаляр
+		var zic := air.col_zi if air.col_zi.size() == n else (
+			wf.z_i_col() if wf != null and same_grid else PackedFloat32Array()
+		)
 		var eps := float(cfg.get("overshoot_flux_frac", 0.2))
 		for c in n:
 			var top := ctop[c]
@@ -137,7 +140,12 @@ static func prepare(cf: CloudField, inp: Dictionary, cfg: Dictionary) -> Diction
 			if i < 0 or i >= nx or j < 0 or j >= ny:
 				continue
 			var c := j * nx + i
-			var pen := penetration(base, p.y, wf.z_i_at(p) if wf != null else z_i, top, eps)
+			var zi_s := z_i
+			if zic.size() == n and air.col[s] < n:
+				zi_s = zic[air.col[s]]
+			elif wf != null:
+				zi_s = wf.z_i_at(p)
+			var pen := penetration(base, p.y, zi_s, top, eps)
 			var w_u := maxf(w_k * air.wstar[s], w_min)
 			au[c] += pen * air.carried[s] / (dx * dx * w_u)
 			ds[c] = maxf(ds[c], k_moist * (top - base))

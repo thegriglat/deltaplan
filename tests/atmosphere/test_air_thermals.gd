@@ -347,7 +347,9 @@ func test_host_mask_same_sources_with_noise() -> void:
 		dt = maxf(dt, absf(c2.top[k] - a.top[k]))
 		dd = maxf(dd, (c2.drift[k] - a.drift[k]).length())
 	print("    с маской: |Δw0| ≤ %.5f отн., |Δпотолок| ≤ %.3f м, |Δснос| ≤ %.5f м/с" % [dw, dt, dd])
-	check(dw < 0.01 and dt < 5.0 and dd < 0.01, "параметры — в пределах шума поля")
+	# потолок: шум w_conv ±3 мм/с по клеткам → средний по столбу W̄ ~±0,5 мм/с, а опускание
+	# (CLF-10) сдвигает верх слоя на |W̄⁻|·τ_s = 10 800 м на 1 м/с ⇒ ~6 м
+	check(dw < 0.01 and dt < 25.0 and dd < 0.01, "параметры — в пределах шума поля")
 	print("    (без ведущего одинаковы: %s)" % same)
 
 
