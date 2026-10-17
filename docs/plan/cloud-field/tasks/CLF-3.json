@@ -1,0 +1,100 @@
+{
+  "id": "CLF-3",
+  "module": "cloud-field",
+  "type": "dp-engineer",
+  "title": "Термики и физика полёта от поля облачности",
+  "goal": "CloudField живёт в симуляции (CloudPhysics) и шагает в фоне; кучевые облака-объекты убраны (линзы, шапка, ротор, Cb остаются); тень для новых термиков, белая мгла, подсос и боты берут облачность из поля по CLF-К1.",
+  "plan_ref": "§CLF-3",
+  "contracts": [
+    {
+      "name": "CLF-К1",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    },
+    {
+      "name": "CLF-К5",
+      "version": "1",
+      "ref": "docs/contracts/cloud-field.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-field-CLF-3",
+  "branch": "cloud-field/CLF-3",
+  "base": "feature/cloud-field",
+  "scope": [
+    "scripts/atmosphere/cloud_physics.gd",
+    "scripts/atmosphere/cloud_model.gd",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/atmo_thermal.gd",
+    "scripts/atmosphere/atmo_fingerprint.gd",
+    "scripts/atmosphere/atmosphere_preview.gd",
+    "scripts/atmosphere/storm_field.gd",
+    "scripts/atmosphere/cloud_whiteout.gd",
+    "scripts/game/bot_pilot.gd",
+    "scripts/game/wander_pilot.gd",
+    "configs/atmosphere.json",
+    "tests/atmosphere/",
+    "tests/game/",
+    "tests/net/",
+    "tests/contracts/test_cloud_field_k1.gd"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/cloud_field_*",
+    "scripts/atmosphere/air_model/",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/game/net_flight.gd",
+    "scripts/atmosphere/*.gdshader*",
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "scripts/atmosphere/cloud_shadow_map.gd",
+    "project.godot",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "test_cloud",
+      "tests": "test_cloud"
+    },
+    {
+      "name": "test_determinism",
+      "tests": "test_determinism"
+    },
+    {
+      "name": "test_hazards",
+      "tests": "test_hazards"
+    },
+    {
+      "name": "test_wave",
+      "tests": "test_wave"
+    },
+    {
+      "name": "test_storm",
+      "tests": "test_storm"
+    },
+    {
+      "name": "test_bots",
+      "tests": "test_bots"
+    },
+    {
+      "name": "test_xc_bot",
+      "tests": "test_xc_bot"
+    },
+    {
+      "name": "test_air_thermals",
+      "tests": "test_air_thermals"
+    },
+    {
+      "name": "test_thermal_assistant",
+      "tests": "test_thermal_assistant"
+    },
+    {
+      "name": "main_ms",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=test_cloud_field_runtime",
+      "expect": "num:cloud_refresh_main_ms=([0-9.]+) <=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-17T05:49:10",
+  "edited": "2026-10-17T05:49:24"
+}
