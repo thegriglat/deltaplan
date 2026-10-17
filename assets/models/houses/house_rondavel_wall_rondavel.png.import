@@ -2,21 +2,21 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://be0h26ddoketi"
-path.s3tc="res://.godot/imported/house_rondavel_house_rondavel_wood.png-20c30b42a8300542bf744cda464e262a.s3tc.ctex"
-path.etc2="res://.godot/imported/house_rondavel_house_rondavel_wood.png-20c30b42a8300542bf744cda464e262a.etc2.ctex"
+uid="uid://klw0rqbrnr18"
+path.s3tc="res://.godot/imported/house_rondavel_wall_rondavel.png-bbbc7a489ecb63af8d3687ceec3647cd.s3tc.ctex"
+path.etc2="res://.godot/imported/house_rondavel_wall_rondavel.png-bbbc7a489ecb63af8d3687ceec3647cd.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "2fdf1fb76d07161ca0799f5e5a536439"
+"md5": "d3c92ed2f93e86efa1baa989199cfdb1"
 }
 
 [deps]
 
-source_file="res://assets/models/houses/house_rondavel_house_rondavel_wood.png"
-dest_files=["res://.godot/imported/house_rondavel_house_rondavel_wood.png-20c30b42a8300542bf744cda464e262a.s3tc.ctex", "res://.godot/imported/house_rondavel_house_rondavel_wood.png-20c30b42a8300542bf744cda464e262a.etc2.ctex"]
+source_file="res://assets/models/houses/house_rondavel_wall_rondavel.png"
+dest_files=["res://.godot/imported/house_rondavel_wall_rondavel.png-bbbc7a489ecb63af8d3687ceec3647cd.s3tc.ctex", "res://.godot/imported/house_rondavel_wall_rondavel.png-bbbc7a489ecb63af8d3687ceec3647cd.etc2.ctex"]
 
 [params]
 
