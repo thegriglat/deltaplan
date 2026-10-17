@@ -1,0 +1,11 @@
+{
+  "module": "regional-veg",
+  "plan": "docs/plan/regional-veg.md",
+  "contracts": "docs/contracts/regional-veg.md",
+  "branch": "feature/regional-veg",
+  "copy": "~/deltaplan-regional-veg",
+  "created": "2026-10-18T00:10:52",
+  "code": "RV",
+  "area": "world",
+  "base": "main"
+}
