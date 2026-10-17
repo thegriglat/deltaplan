@@ -99,9 +99,10 @@ def lathe(mb, rings, seg, mat, uv_fn, hint):
                       r * math.sin(2 * math.pi * k / seg - math.pi / 2), z) for k in range(seg + 1)])
     uv = [[uv_fn(i, k, seg, rings) for k in range(seg + 1)] for i in range(len(rings))]
     # проверка ориентации по первой грани
-    a, b, c = (Vector(rows[0][0]), Vector(rows[1][0]), Vector(rows[1][1]))
+    # третья вершина — rows[0][1], не rows[1][1]: у конуса из двух колец верхнее кольцо вырождено в точку
+    a, b, c = (Vector(rows[0][0]), Vector(rows[1][0]), Vector(rows[0][1]))
     nrm = (b - a).cross(c - a)
-    cen = (Vector(rows[0][0]) + Vector(rows[1][1])) * 0.5
+    cen = (Vector(rows[0][0]) + Vector(rows[1][1])) * 0.5   # центр грани k=0
     flip = nrm.dot(hint(cen)) < 0
     mb.add_grid(rows, mat, uv, flip=flip, smooth=True, wrap=False)
 
