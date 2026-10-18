@@ -3,7 +3,7 @@
   "module": "pullin-speed",
   "type": "dp-researcher",
   "title": "Разбор: почему полный «на себя» даёт 45–60 км/ч против паспортных 63–103",
-  "goal": "Research-документ по VM-К1: что ограничивает Vmax на полном «на себя» — точка подвески, Cm0/центровка, CL_α полос, сопротивление пилота, смысл паспортной Vmax (ход рук — данность) — с числами по классам и крыльям, класс причины и варианты правки с ожидаемым эффектом, для шлюза Q1.",
+  "goal": "Research-документ по VM-К1 v2: что ограничивает Vmax на полном «на себя» — закроет ли разрыв VG (паспорта VG 0 / VG full), точка подвески, Cm0/центровка, CL_α полос, сопротивление пилота, смысл паспортной Vmax (ход рук — данность) — с числами, класс причины и варианты правки, для шлюза Q1.",
   "plan_ref": "Волна 1",
   "contracts": [
     {
@@ -13,7 +13,7 @@
     },
     {
       "name": "VM-К1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pullin-speed.md"
     }
   ],
@@ -37,11 +37,6 @@
   ],
   "accept": [
     {
-      "name": "vm-k1-sections",
-      "cmd": "bash -c 'f=docs/research/pendulum/pullin-speed.md; for h in \"Паспортная Vmax\" \"Ход рук\" \"Точка подвески\" \"Прочие вклады\" \"Причина\" \"Варианты правки\" \"Воспроизведение\"; do grep -q \"^## $h\" $f || { echo нет $h; exit 1; }; done'",
-      "expect": "exit=0"
-    },
-    {
       "name": "vm-k1-class",
       "cmd": "grep -E '^Класс: (физика|граница модели|ошибка модели)' docs/research/pendulum/pullin-speed.md",
       "expect": "re:Класс: "
@@ -50,10 +45,15 @@
       "name": "docs-check",
       "cmd": ".dpcli/dpcli docs check",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "vm-k1-sections",
+      "cmd": "bash -c 'f=docs/research/pendulum/pullin-speed.md; for h in \"Паспортная Vmax\" \"VG\" \"Ход рук\" \"Точка подвески\" \"Прочие вклады\" \"Причина\" \"Варианты правки\" \"Воспроизведение\"; do grep -q \"^## $h\" $f || { echo нет $h; exit 1; }; done'",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-19T01:30:16",
-  "edited": "2026-10-19T01:30:47"
+  "edited": "2026-10-19T01:31:53"
 }
