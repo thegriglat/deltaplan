@@ -12,3 +12,9 @@
 {"t": "2026-10-19T01:47:31", "by": "coordinator", "task": "VM-1", "ev": "checked", "note": "3/3 vm-k1-class=ok:Класс:; docs-check=ok:ошибок 0; vm-k1-sections=ok:exit 0; scope=FAIL:вне scope: r-VM-1.json"}
 {"t": "2026-10-19T01:47:44", "by": "coordinator", "task": "VM-1", "ev": "checked", "note": "3/3 vm-k1-class=ok:Класс:; docs-check=ok:ошибок 0; vm-k1-sections=ok:exit 0"}
 {"t": "2026-10-19T01:47:49", "by": "coordinator", "task": "VM-1", "ev": "accepted", "note": "по отчёту; вход для правки тангажа (решение 2026-10-19 703f211a)"}
+{"t": "2026-10-19T01:47:51", "by": "coordinator", "task": "VM-1", "ev": "accepted", "commits": ["552f8c72"], "note": "3/3 vm-k1-class=ok:Класс:; docs-check=ok:ошибок 0; vm-k1-sections=ok:exit 0"}
+{"t": "2026-10-19T01:47:51", "by": "coordinator", "task": "VM-1", "ev": "merged"}
+{"t": "2026-10-19T01:50:10", "by": "coordinator", "task": null, "ev": "plan", "note": "план Задачи: тело заменено (28 стр.)"}
+{"t": "2026-10-19T01:50:18", "by": "coordinator", "task": null, "ev": "plan", "note": "план Границы и остановка: тело заменено (5 стр.)"}
+{"t": "2026-10-19T01:50:19", "by": "coordinator", "task": null, "ev": "plan", "note": "план pullin-speed — скорость полного «на себя» в «Маят…: замена «Вопрос модуля — поможет …»"}
+{"t": "2026-10-19T01:50:31", "by": "coordinator", "task": null, "ev": "plan", "note": "план весь файл: замена «summary: \"Скорость полно…» ×1"}
