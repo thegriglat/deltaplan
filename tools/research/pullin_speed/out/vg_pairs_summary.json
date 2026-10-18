@@ -1,0 +1,14 @@
+{
+ "n_pairs": 36,
+ "delta_mean": 6.708333333333333,
+ "delta_median": 5.0,
+ "n_without_gt": 8,
+ "delta_without_gt_mean": 11.4375,
+ "delta_without_gt_median": 8.75,
+ "ratio_median": 1.0588235294117647,
+ "ratio_mean_without_gt": 1.133361673487024,
+ "ratio_max": 1.2777777777777777,
+ "n_at_cap": 29,
+ "n_censored_gt": 28,
+ "n_vg100_below_vg0": 3
+}
