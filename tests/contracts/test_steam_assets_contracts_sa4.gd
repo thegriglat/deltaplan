@@ -5,7 +5,7 @@ extends TestCase
 
 const SET := [
 	"MIT-deltaplan", "MIT-godot", "godot-COPYRIGHT",
-	"MIT-debug_menu", "MIT-godotsteam",
+	"MIT-debug_menu", "MIT-godotsteam", "MIT-rocketbox",
 	"OFL-1.1", "CC-BY-4.0", "CC0-1.0",
 	"ODbL-1.0", "copernicus-dem",
 ]
