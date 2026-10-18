@@ -46,8 +46,8 @@ TODO T-86. Ветка `feature/pullin-speed` от `main`, копия `~/deltapla
 - Координатор: контракт порта — `docs/contracts/pendulum.md` PD-К2 v8 (ключи из VM-2 «Порт в игру»).
 - **VM-3** (dp-engineer, Opus) — порт: `scripts/flight/pendulum/pendulum_model.gd`, `pilot_arms.gd`,
   `configs/pendulum.json`, `tools/flight/pendulum_params.py` и перегенерация `configs/wings/*.json` (если нужно),
-  тесты PD-К2 v8; ввод клавиатура/мышь/геймпад — полный ход доступен, малый ввод не резче прежнего; усилие в HUD
-  (PH-К1, `docs/contracts/pilot-hud.md`) — инварианты сохранить или поднять версию.
+  тесты PD-К2 v8; добор «на себя» до бёдер с модификатором (Shift / кнопка геймпада) и красный индикатор за
+  обычным пределом в HUD — VM-К3 (решения 2026-10-19); обычный ход без модификатора — как сейчас.
 - **VM-4** (dp-writer, Sonnet) — `docs/guide/flight/pendulum.md` («Что даёт ввод», «Границы»), CHANGELOG «В работе»,
   строка в `registry/findings.md`, `applied_in` у research.
 
