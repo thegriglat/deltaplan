@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-18"
+updated: "2026-10-19"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -41,6 +41,7 @@ generated: true
 - osm-any: OA-К1 v2, OA-К2 v2, OA-К3 v1, OA-К4 v2 — [docs/contracts/osm-any.md](../contracts/osm-any.md)
 - osm-look: L1 v1, L2 v1, L3 v1, L4 v1, L5 v3, L6 v1, L7 v1, L8 v1, L9 v1 — [docs/contracts/osm-look.md](../contracts/osm-look.md)
 - osm-tiles: O1 v1, O2 v1, O3 v1, O4 v1, O5 v1, O6 v1, O7 v1, O8 v2, O9 v2 — [docs/contracts/osm-tiles.md](../contracts/osm-tiles.md)
+- pendulum-body-vg: PB-К1 v1, PB-К2 v1 — [docs/contracts/pendulum-body-vg.md](../contracts/pendulum-body-vg.md)
 - pendulum-default: PMD-К1 v1 — [docs/contracts/pendulum-default.md](../contracts/pendulum-default.md)
 - pendulum: PD-К1 v4, PD-К2 v7, PD-К3 v2, PD-К4 v2, PD-К5 v2, PD-К6 v2 — [docs/contracts/pendulum.md](../contracts/pendulum.md)
 - perf: PF-К2 v2, PF-К4 v2 — [docs/contracts/perf.md](../contracts/perf.md)

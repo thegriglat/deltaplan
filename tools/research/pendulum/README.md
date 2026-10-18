@@ -42,6 +42,24 @@ python3 estimates.py                   # оценки 05.10
 ```
 Шаг физики как в игре — 1/120 с (`configs/sim.json → physics_hz`), 4 подшага XPBD, N = 3 звена, 16 полос — по умолчанию.
 
+## VG (PB-2)
+Натяжение паруса (VG, 0…1) как набор изменений параметров крыла — `pendulum/vg.py` (`apply_vg(p, vg)`, PB-К1): крутка
+−6°·min(vg/0,75; 1) (калибровка по сдвигу трима T2C), гибкость паруса ×(1 − 0,7·vg), сопротивление полос ×(1 − 0,12·vg);
+геометрический рычаг носа выключен (см. докстринг). Крылья с VG — по паспортам DHV (`pb2_passport.py`). Разбор разрыва
+Vmax, физика, источники и вывод — `docs/research/pendulum/vg.md`; данные — `out/pb2/` (сводка PB-К2 `summary.json`,
+`tables.md`, `calib.md`, `vg_wings.md`, графики `fig/*.png`).
+```bash
+PY=/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python
+python3 tools/research/pendulum/pb2_passport.py                       # паспорта → out/pb2/passport.json, vg_wings.md
+$PY tools/research/pendulum/pb2_calib.py --jobs 12                   # калибровка крутки и рычаги по одному → out/pb2/calib.*  (≈ 2 мин)
+/home/greg/deltaplan/.dpcli/dpcli job start pb2-run 3600 systemd-run --user --scope -p MemoryMax=12G -q \
+  $PY tools/research/pendulum/pb2_run.py run --jobs 12                # 364 запуска, ≈ 10 мин; продолжает с места
+$PY tools/research/pendulum/pb2_run.py report                        # out/pb2/summary.json (PB-К2), tables.md, fig/
+python3 tools/research/pendulum/pb_contract_check.py tools/research/pendulum/out/pb2/summary.json
+```
+Источники (числа с URL, PDF не храним): руководство Wills Wing T2C (DHV, нем.), Moyes Litespeed, Aeros Combat L; Kroo 1981
+NASA TM-81269 (public domain); паспорта DHV — `tools/research/data/wing_passports/` (лицензии — там). Графики — свои.
+
 ## Оценки 05.10 (`estimates.py`)
 Полюса разомкнутой модели Hiway Demon (Abouheaf, Gueaieb, Lewis, arXiv:2108.02393, табл. 1–2; модель Cook & Spottiswoode 2005) → ωn, ζ; маятник пилота; инерция крыла по трубам; `Cm_alpha` по двум точкам балансировки; ω·dt для 60/120/240 Гц; крен от момента веса при Cl_p = −0,45 (≈ 16°/с). Запуск: `python3 tools/research/pendulum/estimates.py`.
 
@@ -61,3 +79,17 @@ XDG_DATA_HOME=$(mktemp -d) flock /tmp/heat_ca_gpu.lock godot --headless --path .
 $PY tools/research/pendulum/pd8_summary.py                         # out/game_vs_proto.md, pd8_summary.json
 ```
 Лицензии: данные порождены своим кодом, внешних данных нет.
+
+## Тело пилота (PB-1)
+Пилот как тело в коконе вместо точки: `pendulum/pilot_body.py`, переключатель `Params.pilot_body = "point" | "body"` (по умолчанию `point` — прежние числа без изменений), параметры `body_*` в `params.py` (оценки — EST). Разбор и вывод — [docs/research/pendulum/pilot-body.md](../../../docs/research/pendulum/pilot-body.md); сводка до/после по контракту PB-К2 — `out/pb1/summary.json`, таблица — `out/pb1/tables.md`, графики — `out/pb1/fig/*.png`, данные — `out/pb1/lateral.jsonl` (PD-21 опыты + перекладка 30→30, трим, полный «на себя»), `out/pb1/turb.jsonl` (болтанка σ 1 м/с, 11 полей × 3 шага), `out/pb1/analytic.json` (оценки до прогонов: инерция тела по de Leva, матрица Cook, жёсткий пилот).
+```bash
+PY=/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python
+cd tools/research/pendulum
+$PY pb1_analytic.py                                   # ≈ 1 мин: оценки, out/pb1/analytic.json
+/home/greg/deltaplan/.dpcli/dpcli job start pb1-lat 3600 systemd-run --user --scope -p MemoryMax=12G -q $PY pb1_lateral.py run --jobs 6    # ≈ 10 мин
+/home/greg/deltaplan/.dpcli/dpcli job start pb1-turb 7200 systemd-run --user --scope -p MemoryMax=12G -q $PY pb1_turb.py run --jobs 16  # ≈ 50 мин, 396 прогонов
+$PY pb1_lateral.py table out/pb1/lateral.jsonl; $PY pb1_turb.py sum out/pb1/turb.jsonl
+$PY pb1_summary.py                                    # out/pb1/summary.json (PB-К2), tables.md, fig/
+python3 pb_contract_check.py out/pb1/summary.json     # контрактный тест
+```
+Варианты: `base` (точка), `body` (тело по оценкам), `body_lo` / `body_hi` (чувствительность: CdA 0,12 / 0,23 м², площади кокона ∓30 %, инерция 14 / 35 кг·м²). Лицензии: свои расчёты; числа литературы — с цитированием (см. `sources` сводки), PDF не храним.
