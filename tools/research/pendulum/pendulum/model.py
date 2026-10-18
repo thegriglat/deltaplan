@@ -91,6 +91,7 @@ class Control:
     hands: str = "bar"
     arms_relaxed: bool = False  # руки отпущены (свободный маятник)
     force_y: float | None = None  # задать поперечное усилие рук, Н (+ — пилот вправо), вместо положения
+    pull_full: bool = False  # VM-2: добор «на себя» (модификатор): ход p.shift_x_pull_full вместо shift_x_pull
 
 
 @dataclass
@@ -241,6 +242,10 @@ class Sim:
         v_c = vel - self.air_fn(pos[None])[0]
         V = float(np.linalg.norm(v_c))
         M_b[1] += 0.5 * p.rho * V * V * p.area * p.chord_mean * p.dcm0
+        if p.pitch_nl and V > 0.1:
+            # VM-2: нелинейный тангаж — добавка ΔCm(α киля в ЦМ крыла), тот же напор, что у dcm0
+            vb_c = R.T @ v_c
+            M_b[1] += 0.5 * p.rho * V * V * p.area * p.chord_mean * p.pitch_nl_dcm(math.atan2(vb_c[2], vb_c[0]), V)
         if self.yaw_mode == "free":
             vf = (v_c + np.cross(w, R @ self.r_fin_b)) @ R
             beta_f = math.atan2(vf[1], max(vf[0], 0.1))
@@ -306,7 +311,8 @@ class Sim:
         ry = max(-1.0, min(1.0, c.roll))
         px = max(-1.0, min(1.0, c.pitch))
         tgt[1] += ry * p.shift_y_max
-        tgt[0] += -px * (p.shift_x_push if px > 0 else p.shift_x_pull)
+        pull = p.shift_x_pull_full if (c.pull_full and math.isfinite(p.shift_x_pull_full)) else p.shift_x_pull
+        tgt[0] += -px * (p.shift_x_push if px > 0 else pull)
         k = p.m_pilot / p.arm_tau ** 2
         d = 2.0 * p.m_pilot / p.arm_tau
         e = tgt - rel
