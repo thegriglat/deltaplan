@@ -6,8 +6,14 @@ import math
 
 import numpy as np
 
+from . import pilot_body
 from .model import E3, R_from_euler, Sim
 from .params import G, Params
+
+
+def _pilot_drag(p: Params, vel, R, d_world):
+    """Сила на пилота в установившемся планировании (мир): точка или тело (стропа вдоль d_world)."""
+    return pilot_body.pilot_force(p, np.asarray(vel, float), np.zeros(3), R, d_world)[0]
 
 
 def _sim(p: Params, **kw) -> Sim:
@@ -19,13 +25,16 @@ def glide_balance(sim: Sim, alpha: float, V0: float):
     крыла и пилота уравновешивают вес. Возвращает (V, gamma, M_H_y, F_resid, state)."""
     p = sim.p
     V, gam = V0, 0.1
+    d_load = E3.copy()  # направление стропы (к пилоту): уточняется по нагрузке на каждой итерации
     for _ in range(30):
         th = alpha - gam
         R = R_from_euler(0.0, th, 0.0)
         vel = V * np.array([math.cos(gam), 0.0, math.sin(gam)])
         pos = np.zeros(3)
         Fa, Ma, info = sim.wing_aero(pos, vel, R, np.zeros(3))
-        Dp = -0.5 * p.rho * p.pilot_cda * V * vel
+        Dp = _pilot_drag(p, vel, R, d_load)
+        d_load = p.m_pilot * G * E3 + Dp
+        d_load = d_load / np.linalg.norm(d_load)
         F = Fa + Dp + p.m_total * G * E3
         # подъёмная ⊥ скорости, сопротивление ∥: поправить V по нормали, γ по касательной
         u = vel / V
@@ -45,7 +54,7 @@ def glide_balance(sim: Sim, alpha: float, V0: float):
     vel = V * np.array([math.cos(gam), 0.0, math.sin(gam)])
     pos = np.zeros(3)
     Fa, Ma, info = sim.wing_aero(pos, vel, R, np.zeros(3))
-    Dp = -0.5 * p.rho * p.pilot_cda * V * vel
+    Dp = _pilot_drag(p, vel, R, d_load)
     rH = R @ sim.r_hang_b
     # момент около H: аэродинамика (около ЦМ) + перенос силы аэродинамики и веса крыла
     M_H = Ma + np.cross(-rH, Fa + p.m_wing * G * E3)
@@ -167,7 +176,10 @@ def calibrate_cd(sim: Sim, alpha: float) -> float:
         V, gam, _, st = glide_balance(sim, alpha, sim.p.v_trim_ref)
         sink = V * math.sin(gam)
         target = polar_sink(sim.p, V)
-        dp = 0.5 * sim.p.rho * V ** 2 * sim.p.pilot_cda
+        # сопротивление пилота вдоль траектории (точка — ½ρV²·CdA; тело — его проекция)
+        R = np.array(st["R"])
+        vel = np.array(st["vel"])
+        dp = float(-_pilot_drag(sim.p, vel, R, R @ np.array(st["pilot_dir_b"])) @ (vel / V))
         D_tot = sim.p.m_total * G * math.sin(gam)
         D_target = sim.p.m_total * G * target / V
         D_wing = D_tot - dp
@@ -195,11 +207,11 @@ def lateral_derivatives(sim: Sim, st: dict) -> dict:
         w = R @ w_b
         Fa, Ma, _ = sim.wing_aero(pos, vel, R, w)
         Fb, Mb = R.T @ Fa, R.T @ Ma
-        # пилот: сопротивление в своей точке
+        # пилот: сопротивление в своей точке (тело — pilot_body: сила + момент тела на крыло)
         vp = vel + np.cross(w, R @ r_p_b)
-        Dp = -0.5 * p.rho * p.pilot_cda * np.linalg.norm(vp) * vp
+        Dp, Mp = pilot_body.pilot_force(p, vp, w, R, R @ d_b)
         Dpb = R.T @ Dp
-        M = Mb + np.cross(-r_sys_b, Fb) + np.cross(r_p_b - r_sys_b, Dpb)
+        M = Mb + np.cross(-r_sys_b, Fb) + np.cross(r_p_b - r_sys_b, Dpb) + R.T @ Mp
         return Fb + Dpb, M
 
     F0, M0 = moments()

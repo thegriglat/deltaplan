@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-18"
+updated: "2026-10-19"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -79,9 +79,11 @@ generated: true
 - [docs/research/pendulum/landing-pd33-35.md](../research/pendulum/landing-pd33-35.md) — Посадка в штиль: горизонтальная при касании 5,9–7,2 м/с против выбегаемых 5 м/с; во встречный 3 м/с мягкая; подгонки нет. (data: tools/research/pendulum/out/; applied_in: docs/archive/plan/pendulum.md)
 - [docs/research/pendulum/lateral-yaw.md](../research/pendulum/lateral-yaw.md) — Боковой канал и рыскание подогнаны к литературе (Cook & Spottiswoode, Kroo): голландский шаг 1,7–2,1 рад/с против 0,92 у Hiway Demon. (data: tools/research/pendulum/out/; applied_in: docs/archive/plan/pendulum.md)
 - [docs/research/pendulum/pilot-answers-game-check.md](../research/pendulum/pilot-answers-game-check.md) — Один опрошенный пилот и качественные оценки дали умолчания «Аппарата» по классам; игра против прототипа — 110 чисел, расхождений > 15 % нет. (data: tools/research/pendulum/out/ (calib_classes.md, calib_verify.md, game_vs_proto.…; applied_in: docs/archive/plan/pendulum.md)
+- [docs/research/pendulum/pilot-body.md](../research/pendulum/pilot-body.md) — Гипотеза не подтвердилась. Тело пилота (анизотропное сопротивление кокона, момент Мунка, инерция 28 кг·м² по рысканию жёстко с крылом) меняет Clp на < 0,001, CYβ на +0,012, Cnβ на −0,0013, голландски… (data: tools/research/pendulum/out/pb1/ (summary.json по PB-К2, tables.md, lateral.jso…; applied_in: —)
 - [docs/research/pendulum/prototype.md](../research/pendulum/prototype.md) — Тангаж и трим получаются честно без подгонки: сумма 16 полос даёт поляру и трим, фугоида T 5,2–5,7 с, подвеска 0,4–0,9 км/ч на см. (data: tools/research/pendulum/out/ (results.json, tables.md, summary.json, fig/*.png); applied_in: docs/archive/plan/pendulum.md)
 - [docs/research/pendulum/stall-spin.md](../research/pendulum/stall-spin.md) — Срыв: Viterna вместо 2D-пластины, место срыва по критическому сечению, C_N 90° ≈ 1,2; в болтанке на триме без переворотов. (data: tools/research/pendulum/out/; applied_in: docs/archive/plan/pendulum.md)
 - [docs/research/pendulum/takeoff-ground.md](../research/pendulum/takeoff-ground.md) — Разбег: «несёт крыло» → «висит» получается сам; касание ногами и авария без «деревянного» контакта (crash_decel_g 20). (data: tools/research/pendulum/out/; applied_in: docs/archive/plan/pendulum.md)
+- [docs/research/pendulum/vg.md](../research/pendulum/vg.md) — «Vmax с VG 1 = паспорт ±10 %» без подгонки не достижимо: VG даёт правильный прирост (+17…+23 км/ч против паспортных +25), но база VG 0 ниже паспорта на 25–35 % из-за усилия «на себя» (модель требует … (data: tools/research/pendulum/out/pb2/)
 - [docs/research/pendulum-yaw-literature.md](../research/pendulum-yaw-literature.md) — Единственный полный набор боковых производных в открытом доступе — Hiway Demon, 10,8 м/с (Cook & Spottiswoode 2005 по трубе Kilkenny, таблица в работе Kochi 2020): Cnβ 0,0275, Clβ −0,322, CYβ −0,226,… (data: таблицы производных и эталонов — в тексте (§2–3); PDF не храним, ссылки в §1; applied_in: configs/pendulum.json (cn_beta 0,05 с ссылкой на Hiway Demon; PD-21, PD-23, PD-…)
 - [docs/research/pendulum.md](../research/pendulum.md) — Тангаж честно: трим ±0,3 км/ч, снижение = поляра, фугоида затухает сама (T 5,2–5,7 с), подвеска 0,4–0,9 км/ч на см. Крен: без скольжения (этап A) модель неустойчива и не выравнивается — нужен минимал… (data: tools/research/pendulum/out/ (results.json, tables.md, summary.json, series/*.n…; applied_in: docs/archive/plan/pendulum.md)
 - [docs/research/pendulum_pitch.md](../research/pendulum_pitch.md) — Проблемы физики тангажа нет. Установившийся тангаж на 1,6·V_трим: игра θ −4,4…−3,2° (Δθ от трима −9,6…−9,7°), эталон по поляре и CLα −4,3…−3,0° (Δθ −9,5°); угол пути γ совпадает с полярой ±0,4°. Числ… (data: tools/research/pendulum_pitch/ (out/game.json, out/summary.json, out/tables.md,…; applied_in: fix/pendulum-arms: прямая подача рук вдоль киля — против кажущегося веса в осях…)

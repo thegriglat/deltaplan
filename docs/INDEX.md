@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-18"
+updated: "2026-10-19"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -34,6 +34,9 @@ generated: true
 - **speed-feel** — Скорость ощущается, как у пилота: тряска ∝ V, ленточка различает скорость до 25 м/с, эоловый тон тросов, проверка выравнивания головы. [active 2026-10-15] — [план](plan/speed-feel.md) · [контракты](contracts/speed-feel.md)
   - [docs/research/speed-feel.md](research/speed-feel.md) — Числа SPF-1: болтанка растёт как V^1,2–1,5, θ(V) −15°, St ленты 0,4, тросы Ø2–3,2 мм St 0,2, голова следует на 0,3
   - [tools/research/speed-feel/README.md](../tools/research/speed-feel/README.md) — SPF-1: скрипты и таблицы замеров болтанки, тангажа киля, частот ленты и тросов; команды воспроизведения
+- **pendulum-body-vg** — Маятник: пилот как аэродинамическое тело на подвеске (проверка гипотезы по литературе) и VG безмачтовых — прототип, шлюз, перенос. [closed 2026-10-19] — [план](plan/pendulum-body-vg.md) · [контракты](contracts/pendulum-body-vg.md) · [решения](plan/pendulum-body-vg/decisions.md) · [сводка](plan/pendulum-body-vg/summary.md) · полный журнал: `archive/pendulum-body-vg`
+  - [docs/research/pendulum/pilot-body.md](research/pendulum/pilot-body.md) — Пилот как тело вместо точки (PB-1): расхождения с литературой не закрываются; разрыв голландского шага с Cook — знак Cnp, не пилот [closed]
+  - [docs/research/pendulum/vg.md](research/pendulum/vg.md) — VG на маятнике (PB-2): разрыв Vmax — не VG, а линейный тангаж модели; VG даёт +15…+26 км/ч (паспорта +25), крен вдвое медленнее
 
 ## world
 
