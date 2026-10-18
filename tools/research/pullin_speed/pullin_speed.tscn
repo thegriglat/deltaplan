@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/research/pullin_speed/pullin_speed.gd" id="1"]
+
+[node name="PullinSpeed" type="Node"]
+script = ExtResource("1")

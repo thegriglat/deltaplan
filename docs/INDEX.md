@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-18"
+updated: "2026-10-19"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -34,6 +34,9 @@ generated: true
 - **speed-feel** — Скорость ощущается, как у пилота: тряска ∝ V, ленточка различает скорость до 25 м/с, эоловый тон тросов, проверка выравнивания головы. [active 2026-10-15] — [план](plan/speed-feel.md) · [контракты](contracts/speed-feel.md)
   - [docs/research/speed-feel.md](research/speed-feel.md) — Числа SPF-1: болтанка растёт как V^1,2–1,5, θ(V) −15°, St ленты 0,4, тросы Ø2–3,2 мм St 0,2, голова следует на 0,3
   - [tools/research/speed-feel/README.md](../tools/research/speed-feel/README.md) — SPF-1: скрипты и таблицы замеров болтанки, тангажа киля, частот ленты и тросов; команды воспроизведения
+- **pullin-speed** — Скорость полного «на себя» в «Маятнике» 45–60 км/ч против 63–103 по паспортам (T-86): что ограничивает — физика или граница модели. [active 2026-10-19] — [план](plan/pullin-speed.md) · [контракты](contracts/pullin-speed.md)
+  - [docs/research/pendulum/pullin-speed.md](research/pendulum/pullin-speed.md) — Vmax «на себя» 55 против 80 км/ч паспорта: (V/Vтрим)² = 1 + 0,19/Kn, модель Kn 0,14, паспорту нужен ≈ 0,05; не VG и не сила рук.
+  - [tools/research/pullin_speed/README.md](../tools/research/pullin_speed/README.md) — VM-1: замеры полного «на себя» на модели игры по 48 крыльям (подвеска, Kn, CL_α, сопротивление пилота, ход, VG-прокси) и пары Vmax VG 0 / VG 100.
 
 ## world
 
