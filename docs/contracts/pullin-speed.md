@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-19"
 summary: "Стыки pullin-speed для игры: добор Shift и HUD (VM-К3), замеры в игре (VM-К5, VM-К7), отпускание по событию (VM-К8)"
 related: ["docs/contracts/pullin-speed-research.md", "docs/plan/pullin-speed.md", "docs/contracts/pendulum.md", "docs/research/pendulum_pitch.md", "docs/research/pendulum/prototype.md"]
-contracts: [{"id": "VM-К3", "version": 3}, {"id": "VM-К5", "version": 3}, {"id": "VM-К7", "version": 1}, {"id": "VM-К8", "version": 1}]
+contracts: [{"id": "VM-К3", "version": 3}, {"id": "VM-К5", "version": 3}, {"id": "VM-К7", "version": 2}, {"id": "VM-К8", "version": 1}]
 ---
 # Контракты модуля pullin-speed
 
@@ -90,17 +90,18 @@ v2 (19.10, решение пользователя dceacaaa): тангажа с 
 
 `tuck_*` — не чинить подгонкой (Q3: граница модели, отдельная работа по TODO).
 
-## VM-К7. Порт «брошенной ручки» и проверка в игре (v1)
+## VM-К7. Порт отпускания рук и проверка в игре (v2)
+v2 (20.10, ответ на Q5): порт — отпускание по событию VM-11 (ключи `arms.release_*`, PD-К2 v9), не «брошенная ручка» VM-9; владелец — VM-12; добавлены ограждения крена и фугоиды в игре; болтанка — не хуже базы + 5.
 Владелец: VM-9. Потребители: координатор (приёмка модуля), главная (патч-релиз).
 Основание: ответ на Q4 (2026-10-19): принять «брошенную ручку»; выход с Vmax с добором выше 2·Vтрим — физика; пороги — без
 переворота при выходе с ≤ 1,8·Vтрим и с обычного «на себя»; порт с проверкой болтанки в игре.
 
-- **Ключ** `configs/pendulum.json → arms.neutral_relaxed_pitch: bool` = true (с `_doc`); PD-К2 v8 → v9 (только этот ключ;
-  `contract` файла — `"PD-К2 v9"`, блоки крыльев — без изменений).
-- **Код** `scripts/flight/pendulum/pilot_arms.gd`, `compute()`: после прямой подачи и до предела силы —
-  `if neutral_relaxed_pitch and absf(pitch) < 1.0e-6: f.x = 0.0` (вдоль киля руки не держат); поперёк, на земле (`_uprights`)
-  и при `relaxed` — без изменений. Мышь в мёртвой зоне (`controls.json → mouse.bar_deadzone`) и стик в `deadzone` дают ровно 0 —
-  проверить тестом.
+- **Ключи и код** — PD-К2 v9 (`arms.release_event` = true, `release_pull` 0,25, `release_settle_m` 0,05,
+  `release_settle_periods` 1,0), формула для `scripts/flight/pendulum/pilot_arms.gd` — `docs/research/pendulum/release-tumble.md`
+  «Отпускание по событию (VM-11)» → «Порт в игру»; эталоны оттуда же. Мышь в мёртвой зоне и стик в `deadzone` дают ровно 0 —
+  тест (есть в ветке `pullin-speed/VM-9`: `tests/flight/pendulum/test_pendulum_relaxed_pitch.gd`).
+- **Ограждения** — тесты `test_pendulum_lateral::test_reversal_45`, `test_ochi_side_force`, `test_pendulum_longitudinal::test_phugoid`
+  проходят **с включённой** правкой, без выключения её в тесте.
 - **Замер** — скрипт VM-1/VM-4 `tools/research/pullin_speed/` (сценарии VM-К5), вывод `out/vm9/summary.json`, плюс болтанка:
   σ = 1 м/с, крылья sport, laminar, training × 20 зёрен (как VM-6 `sc=turb`, критерий переворота VM-К5).
 
@@ -112,10 +113,10 @@ v2 (19.10, решение пользователя dceacaaa): тангажа с 
 | `tuck_1p8_count` | переворотов при мгновенном отпускании с 1,8·Vтрим | = 0 |
 | `tuck_normal_le2_count` | переворотов при плавном выходе с `normal` у крыльев с V `normal` ≤ 2·Vтрим | = 0 |
 | `tuck_normal_count`, `tuck_smooth_count` | все крылья (справочно; VM-6: 3, 21) | — |
-| `turb_upsets_total`, `turb_upsets_total_base` | переворотов в болтанке из 60 после / до правки (VM-6 прототип: 9 / 4) | после ≤ 9 |
+| `turb_upsets_total`, `turb_upsets_total_base` | переворотов в болтанке из 60 после / до правки (VM-9: база 5) | после ≤ база + 5 |
 | `turb_upsets` | `{sport, laminar, training}` после правки | справочно |
 
-Болтанка хуже прогноза VM-6 (> 9 из 60) или переворот при ≤ 1,8·Vтрим — `VM-9 blocked` с числами (шлюз). Тесты
+Болтанка хуже базы + 5, переворот при ≤ 1,8·Vтрим или красное ограждение — `VM-12 blocked` с числами (шлюз). Тесты
 `test_pendulum_robust::test_turbulence_game_blocks`, `test_pendulum_spin` (пропущены по Q3) — прогнать заново: проходят —
 снять пропуск; нет — оставить пропуск с обновлённой причиной и числами.
 

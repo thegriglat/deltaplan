@@ -68,7 +68,7 @@ v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы н
 Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel`; умолчание теперь `pendulum` (PMD-К1, [pendulum-default](pendulum-default.md)); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
 
 ## PD-К2. Конфиг маятника и блок pendulum в крыльях (v9)
-v9 (19.10, pullin-speed VM-9, ответ на Q4): + `arms.neutral_relaxed_pitch` (bool, true) — на вводе `pitch` = 0 руки вдоль киля не держат пилота («брошенная ручка», `docs/research/pendulum/release-tumble.md`); `contract` файла — `"PD-К2 v9"`, блоки крыльев — `"PD-К2 v8"` без изменений.
+v9 (20.10, pullin-speed VM-12, ответы на Q4/Q5): + `arms.release_event`, `arms.release_pull`, `arms.release_settle_m`, `arms.release_settle_periods` — руки отпускают пилота вдоль киля только при возврате ввода к 0 после «на себя», в обычном полёте держат (формула — `docs/research/pendulum/release-tumble.md` «Отпускание по событию (VM-11)» → «Порт в игру»); `contract` файла — `"PD-К2 v9"`, блоки крыльев — `"PD-К2 v8"` без изменений. (Ключ `neutral_relaxed_pitch` из VM-9 не вводится.)
 v8 (19.10, pullin-speed VM-4): нелинейная Cm(α) — `pitch_nl {enabled, sigma, width_deg, luff_cm_per_deg, luff_on_deg}` (формула — ниже, «Нелинейная Cm(α)»); добор «на себя» — `arms.shift_x_pull_full_m`, `arms.pull_full_release_m_s` (VM-К3 v2); в блоке крыла + `cl_alpha_per_rad`, `alpha_zero_lift_deg`, `dcm0` пересчитан с включённой `pitch_nl`; `contract` файла — `"PD-К2 v8"`, блоков крыльев — `"PD-К2 v8"`. Основание — `docs/research/pendulum/pitch-nonlinear.md` (VM-2), `docs/research/pendulum/pitch-release.md` (VM-3: Cmq-поправки нет).
 v7 (11.10, PD-35): убран `arms.flare_shift_x_push_m` (ход у земли — из `arms.flare_reach`); + `strips.stall_cd90_sweep_norm`, `strips.sweep_alpha_exact`, `strips.stall_cp_reverse`, `touchdown {run_max_ms, stand_max_ms, step_period_s}`; `contract` — `"PD-К2 v7"`.
 v6 (11.10, PD-22): срыв полос — `strips.stall_model` ("viterna" | "plate"), `strips.stall_cd90_base` (1,11), `strips.stall_cd90_per_ar` (0,018), `strips.stall_criterion` ("streamwise" | "normal"), `strips.stall_cp_blend_deg` (20); `contract` — `"PD-К2 v6"`.
@@ -90,7 +90,9 @@ v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта си�
 | `arms.force_max_n`, `arms.tau_s`, `arms.ti_s` | Н, с, с | 300, 0,30, 0 (0 — без интеграла: пружина-демпфер + прямая подача m·g/L·(цель − нейтраль), PD-19) |
 | `arms.shift_y_max_m`, `arms.shift_x_pull_m`, `arms.shift_x_push_m` | м | 0,45, 0,45, 0,30 |
 | `arms.shift_x_pull_full_m` | м — ход «на себя» с добором (штанга у бёдер, руководство T2C) | 0,7 (v8) |
-| `arms.neutral_relaxed_pitch` | bool — на вводе 0 руки вдоль киля не держат (v9) | true |
+| `arms.release_event` | bool — отпускание рук по событию (v9) | true |
+| `arms.release_pull` | доля хода «на себя», после которой возврат к 0 отпускает руки (v9) | 0,25 |
+| `arms.release_settle_m`, `arms.release_settle_periods` | м; периодов маятника пилота 2π√(L/g) — качание меньше этого держится столько — руки снова держат (v9) | 0,05; 1,0 |
 | `arms.pull_full_release_m_s` | м/с — скорость возврата предела от добора к обычному после отпускания модификатора | 0,5 (v8) |
 | `pitch_nl.enabled` | bool; false — прежняя линейная модель | true (v8) |
 | `pitch_nl.sigma`, `pitch_nl.width_deg` | безразм., ° — доля жёсткости ниже трима, ширина сглаживания | 0,5, 1,0 (v8; σ одним числом на парк — по медиане паспортов, граница модели) |
