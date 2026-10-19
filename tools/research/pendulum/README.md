@@ -129,6 +129,28 @@ $PY tools/research/pendulum/vm6_run.py report                             # → 
 Источники — в документе (Жеглов и др. 1983; Lanchester 1908; Heiney; Gratton & Newman 2003; Mussa-Ivaldi et al. 1985;
 Tsuji et al. 1995; de Leva 1996); данные — свои расчёты, внешних данных нет.
 
+## Отпускание по событию (VM-11)
+Прототип VM-6 `game` + ключ `Params.arm_release_event` (выключен = нынешнее, руки держат всегда) и его числа
+`arm_release_pull`, `arm_release_settle_m`, `arm_release_settle_s` (NaN — период маятника пилота), `arm_release_k`/`_b`
+(`pendulum/params.py`, `export_reference.GameSim._hands_force`). Скрипт `vm11_run.py` (импорт из `vm6_run.py`, сценарии
+выхода VM-К5; ограждения — сценарии эталонов `test_reversal_45`, `test_ochi_side_force`, `test_phugoid` на модели варианта,
+болтанка `vm6_run.sc_turb`, справочно `relturb`). Разбор, числа, порт — `docs/research/pendulum/release-tumble.md`,
+«Отпускание по событию (VM-11)»; данные — `out/vm11/` (`results.jsonl`, `summary.json` по VM-К8 v1, `tables.md`,
+`fig/v0_outcome_48.png`).
+```bash
+PY=/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python
+W=training,laminar,sport,ww_t2c,aeros_combat_c
+$PY tools/research/pendulum/vm11_run.py run --jobs 12 --wings $W --vars game,ev,ev_now,ev_input,ev_pass,passive --scen release,turb,ref
+$PY tools/research/pendulum/vm11_run.py run --jobs 12 --wings $W --vars ev_s03,ev_s10,ev_p50 --scen release
+$PY tools/research/pendulum/vm11_run.py run --jobs 12 --wings $W --vars game,ev,ev_input --scen relturb
+/home/greg/deltaplan/.dpcli/dpcli job start vm11-run 10800 systemd-run --user --scope -p MemoryMax=12G -q \
+  $PY tools/research/pendulum/vm11_run.py run --jobs 11 --vars game,ev --scen release   # 48 крыльев, ≈ 70 мин
+$PY tools/research/pendulum/vm11_run.py report                                         # → summary.json, tables.md, fig/
+```
+Варианты `ev_now` (в первом прогоне назывался `ev`, переименован в `results.jsonl`) и `ev_pass` считались с
+`arm_release_settle_s` = 0. Источники — в документе (Жеглов и др. 1983; Mussa-Ivaldi et al. 1985; Tsuji et al. 1995);
+внешних данных нет.
+
 ## Оценки 05.10 (`estimates.py`)
 Полюса разомкнутой модели Hiway Demon (Abouheaf, Gueaieb, Lewis, arXiv:2108.02393, табл. 1–2; модель Cook & Spottiswoode 2005) → ωn, ζ; маятник пилота; инерция крыла по трубам; `Cm_alpha` по двум точкам балансировки; ω·dt для 60/120/240 Гц; крен от момента веса при Cl_p = −0,45 (≈ 16°/с). Запуск: `python3 tools/research/pendulum/estimates.py`.
 

@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-19"
+updated: "2026-10-20"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true

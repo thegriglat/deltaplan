@@ -510,6 +510,8 @@ class GameSim(Sim):
     def reset_air(self, state):
         super().reset_air(state)
         self.pull_limit = self.p.shift_x_pull
+        self.rel_armed, self.rel_on, self.rel_count, self.rel_time, self.rel_regrip_t = False, False, 0, 0.0, float("nan")
+        self.rel_calm = 0.0
         self._dyn_f = None
         self._dyn_m_prev = None
 
@@ -641,6 +643,28 @@ class GameSim(Sim):
         if math.isfinite(p.arm_neutral_k) and abs(c.pitch) < 1e-6:
             # VM-6: ввод 0 — рука не ведёт пилота, только пассивный импеданс расслабленной руки вдоль киля
             f[0] = p.arm_neutral_k * e[0] - p.arm_neutral_b * vrel[0]
+        if p.arm_release_event:
+            # VM-11: отпускание по событию — выход из «на себя» к 0; держат снова, когда ввод изменился или пилот у нейтрали
+            if c.pitch <= -p.arm_release_pull:
+                self.rel_armed = True
+            if abs(c.pitch) >= 1e-6:
+                self.rel_on = False
+            elif self.rel_armed:
+                self.rel_on, self.rel_armed, self.rel_calm = True, False, 0.0
+                self.rel_count += 1
+            if self.rel_on and p.arm_release_settle_m > 0.0 and L > 0.1:
+                om2 = G / L
+                ts = p.arm_release_settle_s if math.isfinite(p.arm_release_settle_s) else 2.0 * math.pi / math.sqrt(om2)
+                if e[0] * e[0] + vrel[0] * vrel[0] / om2 < p.arm_release_settle_m ** 2:
+                    self.rel_calm += self._h
+                    if self.rel_calm >= ts - 1e-9:
+                        self.rel_on = False
+                        self.rel_regrip_t = self.t
+                else:
+                    self.rel_calm = 0.0
+            if self.rel_on:
+                f[0] = p.arm_release_k * e[0] - p.arm_release_b * vrel[0]
+                self.rel_time += self._h
         if p.arm_one_sided_x:
             # VM-6: рука на штанге тянет только в сторону ввода — «на себя» штангу к себе (пилот вперёд, f.x ≥ 0),
             # «от себя» — от себя (f.x ≤ 0); отдать штангу = ослабить тягу, а не толкать её; ввод 0 — не держит
