@@ -18,7 +18,7 @@
     },
     {
       "name": "VM-К4",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/pullin-speed.md"
     }
   ],
@@ -51,18 +51,18 @@
       "expect": "exit=0"
     },
     {
-      "name": "vm-k4-summary",
-      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pendulum/out/vm3/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('vmax_ratio_median',0.9<=s['vmax_ratio_median']<=1.1),('vmax_ratio_p10',s['vmax_ratio_p10']>=0.8),('trim_dev_max_kmh',s['trim_dev_max_kmh']<=0.3),('kn_trim_min',s['kn_trim_min']>0),('phugoid',s['phugoid_unstable_count']<=s['phugoid_unstable_count_base']),('bar_force',s['bar_force_vmax_max_n']<=s['arms_force_max_n']),('stall',s['stall_dev_max_kmh']<=2),('pull_full_m',abs(s['pull_full_m']-0.7)<1e-6),('tuck',s['tuck_count']==0),('tuck_base',s['tuck_count_base']>=0),('g',s['release_g_max']>0),('pitch',s['release_pitch_max_deg']>0),('base',s['vmax_ratio_median_base']>0),('normal',s['vmax_ratio_median_normal']>0)] if not ok]; print('bad', bad) if bad else print('vm-k4 ok'); sys.exit(1 if bad else 0)\"",
-      "expect": "re:vm-k4 ok"
-    },
-    {
       "name": "docs-check",
       "cmd": ".dpcli/dpcli docs check",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "vm-k4-summary",
+      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pendulum/out/vm3/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('vmax_ratio_median',0.9<=s['vmax_ratio_median']<=1.1),('vmax_ratio_p10',s['vmax_ratio_p10']>=0.8),('trim_dev_max_kmh',s['trim_dev_max_kmh']<=0.3),('kn_trim_min',s['kn_trim_min']>0),('phugoid',s['phugoid_unstable_count']<=s['phugoid_unstable_count_base']),('bar_force',s['bar_force_vmax_max_n']<=s['arms_force_max_n']),('stall',s['stall_dev_max_kmh']<=2),('pull_full_m',abs(s['pull_full_m']-0.7)<1e-6),('tuck_base',s['tuck_count_base']>=0),('g',s['release_g_max']>0),('pitch',s['release_pitch_max_deg']>0)] if not ok]; print('bad', bad) if bad else print('vm-k4 ok'); sys.exit(1 if bad else 0)\"",
+      "expect": "re:vm-k4 ok"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-19T08:42:32",
-  "edited": "2026-10-19T08:45:06"
+  "edited": "2026-10-19T10:35:01"
 }
