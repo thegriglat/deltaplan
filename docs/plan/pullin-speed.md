@@ -58,13 +58,14 @@ TODO T-86. Ветка `feature/pullin-speed` от `main`, копия `~/deltapla
 
 ### Волна 4 — порт в игру (только после VM-3, Q1)
 - Координатор: PD-К1 v5, PD-К2 v8, У1 v5, С2 v4, CB-К1 v3, PH-К1 v2, VM-К5 v2 — готово.
-- В VM-4 также: тангаж с клавиатуры удалить в полёте и на земле (решение 11:14), автопилот — `ControlInput.pitch` напрямую.
+- В VM-4 также: тангаж и крен с клавиатуры удалить в полёте и на земле (решения 11:14, 11:16; в полёте с клавиатуры — только Shift),
+  автопилот — `ControlInput.pitch`/`roll` напрямую.
 - **VM-4** (dp-engineer, Opus) — порт: `scripts/flight/pendulum/pendulum_model.gd`, `pilot_arms.gd`,
   `configs/pendulum.json`, `tools/flight/pendulum_params.py` и перегенерация `configs/wings/*.json` (если нужно),
   тесты PD-К2 v8; добор «на себя» до бёдер с модификатором (Shift / кнопка геймпада; самодельная трапеция — полным
   ходом), плавный возврат предела после отпускания модификатора и красный индикатор за обычным пределом в HUD — VM-К3; обычный ход без модификатора — как сейчас. Ревью — `dp-reviewer`.
 - **VM-5** (dp-writer, Sonnet) — `docs/guide/flight/pendulum.md` («Что даёт ввод», «Границы»: σ на парк, добор 0,7 м),
-  CHANGELOG «В работе», строка в `registry/findings.md`, `applied_in` у research; убрать упоминания тангажа с клавиатуры (полёт и
+  CHANGELOG «В работе», строка в `registry/findings.md`, `applied_in` у research; убрать упоминания тангажа и крена с клавиатуры (полёт и
   земля, решения 2026-10-19 dceacaaa, 11:14) в `docs/guide/` (`game/launch.md`, `game/cameras-input.md`, `flight/pendulum.md`), `site/content/`
   (кроме страниц версий), README; добор Shift / кнопка геймпада — в «Управление».
 
