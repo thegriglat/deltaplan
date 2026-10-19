@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-19"
 summary: "Стыки pullin-speed: данные «Маятника» (VM-К0), разбор VM-1 (VM-К1), проект Cm(α) и хода (VM-К2), добор с Shift и HUD (VM-К3)."
 related: ["docs/plan/pullin-speed.md", "docs/contracts/pendulum.md", "docs/research/pendulum_pitch.md", "docs/research/pendulum/prototype.md"]
-contracts: [{"id": "VM-К0", "version": 1}, {"id": "VM-К1", "version": 2}, {"id": "VM-К2", "version": 3}, {"id": "VM-К3", "version": 2}, {"id": "VM-К4", "version": 3}]
+contracts: [{"id": "VM-К0", "version": 1}, {"id": "VM-К1", "version": 2}, {"id": "VM-К2", "version": 3}, {"id": "VM-К3", "version": 2}, {"id": "VM-К4", "version": 3}, {"id": "VM-К5", "version": 1}]
 ---
 # Контракты модуля pullin-speed
 
@@ -137,7 +137,7 @@ v2 (2026-10-19): после отпускания модификатора пре
 - **HUD (PH-К1 v1 → v2 при порте).** Новое поле `Telemetry.pull_over: float` ∈ [0, 1] =
   `clamp((сдвиг пилота к носу − shift_x_pull) / (shift_x_pull_full − shift_x_pull), 0, 1)` по фактическому положению
   пилота (не по цели); `FlightModel` и земля — 0; до первого шага — 0; всегда конечное. Индикатор подвески
-  (`PilotShiftIndicator`) показывает сдвиг до `shift_x_pull_full`; при `pull_over > 0` рамка/точка — красным
+  (`PilotShiftIndicator`) — шкала прежняя (до `shift_x_pull`), за пределом точка у края; при `pull_over > 0` рамка/точка — красным
   (`configs/ui.json → pilot_shift.over_pull_color` с `_doc`), при 0 — прежний цвет; решение пользователя 2026-10-19:
   «видно, что идёшь за обычный предел». Прочие инварианты PH-К1 сохраняются (`|bar_force| ≤ arms.force_max_n`).
 - **Сеть (PD-К4).** Передаётся итоговое положение пилота, как сейчас; новое поле в протокол не добавлять.
@@ -192,3 +192,32 @@ v2 (2026-10-19, решение пользователя 08:44): объём ог�
 
 Если по разделу «Что реально» часть переворотов — физика (настоящий аппарат так делает) — не подгонять, а `VM-3 blocked`
 с числами и источниками (шлюз). Контрактный тест — проверки карточки VM-3.
+
+## VM-К5. Проверка порта в игре (v1)
+Владелец: VM-4. Потребители: координатор (приёмка модуля), главная (тестовая сборка).
+Замер — расширение скрипта VM-1 `tools/research/pullin_speed/pullin_speed.gd` (собирает `PendulumModel` как
+`tests/flight/pendulum/pendulum_sim.gd`, конфиги игры как есть после порта), 48 крыльев, штиль, ρ = 1,225, эталонная масса.
+Случаи:
+- `normal` — `pitch` −1 рампой 6 с, 70 с, среднее V за 50–70 с, без добора; `full` — то же с `pull_full = true`;
+- `release_smooth` — с установившегося `full`: отпустить модификатор и клавишу «на себя» через путь ввода игры
+  (`InputController`, действия `pull_full`, `pitch_pull_in` — как реальная клавиатура, с её возвратом ввода), 30 с;
+- `release_1p8` — установившаяся V = min(1,8·Vтрим, V `full`) (постоянный `pitch` < 0, с добором при необходимости),
+  затем `pitch` = 0 и `pull_full` = false в один шаг, 30 с.
+Переворот — тангаж киля < −60° или |α| > 90° в любой момент 30 с, или средняя V за 25–30 с вне ±10 % трима (как VM-2/VM-3).
+
+**Сводка** `tools/research/pullin_speed/out/vm4/summary.json` (один раз, временный файл + переименование):
+
+| Ключ | Смысл | Порог |
+|---|---|---|
+| `wings` | крыльев | = 48 |
+| `vmax_ratio_median`, `vmax_ratio_p10` | V `full` / паспорт VG 0, крылья без цензуры Vne (`out/passport_censoring.csv`) | 0,9…1,1; ≥ 0,8 |
+| `vmax_ratio_median_normal` | то же для `normal` | справочно |
+| `vmax_full_game_vs_proto_median` | медиана V `full` игры / прототипа VM-3 (`tools/research/pendulum/out/vm3/`) | справочно |
+| `vmax_std_max_kmh` | макс. СКО V за 50–70 с в `full` (раскачка; VM-3: 3 крыла 11–18 км/ч) | справочно |
+| `trim_dev_max_kmh` | макс. \|трим игры − паспорт\| | ≤ 0,3 |
+| `bar_force_vmax_max_n` | макс. \|`bar_force`\| в `full` | ≤ `arms.force_max_n` |
+| `tuck_smooth_count` | переворотов в `release_smooth` | = 0 |
+| `tuck_1p8_count` | переворотов в `release_1p8` | = 0 |
+| `release_g_smooth_max` | макс. перегрузка в `release_smooth` | ≤ 4 |
+
+`tuck_smooth_count` или `tuck_1p8_count` > 0 — не чинить подгонкой: `VM-4 blocked` с числами (шлюз).
