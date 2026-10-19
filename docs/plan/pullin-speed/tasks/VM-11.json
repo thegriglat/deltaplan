@@ -1,0 +1,62 @@
+{
+  "id": "VM-11",
+  "module": "pullin-speed",
+  "type": "dp-researcher",
+  "title": "Руки отпускают только при выходе из «на себя» — проект на прототипе",
+  "goal": "По VM-К8: на прототипе сделать так, чтобы руки отпускали пилота вдоль киля только при возврате ввода к 0 после «на себя» (или податливая рука), а в обычном полёте держали: перевороты при выходе с ≤ 1,8·Vтрим и с обычного «на себя» сняты, переложение крена, крен Очи и фугоида — как сейчас (±5 %), болтанка — не хуже базы + 5; итог — раздел документа и ключи для порта.",
+  "plan_ref": "Волна 5 — переворот при отпускании «на себя» (T-88, после слияния в main)",
+  "contracts": [
+    {
+      "name": "VM-К8",
+      "version": "1",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "9",
+      "ref": "docs/contracts/pullin-speed.md"
+    }
+  ],
+  "copy": "~/deltaplan-pullin-speed-VM-11",
+  "branch": "pullin-speed/VM-11",
+  "base": "feature/pullin-speed",
+  "scope": [
+    "docs/research/pendulum/release-tumble.md",
+    "tools/research/pendulum/",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "tools/flight/",
+    "docs/guide/",
+    "docs/contracts/",
+    "project.godot",
+    "tools/research/pendulum/out/vm6/",
+    "tools/research/pendulum/out/vm3/",
+    "tools/research/pendulum/out/vm2/",
+    "tools/research/pullin_speed/"
+  ],
+  "accept": [
+    {
+      "name": "vm-k8-section",
+      "cmd": "grep -q '^## Отпускание по событию (VM-11)' docs/research/pendulum/release-tumble.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "vm-k8-summary",
+      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pendulum/out/vm11/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('p18',s['tuck_1p8_count']==0),('n2',s['tuck_normal_le2_count']==0),('n',s['tuck_normal_count']>=0),('sm',s['tuck_smooth_count']>=0),('rev',s['reversal_45_dev_max']<=0.05),('ochi',s['ochi_bank_dev_max_deg']<=2),('phug',s['phugoid_period_dev_max']<=0.05),('turb',s['turb_upsets_total']<=s['turb_upsets_total_base']+5),('vmax',0.9<=s['vmax_ratio_median']<=1.1),('trim',s['trim_dev_max_kmh']<=0.3)] if not ok]; print('bad', bad) if bad else print('vm-k8 ok'); sys.exit(1 if bad else 0)\"",
+      "expect": "re:vm-k8 ok"
+    },
+    {
+      "name": "docs-check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-19T23:03:46"
+}
