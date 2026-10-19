@@ -1,0 +1,59 @@
+{
+  "id": "VM-8",
+  "module": "pullin-speed",
+  "type": "dp-engineer",
+  "title": "Обычный геймпад: стик до груди, до бёдер — с кнопкой; полным ходом только самодельная трапеция",
+  "goal": "По CB-К1 v4 и VM-К3 v3: выбранный в настройках обычный геймпад (известная раскладка) перестаёт давать ход до бёдер полным ходом стика — до бёдер только с pull_full_button; полный ход до бёдер — только у самодельной трапеции (BarAxis.is_bar: выбрана и без известной раскладки).",
+  "plan_ref": "Волна 5 — переворот при отпускании «на себя» (T-88, после слияния в main)",
+  "contracts": [
+    {
+      "name": "CB-К1",
+      "version": "4",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "VM-К3",
+      "version": "3",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "У1",
+      "version": "5",
+      "ref": "docs/contracts/pullin-speed.md"
+    }
+  ],
+  "copy": "~/deltaplan-pullin-speed-VM-8",
+  "branch": "pullin-speed/VM-8",
+  "base": "feature/pullin-speed",
+  "scope": [
+    "scripts/game/input_controller.gd",
+    "scripts/game/bar_axis.gd",
+    "tests/",
+    "docs/guide/game/cameras-input.md",
+    "docs/guide/flight/pendulum.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "configs/",
+    "docs/contracts/",
+    "tools/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "input",
+      "tests": "input"
+    },
+    {
+      "name": "control",
+      "tests": "control"
+    },
+    {
+      "name": "gameplay",
+      "tests": "gameplay"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-19T16:58:21"
+}
