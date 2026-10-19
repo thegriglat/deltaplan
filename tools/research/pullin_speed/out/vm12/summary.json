@@ -1,0 +1,42 @@
+{
+ "contract": "VM-К7 v2",
+ "task": "VM-12",
+ "wings": 48,
+ "vmax_ratio_median": 0.9789886784888888,
+ "vmax_ratio_p10": 0.9023692455893977,
+ "trim_dev_max_kmh": 0.004088420387198255,
+ "tuck_1p8_count": 0,
+ "tuck_1p8_wings": [],
+ "tuck_normal_le2_count": 0,
+ "tuck_normal_le2_wings": [],
+ "normal_le2_wings_n": 36,
+ "tuck_normal_count": 4,
+ "tuck_normal_wings": [
+  "aeros_combat_c",
+  "aeros_combat_l",
+  "air_c4",
+  "combat"
+ ],
+ "tuck_smooth_count": 26,
+ "release_g_smooth_max": 2.94651819187874,
+ "turb_upsets": {
+  "laminar": 0,
+  "sport": 5,
+  "training": 0
+ },
+ "turb_upsets_total": 5,
+ "turb_n_total": 60,
+ "turb_upsets_base": {
+  "laminar": 0,
+  "sport": 5,
+  "training": 0
+ },
+ "turb_upsets_total_base": 5,
+ "base": {
+  "tuck_1p8_count": 29,
+  "tuck_normal_count": 26,
+  "tuck_normal_le2_count": 14,
+  "tuck_smooth_count": 40,
+  "vmax_ratio_median": 0.9789886784888888
+ }
+}

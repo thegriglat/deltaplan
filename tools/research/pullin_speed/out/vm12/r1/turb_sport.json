@@ -1,0 +1,159 @@
+{
+ "wings": {
+  "sport": {
+   "cfg": {
+    "trim": 35.4,
+    "full_pull": 103.2,
+    "cg_minus_hang_m": 0.2417,
+    "group": "topless",
+    "wind_class": 4.0
+   },
+   "turb": {
+    "upsets": 5,
+    "n": 20,
+    "rows": [
+     {
+      "seed": 7,
+      "phi_max_deg": 38.7032234990958,
+      "theta_min_deg": -19.5516154180517,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 8,
+      "phi_max_deg": 26.4634212955537,
+      "theta_min_deg": -21.6489674135675,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 9,
+      "phi_max_deg": 11.8880891705977,
+      "theta_min_deg": -16.5936231962394,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 10,
+      "phi_max_deg": 50.3750393669542,
+      "theta_min_deg": -66.6150220169991,
+      "blowup": false,
+      "upset": true
+     },
+     {
+      "seed": 11,
+      "phi_max_deg": 25.3358874262051,
+      "theta_min_deg": -17.359398861962,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 12,
+      "phi_max_deg": 26.4301008824883,
+      "theta_min_deg": -26.4237291914028,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 13,
+      "phi_max_deg": 44.5005025812546,
+      "theta_min_deg": -66.5142044276833,
+      "blowup": false,
+      "upset": true
+     },
+     {
+      "seed": 14,
+      "phi_max_deg": 18.9466261574257,
+      "theta_min_deg": -32.1489796324427,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 15,
+      "phi_max_deg": 26.4078228423336,
+      "theta_min_deg": -7.65381292350255,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 16,
+      "phi_max_deg": 26.2780181172087,
+      "theta_min_deg": -20.5175842180829,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 17,
+      "phi_max_deg": 23.0304923376632,
+      "theta_min_deg": -47.8505314241492,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 18,
+      "phi_max_deg": 28.5527962699452,
+      "theta_min_deg": -24.8095665246516,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 19,
+      "phi_max_deg": 30.415493308895,
+      "theta_min_deg": -25.3577055058967,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 20,
+      "phi_max_deg": 29.1798733477518,
+      "theta_min_deg": -30.9839012309882,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 21,
+      "phi_max_deg": 17.4117475775676,
+      "theta_min_deg": -20.8391610173568,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 22,
+      "phi_max_deg": 179.916115882211,
+      "theta_min_deg": -86.0995659110835,
+      "blowup": false,
+      "upset": true
+     },
+     {
+      "seed": 23,
+      "phi_max_deg": 179.966408941385,
+      "theta_min_deg": -89.0712726571946,
+      "blowup": false,
+      "upset": true
+     },
+     {
+      "seed": 24,
+      "phi_max_deg": 28.7513920596656,
+      "theta_min_deg": -30.4875087656383,
+      "blowup": false,
+      "upset": false
+     },
+     {
+      "seed": 25,
+      "phi_max_deg": 179.807207313943,
+      "theta_min_deg": -87.3539553380111,
+      "blowup": false,
+      "upset": true
+     },
+     {
+      "seed": 26,
+      "phi_max_deg": 40.9734339651368,
+      "theta_min_deg": -21.7601864545026,
+      "blowup": false,
+      "upset": false
+     }
+    ]
+   }
+  }
+ }
+}

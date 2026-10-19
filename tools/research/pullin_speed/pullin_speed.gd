@@ -13,7 +13,8 @@ const T_END := 70.0
 const T_AVG := 50.0
 
 var retrim_ok := true
-var _args := {"out": "", "wings": "all", "cases": "base,hang,retrim,force,slope,cda,vgproxy,pullshift"}
+var _args := {"out": "", "wings": "all", "cases": "base,hang,retrim,force,slope,cda,vgproxy,pullshift",
+	"relaxed": "", "turb": ""}
 
 
 func _ready() -> void:
@@ -198,6 +199,8 @@ func _wing(w: String, cases: PackedStringArray) -> Dictionary:
 		out["pullcons"] = r
 	if "vm4" in cases:
 		out.merge(_vm4(w))
+	if "turb" in cases:
+		out["turb"] = _turb(w)
 	if "pullshift" in cases:
 		for p in [0.6, 0.8, 1.0, 1.2]:
 			out["pull%.2f" % p] = _run(w, {"pull_m": p, "fmax": 1.0e6})
@@ -205,6 +208,8 @@ func _wing(w: String, cases: PackedStringArray) -> Dictionary:
 
 
 # ---------------------------------------------------------------- VM-4 (VM-К5): порт в игру
+## VM-12 (VM-К7 v2): --relaxed=0/1 переопределяет arms.release_event в модели (0 — до правки, 1 — после; пусто — конфиг);
+## --cases=turb --turb=<json полей> — болтанка σ 1 м/с, поля из turb_fields.py (как VM-6 sc=turb), 40 с, BankHold.
 
 const T_REL := 30.0
 
@@ -212,6 +217,8 @@ const T_REL := 30.0
 ## Модель игры как есть (конфиги после порта), эталонная масса, ρ = 1,225, штиль; сброс на трим.
 func _game_model(w: String) -> PendulumModel:
 	var m := S.make(w)
+	if String(_args.relaxed) != "":
+		m.arms.release_event = String(_args.relaxed) == "1"
 	S.reset(m)
 	return m
 
@@ -365,3 +372,34 @@ func _vm4_release_keys(m: PendulumModel, _full: bool, v_trim: float) -> Dictiona
 	var rs := _vm4_release(m, ctrl, v_trim)
 	rs["hand_s"] = T_HAND
 	return rs
+
+
+# ---------------------------------------------------------------- VM-12 (VM-К7 v2): болтанка
+
+## 20 зёрен по 40 с: поле — turb_fields.py (24 моды, оси игры), крен держит BankHold, тангаж 0. Переворот — |крен| > 60°,
+## тангаж киля < −60° или развал (как VM-6 sc=turb).
+func _turb(w: String) -> Dictionary:
+	var fields: Array = JSON.parse_string(FileAccess.get_file_as_string(String(_args.turb)))
+	var rows: Array = []
+	var n_up := 0
+	for fld: Dictionary in fields:
+		var m := _game_model(w)
+		var off := S.reset(m)
+		var tb := S.Turbulence.new(fld, off)
+		var bh := S.BankHold.new(0.0, 1.5, 0.8, 0.3)
+		var inp := S.input()
+		var phi := 0.0
+		var th_min := 0.0
+		var blow := false
+		for i in int(round(40.0 / DT)):
+			inp.roll = bh.roll(m)
+			m.step(DT, inp, tb.air, Callable())
+			if not S.finite(m) or S.airspeed(m) > 80.0:
+				blow = true
+				break
+			phi = maxf(phi, absf(rad_to_deg(m.bank)))
+			th_min = minf(th_min, rad_to_deg(m.theta))
+		var up := blow or phi > 60.0 or th_min < -60.0
+		n_up += int(up)
+		rows.append({"seed": int(fld.seed), "phi_max_deg": phi, "theta_min_deg": th_min, "blowup": blow, "upset": up})
+	return {"upsets": n_up, "n": rows.size(), "rows": rows}
