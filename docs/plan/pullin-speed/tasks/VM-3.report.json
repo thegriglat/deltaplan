@@ -1,0 +1,151 @@
+{
+  "status": "blocked",
+  "summary": "Отпускание с Vmax (VM-2 + добор 0,7 м): Cmq прототипа уже больше литературы (система −1,95, полосы −1,65 против −1,11 у Hiway Demon по Cook/Kochi). Единственная литературная поправка pitch.cm_q_add = +0,84 даёт переворот у 47/48 (VM-2 39/48, прежняя 17/48), остальные пороги VM-К2 выполнены. Механизм — горка Ланчестера: при V0 ≥ ~2·Vтрим крыло уходит в вертикаль/петлю, затем хвостом вперёд и кувырок; это физика аппарата, не демпфирование — шлюз.",
+  "commits": [
+    "f3f37fba pullin-speed: VM-3 — отпускание с Vmax: Cmq прототипа против литературы, поправка cm_q_add, шлюз"
+  ],
+  "checks": [
+    {
+      "name": "vm-k4-sections",
+      "value": "все 7 разделов",
+      "pass": true
+    },
+    {
+      "name": "docs-check",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "vm-k4-summary",
+      "value": "bad ['tuck'] (tuck_count 47); прочие 14 условий выполнены",
+      "pass": false
+    },
+    {
+      "name": "vmax_ratio_median / p10",
+      "value": "1,001 / 0,908 (40 крыльев без цензуры)",
+      "pass": true
+    },
+    {
+      "name": "vmax_ratio_median_base / normal",
+      "value": "0,727 / 0,875",
+      "pass": true
+    },
+    {
+      "name": "trim_dev_max_kmh",
+      "value": "0,07",
+      "pass": true
+    },
+    {
+      "name": "kn_trim_min",
+      "value": "0,060",
+      "pass": true
+    },
+    {
+      "name": "phugoid_unstable_count / base",
+      "value": "0 / 0",
+      "pass": true
+    },
+    {
+      "name": "bar_force_vmax_max_n / arms_force_max_n",
+      "value": "299,2 / 300",
+      "pass": true
+    },
+    {
+      "name": "stall_dev_max_kmh",
+      "value": "0,26",
+      "pass": true
+    },
+    {
+      "name": "tuck_count / vm2 / base",
+      "value": "47 / 39 / 17",
+      "pass": false
+    },
+    {
+      "name": "release_g_max (до переворота) / release_pitch_max_deg",
+      "value": "5,9 / 90,0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tuck_count = 0 одной обоснованной поправкой Cmq не достигается: Cmq прототипа уже выше литературы, поправка к литературе (+0,84) делает 47/48; даже вдвое сверх литературы (cm_q_add −2, подгонка) — 21/48. Других правок по VM-К4 v2 не пробовал.",
+    "Порт в игру не рекомендован: cm_q_add оставить 0 (ключ и формула описаны в «Порт в игру» на случай проверки)."
+  ],
+  "questions": [
+    "Шлюз: переворот при мгновенном отпускании с V0 ≥ ~2·Vтрим — горка Ланчестера (граница по парку резкая: прежняя модель 1,76–1,77·Vтрим, VM-2 ≈ 2,0); точка с CL трима делает петлю с 2,4·Vтрим; Heiney: резкий подхват 6–7 g, вертикаль, скольжение на хвост, кувырок; Gratton & Newman 2003: кувырок после неудачной петли. Принять как физику и сменить критерий VM-К4 (подхват 2–4 g, нет переворота при плавном выходе VM-К3 или отпускании с 1,5–1,8·Vтрим), или отдельной задачей руки пилота при выходе/нестационарная аэродинамика паруса?",
+    "У 3 крыльев VM-2 (aeros_combat_l, moyes_litespeed_s, ww_talon) скорость на полном доборе 0,7 м «гуляет» на 11–18 км/ч (СКО) — раскачка тангажа уже на Vmax; смотреть при порте VM-2."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VM-3 --dry (vm-k4-summary падает только на tuck); числа — tools/research/pendulum/out/vm3/summary.json, cmq.json, diag.json, lanchester.json, tables.md; документ docs/research/pendulum/pitch-release.md",
+  "uncertain": [
+    {
+      "where": "tools/research/pendulum/vm3_run.py: CMQ_LIT = -1.11",
+      "why": "единственный открытый источник Cmq дельтаплана — Kochi 2020 (табл. 3, Hiway Demon, это выход модели Cook & Spottiswoode, не замер); перевод Cmq в «американскую» форму не проверить — в британской было бы −2,22",
+      "checked": "оба прочтения прогнаны: +0,84 → 47/48, −0,27 → 36/48; прототип в любом прочтении не недодемпфирован"
+    },
+    {
+      "where": "docs/research/pendulum/pitch-release.md «Что реально»",
+      "why": "лётных записей резкого отпускания с Vmax нет; вывод «это физика» — по теории фугоиды Ланчестера, своему расчёту точки с CL трима и качественным свидетельствам (Heiney, Gratton & Newman — мотодельтапланы)",
+      "checked": "lanchester.json: петля у 4 из 5 крыльев с V0/Vт 2,4–2,7 даже при запаздывании CL 1 с; training (1,95) — без петли"
+    },
+    {
+      "where": "vm3_run.py release_metrics: rel_g_max",
+      "why": "перегрузка — |F полос|/W до первого кадра переворота; сырая с кувырком до 266 «g» не физична (квазистатика полос при q > 1000 °/с), лежит в release_g_max_raw",
+      "checked": "ряды laminar/sport/ww_t2c: до переворота q ≤ 50 °/с, n 2–3,4"
+    },
+    {
+      "where": "Границы: присоединённая масса паруса по тангажу",
+      "why": "оценка 1–2,5 кг·м² (5–15 % Iyy крыла) — не проверялась по объёму VM-К4 v2",
+      "checked": "только оценка π·ρ·c̄⁴/128 на размах"
+    }
+  ],
+  "dp_feedback": "job wait ограничен 10 мин инструмента — приходится перезапускать вручную 3–4 раза; dpcli lock cpu <имя> -- <cmd> запускает фоном как job (неочевидно, ожидал блокирующий запуск). Дополнение карточки обрезается в task show без --full.",
+  "extra": {
+    "cmq": {
+      "lit_cook_kochi": -1.11,
+      "lit_estimated": -0.891,
+      "proto_wing_median": -1.646,
+      "proto_wing_range": [
+        -2.435,
+        -1.008
+      ],
+      "proto_system_median": -1.949,
+      "proto_system_range": [
+        -3.151,
+        -1.418
+      ],
+      "cm_q_add": 0.839
+    },
+    "sensitivity_tuck": {
+      "+0.84 (литература)": 47,
+      "0 (VM-2)": 39,
+      "-0.27 (британская форма)": 36,
+      "-2 (подгонка)": 21
+    },
+    "tuck_threshold_V0_over_Vtrim": {
+      "base": "1,76–1,77",
+      "vm2": "1,98–2,03"
+    },
+    "laminar_vm2_release": {
+      "Vmax_kmh": 83.8,
+      "pilot_neutral_s": 0.5,
+      "alpha_trim_reached_s": 3.0,
+      "g_max": 2.67,
+      "pitch_rate_dps": 45,
+      "vertical_s": 3.0,
+      "climb_m": 19.2,
+      "V_top_kmh": 3.0
+    },
+    "params": {
+      "pitch_nl.sigma": 0.5,
+      "pitch_nl.width_deg": 1.0,
+      "pitch_nl.luff_cm_per_deg": 0.02,
+      "pitch_nl.luff_on_deg": 0.0,
+      "arms.shift_x_pull_m": 0.45,
+      "arms.shift_x_pull_full_m": 0.7,
+      "arms.force_max_n": 300,
+      "pitch.cm_q_add": "0 (не портировать); проверено +0,84"
+    }
+  },
+  "t": "2026-10-19T10:08:31",
+  "by": "executor"
+}
