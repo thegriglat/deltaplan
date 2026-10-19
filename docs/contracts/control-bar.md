@@ -6,7 +6,7 @@ area: flight
 updated: 2026-10-15
 summary: "Устройство трапеции в controls.json → gamepad (CB-К1), ход ручки → управление, класс BarAxis (CB-К2)."
 related: ["docs/archive/plan/control-bar.md", "docs/research/control-bar-input.md"]
-contracts: [{"id": "CB-К1", "version": 3}, {"id": "CB-К2", "version": 1}]
+contracts: [{"id": "CB-К1", "version": 4}, {"id": "CB-К2", "version": 1}]
 ---
 # Контракты модуля control-bar
 
@@ -18,7 +18,7 @@ contracts: [{"id": "CB-К1", "version": 3}, {"id": "CB-К2", "version": 1}]
 Основа — уже работающий ввод геймпада (`scripts/game/input_controller.gd`, `_apply_gamepad`, `_stick`): трапеция — это любой
 HID-джойстик (записка CB-1), Godot 4.5+ (SDL3) даёт его оси без маппинга по индексу в −1…1 (`Input.get_joy_axis`).
 
-## CB-К1. Настройки устройства трапеции (v3)
+## CB-К1. Настройки устройства трапеции (v4)
 Владелец: CB-2. Потребители: `input_controller.gd` (CB-2), вкладка «Управление» настроек (CB-2), инструкция (CB-3).
 
 Раздел `gamepad` в `configs/controls.json`; пилот меняет его через настройки — `UserSettings.save_patch("controls", {"gamepad": {…}})`
@@ -38,7 +38,7 @@ Auto-Cloud) не уходят: в `UserSettings.LOCAL_KEYS` (и `local_keys` в 
 `controls.gamepad.device_guid`, `controls.gamepad.device_name`, `controls.gamepad.roll_axis`, `controls.gamepad.pitch_axis`,
 `controls.gamepad.invert_roll`, `controls.gamepad.invert_pitch`, `controls.gamepad.calibration`. Мёртвая зона, экспонента,
 чувствительность, кнопки — предпочтения пилота, общие.
-Изменения: v2 (10.10) — машинные ключи (вопрос исполнителя CB-2); формат ключей не менялся. **v3 (19.10, pullin-speed VM-К3)** — `pull_full_button: int` (кнопка добора «на себя» до бёдер для геймпада, по умолчанию 10 — правый бампер; предпочтение пилота, не машинный ключ, с `_doc`); выбранное устройство трапеции (`device_guid` ≠ "", подключено) — полный ход = «штанга у бёдер» пропорционально: `ControlInput.pull_full = true`, пока тангаж идёт с него (решение пользователя 2026-10-19, вариант «б»).
+Изменения: v2 (10.10) — машинные ключи (вопрос исполнителя CB-2); формат ключей не менялся. **v3 (19.10, pullin-speed VM-К3)** — `pull_full_button: int` (кнопка добора «на себя» до бёдер для геймпада, по умолчанию 10 — правый бампер; предпочтение пилота, не машинный ключ, с `_doc`); выбранное устройство трапеции (`device_guid` ≠ "", подключено) — полный ход = «штанга у бёдер» пропорционально: `ControlInput.pull_full = true`, пока тангаж идёт с него (решение пользователя 2026-10-19, вариант «б»). **v4 (19.10, решение пользователя cf92cbf4)** — полным ходом до бёдер идёт только самодельная трапеция: выбранное устройство (`device_guid` ≠ "", подключено) **и** без известной раскладки геймпада (`not Input.is_joy_known(id)` — SDL не знает его как геймпад; функция `BarAxis.is_bar(id) -> bool`). Обычный геймпад (известная раскладка), выбран он или нет: полный ход стика — до груди (`shift_x_pull`), до бёдер — только с зажатой `pull_full_button`, как Shift у мыши.
 
 ## CB-К2. Ход ручки → управление (v1)
 Владелец: CB-2. Потребители: `input_controller.gd`, индикатор вкладки «Управление» (тот же расчёт, что в полёте).
