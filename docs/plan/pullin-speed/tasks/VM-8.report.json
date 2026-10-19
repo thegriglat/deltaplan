@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "BarAxis.is_bar(id); полный ход до бёдер без кнопки только у самодельной трапеции (выбрана и без известной раскладки), обычный геймпад — до груди, до бёдер с pull_full_button. Тест, руководство и pull_full_button_doc обновлены.",
+  "commits": [
+    "dedd77f8 VM-8: pull_full_button_doc под CB-К1 v4"
+  ],
+  "checks": [
+    {
+      "name": "input",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "control",
+      "value": "26/26",
+      "pass": true
+    },
+    {
+      "name": "gameplay",
+      "value": "13/13",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VM-8",
+  "uncertain": [
+    {
+      "where": "scripts/game/input_controller.gd",
+      "why": "Input.is_joy_known на реальном железе не проверялся",
+      "checked": "логика через параметр is_bar в тесте"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-19T17:16:30",
+  "by": "executor"
+}
