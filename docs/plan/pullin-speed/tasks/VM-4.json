@@ -13,7 +13,7 @@
     },
     {
       "name": "VM-К5",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pullin-speed.md"
     },
     {
@@ -28,7 +28,7 @@
     },
     {
       "name": "У1",
-      "version": "4",
+      "version": "5",
       "ref": "docs/contracts/pullin-speed.md"
     },
     {
@@ -40,6 +40,11 @@
       "name": "PH-К1",
       "version": "2",
       "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "С2",
+      "version": "4",
+      "ref": "docs/contracts/pullin-speed.md"
     }
   ],
   "copy": "~/deltaplan-pullin-speed-VM-4",
@@ -50,6 +55,8 @@
     "scripts/core/control_input.gd",
     "scripts/core/telemetry.gd",
     "scripts/game/input_controller.gd",
+    "scripts/game/autopilot.gd",
+    "scenes/main.gd",
     "scripts/ui/pilot_shift_indicator.gd",
     "scripts/ui/controls_screen.gd",
     "configs/pendulum.json",
@@ -58,6 +65,7 @@
     "configs/ui.json",
     "locale/ui.csv",
     "tools/flight/pendulum_params.py",
+    "tools/flight/cf3_ground_control.gd",
     "tests/",
     "tools/research/pullin_speed/"
   ],
@@ -98,5 +106,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-19T10:38:01"
+  "created": "2026-10-19T10:38:01",
+  "edited": "2026-10-19T11:13:02"
 }
