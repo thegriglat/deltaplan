@@ -5,7 +5,7 @@
   docs find [--type T] [--status S] [--module M] [--long] [текст]   строка на документ: путь — summary
   docs show <путь>                    frontmatter + оглавление (без тела)
   docs section <путь> [раздел]        нумерованное оглавление или текст раздела (номер или начало заголовка)
-  docs findings [текст] [--module M]  выдержки из {docs_dir}/registry/findings.md
+  docs findings [текст] [--module M]  выдержки из {docs_dir}/registry/findings.md и *-findings.md
   docs init [--dry]                   дописать frontmatter файлам без него (эвристики по пути и тексту)
 
 Схема frontmatter (YAML, значения — JSON-строки/списки):
@@ -487,14 +487,17 @@ def cmd_findings(x, a):
     p = x.root / rel
     if not p.exists():
         raise DpError(f"нет {rel} (реестр выводов пишется вручную)")
-    _, body = split_fm(read(p))
-    mod, q, n = "", (a.text or "").lower(), 0
-    for l in body.split("\n"):
-        if l.startswith("## "):
-            mod = l[3:].strip()
-        elif l.startswith("- ") and (not a.module or mod == a.module) and (not q or all(w in l.lower() for w in q.split())):
-            print(f"[{mod}] {l[2:]}")
-            n += 1
+    # реестр упирается в предел размера — разделы выносят в <имя>-findings.md рядом; читаем и их
+    q, n = (a.text or "").lower(), 0
+    for f in [p] + sorted(p.parent.glob("*-findings.md")):
+        fm, body = split_fm(read(f))
+        mod = "" if f == p else str(fm.get("module") or "")  # до первого «## » — модуль из frontmatter
+        for l in body.split("\n"):
+            if l.startswith("## "):
+                mod = l[3:].strip()
+            elif l.startswith("- ") and (not a.module or mod == a.module) and (not q or all(w in l.lower() for w in q.split())):
+                print(f"[{mod}] {l[2:]}")
+                n += 1
     if not n:
         print("ничего не найдено")
     return 0
@@ -728,7 +731,7 @@ def register(sp):
     q.add_argument("--depth", type=int, default=3, help="уровни заголовков в оглавлении (3)")
     q.add_argument("--max", type=int, default=0, help="строк раздела (0 — всё)")
     q.set_defaults(func=_run(cmd_section))
-    q = ds.add_parser("findings", help="выводы из registry/findings.md")
+    q = ds.add_parser("findings", help="выводы из registry/findings.md и *-findings.md")
     q.add_argument("text", nargs="?")
     q.add_argument("--module")
     q.set_defaults(func=_run(cmd_findings))
