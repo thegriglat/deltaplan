@@ -8,7 +8,7 @@ summary: "Cm(α) σ 0,5 + добор 0,95 м: Vmax/паспорт 1,00 (p10 0,91
 related: ["docs/research/pendulum/pullin-speed.md", "docs/research/pendulum/vg.md", "docs/contracts/pullin-speed.md", "docs/plan/pullin-speed.md", "tools/research/pendulum/README.md"]
 conclusion: "Добавка ΔCm(α) (смягчение ниже трима до σ = 0,5 жёсткости, luff lines ниже угла нулевой подъёмной 0,02 на градус) и добор «на себя» 0,95 м (штанга у бёдер, усилие ≤ 300 Н) выводят медиану Vmax/паспорт VG 0 на 1,00 (p10 0,91; до 0,73), трим ±0,07 км/ч, Kn ≥ 0,060, фугоида затухает у всех 48, срыв ±0,1 км/ч. Не проходит tuck_count = 0: ввод 0 скачком с Vmax — петля и переворот у 37 из 48; у прежней модели с её Vmax 41–78 км/ч — у 17 из 48, а разогнанной до паспортных скоростей (руки 700 Н) — у 40 из 48, то есть это свойство динамики тангажа маятника на больших скоростях, а не Cm(α). Нужен шлюз."
 data: "tools/research/pendulum/out/vm2/"
-applied_in: ""
+applied_in: "docs/guide/flight/pendulum.md, PD-К2 v8"
 ---
 # Нелинейная Cm(α) и добор «на себя» на прототипе маятника (VM-2)
 

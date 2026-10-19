@@ -23,7 +23,7 @@ fly a wing in a thermal over real terrain. The game has the "Pendulum" mode (win
 - [Multiplayer](/mechanics/multiplayer/) — flying with friends in the same sky
 - [Air model](/mechanics/air-model/) — a physical air field: wind at terrain, thermals from the field, turbulence
 
-Controls are keyboard, mouse and gamepad, as well as a two-axis USB joystick as a home-built control frame; during the launch run the wing's nose holds itself.
+Controls are mouse and gamepad, as well as a two-axis USB joystick as a home-built control frame; the keyboard is for walking, running, looking and the extra pull-in (Shift), it does not steer the wing; during the launch run the wing's nose holds itself.
 
 ## What the game does not do
 

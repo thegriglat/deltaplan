@@ -61,16 +61,22 @@ sizes of one wing (Litespeed RS 3.5 and RS 4), is in [docs/research/pilot_mass.m
 
 ## Input and the "Vehicle" tab
 
-Keys, mouse, gamepad and the home-made control frame work as before. The mouse steers the wing while it is
-captured (the M key); W/S/A/D never move the wing: in flight they turn the head, on the ground they walk and
-turn on the spot. What the input means in "Pendulum":
+The wing is steered by the mouse, the gamepad stick and the home-made control frame; there is no pitch or roll
+from the keyboard (the keyboard gives no control of the bar). The mouse steers while it is captured (the M key);
+W/S/A/D never move the wing: in flight they turn the head, on the ground they walk and turn on the spot. Shift in
+flight is the extra pull-in. What the input means in "Pendulum":
 
 - Roll right or left — the target displacement of the pilot across the bar up to ±0.45 m; the arms pull the
   pilot to the target (a spring with damping). The technique is as in real life: move the body — the wing
   banks and turns.
 - "Pull in" — the pilot forward up to 0.45 m, "push out" — back up to 0.30 m (push out — nose up, braking;
-  pull in — acceleration). Full pull-in gives 45–58 km/h, not the 63–103 of "Weight shift": the arms' reach
-  is limited and there is no sail tension regulator (VG).
+  pull in — acceleration).
+- **Extra pull-in**: Shift (mouse) or the gamepad's right bumper — the pilot pulls up to the hips, 0.7 m (from the
+  T2C manual); on release the limit returns smoothly to 0.45 m at 0.5 m/s. A home-built control frame gives the full
+  travel at once. Beyond the usual limit the suspension indicator is red. Speed at full pull-in with the extra
+  pull-in: a median of 0.98 of the passport Vmax at VG 0 over 48 wings (the lowest tenth is below 0.90; before it was
+  0.69–0.73), without it 0.785. For this the pitch stiffness below trim is halved (one number for every wing); trim
+  did not change.
 - A neutral bar in straight flight is the wing's trim; a released bar — the wing flies straight.
 
 The "Flight settings" screen is split into the "Place" and "Vehicle" tabs. "Vehicle" holds the wing class and
@@ -154,8 +160,15 @@ in wing axes moves by 5–10 cm (RMS).
 
 - **The pilot is a point.** No body rotation, pulling up, postures or body aerodynamics. "Body perpendicular to
   the bar" is taken as an assumption; in the game the pilot hangs vertically under the hang point.
-- **No VG.** Sail tightening (+~20 % speed on sport wings) is not modelled; full pull-in gives 45–58 km/h
-  instead of 63–103. The elasticity of the edges and battens is not modelled either.
+- **No VG.** Sail tightening (+~20 % speed on sport wings) is not modelled. The passport Vmax at VG 0 is reached
+  only with the extra pull-in; without it, 0.785 of the passport. The pitch-stiffness reduction is one number for the
+  whole fleet, fitted to the median of the passports, not a sail model; the 0.7 m reach comes from one manual. The
+  elasticity of the edges and battens is not modelled either.
+- **Tumble when coming out of the dive.** Not fixed yet. A smooth exit from Vmax with the extra pull-in (hand over
+  0.5 s) tumbles 40 of 48 wings, an instant release from 1.8x trim speed — 29 of 48, a smooth exit from the usual
+  full pull-in — 26 of 48 (14 before). In a tumble the model gives unphysical loads (up to 51 g). A tumble on a sudden
+  release from twice trim speed and above is physics (a Lanchester zoom); below that it is a defect of the
+  pilot-to-wing coupling model.
 - **Flexibility is sail twist and an effective dihedral**, fitted to a ≈ 4 s reversal and one flight
   experience (Ochi) with an imprecise force. Not measured on real wings.
 - **The Dutch roll is faster than in the literature:** 1.7–2.1 rad/s against 0.92 for the Hiway Demon
@@ -202,7 +215,7 @@ exactly. They have no sideslip and yaw as a separate degree of freedom, the stri
 straight back, there is no pendulum pilot, and the flare near the ground is a phenomenological model. Bots and
 the autopilot fly on `FlightModel`.
 
-- **"Weight shift"** (`weight_shift`). Mouse sideways, ←/→ and the stick set the pilot's position across the
+- **"Weight shift"** (`weight_shift`). Mouse sideways and the stick set the pilot's position across the
   control frame (−1…+1); the wing settles to the roll rate with the time constant `roll_time_constant_s`:
 
   $$
