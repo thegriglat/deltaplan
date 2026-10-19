@@ -1,0 +1,20 @@
+Deltaplan 1.5.21 — pull-in speed by the data sheets
+
+Full pull-in now gives the top speed from the glider data sheets. Before, the sport wings topped out 25-30% short; now the median over 48 wings is 0.98 of the data-sheet speed without VG. For the last bit of speed, hold Shift and pull the bar to your hips.
+
+Flight:
+- Nonlinear wing pitch stiffness: softer in the working range, stronger at low angles of attack (reflex lines); trim speed unchanged
+- Letting the bar out after pull-in no longer tumbles the wing: the pilot's arms relax and the wing returns to trim (0 of 48 wings tumble on instant release from 1.8x trim, was 29)
+
+Controls:
+- Hold Shift (right bumper on a gamepad) to pull the bar to the hips (0.7 m); the harness indicator turns red past the normal limit
+- Gamepad stick: full travel to the chest, to the hips with the bumper; homemade control bar: full travel to the hips
+- No keyboard pitch or roll any more: the wing is flown with the mouse, gamepad or control bar; on the ground the keyboard walks and runs
+
+Graphics:
+- Less video memory for oak and tropical trees
+
+Known issues:
+- No VG
+- Letting out from top speed with the hip pull-in (above about 2x trim) often zooms into a tumble - that is physics, let the bar out gently
+- The sport wing does not recover from a spin
