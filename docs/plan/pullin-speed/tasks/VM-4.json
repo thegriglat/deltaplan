@@ -67,7 +67,8 @@
     "tools/flight/pendulum_params.py",
     "tools/flight/cf3_ground_control.gd",
     "tests/",
-    "tools/research/pullin_speed/"
+    "tools/research/pullin_speed/",
+    "tools/flight/pendulum_params_table.md"
   ],
   "dont_touch": [
     "scripts/flight/flight_model.gd",
@@ -107,5 +108,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-19T10:38:01",
-  "edited": "2026-10-19T13:17:49"
+  "edited": "2026-10-19T13:25:15"
 }
