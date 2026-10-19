@@ -124,3 +124,5 @@
 {"t": "2026-10-19T17:16:30", "by": "executor", "task": "VM-8", "ev": "reported", "commits": ["dedd77f8"], "note": "done: BarAxis.is_bar(id); полный ход до бёдер без кнопки только у самодельной трапеции (выбрана и без известной раскладки), о…"}
 {"t": "2026-10-19T17:20:45", "by": "coordinator", "task": "VM-8", "ev": "checked", "note": "3/3 input=ok:1/1; control=ok:26/26; gameplay=ok:13/13"}
 {"t": "2026-10-19T17:21:08", "by": "coordinator", "task": "VM-8", "ev": "accepted", "note": "по отчёту; is_joy_known на железе не проверен — тестовая сборка"}
+{"t": "2026-10-19T17:25:05", "by": "coordinator", "task": "VM-8", "ev": "accepted", "commits": ["9da9f04d"], "note": "3/3 input=ok:1/1; control=ok:26/26; gameplay=ok:13/13"}
+{"t": "2026-10-19T17:25:32", "by": "coordinator", "task": "VM-8", "ev": "merged", "note": "слито 9da9f04d"}
