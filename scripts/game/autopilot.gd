@@ -1,22 +1,24 @@
 class_name Autopilot
 extends RefCounted
 ## Синтетический пилот для тестов, smoke-режима и скриншотов (--autopilot):
-## жмёт те же действия InputMap, что и клавиатура (Input.action_press), поэтому проверяет
-## всю цепочку ввод → InputController → планер. Не для игрока.
+## бег — действием run (Input.action_press, как Shift); тангаж и крен трапеции — в ControlInput напрямую
+## (pitch_command, roll_command → InputController._apply_autopilot): клавиш трапеции нет (У1 v5). Не для игрока.
 ## Сценарий: стоит, пока не замерит ветер в лицо (шаг телеметрии стоя), → разбег (Shift) → после отрыва держит Shift ещё hold_after_takeoff_s
 ## → держит курс.
-## Техника разбега (docs/guide/flight.md): трапеция — те же действия, что в полёте (С2 v2): нос крыла
+## Техника разбега (docs/guide/flight.md): трапеция — та же, что в полёте (С2 v4): нос крыла
 ## держит по углу атаки киля — в слабый ветер calm_alpha_deg, в сильный (≥ strong_wind_ms, замер
 ## стоя) — strong_alpha_deg; крыло «обмякло» (срыв на разбеге) — сразу опускает нос. Крен на
 ## разбеге — ровно (крен руки к горизонту), курс — прямо.
 
 const ACTIONS: Array[String] = [
 	"run",
-	"pitch_pull_in",
-	"pitch_push_out",
-	"roll_left",
-	"roll_right",
 ]
+## Ход ручки автопилота, доля полного в секунду: к цели и к нейтрали (прежний клавиатурный ход, У1 v4:
+## тангаж 1,5/1,0, крен в режиме rate 2,0/1,5) — поведение автопилота не меняется.
+const PITCH_RATE := 1.5
+const PITCH_RETURN := 1.0
+const ROLL_RATE := 2.0
+const ROLL_RETURN := 1.5
 
 ## Курс, который держать в полёте (−1 — курс в момент отрыва).
 var hold_heading_deg: float = -1.0
@@ -51,6 +53,8 @@ var circle_bank_deg: float = 15.0
 var pendulum := false
 ## Положение пилота поперёк, −1…1 (+ вправо): выход ПИД крена в режиме pendulum.
 var roll_command := 0.0
+## Тангаж трапеции −1…1 (ControlInput.pitch): нос крыла на разбеге, в полёте — трим (0).
+var pitch_command := 0.0
 ## Коэффициенты ПИД крена (как BankHold прототипа): на рад ошибки, на рад/с, на рад·с.
 var pid_kp := 1.5
 var pid_kd := 0.8
@@ -82,6 +86,7 @@ func reset() -> void:
 	_bank_rate = 0.0
 	_pid_i = 0.0
 	roll_command = 0.0
+	pitch_command = 0.0
 	_heading = hold_heading_deg
 	release_all()
 
@@ -90,6 +95,8 @@ func reset() -> void:
 func drive(t: Telemetry, dt: float) -> void:
 	if hold and t.phase in ["standing", "walking"]:
 		release_all()
+		pitch_command = 0.0
+		roll_command = 0.0
 		_time = 0.0
 		_wind_seen = false
 		return
@@ -133,12 +140,9 @@ func drive(t: Telemetry, dt: float) -> void:
 			_level_roll(t.bank_deg, want)
 		_:
 			roll_command = 0.0
-			_press("roll_left", false)
-			_press("roll_right", false)
 	_press("run", hold_w)
-	# на земле — нос по углу атаки, в полёте — трапеция в триме (клавиши отпущены)
-	_press("pitch_pull_in", nose < 0)
-	_press("pitch_push_out", nose > 0)
+	# на земле — нос по углу атаки, в полёте — трапеция в триме (ручка к нейтрали)
+	pitch_command = _ramp(pitch_command, float(nose), PITCH_RATE, PITCH_RETURN, dt)
 
 
 func release_all() -> void:
@@ -172,8 +176,12 @@ func _level_roll(bank: float, want: float) -> void:
 		_pid_roll(bank, want)
 		return
 	bank += _bank_rate * lead_s
-	_press("roll_right", bank < want - bank_tol_deg)
-	_press("roll_left", bank > want + bank_tol_deg)
+	var dir := 0.0
+	if bank < want - bank_tol_deg:
+		dir = 1.0
+	elif bank > want + bank_tol_deg:
+		dir = -1.0
+	roll_command = _ramp(roll_command, dir, ROLL_RATE, ROLL_RETURN, _dt)
 
 
 ## ПИД крена: цель want, °; bank, ° — крен; скорость крена — фильтрованная (_bank_rate).
@@ -190,3 +198,9 @@ func _press(action: String, on: bool) -> void:
 		Input.action_press(action)
 	else:
 		Input.action_release(action)
+
+
+static func _ramp(v: float, dir: float, rate: float, ret: float, dt: float) -> float:
+	if dir != 0.0:
+		return move_toward(v, signf(dir), rate * dt)
+	return move_toward(v, 0.0, ret * dt)

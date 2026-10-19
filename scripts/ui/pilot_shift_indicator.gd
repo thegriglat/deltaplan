@@ -3,10 +3,13 @@ extends CanvasLayer
 ## Индикатор смещения пилота (FB-1, FB-К1): круг с перекрестием, светящаяся точка — Telemetry.pilot_shift
 ## (вперёд — вверх, назад — вниз, вбок — по горизонтали; край круга — предел хода). Внизу по центру
 ## экрана, один для всех камер. Размер и цвета — configs/ui.json → pilot_shift; флажок — enabled.
+## За обычным пределом «на себя» (добор до бёдер, Telemetry.pull_over > 0, PH-К1 v2) рамка и точка —
+## pilot_shift.over_pull_color; шкала прежняя, точка у края.
 
 var _cfg: Dictionary = {}
 var _shift := Vector2.ZERO
 var _force := 0.0  ## |усилие рук|, Н (PH-К1) — только толщина рамки
+var _over := false  ## пилот за обычным пределом «на себя» (Telemetry.pull_over > 0, PH-К1 v2)
 var _active := false  ## идёт полёт/разбег и ввод включён (задаёт game.gd)
 var _canvas: Control
 
@@ -36,6 +39,7 @@ func set_active(on: bool) -> void:
 func update(t: Telemetry) -> void:
 	_shift = clamp_shift(t.pilot_shift)
 	_force = t.bar_force.length() if t.bar_force.is_finite() else 0.0
+	_over = is_over_pull(t.pull_over)
 	if _canvas != null and _canvas.visible:
 		_canvas.queue_redraw()
 
@@ -54,6 +58,19 @@ static func clamp_shift(v: Vector2) -> Vector2:
 	if not v.is_finite():
 		return Vector2.ZERO
 	return v.limit_length(1.0)
+
+
+## Красный индикатор (PH-К1 v2): пилот за обычным пределом «на себя»; нечисловое — нет.
+static func is_over_pull(pull_over: float) -> bool:
+	return is_finite(pull_over) and pull_over > 0.0
+
+
+## Цвета рамки и точки (PH-К1 v2): за обычным пределом — over_pull_color, иначе ring_color/dot_color.
+static func colors(over: bool, cfg: Dictionary) -> Array[Color]:
+	if over:
+		var red := Color(String(cfg.get("over_pull_color", "#ff3b30")))
+		return [red, red]
+	return [Color(String(cfg.get("ring_color", "#d8e4ec"))), Color(String(cfg.get("dot_color", "#7fe8ff")))]
 
 
 ## Толщина рамки круга диаметром d_px при усилии рук force_n (PH-К1): w = w0 + (w_max − w0)·clamp(|F|/F_full, 0, 1),
@@ -78,8 +95,9 @@ func _draw_indicator() -> void:
 	var c := Vector2(win.x * 0.5, win.y - win.y * float(_cfg.get("bottom_margin_frac", 0.035)) - r)
 	var line_w := maxf(1.0, d * 0.015)
 	var a := float(_cfg.get("opacity", 0.55))
-	var rim := Color(String(_cfg.get("ring_color", "#d8e4ec")))
-	var glow := Color(String(_cfg.get("dot_color", "#7fe8ff")))
+	var col := colors(_over, _cfg)
+	var rim: Color = col[0]
+	var glow: Color = col[1]
 	_canvas.draw_circle(c, r, Color(0.0, 0.0, 0.0, a * 0.45))
 	# рамка: толщина — усилие рук (PH-К1); перекрестие остаётся прежней толщины
 	_canvas.draw_arc(c, r, 0.0, TAU, 48, Color(rim, a), ring_width(d, _force, _cfg), true)

@@ -1,7 +1,7 @@
 extends Node
-## Разбег игрока через InputMap (С2 v2, docs/guide/flight.md → «Старт в сильный ветер»): Shift — разбег,
-## трапеция «от себя» до упора в сильный ветер — нос за срывом, отрыва нет (отдельного срыва
-## по носу нет, К3 v3).
+## Разбег игрока через InputController (С2 v4, docs/guide/flight.md → «Старт в сильный ветер»): Shift — разбег,
+## трапеция (мышь) «от себя» до упора в сильный ветер — нос за срывом, отрыва нет (отдельного срыва
+## по носу нет, К3 v3). Клавиш трапеции нет (У1 v5).
 
 const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
@@ -66,7 +66,7 @@ func _settings(loc: String, wing: String, weather: String) -> FlightSettings:
 
 
 ## Разбег игрока с того же старта при часах атмосферы sd: "air" | причина срыва | "none".
-## nose_up — на бегу всё время держать «от себя» (pitch_push_out: нос вверх до упора).
+## nose_up — на бегу всё время держать «от себя» мышью (смещение мыши вверх до упора: нос вверх).
 func _launch(game: Game, sd: float, nose_up: bool) -> String:
 	game.restart()
 	game.air.set("time_s", sd)
@@ -78,7 +78,9 @@ func _launch(game: Game, sd: float, nose_up: bool) -> String:
 		var run := t >= STAND_S
 		for a: String in RUN_KEYS:
 			_press(a, run)
-		_press("pitch_push_out", nose_up and run)
+		var ic := game.input_controller
+		ic.mouse_captured = true
+		ic._mouse_offset = Vector2(0.0, -1.0) if nose_up and run else Vector2.ZERO
 		game.tick(DT)
 		t += DT
 		if m.mode == FlightModel.Mode.AIR:
@@ -99,5 +101,5 @@ func _press(action: String, on: bool) -> void:
 
 
 func _release() -> void:
-	for a: String in RUN_KEYS + ["pitch_push_out", "pitch_pull_in"]:
+	for a: String in RUN_KEYS:
 		Input.action_release(a)

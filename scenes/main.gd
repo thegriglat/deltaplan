@@ -242,13 +242,13 @@ func _build_hold_bar() -> void:
 
 
 func _is_wing_control(event: InputEvent) -> bool:
-	for a in ["pitch_push_out", "pitch_pull_in", "roll_left", "roll_right", "center", "run", "walk_forward", "walk_back", "turn_left", "turn_right"]:
+	for a in ["center", "run", "pull_full", "walk_forward", "walk_back", "turn_left", "turn_right"]:
 		if InputMap.has_action(a) and event.is_action_pressed(a):
 			return true
 	var key := event as InputEventKey
 	if key != null:
 		var k := key.physical_keycode if key.physical_keycode != KEY_NONE else key.keycode
-		return k in [KEY_W, KEY_S, KEY_A, KEY_D, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_SHIFT]
+		return k in [KEY_W, KEY_S, KEY_A, KEY_D, KEY_SHIFT]
 	return false
 
 

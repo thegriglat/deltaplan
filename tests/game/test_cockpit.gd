@@ -330,16 +330,17 @@ func test_tablet_steady_on_roll() -> void:
 		_step(game)
 	var tablet := game.glider.get_marker("InstrumentMount")
 	var xs := PackedFloat32Array()
-	# Резкие перекладки: тело проходит весь ход вбок, крыло не успевает уйти в глубокий крен.
-	for step in [["", 1.5], ["roll_left", 0.4], ["roll_right", 0.8], ["roll_left", 0.4], ["", 2.0]]:
-		var action := String(step[0])
-		if action != "":
-			Input.action_press(action)
+	# Резкие перекладки мышью (клавиш трапеции нет, У1 v5): рука проводит мышь через весь ход вбок за 0,6 с
+	# (прежний ход клавиш), крыло не успевает уйти в глубокий крен; отпустил — мышь назад в центр.
+	var ic := game.input_controller
+	ic.mouse_captured = true
+	for step in [[0.0, 1.5], [-1.0, 0.4], [1.0, 0.8], [-1.0, 0.4], [0.0, 2.0]]:
+		var target := float(step[0])
 		for i in int(float(step[1]) / DT):
+			ic._mouse_offset.x = move_toward(ic._mouse_offset.x, target, DT / 0.6)
 			_step(game)
 			xs.append(_screen_x(game.camera, tablet.global_position))
-		if action != "":
-			Input.action_release(action)
+	ic._mouse_offset = Vector2.ZERO
 	var calm := xs.slice(0, int(1.5 / DT))
 	var x0 := calm[calm.size() - 1]
 	var amp := 0.0
@@ -593,8 +594,6 @@ func _use_eye_mode(mode: String) -> void:
 
 func _finish(main: Node) -> void:
 	_use_eye_mode("back_hidden")
-	for a in ["roll_left", "roll_right"]:
-		Input.action_release(a)
 	main.queue_free()
 	for i in 2:
 		await get_tree().process_frame

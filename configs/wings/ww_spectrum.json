@@ -162,8 +162,8 @@
     "alpha_range_deg_doc": "Изменение угла атаки при трапеции до упора от себя/на себя на разбеге, °"
   },
   "pendulum": {
-    "contract": "PD-К2 v3",
-    "_doc": "генерирует tools/flight/pendulum_params.py (порт балансировки tools/research/pendulum), руками не править; оси киля: x — назад от носа, z — вверх; inertia_kgm2 — оси x вперёд, y вправо, z вниз, около ЦМ крыла, без присоединённой массы (ixz = элемент тензора, −Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим при hang_from_nose_m и эталонной массе",
+    "contract": "PD-К2 v8",
+    "_doc": "генерирует tools/flight/pendulum_params.py (порт балансировки tools/research/pendulum), руками не править; оси киля: x — назад от носа, z — вверх; inertia_kgm2 — оси x вперёд, y вправо, z вниз, около ЦМ крыла, без присоединённой массы (ixz = элемент тензора, −Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим при hang_from_nose_m и эталонной массе (v8 — с включённой pitch_nl); cl_alpha_per_rad — dCL/dα крыла по полосам на триме (±0,5°), alpha_zero_lift_deg — α киля нулевой подъёмной силы полос; ref.static_margin — Kn на триме линейной модели игры (C_L max полос под поляру)",
     "sweep_deg": 29.5,
     "root_chord_m": 2.22,
     "tip_chord_m": 0.87,
@@ -181,7 +181,9 @@
       "izz": 175.834,
       "ixz": -4.767
     },
-    "dcm0": 0.14751,
+    "dcm0": 0.15201,
+    "cl_alpha_per_rad": 4.4862,
+    "alpha_zero_lift_deg": -6.078,
     "cd_scale": 0.94182,
     "apparatus_defaults": {
       "dihedral_eff_deg": 6.0,
@@ -193,7 +195,7 @@
       "alpha_trim_deg": 11.86,
       "neutral_point_from_nose_m": 1.7622,
       "static_margin": 0.2438,
-      "kmh_per_cm_hang": 0.365
+      "kmh_per_cm_hang": 0.536
     }
   },
   "visual": {

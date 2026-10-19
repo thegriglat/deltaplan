@@ -12,7 +12,6 @@ static func _ic(mode: String, roll_input: String) -> InputController:
 	root.get_child(root.get_child_count() - 1).add_child(ic)
 	var cfg: Dictionary = ic._cfg.duplicate(true)
 	cfg.invert_pitch = false
-	cfg.keyboard.sensitivity = 1.0
 	ic._cfg = cfg
 	ic.roll_mode = mode
 	ic.roll_input = roll_input
@@ -33,18 +32,13 @@ static func _mouse(ic: InputController, dx: float, dy: float) -> void:
 	ic._unhandled_input(ev)
 
 
-## Ввод крена устройством «вправо» (kind: mouse | key | stick-имитация не нужна — стик идёт тем же знаком).
-static func _roll_right(mode: String, roll_input: String, kind: String) -> float:
+## Ввод крена мышью «вправо» (стик идёт тем же знаком; клавиш трапеции нет, У1 v5).
+static func _roll_right(mode: String, roll_input: String, _kind: String) -> float:
 	var ic := _ic(mode, roll_input)
-	if kind == "mouse":
-		_mouse(ic, 4000.0, 0.0)
-	else:
-		Input.action_press("roll_right")
+	_mouse(ic, 4000.0, 0.0)
 	var r := 0.0
 	for i in 120:
 		r = ic.update(DT).roll
-	if kind != "mouse":
-		Input.action_release("roll_right")
 	_free(ic)
 	return r
 
@@ -55,7 +49,7 @@ func test_pv1_default_is_body() -> void:
 
 
 func test_pv1_sign_by_device() -> void:
-	for kind in ["mouse", "key"]:
+	for kind in ["mouse"]:
 		var bar := _roll_right("weight_shift", "bar", kind)
 		var body := _roll_right("weight_shift", "body", kind)
 		check(bar < -0.2, "PV1: bar, %s вправо — roll < 0 (%.2f)" % [kind, bar])
@@ -130,19 +124,18 @@ func test_pv2_center_once() -> void:
 		_free(ic)
 
 
-## PV1 v2: удержание стрелки вбок через переход земля → воздух не меняет знак roll.
+## PV1 v2: мышь вбок через переход земля → воздух не меняет знак roll.
 func test_pv1_sign_through_liftoff() -> void:
 	for ri in ["bar", "body"]:
 		await (Engine.get_main_loop() as SceneTree).process_frame  # just_pressed X прошлых тестов
 		var ic := _ic("weight_shift", ri)
 		ic.on_ground = true
-		Input.action_press("roll_right", 0.3)
+		ic._mouse_offset = Vector2(0.3, 0.0)
 		var ground := 0.0
 		for i in 120:
 			ground = ic.update(DT).roll
 		ic.on_ground = false
 		var air := ic.update(DT).roll
-		Input.action_release("roll_right")
 		check(signf(ground) == signf(air) and absf(air - ground) < 0.05,
 			"PV1 v2: %s, через отрыв roll %.2f -> %.2f" % [ri, ground, air])
 		_free(ic)

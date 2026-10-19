@@ -246,7 +246,7 @@ func test_control_keys_do_not_skip_unconfirmed() -> void:
 	var rs: Control = main.get_node("UI/ResultScreen")
 	_drop(game, false)
 	check(game.stats.grounded_pending_s() > 0.6, "касание, посадка не подтверждена")
-	for code in [KEY_W, KEY_S, KEY_A, KEY_D, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_SHIFT]:
+	for code in [KEY_W, KEY_S, KEY_A, KEY_D, KEY_SHIFT]:  # клавиши пилота (У1 v5: стрелки трапецию не ведут)
 		_key(main, code)
 	await _settle()
 	check(not rs.visible and main.get("state") == 2, "клавиши управления не пропускают")
