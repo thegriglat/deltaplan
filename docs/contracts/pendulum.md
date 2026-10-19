@@ -16,7 +16,8 @@ contracts: [{"id": "PD-К1", "version": 5}, {"id": "PD-К2", "version": 8}, {"id
 
 Не меняются: CB-К1/К2 (control-bar), MR-К1 v1 (motion-rig — маятник только заполняет `pilot_*`), `ControlInput`, `FlightModel`, `GroundRun`, `LandingFlare`, `LandingJudge` (пороги), боты.
 
-## PD-К1. Поверхность модели полёта «Маятник» (v4)
+## PD-К1. Поверхность модели полёта «Маятник» (v5)
+v5 (19.10, pullin-speed): модель читает `ControlInput.pull_full` — добор «на себя» до `arms.shift_x_pull_full_m` (VM-К3 v2).
 v4 (11.10, PD-35): касание маятника — `PendulumTouchdown` (обёртка над `LandingJudge`, сам он не меняется): вертикальная/крен/авария — пороги `LandingJudge`; горизонтальная ≤ `touchdown.stand_max_ms` — «встал на ноги», ≤ `touchdown.run_max_ms` — «пробежал N шагов», выше — жёстко; в `result` + `touchdown`, `runout_m`, `steps`; `contact` + `"bar"` (трапеция — жёстко), `"tail"` (крыло за вертикалью — авария).
 v3 (11.10, PD-12): пропуски `apparatus` в `setup` — сначала умолчания крыла (`wing.pendulum.apparatus_defaults`, PD-К2 v3), потом общие.
 v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы на земле, взлёт и посадка из сил; `run`/`walk`/`turn` читаются; `flare_amount` — по выравниванию у земли; принудительный старт в воздухе в режиме «Маятник» (`Glider`, `Game`) убирается.
