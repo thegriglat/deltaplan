@@ -246,6 +246,9 @@ class Sim:
             # VM-2: нелинейный тангаж — добавка ΔCm(α киля в ЦМ крыла), тот же напор, что у dcm0
             vb_c = R.T @ v_c
             M_b[1] += 0.5 * p.rho * V * V * p.area * p.chord_mean * p.pitch_nl_dcm(math.atan2(vb_c[2], vb_c[0]), V)
+        if p.cm_q_add and V > 0.1:
+            # VM-3: добавочное демпфирование тангажа, ΔM = ½ρV²·S·c·Cmq_add·(q·c/2V)
+            M_b[1] += 0.25 * p.rho * V * p.area * p.chord_mean ** 2 * p.cm_q_add * float((R.T @ w)[1])
         if self.yaw_mode == "free":
             vf = (v_c + np.cross(w, R @ self.r_fin_b)) @ R
             beta_f = math.atan2(vf[1], max(vf[0], 0.1))

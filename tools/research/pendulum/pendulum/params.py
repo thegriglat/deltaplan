@@ -106,6 +106,9 @@ class Params:
     # выше Hiway Demon 0,0275 (0,018–0,04); PD-23: 0,035–0,045 — перевороты sport в болтанке на поле эталона
     cn_p_add: float = 0.15  # добавка Cn на pb/2V (PD-К2 v4, PD-23): Cnp полос −0,15 → литература
     cn_r_add: float = -0.03  # добавка Cn на rb/2V (PD-К2 v4, PD-23): Cnr → −0,058 (Hiway Demon)
+    # VM-3 (docs/research/pendulum/pitch-release.md): добавка Cm на q·c/2V (средняя хорда, напор в ЦМ крыла,
+    # момент около ЦМ крыла); 0 — прежнее поведение. Приведение Cmq полос к литературе (Cook & Spottiswoode)
+    cm_q_add: float = 0.0
     fin_arm: float = 1.6  # м позади ЦМ крыла: «эквивалентный киль», несущий Cnβ (и даёт Cnr, CYβ)
     fin_slope: float = 2.0  # 1/рад, малое удлинение
     apparent_roll: bool = True  # присоединённая масса воздуха по крену (π/48·ρ·c²·b³)
