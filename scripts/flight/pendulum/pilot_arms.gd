@@ -24,6 +24,18 @@ var shift_x_push: float = 0.3
 ## Добор «на себя» до бёдер (VM-К3 v2, PD-К2 v8): ход при pull_full и скорость возврата предела, м, м/с.
 var shift_x_pull_full: float = 0.45
 var pull_full_release: float = 0.5
+## Отпускание по событию (VM-К7 v2, VM-К8, PD-К2 v9): руки отпускают пилота вдоль киля (f.x = 0) только при
+## возврате ввода к 0 после «на себя» (pitch ≤ −release_pull), в остальное время держат. Снова держат, как только
+## ввод не 0 или пилот успокоился у нейтрали (амплитуда качания вдоль киля < release_settle_m один период маятника
+## release_settle_periods·2π√(L/g)). Без этого пилот «держал изо всех сил» и после выхода из разгона с ≤ 1,8·Vтрим
+## крыло переворачивалось (T-88, docs/research/pendulum/release-tumble.md).
+var release_event: bool = false
+var release_pull: float = 0.25
+var release_settle_m: float = 0.05
+var release_settle_periods: float = 1.0
+var _rel_armed := false
+var _rel_on := false
+var _rel_calm := 0.0
 ## Текущий предел хода «на себя», м: shift_x_pull без добора; с добором — сразу shift_x_pull_full,
 ## отпустил — назад к shift_x_pull со скоростью pull_full_release (update_pull_limit).
 var pull_limit: float = 0.45
@@ -61,6 +73,10 @@ func setup(arms: Dictionary) -> void:
 	shift_x_pull_full = maxf(float(arms.get("shift_x_pull_full_m", shift_x_pull)), shift_x_pull)
 	pull_full_release = float(arms.get("pull_full_release_m_s", 0.5))
 	pull_limit = shift_x_pull
+	release_event = bool(arms.get("release_event", false))
+	release_pull = float(arms.get("release_pull", 0.25))
+	release_settle_m = float(arms.get("release_settle_m", 0.05))
+	release_settle_periods = float(arms.get("release_settle_periods", 1.0))
 	shift_x_push_flare = float(arms.get("flare_shift_x_push_m", -1.0))
 	var fr: Dictionary = arms.get("flare_reach", {})
 	flare_reach = 0.0
@@ -94,6 +110,9 @@ func reset() -> void:
 	_int = Vector3.ZERO
 	force_b = Vector3.ZERO
 	pull_limit = shift_x_pull
+	_rel_armed = false
+	_rel_on = false
+	_rel_calm = 0.0
 
 
 ## Предел хода «на себя» за шаг dt (VM-К3 v2): добор зажат — сразу полный; отпущен — плавно к обычному
@@ -148,6 +167,25 @@ func compute(
 	if flare_reach > 0.0 and flare_mix > 0.0 and f.x < 0.0:
 		var c := clampf((flare_reach - phi) / maxf(flare_reach_soft, 1.0e-3), 0.0, 1.0)
 		f.x *= lerpf(1.0, c, flare_mix)
+	if release_event:
+		if pitch <= -release_pull:
+			_rel_armed = true
+		if absf(pitch) >= 1.0e-6:
+			_rel_on = false
+		elif _rel_armed:
+			_rel_on = true
+			_rel_armed = false
+			_rel_calm = 0.0
+		if _rel_on and release_settle_m > 0.0 and L > 0.1:
+			var om2 := Units.G / L
+			if e.x * e.x + vrel.x * vrel.x / om2 < release_settle_m * release_settle_m:
+				_rel_calm += h
+				if _rel_calm >= release_settle_periods * TAU / sqrt(om2):
+					_rel_on = false
+			else:
+				_rel_calm = 0.0
+		if _rel_on:
+			f.x = 0.0
 	var fn := Vector2(f.x, f.y).length()
 	if fn > force_max:
 		f *= force_max / fn

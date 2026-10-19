@@ -35,7 +35,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from pendulum import air, trim  # noqa: E402
-from pendulum.model import Control, Ground, R_from_euler, Sim, euler_from_R  # noqa: E402
+from pendulum.model import E3, Control, Ground, R_from_euler, Sim, euler_from_R  # noqa: E402
 from pendulum.params import G, load_params  # noqa: E402
 from pendulum.scenarios import BankHold, first_cross, run, settle  # noqa: E402
 
@@ -491,8 +491,27 @@ class GameSim(Sim):
         self._dyn_f = f
         return f
 
+    pull_limit = 0.0  # VM-6: текущий предел «на себя» (p.pull_full_release > 0)
+
+    @property
+    def m_sys(self):
+        return self.p.m_wing + float(self.m_nodes.sum())
+
+    def step(self, control):
+        p = self.p
+        if p.pull_full_release > 0.0:
+            full = p.shift_x_pull_full if math.isfinite(p.shift_x_pull_full) else p.shift_x_pull
+            if getattr(control, "pull_full", False):
+                self.pull_limit = full
+            else:
+                self.pull_limit = max(p.shift_x_pull, self.pull_limit - p.pull_full_release * self.dt)
+        super().step(control)
+
     def reset_air(self, state):
         super().reset_air(state)
+        self.pull_limit = self.p.shift_x_pull
+        self.rel_armed, self.rel_on, self.rel_count, self.rel_time, self.rel_regrip_t = False, False, 0, 0.0, float("nan")
+        self.rel_calm = 0.0
         self._dyn_f = None
         self._dyn_m_prev = None
 
@@ -572,7 +591,9 @@ class GameSim(Sim):
             x = self.xn[-1]
             h_feet = -x[2] - 1.0 - float(self.ground.height(x[0], x[1]))
             self.flare_mix = min(max(self.flare_h + 1.0 - h_feet, 0.0), 1.0)
-        if c.arms_relaxed:
+        relaxed = c.arms_relaxed or (p.arm_neutral_relaxed and abs(c.pitch) < 1e-6 and abs(c.roll) < 1e-6
+                                     and c.force_y is None)
+        if relaxed:
             self.hands_force_b = np.zeros(3)
             self.arm_int = np.zeros(3)
             return np.zeros(3)
@@ -590,6 +611,8 @@ class GameSim(Sim):
                   if self.flare_reach > 0.0 else p.shift_x_push)
         push = p.shift_x_push + (fp - p.shift_x_push) * self.flare_mix
         pull = p.shift_x_pull_full if (getattr(c, "pull_full", False) and math.isfinite(p.shift_x_pull_full)) else p.shift_x_pull
+        if p.pull_full_release > 0.0:
+            pull = self.pull_limit  # VM-6: предел по шагам, как PendulumPilotArms.update_pull_limit
         tgt[0] += -px * (push if px > 0 else pull)  # VM-2: добор «на себя» (pull_full)
         k = p.m_pilot / p.arm_tau ** 2
         d = 2.0 * p.m_pilot / p.arm_tau
@@ -599,7 +622,13 @@ class GameSim(Sim):
             self.arm_int = self.arm_int + e * self._h / p.arm_ti
         f = k * (e + self.arm_int) - d * vrel
         L = float(np.linalg.norm(self.neutral_rel))
-        if L > 0.1:
+        if p.arm_ff_load and L > 0.1 and tgt[2] > 0.1:
+            # как pilot_arms.gd: вдоль киля — против кажущегося веса пилота в осях крыла, поперёк — m·g/L
+            d_p = self._pilot_drag_w  # сопротивление пилота (pilot_force — без веса; в игре d_p = f_p − m·g)
+            load_b = R.T @ (d_p - (self._aero_F_w + d_p) * (p.m_pilot / self.m_sys))
+            f[0] += load_b[2] * tgt[0] / tgt[2] - load_b[0]
+            f[1] += (tgt[1] - self.neutral_rel[1]) * (p.m_pilot * G / L)
+        elif L > 0.1:
             off = tgt - self.neutral_rel
             off[2] = 0.0
             f = f + off * (p.m_pilot * G / L)
@@ -609,6 +638,37 @@ class GameSim(Sim):
         if self.flare_reach > 0.0 and self.flare_mix > 0.0 and f[0] < 0.0:
             cr = min(max((self.flare_reach - self.hands_phi) / max(self.flare_reach_soft, 1e-3), 0.0), 1.0)
             f[0] *= 1.0 + (cr - 1.0) * self.flare_mix
+        if p.arm_neutral_relaxed_x and abs(c.pitch) < 1e-6:
+            f[0] = 0.0  # VM-6: ввод тангажа 0 — вдоль киля руки пилота не держат (свободный маятник по тангажу)
+        if math.isfinite(p.arm_neutral_k) and abs(c.pitch) < 1e-6:
+            # VM-6: ввод 0 — рука не ведёт пилота, только пассивный импеданс расслабленной руки вдоль киля
+            f[0] = p.arm_neutral_k * e[0] - p.arm_neutral_b * vrel[0]
+        if p.arm_release_event:
+            # VM-11: отпускание по событию — выход из «на себя» к 0; держат снова, когда ввод изменился или пилот у нейтрали
+            if c.pitch <= -p.arm_release_pull:
+                self.rel_armed = True
+            if abs(c.pitch) >= 1e-6:
+                self.rel_on = False
+            elif self.rel_armed:
+                self.rel_on, self.rel_armed, self.rel_calm = True, False, 0.0
+                self.rel_count += 1
+            if self.rel_on and p.arm_release_settle_m > 0.0 and L > 0.1:
+                om2 = G / L
+                ts = p.arm_release_settle_s if math.isfinite(p.arm_release_settle_s) else 2.0 * math.pi / math.sqrt(om2)
+                if e[0] * e[0] + vrel[0] * vrel[0] / om2 < p.arm_release_settle_m ** 2:
+                    self.rel_calm += self._h
+                    if self.rel_calm >= ts - 1e-9:
+                        self.rel_on = False
+                        self.rel_regrip_t = self.t
+                else:
+                    self.rel_calm = 0.0
+            if self.rel_on:
+                f[0] = p.arm_release_k * e[0] - p.arm_release_b * vrel[0]
+                self.rel_time += self._h
+        if p.arm_one_sided_x:
+            # VM-6: рука на штанге тянет только в сторону ввода — «на себя» штангу к себе (пилот вперёд, f.x ≥ 0),
+            # «от себя» — от себя (f.x ≤ 0); отдать штангу = ослабить тягу, а не толкать её; ввод 0 — не держит
+            f[0] = max(f[0], 0.0) if c.pitch < -1e-6 else (min(f[0], 0.0) if c.pitch > 1e-6 else 0.0)
         n = math.hypot(f[0], f[1])
         if n > p.arm_force_max:
             f *= p.arm_force_max / n

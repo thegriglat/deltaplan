@@ -103,6 +103,54 @@ $PY tools/research/pendulum/vm3_run.py report                         # → summ
 ```
 Источники — в документе (Kochi 2020, Gratton & Newman 2003, Heiney, Lanchester 1908); данные — свои расчёты.
 
+## Переворот при выходе (VM-6)
+Прототип в состоянии игры после порта (VM-3 «nl» + ключи игры `Params.pull_full_release` 0,5 м/с и `Params.arm_ff_load` —
+прямая подача рук против кажущегося веса, как `pilot_arms.gd`) и гипотезы о пилоте, руках и подвеске — ключами `Params`
+(выключены = прежняя модель): `body_pitch_coupled`, `arm_neutral_relaxed`, `arm_neutral_relaxed_x`, `arm_one_sided_x`,
+`arm_neutral_k` / `arm_neutral_b` (`pendulum/params.py`, `pendulum/model.py`, `export_reference.GameSim`); прочие —
+существующими ключами (`hang_len`, `strap_compliance`, `pilot_body`, `pilot_cda`, `arm_tau`, `arm_force_max`, звенья цепи,
+сдвиг подвески, длина стоек). Сценарии и критерий — VM-К5 (`normal`/`release_normal`, `full`/`release_smooth`,
+`release_1p8`). Разбор, причина, шлюз — `docs/research/pendulum/release-tumble.md`; данные — `out/vm6/` (`results.jsonl`,
+`summary.json` по VM-К6 v1, `tables.md`, `lanchester.json` — точка Ланчестера на 48 крыльях, `handtime.jsonl` — выход
+за 1–4 с, ряды `diag/*.npz` (23 МБ — только локально в копии `~/deltaplan-pullin-speed-VM-6`, не в git; восстанавливает `diag`), `diag.json`, графики `fig/v0_outcome_48.png`, `fig/release_laminar.png`).
+```bash
+PY=/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python
+$PY tools/research/pendulum/vm6_run.py diag --wings laminar,sport,training,ww_t2c,aeros_combat_c --vars game --jobs 5  # ряды, ≈ 5 мин
+/home/greg/deltaplan/.dpcli/dpcli job start vm6-run 36000 systemd-run --user --scope -p MemoryMax=12G -q \
+  $PY tools/research/pendulum/vm6_run.py run --jobs 16 --vars game,h_relaxed_x,preport,base --scen release,trim,stall  # ≈ 3,5 ч
+$PY tools/research/pendulum/vm6_run.py run --jobs 16 --wings laminar,sport,training,ww_t2c,aeros_combat_c \
+  --vars h_len10,h_len14,h_links1,h_links6,h_stiff,h_soft,h_hang_fwd,h_hang_aft,h_body,h_body_pitch,h_cda012,h_cda023,h_ff_off,h_relaxed,h_force150,h_force600,h_tau015,h_tau06,h_bar_low,h_bar_high  # ≈ 1 ч
+$PY tools/research/pendulum/vm6_run.py run --jobs 16 --vars h_one_sided,h_passive,preport_fix --scen release   # ≈ 1 ч
+$PY tools/research/pendulum/vm6_run.py run --jobs 16 --wings sport,laminar,training --vars game,h_relaxed_x,h_passive,h_one_sided --scen turb
+$PY tools/research/pendulum/vm6_run.py handtime --wings laminar,sport,ww_t2c,aeros_combat_c,air_c4 --vars game,h_relaxed_x --t 1,2,3,4
+$PY tools/research/pendulum/vm6_run.py lanchester --jobs 4                # точка Ланчестера, ≈ 15 мин
+$PY tools/research/pendulum/vm6_run.py report                             # → summary.json, tables.md, fig/
+```
+Источники — в документе (Жеглов и др. 1983; Lanchester 1908; Heiney; Gratton & Newman 2003; Mussa-Ivaldi et al. 1985;
+Tsuji et al. 1995; de Leva 1996); данные — свои расчёты, внешних данных нет.
+
+## Отпускание по событию (VM-11)
+Прототип VM-6 `game` + ключ `Params.arm_release_event` (выключен = нынешнее, руки держат всегда) и его числа
+`arm_release_pull`, `arm_release_settle_m`, `arm_release_settle_s` (NaN — период маятника пилота), `arm_release_k`/`_b`
+(`pendulum/params.py`, `export_reference.GameSim._hands_force`). Скрипт `vm11_run.py` (импорт из `vm6_run.py`, сценарии
+выхода VM-К5; ограждения — сценарии эталонов `test_reversal_45`, `test_ochi_side_force`, `test_phugoid` на модели варианта,
+болтанка `vm6_run.sc_turb`, справочно `relturb`). Разбор, числа, порт — `docs/research/pendulum/release-tumble.md`,
+«Отпускание по событию (VM-11)»; данные — `out/vm11/` (`results.jsonl`, `summary.json` по VM-К8 v1, `tables.md`,
+`fig/v0_outcome_48.png`).
+```bash
+PY=/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python
+W=training,laminar,sport,ww_t2c,aeros_combat_c
+$PY tools/research/pendulum/vm11_run.py run --jobs 12 --wings $W --vars game,ev,ev_now,ev_input,ev_pass,passive --scen release,turb,ref
+$PY tools/research/pendulum/vm11_run.py run --jobs 12 --wings $W --vars ev_s03,ev_s10,ev_p50 --scen release
+$PY tools/research/pendulum/vm11_run.py run --jobs 12 --wings $W --vars game,ev,ev_input --scen relturb
+/home/greg/deltaplan/.dpcli/dpcli job start vm11-run 10800 systemd-run --user --scope -p MemoryMax=12G -q \
+  $PY tools/research/pendulum/vm11_run.py run --jobs 11 --vars game,ev --scen release   # 48 крыльев, ≈ 70 мин
+$PY tools/research/pendulum/vm11_run.py report                                         # → summary.json, tables.md, fig/
+```
+Варианты `ev_now` (в первом прогоне назывался `ev`, переименован в `results.jsonl`) и `ev_pass` считались с
+`arm_release_settle_s` = 0. Источники — в документе (Жеглов и др. 1983; Mussa-Ivaldi et al. 1985; Tsuji et al. 1995);
+внешних данных нет.
+
 ## Оценки 05.10 (`estimates.py`)
 Полюса разомкнутой модели Hiway Demon (Abouheaf, Gueaieb, Lewis, arXiv:2108.02393, табл. 1–2; модель Cook & Spottiswoode 2005) → ωn, ζ; маятник пилота; инерция крыла по трубам; `Cm_alpha` по двум точкам балансировки; ω·dt для 60/120/240 Гц; крен от момента веса при Cl_p = −0,45 (≈ 16°/с). Запуск: `python3 tools/research/pendulum/estimates.py`.
 

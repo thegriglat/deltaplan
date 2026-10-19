@@ -1,0 +1,69 @@
+{
+  "id": "VM-9",
+  "module": "pullin-speed",
+  "type": "dp-engineer",
+  "title": "Порт «брошенной ручки» в игру и проверка болтанки",
+  "goal": "По VM-К7 и PD-К2 v9: на вводе pitch = 0 руки вдоль киля не держат пилота (arms.neutral_relaxed_pitch = true); замер в игре по 48 крыльям — без переворота при отпускании с 1,8·Vтрим и с обычного «на себя» (V ≤ 2·Vтрим), болтанка не хуже прогноза VM-6; два пропущенных теста маятника — заново.",
+  "plan_ref": "Волна 5 — переворот при отпускании «на себя» (T-88, после слияния в main)",
+  "contracts": [
+    {
+      "name": "VM-К7",
+      "version": "1",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "9",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "VM-К5",
+      "version": "3",
+      "ref": "docs/contracts/pullin-speed.md"
+    }
+  ],
+  "copy": "~/deltaplan-pullin-speed-VM-9",
+  "branch": "pullin-speed/VM-9",
+  "base": "feature/pullin-speed",
+  "scope": [
+    "scripts/flight/pendulum/pilot_arms.gd",
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "configs/pendulum.json",
+    "tests/",
+    "tools/research/pullin_speed/"
+  ],
+  "dont_touch": [
+    "configs/wings/",
+    "scripts/flight/pendulum/wing_strips.gd",
+    "scripts/game/",
+    "docs/",
+    "tools/research/pendulum/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "control",
+      "tests": "control"
+    },
+    {
+      "name": "gameplay",
+      "tests": "gameplay"
+    },
+    {
+      "name": "vm-k7-summary",
+      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pullin_speed/out/vm9/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('vmax',0.9<=s['vmax_ratio_median']<=1.1),('p10',s['vmax_ratio_p10']>=0.8),('trim',s['trim_dev_max_kmh']<=0.3),('p18',s['tuck_1p8_count']==0),('n2',s['tuck_normal_le2_count']==0),('n',s['tuck_normal_count']>=0),('sm',s['tuck_smooth_count']>=0),('turb',s['turb_upsets_total']<=9),('turb_base',s['turb_upsets_total_base']>=0)] if not ok]; print('bad', bad) if bad else print('vm-k7 ok'); sys.exit(1 if bad else 0)\"",
+      "expect": "re:vm-k7 ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-19T20:40:54"
+}

@@ -1,0 +1,72 @@
+{
+  "id": "VM-10",
+  "module": "pullin-speed",
+  "type": "dp-writer",
+  "title": "Документы и CHANGELOG: отпускание рук, геймпад до груди, перевороты выше 2·Vтрим",
+  "goal": "Описать влитое в волне 5: руки отпускают пилота вдоль киля при выходе из «на себя» (VM-11/VM-12), обычный геймпад — до груди, до бёдер с кнопкой (VM-8); переворот при выходе с Vmax выше 2·Vтрим — горка Ланчестера (физика), ниже — снят; обновить «Что даёт ввод» и «Границы модели» pendulum.md, CHANGELOG «В работе», findings, applied_in.",
+  "plan_ref": "Волна 5 — переворот при отпускании «на себя» (T-88, после слияния в main)",
+  "contracts": [
+    {
+      "name": "VM-К7",
+      "version": "2",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "9",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "CB-К1",
+      "version": "4",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "VM-К3",
+      "version": "3",
+      "ref": "docs/contracts/pullin-speed.md"
+    }
+  ],
+  "copy": "~/deltaplan-pullin-speed-VM-10",
+  "branch": "pullin-speed/VM-10",
+  "base": "feature/pullin-speed",
+  "scope": [
+    "docs/guide/",
+    "site/content/",
+    "README.md",
+    "README.ru.md",
+    "CHANGELOG.md",
+    "docs/registry/",
+    "docs/INDEX.md",
+    "docs/research/pendulum/release-tumble.md",
+    "docs/research/pendulum/pitch-release.md"
+  ],
+  "dont_touch": [
+    "site/content/releases/",
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "bounds-lanchester",
+      "cmd": "bash -c 'awk \"/^## Границы модели/{f=1} f\" docs/guide/flight/pendulum.md | grep -qi ланчестер'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -n -A60 'В работе' CHANGELOG.md | grep -qi -E 'отпуск|руки'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs-check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-20T01:16:30"
+}

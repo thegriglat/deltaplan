@@ -23,7 +23,7 @@ func test_doc_headings() -> void:
 	var found := {}
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
-	check(found.get("CB-К1", 0) == 3, "CB-К1 (v3) в заголовках: %s" % found)
+	check(found.get("CB-К1", 0) == 4, "CB-К1 (v4) в заголовках: %s" % found)
 	check(found.get("CB-К2", 0) == 1, "CB-К2 (v1) в заголовках: %s" % found)
 
 
@@ -113,7 +113,7 @@ static func _old_stick(v: float, gp: Dictionary) -> float:
 	return signf(v) * clampf(x * float(gp.sensitivity), 0.0, 1.0)
 
 
-# CB-К1 v3 (pullin-speed VM-К3): кнопка добора геймпада и самодельная трапеция полным ходом
+# CB-К1 v4 (pullin-speed VM-К3): кнопка добора геймпада и самодельная трапеция полным ходом
 func test_k1_v3_pull_full() -> void:
 	var gp: Dictionary = Config.get_config("controls").get("gamepad", {})
 	check(int(gp.get("pull_full_button", -1)) == JOY_BUTTON_RIGHT_SHOULDER, "pull_full_button = 10 (правый бампер)")
@@ -127,12 +127,17 @@ func test_k1_v3_pull_full() -> void:
 	ic.control.pull_full = false
 	ic.apply_stick(0.0, 1.0)
 	check(not ic.control.pull_full and ic.control.pitch < -0.9, "геймпад: стик на себя без кнопки — без добора")
-	# выбранная самодельная трапеция: тангаж с неё — pull_full
+	# выбранный обычный геймпад (известная раскладка): до груди, добор только кнопкой
 	cfg.gamepad.device_guid = "deadbeef"
 	ic.control.pull_full = false
-	ic.apply_stick(0.0, 1.0)
-	check(ic.control.pull_full, "трапеция (device_guid): полный ход — штанга у бёдер (pull_full)")
+	ic.apply_stick(0.0, 1.0, false)
+	check(not ic.control.pull_full, "выбран обычный геймпад: полный ход стика — до груди, без pull_full")
+	# выбранная самодельная трапеция (is_bar): тангаж с неё — pull_full
 	ic.control.pull_full = false
-	ic.apply_stick(0.0, 0.0)
+	ic.apply_stick(0.0, 1.0, true)
+	check(ic.control.pull_full, "трапеция (is_bar): полный ход — штанга у бёдер (pull_full)")
+	check(not BarAxis.is_bar(-1), "is_bar(-1) = false (нет устройства)")
+	ic.control.pull_full = false
+	ic.apply_stick(0.0, 0.0, true)
 	check(not ic.control.pull_full, "трапеция в нейтрали (мёртвая зона) — тангаж не с неё, добор не ставится")
 	ic.free()

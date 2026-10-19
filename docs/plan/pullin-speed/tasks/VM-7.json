@@ -1,0 +1,76 @@
+{
+  "id": "VM-7",
+  "module": "pullin-speed",
+  "type": "dp-engineer",
+  "title": "Мелочи после слияния: тест PD-К1 v5, остатки клавиатурных параметров, 0,7 м в pitch-nonlinear.md",
+  "goal": "Привести хвосты волны 4 в порядок: контрактный тест PD-К1 под заголовок v5; удалить мёртвые параметры клавиатурного управления крылом из configs/controls.json и кода (X «в центр» и служебные клавиши не трогать) и поправить их описание в docs/guide/flight/model.md; в docs/research/pendulum/pitch-nonlinear.md отметить, что в игру влит добор 0,7 м.",
+  "plan_ref": "Волна 5 — переворот при отпускании «на себя» (T-88, после слияния в main)",
+  "contracts": [
+    {
+      "name": "PD-К1",
+      "version": "5",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "У1",
+      "version": "5",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "С2",
+      "version": "4",
+      "ref": "docs/contracts/pullin-speed.md"
+    }
+  ],
+  "copy": "~/deltaplan-pullin-speed-VM-7",
+  "branch": "pullin-speed/VM-7",
+  "base": "feature/pullin-speed",
+  "scope": [
+    "tests/contracts/test_pendulum_contracts_k1.gd",
+    "configs/controls.json",
+    "scripts/game/input_controller.gd",
+    "docs/guide/flight/model.md",
+    "docs/guide/game/cameras-input.md",
+    "docs/research/pendulum/pitch-nonlinear.md",
+    "tests/game/"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "configs/pendulum.json",
+    "configs/wings/",
+    "docs/contracts/",
+    "tools/research/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "pendulum_contracts",
+      "tests": "pendulum_contracts"
+    },
+    {
+      "name": "control",
+      "tests": "control"
+    },
+    {
+      "name": "gameplay",
+      "tests": "gameplay"
+    },
+    {
+      "name": "input",
+      "tests": "input"
+    },
+    {
+      "name": "pitch-nl-07",
+      "cmd": "grep -q '0,7 м' docs/research/pendulum/pitch-nonlinear.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs-check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-19T15:02:48"
+}

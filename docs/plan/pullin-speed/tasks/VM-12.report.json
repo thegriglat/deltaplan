@@ -1,0 +1,95 @@
+{
+  "status": "done",
+  "summary": "Отпускание рук по событию (VM-11) перенесено в pilot_arms.gd по спецификации release-tumble.md «Порт в игру»; ключи arms.release_* в configs/pendulum.json (PD-К2 v9). Замер в игре по 48 крыльям: 1,8·Vтрим 29→0 переворотов, normal при V0 ≤ 2·Vтрим 14→0, болтанка 5 из 60 и до, и после; ограждения крена и фугоиды проходят с включённой правкой.",
+  "commits": [
+    "51bc2c64 pullin-speed: VM-12 — отпускание рук по событию в игре"
+  ],
+  "checks": [
+    {
+      "name": "tuck_1p8_count (база 29)",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "tuck_normal_le2_count (база 14, из 36)",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "tuck_normal_count / tuck_smooth_count (база 26 / 40)",
+      "value": "4 (aeros_combat_c, aeros_combat_l, air_c4, combat) / 26",
+      "pass": true
+    },
+    {
+      "name": "vmax_ratio median / p10",
+      "value": "0,979 / 0,902",
+      "pass": true
+    },
+    {
+      "name": "trim_dev_max_kmh",
+      "value": "0,004",
+      "pass": true
+    },
+    {
+      "name": "болтанка σ 1 м/с, 60 прогонов: после / до",
+      "value": "5 / 5 (sport 5, laminar 0, training 0)",
+      "pass": true
+    },
+    {
+      "name": "pendulum",
+      "value": "123 тестов, 0 упало, 2 пропущено",
+      "pass": true
+    },
+    {
+      "name": "pilot_hud",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "control",
+      "value": "26/26",
+      "pass": true
+    },
+    {
+      "name": "gameplay",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "vm-k7-summary",
+      "value": "vm-k7 ok",
+      "pass": true
+    },
+    {
+      "name": "no-flag-in-guards",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "test_pendulum_robust::test_turbulence_game_blocks (sport, шаг 1/30: крен 115,4°, растяжение 0,108 м) и test_pendulum_spin (sport не выходит из штопора, выход nan с) падают и с release_event, и без — пропуск не снят, причины в skip_reason обновлены (pitch_nl, Q3)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VM-12",
+  "uncertain": [
+    {
+      "where": "scripts/flight/pendulum/pilot_arms.gd:compute (блок release_event)",
+      "why": "Эталон aeros_combat_c normal в игре — переворот (V0 2,04·Vтрим), у прототипа ev — выход (V0 2,02); допуск ±1 по счёту. Тангаж-эталоны в тесте только печатаются, ±5° не проверяются.",
+      "checked": "по 48 крыльям normal при V0 ≤ 2·Vтрим переворотов 0; 4 normal выше 2·Vтрим (горка Ланчестера: aeros_combat_c/l, air_c4, combat); smooth 26 против 22 прототипа"
+    }
+  ],
+  "dp_feedback": "report требует результатов проверок от настоящего accept, а не --dry; сообщение об этом можно дать в подсказке dry.",
+  "extra": {
+    "base_game": {
+      "tuck_1p8": 29,
+      "tuck_normal": 26,
+      "tuck_normal_le2": 14,
+      "tuck_smooth": 40
+    },
+    "release_g_smooth_max": 2.95,
+    "summary": "tools/research/pullin_speed/out/vm12/summary.json"
+  },
+  "t": "2026-10-20T01:07:41",
+  "by": "executor"
+}

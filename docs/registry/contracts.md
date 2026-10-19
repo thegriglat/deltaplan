@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-19"
+updated: "2026-10-20"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -23,7 +23,7 @@ generated: true
 - air-phase: P1 v1, P2 v6, P3 v3, P4 v6, P5 v1, P6 v2, P7 v1, P8 v1, P9 v2, P10 v5, P11 v3, P12 v4, P13 v2, P14 v2, P15 v1 — [docs/contracts/air-phase.md](../contracts/air-phase.md)
 - air-weak-wind: W1 v1, W2 v1 — [docs/contracts/air-weak-wind.md](../contracts/air-weak-wind.md)
 - cloud-field: CLF-К1 v1, CLF-К2 v1, CLF-К3 v2, CLF-К4 v1, CLF-К5 v1, CLF-К6 v1 — [docs/contracts/cloud-field.md](../contracts/cloud-field.md)
-- control-bar: CB-К1 v3, CB-К2 v1 — [docs/contracts/control-bar.md](../contracts/control-bar.md)
+- control-bar: CB-К1 v4, CB-К2 v1 — [docs/contracts/control-bar.md](../contracts/control-bar.md)
 - control-fix: С1 v2, С2 v4, С3 v3 — [docs/contracts/control-fix.md](../contracts/control-fix.md)
 - docs-rework: D1 v1, D2 v1, D3 v1, D4 v1 — [docs/contracts/docs-rework.md](../contracts/docs-rework.md)
 - easter-eggs: К1 v2, К2 v3, К3 v2, К4 v2, К5 v2, К6 v4, К7 v5 — [docs/contracts/easter-eggs/framework.md](../contracts/easter-eggs/framework.md)
@@ -43,12 +43,13 @@ generated: true
 - osm-tiles: O1 v1, O2 v1, O3 v1, O4 v1, O5 v1, O6 v1, O7 v1, O8 v2, O9 v2 — [docs/contracts/osm-tiles.md](../contracts/osm-tiles.md)
 - pendulum-body-vg: PB-К1 v1, PB-К2 v1 — [docs/contracts/pendulum-body-vg.md](../contracts/pendulum-body-vg.md)
 - pendulum-default: PMD-К1 v1 — [docs/contracts/pendulum-default.md](../contracts/pendulum-default.md)
-- pendulum: PD-К1 v5, PD-К2 v8, PD-К3 v2, PD-К4 v2, PD-К5 v2, PD-К6 v2 — [docs/contracts/pendulum.md](../contracts/pendulum.md)
+- pendulum: PD-К1 v5, PD-К2 v9, PD-К3 v2, PD-К4 v2, PD-К5 v2, PD-К6 v2 — [docs/contracts/pendulum.md](../contracts/pendulum.md)
 - perf: PF-К2 v2, PF-К4 v2 — [docs/contracts/perf.md](../contracts/perf.md)
 - pilot-hud: PH-К1 v2, PH-К2 v1, PH-К3 v2, PH-К4 v2, PH-К5 v1, PH-К6 v1, PH-К7 v1 — [docs/contracts/pilot-hud.md](../contracts/pilot-hud.md)
 - pilot-view: PV1 v3, PV2 v1, PV3 v2 — [docs/contracts/pilot-view.md](../contracts/pilot-view.md)
 - popular-places: PP-К1 v3, PP-К2 v1 — [docs/contracts/popular-places.md](../contracts/popular-places.md)
-- pullin-speed: VM-К0 v1, VM-К1 v2, VM-К2 v3, VM-К3 v2, VM-К4 v3, VM-К5 v3 — [docs/contracts/pullin-speed.md](../contracts/pullin-speed.md)
+- pullin-speed: VM-К0 v1, VM-К1 v2, VM-К2 v3, VM-К4 v3, VM-К6 v2 — [docs/contracts/pullin-speed-research.md](../contracts/pullin-speed-research.md)
+- pullin-speed: VM-К3 v3, VM-К5 v3, VM-К7 v2, VM-К8 v1 — [docs/contracts/pullin-speed.md](../contracts/pullin-speed.md)
 - qol: QL-К1 v1, QL-К2 v1, QL-К3 v1 — [docs/contracts/qol.md](../contracts/qol.md)
 - regional-veg: RV-К1 v2, RV-К2 v1, RV-К3 v1, RV-К4 v2, RV-К5 v1, RV-К6 v1 — [docs/contracts/regional-veg.md](../contracts/regional-veg.md)
 - scene-look: SL-К1 v4, SL-К2 v2, SL-К3 v1, SL-К4 v2, SL-К5 v1, SL-К6 v2, SL-К7 v1 — [docs/contracts/scene-look.md](../contracts/scene-look.md)

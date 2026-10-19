@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "Тест PD-К1 ждёт v5; в model.md убрано утверждение про остатки клавиатурных параметров (их нет ни в конфиге, ни в коде); в pitch-nonlinear.md добавлена строка про добор 0,7 м, summary и conclusion поправлены.",
+  "commits": [
+    "c4401f03 VM-7: тест PD-К1 v5, текст про клавиатурные параметры, добор 0,7 м"
+  ],
+  "checks": [
+    {
+      "name": "pendulum_contracts",
+      "value": "35/35",
+      "pass": true
+    },
+    {
+      "name": "control",
+      "value": "26/26",
+      "pass": true
+    },
+    {
+      "name": "gameplay",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "input",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "pitch-nl-07",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs-check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept VM-7",
+  "uncertain": [
+    {
+      "where": "configs/controls.json, scripts/game/input_controller.gd",
+      "why": "Правок не потребовалось: roll_rate_per_s и прочие уже удалены из конфига и кода (тест U1 v5 это проверяет); остались только center_time_s и center_rate_bank_deg, их читает X",
+      "checked": "grep по репозиторию вне docs/plan и tools/research"
+    },
+    {
+      "where": "tools/flight/pendulum_pitch.gd:18, docs/research/pendulum_pitch.md",
+      "why": "Упоминают keyboard.pitch_rate_per_s как историю исследования; вне скоупа, не менял",
+      "checked": "grep"
+    }
+  ],
+  "dp_feedback": "accept в копии без .godot висит 900 с без внятной причины; нужна проверка наличия импорта. pkill -f убивает собственную оболочку агента.",
+  "t": "2026-10-19T15:39:25",
+  "by": "executor"
+}

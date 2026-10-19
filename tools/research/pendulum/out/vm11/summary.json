@@ -1,0 +1,447 @@
+{
+ "contract": "VM-К8 v1",
+ "task": "VM-11",
+ "wings": 48,
+ "fix": "ev",
+ "fix_keys": {
+  "pull_full_release": 0.5,
+  "arm_ff_load": true,
+  "arm_release_event": true,
+  "arm_release_pull": 0.25,
+  "arm_release_settle_m": 0.05,
+  "arm_release_settle_s": NaN
+ },
+ "tuck_1p8_count": 0,
+ "tuck_normal_count": 3,
+ "tuck_normal_le2_count": 0,
+ "tuck_normal_le2_wings_n": 36,
+ "tuck_smooth_count": 22,
+ "tuck_1p8_wings": [],
+ "tuck_normal_wings": [
+  "aeros_combat_l",
+  "air_c4",
+  "combat"
+ ],
+ "tuck_smooth_wings": [
+  "aeros_combat_c",
+  "aeros_combat_l",
+  "air_c4",
+  "air_rev",
+  "air_sting3",
+  "bautek_fizz",
+  "combat",
+  "fs_crossover",
+  "icaro_alto",
+  "icaro_laminar_z9",
+  "icaro_mastr",
+  "laminar",
+  "moyes_gecko",
+  "moyes_litespeed_rx",
+  "moyes_litespeed_s",
+  "moyes_litesport",
+  "seed_skyrunner_xr",
+  "sport",
+  "ww_t2c",
+  "ww_t3",
+  "ww_talon",
+  "ww_u2"
+ ],
+ "base": {
+  "tuck_1p8_count": 29,
+  "tuck_normal_count": 26,
+  "tuck_normal_le2_count": 14,
+  "tuck_smooth_count": 38
+ },
+ "reversal_45_dev_max": 0.0,
+ "reversal_45_s": {
+  "training": [
+   4.7083333333330675,
+   4.7083333333330675
+  ],
+  "laminar": [
+   3.9249999999997787,
+   3.9249999999997787
+  ],
+  "sport": [
+   4.283333333333092,
+   4.283333333333092
+  ]
+ },
+ "ochi_bank_dev_max_deg": 0.0,
+ "ochi_bank_deg": [
+  51.40046156733816,
+  51.40046156733816
+ ],
+ "phugoid_period_dev_max": 0.0,
+ "phugoid_period_s": {
+  "training": [
+   5.174999999999706,
+   5.174999999999706
+  ],
+  "laminar": [
+   5.549999999999687,
+   5.549999999999687
+  ],
+  "sport": [
+   5.549999999999686,
+   5.549999999999686
+  ]
+ },
+ "turb_upsets_total": 4,
+ "turb_upsets_total_base": 4,
+ "turb_upsets": {
+  "sport": [
+   3,
+   3
+  ],
+  "laminar": [
+   0,
+   0
+  ],
+  "training": [
+   1,
+   1
+  ]
+ },
+ "relturb_upsets": {
+  "sport": [
+   2,
+   2
+  ],
+  "laminar": [
+   1,
+   2
+  ],
+  "training": [
+   0,
+   0
+  ]
+ },
+ "relturb_n_per_wing": 10,
+ "guard_release_events": 0,
+ "vmax_ratio_median": 0.9722,
+ "vmax_ratio_p10": 0.8949,
+ "vmax_ratio_n": 40,
+ "vmax_ratio_median_base": 0.9722,
+ "trim_dev_max_kmh": 0.009704521587991621,
+ "release_time_s_median": {
+  "release_normal": 29.500000000009994,
+  "release_smooth": 29.500000000009994,
+  "release_1p8": 30.00000000001039
+ },
+ "release_regrip_frac": {
+  "release_normal": 0.4375,
+  "release_smooth": 0.3333333333333333,
+  "release_1p8": 0.4791666666666667
+ },
+ "release_events_min": 1,
+ "release_g_smooth_max": 4.503368209808015,
+ "release_g_smooth_max_base": 6.4186399990284775,
+ "v0_vt_median": {
+  "game": {
+   "normal": 1.805207195463727,
+   "smooth": 2.250573408383687,
+   "p1_8": 1.8003453456656895
+  },
+  "ev": {
+   "normal": 1.805207195463727,
+   "smooth": 2.250573408383687,
+   "p1_8": 1.8003453456656895
+  }
+ },
+ "variants": [
+  {
+   "name": "game",
+   "keys": {},
+   "wings": 48,
+   "normal": 26,
+   "smooth": 38,
+   "p1_8": 29,
+   "normal_le2": 14,
+   "game_same_wings": {
+    "release_normal": 26,
+    "release_smooth": 38,
+    "release_1p8": 29
+   },
+   "turb": {
+    "sport": 3,
+    "laminar": 0,
+    "training": 1
+   },
+   "relturb": {
+    "sport": 2,
+    "laminar": 1,
+    "training": 0
+   },
+   "relturb_release_time_s_median": {
+    "sport": 0.0,
+    "laminar": 0.0,
+    "training": 0.0
+   },
+   "rev_t_to_minus": {
+    "training": 4.7083333333330675,
+    "laminar": 3.9249999999997787,
+    "sport": 4.283333333333092
+   },
+   "phug_period_s": {
+    "training": 5.174999999999706,
+    "laminar": 5.549999999999687,
+    "sport": 5.549999999999686
+   },
+   "ochi_phi_max": 51.40046156733816
+  },
+  {
+   "name": "ev",
+   "keys": {
+    "arm_release_event": true,
+    "arm_release_pull": 0.25,
+    "arm_release_settle_m": 0.05,
+    "arm_release_settle_s": NaN
+   },
+   "wings": 48,
+   "normal": 3,
+   "smooth": 22,
+   "p1_8": 0,
+   "normal_le2": 0,
+   "game_same_wings": {
+    "release_normal": 26,
+    "release_smooth": 38,
+    "release_1p8": 29
+   },
+   "turb": {
+    "sport": 3,
+    "laminar": 0,
+    "training": 1
+   },
+   "relturb": {
+    "sport": 2,
+    "laminar": 2,
+    "training": 0
+   },
+   "relturb_release_time_s_median": {
+    "sport": 40.00833333333803,
+    "laminar": 40.00833333333803,
+    "training": 40.00833333333803
+   },
+   "rev_t_to_minus": {
+    "training": 4.7083333333330675,
+    "laminar": 3.9249999999997787,
+    "sport": 4.283333333333092
+   },
+   "phug_period_s": {
+    "training": 5.174999999999706,
+    "laminar": 5.549999999999687,
+    "sport": 5.549999999999686
+   },
+   "ochi_phi_max": 51.40046156733816
+  },
+  {
+   "name": "ev_now",
+   "keys": {
+    "arm_release_event": true,
+    "arm_release_pull": 0.25,
+    "arm_release_settle_m": 0.05,
+    "arm_release_settle_s": 0.0
+   },
+   "wings": 5,
+   "normal": 4,
+   "smooth": 4,
+   "p1_8": 0,
+   "normal_le2": 2,
+   "game_same_wings": {
+    "release_normal": 4,
+    "release_smooth": 4,
+    "release_1p8": 4
+   },
+   "turb": {
+    "sport": 3,
+    "laminar": 0,
+    "training": 1
+   },
+   "rev_t_to_minus": {
+    "training": 4.7083333333330675,
+    "laminar": 3.9249999999997787,
+    "sport": 4.283333333333092
+   },
+   "phug_period_s": {
+    "training": 5.174999999999706,
+    "laminar": 5.549999999999687,
+    "sport": 5.549999999999686
+   },
+   "ochi_phi_max": 51.40046156733816
+  },
+  {
+   "name": "ev_input",
+   "keys": {
+    "arm_release_event": true,
+    "arm_release_pull": 0.25,
+    "arm_release_settle_m": 0.0,
+    "arm_release_settle_s": NaN
+   },
+   "wings": 5,
+   "normal": 0,
+   "smooth": 4,
+   "p1_8": 0,
+   "normal_le2": 0,
+   "game_same_wings": {
+    "release_normal": 4,
+    "release_smooth": 4,
+    "release_1p8": 4
+   },
+   "turb": {
+    "sport": 3,
+    "laminar": 0,
+    "training": 1
+   },
+   "relturb": {
+    "sport": 2,
+    "laminar": 2,
+    "training": 0
+   },
+   "relturb_release_time_s_median": {
+    "sport": 40.00833333333803,
+    "laminar": 40.00833333333803,
+    "training": 40.00833333333803
+   },
+   "rev_t_to_minus": {
+    "training": 4.7083333333330675,
+    "laminar": 3.9249999999997787,
+    "sport": 4.283333333333092
+   },
+   "phug_period_s": {
+    "training": 5.174999999999706,
+    "laminar": 5.549999999999687,
+    "sport": 5.549999999999686
+   },
+   "ochi_phi_max": 51.40046156733816
+  },
+  {
+   "name": "ev_pass",
+   "keys": {
+    "arm_release_event": true,
+    "arm_release_pull": 0.25,
+    "arm_release_settle_m": 0.05,
+    "arm_release_settle_s": 0.0,
+    "arm_release_k": 300.0,
+    "arm_release_b": 30.0
+   },
+   "wings": 5,
+   "normal": 4,
+   "smooth": 4,
+   "p1_8": 3,
+   "normal_le2": 2,
+   "game_same_wings": {
+    "release_normal": 4,
+    "release_smooth": 4,
+    "release_1p8": 4
+   },
+   "turb": {
+    "sport": 3,
+    "laminar": 0,
+    "training": 1
+   },
+   "rev_t_to_minus": {
+    "training": 4.7083333333330675,
+    "laminar": 3.9249999999997787,
+    "sport": 4.283333333333092
+   },
+   "phug_period_s": {
+    "training": 5.174999999999706,
+    "laminar": 5.549999999999687,
+    "sport": 5.549999999999686
+   },
+   "ochi_phi_max": 51.40046156733816
+  },
+  {
+   "name": "ev_p50",
+   "keys": {
+    "arm_release_event": true,
+    "arm_release_pull": 0.5,
+    "arm_release_settle_m": 0.05,
+    "arm_release_settle_s": NaN
+   },
+   "wings": 5,
+   "normal": 0,
+   "smooth": 4,
+   "p1_8": 0,
+   "normal_le2": 0,
+   "game_same_wings": {
+    "release_normal": 4,
+    "release_smooth": 4,
+    "release_1p8": 4
+   }
+  },
+  {
+   "name": "ev_s03",
+   "keys": {
+    "arm_release_event": true,
+    "arm_release_pull": 0.25,
+    "arm_release_settle_m": 0.03,
+    "arm_release_settle_s": NaN
+   },
+   "wings": 5,
+   "normal": 0,
+   "smooth": 4,
+   "p1_8": 0,
+   "normal_le2": 0,
+   "game_same_wings": {
+    "release_normal": 4,
+    "release_smooth": 4,
+    "release_1p8": 4
+   }
+  },
+  {
+   "name": "ev_s10",
+   "keys": {
+    "arm_release_event": true,
+    "arm_release_pull": 0.25,
+    "arm_release_settle_m": 0.1,
+    "arm_release_settle_s": NaN
+   },
+   "wings": 5,
+   "normal": 0,
+   "smooth": 4,
+   "p1_8": 0,
+   "normal_le2": 0,
+   "game_same_wings": {
+    "release_normal": 4,
+    "release_smooth": 4,
+    "release_1p8": 4
+   }
+  },
+  {
+   "name": "passive",
+   "keys": {
+    "arm_neutral_k": 300.0,
+    "arm_neutral_b": 30.0
+   },
+   "wings": 5,
+   "normal": 3,
+   "smooth": 4,
+   "p1_8": 2,
+   "normal_le2": 1,
+   "game_same_wings": {
+    "release_normal": 4,
+    "release_smooth": 4,
+    "release_1p8": 4
+   },
+   "turb": {
+    "sport": 1,
+    "laminar": 2,
+    "training": 1
+   },
+   "rev_t_to_minus": {
+    "training": 5.024999999999716,
+    "laminar": 3.558333333333133,
+    "sport": 3.241666666666484
+   },
+   "phug_period_s": {
+    "training": 5.454166666666357,
+    "laminar": 6.124999999999654,
+    "sport": 6.174999999999649
+   },
+   "ochi_phi_max": 44.251546535368284
+  }
+ ],
+ "note": "переворот — VM-К5 (тангаж < −60°, |α| > 90° за 30 с, средняя V 25–30 с вне ±10 % трима); база — вариант game (игра после порта); ограждения — сценарии эталонов игры на модели варианта; release_g_* — |F полос|/(M·g) до первого кадра переворота"
+}

@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-19"
+updated: "2026-10-20"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -38,9 +38,11 @@ generated: true
   - [docs/research/pendulum/pilot-body.md](research/pendulum/pilot-body.md) — Пилот как тело вместо точки (PB-1): расхождения с литературой не закрываются; разрыв голландского шага с Cook — знак Cnp, не пилот [closed]
   - [docs/research/pendulum/vg.md](research/pendulum/vg.md) — VG на маятнике (PB-2): разрыв Vmax — не VG, а линейный тангаж модели; VG даёт +15…+26 км/ч (паспорта +25), крен вдвое медленнее
 - **pullin-speed** — Vmax полного «на себя» 45–60 км/ч против 63–103 по паспортам (T-86): причина — линейный тангаж (Kn 0,14); правка — нелинейная Cm(α) и ход. [active 2026-10-19] — [план](plan/pullin-speed.md) · [контракты](contracts/pullin-speed.md)
-  - [docs/research/pendulum/pitch-nonlinear.md](research/pendulum/pitch-nonlinear.md) — Cm(α) σ 0,5 + добор 0,95 м: Vmax/паспорт 1,00 (p10 0,91), трим и фугоида целы; шлюз — переворот при отпускании (37/48)
+  - [docs/contracts/pullin-speed-research.md](contracts/pullin-speed-research.md) — Стыки исследований pullin-speed на прототипе: входные данные (VM-К0), разбор VM-1, Cm(α) VM-2, отпускание VM-3, пилот и подвеска VM-6.
+  - [docs/research/pendulum/pitch-nonlinear.md](research/pendulum/pitch-nonlinear.md) — В игре добор 0,7 м; здесь 0,95 м: Vmax/паспорт 1,00, трим и фугоида целы; шлюз — переворот при отпускании (37/48)
   - [docs/research/pendulum/pitch-release.md](research/pendulum/pitch-release.md) — Отпускание с Vmax: Cmq прототипа −1,95 уже выше литературы −1,11; поправка к ней — переворот 47/48 (VM-2 39/48); шлюз
   - [docs/research/pendulum/pullin-speed.md](research/pendulum/pullin-speed.md) — Vmax «на себя» 55 против 80 км/ч паспорта: (V/Vтрим)² = 1 + 0,19/Kn, модель Kn 0,14, паспорту нужен ≈ 0,05; не VG и не сила рук.
+  - [docs/research/pendulum/release-tumble.md](research/pendulum/release-tumble.md) — Переворот при выходе: руки держат пилота в нейтрали; VM-11 — отпускание только после «на себя»: 1,8 — 29→0, normal ≤ 2·Vт — 14→0
   - [tools/research/pullin_speed/README.md](../tools/research/pullin_speed/README.md) — VM-1: замеры полного «на себя» по 48 крыльям (подвеска, Kn, CL_α, CdA, ход, VG-прокси) и пары Vmax VG 0 / VG 100.
 
 ## world
