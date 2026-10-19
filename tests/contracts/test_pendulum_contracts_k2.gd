@@ -60,17 +60,18 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К2\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 8, "PD-К2 (v8) в заголовках")
+	check(m != null and int(m.get_string(1)) == 9, "PD-К2 (v9) в заголовках")
 
 
 func test_pendulum_config() -> void:
 	var c := _read_json("res://configs/pendulum.json")
 	check(not c.is_empty(), "configs/pendulum.json читается")
-	check(c.get("contract") == "PD-К2 v8", "contract")
+	check(c.get("contract") == "PD-К2 v9", "contract")
 	var want := {
 		"chain": {"links": 3, "strap_mass_kg": 1.0, "compliance_m_per_n": 4e-5, "substeps_per_s": 480, "substeps_min": 4},
 		"arms": {"force_max_n": 300.0, "tau_s": 0.30, "ti_s": 0.0, "shift_y_max_m": 0.45,
-				"shift_x_pull_m": 0.45, "shift_x_push_m": 0.30, "shift_x_pull_full_m": 0.7, "pull_full_release_m_s": 0.5},
+				"shift_x_pull_m": 0.45, "shift_x_push_m": 0.30, "shift_x_pull_full_m": 0.7, "pull_full_release_m_s": 0.5,
+				"release_event": true, "release_pull": 0.25, "release_settle_m": 0.05, "release_settle_periods": 1.0},
 		"pitch_nl": {"enabled": 1.0, "sigma": 0.5, "width_deg": 1.0, "luff_cm_per_deg": 0.02, "luff_on_deg": 0.0},
 		"strips": {"count": 16, "cp_chord": 0.25, "aero_hz": 60.0},
 		"yaw": {"cn_beta": 0.05, "fin_arm_m": 1.6, "fin_slope_per_rad": 2.0, "cn_p_add": 0.15, "cn_r_add": -0.03},
