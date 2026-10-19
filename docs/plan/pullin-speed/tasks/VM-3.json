@@ -18,7 +18,7 @@
     },
     {
       "name": "VM-К4",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pullin-speed.md"
     }
   ],
@@ -63,5 +63,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-19T08:42:32"
+  "created": "2026-10-19T08:42:32",
+  "edited": "2026-10-19T08:45:06"
 }
