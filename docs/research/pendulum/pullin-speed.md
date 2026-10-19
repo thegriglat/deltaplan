@@ -8,7 +8,7 @@ summary: "Vmax «на себя» 55 против 80 км/ч паспорта: (V
 related: ["docs/contracts/pullin-speed.md", "docs/plan/pullin-speed.md", "docs/research/pendulum_pitch.md", "docs/research/pendulum/prototype.md", "docs/guide/flight/pendulum.md"]
 conclusion: "Скорость на полном «на себя» задаёт моментный баланс: (Vmax/Vтрим)² = 1 + k/Kn, k = 0,19 (0,11–0,25) по 48 крыльям. Паспорт требует Kn 0,047 (0,023–0,08) против 0,139 модели: граница модели (линейная Cm(CL), Kn из оценки геометрии). VG, сила рук, CL_α, сопротивление пилота разрыв не закрывают."
 data: "tools/research/pullin_speed/out/ (cases.json, wings_table.csv|md, tables.md, summary.json, vg_pairs.csv)"
-applied_in: "—"
+applied_in: "docs/guide/flight/pendulum.md, PD-К2 v8"
 ---
 # Почему полный «на себя» даёт 45–62 км/ч вместо паспортных 63–103 (VM-1)
 
