@@ -4,12 +4,16 @@ extends Node
 ## 1. Без ввода 10 с: стоит — нет отрыва и срыва, |крен| < 3°, смещение < 1 м.
 ## 2. Разбег (Shift, С2 v2) с нейтральной трапецией — отрыв; «на себя» (нос ниже нейтрали на
 ##    ≈ 6°, как прежняя подстройка ↓ на 0,3 хода) — меньше угол атаки на разбеге и отрыв; «от себя»
-##    до упора — нос за срывом, отрыва нет (срыва по носу нет, К3 v3); крен на разбеге < 3°. Клавиши — действия трапеции, знак — карта.
+##    до упора — нос за срывом, отрыва нет (срыва по носу нет, К3 v3); крен на разбеге < 3°. Трапеция — мышь
+##    (У1 v5: клавиш трапеции нет), рукой со скоростью прежнего хода клавиш (1,5 доли хода/с, назад 1,0).
 ## Поле воздуха: headless — аналитическое; test_start_regression_gpu.gd — то же с полем GPU.
 
 const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
-const KEYS := ["run", "pitch_pull_in", "pitch_push_out"]
+const KEYS := ["run"]
+## Ход руки с мышью, доля полного хода в секунду: к цели и назад к нейтрали.
+const HAND_RATE := 1.5
+const HAND_RETURN := 1.0
 ## «На себя»: держать нос на столько ниже угла разбега крыла (launch.alpha_neutral_deg), °.
 const PULL_BELOW_DEG := 6.0
 ## Сколько стоит перед разбегом, с.
@@ -115,7 +119,7 @@ func _stand(game: Game, t_s: float) -> Dictionary:
 
 
 ## Разбег после STAND_S стоя; nose: 0 — нейтрально, −1 — «на себя» (нос на PULL_BELOW_DEG ниже
-## угла разбега: клавиша зажата, пока нос выше), +1 — «от себя» до упора.
+## угла разбега: мышь на себя, пока нос выше), +1 — «от себя» до упора.
 func _run(game: Game, nose: int) -> Dictionary:
 	game.restart()
 	_release()
@@ -128,12 +132,21 @@ func _run(game: Game, nose: int) -> Dictionary:
 	var t := 0.0
 	var a_sum := 0.0
 	var a_n := 0
+	var ic := game.input_controller
+	ic.mouse_captured = true
+	var bar := 0.0
 	while t < STAND_S + RUN_MAX_S:
 		var running := t >= STAND_S
 		var a_pull := float(m.wing.launch.alpha_neutral_deg) - PULL_BELOW_DEG
 		_press("run", running)
-		_press("pitch_pull_in", running and nose < 0 and rad_to_deg(m.alpha) > a_pull)
-		_press("pitch_push_out", running and nose > 0)
+		var dir := 0.0
+		if running and nose < 0 and rad_to_deg(m.alpha) > a_pull:
+			dir = -1.0
+		elif running and nose > 0:
+			dir = 1.0
+		bar = move_toward(bar, dir, (HAND_RATE if dir != 0.0 else HAND_RETURN) * DT)
+		var inv := -1.0 if bool(Config.value("controls", "invert_pitch")) else 1.0
+		ic._mouse_offset = Vector2(0.0, -bar * inv)  # мышь от себя (вверх) — pitch +
 		game.tick(DT)
 		t += DT
 		if m.mode == FlightModel.Mode.GROUND:
@@ -150,6 +163,7 @@ func _run(game: Game, nose: int) -> Dictionary:
 	out.t_run = maxf(t - STAND_S, 0.0)
 	out.run_m = Vector2(m.position.x - p0.x, m.position.z - p0.z).length()
 	out.alpha_run = a_sum / maxf(a_n, 1)
+	ic._mouse_offset = Vector2.ZERO
 	_release()
 	return out
 

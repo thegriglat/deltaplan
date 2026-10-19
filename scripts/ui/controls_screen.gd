@@ -56,14 +56,13 @@ static func rows() -> Array[Dictionary]:
 	return out
 
 
-## Подсказка на старте (Q-08), левая часть: клавиши разбега и полёта — из controls.json.
+## Подсказка на старте (Q-08), левая часть: клавиши разбега и шага — из controls.json.
 static func start_hint_keys_text() -> String:
 	var k: Dictionary = Config.get_config("controls").get("keys", {})
-	var nose := key_names(k.get("pitch_push_out", [])) + " / " + key_names(k.get("pitch_pull_in", []))
-	var bank := key_names(k.get("roll_left", [])) + " / " + key_names(k.get("roll_right", []))
+	# нос и крен крыла — мышью (У1 v5: клавиш трапеции нет)
 	return (
 		TranslationServer.translate("start_hint_keys")
-		% [key_names(k.get("run", [])), nose, bank, key_names(k.get("walk_forward", []))]
+		% [key_names(k.get("run", [])), key_names(k.get("walk_forward", []))]
 	)
 
 

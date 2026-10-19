@@ -117,24 +117,8 @@
       "section": "controls_in_flight"
     },
     {
-      "action": "pitch_push_out",
-      "text": "controls_push_out"
-    },
-    {
-      "action": "pitch_pull_in",
-      "text": "controls_pull_in"
-    },
-    {
       "action": "pull_full",
       "text": "controls_pull_full"
-    },
-    {
-      "action": "roll_left",
-      "text": "controls_shift_left"
-    },
-    {
-      "action": "roll_right",
-      "text": "controls_shift_right"
     },
     {
       "action": "center",

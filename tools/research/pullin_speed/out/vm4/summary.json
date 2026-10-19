@@ -1,5 +1,5 @@
 {
- "contract": "VM-К5 v1",
+ "contract": "VM-К5 v2",
  "task": "VM-4",
  "wings": 48,
  "vmax_ratio_median": 0.9789886784888888,
@@ -12,7 +12,7 @@
  "trim_dev_max_kmh": 0.004088420387198255,
  "bar_force_vmax_max_n": 300.0,
  "arms_force_max_n": 300.0,
- "tuck_smooth_count": 39,
+ "tuck_smooth_count": 40,
  "tuck_1p8_count": 29,
  "tuck_smooth_wings": [
   "aeros_combat_c",
@@ -34,6 +34,7 @@
   "icaro_alto",
   "icaro_laminar_z9",
   "icaro_mastr",
+  "icaro_piuma",
   "laminar",
   "magic",
   "moyes_gecko",
@@ -86,8 +87,8 @@
   "ww_talon",
   "ww_u2"
  ],
- "release_g_smooth_max": 2.17111141149375,
- "release_g_smooth_max_all": 32.8906139028843,
+ "release_g_smooth_max": 2.2358753675152,
+ "release_g_smooth_max_all": 51.5501658822964,
  "pull_full_m": 0.7,
  "pull_normal_m": 0.45,
  "pull_full_release_m_s": 0.5,

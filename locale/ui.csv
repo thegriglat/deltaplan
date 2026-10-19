@@ -1,6 +1,6 @@
 keys,ru,en
 settings_invert_pitch_hint,"Как ручка самолёта: ↑ и мышь от себя — на себя, ↓ — от себя","Like an aircraft stick: ↑ and mouse forward — pull in, ↓ — push out"
-controls_short_help,"Мышь, ↑/↓, ←/→ — трапеция; на земле W/S — шаг, A/D — поворот, Shift — разбег; в полёте W/A/S/D — осмотреться; C — камера, Tab — прибор, Esc — пауза","Mouse, ↑/↓, ←/→ — control bar; on the ground W/S — step, A/D — turn, Shift — run; in flight W/A/S/D — look around; C — camera, Tab — instrument, Esc — pause"
+controls_short_help,"Мышь — трапеция (в полёте Shift — добор до бёдер); на земле W/S — шаг, A/D — поворот, Shift — разбег; в полёте W/A/S/D — осмотреться; C — камера, Tab — прибор, Esc — пауза","Mouse — control bar (in flight Shift — pull to the hips); on the ground W/S — step, A/D — turn, Shift — run; in flight W/A/S/D — look around; C — camera, Tab — instrument, Esc — pause"
 result_crash,Авария,Crash
 loc_altai,Алтай — Манжерок,Altai — Manzherok
 launch_fail_nose,Нос крыла упёрся в землю,The nose hit the ground
@@ -75,14 +75,10 @@ settings_vario_sound,Звук вариометра,Vario sound
 controls_in_flight,В полёте,In flight
 controls_on_ground,На земле,On the ground
 controls_instrument_camera_game,"Прибор, камера, игра","Instrument, camera, game"
-controls_pull_in,Подтянуть трапецию к себе — разогнаться,Pull the bar in — speed up
 controls_pull_full,"Держать в полёте — добор до бёдер: «на себя» дальше обычного, большой разгон; отпустил — штанга плавно к груди; за обычным пределом индикатор подвески красный","Hold in flight — pull the bar to the hips: further than the normal pull-in, much faster; release — the bar eases back to the chest; past the normal limit the hang indicator turns red"
-controls_push_out,"Отдать трапецию от себя — затормозить, нос вверх","Push the bar out — slow down, nose up"
-controls_shift_left,Сместить вес влево — поворот влево,Shift weight left — turn left
-controls_shift_right,Сместить вес вправо — поворот вправо,Shift weight right — turn right
 controls_center,Встать в центр трапеции — крыло выровняется и полетит прямо,Center your weight — the wing levels out and flies straight
 settings_roll_control,Управление креном,Roll control
-settings_roll_input,Крен мышью и стрелками,Roll by mouse and arrows
+settings_roll_input,Крен мышью,Roll by mouse
 settings_roll_input_bar,Как штанга (вправо — крен влево),Like the bar (right — roll left)
 settings_roll_input_body,Как тело (вправо — крен вправо),Like the body (right — roll right)
 settings_roll_simple,Простое (аркадное),Simple (arcade)
@@ -96,8 +92,8 @@ controls_walk,Шаг вперёд (без Shift),Step forward (without Shift)
 controls_step_back,Шаг назад,Step back
 controls_turn_on_ground,Повернуться на месте налево (D — направо); крыло не кренится,Turn in place to the left (D — right); the wing does not bank
 controls_run,"Держать — бежать (разбег); W не нужен, на бегу W/S/A/D не действуют","Hold — run (launch run); no W needed, W/S/A/D do nothing while running"
-controls_ground_wing,"Стоя и шагом: нос и крен крыла — стрелки, мышь или стик","Standing and walking: wing nose and bank — arrow keys, mouse or stick"
-controls_run_wing,"На бегу: стрелки, мышь или стик — нос и крен крыла, как в полёте; крыло в крене ведёт бег по дуге","While running: arrows, mouse or stick — wing nose and bank, as in flight; a banked wing turns the run into an arc"
+controls_ground_wing,"Стоя и шагом: нос и крен крыла — мышь или стик","Standing and walking: wing nose and bank — mouse or stick"
+controls_run_wing,"На бегу: мышь или стик — нос и крен крыла, как в полёте; крыло в крене ведёт бег по дуге","While running: mouse or stick — wing nose and bank, as in flight; a banked wing turns the run into an arc"
 controls_next_page,"Следующая страница прибора (1, 2, 3, 4, 5 — страница сразу)","Next instrument page (1, 2, 3, 4, 5 — jump to that page)"
 controls_camera,Вид: из кабины → сзади → свободная камера,View: first-person → chase → free camera
 controls_restart,Начать полёт заново с того же старта,Restart the flight from the same launch
@@ -484,7 +480,7 @@ controls_free_camera,Свободная камера (C — переключит
 controls_free_up,Свободная камера: вверх,Free camera: up
 controls_free_down,Свободная камера: вниз,Free camera: down
 controls_free_move,"Свободная камера: W/S/A/D — движение, Shift — быстрее, мышь — поворот, V — навести на планер","Free camera: W/S/A/D move, Shift faster, mouse turns, V aims at the glider"
-start_hint_keys,"Разбег: держите %s\nНос крыла: %s\nКрен: %s\nШаг вперёд: %s — подсказка уйдёт","Launch run: hold %s\nWing nose: %s\nBank: %s\nStep forward: %s — hint goes away"
+start_hint_keys,"Разбег: держите %s\nНос и крен крыла — мышью\nШаг вперёд: %s — подсказка уйдёт","Launch run: hold %s\nWing nose and bank — mouse\nStep forward: %s — hint goes away"
 start_hint_mouse,"Мышь: нос и крен крыла (%s — захват мыши); средняя кнопка — взгляд вперёд","Mouse: wing nose and bank (%s captures the mouse); middle button — look ahead"
 screenshot_saved,Снимок: %s,Screenshot: %s
 fav_wind,"%d м/с %s","%d m/s %s"

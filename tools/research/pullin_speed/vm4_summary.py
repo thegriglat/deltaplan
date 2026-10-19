@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""VM-4 (VM-К5 v1): сводка замера порта в игре — out/vm4/raw_*.json → out/vm4/cases.json, out/vm4/summary.json
+"""VM-4 (VM-К5 v2): сводка замера порта в игре — out/vm4/raw_*.json → out/vm4/cases.json, out/vm4/summary.json
 (временный файл + переименование), out/vm4/tables.md. Паспорт Vmax VG 0 и цензура Vne — out/passport_censoring.csv
 (VM-1), прототип VM-3 — tools/research/pendulum/out/vm3/summary.json (вариант nl: σ 0,5, добор 0,7 м, без Cmq)."""
 import csv, glob, json, math, os, statistics as st
@@ -36,7 +36,7 @@ for w, c in sorted(C.items()):
                      rs=c['release_smooth'], r8=c['release_1p8'], rn=c.get('release_smooth_normal')))
 unc = [r for r in rows if not r['censored']]
 s = {
-    'contract': 'VM-К5 v1', 'task': 'VM-4', 'wings': len(rows),
+    'contract': 'VM-К5 v2', 'task': 'VM-4', 'wings': len(rows),
     'vmax_ratio_median': st.median(r['full'] / r['passport'] for r in unc),
     'vmax_ratio_p10': p10([r['full'] / r['passport'] for r in unc]),
     'vmax_ratio_n': len(unc),

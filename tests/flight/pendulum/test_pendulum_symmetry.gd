@@ -38,16 +38,12 @@ func _fly(w: String, src: String, r: float, wind := Vector3.ZERO) -> Array:
 			ev.position = sz * 0.5
 			ev.global_position = ev.position
 			root.push_input(ev)
-		elif src == "key" and r != 0.0:
-			Input.action_press("roll_right" if r > 0.0 else "roll_left", absf(r))
 	var inp := S.input(0.0, r)
 	for i in int(round(DUR / S.DT)):
 		if ic != null:
 			inp = ic.update(S.DT)
 		m.step(S.DT, inp, air, Callable())
 	if ic != null:
-		Input.action_release("roll_right")
-		Input.action_release("roll_left")
 		ic.set_mouse_captured(false)
 		ic.free()
 	check(S.finite(m), "%s %s %+.1f: без NaN" % [w, src, r])
@@ -77,13 +73,6 @@ func test_mouse_symmetric() -> void:
 	check(absf(z[0]) <= NEUTRAL_DEG, "мышь: нейтраль %.2f°" % z[0])
 	for r: float in [0.3, 1.0]:
 		_pair("training", "mouse", r)
-
-
-func test_keyboard_symmetric() -> void:
-	var z := _fly("training", "key", 0.0)
-	check(absf(z[0]) <= NEUTRAL_DEG, "клавиши: нейтраль %.2f°" % z[0])
-	for r: float in [0.3, 1.0]:
-		_pair("training", "key", r)
 
 
 ## Однородный ветер 4 м/с по курсу и поперёк: ответ тот же, что в штиль; зеркальная пара —

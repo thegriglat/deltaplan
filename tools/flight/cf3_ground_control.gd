@@ -10,7 +10,7 @@ extends Node
 const DT := 1.0 / 120.0
 const SLOPE := 0.3
 const BAR_ACTIONS := [
-	"run", "pitch_pull_in", "pitch_push_out", "roll_left", "roll_right",
+	"run",
 	"walk_forward", "walk_back", "turn_left", "turn_right"
 ]
 
@@ -108,7 +108,7 @@ func _state(m: FlightModel) -> String:
 	)
 
 
-## П. 1: стоя — нос (клавиши, мышь) на полный ход, крен к заданному, W/S шаг, A/D поворот.
+## П. 1: стоя — нос (мышь; клавиш трапеции нет, У1 v5) на полный ход, крен к заданному, W/S шаг, A/D поворот.
 func _standing() -> void:
 	print("\n== 1. Стоя (склон 17°, постоянный встречный ветер) ==")
 	var phi := float(Config.get_config("flight").ground_bank.command_max_deg)
@@ -117,12 +117,8 @@ func _standing() -> void:
 			var m := _model(w)
 			var cases := [
 				["без ввода", [], Vector2.ZERO],
-				["«от себя» (клавиша)", ["pitch_push_out"], Vector2.ZERO],
-				["«на себя» (клавиша)", ["pitch_pull_in"], Vector2.ZERO],
 				["мышь вверх до упора", [], Vector2(0, -1)],
 				["мышь вниз до упора", [], Vector2(0, 1)],
-				["крен вправо (клавиша)", ["roll_right"], Vector2.ZERO],
-				["крен влево (клавиша)", ["roll_left"], Vector2.ZERO],
 				["мышь вправо до упора", [], Vector2(1, 0)],
 				["мышь влево полхода", [], Vector2(-0.5, 0)],
 				["шаг вперёд (walk_forward)", ["walk_forward"], Vector2.ZERO],
@@ -148,11 +144,7 @@ func _running() -> void:
 			var m := _model(w)
 			var cases := [
 				["без ввода", [], Vector2.ZERO],
-				["«на себя» (клавиша)", ["pitch_pull_in"], Vector2.ZERO],
-				["«от себя» (клавиша)", ["pitch_push_out"], Vector2.ZERO],
 				["мышь на себя полхода", [], Vector2(0, 0.5)],
-				["крен вправо (клавиша)", ["roll_right"], Vector2.ZERO],
-				["крен влево (клавиша)", ["roll_left"], Vector2.ZERO],
 				["мышь вправо полхода", [], Vector2(0.5, 0)],
 			]
 			for cs: Array in cases:
@@ -165,14 +157,12 @@ func _running() -> void:
 				)
 
 
-## П. 3: отрыв — скачок трапеции за шаг (клавиши зажаты, мышь отклонена).
+## П. 3: отрыв — скачок трапеции за шаг (мышь отклонена).
 func _liftoff() -> void:
 	print("\n== 3. Отрыв: |Δpitch|, |Δroll| за шаг отрыва (и за шаг до него) ==")
 	for w in ["slavutich_ut", "sport"]:
 		for cs: Array in [
 			["Shift", [], Vector2.ZERO],
-			["Shift + крен вправо", ["roll_right"], Vector2.ZERO],
-			["Shift + «от себя»", ["pitch_push_out"], Vector2.ZERO],
 			["Shift + мышь (0,3; −0,2)", [], Vector2(0.3, -0.2)],
 		]:
 			var m := _model(w)
@@ -236,14 +226,18 @@ func _launch(w: String, base_m: float, wind: float, policy: String) -> Dictionar
 	var t := 0.0
 	var x0 := m.position
 	var lifted := false
+	var bar := 0.0  # нос мышью рукой: ход 1,5 доли/с к цели, 1,0 — назад (прежний ход клавиш)
+	ic.mouse_captured = true
 	while t < 30.0:
 		var agl: float = m.position.y - gf.call(m.position.x, m.position.z)
 		_press("run", agl <= clear_h)
 		if policy == "нос по α" and m.telemetry.airspeed > 1.0 and m.mode == FlightModel.Mode.GROUND:
 			var a := rad_to_deg(m.alpha)
 			var dn := -1 if (m.stalled or a > target + 1.0) else (1 if a < target - 1.0 else 0)
-			_press("pitch_pull_in", dn < 0)
-			_press("pitch_push_out", dn > 0)
+			bar = move_toward(bar, float(dn), (1.5 if dn != 0 else 1.0) * DT)
+		elif m.mode != FlightModel.Mode.GROUND:
+			bar = move_toward(bar, 0.0, DT)
+		ic._mouse_offset = Vector2(0.0, -bar)
 		ic.on_ground = m.mode != FlightModel.Mode.AIR
 		m.step(DT, ic.update(DT), af, gf)
 		t += DT

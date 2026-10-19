@@ -2,8 +2,8 @@ extends Node
 ## VM-1: что ограничивает Vmax на полном «на себя». Установившийся полный «на себя» (рампа 6 с, среднее 50–70 с)
 ## на модели игры (PendulumModel) с правками только в экземпляре модели — configs/ не меняется.
 ## godot --headless --path . res://tools/research/pullin_speed/pullin_speed.tscn -- --out=<json> --wings=a,b|all [--cases=base,hang,...]
-## VM-4 (VM-К5, порт в игру): --cases=vm4 — normal, full (добор pull_full), release_smooth (отпускание через
-## InputController, как клавиатура), release_1p8 (с min(1,8·Vтрим, V full) ввод 0 скачком); конфиги игры как есть.
+## VM-4 (VM-К5 v2, порт в игру): --cases=vm4 — normal, full (добор pull_full), release_smooth (Shift отпущен, мышь/ручка
+## −1 → 0 за 0,5 с), release_smooth_normal (то же с обычного полного «на себя», справочно), release_1p8 (с min(1,8·Vтрим, V full) ввод 0 скачком); конфиги игры как есть.
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const DT := 1.0 / 120.0
@@ -284,9 +284,9 @@ func _vm4(w: String) -> Dictionary:
 	out["vm4_trim"] = {"V_kmh": v_trim * 3.6, "alpha_deg": rad_to_deg(float(tr.alpha)),
 		"passport_kmh": float(Config.get_config("wings/" + w).trim_speed_kmh), "nl_on": m.strips.nl_on}
 	out["normal"] = _vm4_pull(m, false)
-	# справочно (не VM-К5): то же отпускание через InputController с обычного полного «на себя» без Shift
+	# справочно (не VM-К5): тот же плавный выход с обычного полного «на себя» без Shift (решение пользователя 10:34)
 	out["release_smooth_normal"] = _vm4_release_keys(m, false, v_trim)
-	# full, затем release_smooth на той же модели: отпустить Shift и ↓ через InputController (возврат ввода клавиатуры)
+	# full, затем release_smooth на той же модели
 	m = _game_model(w)
 	out["full"] = _vm4_pull(m, true)
 	out["release_smooth"] = _vm4_release_keys(m, true, v_trim)
@@ -350,24 +350,18 @@ func _vm4_steady(w: String, p: float) -> float:
 	return vs / maxi(n, 1)
 
 
-## Отпустить ↓ (и Shift, если full) через InputController — возврат ввода клавиатуры, как в игре; 30 с.
-func _vm4_release_keys(m: PendulumModel, full: bool, v_trim: float) -> Dictionary:
-	var ic := InputController.new()
-	add_child(ic)
-	ic.telemetry_fn = func() -> Telemetry: return m.telemetry
-	ic.reset()
-	ic.on_ground = false
-	Input.action_press("pitch_pull_in")
-	if full:
-		Input.action_press("pull_full")
-	for i in 240:
-		ic.update(DT)  # клавиши держали весь разгон: ввод — полный «на себя»
-	var held := ic.control.pitch
-	var held_full := ic.control.pull_full
-	Input.action_release("pitch_pull_in")
-	Input.action_release("pull_full")
-	var rs := _vm4_release(m, func(_m: PendulumModel) -> ControlInput: return ic.update(DT), v_trim)
-	rs["pitch_held"] = held
-	rs["pull_full_held"] = held_full
-	ic.queue_free()
+## Плавный выход (VM-К5 v2): модификатор отпущен в начале (предел возвращается по VM-К3 v2), pitch линейно −1 → 0
+## за T_HAND с — пилот возвращает мышь/ручку рукой (через ControlInput, как мышь/стик); 30 с.
+const T_HAND := 0.5
+
+
+func _vm4_release_keys(m: PendulumModel, _full: bool, v_trim: float) -> Dictionary:
+	var inp := S.input(-1.0)
+	inp.pull_full = false
+	var t0 := m.time_s
+	var ctrl := func(mm: PendulumModel) -> ControlInput:
+		inp.pitch = -clampf(1.0 - (mm.time_s - t0) / T_HAND, 0.0, 1.0)
+		return inp
+	var rs := _vm4_release(m, ctrl, v_trim)
+	rs["hand_s"] = T_HAND
 	return rs
