@@ -111,3 +111,4 @@
 {"t": "2026-10-19T15:39:25", "by": "executor", "task": "VM-7", "ev": "reported", "commits": ["c4401f03"], "note": "done: Тест PD-К1 ждёт v5; в model.md убрано утверждение про остатки клавиатурных параметров (их нет ни в конфиге, ни в коде);…", "dp_feedback": "accept в копии без .godot висит 900 с без внятной причины; нужна проверка наличия импорта. pkill -f убивает собственную оболочку агента."}
 {"t": "2026-10-19T15:43:56", "by": "coordinator", "task": "VM-7", "ev": "checked", "note": "6/6 pendulum_contracts=ok:35/35; control=ok:26/26; gameplay=ok:13/13; input=ok:1/1; pitch-nl-07=ok:exit 0; docs-check=ok:ошибок 0"}
 {"t": "2026-10-19T15:44:40", "by": "coordinator", "task": "VM-7", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-19T15:44:41", "by": "coordinator", "task": "VM-7", "ev": "merged", "note": "слито e73111d7; accept --here не гонял — 3 файла, проверки PASS в копии задачи"}
