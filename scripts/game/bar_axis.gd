@@ -42,6 +42,12 @@ static func find_device(guid: String) -> int:
 	return pick_device(guid, devices())
 
 
+## Самодельная трапеция (CB-К1 v4): устройство подключено и SDL не знает его раскладку как геймпад.
+## Обычный геймпад (известная раскладка) — не трапеция, выбран он в настройках или нет.
+static func is_bar(id: int) -> bool:
+	return id >= 0 and not Input.is_joy_known(id)
+
+
 ## Подключённые устройства: [{id, guid, name}].
 static func devices() -> Array:
 	var out: Array = []
