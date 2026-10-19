@@ -1,0 +1,67 @@
+{
+  "id": "VM-6",
+  "module": "pullin-speed",
+  "type": "dp-researcher",
+  "title": "T-88: переворот при выходе из разгона — гипотезы о пилоте, руках и подвеске на прототипе",
+  "goal": "По VM-К6: воспроизвести на прототипе перевороты игры после порта, проверить замером гипотезы о модели крыла, пилота и подвески (точка и цепь подвески, масса и инерция пилота, руки под перегрузкой, угол трапеции и ход штанги), найти причину и одну обоснованную правку для всех 48 крыльев без правки аэродинамики; итог — документ и ключи для порта.",
+  "plan_ref": "Волна 5 — переворот при отпускании «на себя» (T-88, после слияния в main)",
+  "contracts": [
+    {
+      "name": "VM-К6",
+      "version": "1",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "VM-К5",
+      "version": "3",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "8",
+      "ref": "docs/contracts/pullin-speed.md"
+    }
+  ],
+  "copy": "~/deltaplan-pullin-speed-VM-6",
+  "branch": "pullin-speed/VM-6",
+  "base": "feature/pullin-speed",
+  "scope": [
+    "docs/research/pendulum/release-tumble.md",
+    "tools/research/pendulum/",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "tools/flight/",
+    "docs/guide/",
+    "docs/contracts/",
+    "project.godot",
+    "tools/research/pendulum/out/vm2/",
+    "tools/research/pendulum/out/vm3/",
+    "tools/research/pendulum/out/pb2/",
+    "tools/research/pullin_speed/"
+  ],
+  "accept": [
+    {
+      "name": "vm-k6-sections",
+      "cmd": "bash -c 'f=docs/research/pendulum/release-tumble.md; for h in \"Воспроизведение игры\" \"Гипотезы\" \"Причина\" \"Правка\" \"Результаты\" \"Порт в игру\" \"Границы\" \"Как воспроизвести\"; do grep -q \"^## $h\" $f || { echo нет $h; exit 1; }; done'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "vm-k6-summary",
+      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pendulum/out/vm6/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('repro',min(s['repro_smooth'],s['repro_1p8'],s['repro_normal'])>=0),('hyp',len(s['hypotheses'])>=4),('smooth',s['tuck_smooth_count']==0),('p18',s['tuck_1p8_count']==0),('normal',s['tuck_normal_count']==0),('vmax',0.9<=s['vmax_ratio_median']<=1.1),('p10',s['vmax_ratio_p10']>=0.8),('trim',s['trim_dev_max_kmh']<=0.3),('kn',s['kn_trim_min']>0),('phug',s['phugoid_unstable_count']<=s['phugoid_unstable_count_base']),('stall',s['stall_dev_max_kmh']<=2),('g',0<s['release_g_smooth_max']<=4)] if not ok]; print('bad', bad) if bad else print('vm-k6 ok'); sys.exit(1 if bad else 0)\"",
+      "expect": "re:vm-k6 ok"
+    },
+    {
+      "name": "docs-check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-19T15:01:51"
+}
