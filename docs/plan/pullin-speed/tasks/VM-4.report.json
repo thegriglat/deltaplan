@@ -1,0 +1,121 @@
+{
+  "status": "done",
+  "summary": "Порт VM-2/VM-3 в игру: нелинейная Cm(α) (PD-К2 v8, 48 крыльев перегенерированы), добор «на себя» до бёдер 0,7 м с Shift / правым бампером / самодельной трапецией полным ходом, плавный возврат предела 0,5 м/с, Telemetry.pull_over и красный индикатор (VM-К3 v2, CB-К1 v3, PH-К1 v2). Тангаж и крен с клавиатуры удалены в полёте и на земле (У1 v5, С2 v4), автопилот пишет ControlInput напрямую. Замер VM-К5 v3 по 48 крыльям: Vmax с добором — медиана 0,98 паспорта.",
+  "commits": [
+    "cbe15a5a нелинейная Cm(α) PD-К2 v8, добор с Shift, pull_over, красный индикатор, замер VM-К5",
+    "b6f84c7b тангаж и крен с клавиатуры удалены (У1 v5, С2 v4), автопилот — ControlInput напрямую, замер VM-К5 v2 + сводка до порта",
+    "563709b8 пропуск с причиной для двух тестов маятника (Q3), skip_reason в раннере"
+  ],
+  "checks": [
+    {
+      "name": "pendulum",
+      "value": "119/119, пропуск 2 (Q3)",
+      "pass": true
+    },
+    {
+      "name": "pilot_hud",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "control",
+      "value": "26/26",
+      "pass": true
+    },
+    {
+      "name": "gameplay",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "input",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "vm-k5-summary",
+      "value": "vmax_ratio_median 0,979, p10 0,902 (n 40), trim_dev_max 0,004 км/ч, bar_force ≤ 300 Н, release_g_smooth_max 2,24",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "107 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "pendulum_params.py --check",
+      "value": "48 крыльев, нарушений 0 (|ref.trim − паспорт| ≤ 0,3; момент на триме с pitch_nl < 2e-4)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Переворот при выходе из разгона не исправлен (решение пользователя Q3: справочно, в «Границы модели» и TODO)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VM-4; замер — .dpcli/dpcli job start vm4 3600 tools/research/pullin_speed/run_vm4.sh → tools/research/pullin_speed/out/vm4/summary.json, tables.md",
+  "uncertain": [
+    {
+      "where": "tools/research/pullin_speed/out/vm4/summary.json",
+      "why": "Перевороты при выходе из разгона (справочно по VM-К5 v3): release_smooth (мышь/ручка −1 → 0 за 0,5 с с V full) — 40/48; release_1p8 (ввод 0 скачком с 1,8·Vтрим) — 29/48; тот же плавный выход с обычного полного «на себя» без Shift — 26/48 против 14/48 в игре до порта (out/vm4/preport_summary.json). То есть обычная игра без добора переворачивается при отпускании почти вдвое чаще.",
+      "checked": "Сводка до порта снята тем же скриптом на коде 0d271629; переворот — горка Ланчестера (laminar с 63 км/ч: тангаж −90°, |α| до 147°)."
+    },
+    {
+      "where": "tests/flight/pendulum/test_pendulum_robust.gd::test_turbulence_game_blocks",
+      "why": "Пропуск с причиной (Q3). sport в болтанке при шаге 1/30: крен 115°, растяжение подвески 0,108 м. Отклик хаотичный: dcm0 ±1e-5 меняет исход.",
+      "checked": "10 сдвигов поля болтанки × 60 с на шаге 1/120: sport переворачивается в 6/10 против 3/10 без pitch_nl, laminar 2/10 против 0/10, training 0/10."
+    },
+    {
+      "where": "tests/flight/pendulum/test_pendulum_spin.gd::test_inner_wing_drop_spin_and_recovery",
+      "why": "Пропуск с причиной (Q3). sport после выхода из штопора держит −1 по правилу теста (V ≥ 1,5·Vтрим) и разгоняется до ~85 км/ч; ПИД крена теста раскачивает ±90°/с, 3 с спокойствия нет. Скорее это пилот-модель теста на новой огибающей скоростей, чем срыв.",
+      "checked": "Трасса PD35_SPINTRACE=sport: срыв кончается за 1,5 с, дальше — только раскачка по крену на большой скорости."
+    },
+    {
+      "where": "configs/wings/*.json → pendulum.ref.static_margin",
+      "why": "Теперь это Kn модели игры (GameSim: C_L max полос под поляру), как в VM-2/VM-3 geom; у 11 крыльев меньше прежнего (atlas 0,17 против 0,27). Он входит в формулу ΔCm.",
+      "checked": "cl_alpha_per_rad, alpha_zero_lift_deg, Kn совпадают с out/vm2/geom.json до 5e-4; эталон ΔCm пяти крыльев — ±0,002 (тест PD-К2)."
+    },
+    {
+      "where": "configs/wings/*.json → ref.kmh_per_cm_hang",
+      "why": "Пересчитан на модели игры с pitch_nl и только сдвигом вперёд на 1 см (вперёд трим уходит в мягкую часть Cm): laminar 0,825 → 1,255 км/ч на см.",
+      "checked": "test_pendulum_hang_shift: в игре 1,34 (в пределах 20 %)."
+    },
+    {
+      "where": "tests/contracts/test_pendulum_contracts_k1.gd",
+      "why": "В docs/contracts/pendulum.md заголовок PD-К1 всё ещё (v4), хотя в тексте v5; тест проверяет v4.",
+      "checked": "Заголовок есть на feature/pullin-speed; docs не мои."
+    },
+    {
+      "where": "tests (gameplay, input_launch, start_regression, cockpit, roll_weight_shift, cf3_ground_control.gd)",
+      "why": "Проверки физики, которые жали клавиши трапеции, переведены на мышь (InputController._mouse_offset) с ходом руки как у прежних клавиш (1,5 доли/с, назад 1,0; крен в rate — 0,75 хода за 1 с). Чисто клавиатурные тесты удалены.",
+      "checked": "Все прогоны — 0 упало; cf3_ground_control.gd запускается, таблицы разбега печатаются."
+    },
+    {
+      "where": "tests/run_tests.gd, tests/test_case.gd",
+      "why": "Добавлен TestCase.skip_reason(method) — пропуск метода с причиной в раннере (раньше пропуск был только по GPU).",
+      "checked": "Пропуски печатаются строкой skip с причиной."
+    }
+  ],
+  "dp_feedback": "Карточка трижды менялась по ходу (удаление клавиатуры, затем крена) — inbox помог, но полный текст дополнений приходилось вытаскивать из events.jsonl: inbox и task show обрезают заметки. Нужен `inbox --full`. Проверка scope не знала про файлы, которые пишет генератор из скоупа (pendulum_params_table.md).",
+  "extra": {
+    "vm_k5": {
+      "vmax_ratio_median": 0.979,
+      "vmax_ratio_p10": 0.902,
+      "vmax_ratio_median_normal": 0.785,
+      "game_vs_proto": 0.995,
+      "vmax_std_max_kmh": 1.02,
+      "vmax_std_kmh": {
+        "aeros_combat_l": 0.64,
+        "moyes_litespeed_s": 0.17,
+        "ww_talon": 0.46
+      },
+      "tuck_smooth": 40,
+      "tuck_1p8": 29,
+      "tuck_smooth_normal": 26,
+      "preport_tuck_smooth_normal": 14,
+      "preport_tuck_1p8": 14
+    }
+  },
+  "t": "2026-10-19T13:30:14",
+  "by": "executor"
+}
