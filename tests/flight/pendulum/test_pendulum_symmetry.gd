@@ -37,7 +37,9 @@ func _fly(w: String, src: String, r: float, wind := Vector3.ZERO) -> Array:
 			ev.relative = Vector2(r * sz.y * 0.5 / sens, 0.0)
 			ev.position = sz * 0.5
 			ev.global_position = ev.position
-			root.push_input(ev)
+			# напрямую в _unhandled_input: push_input идёт через GUI, и не освобождённое ещё (queue_free)
+			# окно от прежнего теста съедает событие под курсором
+			root.push_unhandled_input(ev)
 		elif src == "key" and r != 0.0:
 			Input.action_press("roll_right" if r > 0.0 else "roll_left", absf(r))
 	var inp := S.input(0.0, r)

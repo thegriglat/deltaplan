@@ -17,7 +17,7 @@ func check(cond: bool, msg: String = "") -> void:
 
 func test_low_preset_uses_fsr_0_75() -> void:
 	var path := UserSettings.DEFAULT_DIR.path_join("game.json")
-	var backup := FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
+	var snap := _snapshot()
 
 	# Полная перезапись (не патч): только сам пресет, render_scale_auto — по умолчанию (true),
 	# чтобы не зависеть от того, что уже могло быть сохранено в реальном user-конфиге.
@@ -34,16 +34,15 @@ func test_low_preset_uses_fsr_0_75() -> void:
 	)
 	vp.queue_free()
 
-	_restore(path, backup)
+	_restore_all(snap)
 	Config.reload()
 
 
 func test_render_scale_saved_and_applied_over_preset() -> void:
 	var path := UserSettings.DEFAULT_DIR.path_join("game.json")
-	var backup := FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
+	var snap := _snapshot()
 
 	var lpath0 := UserSettings.local_dir().path_join("game.json")
-	var lbackup := FileAccess.get_file_as_string(lpath0) if FileAccess.file_exists(lpath0) else ""
 	if FileAccess.file_exists(lpath0):
 		DirAccess.remove_absolute(lpath0)
 	# Полная перезапись: пресет без масштабирования и render_scale_auto=true — чтобы проверить
@@ -97,8 +96,7 @@ func test_render_scale_saved_and_applied_over_preset() -> void:
 	vp2.queue_free()
 
 	sp.queue_free()
-	_restore(path, backup)
-	_restore(lpath0, lbackup)
+	_restore_all(snap)
 	Config.reload()
 
 
@@ -111,11 +109,43 @@ func _write(path: String, data: Dictionary) -> void:
 		f.close()
 
 
-func _restore(path: String, content: String) -> void:
-	if content == "":
-		if FileAccess.file_exists(path):
-			DirAccess.remove_absolute(path)
+## Снимок всех файлов user-конфигов (общих и машинных): save() панели пишет в них и правки пресета
+## (world_objects, world, vegetation…), а не только game.json, — иначе они остаются для следующих тестов.
+func _snapshot() -> Dictionary:
+	var snap := {}
+	for dir: String in [UserSettings.DEFAULT_DIR, UserSettings.local_dir()]:
+		_snapshot_dir(dir, snap)
+		snap["dir:" + dir] = true
+	return snap
+
+
+func _snapshot_dir(dir: String, snap: Dictionary) -> void:
+	var d := DirAccess.open(dir)
+	if d == null:
 		return
+	for sub in d.get_directories():
+		_snapshot_dir(dir.path_join(sub), snap)
+	for f in d.get_files():
+		snap[dir.path_join(f)] = FileAccess.get_file_as_string(dir.path_join(f))
+
+
+## Вернуть user-конфиги к снимку: новые файлы удалить, изменённые переписать.
+func _restore_all(snap: Dictionary) -> void:
+	var now := {}
+	for dir: String in [UserSettings.DEFAULT_DIR, UserSettings.local_dir()]:
+		_snapshot_dir(dir, now)
+	for path: String in now:
+		if not snap.has(path):
+			DirAccess.remove_absolute(path)
+	for path: String in snap:
+		if path.begins_with("dir:"):
+			continue
+		if now.get(path, null) != snap[path]:
+			_write_raw(path, snap[path])
+
+
+func _write_raw(path: String, content: String) -> void:
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	if f != null:
 		f.store_string(content)
