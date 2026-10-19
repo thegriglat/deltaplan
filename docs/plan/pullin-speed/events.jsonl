@@ -33,3 +33,5 @@
 {"t": "2026-10-19T08:41:33", "by": "coordinator", "task": "VM-2", "ev": "note", "note": "Q1 (2026-10-19): tuck_count снят с приёмки VM-2 (VM-К2 v3) — перенесён в VM-3 (VM-К4); добор 0,7 м и σ в «Границы» — в VM-3.", "addendum": true}
 {"t": "2026-10-19T08:41:34", "by": "coordinator", "task": "VM-2", "ev": "checked", "note": "3/3 vm-k2-sections=ok:exit 0; docs-check=ok:ошибок 0; vm-k2-summary=ok:vm-k2 ok"}
 {"t": "2026-10-19T08:41:40", "by": "coordinator", "task": "VM-2", "ev": "accepted", "note": "по отчёту и Q1: Cm(α) и добор приняты; переворот — VM-3 (VM-К4), ревью — на порте"}
+{"t": "2026-10-19T08:41:41", "by": "coordinator", "task": "VM-2", "ev": "checked", "commits": ["dd204ae7"], "note": "2/3 vm-k2-sections=FAIL:exit 1 · grep: docs/research/…; docs-check=ok:ошибок 0; vm-k2-summary=ok:vm-k2 ok"}
+{"t": "2026-10-19T08:41:41", "by": "coordinator", "task": "VM-2", "ev": "merged"}
