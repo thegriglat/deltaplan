@@ -109,6 +109,17 @@ class Params:
     # VM-3 (docs/research/pendulum/pitch-release.md): добавка Cm на q·c/2V (средняя хорда, напор в ЦМ крыла,
     # момент около ЦМ крыла); 0 — прежнее поведение. Приведение Cmq полос к литературе (Cook & Spottiswoode)
     cm_q_add: float = 0.0
+    # VM-6 (docs/research/pendulum/release-tumble.md): как в игре после порта (умолчания — прежний прототип)
+    pull_full_release: float = 0.0  # м/с: отпустил добор — предел «на себя» к shift_x_pull с этой скоростью (игра 0,5); 0 — скачком
+    arm_ff_load: bool = False  # прямая подача рук вдоль киля против кажущегося веса пилота в осях крыла (игра, pilot_arms.gd)
+    # VM-6, гипотезы о пилоте и подвеске (выключены — текущая модель)
+    body_pitch_coupled: bool = False  # тело пилота по тангажу повёрнуто вместе с крылом (руки на штанге): + body_izz к Iyy крыла
+    arm_neutral_relaxed: bool = False  # ввод 0 (pitch и roll) — руки не держат пилота («руки отпущены», свободный маятник)
+    arm_neutral_relaxed_x: bool = False  # pitch = 0 — руки не держат пилота вдоль киля (по тангажу «руки отпущены»), поперёк — как прежде
+    # pitch = 0 — вдоль киля руки как пассивная рука на штанге (жёсткость, Н/м; вязкость, Н·с/м), без подачи; NaN — нет
+    arm_neutral_k: float = float("nan")
+    arm_neutral_b: float = float("nan")
+    arm_one_sided_x: bool = False  # вдоль киля руки только тянут в сторону ввода: «на себя» — к себе, «от себя» — от себя, 0 — не держат
     fin_arm: float = 1.6  # м позади ЦМ крыла: «эквивалентный киль», несущий Cnβ (и даёт Cnr, CYβ)
     fin_slope: float = 2.0  # 1/рад, малое удлинение
     apparent_roll: bool = True  # присоединённая масса воздуха по крену (π/48·ρ·c²·b³)

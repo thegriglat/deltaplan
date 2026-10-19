@@ -41,6 +41,7 @@ generated: true
   - [docs/research/pendulum/pitch-nonlinear.md](research/pendulum/pitch-nonlinear.md) — Cm(α) σ 0,5 + добор 0,95 м: Vmax/паспорт 1,00 (p10 0,91), трим и фугоида целы; шлюз — переворот при отпускании (37/48)
   - [docs/research/pendulum/pitch-release.md](research/pendulum/pitch-release.md) — Отпускание с Vmax: Cmq прототипа −1,95 уже выше литературы −1,11; поправка к ней — переворот 47/48 (VM-2 39/48); шлюз
   - [docs/research/pendulum/pullin-speed.md](research/pendulum/pullin-speed.md) — Vmax «на себя» 55 против 80 км/ч паспорта: (V/Vтрим)² = 1 + 0,19/Kn, модель Kn 0,14, паспорту нужен ≈ 0,05; не VG и не сила рук.
+  - [docs/research/pendulum/release-tumble.md](research/pendulum/release-tumble.md) — Переворот при выходе: руки держат пилота в нейтрали; «брошенная ручка» — 1,8: 29→0, normal 26→3, smooth 38→21 (горка); шлюз
   - [tools/research/pullin_speed/README.md](../tools/research/pullin_speed/README.md) — VM-1: замеры полного «на себя» по 48 крыльям (подвеска, Kn, CL_α, CdA, ход, VG-прокси) и пары Vmax VG 0 / VG 100.
 
 ## world

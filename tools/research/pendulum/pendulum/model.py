@@ -138,6 +138,8 @@ class Sim:
         self.mm = geometry.mass_model(p, p.x_hang)
         I = self.mm.inertia_b.copy()
         I += pilot_body.inertia_add(p)  # PB-1: тело пилота по крену и рысканию держится руками — с крылом
+        if p.body_pitch_coupled:
+            I[1, 1] += p.body_izz  # VM-6: и по тангажу (кивок тела вместе с крылом), de Leva 1996 — как body_izz
         self.I_struct = I.copy()
         if p.apparent_roll:
             I[0, 0] += geometry.apparent_roll_inertia(p)
@@ -434,6 +436,7 @@ class Sim:
         va = vp - self.air_fn(xp[None])[0]
         # точка — изотропное сопротивление; тело (PB-1) — pilot_body.py, момент тела (рыскание, крен) — крылу
         fp, mp = pilot_body.pilot_force(p, va, self.w, R, xp - H)
+        self._aero_F_w, self._pilot_drag_w = Fa, fp  # VM-6: для прямой подачи рук по кажущемуся весу (arm_ff_load)
         F_n[-1] += fp
         M_w += mp
         if self.control.hands == "bar":
