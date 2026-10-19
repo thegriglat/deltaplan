@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://civ20tatcfp7u"
-path="res://.godot/imported/tree_tropical_tree_tropical_v3_impostor.png-a26f60306e788640eec45fb028b2c94e.ctex"
+path.s3tc="res://.godot/imported/tree_tropical_tree_tropical_v3_impostor.png-a26f60306e788640eec45fb028b2c94e.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_tropical_tree_tropical_v3_impostor.png-a26f60306e788640eec45fb028b2c94e.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "94bf8fd9782e627228b90d9a67d92204"
@@ -14,13 +16,13 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_tropical_tree_tropical_v3_impostor.png"
-dest_files=["res://.godot/imported/tree_tropical_tree_tropical_v3_impostor.png-a26f60306e788640eec45fb028b2c94e.ctex"]
+dest_files=["res://.godot/imported/tree_tropical_tree_tropical_v3_impostor.png-a26f60306e788640eec45fb028b2c94e.s3tc.ctex", "res://.godot/imported/tree_tropical_tree_tropical_v3_impostor.png-a26f60306e788640eec45fb028b2c94e.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
