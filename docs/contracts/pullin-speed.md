@@ -220,6 +220,6 @@ v2 (19.10, решение пользователя dceacaaa): тангажа с 
 | `bar_force_vmax_max_n` | макс. \|`bar_force`\| в `full` | ≤ `arms.force_max_n` |
 | `tuck_smooth_count` | переворотов в `release_smooth` | справочно (v3) |
 | `tuck_1p8_count` | переворотов в `release_1p8` | справочно (v3) |
-| `release_g_smooth_max` | макс. перегрузка в `release_smooth` | ≤ 4 |
+| `release_g_smooth_max` | макс. перегрузка в `release_smooth` по прогонам без переворота (с переворотом — нефизичный разнос квазистатики полос; ревью VM-4: по всем 51,6 g, до порта 10,2 g — справочно, T-88) | ≤ 4 |
 
 `tuck_*` — не чинить подгонкой (Q3: граница модели, отдельная работа по TODO).
