@@ -589,7 +589,8 @@ class GameSim(Sim):
             fp = (float(np.linalg.norm(self.neutral_rel)) * math.sin(self.flare_reach + self.flare_reach_soft)
                   if self.flare_reach > 0.0 else p.shift_x_push)
         push = p.shift_x_push + (fp - p.shift_x_push) * self.flare_mix
-        tgt[0] += -px * (push if px > 0 else p.shift_x_pull)
+        pull = p.shift_x_pull_full if (getattr(c, "pull_full", False) and math.isfinite(p.shift_x_pull_full)) else p.shift_x_pull
+        tgt[0] += -px * (push if px > 0 else pull)  # VM-2: добор «на себя» (pull_full)
         k = p.m_pilot / p.arm_tau ** 2
         d = 2.0 * p.m_pilot / p.arm_tau
         e = tgt - rel
