@@ -12,6 +12,12 @@ func needs_gpu() -> bool:
 	return false
 
 
+## Переопределить, чтобы пропустить метод test_* с причиной (известная граница модели, TODO): непустая
+## строка — раннер не вызывает метод и печатает причину в «skip». Пусто — тест идёт.
+func skip_reason(_method: String) -> String:
+	return ""
+
+
 func check(cond: bool, msg: String = "") -> void:
 	if not cond:
 		failures.append("check failed: " + msg)

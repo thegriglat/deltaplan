@@ -34,3 +34,6 @@ var pilot_shift: Vector2 = Vector2.ZERO
 ## Усилие рук на трапеции (PH-К1), Н: сила, с которой руки действуют на тело пилота, в осях крыла, знаки как у
 ## pilot_shift: x + — пилота тянет вправо, y + — к носу (трапеция на себя). Всегда конечное; на земле у FlightModel — ноль.
 var bar_force: Vector2 = Vector2.ZERO
+## Пилот за обычным пределом хода «на себя» (PH-К1 v2, VM-К3 v2), 0…1: (сдвиг к носу − arms.shift_x_pull_m) /
+## (arms.shift_x_pull_full_m − arms.shift_x_pull_m) по фактическому положению; FlightModel, земля, до шага — 0.
+var pull_over: float = 0.0

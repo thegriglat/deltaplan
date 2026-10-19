@@ -5,7 +5,7 @@ extends TestCase
 
 const DOC := "res://docs/contracts/pilot-hud.md"
 const VERSIONS := {
-	"PH-К1": 1, "PH-К2": 1, "PH-К3": 2, "PH-К4": 2, "PH-К5": 1, "PH-К6": 1, "PH-К7": 1,
+	"PH-К1": 2, "PH-К2": 1, "PH-К3": 2, "PH-К4": 2, "PH-К5": 1, "PH-К6": 1, "PH-К7": 1,
 }
 
 
@@ -483,3 +483,33 @@ func test_ph_k1_field_and_widget() -> void:
 	var cfg: Dictionary = Config.get_config("ui").pilot_shift
 	check(cfg.has("force_ring_max_frac") and cfg.has("force_full_n"), "PH-К1: force_ring_max_frac, force_full_n в ui.json")
 	# инварианты обеих моделей по скоростям — tests/flight/test_bar_force.gd
+
+
+# ---------------------------------------------------------------- PH-К1 v2: pull_over, красный индикатор
+
+func test_k1_v2_pull_over() -> void:
+	var t := Telemetry.new()
+	check("pull_over" in t and t.pull_over == 0.0, "Telemetry.pull_over = 0 по умолчанию")
+	var cfg: Dictionary = Config.get_config("ui").get("pilot_shift", {})
+	check(cfg.has("over_pull_color") and cfg.has("over_pull_color_doc"), "pilot_shift.over_pull_color с _doc")
+	check(not PilotShiftIndicator.is_over_pull(0.0), "pull_over 0 — прежний цвет")
+	check(PilotShiftIndicator.is_over_pull(0.01), "pull_over > 0 — красный")
+	check(not PilotShiftIndicator.is_over_pull(NAN), "NaN — прежний цвет")
+	var normal := PilotShiftIndicator.colors(false, cfg)
+	var over := PilotShiftIndicator.colors(true, cfg)
+	check(normal[0] == Color(String(cfg.ring_color)) and normal[1] == Color(String(cfg.dot_color)), "без добора — ring/dot_color")
+	check(over[0] == Color(String(cfg.over_pull_color)) and over[1] == over[0], "за пределом — over_pull_color (рамка и точка)")
+	# шкала прежняя: за пределом точка у края
+	check(PilotShiftIndicator.dot_offset(Vector2(0.0, 1.55), 10.0).is_equal_approx(Vector2(0.0, -10.0)), "за пределом — точка у края")
+	# FlightModel — 0
+	var fm := FlightModel.new()
+	fm.setup(Config.get_config("wings/laminar"), Config.get_config("pilot"))
+	fm.reset_in_air(Vector3(0.0, 1000.0, 0.0), 0.0)
+	var c := ControlInput.new()
+	c.pitch = -1.0
+	c.pull_full = true
+	var noair := func(_p: Vector3) -> Vector3: return Vector3.ZERO
+	var flat := func(_x: float, _z: float) -> float: return 0.0
+	for i in 120:
+		fm.step(1.0 / 120.0, c, noair, flat)
+	check(fm.telemetry.pull_over == 0.0, "FlightModel: pull_over = 0")

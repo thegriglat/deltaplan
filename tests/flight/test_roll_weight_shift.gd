@@ -163,14 +163,15 @@ static func _controller() -> InputController:
 	ic.reload_config()
 	var cfg: Dictionary = ic._cfg.duplicate(true)
 	cfg.invert_pitch = false
-	cfg.keyboard.sensitivity = 1.0
 	ic._cfg = cfg
-	ic.roll_input = "body"  # знак стрелок как в проверках ниже (PV1: bar — инверсия)
+	ic.mouse_captured = true
+	ic.roll_input = "body"  # знак мыши как в проверках ниже (PV1: bar — инверсия)
 	return ic
 
 
-## Клавиатура → InputController → модель (смещение веса): A держит смещение, X — «в центр».
-func test_keyboard_shift_and_center_key() -> void:
+## Мышь → InputController → модель (смещение веса): вес влево держится мышью, X — «в центр» (клавиш трапеции
+## нет, У1 v5).
+func test_mouse_shift_and_center_key() -> void:
 	var ic := _controller()
 	ic.roll_mode = "weight_shift"
 	ic.on_ground = false
@@ -180,23 +181,11 @@ func test_keyboard_shift_and_center_key() -> void:
 	var fly := func(seconds: float) -> void:
 		for i in int(round(seconds / Sim.DT)):
 			m.step(Sim.DT, ic.update(Sim.DT), Callable(), Callable())
-	Input.action_press("roll_left")
-	fly.call(0.3)
-	var mid := ic.control.roll
-	fly.call(1.7)
-	check(mid > -0.9 and mid < -0.2, "A: смещение нарастает плавно (%.2f за 0,3 с)" % mid)
-	approx(ic.control.roll, -1.0, 0.01, "A держим — вес до упора влево")
+	ic._mouse_offset = Vector2(-1.0, 0.5)  # вес влево до упора, трапеция на себя
+	fly.call(2.0)
+	approx(ic.control.roll, -1.0, 0.01, "мышь влево — вес до упора влево")
 	var b := m.telemetry.bank_deg
 	check(b < -20.0, "крен влево %.0f°" % b)
-	Input.action_release("roll_left")
-	fly.call(0.5)
-	check(absf(ic.control.roll) < 0.2, "отпустил — вес пружиной в центр: %.2f" % ic.control.roll)
-	# снова влево, потом X: вес и трапеция сразу плавно в нейтраль, крыло выравнивается
-	Input.action_press("roll_left")
-	Input.action_press("pitch_pull_in")
-	fly.call(2.0)
-	Input.action_release("roll_left")
-	Input.action_release("pitch_pull_in")
 	Input.action_press("center")
 	fly.call(0.25)
 	Input.action_release("center")
@@ -211,7 +200,7 @@ func test_keyboard_shift_and_center_key() -> void:
 	ic.free()
 
 
-## Режим «как раньше»: отпустил A — крен держится; X — крыло плавно в горизонт.
+## Режим «как раньше»: мышь вправо и назад в нейтраль — крен держится; X — крыло плавно в горизонт.
 func test_rate_mode_center_key_levels_wing() -> void:
 	var ic := _controller()
 	ic.roll_mode = "rate"
@@ -225,9 +214,10 @@ func test_rate_mode_center_key_levels_wing() -> void:
 			var c: ControlInput = ic.update(Sim.DT)
 			check(not c.weight_shift, "режим rate — ControlInput.weight_shift = false")
 			m.step(Sim.DT, c, Callable(), Callable())
-	Input.action_press("roll_right")
+	fly.call(Sim.DT)  # фронт X прошлого теста (just_pressed до следующего кадра) — до сдвига мыши
+	ic._mouse_offset = Vector2(0.75, 0.0)  # ≈ прежний ход клавиши за 1 с (2 доли/с до упора)
 	fly.call(1.0)
-	Input.action_release("roll_right")
+	ic._mouse_offset = Vector2.ZERO
 	fly.call(3.0)
 	var b := m.telemetry.bank_deg
 	check(b > 20.0, "как раньше: отпустил — крен держится (%.0f°)" % b)

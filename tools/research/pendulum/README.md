@@ -60,6 +60,49 @@ python3 tools/research/pendulum/pb_contract_check.py tools/research/pendulum/out
 Источники (числа с URL, PDF не храним): руководство Wills Wing T2C (DHV, нем.), Moyes Litespeed, Aeros Combat L; Kroo 1981
 NASA TM-81269 (public domain); паспорта DHV — `tools/research/data/wing_passports/` (лицензии — там). Графики — свои.
 
+## Нелинейный тангаж (VM-2)
+Добавка ΔCm(α) к моменту крыла (`Params.pitch_nl`, `pitch_nl_dcm` в `pendulum/params.py`; момент — в `Sim.wing_aero`):
+смягчение наклона Cm ниже трима до σ (общий, 0,5) и luff lines ниже угла нулевой подъёмной (0,02 на градус); по крылу —
+только Kn_t, α_t, dCL/dα, α_zl из геометрии полос (`vm2_run.py geom`). Добор «на себя» до «штанги у бёдер» —
+`Params.shift_x_pull_full` (0,95 м) при `Control(pull_full=True)` (и в `GameSim._hands_force`). Выключено — прежняя
+модель. Разбор, источники, ключи порта и шлюз (переворот после отпускания с Vmax) — `docs/research/pendulum/pitch-nonlinear.md`;
+данные — `out/vm2/` (`summary.json` по VM-К2 v2, `tables.md`, `geom.json`, `results.jsonl`, пробы параметров
+`calib.jsonl` / `calib_summary.json`, графики `fig/vmax_48.png`, `fig/cm_alpha.png`).
+```bash
+PY=/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python
+$PY tools/research/pendulum/vm2_run.py geom --jobs 12                # параметры генератора → out/vm2/geom.json (≈ 10 с)
+/home/greg/deltaplan/.dpcli/dpcli job start vm2-run 3600 systemd-run --user --scope -p MemoryMax=12G -q \
+  $PY tools/research/pendulum/vm2_run.py run --jobs 12               # 48 крыльев × (base, nl) × 4 сценария, ≈ 40 мин; продолжает
+$PY tools/research/pendulum/vm2_run.py calib --jobs 12 --sigmas 0.45,0.5,0.55   # только добор + отпускание → calib.jsonl
+$PY tools/research/pendulum/vm2_run.py calib-report                  # → calib_summary.json
+$PY tools/research/pendulum/vm2_run.py report                        # → summary.json, tables.md, fig/
+python3 tools/research/pendulum/vm2_calib_view.py '"pnl_sigma": 0.5'  # пробы по крыльям
+```
+Источники: Kroo 1981 NASA TM-81269 (public domain); требования HGMA/LTF — по обзору Wills Wing и HGMA FAQ (URL в
+документе); паспорта DHV — `tools/research/pullin_speed/out/passport_censoring.csv` (из `tools/research/data/wing_passports/`).
+Графики — свои. Пробы в `calib.jsonl` до 19.10 23:00 считались со сглаживанием r(x) − w/2 (постоянная часть уходила
+в `dcm0`; суммарный момент тот же до 10⁻⁶), `results.jsonl` (вариант nl) — с нынешним r(x).
+
+## Отпускание на скорости (VM-3)
+Ввод 0 скачком с установившейся Vmax (VM-2 + добор 0,7 м): замер Cmq прототипа (полосы около ЦМ крыла и «крыло +
+пилот» как твёрдое тело около общего ЦМ) против литературы (Cook & Spottiswoode 2005 через Kochi 2020: −1,11 на q·c̄/2V),
+одна поправка `Params.cm_q_add` (добавка Cm на q·c̄/2V около ЦМ крыла, `Sim.wing_aero`; 0 — прежнее поведение),
+точка Ланчестера (постоянный CL трима) для проверки «петля — физика или модель». Разбор, источники и шлюз —
+`docs/research/pendulum/pitch-release.md`; данные — `out/vm3/` (`cmq.json`, `diag.json` + `diag/*.npz` ряды
+отпускания 5 крыльев, `lanchester.json`, `results.jsonl`, `summary.json` по VM-К4 v2, `tables.md`,
+`fig/release_laminar.png`, `fig/release_gmax_48.png`).
+```bash
+PY=/home/greg/deltaplan/tools/research/heat_ca/.venv/bin/python
+$PY tools/research/pendulum/vm3_run.py cmq --jobs 16                  # Cmq 48 крыльев → out/vm3/cmq.json, cm_q_add (≈ 10 с)
+$PY tools/research/pendulum/vm3_run.py diag --var base,nl,fix,q=-2 --jobs 10   # ряды отпускания 5 крыльев (≈ 3 мин)
+$PY tools/research/pendulum/vm3_run.py lanchester                     # точка с CL трима → out/vm3/lanchester.json
+/home/greg/deltaplan/.dpcli/dpcli job start vm3-run 5400 systemd-run --user --scope -p MemoryMax=12G -q \
+  $PY tools/research/pendulum/vm3_run.py run --jobs 16                # 48 × (base, nl, fix) × 4 сценария, ≈ 50 мин; продолжает
+$PY tools/research/pendulum/vm3_run.py run --jobs 16 --vars q=-0.27,q=-2 --only release   # чувствительность к Cmq
+$PY tools/research/pendulum/vm3_run.py report                         # → summary.json, tables.md, fig/
+```
+Источники — в документе (Kochi 2020, Gratton & Newman 2003, Heiney, Lanchester 1908); данные — свои расчёты.
+
 ## Оценки 05.10 (`estimates.py`)
 Полюса разомкнутой модели Hiway Demon (Abouheaf, Gueaieb, Lewis, arXiv:2108.02393, табл. 1–2; модель Cook & Spottiswoode 2005) → ωn, ζ; маятник пилота; инерция крыла по трубам; `Cm_alpha` по двум точкам балансировки; ω·dt для 60/120/240 Гц; крен от момента веса при Cl_p = −0,45 (≈ 16°/с). Запуск: `python3 tools/research/pendulum/estimates.py`.
 

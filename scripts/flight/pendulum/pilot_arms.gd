@@ -12,7 +12,8 @@ extends RefCounted
 ## срывом наверху и петлёй.
 ##
 ## Ввод: roll −1…1 → пилот поперёк на roll·shift_y_max (+ вправо); pitch +1 («от себя») → назад
-## на shift_x_push, −1 («на себя») → вперёд на shift_x_pull. Вертикально — стропа, не руки.
+## на shift_x_push, −1 («на себя») → вперёд на shift_x_pull, с добором (ControlInput.pull_full, VM-К3) —
+## на shift_x_pull_full (штанга у бёдер). Вертикально — стропа, не руки.
 
 var force_max: float = 300.0
 var tau: float = 0.3
@@ -20,6 +21,12 @@ var ti: float = 0.0  ## ≤ 0 — без интегральной части
 var shift_y_max: float = 0.45
 var shift_x_pull: float = 0.45
 var shift_x_push: float = 0.3
+## Добор «на себя» до бёдер (VM-К3 v2, PD-К2 v8): ход при pull_full и скорость возврата предела, м, м/с.
+var shift_x_pull_full: float = 0.45
+var pull_full_release: float = 0.5
+## Текущий предел хода «на себя», м: shift_x_pull без добора; с добором — сразу shift_x_pull_full,
+## отпустил — назад к shift_x_pull со скоростью pull_full_release (update_pull_limit).
+var pull_limit: float = 0.45
 ## «От себя» у земли (PD-29, PD-35): пилот стоит в подвеске, руки на стойках у плеч — ход кистей ближе к
 ## подвеске, крыло поворачивается относительно стропы сильнее; эквивалентное смещение ЦМ пилота, м.
 ## < 0 — по досягаемости рук (PD-35): пилот толкает до вытянутых рук, цель — поворот крыла к стропе на
@@ -51,6 +58,9 @@ func setup(arms: Dictionary) -> void:
 	shift_y_max = float(arms.shift_y_max_m)
 	shift_x_pull = float(arms.shift_x_pull_m)
 	shift_x_push = float(arms.shift_x_push_m)
+	shift_x_pull_full = maxf(float(arms.get("shift_x_pull_full_m", shift_x_pull)), shift_x_pull)
+	pull_full_release = float(arms.get("pull_full_release_m_s", 0.5))
+	pull_limit = shift_x_pull
 	shift_x_push_flare = float(arms.get("flare_shift_x_push_m", -1.0))
 	var fr: Dictionary = arms.get("flare_reach", {})
 	flare_reach = 0.0
@@ -83,6 +93,18 @@ func flare_push() -> float:
 func reset() -> void:
 	_int = Vector3.ZERO
 	force_b = Vector3.ZERO
+	pull_limit = shift_x_pull
+
+
+## Предел хода «на себя» за шаг dt (VM-К3 v2): добор зажат — сразу полный; отпущен — плавно к обычному
+## с постоянной скоростью (≤ 0 — скачком). Вызывать раз в шаг модели, до подшагов.
+func update_pull_limit(pull_full: bool, dt: float) -> void:
+	if pull_full:
+		pull_limit = shift_x_pull_full
+	elif pull_full_release > 0.0:
+		pull_limit = maxf(shift_x_pull, pull_limit - pull_full_release * dt)
+	else:
+		pull_limit = shift_x_pull
 
 
 ## rel, vrel — положение и скорость пилота относительно подвески в осях крыла (B);
@@ -101,7 +123,7 @@ func compute(
 	var px := clampf(pitch, -1.0, 1.0)
 	tgt.y += ry * shift_y_max
 	var push := lerpf(shift_x_push, flare_push(), flare_mix)
-	tgt.x += -px * (push if px > 0.0 else shift_x_pull)
+	tgt.x += -px * (push if px > 0.0 else pull_limit)
 	target_b = tgt
 	var k := m_pilot / (tau * tau)
 	var d := 2.0 * m_pilot / tau

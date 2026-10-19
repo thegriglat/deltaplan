@@ -1,0 +1,112 @@
+{
+  "id": "VM-4",
+  "module": "pullin-speed",
+  "type": "dp-engineer",
+  "title": "Порт в игру: нелинейная Cm(α), добор «на себя» с Shift, красный индикатор",
+  "goal": "Перенести в «Маятник» нелинейную Cm(α) VM-2 (PD-К2 v8) и добор «на себя» до бёдер с модификатором (Shift / правый бампер / самодельная трапеция полным ходом, плавный возврат предела, красный индикатор в HUD — VM-К3 v2, У1 v4, CB-К1 v3, PH-К1 v2); обычная игра без модификатора не ломается; замер VM-К5 по 48 крыльям в игре проходит пороги.",
+  "plan_ref": "Волна 4 — порт в игру (только после VM-3, Q1)",
+  "contracts": [
+    {
+      "name": "VM-К3",
+      "version": "2",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "VM-К5",
+      "version": "3",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "PD-К1",
+      "version": "5",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "8",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "У1",
+      "version": "5",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "CB-К1",
+      "version": "3",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "PH-К1",
+      "version": "2",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "С2",
+      "version": "4",
+      "ref": "docs/contracts/pullin-speed.md"
+    }
+  ],
+  "copy": "~/deltaplan-pullin-speed-VM-4",
+  "branch": "pullin-speed/VM-4",
+  "base": "feature/pullin-speed",
+  "scope": [
+    "scripts/flight/pendulum/",
+    "scripts/core/control_input.gd",
+    "scripts/core/telemetry.gd",
+    "scripts/game/input_controller.gd",
+    "scripts/game/autopilot.gd",
+    "scenes/main.gd",
+    "scripts/ui/pilot_shift_indicator.gd",
+    "scripts/ui/controls_screen.gd",
+    "configs/pendulum.json",
+    "configs/wings/",
+    "configs/controls.json",
+    "configs/ui.json",
+    "locale/ui.csv",
+    "tools/flight/pendulum_params.py",
+    "tools/flight/cf3_ground_control.gd",
+    "tests/",
+    "tools/research/pullin_speed/",
+    "tools/flight/pendulum_params_table.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/flight_model.gd",
+    "scripts/net/",
+    "tools/research/pendulum/",
+    "docs/",
+    "project.godot",
+    "steam/"
+  ],
+  "accept": [
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "control",
+      "tests": "control"
+    },
+    {
+      "name": "gameplay",
+      "tests": "gameplay"
+    },
+    {
+      "name": "input",
+      "tests": "input"
+    },
+    {
+      "name": "vm-k5-summary",
+      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pullin_speed/out/vm4/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('vmax_ratio_median',0.9<=s['vmax_ratio_median']<=1.1),('vmax_ratio_p10',s['vmax_ratio_p10']>=0.8),('trim_dev_max_kmh',s['trim_dev_max_kmh']<=0.3),('bar_force',s['bar_force_vmax_max_n']<=300),('tuck_smooth',s['tuck_smooth_count']>=0),('tuck_1p8',s['tuck_1p8_count']>=0),('g',0<s['release_g_smooth_max']<=4),('normal',s['vmax_ratio_median_normal']>0),('proto',s['vmax_full_game_vs_proto_median']>0),('std',s['vmax_std_max_kmh']>=0)] if not ok]; print('bad', bad) if bad else print('vm-k5 ok'); sys.exit(1 if bad else 0)\"",
+      "expect": "re:vm-k5 ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-19T10:38:01",
+  "edited": "2026-10-19T13:25:15"
+}

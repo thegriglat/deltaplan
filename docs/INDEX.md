@@ -37,6 +37,11 @@ generated: true
 - **pendulum-body-vg** — Маятник: пилот как аэродинамическое тело на подвеске (проверка гипотезы по литературе) и VG безмачтовых — прототип, шлюз, перенос. [closed 2026-10-19] — [план](plan/pendulum-body-vg.md) · [контракты](contracts/pendulum-body-vg.md) · [решения](plan/pendulum-body-vg/decisions.md) · [сводка](plan/pendulum-body-vg/summary.md) · полный журнал: `archive/pendulum-body-vg`
   - [docs/research/pendulum/pilot-body.md](research/pendulum/pilot-body.md) — Пилот как тело вместо точки (PB-1): расхождения с литературой не закрываются; разрыв голландского шага с Cook — знак Cnp, не пилот [closed]
   - [docs/research/pendulum/vg.md](research/pendulum/vg.md) — VG на маятнике (PB-2): разрыв Vmax — не VG, а линейный тангаж модели; VG даёт +15…+26 км/ч (паспорта +25), крен вдвое медленнее
+- **pullin-speed** — Vmax полного «на себя» 45–60 км/ч против 63–103 по паспортам (T-86): причина — линейный тангаж (Kn 0,14); правка — нелинейная Cm(α) и ход. [active 2026-10-19] — [план](plan/pullin-speed.md) · [контракты](contracts/pullin-speed.md)
+  - [docs/research/pendulum/pitch-nonlinear.md](research/pendulum/pitch-nonlinear.md) — Cm(α) σ 0,5 + добор 0,95 м: Vmax/паспорт 1,00 (p10 0,91), трим и фугоида целы; шлюз — переворот при отпускании (37/48)
+  - [docs/research/pendulum/pitch-release.md](research/pendulum/pitch-release.md) — Отпускание с Vmax: Cmq прототипа −1,95 уже выше литературы −1,11; поправка к ней — переворот 47/48 (VM-2 39/48); шлюз
+  - [docs/research/pendulum/pullin-speed.md](research/pendulum/pullin-speed.md) — Vmax «на себя» 55 против 80 км/ч паспорта: (V/Vтрим)² = 1 + 0,19/Kn, модель Kn 0,14, паспорту нужен ≈ 0,05; не VG и не сила рук.
+  - [tools/research/pullin_speed/README.md](../tools/research/pullin_speed/README.md) — VM-1: замеры полного «на себя» по 48 крыльям (подвеска, Kn, CL_α, CdA, ход, VG-прокси) и пары Vmax VG 0 / VG 100.
 
 ## world
 
@@ -416,6 +421,7 @@ generated: true
 ### Реестры (registry)
 
 - [docs/registry/findings.md](registry/findings.md) — Реестр выводов закрытых работ: раздел на модуль, пункт — одна строка с числом и ссылкой; отклонённые модули помечены (отклонено).
+- [docs/registry/pendulum-findings.md](registry/pendulum-findings.md) — Выводы pendulum и pullin-speed: каналы маятника, срыв, Vmax «на себя» (Cm(α), добор), переворот при выходе из разгона.
 - [TODO.md](../TODO.md) — Реестр задач T-NN по блокам (воздух, полёт, мир, графика, сеть, релиз): строка с состоянием и ссылкой на план
 - [REQUIREMENTS.md](../REQUIREMENTS.md) — Требования к игре: физика, атмосфера, мир, интерфейс, звук, управление, визуал (MVP → позже) и нефункциональные NFR-1…7
 

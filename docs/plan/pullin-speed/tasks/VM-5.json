@@ -1,0 +1,84 @@
+{
+  "id": "VM-5",
+  "module": "pullin-speed",
+  "type": "dp-writer",
+  "title": "Документы и сайт: Cm(α), добор Shift, без клавиатурного управления крылом, переворот в «Границах»",
+  "goal": "Описать в docs/guide, на сайте, в README и CHANGELOG то, что влито в feature/pullin-speed: нелинейная Cm(α) и Vmax по паспортам, добор «на себя» с Shift / кнопкой геймпада / самодельной трапецией полным ходом, красный индикатор, крыло только мышью/стиком/трапецией (тангажа и крена с клавиатуры нет); переворот при выходе из разгона — в «Границы модели» pendulum.md; findings и applied_in.",
+  "plan_ref": "Волна 4 — порт в игру (только после VM-3, Q1)",
+  "contracts": [
+    {
+      "name": "VM-К3",
+      "version": "2",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "VM-К5",
+      "version": "3",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "У1",
+      "version": "5",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "С2",
+      "version": "4",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "PD-К2",
+      "version": "8",
+      "ref": "docs/contracts/pullin-speed.md"
+    }
+  ],
+  "copy": "~/deltaplan-pullin-speed-VM-5",
+  "branch": "pullin-speed/VM-5",
+  "base": "feature/pullin-speed",
+  "scope": [
+    "docs/guide/",
+    "site/content/",
+    "README.md",
+    "README.ru.md",
+    "CHANGELOG.md",
+    "docs/registry/",
+    "docs/INDEX.md",
+    "docs/research/pendulum/pitch-nonlinear.md",
+    "docs/research/pendulum/pitch-release.md",
+    "docs/research/pendulum/pullin-speed.md"
+  ],
+  "dont_touch": [
+    "site/content/releases/",
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "docs/plan/",
+    "locale/"
+  ],
+  "accept": [
+    {
+      "name": "no-key-wing",
+      "cmd": "bash -c '! grep -rnE \"pitch_push_out|pitch_pull_in|roll_left|roll_right\" docs/guide site/content README.md README.ru.md --include=*.md | grep -v /releases/'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pendulum-bounds",
+      "cmd": "bash -c 'awk \"/^## Границы модели/{f=1} f\" docs/guide/flight/pendulum.md | grep -qi переворот && grep -q Shift docs/guide/flight/pendulum.md'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -n -A40 'В работе' CHANGELOG.md | grep -qi -E 'shift|добор'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs-check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-19T14:55:01"
+}

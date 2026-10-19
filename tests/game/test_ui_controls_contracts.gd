@@ -1,6 +1,7 @@
 extends TestCase
-## Контракты модуля ui-controls (docs/contracts/ui-controls.md): У1 v3 — раскладка трапеции
-## (стрелки, мышь — всегда крыло, стик), У2 v2 — W/S/A/D: пилот на земле, голова в полёте.
+## Контракты модуля ui-controls (docs/contracts/ui-controls.md): У1 v5 — крыло — мышь (всегда), стик;
+## клавиш трапеции нет (v5), в полёте с клавиатуры по крылу только Shift — pull_full, добор до бёдер (v4);
+## У2 v2 — W/S/A/D: пилот на земле, голова в полёте.
 ## Ломается, если раскладку или смысл действий поменяли без правки контракта.
 
 
@@ -10,7 +11,6 @@ func _keys(action: String) -> Array:
 
 func test_u1_pitch_actions_shape() -> void:
 	var cfg: Dictionary = Config.get_config("controls")
-	check(cfg.keys.has("pitch_push_out") and cfg.keys.has("pitch_pull_in"), "У1: действия тангажа есть")
 	check(cfg.has("invert_pitch") and cfg.invert_pitch is bool, "У1: invert_pitch: bool")
 	check(cfg.invert_pitch == false, "У1: инверсия по умолчанию выключена")
 	check(cfg.gamepad.has("pitch_axis"), "У1: gamepad.pitch_axis")
@@ -19,17 +19,20 @@ func test_u1_pitch_actions_shape() -> void:
 	check(not InputController.new().has_method("mouse_mode"), "У1 v3: InputController.mouse_mode() убран")
 
 
-func test_u1_default_keys_arrows() -> void:
-	check(_keys("pitch_push_out") == ["Up"], "У1 v3: от себя — только ↑ (%s)" % [_keys("pitch_push_out")])
-	check(_keys("pitch_pull_in") == ["Down"], "У1 v3: на себя — только ↓ (%s)" % [_keys("pitch_pull_in")])
-	check(_keys("roll_left") == ["Left"], "У1 v3: крен влево — только ← (%s)" % [_keys("roll_left")])
-	check(_keys("roll_right") == ["Right"], "У1 v3: крен вправо — только → (%s)" % [_keys("roll_right")])
+func test_u1_v5_no_keyboard_bar() -> void:
+	var cfg: Dictionary = Config.get_config("controls")
 	for a in ["pitch_push_out", "pitch_pull_in", "roll_left", "roll_right"]:
-		for k in ["W", "S", "A", "D"]:
-			check(not (k in _keys(a)), "У1 v3: %s не на %s" % [k, a])
+		check(not cfg.keys.has(a), "У1 v5: действия %s нет" % a)
+		check(not InputMap.has_action(a) or InputMap.action_get_events(a).is_empty(), "У1 v5: %s не в InputMap" % a)
+	for k in ["pitch_rate_per_s", "pitch_return_per_s", "roll_rate_per_s", "roll_return_per_s", "roll_shift_time_s",
+			"roll_center_time_s", "roll_neutral_zone", "sensitivity"]:
+		check(not cfg.keyboard.has(k), "У1 v5: keyboard.%s удалён" % k)
+	for r: Dictionary in Config.get_config("ui").controls_help:
+		check(not String(r.get("action", "")).begins_with("pitch_") and not String(r.get("action", "")).begins_with("roll_"),
+				"У1 v5: на экране «Управление» нет строк клавиш трапеции (%s)" % r)
 
 
-# --- У1 v3: настоящий ввод → InputController (полёт) → ControlInput.pitch → угол атаки ---
+# --- У1 v5: настоящий ввод → InputController → ControlInput (мышь — крыло, стрелки — ничего) ---
 
 const Sim := preload("res://tests/flight/flight_sim.gd")
 const DT := 1.0 / 120.0
@@ -45,7 +48,6 @@ static func _ic(invert: bool, captured: bool = true) -> InputController:
 	root.get_child(root.get_child_count() - 1).add_child(ic)
 	var cfg: Dictionary = ic._cfg.duplicate(true)
 	cfg.invert_pitch = invert
-	cfg.keyboard.sensitivity = 1.0
 	ic._cfg = cfg
 	ic.roll_mode = "rate"
 	ic.mouse_captured = captured
@@ -72,32 +74,21 @@ static func _key(code: Key, pressed: bool) -> void:
 	Input.flush_buffered_events()
 
 
-## ControlInput.pitch после удержания клавиши seconds в полёте (с нейтрали).
-static func _pitch_after_key(ic: InputController, code: Key, seconds: float = 0.5) -> float:
-	_air(ic)
-	_key(code, true)
-	for i in int(round(seconds / DT)):
-		ic.update(DT)
-	var p := ic.control.pitch
-	_key(code, false)
-	ic.update(DT)
-	return p
-
-
-func test_u1_keys_pitch_sign_in_flight() -> void:
+## Стрелки и W/S/A/D в полёте и на земле трапецию не двигают (У1 v5).
+func test_u1_v5_keys_not_bar() -> void:
 	var ic := _ic(false)
-	var up := _pitch_after_key(ic, KEY_UP)
-	var down := _pitch_after_key(ic, KEY_DOWN)
-	print("    У1: pitch за 0,5 с — ↑ %.2f, ↓ %.2f" % [up, down])
-	check(up > 0.0, "У1: ↑ — от себя, pitch > 0 (%.2f)" % up)
-	check(down < 0.0, "У1: ↓ — на себя, pitch < 0 (%.2f)" % down)
-	_free(ic)
-	ic = _ic(true)
-	var upi := _pitch_after_key(ic, KEY_UP)
-	var downi := _pitch_after_key(ic, KEY_DOWN)
-	print("    У1: инверсия — ↑ %.2f, ↓ %.2f" % [upi, downi])
-	check(upi < 0.0, "У1: инверсия — ↑ на себя (%.2f)" % upi)
-	check(downi > 0.0, "У1: инверсия — ↓ от себя (%.2f)" % downi)
+	for ground in [false, true]:
+		for code in [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_W, KEY_S, KEY_A, KEY_D]:
+			ic.reset()
+			ic.on_ground = ground
+			_key(code, true)
+			for i in 60:
+				ic.update(DT)
+			var c := ic.control
+			check(absf(c.pitch) < 1e-6 and absf(c.roll) < 1e-6,
+					"У1 v5: %s %s — pitch %.2f, roll %.2f (ждали 0)" % ["земля" if ground else "полёт", OS.get_keycode_string(code), c.pitch, c.roll])
+			_key(code, false)
+			ic.update(DT)
 	_free(ic)
 
 
@@ -125,39 +116,6 @@ func test_u1_mouse_bar_pitch_sign() -> void:
 	check(inn < 0.0, "У1: мышь на себя — pitch < 0 (%.2f)" % inn)
 	check(out_inv < 0.0, "У1: инверсия — мышь от себя даёт на себя (%.2f)" % out_inv)
 	check(absf(free) < 1e-6, "У1 v3: без захвата мышь трапецию не двигает (%.2f)" % free)
-
-
-## Физика: в полёте ↑ (держать) — угол атаки больше трима, ↓ — меньше. Учебное крыло, штиль.
-static func _alpha_with_key(m: FlightModel, ic: InputController, code: Key) -> float:
-	m.reset_in_air(Vector3(0, 3000, 0), 0.0)
-	_air(ic)
-	var steps := func(seconds: float) -> float:
-		var sum := 0.0
-		var n := int(round(seconds / DT))
-		for i in n:
-			m.step(DT, ic.update(DT), Callable(), Callable())
-			sum += m.alpha
-		return rad_to_deg(sum / n)
-	steps.call(20.0)  # установиться в триме
-	if code != KEY_NONE:
-		_key(code, true)
-	steps.call(4.0)
-	var a: float = steps.call(2.0)
-	if code != KEY_NONE:
-		_key(code, false)
-	return a
-
-
-func test_u1_keys_change_alpha() -> void:
-	var ic := _ic(false)
-	var m := Sim.make("training")
-	var trim := _alpha_with_key(m, ic, KEY_NONE)
-	var a_up := _alpha_with_key(m, ic, KEY_UP)
-	var a_down := _alpha_with_key(m, ic, KEY_DOWN)
-	_free(ic)
-	print("    У1: угол атаки (training) — трим %.2f°, ↑ %.2f°, ↓ %.2f°" % [trim, a_up, a_down])
-	check(a_up > trim + 0.5, "У1: ↑ — угол атаки больше трима (%.2f° > %.2f°)" % [a_up, trim])
-	check(a_down < trim - 0.5, "У1: ↓ — угол атаки меньше трима (%.2f° < %.2f°)" % [a_down, trim])
 
 
 # --- У2 v2: W/S/A/D — пилот на земле, голова в полёте; в трапецию не идут никогда ---
@@ -213,24 +171,11 @@ func test_u2_wasd_not_bar_in_flight() -> void:
 		for name in ["W", "S", "A", "D"]:
 			_air(ic)
 			res[name] = _hold(ic, [OS.find_keycode_from_string(name)])
-		_air(ic)
-		var up := _hold(ic, [KEY_UP])
-		_air(ic)
-		var right := _hold(ic, [KEY_RIGHT])
-		_air(ic)
-		Input.action_press("pitch_push_out")
-		for i in 60:
-			ic.update(DT)
-		var auto := ic.control.pitch
-		Input.action_release("pitch_push_out")
-		print("    У2: полёт, захват %s — W %s; S %s; A %s; D %s; ↑ %.2f, → %.2f, action_press %.2f" % [
-			captured, _fmt(res.W), _fmt(res.S), _fmt(res.A), _fmt(res.D), up.pitch, right.roll, auto])
+		print("    У2: полёт, захват %s — W %s; S %s; A %s; D %s" % [
+			captured, _fmt(res.W), _fmt(res.S), _fmt(res.A), _fmt(res.D)])
 		for name in res:
 			var c: ControlInput = res[name]
 			check(absf(c.pitch) < 1e-6 and absf(c.roll) < 1e-6, "У2: полёт — %s не двигает трапецию (%s)" % [name, _fmt(c)])
-		check(up.pitch > 0.0, "У2: ↑ — от себя (%.2f)" % up.pitch)
-		check(right.roll > 0.0, "У2: → — крен вправо (%.2f)" % right.roll)
-		check(auto > 0.0, "У2: действие без клавиши (автопилот) считается (%.2f)" % auto)
 		ic.hands_off = true
 		check(not ic.keys_look(), "У2: свободная камера (hands_off) — keys_look() = false")
 		_free(ic)
@@ -244,25 +189,20 @@ func test_u2_ground_keys_pilot() -> void:
 	ic.reset()
 	var a := _hold(ic, [KEY_A])
 	ic.reset()
-	var up := _hold(ic, [KEY_UP])
-	ic.reset()
-	print("    У2: стоя — W %s; A %s; ↑ %s" % [_fmt(w), _fmt(a), _fmt(up)])
+	print("    У2: стоя — W %s; A %s" % [_fmt(w), _fmt(a)])
 	check(w.walk > 0.5 and absf(w.pitch) < 1e-6, "У2: стоя W — шаг, не трапеция (%s)" % _fmt(w))
 	check(a.turn < -0.5 and absf(a.roll) < 1e-6, "У2: стоя A — поворот влево, не крен (%s)" % _fmt(a))
-	check(up.pitch > 0.0, "У2: стоя ↑ — нос крыла вверх (%.2f)" % up.pitch)
 	_key(KEY_SHIFT, true)
 	ic.update(DT)
 	check(not ic.keys_look(), "У2 v2: разбег (Shift) — keys_look() = false")
 	var rw := _hold(ic, [KEY_W])
 	var ra := _hold(ic, [KEY_A])
-	var rup := _hold(ic, [KEY_UP])
 	_key(KEY_SHIFT, false)
 	ic.update(DT)
-	print("    У2: разбег — W %s; A %s; ↑ %s" % [_fmt(rw), _fmt(ra), _fmt(rup)])
+	print("    У2: разбег — W %s; A %s" % [_fmt(rw), _fmt(ra)])
 	for c in [rw, ra]:
 		check(absf(c.pitch) < 1e-6 and absf(c.roll) < 1e-6, "У2: разбег — W/A не двигают крыло (%s)" % _fmt(c))
 		check(c.walk == 0.0 and c.turn == 0.0 and c.run, "У2: разбег — бег Shift, walk/turn 0 (%s)" % _fmt(c))
-	check(rup.pitch > 0.0, "У2: разбег ↑ — нос вверх (%.2f)" % rup.pitch)
 	# отрыв с зажатой W: трапеция 0 и до, и после, клавиша сразу — обзор
 	ic.reset()
 	_key(KEY_W, true)
@@ -318,3 +258,66 @@ func test_u2_cockpit_head_from_keys() -> void:
 	check(d.x < -0.5 * want, "У2: D — голова вправо (%.1f°)" % d.x)
 	check(w.y > 0.0 and s.y < 0.0, "У2: W — вверх, S — вниз (%.1f°, %.1f°)" % [w.y, s.y])
 	check(off.length() < 1e-3, "У2: keys_look_fn = false — голова на месте (%s)" % off)
+
+
+# --- У1 v4: pull_full = [Shift] — добор «на себя» до бёдер (VM-К3 v2) ---
+
+func test_u1_v4_pull_full() -> void:
+	var text := FileAccess.get_file_as_string("res://docs/contracts/ui-controls.md")
+	if text.is_empty():
+		text = FileAccess.get_file_as_string(ProjectSettings.globalize_path("res://docs/contracts/ui-controls.md"))
+	check(text.contains("## У1. Раскладка тангажа и крена — v5"), "У1 v5 в заголовке")
+	check(_keys("pull_full") == ["Shift"], "У1 v4: pull_full = [Shift] (%s)" % [_keys("pull_full")])
+	check(Config.get_config("controls").keys.has("pull_full_doc"), "У1 v4: pull_full_doc")
+	check("pull_full" in ControlInput.new() and ControlInput.new().pull_full == false, "ControlInput.pull_full = false")
+	var rows: Array = Config.get_config("ui").controls_help
+	var row := {}
+	for r: Dictionary in rows:
+		if String(r.get("action", "")) == "pull_full":
+			row = r
+	check(not row.is_empty(), "У1 v4: строка pull_full на экране «Управление»")
+	if not row.is_empty():
+		var key := String(row.text)
+		TranslationServer.set_locale("ru")
+		var ru := tr(key)
+		TranslationServer.set_locale("en")
+		var en := tr(key)
+		check(ru != key and en != key and ru != en, "строка %s переведена (ru/en): %s / %s" % [key, ru, en])
+	var ic := _ic(false)
+	# полёт: Shift — pull_full, отпустил — false; без Shift — false
+	ic.update(DT)
+	check(not ic.control.pull_full, "без Shift pull_full = false")
+	_key(KEY_SHIFT, true)
+	ic.update(DT)
+	var air := ic.control.pull_full
+	var air_run := ic.control.run
+	_key(KEY_SHIFT, false)
+	ic.update(DT)
+	check(air and not air_run, "полёт: Shift — pull_full, не run (%s, %s)" % [air, air_run])
+	check(not ic.control.pull_full, "отпустил Shift — pull_full = false")
+	# мышь на себя + Shift: тангаж прежний (−1), добор — отдельным полем
+	ic._mouse_offset = Vector2(0.0, 1.0)
+	_key(KEY_SHIFT, true)
+	ic.update(DT)
+	var p_full := ic.control.pitch
+	check(ic.control.pull_full and is_equal_approx(p_full, -1.0), "мышь на себя + Shift: pitch −1, pull_full (%.2f)" % p_full)
+	_key(KEY_SHIFT, false)
+	ic._mouse_offset = Vector2.ZERO
+	ic.update(DT)
+	# земля: Shift — run и pull_full оба (модель берёт pull_full только в полёте)
+	ic.reset()
+	_key(KEY_SHIFT, true)
+	ic.update(DT)
+	check(ic.control.run and ic.control.pull_full, "земля: Shift — run (и pull_full)")
+	_key(KEY_SHIFT, false)
+	ic.update(DT)
+	# свободная камера (Shift — быстрее): добора нет
+	_air(ic)
+	ic.hands_off = true
+	_key(KEY_SHIFT, true)
+	ic.update(DT)
+	check(not ic.control.pull_full, "свободная камера: Shift — не добор")
+	_key(KEY_SHIFT, false)
+	ic.hands_off = false
+	ic.update(DT)
+	_free(ic)

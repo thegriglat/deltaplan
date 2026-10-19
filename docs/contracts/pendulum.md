@@ -6,7 +6,7 @@ area: flight
 updated: 2026-10-15
 summary: "Модель полёта «Маятник» (PD-К1), конфиг маятника (PD-К2), настройки «Аппарат» (PD-К3), сеть и поза (PD-К4–К5), касание ногами (PD-К6)."
 related: ["docs/archive/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
-contracts: [{"id": "PD-К1", "version": 4}, {"id": "PD-К2", "version": 7}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}, {"id": "PD-К6", "version": 2}]
+contracts: [{"id": "PD-К1", "version": 5}, {"id": "PD-К2", "version": 8}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}, {"id": "PD-К6", "version": 2}]
 ---
 # Контракты модуля pendulum
 
@@ -56,7 +56,7 @@ v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы н
 | `flare_amount() -> float`, `stall_amount() -> float` | 0…1 | `flare_amount` — доля «от себя» у земли (v2), иначе 0; `stall_amount` — доля сорванных полос |
 | `set_kinematic(pos, vel, heading, bank, theta)` | | для буксира NET-42: крыло жёстко в заданное положение, пилот — в равновесии под подвеской, ω = 0, `mode = AIR` |
 
-Ввод (`ControlInput`, без изменений): `roll` −1…1 → целевое положение пилота поперёк штанги `roll·arms.shift_y_max_m` (+ вправо); `pitch` +1 («от себя») → пилот назад на `arms.shift_x_push_m`, −1 («на себя») → вперёд на `arms.shift_x_pull_m`; `weight_shift` не читается; `run`, `walk`, `turn` — на земле (v2).
+Ввод (`ControlInput`, без изменений): `roll` −1…1 → целевое положение пилота поперёк штанги `roll·arms.shift_y_max_m` (+ вправо); `pitch` +1 («от себя») → пилот назад на `arms.shift_x_push_m`, −1 («на себя») → вперёд на `arms.shift_x_pull_m`, при `pull_full` (v5, добор до бёдер; плавный возврат предела — `docs/contracts/pullin-speed.md` VM-К3 v2) — на `arms.shift_x_pull_full_m`; `weight_shift` не читается; `run`, `walk`, `turn` — на земле (v2).
 
 Земля (v2, владелец PD-3; R6 плана): `reset_on_ground(pos, heading_deg)` — `pos` в смысле `position` (узел `Glider`: на земле — у ступней стоящего пилота, как у `FlightModel`), пилот стоит, крыло на руках (стойки у плеч, нос — `wing.launch.alpha_neutral_deg`), `mode = GROUND`. На земле: ноги — пружина-демпфер (только толкают), ходьба/бег по `input.walk`/`input.run`/`input.turn` (бег F(1 − v/v_ног), числа `pilot.json → walk/run`), руки держат стойки (опора под ЦМ крыла; тангаж — `input.pitch`, момент до 300 Н·м; крен — `input.roll`, до 200 Н·м × доля веса на ногах), стропа провисает. `phase()` — standing/walking/running/flying/landed/failed. Отрыв — ступни перестали касаться земли под нагрузкой стропы (из сил, без порога скорости) → `mode = AIR`, `took_off`; руки на штангу через `flight.takeoff.upright_clear_m`/1 с после отрыва. Срыв разбега — крыло (нос, консоль, киль) коснулось земли или пилот упал → `mode = FAILED`, `takeoff_failed(reason)` с причинами как у `FlightModel` (`flight_model.gd`). Посадка: выравнивание — «от себя» (пилот назад), `flare_amount()` — доля «от себя» у земли (0…1); касание — ступни пилота (ЦМ − 1,0 м по +Y `pilot_basis`) у земли → `LandingJudge.evaluate` по скорости ЦМ пилота (уточнено 11.10, PD-27: разница со ступнями ±0,2 м/с; пороги не меняются) → `mode = LANDED`, `landed`; консоль/нос в землю до касания ногами — авария (`grade = "crash"`). Контакт крыла с землёй — точки нос, концы консолей, задний конец киля.
 
@@ -66,7 +66,8 @@ v2 (11.10, PD-3): земля маятника — `reset_on_ground`, фазы н
 
 Выбор модели (PD-4): `Glider.setup(wing_id, pilot_mass, apparatus := {})` читает `controls.roll_control_mode`; `"pendulum"` → `PendulumModel`, иначе `FlightModel`; умолчание теперь `pendulum` (PMD-К1, [pendulum-default](pendulum-default.md)); `Glider.model` — без статического типа. Боты, `BotAgent`, `remote_pilots` — только `FlightModel`.
 
-## PD-К2. Конфиг маятника и блок pendulum в крыльях (v7)
+## PD-К2. Конфиг маятника и блок pendulum в крыльях (v8)
+v8 (19.10, pullin-speed VM-4): нелинейная Cm(α) — `pitch_nl {enabled, sigma, width_deg, luff_cm_per_deg, luff_on_deg}` (формула — ниже, «Нелинейная Cm(α)»); добор «на себя» — `arms.shift_x_pull_full_m`, `arms.pull_full_release_m_s` (VM-К3 v2); в блоке крыла + `cl_alpha_per_rad`, `alpha_zero_lift_deg`, `dcm0` пересчитан с включённой `pitch_nl`; `contract` файла — `"PD-К2 v8"`, блоков крыльев — `"PD-К2 v8"`. Основание — `docs/research/pendulum/pitch-nonlinear.md` (VM-2), `docs/research/pendulum/pitch-release.md` (VM-3: Cmq-поправки нет).
 v7 (11.10, PD-35): убран `arms.flare_shift_x_push_m` (ход у земли — из `arms.flare_reach`); + `strips.stall_cd90_sweep_norm`, `strips.sweep_alpha_exact`, `strips.stall_cp_reverse`, `touchdown {run_max_ms, stand_max_ms, step_period_s}`; `contract` — `"PD-К2 v7"`.
 v6 (11.10, PD-22): срыв полос — `strips.stall_model` ("viterna" | "plate"), `strips.stall_cd90_base` (1,11), `strips.stall_cd90_per_ar` (0,018), `strips.stall_criterion` ("streamwise" | "normal"), `strips.stall_cp_blend_deg` (20); `contract` — `"PD-К2 v6"`.
 v5 (11.10, PD-24): `flex_relief` (урезание разницы нагрузок консолей) удалён; гибкость паруса — управление: крутка конца = `billow_shift_deg` (40°) × `sail_flex` × (сила рук вбок / вес пилота) (Kroo 1981); `sail_flex` — 1 самый гибкий; классы — новые `apparatus_defaults`.
@@ -86,6 +87,11 @@ v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта си�
 | `chain.substeps_per_s`, `chain.substeps_min` | 1/с, int | 480, 4 |
 | `arms.force_max_n`, `arms.tau_s`, `arms.ti_s` | Н, с, с | 300, 0,30, 0 (0 — без интеграла: пружина-демпфер + прямая подача m·g/L·(цель − нейтраль), PD-19) |
 | `arms.shift_y_max_m`, `arms.shift_x_pull_m`, `arms.shift_x_push_m` | м | 0,45, 0,45, 0,30 |
+| `arms.shift_x_pull_full_m` | м — ход «на себя» с добором (штанга у бёдер, руководство T2C) | 0,7 (v8) |
+| `arms.pull_full_release_m_s` | м/с — скорость возврата предела от добора к обычному после отпускания модификатора | 0,5 (v8) |
+| `pitch_nl.enabled` | bool; false — прежняя линейная модель | true (v8) |
+| `pitch_nl.sigma`, `pitch_nl.width_deg` | безразм., ° — доля жёсткости ниже трима, ширина сглаживания | 0,5, 1,0 (v8; σ одним числом на парк — по медиане паспортов, граница модели) |
+| `pitch_nl.luff_cm_per_deg`, `pitch_nl.luff_on_deg` | 1/°, ° — восстановление luff lines ниже нулевой подъёмной | 0,02, 0,0 (v8) |
 | `strips.count`, `strips.cp_chord` | int (чётное), доля хорды | 16, 0,25 |
 | `strips.aero_hz` | Гц (≤ 0 — на каждом подшаге, как прототип) | 60 |
 | `yaw.cn_beta`, `yaw.fin_arm_m`, `yaw.fin_slope_per_rad` | 1/рад, м, 1/рад | 0,06, 1,6, 2,0 |
@@ -112,10 +118,14 @@ v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта си�
 | `bar_x_from_nose_m`, `bar_z_m` | м | середина базовой штанги (z < 0 — ниже киля) |
 | `cg_x_from_nose_m`, `cg_z_m` | м | ЦМ крыла (трубы + парус) |
 | `inertia_kgm2` | `{ixx, iyy, izz, ixz}`, кг·м² | инерция крыла около его ЦМ, оси x — вперёд, y — вправо, z — вниз (аэродинамические); `ixz` — элемент тензора I[0][2] = −Σ m·x·z (как `geometry.mass_model` прототипа), не произведение инерции; **без** присоединённой массы (её считает модель от ρ) |
-| `dcm0` | безразм. | момент паруса под паспортный трим при `hang_from_nose_m` и эталонной массе |
+| `dcm0` | безразм. | момент паруса под паспортный трим при `hang_from_nose_m` и эталонной массе (v8 — с включённой `pitch_nl`) |
+| `cl_alpha_per_rad` | 1/рад | v8: dCL/dα крыла по полосам на триме (±0,5°) |
+| `alpha_zero_lift_deg` | ° | v8: α киля, при котором CL полос = 0 |
 | `cd_scale` | безразм. | множитель сопротивления полос: снижение на триме = поляре |
 | `apparatus_defaults` | `{dihedral_eff_deg, sail_flex}` | умолчания «Аппарата» этого крыла по классу (учебные — устойчивая спираль, жёстче; безмачтовые — нейтральная спираль); `ref` посчитан при них |
 | `ref` | словарь, справочно | `trim_kmh`, `sink_ms`, `alpha_trim_deg`, `neutral_point_from_nose_m`, `static_margin`, `kmh_per_cm_hang` (сдвиг подвески на 1 см вперёд) — для тестов и PD-5 |
+
+**Нелинейная Cm(α)** (v8, `scripts/flight/pendulum/wing_strips.gd`, рядом с вкладом `dcm0`, оси и знак — как у `dcm0`, нос вверх +): `a` — α киля в ЦМ крыла (как в прототипе), `w = deg_to_rad(width_deg)`, `r(x) = 0,5·(x + √(x² + w²))`, `ΔCm = −(1 − sigma)·static_margin·cl_alpha_per_rad·r(alpha_trim − a) + (180/π)·luff_cm_per_deg·r(alpha_zero_lift + luff_on − a)` (углы в рад, `static_margin`, `alpha_trim` — из `ref`), момент `0,5·ρ·V²·area·chord_mean·ΔCm`. Эталон ΔCm (без `dcm0`, σ 0,5) — таблица `docs/research/pendulum/pitch-nonlinear.md` «Порт в игру» (training, atlas, laminar, sport, ww_t2c; допуск ±0,002).
 
 Инварианты (тест PD-К2, все 48 крыльев): все ключи есть, числа конечны; `root_chord_m > tip_chord_m > 0`; 0 < `static_margin` < 0,4; `|ref.trim_kmh − trim_speed_kmh| ≤ 0,3`; `ref.sink_ms` = поляра на триме ±0,02 м/с; `inertia_kgm2.ixx, iyy, izz > 0`.
 

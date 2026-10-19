@@ -84,6 +84,16 @@ var cd_scale: float = 1.0
 var cd_pilot_share: float = 0.0
 var billow_shift: float = 0.0  ## крутка конца, рад на единицу «сила рук вбок / вес пилота» (× гибкость)
 var dcm0: float = 0.0
+## Нелинейная Cm(α) (PD-К2 v8, pitch_nl; docs/research/pendulum/pitch-nonlinear.md): ниже трима наклон Cm(CL)
+## смягчается до sigma (разгрузка задней части паруса), ниже нулевой подъёмной — luff lines. Добавка по
+## α киля в ЦМ крыла: ΔCm = −nl_soft·r(nl_alpha_trim − α) + nl_luff·r(nl_alpha_luff − α), r — гладкий излом
+## шириной nl_w. Выключена (или в блоке крыла нет cl_alpha_per_rad) — прежняя линейная модель.
+var nl_on := false
+var nl_soft: float = 0.0  ## (1 − sigma)·Kn_t·a, 1/рад
+var nl_alpha_trim: float = 0.0  ## α трима, рад
+var nl_luff: float = 0.0  ## luff_cm_per_deg·180/π, 1/рад
+var nl_alpha_luff: float = 0.0  ## α нулевой подъёмной + luff_on, рад
+var nl_w: float = 0.0  ## ширина излома, рад
 var area: float = 0.0
 var chord_mean: float = 0.0
 var fin_area: float = 0.0
@@ -205,6 +215,15 @@ func setup(
 	cd_pilot_share = float(pend.pilot_cda_m2) / area
 	billow_shift = deg_to_rad(float(pend.get("billow_shift_deg", 0.0))) * flex
 	dcm0 = float(blk.dcm0)
+	var pnl: Dictionary = pend.get("pitch_nl", {})
+	nl_on = bool(pnl.get("enabled", false)) and blk.has("cl_alpha_per_rad") and blk.has("alpha_zero_lift_deg")
+	if nl_on:
+		var ref: Dictionary = blk.ref
+		nl_soft = (1.0 - float(pnl.sigma)) * float(ref.static_margin) * float(blk.cl_alpha_per_rad)
+		nl_alpha_trim = deg_to_rad(float(ref.alpha_trim_deg))
+		nl_luff = float(pnl.luff_cm_per_deg) * 180.0 / PI
+		nl_alpha_luff = deg_to_rad(float(blk.alpha_zero_lift_deg) + float(pnl.luff_on_deg))
+		nl_w = deg_to_rad(float(pnl.width_deg))
 	var yaw: Dictionary = pend.yaw
 	fin_slope = float(yaw.fin_slope_per_rad)
 	var fin_arm := float(yaw.fin_arm_m)
@@ -411,7 +430,11 @@ func aero(
 	# момент паруса (Cm0) по скоростному напору в ЦМ
 	var v_c := vel - air_c
 	var V := v_c.length()
-	m_sum.y += 0.5 * rho * V * V * area * chord_mean * dcm0
+	var cm := dcm0
+	if nl_on and V > 0.1:
+		var vbc: Vector3 = Rt * v_c
+		cm += pitch_nl_dcm(atan2(vbc.z, vbc.x))
+	m_sum.y += 0.5 * rho * V * V * area * chord_mean * cm
 	if free_yaw:
 		# «эквивалентный киль»: флюгерная устойчивость Cnβ (и Cnr, CYβ)
 		var vf: Vector3 = Rt * (v_c + w.cross(R * r_fin_b))
@@ -429,6 +452,16 @@ func aero(
 	moment_b = m_sum
 	force = R * f_sum
 	moment = R * m_sum
+
+
+## ΔCm нелинейного тангажа (PD-К2 v8) при α киля в ЦМ крыла alpha, рад (нос вверх +); 0 — выключено.
+func pitch_nl_dcm(alpha: float) -> float:
+	if not nl_on:
+		return 0.0
+	var w2 := nl_w * nl_w
+	var x1 := nl_alpha_trim - alpha
+	var x2 := nl_alpha_luff - alpha
+	return -nl_soft * 0.5 * (x1 + sqrt(x1 * x1 + w2)) + nl_luff * 0.5 * (x2 + sqrt(x2 * x2 + w2))
 
 
 ## Центр давления сорванной полосы, доля хорды от передней кромки: пластина (Fage & Johansen 1927)

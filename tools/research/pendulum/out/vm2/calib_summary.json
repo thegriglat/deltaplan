@@ -1,0 +1,224 @@
+[
+ {
+  "nl": {
+   "force_max": 700,
+   "pitch_nl": false,
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.35,
+   "pnl_width_deg": 1.0,
+   "release": "ramp1"
+  },
+  "n": 5,
+  "median": 1.0183812798721164,
+  "p10": 0.9825604932219656,
+  "tuck": 4,
+  "fx_max": 614.0499580592741
+ },
+ {
+  "nl": {
+   "force_max": 700,
+   "pitch_nl": false,
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.35,
+   "pnl_width_deg": 1.0
+  },
+  "n": 48,
+  "median": 1.0309850056120182,
+  "p10": 0.9753037722127336,
+  "tuck": 40,
+  "fx_max": 699.3432539900009
+ },
+ {
+  "nl": {
+   "pnl_arg": "q",
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.35,
+   "pnl_width_deg": 1.0,
+   "pull_full": 0.7
+  },
+  "n": 5,
+  "median": 1.1384323906974918,
+  "p10": 0.9898243956161251,
+  "tuck": 4,
+  "fx_max": 299.66187310074764
+ },
+ {
+  "nl": {
+   "pnl_arg": "q",
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.35,
+   "pnl_width_deg": 1.0
+  },
+  "n": 5,
+  "median": 1.1385372416959703,
+  "p10": 1.0643842611393157,
+  "tuck": 4,
+  "fx_max": 299.0886553642184
+ },
+ {
+  "nl": {
+   "pnl_arg": "q",
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.5,
+   "pnl_width_deg": 1.0
+  },
+  "n": 5,
+  "median": 0.9914777978960099,
+  "p10": 0.9267662843175583,
+  "tuck": 3,
+  "fx_max": 297.7843540769098
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.35,
+   "pnl_width_deg": 1.0,
+   "pull_full": 0.7
+  },
+  "n": 5,
+  "median": 1.1429944748933822,
+  "p10": 0.999350371538601,
+  "tuck": 4,
+  "fx_max": 299.11622814158824
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.35,
+   "pnl_width_deg": 1.0,
+   "release": "ramp1"
+  },
+  "n": 5,
+  "median": 1.1406989609825189,
+  "p10": 1.072595496463973,
+  "tuck": 5,
+  "fx_max": 297.8411067744005
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.35,
+   "pnl_width_deg": 1.0,
+   "release": "relaxed"
+  },
+  "n": 5,
+  "median": 1.1406989609825189,
+  "p10": 1.072595496463973,
+  "tuck": 3,
+  "fx_max": 297.8411067744005
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.35,
+   "pnl_width_deg": 1.0
+  },
+  "n": 5,
+  "median": 1.1406989609825189,
+  "p10": 1.072595496463973,
+  "tuck": 5,
+  "fx_max": 297.8411067744005
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.35,
+   "pnl_width_deg": 4.0
+  },
+  "n": 5,
+  "median": 0.996275222066822,
+  "p10": 0.9051529889921381,
+  "tuck": 4,
+  "fx_max": 296.235179892716
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.45,
+   "pnl_width_deg": 1.0
+  },
+  "n": 48,
+  "median": 1.0488477708017099,
+  "p10": 0.9471119028764274,
+  "tuck": 38,
+  "fx_max": 299.18439316822435
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.5,
+   "pnl_width_deg": 1.0,
+   "pull_full": 0.45
+  },
+  "n": 48,
+  "median": 0.8754233294740174,
+  "p10": 0.7953588370277176,
+  "tuck": 28,
+  "fx_max": 266.4901267553524
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.5,
+   "pnl_width_deg": 1.0,
+   "pull_full": 0.7
+  },
+  "n": 5,
+  "median": 0.9952656891067566,
+  "p10": 0.932480391561673,
+  "tuck": 4,
+  "fx_max": 299.32648706194664
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.5,
+   "pnl_width_deg": 1.0
+  },
+  "n": 48,
+  "median": 1.0027868053073274,
+  "p10": 0.9120593952629191,
+  "tuck": 37,
+  "fx_max": 298.56701308538317
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 0.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.55,
+   "pnl_width_deg": 1.0
+  },
+  "n": 48,
+  "median": 0.9664920814752915,
+  "p10": 0.8850971702589157,
+  "tuck": 37,
+  "fx_max": 297.9298204743577
+ },
+ {
+  "nl": {
+   "pnl_luff_on_deg": 4.0,
+   "pnl_luff_per_deg": 0.02,
+   "pnl_sigma": 0.35,
+   "pnl_width_deg": 1.0
+  },
+  "n": 5,
+  "median": 1.01241445040085,
+  "p10": 0.8909796330525708,
+  "tuck": 5,
+  "fx_max": 295.8909484903534
+ }
+]

@@ -18,6 +18,13 @@ const RECOVER_MAX_S := 15.0
 const LOSS_MAX_M := 150.0
 
 
+
+## Q3 pullin-speed (решение пользователя 2026-10-19): не подгонять и не удалять — пропуск с причиной до TODO.
+func skip_reason(method: String) -> String:
+	if method == "test_inner_wing_drop_spin_and_recovery":
+		return "переворот/раскачка после выхода из разгона с pitch_nl — граница модели, Q3 pullin-speed, TODO (sport после выхода из штопора на ~85 км/ч раскачивается по крену ±90°/с, выхода нет)"
+	return ""
+
 func _yaw_rate(m: PendulumModel, prev: float) -> float:
 	return wrapf(m.heading - prev, -PI, PI) / S.DT
 

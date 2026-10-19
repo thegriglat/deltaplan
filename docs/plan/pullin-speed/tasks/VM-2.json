@@ -1,0 +1,60 @@
+{
+  "id": "VM-2",
+  "module": "pullin-speed",
+  "type": "dp-researcher",
+  "title": "Проект нелинейной Cm(α) и хода «на себя» на прототипе маятника",
+  "goal": "По VM-К2: на прототипе tools/research/pendulum/ добавить к моменту крыла физически обоснованную нелинейную Cm(α) (слабая жёсткость в рабочем диапазоне, сильное восстановление на малых α) и ход «на себя» до «штанги у бёдер»; прогон 48 крыльев до/после выводит медиану Vmax/паспорт VG 0 в 0,9–1,1 без потери устойчивости; итог — документ и точные ключи для порта в игру.",
+  "plan_ref": "Волна 2 — проект тангажа на прототипе",
+  "contracts": [
+    {
+      "name": "VM-К0",
+      "version": "1",
+      "ref": "docs/contracts/pullin-speed.md"
+    },
+    {
+      "name": "VM-К2",
+      "version": "3",
+      "ref": "docs/contracts/pullin-speed.md"
+    }
+  ],
+  "copy": "~/deltaplan-pullin-speed-VM-2",
+  "branch": "pullin-speed/VM-2",
+  "base": "feature/pullin-speed",
+  "scope": [
+    "docs/research/pendulum/pitch-nonlinear.md",
+    "tools/research/pendulum/",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "tools/flight/",
+    "docs/guide/",
+    "docs/contracts/",
+    "project.godot",
+    "tools/research/pendulum/out/pb2/",
+    "tools/research/pullin_speed/"
+  ],
+  "accept": [
+    {
+      "name": "vm-k2-sections",
+      "cmd": "bash -c 'f=docs/research/pendulum/pitch-nonlinear.md; for h in \"Физика\" \"Модель\" \"Ход «на себя»\" \"Результаты\" \"Порт в игру\" \"Границы\" \"Воспроизведение\"; do grep -q \"^## $h\" $f || { echo нет $h; exit 1; }; done'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs-check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "vm-k2-summary",
+      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pendulum/out/vm2/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('vmax_ratio_median',0.9<=s['vmax_ratio_median']<=1.1),('vmax_ratio_p10',s['vmax_ratio_p10']>=0.8),('trim_dev_max_kmh',s['trim_dev_max_kmh']<=0.3),('kn_trim_min',s['kn_trim_min']>0),('phugoid',s['phugoid_unstable_count']<=s['phugoid_unstable_count_base']),('bar_force',s['bar_force_vmax_max_n']<=s['arms_force_max_n']),('stall',s['stall_dev_max_kmh']<=2),('pull_full_m',s['pull_full_m']>0.45),('base',s['vmax_ratio_median_base']>0),('normal',s['vmax_ratio_median_normal']>0)] if not ok]; print('bad', bad) if bad else print('vm-k2 ok'); sys.exit(1 if bad else 0)\"",
+      "expect": "re:vm-k2 ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-19T01:50:50",
+  "edited": "2026-10-19T08:41:33"
+}

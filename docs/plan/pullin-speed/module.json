@@ -1,0 +1,11 @@
+{
+  "module": "pullin-speed",
+  "plan": "docs/plan/pullin-speed.md",
+  "contracts": "docs/contracts/pullin-speed.md",
+  "branch": "feature/pullin-speed",
+  "copy": "~/deltaplan-pullin-speed",
+  "created": "2026-10-19T01:27:55",
+  "code": "VM",
+  "area": "flight",
+  "base": "main"
+}

@@ -1,0 +1,44 @@
+manufacturer,family,size,vmax_vg0,vmax_vg100,vne,delta,quote0,quote100,censored,at_vne_cap,kinds
+A.I.R.,Atos VRQ,,90.0,85.0,90.0,-5.0,V max (km/h): >90 (Wölbklappe 0°),V max (km/h): 85 (Wölbklappe 70°),True,False,dhv
+Aeros,Combat C,12.7,90.0,115.0,90.0,25.0,V max VG 0%: 90 km/h,V max VG 100%: 115 km/h,False,True,dhv
+Aeros,Combat L,12,85.0,90.0,90.0,5.0,V max (km/h) 85,V max (km/h) >90,True,True,dhv
+Aeros,Combat L,13,90.0,90.0,90.0,0.0,"HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit
+ 90 km/h",V max (km/h) >90,True,True,dhv
+Aeros,Combat L,14,80.0,90.0,90.0,10.0,"HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit
+ 90 km/h",V max (km/h) >90,True,True,dhv
+Aeros,Discus,14,80.0,80.0,90.0,0.0,"Max. airspeed, km/h (mph) 80 (50)",V max (km/h)  80  >80,True,False,dhv/oldpdf
+Aeros,Discus,15,87.5,90.0,90.0,2.5,"Max. airspeed, km/h (mph) 80 (50)",V max (km/h) >90,True,True,dhv/oldpdf
+Airborne,REV,14.5,87.0,90.0,,3.0,V max (km/h)  87  >90,V max (km/h)  87  >90,True,False,dhv
+Airborne,Sting 3,154,85.0,90.0,90.0,5.0,V max (km/h) 85,V max (km/h) >90,True,True,dhv/oldpdf
+Airborne,Sting 3,168,70.0,75.0,90.0,5.0,V max (km/h): 70 (VG 0%),V max (km/h): 75 (VG 100%),False,False,dhv
+Bautek,Fizz,,90.0,90.0,90.1233,0.0,V max (km/h)  90  >90,V max (km/h)  90  >90,True,False,dhv/site
+DesignProducts,Combat C AC,12.7,90.0,115.0,90.0,25.0,V max VG 0%: 90 km/h,V max VG 100%: 115 km/h,False,True,dhv
+DesignProducts,Combat C AC,13,93.0,90.0,90.0,-3.0,"HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit
+ 90 km/h",V max (km/h) 90,False,True,dhv
+Flugsport Skypoint,Space,14,69.0,71.0,80.0,2.0,V max (km/h) 69,V max (km/h) 71,False,False,dhv
+Icaro,Alto,L,88.0,108.0,90.0,20.0,V max VG 0%: 88 km/h,V max VG 100%: 108 km/h,False,True,dhv/pdf
+Icaro,Laminar,14.2,87.5,80.0,90.0,-7.5,"HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit
+ 90 km/h",V max (km/h) >80,True,False,dhv
+Icaro,Laminar,12.6,80.0,90.0,90.0,10.0,V max (km/h): 80 (VG 0%),V max (km/h): >90 (VG 100%),True,True,dhv
+Icaro,Laminar,13.2,90.0,90.0,90.0,0.0,V max (km/h) 90,V max (km/h) >90,True,True,dhv
+Icaro,Laminar,13.7,84.0,90.0,90.0,6.0,V max (km/h) 84,V max (km/h) >90,True,True,dhv
+Icaro,Laminar,14.1,80.0,90.0,90.0,10.0,V max (km/h) 80,V max (km/h) >90,True,True,dhv
+Icaro,Laminar,14.1,80.0,90.0,90.0,10.0,V max (km/h)  80  >90,V max (km/h)  80  >90,True,True,dhv/oldpdf/pdf
+Icaro,MastR,L,74.0,90.0,90.0,16.0,V max (km/h) 74,V max (km/h) >90,True,True,dhv/site
+Icaro,MastR,M,85.0,90.0,90.0,5.0,V max (km/h) 85,V max (km/h) >90,True,True,dhv/site
+Icaro,MastR,S,90.0,90.0,90.0,0.0,V max (km/h): 90 (VG 0%),V max (km/h): >90 (VG 100%),True,True,dhv/site
+Icaro,Orbiter,14,85.0,90.0,90.0,5.0,"HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit
+ 90 km/h",V max (km/h) >90,True,True,dhv
+Icaro,Orbiter,S,80.0,90.0,90.0,10.0,V max (km/h) 80,V max (km/h) >90,True,True,dhv
+Moyes,Litespeed RX,3,77.5,90.0,90.0,12.5,V max (km/h)  80  >90,V max (km/h)  80  >90,True,True,dhv/site
+Moyes,Litespeed RX,3.5,75.0,90.0,90.0,15.0,V max (km/h)  75  >90,V max (km/h)  75  >90,True,True,dhv/site
+Moyes,Litespeed RX,4,75.0,90.0,90.0,15.0,V max (km/h)  75  >90,V max (km/h)  75  >90,True,True,dhv/site
+Moyes,Litespeed S,4.5,75.0,90.0,90.0,15.0,V max (km/h) 75,V max (km/h) >90,True,True,dhv/oldpdf
+Seedwings,Skyrunner XR,,90.0,90.0,90.0,0.0,V max (km/h)  90  >90,V max (km/h)  90  >90,True,True,dhv
+Seedwings,Spyder,12.5,82.5,90.0,90.0,7.5,"HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit
+ 90 km/h",V max (km/h) 90,False,True,dhv
+Wills Wing,Sport 2,155,80.0,90.0,90.0,10.0,V max (km/h) 80,V max (km/h) 90,False,True,dhv/placard
+Wills Wing,T2C,144,85.0,90.0,85.0,5.0,V max (km/h)  85  >90,V max (km/h)  85  >90,True,True,dhv/oldpdf/site
+Wills Wing,U2,145,85.0,85.0,85.0,0.0,V max (km/h)  85  >85,V max (km/h)  85  >85,True,True,dhv/placard/site
+Wills Wing,U2,160,87.5,90.0,90.0,2.5,"HÃ¶chstzulÃ¤ssige Fluggeschwindigkeit
+ 90 km/h",V max (km/h) >90,True,True,dhv/placard/site

@@ -98,6 +98,7 @@ class Params:
     shift_y_max: float = 0.45  # м, EST: смещение ЦМ пилота поперёк до упора (полуширина штанги − плечи)
     shift_x_pull: float = 0.45  # м, EST: «на себя» до упора — пилот вперёд относительно трапеции
     shift_x_push: float = 0.30  # м, EST: «от себя» до упора — пилот назад
+    shift_x_pull_full: float = float("nan")  # м, VM-2: добор «на себя» до «штанги у бёдер» (Control.pull_full); NaN — нет добора
     # аэродинамика
     n_strips: int = 16  # полос на всё крыло (чётное)
     cp_chord: float = 0.25  # доля хорды: точка приложения сил полосы (четверть хорды)
@@ -105,6 +106,9 @@ class Params:
     # выше Hiway Demon 0,0275 (0,018–0,04); PD-23: 0,035–0,045 — перевороты sport в болтанке на поле эталона
     cn_p_add: float = 0.15  # добавка Cn на pb/2V (PD-К2 v4, PD-23): Cnp полос −0,15 → литература
     cn_r_add: float = -0.03  # добавка Cn на rb/2V (PD-К2 v4, PD-23): Cnr → −0,058 (Hiway Demon)
+    # VM-3 (docs/research/pendulum/pitch-release.md): добавка Cm на q·c/2V (средняя хорда, напор в ЦМ крыла,
+    # момент около ЦМ крыла); 0 — прежнее поведение. Приведение Cmq полос к литературе (Cook & Spottiswoode)
+    cm_q_add: float = 0.0
     fin_arm: float = 1.6  # м позади ЦМ крыла: «эквивалентный киль», несущий Cnβ (и даёт Cnr, CYβ)
     fin_slope: float = 2.0  # 1/рад, малое удлинение
     apparent_roll: bool = True  # присоединённая масса воздуха по крену (π/48·ρ·c²·b³)
@@ -128,6 +132,25 @@ class Params:
     body_izz: float = 28.0  # кг·м², EST: инерция тела лёжа (руки вперёд к штанге) вокруг оси ⊥ телу через ЦМ, 85 кг
     # по сегментам de Leva 1996 (26,5) + подвесная 5 кг стержнем 1,8 м (1,4) — pb1_analytic.py; без выноса рук ≈ 14
     body_segments: int = 5  # отрезков по длине тела для местной скорости
+    # нелинейный тангаж (VM-2, docs/research/pendulum/pitch-nonlinear.md): добавка ΔCm(α) к моменту крыла
+    # (по средней хорде, скоростной напор в ЦМ, нос вверх +), α — угол атаки киля в ЦМ крыла.
+    # Выключено (pitch_nl = False) — прежняя линейная модель.
+    #   ΔCm = −(1 − σ)·Kn_t·a·r(α_t − α) + k_l·r(α_zl + Δ_l − α),  r(x) = ½(x + √(x² + w²));
+    #   постоянная часть на триме (−(1 − σ)·Kn_t·a·w/2) уходит в dcm0 (пересчёт под паспортный трим)
+    # σ — доля жёсткости по тангажу, остающаяся у гибкого паруса ниже трима (общий); Kn_t, α_t, a, α_zl —
+    # из геометрии крыла (генератор: запас на триме, угол трима, наклон CL(α) крыла, угол нулевой подъёмной);
+    # k_l, Δ_l — luff lines/спроги (общие), w — ширина сглаживания излома (общий).
+    pitch_nl: bool = False
+    pnl_sigma: float = 0.35
+    pnl_width_deg: float = 1.0
+    pnl_luff_per_deg: float = 0.02  # ΔCm на градус ниже включения luff lines (Kroo 1981: Cm0 +0,1…+0,2)
+    pnl_luff_on_deg: float = 0.0  # включение luff lines: градусов выше угла нулевой подъёмной силы
+    pnl_kn_trim: float = float("nan")  # Kn на триме при выключенной добавке (генератор)
+    pnl_alpha_trim: float = float("nan")  # рад, α киля на триме (генератор)
+    pnl_cl_alpha: float = float("nan")  # 1/рад, dCL/dα крыла на триме (генератор)
+    pnl_alpha_zl: float = float("nan")  # рад, α киля нулевой подъёмной силы крыла (генератор)
+    pnl_arg: str = "alpha"  # аргумент смягчения: "alpha" — α киля; "q" — напор, CL_1g = 2·m·g/(ρ·S·V²) (аэроупругая крутка)
+    pnl_cl_trim: float = float("nan")  # CL трима (генератор), для pnl_arg = "q"
 
     @property
     def m_total(self) -> float:
@@ -140,6 +163,25 @@ class Params:
     @property
     def chord_mean(self) -> float:
         return self.area / self.span
+
+    def pitch_nl_dcm(self, alpha: float, V: float = float("nan")) -> float:
+        """ΔCm(α[, V]) нелинейного тангажа (VM-2); 0, если выключено."""
+        if not self.pitch_nl:
+            return 0.0
+        w = math.radians(self.pnl_width_deg)
+        def r(x, ww):
+            return 0.5 * (x + math.sqrt(x * x + ww * ww))  # гладкий излом: 0 при x → −∞, x при x → +∞
+        a = self.pnl_cl_alpha
+        kn_s = (1.0 - self.pnl_sigma) * self.pnl_kn_trim
+        if self.pnl_arg == "q":
+            # дефицит CL на 1 g относительно трима: CL_t − 2mg/(ρSV²) ≈ a·(α_t − α) в прямом полёте
+            cl1 = 2.0 * self.m_total * G / (self.rho * self.area * max(V, 1.0) ** 2)
+            soft = -kn_s * r(self.pnl_cl_trim - cl1, a * w)
+        else:
+            soft = -kn_s * a * r(self.pnl_alpha_trim - alpha, w)
+        kl = self.pnl_luff_per_deg * 180.0 / math.pi
+        a_l = self.pnl_alpha_zl + math.radians(self.pnl_luff_on_deg)
+        return soft + kl * r(a_l - alpha, w)
 
     def with_(self, **kw) -> "Params":
         return replace(self, **kw)

@@ -12,10 +12,6 @@ const KEYS: Array[String] = [
 	"walk_back",
 	"turn_left",
 	"turn_right",
-	"pitch_pull_in",
-	"pitch_push_out",
-	"roll_left",
-	"roll_right"
 ]
 
 var failures: PackedStringArray = []
@@ -133,30 +129,25 @@ func test_walk_run_and_turn_on_ground() -> void:
 	await _close(main)
 
 
-## У1 v3 / У2 v2 (ui-controls): на земле W/S — шаг, A/D — поворот; крыло — стрелки (и мышь, стик),
-## стоя и на бегу (Shift); W/S/A/D крыло не двигают ни стоя, ни на бегу (мышь захвачена или нет).
-## Клавиши — из карты, знак — по действию.
+## У1 v5 / У2 v2 (ui-controls): на земле W/S — шаг, A/D — поворот; крыло — мышь, стик (клавиш трапеции
+## нет), стоя и на бегу (Shift); W/S/A/D и стрелки крыло не двигают ни стоя, ни на бегу (мышь захвачена или нет).
 func test_ground_bar_keys() -> void:
 	var main: Node = await _open()
 	if main == null:
 		return
 	var game: Game = main.get_node("Game")
 	var ic := game.input_controller
-	var inv := -1.0 if bool(Config.value("controls", "invert_pitch")) else 1.0
 	var move := []
 	for a in ["walk_forward", "walk_back", "turn_left", "turn_right"]:
 		for ev in InputMap.action_get_events(a):
 			if ev is InputEventKey:
 				move.append((ev as InputEventKey).physical_keycode)
-	var bar_key := _first_key("pitch_push_out", move)
-	check(bar_key != KEY_NONE, "у «от себя» есть клавиша вне шага/поворота")
-	_key(bar_key, true)
-	_ticks(game, 1.0)
-	var p_stand := ic.control.pitch
-	_key(bar_key, false)
-	_ticks(game, 1.5)
-	print("    стоя «от себя» (%s) 1 с: pitch %.2f" % [OS.get_keycode_string(bar_key), p_stand])
-	check(p_stand * inv > 0.9, "стоя клавиша трапеции — нос на полный ход: %.2f" % p_stand)
+	for code in [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT]:
+		_key(code, true)
+		_ticks(game, 0.5)
+		check(absf(ic.control.pitch) < 1e-6 and absf(ic.control.roll) < 1e-6,
+				"стоя %s — не крыло (У1 v5)" % OS.get_keycode_string(code))
+		_key(code, false)
 	check(game.glider.phase() == "standing", "стоит (%s)" % game.glider.phase())
 	for captured in [true, false]:
 		ic.set_mouse_captured(captured)
@@ -182,19 +173,10 @@ func test_ground_bar_keys() -> void:
 			# вернуться к старту: новый полёт с того же места
 			game.restart()
 			_ticks(game, 0.5)
-	_key(bar_key, true)
-	_press(["run"])
-	_ticks(game, 0.5)
-	var p_run := ic.control.pitch
-	_key(bar_key, false)
-	Input.action_release("run")
-	print("    на бегу «от себя» (%s): pitch %.2f" % [OS.get_keycode_string(bar_key), p_run])
-	check(p_run * inv > 0.5, "на бегу клавиша трапеции — нос: %.2f" % p_run)
 	await _close(main)
 
 
-## С2 v2: защёлки нет — зажатая на отрыве клавиша трапеции продолжает действовать, pitch/roll
-## на отрыве непрерывны.
+## С2 v4: защёлки нет — трапеция (мышь) на отрыве продолжает действовать, pitch/roll на отрыве непрерывны.
 func test_no_latch_on_liftoff() -> void:
 	var main: Node = await _open()
 	if main == null:
@@ -205,7 +187,8 @@ func test_no_latch_on_liftoff() -> void:
 	# опущенная консоль касается склона (срыв wingtip, на старте по умолчанию уже при ≈ 10°) — это
 	# физика; здесь проверяется только непрерывность трапеции на отрыве
 	_press(["run"])
-	Input.action_press("roll_right", 0.1)
+	ic.set_mouse_captured(true)
+	ic._mouse_offset = Vector2(0.1, 0.0)  # мышь чуть вправо, как рукой
 	var flew := false
 	var prev_p := 0.0
 	var prev_r := 0.0
@@ -226,7 +209,7 @@ func test_no_latch_on_liftoff() -> void:
 	print("    отрыв: Δpitch %.4f, Δroll %.4f за шаг; roll после %.2f; фаза %s %s, крен %.1f°" % [dp, dr, ic.control.roll, tt.phase, game.glider.model.takeoff_failure, tt.bank_deg])
 	check(flew, "взлетел разбегом Shift")
 	check(dp < 0.02 and dr < 0.02, "на отрыве трапеция без скачка: %.4f / %.4f" % [dp, dr])
-	check(ic.control.roll > 0.05, "зажатая клавиша крена действует и после отрыва (PV1 v3: body по умолчанию, вправо = roll +): %.2f" % ic.control.roll)
+	check(ic.control.roll > 0.05, "мышь вправо действует и после отрыва (PV1 v3: body по умолчанию, вправо = roll +): %.2f" % ic.control.roll)
 	check(not ic.has_method("is_latched"), "защёлки нет")
 	await _close(main)
 
@@ -270,7 +253,7 @@ func test_chase_above_ground_free_does_not_fly_wing() -> void:
 	cam._process(1.0 / 60.0)
 	var c0 := cam.global_position
 	var g0 := game.glider.get_telemetry().position
-	_press(["walk_forward", "pitch_pull_in"])
+	_press(["walk_forward"])
 	for i in 60:
 		game.tick(DT * 2.0)
 		cam._process(1.0 / 60.0)

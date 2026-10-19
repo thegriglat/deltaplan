@@ -37,7 +37,7 @@ missions and no rush.
 - **Multiplayer** — fly with friends in the same sky (voice via an external voice chat).
 - **Map view** — a free camera over the site with wind arrows.
 
-Controls: keyboard, mouse, gamepad. More in the [Mechanics](https://thegriglat.github.io/deltaplan/mechanics/)
+Controls: mouse, gamepad, a two-axis joystick as a home-built control frame; the keyboard does not steer the wing (walking, running, looking, Shift — extra pull-in). More in the [Mechanics](https://thegriglat.github.io/deltaplan/mechanics/)
 section of the site.
 
 <p>

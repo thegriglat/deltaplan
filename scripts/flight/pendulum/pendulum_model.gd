@@ -97,6 +97,9 @@ var pilot_velocity := Vector3.ZERO
 var pilot_basis := Basis.IDENTITY
 var pilot_rel := Vector3.ZERO  ## пилот − подвеска в осях крыла (игра), м
 var pilot_shift := Vector2.ZERO  ## смещение пилота от нейтрали / предел хода (FB-К1): x + вправо, y + к носу
+## Пилот за обычным пределом «на себя» (VM-К3 v2, PH-К1 v2): (сдвиг к носу − shift_x_pull) /
+## (shift_x_pull_full − shift_x_pull), 0…1, по фактическому положению; 0 без добора, на земле, до шага.
+var pull_over: float = 0.0
 var head_position := Vector3.ZERO
 var bar_force := Vector3.ZERO  ## сила рук на пилота (мир игры), Н
 var bar_force_wing := Vector2.ZERO  ## она же в осях крыла (PH-К1): x + вправо, y + к носу, Н
@@ -151,6 +154,9 @@ var _zero_air := PackedVector3Array()
 var _ge := PackedFloat64Array()  ## σ экранного эффекта по полосам (последний пересчёт аэродинамики)
 var _ge_on := true
 var _last_pitch: float = 0.0
+## Время с тех пор, как предел «на себя» вернулся к обычному (arms.pull_limit = shift_x_pull), с: pull_over
+## показывается, пока идёт добор и ещё 3·arms.tau_s после (руки догоняют цель); без добора — INF.
+var _pull_normal_s: float = INF
 var _air_p := Vector3.ZERO
 var _aero_age: float = INF  ## время с последнего пересчёта аэродинамики, с
 var _air_c := Vector3.ZERO  ## ветер в ЦМ крыла при последнем пересчёте аэродинамики (NED)
@@ -458,6 +464,9 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var n := maxi(_sub_min, ceili(dt * _sub_per_s - 1.0e-9))
 	var h := dt / n
 	_last_pitch = input.pitch
+	# добор «на себя» до бёдер (VM-К3 v2): только в полёте, руки на штанге
+	arms.update_pull_limit(inp.pull_full and mode == FlightModel.Mode.AIR and not _uprights, dt)
+	_pull_normal_s = 0.0 if arms.pull_limit > arms.shift_x_pull + 1.0e-6 else _pull_normal_s + dt
 	var t_aero := 0.0 if aero_hz <= 0.0 else 1.0 / aero_hz - 1.0e-9
 	var f_sum := Vector3.ZERO  # сила на пилота, усреднённая по подшагам (звено может провиснуть в последнем)
 	var t_sum := 0.0
@@ -948,6 +957,8 @@ func _reset_common() -> void:
 	_aero_age = INF
 	_w = Vector3.ZERO
 	arms.reset()
+	_pull_normal_s = INF
+	pull_over = 0.0
 	load.reset()
 	landing_result = {}
 	takeoff_failure = ""
@@ -1023,6 +1034,7 @@ func _update_outputs(air_fn: Callable, ground_fn: Callable) -> void:
 	var rel_g := game(xp - h_loc)
 	pilot_rel = bg.transposed() * rel_g
 	pilot_shift = _shift_of(bg, rel_g)
+	pull_over = _pull_over_of()
 	var up := -rel_g.normalized()
 	pilot_basis = Basis(Quaternion(bg.y, up)) * bg if up.length() > 0.5 else bg
 	head_position = pilot_position + pilot_basis * Vector3(0.0, _head_up, -_head_fwd)
@@ -1057,6 +1069,21 @@ func _shift_of(bg: Basis, rel_g: Vector3) -> Vector2:
 	return v if v.is_finite() else Vector2.ZERO
 
 
+## pull_over (PH-К1 v2): доля хода за обычным пределом «на себя» по фактическому сдвигу пилота к носу
+## от нейтрали (как pilot_shift); только в полёте на штанге, пока идёт добор и 3·tau после.
+func _pull_over_of() -> float:
+	if mode != FlightModel.Mode.AIR or _uprights or not _neutral_ok:
+		return 0.0
+	if _pull_normal_s > 3.0 * arms.tau:
+		return 0.0
+	var span := arms.shift_x_pull_full - arms.shift_x_pull
+	if span < 1.0e-3:
+		return 0.0
+	var fwd := pilot_shift.y * arms.shift_x_pull if pilot_shift.y > 0.0 else 0.0
+	var v := clampf((fwd - arms.shift_x_pull) / span, 0.0, 1.0)
+	return v if is_finite(v) else 0.0
+
+
 func _fill_telemetry(air_c_ned: Vector3, ground_fn: Callable, bg: Basis) -> void:
 	var t := telemetry
 	t.time_s = time_s
@@ -1085,5 +1112,6 @@ func _fill_telemetry(air_c_ned: Vector3, ground_fn: Callable, bg: Basis) -> void
 	t.pilot_basis = pilot_basis
 	t.pilot_shift = pilot_shift
 	t.bar_force = bar_force_wing
+	t.pull_over = pull_over
 	t.load_factor = load.load_factor
 	t.flare_amount = flare_amount()

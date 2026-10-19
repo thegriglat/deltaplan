@@ -204,7 +204,7 @@ Sources — [passports → configs](/docs/research/wings_config_sources.md), the
 | Pilot's hand on the ground | Roll moment is limited to $M_{max}\cdot(N/W)$, where $N/W$ is the share of weight on the legs; crosswind while standing: threshold 1.90 m/s at a 4 m/s headwind, at a 6 m/s headwind — 0.6–1.0 m/s — physics, not a defect. Leg mobility, a sidestep and body posture are not modelled (a model boundary) |
 | Wing clearance above terrain | At all starts at zero roll the smallest clearance over the rendered mesh is 0.58 m — we do not touch the terrain |
 | Cleared area at the start | Radius ≥ 2 × run length, only trees are removed, bushes stay (the run direction in a crosswind is not known in advance) |
-| Mouse and keyboard control | The mouse is always the wing (the "Look / Control frame" mode was removed); W/S/A/D on the ground — walking and turning of the pilot, in flight — the head; Shift is held for the run. The "Roll by mouse and arrows" setting (1.4.0): "body" or "control frame" (as with hands on the bar) |
+| Mouse and keyboard control | The mouse is always the wing (the "Look / Control frame" mode was removed); W/S/A/D on the ground — walking and turning of the pilot, in flight — the head; Shift is held for the run, in flight Shift is the extra pull-in. There is no pitch or roll from the keyboard: the keyboard gives no control of the bar (pilot feedback). The roll direction setting (1.4.0): "body" or "control frame" (as with hands on the bar) |
 
 Details — [«Flight and controls»](/mechanics/flight/).
 
