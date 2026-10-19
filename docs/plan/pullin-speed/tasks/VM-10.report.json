@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "pendulum.md (Что даёт ввод, Границы: Ланчестер, штопор sport, отпускание рук), сайт mechanics/flight.ru.md, CHANGELOG «В работе», pendulum-findings.md, applied_in release-tumble.md. cameras-input.md уже содержал геймпад до груди (VM-8) — не менял; pitch-release.md без изменений.",
+  "commits": [
+    "956a10a2 VM-10: документы и CHANGELOG — отпускание рук, геймпад до груди, перевороты выше 2·Vтрим"
+  ],
+  "checks": [
+    {
+      "name": "bounds-lanchester",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs-check",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept VM-10",
+  "uncertain": [
+    {
+      "where": "docs/registry/contracts.md, research.md",
+      "why": "docs index перегенерировал их (в коммите, в скоупе docs/registry/)",
+      "checked": "diff только генерируемые строки"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-20T01:17:53",
+  "by": "executor"
+}
