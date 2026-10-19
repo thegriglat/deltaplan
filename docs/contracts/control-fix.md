@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-15"
 summary: "Тангаж на старте: pitch ∈ [−1, 1], +1 — трапеция от себя (нос вверх); на земле pitch — угол носа крыла."
 related: []
-contracts: [{"id": "С1", "version": 2}, {"id": "С2", "version": 3}, {"id": "С3", "version": 3}]
+contracts: [{"id": "С1", "version": 2}, {"id": "С2", "version": 4}, {"id": "С3", "version": 3}]
 ---
 # Контракты модуля «control-fix»
 
@@ -26,7 +26,8 @@ v1 (до CF-3):
 - `roll` на земле (стоя, шагом, на бегу) — **заданный крен крыла** «рукой пилота», + вправо; полный ход = предельный крен руки (`flight.json → ground_bank`, ключ с физическим обоснованием — CF-3). Курс roll на земле больше не задаёт.
 - `run`, `walk`, `weight_shift` — без изменений.
 
-## С2. InputController → ControlInput — v3
+## С2. InputController → ControlInput — v4
+**v4 (19.10, pullin-speed, решения пользователя dceacaaa, 11:14, 11:16):** тангажа и крена с клавиатуры нет ни в полёте, ни на земле — `pitch_pull_in`/`pitch_push_out`, `roll_left`/`roll_right` удалены (действия, привязки, обработка, `keyboard.*` только для них); нос и крен крыла (на земле и в полёте) — мышь, стик, самодельная трапеция; причина — отзыв пилотов «с клавиатуры нет контроля трапеции». На земле клавиатура — только движение: шаг, бег (Shift), поворот. В полёте с клавиатуры — только Shift (добор, VM-К3). `Autopilot` задаёт тангаж и крен, записывая `ControlInput.pitch`/`roll` напрямую (не через действия; ответ главной 19.10). Режимы крена (`roll_control_mode` rate/weight_shift) — источник `roll` мышь/стик, как были. Тесты и сценарии клавиатурного тангажа и крена — удалены. Пункты ниже про стрелки — история.
 Владелец: `scripts/game/input_controller.gd`. Потребитель: `Game.tick` (`input_controller.update(dt)` → `glider.set_input`).
 Не меняется: `update(dt: float) -> ControlInput`; `enabled`, `hands_off`, `on_ground`; `set_mouse_captured(on)`, `mouse_captured`; правая кнопка — осмотреться (`mouse_mode()` — до v3) (трапеция держит положение).
 
