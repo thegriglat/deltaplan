@@ -159,8 +159,8 @@
     "alpha_range_deg_doc": "Изменение угла атаки при трапеции до упора от себя/на себя на разбеге, °. WPC-4: нейтраль опущена (17,0 → 7,5°), упор «нос вниз» оставлен на прежнем угле -3,0° (геометрия: концы крыла над землёй, tests/flight/test_wing_clearance.gd) — ход 10,5°, упор «нос вверх» 18,0°"
   },
   "pendulum": {
-    "contract": "PD-К2 v3",
-    "_doc": "генерирует tools/flight/pendulum_params.py (порт балансировки tools/research/pendulum), руками не править; оси киля: x — назад от носа, z — вверх; inertia_kgm2 — оси x вперёд, y вправо, z вниз, около ЦМ крыла, без присоединённой массы (ixz = элемент тензора, −Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим при hang_from_nose_m и эталонной массе",
+    "contract": "PD-К2 v8",
+    "_doc": "генерирует tools/flight/pendulum_params.py (порт балансировки tools/research/pendulum), руками не править; оси киля: x — назад от носа, z — вверх; inertia_kgm2 — оси x вперёд, y вправо, z вниз, около ЦМ крыла, без присоединённой массы (ixz = элемент тензора, −Σm·x·z); dcm0 — безразмерная добавка Cm0 паруса (по средней хорде) под паспортный трим при hang_from_nose_m и эталонной массе (v8 — с включённой pitch_nl); cl_alpha_per_rad — dCL/dα крыла по полосам на триме (±0,5°), alpha_zero_lift_deg — α киля нулевой подъёмной силы полос; ref.static_margin — Kn на триме линейной модели игры (C_L max полос под поляру)",
     "sweep_deg": 26.25,
     "root_chord_m": 2.44,
     "tip_chord_m": 0.64,
@@ -178,7 +178,9 @@
       "izz": 164.039,
       "ixz": -1.709
     },
-    "dcm0": 0.05868,
+    "dcm0": 0.06075,
+    "cl_alpha_per_rad": 4.5287,
+    "alpha_zero_lift_deg": -5.999,
     "cd_scale": 0.94917,
     "apparatus_defaults": {
       "dihedral_eff_deg": -1.5,
@@ -189,8 +191,8 @@
       "sink_ms": 0.894,
       "alpha_trim_deg": 8.05,
       "neutral_point_from_nose_m": 1.6526,
-      "static_margin": 0.2209,
-      "kmh_per_cm_hang": 0.544
+      "static_margin": 0.1225,
+      "kmh_per_cm_hang": 1.248
     }
   },
   "visual": {

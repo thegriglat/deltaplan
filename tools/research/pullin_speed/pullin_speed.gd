@@ -2,6 +2,8 @@ extends Node
 ## VM-1: что ограничивает Vmax на полном «на себя». Установившийся полный «на себя» (рампа 6 с, среднее 50–70 с)
 ## на модели игры (PendulumModel) с правками только в экземпляре модели — configs/ не меняется.
 ## godot --headless --path . res://tools/research/pullin_speed/pullin_speed.tscn -- --out=<json> --wings=a,b|all [--cases=base,hang,...]
+## VM-4 (VM-К5, порт в игру): --cases=vm4 — normal, full (добор pull_full), release_smooth (отпускание через
+## InputController, как клавиатура), release_1p8 (с min(1,8·Vтрим, V full) ввод 0 скачком); конфиги игры как есть.
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const DT := 1.0 / 120.0
@@ -194,7 +196,178 @@ func _wing(w: String, cases: PackedStringArray) -> Dictionary:
 		r["pull_m"] = pc
 		r["bar_depth_m"] = bar_d
 		out["pullcons"] = r
+	if "vm4" in cases:
+		out.merge(_vm4(w))
 	if "pullshift" in cases:
 		for p in [0.6, 0.8, 1.0, 1.2]:
 			out["pull%.2f" % p] = _run(w, {"pull_m": p, "fmax": 1.0e6})
 	return out
+
+
+# ---------------------------------------------------------------- VM-4 (VM-К5): порт в игру
+
+const T_REL := 30.0
+
+
+## Модель игры как есть (конфиги после порта), эталонная масса, ρ = 1,225, штиль; сброс на трим.
+func _game_model(w: String) -> PendulumModel:
+	var m := S.make(w)
+	S.reset(m)
+	return m
+
+
+## Полный «на себя» (рампа 6 с, 70 с), pull_full — добор; среднее, СКО V за 50–70 с, макс. |bar_force| за весь разгон.
+func _vm4_pull(m: PendulumModel, full: bool) -> Dictionary:
+	var inp := S.input(0.0)
+	inp.pull_full = full
+	var vs := PackedFloat64Array()
+	var fmax := 0.0
+	var po := 0.0
+	for i in int(T_END / DT):
+		inp.pitch = -clampf(m.time_s / T_RAMP, 0.0, 1.0)
+		m.step(DT, inp, Callable(), Callable())
+		if not S.finite(m):
+			break
+		fmax = maxf(fmax, m.telemetry.bar_force.length())
+		if m.time_s > T_AVG:
+			vs.append(S.airspeed(m) * 3.6)
+			po += m.telemetry.pull_over
+	var mean := 0.0
+	for v in vs:
+		mean += v
+	mean /= maxi(vs.size(), 1)
+	var var_ := 0.0
+	for v in vs:
+		var_ += (v - mean) * (v - mean)
+	return {"finite": S.finite(m), "V_kmh": mean, "V_std_kmh": sqrt(var_ / maxi(vs.size(), 1)), "bar_force_max_n": fmax,
+		"pull_over_mean": po / maxi(vs.size(), 1), "alpha_deg": rad_to_deg(m.alpha), "theta_deg": rad_to_deg(m.theta),
+		"tgt_fwd_m": m.arms.target_b.x - m.arms.neutral_rel.x}
+
+
+## 30 с после отпускания: каждый шаг ctrl.call(m) → ControlInput. Переворот — как VM-2/VM-3: тангаж киля < −60°
+## или |α| > 90° в любой момент, или средняя V за 25–30 с вне ±10 % трима. Перегрузка — |сила полос| / (M·g), как VM-3.
+func _vm4_release(m: PendulumModel, ctrl: Callable, v_trim: float) -> Dictionary:
+	var th_min := INF
+	var a_max := 0.0
+	var g_max := 0.0
+	var load_max := 0.0
+	var v_tail := 0.0
+	var k := 0
+	var t0 := m.time_s
+	var v0 := S.airspeed(m)
+	var blow := false
+	for i in int(round(T_REL / DT)):
+		m.step(DT, ctrl.call(m), Callable(), Callable())
+		if not S.finite(m):
+			blow = true
+			break
+		var t := m.time_s - t0
+		th_min = minf(th_min, rad_to_deg(m.theta))
+		a_max = maxf(a_max, absf(rad_to_deg(m.alpha)))
+		g_max = maxf(g_max, m.strips.force.length() / (m.mass * G))
+		load_max = maxf(load_max, m.load.load_factor)
+		if t >= 25.0:
+			v_tail += S.airspeed(m)
+			k += 1
+	var v_end := v_tail / maxi(k, 1)
+	var returned := not blow and k > 0 and absf(v_end - v_trim) <= 0.10 * v_trim
+	var tuck := blow or th_min < -60.0 or a_max > 90.0 or not returned
+	return {"V0_kmh": v0 * 3.6, "V_end_kmh": v_end * 3.6, "theta_min_deg": th_min, "alpha_abs_max_deg": a_max,
+		"g_max": g_max, "load_max": load_max, "returned": returned, "blowup": blow, "tuck": tuck}
+
+
+func _vm4(w: String) -> Dictionary:
+	var out := {}
+	var m := _game_model(w)
+	var tr := m.solve_trim()
+	var v_trim := float(tr.V)
+	out["vm4_trim"] = {"V_kmh": v_trim * 3.6, "alpha_deg": rad_to_deg(float(tr.alpha)),
+		"passport_kmh": float(Config.get_config("wings/" + w).trim_speed_kmh), "nl_on": m.strips.nl_on}
+	out["normal"] = _vm4_pull(m, false)
+	# справочно (не VM-К5): то же отпускание через InputController с обычного полного «на себя» без Shift
+	out["release_smooth_normal"] = _vm4_release_keys(m, false, v_trim)
+	# full, затем release_smooth на той же модели: отпустить Shift и ↓ через InputController (возврат ввода клавиатуры)
+	m = _game_model(w)
+	out["full"] = _vm4_pull(m, true)
+	out["release_smooth"] = _vm4_release_keys(m, true, v_trim)
+	# release_1p8: установившаяся V = min(1,8·Vтрим, V full) на постоянном pitch с добором, затем ввод 0 скачком
+	var v_full := float(out.full.V_kmh) / 3.6
+	var v_tgt := minf(1.8 * v_trim, v_full)
+	var p := -1.0
+	var it := 0
+	if v_tgt < v_full - 0.5:
+		# постоянный pitch под цель: секущие по установившейся V (среднее за 40–50 с)
+		var p0 := -clampf((v_tgt * v_tgt - v_trim * v_trim) / maxf(v_full * v_full - v_trim * v_trim, 1.0), 0.05, 1.0)
+		var f0 := _vm4_steady(w, p0) - v_tgt
+		var p1 := clampf(p0 + 0.15 * signf(f0), -1.0, -0.02)  # медленнее цели — сильнее на себя
+		var f1 := _vm4_steady(w, p1) - v_tgt
+		p = p1
+		for _k in 8:
+			it += 1
+			if absf(f1) < 0.005 * v_tgt or absf(f1 - f0) < 1.0e-6:
+				break
+			var p2 := clampf(p1 - f1 * (p1 - p0) / (f1 - f0), -1.0, -0.02)
+			p0 = p1
+			f0 = f1
+			p1 = p2
+			f1 = _vm4_steady(w, p1) - v_tgt
+			p = p1
+	m = _game_model(w)
+	var inp := S.input(0.0)
+	inp.pull_full = true
+	var vs := 0.0
+	var nv := 0
+	for i in int(T_END / DT):
+		inp.pitch = p * clampf(m.time_s / T_RAMP, 0.0, 1.0)
+		m.step(DT, inp, Callable(), Callable())
+		if m.time_s > T_AVG:
+			vs += S.airspeed(m)
+			nv += 1
+	var p_hold := p
+	var zero := S.input(0.0)
+	var r8 := _vm4_release(m, func(_m: PendulumModel) -> ControlInput: return zero, v_trim)
+	r8["V_target_kmh"] = v_tgt * 3.6
+	r8["V_hold_kmh"] = vs / maxi(nv, 1) * 3.6
+	r8["pitch_hold"] = p_hold
+	r8["secant_iter"] = it
+	out["release_1p8"] = r8
+	return out
+
+
+## Установившаяся воздушная скорость на постоянном pitch с добором (рампа 6 с, среднее за 40–50 с), м/с.
+func _vm4_steady(w: String, p: float) -> float:
+	var m := _game_model(w)
+	var inp := S.input(0.0)
+	inp.pull_full = true
+	var vs := 0.0
+	var n := 0
+	for i in int(50.0 / DT):
+		inp.pitch = p * clampf(m.time_s / T_RAMP, 0.0, 1.0)
+		m.step(DT, inp, Callable(), Callable())
+		if m.time_s > 40.0:
+			vs += S.airspeed(m)
+			n += 1
+	return vs / maxi(n, 1)
+
+
+## Отпустить ↓ (и Shift, если full) через InputController — возврат ввода клавиатуры, как в игре; 30 с.
+func _vm4_release_keys(m: PendulumModel, full: bool, v_trim: float) -> Dictionary:
+	var ic := InputController.new()
+	add_child(ic)
+	ic.telemetry_fn = func() -> Telemetry: return m.telemetry
+	ic.reset()
+	ic.on_ground = false
+	Input.action_press("pitch_pull_in")
+	if full:
+		Input.action_press("pull_full")
+	for i in 240:
+		ic.update(DT)  # клавиши держали весь разгон: ввод — полный «на себя»
+	var held := ic.control.pitch
+	var held_full := ic.control.pull_full
+	Input.action_release("pitch_pull_in")
+	Input.action_release("pull_full")
+	var rs := _vm4_release(m, func(_m: PendulumModel) -> ControlInput: return ic.update(DT), v_trim)
+	rs["pitch_held"] = held
+	rs["pull_full_held"] = held_full
+	ic.queue_free()
+	return rs

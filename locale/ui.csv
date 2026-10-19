@@ -76,6 +76,7 @@ controls_in_flight,В полёте,In flight
 controls_on_ground,На земле,On the ground
 controls_instrument_camera_game,"Прибор, камера, игра","Instrument, camera, game"
 controls_pull_in,Подтянуть трапецию к себе — разогнаться,Pull the bar in — speed up
+controls_pull_full,"Держать в полёте — добор до бёдер: «на себя» дальше обычного, большой разгон; отпустил — штанга плавно к груди; за обычным пределом индикатор подвески красный","Hold in flight — pull the bar to the hips: further than the normal pull-in, much faster; release — the bar eases back to the chest; past the normal limit the hang indicator turns red"
 controls_push_out,"Отдать трапецию от себя — затормозить, нос вверх","Push the bar out — slow down, nose up"
 controls_shift_left,Сместить вес влево — поворот влево,Shift weight left — turn left
 controls_shift_right,Сместить вес вправо — поворот вправо,Shift weight right — turn right

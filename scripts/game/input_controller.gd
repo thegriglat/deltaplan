@@ -15,6 +15,8 @@ extends Node
 ## с зажатым Shift (разбег) W/S/A/D ничего не делают. Нос и крен крыла на земле — стрелки, мышь,
 ## стик, как в полёте; трапеция на отрыве непрерывна.
 ## В полёте (У2 v2) keys_look() = true: клавиши look_* (W/S/A/D) крутят голову в кабине (CameraRig).
+## Добор «на себя» до бёдер (VM-К3 v2, У1 v4, CB-К1 v3): ControlInput.pull_full — пока зажат pull_full (Shift),
+## кнопка gamepad.pull_full_button или тангаж идёт с выбранной самодельной трапеции (device_guid).
 
 var control := ControlInput.new()
 var mouse_captured := false
@@ -146,7 +148,9 @@ func update(dt: float) -> ControlInput:
 		control.walk = 0.0
 		control.turn = 0.0
 		control.run = false
+		control.pull_full = false
 		return control
+	control.pull_full = _strength("pull_full") > 0.5
 	if on_ground:
 		_update_ground(dt)
 	else:
@@ -324,6 +328,8 @@ func _apply_gamepad() -> void:
 	if dev < 0:
 		return
 	apply_stick(Input.get_joy_axis(dev, int(gp.roll_axis)), Input.get_joy_axis(dev, int(gp.pitch_axis)))
+	if Input.is_joy_button_pressed(dev, int(gp.get("pull_full_button", JOY_BUTTON_RIGHT_SHOULDER))):
+		control.pull_full = true
 	if on_ground and not run_blocked and Input.is_joy_button_pressed(dev, int(gp.run_button)):
 		control.run = true
 		control.walk = 0.0
@@ -341,6 +347,9 @@ func apply_stick(raw_roll: float, raw_pitch: float) -> void:
 		control.roll = gx * _roll_sign()  # ход стика = ручка крена (смещение веса или скорость крена — по режиму)
 		# стик вперёд (ось < 0) = трапеция от себя (pitch +), как у дельтапланериста (У1 v3)
 		control.pitch = -gy * inv
+		# самодельная трапеция (CB-К1 v3, вариант «б»): полный ход устройства — штанга у бёдер, без модификатора
+		if String(gp.get("device_guid", "")) != "":
+			control.pull_full = true
 
 
 func _telemetry() -> Telemetry:

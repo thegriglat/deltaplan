@@ -1,6 +1,7 @@
 extends TestCase
-## Контракты модуля ui-controls (docs/contracts/ui-controls.md): У1 v3 — раскладка трапеции
-## (стрелки, мышь — всегда крыло, стик), У2 v2 — W/S/A/D: пилот на земле, голова в полёте.
+## Контракты модуля ui-controls (docs/contracts/ui-controls.md): У1 v4 — раскладка трапеции
+## (стрелки, мышь — всегда крыло, стик; v4 — pull_full [Shift], добор до бёдер), У2 v2 — W/S/A/D: пилот на
+## земле, голова в полёте.
 ## Ломается, если раскладку или смысл действий поменяли без правки контракта.
 
 
@@ -318,3 +319,67 @@ func test_u2_cockpit_head_from_keys() -> void:
 	check(d.x < -0.5 * want, "У2: D — голова вправо (%.1f°)" % d.x)
 	check(w.y > 0.0 and s.y < 0.0, "У2: W — вверх, S — вниз (%.1f°, %.1f°)" % [w.y, s.y])
 	check(off.length() < 1e-3, "У2: keys_look_fn = false — голова на месте (%s)" % off)
+
+
+# --- У1 v4: pull_full = [Shift] — добор «на себя» до бёдер (VM-К3 v2) ---
+
+func test_u1_v4_pull_full() -> void:
+	var text := FileAccess.get_file_as_string("res://docs/contracts/ui-controls.md")
+	if text.is_empty():
+		text = FileAccess.get_file_as_string(ProjectSettings.globalize_path("res://docs/contracts/ui-controls.md"))
+	check(text.contains("## У1. Раскладка тангажа и крена — v4"), "У1 v4 в заголовке")
+	check(_keys("pull_full") == ["Shift"], "У1 v4: pull_full = [Shift] (%s)" % [_keys("pull_full")])
+	check(Config.get_config("controls").keys.has("pull_full_doc"), "У1 v4: pull_full_doc")
+	check("pull_full" in ControlInput.new() and ControlInput.new().pull_full == false, "ControlInput.pull_full = false")
+	var rows: Array = Config.get_config("ui").controls_help
+	var row := {}
+	for r: Dictionary in rows:
+		if String(r.get("action", "")) == "pull_full":
+			row = r
+	check(not row.is_empty(), "У1 v4: строка pull_full на экране «Управление»")
+	if not row.is_empty():
+		var key := String(row.text)
+		TranslationServer.set_locale("ru")
+		var ru := tr(key)
+		TranslationServer.set_locale("en")
+		var en := tr(key)
+		check(ru != key and en != key and ru != en, "строка %s переведена (ru/en): %s / %s" % [key, ru, en])
+	var ic := _ic(false)
+	# полёт: Shift — pull_full, отпустил — false; без Shift — false
+	ic.update(DT)
+	check(not ic.control.pull_full, "без Shift pull_full = false")
+	_key(KEY_SHIFT, true)
+	ic.update(DT)
+	var air := ic.control.pull_full
+	var air_run := ic.control.run
+	_key(KEY_SHIFT, false)
+	ic.update(DT)
+	check(air and not air_run, "полёт: Shift — pull_full, не run (%s, %s)" % [air, air_run])
+	check(not ic.control.pull_full, "отпустил Shift — pull_full = false")
+	# ↓ + Shift: тангаж прежний (−1), добор — отдельным полем
+	_key(KEY_DOWN, true)
+	_key(KEY_SHIFT, true)
+	for i in 120:
+		ic.update(DT)
+	var p_full := ic.control.pitch
+	check(ic.control.pull_full and is_equal_approx(p_full, -1.0), "↓ + Shift: pitch −1, pull_full (%.2f)" % p_full)
+	_key(KEY_SHIFT, false)
+	_key(KEY_DOWN, false)
+	ic.update(DT)
+	# земля: Shift — run и pull_full оба (модель берёт pull_full только в полёте)
+	ic.reset()
+	_key(KEY_SHIFT, true)
+	ic.update(DT)
+	check(ic.control.run and ic.control.pull_full, "земля: Shift — run (и pull_full)")
+	_key(KEY_SHIFT, false)
+	ic.update(DT)
+	# свободная камера (Shift — быстрее): добора нет
+	_air(ic)
+	ic.hands_off = true
+	_key(KEY_SHIFT, true)
+	ic.update(DT)
+	check(not ic.control.pull_full, "свободная камера: Shift — не добор")
+	_key(KEY_SHIFT, false)
+	ic.hands_off = false
+	ic.update(DT)
+	_free(ic)

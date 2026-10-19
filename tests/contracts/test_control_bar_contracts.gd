@@ -23,7 +23,7 @@ func test_doc_headings() -> void:
 	var found := {}
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
-	check(found.get("CB-К1", 0) == 2, "CB-К1 (v2) в заголовках: %s" % found)
+	check(found.get("CB-К1", 0) == 3, "CB-К1 (v3) в заголовках: %s" % found)
 	check(found.get("CB-К2", 0) == 1, "CB-К2 (v1) в заголовках: %s" % found)
 
 
@@ -111,3 +111,28 @@ static func _old_stick(v: float, gp: Dictionary) -> float:
 	var e := float(gp.expo)
 	x = (1.0 - e) * x + e * x * x * x
 	return signf(v) * clampf(x * float(gp.sensitivity), 0.0, 1.0)
+
+
+# CB-К1 v3 (pullin-speed VM-К3): кнопка добора геймпада и самодельная трапеция полным ходом
+func test_k1_v3_pull_full() -> void:
+	var gp: Dictionary = Config.get_config("controls").get("gamepad", {})
+	check(int(gp.get("pull_full_button", -1)) == JOY_BUTTON_RIGHT_SHOULDER, "pull_full_button = 10 (правый бампер)")
+	check(gp.has("pull_full_button_doc"), "pull_full_button_doc")
+	check(not UserSettings.is_local_key("controls.gamepad.pull_full_button"), "pull_full_button — общий (предпочтение)")
+	var ic := InputController.new()
+	ic.reload_config()
+	var cfg: Dictionary = ic._cfg.duplicate(true)
+	ic._cfg = cfg
+	# первое подключённое (device_guid = ""): стик добор не включает
+	ic.control.pull_full = false
+	ic.apply_stick(0.0, 1.0)
+	check(not ic.control.pull_full and ic.control.pitch < -0.9, "геймпад: стик на себя без кнопки — без добора")
+	# выбранная самодельная трапеция: тангаж с неё — pull_full
+	cfg.gamepad.device_guid = "deadbeef"
+	ic.control.pull_full = false
+	ic.apply_stick(0.0, 1.0)
+	check(ic.control.pull_full, "трапеция (device_guid): полный ход — штанга у бёдер (pull_full)")
+	ic.control.pull_full = false
+	ic.apply_stick(0.0, 0.0)
+	check(not ic.control.pull_full, "трапеция в нейтрали (мёртвая зона) — тангаж не с неё, добор не ставится")
+	ic.free()

@@ -6,7 +6,8 @@ const DOC := "res://docs/contracts/pendulum.md"
 const WINGS_DIR := "res://configs/wings"
 const WING_KEYS := ["contract", "_doc", "sweep_deg", "root_chord_m", "tip_chord_m", "washout_deg",
 		"keel_len_m", "crossbar_from_nose_m", "hang_from_nose_m", "bar_x_from_nose_m", "bar_z_m",
-		"cg_x_from_nose_m", "cg_z_m", "inertia_kgm2", "dcm0", "cd_scale", "apparatus_defaults", "ref"]
+		"cg_x_from_nose_m", "cg_z_m", "inertia_kgm2", "dcm0", "cd_scale", "apparatus_defaults", "ref",
+		"cl_alpha_per_rad", "alpha_zero_lift_deg"]
 const REF_KEYS := ["trim_kmh", "sink_ms", "alpha_trim_deg", "neutral_point_from_nose_m",
 		"static_margin", "kmh_per_cm_hang"]
 
@@ -59,17 +60,18 @@ func test_doc_heading() -> void:
 	check(not text.is_empty(), "docs/contracts/pendulum.md читается")
 	var re := RegEx.create_from_string("(?m)^## PD-К2\\. .* \\(v(\\d+)\\)\\s*$")
 	var m := re.search(text)
-	check(m != null and int(m.get_string(1)) == 7, "PD-К2 (v7) в заголовках")
+	check(m != null and int(m.get_string(1)) == 8, "PD-К2 (v8) в заголовках")
 
 
 func test_pendulum_config() -> void:
 	var c := _read_json("res://configs/pendulum.json")
 	check(not c.is_empty(), "configs/pendulum.json читается")
-	check(c.get("contract") == "PD-К2 v7", "contract")
+	check(c.get("contract") == "PD-К2 v8", "contract")
 	var want := {
 		"chain": {"links": 3, "strap_mass_kg": 1.0, "compliance_m_per_n": 4e-5, "substeps_per_s": 480, "substeps_min": 4},
 		"arms": {"force_max_n": 300.0, "tau_s": 0.30, "ti_s": 0.0, "shift_y_max_m": 0.45,
-				"shift_x_pull_m": 0.45, "shift_x_push_m": 0.30},
+				"shift_x_pull_m": 0.45, "shift_x_push_m": 0.30, "shift_x_pull_full_m": 0.7, "pull_full_release_m_s": 0.5},
+		"pitch_nl": {"enabled": 1.0, "sigma": 0.5, "width_deg": 1.0, "luff_cm_per_deg": 0.02, "luff_on_deg": 0.0},
 		"strips": {"count": 16, "cp_chord": 0.25, "aero_hz": 60.0},
 		"yaw": {"cn_beta": 0.05, "fin_arm_m": 1.6, "fin_slope_per_rad": 2.0, "cn_p_add": 0.15, "cn_r_add": -0.03},
 		"head": {"forward_m": 0.75, "up_m": 0.15},
@@ -108,7 +110,7 @@ func test_wings_pendulum_block() -> void:
 		check(not b.is_empty(), "%s: блок pendulum" % id)
 		if b.is_empty():
 			continue
-		check(b.get("contract") == "PD-К2 v3", "%s: contract" % id)
+		check(b.get("contract") == "PD-К2 v8", "%s: contract" % id)
 		for k in WING_KEYS:
 			check(b.has(k), "%s: pendulum.%s" % [id, k])
 		check(_finite(b), "%s: числа конечны" % id)
@@ -134,3 +136,44 @@ func test_wings_pendulum_block() -> void:
 		var I: Dictionary = b["inertia_kgm2"]
 		check(float(I["ixx"]) > 0.0 and float(I["iyy"]) > 0.0 and float(I["izz"]) > 0.0, "%s: инерция > 0" % id)
 		check(float(b["cd_scale"]) > 0.0, "%s: cd_scale > 0" % id)
+		check(float(b["cl_alpha_per_rad"]) > 3.0 and float(b["cl_alpha_per_rad"]) < 6.0, "%s: cl_alpha_per_rad" % id)
+		check(float(b["alpha_zero_lift_deg"]) < 0.0 and float(b["alpha_zero_lift_deg"]) > -15.0, "%s: alpha_zero_lift_deg" % id)
+
+
+## Нелинейная Cm(α) (v8): ΔCm полос игры (PendulumWingStrips.pitch_nl_dcm, без dcm0, σ 0,5) против эталона
+## прототипа — docs/research/pendulum/pitch-nonlinear.md «Порт в игру», допуск ±0,002.
+## Столбцы: α_t, α_zl (°) и ΔCm при α_t, α_t − 5°, 0°, α_zl, α_zl − 5°.
+const NL_REF := {
+	"training": [10.43, -6.08, -0.0041, -0.0435, -0.0902, -0.1338, -0.0863],
+	"atlas": [9.47, -6.06, -0.0031, -0.0338, -0.0637, -0.0957, -0.0386],
+	"laminar": [10.61, -6.00, -0.0020, -0.0229, -0.0483, -0.0667, 0.0012],
+	"sport": [11.74, -6.01, -0.0018, -0.0201, -0.0470, -0.0622, 0.0084],
+	"ww_t2c": [12.58, -6.01, -0.0018, -0.0208, -0.0520, -0.0679, 0.0021],
+}
+
+
+func test_pitch_nl_reference() -> void:
+	for id: String in NL_REF:
+		var m := PendulumModel.new()
+		m.setup(Config.get_config("wings/" + id), Config.get_config("pilot"))
+		var st: PendulumWingStrips = m.strips
+		check(st.nl_on, "%s: pitch_nl включена" % id)
+		var e: Array = NL_REF[id]
+		var b: Dictionary = Config.get_config("wings/" + id).pendulum
+		var at := float(b.ref.alpha_trim_deg)
+		var azl := float(b.alpha_zero_lift_deg)
+		check(absf(at - float(e[0])) <= 0.02 and absf(azl - float(e[1])) <= 0.05,
+				"%s: α_t %.2f (%.2f), α_zl %.2f (%.2f)" % [id, at, e[0], azl, e[1]])
+		var angles := [at, at - 5.0, 0.0, azl, azl - 5.0]
+		for i in angles.size():
+			var got := st.pitch_nl_dcm(deg_to_rad(float(angles[i])))
+			check(absf(got - float(e[i + 2])) <= 0.002,
+					"%s: ΔCm(%.2f°) = %.4f, эталон %.4f" % [id, angles[i], got, e[i + 2]])
+	# выключено — прежняя модель
+	var pend: Dictionary = Config.get_config("pendulum").duplicate(true)
+	pend.pitch_nl.enabled = false
+	var w: Dictionary = Config.get_config("wings/laminar")
+	var s2 := PendulumWingStrips.new()
+	var flex := float(w.pendulum.apparatus_defaults.sail_flex)
+	s2.setup(w, w.pendulum, pend, WingPolar.new(w.polar.points_kmh_ms, 100.0, 1.225, float(w.area_m2)), 0.0, flex, Vector3(2.0, 0.0, 0.3))
+	check(not s2.nl_on and s2.pitch_nl_dcm(0.0) == 0.0, "pitch_nl.enabled = false — ΔCm = 0")
