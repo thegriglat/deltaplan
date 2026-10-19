@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "Описаны Cm(α), добор Shift/бампер/трапеция, красный индикатор, крыло без клавиатуры и переворот в «Границах» (guide, сайт ru/en, README, CHANGELOG, findings, applied_in).",
+  "commits": [
+    "35ce5c1f Документы и сайт: Cm(α), добор Shift, без клавиатурного управления крылом, переворот в границах (VM-5)"
+  ],
+  "checks": [
+    {
+      "name": "no-key-wing",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pendulum-bounds",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs-check",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "4/4 PASS, scope 23 файла",
+      "pass": true
+    },
+    {
+      "name": "hugo --minify",
+      "value": "без ошибок",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept VM-5",
+  "uncertain": [
+    {
+      "where": "docs/research/pendulum/pitch-nonlinear.md",
+      "why": "в тексте исследования добор 0,95 м, в игре влит 0,7 м; правил только applied_in",
+      "checked": "числа игры взяты из задания и pendulum.md"
+    },
+    {
+      "where": "docs/guide/flight/model.md:53",
+      "why": "блок controls.json → keyboard в конфиге ещё есть; написал, что параметры остались от клавиатурного ввода",
+      "checked": "configs/controls.json содержит ключ keyboard"
+    },
+    {
+      "where": "docs/registry/pendulum-findings.md",
+      "why": "findings.md достиг 40 КБ: разделы pendulum и pullin-speed вынесены в отдельный файл, `docs findings` читает только findings.md",
+      "checked": "docs check 0 ошибок"
+    }
+  ],
+  "dp_feedback": "docs findings не видит выведенные из findings.md разделы; пустой «:» в task show обрезает дополнения — пришлось смотреть --full.",
+  "t": "2026-10-19T14:58:37",
+  "by": "executor"
+}
