@@ -1,0 +1,477 @@
+{
+ "contract": "VM-К6 v1",
+ "task": "VM-6",
+ "wings": 48,
+ "fix": "h_relaxed_x",
+ "fix_keys": {
+  "pull_full_release": 0.5,
+  "arm_ff_load": true,
+  "arm_neutral_relaxed_x": true
+ },
+ "repro_smooth": 38,
+ "repro_1p8": 29,
+ "repro_normal": 26,
+ "game_vm4": {
+  "smooth": 40,
+  "p1_8": 29,
+  "normal": 26,
+  "preport_normal": 14
+ },
+ "repro_preport_normal": 10,
+ "repro_base_smooth": 38,
+ "hypotheses": [
+  {
+   "name": "h_len10",
+   "keys": {
+    "hang_len": 1.0
+   },
+   "wings": 5,
+   "smooth": 5,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_len14",
+   "keys": {
+    "hang_len": 1.4
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 3,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_links1",
+   "keys": {
+    "n_links": 1
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_links6",
+   "keys": {
+    "n_links": 6
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_stiff",
+   "keys": {
+    "strap_compliance": 1e-05
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_soft",
+   "keys": {
+    "strap_compliance": 8e-05
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_hang_fwd",
+   "keys": {
+    "hang_shift": 0.03
+   },
+   "wings": 5,
+   "smooth": 5,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_hang_aft",
+   "keys": {
+    "hang_shift": -0.03
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_body",
+   "keys": {
+    "pilot_body": "body"
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_body_pitch",
+   "keys": {
+    "body_pitch_coupled": true
+   },
+   "wings": 5,
+   "smooth": 5,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_cda012",
+   "keys": {
+    "pilot_cda": 0.12
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_cda023",
+   "keys": {
+    "pilot_cda": 0.23
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_ff_off",
+   "keys": {
+    "arm_ff_load": false
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 3,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_relaxed",
+   "keys": {
+    "arm_neutral_relaxed": true
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 0,
+   "normal": 0,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_relaxed_x",
+   "keys": {
+    "arm_neutral_relaxed_x": true
+   },
+   "wings": 48,
+   "smooth": 21,
+   "p1_8": 0,
+   "normal": 3,
+   "game_same_wings": {
+    "smooth": 38,
+    "p1_8": 29,
+    "normal": 26
+   },
+   "physical": true
+  },
+  {
+   "name": "h_one_sided",
+   "keys": {
+    "arm_one_sided_x": true
+   },
+   "wings": 48,
+   "smooth": 22,
+   "p1_8": 0,
+   "normal": 3,
+   "game_same_wings": {
+    "smooth": 38,
+    "p1_8": 29,
+    "normal": 26
+   },
+   "physical": true
+  },
+  {
+   "name": "h_passive",
+   "keys": {
+    "arm_neutral_k": 300.0,
+    "arm_neutral_b": 30.0
+   },
+   "wings": 48,
+   "smooth": 31,
+   "p1_8": 11,
+   "normal": 18,
+   "game_same_wings": {
+    "smooth": 38,
+    "p1_8": 29,
+    "normal": 26
+   },
+   "physical": true
+  },
+  {
+   "name": "h_force150",
+   "keys": {
+    "force_max": 150.0
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 3,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_force600",
+   "keys": {
+    "force_max": 600.0
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_tau015",
+   "keys": {
+    "arm_tau": 0.15
+   },
+   "wings": 5,
+   "smooth": 5,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_tau06",
+   "keys": {
+    "arm_tau": 0.6
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_bar_low",
+   "keys": {
+    "upright_len_add": 0.15
+   },
+   "wings": 5,
+   "smooth": 5,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  },
+  {
+   "name": "h_bar_high",
+   "keys": {
+    "upright_len_add": -0.15
+   },
+   "wings": 5,
+   "smooth": 4,
+   "p1_8": 4,
+   "normal": 4,
+   "game_same_wings": {
+    "smooth": 4,
+    "p1_8": 4,
+    "normal": 4
+   },
+   "physical": true
+  }
+ ],
+ "tuck_smooth_count": 21,
+ "tuck_1p8_count": 0,
+ "tuck_normal_count": 3,
+ "tuck_smooth_wings": [
+  "aeros_combat_c",
+  "aeros_combat_l",
+  "air_c4",
+  "air_rev",
+  "air_sting3",
+  "bautek_fizz",
+  "combat",
+  "fs_crossover",
+  "icaro_alto",
+  "icaro_laminar_z9",
+  "icaro_mastr",
+  "laminar",
+  "moyes_gecko",
+  "moyes_litespeed_rx",
+  "moyes_litespeed_s",
+  "moyes_litesport",
+  "seed_skyrunner_xr",
+  "sport",
+  "ww_t2c",
+  "ww_talon",
+  "ww_u2"
+ ],
+ "tuck_1p8_wings": [],
+ "tuck_normal_wings": [
+  "aeros_combat_l",
+  "air_c4",
+  "combat"
+ ],
+ "vmax_ratio_median": 0.9739,
+ "vmax_ratio_p10": 0.8946,
+ "vmax_ratio_n": 40,
+ "vmax_ratio_median_game": 0.9722,
+ "trim_dev_max_kmh": 0.009704521587991621,
+ "kn_trim_min": 0.06042039277292505,
+ "phugoid_unstable_count": 0,
+ "phugoid_unstable_count_base": 0,
+ "stall_dev_max_kmh": 0.003787978436086803,
+ "release_g_smooth_max": 4.462308566834171,
+ "release_g_smooth_max_raw": 19.892107497895992,
+ "release_g_smooth_max_game": 6.4186399990284775,
+ "v0_vt_median": {
+  "game": {
+   "normal": 1.805207195463727,
+   "smooth": 2.250573408383687,
+   "p1_8": 1.8003453456656895
+  },
+  "h_relaxed_x": {
+   "normal": 1.8052072580249017,
+   "smooth": 2.251123094796811,
+   "p1_8": 1.800345705421964
+  },
+  "preport": {
+   "normal": 1.5737143595834062,
+   "smooth": 1.5737143595834062,
+   "p1_8": 1.5737143595834062
+  }
+ },
+ "lanchester_thresholds_V0_Vt": {
+  "tuck_tau0.0": {
+   "median": 1.9500000000000002,
+   "min": 1.8,
+   "max": 2.2
+  },
+  "candle_tau0.0": {
+   "median": 1.7,
+   "min": 1.6999999999999997,
+   "max": 1.9
+  },
+  "tuck_tau0.5": {
+   "median": 2.0,
+   "min": 1.8999999999999997,
+   "max": 2.4
+  },
+  "candle_tau0.5": {
+   "median": 1.8,
+   "min": 1.6999999999999997,
+   "max": 2.0
+  }
+ },
+ "note": "переворот — VM-К5 (тангаж < −60°, |α| > 90° за 30 с, средняя V 25–30 с вне ±10 % трима); release_g_* — |F полос|/(M·g) до первого кадра переворота; raw — со всем кувырком"
+}
