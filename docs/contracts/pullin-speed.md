@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-19"
 summary: "Стыки pullin-speed: данные «Маятника» (VM-К0), разбор VM-1 (VM-К1), проект Cm(α) и хода (VM-К2), добор с Shift и HUD (VM-К3)."
 related: ["docs/plan/pullin-speed.md", "docs/contracts/pendulum.md", "docs/research/pendulum_pitch.md", "docs/research/pendulum/prototype.md"]
-contracts: [{"id": "VM-К0", "version": 1}, {"id": "VM-К1", "version": 2}, {"id": "VM-К2", "version": 3}, {"id": "VM-К3", "version": 2}, {"id": "VM-К4", "version": 3}, {"id": "VM-К5", "version": 2}]
+contracts: [{"id": "VM-К0", "version": 1}, {"id": "VM-К1", "version": 2}, {"id": "VM-К2", "version": 3}, {"id": "VM-К3", "version": 2}, {"id": "VM-К4", "version": 3}, {"id": "VM-К5", "version": 3}]
 ---
 # Контракты модуля pullin-speed
 
@@ -193,7 +193,8 @@ v2 (2026-10-19, решение пользователя 08:44): объём ог�
 Если по разделу «Что реально» часть переворотов — физика (настоящий аппарат так делает) — не подгонять, а `VM-3 blocked`
 с числами и источниками (шлюз). Контрактный тест — проверки карточки VM-3.
 
-## VM-К5. Проверка порта в игре (v2)
+## VM-К5. Проверка порта в игре (v3)
+v3 (19.10, ответ на Q3): переворот при выходе из разгона пока не чиним — пороги `tuck_smooth_count`, `tuck_1p8_count` сняты (справочно); переворот — в «Границы модели» `docs/guide/flight/pendulum.md` и TODO.
 v2 (19.10, решение пользователя dceacaaa): тангажа с клавиатуры нет — плавный выход мышью/стиком, не клавишей.
 Владелец: VM-4. Потребители: координатор (приёмка модуля), главная (тестовая сборка).
 Замер — расширение скрипта VM-1 `tools/research/pullin_speed/pullin_speed.gd` (собирает `PendulumModel` как
@@ -217,8 +218,8 @@ v2 (19.10, решение пользователя dceacaaa): тангажа с 
 | `vmax_std_max_kmh` | макс. СКО V за 50–70 с в `full` (раскачка; VM-3: 3 крыла 11–18 км/ч) | справочно |
 | `trim_dev_max_kmh` | макс. \|трим игры − паспорт\| | ≤ 0,3 |
 | `bar_force_vmax_max_n` | макс. \|`bar_force`\| в `full` | ≤ `arms.force_max_n` |
-| `tuck_smooth_count` | переворотов в `release_smooth` | = 0 |
-| `tuck_1p8_count` | переворотов в `release_1p8` | = 0 |
+| `tuck_smooth_count` | переворотов в `release_smooth` | справочно (v3) |
+| `tuck_1p8_count` | переворотов в `release_1p8` | справочно (v3) |
 | `release_g_smooth_max` | макс. перегрузка в `release_smooth` | ≤ 4 |
 
-`tuck_smooth_count` или `tuck_1p8_count` > 0 — не чинить подгонкой: `VM-4 blocked` с числами (шлюз).
+`tuck_*` — не чинить подгонкой (Q3: граница модели, отдельная работа по TODO).

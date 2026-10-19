@@ -13,7 +13,7 @@
     },
     {
       "name": "VM-К5",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/pullin-speed.md"
     },
     {
@@ -100,12 +100,12 @@
     },
     {
       "name": "vm-k5-summary",
-      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pullin_speed/out/vm4/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('vmax_ratio_median',0.9<=s['vmax_ratio_median']<=1.1),('vmax_ratio_p10',s['vmax_ratio_p10']>=0.8),('trim_dev_max_kmh',s['trim_dev_max_kmh']<=0.3),('bar_force',s['bar_force_vmax_max_n']<=300),('tuck_smooth',s['tuck_smooth_count']==0),('tuck_1p8',s['tuck_1p8_count']==0),('g',0<s['release_g_smooth_max']<=4),('normal',s['vmax_ratio_median_normal']>0),('proto',s['vmax_full_game_vs_proto_median']>0),('std',s['vmax_std_max_kmh']>=0)] if not ok]; print('bad', bad) if bad else print('vm-k5 ok'); sys.exit(1 if bad else 0)\"",
+      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pullin_speed/out/vm4/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('vmax_ratio_median',0.9<=s['vmax_ratio_median']<=1.1),('vmax_ratio_p10',s['vmax_ratio_p10']>=0.8),('trim_dev_max_kmh',s['trim_dev_max_kmh']<=0.3),('bar_force',s['bar_force_vmax_max_n']<=300),('tuck_smooth',s['tuck_smooth_count']>=0),('tuck_1p8',s['tuck_1p8_count']>=0),('g',0<s['release_g_smooth_max']<=4),('normal',s['vmax_ratio_median_normal']>0),('proto',s['vmax_full_game_vs_proto_median']>0),('std',s['vmax_std_max_kmh']>=0)] if not ok]; print('bad', bad) if bad else print('vm-k5 ok'); sys.exit(1 if bad else 0)\"",
       "expect": "re:vm-k5 ok"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-19T10:38:01",
-  "edited": "2026-10-19T11:13:02"
+  "edited": "2026-10-19T13:17:49"
 }
