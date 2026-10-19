@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cc30qoykk7gf4"
-path="res://.godot/imported/tree_oak_oak_leaf.png-59d8d4609c84cd03e33aa61c15cfedd9.ctex"
+path.s3tc="res://.godot/imported/tree_oak_oak_leaf.png-59d8d4609c84cd03e33aa61c15cfedd9.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_oak_oak_leaf.png-59d8d4609c84cd03e33aa61c15cfedd9.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "02870837e28c3ad5b8fb1527ab468872"
@@ -14,13 +16,13 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_oak_oak_leaf.png"
-dest_files=["res://.godot/imported/tree_oak_oak_leaf.png-59d8d4609c84cd03e33aa61c15cfedd9.ctex"]
+dest_files=["res://.godot/imported/tree_oak_oak_leaf.png-59d8d4609c84cd03e33aa61c15cfedd9.s3tc.ctex", "res://.godot/imported/tree_oak_oak_leaf.png-59d8d4609c84cd03e33aa61c15cfedd9.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

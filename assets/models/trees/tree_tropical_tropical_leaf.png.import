@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b1cvwto7stw36"
-path="res://.godot/imported/tree_tropical_tropical_leaf.png-64a9637ccc708e3a4f0539c2c4cab933.ctex"
+path.s3tc="res://.godot/imported/tree_tropical_tropical_leaf.png-64a9637ccc708e3a4f0539c2c4cab933.s3tc.ctex"
+path.etc2="res://.godot/imported/tree_tropical_tropical_leaf.png-64a9637ccc708e3a4f0539c2c4cab933.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "b3be8790fe14f0e625a5eb2076675fe3"
@@ -14,13 +16,13 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/trees/tree_tropical_tropical_leaf.png"
-dest_files=["res://.godot/imported/tree_tropical_tropical_leaf.png-64a9637ccc708e3a4f0539c2c4cab933.ctex"]
+dest_files=["res://.godot/imported/tree_tropical_tropical_leaf.png-64a9637ccc708e3a4f0539c2c4cab933.s3tc.ctex", "res://.godot/imported/tree_tropical_tropical_leaf.png-64a9637ccc708e3a4f0539c2c4cab933.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
