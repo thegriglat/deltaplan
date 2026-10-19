@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "VM-К6",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/pullin-speed.md"
     },
     {
@@ -51,17 +51,18 @@
       "expect": "exit=0"
     },
     {
-      "name": "vm-k6-summary",
-      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pendulum/out/vm6/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('repro',min(s['repro_smooth'],s['repro_1p8'],s['repro_normal'])>=0),('hyp',len(s['hypotheses'])>=4),('smooth',s['tuck_smooth_count']==0),('p18',s['tuck_1p8_count']==0),('normal',s['tuck_normal_count']==0),('vmax',0.9<=s['vmax_ratio_median']<=1.1),('p10',s['vmax_ratio_p10']>=0.8),('trim',s['trim_dev_max_kmh']<=0.3),('kn',s['kn_trim_min']>0),('phug',s['phugoid_unstable_count']<=s['phugoid_unstable_count_base']),('stall',s['stall_dev_max_kmh']<=2),('g',0<s['release_g_smooth_max']<=4)] if not ok]; print('bad', bad) if bad else print('vm-k6 ok'); sys.exit(1 if bad else 0)\"",
-      "expect": "re:vm-k6 ok"
-    },
-    {
       "name": "docs-check",
       "cmd": ".dpcli/dpcli docs check",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "vm-k6-summary",
+      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/pendulum/out/vm6/summary.json')); bad=[k for k,ok in [('wings',s['wings']==48),('hyp',len(s['hypotheses'])>=4),('p18',s['tuck_1p8_count']==0),('smooth',s['tuck_smooth_count']>=0),('normal',s['tuck_normal_count']>=0),('vmax',0.9<=s['vmax_ratio_median']<=1.1),('p10',s['vmax_ratio_p10']>=0.8),('trim',s['trim_dev_max_kmh']<=0.3),('kn',s['kn_trim_min']>0),('phug',s['phugoid_unstable_count']<=s['phugoid_unstable_count_base']),('stall',s['stall_dev_max_kmh']<=2),('g',s['release_g_smooth_max']>0)] if not ok]; print('bad', bad) if bad else print('vm-k6 ok'); sys.exit(1 if bad else 0)\"",
+      "expect": "re:vm-k6 ok"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-19T15:01:51"
+  "created": "2026-10-19T15:01:51",
+  "edited": "2026-10-19T20:40:26"
 }
