@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-15"
 summary: "Тангаж на старте: pitch ∈ [−1, 1], +1 — трапеция от себя (нос вверх); на земле pitch — угол носа крыла."
 related: []
-contracts: [{"id": "С1", "version": 2}, {"id": "С2", "version": 3}, {"id": "С3", "version": 3}]
+contracts: [{"id": "С1", "version": 2}, {"id": "С2", "version": 4}, {"id": "С3", "version": 3}]
 ---
 # Контракты модуля «control-fix»
 
@@ -26,7 +26,8 @@ v1 (до CF-3):
 - `roll` на земле (стоя, шагом, на бегу) — **заданный крен крыла** «рукой пилота», + вправо; полный ход = предельный крен руки (`flight.json → ground_bank`, ключ с физическим обоснованием — CF-3). Курс roll на земле больше не задаёт.
 - `run`, `walk`, `weight_shift` — без изменений.
 
-## С2. InputController → ControlInput — v3
+## С2. InputController → ControlInput — v4
+**v4 (19.10, pullin-speed, решение пользователя dceacaaa):** тангажа с клавиатуры нет ни в полёте, ни на земле (стоя, шагом, разбег) — нос крыла только мышь, стик, самодельная трапеция; `pitch_pull_in`/`pitch_push_out` удалены (`docs/contracts/ui-controls.md` У1 v5). Крен ←/→ — как был. `Autopilot`, сценарии и тесты, жавшие эти действия, тангаж клавишами больше не задают. Пункты ниже про стрелки ↑/↓ — история.
 Владелец: `scripts/game/input_controller.gd`. Потребитель: `Game.tick` (`input_controller.update(dt)` → `glider.set_input`).
 Не меняется: `update(dt: float) -> ControlInput`; `enabled`, `hands_off`, `on_ground`; `set_mouse_captured(on)`, `mouse_captured`; правая кнопка — осмотреться (`mouse_mode()` — до v3) (трапеция держит положение).
 
