@@ -95,3 +95,6 @@
 {"t": "2026-10-19T14:58:42", "by": "coordinator", "task": "VM-4", "ev": "accepted", "commits": ["3e21c4d"], "note": "6/6 pendulum=ok:119/119 (пропуск 2); pilot_hud=ok:18/18; control=ok:26/26; gameplay=ok:13/13; input=ok:1/1; vm-k5-summary=ok:vm-k5 ok"}
 {"t": "2026-10-19T14:58:56", "by": "coordinator", "task": "VM-5", "ev": "accepted", "note": "4/4 no-key-wing=ok:exit 0; pendulum-bounds=ok:exit 0; changelog=ok:exit 0; docs-check=ok:ошибок 0"}
 {"t": "2026-10-19T14:59:03", "by": "coordinator", "task": "VM-5", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-19T14:59:04", "by": "coordinator", "task": "VM-5", "ev": "accepted", "commits": ["567803ab"], "note": "4/4 no-key-wing=ok:exit 0; pendulum-bounds=ok:exit 0; changelog=ok:exit 0; docs-check=ok:ошибок 0"}
+{"t": "2026-10-19T14:59:04", "by": "coordinator", "task": "VM-5", "ev": "merged"}
+{"t": "2026-10-19T14:59:13", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: accept --here в копии модуля без импорта Godot — таймауты 900 с на каждой пачке (нужен --import перед прогоном); docs findings читает только registry/findings.md, а он упёрся в 40 КБ — VM-5 вынес разделы в docs/registry/pendulum-findings.md, поиск их не видит; inbox обрезает длинные решения"}
