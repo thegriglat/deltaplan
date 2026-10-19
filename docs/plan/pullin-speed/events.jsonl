@@ -35,3 +35,6 @@
 {"t": "2026-10-19T08:41:40", "by": "coordinator", "task": "VM-2", "ev": "accepted", "note": "по отчёту и Q1: Cm(α) и добор приняты; переворот — VM-3 (VM-К4), ревью — на порте"}
 {"t": "2026-10-19T08:41:41", "by": "coordinator", "task": "VM-2", "ev": "checked", "commits": ["dd204ae7"], "note": "2/3 vm-k2-sections=FAIL:exit 1 · grep: docs/research/…; docs-check=ok:ошибок 0; vm-k2-summary=ok:vm-k2 ok"}
 {"t": "2026-10-19T08:41:41", "by": "coordinator", "task": "VM-2", "ev": "merged"}
+{"t": "2026-10-19T08:41:57", "by": "coordinator", "task": "VM-2", "ev": "accepted", "commits": ["76a6d5b4"], "note": "3/3 vm-k2-sections=ok:exit 0; docs-check=ok:ошибок 0; vm-k2-summary=ok:vm-k2 ok"}
+{"t": "2026-10-19T08:41:58", "by": "coordinator", "task": "VM-2", "ev": "merged", "note": "повтор: первое слияние отказано (грязная копия), слито 76a6d5b4"}
+{"t": "2026-10-19T08:42:16", "by": "coordinator", "task": null, "ev": "plan", "note": "план Задачи: тело заменено (33 стр.)"}
