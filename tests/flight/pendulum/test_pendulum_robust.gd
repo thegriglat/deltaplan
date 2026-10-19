@@ -7,6 +7,13 @@ const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 
 ## Болтанка как в прототипе (поле из reference.json, пилот мягко держит горизонт), 40 с.
 ## → {blowup, std_phi_deg, std_rel_y_m, max_abs_phi_deg, max_stretch_m}.
+
+## Q3 pullin-speed (решение пользователя 2026-10-19): не подгонять и не удалять — пропуск с причиной до TODO.
+func skip_reason(method: String) -> String:
+	if method == "test_turbulence_game_blocks":
+		return "переворот/раскачка после выхода из разгона с pitch_nl — граница модели, Q3 pullin-speed, TODO (sport в болтанке при шаге 1/30: крен 115°, растяжение 0,108 м)"
+	return ""
+
 func _turbulence(w: String, dt: float, proto_block: bool) -> Dictionary:
 	var m := S.make(w, 0.0, {}, proto_block)
 	var off := S.reset(m)

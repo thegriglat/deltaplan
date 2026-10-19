@@ -37,6 +37,11 @@ func _ready() -> void:
 				skipped += 1
 				print("  skip %s::%s (нужен GPU — tools/gpu_tests.sh)" % [f.get_file(), m.name])
 				continue
+			var why := String(inst.skip_reason(m.name)) if inst.has_method("skip_reason") else ""
+			if why != "":
+				skipped += 1
+				print("  skip %s::%s (%s)" % [f.get_file(), m.name, why])
+				continue
 			if inst is Node:
 				add_child(inst)
 			total += 1
