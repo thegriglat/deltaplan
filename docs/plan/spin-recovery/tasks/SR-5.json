@@ -1,0 +1,49 @@
+{
+  "id": "SR-5",
+  "module": "spin-recovery",
+  "type": "dp-engineer",
+  "title": "Тест штопора: выход «на себя» и против вращения, затем ручка в центр; снять пропуск sport",
+  "goal": "В tests/flight/pendulum/test_pendulum_spin.gd после «на себя» ручка в центр (pitch 0, как pull_release SR-К1 v2) вместо закона по скорости; пропуск sport снят, тест проходит для training, laminar, sport с прежними порогами.",
+  "plan_ref": "Решение Q1 (а)",
+  "contracts": [
+    {
+      "name": "SR-К1",
+      "version": "2",
+      "ref": "docs/contracts/spin-recovery.md"
+    }
+  ],
+  "copy": "~/deltaplan-spin-recovery-SR-5",
+  "branch": "spin-recovery/SR-5",
+  "base": "feature/spin-recovery",
+  "scope": [
+    "tests/flight/pendulum/test_pendulum_spin.gd"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tools/",
+    "docs/",
+    "tests/flight/pendulum/pendulum_sim.gd",
+    "tests/flight/pendulum/test_pendulum_robust.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_pendulum_spin",
+      "tests": "test_pendulum_spin"
+    },
+    {
+      "name": "no-skip",
+      "cmd": "bash -c '! grep -nE \"return \\\"sport не выходит|pitch = clampf\\(-2\\.0\" tests/flight/pendulum/test_pendulum_spin.gd'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wings",
+      "cmd": "grep -c '\"laminar\"' tests/flight/pendulum/test_pendulum_spin.gd",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T03:04:38"
+}
