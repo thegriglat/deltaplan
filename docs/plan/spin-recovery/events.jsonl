@@ -81,3 +81,4 @@
 {"t": "2026-10-21T03:25:53", "by": "coordinator", "task": "SR-6", "ev": "accepted", "commits": ["8364c24a09476aac4753b137b651899a94561dc6"], "note": "5/5 stale=ok:exit 0; stale-en=ok:exit 0; changelog=ok:2; contract=ok:contract ok; docs=ok:ошибок 0"}
 {"t": "2026-10-21T03:25:53", "by": "coordinator", "task": "SR-6", "ev": "merged"}
 {"t": "2026-10-21T03:26:03", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: (5) accept --here в копии модуля без импорта godot падает по таймауту 900 с на первом прогоне тестов — подсказать импорт или поднимать таймаут при отсутствии .godot; (6) черновики r-<ID>.json в корне копии — у всех 6 задач, удалял руками перед accept."}
+{"t": "2026-10-21T03:40:35", "by": "main", "task": null, "ev": "delivered", "commits": ["0e8c9aa2"], "note": "squash в main: 0e8c9aa2"}
