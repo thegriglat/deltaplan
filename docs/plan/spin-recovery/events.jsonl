@@ -66,3 +66,5 @@
 {"t": "2026-10-21T03:07:46", "by": "executor", "task": "SR-5", "ev": "reported", "commits": ["ee18f159", "f9cc3d6a"], "note": "done: Тест штопора: после «на себя» ручка в центр (pitch 0), пропуск sport снят; WINGS training, sport; laminar не в списке (…", "dp_feedback": "черновик отчёта в корне копии ломает scope; шаблон лучше предлагать вне копии"}
 {"t": "2026-10-21T03:08:01", "by": "coordinator", "task": "SR-5", "ev": "checked", "note": "2/2 test_pendulum_spin=ok:1/1; no-skip=ok:exit 0"}
 {"t": "2026-10-21T03:08:08", "by": "coordinator", "task": "SR-5", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-21T03:23:08", "by": "coordinator", "task": "SR-5", "ev": "checked", "commits": ["8bb4af2dc6b81aa3a08a3ba066855e691435abd0"], "note": "1/2 test_pendulum_spin=FAIL:таймаут; no-skip=ok:exit 0"}
+{"t": "2026-10-21T03:23:09", "by": "coordinator", "task": "SR-5", "ev": "merged"}
