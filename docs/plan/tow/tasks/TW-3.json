@@ -1,0 +1,57 @@
+{
+  "id": "TW-3",
+  "module": "tow",
+  "type": "dp-researcher",
+  "title": "Модели для буксировки: список, источники, бюджет",
+  "goal": "Определить модели для всех кандидатов-видов буксировки (лебёдка, машины, буксировщики, трос, парашют троса, слабое звено, отцеп): что видно игроку, как строить или где взять с совместимой лицензией, бюджет треугольников и текстур.",
+  "plan_ref": "Волна 1 — исследование, п. 3",
+  "contracts": [
+    {
+      "name": "TW-К3",
+      "version": "1",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-3",
+  "branch": "tow/TW-3",
+  "base": "feature/tow",
+  "scope": [
+    "docs/research/tow/models.md"
+  ],
+  "dont_touch": [
+    "docs/research/tow/kinds.md",
+    "docs/research/tow/code.md",
+    "scripts",
+    "configs",
+    "tests",
+    "tools/blender",
+    "assets",
+    "docs/contracts",
+    "docs/plan"
+  ],
+  "accept": [
+    {
+      "name": "headings",
+      "cmd": "grep -cE '^## (Модели|Бюджет|Как строить|Чего не знаем|Источники)$' docs/research/tow/models.md",
+      "expect": "num:(\\d+) >=5"
+    },
+    {
+      "name": "models",
+      "cmd": "grep -cE '^\\| *(winch|winch_vehicle|tow_car|tow_trike|tow_ultralight|rope|drogue_chute|weak_link|release) *\\|' docs/research/tow/models.md",
+      "expect": "num:(\\d+) >=9"
+    },
+    {
+      "name": "size",
+      "cmd": "stat -c %s docs/research/tow/models.md",
+      "expect": "num:(\\d+) <=40960"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T03:51:55"
+}

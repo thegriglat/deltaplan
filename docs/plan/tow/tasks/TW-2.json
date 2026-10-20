@@ -1,0 +1,57 @@
+{
+  "id": "TW-2",
+  "module": "tow",
+  "type": "dp-researcher",
+  "title": "Обзор кода: старт, внешняя сила троса, экран старта, равнина, сеть",
+  "goal": "По коду feature/tow описать, куда и как приложить силу троса к модели полёта с сохранением управления, как устроены старт, экран старта, определение равнины и сеть, и предложить стыки для контрактов волны 2–3.",
+  "plan_ref": "Волна 1 — исследование, п. 2",
+  "contracts": [
+    {
+      "name": "TW-К2",
+      "version": "1",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-2",
+  "branch": "tow/TW-2",
+  "base": "feature/tow",
+  "scope": [
+    "docs/research/tow/code.md"
+  ],
+  "dont_touch": [
+    "docs/research/tow/kinds.md",
+    "docs/research/tow/models.md",
+    "scripts",
+    "configs",
+    "tests",
+    "scenes",
+    "project.godot",
+    "docs/contracts",
+    "docs/plan"
+  ],
+  "accept": [
+    {
+      "name": "headings",
+      "cmd": "grep -cE '^## (Старт и разбег|Внешняя сила в модели полёта|Экран старта|Равнина|Сеть и боты|Догнать|Предлагаемые стыки|Риски)$' docs/research/tow/code.md",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "refs",
+      "cmd": "grep -oE '[A-Za-z0-9_/]+\\.gd:[0-9]+' docs/research/tow/code.md | wc -l",
+      "expect": "num:(\\d+) >=25"
+    },
+    {
+      "name": "size",
+      "cmd": "stat -c %s docs/research/tow/code.md",
+      "expect": "num:(\\d+) <=40960"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T03:51:52"
+}

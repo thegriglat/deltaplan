@@ -1,0 +1,55 @@
+{
+  "id": "TW-1",
+  "module": "tow",
+  "type": "dp-researcher",
+  "title": "Виды буксировки дельтаплана: параметры, процедуры, опасности",
+  "goal": "По источникам описать виды буксировки (стационарная лебёдка, pay-out, машина, аэробуксировка) с числами для модели троса и выбрать, какие брать в игру.",
+  "plan_ref": "Волна 1 — исследование, п. 1",
+  "contracts": [
+    {
+      "name": "TW-К1",
+      "version": "1",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-1",
+  "branch": "tow/TW-1",
+  "base": "feature/tow",
+  "scope": [
+    "docs/research/tow/kinds.md"
+  ],
+  "dont_touch": [
+    "docs/research/tow/code.md",
+    "docs/research/tow/models.md",
+    "scripts",
+    "configs",
+    "tests",
+    "docs/contracts",
+    "docs/plan"
+  ],
+  "accept": [
+    {
+      "name": "headings",
+      "cmd": "grep -cE '^## (Виды|Параметры|Процедуры|Опасности|Вывод|Чего не знаем|Источники)$' docs/research/tow/kinds.md",
+      "expect": "num:(\\d+) >=7"
+    },
+    {
+      "name": "params",
+      "cmd": "grep -cE '^\\| *(winch_static|winch_payout|vehicle|aerotow) *\\| *(rope_length_m|rope_material|attach_point|weak_link_daN|tension_daN|tension_max_daN|tow_speed_kmh|climb_rate_ms|release_height_m|rope_angle_deg|runway_length_m) *\\|' docs/research/tow/kinds.md",
+      "expect": "num:(\\d+) >=44"
+    },
+    {
+      "name": "size",
+      "cmd": "stat -c %s docs/research/tow/kinds.md",
+      "expect": "num:(\\d+) <=40960"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T03:51:39"
+}
