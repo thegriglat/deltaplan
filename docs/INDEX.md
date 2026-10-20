@@ -48,6 +48,7 @@ generated: true
   - [docs/research/pendulum/spin-recovery.md](research/pendulum/spin-recovery.md) — Почему sport не выходит из штопора (1.5.21): ввод и руки, крутка, упоры концов, sport против laminar, C_L max концов — замеры волны 1.
   - [tools/research/spin_recovery/README.md](../tools/research/spin_recovery/README.md) — Стенд штопора SR-К1 (spin_run.gd): вход, выходы release/standard/pull_release, таблица вариантов; SR-2 — база, крутка, sport против laminar.
   - [tools/research/spin_recovery/sr1/README.md](../tools/research/spin_recovery/sr1/README.md) — SR-1: стенд и команды воспроизведения — доходит ли ввод мыши до трапеции в штопоре sport.
+- **trike** — Идея: управляемый дельталёт — тележка вместо пилота на той же подвеске, тяга винта к тележке, колёса, газ; модуль не заведён. [idea 2026-10-21] — [план](plan/trike.md)
 
 ## world
 
