@@ -1,0 +1,51 @@
+{
+  "id": "SR-4",
+  "module": "spin-recovery",
+  "type": "dp-writer",
+  "title": "Итог и границы волны 1 в spin-recovery.md; правки по ревью SR-1..3",
+  "goal": "Дописать разделы «Итог» и «Границы» документа docs/research/pendulum/spin-recovery.md по данным SR-1..3 и исправить в разделах задач неточности, найденные ревью.",
+  "plan_ref": "Волна 1 — гипотезы; Условия остановки",
+  "contracts": [
+    {
+      "name": "SR-К3",
+      "version": "1",
+      "ref": "docs/contracts/spin-recovery.md"
+    }
+  ],
+  "copy": "~/deltaplan-spin-recovery-SR-4",
+  "branch": "spin-recovery/SR-4",
+  "base": "feature/spin-recovery",
+  "scope": [
+    "docs/research/pendulum/spin-recovery.md"
+  ],
+  "dont_touch": [
+    "tools/",
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "docs/guide/",
+    "CHANGELOG.md",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/spin_recovery/contract_check.py tools/research/spin_recovery/out/sr-1 tools/research/spin_recovery/out/sr-2 tools/research/spin_recovery/out/sr-3",
+      "expect": "re:contract ok"
+    },
+    {
+      "name": "filled",
+      "cmd": "bash -c '! grep -n \"(координатор, после волны 1)\" docs/research/pendulum/spin-recovery.md'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T02:56:04"
+}
