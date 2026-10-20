@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-20"
+updated: "2026-10-21"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -44,6 +44,10 @@ generated: true
   - [docs/research/pendulum/pullin-speed.md](research/pendulum/pullin-speed.md) — Vmax «на себя» 55 против 80 км/ч паспорта: (V/Vтрим)² = 1 + 0,19/Kn, модель Kn 0,14, паспорту нужен ≈ 0,05; не VG и не сила рук.
   - [docs/research/pendulum/release-tumble.md](research/pendulum/release-tumble.md) — Переворот при выходе: руки держат пилота в нейтрали; VM-11 — отпускание только после «на себя»: 1,8 — 29→0, normal ≤ 2·Vт — 14→0
   - [tools/research/pullin_speed/README.md](../tools/research/pullin_speed/README.md) — VM-1: замеры полного «на себя» по 48 крыльям (подвеска, Kn, CL_α, CdA, ход, VG-прокси) и пары Vmax VG 0 / VG 100.
+- **spin-recovery** — sport не выходит из штопора (1.5.21): ввод/руки в штопоре, крутка, упоры концов, отличия от laminar, C_L max концов. [closed 2026-10-21] — [план](plan/spin-recovery.md) · [контракты](contracts/spin-recovery.md) · [решения](plan/spin-recovery/decisions.md) · [сводка](plan/spin-recovery/summary.md) · полный журнал: `archive/spin-recovery`
+  - [docs/research/pendulum/spin-recovery.md](research/pendulum/spin-recovery.md) — Почему sport не выходит из штопора (1.5.21): ввод и руки, крутка, упоры концов, sport против laminar, C_L max концов — замеры волны 1.
+  - [tools/research/spin_recovery/README.md](../tools/research/spin_recovery/README.md) — Стенд штопора SR-К1 (spin_run.gd): вход, выходы release/standard/pull_release, таблица вариантов; SR-2 — база, крутка, sport против laminar.
+  - [tools/research/spin_recovery/sr1/README.md](../tools/research/spin_recovery/sr1/README.md) — SR-1: стенд и команды воспроизведения — доходит ли ввод мыши до трапеции в штопоре sport.
 
 ## world
 
