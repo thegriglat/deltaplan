@@ -5,6 +5,7 @@ extends Node
 ##                   InputController._mouse_offset → ControlInput → Glider → PendulumModel → руки;
 ##                   настройки мыши по умолчанию (configs/controls.json, mouse.*);
 ##   variant model — те же команды прямым ControlInput в PendulumModel (как test_pendulum_spin.gd).
+## Вариант model_f1000 — то же, что model, но предел усилия рук 1000 Н вместо 300 (arms.force_max): упирается ли выход в усилие.
 ## Режимы: release (мышь больше не двигается; в модели ввод 0), release_center (одно событие — мышь
 ## в центр), standard (по Жеглову). Пробы отклика: probe_pitch / probe_rollp / probe_rolln (шаг ввода
 ## в штопоре в t_rec0), probe_vm12 (на себя → 0 → движение; отпускание рук VM-12), trim_* (то же в
@@ -31,6 +32,7 @@ class Back:
 	var ic: InputController = null
 	var vp: Viewport = null
 	var wing := ""
+	var fmax := -1.0  ## > 0 — предел усилия рук вместо игрового (вариант model_f1000), Н
 	var inp := ControlInput.new()
 	var last_in_p := 0.0
 	var last_in_r := 0.0
@@ -79,7 +81,7 @@ var _raw: FileAccess = null
 func _ready() -> void:
 	Locations.fixtures_root = "res://tests/fixtures/locations"
 	var wings: PackedStringArray = ["sport", "laminar", "training"]
-	var variants: PackedStringArray = ["game", "model"]
+	var variants: PackedStringArray = ["game", "model", "model_f1000"]
 	var only_modes := PackedStringArray()
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--out="):
@@ -171,8 +173,10 @@ func _make_back(w: String, variant: String) -> Back:
 	var b := Back.new()
 	b.wing = w
 	b.vp = get_viewport()
-	if variant == "model":
+	if variant.begins_with("model"):
 		b.m = S.make(w)
+		if variant == "model_f1000":
+			b.fmax = 1000.0
 		return b
 	var main: Node = _mains.get(w)
 	if main == null:
@@ -221,6 +225,8 @@ func _close(main: Node) -> void:
 func _restart(b: Back) -> void:
 	if b.game == null:
 		b.m = S.make(b.wing)
+		if b.fmax > 0.0:
+			b.m.arms.force_max = b.fmax
 		S.reset(b.m)
 		b.inp = ControlInput.new()
 		return
