@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 CONTRACT = ROOT / "docs/contracts/spin-recovery.md"
 DOC = ROOT / "docs/research/pendulum/spin-recovery.md"
-VERSIONS = {"SR-К1": 1, "SR-К2": 1, "SR-К3": 1}
+VERSIONS = {"SR-К1": 2, "SR-К2": 1, "SR-К3": 1}
 TAG = f"SR-К2 v{VERSIONS['SR-К2']}"
 SECTIONS = (
     "## Гипотеза 0 — ввод и руки (SR-1)",
@@ -34,6 +34,7 @@ ROW = {
 }
 REQ_WINGS = ("sport", "laminar", "training")
 REQ_MODES = ("release", "standard")
+REQ_MODES_V2 = ("pull_release",)  # SR-К1 v2; SR-1 начата по v1
 
 
 def check_headers(errors):
@@ -99,8 +100,9 @@ def check_dir(d, errors):
             errors.append(f"{pre} rows[{i}]: вариант {r.get('variant')!r} не описан в variants")
     have = {(r.get("wing"), r.get("mode")) for r in rows
             if r.get("variant") == "game" and abs(float(r.get("dt") or 0) - 1 / 120) < 1e-9}
+    modes = REQ_MODES + (() if s.get("task") == "SR-1" else REQ_MODES_V2)
     for w in REQ_WINGS:
-        for m in REQ_MODES:
+        for m in modes:
             if (w, m) not in have:
                 errors.append(f"{pre} нет строки game/{w}/{m}/dt=1/120")
     if runs.exists():

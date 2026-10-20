@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-21"
 summary: "Стыки spin-recovery: сценарий штопора и метрики выхода (SR-К1), формат данных прогонов (SR-К2), разделы документа итога (SR-К3)"
 related: ["docs/plan/spin-recovery.md", "docs/research/pendulum/stall-spin.md", "docs/research/pendulum/spin-recovery.md", "docs/contracts/pullin-speed.md"]
-contracts: [{"id": "SR-К1", "version": 1}, {"id": "SR-К2", "version": 1}, {"id": "SR-К3", "version": 1}]
+contracts: [{"id": "SR-К1", "version": 2}, {"id": "SR-К2", "version": 1}, {"id": "SR-К3", "version": 1}]
 ---
 # Контракты модуля spin-recovery
 
@@ -18,7 +18,9 @@ contracts: [{"id": "SR-К1", "version": 1}, {"id": "SR-К2", "version": 1}, {"id
 полей экземпляра после него или наследником `PendulumWingStrips` в `tools/research/spin_recovery/`, подставленным в
 `m.strips`. `configs/`, `scripts/`, `tests/` не трогаются.
 
-## SR-К1. Сценарий штопора и метрики выхода (v1)
+## SR-К1. Сценарий штопора и метрики выхода (v2)
+v2 (2026-10-21, по SR-2): режим `pull_release` обязателен (кроме SR-1, начатой по v1): `standard` у sport отсекает пилот-модель теста (удержание −1 на скорости), а не штопор.
+
 Владелец — SR-2 (стенд модели `tools/research/spin_recovery/spin_run.gd`); потребители — SR-1 (тот же сценарий через
 путь ввода игры), SR-3 и последующие.
 
@@ -42,7 +44,10 @@ contracts: [{"id": "SR-К1", "version": 1}, {"id": "SR-К2", "version": 1}, {"id
   пока не выполнено `tr ≥ 1 с и (tr ≥ 10 с или (срыва нет и |dψ/dt| < 45°/с))` (`tr` — от `t_rec0`); затем pitch =
   clamp(−2·(V − Vтрим)/Vтрим, −1, 0) (V, Vтрим — км/ч, Vтрим — воздушная скорость после `S.reset` до входа), крен —
   `BankHold` с целью 0.
-- Другие режимы — новым значением `mode` с описанием в отчёте задачи; `release` и `standard` обязательны.
+- `pull_release` — «на себя» и смещение против вращения ровно как в `standard` до того же условия конца, затем pitch = 0,
+  крен — как в `standard` (`BankHold` с целью 0); реализация — `tools/research/spin_recovery/spin_run.gd` (SR-2). Пилот,
+  отдавший ручку в нейтраль после «на себя»; при pitch = 0 после «на себя» срабатывает отпускание рук VM-12.
+- Другие режимы — новым значением `mode` с описанием в отчёте задачи; `release`, `standard`, `pull_release` обязательны.
 
 **Выход** (`recovered`): |крен| < 15°, |dψ/dt| < 20°/с и ни одной сорванной полосы — 3 с подряд. `recover_s` —
 начало этого окна минус `t_rec0`; `loss_m` — `h_stall` минус высота в начале окна. Нет выхода за 60 с от `t_rec0` —
