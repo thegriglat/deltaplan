@@ -160,7 +160,10 @@ func _emit(r: Dictionary) -> void:
 		r.row.extra["input_lost_at"] = ""
 	_raw.store_line(JSON.stringify(_clean(r.row)))
 	_raw.flush()
-	if r.has("trace_name"):
+	var v: String = r.row.variant
+	var md: String = r.row.mode
+	if r.has("trace_name") and (v == "game" or md in ["standard", "release"]) \
+			and not (v != "game" and md.begins_with("trim_")):
 		_write_trace(r.trace_name, r.rec)
 	print("SR1 row %s/%s/%s rec=%s t=%.1f loss=%s resp=%s" % [r.row.variant, r.row.wing, r.row.mode,
 		r.row.recovered, r.row.get("recover_s") if r.row.get("recover_s") != null else -1.0,
@@ -629,6 +632,16 @@ func _analyse(b: Back, rec: Dictionary, k0: int, axis: String, cmd_p: float, cmd
 	if ref.is_empty():
 		pr["lost"] = ""
 		return pr
+	# ожидаемая цель по шагу руки: neutral + (−pitch·ход) / (+roll·shift_y_max)
+	var a := b.m.arms
+	var nb: float = rec["n" + axis][k0 + 12]
+	var inv: float = inn[k0 + 12]
+	var exp_t: float
+	if axis == "x":
+		exp_t = nb - inv * (a.shift_x_push if inv > 0.0 else rec["pull_lim"][k0 + 12])
+	else:
+		exp_t = nb + inv * a.shift_y_max
+	pr["target_expected_m"] = exp_t
 	if not ok_resp:
 		if b.game != null and absf(d_exp) > 0.05 and absf(d_obs) < 0.01:
 			lost = "event"
@@ -637,16 +650,6 @@ func _analyse(b: Back, rec: Dictionary, k0: int, axis: String, cmd_p: float, cmd
 		elif b.game != null and absf(inn[k0 + 12] - (in_cmd if absf(in_cmd) > dz else 0.0)) > 0.05:
 			lost = "inp"
 		else:
-			# ожидаемая цель по шагу руки: neutral + (−pitch·ход) / (+roll·shift_y_max)
-			var a := b.m.arms
-			var nb: float = rec["n" + axis][k0 + 12]
-			var inv: float = inn[k0 + 12]
-			var exp_t: float
-			if axis == "x":
-				exp_t = nb - inv * (a.shift_x_push if inv > 0.0 else rec["pull_lim"][k0 + 12])
-			else:
-				exp_t = nb + inv * a.shift_y_max
-			pr["target_expected_m"] = exp_t
 			if absf(tgt[k0 + 12] - exp_t) > 0.03:
 				lost = "arms_target"
 			elif pr.force_sat_frac > 0.5 or (axis == "x" and pr.rel_on_frac > 0.5):
@@ -714,6 +717,6 @@ func _write_trace(name: String, rec: Dictionary) -> void:
 	for i in range(0, n, THIN):
 		var cells := PackedStringArray()
 		for c in COLS:
-			cells.append("%.4f" % rec[c][i])
+			cells.append("%.3f" % rec[c][i])
 		f.store_line(",".join(cells))
 	f.close()
