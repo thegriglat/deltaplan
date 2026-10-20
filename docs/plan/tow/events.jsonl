@@ -30,3 +30,5 @@
 {"t": "2026-10-21T04:00:51", "by": "coordinator", "task": "TW-2", "ev": "accepted", "note": "по ревью; 3 minor — учесть в TW-К4"}
 {"t": "2026-10-21T04:00:52", "by": "coordinator", "task": "TW-2", "ev": "accepted", "commits": ["f2901d9c"], "note": "4/4 headings=ok:8; refs=ok:151; size=ok:40312; docs=ok:ошибок 0"}
 {"t": "2026-10-21T04:00:52", "by": "coordinator", "task": "TW-2", "ev": "merged"}
+{"t": "2026-10-21T04:02:22", "by": "reviewer", "task": "TW-1", "ev": "reviewed", "note": "TW-К1 v1 выполнен: 7 заголовков, 44 строки параметров, скоуп — один файл, frontmatter полный. Числа сверены с [1] NZHGPA, [4] Birren, [6] Mohaupt, [8] Felix — …", "verdict": "accept", "issues": {"minor": 5}, "review": "docs/plan/tow/tasks/TW-1.review.json"}
+{"t": "2026-10-21T04:02:59", "by": "coordinator", "task": "TW-1", "ev": "accepted", "note": "по ревью; 5 minor — п.3 (натяжение aerotow 0,3–0,6 g без источника) и п.4 (6° — угол траектории, не троса) учесть в TW-К4"}
