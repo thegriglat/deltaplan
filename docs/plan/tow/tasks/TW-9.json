@@ -1,0 +1,58 @@
+{
+  "id": "TW-9",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Выбор буксировки при старте: настройки, CLI, экран старта",
+  "goal": "Игрок выбирает буксировку (нет / лебёдка / аэробуксировка Ан-2) на экране старта и через --tow по TW-К7; на площадке с tow — предложение по умолчанию, в мультиплеере выбор недоступен.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К7",
+      "version": "1",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К6",
+      "version": "1",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-9",
+  "branch": "tow/TW-9",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/game/flight_settings.gd",
+    "scripts/game/launch_options.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "locale/ui.csv",
+    "tests/contracts/test_tow_k7.gd",
+    "tests/contracts/test_tow_k7.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/terrain",
+    "scripts/game/game.gd",
+    "configs",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k7",
+      "tests": "tow_k7"
+    },
+    {
+      "name": "tests/ui/",
+      "tests": "tests/ui/"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T04:14:33",
+  "edited": "2026-10-21T04:14:58"
+}

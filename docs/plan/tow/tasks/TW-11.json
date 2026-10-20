@@ -1,0 +1,54 @@
+{
+  "id": "TW-11",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Модели Blender: лебёдка и отцеп с уздечкой",
+  "goal": "Построить в Blender модели winch и release по TW-К8 (узлы, LOD, бюджет, вершинные цвета), экспортировать glb и проверить имена узлов и текстуры.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К8",
+      "version": "1",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-11",
+  "branch": "tow/TW-11",
+  "base": "feature/tow",
+  "scope": [
+    "tools/blender/build_tow_winch.py",
+    "tools/blender/build_tow_winch.json",
+    "tools/blender/build_tow_release.py",
+    "tools/blender/build_tow_release.json",
+    "assets/models/world/tow_winch.glb",
+    "assets/models/world/tow_winch.glb.import",
+    "assets/models/world/tow_release.glb",
+    "assets/models/world/tow_release.glb.import",
+    "assets/source/world/tow_winch.blend",
+    "assets/source/world/tow_release.blend",
+    "tests/contracts/test_tow_k8.gd",
+    "tests/contracts/test_tow_k8.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tools/blender/bl_util.py",
+    "tools/blender/frame_parts.py",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k8",
+      "tests": "tow_k8"
+    },
+    {
+      "name": "textures",
+      "cmd": "python3 tools/check_textures.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T04:14:58"
+}
