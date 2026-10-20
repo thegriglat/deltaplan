@@ -1,0 +1,61 @@
+{
+  "id": "SR-2",
+  "module": "spin-recovery",
+  "type": "dp-researcher",
+  "title": "Стенд штопора SR-К1, база и гипотезы 1 и 3 (крутка, sport против laminar)",
+  "goal": "Стенд модели tools/research/spin_recovery/spin_run.gd по SR-К1; база (игра, без pitch_nl, без отпускания рук VM-12) и гипотезы 1 (крутка sport 12, 14°) и 3 (параметры laminar в sport по одному и все вместе): выходит ли sport, время и потеря высоты, по SR-К2.",
+  "plan_ref": "Волна 1 — гипотезы, п. 1 и 3",
+  "contracts": [
+    {
+      "name": "SR-К1",
+      "version": "1",
+      "ref": "docs/contracts/spin-recovery.md"
+    },
+    {
+      "name": "SR-К2",
+      "version": "1",
+      "ref": "docs/contracts/spin-recovery.md"
+    },
+    {
+      "name": "SR-К3",
+      "version": "1",
+      "ref": "docs/contracts/spin-recovery.md"
+    }
+  ],
+  "copy": "~/deltaplan-spin-recovery-SR-2",
+  "branch": "spin-recovery/SR-2",
+  "base": "feature/spin-recovery",
+  "scope": [
+    "tools/research/spin_recovery/",
+    "docs/research/pendulum/spin-recovery.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/spin_recovery/contract_check.py",
+    "tools/research/spin_recovery/sr1/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/spin_recovery/contract_check.py tools/research/spin_recovery/out/sr-2",
+      "expect": "re:contract ok"
+    },
+    {
+      "name": "sr2-variants",
+      "cmd": "python3 -I -c \"import json,sys; s=json.load(open('tools/research/spin_recovery/out/sr-2/summary.json')); R=s['rows']; d=lambda r: abs(r['dt']-1/120)<1e-9; need=['game','pnl_off','rel_off','wash12','wash14','lam_tipchord','lam_dihedral','lam_washout','lam_sweep','lam_all']; have={(r['variant'],r['mode']) for r in R if r['wing']=='sport' and d(r)}; miss=[(v,m) for v in need for m in ('release','standard') if (v,m) not in have]; tr=[r for r in R if r['wing']=='training' and r['variant']=='game' and r['mode']=='standard' and d(r)]; g={r['wing']:r['trim_kmh'] for r in R if r['variant']=='game' and d(r)}; bad=[(r['wing'],r['variant'],r['dt']) for r in R if abs(r['trim_kmh']-g[r['wing']])>0.1]; dts={r['dt'] for r in R if r['variant']=='game' and r['wing']=='sport'}; ok=not miss and bool(tr) and tr[0]['recovered'] and not bad and len(dts)>=3; print('sr2 ok' if ok else ('bad',miss,bool(tr and tr[0]['recovered']),bad[:5],sorted(dts))); sys.exit(0 if ok else 1)\"",
+      "expect": "re:sr2 ok"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T02:25:00"
+}

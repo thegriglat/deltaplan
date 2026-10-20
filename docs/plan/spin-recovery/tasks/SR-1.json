@@ -1,0 +1,62 @@
+{
+  "id": "SR-1",
+  "module": "spin-recovery",
+  "type": "dp-researcher",
+  "title": "Гипотеза 0: доходит ли ввод мыши до трапеции в штопоре",
+  "goal": "Замерить через путь ввода игры (мышь → InputController → Glider → PendulumModel → руки), доходит ли ввод мыши до трапеции в штопоре sport, и выходит ли sport, если бросить управление и при стандартном выходе мышью; указать звено, где ввод теряется, или что он не теряется.",
+  "plan_ref": "Волна 1 — гипотезы, п. 0",
+  "contracts": [
+    {
+      "name": "SR-К1",
+      "version": "1",
+      "ref": "docs/contracts/spin-recovery.md"
+    },
+    {
+      "name": "SR-К2",
+      "version": "1",
+      "ref": "docs/contracts/spin-recovery.md"
+    },
+    {
+      "name": "SR-К3",
+      "version": "1",
+      "ref": "docs/contracts/spin-recovery.md"
+    }
+  ],
+  "copy": "~/deltaplan-spin-recovery-SR-1",
+  "branch": "spin-recovery/SR-1",
+  "base": "feature/spin-recovery",
+  "scope": [
+    "tools/research/spin_recovery/sr1/",
+    "tools/research/spin_recovery/out/sr-1/",
+    "docs/research/pendulum/spin-recovery.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/spin_recovery/contract_check.py",
+    "tools/research/spin_recovery/spin_run.gd"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/spin_recovery/contract_check.py tools/research/spin_recovery/out/sr-1",
+      "expect": "re:contract ok"
+    },
+    {
+      "name": "sr1-extra",
+      "cmd": "python3 -I -c \"import json,sys; R=[json.loads(l) for l in open('tools/research/spin_recovery/out/sr-1/runs.jsonl') if l.strip()]; bad=[i for i,r in enumerate(R) if not isinstance(r.get('extra',{}).get('input_lost_at'),str) or 'resp_ratio' not in r.get('extra',{})]; sp={r['mode'] for r in R if r['wing']=='sport' and r['variant']=='game'}; ok=R and not bad and {'release','standard'}<=sp; print('sr1 ok' if ok else ('bad',bad[:5],sorted(sp))); sys.exit(0 if ok else 1)\"",
+      "expect": "re:sr1 ok"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T02:24:24"
+}
