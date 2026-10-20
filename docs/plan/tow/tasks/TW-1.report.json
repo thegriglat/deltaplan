@@ -1,0 +1,75 @@
+{
+  "status": "partial",
+  "summary": "docs/research/tow/kinds.md: 4 вида, 44 строки параметров, процедуры, опасности (lock-out 30–40° от линии), вывод и раздел про Волжский. Рекомендация: aerotow первым, winch_static вторым, payout/vehicle позже. Числа по winch_payout и vehicle в открытых источниках почти не нашлись (н/д).",
+  "commits": [
+    "see git log tow/TW-1: tow: TW-1 — виды буксировки"
+  ],
+  "checks": [
+    {
+      "name": "headings",
+      "value": "7",
+      "pass": true
+    },
+    {
+      "name": "params",
+      "value": "44",
+      "pass": true
+    },
+    {
+      "name": "size",
+      "value": "25209 B",
+      "pass": true
+    },
+    {
+      "name": "docs check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Тексты USHPA SOP/BHPA, Pagen 'Towing Aloft', русские нормы ФДС/СЛА не получены; числа winch_payout и vehicle (скорость, набор, угол, высота отцепа) н/д; аэродром Волжский — данных нет"
+  ],
+  "questions": [
+    "Нужен ли доступ к USHPA/BHPA tow manual и Pagen для добора параметров payout/vehicle до волны 2? Иначе скорость и тяги наземной буксировки выводить из поляры и 0,4–0,8 g"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TW-1",
+  "uncertain": [
+    {
+      "where": "docs/research/tow/kinds.md:Параметры winch_static",
+      "why": "разрыв Dyneema 5000 Н [8] против 50 000 Н [6] — расхождение источников",
+      "checked": "оба значения приведены, в Чего не знаем"
+    },
+    {
+      "where": "docs/research/tow/kinds.md:[13][15]",
+      "why": "форум hanggliding.org (403) и отчёт ATSB (таймаут) не прочитаны, числа из выдержки поиска, помечены как анекдот",
+      "checked": "значения использованы только в н/д-строках"
+    },
+    {
+      "where": "docs/research/tow/kinds.md:[11]",
+      "why": "USHPA SOP (слабое звено <2x вес) цитата форума, не оригинал",
+      "checked": "помечено из вторых рук"
+    },
+    {
+      "where": "docs/research/tow/kinds.md:aerotow weak_link",
+      "why": "NZHGPA: звено у планера ≈1 g, у буксировщика ≤85% веса и на 10% прочнее — внутреннее противоречие",
+      "checked": "оба значения приведены"
+    }
+  ],
+  "dp_feedback": "docs check упал на summary 143>140 — было бы удобно видеть длину в --dry при запуске; WebFetch не читает PDF, пришлось pdftotext из tool-results.",
+  "extra": {
+    "aerotow": {
+      "rope_m": "50-100",
+      "tow_kmh": "51-59",
+      "weak_link_daN": "88-98",
+      "tug_climb_ms": ">=1.8"
+    },
+    "winch_static": {
+      "rope_m": "1000-1500",
+      "tension_daN": "60-130",
+      "weak_link_daN": "150/200"
+    }
+  },
+  "t": "2026-10-21T03:59:46",
+  "by": "executor"
+}
