@@ -18,3 +18,5 @@
 {"t": "2026-10-21T03:54:54", "by": "coordinator", "task": "TW-3", "ev": "checked", "note": "4/4 headings=ok:5; models=ok:9; size=ok:16368; docs=ok:ошибок 0; scope=FAIL:вне scope: r-TW-3.json"}
 {"t": "2026-10-21T03:55:08", "by": "coordinator", "task": "TW-3", "ev": "checked", "note": "4/4 headings=ok:5; models=ok:9; size=ok:16368; docs=ok:ошибок 0"}
 {"t": "2026-10-21T03:55:14", "by": "coordinator", "task": "TW-3", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-21T03:55:21", "by": "coordinator", "task": "TW-3", "ev": "accepted", "commits": ["d881e713"], "note": "4/4 headings=ok:5; models=ok:9; size=ok:16368; docs=ok:ошибок 0"}
+{"t": "2026-10-21T03:55:22", "by": "coordinator", "task": "TW-3", "ev": "merged"}
