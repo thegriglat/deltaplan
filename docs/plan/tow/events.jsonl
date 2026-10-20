@@ -28,3 +28,5 @@
 {"t": "2026-10-21T03:59:55", "by": "coordinator", "task": "TW-1", "ev": "checked", "note": "4/4 headings=ok:7; params=ok:44; size=ok:25209; docs=ok:ошибок 0"}
 {"t": "2026-10-21T04:00:33", "by": "reviewer", "task": "TW-2", "ev": "reviewed", "note": "Документ по TW-К2 полный: все 8 заголовков и 5 обязательных строк стыков есть, правки только в скоупе. Ссылки, которые я проверил (pendulum_model.gd _substep/l…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/tow/tasks/TW-2.review.json"}
 {"t": "2026-10-21T04:00:51", "by": "coordinator", "task": "TW-2", "ev": "accepted", "note": "по ревью; 3 minor — учесть в TW-К4"}
+{"t": "2026-10-21T04:00:52", "by": "coordinator", "task": "TW-2", "ev": "accepted", "commits": ["f2901d9c"], "note": "4/4 headings=ok:8; refs=ok:151; size=ok:40312; docs=ok:ошибок 0"}
+{"t": "2026-10-21T04:00:52", "by": "coordinator", "task": "TW-2", "ev": "merged"}
