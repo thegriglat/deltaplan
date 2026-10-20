@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "Руководство, сайт (ru/en), CHANGELOG, pendulum-findings и spin-recovery.md обновлены по решению Q1: выход из штопора мышью, числа SR-5, «sport не выходит» снято.",
+  "commits": [
+    "6aceec05 SR-6: руководство — выход из штопора мышью; снято «sport не выходит»"
+  ],
+  "checks": [
+    {
+      "name": "stale",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "stale-en",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "contract",
+      "value": "contract ok",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "без ошибок",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SR-6",
+  "uncertain": [
+    {
+      "where": "docs/guide/game/cameras-input.md",
+      "why": "ссылка на input_controller.gd стр. 123 и значения configs/controls.json взяты из карточки, не перепроверялись",
+      "checked": "нет"
+    },
+    {
+      "where": "site/content/mechanics/flight.en.md",
+      "why": "в разделе границ англ. страницы пункта про штопор sport не было, добавлять не стал",
+      "checked": "grep spin"
+    }
+  ],
+  "dp_feedback": "docs index правит INDEX.md, registry/contracts.md, research.md сам; в скоупе есть только docs/registry/ и INDEX, это сошлось.",
+  "t": "2026-10-21T03:25:33",
+  "by": "executor"
+}
