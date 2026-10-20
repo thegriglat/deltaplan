@@ -1,0 +1,76 @@
+{
+  "status": "done",
+  "summary": "Наследник SR3Strips (упор концов через подмену twist, C_L max концов через _strip_cl), 10 вариантов x 3 крыла x 3 режима x 3 шага + переложение 45-45. Ни упоры, ни C_L max концов не снимают штопор sport (рыскание 140 -> 124 / 119 °/с, release 0/3); упоры ухудшают 45-45 на 17-43 %.",
+  "commits": [
+    "spin-recovery SR-3: упоры концов и C_L max концевых полос"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "contract ok",
+      "pass": true
+    },
+    {
+      "name": "sr3-variants",
+      "value": "sr3 ok",
+      "pass": true
+    },
+    {
+      "name": "reversal",
+      "value": "rev ok",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Углы спрогов из руководств производителей не найдены: a=4°, b=7° - оценка."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SR-3",
+  "uncertain": [
+    {
+      "where": "tools/research/spin_recovery/spin_run.gd VARIANTS sprog*",
+      "why": "углы 4°/7° - оценка, не замер; модель упора - жёсткий мгновенный срез угла 2-3 из 8 полос",
+      "checked": "поиск по CIVL/USHPA: описание есть, чисел нет; срез виден в extra.sprog_active_max_deg (2-6°)"
+    },
+    {
+      "where": "docs/research/pendulum/spin-recovery.md Гипотеза 4",
+      "why": "физического обоснования +10-15 % C_L max у конца не найдено (меньшая кривизна обычно снижает C_L max)",
+      "checked": "замер всё равно сделан; C_L max корня после match_polar_cl_max не изменился, т.к. концы при C_L max крыла не срываются"
+    },
+    {
+      "where": "pull_release sport",
+      "why": "разброс по шагу 2,2-7,2 с больше эффекта вариантов; sprog3_b standard 3/3 у sport - отсечка пилот-модели, не эффект",
+      "checked": "сравнивал по трём шагам, метрикам штопора"
+    },
+    {
+      "where": "spin_run.gd",
+      "why": "добавлена только запись диагностики (info.cl_max_strip, extra.sprog_active_max_deg), логика не менялась",
+      "checked": "game и strips_id совпадают"
+    }
+  ],
+  "dp_feedback": "Нет команды, показывающей, какие файлы под scope при accept до коммита; accept --dry сработал только после коммита.",
+  "extra": {
+    "sport_release_yaw_dps": {
+      "game": 140,
+      "sprog2_b": 132,
+      "sprog3_b": 124,
+      "clmax3_15": 119
+    },
+    "reversal_sport_s": {
+      "game": 4.29,
+      "sprog2_a": 5.02,
+      "sprog2_b": 5.71,
+      "sprog3_a": 5.37,
+      "sprog3_b": 6.12,
+      "clmax_all": 4.29
+    },
+    "training_clmax3_15": "рыскание 40 °/с, снижение 3,1 м/с, release 1/3"
+  },
+  "t": "2026-10-21T02:51:37",
+  "by": "executor"
+}
