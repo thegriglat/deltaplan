@@ -34,3 +34,4 @@
 {"t": "2026-10-21T04:02:59", "by": "coordinator", "task": "TW-1", "ev": "accepted", "note": "по ревью; 5 minor — п.3 (натяжение aerotow 0,3–0,6 g без источника) и п.4 (6° — угол траектории, не троса) учесть в TW-К4"}
 {"t": "2026-10-21T04:03:00", "by": "coordinator", "task": "TW-1", "ev": "accepted", "commits": ["f80ceafb"], "note": "4/4 headings=ok:7; params=ok:44; size=ok:25209; docs=ok:ошибок 0"}
 {"t": "2026-10-21T04:03:00", "by": "coordinator", "task": "TW-1", "ev": "merged"}
+{"t": "2026-10-21T04:03:14", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: принято 3/3 волны 1, шлюз итога волны 1; r-*.json в копиях мешает scope"}
