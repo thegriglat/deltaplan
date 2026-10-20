@@ -1,0 +1,68 @@
+{
+  "id": "SR-6",
+  "module": "spin-recovery",
+  "type": "dp-writer",
+  "title": "Руководство: выход из штопора мышью; снять «sport не выходит» из границ, сайта и CHANGELOG",
+  "goal": "В руководстве игрока и на сайте описать выход из штопора мышью по решению Q1 и числам SR-5; убрать устаревшее «sport не выходит из штопора»; строка в CHANGELOG «В работе», строка в pendulum-findings.",
+  "plan_ref": "Решение Q1 (в)",
+  "contracts": [
+    {
+      "name": "SR-К3",
+      "version": "1",
+      "ref": "docs/contracts/spin-recovery.md"
+    }
+  ],
+  "copy": "~/deltaplan-spin-recovery-SR-6",
+  "branch": "spin-recovery/SR-6",
+  "base": "feature/spin-recovery",
+  "scope": [
+    "docs/guide/flight/pendulum.md",
+    "docs/guide/game/cameras-input.md",
+    "site/content/mechanics/flight.ru.md",
+    "site/content/mechanics/flight.en.md",
+    "CHANGELOG.md",
+    "docs/registry/pendulum-findings.md",
+    "docs/research/pendulum/spin-recovery.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "tools/",
+    "site/content/releases/",
+    "docs/research/pendulum/stall-spin.md",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "stale",
+      "cmd": "bash -c '! grep -nE \"не выходит из штопора\" docs/guide/flight/pendulum.md site/content/mechanics/flight.ru.md site/content/mechanics/flight.en.md'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "stale-en",
+      "cmd": "bash -c '! grep -niE \"does not recover from (the |a )?spin|doesn.t recover from (the |a )?spin\" site/content/mechanics/flight.en.md'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "bash -c 'sed -n \"/^## В работе/,/^## [0-9]/p\" CHANGELOG.md | grep -c штопор'",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/spin_recovery/contract_check.py",
+      "expect": "re:contract ok"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T03:23:47"
+}
