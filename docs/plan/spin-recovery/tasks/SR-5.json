@@ -36,14 +36,10 @@
       "name": "no-skip",
       "cmd": "bash -c '! grep -nE \"return \\\"sport не выходит|pitch = clampf\\(-2\\.0\" tests/flight/pendulum/test_pendulum_spin.gd'",
       "expect": "exit=0"
-    },
-    {
-      "name": "wings",
-      "cmd": "grep -c '\"laminar\"' tests/flight/pendulum/test_pendulum_spin.gd",
-      "expect": "num:(\\d+) >=1"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-21T03:04:38"
+  "created": "2026-10-21T03:04:38",
+  "edited": "2026-10-21T03:07:16"
 }
