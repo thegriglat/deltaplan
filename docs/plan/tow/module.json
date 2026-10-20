@@ -1,0 +1,11 @@
+{
+  "module": "tow",
+  "plan": "docs/plan/tow.md",
+  "contracts": "docs/contracts/tow.md",
+  "branch": "feature/tow",
+  "copy": "~/deltaplan-tow",
+  "created": "2026-10-21T03:49:09",
+  "code": "TW",
+  "area": "flight",
+  "base": "main"
+}
