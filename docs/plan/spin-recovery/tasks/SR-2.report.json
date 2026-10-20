@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "Стенд spin_run.gd по SR-К1 повторяет тест (training/standard/1/120: выход 4,3 с). Sport/game в standard не выходит ни на каком шаге, но это пилот-модель теста: срыв кончается на 1,5 с, затем -1 держится на 76-108 км/ч и рыскание колеблется +-50-100 °/с; в pull_release (после «на себя» нейтраль) sport/game выходит на всех шагах (7,2/2,2/2,3 с, 65-78 м). Крутка 12/14° и параметры laminar по одному выход в standard не дают (только lam_sweep 26,5° и lam_all, немонотонно и шаг-зависимо); release не выводит ни одно крыло.",
+  "commits": [
+    "bb9ee44b SR-2: стенд штопора spin_run.gd (SR-К1), пачка run_sr2.py, сводка summary.py",
+    "f7173b2e SR-2: данные базы и гипотез 1, 3; разделы документа spin-recovery"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "contract ok",
+      "pass": true
+    },
+    {
+      "name": "sr2-variants",
+      "value": "sr2 ok",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "стенд повторяет тест: training/game/standard/1/120",
+      "value": "выход 4,3 с, потеря 63 м (тест 4,3 с)",
+      "pass": true
+    },
+    {
+      "name": "sport/game/standard",
+      "value": "нет выхода за 60 с на 1/120, 1/60, 1/30",
+      "pass": true
+    },
+    {
+      "name": "sport/game/pull_release",
+      "value": "выход 7,2 / 2,2 / 2,3 с, 65 / 76 / 78 м",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Файлы .uid для spin_run.gd/.tscn не созданы (godot --import их не генерирует для tools/, как и у pullin_speed)",
+    "Гипотезы 2 и 4, путь ввода и руки (SR-1) — не в задаче"
+  ],
+  "questions": [
+    "Нужно ли контрактом SR-К1 закрепить pull_release (или иной мягкий выход) как обязательный режим: standard теста для sport отсекает по пилот-модели, а не по крылу?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SR-2",
+  "uncertain": [
+    {
+      "where": "tools/research/spin_recovery/out/sr-2/tables.md",
+      "why": "Исход standard у sport чувствителен к шагу и мелким правкам геометрии (sweep 25,5/26/26,25 нет, 26,5 да, 27 да, 28 нет; pnl_off 2,1/3,6/8,5 с по шагам; lam_all 10/19/27 с) — граница выхода на уровне численного шума; pull_release у game на 1/120 даёт 7,2 с против 2,2 с на 1/60: часть различий шаговая",
+      "checked": "три шага для всех вариантов, скан стреловидности 25,5-28°"
+    },
+    {
+      "where": "tools/research/spin_recovery/spin_run.gd:BankHold",
+      "why": "S.BankHold считает интеграл с шагом 1/120 независимо от dt, на 1/60 и 1/30 пилот-регулятор крена отличается",
+      "checked": "оставлено как есть по SR-К1; записано в README"
+    },
+    {
+      "where": "docs/research/pendulum/spin-recovery.md (Стенд и база, п. 2)",
+      "why": "Вывод «sport/standard отсекает пилот-модель» опирается на трассировку sport game и pnl_off и на pull_release; отдельного эксперимента с другим законом ручки на скорости нет",
+      "checked": "трассировка выхода --trace=1 (срыв 0/0 с 1,5 с, V до 108 км/ч, yaw +-100 °/с при p = -1), режим pull_release по всем вариантам"
+    }
+  ],
+  "dp_feedback": "accept --dry удобен. lock cpu ... -- cmd внутри job start запустился как фоновая задача сразу; при ошибке разбора GDScript godot --headless без таймаута висит бесконечно (в раннере добавил timeout). Хотелось бы подсказку о .uid для tools/*.gd.",
+  "extra": {
+    "tables": "tools/research/spin_recovery/out/sr-2/tables.md",
+    "runs": 180,
+    "modes_added": "pull_release (диагностика, «на себя» как standard, затем pitch 0)",
+    "variants_added": "sweep_25_5, sweep_26_25, sweep_27, sweep_28 (скан чувствительности)",
+    "balance": "все варианты сбалансированы, trim 35,40±0,005 км/ч у sport; area_m2 не меняется (хорды нормируются)"
+  },
+  "t": "2026-10-21T02:40:54",
+  "by": "executor"
+}
