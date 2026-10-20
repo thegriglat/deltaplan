@@ -134,10 +134,13 @@ sideslip stalls first: in the model's slipping turn it is the **inner** one.
 
 - In a turn of ≈ 30° at low speed with full push-out — a drop onto the inner half-wing, then a spin:
   rotation, yaw up to 94–136°/s, sink rate up to 11–12 m/s. Altitude lost from stall to recovery: trainer
-  42 m, kingposted 77 m, topless 84 m.
+  41 m, kingposted 79 m, topless 65 m.
 - **Recovery:** pull in fully and shift the body **against** the rotation until rotation and stall end; then
-  the bar to neutral by speed (straight to neutral — a zoom and a flip, this is the phugoid after the dive).
-  Only pulling in without shifting against the rotation does not recover.
+  the bar to the centre (the arms release the pilot along the keel and the wing returns to trim, no flip).
+  Pulling in without shifting against the rotation does not recover, and letting go (input 0) ends the spin
+  on no wing. With the mouse: toward you to the stop and sideways against the rotation, then to the centre.
+  The mouse does not return to the centre by itself: a released mouse keeps the bar where it was. In the test
+  recovery takes 2.2-7.2 s; for `sport` the time depends on the computation step.
 - The trainer forgives: with a slow push-out or without pushing to the end one or two root strips stall, the
   wing parachutes (1.6–1.9 m/s), no spin. Kingposted and topless wings spin even then.
 - A sharp full pull-in for 3 s with arms to neutral does not leave the wing in a permanent stall: speed returns

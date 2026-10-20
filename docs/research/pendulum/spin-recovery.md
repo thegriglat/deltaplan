@@ -8,7 +8,7 @@ summary: "Почему sport не выходит из штопора (1.5.21): �
 related: ["docs/plan/spin-recovery.md", "docs/contracts/spin-recovery.md", "docs/research/pendulum/stall-spin.md", "docs/research/pendulum/release-tumble.md"]
 conclusion: "sport выходит при «на себя» и затем нейтрали (pull_release: 3/3 шагов, 2,2–7,2 с, 65–78 м); «не выходит» в тесте — пилот-модель; ввод 0 не выводит ни одно крыло; ввод до трапеции доходит, 300 Н не причина; гипотезы 1–4 для выхода не нужны"
 data: "tools/research/spin_recovery/out/"
-applied_in: "—"
+applied_in: "tests/flight/pendulum/test_pendulum_spin.gd (SR-5), docs/guide/flight/pendulum.md, docs/guide/game/cameras-input.md"
 ---
 # Выход из штопора спортивных крыльев (spin-recovery)
 
@@ -19,6 +19,8 @@ applied_in: "—"
 ## Итог
 
 Предложение — шлюз Q1 (решения по игре ещё нет).
+
+Решение Q1 (2026-10-21): (а) тест исправлен (SR-5); (б) не исследовать — в игре пилот всегда держит трапецию; (в) ввод и аэродинамику не менять, руководство дописано (выход мышью).
 
 - **Выход есть.** sport выходит из штопора при «на себя» и затем нейтрали (`pull_release`): 3/3 шагов (1/120, 1/60, 1/30), 2,2–7,2 с,
   65–78 м (laminar 2,2 с, training 6,1–6,5 с). Аэродинамику для этого менять не нужно.
