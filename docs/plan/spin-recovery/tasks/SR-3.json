@@ -1,0 +1,67 @@
+{
+  "id": "SR-3",
+  "module": "spin-recovery",
+  "type": "dp-researcher",
+  "title": "Гипотезы 2 и 4: упоры концов (спроги) и C_L max концевых полос",
+  "goal": "Наследником PendulumWingStrips в стенде spin_run.gd смоделировать упоры концов (ограничение сверху α 2–3 крайних полос, в т. ч. против доворота billow_shift) и C_L max концевых полос +10/15 %; замерить штопор и выход трёх крыльев по SR-К1 v2 и цену для управляемости (переложение 45→45).",
+  "plan_ref": "Волна 1 — гипотезы, п. 2 и 4",
+  "contracts": [
+    {
+      "name": "SR-К1",
+      "version": "2",
+      "ref": "docs/contracts/spin-recovery.md"
+    },
+    {
+      "name": "SR-К2",
+      "version": "1",
+      "ref": "docs/contracts/spin-recovery.md"
+    },
+    {
+      "name": "SR-К3",
+      "version": "1",
+      "ref": "docs/contracts/spin-recovery.md"
+    }
+  ],
+  "copy": "~/deltaplan-spin-recovery-SR-3",
+  "branch": "spin-recovery/SR-3",
+  "base": "feature/spin-recovery",
+  "scope": [
+    "tools/research/spin_recovery/",
+    "docs/research/pendulum/spin-recovery.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/spin_recovery/contract_check.py",
+    "tools/research/spin_recovery/sr1/",
+    "tools/research/spin_recovery/out/sr-2/"
+  ],
+  "accept": [
+    {
+      "name": "contract",
+      "cmd": "python3 tools/research/spin_recovery/contract_check.py tools/research/spin_recovery/out/sr-3",
+      "expect": "re:contract ok"
+    },
+    {
+      "name": "sr3-variants",
+      "cmd": "python3 -I -c \"import json,sys; R=json.load(open('tools/research/spin_recovery/out/sr-3/summary.json'))['rows']; V=['game','strips_id','sprog2_a','sprog2_b','sprog3_a','sprog3_b','clmax2_10','clmax2_15','clmax3_10','clmax3_15']; k=lambda r:(r['wing'],r['variant'],r['mode'],round(1/r['dt'])); h={k(r):r for r in R}; miss=[(w,v,m,d) for w in ('sport','laminar','training') for v in V for m in ('release','standard','pull_release') for d in (120,60,30) if (w,v,m,d) not in h]; idb=[x for x in h if x[1]=='game' and (x[0],'strips_id',x[2],x[3]) in h and (h[x]['recovered']!=h[(x[0],'strips_id',x[2],x[3])]['recovered'] or abs(h[x]['spin_yaw_dps']-h[(x[0],'strips_id',x[2],x[3])]['spin_yaw_dps'])>1e-6)]; ok=not miss and not idb; print('sr3 ok' if ok else ('bad',miss[:6],len(miss),idb[:4])); sys.exit(0 if ok else 1)\"",
+      "expect": "re:sr3 ok"
+    },
+    {
+      "name": "reversal",
+      "cmd": "python3 -I -c \"import json,sys; d=json.load(open('tools/research/spin_recovery/out/sr-3/reversal.json')); V=['game','sprog2_a','sprog2_b','sprog3_a','sprog3_b','clmax2_10','clmax2_15','clmax3_10','clmax3_15']; miss=[(w,v) for w in ('sport','laminar','training') for v in V if not isinstance(d.get(w,{}).get(v),(int,float))]; print('rev ok' if not miss else ('bad',miss)); sys.exit(0 if not miss else 1)\"",
+      "expect": "re:rev ok"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T02:45:28"
+}
