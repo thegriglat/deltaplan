@@ -43,6 +43,23 @@ var VARIANTS := {
 	"lam_all": {"doc": "sport: все четыре параметра laminar (хорда конца, V-образность, крутка, стреловидность)",
 		"wings": ["sport"], "wing_pend": {"tip_chord_m": 0.62, "washout_deg": 11.0, "sweep_deg": 26.5},
 		"app": {"dihedral_eff_deg": -1.5}},
+	"strips_id": {"doc": "SR-3: sr3_strips.gd с выключенными правками (проверка: = game)", "strips_script": "res://tools/research/spin_recovery/sr3_strips.gd"},
+	"sprog2_a": {"doc": "SR-3: упор концов, 2 крайних полос, α_геом ≤ корень − 4°", "strips_script": "res://tools/research/spin_recovery/sr3_strips.gd",
+		"post": func(m): m.strips.n_tip = 2; m.strips.sprog_min_washout_deg = 4.0},
+	"sprog2_b": {"doc": "SR-3: упор концов, 2 крайних полос, α_геом ≤ корень − 7°", "strips_script": "res://tools/research/spin_recovery/sr3_strips.gd",
+		"post": func(m): m.strips.n_tip = 2; m.strips.sprog_min_washout_deg = 7.0},
+	"sprog3_a": {"doc": "SR-3: упор концов, 3 крайних полос, α_геом ≤ корень − 4°", "strips_script": "res://tools/research/spin_recovery/sr3_strips.gd",
+		"post": func(m): m.strips.n_tip = 3; m.strips.sprog_min_washout_deg = 4.0},
+	"sprog3_b": {"doc": "SR-3: упор концов, 3 крайних полос, α_геом ≤ корень − 7°", "strips_script": "res://tools/research/spin_recovery/sr3_strips.gd",
+		"post": func(m): m.strips.n_tip = 3; m.strips.sprog_min_washout_deg = 7.0},
+	"clmax2_10": {"doc": "SR-3: C_L max 2 крайних полос × 1.10, затем match_polar_cl_max", "strips_script": "res://tools/research/spin_recovery/sr3_strips.gd",
+		"post": func(m): m.strips.n_tip = 2; m.strips.clmax_tip_k = 1.10},
+	"clmax2_15": {"doc": "SR-3: C_L max 2 крайних полос × 1.15, затем match_polar_cl_max", "strips_script": "res://tools/research/spin_recovery/sr3_strips.gd",
+		"post": func(m): m.strips.n_tip = 2; m.strips.clmax_tip_k = 1.15},
+	"clmax3_10": {"doc": "SR-3: C_L max 3 крайних полос × 1.10, затем match_polar_cl_max", "strips_script": "res://tools/research/spin_recovery/sr3_strips.gd",
+		"post": func(m): m.strips.n_tip = 3; m.strips.clmax_tip_k = 1.10},
+	"clmax3_15": {"doc": "SR-3: C_L max 3 крайних полос × 1.15, затем match_polar_cl_max", "strips_script": "res://tools/research/spin_recovery/sr3_strips.gd",
+		"post": func(m): m.strips.n_tip = 3; m.strips.clmax_tip_k = 1.15},
 }
 
 var _args := {"wing": "sport", "variant": "game", "mode": "release", "dt": "0.0083333333333", "out": "",
@@ -101,6 +118,7 @@ func make_model(w: String, variant: String) -> Dictionary:
 		info["dcm0_balanced"] = m.strips.dcm0
 	out["trim_kmh"] = float(m.solve_trim().V) * 3.6
 	info["cl_max_wing"] = m.strips.wing_cl_max()
+	info["cl_max_strip"] = m.strips.cl_max  # SR-3: C_L max полосы (корня) после match_polar_cl_max
 	info["area_m2"] = m.area
 	return out
 
@@ -287,6 +305,8 @@ func run(w: String, variant: String, mode: String, dt: float) -> Dictionary:
 	if o.recovered:
 		o.after_bank_max_deg = after_bank
 		o.after_stall_s = after_stall
+	if "sprog_active_max_deg" in m.strips:
+		ex["sprog_active_max_deg"] = m.strips.sprog_active_max_deg  # SR-3: макс. срез упором за прогон
 	if phase >= 2:
 		ex["v_max_rec_kmh"] = vmax_rec
 		ex["yaw_abs_max_rec_dps"] = yr_abs_max_rec

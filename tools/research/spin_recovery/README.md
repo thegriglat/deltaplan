@@ -44,3 +44,13 @@ godot --headless --path . res://tools/research/spin_recovery/spin_run.tscn -- --
   чуть другой (часть различий по шагу — оттуда).
 - Площадь крыла не меняется при смене `tip_chord_m`: `PendulumWingStrips.setup` масштабирует хорды так, что Σ площади = `area_m2`
   (меняется только распределение хорды по размаху).
+
+## SR-3 (гипотезы 2 и 4)
+- `sr3_strips.gd` (`SR3Strips`, наследник `PendulumWingStrips`): поля `n_tip`, `sprog_min_washout_deg` (упор: подмена `twist` на время `super.aero`),
+  `clmax_tip_k` (множитель потолка c_l в `_strip_cl`); по умолчанию правки выключены (`strips_id` = `game`, проверено до 1e-6).
+- Варианты в `VARIANTS` (`strips_id`, `sprog{2,3}_{a,b}` = 4°/7° — оценка, не замер; `clmax{2,3}_{10,15}`); добавлена только запись диагностики
+  (`info.cl_max_strip`, `extra.sprog_active_max_deg`), логика прогона не менялась. `reversal_run.gd` — переложение 45→45 (как `test_reversal_45`).
+- Воспроизведение: `.dpcli/dpcli job start sr3 1500 .dpcli/dpcli lock cpu sr3 -- python3 tools/research/spin_recovery/run_sr3.py -j 10`;
+  `python3 tools/research/spin_recovery/summary_sr3.py`; `python3 tools/research/spin_recovery/contract_check.py tools/research/spin_recovery/out/sr-3`.
+  Данные — `out/sr-3/` (raw, runs.jsonl, summary.json, tables.md, reversal.json), ≈ 1 МБ, лицензии сторонних данных нет.
+- Допущения: упор мгновенный и жёсткий (срез угла); n_tip = 2–3 из 8 полос на консоль (25–37,5 % полуразмаха); a/b — оценка.
