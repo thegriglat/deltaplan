@@ -34,8 +34,8 @@ python3 tools/research/spin_recovery/contract_check.py tools/research/spin_recov
 # один прогон с ходом выхода (stdout): 
 godot --headless --path . res://tools/research/spin_recovery/spin_run.tscn -- --wing=sport --variant=game --mode=standard --dt=0.0083333333333 --trace=1
 ```
-Прогон ≈ 3–10 с, пачка (180 прогонов) ≈ 1–2 мин. Данные — `out/sr-2/` (`raw/*.json` — по прогону с `extra`, `runs.jsonl`,
-`summary.json`, `tables.md`); все коммитятся (≈ 1 МБ). Источники чисел: `configs/wings/{sport,laminar,training}.json`; данных
+Прогон ≈ 3–10 с, пачка (180 прогонов) ≈ 1–2 мин. Данные — `out/sr-2/` (`runs.jsonl`,
+`summary.json`, `tables.md`); сырые `raw/*.json` не хранятся (удалены 2026-10-21, воспроизводятся пачкой). Источники чисел: `configs/wings/{sport,laminar,training}.json`; данных
 сторонних лицензий нет.
 
 ## Допущения
@@ -52,5 +52,5 @@ godot --headless --path . res://tools/research/spin_recovery/spin_run.tscn -- --
   (`info.cl_max_strip`, `extra.sprog_active_max_deg`), логика прогона не менялась. `reversal_run.gd` — переложение 45→45 (как `test_reversal_45`).
 - Воспроизведение: `.dpcli/dpcli job start sr3 1500 .dpcli/dpcli lock cpu sr3 -- python3 tools/research/spin_recovery/run_sr3.py -j 10`;
   `python3 tools/research/spin_recovery/summary_sr3.py`; `python3 tools/research/spin_recovery/contract_check.py tools/research/spin_recovery/out/sr-3`.
-  Данные — `out/sr-3/` (raw, runs.jsonl, summary.json, tables.md, reversal.json), ≈ 1 МБ, лицензии сторонних данных нет.
+  Данные — `out/sr-3/` (runs.jsonl, summary.json, tables.md, reversal.json; сырые `raw/`, `rev_raw/` удалены 2026-10-21), лицензии сторонних данных нет.
 - Допущения: упор мгновенный и жёсткий (срез угла); n_tip = 2–3 из 8 полос на консоль (25–37,5 % полуразмаха); a/b — оценка.
