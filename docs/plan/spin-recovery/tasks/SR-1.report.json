@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "дефект ввода: формально звено arms_force (предел усилия рук 300 Н насыщается в штопоре при шаге против вращения и в паре с креном), но ввод мыши до трапеции доходит (event/offset/inp/arms_target без потерь), game ≡ model до 3-го знака, и причиной невыхода sport это не является: у laminar/training те же числа, а выход есть; при 1000 Н sport не выходит. Бросить управление не выводит ни одно крыло. В standard у sport срыв снят, но V растёт до ≈2,2·Vтрим, BankHold входит в предельный цикл (|dψ/dt| ср. 52°/с) — вопрос крыла/SR-2, не ввода. VM-12: руки отпускаются при вводе 0 и берутся снова за один шаг.",
+  "commits": [
+    "725db22c стенд sr1_run.gd",
+    "695fdae5 вариант model_f1000",
+    "779f2390 драйвер для данных",
+    "последний коммит ветки — данные, README, раздел документа"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "contract ok",
+      "pass": true
+    },
+    {
+      "name": "sr1-extra",
+      "value": "sr1 ok",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "sport game standard",
+      "value": "нет выхода; release и release_center тоже нет",
+      "pass": true
+    },
+    {
+      "name": "resp_ratio sport game (тангаж/крен+/крен-)",
+      "value": "0.64 / 0.64 (t63 не достигнут) / 0.78; насыщение 300 Н 63% / 100% / 18%",
+      "pass": true
+    },
+    {
+      "name": "laminar / training standard",
+      "value": "2.3 с, 81 м / 4.3 с, 62 м",
+      "pass": true
+    },
+    {
+      "name": "model_f1000 standard",
+      "value": "sport нет, laminar нет, training 12.2 с, 102 м",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "режим pull_release (SR-К1 v2) не прогонялся — для SR-1 не обязателен"
+  ],
+  "questions": [
+    "Нужен ли для пилотного отзыва отдельный замер на sport в полёте с реальным человеком-пилотом (не BankHold)? Предельный цикл BankHold на 2,2·Vтрим может быть артефактом испытателя."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SR-1 --dry; python3 tools/research/spin_recovery/contract_check.py tools/research/spin_recovery/out/sr-1",
+  "uncertain": [
+    {
+      "where": "tools/research/spin_recovery/sr1/sr1_run.gd:_analyse",
+      "why": "правило input_lost_at срабатывает arms_force у всех трёх крыльев (порог t63 ≤ 3× трима строг для шага против вращения)",
+      "checked": "сверка с model и model_f1000, training с выходом показывает то же"
+    },
+    {
+      "where": "docs/research/pendulum/spin-recovery.md",
+      "why": "объяснение невыхода sport в standard (V≈77 км/ч, предельный цикл BankHold) — наблюдение по трассе, не проверено отдельным экспериментом",
+      "checked": "трассы game_*_standard.csv, 43 смены знака крена за 57 с"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения построчно; --full нужен, чтобы увидеть всё. README в tools/research требует frontmatter (docs check) — узнал только после коммита.",
+  "extra": {
+    "game_vs_model": "идентичны до 3 знаков",
+    "vm12": "release в 1.52 с от t_rec0, держат отпущенными до движения ввода, regrip за 0.017 с",
+    "release": "ни одно крыло не выходит (срыв 95-100% из 60 с)"
+  },
+  "t": "2026-10-21T02:47:32",
+  "by": "executor"
+}
