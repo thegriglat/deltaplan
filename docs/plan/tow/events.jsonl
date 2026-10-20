@@ -20,3 +20,7 @@
 {"t": "2026-10-21T03:55:14", "by": "coordinator", "task": "TW-3", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-21T03:55:21", "by": "coordinator", "task": "TW-3", "ev": "accepted", "commits": ["d881e713"], "note": "4/4 headings=ok:5; models=ok:9; size=ok:16368; docs=ok:ошибок 0"}
 {"t": "2026-10-21T03:55:22", "by": "coordinator", "task": "TW-3", "ev": "merged"}
+{"t": "2026-10-21T03:58:54", "by": "executor", "task": "TW-2", "ev": "reported", "commits": ["tow:"], "note": "done: docs/research/tow/code.md (40,3 КБ, 8 заголовков, 151 ссылка путь:строка): трос — внешняя сила в PendulumModel._substep…", "dp_feedback": "Лимит 40 КБ считается в байтах (кириллица ~2 байта/символ), узнал только после accept --dry. rtk сокращает вывод grep/sed (пришлось rtk proxy)."}
+{"t": "2026-10-21T03:59:12", "by": "coordinator", "task": "TW-2", "ev": "checked", "note": "4/4 headings=ok:8; refs=ok:151; size=ok:40312; docs=ok:ошибок 0; scope=FAIL:вне scope: r-TW-2.json"}
+{"t": "2026-10-21T03:59:20", "by": "coordinator", "task": "TW-2", "ev": "checked", "note": "4/4 headings=ok:8; refs=ok:151; size=ok:40312; docs=ok:ошибок 0"}
+{"t": "2026-10-21T03:59:29", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: исполнители оставляют r-<ID>.json неотслеживаемым в копии — accept падает по scope; стоит игнорировать r-*.json или писать его вне копии. Лимит docs.max_kb считается в байтах (TW-2)."}
