@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "docs/research/tow/models.md: 9 кандидатов (winch, winch_vehicle, tow_car, tow_trike, tow_ultralight, rope, drogue_chute, weak_link, release), что видно игроку, способ сборки, целевой бюджет по аналогам проекта, правила check_textures.py. Рекомендация: все модели строить в Blender с вершинными цветами без текстур и тремя LOD, трос, парашют и метку слабого звена делать процедурно в коде; приоритет у tow_trike и tow_ultralight.",
+  "commits": [
+    "docs/research/tow/models.md — коммит tow/TW-3"
+  ],
+  "checks": [
+    {
+      "name": "headings",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "models",
+      "value": "9",
+      "pass": true
+    },
+    {
+      "name": "size",
+      "value": "16368",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Размеры реальных буксировщиков не приведены (ждут kinds.md от TW-1)",
+    "Готовые модели самолётов и мотодельтапланов не найдены"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TW-3",
+  "uncertain": [
+    {
+      "where": "docs/research/tow/models.md:Модели",
+      "why": "Бюджеты треугольников целевые, оценены по аналогам (суда, лагерь), не измерены",
+      "checked": "сопоставлены с sea-ships.md и camp.md"
+    },
+    {
+      "where": "docs/research/tow/models.md:Как строить",
+      "why": "Состав Kenney Car Kit не перечислен на странице (CC0 подтверждён)",
+      "checked": "WebFetch страницы набора; Quaternius Ultimate Vehicles дал 404"
+    },
+    {
+      "where": "docs/research/tow/models.md:вступление",
+      "why": "Вид на буксировщик сзади-сверху — гипотеза автора, не из источника",
+      "checked": "помечена как проверить на TW-1"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-21T03:54:42",
+  "by": "executor"
+}
