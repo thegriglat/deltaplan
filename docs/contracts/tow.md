@@ -4,17 +4,25 @@ status: "active"
 module: "tow"
 area: "flight"
 updated: "2026-10-21"
-summary: "Стыки tow, волна 1: виды буксировки и параметры (TW-К1), обзор кода и стыков (TW-К2), список моделей (TW-К3)."
+summary: "Стыки tow: исследование (TW-К1…К3), внешняя сила в модели полёта (TW-К4), место и полоса (TW-К6), выбор при старте (TW-К7), модели (TW-К8)."
 related: ["docs/plan/tow.md", "docs/guide/flight.md", "docs/guide/models.md", "docs/guide/game.md"]
-contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}]
+contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 1}, {"id": "TW-К6", "version": 1}, {"id": "TW-К7", "version": 1}, {"id": "TW-К8", "version": 1}]
 ---
 # Контракты модуля tow
 
 План — `docs/plan/tow.md`. Менять — только координатор модуля: версия +1, что изменилось, уведомить потребителей
 (`task note`), их правка в том же шаге. Волна 1 — исследование: код игры (`scripts/`, `configs/`, `tests/`,
 `scenes/`, `project.godot`) не меняется. Контрактная проверка документов волны 1 — проверки карточек
-(`grep` по обязательным строкам и заголовкам, `.dpcli/dpcli docs check`); стыки кода волны 2 получат контракты
-TW-К4… с контрактным тестом `tests/contracts/test_tow_contracts.gd` на шлюзе после волны 1.
+(`grep` по обязательным строкам и заголовкам, `.dpcli/dpcli docs check`); стыки кода (TW-К4…) — контрактные тесты
+`tests/contracts/test_tow_k<N>.gd` (по файлу на контракт, пишет владелец; фильтр `tow_k<N>`).
+
+**Решения Q1 (2026-10-21), действуют на волны 2–3:** виды — сначала `winch_static`, затем `aerotow`; `winch_payout`
+и `vehicle` отложены. Буксировщик `aerotow` — Ан-2 (готовая модель `EggAn2`, `scripts/world_objects/easter_eggs/an2.gd`),
+моделей `tow_trike`/`tow_ultralight` не строить. Модели `winch`, `release` — Blender; `rope`, `drogue_chute`,
+`weak_link` — процедурно (код). Место Волжский (T-47) — в этом модуле. Боты на буксирных местах стартуют в воздухе на
+высоте отцепа. Числа — BHPA Technical Manual 2024 (`/home/greg/deltaplan/BHPA_Tech_Manual_24.pdf`, читать `pdftotext`,
+ссылка на раздел; PDF в репозиторий не коммитить). Сеть — потом: буксировка только в одиночной игре, в мультиплеере
+выбор недоступен.
 
 Общее для всех документов волны 1: frontmatter (`type: research`, `module: tow`, `area: flight`), каждый файл
 ≤ 40 КБ (больше — разделы-файлы в `docs/research/tow/`), числа — только с источником `[n]` из раздела «Источники»
@@ -88,3 +96,92 @@ TW-К4… с контрактным тестом `tests/contracts/test_tow_contr
 «Источник/способ» — скрипт `tools/blender/<имя>.py` (новый или существующий — какой) или готовая модель
 (ссылка, лицензия, совместимая с open source: CC0/CC-BY с автором). **Бюджет** — числа из `docs/guide/models.md`
 и сопоставимых моделей проекта; текстуры — размер, формат, проверка `python3 tools/check_textures.py`.
+
+## TW-К4 v1. Внешняя сила в модели полёта
+Владелец — TW-5; потребители — TW-6 (трос и лебёдка), TW-7 (аэробуксировка), TW-10 (игра). Контрактный тест —
+`tests/contracts/test_tow_k4.gd`. Основание — `docs/research/tow/code.md#Внешняя сила в модели полёта`, `#Риски`.
+
+**PendulumModel** (`scripts/flight/pendulum/pendulum_model.gd`):
+- `set_external_force(fn: Callable) -> void`; `clear_external_force() -> void` (то же, что `set_external_force(Callable())`).
+- Вызов `fn.call(s: Dictionary) -> Dictionary` — **на каждом подшаге** `_substep` (480 Гц), до сборки сил пилота.
+  Вход `s` (мир игры: X восток, Y вверх, −Z север; м, м/с, с): `t` — время модели с начала, `h` — шаг подшага,
+  `pilot_pos`, `pilot_vel` — ЦМ пилота (последний узел цепи); `hang_pos`, `hang_vel` — точка подвески на килевой
+  (`_r_hang_b`); `on_ground: bool`.
+- Выход (Н, мир игры): `{"pilot": Vector3, "hang": Vector3}`, отсутствующий ключ = ноль. `pilot` — в силы пилота
+  `f_p` **до** `d_p`/`load_b`; `hang` — на крыло в точке подвески: сила в `f_wb` (оси B) и момент `r_hang_b × F_b` в `tb`.
+- `load_b` (кажущийся вес в осях B) включает все внешние силы; поперечная прямая подача `PilotArms.compute`
+  учитывает `load_b.y` (боковая составляющая троса — не ввод пилота). На земле/стойках сила троса учитывается в
+  равновесии хвата и в `legs` (тянет пилота; проскальзывание по `mu·fz` — штатно).
+- Нет функции — поведение как до правки (бит в бит при том же вводе и шаге). Функция вернула нечисловое — ноль и
+  `push_warning` один раз.
+- Телеметрия: `external_force_n: Vector3` (сумма последнего вызова, мир игры) — свойство модели, только чтение.
+
+**FlightModel** (`scripts/flight/flight_model.gd`, режимы `weight_shift`/`rate`, боты) и `GroundRun`
+(`scripts/flight/ground_run.gd`): свойство `external_force: Vector3` (Н, мир игры, приложена в ЦМ, без момента);
+в воздухе — в сумму сил `_step_air`, на земле — проекция на направление разбега в `f_along`. `Vector3.ZERO` —
+как до правки. `Glider` (`scripts/flight/glider.gd`) даёт единый вход для игры:
+`Glider.set_external_force(fn: Callable)` — в «Маятнике» передаёт `fn` модели; в `FlightModel` вызывает `fn`
+раз в шаг физики с тем же словарём (`pilot_pos`/`hang_pos` = позиция ЦМ, скорости — скорость ЦМ) и кладёт
+`pilot + hang` в `external_force`. `Glider.clear_external_force()`.
+
+**Инварианты теста:** (1) `PendulumModel` без функции и с функцией, возвращающей `{}`, — одинаковые позиция и
+скорость после 10 с полёта (равенство); (2) нулевой ввод, постоянная сила 300 Н на `pilot` вдоль курса (вперёд-вверх
+под 20°) 10 с полёта — отклонение `pilot_shift` от нейтрали < 0,02 хода по каждой оси (ход — `shift_y_max_m`,
+`shift_x_pull_m`); (3) то же для 100 Н поперёк курса; (4) та же сила на `hang` — модель конечна, |крен| < 30°;
+(5) `FlightModel`: `external_force` 200 Н вперёд в горизонтальном полёте — воздушная скорость за 5 с выше, чем без
+силы; (6) сила снята — модель конечна 10 с. Шаг — 1/120 с, крыло `sport`, как `tests/flight/pendulum/pendulum_sim.gd`.
+
+## TW-К6 v1. Место с полосой: `start_sites[].tow`, `TowSite.check`, Волжский
+Владелец — TW-8; потребители — TW-9 (выбор при старте), TW-10 (игра). Контрактный тест — `tests/contracts/test_tow_k6.gd`.
+Основание — `docs/research/tow/code.md#Равнина`.
+
+- Конфиг места `configs/locations/<id>.json`, запись `start_sites[]` — необязательный блок
+  `"tow": {"kinds": ["winch_static", "aerotow"], "runway_length_m": float, "runway_width_m": float}`;
+  `heading_deg` записи — ось полосы (курс разбега, град, от севера по часовой). Нет блока — место без буксировки.
+- `Terrain._build_sites` (`scripts/terrain/terrain.gd`) переносит `tow` в словарь площадки как есть (`Dictionary`,
+  нет — ключа нет); `Terrain.get_start_sites()` его отдаёт.
+- `class_name TowSite` (`scripts/game/tow_site.gd`): `static func check(terrain: Terrain, x: float, z: float,
+  heading_deg: float, length_m: float, width_m: float) -> Dictionary` — полоса от точки (x, z) вперёд по курсу.
+  Возврат: `ok: bool`, `reason: String` (ключ `locale/ui.csv`, пусто при ok), `slope_deg` (макс. уклон вдоль оси, град),
+  `dh_m` (перепад высот вдоль оси, м), `flat_length_m` (длина ровного участка от начала, м), `heading_deg`,
+  `start_pos: Vector3` (начало полосы на земле), `end_pos: Vector3` (конец полосы на земле — место лебёдки
+  `winch_static`). Критерии — `configs/game.json → tow_site`: `flat_max_deg`, `dh_max_frac` (доля длины),
+  `sample_m`, `edge_margin_m`, запрещённые поверхности `WATER`, `FOREST` (`BUILT` допустим). Числа критериев — с
+  обоснованием в отчёте (сетка рельефа 25 м, требования к полосе из `docs/research/tow/kinds.md`).
+- Волжский: `configs/locations/volzhsky.json` (по образцу `askarovo.json`) с площадкой-аэродромом и блоком `tow`;
+  запись в `data/places/hg_takeoffs.json` (`id: builtin/volzhsky/<site>`). Координаты, ось и длина полосы — из
+  `docs/research/tow/kinds.md#Волжский` (TW-4), не угадывать.
+- Поляна под полосу — прямоугольник вдоль оси вместо круга `add_start_clearing` для площадок с `tow`
+  (`Terrain.add_runway_clearing(start: Vector3, heading_deg, length_m, width_m)`).
+- **Инварианты теста:** запись `start_sites` с `tow` проходит в `get_start_sites()`; без `tow` — ключа нет;
+  `TowSite.check` на ровном синтетическом рельефе — `ok`, на склоне 10° — не `ok` с `reason`; `end_pos − start_pos`
+  по горизонтали = `length_m` ± 1 м по курсу; `volzhsky.json` разбирается, у площадки `tow.kinds` содержит `winch_static`.
+
+## TW-К7 v1. Выбор буксировки при старте
+Владелец — TW-9; потребители — TW-10 (игра). Контрактный тест — `tests/contracts/test_tow_k7.gd`.
+
+- `FlightSettings.tow_kind: String` ∈ `{"", "winch_static", "aerotow"}`, `""` — без буксировки; сериализация в
+  `to_dict`/`from_dict` ключом `tow_kind`; неизвестное значение → `""`.
+- CLI: `--tow=<kind>` (`LaunchOptions`, `scripts/game/launch_options.gd`) → `FlightSettings.tow_kind` в `apply_to`;
+  `--tow=none` → `""`.
+- Экран старта (`scripts/ui/flight_setup_screen.gd`), вкладка «Место»: строка «Буксировка» — «Нет» / «Лебёдка» /
+  «Аэробуксировка (Ан-2)» (ключи `setup_tow`, `setup_tow_none`, `setup_tow_winch`, `setup_tow_aerotow` в
+  `locale/ui.csv`, ru/en). Пункты — виды из `tow.kinds` выбранной площадки (TW-К6); у площадки без `tow` и у точки с
+  карты — все виды. Умолчание: площадка с `tow` — первый из `tow.kinds`, иначе «Нет».
+- Мультиплеер (решение Q1): строка недоступна (серая, подпись причины `setup_tow_mp_off`), значение `""`.
+- **Инварианты теста:** круговая сериализация `tow_kind`; `--tow=winch_static` → `tow_kind == "winch_static"`;
+  `--tow=xyz` → `""`; умолчание для площадки с `tow.kinds = ["aerotow"]` → `"aerotow"`; в мультиплеере → `""`.
+
+## TW-К8 v1. Модели `winch` и `release`
+Владелец — TW-11; потребители — TW-10 (размещение и крепление). Контрактный тест — `tests/contracts/test_tow_k8.gd`
+(или раздел `scenes/models_preview/check_models.gd`). Основание — `docs/research/tow/models.md`.
+
+- `winch`: `tools/blender/build_tow_winch.py` (+ JSON параметров рядом) → `assets/models/world/tow_winch.glb`
+  (+ `assets/source/world/tow_winch.blend`); узлы `tow_winch_LOD0`, `tow_winch_LOD1`, `tow_winch_LOD2`; треугольники
+  ≤1500 / ≤200 / ≤40; начало — на земле в центре рамы; −Z модели — к пилоту (направление троса); узел
+  `tow_winch_rope_out` (Marker/пустышка) — точка выхода троса (направляющая), м; вершинные цвета, без текстур.
+- `release`: `tools/blender/build_tow_release.py` → `assets/models/world/tow_release.glb`; узлы `tow_release_LOD0`,
+  `tow_release_LOD1`; ≤300 / ≤40; уздечка, кольцо-замок, ручка отцепа; узлы `tow_release_attach` (точка на подвеске
+  пилота) и `tow_release_rope` (точка троса); масштаб — метры, как пилот; вершинные цвета.
+- Материалы — ≤ 3 на модель, повторно `Hardware`, как `build_start_gear.py`. `python3 tools/check_textures.py` — 0.
+- **Инварианты теста:** оба glb грузятся; узлы с указанными именами есть; треугольников LOD0 не больше бюджета.
