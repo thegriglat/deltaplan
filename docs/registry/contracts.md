@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-20"
+updated: "2026-10-21"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -56,6 +56,7 @@ generated: true
 - sea-ships: S1 v2, S2 v4, S3 v3, S4 v1 — [docs/contracts/sea-ships.md](../contracts/sea-ships.md)
 - site-i18n: SI-К1 v2, SI-К2 v1, SI-К3 v2, SI-К4 v3, SI-К5 v1, SI-К6 v1 — [docs/contracts/site-i18n.md](../contracts/site-i18n.md)
 - speed-feel: SPF-К1 v2, SPF-К2 v1, SPF-К3 v1, SPF-К4 v2 — [docs/contracts/speed-feel.md](../contracts/speed-feel.md)
+- spin-recovery: SR-К1 v2, SR-К2 v1, SR-К3 v1 — [docs/contracts/spin-recovery.md](../contracts/spin-recovery.md)
 - start-camp: SC-K1 v1, SC-K2 v1, SC-K3 v1, SC-K4 v3, SC-K5 v1, SC-K6 v1 — [docs/contracts/start-camp.md](../contracts/start-camp.md)
 - start-dog: DOG-K1 v2, DOG-K2 v1, DOG-K3 v1, DOG-K4 v2 — [docs/contracts/start-dog.md](../contracts/start-dog.md)
 - start-fixes: К1 v2, К2 v2, К3 v2, К4 v1 — [docs/contracts/start-fixes.md](../contracts/start-fixes.md)

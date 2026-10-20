@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-20"
+updated: "2026-10-21"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -85,6 +85,7 @@ generated: true
 - [docs/research/pendulum/prototype.md](../research/pendulum/prototype.md) — Тангаж и трим получаются честно без подгонки: сумма 16 полос даёт поляру и трим, фугоида T 5,2–5,7 с, подвеска 0,4–0,9 км/ч на см. (data: tools/research/pendulum/out/ (results.json, tables.md, summary.json, fig/*.png); applied_in: docs/archive/plan/pendulum.md)
 - [docs/research/pendulum/pullin-speed.md](../research/pendulum/pullin-speed.md) — Скорость на полном «на себя» задаёт моментный баланс: (Vmax/Vтрим)² = 1 + k/Kn, k = 0,19 (0,11–0,25) по 48 крыльям. Паспорт требует Kn 0,047 (0,023–0,08) против 0,139 модели: граница модели (линейная… (data: tools/research/pullin_speed/out/ (cases.json, wings_table.csv|md, tables.md, su…; applied_in: docs/guide/flight/pendulum.md, PD-К2 v8)
 - [docs/research/pendulum/release-tumble.md](../research/pendulum/release-tumble.md) — Переворот модели ниже ≈ 2·Vтрим — дефект связи пилот–крыло: на вводе 0 руки игры держат пилота в нейтрали против кажущегося веса, крыло без запаздывания уходит на угол трима, и горка с хлыстом наступ… (data: tools/research/pendulum/out/vm6/, tools/research/pendulum/out/vm11/; applied_in: docs/guide/flight/pendulum.md, PD-К2 v9 (отпускание по событию))
+- [docs/research/pendulum/spin-recovery.md](../research/pendulum/spin-recovery.md) — sport выходит при «на себя» и затем нейтрали (pull_release: 3/3 шагов, 2,2–7,2 с, 65–78 м); «не выходит» в тесте — пилот-модель; ввод 0 не выводит ни одно крыло; ввод до трапеции доходит, 300 Н не пр… (data: tools/research/spin_recovery/out/; applied_in: tests/flight/pendulum/test_pendulum_spin.gd (SR-5), docs/guide/flight/pendulum.…)
 - [docs/research/pendulum/stall-spin.md](../research/pendulum/stall-spin.md) — Срыв: Viterna вместо 2D-пластины, место срыва по критическому сечению, C_N 90° ≈ 1,2; в болтанке на триме без переворотов. (data: tools/research/pendulum/out/; applied_in: docs/archive/plan/pendulum.md)
 - [docs/research/pendulum/takeoff-ground.md](../research/pendulum/takeoff-ground.md) — Разбег: «несёт крыло» → «висит» получается сам; касание ногами и авария без «деревянного» контакта (crash_decel_g 20). (data: tools/research/pendulum/out/; applied_in: docs/archive/plan/pendulum.md)
 - [docs/research/pendulum/vg.md](../research/pendulum/vg.md) — «Vmax с VG 1 = паспорт ±10 %» без подгонки не достижимо: VG даёт правильный прирост (+17…+23 км/ч против паспортных +25), но база VG 0 ниже паспорта на 25–35 % из-за усилия «на себя» (модель требует … (data: tools/research/pendulum/out/pb2/)
@@ -192,6 +193,8 @@ generated: true
 - [tools/research/sea_mask/README.md](../../tools/research/sea_mask/README.md) — Работает (S1 v2): ложных 0 на Бухтарме, Катуни, Ладоге, Байкале, Верхнем, Мелларене, Мёртвом море; 100 % воды дальше 2 км на трёх морских; два независимых условия (уровень, касание края); считать в с… (data: tools/research/sea_mask/summary.json; applied_in: [])
 - [tools/research/sea_thermals/README.md](../../tools/research/sea_thermals/README.md) — Источники над водой 957 → 0 (вулканический остров), 7 → 0 (точка у Флорианополиса), 0 → 0 (учебный остров); сила термиков над сушей (p90 w0) не изменилась. (data: tools/research/sea_thermals/; applied_in: scripts/atmosphere/air_model/air_thermals.gd, scripts/atmosphere/ground_field.g…)
 - [tools/research/speed-feel/README.md](../../tools/research/speed-feel/README.md) — Итог и выводы — docs/research/speed-feel.md; здесь только код, данные и команды воспроизведения. (data: out/jitter.json, out/jitter_ratio.csv, out/theta_view.json, out/flutter_wires.j…; applied_in: SPF-2, SPF-3, SPF-4, SPF-5)
+- [tools/research/spin_recovery/README.md](../../tools/research/spin_recovery/README.md) — стенд повторяет тест штопора (training/standard/1/120 — выход 4,3 с); данные SR-2 в out/sr-2/ (data: tools/research/spin_recovery/out/sr-2/; applied_in: —)
+- [tools/research/spin_recovery/sr1/README.md](../../tools/research/spin_recovery/sr1/README.md) — см. docs/research/pendulum/spin-recovery.md, раздел «Гипотеза 0» (data: tools/research/spin_recovery/out/sr-1/; applied_in: —)
 - [tools/research/start_dog/README.md](../../tools/research/start_dog/README.md) — Shiba Inu из Ultimate Animated Animal Pack годится: есть Gallop/Walk/Idle/Idle_2_HeadLow, скелет с IK ног; trot/bark/lie/sit дописаны ключами. Скорость без проскальзывания при воспроизведении 1,0: га… (data: tools/research/start_dog/; applied_in: assets/easter_eggs/start_dog/, configs/easter_eggs.json → eggs.start_dog.anims)
 - [tools/research/steam/README.md](../../tools/research/steam/README.md) — см. docs/research/steam_godotsteam.md (data: tools/research/steam/; applied_in: —)
 - [tools/research/steam_license/README.md](../../tools/research/steam_license/README.md) — Команды воспроизведения аудита лицензий сборки SA-1: настоящий экспорт, разбор PCK, сверка с эмуляцией, сводки. (data: tools/research/steam_license/)
