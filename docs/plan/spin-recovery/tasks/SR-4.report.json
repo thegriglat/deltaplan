@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "Заполнены разделы Итог и Границы в spin-recovery.md; исправлены разделы SR-1 (насыщение 300 Н по направлению, release в игре vs модель) и SR-2 (п.1); frontmatter conclusion обновлён.",
+  "commits": [
+    "1f4e9a41 SR-4: итог и границы волны 1"
+  ],
+  "checks": [
+    {
+      "name": "contract",
+      "value": "contract ok",
+      "pass": true
+    },
+    {
+      "name": "filled",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept SR-4",
+  "uncertain": [
+    {
+      "where": "docs/research/pendulum/spin-recovery.md: SR-1 Результат",
+      "why": "цифры release в игре (крен -20, 178 °/с) и release_center (-49, 238 °/с) в tables.md отсутствуют",
+      "checked": "взяты из последней строки traces/game_sport_release*.csv (60 с от t_rec0)"
+    }
+  ],
+  "dp_feedback": "Дополнения к задаче обрезаны в task show без --full; tables.md не содержал нужных цифр.",
+  "t": "2026-10-21T02:58:14",
+  "by": "executor"
+}
