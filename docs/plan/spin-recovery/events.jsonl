@@ -43,3 +43,5 @@
 {"t": "2026-10-21T02:51:47", "by": "coordinator", "task": "SR-3", "ev": "checked", "note": "4/4 contract=ok:contract ok; sr3-variants=ok:sr3 ok; reversal=ok:rev ok; docs=ok:ошибок 0"}
 {"t": "2026-10-21T02:54:30", "by": "reviewer", "task": "SR-3", "ev": "reviewed", "note": "Наследник SR3Strips корректен: twist подменяется только на время aero (в aero twist входит лишь в α полосы), _strip_cl масштабирует cap, strips_id = game побит…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/spin-recovery/tasks/SR-3.review.json"}
 {"t": "2026-10-21T02:54:47", "by": "coordinator", "task": "SR-3", "ev": "accepted", "note": "по ревью; замечания 1–2 (sprog3_b режет 3-ю полосу в ровном полёте, sprog_active_max_deg с балансировкой) — в «Границы»"}
+{"t": "2026-10-21T02:55:02", "by": "coordinator", "task": "SR-3", "ev": "accepted", "commits": ["e9e1c30f5e40bbd882ece32ee71c406b303e3e2d"], "note": "4/4 contract=ok:contract ok; sr3-variants=ok:sr3 ok; reversal=ok:rev ok; docs=ok:ошибок 0"}
+{"t": "2026-10-21T02:55:02", "by": "coordinator", "task": "SR-3", "ev": "merged"}
