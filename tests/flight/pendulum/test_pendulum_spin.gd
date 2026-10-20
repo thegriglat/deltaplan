@@ -5,26 +5,17 @@ extends TestCase
 ## консоли, крыло сваливается на неё: крен растёт, рыскание внутрь быстрее виража, проседание —
 ## штопор (авторотация: наклон C_L полосы за срывом отрицательный, Viterna & Corrigan). Выход по
 ## Жеглову (с. 122): «на себя» до упора и смещение против вращения, пока не кончится вращение и срыв,
-## затем ручка плавно к нейтрали по скорости (без «свечи»), крен к нулю. Выход — срыва нет, |крен| < 15°, вращения нет
+## затем ручка в центр, крен к нулю. Выход — срыва нет, |крен| < 15°, вращения нет
 ## (|dψ/dt| < 20°/с) 3 с подряд; 20 с после — без переворота и без нового штопора.
 ## PD35_SPINTRACE=крыло — ход выхода (каждые 0,25 с): крен, рыскание, срыв полос, V, α полос (PD-35).
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
-const WINGS := ["training", "sport"]
+const WINGS := ["training", "laminar", "sport"]
 const RAMP_S := 10.0
 const AFTER_S := 6.0
 ## Выход: не дольше, с (от начала «на себя»), и потеря высоты от первого срыва, м — сторож
 const RECOVER_MAX_S := 15.0
 const LOSS_MAX_M := 150.0
-
-
-## VM-12 (2026-10-20): с отпусканием по событию sport не выходит из штопора (выход nan с, потеря nan м; срыв 0,48, крен 33° → 64°,
-## рыскание 140 °/с; training выходит за 4,3 с) — как с «брошенной ручкой» (VM-9) и без неё; причина в pitch_nl
-## (Q3 pullin-speed), не в руках; пропуск остаётся до отдельной работы по TODO.
-func skip_reason(method: String) -> String:
-	if method == "test_inner_wing_drop_spin_and_recovery":
-		return "sport не выходит из штопора (выход nan с) и с release_event, и без — pitch_nl, Q3 pullin-speed, TODO"
-	return ""
 
 
 func _yaw_rate(m: PendulumModel, prev: float) -> float:
@@ -34,7 +25,6 @@ func _yaw_rate(m: PendulumModel, prev: float) -> float:
 func _run(w: String) -> Dictionary:
 	var m := S.make(w)
 	S.reset(m)
-	var v_trim := S.airspeed(m) * 3.6
 	var hb := S.BankHold.new(deg_to_rad(30.0), 6.0, 2.5, 1.0)
 	var inp := S.input()
 	for i in int(round(14.0 / S.DT)):
@@ -77,8 +67,8 @@ func _run(w: String) -> Dictionary:
 				# на крутом пикировании штопора скачет и сторону не показывает)
 				inp.roll = -signf(yr_prev)
 			else:
-				# ручка к нейтрали по скорости: «на себя», пока V выше трима (−1 при V ≥ 1,5 трима)
-				inp.pitch = clampf(-2.0 * (S.airspeed(m) * 3.6 - v_trim) / v_trim, -1.0, 0.0)
+				# ручка в центр (как pull_release SR-К1 v2); закон по скорости держал штопор у sport (SR-2)
+				inp.pitch = 0.0
 		m.step(S.DT, inp, Callable(), Callable())
 		if not S.finite(m):
 			o.finite = false
