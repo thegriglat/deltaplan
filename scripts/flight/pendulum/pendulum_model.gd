@@ -184,6 +184,11 @@ var _fell_h: float = 0.5
 var _slope_d: float = 1.0
 var _tension_avg: float = 0.0
 var _hands_p := Vector3.ZERO  ## сила рук на пилота (NED), последний подшаг
+## TW-К4: внешняя сила (трос). Функция зовётся на каждом подшаге; external_force_n — сумма последнего вызова
+var external_force_n := Vector3.ZERO  ## Н, мир игры, только чтение
+var _ext_fn: Callable = Callable()
+var _ext_t := 0.0
+var _ext_warned := false
 var _contact_pts: Array[Vector3] = []  ## нос, концы консолей (правая, левая), конец киля, трапеция — оси B
 ## Оценка касания (PD-35): пилот встаёт на ноги / пробегает / жёстко (pendulum.json → touchdown).
 var touchdown := PendulumTouchdown.new()
@@ -781,6 +786,42 @@ func _aero_update(air_fn: Callable, ground_fn: Callable = Callable()) -> void:
 	_aero_m_b = strips.moment_b
 
 
+## TW-К4: внешняя сила в точках пилота и подвески. fn(s: Dictionary) -> {"pilot": Vector3, "hang": Vector3}
+## (Н, мир игры; вход s — в docs/contracts/tow.md). Зовётся на каждом подшаге до сборки сил пилота.
+func set_external_force(fn: Callable) -> void:
+	_ext_fn = fn
+	if not fn.is_valid():
+		external_force_n = Vector3.ZERO
+
+
+func clear_external_force() -> void:
+	set_external_force(Callable())
+
+
+## → [сила на пилота (NED), сила на подвеску (NED)]; нечисловое — ноль и один push_warning.
+func _external_force(h: float, xp: Vector3, vp: Vector3, H: Vector3, R: Basis) -> Array[Vector3]:
+	_ext_t += h
+	var res: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO]
+	var s := {
+		"t": _ext_t, "h": h, "pilot_pos": _world(xp), "pilot_vel": game(vp),
+		"hang_pos": _world(H), "hang_vel": game(_vel + _w.cross(R * _r_hang_b)),
+		"on_ground": _uprights,
+	}
+	var r = _ext_fn.call(s)
+	var keys := ["pilot", "hang"]
+	var sum := Vector3.ZERO
+	for i in 2:
+		var v = r.get(keys[i], Vector3.ZERO) if r is Dictionary else null
+		if v is Vector3 and is_finite(v.x) and is_finite(v.y) and is_finite(v.z):
+			res[i] = ned(v)
+			sum += v
+		elif v != null and not _ext_warned:
+			_ext_warned = true
+			push_warning("PendulumModel: внешняя сила вернула нечисловое значение (%s) — принято за ноль" % keys[i])
+	external_force_n = sum
+	return res
+
+
 func _substep(h: float, input: ControlInput) -> void:
 	var R := _R
 	var Rt := R.transposed()
@@ -796,6 +837,17 @@ func _substep(h: float, input: ControlInput) -> void:
 	var f_p := E3 * (pilot_mass * Units.G) - va * (0.5 * rho * _pilot_cda * va.length())
 	var rel: Vector3 = Rt * (xp - H)
 	var fb := Vector3.ZERO
+	var ext_p := Vector3.ZERO  # внешняя сила на пилота (NED)
+	var ext_h := Vector3.ZERO  # внешняя сила на подвеску (NED)
+	if _ext_fn.is_valid():
+		var fe := _external_force(h, xp, vp, H, R)
+		ext_p = fe[0]
+		ext_h = fe[1]
+		f_p += ext_p
+		if ext_h != Vector3.ZERO:
+			var fh_b := Rt * ext_h
+			f_wb += fh_b
+			tb += _r_hang_b.cross(fh_b)
 	if _uprights:
 		# руки на стойках: горизонтальная сила — в хвате, вертикальная опора — под ЦМ крыла
 		var rg := R * ground.grip_b
@@ -816,9 +868,13 @@ func _substep(h: float, input: ControlInput) -> void:
 		var vrel: Vector3 = Rt * (vp - _vel) - wb.cross(_r_hang_b + rel)
 		# кажущийся вес пилота в осях крыла: подвеска ускоряется с системой, (A_крыла + D_п)/M + g
 		var d_p := f_p - E3 * (pilot_mass * Units.G)
-		var load_b: Vector3 = Rt * (d_p - (R * _aero_f_b + d_p) * (pilot_mass / mass))
+		var load_b: Vector3 = Rt * (d_p - (R * _aero_f_b + d_p + ext_h) * (pilot_mass / mass))
+		# вклад внешней силы в кажущийся вес: боковая составляющая — не ввод пилота
+		var ext_b := Vector3.ZERO
+		if ext_p != Vector3.ZERO or ext_h != Vector3.ZERO:
+			ext_b = Rt * (ext_p - (ext_p + ext_h) * (pilot_mass / mass))
 		fb = arms.compute(
-			rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y, load_b
+			rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y, load_b, ext_b
 		)
 		_hands_p = R * fb
 	if fb != Vector3.ZERO:
@@ -952,6 +1008,7 @@ func _place_wing(pos: Vector3) -> void:
 
 
 func _reset_common() -> void:
+	_ext_t = 0.0
 	_crash_v = Vector3.ZERO
 	time_s = 0.0
 	_aero_age = INF
