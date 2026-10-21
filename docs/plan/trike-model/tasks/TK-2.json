@@ -25,14 +25,16 @@
     "assets/models/pilot.glb",
     "assets/models/pilot.glb.import",
     "assets/source/pilot.blend",
-    "tests/contracts/test_trike_model_k3.gd"
+    "tests/contracts/test_trike_model_k3.gd",
+    "tools/blender/trike_params.json"
   ],
   "dont_touch": [
-    "tools/blender/trike_params.json",
     "configs/",
     "scripts/",
     "docs/contracts/trike-model.md",
-    "tools/blender/pilot_mpfb.py"
+    "tools/blender/pilot_mpfb.py",
+    "tools/blender/build_trike.py",
+    "assets/models/trike/"
   ],
   "accept": [
     {
@@ -46,9 +48,14 @@
     {
       "name": "cockpit",
       "tests": "cockpit"
+    },
+    {
+      "name": "trike_model_k1",
+      "tests": "trike_model_k1"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T03:09:22"
+  "created": "2026-10-22T03:09:22",
+  "edited": "2026-10-22T03:45:39"
 }
