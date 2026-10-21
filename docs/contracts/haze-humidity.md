@@ -4,9 +4,9 @@ status: "active"
 module: "haze-humidity"
 area: "air"
 updated: "2026-10-21"
-summary: "Стыки haze-humidity: HH1 — сетка точки росы 1°×1°×12 мес., HH2 — сетка воздуха 700 гПа (T, высота); brotli, читает игра."
+summary: "Стыки haze-humidity: HH1/HH2 — сетки ERA5 (Td; воздух 700 гПа), HH3 — густота дымки по RH, HH4 — пропускание атмосферы для света облаков."
 related: ["docs/plan/haze-humidity.md", "scripts/atmosphere/weather_model.gd", "configs/weather_model.json"]
-contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 1}]
+contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 1}, {"id": "HH3", "version": 1}, {"id": "HH4", "version": 1}]
 ---
 
 # Контракты haze-humidity
@@ -115,3 +115,56 @@ contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 1}]
 
 **Контрактный тест** (`tests/contracts/test_haze_humidity_contracts.gd`, `test_upper_air_format`): если файл есть —
 заголовок, размер, `raw_size`, распаковка, диапазоны по всем ячейкам; нет файла — пропуск (сетку кладёт HH-1b).
+
+## HH3. Густота дымки по влажности (v1)
+
+Владелец: HH-6. Потребители: `Game._apply_haze` → `SkyEnvironment.set_haze_density` (как сейчас), HH-7 (аэрозоль в
+пропускании — через материал дымки, см. HH4), HH-4 (меняет только источник Td, формулу не трогает). Основание — HH-2
+(`tools/research/haze_humidity/haze/README.md` → «Предложение»), ответ пользователя на Q1 (2026-10-21).
+
+**Конфиг** `configs/weather_model.json → haze_humidity`: `gamma` 0.6 (Zieger 2013), `rh_dry` 0.40, `rh_max` 0.95 (с
+`_doc` и источником). Удаляются без остатка: `diurnal.evening_haze_k`, поле `haze_k` в `sky.*` (в т. ч. `overcast` ×1,3)
+и `sky.fields_doc` про него; «к вечеру гуще» и «пасмурно мутнее» — только через RH (Td, разброс Td по облачности — HH-4).
+
+**Функция** `WeatherModel.haze_k_rh(t_c: float, td_c: float, cfg: Dictionary = {}) -> float`:
+`RH = e_s(Td)/e_s(T)`, `e_s(x) = 6.1094·exp(17.625·x/(x + 243.04))` (Магнус, Alduchov–Eskridge 1996, над водой при любой T);
+`RH_c = clamp(RH, rh_dry, rh_max)`; `haze_k = ((1 − RH_c)/(1 − rh_dry))^(−gamma)`. Td > T → RH = 1 → `rh_max`.
+Значения: RH ≤ 0,40 → 1,0; RH 0,85 → 2,30 (±0,01); RH ≥ 0,95 → 2,93 (±0,01).
+
+**Выход** `WeatherModel.derive` (оба режима: `hour` = NAN и час): `w.haze_k = haze_k_rh(T, Td)`, где T — температура
+этого часа (`_derived.temperature_c`), Td — `_derived.dew_point_c`; новое поле `_derived.rh` (0..1, до зажима).
+Смысл `haze_k` прежний: множитель ослабления мутного слоя к `configs/world.json → haze.visibility_km` (60 км —
+видимость сухого воздуха, RH ≤ 0,40); `SkyEnvironment` не меняется.
+
+**Контрактный тест** — `tests/contracts/test_haze_humidity_hh3.gd` (пишет HH-6): три опорных значения `haze_k_rh`;
+`derive` даёт `haze_k == haze_k_rh(_derived.temperature_c, _derived.dew_point_c)` и `_derived.rh`; в конфиге нет
+`evening_haze_k` и `sky.*.haze_k`.
+
+## HH4. Пропускание атмосферы для света облаков (v1)
+
+Владелец: HH-7. Потребители: шейдеры облаков (`cloud_common.gdshaderinc` и оба хоста: `cloud_volume.gdshader`,
+compute `cloud_raymarch_cs`), `CloudLayer`/`CloudCompositorEffect` (параметры). Рельеф, небо, `DirectionalLight3D`,
+`configs/world.json → time.light` — не меняются.
+
+**Таблица** — `Image.FORMAT_RGBF` (или RGBH), ширина `n_el` × высота `n_h` (по умолчанию 64 × 64), фильтр линейный,
+края — clamp. Ось u (столбец) — высота солнца над математическим горизонтом точки от `el_min_deg` −8° до `el_max_deg`
++30° равномерно; ось v (строка) — высота точки от 0 до `h_max_m` 16000 м над морем равномерно. Значение — пропускание
+T(λ) ∈ [0, 1] по каналам R, G, B (λ = 680, 550, 440 нм) вдоль луча от точки к солнцу в сферической атмосфере
+(R⊕ = 6 371 000 м): Рэлей β_R(λ) ∝ λ⁻⁴ (β_R(550) = 1,16·10⁻⁵ м⁻¹ у моря, шкала высот 8 000 м) + аэрозоль мутного слоя —
+ослабление `extinction` материала дымки (`SkyEnvironment.haze_material().get_shader_parameter("extinction")`, м⁻¹ на
+550 нм, уже × `haze_k`) × `configs/world.json → haze.extinction_rgb`, постоянное от земли до
+`SkyEnvironment.get_haze_top_msl()`, выше — 0. Луч, задевающий сферу уровня моря, — T = 0 (рельеф не учитывается).
+Озон и многократное рассеяние не учитываются (граница модели — в отчёте и руководстве).
+
+**Свет на облаке:** `sun_l(точка) = sun_toa · T(el_sun, y_точки) / T_ref`, где `sun_toa` — белый (цвет и энергия
+солнца в зените без атмосферы, параметр), `T_ref = T(35°, долина места)` — нормировка: днём (солнце ≥ 35°) у основания
+облака свет совпадает с нынешним `sun_color · sun_energy` (± 5 % по каналам). Солнце ниже горизонта земли (свет рельефа
+погас) — облака выше точки касания ещё освещены; облака не освещаются, если T = 0.
+Таблица пересчитывается при смене `extinction`/верха дымки больше чем на 5 % и при старте; не каждый кадр.
+
+**Параметры** (`configs/world.json → clouds` или блок `sun_transmission` — выбирает владелец, с `_doc`): `n_el`, `n_h`,
+`el_min_deg`, `el_max_deg`, `h_max_m`, β_R(550), шкала высот, длины волн.
+
+**Контрактный тест** — `tests/contracts/test_haze_humidity_hh4.gd` (пишет HH-7): размер и формат таблицы; T ∈ [0, 1];
+T(B) ≤ T(G) ≤ T(R) в каждой ячейке; T растёт с высотой точки и с высотой солнца; при el = 0°, у моря, без аэрозоля
+−ln T(G) совпадает с аналитикой (функция Чепмена при 90°: β_R(550)·H·√(π·R⊕/(2H)) ≈ 3,29) ± 5 %; солнце в зените, у моря — −ln T(G) = β_R(550)·H ± 2 %; точка на 3 000 м при el = −2° — T > 0.

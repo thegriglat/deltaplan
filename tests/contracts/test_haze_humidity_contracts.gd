@@ -3,7 +3,7 @@ extends TestCase
 ## и HH2 (воздух 700 гПа).
 
 const DOC := "res://docs/contracts/haze-humidity.md"
-const VERSIONS := {"HH1": 1, "HH2": 1}
+const VERSIONS := {"HH1": 1, "HH2": 1, "HH3": 1, "HH4": 1}
 const GRID := "res://data/climate/dew_point_1deg.bin"
 const UPPER := "res://data/climate/upper_air_1deg.bin"
 const HEADER := 64
