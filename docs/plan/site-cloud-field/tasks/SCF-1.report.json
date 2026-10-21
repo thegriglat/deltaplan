@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Страница «Облака и тени» (ru/en) переписана под поле облачности: как рождается, время жизни, таблица мест, z_i по рельефу (CLF-9), опускание (CLF-10), честные границы; «одно облако на термик» убрано. 5 рисунков в бандле страницы.",
+  "commits": [
+    "af722451 Сайт: «Облака и тени» — поле облачности (CLF-1/9/10), 5 рисунков, границы модели"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "figs_ru",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "7 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SCF-1",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/clouds/index.ru.md: подписи под рисунками",
+      "why": "листы исследования — композитные, мелкий шрифт на кадрах (кропы 1368 px); подписи описывают то, что вижу на кадрах и в таблицах исследования",
+      "checked": "числа сверены с docs/research/cloud_field.md §5-6 и subsidence.md; хронологию на графике хода дня (рост с 10:30) сверил по листу Алматы"
+    },
+    {
+      "where": "site/content/mechanics/clouds/index.*.md, «Границы модели»",
+      "why": "сказано, что в Compatibility кучевых из поля нет (по docs/guide/atmosphere/clouds.md); в коде не перепроверял",
+      "checked": "руководство clouds.md, решение пользователя 2026-10-17"
+    }
+  ],
+  "dp_feedback": "plan site-cloud-field: файла docs/plan/site-cloud-field.md нет, хотя карточка на него ссылается. Дополнение координатора в task show обрезается без --full.",
+  "extra": {
+    "images": "cloud-field-almaty-hours/section/view/zi-before-after/subsidence.jpg, JPEG q88, из CLF-1/5/9/10"
+  },
+  "t": "2026-10-21T19:07:48",
+  "by": "executor"
+}

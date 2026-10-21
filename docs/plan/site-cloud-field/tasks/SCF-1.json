@@ -1,0 +1,38 @@
+{
+  "id": "SCF-1",
+  "module": "site-cloud-field",
+  "type": "dp-writer",
+  "title": "Сайт: поле облачности на странице «Облака и тени» с графиками CLF",
+  "goal": "На странице сайта «Облака и тени» (ru и en) понятным языком описано, как в игре сейчас рождаются облака — поле облачности из поля воздуха (CLF-1/9/10), — с 3–5 графиками из исследования; устаревшее «одно облако на термик» исправлено. URL страницы не меняется.",
+  "plan_ref": "",
+  "contracts": [],
+  "copy": "~/deltaplan-site-cloud-field-SCF-1",
+  "branch": "site-cloud-field/SCF-1",
+  "base": "feature/site-cloud-field",
+  "scope": [
+    "site/content/mechanics/clouds.ru.md",
+    "site/content/mechanics/clouds.en.md",
+    "site/content/mechanics/clouds/"
+  ],
+  "dont_touch": [
+    "docs/",
+    "scripts/",
+    "configs/",
+    "tools/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "hugo --source site --quiet -d /tmp/claude-1000/scf1-hugo",
+      "expect": "exit=0"
+    },
+    {
+      "name": "figs_ru",
+      "cmd": "grep -c -E '!\\[.*\\]\\(.*(cloud|clf|облач|поле)' site/content/mechanics/clouds/index.ru.md site/content/mechanics/clouds.ru.md 2>/dev/null | awk -F: '{s+=$NF} END{print s}'",
+      "expect": "num:([0-9]+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:03:24"
+}
