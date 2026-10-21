@@ -1,0 +1,87 @@
+{
+  "status": "done",
+  "summary": "Основание кучевых и Cb в кадрах игры (линейный тонмаппер, пары с/без облаков) в физической вилке: base/top 0,33-0,41 (Cu средн. 0,22-0,66; Cb 0,10-0,39 у верхнего края; тонкое Cu 0,40 у нижнего края 0,43); base/sky ~1,0-1,1. Корректно; тёмное ядро толстого основания (пол ~0,10 от вершины) на нижней границе Cb, sky_occlusion_m работает только до ~1 км мощности. Правок не предлагаю.",
+  "commits": [
+    "haze-humidity HH-3: проверка яркости основания облаков"
+  ],
+  "checks": [
+    {
+      "name": "readme",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "ratios",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "ratio_rows",
+      "value": "20 строк в ratios.csv",
+      "pass": true
+    },
+    {
+      "name": "base/top Cu средн. (<=12 км)",
+      "value": "0,36-0,39 против вилки 0,22-0,66",
+      "pass": true
+    },
+    {
+      "name": "base/top Cb",
+      "value": "0,33-0,51 (mid/under 0,33/0,39) против 0,10-0,39; ядро p10 0,22-0,29",
+      "pass": true
+    },
+    {
+      "name": "base/top тонкое Cu",
+      "value": "0,40-0,41 против 0,43-1,19 (край)",
+      "pass": true
+    },
+    {
+      "name": "порт шейдера, пол основания Y/Y_top",
+      "value": "0,10 при D>=1,5 км; 0,18 при 300 м; без затенения неба 0,34",
+      "pass": true
+    },
+    {
+      "name": "sky_occlusion_m 150/350/700/выкл, L_base",
+      "value": "0,334/0,308/0,326/0,422",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Cb над Алтаем не сняты (рельеф altai без сети не собирается) - сняты над Онгудаем 34 °C 14:00",
+    "Источников яркости основания Cb в cd/м2 не найдено - сравнение Cb с небом только по физической вилке"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-3",
+  "uncertain": [
+    {
+      "where": "tools/research/haze_humidity/cloud_base/analyze.py",
+      "why": "сегментация основания (нижние 20% серий) эвристика, примешивает бока и края; L_sky с дымкой игры",
+      "checked": "p10 как нижняя оценка; срезы по дальности 6/12 км"
+    },
+    {
+      "where": "tools/research/haze_humidity/cloud_base/model.py",
+      "why": "двухпотоковая формула и диапазоны tau взяты из карточки, по первоисточникам (Lacis-Hansen 1974, Bohren 1987) не сверены; вилка широкая (x3)",
+      "checked": "формула воспроизведена, A 0,1-0,3, f 0,7-1"
+    },
+    {
+      "where": "ratios.csv:ong9_*",
+      "why": "тонкое Cu - 1% облачных пикселей, n 226-501",
+      "checked": "нет"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения (+4) - нужно --full или явная подсказка; job wait без вывода статуса удобнее; storm_shot.gd в tools/shots устарел (game.settings при autostart, требует ручного входа через меню).",
+  "extra": {
+    "base_over_top_cu_med_r12km": 0.389,
+    "base_over_sky_cu_med": 0.97,
+    "model_floor_ratio": 0.1,
+    "sky_occlusion_effective_below_m": 1000
+  },
+  "t": "2026-10-21T18:25:06",
+  "by": "executor"
+}

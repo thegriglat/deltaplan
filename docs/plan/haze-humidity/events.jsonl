@@ -30,3 +30,7 @@
 {"t": "2026-10-21T17:44:43", "by": "coordinator", "task": "HH-2", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-21T17:44:50", "by": "coordinator", "task": "HH-2", "ev": "accepted", "commits": ["b6c4fe7c"], "note": "4/4 readme=ok:exit 0; vis_table=ok:exit 0; vis_rows=ok:65; docs=ok:ошибок 0"}
 {"t": "2026-10-21T17:44:51", "by": "coordinator", "task": "HH-2", "ev": "merged"}
+{"t": "2026-10-21T18:25:06", "by": "executor", "task": "HH-3", "ev": "reported", "commits": ["haze-humidity"], "note": "done: Основание кучевых и Cb в кадрах игры (линейный тонмаппер, пары с/без облаков) в физической вилке: base/top 0,33-0,41 (C…", "dp_feedback": "task show обрезает дополнения (+4) - нужно --full или явная подсказка; job wait без вывода статуса удобнее; storm_shot.gd в tools/shots устарел (game.settings при autostart, требует ручного входа через меню)."}
+{"t": "2026-10-21T18:25:17", "by": "coordinator", "task": "HH-3", "ev": "checked", "note": "4/4 readme=ok:exit 0; ratios=ok:exit 0; ratio_rows=ok:20; docs=ok:ошибок 0; scope=FAIL:вне scope: r-HH-3.json"}
+{"t": "2026-10-21T18:25:42", "by": "coordinator", "task": "HH-3", "ev": "checked", "note": "4/4 readme=ok:exit 0; ratios=ok:exit 0; ratio_rows=ok:20; docs=ok:ошибок 0"}
+{"t": "2026-10-21T18:25:47", "by": "coordinator", "task": "HH-3", "ev": "accepted", "note": "по отчёту"}
