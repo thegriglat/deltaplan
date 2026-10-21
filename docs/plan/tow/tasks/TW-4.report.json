@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "Закрыты 2 major и 2 minor ревью: формула тяги лебёдки дана с углом набора γ и углом троса θ (γ=0 — нижняя граница, пример пересчитан); Va 69 км/ч помечен как тандем Falcon 3, для одноместных н/д, вывод про Ан-2 переписан; tension_daN аэротоу 21–35 даН с входными данными; фраза про «1 даН·g» заменена на 20–35 даН ≈0,4 % массы Ан-2.",
+  "commits": [
+    "be49af3b tow: TW-4 правки по ревью"
+  ],
+  "checks": [
+    {
+      "name": "headings",
+      "value": 10,
+      "pass": true
+    },
+    {
+      "name": "params",
+      "value": 44,
+      "pass": true
+    },
+    {
+      "name": "bhpa",
+      "value": 32,
+      "pass": true
+    },
+    {
+      "name": "nopdf",
+      "value": 0,
+      "pass": true
+    },
+    {
+      "name": "size",
+      "value": 40530,
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TW-4",
+  "uncertain": [
+    {
+      "where": "docs/research/tow/kinds.md:124",
+      "why": "при θ+γ→arctg E формула расходится; реальные тяги на крутом наборе зависят от поведения крыла и оператора",
+      "checked": "числа пересчитаны python, γ=0 совпадает со старой формулой"
+    },
+    {
+      "where": "docs/research/tow/kinds.md:165",
+      "why": "Va одноместного крыла в источниках нет",
+      "checked": "BHPA Прил. D даёт только тандем Falcon 3"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "tension_aerotow_daN": "21-35",
+    "winch_T_daN_E8": "13 (g0,th0), 34 (g10,th10), 63 (g15,th30), 150 (g20,th45)"
+  },
+  "t": "2026-10-22T02:15:10",
+  "by": "executor"
+}

@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "Буксировка доступна только при controls.roll_control_mode = pendulum: строка на экране старта серая с подписью setup_tow_mode_off и значением пусто; --tow=<вид> в других режимах даёт push_warning и tow_kind пусто. Режим не переключается.",
+  "commits": [
+    "cc143bf2 Буксировка только в режиме «Маятник»: экран старта и --tow (TW-К7 v2)"
+  ],
+  "checks": [
+    {
+      "name": "tow_k7",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_menu_setup",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_screens",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_language",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TW-9b",
+  "uncertain": [
+    {
+      "where": "scripts/ui/flight_setup_screen.gd:_refresh_tow",
+      "why": "строка обновляется при смене места/открытии экрана, не живьём при смене режима (панель настроек и экран старта не открыты вместе)",
+      "checked": "тест: режимы weight_shift/rate при создании экрана; режим Config подменяется через кэш get_config и возвращается reload()"
+    }
+  ],
+  "dp_feedback": "Замечаний нет.",
+  "t": "2026-10-22T02:24:13",
+  "by": "executor"
+}

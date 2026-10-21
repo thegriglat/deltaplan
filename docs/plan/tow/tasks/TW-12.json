@@ -1,0 +1,48 @@
+{
+  "id": "TW-12",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Модель Blender: парашют троса (drogue)",
+  "goal": "Модель купола парашюта троса tow_drogue.glb скриптом Blender по TW-К8 v2 (3 LOD, ≤150 треугольников, вершинные цвета), контрактный тест дополнен.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К8",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-12",
+  "branch": "tow/TW-12",
+  "base": "feature/tow",
+  "scope": [
+    "tools/blender/build_tow_drogue.py",
+    "tools/blender/build_tow_drogue.json",
+    "assets/models/world/tow_drogue.glb",
+    "assets/models/world/tow_drogue.glb.import",
+    "assets/source/world/tow_drogue.blend",
+    "tests/contracts/test_tow_k8.gd"
+  ],
+  "dont_touch": [
+    "tools/blender/build_tow_winch.py",
+    "tools/blender/build_tow_release.py",
+    "tools/blender/bl_util.py",
+    "scripts",
+    "configs",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "tow_k8",
+      "tests": "tow_k8"
+    },
+    {
+      "name": "textures",
+      "cmd": "python3 tools/check_textures.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T02:11:14"
+}

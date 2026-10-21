@@ -12,6 +12,7 @@ extends RefCounted
 ##   --camera=<режим>      cockpit | chase | free
 ##   --pause | --settings | --about | --controls | --setup   открыть экран перед снимком
 ##   --wing=<id> --mass=<кг> --location=<id> --site=<id>
+##   --tow=<вид>           буксировка (TW-К7): winch_static | aerotow | none; прочее — без буксировки
 ##   --temp=<°C>           прогноз: температура днём (FR-16)
 ##   --wind=<м/с>          прогноз: ветер у земли
 ##   --from=<град>|launch  откуда ветер: градусы (270 — с запада) или launch — встречный
@@ -208,7 +209,7 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.net_code_file = val
 			"net-hide-remote":
 				o.net_hide_remote = true
-			"wing", "mass", "site", "wind", "latlon", "location", "hour", "temp", "from", "sky":
+			"wing", "mass", "site", "wind", "latlon", "location", "hour", "temp", "from", "sky", "tow":
 				o.overrides[key] = val
 	if o.open_screen == "pause":
 		o.autostart = true
@@ -234,6 +235,13 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 		r.location_id = String(overrides.location)
 		if not overrides.has("site"):
 			r.site_id = ""
+	if overrides.has("tow"):
+		r.tow_kind = FlightSettings.normalize_tow(String(overrides.tow))
+		if r.tow_kind != "" and not FlightSettings.tow_mode_allowed():
+			push_warning(
+				"--tow=%s отклонён: буксировка только в режиме крена «Маятник» (controls.roll_control_mode)" % overrides.tow
+			)
+			r.tow_kind = ""
 	if overrides.has("wind"):
 		r.wind_speed_kmh = float(overrides.wind) * 3.6
 	if overrides.has("from"):
