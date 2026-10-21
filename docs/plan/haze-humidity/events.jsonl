@@ -46,3 +46,4 @@
 {"t": "2026-10-21T20:00:05", "by": "coordinator", "task": "HH-1", "ev": "accepted", "note": "по ревью (4 minor: литература градиента по памяти, градиент смешивает горизонталь, 1,5 МБ > ориентира 1 МБ, requests_timeout)"}
 {"t": "2026-10-21T20:00:12", "by": "coordinator", "task": "HH-1", "ev": "accepted", "commits": ["4781e2d9"], "note": "6/6 haze_humidity=ok:3/3; grid_contract=ok:3 тестов, 0 упало, 0 пропущено; grid_size=ok:1.49659e+06; readme=ok:exit 0; sites=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-10-21T20:00:12", "by": "coordinator", "task": "HH-1", "ev": "merged"}
+{"t": "2026-10-21T20:00:50", "by": "coordinator", "task": null, "ev": "plan", "note": "план Условия остановки: замена «- Td по климату ломает э…»"}
