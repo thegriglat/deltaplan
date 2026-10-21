@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "haze_k = haze_k_rh(T часа, Td) по HH3 (Магнус, gamma 0.6, rh_dry 0.40, rh_max 0.95); evening_haze_k и sky.*.haze_k удалены; _derived.rh добавлено; контрактный тест HH3 (4 теста).",
+  "commits": [
+    "b4749c46 Дымка по влажности: haze_k_rh(T, Td) вместо вечерней добавки и множителя пасмурного дня (HH3)"
+  ],
+  "checks": [
+    {
+      "name": "haze_humidity",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "weather",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "hh3",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_evening",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept HH-6",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/weather_model.gd:_apply_heat",
+      "why": "T и Td читаются из _derived после merge(st): при заданном часе T — температура часа, при NAN — максимум дня. Td пока из таблицы (HH-4 заменит); при Td > T зажим до rh_max даёт 4,44.",
+      "checked": "тест: haze_k == haze_k_rh(_derived.*) при NAN и 19 ч; 19 ч >= 15 ч; тесты weather и haze_humidity проходят"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-21T20:11:46",
+  "by": "executor"
+}
