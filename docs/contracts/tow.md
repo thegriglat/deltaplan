@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки tow: сила и звено троса (К4), трос и лебёдка (К5), место (К6), выбор (К7), модели (К8), Ан-2 (К9), тележка (К10)."
 related: ["docs/plan/tow.md", "docs/guide/flight.md", "docs/guide/models.md", "docs/guide/game.md"]
-contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 5}, {"id": "TW-К5", "version": 6}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 2}, {"id": "TW-К8", "version": 3}, {"id": "TW-К9", "version": 2}, {"id": "TW-К10", "version": 2}]
+contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 5}, {"id": "TW-К5", "version": 6}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 2}, {"id": "TW-К8", "version": 3}, {"id": "TW-К9", "version": 3}, {"id": "TW-К10", "version": 2}]
 ---
 # Контракты модуля tow
 
@@ -173,7 +173,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 `anchor_vel`, `length_rate_ms` (TW-К4 v3). v3 (2026-10-22): трос — звено `link`
 TW-К4 v2 (неявно), а не явная сила `T = EA·(d − L)/L + c·ḋ`; `attach` — одна точка. v2 (2026-10-22): свободный трос с парашютом после отцепа (решение о `drogue`), раньше `points` пусто.
 
-## TW-К9 v2. Буксировщик Ан-2: `TowTug`
+## TW-К9 v3. Буксировщик Ан-2: `TowTug`
 Владелец — TW-7; потребители — TW-10 (игра: модель, размещение). Контрактный тест — `tests/contracts/test_tow_k9.gd`.
 Основание — решения пользователя 2026-10-22 (Ан-2 искусственно медленный; старт по W; тележка),
 `docs/research/tow/kinds.md` (`#Параметры`, `#Процедуры`, `#Ан-2 как буксировщик`), `kinds-bhpa.md` (BHPA §2.7.6).
@@ -193,6 +193,8 @@ TW-К4 v2 (неявно), а не явная сила `T = EA·(d − L)/L + c·
 - **Инварианты теста:** до `start()` неподвижен; траектория непрерывна (|Δpos| ≤ |vel|·dt + 1 см); в `roll` высота
   над землёй 0, пока `glider_height_agl_m` < `glider_hold_agl_m`; скорость в `climb`/`circuit` = `tow_speed_kmh` ±2 %;
   вертикальная скорость в `climb` = `climb_rate_ms` ±5 %; `basis` — −Z вдоль `vel` (±1°).
+- v3 (2026-10-22, TW-7): `release()` — по отцепу/обрыву троса игра переводит буксировщик в `away` (сам по слабине не
+  уходит); `agl_m` — высота колёс над землёй (только чтение).
 - v2 (2026-10-22): параметры буксировщика — `configs/tow_tug.json` (не `tow.json`: параллельная работа с TW-6).
 
 ## TW-К10 v2. Старт с тележки в модели полёта
