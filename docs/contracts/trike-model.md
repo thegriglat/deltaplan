@@ -35,7 +35,9 @@ contracts: [{"id": "TK-K1", "version": 2}, {"id": "TK-K2", "version": 2}, {"id":
     `engine_cyl_layout` (str: `inline` | `boxer`), `engine_cyl_d` (диаметр рубашки/оребрения цилиндра), `engine_gearbox`
     (str: тип редуктора, напр. `Rotax B/C/E`), `engine_exhaust_d` (диаметр выхлопной трубы/глушителя); `rear_seat_rise`
     (подушка заднего сиденья выше передней), `tank_volume_l` (л), `tank_l`, `tank_w`, `tank_h` (габарит бака-канистры); диаметры труб `tube_keel_d`, `tube_mast_d`,
-    `tube_strut_d` (передний подкос), `tube_frame_d` (рама сидений и стойки шасси).
+    `tube_strut_d` (передний подкос), `tube_frame_d` (рама сидений и стойки шасси); обороты винта после редуктора
+    `prop_rpm_idle` (холостые; дельталёт на стоянке не глушат) и `prop_rpm_max` (полный газ), `prop_spin_period_s` = 1,0
+    (длительность клипа `prop_spin` — один оборот; в игре `speed_scale = rpm · prop_spin_period_s / 60`).
   - `seat_rear` (v2): как `seat`, без `eye`/`hip`/`hand_*`/`throttle_pedal` — `seat_pan`, `seat_pan_size`, `backrest_base`,
     `backrest_angle_deg`, `backrest_size`, `foot_l`, `foot_r` (подножки пассажира); `seat_pan.z` − `seat.seat_pan.z` = `rear_seat_rise`.
   - `tank` (v2): `{"center": [x,y,z], "size": [ширина, длина, высота], "filler": [x,y,z]}` — под задним сиденьем, форма
@@ -70,7 +72,8 @@ contracts: [{"id": "TK-K1", "version": 2}, {"id": "TK-K2", "version": 2}, {"id":
     лопастей `prop_blades`, хорда по `prop_chord_max`/`prop_chord_tip` (± 10 %);
   - маркеры `Node3D`: `HangPoint` (0,0,0), `WheelFront`, `WheelRearL`, `WheelRearR` (центры осей колёс).
 - Анимация: `AnimationPlayer` с `prop_spin` — один оборот `Propeller` вокруг его локальной Z, линейно, длина 1,0 с, цикл
-  (в игре `speed_scale = prop_rpm / 60`); направление — по `prop_cw_from_behind`.
+  (в игре `speed_scale = rpm · prop_spin_period_s / 60`, rpm от `prop_rpm_idle` до `prop_rpm_max`, решение пользователя
+  2026-10-22); направление — по `prop_cw_from_behind`; поворот за клип ровно 360° вокруг оси двигателя, без ускорения на концах.
 - Материал: вершинные цвета; шина — материал с картинкой `wheel_tire` (`wheel_parts.tire_texture()`, внешний uri
   `assets/textures/wheel/tire.png`); новых текстур нет (`python3 tools/check_textures.py main` — код 0); без прозрачности.
 - Размеры модели = `dims` (± 2 %): база, колея, диаметры колёс и винта, `hang_height`; сиденье, спинка, подножки и педаль —
