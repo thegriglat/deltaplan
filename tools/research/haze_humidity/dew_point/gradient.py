@@ -51,7 +51,7 @@ res = {}
 for rn, rm in regions.items():
     res[rn] = {}
     for sn, ms in seasons.items():
-        msk = ok[None] & rm[None]
+        msk = np.broadcast_to(ok[None] & rm[None], (12, 180, 360))
         mm = np.zeros_like(msk); mm[ms] = True
         sel = msk & mm
         if sel.sum() < 5:

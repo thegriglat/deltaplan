@@ -17,15 +17,18 @@ for f, y in zip(files, years):
     d = np.load(f)
     td = d["td1"].astype(np.float64)
     mo = np.array([(dt.date(y, 1, 1) + dt.timedelta(k)).month - 1 for k in range(len(td))])
+    mo[np.isnan(td).all((1, 2))] = -1  # в ARCO есть полностью пустые сутки (2018-05-16): пропускаем
     for m in range(12):
         s1[m] += td[mo == m].sum(0); cnt[m] += (mo == m).sum()
-    msum += d["msum025"]; mcnt += d["mcnt"]
+    ms = d["msum025"].astype(np.float64); okm = ~np.isnan(ms).any((1, 2))  # месяц с пустым днём целиком пропускаем
+    msum += np.where(okm[:, None, None], ms, 0); mcnt += d["mcnt"] * okm
 mean = s1 / cnt[:, None, None]
 # проход 2: sigma вокруг средней месяца по всем дням всех лет; и вне межгодовой части (вокруг среднего своего года-месяца)
 ss = np.zeros((12, 180, 360)); ss_within = np.zeros((12, 180, 360))
 for f, y in zip(files, years):
     td = np.load(f)["td1"].astype(np.float64)
     mo = np.array([(dt.date(y, 1, 1) + dt.timedelta(k)).month - 1 for k in range(len(td))])
+    mo[np.isnan(td).all((1, 2))] = -1
     for m in range(12):
         x = td[mo == m]
         ss[m] += ((x - mean[m]) ** 2).sum(0)
@@ -35,8 +38,9 @@ sd_within = np.sqrt(ss_within / (cnt[:, None, None] - n))
 # орография
 fs = gcsfs.GCSFileSystem(token="anon")
 g = zarr.open_consolidated(fs.get_mapper(ARCO), mode="r")
-z025 = g["geopotential_at_surface"][0].astype(np.float64) / 9.80665
-lsm025 = g["land_sea_mask"][0].astype(np.float64) if "land_sea_mask" in g else None
+T0 = int((dt.datetime(2000, 1, 1) - dt.datetime(1900, 1, 1)).total_seconds() // 3600)  # статические поля в ARCO пусты в начале оси времени
+z025 = g["geopotential_at_surface"][T0].astype(np.float64) / 9.80665
+lsm025 = g["land_sea_mask"][T0].astype(np.float64) if "land_sea_mask" in g else None
 z1 = to_1deg(z025)
 lsm1 = to_1deg(lsm025) if lsm025 is not None else None
 np.savez(f"{R}/climatology.npz", td=mean, sd=sd, sd_within=sd_within, z=z1, lsm=lsm1, z025=z025, lsm025=lsm025,
