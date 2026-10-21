@@ -70,3 +70,7 @@
 {"t": "2026-10-21T19:27:25", "by": "coordinator", "task": "SRS-4", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-21T19:27:40", "by": "coordinator", "task": "SRS-6", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:4; img_en=ok:4"}
 {"t": "2026-10-21T19:27:46", "by": "coordinator", "task": "SRS-6", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-21T19:28:04", "by": "coordinator", "task": "SRS-4", "ev": "accepted", "commits": ["cc83600f"], "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:5; img_en=ok:5"}
+{"t": "2026-10-21T19:28:05", "by": "coordinator", "task": "SRS-4", "ev": "merged"}
+{"t": "2026-10-21T19:28:18", "by": "coordinator", "task": "SRS-6", "ev": "accepted", "commits": ["7ce2a401"], "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:4; img_en=ok:4"}
+{"t": "2026-10-21T19:28:18", "by": "coordinator", "task": "SRS-6", "ev": "merged"}
