@@ -1,0 +1,116 @@
+{
+  "status": "done",
+  "summary": "Сетка Td 2 м (HH1 v1) запечена из ERA5 1991–2020 (ARCO, CC-BY-4.0), 1 496 591 байт; градиент Td по высоте −4,0 К/км (из регрессии по подклеткам 0.25°); сверка 8 мест в sites.csv.",
+  "commits": [
+    "8671ccf8 скрипты прежнего исполнителя",
+    "89f8a4b6 fetch.py: таймаут чтения gcsfs",
+    "e54fdaac сетка, градиент, sites.csv, README"
+  ],
+  "checks": [
+    {
+      "name": "источник+лицензия",
+      "value": "ERA5 (ECMWF/Copernicus), CC-BY-4.0, атрибуция в README; NASA POWER не выбран (0.5x0.625, суточные только по точке)",
+      "pass": true
+    },
+    {
+      "name": "размер сетки, байт",
+      "value": "1496591 (ориентир контракта 1 МБ превышен, шлюз 2 МБ ок)",
+      "pass": true
+    },
+    {
+      "name": "отклонение Altai июль от таблицы, °C",
+      "value": "+5.3 (Td 14.3 против 9; среднегодовое +2.5)",
+      "pass": true
+    },
+    {
+      "name": "что это даёт кромке, м",
+      "value": "122 м/К x 5.3 К = около -640 м (кромка ниже)",
+      "pass": true
+    },
+    {
+      "name": "градиент Td по высоте, К/км",
+      "value": "-4.0 (30-60N: ДЯФ -4.5, МАМ -3.9, ИИА -3.3, СОН -4.2; тропики -4.6; теория перемешанного слоя -1.7)",
+      "pass": true
+    },
+    {
+      "name": "σ среднесуточной Td, К",
+      "value": "суша в среднем 4.6; Алтай янв 7.4 / июль 2.6",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS 6/6",
+      "pass": true
+    },
+    {
+      "name": "haze_humidity",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "grid_contract",
+      "value": "3 тестов, 0 упало, 0 пропущено",
+      "pass": true
+    },
+    {
+      "name": "grid_size",
+      "value": "1496591",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "sites",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-1",
+  "uncertain": [
+    {
+      "where": "tools/research/haze_humidity/dew_point/README.md",
+      "why": "Td = среднее 00+12 UTC, а не суточное; σ для ячейки 1°, межгодовая часть включена",
+      "checked": "σ внутри месяца-года 4.2 К против 4.6 К"
+    },
+    {
+      "where": "gradient.json",
+      "why": "градиент -4 К/км модельный (ERA5 0.25°), заметно круче теории -1.7; литература по памяти, не проверена",
+      "checked": "согласие по регионам (-3…-4.7)"
+    },
+    {
+      "where": "README.md лицензия",
+      "why": "версия CC-BY 4.0 названа в документе ECMWF, на странице CDS набора номера нет",
+      "checked": "перед релизом сверить лицензию CDS"
+    },
+    {
+      "where": "sites.csv",
+      "why": "таблица dew_point_c подогнана под эталоны Алтая; сдвиг +5,3 К требует пересчёта эталонов в HH-4",
+      "checked": "нет"
+    },
+    {
+      "where": "aggregate.py",
+      "why": "в ARCO пуст день 2018-05-16 (исключён); статические поля пусты в начале оси времени (взят 2000-01-01)",
+      "checked": "NaN нет в итоговой сетке"
+    }
+  ],
+  "dp_feedback": "job start запускается без проверки дублей: два параллельных fetch писали бы в один tmp-файл; нужна защита по имени.",
+  "extra": {
+    "years": "1991-2020",
+    "z_valley_source": "AWS Terrain Tiles z10, p10 в 10 км",
+    "dry_site": "Darab Iran Td июль 5.5",
+    "wet_site": "Cairns Td июль 17.0"
+  },
+  "t": "2026-10-21T19:57:33",
+  "by": "executor"
+}
