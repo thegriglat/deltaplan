@@ -1,0 +1,66 @@
+{
+  "id": "SRS-14",
+  "module": "site-research",
+  "type": "dp-writer",
+  "title": "Сайт: рельеф — растительность и дома по региону, суда, кеш ветра, точный старт",
+  "goal": "Страница «Рельеф» (ru+en) переведена в бандл и дополнена по таблице аудита: деревья и дома по региону (Кёппен–Гейгер), трава и камни, суда на море, кеш ветра на диске, точный старт на рельефе, WebP, тайлы OSM, посёлки, озёра, пресеты графики; 3+ новых кадра.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К4",
+      "version": "3",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-14",
+  "branch": "site-research/SRS-14",
+  "base": "feature/site-research",
+  "scope": [
+    "site/content/mechanics/terrain/",
+    "site/content/mechanics/terrain.ru.md",
+    "site/content/mechanics/terrain.en.md"
+  ],
+  "dont_touch": [
+    "docs/",
+    "site/content/mechanics/clouds/",
+    "site/content/mechanics/clouds.ru.md",
+    "site/layouts/",
+    "site/hugo.toml",
+    "tools/research/site_coverage/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "hugo --source site --quiet -d $(mktemp -d)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "re:нарушений 0"
+    },
+    {
+      "name": "img_ru",
+      "cmd": "grep -c '!\\[' site/content/mechanics/terrain/index.ru.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "img_en",
+      "cmd": "grep -c '!\\[' site/content/mechanics/terrain/index.en.md",
+      "expect": "num:(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:38:08"
+}

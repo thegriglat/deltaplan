@@ -1,8 +1,8 @@
 {
   "status": "done",
-  "summary": "Страница turbulence (ru+en): утверждение «над лесом поверхность луг» исправлено по коду (z0 леса 1,0 м по клеткам, нагрев по классам; нет смещения d и высоты полога), добавлен раздел «Лес» {#forest}, отрыв за грядой Perdigão (2 разреза NE/SW). Графиков в странице 3 (spectrum + 2 разреза).",
+  "summary": "Доработка по ревью: L/D даны как доля расстояния между гребнями и числами реестра (NE 0,40, SW 0,20 против 0,50; обратная скорость 0,11/0,07 против 0,22), формулировка про canopy_dsm_height_m исправлена (ru+en). Раздел «Лес» без изменений.",
   "commits": [
-    "см. git log site-research/SRS-7: Сайт: турбулентность — лес в модели воздуха по коду, разрезы Perdigão"
+    "e7ee3ec0 Сайт: турбулентность — L/D и числа Perdigão по реестру, поправка про canopy_dsm_height_m"
   ],
   "checks": [
     {
@@ -27,37 +27,29 @@
     }
   ],
   "not_done": [
-    "Расхождение реестра docs/registry/findings.md:21 (d = 0,7·h_c = 12,6 м, z0 0,645) с кодом: это решение исследования Perdigão (air-model-a4), в игре d не реализовано; строка 57 реестра это подтверждает. canopy_dsm_height_m = 10 — параметр шейдера рельефа (terrain_main.gdshaderinc:990,1344), к воздуху не относится. docs не правили.",
-    "tools/research/air_phase/out/fig_shear_layer.png отсутствует (кандидат из карточки) — график слоя сдвига AP-10 не добавлен; пункт AP-10 в странице остался текстовым.",
-    "Не проверено ни кодом, ни замером, в какую сторону сдвигает болтанку над кронами отсутствие d и полога — на странице сказано честно как «не проверяли»."
+    "Расхождение реестра findings.md:21 (d = 12,6 м) с кодом: d в игре не реализовано, canopy_dsm_height_m = 10 — поправка ступеньки на опушке в шейдере рельефа; docs не правили.",
+    "tools/research/air_phase/out/fig_shear_layer.png отсутствует — график слоя сдвига AP-10 не добавлен."
   ],
   "questions": [],
   "images": [],
   "how_to_check": ".dpcli/dpcli accept SRS-7",
   "uncertain": [
     {
-      "where": "site/content/mechanics/air-model/turbulence.ru.md: раздел «Лес»",
-      "why": "утверждение, что z0 в формулах болтанки — скаляр по области, а лесная z0 приходит через средний ветер и u* столбца",
-      "checked": "atmosphere.gd:564 (field_turb.z0 = levels[0].z0 — лог-среднее карты), field_turbulence.gd:156 (u_loc по скалярному z0), wind_field.gd:270,291 (z0 по столбцу); игру не запускали"
-    },
-    {
-      "where": "site/content/mechanics/air-model/turbulence.ru.md: подписи разрезов Perdigão",
-      "why": "L/D 0,31 (NE) и 0,04 (SW) взяты из заголовков рисунков (номинальный расчёт исследования, z0 0,645), измеренные 0,50 / depth/H 0,905 из observations.md; это не поведение игры",
-      "checked": "рисунки открыты, числа сверены с observations.md"
+      "where": "turbulence.ru.md: подписи разрезов Perdigão",
+      "why": "рисунки — номинальный расчёт (z0 0,645), числа в тексте — из реестра (малое λ, B1); точное соответствие рисунка этим числам не проверялось",
+      "checked": "в тексте оговорено, что рисунки — расчёт исследования, не игра"
     }
   ],
   "dp_feedback": "",
   "extra": {
     "forest": {
-      "z0_forest": "configs/surface_heat.json:13-20 forest z0_m = 1.0 (луг 0.03; p4_row trees)",
-      "z0_per_cell": "air_place.gd:642 (маска леса >=127.5 → класс FOREST), air_place.gd:783-801 cell_z0 лог-среднее по долям; air_case.gd:106-108 z0_map; wind_field.gd:250-273,291 z0 столбца → u* и профиль у земли",
-      "heating": "configs/surface_heat.json forest: albedo 0.12, bowen 0.7, g_frac 0.04; configs/weather_model.json:198 lag_h forest 0.6 (луг 0.3); air_place.gd:84 surface_flux по долям классов",
-      "turbulence_z0": "atmosphere.gd:564 field_turb.z0 = air_field.levels[0].z0 (скаляр, лог-среднее); field_turbulence.gd:156 u_loc = κU/ln(z/z0)",
-      "displacement_d": "не реализовано: в scripts/ и configs/ нет смещения нуля; hc = block_mean(detail heights) (air_place.gd:50) — земля без полога",
-      "canopy_dsm_height_m": "configs/world.json:558 = 10; используется только шейдером рельефа (terrain_main.gdshaderinc:168,990,1344), не модель воздуха",
-      "conclusion": "фраза сайта «над лесом поверхность везде луг» неверна: z0 и нагрев по покрову учтены; не учтены d и высота полога"
+      "z0_forest": "configs/surface_heat.json:13-20 z0_m 1.0 (луг 0.03)",
+      "z0_per_cell": "air_place.gd:642, 783-801; wind_field.gd:250-291",
+      "turbulence_z0": "atmosphere.gd:564, field_turbulence.gd:156 (скаляр)",
+      "displacement_d": "не реализовано",
+      "canopy_dsm_height_m": "configs/world.json:558, только шейдер рельефа"
     }
   },
-  "t": "2026-10-21T19:33:50",
+  "t": "2026-10-21T19:38:17",
   "by": "executor"
 }
