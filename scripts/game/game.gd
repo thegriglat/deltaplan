@@ -657,7 +657,7 @@ func _update_day_weather() -> void:
 	_apply_haze()
 
 
-## Дымка: верх — у кромки (инверсия), густота — по ходу дня.
+## Дымка: верх — у кромки (инверсия), густота — по влажности.
 func _apply_haze() -> void:
 	if air.has_method("get_cloudbase_msl") and sky.has_method("set_inversion_height_msl"):
 		sky.set_inversion_height_msl(float(air.call("get_cloudbase_msl")))
