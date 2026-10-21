@@ -359,6 +359,7 @@ def poses(cf: dict, eye: Vector) -> dict:
 
 SIT_FOOT_DEG = 80.0     # сидя: направление стопы от вертикали вниз (носок чуть вниз), °
 SIT_HEAD = HEAD_PRONE   # сидя голова наклонена так же, как лёжа: пустышка Head смотрит горизонтально
+SIT_BACK_TOL = 5.0      # допуск угла корпуса к спинке, °
 SIT_HIP_TOL = 0.02      # допуск таза от seat.hip (контракт ±3 см), м
 SIT_POLE = Vector((0, -0.3, -1))   # локти вниз
 
@@ -384,25 +385,27 @@ def sit_pose(seat: dict) -> Pose:
             + D.SHIN * math.sin(math.radians(mid * D.SPLAY_SH))
         lo, hi = (mid, hi) if x < dx else (lo, mid)
     splay = (lo + hi) / 2
-    # корпус: наклон корпуса и головы (взгляд ±8° от горизонтали) и сдвиг таза в пределах ±SIT_HIP_TOL
-    # подбираются по глазам; таз сдвигается минимально
+    # корпус: пропорции пилота не меняем (torso_k = 1); наклон корпуса — не дальше SIT_BACK_TOL от спинки,
+    # наклон головы (взгляд ±8° от горизонтали) и сдвиг таза в пределах ±SIT_HIP_TOL подбираются по глазам
     best = (1e9, 0.0, SIT_HEAD, Vector((0, 0, 0)), 1.0)
     n_hip = int(SIT_HIP_TOL / 0.005)
-    for kt in [1.0 + 0.005 * j for j in range(0, 41)]:
-        if best[0] < 0.01:
-            break
-        for i in range(-80, 1):
-            lean = i / 2.0
-            u = rot_x(-lean) @ Vector((0, 0, 1))
-            for hl in range(SIT_HEAD - 8, SIT_HEAD + 9, 4):
-                hu, hf = rot_x(-hl) @ Vector((0, 0, 1)), rot_x(-hl) @ Vector((0, 1, 0))
-                for iy in range(-n_hip, n_hip + 1):
-                    for iz in range(-n_hip, n_hip + 1):
-                        sh = Vector((0, iy * 0.005, iz * 0.005))
-                        d = (hip + sh + u * (D.SPINE + D.CHEST) * kt + hu * D.EYE_UP
-                             + hf * D.EYE_FWD - eye_t).length + 0.01 * sh.length
-                        if d < best[0]:
-                            best = (d, lean, hl, sh, kt)
+    back = seat["backrest_angle_deg"]
+    for i in range(int(-2 * (back + SIT_BACK_TOL)), int(-2 * (back - SIT_BACK_TOL)) + 1):
+        lean = i / 2.0
+        u = rot_x(-lean) @ Vector((0, 0, 1))
+        for hl in range(SIT_HEAD - 8, SIT_HEAD + 9, 4):
+            hu, hf = rot_x(-hl) @ Vector((0, 0, 1)), rot_x(-hl) @ Vector((0, 1, 0))
+            for iy in range(-n_hip, n_hip + 1):
+                for iz in range(-n_hip, n_hip + 1):
+                    sh = Vector((0, iy * 0.005, iz * 0.005))
+                    d = (hip + sh + u * (D.SPINE + D.CHEST) + hu * D.EYE_UP
+                         + hf * D.EYE_FWD - eye_t).length + 0.01 * sh.length
+                    if d < best[0]:
+                        best = (d, lean, hl, sh, 1.0)
+    u0 = rot_x(back) @ Vector((0, 0, 1))
+    hu0, hf0 = rot_x(-SIT_HEAD) @ Vector((0, 0, 1)), rot_x(-SIT_HEAD) @ Vector((0, 1, 0))
+    print("SIT: таз под глаза при корпусе вдоль спинки (lean %.1f, голова %d): %s" % (
+        -back, SIT_HEAD, eye_t - u0 * (D.SPINE + D.CHEST) - hu0 * D.EYE_UP - hf0 * D.EYE_FWD))
     lean, head, shift, torso_k = best[1], best[2], best[3], best[4]
     hip = hip + shift
     l1 = D.THIGH * math.cos(math.radians(splay * D.SPLAY_TH))

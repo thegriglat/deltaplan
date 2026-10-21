@@ -97,6 +97,22 @@ func test_pilot_sit_pose() -> void:
 			var t := _g(seat.hand_l if side == "L" else seat.hand_r)
 			check(_empty_xf(skel, hand).origin.distance_to(t) <= 0.05,
 				"Hand%s у hand_%s ± 5 см: %s vs %s" % [side, side.to_lower(), _empty_xf(skel, hand).origin, t])
+	# пропорции пилота не меняем: масштаб костей корпуса 1 ± 0,001; корпус вдоль спинки (≤ 5°)
+	for b in ["Hips", "Spine", "Chest"]:
+		var bi := skel.find_bone(b)
+		check(bi >= 0, "кость " + b)
+		if bi >= 0:
+			var bs := skel.get_bone_pose_scale(bi)
+			check(absf(bs.x - 1.0) <= 0.001 and absf(bs.y - 1.0) <= 0.001 and absf(bs.z - 1.0) <= 0.001,
+				"%s: масштаб в sit = 1: %s" % [b, bs])
+	var sp := skel.find_bone("Spine")
+	var hd := skel.find_bone("Chest")   # голова Chest = конец Spine, вдоль корпуса
+	if sp >= 0 and hd >= 0:
+		var trunk: Vector3 = (skel.get_bone_global_pose(hd).origin - skel.get_bone_global_pose(sp).origin).normalized()
+		var back := deg_to_rad(float(seat.backrest_angle_deg))
+		var back_dir := Vector3(0.0, cos(back), sin(back))   # вдоль спинки вверх (Godot: назад = +Z)
+		var ang := rad_to_deg(trunk.angle_to(back_dir))
+		check(ang <= 5.0, "корпус вдоль спинки ≤ 5°: %.1f°" % ang)
 	for b in ["PodTail", "PodMid", "PodEnd", "Strap"]:
 		var i := skel.find_bone(b)
 		check(i >= 0, "кость " + b)
