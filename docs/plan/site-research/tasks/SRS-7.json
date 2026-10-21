@@ -1,0 +1,65 @@
+{
+  "id": "SRS-7",
+  "module": "site-research",
+  "type": "dp-researcher",
+  "title": "Сайт: турбулентность — лес в модели воздуха (по коду), отрыв за грядой, AP-10",
+  "goal": "Выяснить по коду и конфигу, как лес учитывается в модели воздуха (смещение d, z0, нагрев; ответ Q4), и исправить страницу «Турбулентность» (ru+en) по факту; дописать отрыв за грядой и AP-10 из таблицы аудита, 1+ новый график.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К4",
+      "version": "3",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-7",
+  "branch": "site-research/SRS-7",
+  "base": "feature/site-research",
+  "scope": [
+    "site/content/mechanics/air-model/turbulence.ru.md",
+    "site/content/mechanics/air-model/turbulence.en.md"
+  ],
+  "dont_touch": [
+    "docs/",
+    "site/content/mechanics/clouds.ru.md",
+    "site/content/mechanics/clouds.en.md",
+    "site/layouts/",
+    "site/hugo.toml",
+    "tools/research/site_coverage/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "hugo --source site --quiet -d $(mktemp -d)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "re:нарушений 0"
+    },
+    {
+      "name": "img_ru",
+      "cmd": "grep -c '!\\[' site/content/mechanics/air-model/turbulence.ru.md",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "img_en",
+      "cmd": "grep -c '!\\[' site/content/mechanics/air-model/turbulence.en.md",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:30:15"
+}

@@ -1,0 +1,64 @@
+{
+  "id": "SRS-9",
+  "module": "site-research",
+  "type": "dp-writer",
+  "title": "Сайт: новая страница — окно «Тренировка»",
+  "goal": "Новая страница «Тренировка» в разделе docs (ru+en): что такое окно «Тренировка», карточки и цели упражнений, как начать, честные оговорки (что засчитывается, напр. «Склон» = время в воздухе); 2–3 кадра.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К4",
+      "version": "3",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-9",
+  "branch": "site-research/SRS-9",
+  "base": "feature/site-research",
+  "scope": [
+    "site/content/docs/training/"
+  ],
+  "dont_touch": [
+    "docs/",
+    "site/content/mechanics/clouds/",
+    "site/content/mechanics/clouds.ru.md",
+    "site/layouts/",
+    "site/hugo.toml",
+    "tools/research/site_coverage/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "hugo --source site --quiet -d $(mktemp -d)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "re:нарушений 0"
+    },
+    {
+      "name": "img_ru",
+      "cmd": "grep -c '!\\[' site/content/docs/training/index.ru.md",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "img_en",
+      "cmd": "grep -c '!\\[' site/content/docs/training/index.en.md",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:30:24"
+}

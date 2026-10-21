@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "Страница flight (ru+en): выход из «на себя» переписан по CHANGELOG 1.5.21 (каждое число со сценарием), добавлены штопор sport, индикатор смещения (2 снимка 1.5.8), самодельная трапеция/HID, боковой ветер стоя и пустырь, ноги гасят посадку, раздел «Ощущение скорости», 4 графика (vmax_48, cm_alpha, release_laminar, ground_run).",
+  "commits": [
+    "1792ce45 site flight: страница полёта"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "9",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "9",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Для штопора и ощущения скорости графиков в репозитории нет (speed-feel без картинок, spin_recovery без png)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-5",
+  "uncertain": [
+    {
+      "where": "flight.ru.md: подпись ground_run.png",
+      "why": "график прототипа показывает отрыв ног на 5–6,4 с, текст игры — 2,8–3,4 с; причина расхождения не выяснена, это сказано в подписи",
+      "checked": "README pendulum, график"
+    },
+    {
+      "where": "flight.ru.md: подпись vmax_48.png",
+      "why": "на графике добор 0,95 м (стенд VM-2), в игре 0,7 м; оговорено в подписи",
+      "checked": "CHANGELOG 1.5.21, pendulum README"
+    },
+    {
+      "where": "flight.ru.md: «Переворот», сценарий с добором 40 → 26",
+      "why": "40 есть в release-tumble.md (после порта, smooth), 26 — CHANGELOG 1.5.21; соответствие колонки smooth сценарию с добором выведено, не подтверждено напрямую",
+      "checked": "release-tumble.md стр.42, vm6 tables.md"
+    },
+    {
+      "where": "flight.ru.md: «Пустырь старта», зазор 0,58 м",
+      "why": "находки 30.09, до 1.5.21; в игре могло измениться",
+      "checked": "docs/registry/findings.md#start-fixes"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {},
+  "t": "2026-10-21T19:30:18",
+  "by": "executor"
+}
