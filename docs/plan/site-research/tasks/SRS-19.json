@@ -1,0 +1,64 @@
+{
+  "id": "SRS-19",
+  "module": "site-research",
+  "type": "dp-writer",
+  "title": "Сайт: новая страница — меню и настройки игры",
+  "goal": "Новая страница «Меню и настройки» в разделе docs (ru+en): главное меню, выбор места и аппарата, избранное, «Подождать час», «Осмотреться», F12, вкладки настроек и графики (пресеты, VSync, пределы кадров), отчёт о вылете; 2–4 кадра меню.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К4",
+      "version": "3",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-19",
+  "branch": "site-research/SRS-19",
+  "base": "feature/site-research",
+  "scope": [
+    "site/content/docs/player-guide/"
+  ],
+  "dont_touch": [
+    "docs/",
+    "site/content/mechanics/clouds/",
+    "site/content/mechanics/clouds.ru.md",
+    "site/layouts/",
+    "site/hugo.toml",
+    "tools/research/site_coverage/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "hugo --source site --quiet -d $(mktemp -d)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "re:нарушений 0"
+    },
+    {
+      "name": "img_ru",
+      "cmd": "grep -c '!\\[' site/content/docs/player-guide/index.ru.md",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "img_en",
+      "cmd": "grep -c '!\\[' site/content/docs/player-guide/index.en.md",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:41:43"
+}
