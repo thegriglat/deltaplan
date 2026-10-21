@@ -1,0 +1,67 @@
+{
+  "id": "TW-4",
+  "module": "tow",
+  "type": "dp-researcher",
+  "title": "BHPA: числа лебёдки и аэробуксировки, Волжский, Ан-2 как буксировщик",
+  "goal": "Дополнить kinds.md числами из BHPA Technical Manual 2024 для winch_static и aerotow (трос, уздечка, натяжение, регулятор, lock-out, отцеп), исправить 5 замечаний ревью TW-1, найти координаты и полосу аэродрома Волжский и проверить Ан-2 как буксировщик дельтаплана.",
+  "plan_ref": "Волна 1 — исследование, п. 1 (добор по Q1)",
+  "contracts": [
+    {
+      "name": "TW-К1",
+      "version": "1",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-4",
+  "branch": "tow/TW-4",
+  "base": "feature/tow",
+  "scope": [
+    "docs/research/tow/kinds.md",
+    "docs/research/tow/kinds-bhpa.md"
+  ],
+  "dont_touch": [
+    "docs/research/tow/code.md",
+    "docs/research/tow/models.md",
+    "scripts",
+    "configs",
+    "tests",
+    "docs/contracts",
+    "docs/plan",
+    "BHPA_Tech_Manual_24.pdf"
+  ],
+  "accept": [
+    {
+      "name": "headings",
+      "cmd": "grep -cE '^## (Виды|Параметры|Процедуры|Опасности|Вывод|Чего не знаем|Источники|Волжский|Ан-2 как буксировщик|Параметры модели троса)$' docs/research/tow/kinds.md",
+      "expect": "num:(\\d+) >=10"
+    },
+    {
+      "name": "params",
+      "cmd": "grep -cE '^\\| *(winch_static|winch_payout|vehicle|aerotow) *\\| *(rope_length_m|rope_material|attach_point|weak_link_daN|tension_daN|tension_max_daN|tow_speed_kmh|climb_rate_ms|release_height_m|rope_angle_deg|runway_length_m) *\\|' docs/research/tow/kinds.md",
+      "expect": "num:(\\d+) >=44"
+    },
+    {
+      "name": "bhpa",
+      "cmd": "grep -c 'BHPA' docs/research/tow/kinds.md",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "nopdf",
+      "cmd": "git ls-files | grep -ci 'bhpa.*\\.pdf' || true",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "size",
+      "cmd": "stat -c %s docs/research/tow/kinds.md",
+      "expect": "num:(\\d+) <=40960"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T04:13:41"
+}

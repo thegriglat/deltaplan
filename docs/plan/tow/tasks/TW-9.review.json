@@ -1,0 +1,34 @@
+{
+  "verdict": "rework",
+  "summary": "Замечания прошлого ревью исправлены: сброс только при смене ключа места (_place_key), TOW_KINDS выше PD-К3, отчёт без tow_site.gd. Контракт TW-К7 и скоуп соблюдены, tow_k7 4/4. Но тест, который требовала карточка (повторный refresh того же места не меняет tow_kind), не добавлен, и в not_done об этом не сказано.",
+  "issues": [
+    {
+      "file": "tests/contracts/test_tow_k7.gd",
+      "line": 24,
+      "severity": "major",
+      "what": "Карточка (доработка 10-22 02:03) требует в test_tow_k7 случай: повторный refresh того же места не меняет tow_kind. Теста нет; в отчёте он упомянут только в uncertain.checked, а not_done пуст (отчёт ≠ факт). Исправленное поведение (_on_place_changed_tow/_place_key) ничем не защищено.",
+      "fix": "Добавить тест: создать FlightSetupScreen с синтетической площадкой (tow.kinds из двух видов) или точкой, выбрать вид не по умолчанию, вызвать _row.refresh() (и _row.changed.emit()) — tow_kind в _collect() прежний; сменить площадку — стало умолчание. Если экран в тесте собрать нельзя, указать это в not_done и объяснить причину."
+    },
+    {
+      "file": "r-TW-9.json",
+      "line": 0,
+      "severity": "minor",
+      "what": "В копии ~/deltaplan-tow-TW-9 лежит неотслеживаемый r-TW-9.json (видимо, остался после прошлого ревью). Из-за него accept --dry выдаёт FAIL scope «вне scope: r-TW-9.json». В ветку файл не попал.",
+      "fix": "Удалить файл из копии перед accept (в коммит его не добавлять)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "tow_k7 (accept --only tow_k7 --dry)",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "scope (там же)",
+      "value": "FAIL: вне scope r-TW-9.json (неотслеживаемый, не в ветке)",
+      "pass": false
+    }
+  ],
+  "t": "2026-10-22T02:06:34",
+  "by": "reviewer"
+}
