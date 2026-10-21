@@ -1,0 +1,56 @@
+{
+  "status": "done",
+  "summary": "Новая страница mechanics/training-islands (ru+en): Учебный остров и вулканический, таблицы стартов и погоды, запечённые поля, раздел «чем отличаются от реальных мест», 5 кадров с подписями.",
+  "commits": [
+    "dd759adb site: страница «Учебные острова» (ru+en)"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "5",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ссылок с соседних страниц на новую нет (вне скоупа)."
+  ],
+  "questions": [],
+  "images": [
+    "build/screenshots/training-island/TI-1/01_ridge_west.jpg",
+    "build/screenshots/training-island/TI-1/04_lee_bowl.jpg",
+    "build/screenshots/volcano-island/VI-10/01_training_island.jpg",
+    "build/screenshots/volcano-island/VI-10/02_training_volcano.jpg",
+    "build/screenshots/volcano-island/VI-1/01_east_cliffs.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SRS-8",
+  "uncertain": [
+    {
+      "where": "index.*.md, таблица стартов вулканического острова",
+      "why": "названия карточек («Обрывы», «Кратер») взяты с кадра окна и CHANGELOG, в locale/ui.csv названия стартов другие (East Cliffs, Crater Ridge)",
+      "checked": "сверил с кадром VI-10"
+    },
+    {
+      "where": "index.*.md, «Запечённые поля»",
+      "why": "0,007 м/с измерено на Онгудае, не на острове; так и написано",
+      "checked": "docs/guide/location-data.md:183"
+    }
+  ],
+  "dp_feedback": "Нет подсказки, где искать названия карточек окна «Тренировка» в en (configs/training.json vs locale/ui.csv).",
+  "t": "2026-10-21T19:34:26",
+  "by": "executor"
+}

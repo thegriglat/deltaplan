@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "Новая страница site/content/docs/training (ru+en): окно «Тренировка», как начать, карточки двух островов с целями и погодой, оговорки (Склон/Обрывы/Ротор/Кратер = время в воздухе, Термики = набор высоты, Посадка = круг), границы вулканического острова; 3 кадра.",
+  "commits": [
+    "471ba494 site: страница «Тренировка» (ru+en, 3 кадра)"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "3",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ссылку на новую страницу из site/content/docs/_index.*.md не добавлял — вне скоупа (children-шорткод подхватит страницу сам)."
+  ],
+  "questions": [],
+  "images": [
+    "build/screenshots/training-modes/window.png",
+    "build/screenshots/training-modes/flight.png",
+    "build/screenshots/training-modes/goals.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SRS-9",
+  "uncertain": [
+    {
+      "where": "site/content/docs/training/index.ru.md: кадр window",
+      "why": "снимок со сборки 1.5.19: видна только вкладка острова и надпись версии 1.5.19",
+      "checked": "состав карточек сверен с configs/training.json"
+    },
+    {
+      "where": "training-goals-tab.jpg",
+      "why": "в кадре выбран маршрут training_modes (тестовый)",
+      "checked": "в подписи не упоминается"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-21T19:33:43",
+  "by": "executor"
+}
