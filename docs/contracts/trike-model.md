@@ -30,7 +30,7 @@ contracts: [{"id": "TK-K1", "version": 2}, {"id": "TK-K2", "version": 2}, {"id":
     `mast_tilt_deg` (наклон мачты вперёд от вертикали, °), `seat_height` (подушка переднего сиденья над землёй),
     `engine` (str, модель), `engine_l`, `engine_w`, `engine_h`, `prop_d`, `prop_blades` (int), `prop_axis_height`
     (ось винта над землёй), `prop_tilt_deg` (ось винта от горизонтали, + нос вверх), `prop_rpm` (обороты винта на крейсерском),
-    `prop_cw_from_behind` (bool). С v2 ещё: `prop_blades` = 2 (решение пользователя), `prop_chord_max` (наибольшая хорда
+    `prop_cw_from_behind` (bool). С v2 ещё: `prop_blades` — 2 или 3 по выбранному двигателю с источником (решение пользователя 2026-10-22: мощный — 3), `prop_chord_max` (наибольшая хорда
     лопасти), `prop_chord_tip` (хорда у законцовки), `prop_hub_d` (диаметр ступицы/кока); двигатель — `engine_cyl_count` (int),
     `engine_cyl_layout` (str: `inline` | `boxer`), `engine_cyl_d` (диаметр рубашки/оребрения цилиндра), `engine_gearbox`
     (str: тип редуктора, напр. `Rotax B/C/E`), `engine_exhaust_d` (диаметр выхлопной трубы/глушителя); `rear_seat_rise`

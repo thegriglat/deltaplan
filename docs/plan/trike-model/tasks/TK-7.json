@@ -45,10 +45,11 @@
     {
       "name": "blades",
       "cmd": "python3 -c \"import json;print('blades=%d'%json.load(open('tools/blender/trike_params.json'))['dims']['prop_blades']['value'])\"",
-      "expect": "re:blades=2"
+      "expect": "re:blades=[23]"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T03:51:53"
+  "created": "2026-10-22T03:51:53",
+  "edited": "2026-10-22T03:52:34"
 }
