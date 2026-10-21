@@ -1,0 +1,74 @@
+{
+  "id": "HH-1g",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Воздух 700 гПа по CDS: настоящая сетка HH2 вместо заглушки + σ T700",
+  "goal": "Заменить заглушку data/climate/upper_air_1deg.bin климатологией ERA5 (CDS, 1991–2020): T и высота 700 гПа по месяцам (HH2 v2, годы ≠ 0); σ суточной T700 в t700_sd.npz; сверка с таблицей upper_air для мест игры.",
+  "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
+  "contracts": [
+    {
+      "name": "HH2",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-1g",
+  "branch": "haze-humidity/HH-1g",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/upper_air/",
+    "data/climate/upper_air_1deg.bin"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "data/climate/dew_point_1deg.bin",
+    "data/climate/surface_t_1deg.bin",
+    "data/climate/upper_misc_1deg.bin",
+    "tools/research/haze_humidity/dew_point/",
+    "tools/research/haze_humidity/upper_misc/",
+    "tools/research/haze_humidity/surface_t/"
+  ],
+  "accept": [
+    {
+      "name": "grid_contract",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity",
+      "expect": "re:тестов, 0 упало"
+    },
+    {
+      "name": "grid_present",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity",
+      "expect": "!re:skip .*test_upper_air_format"
+    },
+    {
+      "name": "not_stub",
+      "cmd": "python3 -c \"import struct;h=open('data/climate/upper_air_1deg.bin','rb').read(64);y0,y1=struct.unpack('<II',h[56:64]);print(y0,y1);assert y0>=1940 and y1>=y0\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "grid_size",
+      "cmd": "stat -c %s data/climate/upper_air_1deg.bin",
+      "expect": "num:(\\d+) <=2097152"
+    },
+    {
+      "name": "sigma",
+      "cmd": "test -f tools/research/haze_humidity/upper_air/t700_sd.npz",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sites",
+      "cmd": "test -f tools/research/haze_humidity/upper_air/sites.csv",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T00:16:33"
+}
