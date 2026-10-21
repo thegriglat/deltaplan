@@ -1,0 +1,84 @@
+{
+  "status": "done",
+  "summary": "trike_params.json (TK-K1) по Airborne XT912 + Tanarg (14 url-подтверждённых размеров, остальные помечены 'вывод'); замер глаз сидячей позы: training (0, 0.352, -1.144), apogee (0, 0.390, -1.122) от подвески; seat построен по замеру; расхождение с реальной посадкой по осям < 0.3 м.",
+  "commits": [
+    "3646389e TK-1: размеры трайка, замер глаз, seat, тест K1"
+  ],
+  "checks": [
+    {
+      "name": "trike_model_k1",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "src_missing",
+      "value": 0,
+      "pass": true
+    },
+    {
+      "name": "sources",
+      "value": 14,
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "не найдены источники: ширина шин, высота двигателя, высота оси и наклон оси винта, высота подушки, положение осей колёс, направление вращения винта — оценки с пометкой 'вывод' в src"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TK-1",
+  "uncertain": [
+    {
+      "where": "tools/blender/trike_params.json: dims.hang_height",
+      "why": "2.50 м выведен из 2.53 м (Trike Height Airborne = верх мачты), точного паспортного значения подвески нет",
+      "checked": "сверка с высотой Tanarg 3.45 м с крылом"
+    },
+    {
+      "where": "tools/blender/trike_params.json: eye_measured x",
+      "why": "x принят 0: измеренное среднее -0.06 (training) / -0.09 (apogee) — след крена автопилота, разброс +-0.2",
+      "checked": "16 отсчётов, симметрия"
+    },
+    {
+      "where": "tools/blender/trike_params.json: dims.prop_cw_from_behind",
+      "why": "направление вращения Rotax 912 в толкающей схеме не подтверждено источником",
+      "checked": "рассуждение по виду на фланец винта"
+    },
+    {
+      "where": "tools/research/trike-model/README.md: расхождение",
+      "why": "у кабинной камеры 0.3 м назад от глаз модели; seat.eye по контракту = камера, Head модели (K3) окажется в камере; совпадение по z с реальным трайком частично следует из подбора seat_height, а положение по y реального пилота оценено без источника",
+      "checked": "Δz < 0.04, Δy -0.25...+0.05, Δx 0"
+    }
+  ],
+  "dp_feedback": "docs check требует frontmatter и допустимый area (models нет в списке) для README в tools/research; в карточке стоило указать это заранее. WebFetch не читает сжатые PDF — помог curl -A Mozilla + pdftotext; на dulv.de путь /kennblatt/Trike/.",
+  "extra": {
+    "eye_measured": {
+      "training": [
+        0.0,
+        0.352,
+        -1.144
+      ],
+      "apogee": [
+        0.0,
+        0.39,
+        -1.122
+      ]
+    },
+    "seat_height_m": 0.544,
+    "hip": [
+      0.0,
+      0.409,
+      -1.856
+    ],
+    "delta_vs_real_m": {
+      "x": 0.0,
+      "y": "-0.25..+0.05",
+      "z": "<0.04"
+    }
+  },
+  "t": "2026-10-22T03:24:16",
+  "by": "executor"
+}
