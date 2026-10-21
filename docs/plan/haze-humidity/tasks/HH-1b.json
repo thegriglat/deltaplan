@@ -1,0 +1,66 @@
+{
+  "id": "HH-1b",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Воздух 700 гПа: сетка ERA5 T и высоты уровня 1°×1°×12 мес.",
+  "goal": "Запечь в data/climate/upper_air_1deg.bin (формат HH2 v1) климатологию ERA5 температуры и высоты уровня 700 гПа по месяцам; сверить с нынешней таблицей upper_air для мест игры; посчитать σ суточной T700 для сверки с прогнозами (HH-1d).",
+  "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
+  "contracts": [
+    {
+      "name": "HH2",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-1b",
+  "branch": "haze-humidity/HH-1b",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/upper_air/",
+    "data/climate/upper_air_1deg.bin"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "data/climate/dew_point_1deg.bin",
+    "tools/research/haze_humidity/dew_point/",
+    "ASSETS.md"
+  ],
+  "accept": [
+    {
+      "name": "grid_contract",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity",
+      "expect": "re:4 тестов, 0 упало, 0 пропущено"
+    },
+    {
+      "name": "grid_size",
+      "cmd": "stat -c %s data/climate/upper_air_1deg.bin",
+      "expect": "num:(\\d+) <=2097152"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/haze_humidity/upper_air/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sites",
+      "cmd": "test -f tools/research/haze_humidity/upper_air/sites.csv",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sigma",
+      "cmd": "test -f tools/research/haze_humidity/upper_air/t700_sd.npz",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T20:06:55"
+}
