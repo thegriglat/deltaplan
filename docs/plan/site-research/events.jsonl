@@ -261,3 +261,5 @@
 {"t": "2026-10-21T19:46:38", "by": "coordinator", "task": "SRS-20", "ev": "note", "note": "В feature/site-research влит main: правило о пасхалках снято везде, K5 больше не ищет easter egg. Перед accept --dry — .dpcli/dpcli task sync SRS-20.", "addendum": true}
 {"t": "2026-10-21T19:47:03", "by": "coordinator", "task": "SRS-14", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:9; img_en=ok:9"}
 {"t": "2026-10-21T19:47:09", "by": "coordinator", "task": "SRS-14", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-21T19:47:25", "by": "coordinator", "task": "SRS-14", "ev": "accepted", "commits": ["6a90a6d8"], "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:9; img_en=ok:9"}
+{"t": "2026-10-21T19:47:25", "by": "coordinator", "task": "SRS-14", "ev": "merged"}
