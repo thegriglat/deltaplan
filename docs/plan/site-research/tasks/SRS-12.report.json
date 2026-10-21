@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "В weather.ru/en добавлен раздел «Ветер прогноза — ветер открытой местности» {#forecast-wind} (наветренный старт vs подветренная тень, до/после 1.5.19, границы); подпись слайдера ветра уточнена.",
+  "commits": [
+    "0ea049ef site: погода — прогноз как ветер открытой местности"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Новый график не добавлен: готового PNG по lee_cal нет (out/ не в git); картинка страницы прежняя"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-12",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/weather.ru.md: раздел forecast-wind",
+      "why": "фраза «приток слегка ослабляется у наветренного старта» взята из lee_cal README (k<1), числа 1,9–2,1× — только для островных стартов",
+      "checked": "сверено с CHANGELOG 1.5.19, runtime.md, lee_cal/README.md"
+    }
+  ],
+  "dp_feedback": "Таблица аудита (README/features) по строке weather правке не подлежит в моём скоупе; задание упоминало её как источник, но править её запрещено границами.",
+  "t": "2026-10-21T19:39:19",
+  "by": "executor"
+}

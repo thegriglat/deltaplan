@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "Страница «Цели» переведена в бандл (ru+en), добавлен раздел про загрузку .xctsk (#xctsk) и 5 кадров с подписями; жаргон путей в таблице целей заменён.",
+  "commits": [
+    "a870fdc1 SRS-13: цели — бандл, .xctsk, 5 кадров"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "5",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Кадра с самой кнопкой «Загрузить задание…» и сообщением об ошибке нет: a5 — окно выбора трека, a1 снят до кнопки; подписи это оговаривают"
+  ],
+  "questions": [],
+  "images": [
+    "site/content/docs/goals/goals-tab.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SRS-13",
+  "uncertain": [
+    {
+      "where": "site/content/docs/goals/index.ru.md:раздел xctsk",
+      "why": "Проверка формата/зоны взята из docs/guide/goals.md и CHANGELOG, код не запускался",
+      "checked": "сверено с goals.md, tasks.md, settings.json (start_lead_s 1200)"
+    }
+  ],
+  "dp_feedback": "Расхождение для docs/ (не правил): menus-settings.md пишет две вкладки у «Полёт…», в коде три (Место, Аппарат, Цели). Кадры в a5/a1 англоязычные, в итоге есть русское слово «посадка» из игры.",
+  "extra": {},
+  "t": "2026-10-21T19:39:11",
+  "by": "executor"
+}

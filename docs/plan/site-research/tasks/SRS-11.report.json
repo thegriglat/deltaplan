@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "На странице «Мультиплеер» (ru+en) добавлен снимок поля облачности по сети (раз в 30 с, 10–25 КБ, подтяжка за 10 с, чужая сетка отвергается) и раздел Steam как готовое, но не вышедшее (лобби, ачивки, Auto-Cloud, GodotSteam 4.22.1 MIT, itch без аддона).",
+  "commits": [
+    "0665488f site: мультиплеер — снимок облачности по сети, Steam как не вышедший"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "7",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "7",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Графиков нет (в таблице «Графики: нет готовых»); картинок осталось 7 (минимум), новых не добавлял"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-11",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/multiplayer.ru.md: раздел «Через Steam»",
+      "why": "«проверено только на тестовом App ID 480» взято из docs/guide/steam.md и steam_godotsteam.md; «4 файла» Auto-Cloud не писал — в источниках список файлов неоднозначен",
+      "checked": "steam.md, steam_godotsteam.md, releases/1.2.0"
+    }
+  ],
+  "dp_feedback": "Таблица аудита (tools/research/site_coverage) вне скоупа, строки не обновлял — статусы «нет/частично» остаются устаревшими до правки координатором.",
+  "t": "2026-10-21T19:39:15",
+  "by": "executor"
+}
