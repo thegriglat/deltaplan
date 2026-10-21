@@ -177,3 +177,6 @@
 {"t": "2026-10-22T03:03:44", "by": "coordinator", "task": "TW-6", "ev": "started"}
 {"t": "2026-10-22T03:03:44", "by": "coordinator", "task": "TW-14", "ev": "started"}
 {"t": "2026-10-22T03:03:45", "by": "coordinator", "task": "TW-15", "ev": "started"}
+{"t": "2026-10-22T03:07:35", "by": "executor", "task": "TW-15", "ev": "reported", "commits": ["49bd27ba"], "note": "done: Модель тележки tow_dolly.glb скриптом Blender: 3 LOD (568/152/36 треугольников), узлы tow_dolly_keel и tow_dolly_bar, в…"}
+{"t": "2026-10-22T03:07:42", "by": "coordinator", "task": "TW-15", "ev": "checked", "note": "2/2 tow_k8=ok:4/4; textures=ok:exit 0"}
+{"t": "2026-10-22T03:07:47", "by": "coordinator", "task": "TW-15", "ev": "accepted", "note": "по отчёту (нос вверх — верно: тангаж на ложементе)"}
