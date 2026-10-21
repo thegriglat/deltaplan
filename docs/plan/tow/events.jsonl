@@ -99,3 +99,4 @@
 {"t": "2026-10-22T02:11:23", "by": "coordinator", "task": "TW-12", "ev": "started"}
 {"t": "2026-10-22T02:11:24", "by": "coordinator", "task": "TW-4", "ev": "checked", "note": "6/6 headings=ok:10; params=ok:44; bhpa=ok:31; nopdf=ok:0; size=ok:39076; docs=ok:ошибок 0"}
 {"t": "2026-10-22T02:11:37", "by": "reviewer", "task": "TW-9", "ev": "reviewed", "note": "Замечания прошлого ревью закрыты: добавлен test_refresh_same_place_keeps_choice (повторный refresh того же места сохраняет выбор, смена площадки — умолчание), …", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/tow/tasks/TW-9.review.json"}
+{"t": "2026-10-22T02:11:55", "by": "coordinator", "task": "TW-9", "ev": "accepted", "note": "по ревью (третье); minor: test_tow_k7 опирается на реальные площадки без tow"}
