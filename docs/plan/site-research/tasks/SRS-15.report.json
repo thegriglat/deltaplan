@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "Страница visual-cues переведена в бандл (ru+en); добавлен раздел «Трава вдали» (angle/карточки, цена, где врёт), исправлены устаревшие кольца 14/36/115 м, добавлено 3 новых кадра (всего 5 картинок).",
+  "commits": [
+    "f9c5a72c site-research SRS-15: visual-cues — бандл, трава вдали, кадры"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "5",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Строка «Точка росы, дымка» — не трогал (haze-humidity); строка features.md про сено/гусей/брелок исключена по решению координатора; строка VR-1…VR-30 уже «есть» — без правок, добавлен только кадр дымки."
+  ],
+  "questions": [],
+  "images": [
+    "build/screenshots/grass-look/angle/4_low_meadow.jpg",
+    "build/screenshots/grass-look/angle/7_top_30.jpg",
+    "build/screenshots/mountain-look/after_27_everest_morning.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SRS-15",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/visual-cues/index.ru.md: подпись haze-far-ridges.jpg",
+      "why": "кадр из mountain-look (Эверест, снег), подпись про дымку — наблюдение по кадру, не из исследования",
+      "checked": "кадр просмотрен: дальние хребты светлее и синее"
+    },
+    {
+      "where": "index.*.md: цена травы medium@2",
+      "why": "числа из GR-22 (ветка модуля); GR-27 дал 0,12 и 0,73 — в тексте только GR-22 с оговоркой о шуме",
+      "checked": "сверено с docs/perf/grass_rocks_2.md и guide/vegetation.md"
+    }
+  ],
+  "dp_feedback": "Усечённые дополнения в task show — полный текст только через --full; стоит подсказать в выводе.",
+  "extra": {},
+  "t": "2026-10-21T19:43:28",
+  "by": "executor"
+}
