@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "На страницу «Исследования» (ru+en) добавлен раздел о клеточном автомате (4 графика с подписями, цифры из heat_ca/out/summary.md, границы модели) и отдельные строки Жеглов 1983 и Ордоди 1984 с границами источников.",
+  "commits": [
+    "0fbbfd77 research: клеточный автомат с графиками, Жеглов и Ордоди отдельными строками (SRS-17)"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "4",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "time_50.png лежит в heat_ca/exp5_adi/out/, а не в heat_ca/out/ (как в задании) — использован реальный путь.",
+    "Строки таблицы аудита (tools/research/site_coverage) не обновлены — вне скоупа."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-17",
+  "uncertain": [
+    {
+      "where": "site/content/research/_index.ru.md: подпись к time_50.png",
+      "why": "время «~8 с» и «0,4–2 с» до ошибки ~0,4 % прочитаны по графику, не из таблицы",
+      "checked": "кривые на рисунке и опыты 2/5 в summary.md"
+    }
+  ],
+  "dp_feedback": "В задании путь графика time_50.png указан неверно; features.md не содержит строки research/_index — подсказка в карточке расходится с файлом.",
+  "t": "2026-10-21T19:44:05",
+  "by": "executor"
+}

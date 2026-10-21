@@ -1,8 +1,9 @@
 {
   "status": "done",
-  "summary": "В раздел «Калибровка» страницы «Модель воздуха» (ru+en) добавлены три этапа калибровки (Askervein, +α и профиль RS, совместно с Perdigão) и 3 графика с подписями-выводами; картинок 7 на язык.",
+  "summary": "В раздел «Калибровка» страницы «Модель воздуха» (ru+en) добавлены три этапа калибровки и 3 графика с подписями-выводами; числа остатков в подписи сверены с fit.json; картинок 7 на язык.",
   "commits": [
-    "см. git log ветки site-research/SRS-16"
+    "2650c893 три этапа калибровки, 3 графика",
+    "5b872119 подпись остатков — числа из fit.json"
   ],
   "checks": [
     {
@@ -27,19 +28,13 @@
     }
   ],
   "not_done": [
-    "Правки строк таблицы аудита и «По страницам» в tools/research/site_coverage/README.md и features.md не делались: путь в списке «не трогать» карточки."
+    "Правки site_coverage/README.md и features.md не делались: путь в списке «не трогать» карточки."
   ],
   "questions": [],
   "images": [],
   "how_to_check": ".dpcli/dpcli accept SRS-16",
-  "uncertain": [
-    {
-      "where": "site/content/mechanics/air-model/_index.ru.md, подпись fig_fit_residuals",
-      "why": "«4–7σ у Askervein», «в пределах 3σ у Perdigão» считаны с графика, не из числового файла",
-      "checked": "график просмотрен; fit.json не сверял"
-    }
-  ],
-  "dp_feedback": "Дополнение координатора просит править site_coverage/README.md, но карточка запрещает tools/research/site_coverage/ — противоречие; разрешено только скоупом страниц.",
-  "t": "2026-10-21T19:42:51",
+  "uncertain": [],
+  "dp_feedback": "Дополнение координатора просит править site_coverage/README.md, но карточка запрещает tools/research/site_coverage/ — противоречие.",
+  "t": "2026-10-21T19:44:07",
   "by": "executor"
 }
