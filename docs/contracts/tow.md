@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки tow: исследование (К1–К3), внешняя сила (К4), трос и лебёдка (К5), место и полоса (К6), выбор при старте (К7), модели (К8 v2)."
 related: ["docs/plan/tow.md", "docs/guide/flight.md", "docs/guide/models.md", "docs/guide/game.md"]
-contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 2}, {"id": "TW-К5", "version": 3}, {"id": "TW-К6", "version": 1}, {"id": "TW-К7", "version": 1}, {"id": "TW-К8", "version": 2}]
+contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 2}, {"id": "TW-К5", "version": 3}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 1}, {"id": "TW-К8", "version": 2}]
 ---
 # Контракты модуля tow
 
@@ -205,7 +205,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 `reeled_in`; (8) lock-out (3) воспроизводится с поправкой рук TW-К4 v2. v3 (2026-10-22): трос — звено `link`
 TW-К4 v2 (неявно), а не явная сила `T = EA·(d − L)/L + c·ḋ`; `attach` — одна точка. v2 (2026-10-22): свободный трос с парашютом после отцепа (решение о `drogue`), раньше `points` пусто.
 
-## TW-К6 v1. Место с полосой: `start_sites[].tow`, `TowSite.check`, Волжский
+## TW-К6 v2. Место с полосой: `start_sites[].tow`, `TowSite.check`, буксирное место
 Владелец — TW-8; потребители — TW-9 (выбор при старте), TW-10 (игра). Контрактный тест — `tests/contracts/test_tow_k6.gd`.
 Основание — `docs/research/tow/code.md#Равнина`.
 
@@ -222,14 +222,17 @@ TW-К4 v2 (неявно), а не явная сила `T = EA·(d − L)/L + c·
   `winch_static`). Критерии — `configs/game.json → tow_site`: `flat_max_deg`, `dh_max_frac` (доля длины),
   `sample_m`, `edge_margin_m`, запрещённые поверхности `WATER`, `FOREST` (`BUILT` допустим). Числа критериев — с
   обоснованием в отчёте (сетка рельефа 25 м, требования к полосе из `docs/research/tow/kinds.md`).
-- Волжский: `configs/locations/volzhsky.json` (по образцу `askarovo.json`) с площадкой-аэродромом и блоком `tow`;
-  запись в `data/places/hg_takeoffs.json` (`id: builtin/volzhsky/<site>`). Координаты, ось и длина полосы — из
-  `docs/research/tow/kinds.md#Волжский` (TW-4), не угадывать.
+- Буксирное место (ответ Q2, 2026-10-22: Волжский не обязателен): реальная площадка буксировки дельтапланов из
+  `docs/research/tow/sites.md#Выбор` (TW-13), настоящее имя; нет такой — `srednyaya_akhtuba` (полоса Средней Ахтубы).
+  `configs/locations/<id>.json` (по образцу `askarovo.json`) с площадкой-аэродромом и блоком `tow`; запись в
+  `data/places/hg_takeoffs.json` (`id: builtin/<id>/<site>`). Координаты, ось и длина полосы — из
+  `docs/research/tow/sites.md#Полоса`, не угадывать. Владелец этой части — TW-8b.
 - Поляна под полосу — прямоугольник вдоль оси вместо круга `add_start_clearing` для площадок с `tow`
   (`Terrain.add_runway_clearing(start: Vector3, heading_deg, length_m, width_m)`).
 - **Инварианты теста:** запись `start_sites` с `tow` проходит в `get_start_sites()`; без `tow` — ключа нет;
   `TowSite.check` на ровном синтетическом рельефе — `ok`, на склоне 10° — не `ok` с `reason`; `end_pos − start_pos`
-  по горизонтали = `length_m` ± 1 м по курсу; `volzhsky.json` разбирается, у площадки `tow.kinds` содержит `winch_static`.
+  по горизонтали = `length_m` ± 1 м по курсу; `<id>.json` буксирного места разбирается, у площадки `tow.kinds` содержит `winch_static`.
+- v2 (2026-10-22): место Волжский заменено реальной буксирной площадкой из TW-13 (Q2).
 
 ## TW-К7 v1. Выбор буксировки при старте
 Владелец — TW-9; потребители — TW-10 (игра). Контрактный тест — `tests/contracts/test_tow_k7.gd`.
