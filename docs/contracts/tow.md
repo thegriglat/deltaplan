@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки tow: исследование (К1–К3), внешняя сила (К4), трос и лебёдка (К5), место и полоса (К6), выбор при старте (К7), модели (К8 v2)."
 related: ["docs/plan/tow.md", "docs/guide/flight.md", "docs/guide/models.md", "docs/guide/game.md"]
-contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 1}, {"id": "TW-К5", "version": 1}, {"id": "TW-К6", "version": 1}, {"id": "TW-К7", "version": 1}, {"id": "TW-К8", "version": 2}]
+contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 1}, {"id": "TW-К5", "version": 2}, {"id": "TW-К6", "version": 1}, {"id": "TW-К7", "version": 1}, {"id": "TW-К8", "version": 2}]
 ---
 # Контракты модуля tow
 
@@ -131,7 +131,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 (5) `FlightModel`: `external_force` 200 Н вперёд в горизонтальном полёте — воздушная скорость за 5 с выше, чем без
 силы; (6) сила снята — модель конечна 10 с. Шаг — 1/120 с, крыло `sport`, как `tests/flight/pendulum/pendulum_sim.gd`.
 
-## TW-К5 v1. Трос и лебёдка: `TowLine`, `configs/tow.json`
+## TW-К5 v2. Трос и лебёдка: `TowLine`, `configs/tow.json`
 Владелец — TW-6; потребители — TW-7 (аэробуксировка: тот же `TowLine` с движущимся якорем), TW-10 (игра: создание,
 отцеп, телеметрия, отрисовка троса). Контрактный тест — `tests/contracts/test_tow_k5.gd`. Основание —
 `docs/research/tow/kinds.md` (`#Параметры`, `#Параметры модели троса`, `#Процедуры`, `#Опасности`; числа BHPA — TW-4),
@@ -163,15 +163,23 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
   - Только чтение: `state: String` ∈ {`slack`, `taut`, `released`, `broken`}; `tension_n: float`; `length_m: float`;
     `rope_angle_deg: float` (угол троса к горизонту у пилота); `lockout_angle_deg: float` (угол в плане между
     направлением на якорь и курсом крыла, 0 — трос прямо по курсу); `phase: String` (`ground`/`climb`/`top`).
-  - `points(n: int) -> PackedVector3Array` — `n ≥ 2` точек троса от крепления к якорю (провис — цепная линия по
-    `mass_per_m_kg` и `T`; натянут — почти прямая) для отрисовки; после отцепа/обрыва — пусто.
+  - `points(n: int) -> PackedVector3Array` — `n ≥ 2` точек троса от конца (крепление; после отцепа — свободный
+    конец) к якорю (провис — цепная линия по `mass_per_m_kg` и `T`; натянут — почти прямая) для отрисовки; пусто,
+    когда трос выбран полностью.
+  - После отцепа/обрыва трос живёт дальше (v2): свободный конец — точка массой `rope.end_mass_kg` с сопротивлением
+    парашюта `rope.drogue_cd_area_m2` (Cd·S, м²; источник или оценка с пометкой), тяжесть, связь «не длиннее `L`»;
+    лебёдка выбирает трос со скоростью ≤ `max_reel_speed_ms` до длины 0. `step_free(dt: float) -> void` — шаг свободного
+    троса (игра зовёт раз в шаг физики, TW-10); `end_pos: Vector3`, `end_vel: Vector3` — конец троса (к нему крепится
+    купол `tow_drogue`, TW-К8 v2, −Z по `end_vel`); `reeled_in: bool`.
 - **Инварианты теста** (`PendulumModel`, крыло `sport`, шаг 1/120 с, ровная земля, как
   `tests/flight/pendulum/pendulum_sim.gd`): (1) `d < L` → `T = 0`, `slack`; (2) лебёдка `winch_static` на расстоянии
   `rope_length_m`, нулевой ввод: пилот отрывается, высота монотонно растёт до фазы `top`, к концу набора — не ниже
   порога из `kinds.md` (доля длины троса, число — в карточке TW-6), `T` ни разу не выше слабого звена, `pilot_shift`
   в пределах 0,1 хода; (3) lock-out: постоянный ввод крена (ошибка пилота) в наборе → `lockout_angle_deg` превышает
   `lockout_deg` за ≤ 20 с; (4) `release()` → сила 0 на следующем подшаге, `released`, модель конечна 10 с;
-  (5) `tension_climb_daN` выше слабого звена → `broken`; (6) `points(8)`: первая — точка крепления, последняя — якорь.
+  (5) `tension_climb_daN` выше слабого звена → `broken`; (6) `points(8)`: первая — точка крепления, последняя — якорь;
+(7) после `release()` и `step_free` конец троса снижается, его скорость ограничена (парашют), за конечное время
+`reeled_in`. v2 (2026-10-22): свободный трос с парашютом после отцепа (решение о `drogue`), раньше `points` пусто.
 
 ## TW-К6 v1. Место с полосой: `start_sites[].tow`, `TowSite.check`, Волжский
 Владелец — TW-8; потребители — TW-9 (выбор при старте), TW-10 (игра). Контрактный тест — `tests/contracts/test_tow_k6.gd`.
