@@ -4,9 +4,9 @@ status: "active"
 module: "haze-humidity"
 area: "air"
 updated: "2026-10-21"
-summary: "Стыки haze-humidity: сетки ERA5 (HH1 Td, HH2 700 гПа, HH5 Tmax и амплитуда), HH3 дымка по RH, HH4 пропускание для облаков."
+summary: "Стыки haze-humidity: сетки ERA5 (HH1 Td, HH2 700 гПа, HH5 Tmax, HH6 ветер/тропопауза/перистые), HH3 дымка по RH, HH4 свет облаков."
 related: ["docs/plan/haze-humidity.md", "scripts/atmosphere/weather_model.gd", "configs/weather_model.json"]
-contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 1}, {"id": "HH3", "version": 1}, {"id": "HH4", "version": 1}, {"id": "HH5", "version": 1}]
+contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 1}, {"id": "HH3", "version": 1}, {"id": "HH4", "version": 1}, {"id": "HH5", "version": 1}, {"id": "HH6", "version": 1}]
 ---
 
 # Контракты haze-humidity
@@ -214,3 +214,50 @@ T(B) ≤ T(G) ≤ T(R) в каждой ячейке; T растёт с высо�
 
 **Контрактный тест** (`tests/contracts/test_haze_humidity_contracts.gd`, `test_surface_t_format`): если файл есть —
 заголовок, размер, `raw_size`, распаковка, диапазоны; нет файла — пропуск (сетку кладёт HH-1e).
+
+## HH6. Сетка климата: рост ветра с высотой, тропопауза, перистые (v1)
+
+Владелец: HH-1f (запекание, `tools/research/haze_humidity/upper_misc/`). Потребители: HH-4 (замена
+`configs/atmosphere.json → wind.altitude_gain_per_km`, `configs/weather_model.json → tropopause_msl_m` и `cirrus_base`
+климатом места), контрактный тест. Решение пользователя 2026-10-21: где своя прикидка и есть данные ERA5 — ERA5 по месту
+и месяцу.
+
+**Файл:** `res://data/climate/upper_misc_1deg.bin`, ≤ 2 МБ, запись — временный файл + переименование. Порядок байтов,
+оси, индекс, сжатие, значение ячейки и месяца — **как в HH1**. **Заголовок — 64 байта:**
+
+| смещение | тип | поле | значение v1 |
+|---|---|---|---|
+| 0 | 4 × ASCII | `magic` | `HHUM` |
+| 4 | u16 | `version` | 1 |
+| 6 | u16 | `codec` | 1 = brotli |
+| 8 | u16 | `nlon` | 360 |
+| 10 | u16 | `nlat` | 180 |
+| 12 | u16 | `nmonth` | 12 |
+| 14 | u16 | `level_hpa` | 700 — уровень, к которому отнесено отношение ветра |
+| 16 | f32 | `lon0_deg` | −179.5 |
+| 20 | f32 | `lat0_deg` | −89.5 |
+| 24 | f32 | `dlon_deg` | 1.0 |
+| 28 | f32 | `dlat_deg` | 1.0 |
+| 32 | f32 | `wr_scale` | безразм. на единицу int16 (> 0) |
+| 36 | f32 | `trop_scale` | м на единицу int16 (> 0) |
+| 40 | f32 | `hcc_scale` | доля на единицу int16 (> 0) |
+| 44 | f32 | `reserved` | 0 |
+| 48 | u32 | `raw_size` | = 2·(3·nmonth·nlat·nlon) |
+| 52 | u32 | `comp_size` | размер файла **ровно** 64 + `comp_size` |
+| 56 | u32 | `year0` | первый год климатологии |
+| 60 | u32 | `year1` | последний год (включительно) |
+
+**Данные** — один поток brotli; после распаковки — три блока int16 подряд, каждый nmonth·nlat·nlon:
+1. `WR` — отношение средних за месяц скоростей ветра: |V| на `level_hpa` к |V| на 10 м (средняя модуля, не модуль
+   средней), безразмерное: `wr = raw·wr_scale`. Высоты концов — `Z` уровня из HH2 и средняя высота ячейки `Z` из HH1.
+2. `TROP` — средняя за месяц высота тропопаузы над морем (определение ВМО: нижний уровень, где градиент падает до
+   2 К/км и держится в слое 2 км), м: `trop_m = raw·trop_scale`.
+3. `HCC` — средняя за месяц доля облачности верхнего яруса ERA5 (`high_cloud_cover`), 0..1: `hcc = raw·hcc_scale`.
+
+**Отсутствие данных:** не допускается (−32768 — ошибка формата).
+
+**Инварианты:** `wr` ∈ [0,3; 10]; `trop_m` ∈ [6 000, 19 000] м; `hcc` ∈ [0, 1]; `raw_size` по формуле; распаковка в
+Godot — ровно `raw_size`.
+
+**Контрактный тест** (`tests/contracts/test_haze_humidity_contracts.gd`, `test_upper_misc_format`): если файл есть —
+заголовок, размер, `raw_size`, распаковка, диапазоны; нет файла — пропуск (сетку кладёт HH-1f).
