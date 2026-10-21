@@ -637,3 +637,6 @@ tow_site_edge,"Полоса выходит за детальный рельеф 
 tow_site_surface,"На полосе вода или лес","Water or forest on the runway"
 tow_site_slope,"Полоса не ровная: уклон больше допустимого","Runway is not flat: slope exceeds the limit"
 tow_site_dh,"Перепад высот вдоль полосы больше допустимого","Height difference along the runway exceeds the limit"
+loc_wilotree_park,"Флорида — Wilotree Park (Quest Air), буксировка","Florida — Wilotree Park (Quest Air), towing"
+site_wilotree_runway_36,"Полоса 36 (на север), южный торец","Runway 36 (north), south end"
+site_wilotree_runway_18,"Полоса 18 (на юг), северный торец","Runway 18 (south), north end"
