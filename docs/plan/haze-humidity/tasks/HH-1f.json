@@ -3,17 +3,17 @@
   "module": "haze-humidity",
   "type": "dp-researcher",
   "title": "Ветер 700 гПа/10 м, тропопауза, перистые: сетка ERA5 1°×1°×12 мес.",
-  "goal": "Запечь в data/climate/upper_misc_1deg.bin (формат HH6 v1) климатологию ERA5: отношение скорости ветра 700 гПа к 10 м, высоту тропопаузы (ВМО) и долю облаков верхнего яруса; сверить с нынешними altitude_gain_per_km 0,6/км, tropopause_msl_m 11 000 м, cirrus_base 0,1 для мест игры.",
+  "goal": "Записать data/climate/upper_misc_1deg.bin (формат HH6 v2): HCC — климатология ERA5 облаков верхнего яруса (ARCO, одиночный уровень) сейчас; WR и TROP — заглушки до ключа CDS (stub_mask), с README и конвейером под CDS; сверка HCC с cirrus_base 0,1 для мест игры.",
   "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
   "contracts": [
     {
       "name": "HH6",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/haze-humidity.md"
     },
     {
       "name": "HH2",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/haze-humidity.md"
     }
   ],
@@ -70,5 +70,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-21T20:22:53"
+  "created": "2026-10-21T20:22:53",
+  "edited": "2026-10-21T21:31:20"
 }
