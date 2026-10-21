@@ -111,6 +111,34 @@ func reset_on_ground(pos: Vector3, heading_deg: float) -> void:
 	_teleport()
 
 
+## TW-К10: старт с тележки (только «Маятник»): крыло в ложементе, пилот в лётном положении, связка катится
+## по земле под тягой троса до отрыва (took_off), phase() "dolly". dolly — configs/tow_dolly.json (пусто —
+## целиком из файла). В FlightModel тележки нет: push_warning и обычный старт на ногах.
+func reset_on_dolly(pos: Vector3, heading_deg: float, dolly: Dictionary = {}) -> void:
+	if not (model is PendulumModel):
+		push_warning("Glider: тележка есть только в «Маятнике» (TW-К10) — старт на ногах")
+		reset_on_ground(pos, heading_deg)
+		return
+	if ground_fn.is_valid():
+		pos.y = float(ground_fn.call(pos.x, pos.z))
+	model.reset_on_dolly(pos, heading_deg, dolly)
+	_teleport()
+
+
+## Тележка после отрыва (TW-К10): положение и скорость на земле, мир игры; пока крыло в ложементе —
+## dolly_attached. FlightModel — нули.
+func dolly_pos() -> Vector3:
+	return model.dolly_pos if model is PendulumModel else Vector3.ZERO
+
+
+func dolly_vel() -> Vector3:
+	return model.dolly_vel if model is PendulumModel else Vector3.ZERO
+
+
+func dolly_attached() -> bool:
+	return model is PendulumModel and model.dolly_attached
+
+
 ## Старт в воздухе; airspeed_ms ≤ 0 — скорость трима. Ветер берётся из air_fn.
 func reset_in_air(pos: Vector3, heading_deg: float, airspeed_ms: float = 0.0) -> void:
 	var wind: Vector3 = air_fn.call(pos) if air_fn.is_valid() else Vector3.ZERO
@@ -271,7 +299,7 @@ func _build_visual() -> void:
 
 func _update_pilot(dt: float) -> void:
 	if visual != null:
-		var flying: bool = model.mode == FlightModel.Mode.AIR
+		var flying: bool = model.mode == FlightModel.Mode.AIR or model.phase() == "dolly"
 		if is_pendulum():
 			visual.set_hang_pose(model.pilot_rel, not flying, dt)  # PD-К5: тело по цепи маятника
 		else:
