@@ -93,6 +93,10 @@ generated: true
   - [docs/guide/fast-load.md](guide/fast-load.md) — Загрузка места: порядок этапов, потоки, кеш поля воздуха (LRU, настройка размера), пирамида высот, PlaceData, числа и границы.
   - [docs/registry/fast-load-findings.md](registry/fast-load-findings.md) — fast-load: тёплая загрузка 29,2 → 12,5 с (Онгудай), 40,2 → 18,0 с (точка) при кеше поля; промах без выигрыша; малый пул.
 
+## release
+
+- **site-research** — Сверка сайта с исследованиями и руководством: каких выводов нет на сайте, что устарело; дописать страницы с графиками. [active 2026-10-21] — [план](plan/site-research.md) · [контракты](contracts/site-research.md)
+
 ## process
 
 - **docs-rework** — dp → dpcli, area и статусы модулей по коду, раскладка docs (действующее / исследования / архив), docs check без ошибок, сайт без планов. [active 2026-10-15] — [план](plan/docs-rework.md) · [контракты](contracts/docs-rework.md)
