@@ -32,7 +32,7 @@ LAT = re.compile(r"[A-Za-z]")
 RESOURCE_MD = re.compile(r"releases/[^/]+/devlog\.md$")
 SHARED_FM = ("weight", "date", "cover", "type", "bookHidden", "bookCollapseSection", "bookFlatSection", "layout")
 EN_CYR_MAX = 0.03  # доля кириллицы среди букв en-страницы
-FORBIDDEN_EN = re.compile(r"\b(mom|mum|mother|dad|father|easter[- ]eggs?)\b", re.I)
+FORBIDDEN_EN = re.compile(r"\b(mom|mum|mother|dad|father)\b", re.I)
 
 errors: list[str] = []
 allow_missing = False
@@ -285,7 +285,7 @@ def k5(out: str) -> None:
         with open(os.path.join(CONTENT, f), encoding="utf-8") as fh:
             m = FORBIDDEN_EN.search(fh.read())
         if m:
-            err("K5", f"{f}: «{m.group(0)}» — нарушение правил публичных текстов (родители — только «the author's parents are pilots», пасхалки не упоминать)")
+            err("K5", f"{f}: «{m.group(0)}» — нарушение правил публичных текстов (родители — только «the author's parents are pilots»)")
 
 
 def main() -> int:

@@ -27,6 +27,7 @@ generated: true
   - [tools/research/air_weak_wind/AWW-1/README.md](../tools/research/air_weak_wind/AWW-1/README.md) — AWW-1: диагноз 1 (холодный θ′ F) верен — правка θ′·h (TW-3); диагноз 2 (профиль 0,45) не подтверждён; порывы по теории; W1. [closed]
   - [tools/research/air_weak_wind/AWW-2/README.md](../tools/research/air_weak_wind/AWW-2/README.md) — AWW-2: правка 1 AWW-1 — F переносит теплосодержание θ′·h; W1 до/после на 8 стартах и Онгудае/Аскарово (слабый и сильный день). [closed]
   - [tools/research/air_weak_wind/AWW-1/summary.md](../tools/research/air_weak_wind/AWW-1/summary.md) — Вывод AWW-1: диагноз 1 верен (правка θ′·h TW-3: «Термики» 0,44 → 1,27 м/с), диагноз 2 не подтверждён, порывы в полосе теории. [closed]
+- **site-cloud-field** — Сайт: страница «Облака и тени» переписана под поле облачности (CLF-1/9/10) с графиками исследования; одна задача SCF-1. [closed 2026-10-21] — [план](plan/site-cloud-field.md) · [решения](plan/site-cloud-field/decisions.md) · [сводка](plan/site-cloud-field/summary.md) · полный журнал: `archive/site-cloud-field`
 
 ## flight
 
