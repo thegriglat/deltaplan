@@ -287,3 +287,4 @@
 {"t": "2026-10-21T19:51:04", "by": "coordinator", "task": "SRS-19", "ev": "accepted", "note": "по отчёту; свежие кадры настроек/паузы не заказывались (скриншоты — по запросу главной)"}
 {"t": "2026-10-21T19:51:17", "by": "coordinator", "task": "SRS-19", "ev": "accepted", "commits": ["c26ab19f"], "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:2; img_en=ok:2"}
 {"t": "2026-10-21T19:51:17", "by": "coordinator", "task": "SRS-19", "ev": "merged"}
+{"t": "2026-10-21T19:51:38", "by": "coordinator", "task": "SRS-20", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:4; img_en=ok:4"}
