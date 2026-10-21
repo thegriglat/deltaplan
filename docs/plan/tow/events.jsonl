@@ -50,3 +50,12 @@
 {"t": "2026-10-21T04:15:26", "by": "coordinator", "task": "TW-5", "ev": "started"}
 {"t": "2026-10-21T04:15:26", "by": "coordinator", "task": "TW-9", "ev": "started"}
 {"t": "2026-10-21T04:15:26", "by": "coordinator", "task": "TW-11", "ev": "started"}
+{"t": "2026-10-21T04:19:11", "by": "executor", "task": "TW-9", "ev": "reported", "commits": ["383fa3b5"], "note": "partial: tow_kind в FlightSettings (to_dict/from_dict, неизвестное -> пусто), --tow= в LaunchOptions, строка «Буксировка» на вкл…", "dp_feedback": "Падение в tests/ui/ уже на базе блокирует приёмку; хорошо бы знать baseline заранее. Случайно сделал git stash pop старого стэша (откатил)."}
+{"t": "2026-10-21T04:19:32", "by": "executor", "task": "TW-11", "ev": "reported", "commits": ["24f44ee5"], "note": "done: Модели winch (LOD 660/176/24 треугольников) и release (224/36) собраны в Blender, экспортированы в glb с вершинными цве…"}
+{"t": "2026-10-21T04:19:40", "by": "coordinator", "task": "TW-9", "ev": "checked", "note": "2/3 tow_k7=ok:4/4; tests/ui/=FAIL:146/147; FAIL test_scroll_scr…; gdcheck=ok:exit 0"}
+{"t": "2026-10-21T04:19:49", "by": "coordinator", "task": "TW-11", "ev": "checked", "note": "2/2 tow_k8=ok:2/2; textures=ok:exit 0"}
+{"t": "2026-10-22T01:54:30", "by": "main", "task": "TW-4", "ev": "cancelled", "note": "модуль отменён пользователем 2026-10-22"}
+{"t": "2026-10-22T01:54:30", "by": "main", "task": "TW-5", "ev": "cancelled", "note": "модуль отменён пользователем 2026-10-22"}
+{"t": "2026-10-22T01:54:30", "by": "main", "task": "TW-9", "ev": "cancelled", "note": "модуль отменён пользователем 2026-10-22"}
+{"t": "2026-10-22T01:54:31", "by": "main", "task": "TW-11", "ev": "cancelled", "note": "модуль отменён пользователем 2026-10-22"}
+{"t": "2026-10-22T01:54:38", "by": "main", "task": null, "ev": "note", "note": "Модуль отменён пользователем 2026-10-22; задачи TW-4/5/9/11 отменены, в main не сливается"}
