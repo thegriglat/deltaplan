@@ -66,7 +66,7 @@ related: ["docs/contracts/trike-model.md", "docs/plan/trike.md", "docs/guide/mod
 винтом в `/home/greg/deltaplan/build/screenshots/trike-model/` (по запросу главной 2026-10-22 — кадры раньше позы пилота).
 
 ### TK-6. Кадры с пилотом и проверка посадки (dp-researcher, sonnet), после TK-2 и TK-4
-`render_trike.py --pilot`: тележка с сидящим пилотом — ≥ 5 ракурсов и крупно посадка, замер посадки числами
+`render_trike.py --pilot` (только PNG, видео не делать — решение пользователя 2026-10-22): тележка с сидящим пилотом — ≥ 5 ракурсов и крупно посадка, замер посадки числами
 (`fit.json`: зазоры, проникание) в тот же каталог.
 
 ### TK-5. Документация (dp-writer, sonnet), после шлюза по кадрам
