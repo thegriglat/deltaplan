@@ -1,0 +1,51 @@
+{
+  "status": "done",
+  "summary": "Гайд, сайт (mechanics, player-guide, approaches) и CHANGELOG описывают одну физику игрока — «Маятник» по RM-К1; FlightModel (rate) подан как модель ботов. В 6 контрактах в затронутых разделах добавлена строка «Заменено RM-К1 (docs/contracts/roll-modes.md): …», updated обновлён, версии не менялись.",
+  "commits": [
+    "RM-2: доки, контракты, сайт, CHANGELOG — игроку только «Маятник»"
+  ],
+  "checks": [
+    {
+      "name": "docs-check",
+      "value": "exit 0, ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "no-mode-names",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "31 файл в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "ui-controls.md не правился: упоминаний режимов крена в нём нет",
+    "site/content/research/_index.* не правился: «смещение веса» там физический термин (Жеглов), не название режима",
+    "в прежнем тексте docs/guide/flight/model.md остались ссылки на параметры rate-пути; описание удалённых параметров weight_shift.* убрано"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RM-2",
+  "uncertain": [
+    {
+      "where": "docs/guide/flight/ground-pose.md:42",
+      "why": "замеры FB-3 сделаны на удалённом режиме; описал как «до RM-К1, FlightModel (боты)», числа оставил",
+      "checked": "числа не пересчитывал, это история замера"
+    },
+    {
+      "where": "CHANGELOG.md:2",
+      "why": "строка про ленточку и ботов опирается на гайд, проверки кода нет (код меняет RM-1)",
+      "checked": "сверено с docs/guide и RM-К1"
+    }
+  ],
+  "dp_feedback": "Дополнение координатора с путём в обратных кавычках выпало и пришло обрезанным в task show; полный текст пришлось доставать через --full. docs index нужно запускать после правки summary — подсказка в docs check помогла бы.",
+  "t": "2026-10-22T02:38:03",
+  "by": "executor"
+}
