@@ -831,17 +831,21 @@ func _external_force(h: float, xp: Vector3, vp: Vector3, H: Vector3, R: Basis) -
 		var cp = lk.get("compliance_m_per_n", 0.0)
 		var dm = lk.get("damping_s", 0.0)
 		var at = lk.get("at", "pilot")
+		var av = lk.get("anchor_vel", Vector3.ZERO)
+		var lr = lk.get("length_rate_ms", 0.0)
 		if (
 			an is Vector3 and is_finite(an.x) and is_finite(an.y) and is_finite(an.z)
 			and (ln is float or ln is int) and is_finite(ln) and ln >= 0.0
 			and (cp is float or cp is int) and is_finite(cp) and cp >= 0.0
 			and (dm is float or dm is int) and is_finite(dm) and dm >= 0.0
 			and (at == "pilot" or at == "hang")
+			and av is Vector3 and is_finite(av.x + av.y + av.z)
+			and (lr is float or lr is int) and is_finite(lr)
 		):
 			# якорь в локальных NED: мир игры → NED → вычесть локальное начало
 			res[2] = {
 				"anchor": ned(an) - Vector3(_on, _oe, _od), "length": float(ln), "comp": float(cp),
-				"tau": float(dm), "hang": at == "hang",
+				"tau": float(dm), "hang": at == "hang", "avel": ned(av), "lrate": float(lr),
 			}
 		else:
 			_ext_warn("link")
@@ -860,7 +864,7 @@ func _ext_warn(key: String) -> void:
 func _solve_link(h: float, lk: Dictionary, R: Basis, pos_prev: Vector3, r_prev: Basis) -> float:
 	var anchor: Vector3 = lk.anchor
 	if not lk.hang:
-		var t := chain.project_anchor(h, anchor, lk.length, lk.comp, lk.tau)
+		var t := chain.project_anchor(h, anchor, lk.length, lk.comp, lk.tau, lk.avel, lk.lrate)
 		if t > 0.0:
 			_link_f = (anchor - chain.pilot()).normalized() * t
 		return t
@@ -877,7 +881,8 @@ func _solve_link(h: float, lk: Dictionary, R: Basis, pos_prev: Vector3, r_prev: 
 	var w := 1.0 / _m_wing + rn.dot(iw_inv * rn)
 	var g: float = lk.tau / h
 	var Hprev: Vector3 = pos_prev + r_prev * _r_hang_b
-	var dl: float = (-C - g * nn.dot(Hp - Hprev)) / ((1.0 + g) * w + lk.comp / (h * h))
+	var c_dot_h: float = nn.dot((Hp - Hprev) - lk.avel * h) - lk.lrate * h
+	var dl: float = (-C - g * c_dot_h) / ((1.0 + g) * w + lk.comp / (h * h))
 	if dl >= 0.0:
 		return 0.0
 	_pos += nn * (dl / _m_wing)

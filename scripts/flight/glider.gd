@@ -29,7 +29,7 @@ var ground_fn: Callable = Callable()
 var visual: GliderVisual = null
 var _ext_fn: Callable = Callable()  ## TW-К4: внешняя сила (трос)
 var _link_t := 0.0  ## натяжение звена, Н (FlightModel)
-const LINK_K_MAX := 1.0e5  ## Н/м, предел жёсткости явного звена в FlightModel
+var _link_warned := false
 
 var _configured := false
 var _placed := false
@@ -185,7 +185,7 @@ func _teleport() -> void:
 ## TW-К4: внешняя сила (трос). fn(s: Dictionary) -> {"pilot": Vector3, "hang": Vector3}, Н, мир игры
 ## (вход и выход — в docs/contracts/tow.md). «Маятник» зовёт fn на каждом подшаге; FlightModel
 ## (weight_shift/rate) — раз в шаг физики, с позицией и скоростью ЦМ, и кладёт pilot + hang в external_force;
-## звено link там — явная пружина (v2), в «Маятнике» — неявное XPBD-звено модели.
+## звено link в FlightModel игнорируется (push_warning), в «Маятнике» — неявное XPBD-звено модели.
 func set_external_force(fn: Callable) -> void:
 	_ext_fn = fn
 	if model is PendulumModel:
@@ -214,20 +214,9 @@ func _step_external_force(dt: float) -> void:
 			var v = r.get(k, Vector3.ZERO)
 			if v is Vector3 and is_finite(v.x) and is_finite(v.y) and is_finite(v.z):
 				f += v
-		var lk = r.get("link")
-		if lk is Dictionary and lk.get("anchor") is Vector3 and is_finite(lk.anchor.x + lk.anchor.y + lk.anchor.z):
-			# только для совместимости вызова: явная пружина-демпфер (жёсткость не выше LINK_K_MAX — шаг 1/120 с)
-			var d: Vector3 = model.position - lk.anchor
-			var len := d.length()
-			var c := len - float(lk.get("length_m", 0.0))
-			if c > 0.0 and len > 1.0e-9:
-				var cp := float(lk.get("compliance_m_per_n", 0.0))
-				var k := minf(1.0 / cp, LINK_K_MAX) if cp > 0.0 else LINK_K_MAX
-				var nn := d / len
-				var t: float = k * (c + float(lk.get("damping_s", 0.0)) * model.velocity.dot(nn))
-				if t > 0.0:
-					_link_t = t
-					f -= nn * t
+		if r.get("link") is Dictionary and not _link_warned:
+			_link_warned = true
+			push_warning("Glider: звено link в FlightModel не поддержано — буксировка только в «Маятнике» (TW-К4)")
 	model.external_force = f
 
 

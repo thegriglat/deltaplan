@@ -105,9 +105,13 @@ func project(
 
 ## TW-К4: одностороннее звено XPBD «якорь — ЦМ пилота» (трос): C = |x − якорь| − length, действует
 ## только при C > 0; податливость comp (м/Н) → α/h², демпфирование tau (с) — XPBD с демпфированием,
-## γ = tau/h (сила k·(C + tau·Ċ)). Якорь неподвижен (бесконечная масса). → натяжение λ/h², Н (≥ 0).
+## γ = tau/h (сила k·(C + tau·Ċ)). Якорь — бесконечная масса, движется со скоростью anchor_vel; демпфирование по скорости растяжения
+## Ċ = n·(v − anchor_vel) − length_rate (dL/dt лебёдки), не по абсолютной скорости тела. → натяжение λ/h², Н (≥ 0).
 ## Вызывать после integrate, до project: позиции до шага запомнил integrate.
-func project_anchor(h: float, anchor: Vector3, length: float, comp: float, tau: float) -> float:
+func project_anchor(
+	h: float, anchor: Vector3, length: float, comp: float, tau: float,
+	anchor_vel := Vector3.ZERO, length_rate := 0.0
+) -> float:
 	var i := links - 1
 	var d: Vector3 = x[i] - anchor
 	var L := d.length()
@@ -117,7 +121,8 @@ func project_anchor(h: float, anchor: Vector3, length: float, comp: float, tau: 
 	var nn := d / L
 	var w := inv_m[i]
 	var g := tau / h
-	var dl := (-C - g * nn.dot(x[i] - _prev[i])) / ((1.0 + g) * w + comp / (h * h))
+	var c_dot_h := nn.dot((x[i] - _prev[i]) - anchor_vel * h) - length_rate * h  # Ċ·h: скорость растяжения
+	var dl := (-C - g * c_dot_h) / ((1.0 + g) * w + comp / (h * h))
 	if dl >= 0.0:  # трос не толкает
 		return 0.0
 	x[i] += nn * (w * dl)
