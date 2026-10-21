@@ -111,7 +111,7 @@ func _force(s: Dictionary) -> Dictionary:
 	if _gone:
 		return {}
 	var h: float = s.h
-	var d_vec: Vector3 = anchor_pos - (s.pilot_pos as Vector3)
+	var d_vec: Vector3 = anchor_pos - p
 	_update_angles(s, d_vec)
 	if not _len_init or not _started:
 		if kind == "winch_static":
@@ -182,6 +182,7 @@ func _regulate(s: Dictionary, t: float, ea: float, h: float) -> void:
 		target = t_ground * minf(_t_phase / ramp, 1.0)
 	else:
 		_climb_t += h
+		# переход T* от tension_ground к tension_climb за ramp_s (плавный, без ступени; К5 даёт только конечное значение)
 		target = lerpf(t_ground, t_climb, minf(_climb_t / ramp, 1.0))
 		var top_a := _c("top_angle_deg")
 		if rope_angle_deg >= top_a:

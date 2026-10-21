@@ -86,8 +86,9 @@ func test_idle_then_slack_then_ground() -> void:
 	print("    idle→ground: фазы %s, T max %.0f Н, макс скачок за подшаг %.0f Н" % [seen.keys(), tmax, jump])
 	check(seen.has("slack") and seen.has("ground"), "после start(): slack → ground: %s" % [seen.keys()])
 	var tg: float = r.tow.cfg_rope.weak_link_daN
-	check(tmax <= Config.get_config("tow").winch_static.tension_ground_daN * 10.0 * 1.25,
-		"натяжение на старте не выше tension_ground·1,25: %.0f Н" % tmax)
+	var t_set: float = Config.get_config("tow").winch_static.tension_ground_daN * 10.0
+	check(tmax <= t_set, "натяжение на старте не выше tension_ground: %.0f Н" % tmax)
+	check(jump <= t_set, "скачок натяжения за подшаг не выше tension_ground: %.0f Н" % jump)
 	check(tg > 0.0, "конфиг прочитан")
 
 
@@ -228,6 +229,19 @@ func test_free_rope_reeled_in() -> void:
 		ymin = minf(ymin, r.tow.end_pos.y)
 	print("    свободный трос: с высоты %.0f м, v max %.1f м/с, выбран за %.1f с, ymin %.2f" % [y0, vmax, tt, ymin])
 	check(ymin < y0 - 5.0, "конец снижается")
-	check(vmax < 60.0, "скорость конца ограничена (парашют): %.1f м/с" % vmax)
+	check(vmax < 60.0, "скорость конца ограничена: %.1f м/с (её задаёт выбирание лебёдкой)" % vmax)
+	# купол отдельно: длинный трос без выбирания, конец падает на слабине до установившейся скорости
+	var cfg_r: Dictionary = r.tow.cfg_rope
+	var v_term := sqrt(2.0 * float(cfg_r.end_mass_kg) * 9.81 / (1.225 * float(cfg_r.drogue_cd_area_m2)))
+	var fr := TowLine.create("winch_static", Vector3(0.0, 0.0, -3000.0), {"max_reel_speed_ms": 0.0})
+	fr.force_fn().call({"h": 0.01, "pilot_pos": Vector3(0.0, 2000.0, 0.0), "hang_pos": Vector3(0.0, 2000.0, 0.0),
+		"pilot_vel": Vector3.ZERO, "hang_vel": Vector3.ZERO, "link_tension_n": 0.0, "on_ground": false,
+		"wing_basis": Basis.IDENTITY, "t": 0.0})
+	fr.release("pilot")
+	fr.length_m = 5000.0
+	for i in int(60.0 / DT):
+		fr.step_free(DT)
+	print("    купол: скорость снижения %.2f м/с, установившаяся %.2f м/с" % [-fr.end_vel.y, v_term])
+	check(absf(-fr.end_vel.y - v_term) < 0.1 * v_term, "конец падает с установившейся скоростью купола")
 	check(r.tow.reeled_in, "reeled_in за конечное время: %.1f с" % tt)
 	check(r.tow.points(8).is_empty(), "после выбора points пусто")
