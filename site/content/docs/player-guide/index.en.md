@@ -33,7 +33,7 @@ On a small window (for example 1024×600) the column of buttons scrolls with the
 "Flight settings" is only a choice of conditions. "Done" saves it and returns to the menu, "Back" closes the window without changes; you then fly with the "Fly" button. The window scrolls and the bottom buttons are always visible. There are three tabs:
 
 - **Place.** Daytime temperature (the typical one for the month beside it), forecast wind and where it comes from (including "headwind"), cloudiness, start time and date. The place is set with "Pick on map…" (then "Pick this point"), "Popular places…" or the "Recent places" list at the bottom — its entries can be renamed, pinned and removed.
-- **Apparatus.** Wing class, model, wing data (area, glide ratio, wind limit), pilot weight and apparatus parameters. Some parameters work only in the "Pendulum" control mode.
+- **Apparatus.** Wing class, model, wing data (area, glide ratio, wind limit), pilot weight and apparatus parameters. These parameters act on "Pendulum", the player's only physics.
 - **Goals.** The set of flight goals, a route, loading a task and a track — on the page [Flight goals and tracks](/docs/goals/).
 
 Some starts have fixed weather (this is how the "Training" cards work): then the line under the fields says what it is, and the weather fields do not change it.
@@ -72,7 +72,7 @@ Opened from the main menu and from the pause menu. There are five tabs; "Save" a
 |---|---|
 | **Game** | language, pilot name (empty — Steam nickname), wind model ("GPU solver (terrain flow)" or "Heuristic (wind profile without terrain)"), wind cache on disk (0–2000 MB, 200 by default), time speed, number of other pilots in the sky (0–20, from the next flight), pilot names, peak labels, pilot shift indicator, clock, goal cylinders, compass |
 | **Graphics and view** | graphics preset, render scale, grass density, haze toward the sun, field of view, cockpit camera, helmet; VSync, frame rate limit, window mode and resolution |
-| **Controls** | mouse sensitivity, invert pitch, roll control ("Simple (arcade)", "Weight shift", "Pendulum"), roll by mouse ("like the bar" or "like the body"), the "Control bar / joystick" section |
+| **Controls** | mouse sensitivity, invert pitch, roll by mouse ("like the bar" or "like the body"), the "Control bar / joystick" section |
 | **Sound** | vario volume and vario sound (preset) |
 | **Motion platform** | motion output to a motion platform |
 

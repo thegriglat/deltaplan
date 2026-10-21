@@ -6,11 +6,11 @@ description: "How flight is computed in the Pendulum mode: a wing of 16 strips, 
 
 # Wing and flight
 
-The main control mode is "Pendulum": the wing and the pilot are computed as two bodies. The wing is a rigid
+The player's physics is a single one, "Pendulum": the wing and the pilot are computed as two bodies. The wing is a rigid
 body whose lift is assembled from strips; the pilot hangs under it on the suspension and steers by moving
 relative to the control bar. Roll, pitch, sideslip and yaw come from forces and moments, not from a commanded
-turn rate. The two older, simpler modes ("Weight shift" and "Simple") are still in the settings; they are
-described in a short section at the end. Below: how it is built, where the model lies, and which wings are in
+turn rate. A simpler model — a point with a commanded bank — is left only for bots and the autopilot;
+it is described in a short section at the end. Below: how it is built, where the model lies, and which wings are in
 the game.
 
 ## How flight is computed
@@ -89,7 +89,7 @@ dash — one number fitted to the whole fleet.
 
 ### Pilot displacement indicator
 
-At the bottom centre of the screen is a circle with a crosshair, in every control mode and camera (since version 1.5.8).
+At the bottom centre of the screen is a circle with a crosshair, in every camera (since version 1.5.8).
 The dot shows where the pilot's body is relative to the hang point: forward or back — pushing or pulling, sideways —
 roll; at the centre the pilot hangs with no effort. It can be switched off in the interface settings. The indicator
 shows how far the body is from neutral and whether the travel has reached its limit.
@@ -125,7 +125,7 @@ jitter were not measured. Research: [docs/research/control-bar-input.md](/docs/r
 ### The "Vehicle" tab
 
 The "Flight settings" screen is split into the "Place" and "Vehicle" tabs. "Vehicle" holds the wing class and
-model, the pilot mass and four parameters that act only in the "Pendulum" mode; the values are stored per
+model, the pilot mass and four parameters that act on "Pendulum"; the values are stored per
 wing and reset to the wing's defaults.
 
 | Parameter | Range | Default | What it does |
@@ -313,29 +313,18 @@ the literature: Cook & Spottiswoode 2005, Takamatsu & Ochi 2022, Kroo 1981, the 
 manuals, Zheglov 1983. The consulting pilot's answers (11 Oct) are used in the class defaults, but it is one
 respondent, qualitative; where an answer disagrees with the model, the model was not tuned to it.
 
-## Older modes
+## The bots' model
 
-"Settings → Controls → Roll control" also offers the two older modes. They are computed by the `FlightModel`
-class — a point with orientation whose roll and pitch are set kinematically; the heading follows the airspeed
-exactly. They have no sideslip and yaw as a separate degree of freedom, the string in a steady turn points
-straight back, there is no pendulum pilot, and the flare near the ground is a phenomenological model. Bots and
-the autopilot fly on `FlightModel`.
+Bots and the autopilot fly not on "Pendulum" but on the `FlightModel` class — a point with orientation whose roll
+and pitch are set kinematically; the heading follows the airspeed exactly. It has no sideslip and yaw as a separate
+degree of freedom, the string in a steady turn points straight back, there is no pendulum pilot, and the flare near
+the ground is a phenomenological model. The roll input here directly sets the roll rate (`rate`): with no input the
+bank holds, a 45°→45° reversal ≈ 2.3–2.7 s. The turn is coordinated: radius \(V^2/(g\,\mathrm{tg}\varphi)\), in a turn
+the speed grows as \(\sqrt n\) and the sink rate as \(n^{1.5}\). The control frame sets the angle of attack (0 — trim,
+−1 — acceleration, +1 — up to the stall); the phugoid is damped by an angle-of-attack term ∝ \(dV/dt\). The player
+cannot select this model: there is no choice of roll physics in the settings, and the two former player modes (weight shift and "simple") are removed from the game.
 
-- **"Weight shift"** (`weight_shift`). Mouse sideways and the stick set the pilot's position across the
-  control frame (−1…+1); the wing settles to the roll rate with the time constant `roll_time_constant_s`:
-
-  $$
-  \dot\varphi = u\cdot k(V)\cdot\text{roll\_rate\_max\_dps} - \big(\text{roll\_stability\_per\_s} +
-  \text{roll\_stability\_steep\_per\_s}\cdot(\varphi/45°)^2\big)\cdot\varphi
-  $$
-
-  The turn is coordinated: radius \(V^2/(g\,\mathrm{tg}\varphi)\), in a turn the speed grows as \(\sqrt n\) and
-  the sink rate as \(n^{1.5}\). The control frame sets the angle of attack (0 — trim, −1 — acceleration, +1 —
-  up to the stall); the phugoid is damped by an angle-of-attack term ∝ \(dV/dt\).
-- **"Simple"** (`rate`). The input directly sets the roll rate; with no input the bank holds. A 45°→45°
-  reversal ≈ 2.3–2.7 s.
-
-Their stall is a dynamic stall of the sail as a plate across the flow
+Its stall is a dynamic stall of the sail as a plate across the flow
 (\(C_L = C_N\sin\alpha\cos\alpha\), \(C_D = C_N\sin^2\alpha\), \(C_N=2\)); the nose drops by itself after
 `nose_drop_delay_s`; in a large bank — a wing drop. The flare uses thresholds and a "hanging" wing.
 Parameters are in `configs/flight.json` and `configs/controls.json`, the full description in
@@ -361,8 +350,7 @@ exists in open sources) the answers of a consulting pilot; the polars and parame
 
 The handling of each wing is its own: strip geometry, centre of mass, inertia, sail moment and drag
 multiplier are in the `pendulum` block of `configs/wings/<id>.json`; the "Vehicle" defaults come from the
-wing class (see above). The wing also carries the parameters of the older modes (`weight_shift.*`,
-`stall.*`), but "Pendulum" does not use them.
+wing class (see above). The wing also carries `stall.*` parameters, but "Pendulum" does not use them (they are for the bots' model).
 
 ![Icaro Piuma from behind in flight](/docs/screenshots/site/06_icaro_piuma_сзади.jpg "Icaro Piuma, a kingposted trainer")
 
@@ -385,9 +373,9 @@ pilots flew. Further decisions:
   game by the user's decision of 28 September 2026: the config, the 3D model and the name key were
   deleted, the id `kingpost` in tests was replaced with `laminar` ({{< commit 8633fa7 >}},
   {{< commit e2704c4 >}}) with no compatibility layer for saved settings — "there are no users".
-- **Wing and pilot as two bodies** instead of one point with kinematic roll: this became the main mode. The
-  older modes remain selectable: they are simpler, bots and the network fly on them, and "Weight shift" was
-  calibrated against pilots' answers.
+- **Wing and pilot as two bodies** instead of one point with kinematic roll: this became the only physics for
+  the player. The two older roll modes (weight shift and "simple") were removed from the game: maintaining three physics
+  instead of one was not worth it; the simpler model stays for bots only.
 
 ## Further reading
 
