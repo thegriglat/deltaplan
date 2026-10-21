@@ -1,45 +1,57 @@
 {
-  "status": "partial",
-  "summary": "tow_kind в FlightSettings (to_dict/from_dict, неизвестное -> пусто), --tow= в LaunchOptions, строка «Буксировка» на вкладке «Место» (виды из tow.kinds площадки, умолчание первый вид, в сетевой зоне серая), ключи ru/en, тест test_tow_k7. Приёмка tests/ui/ краснеет на уже существующем падении.",
+  "status": "done",
+  "summary": "Добавлен тест test_refresh_same_place_keeps_choice (refresh того же места не меняет выбор; смена площадки — умолчание); лишний r-TW-9.json удалён.",
   "commits": [
-    "383fa3b5 tow: TW-9 — выбор буксировки при старте"
+    "227287d3 тест refresh"
   ],
   "checks": [
     {
       "name": "tow_k7",
-      "value": "4/4",
+      "value": "PASS",
       "pass": true
-    },
-    {
-      "name": "tests/ui/",
-      "value": "146/147; test_scroll_screens падает и на базе 05bbcd9c (экран «Настройки», не мой)",
-      "pass": false
     },
     {
       "name": "gdcheck",
-      "value": "exit 0",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_menu_setup",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_screens",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_popular_places",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_recent_places",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_favorites",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_language",
+      "value": "PASS",
       "pass": true
     }
   ],
-  "not_done": [
-    "tests/ui/ не зелёный из-за test_menu_scroll::test_scroll_screens (settings_panel, вне скоупа)"
-  ],
+  "not_done": [],
   "questions": [],
   "images": [],
   "how_to_check": ".dpcli/dpcli accept TW-9",
-  "uncertain": [
-    {
-      "where": "scripts/ui/flight_setup_screen.gd:_refresh_tow",
-      "why": "Строка не проверялась визуально; умолчание применяется при смене места, при открытии экрана сохраняется прежний выбор",
-      "checked": "Только контрактный тест статических помощников и загрузка экрана в test_menu_scroll (flight_setup проходит по высоте)"
-    },
-    {
-      "where": "scripts/game/tow_site.gd",
-      "why": "TW-8 в ветке ещё нет; читаю tow.kinds прямо из словаря площадки (PlacePickRow.builtin_site)",
-      "checked": "-"
-    }
-  ],
-  "dp_feedback": "Падение в tests/ui/ уже на базе блокирует приёмку; хорошо бы знать baseline заранее. Случайно сделал git stash pop старого стэша (откатил).",
-  "t": "2026-10-21T04:19:11",
+  "uncertain": [],
+  "dp_feedback": "",
+  "t": "2026-10-22T02:08:42",
   "by": "executor"
 }
