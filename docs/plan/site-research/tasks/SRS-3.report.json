@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "Страница «Фазы ветра» (ru+en): добавлены порог несходимости N_c(U) и U/N, штиль Fr ≲ 0,25, линия тени 9,9° (хребет 7,3°) против 12° игры; 4 графика с подписями; новый пункт в «Границах модели».",
+  "commits": [
+    "69cfa337 site: фазы ветра — порог U/N, штиль, линия тени, 4 графика"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "4",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "fig_cases_game.png и fig_order_game.png не использованы (лимит 3–5; случаи игры — 96, шумно); fig_nonconv_fr_game заменён на fig_nonconv_fr_hg (7320 случаев, на game-версии доверительные интервалы 0–0,8)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-3 --dry",
+  "uncertain": [
+    {
+      "where": "wind-phases.ru.md: раздел {#picard-limit}",
+      "why": "расхождение источников: в штиле ω=0,5 сходится 19–30 % (AP-13) против 14 % GRID при 2000 итераций (AP-14); взяты числа AP-13/§0 results",
+      "checked": "docs/research/air_phase_results.md строки 38, 103"
+    },
+    {
+      "where": "wind-phases.*.md: {#lee-shadow}",
+      "why": "fig_sections.png лежит в analysis/AP-10/, не в out/ (в карточке путь неточен); угол 12° сверен с configs/atmosphere.json",
+      "checked": "git ls-files, configs/atmosphere.json:152"
+    }
+  ],
+  "dp_feedback": "Путь fig_sections.png в карточке неверный (out/ его не содержит); в таблице README.md тоже. Лучше сверять пути картинок командой при создании карточки.",
+  "t": "2026-10-21T19:28:18",
+  "by": "executor"
+}
