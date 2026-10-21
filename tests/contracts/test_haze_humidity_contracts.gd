@@ -3,7 +3,7 @@ extends TestCase
 ## HH2 (воздух 700 гПа), HH5 (Tmax и суточная амплитуда), HH6 (ветер, тропопауза, перистые).
 
 const DOC := "res://docs/contracts/haze-humidity.md"
-const VERSIONS := {"HH1": 1, "HH2": 1, "HH3": 1, "HH4": 1, "HH5": 1, "HH6": 1}
+const VERSIONS := {"HH1": 1, "HH2": 2, "HH3": 1, "HH4": 1, "HH5": 1, "HH6": 2}
 const GRID := "res://data/climate/dew_point_1deg.bin"
 const UPPER := "res://data/climate/upper_air_1deg.bin"
 const SURFACE := "res://data/climate/surface_t_1deg.bin"
@@ -134,7 +134,8 @@ func test_upper_air_format() -> void:
 	var comp_size := f.get_32()
 	var year0 := f.get_32()
 	var year1 := f.get_32()
-	check(year0 >= 1940 and year1 >= year0, "годы климатологии %d–%d" % [year0, year1])
+	var stub := year0 == 0 and year1 == 0
+	check(stub or (year0 >= 1940 and year1 >= year0), "годы климатологии %d–%d (0–0 — заглушка)" % [year0, year1])
 	var n3 := nmonth * nlat * nlon
 	check(raw_size == 2 * 2 * n3, "raw_size по формуле")
 	check(file_len == HEADER + comp_size, "размер файла = 64 + comp_size")
@@ -235,7 +236,8 @@ func test_upper_misc_format() -> void:
 	var wr_scale := f.get_float()
 	var trop_scale := f.get_float()
 	var hcc_scale := f.get_float()
-	f.get_float()
+	var stub_mask := f.get_32()
+	check(stub_mask >= 0 and stub_mask <= 7, "stub_mask 0..7: %d" % stub_mask)
 	check(wr_scale > 0.0 and trop_scale > 0.0 and hcc_scale > 0.0, "масштабы > 0")
 	var raw_size := f.get_32()
 	var comp_size := f.get_32()
