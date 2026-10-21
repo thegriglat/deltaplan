@@ -1,0 +1,11 @@
+{
+  "module": "site-research",
+  "plan": "docs/plan/site-research.md",
+  "contracts": "docs/contracts/site-research.md",
+  "branch": "feature/site-research",
+  "copy": "~/deltaplan-site-research",
+  "created": "2026-10-21T19:04:29",
+  "code": "SRS",
+  "area": "release",
+  "base": "main"
+}
