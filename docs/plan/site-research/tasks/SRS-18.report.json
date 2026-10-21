@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Новая страница mechanics/motion-platform (ru+en): что шлёт игра (таблица величин), форматы SRS/Generic, настройки по locale/ui.csv, непрерывный поток и множитель 0,3, что проверено/не проверено, где модель врёт. Картинок нет (по карточке не обязательны).",
+  "commits": [
+    "415a2e32 site: страница «Платформы движения» (ru+en)"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Картинок/графиков нет: готовых кадров нет, схема потока заменена таблицей"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-18",
+  "uncertain": [
+    {
+      "where": "index.ru.md: раздел «Где модель врёт»",
+      "why": "точного названия режима rate в UI не нашёл, написал «режимы без маятника (в т.ч. Смещение веса)»",
+      "checked": "locale/ui.csv"
+    }
+  ],
+  "dp_feedback": "docs/guide/motion-rig.md (updated 2026-10-15) не отражает по смыслу в начале раздел «Форматы» — ground_accel_scale/ramp_s описаны только в конце (MR-6); расхождений с кодом по дефолтам не найдено. rtk перехватывает grep: понадобился /usr/bin/grep.",
+  "t": "2026-10-21T19:47:59",
+  "by": "executor"
+}
