@@ -1,0 +1,58 @@
+{
+  "id": "TW-9b",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Буксировка только в режиме «Маятник»: экран старта и --tow",
+  "goal": "По TW-К7 v2: в режимах крена weight_shift/rate строка «Буксировка» неактивна с подписью setup_tow_mode_off, --tow отклоняется с предупреждением, tow_kind пустой; режим не переключается за игрока.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К7",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-9b",
+  "branch": "tow/TW-9b",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/game/launch_options.gd",
+    "scripts/game/flight_settings.gd",
+    "locale/ui.csv",
+    "tests/contracts/test_tow_k7.gd"
+  ],
+  "dont_touch": [
+    "scripts/ui/settings_panel.gd",
+    "scripts/flight",
+    "configs",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k7",
+      "tests": "tow_k7"
+    },
+    {
+      "name": "test_menu_setup",
+      "tests": "test_menu_setup"
+    },
+    {
+      "name": "test_screens",
+      "tests": "test_screens"
+    },
+    {
+      "name": "test_language",
+      "tests": "test_language"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T02:21:09"
+}
