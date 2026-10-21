@@ -1,6 +1,6 @@
 extends TestCase
 ## Контракт TW-К6 (docs/contracts/tow.md): start_sites[].tow, TowSite.check, поляна-полоса.
-## Волжский (volzhsky.json) — задача TW-8b, здесь не проверяется.
+## Буксирное место wilotree_park.json (TW-8b) разбирается без сборки рельефа.
 
 const N := 81  # сетка 25 м: ±1000 м, внутри отступа 200 м — ±800 м
 const STEP := 25.0
@@ -119,3 +119,31 @@ func test_start_sites_tow_passthrough() -> void:
 	check(is_equal_approx(float(sites[0].tow.runway_length_m), 300.0), "runway_length_m как есть")
 	check(not sites[1].has("tow"), "без tow — ключа нет")
 	t.free()
+
+
+## Буксирное место (TW-8b): конфиг разбирается, у обеих площадок tow.kinds содержит winch_static и aerotow,
+## оси противоположны (356,8° и 176,8°), длина — заявленная 610 м, запись есть в «Популярных местах».
+func test_wilotree_park_config() -> void:
+	var loc: Dictionary = Config.get_config("locations/wilotree_park")
+	check(not loc.is_empty(), "locations/wilotree_park.json разобран")
+	check(Locations.is_builtin("wilotree_park"), "место встроенное")
+	var sites: Array = loc.get("start_sites", [])
+	check(sites.size() == 2, "две площадки: %d" % sites.size())
+	var hs: Array[float] = []
+	for s in sites:
+		check(s.get("tow") is Dictionary, "у %s есть tow" % s.get("id", "?"))
+		var tow: Dictionary = s.get("tow", {})
+		check(Array(tow.get("kinds", [])).has("winch_static"), "kinds содержит winch_static")
+		check(Array(tow.get("kinds", [])).has("aerotow"), "kinds содержит aerotow")
+		check(is_equal_approx(float(tow.get("runway_length_m", 0.0)), 610.0), "runway_length_m = 610")
+		check(is_equal_approx(float(tow.get("runway_width_m", 0.0)), 35.0), "runway_width_m = 35")
+		hs.append(float(s.heading_deg))
+	if hs.size() == 2:
+		check(absf(fposmod(hs[0] - hs[1], 360.0) - 180.0) < 0.01, "оси противоположны: %s" % [hs])
+	var found := 0
+	var cat: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/places/hg_takeoffs.json"))
+	for p in cat.get("takeoffs", []):
+		if String(p.get("id", "")).begins_with("builtin/wilotree_park/"):
+			found += 1
+			check(String(p.get("location", "")) == "wilotree_park", "location в записи каталога")
+	check(found == 2, "в hg_takeoffs.json две записи wilotree_park: %d" % found)
