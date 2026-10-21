@@ -99,3 +99,6 @@
 {"t": "2026-10-22T04:46:42", "by": "coordinator", "task": "TK-2", "ev": "accepted", "commits": ["ff04a7cd"], "note": "4/4 trike_model_k3=ok:2/2; pilot=ok:73/73; cockpit=ok:9/9; trike_model_k1=ok:3/3"}
 {"t": "2026-10-22T04:46:42", "by": "coordinator", "task": "TK-2", "ev": "merged"}
 {"t": "2026-10-22T04:46:52", "by": "coordinator", "task": "TK-8", "ev": "note", "note": "TK-2 влита (блок seat пересчитан под скелет пилота, seat_rear сдвинут на тот же Δz). Закоммитить своё, .dpcli/dpcli task sync TK-8, пересобрать trike.glb из нового trike_params.json, godot --import, тесты K1/K2, accept --dry, повторный report.", "addendum": true}
+{"t": "2026-10-22T04:47:32", "by": "executor", "task": "TK-8", "ev": "reported", "commits": ["82de55c3", "6cef6e72"], "note": "done: Модель тележки v2 (тандем, формованные кресла с трубами, бак, шасси с пружинами, Engine_LOD0 с UV0, деревянный винт 360…", "dp_feedback": "task show обрезает длинные дополнения; нужен полный вывод. task sync удалил неотслеживаемый r-<ID>.json."}
+{"t": "2026-10-22T04:47:54", "by": "coordinator", "task": "TK-8", "ev": "checked", "note": "3/3 trike_model_k2=ok:2/2; trike_model_k1=ok:3/3; textures=ok:exit 0"}
+{"t": "2026-10-22T04:47:54", "by": "coordinator", "task": "TK-8", "ev": "accepted", "note": "по отчёту; вид — кадры TK-6 и шлюз; трубы 50 мм по TK-7 тоньше прежних — вопрос в шлюзе"}
