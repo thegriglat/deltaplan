@@ -14,7 +14,7 @@ cycle) is derived from these numbers by the model, physically.
 ## How it works
 
 The "Flight setup…" screen sets three things: the **daytime temperature** (0…+40 °C, a slider with the hint
-"usually this month: …"), the **wind** (from 0 m/s at the launch; the top of the slider is the largest wind limit among the wing classes, currently 25 m/s; plus a direction, "headwind" or one of 8
+"usually this month: …"), the **wind** (open-terrain wind at 10 m, from 0 m/s; the top of the slider is the largest wind limit among the wing classes, currently 25 m/s; plus a direction, "headwind" or one of 8
 compass points) and the **cloud cover** ("Clear / Partly cloudy / Overcast"). `WeatherModel.derive` (pure
 functions, `scripts/atmosphere/weather_model.gd`, parameters in `configs/weather_model.json`) turns these
 three numbers into the same parameter dictionary that used to be hard-coded in the `weak/medium/strong`
@@ -63,6 +63,27 @@ The sky veil dims the sun for the sources only beyond the chosen sky cover, not 
 **Cloudiness from the margin `m`**: the share of dry (cloudless) thermals, the cloud thickness, the
 probability of overdevelopment and the share of thermals that grow into a thunderstorm cell (Cb) all depend
 on the single number `m`. More about thunderstorms is on the page [“Thermals”](/mechanics/air-model/thermals/).
+
+## Forecast wind is open-terrain wind {#forecast-wind}
+
+The game reads the wind number in the "Flight setup…" window as the **open-terrain wind at 10 m**: the
+wind over a flat field, away from mountains and forest. The air field is computed over the terrain, so at a
+particular launch the wind can differ from the forecast.
+
+- **Launch on a windward slope or ridge.** The flow speeds up and the wind over the launch comes out
+  stronger than the forecast. In that case the model slightly weakens the inflow at the edge of the area
+  so that the launch gets the set number, as before.
+- **Launch in the lee (behind a mountain or ridge).** Here the wind is honestly weaker than the forecast.
+  Previously the model fitted the wind at such a launch to the forecast by inflating the inflow over the
+  whole area: at 6 m/s on a volcanic island this gave 25-38 m/s at 100-200 m. Since version 1.5.19 there
+  is no such fitting: the inflow is not boosted, and the wind at a lee launch is weaker than the forecast,
+  as it is behind a mountain in real life. Windward launches were not changed by this fix.
+
+What stays imprecise. Even without the fitting, at 100-200 m above ground the wind at island launches stays
+1.9-2.1 times the forecast: this is wind growth with height and speed-up over the island, not a model
+correction. It was measured at several launches on Rapa Nui, at Ongudai and at Askarovo (6 m/s, 12:00,
+15 July), not at every place in the game. For the wind itself and flow separation behind a ridge see
+[Heuristic mode](/mechanics/air-model/heuristic/) and [Wind field: phases and Picard](/mechanics/air-model/wind-phases/).
 
 ## The daily cycle
 
