@@ -184,6 +184,15 @@ var _fell_h: float = 0.5
 var _slope_d: float = 1.0
 var _tension_avg: float = 0.0
 var _hands_p := Vector3.ZERO  ## сила рук на пилота (NED), последний подшаг
+## TW-К4: внешняя сила (трос). Функция зовётся на каждом подшаге; external_force_n — сумма последнего вызова
+var external_force_n := Vector3.ZERO  ## Н, мир игры, только чтение: явные силы и звено последнего подшага
+var link_tension_n: float = 0.0  ## Н, натяжение звена на последнем подшаге (0 — нет звена/провис), только чтение
+var _link_f := Vector3.ZERO  ## сила звена на тело на прошлом подшаге (NED), для кажущегося веса рук
+var _link_R := Basis.IDENTITY
+var _link_hang := false  ## звено на подвеске крыла (иначе на пилоте)
+var _ext_fn: Callable = Callable()
+var _ext_t := 0.0
+var _ext_warned := false
 var _contact_pts: Array[Vector3] = []  ## нос, концы консолей (правая, левая), конец киля, трапеция — оси B
 ## Оценка касания (PD-35): пилот встаёт на ноги / пробегает / жёстко (pendulum.json → touchdown).
 var touchdown := PendulumTouchdown.new()
@@ -781,6 +790,113 @@ func _aero_update(air_fn: Callable, ground_fn: Callable = Callable()) -> void:
 	_aero_m_b = strips.moment_b
 
 
+## TW-К4: внешняя сила в точках пилота и подвески. fn(s: Dictionary) -> {"pilot": Vector3, "hang": Vector3}
+## (Н, мир игры; вход s — в docs/contracts/tow.md). Зовётся на каждом подшаге до сборки сил пилота.
+func set_external_force(fn: Callable) -> void:
+	_ext_fn = fn
+	if not fn.is_valid():
+		external_force_n = Vector3.ZERO
+		link_tension_n = 0.0
+		_link_f = Vector3.ZERO
+
+
+func clear_external_force() -> void:
+	set_external_force(Callable())
+
+
+## → [сила на пилота (NED), сила на подвеску (NED), звено]; звено — {} или {anchor (NED), length,
+## comp, tau, hang}. Нечисловое — ноль/без звена и один push_warning.
+func _external_force(h: float, xp: Vector3, vp: Vector3, H: Vector3, R: Basis) -> Array:
+	_ext_t += h
+	var res: Array = [Vector3.ZERO, Vector3.ZERO, {}]
+	var s := {
+		"t": _ext_t, "h": h, "pilot_pos": _world(xp), "pilot_vel": game(vp),
+		"hang_pos": _world(H), "hang_vel": game(_vel + _w.cross(R * _r_hang_b)),
+		"on_ground": _uprights, "wing_basis": wing_basis(), "link_tension_n": link_tension_n,
+	}
+	var r = _ext_fn.call(s)
+	var keys := ["pilot", "hang"]
+	var sum := Vector3.ZERO
+	for i in 2:
+		var v = r.get(keys[i], Vector3.ZERO) if r is Dictionary else null
+		if v is Vector3 and is_finite(v.x) and is_finite(v.y) and is_finite(v.z):
+			res[i] = ned(v)
+			sum += v
+		elif v != null:
+			_ext_warn(keys[i])
+	var lk = r.get("link") if r is Dictionary else null
+	if lk is Dictionary:
+		var an = lk.get("anchor")
+		var ln = lk.get("length_m")
+		var cp = lk.get("compliance_m_per_n", 0.0)
+		var dm = lk.get("damping_s", 0.0)
+		var at = lk.get("at", "pilot")
+		var av = lk.get("anchor_vel", Vector3.ZERO)
+		var lr = lk.get("length_rate_ms", 0.0)
+		if (
+			an is Vector3 and is_finite(an.x) and is_finite(an.y) and is_finite(an.z)
+			and (ln is float or ln is int) and is_finite(ln) and ln >= 0.0
+			and (cp is float or cp is int) and is_finite(cp) and cp >= 0.0
+			and (dm is float or dm is int) and is_finite(dm) and dm >= 0.0
+			and (at == "pilot" or at == "hang")
+			and av is Vector3 and is_finite(av.x + av.y + av.z)
+			and (lr is float or lr is int) and is_finite(lr)
+		):
+			# якорь в локальных NED: мир игры → NED → вычесть локальное начало
+			res[2] = {
+				"anchor": ned(an) - Vector3(_on, _oe, _od), "length": float(ln), "comp": float(cp),
+				"tau": float(dm), "hang": at == "hang", "avel": ned(av), "lrate": float(lr),
+			}
+		else:
+			_ext_warn("link")
+	external_force_n = sum
+	return res
+
+
+func _ext_warn(key: String) -> void:
+	if not _ext_warned:
+		_ext_warned = true
+		push_warning("PendulumModel: внешняя сила вернула нечисловое значение (%s) — принято за ноль" % key)
+
+
+## TW-К4: звено «якорь — точка тела» на подшаге (XPBD, после интегрирования, до цепи). Крыло — pos, R
+## (R — после поворота за подшаг; новая ориентация — в _link_R; _pos сдвигается здесь), прежние pos_prev, r_prev. → натяжение, Н; сила на тело — в _link_f (NED).
+func _solve_link(h: float, lk: Dictionary, R: Basis, pos_prev: Vector3, r_prev: Basis) -> float:
+	var anchor: Vector3 = lk.anchor
+	if not lk.hang:
+		var t := chain.project_anchor(h, anchor, lk.length, lk.comp, lk.tau, lk.avel, lk.lrate)
+		if t > 0.0:
+			_link_f = (anchor - chain.pilot()).normalized() * t
+		return t
+	var Hp: Vector3 = _pos + R * _r_hang_b
+	var d := Hp - anchor
+	var L := d.length()
+	var C: float = L - lk.length
+	if C <= 0.0 or L < 1.0e-9:
+		return 0.0
+	var nn := d / L
+	var r := R * _r_hang_b
+	var rn := r.cross(nn)
+	var iw_inv := R * _I_inv * R.transposed()
+	var w := 1.0 / _m_wing + rn.dot(iw_inv * rn)
+	var g: float = lk.tau / h
+	var Hprev: Vector3 = pos_prev + r_prev * _r_hang_b
+	var c_dot_h: float = nn.dot((Hp - Hprev) - lk.avel * h) - lk.lrate * h
+	var dl: float = (-C - g * c_dot_h) / ((1.0 + g) * w + lk.comp / (h * h))
+	if dl >= 0.0:
+		return 0.0
+	_pos += nn * (dl / _m_wing)
+	var dth: Vector3 = iw_inv * r.cross(nn * dl)
+	var ang := dth.length()
+	if ang > 1.0e-12:
+		_link_R = Basis(dth / ang, ang) * R
+	else:
+		_link_R = R
+	var t := -dl / (h * h)
+	_link_f = -nn * t
+	return t
+
+
 func _substep(h: float, input: ControlInput) -> void:
 	var R := _R
 	var Rt := R.transposed()
@@ -796,6 +912,26 @@ func _substep(h: float, input: ControlInput) -> void:
 	var f_p := E3 * (pilot_mass * Units.G) - va * (0.5 * rho * _pilot_cda * va.length())
 	var rel: Vector3 = Rt * (xp - H)
 	var fb := Vector3.ZERO
+	var ext_p := Vector3.ZERO  # внешняя сила на пилота (NED)
+	var ext_h := Vector3.ZERO  # внешняя сила на подвеску (NED)
+	var link: Dictionary = {}
+	var lnk_p := Vector3.ZERO  # сила звена на прошлом подшаге — только в кажущийся вес рук
+	var lnk_h := Vector3.ZERO
+	if _ext_fn.is_valid():
+		var fe := _external_force(h, xp, vp, H, R)
+		ext_p = fe[0]
+		ext_h = fe[1]
+		link = fe[2]
+		if not link.is_empty():
+			if _link_hang:
+				lnk_h = _link_f
+			else:
+				lnk_p = _link_f
+		f_p += ext_p
+		if ext_h != Vector3.ZERO:
+			var fh_b := Rt * ext_h
+			f_wb += fh_b
+			tb += _r_hang_b.cross(fh_b)
 	if _uprights:
 		# руки на стойках: горизонтальная сила — в хвате, вертикальная опора — под ЦМ крыла
 		var rg := R * ground.grip_b
@@ -816,9 +952,16 @@ func _substep(h: float, input: ControlInput) -> void:
 		var vrel: Vector3 = Rt * (vp - _vel) - wb.cross(_r_hang_b + rel)
 		# кажущийся вес пилота в осях крыла: подвеска ускоряется с системой, (A_крыла + D_п)/M + g
 		var d_p := f_p - E3 * (pilot_mass * Units.G)
-		var load_b: Vector3 = Rt * (d_p - (R * _aero_f_b + d_p) * (pilot_mass / mass))
+		d_p += lnk_p
+		var load_b: Vector3 = Rt * (d_p - (R * _aero_f_b + d_p + ext_h + lnk_h) * (pilot_mass / mass))
+		# вклад внешней силы и звена в кажущийся вес: боковая составляющая — не ввод пилота
+		var ext_b := Vector3.ZERO
+		var e_p := ext_p + lnk_p
+		var e_h := ext_h + lnk_h
+		if e_p != Vector3.ZERO or e_h != Vector3.ZERO:
+			ext_b = Rt * (e_p - (e_p + e_h) * (pilot_mass / mass))
 		fb = arms.compute(
-			rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y, load_b
+			rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y, load_b, ext_b
 		)
 		_hands_p = R * fb
 	if fb != Vector3.ZERO:
@@ -842,6 +985,16 @@ func _substep(h: float, input: ControlInput) -> void:
 	if ang > 1.0e-12:
 		R = Basis(_w / (ang / h), ang) * R
 	chain.integrate(h, f_p)
+	# TW-К4: звено троса — в той же проекции, до цепи; звена нет на этом подшаге — отцеп мгновенный
+	link_tension_n = 0.0
+	_link_f = Vector3.ZERO
+	if not link.is_empty():
+		_link_hang = link.hang
+		link_tension_n = _solve_link(h, link, R, pos_prev, r_prev)
+		if link_tension_n > 0.0:
+			external_force_n += game(_link_f)
+			if _link_hang:
+				R = _link_R
 	# связи цепи
 	var iw_inv := R * _I_inv * R.transposed()
 	chain.project(h, _pos, R, _r_hang_b, _m_wing, iw_inv)
@@ -952,6 +1105,7 @@ func _place_wing(pos: Vector3) -> void:
 
 
 func _reset_common() -> void:
+	_ext_t = 0.0
 	_crash_v = Vector3.ZERO
 	time_s = 0.0
 	_aero_age = INF

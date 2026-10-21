@@ -27,6 +27,9 @@ var control := ControlInput.new()
 var air_fn: Callable = Callable()
 var ground_fn: Callable = Callable()
 var visual: GliderVisual = null
+var _ext_fn: Callable = Callable()  ## TW-К4: внешняя сила (трос)
+var _link_t := 0.0  ## натяжение звена, Н (FlightModel)
+var _link_warned := false
 
 var _configured := false
 var _placed := false
@@ -63,6 +66,8 @@ func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) 
 	else:
 		model = FlightModel.new()
 		model.setup(wing, pilot)
+	if _ext_fn.is_valid() and model is PendulumModel:
+		model.set_external_force(_ext_fn)
 	model.landed.connect(func(r: Dictionary) -> void: landed.emit(r))
 	model.takeoff_failed.connect(func(reason: String) -> void: takeoff_failed.emit(reason))
 	model.took_off.connect(func() -> void: took_off.emit())
@@ -177,6 +182,51 @@ func _teleport() -> void:
 	telemetry_updated.emit(model.telemetry)
 
 
+## TW-К4: внешняя сила (трос). fn(s: Dictionary) -> {"pilot": Vector3, "hang": Vector3}, Н, мир игры
+## (вход и выход — в docs/contracts/tow.md). «Маятник» зовёт fn на каждом подшаге; FlightModel
+## (weight_shift/rate) — раз в шаг физики, с позицией и скоростью ЦМ, и кладёт pilot + hang в external_force;
+## звено link в FlightModel игнорируется (push_warning), в «Маятнике» — неявное XPBD-звено модели.
+func set_external_force(fn: Callable) -> void:
+	_ext_fn = fn
+	if model is PendulumModel:
+		model.set_external_force(fn)
+	elif not fn.is_valid():
+		model.external_force = Vector3.ZERO
+		_link_t = 0.0
+
+
+func clear_external_force() -> void:
+	set_external_force(Callable())
+
+
+func _step_external_force(dt: float) -> void:
+	var s := {
+		"t": model.time_s, "h": dt, "pilot_pos": model.position, "pilot_vel": model.velocity,
+		"hang_pos": model.position, "hang_vel": model.velocity,
+		"on_ground": model.mode == FlightModel.Mode.GROUND,
+		"wing_basis": model.telemetry.basis, "link_tension_n": _link_t,
+	}
+	var r = _ext_fn.call(s)
+	var f := Vector3.ZERO
+	_link_t = 0.0
+	if r is Dictionary:
+		for k: String in ["pilot", "hang"]:
+			var v = r.get(k, Vector3.ZERO)
+			if v is Vector3 and is_finite(v.x) and is_finite(v.y) and is_finite(v.z):
+				f += v
+		if r.get("link") is Dictionary and not _link_warned:
+			_link_warned = true
+			push_warning("Glider: звено link в FlightModel не поддержано — буксировка только в «Маятнике» (TW-К4)")
+	model.external_force = f
+
+
+## TW-К4: натяжение звена (Н) на последнем шаге; «Маятник» — из модели.
+func link_tension_n() -> float:
+	if model is PendulumModel:
+		return model.link_tension_n
+	return _link_t
+
+
 func _physics_process(dt: float) -> void:
 	step(dt)
 
@@ -186,6 +236,8 @@ func _physics_process(dt: float) -> void:
 func step(dt: float) -> void:
 	if not _configured:
 		return
+	if _ext_fn.is_valid() and not (model is PendulumModel):
+		_step_external_force(dt)
 	model.step(dt, control, air_fn, ground_fn)
 	_prev_xform = _cur_xform
 	_cur_xform = Transform3D(model.telemetry.basis, model.position)
