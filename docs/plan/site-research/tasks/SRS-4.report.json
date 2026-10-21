@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "В approaches ru+en добавлены абзацы про k_relax (А2) и статистику рельефа и 5 графиков с подписями (Моррис, А2, AS-1, WPC, WindNinja); остальные темы (Pr_t, кеш, нейросеть) на странице уже были.",
+  "commits": [
+    "1a9bf274 approaches: k_relax (А2), статистика рельефа, 5 графиков"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "5",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Картинка статистики рельефа (fig_compare.png) не добавлена: лимит 3–5 графиков"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-4",
+  "uncertain": [
+    {
+      "where": "site/content/approaches.ru.md: подпись к 02_wind6_vs_trim.png",
+      "why": "вывод о высотах прочитан по графику, не по таблице",
+      "checked": "сверено с полосой трима 8,6–10,8 м/с на рисунке"
+    },
+    {
+      "where": "site/content/approaches.ru.md: абзац k_relax",
+      "why": "описание цикла K(Ri)↔θ′↔w взято из findings, kr10 на графике сопоставлен с k_relax 0,1 по имени",
+      "checked": "docs/registry/findings.md#air-model"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-21T19:26:58",
+  "by": "executor"
+}

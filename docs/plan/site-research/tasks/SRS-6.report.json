@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Страница «Термики» (ru+en): новый раздел «Потолок слоя и опускание» (z_i по рельефу, CLF-10), источники не над водой (VI-7, 957 → 0), два новых графика Онгудая с подписями; потолок в списке «Что считается» связан с разделом.",
+  "commits": [
+    "см. git log site-research/SRS-6: Сайт: термики — потолок по рельефу, опускание, источники не над водой"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "4",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Картинки CLF-9/CLF-10 (build/screenshots) пропущены по указанию; графиков по z_i и опусканию нет"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-6",
+  "uncertain": [
+    {
+      "where": "thermals.ru.md: раздел «Потолок слоя и опускание»",
+      "why": "числа взяты из docs/guide/air-model/thermals.md (CLF-К6, CLF-10), не пересчитаны",
+      "checked": "сверены с tools/research/cloud_field/out/subsidence.json (Алматы: dz_s 130/379, z_i 4271)"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {},
+  "t": "2026-10-21T19:27:13",
+  "by": "executor"
+}

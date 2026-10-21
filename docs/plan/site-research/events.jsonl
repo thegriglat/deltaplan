@@ -64,3 +64,7 @@
 {"t": "2026-10-21T19:25:13", "by": "coordinator", "task": "SRS-4", "ev": "started"}
 {"t": "2026-10-21T19:25:13", "by": "coordinator", "task": "SRS-5", "ev": "started"}
 {"t": "2026-10-21T19:25:13", "by": "coordinator", "task": "SRS-6", "ev": "started"}
+{"t": "2026-10-21T19:26:58", "by": "executor", "task": "SRS-4", "ev": "reported", "commits": ["1a9bf274"], "note": "done: В approaches ru+en добавлены абзацы про k_relax (А2) и статистику рельефа и 5 графиков с подписями (Моррис, А2, AS-1, W…"}
+{"t": "2026-10-21T19:27:13", "by": "executor", "task": "SRS-6", "ev": "reported", "commits": ["см."], "note": "done: Страница «Термики» (ru+en): новый раздел «Потолок слоя и опускание» (z_i по рельефу, CLF-10), источники не над водой (V…"}
+{"t": "2026-10-21T19:27:19", "by": "coordinator", "task": "SRS-4", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:5; img_en=ok:5"}
+{"t": "2026-10-21T19:27:25", "by": "coordinator", "task": "SRS-4", "ev": "accepted", "note": "по отчёту"}
