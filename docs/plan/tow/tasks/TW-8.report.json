@@ -1,0 +1,69 @@
+{
+  "status": "done",
+  "summary": "Сквозной блок tow у start_sites (Terrain._build_sites), TowSite.check (полоса по рельефу и поверхности), Terrain.add_runway_clearing и полоса вместо круга у площадок с tow (при загрузке и для точного старта в game.gd), блок tow_site в game.json, ключи tow_site_* в ui.csv, тест tow_k6 (7 проверок).",
+  "commits": [
+    "tow: TW-8 место с полосой — блок tow площадки, TowSite.check, поляна-полоса (TW-К6)"
+  ],
+  "checks": [
+    {
+      "name": "tow_k6",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "test_start_clearing",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_start_fixes",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "tests/terrain/test_terrain",
+      "value": "16/16, пропуск 1",
+      "pass": true
+    },
+    {
+      "name": "test_locations",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Волжский (volzhsky.json, hg_takeoffs.json) - TW-8b по плану"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TW-8",
+  "uncertain": [
+    {
+      "where": "configs/game.json:tow_site",
+      "why": "Источника по допустимому уклону полосы в исследовании нет (kinds.md: н/д). flat_max_deg 2 град, dh_max_frac 0,02 - инженерные, от шума DEM (около 1 м на 25 м) и разгона; clearing_margin_m 30 м - высота дерева.",
+      "checked": "Обоснование записано в *_doc; ровная плоскость проходит, 1,5 град на 300 м отбракована по перепаду (7,9 м > 6 м)."
+    },
+    {
+      "where": "scripts/terrain/terrain.gd:add_runway_clearing",
+      "why": "Прямоугольник сделан цепочкой кругов (SurfaceLayer вне скоупа): выступ по бокам до 12 %, закругления на концах. Круги идут и в get_start_clearings.",
+      "checked": "Тест: лес внутри полосы убран, сбоку (x=150) и за концом остался."
+    },
+    {
+      "where": "scripts/game/tow_site.gd",
+      "why": "TowSite.check отбраковывает FOREST на полосе, а поляна лес убирает: вызывать check надо по рельефу с уже вырезанной поляной либо на открытом месте. BUILT допустим. Площадка с tow при загрузке получает полосу вместо круга 160 м (также кусты не заменяются на луг, кроме start_clearing_radius_m).",
+      "checked": "test_start_clearing, test_start_fixes, test_locations - зелёные (в них нет площадок с tow)."
+    },
+    {
+      "where": "scripts/game/game.gd:_clear_exact_start",
+      "why": "Для точного старта площадка с tow определяется по расстоянию до площадки менее 5 м, потому что в settings нет site_id для этого пути.",
+      "checked": "Только чтением; живого прогона с tow-площадкой нет (в конфигах пока нет блока tow)."
+    }
+  ],
+  "dp_feedback": "task sync отказывает при грязной копии, даже когда всё добавлено, - надо сначала коммитить; хорошо бы сказать это в сообщении.",
+  "t": "2026-10-22T02:07:28",
+  "by": "executor"
+}

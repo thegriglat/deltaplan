@@ -565,6 +565,11 @@ start_pick_bad_steep,слишком круто,too steep
 setup_exact_start,Старт уточнён на рельефе · курс %d°,Launch set on terrain · heading %d°
 setup_exact_reset,Сбросить,Reset
 setup_tab_goals,Цели,Goals
+setup_tow,Буксировка,Tow
+setup_tow_none,Нет,None
+setup_tow_winch,Лебёдка,Winch
+setup_tow_aerotow,Аэробуксировка (Ан-2),Aerotow (An-2)
+setup_tow_mp_off,В сетевой зоне буксировка недоступна,Towing is not available in a network zone
 goals_kind_height,Набор высоты,Height gain
 goals_kind_duration,Время в воздухе,Time aloft
 goals_kind_distance,Дальность,Distance
@@ -626,3 +631,8 @@ training_volcano_thermals,Термики,Thermals
 training_volcano_thermals_what,"поиск и центровка термиков над склонами острова в жаркий полдень",finding and centering thermals over the island slopes at hot midday
 training_volcano_landing,Посадка на плато,Plateau landing
 training_volcano_landing_what,"короткий подлёт и посадка в круг на плато",short approach and landing in the circle on the plateau
+tow_site_bad,"Полоса задана неверно (длина, ширина или курс)",Runway length width or heading is invalid
+tow_site_edge,"Полоса выходит за детальный рельеф или близко к его краю","Runway leaves the detailed terrain or is too close to its edge"
+tow_site_surface,"На полосе вода или лес","Water or forest on the runway"
+tow_site_slope,"Полоса не ровная: уклон больше допустимого","Runway is not flat: slope exceeds the limit"
+tow_site_dh,"Перепад высот вдоль полосы больше допустимого","Height difference along the runway exceeds the limit"

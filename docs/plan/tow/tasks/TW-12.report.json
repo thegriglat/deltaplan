@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "Модель дрог-парашюта tow_drogue.glb скриптом Blender: 3 LOD (100/54/6 треугольников), узел tow_drogue_attach в начале координат, купол по +Z Godot, вершинные цвета Col, материалы Canopy/Line/Hardware. Контрактный тест дополнен test_drogue_model.",
+  "commits": [
+    "eed9de18 tow: модель дрог-парашюта (TW-12, TW-К8 v2)"
+  ],
+  "checks": [
+    {
+      "name": "tow_k8",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "textures",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TW-12",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_tow_drogue.json",
+      "why": "Размеры (диаметр 0,9 м, глубина 0,4 м, стропы 1,0 м) — оценка: в kinds.md размеров дрог-парашюта нет; помечено в _size_note",
+      "checked": "только бюджет треугольников и габариты в тесте; визуально не смотрел"
+    }
+  ],
+  "dp_feedback": "task sync писал только «feature/tow уже влит» без списка изменений - непонятно, что подтянулось.",
+  "t": "2026-10-22T02:14:02",
+  "by": "executor"
+}

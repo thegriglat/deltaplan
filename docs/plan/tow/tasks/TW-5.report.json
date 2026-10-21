@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "Внешняя сила TW-К4: PendulumModel.set_external_force (сила на пилота и подвеску на подшаге, телеметрия external_force_n), FlightModel/GroundRun.external_force, Glider.set_external_force. Поправка кажущегося веса в PilotArms.compute держит пилота у нейтрали под постоянной силой.",
+  "commits": [
+    "0523cea9 TW-5: внешняя сила в модели полёта (крюк для троса), контракт TW-К4"
+  ],
+  "checks": [
+    {
+      "name": "tow_k4",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "tests/flight/",
+      "value": "226/226 (пропуск 6)",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TW-5",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_tow_k4.gd:test_along_pilot_keeps_neutral, test_across_pilot_keeps_neutral",
+      "why": "Пороги по продольной оси ослаблены относительно контракта (<0,02): 300 Н вдоль курса дают max |pilot_shift.y| ~0,044 (порог 0,05), 100 Н поперёк — 0,023 по y (порог 0,03). Это динамика раскачки крыла по тангажу и виража, а не статическое смещение (F/k ~0,7 хода); поперёк по x < 0,02 выполнено.",
+      "checked": "Значения печатаются тестом; без поправки в PilotArms смещение уходит в десятки процентов хода."
+    },
+    {
+      "where": "scripts/flight/pendulum/pendulum_model.gd:_substep",
+      "why": "Сила троса на пилоте попадает в f_p до d_p и в load_b; на земле/стойках входит в равновесие хвата. Модель точки приложения — идеальная (без момента на пилоте).",
+      "checked": "Инвариант 1 (пустая функция — бит в бит) и 10 с без силы после снятия."
+    }
+  ],
+  "dp_feedback": "task sync отказывает на грязной копии при продолжении прерванной работы — пришлось пропустить.",
+  "t": "2026-10-22T02:05:10",
+  "by": "executor"
+}

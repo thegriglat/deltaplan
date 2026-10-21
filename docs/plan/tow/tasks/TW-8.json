@@ -1,0 +1,66 @@
+{
+  "id": "TW-8",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Место с полосой: блок tow площадки, TowSite.check, поляна-полоса",
+  "goal": "Площадки start_sites получают сквозной блок tow (TW-К6), TowSite.check проверяет полосу на равнине по рельефу и поверхности, у площадок с tow вместо круглой поляны — прямоугольная вдоль оси полосы. Волжский — отдельно (TW-8b, после TW-4).",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К6",
+      "version": "1",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-8",
+  "branch": "tow/TW-8",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/game/tow_site.gd",
+    "scripts/game/tow_site.gd.uid",
+    "scripts/terrain/terrain.gd",
+    "scripts/game/game.gd",
+    "configs/game.json",
+    "locale/ui.csv",
+    "tests/contracts/test_tow_k6.gd",
+    "tests/contracts/test_tow_k6.gd.uid"
+  ],
+  "dont_touch": [
+    "configs/locations",
+    "data/places",
+    "scripts/ui",
+    "scripts/flight",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k6",
+      "tests": "tow_k6"
+    },
+    {
+      "name": "test_start_clearing",
+      "tests": "test_start_clearing"
+    },
+    {
+      "name": "test_start_fixes",
+      "tests": "test_start_fixes"
+    },
+    {
+      "name": "tests/terrain/test_terrain",
+      "tests": "tests/terrain/test_terrain"
+    },
+    {
+      "name": "test_locations",
+      "tests": "test_locations"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T02:00:30"
+}

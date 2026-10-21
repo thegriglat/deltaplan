@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "Добавлен тест test_refresh_same_place_keeps_choice (refresh того же места не меняет выбор; смена площадки — умолчание); лишний r-TW-9.json удалён.",
+  "commits": [
+    "227287d3 тест refresh"
+  ],
+  "checks": [
+    {
+      "name": "tow_k7",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_menu_setup",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_screens",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_popular_places",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_recent_places",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_favorites",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_language",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TW-9",
+  "uncertain": [],
+  "dp_feedback": "",
+  "t": "2026-10-22T02:08:42",
+  "by": "executor"
+}

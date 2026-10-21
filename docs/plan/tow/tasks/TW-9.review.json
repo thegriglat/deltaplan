@@ -1,0 +1,27 @@
+{
+  "verdict": "accept",
+  "summary": "Замечания прошлого ревью закрыты: добавлен test_refresh_same_place_keeps_choice (повторный refresh того же места сохраняет выбор, смена площадки — умолчание), r-TW-9.json удалён, копия чистая. Контракт TW-К7 и скоуп соблюдены; tow_k7 5/5, scope PASS.",
+  "issues": [
+    {
+      "file": "tests/contracts/test_tow_k7.gd",
+      "line": 54,
+      "severity": "minor",
+      "what": "Тест опирается на реальные площадки altai/tugaya_south и sinyukha_west без блока tow (ожидает все виды и умолчание «Нет»). Когда TW-8 добавит tow этим площадкам, тест может упасть не из-за регрессии.",
+      "fix": "При слиянии с TW-8 проверить test_tow_k7; при необходимости брать площадки, у которых точно нет tow, или подставлять синтетический словарь."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "tow_k7 (accept --only tow_k7 --dry)",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "scope (там же)",
+      "value": "5 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-22T02:11:37",
+  "by": "reviewer"
+}
