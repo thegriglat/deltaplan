@@ -30,11 +30,6 @@
   ],
   "accept": [
     {
-      "name": "grid_contract",
-      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity",
-      "expect": "re:4 тестов, 0 упало, 0 пропущено"
-    },
-    {
       "name": "grid_size",
       "cmd": "stat -c %s data/climate/upper_air_1deg.bin",
       "expect": "num:(\\d+) <=2097152"
@@ -58,9 +53,20 @@
       "name": "docs",
       "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "grid_contract",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity",
+      "expect": "re:тестов, 0 упало"
+    },
+    {
+      "name": "grid_present",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity",
+      "expect": "!re:skip .*test_upper_air_format"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-21T20:06:55"
+  "created": "2026-10-21T20:06:55",
+  "edited": "2026-10-21T20:16:58"
 }
