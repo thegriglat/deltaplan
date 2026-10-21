@@ -297,12 +297,6 @@ static func diurnal_state(
 	var calm_h := float(d.get("evening_calm_h", 2.0))
 	var calm := clampf((hour - (sunset - calm_h)) / maxf(calm_h, 0.01), 0.0, 1.0)
 	var mech_k := lerpf(1.0, float(d.get("evening_mech_k", 0.6)), calm)
-	# Дымка копится после пика прогрева к закату.
-	var haze_k := lerpf(
-		1.0,
-		float(d.get("evening_haze_k", 1.0)),
-		clampf((hour - peak) / maxf(sunset - peak, 0.1), 0.0, 1.0)
-	)
 	return {
 		"temperature_c": t,
 		"cap_agl_m": cap,
@@ -310,11 +304,30 @@ static func diurnal_state(
 		"heat": heat,
 		"soft": soft,
 		"mech_k": mech_k,
-		"haze_k": haze_k,
 		"sunrise_h": sunrise,
 		"sunset_h": sunset,
 		"peak_h": peak,
 	}
+
+
+## Давление насыщенного пара над водой, гПа (Магнус, Alduchov–Eskridge 1996).
+static func _e_s(x_c: float) -> float:
+	return 6.1094 * exp(17.625 * x_c / (x_c + 243.04))
+
+
+## Относительная влажность 0..1 (до зажима): e_s(Td) / e_s(T); Td > T — 1.
+static func _rh(t_c: float, td_c: float) -> float:
+	return minf(_e_s(minf(td_c, t_c)) / _e_s(t_c), 1.0)
+
+
+## Густота дымки по влажности (контракт HH3): ((1 − RH_c)/(1 − rh_dry))^(−gamma), RH_c в [rh_dry, rh_max].
+## Множитель к haze.visibility_km сухого воздуха (RH ≤ rh_dry — 1.0).
+static func haze_k_rh(t_c: float, td_c: float, cfg: Dictionary = {}) -> float:
+	var c := cfg if not cfg.is_empty() else config()
+	var h: Dictionary = c.get("haze_humidity", {})
+	var dry := float(h.get("rh_dry", 0.40))
+	var rh := clampf(_rh(t_c, td_c), dry, float(h.get("rh_max", 0.95)))
+	return pow((1.0 - rh) / (1.0 - dry), -float(h.get("gamma", 0.6)))
 
 
 ## Прогрев: ход дня (st — diurnal_state или пусто) и облачность (sky): сила, частота, мягкость,
@@ -354,9 +367,13 @@ static func _apply_heat(w: Dictionary, st: Dictionary, sky: Dictionary, c: Dicti
 	w.sky_duty_k = float(sky.get("duty_k", 1.0))
 	w.thermal_edge_k = 1.0 - float(sd.get("edge_k", 0.4)) * soft
 	w.mech_turbulence_k = float(st.get("mech_k", 1.0))
-	w.haze_k = float(st.get("haze_k", 1.0)) * float(sky.get("haze_k", 1.0))
 	var dv: Dictionary = w._derived
 	dv.merge(st, true)
+	# Дымка — по влажности воздуха этого часа (HH3): T часа (после merge st) и точка росы.
+	var t_c := float(dv.get("temperature_c", 15.0))
+	var td_c := float(dv.get("dew_point_c", 0.0))
+	dv.rh = _rh(t_c, td_c)
+	w.haze_k = haze_k_rh(t_c, td_c, c)
 	dv.heat = heat
 	dv.soft = soft
 

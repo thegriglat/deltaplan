@@ -1,0 +1,65 @@
+{
+  "id": "HH-6",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Дымка по влажности: haze_k(RH) вместо вечерней добавки и overcast",
+  "goal": "Густота дымки = функция RH (Td и T часа) по контракту HH3; evening_haze_k и sky.*.haze_k удалены без остатка; контрактный тест HH3.",
+  "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
+  "contracts": [
+    {
+      "name": "HH3",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-6",
+  "branch": "haze-humidity/HH-6",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "scripts/atmosphere/weather_model.gd",
+    "configs/weather_model.json",
+    "tests/contracts/test_haze_humidity_hh3.gd",
+    "tests/contracts/test_haze_humidity_hh3.gd.uid",
+    "scripts/world/sky_environment.gd",
+    "scripts/game/game.gd",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "configs/world.json",
+    "configs/weather/",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "docs/contracts/",
+    "data/",
+    "tests/contracts/test_haze_humidity_contracts.gd"
+  ],
+  "accept": [
+    {
+      "name": "haze_humidity",
+      "tests": "haze_humidity"
+    },
+    {
+      "name": "weather",
+      "tests": "weather"
+    },
+    {
+      "name": "hh3",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity_hh3",
+      "expect": "re:[1-9]\\d* тестов, 0 упало, 0 пропущено"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/atmosphere/weather_model.gd tests/contracts/test_haze_humidity_hh3.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_evening",
+      "cmd": "grep -c 'evening_haze_k\\|\"haze_k\"' configs/weather_model.json || true",
+      "expect": "re:^0\\s*$"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T20:08:29",
+  "edited": "2026-10-21T20:08:50"
+}

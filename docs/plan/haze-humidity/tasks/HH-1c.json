@@ -1,0 +1,55 @@
+{
+  "id": "HH-1c",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Точка росы дня: сдвиг по облачности и по жаре дня (ERA5)",
+  "goal": "Из ERA5 получить, насколько Td дня отклоняется от климата месяца в ясный, переменный и пасмурный день и в день жарче/холоднее обычного (в долях σ и К/К, по широтным поясам и сезонам) — коэффициенты для Td дня в HH-4 вместо td_follow_heat и множителя дымки overcast.",
+  "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
+  "contracts": [
+    {
+      "name": "HH1",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-1c",
+  "branch": "haze-humidity/HH-1c",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/td_sky/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "data/",
+    "tools/research/haze_humidity/dew_point/",
+    "tools/research/haze_humidity/upper_air/"
+  ],
+  "accept": [
+    {
+      "name": "coeffs",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/haze_humidity/td_sky/td_sky.json'));assert {'bands','seasons','sky','beta_k_per_k'}<=set(d)\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/haze_humidity/td_sky/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "table",
+      "cmd": "test -f tools/research/haze_humidity/td_sky/td_sky.csv",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T20:07:47"
+}

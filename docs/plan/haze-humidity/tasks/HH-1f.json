@@ -1,0 +1,75 @@
+{
+  "id": "HH-1f",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Ветер 700 гПа/10 м, тропопауза, перистые: сетка ERA5 1°×1°×12 мес.",
+  "goal": "Записать data/climate/upper_misc_1deg.bin (формат HH6 v2): HCC — климатология ERA5 облаков верхнего яруса (ARCO, одиночный уровень) сейчас; WR и TROP — заглушки до ключа CDS (stub_mask), с README и конвейером под CDS; сверка HCC с cirrus_base 0,1 для мест игры.",
+  "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
+  "contracts": [
+    {
+      "name": "HH6",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH2",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-1f",
+  "branch": "haze-humidity/HH-1f",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/upper_misc/",
+    "data/climate/upper_misc_1deg.bin"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "data/climate/dew_point_1deg.bin",
+    "data/climate/upper_air_1deg.bin",
+    "data/climate/surface_t_1deg.bin",
+    "tools/research/haze_humidity/dew_point/",
+    "tools/research/haze_humidity/upper_air/",
+    "tools/research/haze_humidity/surface_t/"
+  ],
+  "accept": [
+    {
+      "name": "grid_contract",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity",
+      "expect": "re:тестов, 0 упало"
+    },
+    {
+      "name": "grid_present",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity",
+      "expect": "!re:skip .*test_upper_misc_format"
+    },
+    {
+      "name": "grid_size",
+      "cmd": "stat -c %s data/climate/upper_misc_1deg.bin",
+      "expect": "num:(\\d+) <=2097152"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/haze_humidity/upper_misc/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sites",
+      "cmd": "test -f tools/research/haze_humidity/upper_misc/sites.csv",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T20:22:53",
+  "edited": "2026-10-21T21:31:20"
+}
