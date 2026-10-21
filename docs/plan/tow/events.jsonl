@@ -259,3 +259,6 @@
 {"t": "2026-10-22T04:47:31", "by": "executor", "task": "TW-17", "ev": "reported", "commits": ["4106497c"], "note": "done: SpeedHold: ПИ по скорости с D по ускорению (kp 0.1, ki 0.05, kd 0.25) устойчиво держит 12-16 м/с в свободном полёте и н…", "dp_feedback": "task show обрезает длинные дополнения (...) - полный текст пришлось брать через task show --full."}
 {"t": "2026-10-22T04:48:50", "by": "coordinator", "task": "TW-17", "ev": "checked", "note": "4/4 test_speed_hold=ok:3/3; test_pendulum_autopilot=ok:2/2; test_input_launch=ok:1/1; gdcheck=ok:exit 0"}
 {"t": "2026-10-22T04:48:56", "by": "coordinator", "task": "TW-17", "ev": "accepted", "note": "по отчёту; усиления под sport, другие крылья не проверены"}
+{"t": "2026-10-22T04:50:22", "by": "coordinator", "task": "TW-17", "ev": "accepted", "commits": ["0306a827"], "note": "4/4 test_speed_hold=ok:3/3; test_pendulum_autopilot=ok:2/2; test_input_launch=ok:1/1; gdcheck=ok:exit 0"}
+{"t": "2026-10-22T04:50:22", "by": "coordinator", "task": "TW-17", "ev": "merged"}
+{"t": "2026-10-22T04:50:23", "by": "coordinator", "task": "TW-5b", "ev": "note", "note": "2026-10-22: TW-17 влита в feature/tow — SpeedHold (scripts/game/speed_hold.gd) для удержания скорости в тестах; .dpcli/dpcli task sync TW-5b.", "addendum": true}
