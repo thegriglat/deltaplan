@@ -58,8 +58,13 @@ related: ["docs/contracts/trike-model.md", "docs/plan/trike.md", "docs/guide/mod
 газа, три колеса, двигатель, толкающий винт отдельным узлом с анимацией `prop_spin`, LOD0–2. Контрактный тест K2.
 
 ### TK-4. Кадры, видео и проверка посадки (dp-researcher, sonnet), после TK-2 и TK-3
-`tools/blender/render_trike.py`: тележка с сидящим пилотом — ≥ 5 ракурсов и крупно посадка, видео ≥ 4 с с крутящимся винтом,
-замер посадки числами (зазоры, проникание). В `/home/greg/deltaplan/build/screenshots/trike-model/`.
+
+`tools/blender/render_trike.py`: тележка без пилота — 4 ракурса (`trike_*.png`) и видео `prop_spin.mp4` ≥ 4 с с крутящимся
+винтом в `/home/greg/deltaplan/build/screenshots/trike-model/` (по запросу главной 2026-10-22 — кадры раньше позы пилота).
+
+### TK-6. Кадры с пилотом и проверка посадки (dp-researcher, sonnet), после TK-2 и TK-4
+`render_trike.py --pilot`: тележка с сидящим пилотом — ≥ 5 ракурсов и крупно посадка, замер посадки числами
+(`fit.json`: зазоры, проникание) в тот же каталог.
 
 ### TK-5. Документация (dp-writer, sonnet), после шлюза по кадрам
 `docs/guide/models/trike.md`, строка в `docs/guide/models.md`, `ASSETS.md`, вывод TK-1 в `registry/findings.md`.
@@ -67,7 +72,7 @@ related: ["docs/contracts/trike-model.md", "docs/plan/trike.md", "docs/guide/mod
 ## Волны
 1. TK-1 → при расхождении точки глаз с реальными трайками — шлюз.
 2. TK-2 ∥ TK-3.
-3. TK-4 → шлюз: кадры и видео пользователю.
+3. TK-4 (тележка, видео) → TK-6 (с пилотом, посадка) → шлюз: кадры и видео пользователю.
 4. Правки по кадрам (≤ 2 захода) → TK-5 → `trike-model done`.
 
 ## Условия остановки (шлюз)
