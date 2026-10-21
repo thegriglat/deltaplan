@@ -1,0 +1,66 @@
+{
+  "id": "SRS-21",
+  "module": "site-research",
+  "type": "dp-writer",
+  "title": "Сайт: термики — графики потолка слоя и опускания",
+  "goal": "Страница «Термики» переведена в бандл; в раздел «Потолок слоя и опускание» добавлены 2 графика (z_i по рельефу, опускание) с подписями (ответ Q1 — кадры из build/screenshots/cloud-field).",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К4",
+      "version": "3",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-21",
+  "branch": "site-research/SRS-21",
+  "base": "feature/site-research",
+  "scope": [
+    "site/content/mechanics/air-model/thermals/",
+    "site/content/mechanics/air-model/thermals.ru.md",
+    "site/content/mechanics/air-model/thermals.en.md"
+  ],
+  "dont_touch": [
+    "docs/",
+    "site/content/mechanics/clouds/",
+    "site/content/mechanics/clouds.ru.md",
+    "site/layouts/",
+    "site/hugo.toml",
+    "tools/research/site_coverage/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "hugo --source site --quiet -d $(mktemp -d)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "re:нарушений 0"
+    },
+    {
+      "name": "img_ru",
+      "cmd": "grep -c '!\\[' site/content/mechanics/air-model/thermals/index.ru.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "img_en",
+      "cmd": "grep -c '!\\[' site/content/mechanics/air-model/thermals/index.en.md",
+      "expect": "num:(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:47:45"
+}
