@@ -1,0 +1,121 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+GEOM neutral_rel=(-0.153368, 0.0, 1.190159) r_hang_b=(0.2417, 0.0, -0.0649) hang_len=1.2 m_wing=34.4 m_pilot=300.0
+GEOM2 {"a_luff":-0.104859381459819,"a_trim":0.204901654184134,"area":14.1,"chord_mean":1.35576923076923,"dcm0":0.05066,"m_wing":34.4,"nl_luff":1.14591559026165,"nl_soft":0.23298408,"pilot_cda":-1,"r_bar_b":[1.01409995555878,0.0,1.53750002384186],"w":0.0174532925199433}
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _solve_link (res://scripts/flight/pendulum/pendulum_model.gd:869)
+         [1] _substep (res://scripts/flight/pendulum/pendulum_model.gd:993)
+         [2] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [3] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [4] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: PendulumModel: внешняя сила вернула нечисловое значение (link) — принято за ноль
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _ext_warn (res://scripts/flight/pendulum/pendulum_model.gd:859)
+         [1] _external_force (res://scripts/flight/pendulum/pendulum_model.gd:851)
+         [2] _substep (res://scripts/flight/pendulum/pendulum_model.gd:921)
+         [3] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [4] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [5] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _solve_link (res://scripts/flight/pendulum/pendulum_model.gd:869)
+         [1] _substep (res://scripts/flight/pendulum/pendulum_model.gd:993)
+         [2] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [3] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [4] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _solve_link (res://scripts/flight/pendulum/pendulum_model.gd:869)
+         [1] _substep (res://scripts/flight/pendulum/pendulum_model.gd:993)
+         [2] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [3] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [4] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: PendulumModel: внешняя сила вернула нечисловое значение (link) — принято за ноль
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _ext_warn (res://scripts/flight/pendulum/pendulum_model.gd:859)
+         [1] _external_force (res://scripts/flight/pendulum/pendulum_model.gd:851)
+         [2] _substep (res://scripts/flight/pendulum/pendulum_model.gd:921)
+         [3] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [4] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [5] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _solve_link (res://scripts/flight/pendulum/pendulum_model.gd:869)
+         [1] _substep (res://scripts/flight/pendulum/pendulum_model.gd:993)
+         [2] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [3] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [4] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: PendulumModel: внешняя сила вернула нечисловое значение (link) — принято за ноль
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _ext_warn (res://scripts/flight/pendulum/pendulum_model.gd:859)
+         [1] _external_force (res://scripts/flight/pendulum/pendulum_model.gd:851)
+         [2] _substep (res://scripts/flight/pendulum/pendulum_model.gd:921)
+         [3] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [4] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [5] _ready (res://tools/research/tow/tow_sweep.gd:120)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:72)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:120)
+CSV,{"T":0.0,"alpha":11.734244356511,"at":"pilot","dbg":{"R_x":[0.993586122989655,0.0,0.113078184425831],"alpha":0.20485247655784,"ext":[0.0,0.0,0.0],"hands_ned":[-0.62402081489563,0.0,0.0710164234042168],"hang":[0.314792901277542,0.0,-0.0842898264527321],"mass":119.4,"mass_p":85.0,"pilot":[0.292056202888489,0.0,1.16356682777405],"strap_T":843.564910603665,"theta":0.113320564032888,"vel":[9.83762550354004,0.0,0.902979910373688]},"dv_dt":-0.00243339538574219,"eps":45.0,"free":true,"fx":-0.460585219164689,"fy":0.0,"ok":true,"pitch":0.00223461138243702,"shift":-0.00696921971937021,"tens":0.0,"tension":0.0,"theta":-0.000392091798817149,"v":9.87910095532735,"vz":-0.902929562330246}
+CSV,{"T":0.0,"alpha":11.6134828941167,"at":"pilot","dbg":{"R_x":[0.996610283851624,0.0,0.0822679102420807],"alpha":0.186484263758661,"ext":[0.0,0.0,0.0],"hands_ned":[-7.24845314025879,0.0,0.597337961196899],"hang":[0.318982660770416,0.0,-0.0758562460541725],"mass":119.4,"mass_p":85.0,"pilot":[0.225990429520607,0.0,1.1676253080368],"strap_T":824.052988747792,"theta":0.0823609848638935,"vel":[10.0108613967896,0.0,1.046147108078]},"dv_dt":0.0329135894775391,"eps":45.0,"free":false,"fx":-0.266175906422238,"fy":0.0,"ok":true,"pitch":0.0672031356267294,"shift":-0.00260908095786969,"tens":0.0,"tension":0.0,"theta":-0.130009126343468,"v":9.89480198701223,"vz":-0.908909512460232}
+CSV,{"T":100.0,"alpha":7.34525519290553,"at":"pilot","dbg":{"R_x":[0.99348658323288,0.0,0.113949775695801],"alpha":0.12878868620144,"ext":[0.0,71.336296081543,-71.3829879760742],"hands_ned":[17.8691329956055,0.0,-2.04939723014832],"hang":[0.324736297130585,0.0,-0.0906767994165421],"mass":119.4,"mass_p":85.0,"pilot":[0.434476435184479,0.0,1.14844954013824],"strap_T":772.27712405432,"theta":0.114197825600562,"vel":[11.0402574539185,0.0,0.161098375916481]},"dv_dt":-0.00919704437255859,"eps":45.0,"free":true,"fx":18.4192088254293,"fy":0.0,"ok":true,"pitch":-0.0649339698019748,"shift":0.129206826587518,"tens":99.2323440790383,"tension":100.917778015137,"theta":0.00122028214708071,"v":11.065573237737,"vz":-0.164709453185399}
+CSV,{"T":100.0,"alpha":7.29515632578855,"at":"pilot","dbg":{"R_x":[0.99363249540329,0.0,0.112670443952084],"alpha":0.132162550377254,"ext":[0.0,78.6741180419922,-78.7308197021484],"hands_ned":[12.1157550811768,0.0,-1.37234592437744],"hang":[0.325124621391296,0.0,-0.0899383947253227],"mass":119.4,"mass_p":85.0,"pilot":[0.404559552669525,0.0,1.15219783782959],"strap_T":784.564814597647,"theta":0.112910201038675,"vel":[11.0717754364014,0.0,0.213184252381325]},"dv_dt":0.00552310943603516,"eps":45.0,"free":false,"fx":18.5274976380666,"fy":0.0,"ok":true,"pitch":-0.278806400439671,"shift":0.130928437635303,"tens":99.6972681201487,"tension":111.302101135254,"theta":-0.070984480687495,"v":11.0753679641088,"vz":-0.169700413284202}
+CSV,{"T":200.0,"alpha":3.21113694658486,"at":"pilot","dbg":{"R_x":[0.993589043617249,0.0,0.11305233091116],"alpha":0.0549034979473223,"ext":[0.0,137.284194946289,-137.473663330078],"hands_ned":[46.5083541870117,0.0,-5.29183292388916],"hang":[0.341027498245239,0.0,-0.0981344878673553],"mass":119.4,"mass_p":85.0,"pilot":[0.621061503887177,0.0,1.11086082458496],"strap_T":720.337850559255,"theta":0.113294551162924,"vel":[12.985785484314,0.0,-0.759116530418396]},"dv_dt":0.0142549514770508,"eps":45.0,"free":true,"fx":46.1661641438802,"fy":0.0,"ok":true,"pitch":-0.144552479417611,"shift":0.290843701933821,"tens":192.413051907599,"tension":194.283187866211,"theta":0.00142893283842674,"v":12.9731097300847,"vz":0.742437608440717}
+CSV,{"T":200.0,"alpha":3.21535055989115,"at":"pilot","dbg":{"R_x":[0.9936283826828,0.0,0.112706087529659],"alpha":0.054688176702134,"ext":[0.0,137.869155883789,-138.060089111328],"hands_ned":[46.4051055908203,0.0,-5.26355409622192],"hang":[0.341056048870087,0.0,-0.0980389714241028],"mass":119.4,"mass_p":85.0,"pilot":[0.619714438915253,0.0,1.11118626594543],"strap_T":718.848747505988,"theta":0.112946073107288,"vel":[12.9853067398071,0.0,-0.757353663444519]},"dv_dt":0.0172914505004883,"eps":45.0,"free":false,"fx":46.1389696057638,"fy":0.0,"ok":true,"pitch":-0.642714845854866,"shift":0.291052811021606,"tens":192.599466641496,"tension":195.111480712891,"theta":0.00525210382706568,"v":12.9648913590113,"vz":0.741808217763901}
+CSV,{"T":300.0,"alpha":-0.00251921595543856,"at":"pilot","dbg":{"R_x":[0.99358743429184,0.0,0.11306619644165],"alpha":-0.00157801344803698,"ext":[0.0,197.205963134766,-197.612899780273],"hands_ned":[90.7372436523438,0.0,-10.3255729675293],"hang":[0.363648056983948,0.0,-0.106909558176994],"mass":119.4,"mass_p":85.0,"pilot":[0.821229100227356,0.0,1.04475498199463],"strap_T":689.350976701585,"theta":0.113308498670828,"vel":[15.7004346847534,0.0,-1.81174623966217]},"dv_dt":0.0458499908447266,"eps":45.0,"free":true,"fx":89.4897594324748,"fy":0.0,"ok":true,"pitch":-0.235935261753027,"shift":0.472235788653294,"tens":277.171006748437,"tension":279.179229736328,"theta":0.00263277274727215,"v":15.6926063791911,"vz":1.77531428734461}
+CSV,{"T":300.0,"alpha":2.26932614953584,"at":"pilot","dbg":{"R_x":[-0.205513477325439,0.0,0.978654265403748],"alpha":-0.000245399362954942,"ext":[0.0,7438.89111328125,-8001.29443359375],"hands_ned":[-61.479663848877,0.0,-293.6328125],"hang":[-0.199779093265533,0.0,-0.636335670948029],"mass":119.4,"mass_p":85.0,"pilot":[1.42289555072784,0.0,-1.37192058563232],"strap_T":10138.3871977879,"theta":1.36380787342254,"vel":[-10.4420108795166,0.0,-49.6642074584961]},"dv_dt":7.08854827880859,"eps":45.0,"free":false,"fx":33.7489249301158,"fy":0.0,"ok":true,"pitch":-1.0,"shift":0.468168180187543,"tens":2549.71909210056,"tension":10925.099609375,"theta":44.687617826868,"v":21.8003243080775,"vz":17.1167914164066}
+CSV,{"T":400.0,"alpha":-2.08244340597058,"at":"pilot","dbg":{"R_x":[0.993580043315887,0.0,0.113131746649742],"alpha":-0.0381195030152848,"ext":[0.0,253.265533447266,-253.954177856445],"hands_ned":[154.500411987305,0.0,-17.5917816162109],"hang":[0.391134202480316,0.0,-0.115997895598412],"mass":119.4,"mass_p":85.0,"pilot":[1.03911459445953,0.0,0.939796268939972],"strap_T":681.002562514338,"theta":0.113374472182994,"vel":[18.9996490478516,0.0,-2.90055584907532]},"dv_dt":0.0936325073242188,"eps":45.0,"free":true,"fx":150.940246632894,"fy":0.0,"ok":true,"pitch":-0.338484311987498,"shift":0.665830454478661,"tens":354.817977260461,"tension":358.658843994141,"theta":0.00567255306040217,"v":18.9921125602722,"vz":2.83309414068858}
+WARNING: `NaN` ("Not a Number") found in argument passed to JSON.stringify(). `NaN` cannot be represented in JSON, so the value has been replaced with `null`. This warning will not be printed for any later NaN occurrences.
+     at: _stringify (core/io/json.cpp:86)
+     GDScript backtrace (most recent call first):
+         [0] _ready (res://tools/research/tow/tow_sweep.gd:147)
+CSV,{"T":400.0,"at":"pilot","dbg":{"R_x":[0.813528001308441,0.0,-0.581525802612305],"alpha":null,"ext":[0.0,0.0,0.0],"hands_ned":[null,null,null],"hang":[null,null,null],"mass":119.4,"mass_p":85.0,"pilot":[null,null,null],"strap_T":null,"theta":-0.620602974223599,"vel":[null,null,null]},"dv_dt":null,"eps":45.0,"free":false,"ok":false,"tension":0.0}
+CSV,{"T":500.0,"alpha":-3.3566188096912,"at":"pilot","dbg":{"R_x":[0.99358195066452,0.0,0.113114677369595],"alpha":-0.0600501792269428,"ext":[0.0,306.360015869141,-307.383636474609],"hands_ned":[238.221893310547,0.0,-27.1203689575195],"hang":[0.421386420726776,0.0,-0.124855875968933],"mass":119.4,"mass_p":85.0,"pilot":[1.24961519241333,0.0,0.798196375370026],"strap_T":704.403617298975,"theta":0.113357292626716,"vel":[22.6298675537109,0.0,-3.9640007019043]},"dv_dt":0.145871353149414,"eps":45.0,"free":true,"fx":231.497997487386,"fy":0.0,"ok":true,"pitch":-0.449425095481411,"shift":0.857861748238405,"tens":429.524705418496,"tension":433.98291015625,"theta":0.00805644102498904,"v":22.6207339509328,"vz":3.87187717556953}
+CSV,{"T":500.0,"at":"pilot","dbg":{"R_x":[0.734106957912445,0.0,0.679033815860748],"alpha":2.86650698116306,"ext":[null,null,null],"hands_ned":[0.0,0.0,0.0],"hang":[-14177977.0,0.0,13792758.0],"mass":119.4,"mass_p":85.0,"pilot":[null,null,null],"strap_T":79656869473.4347,"theta":0.746445696855506,"vel":[-1287606144.0,0.0,2103607552.0]},"dv_dt":493278617.6,"eps":45.0,"free":false,"ok":false,"tension":null}
+CSV,{"T":600.0,"alpha":-4.14281580341775,"at":"pilot","dbg":{"R_x":[0.99354612827301,0.0,0.113428898155689],"alpha":-0.0736181635438813,"ext":[0.0,363.268127441406,-364.720062255859],"hands_ned":[341.966247558594,0.0,-39.041202545166],"hang":[0.452591091394424,0.0,-0.133553594350815],"mass":119.4,"mass_p":85.0,"pilot":[1.43966698646545,0.0,0.622308373451233],"strap_T":757.396707269863,"theta":0.113673548826339,"vel":[26.3780937194824,0.0,-4.99898719787598]},"dv_dt":0.192979049682617,"eps":45.0,"free":true,"fx":330.509964497884,"fy":0.0,"ok":true,"pitch":-0.56456870390236,"shift":1.02935591359933,"tens":504.947887725982,"tension":514.766418457031,"theta":0.0112694783393517,"v":26.3792089080811,"vz":4.87286739269892}
+CSV,{"T":600.0,"at":"pilot","dbg":{"R_x":[-0.710628271102905,0.0,0.703567743301392],"alpha":null,"ext":[0.0,0.0,0.0],"hands_ned":[null,null,null],"hang":[null,null,null],"mass":119.4,"mass_p":85.0,"pilot":[null,null,null],"strap_T":null,"theta":0.780405649852504,"vel":[null,null,null]},"dv_dt":null,"eps":45.0,"free":false,"ok":false,"tension":0.0}
+CSV,{"T":700.0,"alpha":-4.64992965385366,"at":"pilot","dbg":{"R_x":[0.993534982204437,0.0,0.113526709377766],"alpha":-0.0821535613865745,"ext":[0.0,420.298400878906,-422.252166748047],"hands_ned":[464.461090087891,0.0,-53.0801773071289],"hang":[0.483880937099457,0.0,-0.141761958599091],"mass":119.4,"mass_p":85.0,"pilot":[1.58782315254211,0.0,0.442700326442719],"strap_T":858.90148768506,"theta":0.11377199596463,"vel":[30.1349029541016,0.0,-5.98092365264893]},"dv_dt":0.235453414916992,"eps":45.0,"free":true,"fx":447.048687896728,"fy":0.0,"ok":true,"pitch":-0.680987404354821,"shift":1.16703108827273,"tens":584.193504948357,"tension":595.774780273438,"theta":0.0127443133470303,"v":30.1540955193837,"vz":5.83294771909714}
+CSV,{"T":700.0,"at":"pilot","dbg":{"R_x":[0.478504031896591,0.0,-0.878085434436798],"alpha":null,"ext":[0.0,0.0,0.0],"hands_ned":[null,null,null],"hang":[null,null,null],"mass":119.4,"mass_p":85.0,"pilot":[null,null,null],"strap_T":null,"theta":-1.0718462423457,"vel":[null,null,null]},"dv_dt":null,"eps":45.0,"free":false,"ok":false,"tension":0.0}
+CSV,{"T":800.0,"alpha":-4.93391908391101,"at":"pilot","dbg":{"R_x":[0.972116649150848,0.0,0.234497874975204],"alpha":-0.0641313565408484,"ext":[0.0,470.781555175781,-473.268829345703],"hands_ned":[985.546325683594,0.0,-238.846176147461],"hang":[0.483412802219391,0.0,-0.201624065637589],"mass":119.4,"mass_p":85.0,"pilot":[1.8262357711792,0.0,0.177846968173981],"strap_T":3384.171133866,"theta":0.236702008335569,"vel":[31.7862415313721,0.0,-9.86166858673096]},"dv_dt":0.0531463623046875,"eps":45.0,"free":true,"fx":581.648530883789,"fy":0.0,"ok":true,"pitch":-0.764171827545327,"shift":1.24983876675367,"tens":669.928455651424,"tension":667.546752929688,"theta":0.108122455805022,"v":33.8391375478109,"vz":6.76175409158071}
+CSV,{"T":800.0,"at":"pilot","dbg":{"R_x":[-0.119700059294701,0.0,-0.992810130119324],"alpha":null,"ext":[0.0,0.0,0.0],"hands_ned":[null,null,null],"hang":[null,null,null],"mass":119.4,"mass_p":85.0,"pilot":[null,null,null],"strap_T":null,"theta":-1.45080880958877,"vel":[null,null,null]},"dv_dt":null,"eps":45.0,"free":false,"ok":false,"tension":0.0}

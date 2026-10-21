@@ -1,0 +1,66 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+GEOM neutral_rel=(-0.153368, 0.0, 1.190159) r_hang_b=(0.2417, 0.0, -0.0649) hang_len=1.2 m_wing=34.4 m_pilot=300.0
+GEOM2 {"a_luff":-0.104859381459819,"a_trim":0.204901654184134,"area":14.1,"chord_mean":1.35576923076923,"dcm0":0.05066,"m_wing":34.4,"nl_luff":1.14591559026165,"nl_soft":0.23298408,"pilot_cda":-1,"r_bar_b":[1.01409995555878,0.0,1.53750002384186],"w":0.0174532925199433}
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _solve_link (res://scripts/flight/pendulum/pendulum_model.gd:869)
+         [1] _substep (res://scripts/flight/pendulum/pendulum_model.gd:993)
+         [2] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [3] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [4] _ready (res://tools/research/tow/tow_sweep.gd:142)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:142)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _solve_link (res://scripts/flight/pendulum/pendulum_model.gd:869)
+         [1] _substep (res://scripts/flight/pendulum/pendulum_model.gd:993)
+         [2] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [3] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [4] _ready (res://tools/research/tow/tow_sweep.gd:142)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:142)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _solve_link (res://scripts/flight/pendulum/pendulum_model.gd:869)
+         [1] _substep (res://scripts/flight/pendulum/pendulum_model.gd:993)
+         [2] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [3] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [4] _ready (res://tools/research/tow/tow_sweep.gd:142)
+WARNING: PendulumModel: внешняя сила вернула нечисловое значение (link) — принято за ноль
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _ext_warn (res://scripts/flight/pendulum/pendulum_model.gd:859)
+         [1] _external_force (res://scripts/flight/pendulum/pendulum_model.gd:851)
+         [2] _substep (res://scripts/flight/pendulum/pendulum_model.gd:921)
+         [3] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [4] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [5] _ready (res://tools/research/tow/tow_sweep.gd:142)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:142)
+WARNING: `NaN` ("Not a Number") found in argument passed to JSON.stringify(). `NaN` cannot be represented in JSON, so the value has been replaced with `null`. This warning will not be printed for any later NaN occurrences.
+     at: _stringify (core/io/json.cpp:86)
+     GDScript backtrace (most recent call first):
+         [0] _ready (res://tools/research/tow/tow_sweep.gd:154)
+CSV,{"T":200.0,"at":"pilot","dbg":{"R_x":[-0.985401749610901,0.0,0.170245677232742],"alpha":-2.0065186283879,"ext":[null,null,null],"hands_ned":[0.0,0.0,0.0],"hang":[784550656.0,0.0,2895695872.0],"mass":119.4,"mass_p":85.0,"pilot":[null,null,null],"strap_T":68178235485191.1,"theta":0.171078980610045,"vel":[150553116672.0,0.0,555547230208.0]},"dv_dt":115117155942.4,"eps":45.0,"free":false,"ok":false,"tension":null}
+CSV,{"T":400.0,"at":"pilot","dbg":{"R_x":[-0.198131754994392,0.0,0.98017543554306],"alpha":2.36593888111354,"ext":[null,null,null],"hands_ned":[0.0,0.0,0.0],"hang":[24808994816.0,0.0,19366072320.0],"mass":119.4,"mass_p":85.0,"pilot":[null,null,null],"strap_T":831019545728288.1,"theta":1.37134500348023,"vel":[4968249556992.0,0.0,3367626866688.0]},"dv_dt":1200406868787.2,"eps":45.0,"free":false,"ok":false,"tension":null}
+CSV,{"T":600.0,"at":"pilot","dbg":{"R_x":[0.117300316691399,0.0,-0.993096470832825],"alpha":null,"ext":[0.0,0.0,0.0],"hands_ned":[null,null,null],"hang":[null,null,null],"mass":119.4,"mass_p":85.0,"pilot":[null,null,null],"strap_T":null,"theta":-1.45322518287193,"vel":[null,null,null]},"dv_dt":null,"eps":45.0,"free":false,"ok":false,"tension":0.0}

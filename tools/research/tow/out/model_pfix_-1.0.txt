@@ -1,0 +1,44 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+GEOM neutral_rel=(-0.153368, 0.0, 1.190159) r_hang_b=(0.2417, 0.0, -0.0649) hang_len=1.2 m_wing=34.4 m_pilot=300.0
+GEOM2 {"a_luff":-0.104859381459819,"a_trim":0.204901654184134,"area":14.1,"chord_mean":1.35576923076923,"dcm0":0.05066,"m_wing":34.4,"nl_luff":1.14591559026165,"nl_soft":0.23298408,"pilot_cda":-1,"r_bar_b":[1.01409995555878,0.0,1.53750002384186],"w":0.0174532925199433}
+WARNING: PendulumModel: внешняя сила вернула нечисловое значение (link) — принято за ноль
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _ext_warn (res://scripts/flight/pendulum/pendulum_model.gd:859)
+         [1] _external_force (res://scripts/flight/pendulum/pendulum_model.gd:851)
+         [2] _substep (res://scripts/flight/pendulum/pendulum_model.gd:921)
+         [3] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [4] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [5] _ready (res://tools/research/tow/tow_sweep.gd:142)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:142)
+WARNING: PendulumModel: внешняя сила вернула нечисловое значение (link) — принято за ноль
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _ext_warn (res://scripts/flight/pendulum/pendulum_model.gd:859)
+         [1] _external_force (res://scripts/flight/pendulum/pendulum_model.gd:851)
+         [2] _substep (res://scripts/flight/pendulum/pendulum_model.gd:921)
+         [3] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [4] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [5] _ready (res://tools/research/tow/tow_sweep.gd:142)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:75)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:142)
+CSV,{"T":200.0,"alpha":-0.247257952886374,"at":"pilot","dbg":{"R_x":[-0.387332141399384,0.0,0.921940267086029],"alpha":0.0177523064070954,"ext":[0.0,12171.609375,-13666.4267578125],"hands_ned":[-115.731590270996,0.0,-276.778228759766],"hang":[-0.367805778980255,0.0,-0.737866044044495],"mass":119.4,"mass_p":85.0,"pilot":[1.74382877349854,0.0,-1.91395974159241],"strap_T":21239.9149541519,"theta":1.17306030419839,"vel":[-25.9007606506348,0.0,-64.8501586914062]},"dv_dt":9.95469055175781,"eps":45.0,"free":false,"fx":114.195755020032,"fy":0.0,"ok":true,"pitch":-1.0,"shift":0.464662391295036,"tens":2685.35206591599,"tension":18300.80078125,"theta":10.9776882670411,"v":28.2197537358602,"vz":12.3970941797147}
+WARNING: `NaN` ("Not a Number") found in argument passed to JSON.stringify(). `NaN` cannot be represented in JSON, so the value has been replaced with `null`. This warning will not be printed for any later NaN occurrences.
+     at: _stringify (core/io/json.cpp:86)
+     GDScript backtrace (most recent call first):
+         [0] _ready (res://tools/research/tow/tow_sweep.gd:154)
+CSV,{"T":400.0,"at":"pilot","dbg":{"R_x":[-0.899553179740906,0.0,-0.436811327934265],"alpha":null,"ext":[0.0,0.0,0.0],"hands_ned":[null,null,null],"hang":[null,null,null],"mass":119.4,"mass_p":85.0,"pilot":[null,null,null],"strap_T":null,"theta":-0.452050881022944,"vel":[null,null,null]},"dv_dt":null,"eps":45.0,"free":false,"ok":false,"tension":0.0}
+CSV,{"T":600.0,"at":"pilot","dbg":{"R_x":[0.204459741711617,0.0,0.978875041007996],"alpha":null,"ext":[0.0,0.0,0.0],"hands_ned":[null,null,null],"hang":[null,null,null],"mass":119.4,"mass_p":85.0,"pilot":[null,null,null],"strap_T":null,"theta":1.36488489843131,"vel":[null,null,null]},"dv_dt":null,"eps":45.0,"free":false,"ok":false,"tension":0.0}

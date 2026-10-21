@@ -1,0 +1,96 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+steam: inactive (no_feature)
+GEOM neutral_rel=(-0.153368, 0.0, 1.190159) r_hang_b=(0.2417, 0.0, -0.0649) hang_len=1.2 m_wing=34.4 m_pilot=300.0
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _solve_link (res://scripts/flight/pendulum/pendulum_model.gd:869)
+         [1] _substep (res://scripts/flight/pendulum/pendulum_model.gd:993)
+         [2] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [3] run_case (res://tools/research/tow/tow_sweep.gd:59)
+         [4] _ready (res://tools/research/tow/tow_sweep.gd:92)
+WARNING: PendulumModel: внешняя сила вернула нечисловое значение (link) — принято за ноль
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _ext_warn (res://scripts/flight/pendulum/pendulum_model.gd:859)
+         [1] _external_force (res://scripts/flight/pendulum/pendulum_model.gd:851)
+         [2] _substep (res://scripts/flight/pendulum/pendulum_model.gd:921)
+         [3] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [4] run_case (res://tools/research/tow/tow_sweep.gd:59)
+         [5] _ready (res://tools/research/tow/tow_sweep.gd:92)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:59)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:92)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:59)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:92)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _solve_link (res://scripts/flight/pendulum/pendulum_model.gd:869)
+         [1] _substep (res://scripts/flight/pendulum/pendulum_model.gd:993)
+         [2] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [3] run_case (res://tools/research/tow/tow_sweep.gd:59)
+         [4] _ready (res://tools/research/tow/tow_sweep.gd:92)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:59)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:92)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _solve_link (res://scripts/flight/pendulum/pendulum_model.gd:869)
+         [1] _substep (res://scripts/flight/pendulum/pendulum_model.gd:993)
+         [2] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [3] run_case (res://tools/research/tow/tow_sweep.gd:59)
+         [4] _ready (res://tools/research/tow/tow_sweep.gd:92)
+WARNING: PendulumModel: внешняя сила вернула нечисловое значение (link) — принято за ноль
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _ext_warn (res://scripts/flight/pendulum/pendulum_model.gd:859)
+         [1] _external_force (res://scripts/flight/pendulum/pendulum_model.gd:851)
+         [2] _substep (res://scripts/flight/pendulum/pendulum_model.gd:921)
+         [3] step (res://scripts/flight/pendulum/pendulum_model.gd:488)
+         [4] run_case (res://tools/research/tow/tow_sweep.gd:59)
+         [5] _ready (res://tools/research/tow/tow_sweep.gd:92)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _update_outputs (res://scripts/flight/pendulum/pendulum_model.gd:1192)
+         [1] step (res://scripts/flight/pendulum/pendulum_model.gd:496)
+         [2] run_case (res://tools/research/tow/tow_sweep.gd:59)
+         [3] _ready (res://tools/research/tow/tow_sweep.gd:92)
+CSV,{"T":0.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":true,"fx":-0.462043421169122,"fy":0.0,"ok":true,"pitch":0.00220476206218371,"shift":-0.00699568212032318,"tens":0.0,"tension":0.0,"theta":-0.000133063561253338,"v":9.87894227981567,"vz":-0.902930471996466}
+CSV,{"T":0.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":false,"fx":-0.358486486611267,"fy":0.0,"ok":true,"pitch":0.0692730917724617,"shift":-0.00324236864844958,"tens":0.0,"tension":0.0,"theta":-0.13653693338773,"v":9.89530062993368,"vz":-0.90952733417352}
+CSV,{"T":100.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":true,"fx":22.4392625013987,"fy":0.0,"ok":true,"pitch":-0.0788912593433002,"shift":0.158008660276731,"tens":96.2596866614703,"tension":97.258674621582,"theta":-0.00000335416223988374,"v":11.7069024801254,"vz":0.0271271635995557}
+CSV,{"T":100.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":false,"fx":22.3953520139058,"fy":0.0,"ok":true,"pitch":-0.350526277347152,"shift":0.15774497911334,"tens":96.2149701587705,"tension":97.2411804199219,"theta":0.00275661755132145,"v":11.7027048540115,"vz":0.0261035281637063}
+CSV,{"T":200.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":true,"fx":59.3077502822876,"fy":0.0,"ok":true,"pitch":-0.163847936523952,"shift":0.329957282990217,"tens":183.332107783206,"tension":184.302749633789,"theta":0.00190120361490021,"v":14.3985875606537,"vz":1.12051138182481}
+CSV,{"T":200.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":false,"fx":59.130572013855,"fy":0.0,"ok":true,"pitch":-0.726835231270595,"shift":0.329457153454423,"tens":183.126428799401,"tension":184.879302978516,"theta":0.00716887493483864,"v":14.3880492083232,"vz":1.11775207638741}
+CSV,{"T":300.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":true,"fx":115.998986193339,"fy":0.0,"ok":true,"pitch":-0.251799770025395,"shift":0.50361375913024,"tens":260.7424490769,"tension":263.547027587891,"theta":0.00368299098180257,"v":17.8278258514404,"vz":2.27044614434242}
+CSV,{"T":300.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":false,"fx":45.0522479820251,"fy":0.0,"ok":true,"pitch":-1.0,"shift":0.459838509609302,"tens":1327.05736660618,"tension":594.406005859375,"theta":60.2601868619796,"v":17.3968874629339,"vz":15.7959299898148}
+CSV,{"T":400.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":true,"fx":193.933315455119,"fy":0.0,"ok":true,"pitch":-0.344387393886286,"shift":0.676790323058764,"tens":333.41523123755,"tension":337.560241699219,"theta":0.0066860604934913,"v":21.6735720443726,"vz":3.40220859766006}
+CSV,{"T":400.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":false,"fx":-4.80188423598806,"fy":0.0,"ok":true,"pitch":0.129392809010303,"shift":-0.00640080059878528,"tens":0.0,"tension":0.0,"theta":0.250863351830748,"v":9.94688369433085,"vz":-0.918785288333893}
+CSV,{"T":500.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":true,"fx":293.105534159342,"fy":0.0,"ok":true,"pitch":-0.440307599480806,"shift":0.841022100349267,"tens":405.597744729602,"tension":411.579895019531,"theta":0.0090294328480367,"v":25.721287651062,"vz":4.49440327088038}
+CSV,{"T":500.0,"at":"pilot","eps":20.0,"free":false,"ok":false,"tension":0.0}
+CSV,{"T":600.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":true,"fx":412.006618398031,"fy":0.0,"ok":true,"pitch":-0.537457772210337,"shift":0.98601527829965,"tens":480.04126352896,"tension":488.764312744141,"theta":0.0118209014788376,"v":29.811259727478,"vz":5.53864035129547}
+CSV,{"T":600.0,"at":"pilot","eps":20.0,"free":false,"ok":false,"tension":0.0}
+CSV,{"T":700.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":true,"fx":548.752310078939,"fy":0.0,"ok":true,"pitch":-0.634183734931531,"shift":1.10547053138415,"tens":558.234164031409,"tension":568.815490722656,"theta":0.0141547158981249,"v":33.8587906519572,"vz":6.53475732564926}
+WARNING: `NaN` ("Not a Number") found in argument passed to JSON.stringify(). `NaN` cannot be represented in JSON, so the value has been replaced with `null`. This warning will not be printed for any later NaN occurrences.
+     at: _stringify (core/io/json.cpp:86)
+     GDScript backtrace (most recent call first):
+         [0] _ready (res://tools/research/tow/tow_sweep.gd:98)
+CSV,{"T":700.0,"at":"pilot","eps":20.0,"free":false,"ok":false,"tension":null}
+CSV,{"T":800.0,"alpha":0.0,"at":"pilot","eps":20.0,"free":true,"fx":700.939218343099,"fy":0.0,"ok":true,"pitch":-0.729922399686555,"shift":1.19867266535759,"tens":640.435251050605,"tension":653.130126953125,"theta":0.0165897022822045,"v":37.8083524640401,"vz":7.48321326255798}
+CSV,{"T":800.0,"at":"pilot","eps":20.0,"free":false,"ok":false,"tension":0.0}
