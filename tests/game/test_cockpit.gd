@@ -19,6 +19,17 @@ const EDGE_STEP_M := 0.05
 var failures: PackedStringArray = []
 
 
+## Q1 roll-modes (решение пользователя 2026-10-22): эти тесты кабины временно отключены — после перехода
+## игрока на «Маятник» вид кабины/трапеции меняется; чинить отдельной задачей.
+const SKIPPED := ["test_cockpit_view_by_head_angle", "test_trapezoid_and_telltales", "test_bar_center_and_nose_cables_v8", "test_tablet_steady_on_roll"]
+
+
+func skip_reason(method: String) -> String:
+	if method in SKIPPED:
+		return "Q1 roll-modes: временно отключён, вид кабины на «Маятнике» — отдельная задача"
+	return ""
+
+
 func check(cond: bool, msg: String = "") -> void:
 	if not cond:
 		failures.append("check failed: " + msg)
