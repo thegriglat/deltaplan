@@ -1,0 +1,65 @@
+{
+  "id": "SRS-3",
+  "module": "site-research",
+  "type": "dp-writer",
+  "title": "Сайт: фазы ветра — границы, порог U/N, штиль, графики",
+  "goal": "Страница «Фазы ветра» (ru+en) описывает действующую модель фаз (границы, порог U/N, штиль) по исследованию air_phase, 3–5 графиков с подписями.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К4",
+      "version": "3",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-3",
+  "branch": "site-research/SRS-3",
+  "base": "feature/site-research",
+  "scope": [
+    "site/content/mechanics/air-model/wind-phases.ru.md",
+    "site/content/mechanics/air-model/wind-phases.en.md"
+  ],
+  "dont_touch": [
+    "docs/",
+    "site/content/mechanics/clouds.ru.md",
+    "site/content/mechanics/clouds.en.md",
+    "site/layouts/",
+    "site/hugo.toml",
+    "tools/research/site_coverage/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "hugo --source site --quiet -d $(mktemp -d)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "re:нарушений 0"
+    },
+    {
+      "name": "img_ru",
+      "cmd": "grep -c '!\\[' site/content/mechanics/air-model/wind-phases.ru.md",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "img_en",
+      "cmd": "grep -c '!\\[' site/content/mechanics/air-model/wind-phases.en.md",
+      "expect": "num:(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:23:53"
+}

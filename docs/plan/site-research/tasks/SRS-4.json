@@ -1,0 +1,65 @@
+{
+  "id": "SRS-4",
+  "module": "site-research",
+  "type": "dp-writer",
+  "title": "Сайт: подходы к модели воздуха — недостающие исследования, графики",
+  "goal": "Страница «Подходы» (ru+en) дополнена выводами исследований из таблицы аудита (Моррис и Pr_t, k_relax/А2, AS-1, WPC, кеш поля, нейросеть, WindNinja, статистика рельефа) — коротко, 3–5 графиков с подписями.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К4",
+      "version": "3",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-4",
+  "branch": "site-research/SRS-4",
+  "base": "feature/site-research",
+  "scope": [
+    "site/content/approaches.ru.md",
+    "site/content/approaches.en.md"
+  ],
+  "dont_touch": [
+    "docs/",
+    "site/content/mechanics/clouds.ru.md",
+    "site/content/mechanics/clouds.en.md",
+    "site/layouts/",
+    "site/hugo.toml",
+    "tools/research/site_coverage/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "hugo --source site --quiet -d $(mktemp -d)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "re:нарушений 0"
+    },
+    {
+      "name": "img_ru",
+      "cmd": "grep -c '!\\[' site/content/approaches.ru.md",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "img_en",
+      "cmd": "grep -c '!\\[' site/content/approaches.en.md",
+      "expect": "num:(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:23:56"
+}
