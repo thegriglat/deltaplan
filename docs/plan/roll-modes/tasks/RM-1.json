@@ -52,10 +52,6 @@
       "tests": "pendulum"
     },
     {
-      "name": "roll",
-      "tests": "roll"
-    },
-    {
       "name": "test_mouse_bar_flight",
       "tests": "test_mouse_bar_flight"
     },
@@ -141,11 +137,6 @@
       "expect": "num:(\\d+) <=0"
     },
     {
-      "name": "no-ws-net",
-      "cmd": "grep -rn 'WEIGHT_SHIFT' scripts server/gen | wc -l",
-      "expect": "num:(\\d+) <=0"
-    },
-    {
       "name": "proto-reserved",
       "cmd": "grep -n 'reserved \"CONTROL_MODE_WEIGHT_SHIFT\"' server/proto/deltaplan/v1/net.proto",
       "expect": "exit=0"
@@ -154,9 +145,23 @@
       "name": "server-go-test",
       "cmd": "bash -c 'cd server && go test ./...'",
       "expect": "exit=0"
+    },
+    {
+      "name": "no-ws-net",
+      "cmd": "bash -c 'grep -rn WEIGHT_SHIFT scripts; grep -rn ControlMode_CONTROL_MODE_WEIGHT_SHIFT server/gen'",
+      "expect": "!re:WEIGHT_SHIFT"
+    },
+    {
+      "name": "tests/flight/test_roll",
+      "tests": "tests/flight/test_roll"
+    },
+    {
+      "name": "test_cockpit",
+      "tests": "test_cockpit"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T02:32:15"
+  "created": "2026-10-22T02:32:15",
+  "edited": "2026-10-22T04:06:47"
 }
