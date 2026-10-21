@@ -95,7 +95,7 @@ The mast profile closed the valley: α was determined (0.235), λ/h dropped to 0
 
 **3. Askervein and Perdigão together** (765 runs) is what the game uses: λ = 27 m (+4 −3); the game applies a 40 m floor (λ = the larger of 40 m and 0.0158·h), and α for Askervein is 0.242 ± 0.004. The residuals show where the model misses:
 
-![Residuals of the joint Askervein and Perdigão fit](/tools/research/cases/b1/out/fig_fit_residuals.png "Residuals (model − data) in units of uncertainty at the joint minimum: blue — Askervein, orange and green — Perdigão, yellow — the reverse-flow zone. Dotted lines are ±2σ. Some Askervein points deviate by 4–7σ; Perdigão residuals stay within 3σ, but all three reverse-zone measures are underestimated")
+![Residuals of the joint Askervein and Perdigão fit](/tools/research/cases/b1/out/fig_fit_residuals.png "Residuals (model − data) in units of uncertainty at the joint minimum: blue — Askervein, orange and green — Perdigão, yellow — the reverse-flow zone. Dotted lines are ±2σ. Askervein residuals run from −6.7σ to +3.6σ, Perdigão from −1.7σ to +3.0σ, and all three reverse-zone measures are underestimated (−1.3 to −1.7σ)")
 
 In one sentence: the model does not describe Askervein within the uncertainties (165 for 47 observables), is closer on Perdigão (43 for 35) but underestimates the reverse-flow zone — so read the numbers on this page as "order of magnitude with a known bias", not as an exact forecast.
 
