@@ -77,3 +77,5 @@
 {"t": "2026-10-21T19:28:18", "by": "executor", "task": "SRS-3", "ev": "reported", "commits": ["69cfa337"], "note": "done: Страница «Фазы ветра» (ru+en): добавлены порог несходимости N_c(U) и U/N, штиль Fr ≲ 0,25, линия тени 9,9° (хребет 7,3°…", "dp_feedback": "Путь fig_sections.png в карточке неверный (out/ его не содержит); в таблице README.md тоже. Лучше сверять пути картинок командой при создании карточки."}
 {"t": "2026-10-21T19:28:47", "by": "coordinator", "task": "SRS-3", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:4; img_en=ok:4"}
 {"t": "2026-10-21T19:28:53", "by": "coordinator", "task": "SRS-3", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-21T19:29:11", "by": "coordinator", "task": "SRS-3", "ev": "accepted", "commits": ["ffb04ddc"], "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:4; img_en=ok:4"}
+{"t": "2026-10-21T19:29:11", "by": "coordinator", "task": "SRS-3", "ev": "merged"}
