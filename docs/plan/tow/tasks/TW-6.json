@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "TW-К5",
-      "version": "6",
+      "version": "7",
       "ref": "docs/contracts/tow.md"
     },
     {
@@ -61,5 +61,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T03:02:55"
+  "created": "2026-10-22T03:02:55",
+  "edited": "2026-10-22T04:08:30"
 }
