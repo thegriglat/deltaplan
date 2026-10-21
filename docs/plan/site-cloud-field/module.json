@@ -1,0 +1,11 @@
+{
+  "module": "site-cloud-field",
+  "plan": "docs/plan/site-cloud-field.md",
+  "contracts": "docs/contracts/site-cloud-field.md",
+  "branch": "feature/site-cloud-field",
+  "copy": "~/deltaplan-site-cloud-field",
+  "created": "2026-10-21T19:02:57",
+  "code": "SCF",
+  "area": "air",
+  "base": "main"
+}
