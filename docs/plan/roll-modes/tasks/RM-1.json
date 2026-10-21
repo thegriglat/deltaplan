@@ -1,0 +1,162 @@
+{
+  "id": "RM-1",
+  "module": "roll-modes",
+  "type": "dp-engineer",
+  "title": "Убрать режимы крена игрока: только Маятник, FlightModel rate — боты",
+  "goal": "Игрок всегда летит на PendulumModel без настройки «Управление креном»; режим weight_shift (FlightModel._roll_weight_shift, ControlInput.weight_shift, wing.weight_shift) удалён; FlightModel остаётся только rate для ботов, ввод игрока работает как сейчас в «Маятнике».",
+  "plan_ref": "§RM-1",
+  "contracts": [
+    {
+      "name": "roll-modes",
+      "version": "1",
+      "ref": "docs/contracts/roll-modes.md"
+    }
+  ],
+  "copy": "~/deltaplan-roll-modes-RM-1",
+  "branch": "roll-modes/RM-1",
+  "base": "feature/roll-modes",
+  "scope": [
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/glider.gd",
+    "scripts/core/control_input.gd",
+    "scripts/game",
+    "scripts/net",
+    "scripts/ui",
+    "configs/controls.json",
+    "configs/wings",
+    "locale/ui.csv",
+    "tests",
+    "tools/flight",
+    "tools/research/spin_recovery/sr1/sr1_run.gd",
+    "server/proto",
+    "server/gen",
+    "server/proto_examples_test.go"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum",
+    "configs/pendulum.json",
+    "scripts/atmosphere",
+    "project.godot",
+    "docs",
+    "site",
+    "CHANGELOG.md",
+    "tools/research/air3d"
+  ],
+  "accept": [
+    {
+      "name": "roll_modes",
+      "tests": "roll_modes"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "roll",
+      "tests": "roll"
+    },
+    {
+      "name": "test_mouse_bar_flight",
+      "tests": "test_mouse_bar_flight"
+    },
+    {
+      "name": "tests/net/",
+      "tests": "tests/net/"
+    },
+    {
+      "name": "test_net_flight",
+      "tests": "test_net_flight"
+    },
+    {
+      "name": "test_net_bots",
+      "tests": "test_net_bots"
+    },
+    {
+      "name": "test_remote_pilots",
+      "tests": "test_remote_pilots"
+    },
+    {
+      "name": "test_bots",
+      "tests": "test_bots"
+    },
+    {
+      "name": "test_xc_bot",
+      "tests": "test_xc_bot"
+    },
+    {
+      "name": "test_game_flight",
+      "tests": "test_game_flight"
+    },
+    {
+      "name": "test_input_launch",
+      "tests": "test_input_launch"
+    },
+    {
+      "name": "test_control_",
+      "tests": "test_control_"
+    },
+    {
+      "name": "test_pilot_view_contracts",
+      "tests": "test_pilot_view_contracts"
+    },
+    {
+      "name": "test_ui_controls_contracts",
+      "tests": "test_ui_controls_contracts"
+    },
+    {
+      "name": "tests/flight/test_glider",
+      "tests": "tests/flight/test_glider"
+    },
+    {
+      "name": "test_wings",
+      "tests": "test_wings"
+    },
+    {
+      "name": "test_bar_force",
+      "tests": "test_bar_force"
+    },
+    {
+      "name": "test_ground_stand",
+      "tests": "test_ground_stand"
+    },
+    {
+      "name": "tests/ui/test_settings",
+      "tests": "tests/ui/test_settings"
+    },
+    {
+      "name": "test_setup_apparatus",
+      "tests": "test_setup_apparatus"
+    },
+    {
+      "name": "test_menu_setup",
+      "tests": "test_menu_setup"
+    },
+    {
+      "name": "tests/ui/test_screens",
+      "tests": "tests/ui/test_screens"
+    },
+    {
+      "name": "no-roll-modes",
+      "cmd": "grep -rnE 'roll_control_mode|weight_shift|ROLL_MODES|settings_roll_(control|pendulum|simple)|setup_app_pendulum_only' scripts configs locale tools/flight tools/research/spin_recovery/sr1/sr1_run.gd | wc -l",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "no-ws-net",
+      "cmd": "grep -rn 'WEIGHT_SHIFT' scripts server/gen | wc -l",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "proto-reserved",
+      "cmd": "grep -n 'reserved \"CONTROL_MODE_WEIGHT_SHIFT\"' server/proto/deltaplan/v1/net.proto",
+      "expect": "exit=0"
+    },
+    {
+      "name": "server-go-test",
+      "cmd": "bash -c 'cd server && go test ./...'",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T02:32:15"
+}

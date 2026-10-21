@@ -1,0 +1,64 @@
+{
+  "id": "RM-2",
+  "module": "roll-modes",
+  "type": "dp-writer",
+  "title": "Документация, контракты, сайт, CHANGELOG: игроку только Маятник",
+  "goal": "Гайд, сайт и CHANGELOG описывают одну физику игрока — «Маятник», без настройки «Управление креном» и режимов «Смещение веса»/«Простое»; FlightModel (rate) — только боты; в контрактах действующего кода заменённые места помечены ссылкой на RM-К1.",
+  "plan_ref": "§RM-2",
+  "contracts": [
+    {
+      "name": "roll-modes",
+      "version": "1",
+      "ref": "docs/contracts/roll-modes.md"
+    }
+  ],
+  "copy": "~/deltaplan-roll-modes-RM-2",
+  "branch": "roll-modes/RM-2",
+  "base": "feature/roll-modes",
+  "scope": [
+    "docs/guide",
+    "docs/contracts/pendulum-default.md",
+    "docs/contracts/pendulum.md",
+    "docs/contracts/control-fix.md",
+    "docs/contracts/pilot-view.md",
+    "docs/contracts/feedback-1012.md",
+    "docs/contracts/pullin-speed.md",
+    "docs/contracts/ui-controls.md",
+    "site/content",
+    "CHANGELOG.md",
+    "docs/INDEX.md",
+    "docs/registry"
+  ],
+  "dont_touch": [
+    "docs/contracts/roll-modes.md",
+    "docs/plan",
+    "docs/research",
+    "docs/archive",
+    "site/content/releases",
+    "scripts",
+    "configs",
+    "tests",
+    "tools",
+    "diary"
+  ],
+  "accept": [
+    {
+      "name": "docs-check",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА"
+    },
+    {
+      "name": "hugo",
+      "cmd": "bash -c 'cd site && hugo --quiet --destination /tmp/rm2-hugo-out'",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no-mode-names",
+      "cmd": "grep -rnE '«Смещение веса»|«Простое»|weight_shift|Управление креном|roll_control_mode|\"Weight shift\"|Simple \\(arcade\\)|Weight shift \\(like' site/content docs/guide --exclude-dir=releases | wc -l",
+      "expect": "num:(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T02:33:12"
+}
