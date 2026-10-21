@@ -257,3 +257,5 @@
 {"t": "2026-10-21T19:45:31", "by": "coordinator", "task": "SRS-18", "ev": "started"}
 {"t": "2026-10-21T19:45:31", "by": "coordinator", "task": "SRS-19", "ev": "started"}
 {"t": "2026-10-21T19:45:32", "by": "coordinator", "task": "SRS-20", "ev": "started"}
+{"t": "2026-10-21T19:46:27", "by": "executor", "task": "SRS-14", "ev": "reported", "commits": ["5f9810f0", "84325f33"], "note": "done: Страница «Рельеф» (ru+en) переведена в бандл mechanics/terrain/ и дополнена: раздел «Растительность и дома по региону»,…", "dp_feedback": "task show обрезает дополнения — пришлось --full; git commit с несуществующим путём (старые terrain.*.md) молча не коммитит — только после git mv пути надо не указывать."}
+{"t": "2026-10-21T19:46:38", "by": "coordinator", "task": "SRS-20", "ev": "note", "note": "В feature/site-research влит main: правило о пасхалках снято везде, K5 больше не ищет easter egg. Перед accept --dry — .dpcli/dpcli task sync SRS-20.", "addendum": true}
