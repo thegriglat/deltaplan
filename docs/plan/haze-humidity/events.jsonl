@@ -23,3 +23,8 @@
 {"t": "2026-10-21T17:40:09", "by": "coordinator", "task": "HH-1", "ev": "started"}
 {"t": "2026-10-21T17:40:09", "by": "coordinator", "task": "HH-2", "ev": "started"}
 {"t": "2026-10-21T17:40:10", "by": "coordinator", "task": "HH-3", "ev": "started"}
+{"t": "2026-10-21T17:44:10", "by": "executor", "task": "HH-2", "ev": "checked", "note": "4/4 readme=ok:exit 0; vis_table=ok:exit 0; vis_rows=ok:65; docs=ok:ошибок 0; scope=FAIL:вне scope: r-HH-2.json"}
+{"t": "2026-10-21T17:44:17", "by": "executor", "task": "HH-2", "ev": "checked", "note": "4/4 readme=ok:exit 0; vis_table=ok:exit 0; vis_rows=ok:65; docs=ok:ошибок 0"}
+{"t": "2026-10-21T17:44:25", "by": "executor", "task": "HH-2", "ev": "reported", "commits": ["014e9acd"], "note": "done: Предложено haze_k(RH)=((1-RH)/0,6)^-0,6, RH в [0,40; 0,95]; γ≈0,6 (0,45–0,74) выведен из f(85%) Zieger 2013 (Table 2). …", "dp_feedback": "Bash-хук один раз вернул 'no verdict' на составную команду; повторный простой вызов прошёл. В карточке не сказано, откуда брать сценарии влажного/сухого места."}
+{"t": "2026-10-21T17:44:32", "by": "coordinator", "task": "HH-2", "ev": "checked", "note": "4/4 readme=ok:exit 0; vis_table=ok:exit 0; vis_rows=ok:65; docs=ok:ошибок 0"}
+{"t": "2026-10-21T17:44:43", "by": "coordinator", "task": "HH-2", "ev": "accepted", "note": "по отчёту"}

@@ -1,0 +1,84 @@
+{
+  "status": "done",
+  "summary": "Предложено haze_k(RH)=((1-RH)/0,6)^-0,6, RH в [0,40; 0,95]; γ≈0,6 (0,45–0,74) выведен из f(85%) Zieger 2013 (Table 2). evening_haze_k x1,6 и overcast x1,3 влажностью не объясняются; таблица видимости 64 строки для сухого и влажного места.",
+  "commits": [
+    "014e9acd haze-humidity HH-2: дымка от влажности, таблица видимости"
+  ],
+  "checks": [
+    {
+      "name": "readme",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "vis_table",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "vis_rows",
+      "value": "65",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "f(85%) модели",
+      "value": "2,30 против 2,25–2,38 (Cabauw, Zieger 2013)",
+      "pass": true
+    },
+    {
+      "name": "видимость dry_steppe proposed",
+      "value": "60 км весь день (current: 38–60)",
+      "pass": true
+    },
+    {
+      "name": "видимость humid_valley proposed",
+      "value": "26–55,5 км (current: 38,7–60)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Hänel 1976, Kasten 1969, Kotchenruther 1999: полных текстов нет, γ из них не проверен; γ взят из Zieger 2013"
+  ],
+  "questions": [
+    "Оставить ли малый остаток вечерней дымки (<=1,2) как художественный, или полностью убрать evening_haze_k?"
+  ],
+  "images": [],
+  "how_to_check": "cd tools/research/haze_humidity/haze && python3 haze_table.py; .dpcli/dpcli accept HH-2",
+  "uncertain": [
+    {
+      "where": "README.md: Литература",
+      "why": "γ из Hänel/Kasten/Kotchenruther не проверен по первоисточникам",
+      "checked": "γ пересчитан из Table 2 Zieger 2013 по тексту PDF"
+    },
+    {
+      "where": "README.md: evening_haze_k",
+      "why": "независимого обоснования вечернего накопления аэрозоля (число) не нашёл",
+      "checked": "RH-модель при Td=const даёт k<=1,24 только во влажном месте"
+    },
+    {
+      "where": "haze_table.py: PLACES",
+      "why": "сценарии Tmax/Td заданы по смыслу, не из климата (его даёт HH-1); RH0=0,40 и нормировка 60 км при RH<=40% — решение, не замер",
+      "checked": "-"
+    }
+  ],
+  "dp_feedback": "Bash-хук один раз вернул 'no verdict' на составную команду; повторный простой вызов прошёл. В карточке не сказано, откуда брать сценарии влажного/сухого места.",
+  "extra": {
+    "gamma_from_f85": {
+      "CAB_cont_south": 0.448,
+      "CAB_cont_east": 0.585,
+      "CAB_all": 0.625,
+      "MEL": 0.735,
+      "MHD_polluted": 0.424
+    },
+    "gamma_used": 0.6,
+    "rh0": 0.4,
+    "rh_max": 0.95
+  },
+  "t": "2026-10-21T17:44:25",
+  "by": "executor"
+}
