@@ -1,0 +1,41 @@
+{
+  "verdict": "rework",
+  "summary": "Контракт TW-К7 выполнен: tow_kind, сериализация, --tow, ключи locale, умолчание и мультиплеер; скоуп соблюдён, tow_k7 4/4. Падение tests/ui/ test_scroll_screens есть и на базе feature/tow, это не регрессия. Нужна доработка: выбор буксировки сбрасывается, когда PlacePickRow.changed приходит без смены площадки, например при асинхронной подгрузке высоты точки.",
+  "issues": [
+    {
+      "file": "scripts/ui/flight_setup_screen.gd",
+      "line": 173,
+      "severity": "major",
+      "what": "_row.changed -> _refresh_tow(\"\", true) сбрасывает выбор на умолчание площадки при любом PlacePickRow.refresh(), а не только при смене места. refresh() вызывается и асинхронно: _lookup_elevation (await, place_pick_row.gd:160) и _on_map_elevation (:147). Пример: открыть экран с сохранённой точкой с карты и tow_kind=winch_static. _apply_settings восстановит выбор, но через кадр придёт высота, и выбор молча станет «Нет». То же будет, если игрок выбрал вид до прихода высоты.",
+      "fix": "Сбрасывать на умолчание, только когда сменилась площадка или точка: запоминать ключ (location_id, site_id, has_pick, pick_lat/lon) и при том же ключе звать _refresh_tow(_tow_selected(), false)."
+    },
+    {
+      "file": "scripts/game/flight_settings.gd",
+      "line": 51,
+      "severity": "minor",
+      "what": "TOW_KINDS вставлена между doc-комментарием «## Ключи PD-К3…» и APPARATUS_SPEC. Комментарий теперь относится к TOW_KINDS.",
+      "fix": "Перенести TOW_KINDS выше комментария PD-К3 и дать ей свой комментарий."
+    },
+    {
+      "file": "scripts/game/tow_site.gd",
+      "line": 0,
+      "severity": "minor",
+      "what": "Отчёт ≠ факт: в uncertain указан файл scripts/game/tow_site.gd, но в ветке его нет. tow.kinds читается в FlightSetupScreen.tow_kinds_for_site.",
+      "fix": "В отчёте указать flight_setup_screen.gd:tow_kinds_for_site."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "tow_k7 (accept --only tow_k7 --dry)",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_menu_scroll на feature/tow 365da045 без TW-9 (~/deltaplan-tow)",
+      "value": "1/2 упал: test_scroll_screens, экран settings — падение на базе подтверждено",
+      "pass": false
+    }
+  ],
+  "t": "2026-10-22T02:02:48",
+  "by": "reviewer"
+}
