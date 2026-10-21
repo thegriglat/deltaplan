@@ -1,0 +1,54 @@
+{
+  "id": "TK-1",
+  "module": "trike-model",
+  "type": "dp-researcher",
+  "title": "Размеры трайка и точка глаз сидячей позы",
+  "goal": "trike_params.json по TK-K1: размеры реального трайка с источниками и блок seat, построенный под замеренную в игре точку глаз «Сидячей позы»; README с таблицей источников и расхождением с реальной посадкой.",
+  "plan_ref": "TK-1",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-1",
+  "branch": "trike-model/TK-1",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/blender/trike_params.json",
+    "tools/research/trike-model/",
+    "tests/contracts/test_trike_model_k1.gd"
+  ],
+  "dont_touch": [
+    "configs/camera.json",
+    "scripts/",
+    "tools/blender/build_pilot.py",
+    "docs/contracts/trike-model.md",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "trike_model_k1",
+      "tests": "trike_model_k1"
+    },
+    {
+      "name": "docs",
+      "cmd": "./.dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "src_missing",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/blender/trike_params.json'));print('missing=%d'%sum(1 for v in d['dims'].values() if not str(v.get('src','')).strip()))\"",
+      "expect": "num:missing=(\\d+) <=0"
+    },
+    {
+      "name": "sources",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/blender/trike_params.json'));print('urls=%d'%len({v['src'] for v in d['dims'].values() if 'http' in str(v.get('src',''))}))\"",
+      "expect": "num:urls=(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T03:05:46"
+}

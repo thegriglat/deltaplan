@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-21"
+updated: "2026-10-22"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -67,6 +67,7 @@ generated: true
 - steam: S1 v1, S2 v3, S3 v2, S4 v2, S5 v1, S6 v2, S7 v1 — [docs/contracts/steam.md](../contracts/steam.md)
 - surface-heat: SH1 v1, SH2 v2, SH3 v1, SH4 v1, SH5 v1 — [docs/contracts/surface-heat.md](../contracts/surface-heat.md)
 - training-island: TI-К1 v1, TI-К2 v2, TI-К3 v3 — [docs/contracts/training-island.md](../contracts/training-island.md)
+- trike-model: TK-K1 v1, TK-K2 v1, TK-K3 v1 — [docs/contracts/trike-model.md](../contracts/trike-model.md)
 - ui-controls: У1 v5, У2 v2 — [docs/contracts/ui-controls.md](../contracts/ui-controls.md)
 - volcano-island: VI-К1 v3, VI-К2 v2, VI-К3 v1 — [docs/contracts/volcano-island.md](../contracts/volcano-island.md)
 - wind-limits: WL-К1 v2, WL-К2 v1 — [docs/contracts/wind-limits.md](../contracts/wind-limits.md)
