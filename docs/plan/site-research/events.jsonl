@@ -60,3 +60,7 @@
 {"t": "2026-10-21T19:24:35", "by": "coordinator", "task": "SRS-4", "ev": "note", "note": "r.json для report писать вне копии (не в рабочее дерево), иначе accept: FAIL scope.", "addendum": true}
 {"t": "2026-10-21T19:24:35", "by": "coordinator", "task": "SRS-5", "ev": "note", "note": "r.json для report писать вне копии (не в рабочее дерево), иначе accept: FAIL scope.", "addendum": true}
 {"t": "2026-10-21T19:24:35", "by": "coordinator", "task": "SRS-6", "ev": "note", "note": "r.json для report писать вне копии (не в рабочее дерево), иначе accept: FAIL scope.", "addendum": true}
+{"t": "2026-10-21T19:25:13", "by": "coordinator", "task": "SRS-3", "ev": "started"}
+{"t": "2026-10-21T19:25:13", "by": "coordinator", "task": "SRS-4", "ev": "started"}
+{"t": "2026-10-21T19:25:13", "by": "coordinator", "task": "SRS-5", "ev": "started"}
+{"t": "2026-10-21T19:25:13", "by": "coordinator", "task": "SRS-6", "ev": "started"}
