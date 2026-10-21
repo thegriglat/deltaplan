@@ -1,0 +1,63 @@
+{
+  "status": "partial",
+  "summary": "Td дня против облачности (clear<0.2, partly, overcast>0.6) и жары дня по 4 поясам x 4 сезонам, суша, ERA5 2011-2013 (3 года из 10 плановых: ARCO отдавал NaN-блоки). pooled: ясный -0.28 sigma (-1.2 K), пасмурный +0.13 sigma (+0.6 K); beta Td/Tmax 0.59 K/K, но от -0.28 (тропики JJA) до 1.0 (60-75 зима); единого значения нет, нужны таблицы td_sky.json.",
+  "commits": [
+    "ccd4314a HH-1c: Td дня против облачности и жары дня (ERA5 2011-2013)"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "pooled mu_sigma clear/partly/overcast",
+      "value": "-0.275 / +0.011 / +0.130",
+      "pass": true
+    },
+    {
+      "name": "pooled beta K/K",
+      "value": "0.586",
+      "pass": true
+    },
+    {
+      "name": "чувствительность к смеси с неполными 2014-20",
+      "value": "pooled mu_sigma -0.29/0.00/+0.14, beta 0.60",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "10 лет вместо 3: годы 2014-2020 не докачаны (partial parts в ~/data/haze_humidity/td_sky/parts), SE по джекнайфу 3 лет занижены"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-1c; python analyze.py в tools/research/haze_humidity/td_sky",
+  "uncertain": [
+    {
+      "where": "tools/research/haze_humidity/td_sky/td_sky.json:beta_k_per_k",
+      "why": "3 года; регрессия внутри классов, общая на пояс/сезон; Td дня = среднее 00+12 UTC, не полдень",
+      "checked": "сравнение с прогоном на 10 неполных годах: pooled совпадает"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "beta_pooled": 0.586,
+    "mu_sigma_uncentered_pooled": [
+      -0.456,
+      -0.134,
+      0.641
+    ],
+    "res_ratio_pooled": [
+      0.959,
+      0.995,
+      1.112
+    ],
+    "frac_pooled": [
+      0.246,
+      0.258,
+      0.496
+    ]
+  },
+  "t": "2026-10-22T01:23:38",
+  "by": "executor"
+}
