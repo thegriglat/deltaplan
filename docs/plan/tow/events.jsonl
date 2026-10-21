@@ -108,3 +108,7 @@
 {"t": "2026-10-22T02:14:00", "by": "coordinator", "task": "TW-9", "ev": "merged"}
 {"t": "2026-10-22T02:14:01", "by": "coordinator", "task": "TW-4", "ev": "note", "note": "Доработка по ревью (2026-10-22): .dpcli/dpcli review TW-4 --show — 2 major (формула тяги лебёдки без угла набора — дать с углом набора или назвать границу; предел ≈69 км/ч у BHPA — Va тандема Falcon 3, не общий для дельтапланов — переписать вывод про Ан-2 и «полосу совместимости»), 2 minor (36 даН aerotow не выводится из входных данных; «тяга ≈1 даН·g»). Коммит прежней работы в ветке — продолжить с него. r-*.json писать вне копии (scratchpad).", "addendum": true}
 {"t": "2026-10-22T02:14:01", "by": "coordinator", "task": "TW-4", "ev": "started", "note": "доработка по ревью"}
+{"t": "2026-10-22T02:14:02", "by": "executor", "task": "TW-12", "ev": "reported", "commits": ["eed9de18"], "note": "done: Модель дрог-парашюта tow_drogue.glb скриптом Blender: 3 LOD (100/54/6 треугольников), узел tow_drogue_attach в начале к…", "dp_feedback": "task sync писал только «feature/tow уже влит» без списка изменений - непонятно, что подтянулось."}
+{"t": "2026-10-22T02:14:10", "by": "coordinator", "task": "TW-4", "ev": "started", "note": "новый исполнитель (доработка)"}
+{"t": "2026-10-22T02:14:11", "by": "coordinator", "task": "TW-12", "ev": "checked", "note": "2/2 tow_k8=ok:3/3; textures=ok:exit 0"}
+{"t": "2026-10-22T02:14:15", "by": "coordinator", "task": "TW-12", "ev": "accepted", "note": "по отчёту"}
