@@ -4,9 +4,9 @@ status: "active"
 module: "tow"
 area: "flight"
 updated: "2026-10-22"
-summary: "Стыки tow: исследование (К1–К3), внешняя сила (К4), трос и лебёдка (К5), место и полоса (К6), выбор при старте (К7), модели (К8)."
+summary: "Стыки tow: исследование (К1–К3), внешняя сила (К4), трос и лебёдка (К5), место и полоса (К6), выбор при старте (К7), модели (К8 v2)."
 related: ["docs/plan/tow.md", "docs/guide/flight.md", "docs/guide/models.md", "docs/guide/game.md"]
-contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 1}, {"id": "TW-К5", "version": 1}, {"id": "TW-К6", "version": 1}, {"id": "TW-К7", "version": 1}, {"id": "TW-К8", "version": 1}]
+contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 1}, {"id": "TW-К5", "version": 1}, {"id": "TW-К6", "version": 1}, {"id": "TW-К7", "version": 1}, {"id": "TW-К8", "version": 2}]
 ---
 # Контракты модуля tow
 
@@ -214,7 +214,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 - **Инварианты теста:** круговая сериализация `tow_kind`; `--tow=winch_static` → `tow_kind == "winch_static"`;
   `--tow=xyz` → `""`; умолчание для площадки с `tow.kinds = ["aerotow"]` → `"aerotow"`; в мультиплеере → `""`.
 
-## TW-К8 v1. Модели `winch` и `release`
+## TW-К8 v2. Модели `winch`, `release`, `drogue`
 Владелец — TW-11; потребители — TW-10 (размещение и крепление). Контрактный тест — `tests/contracts/test_tow_k8.gd`
 (или раздел `scenes/models_preview/check_models.gd`). Основание — `docs/research/tow/models.md`.
 
@@ -225,5 +225,12 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 - `release`: `tools/blender/build_tow_release.py` → `assets/models/world/tow_release.glb`; узлы `tow_release_LOD0`,
   `tow_release_LOD1`; ≤300 / ≤40; уздечка, кольцо-замок, ручка отцепа; узлы `tow_release_attach` (точка на подвеске
   пилота) и `tow_release_rope` (точка троса); масштаб — метры, как пилот; вершинные цвета.
+- `drogue` (v2, решение пользователя 2026-10-22: купол — модель Blender, не процедурный; в коде только трос): владелец — TW-12;
+  `tools/blender/build_tow_drogue.py` (+ JSON параметров) → `assets/models/world/tow_drogue.glb`
+  (+ `assets/source/world/tow_drogue.blend`); узлы `tow_drogue_LOD0`, `tow_drogue_LOD1`, `tow_drogue_LOD2`; треугольники
+  ≤150 / ≤60 / ≤16; купол жёсткий (раскрытый), стропы сходятся в узел `tow_drogue_attach` (точка на тросе) в начале
+  координат; купол — по +Z от `tow_drogue_attach`, −Z модели — направление движения троса (игра ставит −Z по скорости
+  конца троса, TW-10); размеры — из `docs/research/tow/kinds.md` (с источником) или оценка с пометкой в JSON; вершинные цвета.
 - Материалы — ≤ 3 на модель, повторно `Hardware`, как `build_start_gear.py`. `python3 tools/check_textures.py` — 0.
-- **Инварианты теста:** оба glb грузятся; узлы с указанными именами есть; треугольников LOD0 не больше бюджета.
+- **Инварианты теста:** все glb (`winch`, `release`, `drogue`) грузятся; узлы с указанными именами есть; треугольников LOD0 не больше бюджета.
+- v2 (2026-10-22): добавлен `drogue`; `winch`/`release` без изменений.
