@@ -27,6 +27,7 @@ generated: true
   - [tools/research/air_weak_wind/AWW-1/README.md](../tools/research/air_weak_wind/AWW-1/README.md) — AWW-1: диагноз 1 (холодный θ′ F) верен — правка θ′·h (TW-3); диагноз 2 (профиль 0,45) не подтверждён; порывы по теории; W1. [closed]
   - [tools/research/air_weak_wind/AWW-2/README.md](../tools/research/air_weak_wind/AWW-2/README.md) — AWW-2: правка 1 AWW-1 — F переносит теплосодержание θ′·h; W1 до/после на 8 стартах и Онгудае/Аскарово (слабый и сильный день). [closed]
   - [tools/research/air_weak_wind/AWW-1/summary.md](../tools/research/air_weak_wind/AWW-1/summary.md) — Вывод AWW-1: диагноз 1 верен (правка θ′·h TW-3: «Термики» 0,44 → 1,27 м/с), диагноз 2 не подтверждён, порывы в полосе теории. [closed]
+- **site-cloud-field** — Сайт: страница «Облака и тени» переписана под поле облачности (CLF-1/9/10) с графиками исследования; одна задача SCF-1. [closed 2026-10-21] — [план](plan/site-cloud-field.md) · [решения](plan/site-cloud-field/decisions.md) · [сводка](plan/site-cloud-field/summary.md) · полный журнал: `archive/site-cloud-field`
 
 ## flight
 
@@ -424,11 +425,6 @@ generated: true
 - [tools/research/air_synth/terrain_stats/README.md](../tools/research/air_synth/terrain_stats/README.md) — Код и команды воспроизведения статистик рельефа, разложения на формы и генерации (Fastscape, сумма форм) для air-synth [closed]
 - [tools/research/air_synth/train/README.md](../tools/research/air_synth/train/README.md) — SY-11: обучение сети P2 (U-Net+FiLM) на счёте решателя по местам дельтаплана; сеть заменена фазовой сборкой [closed]
 - [tools/research/air_synth/tune/README.md](../tools/research/air_synth/tune/README.md) — Код и команды воспроизведения настройки параметров генератора рельефа схемой Professor (SY-5): эталон, прогоны, подгонка, облако θ [closed]
-
-### Журналы (journal)
-
-- [docs/plan/site-cloud-field/decisions.md](plan/site-cloud-field/decisions.md) — Решения (0) и вопросы (0, отвечено 0) модуля site-cloud-field [closed]
-- [docs/plan/site-cloud-field/summary.md](plan/site-cloud-field/summary.md) — Сводка реализации модуля site-cloud-field: 1 задач, итоги и оговорки исполнителей [closed]
 
 ### Реестры (registry)
 
