@@ -1467,7 +1467,7 @@ func _choose_start() -> void:
 			_start_pos = Vector3(q.x, terrain.height_at(q.x, q.y), q.y)
 			_start_heading = settings.start_heading_deg
 			_exact_start = true
-			terrain.add_start_clearing(q.x, q.y, Terrain.start_clearing_radius_m())
+			_clear_exact_start(q)
 			return
 		push_warning("Game: точный старт недопустим (%s), автостарт" % chk.reason)
 	if settings.has_pick():
@@ -1492,6 +1492,22 @@ func _choose_start() -> void:
 	_start_pos = site.position
 	_start_heading = float(site.heading_deg)
 	MotionRig.place = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
+
+
+## Поляна точного старта: у встроенной площадки с блоком tow (в пределах 5 м) — полоса вдоль оси
+## (TW-К6, запас по ширине — game.json → tow_site.clearing_margin_m), иначе круг.
+func _clear_exact_start(q: Vector2) -> void:
+	for st in terrain.get_start_sites():
+		var tow: Dictionary = st.get("tow", {})
+		if tow.is_empty() or Vector2(st.position.x, st.position.z).distance_to(q) > 5.0:
+			continue
+		var dim := TowSite.clearing_size(tow)
+		if dim.x > 0.0:
+			terrain.add_runway_clearing(
+				Vector3(q.x, terrain.height_at(q.x, q.y), q.y), settings.start_heading_deg, dim.x, dim.y
+			)
+			return
+	terrain.add_start_clearing(q.x, q.y, Terrain.start_clearing_radius_m())
 
 
 func _setup_glider() -> void:
