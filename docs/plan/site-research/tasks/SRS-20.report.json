@@ -1,8 +1,9 @@
 {
   "status": "done",
-  "summary": "Страница mechanics/launch-camp (ru+en): палатки, снаряжение, примятая трава, люди, звук шагов, лицензия Rocketbox, таблица сцен живого мира; 4 кадра.",
+  "summary": "Страница mechanics/launch-camp (ru+en) переработана по замечаниям: подписи сверены с кадрами, «Звук шагов» только по коду/конфигу, таблица живого мира без порогов; 3 кадра.",
   "commits": [
-    "e8639c29 launch-camp: страница лагеря у старта и живого мира (ru, en)"
+    "e8639c29 launch-camp: страница (ru, en)",
+    "099f4366 launch-camp: подписи по кадрам, звук, таблица без порогов"
   ],
   "checks": [
     {
@@ -17,50 +18,45 @@
     },
     {
       "name": "img_ru",
-      "value": "4",
+      "value": "3",
       "pass": true
     },
     {
       "name": "img_en",
-      "value": "4",
+      "value": "3",
       "pass": true
     }
   ],
   "not_done": [
-    "Собака у лагеря, круги на полях и ореол вокруг тени не описаны: их нет в CHANGELOG (выпущены ли — не ясно).",
-    "Строки аудита в tools/research/site_coverage/ не правил: каталог в dont_touch."
+    "Кадр Ан-2 убран: на нём только точки у горизонта, подпись была бы неверной.",
+    "Собака, круги на полях, ореол вокруг тени не описаны: нет в CHANGELOG.",
+    "Строки аудита в tools/research/site_coverage/ не правил: dont_touch."
   ],
   "questions": [],
   "images": [
     "site/content/mechanics/launch-camp/camp-person-5m.jpg",
     "site/content/mechanics/launch-camp/camp-view-25m.jpg",
-    "site/content/mechanics/launch-camp/camp-view-45m.jpg",
-    "site/content/mechanics/launch-camp/living-world-an2.jpg"
+    "site/content/mechanics/launch-camp/camp-view-45m.jpg"
   ],
   "how_to_check": ".dpcli/dpcli accept SRS-20",
   "uncertain": [
     {
       "where": "index.ru.md: таблица живого мира",
-      "why": "условия сцен выведены из configs/easter_eggs.json, не из игры; УАЗ без условия по солнцу",
-      "checked": "сверено с полями конфига, пороги в таблице округлены до конфига"
+      "why": "общие условия выведены из configs/easter_eggs.json, а не из прогона игры",
+      "checked": "сверено с полями конфига"
     },
     {
       "where": "index.ru.md: «Люди»",
-      "why": "реакция на пилота (150 м/60 м) выведена из react_radius_m/react_height_m",
-      "checked": "значения из конфига people"
+      "why": "реакция на пролёт (150 м/60 м) выведена из полей конфига",
+      "checked": "configs/easter_eggs.json people"
     },
     {
-      "where": "index.ru.md: «Звук шагов»",
-      "why": "связь шагов/шороха с картой примятой травы: из guide сказано «пригодится звуку шагов», в коде шорох считается по высоте травы и скорости ног",
-      "checked": "configs/audio.json rustle; trample в audio не найден grep-ом"
-    },
-    {
-      "where": "кадры",
-      "why": "кадры не открывал, подписи по именам файлов; Ан-2 — an2_1500m_after.jpg",
-      "checked": "размеры и hugo"
+      "where": "camp-view-45m.jpg",
+      "why": "в кадре часть моделей чёрные (без текстур); сказано в подписи",
+      "checked": "кадр открыт"
     }
   ],
-  "dp_feedback": "Дополнения карточки обрезаются в task show (…); полный текст — только через inbox; в карточке стоит правка features.md/README, но каталог в dont_touch.",
-  "t": "2026-10-21T19:50:59",
+  "dp_feedback": "Дополнения карточки обрезаются в task show; полный текст только через inbox.",
+  "t": "2026-10-21T19:52:39",
   "by": "executor"
 }
