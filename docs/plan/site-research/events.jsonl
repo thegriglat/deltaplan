@@ -24,3 +24,5 @@
 {"t": "2026-10-21T19:15:28", "by": "coordinator", "task": "SRS-2", "ev": "checked", "note": "4/4 header=ok:1; rows=ok:46; by_page=ok:1; docs=ok:ошибок 0; scope=FAIL:вне scope: r-SRS-2.json"}
 {"t": "2026-10-21T19:15:36", "by": "coordinator", "task": "SRS-2", "ev": "checked", "note": "4/4 header=ok:1; rows=ok:46; by_page=ok:1; docs=ok:ошибок 0"}
 {"t": "2026-10-21T19:15:43", "by": "coordinator", "task": "SRS-2", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-21T19:15:50", "by": "coordinator", "task": "SRS-2", "ev": "accepted", "commits": ["7b97fa88"], "note": "4/4 header=ok:1; rows=ok:46; by_page=ok:1; docs=ok:ошибок 0"}
+{"t": "2026-10-21T19:15:50", "by": "coordinator", "task": "SRS-2", "ev": "merged"}
