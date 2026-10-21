@@ -1,0 +1,84 @@
+{
+  "status": "done",
+  "summary": "Встроенное место wilotree_park (Wilotree Park / Quest Air, Флорида): две площадки runway_36 (356,8°) и runway_18 (176,8°) с tow {aerotow, winch_static, 610 x 35 м}, имя в locale, две записи в hg_takeoffs.json. Правки ревью TW-8: ось поляны точного старта по heading_deg площадки; flat_max_deg_doc переписан без противоречия.",
+  "commits": [
+    "8e2b30a4 TW-8b: буксирное место Wilotree Park (Quest Air), правки ревью TW-8"
+  ],
+  "checks": [
+    {
+      "name": "tow_k6",
+      "value": "8/8 (новый test_wilotree_park_config)",
+      "pass": true
+    },
+    {
+      "name": "test_locations",
+      "value": "1/1 (при перегрузке машины load 70+ в составе пачки упал по NFR-2 времени загрузки altai/ongudai; один — 23 с, PASS)",
+      "pass": true
+    },
+    {
+      "name": "test_popular_places",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "test_start_clearing",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_start_fixes",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Сборка рельефа места из сети и полёт на нём не проверялись (тестам сеть не нужна); TowSite.check на реальном рельефе Флориды не прогонялся.",
+    "tools/..locations.gd не менялся: builtin_ids берёт все configs/locations/*.json сам; в test_locations место не добавлено (требует сборки/фикстур)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TW-8b",
+  "uncertain": [
+    {
+      "where": "configs/locations/wilotree_park.json:rivers",
+      "why": "rivers и surface скопированы с Аскарово, под равнину Флориды (шумный сток, болота) не подбирались",
+      "checked": "только разбор конфига; сборка не запускалась"
+    },
+    {
+      "where": "configs/locations/wilotree_park.json:utc_offset_h",
+      "why": "-4 (EDT) выбран как сезон соревнований; зимой реальное поясное время на час меньше",
+      "checked": "обосновано в _doc, SunClock держит фиксированный сдвиг"
+    },
+    {
+      "where": "configs/locations/wilotree_park.json:start_sites",
+      "why": "линия OSM 862 м, заявленная полоса 610 м: 610 м откладываются от каждого торца (концы линии — торцы); где реально торец полосы, источник не говорит",
+      "checked": "по sites.md и указанию координатора"
+    },
+    {
+      "where": "configs/locations/wilotree_park.json",
+      "why": "trees и terrain_look Аскарово не перенесены (там уральские леса) — на Флориде умолчания world.json; лес вокруг аэродрома (sites.md) не настроен",
+      "checked": "нет"
+    },
+    {
+      "where": "configs/game.json:tow_site.flat_max_deg_doc",
+      "why": "порог 2° не менялся; относительная ошибка GLO-30 между узлами не измерена, прямо записано как граница модели",
+      "checked": "текст сверен с ревью TW-8"
+    }
+  ],
+  "dp_feedback": "accept --dry без --only гоняет test_locations на загруженной машине (load 70) и падает по NFR-2 на времени; нужен учёт нагрузки или повтор падения по таймингу. Фоновый accept из Bash убивался по таймауту инструмента, пришлось писать в файл.",
+  "extra": {
+    "полоса_36_начало": "28.5311456,-81.8464567",
+    "полоса_18_начало": "28.5388934,-81.8469503"
+  },
+  "t": "2026-10-22T03:13:16",
+  "by": "executor"
+}

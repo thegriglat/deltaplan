@@ -1,0 +1,52 @@
+{
+  "id": "TW-7",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Буксировщик Ан-2: кинематика TowTug",
+  "goal": "TowTug по TW-К9 v2: Ан-2 как кинематический буксировщик по траектории (ожидание, выбор слабины по W, разбег, удержание на земле до подъёма дельтаплана на ≈3 м, набор, круги, уход), искусственно медленно — со скоростью буксировки из kinds.md; параметры configs/tow_tug.json с источниками; контрактный тест.",
+  "plan_ref": "Волна 2 — физика троса и управление",
+  "contracts": [
+    {
+      "name": "TW-К9",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-7",
+  "branch": "tow/TW-7",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/game/tow_tug.gd",
+    "scripts/game/tow_tug.gd.uid",
+    "configs/tow_tug.json",
+    "tests/contracts/test_tow_k9.gd",
+    "tests/contracts/test_tow_k9.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/world_objects",
+    "configs/tow.json",
+    "scripts/ui",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k9",
+      "tests": "tow_k9"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;json.load(open('configs/tow_tug.json'))\"",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T03:47:36"
+}

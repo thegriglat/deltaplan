@@ -1,0 +1,56 @@
+{
+  "id": "TW-16",
+  "module": "tow",
+  "type": "dp-researcher",
+  "title": "Управляемость на тросе: кабрирование, усилия на штанге, проверка модели",
+  "goal": "Выяснить по источникам и опытами на модели, почему при натяжении лебёдки ≥590 Н пилот в «Маятнике» упирается в предел «на себя» (Q3): какие на деле положение и усилие на штанге на лебёдке, какой момент кабрирования даёт трос на пилоте, верна ли модель (компенсация рук, точка крепления, предел рук 300 Н). Итог — числа для шлюза: (б) уздечка 50/50 или (в) принять.",
+  "plan_ref": "Условия остановки",
+  "contracts": [
+    {
+      "name": "TW-К4",
+      "version": "5",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-16",
+  "branch": "tow/TW-16",
+  "base": "feature/tow",
+  "scope": [
+    "docs/research/tow/tow-control.md",
+    "tools/research/tow"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "docs/contracts",
+    "docs/plan",
+    "docs/research/tow/kinds.md",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "headings",
+      "cmd": "grep -cE '^## (Источники|Статика|Модель|Опыты|Расхождения|Вывод|Чего не знаем)$' docs/research/tow/tow-control.md",
+      "expect": "num:(\\d+) >=7"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/tow/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "size",
+      "cmd": "stat -c %s docs/research/tow/tow-control.md",
+      "expect": "num:(\\d+) <=40960"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T03:31:14"
+}

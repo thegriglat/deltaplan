@@ -1,0 +1,65 @@
+{
+  "id": "TW-6",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Трос и статическая лебёдка: TowLine, configs/tow.json",
+  "goal": "TowLine по TW-К5 v6: трос как звено TW-К4 (неявно), регулятор лебёдки по натяжению, старт по W, слабое звено, отцеп, свободный трос с парашютом; числа configs/tow.json из kinds.md с источниками; набор на лебёдке и lock-out воспроизводятся в тесте.",
+  "plan_ref": "Волна 2 — физика троса и управление",
+  "contracts": [
+    {
+      "name": "TW-К5",
+      "version": "6",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К4",
+      "version": "5",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-6",
+  "branch": "tow/TW-6",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/flight/tow/tow_line.gd",
+    "scripts/flight/tow/tow_line.gd.uid",
+    "configs/tow.json",
+    "tests/contracts/test_tow_k5.gd",
+    "tests/contracts/test_tow_k5.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum",
+    "scripts/flight/glider.gd",
+    "scripts/game",
+    "scripts/ui",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k5",
+      "tests": "tow_k5"
+    },
+    {
+      "name": "tow_k4",
+      "tests": "tow_k4"
+    },
+    {
+      "name": "tests/flight/",
+      "tests": "tests/flight/"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;json.load(open('configs/tow.json'))\"",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T03:02:55"
+}

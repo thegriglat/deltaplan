@@ -1495,7 +1495,7 @@ func _choose_start() -> void:
 
 
 ## Поляна точного старта: у встроенной площадки с блоком tow (в пределах 5 м) — полоса вдоль оси
-## (TW-К6, запас по ширине — game.json → tow_site.clearing_margin_m), иначе круг.
+## (TW-К6, ось — heading_deg площадки, не курс пилота; запас по ширине — game.json → tow_site.clearing_margin_m), иначе круг.
 func _clear_exact_start(q: Vector2) -> void:
 	for st in terrain.get_start_sites():
 		var tow: Dictionary = st.get("tow", {})
@@ -1504,7 +1504,7 @@ func _clear_exact_start(q: Vector2) -> void:
 		var dim := TowSite.clearing_size(tow)
 		if dim.x > 0.0:
 			terrain.add_runway_clearing(
-				Vector3(q.x, terrain.height_at(q.x, q.y), q.y), settings.start_heading_deg, dim.x, dim.y
+				Vector3(q.x, terrain.height_at(q.x, q.y), q.y), float(st.heading_deg), dim.x, dim.y
 			)
 			return
 	terrain.add_start_clearing(q.x, q.y, Terrain.start_clearing_radius_m())

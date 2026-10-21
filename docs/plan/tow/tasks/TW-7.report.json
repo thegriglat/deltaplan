@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "TowTug (scripts/game/tow_tug.gd): кинематика Ан-2 по траектории idle/slack/roll/climb/circuit/away, параметры в configs/tow_tug.json с источниками и пометками «оценка», контрактный тест tow_k9 (3 теста).",
+  "commits": [
+    "tow: TW-7 — буксировщик TowTug (кинематика Ан-2), configs/tow_tug.json, тест TW-К9"
+  ],
+  "checks": [
+    {
+      "name": "tow_k9",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TW-7",
+  "uncertain": [
+    {
+      "where": "scripts/game/tow_tug.gd: API сверх контракта",
+      "why": "Добавил release() (отцеп/обрыв -> away; контракт не называет метод), set_rope_tension(n), чтение agl_m (высота колёс над землёй) и gone (после away_s). pos.y = земля + tail_height_m (1,5 м, оценка), поэтому «высота над землёй 0 в roll» выражена через agl_m == 0.",
+      "checked": "Тест проверяет agl_m == 0 в roll; TW-10 должен вызывать release() по сигналам released/broken и set_rope_tension(TowLine.tension_n) каждый шаг."
+    },
+    {
+      "where": "configs/tow_tug.json",
+      "why": "Оценки без источника: slack_speed_ms 1, roll_accel_ms2 1,2, circuit_radius_m 200, circuit_start_agl_m 150, tail_height_m 1,5, away_*; круги влево, набор на кругах 2,5 (BHPA выше 500 фт ≈3,0).",
+      "checked": "Каждое число снабжено в _doc-ключе источником или пометкой «оценка»; крен на кругах ≈8° укладывается в BHPA ≤10°."
+    },
+    {
+      "where": "tow_tug.gd: переход в away",
+      "why": "Автоматического ухода при ослаблении троса нет — только явный release(). Круги идут, пока игра не вызовет release().",
+      "checked": "Решение оставлено игре (TW-10), чтобы кратковременная слабина в турбулентности не отцепляла буксировщик."
+    }
+  ],
+  "dp_feedback": "Карточка сказала «configs/tow_tug.json уже в коммите», а файла в копии не было (в коммите только docs/contracts/tow.md). Мелочь, но сбивает.",
+  "t": "2026-10-22T03:51:36",
+  "by": "executor"
+}

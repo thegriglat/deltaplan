@@ -1,0 +1,67 @@
+{
+  "id": "TW-14",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Старт с тележки в модели полёта «Маятник»",
+  "goal": "PendulumModel/Glider.reset_on_dolly по TW-К10 v2: крыло в ложементе тележки, пилот в лётном положении, связка катится по земле под тягой троса, отрыв по нулевой нормальной силе — непрерывный переход в обычный полёт; тележка после отрыва останавливается.",
+  "plan_ref": "Волна 2 — физика троса и управление",
+  "contracts": [
+    {
+      "name": "TW-К10",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К4",
+      "version": "5",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-14",
+  "branch": "tow/TW-14",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "scripts/flight/pendulum/pendulum_ground.gd",
+    "scripts/flight/glider.gd",
+    "configs/tow_dolly.json",
+    "tests/contracts/test_tow_k10.gd",
+    "tests/contracts/test_tow_k10.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight/tow",
+    "configs/tow.json",
+    "configs/pendulum.json",
+    "scripts/game",
+    "scripts/ui",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k10",
+      "tests": "tow_k10"
+    },
+    {
+      "name": "tow_k4",
+      "tests": "tow_k4"
+    },
+    {
+      "name": "tests/flight/",
+      "tests": "tests/flight/"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;json.load(open('configs/tow_dolly.json'))\"",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T03:03:26"
+}

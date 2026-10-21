@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки tow: сила и звено троса (К4), трос и лебёдка (К5), место (К6), выбор (К7), модели (К8), Ан-2 (К9), тележка (К10)."
 related: ["docs/plan/tow.md", "docs/guide/flight.md", "docs/guide/models.md", "docs/guide/game.md"]
-contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 5}, {"id": "TW-К5", "version": 6}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 2}, {"id": "TW-К8", "version": 3}, {"id": "TW-К9", "version": 1}, {"id": "TW-К10", "version": 1}]
+contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 5}, {"id": "TW-К5", "version": 7}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 2}, {"id": "TW-К8", "version": 3}, {"id": "TW-К9", "version": 3}, {"id": "TW-К10", "version": 2}]
 ---
 # Контракты модуля tow
 
@@ -64,7 +64,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
     в `link_tension_n` и в телеметрию. Звена нет в выходе — его нет на этом подшаге: **отцеп мгновенный**, без среза силы.
 - `load_b` (кажущийся вес в осях B) включает все внешние силы и звено. `PilotArms.compute`: поперечная прямая подача
   вычитает только вклад внешних сил и звена (`ext_b.y`), не весь `load_b.y`; поправка моделирует
-  **только удержание штанги пилотом** (руки, предел `pilot_arms.gd:189-191`, 300 Н) — она не гасит действие троса
+  **только удержание штанги пилотом** (руки, предел `pilot_arms.gd:192-193`, 300 Н) — она не гасит действие троса
   на крыло (момент и сила троса на крыле остаются); lock-out (TW-К5, инв. 3) обязан воспроизводиться с этой
   поправкой. На земле/стойках сила троса учитывается в равновесии хвата и в `legs` (тянет пилота; проскальзывание по
   `mu·fz` — штатно).
@@ -113,7 +113,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 - v2 (2026-10-22): звено `link` (неявное XPBD), `wing_basis`/`link_tension_n` во входе, отцеп мгновенный, поправка рук
   только удержание штанги, буксировка игрока только в «Маятнике», инварианты (2), (7), (8).
 
-## TW-К5 v6. Трос и лебёдка: `TowLine`, `configs/tow.json`
+## TW-К5 v7. Трос и лебёдка: `TowLine`, `configs/tow.json`
 Владелец — TW-6; потребители — TW-7 (аэробуксировка: тот же `TowLine` с движущимся якорем), TW-10 (игра: создание,
 отцеп, телеметрия, отрисовка троса). Контрактный тест — `tests/contracts/test_tow_k5.gd`. Основание —
 `docs/research/tow/kinds.md` (`#Параметры`, `#Параметры модели троса`, `#Процедуры`, `#Опасности`; числа BHPA — TW-4),
@@ -130,7 +130,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
     `configs/tow.json`; `kind` ∈ {`winch_static`, `aerotow`}; трос лежит: `L` = расстояние + `slack_m` (провис), `T = 0`.
   - `start() -> void` — старт по W (решение пользователя 2026-10-22): до вызова фаза `idle`, звено не возвращается
     (`force_fn` → `{}`), ничего не происходит. После `start()`: `winch_static` — фаза `slack`: выбор слабины со
-    скоростью `slack_reel_speed_ms` до натяжения > 0, затем `ground` (рост до `tension_ground_daN` за `ramp_s`);
+    скоростью `slack_reel_speed_ms` (относительно сближения пилота с лебёдкой) до натяжения > 0, затем `ground` (рост до `tension_ground_daN` за `ramp_s`);
     `aerotow` — слабину выбирает буксировщик (TW-К9), `TowLine` только трос постоянной длины. Повторный вызов — без действия.
   - `anchor_pos: Vector3`, `anchor_vel: Vector3` (мир игры, м, м/с) — лебёдка неподвижна (`TowSite.check().end_pos` +
     высота узла `tow_winch_rope_out`); для буксировщика их обновляет владелец якоря (TW-7) раз в шаг физики.
@@ -161,25 +161,26 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 - **Инварианты теста** (`PendulumModel`, крыло `sport`, шаг 1/120 с, ровная земля, как
   `tests/flight/pendulum/pendulum_sim.gd`): (1) `d < L` → `T = 0`, `slack`; (2) лебёдка `winch_static` на расстоянии
   `rope_length_m`, пилот держит тангаж (регулятор по тангажу, как TW-К4 (10); крен — нулевой ввод): пилот отрывается, высота монотонно растёт до фазы `top`, к концу набора — не ниже
-  порога из `kinds.md` (доля длины троса, число — в карточке TW-6), `T` ни разу не выше слабого звена, `pilot_shift`
-  в пределах 0,1 хода; (3) lock-out: постоянный ввод крена (ошибка пилота) в наборе → `lockout_angle_deg` превышает
+  порога из `kinds.md` (доля длины троса, число — в карточке TW-6), `T` ни разу не выше слабого звена (управляемость на тросе — ход пилота и запас хода — отдельным
+  инвариантом по итогу шлюза Q3, TW-16); (3) lock-out: постоянный ввод крена (ошибка пилота) в наборе → `lockout_angle_deg` превышает
   `lockout_deg` за ≤ 20 с; (4) `release()` → сила 0 на следующем подшаге, `released`, модель конечна 10 с;
   (5) `tension_climb_daN` выше слабого звена → `broken`; (6) `points(8)`: первая — точка крепления, последняя — якорь;
 (7) после `release()` и `step_free` конец троса снижается, его скорость ограничена (парашют), за конечное время
 `reeled_in`; (8) lock-out (3) воспроизводится с поправкой рук TW-К4 v2; (9) до `start()` 10 с — пилот стоит, `T = 0`,
 `idle`; после — `slack` → `ground` без скачка натяжения выше `tension_ground_daN`. v6 (2026-10-22): `start()`, фазы
-`idle`/`slack`, трос лежит со слабиной `slack_m` (решение пользователя: старт по W). v5 (2026-10-22): в (2) пилот держит
+`idle`/`slack`, трос лежит со слабиной `slack_m` (решение пользователя: старт по W). v7 (2026-10-22, TW-6, Q3):
+из (2) убран порог `pilot_shift` — управляемость на тросе решает шлюз Q3; слабина — относительно сближения пилота. v5 (2026-10-22): в (2) пилот держит
 тангаж (TW-К4 v4). v4 (2026-10-22): звено передаёт
 `anchor_vel`, `length_rate_ms` (TW-К4 v3). v3 (2026-10-22): трос — звено `link`
 TW-К4 v2 (неявно), а не явная сила `T = EA·(d − L)/L + c·ḋ`; `attach` — одна точка. v2 (2026-10-22): свободный трос с парашютом после отцепа (решение о `drogue`), раньше `points` пусто.
 
-## TW-К9 v1. Буксировщик Ан-2: `TowTug`
+## TW-К9 v3. Буксировщик Ан-2: `TowTug`
 Владелец — TW-7; потребители — TW-10 (игра: модель, размещение). Контрактный тест — `tests/contracts/test_tow_k9.gd`.
 Основание — решения пользователя 2026-10-22 (Ан-2 искусственно медленный; старт по W; тележка),
 `docs/research/tow/kinds.md` (`#Параметры`, `#Процедуры`, `#Ан-2 как буксировщик`), `kinds-bhpa.md` (BHPA §2.7.6).
 
 - `class_name TowTug extends RefCounted` (`scripts/game/tow_tug.gd`): `setup(runway_start: Vector3, heading_deg: float,
-  rope_length_m: float, terrain_height: Callable, cfg: Dictionary = {})` — `cfg` пустой → `configs/tow.json → aerotow`;
+  rope_length_m: float, terrain_height: Callable, cfg: Dictionary = {})` — `cfg` пустой → `configs/tow_tug.json`;
   стоит на оси полосы впереди начала на `rope_length_m`. `start()` — по W. `step(dt: float, glider_height_agl_m: float)`.
   Только чтение: `pos: Vector3` (точка крепления троса — хвост), `vel: Vector3`, `basis: Basis` (оси самолёта для модели
   `EggAn2`), `phase: String` ∈ {`idle`, `slack`, `roll`, `climb`, `circuit`, `away`}.
@@ -193,13 +194,16 @@ TW-К4 v2 (неявно), а не явная сила `T = EA·(d − L)/L + c·
 - **Инварианты теста:** до `start()` неподвижен; траектория непрерывна (|Δpos| ≤ |vel|·dt + 1 см); в `roll` высота
   над землёй 0, пока `glider_height_agl_m` < `glider_hold_agl_m`; скорость в `climb`/`circuit` = `tow_speed_kmh` ±2 %;
   вертикальная скорость в `climb` = `climb_rate_ms` ±5 %; `basis` — −Z вдоль `vel` (±1°).
+- v3 (2026-10-22, TW-7): `release()` — по отцепу/обрыву троса игра переводит буксировщик в `away` (сам по слабине не
+  уходит); `agl_m` — высота колёс над землёй (только чтение).
+- v2 (2026-10-22): параметры буксировщика — `configs/tow_tug.json` (не `tow.json`: параллельная работа с TW-6).
 
-## TW-К10 v1. Старт с тележки в модели полёта
+## TW-К10 v2. Старт с тележки в модели полёта
 Владелец — TW-14; потребители — TW-7 (интеграционный тест аэробуксировки), TW-10 (игра). Контрактный тест —
 `tests/contracts/test_tow_k10.gd`. Основание — решение пользователя 2026-10-22, BHPA §2.7.4 G, §2.7.6 E (`kinds-bhpa.md`).
 
 - `PendulumModel.reset_on_dolly(pos: Vector3, heading_deg: float, dolly: Dictionary) -> void` и
-  `Glider.reset_on_dolly(...)` (только «Маятник»). `dolly` (из `configs/tow.json → dolly`, числа с источником):
+  `Glider.reset_on_dolly(...)` (только «Маятник»). `dolly` (из `configs/tow_dolly.json`, числа с источником):
   `mass_kg`, `keel_angle_deg` (≈18°), `cradle_height_m` (< 0,45), `wheel_radius_m` (≥ 0,127), `rolling_crr`.
 - Пилот лежит в подвеске в лётном положении (как после `start_flight_position`, руки на штанге); крыло лежит в
   ложементе: тангаж = `keel_angle_deg`, крен 0, курс = `heading_deg`. Связка крыло+пилот+тележка движется по земле вдоль
@@ -214,6 +218,7 @@ TW-К4 v2 (неявно), а не явная сила `T = EA·(d − L)/L + c·
   движущемуся по курсу с разгоном до 17 м/с: отрыв при воздушной скорости между `vs` и 1,4·`vs` крыла `sport`
   (скорость сваливания — из поляры модели), без скачка; (3) после отрыва `dolly_attached = false`, тележка
   останавливается за конечное время, крыло летит; (4) без тележки — существующие тесты `tests/flight/` зелёные.
+- v2 (2026-10-22): параметры тележки — `configs/tow_dolly.json` (отдельно от `tow.json`, параллельная работа).
 
 ## TW-К6 v2. Место с полосой: `start_sites[].tow`, `TowSite.check`, буксирное место
 Владелец — TW-8; потребители — TW-9 (выбор при старте), TW-10 (игра). Контрактный тест — `tests/contracts/test_tow_k6.gd`.
@@ -265,29 +270,4 @@ TW-К4 v2 (неявно), а не явная сила `T = EA·(d − L)/L + c·
 - v2 (2026-10-22): буксировка только в режиме крена «Маятник».
 
 ## TW-К8 v3. Модели `winch`, `release`, `drogue`, `dolly`
-Владелец — TW-11; потребители — TW-10 (размещение и крепление). Контрактный тест — `tests/contracts/test_tow_k8.gd`
-(или раздел `scenes/models_preview/check_models.gd`). Основание — `docs/research/tow/models.md`.
-
-- `winch`: `tools/blender/build_tow_winch.py` (+ JSON параметров рядом) → `assets/models/world/tow_winch.glb`
-  (+ `assets/source/world/tow_winch.blend`); узлы `tow_winch_LOD0`, `tow_winch_LOD1`, `tow_winch_LOD2`; треугольники
-  ≤1500 / ≤200 / ≤40; начало — на земле в центре рамы; −Z модели — к пилоту (направление троса); узел
-  `tow_winch_rope_out` (Marker/пустышка) — точка выхода троса (направляющая), м; вершинные цвета, без текстур.
-- `release`: `tools/blender/build_tow_release.py` → `assets/models/world/tow_release.glb`; узлы `tow_release_LOD0`,
-  `tow_release_LOD1`; ≤300 / ≤40; уздечка, кольцо-замок, ручка отцепа; узлы `tow_release_attach` (точка на подвеске
-  пилота) и `tow_release_rope` (точка троса); масштаб — метры, как пилот; вершинные цвета.
-- `drogue` (v2, решение пользователя 2026-10-22: купол — модель Blender, не процедурный; в коде только трос): владелец — TW-12;
-  `tools/blender/build_tow_drogue.py` (+ JSON параметров) → `assets/models/world/tow_drogue.glb`
-  (+ `assets/source/world/tow_drogue.blend`); узлы `tow_drogue_LOD0`, `tow_drogue_LOD1`, `tow_drogue_LOD2`; треугольники
-  ≤150 / ≤60 / ≤16; купол жёсткий (раскрытый), стропы сходятся в узел `tow_drogue_attach` (точка на тросе) в начале
-  координат; купол — по +Z от `tow_drogue_attach`, −Z модели — направление движения троса (игра ставит −Z по скорости
-  конца троса, TW-10); размеры — из `docs/research/tow/kinds.md` (с источником) или оценка с пометкой в JSON; вершинные цвета.
-- `dolly` (v3, решение пользователя 2026-10-22: старт аэробуксировки с тележки): владелец — TW-15;
-  `tools/blender/build_tow_dolly.py` (+ JSON) → `assets/models/world/tow_dolly.glb` (+ `assets/source/world/tow_dolly.blend`);
-  узлы `tow_dolly_LOD0`, `tow_dolly_LOD1`, `tow_dolly_LOD2`; треугольники ≤800 / ≤200 / ≤40; начало — на земле под
-  центром тележки, −Z — вперёд по ходу; ложемент киля под углом `keel_angle_deg` ≈18° к земле, перекладина для штанги
-  ниже 45 см от земли, колёса диаметром ≥10″ (BHPA §2.7.4 G, `docs/research/tow/kinds-bhpa.md`); узлы `tow_dolly_keel`
-  (точка опоры киля) и `tow_dolly_bar` (опора штанги) — по ним игра ставит крыло (TW-10); размеры — в JSON с источником.
-- Материалы — ≤ 3 на модель, повторно `Hardware`, как `build_start_gear.py`. `python3 tools/check_textures.py` — 0.
-- **Инварианты теста:** все glb (`winch`, `release`, `drogue`, `dolly`) грузятся; узлы с указанными именами есть; треугольников LOD0 не больше бюджета.
-- v3 (2026-10-22): добавлен `dolly`.
-- v2 (2026-10-22): добавлен `drogue`; `winch`/`release` без изменений.
+Владельцы — TW-11, TW-12, TW-15 (закрыты). Текст — `docs/contracts/tow-models.md`.

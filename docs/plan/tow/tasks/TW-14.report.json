@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "Доработка по ревью: отрыв по нормальной силе ложемента (масса тележки вычтена: N_ложемента = N_колёс − m_тел·g·cosφ), _reset_common сбрасывает всё состояние тележки, тест no_dolly сравнивает с reset_on_dolly→reset_on_ground, DOLLY_HOLD_S задокументирован как граница модели.",
+  "commits": [
+    "7c77a396 отрыв по нормали ложемента, сброс тележки"
+  ],
+  "checks": [
+    {
+      "name": "tow_k10",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "tow_k4",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "tests/flight/",
+      "value": "226/226",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TW-14",
+  "uncertain": [
+    {
+      "where": "scripts/flight/pendulum/pendulum_model.gd:DOLLY_HOLD_S",
+      "why": "3 с — эвристика: лежачий пилот ниже позы 'ступни'",
+      "checked": "описана граница модели в комментарии; тесты зелёные"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-22T03:32:20",
+  "by": "executor"
+}

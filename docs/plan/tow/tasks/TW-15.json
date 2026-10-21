@@ -1,0 +1,49 @@
+{
+  "id": "TW-15",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Модель Blender: тележка аэробуксировки (dolly)",
+  "goal": "Модель тележки tow_dolly.glb скриптом Blender по TW-К8 v3 (3 LOD, ≤800 треугольников, вершинные цвета, узлы tow_dolly_keel и tow_dolly_bar), контрактный тест дополнен.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К8",
+      "version": "3",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-15",
+  "branch": "tow/TW-15",
+  "base": "feature/tow",
+  "scope": [
+    "tools/blender/build_tow_dolly.py",
+    "tools/blender/build_tow_dolly.json",
+    "assets/models/world/tow_dolly.glb",
+    "assets/models/world/tow_dolly.glb.import",
+    "assets/source/world/tow_dolly.blend",
+    "tests/contracts/test_tow_k8.gd"
+  ],
+  "dont_touch": [
+    "tools/blender/build_tow_winch.py",
+    "tools/blender/build_tow_release.py",
+    "tools/blender/build_tow_drogue.py",
+    "tools/blender/bl_util.py",
+    "scripts",
+    "configs",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "tow_k8",
+      "tests": "tow_k8"
+    },
+    {
+      "name": "textures",
+      "cmd": "python3 tools/check_textures.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T03:03:40"
+}
