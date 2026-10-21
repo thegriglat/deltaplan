@@ -211,3 +211,5 @@
 {"t": "2026-10-22T03:51:36", "by": "executor", "task": "TW-7", "ev": "reported", "commits": ["tow:"], "note": "done: TowTug (scripts/game/tow_tug.gd): кинематика Ан-2 по траектории idle/slack/roll/climb/circuit/away, параметры в configs…", "dp_feedback": "Карточка сказала «configs/tow_tug.json уже в коммите», а файла в копии не было (в коммите только docs/contracts/tow.md). Мелочь, но сбивает."}
 {"t": "2026-10-22T03:51:44", "by": "coordinator", "task": "TW-7", "ev": "checked", "note": "3/3 tow_k9=ok:3/3; gdcheck=ok:exit 0; json=ok:exit 0"}
 {"t": "2026-10-22T03:51:54", "by": "coordinator", "task": "TW-7", "ev": "accepted", "note": "по отчёту; API release()/agl_m внесён в К9 v3"}
+{"t": "2026-10-22T03:52:12", "by": "coordinator", "task": "TW-7", "ev": "accepted", "commits": ["a6878f5d"], "note": "3/3 tow_k9=ok:3/3; gdcheck=ok:exit 0; json=ok:exit 0"}
+{"t": "2026-10-22T03:52:12", "by": "coordinator", "task": "TW-7", "ev": "merged"}
