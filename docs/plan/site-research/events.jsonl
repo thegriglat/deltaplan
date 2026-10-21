@@ -142,3 +142,8 @@
 {"t": "2026-10-21T19:34:26", "by": "executor", "task": "SRS-8", "ev": "reported", "commits": ["dd759adb"], "note": "done: Новая страница mechanics/training-islands (ru+en): Учебный остров и вулканический, таблицы стартов и погоды, запечённые…", "dp_feedback": "Нет подсказки, где искать названия карточек окна «Тренировка» в en (configs/training.json vs locale/ui.csv)."}
 {"t": "2026-10-21T19:34:36", "by": "coordinator", "task": "SRS-9", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:3; img_en=ok:3"}
 {"t": "2026-10-21T19:34:37", "by": "coordinator", "task": "SRS-9", "ev": "accepted", "note": "по отчёту; кадр вкладки целей с тестовым маршрутом — заменить при выпуске"}
+{"t": "2026-10-21T19:34:51", "by": "coordinator", "task": "SRS-7", "ev": "checked", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:3; img_en=ok:3; scope=FAIL:вне scope: r-SRS-7.json"}
+{"t": "2026-10-21T19:35:03", "by": "executor", "task": "SRS-10", "ev": "reported", "commits": ["see"], "note": "done: В instruments.ru/en добавлен раздел «Учебные слои F1–F7» {#debug-layers}: таблица клавиш, что видно и чем полезно, абза…"}
+{"t": "2026-10-21T19:35:12", "by": "coordinator", "task": "SRS-7", "ev": "checked", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:3; img_en=ok:3"}
+{"t": "2026-10-21T19:35:27", "by": "coordinator", "task": "SRS-8", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:5; img_en=ok:5"}
+{"t": "2026-10-21T19:35:36", "by": "coordinator", "task": "SRS-8", "ev": "accepted", "note": "по отчёту"}

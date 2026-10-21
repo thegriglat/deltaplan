@@ -1,0 +1,51 @@
+{
+  "status": "done",
+  "summary": "В instruments.ru/en добавлен раздел «Учебные слои F1–F7» {#debug-layers}: таблица клавиш, что видно и чем полезно, абзац про F7 с границами модели. Факты из кода (debug_overlays.gd, controls.json, ui.csv), CHANGELOG 1.5.19.",
+  "commits": [
+    "see git log: site-research: приборы — учебные слои F1–F7"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "3",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Картинок F7/F3/F6 нет в git (кадры только в build/) — раздел без новых картинок; нужен кадр F7 отдельной задачей",
+    "Строки таблицы аудита (tools/research/site_coverage) не правил — вне скоупа: features.md строку про F7 теперь можно пометить «есть»"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-10",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/instruments.ru.md: абзац F7",
+      "why": "утверждение, что слой только отладочный и в полёт ничего не добавляет, взято из кода (чтение), в игре не проверял",
+      "checked": "debug_overlays.gd toggle_heat/_rebuild_heat"
+    },
+    {
+      "where": "ссылки на /mechanics/air-model/heuristic/ и /CHANGELOG.md",
+      "why": "hugo собирается, но работу ссылки на CHANGELOG.md в сайте не проверял глазами",
+      "checked": "сборка без ошибок; такая же ссылка в weather.ru.md"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-21T19:35:03",
+  "by": "executor"
+}
