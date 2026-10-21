@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "TK-K1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/trike-model.md"
     },
     {
@@ -57,5 +57,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T03:09:22",
-  "edited": "2026-10-22T03:45:39"
+  "edited": "2026-10-22T04:14:49"
 }
