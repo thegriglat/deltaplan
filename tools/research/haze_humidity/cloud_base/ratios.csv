@@ -1,0 +1,20 @@
+case,cloud_type,depth_m,view,hour,L_base,L_sky,L_top,ratio_base_sky,ratio_base_top,lit_ratio_lo,lit_ratio_hi,source,L_base_p10,ratio_p10_top,range_km
+ong13_level,cu_med,2100,level,13,0.2379,0.3541,0.3915,0.672,0.608,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.1691,0.432,0.56
+ong13_low,cu_med,2100,low,13,0.3229,0.3732,0.7630,0.865,0.423,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.2096,0.275,3.71
+ong13_low_r6km,cu_med,2100,low_r6km,13,0.3080,0.2927,0.8576,1.053,0.359,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.2082,0.243,3.25
+ong13_low_r12km,cu_med,2100,low_r12km,13,0.3130,0.3223,0.8042,0.971,0.389,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.2092,0.260,3.49
+ong13_high,cu_med,2100,high,13,0.4030,0.3730,0.7951,1.080,0.507,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.3345,0.421,nan
+ong13so100000_low,cu_med,2100,low,13,0.4321,0.3892,0.7092,1.110,0.609,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.3478,0.490,4.15
+ong13so100000_low_r6km,cu_med,2100,low_r6km,13,0.4221,0.2997,0.7872,1.408,0.536,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.3371,0.428,3.59
+ong13so100000_low_r12km,cu_med,2100,low_r12km,13,0.4264,0.3488,0.7370,1.223,0.579,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.3431,0.465,3.92
+ong13so150_low,cu_med,2100,low,13,0.3546,0.3854,0.7262,0.920,0.488,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.2207,0.304,4.18
+ong13so150_low_r6km,cu_med,2100,low_r6km,13,0.3339,0.2895,0.8167,1.153,0.409,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.2177,0.267,3.55
+ong13so150_low_r12km,cu_med,2100,low_r12km,13,0.3449,0.3247,0.7598,1.062,0.454,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.2192,0.289,3.89
+ong13so700_low,cu_med,2100,low,13,0.3459,0.3832,0.7070,0.903,0.489,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.2622,0.371,4.10
+ong13so700_low_r6km,cu_med,2100,low_r6km,13,0.3257,0.2857,0.7984,1.140,0.408,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.2517,0.315,3.50
+ong13so700_low_r12km,cu_med,2100,low_r12km,13,0.3334,0.3233,0.7403,1.031,0.450,0.218,0.656,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 25-60 A 0.1-0.3 f 0.7-1,0.2577,0.348,3.82
+ong9_level,cu_thin,418,level,9,0.6755,0.5229,1.6547,1.292,0.408,0.426,1.189,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 10-25 A 0.1-0.3 f 0.7-1,0.5284,0.319,2.85
+ong9_low,cu_thin,418,low,9,0.8273,0.2997,2.0515,2.761,0.403,0.426,1.189,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 10-25 A 0.1-0.3 f 0.7-1,0.5062,0.247,nan
+cb14_far,cb,6708,far,14,0.3094,0.4504,0.6119,0.687,0.506,0.100,0.389,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 100-300 A 0.1-0.3 f 0.7-1,0.1741,0.285,0.82
+cb14_mid,cb,6708,mid,14,0.4494,0.3956,1.3554,1.136,0.332,0.100,0.389,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 100-300 A 0.1-0.3 f 0.7-1,0.3000,0.221,1.12
+cb14_under,cb,6708,under,14,0.4695,0.4280,1.1995,1.097,0.391,0.100,0.389,frames:game; physical:two-stream T=1/(1+0.75(1-g)tau) g=0.85 tau 100-300 A 0.1-0.3 f 0.7-1,0.2953,0.246,1.29
