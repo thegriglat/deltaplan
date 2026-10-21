@@ -1,0 +1,51 @@
+{
+  "id": "SRS-2",
+  "module": "site-research",
+  "type": "dp-researcher",
+  "title": "Аудит: функции игры против сайта",
+  "goal": "Таблица SRS-К1: всё, что видит игрок (CHANGELOG, docs/guide/game/), — есть ли на сайте (ru+en), верно ли; нет страницы — строка «новая: <раздел>/<slug>». Только аудит, без правок сайта и docs.",
+  "plan_ref": "Волна 1",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-2",
+  "branch": "site-research/SRS-2",
+  "base": "feature/site-research",
+  "scope": [
+    "tools/research/site_coverage/features.md"
+  ],
+  "dont_touch": [
+    "site/",
+    "docs/"
+  ],
+  "accept": [
+    {
+      "name": "header",
+      "cmd": "grep -cF '| Тема | Источник | Статус в игре | Страница сайта | На сайте | Что не так | Графики | Объём | docs/guide |' tools/research/site_coverage/features.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "rows",
+      "cmd": "grep -cE '\\| (есть|нет|устарело|частично) \\|' tools/research/site_coverage/features.md",
+      "expect": "num:(\\d+) >=15"
+    },
+    {
+      "name": "by_page",
+      "cmd": "grep -c '^## По страницам' tools/research/site_coverage/features.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:08:27",
+  "edited": "2026-10-21T19:09:08"
+}

@@ -1,0 +1,51 @@
+{
+  "id": "SRS-1",
+  "module": "site-research",
+  "type": "dp-researcher",
+  "title": "Аудит: исследования против сайта и docs/guide",
+  "goal": "Таблица SRS-К1: каждое исследование active/closed с выводом — есть ли оно на сайте (ru+en), верно ли, есть ли готовые графики, объём правки; расхождения docs/guide с main записать. Только аудит, без правок сайта и docs.",
+  "plan_ref": "Волна 1",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-1",
+  "branch": "site-research/SRS-1",
+  "base": "feature/site-research",
+  "scope": [
+    "tools/research/site_coverage/README.md"
+  ],
+  "dont_touch": [
+    "site/",
+    "docs/"
+  ],
+  "accept": [
+    {
+      "name": "header",
+      "cmd": "grep -cF '| Тема | Источник | Статус в игре | Страница сайта | На сайте | Что не так | Графики | Объём | docs/guide |' tools/research/site_coverage/README.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "rows",
+      "cmd": "grep -cE '\\| (есть|нет|устарело|частично) \\|' tools/research/site_coverage/README.md",
+      "expect": "num:(\\d+) >=30"
+    },
+    {
+      "name": "by_page",
+      "cmd": "grep -c '^## По страницам' tools/research/site_coverage/README.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:08:23",
+  "edited": "2026-10-21T19:09:08"
+}
