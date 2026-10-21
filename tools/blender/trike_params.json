@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "prototype": {
+    "name": "Airborne Edge XT 912 / Streak 3 (габариты, винт) + Air Creation Tanarg (шины, винт)",
+    "seats": 2,
+    "sources": [
+      "https://www.airborne.com.au/pages/ml_xt912_specs.php",
+      "https://www.bmaa.org/files/hads_hm16_tanarg.pdf",
+      "https://www.dulv.de/kennblatt/Trike/693-161.pdf",
+      "https://en.wikipedia.org/wiki/Air_Creation_Tanarg",
+      "https://en.wikipedia.org/wiki/Rotax_912",
+      "https://www.aircraftpilots.com/forums/topic/6284-buzzard-trike-restoration/page/2",
+      "https://www.ergocenter.ncsu.edu/wp-content/uploads/sites/18/2017/09/Anthropometric-Summary-Data-Tables.pdf"
+    ]
+  },
+  "dims": {
+    "length": {
+      "value": 2.745,
+      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Trike Length)"
+    },
+    "width": {
+      "value": 1.91,
+      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Trike Width, по внешней стороне обтекателей колёс)"
+    },
+    "hang_height": {
+      "value": 2.5,
+      "src": "вывод: Trike Height 2.53 м (https://www.airborne.com.au/pages/ml_xt912_specs.php) — верх мачты; болт подвески ≈ на 3 см ниже; пилот на колёсах без нагрузки"
+    },
+    "wheelbase": {
+      "value": 1.89,
+      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Wheel Base)"
+    },
+    "track": {
+      "value": 1.7,
+      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Wheel Track)"
+    },
+    "wheel_front_d": {
+      "value": 0.356,
+      "src": "вывод: 14 дюймов — штатные шины Tanarg (https://www.bmaa.org/files/hads_hm16_tanarg.pdf, Annex B 2b); опция 16 дюймов = 0.406 м"
+    },
+    "wheel_rear_d": {
+      "value": 0.356,
+      "src": "вывод: 14 дюймов — штатные шины Tanarg (https://www.bmaa.org/files/hads_hm16_tanarg.pdf, Annex B 2b); опция 16 дюймов = 0.406 м"
+    },
+    "tire_front_w": {
+      "value": 0.1,
+      "src": "вывод: оценка: типичная шина 4.00-6 малой авиации (источник по прототипу не найден)"
+    },
+    "tire_rear_w": {
+      "value": 0.12,
+      "src": "вывод: оценка: типичная шина 4.00-6 малой авиации (источник по прототипу не найден)"
+    },
+    "mast_tilt_deg": {
+      "value": 18.0,
+      "src": "https://www.aircraftpilots.com/forums/topic/6284-buzzard-trike-restoration/page/2 (мачта ≈ 18 градусов от вертикали у Edge-X 582 по сообщению на форуме; у самодельного трайка ≈ 11 градусов)"
+    },
+    "seat_height": {
+      "value": 0.544,
+      "src": "вывод: hang_height + seat.seat_pan.z (посадка по замеру глаз); типичная подушка переднего сиденья 0.5-0.6 м, источника по прототипу нет"
+    },
+    "engine": {
+      "value": "Rotax 912 UL 2 (80 л.с., редуктор 2.43:1)",
+      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Engine)"
+    },
+    "engine_l": {
+      "value": 0.561,
+      "src": "https://en.wikipedia.org/wiki/Rotax_912 (Length 561 мм, 912 UL/A/F)"
+    },
+    "engine_w": {
+      "value": 0.576,
+      "src": "https://en.wikipedia.org/wiki/Rotax_912 (Width 576 мм, 912 UL/A/F)"
+    },
+    "engine_h": {
+      "value": 0.34,
+      "src": "вывод: оценка 0.34 м (высота в Wikipedia не указана; источника нет)"
+    },
+    "prop_d": {
+      "value": 1.727,
+      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Bolly BOS3, 68 дюймов); Tanarg: 1.75 м, https://www.dulv.de/kennblatt/Trike/693-161.pdf"
+    },
+    "prop_blades": {
+      "value": 3,
+      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Bolly BOS3 — трёхлопастной); Tanarg Helix H50F, 3 лопасти — https://www.dulv.de/kennblatt/Trike/693-161.pdf"
+    },
+    "prop_axis_height": {
+      "value": 1.05,
+      "src": "вывод: оценка 1.05 м: ось у середины высоты мачты; конец лопасти ≈ 0.19 м над землёй; прямого источника нет"
+    },
+    "prop_tilt_deg": {
+      "value": 2.0,
+      "src": "вывод: оценка: ось винта слегка носом вверх; прямого источника нет"
+    },
+    "prop_rpm": {
+      "value": 2050,
+      "src": "вывод: крейсерские обороты Rotax 912 ≈ 4950 об/мин / 2.43 (https://www.airborne.com.au/pages/ml_xt912_specs.php); максимум в стоянке 2260 об/мин, https://www.dulv.de/kennblatt/Trike/693-161.pdf"
+    },
+    "prop_cw_from_behind": {
+      "value": false,
+      "src": "вывод: винт Rotax 912 вращается против часовой стрелки при взгляде на фланец винта; у толкающего трайка это взгляд сзади (не подтверждено источником)"
+    },
+    "axle_rear_y": {
+      "value": -0.55,
+      "src": "вывод: оценка: задняя ось у основания мачты (мачта наклонена на 18 град, верх на hang_height)"
+    },
+    "axle_front_y": {
+      "value": 1.34,
+      "src": "вывод: axle_rear_y + wheelbase (https://www.airborne.com.au/pages/ml_xt912_specs.php)"
+    }
+  },
+  "ground_z": -2.5,
+  "eye_measured": {
+    "training": [
+      0.0,
+      0.352,
+      -1.144
+    ],
+    "apogee": [
+      0.0,
+      0.39,
+      -1.122
+    ],
+    "how": "tools/research/trike-model/measure_eye.gd: Camera3D кабинной камеры (eye_mode back_hidden = PilotHead + back_offset_m 0.3) минус HangPoint, в базисе визуала пилота, автопилот, 16 отсчётов в полёте; x усреднён по крену и принят 0 (измерено -0.06 training, -0.09 apogee, разброс +-0.2 от крена)"
+  },
+  "seat": {
+    "eye": [
+      0.0,
+      0.352,
+      -1.144
+    ],
+    "hip": [
+      0.0,
+      0.409,
+      -1.856
+    ],
+    "seat_pan": [
+      0.0,
+      0.509,
+      -1.956
+    ],
+    "seat_pan_size": [
+      0.45,
+      0.42
+    ],
+    "backrest_base": [
+      0.0,
+      0.269,
+      -1.936
+    ],
+    "backrest_angle_deg": 15.0,
+    "backrest_size": [
+      0.4,
+      0.55
+    ],
+    "foot_l": [
+      -0.15,
+      1.174,
+      -2.231
+    ],
+    "foot_r": [
+      0.15,
+      1.174,
+      -2.231
+    ],
+    "throttle_pedal": [
+      0.15,
+      1.154,
+      -2.226
+    ],
+    "hand_l": [
+      -0.15,
+      0.7,
+      -1.725
+    ],
+    "hand_r": [
+      0.15,
+      0.7,
+      -1.725
+    ]
+  }
+}
