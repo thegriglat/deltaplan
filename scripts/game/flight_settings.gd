@@ -48,9 +48,10 @@ var show_last_track: bool = false
 ## Загруженные IGC/GPX (GL-К1), абсолютные пути.
 var track_paths: PackedStringArray = []
 
-## Ключи PD-К3: [мин, макс, шаг, запасное умолчание] (docs/contracts/pendulum.md).
+## Допустимые виды буксировки (TW-К7).
 const TOW_KINDS := ["winch_static", "aerotow"]
 
+## Ключи PD-К3: [мин, макс, шаг, запасное умолчание] (docs/contracts/pendulum.md).
 const APPARATUS_SPEC := {
 	"hang_shift_cm": [-4.0, 4.0, 0.5, 0.0],
 	"hang_length_m": [1.0, 1.4, 0.05, 1.2],

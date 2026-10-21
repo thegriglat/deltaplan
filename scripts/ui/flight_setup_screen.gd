@@ -81,6 +81,7 @@ var _app_loading: bool = false  ## ползунки заполняются пр�
 var _fav_btn: Button
 var _tow_opt: OptionButton  ## TW-К7: «Буксировка»
 var _tow_hint: Label
+var _tow_place_key: String = ""
 var _tow_ids: PackedStringArray = []  ## виды пунктов _tow_opt ("" — «Нет»)
 var _recent_section: VBoxContainer
 var _recent_list: VBoxContainer
@@ -170,7 +171,7 @@ func _build() -> void:
 	_row.changed.connect(_update_dir_hint)
 	_row.changed.connect(_update_weather_lock)
 	_build_tow(box_place)
-	_row.changed.connect(func() -> void: _refresh_tow("", true))
+	_row.changed.connect(_on_place_changed_tow)
 	_connect_goals_refresh()
 	_build_recent(box_place)
 
@@ -229,6 +230,7 @@ func _apply_settings() -> void:
 	_month_opt.select(clampi(settings.month, 1, 12) - 1)
 	_on_month_selected(_month_opt.selected)
 	_day.value = settings.day
+	_tow_place_key = _place_key()
 	_row.refresh()
 	_refresh_tow(settings.tow_kind, false)
 	_fill_recent()
@@ -541,6 +543,21 @@ func _build_tow(box: Control) -> void:
 	UiKit.row(box, tr("setup_tow"), _tow_opt)
 	_tow_hint = UiKit.label(box, tr("setup_tow_mp_off"), "HintLabel")
 	_tow_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+
+## Ключ места: площадка/точка. Выбор буксировки сбрасывается на умолчание только при его смене.
+func _place_key() -> String:
+	var s := _row.settings
+	if s.has_pick():
+		return "pick:%s,%s" % [s.pick_lat, s.pick_lon]
+	return "site:%s/%s" % [s.location_id, s.site_id]
+
+
+func _on_place_changed_tow() -> void:
+	var key := _place_key()
+	var moved := key != _tow_place_key
+	_tow_place_key = key
+	_refresh_tow(_tow_selected(), moved)
 
 
 func _tow_selected() -> String:
