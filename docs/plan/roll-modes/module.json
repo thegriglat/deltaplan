@@ -1,0 +1,11 @@
+{
+  "module": "roll-modes",
+  "plan": "docs/plan/roll-modes.md",
+  "contracts": "docs/contracts/roll-modes.md",
+  "branch": "feature/roll-modes",
+  "copy": "~/deltaplan-roll-modes",
+  "created": "2026-10-22T02:26:48",
+  "code": "RM",
+  "area": "flight",
+  "base": "main"
+}
