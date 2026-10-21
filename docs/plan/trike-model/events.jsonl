@@ -102,3 +102,5 @@
 {"t": "2026-10-22T04:47:32", "by": "executor", "task": "TK-8", "ev": "reported", "commits": ["82de55c3", "6cef6e72"], "note": "done: Модель тележки v2 (тандем, формованные кресла с трубами, бак, шасси с пружинами, Engine_LOD0 с UV0, деревянный винт 360…", "dp_feedback": "task show обрезает длинные дополнения; нужен полный вывод. task sync удалил неотслеживаемый r-<ID>.json."}
 {"t": "2026-10-22T04:47:54", "by": "coordinator", "task": "TK-8", "ev": "checked", "note": "3/3 trike_model_k2=ok:2/2; trike_model_k1=ok:3/3; textures=ok:exit 0"}
 {"t": "2026-10-22T04:47:54", "by": "coordinator", "task": "TK-8", "ev": "accepted", "note": "по отчёту; вид — кадры TK-6 и шлюз; трубы 50 мм по TK-7 тоньше прежних — вопрос в шлюзе"}
+{"t": "2026-10-22T04:48:11", "by": "coordinator", "task": "TK-8", "ev": "accepted", "commits": ["df41cb0a"], "note": "3/3 trike_model_k2=ok:2/2; trike_model_k1=ok:3/3; textures=ok:exit 0"}
+{"t": "2026-10-22T04:48:18", "by": "coordinator", "task": "TK-8", "ev": "merged"}
