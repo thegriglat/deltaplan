@@ -28,6 +28,8 @@ var air_fn: Callable = Callable()
 var ground_fn: Callable = Callable()
 var visual: GliderVisual = null
 var _ext_fn: Callable = Callable()  ## TW-К4: внешняя сила (трос)
+var _link_t := 0.0  ## натяжение звена, Н (FlightModel)
+const LINK_K_MAX := 1.0e5  ## Н/м, предел жёсткости явного звена в FlightModel
 
 var _configured := false
 var _placed := false
@@ -182,13 +184,15 @@ func _teleport() -> void:
 
 ## TW-К4: внешняя сила (трос). fn(s: Dictionary) -> {"pilot": Vector3, "hang": Vector3}, Н, мир игры
 ## (вход и выход — в docs/contracts/tow.md). «Маятник» зовёт fn на каждом подшаге; FlightModel
-## (weight_shift/rate) — раз в шаг физики, с позицией и скоростью ЦМ, и кладёт pilot + hang в external_force.
+## (weight_shift/rate) — раз в шаг физики, с позицией и скоростью ЦМ, и кладёт pilot + hang в external_force;
+## звено link там — явная пружина (v2), в «Маятнике» — неявное XPBD-звено модели.
 func set_external_force(fn: Callable) -> void:
 	_ext_fn = fn
 	if model is PendulumModel:
 		model.set_external_force(fn)
 	elif not fn.is_valid():
 		model.external_force = Vector3.ZERO
+		_link_t = 0.0
 
 
 func clear_external_force() -> void:
@@ -200,15 +204,38 @@ func _step_external_force(dt: float) -> void:
 		"t": model.time_s, "h": dt, "pilot_pos": model.position, "pilot_vel": model.velocity,
 		"hang_pos": model.position, "hang_vel": model.velocity,
 		"on_ground": model.mode == FlightModel.Mode.GROUND,
+		"wing_basis": model.telemetry.basis, "link_tension_n": _link_t,
 	}
 	var r = _ext_fn.call(s)
 	var f := Vector3.ZERO
+	_link_t = 0.0
 	if r is Dictionary:
 		for k: String in ["pilot", "hang"]:
 			var v = r.get(k, Vector3.ZERO)
 			if v is Vector3 and is_finite(v.x) and is_finite(v.y) and is_finite(v.z):
 				f += v
+		var lk = r.get("link")
+		if lk is Dictionary and lk.get("anchor") is Vector3 and is_finite(lk.anchor.x + lk.anchor.y + lk.anchor.z):
+			# только для совместимости вызова: явная пружина-демпфер (жёсткость не выше LINK_K_MAX — шаг 1/120 с)
+			var d: Vector3 = model.position - lk.anchor
+			var len := d.length()
+			var c := len - float(lk.get("length_m", 0.0))
+			if c > 0.0 and len > 1.0e-9:
+				var cp := float(lk.get("compliance_m_per_n", 0.0))
+				var k := minf(1.0 / cp, LINK_K_MAX) if cp > 0.0 else LINK_K_MAX
+				var nn := d / len
+				var t: float = k * (c + float(lk.get("damping_s", 0.0)) * model.velocity.dot(nn))
+				if t > 0.0:
+					_link_t = t
+					f -= nn * t
 	model.external_force = f
+
+
+## TW-К4: натяжение звена (Н) на последнем шаге; «Маятник» — из модели.
+func link_tension_n() -> float:
+	if model is PendulumModel:
+		return model.link_tension_n
+	return _link_t
 
 
 func _physics_process(dt: float) -> void:

@@ -103,6 +103,27 @@ func project(
 	pilot_force = pf
 
 
+## TW-К4: одностороннее звено XPBD «якорь — ЦМ пилота» (трос): C = |x − якорь| − length, действует
+## только при C > 0; податливость comp (м/Н) → α/h², демпфирование tau (с) — XPBD с демпфированием,
+## γ = tau/h (сила k·(C + tau·Ċ)). Якорь неподвижен (бесконечная масса). → натяжение λ/h², Н (≥ 0).
+## Вызывать после integrate, до project: позиции до шага запомнил integrate.
+func project_anchor(h: float, anchor: Vector3, length: float, comp: float, tau: float) -> float:
+	var i := links - 1
+	var d: Vector3 = x[i] - anchor
+	var L := d.length()
+	var C := L - length
+	if C <= 0.0 or L < 1.0e-9:
+		return 0.0
+	var nn := d / L
+	var w := inv_m[i]
+	var g := tau / h
+	var dl := (-C - g * nn.dot(x[i] - _prev[i])) / ((1.0 + g) * w + comp / (h * h))
+	if dl >= 0.0:  # трос не толкает
+		return 0.0
+	x[i] += nn * (w * dl)
+	return -dl / (h * h)
+
+
 ## Явный шаг узлов: вес промежуточных узлов, у пилота — f_pilot (вес + сопротивление + руки).
 ## Запоминает позиции до шага (для скоростей из позиций).
 func integrate(h: float, f_pilot: Vector3) -> void:

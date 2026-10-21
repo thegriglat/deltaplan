@@ -1,5 +1,5 @@
 extends TestCase
-## Контракт TW-К4 v1 (docs/contracts/tow.md): внешняя сила в модели полёта. Инварианты (1)-(6).
+## Контракт TW-К4 v2 (docs/contracts/tow.md): внешняя сила и звено троса в модели полёта. Инварианты (1)-(8).
 
 const Sim := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const FlightSim := preload("res://tests/flight/flight_sim.gd")
@@ -39,21 +39,45 @@ func _max_shift(fn: Callable, secs: float) -> Vector2:
 	return worst
 
 
-func test_along_pilot_keeps_neutral() -> void:
-	var f := FWD20 * 300.0
-	var w := _max_shift(func(_s: Dictionary) -> Dictionary: return {"pilot": f}, 10.0)
-	print("    вдоль 300 Н: max |pilot_shift| = %s" % w)
-	# 0,02 хода по контракту; 300 Н на пилоте раскачивает крыло по тангажу 6…45° (инерция вращения
-	# подвески не в прямой подаче) — остаток динамический, 0,044; статического смещения нет (F/k ≈ 0,7 хода)
-	check(w.x < 0.02 and w.y < 0.05, "300 Н вдоль курса: пилот у нейтрали (x < 0,02, y < 0,05 хода): %s" % w)
+## Инвариант (2)/(3): постоянная сила — пилот у нейтрали (≤ 0,05 хода по оси) и управление сохраняется:
+## полный ввод в каждую сторону с той же силой даёт ≥ 90 % хода.
+func _reach(fn: Callable, pitch: float, roll: float, secs: float) -> Vector2:
+	var m := Sim.make("sport")
+	Sim.reset(m)
+	m.set_external_force(fn)
+	var c := Sim.input(pitch, roll)
+	var best := Vector2.ZERO
+	for i in int(secs / DT):
+		m.step(DT, c, Callable(), Callable())
+		if absf(m.pilot_shift.x) > absf(best.x):
+			best.x = m.pilot_shift.x
+		if absf(m.pilot_shift.y) > absf(best.y):
+			best.y = m.pilot_shift.y
+	check(Sim.finite(m), "модель конечна")
+	return best
 
 
-func test_across_pilot_keeps_neutral() -> void:
-	var f := Vector3(100.0, 0.0, 0.0)
-	var w := _max_shift(func(_s: Dictionary) -> Dictionary: return {"pilot": f}, 10.0)
-	print("    поперёк 100 Н: max |pilot_shift| = %s" % w)
-	# поперёк (x) — < 0,02 по контракту; продольная составляющая — динамика крена/виража (0,023)
-	check(w.x < 0.02 and w.y < 0.03, "100 Н поперёк: пилот у нейтрали (x < 0,02, y < 0,03 хода): %s" % w)
+func _check_neutral_and_control(f: Vector3, label: String) -> void:
+	var fn := func(_s: Dictionary) -> Dictionary: return {"pilot": f}
+	var w := _max_shift(fn, 10.0)
+	print("    %s: max |pilot_shift| = %s" % [label, w])
+	check(w.x <= 0.05 and w.y <= 0.05, "%s: пилот у нейтрали (≤ 0,05 хода): %s" % [label, w])
+	# ход: +x вправо (roll +1), +y к носу (pitch −1: на себя) / к хвосту (pitch +1: от себя)
+	var r_pos := _reach(fn, 0.0, 1.0, 6.0)
+	var r_neg := _reach(fn, 0.0, -1.0, 6.0)
+	var p_pull := _reach(fn, -1.0, 0.0, 6.0)
+	var p_push := _reach(fn, 1.0, 0.0, 6.0)
+	print("    %s: ход крен ±%s/%s, тангаж %s/%s" % [label, r_pos.x, r_neg.x, p_pull.y, p_push.y])
+	check(absf(r_pos.x) >= 0.9 and absf(r_neg.x) >= 0.9, "%s: крен в обе стороны ≥ 90 %% хода: %.2f / %.2f" % [label, r_pos.x, r_neg.x])
+	check(absf(p_pull.y) >= 0.9 and absf(p_push.y) >= 0.9, "%s: тангаж в обе стороны ≥ 90 %% хода: %.2f / %.2f" % [label, p_pull.y, p_push.y])
+
+
+func test_along_pilot_keeps_neutral_and_control() -> void:
+	_check_neutral_and_control(FWD20 * 300.0, "вдоль 300 Н")
+
+
+func test_across_pilot_keeps_neutral_and_control() -> void:
+	_check_neutral_and_control(Vector3(100.0, 0.0, 0.0), "поперёк 100 Н")
 
 
 func test_hang_force_finite_and_bank() -> void:
@@ -110,3 +134,100 @@ func test_glider_input() -> void:
 	g.step(DT)
 	check(g.model.external_force_n == Vector3.ZERO, "clear")
 	g.free()
+
+
+## Инвариант (7): жёсткое короткое звено — модель конечна, натяжение конечно; звено убрано на ходу — нет силы.
+func _link_fn(at: String, anchor_off: Vector3, length: float, comp: float, tau: float, until: float) -> Callable:
+	return func(s: Dictionary) -> Dictionary:
+		if s.t > until:
+			return {}
+		var base: Vector3 = s.pilot_pos if at == "pilot" else s.hang_pos
+		var anchor := Vector3(0.0, 1000.0, 0.0) + anchor_off if s.t < 0.01 else base + anchor_off
+		return {"link": {
+			"anchor": anchor, "length_m": length, "compliance_m_per_n": comp,
+			"damping_s": tau, "at": at,
+		}}
+
+
+func test_link_stiff_short_rope() -> void:
+	for at in ["pilot", "hang"]:
+		var m := Sim.make("sport")
+		Sim.reset(m)
+		var a0 := Sim.cg(m) + Vector3(0.0, 0.0, 10.0)  # якорь на 10 м позади ЦМ: трос натянется, когда крыло уйдёт вперёд
+		var anchor := a0
+		var fn := func(s: Dictionary) -> Dictionary:
+			return {"link": {
+				"anchor": anchor, "length_m": 10.0, "compliance_m_per_n": 10.0 / 2.0e6,
+				"damping_s": 0.005, "at": at,
+			}} if s.t < 10.0 else {}
+		m.set_external_force(fn)
+		var c := Sim.input()
+		var tmax := 0.0
+		var ok := true
+		for i in int(10.0 / DT):
+			anchor = a0 + Vector3(0.0, 0.0, -float(i) * DT * 6.0)  # якорь идёт вперёд 6 м/с — медленнее крыла: трос натягивается
+			m.step(DT, c, Callable(), Callable())
+			tmax = maxf(tmax, m.link_tension_n)
+			ok = ok and is_finite(m.link_tension_n) and Sim.finite(m)
+		check(ok and tmax > 0.0, "звено (%s): модель конечна, натяжение конечно, > 0: %.0f Н" % [at, tmax])
+		print("    звено %s: max натяжение %.0f Н, bank %.1f°" % [at, tmax, rad_to_deg(m.bank)])
+		m.set_external_force(func(_s: Dictionary) -> Dictionary: return {})
+		m.step(DT, c, Callable(), Callable())
+		check(m.link_tension_n == 0.0 and m.external_force_n == Vector3.ZERO, "звено убрано — силы нет (%s)" % at)
+		for i in int(10.0 / DT):
+			m.step(DT, c, Callable(), Callable())
+		check(Sim.finite(m), "после отцепа модель конечна 10 с (%s)" % at)
+
+
+func test_link_slack_no_force() -> void:
+	var m := Sim.make("sport")
+	Sim.reset(m)
+	var a := Sim.cg(m) + Vector3(0.0, 0.0, -10.0)
+	m.set_external_force(func(_s: Dictionary) -> Dictionary: return {"link": {
+		"anchor": a, "length_m": 50.0, "compliance_m_per_n": 1.0e-5, "damping_s": 0.0, "at": "pilot"}})
+	for i in 120:
+		m.step(DT, Sim.input(), Callable(), Callable())
+	check(m.link_tension_n == 0.0 and m.external_force_n == Vector3.ZERO, "провисшее звено силы не даёт")
+
+
+## Инвариант (8): на земле на стойках постоянная сила 500 Н вперёд-вверх 10° — конечно, хват не плывёт.
+func test_ground_pull() -> void:
+	var flat := func(_x: float, _z: float) -> float: return 0.0
+	var res := []
+	for f in [0.0, 500.0, 1500.0]:
+		var m := Sim.make("sport")
+		m.reset_on_ground(Vector3.ZERO, 0.0)
+		var dir := Vector3(0.0, sin(deg_to_rad(10.0)), -cos(deg_to_rad(10.0)))
+		var c := Sim.input()
+		var grip0 := Vector3.ZERO
+		for i in int(3.0 / DT):
+			if i == int(1.0 / DT) and f > 0.0:
+				m.set_external_force(func(_s: Dictionary) -> Dictionary: return {"pilot": dir * f})
+			m.step(DT, c, Callable(), flat)
+		var fwd := m.pilot_position.z
+		var rg: Vector3 = m._R * m.ground.grip_b
+		var sh: Vector3 = m.chain.pilot() + m.ground.fwd() * m.ground.shoulder_fwd + m.ground.UP_NED * m.ground.shoulder_up
+		res.append({"fwd": fwd, "stretch": (sh - (m._pos + rg)).length(), "fin": Sim.finite(m), "mode": m.mode})
+	print("    земля: %s" % [res])
+	check(res[1].fin, "на земле с силой: конечна")
+	check(res[1].fwd < res[0].fwd - 0.01, "пилота тянет вперёд (−Z): %.3f против %.3f" % [res[1].fwd, res[0].fwd])
+	check(res[2].fin and res[2].fwd < -0.5, "выше сцепления (1500 Н) — пилота потащит, конечно: %.2f м" % res[2].fwd)
+	check(absf(res[1].stretch - res[0].stretch) < 0.05, "хват не плывёт: растяжение %.3f против %.3f м" % [res[1].stretch, res[0].stretch])
+
+
+## Звено XPBD само по себе: груз на тросе в покое — натяжение = вес, растяжение = податливость × вес.
+func test_link_static_weight() -> void:
+	var ch := PendulumPilotChain.new()
+	ch.setup({"links": 1, "compliance_m_per_n": 1.0e-5, "strap_mass_kg": 0.0}, 85.0, 1.0)
+	var anchor := Vector3.ZERO
+	ch.x[0] = Vector3(0.0, 0.0, 10.0)  # NED: z вниз, груз под якорем
+	ch.v[0] = Vector3.ZERO
+	var h := 1.0 / 480.0
+	var t := 0.0
+	for i in 960:
+		ch.integrate(h, Vector3(0.0, 0.0, 85.0 * Units.G))
+		t = ch.project_anchor(h, anchor, 10.0, 1.0e-5, 0.01)
+		ch.velocities_from_prev(h)
+	var stretch: float = ch.x[0].z - 10.0
+	check(absf(t - 85.0 * Units.G) < 0.02 * 85.0 * Units.G, "натяжение = вес: %.1f Н против %.1f" % [t, 85.0 * Units.G])
+	check(absf(stretch - 1.0e-5 * 85.0 * Units.G) < 2.0e-4, "растяжение = α·вес: %.5f м" % stretch)
