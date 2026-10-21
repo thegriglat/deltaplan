@@ -1,0 +1,66 @@
+{
+  "status": "done",
+  "summary": "Новая страница site/content/docs/player-guide (ru+en, weight 30): главное меню, «Настройки полёта» (Место/Аппарат/Цели), популярные места, избранное, пауза («Подождать час», «Осмотреться»), F12, настройки игры (5 вкладок), графика (пресеты, VSync, пределы кадров, первый запуск), размер игры, отчёт о вылете. 2 кадра.",
+  "commits": [
+    "51d6e029 site-research SRS-19: страница «Меню и настройки игры»"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "4 файла в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Кадров 2 из 2–4: актуальных кадров настроек графики и паузы нет. docs/screenshots/ui/settings.jpg (старый одностраничный экран) и pause.jpg (без «Осмотреться»/«Подождать час») устарели, не взяты; menu_/setup_1920x1080.jpg там же — со старыми названиями «Полёт…», не взяты.",
+    "Строка «Фон меню» — одной фразой, без отдельного кадра."
+  ],
+  "questions": [
+    "Нужны ли свежие кадры настроек (вкладка «Графика и вид») и паузы — снять tools/shots/ui.sh в отдельной задаче?"
+  ],
+  "images": [
+    "build/screenshots/training-island/menu/10_main_menu.jpg",
+    "build/screenshots/training-island/menu/03_setup_island.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SRS-19",
+  "uncertain": [
+    {
+      "where": "site/content/docs/player-guide/index.*.md, раздел «Размер игры»",
+      "why": "features.md даёт источник CHANGELOG#1.3.3, но «168 → ~90 МБ» записано в сборке 1.5.1, а Basis 212 → 86 МБ — в 1.5.13; писал по CHANGELOG",
+      "checked": "grep CHANGELOG.md, заголовки сборок"
+    },
+    {
+      "where": "index.*.md, таблица пресетов",
+      "why": "числа из configs/game.json (graphics_presets), а не из docs; docs/guide/menus-settings.md их не приводит",
+      "checked": "прочитан configs/game.json"
+    },
+    {
+      "where": "index.*.md, «Настройки полёта»",
+      "why": "кадр 03_setup_island — старт острова с фиксированной погодой и частично пустой вкладкой; другого актуального кадра окна нет",
+      "checked": "просмотрены build/screenshots/*/menu"
+    }
+  ],
+  "dp_feedback": "Расхождения вне скоупа (docs/ и соседние страницы не правил): docs/guide/game/menus-settings.md — в нём кнопка «Полёт…», в игре «Настройки полёта»; «Настройки» в паузе теперь «Настройки игры»; docs/screenshots/ui/README.md и кадры menu/setup/pause/settings устарели; поле зрения в доке 45–100°, в configs 60–110°; вкладка «Графика» названа «Графика и вид». Страницы site/content/docs/training/index.*.md и goals используют старое «Полёт…» / «Flight…» вместо «Настройки полёта» / «Flight settings». В features.md строка «Настройки графики и размер игры» указывает CHANGELOG#1.3.3, но размер — в 1.5.1 и 1.5.13.",
+  "t": "2026-10-21T19:50:18",
+  "by": "executor"
+}
