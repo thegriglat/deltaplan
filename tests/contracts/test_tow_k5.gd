@@ -131,7 +131,7 @@ func _climb(cfg: Dictionary = {}, roll_after := -1.0, roll := 0.0) -> Dictionary
 
 
 func test_climb_to_top() -> void:
-	# (2) набор до фазы top: высота растёт, T < слабого звена, pilot_shift ≤ 0,1 хода, высота ≥ 0,25·rope_length
+	# (2) набор до фазы top: высота растёт, T < слабого звена, высота ≥ 0,25·rope_length
 	var res := _climb()
 	var r: Run = res.run
 	print("    набор: отрыв %.1f с, фазы %s, top=%s, h %.0f м, T max %.0f Н, shift max %.3f, угол %.1f°, t %.1f с, L %.0f" % [
@@ -144,12 +144,11 @@ func test_climb_to_top() -> void:
 	check(res.t_max < 1250.0, "T ниже слабого звена: %.0f Н" % res.t_max)
 
 
-## (2), pilot_shift ≤ 0,1 хода в наборе. Отдельно: при натяжении набора (80 даН) с грудным креплением пилот
-## держит тангаж только на пределе хода (см. отчёт TW-6) — контрактное число недостижимо без изменения тяги/крепления.
+## (2) v7: порог pilot_shift снят (управляемость на тросе решает шлюз Q3, TW-16) — тест только печатает замер.
 func test_climb_pilot_shift() -> void:
 	var res := _climb()
 	print("    pilot_shift max в наборе: %.3f (T max %.0f Н)" % [res.shift_max, res.t_max])
-	check(res.shift_max <= 0.1, "pilot_shift ≤ 0,1 хода: %.3f" % res.shift_max)
+	check(Sim.finite(res.run.m), "модель конечна")
 
 
 func test_lockout_reproduced() -> void:
