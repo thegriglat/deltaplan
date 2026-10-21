@@ -3,12 +3,12 @@
   "module": "haze-humidity",
   "type": "dp-researcher",
   "title": "Воздух 700 гПа: сетка ERA5 T и высоты уровня 1°×1°×12 мес.",
-  "goal": "Запечь в data/climate/upper_air_1deg.bin (формат HH2 v1) климатологию ERA5 температуры и высоты уровня 700 гПа по месяцам; сверить с нынешней таблицей upper_air для мест игры; посчитать σ суточной T700 для сверки с прогнозами (HH-1d).",
+  "goal": "Записать data/climate/upper_air_1deg.bin в формате HH2 v2 как заглушку до ключа CDS (year0 = year1 = 0, T — нынешняя таблица upper_air.temp_c, Z — 3000 м), с README «заглушка до CDS» и готовым конвейером под CDS; настоящие числа — отдельной задачей после ключа.",
   "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
   "contracts": [
     {
       "name": "HH2",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/haze-humidity.md"
     }
   ],
@@ -45,11 +45,6 @@
       "expect": "exit=0"
     },
     {
-      "name": "sigma",
-      "cmd": "test -f tools/research/haze_humidity/upper_air/t700_sd.npz",
-      "expect": "exit=0"
-    },
-    {
       "name": "docs",
       "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
       "expect": "re:ошибок 0"
@@ -68,5 +63,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-21T20:06:55",
-  "edited": "2026-10-21T20:16:58"
+  "edited": "2026-10-21T21:30:44"
 }
