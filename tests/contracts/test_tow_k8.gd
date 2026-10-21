@@ -79,3 +79,22 @@ func test_drogue_model() -> void:
 	var bb: AABB = (root.find_child("tow_drogue_LOD0", true, false) as MeshInstance3D).get_aabb()
 	check(bb.end.z > 0.5 and bb.position.z > -0.1, "TW-К8: купол по +Z от attach: %s" % bb)
 	root.free()
+
+
+func test_dolly_model() -> void:
+	var root := _load("res://assets/models/world/tow_dolly.glb")
+	if root == null:
+		return
+	_check_lods(root, "tow_dolly", [800, 200, 40])
+	var keel := root.find_child("tow_dolly_keel", true, false) as Node3D
+	var bar := root.find_child("tow_dolly_bar", true, false) as Node3D
+	check(keel != null, "TW-К8: узел tow_dolly_keel")
+	check(bar != null, "TW-К8: узел tow_dolly_bar")
+	var bb: AABB = (root.find_child("tow_dolly_LOD0", true, false) as MeshInstance3D).get_aabb()
+	check(absf(bb.position.y) < 0.02, "TW-К8: колёса на земле, min y %.3f" % bb.position.y)
+	if bar != null:
+		check(bar.transform.origin.y < 0.45 and bar.transform.origin.y > 0.05, "TW-К8: перекладина ниже 45 см: %s" % bar.transform.origin)
+	if keel != null and bar != null:
+		check(keel.transform.origin.y > bar.transform.origin.y, "TW-К8: опора киля выше перекладины")
+		check(keel.transform.origin.z > bar.transform.origin.z, "TW-К8: киль позади перекладины (+Z), тележка идёт в −Z")
+	root.free()
