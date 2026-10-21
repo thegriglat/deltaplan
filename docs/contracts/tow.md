@@ -3,10 +3,10 @@ type: "contract"
 status: "active"
 module: "tow"
 area: "flight"
-updated: "2026-10-21"
-summary: "Стыки tow: исследование (TW-К1…К3), внешняя сила в модели полёта (TW-К4), место и полоса (TW-К6), выбор при старте (TW-К7), модели (TW-К8)."
+updated: "2026-10-22"
+summary: "Стыки tow: исследование (К1–К3), внешняя сила (К4), трос и лебёдка (К5), место и полоса (К6), выбор при старте (К7), модели (К8)."
 related: ["docs/plan/tow.md", "docs/guide/flight.md", "docs/guide/models.md", "docs/guide/game.md"]
-contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 1}, {"id": "TW-К6", "version": 1}, {"id": "TW-К7", "version": 1}, {"id": "TW-К8", "version": 1}]
+contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 1}, {"id": "TW-К5", "version": 1}, {"id": "TW-К6", "version": 1}, {"id": "TW-К7", "version": 1}, {"id": "TW-К8", "version": 1}]
 ---
 # Контракты модуля tow
 
@@ -130,6 +130,48 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 `shift_x_pull_m`); (3) то же для 100 Н поперёк курса; (4) та же сила на `hang` — модель конечна, |крен| < 30°;
 (5) `FlightModel`: `external_force` 200 Н вперёд в горизонтальном полёте — воздушная скорость за 5 с выше, чем без
 силы; (6) сила снята — модель конечна 10 с. Шаг — 1/120 с, крыло `sport`, как `tests/flight/pendulum/pendulum_sim.gd`.
+
+## TW-К5 v1. Трос и лебёдка: `TowLine`, `configs/tow.json`
+Владелец — TW-6; потребители — TW-7 (аэробуксировка: тот же `TowLine` с движущимся якорем), TW-10 (игра: создание,
+отцеп, телеметрия, отрисовка троса). Контрактный тест — `tests/contracts/test_tow_k5.gd`. Основание —
+`docs/research/tow/kinds.md` (`#Параметры`, `#Параметры модели троса`, `#Процедуры`, `#Опасности`; числа BHPA — TW-4),
+`docs/research/tow/code.md#Разбег и переход «земля → полёт» с тросом`, `#Риски`. Сила — только через TW-К4.
+
+- `configs/tow.json`: блоки `rope`, `winch_static`, `aerotow` (последний заполняет TW-7). Каждое число — с ключом
+  `<ключ>_doc`: источник (`[BHPA §…]` или `docs/research/tow/kinds.md#раздел`) или «оценка: из чего». Подгонка под
+  «нравится» запрещена. Минимум: `rope` — `material`, `ea_n` (осевая жёсткость EA, Н), `damping_ratio`,
+  `mass_per_m_kg`, `weak_link_daN`, `attach` (`{"pilot": доля, "hang": доля}`, сумма 1 — точка крепления по
+  `kinds.md`); `winch_static` — `rope_length_m`, `tension_ground_daN`, `tension_climb_daN`, `ramp_s`,
+  `max_reel_speed_ms`, `ctrl_tau_s`, `top_angle_deg` (угол троса к горизонту, после которого натяжение снижают),
+  `lockout_deg` (угол между тросом и курсом крыла в плане — опасная зона по `kinds.md#Опасности`).
+- `class_name TowLine extends RefCounted` (`scripts/flight/tow/tow_line.gd`):
+  - `static func create(kind: String, anchor: Vector3, cfg: Dictionary = {}) -> TowLine` — `cfg` пустой → блоки из
+    `configs/tow.json`; `kind` ∈ {`winch_static`, `aerotow`}; трос в начале выбран до натяжения 0 (длина = расстояние).
+  - `anchor_pos: Vector3`, `anchor_vel: Vector3` (мир игры, м, м/с) — лебёдка неподвижна (`TowSite.check().end_pos` +
+    высота узла `tow_winch_rope_out`); для буксировщика их обновляет владелец якоря (TW-7) раз в шаг физики.
+  - `force_fn() -> Callable` — функция для `Glider.set_external_force` (TW-К4): по `s` считает точку крепления
+    (`pilot_pos`/`hang_pos` с долями `attach`), натяжение `T = max(0, EA·(d − L)/L + c·ḋ)` (`c` — из
+    `damping_ratio`; `d < L` — провис, `T = 0`), длину `L` двигает регулятор лебёдки на шаге `s.h`; возврат
+    `{"pilot": T·e·attach.pilot, "hang": T·e·attach.hang}`, `e` — единичный вектор к якорю. Устойчивость
+    явной схемы: `EA/L · h² / m < 4` на `h` = 1/480 с (проверить в отчёте числом для мин. длины троса).
+  - Регулятор `winch_static` — барабан с управлением по натяжению: цель `T*` по фазе (`ground` — рост от 0 до
+    `tension_ground_daN` за `ramp_s`; `climb` — `tension_climb_daN`; `top` — линейно до 0 при угле троса
+    `top_angle_deg`…90°), `dL/dt = clamp((T − T*)/(EA/L)/ctrl_tau_s, −max_reel_speed_ms, +max_reel_speed_ms)`.
+  - Слабое звено: `T > weak_link_daN·10` → `state = "broken"`, сила 0 с этого подшага, сигнал `broken()`.
+  - `release(reason: String = "pilot") -> void` — отцеп: сила 0 с ближайшего подшага (мгновенно, как в жизни),
+    `state = "released"`, сигнал `released(reason)`. Повторный вызов — без действия.
+  - Только чтение: `state: String` ∈ {`slack`, `taut`, `released`, `broken`}; `tension_n: float`; `length_m: float`;
+    `rope_angle_deg: float` (угол троса к горизонту у пилота); `lockout_angle_deg: float` (угол в плане между
+    направлением на якорь и курсом крыла, 0 — трос прямо по курсу); `phase: String` (`ground`/`climb`/`top`).
+  - `points(n: int) -> PackedVector3Array` — `n ≥ 2` точек троса от крепления к якорю (провис — цепная линия по
+    `mass_per_m_kg` и `T`; натянут — почти прямая) для отрисовки; после отцепа/обрыва — пусто.
+- **Инварианты теста** (`PendulumModel`, крыло `sport`, шаг 1/120 с, ровная земля, как
+  `tests/flight/pendulum/pendulum_sim.gd`): (1) `d < L` → `T = 0`, `slack`; (2) лебёдка `winch_static` на расстоянии
+  `rope_length_m`, нулевой ввод: пилот отрывается, высота монотонно растёт до фазы `top`, к концу набора — не ниже
+  порога из `kinds.md` (доля длины троса, число — в карточке TW-6), `T` ни разу не выше слабого звена, `pilot_shift`
+  в пределах 0,1 хода; (3) lock-out: постоянный ввод крена (ошибка пилота) в наборе → `lockout_angle_deg` превышает
+  `lockout_deg` за ≤ 20 с; (4) `release()` → сила 0 на следующем подшаге, `released`, модель конечна 10 с;
+  (5) `tension_climb_daN` выше слабого звена → `broken`; (6) `points(8)`: первая — точка крепления, последняя — якорь.
 
 ## TW-К6 v1. Место с полосой: `start_sites[].tow`, `TowSite.check`, Волжский
 Владелец — TW-8; потребители — TW-9 (выбор при старте), TW-10 (игра). Контрактный тест — `tests/contracts/test_tow_k6.gd`.
