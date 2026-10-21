@@ -274,3 +274,5 @@
 {"t": "2026-10-21T19:47:59", "by": "executor", "task": "SRS-18", "ev": "reported", "commits": ["415a2e32"], "note": "done: Новая страница mechanics/motion-platform (ru+en): что шлёт игра (таблица величин), форматы SRS/Generic, настройки по lo…", "dp_feedback": "docs/guide/motion-rig.md (updated 2026-10-15) не отражает по смыслу в начале раздел «Форматы» — ground_accel_scale/ramp_s описаны только в конце (MR-6); расхождений с кодом по дефолтам не найдено. rtk перехватывает grep: понадобился /usr/bin/grep."}
 {"t": "2026-10-21T19:48:25", "by": "coordinator", "task": "SRS-18", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:0; img_en=ok:0"}
 {"t": "2026-10-21T19:48:30", "by": "coordinator", "task": "SRS-18", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-21T19:48:44", "by": "coordinator", "task": "SRS-18", "ev": "accepted", "commits": ["5053b0c7"], "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:0; img_en=ok:0"}
+{"t": "2026-10-21T19:48:44", "by": "coordinator", "task": "SRS-18", "ev": "merged"}
