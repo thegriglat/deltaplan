@@ -1,0 +1,80 @@
+{
+  "id": "TK-6",
+  "module": "trike-model",
+  "type": "dp-researcher",
+  "title": "Кадры модели v2 с пилотом и проверка посадки",
+  "goal": "Кадры модели v2 без пилота (4 ракурса) и с сидящим пилотом (≥ 5 ракурсов и 2 крупных посадки) в /home/greg/deltaplan/build/screenshots/trike-model; посадка проверена числами в fit.json. Видео не делать.",
+  "plan_ref": "TK-6",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "2",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K2",
+      "version": "2",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K3",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-6",
+  "branch": "trike-model/TK-6",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/blender/render_trike.py",
+    "tools/research/trike-model/"
+  ],
+  "dont_touch": [
+    "tools/blender/trike_params.json",
+    "tools/blender/build_pilot.py",
+    "tools/blender/build_trike.py",
+    "assets/",
+    "docs/contracts/trike-model.md"
+  ],
+  "accept": [
+    {
+      "name": "pilot_shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-model/pilot_*.png | wc -l",
+      "expect": "num:(\\d+) >=5"
+    },
+    {
+      "name": "closeups",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-model/seat_closeup*.png | wc -l",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "penetration",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('pen=%.2f'%d['max_penetration_cm'])\"",
+      "expect": "num:pen=([\\d.]+) <=2"
+    },
+    {
+      "name": "seat_gap",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('gap=%.2f'%max(d['seat_gap_cm'],d['back_gap_cm']))\"",
+      "expect": "num:gap=([\\d.]+) <=3"
+    },
+    {
+      "name": "foot_gap",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('foot=%.2f'%max(d['foot_gap_l_cm'],d['foot_gap_r_cm']))\"",
+      "expect": "num:foot=([\\d.]+) <=3"
+    },
+    {
+      "name": "docs",
+      "cmd": "./.dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fresh",
+      "cmd": "python3 -c \"import os;S='/home/greg/deltaplan/build/screenshots/trike-model';g=os.path.getmtime('assets/models/trike/trike.glb');fs=[os.path.join(S,f) for f in os.listdir(S) if f.endswith('.png')];print('stale=%d'%sum(1 for f in fs if os.path.getmtime(f)<g))\"",
+      "expect": "num:stale=(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T04:22:55",
+  "edited": "2026-10-22T04:24:20"
+}

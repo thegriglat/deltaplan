@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "render_trike.py (Eevee, LOD0, ключ --pilot для TK-6) даёт 4 PNG 1600x1000 и prop_spin.mp4 5 с, 24 кадр/с, 2 об/с, motion blur, без пилота.",
+  "commits": [
+    "b516d090 trike-model: TK-4 render_trike.py — кадры тележки и видео винта"
+  ],
+  "checks": [
+    {
+      "name": "video",
+      "value": "5.0 с",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Пилот sit, seat_closeup, fit.json — перенесены в TK-6 по изменению карточки"
+  ],
+  "questions": [],
+  "images": [
+    "build/screenshots/trike-model/trike_front34.png",
+    "build/screenshots/trike-model/trike_side.png",
+    "build/screenshots/trike-model/trike_rear34.png",
+    "build/screenshots/trike-model/trike_top.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TK-4",
+  "uncertain": [
+    {
+      "where": "tools/blender/render_trike.py:video",
+      "why": "Кадры не просматривались глазами (правило), ракурс видео и композиция проверены только числами (размеры кадров меняются с периодом 4 = 3 лопасти)",
+      "checked": "ffprobe 5.0 с; 120 кадров; размеры PNG различаются по кадрам"
+    },
+    {
+      "where": "tools/blender/render_trike.py:--pilot",
+      "why": "режим --pilot не запускался (pilot.glb sit — TK-2/TK-6)",
+      "checked": "только код"
+    }
+  ],
+  "dp_feedback": "Рендер видео на программном GL ~40 мин (120 кадров); хорошо бы job start с прогрессом.",
+  "extra": {
+    "render_minutes_total": 45,
+    "video_frames": 120,
+    "spin_rps": 2
+  },
+  "t": "2026-10-22T04:22:13",
+  "by": "executor"
+}
