@@ -1,0 +1,56 @@
+{
+  "status": "partial",
+  "summary": "Записана заглушка data/climate/upper_air_1deg.bin (HH2 v2, year0=year1=0, T = upper_air.temp_c, Z = 3000 м, 165 байт) + README и sites.csv; реальной климатологии ERA5 и t700_sd.npz нет — ждут ключа CDS.",
+  "commits": [
+    "3d10191f HH-1b: сетка 700 гПа — заглушка до CDS (HH2 v2), README, sites.csv, конвейер CDS"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "6/6 PASS",
+      "pass": true
+    },
+    {
+      "name": "grid_size",
+      "value": "165 байт (<= 2097152)",
+      "pass": true
+    },
+    {
+      "name": "grid_contract",
+      "value": "8 тестов, 0 упало, 2 пропущено (surface_t, upper_misc — чужие сетки)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Реальные T700/Z700 ERA5 — нет ключа CDS (решение Q3), по контракту отдельная задача после ключа",
+    "t700_sd.npz (σ суточной T700) не создан; колонка t700_sd_k в sites.csv пуста",
+    "fetch_cds.py и aggregate_cds.py не запускались и не тестировались (имена датасета/полей из общих знаний); ARCO-скрипты fetch.py/aggregate.py ранее без полного прогона",
+    "Объём/время скачивания не измерены (в README — оценка по HH-1, помечена)"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept HH-1b",
+  "uncertain": [
+    {
+      "where": "tools/research/haze_humidity/upper_air/README.md",
+      "why": "Диапазон Z в инварианте контракта 2000..3500 м; реальный Z700 в горах/на полюсах может выйти, а bake.py по умолчанию рассчитан на 2000..5276 м",
+      "checked": "для заглушки Z=3000 — в норме; реальную сетку не считал"
+    },
+    {
+      "where": "tools/research/haze_humidity/upper_air/fetch_cds.py",
+      "why": "Параметры CDS API не проверены (нет ключа)",
+      "checked": "только синтаксис, не запускал"
+    }
+  ],
+  "dp_feedback": "Свежая копия без .godot: grid_contract в accept падает на парсинге (нет class cache), нужен ручной godot --import (он долгий, на текстурах падал 'double free' и дописал мусор docs/archive/.../*.translation-XXXX, ломающий scope). Хорошо бы accept сам делал import и игнорировал такие артефакты.",
+  "extra": {
+    "file_bytes": 165,
+    "raw_size": 3110400,
+    "t_range_c": [
+      -16.5,
+      2.5
+    ],
+    "z_m": 3000
+  },
+  "t": "2026-10-21T21:36:33",
+  "by": "executor"
+}
