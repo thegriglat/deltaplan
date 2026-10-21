@@ -1,0 +1,11 @@
+{
+  "module": "trike-model",
+  "plan": "docs/plan/trike-model.md",
+  "contracts": "docs/contracts/trike-model.md",
+  "branch": "feature/trike-model",
+  "copy": "~/deltaplan-trike-model",
+  "created": "2026-10-22T03:00:21",
+  "code": "TK",
+  "area": "flight",
+  "base": "main"
+}
