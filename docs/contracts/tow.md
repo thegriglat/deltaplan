@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки tow: сила и звено троса (К4), трос и лебёдка (К5), место (К6), выбор (К7), модели (К8), Ан-2 (К9), тележка (К10)."
 related: ["docs/plan/tow.md", "docs/guide/flight.md", "docs/guide/models.md", "docs/guide/game.md"]
-contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 5}, {"id": "TW-К5", "version": 7}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 2}, {"id": "TW-К8", "version": 3}, {"id": "TW-К9", "version": 3}, {"id": "TW-К10", "version": 2}]
+contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 5}, {"id": "TW-К5", "version": 8}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 2}, {"id": "TW-К8", "version": 3}, {"id": "TW-К9", "version": 3}, {"id": "TW-К10", "version": 2}]
 ---
 # Контракты модуля tow
 
@@ -113,7 +113,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 - v2 (2026-10-22): звено `link` (неявное XPBD), `wing_basis`/`link_tension_n` во входе, отцеп мгновенный, поправка рук
   только удержание штанги, буксировка игрока только в «Маятнике», инварианты (2), (7), (8).
 
-## TW-К5 v7. Трос и лебёдка: `TowLine`, `configs/tow.json`
+## TW-К5 v8. Трос и лебёдка: `TowLine`, `configs/tow.json`
 Владелец — TW-6; потребители — TW-7 (аэробуксировка: тот же `TowLine` с движущимся якорем), TW-10 (игра: создание,
 отцеп, телеметрия, отрисовка троса). Контрактный тест — `tests/contracts/test_tow_k5.gd`. Основание —
 `docs/research/tow/kinds.md` (`#Параметры`, `#Параметры модели троса`, `#Процедуры`, `#Опасности`; числа BHPA — TW-4),
@@ -142,7 +142,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
     Жёсткость `EA` — из материала троса, не подбирать; явной пружины в `TowLine` нет. После отцепа/обрыва `force_fn`
     возвращает `{}` — сила исчезает мгновенно.
   - Регулятор `winch_static` — барабан с управлением по натяжению: цель `T*` по фазе (`idle`/`slack` — см. `start()`; `ground` — рост от 0 до
-    `tension_ground_daN` за `ramp_s`; `climb` — `tension_climb_daN`; `top` — линейно до 0 при угле троса
+    `tension_ground_daN` за `ramp_s`; `climb` — рост от `tension_ground_daN` до `tension_climb_daN` за `ramp_s`; `top` — линейно до 0 при угле троса
     `top_angle_deg`…90°), `dL/dt = clamp((T − T*)/(EA/L)/ctrl_tau_s, −max_reel_speed_ms, +max_reel_speed_ms)`.
   - Слабое звено: `T > weak_link_daN·10` → `state = "broken"`, сила 0 с этого подшага, сигнал `broken()`.
   - `release(reason: String = "pilot") -> void` — отцеп: сила 0 с ближайшего подшага (мгновенно, как в жизни),
@@ -168,7 +168,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 (7) после `release()` и `step_free` конец троса снижается, его скорость ограничена (парашют), за конечное время
 `reeled_in`; (8) lock-out (3) воспроизводится с поправкой рук TW-К4 v2; (9) до `start()` 10 с — пилот стоит, `T = 0`,
 `idle`; после — `slack` → `ground` без скачка натяжения выше `tension_ground_daN`. v6 (2026-10-22): `start()`, фазы
-`idle`/`slack`, трос лежит со слабиной `slack_m` (решение пользователя: старт по W). v7 (2026-10-22, TW-6, Q3):
+`idle`/`slack`, трос лежит со слабиной `slack_m` (решение пользователя: старт по W). v8 (2026-10-22, ревью TW-6): в `climb` цель натяжения растёт за `ramp_s`. v7 (2026-10-22, TW-6, Q3):
 из (2) убран порог `pilot_shift` — управляемость на тросе решает шлюз Q3; слабина — относительно сближения пилота. v5 (2026-10-22): в (2) пилот держит
 тангаж (TW-К4 v4). v4 (2026-10-22): звено передаёт
 `anchor_vel`, `length_rate_ms` (TW-К4 v3). v3 (2026-10-22): трос — звено `link`
