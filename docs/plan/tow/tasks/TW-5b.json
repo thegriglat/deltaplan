@@ -1,0 +1,69 @@
+{
+  "id": "TW-5b",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Уздечка 50/50: звено троса на подвеске устойчиво, pilot_share",
+  "goal": "По TW-К4 v6 и К5 v9: звено троса может тянуть и пилота, и киль у подвески (pilot_share), оба плеча решаются неявно и устойчиво (без рывков натяжения at=hang из ревью TW-5); TowLine передаёт bridle_pilot_share из configs/tow.json (лебёдка 1,0, блок aerotow_rope 0,5).",
+  "plan_ref": "Волна 2 — физика троса и управление",
+  "contracts": [
+    {
+      "name": "TW-К4",
+      "version": "6",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К5",
+      "version": "9",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-5b",
+  "branch": "tow/TW-5b",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "scripts/flight/pendulum/pilot_chain.gd",
+    "scripts/flight/tow/tow_line.gd",
+    "configs/tow.json",
+    "tests/contracts/test_tow_k4.gd",
+    "tests/contracts/test_tow_k5.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum/pilot_arms.gd",
+    "scripts/game",
+    "configs/pendulum.json",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k4",
+      "tests": "tow_k4"
+    },
+    {
+      "name": "tow_k5",
+      "tests": "tow_k5"
+    },
+    {
+      "name": "tow_k10",
+      "tests": "tow_k10"
+    },
+    {
+      "name": "tests/flight/",
+      "tests": "tests/flight/"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;json.load(open('configs/tow.json'))\"",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T04:38:55"
+}
