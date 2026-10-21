@@ -1,0 +1,39 @@
+{
+  "status": "done",
+  "summary": "Инв. (9): порог T <= tension_ground без x1,25 + проверка скачка за подшаг (348 Н, скачок 10 Н <= 410). Углы rope/lockout от точки крепления. Инв. (7): купол проверяется отдельно, 7,31 м/с = установившаяся. В tow_line добавлен комментарий про плавный переход T* в climb.",
+  "commits": [
+    "edf04aec tow: правки minor ревью TW-6"
+  ],
+  "checks": [
+    {
+      "name": "tow_k5",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "tow_k4",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "К5: закрепить, что в climb T* плавно растёт от tension_ground к tension_climb за ramp_s"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TW-6b",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_tow_k5.gd test_free_rope_reeled_in",
+      "why": "Предложение ревью (end_vel.y против 7,3 м/с) к реальному свободному тросу неприменимо: конец идёт со скоростью выбирания лебёдкой 25-30 м/с, трос натянут, купол не определяет скорость",
+      "checked": "отдельный прогон: длинный трос без выбирания, 60 с — скорость 7,31 м/с = sqrt(2mg/(rho CdS)); в основном тесте vmax<60 оставлен с пометкой"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-22T04:37:36",
+  "by": "executor"
+}
