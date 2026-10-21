@@ -7,14 +7,15 @@
 Размеры — tools/blender/trike_params.json (TK-K1). Оси Blender: +X вправо, +Y вперёд, +Z вверх; начало —
 точка подвески крыла HangPoint (вершина мачты); земля z = ground_z. В Godot (x, z, −y).
 
-Узлы: Trike_LOD0/1/2 (всё, кроме винта), Propeller (Empty на ступице; в Godot локальная +Z — ось двигателя,
+Узлы: Trike_LOD0/1/2 (всё, кроме винта; в LOD0 и кроме двигателя — он отдельным мешем Engine_LOD0 с UV0, в LOD1/2
+двигатель упрощён и входит в меш), Propeller (Empty на ступице; в Godot локальная +Z — ось двигателя,
 направлена назад, к наблюдателю за трайком (в Blender это локальная −Y объекта: экспортёр сопрягает оси
 (x, z, −y)); наклон носом вверх prop_tilt_deg), его дети Prop_LOD0/1,
 маркеры HangPoint, WheelFront, WheelRearL, WheelRearR. Анимация prop_spin: один оборот вокруг локальной Z
 за 1 с (кадры 0–24, 24 к/с); положительный угол вокруг +Z (взгляд сзади) = против часовой, т. е.
 prop_cw_from_behind = false.
 Цвета — вершинные (COLOR_0), материалы Metal/Soft/Composite белые; шина — материал Wheel с общей текстурой
-wheel_tire (wheel_parts.tire_texture()). Колёса — wheel_parts.add_wheel, масштабированное под размеры.
+wheel_tire (wheel_parts.tire_texture()). Колёса LOD0 — свои (шина с UV под текстуру wheel_tire, диск, ступица), размеры по dims.
 """
 import math
 import os
@@ -33,6 +34,8 @@ SRC = os.path.join(U.SOURCE, "trike")
 P = U.load_json("tools/blender/trike_params.json")
 D = {k: v["value"] for k, v in P["dims"].items()}
 S = P["seat"]
+SR = P["seat_rear"]
+TK = P["tank"]
 GZ = P["ground_z"]
 
 # логическое имя → (физический материал, цвет sRGB)
@@ -42,12 +45,15 @@ COLORS = {
     "Steel": ("Metal", (0.55, 0.56, 0.58)),
     "WheelRim": ("Metal", (0.2, 0.21, 0.22)),
     "Seat": ("Soft", (0.07, 0.07, 0.08)),          # тёмная ткань
-    "Tank": ("Soft", (0.78, 0.78, 0.75)),
+    "Tank": ("Composite", (0.8, 0.8, 0.77)),       # пластиковая канистра
+    "Fairing": ("Composite", (0.93, 0.93, 0.9)),   # обтекатель приборов, брызговик
+    "Lamp": ("Composite", (0.98, 0.95, 0.8)),
+    "Spring": ("Metal", (0.78, 0.62, 0.12)),       # пружина амортизатора (жёлтый цинк)
     "Pedal": ("Soft", (0.1, 0.1, 0.1)),
     "EngBlack": ("Metal", (0.1, 0.1, 0.11)),       # картер Rotax
     "EngSilver": ("Metal", (0.6, 0.61, 0.63)),     # головки цилиндров, редуктор
     "Muffler": ("Metal", (0.4, 0.38, 0.35)),
-    "Blade": ("Composite", (0.2, 0.13, 0.08)),     # композит под дерево
+    "Blade": ("Composite", (0.66, 0.46, 0.27)),    # дерево под стеклотканью на эпоксидке; тон — вершинными цветами
     "Hub": ("Metal", (0.08, 0.08, 0.09)),
     "Wheel": ("Wheel", (1.0, 1.0, 1.0)),
 }
@@ -59,7 +65,7 @@ def phys_mats() -> dict:
     return {
         "Metal": U.material("Metal", (1, 1, 1), rough=0.42, metal=0.55, double=True),
         "Soft": U.material("Soft", (1, 1, 1), rough=0.9, double=True),
-        "Composite": U.material("Composite", (1, 1, 1), rough=0.5, double=True),
+        "Composite": U.material("Composite", (1, 1, 1), rough=0.45, double=True),
         "Wheel": U.material("Wheel", (1, 1, 1), rough=0.88, image=tire),
     }
 
@@ -77,138 +83,340 @@ def build_mesh(mb, name: str, M: dict, parent=None):
     me = ob.data
     ca = me.color_attributes.new("Col", "FLOAT_COLOR", "CORNER")
     cols = []
+    tint = getattr(mb, "tint", {})          # вершинный множитель тона (дерево винта)
     for f, ln in zip(me.polygons, face_logical):
         c = U.srgb(COLORS[ln][1])
-        for _ in range(f.loop_total):
-            cols.extend((c[0], c[1], c[2], 1.0))
+        for k in range(f.loop_total):
+            t = tint.get(me.loops[f.loop_start + k].vertex_index, (1.0, 1.0, 1.0))
+            cols.extend((min(c[0] * t[0], 1.0), min(c[1] * t[1], 1.0), min(c[2] * t[2], 1.0), 1.0))
     ca.data.foreach_set("color", cols)
     me.color_attributes.active_color = ca
     me.color_attributes.render_color_index = 0
     return ob
 
 
-def merge(mb, sub, sx: float, syz: float, offset: Vector) -> None:
-    """Добавить сетку sub (колесо в начале координат) с масштабом (sx вдоль оси X, syz радиально)."""
-    base = len(mb.verts)
-    for v in sub.verts:
-        mb.verts.append(tuple(Vector((v[0] * sx, v[1] * syz, v[2] * syz)) + offset))
-    for f, uv, m, sm in zip(sub.faces, sub.uvs, sub.mats, sub.smooth):
-        mb.add_face([base + i for i in f], sub.mat_names[m], uv, sm)
+V = Vector
+RK, RM, RS, RF = (D[k] / 2 for k in ("tube_keel_d", "tube_mast_d", "tube_strut_d", "tube_frame_d"))
+KZ = -2.12                                                       # ось трубы киля
+MAST_BASE = V((0, -math.tan(math.radians(D["mast_tilt_deg"])) * (-KZ), KZ))   # низ мачты (вершина — HangPoint)
+Y_R = D["axle_rear_y"]                                           # ось задних колёс
+HUB_Y = -0.92 - D["engine_l"] / 2 - 0.05                         # ступица винта (фланец редуктора)
+EZ = GZ + D["prop_axis_height"]                                  # высота оси винта
+ALPHA = math.radians(D["prop_tilt_deg"])                         # ось винта носом вверх
+
+
+def mast_y(z: float) -> float:
+    """y оси мачты на высоте z."""
+    return MAST_BASE.y * z / KZ
+
+
+def spow(x: float, e: float) -> float:
+    return math.copysign(abs(x) ** e, x) if x else 0.0
+
+
+def sstep(a: float, b: float, x: float) -> float:
+    t = min(max((x - a) / (b - a), 0.0), 1.0)
+    return t * t * (3 - 2 * t)
+
+
+def pillow(mb, c, half, mat, rot=None, e=0.4, seg=12, rings=6, warp=None) -> None:
+    """Мягкая «подушка» — суперэллипсоид с полуразмерами half, плоскими верхом и низом (колпаки-многоугольники);
+    warp(p) — местная деформация (вмятина сиденья, боковые валики)."""
+    rot = rot or Matrix.Identity(3)
+    c = V(c)
+    zs = 1.0 / spow(math.cos(math.pi / rings), e)            # верхний пояс — ровно на высоте half[2]
+    grid = []
+    for i in range(1, rings):
+        th = math.pi * i / rings
+        zc, rr = spow(math.cos(th), e) * zs, spow(math.sin(th), e)
+        row = []
+        for j in range(seg):
+            ph = 2 * math.pi * j / seg
+            p = V((half[0] * rr * spow(math.cos(ph), e), half[1] * rr * spow(math.sin(ph), e), half[2] * zc))
+            row.append(c + rot @ (warp(p) if warp else p))
+        grid.append(row)
+    mb.add_grid(grid, mat, wrap=True)
+    mb.add_face([mb.add_vert(p) for p in grid[0]], mat, smooth=False)
+    mb.add_face([mb.add_vert(p) for p in reversed(grid[-1])], mat, smooth=False)
+
+
+def fillet(pts, d: float, n: int = 3) -> list:
+    """Ломаная со скруглёнными углами (квадратичная Безье на углу, отступ d)."""
+    out = [V(pts[0])]
+    for i in range(1, len(pts) - 1):
+        p, a, b = V(pts[i]), V(pts[i - 1]), V(pts[i + 1])
+        p0 = p + (a - p).normalized() * min(d, (a - p).length * 0.45)
+        p1 = p + (b - p).normalized() * min(d, (b - p).length * 0.45)
+        for k in range(n + 1):
+            t = k / n
+            out.append(p0.lerp(p, t).lerp(p.lerp(p1, t), t))
+    out.append(V(pts[-1]))
+    return out
+
+
+def spring(mb, p0, p1, rc: float, rw: float, turns: int, per: int, mat: str, sides: int) -> None:
+    """Витая пружина: спираль радиуса rc из проволоки rw вдоль p0→p1."""
+    p0, p1 = V(p0), V(p1)
+    d = (p1 - p0).normalized()
+    u = d.cross(V((1, 0, 0)) if abs(d.x) < 0.9 else V((0, 1, 0))).normalized()
+    w = d.cross(u)
+    n = turns * per
+    pts = []
+    for i in range(n + 1):
+        a = 2 * math.pi * i / per
+        pts.append(p0.lerp(p1, i / n) + u * (rc * math.cos(a)) + w * (rc * math.sin(a)))
+    mb.add_tube(pts, rw, mat, sides=sides, cap=True)
+
+
+def box(mb, center, size, mat, rot=None) -> None:
+    mb.add_box(center, size, mat, rot=rot)
+
+
+# ---------- сиденье ----------
+
+def seat(mb, spec: dict, lod: int, rear: bool) -> None:
+    """Формованное кресло: подушка с вмятиной и боковыми валиками, спинка с «крыльями»; рейки под подушкой и трубы
+    крепления: переднее — к килю, заднее — к килю и к мачте."""
+    pan = V(spec["seat_pan"])
+    pw, pd = spec["seat_pan_size"]
+    bw, bh = spec["backrest_size"]
+    br = Matrix.Rotation(math.radians(spec["backrest_angle_deg"]), 3, "X")
+    bb = V(spec["backrest_base"])
+    hz = 0.045
+    if lod == 2:
+        box(mb, pan + V((0, 0, -hz)), (pw, pd, 2 * hz), "Seat")
+        box(mb, bb + br @ V((0, -0.05, bh / 2)), (bw, 0.1, bh), "Seat", rot=br)
+        return
+    seg, rings = (12, 6) if lod == 0 else (8, 4)
+
+    def dish(p):                                    # центр подушки ниже, к бокам валики
+        if p.z > 0:
+            p.z += 0.03 * sstep(0.5, 1.0, abs(p.x) / (pw / 2))
+        return p
+
+    def wing(p):                                    # спинка: боковые «крылья» вперёд
+        if p.y > 0:
+            p.y += 0.07 * sstep(0.45, 1.0, abs(p.x) / (bw / 2))
+        return p
+
+    pillow(mb, pan + V((0, 0, -hz)), (pw / 2, pd / 2, hz), "Seat", e=0.35, seg=seg, rings=rings, warp=dish)
+    pillow(mb, bb + br @ V((0, -0.05, bh / 2)), (bw / 2, 0.05, bh / 2), "Seat", rot=br, e=0.4, seg=seg,
+           rings=rings, warp=wing)
+    sdt = 8 if lod == 0 else 4
+    rz = pan.z - 2 * hz - RF                        # рейки под подушкой
+    y0, y1 = pan.y - pd / 2 + 0.04, pan.y + pd / 2 - 0.04
+    for s in (-1, 1):
+        x = s * 0.17
+        mb.add_tube([V((x, y0, rz)), V((x, y1, rz))], RF, "Tube", sides=sdt)
+        top = bb + br @ V((x, -0.11, bh * 0.85))
+        base = bb + br @ V((x, -0.11, 0.05))
+        mb.add_tube([V((x, y0, rz)), base, top] if lod == 0 else [V((x, y0, rz)), top], RF, "Tube", sides=sdt)
+        # к килю: передняя нога и (у переднего сиденья) задняя
+        mb.add_tube([V((x, y1, rz)), V((0, y1 + 0.04, KZ))], RF, "Tube", sides=sdt)
+        if rear:
+            # заднее — к мачте: нога назад-вверх и скоба от спинки
+            mz = -1.5
+            mb.add_tube([V((x, y0, rz)), V((0, mast_y(mz), mz))], RF, "Tube", sides=sdt)
+            if lod == 0:
+                q = bb + br @ V((x, -0.11, bh * 0.7))
+                mb.add_tube([q, V((0, mast_y(q.z), q.z))], RF, "Tube", sides=sdt)
+        else:
+            mb.add_tube([V((x, y0, rz)), V((0, y0 - 0.05, KZ))], RF, "Tube", sides=sdt)
+        if lod == 0 and not rear:
+            q = bb + br @ V((x, -0.11, bh * 0.45))
+            mb.add_tube([q, V((0, q.y - 0.02, KZ))], RF, "Tube", sides=sdt)
+
+
+def rear_footrests(mb, lod: int) -> None:
+    """Подножки заднего сиденья (seat_rear.foot_*): площадки на трубах к килю."""
+    sdt = (8, 4, 3)[lod]
+    for key in ("foot_l", "foot_r"):
+        p = V(SR[key])
+        box(mb, p + V((0, 0, -0.0075)), (0.1, 0.18, 0.015), "Fitting")
+        mb.add_tube([V((p.x, p.y - 0.05, p.z - 0.015)), V((p.x * 0.2, p.y - 0.12, KZ))], RF * 0.8, "Tube", sides=sdt)
+        mb.add_tube([V((p.x, p.y + 0.05, p.z - 0.015)), V((p.x * 0.2, p.y + 0.0, KZ))], RF * 0.8, "Tube", sides=sdt)
+
+
+def tank(mb, lod: int) -> None:
+    """Бак-«кирпич» (tank): скруглённые рёбра, горловина с крышкой на боку."""
+    c = V(TK["center"])
+    sx, sy, sz = TK["size"]
+    if lod == 2:
+        box(mb, c, (sx, sy, sz), "Tank")
+        return
+    seg, rings = (12, 6) if lod == 0 else (8, 4)
+    pillow(mb, c, (sx / 2, sy / 2, sz / 2), "Tank", e=0.25, seg=seg, rings=rings)
+    if lod == 0:
+        f = V(TK["filler"])
+        mb.add_tube([V((f.x - 0.02, f.y, f.z)), V((f.x + 0.035, f.y, f.z))], 0.03, "Tank", sides=10)
+        mb.add_tube([V((f.x + 0.035, f.y, f.z)), V((f.x + 0.055, f.y, f.z))], 0.036, "Fitting", sides=10)
 
 
 def wheel(mb, c: Vector, sign: int, d: float, w: float, lod: int) -> None:
-    if lod == 0:
-        sub = U.MeshBuilder()
-        W.add_wheel(sub, Vector((0, 0, 0)), sign, 0.0)
-        merge(mb, sub, w / (2 * W.HALF_W), d / (2 * W.R_OUT), c)
-    else:
+    """Колесо: LOD0 — шина с протектором-текстурой (UV как у wheel_parts), штампованный диск с выпуклой ступицей;
+    LOD1/2 — цилиндр."""
+    if lod > 0:
         sides = 12 if lod == 1 else 8   # вершина строго внизу: 270° кратно шагу
         mb.add_tube([c - Vector((w / 2, 0, 0)), c + Vector((w / 2, 0, 0))], d / 2, "Wheel", sides=sides)
+        return
+    R, hw = d / 2, w / 2
+    hr = 0.31 * R * 0.5 + 0.012               # высота боковины ≈ 15 % радиуса + запас
+    rc = R - hr
+    nseg, nprof = 14, 8
+
+    def at(dx, r, ang):
+        return c + Vector((dx, r * math.sin(ang), r * math.cos(ang)))
+
+    prof = []
+    for k in range(nprof):
+        a = 2 * math.pi * k / nprof
+        ca, sa = math.cos(a), math.sin(a)
+        prof.append((hw * math.copysign(abs(ca) ** 0.55, ca), rc + hr * math.copysign(abs(sa) ** 0.55, sa)))
+    rings, uv = [], []
+    for j in range(nseg + 1):
+        ang = 2 * math.pi * j / nseg
+        rings.append([at(dx, r, ang) for dx, r in prof] + [at(*prof[0], ang)])
+        uv.append([(4 * j / nseg, k / nprof) for k in range(nprof + 1)])
+    mb.add_grid(rings, "Wheel", uv, flip=(sign < 0))
+    rim = rc - hr * 0.35
+    for sx in (-1, 1):                         # диск обода с двух сторон, у борта и выпуклая ступица
+        mb.add_face([mb.add_vert(at(sx * hw * 0.5, rim, 2 * math.pi * j / nseg)) for j in range(nseg)][::sx], "WheelRim", smooth=False)
+    mb.add_tube([c + Vector((-hw * 0.8, 0, 0)), c + Vector((hw * 0.8, 0, 0))], [0.045, 0.045], "WheelRim", sides=8)
+    mb.add_tube([c + Vector((sign * hw * 0.8, 0, 0)), c + Vector((sign * hw * 0.95, 0, 0)),
+                 c + Vector((sign * hw * 1.1, 0, 0))], [0.04, 0.035, 0.02], "WheelRim", sides=8)
+    # ось: от узла рамы сквозь ступицу, гайка снаружи
+    mb.add_tube([c + Vector((-sign * hw * 0.8, 0, 0)), c + Vector((sign * hw * 1.15, 0, 0))], 0.0085, "Steel", sides=6)
+    mb.add_tube([c + Vector((sign * hw * 1.1, 0, 0)), c + Vector((sign * hw * 1.4, 0, 0))], 0.0115, "Steel", sides=6)
 
 
-def box_rot(mb, center, size, mat, rot=None):
-    mb.add_box(center, size, mat, rot=rot)
+def main_gear(mb, lod: int) -> None:
+    """Основное шасси: на каждой стороне треугольник труб от киля (передний и задний рычаги к узлу колеса) и
+    подкос-амортизатор от мачты с витой пружиной."""
+    sdt = (8, 4, 3)[lod]
+    zc = GZ + D["wheel_rear_d"] / 2
+    for s in (-1, 1):
+        h = V((s * (D["track"] / 2 - D["tire_rear_w"] / 2 - 0.02), Y_R, zc))       # узел оси у внутренней стороны шины
+        k1, k2 = V((0, -0.38, KZ)), V((0, -0.85, KZ))
+        m = V((0, mast_y(-1.62), -1.62))
+        if lod == 2:
+            mb.add_tube([k1, h, k2], RF, "Tube", sides=sdt)
+            continue
+        mb.add_tube([k1, h], RF, "Tube", sides=sdt)
+        mb.add_tube([k2, h], RF, "Tube", sides=sdt)
+        mb.add_tube([h, h + V((s * 0.06, 0, 0))], RF * 1.2, "Steel", sides=sdt)
+        a, b = m, h + V((0, 0, 0.03))
+        if lod == 0:                                  # амортизатор: корпус сверху, шток снизу, пружина между
+            p = lambda t: a.lerp(b, t)
+            mb.add_tube([a, p(0.38)], RF * 0.85, "Tube", sides=sdt)
+            mb.add_tube([p(0.38), b], 0.009, "Steel", sides=6)
+            spring(mb, p(0.4), p(0.9), 0.034, 0.008, 5, 6, "Spring", 3)
+            mb.add_tube([p(0.9) - (b - a).normalized() * 0.01, p(0.9) + (b - a).normalized() * 0.01], 0.04, "Fitting", sides=8)
+        else:
+            mb.add_tube([a, b], RF * 0.8, "Tube", sides=sdt)
+
+
+def front_gear(mb, lod: int, nose, y_f: float, zc_f: float) -> None:
+    sdt = (8, 4, 3)[lod]
+    head = V((0, 1.1, -2.0))
+    if lod == 2:
+        mb.add_tube([nose, V((0, y_f, zc_f))], RF, "Tube", sides=sdt)
+        return
+    mb.add_tube([nose, head], RF, "Tube", sides=sdt)
+    for s in (-1, 1):
+        mb.add_tube([head + V((s * 0.075, 0, 0.0)), V((s * 0.075, y_f, zc_f))], RF * 0.85, "Tube", sides=sdt)
+    mb.add_tube([head + V((-0.075, 0, 0)), head + V((0.075, 0, 0))], RF * 0.85, "Tube", sides=sdt)
+    # брызговик над колесом — дуга по радиусу колеса + 3 см
+    rf = D["wheel_front_d"] / 2 + 0.03
+    wf = D["tire_front_w"] / 2 + 0.015
+    n = 8 if lod == 0 else 4
+    rows = []
+    for i in range(n + 1):
+        a = math.radians(-45 + 165 * i / n)             # 0 — вверх; + вперёд
+        rows.append([V((x, y_f + rf * math.sin(a), zc_f + rf * math.cos(a))) for x in (-wf, -wf * 0.35, wf * 0.35, wf)])
+    mb.add_grid(rows, "Fairing", smooth=True)
+    if lod == 0:
+        for s in (-1, 1):
+            mb.add_tube([V((s * wf * 0.7, y_f + rf * math.sin(math.radians(-5)), zc_f + rf * math.cos(math.radians(-5)))),
+                         head + V((s * 0.075, 0.0, -0.12))], 0.008, "Steel", sides=5)
+    # подножки руления и педаль газа (точки опоры — seat.foot_*, seat.throttle_pedal)
+    fl, fr = V(S["foot_l"]), V(S["foot_r"])
+    for p in (fl, fr):
+        box(mb, p + V((0, 0, -0.0075)), (0.1, 0.2, 0.015), "Fitting")
+        mb.add_tube([V((p.x, p.y - 0.1, p.z - 0.0075)), head + V((p.x * 0.5, 0.0, -0.05))], RF * 0.75, "Tube", sides=sdt)
+    tp = V(S["throttle_pedal"])
+    pivot = V((tp.x, tp.y - 0.07, tp.z - 0.02))
+    pa = Matrix.Rotation(math.radians(12), 3, "X")
+    box(mb, tp + V((0, 0, -0.008)), (0.08, 0.14, 0.016), "Pedal", rot=pa)
+    if lod == 0:
+        mb.add_tube([pivot, tp + V((0, -0.03, -0.015))], 0.008, "Steel", sides=6)
+    mb.add_tube([V((-0.15, 1.1, -2.25)), V((0.15, 1.1, -2.25))], RF * 0.7, "Tube", sides=sdt)
+    # приборный обтекатель над носом на стойках от головы вилки и фара
+    tilt = Matrix.Rotation(math.radians(-14), 3, "X")
+    if lod == 0:
+        for s in (-1, 1):
+            mb.add_tube([head + V((s * 0.05, 0, 0)), V((s * 0.06, 1.08, -1.78))], 0.012, "Tube", sides=6)
+        pillow(mb, V((0, 1.1, -1.72)), (0.15, 0.1, 0.07), "Fairing", rot=tilt, e=0.45, seg=10, rings=6)
+        box(mb, V((0, 1.0, -1.66)), (0.2, 0.001, 0.07), "Pedal", rot=tilt)       # тёмный козырёк-панель
+        mb.add_tube([head + V((0, 0.0, 0.0)), V((0, 1.2, -1.93))], 0.01, "Tube", sides=5)
+        mb.add_tube([V((0, 1.2, -1.93)), V((0, 1.27, -1.93))], 0.05, "Lamp", sides=10)
+    else:
+        pillow(mb, V((0, 1.1, -1.72)), (0.15, 0.1, 0.07), "Fairing", rot=tilt, e=0.45, seg=8, rings=4)
+
+
+def engine_simple(mb, lod: int) -> None:
+    """Упрощённый двигатель внутри Trike_LOD1/2 (в LOD0 двигатель — отдельный меш Engine_LOD0)."""
+    hub = V((0, HUB_Y, EZ))
+    rt = Matrix.Rotation(ALPHA, 3, "X")
+    E = lambda x, a, z: hub + rt @ V((x, a, z))
+    box(mb, E(0, 0.34, -0.03), (0.28, 0.3, 0.22), "EngBlack", rot=rt)
+    if lod == 1:
+        mb.add_tube([E(0, 0.03, 0), E(0, 0.19, 0)], 0.095, "EngSilver", sides=6)
+        for a in (0.275, 0.405):
+            mb.add_tube([E(0, a, 0.08), E(0, a, 0.25)], 0.06, "EngSilver", sides=5)
+        mb.add_tube([E(-0.15, 0.5, -0.13), E(-0.15, 0.12, -0.13)], 0.05, "Muffler", sides=5)
+    # рама под двигателем: полозья на мачту и киль
+    rz = EZ - 0.23
+    sdt = (8, 4, 3)[lod]
+    for s in (-1, 1):
+        x = s * 0.14
+        mb.add_tube([V((x, HUB_Y + 0.12, rz)), V((0, -0.98, KZ))], RF, "Tube", sides=sdt)
+        if lod == 1:
+            mb.add_tube([V((x, HUB_Y + 0.56, rz)), V((0, mast_y(-1.48), -1.48))], RF, "Tube", sides=sdt)
+            mb.add_tube([V((x, HUB_Y + 0.12, rz)), V((x, HUB_Y + 0.56, rz))], RF, "Tube", sides=sdt)
 
 
 def trike(lod: int, M: dict):
     mb = U.MeshBuilder()
     sd = (12, 6, 3)[lod]          # сторон у трубы
-    sdt = (8, 4, 3)[lod]          # у тонких труб
-    V = Vector
-    wb, tr = D["wheelbase"], D["track"]
+    sdt = (8, 4, 3)[lod]
+    wb = D["wheelbase"]
     d_f, d_r = D["wheel_front_d"], D["wheel_rear_d"]
     w_f, w_r = D["tire_front_w"], D["tire_rear_w"]
-    y_r, y_f = D.get("axle_rear_y", -0.55), D.get("axle_rear_y", -0.55) + wb
+    y_f = Y_R + wb
     zc_f, zc_r = GZ + d_f / 2, GZ + d_r / 2
-
     # ---- рама ----
-    keel_z = -2.12
     nose = V((0, 1.0, -2.0))
-    mast_base = V((0, math.tan(math.radians(D["mast_tilt_deg"])) * (-keel_z), keel_z))
-    mast_base.y = -mast_base.y                                   # мачта наклонена вперёд к вершине
-    keel = [V((0, -0.98, keel_z)), V((0, mast_base.y, keel_z)), V((0, 0.7, keel_z)), nose]
-    mb.add_tube(keel, 0.03, "Tube", sides=sd)
-    mb.add_tube([V((0, 0, 0)), mast_base], 0.028, "Tube", sides=sd)                  # мачта
-    mb.add_tube([V((0, 0, -0.03)), nose], 0.022, "Tube", sides=sd)                   # передний подкос
-    # задние подкосы к колёсам: рессора-дуга и косая стойка от мачты
-    for s in (-1, 1):
-        ax = V((s * tr / 2, y_r, zc_r))
-        spring = [V((0, y_r, keel_z + 0.02)), V((s * 0.3, y_r, keel_z - 0.07)),
-                  V((s * 0.6, y_r, zc_r + 0.02)), ax + V((-s * 0.06, 0, 0))]
-        mb.add_tube(spring, 0.022, "Tube", sides=sdt)
-        mid = V((0, -0.40, -1.20))
-        if lod < 2:
-            mb.add_tube([mid, ax + V((-s * 0.1, 0.0, 0.02))], 0.015, "Tube", sides=sdt)
-    # передняя вилка и колесо
-    head = V((0, 1.1, -2.0))
-    if lod == 2:
-        mb.add_tube([nose, V((0, y_f, zc_f))], 0.02, "Tube", sides=sdt)
-    else:
-        mb.add_tube([nose, head], 0.022, "Tube", sides=sdt)
-        for s in (-1, 1):
-            mb.add_tube([head + V((s * 0.075, 0, 0.0)), V((s * 0.075, y_f, zc_f))], 0.016, "Tube", sides=sdt)
-        mb.add_tube([head + V((-0.075, 0, 0)), head + V((0.075, 0, 0))], 0.016, "Tube", sides=sdt)
-        # подножки руления и педаль газа (точки опоры — seat.foot_*, seat.throttle_pedal)
-        fl, fr = V(S["foot_l"]), V(S["foot_r"])
-        for p in (fl, fr):
-            box_rot(mb, p + V((0, 0, -0.0075)), (0.1, 0.2, 0.015), "Fitting")
-            mb.add_tube([V((p.x, p.y - 0.1, p.z - 0.0075)), head + V((p.x * 0.5, 0.0, -0.05))], 0.014, "Tube",
-                        sides=sdt)
-        tp = V(S["throttle_pedal"])
-        pivot = V((tp.x, tp.y - 0.07, tp.z - 0.02))
-        pa = Matrix.Rotation(math.radians(12), 3, "X")
-        box_rot(mb, tp + V((0, 0, -0.008)), (0.08, 0.14, 0.016), "Pedal", rot=pa)
+    keel = [V((0, -0.98, KZ)), V((0, MAST_BASE.y, KZ)), V((0, 0.7, KZ)), nose]
+    mb.add_tube(keel, RK, "Tube", sides=sd)
+    mb.add_tube([V((0, 0, 0)), MAST_BASE], RM, "Tube", sides=sd)                              # мачта — одна труба
+    strut = [V((0, 0, -0.03)), V((0, 0.88, -1.55)), nose]                                      # передний подкос с изгибом внизу
+    mb.add_tube(fillet(strut, 0.35, 4 if lod == 0 else 2) if lod < 2 else strut[:1] + strut[2:], RS, "Tube", sides=sd,
+                up=(1, 0, 0))
+    main_gear(mb, lod)
+    front_gear(mb, lod, nose, y_f, zc_f)
+    # ---- сиденья, бак ----
+    seat(mb, S, lod, rear=False)
+    if P["prototype"]["seats"] == 2:
+        seat(mb, SR, lod, rear=True)
         if lod == 0:
-            mb.add_tube([pivot, tp + V((0, -0.03, -0.015))], 0.008, "Steel", sides=6)
-        mb.add_tube([V((-0.15, 1.1, -2.25)), V((0.15, 1.1, -2.25))], 0.014, "Tube", sides=sdt)
-    # ---- сиденья ----
-    pan = V(S["seat_pan"])
-    pw, pd = S["seat_pan_size"]
-    box_rot(mb, pan + V((0, 0, -0.035)), (pw, pd, 0.07), "Seat")
-    ba, bw, bh = S["backrest_angle_deg"], S["backrest_size"][0], S["backrest_size"][1]
-    br = Matrix.Rotation(math.radians(ba), 3, "X")
-    bb = V(S["backrest_base"])
-    box_rot(mb, bb + br @ V((0, -0.03, bh / 2)), (bw, 0.06, bh), "Seat", rot=br)
-    if P["prototype"]["seats"] == 2 and lod < 2:
-        pan2 = V((0, pan.y - 0.58, pan.z + 0.0))
-        box_rot(mb, pan2 + V((0, 0, -0.035)), (pw, 0.30, 0.07), "Seat")
-        br2 = Matrix.Rotation(math.radians(10), 3, "X")
-        bb2 = V((0, pan2.y - 0.19, pan2.z + 0.02))
-        box_rot(mb, bb2 + br2 @ V((0, -0.03, 0.225)), (bw, 0.06, 0.45), "Seat", rot=br2)
-        mb.add_tube([V((-0.2, pan2.y, pan2.z - 0.07)), V((-0.2, pan2.y, keel_z))], 0.012, "Tube", sides=sdt)
-        mb.add_tube([V((0.2, pan2.y, pan2.z - 0.07)), V((0.2, pan2.y, keel_z))], 0.012, "Tube", sides=sdt)
-    # бак под передним сиденьем
-    if lod < 2:
-        mb.add_ellipsoid((0, pan.y - 0.02, pan.z - 0.1), (0.19, 0.3, 0.05), "Tank",
-                         seg=(14, 8)[lod], rings=(7, 4)[lod])
-        for s in (-1, 1):  # стойки сиденья
-            mb.add_tube([V((s * 0.2, pan.y + 0.1, pan.z - 0.07)), V((s * 0.2, pan.y + 0.1, keel_z))], 0.012,
-                        "Tube", sides=sdt)
+            rear_footrests(mb, lod)
+    tank(mb, lod)
     # ---- колёса ----
     wheel(mb, V((0, y_f, zc_f)), 1, d_f, w_f, lod)
-    wheel(mb, V((-tr / 2, y_r, zc_r)), -1, d_r, w_r, lod)
-    wheel(mb, V((tr / 2, y_r, zc_r)), 1, d_r, w_r, lod)
-    # ---- двигатель (Rotax 912: оппозитный, редуктор сзади) ----
-    ez = GZ + D["prop_axis_height"]
-    ey = -0.92
-    el, ew, eh = D["engine_l"], D["engine_w"], D["engine_h"]
-    hub_y = ey - el / 2 - 0.05                       # фланец винта
-    box_rot(mb, V((0, ey + 0.05, ez)), (0.30, 0.30, eh * 0.88), "EngBlack")             # картер
-    box_rot(mb, V((0, ey - el / 2 + 0.08, ez)), (0.22, 0.17, 0.22), "EngSilver")        # редуктор
-    if lod < 2:
-        for yy in (ey + 0.05 + 0.08, ey + 0.05 - 0.08):
-            for s in (-1, 1):
-                mb.add_tube([V((s * 0.15, yy, ez)), V((s * (ew / 2 - 0.04), yy, ez))], 0.055, "EngBlack",
-                            sides=sdt + 4)
-                mb.add_tube([V((s * (ew / 2 - 0.09), yy, ez)), V((s * ew / 2, yy, ez))], 0.07, "EngSilver",
-                            sides=sdt + 4)
-        mb.add_tube([V((0.1, ey + 0.05, ez - 0.18)), V((0.1, ey - 0.25, ez - 0.2))], 0.05, "Muffler", sides=sdt + 2)
-    mb.add_tube([V((0, ey - el / 2 + 0.0, ez)), V((0, hub_y + 0.0, ez))], 0.03, "Steel", sides=sdt)
-    # подмоторная рама
-    for s in ((-1, 1) if lod < 2 else ()):
-        mb.add_tube([V((s * 0.12, ey + 0.1, ez - eh * 0.4)), V((0, keel[0].y, keel_z))], 0.015, "Tube",
-                    sides=sdt)
-        mb.add_tube([V((s * 0.12, ey + 0.1, ez - eh * 0.4)), V((0, -0.55, -1.5))], 0.015, "Tube", sides=sdt)
+    wheel(mb, V((-D["track"] / 2, Y_R, zc_r)), -1, d_r, w_r, lod)
+    wheel(mb, V((D["track"] / 2, Y_R, zc_r)), 1, d_r, w_r, lod)
+    # ---- упрощённый двигатель (LOD1/2) и подмоторная рама (всех LOD) ----
+    engine_simple(mb, lod) if lod > 0 else engine_frame(mb)
     # ---- точка подвески: пластина и болт на вершине мачты ----
     if lod == 0:
         pts = F.rounded_outline([(-0.05, -0.05), (0.05, -0.05), (0.05, 0.05), (-0.05, 0.05)], 0.015, 2)
@@ -218,45 +426,139 @@ def trike(lod: int, M: dict):
     return mb
 
 
+def engine_frame(mb) -> None:
+    """Подмоторная рама Trike_LOD0 (полозья, ноги к килю и мачте); сам двигатель — меш Engine_LOD0."""
+    rz = EZ - 0.23
+    for s in (-1, 1):
+        x = s * 0.14
+        mb.add_tube([V((x, HUB_Y + 0.12, rz)), V((x, HUB_Y + 0.56, rz))], RF, "Tube", sides=8)
+        mb.add_tube([V((x, HUB_Y + 0.12, rz)), V((0, -0.98, KZ))], RF, "Tube", sides=8)
+        mb.add_tube([V((x, HUB_Y + 0.56, rz)), V((0, mast_y(-1.48), -1.48))], RF, "Tube", sides=8)
+        mb.add_tube([V((x, HUB_Y + 0.56, rz)), V((0, -0.82, KZ))], RF, "Tube", sides=8)
+    mb.add_tube([V((-0.14, HUB_Y + 0.12, rz)), V((0.14, HUB_Y + 0.12, rz))], RF, "Tube", sides=8)
+    mb.add_tube([V((-0.14, HUB_Y + 0.56, rz)), V((0.14, HUB_Y + 0.56, rz))], RF, "Tube", sides=8)
+
+
+# ---------- двигатель (Engine_LOD0) ----------
+
+def engine() -> "U.MeshBuilder":
+    """Rotax 582-типа: рядный двухцилиндровый двухтактный, цилиндры вверх с рёбрами и головками, карбюраторы с
+    воздушным коробом сбоку, резонансная труба под двигателем, редуктор C к винту. Локальные оси: a — вперёд от
+    фланца винта, x — вправо, z — вверх от оси винта; всё повёрнуто на prop_tilt_deg вокруг ступицы."""
+    mb = U.MeshBuilder()
+    hub = V((0, HUB_Y, EZ))
+    rt = Matrix.Rotation(ALPHA, 3, "X")
+    E = lambda x, a, z: hub + rt @ V((x, a, z))
+    ncyl = int(D["engine_cyl_count"])
+    rc = D["engine_cyl_d"] / 2
+    pitch = D["engine_cyl_d"] * 1.05
+    a_mid = 0.34
+    cyls = [a_mid + (i - (ncyl - 1) / 2) * pitch for i in range(ncyl)]
+
+    def tube(pts, r, mat, sides, up=(0, 0, 1)):
+        mb.add_tube([E(*p) for p in pts], r, mat, sides=sides, up=up)
+
+    tube([(0, 0.035, 0), (0, 0.06, 0), (0, 0.08, 0), (0, 0.12, 0), (0, 0.19, 0)], [0.06, 0.06, 0.095, 0.1, 0.1], "EngSilver", 12)
+    pillow(mb, E(0, a_mid, -0.03), (0.14, 0.15, 0.11), "EngBlack", rot=rt, e=0.35, seg=12, rings=6)
+    tube([(0, 0.49, -0.03), (0, 0.52, -0.03)], 0.085, "EngSilver", 10)                    # передняя крышка
+    for s in (-1, 1):                                                                    # лапы крепления к раме
+        for a in (a_mid - 0.09, a_mid + 0.09):
+            mb.add_box(E(s * 0.12, a, -0.17), (0.05, 0.05, 0.07), "Fitting", rot=rt)
+    fin_z = [0.07, 0.085, 0.10, 0.115, 0.13, 0.145, 0.16, 0.175, 0.19]
+    fin_r = [rc * k for k in (0.8, 1.0, 1.0, 0.8, 0.8, 1.0, 1.0, 0.8, 0.8)]
+    for a in cyls:
+        tube([(0, a, z) for z in fin_z], fin_r, "EngSilver", 10)
+        tube([(0, a, 0.19), (0, a, 0.225), (0, a, 0.25), (0, a, 0.262)], [rc * 0.8, rc * 0.75, rc * 0.55, rc * 0.2], "EngBlack", 10)
+        tube([(0, a, 0.26), (0, a, 0.3)], 0.009, "Steel", 5)                              # свеча
+        # карбюратор сбоку: впускной патрубок, корпус, колпак дросселя
+        tube([(0.12, a, 0.0), (0.18, a, 0.0)], 0.032, "Pedal", 8)
+        tube([(0.18, a, 0.0), (0.27, a, 0.0)], 0.04, "EngBlack", 8)
+        tube([(0.24, a, 0.0), (0.24, a, 0.07)], 0.028, "Steel", 6)
+        tube([(0.27, a, 0.0), (0.31, a, 0.0)], 0.035, "Pedal", 8)
+        # выхлопная труба от головки вниз в резонатор
+        tube(fillet([(-0.055, a, 0.14), (-0.15, a, 0.14), (-0.15, a, -0.13)], 0.06, 3), 0.022, "Muffler", 6, up=(0, 1, 0))
+    tube([(0.31, cyls[0] - 0.07, 0.0), (0.31, cyls[-1] + 0.07, 0.0)], 0.05, "EngSilver", 8)   # воздушный короб
+    # резонансная труба под двигателем (диаметр engine_exhaust_d) и выхлоп
+    re_ = D["engine_exhaust_d"] / 2
+    tube([(-0.15, 0.52, -0.13), (-0.15, 0.47, -0.13), (-0.15, 0.40, -0.13), (-0.15, 0.30, -0.13), (-0.15, 0.20, -0.13),
+          (-0.15, 0.12, -0.13)], [0.03, re_ * 0.95, re_, re_, re_ * 0.65, re_ * 0.4], "Muffler", 10)
+    tube([(-0.15, 0.12, -0.13), (-0.15, 0.06, -0.13)], re_ * 0.4, "Steel", 8)
+    return mb
+
+
 # ---------- винт ----------
 
 def propeller(lod: int, M: dict) -> "U.MeshBuilder":
-    """Винт в локальных осях узла Propeller: диск в плоскости XY, ось +Z (назад), ступица в начале."""
+    """Винт в локальных осях узла Propeller: диск в плоскости XY, ось +Z (назад), ступица в начале. Деревянные
+    узкие лопасти почти постоянной хорды (prop_chord_max → prop_chord_tip), закруглённый конец, крутка по режиму
+    крейсера: угол установки = угол потока atan(V/ωr) + угол атаки."""
     mb = U.MeshBuilder()
     R = D["prop_d"] / 2
     nb = int(D["prop_blades"])
-    r0 = 0.07
-    # ступица со спинером (конус назад)
-    hs = 8 if lod == 0 else 5
-    mb.add_tube([Vector((0, 0, -0.03)), Vector((0, 0, 0.06)), Vector((0, 0, 0.16))], [0.085, 0.085, 0.012],
-                "Hub", sides=hs)
-    ns = 5 if lod == 0 else 2          # станции вдоль лопасти
+    r0 = 0.06
+    hr = D["prop_hub_d"] / 2
+    c_max, c_tip = D["prop_chord_max"], D["prop_chord_tip"]
+    omega = D["prop_rpm"] * 2 * math.pi / 60
+    # станции: радиус, хорда; на 0,7 R — ровно c_max
+    r_tip = R - 0.05                                                  # начало закругления
+    stations = [(r0, c_max * 0.72), (0.15, c_max * 0.85), (0.27, c_max * 0.96), (0.42, c_max), (0.7 * R, c_max),
+                (0.78, c_max * 0.97), (r_tip, c_tip)]
+    for ang in (0.6, 1.1, 1.4, 1.5707):
+        stations.append((r_tip + 0.05 * math.sin(ang), c_tip * max(math.cos(ang), 0.06)))
+    if lod > 0:
+        stations = [stations[0], stations[3], stations[6], stations[-1]]
+    # лопасти и ступица
+    hs = 12 if lod == 0 else 5
+    if lod == 0:                                                      # кок: цилиндр ступицы и ожива назад
+        mb.add_tube([V((0, 0, -0.05)), V((0, 0, 0.04)), V((0, 0, 0.1)), V((0, 0, 0.16)), V((0, 0, 0.2))],
+                    [hr * 0.9, hr, hr * 0.92, hr * 0.55, 0.012], "Hub", sides=hs)
+    else:
+        mb.add_tube([V((0, 0, -0.04)), V((0, 0, 0.06)), V((0, 0, 0.17))], [hr, hr, 0.012], "Hub", sides=hs)
+    sec = [(0.5, 0.0), (0.3, 0.5), (0.0, 0.6), (-0.3, 0.35), (-0.5, 0.0), (-0.3, -0.15), (0.0, -0.2), (0.3, -0.12)]
+    mb.tint = {}
     for b in range(nb):
         a = 2 * math.pi * b / nb + math.pi / 2
-        rad = Vector((math.cos(a), math.sin(a), 0))
-        tan = Vector((-math.sin(a), math.cos(a), 0))
-        rows = []
-        for i in range(ns + 1):
-            t = i / ns
-            r = r0 + (R - r0) * t
-            chord = 0.15 * (1 - 0.7 * t ** 2) if i < ns else 0.02          # сужение к концу
-            beta = math.radians(55 - 40 * t)                                # крутка: больше у ступицы
-            ch = tan * math.cos(beta) + Vector((0, 0, 1)) * math.sin(beta)  # направление хорды
-            nrm = -tan * math.sin(beta) + Vector((0, 0, 1)) * math.cos(beta)
+        rad = V((math.cos(a), math.sin(a), 0))
+        tan = V((-math.sin(a), math.cos(a), 0))
+        zax = V((0, 0, 1))
+        rows, tints = [], []
+        for r, chord in stations:
+            beta = math.atan2(25.0, omega * r) + math.radians(4.0)         # поток 25 м/с + угол атаки 4°
+            ch = tan * math.cos(beta) - zax * math.sin(beta)               # от задней кромки к передней
+            nrm = -(tan * math.sin(beta) + zax * math.cos(beta))           # сторона разрежения — вперёд
+            thick = chord * (0.13 if r < 0.3 else 0.1)
             c = rad * r
-            th = chord * 0.12
             if lod == 0:
-                rows.append([c + ch * (chord / 2), c + nrm * th, c - ch * (chord / 2), c - nrm * th])
+                rows.append([c + ch * (sa * chord) + nrm * (sb * thick) for sa, sb in sec])
             else:
                 rows.append([c + ch * (chord / 2), c - ch * (chord / 2)])
-        if lod == 0:
-            mb.add_grid(rows, "Blade", wrap=True)
-        else:
-            mb.add_grid(rows, "Blade")
+            t = (r - r0) / (R - r0)
+            k = 1.0 + 0.09 * math.sin(7.0 * t + 1.7 * b) - 0.1 * (1 - t) ** 2
+            tints.append((k * 1.04, k, k * 0.94))
+        base = len(mb.verts)
+        mb.add_grid(rows, "Blade", wrap=(lod == 0))
+        ncol = len(rows[0])
+        for i, tt in enumerate(tints):
+            for j in range(ncol):
+                mb.tint[base + i * ncol + j] = tt
+        if lod == 0:                                                      # торец закруглённого конца — колпак
+            mb.add_face([base + (len(rows) - 1) * ncol + j for j in range(ncol)][::-1], "Blade", smooth=False)
     # оси узла: ось двигателя (назад) = локальная −Y объекта Blender, плоскость диска XZ, «верх» Godot = +Z
     # объекта: старая локальная (x, y, z) → (x, −z, y), поворот вокруг X на +90°
     mb.verts = [(x, -z, y) for x, y, z in mb.verts]
     return mb
+
+
+def unwrap(ob) -> None:
+    """Развёртка UV0 без наложений в [0, 1] (smart project с упаковкой островов)."""
+    bpy.ops.object.select_all(action="DESELECT")
+    bpy.context.view_layer.objects.active = ob
+    ob.select_set(True)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.004, scale_to_bounds=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    ob.select_set(False)
 
 
 def main() -> None:
@@ -273,10 +575,13 @@ def main() -> None:
         ob = build_mesh(mb, f"Trike_LOD{lod}", M)
         lo = min(v.co.z for v in ob.data.vertices)
         print(f"TRIKE LOD{lod}: {U.tri_count([ob.name])} tris, низ z {lo:.4f} (земля {GZ})")
+    eng = build_mesh(engine(), "Engine_LOD0", M)
+    unwrap(eng)
+    print(f"ENGINE LOD0: {U.tri_count([eng.name])} tris")
 
     # узел винта: локальная Z — ось двигателя (назад), наклон носом вверх
     tilt = D["prop_tilt_deg"]
-    hub = Vector((0, -0.92 - D["engine_l"] / 2 - 0.05, GZ + D["prop_axis_height"]))
+    hub = Vector((0, HUB_Y, EZ))
     prop = U.empty("Propeller", hub, size=0.2)
     prop.rotation_mode = "ZYX"                       # R = Rx(a)·Ry(φ): спин вокруг локальной Y объекта
     alpha = math.radians(tilt)                       # носом вверх: локальная +Y = (0, cos, sin)
