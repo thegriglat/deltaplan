@@ -22,7 +22,7 @@ def do_year(y):
     fn = f"{OUT}/{y}.npz"
     if os.path.exists(fn):
         return y
-    fs = gcsfs.GCSFileSystem(token="anon")
+    fs = gcsfs.GCSFileSystem(token="anon", timeout=60, requests_timeout=60)
     a = zarr.open_consolidated(fs.get_mapper(ARCO), mode="r")["2m_dewpoint_temperature"]
     days = [dt.date(y, 1, 1) + dt.timedelta(k) for k in range((dt.date(y + 1, 1, 1) - dt.date(y, 1, 1)).days)]
 
