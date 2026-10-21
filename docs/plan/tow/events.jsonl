@@ -124,3 +124,5 @@
 {"t": "2026-10-22T02:15:32", "by": "coordinator", "task": "TW-4", "ev": "checked", "note": "6/6 headings=ok:10; params=ok:44; bhpa=ok:32; nopdf=ok:0; size=ok:40530; docs=ok:ошибок 0"}
 {"t": "2026-10-22T02:16:22", "by": "reviewer", "task": "TW-4", "ev": "reviewed", "note": "Повторное ревью после be49af3b: 2 major и 2 minor прошлого ревью закрыты. Формула тяги с γ и θ выведена верно (вдоль траектории T·cos(θ+γ)=D+W·sinγ, поперёк L=…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/tow/tasks/TW-4.review.json"}
 {"t": "2026-10-22T02:16:32", "by": "coordinator", "task": "TW-4", "ev": "accepted", "note": "по ревью; 2 minor (θ при аэробуксировке; Ан-2 64 км/ч ниже оценки 65–80) — учесть в TW-7"}
+{"t": "2026-10-22T02:16:33", "by": "coordinator", "task": "TW-4", "ev": "accepted", "commits": ["415e71a5"], "note": "6/6 headings=ok:10; params=ok:44; bhpa=ok:32; nopdf=ok:0; size=ok:40530; docs=ok:ошибок 0"}
+{"t": "2026-10-22T02:16:33", "by": "coordinator", "task": "TW-4", "ev": "merged"}
