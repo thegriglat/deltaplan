@@ -226,3 +226,4 @@
 {"t": "2026-10-21T19:41:54", "by": "coordinator", "task": "SRS-7", "ev": "accepted", "note": "по ревью (2-й раунд); minor: подпись SW-разреза vs L/D 0,20 реестра — оговорено"}
 {"t": "2026-10-21T19:42:07", "by": "coordinator", "task": "SRS-7", "ev": "accepted", "commits": ["83e192f1"], "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:3; img_en=ok:3"}
 {"t": "2026-10-21T19:42:07", "by": "coordinator", "task": "SRS-7", "ev": "merged"}
+{"t": "2026-10-21T19:42:16", "by": "coordinator", "task": null, "ev": "plan", "note": "план Правила текстов: замена «родители — только «пилот…»"}
