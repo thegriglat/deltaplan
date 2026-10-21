@@ -1,0 +1,32 @@
+{
+ "altai": {
+  "lat": 51.87,
+  "lon": 85.87,
+  "valley_p10_m": 303.7
+ },
+ "ongudai": {
+  "lat": 50.79,
+  "lon": 86.13,
+  "valley_p10_m": 881.0
+ },
+ "askarovo": {
+  "lat": 53.26,
+  "lon": 58.54,
+  "valley_p10_m": 404.0
+ },
+ "aushkul": {
+  "lat": 54.72,
+  "lon": 59.69,
+  "valley_p10_m": 406.0
+ },
+ "crimea": {
+  "lat": 44.95,
+  "lon": 35.12,
+  "valley_p10_m": 43.0
+ },
+ "darab": {
+  "lat": 28.75,
+  "lon": 54.55,
+  "valley_p10_m": 1090.0
+ }
+}
