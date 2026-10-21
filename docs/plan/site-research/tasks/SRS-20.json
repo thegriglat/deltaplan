@@ -1,0 +1,64 @@
+{
+  "id": "SRS-20",
+  "module": "site-research",
+  "type": "dp-writer",
+  "title": "Сайт: новая страница — лагерь у старта и живой мир",
+  "goal": "Новая страница «Лагерь у старта и живой мир» (ru+en): люди у старта, палатки, снаряжение, примятая трава, звук шагов, лицензия моделей; живой мир вокруг (сено, клинья гусей, брелок на трапеции и другие сцены из docs/contracts/easter-eggs.md) — что это, когда видно, что не влияет на физику; 3–5 кадров.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К4",
+      "version": "3",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-20",
+  "branch": "site-research/SRS-20",
+  "base": "feature/site-research",
+  "scope": [
+    "site/content/mechanics/launch-camp/"
+  ],
+  "dont_touch": [
+    "docs/",
+    "site/content/mechanics/clouds/",
+    "site/content/mechanics/clouds.ru.md",
+    "site/layouts/",
+    "site/hugo.toml",
+    "tools/research/site_coverage/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "hugo --source site --quiet -d $(mktemp -d)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "re:нарушений 0"
+    },
+    {
+      "name": "img_ru",
+      "cmd": "grep -c '!\\[' site/content/mechanics/launch-camp/index.ru.md",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "img_en",
+      "cmd": "grep -c '!\\[' site/content/mechanics/launch-camp/index.en.md",
+      "expect": "num:(\\d+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:42:46"
+}
