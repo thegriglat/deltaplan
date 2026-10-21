@@ -1,0 +1,77 @@
+{
+  "status": "done",
+  "summary": "Таблица SRS-К1 в tools/research/site_coverage/features.md: 46 функций игры (CHANGELOG 1.4.0-1.5.21 и «В работе», docs/guide/game, goals, tasks, volcano-island, steam). На сайте: есть 20, нет 19, частично 5, устарело 2. Новые страницы: docs/training, mechanics/training-islands, mechanics/launch-camp, mechanics/motion-platform, docs/player-guide; правки: flight, clouds (устарело), terrain, visual-cues, thermals, weather, multiplayer, instruments, docs/goals (.xctsk).",
+  "commits": [
+    "743c0c85 site-research: SRS-2 аудит функций игры против сайта"
+  ],
+  "checks": [
+    {
+      "name": "header",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "rows",
+      "value": "46",
+      "pass": true
+    },
+    {
+      "name": "by_page",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Сборки старше 1.4.0 (1.0-1.3.4) проверены только обзорно grep по сайту, строк для них нет"
+  ],
+  "questions": [
+    "Выход из «на себя»: сайт (flight, «Границы») держит 29/26 из 48 и «не исправлено», 1.5.21 даёт 0 и 4 из 48; строка со старым числом 40 из 48 (плавный выход с добором) в CHANGELOG не подтверждена. Сверить у автора перед правкой.",
+    "F7 (поток тепла H): пользовательская функция или отладка? Определяет, нужна ли строка на сайте.",
+    "Steam: оговорка «игры в Steam пока нет» ещё актуальна? Влияет на текст про ачивки и облако."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-2",
+  "uncertain": [
+    {
+      "where": "tools/research/site_coverage/features.md (строка «Выход из «на себя»»)",
+      "why": "числа сайта и 1.5.21 относятся к разным сценариям",
+      "checked": "grep flight.en.md и CHANGELOG#1.5.21"
+    },
+    {
+      "where": "tools/research/site_coverage/features.md (колонка docs/guide, «ок»)",
+      "why": "для большинства строк «ок» — по наличию описания и совпадению с несколькими проверенными константами, не полное чтение кода",
+      "checked": "код проверен для: умолчание роли крена, вкладки «Полёт…», кнопка «Тренировка», Shift 0,7 м, F12"
+    }
+  ],
+  "dp_feedback": "docs check выдаёт 75 предупреждений чужих файлов; хотелось бы фильтр по своему пути. В схеме отчёта нет поля для счётчиков по значениям - пришлось класть в summary/extra.",
+  "extra": {
+    "counts": {
+      "есть": 20,
+      "нет": 19,
+      "частично": 5,
+      "устарело": 2,
+      "всего": 46
+    },
+    "guide_discrepancies": [
+      "cameras-input.md: умолчание weight_shift, в коде pendulum",
+      "menus-settings.md: «две вкладки» у «Полёт…», в коде три; нет окна «Тренировка»",
+      "cameras-input.md: слои F1-F6, нет F7",
+      "брелок-чайка не описан",
+      "настройка «Кеш ветра на диске» не в menus-settings.md"
+    ],
+    "new_pages": [
+      "docs/training",
+      "mechanics/training-islands",
+      "mechanics/launch-camp",
+      "mechanics/motion-platform",
+      "docs/player-guide"
+    ]
+  },
+  "t": "2026-10-21T19:15:21",
+  "by": "executor"
+}

@@ -20,3 +20,7 @@
 {"t": "2026-10-21T19:09:08", "by": "coordinator", "task": "SRS-2", "ev": "edited", "note": "plan_ref", "diff": {"plan_ref": ["\"Волна 1 — аудит, п. 2\"", "\"Волна 1\""]}}
 {"t": "2026-10-21T19:09:32", "by": "coordinator", "task": "SRS-1", "ev": "started"}
 {"t": "2026-10-21T19:09:32", "by": "coordinator", "task": "SRS-2", "ev": "started"}
+{"t": "2026-10-21T19:15:21", "by": "executor", "task": "SRS-2", "ev": "reported", "commits": ["743c0c85"], "note": "done: Таблица SRS-К1 в tools/research/site_coverage/features.md: 46 функций игры (CHANGELOG 1.4.0-1.5.21 и «В работе», docs/g…", "dp_feedback": "docs check выдаёт 75 предупреждений чужих файлов; хотелось бы фильтр по своему пути. В схеме отчёта нет поля для счётчиков по значениям - пришлось класть в summary/extra."}
+{"t": "2026-10-21T19:15:28", "by": "coordinator", "task": "SRS-2", "ev": "checked", "note": "4/4 header=ok:1; rows=ok:46; by_page=ok:1; docs=ok:ошибок 0; scope=FAIL:вне scope: r-SRS-2.json"}
+{"t": "2026-10-21T19:15:36", "by": "coordinator", "task": "SRS-2", "ev": "checked", "note": "4/4 header=ok:1; rows=ok:46; by_page=ok:1; docs=ok:ошибок 0"}
+{"t": "2026-10-21T19:15:43", "by": "coordinator", "task": "SRS-2", "ev": "accepted", "note": "по отчёту"}
