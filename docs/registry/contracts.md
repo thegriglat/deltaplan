@@ -35,6 +35,7 @@ generated: true
 - feedback-1013: FBW-К2 v3 — [docs/contracts/feedback-1013.md](../contracts/feedback-1013.md)
 - goals: GL-К1 v1, GL-К2 v2, GL-К3 v2, GL-К4 v2, GL-К5 v3, GL-К6 v2 — [docs/contracts/goals.md](../contracts/goals.md)
 - grass-rocks: G1 v1, G2 v2, G3 v2, G4 v5 — [docs/contracts/grass-rocks.md](../contracts/grass-rocks.md)
+- haze-humidity: HH1 v1 — [docs/contracts/haze-humidity.md](../contracts/haze-humidity.md)
 - motion-rig: MR-К1 v3, MR-К2 v3, MR-К3 v3 — [docs/contracts/motion-rig.md](../contracts/motion-rig.md)
 - mountain-look: MLK-К1 v1, MLK-К2 v2, MLK-К3 v2 — [docs/contracts/mountain-look.md](../contracts/mountain-look.md)
 - no-osm: N1 v1, N2 v2, N3 v1, N4 v3, N5 v1 — [docs/contracts/no-osm.md](../contracts/no-osm.md)

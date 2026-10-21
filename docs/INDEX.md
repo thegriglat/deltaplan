@@ -27,6 +27,7 @@ generated: true
   - [tools/research/air_weak_wind/AWW-1/README.md](../tools/research/air_weak_wind/AWW-1/README.md) — AWW-1: диагноз 1 (холодный θ′ F) верен — правка θ′·h (TW-3); диагноз 2 (профиль 0,45) не подтверждён; порывы по теории; W1. [closed]
   - [tools/research/air_weak_wind/AWW-2/README.md](../tools/research/air_weak_wind/AWW-2/README.md) — AWW-2: правка 1 AWW-1 — F переносит теплосодержание θ′·h; W1 до/после на 8 стартах и Онгудае/Аскарово (слабый и сильный день). [closed]
   - [tools/research/air_weak_wind/AWW-1/summary.md](../tools/research/air_weak_wind/AWW-1/summary.md) — Вывод AWW-1: диагноз 1 верен (правка θ′·h TW-3: «Термики» 0,44 → 1,27 м/с), диагноз 2 не подтверждён, порывы в полосе теории. [closed]
+- **haze-humidity** — Точка росы по климату места (сетка реанализа) + разброс по дням → дымка по влажности; цвет солнца на облаках по пропусканию атмосферы. [active 2026-10-21] — [план](plan/haze-humidity.md) · [контракты](contracts/haze-humidity.md)
 
 ## flight
 
