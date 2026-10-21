@@ -55,3 +55,4 @@
 {"t": "2026-10-21T04:19:40", "by": "coordinator", "task": "TW-9", "ev": "checked", "note": "2/3 tow_k7=ok:4/4; tests/ui/=FAIL:146/147; FAIL test_scroll_scr…; gdcheck=ok:exit 0"}
 {"t": "2026-10-21T04:19:49", "by": "coordinator", "task": "TW-11", "ev": "checked", "note": "2/2 tow_k8=ok:2/2; textures=ok:exit 0"}
 {"t": "2026-10-22T01:57:07", "by": "main", "task": null, "ev": "note", "note": "2026-10-22: ошибочная отмена модуля (main) откатена, записи удалены; модуль продолжается"}
+{"t": "2026-10-22T01:58:46", "by": "coordinator", "task": "TW-11", "ev": "accepted", "note": "по отчёту"}
