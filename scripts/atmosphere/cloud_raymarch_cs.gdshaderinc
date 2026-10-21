@@ -74,9 +74,9 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 	float cell = cf_misc.z * 0.25;
 	float dt_c = min(seg / n_coarse, cell * 0.12);
 	float dt_budget = min(seg, 4.0 * cell) / float(max_iterations) * 1.5;
-	float cos_t = dot(rd, sun_dir);
+	float cos_t = dot(rd, cloud_sun_dir());
 	float phase = mix(cloud_hg(cos_t, phase_forward) * silver, cloud_hg(cos_t, phase_back), phase_mix) * 4.0 * CLOUD_PI;
-	vec3 sun_l = sun_color * sun_energy;
+	vec3 sun_dir_l = cloud_sun_dir();
 	int lsteps = t0 > lod_distance_m ? max(light_steps - 2, 1) : light_steps;
 	float t = t0 + dt_c * ign;
 	float t_exit = t0;
@@ -148,7 +148,7 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 				if (j >= lsteps) {
 					break;
 				}
-				lp += sun_dir * lstep;
+				lp += sun_dir_l * lstep;
 				od += cf_density(lp, cf_sample(lp.xz), 0, max(fp, lstep)) * lstep;
 				lstep *= lgrow;
 			}
@@ -156,7 +156,7 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 			// основание темнее («подсос»); бока высоких облаков освещены небом сбоку.
 			float sky = exp(-max(top - h, 0.0) / sky_occlusion_m) * mix(1.0, 0.6, f.w);
 			sky = mix(sky, 1.0, smoothstep(0.0, sky_occlusion_m * 1.5, h));
-			vec3 S = cloud_light(dns, od, sky, clamp(h / max(top, 1.0), 0.0, 1.0), phase, sun_l) * sigma;
+			vec3 S = cloud_light(dns, od, sky, clamp(h / max(top, 1.0), 0.0, 1.0), phase, cloud_sun_l(p.y)) * sigma;
 			float tr = exp(-sigma * dt_fine);
 			col += trans * (S - S * tr) / max(sigma, 1e-6);
 			float wgt = trans * (1.0 - tr);

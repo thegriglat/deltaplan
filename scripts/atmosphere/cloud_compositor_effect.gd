@@ -23,6 +23,8 @@ const VEC_PARAMS := [
 	["ambient_bottom", "extinction"],
 	["wind_offset", "light_absorb"],
 	["fog_color", "fog_density"],
+	["sun_tref", "sun_tab_on"],
+	["sun_dir_t", "sun_dir_t_pad"],
 ]
 const FLOAT_PARAMS := [
 	"shape_period_m", "detail_period_m", "hf_period_m", "top_period_m",
@@ -33,6 +35,7 @@ const FLOAT_PARAMS := [
 	"sky_occlusion_m", "surface_sharpness",
 	"light_step_growth", "anvil_spread", "anvil_shift", "virga_depth_m",
 	"virga_density", "virga_period_m",
+	"sun_tab_u", "sun_tab_vs", "sun_tab_vo",
 ]
 const INT_PARAMS := ["coarse_steps", "max_iterations", "light_steps", "detail_enabled"]
 ## Слой поля (CLF-К2 и грубая карта) — сразу за sizes: vec4 и два float (+2 запасных).
@@ -53,6 +56,8 @@ var noise_detail: Texture3D
 var field_tex: Texture2D
 var field_tex_prev: Texture2D
 var field_max_tex: Texture2D
+## Пропускание атмосферы для света солнца (HH4, SunTransmission), RGBF; null — свет прежний.
+var sun_tab: Texture2D
 ## Кадров, в которых слой поля марширован / пропущен (пустое поле, cf_on = 0) — для проверок.
 var field_frames: int = 0
 var field_skipped: int = 0
@@ -159,6 +164,7 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 	var f_rd := _field_rd(field_tex)
 	var fp_rd := _field_rd(field_tex_prev if field_tex_prev != null else field_tex)
 	var fm_rd := _field_rd(field_max_tex)
+	var st_rd := _field_rd(sun_tab)
 	if float(params.get("cf_on", 0.0)) > 0.5:
 		field_frames += 1
 	else:
@@ -174,6 +180,7 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 		_sampler_u(7, _s_linear_clamp, f_rd),
 		_sampler_u(8, _s_linear_clamp, fp_rd),
 		_sampler_u(9, _s_nearest, fm_rd),
+		_sampler_u(10, _s_linear_clamp, st_rd),
 	])
 	var cl := _rd.compute_list_begin()
 	_rd.compute_list_bind_compute_pipeline(cl, _march_pipe)
@@ -265,7 +272,7 @@ func _field_rd(tex: Texture2D) -> RID:
 # ---------------------------------------------------------------- сборка
 
 func _header() -> String:
-	var h := "#version 450\n#define CLOUD_FIELD\n"
+	var h := "#version 450\n#define CLOUD_FIELD\n#define CLOUD_SUN_TAB\n"
 	h += "layout(set = 0, binding = 0) uniform sampler3D noise_shape;\n"
 	h += "layout(set = 0, binding = 1) uniform sampler3D noise_detail;\n"
 	h += "layout(set = 0, binding = 2) uniform sampler2D depth_tex;\n"
@@ -289,6 +296,7 @@ func _header() -> String:
 	h += "layout(set = 0, binding = 7) uniform sampler2D cf_tex;\n"
 	h += "layout(set = 0, binding = 8) uniform sampler2D cf_tex_prev;\n"
 	h += "layout(set = 0, binding = 9) uniform sampler2D cf_max;\n"
+	h += "layout(set = 0, binding = 10) uniform sampler2D sun_tab;\n"
 	return h
 
 

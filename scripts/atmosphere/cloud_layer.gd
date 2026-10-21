@@ -91,6 +91,20 @@ var _sun: DirectionalLight3D
 var _sun_dir: Vector3 = Vector3.UP
 var _sun_energy: float = 1.3
 
+## Пропускание атмосферы для света солнца на облаках (HH4, SunTransmission): таблица, ключ сборки
+## (extinction дымки, верх дымки, спектр), фоновая пересборка, узел неба (дымка и часы).
+var sun_tab_tex: ImageTexture
+## Сколько раз таблица собиралась и сколько мс заняла последняя сборка (для проверок и замеров).
+var sun_tab_builds: int = 0
+var sun_tab_build_ms: float = -1.0
+var _tab_key: Array = []
+var _tab_params: Dictionary = {}
+var _tab_task: int = -1
+var _tab_result: Array = []
+var _tab_pending_key: Array = []
+var _sky: SkyEnvironment
+var _sky_retry: int = 0
+
 ## Слой поля облачности (CLF-5): параметры шейдеров cf_* (CLF-К2 + грубая карта), текстуры поля
 ## (новый и прошлый шаг — переход за step_s), грубая карта блоков (RG8: наибольшие покрытие и
 ## мощность блока с соседними клетками). cf_on = 0 — слой пуст, шейдеры его не проходят.
@@ -172,6 +186,8 @@ func setup(atmosphere: Atmosphere) -> void:
 	_material.set_shader_parameter("detail_tex_size", float(cfg.noise_detail_size))
 	_material.set_shader_parameter("ambient_top", _color(cfg.ambient_top))
 	_material.set_shader_parameter("ambient_bottom", _color(cfg.ambient_bottom))
+	sun_tab_tex = ImageTexture.create_from_image(Image.create(1, 1, false, Image.FORMAT_RGBF))
+	_material.set_shader_parameter("sun_tab", sun_tab_tex)
 	_box = BoxMesh.new()
 	_box.size = Vector3.ONE
 	var renderer := String(cfg.renderer)
@@ -393,6 +409,7 @@ func _push_to_effect(recs: Array[PackedFloat32Array]) -> void:
 	_effect.field_tex = field_tex
 	_effect.field_tex_prev = field_tex_prev
 	_effect.field_max_tex = field_max_tex
+	_effect.sun_tab = sun_tab_tex
 
 
 ## Compatibility: боксы от дальних к ближним (порядок смешивания), записи — в float-текстуру.
@@ -429,6 +446,9 @@ func _push_to_multimesh(recs: Array[PackedFloat32Array], eye: Vector3) -> void:
 
 
 func _exit_tree() -> void:
+	if _tab_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_tab_task)
+		_tab_task = -1
 	if _effect != null:
 		_attach_effect(null)
 
@@ -450,8 +470,14 @@ func _update_light() -> void:
 		var az := deg_to_rad(float(cfg.sun_azimuth_deg))
 		_sun_dir = Vector3(sin(az) * cos(el), sin(el), -cos(az) * cos(el))
 	_material.set_shader_parameter("sun_dir", _sun_dir)
-	_material.set_shader_parameter("sun_color", Vector3(color.r, color.g, color.b))
-	_material.set_shader_parameter("sun_energy", _sun_energy * atmo.get_insolation())
+	var toa := Vector3(color.r, color.g, color.b)
+	var energy := _sun_energy * atmo.get_insolation()
+	var tab := _update_sun_transmission()
+	if not tab.is_empty():
+		toa = tab.toa
+		energy = tab.energy_k * atmo.get_insolation()
+	_material.set_shader_parameter("sun_color", toa)
+	_material.set_shader_parameter("sun_energy", energy)
 	var env: Environment = (
 		get_world_3d().environment if is_inside_tree() and get_world_3d() != null else null
 	)
@@ -465,6 +491,129 @@ func _update_light() -> void:
 		_material.set_shader_parameter("fog_density", float(cfg.fog_density_fallback))
 	# «Дымка к солнцу» — то же значение, что у наземной дымки и окружения (SkyEnvironment)
 	_material.set_shader_parameter("fog_sun_scatter", SkyEnvironment.fog_sun_scatter())
+
+
+## Свет облаков по пропусканию атмосферы (HH4): обновляет таблицу, T_ref, настоящее направление на
+## солнце и параметры шейдеров; возвращает {toa: Vector3, energy_k: float} — солнце на опорной высоте
+## (в линейном RGB, с поправкой за краем таблицы) и его яркость без перистой пелены, либо {} —
+## свет прежний (нет дымки/часов или выключено в конфиге).
+func _update_sun_transmission() -> Dictionary:
+	var tc: Dictionary = cfg.get("sun_transmission", {})
+	var sky := _find_sky()
+	var haze: ShaderMaterial = sky.haze_material() if sky != null else null
+	if not bool(tc.get("enabled", true)) or sky == null or haze == null or sky.clock == null:
+		_material.set_shader_parameter("sun_tab_on", 0.0)
+		return {}
+	var p := _tab_params
+	if p.is_empty():
+		p = SunTransmission.params(tc)
+		_tab_params = p
+	var ext_v: Variant = haze.get_shader_parameter("extinction")
+	var rgb_v: Variant = haze.get_shader_parameter("extinction_rgb")
+	var ext := float(ext_v) if ext_v != null else 0.0
+	var rgb: Vector3 = rgb_v if rgb_v is Vector3 else Vector3.ONE
+	var top := sky.get_haze_top_msl()
+	_update_sun_tab(ext, rgb, top, float(tc.get("rebuild_change", 0.05)))
+	if _tab_key.is_empty():
+		_material.set_shader_parameter("sun_tab_on", 0.0)
+		return {}
+	# Нормировка — по параметрам, с которыми собрана таблица (не по текущим: пересборка в фоне).
+	var k_ext: float = _tab_key[0]
+	var k_rgb: Vector3 = _tab_key[1]
+	var k_top: float = _tab_key[2]
+	var valley := float(atmo.weather.get("_derived", {}).get("valley_msl_m", 0.0))
+	var el_true: float = sky.clock.angles().y
+	var t_ref := SunTransmission.transmission(p.ref_el_deg, valley, k_ext, k_rgb, k_top, p)
+	var f := SunTransmission.sun_factor(el_true, k_ext, k_rgb, k_top, valley, p)
+	var lt := SunClock.light_at(p.ref_el_deg)
+	var world: Dictionary = Config.get_config("world").get("sun", {})
+	var base_c := _color(world.get("color", [1.0, 1.0, 1.0])) * (lt.sun_color as Color)
+	base_c = base_c.srgb_to_linear()
+	var toa := Vector3(base_c.r * f.x, base_c.g * f.y, base_c.b * f.z)
+	var energy_k := float(world.get("energy", 1.2)) * float(lt.sun_energy)
+	# Настоящее направление: азимут — от света сцены, высота — по часам (не зажатая).
+	var hz := Vector2(_sun_dir.x, _sun_dir.z)
+	hz = hz.normalized() if hz.length() > 1.0e-4 else Vector2(0.0, -1.0)
+	var el := deg_to_rad(el_true)
+	_material.set_shader_parameter(
+		"sun_dir_t", Vector3(hz.x * cos(el), sin(el), hz.y * cos(el))
+	)
+	var n_el: int = p.n_el
+	var n_h: int = p.n_h
+	var u := clampf((el_true - p.el_min_deg) / (p.el_max_deg - p.el_min_deg), 0.0, 1.0)
+	_material.set_shader_parameter("sun_tab_u", (u * (n_el - 1) + 0.5) / n_el)
+	_material.set_shader_parameter("sun_tab_vs", float(n_h - 1) / float(n_h) / float(p.h_max_m))
+	_material.set_shader_parameter("sun_tab_vo", 0.5 / n_h)
+	_material.set_shader_parameter("sun_tref", t_ref)
+	_material.set_shader_parameter("sun_tab", sun_tab_tex)
+	_material.set_shader_parameter("sun_tab_on", 1.0 if t_ref.y > 0.0 else 0.0)
+	return {"toa": toa, "energy_k": energy_k}
+
+
+## Таблица пропускания: первая сборка — сразу (при старте), пересборка при смене extinction дымки
+## или её верха больше чем на `change` — в фоновом потоке (WorkerThreadPool), результат — позже.
+func _update_sun_tab(ext: float, rgb: Vector3, top: float, change: float) -> void:
+	if _tab_task >= 0 and WorkerThreadPool.is_task_completed(_tab_task):
+		WorkerThreadPool.wait_for_task_completion(_tab_task)
+		_tab_task = -1
+		if not _tab_result.is_empty():
+			sun_tab_tex.set_image(_tab_result[0])
+			_tab_key = _tab_pending_key
+			_tab_result = []
+			sun_tab_builds += 1
+	var drift := _tab_key.is_empty()
+	if not drift:
+		var k_ext: float = _tab_key[0]
+		var k_top: float = _tab_key[2]
+		drift = (
+			absf(ext - k_ext) > change * maxf(k_ext, 1.0e-6)
+			or absf(top - k_top) > change * maxf(k_top, 100.0)
+		)
+	if not drift or _tab_task >= 0:
+		return
+	var key := [ext, rgb, top]
+	if _tab_key.is_empty():
+		var t0 := Time.get_ticks_usec()
+		var img := SunTransmission.build(ext, rgb, top, _tab_params)
+		sun_tab_build_ms = (Time.get_ticks_usec() - t0) / 1000.0
+		sun_tab_tex = ImageTexture.create_from_image(img)
+		_material.set_shader_parameter("sun_tab", sun_tab_tex)
+		_tab_key = key
+		sun_tab_builds += 1
+		return
+	_tab_pending_key = key
+	var prm := _tab_params
+	_tab_task = WorkerThreadPool.add_task(
+		func() -> void:
+			var t0 := Time.get_ticks_usec()
+			_tab_result = [SunTransmission.build(ext, rgb, top, prm)]
+			sun_tab_build_ms = (Time.get_ticks_usec() - t0) / 1000.0
+	)
+
+
+func _find_sky() -> SkyEnvironment:
+	if _sky != null and is_instance_valid(_sky):
+		return _sky
+	_sky = null
+	if not is_inside_tree():
+		return null
+	if _sky_retry > 0:
+		_sky_retry -= 1
+		return null
+	_sky = _find_sky_in(get_tree().root)
+	if _sky == null:
+		_sky_retry = 5
+	return _sky
+
+
+func _find_sky_in(n: Node) -> SkyEnvironment:
+	if n is SkyEnvironment:
+		return n
+	for c in n.get_children():
+		var r := _find_sky_in(c)
+		if r != null:
+			return r
+	return null
 
 
 func _find_light(n: Node) -> DirectionalLight3D:
