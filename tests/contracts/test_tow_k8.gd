@@ -65,3 +65,17 @@ func test_release_model() -> void:
 		var d := r.transform.origin - a.transform.origin
 		check(d.z < -0.2 and d.length() < 1.0, "TW-К8: трос впереди (−Z) от точки подвески, масштаб метры: %s" % d)
 	root.free()
+
+
+func test_drogue_model() -> void:
+	var root := _load("res://assets/models/world/tow_drogue.glb")
+	if root == null:
+		return
+	_check_lods(root, "tow_drogue", [150, 60, 16])
+	var a := root.find_child("tow_drogue_attach", true, false) as Node3D
+	check(a != null, "TW-К8: узел tow_drogue_attach")
+	if a != null:
+		check(a.transform.origin.length() < 0.001, "TW-К8: attach в начале координат: %s" % a.transform.origin)
+	var bb: AABB = (root.find_child("tow_drogue_LOD0", true, false) as MeshInstance3D).get_aabb()
+	check(bb.end.z > 0.5 and bb.position.z > -0.1, "TW-К8: купол по +Z от attach: %s" % bb)
+	root.free()
