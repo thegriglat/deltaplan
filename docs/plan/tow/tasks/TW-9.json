@@ -42,17 +42,37 @@
       "tests": "tow_k7"
     },
     {
-      "name": "tests/ui/",
-      "tests": "tests/ui/"
-    },
-    {
       "name": "gdcheck",
       "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
       "expect": "exit=0"
+    },
+    {
+      "name": "test_menu_setup",
+      "tests": "test_menu_setup"
+    },
+    {
+      "name": "test_screens",
+      "tests": "test_screens"
+    },
+    {
+      "name": "test_popular_places",
+      "tests": "test_popular_places"
+    },
+    {
+      "name": "test_recent_places",
+      "tests": "test_recent_places"
+    },
+    {
+      "name": "test_favorites",
+      "tests": "test_favorites"
+    },
+    {
+      "name": "test_language",
+      "tests": "test_language"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-21T04:14:33",
-  "edited": "2026-10-21T04:14:58"
+  "edited": "2026-10-22T02:03:13"
 }
