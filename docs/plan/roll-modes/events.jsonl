@@ -12,3 +12,5 @@
 {"t": "2026-10-22T02:38:03", "by": "executor", "task": "RM-2", "ev": "reported", "commits": ["RM-2:"], "note": "done: Гайд, сайт (mechanics, player-guide, approaches) и CHANGELOG описывают одну физику игрока — «Маятник» по RM-К1; FlightM…", "dp_feedback": "Дополнение координатора с путём в обратных кавычках выпало и пришло обрезанным в task show; полный текст пришлось доставать через --full. docs index нужно запускать после правки summary — подсказка в docs check помогла бы."}
 {"t": "2026-10-22T02:38:14", "by": "coordinator", "task": "RM-2", "ev": "checked", "note": "3/3 docs-check=ok:exit 0; hugo=ok:exit 0; no-mode-names=ok:0; scope=FAIL:вне scope: r-RM-2.json"}
 {"t": "2026-10-22T02:38:30", "by": "coordinator", "task": "RM-2", "ev": "accepted", "note": "3/3 docs-check=ok:exit 0; hugo=ok:exit 0; no-mode-names=ok:0"}
+{"t": "2026-10-22T02:38:51", "by": "coordinator", "task": "RM-2", "ev": "accepted", "commits": ["9d7d5015"], "note": "3/3 docs-check=ok:exit 0; hugo=ok:exit 0; no-mode-names=ok:0"}
+{"t": "2026-10-22T02:38:51", "by": "coordinator", "task": "RM-2", "ev": "merged"}
