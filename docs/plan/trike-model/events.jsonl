@@ -20,3 +20,5 @@
 {"t": "2026-10-22T03:24:22", "by": "coordinator", "task": "TK-1", "ev": "checked", "note": "4/4 trike_model_k1=ok:2/2; docs=ok:exit 0; src_missing=ok:0; sources=ok:14; scope=FAIL:вне scope: r-TK-1.json"}
 {"t": "2026-10-22T03:24:33", "by": "coordinator", "task": "TK-1", "ev": "checked", "note": "4/4 trike_model_k1=ok:2/2; docs=ok:exit 0; src_missing=ok:0; sources=ok:14"}
 {"t": "2026-10-22T03:24:43", "by": "coordinator", "task": "TK-1", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-22T03:24:51", "by": "coordinator", "task": "TK-1", "ev": "accepted", "commits": ["5ed3912b"], "note": "4/4 trike_model_k1=ok:2/2; docs=ok:exit 0; src_missing=ok:0; sources=ok:14"}
+{"t": "2026-10-22T03:24:52", "by": "coordinator", "task": "TK-1", "ev": "merged"}
