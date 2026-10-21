@@ -18,3 +18,5 @@
 {"t": "2026-10-21T19:08:53", "by": "coordinator", "task": "SRS-2", "ev": "note", "note": "Коммит: только tools/research/site_coverage/features.md (git add + git commit -- путь), по-русски, со строкой Claude-Session. В report: summary — число функций по значениям «На сайте» и список предлагаемых новых страниц; extra.counts — числа.", "addendum": true}
 {"t": "2026-10-21T19:09:08", "by": "coordinator", "task": "SRS-1", "ev": "edited", "note": "plan_ref", "diff": {"plan_ref": ["\"Волна 1 — аудит, п. 1\"", "\"Волна 1\""]}}
 {"t": "2026-10-21T19:09:08", "by": "coordinator", "task": "SRS-2", "ev": "edited", "note": "plan_ref", "diff": {"plan_ref": ["\"Волна 1 — аудит, п. 2\"", "\"Волна 1\""]}}
+{"t": "2026-10-21T19:09:32", "by": "coordinator", "task": "SRS-1", "ev": "started"}
+{"t": "2026-10-21T19:09:32", "by": "coordinator", "task": "SRS-2", "ev": "started"}
