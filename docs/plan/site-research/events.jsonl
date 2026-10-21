@@ -135,3 +135,4 @@
 {"t": "2026-10-21T19:32:46", "by": "coordinator", "task": "SRS-5", "ev": "accepted", "note": "по ревью; minor: 40 (release-tumble smooth) ↔ «Vmax с добором» не подтверждено источником, подпись ground_run — прототип"}
 {"t": "2026-10-21T19:33:00", "by": "coordinator", "task": "SRS-5", "ev": "accepted", "commits": ["7bc6905a"], "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:9; img_en=ok:9"}
 {"t": "2026-10-21T19:33:00", "by": "coordinator", "task": "SRS-5", "ev": "merged"}
+{"t": "2026-10-21T19:33:11", "by": "coordinator", "task": "SRS-10", "ev": "started"}
