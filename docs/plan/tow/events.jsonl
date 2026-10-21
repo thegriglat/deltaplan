@@ -135,3 +135,7 @@
 {"t": "2026-10-22T02:26:15", "by": "coordinator", "task": "TW-5", "ev": "note", "note": "Ревьюеру (2026-10-22): в extra отчёта ground_grip_stretch_m = 0,1157 при инв. (8) TW-К4 v2 «смещение точки хвата от стойки < 0,05 м» — сверить, что именно мерит тест и выполнен ли инвариант; инв. (2) 0,044 хода при пороге 0,05 — проверить, не подогнан ли порог; звено решается до цепи подвески одной итерацией — устойчивость и правильность натяжения.", "addendum": true}
 {"t": "2026-10-22T02:26:30", "by": "coordinator", "task": "TW-9b", "ev": "checked", "note": "5/5 tow_k7=ok:6/6; test_menu_setup=ok:12/12; test_screens=ok:9/9; test_language=ok:6/6; gdcheck=ok:exit 0"}
 {"t": "2026-10-22T02:26:36", "by": "coordinator", "task": "TW-9b", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-22T02:26:50", "by": "coordinator", "task": "TW-9b", "ev": "accepted", "commits": ["bcf0ac10"], "note": "5/5 tow_k7=ok:5/5; test_menu_setup=ok:12/12; test_screens=ok:9/9; test_language=ok:6/6; gdcheck=ok:exit 0"}
+{"t": "2026-10-22T02:26:50", "by": "coordinator", "task": "TW-9b", "ev": "merged"}
+{"t": "2026-10-22T02:26:54", "by": "executor", "task": "TW-13", "ev": "checked", "note": "4/4 headings=ok:5; runway=ok:9; size=ok:11071; docs=ok:ошибок 0; scope=FAIL:вне scope: r-TW-13.json"}
+{"t": "2026-10-22T02:26:58", "by": "executor", "task": "TW-13", "ev": "checked", "note": "4/4 headings=ok:5; runway=ok:9; size=ok:11071; docs=ok:ошибок 0"}
