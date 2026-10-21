@@ -1,0 +1,65 @@
+{
+  "id": "SRS-12",
+  "module": "site-research",
+  "type": "dp-writer",
+  "title": "Сайт: погода — прогноз как ветер открытой местности",
+  "goal": "Страница «Погода» (ru+en): прогноз ветра — это ветер открытой местности (подветренная тень у старта считается моделью), прочие строки таблицы аудита; точка росы и дымка — не трогать.",
+  "plan_ref": "Волна 2",
+  "contracts": [
+    {
+      "name": "SRS-К1",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К4",
+      "version": "3",
+      "ref": "docs/contracts/site-research.md"
+    },
+    {
+      "name": "SI-К5",
+      "version": "1",
+      "ref": "docs/contracts/site-research.md"
+    }
+  ],
+  "copy": "~/deltaplan-site-research-SRS-12",
+  "branch": "site-research/SRS-12",
+  "base": "feature/site-research",
+  "scope": [
+    "site/content/mechanics/weather.ru.md",
+    "site/content/mechanics/weather.en.md"
+  ],
+  "dont_touch": [
+    "docs/",
+    "site/content/mechanics/clouds.ru.md",
+    "site/content/mechanics/clouds.en.md",
+    "site/layouts/",
+    "site/hugo.toml",
+    "tools/research/site_coverage/"
+  ],
+  "accept": [
+    {
+      "name": "hugo",
+      "cmd": "hugo --source site --quiet -d $(mktemp -d)",
+      "expect": "exit=0"
+    },
+    {
+      "name": "i18n",
+      "cmd": "python3 tools/site/check_i18n.py",
+      "expect": "re:нарушений 0"
+    },
+    {
+      "name": "img_ru",
+      "cmd": "grep -c '!\\[' site/content/mechanics/weather.ru.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "img_en",
+      "cmd": "grep -c '!\\[' site/content/mechanics/weather.en.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T19:32:29"
+}
