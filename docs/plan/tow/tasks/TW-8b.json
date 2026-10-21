@@ -1,0 +1,69 @@
+{
+  "id": "TW-8b",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Буксирное место Wilotree Park (Quest Air) и правки ревью TW-8",
+  "goal": "Встроенное место wilotree_park (Wilotree Park, бывш. Quest Air, Флорида) с двумя площадками-концами полосы 18/36 и блоком tow по TW-К6 v2 и docs/research/tow/sites.md; запись в «Популярные места»; правки minor ревью TW-8.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К6",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-8b",
+  "branch": "tow/TW-8b",
+  "base": "feature/tow",
+  "scope": [
+    "configs/locations/wilotree_park.json",
+    "data/places/hg_takeoffs.json",
+    "scripts/game/game.gd",
+    "configs/game.json",
+    "locale/ui.csv",
+    "tests/contracts/test_tow_k6.gd",
+    "scripts/terrain/build/locations.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/ui",
+    "configs/locations/askarovo.json",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k6",
+      "tests": "tow_k6"
+    },
+    {
+      "name": "test_locations",
+      "tests": "test_locations"
+    },
+    {
+      "name": "test_popular_places",
+      "tests": "test_popular_places"
+    },
+    {
+      "name": "test_start_clearing",
+      "tests": "test_start_clearing"
+    },
+    {
+      "name": "test_start_fixes",
+      "tests": "test_start_fixes"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;json.load(open('configs/locations/wilotree_park.json'));json.load(open('data/places/hg_takeoffs.json'))\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T02:37:58"
+}
