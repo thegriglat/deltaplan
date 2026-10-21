@@ -68,3 +68,6 @@
 {"t": "2026-10-22T04:13:38", "by": "executor", "task": "TK-7", "ev": "reported", "commits": ["b573d085"], "note": "done: trike_params.json v2: Rotax 582 (рядный 2T, редуктор C 3.47) + двухлопастный винт 1.80 м, хорда 0.14/0.11 м; seat_rear …", "dp_feedback": "accept --dry без job start выбивается по таймауту 120 с; в копии без .godot тесты молча не идут — полезно сообщение в accept."}
 {"t": "2026-10-22T04:13:49", "by": "coordinator", "task": "TK-7", "ev": "checked", "note": "4/4 trike_model_k1=ok:3/3; docs=ok:exit 0; blades=ok:blades=2; v2_src=ok:0"}
 {"t": "2026-10-22T04:13:55", "by": "coordinator", "task": "TK-7", "ev": "accepted", "note": "по отчёту; 2 лопасти оставить — решение пользователя 2026-10-22 (любое по двигателю, 582 не мощный)"}
+{"t": "2026-10-22T04:13:59", "by": "coordinator", "task": "TK-7", "ev": "checked", "commits": ["5af57ede"], "note": "2/4 trike_model_k1=FAIL:1/2; FAIL test_trike_params_i…; docs=ok:exit 0; blades=ok:blades=3; v2_src=FAIL:20"}
+{"t": "2026-10-22T04:13:59", "by": "coordinator", "task": "TK-7", "ev": "merged"}
+{"t": "2026-10-22T04:14:07", "by": "coordinator", "task": "TK-7", "ev": "checked", "note": "2/4 trike_model_k1=FAIL:1/2; FAIL test_trike_params_i…; docs=ok:exit 0; blades=ok:blades=3; v2_src=FAIL:20"}
