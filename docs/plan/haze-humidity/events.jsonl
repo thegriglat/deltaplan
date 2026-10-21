@@ -81,3 +81,5 @@
 {"t": "2026-10-21T20:11:46", "by": "executor", "task": "HH-6", "ev": "reported", "commits": ["b4749c46"], "note": "done: haze_k = haze_k_rh(T часа, Td) по HH3 (Магнус, gamma 0.6, rh_dry 0.40, rh_max 0.95); evening_haze_k и sky.*.haze_k удал…"}
 {"t": "2026-10-21T20:12:08", "by": "coordinator", "task": "HH-6", "ev": "checked", "note": "5/5 haze_humidity=ok:7/7 (пропуск 1); weather=ok:18/18; hh3=ok:4 тестов, 0 упало, 0 пропущено; gd=ok:exit 0; no_evening=ok:0"}
 {"t": "2026-10-21T20:12:15", "by": "coordinator", "task": "HH-6", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-21T20:12:29", "by": "coordinator", "task": "HH-6", "ev": "accepted", "commits": ["25d9ebc4"], "note": "5/5 haze_humidity=ok:7/7 (пропуск 1); weather=ok:18/18; hh3=ok:4 тестов, 0 упало, 0 пропущено; gd=ok:exit 0; no_evening=ok:0"}
+{"t": "2026-10-21T20:12:30", "by": "coordinator", "task": "HH-6", "ev": "merged"}
