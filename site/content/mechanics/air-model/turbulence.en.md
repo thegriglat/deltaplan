@@ -37,13 +37,13 @@ The zone flag is a velocity deficit against a logarithmic profile together with 
 
 The flow behind a crest was checked on two parallel Perdigão ridges (Portugal, 2017 campaign): the model on this terrain was compared with masts on the slopes and in the valley. The sections below show wind speed along the wind; the black dashed line is the edge of reverse flow (−0.5 m/s), red is downwind.
 
-![Perdigão, wind from the north-east: along-wind speed on a section across the ridges](/tools/research/cases/perdigao/out/fig_section_ne.png "Perdigão section for north-east wind (nominal research run): behind the first ridge there is a reverse-flow zone 0.31 ridge heights long against 0.50 measured")
+![Perdigão, wind from the north-east: along-wind speed on a section across the ridges](/tools/research/cases/perdigao/out/fig_section_ne.png "Perdigão section for north-east wind (nominal research run): behind the first ridge there is a reverse-flow bubble (black dashed line), shorter than measured")
 
-Takeaway: with north-east wind the solution shows a reverse-flow bubble behind the first ridge, but about half as long as measured (length 0.31 against 0.50 ridge heights, depth 0.36 against 0.9 of the height).
+Takeaway: with north-east wind the model gives a reverse-flow bubble, but shorter than measured: zone L/D is 0.40 against 0.50 (L is the zone length, D the distance between crests), peak reverse speed 0.11 against 0.22 of the 100 m wind ([findings registry](/docs/registry/findings.md), fit at a small mixing scale).
 
-![Perdigão, wind from the south-west: along-wind speed on a section across the ridges](/tools/research/cases/perdigao/out/fig_section_sw.png "Perdigão section for south-west wind (nominal research run): the reverse-flow zone hardly forms — 0.04 ridge heights")
+![Perdigão, wind from the south-west: along-wind speed on a section across the ridges](/tools/research/cases/perdigao/out/fig_section_sw.png "Perdigão section for south-west wind (nominal research run): the reverse-flow zone hardly forms")
 
-Takeaway: with south-west wind the solution gives almost no bubble (0.04 against 0.50 measured) — which is why on the coarse domain the game adds an estimate from the Perdigão measurements (see above) rather than relying on the solution alone. This is a research calculation with a constant roughness of 0.645 m, not a picture from the game.
+Takeaway: with south-west wind the zone is even shorter — L/D 0.20 against 0.50, reverse speed 0.07 against 0.22 (same source); that is why on the coarse domain the game adds an estimate from the Perdigão measurements (see above) rather than relying on the solution alone. The figures are a nominal research run with a constant roughness of 0.645 m, not a picture from the game.
 
 ## Where the numbers come from: calibration on measurements
 
@@ -74,7 +74,7 @@ This page used to say "over forest the surface is meadow everywhere" — by the 
 - **Roughness by cover.** For each cell the model takes the share of each surface class (forest, meadow, field, shrub, rock, water, built-up); forest roughness z<sub>0</sub> is 1.0 m against 0.03 m for meadow; cells are averaged logarithmically. Over Altai the mean roughness of the domain comes out near 0.22 m instead of the former 0.1 m. Wind near the ground in a forest cell is computed with its own roughness: at 30 m over forest it is about ×0.95, over meadow ×1.03–1.05.
 - **Heating by cover.** Forest heats differently from meadow: different albedo (0.12 against 0.2), share of heat into the soil (0.04 against 0.15), ratio of latent to sensible flux, and the heating lags by 0.6 h against 0.3.
 - **Turbulence.** Friction is taken from the wind at the point and the column friction, so forest roughness reaches it through the mean wind; the single z<sub>0</sub> in the turbulence formulas is the domain mean, not per cell.
-- **What is missing.** The terrain in the model is bare ground without crowns: the surface is not raised by the forest height, and the zero of the logarithmic profile above the canopy is not displaced (the Perdigão studies used a displacement of 12.6 m — 0.7 of an 18 m canopy — but it was not carried into the game). There is no separate eddy scale over forest either. The 10 m number in the world settings is not part of the air model: it is used for lighting the forest edge in rendering.
+- **What is missing.** The terrain in the model is bare ground without crowns: the surface is not raised by the forest height, and the zero of the logarithmic profile above the canopy is not displaced (the Perdigão studies used a displacement of 12.6 m — 0.7 of an 18 m canopy — but it was not carried into the game). There is no separate eddy scale over forest either. The 10 m number in the world settings is not part of the air model: it is a correction for the step at the forest edge in terrain rendering.
 
 Summary: the phrase "the surface is meadow everywhere" concerned turbulence and was inaccurate; it is fairer to say that forest affects wind and heating, but canopy height and mixing inside it are not modelled.
 
