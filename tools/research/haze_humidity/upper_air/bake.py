@@ -1,13 +1,22 @@
-"""upper_air_climatology.npz -> data/climate/upper_air_1deg.bin (формат HH2 v1, docs/contracts/haze-humidity.md).
-Запуск: python bake.py [выход.bin]"""
+"""Запекание data/climate/upper_air_1deg.bin (формат HH2 v2, docs/contracts/haze-humidity.md).
+Заглушка до CDS: python bake.py --stub [выход.bin]  (year0=year1=0, T = configs/weather_model.json upper_air.temp_c, Z = z_msl_m).
+Климатология ERA5: python bake.py [выход.bin]  (из RAW/upper_air_climatology.npz)."""
 import os, struct, sys
 import numpy as np
 import brotli
 from common import RAW
 
 R = os.path.expanduser(RAW)
-c = np.load(f"{R}/upper_air_climatology.npz")
-out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../../data/climate/upper_air_1deg.bin")
+args = [a for a in sys.argv[1:] if a != "--stub"]
+STUB = "--stub" in sys.argv[1:]
+if STUB:
+    import json
+    cfg = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../../configs/weather_model.json")))["upper_air"]
+    c = {"t": np.broadcast_to(np.array(cfg["temp_c"], float)[:, None, None], (12, 180, 360)),
+         "z": np.full((12, 180, 360), float(cfg["z_msl_m"])), "years": (0, 0)}
+else:
+    c = np.load(f"{R}/upper_air_climatology.npz")
+out = args[0] if args else os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../../data/climate/upper_air_1deg.bin")
 out = os.path.abspath(out)
 T_SCALE, T_OFF, Z_SCALE, Z_OFF = 0.01, -15.0, 0.1, 2000.0  # T: -15±327 °C; Z: 2000..5276 м, шаг 0.1 м
 t, z = c["t"], c["z"]

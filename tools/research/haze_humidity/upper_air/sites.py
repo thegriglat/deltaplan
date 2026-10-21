@@ -1,12 +1,17 @@
 """Сверка T700/Z700 сетки с нынешней таблицей upper_air (configs/weather_model.json) для мест игры.
-sites.csv: место, lat, lon, месяц, t700_grid_c, z700_grid_m, t700_sd_k, t_table_c, z_table_m. Запуск: python sites.py"""
-import csv, json, os
+sites.csv: место, lat, lon, месяц, t700_grid_c, z700_grid_m, t700_sd_k, t_table_c, z_table_m. Запуск: python sites.py [--stub]"""
+import csv, json, os, sys
 import numpy as np
 from common import RAW
 
 H = os.path.dirname(os.path.abspath(__file__))
-c = np.load(os.path.expanduser(RAW) + "/upper_air_climatology.npz")
 cfg = json.load(open(H + "/../../../../configs/weather_model.json"))["upper_air"]
+STUB = "--stub" in sys.argv  # заглушка до CDS: сетка = таблица, σ не считалась (пусто)
+if STUB:
+    c = {"t": np.broadcast_to(np.array(cfg["temp_c"], float)[:, None, None], (12, 180, 360)),
+         "z": np.full((12, 180, 360), float(cfg["z_msl_m"])), "sd": np.full((12, 180, 360), np.nan)}
+else:
+    c = np.load(os.path.expanduser(RAW) + "/upper_air_climatology.npz")
 SITES = {"altai": (51.87, 85.87), "ongudai": (50.79, 86.13), "askarovo": (53.26, 58.54), "aushkul": (54.72, 59.69),
          "crimea": (44.95, 35.12), "dry_darab": (28.75, 54.55), "wet_cairns": (-16.92, 145.77)}
 
@@ -22,7 +27,7 @@ rows = []
 for k, (lat, lon) in SITES.items():
     t, z, sd = bil(c["t"], lat, lon), bil(c["z"], lat, lon), bil(c["sd"], lat, lon)
     for m in range(12):
-        rows.append([k, lat, lon, m + 1, round(float(t[m]), 2), round(float(z[m]), 1), round(float(sd[m]), 2), cfg["temp_c"][m], cfg["z_msl_m"]])
+        rows.append([k, lat, lon, m + 1, round(float(t[m]), 2), round(float(z[m]), 1), ("" if STUB else round(float(sd[m]), 2)), cfg["temp_c"][m], cfg["z_msl_m"]])
 with open(H + "/sites.csv", "w", newline="") as f:
     w = csv.writer(f); w.writerow(["место", "lat", "lon", "месяц", "t700_grid_c", "z700_grid_m", "t700_sd_k", "t_table_c", "z_table_m"]); w.writerows(rows)
 GAM = 9.8 - cfg["lapse_k_per_km"]
