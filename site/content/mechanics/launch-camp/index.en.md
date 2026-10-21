@@ -28,7 +28,7 @@ downwind; each tent is tilted to follow the terrain.
 A campfire burns near the camp; its smoke is carried by the model's local wind: a thin column in calm air, leaning at 3 m/s,
 pressed down and trailing at 7 m/s. The other pilots wait their turn off to the side of the tents and gear.
 
-![The camp from 25 m: tents, gear and people](camp-view-25m.jpg "The camp from 25 m")
+![The camp from 25 m: tents, a wing, people and a pilot before the run](camp-view-25m.jpg "The camp from 25 m")
 
 ## Gear at the launch
 
@@ -54,20 +54,18 @@ and 60 m vertically). Up close (within 100 m) they are four different people wit
 (two men, two women); the fifth and later ones repeat the first four. Farther away they are simplified figures in the colors of their
 clothes; beyond the visibility limit nobody is drawn. At most 8 people are fully animated at once, the nearest first.
 
-![A person at the camp from 5 m](camp-person-5m.jpg "A person at the camp from 5 m")
+![A person at the camp from 5 m: raised arms, T-shirt and jeans](camp-person-5m.jpg "A person at the camp from 5 m")
 
 Where the simulator lies: the walk cycle is built for about 1.1 m/s, but the people move at 0.05-0.2 m/s, so stepping in place slides
 more than in real life. The palm during a wave faces wherever the arm's arc carries it. Distant hair is a single color.
 
-![The camp from 45 m](camp-view-45m.jpg "The camp from 45 m")
+![Gear at the launch from ground level: a bag, control bars, wings in the distance; some models in the frame are black](camp-view-45m.jpg "Gear at the launch")
 
 ## Footsteps and the rustle of grass
 
 On the ground, while running and walking, you hear steps on grass or gravel; breathing builds up over 4 seconds of running, and
 after stopping or landing you pant. Separately there is a rustle of feet against grass: louder the faster the feet move over the ground
 and the deeper they sink into the grass. It is an honest cue that the ground is close at takeoff and landing, with no indicators.
-The sound is computed from grass height and foot speed; it is not tied to the trampled-grass map, so on a trodden spot the rustle is the same
-as on untouched grass.
 
 ## License of the people models
 
@@ -84,20 +82,18 @@ geese and aircraft are rarer.
 
 | Scene | What it is | When you see it |
 |---|---|---|
-| Hay bales | Round bales on meadows and fields: in rows across the field and in piles at the edge | Rows June-September, piles June-November, by flight date |
-| Wedges of geese | A flock of 20-40 birds in a wedge, the leader changes, honking is audible | Spring (March-May) heading north, autumn (September-November) heading south; reversed in the southern hemisphere; no geese out of season |
-| Charm on the control bar | A seagull figure with spread wings on a cord in the right corner of the bar; swings with rolls and turbulence | Always |
-| Herds | Sheep, cows or horses; they scatter when a pilot comes closer than 80 m | April-October, wind no stronger than 10 m/s |
-| UAZ off-road | One or two vehicles with a dust trail | When an off-road valley is found nearby; dust only above 5 °C |
-| An-2 | An aircraft passes low over the terrain, its sound is audible | April-October, wind no stronger than 8 m/s, sun more than 5 degrees above the horizon |
-| Airliner | A high (9-11 km) aircraft with a contrail, which lasts longer in humid air | Sun no deeper than 4 degrees below the horizon |
-| Balloons | One balloon or a festival group of 15-40 | Morning (before 10:30) and evening, April-October, wind no stronger than 3.5 m/s |
-| Eagle | Overtakes you a few meters away in a thermal or near rocks | Sun more than 5 degrees above the horizon |
-| Group of hang gliders | Other pilots on a neighboring slope, 1-3 bots | Sun above 10 degrees, wind no stronger than 9 m/s, not closer than 2 km to another launch |
+| Hay bales | Round bales on meadows and fields: in rows across the field and in piles at the edge | Summer and autumn, by flight date |
+| Wedges of geese | A flock in a wedge, honking is audible | Heading north in spring and south in autumn (reversed in the southern hemisphere); no geese out of season |
+| Charm on the control bar | A seagull figure on a cord in the right corner of the bar; swings with rolls and turbulence | Always |
+| Herds | Sheep, cows or horses; they scatter if you fly close | In the warm season |
+| UAZ off-road | One or two vehicles with a dust trail | Where a suitable valley exists |
+| An-2 | An aircraft passes low over the terrain, its sound is audible | In the warm season, by day, in moderate wind |
+| Airliner | A high aircraft with a contrail, which lasts longer in humid air | By day and at dusk |
+| Balloons | One balloon or a festival group | Morning and evening, in light wind, in the warm season |
+| Eagle | Overtakes you off to the side in a thermal or near rocks | By day |
+| Group of hang gliders | Other pilots on a neighboring slope | By day, in moderate wind |
 
-![An-2 over the terrain](living-world-an2.jpg "An-2 in the sky over the terrain")
-
-The conditions in the table are abbreviated; exact thresholds are in the game configuration.
+The conditions in the table are in general terms; exact thresholds are in the game configuration.
 
 ### What this does not change
 
