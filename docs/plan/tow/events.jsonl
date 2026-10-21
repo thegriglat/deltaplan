@@ -229,3 +229,5 @@
 {"t": "2026-10-22T04:27:00", "by": "coordinator", "task": "TW-16", "ev": "accepted", "note": "по ревью (второе); major: закон пилота по V не показан — в шлюз Q4"}
 {"t": "2026-10-22T04:27:01", "by": "coordinator", "task": "TW-16", "ev": "accepted", "commits": ["eea519b8"], "note": "4/4 headings=ok:7; readme=ok:exit 0; size=ok:30835; docs=ok:ошибок 0"}
 {"t": "2026-10-22T04:27:01", "by": "coordinator", "task": "TW-16", "ev": "merged"}
+{"t": "2026-10-22T04:27:34", "by": "reviewer", "task": "TW-6", "ev": "reviewed", "note": "TowLine и configs/tow.json соответствуют TW-К5 v7 и звену TW-К4 v5; скоуп чист (5 файлов, project.godot не тронут); числа с _doc и источниками, отступления ctr…", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/tow/tasks/TW-6.review.json"}
+{"t": "2026-10-22T04:27:52", "by": "coordinator", "task": "TW-6", "ev": "accepted", "note": "по ревью; 4 minor — в TW-6b"}

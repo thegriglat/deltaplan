@@ -1,0 +1,43 @@
+{
+  "verdict": "accept",
+  "summary": "TowLine и configs/tow.json соответствуют TW-К5 v7 и звену TW-К4 v5; скоуп чист (5 файлов, project.godot не тронут); числа с _doc и источниками, отступления ctrl_tau_s/damping_ratio обоснованы. tow_k5 перезапущен — 9/9. Замечания мелкие: в двух проверках пороги теста свободнее контракта, есть одно расхождение с контрактом в регуляторе.",
+  "issues": [
+    {
+      "file": "tests/contracts/test_tow_k5.gd",
+      "line": 89,
+      "severity": "minor",
+      "what": "Инв. (9) требует, чтобы натяжение не поднималось выше tension_ground_daN, а тест допускает ×1,25. Факт 348 Н < 410 Н, так что запас не нужен. Скачок jump считается, но не проверяется.",
+      "fix": "Порог — tension_ground_daN·10 без множителя; при желании добавить check на jump."
+    },
+    {
+      "file": "scripts/flight/tow/tow_line.gd",
+      "line": 185,
+      "severity": "minor",
+      "what": "В фазе climb цель T* растёт от tension_ground до tension_climb за ramp_s, а по контракту в climb T* = tension_climb. Переход физически разумен, но в контракте его нет.",
+      "fix": "Описать в комментарии или в ramp_s_doc; координатору — при случае закрепить в К5."
+    },
+    {
+      "file": "scripts/flight/tow/tow_line.gd",
+      "line": 114,
+      "severity": "minor",
+      "what": "d_vec для rope_angle_deg и lockout_angle_deg берётся от s.pilot_pos, а не от точки крепления p. При attach=hang углы считаются не от той точки (сейчас attach=pilot — на результат не влияет).",
+      "fix": "d_vec = anchor_pos - p."
+    },
+    {
+      "file": "tests/contracts/test_tow_k5.gd",
+      "line": 231,
+      "severity": "minor",
+      "what": "Инв. (7) «скорость ограничена (парашют)» проверяется порогом 60 м/с. Факт 30 м/с, и он определяется выбиранием лебёдкой со скоростью 25 м/с, а не куполом, так что работу купола проверка не подтверждает.",
+      "fix": "Проверять скорость снижения end_vel.y против √(2mg/(ρ·CdS)) ≈ 7,3 м/с с запасом."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept TW-6 --only tow_k5 --dry",
+      "value": "9/9, scope ok; набор h_top 257 м ≥ 250, T max 699 Н < 1250, lock-out 1,8 с, слабое звено 1250 Н → broken",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-22T04:27:34",
+  "by": "reviewer"
+}
