@@ -212,6 +212,9 @@ var _dol_t := Vector3.ZERO  ## касательная и нормаль земл
 var _dol_n := Vector3.ZERO
 var _dol_dir_b := Vector3.ZERO  ## пилот под подвеской: направление в осях B (нейтраль рук)
 var _dol_hold_until := -1.0  ## время модели, до которого после отрыва не проверяется касание (лежачий пилот у земли)
+## Граница модели: ступни лежащего пилота после отрыва «под землёй» (поза модели — стоя/в полёте), поэтому
+## проверка касания откладывается до подъёма ступней над землёй, но не дольше DOLLY_HOLD_S; 3 с — запас с
+## набором ≥1 м/с на разбеге; потеря: касание в первые 3 с после отрыва не ловится, если ступни не поднялись.
 const DOLLY_HOLD_S := 3.0
 var _cart_s := 0.0  ## после отрыва: путь и скорость тележки вдоль курса
 var _cart_v := 0.0
@@ -505,10 +508,13 @@ func _dolly_substep(h: float) -> bool:
 		var fe := _external_force(h, xp, _vel, H, R)
 		f += fe[0] + fe[1]
 		link = fe[2]
-	var n_force := -(f + _link_f).dot(_dol_n)  # реакция земли без учёта звена этого подшага
+	var n_force := -(f + _link_f).dot(_dol_n)  # реакция земли на колёса без учёта звена этого подшага
 	link_tension_n = 0.0
 	_link_f = Vector3.ZERO
-	if n_force <= 0.0:
+	# Отрыв — по нормальной силе ложемента: вес тележки (без аэродинамики) в неё не входит, он — в реакции
+	# колёс (и, значит, в качении).
+	var n_cradle := n_force - float(_dol.mass_kg) * Units.G * cos(_dol_phi)
+	if n_cradle <= 0.0:
 		return false
 	var v := _dol_v + f.dot(_dol_t) / m_tot * h
 	v = move_toward(v, 0.0, float(_dol.rolling_crr) * n_force / m_tot * h)
@@ -1334,6 +1340,15 @@ func _reset_common() -> void:
 	_last_pitch = 0.0
 	_fresh = false
 	_hands_p = Vector3.ZERO
+	# состояние тележки (TW-К10): reset_on_dolly задаёт его заново, остальные режимы — без тележки
+	_dolly = false
+	dolly_attached = false
+	_dol = {}
+	_dol_hold_until = -1.0
+	_cart_s = 0.0
+	_cart_v = 0.0
+	dolly_pos = Vector3.ZERO
+	dolly_vel = Vector3.ZERO
 
 
 ## Касание в полёте (руки на штанге): ступни (ЦМ пилота − длина ноги по его оси) у земли →
