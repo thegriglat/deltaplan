@@ -17,7 +17,7 @@ VF = H + "/valleys_t.json"
 if os.path.exists(VF):
     v = json.load(open(VF))
 else:
-    from valleys import valley
+    from valleys import valley  # HH-1: 10-й перцентиль рельефа в радиусе 10 км, AWS Terrain Tiles
     v = {k: {"lat": la, "lon": lo, "valley_p10_m": round(valley(la, lo)[0], 1)} for k, (la, lo) in SITES.items()}
     json.dump(v, open(VF, "w"), indent=1)
 G = json.load(open(H + "/gradient.json"))

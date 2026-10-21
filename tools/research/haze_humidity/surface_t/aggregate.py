@@ -1,46 +1,43 @@
-"""RAW/t2m/*.npz -> RAW/climatology_t.npz: TX, DTR (по месяцам; 1° и 0.25°), поправка недобора, Z/lsm из HH-1 (climatology.npz).
-Год входит, если есть все его задачи (3 ч: 4 квартала; часовой год: 12 месяцев). Поправка недобора (8 сроков -> 24 срока)
-считается по часовому году по ячейке-месяцу 0.25° и добавляется ко всем годам. Запуск: python aggregate.py <часовой_год>"""
+"""RAW/t2m/*.npz -> RAW/climatology_t.npz: TX, DTR по месяцам (1° и 0.25°), поправка недобора, ошибка выборки; Z/lsm из HH-1.
+Данные — выборка дней (fetch.py): 3-часовые сроки, годы Y, дни SAMPLE_DAYS месяца. Поправка недобора (8 сроков -> 24 срока) —
+по часовому году HY (1 день в месяце), по ячейке-месяцу 0.25°, затем усреднение в 1°; добавляется ко всем годам.
+Запуск: python aggregate.py <часовой_год>"""
 import glob, os, sys
 import numpy as np
 from common import RAW, to_1deg
 
 R = os.path.expanduser(RAW)
 hy = int(sys.argv[1]) if len(sys.argv) > 1 else 2015
-files = glob.glob(f"{R}/t2m/*.npz")
 by = {}
-for f in files:
-    b = os.path.basename(f)
-    y = int(b[:4]); m0 = int(b[6:8]); by.setdefault(y, []).append((m0, f))
-years = sorted(y for y, v in by.items() if (y == hy and len(v) == 12) or (y != hy and len(v) == 4))
-print("годы", years)
-tx = np.zeros((12, 721, 1440)); tn = np.zeros_like(tx); n = np.zeros((12, 1440))
-tx24 = np.zeros_like(tx); tn24 = np.zeros_like(tx); n24 = np.zeros((12, 1440))
+for f in glob.glob(f"{R}/t2m/*_s3.npz"):
+    b = os.path.basename(f); by.setdefault(int(b[:4]), {})[int(b[6:8])] = f
+years = sorted(y for y, v in by.items() if len(v) == 12)
+print("годы", years, flush=True)
+assert years and all(os.path.exists(f"{R}/t2m/{hy}_m{m:02d}_s1.npz") for m in range(1, 13))
+shp = (12, 721, 1440)
+sx = np.zeros(shp); sn = np.zeros(shp); sx2 = np.zeros(shp); sn2 = np.zeros(shp); nd = np.zeros(12)
 for y in years:
-    for m0, f in sorted(by[y]):
-        d = np.load(f)
-        k = d["tx8"].shape[0]
-        sl = slice(m0 - 1, m0 - 1 + k)
-        tx[sl] += d["tx8"]; tn[sl] += d["tn8"]; n[sl] += d["n8"]
-        if "tx24" in d:
-            tx24[sl] += d["tx24"]; tn24[sl] += d["tn24"]; n24[sl] += d["n24"]
-assert (n > 20 * len(years)).all(), n.min()
-tx8 = tx / n[:, None, :]; tn8 = tn / n[:, None, :]
-# поправка по часовому году: его же 8-срочные суммы -> разность 24-срочных и 8-срочных средних
-hf = [f for m0, f in sorted(by[hy])]
-sx8 = np.zeros_like(tx); sn8 = np.zeros_like(tx); nn = np.zeros((12, 1440))
-for m0, f in sorted(by[hy]):
-    d = np.load(f); sx8[m0 - 1] = d["tx8"][0]; sn8[m0 - 1] = d["tn8"][0]; nn[m0 - 1] = d["n8"][0]
-h_tx8 = sx8 / nn[:, None, :]; h_tn8 = sn8 / nn[:, None, :]
-h_tx24 = tx24 / n24[:, None, :]; h_tn24 = tn24 / n24[:, None, :]
-c_tx = h_tx24 - h_tx8   # >= 0 : недобор максимума
-c_tn = h_tn24 - h_tn8   # <= 0 : недобор минимума
+    for m in range(1, 13):
+        d = np.load(by[y][m])
+        sx[m - 1] += d["tx8"]; sn[m - 1] += d["tn8"]; sx2[m - 1] += d["tx28"]; sn2[m - 1] += d["tn28"]; nd[m - 1] += d["nd"]
+N = nd[:, None, None]
+tx8 = sx / N; tn8 = sn / N
+vx = np.maximum(sx2 / N - tx8 ** 2, 0)
+se_tx = np.sqrt(vx / N)  # ошибка среднего по выборке (дни считаются независимыми; разнос 6 суток)
+hx8 = np.zeros(shp); hn8 = np.zeros(shp); hx24 = np.zeros(shp); hn24 = np.zeros(shp)
+for m in range(1, 13):
+    d = np.load(f"{R}/t2m/{hy}_m{m:02d}_s1.npz")
+    hx8[m - 1] = d["tx8"] / d["nd"]; hn8[m - 1] = d["tn8"] / d["nd"]; hx24[m - 1] = d["tx24"] / d["nd"]; hn24[m - 1] = d["tn24"] / d["nd"]
+c_tx = hx24 - hx8   # >= 0 : недобор максимума
+c_tn = hn24 - hn8   # <= 0 : недобор минимума
 TX = tx8 + c_tx
 DTR = (tx8 - tn8) + (c_tx - c_tn)
-TX1 = np.stack([to_1deg(TX[m]) for m in range(12)]); DTR1 = np.stack([to_1deg(DTR[m]) for m in range(12)])
-cx1 = np.stack([to_1deg(c_tx[m]) for m in range(12)]); cn1 = np.stack([to_1deg(c_tn[m]) for m in range(12)])
+f1 = lambda a: np.stack([to_1deg(a[m]) for m in range(12)])
+TX1, DTR1, cx1, cn1, se1 = f1(TX), f1(DTR), f1(c_tx), f1(c_tn), f1(se_tx)
 c = np.load(f"{R}/climatology.npz")
-np.savez(f"{R}/climatology_t.npz", tx=TX1, dtr=DTR1, tx025=TX.astype(np.float32), dtr025=DTR.astype(np.float32), ctx1=cx1, ctn1=cn1,
-         z=c["z"], lsm=c["lsm"], z025=c["z025"], lsm025=c["lsm025"], years=np.array([min(years), max(years)]), nyears=len(years))
-print("TX", TX1.min(), TX1.max(), "DTR", DTR1.min(), DTR1.max(), "поправка TX мин/сред/макс", cx1.min(), cx1.mean(), cx1.max(),
-      "TN", cn1.min(), cn1.mean(), cn1.max())
+np.savez(f"{R}/climatology_t.npz", tx=TX1, dtr=DTR1, tx025=TX.astype(np.float32), dtr025=DTR.astype(np.float32), ctx1=cx1, ctn1=cn1, se_tx1=se1,
+         z=c["z"], lsm=c["lsm"], z025=c["z025"], lsm025=c["lsm025"], years=np.array([min(years), max(years)]), nyears=len(years), nd=nd)
+lm = c["lsm"] > 0.5
+print("дней в месяце", nd.min(), nd.max(), "TX", TX1.min(), TX1.max(), "DTR", DTR1.min(), DTR1.max())
+print("поправка TX мин/сред/макс", cx1.min(), cx1.mean(), cx1.max(), "TN", cn1.min(), cn1.mean(), cn1.max())
+print("ошибка выборки TX (сухопутные ячейки), К: медиана", np.median(se1[:, lm]), "95%", np.percentile(se1[:, lm], 95), "макс", se1[:, lm].max())
