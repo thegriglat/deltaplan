@@ -34,3 +34,5 @@
 {"t": "2026-10-21T18:25:17", "by": "coordinator", "task": "HH-3", "ev": "checked", "note": "4/4 readme=ok:exit 0; ratios=ok:exit 0; ratio_rows=ok:20; docs=ok:ошибок 0; scope=FAIL:вне scope: r-HH-3.json"}
 {"t": "2026-10-21T18:25:42", "by": "coordinator", "task": "HH-3", "ev": "checked", "note": "4/4 readme=ok:exit 0; ratios=ok:exit 0; ratio_rows=ok:20; docs=ok:ошибок 0"}
 {"t": "2026-10-21T18:25:47", "by": "coordinator", "task": "HH-3", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-21T18:25:49", "by": "coordinator", "task": "HH-3", "ev": "accepted", "commits": ["ea8d907f"], "note": "4/4 readme=ok:exit 0; ratios=ok:exit 0; ratio_rows=ok:20; docs=ok:ошибок 0"}
+{"t": "2026-10-21T18:25:49", "by": "coordinator", "task": "HH-3", "ev": "merged"}
