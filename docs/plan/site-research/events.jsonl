@@ -26,3 +26,7 @@
 {"t": "2026-10-21T19:15:43", "by": "coordinator", "task": "SRS-2", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-21T19:15:50", "by": "coordinator", "task": "SRS-2", "ev": "accepted", "commits": ["7b97fa88"], "note": "4/4 header=ok:1; rows=ok:46; by_page=ok:1; docs=ok:ошибок 0"}
 {"t": "2026-10-21T19:15:50", "by": "coordinator", "task": "SRS-2", "ev": "merged"}
+{"t": "2026-10-21T19:20:58", "by": "executor", "task": "SRS-1", "ev": "reported", "commits": ["7dd74567"], "note": "done: Таблица SRS-К1: 47 тем (исследования active/closed) против сайта ru+en и docs/guide; на сайте: есть 25, частично 13, не…", "dp_feedback": "Для сверки docs/guide с кодом нет команды (список файлов scripts/ против таблицы в guide пришлось писать вручную). Допустимые значения колонки docs/guide в контракте не различают «сверено с кодом» и «по тексту»."}
+{"t": "2026-10-21T19:21:09", "by": "coordinator", "task": "SRS-1", "ev": "checked", "note": "4/4 header=ok:1; rows=ok:47; by_page=ok:1; docs=ok:ошибок 0; scope=FAIL:вне scope: r-SRS-1.json"}
+{"t": "2026-10-21T19:21:15", "by": "coordinator", "task": "SRS-1", "ev": "checked", "note": "4/4 header=ok:1; rows=ok:47; by_page=ok:1; docs=ok:ошибок 0"}
+{"t": "2026-10-21T19:21:16", "by": "coordinator", "task": "SRS-1", "ev": "accepted", "note": "по отчёту"}
