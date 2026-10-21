@@ -111,6 +111,31 @@ amplitude and frequency growing with the flow strength.
 
 ![String from the side on the front wire, view from the cockpit](/releases/0.7.0/screenshots/118_ленточка_на_переднем_тросе_сбоку.jpg "String from the pilot's cockpit")
 
+## Training layers F1–F7 {#debug-layers}
+
+These are not instruments on the control frame but aids for learning to read the air (and for the author when
+debugging): you can switch on layers on top of the game that show what a pilot cannot see in real life. Each has its own key
+(press again to switch off; a layer that is off computes and draws nothing and does not affect the frame rate).
+A small hint at the top of the screen lists the keys of the layers that are currently off. The keys can be
+remapped in the controls settings file; they are not shown on the "Controls" screen.
+
+| Key | What you see | What it is good for |
+|---|---|---|
+| F1 | text at the top left: frames per second, frame time, GPU and CPU load, object count and video memory | finding out why the game is slow: GPU, CPU or monitor refresh rate is the limit |
+| F2 | detailed menu with performance graphs (created on first press) | the same, in more detail; not shown in the top hint |
+| F3 | grid of wind arrows over the terrain at three heights: colour is lift (red) or sink (blue) | seeing where a slope works and where air goes down behind a ridge |
+| F5 | wind arrows around the camera at 20, 100 and 300 m above ground (radius 1000 m, 75 m spacing), arrow length is the distance covered in 6 s; a large arrow above the pilot shows the air at the pilot's position | reading wind direction and strength at a slope before reaching it |
+| F6 | tilted thermal columns from source to top; label is the lift in m/s | knowing where the nearest thermals are and which way they drift (up to 8 km from the pilot) |
+| F7 | terrain around the pilot (4 km radius) shaded by surface heat flux H, W/m², scale at the left: 0 is transparent blue, ~200 yellow, 400 and above red | understanding where thermals come from: they start over heated ground |
+
+**F7 in more detail.** This is an input of the air model: how much heat the surface gives off at the moment. It is not
+a measured temperature and not a map of actual thermals. The map comes from the coarsest grid of the model, so small
+patches (a single field, a house) are not there; it is rebuilt as the day goes on and when the pilot moves away from the centre.
+At 300 W/m² and above the model removes the lee rotor (see the [lee-side heuristic](/mechanics/air-model/heuristic/)),
+and thermals follow from the same flux ([thermals](/mechanics/air-model/thermals/)). The F7 layer only shows; it adds
+nothing to the flight. Details are in the [CHANGELOG](/CHANGELOG.md) (build 1.5.19) and in the
+[cameras and input guide](/docs/guide/game/cameras-input.md), which describes layers F1-F6.
+
 ## Other instruments
 
 The carabiner, the clip-in sound and the variometer body are part of the common control frame assembly; the instrument mount is set by

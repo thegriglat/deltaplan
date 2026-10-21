@@ -45,6 +45,28 @@ OSM tiles are cached separately (`user://osm_tiles/v1`); a place cache can be fi
 The place selection map is a raster basemap from tiles (`scripts/terrain/map_picker.gd`): OpenTopoMap by default or the
 standard OpenStreetMap tiles, with a disk cache and attribution on the map. It is a menu basemap and provides no place data.
 
+### Wind cache on disk {#wind-cache}
+
+The wind field of a place is computed at load time (≈ 15 s), so the finished computation is saved to disk: if the
+place, the start and the conditions are the same, the field is taken from the file. Reloading Ongudai takes 12.5 s
+instead of 29.2, a map point 18 s instead of 40; the loading screen freezes for at most ~1-1.5 s (it was 6-12 s). The
+first load of a place or of new conditions is hardly faster. The cache size is set in "Settings → Game → Wind cache on
+disk": 0-2000 MB, 200 by default (an Ongudai entry is ≈ 17 MB, so about 11 places); long-unused entries are deleted,
+0 turns the cache off. The cache lives only on this computer. Limit: on a processor with 4 cores or fewer loading is
+slower - Ongudai 18 s on 4 threads and 24 s on 2, and the screen freezes for 3-6 s.
+
+### Exact start on the terrain {#exact-start}
+
+The main menu item "Pick launch on terrain" shows the place in 3D: a click on the ground puts the start point (nose
+down the slope), dragging the mouse or the ±5° buttons set the run direction, "Downhill" returns it; "Fly from
+here" starts the flight at once from this point without reloading the place. A start cannot be placed on water, in
+built-up areas, on a slope steeper than 40° or near the edge of the loaded place - the marker turns red and the reason
+is written beside it. The heading chosen by the pilot is not changed by the auto-turn into the wind; "wind at the
+start" blows along the chosen heading. No rocks or bushes lie on the run (40 m) at any start. In a network game the
+zone host's point and heading are the same for everyone. The point is saved with the flight settings; in "Flight
+settings", the "Place" tab, shows the line "Launch set on terrain" and a "Reset" button; choosing another place
+resets the point.
+
 ## Elevation sources
 
 The detail layer (40 km, 25 m step) is **Copernicus DEM GLO-30** (1″ resolution, ≈30 m, cloud-hosted GeoTIFF, free,
@@ -93,6 +115,13 @@ A tile (zstd + protobuf, `docs/guide/osm-tiles.md`) holds roads by class, houses
 cable cars, aerodromes, vertical objects (masts, chimneys, wind turbines), railways, rivers and canals, and named
 peaks and passes. Tunnels are not drawn. The data is © OpenStreetMap contributors (ODbL); the game prints the credit.
 
+The tiles are packed by a Rust packer rather than a Python script: Kazakhstan (source `.pbf` 224 MB, 6119 tiles) takes
+5.4 s on 16 cores, an order of magnitude faster than Python; object counts match Python (houses +0.002 % on Slovenia
+and +0.008 % on Almaty, roads -0.03 %). The seam between neighbouring regions was checked on the Kazakhstan/Kyrgyzstan
+border (74 tiles): the object counts before and after joining are equal, no duplicates. For the player this is
+back-office; what matters is that the border of two regions is not visible in the game. The whole world has not been
+built in one run: 7.2-7.4 GB is an estimate, not a measurement.
+
 **What is in the game** (`scripts/world_objects/osm/`, `configs/world_objects.json`):
 - **Houses** have a "city / village / industrial" style (different roofs, windows by floor, flat roofs with a
   parapet in cities). The height comes from tags; with no tags, the number of floors follows the house type and
@@ -131,13 +160,29 @@ On the side the wind blows from, the water is damped by land and stays a smooth 
 upwind). Along the shore there is a thin strip of wet ground. For more on wind over water and land, see the
 page [“Grass, water and landmarks”](/mechanics/visual-cues/).
 
+## Ships at sea {#sea-ships}
+
+Ships of three types stand off a sea coast: a tanker (250 m), a bulk carrier (225 m) and a container ship (300 m), 2-6
+ships per place, 3-15 km from the coast and no farther than 30 km from the place center. The set depends on the place,
+not on the pilot. This is scenery: the ships are **stationary**, the models are simplified (no bulbous bow, propeller
+or underwater part), each with three levels of detail; on the Low preset the ships cast no shadows, on Medium and High
+the near ones do.
+
+![Two tankers: a simplified model, near level of detail](ship-tanker.jpg "Two tankers in the simplified model on a test scene (no sea): deck, superstructure and funnel, without a bulb or propeller")
+
+The sea is determined from the elevation data: water at a level ≤ 0.25 m reaching the edge of the map, not lower than
+-1 m at the coast. So the Caspian and the IJsselmeer count as sea, while Ladoga, Baikal, the Dead Sea and reservoirs
+do not; skerries and fjords where water does not reach the map edge get no ships. Without a sea the layer creates
+nothing. The sea water level in the terrain data is levelled (ocean 0 m); there are no depths under water in the data.
+
 ## Forest and vegetation
 
 Four levels of forest seen from altitude (parameters in `configs/world.json → trees`, distances by graphics preset):
 
-1. **Near models** (LOD0/1, up to 250 / 400 / 500 m on Low / Medium / High): 3D models, 5 species (birch, larch,
-   cedar, spruce, pine); the species depends on the altitude belt and slope aspect (spruce on north, pine on south
-   dry slopes), and a location can override the species weights. There is one tree per 8 m cell; presence, species
+1. **Near models** (LOD0/1, up to 250 / 400 / 500 m on Low / Medium / High): 3D models, 8 models
+   (birch, larch, cedar, spruce, pine, oak, palm, tropical tree); which of them exist at a place is decided by the
+   region ([below](#regional-vegetation)), and within a region the species depends on the altitude belt and slope
+   aspect (spruce on north, pine on south dry slopes), and a location can override the species weights. There is one tree per 8 m cell; presence, species
    and offset come from the cell hash (identical on CPU and GPU).
 2. **Crosses** (LOD2, up to 900 / 1100 / 1500 m): two perpendicular billboards per tree built by the vertex
    shader; every tree has its own "model → cross" switch distance, so there is no visible ring on the slope.
@@ -159,10 +204,52 @@ between nodes. 300 m below the line the forest thins with meadow gaps; above it 
 that fades out over 700 m above the line. The table is an order-of-magnitude assumption: local climate and
 aspect are not taken into account.
 
+**Mid-distance grass** (a ring of ≈ 8-40 m from the camera) is drawn in two ways, chosen by the angle of view to the
+slope: looking along the terrain (under 15°) it is clump cards, looking down (over 30°) it is layers near the ground,
+with a smooth blend between. Layers look like stripes at a shallow view and a card is squashed from above, so the
+"by angle" mode is the default (since version 1.5.16). There is no grass on rock or on water.
+
+![Meadow slope above the forest: grass, rocks in lines along the slope, forest edge](grass-low-meadow.jpg "Meadow slope seen from behind: grass over the whole slope, rocks lie in lines along it, forest stands along the meadow edge")
+
 The grass blades around the camera, their thinning and swaying in the wind are a separate mechanic; see
 [docs/guide/vegetation.md](/docs/guide/vegetation.md) (parameters and graphics presets). Gusts on grass are seen
 from altitude as stripes, light silvery-yellow or dark green, depending on the wind direction relative to the sun
 and the view.
+
+## Vegetation and houses by region {#regional-vegetation}
+
+Since version 1.5.20 the set of trees and houses depends on the region of the place. The region comes from the
+Köppen-Geiger climate map (Beck et al., 2018, CC BY 4.0): a decision tree on latitude and longitude was built from it
+in advance (`configs/biomes.json`, 3 KB), and the game makes ~7 comparisons. Checked on 173 thousand land points and
+683 catalog starts: a 128-leaf decision tree agrees with the map on **85 %** of the world; on the start catalog,
+mostly the Alps, the agreement is 86-89 %, where the temperate, boreal and alpine regions are told apart by altitude.
+In the other 15 % of the world the region from the tree differs from the Köppen map, and on islands and coasts this
+is likelier.
+
+- **Alps and Caucasus:** spruce, larch, cedar, pine, oak, birch.
+- **Near Nice** (Mediterranean): pine, oak, palm; houses with hipped roofs and terracotta, up to 4 floors.
+- **Tropics:** tropical forest and palm; the canopy is evergreen (it does not turn yellow in autumn), the tone is
+  darker and more saturated. Palms grow up to ≈ 450 m, forest up to ≈ 1700 m, and there are no trees above. Houses
+  are tin-roofed and on stilts.
+- **Savanna:** rondavel houses; **dry regions:** flat roofs with a parapet.
+- **Altai and the Urals** are unchanged.
+- **Hanga Roa (Rapa Nui):** one floor, tin roofs.
+
+![Brazil after 1.5.20: tropical forest and palms](/releases/1.5.20/screenshots/02_бразилия_стало.jpg "Brazil (Morro dos Quadros) from altitude: a solid dark green tropical forest canopy with a few clearings")
+
+![Near Nice: box-shaped city by the sea and wooded slopes](/releases/1.5.20/screenshots/03_ницца.jpg "Nice: the city is boxes with windows by floor (tall buildings stay boxes), wooded slopes behind it")
+
+**Houses.** Village houses are small 3D models of the region (tin, stilts, rondavel, terracotta), while the city is
+still "boxes" with windows by floor. This is deliberate: a model of fixed proportions stretched to a house outline
+loses its floors, and for a city of hundreds of thousands of houses (Almaty 3×3 tiles has 280,412) a box is cheaper.
+
+![A tin-roofed village house: a model at the near level of detail](house-tin.jpg "A tin-roofed house (model, side view, near level): a corrugated tin roof, windows and a door - unlike a smooth box")
+
+**Limits.** The altitude belts and species weights are a simplification: one altitude curve for the whole world, so in
+the tropics there are no trees above ≈ 1700 m, and the species of the Southern Hemisphere and Africa are reduced to the
+same models (oak, palm, tropical tree). Houses by region are a few typical models, not local architecture.
+
+![Hanga Roa on Rapa Nui: one-storey houses with tin roofs](/releases/1.5.20/screenshots/04_ханга_роа.jpg "Hanga Roa from altitude: the shore, roads and one-storey houses, single trees by the water and along the streets")
 
 ## Snow, glaciers and seasons
 
@@ -205,12 +292,17 @@ A preset sets (`configs/game.json → graphics_presets`):
 | Sun shadows | up to 1200 m, no tree shadows | up to 2000 m | up to 3000 m |
 | City trees | density 0.35, up to 400 m | 0.7, up to 700 m | 1.0, up to 1100 m |
 | Clouds (count) | 90 | 160 | 220 |
+| 3D scale | 0.75 of the window + FSR 1 | 1.0 | 1.0 |
+| Anti-aliasing (MSAA) | none | 2× | 2× |
+| SSAO and glow | off | - | - |
+| Ship shadows | none | near ones | near ones |
 
 On Low the shader variant turns off rock outcrops on meadows, rock roughness, tone patches, greenery by water, the
 treeline, trails, fresh snow, glaciers and the grass wind sheen; beyond ~3.5 km the terrain is drawn with a
 lightweight variant on all presets. Bench measurement (Ongudai, 800 m above ground, 1080p, full frame): Low 4.14 ms
-versus 5.68 before the new scene look, Medium 5.59 versus 5.89, High 5.74 versus 5.87. The first launch on
-integrated graphics sets Low straight away.
+versus 5.68 before the new scene look, Medium 5.59 versus 5.89, High 5.74 versus 5.87. These milliseconds are bench
+measurements of the scene ("scene look", `scene-look`), not the overall frame profile; other hardware will give other
+numbers. The first launch on integrated graphics sets Low straight away.
 
 ## How the terrain is built and loaded
 
@@ -291,6 +383,11 @@ does not respond (timeout on unchanged progress).
 - [docs/guide/osm-tiles.md](/docs/guide/osm-tiles.md): the format and building of OSM tiles.
 - [docs/guide/scene-look.md](/docs/guide/scene-look.md): the scene look: light, season, snow, rock, distant forest, GPU cost.
 - [docs/guide/world-objects.md](/docs/guide/world-objects.md): villages, trail, landing fields, windsocks.
+- [docs/research/regional-vegetation.md](/docs/research/regional-vegetation.md): trees and houses by region: the Köppen-Geiger map, the measured accuracy of the decision tree (85 %), the model set.
+- [docs/research/house-models.md](/docs/research/house-models.md): why village houses are models while the city stays boxes.
+- [docs/guide/fast-load.md](/docs/guide/fast-load.md): the wind cache on disk and fast loading; Ongudai measurements.
+- [docs/registry/findings.md](/docs/registry/findings.md#osm-tiles): the Rust OSM tile packer: speed, region seam.
+- [CHANGELOG.md](/CHANGELOG.md): versions 1.5.9 (exact start), 1.5.16 (grass), 1.5.19 (ships, wind cache), 1.5.20 (region).
 - [docs/guide/vegetation.md](/docs/guide/vegetation.md): grass blades and trees along the forest edge.
 - Code: [scripts/terrain/](/scripts/terrain/), [scripts/world_objects/](/scripts/world_objects/).
 - Place data building: [scripts/terrain/build/dem_stage.gd](/scripts/terrain/build/dem_stage.gd),
