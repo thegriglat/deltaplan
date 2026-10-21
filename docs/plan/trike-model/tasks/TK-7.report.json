@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "trike_params.json v2: Rotax 582 (рядный 2T, редуктор C 3.47) + двухлопастный винт 1.80 м, хорда 0.14/0.11 м; seat_rear (+0.20 м), tank 70 л (0.32x0.45x0.46), трубы, обороты винта idle/max; v2_sources.md; тест K1 расширен.",
+  "commits": [
+    "b573d085 TK-7: данные трайка v2 — Rotax 582, 2-лопастный винт, тандем, бак, трубы, обороты винта"
+  ],
+  "checks": [
+    {
+      "name": "trike_model_k1",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "blades",
+      "value": "blades=2",
+      "pass": true
+    },
+    {
+      "name": "v2_src",
+      "value": "bad=0",
+      "pass": true
+    },
+    {
+      "name": "prop_rpm idle/cruise/max",
+      "value": "576 / 1590 / 1960 об/мин (582: 2000/5500/6800 / 3.47)",
+      "pass": true
+    },
+    {
+      "name": "объём габарита бака",
+      "value": "66.2 л при 70 л (-5.4%, допуск 15%)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Габариты Rotax 582 (engine_l/w/h 0.50/0.50/0.45), выхлоп, хорда 2-лопастного винта — только оценки: в открытых источниках не найдено"
+  ],
+  "questions": [
+    "Двухлопастный винт на 582 в листах DULV не найден (все 3-4 лопасти); 2 лопасти взяты по фото Fregat и решению пользователя. Оставить 2?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TK-7 --dry",
+  "uncertain": [
+    {
+      "where": "tools/blender/trike_params.json:dims.prop_axis_height",
+      "why": "1.30 м — оценка по фото (двигатель на уровне плеч заднего); верх диска на 0.30 м ниже подвески, касание киля крыла не проверено",
+      "checked": "геометрия по осям тележки"
+    },
+    {
+      "where": "tools/blender/trike_params.json:seat_rear",
+      "why": "rear_seat_rise 0.20 м и подножки по пикселям фото Fregat (масштаб по колесу), от текущего seat; TK-2 может сдвинуть переднее",
+      "checked": "спинка касается мачты, нет пересечения с передней спинкой"
+    },
+    {
+      "where": "tools/blender/trike_params.json:dims.tube_*_d",
+      "why": "по фото, ±30%",
+      "checked": "в диапазоне 40-60 мм типичных труб"
+    }
+  ],
+  "dp_feedback": "accept --dry без job start выбивается по таймауту 120 с; в копии без .godot тесты молча не идут — полезно сообщение в accept.",
+  "extra": {
+    "engine": "Rotax 582 UL DCDI",
+    "prop_d": 1.8,
+    "prop_blades": 2,
+    "prop_chord_max": 0.14,
+    "tank_volume_l": 70,
+    "rear_seat_rise": 0.2,
+    "tip_speed_max_ms": 185
+  },
+  "t": "2026-10-22T04:13:38",
+  "by": "executor"
+}
