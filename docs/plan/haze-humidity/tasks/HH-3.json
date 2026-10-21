@@ -1,0 +1,50 @@
+{
+  "id": "HH-3",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Проверка яркости основания облаков (кучевые и Cb)",
+  "goal": "Числами по кадрам игры и литературе ответить, корректна ли яркость основания кучевых и Cb относительно неба и освещённых вершин (плотность, base_darkness, ambient_bottom, sky_occlusion_m); итог — «корректно» или какие числа не так и насколько. Правок в игре не делать.",
+  "plan_ref": "Волна 1 — исследования (параллельно)",
+  "contracts": [],
+  "copy": "~/deltaplan-haze-humidity-HH-3",
+  "branch": "haze-humidity/HH-3",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/cloud_base/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "tools/shots/",
+    "docs/contracts/",
+    "data/",
+    "tools/research/haze_humidity/dew_point/",
+    "tools/research/haze_humidity/haze/"
+  ],
+  "accept": [
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/haze_humidity/cloud_base/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "ratios",
+      "cmd": "test -f tools/research/haze_humidity/cloud_base/ratios.csv",
+      "expect": "exit=0"
+    },
+    {
+      "name": "ratio_rows",
+      "cmd": "awk 'END{print NR}' tools/research/haze_humidity/cloud_base/ratios.csv",
+      "expect": "num:(\\d+) >=5"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T17:39:36"
+}

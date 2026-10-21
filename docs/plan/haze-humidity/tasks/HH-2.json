@@ -1,0 +1,50 @@
+{
+  "id": "HH-2",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Дымка от влажности: гигроскопический рост аэрозоля",
+  "goal": "Обосновать по литературе зависимость густоты дымки от относительной влажности (ослабление ∝ (1 − RH)^−γ, γ континентального аэрозоля с источником) и предложить haze_k(RH): что из нынешних evening_haze_k и overcast.haze_k остаётся физикой, что дублирует; таблица видимости по часам для сухого и влажного места.",
+  "plan_ref": "Волна 1 — исследования (параллельно)",
+  "contracts": [],
+  "copy": "~/deltaplan-haze-humidity-HH-2",
+  "branch": "haze-humidity/HH-2",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/haze/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "data/",
+    "tools/research/haze_humidity/dew_point/",
+    "tools/research/haze_humidity/cloud_base/"
+  ],
+  "accept": [
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/haze_humidity/haze/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "vis_table",
+      "cmd": "test -f tools/research/haze_humidity/haze/visibility_by_hour.csv",
+      "expect": "exit=0"
+    },
+    {
+      "name": "vis_rows",
+      "cmd": "awk 'END{print NR}' tools/research/haze_humidity/haze/visibility_by_hour.csv",
+      "expect": "num:(\\d+) >=33"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-21T17:38:47",
+  "edited": "2026-10-21T17:39:09"
+}
