@@ -79,6 +79,26 @@ There is no fitting "by eye so that it feels good": that is the author's decisio
 
 Result of the last joint calibration: the common mixing length near terrain is 27 m (+4 −3) from Askervein and Perdigão together, χ²/ndf = 208/76 (Askervein 165 for 47 observables, Perdigão 43 for 35). This is much more than the uncertainties allow: the model does not describe the data within their limits. The cases pull the parameter in different directions: Askervein alone wants 145 m, Perdigão alone 10 m (the lower edge of the grid). This is a structural discrepancy of the model that a parameter cannot remove. The exponent of the wind profile with height depends on stability; the Prandtl number is taken from neutral-layer measurements.
 
+Calibration went in three stages; the third replaced the first two, and comparing them shows what can be trusted.
+
+**1. Askervein alone, one parameter.** The mixing length λ as a fraction of the layer depth (λ/h) and the hill roughness z<sub>0</sub> were fitted; everything else comes from the literature.
+
+![Askervein: Δχ² map over λ/h and hill roughness](/tools/research/tune/out/fig_s1_chi2.png "Stage 1: Δχ² over λ/h and the Askervein hill z0. The minimum (star) sits at λ/h = 0.25, the edge of the physical range; the nominal 0.1 is the blue cross. Conclusion: the data pull λ/h upward, but this is not yet a result")
+
+The minimum landed on the upper limit λ/h = 0.25, χ²/ndf = 86.2/38. It later turned out that the pull upward was an artifact: the wind-profile exponent α had been set by hand (0.17), not fitted.
+
+**2. Added α and the mast profile.** λ/h, the inflow α and z<sub>0</sub> were fitted; 8 points of the speed profile with height were added to the 39 speed-ups.
+
+![Askervein recalibration: Δχ² over λ/h and α, without and with the profile](/tools/research/recal/out/fig_chi2_lf_alpha.png "Stage 2: Δχ² over λ/h and inflow α. Left — speed-ups only (39), the valley stretches from small to large λ/h; right — together with the mast profile (47), the valley closes near λ/h ≈ 0.03, α ≈ 0.235. The cross is the earlier hand-set estimate")
+
+The mast profile closed the valley: α was determined (0.235), λ/h dropped to 0.03, and the earlier estimate (0.25 at α = 0.17) turned out to be far outside the allowed region.
+
+**3. Askervein and Perdigão together** (765 runs) is what the game uses: λ = 27 m (+4 −3); the game applies a 40 m floor (λ = the larger of 40 m and 0.0158·h), and α for Askervein is 0.242 ± 0.004. The residuals show where the model misses:
+
+![Residuals of the joint Askervein and Perdigão fit](/tools/research/cases/b1/out/fig_fit_residuals.png "Residuals (model − data) in units of uncertainty at the joint minimum: blue — Askervein, orange and green — Perdigão, yellow — the reverse-flow zone. Dotted lines are ±2σ. Some Askervein points deviate by 4–7σ; Perdigão residuals stay within 3σ, but all three reverse-zone measures are underestimated")
+
+In one sentence: the model does not describe Askervein within the uncertainties (165 for 47 observables), is closer on Perdigão (43 for 35) but underestimates the reverse-flow zone — so read the numbers on this page as "order of magnitude with a known bias", not as an exact forecast.
+
 Pilots' words against the model after calibration (synthetic case, wind 5 m/s):
 
 | Pilot's words | Target | Model | Matched |
