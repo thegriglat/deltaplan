@@ -1,0 +1,67 @@
+{
+  "status": "partial",
+  "summary": "Таблица пропускания SunTransmission (HH4), выборка в шейдере облаков на обоих хостах (на шаг освещения один textureLod), пересборка при смене дымки >5 %, тесты HH4 и sun_transmission зелёные, accept --dry PASS. GPU-замер цены кадра не получен: earlyoom убивает godot с окном (rc=143) из-за нехватки памяти; frame_cost.md — оценка по коду.",
+  "commits": [
+    "3ffcf8c5 HH-7: свет солнца на облаках через пропускание атмосферы",
+    "frame_cost.md: цена кадра (замер заблокирован, оценка)"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "7/7 PASS",
+      "pass": true
+    },
+    {
+      "name": "hh4 тесты",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "sun_transmission тесты",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "cloud тесты",
+      "value": "61 ок, 3 пропущено",
+      "pass": true
+    },
+    {
+      "name": "CPU сборка таблицы 64x64",
+      "value": "47.9 мс (headless под нагрузкой; ориентир 10-30)",
+      "pass": false
+    },
+    {
+      "name": "GPU кадр до/после",
+      "value": "не измерено",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "GPU-замер до/после (вечер hour=19.5, день hour=14, ongudai, 1080p): все запуски frame_profile с окном завершаются SIGTERM за 5-10 с — earlyoom (-m 10,5, предпочитает godot) при MemAvailable 1-2 ГБ из 31; /tmp (tmpfs) забит на 95 % (~15 ГБ, ~96 каталогов tmp.* по ~96 МБ, похоже на вывод сборки сайта других задач). Чистить чужой /tmp не стал (классификатор отказал). Повторить по команде из frame_cost.md, когда память освободится.",
+    "Визуальная проверка закат/облака — не заказана (тестовая сборка у главной сессии)."
+  ],
+  "questions": [
+    "Освободить /tmp (tmp.* с выводом hugo старше 2 ч) и повторить замер, или принять оценку по коду?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-7",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/cloud_common.gdshaderinc:cloud_sun_l",
+      "why": "цена кадра не измерена; шейдеры проверены только компиляцией в тестах (GPU-тест не прогнан)",
+      "checked": "тесты cloud/sun_transmission headless; код прочитан"
+    },
+    {
+      "where": "scripts/atmosphere/sun_transmission.gd:build",
+      "why": "48 мс на сборку выше ориентира 10-30 мс",
+      "checked": "замер test_build_cost под нагрузкой машины; при старте один раз"
+    }
+  ],
+  "dp_feedback": "job/gpu-замеры не защищены от earlyoom; хорошо бы проверка MemAvailable в frame_profile.sh и предупреждение; тесты, оставляющие tmp.* в /tmp (tmpfs), съедают память.",
+  "extra": {
+    "build_ms_64x64": 47.9
+  },
+  "t": "2026-10-21T22:10:29",
+  "by": "executor"
+}
