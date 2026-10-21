@@ -246,3 +246,7 @@
 {"t": "2026-10-21T19:44:07", "by": "executor", "task": "SRS-16", "ev": "reported", "commits": ["2650c893", "5b872119"], "note": "done: В раздел «Калибровка» страницы «Модель воздуха» (ru+en) добавлены три этапа калибровки и 3 графика с подписями-выводами…", "dp_feedback": "Дополнение координатора просит править site_coverage/README.md, но карточка запрещает tools/research/site_coverage/ — противоречие."}
 {"t": "2026-10-21T19:44:16", "by": "coordinator", "task": "SRS-15", "ev": "accepted", "commits": ["4ec8adfb"], "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:5; img_en=ok:5"}
 {"t": "2026-10-21T19:44:16", "by": "coordinator", "task": "SRS-15", "ev": "merged"}
+{"t": "2026-10-21T19:44:37", "by": "coordinator", "task": "SRS-16", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:7; img_en=ok:7"}
+{"t": "2026-10-21T19:44:50", "by": "coordinator", "task": "SRS-17", "ev": "accepted", "note": "4/4 hugo=ok:exit 0; i18n=ok:нарушений 0; img_ru=ok:4; img_en=ok:4"}
+{"t": "2026-10-21T19:44:58", "by": "coordinator", "task": "SRS-16", "ev": "accepted", "note": "по отчёту; σ сверены с fit.json"}
+{"t": "2026-10-21T19:44:59", "by": "coordinator", "task": "SRS-17", "ev": "accepted", "note": "по отчёту; времена в подписи time_50 — по графику"}
