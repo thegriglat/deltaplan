@@ -129,7 +129,7 @@ contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 1}, {"id": "HH
 **Функция** `WeatherModel.haze_k_rh(t_c: float, td_c: float, cfg: Dictionary = {}) -> float`:
 `RH = e_s(Td)/e_s(T)`, `e_s(x) = 6.1094·exp(17.625·x/(x + 243.04))` (Магнус, Alduchov–Eskridge 1996, над водой при любой T);
 `RH_c = clamp(RH, rh_dry, rh_max)`; `haze_k = ((1 − RH_c)/(1 − rh_dry))^(−gamma)`. Td > T → RH = 1 → `rh_max`.
-Значения: RH ≤ 0,40 → 1,0; RH 0,85 → 2,30 (±0,01); RH ≥ 0,95 → 2,93 (±0,01).
+Значения: RH ≤ 0,40 → 1,0; RH 0,85 → 2,30 (±0,01); RH ≥ 0,95 → 4,44 (±0,01).
 
 **Выход** `WeatherModel.derive` (оба режима: `hour` = NAN и час): `w.haze_k = haze_k_rh(T, Td)`, где T — температура
 этого часа (`_derived.temperature_c`), Td — `_derived.dew_point_c`; новое поле `_derived.rh` (0..1, до зажима).
