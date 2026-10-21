@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "В раздел «Калибровка» страницы «Модель воздуха» (ru+en) добавлены три этапа калибровки (Askervein, +α и профиль RS, совместно с Perdigão) и 3 графика с подписями-выводами; картинок 7 на язык.",
+  "commits": [
+    "см. git log ветки site-research/SRS-16"
+  ],
+  "checks": [
+    {
+      "name": "hugo",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "i18n",
+      "value": "нарушений 0",
+      "pass": true
+    },
+    {
+      "name": "img_ru",
+      "value": "7",
+      "pass": true
+    },
+    {
+      "name": "img_en",
+      "value": "7",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Правки строк таблицы аудита и «По страницам» в tools/research/site_coverage/README.md и features.md не делались: путь в списке «не трогать» карточки."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SRS-16",
+  "uncertain": [
+    {
+      "where": "site/content/mechanics/air-model/_index.ru.md, подпись fig_fit_residuals",
+      "why": "«4–7σ у Askervein», «в пределах 3σ у Perdigão» считаны с графика, не из числового файла",
+      "checked": "график просмотрен; fit.json не сверял"
+    }
+  ],
+  "dp_feedback": "Дополнение координатора просит править site_coverage/README.md, но карточка запрещает tools/research/site_coverage/ — противоречие; разрешено только скоупом страниц.",
+  "t": "2026-10-21T19:42:51",
+  "by": "executor"
+}
