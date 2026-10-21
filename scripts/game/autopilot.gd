@@ -60,6 +60,11 @@ var pid_kp := 1.5
 var pid_kd := 0.8
 var pid_ki := 0.3
 
+## Удержание воздушной скорости в полёте (SpeedHold, буксировка), м/с; ≤ 0 — выключено (трапеция в триме).
+## Только режим pendulum: тангаж трапеции в этом режиме — ввод ControlInput.pitch.
+var hold_airspeed_ms := 0.0
+var speed_hold := SpeedHold.new()
+
 ## Ждать (сеть, NET-43: не первый в очереди на старт или идёт к своему месту): ничего не жать,
 ## замер ветра стоя — заново, когда ожидание кончится.
 var hold := false
@@ -85,6 +90,7 @@ func reset() -> void:
 	_prev_basis = Basis.IDENTITY
 	_bank_rate = 0.0
 	_pid_i = 0.0
+	speed_hold.reset()
 	roll_command = 0.0
 	pitch_command = 0.0
 	_heading = hold_heading_deg
@@ -142,7 +148,12 @@ func drive(t: Telemetry, dt: float) -> void:
 			roll_command = 0.0
 	_press("run", hold_w)
 	# на земле — нос по углу атаки, в полёте — трапеция в триме (ручка к нейтрали)
-	pitch_command = _ramp(pitch_command, float(nose), PITCH_RATE, PITCH_RETURN, dt)
+	if hold_airspeed_ms > 0.0 and pendulum and t.phase == "flying":
+		speed_hold.target_ms = hold_airspeed_ms
+		pitch_command = move_toward(pitch_command, speed_hold.update(t, dt), PITCH_RATE * dt)
+	else:
+		speed_hold.reset()
+		pitch_command = _ramp(pitch_command, float(nose), PITCH_RATE, PITCH_RETURN, dt)
 
 
 func release_all() -> void:
