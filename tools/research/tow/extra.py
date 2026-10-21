@@ -4,8 +4,7 @@ import json
 import numpy as np
 import statics as s
 
-cal = s.calibrate(); s.LAM0 = np.radians(cal["lam0_deg"])
-s.P["emp"] = s.identify_cm([json.loads(l[4:]) for l in open("out/model_trim.txt")])
+s.setup([json.loads(l[4:]) for l in open("out/model_trim.txt") if l.startswith("CSV")])
 out = []
 for V in (10.0, 12.0, 14.0):
     for eps in (45.0, 60.0):

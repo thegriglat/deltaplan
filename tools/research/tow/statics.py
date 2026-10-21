@@ -4,7 +4,7 @@
 Крыло — твёрдое тело с массой 34,4 кг: аэродинамика в нейтральной точке (линейная CL(a), параболическая CD,
 постоянный момент M0 около НТ — калибруется по триму), вес в ЦМ, реакция стропы в точке подвеса H.
 Пилот — точка 85 кг на стропе длиной L=1,2 м, руки дают силу Fb вдоль киля (как PilotArms: f.z=0), реакция на крыло — в ЦМ плюс момент на плече 1,5375 м (pendulum_model.gd:972-974),
-сопротивление пилота CdA 0,21 м². Трос: сила T под углом eps вверх по курсу; доля frac_pilot — на пилота,
+сопротивление пилота CdA 0,21 м². Трос: сила T под углом eps ниже горизонта по курсу (лебёдка: якорь на земле; eps<0 — аэробуксир, вверх); доля frac_pilot — на пилота,
 остальная — на крыло в точке киля на s_fwd впереди подвеса.
 Неизвестные: тангаж theta, угол траектории gamma, наклон стропы lam (вперёд от оси «вниз» крыла), натяжение
 стропы Fs, сила рук Fb. Заданы: воздушная скорость V, T, eps. Решение — Ньютон, без scipy.
@@ -27,7 +27,7 @@ Z_CG = -0.0649  # ЦМ ниже киля
 Z_NP = 0.0  # допущение: НТ на уровне киля (чувствительность — sens_z_np)
 FB_MAX, FB_LIMIT_SHIFT = 300.0, (0.45, 0.70)
 W_W, W_P = M_W * G, M_P * G
-P = dict(z_np=Z_NP, m0=0.0, k=0.0, nl=False, emp=None)
+P = dict(z_np=Z_NP, m0=0.0, k=0.0, nl=False, emp=None, emp_scale=1.0)
 # дробь кабрирования: CD подбирается по поляре трима (sink 0,899 м/с при 35,4 км/ч)
 V_T, SINK_T = 35.4 / 3.6, 0.899
 
@@ -54,45 +54,12 @@ def dcm_nl(al):
     иначе аналитическая pitch_nl (PD-К2 v8, wing_strips.gd:458-465), иначе 0."""
     if P.get("emp") is not None:
         a, c = P["emp"]
-        return float(np.interp(al, a, c))
+        return P["emp_scale"] * float(np.interp(al, a, c))
     if not P["nl"]:
         return 0.0
     x1, x2 = NL["a_trim"] - al, NL["a_luff"] - al
     return (-NL["soft"] * 0.5 * (x1 + np.sqrt(x1 * x1 + NL["w"] ** 2))
             + NL["luff"] * 0.5 * (x2 + np.sqrt(x2 * x2 + NL["w"] ** 2)))
-
-
-def wing_vec(th):
-    return np.array([np.cos(th), np.sin(th)]), np.array([-np.sin(th), np.cos(th)])  # вперёд, вверх (оси крыла)
-
-
-def off(f, u, th):
-    ef, eu = wing_vec(th)
-    return f * ef + u * eu
-
-
-def cross(a, b):
-    return a[0] * b[1] - a[1] * b[0]
-
-
-C_MEAN = 1.35577
-NL = dict(soft=0.23298408, luff=1.14591559, a_trim=0.204901654, a_luff=-0.104859382, w=0.0174532925)  # wing_strips.gd:458
-
-
-EMP = None  # (alpha_rad[], dCm[]) — эмпирическая добавка Cm(α) из свободного полёта модели (identify_cm)
-
-
-def dcm_nl(al):
-    if P.get("emp") is not None:
-        a, c = P["emp"]
-        return float(np.interp(al, a, c))
-    """Нелинейная добавка к Cm (PD-К2 v8, wing_strips.gd:458-465)."""
-    if not P["nl"]:
-        return 0.0
-    x1, x2 = NL["a_trim"] - al, NL["a_luff"] - al
-    return (-NL["soft"] * 0.5 * (x1 + np.sqrt(x1 * x1 + NL["w"] ** 2))
-            + NL["luff"] * 0.5 * (x2 + np.sqrt(x2 * x2 + NL["w"] ** 2)))
-
 
 
 def residual(x, V, T, eps, frac_pilot=1.0, s_fwd=0.0, z_rope_wing=0.0, M0=None, k=None, z_np=None):
@@ -112,7 +79,7 @@ def residual(x, V, T, eps, frac_pilot=1.0, s_fwd=0.0, z_rope_wing=0.0, M0=None, 
     r_h = off(X_NOSE_CG - X_NOSE_H, 0.0 - Z_CG, th)
     ef, eu = wing_vec(th)
     us = L * (np.cos(lam) * (-eu) + np.sin(lam) * ef) / L  # единичный вектор подвеска → пилот
-    Td = np.array([np.cos(np.radians(eps)), np.sin(np.radians(eps))])
+    Td = np.array([np.cos(np.radians(eps)), -np.sin(np.radians(eps))])  # eps>0: трос тянет вперёд-ВНИЗ (якорь лебёдки на земле); eps<0 — вверх (аэробуксир)
     Tp, Tw = T * frac_pilot * Td, T * (1.0 - frac_pilot) * Td
     Dp = -q * CDA_P * np.array([np.cos(gam), np.sin(gam)])
     Fpil = np.array([0.0, -W_P]) + Tp + Dp - Fs * us + Fb * ef
@@ -231,52 +198,81 @@ def t_at_shift(V, eps, target, **kw):
 
 BRIDLES = (("грудь 100/0", 1.0, 0.0), ("50/50 на киль у подвеса", 0.5, 0.0), ("50/50, киль +20 см", 0.5, 0.20),
            ("50/50, киль +40 см", 0.5, 0.40), ("всё на киль у подвеса", 0.0, 0.0))
+PULL_LIM, PULL_FULL, PUSH_LIM = 0.45, 0.70, 0.30  # configs/pendulum.json arms.shift_x_*_m
+
+
+def setup(trim_rows, emp_scale=1.0, mode="emp", z_np=Z_NP):
+    """Калибровка по триму и выбор поправки Cm: mode 'emp' (из свободного полёта модели × emp_scale), 'nl' (pitch_nl как в коде),
+    'none' (чистая НТ-модель). Возвращает (калибровка, LAM0)."""
+    global LAM0
+    P["emp"], P["nl"], P["emp_scale"] = None, False, 1.0
+    if mode == "emp":
+        calibrate(z_np)  # M0 без поправки — для идентификации остатка момента модели
+        P["emp"] = identify_cm(trim_rows)
+        P["emp_scale"] = emp_scale
+    elif mode == "nl":
+        P["nl"] = True
+    cal = calibrate(z_np)
+    LAM0 = np.radians(cal["lam0_deg"])
+    return cal
+
+
+def at_V(V, eps, bridle_fp, bridle_sf, Ts):
+    """Список решений statics.solve при V по T из Ts (продолжение: сначала по V от трима, потом по T)."""
+    x = None
+    for v in np.linspace(V_T, V, 12):
+        _, x = solve(v, 0.0, eps, x, frac_pilot=bridle_fp, s_fwd=bridle_sf)
+    out = []
+    for T in Ts:
+        for t in (np.linspace(0, T, 1 + max(1, int(T // 25))) if T > 0 else [0.0]):
+            r, x = solve(V, float(t), eps, x, frac_pilot=bridle_fp, s_fwd=bridle_sf)
+        out.append(r)
+    return out
+
 
 if __name__ == "__main__":
-    trim_rows = [json.loads(l[4:]) for l in open("out/model_trim.txt")]
+    import csv
+    trim_rows = [json.loads(l[4:]) for l in open("out/model_trim.txt") if l.startswith("CSV")]
     out = {}
-    cal = calibrate()
-    LAM0 = np.radians(cal["lam0_deg"])
-    P["emp"] = identify_cm(trim_rows)
-    out["calibration"] = cal
+    out["calibration"] = setup(trim_rows)
     out["emp_cm"] = {"alpha_deg": np.degrees(P["emp"][0]).tolist(), "dcm": P["emp"][1].tolist()}
+    TS = (0, 200, 400, 500, 600, 700, 800)
     tab = []
     for V in (12.0, 14.0, 16.0, 18.0, 20.0):
         for eps in (20.0, 45.0, 60.0):
             for name, fp, sf in BRIDLES:
                 row = dict(V=V, eps=eps, bridle=name)
-                x = None
-                for v in np.linspace(V_T, V, 12):
-                    _, x = solve(v, 0.0, eps, x, frac_pilot=fp, s_fwd=sf)
-                for T in (0, 300, 590, 700):
-                    r, x = solve(V, float(T), eps, x, frac_pilot=fp, s_fwd=sf)
-                    row[f"shift_T{T}"] = r["shift"]
-                    row[f"Fb_T{T}"] = r["Fb"]
-                    row[f"ok_T{T}"] = r["ok"]
-                for tag, tgt in (("T_pull", 0.45), ("T_full", 0.70)):
+                for T, r in zip(TS, at_V(V, eps, fp, sf, TS)):
+                    row[f"shift_T{T}"], row[f"Fb_T{T}"], row[f"gamma_T{T}"], row[f"ok_T{T}"] = r["shift"], r["Fb"], r["gamma"], r["ok"]
+                for tag, tgt in (("T_pull", PULL_LIM), ("T_full", PULL_FULL)):
                     t, _ = t_at_shift(V, eps, tgt, frac_pilot=fp, s_fwd=sf)
                     row[tag] = t
                 tab.append(row)
     out["table"] = tab
-    # чувствительность к высоте НТ (допущение) — перекалибровка + перенос эмпирической Cm
+    # чувствительность хода к поправке Cm (и к высоте НТ): перекалибровка каждый раз
     sens = []
+    for mode, sc in (("none", 0.0), ("nl", 1.0), ("emp", 0.5), ("emp", 1.0), ("emp", 1.5)):
+        setup(trim_rows, sc, mode)
+        for V in (14.0, 16.0, 18.0):
+            for name, fp, sf in BRIDLES[:2]:
+                rr = at_V(V, 45.0, fp, sf, (0, 600))
+                sens.append(dict(cm=f"{mode}x{sc}" if mode == "emp" else mode, V=V, bridle=name, shift_T0=rr[0]["shift"],
+                                 shift_T600=rr[1]["shift"], d_tow=rr[1]["shift"] - rr[0]["shift"], Fb_T600=rr[1]["Fb"], ok=bool(rr[1]["ok"] and rr[0]["ok"])))
+    out["sens_cm"] = sens
+    sz = []
     for z in (-0.3, 0.0, 0.3):
-        c2 = calibrate(z)
-        LAM0 = np.radians(c2["lam0_deg"])
-        P["emp"] = identify_cm(trim_rows)
-        r, _ = solve(16.0, 590.0, 20.0)
-        sens.append(dict(z_np=z, shift_V16_T590=r["shift"], Fb=r["Fb"], ok=r["ok"]))
-    out["sens_z_np"] = sens
+        setup(trim_rows, 1.0, "emp", z)
+        r = at_V(16.0, 45.0, 1.0, 0.0, (0, 600))
+        sz.append(dict(z_np=z, shift_T0=r[0]["shift"], shift_T600=r[1]["shift"], Fb=r[1]["Fb"]))
+    out["sens_z_np"] = sz
     json.dump(out, open("out/statics.json", "w"), indent=1, default=float)
-    import csv
     with open("out/statics_table.csv", "w", newline="") as f:
         w = csv.writer(f)
         keys = list(tab[0].keys())
         w.writerow(keys)
         for r in tab:
-            w.writerow([("" if r[k] is None else (round(r[k], 3) if isinstance(r[k], float) else r[k])) for k in keys])
-    print(json.dumps(sens))
-    for r in tab:
-        if r["eps"] == 20.0:
-            print(r["V"], r["bridle"], "shift@300/590/700", round(r["shift_T300"], 2), round(r["shift_T590"], 2), round(r["shift_T700"], 2),
-                  "Fb@590", round(r["Fb_T590"]), "T0.45", r["T_pull"] and round(r["T_pull"]), "T0.70", r["T_full"] and round(r["T_full"]))
+            w.writerow([("" if r[k] is None else (round(float(r[k]), 3) if isinstance(r[k], (float, np.floating)) else r[k])) for k in keys])
+    with open("out/sens_cm.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, sens[0].keys()); w.writeheader()
+        for r in sens: w.writerow({k: (round(float(v), 3) if isinstance(v, (float, np.floating)) else v) for k, v in r.items()})
+    print(json.dumps(sz))

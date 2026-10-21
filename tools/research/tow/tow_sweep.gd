@@ -1,6 +1,6 @@
 extends Node
 ## TW-16: управляемость «Маятника» на тросе без TowLine. Развёртка постоянной силы T на пилоте (или на подвеске)
-## под углом eps вверх по курсу; пилот держит тангаж киля PI-регулятором. Пределы рук можно снять (free=1):
+## под углом eps ниже горизонта по курсу (лебёдка; eps<0 — вверх, аэробуксир); пилот держит тангаж киля PI-регулятором. Пределы рук можно снять (free=1):
 ## тогда получаем потребное положение/усилие, а не упор. Вывод — CSV на stdout (строки "CSV,...").
 ## Запуск: см. README.md.
 
@@ -40,14 +40,14 @@ func run_case(T: float, eps_deg: float, at: String, free: bool, secs: float, h_o
 			st.va = clampf(st.va + 0.002 * err * s.h, 5.0, 45.0)
 			st.x += st.va * s.h
 			var base: Vector3 = s.pilot_pos if at == "pilot" else s.hang_pos
-			# якорь впереди по курсу (−Z), высота — над ЦМ на rope·sin(eps)
-			var anchor := Vector3(0.0, base.y + rope * sin(deg_to_rad(eps_deg)), 0.0)
+			# лебёдка: якорь на земле впереди по курсу (−Z), ниже точки крепления на rope·sin(eps); eps<0 — якорь выше (аэробуксир)
+			var anchor := Vector3(0.0, base.y - rope * sin(deg_to_rad(eps_deg)), 0.0)
 			anchor.z = x0 - rope * cos(deg_to_rad(eps_deg)) - st.x
 			return {"link": {"anchor": anchor, "anchor_vel": Vector3(0, 0, -st.va), "length_m": rope,
 				"compliance_m_per_n": rope / 3.0e5, "damping_s": 0.02, "at": at}}
 		m.set_external_force(fnl)
 	else:
-		var dir := Vector3(0.0, sin(deg_to_rad(eps_deg)), -cos(deg_to_rad(eps_deg)))
+		var dir := Vector3(0.0, -sin(deg_to_rad(eps_deg)), -cos(deg_to_rad(eps_deg)))
 		if at == "split":  # 50/50: половина на пилота, половина на подвеску (киль у подвеса)
 			m.set_external_force(func(s: Dictionary) -> Dictionary:
 				var f: Vector3 = dir * T * 0.5 * minf(s.t / ramp, 1.0)
