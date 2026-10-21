@@ -4,3 +4,6 @@
 {"t": "2026-10-21T19:07:48", "by": "executor", "task": "SCF-1", "ev": "reported", "commits": ["af722451"], "note": "done: Страница «Облака и тени» (ru/en) переписана под поле облачности: как рождается, время жизни, таблица мест, z_i по релье…", "dp_feedback": "plan site-cloud-field: файла docs/plan/site-cloud-field.md нет, хотя карточка на него ссылается. Дополнение координатора в task show обрезается без --full."}
 {"t": "2026-10-21T19:07:57", "by": "coordinator", "task": "SCF-1", "ev": "checked", "note": "2/2 hugo=ok:exit 0; figs_ru=ok:6; scope=FAIL:вне scope: r-SCF-1.json"}
 {"t": "2026-10-21T19:08:08", "by": "coordinator", "task": "SCF-1", "ev": "accepted", "note": "2/2 hugo=ok:exit 0; figs_ru=ok:6"}
+{"t": "2026-10-21T19:08:19", "by": "coordinator", "task": "SCF-1", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-21T19:08:25", "by": "coordinator", "task": "SCF-1", "ev": "accepted", "commits": ["0bda9eb5"], "note": "2/2 hugo=ok:exit 0; figs_ru=ok:6"}
+{"t": "2026-10-21T19:08:25", "by": "coordinator", "task": "SCF-1", "ev": "merged"}
