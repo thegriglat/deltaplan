@@ -1,0 +1,55 @@
+{
+  "id": "TW-13",
+  "module": "tow",
+  "type": "dp-researcher",
+  "title": "Площадка аэробуксировки дельтапланов в России для места игры",
+  "goal": "По источникам найти популярные в России площадки, где реально буксируют дельтапланы (аэробуксировка/лебёдка), с полосой и координатами; выбрать одну для места игры (ответ Q2), дать её настоящее имя, координаты концов полосы, курс, длину, ширину, покрытие, высоту.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К1",
+      "version": "1",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-13",
+  "branch": "tow/TW-13",
+  "base": "feature/tow",
+  "scope": [
+    "docs/research/tow/sites.md"
+  ],
+  "dont_touch": [
+    "docs/research/tow/kinds.md",
+    "docs/research/tow/kinds-bhpa.md",
+    "scripts",
+    "configs",
+    "data",
+    "docs/contracts",
+    "docs/plan"
+  ],
+  "accept": [
+    {
+      "name": "headings",
+      "cmd": "grep -cE '^## (Кандидаты|Выбор|Полоса|Чего не знаем|Источники)$' docs/research/tow/sites.md",
+      "expect": "num:(\\d+) >=5"
+    },
+    {
+      "name": "runway",
+      "cmd": "grep -cE '^\\| *(lat_start|lon_start|lat_end|lon_end|heading_deg|length_m|width_m|surface|elevation_m) *\\|' docs/research/tow/sites.md",
+      "expect": "num:(\\d+) >=9"
+    },
+    {
+      "name": "size",
+      "cmd": "stat -c %s docs/research/tow/sites.md",
+      "expect": "num:(\\d+) <=40960"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T02:14:50"
+}
