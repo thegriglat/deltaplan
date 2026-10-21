@@ -32,3 +32,5 @@
 {"t": "2026-10-22T03:33:36", "by": "coordinator", "task": "TK-3", "ev": "checked", "note": "2/2 trike_model_k2=ok:2/2; textures=ok:exit 0; scope=FAIL:вне scope: r-TK-3.json"}
 {"t": "2026-10-22T03:33:47", "by": "coordinator", "task": "TK-3", "ev": "checked", "note": "2/2 trike_model_k2=ok:2/2; textures=ok:exit 0"}
 {"t": "2026-10-22T03:33:48", "by": "coordinator", "task": "TK-3", "ev": "accepted", "note": "по отчёту; вид — кадры TK-4 и шлюз"}
+{"t": "2026-10-22T03:34:46", "by": "coordinator", "task": "TK-3", "ev": "accepted", "commits": ["430c2683"], "note": "2/2 trike_model_k2=ok:2/2; textures=ok:exit 0"}
+{"t": "2026-10-22T03:34:46", "by": "coordinator", "task": "TK-3", "ev": "merged"}
