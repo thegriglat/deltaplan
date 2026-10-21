@@ -34,7 +34,8 @@ contracts: [{"id": "TK-K1", "version": 2}, {"id": "TK-K2", "version": 2}, {"id":
     лопасти), `prop_chord_tip` (хорда у законцовки), `prop_hub_d` (диаметр ступицы/кока); двигатель — `engine_cyl_count` (int),
     `engine_cyl_layout` (str: `inline` | `boxer`), `engine_cyl_d` (диаметр рубашки/оребрения цилиндра), `engine_gearbox`
     (str: тип редуктора, напр. `Rotax B/C/E`), `engine_exhaust_d` (диаметр выхлопной трубы/глушителя); `rear_seat_rise`
-    (подушка заднего сиденья выше передней), `tank_volume_l` (л), `tank_l`, `tank_w`, `tank_h` (габарит бака-канистры).
+    (подушка заднего сиденья выше передней), `tank_volume_l` (л), `tank_l`, `tank_w`, `tank_h` (габарит бака-канистры); диаметры труб `tube_keel_d`, `tube_mast_d`,
+    `tube_strut_d` (передний подкос), `tube_frame_d` (рама сидений и стойки шасси).
   - `seat_rear` (v2): как `seat`, без `eye`/`hip`/`hand_*`/`throttle_pedal` — `seat_pan`, `seat_pan_size`, `backrest_base`,
     `backrest_angle_deg`, `backrest_size`, `foot_l`, `foot_r` (подножки пассажира); `seat_pan.z` − `seat.seat_pan.z` = `rear_seat_rise`.
   - `tank` (v2): `{"center": [x,y,z], "size": [ширина, длина, высота], "filler": [x,y,z]}` — под задним сиденьем, форма

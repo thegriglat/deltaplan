@@ -38,18 +38,18 @@
       "expect": "exit=0"
     },
     {
-      "name": "v2_src",
-      "cmd": "python3 -c \"import json;d=json.load(open('tools/blender/trike_params.json'))['dims'];ks=['prop_chord_max','prop_chord_tip','prop_hub_d','engine_cyl_count','engine_cyl_layout','engine_cyl_d','engine_gearbox','engine_exhaust_d','rear_seat_rise','tank_volume_l','tank_l','tank_w','tank_h'];print('bad=%d'%sum(1 for k in ks if not str(d.get(k,{}).get('src','')).strip()))\"",
-      "expect": "num:bad=(\\d+) <=0"
-    },
-    {
       "name": "blades",
       "cmd": "python3 -c \"import json;print('blades=%d'%json.load(open('tools/blender/trike_params.json'))['dims']['prop_blades']['value'])\"",
       "expect": "re:blades=[23]"
+    },
+    {
+      "name": "v2_src",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/blender/trike_params.json'))['dims'];ks=['prop_chord_max','prop_chord_tip','prop_hub_d','engine_cyl_count','engine_cyl_layout','engine_cyl_d','engine_gearbox','engine_exhaust_d','rear_seat_rise','tank_volume_l','tank_l','tank_w','tank_h','tube_keel_d','tube_mast_d','tube_strut_d','tube_frame_d'];print('bad=%d'%sum(1 for k in ks if not str(d.get(k,{}).get('src','')).strip()))\"",
+      "expect": "num:bad=(\\d+) <=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T03:51:53",
-  "edited": "2026-10-22T03:52:34"
+  "edited": "2026-10-22T03:52:54"
 }
