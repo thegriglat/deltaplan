@@ -1,0 +1,54 @@
+{
+  "id": "TK-7",
+  "module": "trike-model",
+  "type": "dp-researcher",
+  "title": "Данные трайка v2: винт, двигатель, тандем, бак",
+  "goal": "trike_params.json по TK-K1 v2: двухлопастный винт с хордой, двигатель по частям, заднее сиденье выше переднего (seat_rear), бак-канистра под задним сиденьем (tank) — числа с источниками; тест K1 под v2.",
+  "plan_ref": "TK-7",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "2",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-7",
+  "branch": "trike-model/TK-7",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/blender/trike_params.json",
+    "tools/research/trike-model/v2_sources.md",
+    "tests/contracts/test_trike_model_k1.gd"
+  ],
+  "dont_touch": [
+    "tools/research/trike-model/README.md",
+    "tools/blender/build_trike.py",
+    "tools/blender/build_pilot.py",
+    "assets/",
+    "docs/contracts/trike-model.md"
+  ],
+  "accept": [
+    {
+      "name": "trike_model_k1",
+      "tests": "trike_model_k1"
+    },
+    {
+      "name": "docs",
+      "cmd": "./.dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "v2_src",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/blender/trike_params.json'))['dims'];ks=['prop_chord_max','prop_chord_tip','prop_hub_d','engine_cyl_count','engine_cyl_layout','engine_cyl_d','engine_gearbox','engine_exhaust_d','rear_seat_rise','tank_volume_l','tank_l','tank_w','tank_h'];print('bad=%d'%sum(1 for k in ks if not str(d.get(k,{}).get('src','')).strip()))\"",
+      "expect": "num:bad=(\\d+) <=0"
+    },
+    {
+      "name": "blades",
+      "cmd": "python3 -c \"import json;print('blades=%d'%json.load(open('tools/blender/trike_params.json'))['dims']['prop_blades']['value'])\"",
+      "expect": "re:blades=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T03:51:53"
+}
