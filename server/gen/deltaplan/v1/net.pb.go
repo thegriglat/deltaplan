@@ -183,8 +183,6 @@ const (
 	ControlMode_CONTROL_MODE_UNSPECIFIED ControlMode = 0
 	// Упрощённый (скорость крена).
 	ControlMode_CONTROL_MODE_RATE ControlMode = 1
-	// Смещение веса.
-	ControlMode_CONTROL_MODE_WEIGHT_SHIFT ControlMode = 2
 	// Маятник.
 	ControlMode_CONTROL_MODE_PENDULUM ControlMode = 3
 )
@@ -194,14 +192,12 @@ var (
 	ControlMode_name = map[int32]string{
 		0: "CONTROL_MODE_UNSPECIFIED",
 		1: "CONTROL_MODE_RATE",
-		2: "CONTROL_MODE_WEIGHT_SHIFT",
 		3: "CONTROL_MODE_PENDULUM",
 	}
 	ControlMode_value = map[string]int32{
-		"CONTROL_MODE_UNSPECIFIED":  0,
-		"CONTROL_MODE_RATE":         1,
-		"CONTROL_MODE_WEIGHT_SHIFT": 2,
-		"CONTROL_MODE_PENDULUM":     3,
+		"CONTROL_MODE_UNSPECIFIED": 0,
+		"CONTROL_MODE_RATE":        1,
+		"CONTROL_MODE_PENDULUM":    3,
 	}
 )
 
@@ -2321,12 +2317,11 @@ const file_deltaplan_v1_net_proto_rawDesc = "" +
 	"\x0fPILOT_PHASE_FLY\x10\x04\x12\x16\n" +
 	"\x12PILOT_PHASE_LANDED\x10\x05\x12\x17\n" +
 	"\x13PILOT_PHASE_CRASHED\x10\x06\x12\x13\n" +
-	"\x0fPILOT_PHASE_TOW\x10\a*|\n" +
+	"\x0fPILOT_PHASE_TOW\x10\a*~\n" +
 	"\vControlMode\x12\x1c\n" +
 	"\x18CONTROL_MODE_UNSPECIFIED\x10\x00\x12\x15\n" +
-	"\x11CONTROL_MODE_RATE\x10\x01\x12\x1d\n" +
-	"\x19CONTROL_MODE_WEIGHT_SHIFT\x10\x02\x12\x19\n" +
-	"\x15CONTROL_MODE_PENDULUM\x10\x03B/Z-deltaplan/server/gen/deltaplan/v1;deltaplanv1b\x06proto3"
+	"\x11CONTROL_MODE_RATE\x10\x01\x12\x19\n" +
+	"\x15CONTROL_MODE_PENDULUM\x10\x03\"\x04\b\x02\x10\x02*\x19CONTROL_MODE_WEIGHT_SHIFTB/Z-deltaplan/server/gen/deltaplan/v1;deltaplanv1b\x06proto3"
 
 var (
 	file_deltaplan_v1_net_proto_rawDescOnce sync.Once

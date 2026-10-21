@@ -203,9 +203,6 @@ func _build_apparatus(box: Control) -> void:
 		var sl := UiKit.slider_row(box, tr("setup_app_" + k), sp[0], sp[1], sp[2], fmts[k])
 		_apparatus[k] = sl
 		sl.value_changed.connect(_on_apparatus_changed.bind(k))
-		sl.get_parent().tooltip_text = tr("setup_app_pendulum_only")
-		var hint := UiKit.label(box, tr("setup_app_pendulum_only"), "HintLabel")
-		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 
 func _apply_settings() -> void:

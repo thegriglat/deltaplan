@@ -12,7 +12,7 @@ const SETTLE_S := 10.0
 
 ## → {std_phi_deg, max_roll_cmd, ok}
 func _fly(wing: String) -> Dictionary:
-	var g := M.make_glider("pendulum", wing, {})
+	var g := M.make_glider(wing, {})
 	var m: PendulumModel = g.model
 	g.reset_in_air(S.START_CG, 0.0)
 	var off := S.cg(m) - S.START_CG

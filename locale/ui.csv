@@ -77,13 +77,9 @@ controls_on_ground,На земле,On the ground
 controls_instrument_camera_game,"Прибор, камера, игра","Instrument, camera, game"
 controls_pull_full,"Держать в полёте — добор до бёдер: «на себя» дальше обычного, большой разгон; отпустил — штанга плавно к груди; за обычным пределом индикатор подвески красный","Hold in flight — pull the bar to the hips: further than the normal pull-in, much faster; release — the bar eases back to the chest; past the normal limit the hang indicator turns red"
 controls_center,Встать в центр трапеции — крыло выровняется и полетит прямо,Center your weight — the wing levels out and flies straight
-settings_roll_control,Управление креном,Roll control
 settings_roll_input,Крен мышью,Roll by mouse
 settings_roll_input_bar,Как штанга (вправо — крен влево),Like the bar (right — roll left)
 settings_roll_input_body,Как тело (вправо — крен вправо),Like the body (right — roll right)
-settings_roll_simple,Простое (аркадное),Simple (arcade)
-settings_roll_weight_shift,Смещение веса (как на настоящем крыле),Weight shift (like a real wing)
-settings_roll_pendulum,Маятник,Pendulum
 controls_mouse_bar,Мышь — трапеция: от себя / на себя и вбок; средняя кнопка или V — снова смотреть вперёд,Mouse — control bar: push / pull and sideways; middle button or V — look ahead
 controls_glance,Держать — посмотреть на приборы на перекладине,Hold — look at the instruments on the bar
 controls_look_keys,"W/A/S/D — осмотреться в кабине (A/D — влево/вправо, W/S — вверх/вниз); V — снова вперёд","W/A/S/D — look around in the cockpit (A/D — left/right, W/S — up/down); V — look ahead again"
@@ -550,7 +546,6 @@ setup_app_hang_shift_cm,Подвеска вдоль киля,Hang point along ke
 setup_app_hang_length_m,Длина подвески,Hang strap length
 setup_app_sail_flex,Гибкость паруса,Sail flexibility
 setup_app_dihedral_eff_deg,Поперечное V,Effective dihedral
-setup_app_pendulum_only,Настройки режима «Маятник»; в других режимах не действуют,Pendulum mode settings; other modes ignore them
 start_pick_hint,Щёлкните по земле — поставить старт. Протяжка мышью задаёт курс.,Click the ground to set the launch. Drag to set the heading.
 start_pick_coords,Широта %.5f · долгота %.5f,Lat %.5f · lon %.5f
 start_pick_height,%d м,%d m

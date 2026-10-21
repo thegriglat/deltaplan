@@ -16,9 +16,6 @@ func check(cond: bool, msg: String = "") -> void:
 
 
 func test_pendulum_start_on_slope() -> void:
-	var cfg := Config.get_config("controls")
-	var old: Variant = cfg.get("roll_control_mode")
-	cfg["roll_control_mode"] = "pendulum"
 	var main: Node = MAIN_SCENE.instantiate()
 	main.set("opts", LaunchOptions.parse(PackedStringArray(["--autostart"])))
 	var game: Game = main.get_node("Game")
@@ -27,7 +24,6 @@ func test_pendulum_start_on_slope() -> void:
 		if main.get("state") == 2:
 			break
 		await get_tree().process_frame
-	cfg["roll_control_mode"] = old
 	check(main.get("state") == 2, "автостарт — в полёте")
 	game.process_mode = Node.PROCESS_MODE_DISABLED
 	check(game.glider.model is PendulumModel, "модель — PendulumModel")

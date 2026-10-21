@@ -7,7 +7,7 @@ const WINGS := ["training", "laminar", "sport"]
 
 
 func _trim_kmh(wing: String, shift_cm: float) -> float:
-	var g := M.make_glider("pendulum", wing, {"hang_shift_cm": shift_cm})
+	var g := M.make_glider(wing, {"hang_shift_cm": shift_cm})
 	var m: PendulumModel = g.model
 	m.reset_in_air(Vector3(0.0, 1000.0, 0.0), 0.0)
 	var v := Units.to_kmh(float(m.solve_trim().V))
@@ -17,7 +17,7 @@ func _trim_kmh(wing: String, shift_cm: float) -> float:
 
 ## Установившаяся воздушная скорость после 20 с полёта на триме (динамика, не только solve_trim).
 func _settled_kmh(wing: String, shift_cm: float) -> float:
-	var g := M.make_glider("pendulum", wing, {"hang_shift_cm": shift_cm})
+	var g := M.make_glider(wing, {"hang_shift_cm": shift_cm})
 	g.reset_in_air(Vector3(0.0, 1000.0, 0.0), 0.0)
 	var vs := 0.0
 	var n := 0

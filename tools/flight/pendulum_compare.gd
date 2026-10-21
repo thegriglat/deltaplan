@@ -1042,7 +1042,6 @@ func _bench() -> void:
 	var air := func(p: Vector3) -> Vector3: return Vector3(1.5, 0.2 * sin(0.05 * p.x), 0.0)
 	var inp := ControlInput.new()
 	inp.roll = 0.3
-	inp.weight_shift = true
 	for w in WINGS:
 		var wing: Dictionary = Config.get_config("wings/" + w)
 		var pilot: Dictionary = Config.get_config("pilot").duplicate(true)
