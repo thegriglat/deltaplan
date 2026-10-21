@@ -1,0 +1,11 @@
+{
+  "module": "haze-humidity",
+  "plan": "docs/plan/haze-humidity.md",
+  "contracts": "docs/contracts/haze-humidity.md",
+  "branch": "feature/haze-humidity",
+  "copy": "~/deltaplan-haze-humidity",
+  "created": "2026-10-21T17:31:18",
+  "code": "HH",
+  "area": "air",
+  "base": "main"
+}
