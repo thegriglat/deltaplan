@@ -90,10 +90,28 @@ Incidentally it turned out that the reference solutions in the database are unde
 
 **What the Morris screening found** (16 factors × 6 cases, 1230 runs, 5.3 h of GPU): the model is soft in the switches and the profile exponent α, rigid in the data (94 % — one SVD direction) and degenerate (λ/h ≈ α ≈ transport order ≈ local_k, cosines 0.93–0.94). Three bugs were found and fixed: the Prandtl number, cooling and the layer height in the closure. The Prandtl number was set to 0.85 (the author's decision): saddle ×2.05, lift at the start in calm −15 %. The conclusion "the data pull λ/h upward" turned out to be an artefact of the manual α = 0.17: the mast profile gives α ≈ 0.22, the best χ² points ≈ 54 at α 0.20–0.24. Source — the [findings registry](/research/findings/), [sensitivity](/docs/research/air-model-sensitivity.md), [calibration](/docs/research/air-model-tune.md).
 
+![Similarity of factor effects (Morris screening)](/tools/research/morris/out/fig_degeneracy.png "Similarity of factor effects (Morris screening)")
+
+*Cosine similarity of the effects of 16 factors on the observables. Dark red and dark blue cells (|cos| 0.9 and above: α, advection, closure, constant viscosity) are factors the data cannot tell apart; this is the model degeneracy.*
+
+**Non-convergence in calm and the k_relax relaxation (A2).** The cause of non-convergence in weak wind (below 2.5 m/s) was a limit cycle: the chain "exchange coefficient — temperature perturbation — vertical velocity" oscillates around the solution and the residual does not fall. Lowering the k_relax relaxation from 0.5 to 0.1 removed the cycle: all 16 of 16 convective-heating cases converge in both sets, and the game chain takes 892 iterations instead of 3712; the key field numbers moved by no more than 0.01 m/s. Limit: after the parameter change 6 of 24 runs in the check matrix still did not converge, so weak wind remains the hardest case ([A2 summary](/docs/archive/plan/air-model-a2.md#итог)).
+
+![Solver residual in calm: old and new relaxation](/tools/research/a2pre/out/fig_a2_hist.png "Solver residual in calm: old and new relaxation")
+
+*Residual by iteration with convective heating. The base relaxation (blue) hits the 3000-iteration limit and oscillates; variants with smaller k_relax (kr10, kr15) fall below the threshold in 170–220 iterations.*
+
 **What broke in the pilot's flight and how it was fixed (1.0.x):**
 - *"Blown away" at the start at 6 m/s.* The wing physics check showed that the polar is not the cause (by its characteristics any soft wing flies against 6 m/s). The cause was that the menu wind set the inflow at the edge of the 38 km domain, not U10 over the start: the field gave 1.0–2.1 × the menu (at 6 m/s — 6.2–12.6 m/s at 10 m). Fix — two passes of the field: at all ten starts the ratio of U10 over the start to the menu is 0.90–1.06 (30 of 30 within ±10 %). Applied in 1.0.1 and 1.0.2 and still in place.
 - *Turbulence at the start.* The jump was found by bisecting commits: at 6 m/s and 1.5 m above the ground σ<sub>w</sub> 0.04 m/s (before the 100/50 m windows), then 0.73, in 1.0.0 — 1.05; direction scatter ±86°. The cause lies entirely in the air model, not in control; after fixing the surface layer at Kayanche ±21°.
 - *Loading.* In 1.0.x the "Computing wind" stage took 7–8 s, but 25–60 s at wind of 1–2 m/s, at 3 m/s from the south or west, and in calm at 9:00: the solver hit the limit of 3000 iterations ([research](/docs/research/air_field_cache.md)). This became one of the arguments for the phase assembly (item 8).
+
+![Wind over the start at menu 6 m/s](/tools/research/air_start/out/after/fig/02_wind6_vs_trim.png "Wind over the start at menu 6 m/s")
+
+*Headwind over the start by height: blue is the analytic profile, orange is the solver field at ten starts, the band is the soft wings' trim speed. After two passes the wind at 10 m over the start is close to the menu value (dotted line, 6 m/s); it grows with height and above 50 m reaches the soft wings' trim speed (8.6–10.8 m/s), so being blown away is possible only well above the launch slope.*
+
+![Ground speed against 6 m/s wind by wing model](/tools/research/wing_physics_check/out/fig_penetration_6ms.png "Ground speed against 6 m/s wind by wing model")
+
+*Ground speed against a 6 m/s wind for all wings: light bars at trim, dark bars with full pull-in. At trim every wing makes headway, so the cause of "blown away" is the menu wind, not the polars.*
 
 ### 5. Simplified mode "as in 0.8.0"
 
@@ -135,6 +153,8 @@ There is no bias; on the non-converged ones the network errs at the level of the
 
 **P3 outcome:** neither encoding, nor architecture, nor stratification, nor cleaning the targets gave more than a few percent (width ×2 — −2.6 %; U-FNO worse by 7 %); on the training places the error of all variants is ≈ 0.36 m/s — the network does not fit even clean training cases. The best is the P2 network on 300 places: data matter more than tweaks. Replaceability was not achieved by any variant.
 
+
+**Where the terrain for training came from.** Procedural terrain built from a sum of shapes (ridges, bumps) describes the large-scale structure — 30 shapes give 92–96 % of the height variance at the 400 m scale — but has 3–7 times fewer peaks than real mountains, and its slopes are too smooth. The erosion model (Fastscape) reproduces the height range, slopes (p99 about 35° over 100 m at Ongudai), channel density and the 1–10 km spectrum, but gives 1.5–6 times fewer peaks with 30–100 m prominence than real terrain and builds no elongated structural ridges. Tuning eight generator parameters on 367 squares lowered the median χ²/ndf from 1.79 to 1.47. Conclusion: the training set needs real terrain; synthetic terrain suits clean cases ([statistics](/docs/research/terrain_statistics.md), [tuning](/docs/research/terrain_tuning.md)).
 **What was in the game and what is now.** The P2 network (on the CPU) appeared in 1.0.5 (Oct 4) as an experimental settings item; the first flight on it at Askarovo: "on the whole even 'flyable', nothing really unusual" ([diary Oct 3](https://github.com/thegriglat/deltaplan/blob/main/diary/2026-10-03.en.md)). In 1.2.0 (Oct 5) a new network trained on 305 starts from the OpenStreetMap catalogue arrived: median error at 60 m on held-out places 0.69 m/s against 0.92 for the previous one, on game places 0.59 against 0.76; it worked up to 12 m/s and became the default. In 1.3.0 (Oct 7) the network was **removed** together with ONNX Runtime: it is neither in the game nor in the builds, and the research stays offline in `tools/research/`. The reasons are in item 8: every flow regime has its own clear mechanism while the network was a black box, in calm and convection the training reference is noisy, and in the wave band the target is ambiguous. The question "why the network does not fit even the training cases" stays open.
 
 ### 7. WindNinja
@@ -150,6 +170,10 @@ There is no bias; on the non-converged ones the network errs at the level of the
 | time | 0.9 s (400 m), 15 s (100 m), 75 s (50 m), 10 CPU threads | median 2.4 s on GPU (for the non-converged — tens of seconds) |
 
 **Conclusion.** The speed-up on ridges and the turning of the flow agree. WindNinja gives no slowing by a mountain massif at all — it has no momentum and pressure; so it neither confirms nor refutes the solver. It does not work as a solver replacement in the game: in valleys the speed is 3–5 m/s higher and the wind is "too even"; forest instead of grass shifts its field by 2 m/s. It works as an independent check of speed-up and turning. It is not in the game.
+
+![Ongudai: WindNinja and solver wind at 60 m](/tools/research/windninja/out/fig_ongudai_007.png "Ongudai: WindNinja and solver wind at 60 m")
+
+*Left to right: terrain, WindNinja wind, our solver wind and their difference (m/s). The difference is positive almost everywhere: WindNinja gives clearly stronger wind in valleys and behind ridges, because it does not lose speed on flow around a massif.*
 
 ### 8. Field assembled by flow phases (1.3.0)
 
