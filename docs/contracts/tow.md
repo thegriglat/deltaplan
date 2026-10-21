@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки tow: сила и звено троса (К4), трос и лебёдка (К5), место (К6), выбор (К7), модели (К8), Ан-2 (К9), тележка (К10)."
 related: ["docs/plan/tow.md", "docs/guide/flight.md", "docs/guide/models.md", "docs/guide/game.md"]
-contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 5}, {"id": "TW-К5", "version": 6}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 2}, {"id": "TW-К8", "version": 3}, {"id": "TW-К9", "version": 1}, {"id": "TW-К10", "version": 1}]
+contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 5}, {"id": "TW-К5", "version": 6}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 2}, {"id": "TW-К8", "version": 3}, {"id": "TW-К9", "version": 1}, {"id": "TW-К10", "version": 2}]
 ---
 # Контракты модуля tow
 
@@ -194,12 +194,12 @@ TW-К4 v2 (неявно), а не явная сила `T = EA·(d − L)/L + c·
   над землёй 0, пока `glider_height_agl_m` < `glider_hold_agl_m`; скорость в `climb`/`circuit` = `tow_speed_kmh` ±2 %;
   вертикальная скорость в `climb` = `climb_rate_ms` ±5 %; `basis` — −Z вдоль `vel` (±1°).
 
-## TW-К10 v1. Старт с тележки в модели полёта
+## TW-К10 v2. Старт с тележки в модели полёта
 Владелец — TW-14; потребители — TW-7 (интеграционный тест аэробуксировки), TW-10 (игра). Контрактный тест —
 `tests/contracts/test_tow_k10.gd`. Основание — решение пользователя 2026-10-22, BHPA §2.7.4 G, §2.7.6 E (`kinds-bhpa.md`).
 
 - `PendulumModel.reset_on_dolly(pos: Vector3, heading_deg: float, dolly: Dictionary) -> void` и
-  `Glider.reset_on_dolly(...)` (только «Маятник»). `dolly` (из `configs/tow.json → dolly`, числа с источником):
+  `Glider.reset_on_dolly(...)` (только «Маятник»). `dolly` (из `configs/tow_dolly.json`, числа с источником):
   `mass_kg`, `keel_angle_deg` (≈18°), `cradle_height_m` (< 0,45), `wheel_radius_m` (≥ 0,127), `rolling_crr`.
 - Пилот лежит в подвеске в лётном положении (как после `start_flight_position`, руки на штанге); крыло лежит в
   ложементе: тангаж = `keel_angle_deg`, крен 0, курс = `heading_deg`. Связка крыло+пилот+тележка движется по земле вдоль
@@ -214,6 +214,7 @@ TW-К4 v2 (неявно), а не явная сила `T = EA·(d − L)/L + c·
   движущемуся по курсу с разгоном до 17 м/с: отрыв при воздушной скорости между `vs` и 1,4·`vs` крыла `sport`
   (скорость сваливания — из поляры модели), без скачка; (3) после отрыва `dolly_attached = false`, тележка
   останавливается за конечное время, крыло летит; (4) без тележки — существующие тесты `tests/flight/` зелёные.
+- v2 (2026-10-22): параметры тележки — `configs/tow_dolly.json` (отдельно от `tow.json`, параллельная работа).
 
 ## TW-К6 v2. Место с полосой: `start_sites[].tow`, `TowSite.check`, буксирное место
 Владелец — TW-8; потребители — TW-9 (выбор при старте), TW-10 (игра). Контрактный тест — `tests/contracts/test_tow_k6.gd`.
