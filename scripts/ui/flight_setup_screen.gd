@@ -561,7 +561,7 @@ func _on_place_changed_tow() -> void:
 
 
 func _tow_selected() -> String:
-	if _tow_opt == null or GoalsTab.net_blocked():
+	if _tow_opt == null or GoalsTab.net_blocked() or not FlightSettings.tow_mode_allowed():
 		return ""
 	var i := _tow_opt.selected
 	return _tow_ids[i] if i >= 0 and i < _tow_ids.size() else ""
@@ -572,6 +572,7 @@ func _refresh_tow(preferred: String, reset: bool) -> void:
 	if _tow_opt == null or _row == null:
 		return
 	var mp := GoalsTab.net_blocked()
+	var mode_off := not FlightSettings.tow_mode_allowed()
 	var site := _row.builtin_site()
 	_tow_ids = PackedStringArray([""])
 	_tow_opt.clear()
@@ -585,9 +586,10 @@ func _refresh_tow(preferred: String, reset: bool) -> void:
 	if want != "" and not (want in kinds):
 		want = default_tow_kind(site)
 	_tow_opt.select(maxi(_tow_ids.find(want), 0))
-	_tow_opt.disabled = mp
-	_tow_hint.visible = mp
-	if mp:
+	_tow_opt.disabled = mp or mode_off
+	_tow_hint.visible = mp or mode_off
+	_tow_hint.text = tr("setup_tow_mp_off") if mp else tr("setup_tow_mode_off")
+	if mp or mode_off:
 		_tow_opt.select(0)
 
 
