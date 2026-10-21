@@ -158,3 +158,6 @@
 {"t": "2026-10-21T19:37:00", "by": "coordinator", "task": "SRS-10", "ev": "merged"}
 {"t": "2026-10-21T19:37:15", "by": "reviewer", "task": "SRS-7", "ev": "reviewed", "note": "Раздел «Лес» сверен с кодом и конфигами, он верен: z0 1,0/0,03, альбедо, g_frac, lag_h, скаляр z0 в field_turbulence, canopy_dsm_height_m только в шейдере. Раз…", "verdict": "rework", "issues": {"major": 2, "minor": 1}, "review": "docs/plan/site-research/tasks/SRS-7.review.json"}
 {"t": "2026-10-21T19:37:28", "by": "coordinator", "task": "SRS-7", "ev": "note", "note": "ревью: rework 3 (2 major) → тот же исполнитель"}
+{"t": "2026-10-21T19:37:28", "by": "coordinator", "task": "SRS-11", "ev": "started"}
+{"t": "2026-10-21T19:37:28", "by": "coordinator", "task": "SRS-12", "ev": "started"}
+{"t": "2026-10-21T19:37:29", "by": "coordinator", "task": "SRS-13", "ev": "started"}
