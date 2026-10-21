@@ -425,6 +425,11 @@ generated: true
 - [tools/research/air_synth/train/README.md](../tools/research/air_synth/train/README.md) — SY-11: обучение сети P2 (U-Net+FiLM) на счёте решателя по местам дельтаплана; сеть заменена фазовой сборкой [closed]
 - [tools/research/air_synth/tune/README.md](../tools/research/air_synth/tune/README.md) — Код и команды воспроизведения настройки параметров генератора рельефа схемой Professor (SY-5): эталон, прогоны, подгонка, облако θ [closed]
 
+### Журналы (journal)
+
+- [docs/plan/site-cloud-field/decisions.md](plan/site-cloud-field/decisions.md) — Решения (0) и вопросы (0, отвечено 0) модуля site-cloud-field [closed]
+- [docs/plan/site-cloud-field/summary.md](plan/site-cloud-field/summary.md) — Сводка реализации модуля site-cloud-field: 1 задач, итоги и оговорки исполнителей [closed]
+
 ### Реестры (registry)
 
 - [docs/registry/findings.md](registry/findings.md) — Реестр выводов закрытых работ: раздел на модуль, пункт — одна строка с числом и ссылкой; отклонённые модули помечены (отклонено).
