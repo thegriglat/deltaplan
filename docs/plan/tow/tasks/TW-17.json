@@ -1,0 +1,56 @@
+{
+  "id": "TW-17",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Устойчивый закон удержания воздушной скорости (пилот-автомат для буксировки)",
+  "goal": "Класс SpeedHold — закон тангажа по воздушной скорости, устойчивый в «Маятнике» (без раскачки фугоиды) в свободном полёте и на тросе (лебёдка, 400–800 Н); Autopilot получает режим удержания скорости; тест показывает удержание 12–16 м/с.",
+  "plan_ref": "Волна 2 — физика троса и управление",
+  "contracts": [
+    {
+      "name": "TW-К4",
+      "version": "6",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-17",
+  "branch": "tow/TW-17",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/game/speed_hold.gd",
+    "scripts/game/speed_hold.gd.uid",
+    "scripts/game/autopilot.gd",
+    "tests/flight/test_speed_hold.gd",
+    "tests/flight/test_speed_hold.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/game/game.gd",
+    "scripts/game/input_controller.gd",
+    "tests/contracts",
+    "configs",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_speed_hold",
+      "tests": "test_speed_hold"
+    },
+    {
+      "name": "test_pendulum_autopilot",
+      "tests": "test_pendulum_autopilot"
+    },
+    {
+      "name": "test_input_launch",
+      "tests": "test_input_launch"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T04:36:56"
+}
