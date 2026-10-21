@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "build_trike.py собирает assets/models/trike/trike.glb по TK-K2: открытая рама (киль, наклонная мачта, подкос, рессоры), 2 сиденья со спинками, подножки/педаль, бак, три колеса, Rotax-подобный двигатель, узел Propeller с prop_spin; LOD0/1/2 = 3188/904/224 тр., винт 164/38. Контрактный тест K2 дописан.",
+  "commits": [
+    "59585562 TK-3: модель тележки трайка и тест K2"
+  ],
+  "checks": [
+    {
+      "name": "trike_model_k2",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "textures",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TK-3",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_trike.py: propeller()/main()",
+      "why": "ось Propeller: экспортёр сопрягает оси (x,z,-y), поэтому Godot basis.z узла = локальная -Y объекта Blender (не Z); направление спина: +угол вокруг Godot +Z (назад) = против часовой при взгляде сзади = prop_cw_from_behind=false",
+      "checked": "тест читает basis.z (назад, наклон 2.0 град, y оси = -sin) и знак оси дорожки вращения в импортированной сцене; полный оборот = 0.5 с даёт 180"
+    },
+    {
+      "where": "tools/blender/build_trike.py: build_mesh()",
+      "why": "вершинные цвета: COLOR_0 (export_vertex_color=ACTIVE) + белые материалы Metal/Soft/Composite; Godot должен брать цвет вершин как albedo, это глазами в игре не смотрел",
+      "checked": "в glb COLOR_0 экспортируется; скриншот Workbench в Blender только по геометрии (цвета не проверял); сборку Linux не делал"
+    },
+    {
+      "where": "tools/blender/build_trike.py: phys_mats()",
+      "why": "экспортёр Blender 4.3.2 называл картинку шины 'tire' (по файлу), а не wheel_tire; обошёл сбросом filepath_raw у образа. bl_util.externalize_shared по имени 'wheel_tire' иначе ничего не заменит",
+      "checked": "в glb image name=wheel_tire, uri ../../textures/wheel/tire.png; tire.png не изменился"
+    },
+    {
+      "where": "размеры",
+      "why": "модель без обтекателей колёс: габарит по ширине 1.82 (колея 1.7 + шины) против width 1.91 с обтекателями; длина по колёсам/винту ≈ 2.77 против 2.745; двигатель и винт стоят на оси y за мачтой, рама и сиденья — упрощённая форма (коробки) по размерам из JSON, без фото-сверки",
+      "checked": "колёсная база, колея, диаметр диска, высота оси, низ колёс y=ground_z проверяет тест"
+    },
+    {
+      "where": "assets/models/trike/trike.glb.import",
+      "why": "loop prop_spin задан в _subresources (loop_mode 1) вручную",
+      "checked": "после --import тест видит LOOP_LINEAR"
+    }
+  ],
+  "dp_feedback": "U.externalize_shared молча ничего не делает, если экспортёр назвал картинку иначе (в Blender 4.3.2 имя по файлу): стоит печатать предупреждение при нуле замен.",
+  "extra": {
+    "tris": {
+      "Trike_LOD0": 3188,
+      "Trike_LOD1": 904,
+      "Trike_LOD2": 224,
+      "Prop_LOD0": 164,
+      "Prop_LOD1": 38
+    }
+  },
+  "t": "2026-10-22T03:33:28",
+  "by": "executor"
+}

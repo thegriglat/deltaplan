@@ -1,0 +1,60 @@
+{
+  "id": "TK-4",
+  "module": "trike-model",
+  "type": "dp-researcher",
+  "title": "Кадры тележки без пилота и видео винта",
+  "goal": "Кадры тележки без пилота (4 ракурса: trike_front34, trike_side, trike_rear34, trike_top) и видео prop_spin.mp4 ≥ 4 с с крутящимся винтом в /home/greg/deltaplan/build/screenshots/trike-model; скрипт render_trike.py с ключом для будущего пилота (TK-6).",
+  "plan_ref": "TK-4",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K2",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K3",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-4",
+  "branch": "trike-model/TK-4",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/blender/render_trike.py",
+    "tools/research/trike-model/"
+  ],
+  "dont_touch": [
+    "tools/blender/trike_params.json",
+    "tools/blender/build_pilot.py",
+    "tools/blender/build_trike.py",
+    "assets/",
+    "docs/contracts/trike-model.md"
+  ],
+  "accept": [
+    {
+      "name": "video",
+      "cmd": "ffprobe -v error -show_entries format=duration -of csv=p=0 /home/greg/deltaplan/build/screenshots/trike-model/prop_spin.mp4",
+      "expect": "num:([\\d.]+) >=4"
+    },
+    {
+      "name": "docs",
+      "cmd": "./.dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-model/trike_*.png | wc -l",
+      "expect": "num:(\\d+) >=4"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T03:25:40",
+  "edited": "2026-10-22T03:40:57"
+}
