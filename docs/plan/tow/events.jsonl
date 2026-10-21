@@ -227,3 +227,5 @@
 {"t": "2026-10-22T04:25:11", "by": "coordinator", "task": "TW-16", "ev": "checked", "note": "4/4 headings=ok:7; readme=ok:exit 0; size=ok:30835; docs=ok:ошибок 0"}
 {"t": "2026-10-22T04:26:47", "by": "reviewer", "task": "TW-16", "ev": "reviewed", "note": "Все 6 замечаний прошлого ревью закрыты. Трос лебёдки теперь тянет вперёд-вниз и в statics.py:93, и в tow_sweep.gd:44 (якорь ниже на rope·sin ε). Таблицы пересч…", "verdict": "accept", "issues": {"major": 1, "minor": 1}, "review": "docs/plan/tow/tasks/TW-16.review.json"}
 {"t": "2026-10-22T04:27:00", "by": "coordinator", "task": "TW-16", "ev": "accepted", "note": "по ревью (второе); major: закон пилота по V не показан — в шлюз Q4"}
+{"t": "2026-10-22T04:27:01", "by": "coordinator", "task": "TW-16", "ev": "accepted", "commits": ["eea519b8"], "note": "4/4 headings=ok:7; readme=ok:exit 0; size=ok:30835; docs=ok:ошибок 0"}
+{"t": "2026-10-22T04:27:01", "by": "coordinator", "task": "TW-16", "ev": "merged"}
