@@ -6,6 +6,8 @@ import numpy as np
 
 R = os.path.expanduser("~/data/haze_humidity")
 HERE = os.path.dirname(os.path.abspath(__file__))
+CLOUD = os.environ.get("CLOUD", "tccday")  # tccday: среднее за сутки (CDS daily_mean и ARCO за 24 ч); tcc: окно местных 10-16 ч (только ARCO 2011-13)
+SUF = os.environ.get("SUF", "")
 TH = (0.2, 0.6)  # clear < 0.2 <= partly <= 0.6 < overcast
 BANDS = [(0, 20), (20, 40), (40, 60), (60, 75)]
 SEAS = ["DJF", "MAM", "JJA", "SON"]
@@ -23,8 +25,8 @@ print("годы", years)
 def month_idx(y, n): return np.array([(dt.date(y, 1, 1) + dt.timedelta(k)).month - 1 for k in range(n)])
 def load(y):
     a = np.load(f"{R}/daily/{y}.npz")["td1"]; b = np.load(f"{R}/td_sky/{y}.npz")
-    bad = np.isnan(a).all((1, 2)) | np.isnan(b["tcc"]).all((1, 2)) | np.isnan(b["tmax"]).all((1, 2))
-    return a, b["tcc"], b["tmax"], month_idx(y, len(a)), bad
+    bad = np.isnan(a).all((1, 2)) | np.isnan(b[CLOUD]).all((1, 2)) | np.isnan(b["tmax"]).all((1, 2))
+    return a, b[CLOUD], b["tmax"], month_idx(y, len(a)), bad
 s_td = np.zeros((12, 180, 360)); s_tx = np.zeros((12, 180, 360)); cnt = np.zeros((12, 180, 360))
 for y in years:
     a, c, x, mo, bad = load(y)
@@ -82,7 +84,7 @@ for iy, y in enumerate(years):
                     uv = np.broadcast_to(u[rows], sel.shape)[sel]
                     ACC[iy, h, b, season_of_m[m], c] += sums(wv, ax[:, rows][sel], ay[:, rows][sel], uv)
     print("год", y, flush=True)
-np.save(f"{HERE}/acc_cache.npy", ACC)
+np.save(f"{HERE}/acc_cache{SUF}.npy", ACC)
 # ---- свёртка
 def stats(S):
     """S[..., cat, 14] (суммы по гем/годам) -> dict по категориям + β"""
@@ -148,7 +150,7 @@ for name in SITES:
 # ---- вывод
 def f(a, nd=3): return [round(float(v), nd) for v in a]
 J = dict(bands=[list(b) for b in BANDS], seasons=SEAS, season_note="|lat| сливает полушария по физическому сезону: на юге DJF = календарные JJA (зима/лето совпадают с севером)",
-         cat_thresholds_tcc=list(TH), years=[years[0], years[-1]], sky={}, beta_k_per_k=[[0] * 4 for _ in range(4)])
+         cat_thresholds_tcc=list(TH), years=[years[0], years[-1]], n_years=len(years), cloud_var=CLOUD, sky={}, beta_k_per_k=[[0] * 4 for _ in range(4)])
 for ci, c in enumerate(CATS):
     J["sky"][c] = dict(mu_sigma=[[0] * 4 for _ in range(4)], mu_k=[[0] * 4 for _ in range(4)], frac=[[0] * 4 for _ in range(4)],
                         res_ratio=[[0] * 4 for _ in range(4)], dtmax_k=[[0] * 4 for _ in range(4)],
@@ -171,8 +173,8 @@ J["sites"] = {n: dict(cell_j=v[0], cell_i=v[1], land=v[2], lsm=round(v[3], 2),
                                              res_ratio=f(st["res_ratio"]), dtmax_k=f(st["dtmax_k"]), mu_sigma_uncentered=f(st["mu_sigma_uncentered"]))
                                for s, st in v[4].items()}) for n, v in sites_out.items()}
 J["td_bias_sample_vs_30y_k"] = round(float(np.nanmean(bias[:, LAND])), 3)
-json.dump(J, open(f"{HERE}/td_sky.json", "w"), indent=1, ensure_ascii=False)
-with open(f"{HERE}/td_sky.csv", "w", newline="") as fh:
+json.dump(J, open(f"{HERE}/td_sky{SUF}.json", "w"), indent=1, ensure_ascii=False)
+with open(f"{HERE}/td_sky{SUF}.csv", "w", newline="") as fh:
     wr = csv.writer(fh)
     wr.writerow(["scope", "band_or_site", "season", "sky", "frac", "mu_sigma", "se_mu_sigma", "mu_k", "mu_sigma_uncentered", "res_ratio", "dtmax_k", "beta_pooled", "beta_cat"])
     for (b, s), (st, se) in res.items():
