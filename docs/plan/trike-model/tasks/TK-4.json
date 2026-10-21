@@ -1,0 +1,74 @@
+{
+  "id": "TK-4",
+  "module": "trike-model",
+  "type": "dp-researcher",
+  "title": "Кадры, видео винта и проверка посадки",
+  "goal": "Кадры тележки с сидящим пилотом (≥ 6, в т. ч. крупно посадка) и видео ≥ 4 с с крутящимся винтом в /home/greg/deltaplan/build/screenshots/trike-model; посадка проверена числами (зазоры, проникание) в fit.json.",
+  "plan_ref": "TK-4",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K2",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K3",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-4",
+  "branch": "trike-model/TK-4",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/blender/render_trike.py",
+    "tools/research/trike-model/"
+  ],
+  "dont_touch": [
+    "tools/blender/trike_params.json",
+    "tools/blender/build_pilot.py",
+    "tools/blender/build_trike.py",
+    "assets/",
+    "docs/contracts/trike-model.md"
+  ],
+  "accept": [
+    {
+      "name": "shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-model/*.png | wc -l",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "video",
+      "cmd": "ffprobe -v error -show_entries format=duration -of csv=p=0 /home/greg/deltaplan/build/screenshots/trike-model/prop_spin.mp4",
+      "expect": "num:([\\d.]+) >=4"
+    },
+    {
+      "name": "penetration",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('pen=%.2f'%d['max_penetration_cm'])\"",
+      "expect": "num:pen=([\\d.]+) <=2"
+    },
+    {
+      "name": "seat_gap",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('gap=%.2f'%max(d['seat_gap_cm'],d['back_gap_cm']))\"",
+      "expect": "num:gap=([\\d.]+) <=3"
+    },
+    {
+      "name": "foot_gap",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('foot=%.2f'%max(d['foot_gap_l_cm'],d['foot_gap_r_cm']))\"",
+      "expect": "num:foot=([\\d.]+) <=3"
+    },
+    {
+      "name": "docs",
+      "cmd": "./.dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T03:25:40"
+}
