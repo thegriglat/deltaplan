@@ -1,0 +1,115 @@
+{
+  "status": "done",
+  "summary": "Крыло trike_ixess15 (iXess 15) добавлено путём крыльев игры: конфиг, glider_params, pendulum, glb; группа tug (player:false) скрыта от меню и ботов через WingCatalog. Тест TT-К2 и все тесты приёмки проходят; accept --dry: 9/9 PASS, FAIL только scope (5 файлов вне скоупа, без них не обойтись).",
+  "commits": [
+    "e9e8b6cd TT-2: крыло буксировщика trike_ixess15 (группа tug, скрыта от игрока и ботов)"
+  ],
+  "checks": [
+    {
+      "name": "tow_trike_k2",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "wing",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "polar",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "pendulum_contracts",
+      "value": "35/35",
+      "pass": true
+    },
+    {
+      "name": "wind_limits",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "bot",
+      "value": "20/20",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "5 файлов вне скоупа (см. uncertain)",
+      "pass": false
+    },
+    {
+      "name": "others_unchanged",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "glb",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "k1",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Расширить скоуп TT-2 на 5 файлов вне карточки (список в uncertain) или принять как есть?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TT-2",
+  "uncertain": [
+    {
+      "where": "вне скоупа: tools/flight/pendulum_params.py (+ pendulum_params_table.md)",
+      "why": "GROUP_DEFAULTS[group] без ключа tug даёт KeyError; добавил tug = умолчания мачтовых (−1,5°, 0,6). Таблица — вывод скрипта (одна новая строка).",
+      "checked": "pendulum_params.py --check не запускал отдельно; запись прошла, нарушений 0, чужие конфиги не менялись"
+    },
+    {
+      "where": "вне скоупа: tools/blender/aframe_trim.json",
+      "why": "aframe_cg.py требует trim_pitch_deg для нового крыла; пересчитан godot-инструментом, добавлена одна запись, остальные не изменились",
+      "checked": "git diff"
+    },
+    {
+      "where": "вне скоупа: assets/shaders/sail/sail_maps.json",
+      "why": "build_gliders.py дописал запись glider_trike_ixess15 (карты паруса от aeros_combat_c)",
+      "checked": "diff: +4 строки"
+    },
+    {
+      "where": "вне скоупа: tests/contracts/test_wind_limits_contracts.gd:37",
+      "why": "число крыльев 48 -> 49",
+      "checked": "wind_limits 5/5"
+    },
+    {
+      "where": "configs/wings/trike_ixess15.json, tools/blender/glider_params.json (root/tip chord)",
+      "why": "хорды TT-1 (2,40/0,60) дают площадь модели в плане 14,2 м² против 15 (тест test_wing_models_contract); масштабированы до 2,54/0,63. Динамика крена/тангажа (roll_*, pitch_time_constant, lift_slope, α0), launch.*, stall.*, wind_class 2, вид базовой штанги, цвет — оценки, взятые у magic (в источниках н/д), отмечены в _doc. Для дельталёта с тележкой реакция реально медленнее: модель границы не знает.",
+      "checked": "тесты крыльев"
+    },
+    {
+      "where": "tests/flight/test_wing_clearance.gd",
+      "why": "крыло tug на косом склоне 15° с «нос вверх до упора» даёт крен 3,2° (допуск 2° — предел силы руки пилота для лёгких крыльев; тележку на руках не держат). Для группы tug допуск 4° только на косом склоне.",
+      "checked": "wing 25/25"
+    },
+    {
+      "where": "API WingCatalog (scripts/game/wing_catalog.gd)",
+      "why": "groups() теперь только группы игрока (без player:false), all_groups() — все; новые is_player_wing(), player_wings(). wings_in_group('tug') работает. Использование: экран старта (через groups()), боты-запас, remote_pilots._wing_id, user_settings.load_last_flight (сохранённое крыло tug = неизвестное). TT-4/TT-5 должны брать крыло по пути wings/trike_ixess15 напрямую.",
+      "checked": "тесты wing/bot"
+    },
+    {
+      "where": "известные падения",
+      "why": "под нагрузкой не наблюдал; порт 8080 не затронут",
+      "checked": "—"
+    }
+  ],
+  "dp_feedback": "Скоуп карточки не учёл побочные файлы конвейера крыльев (aframe_trim.json, pendulum_params*, sail_maps.json); хорошо бы авто-список из docs/guide/models/wings.md. job wait режется 120 с тайм-аутом инструмента — приходится запускать в фоне.",
+  "extra": {
+    "glb_tris": 12980,
+    "root_chord_m": 2.54,
+    "tip_chord_m": 0.63,
+    "pilot_mass_ref_kg": 262.5
+  },
+  "t": "2026-10-22T17:24:14",
+  "by": "executor"
+}

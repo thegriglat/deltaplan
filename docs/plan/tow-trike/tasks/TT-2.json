@@ -38,7 +38,12 @@
     "tests/game/",
     "tests/ui/",
     "tools/research/data/wing_passports/",
-    "docs/guide/models/wings.md"
+    "docs/guide/models/wings.md",
+    "assets/shaders/sail/sail_maps.json",
+    "tests/contracts/test_wind_limits_contracts.gd",
+    "tools/blender/aframe_trim.json",
+    "tools/flight/pendulum_params.py",
+    "tools/flight/pendulum_params_table.md"
   ],
   "dont_touch": [
     "scripts/flight/",
@@ -90,5 +95,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T16:43:27"
+  "created": "2026-10-22T16:43:27",
+  "edited": "2026-10-22T17:35:34"
 }
