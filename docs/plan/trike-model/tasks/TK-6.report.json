@@ -1,0 +1,85 @@
+{
+  "status": "partial",
+  "summary": "Кадры модели v2 готовы (4 без пилота, 5 с пилотом, 3 крупных посадки, Cycles/CUDA ~1 мин, без видео). Посадка проверена числами в fit.json: спинка, седалище, глаза в норме, но подошвы глубже верха подножек на 2.6 см, проникание 2.63 > 2 см.",
+  "commits": [
+    "c8550d0c trike-model: TK-6 — кадры модели v2 с пилотом (Cycles GPU), fit_check.py и fit.json, видео убрано"
+  ],
+  "checks": [
+    {
+      "name": "pilot_shots",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "closeups",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "penetration",
+      "value": "2.63 см (внутри замкнутых деталей 1.00; подошва L в подножку 2.63)",
+      "pass": false
+    },
+    {
+      "name": "seat_gap",
+      "value": "0.89 (спинка 0.06)",
+      "pass": true
+    },
+    {
+      "name": "foot_gap",
+      "value": "2.63 / 2.08",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fresh",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Критерий penetration <= 2 см не выполнен: ботинки заглублены в подножку/педаль (низ подошвы -2.202 м против верха подножки -2.16 м); модели не подгонялись — чужой scope (TK-2 поза sit или TK-8 положение подножек)."
+  ],
+  "questions": [
+    "Принять 1.00 см (строго по определению карточки: вершины внутри замкнутых деталей) или считать 2.63 (с заглублением тонкой подножки, которое чётность не ловит)? В fit.json max_penetration_cm = 2.63 (консервативно), pen_inside_cm = 1.00. Исправление: стопы в sit выше на ~3 см или foot_l/foot_r в trike_params ниже."
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/trike-model/pilot_front34.png",
+    "/home/greg/deltaplan/build/screenshots/trike-model/pilot_side.png",
+    "/home/greg/deltaplan/build/screenshots/trike-model/seat_closeup_side.png",
+    "/home/greg/deltaplan/build/screenshots/trike-model/seat_closeup_feet.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TK-6; blender --background --python tools/research/trike-model/fit_check.py",
+  "uncertain": [
+    {
+      "where": "tools/blender/render_trike.py:gpu",
+      "why": "кадры не просматривались глазами (правило: проверка числами); ракурсы крупных планов (камеры k1-k3) подобраны по координатам, возможна загороженность деталями",
+      "checked": "на тестовом прогоне доля пикселей, отличных от фона, не нулевая; pilot-кадры рамкуются по габариту тележки без пилота"
+    },
+    {
+      "where": "tools/research/trike-model/fit_check.py",
+      "why": "проникание считается по вершинам пилота (не по рёбрам); подошвы/седалище — отдельным заглублением по лучу вниз",
+      "checked": "острова слиты по позиции (107 из 118 замкнуты); схлопнутые вершины кокона исключены (792)"
+    }
+  ],
+  "dp_feedback": "Не хватило подсказки в карточке, что тестовый прогон Cycles CUDA в первый раз компилирует ядра ~7 мин (ptxas) и блокирует таймаут команды; Monitor с until удобен. В сборке Blender нет OIDN, OPTIX-устройства нет — шумодав недоступен.",
+  "extra": {
+    "fit": {
+      "pen_inside_cm": 1.0,
+      "max_penetration_cm": 2.63,
+      "seat_gap_cm": 0.89,
+      "back_gap_cm": 0.06,
+      "foot_gap_l_cm": 2.63,
+      "foot_gap_r_cm": 2.08,
+      "eye_err_cm": 0.05,
+      "hip_err_cm": 1.31
+    },
+    "render_s": 57
+  },
+  "t": "2026-10-22T05:04:48",
+  "by": "executor"
+}

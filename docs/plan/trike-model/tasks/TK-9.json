@@ -1,0 +1,55 @@
+{
+  "id": "TK-9",
+  "module": "trike-model",
+  "type": "dp-engineer",
+  "title": "Поза sit: подошвы точно на подножках",
+  "goal": "В позе sit низ подошв ботинков (меш, не приближение по голеностопу) лежит на foot_l/foot_r/throttle_pedal ± 1 см, без заглубления в подножки; тест K3 меряет подошву по вершинам меша.",
+  "plan_ref": "TK-2",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "2",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K3",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-9",
+  "branch": "trike-model/TK-9",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/blender/build_pilot.py",
+    "assets/models/pilot.glb",
+    "assets/models/pilot.glb.import",
+    "assets/source/pilot.blend",
+    "tests/contracts/test_trike_model_k3.gd"
+  ],
+  "dont_touch": [
+    "tools/blender/trike_params.json",
+    "tools/blender/build_trike.py",
+    "assets/models/trike/",
+    "configs/",
+    "scripts/",
+    "docs/contracts/trike-model.md"
+  ],
+  "accept": [
+    {
+      "name": "trike_model_k3",
+      "tests": "trike_model_k3"
+    },
+    {
+      "name": "trike_model_k1",
+      "tests": "trike_model_k1"
+    },
+    {
+      "name": "pilot",
+      "tests": "pilot"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T05:05:27"
+}
