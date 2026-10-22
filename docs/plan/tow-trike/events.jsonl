@@ -163,3 +163,6 @@
 {"t": "2026-10-22T23:08:04", "by": "executor", "task": "TT-12", "ev": "reported", "commits": ["76221743"], "note": "done: Пробные вызовы arms.compute в _wh_root обёрнуты в снимок/восстановление состояния рук (PilotArms.snapshot/restore); сос…", "dp_feedback": "Свежий XDG_DATA_HOME без импорта даёт parse-ошибки глобальных классов и тест молча висит до таймаута; task sync отказывает при грязной копии."}
 {"t": "2026-10-22T23:08:50", "by": "coordinator", "task": "TT-5", "ev": "checked", "note": "7/7 tow=ok:104/104; contracts/=ok:533/533; no_an2_ui=ok:0; no_an2=ok:0; egg_an2=ok:3/3; egg_meet=ok:1/1; eggs_no_osm=ok:2/2"}
 {"t": "2026-10-22T23:08:59", "by": "coordinator", "task": "TT-5", "ev": "accepted", "note": "по отчёту; вид — проверка сборкой Linux у главной"}
+{"t": "2026-10-22T23:08:59", "by": "coordinator", "task": "TT-5", "ev": "merged"}
+{"t": "2026-10-22T23:19:44", "by": "coordinator", "task": "TT-12", "ev": "checked", "note": "4/4 tow_trike_k3=ok:11/11; pendulum=ok:117/117 (пропуск 1); tow=ok:104/104; contracts/=ok:533/533"}
+{"t": "2026-10-22T23:19:44", "by": "coordinator", "task": "TT-12", "ev": "accepted", "note": "по отчёту; остаток: рывок 0,177 м/с один шаг при переключении штанги в автопилоте (ревью TT-4) — не разобран"}
