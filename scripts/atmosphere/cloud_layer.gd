@@ -90,6 +90,8 @@ var _light_acc: float = 1.0e9
 var _sun: DirectionalLight3D
 var _sun_dir: Vector3 = Vector3.UP
 var _sun_energy: float = 1.3
+## Множитель яркости света окружения облаков по высоте солнца (sky_energy; 1 — день), для тестов.
+var ambient_sky_k: float = 1.0
 
 ## Пропускание атмосферы для света солнца на облаках (HH4, SunTransmission): таблица, ключ сборки
 ## (extinction дымки, верх дымки, спектр), фоновая пересборка, узел неба (дымка и часы).
@@ -470,6 +472,15 @@ func _update_light() -> void:
 		var az := deg_to_rad(float(cfg.sun_azimuth_deg))
 		_sun_dir = Vector3(sin(az) * cos(el), sin(el), -cos(az) * cos(el))
 	_material.set_shader_parameter("sun_dir", _sun_dir)
+	# Свет окружения (рассеянный свет неба и дымка) следует закату: × horizon_tint (цвет, как у
+	# рельефа и дымки, SkyEnvironment) и sky_light_k (яркость неба, физика — таблица в конфиге) (HH-14).
+	var tint := Color.WHITE
+	var sky_k := 1.0
+	var sky := _find_sky()
+	if bool(cfg.get("ambient_follows_sunset", true)) and sky != null and sky.clock != null:
+		var el_s: float = sky.clock.angles().y
+		tint = SunClock.light_at(el_s).horizon_tint as Color
+		sky_k = sky_light_k(el_s)
 	var toa := Vector3(color.r, color.g, color.b)
 	var energy := _sun_energy * atmo.get_insolation()
 	var tab := _update_sun_transmission()
@@ -478,19 +489,43 @@ func _update_light() -> void:
 		energy = tab.energy_k * atmo.get_insolation()
 	_material.set_shader_parameter("sun_color", toa)
 	_material.set_shader_parameter("sun_energy", energy)
+	var at := _color(cfg.ambient_top) * tint
+	var ab := _color(cfg.ambient_bottom) * tint
+	_material.set_shader_parameter("ambient_top", at)
+	_material.set_shader_parameter("ambient_bottom", ab)
+	_material.set_shader_parameter("ambient_energy", float(cfg.ambient_energy) * sky_k)
+	ambient_sky_k = sky_k
 	var env: Environment = (
 		get_world_3d().environment if is_inside_tree() and get_world_3d() != null else null
 	)
+	var fc_k := Vector3(tint.r, tint.g, tint.b) * sky_k
 	if env != null and env.fog_enabled:
 		var fc := env.fog_light_color.srgb_to_linear() * env.fog_light_energy
-		_material.set_shader_parameter("fog_color", Vector3(fc.r, fc.g, fc.b))
+		_material.set_shader_parameter("fog_color", Vector3(fc.r, fc.g, fc.b) * fc_k)
 		_material.set_shader_parameter("fog_density", env.fog_density)
 	else:
 		var fc2 := _color(cfg.fog_color_fallback).srgb_to_linear()
-		_material.set_shader_parameter("fog_color", Vector3(fc2.r, fc2.g, fc2.b))
+		_material.set_shader_parameter("fog_color", Vector3(fc2.r, fc2.g, fc2.b) * fc_k)
 		_material.set_shader_parameter("fog_density", float(cfg.fog_density_fallback))
 	# «Дымка к солнцу» — то же значение, что у наземной дымки и окружения (SkyEnvironment)
 	_material.set_shader_parameter("fog_sun_scatter", SkyEnvironment.fog_sun_scatter())
+
+
+## Яркость рассеянного света неба относительно дня (35°) по высоте солнца, градусы: линейно по
+## таблице atmosphere.json → clouds.sky_light (освещённость горизонтальной поверхности безоблачным
+## небом: у горизонта на порядок слабее прямого света облака; ручная таблица world.json sky_energy
+## для сцены (0,5 при 2°) для облаков слишком яркая — боковой свет синит облако).
+func sky_light_k(el_deg: float) -> float:
+	var tb: Dictionary = cfg.get("sky_light", {})
+	var xs: Array = tb.get("elevation_deg", [0.0])
+	var ys: Array = tb.get("k", [1.0])
+	if el_deg <= float(xs[0]):
+		return float(ys[0])
+	for i in range(1, xs.size()):
+		if el_deg <= float(xs[i]):
+			var f := (el_deg - float(xs[i - 1])) / maxf(float(xs[i]) - float(xs[i - 1]), 1.0e-6)
+			return lerpf(float(ys[i - 1]), float(ys[i]), f)
+	return float(ys[xs.size() - 1])
 
 
 ## Свет облаков по пропусканию атмосферы (HH4): обновляет таблицу, T_ref, настоящее направление на
