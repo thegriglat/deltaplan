@@ -71,6 +71,7 @@ generated: true
 - tow: — — [docs/contracts/tow-wave1.md](../contracts/tow-wave1.md)
 - tow: TW-К1 v1, TW-К2 v1, TW-К3 v1, TW-К4 v9, TW-К5 v9, TW-К6 v2, TW-К7 v3, TW-К8 v3, TW-К9 v3, TW-К10 v2 — [docs/contracts/tow.md](../contracts/tow.md)
 - training-island: TI-К1 v1, TI-К2 v2, TI-К3 v3 — [docs/contracts/training-island.md](../contracts/training-island.md)
+- trike-model: TK-K1 v4, TK-K2 v4, TK-K3 v2 — [docs/contracts/trike-model.md](../contracts/trike-model.md)
 - ui-controls: У1 v5, У2 v2 — [docs/contracts/ui-controls.md](../contracts/ui-controls.md)
 - volcano-island: VI-К1 v3, VI-К2 v2, VI-К3 v1 — [docs/contracts/volcano-island.md](../contracts/volcano-island.md)
 - wind-limits: WL-К1 v2, WL-К2 v1 — [docs/contracts/wind-limits.md](../contracts/wind-limits.md)

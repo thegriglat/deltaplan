@@ -62,6 +62,10 @@ generated: true
   - [docs/research/tow/sites.md](research/tow/sites.md) — Площадка буксировки: Wilotree Park (Quest Air, Флорида), травяная полоса 18/36 ≈ 610×35 м; Логиново и Крутиха — запасные.
   - [docs/research/tow/tow-control.md](research/tow/tow-control.md) — Лебёдка: статика пилота на тросе вперёд-вниз, сверка с моделью, числа для шлюза Q3 — 50/50 или принять.
   - [tools/research/tow/README.md](../tools/research/tow/README.md) — Код и данные TW-16: статика пилота на тросе, опыты на PendulumModel, сверка; команды воспроизведения.
+- **trike-model** — Модель тележки дельталёта (трайк) в Blender без крыла: размеры реальных аппаратов с источниками, пилот в позе sit, винт отдельным узлом. [closed 2026-10-22] — [план](plan/trike-model.md) · [контракты](contracts/trike-model.md) · [решения](plan/trike-model/decisions.md) · [сводка](plan/trike-model/summary.md) · полный журнал: `archive/trike-model`
+  - [docs/guide/models/trike.md](guide/models/trike.md) — Модель тележки трайка trike.glb: источники размеров, оси и узлы, винт prop_spin и обороты, бюджеты, сборка, чего модель не умеет.
+  - [tools/research/trike-model/README.md](../tools/research/trike-model/README.md) — TK-1: размеры трайка (источники), замер точки глаз сидячей позы, блок seat, расхождение с реальной посадкой, команды
+  - [tools/research/trike-model/summary.md](../tools/research/trike-model/summary.md) — TK-1: краткий итог размеров трайка и точки глаз
 
 ## world
 
@@ -445,6 +449,7 @@ generated: true
 
 ### Реестры (registry)
 
+- [docs/registry/air-model-findings.md](registry/air-model-findings.md) — Выводы модуля air-model (вынесены из docs/registry/findings.md по размеру реестра).
 - [docs/registry/findings.md](registry/findings.md) — Реестр выводов закрытых работ: раздел на модуль, пункт — одна строка с числом и ссылкой; отклонённые модули помечены (отклонено).
 - [docs/registry/pendulum-findings.md](registry/pendulum-findings.md) — Выводы pendulum и pullin-speed: каналы маятника, срыв, Vmax «на себя» (Cm(α), добор), переворот при выходе из разгона.
 - [TODO.md](../TODO.md) — Реестр задач T-NN по блокам (воздух, полёт, мир, графика, сеть, релиз): строка с состоянием и ссылкой на план

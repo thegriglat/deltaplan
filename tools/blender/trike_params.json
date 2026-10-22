@@ -1,0 +1,373 @@
+{
+  "version": 4,
+  "prototype": {
+    "name": "Airborne Edge XT 912 / Streak 3 (габариты, винт) + Air Creation Tanarg (шины, винт)",
+    "seats": 2,
+    "sources": [
+      "https://www.airborne.com.au/pages/ml_xt912_specs.php",
+      "https://www.bmaa.org/files/hads_hm16_tanarg.pdf",
+      "https://www.dulv.de/kennblatt/Trike/693-161.pdf",
+      "https://en.wikipedia.org/wiki/Air_Creation_Tanarg",
+      "https://en.wikipedia.org/wiki/Rotax_912",
+      "https://www.aircraftpilots.com/forums/topic/6284-buzzard-trike-restoration/page/2",
+      "https://www.ergocenter.ncsu.edu/wp-content/uploads/sites/18/2017/09/Anthropometric-Summary-Data-Tables.pdf",
+      "https://www.dulv.de/kennblatt/Trike/14397-1121.pdf",
+      "https://www.dulv.de/kennblatt/Trike/56104-23.pdf",
+      "https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg",
+      "https://www.rotax-owner.com/pdf/IM_582ULSeries_Ed1_R0.pdf",
+      "https://en.wikipedia.org/wiki/Rotax_582",
+      "https://www.aircraftspruce.com/cps/pdf/d00287.pdf",
+      "https://en.wikipedia.org/wiki/Cosmos_Phase_II",
+      "https://en.wikipedia.org/wiki/Aeros-2",
+      "https://en.wikipedia.org/wiki/Air_Creation_Skypper"
+    ]
+  },
+  "dims": {
+    "length": {
+      "value": 2.745,
+      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Trike Length)"
+    },
+    "width": {
+      "value": 1.91,
+      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Trike Width, по внешней стороне обтекателей колёс)"
+    },
+    "hang_height": {
+      "value": 2.5,
+      "src": "вывод: Trike Height 2.53 м (https://www.airborne.com.au/pages/ml_xt912_specs.php) — верх мачты; болт подвески ≈ на 3 см ниже; пилот на колёсах без нагрузки"
+    },
+    "wheelbase": {
+      "value": 1.8,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg: база ≈1800 мм (ответ пользователя на Q3, 2026-10-22); прототип Airborne XT912 — 1.89 (https://www.airborne.com.au/pages/ml_xt912_specs.php)"
+    },
+    "track": {
+      "value": 1.7,
+      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Wheel Track)"
+    },
+    "wheel_front_d": {
+      "value": 0.356,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): переднее колесо 350 мм (14 дюймов, штатные шины Tanarg, https://www.bmaa.org/files/hads_hm16_tanarg.pdf Annex B 2b)"
+    },
+    "wheel_rear_d": {
+      "value": 0.356,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): основные колёса 350–400 мм, 0.356 м (14 дюймов, штатные шины Tanarg, https://www.bmaa.org/files/hads_hm16_tanarg.pdf Annex B 2b)"
+    },
+    "tire_front_w": {
+      "value": 0.1,
+      "src": "вывод: оценка: типичная шина 4.00-6 малой авиации (источник по прототипу не найден)"
+    },
+    "tire_rear_w": {
+      "value": 0.12,
+      "src": "вывод: оценка: типичная шина 4.00-6 малой авиации (источник по прототипу не найден)"
+    },
+    "mast_tilt_deg": {
+      "value": 18.0,
+      "src": "https://www.aircraftpilots.com/forums/topic/6284-buzzard-trike-restoration/page/2 (мачта ≈ 18 градусов от вертикали у Edge-X 582 по сообщению на форуме; у самодельного трайка ≈ 11 градусов)"
+    },
+    "seat_height": {
+      "value": 0.619,
+      "src": "вывод: под скелет пилота, TK-2 (seat_pan.z − ground_z; глаза seat.eye при корпусе вдоль спинки)"
+    },
+    "engine": {
+      "value": "Rotax 582 UL DCDI (64 л.с. при 6500 об/мин, двухтактный рядный, жидкостное охлаждение, редуктор C 3.47:1)",
+      "src": "https://en.wikipedia.org/wiki/Rotax_582 (64.4 л.с. при 6500, 2 цилиндра, ЖО); https://www.dulv.de/kennblatt/Trike/10591-871.pdf (582 UL-DCDI + Rotax C 3.47:1 на трайке); двигатель на фото Fregat — 582-подобный рядный, см. фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg"
+    },
+    "engine_l": {
+      "value": 0.5,
+      "src": "вывод: оценка (габариты 582 в открытых источниках не найдены): картер вдоль оси коленвала ≈ 0.35 м + редуктор C ≈ 0.15 м; вес и вылет редуктора по https://www.rotax-owner.com/pdf/IM_582ULSeries_Ed1_R0.pdf (72-00-00), ±20%"
+    },
+    "engine_w": {
+      "value": 0.5,
+      "src": "вывод: оценка ±20%: поперёк оси коленвала — оребрённые цилиндры (рубашка ≈ 0.13 м, ряд из двух) + карбюраторы Bing по бокам; по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg"
+    },
+    "engine_h": {
+      "value": 0.45,
+      "src": "вывод: оценка ±20%: картер + цилиндры с головками вверх, как на фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg"
+    },
+    "prop_d": {
+      "value": 1.8,
+      "src": "вывод: двухлопастный винт трайка на 582 длиннее прежних 1.727 м; 3-лопастные на 582 — 1.73-1.74 м (https://www.dulv.de/kennblatt/Trike/14397-1121.pdf, https://www.dulv.de/kennblatt/Trike/56104-23.pdf), 4-лопастный 1.76-2.00 м (https://www.dulv.de/kennblatt/Trike/10591-871.pdf, 12193-611.pdf); двухлопастный на фото Fregat длинный — фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg; 1.80 м — выбор в этом диапазоне (оценка)"
+    },
+    "prop_blades": {
+      "value": 2,
+      "src": "решение пользователя 2026-10-22 + фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg (двухлопастный винт на двигателе 582-типа); у DULV на 582 только 3-4-лопастные — 14397-1121.pdf, 56104-23.pdf, 10591-871.pdf, 12193-611.pdf (трёхлопастный вариант допустим по контракту)"
+    },
+    "prop_axis_height": {
+      "value": 1.3,
+      "src": "вывод: двигатель за задним сиденьем на уровне плеч заднего (по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg): бедро заднего на z = −1.656 от подвески + 0.5 м до плеч ≈ −1.15 → 1.35 м над землёй; взято 1.30, чтобы верх диска (z ≈ −0.30) не касался киля крыла; оценка"
+    },
+    "prop_tilt_deg": {
+      "value": 2.0,
+      "src": "вывод: оценка: ось винта слегка носом вверх; прямого источника нет"
+    },
+    "prop_rpm": {
+      "value": 1590,
+      "src": "вывод: крейсер 582 ≈ 5500 об/мин (оценка, 85% от 6500; https://en.wikipedia.org/wiki/Rotax_582) / редуктор 3.47 = 1585; максимум в стоянке у DULV на 582 C 3.5:1 — 1750 об/мин (https://www.dulv.de/kennblatt/Trike/14397-1121.pdf); скорость конца лопасти ≈ 150 м/с"
+    },
+    "prop_cw_from_behind": {
+      "value": false,
+      "src": "вывод: у 582 винт вращается против часовой при взгляде на фланец винта (оценка, источник не найден); у толкающего трайка это взгляд сзади; прежнее значение сохранено"
+    },
+    "axle_rear_y": {
+      "value": -0.55,
+      "src": "вывод: оценка: задняя ось у основания мачты (мачта наклонена на 18 град, верх на hang_height)"
+    },
+    "axle_front_y": {
+      "value": 1.25,
+      "src": "вывод: axle_rear_y (−0.55) + wheelbase 1.80"
+    },
+    "prop_chord_max": {
+      "value": 0.14,
+      "src": "вывод: оценка по данным DULV — хорда 3-лопастных винтов 582 на 75% радиуса 0.120-0.121 м (https://www.dulv.de/kennblatt/Trike/56104-23.pdf, 14397-1121.pdf), 4-лопастного 0.093 м (12193-611.pdf), Helix H50F 0.120 м (693-161.pdf); у двухлопастного узкого — 0.14 м (суммарная ширина 2×0.14 < 3×0.12), лопасть узкая почти постоянной хорды; по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg"
+    },
+    "prop_chord_tip": {
+      "value": 0.11,
+      "src": "вывод: оценка: хорда у законцовки ≈ 0.8 максимальной (почти постоянная), скруглённый конец по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg"
+    },
+    "prop_hub_d": {
+      "value": 0.17,
+      "src": "вывод: оценка: кок/ступица ≈ 0.1 диаметра винта; фланец Rotax C ≈ 0.10 м, кок шире (по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg)"
+    },
+    "engine_cyl_count": {
+      "value": 2,
+      "src": "https://en.wikipedia.org/wiki/Rotax_582 (два цилиндра)"
+    },
+    "engine_cyl_layout": {
+      "value": "inline",
+      "src": "https://en.wikipedia.org/wiki/Rotax_582 (рядный двухцилиндровый); фото Fregat — цилиндры вверх, ряд вдоль крена, фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg"
+    },
+    "engine_cyl_d": {
+      "value": 0.13,
+      "src": "вывод: диаметр цилиндра 76 мм (https://en.wikipedia.org/wiki/Rotax_582) + оребрение/рубашка охлаждения ≈ 27 мм → 0.13 м (оценка)"
+    },
+    "engine_gearbox": {
+      "value": "Rotax C 3.47:1",
+      "src": "https://www.dulv.de/kennblatt/Trike/10591-871.pdf (582 UL-DCDI, Rotax C, 3.47:1); типы и передаточные числа B/C/E: https://motive.aero/engine-details/rotax-582ul/317"
+    },
+    "engine_exhaust_d": {
+      "value": 0.15,
+      "src": "вывод: оценка по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg (масштаб по переднему колесу 14\" = 0.356 м): резонансная труба — наибольший диаметр расширительной камеры ≈ 0.15 м, крупная, над и позади двигателя; размеры в открытых документах Rotax не найдены (только длина трубы по оси: https://www.aircraftspruce.com/cps/pdf/d00287.pdf, разд. 10)"
+    },
+    "engine_exhaust_l": {
+      "value": 0.66,
+      "src": "https://www.aircraftspruce.com/cps/pdf/d00287.pdf (Rotax Installation Manual 447/503/582, разд. 10: средняя длина трубы между фланцем и глушителем 660 мм (26\") для 582 40 кВт; вывод: принята и для 582 UL DCDI 47 кВт, длина по оси с изгибом); на фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg труба сопоставима"
+    },
+    "muffler_d": {
+      "value": 0.12,
+      "src": "вывод: оценка по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg (масштаб по переднему колесу 0.356 м): задний глушитель (after-muffler, масса 1.6 кг по https://www.aircraftspruce.com/cps/pdf/d00287.pdf, разд. 7.2) — цилиндр ≈ 0.12 м; размеры в документах Rotax не найдены, ±25%"
+    },
+    "muffler_l": {
+      "value": 0.3,
+      "src": "вывод: оценка по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg (масштаб по переднему колесу 0.356 м): длина глушителя ≈ 0.30 м (≈ 80 пикс при 280 пикс/м), ±25%; масса 1.6 кг — https://www.aircraftspruce.com/cps/pdf/d00287.pdf"
+    },
+    "rear_seat_rise": {
+      "value": 0.2,
+      "src": "вывод: по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg: подушка заднего заметно выше переднего; по пикселям (масштаб по переднему колесу 14\" = 0.356 м) ≈ 0.15-0.25 м; взято 0.20 (оценка ±0.07); образец bizorg_trike_1.jpeg — тандем, задний выше"
+    },
+    "tank_volume_l": {
+      "value": 53,
+      "src": "https://en.wikipedia.org/wiki/Cosmos_Phase_II (53 л, версия с Rotax 582); https://en.wikipedia.org/wiki/Aeros-2 (53 л); https://en.wikipedia.org/wiki/Air_Creation_Skypper (582: 55 л); у одноместных/PPG меньше (38 л, ResearchGate Rotax 582 PPG trike); принято 53 л (v2: 70 л — Airborne XT912, больше типичного для 582)"
+    },
+    "tank_l": {
+      "value": 0.43,
+      "src": "вывод: подбор габарита под 53 л: 0.34×0.43×0.355 = 51.9 л (−2%) с закруглёнными рёбрами; высота ограничена зазором под задней подушкой (см. v2_sources.md, v3); форма — канистра по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg"
+    },
+    "tank_w": {
+      "value": 0.34,
+      "src": "вывод: см. tank_l; высота 0.355 ≥ 0.6 ширины (0.204)"
+    },
+    "tank_h": {
+      "value": 0.355,
+      "src": "вывод: см. tank_l; низ бака = верх киля (−2.12+0.03) + keel_clear 0.03 = −2.06; верх на 0.024 ниже задней подушки (≥ 0.02)"
+    },
+    "tube_keel_d": {
+      "value": 0.055,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): трубы киля/мачты 55 мм"
+    },
+    "tube_mast_d": {
+      "value": 0.055,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): трубы киля/мачты 55 мм"
+    },
+    "tube_strut_d": {
+      "value": 0.04,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): подкосы 40 мм"
+    },
+    "tube_frame_d": {
+      "value": 0.03,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): рама сидений и стойки шасси 30 мм"
+    },
+    "prop_rpm_idle": {
+      "value": 576,
+      "src": "вывод: холостые 2000 об/мин двигателя / редуктор 3.47 = 576; https://www.rotax-owner.com/pdf/OM_582_UL_Series_Ed3_R0.pdf (раздел режимов: взлётный 6800 об/мин до 5 мин, максимальный продолжительный 6500, холостой ≈ 2000)"
+    },
+    "prop_rpm_max": {
+      "value": 1960,
+      "src": "вывод: полный газ 6800 об/мин двигателя / 3.47 = 1960; https://www.rotax-owner.com/pdf/OM_582_UL_Series_Ed3_R0.pdf (раздел режимов: взлётный 6800 об/мин до 5 мин, максимальный продолжительный 6500, холостой ≈ 2000); скорость конца лопасти π·1.8·1960/60 ≈ 185 м/с"
+    },
+    "prop_spin_period_s": {
+      "value": 1.0,
+      "src": "вывод: длительность клипа prop_spin, TK-K2"
+    }
+  },
+  "ground_z": -2.5,
+  "eye_measured": {
+    "training": [
+      0.0,
+      0.352,
+      -1.144
+    ],
+    "apogee": [
+      0.0,
+      0.39,
+      -1.122
+    ],
+    "how": "tools/research/trike-model/measure_eye.gd: Camera3D кабинной камеры (eye_mode back_hidden = PilotHead + back_offset_m 0.3) минус HangPoint, в базисе визуала пилота, автопилот, 16 отсчётов в полёте; x усреднён по крену и принят 0 (измерено -0.06 training, -0.09 apogee, разброс +-0.2 от крена)"
+  },
+  "seat": {
+    "eye": [
+      0.0,
+      0.352,
+      -1.144
+    ],
+    "hip": [
+      0.0,
+      0.331,
+      -1.781
+    ],
+    "seat_pan": [
+      0.0,
+      0.431,
+      -1.881
+    ],
+    "seat_pan_size": [
+      0.45,
+      0.42
+    ],
+    "backrest_base": [
+      0.0,
+      0.191,
+      -1.861
+    ],
+    "backrest_angle_deg": 15.0,
+    "backrest_size": [
+      0.4,
+      0.55
+    ],
+    "foot_l": [
+      -0.15,
+      1.225,
+      -2.081
+    ],
+    "foot_r": [
+      0.15,
+      1.225,
+      -2.081
+    ],
+    "throttle_pedal": [
+      0.15,
+      1.211,
+      -2.095
+    ],
+    "hand_l": [
+      -0.15,
+      0.622,
+      -1.6495
+    ],
+    "hand_r": [
+      0.15,
+      0.622,
+      -1.6495
+    ],
+    "pedal_angle_deg": 45,
+    "pedal_size": [
+      0.14,
+      0.34
+    ]
+  },
+  "seat_rear": {
+    "seat_pan": [
+      0.0,
+      -0.01,
+      -1.681
+    ],
+    "seat_pan_size": [
+      0.45,
+      0.42
+    ],
+    "backrest_base": [
+      0.0,
+      -0.25,
+      -1.661
+    ],
+    "backrest_angle_deg": 15.0,
+    "backrest_size": [
+      0.4,
+      0.55
+    ],
+    "foot_l": [
+      -0.3,
+      0.655,
+      -1.956
+    ],
+    "foot_r": [
+      0.3,
+      0.655,
+      -1.956
+    ]
+  },
+  "tank": {
+    "center": [
+      0.0,
+      -0.15,
+      -1.8825
+    ],
+    "size": [
+      0.34,
+      0.43,
+      0.355
+    ],
+    "keel_clear": 0.0325,
+    "filler": [
+      0.05,
+      -0.2,
+      -1.705
+    ]
+  },
+  "bar": {
+    "wing": "training",
+    "d": 0.03,
+    "half_width": 0.75,
+    "trim": [
+      0.0,
+      0.721,
+      -1.454
+    ],
+    "full_pull": [
+      0.0,
+      0.158,
+      -1.614
+    ],
+    "full_push": [
+      0.0,
+      1.088,
+      -1.203
+    ],
+    "how": "tools/research/trike-model/measure_bar.gd: игра, крыло training, режим «Маятник», полёт; BaseBar − HangPoint в осях тележки (оси визуала при триме, тело пилота повёрнуто маятником): trim — без ввода (0.72, -1.454), full_pull — мышь «на себя» на упоре (pitch=-1, установившееся), full_push — «от себя» (pitch=+1, середина, ещё дрейфует +0.02 м/с); x=0 по симметрии; d = 2·control_frame.basebar_r_m (glider_params.json), half_width = wings.training.basebar_width_m/2; подробности — bar_panel.md"
+  },
+  "panel": {
+    "center": [
+      0.0,
+      0.81,
+      -1.32
+    ],
+    "size": [
+      0.3,
+      0.12
+    ],
+    "normal": [
+      0.0,
+      -0.9334,
+      0.3587
+    ],
+    "how": "на оси переднего подкоса (схема пилота) между пилотом и штангой, радиус от подвески 1.55 < 1.62 у штанги; решение координатора 2026-10-22 по сверке TK-18 (tools/research/trike-model/sketch_check.md)"
+  }
+}

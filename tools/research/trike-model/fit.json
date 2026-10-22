@@ -1,0 +1,67 @@
+{
+ "version": 1,
+ "units": "cm",
+ "model": {
+  "trike": "assets/models/trike/trike.glb (Trike_LOD0, Engine_LOD0)",
+  "pilot": "assets/models/pilot.glb (action sit)"
+ },
+ "method": "вершины PilotBody/Helmet (evaluated) против замкнутых островов Trike_LOD0/Engine_LOD0; проникание = max(глубина вершин внутри замкнутого острова (чётность луча, расстояние до ближайшей поверхности), заглубление подошв/седалища ниже верхней плоскости опоры по лучу вниз); зазоры — по лучу вниз (сиденье, подножки) и по нормали спинки (спинка)",
+ "n_pilot_vertices": 6610,
+ "n_trike_islands": 137,
+ "n_closed_islands": 128,
+ "pen_inside_cm": 0.86,
+ "n_vertices_inside": 37,
+ "pen_inside_worst": {
+  "vertex": [
+   0.063,
+   0.317,
+   -1.876
+  ],
+  "material": "Pod",
+  "island_lo": [
+   -0.225,
+   0.221,
+   -1.971
+  ],
+  "island_hi": [
+   0.225,
+   0.641,
+   -1.86
+  ]
+ },
+ "seat_gap_signed_cm": -0.86,
+ "seat_gap_cm": 0.86,
+ "back_gap_signed_cm": -0.06,
+ "back_gap_cm": 0.06,
+ "foot_gap_l_signed_cm": -0.0,
+ "foot_gap_l_cm": 0.0,
+ "foot_gap_r_signed_cm": -0.78,
+ "foot_gap_r_cm": 0.78,
+ "foot_support_islands": {
+  "l": 1,
+  "r": 1
+ },
+ "foot_gap_method": "ray along pedal normal (pedal_angle_deg), min over Sole vertices",
+ "eye_err_cm": 0.05,
+ "head": [
+  0.0,
+  0.352,
+  -1.145
+ ],
+ "seat_eye": [
+  0.0,
+  0.352,
+  -1.144
+ ],
+ "hip_err_cm": 1.31,
+ "pen_support_cm": 0.86,
+ "max_penetration_cm": 0.86,
+ "bar_ray_hits": 0,
+ "bar_ray_min_dist_m": 0.038,
+ "bar_ray_n_rays": 81,
+ "bar_ray_n_arc_steps": 86,
+ "bar_ray_arc_deg": [
+  2.6,
+  45.1
+ ]
+}
