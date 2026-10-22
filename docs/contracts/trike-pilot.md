@@ -6,7 +6,7 @@ area: flight
 updated: "2026-10-22"
 summary: "Стыки дельталёта игрока: эксплуатация двигателя (TP-К1), TrikeEngine (TP-К2), ввод (TP-К3), приборы (TP-К4), выбор старта (TP-К5)."
 related: ["docs/plan/trike-pilot.md", "docs/contracts/trike-model.md", "docs/contracts/control-fix.md", "docs/contracts/pilot-view.md"]
-contracts: [{"id": "TP-К1", "version": 1}, {"id": "TP-К2", "version": 1}, {"id": "TP-К3", "version": 1}, {"id": "TP-К4", "version": 1}, {"id": "TP-К5", "version": 1}]
+contracts: [{"id": "TP-К1", "version": 2}, {"id": "TP-К2", "version": 1}, {"id": "TP-К3", "version": 2}, {"id": "TP-К4", "version": 2}, {"id": "TP-К5", "version": 1}]
 ---
 # Контракты trike-pilot (код задач TP)
 
@@ -18,7 +18,7 @@ contracts: [{"id": "TP-К1", "version": 1}, {"id": "TP-К2", "version": 1}, {"id
 (`configs/tow_tug.json`: `cart`, `engine`, `thrust`, `ground`, `wing`), TT-К3 (колёса в `PendulumModel`), TT-К4
 (`TowTug`). До слияния код этого модуля их файлы не читает и не создаёт: числа TT-К1 — в тестовых словарях.
 
-## TP-К1 v1. Эксплуатация двигателя — `configs/trike_pilot.json`
+## TP-К1 v2. Эксплуатация двигателя — `configs/trike_pilot.json`
 Владелец — TP-1. Потребители — TP-2 (`TrikeEngine`), TP-4 (шкала топлива), TP-6. Контрактный тест —
 `tests/contracts/test_trike_pilot_k1.gd` (пишет TP-1).
 
@@ -34,6 +34,7 @@ contracts: [{"id": "TP-К1", "version": 1}, {"id": "TP-К2", "version": 1}, {"id
 - `tachometer`: `max_rpm` (конец шкалы), `green_rpm` `[от, до]`, `red_rpm` (≥ — красная зона): по руководству Rotax 582.
 - **Инварианты теста:** все ключи есть и числовые, у каждого числа есть `_doc`; `burn.*` одной длины, `rpm_engine`
   возрастает, `lph` не убывает; `start_l` ∈ (0; `tank_l`]; `tank_l` = `trike_params.json` ± 0,5; `red_rpm` < `max_rpm`.
+- v2 (2026-10-22, Q3): на старте полный бак — `start_l` = `tank_l` (53 л); инвариант теста: равенство.
 
 ## TP-К2 v1. Двигатель — `TrikeEngine`
 Владелец — TP-2. Потребители — TP-4 (приборы), TP-6 (тяга в модели), TP-9 (звук). Контрактный тест —
@@ -72,7 +73,7 @@ contracts: [{"id": "TP-К1", "version": 1}, {"id": "TP-К2", "version": 1}, {"id
   `out_of_fuel`, toggle не запускает; (7) обороты и тяга непрерывны на всех переходах (|Δ`prop_rpm`| за шаг ≤
   max(наклон старта, наклон остановки, наклон рычага·(rpm_full − idle))·dt + 1).
 
-## TP-К3 v1. Ввод дельталёта
+## TP-К3 v2. Ввод дельталёта
 Владелец — TP-3. Потребители — TP-6 (газ, двигатель, руление), TP-7 (тормоз), `CameraRig` (взгляд). Контрактный тест —
 `tests/contracts/test_trike_pilot_k3.gd` (пишет TP-3). Дополняет С1 (`docs/contracts/control-fix.md`) и С2/У2.
 
@@ -103,8 +104,20 @@ contracts: [{"id": "TP-К1", "version": 1}, {"id": "TP-К2", "version": 1}, {"id
   `turn` 0; тормоз на земле → `brake`, в воздухе — нет; все новые действия есть в `controls.json` с `_doc` и
   зарегистрированы (`InputMap.has_action`); у `engine_toggle` нет клавиш, занятых другими действиями (кроме
   `ui_accept` меню).
+- v2 (2026-10-22, Q1, Q2, ревью TP-3). Заменяет пункты v1 о взгляде и Shift:
+  - Q1: в `"trike"` взгляд — **только мышью** (правая кнопка в кабине, как сейчас, `CameraRig._mouse_looks`): клавишного
+    взгляда нет — `InputController.keys_look()` в `"trike"` = false; A/D в воздухе ничего не делают (`turn` 0).
+    Стрелки у `look_*` убрать: `look_up`/`look_down`/`look_left`/`look_right` — снова только W/S/A/D (как до TP-3),
+    `tests/game/test_ui_controls_contracts.gd` — прежние ожидания. Правку общего `InputMap` по режиму
+    (`_apply_look_keys`) убрать: режим не меняет привязки клавиш.
+  - Q2: тормоз — Shift (`trike_brake`). В `"trike"` на земле Shift — только `brake` (`pull_full` = false, `run` =
+    false); в воздухе Shift — `pull_full`, `brake` = false.
+  - Инварианты теста v2: `"trike"` в воздухе — W/S/A/D/стрелки не дают взгляда (`keys_look()` false), W → газ;
+    `"glider"` в воздухе — `keys_look()` true, W не газ; привязки `look_*` = W/S/A/D и не зависят от `vehicle`
+    (переключение `vehicle` туда-обратно не меняет `InputMap`); Shift на земле в `"trike"` → `brake` true, `pull_full`
+    false; в воздухе → `pull_full` true, `brake` false; тест проверяет версию раздела TP-К3.
 
-## TP-К4 v1. Приборы: обороты и топливо
+## TP-К4 v2. Приборы: обороты и топливо
 Владелец — TP-4. Потребители — TP-8 (монтаж в кабине и HUD в игре). Контрактный тест —
 `tests/contracts/test_trike_pilot_k4.gd` (пишет TP-4).
 
@@ -129,6 +142,9 @@ contracts: [{"id": "TP-К1", "version": 1}, {"id": "TP-К2", "version": 1}, {"id
   `panel.size` (+ 1 см); HUD: при окнах 1280×720, 1920×1080, 2560×1440 прямоугольник приборов внутри окна, не
   пересекает рамку `InstrumentOverlay` и `ClockLabel` (их `anchor_px`/параметры `configs/instruments.json → overlay`);
   `running` false → тахометр показывает фактические обороты (0 у заглушённого).
+- v2 (2026-10-22, после TP-1): шкалы тахометра и бака — только из `configs/trike_pilot.json` (`tachometer`, `fuel.tank_l`);
+  запасные копии этих чисел в `configs/instruments.json → trike_gauges` убрать (там — только вид: углы, размеры, цвета).
+  Инвариант: шкала тахометра теста = `trike_pilot.json tachometer`, бак = `fuel.tank_l`.
 
 ## TP-К5 v1. Выбор старта «дельталёт»
 Владелец — TP-5. Потребители — TP-6 (`Game` выбирает аппарат). Контрактный тест — `tests/contracts/test_trike_pilot_k5.gd`
