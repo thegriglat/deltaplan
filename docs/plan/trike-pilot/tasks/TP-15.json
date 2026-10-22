@@ -1,0 +1,54 @@
+{
+  "id": "TP-15",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Откат TT-11: вилка переднего колеса вперёд, брызговик к пилоту",
+  "goal": "Вилка/стойка переднего колеса тележки снова идёт вперёд (как до TT-11), брызговик — со стороны пилота (сзади колеса); ось колеса и физика без изменений; trike.glb пересобран, кадры сбоку и 3/4 спереди для пользователя.",
+  "plan_ref": "TP-15",
+  "contracts": [
+    {
+      "name": "TK-К2",
+      "version": "4",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-15",
+  "branch": "trike-pilot/TP-15",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "tools/blender/build_trike.py",
+    "tools/blender/trike_params.json",
+    "assets/models/trike/",
+    "assets/source/trike/",
+    "docs/guide/models/trike.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "docs/contracts/",
+    "tools/blender/render_trike.py",
+    "tools/blender/render_tow_trike.py"
+  ],
+  "accept": [
+    {
+      "name": "trike_model",
+      "tests": "trike_model"
+    },
+    {
+      "name": "tow_trike_k6",
+      "tests": "tow_trike_k6"
+    },
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    },
+    {
+      "name": "shots",
+      "cmd": "bash -c 'ls /home/greg/deltaplan/build/screenshots/trike-pilot/ | grep -c -E \"side|front34\"'",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T02:35:58"
+}
