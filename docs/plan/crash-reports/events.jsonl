@@ -52,3 +52,7 @@
 {"t": "2026-10-23T03:33:18", "by": "coordinator", "task": "CR-3", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-23T03:33:19", "by": "coordinator", "task": "CR-3", "ev": "accepted", "commits": ["d09045df"], "note": "3/3 sections=ok:6; privacy=ok:exit 0; docs=ok:exit 1"}
 {"t": "2026-10-23T03:33:19", "by": "coordinator", "task": "CR-3", "ev": "merged"}
+{"t": "2026-10-23T03:40:21", "by": "executor", "task": "CR-2", "ev": "reported", "commits": ["4dfbaf37"], "note": "partial: Документ docs/research/crash-reports/cr-2.md по CR-К1. Все 5 обрывов группы B происходят при повторной (2-й и далее) за…", "dp_feedback": "job wait на 590 с блокирует foreground; уведомления Monitor шумные. Сырые отчёты удобно брать gh issue view -R thegriglat/deltaplan-reports (в карточке указано верно)."}
+{"t": "2026-10-23T03:40:29", "by": "coordinator", "task": "CR-2", "ev": "checked", "note": "3/3 sections=ok:6; privacy=ok:exit 0; docs=ok:exit 1; scope=FAIL:вне scope: r-CR-2.json"}
+{"t": "2026-10-23T03:40:51", "by": "coordinator", "task": "CR-2", "ev": "checked", "note": "3/3 sections=ok:6; privacy=ok:exit 0; docs=ok:exit 1"}
+{"t": "2026-10-23T03:40:57", "by": "coordinator", "task": "CR-2", "ev": "accepted", "note": "по отчёту, partial: причина — гипотеза"}

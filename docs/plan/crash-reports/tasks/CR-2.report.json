@@ -1,0 +1,40 @@
+{
+  "status": "partial",
+  "summary": "Документ docs/research/crash-reports/cr-2.md по CR-К1. Все 5 обрывов группы B происходят при повторной (2-й и далее) загрузке места в одном процессе, в окне objects/wind; первая загрузка в сессии у всех проходит. Точная строка причины не найдена: гипотеза 1 (вероятно) — жизненный цикл общего локального RenderingDevice (RuntimeGpu.release освобождает буферы всех задач, setup обнуляет _clip без release), гипотеза 2 — TDR/сбой драйвера Blackwell. В main не исправлено (air_runtime/air_gpu/air_gpu_job/air_clipmap не менялись после v1.5.19). На Linux/4070 SUPER 5 циклов не воспроизвели обрыв.",
+  "commits": [
+    "4dfbaf37 CR-2: диагноз группы B (RTX 5060, Vulkan, wind/objects)"
+  ],
+  "checks": [
+    {
+      "name": "accept CR-2 --dry",
+      "value": "3/3 PASS (sections 6, privacy, docs, scope)",
+      "pass": true
+    },
+    {
+      "name": "repro 5 загрузок подряд Linux 4070 SUPER",
+      "value": "без обрыва; загрузки 2-5 без пересчёта поля (путь не покрыт)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Не воспроизведён обрыв: в моём прогоне повторные загрузки не считали поле (те же условия), нужен вариант со сменой ветра между циклами; Windows/Blackwell/D3D12 недоступны. Новые прогоны Godot не запускал из-за правила о перегрузке машины (lock cpu)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CR-2; tools/research/crash-reports/cr-2/run.sh --cycles=5",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/air_runtime.gd:764-783,1765-1778 (v1.5.19)",
+      "why": "RuntimeGpu.release освобождает все буферы после _base, а stop() вызывает его от имени нескольких задач; ни одного лога с ошибкой RD нет",
+      "checked": "чтение кода v1.5.19, diff с main; на Linux не воспроизведено"
+    },
+    {
+      "where": "scripts/core/crash_reporter.gd:121-130",
+      "why": "отчёт создаётся и при убитом зависшем процессе - падение это или зависание, из отчётов не видно",
+      "checked": "код сборщика отчётов; времени после последней стадии в отчётах нет"
+    }
+  ],
+  "dp_feedback": "job wait на 590 с блокирует foreground; уведомления Monitor шумные. Сырые отчёты удобно брать gh issue view -R thegriglat/deltaplan-reports (в карточке указано верно).",
+  "t": "2026-10-23T03:40:21",
+  "by": "executor"
+}
