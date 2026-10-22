@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "configs/tow_tug.json (блоки TT-К1 без autopilot, старые ключи TW-К9 сохранены), docs/research/tow/trike-tug.md, tools/research/tow-trike/ (build, check_k1, climb_estimate, wing_trike_ixess15.json). Набор связки 582 + sport (100 кг) на 60 км/ч по балансу мощности: 3,02 м/с при пороге BHPA 2,54; натяжение троса 331 Н.",
+  "commits": [
+    "TT-1: параметры буксировщика-дельталёта (582 + iXess 15), тяга T(V), набор связки"
+  ],
+  "checks": [
+    {
+      "name": "k1",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "wing_numbers",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "climb_estimate",
+      "value": "climb_ms=3.02 speed_kmh=60 thrust_n=1352 drag_n=461 tension_n=331",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "clean",
+      "pass": true
+    },
+    {
+      "name": "проверка метода на паспорте Tanarg/912ULS (450 кг, 83,3 км/ч)",
+      "value": "4,71 против 5,49 м/с (-14 %)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "блок autopilot (TT-4 по контракту)",
+    "проверка wing по configs/wings/trike_ixess15.json (появится в TT-2; check_k1 предупреждает и пропускает)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TT-1",
+  "uncertain": [
+    {
+      "where": "configs/tow_tug.json:thrust",
+      "why": "Тяга расчётная: винт 1,8 м/582 без измерений; калибровка по трём допущениям (статические обороты 5600, FM 0,60, пик КПД 0,72). Статика 1587 Н (1450-1700), 60 км/ч 1352 Н, ±15 %.",
+      "checked": "тот же метод на Tanarg/912ULS: набор 4,71 против паспортных 5,49 м/с, то есть занижает на 14 %"
+    },
+    {
+      "where": "configs/tow_tug.json:cart",
+      "why": "Пустая масса тележки 150 кг (аналоги 155-198 кг обычно с крылом, минус крыло), CdA 0,82 м², cg 1,71 м, сила на штанге 500 Н - оценки; прямых источников по трайку нет.",
+      "checked": "составляющие в tools/research/tow-trike/cart.py; чувствительность: ±25 кг и ±30 % CdA дают ±0,3 м/с набора каждое"
+    },
+    {
+      "where": "tools/research/tow-trike/wing_trike_ixess15.json",
+      "why": "Поляра iXess - парабола по двум паспортным точкам (качество 6,6, Vso 59,3) и e=0,75; хорды, латты, дигедрал, крутка, кингпост, трим - оценки; ground.keel_angle_deg/rotate_deg - оценка без источника.",
+      "checked": "качество крыла 10,5 правдоподобно для класса; в HADS этих чисел нет"
+    },
+    {
+      "where": "docs/research/tow/trike-tug.md#Баланс мощности",
+      "why": "Запас по порогу BHPA 2,54 м/с ≈ 0,5 м/с сопоставим с неопределённостью; на 55 км/ч набор 2,83, на 65-70 - 3,13.",
+      "checked": "варианты: 912ULS 3,78; без дельтаплана 4,87; пилот 80 кг 3,20; бак 15 кг 3,21"
+    }
+  ],
+  "dp_feedback": "Хватило. Неудобно: docs check требует frontmatter с conclusion/data/applied_in даже у README в tools; accept --dry проверку docs показывает только 'нет совпадения' - причину пришлось искать в логе.",
+  "extra": {
+    "climb_ms_60kmh": 3.02,
+    "thrust_static_n": 1587,
+    "thrust_60kmh_n": 1352,
+    "cart_mass_kg": 262.5,
+    "cart_with_wing_kg": 315.5,
+    "vs_kmh_at_315kg": 49.7,
+    "tension_n": 331
+  },
+  "t": "2026-10-22T16:42:17",
+  "by": "executor"
+}

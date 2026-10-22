@@ -1,0 +1,94 @@
+{
+  "id": "TT-2",
+  "module": "tow-trike",
+  "type": "dp-engineer",
+  "title": "Крыло буксировщика trike_ixess15 путём крыльев игры, группа tug",
+  "goal": "Крыло iXess 15 по числам TT-1 — конфиг configs/wings/trike_ixess15.json, запись glider_params.json и модель glider_trike_ixess15.glb тем же путём, что крылья игры; группа tug скрыта от игрока и ботов (TT-К2).",
+  "plan_ref": "§4 TT-2",
+  "contracts": [
+    {
+      "name": "TT-К2",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TT-К1",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-2",
+  "branch": "tow-trike/TT-2",
+  "base": "feature/tow-trike",
+  "scope": [
+    "configs/wings/trike_ixess15.json",
+    "configs/wing_groups.json",
+    "tools/blender/glider_params.json",
+    "assets/models/",
+    "assets/source/",
+    "scripts/game/wing_catalog.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/game/bot_pilots.gd",
+    "scripts/game/remote_pilots.gd",
+    "scripts/game/user_settings.gd",
+    "locale/",
+    "tests/contracts/test_tow_trike_k2.gd",
+    "tests/contracts/test_tow_trike_k2.gd.uid",
+    "tests/flight/",
+    "tests/game/",
+    "tests/ui/",
+    "tools/research/data/wing_passports/",
+    "docs/guide/models/wings.md"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "configs/tow_tug.json",
+    "scripts/game/tow_tug.gd",
+    "scripts/game/tow_session.gd",
+    "tools/research/tow-trike/"
+  ],
+  "accept": [
+    {
+      "name": "tow_trike_k2",
+      "tests": "tow_trike_k2"
+    },
+    {
+      "name": "wing",
+      "tests": "wing"
+    },
+    {
+      "name": "polar",
+      "tests": "polar"
+    },
+    {
+      "name": "pendulum_contracts",
+      "tests": "pendulum_contracts"
+    },
+    {
+      "name": "wind_limits",
+      "tests": "wind_limits"
+    },
+    {
+      "name": "bot",
+      "tests": "bot"
+    },
+    {
+      "name": "others_unchanged",
+      "cmd": "sh -c 'git diff --name-only feature/tow-trike...HEAD -- configs/wings assets/models | grep -v trike_ixess15 | wc -l'",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "glb",
+      "cmd": "test -f assets/models/glider_trike_ixess15.glb",
+      "expect": "exit=0"
+    },
+    {
+      "name": "k1",
+      "cmd": "python3 tools/research/tow-trike/check_k1.py",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T16:43:27"
+}

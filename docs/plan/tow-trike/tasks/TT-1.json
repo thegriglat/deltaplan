@@ -1,0 +1,58 @@
+{
+  "id": "TT-1",
+  "module": "tow-trike",
+  "type": "dp-researcher",
+  "title": "Параметры буксировщика-дельталёта по источникам",
+  "goal": "configs/tow_tug.json по TT-К1 (тележка с Rotax 582 как масса «Маятника», тяга винта T(V,газ), колёса, режим буксировки) и числа крыла iXess 15 для TT-2 — каждое число с источником или обоснованной оценкой; оценка набора связки с дельтапланом по балансу мощности.",
+  "plan_ref": "§4 TT-1",
+  "contracts": [
+    {
+      "name": "TT-К1",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-1",
+  "branch": "tow-trike/TT-1",
+  "base": "feature/tow-trike",
+  "scope": [
+    "configs/tow_tug.json",
+    "docs/research/tow/trike-tug.md",
+    "tools/research/tow-trike/",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/wings/",
+    "tools/blender/",
+    "tools/research/trike-model/",
+    "tests/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "k1",
+      "cmd": "python3 tools/research/tow-trike/check_k1.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wing_numbers",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/tow-trike/wing_trike_ixess15.json'));print('ok')\"",
+      "expect": "re:ok"
+    },
+    {
+      "name": "climb_estimate",
+      "cmd": "python3 tools/research/tow-trike/climb_estimate.py",
+      "expect": "re:climb_ms=[0-9.]+"
+    },
+    {
+      "name": "docs",
+      "cmd": "sh -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*(tow-trike|trike-tug|research/tow)\" || echo clean'",
+      "expect": "re:^clean"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T16:34:00"
+}
