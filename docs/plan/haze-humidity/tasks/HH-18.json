@@ -1,0 +1,40 @@
+{
+  "id": "HH-18",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Докачка суточных ERA5 из ARCO: t2m 2018–2019, T700 2019, u,v 700 2018–2019",
+  "goal": "Скачать из ARCO-ERA5 1° (fetch_arco.py HH-17) суточные статистики, которых ещё нет: t2m 2018–2019 (max/min/mean + средний суточный ход по месяцам), T700 2019, u и v 700 гПа 2018–2019 — в ~/data/haze_humidity/era5_arco/, с журналом и проверкой полноты; параллельно с CDS.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [],
+  "copy": "~/deltaplan-haze-humidity-HH-18",
+  "branch": "haze-humidity/HH-18",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/era5_source/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "data/",
+    "docs/contracts/",
+    "tools/research/haze_humidity/surface_t/",
+    "tools/research/haze_humidity/upper_air/",
+    "tools/research/haze_humidity/upper_misc/"
+  ],
+  "accept": [
+    {
+      "name": "complete",
+      "cmd": "python3 tools/research/haze_humidity/era5_source/check_complete.py",
+      "expect": "re:complete=1"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:08:07"
+}
