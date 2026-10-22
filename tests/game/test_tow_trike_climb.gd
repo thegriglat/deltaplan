@@ -65,7 +65,7 @@ class Run:
 			c.pitch = clampf(CLIMB_K * (h_t - s.glider_agl_m()) - CLIMB_KV * vz_rel, -1.0, 1.0)
 			# крен: следует за буксировщиком (курс на хвост буксировщика) - на кругах (circuit) без этого трос уводит вбок
 			var to_tug: Vector3 = s.tug.pos - g.model.pilot_position
-			var brg := atan2(to_tug.x, -to_tug.z)
+			var brg := Vector2(to_tug.x, -to_tug.z).angle_to(Vector2(0.0, 1.0))
 			var he := wrapf(brg - g.model.heading, -PI, PI)
 			var bank_tgt := clampf(BANK_K * he, -BANK_MAX, BANK_MAX)
 			c.roll = clampf(ROLL_KP * (bank_tgt - g.model.bank) - ROLL_KD * g.model.roll_rate, -1.0, 1.0)

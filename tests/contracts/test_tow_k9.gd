@@ -226,3 +226,43 @@ func test_thrust_and_rpm() -> void:
 	_run(t, 4.0, 10.0, FLAT * 300.0)
 	check(t.throttle > 0.99, "полный газ: %.2f" % t.throttle)
 	check(t.prop_rpm > float(cfg.engine.prop_rpm_idle) and t.prop_rpm <= float(cfg.engine.prop_rpm_max) + 1.0, "обороты винта между холостыми и максимальными: %.0f" % t.prop_rpm)
+
+
+## TT-К4 v2: cart_basis - ориентация модели trike.glb. Колёса: +Y по нормали (плоская земля - вверх); воздух: вектор
+## подвеска -> ЦМ тележки в осях модели совпадает с модельным; переход колёса -> воздух не быстрее 20 град/с.
+func test_cart_basis_model_orientation() -> void:
+	var t := _tug(0.0)
+	check(t.cart_basis.y.dot(Vector3.UP) > 0.9999, "на колёсах +Y по нормали земли: %s" % t.cart_basis.y)
+	t.start()
+	_run(t, 0.1, 0.0, FLAT * 5.0)  # трос выбрал слабину -> roll
+	var hist: Array[Basis] = []  # окно 0,25 с: угол acos при малом шаге шумит
+	var worst := 0.0
+	var air_seen := false
+	for i in int(45.0 / DT):
+		t.set_rope_force(Vector3.ZERO)
+		t.step(DT, 10.0)
+		worst = maxf(worst, _rate(hist, t.cart_basis))
+		if not t.model.on_wheels:
+			air_seen = true
+			break
+	check(air_seen, "оторвался с колёс")
+	check(worst <= 20.5, "поворот модели не быстрее 20 град/с: %.2f" % worst)
+	# в воздухе (после перехода) вектор подвеска -> ЦМ в осях модели совпадает с модельным
+	for i in int(10.0 / DT):
+		t.set_rope_force(Vector3.ZERO)
+		t.step(DT, 10.0)
+		worst = maxf(worst, _rate(hist, t.cart_basis))
+	check(worst <= 20.5, "и в воздухе не быстрее 20 град/с: %.2f" % worst)
+	var want := (t.model.pilot_position - t.hang_pos).normalized()
+	var got: Vector3 = t.cart_basis * TowTug.CART_CM_MODEL.normalized()
+	check(got.dot(want) > 0.999, "в воздухе подвеска->ЦМ модели = модель полёта: cos %.5f" % got.dot(want))
+	check(absf(t.cart_basis.determinant() - 1.0) < 1e-4, "ортонормирован")
+
+
+## Скорость поворота (град/с) по окну 30 шагов.
+func _rate(hist: Array[Basis], b: Basis) -> float:
+	hist.append(b)
+	if hist.size() < 31:
+		return 0.0
+	var old: Basis = hist.pop_front()
+	return rad_to_deg(old.get_rotation_quaternion().angle_to(b.get_rotation_quaternion())) / (30.0 * DT)

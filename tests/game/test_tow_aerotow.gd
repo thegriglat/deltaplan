@@ -1,6 +1,6 @@
 extends Node
 ## Аэробуксировка в игре (TW-10b; docs/contracts/tow.md → TW-К5/К10, tow-trike.md → TT-К4): TowSession kind "aerotow" на Glider
-## («Маятник», крыло sport, шаг 1/120 с, синтетическая ровная земля y = 0, без сети): пилот на тележке, Ан-2 впереди
+## («Маятник», крыло sport, шаг 1/120 с, синтетическая ровная земля y = 0, без сети): пилот на тележке, буксировщик впереди
 ## на длину троса, W, отрыв раньше буксировщика, набор, отцеп. Пилот-испытатель держит скорость (SpeedHold).
 
 const Sim := preload("res://tests/flight/pendulum/pendulum_sim.gd")
@@ -48,8 +48,8 @@ class Run:
 		var w := t >= w_at
 		var c := Sim.input(0.0, 0.0)
 		if g.phase() == "flying":
-			# Скорость задаёт трос; пилот держит высоту ≈3,5 м над колёсами Ан-2 (ПД по высоте и вертикальной скорости
-			# относительно Ан-2): на разбеге — у земли, в наборе — следом за ним
+			# Скорость задаёт трос; пилот держит высоту ≈3,5 м над колёсами буксировщик (ПД по высоте и вертикальной скорости
+			# относительно буксировщик): на разбеге — у земли, в наборе — следом за ним
 			var h_t := s.tug.agl_m + 3.5
 			var vz_rel: float = g.model.velocity.y - s.tug.vel.y
 			c.pitch = clampf(CLIMB_K * (h_t - s.glider_agl_m()) - CLIMB_KV * vz_rel, -1.0, 1.0)
@@ -71,7 +71,7 @@ class Run:
 
 
 func test_idle_before_w() -> void:
-	# (1) до W 10 с: тележка и крыло стоят, натяжения нет, Ан-2 на месте впереди на длину троса
+	# (1) до W 10 с: тележка и крыло стоят, натяжения нет, буксировщик на месте впереди на длину троса
 	var r := Run.new(self)
 	r.w_at = 1.0e9
 	check(r.g.phase() == "dolly" and r.g.dolly_attached(), "пилот на тележке: %s" % r.g.phase())
@@ -83,7 +83,7 @@ func test_idle_before_w() -> void:
 	check(r.tmax == 0.0 and r.s.line.tension_n == 0.0, "до W натяжение 0: %.1f Н" % r.tmax)
 	check(r.s.line.phase == "idle" and r.s.tug.phase == "idle", "фазы idle: %s %s" % [r.s.line.phase, r.s.tug.phase])
 	check(r.g.model.pilot_position.distance_to(x0) < 0.05, "пилот на месте")
-	check(r.s.tug.pos.distance_to(tug0) < 1.0e-6, "Ан-2 стоит")
+	check(r.s.tug.pos.distance_to(tug0) < 1.0e-6, "буксировщик стоит")
 	check(r.g.phase() == "dolly", "всё ещё на тележке")
 	r.dispose()
 
@@ -97,12 +97,12 @@ func test_takeoff_before_tug_and_climb() -> void:
 		r.step()
 		if r.t < r.w_at + 3.0:
 			dolly_moved = maxf(dolly_moved, r.g.dolly_vel().length())
-	print("    отрыв %.1f с, буксировщик climb %.1f с, высота при буксировщике на земле ≤ %.1f м, T max %.0f Н, фаза %s, высота пилота %.0f м, Ан-2 agl %.0f м"
+	print("    отрыв %.1f с, буксировщик climb %.1f с, высота при буксировщике на земле ≤ %.1f м, T max %.0f Н, фаза %s, высота пилота %.0f м, буксировщик agl %.0f м"
 		% [r.t_air, r.t_climb, r.h_max_ground_tug, r.tmax, r.s.tug.phase, r.g.model.pilot_position.y, r.s.tug.agl_m])
 	check(r.s.line.phase != "idle", "после W трос пошёл")
 	check(r.t_air > 0.0, "дельтаплан оторвался от тележки")
 	check(r.t_climb < 0.0 or r.t_air < r.t_climb, "отрыв раньше, чем буксировщик ушёл с разбега: %.1f против %.1f" % [r.t_air, r.t_climb])
-	check(r.h_max_ground_tug <= 6.0, "пока Ан-2 на земле, дельтаплан ≤ 6 м: %.1f" % r.h_max_ground_tug)
+	check(r.h_max_ground_tug <= 6.0, "пока буксировщик на земле, дельтаплан ≤ 6 м: %.1f" % r.h_max_ground_tug)
 	check(r.s.tug.phase in ["climb", "circuit"], "буксировщик взлетел: %s" % r.s.tug.phase)
 	check(r.g.model.pilot_position.y > 30.0, "набор высоты: %.0f м" % r.g.model.pilot_position.y)
 	check(r.tmax < 1250.0, "T ниже слабого звена: %.0f Н" % r.tmax)
@@ -112,7 +112,7 @@ func test_takeoff_before_tug_and_climb() -> void:
 
 
 func test_release_tug_away_dolly_stays() -> void:
-	# (4) отцеп: сила 0, Ан-2 → away, трос step_free, тележка стоит на полосе
+	# (4) отцеп: сила 0, буксировщик → away, трос step_free, тележка стоит на полосе
 	var r := Run.new(self)
 	for i in int(50.0 / DT):
 		r.step()
@@ -121,14 +121,14 @@ func test_release_tug_away_dolly_stays() -> void:
 	r.step()
 	check(r.s.ended_reason == "pilot" and not r.s.is_attached(), "отцеп: %s" % r.s.ended_reason)
 	check(r.g.model.link_tension_n == 0.0 and r.g.model.external_force_n == Vector3.ZERO, "сила снята")
-	check(r.s.tug.phase == "away", "Ан-2 уходит: %s" % r.s.tug.phase)
+	check(r.s.tug.phase == "away", "буксировщик уходит: %s" % r.s.tug.phase)
 	var end0 := r.s.line.end_pos
 	for i in int(4.0 / DT):
 		r.step()
 	check(r.s.line.end_pos.distance_to(end0) > 0.1, "свободный трос движется")
 	for i in int(20.0 / DT):
 		r.step()
-	check(r.s.tug.gone, "через away_s Ан-2 убран")
+	check(r.s.tug.gone, "через away_s буксировщик убран")
 	check(not r.g.dolly_attached() and r.g.dolly_vel().length() < 1.0e-3, "тележка стоит: v=%.4f" % r.g.dolly_vel().length())
 	check(r.g.dolly_pos().y == 0.0 and r.g.dolly_pos().z < 0.0, "тележка на полосе: %s" % r.g.dolly_pos())
 	check(Sim.finite(r.g.model) and r.g.phase() == "flying", "полёт продолжается")
@@ -137,7 +137,7 @@ func test_release_tug_away_dolly_stays() -> void:
 
 
 func test_release_on_dolly_and_reset() -> void:
-	# отцеп до отрыва: тележка остаётся «dolly», останавливается; reset() — снова на старте, Ан-2 на месте
+	# отцеп до отрыва: тележка остаётся «dolly», останавливается; reset() — снова на старте, буксировщик на месте
 	var r := Run.new(self)
 	for i in int(6.0 / DT):
 		r.step()
@@ -152,13 +152,39 @@ func test_release_on_dolly_and_reset() -> void:
 
 
 func test_models() -> void:
-	# модели: Ан-2 из пасхалки (build_model), тележка, отцеп; у Ан-2 хвост в точке троса
+	# модели (TT-К5): буксировщик-дельталёт (тележка + крыло + пилот), тележка-стартовая, отцеп; конец троса = tug.pos
 	var r := Run.new(self, true)
 	r.s._process(0.0)
 	check(r.s.tug_node != null and r.s.dolly_node != null and r.s.release_node != null, "модели есть")
 	check(r.s.winch_node == null and r.s.drogue_node == null, "лебёдки и купола нет")
-	var pt: Vector3 = r.s.tug_node.transform * Vector3(0.0, EggAn2.GEAR_BOTTOM_Y + 1.5, EggAn2.TAIL_Z)
-	check(pt.distance_to(r.s.tug.pos) < 0.01, "точка троса на хвосте: %s" % pt)
+	var tn: Node3D = r.s.tug_node
+	check(tn.find_child("Propeller", true, false) != null, "в узле буксировщика есть Propeller")
+	check(tn.find_child("Wing", true, false) != null and tn.find_child("Pilot", true, false) != null, "крыло и пилот есть")
+	var ap: AnimationPlayer = null
+	for a: AnimationPlayer in tn.find_children("*", "AnimationPlayer", true, false):
+		if a.has_animation("prop_spin"):
+			ap = a
+	check(ap != null and ap.is_playing() and ap.current_animation == "prop_spin", "prop_spin играет")
+	check(tn.find_child("EggAn*", true, false) == null, "в узле нет пасхалки")
+	if ap != null:
+		check(absf(ap.speed_scale - r.s.tug.prop_rpm / 60.0) <= 0.01 * r.s.tug.prop_rpm / 60.0, "idle: speed_scale %.3f ≈ rpm/60 %.3f" % [ap.speed_scale, r.s.tug.prop_rpm / 60.0])
+	# конец троса: tow_hook в осях тележки (начало — HangPoint) -> мир = tug.pos
+	var hk: Array = Config.get_config("tow_tug").cart.tow_hook
+	var hook := Vector3(float(hk[0]), float(hk[1]), float(hk[2]))
+	var cart := tn.get_node("Cart") as Node3D
+	check((cart.transform * hook).distance_to(r.s.tug.pos) < 0.01, "конец троса tow_hook тележки = tug.pos")
 	check(r.s.dolly_node.transform.origin.distance_to(r.g.dolly_pos()) < 0.01, "тележка на земле под перекладиной")
 	check(r.s.release_node.visible, "отцеп виден")
+	# climb: обороты по газу
+	r.w_at = 0.0
+	for i in 40 * 120:
+		r.step()
+		if r.s.tug.phase == "climb":
+			break
+	r.s._process(0.0)
+	check(r.s.tug.phase == "climb", "дошли до climb: %s" % r.s.tug.phase)
+	if ap != null:
+		check(absf(ap.speed_scale - r.s.tug.prop_rpm / 60.0) <= 0.01 * r.s.tug.prop_rpm / 60.0, "climb: speed_scale %.3f ≈ rpm/60 %.3f" % [ap.speed_scale, r.s.tug.prop_rpm / 60.0])
+	var snd := tn.find_child("EngineSound", true, false) as TowTrikeSound
+	check(snd != null and snd.pitch_scale > 0.0, "звук двигателя есть")
 	r.dispose()
