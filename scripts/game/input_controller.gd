@@ -33,11 +33,8 @@ var pad_run := false
 ## "body" — тело (вправо = крен вправо). В полёте и на земле (PV1 v2).
 var roll_input := "body"
 ## Что пилотируем (TP-К3): "glider" — крыло (по умолчанию), "trike" — дельталёт: W/S — газ, пробел — двигатель,
-## A/D на земле — руление, тормоз. Взгляд вверх/вниз — look_up/look_down без клавиш газа.
-var vehicle := "glider":
-	set(v):
-		vehicle = v
-		_apply_look_keys()
+## A/D на земле — руление, тормоз. Взгляд — только мышью (TP-К3 v2, Q1); тормоз — Shift на земле (Q2).
+var vehicle := "glider"
 
 var _toggle_down := false  # пробел нажат в прошлом шаге (фронт для engine_toggle)
 
@@ -56,36 +53,13 @@ func _ready() -> void:
 func reload_config() -> void:
 	_cfg = Config.get_config("controls")
 	register_actions(_cfg)
-	_apply_look_keys()
 	roll_input = String(_cfg.get("roll_input", "body"))
-
-
-## В "trike" клавиши газа (W/S) не крутят голову: у look_up/look_down убираем события, совпадающие с
-## throttle_up/throttle_down. В "glider" раскладка как в controls.json.
-func _apply_look_keys() -> void:
-	if _cfg.is_empty():
-		_cfg = Config.get_config("controls")
-	register_actions(_cfg)
-	if vehicle != "trike":
-		return
-	var throttle_codes := []
-	for a in ["throttle_up", "throttle_down"]:
-		if InputMap.has_action(a):
-			for ev in InputMap.action_get_events(a):
-				if ev is InputEventKey:
-					throttle_codes.append(ev.physical_keycode)
-	for a in ["look_up", "look_down"]:
-		if not InputMap.has_action(a):
-			continue
-		for ev in InputMap.action_get_events(a):
-			if ev is InputEventKey and ev.physical_keycode in throttle_codes:
-				InputMap.action_erase_event(a, ev)
 
 
 ## Клавиши look_* (W/S/A/D) сейчас крутят голову (У2 v2): ввод включён, руки на трапеции
 ## (не свободная камера), в полёте. От мыши не зависит; на земле — шаг и поворот.
 func keys_look() -> bool:
-	return enabled and not hands_off and not on_ground
+	return enabled and not hands_off and not on_ground and vehicle != "trike"
 
 
 static func register_actions(cfg: Dictionary) -> void:
@@ -160,7 +134,7 @@ func update(dt: float) -> ControlInput:
 		control.run = false
 		control.pull_full = false
 		return control
-	control.pull_full = _strength("pull_full") > 0.5
+	control.pull_full = _strength("pull_full") > 0.5 and not (vehicle == "trike" and on_ground)
 	if vehicle == "trike":
 		_update_trike(dt)
 	elif on_ground:
