@@ -100,3 +100,5 @@
 {"t": "2026-10-23T03:49:25", "by": "coordinator", "task": "CR-9", "ev": "note", "note": "Ответ Q2 (2026-10-23): да, дефолт драйвера не менять; контракт CR-К3 поднят до v2 (для CR-9 изменений по сути нет).", "addendum": true}
 {"t": "2026-10-23T03:49:51", "by": "coordinator", "task": "CR-9", "ev": "checked", "note": "3/3 manifest_win=ok:ok; manifest_linux=ok:ok; bash=ok:exit 0"}
 {"t": "2026-10-23T03:49:57", "by": "coordinator", "task": "CR-9", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T03:49:58", "by": "coordinator", "task": "CR-9", "ev": "accepted", "commits": ["f6e63701"], "note": "3/3 manifest_win=ok:ok; manifest_linux=ok:ok; bash=ok:exit 0"}
+{"t": "2026-10-23T03:49:58", "by": "coordinator", "task": "CR-9", "ev": "merged"}
