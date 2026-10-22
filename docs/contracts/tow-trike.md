@@ -6,6 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки буксировщика-дельталёта: параметры (tow_tug.json), крыло trike_ixess15, тележка в «Маятнике» (колёса, перегрузки), TowTug v4, вид."
 related: ["docs/plan/tow-trike.md", "docs/contracts/tow.md", "docs/contracts/trike-model.md", "docs/contracts/pendulum.md"]
+contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id": "TT-К3", "version": 1}, {"id": "TT-К4", "version": 1}, {"id": "TT-К5", "version": 1}]
 ---
 # Контракты модуля tow-trike (код задач TT)
 

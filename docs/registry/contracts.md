@@ -68,7 +68,7 @@ generated: true
 - steam: S1 v1, S2 v3, S3 v2, S4 v2, S5 v1, S6 v2, S7 v1 — [docs/contracts/steam.md](../contracts/steam.md)
 - surface-heat: SH1 v1, SH2 v2, SH3 v1, SH4 v1, SH5 v1 — [docs/contracts/surface-heat.md](../contracts/surface-heat.md)
 - tow: — — [docs/contracts/tow-models.md](../contracts/tow-models.md)
-- tow-trike: — — [docs/contracts/tow-trike.md](../contracts/tow-trike.md)
+- tow-trike: TT-К1 v1, TT-К2 v1, TT-К3 v1, TT-К4 v1, TT-К5 v1 — [docs/contracts/tow-trike.md](../contracts/tow-trike.md)
 - tow: — — [docs/contracts/tow-wave1.md](../contracts/tow-wave1.md)
 - tow: TW-К1 v1, TW-К2 v1, TW-К3 v1, TW-К4 v9, TW-К5 v9, TW-К6 v2, TW-К7 v3, TW-К8 v3, TW-К9 v3, TW-К10 v2 — [docs/contracts/tow.md](../contracts/tow.md)
 - training-island: TI-К1 v1, TI-К2 v2, TI-К3 v3 — [docs/contracts/training-island.md](../contracts/training-island.md)
