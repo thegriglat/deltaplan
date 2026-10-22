@@ -282,6 +282,10 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
   `Propeller`, `AnimationPlayer` с `prop_spin` и `speed_scale` = `prop_rpm/60` ± 1 % (заглушен → 0); `pilot.glb` играет
   `sit`; `TrikeGauges3D` — потомок `InstrumentPanel`; HUD виден в `chase`, скрыт в `cockpit`; глаз кабинной камеры ≤
   0,15 м от `PilotHead`; `vehicle "glider"` — прежний вид и маркеры (тесты `pilot_hud`, `cockpit` зелёные).
+- Уточнение (2026-10-23, после TP-9, TP-16): `TowTrikeVisual.setup` уже красит трубы/тросы `FrameMetal` (TP-16) — не
+  дублировать. Звук игрока — `TowTrikeSound.setup_player(engine_cfg, Config "trike_pilot".sound)` у двигателя в виде
+  дельталёта и каждый кадр `update_engine(engine.state, engine.prop_rpm, engine.throttle)` (TP-К9); у буксировщика —
+  прежний `setup`/`update`.
 
 ## TP-К9 v1. Звук двигателя дельталёта игрока
 Владелец — TP-9. Контрактный тест — `tests/contracts/test_trike_pilot_k9.gd` (пишет TP-9). Основание — п. 4 и уточнение
