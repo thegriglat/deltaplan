@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки буксировщика-дельталёта: параметры (tow_tug.json), крыло trike_ixess15, тележка в «Маятнике» (колёса, перегрузки), TowTug v4, вид."
 related: ["docs/plan/tow-trike.md", "docs/contracts/tow.md", "docs/contracts/trike-model.md", "docs/contracts/pendulum.md"]
-contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id": "TT-К3", "version": 4}, {"id": "TT-К4", "version": 3}, {"id": "TT-К5", "version": 1}, {"id": "TT-К6", "version": 1}]
+contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id": "TT-К3", "version": 5}, {"id": "TT-К4", "version": 3}, {"id": "TT-К5", "version": 1}, {"id": "TT-К6", "version": 1}]
 ---
 # Контракты модуля tow-trike (код задач TT)
 
@@ -66,7 +66,7 @@ contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id
   площадь/размах/масса = `wings.json` iXess 15 (± 1 %); скорость сваливания поляры при `pilot_mass_ref_kg` и паспортная
   `vs_kmh` при MTOW согласованы через √(m/MTOW) (± 10 %).
 
-## TT-К3 v4. Тележка в «Маятнике»: колёса, сопротивление, предел рук
+## TT-К3 v5. Тележка в «Маятнике»: колёса, сопротивление, предел рук
 Владелец — TT-3; потребители — TT-4. Контрактный тест — `tests/contracts/test_tow_trike_k3.gd` (пишет TT-3).
 
 `PendulumModel` (`scripts/flight/pendulum/pendulum_model.gd`), `setup(wing_cfg, pilot_cfg, flight_override, apparatus_cfg)`:
@@ -110,6 +110,10 @@ contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id
   времени рук; так пилот буксировщика удерживает тележку на земле до нужной скорости (не газом). Инвариант (6): на
   колёсах с силой вперёд 1500 Н и `pitch` −1 отрыва нет до скорости ≥ 1,15·`v_l` (`v_l` — при `pitch` 0), ход
   непрерывен. Проверка (5б) — и на `trike_ixess15` с тележкой `configs/tow_tug.json` (TT-10).
+- v5 (2026-10-22, вопрос TT-10): (5б) на `trike_ixess15` — ввод `pitch` +1 держится до отрыва и 0,3 с после, порог
+  0,15 м/с в этом окне; на всём 1 с — с вводом после окна, как у автопилота (напр. `pitch` −0,25). Полный отжим в
+  воздухе дольше — не полёт (крыло ≈ 18 рад/с², тангаж 28–50°), не проверяется. Повторное касание колёсами после отрыва
+  (посадка) не моделируется — граница модели (скачок ≈ 1,6 м/с за шаг); автопилот его не допускает.
 
 ## TT-К4 v3. Буксировщик-дельталёт: `TowTug` (заменяет TW-К9 v3)
 Владелец — TT-4; потребители — TT-5 (игра: модели, звук). Контрактный тест — `tests/contracts/test_tow_k9.gd`
