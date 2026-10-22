@@ -75,3 +75,5 @@
 {"t": "2026-10-23T04:20:41", "by": "coordinator", "task": "SNW-5", "ev": "note", "note": "Остановлена координатором 2026-10-23 по решению пользователя (струйки вместо облаков, К3/К4 v3): замер цены кадра перенесён в SNW-8, проверки gpu/cpu/worst1 сняты.", "addendum": true}
 {"t": "2026-10-23T04:20:41", "by": "coordinator", "task": "SNW-5", "ev": "checked", "note": "4/4 readme=ok:---; emitters_strong=ok:24; emitters_weak=ok:0; frames=ok:4"}
 {"t": "2026-10-23T04:20:50", "by": "coordinator", "task": "SNW-5", "ev": "accepted", "note": "частично по остановке: модель в игре (24/0 источников, порог 7,45/7,03 м/с), 4 кадра; цена кадра — SNW-8"}
+{"t": "2026-10-23T04:20:51", "by": "coordinator", "task": "SNW-5", "ev": "accepted", "commits": ["97a849c5"], "note": "4/4 readme=ok:---; emitters_strong=ok:24; emitters_weak=ok:0; frames=ok:4"}
+{"t": "2026-10-23T04:20:52", "by": "coordinator", "task": "SNW-5", "ev": "merged"}
