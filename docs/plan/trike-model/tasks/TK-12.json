@@ -1,9 +1,9 @@
 {
   "id": "TK-12",
   "module": "trike-model",
-  "type": "dp-mechanic",
-  "title": "Кадры модели v3",
-  "goal": "Перерендерить все PNG (trike_*, pilot_*, seat_closeup*) в /home/greg/deltaplan/build/screenshots/trike-model и пересчитать tools/research/trike-model/fit.json готовыми скриптами без правок кода.",
+  "type": "dp-researcher",
+  "title": "Кадры v4 и вид из глаз пилота",
+  "goal": "Все PNG (trike_*, pilot_*, seat_closeup*) заново по модели v4 и кадр из глаз пилота eye_view.png с условной штангой в трёх положениях хода; fit.json и число пересечений лучей глаз→панель со штангой (0).",
   "plan_ref": "TK-12",
   "contracts": [
     {
@@ -21,7 +21,8 @@
   "branch": "trike-model/TK-12",
   "base": "feature/trike-model",
   "scope": [
-    "tools/research/trike-model/fit.json"
+    "tools/blender/render_trike.py",
+    "tools/research/trike-model/"
   ],
   "dont_touch": [
     "tools/blender/",
@@ -59,9 +60,20 @@
       "name": "foot_gap",
       "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('foot=%.2f'%max(d['foot_gap_l_cm'],d['foot_gap_r_cm']))\"",
       "expect": "num:foot=([\\d.]+) <=3"
+    },
+    {
+      "name": "eye_view",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-model/eye_view*.png | wc -l",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "ray",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('hits=%d'%d['bar_ray_hits'])\"",
+      "expect": "num:hits=(\\d+) <=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T14:02:06"
+  "created": "2026-10-22T14:02:06",
+  "edited": "2026-10-22T14:40:49"
 }

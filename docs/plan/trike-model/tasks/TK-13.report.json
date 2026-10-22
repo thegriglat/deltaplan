@@ -1,0 +1,76 @@
+{
+  "status": "partial",
+  "summary": "wings.json + wings.md: 3 крыла (Air Creation iXess 15, P&M GT450, Aeros Profi TL) с аппаратами; паспортные размах/площадь/масса/скорости/MTOW/бак/двигатель/винт по BMAA HADS/TADS и страницам производителей; хорды и тяга iXess выведены, крутка/латты/ЦМ тележки не найдены (н/д).",
+  "commits": [
+    "see git log trike-model/TK-13"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "wings",
+      "value": "n=3 full=3 (по формальной проверке src; по существу 2 полных: у GT450 угол носа н/д)",
+      "pass": true
+    },
+    {
+      "name": "physics",
+      "value": "missing=0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Фрегат, Airborne Streak/Wizard, North Wing, Aeros Stranger не охвачены: читаемых паспортов нет (BMAA TADS Airborne Edge XT и QuikR — PDF без извлекаемого текста)",
+    "Крутка, латты, профиль, высота кингпоста, ЦМ тележки от подвески, измеренная тяга — не найдены в открытых источниках"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TK-13 --dry",
+  "uncertain": [
+    {
+      "where": "tools/research/trike-model/wings.json: root_chord_m/tip_chord_m",
+      "why": "хорд в источниках нет; R+T=2S/b, T/R=0.25 по аналогии с крыльями игры, погрешность около 10 %",
+      "checked": "сверил отношение с glider_params.json (0.23-0.26 при носе 120-130)"
+    },
+    {
+      "where": "wings.json: iXess static_thrust_n",
+      "why": "оценка 2070 Н по идеальному диску, FM=0.65 допущение (диапазон 1790-2330), паспорта нет",
+      "checked": "использованы обороты static 4600 и D=1.70 из HADS HM16, момент Rotax 128 Нм"
+    },
+    {
+      "where": "wings.json: iXess mass_kg 53, double_surface_pct 90",
+      "why": "только Wikipedia (WDLA); процент двойной обшивки взят по пересказу поиска и не перепроверен",
+      "checked": "масса совпадает с Aeros/P&M по порядку (51.5-52)"
+    },
+    {
+      "where": "wings.json: iXess trim_speed_kmh",
+      "why": "прокси из примера ASI-плакарда (glide 40 kt), настоящей трим-скорости нет",
+      "checked": "помечено в src"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения карточки; нужна --full для полного текста (нашёл не сразу). Проверка wings считает полной запись с src 'не найдено' (GT450 без угла носа).",
+  "extra": {
+    "wings": 3,
+    "ixess15": {
+      "span": 10,
+      "area": 15,
+      "mtow": 450,
+      "vne_kmh": 164.8
+    },
+    "gt450": {
+      "span": 9.25,
+      "area": 13,
+      "mtow": 450,
+      "vne_kmh": 177
+    },
+    "profi_tl": {
+      "span": 10,
+      "area": 14.5,
+      "nose": 128,
+      "wing_kg": 52
+    }
+  },
+  "t": "2026-10-22T14:44:51",
+  "by": "executor"
+}

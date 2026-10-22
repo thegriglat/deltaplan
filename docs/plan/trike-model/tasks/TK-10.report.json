@@ -1,0 +1,79 @@
+{
+  "status": "done",
+  "summary": "trike_params.json v3: трубы киля/мачты/подкоса 0.06, бак 53 л (0.34×0.43×0.355) над килем с keel_clear 0.03, резонансная труба 0.66×0.15 м и глушитель 0.30×0.12 м; тест K1 расширен; раздел v3 в v2_sources.md.",
+  "commits": [
+    "7d15bdb4 trike-model TK-10: данные трайка v3"
+  ],
+  "checks": [
+    {
+      "name": "trike_model_k1",
+      "value": "3/3, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "v3",
+      "value": "bad=0 tubes=3 clear=0.03",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "3 файла",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "Бак пришлось сделать ниже и шире прежнего (0.34×0.43×0.355 вместо 0.32×0.45×0.46): между верхом киля (−2.09) с зазором 0.03 и задней подушкой (−1.681) с зазором 0.02 всего 0.36 м. Высокая канистра возможна только при опускании заднего сиденья (rear_seat_rise < 0.2) — решение координатора.",
+    "filler теперь на верху бака (0.05, −0.2, −1.705); build_trike.py тянет горловину вдоль x (бок) — TK-11 переделать на вертикальную."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TK-10 (первый запуск Godot в копии — godot --headless --path . --import, иначе тест падает по таймауту)",
+  "uncertain": [
+    {
+      "where": "tools/blender/trike_params.json: engine_exhaust_d/muffler_d/muffler_l",
+      "why": "размерных чертежей 582 в открытых документах нет; значения 0.15/0.12/0.30 м оценены по одной фотографии (перспектива, ±25%)",
+      "checked": "Rotax Installation Manual (длина трубы 660 мм для 582 40 кВт, масса глушителя 1.6 кг), IM/MM 582 — размеров нет"
+    },
+    {
+      "where": "engine_exhaust_l = 0.66",
+      "why": "источник — вариант 582 40 кВт, для стандартного 47 кВт принято то же",
+      "checked": "aircraftspruce d00287.pdf, разд. 10"
+    },
+    {
+      "where": "tank_volume_l = 53",
+      "why": "значения из Wikipedia (Cosmos Phase II 53, Aeros-2 53, Skypper 582 55), не из паспортов",
+      "checked": "WebSearch; Airborne XT582 даёт 70-72 л"
+    }
+  ],
+  "dp_feedback": "accept --dry на копии без .godot ждёт 900 с таймаута без подсказки про --import; стоило бы выполнять import автоматически или писать причину в лог.",
+  "extra": {
+    "tank": {
+      "size": [
+        0.34,
+        0.43,
+        0.355
+      ],
+      "volume_l": 51.9,
+      "center": [
+        0.0,
+        -0.15,
+        -1.8825
+      ],
+      "keel_clear": 0.03,
+      "gap_to_seat_pan_m": 0.024
+    },
+    "exhaust": {
+      "engine_exhaust_d": 0.15,
+      "engine_exhaust_l": 0.66,
+      "muffler_d": 0.12,
+      "muffler_l": 0.3
+    }
+  },
+  "t": "2026-10-22T14:48:22",
+  "by": "executor"
+}
