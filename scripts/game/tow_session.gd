@@ -2,8 +2,8 @@ class_name TowSession
 extends Node3D
 ## Буксировка в игре (TW-10, TW-10b; docs/contracts/tow.md → TW-К5/К6/К7/К8/К9/К10): трос TowLine, отцеп на пилоте.
 ## winch_static — лебёдка в конце полосы, трос с куполом после отцепа. aerotow — пилот лежит на тележке (К10) в начале
-## полосы, Ан-2 (TowTug, К9) впереди на длину троса; по W буксировщик выбирает слабину и разгоняется, крыло
-## отрывается с тележки, тележка остаётся на полосе; после отцепа Ан-2 уходит (через away_s модель убирается).
+## полосы, буксировщик-дельталёт (TowTug, TT-К4) впереди на длину троса; по W буксировщик выбирает слабину и разгоняется, крыло
+## отрывается с тележки, тележка остаётся на полосе; после отцепа буксировщик уходит (через away_s модель убирается).
 ## Шаг — раз в шаг физики до glider.step. Старт по W (start_pressed): до этого трос лежит, натяжения нет.
 ## Отцеп — release_pressed или обрыв слабого звена.
 ## Модель границ: воздух для троса неподвижен, лебёдка не двигается (TowLine); визуал отцепа — на положении
@@ -64,7 +64,7 @@ func setup(glider_: Glider, ground_fn: Callable, site: Dictionary, kind_: String
 	add_child(rope_view)
 	if is_aerotow():
 		_cradle_h = float(Config.get_config("tow_dolly").get("cradle_height_m", 0.4))
-		_tail_h = float(Config.get_config("tow_tug").get("tail_height_m", 1.5))
+		_tail_h = 1.5  # модель Ан-2 (пасхалка) стоит хвостом на tow_hook; вид дельталёта - TT-5
 		tug = TowTug.new()
 		tug.setup(_start_pos, heading_deg, _rope_len, ground_fn)
 		if models:
@@ -227,7 +227,12 @@ func step(dt: float, start_pressed := false, release_pressed := false) -> void:
 		elif drogue_node != null:
 			drogue_node.visible = true
 	if tug != null:
-		tug.set_rope_tension(0.0 if _detached else line.tension_n)
+		tug.set_air(glider.air_fn if glider != null else Callable())
+		var pull := Vector3.ZERO
+		if not _detached and glider != null and line.tension_n > 0.0:
+			# сила троса на буксировщик: натяжение к точке крепления на дельтаплане (пилот, TowLine attach)
+			pull = line.tension_n * (glider.model.pilot_position - tug.pos).normalized()
+		tug.set_rope_force(pull)
 		tug.step(dt, glider_agl_m())
 		line.anchor_pos = tug.pos
 		line.anchor_vel = tug.vel
