@@ -30,7 +30,8 @@
     "tests/world/",
     "tools/shots/haze_humidity_shots.sh",
     "tools/shots/sun_color_measure.py",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "tools/shots/menu_art.json"
   ],
   "dont_touch": [
     "scripts/world/sky.gdshader",
@@ -72,5 +73,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T20:58:25"
+  "created": "2026-10-22T20:58:25",
+  "edited": "2026-10-22T21:02:37"
 }
