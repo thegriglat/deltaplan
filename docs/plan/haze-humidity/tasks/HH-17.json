@@ -1,0 +1,45 @@
+{
+  "id": "HH-17",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Быстрый источник ERA5: ARCO-ERA5 (GCS Zarr) и NCAR ERA5 (S3) против CDS на одном месяце",
+  "goal": "На одном месяце (2018-07) замерить скорость и объём загрузки из ARCO-ERA5 (Google Cloud Zarr) и NCAR ERA5 на AWS S3 (ds633.0) для переменных HH-1e/1g/1h, сверить суточные статистики с уже скачанными CDS daily-statistics, проверить докачку при обрывах; рекомендация — чем докачивать остаток.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [],
+  "copy": "~/deltaplan-haze-humidity-HH-17",
+  "branch": "haze-humidity/HH-17",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/era5_source/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "data/",
+    "docs/contracts/",
+    "tools/research/haze_humidity/surface_t/",
+    "tools/research/haze_humidity/upper_air/",
+    "tools/research/haze_humidity/upper_misc/"
+  ],
+  "accept": [
+    {
+      "name": "result",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/haze_humidity/era5_source/result.json'));assert {'sources','speed','volume','diff_vs_cds','resume','recommendation'}<=set(d)\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/haze_humidity/era5_source/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T02:28:52"
+}
