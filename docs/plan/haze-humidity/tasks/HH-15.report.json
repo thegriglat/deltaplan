@@ -1,0 +1,257 @@
+{
+  "status": "done",
+  "summary": "Свет рельефа = sun.energy·T_G(el)/T_G(35°), небо/окружение/дымка/облака — одна sky_k(el) (однократное рассеяние в атмосфере игры, сверка ESRA), экспозиция заката E(el) (a=0,8, E_max=10, ρ=0,2, плавно), зенит и ambient_top облаков не подкрашены, clouds.sky_light и ручные таблицы удалены. Диск светлее ореола по каждому каналу, профиль монотонный, скачка на краю нет (halo2: center_brightest=1, monotonic=1, edge_jump=0,042); размер ореола прежний; облака против солнца не чёрные.",
+  "commits": [
+    "bc7f2708 HH-15: яркость заката по физике пропускания, sky_k, экспозиция заката, диск светлее ореола"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "12/12 PASS",
+      "pass": true
+    },
+    {
+      "name": "halo2_askarovo 3° (after)",
+      "value": "center_brightest=1 (центр 1,00/0,57/0,25 против кольца 0,82/0,46/0,23), monotonic=1, edge_jump=0,042; glow_r 5,08° (до 6,03°, −16 %)",
+      "pass": true
+    },
+    {
+      "name": "HH-11 halo_askarovo 4,9° (after)",
+      "value": "ratio 2,83 (было 3,4; допуск 2,8–4,0), offset 2,2 px (≤3), glow_r 5,71° (было 6,3°, −9 %); center_brightest=0 (кольцо B 0,41 против диска 0,37), monotonic=0",
+      "pass": false
+    },
+    {
+      "name": "HH-11 halo_altai 5,7° (after, прошлый кадр до последней правки шейдера)",
+      "value": "ratio 4,42, offset 2,8, glow_r 14,6° (как раньше 14,6°)",
+      "pass": true
+    },
+    {
+      "name": "HH-13 sun_color_measure within (after)",
+      "value": "2°: G/R 0,39 B/R 0,13 при ожид. 0,27/0,02 — within=0 (было 1); 0,7°: 0,26/0,15 при 0,11/0,00 — 0 (было 0); 3°: 0,53/0,23 при 0,37/0,04 — 0 (было 1)",
+      "pass": false
+    },
+    {
+      "name": "облака против солнца 1,9° (after)",
+      "value": "тело (нижние 50 % маски) Y 0,138 против неба 0,105: ×1,32; G/R 1,00, B/R 1,31 (сине-серое); до правки — почти чёрное (кадр before_scene_backlit_2deg)",
+      "pass": true
+    },
+    {
+      "name": "облака против солнца 0,7° (after)",
+      "value": "тело Y 0,0107 против неба 0,042: ×0,25 (>5 %); G/R 1,99, B/R 2,22 (тёмно-сиреневое)",
+      "pass": true
+    },
+    {
+      "name": "кадры",
+      "value": "16 before/after scene_* (+halo2, backlit), служебные маски в _aux/, README в папке дополнен",
+      "pass": true
+    },
+    {
+      "name": "sky",
+      "value": "16/16 (пропуск 2)",
+      "pass": true
+    },
+    {
+      "name": "sun",
+      "value": "29/29",
+      "pass": true
+    },
+    {
+      "name": "cloud",
+      "value": "61/61 (пропуск 3)",
+      "pass": true
+    },
+    {
+      "name": "haze_humidity",
+      "value": "30/30 (пропуск 1)",
+      "pass": true
+    },
+    {
+      "name": "no_tables",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "research",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "16",
+      "pass": true
+    },
+    {
+      "name": "no_masks",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "center_brightest",
+      "value": "center_brightest=1",
+      "pass": true
+    },
+    {
+      "name": "monotonic",
+      "value": "monotonic=1",
+      "pass": true
+    },
+    {
+      "name": "edge_jump",
+      "value": "0.042",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Кадры before_scene_backlit_*: нет масок без облаков для 'до' (код ветки к тому моменту был изменён) — числа тела облаков только 'после'.",
+    "Засвет Хоулдея–Стайлса с экспозицией (lum^p·E) не применён: ореол на 5° вырос бы в 2–3 раза, а размер ореола утверждён. veil_core/corona выведены без изменения числа: veil_core = C/θ0² (C=1,08 — единственная константа, по фото телефона; по глазу HS даёт C≈49), corona_width = 3 радиуса диска (0,9°). Исключение smoothstep(0,7;3,5) убрано; перекраска диска убрана совсем (см. uncertain).",
+    "halo_askarovo (4,9°) и HH-13 within не выполняются: смотри uncertain."
+  ],
+  "questions": [
+    "Конфликт требований: «диск ярче ореола и неба по каждому каналу» и «цветность диска в ±0,1 от sun_tint» (HH-13) несовместимы: синий канал неба на 6–12° (B≈0,3–0,45) выше B красного диска (sun_tint B/R ≈ 0,02–0,1). Выбрано первое (решение пользователя 23.10): диск теперь жёлто-белый, красный несёт ореол. Нужно решение координатора/пользователя: оставить так или вернуть красный диск и ослабить требование «по каждому каналу» (напр. только по яркости Y).",
+    "scripts/terrain/terrain_renderer.gd:615 (scene_look_sky) и scripts/world/sun_clock.gd light_at читают удалённые sun_energy/sky_energy — теперь получают 1,0 (оценка земного света для sl_ground_light на закате завышена). Файлы вне scope HH-15: нужна правка (взять SunTransmission.sky_k) отдельной задачей."
+  ],
+  "images": [
+    "build/screenshots/haze-humidity/before_scene_el35.jpg",
+    "build/screenshots/haze-humidity/after_scene_el35.jpg",
+    "build/screenshots/haze-humidity/before_scene_el18.jpg",
+    "build/screenshots/haze-humidity/after_scene_el18.jpg",
+    "build/screenshots/haze-humidity/before_scene_el8.jpg",
+    "build/screenshots/haze-humidity/after_scene_el8.jpg",
+    "build/screenshots/haze-humidity/before_scene_sun2.jpg",
+    "build/screenshots/haze-humidity/after_scene_sun2.jpg",
+    "build/screenshots/haze-humidity/before_scene_sun07.jpg",
+    "build/screenshots/haze-humidity/after_scene_sun07.jpg",
+    "build/screenshots/haze-humidity/before_scene_everest.jpg",
+    "build/screenshots/haze-humidity/after_scene_everest.jpg",
+    "build/screenshots/haze-humidity/before_halo2_askarovo.jpg",
+    "build/screenshots/haze-humidity/after_halo2_askarovo.jpg",
+    "build/screenshots/haze-humidity/before_scene_backlit_2deg.jpg",
+    "build/screenshots/haze-humidity/after_scene_backlit_2deg.jpg",
+    "build/screenshots/haze-humidity/before_scene_backlit_1deg.jpg",
+    "build/screenshots/haze-humidity/after_scene_backlit_1deg.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept HH-15; tools/shots/haze_humidity_shots.sh . after_ <выход> scene; python3 tools/shots/sun_halo_measure.py <кадр>; tools/shots/cloud_backlit_measure.py <кадр>",
+  "uncertain": [
+    {
+      "where": "configs/atmosphere.json clouds.sun_transmission.sky_k; tools/research/haze_humidity/sky_light/README.md",
+      "why": "sky_k — однократное рассеяние (без многократного и озона), ESRA сходится ±3 % при ≥6°, при ≤4° ESRA выше на 9–49 %; погрешность ±30 % при ≤2°; от дымки дня не зависит (×2 ослабления — sky_k(2°)×0,55). Коэффициенты ESRA и Bird — по памяти, не по тексту статей. Прежний ориентир Kittler/CIE (0,07 при 2°) ниже таблицы в 2,3 раза, источник не проверен.",
+      "checked": "сверка двух моделей, чувствительность к ослаблению, чувствительность E"
+    },
+    {
+      "where": "configs/world.json rendering.sunset_exposure (a=0,8, E_max=10, ρ=0,2)",
+      "why": "параметры — оценки (фото закатов: 3–5 ступеней, зрение адаптируется частично), не измерение. Яркость неба на экране после E (2°: 0,76 дня) относительно рельефа (≈0,2) выше, чем днём — следствие контрактной формулы L с весом неба 1.",
+      "checked": "таблица el→E (README исследования), кадры 0,7–35°"
+    },
+    {
+      "where": "scripts/world/sky_environment.gd _apply_exposure",
+      "why": "отклонение от буквы контракта: диск, корона, ореол неба и ореол дымки заданы яркостью «на кадре» и делятся на E (иначе экспозиция раздувает ореол в разы, а размер ореола не менять); сила засвета от E не зависит. Свет рельефа: цвет нормирован на G (R/G может быть >1, light_color выше 1 для дальнего заката) — энергия×цвет = T_c/T_c_ref по каналам.",
+      "checked": "тесты hh4 v3; кадры: terrain освещён красным корректно"
+    },
+    {
+      "where": "scripts/world/sun_glare.gdshader ~строка 245",
+      "why": "диск «не темнее окружения»: в шейдере lin=max(lin, максимум нормированных пикселей на 3–40 радиусах диска + пересвет) с весом по углу; перекраска в цвет солнца удалена. Побочно: диск у горизонта светлее красного sun_tint (HH-13 within 1→0), на 4,9° (halo_askarovo) синий канал дальнего неба всё ещё выше диска.",
+      "checked": "halo2 и halo: center_brightest/monotonic/edge_jump; профиль монотонности считается по среднему 3 колец и кольцам r<2 объединённым (диск 5,7 px, медиана 1–8 пикселей шумит на 2–3 %), центр профиля — центроид ядра ≥250 (sun.txt бывает на 2 px в стороне)"
+    },
+    {
+      "where": "tools/shots/haze_humidity_shots.sh (после запуска before)",
+      "why": "кадры before_ сняты на ветке модуля до HH-15; before_halo_askarovo/altai и suncolor/clouds в папке — старые (другие версии кода), их числа для сравнения HH-11 взяты из README HH-11.",
+      "checked": "before_scene_*, halo2, backlit — одной снимкой кода"
+    }
+  ],
+  "dp_feedback": "Правила про замок GPU/CPU менялись 3 раза за задачу (замок на скриншоты → без замка → lock cpu): хотелось бы одно место в workflow.md. Нет команды «моя копия ждёт слота» в job status.",
+  "extra": {
+    "sky_k_table": {
+      "el": [
+        0,
+        0.5,
+        1,
+        2,
+        3,
+        4,
+        6,
+        8,
+        12,
+        18,
+        26,
+        35
+      ],
+      "k": [
+        0.082,
+        0.097,
+        0.115,
+        0.156,
+        0.202,
+        0.249,
+        0.34,
+        0.422,
+        0.559,
+        0.719,
+        0.875,
+        1.0
+      ]
+    },
+    "E_light_sky_table": {
+      "el": [
+        0.6,
+        1.9,
+        7.9,
+        17.7,
+        34.5
+      ],
+      "light_energy": [
+        0.0002,
+        0.012,
+        0.399,
+        0.865,
+        1.193
+      ],
+      "sky_k": [
+        0.101,
+        0.152,
+        0.418,
+        0.711,
+        0.992
+      ],
+      "E": [
+        6.93,
+        5.0,
+        2.18,
+        1.38,
+        1.01
+      ]
+    },
+    "frame_mean_lin_before_after": {
+      "el35": [
+        0.292,
+        0.291
+      ],
+      "el18": [
+        0.203,
+        0.205
+      ],
+      "el8": [
+        0.177,
+        0.167
+      ],
+      "sun2": [
+        0.102,
+        0.072
+      ],
+      "sun07": [
+        0.101,
+        0.06
+      ],
+      "everest": [
+        0.114,
+        0.087
+      ]
+    }
+  },
+  "t": "2026-10-23T03:57:12",
+  "by": "executor"
+}

@@ -37,7 +37,8 @@
     "tools/research/haze_humidity/sky_light/",
     "docs/guide/terrain/forest-sky.md",
     "docs/guide/atmosphere/",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "scripts/world/sun_clock.gd"
   ],
   "dont_touch": [
     "data/",
@@ -103,10 +104,15 @@
       "name": "edge_jump",
       "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo2_askarovo.jpg",
       "expect": "num:edge_jump=([\\d.]+) <=0.15"
+    },
+    {
+      "name": "disk_color_2deg",
+      "cmd": "python3 tools/shots/sun_color_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_suncolor_askarovo_low.jpg",
+      "expect": "re:within=1"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T01:33:54",
-  "edited": "2026-10-23T02:46:46"
+  "edited": "2026-10-23T03:57:59"
 }
