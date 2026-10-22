@@ -347,3 +347,6 @@
 {"t": "2026-10-22T06:37:05", "by": "executor", "task": "TW-19", "ev": "reported", "commits": ["6f571531", "поправка:"], "note": "done: Раздел docs/guide/flight/tow.md (9 разделов), ссылки из flight/game/models, строка CHANGELOG, выводы в findings. По поп…", "dp_feedback": "task show обрезает дополнения координатора; полный текст нашёл только через --full."}
 {"t": "2026-10-22T06:37:10", "by": "coordinator", "task": "TW-7b", "ev": "checked", "note": "3/3 tow_k9=ok:4/4; test_tow_aerotow=ok:5/5; gdcheck=ok:exit 0"}
 {"t": "2026-10-22T06:37:16", "by": "coordinator", "task": "TW-7b", "ev": "accepted", "note": "по отчёту; скачок vz при отцепе в climb — непрерывность положения есть"}
+{"t": "2026-10-22T06:37:27", "by": "coordinator", "task": "TW-7b", "ev": "accepted", "commits": ["df6ee09f"], "note": "3/3 tow_k9=ok:4/4; test_tow_aerotow=ok:5/5; gdcheck=ok:exit 0"}
+{"t": "2026-10-22T06:37:27", "by": "coordinator", "task": "TW-7b", "ev": "merged"}
+{"t": "2026-10-22T06:37:28", "by": "coordinator", "task": "TW-19", "ev": "accepted", "note": "5/5 headings=ok:9; changelog=ok:1; findings=ok:7; size=ok:27378; docs=ok:ошибок 0"}
