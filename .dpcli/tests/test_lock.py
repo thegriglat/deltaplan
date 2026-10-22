@@ -1,6 +1,7 @@
 """Замок cpu: взвешенные слоты, очередь с добором и защитой от голодания, чистка мёртвых PID, таймаут."""
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -43,7 +44,7 @@ class Rule(unittest.TestCase):
         self.assertFalse(jobs.cpu_can_start(d, "c", 4, 300, 300))
 
 
-class Cli(unittest.TestCase):
+class CliBase(unittest.TestCase):
     """Через dpcli lock: временный каталог с dpcli.json вне git."""
 
     def setUp(self):
@@ -99,6 +100,7 @@ class Cli(unittest.TestCase):
     def held(self, s):
         return {h["holder"]: h["slots"] for h in s["holders"]}
 
+class Cli(CliBase):
     def test_slots_accounting_and_status(self):
         a = self.start("cpu", "a", "--slots", "3", "--", "sleep", "1.5")
         self.wait_for(lambda s: self.held(s) == {"a": 3})
@@ -192,6 +194,89 @@ class Cli(unittest.TestCase):
         self.assertEqual(jobs.cpu_weight(["godot", "-s", "run_tests.gd"]), 3)
         self.assertEqual(jobs.cpu_weight(["python3", "x.py"]), 1)
         self.assertEqual(jobs.cpu_total(), 8)
+
+
+class JobState(unittest.TestCase):
+    """job_state: чужое пространство PID — по окну tmux; job_start стирает следы прошлого запуска с тем же именем."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        os.environ["DPCLI_JOB_DIR"] = self.tmp.name
+        self.addCleanup(os.environ.pop, "DPCLI_JOB_DIR", None)
+        self.d = Path(self.tmp.name)
+
+    def test_foreign_ns(self):
+        (self.d / "x.pid").write_text("1")  # PID 1 жив, но он из «чужого» пространства — верить нельзя
+        (self.d / "x.ns").write_text("pid:[0]")
+        self.assertEqual(jobs.job_state("x"), "unknown")
+        (self.d / "x.win").write_text("@999999")
+        if shutil.which("tmux"):
+            self.assertEqual(jobs.job_state("x"), "gone")
+        (self.d / "x.rc").write_text("0")
+        self.assertEqual(jobs.job_state("x"), "done")
+
+    def test_start_clears_stale(self):
+        for ext, v in (("pid", "1"), ("rc", "0"), ("ns", "pid:[0]"), ("win", "@1")):
+            (self.d / f"y.{ext}").write_text(v)
+        jobs.job_start("y", 10, ["sleep", "0.5"])
+        self.assertEqual(jobs.job_state("y"), "running")
+        self.assertFalse((self.d / "y.win").exists())
+        t = time.time() + 5
+        while jobs.job_state("y") == "running" and time.time() < t:
+            time.sleep(0.05)
+        self.assertEqual(jobs.job_state("y"), "done")
+        self.assertEqual((self.d / "y.rc").read_text().strip(), "0")
+
+
+@unittest.skipUnless(shutil.which("tmux") and shutil.which("script"), "нет tmux/script")
+class TmuxLock(CliBase):
+    """lock с окном tmux (свой сервер tmux в TMUX_TMPDIR): держит замок до конца команды и отдаёт её код —
+    и из песочницы со своим пространством PID (bwrap), где PID окна не виден."""
+
+    def env(self, **kw):
+        e = super().env(**kw)
+        e.pop("DPCLI_NO_TMUX")
+        e.pop("TMUX", None)
+        e.update({"TMUX_TMPDIR": str(self.d), "DPCLI_TMUX_SESSION": "t"})
+        return e
+
+    def setUp(self):
+        super().setUp()
+        self.addCleanup(subprocess.run, ["tmux", "kill-server"], env=self.env(), capture_output=True)
+        # сервер tmux — вне песочницы, как у агента (иначе он умер бы вместе с её пространством PID)
+        subprocess.run(["tmux", "new-session", "-d", "-s", "t"], env=self.env(), cwd=self.d, check=True,
+                       stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def check_held(self, wrap):
+        t = time.time()
+        p = subprocess.Popen([*wrap, sys.executable, str(CLI), "lock", "cpu", "a", "--", "sh", "-c", "sleep 1.5; exit 5"],
+                             cwd=self.d, env=self.env(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        self.procs.append(p)
+        self.wait_for(lambda s: self.held(s) == {"a": 1})
+        time.sleep(0.8)
+        self.assertIsNone(p.poll(), "lock вернулся раньше команды")
+        self.assertEqual(self.held(self.state()), {"a": 1})
+        self.assertEqual(p.wait(15), 5, p.stderr.read() if p.stderr else "")
+        self.assertGreater(time.time() - t, 1.4)
+        self.assertIn("окно tmux", p.stdout.read())
+        self.assertEqual(self.state()["holders"], [])
+
+    def test_held_until_end(self):
+        self.check_held([])
+
+    @unittest.skipUnless(shutil.which("bwrap") and subprocess.run(
+        ["bwrap", "--dev-bind", "/", "/", "--unshare-pid", "--proc", "/proc", "true"], capture_output=True).returncode == 0,
+        "нет bwrap с --unshare-pid")
+    def test_held_until_end_sandbox(self):
+        self.check_held(["bwrap", "--dev-bind", "/", "/", "--unshare-pid", "--proc", "/proc"])
+
+    def test_same_holder_parallel(self):
+        a = self.start("cpu", "h", "--", "sh", "-c", "sleep 1; exit 3")
+        time.sleep(0.3)
+        b = self.start("cpu", "h", "--", "sh", "-c", "sleep 2; exit 4")
+        self.assertEqual(a.wait(15), 3)
+        self.assertEqual(b.wait(15), 4)
 
 
 if __name__ == "__main__":
