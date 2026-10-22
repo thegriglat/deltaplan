@@ -120,3 +120,5 @@
 {"t": "2026-10-23T04:42:57", "by": "executor", "task": "SNW-6", "ev": "reported", "commits": ["919ba9f5"], "note": "done: Новый гайд docs/guide/terrain/snow-plume.md (11,7 КБ), строка в terrain.md, запись в CHANGELOG «В работе», раздел snow-…"}
 {"t": "2026-10-23T04:43:06", "by": "coordinator", "task": "SNW-6", "ev": "accepted", "note": "4/4 guide_fm=ok:---; docs_check=ok:0; changelog=ok:2; size=ok:11997"}
 {"t": "2026-10-23T04:43:13", "by": "coordinator", "task": "SNW-6", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T04:43:15", "by": "coordinator", "task": "SNW-6", "ev": "accepted", "commits": ["4ac89327"], "note": "4/4 guide_fm=ok:---; docs_check=ok:0; changelog=ok:2; size=ok:11997"}
+{"t": "2026-10-23T04:43:16", "by": "coordinator", "task": "SNW-6", "ev": "merged"}
