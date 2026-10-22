@@ -78,6 +78,8 @@ var queue_walk: Dictionary = {}
 ## Индикатор смещения пилота внизу экрана (FB-1).
 var shift_indicator: PilotShiftIndicator
 var clock_label: ClockLabel
+var trike_hud: TrikeGaugesHud  ## TP-К4/К8: тахометр и топливо в HUD дельталёта
+var trike_gauges: TrikeGauges3D  ## приборы на панели тележки (кабина)
 ## Цели полёта (GL-4, GL-К3): null — целей нет (пусто, сеть, осмотр карты или неверный список).
 var goals: GoalTracker = null
 var goal_list: GoalList
@@ -192,6 +194,9 @@ func _ready() -> void:
 	clock_label.clock = sky.clock
 	add_child(clock_label)
 	Config.reloaded.connect(clock_label.reload)
+	trike_hud = TrikeGaugesHud.new()
+	trike_hud.name = "TrikeGaugesHud"
+	add_child(trike_hud)
 	goal_list = GoalList.new()
 	goal_list.name = "GoalList"
 	add_child(goal_list)
@@ -1568,7 +1573,7 @@ func _choose_tow_start() -> bool:
 				site = st
 		var tw: Dictionary = site.get("tow", {})
 		if tw.is_empty() or not (trike or kind in tw.get("kinds", [])):
-			push_warning("Game: на площадке %s нет буксировки %s, старт без буксировки" % [site.get("id", ""), kind])
+			push_warning("Game: на площадке %s нет полосы (%s), %s" % [site.get("id", ""), kind, "дельталёт стартует дельтапланом" if trike else "старт без буксировки"])
 			return false
 		x = site.position.x
 		z = site.position.z
@@ -1579,7 +1584,7 @@ func _choose_tow_start() -> bool:
 		site_name = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
 	var chk := TowSite.check(terrain, x, z, heading, length, width)
 	if not bool(chk.ok):
-		push_warning("Game: полоса для буксировки не годится (%s), старт без буксировки" % chk.reason)
+		push_warning("Game: полоса не годится (%s), %s" % [chk.reason, "дельталёт стартует дельтапланом" if trike else "старт без буксировки"])
 		return false
 	_start_pos = chk.start_pos
 	_start_heading = float(chk.heading_deg)
@@ -1691,6 +1696,8 @@ func _setup_glider() -> void:
 		settings.pilot_mass_kg = glider.pilot_mass_kg
 		input_controller.vehicle = "glider"
 	camera.set_head(glider.get_marker("PilotHead"))
+	camera.eye_offset_enabled = not glider.is_trike()
+	trike_gauges = null
 	# Смещение центра масс пилота от подвески в полёте (крен/тангаж ручкой), оси планера: голова
 	# кабинной камеры повторяет его долей (camera.json → cockpit.head_follow_body). На земле — ноль.
 	var v := glider.visual
@@ -1703,8 +1710,11 @@ func _setup_glider() -> void:
 		v.set_wrist_clock(sky.clock)  # наручные часы — время игры (PH-7)
 	if v != null and v.sky_shade != null:
 		v.sky_shade.env_fn = _sky_shade_env
-	for m: Dictionary in _cfg.get("mounted_instruments", []):
-		_mount_instrument(m)
+	if glider.is_trike():
+		_mount_trike_gauges()  # маркеров крыла дельтаплана у дельталёта нет
+	else:
+		for m: Dictionary in _cfg.get("mounted_instruments", []):
+			_mount_instrument(m)
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
 	camera.glance_target = null  # Q: середина смонтированных приборов; кадры (--look-at) задают свою цель
 	camera.glance_nodes.clear()
@@ -1736,9 +1746,34 @@ func _reload_wrist() -> void:
 func _hide_from_cockpit() -> void:
 	var ck: Dictionary = Config.get_config("camera").cockpit
 	var bit := 1 << (int(ck.get("hidden_layer", 20)) - 1)
+	if glider.trike_visual != null:  # дельталёт: пилот целиком не виден из кабины
+		glider.trike_visual.set_pilot_layers(bit)
 	for node_name: String in ck.get("hidden_nodes", []):
 		for n in glider.find_children(node_name, "VisualInstance3D", true, false):
 			(n as VisualInstance3D).layers = bit
+
+
+## TP-К8: приборы дельталёта на маркер InstrumentPanel тележки (нормаль панели - +Z маркера, TP-К4).
+func _mount_trike_gauges() -> void:
+	var panel := glider.get_marker("InstrumentPanel")
+	var path := "res://scenes/instruments/trike_gauges_3d.tscn"
+	if panel == null or not ResourceLoader.exists(path):
+		push_warning("Game: у дельталёта нет маркера InstrumentPanel или сцены приборов")
+		return
+	trike_gauges = (load(path) as PackedScene).instantiate() as TrikeGauges3D
+	panel.add_child(trike_gauges)
+	mounted.append(trike_gauges)
+
+
+## Обороты и топливо - приборам (кабина и HUD), TP-К4.
+func _update_trike_gauges() -> void:
+	if not glider.is_trike() or glider.engine == null:
+		return
+	var e := glider.engine
+	if is_instance_valid(trike_gauges):
+		trike_gauges.update_readout(e.engine_rpm, e.fuel_l, e.tank_l, e.running)
+	if trike_hud != null:
+		trike_hud.update_readout(e.engine_rpm, e.fuel_l, e.tank_l, e.running)
 
 
 ## Прибор на маркер крыла (game.json → mounted_instruments).
@@ -1778,6 +1813,10 @@ func _update_overlay() -> void:
 		shift_indicator.set_active(flying_enabled and input_controller.enabled and tow == null)
 	if clock_label != null:  # часы текстом — только в 3-м лице (PH-К2)
 		clock_label.set_active(flying_enabled and input_controller.enabled and camera.mode != "cockpit")
+	if trike_hud != null:  # приборы дельталёта - только у него и не из кабины (TP-К8)
+		trike_hud.set_active(
+			glider != null and glider.is_trike() and flying_enabled and input_controller.enabled and camera.mode != "cockpit"
+		)
 	if goal_list != null:  # список целей — в любой камере, пока есть цели
 		goal_list.set_active(flying_enabled and input_controller.enabled and goals != null)
 
@@ -1823,6 +1862,7 @@ func _rustle_feet(t: Telemetry) -> Array:
 
 
 func _on_telemetry(t: Telemetry) -> void:
+	_update_trike_gauges()
 	if tow != null:  # буксир: без приборов и статистики, писк молчит, поток — по скорости
 		vario_audio.set_vario(0.0)
 		flight_audio.update(t, {"phase": t.phase, "stall_amount": 0.0, "load_factor": 1.0})
