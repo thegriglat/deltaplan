@@ -638,10 +638,14 @@ func _wheel_solve_tilt(h: float, acc: Vector3, ext_p: Vector3, ext_h: Vector3, v
 	if ext_p != Vector3.ZERO or ext_h != Vector3.ZERO:
 		ext_b = Rt * (ext_p - (ext_p + ext_h) * (pilot_mass / mass))
 	var rate: Array[float] = [0.0]  # скорость наклона в законе рук: 0 при поиске равновесия (иначе демпфирование рук в петле с отставанием: усиление > 1, пила)
+	var commit: Array[bool] = [false]  # пробные вызовы закона рук состояния не меняют (TT-12), один вызов за подшаг — с commit
 	var m_of := func(a: float) -> float:
+		var snap: Array = arms.snapshot()
 		var rel := Vector3(sin(a), 0.0, cos(a)) * (_hang_len + _wh_stretch)
 		var vrel := Vector3(cos(a), 0.0, -sin(a)) * ((_hang_len + _wh_stretch) * rate[0])  # пилот относительно подвески (вращение крыла сокращается)
 		var fb := arms.compute(rel, vrel, 0.0, _wh_pitch, pilot_mass, h, false, NAN, load_b, ext_b)
+		if not commit[0]:
+			arms.restore(snap)
 		var hat: Vector3 = R * Vector3(sin(a), 0.0, cos(a))
 		var t_n := hat.dot(f_o + R * fb - acc * pilot_mass)
 		_wh_t_last = t_n
@@ -663,6 +667,7 @@ func _wheel_solve_tilt(h: float, acc: Vector3, ext_p: Vector3, ext_h: Vector3, v
 	_wh_tilt_rate = (a_new - _wh_tilt) / h
 	_wh_tilt = a_new
 	rate[0] = _wh_tilt_rate
+	commit[0] = true
 	m_of.call(a_new)  # натяжение при выбранном наклоне
 	_wh_stretch = WHEELS_STRETCH_K * chain.compliance * maxf(_wh_t_last, 0.0) * lift_share * lift_share
 

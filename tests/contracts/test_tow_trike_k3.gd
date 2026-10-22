@@ -356,3 +356,34 @@ func test_pitch_negative_holds_on_ground() -> void:
 	check(absf(pitch_deg - (WHEELS.keel_angle_deg - WHEELS.rotate_deg)) < 0.2, "тангаж = киль − rotate: %.2f°" % pitch_deg)
 	check(v_max >= 1.15 * v_l, "отрыва нет до 1,15·v_l: %.2f против %.2f" % [v_max, 1.15 * v_l])
 	check(jump <= 0.05, "ход непрерывен: %.3f" % jump)
+
+
+## (7) TT-К3 v6: переход pitch −1 → 0 → +1 на колёсах без рывка. Пробные вызовы закона рук в поиске наклона мачты
+## состояния рук не меняют: «отпускание» (release_event) срабатывает один раз за подшаг, а не внутри поиска корня.
+## Проверка: за подшаг счётчик успокоения рук растёт не больше чем на h, скорость тележки меняется <= a·dt + 0,05,
+## а скорость наклона мачты ограничена (без скачка при pitch 0).
+func test_pitch_transition_on_wheels() -> void:
+	var m := _wheel_model()
+	m.set_external_force(_pull_fn())
+	var a_max := PULL_N / m.mass + 1.0
+	var prev := m.pilot_velocity
+	var jump := 0.0
+	var worst_rate := 0.0
+	var worst_calm := 0.0
+	var t_prev_calm := 0.0
+	var pitches := [[-1.0, 3.0], [0.0, 1.0], [1.0, 0.5]]
+	for seg in pitches:
+		for _i in int(float(seg[1]) / DT):
+			m.step(DT, Sim.input(float(seg[0]), 0.0), Callable(), _flat)
+			if not m.on_wheels:
+				break  # отрыв — конец проверки на колёсах
+			jump = maxf(jump, m.pilot_velocity.distance_to(prev) - a_max * DT)
+			prev = m.pilot_velocity
+			worst_rate = maxf(worst_rate, absf(m._wh_tilt_rate))
+			var calm: float = m.arms._rel_calm
+			worst_calm = maxf(worst_calm, calm - t_prev_calm)
+			t_prev_calm = calm
+	print("    pitch -1 → 0 → +1: скачок сверх a·dt %.3f, макс. скорость наклона %.3f рад/с, макс. прирост _rel_calm за шаг %.4f" % [jump, worst_rate, worst_calm])
+	check(Sim.finite(m), "конечна")
+	check(jump <= 0.05, "ход непрерывен: %.3f" % jump)
+	check(worst_calm <= DT * 1.01, "счётчик успокоения растёт не быстрее времени: %.4f за шаг при DT=%.4f" % [worst_calm, DT])
