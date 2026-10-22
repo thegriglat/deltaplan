@@ -58,6 +58,8 @@ func test_reload_place_n_times() -> void:
 		rt.queue_free()
 		atmo.free()
 		return
+	var catcher := ErrorCatcher.new()
+	OS.add_logger(catcher)
 	var mem0 := -1
 	for i in LOADS:
 		var loc := loc0.duplicate(true)
@@ -78,6 +80,38 @@ func test_reload_place_n_times() -> void:
 		check(mem <= mem0 + MEM_SLACK, "загрузка %d: память RD не растёт (%d МБ, первая %d МБ)" % [i + 1, mem >> 20, mem0 >> 20])
 		if not ok:
 			break
+	# тот же ключ места, ветер меняется: пересчёт на том же RD
+	for i in 2:
+		_c = {hour = 12.0, u10 = WINDS[i + 1].x, wdir = WINDS[i + 1].y, t_max = NAN, sky = "clear"}
+		var loc := loc0.duplicate(true)
+		loc.month = 6
+		loc.day = LOADS
+		rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _cond)
+		var ok2: bool = await rt.load_field()
+		check(ok2, "тот же ключ, пересчёт %d: поле посчитано (%s)" % [i + 1, rt.last_error])
+		rt.stop()
+		check(gpu._owned.size() == gpu._base, "тот же ключ, пересчёт %d: на RD нет буферов задач" % [i + 1])
+	# stop() посреди расчёта (задачи фаз/Пикара и окна живы) и сразу новая загрузка
+	for i in 3:
+		_c = {hour = 12.0, u10 = WINDS[i].x, wdir = WINDS[i].y, t_max = NAN, sky = "clear"}
+		var loc := loc0.duplicate(true)
+		loc.month = 7
+		loc.day = i + 1
+		rt.setup(atmo, {detail = detail, water = lw[1], loc = loc}, _cond)
+		rt.load_field()  # без await: расчёт идёт кадрами, его обрывают
+		for f in 40 + 60 * i:
+			await Engine.get_main_loop().process_frame
+		rt.stop()
+		check(gpu._owned.size() == gpu._base, "обрыв %d: после stop() на RD нет буферов задач" % [i + 1])
+	_c = {hour = 12.0, u10 = 4.0, wdir = 150.0, t_max = NAN, sky = "clear"}
+	var loc_f := loc0.duplicate(true)
+	loc_f.month = 8
+	loc_f.day = 1
+	rt.setup(atmo, {detail = detail, water = lw[1], loc = loc_f}, _cond)
+	var ok_f: bool = await rt.load_field()
+	check(ok_f, "после обрывов загрузка считается (%s)" % rt.last_error)
+	OS.remove_logger(catcher)
+	check(catcher.errors.is_empty(), "ни одной ошибки движка/RD (%d): %s" % [catcher.errors.size(), "; ".join(catcher.errors.slice(0, 3))])
 	rt.queue_free()
 	atmo.free()
 

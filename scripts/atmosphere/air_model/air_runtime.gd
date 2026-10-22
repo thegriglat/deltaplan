@@ -160,6 +160,8 @@ var _gpu: RuntimeGpu
 ## Задача, чьё поле собирается в рабочем потоке (field_async), и её номер: поле чужой
 ## (остановленной) задачи не подаётся.
 var _building: AirPicardJob
+## Метки буферов задач на общем RD (id задачи → _owned.size() перед стартом).
+var _marks := {}
 var _build_id := 0
 var _t0 := 0
 var _ok := false
@@ -780,26 +782,42 @@ func _release_clip() -> void:
 		_clip = null
 
 
-## Остановить расчёт и освободить GPU (поле в атмосфере остаётся).
+## Метка буферов общего RD перед стартом задачи и освобождение только её буферов (по стеку:
+## RuntimeGpu.release() без метки сбросил бы и буферы живых задач — окон клипмапа, соседних стадий).
+func _mark(job: Object) -> void:
+	if job != null and _gpu != null:
+		_marks[job.get_instance_id()] = _gpu.mark()
+
+
+func _rel(job: Object) -> void:
+	if job == null or not job.has_method("release"):
+		return
+	var id := job.get_instance_id()
+	if _gpu != null:
+		_gpu.floor_mark = int(_marks.get(id, -1))
+	job.call("release")
+	if _gpu != null:
+		_gpu.floor_mark = -1
+	_marks.erase(id)
+
+
+## Остановить расчёт и освободить GPU (поле в атмосфере остаётся). Порядок — обратный запуску
+## (окна клипмапа, Пикар, грубый, фазы): буферы на общем RD освобождаются по стеку.
 func stop() -> void:
-	if _building != null and _building.gpu != null:
-		_building.release()
-	if _coarse_job != null:
-		_coarse_job.release()
-		_coarse_job = null
-	if _phase_job != null:
-		if _phase_job.has_method("release"):
-			_phase_job.call("release")
-		_phase_job = null
-	if _job != null:
-		_job.release()
-		_job = null
 	if _task >= 0:
 		WorkerThreadPool.wait_for_task_completion(_task)
 		_task = -1
-	_build_id += 1  # собираемое поле больше не подаётся
 	if _clip != null and _clip.is_busy():
 		_clip.release()
+	if _building != null and _building.gpu != null:
+		_rel(_building)
+	_rel(_job)
+	_job = null
+	_rel(_coarse_job)
+	_coarse_job = null
+	_rel(_phase_job)
+	_phase_job = null
+	_build_id += 1  # собираемое поле больше не подаётся
 	_stage = Stage.IDLE
 
 
@@ -1055,9 +1073,11 @@ func _poll_prep() -> void:
 	if _phase_job != null:
 		_t_phase = Time.get_ticks_usec()
 		_phase_job.set("case", c)
+		_mark(_phase_job)
 		var ok: Variant = _phase_job.call("start", _gpu)
 		if (ok is bool and not ok) or String(_phase_job.get("error")) != "":
 			print("air_model: фазы на GPU не стартовали (%s) — Пикар без фаз" % _phase_job.get("error"))
+			_rel(_phase_job)
 			_phase_job = null
 		else:
 			_stage = Stage.PHASE
@@ -1071,6 +1091,7 @@ func _poll_phase() -> void:
 	var err := String(_phase_job.get("error"))
 	if err != "":
 		print("air_model: фазы на GPU не посчитались (%s) — Пикар без фаз" % err)
+		_rel(_phase_job)
 		_phase_job = null
 		_after_phases()
 		return
@@ -1078,8 +1099,7 @@ func _poll_phase() -> void:
 		return
 	_phase = _phase_job.call("result")
 	_phase.ms_wall = (Time.get_ticks_usec() - _t_phase) / MS_PER_S
-	if _phase_job.has_method("release"):
-		_phase_job.call("release")
+	_rel(_phase_job)
 	_phase_job = null
 	_defer(_after_phases)
 
@@ -1106,8 +1126,10 @@ func _after_phases() -> void:
 	_coarse_job.mech = true
 	_coarse_job.chunk_ms = LOAD_CHUNK_MS if _loading else FLIGHT_CHUNK_MS
 	_coarse_job.timeout_s = maxf(_timeout_s() - (Time.get_ticks_usec() - _t_pass) / 1e6, 1.0)
+	_mark(_coarse_job)
 	if not _coarse_job.start(_gpu):
 		print("air_model: грубый старт не начался (%s) — с фона" % _coarse_job.error)
+		_rel(_coarse_job)
 		_coarse_job = null
 		_start_picard(c)
 		return
@@ -1121,7 +1143,7 @@ func _poll_coarse() -> void:
 	if _coarse_job.error != "" or not _coarse_job.is_done():
 		if _coarse_job.error != "":
 			print("air_model: грубый старт не посчитался (%s) — с фона" % _coarse_job.error)
-			_coarse_job.release()
+			_rel(_coarse_job)
 			_coarse_job = null
 			_start_picard(_prep.case)
 		return
@@ -1132,7 +1154,7 @@ func _poll_coarse() -> void:
 		gpu_s = _coarse_job.gpu_ms_total / MS_PER_S,
 		warm = coarse_start(cc, _coarse_job),
 	}
-	_coarse_job.release()
+	_rel(_coarse_job)
 	_coarse_job = null
 	_defer(_start_picard.bind(_prep.case))
 
@@ -1148,7 +1170,7 @@ func _read_mech_state() -> void:
 	if _building == null or _building.gpu == null:
 		return
 	_warm_next.mech = _building.state(true)
-	_building.release()
+	_rel(_building)
 
 
 ## Старт от решённой задачи грубой сетки (AirPicardJob.warm_coarse): сетка и оба решения.
@@ -1277,6 +1299,7 @@ func _start_picard(c: AirCase) -> void:
 		float(phase_cfg("omega", "fallback_iters")), float(phase_cfg("omega", "fallback_omega"))
 	)
 	var t_start := Time.get_ticks_usec()
+	_mark(_job)
 	if not _job.start(_gpu):
 		_fail(_job.error)
 		return
@@ -1772,6 +1795,8 @@ class RuntimeGpu:
 	var _base := 0
 	## Есть отправленная и не дождавшаяся sync() работа: release() сначала дожидается её.
 	var _inflight := false
+	## >= 0: release() освобождает буферы только после этой отметки (задача на общем RD).
+	var floor_mark := -1
 
 	func submit() -> void:
 		super.submit()
@@ -1798,6 +1823,11 @@ class RuntimeGpu:
 			return
 		_close_list()
 		sync()  # буферы освобождаются не под выполняющейся работой
+		if floor_mark >= 0:
+			free_from(maxi(floor_mark, _base))
+			_last_pipe = RID()
+			_last_set = RID()
+			return
 		for s: RID in _sets.values():
 			if rd.uniform_set_is_valid(s):
 				rd.free_rid(s)
