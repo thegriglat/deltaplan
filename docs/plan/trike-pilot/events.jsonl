@@ -230,3 +230,4 @@
 {"t": "2026-10-23T04:46:25", "by": "coordinator", "task": "TP-10", "ev": "accepted", "note": "2/2 docs=ok:exit 1; changelog=ok:3"}
 {"t": "2026-10-23T04:46:35", "by": "coordinator", "task": "TP-18", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-23T04:46:35", "by": "coordinator", "task": "TP-10", "ev": "accepted", "note": "по отчёту; дополнить после TP-20/21/23"}
+{"t": "2026-10-23T04:46:37", "by": "coordinator", "task": "TP-18", "ev": "merged"}
