@@ -15,6 +15,7 @@ const WEVT_TIMEOUT_S := 3.0
 const TASKLIST_TIMEOUT_S := 3.0
 ## Запас к окну: от начала прошлого сеанса, мс.
 const WINDOW_MARGIN_MS := 300000
+const WINDOW_TAIL_MS := 120000
 const WINDOW_MAX_MS := 7 * 86400 * 1000
 const WINDOW_DEFAULT_MS := 3600 * 1000
 const LOG_TAIL_LINES := 20
@@ -49,24 +50,31 @@ const UNAVAILABLE := "недоступно"
 # ---------- события Windows ----------
 
 
-## Аргументы wevtutil: события System с кодами EVENT_IDS за последние ms_back мс, текстом.
-static func wevtutil_args(ms_back: int) -> PackedStringArray:
+## Аргументы wevtutil: события System с кодами EVENT_IDS, возраст которых в [ms_min, ms_max] мс,
+## в XML (поля не зависят от языка Windows).
+static func wevtutil_args(ms_max: int, ms_min := 0) -> PackedStringArray:
 	var ids: PackedStringArray = []
 	for id in EVENT_IDS:
 		ids.append("EventID=%d" % id)
-	var q := "*[System[(%s) and TimeCreated[timediff(@SystemTime) <= %d]]]" % [" or ".join(ids), ms_back]
-	return PackedStringArray(["qe", "System", "/q:" + q, "/f:text", "/c:%d" % MAX_EVENTS])
+	var q := "*[System[(%s) and TimeCreated[timediff(@SystemTime) <= %d and timediff(@SystemTime) >= %d]]]" % [
+		" or ".join(ids), ms_max, ms_min
+	]
+	return PackedStringArray(["qe", "System", "/q:" + q, "/f:xml", "/c:%d" % MAX_EVENTS])
 
 
-## Окно запроса, мс: от начала прошлого сеанса (started — «ГГГГ-ММ-ДДTчч:мм:сс» местного времени,
-## now_local — тот же вид, Unix-секунды «как есть») плюс запас; метки нет или время странное — час.
-static func window_ms(started: String, now_local: float) -> int:
-	if started == "":
-		return WINDOW_DEFAULT_MS
-	var t0 := Time.get_unix_time_from_datetime_string(started)
+## Окно запроса, мс возраста события → {max, min}: от начала прошлого сеанса (started — «ГГГГ-ММ-ДДTчч:мм:сс»
+## или с пробелом, местное время; now_local — тот же вид, Unix-секунды «как есть») минус запас, до последнего
+## признака жизни (alive — секунды с запуска процесса) плюс WINDOW_TAIL_MS. Метки нет или время странное —
+## последний час целиком; alive неизвестен (0) — до текущего момента.
+static func window(started: String, alive: float, now_local: float) -> Dictionary:
+	var t0: float = Time.get_unix_time_from_datetime_string(started) if started != "" else 0.0
 	if t0 <= 0.0 or now_local <= t0:
-		return WINDOW_DEFAULT_MS
-	return clampi(int((now_local - t0) * 1000.0) + WINDOW_MARGIN_MS, 60000, WINDOW_MAX_MS)
+		return {"max": WINDOW_DEFAULT_MS, "min": 0}
+	var mx := clampi(int((now_local - t0) * 1000.0) + WINDOW_MARGIN_MS, 60000, WINDOW_MAX_MS)
+	var mn := 0
+	if alive > 0.0:
+		mn = clampi(int((now_local - t0 - alive) * 1000.0) - WINDOW_TAIL_MS, 0, mx)
+	return {"max": mx, "min": mn}
 
 
 ## Текущее местное время тем же видом, что started (Time.get_datetime_string_from_system(false, true)).
@@ -74,43 +82,49 @@ static func now_local_unix() -> float:
 	return Time.get_unix_time_from_datetime_dict(Time.get_datetime_dict_from_system(false))
 
 
-## Разбор вывода `wevtutil qe … /f:text`: блоки «Event[N]:» с полями Source, Date, Event ID и Description
-## (описание — в той же строке или в следующих). Метки полей wevtutil печатает по-английски, описание
-## локализовано, а в консольной кодировке — возможны «?» вместо букв. → [{provider, id, date, desc}].
+## Разбор вывода `wevtutil qe … /f:xml` (подряд идущие <Event>…</Event> без корня): провайдер (Provider Name),
+## код (EventID), время (TimeCreated SystemTime), первая строка данных (EventData/Data — у 4101 имя драйвера).
+## → [{provider, id, date, desc}], не больше MAX_EVENTS.
 static func parse_wevtutil(text: String) -> Array:
 	var out: Array = []
-	var cur: Dictionary = {}
-	var want_desc := false
-	for raw in text.replace("\r", "").split("\n"):
-		var line := raw.strip_edges()
-		if line.begins_with("Event["):
-			if not cur.is_empty():
-				out.append(cur)
-			cur = {"provider": "", "id": 0, "date": "", "desc": ""}
-			want_desc = false
-			continue
-		if cur.is_empty():
-			continue
-		if want_desc:
-			if line != "":
-				cur["desc"] = _clip(line)
-				want_desc = false
-			continue
-		if line.begins_with("Source:"):
-			cur["provider"] = line.substr(7).strip_edges()
-		elif line.begins_with("Event ID:"):
-			cur["id"] = int(line.substr(9).strip_edges())
-		elif line.begins_with("Date:"):
-			cur["date"] = line.substr(5).strip_edges()
-		elif line.begins_with("Description:"):
-			var rest := line.substr(12).strip_edges()
-			if rest != "":
-				cur["desc"] = _clip(rest)
-			else:
-				want_desc = true
-	if not cur.is_empty():
-		out.append(cur)
-	return out.slice(0, MAX_EVENTS)
+	var re_ev := RegEx.create_from_string("(?s)<Event[ >].*?</Event>")
+	var re_prov := RegEx.create_from_string("<Provider[^>]*?Name=['\"]([^'\"]*)['\"]")
+	var re_id := RegEx.create_from_string("<EventID[^>]*>\\s*(\\d+)\\s*</EventID>")
+	var re_time := RegEx.create_from_string("<TimeCreated[^>]*?SystemTime=['\"]([^'\"]*)['\"]")
+	var re_data := RegEx.create_from_string("(?s)<Data[^>]*>([^<]+)</Data>")
+	for m in re_ev.search_all(text):
+		var ev := m.get_string()
+		var p := re_prov.search(ev)
+		var i := re_id.search(ev)
+		var t := re_time.search(ev)
+		var d := re_data.search(ev)
+		out.append(
+			{
+				"provider": p.get_string(1) if p else "",
+				"id": int(i.get_string(1)) if i else 0,
+				"date": t.get_string(1) if t else "",
+				"desc": _clip(_unescape(d.get_string(1).strip_edges())) if d else "",
+			}
+		)
+		if out.size() >= MAX_EVENTS:
+			break
+	return out
+
+
+static func _unescape(s: String) -> String:
+	return s.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&apos;", "'").replace("&amp;", "&")
+
+
+## Вывод не разобран: до 5 непустых очищенных строк (для отчёта вместо ложного «нет»).
+static func raw_sample(text: String) -> PackedStringArray:
+	var out: PackedStringArray = []
+	for line in text.replace("\r", "").split("\n"):
+		var l := line.strip_edges()
+		if l != "":
+			out.append(_clip(l))
+			if out.size() >= 5:
+				break
+	return out
 
 
 static func _clip(s: String) -> String:
@@ -222,6 +236,10 @@ static func gpu_switches() -> Dictionary:
 ## Запуск exe с таймаутом: {ok, text, status}. Чтение канала execute_with_pipe не блокирует, поэтому
 ## опрашиваем его до конца процесса; по таймауту процесс убивается. Вызывать из рабочего потока.
 ## status — «нет программы», «таймаут», «код N» (процесс ушёл с ошибкой) или "".
+## Выход из игры: поднять — запущенная программа убивается сразу, ожидание потока диагностики короткое.
+static var cancel := false
+
+
 static func run_with_timeout(exe: String, args: PackedStringArray, timeout_s: float) -> Dictionary:
 	var proc: Dictionary = OS.execute_with_pipe(exe, args, false)
 	if proc.is_empty():
@@ -237,7 +255,7 @@ static func run_with_timeout(exe: String, args: PackedStringArray, timeout_s: fl
 		buf.append_array(chunk)
 		if not running and chunk.is_empty():
 			break
-		if Time.get_ticks_msec() >= t_end:
+		if cancel or Time.get_ticks_msec() >= t_end:
 			timed_out = true
 			OS.kill(pid)
 			break
@@ -245,7 +263,7 @@ static func run_with_timeout(exe: String, args: PackedStringArray, timeout_s: fl
 			OS.delay_msec(20)
 	var text := buf.get_string_from_utf8()
 	if timed_out:
-		return {"ok": false, "text": text, "status": "таймаут"}
+		return {"ok": false, "text": text, "status": "прервано" if cancel else "таймаут"}
 	var code := OS.get_process_exit_code(pid)
 	if code != 0:
 		return {"ok": false, "text": text, "status": "код %d" % code}
@@ -256,8 +274,9 @@ static func run_with_timeout(exe: String, args: PackedStringArray, timeout_s: fl
 
 
 ## Всё сразу: вызывать в рабочем потоке. Состав: events (Array), events_status (""|причина), overlays,
-## overlays_status, logs (строки), driver (запуск, отправивший отчёт). started — метка прошлого сеанса.
-static func collect(started: String) -> Dictionary:
+## overlays_status, logs (строки), driver (запуск, отправивший отчёт), events_raw (вывод не разобран),
+## window_note (подпись окна). started и alive — из метки прошлого сеанса.
+static func collect(started: String, alive := 0.0) -> Dictionary:
 	var d := {
 		"events": [],
 		"events_status": "",
@@ -265,14 +284,24 @@ static func collect(started: String) -> Dictionary:
 		"overlays_status": "",
 		"logs": logs_summary(),
 		"driver": driver_text(),
+		"events_raw": PackedStringArray(),
+		"window_note": "",
 	}
 	if OS.get_name() != "Windows":
 		d["events_status"] = "%s (не Windows)" % UNAVAILABLE
 		d["overlays_status"] = "%s (не Windows)" % UNAVAILABLE
 		return d
-	var r := run_with_timeout("wevtutil", wevtutil_args(window_ms(started, now_local_unix())), WEVT_TIMEOUT_S)
+	var w := window(started, alive, now_local_unix())
+	d["window_note"] = (
+		"запуск прошлого сеанса %s%s"
+		% [started, ", до последнего признака жизни + 2 мин" if alive > 0.0 and int(w["min"]) > 0 else ", до сейчас"]
+	)
+	var r := run_with_timeout("wevtutil", wevtutil_args(int(w["max"]), int(w["min"])), WEVT_TIMEOUT_S)
 	if r["ok"]:
-		d["events"] = parse_wevtutil(String(r["text"]))
+		var txt := String(r["text"])
+		d["events"] = parse_wevtutil(txt)
+		if d["events"].is_empty() and txt.strip_edges() != "":
+			d["events_raw"] = raw_sample(txt)
 	else:
 		d["events_status"] = "%s (%s)" % [UNAVAILABLE, String(r["status"])]
 	var t := run_with_timeout("tasklist", PackedStringArray(["/fo", "csv", "/nh"]), TASKLIST_TIMEOUT_S)
@@ -294,7 +323,15 @@ static func format(d: Dictionary) -> PackedStringArray:
 		out.append("- События Windows (сбой видеодрайвера): %s" % st)
 	else:
 		var evs: Array = d.get("events", [])
-		out.append("- События Windows 4101/141/117/4097 за время сеанса: %s" % ("нет" if evs.is_empty() else str(evs.size())))
+		var raw: PackedStringArray = d.get("events_raw", PackedStringArray())
+		var note := String(d.get("window_note", ""))
+		var cap := "- События Windows 4101/141/117/4097 (%s): " % (note if note != "" else "за время сеанса")
+		if not raw.is_empty():
+			out.append(cap + "вывод не разобран, начало:")
+			for l in raw:
+				out.append("  > " + l)
+		else:
+			out.append(cap + ("нет" if evs.is_empty() else str(evs.size())))
 		for e in evs:
 			out.append("  " + event_line(e))
 	var ost := String(d.get("overlays_status", ""))

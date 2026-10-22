@@ -72,12 +72,14 @@ func _ready() -> void:
 		_try_send_pending()
 	else:
 		_diag_thread = Thread.new()
-		_diag_thread.start(_diag_work.bind(String(_old_lock.get("started", ""))))
+		_diag_thread.start(
+			_diag_work.bind(String(_old_lock.get("started", "")), float(_old_lock.get("alive", 0.0)))
+		)
 
 
 ## Рабочий поток: диагностика блокирует (wevtutil, tasklist) — кадр не держим.
-func _diag_work(started: String) -> void:
-	_diag_done.call_deferred(CrashDiag.collect(started))
+func _diag_work(started: String, alive: float) -> void:
+	_diag_done.call_deferred(CrashDiag.collect(started, alive))
 
 
 func _diag_done(d: Dictionary) -> void:
@@ -149,9 +151,22 @@ func note_stage(stage: String) -> void:
 		_lock.erase("substage")
 		_lock.erase("substage_at")
 		_lock["stage_at"] = Time.get_ticks_msec() / 1000.0
+		refresh_switches(false)
 		_lock["alive"] = _lock["stage_at"]
 		_lock.merge(CrashReport.stage_snapshot(), true)
 		CrashReport.log_stage_line(stage, _lock)
+		_write()
+
+
+## Обновить снимок рубильников CR-К4 в метке: настройки применяются со следующей загрузки места, поэтому
+## снимок берётся на каждой смене стадии и (вызовом) после сохранения настроек.
+func refresh_switches(write := true) -> void:
+	if not _active:
+		return
+	var s: Dictionary = _lock.get("settings", {})
+	s.merge(CrashDiag.gpu_switches(), true)
+	_lock["settings"] = s
+	if write:
 		_write()
 
 
@@ -198,7 +213,8 @@ func _notification(what: int) -> void:
 func _exit_tree() -> void:
 	_clear()
 	if _diag_thread != null:
-		_diag_thread.wait_to_finish()  # не дольше таймаутов CrashDiag
+		CrashDiag.cancel = true  # программа убивается за ~20 мс, закрытие окна не ждёт таймаутов
+		_diag_thread.wait_to_finish()
 
 
 func _try_send_pending() -> void:
