@@ -7,7 +7,7 @@ summary: "Td 2 м, ERA5 1991–2020, сетка 1°×12 мес.+σ+Z: 1,5 МБ; 
 related: ["docs/contracts/haze-humidity.md", "docs/plan/haze-humidity.md"]
 conclusion: "Сетка dew_point_1deg.bin (HH1 v1) запечена из ERA5 (CC-BY-4.0). Градиент Td по высоте ≈ −4 К/км (30–60°N: −4,5 зимой … −3,3 летом; тропики −4,6). Нынешняя таблица dew_point_c для Алтая июля занижена на 5,3 К."
 data: "data/climate/dew_point_1deg.bin"
-applied_in: []
+applied_in: ["scripts/atmosphere/climate_grid.gd", "configs/weather_model.json (climate.td_gradient_k_per_km, td_sd_fallback_k)", "data/climate/dew_point_1deg.bin"]
 ---
 # Климат точки росы: сетка 1° для haze-humidity (HH-1)
 

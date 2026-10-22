@@ -8,7 +8,7 @@ summary: "Дымка от влажности: haze_k = ((1−RH)/0,6)^−0,6 п�
 related: ["tools/research/haze_humidity/haze/haze_table.py", "tools/research/haze_humidity/haze/visibility_by_hour.csv", "tools/research/haze_humidity/haze/numbers.json", "docs/plan/haze-humidity.md", "scripts/atmosphere/weather_model.gd", "configs/weather_model.json"]
 conclusion: "Гигроскопический рост даёт f(85 %) ≈ 2,3 (γ ≈ 0,6, разброс 0,45–0,74 по континентальным данным Zieger 2013); у сухого места (RH < 40 %) дымка от влажности не зависит, у влажного утром видимость падает с 60 до ~26 км. evening_haze_k ×1,6 не следует из RH при Td=const (T к 21 ч ещё тёплая), overcast ×1,3 — не влажность в нынешней модели (T/Td не меняются)."
 data: "numbers.json, visibility_by_hour.csv (64 строки); воспроизведение — python3 haze_table.py; данные собственные (расчёт), внешних наборов нет"
-applied_in: "не применено (решение — шлюз модуля)"
+applied_in: ["scripts/atmosphere/weather_model.gd (haze_k_rh)", "configs/weather_model.json (haze_humidity)"]
 ---
 
 # HH-2 — дымка от влажности
