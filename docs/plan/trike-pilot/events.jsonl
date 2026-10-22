@@ -53,3 +53,4 @@
 {"t": "2026-10-22T23:48:43", "by": "coordinator", "task": "TP-5", "ev": "merged", "note": "accept --here 7/8: start_ — 2 базовых падения"}
 {"t": "2026-10-22T23:48:47", "by": "coordinator", "task": "TP-1", "ev": "accepted", "commits": ["50b55f80"], "note": "2/2 trike_pilot_k1=ok:2/2; docs=ok:exit 1"}
 {"t": "2026-10-22T23:48:47", "by": "coordinator", "task": "TP-1", "ev": "merged"}
+{"t": "2026-10-22T23:49:00", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: accept/accept --here в копии без .godot молча висит до таймаута 900 с — нужен авто-import или предупреждение; event не принимает checked для отметки «на ревью»; task set scope только JSON-списком (нет --scope); r-<ID>.json исполнителя в корне копии валит проверку scope. Состояние: волна 1 TP-1…TP-5 влита; TP-6…TP-10 ждут слияния tow-trike в main и module sync; открыты Q1, Q2, Q3 (топливо на старте), Q4."}
