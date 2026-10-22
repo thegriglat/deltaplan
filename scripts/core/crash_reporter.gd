@@ -24,6 +24,9 @@ var _token := ""
 var _http: HTTPRequest
 var _test := false
 var _pulse_acc := 0.0
+var _first_frame := false
+var _diag_thread: Thread
+var _old_lock: Dictionary = {}
 
 
 func _ready() -> void:
@@ -42,12 +45,14 @@ func _ready() -> void:
 	if not old.is_empty() and _other_instance(old):
 		_active = false  # игра уже запущена в другом окне — её метку не трогаем
 		return
+	var info := CrashReport.system_info()
 	if not old.is_empty() and _token != "":
+		# сначала отчёт без диагностики (на случай обрыва до её конца), потом — с ней (_diag_done)
 		CrashReport.write_json(
 			CrashReport.PENDING_PATH,
-			CrashReport.make_pending(old, CrashReport.system_info(), CrashReport.read_previous_log())
+			CrashReport.make_pending(old, info, CrashReport.read_previous_log())
 		)
-	var info := CrashReport.system_info()
+		_old_lock = old
 	_lock = {
 		"version": info.version,
 		"started": Time.get_datetime_string_from_system(false, true),
@@ -57,7 +62,36 @@ func _ready() -> void:
 		"alive": 0.0,
 		"settings": {"graphics": GraphicsPresets.current()},
 	}
+	# сведения о железе и рубильники этого сеанса: если он оборвётся, отчёт возьмёт их из метки
+	for k in ["gpu", "gpu_vendor", "gpu_api", "renderer", "gpu_driver"]:
+		_lock[k] = info.get(k, "")
+	_lock["settings"].merge(CrashDiag.gpu_switches(), true)
 	_write()
+	note_substage("start/window")
+	if _old_lock.is_empty():
+		_try_send_pending()
+	else:
+		_diag_thread = Thread.new()
+		_diag_thread.start(_diag_work.bind(String(_old_lock.get("started", ""))))
+
+
+## Рабочий поток: диагностика блокирует (wevtutil, tasklist) — кадр не держим.
+func _diag_work(started: String) -> void:
+	_diag_done.call_deferred(CrashDiag.collect(started))
+
+
+func _diag_done(d: Dictionary) -> void:
+	if _diag_thread != null:
+		_diag_thread.wait_to_finish()
+		_diag_thread = null
+	if _token != "":
+		CrashReport.write_json(
+			CrashReport.PENDING_PATH,
+			CrashReport.make_pending(
+				_old_lock, CrashReport.system_info(), CrashReport.read_previous_log(), "Вылет", CrashDiag.format(d)
+			)
+		)
+	_old_lock = {}
 	_try_send_pending()
 
 
@@ -136,6 +170,9 @@ func note_substage(sub: String) -> void:
 func _process(delta: float) -> void:
 	if not _active:
 		return
+	if not _first_frame:
+		_first_frame = true
+		note_substage("start/first_frame")
 	_pulse_acc += delta
 	if _pulse_acc >= PULSE_PERIOD:
 		_pulse_acc = 0.0
@@ -160,6 +197,8 @@ func _notification(what: int) -> void:
 
 func _exit_tree() -> void:
 	_clear()
+	if _diag_thread != null:
+		_diag_thread.wait_to_finish()  # не дольше таймаутов CrashDiag
 
 
 func _try_send_pending() -> void:
