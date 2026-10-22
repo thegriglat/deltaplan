@@ -42,8 +42,8 @@ func _empty_xf(skel: Skeleton3D, n: Node3D) -> Transform3D:
 	return skel.global_transform * skel.get_bone_global_pose(skel.find_bone(att.bone_name)) * n.transform
 
 
-## Мировой Y нижней вершины меша Sole (PilotBody) в текущей позе: [левая, правая] (по знаку x).
-func _sole_low(root: Node, skel: Skeleton3D) -> Array:
+## Мировые вершины меша Sole (PilotBody) в текущей позе со скиннингом: [левая, правая] (по знаку x).
+func _sole_verts(root: Node, skel: Skeleton3D) -> Array:
 	var mi := root.find_child("PilotBody", true, false) as MeshInstance3D
 	check(mi != null and mi.skin != null, "PilotBody со скином")
 	if mi == null or mi.skin == null:
@@ -55,7 +55,7 @@ func _sole_low(root: Node, skel: Skeleton3D) -> Array:
 		if bi < 0:
 			bi = skel.find_bone(mi.skin.get_bind_name(b))
 		bone_of.append(bi)
-	var low := [INF, INF]
+	var res := [PackedVector3Array(), PackedVector3Array()]
 	for s in mesh.get_surface_count():
 		var mat := mesh.surface_get_material(s)
 		if mat == null or not (mat.resource_name == "Sole" or mat.resource_name.begins_with("Sole")):
@@ -74,9 +74,8 @@ func _sole_low(root: Node, skel: Skeleton3D) -> Array:
 				var b := bone_of[bones[i * per + k]]
 				p += w * (skel.get_bone_global_pose(b) * mi.skin.get_bind_pose(bones[i * per + k]) * vs[i])
 			var wp := skel.global_transform * p
-			var idx := 0 if wp.x < 0.0 else 1
-			low[idx] = minf(low[idx], wp.y)
-	return low if low[0] < INF and low[1] < INF else []
+			res[0 if wp.x < 0.0 else 1].append(wp)
+	return res if res[0].size() > 0 and res[1].size() > 0 else []
 
 
 func test_pilot_sit_pose() -> void:
@@ -116,19 +115,68 @@ func test_pilot_sit_pose() -> void:
 		+ skel.global_transform * skel.get_bone_global_pose(th_r).origin) * 0.5
 	check(hip_mid.distance_to(_g(seat.hip)) <= 0.03,
 		"середина голов Thigh.L/R в seat.hip ± 3 см: %s vs %s" % [hip_mid, _g(seat.hip)])
-	# подошвы: низ вершин меша Sole (PilotBody) в позе sit, со скиннингом — на foot_l / throttle_pedal ± 1 см
-	var low := _sole_low(root, skel)
-	check(low.size() == 2, "вершины Sole: левая и правая")
-	if low.size() == 2:
-		var tl := _g(seat.foot_l)
-		var tr := _g(seat.throttle_pedal)
-		check(absf(low[0] - tl.y) <= 0.01, "низ подошвы L на foot_l ± 1 см: %.4f vs %.4f" % [low[0], tl.y])
-		check(absf(low[1] - tr.y) <= 0.01, "низ подошвы R на throttle_pedal ± 1 см: %.4f vs %.4f" % [low[1], tr.y])
-		check(absf(low[1] - _g(seat.foot_r).y) <= 0.01, "низ подошвы R на foot_r ± 1 см")
+	# подошвы (v2): плоскость подошвы по мешу Sole в позе sit параллельна педали (нормаль ≤ 5°), центр у foot_* ± 2 см,
+	# вершины пятка–носок не дальше 1 см от плоскости педали
+	var sv := _sole_verts(root, skel)
+	check(sv.size() == 2, "вершины Sole: левая и правая")
+	if sv.size() == 2:
+		var ang_p := deg_to_rad(float(seat.pedal_angle_deg))
+		var pn := Vector3(0.0, sin(ang_p), cos(ang_p))      # нормаль педали к пилоту (Godot)
+		var along := Vector3(0.0, cos(ang_p), -sin(ang_p))  # вдоль педали вперёд-вверх (пятка -> носок)
+		for i in 2:
+			var name := "LR"[i]
+			var verts: PackedVector3Array = sv[i]
+			var target := _g(seat.foot_l if i == 0 else seat.foot_r)
+			var lo := INF
+			for v in verts:
+				lo = minf(lo, v.dot(pn))
+			# нижняя поверхность: вершины в пределах 1.5 см от самой низкой по нормали педали
+			var bottom := PackedVector3Array()
+			for v in verts:
+				if v.dot(pn) <= lo + 0.015:
+					bottom.append(v)
+			var c := Vector3.ZERO
+			for v in bottom:
+				c += v
+			c /= bottom.size()
+			var smin := INF
+			var smax := -INF
+			for v in bottom:
+				smin = minf(smin, v.dot(along))
+				smax = maxf(smax, v.dot(along))
+			# наклон подошвы: линейная регрессия нормальной координаты по s
+			var sm := 0.0
+			var nm := 0.0
+			for v in bottom:
+				sm += v.dot(along)
+				nm += v.dot(pn)
+			sm /= bottom.size()
+			nm /= bottom.size()
+			var sxx := 0.0
+			var sxy := 0.0
+			for v in bottom:
+				sxx += (v.dot(along) - sm) * (v.dot(along) - sm)
+				sxy += (v.dot(along) - sm) * (v.dot(pn) - nm)
+			var slope := rad_to_deg(atan(sxy / maxf(sxx, 1e-9)))
+			check(absf(slope) <= 5.0, "подошва %s параллельна педали ≤ 5°: %.1f°" % [name, slope])
+			check(smax - smin >= 0.2, "подошва %s: длина опоры %.3f м" % [name, smax - smin])
+			var plane_n := target.dot(pn)
+			var worst := 0.0
+			for v in bottom:
+				worst = maxf(worst, absf(v.dot(pn) - plane_n))
+			check(worst <= 0.01, "вершины подошвы %s ≤ 1 см от плоскости педали: %.4f" % [name, worst])
+			var cc := Vector3.ZERO
+			for v in verts:
+				cc += v
+			cc /= verts.size()
+			cc = c   # центр опорной поверхности
+			var off := cc - target
+			off -= pn * off.dot(pn)
+			check(off.length() <= 0.02, "центр подошвы %s у foot ± 2 см: %.4f" % [name, off.length()])
 	for side in ["L", "R"]:
 		var ank: Vector3 = skel.global_transform * skel.get_bone_global_pose(skel.find_bone("Foot." + side)).origin
 		var tgt2 := _g(seat.foot_l if side == "L" else seat.foot_r)
-		check(Vector2(ank.x - tgt2.x, ank.z - tgt2.z).length() <= 0.05, "стопа %s над подножкой по XZ ± 5 см" % side)
+		check(absf(ank.x - tgt2.x) <= 0.05 and ank.distance_to(tgt2) <= 0.15, "голеностоп %s у педали (x ± 5 см, ≤ 15 см от центра подошвы)" % side)
 	for side in ["L", "R"]:
 		var hand := root.find_child("Hand" + side, true, false) as Node3D
 		check(hand != null, "пустышка Hand" + side)
