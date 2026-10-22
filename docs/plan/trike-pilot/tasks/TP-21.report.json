@@ -1,0 +1,53 @@
+{
+  "status": "partial",
+  "summary": "В _dolly_hold (pendulum_model.gd) при land_on_wheels подскок < 0,05 м: если низ колёс у земли или ниже и идёт вниз (vy<0) - проверка касания снова включается, колёса принимают. Добавлены тесты (9) посадки pitch 0 на 1,15/1,3 vs с газом 0/холостым и (10) случайный ввод 60 с, 4 зерна; без фикса низ колёс уходил до -50 м, с фиксом min 0.000.",
+  "commits": [
+    "74de7bea TP-21: подскок на колёсах без провала под землю (TP-К7 v3), тесты (9) и (10)"
+  ],
+  "checks": [
+    {
+      "name": "trike_cycle",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "tow_trike",
+      "value": "25/25 (бит в бит TT-К3: условие только при _wh_land)",
+      "pass": true
+    },
+    {
+      "name": "tow",
+      "value": "105/105",
+      "pass": true
+    },
+    {
+      "name": "pendulum",
+      "value": "117/117",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot",
+      "value": "45/47: упали test_contract_version (версия раздела TP-К6 - v1) и test_game_trike_start (k6, scripts/game) - не мои, вне скоупа; k7 10/10",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "trike_pilot: 2 падения в test_trike_pilot_k6.gd (TP-20/TP-6, scripts/game, контракт K6 v2) - вне скоупа TP-21"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TP-21",
+  "uncertain": [
+    {
+      "where": "scripts/flight/pendulum/pendulum_model.gd:_dolly_hold",
+      "why": "критерий повторного касания - gap<=0 и vy<0; при подскоке выше 0 и ниже 0,05 м до приземления модель летит, провала нет только пока касание срабатывает при gap<=0",
+      "checked": "тесты (9),(10): низ колёс >= 0 на 8 прогонах; без фикса те же тесты падали (до -50 м). Seed 1 и 3 кончают в фазе landed (контакт крылом/аварией при случайном вводе), не провал"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-23T04:48:28",
+  "by": "executor"
+}
