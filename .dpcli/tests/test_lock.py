@@ -196,6 +196,98 @@ class Cli(CliBase):
         self.assertEqual(jobs.cpu_total(), 8)
 
 
+class Enforce(unittest.TestCase):
+    """Физическое ограничение веса: команда systemd-run/taskset, выбор ядер, режим из env/конфига."""
+
+    def test_cpu_pick(self):
+        self.assertEqual(jobs.cpu_pick([], 3, [0, 1, 2, 3]), [0, 1, 2])
+        self.assertEqual(jobs.cpu_pick([{"cpus": [0, 2]}], 2, [0, 1, 2, 3]), [1, 3])  # любой набор, не подряд
+        self.assertEqual(jobs.cpu_pick([{"cpus": [0, 1, 2]}], 2, [0, 1, 2, 3]), [0, 3])  # не хватает — наименее занятые
+        self.assertEqual(jobs.cpu_pick([], 9, [4, 5]), [4, 5])
+
+    def test_cmd(self):
+        c = ["godot", "--import"]
+        self.assertEqual(jobs.cpu_enforce_cmd(c, 3, [1, 4, 5], "cgroup", probe=lambda: True),
+                         (["systemd-run", "--user", "--scope", "--quiet", "-p", "CPUQuota=300%", "--", *c],
+                          "cgroup CPUQuota=300%"))
+        if shutil.which("taskset"):
+            self.assertEqual(jobs.cpu_enforce_cmd(c, 3, [1, 4, 5], "cgroup", probe=lambda: False),
+                             (["taskset", "-c", "1,4,5", *c], "taskset -c 1,4,5"))
+            self.assertEqual(jobs.cpu_enforce_cmd(c, 1, [7], "taskset", probe=lambda: self.fail("probe"))[0],
+                             ["taskset", "-c", "7", *c])
+        self.assertEqual(jobs.cpu_enforce_cmd(c, 3, [1], "off", probe=lambda: self.fail("probe")), (c, "off"))
+
+    def test_mode(self):
+        config.reset()
+        self.addCleanup(config.reset)
+        self.addCleanup(os.environ.pop, "DPCLI_CPU_ENFORCE", None)
+        os.environ.pop("DPCLI_CPU_ENFORCE", None)
+        self.assertEqual(jobs.cpu_enforce_mode(), "cgroup")
+        config._CFG = config.merge(config.DEFAULTS, {"jobs": {"cpu_enforce": "off"}})
+        self.assertEqual(jobs.cpu_enforce_mode(), "off")
+        os.environ["DPCLI_CPU_ENFORCE"] = "taskset"
+        self.assertEqual(jobs.cpu_enforce_mode(), "taskset")
+        os.environ["DPCLI_CPU_ENFORCE"] = "bad"
+        with self.assertRaises(Exception):
+            jobs.cpu_enforce_mode()
+
+
+class EnforceCli(CliBase):
+    """Через dpcli lock с подменным systemd-run в PATH: пишет свои аргументы и запускает команду после --."""
+
+    FAKE = """#!/bin/sh
+echo "$*" >>"$FAKE_LOG"
+[ -n "$FAKE_FAIL" ] && exit 1
+while [ "$1" != "--" ]; do [ "$1" = true ] && exit 0; shift; done
+shift; exec "$@"
+"""
+
+    def setUp(self):
+        super().setUp()
+        b = self.d / "bin"
+        b.mkdir()
+        (b / "systemd-run").write_text(self.FAKE)
+        (b / "systemd-run").chmod(0o755)
+        self.log = self.d / "fake.log"
+
+    def env(self, **kw):
+        e = super().env(**kw)
+        e["PATH"] = f"{self.d / 'bin'}:{e['PATH']}"
+        e["FAKE_LOG"] = str(self.log)
+        return e
+
+    def test_cgroup(self):
+        code, _, err = self.run_("cpu", "a", "--slots", "3", "--", "sh", "-c", "exit 7")
+        self.assertEqual(code, 7, err)
+        self.assertIn("CPUQuota=300%", err)
+        lines = self.log.read_text().splitlines()
+        self.assertEqual(lines[-1], "--user --scope --quiet -p CPUQuota=300% -- sh -c exit 7")
+
+    @unittest.skipUnless(shutil.which("taskset"), "нет taskset")
+    def test_fallback_taskset(self):
+        code, out, err = self.run_("cpu", "a", "--slots", "2", "--", "sh", "-c", "grep Cpus_allowed_list /proc/self/status",
+                                   FAKE_FAIL="1")
+        self.assertEqual(code, 0, err)
+        self.assertIn("taskset", err)
+        allowed = out.split()[-1]
+        n = sum(len(range(int(x.split("-")[0]), int(x.split("-")[-1]) + 1)) for x in allowed.split(","))
+        self.assertEqual(n, min(2, len(jobs.cpu_avail())))
+
+    def test_off(self):
+        code, _, err = self.run_("cpu", "a", "--", "true", DPCLI_CPU_ENFORCE="off")
+        self.assertEqual(code, 0, err)
+        self.assertFalse(self.log.exists())
+        self.assertNotIn("lock cpu:", err)
+
+    def test_sigterm_reaches_command(self):
+        p = self.start("cpu", "a", "--", "sh", "-c", "trap 'exit 42' TERM; while :; do sleep 0.1; done")
+        self.wait_for(lambda s: self.held(s) == {"a": 1})
+        time.sleep(0.5)
+        p.terminate()
+        self.assertEqual(p.wait(10), 42)
+        self.assertEqual(self.state()["holders"], [])
+
+
 class JobState(unittest.TestCase):
     """job_state: чужое пространство PID — по окну tmux; job_start стирает следы прошлого запуска с тем же именем."""
 

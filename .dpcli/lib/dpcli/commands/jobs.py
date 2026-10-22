@@ -358,6 +358,59 @@ def cpu_weight(cmd):
     return 1
 
 
+def cpu_enforce_mode():
+    """cgroup | taskset | off: DPCLI_CPU_ENFORCE, иначе jobs.cpu_enforce (по умолчанию cgroup)."""
+    v = str(os.environ.get("DPCLI_CPU_ENFORCE") or config.get("jobs.cpu_enforce") or "cgroup").strip().lower()
+    if v not in ("cgroup", "taskset", "off"):
+        raise DpError(f"jobs.cpu_enforce / DPCLI_CPU_ENFORCE: {v!r} — нужно cgroup|taskset|off")
+    return v
+
+
+def cpu_avail():
+    try:
+        return sorted(os.sched_getaffinity(0))
+    except (AttributeError, OSError):
+        return list(range(os.cpu_count() or 1))
+
+
+def cpu_pick(holders, n, avail):
+    """N номеров ядер для taskset: сперва не занятые другими держателями (любой набор), не хватает — наименее занятые."""
+    use = {c: 0 for c in avail}
+    for h in holders:
+        for c in h.get("cpus") or []:
+            if c in use:
+                use[c] += 1
+    return sorted(sorted(avail, key=lambda c: (use[c], c))[:max(1, min(n, len(avail)))])
+
+
+def cgroup_ok():
+    """systemd-run --user --scope работает (пробный true; нет systemd/шины, песочница — нет)."""
+    if not shutil.which("systemd-run"):
+        return False
+    try:
+        return subprocess.run(["systemd-run", "--user", "--scope", "--quiet", "-p", "CPUQuota=100%", "true"],
+                              stdin=subprocess.DEVNULL, capture_output=True, timeout=15).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def cpu_enforce_cmd(cmd, n, cpus, mode, probe=cgroup_ok):
+    """Команда с физическим ограничением веса N: cgroup — systemd-run --scope CPUQuota=N×100 % (пробный запуск
+    не удался — откат на taskset); taskset — ядра cpus; off — как есть. → (команда, что применено)."""
+    if mode == "cgroup":
+        if probe():
+            return ["systemd-run", "--user", "--scope", "--quiet", "-p", f"CPUQuota={n * 100}%", "--", *cmd], \
+                f"cgroup CPUQuota={n * 100}%"
+        print("lock cpu: systemd-run --user --scope недоступен — ограничение через taskset", file=sys.stderr)
+        mode = "taskset"
+    if mode == "taskset" and cpus and shutil.which("taskset"):
+        lst = ",".join(map(str, cpus))
+        return ["taskset", "-c", lst, *cmd], f"taskset -c {lst}"
+    if mode == "taskset":
+        print("lock cpu: нет taskset — без ограничения", file=sys.stderr)
+    return list(cmd), "off"
+
+
 def pid_alive(pid):
     """os.kill(pid, 0); где есть /proc — ещё и не зомби."""
     if pid <= 0:
@@ -424,7 +477,7 @@ def cpu_can_start(data, my_id, total, starve, t):
 
 
 def cpu_acquire(holder, slots, cmd, timeout):
-    """Встать в очередь и дождаться старта; → id держателя. Таймаут — выход 124; SIGTERM/SIGINT — выход из очереди."""
+    """Встать в очередь и дождаться старта; → (id держателя, ядра для taskset). Таймаут — выход 124; SIGTERM/SIGINT — выход из очереди."""
     import signal
     my_id = f"{os.getpid()}-{time.time_ns()}"
     t0 = time.time()
@@ -450,8 +503,9 @@ def cpu_acquire(holder, slots, cmd, timeout):
                 t = time.time()
                 if cpu_can_start(st.data, my_id, total, starve, t):
                     st.data["queue"] = [w for w in st.data["queue"] if w["id"] != my_id]
-                    st.data["holders"].append({**rec, "since": now(), "since_ts": t})
-                    return my_id
+                    cpus = cpu_pick(st.data["holders"], slots, cpu_avail())  # ядра для taskset (если до него дойдёт)
+                    st.data["holders"].append({**rec, "since": now(), "since_ts": t, "cpus": cpus})
+                    return my_id, cpus
             if timeout is not None and time.time() - t0 > timeout:
                 cpu_drop(my_id)
                 print(f"lock cpu: таймаут {timeout:g} с в ожидании", file=sys.stderr)
@@ -577,8 +631,16 @@ def cmd_lock(a):
         if n > total:
             print(f"lock cpu: {n} слотов > всего {total} — беру {total}", file=sys.stderr)
             n = total
-        my_id = cpu_acquire(holder, n, cmd, timeout)
-        run_held(holder, cmd, tm, lambda: cpu_drop(my_id))
+        mode = cpu_enforce_mode()
+        my_id, cpus = cpu_acquire(holder, n, cmd, timeout)
+        try:
+            run_cmd, how = cpu_enforce_cmd(cmd, n, cpus, mode)
+        except BaseException:
+            cpu_drop(my_id)
+            raise
+        if how != "off":
+            print(f"lock cpu: {n} сл., {how}", file=sys.stderr)
+        run_held(holder, run_cmd, tm, lambda: cpu_drop(my_id))
     if slots is not None:
         raise DpError("lock gpu: --slots только для cpu")
     lp = locks_dir() / GPU_LOCK
