@@ -271,7 +271,6 @@ func tick(dt: float) -> void:
 	_publish_activity(phase)
 	if autopilot != null:
 		autopilot.hold = input_controller.run_blocked or not queue_walk.is_empty()
-		autopilot.pendulum = glider.is_pendulum()
 		autopilot.drive(glider.get_telemetry(), dt)
 	input_controller.on_ground = phase != "flying"
 	# Свободная камера занимает WASD — крыло без рук; при автопилоте крыло ведёт он, а камера
@@ -280,7 +279,7 @@ func tick(dt: float) -> void:
 	input_controller.hands_off = free_cam or hands_off
 	camera.free_keys_enabled = autopilot == null
 	var control := input_controller.update(dt)
-	if autopilot != null and autopilot.pendulum:
+	if autopilot != null:
 		control.roll = autopilot.roll_command  # ПИД крена: положение пилота (R7)
 	if not queue_walk.is_empty():
 		_queue_walk_step(control, phase)

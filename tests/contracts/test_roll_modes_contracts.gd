@@ -75,7 +75,14 @@ func test_settings_panel_no_roll_modes() -> void:
 func test_net() -> void:
 	check(NetFlight.control_mode_name() == "PENDULUM", "локальный игрок шлёт PENDULUM")
 	var names: Array = NetMessages.ENUMS["ControlMode"]
-	check(names == ["CONTROL_MODE_UNSPECIFIED", "CONTROL_MODE_RATE", "CONTROL_MODE_PENDULUM"], "ControlMode в NetMessages: %s" % [names])
+	check(not names.has("CONTROL_MODE_WEIGHT_SHIFT"), "WEIGHT_SHIFT нет в ENUMS")
+	check(names.size() == 4 and names[2] == "", "номер 2 — пустое место: %s" % [names])
+	var spec := "enum:ControlMode"
+	check(NetMessages.decode_value(spec, 1) == "CONTROL_MODE_RATE", "1 → RATE")
+	check(NetMessages.decode_value(spec, 2) == "", "2 → пусто (как не передано)")
+	check(NetMessages.decode_value(spec, 3) == "CONTROL_MODE_PENDULUM", "3 → PENDULUM")
+	check(NetMessages.encode_value(spec, 3) == "CONTROL_MODE_PENDULUM", "encode 3 → PENDULUM")
+	check(NetMessages.encode_value(spec, 2) == null, "encode 2 → не передавать")
 	var text := FileAccess.get_file_as_string(PROTO)
 	check(text.contains("CONTROL_MODE_RATE = 1;") and text.contains("CONTROL_MODE_PENDULUM = 3;"), "номера 1 и 3 на месте")
 	check(not text.contains("CONTROL_MODE_WEIGHT_SHIFT = "), "WEIGHT_SHIFT не объявлен")

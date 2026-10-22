@@ -181,6 +181,7 @@ const ENUMS := {
 	[
 		"CONTROL_MODE_UNSPECIFIED",
 		"CONTROL_MODE_RATE",
+		"",  # 2 — удалённое значение (reserved в net.proto): номера считаются по индексу
 		"CONTROL_MODE_PENDULUM",
 	],
 }

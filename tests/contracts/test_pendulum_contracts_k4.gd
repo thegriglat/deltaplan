@@ -45,6 +45,7 @@ func test_messages_schema() -> void:
 		== [
 			"CONTROL_MODE_UNSPECIFIED",
 			"CONTROL_MODE_RATE",
+			"",
 			"CONTROL_MODE_PENDULUM"
 		],
 		"ControlMode в ENUMS"
