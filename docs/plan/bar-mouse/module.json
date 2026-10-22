@@ -1,0 +1,11 @@
+{
+  "module": "bar-mouse",
+  "plan": "docs/plan/bar-mouse.md",
+  "contracts": "docs/contracts/bar-mouse.md",
+  "branch": "feature/bar-mouse",
+  "copy": "~/deltaplan-bar-mouse",
+  "created": "2026-10-23T03:54:47",
+  "code": "BM",
+  "area": "game",
+  "base": "main"
+}
