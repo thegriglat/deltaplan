@@ -7,7 +7,7 @@ summary: "Td дня против облачности и жары, ERA5 2011-13:
 related: ["docs/contracts/haze-humidity.md", "docs/plan/haze-humidity.md"]
 conclusion: "Единого значения нет: beta Td/Tmax от -0,3 (тропики летом) до 1,0 (60-75° зимой), pooled 0,6; ясный день суше на 0,3 σ, пасмурный влажнее на 0,13 σ; брать таблицы по поясам и сезонам."
 data: "tools/research/haze_humidity/td_sky/td_sky.json"
-applied_in: []
+applied_in: ["configs/weather_model.json (td_day)", "scripts/atmosphere/weather_model.gd (td_day)"]
 ---
 # HH-1c: точка росы дня против облачности и жары дня (ERA5)
 

@@ -7,7 +7,7 @@ summary: "Сверка климата Td и T700 с прогнозом Open-Mete
 related: ["docs/contracts/haze-humidity.md", "docs/plan/haze-humidity.md", "tools/research/haze_humidity/dew_point/README.md", "tools/research/haze_humidity/upper_air/README.md"]
 conclusion: "Обработка сеток верна: по станциям вне ERA5 (Новосибирск, Оренбург, Мидленд) Td ±0,2 К, T700 ±0,5 К; доля |прогноз−климат|<σ Td = 67 % (ДИ 59–75, осень) и 56 % (июль 2025). Сдвиг Td +0,7 К осенью (0,24σ) и −0,1 К летом — в пределах разброса моделей прогноза. Две иранские станции: сетка влажнее на 2,4–2,5 К."
 data: "tools/research/haze_humidity/verify/summary.json"
-applied_in: []
+applied_in: ["не применено: проверка, сетки и чтение не менялись"]
 ---
 # Сверка климата Td и T700 с прогнозами и станциями (HH-9)
 
