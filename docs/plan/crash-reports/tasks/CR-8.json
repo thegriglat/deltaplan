@@ -13,7 +13,7 @@
     },
     {
       "name": "CR-К3",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/crash-reports.md"
     }
   ],
@@ -26,9 +26,11 @@
     "scripts/ui/gpu_failure_dialog.gd",
     "scripts/ui/gpu_failure_dialog.gd.uid",
     "scripts/ui/settings_panel.gd",
+    "scripts/ui/start_menu.gd",
     "scripts/game/graphics_presets.gd",
     "scenes/main.gd",
     "configs/game.json",
+    "configs/atmosphere.json",
     "locale/ui.csv",
     "project.godot",
     "tests/game/test_render_driver.gd",
@@ -55,5 +57,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-23T03:45:45"
+  "created": "2026-10-23T03:45:45",
+  "edited": "2026-10-23T03:49:25"
 }

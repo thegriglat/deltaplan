@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "itch_manifest.py генерирует .itch.toml: play (без args) + для Windows Play (DirectX 12)/Play (Vulkan) с --rendering-driver; build.sh вызывает его; README и CHANGELOG дополнены. В itch не публиковалось.",
+  "commits": [
+    "c04093bf Манифест itch: действия запуска DirectX 12 / Vulkan для Windows (itch_manifest.py)"
+  ],
+  "checks": [
+    {
+      "name": "manifest_win",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "manifest_linux",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "bash",
+      "value": "ok",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Манифест macOS не добавлялся (build_macos его не писал; вне карточки)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CR-9",
+  "uncertain": [
+    {
+      "where": "tools/release/itch_manifest.py",
+      "why": "itch не проверялся вживую: args действий и порядок (play первым = по умолчанию) по документации",
+      "checked": "tomllib разбирает вывод; bash -n build.sh"
+    },
+    {
+      "where": "tools/release/itch_manifest.py",
+      "why": "Других существующих параметров запуска, влияющих на видеокарту, нет (--gpu-report/--gpu-profile — замеры)",
+      "checked": "grep scripts/game/launch_options.gd"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-23T03:48:53",
+  "by": "executor"
+}

@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "CR-К3",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/crash-reports.md"
     }
   ],
@@ -46,5 +46,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-23T03:45:49"
+  "created": "2026-10-23T03:45:49",
+  "edited": "2026-10-23T03:49:24"
 }
