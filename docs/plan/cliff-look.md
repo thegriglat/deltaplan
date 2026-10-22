@@ -4,7 +4,7 @@ status: active
 module: cliff-look
 area: world
 updated: 2026-10-23
-summary: "Крутые склоны: вместо серых полос и мелкой ряби — крупные неровные скалы и груды камней, видно опасное место; диагноз, правка, кадры и цена кадра до/после."
+summary: "Крутые склоны: вместо серых полос и ряби — крупные неровные скалы и груды камней; диагноз, правка, кадры и цена кадра до/после."
 related: ["docs/contracts/cliff-look.md", "docs/guide/terrain/surface.md", "docs/archive/plan/mountain-look.md", "docs/contracts/mountain-look.md"]
 ---
 # Вид крутых склонов (модуль `cliff-look`, код задач CL)
