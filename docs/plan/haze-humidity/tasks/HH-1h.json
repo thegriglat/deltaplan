@@ -1,0 +1,62 @@
+{
+  "id": "HH-1h",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Ветер 700 гПа/10 м: WR из суточных u,v 700 гПа 2018–2019 (снять заглушку HH6)",
+  "goal": "Досчитать блок WR сетки data/climate/upper_misc_1deg.bin из уже скачиваемых суточных u,v 700 гПа 2018–2019 (CDS daily-statistics) и 10 м, stub_mask = 0; README и sites.csv — WR и gain по данным, погрешность короткого ряда.",
+  "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
+  "contracts": [
+    {
+      "name": "HH6",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH2",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-1h",
+  "branch": "haze-humidity/HH-1h",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/upper_misc/",
+    "data/climate/upper_misc_1deg.bin"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "data/climate/dew_point_1deg.bin",
+    "data/climate/upper_air_1deg.bin",
+    "data/climate/surface_t_1deg.bin"
+  ],
+  "accept": [
+    {
+      "name": "grid_contract",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity",
+      "expect": "re:тестов, 0 упало"
+    },
+    {
+      "name": "grid_size",
+      "cmd": "stat -c %s data/climate/upper_misc_1deg.bin",
+      "expect": "num:(\\d+) <=2097152"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    },
+    {
+      "name": "not_stub",
+      "cmd": "python3 -c \"import struct;h=open('data/climate/upper_misc_1deg.bin','rb').read(64);m=struct.unpack('<I',h[44:48])[0];print(m);assert m==0\"",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T16:40:50",
+  "edited": "2026-10-22T16:41:05"
+}
