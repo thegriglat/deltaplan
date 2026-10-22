@@ -1,0 +1,3 @@
+{"var": "2m_temperature", "level": "-", "days_done": 59, "total_s": 106.6, "total_MB": 235.2}
+{"var": "temperature", "level": "700", "days_done": 31, "total_s": 823.6, "total_MB": 4501.3}
+{"var": "u_component_of_wind", "level": "700", "days_done": 10, "total_s": 338.3, "total_MB": 1938.8}
