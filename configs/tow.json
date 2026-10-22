@@ -53,7 +53,18 @@
 		"top_angle_deg": 60.0,
 		"top_angle_deg_doc": "[12] kinds.md#Параметры: штатный отцеп при угле троса до ≈60° — с него начинается линейное снижение тяги до 0 при 90°",
 		"lockout_deg": 40.0,
-		"lockout_deg_doc": "[BHPA §2.7.6 F] отклонение ≥40° от линии — отцепиться; начало lock-out 30–40° (Freeman) [4]"
+		"lockout_deg_doc": "[BHPA §2.7.6 F] отклонение ≥40° от линии — отцепиться; начало lock-out 30–40° (Freeman) [4]",
+		"release_height_frac": 0.35,
+		"release_height_frac_doc": "[10] kinds.md#Параметры: штатный отцеп на высоте ≈35 % длины троса при безветрии; боты в «Маятнике» стартуют на этой высоте над полосой"
 	},
-	"aerotow": {}
+	"aerotow": {
+		"rope_length_m": 80.0,
+		"rope_length_m_doc": "docs/research/tow/kinds.md#Параметры: трос 50–100 м (Lookout ≈76), BHPA новичок 80–100 м; нижняя граница BHPA — 80 м",
+		"slack_m": 3.0,
+		"slack_m_doc": "оценка: трос лежит со слабиной, буксировщик выбирает её со скоростью шага (slack_speed_ms, configs/tow_tug.json) ≈3 с; в источниках числа н/д",
+		"runway_length_m": 300.0,
+		"runway_length_m_doc": "[BHPA §2.7.6] kinds.md#Параметры: полоса ≥300 м (для точки с карты; у площадки с tow длина своя)",
+		"release_height_m": 300.0,
+		"release_height_m_doc": "[1] kinds.md#Параметры: первый буксир ≈300 м (1000 фт); боты в «Маятнике» стартуют на этой высоте над полосой"
+	}
 }

@@ -1508,18 +1508,19 @@ func _choose_start() -> void:
 
 ## Старт со статической лебёдки (TW-10, TW-К6/К7): настройка tow_kind, «Маятник», одиночная игра, полоса проходит
 ## TowSite.check. Площадка с блоком tow — её ось и размеры; точка с карты и точный старт — курс выбранный, длина троса
-## из configs/tow.json. Не вышло (причина — push_warning) — обычный старт без буксировки. aerotow — TW-10b.
+## из configs/tow.json. Не вышло (причина — push_warning) — обычный старт без буксировки. aerotow (TW-10b) — та же
+## полоса, но старт пилота на тележке в начале, Ан-2 впереди на длину троса.
 func _choose_tow_start() -> bool:
 	var kind := settings.tow_kind
 	if kind == "":
 		return false
-	if kind != "winch_static":
-		push_warning("Game: буксировка %s — TW-10b, старт без буксировки" % kind)
+	if kind != "winch_static" and kind != "aerotow":
+		push_warning("Game: буксировка %s неизвестна, старт без буксировки" % kind)
 		return false
 	if net != null or air_start_m >= 0.0 or not Glider.is_pendulum_mode():
 		push_warning("Game: буксировка — только одиночная игра в режиме «Маятник» с земли, старт без буксировки")
 		return false
-	var rope_len := float(Config.value("tow", "winch_static.rope_length_m", 1000.0))
+	var rope_len := float(Config.value("tow", "%s.%s" % [kind, "rope_length_m" if kind == "winch_static" else "runway_length_m"], 1000.0))
 	var x := 0.0
 	var z := 0.0
 	var heading := 0.0
@@ -1573,7 +1574,7 @@ func _choose_tow_start() -> bool:
 		site_name = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
 	var chk := TowSite.check(terrain, x, z, heading, length, width)
 	if not bool(chk.ok):
-		push_warning("Game: полоса для лебёдки не годится (%s), старт без буксировки" % chk.reason)
+		push_warning("Game: полоса для буксировки не годится (%s), старт без буксировки" % chk.reason)
 		return false
 	_start_pos = chk.start_pos
 	_start_heading = float(chk.heading_deg)
@@ -1630,6 +1631,8 @@ func _tow_bots_opts() -> Dictionary:
 	if tow_session == null:
 		return {}
 	var l := tow_session.rope_length_m()
+	if tow_session.is_aerotow():
+		l = float(_tow_site.get("length_m", l))  # трос 80 м — полоса много длиннее: боты над всей полосой
 	return {
 		"agl_m": tow_session.release_height_m(),
 		"ahead_m": [0.2 * l, 0.8 * l],
