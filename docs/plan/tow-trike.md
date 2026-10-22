@@ -79,6 +79,21 @@ TT-2 тест может брать временный конфиг крыла �
 на основе `tools/blender/render_trike.py` (trike-model).
 Приёмка: 5–6 файлов в каталоге; скрипт в репозитории.
 
+### TT-8 Трапеция буксировщика: числа и расчёт (замечание пользователя 2026-10-22 по кадрам TT-7)
+`dp-researcher` (sonnet). Контракт TT-К6. Геометрия трапеции трайкового крыла по источникам; положение штанги в
+`trim`/`full_push`/`full_pull` относительно тележки (тангаж крыла относительно тележки при триме — расчётом/прогоном
+«Маятника» с тележкой TT-К1 на `trike_ixess15`); хват и длина рук пилота; `check_trapeze.py` (инварианты TT-К6 по
+параметрам). Выход: `tools/research/tow-trike/trapeze.json` (числа с `src`), раздел в `docs/research/tow/trike-tug.md`.
+Приёмка: `check_trapeze.py` по предложенным числам — код 0.
+
+### TT-9 Трапеция в моделях, руки на штанге, новые кадры
+`dp-engineer` (sonnet). Контракт TT-К6, TK-К1/TK-К3. После TT-8. Применить: `glider_params.json → wings.trike_ixess15`
+(без `aframe_cg --pick-reach` для этого крыла), `pendulum_params.py`, пересборка `glider_trike_ixess15.glb`;
+`trike_params.json` v5 (`bar`, `seat.hand_*`), `build_pilot.py` (поза `sit` держит штангу), при необходимости
+`build_trike.py` (панель); тест `test_tow_trike_k6.gd`; кадры заново — `tools/blender/render_tow_trike.py` (TT-7) в
+`/home/greg/deltaplan/build/screenshots/tow-trike/`.
+Приёмка: тесты `tow_trike`, `trike_model`, `wing`, `pilot` — 0 упало; `check_trapeze.py` — код 0; ≥ 5 новых кадров.
+
 ## 5. Волны
 1. TT-1, TT-3 параллельно.
 2. TT-2, TT-4 параллельно (после TT-1; TT-4 — и после TT-3).
