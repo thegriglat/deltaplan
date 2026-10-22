@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Новый CrashDiag: события Windows (wevtutil 4101/141/117/4097, окно от начала прошлого сеанса), оверлеи из фиксированного списка (tasklist), сводка логов и хвост предыдущего, драйвер, снимок рубильников CR-К4 в метку; сбор в рабочем потоке с таймаутами, отчёт сперва пишется без диагностики, затем обновляется с ней; строки start/window, start/first_frame и clouds/* (до/после сборки, первый вызов) в лог со сбросом.",
+  "commits": [
+    "c3054f3a crash-reports: CR-13 — отчёт сам собирает диагностику"
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "value": "19/19",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "wevtutil и tasklist на Windows не запускались (только разбор синтетических образцов); display.gpu.* и GpuSafety в этой ветке ещё нет — рубильники читаются через Config.value, отсутствующие пишутся «нет»."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CR-13",
+  "uncertain": [
+    {
+      "where": "scripts/core/crash_diag.gd:parse_wevtutil",
+      "why": "формат /f:text взят по памяти: метки Source/Event ID/Date/Description считаю английскими на любой локали; описание в консольной кодировке (cp866/1251) может прийти с «?»",
+      "checked": "только синтетический образец; на Windows не запускалось"
+    },
+    {
+      "where": "scripts/core/crash_diag.gd:run_with_timeout",
+      "why": "execute_with_pipe на Windows: неблокирующее чтение канала и OS.get_process_exit_code для такого процесса",
+      "checked": "Linux: sleep по таймауту убивается, echo читается, нет программы даёт код ошибки; Windows нет"
+    },
+    {
+      "where": "scripts/atmosphere/cloud_compositor_effect.gd:_mark",
+      "why": "обратный вызов рендера может идти не из главного потока, поэтому только printerr без записи метки; статический словарь без блокировки",
+      "checked": "в окне не запускалось; компилируется, тесты проходят"
+    },
+    {
+      "where": "scripts/core/crash_reporter.gd:_diag_done",
+      "why": "в _exit_tree wait_to_finish блокирует до ~6 с в худшем случае; оверлеи и драйвер в разделе описывают текущий запуск, а не оборвавшийся (железо и рендер оборвавшегося берутся из метки)",
+      "checked": "логика прочитана; сквозной прогон экспортной сборки не делался"
+    }
+  ],
+  "dp_feedback": "Дополнения к карточке в task show обрезаются (пришлось читать полный текст через --full или events).",
+  "extra": {},
+  "t": "2026-10-23T04:43:36",
+  "by": "executor"
+}

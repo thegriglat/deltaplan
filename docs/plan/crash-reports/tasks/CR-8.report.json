@@ -1,13 +1,13 @@
 {
-  "status": "partial",
-  "summary": "RenderDriver, окно GpuFailureDialog (3 варианта по CR-К3 v2), выбор драйвера в настройках, строка «Ветер упрощён» в старт-меню, показ после обрыва на wind. Опрос GpuHealth в main.gd (_gpu_failed) — заглушка до слияния CR-5.",
+  "status": "done",
+  "summary": "Окно после обрыва по CR-К3 v4 (сменить драйвер / Безопасная графика / Попробовать снова), RenderDriver, выбор драйвера в настройках, GpuLossLogger (второй источник GpuHealth + строка [gpu-loss], классификатор CR-11), GpuSafety (CR-К4), пометка и «Вернуть настройки» в стартовом меню, опрос GpuHealth в main.gd.",
   "commits": [
-    "f1c9bfdd Отказ видеокарты: окно с выбором драйвера/упрощённого ветра, драйвер в настройках, перезапуск"
+    "35bb3e31 Слияние feature/crash-reports (CR-12); перед ним c07513f5 доработка v4 и f1c9bfdd первая часть"
   ],
   "checks": [
     {
-      "name": "tests render_driver",
-      "value": "9/9",
+      "name": "tests",
+      "value": "8/8",
       "pass": true
     },
     {
@@ -16,39 +16,47 @@
       "pass": true
     },
     {
-      "name": "project_settings_override читается до выбора драйвера (Linux, 4.7.2)",
-      "value": "user://render_driver.cfg с driver.linuxbsd=\"d3d12\" без аргументов: ERROR Video driver not found (драйвер взят из файла); с --rendering-driver vulkan: старт на Vulkan, ProjectSettings всё равно d3d12 (CLI перекрывает); headless-зонд: настройка из файла прочитана",
+      "name": "logger",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "project_settings_override до выбора драйвера (Linux 4.7.2)",
+      "value": "driver.linuxbsd=d3d12 из user://render_driver.cfg без аргументов: «Video driver not found»; с --rendering-driver vulkan старт на Vulkan (CLI перекрывает)",
+      "pass": true
+    },
+    {
+      "name": "OS.add_logger/Logger в 4.7.2",
+      "value": "есть; push_error с 0x887a0005 → GpuHealth.source()==engine, строка [gpu-loss], без зависания",
       "pass": true
     }
   ],
-  "not_done": [
-    "Опрос GpuHealth.is_failed() в scenes/main.gd::_gpu_failed (сейчас return false) и тест окна по GpuHealth: класса ещё нет, ждём 'git merge feature/crash-reports' после CR-5."
-  ],
+  "not_done": [],
   "questions": [],
   "how_to_check": ".dpcli/dpcli accept CR-8",
   "uncertain": [
     {
-      "where": "scripts/game/render_driver.gd:restart",
-      "why": "перезапуск и OS.set_restart_on_exit с аргументами на Windows/macOS не проверен (Linux, окно не проверялось глазами); user-аргументы передаются как '--' + user_args",
-      "checked": "только юнит-тест restart_args"
+      "where": "scripts/game/render_driver.gd:should_offer_after_crash",
+      "why": "окно и при обрыве в «меню» (стадия пуста): убитая из диспетчера игра в меню тоже вызовет окно, как в контракте v4; отчёт (PENDING) есть только при токене экспортной сборки",
+      "checked": "юнит-тесты по тексту тела отчёта"
     },
     {
-      "where": "scripts/game/render_driver.gd:pending_is_wind",
-      "why": "обрыв определяется по строке '- стадия: wind' в теле ожидающего отчёта; отчёт есть только при токене (экспортная сборка), без токена окно после обрыва не покажется; окно также не показывается, если отчёт уже отправлен до проверки",
-      "checked": "юнит-тест по тексту; проверка идёт в main._ready до отправки"
-    },
-    {
-      "where": "scripts/game/render_driver.gd:clear_off_reason",
-      "why": "слияние патчем не умеет удалять ключ, off_reason стирается переписью машинного atmosphere.json; панель настроек стирает его при ручной смене модели ветра",
-      "checked": "test_wind_simple_and_restore"
+      "where": "scripts/core/gpu_loss_logger.gd:handle",
+      "why": "printerr внутри логгера; рекурсию гасят префиксы [gpu-loss] и «GPU: отказ ресурса». Многопоточность проверена только push_error из главного потока",
+      "checked": "test_logger_gets_engine_error"
     },
     {
       "where": "scripts/ui/gpu_failure_dialog.gd",
-      "why": "вид окна не смотрел (встроенный ConfirmationDialog со своими кнопками, крестик = «Попробовать снова»)",
-      "checked": "только разбор и тест текста"
+      "why": "внешний вид окна и перезапуск на Windows/macOS не смотрел",
+      "checked": "только тест текста"
+    },
+    {
+      "where": "tools/research/crash-reports/cr-11/test_classify.gd",
+      "why": "поправил путь preload ради хука; сам прототип в tools не менял, классификатор продублирован в GpuLossLogger",
+      "checked": "check_gd ок"
     }
   ],
-  "dp_feedback": "git checkout -- project.godot стёр мою же правку — стоило бы предупреждение, когда project.godot в scope задачи.",
-  "t": "2026-10-23T03:55:05",
+  "dp_feedback": "Хук check_gd проверяет все файлы слияния, чужая ошибка блокирует коммит слияния; git checkout -- project.godot стирает правку, когда project.godot в scope.",
+  "t": "2026-10-23T04:41:52",
   "by": "executor"
 }
