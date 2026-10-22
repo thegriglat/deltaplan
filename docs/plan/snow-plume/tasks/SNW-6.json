@@ -1,0 +1,56 @@
+{
+  "id": "SNW-6",
+  "module": "snow-plume",
+  "type": "dp-writer",
+  "title": "Документация: снежные струйки с гребней",
+  "goal": "Как устроены снежные струйки с гребней (модель снега, гребней, ветра, порога; отрисовка; настройки; чего не умеет) — новый docs/guide/terrain/snow-plume.md, ссылка из docs/guide/terrain.md, CHANGELOG «В работе», строка в docs/registry/findings.md.",
+  "plan_ref": "§4 SNW-6",
+  "contracts": [
+    {
+      "name": "snow-plume",
+      "version": "3",
+      "ref": "docs/contracts/snow-plume.md"
+    }
+  ],
+  "copy": "~/deltaplan-snow-plume-SNW-6",
+  "branch": "snow-plume/SNW-6",
+  "base": "feature/snow-plume",
+  "scope": [
+    "docs/guide/terrain/snow-plume.md",
+    "docs/guide/terrain.md",
+    "CHANGELOG.md",
+    "docs/registry/findings.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "docs/contracts/",
+    "docs/plan/",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "guide_fm",
+      "cmd": "head -1 docs/guide/terrain/snow-plume.md",
+      "expect": "re:^---"
+    },
+    {
+      "name": "docs_check",
+      "cmd": "sh -c '.dpcli/dpcli docs check 2>&1 | grep ОШИБКА | grep -v test-script-errors | wc -l'",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -c -i 'снеж' CHANGELOG.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "size",
+      "cmd": "sh -c 'wc -c < docs/guide/terrain/snow-plume.md'",
+      "expect": "num:(\\d+) <=40960"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:40:43"
+}
