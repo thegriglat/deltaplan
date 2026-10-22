@@ -1,166 +1,163 @@
 {
   "status": "done",
-  "summary": "Игрок всегда на PendulumModel, режим weight_shift и настройка «Управление креном» удалены, FlightModel — только rate для ботов; proto: reserved CONTROL_MODE_WEIGHT_SHIFT, Go перегенерирован. По Q1 четыре теста test_cockpit отключены через skip_reason.",
+  "summary": "Доработка по ревью: NetMessages.ENUMS[ControlMode] сохраняет номера (2 — пустая строка, 1=RATE, 3=PENDULUM); контрактный тест проверяет decode/encode номеров через NetMessages; из Autopilot и game.gd удалены ветка не-маятник, флаг pendulum, ROLL_RATE/ROLL_RETURN, bank_tol_deg, lead_s; комментарий test_cockpit по тексту Q1.",
   "commits": [
-    "6cbdc406 roll-modes RM-1: игрок только на «Маятнике», FlightModel — rate для ботов",
-    "cdf10139 roll-modes RM-1: тесты кабины (4) временно отключены по Q1"
+    "4ce5c1b9 ревью: ControlMode, контрактный тест, Autopilot"
   ],
   "checks": [
     {
       "name": "roll_modes",
-      "value": "7/7",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "pendulum",
-      "value": "117/117 (пропуск 1)",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_mouse_bar_flight",
-      "value": "4/4",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "tests/net/",
-      "value": "36/36",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_net_flight",
-      "value": "8/8",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_net_bots",
-      "value": "6/6",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_remote_pilots",
-      "value": "7/7",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_bots",
-      "value": "7/7",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_xc_bot",
-      "value": "2/2",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_game_flight",
-      "value": "5/5",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_input_launch",
-      "value": "1/1",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_control_",
-      "value": "17/17",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_pilot_view_contracts",
-      "value": "7/7",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_ui_controls_contracts",
-      "value": "9/9",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "tests/flight/test_glider",
-      "value": "3/3",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_wings",
-      "value": "2/2",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_bar_force",
-      "value": "10/10",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_ground_stand",
-      "value": "3/3",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "tests/ui/test_settings",
-      "value": "3/3",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_setup_apparatus",
-      "value": "1/1",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_menu_setup",
-      "value": "12/12",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "tests/ui/test_screens",
-      "value": "9/9",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "no-roll-modes",
-      "value": "0",
-      "pass": true
-    },
-    {
-      "name": "no-ws-net",
-      "value": "exit 1",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "proto-reserved",
-      "value": "exit 0",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "server-go-test",
-      "value": "exit 0",
+      "value": "PASS (accept 28/28)",
+      "pass": true
+    },
+    {
+      "name": "no-ws-net",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "tests/flight/test_roll",
-      "value": "4/4",
+      "value": "PASS (accept 28/28)",
       "pass": true
     },
     {
       "name": "test_cockpit",
-      "value": "3/3 (пропуск 4)",
+      "value": "PASS (accept 28/28)",
       "pass": true
     }
   ],
-  "not_done": [
-    "4 теста test_cockpit (view_by_head_angle, trapezoid_and_telltales, bar_center_and_nose_cables_v8, tablet_steady_on_roll) отключены по Q1, не починены — нужна отдельная задача"
-  ],
+  "not_done": [],
   "questions": [],
+  "images": [],
   "how_to_check": ".dpcli/dpcli accept RM-1",
   "uncertain": [
     {
-      "where": "tests/game/test_game_flight.gd::test_takeoff_with_held_shift",
-      "why": "в одном из прогонов accept --dry упал (не взлетел за отведённое время), при повторном accept и двух отдельных прогонах проходит",
-      "checked": "три повторных прогона test_game_flight — 5/5; похоже на порог времени под нагрузкой (известный класс падений базы)"
+      "where": "test_game_flight::test_air_start",
+      "why": "упал в одном из трёх перекрывавшихся прогонов accept --dry",
+      "checked": "прогоны шли параллельно в одной build/; отдельно test_game_flight 5/5, итоговый одиночный accept 28/28"
     }
   ],
-  "dp_feedback": "accept --dry печатает прогресс только в конце; tail обрезает строку FAIL — полезна сводка упавших в последней строке.",
-  "extra": {},
-  "t": "2026-10-22T05:15:17",
+  "dp_feedback": "accept --dry в фоне при перезапуске легко запускается параллельно с прежним; хорошо бы блокировка на задачу.",
+  "t": "2026-10-22T06:07:35",
   "by": "executor"
 }

@@ -158,10 +158,15 @@
     {
       "name": "test_cockpit",
       "tests": "test_cockpit"
+    },
+    {
+      "name": "no-script-errors",
+      "cmd": "bash -c 'for f in pendulum test_input_launch test_game_flight test_pilot_view_contracts test_bots roll_modes; do XDG_DATA_HOME=$(mktemp -d) timeout 900 godot --headless --path . res://tests/run_tests.tscn -- --filter=$f 2>&1; done'",
+      "expect": "!re:SCRIPT ERROR"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T02:32:15",
-  "edited": "2026-10-22T04:06:47"
+  "edited": "2026-10-22T06:28:35"
 }

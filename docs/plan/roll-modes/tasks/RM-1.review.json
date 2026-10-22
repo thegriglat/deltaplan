@@ -1,53 +1,39 @@
 {
   "verdict": "rework",
-  "summary": "Удаление weight_shift/настройки сделано чисто: путь rate ботов в FlightModel по числам не изменился, 48 крыльев отличаются только блоком weight_shift, proto reserved. Но в NetMessages.ENUMS[ControlMode] элемент удалён из массива, а декодер переводит номер в имя по индексу, так что номера сместились (RM-К1: 1=RATE, 3=PENDULUM сохраняются; номер 2 читается как \"\").",
+  "summary": "Замечания первого круга закрыты: ControlMode держит номера 1/2/3, контрактный тест проверяет NetMessages, ветка «не маятник» в Autopilot убрана, комментарий Q1 исправлен. Падение test_landing_shows_result_screen с правкой Autopilot не связано: после 6cbdc406 autopilot.pendulum и так всегда был true, поведение в игре не изменилось, повтор 5/5. Но после удаления Autopilot.pendulum тест test_pendulum_autopilot падает со SCRIPT ERROR, а run_tests считает его ok, поэтому PASS pendulum 117/117 не соответствует факту.",
   "issues": [
     {
-      "file": "scripts/net/net_messages.gd",
-      "line": 184,
+      "file": "tests/flight/pendulum/test_pendulum_autopilot.gd",
+      "line": 23,
       "severity": "blocker",
-      "what": "decode_value/encode_value для enum переводят номер в имя по индексу массива (names[i]). После удаления CONTROL_MODE_WEIGHT_SHIFT массив стал [UNSPECIFIED, RATE, PENDULUM]: номер 3 (PENDULUM по proto) декодируется как UNSPECIFIED, а номер 2 (бывший WEIGHT_SHIFT) — как CONTROL_MODE_PENDULUM. Сервер (protojson, open enum) пропускает неизвестный номер 2 и выводит его числом. Это противоречит RM-К1 («номера 1 = RATE, 3 = PENDULUM сохраняются», «номер 2 — как \"\"»); координатор прямо писал: при индексации по массиву на месте 2 оставить пустую строку.",
-      "fix": "ControlMode: [\"CONTROL_MODE_UNSPECIFIED\", \"CONTROL_MODE_RATE\", \"\", \"CONTROL_MODE_PENDULUM\"]; убедиться, что \"\" не совпадает с входной строкой и encode не шлёт \"\" (для имени \"\" уже вернётся null). Добавить проверку: decode_value(\"enum:ControlMode\", 3) == \"CONTROL_MODE_PENDULUM\", а decode_value(..., 2) после set_pose/push даёт control_mode \"\"."
+      "what": "В доработке удалено поле Autopilot.pendulum, а тест его ещё присваивает (ap.pendulum = true, стр. 23 и 70). В build/dpcli/RM-1/02-pendulum.log: «SCRIPT ERROR: Invalid assignment of property or key 'pendulum' … Autopilot» в обоих тестах. Тесты обрываются до проверок, но run_tests печатает ok, потому что failures пуст. Так ПИД крена (удержание горизонта в болтанке) остался непроверенным, и отчёт ≠ факт.",
+      "fix": "Удалить обе строки ap.pendulum = true. Прогнать accept --only pendulum --dry и убедиться, что в 02-pendulum.log нет SCRIPT ERROR, а test_pendulum_autopilot реально проходит проверки."
     },
     {
-      "file": "tests/contracts/test_roll_modes_contracts.gd",
-      "line": 78,
+      "file": "tests/game/test_input_launch.gd",
+      "line": 73,
       "severity": "major",
-      "what": "Контрактный тест закрепляет ошибочный массив из 3 элементов, а соответствие номеров проверяет только по тексту net.proto, а не по поведению NetMessages. Поэтому сдвиг номеров проходит незамеченным.",
-      "fix": "Проверять отсутствие имени CONTROL_MODE_WEIGHT_SHIFT в ENUMS и декодирование номеров 1/2/3 (RATE / \"\" после приёма / PENDULUM), а не точный массив."
-    },
-    {
-      "file": "scripts/game/autopilot.gd",
-      "line": 106,
-      "severity": "minor",
-      "what": "Autopilot создаётся только в game.gd для игрока (боты его не используют), а игрок всегда на маятнике. Ветки «не pendulum» (стр. ≈106, 175) и флаг pendulum стали мёртвым кодом; по дополнению координатора их нужно было удалить. Файл в скоупе (scripts/game), в диффе его нет.",
-      "fix": "Удалить не-маятниковую ветку Autopilot и присваивание autopilot.pendulum в game.gd:274/283 либо в отчёте объяснить, почему они оставлены."
-    },
-    {
-      "file": "tests/game/test_cockpit.gd",
-      "line": 22,
-      "severity": "minor",
-      "what": "Комментарий к пропуску тестов не совпадает с текстом из дополнения Q1: нет конкретики («штанга не видна у sport, руки в кадре, prone у condor_crex3, планшет 0,36 > 0,15»), которая нужна будущей задаче про кабину.",
-      "fix": "Вставить в комментарий текст из дополнения Q1."
+      "what": "Тесты, которые по карточке надо было удалить или перевести, падают молча, потому что игрок теперь на маятнике. В 11-test_input_launch.log: «Trying to assign value of type 'pendulum_model.gd' to a variable of type 'flight_model.gd'» (_launch, var m: FlightModel). В 10-test_game_flight.log: test_air_start:151 вызывает несуществующий PendulumModel.trim_speed(). Ошибка тянется с базы (по умолчанию уже был pendulum), но карточка требует убрать тесты FlightModel-режима игрока, а PASS по test_input_launch и test_game_flight фактически ничего не проверяет в этих местах.",
+      "fix": "test_input_launch: перевести _launch на PendulumModel (те же исходы air/срыв/none) или удалить FlightModel-часть. test_air_start: сравнивать с тримом маятника, если он есть, иначе убрать проверку скорости трима. В логах этих проверок не должно быть SCRIPT ERROR. Отдельно координатору: run_tests не засчитывает SCRIPT ERROR как падение (вне задачи, вопрос к инструменту)."
     }
   ],
   "rerun": [
     {
+      "name": "pendulum (accept --dry)",
+      "value": "117/117 PASS, но в логе 3 SCRIPT ERROR в test_pendulum_autopilot",
+      "pass": false
+    },
+    {
+      "name": "test_game_flight (accept --dry)",
+      "value": "5/5, landing ok; SCRIPT ERROR в test_air_start (трим, с базы)",
+      "pass": true
+    },
+    {
       "name": "roll_modes (accept --dry)",
-      "value": "7/7",
-      "pass": true
-    },
-    {
-      "name": "no-ws-net (accept --dry)",
-      "value": "exit 1, совпадений нет",
-      "pass": true
-    },
-    {
-      "name": "configs/wings: JSON до/после без блока weight_shift",
-      "value": "48/48 совпадают",
+      "value": "7/7, без SCRIPT ERROR",
       "pass": true
     }
   ],
-  "t": "2026-10-22T05:27:39",
+  "t": "2026-10-22T06:28:12",
   "by": "reviewer"
 }
