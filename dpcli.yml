@@ -71,8 +71,8 @@ jobs:
       slots: 2
     - match: "tools/build\\.sh"
       slots: 4
-    # прочие запуски Godot: тесты (run_tests), кадры, автопилот
-    - match: "godot|run_tests|xvfb-run"
+    # прочие запуски Godot: тесты (run_tests), кадры (tools/shots), автопилот
+    - match: "godot|run_tests|xvfb-run|tools/shots/"
       slots: 3
   # Голова очереди ждёт дольше — мелкие задачи её больше не обгоняют.
   cpu_starve_s: 300
