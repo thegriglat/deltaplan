@@ -1,0 +1,68 @@
+{
+  "id": "TP-16",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Текстуры и шейдеры дельталёта как у дельтапланов",
+  "goal": "Текстуры крыла trike_ixess15 и тележки trike.glb импортируются как у крыльев игры (Basis Universal, mipmaps); процедурные FrameMetal/frame_wire применяются к трубам, металлу, фитингам и тросам крыла и тележки буксировщика (и через TowTrikeVisual — игрока); кадры до/после.",
+  "plan_ref": "TP-16",
+  "contracts": [
+    {
+      "name": "TK-К2",
+      "version": "4",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-16",
+  "branch": "trike-pilot/TP-16",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "assets/models/glider_trike_ixess15.glb.import",
+    "assets/models/glider_trike_ixess15_glider_trike_ixess15_sail.png.import",
+    "assets/models/trike/",
+    "assets/source/trike/",
+    "tools/blender/build_trike.py",
+    "scripts/game/tow_trike_visual.gd",
+    "configs/tow_tug.json",
+    "tests/contracts/test_trike_pilot_k16.gd",
+    "tests/contracts/test_trike_pilot_k16.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight/frame_metal.gd",
+    "scripts/flight/frame_metal.gdshader",
+    "scripts/flight/frame_wire.gdshader",
+    "scripts/flight/glider_visual.gd",
+    "scripts/flight/glider.gd",
+    "scripts/game/game.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_model",
+      "tests": "trike_model"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    },
+    {
+      "name": "wire_tone",
+      "tests": "wire_tone"
+    },
+    {
+      "name": "aframe",
+      "tests": "aframe"
+    },
+    {
+      "name": "shots",
+      "cmd": "bash -c 'ls /home/greg/deltaplan/build/screenshots/trike-pilot/ | grep -c tp16'",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:16:35"
+}

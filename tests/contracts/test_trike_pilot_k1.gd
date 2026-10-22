@@ -1,5 +1,5 @@
 extends TestCase
-## Контракт TP-К1 v2 (docs/contracts/trike-pilot.md): configs/trike_pilot.json.
+## Контракт TP-К1 v3 (docs/contracts/trike-pilot.md): configs/trike_pilot.json.
 
 const CFG := "res://configs/trike_pilot.json"
 const PARAMS := "res://tools/blender/trike_params.json"
@@ -8,6 +8,7 @@ const KEYS := {
 	"starter": ["start_s", "stop_s"],
 	"throttle": ["rate_per_s"],
 	"tachometer": ["max_rpm", "red_rpm"],
+	"wheels": ["wheelbase_m", "steer_max_deg", "lat_mu", "brake_mu"],
 }
 
 
@@ -22,7 +23,7 @@ func _json(path: String) -> Dictionary:
 func test_keys_and_docs() -> void:
 	var c := _json(CFG)
 	check(not c.is_empty(), "конфиг читается")
-	check(c.get("contract", "") == "TP-К1 v2", "contract = TP-К1 v2")
+	check(c.get("contract", "") == "TP-К1 v3", "contract = TP-К1 v3")
 	check(str(c.get("_doc", "")).length() > 0, "_doc")
 	for sec: String in KEYS:
 		var d: Variant = c.get(sec, null)
@@ -64,3 +65,10 @@ func test_invariants() -> void:
 	var t: Dictionary = c.get("tachometer", {})
 	check(float(t.get("red_rpm", 1e9)) < float(t.get("max_rpm", 0)), "red_rpm < max_rpm")
 	check(float(c.get("throttle", {}).get("rate_per_s", 0)) > 0.0, "rate_per_s > 0")
+	var w: Dictionary = c.get("wheels", {})
+	for k: String in ["wheelbase_m", "steer_max_deg", "lat_mu", "brake_mu"]:
+		check(float(w.get(k, 0)) > 0.0, "wheels.%s > 0" % k)
+	var wb := float(p.get("dims", {}).get("wheelbase", {}).get("value", -100))
+	check(absf(float(w.get("wheelbase_m", 0)) - wb) <= 0.01, "wheelbase_m = trike_params ± 0,01: %s/%s" % [w.get("wheelbase_m"), wb])
+	var st := float(w.get("steer_max_deg", 0))
+	check(st > 0.0 and st <= 60.0, "steer_max_deg ∈ (0; 60]: %s" % st)

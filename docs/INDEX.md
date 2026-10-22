@@ -68,6 +68,7 @@ generated: true
   - [tools/research/trike-model/summary.md](../tools/research/trike-model/summary.md) — TK-1: краткий итог размеров трайка и точки глаз
 - **trike-pilot** — Дельталёт для игрока: «Маятник» + тяга tow-trike, газ W/S, двигатель пробелом, руление, приборы, звук; одиночная игра. [active 2026-10-22] — [план](plan/trike-pilot.md) · [контракты](contracts/trike-pilot.md)
   - [docs/research/trike-pilot/engine-ops.md](research/trike-pilot/engine-ops.md) — Эксплуатация Rotax 582 UL на трайке: расход по оборотам, запуск и остановка, рычаг газа, топливо на старте, тахометр.
+  - [docs/research/trike-pilot/wheels.md](research/trike-pilot/wheels.md) — Колёса дельталёта в модели: руление носовым колесом, тормоз, посадка на колёса; числа блока wheels и границы модели.
 - **tow-trike** — Буксировщик аэробуксировки — дельталёт (тележка trike.glb + крыло iXess 15) на физике «Маятника» с тягой винта и автопилотом вместо Ан-2. [closed 2026-10-23] — [план](plan/tow-trike.md) · [контракты](contracts/tow-trike.md) · [решения](plan/tow-trike/decisions.md) · [сводка](plan/tow-trike/summary.md) · полный журнал: `archive/tow-trike`
   - [docs/research/tow/trike-tug.md](research/tow/trike-tug.md) — Буксировщик-дельталёт 582 + iXess 15: массы, тяга T(V), числа крыла, набор связки с sport, трапеция и ход штанги в треугольнике тележки
   - [tools/research/tow-trike/README.md](../tools/research/tow-trike/README.md) — Скрипты и воспроизведение расчёта параметров буксировщика-дельталёта (TT-1)

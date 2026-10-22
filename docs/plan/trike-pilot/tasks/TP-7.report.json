@@ -1,0 +1,74 @@
+{
+  "status": "done",
+  "summary": "TP-К7 v2: штанга на колёсах при ключах wheels — второй порядок (|dv| ЦМ крыла 0.008 м/с за шаг, было 0.256); касание непрерывно по тангажу/крену (0.009 град). Без новых ключей TT-К3 бит в бит. accept --dry 7/7 PASS.",
+  "commits": [
+    "9d754a96 колёса: руление, тормоз, посадка",
+    "c023a5e6 штанга вторым порядком, непрерывное касание"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot",
+      "value": "34/34",
+      "pass": true
+    },
+    {
+      "name": "tow_trike",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "tow",
+      "value": "105/105",
+      "pass": true
+    },
+    {
+      "name": "pendulum",
+      "value": "117/117",
+      "pass": true
+    },
+    {
+      "name": "flight",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 1, ошибок по trike-pilot нет",
+      "pass": true
+    },
+    {
+      "name": "(8) ступень -1->+1, |dv| ЦМ крыла/шаг",
+      "value": "0.008 м/с (порог 0.15)",
+      "pass": true
+    },
+    {
+      "name": "(в) тангаж/крен за шаг касания",
+      "value": "0.009 град",
+      "pass": true
+    },
+    {
+      "name": "(в) вертикальная в шаг касания (граница модели)",
+      "value": "-2.57 м/с трим-посадка, -10.84 пикирование; vertical_drop_ms",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TP-7 --dry",
+  "uncertain": [
+    {
+      "where": "configs/trike_pilot.json wheels",
+      "why": "steer_max_deg 35, lat_mu 0.4, brake_mu 0.3 — оценки; Raymer по памяти",
+      "checked": "в _doc помечено 'оценка' с разбросом"
+    }
+  ],
+  "dp_feedback": "accept --dry >10 мин одним блоком; нужен --only <проверка>.",
+  "t": "2026-10-23T01:35:35",
+  "by": "executor"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "TP-17",
+  "module": "trike-pilot",
+  "type": "dp-researcher",
+  "title": "Диапазон скоростей дельталёта штангой: разбор",
+  "goal": "Понять по источникам и модели, почему полная выборка штанги дельталёта даёт ≈ 65 км/ч вместо паспортных ≈ 130 км/ч, и предложить правку модели/чисел (ход штанги, нулевое положение, центровка, геометрия трапеции, «Маятник» для тележки) с ожидаемой кривой скорость(ход штанги); без подгонки.",
+  "plan_ref": "TP-17",
+  "contracts": [
+    {
+      "name": "TP-К6",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-17",
+  "branch": "trike-pilot/TP-17",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "docs/research/trike-pilot/",
+    "tools/research/trike-pilot/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "tools/research/tow-trike/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1'",
+      "expect": "!re:ОШИБКА.*trike-pilot"
+    },
+    {
+      "name": "data",
+      "cmd": "bash -c 'ls tools/research/trike-pilot/ | wc -l'",
+      "expect": "num:(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T02:56:49"
+}

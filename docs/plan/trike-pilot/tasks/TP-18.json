@@ -1,0 +1,52 @@
+{
+  "id": "TP-18",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Скорость полной выборки дельталёта по модели (Q7: D + A)",
+  "goal": "configs/wings/trike_ixess15.json full_pull_speed_kmh — модельная скорость полной выборки (по замерам TP-17, ≈ 82 км/ч) вместо 130; в _doc и документах: 130 км/ч — Va по HADS (только в снижении), ≈ 120 км/ч — горизонтальный потолок по тяге; источник крыла пересобирает то же.",
+  "plan_ref": "TP-18",
+  "contracts": [
+    {
+      "name": "TT-К2",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-18",
+  "branch": "trike-pilot/TP-18",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "configs/wings/trike_ixess15.json",
+    "tools/research/tow-trike/wing_trike_ixess15.json",
+    "tools/research/tow-trike/build.py",
+    "docs/research/trike-pilot/speed-range.md",
+    "docs/research/tow/trike-tug.md"
+  ],
+  "dont_touch": [
+    "configs/tow_tug.json",
+    "scripts/",
+    "tools/research/tow-trike/trapeze.json",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "wing_passports",
+      "tests": "wing_passports"
+    },
+    {
+      "name": "wing_physics",
+      "tests": "wing_physics"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:28:21"
+}

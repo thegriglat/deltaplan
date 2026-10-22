@@ -329,14 +329,11 @@ def main_gear(mb, lod: int) -> None:
 
 def front_gear(mb, lod: int, nose, y_f: float, zc_f: float) -> None:
     sdt = (6, 4, 3)[lod]
-    # вилка «тянется»: голова впереди оси, ось на wheelbase позади неё (TT-11: прежняя вилка зеркально по Y вокруг оси)
-    dy = 2 * (y_f - 1.1)
-    head = V((0, 1.1 + dy, -2.0))
+    head = V((0, 1.1, -2.0))
     if lod == 2:
         mb.add_tube([nose, V((0, y_f, zc_f))], RF, "Tube", sides=sdt)
         return
-    if (nose - head).length > 0.02:
-        mb.add_tube([nose, head], RF, "Tube", sides=sdt)
+    mb.add_tube([nose, head], RF, "Tube", sides=sdt)
     for s in (-1, 1):
         mb.add_tube([head + V((s * 0.075, 0, 0.0)), V((s * 0.075, y_f, zc_f))], RF * 0.85, "Tube", sides=sdt)
     mb.add_tube([head + V((-0.075, 0, 0)), head + V((0.075, 0, 0))], RF * 0.85, "Tube", sides=sdt)
@@ -363,20 +360,20 @@ def front_gear(mb, lod: int, nose, y_f: float, zc_f: float) -> None:
         rear = p - pu * (pl * 0.5 - 0.03) - pn * 0.015
         mb.add_tube([rear, head + V((p.x * 0.5, 0.0, -0.05))], RF * 0.75, "Tube", sides=sdt)
         if lod == 0:
-            mb.add_tube([p - pn * 0.015, V((p.x * 0.3, 1.1 + dy, -2.25))], RF * 0.6, "Tube", sides=sdt)
+            mb.add_tube([p - pn * 0.015, V((p.x * 0.3, 1.1, -2.25))], RF * 0.6, "Tube", sides=sdt)
     tp = V(S["throttle_pedal"])
     box(mb, tp + pn * 0.004, (pw * 0.8, pl * 0.8, 0.008), "Pedal", rot=pr)     # накладка педали газа на подножке
-    mb.add_tube([V((-0.15, 1.1 + dy, -2.25)), V((0.15, 1.1 + dy, -2.25))], RF * 0.7, "Tube", sides=sdt)
+    mb.add_tube([V((-0.15, 1.1, -2.25)), V((0.15, 1.1, -2.25))], RF * 0.7, "Tube", sides=sdt)
     # приборный обтекатель над носом на стойках от головы вилки и фара
     tilt = Matrix.Rotation(math.radians(-14), 3, "X")
     if lod == 0:
         for s in (-1, 1):
-            mb.add_tube([head + V((s * 0.05, 0, 0)), V((s * 0.06, 1.08 + dy, -1.78))], 0.012, "Tube", sides=6)
-        pillow(mb, V((0, 1.1 + dy, -1.72)), (0.15, 0.1, 0.07), "Fairing", rot=tilt, e=0.45, seg=10, rings=6)
-        mb.add_tube([head + V((0, 0.0, 0.0)), V((0, 1.2 + dy, -1.93))], 0.01, "Tube", sides=5)
-        mb.add_tube([V((0, 1.2 + dy, -1.93)), V((0, 1.27 + dy, -1.93))], 0.05, "Lamp", sides=10)
+            mb.add_tube([head + V((s * 0.05, 0, 0)), V((s * 0.06, 1.08, -1.78))], 0.012, "Tube", sides=6)
+        pillow(mb, V((0, 1.1, -1.72)), (0.15, 0.1, 0.07), "Fairing", rot=tilt, e=0.45, seg=10, rings=6)
+        mb.add_tube([head + V((0, 0.0, 0.0)), V((0, 1.2, -1.93))], 0.01, "Tube", sides=5)
+        mb.add_tube([V((0, 1.2, -1.93)), V((0, 1.27, -1.93))], 0.05, "Lamp", sides=10)
     else:
-        pillow(mb, V((0, 1.1 + dy, -1.72)), (0.15, 0.1, 0.07), "Fairing", rot=tilt, e=0.45, seg=8, rings=4)
+        pillow(mb, V((0, 1.1, -1.72)), (0.15, 0.1, 0.07), "Fairing", rot=tilt, e=0.45, seg=8, rings=4)
 
 
 def panel_rot() -> Matrix:

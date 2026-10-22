@@ -1,0 +1,51 @@
+{
+  "id": "TP-14",
+  "module": "trike-pilot",
+  "type": "dp-researcher",
+  "title": "Источники чисел колёс дельталёта",
+  "goal": "Для configs/trike_pilot.json wheels (steer_max_deg, lat_mu, brake_mu) — источники со ссылками вместо «по памяти»; числа меняются только по источникам, оценки помечены с разбросом; расчёт в docs/research/trike-pilot/wheels.md.",
+  "plan_ref": "TP-14",
+  "contracts": [
+    {
+      "name": "TP-К1",
+      "version": "3",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К7",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-14",
+  "branch": "trike-pilot/TP-14",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "configs/trike_pilot.json",
+    "docs/research/trike-pilot/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/tow_tug.json",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot_k1",
+      "tests": "trike_pilot_k1"
+    },
+    {
+      "name": "trike_pilot_k7",
+      "tests": "trike_pilot_k7"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1'",
+      "expect": "!re:ОШИБКА.*trike-pilot"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T01:56:10"
+}

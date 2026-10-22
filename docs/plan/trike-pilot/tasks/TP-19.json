@@ -1,0 +1,43 @@
+{
+  "id": "TP-19",
+  "module": "trike-pilot",
+  "type": "dp-researcher",
+  "title": "Незатухающие качания дельталёта на газу: разбор",
+  "goal": "Найти причину незатухающих качаний скорости дельталёта (4–189 км/ч) на полном газе при малом ходе штанги в модели «Маятник» с тележкой, сравнить с поведением реальных трайков по источникам и предложить правку модели с ожидаемым затуханием; без подгонки.",
+  "plan_ref": "TP-19",
+  "contracts": [
+    {
+      "name": "TP-К6",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-19",
+  "branch": "trike-pilot/TP-19",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "docs/research/trike-pilot/",
+    "tools/research/trike-pilot/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1'",
+      "expect": "!re:ОШИБКА.*trike-pilot"
+    },
+    {
+      "name": "doc",
+      "cmd": "test -f docs/research/trike-pilot/pitch-oscillation.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:18:34"
+}

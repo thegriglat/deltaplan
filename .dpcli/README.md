@@ -50,7 +50,7 @@
 - `plan_dir` (`docs/plan`), `contracts_dir` (`docs/contracts`), `docs_dir` (`docs`);
 - `checks.env`, `checks.tests` (шаблон команды для проверок `{tests: …}`, `{filter}`), `checks.log_dir` (`build/dpcli`);
 - `artifacts_dir`, `reserved_codes`, `gc.ignore_dirs`, `gc.ignore_globs`;
-- `sem` (`enabled: false` по умолчанию, `model`, `url`, `cache_dir`, `globs`), `jobs` (`dir`, `tmux_session`, `cpu_slots`), `locks`;
+- `sem` (`enabled: false` по умолчанию, `model`, `url`, `cache_dir`, `globs`), `jobs` (`dir`, `tmux_session`, `cpu_slots`, `cpu_weights`, `cpu_starve_s`), `locks`;
 - `agents_dir` (`.dpcli/agents`), `workflow` (`.claude/dpcli-workflow.md`);
 - `roles` — роли своих агентов проекта: `{имя: {role: coordinator|executor|reviewer|status, review: bool}}`; реестр агентов = `agents_dir` + `.claude/agents` с `dpcli_role` во frontmatter + `roles` (перекрывает); смотреть — `dpcli agents`;
 - `docs` (`extra`, `exclude`, `types`, `statuses`, `max_kb`, `max_kb_mode`, `summary_max`, `registries`).
@@ -262,12 +262,12 @@ Frontmatter читается как YAML (списки `related` — блочн�
 .dpcli/dpcli job start <имя> <таймаут_с> <команда…>     # в фоне; rc всегда пишется, 124 — таймаут
 .dpcli/dpcli job wait <имя> <таймаут_с>                  # ждёт, печатает код и хвост лога
 .dpcli/dpcli job status [имя] [--all]  |  job stop <имя>  |  job attach <имя>
-.dpcli/dpcli job --lock cpu|gpu start <имя> <таймаут_с> <команда…>
-.dpcli/dpcli lock cpu|gpu <имя> [--timeout СЕК] -- <команда…>
+.dpcli/dpcli job --lock cpu|gpu [--slots N] start <имя> <таймаут_с> <команда…>
+.dpcli/dpcli lock cpu|gpu <имя> [--slots N] [--timeout СЕК] -- <команда…>
 .dpcli/dpcli lock status
 ```
 
-Логи — `<jobs.dir>/<имя>.{pid,log,rc}`; `rc`: 124 — таймаут, 143 — `job stop`, 129 — окно закрыто пользователем. Замок `cpu` — N слотов (`jobs.cpu_slots` / `DPCLI_CPU_SLOTS`, по умолчанию половина логических ядер), `gpu` — один. Окно tmux по умолчанию (сессия `$DPCLI_TMUX_SESSION`, иначе `jobs.tmux_session`); `--no-tmux` — только фон; нет tmux — предупреждение и обычный фон. Окно закрывается по завершении задачи. Внутри задач tmux отключён (`DPCLI_NO_TMUX=1`).
+Логи — `<jobs.dir>/<имя>.{pid,log,rc}`; `rc`: 124 — таймаут, 143 — `job stop`, 129 — окно закрыто пользователем. Замок `gpu` — один держатель. Замок `cpu` — очередь со взвешенными слотами: всего M слотов (`jobs.cpu_slots` / `DPCLI_CPU_SLOTS`, по умолчанию половина логических ядер), запуск занимает N (`--slots N`; без него — первое правило `jobs.cpu_weights` `{match: регэксп по строке команды, slots: N}`, иначе 1; N > M обрезается до M с предупреждением). Свободно F = M − занятые; голова очереди стартует, когда N ≤ F; любой другой ожидающий — раньше неё («добор», первый подходящий по очереди), если влезает и голова ждёт меньше `jobs.cpu_starve_s` (300 с, `DPCLI_CPU_STARVE_S`), иначе ждёт голову. Состояние — `<locks>/cpu.json` под flock; записи с мёртвыми PID вычищаются при каждом обращении. `--timeout` — выход 124 и запись снята; SIGTERM/SIGINT в ожидании — запись снята, выход 128+сигнал; код запуска — код команды. `lock status` — `занято X/M`, держатели (слоты, PID, команда, с какого времени, копия) и очередь (позиция, слоты, сколько ждёт). Старые `cpu.*.lock` не используются. Окно tmux по умолчанию (сессия `$DPCLI_TMUX_SESSION`, иначе `jobs.tmux_session`); `--no-tmux` — только фон; нет tmux — предупреждение и обычный фон. Окно закрывается по завершении задачи. Внутри задач tmux отключён (`DPCLI_NO_TMUX=1`).
 
 ## Сдача модуля
 
@@ -313,7 +313,8 @@ Frontmatter читается как YAML (списки `related` — блочн�
 | `DPCLI_SESSION` | идентификатор сессии для строки в сообщениях коммитов |
 | `DPCLI_TASK` | ID текущей задачи (выставляется в проверках) |
 | `DPCLI_COPIES` | каталог рабочих копий вместо `copies_dir` |
-| `DPCLI_CPU_SLOTS` | число слотов замка cpu |
+| `DPCLI_CPU_SLOTS` | всего слотов замка cpu |
+| `DPCLI_CPU_STARVE_S` | порог голодания головы очереди cpu, с (`jobs.cpu_starve_s`) |
 | `DPCLI_NO_TMUX` | `1` — не открывать окна tmux |
 | `DPCLI_TMUX_SESSION` | сессия tmux для окон |
 | `DPCLI_JOB_DIR` | каталог запусков `job` вместо `jobs.dir` |

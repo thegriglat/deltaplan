@@ -1,0 +1,63 @@
+{
+  "status": "partial",
+  "summary": "Источники найдены и прочитаны: FAA-H-8083-5 (только качественно: устройство рулёжки/тормоза, правило рулёжки 5/10 mph) и Cenek-Jamieson-McLarin (блокированное колесо по сухой траве 0,36-0,38, мокрой 0,21-0,24; Noon 1994: грунт/гравий 0,35). Ссылка Raymer 'по памяти' снята; числа wheels не менялись, в _doc и wheels.md - источники, разброс, допущения.",
+  "commits": [
+    "e8483b97 trike-pilot TP-14: источники чисел колёс"
+  ],
+  "checks": [
+    {
+      "name": "числа wheels не изменены (diff только *_doc)",
+      "value": "3 строки _doc",
+      "pass": true
+    },
+    {
+      "name": "docs check по trike-pilot",
+      "value": "нет ОШИБКА по trike-pilot",
+      "pass": true
+    },
+    {
+      "name": "accept --dry: trike_pilot_k1",
+      "value": "таймаут 900 с (нагрузка машины load 14-18)",
+      "pass": false
+    },
+    {
+      "name": "accept --dry: trike_pilot_k7",
+      "value": "job завис до 1500 с, не завершён",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "accept --dry не дошёл до PASS: тесты k1/k7 упираются в таймаут при загрузке машины; код не менялся, только строки _doc и md",
+    "steer_max_deg 35 (25-45): числового источника не найдено (ни FAA-H-8083-5, ни паспорта трайков), остаётся оценкой",
+    "Raymer, Roskam, AC 150/5200-30 не удалось проверить"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TP-14",
+  "uncertain": [
+    {
+      "where": "configs/trike_pilot.json:wheels.lat_mu",
+      "why": "данные Cenek - автомобильные шины ~40 км/ч, перенос на шины трайка и на пик катящейся шины - допущение",
+      "checked": "сопоставил с 0,36-0,38 (сухо) и 0,35 (грунт); 0,4 оставлен в диапазоне 0,3-0,5"
+    },
+    {
+      "where": "configs/trike_pilot.json:wheels.steer_max_deg",
+      "why": "нет источника угла носового колеса",
+      "checked": "FAA-H-8083-5 гл. 3 и 5, Wikipedia по Pegasus Quik/Mainair Blade/BB103"
+    }
+  ],
+  "dp_feedback": "accept при загруженной машине даёт таймаут 900 с на тест-пачках; нужен способ пересчитать только упавшую проверку.",
+  "extra": {
+    "stop_10ms_m_brake_mu_0.2_0.3_0.4": [
+      18.9,
+      13.8,
+      10.8
+    ],
+    "radius_15ms_m_lat_mu_0.3_0.4_0.5": [
+      76,
+      57,
+      46
+    ]
+  },
+  "t": "2026-10-23T02:40:43",
+  "by": "executor"
+}
