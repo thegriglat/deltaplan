@@ -4,7 +4,8 @@ extends CanvasLayer
 ## Параметры — configs/world.json → sun_glare (глаз), configs/helmet.json (каска).
 ##
 ## Ослепление: солнце у направления взгляда — засвет вокруг солнца и потемнение остального кадра;
-## сила — sun_glare.strength × time.light.glare (вечером слабее), цвет — цвет солнца.
+## сила — sun_glare.strength × яркость солнца (пропускание атмосферы на его высоте к дневному: у горизонта
+## слабее и уже), цвет — цвет солнца (пропускание атмосферы); диск перекрашивается в него после тонмаппинга.
 ## Закрыто ли солнце:
 ##   рельеф — лучи на процессоре из глаза по диску с ореолом (центр + кольцо ray_ring лучей
 ##   на ray_radius_deg) через CameraRig.ground_fn; доля сглаживается во времени (привыкание
@@ -49,6 +50,9 @@ var _to_sun := Vector3.UP
 var _sun_color := Color.WHITE
 var _time_k := 1.0
 var _cmd_helmet := ""
+## DP_SUN_TINT_LOG: печатать положение диска на экране (tools/shots: проверка центра пятна).
+var _log_sun_px := OS.has_environment("DP_SUN_TINT_LOG")
+var _logged_px := Vector2(-1.0e9, -1.0e9)
 var _cmd_checked := false
 
 
@@ -80,10 +84,13 @@ func apply_config() -> void:
 	if not HELMET_MODES.has(helmet_mode):
 		helmet_mode = "none"
 	var m := _mat
-	m.set_shader_parameter("veil_core", float(_cfg.get("veil_core", 0.5)))
-	m.set_shader_parameter("veil_core_deg", float(_cfg.get("veil_core_deg", 3.0)))
+	m.set_shader_parameter("veil_core", float(_cfg.get("veil_core", 12.0)))
+	m.set_shader_parameter("veil_core_deg", float(_cfg.get("veil_core_deg", 0.3)))
 	m.set_shader_parameter("veil_wide", float(_cfg.get("veil_wide", 0.3)))
-	m.set_shader_parameter("veil_wide_deg", float(_cfg.get("veil_wide_deg", 12.0)))
+	m.set_shader_parameter("veil_wide_deg", float(_cfg.get("veil_wide_deg", 8.0)))
+	m.set_shader_parameter(
+		"disk_deg", float(Config.value("world", "sky.sun_disk.radius_deg", 0.3))
+	)
 	m.set_shader_parameter("veil_flat", float(_cfg.get("veil_flat", 0.05)))
 	var b: Dictionary = h.get("brim", {})
 	m.set_shader_parameter("brim_height", float(b.get("height", 0.07)))
@@ -121,7 +128,8 @@ func set_helmet(mode: String) -> void:
 	helmet_mode = mode if HELMET_MODES.has(mode) else "none"
 
 
-## Направление НА солнце, цвет солнца и множитель ослепления по времени суток (time.light.glare).
+## Направление НА солнце (по истинной высоте), цвет солнца и множитель ослепления — яркость солнца 0..1
+## (SkyEnvironment.sun_luminance_ratio).
 func set_sun(to_sun: Vector3, color: Color, time_k: float) -> void:
 	_to_sun = to_sun.normalized()
 	_sun_color = color
@@ -180,6 +188,8 @@ func _process(dt: float) -> void:
 	m.set_shader_parameter("aspect", aspect)
 	m.set_shader_parameter("sun_view", sun_view)
 	m.set_shader_parameter("sun_uv", sun_uv)
+	if _log_sun_px:
+		_log_sun_position(cam, vp)
 	m.set_shader_parameter("sun_vis", terrain_visibility)
 	m.set_shader_parameter("cloud_vis", cloud_visibility)
 	m.set_shader_parameter("on_screen", _on_screen(cam))
@@ -199,6 +209,17 @@ func _process(dt: float) -> void:
 		tint = _color(Config.value("helmet", "visor.tint_dark", [0.5, 0.5, 0.5]))
 	m.set_shader_parameter("helmet", HELMET_MODES.find(helmet))
 	m.set_shader_parameter("visor_tint", tint)
+
+
+## «sun_px: X Y» — центр диска в пикселях окна (проекция направления на солнце камерой), при сдвиге.
+func _log_sun_position(cam: Camera3D, vp: Vector2) -> void:
+	var p := cam.global_position + _to_sun * 1000.0
+	if cam.is_position_behind(p):
+		return
+	var s := cam.unproject_position(p) * (vp / get_viewport().get_visible_rect().size)
+	if s.distance_to(_logged_px) > 0.4:
+		_logged_px = s
+		print("sun_px: %.1f %.1f" % [s.x, s.y])
 
 
 ## Можно ли пробовать пиксели диска: 1 — солнце в кадре, 0 — за краем (с полосой

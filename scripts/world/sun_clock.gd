@@ -14,6 +14,9 @@ extends Node
 
 ## Направление НА солнце изменилось (единичный вектор, север −Z, восток +X).
 signal sun_changed(to_sun: Vector3)
+## Настоящее положение солнца сдвинулось, а направление для света нет (солнце ниже
+## min_light_elevation_deg: свет зажат, диск, ореол и засвет — по истинной высоте, HH-11).
+signal sun_disk_changed
 
 ## Порог, после которого сдвиг солнца считается изменением (не дёргать тени каждый кадр), градусы.
 const EMIT_STEP_DEG := 0.05
@@ -35,6 +38,7 @@ var speed: float = 1.0
 
 var _to_sun := Vector3.UP
 var _emitted := Vector3.ZERO
+var _true_emitted := Vector3.ZERO
 
 
 func _init() -> void:
@@ -90,6 +94,12 @@ func to_sun() -> Vector3:
 	return _to_sun
 
 
+## Единичный вектор НА солнце по настоящей высоте (без зажима min_light_elevation_deg): диск, ореол, засвет.
+func to_sun_true() -> Vector3:
+	var a := angles()
+	return TerrainGeo.sun_direction(a.x, a.y)
+
+
 ## Настоящие азимут (0 — север, по часовой) и высота солнца, градусы: Vector2(az, el).
 func angles() -> Vector2:
 	if not active:
@@ -108,9 +118,17 @@ func _recompute(force: bool) -> void:
 	var el := maxf(a.y, float(Config.value("world", "time.min_light_elevation_deg", 2.0)))
 	_to_sun = TerrainGeo.sun_direction(a.x, el)
 	var moved := rad_to_deg(_to_sun.angle_to(_emitted)) if _emitted != Vector3.ZERO else 180.0
+	var true_dir := TerrainGeo.sun_direction(a.x, a.y)
+	var moved_true := (
+		rad_to_deg(true_dir.angle_to(_true_emitted)) if _true_emitted != Vector3.ZERO else 180.0
+	)
 	if force or moved >= EMIT_STEP_DEG:
 		_emitted = _to_sun
+		_true_emitted = true_dir
 		sun_changed.emit(_to_sun)
+	elif moved_true >= EMIT_STEP_DEG:
+		_true_emitted = true_dir
+		sun_disk_changed.emit()
 
 
 ## Смещение часов от UTC для solar_position: NAN — солнечное время.
@@ -212,7 +230,7 @@ static func solar_position(
 
 ## Свет по высоте солнца (world.json → time.light, линейно между узлами):
 ## {sun_color: Color (× sun.color), sun_energy, sky_energy (множители), horizon_tint: Color,
-## disk_energy (× яркость диска солнца), glare (× сила ослепления)}.
+## (яркость диска и сила засвета — из пропускания атмосферы, SkyEnvironment, не из таблицы).
 static func light_at(elevation_deg: float) -> Dictionary:
 	var l: Dictionary = Config.get_config("world").get("time", {}).get("light", {})
 	var xs: Array = l.get("elevation_deg", [0.0])
@@ -221,8 +239,6 @@ static func light_at(elevation_deg: float) -> Dictionary:
 		"sun_energy": _lerp_f(xs, l.get("sun_energy", [1.0]), elevation_deg),
 		"sky_energy": _lerp_f(xs, l.get("sky_energy", [1.0]), elevation_deg),
 		"horizon_tint": _lerp_color(xs, l.get("horizon_tint", [[1, 1, 1]]), elevation_deg),
-		"disk_energy": _lerp_f(xs, l.get("disk_energy", [1.0]), elevation_deg),
-		"glare": _lerp_f(xs, l.get("glare", [1.0]), elevation_deg),
 	}
 
 

@@ -3,7 +3,7 @@
 
     tools/shots/sun_color_measure.py <кадр.jpg> [--expected=G_R,B_R] [--at=X,Y] [--win=R] [--core=R]
 
-Находит самое яркое пятно (центр солнца), усредняет RGB ядра диска (радиус --core=2 px) в линейном
+Центр солнца — --at=X,Y, или <кадр>.sun.txt (проекция направления на солнце камерой), иначе самое яркое пятно (ненадёжно); усредняет RGB ядра диска (радиус --core=2 px) в линейном
 виде (из sRGB) и печатает g_r=, b_r= (отношения к R), expected= и within=1|0 (±0,1 по обоим).
 Ожидаемое — --expected или строка «sun_tint: … g_r=… b_r=…» из <кадр>.tint.txt (пишет
 haze_humidity_shots.sh; SkyEnvironment печатает её при DP_SUN_TINT_LOG). Нужен ImageMagick (convert).
@@ -56,6 +56,12 @@ def main():
     cx, cy = x0 + bx, y0 + by
     if opts.get("at"):  # центр диска известен (по кадру) — не искать
         cx, cy = map(float, opts["at"].split(","))
+    else:  # центр диска по проекции камерой — <кадр>.sun.txt («sun_px: X Y», пишет игра при DP_SUN_TINT_LOG)
+        sun_txt = path.with_suffix(".sun.txt")
+        if sun_txt.exists():
+            mm = re.search(r"sun_px:\s*([-\d.]+)\s+([-\d.]+)", sun_txt.read_text())
+            if mm:
+                cx, cy = float(mm.group(1)), float(mm.group(2))
     rad = int(opts.get("core", 2))
     acc = [0.0, 0.0, 0.0]
     cnt = 0
