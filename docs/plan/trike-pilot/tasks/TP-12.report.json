@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "start_l = tank_l = 53 (contract TP-К1 v2 в json), шкалы тахометра и бака читаются только из trike_pilot.json, копии убраны из instruments.json; тесты k1/k4 под v2.",
+  "commits": [
+    "8ac05e4f TP-12: полный бак на старте, шкалы приборов только из trike_pilot.json"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot_k1",
+      "value": "2 теста, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot_k4",
+      "value": "5 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot_k2",
+      "value": "7 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "clock_label",
+      "value": "3 теста, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "pilot_hud",
+      "value": "18 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "check_gd ок",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "нет ошибок trike-pilot",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TP-12",
+  "uncertain": [
+    {
+      "where": "configs/trike_pilot.json:contract",
+      "why": "поднял строку contract до 'TP-К1 v2'; тест k1 теперь требует v2",
+      "checked": "тест k1 проходит"
+    },
+    {
+      "where": "scripts/instruments/gauge_dial.gd:scales",
+      "why": "убрал запасные значения: при отсутствии trike_pilot.json будет ошибка вместо тихого запаса (по контракту v2)",
+      "checked": "тесты k4, pilot_hud, clock_label проходят"
+    }
+  ],
+  "dp_feedback": "accept --dry в свежей копии без .godot висит без вывода на первом тесте (нет импорта); хорошо бы сообщать или импортировать автоматически.",
+  "t": "2026-10-23T00:21:53",
+  "by": "executor"
+}

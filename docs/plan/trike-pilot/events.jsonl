@@ -66,3 +66,6 @@
 {"t": "2026-10-23T00:00:12", "by": "coordinator", "task": "TP-11", "ev": "accepted", "note": "по отчёту; геймпадный pull_full на земле в trike не гасится — геймпад вне модуля"}
 {"t": "2026-10-23T00:01:21", "by": "coordinator", "task": "TP-11", "ev": "accepted", "commits": ["464cac27"], "note": "6/6 trike_pilot_k3=ok:9/9; input=ok:1/1; ui_controls=ok:9/9; control_bar=ok:14/14; pilot_hud=ok:18/18; gd=ok:exit 0"}
 {"t": "2026-10-23T00:01:22", "by": "coordinator", "task": "TP-11", "ev": "merged"}
+{"t": "2026-10-23T00:21:53", "by": "executor", "task": "TP-12", "ev": "reported", "commits": ["8ac05e4f"], "note": "done: start_l = tank_l = 53 (contract TP-К1 v2 в json), шкалы тахометра и бака читаются только из trike_pilot.json, копии убр…", "dp_feedback": "accept --dry в свежей копии без .godot висит без вывода на первом тесте (нет импорта); хорошо бы сообщать или импортировать автоматически."}
+{"t": "2026-10-23T00:22:11", "by": "coordinator", "task": "TP-12", "ev": "checked", "note": "7/7 trike_pilot_k1=ok:2/2; trike_pilot_k4=ok:5/5; trike_pilot_k2=ok:7/7; clock_label=ok:3/3; pilot_hud=ok:18/18; gd=ok:exit 0; docs=ok:exit 1"}
+{"t": "2026-10-23T00:22:17", "by": "coordinator", "task": "TP-12", "ev": "accepted", "note": "по отчёту"}
