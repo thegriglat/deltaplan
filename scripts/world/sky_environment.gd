@@ -166,7 +166,7 @@ func _apply_sun(to_sun: Vector3) -> void:
 	sun.light_color = (base_lin * _tint(el_true, light_y, 0)).linear_to_srgb()
 	var sun_color: Color = (base_lin * _tint(el_true, _tint_cam_y, 1)).linear_to_srgb()
 	if OS.has_environment("DP_SUN_TINT_LOG"):  # кадры tools/shots: ожидаемая цветность диска
-		var tc := sun_color / maxf(base.r, 1.0e-6)
+		var tc := sun_color.srgb_to_linear() / maxf(base_lin.r, 1.0e-6)
 		print("sun_tint: el=%.2f y=%.0f g_r=%.3f b_r=%.3f" % [el_true, _tint_cam_y, tc.g / maxf(tc.r, 1e-6), tc.b / maxf(tc.r, 1e-6)])
 	sun.light_energy = float(sun_cfg.energy) * float(lt.sun_energy)
 	var tint: Color = lt.horizon_tint
