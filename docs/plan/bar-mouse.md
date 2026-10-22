@@ -29,6 +29,8 @@ related: ["docs/contracts/bar-mouse.md", "docs/contracts/control-fix.md"]
   X11, Wayland, macOS): ускорение ОС, `relative` vs `screen_relative`, HiDPI. Записка `docs/research/bar-mouse-raw-input.md`.
 - **BM-3** (dp-engineer) — BM-К1: `MouseBar`, ключи, слайдер, locale, тесты, CHANGELOG. После BM-1 и согласования
   с trike-pilot по `input_controller.gd`/`controls.json`/`ui.json`.
+- **BM-4** (dp-engineer) — залипание ПКМ после меню/паузы (находка BM-1); замечания ревью BM-3.
+- **BM-5** (dp-writer) — docs/guide (мышь-штанга, слайдеры, ускорение ОС), строки в registry/findings.md.
 
 ## 4. Волны
 1: BM-1, BM-2 параллельно. 2: BM-3 (с выводами BM-1; BM-2 — если меняет единицы, контракт v2).
