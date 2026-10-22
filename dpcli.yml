@@ -63,6 +63,8 @@ sem:
 jobs:
   dir: "~/.cache/dpcli/{project}/jobs"
   tmux_session: dp
+  # Замок cpu: прогон Godot ест ~3 ядра; 5 слотов × 3 ≈ 16 из 20 ядер — не больше 80 % CPU (решение пользователя 2026-10-23).
+  cpu_slots: 5
 
 # Замок gpu — /tmp/gpu.lock (у исследовательских скриптов свой GpuLock на /tmp/heat_ca_gpu.lock — см. docs/contracts/docs-rework.md).
 locks: "~/.cache/dpcli/{project}/locks"
