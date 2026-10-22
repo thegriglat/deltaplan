@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "TrikeEngine по TP-К2 v1 (состояния, рычаг, обороты, тяга по таблице TT-К1, расход по TP-К1, остановка при пустом баке) и контрактный тест из 7 проверок.",
+  "commits": [
+    "0d0f21e4 TP-2: TrikeEngine и тест TP-К2"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot_k2",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TP-2",
+  "uncertain": [
+    {
+      "where": "scripts/flight/trike_engine.gd:step",
+      "why": "в starting rpm_t следует за газом (move_toward к текущей цели); контракт это прямо не фиксирует",
+      "checked": "тест непрерывности по переходам и газу"
+    },
+    {
+      "where": "scripts/flight/trike_engine.gd:step",
+      "why": "в stopping с высоким газом остановка дольше stop_s (наклон idle/stop_s фиксирован контрактом)",
+      "checked": "инвариант (4) проверен на холостых"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-22T22:51:47",
+  "by": "executor"
+}
