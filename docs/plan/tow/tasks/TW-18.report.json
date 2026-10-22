@@ -1,0 +1,40 @@
+{
+  "status": "partial",
+  "summary": "Регрессия не от модуля tow: training_island takeoff_failed — нестабильность e2e (автопилот-разбег), воспроизводится и с моделью main. Кода не менял.",
+  "commits": [],
+  "checks": [
+    {
+      "name": "feature/tow, 15 прогонов training_island (временный тест-цикл)",
+      "value": "6/15 с отказом: takeoff_failed x4, не взлетел x2",
+      "pass": false
+    },
+    {
+      "name": "тот же цикл с моделью main (pendulum/*, glider, game, autopilot, ground_run, flight_model из main)",
+      "value": "6/15 с отказом: takeoff_failed x5, не взлетел x1",
+      "pass": false
+    },
+    {
+      "name": "test_e2e целиком на feature/tow, 5 прогонов",
+      "value": "training_island упал 1/5; volcano_island 1/5; wilotree_park 5/5 (нет фикстуры, TW-8c)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Приёмка test_e2e не может быть PASS: wilotree_park стабильно падает (фикстура, TW-8c) и volcano_island/training_island флаки и на main.",
+    "Причину недетерминизма не локализовал до строки: при одинаковом DT время отрыва плавает 0.3-4.3 с, значит на разбег влияет асинхронное или wall-clock состояние (кандидат: фоновый расчёт поля воздуха air_clipmap/air_gpu_job на Time.get_ticks_usec, нагрузка машины load avg ~24). Правка в скоуп карточки не попадает."
+  ],
+  "questions": [
+    "Завести отдельную задачу на стабильность e2e (детерминизм воздушного поля в тесте или повтор/допуск в test_e2e.gd) вне модуля tow? Из нашего скоупа не чинится."
+  ],
+  "how_to_check": "Временный тест из копии test_e2e.gd: 15 раз _run_location(\"training_island\") подряд; считать check failed. На feature/tow и на main-модели падения 3-5 из 15.",
+  "uncertain": [
+    {
+      "where": "scripts/game/flight_stats.gd:_update_finish / tests/game/test_e2e.gd",
+      "why": "takeoff_failed даёт FlightStats: пилот сел до взведения (agl<ARM_MIN_HEIGHT_AGL_M и далеко ли) после короткого отрыва; в части падений пилот почти не двигался (horizontal 0.24 м/с, touchdown stood), т.е. разбег не набрал скорость.",
+      "checked": "Отладочный print в _check_finished (убран): падения только на старте training_island (11570,141,1020), armed=false, полёт 2-6 с. Подмена файлов модели на main падения не убрала."
+    }
+  ],
+  "dp_feedback": "filter тестов по имени функции (test_e2e_all) даёт 0 тестов, фильтр по файлу работает - в справке не сказано. Цикл повторов теста потребовал временной копии файла: нужен флаг --repeat=N.",
+  "t": "2026-10-22T06:32:03",
+  "by": "executor"
+}
