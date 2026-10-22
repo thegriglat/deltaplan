@@ -1,0 +1,48 @@
+{
+  "id": "TT-7",
+  "module": "tow-trike",
+  "type": "dp-engineer",
+  "title": "Кадры дельталёта в сборе (тележка + крыло trike_ixess15 + пилот sit)",
+  "goal": "5–6 кадров дельталёта в сборе — сбоку, спереди 3/4, сзади 3/4, сверху, снизу-сбоку в полёте — в /home/greg/deltaplan/build/screenshots/tow-trike/; скрипт рендера в репозитории.",
+  "plan_ref": "§4 TT-7",
+  "contracts": [
+    {
+      "name": "TK-K2",
+      "version": "4",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TK-K3",
+      "version": "2",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TT-К2",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-7",
+  "branch": "tow-trike/TT-7",
+  "base": "feature/tow-trike",
+  "scope": [
+    "tools/blender/render_tow_trike.py"
+  ],
+  "dont_touch": [
+    "tools/blender/render_trike.py",
+    "tools/blender/build_trike.py",
+    "assets/",
+    "configs/",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "frames",
+      "cmd": "sh -c 'ls /home/greg/deltaplan/build/screenshots/tow-trike/*.jpg /home/greg/deltaplan/build/screenshots/tow-trike/*.png 2>/dev/null | wc -l'",
+      "expect": "num:^(\\d+) >=5"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T18:24:21"
+}

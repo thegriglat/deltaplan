@@ -1,0 +1,39 @@
+{
+  "status": "done",
+  "summary": "Скрипт tools/blender/render_tow_trike.py; 5 кадров tow_trike_{side,front34,rear34,top,flight_below_side}.jpg в build/screenshots/tow-trike/. Крыло на мачте (начало обеих моделей — HangPoint), пилот на сиденье, проверено глазами.",
+  "commits": [
+    "9e446d70 TT-7: кадры дельталёта в сборе"
+  ],
+  "checks": [
+    {
+      "name": "frames",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "FAIL только из-за коммитов TT-2 в базе копии; мой коммит — один файл скрипта",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/tow-trike/tow_trike_side.jpg",
+    "build/screenshots/tow-trike/tow_trike_front34.jpg",
+    "build/screenshots/tow-trike/tow_trike_rear34.jpg",
+    "build/screenshots/tow-trike/tow_trike_top.jpg",
+    "build/screenshots/tow-trike/tow_trike_flight_below_side.jpg"
+  ],
+  "how_to_check": "blender --background --python tools/blender/render_tow_trike.py",
+  "uncertain": [
+    {
+      "where": "tools/blender/render_tow_trike.py:build",
+      "why": "Взаимное положение крыла и тележки в полёте принято как на земле (киль +10° от ground.keel_angle_deg), сборка повёрнута на -5°; реальный тангаж тележки в полёте — от маятника, не моделировался",
+      "checked": "визуально; крыло на мачте"
+    }
+  ],
+  "dp_feedback": "accept scope сравнивает с feature/tow-trike, а копия отведена от ветки TT-2 — ложный FAIL scope.",
+  "t": "2026-10-22T18:26:55",
+  "by": "executor"
+}
