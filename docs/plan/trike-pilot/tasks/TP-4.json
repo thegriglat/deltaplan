@@ -1,0 +1,65 @@
+{
+  "id": "TP-4",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Приборы дельталёта: тахометр и топливо (3D и HUD)",
+  "goal": "Два прибора по TP-К4 — тахометр (обороты двигателя) и указатель топлива: 3D-сцена TrikeGauges3D для приборной панели тележки и HUD TrikeGaugesHud справа в виде от третьего лица; общий вход update_readout, контрактный тест.",
+  "plan_ref": "TP-4",
+  "contracts": [
+    {
+      "name": "TP-К4",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-4",
+  "branch": "trike-pilot/TP-4",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scenes/instruments/trike_gauges_3d.tscn",
+    "scripts/instruments/trike_gauges_3d.gd",
+    "scripts/instruments/trike_gauges_3d.gd.uid",
+    "scripts/instruments/gauge_dial.gd",
+    "scripts/instruments/gauge_dial.gd.uid",
+    "scripts/ui/trike_gauges_hud.gd",
+    "scripts/ui/trike_gauges_hud.gd.uid",
+    "configs/instruments.json",
+    "locale/ui.csv",
+    "tests/contracts/test_trike_pilot_k4.gd",
+    "tests/contracts/test_trike_pilot_k4.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/game/game.gd",
+    "scripts/ui/clock_label.gd",
+    "scripts/instruments/instrument_overlay.gd",
+    "configs/game.json",
+    "assets/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot_k4",
+      "tests": "trike_pilot_k4"
+    },
+    {
+      "name": "clock_label",
+      "tests": "clock_label"
+    },
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "vario",
+      "tests": "vario"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/instruments/trike_gauges_3d.gd scripts/ui/trike_gauges_hud.gd tests/contracts/test_trike_pilot_k4.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T22:48:15"
+}

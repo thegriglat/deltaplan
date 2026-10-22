@@ -1,0 +1,45 @@
+{
+  "id": "TP-1",
+  "module": "trike-pilot",
+  "type": "dp-researcher",
+  "title": "Эксплуатация двигателя: топливо, стартёр, рычаг газа",
+  "goal": "Числа эксплуатации Rotax 582 на дельталёте с источниками: расход по оборотам, запуск/остановка, скорость рычага газа, топливо на старте, шкала тахометра — в configs/trike_pilot.json по TP-К1.",
+  "plan_ref": "TP-1",
+  "contracts": [
+    {
+      "name": "TP-К1",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-1",
+  "branch": "trike-pilot/TP-1",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "configs/trike_pilot.json",
+    "docs/research/trike-pilot/",
+    "tests/contracts/test_trike_pilot_k1.gd",
+    "tests/contracts/test_trike_pilot_k1.gd.uid"
+  ],
+  "dont_touch": [
+    "configs/tow_tug.json",
+    "tools/blender/",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot_k1",
+      "tests": "trike_pilot_k1"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1'",
+      "expect": "!re:ОШИБКА.*trike-pilot"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T22:46:46",
+  "edited": "2026-10-22T22:47:15"
+}

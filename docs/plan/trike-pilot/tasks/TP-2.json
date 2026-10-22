@@ -1,0 +1,44 @@
+{
+  "id": "TP-2",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Двигатель дельталёта: TrikeEngine",
+  "goal": "Класс TrikeEngine по TP-К2: состояния двигателя (заглушен/запуск/работа/остановка), рычаг газа, обороты винта и двигателя, тяга по таблице TT-К1, расход топлива и остановка при пустом баке; контрактный тест.",
+  "plan_ref": "TP-2",
+  "contracts": [
+    {
+      "name": "TP-К2",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-2",
+  "branch": "trike-pilot/TP-2",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/flight/trike_engine.gd",
+    "scripts/flight/trike_engine.gd.uid",
+    "tests/contracts/test_trike_pilot_k2.gd",
+    "tests/contracts/test_trike_pilot_k2.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum/",
+    "scripts/game/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot_k2",
+      "tests": "trike_pilot_k2"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/flight/trike_engine.gd tests/contracts/test_trike_pilot_k2.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T22:47:16"
+}

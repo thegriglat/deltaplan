@@ -1,0 +1,64 @@
+{
+  "id": "TP-3",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Ввод дельталёта: газ, двигатель, руление, тормоз",
+  "goal": "Режим ввода InputController.vehicle = \"trike\" по TP-К3: W/S — газ (ControlInput.throttle_axis), пробел — завести/заглушить (engine_toggle), A/D на земле — руление (turn), тормоз; режим \"glider\" без изменений; действия в controls.json, строки справки, контрактный тест.",
+  "plan_ref": "TP-3",
+  "contracts": [
+    {
+      "name": "TP-К3",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-3",
+  "branch": "trike-pilot/TP-3",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/core/control_input.gd",
+    "scripts/game/input_controller.gd",
+    "configs/controls.json",
+    "configs/ui.json",
+    "locale/ui.csv",
+    "tests/contracts/test_trike_pilot_k3.gd",
+    "tests/contracts/test_trike_pilot_k3.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/game/game.gd",
+    "scripts/game/camera_rig.gd",
+    "scripts/flight/",
+    "scripts/ui/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot_k3",
+      "tests": "trike_pilot_k3"
+    },
+    {
+      "name": "input",
+      "tests": "input"
+    },
+    {
+      "name": "ui_controls",
+      "tests": "ui_controls"
+    },
+    {
+      "name": "control_bar",
+      "tests": "control_bar"
+    },
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/core/control_input.gd scripts/game/input_controller.gd tests/contracts/test_trike_pilot_k3.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T22:47:53"
+}
