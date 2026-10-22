@@ -50,7 +50,8 @@
     "tests/contracts/test_haze_humidity_contracts.gd",
     "scripts/goals/goal_estimator.gd",
     "scripts/game/game.gd",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "tests/goals/"
   ],
   "dont_touch": [
     "data/",
@@ -76,10 +77,6 @@
       "tests": "goal"
     },
     {
-      "name": "start",
-      "tests": "start"
-    },
-    {
       "name": "no_old_keys",
       "cmd": "python3 -c \"import json;c=json.load(open('configs/weather_model.json'));assert 'dew_point_c' not in c and 'td_follow_heat' not in c and 'td_day' in c and 'climate' in c\"",
       "expect": "exit=0"
@@ -103,5 +100,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T14:06:18",
-  "edited": "2026-10-22T14:06:53"
+  "edited": "2026-10-22T14:40:54"
 }

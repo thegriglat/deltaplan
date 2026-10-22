@@ -1,0 +1,71 @@
+{
+  "status": "partial",
+  "summary": "ClimateGrid (HH7) и WeatherModel.derive по месту: Td дня = климат HH1 с поправкой на высоту + мю·σ + β·(Tmax−Tx) + r·ρ·σ, T/высота 700 гПа из HH2; ключи dew_point_c/td_follow_heat убраны, добавлены climate и td_day. Тесты haze_humidity/weather зелёные; goal и start по одному падению не из-за кода (см. not_done).",
+  "commits": [
+    "HEAD HH-4: ClimateGrid (HH7), Td дня по ERA5, воздух 700 гПа по месту"
+  ],
+  "checks": [
+    {
+      "name": "haze_humidity",
+      "value": "19/19",
+      "pass": true
+    },
+    {
+      "name": "weather",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "goal",
+      "value": "102/103 в рамках scope (test_good_weather_reachable)",
+      "pass": false
+    },
+    {
+      "name": "start",
+      "value": "96/97: test_start_hint_every_flight_hides_on_w падает и до моих правок (подсказка на английском)",
+      "pass": false
+    },
+    {
+      "name": "at() скорость",
+      "value": "30 мкс (порог в тесте 300)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tests/goals/test_goal_estimator.gd::test_good_weather_reachable вне scope: ERA5 Td июля Онгудая ≈13 °C (таблица была 9), при +30 °C ясно база 1443 м вместо 2243 м, hard height = порог. Нужна правка теста: _ongudai(34.0, ...) вместо 30.0 (при 34 проходит: hard 1250 > порога 1000).",
+    "start: test_start_qol.gd::test_start_hint_every_flight_hides_on_w падает на чистой ветке (подсказка клавиш на английском); tests/game вне scope, не из-за HH-4.",
+    "Не переведены на сетку (вне Td/700): typical_max_c, diurnal.range_k (HH5), wind altitude_gain (HH6, Game/atmosphere.gd не трогать), tropopause_msl_m/cirrus_base (HH6), AirPlace/achievement_feed ещё читают upper_air.temp_c/z_msl_m из конфига (оставлены там как запасные).",
+    "docs/guide/atmosphere/weather.md описывает старые таблицы — вне scope."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept HH-4 --dry",
+  "uncertain": [
+    {
+      "where": "configs/weather_model.json: climate.tx_gradient_k_per_km",
+      "why": "HH-1e (gradient.json по Tmax) не принесён; -6.0 К/км и dtr 0 — допущения",
+      "checked": "применяется только когда есть сетка HH5 (сейчас её нет, поправки нет)"
+    },
+    {
+      "where": "tests/atmosphere/test_weather_model.gd REFERENCE_FORECASTS",
+      "why": "климат влажнее: те же эталоны достигаются при medium +24 (было 26), strong +33 (было 31, в нём cb=0.35 — в ERA5-Алтае июля сильный день грозовой); результат зависит от детерминированного шума r дня 15 июля и от стаба HH2 / отсутствия HH5, HH6 — после слияния настоящих сеток эталоны могут сместиться",
+      "checked": "перебор t=16..39 по июлю и t=24..35 по маю/июню/августу; допуски теста не менял"
+    },
+    {
+      "where": "scripts/atmosphere/weather_model.gd td_day/td_noise",
+      "why": "r — splitmix64+Бокс-Мюллер от (месяц, день, lat·100, lon·100), обрезан по ±3σ (r_clamp) — моё решение, в контракте обрезки нет; mu берётся из mu_sigma_uncentered (вместе с β-членом), β — beta_cat по классу",
+      "checked": "детерминированность (test_deterministic_and_complete)"
+    },
+    {
+      "where": "scripts/atmosphere/climate_grid.gd",
+      "why": "нет файла сетки — push_error (по контракту), поэтому тесты с HH5/HH6 пишут ERROR в лог, но не падают",
+      "checked": "тест no_file со всеми четырьмя путями"
+    }
+  ],
+  "dp_feedback": "accept падает на scope, если тест, который надо подправить под данные, лежит в соседнем каталоге tests/: список scope стоит расширять до выдачи (tests/goals).",
+  "extra": {
+    "td_altai_july_climate_c": 14.3,
+    "old_table_td_july_c": 9
+  },
+  "t": "2026-10-22T14:40:32",
+  "by": "executor"
+}
