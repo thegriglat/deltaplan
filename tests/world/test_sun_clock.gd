@@ -124,3 +124,27 @@ func test_zone_time_by_location() -> void:
 	c.start_flight(51.87, 85.87, 7, 15, 20.5, 7.0)
 	check(c.angles().y > 0.0, "Алтай 20:30 летом — солнце ещё над горизонтом")
 	c.free()
+
+
+## HH-11: ниже min_light_elevation_deg направление света зажато, а настоящее солнце идёт дальше —
+## sun_changed молчит, sun_disk_changed сообщает (диск, ореол, засвет — по истинной высоте).
+func test_disk_signal_when_light_clamped() -> void:
+	# экватор, равноденствие: азимут на закате почти не меняется, высота падает на 15°/ч
+	var c := SunClock.new()
+	c.start_flight(0.0, 0.0, 3, 20, 12.0)
+	var h := 12.0
+	while h < 20.0 and c.angles().y > 1.5:
+		h += 0.02
+		c.set_hour(h)
+	check(c.angles().y < 1.5 and c.angles().y > 0.0, "солнце ниже 2°: %.2f" % c.angles().y)
+	var n_light := [0]
+	var n_disk := [0]
+	c.sun_changed.connect(func(_d: Vector3) -> void: n_light[0] += 1)
+	c.sun_disk_changed.connect(func() -> void: n_disk[0] += 1)
+	var el0 := c.angles().y
+	c.set_hour(h + 0.02)
+	check(c.angles().y < el0 - 0.05, "настоящее солнце сместилось: %.2f → %.2f" % [el0, c.angles().y])
+	check(n_light[0] == 0, "направление света зажато — sun_changed молчит")
+	check(n_disk[0] == 1, "диск сместился — sun_disk_changed: %d" % n_disk[0])
+	approx(rad_to_deg(asin(c.to_sun_true().y)), c.angles().y, 1e-3, "to_sun_true — настоящая высота")
+	c.free()

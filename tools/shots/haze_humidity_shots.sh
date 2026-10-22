@@ -12,9 +12,9 @@
 #   же формулам NOAA, что SunClock.solar_position.
 #   День: --hour=12, старт в воздухе (--air-start: 300 м от старта, 300 м над рельефом; со склона
 #   днём автопилот сразу падает), 20 с полёта, время ×1, взгляд 0,25 (вверх, на основание облаков).
-# HALO_ONLY=1 — только кадры halo (HH-11).
+# HALO_ONLY=1 — только кадры halo (HH-11); ONLY=<место> — одно место; WANT=<высота> — одна высота в режиме suncolor; EXTRA_CFG — добавка к временному world.json (опыты).
 # Профиль Godot — XDG_DATA_HOME копии (по умолчанию ~/.cache/dp-xdg/<имя папки копии>).
-# Окну нужен настоящий дисплей (DISPLAY=:0); каждый запуск — под timeout 150 с.
+# Окно — виртуальный дисплей xvfb ровно 1920x1080 (Vulkan на видеокарте; на настоящем дисплее окно получалось 1918x1036 из-за рамок); каждый запуск — под timeout 150 с.
 set -euo pipefail
 root="$(cd "${1:?корень копии}" && pwd)"
 prefix="${2:?префикс: before_ | after_}"
@@ -41,7 +41,8 @@ restore() {
 trap restore EXIT
 
 # max_hour 23: ход часов дальше 21:00 нужен кадрам при солнце < 2° (по умолчанию время в полёте стоит с 21:00)
-set_speed() { echo "{\"time\": {\"speed\": $1, \"max_hour\": 23}}" > "$cfg"; }
+# EXTRA_CFG — добавка в тот же JSON (для опытов): EXTRA_CFG='"haze": {"forward_gain": 0.0}'
+set_speed() { echo "{\"time\": {\"speed\": $1, \"max_hour\": 23}${EXTRA_CFG:+, $EXTRA_CFG}}" > "$cfg"; }
 
 # sun <широта> <долгота> <пояс> <часы> → "азимут высота" (15 июля, doy 196)
 sun() {
@@ -70,7 +71,7 @@ shot() {  # shot <файл.jpg> <аргументы игры...>
   local try
   for try in 1 2 3; do  # окно иногда не получает экран (NO GRAB) — повтор
     rm -f "$png"
-    (cd "$root" && timeout 150 godot --path . --audio-driver Dummy --fullscreen --resolution 1920x1080 \
+    (cd "$root" && timeout 150 xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --audio-driver Dummy --resolution 1920x1080 \
     -- --autostart --autopilot --no-overlay --sky=partly --camera=cockpit "--seed=$SEED" \
     "$@" "--screenshot=$png" 2>&1 | tee "${png%.png}.log" | grep -E "^screenshot:|ERROR" || true)
     # окно бывает вдвое уже экрана (тайлинг) — тогда кадр не годится, повтор
@@ -79,17 +80,21 @@ shot() {  # shot <файл.jpg> <аргументы игры...>
   convert "$png" -quality 88 "$file"
   # ожидаемая цветность диска (SkyEnvironment, DP_SUN_TINT_LOG) — для tools/shots/sun_color_measure.py
   grep "^sun_tint:" "${png%.png}.log" | tail -1 > "${file%.jpg}.tint.txt" || true
-  rm -f "$png" "${png%.png}.log"
+  # положение центра диска на кадре (проекция камерой, SunGlare, DP_SUN_TINT_LOG) — для sun_halo_measure.py / sun_color_measure.py
+  grep "^sun_px:" "${png%.png}.log" | tail -1 > "${file%.jpg}.sun.txt" || true
+  rm -f "$png"
+  [[ -n "${KEEP_LOG:-}" ]] || rm -f "${png%.png}.log"
 }
 
 # Режим suncolor (HH-13): закат при высоте солнца 4°, 2° и 0,7° (время — по расчёту высоты, не по часам),
 # ракурсы «к солнцу» и «сбоку» (на освещённые бока облаков, солнце сбоку) в Аскарово:
 # <префикс>suncolor_askarovo[_low][_side].jpg; и вечерний Эверест (ракурс 26_everest_tele (= 03_эверест_вечером) из menu_art.json) —
-# <префикс>everest.jpg. Диск рисуется не ниже min_light_elevation_deg (2°), цветность — по истинной высоте.
+# <префикс>everest.jpg. Диск, ореол и засвет — по истинной высоте солнца (HH-11), свет рельефа зажат min_light_elevation_deg (2°).
 if [[ "${4:-}" == "suncolor" ]]; then
   IFS='|' read -r name site lat lon off hdg <<<"${places[1]}"
   for tgt in "4.0:" "2.0:_low" "0.7:_vlow"; do
     want="${tgt%%:*}"; sfx="${tgt##*:}"
+    [[ -n "${WANT:-}" && "$want" != "$WANT" ]] && continue
     # час (дробный), когда высота солнца = want (бисекция по вечернему спаду)
     h="$(python3 - "$want" "$lat" "$lon" "$off" <<'PY'
 import sys
@@ -118,9 +123,9 @@ PY
     read -r az el < <(sun "$lat" "$lon" "$off" "$h")
     echo "$name: высота солнца $el (цель $want), час $h = --hour=$hour --time=$secs, азимут $az"
     set_speed 60
-    # к солнцу: диск не ниже min_light_elevation_deg (2°)
+    # к солнцу: диск и ореол — по истинной высоте (HH-11; свет рельефа зажат min_light_elevation_deg, диск — нет)
     yaw="$(python3 -c "print('%.1f' % (($hdg - $az + 180) % 360 - 180))")"
-    look_el="$(python3 -c "print(max($el, 2.0))")"
+    look_el="$el"
     shot "$out/${prefix}suncolor_${name}${sfx}.jpg" "--location=$name" "--site=$site" "--hour=$hour" "--time=$secs" --air-start=300,300 --sky=clear "--look=$yaw,$look_el"
     # сбоку: взгляд на 70° левее направления на солнце, чуть вверх (освещённые бока облаков)
     yaw2="$(python3 -c "print('%.1f' % (($hdg - $az + 180 + 70) % 360 - 180))")"
@@ -136,6 +141,7 @@ fi
 
 for p in "${places[@]}"; do
   IFS='|' read -r name site lat lon off hdg <<<"$p"
+  [[ -n "${ONLY:-}" && "$name" != "$ONLY" ]] && continue
   read -r az el < <(sun "$lat" "$lon" "$off" 20.6667)
   yaw="$(python3 -c "print('%.1f' % (($hdg - $az + 180) % 360 - 180))")"
   echo "$name: солнце 20:40 азимут $az высота $el, курс $hdg, взгляд $yaw,$el"

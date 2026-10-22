@@ -2,7 +2,13 @@
 // Параметры и логику задаёт scripts/world/sun_glare.gd (world.json → sun_glare, helmet.json).
 //
 // Глаз: засвет вокруг солнца (узкое ядро + широкое рассеяние), остальное темнеет — зрачок
-// сужается. Видимость солнца = sun_vis × (солнце в кадре ? доля светлых пикселей диска : cloud_vis):
+// сужается. Засвет — свет, рассеянный в глазу/объективе: яркость ∝ освещённости от солнца (она же
+// падает с высотой солнца — множитель glare = пропускание атмосферы, SkyEnvironment), форма —
+// площадка ядра + хвост ∝ 1/θ² (Хоулдей–Стайлс: L_вуаль = 10·E/θ²). Складывается с кадром в линейном
+// свете и не даёт каналам уйти в белый по отдельности: избыток делится на максимум канала (цвет
+// сохраняется), поэтому у горизонта ядро — цвета солнца (пропускание атмосферы), а не белое. Диск
+// (θ меньше ~1,6 радиуса) перекрашивается в цвет солнца: тонмаппинг по каналам выбеливает любой
+// HDR-цвет ярче ~1,5, у настоящего солнца у горизонта R/G/B — как в sun_tint. Видимость солнца = sun_vis × (солнце в кадре ? доля светлых пикселей диска : cloud_vis):
 //   sun_vis, cloud_vis — рельеф и облака лучами на процессоре (sun_glare.gd), сглажено во
 //     времени; облака по лучу — упрощённый купол, поэтому только за краем кадра;
 //   пиксели — пока солнце в кадре (on_screen): облака (точный край), крыло; пробы по кругу
@@ -30,11 +36,12 @@ uniform vec2 visible_luma = vec2(0.45, 0.93); // яркость пробы: за
 uniform float glare = 0.0;                    // сила ослепления (× время суток × визор)
 uniform float darken = 0.0;                   // потемнение кадра при видимом солнце
 uniform vec3 sun_color = vec3(1.0);  // цвета — в пространстве экрана (sRGB)
-uniform float veil_core = 0.5;
-uniform float veil_core_deg = 3.0;
-uniform float veil_wide = 0.3;
-uniform float veil_wide_deg = 12.0;
+uniform float veil_core = 12.0;               // яркость площадки ядра засвета при glare = 1 (в долях белого)
+uniform float veil_core_deg = 0.3;            // полуширина площадки ядра: 1/(1+(θ/θ0)²), градусы
+uniform float veil_wide = 0.3;                // широкий хвост рассеяния в глазу, доля белого при glare = 1
+uniform float veil_wide_deg = 8.0;            // полуширина хвоста: 1/(1+(θ/θ0)²), градусы
 uniform float veil_flat = 0.05;               // засвет всего кадра (рассеяние в глазу)
+uniform float disk_deg = 0.3;                 // угловой радиус диска, градусы (перекраска в цвет солнца)
 
 uniform int helmet = 0;
 uniform vec3 brim_color = vec3(0.03);
@@ -61,19 +68,29 @@ uniform float dust = 0.5;
 uniform float dust_density = 26.0;
 uniform float lit_deg = 35.0;
 
-varying float v_vis;  // видимость солнца с учётом козырька (одна на кадр — в вершинах)
+varying float v_vis;      // видимость солнца с учётом козырька (одна на кадр — в вершинах)
+varying float v_vis_raw;  // диск виден по пикселям (без лучей рельефа и облаков): перекраска в цвет солнца
+
+vec3 to_linear(vec3 c) {
+	return mix(pow((c + 0.055) / 1.055, vec3(2.4)), c / 12.92, lessThanEqual(c, vec3(0.04045)));
+}
+
+vec3 to_srgb(vec3 c) {
+	return mix(1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, c * 12.92, lessThanEqual(c, vec3(0.0031308)));
+}
 
 float luma(vec3 c) {
 	return dot(c, vec3(0.2126, 0.7152, 0.0722));
 }
 
-// Яркость пробы: максимум в крестике — тонкие тёмные линии (тросы) пропадают.
+// Яркость пробы (максимальный канал): максимум в крестике — тонкие тёмные линии (тросы) пропадают.
 float probe(vec2 uv) {
 	float l = 0.0;
 	vec2 o[5] = vec2[](vec2(0.0), vec2(1.0, 0.0), vec2(-1.0, 0.0), vec2(0.0, 1.0), vec2(0.0, -1.0));
 	for (int i = 0; i < 5; i++) {
 		vec2 q = clamp(uv + o[i] * probe_px, vec2(0.0), vec2(1.0));
-		l = max(l, luma(textureLod(screen_tex, q, 0.0).rgb));
+		vec3 c = textureLod(screen_tex, q, 0.0).rgb;
+		l = max(l, max(c.r, max(c.g, c.b)));  // по максимальному каналу: красный диск у горизонта (яркость по Y мала) — виден
 	}
 	return smoothstep(visible_luma.x, visible_luma.y, l);
 }
@@ -162,6 +179,9 @@ void vertex() {
 	v_vis = sun_vis * mix(cloud_vis, px, on_screen);
 	// солнце за козырьком не слепит
 	v_vis *= 1.0 - brim_sun_block * brim_mask(sun_uv) / max(brim_opacity, 1e-3);
+	// диск перекрашивается там, где его видно по пикселям (рельеф и облака — в самих пикселях),
+	// без лучей по кольцу 1° вокруг: хребет у горизонта режет кольцо, а диск над ним виден целиком
+	v_vis_raw = px * on_screen * (1.0 - brim_sun_block * brim_mask(sun_uv) / max(brim_opacity, 1e-3));
 }
 
 void fragment() {
@@ -186,7 +206,7 @@ void fragment() {
 	// сам пересвет у солнца не темнеет: сжатие зрачка гасит остальной кадр, а солнце слишком яркое (HH-11)
 	col *= 1.0 - darken * I * smoothstep(0.7, 3.5, th);
 	float veil = I * (
-		veil_core * exp(-th / max(veil_core_deg, 1e-3))
+		veil_core / (1.0 + pow(th / max(veil_core_deg, 1e-3), 2.0))
 		+ veil_wide / (1.0 + pow(th / max(veil_wide_deg, 1e-3), 2.0))
 		+ veil_flat
 	);
@@ -214,7 +234,15 @@ void fragment() {
 		float du = dust_field(p * dust_density, px * dust_density);
 		veil += lit * (scratches * sc + dust * du);
 	}
-	col = vec3(1.0) - (vec3(1.0) - col) * (vec3(1.0) - clamp(veil * sun_color, 0.0, 1.0));
+	// линейный свет: цвет солнца с R = 1 (отношения каналов — sun_tint), диск — в цвете солнца
+	vec3 tint = to_linear(sun_color);
+	tint /= max(max(tint.r, tint.g), max(tint.b, 1e-6));
+	vec3 lin = to_linear(col);
+	float disk_k = step(1.0e-6, glare) * v_vis_raw * (1.0 - smoothstep(0.8 * disk_deg, 1.6 * disk_deg, th));
+	lin = mix(lin, tint * max(max(lin.r, lin.g), lin.b), disk_k);
+	lin += veil * tint;
+	lin /= max(1.0, max(max(lin.r, lin.g), lin.b));
+	col = to_srgb(lin);
 	// козырёк и края каски — ближе всего к глазу, поверх всего
 	col = mix(col, brim_color, brim_mask(uv));
 	col *= 1.0 - side_mask(uv);
