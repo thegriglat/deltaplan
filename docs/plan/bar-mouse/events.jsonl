@@ -14,3 +14,7 @@
 {"t": "2026-10-23T04:08:32", "by": "coordinator", "task": "BM-2", "ev": "checked", "note": "2/2 doc=ok:exit 0; docs=ok:exit 1; scope=FAIL:вне scope: r-BM-2.json"}
 {"t": "2026-10-23T04:08:43", "by": "coordinator", "task": "BM-2", "ev": "checked", "note": "2/2 doc=ok:exit 0; docs=ok:exit 1"}
 {"t": "2026-10-23T04:09:02", "by": "coordinator", "task": "BM-2", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T04:09:04", "by": "coordinator", "task": "BM-2", "ev": "accepted", "commits": ["29963a70"], "note": "2/2 doc=ok:exit 0; docs=ok:exit 1"}
+{"t": "2026-10-23T04:09:04", "by": "coordinator", "task": "BM-2", "ev": "merged"}
+{"t": "2026-10-23T04:09:42", "by": "coordinator", "task": "BM-3", "ev": "edited", "note": "contract:BM-К1", "diff": {"contract": ["null", "null"]}}
+{"t": "2026-10-23T04:09:42", "by": "coordinator", "task": "BM-3", "ev": "note", "note": "Контракт BM-К1 → v2 (коммит ef3dd013 в feature/bar-mouse; влить: .dpcli/dpcli task sync BM-3): в input_controller накопление от event.screen_relative (не relative); в тестах событиям мыши задавать и relative, и screen_relative одинаковыми (test_mouse_bar_flight._push_motion и новый тест); подсказка «≈ N см (800 DPI)» у слайдера — только при DisplayServer.get_name() in ['Windows', 'X11'], иначе только '%.2f×'. Контрактный тест теперь ждёт заголовок BM-К1 (v2). Остальное без изменений.", "addendum": true}
