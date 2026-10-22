@@ -117,3 +117,6 @@
 {"t": "2026-10-22T05:13:12", "by": "coordinator", "task": "TK-9", "ev": "accepted", "commits": ["698ea3e9"], "note": "3/3 trike_model_k3=ok:2/2; trike_model_k1=ok:3/3; pilot=ok:73/73"}
 {"t": "2026-10-22T05:13:12", "by": "coordinator", "task": "TK-9", "ev": "merged"}
 {"t": "2026-10-22T05:13:13", "by": "coordinator", "task": "TK-6", "ev": "note", "note": "TK-9 влита: подошвы в sit на подножках по мешу. Закоммитить своё, .dpcli/dpcli task sync TK-6, перерендерить все PNG (trike_*, pilot_*, seat_closeup*) и пересчитать fit.json тем же скриптом, accept --dry, повторный report.", "addendum": true}
+{"t": "2026-10-22T05:14:56", "by": "executor", "task": "TK-6", "ev": "reported", "commits": ["tools/blender/render_trike.py,"], "note": "done: После TK-9 все PNG перерендерены (4 без пилота, 5 с пилотом, 3 крупных, Cycles/CUDA ~1 мин), fit.json пересчитан: прони…", "dp_feedback": "Первый запуск Cycles CUDA компилирует ядра ~7 мин (ptxas) — стоит упомянуть в карточке. В сборке Blender нет OIDN и OPTIX, шумодав недоступен (256 выборок без него)."}
+{"t": "2026-10-22T05:15:08", "by": "coordinator", "task": "TK-6", "ev": "checked", "note": "7/7 pilot_shots=ok:5; closeups=ok:3; penetration=ok:1.15; seat_gap=ok:0.58; foot_gap=ok:2.53; docs=ok:exit 0; fresh=ok:0"}
+{"t": "2026-10-22T05:15:15", "by": "coordinator", "task": "TK-6", "ev": "accepted", "note": "по отчёту"}
