@@ -1,0 +1,123 @@
+{
+ "_doc": "TT-8 (TT-К6 v1): трапеция крыла trike_ixess15 и штанга в треугольнике тележки. Считает tools/research/tow-trike/trapeze_calc.py --write; проверяет check_trapeze.py. Оси Blender от HangPoint (x вправо, y вперёд, z вверх), м; углы + «от себя» (нос крыла вверх относительно тележки).",
+ "glider_params": {
+  "upright_len_m": {
+   "value": 1.7271,
+   "src": "расчёт: расстояние от оси болта под килем до оси штанги в углу при штанге bar.trim в осях крыла (поворот на -psi) и ширине 1.10 м; в допуске control_frame 1,6…1,75; источника по длине стоек трайковых крыльев н/д"
+  },
+  "upright_tilt_deg": {
+   "value": 24.2392,
+   "src": "расчёт: наклон стойки к нормали киля, из положения штанги в осях крыла (aframe_cg --pick-reach не применяется)"
+  },
+  "basebar_width_m": {
+   "value": 1.1,
+   "src": "оценка: ширина базовой штанги трайкового крыла в открытых источниках н/д; 1,10 м = хват +-0.19 м плюс запас, укладывает стойки в допуск 1,6…1,75; не влияет на инварианты TT-К6 (проекция на x = 0)"
+  },
+  "hang_from_apex_m": {
+   "value": 0.0,
+   "src": "умолчание control_frame для двухповерхностных (double_surface: true) — без изменений"
+  },
+  "psi_deg": {
+   "value": 1.5348,
+   "src": "расчёт: тангаж киля на горизонтальном полёте 60 км/ч (замер «Маятника», trim_pendulum.json) минус тангаж тележки по балансу моментов (тяга, сопротивление, вес); контроль по нейтрали «Маятника» 1.80"
+  }
+ },
+ "wing_frame_bar": {
+  "y": 0.6793,
+  "z": -1.5287,
+  "src": "штанга trim в осях крыла (киль горизонтален): bar.trim, повёрнутая на -psi вокруг HangPoint"
+ },
+ "bar": {
+  "wing": "trike_ixess15",
+  "d": 0.03,
+  "half_width": 0.55,
+  "trim": [
+   0.0,
+   0.72,
+   -1.51
+  ],
+  "full_push": [
+   0.0,
+   0.8476,
+   -1.4423
+  ],
+  "full_pull": [
+   0.0,
+   0.492,
+   -1.5989
+  ],
+  "travel_m": 0.3894,
+  "travel_deg": 13.3377,
+  "push_deg": 4.9483,
+  "pull_deg": 8.3894,
+  "radius_m": 1.6729,
+  "how": "trim — кисти на высоте/вылете, выбранных перебором (шаг 2 см) так, чтобы рука согнута (reach 0.533 м при длине руки 0.710), тело не ближе 5 см на всём ходу назад, упор в подкос не раньше 4.9°; full_push — касание подкоса (зазор осей = r_подкоса + r_штанги + 0,01), full_pull — зазор до тела 0,05 м (по вершинам меша pilot.glb, поза sit); дуга радиуса 1.673 м около HangPoint"
+ },
+ "hands": {
+  "hand_l": [
+   -0.19,
+   0.72,
+   -1.51
+  ],
+  "hand_r": [
+   0.19,
+   0.72,
+   -1.51
+  ]
+ },
+ "shoulder": [
+  0.1884,
+  0.218,
+  -1.331
+ ],
+ "arm_len": 0.71,
+ "arm_parts": {
+  "upper": 0.329,
+  "fore": 0.2695,
+  "hand": 0.1116,
+  "src": "pilot.glb, поза sit: кости UpperArm.R, Forearm.R, запястье -> HandR; плечо 0,186 H (Drillis & Contini 1966, по Winter, Biomechanics and Motor Control of Human Movement) при H 1,75 = 0,326"
+ },
+ "reach": {
+  "trim": 0.533,
+  "full_push": 0.6393,
+  "full_pull": 0.3832
+ },
+ "clearances": {
+  "mast": 0.9095,
+  "strut": 0.0,
+  "keel": 0.4686,
+  "body": 0.0,
+  "panel": 0.0384,
+  "view": 0.0522
+ },
+ "clearances_doc": "минимум по ходу (шаг 0,5°) от full_pull до full_push: зазор до мачты, подкоса, киля = расстояние осей − (r_трубы + r_штанги + 0,01); body — до тела минус 0,05; panel — до панели минус (r_штанги + 0,02); view — до луча глаз -> панель минус 0,02",
+ "pendulum": {
+  "src": "trim_pendulum.json (measure_trim.gd): PendulumModel, trike_ixess15, тележка configs/tow_tug.json cart (262,5 кг, hang 1,71 м)",
+  "phi_tow_deg": 4.6771,
+  "phi_push_limit_deg": 9.4297,
+  "phi_pull_limit_deg": -14.349,
+  "push_from_trim_model_deg": 4.7526,
+  "pull_from_trim_model_deg": 19.0261,
+  "push_from_trim_geometry_deg": 4.9483,
+  "pull_from_trim_geometry_deg": 8.3894,
+  "neutral_input0": [
+   0.0,
+   0.5945,
+   -1.5637
+  ],
+  "neutral_input0_doc": "положение штанги при нулевом вводе «Маятника» (планирование 69,5 км/ч) — на 4.68° «на себя» от trim",
+  "shift_x_push_cart_m": 0.2859,
+  "shift_x_pull_cart_m": 0.1107,
+  "shift_doc": "для TT-4: ход PilotArms от нейтрали (ноль ввода) до упоров геометрии = L·sin(угол): «от себя» до подкоса, «на себя» до груди (штатные 0,3 / 0,45 м не помещаются в треугольник)"
+ },
+ "balance": {
+  "theta_keel_level_deg": 9.2743,
+  "alpha_deg": 9.2743,
+  "gamma_glide_deg": -7.9522,
+  "drag_total_n": 428.1894,
+  "drag_cart_n": 139.5139,
+  "cart_pitch_deg": 7.7395,
+  "psi_A_deg": 1.5348,
+  "psi_B_deg": 1.7987
+ }
+}
