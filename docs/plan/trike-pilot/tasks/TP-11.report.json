@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "trike: keys_look() false, стрелки у look_* убраны, правка InputMap по режиму (_apply_look_keys и сеттер vehicle) удалена, Shift на земле в trike — только brake (pull_full false, run false). Тест v2 с проверкой наличия раздела TP-К3 v2.",
+  "commits": [
+    "15a96004 TP-11: ввод дельталёта под Q1, Q2"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot_k3",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "input",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "ui_controls",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "control_bar",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "pilot_hud",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TP-11",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_trike_pilot_k3.gd test_contract_version",
+      "why": "версия проверяется по наличию заголовка '## TP-К3 v2.' в docs/contracts/trike-pilot.md, не по номеру",
+      "checked": "тест проходит"
+    },
+    {
+      "where": "scripts/game/input_controller.gd update",
+      "why": "pull_full с кнопки геймпада на земле в trike не гасится (только клавиатурный)",
+      "checked": "контракт говорит про Shift"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-22T23:59:25",
+  "by": "executor"
+}
