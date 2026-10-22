@@ -1,0 +1,100 @@
+{
+  "id": "TT-9",
+  "module": "tow-trike",
+  "type": "dp-engineer",
+  "title": "Трапеция в моделях, руки на штанге, новые кадры",
+  "goal": "Применить трапецию TT-8: крыло trike_ixess15 со штангой внутри треугольника тележки, trike_params v5 (bar, хват), поза sit держит штангу, тест TT-К6 числом; новые кадры в /home/greg/deltaplan/build/screenshots/tow-trike/.",
+  "plan_ref": "§4 TT-9",
+  "contracts": [
+    {
+      "name": "TT-К6",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TK-K1",
+      "version": "4",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TK-K2",
+      "version": "4",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TK-K3",
+      "version": "2",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TT-К2",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-9",
+  "branch": "tow-trike/TT-9",
+  "base": "feature/tow-trike",
+  "scope": [
+    "tools/blender/glider_params.json",
+    "tools/blender/trike_params.json",
+    "tools/blender/build_pilot.py",
+    "tools/blender/build_trike.py",
+    "tools/blender/aframe_cg.py",
+    "tools/blender/aframe_trim.json",
+    "tools/blender/render_tow_trike.py",
+    "tools/blender/build_gliders.py",
+    "assets/models/",
+    "assets/source/",
+    "assets/shaders/sail/sail_maps.json",
+    "configs/wings/trike_ixess15.json",
+    "tools/flight/pendulum_params_table.md",
+    "tests/contracts/test_tow_trike_k6.gd",
+    "tests/contracts/test_tow_trike_k6.gd.uid",
+    "tests/contracts/test_trike_model_k1.gd",
+    "tests/contracts/test_trike_model_k2.gd",
+    "tests/contracts/test_tow_trike_k2.gd",
+    "tools/research/tow-trike/check_trapeze.py"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/tow_tug.json",
+    "tools/research/tow-trike/trapeze.json"
+  ],
+  "accept": [
+    {
+      "name": "tow_trike",
+      "tests": "tow_trike"
+    },
+    {
+      "name": "trike_model",
+      "tests": "trike_model"
+    },
+    {
+      "name": "wing",
+      "tests": "wing"
+    },
+    {
+      "name": "pilot",
+      "tests": "pilot"
+    },
+    {
+      "name": "trapeze",
+      "cmd": "python3 tools/research/tow-trike/check_trapeze.py tools/research/tow-trike/trapeze.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "others_unchanged",
+      "cmd": "sh -c 'git diff --name-only feature/tow-trike...HEAD -- configs/wings assets/models | grep -v -e trike_ixess15 -e trike/ -e pilot.glb | wc -l'",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "frames",
+      "cmd": "sh -c 'find /home/greg/deltaplan/build/screenshots/tow-trike -name \"*.jpg\" -newer /home/greg/deltaplan-tow-trike/tools/research/tow-trike/trapeze.json | wc -l'",
+      "expect": "num:^(\\d+) >=5"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T19:56:27"
+}
