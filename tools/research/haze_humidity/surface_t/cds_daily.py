@@ -1,5 +1,5 @@
 """CDS derived-era5-single-levels-daily-statistics: 2m_temperature daily_maximum / daily_minimum, 1_hourly, сетка 1x1, UTC-сутки.
-Правила координатора 2026-10-22: один процесс, запросы по одному под общим замком ~/data/haze_humidity/cds.lock; лимит стоимости CDS (403
+Правила координатора 2026-10-22: один процесс, запросы по одному под общим замком ~/data/haze_humidity/cds_single.lock; лимит стоимости CDS (403
 'too large') -> дробление (по месяцам); request_id в лог; при остановке/ошибке запрос на сервере удаляется (get_remote(id).delete()).
 Выход RAW/surface_t_cds/daily/<stat>_<tz>_<год>_m<мм-мм>.nc. Возобновляемо. Запуск (nohup setsid): python cds_daily.py <time_zone> <годы...>
 Размер куска (число месяцев в запросе) — env CHUNK (по умолчанию 12; при отказе по стоимости делится пополам)."""
@@ -27,7 +27,7 @@ def fetch(stat, tz, y, months):
     while fails < 3:
         rem = None
         try:
-            with open(os.path.expanduser(RAW) + "/cds.lock", "w") as lk:
+            with open(os.path.expanduser(RAW) + "/cds_single.lock", "w") as lk:
                 fcntl.flock(lk, fcntl.LOCK_EX)
                 print(stat, tz, y, months, "замок взят", flush=True)
                 rem = cli.submit("derived-era5-single-levels-daily-statistics", req)
