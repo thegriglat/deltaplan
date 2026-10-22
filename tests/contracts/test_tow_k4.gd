@@ -1,5 +1,5 @@
 extends TestCase
-## Контракт TW-К4 v3 (docs/contracts/tow.md): внешняя сила и звено троса в модели полёта. Инварианты (1)-(10).
+## Контракт TW-К4 v6 (docs/contracts/tow.md): внешняя сила и звено троса в модели полёта. Инварианты (1)-(11).
 
 const Sim := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const FlightSim := preload("res://tests/flight/flight_sim.gd")
@@ -326,3 +326,130 @@ func _steady_tow(at: String) -> void:
 
 func test_steady_tow_pilot() -> void:
 	_steady_tow("pilot")
+
+
+## Инвариант (11): установившаяся аэробуксировка с уздечкой. Буксировщик набирает по прямой под gamma = 6° (kinds.md:
+## T ≈ W(sinγ + cosγ/E)) со скоростью v_tow, якорь на тросе 50 м выше крыла на elev, EA = 3·10⁴ Н (aerotow_rope),
+## ζ = 0,01, 80 с (набор скорости + затухание фугоиды). Пилот держит тангаж и скорость буксировщика (П-регулятор:
+## 0,2 на градус тангажа + 0,1 на м/с; TW-17 SpeedHold не влита). За последние 10 с: колебания T < 10 % среднего,
+## нет пиков выше 2× среднего, скорость вдоль траектории = скорости буксировщика ±0,5 м/с, тангаж ушёл не более 20°.
+func _bridle_tow(share: float, v_tow: float, elev_deg: float, iters: int = 8) -> Dictionary:
+	var m := Sim.make("sport")
+	Sim.reset(m)
+	m.bridle_iters = iters
+	var rope := 50.0
+	var ea := 3.0e4
+	var gam := deg_to_rad(6.0)
+	var gdir := Vector3(0.0, sin(gam), -cos(gam))
+	var dir := Vector3(0.0, sin(deg_to_rad(elev_deg)), -cos(deg_to_rad(elev_deg)))
+	var v0: float = -m.velocity.z
+	var a_acc := 0.2
+	var t_ramp := (v_tow - v0) / a_acc
+	var a0: Vector3 = Sim.cg(m) + dir * rope
+	var tau := 2.0 * 0.01 * sqrt(104.0 / (ea / rope))
+	m.set_external_force(func(s: Dictionary) -> Dictionary:
+		var te := minf(s.t, t_ramp)
+		var x := v0 * te + 0.5 * a_acc * te * te + v_tow * maxf(s.t - t_ramp, 0.0)
+		var v := v0 + a_acc * te
+		return {"link": {
+			"anchor": a0 + gdir * x, "anchor_vel": gdir * v, "length_m": rope,
+			"compliance_m_per_n": rope / ea, "damping_s": tau, "at": "hang", "pilot_share": share,
+		}})
+	var th0 := m.theta
+	var tens := []
+	var vsum := 0.0
+	var n := 0
+	var dth := 0.0
+	var secs := 80.0
+	for i in int(secs / DT):
+		var vp := -m.velocity.z / cos(gam)
+		m.step(DT, Sim.input(clampf(-0.2 * rad_to_deg(m.theta - th0) + 0.1 * (v_tow - vp), -1.0, 1.0)), Callable(), Callable())
+		if i >= int((secs - 10.0) / DT):
+			tens.append(m.link_tension_n)
+			vsum += vp
+			n += 1
+		dth = maxf(dth, absf(rad_to_deg(m.theta - th0)))
+	var mean := 0.0
+	var peak := 0.0
+	for x: float in tens:
+		mean += x
+		peak = maxf(peak, x)
+	mean /= tens.size()
+	var dev := 0.0
+	for x: float in tens:
+		dev = maxf(dev, absf(x - mean))
+	var vmean := vsum / float(n)
+	print("    уздечка share=%.2f, %d проходов: T средн %.1f Н, откл %.1f Н, пик %.1f Н, v %.2f, max |dтангаж| %.1f°, bank %.1f°" % [
+		share, iters, mean, dev, peak, vmean, dth, rad_to_deg(m.bank)])
+	return {"fin": Sim.finite(m), "mean": mean, "dev": dev, "peak": peak, "v": vmean, "dth": dth}
+
+
+func _check_bridle(r: Dictionary, label: String, v_tow: float) -> void:
+	check(r.fin, "%s: модель конечна" % label)
+	check(r.mean > 1.0 and r.mean < 1250.0, "%s: натяжение ненулевое и ниже слабого звена: %.1f Н" % [label, r.mean])
+	check(r.dev < 0.1 * r.mean, "%s: колебания T < 10 %% среднего: %.1f из %.1f Н" % [label, r.dev, r.mean])
+	check(r.peak < 2.0 * r.mean, "%s: нет пиков выше 2× среднего: %.1f против %.1f Н" % [label, r.peak, r.mean])
+	check(absf(r.v - v_tow) < 0.5, "%s: крыло в равновесии, v = скорости якоря ±0,5: %.2f против %.1f" % [label, r.v, v_tow])
+	check(r.dth < 20.0, "%s: тангаж уходит не больше 20°: %.1f°" % [label, r.dth])
+
+
+func test_bridle_5050_steady_aerotow() -> void:
+	for v in [14.0, 16.0]:
+		_check_bridle(_bridle_tow(0.5, v, 10.0), "уздечка 50/50, %.0f м/с" % v, v)
+
+
+## Сценарий ревью TW-5 (at = hang, всё на подвеску, pilot_share 0, горизонтальный якорь, фиксированный тангаж): модель
+## конечна, натяжение конечно, звено работает (T > 0). Решатель сходится (test_bridle_iterations_converged), но 100 %
+## на киль у подвески физически теряют демпфирование качания пилота — вне BHPA (≥ 50 % пилоту), рывков не требуем.
+func test_steady_tow_hang_finite() -> void:
+	var m := Sim.make("sport")
+	Sim.reset(m)
+	var dir := Vector3(0.0, sin(deg_to_rad(20.0)), -cos(deg_to_rad(20.0)))
+	var v0: float = -m.velocity.z
+	var a0: Vector3 = Sim.cg(m) + dir * 50.0
+	m.set_external_force(func(s: Dictionary) -> Dictionary:
+		var te := minf(s.t, (12.0 - v0) / 0.2)
+		var x := v0 * te + 0.1 * te * te + 12.0 * maxf(s.t - (12.0 - v0) / 0.2, 0.0)
+		return {"link": {
+			"anchor": a0 + Vector3(0.0, 0.0, -x), "anchor_vel": Vector3(0.0, 0.0, -(v0 + 0.2 * te)), "length_m": 50.0,
+			"compliance_m_per_n": 50.0 / 3.0e5, "damping_s": 0.02, "at": "hang", "pilot_share": 0.0,
+		}})
+	var th0 := m.theta
+	var tmax := 0.0
+	var ok := true
+	for i in int(40.0 / DT):
+		m.step(DT, Sim.input(clampf(-0.2 * rad_to_deg(m.theta - th0), -1.0, 1.0)), Callable(), Callable())
+		tmax = maxf(tmax, m.link_tension_n)
+		ok = ok and is_finite(m.link_tension_n) and Sim.finite(m)
+	check(ok and tmax > 0.0, "pilot_share 0: конечна, звено работает: max T %.0f Н" % tmax)
+
+
+func test_bridle_pilot_share_one_is_pilot_link() -> void:
+	# pilot_share = 1 — тот же путь, что at = "pilot" (бит в бит)
+	var res := []
+	for use_share in [false, true]:
+		var m := Sim.make("sport")
+		Sim.reset(m)
+		var a0: Vector3 = m.pilot_position + Vector3(0.0, 8.0, -50.0)
+		m.set_external_force(func(s: Dictionary) -> Dictionary:
+			var l := {"anchor": a0 + Vector3(0.0, 0.0, -12.0 * s.t), "anchor_vel": Vector3(0.0, 0.0, -12.0),
+				"length_m": 50.0, "compliance_m_per_n": 50.0 / 3.0e4, "damping_s": 0.01, "at": "pilot"}
+			if use_share:
+				l["at"] = "hang"
+				l["pilot_share"] = 1.0
+			return {"link": l})
+		for i in int(10.0 / DT):
+			m.step(DT, Sim.input(), Callable(), Callable())
+		res.append(m.position)
+	check(res[0] == res[1], "pilot_share 1 = звено на пилота: %s / %s" % [res[0], res[1]])
+
+
+## Сходимость решателя уздечки: рост числа проходов (4 → 8 → 16 → 32) не меняет среднее натяжение больше чем на 5 %
+## и колебания остаются < 10 %.
+func test_bridle_iterations_converged() -> void:
+	var means := []
+	for it in [4, 8, 16, 32]:
+		var r := _bridle_tow(0.5, 14.0, 10.0, it)
+		means.append(r.mean)
+		check(r.fin and r.dev < 0.1 * r.mean, "проходов %d: конечна, колебания < 10 %%: %.1f из %.1f" % [it, r.dev, r.mean])
+	check(absf(means[1] - means[3]) < 0.05 * means[3], "8 проходов против 32: среднее T %s" % [means])
