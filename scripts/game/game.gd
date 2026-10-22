@@ -1516,8 +1516,8 @@ func _choose_tow_start() -> bool:
 	if kind != "winch_static" and kind != "aerotow":
 		push_warning("Game: буксировка %s неизвестна, старт без буксировки" % kind)
 		return false
-	if net != null or air_start_m >= 0.0 or not Glider.is_pendulum_mode():
-		push_warning("Game: буксировка — только одиночная игра в режиме «Маятник» с земли, старт без буксировки")
+	if net != null or air_start_m >= 0.0:
+		push_warning("Game: буксировка — только одиночная игра с земли, старт без буксировки")
 		return false
 	var rope_len := float(Config.value("tow", "%s.%s" % [kind, "rope_length_m" if kind == "winch_static" else "runway_length_m"], 1000.0))
 	var x := 0.0
