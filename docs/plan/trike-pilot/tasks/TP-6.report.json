@@ -1,0 +1,87 @@
+{
+  "status": "done",
+  "summary": "TrikeRig вынесен из TowTug (траектория за 15 с совпала до 1e-9, тест tow 105/105); Glider.setup_trike/reset_on_wheels с TrikeEngine и тягой; Game стартует дельталёт на колёсах в начале полосы места буксировки без TowSession; FlightStats для дельталёта кончает полёт после посадки и остановки (<0,5 м/с >=3 с). Контрактный тест test_trike_pilot_k6 (6 тестов) зелёный.",
+  "commits": [
+    "bbd757fc trike-pilot/TP-6: дельталёт игрока в игре — TrikeRig, Glider.setup_trike, старт Game на колёсах, конец полёта"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot",
+      "value": "32/32",
+      "pass": true
+    },
+    {
+      "name": "tow",
+      "value": "105/105",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "game",
+      "value": "8 упало из 233, те же 8 на базе f679d877 без моих правок (3 известных + test_neutral_every_wing, test_catch_up_in_main_scene, test_e2e_all_locations (volcano_island), test_same_start_key_and_world, test_radius_covers_two_runs, test_controls_screen_lists_keys); accept --dry также даёт таймаут 900 с (фильтр game/ идёт ~20 мин)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Игровой старт дельталёта проверен только headless-тестом (wilotree_park, state 2, 8 с стоит на колёсах); взлёт в самом Game не прогонялся. Посадка на колёса — TP-7 (сейчас после касания в воздухе модель даёт landed как раньше, конец полёта по остановке работает). Вид — TP-8."
+  ],
+  "questions": [
+    "Level-полёт на полном газе недостижим (граница модели, см. extra): штанга на упоре «на себя» (arms_shift_pull_m 0,1107 м, TT-К1) даёт скорость ~18 м/с и набор 5-6 м/с. Нужно ли расширять ход штанги/полёт на полном газе (контракт TT-К1/TP-К6 пункт 4)?"
+  ],
+  "how_to_check": "XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=trike_pilot_k6",
+  "uncertain": [
+    {
+      "where": "scripts/flight/glider.gd:setup_trike, масса тележки",
+      "why": "масса «пилота» = empty 150 + пилот 82,5 + топливо 39,75 = 272,25 кг (в TowTug было 262,5: там топливо 30 кг из cart.fuel_kg); в игре модель на 10 кг тяжелее, чем у буксировщика, расход массу не меняет",
+      "checked": "по контракту TP-К6 (fuel.start_l = полный бак 53 л · 0,75 кг/л); сумма в тесте test_parked в 255-290 кг"
+    },
+    {
+      "where": "scripts/flight/glider.gd:_update_pilot",
+      "why": "фаза wheels отнесена к «flying=true» (поза пилота как на dolly, сидит), без вида TP-8 это временно",
+      "checked": "тесты не падают, визуал не смотрел"
+    },
+    {
+      "where": "scripts/game/flight_stats.gd:_update_finish_trike",
+      "why": "конец полёта = любая не-flying фаза с groundspeed < 0,5 м/с >= 3 с; после TP-7 фаза посадки на колёсах должна оставаться не-flying; точное поведение «landed» после отрыва при посадке на колёса проверит TP-7",
+      "checked": "test_flight_stats (без trike) зелёный, trike-ветка только юнит-логикой; не прогонялась в игре с посадкой"
+    },
+    {
+      "where": "scripts/game/game.gd:_choose_tow_start",
+      "why": "для trike вид буксировки = aerotow (длина полосы runway_length_m), проверка kinds пропущена; точка с карты/точный старт без площадки tow тоже получают полосу по TowSite.check",
+      "checked": "wilotree_park runway_36 в тесте: на оси полосы, в начале, vehicle trike"
+    }
+  ],
+  "dp_feedback": "accept --dry: таймаут шага game 900 с при 2400 в самой команде карточки; на базе 8 известных падений, а исключений в карточке 3 — стоит обновить список или поднять таймаут. git commit -- <пути> не берёт неотслеживаемые файлы без git add.",
+  "extra": {
+    "mass_kg_model_total": 325.0,
+    "vs_ms": 14.0,
+    "takeoff": {
+      "throttle_full_from_s": 4.0,
+      "roll_m": 35,
+      "roll_time_s": 9.3,
+      "lift_off_airspeed_ms": 15.3,
+      "lift_off_vs_ratio": 1.09
+    },
+    "steady_climb": {
+      "vz_ms": 5.1,
+      "airspeed_ms": 17.9,
+      "target_1p3vs_ms": 18.2
+    },
+    "bar_at_stop_full_throttle": {
+      "airspeed_ms": 18.2,
+      "vz_ms": 5.25
+    },
+    "level_flight_bar_at_stop": {
+      "throttle": 0.37,
+      "airspeed_ms": 21.4,
+      "airspeed_kmh": 77
+    },
+    "model_limits": "Полный газ + штанга на упоре: горизонтального полёта нет (набор 5-6 м/с); ход штанги на себя 0,11 м из TT-К1 ограничивает скорость ~18-21 м/с; горизонтальный полёт — на газе 0,37. Разбег 35 м очень короткий: тяга 1587 Н на 325 кг (таблица TT-К1) — a ≈ 4,9 м/с²; без аэродинамики винта и сцепления с травой колёс (rolling_crr 0,07)."
+  },
+  "t": "2026-10-23T02:08:52",
+  "by": "executor"
+}
