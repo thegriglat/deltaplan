@@ -55,7 +55,7 @@ contracts: []
 - `model` (v3 — струйки видны вблизи): `radius_m` 1500, `max_emitters` 32, `update_s` 0.5, `max_wind_samples` 140, `scan_step_m` 50, `scan_points_per_frame` 1000, `dir_tolerance_k` 2, `rescan_m` 1000, `rescan_dir_deg` 10, `fetch_m` (К1), `lee_slope_deg` (К1), `spacing_m` 40, `surf_upwind_m` 30, `snow_min` 0.5, `start_agl_m` 1, `min_agl_m` 1 (`start_agl_m ≥ min_agl_m`), `path_points` 3 (≤ 8), `path_dt_s` 1, `span_ms` (К1), `threshold` {`a`,`b`,`c`,`wet_t_c`,`wet_u10_ms`} (К1).
 - `render` (v3): `max_emitters` = `model.max_emitters`, `particles_per_emitter` 48, `streak_len_m` 3.5 (решение пользователя 2026-10-23: 3–4 м), `streak_w_m` 0.25 (оценка), `layer_h_m` 2 (ВМО: позёмка — снег, поднятый ниже 2 м), `life_s` 2 (оценка), `settle_ms` (К1), `spread_ms` (К1), `alpha` 0.25 (оценка), `visibility_m` 1500. Ключа `size_m` нет. «Оценка» — подбор по кадрам, не больше 2 попыток.
 - Числа без источника до SNW-1 — только в тестах и как умолчания в коде; в конфиг (SNW-4) — числа SNW-1.
-- **Бюджет кадра** (замер SNW-5, Эверест, сильный ветер, пресет high, против `enabled: false`): GPU — прирост среднего ≤ 0,5 мс; CPU кадра — прирост среднего ≤ 0,3 мс; худший 1 % — прирост ≤ 2 мс.
+- **Бюджет кадра**: замер отменён решением пользователя 2026-10-23 (струйки снежной пыли кадр не замедляют); бюджет держат лимиты `model` (`max_emitters`, `max_wind_samples`, `scan_points_per_frame`) и `render.particles_per_emitter`.
 - Headless узел не создаётся; сеть не нужна (визуал локальный, одинаково в одиночной и сетевой игре).
 
 ## История версий
