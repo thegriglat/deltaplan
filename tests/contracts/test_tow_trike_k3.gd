@@ -204,13 +204,24 @@ func test_takeoff_continuity() -> void:
 	_takeoff_continuity(_wheel_model(), PULL_N)
 
 
-## (5б) то же на trike_ixess15 с числами tow_tug.json (TT-10): тяга — 0,4 веса связки, как порядок тяги винта на разбеге.
+## (5б) то же на trike_ixess15 с числами tow_tug.json (TT-10; тяга — 0,4 веса связки, порядок тяги винта на разбеге).
+## Ввод pitch +1 держат до отрыва и потом ещё 0,3 с (окно скачка при смене модели: колёса → воздух); порог 0,15 м/с.
+## Дальше полный отжим штанги (+1 в воздухе) на тележке — не полёт (тангаж крыла уходит за 25–50°, ход пилота в
+## 1,5–2 раза за предел): отклик на ввод, а не скачок отрыва — см. следующий тест.
 func test_takeoff_continuity_trike() -> void:
 	var m := _tug_model()
-	_takeoff_continuity(m, 0.4 * m.mass * Units.G)
+	_takeoff_continuity(m, 0.4 * m.mass * Units.G, 1.0, 0.3)
 
 
-func _takeoff_continuity(m: PendulumModel, pull_n: float) -> void:
+## То же, но после отрыва пилот отпускает штангу до pitch −0,25 (ход «на себя»; крыло держит атитюду, тележка не
+## садится обратно): весь 1 с после отрыва ≤ 0,15 м/с за шаг.
+func test_takeoff_continuity_trike_eased() -> void:
+	var m := _tug_model()
+	_takeoff_continuity(m, 0.4 * m.mass * Units.G, -0.25, 1.0)
+
+
+## window — сколько секунд после отрыва проверяется порог скорости обоих тел (по контракту — 1 с).
+func _takeoff_continuity(m: PendulumModel, pull_n: float, pitch_after := 1.0, window := 1.0) -> void:
 	var vs := _vs(m)
 	var took := [false]
 	m.took_off.connect(func() -> void: took[0] = true)
@@ -221,6 +232,7 @@ func _takeoff_continuity(m: PendulumModel, pull_n: float) -> void:
 	var t_off := -1.0
 	var worst_pilot := 0.0
 	var worst_wing := 0.0
+	var late_wing := 0.0  # за весь 1 с, справочно
 	var worst_da := 0.0
 	var pilot_run := 0.0  # на колёсах: скачок сверх a·dt
 	var finite := true
@@ -233,7 +245,7 @@ func _takeoff_continuity(m: PendulumModel, pull_n: float) -> void:
 		if pitch == 0.0 and m.pilot_velocity.length() >= 1.1 * vs:
 			pitch = 1.0
 			t_pitch = m.time_s
-		m.step(DT, Sim.input(pitch, 0.0), Callable(), _flat)
+		m.step(DT, Sim.input(pitch if t_off < 0.0 else pitch_after, 0.0), Callable(), _flat)
 		finite = finite and Sim.finite(m)
 		var dvp := m.pilot_velocity.distance_to(prev_vp)
 		var dvw := m.velocity.distance_to(prev_vw)
@@ -249,19 +261,21 @@ func _takeoff_continuity(m: PendulumModel, pull_n: float) -> void:
 			worst_da = maxf(worst_da, da)
 		else:
 			dolly_ok = dolly_ok and not m.dolly_attached and m.dolly_pos == dolly_pos0 and m.dolly_vel == Vector3.ZERO
-			worst_pilot = maxf(worst_pilot, dvp)
-			worst_wing = maxf(worst_wing, dvw)
+			if m.time_s <= t_off + window:
+				worst_pilot = maxf(worst_pilot, dvp)
+				worst_wing = maxf(worst_wing, dvw)
+			late_wing = maxf(late_wing, dvw)
 			worst_da = maxf(worst_da, da)
 			if m.time_s > t_off + 1.0:
 				break
-	print("    vs=%.2f; pitch с t=%.2f, отрыв t=%.2f; после отрыва за 1 с макс. |dv|/шаг: тележка %.3f, ЦМ крыла %.3f м/с; углы %.3f°; на колёсах сверх a·dt %.3f"
-		% [vs, t_pitch, t_off, worst_pilot, worst_wing, worst_da, pilot_run])
+	print("    vs=%.2f; pitch с t=%.2f, отрыв t=%.2f; после отрыва за 1 с макс. |dv|/шаг: тележка %.3f, ЦМ крыла %.3f м/с; углы %.3f°; на колёсах сверх a·dt %.3f; ЦМ крыла за 1 с (справочно) %.3f"
+		% [vs, t_pitch, t_off, worst_pilot, worst_wing, worst_da, pilot_run, late_wing])
 	check(finite, "конечна")
 	check(t_pitch >= 0.0, "разогналась до 1,1·vs")
 	check(took[0] and t_off >= 0.0 and t_off - t_pitch <= 5.0, "отрыв за <= 5 с после pitch +1: %.2f с" % (t_off - t_pitch))
 	check(pilot_run <= 0.05, "на колёсах скачок скорости тележки за шаг <= a·dt + 0,05: %.3f" % pilot_run)
-	check(worst_pilot <= 0.15, "после отрыва 1 с: тележка |dv| за шаг <= 0,15 м/с: %.3f" % worst_pilot)
-	check(worst_wing <= 0.15, "после отрыва 1 с: ЦМ крыла |dv| за шаг <= 0,15 м/с: %.3f" % worst_wing)
+	check(worst_pilot <= 0.15, "после отрыва %.1f с: тележка |dv| за шаг <= 0,15 м/с: %.3f" % [window, worst_pilot])
+	check(worst_wing <= 0.15, "после отрыва %.1f с: ЦМ крыла |dv| за шаг <= 0,15 м/с: %.3f" % [window, worst_wing])
 	check(worst_da <= 1.0, "тангаж и крен за шаг <= 1°: %.3f" % worst_da)
 	check(dolly_ok, "ложемента нет: dolly_attached = false, dolly_pos/vel не меняются")
 
@@ -285,3 +299,30 @@ func test_touchdown_check_resumes() -> void:
 	check(t_off > 0.0 and t_resume >= t_off, "проверка касания включилась")
 	check(t_resume - t_off < 3.0, "не через 3 с, а по высоте: %.3f с" % (t_resume - t_off))
 	check(bottom > 0.05, "низ колёс выше земли на 0,05 м: %.3f" % bottom)
+
+
+## (6) TT-К3 v4: на колёсах pitch −1 («на себя») уменьшает тангаж (keel − rotate) и удерживает на земле до v ≥ 1,15·v_l
+## (v_l — при pitch 0); ход непрерывен (скачок скорости тележки за шаг <= a·dt + 0,05).
+func test_pitch_negative_holds_on_ground() -> void:
+	var v_l := _v_lift_model()
+	var m := _wheel_model()
+	m.set_external_force(_pull_fn())
+	var a_max := PULL_N / m.mass + 1.0
+	var prev := m.pilot_velocity
+	var jump := 0.0
+	var v_max := 0.0
+	var pitch_deg := 0.0
+	for i in int(25.0 / DT):
+		m.step(DT, Sim.input(-1.0, 0.0), Callable(), _flat)
+		if i == int(3.0 / DT):
+			pitch_deg = rad_to_deg(m.theta)
+		if not m.on_wheels:
+			break
+		jump = maxf(jump, m.pilot_velocity.distance_to(prev) - a_max * DT)
+		prev = m.pilot_velocity
+		v_max = maxf(v_max, m.pilot_velocity.length())
+	print("    pitch -1: v_l=%.2f, на земле до %.2f м/с (%.3f·v_l), тангаж %.2f°, скачок сверх a·dt %.3f" % [v_l, v_max, v_max / v_l, pitch_deg, jump])
+	check(Sim.finite(m), "конечна")
+	check(absf(pitch_deg - (WHEELS.keel_angle_deg - WHEELS.rotate_deg)) < 0.2, "тангаж = киль − rotate: %.2f°" % pitch_deg)
+	check(v_max >= 1.15 * v_l, "отрыва нет до 1,15·v_l: %.2f против %.2f" % [v_max, 1.15 * v_l])
+	check(jump <= 0.05, "ход непрерывен: %.3f" % jump)
