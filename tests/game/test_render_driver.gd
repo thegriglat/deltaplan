@@ -184,3 +184,10 @@ func test_last_logged_stage() -> void:
 	check(RenderDriver.last_logged_stage("[stage] wind t=9\n[stage] menu t=99\n") == "меню", "menu → меню")
 	check(RenderDriver.last_logged_stage("ERROR: x\n") == "меню", "нет строк — меню")
 	check(RenderDriver.last_logged_stage("[stage] wind t=9\nERROR: [stage] x\n") == "wind", "только начало строки")
+
+
+func test_watch_disabled_in_editor_headless_and_service_runs() -> void:
+	check(RenderDriver.watch_enabled(false, false, false), "пилотский запуск — ведём")
+	check(not RenderDriver.watch_enabled(true, false, false), "из редактора — нет окна после обрыва")
+	check(not RenderDriver.watch_enabled(false, true, false), "headless — нет")
+	check(not RenderDriver.watch_enabled(false, false, true), "служебный запуск — нет")

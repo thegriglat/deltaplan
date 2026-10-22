@@ -76,7 +76,7 @@ var _pending_at_start: Dictionary = {}
 ## Язык ставится до _ready экранов (они строят тексты в своих _ready).
 func _enter_tree() -> void:
 	_pending_at_start = CrashReport.read_json(CrashReport.PENDING_PATH)
-	if DisplayServer.get_name() != "headless" and not _service_run():
+	if _gpu_watch_enabled():
 		var prev := RenderDriver.previous_crash("user://gpu_session.json", CrashReport.read_previous_log())
 		if _pending_at_start.is_empty():
 			_pending_at_start = prev  # без токена отчёта нет — берём свою метку сеанса
@@ -154,7 +154,7 @@ func _ready() -> void:
 ## прошлого сеанса, её пишет CrashReporter в экспортной сборке с окном, иначе стадия «меню»). Оба читаются в _enter_tree, раньше
 ## любой отправки отчёта, поэтому отправка признак не стирает.
 func _setup_gpu_failure_watch() -> void:
-	if DisplayServer.get_name() == "headless" or opts.autostart or opts.smoke or opts.perf_s > 0.0:
+	if not _gpu_watch_enabled() or opts.autostart or opts.smoke or opts.perf_s > 0.0:
 		return
 	if RenderDriver.should_offer_after_crash(_pending_at_start):
 		RenderDriver.mark_offered(RenderDriver.crash_key(_pending_at_start))
@@ -192,6 +192,14 @@ func _show_gpu_failure() -> void:
 	_gpu_dialog.popup_centered()
 
 
+## Метка сеанса и окно после обрыва: запуск из редактора (OS.has_feature("editor")), headless и
+## служебные запуски их не ведут и чужую метку не трогают.
+static func _gpu_watch_enabled() -> bool:
+	return RenderDriver.watch_enabled(
+		OS.has_feature("editor"), DisplayServer.get_name() == "headless", _service_run()
+	)
+
+
 ## Служебный запуск (проверки, снимки, замеры) — метку сеанса не ведёт и чужую не трогает.
 static func _service_run() -> bool:
 	for a in OS.get_cmdline_user_args():
@@ -202,7 +210,7 @@ static func _service_run() -> bool:
 
 
 func _exit_tree() -> void:
-	if not _service_run():
+	if _gpu_watch_enabled():
 		RenderDriver.clear_session()  # штатный выход (в том числе перезапуск) — не обрыв
 
 

@@ -241,6 +241,11 @@ static func _alive(pid: int) -> bool:
 	return false
 
 
+## Вести метку сеанса и показывать окно: не из редактора, не headless, не служебный запуск.
+static func watch_enabled(is_editor: bool, is_headless: bool, service_run: bool) -> bool:
+	return not (is_editor or is_headless or service_run)
+
+
 ## Окно после обрыва нужно: ожидающий отчёт есть, оборван на wind, на старте/в меню или в хвосте
 ## лога потеря устройства, и этот обрыв ещё не предлагали. Отметку не ставит (её ставит показ окна).
 static func should_offer_after_crash(
