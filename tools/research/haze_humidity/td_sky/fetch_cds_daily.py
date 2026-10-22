@@ -1,4 +1,5 @@
-"""CDS derived-era5-single-levels-daily-statistics (UTC-сутки, 1_hourly, сетка 1x1): total_cloud_cover daily_mean и 2m_temperature daily_maximum.
+"""НЕ ЗАПУСКАЛСЯ: конвейер на будущее (докачка 2014-2020 отменена решением пользователя 2026-10-22).
+CDS derived-era5-single-levels-daily-statistics (UTC-сутки, 1_hourly, сетка 1x1): total_cloud_cover daily_mean и 2m_temperature daily_maximum.
 Правила CDS (решение 2026-10-22): один процесс, запросы по очереди, каждый под общим замком ~/data/haze_humidity/cds.lock.
 Файл на (статистика, год, месяц) -> ~/data/haze_humidity/td_sky/cds/<stat>_<год>-<мм>.nc (год целиком — 403 cost limit); готовые пропускаются.
 Порядок: 2013-06 (сверка с ARCO), затем 2014-2020. Запрос на месяц×переменную. Запуск: python fetch_cds_daily.py"""

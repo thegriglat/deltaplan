@@ -1,4 +1,4 @@
-"""CDS daily-statistics (fetch_cds_daily.py) -> ~/data/haze_humidity/td_sky/<год>.npz: tccday (daily_mean, UTC-сутки), tmax (daily_maximum, °C), tcc = tccday.
+"""НЕ ЗАПУСКАЛСЯ (докачка отменена 2026-10-22). CDS daily-statistics (fetch_cds_daily.py) -> ~/data/haze_humidity/td_sky/<год>.npz: tccday (daily_mean, UTC-сутки), tmax (daily_maximum, °C), tcc = tccday.
 Ячейка 1° HH-1 = среднее 4 узлов сетки 360x181 вокруг центра. Запуск: python build_cds_daily.py <год> [<год1>] | compare (2013-06 против ARCO 2013.npz)"""
 import os, sys, json, calendar
 import numpy as np, xarray as xr
