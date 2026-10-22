@@ -1,0 +1,46 @@
+{
+  "verdict": "accept",
+  "summary": "Фикс TP-К7 v3 минимален и по контракту: в _dolly_hold при _wh_land низ колёс <= земли и vy<0 -> снова _check_touchdown (колёса). Без land_on_wheels поведение бит в бит (tow_trike 25/25). Инварианты (9),(10) есть, перезапуск подтверждает низ колёс >= 0. Единственное падение trike_pilot - test_trike_pilot_k6::test_contract_version (версия раздела TP-К6 в docs/contracts, dont_touch) - не TP-21, на координатора.",
+  "issues": [
+    {
+      "file": "tests/contracts/test_trike_pilot_k7.gd",
+      "line": 377,
+      "severity": "minor",
+      "what": "_bottom() берёт _wh_base, который до первого отрыва с колёс = 0: на колёсах меряется ЦМ пилота, а не низ колёс. Зерно 2 (старт на колёсах) за 60 с не оторвалось: min 0.800 - для инварианта (10) это зерно ничего не проверяет в воздухе/у земли.",
+      "fix": "по желанию: на колёсах брать низ по _dol.wheel_base_agl_m или выбрать зёрна/газ, при которых все стартовые на колёсах прогоны отрываются; не блокирует."
+    },
+    {
+      "file": "scripts/flight/pendulum/pendulum_model.gd",
+      "line": 860,
+      "severity": "minor",
+      "what": "Каждый микроподскок теперь даёт landed + took_off; game._on_landed играет звук посадки, took_off -> camera.recenter/_feed_begin. На разбеге с подскоками ниже 0,05 м возможна серия звуков посадки и рецентров камеры. По контракту v3 это допустимо (касание = снова колёса), но в игре не проверено.",
+      "fix": "вопрос координатору/TP-6: проверить в игре разбег с подскоком; если дребезг заметен - отдельная задача на стороне scripts/game (не в скоупе TP-21)."
+    },
+    {
+      "file": "tests/contracts/test_trike_pilot_k7.gd",
+      "line": 358,
+      "severity": "minor",
+      "what": "Что тесты (9)/(10) без фикса падали (низ до -50 м), ревьюер не перепроверял (не откатывал фикс); принято по отчёту.",
+      "fix": "нет; при сомнении - прогнать (9) на feature/trike-pilot."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "trike_pilot (accept --only --dry)",
+      "value": "50/51; FAIL только test_trike_pilot_k6::test_contract_version (вне скоупа); k7 (9): низ колёс min 0.000-0.001, wheels x4; (10): min 0.000/0.000/0.800/0.001",
+      "pass": false
+    },
+    {
+      "name": "tow_trike (accept --only --dry)",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "2 файла в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-23T04:57:28",
+  "by": "reviewer"
+}
