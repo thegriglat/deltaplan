@@ -354,3 +354,50 @@ func test_bar_swing_on_wheels() -> void:
 		check(Sim.finite(m) and m.on_wheels, "slew %.0f: конечна, на колёсах" % slew)
 		res.append(worst)
 	check(res[0] <= 0.15 and res[1] <= 0.15, "|dv| ЦМ крыла за шаг <= 0,15 м/с (ступенью %.3f, плавно %.3f)" % [res[0], res[1]])
+
+
+## Низ колёс (м над землёй) модели.
+func _bottom(m: PendulumModel) -> float:
+	return (m.pilot_position - m.pilot_basis.y * m._wh_base).y
+
+
+## (9) Посадки без выбора штанги (pitch 0) на 1,15 и 1,3 vs с газом 0 и холостым: "wheels", низ колёс >= -0,05 м 30 с.
+func test_no_sink_after_bounce() -> void:
+	for k: float in [1.15, 1.3]:
+		for idle: float in [0.0, 0.05]:
+			var m := _trim_glide(2.0)
+			var vs := _vs(m)
+			var d := Vector3(sin(m.heading), 0.0, -cos(m.heading))
+			var v := m.pilot_velocity
+			m.pilot_velocity = Vector3(d.x * k * vs, minf(v.y, 0.0), d.z * k * vs)
+			m.set_external_force(_thrust(idle) if idle > 0.0 else Callable())
+			var low := INF
+			for i in int(30.0 / DT):
+				m.step(DT, _in(0.0), Callable(), _flat)
+				low = minf(low, _bottom(m))
+			print("    %.2f vs, газ %.2f: фаза %s, низ колёс min %.3f м" % [k, idle, m.phase(), low])
+			check(m.phase() == "wheels", "%.2f vs газ %.2f: wheels, а %s" % [k, idle, m.phase()])
+			check(low >= -0.05 and Sim.finite(m), "%.2f vs газ %.2f: низ колёс >= -0,05: %.3f" % [k, idle, low])
+
+
+## (10) Случайный ввод pitch/turn/brake/газ на колёсах и у земли 60 с (зёрна) — низ колёс >= -0,05 м, всё конечно.
+func test_random_input_no_sink() -> void:
+	for seed_i in 4:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 100 + seed_i
+		var m := _model() if seed_i % 2 == 0 else _trim_glide(1.5)
+		var gas := [0.0]
+		m.set_external_force(func(s: Dictionary) -> Dictionary:
+			return _thrust(float(gas[0])).call(s))
+		var c := _in()
+		var low := INF
+		for i in int(60.0 / DT):
+			if i % 60 == 0:
+				c.pitch = rng.randf_range(-1.0, 1.0)
+				c.turn = rng.randf_range(-1.0, 1.0)
+				c.brake = rng.randf() < 0.3
+				gas[0] = rng.randf()
+			m.step(DT, c, Callable(), _flat)
+			low = minf(low, _bottom(m))
+		print("    зерно %d: фаза %s, низ колёс min %.3f" % [seed_i, m.phase(), low])
+		check(low >= -0.05 and Sim.finite(m), "зерно %d: низ колёс >= -0,05: %.3f" % [seed_i, low])

@@ -856,6 +856,9 @@ func _dolly_hold(ground_fn: Callable) -> bool:
 		if gw > -INF and bottom.y - gw > WHEELS_CLEAR_M:
 			_wh_hold = false
 			return false
+		# TP-К7 v3: подскок ниже WHEELS_CLEAR_M — низ колёс у земли или ниже и идёт вниз — снова касание
+		if _wh_land and gw > -INF and bottom.y - gw <= 0.0 and pilot_velocity.y < 0.0:
+			return false
 		return true
 	if _dol_hold_until < 0.0:
 		return false
