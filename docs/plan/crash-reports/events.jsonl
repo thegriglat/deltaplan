@@ -114,3 +114,6 @@
 {"t": "2026-10-23T04:08:18", "by": "coordinator", "task": null, "ev": "plan", "note": "план 4. Задачи: дописано 2 стр."}
 {"t": "2026-10-23T04:08:18", "by": "coordinator", "task": null, "ev": "plan", "note": "план 3. Группы отчётов (по метаданным и хвосту лога, б…: дописано 1 стр."}
 {"t": "2026-10-23T04:08:19", "by": "coordinator", "task": "CR-10", "ev": "started"}
+{"t": "2026-10-23T04:08:27", "by": "executor", "task": "CR-7", "ev": "reported", "commits": ["2f3891b"], "note": "done: Метка сессии получила пульс (alive раз в 2 с из _process), stage_at и подстадию; отчёт добавляет строки «Последний приз…", "dp_feedback": "Первый accept в копии без .godot зависает на 900 с без подсказки (Godot без --import молча висит под замком); стоит, чтобы accept предупреждал об отсутствии .godot или сам делал --import под замком."}
+{"t": "2026-10-23T04:08:37", "by": "coordinator", "task": "CR-7", "ev": "checked", "note": "1/1 tests=ok:9/9"}
+{"t": "2026-10-23T04:08:53", "by": "coordinator", "task": "CR-7", "ev": "note", "note": "ревью: dp-reviewer (поток вызова note_substage, запись метки раз в 2 с)"}
