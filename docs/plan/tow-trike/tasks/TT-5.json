@@ -44,7 +44,8 @@
     "tests/game/test_tow_trike_visual.gd",
     "tests/game/test_tow_trike_visual.gd.uid",
     "locale/ui.csv",
-    "docs/guide/flight/tow.md"
+    "docs/guide/flight/tow.md",
+    "tests/game/test_tow_trike_climb.gd"
   ],
   "dont_touch": [
     "scripts/world_objects/easter_eggs/",
@@ -59,26 +60,34 @@
       "tests": "tow"
     },
     {
-      "name": "egg",
-      "tests": "egg"
-    },
-    {
       "name": "contracts/",
       "tests": "contracts/"
-    },
-    {
-      "name": "no_an2",
-      "cmd": "sh -c 'grep -rniE \"EggAn2|an2|ан-2\" scripts/game/tow_session.gd scripts/game/tow_tug.gd configs/tow_tug.json tests/game/test_tow_*.gd | wc -l'",
-      "expect": "num:^(\\d+) <=0"
     },
     {
       "name": "no_an2_ui",
       "cmd": "sh -c 'grep -ciE \"setup_tow_aerotow,.*(ан-2|an-2)\" locale/ui.csv'",
       "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "no_an2",
+      "cmd": "sh -c 'grep -rniE \"EggAn2|\\ban2\\b|ан-2|an-2\" scripts/game/tow_session.gd scripts/game/tow_tug.gd configs/tow_tug.json tests/game/test_tow_*.gd | wc -l'",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "egg_an2",
+      "tests": "egg_an2"
+    },
+    {
+      "name": "egg_meet",
+      "tests": "egg_meet"
+    },
+    {
+      "name": "eggs_no_osm",
+      "tests": "eggs_no_osm"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T22:20:30",
-  "edited": "2026-10-22T22:24:42"
+  "edited": "2026-10-22T22:49:27"
 }
