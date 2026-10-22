@@ -48,6 +48,7 @@ static func apply_safe(reason: String = CRASH, dir: String = UserSettings.DEFAUL
 	for cfg: String in p:
 		ok = UserSettings.save_patch(cfg, p[cfg], dir) and ok
 	Config.reload()
+	CrashReporter.refresh_switches()  # снимок рубильников в метке сеанса (отчёт о вылете)
 	return ok
 
 
@@ -59,6 +60,7 @@ static func restore(dir: String = UserSettings.DEFAULT_DIR) -> bool:
 		ok = UserSettings.save_patch(cfg, p[cfg], dir) and ok
 	ok = _erase_local("game", ["display", "safe_reason"], dir) and ok
 	Config.reload()
+	CrashReporter.refresh_switches()
 	return ok
 
 

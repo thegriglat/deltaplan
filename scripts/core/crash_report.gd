@@ -88,7 +88,9 @@ static func title(lock: Dictionary, sysinfo: Dictionary, prefix := "Вылет")
 
 
 ## Тело issue (markdown): сведения о системе и настройках + хвост лога; всего ≤ limit знаков.
-static func build_body(lock: Dictionary, sysinfo: Dictionary, log_text: String, limit := MAX_BODY) -> String:
+static func build_body(
+	lock: Dictionary, sysinfo: Dictionary, log_text: String, limit := MAX_BODY, diag := PackedStringArray()
+) -> String:
 	var lines: PackedStringArray = []
 	lines.append("## Система")
 	lines.append("- Версия: %s" % String(lock.get("version", sysinfo.get("version", "?"))))
@@ -97,6 +99,7 @@ static func build_body(lock: Dictionary, sysinfo: Dictionary, log_text: String, 
 		["Видеокарта", "gpu"],
 		["Производитель", "gpu_vendor"],
 		["Драйвер / API", "gpu_api"],
+		["Версия драйвера видеокарты", "gpu_driver"],
 		["Рендер", "renderer"],
 		["Процессор", "cpu"],
 		["RAM", "ram"],
@@ -123,6 +126,9 @@ static func build_body(lock: Dictionary, sysinfo: Dictionary, log_text: String, 
 	if started != "":
 		lines.append("- запуск: %s" % started)
 	lines.append("")
+	if not diag.is_empty():
+		lines.append_array(diag)
+		lines.append("")
 	lines.append("## Лог прошлого запуска (хвост)")
 	var head := sanitize("\n".join(lines)) + "\n````\n"
 	var foot := "\n````\n"
@@ -205,10 +211,12 @@ static func _flush_repeat(out: PackedStringArray, at: int, count: int) -> void:
 
 
 ## Один раз при каждой отправке: заготовка в файл ожидающих отправки.
-static func make_pending(lock: Dictionary, sysinfo: Dictionary, log_text: String, prefix := "Вылет") -> Dictionary:
+static func make_pending(
+	lock: Dictionary, sysinfo: Dictionary, log_text: String, prefix := "Вылет", diag := PackedStringArray()
+) -> Dictionary:
 	return {
 		"title": sanitize(title(lock, sysinfo, prefix)),
-		"body": build_body(lock, sysinfo, log_text),
+		"body": build_body(lock, sysinfo, log_text, MAX_BODY, diag),
 		"attempts": 0,
 	}
 
@@ -231,6 +239,7 @@ static func system_info() -> Dictionary:
 				RenderingServer.get_current_rendering_method()
 			]
 		),
+		"gpu_driver": CrashDiag.driver_text(),
 		"cpu": OS.get_processor_name(),
 		"ram": "%.1f ГБ" % (ram_b / 1073741824.0) if ram_b > 0.0 else "",
 	}

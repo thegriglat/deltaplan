@@ -542,6 +542,7 @@ func save() -> bool:
 	ok = UserSettings.save_patch("atmosphere", {"clouds": {"renderer": _clouds_renderer()}}, config_dir) and ok
 	ok = _save_motion() and ok
 	Config.reload()
+	CrashReporter.refresh_switches()
 	GraphicsPresets.apply_display(true)
 	return ok
 
