@@ -204,3 +204,8 @@
 {"t": "2026-10-22T14:57:58", "by": "executor", "task": "TK-11", "ev": "reported", "commits": ["cf0a65cd"], "note": "done: build_trike.py по TK-K2 v4: трубы из JSON (60 мм), бак над килем с вертикальной горловиной, пружины-спирали 6 витков, к…", "dp_feedback": "task sync отказывает при грязной копии из-за пересобранных glb/blend - нужен подсказка или авто-stash артефактов."}
 {"t": "2026-10-22T14:58:17", "by": "coordinator", "task": "TK-15", "ev": "checked", "note": "3/3 trike_model_k3=ok:2/2; trike_model_k1=ok:4/4; pilot=ok:73/73"}
 {"t": "2026-10-22T14:58:21", "by": "coordinator", "task": "TK-15", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-22T14:58:24", "by": "coordinator", "task": "TK-11", "ev": "checked", "note": "3/3 trike_model_k2=ok:2/2; trike_model_k1=ok:4/4; textures=ok:exit 0"}
+{"t": "2026-10-22T14:59:33", "by": "executor", "task": "TK-18", "ev": "reported", "commits": ["tools/research/trike-model/sketch_check.md,"], "note": "done: Таблица расхождений схемы v2 с trike_params.json, источниками и trike.glb@380817b (25 строк в sketch_check.md, числа — …", "dp_feedback": "Скоуп не пускает json-вывод скрипта рядом (пришлось печатать в stdout). Общий scratchpad захламлён файлами других задач."}
+{"t": "2026-10-22T14:59:55", "by": "coordinator", "task": "TK-15", "ev": "accepted", "commits": ["f0547429"], "note": "3/3 trike_model_k3=ok:2/2; trike_model_k1=ok:4/4; pilot=ok:73/73"}
+{"t": "2026-10-22T14:59:55", "by": "coordinator", "task": "TK-15", "ev": "merged"}
+{"t": "2026-10-22T14:59:56", "by": "coordinator", "task": "TK-11", "ev": "note", "note": "PASS; ждёт влития TK-16 — пересборка под трубы схемы, затем merge"}
