@@ -19,3 +19,4 @@
 {"t": "2026-10-22T16:15:55", "by": "executor", "task": "TSE-2", "ev": "reported", "commits": ["c3a2dc8c", "788af6e7", "df80bbe9"], "note": "done: Четыре теста из списка и ещё test_speed_hold, test_tow_k7 больше не падают по SCRIPT ERROR. Тряска кабины снова масштаб…"}
 {"t": "2026-10-22T16:19:06", "by": "coordinator", "task": "TSE-2", "ev": "checked", "note": "4/4 test_grass_rocks_contracts=ok:7/7; test_buzz_speed=ok:4/4; test_pilot_look=ok:1/1; test_wing_clearance=ok:1/1"}
 {"t": "2026-10-22T16:19:11", "by": "main", "task": "TSE-2", "ev": "accepted", "commits": ["df80bbe9"], "note": "review accept; доработка — только документация по решению пользователя"}
+{"t": "2026-10-22T16:19:11", "by": "main", "task": "TSE-2", "ev": "merged", "commits": ["1be3aba7"]}
