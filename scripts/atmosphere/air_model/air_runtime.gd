@@ -209,8 +209,15 @@ func engine() -> String:
 	return "solver"
 
 
+## «Упрощённый ветер» (air_model.enabled = off): конфиг перечитывается при каждом обращении —
+## снимок из _init не видит настройку, сохранённую пилотом после запуска (CR-1 п. 3, CR-6).
+func _off() -> bool:
+	_cfg = Config.get_config("atmosphere").get("air_model", {})
+	return String(_cfg.get("enabled", "auto")) == "off"
+
+
 func _device() -> RuntimeGpu:
-	if _gpu == null and String(_cfg.get("enabled", "auto")) != "off":
+	if _gpu == null and not _off():
 		if DisplayServer.get_name() != "headless":
 			_gpu = RuntimeGpu.new()
 			if not _gpu.init(
@@ -234,9 +241,14 @@ func setup(atmo: Object, place: Dictionary, cond_fn: Callable) -> void:
 	conditions_fn = cond_fn
 	var key := _key_of(place)
 	_wait_surface()  # снимок прежнего места мог ещё считаться — задача пула ожидается
+	if _off() and _gpu != null:
+		stop()  # включили «упрощённый ветер» — RD больше не держим
+		_release_clip()
+		_gpu.destroy()
+		_gpu = null
 	if key != _place_key:
 		stop()
-		_clip = null
+		_release_clip()
 		_warm = {}
 		_cur = {}
 		_cur_key = ""
@@ -338,7 +350,7 @@ static func conditions_of(clock: Object, atmo: Object, settings: Object) -> Dict
 ## нет места, нет GPU (без GPU расчёта нет — аналитика, P12 v4).
 func unavailable_reason() -> String:
 	var why := ""
-	if String(_cfg.get("enabled", "auto")) == "off":
+	if _off():
 		why = "air_model.enabled = off"
 	elif DisplayServer.get_name() == "headless":
 		why = "нет RenderingDevice: headless"
@@ -401,7 +413,7 @@ func load_field() -> bool:
 ## атмосферы) — без попыток и без строк в лог.
 func _baked_blocked() -> bool:
 	return (
-		String(_cfg.get("enabled", "auto")) == "off"
+		_off()
 		or Array(OS.get_cmdline_user_args()).any(_is_cmd_field)
 		or _place.get("detail") == null
 		or atmosphere == null
@@ -758,6 +770,14 @@ func busy() -> bool:
 ## Условия поля, что сейчас в атмосфере ({} — нет).
 func current_conditions() -> Dictionary:
 	return _cur
+
+
+## Окна клипмапа прежнего места: буферы освобождаются до того, как узел забудет клипмап
+## (иначе они остаются на общем RD до его уничтожения).
+func _release_clip() -> void:
+	if _clip != null:
+		_clip.release()
+		_clip = null
 
 
 ## Остановить расчёт и освободить GPU (поле в атмосфере остаётся).
@@ -1750,6 +1770,17 @@ class PreparedCase:
 class RuntimeGpu:
 	extends AirGpu
 	var _base := 0
+	## Есть отправленная и не дождавшаяся sync() работа: release() сначала дожидается её.
+	var _inflight := false
+
+	func submit() -> void:
+		super.submit()
+		_inflight = true
+
+	func sync() -> void:
+		if _inflight and rd != null:
+			_inflight = false
+			super.sync()
 
 	func init(shaders: Array = SHADERS) -> bool:
 		var ok := super.init(shaders)
@@ -1766,6 +1797,7 @@ class RuntimeGpu:
 		if rd == null:
 			return
 		_close_list()
+		sync()  # буферы освобождаются не под выполняющейся работой
 		for s: RID in _sets.values():
 			if rd.uniform_set_is_valid(s):
 				rd.free_rid(s)
