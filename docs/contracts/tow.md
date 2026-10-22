@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки tow: сила и звено троса (К4), трос и лебёдка (К5), место (К6), выбор (К7), модели (К8), Ан-2 (К9), тележка (К10)."
 related: ["docs/plan/tow.md", "docs/guide/flight.md", "docs/guide/models.md", "docs/guide/game.md"]
-contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 8}, {"id": "TW-К5", "version": 9}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 3}, {"id": "TW-К8", "version": 3}, {"id": "TW-К9", "version": 3}, {"id": "TW-К10", "version": 2}]
+contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id": "TW-К3", "version": 1}, {"id": "TW-К4", "version": 9}, {"id": "TW-К5", "version": 9}, {"id": "TW-К6", "version": 2}, {"id": "TW-К7", "version": 3}, {"id": "TW-К8", "version": 3}, {"id": "TW-К9", "version": 3}, {"id": "TW-К10", "version": 2}]
 ---
 # Контракты модуля tow
 
@@ -37,7 +37,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 ## TW-К3 v1. Модели
 Волна 1, закрыто (TW-3). Текст — `docs/contracts/tow-wave1.md`.
 
-## TW-К4 v8. Внешняя сила и звено троса в модели полёта
+## TW-К4 v9. Внешняя сила и звено троса в модели полёта
 Владелец — TW-5; потребители — TW-6 (трос и лебёдка), TW-7 (аэробуксировка), TW-10 (игра). Контрактный тест —
 `tests/contracts/test_tow_k4.gd`. Основание — `docs/research/tow/code.md#Внешняя сила в модели полёта`, `#Риски`;
 решение пользователя 2026-10-22 (сила троса с моментом; поправка рук не гасит трос; отцеп мгновенный; устойчивость —
@@ -75,15 +75,15 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 - Телеметрия (только чтение): `external_force_n: Vector3` (сумма явных сил и звена последнего подшага, мир игры),
   `link_tension_n: float`.
 
-**FlightModel** (`scripts/flight/flight_model.gd`, режимы `weight_shift`/`rate`, боты) и `GroundRun`
+**FlightModel** (`scripts/flight/flight_model.gd`, только боты — после roll-modes в main игрок всегда в «Маятнике») и `GroundRun`
 (`scripts/flight/ground_run.gd`): свойство `external_force: Vector3` (Н, мир игры, приложена в ЦМ, без момента);
 в воздухе — в сумму сил `_step_air`, на земле — проекция на направление разбега в `f_along`. `Vector3.ZERO` —
-как до правки. Моментов нет — lock-out в них невозможен, поэтому **буксировка игрока — только в «Маятнике»**
-(экран старта и CLI в режимах `weight_shift`/`rate` её не дают — TW-10); боты на буксирных местах стартуют в воздухе (Q1).
+как до правки. Моментов нет — lock-out в ней невозможен; игрок буксируется в «Маятнике», боты на буксирных местах
+стартуют в воздухе (Q1).
 `Glider` (`scripts/flight/glider.gd`): `Glider.set_external_force(fn: Callable)` — в «Маятнике» передаёт `fn`
 модели; в `FlightModel` вызывает `fn` раз в шаг физики с тем же словарём (`pilot_pos`/`hang_pos` = позиция ЦМ,
 скорости — скорость ЦМ) и кладёт `pilot + hang` в `external_force`; звено `link` в `FlightModel` **игнорируется**
-(`push_warning` один раз; буксировка в этих режимах недоступна — TW-К7 v2). `Glider.clear_external_force()`.
+(`push_warning` один раз; у игрока ветка не используется). `Glider.clear_external_force()`.
 `Glider.link_tension_n() -> float` (в `FlightModel` — 0).
 
 **Инварианты теста** (шаг 1/120 с, крыло `sport`, как `tests/flight/pendulum/pendulum_sim.gd`): (1) без функции и с
@@ -106,6 +106,7 @@ contracts: [{"id": "TW-К1", "version": 1}, {"id": "TW-К2", "version": 1}, {"id
 (среднее за последние 2 с удержания ввода), не по пику; для крена — первая 1 с удержания (дальше крыло уходит в
 вираж и пилот вместе с ним). Пороги (2) — вместо v1 «< 0,02 хода» без источника (ревью TW-2):
 важно, что ход управления остаётся.
+- v9 (2026-10-22, TW-20): после roll-modes `FlightModel` — только боты; текст о режимах игрока снят.
 - v8 (2026-10-22, ревью TW-5b): `pilot_share` нет — по `at` (`pilot` → 1, `hang` → 0); задан — главнее `at`
   (`TowLine`: `attach` не используется, доля — `bridle_pilot_share`); на тележке (TW-К10) всё натяжение — на пилота
   (граница модели); в (11) якорь набирает под ≈6° (установившийся набор, T 21–24 даН как в `kinds.md`).
