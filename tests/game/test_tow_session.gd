@@ -155,6 +155,8 @@ func test_models_and_no_session() -> void:
 			{"id": "a", "name": "A", "lat": 0.0, "lon": 0.0, "heading_deg": 0.0,
 			"tow": {"kinds": ["winch_static"], "runway_length_m": 300.0, "runway_width_m": 40.0}},
 			{"id": "b", "name": "B", "lat": 0.0, "lon": 0.0, "heading_deg": 20.0},
+			{"id": "c", "name": "C", "lat": 0.0, "lon": 0.0, "heading_deg": 0.0,
+			"tow": {"kinds": ["aerotow"], "runway_length_m": 400.0, "runway_width_m": 40.0}},
 		]
 	}
 	t._build_sites()
@@ -169,7 +171,7 @@ func test_models_and_no_session() -> void:
 	g._make_tow_session()
 	check(g.tow_session == null and g._tow_site.is_empty(), "сессия не создаётся")
 	g.settings.tow_kind = "aerotow"
-	check(not g._choose_tow_start(), "aerotow — пока без буксировки (TW-10b)")
+	check(not g._choose_tow_start(), "aerotow на площадке только с лебёдкой — старт без буксировки")
 	g.settings.tow_kind = "winch_static"
 	g.settings.site_id = "b"
 	check(not g._choose_tow_start(), "площадка без tow — старт без буксировки")
@@ -182,6 +184,20 @@ func test_models_and_no_session() -> void:
 		check(absf(g.tow_session.rope_length_m() - 300.0) < 0.5, "трос = min(1000, полоса 300): %.1f" % g.tow_session.rope_length_m())
 		var o := g._tow_bots_opts()
 		check(absf(float(o.agl_m) - 0.35 * 300.0) < 0.5, "высота отцепа ботов 35 %% троса: %s" % o.agl_m)
+		g.tow_session.queue_free()
+		g.tow_session = null
+	# aerotow (TW-10b): площадка c — полоса 400 м, трос 80 м, Ан-2 впереди, боты на высоте первого буксира
+	g.settings.tow_kind = "aerotow"
+	g.settings.site_id = "c"
+	check(g._choose_tow_start(), "площадка c — старт с тележки")
+	g._make_tow_session()
+	check(g.tow_session != null and g.tow_session.is_aerotow(), "сессия aerotow создана")
+	if g.tow_session != null:
+		check(absf(g.tow_session.rope_length_m() - 80.0) < 0.5, "трос 80 м: %.1f" % g.tow_session.rope_length_m())
+		check(g.glider.phase() == "dolly", "пилот на тележке: %s" % g.glider.phase())
+		var o2 := g._tow_bots_opts()
+		check(absf(float(o2.agl_m) - 300.0) < 0.5, "высота отцепа ботов 300 м: %s" % o2.agl_m)
+		check(absf(float(o2.ahead_m[1]) - 320.0) < 0.5, "боты над всей полосой 400 м: %s" % [o2.ahead_m])
 		g.tow_session.queue_free()
 	g.glider.free()
 	g.free()
