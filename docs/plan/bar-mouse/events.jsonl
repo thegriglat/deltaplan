@@ -48,3 +48,5 @@
 {"t": "2026-10-23T04:30:37", "by": "executor", "task": "BM-5", "ev": "reported", "commits": ["7bebd4fb"], "note": "done: Доработка: абзац «Известная ошибка» убран из cameras-input.md."}
 {"t": "2026-10-23T04:30:50", "by": "coordinator", "task": "BM-5", "ev": "accepted", "note": "2/2 docs=ok:exit 1; mouse_doc=ok:1"}
 {"t": "2026-10-23T04:30:56", "by": "coordinator", "task": "BM-5", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T04:31:05", "by": "coordinator", "task": "BM-5", "ev": "accepted", "commits": ["6f5dcf53"], "note": "2/2 docs=ok:exit 1; mouse_doc=ok:1"}
+{"t": "2026-10-23T04:31:06", "by": "coordinator", "task": "BM-5", "ev": "merged"}
