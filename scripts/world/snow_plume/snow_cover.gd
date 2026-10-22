@@ -5,8 +5,11 @@ extends RefCounted
 ## источник шлейфа — снег наветренного склона.
 
 ## Кэш на экземпляр Terrain: scene_look_params() собирает раздел конфига и небо — слишком дорого
-## для вызова на каждую точку. Меняется дата или широта — пересчитывается.
+## для вызова на каждую точку. Пересчёт: смена даты, широты, _look (по хешу) и раз в кадр (snow_enabled).
+## Вне детального слоя (terrain.detail_bounds()) снега нет.
 static var _cache: Dictionary = {}
+## Тесты: номер кадра вместо Engine.get_process_frames() (-1 — настоящий).
+static var frame_override := -1
 
 
 static func _ss(e0: float, e1: float, x: float) -> float:
@@ -26,13 +29,21 @@ static func _pair(v: Variant, d0: float, d1: float) -> Vector2:
 static func snow_fraction(terrain: Terrain, x: float, z: float) -> float:
 	if terrain == null:
 		return 0.0
+	if not terrain.detail_bounds().has_point(Vector2(x, z)):
+		return 0.0
 	var look: Dictionary = terrain._look
 	var key := terrain.get_instance_id()
 	var c: Dictionary = _cache.get(key, {})
-	if c.is_empty() or c.doy != terrain.flight_doy or c.lat != terrain.center_lat:
+	var frame := frame_override if frame_override >= 0 else Engine.get_process_frames()
+	var lh := look.hash()
+	# scene_look (snow_enabled и др.) пересобирается раз в кадр; смена _look, даты, широты — сразу
+	if (
+		c.is_empty() or c.doy != terrain.flight_doy or c.lat != terrain.center_lat
+		or c.look_hash != lh or c.frame != frame
+	):
 		var sl: Dictionary = terrain.scene_look_params()
 		c = {
-			"doy": terrain.flight_doy, "lat": terrain.center_lat, "sl": sl,
+			"doy": terrain.flight_doy, "lat": terrain.center_lat, "look_hash": lh, "frame": frame,
 			"line": SeasonLook.snow_line(terrain.flight_doy, terrain.center_lat, sl),
 			"enabled": bool(sl.get("snow_enabled", true)),
 			"band": float(sl.get("snow_fresh_band_m", 300.0)),

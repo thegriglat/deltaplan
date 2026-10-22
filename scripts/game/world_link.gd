@@ -98,6 +98,9 @@ func _link_prep(terrain: Terrain, air: Node, pilot: Node3D) -> bool:
 		terrain.set_pilot(pilot)
 	RockScatter.attach(terrain)
 	ShrubScatter.attach(terrain)
+	SnowPlume.attach(
+		terrain, air, Callable(get_parent(), "air_temp_c_at") if get_parent().has_method("air_temp_c_at") else Callable()
+	)
 	var loc := terrain.location_id
 	if loc == _location and not terrain.layers.is_empty():
 		return false  # та же локация — объекты и просеки уже стоят

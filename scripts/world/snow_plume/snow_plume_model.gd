@@ -2,22 +2,23 @@ class_name SnowPlumeModel
 extends RefCounted
 ## Модель снежных флагов (SNW-К1/К3/К4 v1, docs/contracts/snow-plume.md): рельеф, снег, ветер, температура
 ## -> список источников шлейфа. Без узлов сцены; вызывать update() каждый кадр из главного потока.
-## Числа порога в DEFAULTS — тестовые умолчания; настоящие придут из SNW-1 через configs/snow_plume.json.
+## Числа DEFAULTS — по К4 v2 и SNW-1 (Li & Pomeroy 1997); игра берёт их из configs/snow_plume.json.
 
 const DEFAULTS := {
-	"radius_m": 6000.0, "max_emitters": 24, "update_s": 0.5, "max_wind_samples": 160,
-	"scan_step_m": 50.0, "scan_points_per_frame": 4000, "rescan_m": 1000.0, "rescan_dir_deg": 10.0,
-	"fetch_m": 200.0, "lee_slope_deg": 15.0, "spacing_m": 150.0, "snow_min": 0.5,
-	"start_agl_m": 2.0, "min_agl_m": 3.0, "path_points": 6, "path_dt_s": 8.0, "span_ms": 8.0,
-	"threshold": {"a": 9.0, "b": 0.0, "c": 0.0, "wet_t_c": 0.0, "wet_u10_ms": 12.0},
+	"radius_m": 6000.0, "max_emitters": 24, "update_s": 0.5, "max_wind_samples": 200,
+	"scan_step_m": 50.0, "scan_points_per_frame": 1000, "rescan_m": 1000.0, "rescan_dir_deg": 10.0, "dir_tolerance_k": 2.0,
+	"fetch_m": 300.0, "lee_slope_deg": 15.0, "spacing_m": 150.0, "snow_min": 0.5,
+	"start_agl_m": 3.0, "min_agl_m": 3.0, "path_points": 6, "path_dt_s": 5.0, "span_ms": 8.0,
+	"threshold": {"a": 9.43, "b": 0.18, "c": 0.0033, "wet_t_c": 0.0, "wet_u10_ms": 9.9},
 }
 ## Точки снега на наветренном отрезке (доли fetch_m от гребня против ветра).
 const SNOW_FRACS := [0.2, 0.5, 0.8]
 ## Вызовов height_fn/snow_fn на одну точку сетки в худшем случае (3 высоты + 2 высоты + 3 снега).
 const POINT_CALLS_MAX := 8
 ## Источник отбрасывается, если местный ветер повернут от направления скана сильнее,
-## чем на это число rescan_dir_deg (геометрия гребня к нему уже не относится).
-const DIR_TOLERANCE_K := 2.0
+## чем dir_tolerance_k·rescan_dir_deg (геометрия гребня к нему уже не относится).
+## Температура, если temp_fn не задан: порог при −10 °C (сухой снег).
+const FALLBACK_T_C := -10.0
 
 var _cfg: Dictionary
 var _height_fn: Callable
@@ -59,7 +60,7 @@ func _init(cfg: Dictionary, height_fn: Callable, snow_fn: Callable, wind_fn: Cal
 	_height_fn = height_fn
 	_snow_fn = snow_fn
 	_wind_fn = wind_fn
-	_temp_fn = temp_fn
+	_temp_fn = temp_fn if temp_fn.is_valid() else func(_h: float) -> float: return FALLBACK_T_C
 
 
 # ---------------- SNW-К1 ----------------
@@ -243,7 +244,7 @@ func _build_list(cam: Vector3) -> void:
 	var np := clampi(int(_cfg.path_points), 2, 8)
 	var dt_p := float(_cfg.path_dt_s)
 	var min_agl := float(_cfg.min_agl_m)
-	var tol := cos(deg_to_rad(float(_cfg.rescan_dir_deg) * DIR_TOLERANCE_K))
+	var tol := cos(deg_to_rad(float(_cfg.rescan_dir_deg) * float(_cfg.dir_tolerance_k)))
 	for e: Array in near:
 		if out.size() >= max_n or _wind_calls >= max_w:
 			break
