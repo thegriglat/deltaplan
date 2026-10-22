@@ -1,0 +1,27 @@
+{
+  "status": "done",
+  "summary": "Доработка: абзац «Известная ошибка» убран из cameras-input.md.",
+  "commits": [
+    "7bebd4fb убран абзац про залипание ПКМ"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "mouse_doc",
+      "value": "1",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept BM-5",
+  "uncertain": [],
+  "dp_feedback": "",
+  "t": "2026-10-23T04:30:37",
+  "by": "executor"
+}
