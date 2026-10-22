@@ -46,6 +46,7 @@ func _push(rel: Vector2) -> void:
 	ev.position = p
 	ev.global_position = p
 	ev.relative = rel
+	ev.screen_relative = rel
 	get_viewport().push_input(ev)
 
 
@@ -153,3 +154,11 @@ func test_look_sensitivity_does_not_move_bar() -> void:
 		check(absf(res[0].y) > 0.1, "%s: штанга двигалась" % cam)
 	m["look_sensitivity_deg_per_px"] = saved
 	await _close(main)
+
+
+func test_os_accel_hint_in_locale() -> void:
+	for loc in ["ru", "en"]:
+		TranslationServer.set_locale(loc)
+		var t := TranslationServer.translate("settings_bar_os_accel")
+		check(t != "settings_bar_os_accel" and not t.is_empty(), "locale %s: settings_bar_os_accel" % loc)
+	TranslationServer.set_locale("ru")

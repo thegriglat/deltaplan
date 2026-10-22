@@ -54,6 +54,7 @@ func _push_motion(rel: Vector2, p: Vector2) -> void:
 	ev.position = p
 	ev.global_position = p
 	ev.relative = rel
+	ev.screen_relative = rel
 	get_viewport().push_input(ev)
 
 

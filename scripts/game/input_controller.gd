@@ -101,7 +101,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	# держит положение (иначе после возврата в кабину трапеция стояла бы, куда вела камера).
 	if mouse_captured and event is InputEventMouseMotion and not _bar_look_held and not hands_off:
 		# мышь от себя (вверх по экрану) = трапеция от себя; ход — в отсчётах мыши (BM-К1)
-		_mouse_offset = MouseBar.accumulate(_mouse_offset, event.relative, _cfg.mouse)
+		_mouse_offset = MouseBar.accumulate(_mouse_offset, event.screen_relative, _cfg.mouse)
 
 
 ## Новый полёт: трапеция в нейтраль.

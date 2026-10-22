@@ -118,8 +118,18 @@ func _ready() -> void:
 	_bar_sens.value_changed.connect(
 		func(x: float) -> void:
 			var travel := float(Config.value("controls", "mouse.bar_travel_px", 2500.0))
-			bar_lbl.text = tr("settings_bar_sensitivity_fmt") % [x, travel / maxf(x, 0.05) / 315.0]
+			if _bar_cm_valid():
+				bar_lbl.text = tr("settings_bar_sensitivity_fmt") % [x, travel / maxf(x, 0.05) / 315.0]
+			else:
+				bar_lbl.text = "%.2f×" % x
 	)
+	if not _bar_cm_valid():
+		# Wayland/macOS: ввод с ускорением ОС, см неверны (BM-2) — вместо них подсказка
+		var hint := Label.new()
+		hint.text = tr("settings_bar_os_accel")
+		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hint.modulate = Color(1, 1, 1, 0.7)
+		box_ctl.add_child(hint)
 	_invert = CheckBox.new()
 	_invert.text = tr("settings_invert_pitch_hint")
 	UiKit.row(box_ctl, tr("settings_invert_pitch"), _invert)
@@ -331,6 +341,11 @@ func set_net_mode(on: bool) -> void:
 
 
 ## Показать текущие значения из Config.
+## «≈ N см» у слайдера штанги верно только там, где мышь даёт сырые отсчёты (Windows, X11; BM-К1 v2).
+func _bar_cm_valid() -> bool:
+	return DisplayServer.get_name() in ["Windows", "X11"]
+
+
 func load_values() -> void:
 	_language.select(maxi(_language_codes.find(Language.current()), 0))
 	var saved_name := String(Config.value("game", "net.pilot_name", ""))
