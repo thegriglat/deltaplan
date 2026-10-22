@@ -66,6 +66,7 @@ generated: true
   - [docs/guide/models/trike.md](guide/models/trike.md) — Модель тележки трайка trike.glb: источники размеров, оси и узлы, винт prop_spin и обороты, бюджеты, сборка, чего модель не умеет.
   - [tools/research/trike-model/README.md](../tools/research/trike-model/README.md) — TK-1: размеры трайка (источники), замер точки глаз сидячей позы, блок seat, расхождение с реальной посадкой, команды
   - [tools/research/trike-model/summary.md](../tools/research/trike-model/summary.md) — TK-1: краткий итог размеров трайка и точки глаз
+- **trike-pilot** — Дельталёт для игрока: «Маятник» + тяга tow-trike, газ W/S, двигатель пробелом, руление, приборы, звук; одиночная игра. [active 2026-10-22] — [план](plan/trike-pilot.md) · [контракты](contracts/trike-pilot.md)
 
 ## world
 
