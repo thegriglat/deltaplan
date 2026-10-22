@@ -3,7 +3,7 @@ extends TestCase
 ## HH2 (воздух 700 гПа), HH5 (Tmax и суточная амплитуда), HH6 (ветер, тропопауза, перистые).
 
 const DOC := "res://docs/contracts/haze-humidity.md"
-const VERSIONS := {"HH1": 1, "HH2": 2, "HH3": 1, "HH4": 2, "HH5": 1, "HH6": 2, "HH7": 1}
+const VERSIONS := {"HH1": 1, "HH2": 2, "HH3": 1, "HH4": 3, "HH5": 1, "HH6": 2, "HH7": 1}
 const GRID := "res://data/climate/dew_point_1deg.bin"
 const UPPER := "res://data/climate/upper_air_1deg.bin"
 const SURFACE := "res://data/climate/surface_t_1deg.bin"
