@@ -1,0 +1,65 @@
+{
+  "id": "TT-6",
+  "module": "tow-trike",
+  "type": "dp-writer",
+  "title": "Документация буксировщика-дельталёта и CHANGELOG",
+  "goal": "Документация описывает буксировщик-дельталёт как он есть: модель (тележка+крыло+трапеция), физика (Маятник, тяга, колёса, автопилот), числа связки и границы модели; Ан-2 как буксировщика в guide нет; CHANGELOG и findings.",
+  "plan_ref": "§4 TT-6",
+  "contracts": [
+    {
+      "name": "TT-К1",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TT-К4",
+      "version": "4",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TT-К5",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TT-К6",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-6",
+  "branch": "tow-trike/TT-6",
+  "base": "feature/tow-trike",
+  "scope": [
+    "docs/guide/",
+    "docs/contracts/tow.md",
+    "docs/plan/trike.md",
+    "CHANGELOG.md",
+    "docs/registry/",
+    "docs/INDEX.md",
+    "docs/research/tow/trike-tug.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/tow-trike.md",
+    "docs/plan/tow-trike.md",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "sh -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*(guide|tow|trike|registry|CHANGELOG)\" || echo clean'",
+      "expect": "re:^clean"
+    },
+    {
+      "name": "no_an2_tug",
+      "cmd": "sh -c 'grep -rniE \"буксировщик[^.]*(ан-2|an-2)|(ан-2|an-2)[^.]*буксир\" docs/guide | grep -viE \"пасхалк|easter|раньше|был\" | wc -l'",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T22:21:23"
+}
