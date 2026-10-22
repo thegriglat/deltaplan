@@ -179,15 +179,25 @@ for p, m, nm in pts:
         if best_b is None or s < best_b[0]:
             best_b = (s, p)
 
-# --- подножки / педаль
+# --- педали (TK-K1 v4: плита наклонена на pedal_angle_deg передним краем вверх): зазор подошвы по нормали педали
+pa = math.radians(S["pedal_angle_deg"])
+n_p = Vector((0, -math.sin(pa), math.cos(pa)))
 feet = {}
 for side, key, sx in (("l", "foot_l", -1), ("r", "throttle_pedal", 1)):
     fp = V(S[key])
-    cand = [i for i in closed if i["lo"].x - 0.05 <= fp.x <= i["hi"].x + 0.05 and i["lo"].y - 0.1 <= fp.y <= i["hi"].y + 0.1
-            and i["hi"].z - fp.z < 0.06 and fp.z - i["hi"].z < 0.06 and (i["hi"].z - i["lo"].z) < 0.06]
+    cand = [min((i for i in closed if (i["hi"].z - i["lo"].z) < 0.4 and (i["hi"] - i["lo"]).length < 0.5),
+                key=lambda i: ((i["hi"] + i["lo"]) / 2 - fp).length)]
+    assert ((cand[0]["hi"] + cand[0]["lo"]) / 2 - fp).length < 0.03, "педаль не найдена"
     sole = [p for p, m, nm in pts if m == "Sole" and p.x * sx > 0]
-    g = down_gap(sole, cand)
-    feet[side] = (g, cand)
+    best = None
+    for p in sole:
+        loc, nor, idx, dist = cand[0]["bvh"].ray_cast(p + n_p * 0.3, -n_p)
+        if loc is None:
+            continue
+        g = (p - loc).dot(n_p)
+        if best is None or g < best[0]:
+            best = (g, p, loc)
+    feet[side] = (best, cand)
 
 # --- глаза и контрольные точки позы
 head = bpy.data.objects["Head"].matrix_world.translation
@@ -223,12 +233,48 @@ res = {
     "foot_gap_r_signed_cm": round(feet["r"][0][0] * 100, 2) if feet["r"][0] else None,
     "foot_gap_r_cm": r(feet["r"][0][0]) if feet["r"][0] else None,
     "foot_support_islands": {k: len(v[1]) for k, v in feet.items()},
+    "foot_gap_method": "ray along pedal normal (pedal_angle_deg), min over Sole vertices",
     "eye_err_cm": round(eye_err, 2), "head": [round(c, 3) for c in head], "seat_eye": S["eye"],
     "hip_err_cm": round((hip_mid - V(S["hip"])).length * 100, 2),
 }
 overs = [-x for x in (res["seat_gap_signed_cm"], res["foot_gap_l_signed_cm"], res["foot_gap_r_signed_cm"]) if x is not None and x < 0]
 res["pen_support_cm"] = round(max(overs, default=0.0), 2)
 res["max_penetration_cm"] = round(max(res["pen_inside_cm"], res["pen_support_cm"]), 2)
+
+# --- TK-12: лучи глаз -> панель против штанги на всём ходе (плоскость YZ, цилиндр вдоль X, |x| <= half_width)
+B, PN = P["bar"], P["panel"]
+n = V(PN["normal"]).normalized()
+ux = Vector((1, 0, 0))
+uv = n.cross(ux).normalized()
+eye = V(S["eye"])
+tgt = []
+for i in range(-4, 5):
+    for j in range(-4, 5):
+        tgt.append(V(PN["center"]) + ux * (PN["size"][0] / 2 * i / 4) + uv * (PN["size"][1] / 2 * j / 4))
+rad = B["d"] / 2 + 0.01  # зазор в 1 см, как в тесте K1
+ang = [math.atan2(B[k][1], -B[k][2]) for k in ("full_pull", "trim", "full_push")]  # от вертикали вниз, по оси Y
+Rb = math.hypot(B["trim"][1], B["trim"][2])
+lo_a, hi_a = math.radians(math.degrees(min(ang)) - 3), math.radians(math.degrees(max(ang)) + 3)
+hits, dmin, nsteps = 0, 1e9, 0
+a_ = lo_a
+while a_ <= hi_a + 1e-9:
+    c = (Rb * math.sin(a_), -Rb * math.cos(a_))
+    nsteps += 1
+    for t in tgt:
+        p0, p1 = (eye.y, eye.z), (t.y, t.z)
+        d = (p1[0] - p0[0], p1[1] - p0[1])
+        L2 = d[0] ** 2 + d[1] ** 2
+        u = max(0.0, min(1.0, ((c[0] - p0[0]) * d[0] + (c[1] - p0[1]) * d[1]) / L2))
+        dist = math.hypot(p0[0] + u * d[0] - c[0], p0[1] + u * d[1] - c[1])
+        dmin = min(dmin, dist)
+        if dist < rad and abs(eye.x + (t.x - eye.x) * u) <= B["half_width"]:
+            hits += 1
+    a_ += math.radians(0.5)
+res["bar_ray_hits"] = hits
+res["bar_ray_min_dist_m"] = round(dmin, 3)
+res["bar_ray_n_rays"] = len(tgt)
+res["bar_ray_n_arc_steps"] = nsteps
+res["bar_ray_arc_deg"] = [round(math.degrees(lo_a), 1), round(math.degrees(hi_a), 1)]
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 json.dump(res, open(OUT, "w"), indent=1, ensure_ascii=False)
 print("FIT", json.dumps({k: v for k, v in res.items() if k not in ("method", "model", "pen_inside_worst")}, ensure_ascii=False))
