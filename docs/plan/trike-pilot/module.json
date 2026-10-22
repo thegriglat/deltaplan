@@ -1,0 +1,11 @@
+{
+  "module": "trike-pilot",
+  "plan": "docs/plan/trike-pilot.md",
+  "contracts": "docs/contracts/trike-pilot.md",
+  "branch": "feature/trike-pilot",
+  "copy": "~/deltaplan-trike-pilot",
+  "created": "2026-10-22T22:37:03",
+  "code": "TP",
+  "area": "flight",
+  "base": "main"
+}
