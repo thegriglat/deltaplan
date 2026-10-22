@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки буксировщика-дельталёта: параметры (tow_tug.json), крыло trike_ixess15, тележка в «Маятнике» (колёса, перегрузки), TowTug v4, вид."
 related: ["docs/plan/tow-trike.md", "docs/contracts/tow.md", "docs/contracts/trike-model.md", "docs/contracts/pendulum.md"]
-contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id": "TT-К3", "version": 3}, {"id": "TT-К4", "version": 1}, {"id": "TT-К5", "version": 1}, {"id": "TT-К6", "version": 1}]
+contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id": "TT-К3", "version": 3}, {"id": "TT-К4", "version": 2}, {"id": "TT-К5", "version": 1}, {"id": "TT-К6", "version": 1}]
 ---
 # Контракты модуля tow-trike (код задач TT)
 
@@ -106,7 +106,7 @@ contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id
   допущения кода: `WHEELS_STRETCH_K` (поправка растяжения цепи под решатель) и вес смешивания покоя/полёта подобраны,
   непрерывность проверена на крыле `sport` — TT-4 повторяет проверку (5б) на `trike_ixess15`.
 
-## TT-К4 v1. Буксировщик-дельталёт: `TowTug` (заменяет TW-К9 v3)
+## TT-К4 v2. Буксировщик-дельталёт: `TowTug` (заменяет TW-К9 v3)
 Владелец — TT-4; потребители — TT-5 (игра: модели, звук). Контрактный тест — `tests/contracts/test_tow_k9.gd`
 (переписывает TT-4 под эту версию). Основание — решение пользователя 2026-10-22 (п. 2, 3, 6), TT-К1, BHPA
 (`docs/research/tow/kinds-bhpa.md#Аэробуксировка`).
@@ -140,6 +140,12 @@ contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id
   без троса (`set_rope_force` 0) отрывается и набирает; в `climb` с постоянной силой троса 300 Н назад-вниз 5° за
   последние 10 с из 30 воздушная скорость = `tow_speed_kmh` ± 3 км/ч и крен < 5°; в `circuit` крен =
   `circuit_bank_deg` ± 3°; после `release()` — `away`, `throttle` = `away.throttle`, `gone` через `away_s`.
+- v2 (2026-10-22, вопрос TT-4 → координатор): `cart_basis` — ориентация **модели** тележки `trike.glb`: на колёсах —
+  +Y по нормали земли, −Z по курсу (тележка стоит на колёсах, крыло качается относительно неё); в воздухе — поворот
+  модели, при котором вектор «точка подвески → ЦМ тележки» в осях `trike.glb` (`docs/research/tow/trike-tug.md`,
+  `tools/research/tow-trike/cart.py`) совпадает с направлением подвеска → ЦМ тележки в модели полёта, −Z — по курсу;
+  после отрыва переход с колёсной ориентации на воздушную непрерывный (не быстрее 20°/с). Правит TT-5 (только
+  `cart_basis` в `tow_tug.gd`), физика не меняется.
 - **Связка (шлюз модуля)** — `tests/game/test_tow_trike_climb.gd` (пишет TT-4): `Glider` `sport` в «Маятнике» на тележке
   (TW-К10), `TowLine` `aerotow` (TW-К5), `TowTug`, пилот держит тангаж простым регулятором (как TW-К4 инв. 10), без
   ветра, до 300 м: отрыв буксировщика (`agl_m` > 0,5) — не дальше `configs/tow.json aerotow.runway_length_m` от места
