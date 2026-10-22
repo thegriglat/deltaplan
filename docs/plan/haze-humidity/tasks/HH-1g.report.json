@@ -1,0 +1,66 @@
+{
+  "status": "partial",
+  "summary": "Сетка 700 гПа заменена настоящей климатологией ERA5 (CDS, monthly-means by hour of day, 00+12 UTC, 2011–2020, 1°): 1,38 МБ, year0/year1=2011/2020, Z 2452…3234 м (инвариант выдержан). σ T700 (t700_sd.npz) не посчитана — шлюз Q4: файл есть, но NaN.",
+  "commits": [
+    "1ad672d2 скрипты CDS",
+    "bca9b3df сетка 700 гПа из ERA5 2011–2020, σ T700 отложена"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "7/7 PASS",
+      "pass": true
+    },
+    {
+      "name": "grid_size",
+      "value": "1379274 байт (<=2097152)",
+      "pass": true
+    },
+    {
+      "name": "T700 диапазон",
+      "value": "-49.6..19.3 C",
+      "pass": true
+    },
+    {
+      "name": "Z700 диапазон",
+      "value": "2452..3234 м в [2000,3500]",
+      "pass": true
+    },
+    {
+      "name": "Алтай T700 сетка - таблица",
+      "value": "среднее -1.17 C (май -3.6, июль +0.8); dz_dry ~ -200 м",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "σ суточной T700: daily-statistics (лимит стоимости 400 -> 20 запросов год x полугодие) не запускалась по шлюзу Q4; t700_sd.npz = NaN, sites.csv t700_sd_k = nan"
+  ],
+  "questions": [
+    "Q4: сколько лет для σ (2 вместо 10?). Запуск: fetch_cds.py daily (поправить YEARS), затем aggregate_cds.py, bake.py, sites.py"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-1g",
+  "uncertain": [
+    {
+      "where": "tools/research/haze_humidity/upper_air/aggregate_cds.py",
+      "why": "grid 1.0 у CDS — интерполяция узлов, не среднее по площади 0.25->1; ячейка = среднее 4 узлов",
+      "checked": "поле 700 гПа гладкое; диапазоны и значения для мест разумны, сравнение с 0.25 не делалось"
+    },
+    {
+      "where": "sites.csv",
+      "why": "таблица upper_air подогнана под Алтай; Крым +4.8, Иран +16, Кэрнс +16 C — единый воздух мира не годится",
+      "checked": "числа в README"
+    }
+  ],
+  "dp_feedback": "Очередь CDS занимает часы на запрос; замок cds.lock и инструкции приходят дополнениями по ходу — лучше единый регламент загрузки CDS в карточке. dpcli job убивает cdsapi-клиент. Скрипты ловят собственный kill через цикл по /proc: pkill -f запрещён, нужен dpcli-способ найти процесс по имени скрипта.",
+  "extra": {
+    "file_bytes": 1379274,
+    "cds_wait_s": 8788,
+    "years": [
+      2011,
+      2020
+    ]
+  },
+  "t": "2026-10-22T06:37:58",
+  "by": "executor"
+}
