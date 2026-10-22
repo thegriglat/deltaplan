@@ -1,0 +1,62 @@
+{
+  "id": "TT-3",
+  "module": "tow-trike",
+  "type": "dp-engineer",
+  "title": "Тележка дельталёта в «Маятнике»: колёса, сопротивление, предел рук",
+  "goal": "PendulumModel принимает тележку дельталёта вместо пилота: ключи apparatus pilot_cda_m2 и arms_force_max_n, разбег на колёсах reset_on_wheels с отрывом по N≤0 — по TT-К3; без новых ключей поведение бит в бит.",
+  "plan_ref": "§4 TT-3",
+  "contracts": [
+    {
+      "name": "TT-К3",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TW-К4",
+      "version": "9",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TW-К10",
+      "version": "2",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-3",
+  "branch": "tow-trike/TT-3",
+  "base": "feature/tow-trike",
+  "scope": [
+    "scripts/flight/pendulum/",
+    "tests/contracts/test_tow_trike_k3.gd",
+    "tests/contracts/test_tow_trike_k3.gd.uid",
+    "tests/flight/pendulum/"
+  ],
+  "dont_touch": [
+    "scripts/game/",
+    "configs/",
+    "scripts/flight/flight_model.gd",
+    "scripts/flight/glider.gd",
+    "scripts/flight/tow/"
+  ],
+  "accept": [
+    {
+      "name": "tow_trike_k3",
+      "tests": "tow_trike_k3"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "contracts/",
+      "tests": "contracts/"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T16:34:48"
+}
