@@ -1,19 +1,14 @@
 {
   "status": "partial",
-  "summary": "upper_misc_1deg.bin (HH6 v2, 1,78 МБ, 2011–2020): HCC и TROP из ERA5 (CDS, месячные средние), WR — заглушка (stub_mask=1), т.к. суточные |V700| ждут шлюза Q4. README, sites.csv, конвейер готовы.",
+  "summary": "upper_misc_1deg.bin (HH6 v2, 1,78 МБ): HCC и TROP из ERA5 (CDS, месячные средние 2011–2020), WR — заглушка (stub_mask=1). Шлюз Q4 снят: загрузчик fetch_wr.py (2018–2019, 8 запросов полгода x u/v, стоимость 362 из 400) запущен под cds.lock (PID 739820), но стоит в очереди на замок за двумя чужими загрузчиками; ни один запрос ещё не отправлен. Добавлен hcc_sky.json (k_sky по облачности дня) без загрузок.",
   "commits": [
-    "93821f07 конвейер upper_misc",
-    "последний: сетка upper_misc_1deg.bin, README, sites.csv"
+    "3d5eb37b сетка + README + sites.csv",
+    "последний: k_sky (hcc_sky.json), fetch_wr.py, aggregate_cds под uv700"
   ],
   "checks": [
     {
       "name": "accept --dry",
-      "value": "6/6 PASS",
-      "pass": true
-    },
-    {
-      "name": "test_upper_misc_format",
-      "value": "ok, 14 тестов 0 упало",
+      "value": "6/6 PASS + scope",
       "pass": true
     },
     {
@@ -22,41 +17,34 @@
       "pass": true
     },
     {
-      "name": "TROP диапазон",
-      "value": "7537…17233 м, найдена в 100% ячеек; экватор 16,6 км, Алтай 10,0–11,1 км",
-      "pass": true
-    },
-    {
-      "name": "HCC",
-      "value": "0…0,94; Алтай 0,39, Дараб 0,14, Кэрнс 0,31 (год)",
+      "name": "k_sky",
+      "value": "clear 0,12–0,35; partly 0,48–0,93; overcast 1,2–2,4 (пояс x сезон)",
       "pass": true
     }
   ],
   "not_done": [
-    "WR из данных: нужно 120 запросов derived-era5-pressure-levels-daily-statistics (u,v 700 гПа, по месяцу); не запускал — шлюз Q4. Оценка занижения (u10_2015_01/07) тоже не скачана."
+    "WR из данных: ждём очередь замка и CDS (8 запросов, часы). После файлов ~/data/haze_humidity/upper_misc_cds/uv700_*.nc: aggregate_cds.py, bake.py, sites.py, README (WR = |V700| 2018–2019 / V10 тех же лет; погрешность короткого ряда — v7_diff_2018_2019 в npz), перезапуск accept."
   ],
-  "questions": [
-    "Q4: разрешить 120 месячных запросов daily_mean u,v 700 гПа (очередь CDS: sl_monthly ждал ~2 ч, tz ~3 ч) или принять WR-заглушку / WR по месячным средним u,v?"
-  ],
+  "questions": [],
   "how_to_check": ".dpcli/dpcli accept HH-1f",
   "uncertain": [
     {
       "where": "upper_misc/aggregate_cds.py:tropopause",
-      "why": "ВМО по среднему профилю на 14 уровнях (шаг 1–2,5 км): ±300–500 м; у Крыма в июле–августе 15,3/14,9 км (артефакт скачка тропопаузы у струйного течения, реально ~12–13 км)",
-      "checked": "экватор, Алтай, полюса — правдоподобно"
+      "why": "ВМО по среднему профилю, 14 уровней: ±300–500 м; Крым июль–август 15,3/14,9 км — артефакт",
+      "checked": "экватор, Алтай, полюса"
     },
     {
-      "where": "sites.csv hcc_med/hcc_lt01",
-      "why": "по выборке ARCO ~22 сут/месяц, шумно",
-      "checked": "7 файлов с NaN обработаны nan-функциями"
+      "where": "hcc_sky.json",
+      "why": "tcc включает hcc (зависимость класса и hcc); выборка 00+12 UTC сутки 1 и 13; 3 года",
+      "checked": "n клетко-дней >= 2853 в классе"
     },
     {
       "where": "sites.csv gain_per_km",
-      "why": "z700 — заглушка 3000 м (HH2), wr — заглушка: gain = 0,6 по построению",
+      "why": "z700 и wr — заглушки",
       "checked": "-"
     }
   ],
-  "dp_feedback": "Очередь CDS общая на аккаунт: осиротевшие запросы погибших процессов блокируют всех (пришлось удалять через get_jobs/get_remote.delete). Хорошо бы dpcli cds-queue (список/очистка своих запросов) и общий загрузчик под замком. rtk/хук прячет вывод ps/grep.",
+  "dp_feedback": "Очередь на общий cds.lock: загрузчики разных задач ждут друг друга часами, без видимости очереди. Нужны dpcli cds-queue (кто держит замок, что в очереди) и общий загрузчик; rtk/хук прячет вывод ps.",
   "extra": {
     "hcc_year_mean": {
       "altai": 0.39,
@@ -73,8 +61,9 @@
       "darab": 16653,
       "cairns": 16502
     },
-    "stub_mask": 1
+    "stub_mask": 1,
+    "fetch_wr_pid": 739820
   },
-  "t": "2026-10-22T07:36:49",
+  "t": "2026-10-22T14:38:59",
   "by": "executor"
 }
