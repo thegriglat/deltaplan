@@ -171,3 +171,6 @@
 {"t": "2026-10-22T14:45:14", "by": "coordinator", "task": "TK-13", "ev": "accepted", "note": "по отчёту; partial: 2 крыла с полным набором (iXess 15, Profi TL), крутка/латты/ЦМ/тяга — н/д"}
 {"t": "2026-10-22T14:45:15", "by": "coordinator", "task": "TK-13", "ev": "accepted", "commits": ["791eebc2"], "note": "3/3 docs=ok:exit 0; wings=ok:3; physics=ok:0"}
 {"t": "2026-10-22T14:45:16", "by": "coordinator", "task": "TK-13", "ev": "merged"}
+{"t": "2026-10-22T14:48:22", "by": "executor", "task": "TK-10", "ev": "reported", "commits": ["7d15bdb4"], "note": "done: trike_params.json v3: трубы киля/мачты/подкоса 0.06, бак 53 л (0.34×0.43×0.355) над килем с keel_clear 0.03, резонансна…", "dp_feedback": "accept --dry на копии без .godot ждёт 900 с таймаута без подсказки про --import; стоило бы выполнять import автоматически или писать причину в лог."}
+{"t": "2026-10-22T14:48:32", "by": "coordinator", "task": "TK-10", "ev": "checked", "note": "3/3 trike_model_k1=ok:3/3; docs=ok:exit 0; v3=ok:bad=0 tubes=3 clear=0.03"}
+{"t": "2026-10-22T14:48:41", "by": "coordinator", "task": "TK-10", "ev": "accepted", "note": "по отчёту"}
