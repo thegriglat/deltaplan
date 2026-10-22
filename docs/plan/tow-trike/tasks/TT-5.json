@@ -1,0 +1,84 @@
+{
+  "id": "TT-5",
+  "module": "tow-trike",
+  "type": "dp-engineer",
+  "title": "Вид и звук буксировщика-дельталёта, Ан-2 из буксировки",
+  "goal": "В игре буксировщик — trike.glb + крыло glider_trike_ixess15.glb + пилот sit с винтом prop_spin от оборотов и синтезированным звуком двухтактного мотора; cart_basis по TT-К4 v4; Ан-2 в буксировке нет (TT-К5), пасхалка EggAn2 остаётся.",
+  "plan_ref": "§4 TT-5",
+  "contracts": [
+    {
+      "name": "TT-К5",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TT-К4",
+      "version": "4",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TK-K2",
+      "version": "4",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TK-K3",
+      "version": "2",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-5",
+  "branch": "tow-trike/TT-5",
+  "base": "feature/tow-trike",
+  "scope": [
+    "scripts/game/tow_session.gd",
+    "scripts/game/tow_tug.gd",
+    "scripts/game/tow_trike_visual.gd",
+    "scripts/game/tow_trike_visual.gd.uid",
+    "scripts/game/tow_trike_sound.gd",
+    "scripts/game/tow_trike_sound.gd.uid",
+    "configs/tow_tug.json",
+    "tests/game/test_tow_aerotow.gd",
+    "tests/game/test_tow_session.gd",
+    "tests/contracts/test_tow_k9.gd",
+    "tests/game/test_tow_trike_visual.gd",
+    "tests/game/test_tow_trike_visual.gd.uid",
+    "locale/ui.csv",
+    "docs/guide/flight/tow.md"
+  ],
+  "dont_touch": [
+    "scripts/world_objects/easter_eggs/",
+    "configs/easter_eggs.json",
+    "scripts/flight/",
+    "assets/",
+    "tools/"
+  ],
+  "accept": [
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "egg",
+      "tests": "egg"
+    },
+    {
+      "name": "contracts/",
+      "tests": "contracts/"
+    },
+    {
+      "name": "no_an2",
+      "cmd": "sh -c 'grep -rniE \"EggAn2|an2|ан-2\" scripts/game/tow_session.gd scripts/game/tow_tug.gd configs/tow_tug.json tests/game/test_tow_*.gd | wc -l'",
+      "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "no_an2_ui",
+      "cmd": "sh -c 'grep -ciE \"setup_tow_aerotow,.*(ан-2|an-2)\" locale/ui.csv'",
+      "expect": "num:^(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T22:20:30",
+  "edited": "2026-10-22T22:24:42"
+}
