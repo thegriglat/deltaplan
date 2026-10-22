@@ -155,7 +155,9 @@
     "vsync": true,
     "max_fps": 144,
     "window_mode": "windowed",
-    "window_size": [0, 0]
+    "window_size": [0, 0],
+    "gpu": {"sun_shadows": true, "cloud_shadows": true, "glow": true},
+    "gpu_doc": "Рубильники GPU-нагрузки (CR-К4; настройки → Графика, машинные): эффект включён (true) или выключен. sun_shadows — тени солнца (проход теней — кандидат вылетов RDNA1, Godot #122671); cloud_shadows — карта теней облаков (CloudShadowMap, лишний проход рендера в текстуру); glow — свечение ярких мест (постобработка). Ключи читает GraphicsPresets.gpu_effect; GpuSafety.apply_safe выключает все ключи из этого списка. Упрощённые облака и расчёт ветра — atmosphere.json (clouds.renderer, air_model.enabled)"
   },
   "display_doc": "Окно и частота кадров (машинные настройки, user://local/configs): vsync — вертикальная синхронизация (по умолчанию вкл); max_fps — предел кадров/с (по умолчанию 144; 0 — без предела; VSync на мониторе 300 Гц один не спасает); window_mode — windowed | fullscreen; window_size — [ширина, высота] окна, [0, 0] — как есть. Аргументы Godot --resolution/--fullscreen/--windowed перекрывают режим и размер на этот запуск",
   "display_fps_options": [30, 60, 120, 144, 0],

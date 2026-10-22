@@ -55,6 +55,9 @@ var _compass: CheckBox
 var _grass: HSlider
 var _haze_sun: HSlider
 var _wind_model: OptionButton
+## Рубильники GPU-нагрузки (CR-К4): ключ display.gpu -> CheckBox; «простые облака» — отдельно.
+var _gpu_toggles: Dictionary = {}
+var _simple_clouds: CheckBox
 ## Предел кеша поля воздуха на диске, МБ (FL-К1: atmosphere.json → air_cache.max_mb; 0 — выключен).
 var _air_cache: HSlider
 var _language: OptionButton
@@ -167,6 +170,7 @@ func _ready() -> void:
 		"%.0f%%"
 	)
 	_haze_sun = UiKit.slider_row(box_gfx, tr("settings_haze_sun"), 0.0, 1.0, 0.05, "%.2f")
+	_build_gpu_toggles(box_gfx)
 	_graphics.item_selected.connect(_on_graphics_selected)
 	_wind_model = OptionButton.new()
 	# id: 0 расчёт (auto), 1 эвристика (off)
@@ -309,6 +313,22 @@ func _build_display_rows(box: Control) -> void:
 	_window_mode.item_selected.connect(func(i: int) -> void: _resolution.disabled = i == 1)
 
 
+## Рубильники GPU-нагрузки (CR-К4): тени солнца, тени облаков, свечение, простые облака. Ключи —
+## из game.json → display.gpu; подпись — settings_gpu_<ключ> (нет в locale — видно имя ключа).
+func _build_gpu_toggles(box: Control) -> void:
+	UiKit.label(box, tr("settings_gpu_hint"), "HintLabel")
+	var keys: Dictionary = Config.get_config("game").get("display", {}).get("gpu", {})
+	for k: String in keys:
+		if not k.begins_with("_"):
+			var cb := CheckBox.new()
+			cb.text = tr("settings_gpu_on")
+			UiKit.row(box, tr("settings_gpu_" + k), cb)
+			_gpu_toggles[k] = cb
+	_simple_clouds = CheckBox.new()
+	_simple_clouds.text = tr("settings_gpu_on")
+	UiKit.row(box, tr("settings_gpu_simple_clouds"), _simple_clouds)
+
+
 ## Зона сети (NET-40/К3): скорость времени не настраивается (game.gd держит ×1) — строка
 ## скрыта, save() значение не трогает. Вызывать перед открытием панели (main.gd).
 func set_net_mode(on: bool) -> void:
@@ -349,6 +369,9 @@ func load_values() -> void:
 	_grass.value_changed.emit(_grass.value)
 	_haze_sun.value = float(Config.value("world", "fog.sun_scatter", 0.35))
 	_haze_sun.value_changed.emit(_haze_sun.value)
+	for k: String in _gpu_toggles:
+		(_gpu_toggles[k] as CheckBox).button_pressed = GraphicsPresets.gpu_effect(k)
+	_simple_clouds.button_pressed = String(Config.value("atmosphere", "clouds.renderer", "auto")) == "boxes"
 	var wm := String(Config.value("atmosphere", "air_model.enabled", "auto"))
 	_wind_model.select(_wind_model.get_item_index(1 if wm == "off" else 0))
 	_air_cache.value = float(Config.value("atmosphere", "air_cache.max_mb", 200.0))
@@ -445,6 +468,7 @@ func save() -> bool:
 			"max_fps": int(_fps_options[maxi(_fps_limit.selected, 0)]),
 			"window_mode": "fullscreen" if _window_mode.selected == 1 else "windowed",
 			"window_size": [size.x, size.y],
+			"gpu": _gpu_patch(),
 		}
 	}
 	ok = UserSettings.save_patch("game", dp, config_dir) and ok
@@ -477,10 +501,27 @@ func save() -> bool:
 		"air_cache": {"max_mb": int(_air_cache.value)},
 	}
 	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
+	ok = UserSettings.save_patch("atmosphere", {"clouds": {"renderer": _clouds_renderer()}}, config_dir) and ok
 	ok = _save_motion() and ok
 	Config.reload()
 	GraphicsPresets.apply_display(true)
 	return ok
+
+
+## display.gpu из галочек: true — эффект включён.
+func _gpu_patch() -> Dictionary:
+	var d := {}
+	for k: String in _gpu_toggles:
+		d[k] = (_gpu_toggles[k] as CheckBox).button_pressed
+	return d
+
+
+## clouds.renderer по галочке «Простые облака»: boxes; снята — auto (ручной compute не трогаем).
+func _clouds_renderer() -> String:
+	if _simple_clouds.button_pressed:
+		return "boxes"
+	var cur := String(Config.value("atmosphere", "clouds.renderer", "auto"))
+	return "auto" if cur == "boxes" else cur
 
 
 ## «host:port» → {host, port}; пусто, если адрес неверный (тогда вывод выключен).
