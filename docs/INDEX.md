@@ -51,6 +51,9 @@ generated: true
   - [tools/research/spin_recovery/sr1/README.md](../tools/research/spin_recovery/sr1/README.md) — SR-1: стенд и команды воспроизведения — доходит ли ввод мыши до трапеции в штопоре sport.
 - **trike** — Идея: управляемый дельталёт — тележка вместо пилота на той же подвеске, тяга винта к тележке, колёса, газ; модуль не заведён. [idea 2026-10-21] — [план](plan/trike.md)
 - **trike-model** — Модель тележки дельталёта (трайк) в Blender без крыла: размеры реальных аппаратов с источниками, пилот в позе sit, винт отдельным узлом. [active 2026-10-22] — [план](plan/trike-model.md) · [контракты](contracts/trike-model.md)
+  - [docs/guide/models/trike.md](guide/models/trike.md) — Модель тележки трайка trike.glb: источники размеров, оси и узлы, винт prop_spin и обороты, бюджеты, сборка, чего модель не умеет.
+  - [tools/research/trike-model/README.md](../tools/research/trike-model/README.md) — TK-1: размеры трайка (источники), замер точки глаз сидячей позы, блок seat, расхождение с реальной посадкой, команды
+  - [tools/research/trike-model/summary.md](../tools/research/trike-model/summary.md) — TK-1: краткий итог размеров трайка и точки глаз
 
 ## world
 
