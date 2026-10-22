@@ -1,0 +1,51 @@
+{
+  "id": "CR-13",
+  "module": "crash-reports",
+  "type": "dp-engineer",
+  "title": "Отчёт о вылете сам собирает диагностику: TDR-события Windows, логи, драйвер, рубильники",
+  "goal": "Отчёт о вылете без участия пилота содержит: события TDR/сбоя видеодрайвера из журнала Windows (wevtutil, без прав администратора) за время сеанса, число и хвосты прошлых логов, версию драйвера, известные оверлеи, значения рубильников GPU (CR-К4), стадии старта и сборки облаков — чтобы следующий отчёт различал гипотезы CR-10/CR-11.",
+  "plan_ref": "§4 CR-13",
+  "contracts": [
+    {
+      "name": "CR-К4",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    }
+  ],
+  "copy": "~/deltaplan-crash-reports-CR-13",
+  "branch": "crash-reports/CR-13",
+  "base": "feature/crash-reports",
+  "scope": [
+    "scripts/core/crash_report.gd",
+    "scripts/core/crash_reporter.gd",
+    "scripts/core/crash_diag.gd",
+    "scripts/core/crash_diag.gd.uid",
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "tests/core/test_crash_report.gd",
+    "tests/core/test_crash_diag.gd",
+    "tests/core/test_crash_diag.gd.uid",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/core/gpu_health.gd",
+    "scripts/core/gpu_loss_logger.gd",
+    "scripts/game",
+    "scripts/ui",
+    "scripts/atmosphere/air_model",
+    "scripts/atmosphere/cloud_layer.gd",
+    "server",
+    "project.godot",
+    "configs",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": ".dpcli/dpcli lock cpu cr13-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=crash_",
+      "expect": "tests"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:35:10"
+}
