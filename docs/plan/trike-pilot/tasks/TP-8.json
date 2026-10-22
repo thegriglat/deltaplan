@@ -1,0 +1,83 @@
+{
+  "id": "TP-8",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Вид, камера, приборы и звук дельталёта игрока в игре",
+  "goal": "По TP-К8: игрок на дельталёте видит тележку trike.glb с крылом и сидящим пилотом (винт крутится от оборотов), из кабины — от головы сидящего пилота, тахометр и топливо на панели и в HUD от третьего лица, звук двигателя по TP-К9; дельтаплан без изменений.",
+  "plan_ref": "TP-8",
+  "contracts": [
+    {
+      "name": "TP-К8",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К4",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К9",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К6",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-8",
+  "branch": "trike-pilot/TP-8",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/game/tow_trike_visual.gd",
+    "scripts/flight/glider.gd",
+    "scripts/game/game.gd",
+    "scripts/game/camera_rig.gd",
+    "scripts/game/pilot_animator.gd",
+    "configs/camera.json",
+    "configs/game.json",
+    "tests/contracts/test_trike_pilot_k8.gd",
+    "tests/contracts/test_trike_pilot_k8.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum/",
+    "scripts/flight/trike_rig.gd",
+    "scripts/flight/trike_engine.gd",
+    "scripts/game/tow_trike_sound.gd",
+    "scripts/flight/glider_visual.gd",
+    "assets/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "cockpit",
+      "tests": "cockpit"
+    },
+    {
+      "name": "clock_label",
+      "tests": "clock_label"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/game/tow_trike_visual.gd scripts/flight/glider.gd scripts/game/game.gd scripts/game/camera_rig.gd tests/contracts/test_trike_pilot_k8.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:56:00"
+}
