@@ -2,18 +2,18 @@
   "id": "TK-11",
   "module": "trike-model",
   "type": "dp-engineer",
-  "title": "Модель тележки v3 по ответу на Q1",
+  "title": "Модель тележки v3–v4: Q1 и педали/панель",
   "goal": "build_trike.py по TK-K2 v3: трубы киля/мачты/подкоса 60 мм, бак меньше и над килем (tank.keel_clear), витые пружины амортизаторов, крупные резонансная труба и глушитель; тест K2 v3; бюджеты прежние.",
   "plan_ref": "TK-11",
   "contracts": [
     {
       "name": "TK-K1",
-      "version": "3",
+      "version": "4",
       "ref": "docs/contracts/trike-model.md"
     },
     {
       "name": "TK-K2",
-      "version": "3",
+      "version": "4",
       "ref": "docs/contracts/trike-model.md"
     }
   ],
@@ -53,5 +53,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T14:02:03"
+  "created": "2026-10-22T14:02:03",
+  "edited": "2026-10-22T14:40:49"
 }
