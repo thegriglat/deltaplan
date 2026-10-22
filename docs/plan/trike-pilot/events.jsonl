@@ -106,3 +106,5 @@
 {"t": "2026-10-23T02:40:43", "by": "executor", "task": "TP-14", "ev": "reported", "commits": ["e8483b97"], "note": "partial: Источники найдены и прочитаны: FAA-H-8083-5 (только качественно: устройство рулёжки/тормоза, правило рулёжки 5/10 mph) …", "dp_feedback": "accept при загруженной машине даёт таймаут 900 с на тест-пачках; нужен способ пересчитать только упавшую проверку."}
 {"t": "2026-10-23T02:42:33", "by": "coordinator", "task": "TP-14", "ev": "checked", "note": "3/3 trike_pilot_k1=ok:2/2; trike_pilot_k7=ok:8/8; docs=ok:exit 1"}
 {"t": "2026-10-23T02:42:44", "by": "coordinator", "task": "TP-14", "ev": "accepted", "note": "по отчёту; числа не менялись, источники добавлены, steer_max_deg — оценка 25–45°"}
+{"t": "2026-10-23T02:42:52", "by": "coordinator", "task": "TP-14", "ev": "accepted", "commits": ["f9d850aa"], "note": "3/3 trike_pilot_k1=ok:2/2; trike_pilot_k7=ok:8/8; docs=ok:exit 1"}
+{"t": "2026-10-23T02:42:53", "by": "coordinator", "task": "TP-14", "ev": "merged"}
