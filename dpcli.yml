@@ -63,6 +63,22 @@ sem:
 jobs:
   dir: "~/.cache/dpcli/{project}/jobs"
   tmux_session: dp
+  # Замок cpu — очередь со взвешенными слотами; слот ≈ ядро: 16 из 20 ядер — не больше 80 % CPU (решение пользователя 2026-10-23).
+  cpu_slots: 16
+  # Вес запуска (первое совпадение регэкспа по строке команды; --slots N сильнее; иначе 1).
+  cpu_weights:
+    - match: "godot.*--import"
+      slots: 2
+    - match: "tools/build\\.sh"
+      slots: 4
+    # приёмка гоняет тесты Godot внутри
+    - match: "dpcli accept"
+      slots: 3
+    # прочие запуски Godot: тесты (run_tests), кадры (tools/shots), автопилот
+    - match: "godot|run_tests|xvfb-run|tools/shots/"
+      slots: 3
+  # Голова очереди ждёт дольше — мелкие задачи её больше не обгоняют.
+  cpu_starve_s: 300
 
 # Замок gpu — /tmp/gpu.lock (у исследовательских скриптов свой GpuLock на /tmp/heat_ca_gpu.lock — см. docs/contracts/docs-rework.md).
 locks: "~/.cache/dpcli/{project}/locks"
