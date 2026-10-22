@@ -1,6 +1,6 @@
 """Кадры тележки трайка v2 без пилота и с пилотом (assets/models/trike/trike.glb, pilot.glb в позе sit) — TK-4, TK-6.
 
-    blender --background --python tools/blender/render_trike.py [-- [--out DIR] [--pilot] [--only trike|pilot|closeup]]
+    blender --background --python tools/blender/render_trike.py [-- [--out DIR] [--pilot] [--only trike|pilot|closeup|eye]]
 
 Cycles на GPU (OPTIX, иначе CUDA; на этой машине CUDA), 256 выборок без шумодава (в сборке нет OIDN, OPTIX-устройства нет; TRIKE_SAMPLES, TRIKE_DENOISE=1), без xvfb. Только PNG 1600x1000, видео не делается (решение 2026-10-22).
 Без ключей: сначала сцена без пилота — trike_front34, trike_side, trike_rear34, trike_top; затем с пилотом
@@ -9,6 +9,7 @@ Cycles на GPU (OPTIX, иначе CUDA; на этой машине CUDA), 256 �
 (переопределить: --out или env TRIKE_OUT). --pilot — рендерить только сцену с пилотом (кадры pilot_* и seat_closeup_*).
 Оси Blender (импорт glTF): нос +Y, вверх +Z. Кадры рамкуются по габариту тележки без пилота, поэтому совпадают в обеих сериях.
 """
+import json
 import math
 import os
 import sys
@@ -134,17 +135,52 @@ def closeups(out: str) -> None:
         shot(cam, os.path.join(out, n + ".png"))
 
 
+def eye_views(out: str) -> None:
+    """TK-12: вид из глаз пилота (seat.eye), вниз 10 градусов, FOV 90 (горизонтальный), с условной штангой.
+
+    Штанга — цилиндр по bar (d, half_width вдоль X, центр в trim/full_pull/full_push); шлем и тело пилота скрыты
+    (камера внутри головы). Кадры: eye_view (три положения разными цветами), eye_view_pull / _trim / _push.
+    """
+    P = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "trike_params.json")))
+    B = P["bar"]
+    eye = Vector(P["seat"]["eye"])
+    for o in bpy.data.objects:
+        if o.name.split(".")[0] in ("PilotBody", "Helmet"):
+            o.hide_render = True
+    cols = {"pull": (0.9, 0.1, 0.1), "trim": (0.1, 0.7, 0.1), "push": (0.1, 0.2, 0.95)}
+    bars = {}
+    for k, key in (("pull", "full_pull"), ("trim", "trim"), ("push", "full_push")):
+        c = B[key]
+        bpy.ops.mesh.primitive_cylinder_add(radius=B["d"] / 2, depth=2 * B["half_width"], vertices=24,
+                                            location=(c[0], c[1], c[2]), rotation=(0, math.pi / 2, 0))
+        ob = bpy.context.active_object
+        ob.name = "Bar_" + k
+        ob.data.materials.append(U.material("bar_" + k, cols[k], rough=0.4))
+        bars[k] = ob
+    bpy.context.view_layer.update()
+    pitch = math.radians(-10.0)
+    tgt = eye + Vector((0, math.cos(pitch), math.sin(pitch)))
+    cam = RV.camera("eye", eye, tgt, lens=18.0)  # sensor 36 мм, lens 18 -> горизонтальный FOV 90
+    shot(cam, os.path.join(out, "eye_view.png"))
+    for k in bars:
+        for kk, ob in bars.items():
+            ob.hide_render = kk != k
+        shot(cam, os.path.join(out, f"eye_view_{k}.png"))
+
+
 def main() -> None:
     a = args()
     os.makedirs(a["out"], exist_ok=True)
     if a["only"] in ("", "trike") and not a["pilot"]:
         shots(load(False), a["out"], "trike")
-    if a["only"] in ("", "pilot", "closeup") or a["pilot"]:
+    if a["only"] in ("", "pilot", "closeup", "eye") or a["pilot"]:
         meshes = load(True)
         if a["only"] in ("", "pilot"):
             shots(meshes, a["out"], "pilot")
         if a["only"] in ("", "closeup"):
             closeups(a["out"])
+        if a["only"] in ("", "eye"):
+            eye_views(a["out"])
 
 
 if __name__ == "__main__":
