@@ -243,3 +243,4 @@
 {"t": "2026-10-23T04:57:37", "by": "coordinator", "task": "TP-23", "ev": "accepted", "note": "по отчёту; числа — пользователю (Q9)"}
 {"t": "2026-10-23T04:57:38", "by": "coordinator", "task": "TP-23", "ev": "merged"}
 {"t": "2026-10-23T04:57:50", "by": "coordinator", "task": "TP-21", "ev": "accepted", "note": "по ревью (3 minor: зерно 2 теста (10) не отрывается; подскоки дают landed/took_off — звук и recenter камеры — TP-24)"}
+{"t": "2026-10-23T04:57:51", "by": "coordinator", "task": "TP-21", "ev": "merged"}
