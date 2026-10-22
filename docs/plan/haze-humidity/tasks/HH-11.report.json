@@ -1,0 +1,70 @@
+{
+  "status": "done",
+  "summary": "Диск 0,3° не тронут; в sky.gdshader добавлен ореол рассеяния вперёд на дымке (Хеньи–Гринстейн g=0,95 × яркость диска × Ω × (1−e^−τ), τ по воздушной массе Kasten–Young), избыток выше clip_hdr уходит в белый; вечерний засвет глаза 0,6…1,0 (был 0,15…1,0); потемнение кадра не гасит пересвет у солнца. Пятно насыщения: Аскарово 26 px, Алтай 28 px при геометрическом диске 5,4 px (до — 0).",
+  "commits": [
+    "5f42f639 HH-11: ореол и пересвет солнца у горизонта"
+  ],
+  "checks": [
+    {
+      "name": "sky",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "sun",
+      "value": "20/20",
+      "pass": true
+    },
+    {
+      "name": "haze_humidity",
+      "value": "21/21",
+      "pass": true
+    },
+    {
+      "name": "halo_px",
+      "value": "26",
+      "pass": true
+    },
+    {
+      "name": "halo_px_max",
+      "value": "26",
+      "pass": true
+    },
+    {
+      "name": "disk",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "4",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ореол не связан с текущей густотой дымки (SkyEnvironment вне скоупа после смены контракта): τ по вертикали 0,2 константа в шейдере."
+  ],
+  "questions": [],
+  "images": [
+    "build/screenshots/haze-humidity/before_halo_askarovo.jpg",
+    "build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+    "build/screenshots/haze-humidity/before_halo_altai.jpg",
+    "build/screenshots/haze-humidity/after_halo_altai.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept HH-11",
+  "uncertain": [
+    {
+      "where": "scripts/world/sky.gdshader aureole_compression=2500",
+      "why": "сжатие яркости (солнце/небо 3e4 реально vs ~10 в игре) подобрано по кадру, не измерено; ширина пятна почти не зависит от него — задаётся зоной без потемнения sun_glare (smoothstep 0,7°…3,5°)",
+      "checked": "3–4 прогона 1080p; физическая оценка: disk×T(el) vs небо 10³–10⁴, table disk_energy у 2–8° (0,08…0,2) близка к Бугеру exp(-0,25·m) (0,013…0,27), не занижает; занижал glare 0,15–0,35"
+    },
+    {
+      "where": "sun_glare.gdshader darken",
+      "why": "AgX даёт синий ≤220 у оранжевого солнца — насыщение всех каналов потребовало белого избытка (clip_hdr) и отмены потемнения у солнца; цвет не подбирал (HH-13)",
+      "checked": "пиксели ядра 255 во всех каналах"
+    }
+  ],
+  "dp_feedback": "Смена скоупа посреди работы (sky_environment.gd) заставила переносить ореол из GDScript в шейдер; полезно предупреждение при пересечении скоупов параллельных задач при выдаче.",
+  "t": "2026-10-22T21:38:09",
+  "by": "executor"
+}
