@@ -233,3 +233,5 @@
 {"t": "2026-10-22T15:49:20", "by": "executor", "task": "TK-11", "ev": "reported", "commits": ["e84ed1aa", "f5a548ec", "f35fb6a8"], "note": "done: build_trike.py по TK-K2 v4 после TK-16: трубы из JSON (55/55/40/30), нос киля/подкоса 1.39 (передняя ось 1.25), подкос …", "dp_feedback": "task sync при грязной копии из-за glb/blend отказывает; r-файл пропал после sync (untracked удалён?)."}
 {"t": "2026-10-22T15:49:31", "by": "coordinator", "task": "TK-11", "ev": "checked", "note": "3/3 trike_model_k2=ok:2/2; trike_model_k1=ok:4/4; textures=ok:exit 0"}
 {"t": "2026-10-22T15:49:39", "by": "coordinator", "task": "TK-11", "ev": "accepted", "note": "по отчёту; мачта 18° с прежним низом (y −0.689) — решение Q3 «наклон по источникам», «низ над осью» было лишь предложением TK-18"}
+{"t": "2026-10-22T15:49:50", "by": "coordinator", "task": "TK-11", "ev": "accepted", "commits": ["61064795"], "note": "3/3 trike_model_k2=ok:2/2; trike_model_k1=ok:4/4; textures=ok:exit 0"}
+{"t": "2026-10-22T15:49:51", "by": "coordinator", "task": "TK-11", "ev": "merged"}
