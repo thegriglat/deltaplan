@@ -72,6 +72,15 @@
 Полный список с пояснениями - в начале файла scripts/game/launch_options.gd
 в репозитории игры.
 
+Видеокарта и драйвер рендера (Windows)
+--------------------------------------
+Если игра вылетает при загрузке места, попробуйте другой драйвер рендера
+(параметр движка, пишется ДО "--"):
+  deltaplan.exe --rendering-driver d3d12
+  deltaplan.exe --rendering-driver vulkan
+В приложении itch для этого есть кнопки запуска "Play (DirectX 12)" и
+"Play (Vulkan)". Параметр перекрывает выбор, сохранённый в игре.
+
 Где что лежит
 -------------
 Настройки, сохранения, кеш мест (папка locations) и лог (папка logs,
@@ -146,6 +155,15 @@ For developers and screenshots (not needed to fly)
 --controls --setup --no-overlay --debug=... --net-host --net-create
 --net-join=CODE --net-server=IP:PORT --net-name=NAME
 Full list: top of scripts/game/launch_options.gd in the game repository.
+
+Graphics card and render driver (Windows)
+-----------------------------------------
+If the game crashes while loading a place, try another render driver (an
+engine option, written BEFORE "--"):
+  deltaplan.exe --rendering-driver d3d12
+  deltaplan.exe --rendering-driver vulkan
+The itch app has launch buttons "Play (DirectX 12)" and "Play (Vulkan)" for
+this. The option overrides the choice saved in the game.
 
 Where things are
 ----------------
