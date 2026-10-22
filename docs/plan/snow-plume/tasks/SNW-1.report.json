@@ -1,0 +1,72 @@
+{
+  "status": "done",
+  "summary": "docs/research/snow_plume.md: порог Li & Pomeroy 1997 (9,43+0,18T+0,0033T²; 7–8 м/с при −30…−10 °C), мокрый 9,9; span 8, settle 0,2, spread 0,6 м/с, 6×5 с, lee 15°, fetch 300 м; таблица ключей К1 и скрипт.",
+  "commits": [
+    "2cf9e633 snow-plume SNW-1: порог срыва снега и параметры шлейфа (литература)"
+  ],
+  "checks": [
+    {
+      "name": "doc_exists",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "frontmatter",
+      "value": "---",
+      "pass": true
+    },
+    {
+      "name": "k1_keys",
+      "value": "missing 0",
+      "pass": true
+    },
+    {
+      "name": "docs check",
+      "value": "ошибок 2 (чужие test-script-errors), у моих файлов только предупреждения",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Оригиналы Li & Pomeroy 1997, Pomeroy & Male 1992, Schmidt 1982, Wood 1995, Takeuchi 1980 недоступны (403/закрыты): числа взяты из карточки, Pomeroy 1989, Xiao et al. 2000, Gordon et al. (прочитаны) и вторичных пересказов; в документе помечено [ист]/[расч]/[оценка]."
+  ],
+  "questions": [
+    "Ориентир пользователя 5–7 м/с: формула даёт 7–8 м/с на −30…−10 °C (выше на 0–2 м/с). Взять формулу как есть (рекомендую) или сместить threshold.a на −1…−2?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SNW-1; python3 tools/research/snow_plume/snow_plume_params.py",
+  "uncertain": [
+    {
+      "where": "docs/research/snow_plume.md §1",
+      "why": "формула порога принята по карточке, оригинал не читан; применима ли ко всему снегу или только сухому — по пересказам неоднозначно (в модели: T<=0 формула, T>0 9,9)",
+      "checked": "эквивалентная форма 6,9+0,0033(T+27,27)² из вторичного источника согласуется по коэффициентам"
+    },
+    {
+      "where": "docs/research/snow_plume.md §2 span_ms, path_dt_s",
+      "why": "оценки без прямого источника; span из доли сальтации <10 % при 15 м/с (Pomeroy 1989), время жизни h/w",
+      "checked": "длина флага 250–500 м при 10–20 м/с соответствует «сотням метров»"
+    },
+    {
+      "where": "docs/research/snow_plume.md §2 spread_ms",
+      "why": "σ_w≈1,25u* по памяти (Panofsky & Dutton 1984), не сверено",
+      "checked": "u* из Pomeroy 1989 (u*=0,5 ↔ z0=1,5 мм)"
+    },
+    {
+      "where": "docs/research/snow_plume.md §3 lee_slope_deg, fetch_m",
+      "why": "lee 14° — по пересказу обзора в Kroy et al. 2002; Wood 1995 не читан; fetch Takeuchi 350 м — по пересказу",
+      "checked": "Pomeroy 1989: развитый перенос при разгоне 400–500 м"
+    }
+  ],
+  "dp_feedback": "WebFetch на журналы AMS/Wiley/Springer даёт 403 — для литературных задач нужен доступ к полным текстам. Report требует имена проверок из карточки (doc_exists и т.д.) — в --template это не сказано.",
+  "extra": {
+    "threshold_table": {
+      "-40": 7.51,
+      "-30": 7.0,
+      "-20": 7.15,
+      "-10": 7.96,
+      "0": 9.43,
+      "5": 10.41
+    }
+  },
+  "t": "2026-10-23T03:12:40",
+  "by": "executor"
+}
