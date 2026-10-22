@@ -44,7 +44,8 @@
     "docs/contracts/",
     "scripts/atmosphere/weather_model.gd",
     "scripts/atmosphere/climate_grid.gd",
-    "project.godot"
+    "project.godot",
+    "scripts/terrain/"
   ],
   "accept": [
     {
@@ -107,5 +108,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T01:33:54",
-  "edited": "2026-10-23T01:47:08"
+  "edited": "2026-10-23T02:46:46"
 }
