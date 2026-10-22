@@ -45,6 +45,8 @@ var touched := false
 var flight_position_started := true
 ## TP-К6: дельталёт. До первого отрыва полёт не кончается (стоит на колёсах сколько угодно); после посадки -
 ## "landed", когда путевая скорость < TRIKE_STOP_SPEED_MS непрерывно >= TRIKE_STOP_S (руление после посадки можно).
+## Только после настоящего полёта (armed - тот же критерий, что у дельтаплана): подскок на разбеге и остановка
+## после него полёт не кончают (TP-13).
 ## Ставит Game при старте; reset() не трогает.
 var trike := false
 const TRIKE_STOP_SPEED_MS := 0.5
@@ -189,7 +191,7 @@ func _update_finish_trike(t: Telemetry, dt: float) -> void:
 		if not armed and (t.altitude_agl >= ARM_MIN_HEIGHT_AGL_M or distance_from_takeoff(t.position) >= ARM_MIN_HORIZ_M):
 			armed = true
 	_was_on_ground = grounded
-	if _slow_s >= TRIKE_STOP_S:
+	if _slow_s >= TRIKE_STOP_S and armed:
 		_finished = true
 		_finish_reason = "landed"
 
@@ -205,8 +207,10 @@ func grounded_pending_s() -> float:
 func force_finish() -> bool:
 	if _finished or not took_off or not _was_on_ground or not flight_position_started:
 		return false
+	if trike and not armed:
+		return false  # дельталёт: без настоящего полёта (armed) посадку не засчитываем
 	_finished = true
-	_finish_reason = "landed" if (armed or trike) else "takeoff_failed"
+	_finish_reason = "landed" if armed else "takeoff_failed"
 	return true
 
 

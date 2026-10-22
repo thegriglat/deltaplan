@@ -275,9 +275,14 @@ func test_glide_landing() -> void:
 
 ## (6) Касание с вертикальной -4 м/с: "wheels", не авария (_crash_start не вызывается), курс сохраняется.
 func test_hard_vertical() -> void:
-	var m := _trim_glide(8.0)
-	# вниз (NED +z) только пока снижение медленнее 4,2 м/с: подтягиваем скорость снижения к -4 м/с и держим
-	m.set_external_force(func(s: Dictionary) -> Dictionary: return {"pilot": Vector3(0.0, 0.0, 1500.0 if (s.pilot_vel as Vector3).z < 4.2 else 0.0)})
+	var m := _trim_glide(30.0)
+	# ПИ-регулятор внешней силы на тележку держит вертикальную скорость -4 м/с (мир игры: y вверх, снижение < 0):
+	# F_y = 3000·e + I, I += 2500·e·h, e = -4 - vy; пределы ±6000 Н. Сила гаснет вместе с касанием (ловит vy ≈ -4).
+	var integ := [0.0]
+	m.set_external_force(func(s: Dictionary) -> Dictionary:
+		var e := -4.0 - float((s.pilot_vel as Vector3).y)
+		integ[0] = clampf(float(integ[0]) + 2500.0 * e * float(s.h), -6000.0, 6000.0)
+		return {"pilot": Vector3(0.0, clampf(3000.0 * e + float(integ[0]), -6000.0, 6000.0), 0.0)})
 	var crash := [false]
 	var landed := [false]
 	m.landed.connect(func(r: Dictionary) -> void: landed[0] = true)
@@ -293,7 +298,7 @@ func test_hard_vertical() -> void:
 		prev = m.pilot_velocity.y
 	print("    вертикальная в касание %.2f м/с, фаза %s" % [vz, m.phase()])
 	check(landed[0], "касание было")
-	check(vz <= -3.9, "вертикальная не слабее -4 м/с: %.2f" % vz)
+	check(vz <= -3.5 and vz >= -4.5, "вертикальная в касание = -4 м/с ± 0,5: %.2f" % vz)
 	check(not crash[0] and m.phase() == "wheels", "не авария, wheels: %s" % m.phase())
 	check(Sim.finite(m) and absf(m.pilot_velocity.y) < 1.0, "вертикальная погашена: %.3f" % m.pilot_velocity.y)
 

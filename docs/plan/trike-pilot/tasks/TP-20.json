@@ -1,0 +1,54 @@
+{
+  "id": "TP-20",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Тяга дельталёта по оси винта (TP-К6 v2)",
+  "goal": "По TP-К6 v2 и TP-19: тяга винта действует по оси винта — TrikeRig.ext_force делит её между тележкой и подвеской по правилу рычага (cart.prop_axis_below_hang_m в configs/tow_tug.json), у игрока и буксировщика; на полном газе фугоида затухает; тесты буксировки проходят по своим порогам.",
+  "plan_ref": "TP-20",
+  "contracts": [
+    {
+      "name": "TP-К6",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-20",
+  "branch": "trike-pilot/TP-20",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/flight/trike_rig.gd",
+    "configs/tow_tug.json",
+    "tests/contracts/test_trike_pilot_k6.gd",
+    "tests/contracts/test_tow_trike_k1.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum/",
+    "scripts/game/game.gd",
+    "scripts/flight/glider.gd",
+    "scripts/game/tow_trike_visual.gd",
+    "configs/trike_pilot.json",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "tow_trike",
+      "tests": "tow_trike"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/flight/trike_rig.gd tests/contracts/test_trike_pilot_k6.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:03:14"
+}

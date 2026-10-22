@@ -1,0 +1,91 @@
+{
+  "status": "done",
+  "summary": "Новый tests/game/test_trike_cycle.gd: полный цикл через Glider (setup_trike + reset_on_wheels, без приватных полей) и тесты конца полёта; test_hard_vertical теперь даёт касание -3,80 м/с (ПИ-регулятор силы); FlightStats дельталёта кончает полёт только после armed (и force_finish тоже). k6 не тронут (TP-20).",
+  "commits": [
+    "2fe0253c TP-13: полный цикл дельталёта, касание -4 м/с в k7, конец полёта только после armed"
+  ],
+  "checks": [
+    {
+      "name": "отрыв",
+      "value": "t 9.3 с, разбег 35 м, v 15.5 м/с (1.10 vs, vs 14.0)",
+      "pass": true
+    },
+    {
+      "name": "набор",
+      "value": "до 47.7 м AGL, газ 0 на 40 м AGL (18.4 с), через 2 с двигатель заглушен",
+      "pass": true
+    },
+    {
+      "name": "касание",
+      "value": "t 39.7 с, vz -2.80 м/с, путевая 16.5 м/с, wheels, landed on_wheels, 1 раз, без аварии, тангаж/крен за шаг 0.098 град",
+      "pass": true
+    },
+    {
+      "name": "руление",
+      "value": "1.5 с turn+1: +45.8 град (v 7.4); turn-1: -53.9 град (v 6.3); остановка тормозом на 46.9 с, 55 м от касания",
+      "pass": true
+    },
+    {
+      "name": "FlightStats",
+      "value": "armed с 12.1 с; landed на 49.8 с (остановка +3 с); на разбеге не кончался",
+      "pass": true
+    },
+    {
+      "name": "k7 test_hard_vertical",
+      "value": "касание -3.80 м/с (допуск -4 ± 0,5), wheels, не авария",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot",
+      "value": "45/45",
+      "pass": true
+    },
+    {
+      "name": "trike_cycle",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "flight_stats",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "tow_trike",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Пункт про 20 с TowTug в k6 отменён координатором (TP-20)."
+  ],
+  "questions": [
+    "Модель (scripts/flight/pendulum/pendulum_model.gd, не трогал): если после касания на колёса дельталёт снова отрывается на подскок < WHEELS_CLEAR_M (0,05 м над землёй низом колёс), _wh_hold остаётся true и касание больше не проверяется - модель проваливается под землю (agl до -65 м, воспроизведено). Случается, когда штанга у земли не выбрана на себя (подъёмная сила крыла >= веса сразу после касания, n_cradle <= 0). Предлагаю: сбрасывать _wh_hold, если после отрыва с колёс низ колёс не поднялся и пошёл вниз (или проверять касание всегда после ухода от земли на любую высоту)."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TP-13",
+  "uncertain": [
+    {
+      "where": "tests/game/test_trike_cycle.gd (FLARE_AGL_M)",
+      "why": "Посадка на колёса получается только если ниже 2 м AGL штанга на себя (pitch -1); без этого - подскок и провал под землю (см. questions). Это граница модели, не баг теста.",
+      "checked": "прогоны без выбора штанги: 1.3 vs и 1.15 vs, с заглушенным и работающим двигателем - все с провалом"
+    },
+    {
+      "where": "tests/contracts/test_trike_pilot_k7.gd:test_hard_vertical",
+      "why": "Допуск касания -4 ± 0,5 м/с, регулятор ПИ в тесте (коэффициенты подобраны), старт с 30 м",
+      "checked": "-3.80 м/с, один прогон (детерминированно)"
+    }
+  ],
+  "dp_feedback": "job start: опции --lock/--slots идут ДО start (job --lock cpu start имя таймаут cmd); в --help не очевидно. Генерация .uid для нового .gd только через --import - хорошо бы подсказка в accept/commit.",
+  "extra": {
+    "approach_speed_vs": 1.15,
+    "flare_agl_m": 2.0
+  },
+  "t": "2026-10-23T04:21:54",
+  "by": "executor"
+}
