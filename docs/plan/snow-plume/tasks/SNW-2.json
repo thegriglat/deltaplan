@@ -1,0 +1,58 @@
+{
+  "id": "SNW-2",
+  "module": "snow-plume",
+  "type": "dp-engineer",
+  "title": "Модель снежных флагов: снег, гребни, ветер → список источников",
+  "goal": "SnowCover.snow_fraction (SNW-К2) и SnowPlumeModel (SNW-К1 функции порога, SNW-К3 список источников с бюджетами SNW-К4): контрактный тест test_snow_plume_k3_model проходит, свои тесты на снег и модель.",
+  "plan_ref": "§4 SNW-2",
+  "contracts": [
+    {
+      "name": "snow-plume",
+      "version": "1",
+      "ref": "docs/contracts/snow-plume.md"
+    }
+  ],
+  "copy": "~/deltaplan-snow-plume-SNW-2",
+  "branch": "snow-plume/SNW-2",
+  "base": "feature/snow-plume",
+  "scope": [
+    "scripts/world/snow_plume/snow_plume_model.gd",
+    "scripts/world/snow_plume/snow_plume_model.gd.uid",
+    "scripts/world/snow_plume/snow_cover.gd",
+    "scripts/world/snow_plume/snow_cover.gd.uid",
+    "tests/world/test_snow_plume_model.gd",
+    "tests/world/test_snow_plume_model.gd.uid",
+    "tests/world/test_snow_cover.gd",
+    "tests/world/test_snow_cover.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/world/snow_plume/snow_plume_render.gd",
+    "tests/contracts/",
+    "configs/",
+    "scripts/terrain/",
+    "scripts/atmosphere/",
+    "scripts/game/"
+  ],
+  "accept": [
+    {
+      "name": "snow_plume_k3_model",
+      "tests": "snow_plume_k3_model"
+    },
+    {
+      "name": "snow_plume_model",
+      "tests": "snow_plume_model"
+    },
+    {
+      "name": "snow_cover",
+      "tests": "snow_cover"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/world/snow_plume/snow_plume_model.gd scripts/world/snow_plume/snow_cover.gd tests/world/test_snow_plume_model.gd tests/world/test_snow_cover.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:07:51"
+}

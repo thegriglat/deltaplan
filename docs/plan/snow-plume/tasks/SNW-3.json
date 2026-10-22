@@ -1,0 +1,54 @@
+{
+  "id": "SNW-3",
+  "module": "snow-plume",
+  "type": "dp-engineer",
+  "title": "Отрисовка снежных флагов: пул частиц по списку источников",
+  "goal": "SnowPlumeRender (SNW-К3): пул GPUParticles3D, частицы идут по линии тока источника с оседанием и разлётом, плотность по intensity; контрактный тест test_snow_plume_k3_render и свои тесты проходят.",
+  "plan_ref": "§4 SNW-3",
+  "contracts": [
+    {
+      "name": "snow-plume",
+      "version": "1",
+      "ref": "docs/contracts/snow-plume.md"
+    }
+  ],
+  "copy": "~/deltaplan-snow-plume-SNW-3",
+  "branch": "snow-plume/SNW-3",
+  "base": "feature/snow-plume",
+  "scope": [
+    "scripts/world/snow_plume/snow_plume_render.gd",
+    "scripts/world/snow_plume/snow_plume_render.gd.uid",
+    "scripts/world/snow_plume/snow_plume_particles.gdshader",
+    "scripts/world/snow_plume/snow_plume_particles.gdshader.uid",
+    "scripts/world/snow_plume/snow_plume_flake.gdshader",
+    "scripts/world/snow_plume/snow_plume_flake.gdshader.uid",
+    "tests/world/test_snow_plume_render.gd",
+    "tests/world/test_snow_plume_render.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/world/snow_plume/snow_plume_model.gd",
+    "scripts/world/snow_plume/snow_cover.gd",
+    "tests/contracts/",
+    "configs/",
+    "scripts/world_objects/",
+    "scripts/terrain/"
+  ],
+  "accept": [
+    {
+      "name": "snow_plume_k3_render",
+      "tests": "snow_plume_k3_render"
+    },
+    {
+      "name": "snow_plume_render",
+      "tests": "snow_plume_render"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/world/snow_plume/snow_plume_render.gd tests/world/test_snow_plume_render.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:07:55"
+}
