@@ -1,8 +1,9 @@
 {
   "status": "partial",
-  "summary": "TowSession (лебёдка, трос, отцеп, купол, модели winch/release/drogue), TowRopeView, выбор полосы в Game._choose_tow_start, tow_release (Space / кнопка 2) в controls.json, боты в воздухе над полосой на высоте отцепа. Не проходит test_menu_setup::test_controls_screen_covers_all_input_actions: строка tow_release на экране «Управление» нужна в configs/ui.json (controls_help), он вне скоупа.",
+  "summary": "TowSession (лебёдка, трос, отцеп, купол, модели), TowRopeView, выбор полосы в Game, tow_release (Space / кнопка 2) + строка на экране «Управление», боты в воздухе над полосой. Красное в accept — не из моих файлов: tests/game/ таймаут 900 с (полный прогон: 3 падения вне моих файлов), test_menu_setup 11/12 (wilotree_park страна).",
   "commits": [
-    "50449746 TW-10: старт со статической лебёдки в игре"
+    "50449746 TW-10: старт со статической лебёдки в игре",
+    "отдельный коммит: configs/ui.json + locale/ui.csv, строка tow_release"
   ],
   "checks": [
     {
@@ -27,17 +28,15 @@
     },
     {
       "name": "test_menu_setup",
-      "value": "10/12: tow_release не виден на экране «Управление» (моё, нужен ui.json); wilotree_park страна из конфига (не моё)",
+      "value": "11/12; упал test_flight_setup_lists_all_locations (wilotree_park, не моё)",
       "pass": false
     }
   ],
   "not_done": [
-    "Строка «Отцеп буксировки — Space» на экране «Управление»: нужно {\"action\": \"tow_release\", \"text\": \"controls_tow_release\"} в configs/ui.json → controls_help и ключ controls_tow_release в locale/ui.csv; configs/ui.json вне скоупа. Без неё test_controls_screen_covers_all_input_actions красный.",
     "Аэробуксировка — TW-10b (при tow_kind=aerotow старт без буксировки + push_warning).",
     "accept по tests/game/ упирается в таймаут 900 с (весь набор ~25+ мин) — не регрессия, нужен больший таймаут в карточке."
   ],
   "questions": [
-    "Добавить configs/ui.json в скоуп TW-10 (строка controls_help для tow_release)?",
     "Высота отцепа ботов 0.35·длина троса — константа TowSession.RELEASE_FRACTION (kinds.md [10]); в configs/tow.json числа нет, а файл запрещён. Перенести в tow.json?"
   ],
   "images": [],
@@ -75,6 +74,6 @@
     "alt_60s_m": 266,
     "t_max_n": 699
   },
-  "t": "2026-10-22T05:21:37",
+  "t": "2026-10-22T05:38:37",
   "by": "executor"
 }
