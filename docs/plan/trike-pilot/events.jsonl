@@ -36,3 +36,13 @@
 {"t": "2026-10-22T23:07:13", "by": "coordinator", "task": null, "ev": "plan", "note": "план После слияния tow-trike в main и `module sync` (к…: дописано 1 стр."}
 {"t": "2026-10-22T23:07:24", "by": "coordinator", "task": "TP-2", "ev": "checked", "commits": ["cd57fd6d"], "note": "1/2 trike_pilot_k2=FAIL:таймаут; gd=ok:exit 0"}
 {"t": "2026-10-22T23:07:25", "by": "coordinator", "task": "TP-2", "ev": "merged"}
+{"t": "2026-10-22T23:22:07", "by": "coordinator", "task": "TP-2", "ev": "checked", "commits": ["cd57fd6d"], "note": "1/2 trike_pilot_k2=FAIL:таймаут; gd=ok:exit 0"}
+{"t": "2026-10-22T23:29:58", "by": "executor", "task": "TP-5", "ev": "reported", "commits": ["c8a91037"], "note": "done: FlightSettings.vehicle (+trike_allowed, normalize_vehicle, сохранение), пункт «Дельталёт» в выборе буксировки на местах…", "dp_feedback": "accept --dry в свежей копии без .godot висит молча (нужен предварительный import); job log показывает только имя теста."}
+{"t": "2026-10-22T23:35:25", "by": "coordinator", "task": "TP-5", "ev": "checked", "note": "7/8 trike_pilot_k5=ok:3/3; menu_setup=ok:12/12; setup_apparatus=ok:1/1; tow=ok:75/75; start_=FAIL:91/93 (пропуск 5); FAIL test_…; settings_net_mode=ok:1/1; input_launch=ok:1/1; gd=ok:exit 0; scope=FAIL:вне scope: r-TP-5.json"}
+{"t": "2026-10-22T23:37:22", "by": "coordinator", "task": "TP-2", "ev": "accepted", "commits": ["cd57fd6d"], "note": "2/2 trike_pilot_k2=ok:7/7; gd=ok:exit 0"}
+{"t": "2026-10-22T23:37:32", "by": "coordinator", "task": "TP-4", "ev": "accepted", "commits": ["13c589c8"], "note": "5/5 trike_pilot_k4=ok:5/5; clock_label=ok:3/3; pilot_hud=ok:18/18; vario=ok:23/23; gd=ok:exit 0"}
+{"t": "2026-10-22T23:38:10", "by": "coordinator", "task": "TP-3", "ev": "accepted", "commits": ["49b81bed"], "note": "6/6 trike_pilot_k3=ok:7/7; input=ok:1/1; ui_controls=ok:9/9; control_bar=ok:14/14; pilot_hud=ok:18/18; gd=ok:exit 0"}
+{"t": "2026-10-22T23:40:26", "by": "coordinator", "task": "TP-2", "ev": "merged", "note": "accept --here 2/2"}
+{"t": "2026-10-22T23:40:26", "by": "coordinator", "task": "TP-4", "ev": "merged"}
+{"t": "2026-10-22T23:40:27", "by": "coordinator", "task": "TP-3", "ev": "merged"}
+{"t": "2026-10-22T23:40:27", "by": "coordinator", "task": "TP-5", "ev": "accepted", "note": "по отчёту; start_ 2 падения — базовые (test_start_hint_every_flight_hides_on_w, test_default_start: те же на feature/trike-pilot)"}

@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "FlightSettings.vehicle (+trike_allowed, normalize_vehicle, сохранение), пункт «Дельталёт» в выборе буксировки на местах с tow (выключен в сети, выбор крыла блокируется), CLI --vehicle=trike, Game до TP-6 стартует дельтапланом с push_warning; контрактный тест.",
+  "commits": [
+    "c8a91037 trike-pilot TP-5: выбор старта «Дельталёт»"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot_k5",
+      "value": "3 теста, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "setup_apparatus",
+      "value": "1, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "tow",
+      "value": "75, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "start_",
+      "value": "93 теста, 2 упало (test_start_qol hint_every_flight_hides_on_w, test_start_regression default_start) - падают и без моих правок (проверено git stash)",
+      "pass": false
+    },
+    {
+      "name": "gd",
+      "value": "check_gd ок",
+      "pass": true
+    },
+    {
+      "name": "settings_net_mode",
+      "value": "1, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "input_launch",
+      "value": "1, 0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TP-5",
+  "uncertain": [
+    {
+      "where": "tests/game/test_start_regression.gd, test_start_qol.gd",
+      "why": "2 падения фильтра start_ до моих правок (тип pendulum_model vs flight_model; текст подсказки) - вне скоупа",
+      "checked": "тот же набор падает на чистой ветке через git stash"
+    },
+    {
+      "where": "scripts/ui/flight_setup_screen.gd:_refresh_tow",
+      "why": "пункт в меню проверен только тестами/кодом, визуально не смотрел",
+      "checked": "menu_setup, tow зелёные"
+    }
+  ],
+  "dp_feedback": "accept --dry в свежей копии без .godot висит молча (нужен предварительный import); job log показывает только имя теста.",
+  "t": "2026-10-22T23:29:58",
+  "by": "executor"
+}
