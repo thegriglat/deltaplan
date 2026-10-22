@@ -36,8 +36,8 @@
       "src": "вывод: Trike Height 2.53 м (https://www.airborne.com.au/pages/ml_xt912_specs.php) — верх мачты; болт подвески ≈ на 3 см ниже; пилот на колёсах без нагрузки"
     },
     "wheelbase": {
-      "value": 1.89,
-      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Wheel Base)"
+      "value": 1.8,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg: база ≈1800 мм (ответ пользователя на Q3, 2026-10-22); прототип Airborne XT912 — 1.89 (https://www.airborne.com.au/pages/ml_xt912_specs.php)"
     },
     "track": {
       "value": 1.7,
@@ -45,11 +45,11 @@
     },
     "wheel_front_d": {
       "value": 0.356,
-      "src": "вывод: 14 дюймов — штатные шины Tanarg (https://www.bmaa.org/files/hads_hm16_tanarg.pdf, Annex B 2b); опция 16 дюймов = 0.406 м"
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): переднее колесо 350 мм (14 дюймов, штатные шины Tanarg, https://www.bmaa.org/files/hads_hm16_tanarg.pdf Annex B 2b)"
     },
     "wheel_rear_d": {
       "value": 0.356,
-      "src": "вывод: 14 дюймов — штатные шины Tanarg (https://www.bmaa.org/files/hads_hm16_tanarg.pdf, Annex B 2b); опция 16 дюймов = 0.406 м"
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): основные колёса 350–400 мм, 0.356 м (14 дюймов, штатные шины Tanarg, https://www.bmaa.org/files/hads_hm16_tanarg.pdf Annex B 2b)"
     },
     "tire_front_w": {
       "value": 0.1,
@@ -112,8 +112,8 @@
       "src": "вывод: оценка: задняя ось у основания мачты (мачта наклонена на 18 град, верх на hang_height)"
     },
     "axle_front_y": {
-      "value": 1.34,
-      "src": "вывод: axle_rear_y + wheelbase (https://www.airborne.com.au/pages/ml_xt912_specs.php)"
+      "value": 1.25,
+      "src": "вывод: axle_rear_y (−0.55) + wheelbase 1.80"
     },
     "prop_chord_max": {
       "value": 0.14,
@@ -180,20 +180,20 @@
       "src": "вывод: см. tank_l; низ бака = верх киля (−2.12+0.03) + keel_clear 0.03 = −2.06; верх на 0.024 ниже задней подушки (≥ 0.02)"
     },
     "tube_keel_d": {
-      "value": 0.06,
-      "src": "решение пользователя 2026-10-22 (Q1): трубы рамы 60 мм (v2 было по фото 0.045-0.05)"
+      "value": 0.055,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): трубы киля/мачты 55 мм"
     },
     "tube_mast_d": {
-      "value": 0.06,
-      "src": "решение пользователя 2026-10-22 (Q1): трубы рамы 60 мм (v2 было по фото 0.045-0.05)"
+      "value": 0.055,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): трубы киля/мачты 55 мм"
     },
     "tube_strut_d": {
-      "value": 0.06,
-      "src": "решение пользователя 2026-10-22 (Q1): трубы рамы 60 мм (v2 было по фото 0.045-0.05)"
+      "value": 0.04,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): подкосы 40 мм"
     },
     "tube_frame_d": {
-      "value": 0.04,
-      "src": "вывод: по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg, масштаб по переднему колесу (0.356 м), рама сидений и стойки шасси ≈ 11 пикс → ≈ 0.04 м (±30%)"
+      "value": 0.03,
+      "src": "схема пилота ref/papa_sketch_v2.jpeg (решение пользователя 2026-10-22): рама сидений и стойки шасси 30 мм"
     },
     "prop_rpm_idle": {
       "value": 576,
@@ -325,7 +325,7 @@
       0.43,
       0.355
     ],
-    "keel_clear": 0.03,
+    "keel_clear": 0.0325,
     "filler": [
       0.05,
       -0.2,
@@ -356,18 +356,18 @@
   "panel": {
     "center": [
       0.0,
-      0.655,
-      -1.319
+      0.81,
+      -1.32
     ],
     "size": [
       0.3,
-      0.15
+      0.12
     ],
     "normal": [
       0.0,
-      -0.866,
-      0.5
+      -0.9334,
+      0.3587
     ],
-    "how": "центр на 0.35 м от seat.eye вниз под 30° к горизонту (между глазами и штангой, радиус от подвески 1.47 м < 1.62 м у штанги), нормаль на глаза; колени в sit z≈-1.68 (панель выше на 0.3 м); проверка лучей — tests/contracts/test_trike_model_k1.gd, мин. расстояние до оси штанги 0.107 м (зазор до трубы 0.082 м)"
+    "how": "на оси переднего подкоса (схема пилота) между пилотом и штангой, радиус от подвески 1.55 < 1.62 у штанги; решение координатора 2026-10-22 по сверке TK-18 (tools/research/trike-model/sketch_check.md)"
   }
 }

@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "Поза sit v2: SIT_FOOT_DEG 80 -> 135 (подошва параллельна педали 45° передним краем вверх), голеностоп = центр подошвы + нормаль*ANKLE_H - 0.07 м вдоль стопы; поправка меша теперь по нормали педали. Правая стопа центруется на foot_r (throttle_pedal в 2 см на той же плоскости). Тест K3 v2: наклон подошвы по мешу <= 5°, вершины <= 1 см от плоскости, центр у foot ± 2 см.",
+  "commits": [
+    "d684704b TK-15 поза sit v2"
+  ],
+  "checks": [
+    {
+      "name": "trike_model_k3",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "trike_model_k1",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "pilot",
+      "value": "73/73",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TK-15",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_trike_model_k3.gd",
+      "why": "плоскость/центр подошвы оцениваются по нижним вершинам Sole (в пределах 1.5 см от самой низкой по нормали педали), не по всей подошве",
+      "checked": "сборка Blender: низ подошв на плоскости педали с ошибкой 0 мм после калибровки; тест K3 проходит; k1/pilot прогнаны через accept --dry"
+    }
+  ],
+  "dp_feedback": "accept --dry идёт дольше 120 с без вывода в foreground",
+  "t": "2026-10-22T14:56:59",
+  "by": "executor"
+}

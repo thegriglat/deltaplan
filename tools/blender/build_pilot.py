@@ -357,26 +357,28 @@ def poses(cf: dict, eye: Vector) -> dict:
     return out
 
 
-SIT_FOOT_DEG = 80.0     # сидя: направление стопы от вертикали вниз (носок чуть вниз), °
+SIT_FOOT_DEG = 135.0    # сидя: направление стопы (пятка→носок) от вертикали вниз; педаль 45° передним краем вверх -> 90 + 45, °
+SIT_ANKLE_BACK = 0.07   # голеностоп позади центра подошвы вдоль стопы (пятка 0.07 до кости, ботинок 0.28 м), м
 SIT_HEAD = HEAD_PRONE   # сидя голова наклонена так же, как лёжа: пустышка Head смотрит горизонтально
 SIT_BACK_TOL = 5.0      # допуск угла корпуса к спинке, °
 SIT_HIP_TOL = 0.02      # допуск таза от seat.hip (контракт ±3 см), м
-SIT_DZ = [0.0, 0.0]    # поправка высоты голеностопа L/R: низ подошвы (меш) ровно на подножке; main() подбирает по замеру
+SIT_DZ = [0.0, 0.0]    # поправка голеностопа L/R по нормали стопы: низ подошвы (меш) ровно на педали; main() подбирает по замеру
 SIT_POLE = Vector((0, -0.3, -1))   # локти вниз
 
 
 def sit_pose(seat: dict, dz=(0.0, 0.0)) -> Pose:
     """Поза sit (TK-K3): таз в seat.hip, корпус наклонён так, чтобы глаза (пустышка Head) попали в
-    seat.eye, ноги — двухзвенная IK голеностопа к подножкам foot_l / throttle_pedal (подошва — на
-    ANKLE_H ниже голеностопа по нормали стопы), руки — к hand_l/hand_r, кокон и фал схлопнуты.
+    seat.eye, ноги — двухзвенная IK голеностопа к подножкам foot_l / foot_r (подошва — на
+    ANKLE_H ниже голеностопа по нормали стопы, подошва параллельна педали), руки — к hand_l/hand_r, кокон и фал схлопнуты.
     Координаты seat — оси Blender от карабина, без перевода."""
     hip = Vector(seat["hip"])
     eye_t = Vector(seat["eye"])
-    feet = [Vector(seat["foot_l"]), Vector(seat["throttle_pedal"])]
+    feet = [Vector(seat["foot_l"]), Vector(seat["foot_r"])]   # throttle_pedal — в 2 см от foot_r на той же плоскости
     hands = [Vector(seat["hand_l"]), Vector(seat["hand_r"])]
     fa = math.radians(SIT_FOOT_DEG)
     up_f = Vector((0, math.cos(fa), math.sin(fa)))      # нормаль стопы вверх
-    ank = [f + up_f * D.ANKLE_H + Vector((0, 0, d)) for f, d in zip(feet, dz)]   # dz — поправка по замеру меша подошв
+    toe_f = Vector((0, math.sin(fa), -math.cos(fa)))    # вдоль стопы к носку
+    ank = [f + up_f * (D.ANKLE_H + d) - toe_f * SIT_ANKLE_BACK for f, d in zip(feet, dz)]   # dz — поправка по замеру меша подошв
     # развод ног так, чтобы голеностоп попал по X (одинаково для обеих ног, по левой)
     dx = abs(ank[0].x) - D.HIP_X
     lo, hi = 0.0, 3.0
@@ -1225,8 +1227,8 @@ def skin(ob, arm) -> None:
 REST_HIPS = Vector((0, 0.2, 0))
 
 
-def sole_low(body, arm) -> list:
-    """Мировой z нижней вершины подошв (материал Sole) левого и правого ботинка в текущей позе."""
+def sole_low(body, arm, nrm=Vector((0, 0, 1))) -> list:
+    """Нижняя вершина подошв (материал Sole) левого и правого ботинка по направлению nrm в текущей позе."""
     dg = bpy.context.evaluated_depsgraph_get()
     ev = body.evaluated_get(dg)
     me = ev.to_mesh()
@@ -1238,7 +1240,7 @@ def sole_low(body, arm) -> list:
         for vi in poly.vertices:
             w = ev.matrix_world @ me.vertices[vi].co
             k = 0 if w.x < 0 else 1
-            low[k] = min(low[k], w.z)
+            low[k] = min(low[k], w.dot(nrm))
     ev.to_mesh_clear()
     return low
 
@@ -1435,13 +1437,15 @@ def main() -> None:
 
     # sit: низ подошв по мешу (с учётом скиннинга) — на подножках ± 1 см; поправка к цели голеностопа
     seat = U.load_json("tools/blender/trike_params.json")["seat"]
-    tgt = (seat["foot_l"][2], seat["throttle_pedal"][2])
+    fa = math.radians(SIT_FOOT_DEG)
+    nrm = Vector((0, math.cos(fa), math.sin(fa)))   # нормаль педали (подошвы) вверх
+    tgt = (Vector(seat["foot_l"]).dot(nrm), Vector(seat["foot_r"]).dot(nrm))
     for it in range(4):
         act = bpy.data.actions["sit"]
         arm.animation_data.action = act
         bpy.context.scene.frame_set(1)
         bpy.context.view_layer.update()
-        low = sole_low(body, arm)
+        low = sole_low(body, arm, nrm)
         err = [low[i] - tgt[i] for i in range(2)]
         print("SIT: низ подошв L/R %.4f / %.4f, цель %.4f / %.4f, ошибка %.1f / %.1f мм (итерация %d)" % (
             low[0], low[1], tgt[0], tgt[1], 1000 * err[0], 1000 * err[1], it))

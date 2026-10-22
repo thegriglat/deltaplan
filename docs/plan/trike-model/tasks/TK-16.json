@@ -39,9 +39,15 @@
       "name": "src",
       "cmd": "python3 -c \"import json;d=json.load(open('tools/blender/trike_params.json'))['dims'];print('sketch=%d'%sum(1 for k in ('tube_keel_d','tube_mast_d','tube_strut_d','tube_frame_d','wheel_front_d','wheel_rear_d') if 'papa_sketch' in d[k]['src']))\"",
       "expect": "num:sketch=(\\d+) >=6"
+    },
+    {
+      "name": "q3",
+      "cmd": "python3 -c \"import json;p=json.load(open('tools/blender/trike_params.json'));d=p['dims'];c=p['panel']['center'];print('wb=%.2f af=%.2f panel=%.2f,%.2f'%(d['wheelbase']['value'],d['axle_front_y']['value'],c[1],c[2]))\"",
+      "expect": "re:wb=1\\.80 af=1\\.25 panel=0\\.81,-1\\.32"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T14:51:57"
+  "created": "2026-10-22T14:51:57",
+  "edited": "2026-10-22T15:06:00"
 }

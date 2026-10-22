@@ -85,8 +85,10 @@ func test_trike_params_v2() -> void:
 	check(float(dims.get("prop_chord_max", {}).get("value", 1.0)) < 0.25 * float(dims.get("prop_d", {}).get("value", 0.0)), "лопасть узкая: хорда < 0.25 диаметра")
 	check(["inline", "boxer"].has(String(dims.get("engine_cyl_layout", {}).get("value", ""))), "engine_cyl_layout: inline | boxer")
 	check(int(dims.get("engine_cyl_count", {}).get("value", 0)) >= 1, "engine_cyl_count >= 1")
-	for k in ["tube_keel_d", "tube_mast_d", "tube_strut_d"]:
-		check(absf(float(dims.get(k, {}).get("value", 0.0)) - 0.06) < 1e-6, "v3: dims.%s = 0.06 (решение Q1)" % k)
+	# трубы по схеме пилота (решение пользователя 2026-10-22): киль/мачта 0.055, подкос 0.040, рама 0.030
+	var tube_want := {"tube_keel_d": 0.055, "tube_mast_d": 0.055, "tube_strut_d": 0.040, "tube_frame_d": 0.030}
+	for k in tube_want:
+		check(absf(float(dims.get(k, {}).get("value", 0.0)) - float(tube_want[k])) < 1e-6, "dims.%s = %s (схема пилота)" % [k, tube_want[k]])
 	for k in ["engine_exhaust_d", "engine_exhaust_l", "muffler_d", "muffler_l"]:
 		var ev := float(dims.get(k, {}).get("value", 0.0))
 		check(ev > 0.05 and ev < 1.0, "v3: dims.%s в пределах 5-100 см: %s" % [k, ev])
@@ -223,8 +225,12 @@ func test_trike_params_v4() -> void:
 		zmax = maxf(zmax, q.z)
 	check(zmax < eye.z, "панель ниже уровня глаз: верх %.3f < %.3f" % [zmax, eye.z])
 	check(zmin >= KNEE_TOP_Z + 0.05, "панель выше колен с запасом ≥ 5 см: низ %.3f ≥ %.3f" % [zmin, KNEE_TOP_Z + 0.05])
-	check(c.y > eye.y and c.y < bt.y, "панель между глазами и штангой (по y): %.3f" % c.y)
-	check(c.distance_to(eye) < bt.distance_to(eye), "панель ближе к глазам, чем штанга в триме")
+	# панель внутри дуги штанги: центр и 4 угла дальше от подвески (0,0,0), чем штанга минус половина её диаметра и запас 1 см
+	var rim := bt.length() - float(bar.d) * 0.5 - 0.01
+	var inside := c.length() < rim
+	for q in corners:
+		inside = inside and q.length() < rim
+	check(inside, "панель внутри дуги штанги (радиус от подвески < %.3f): центр %.3f" % [rim, c.length()])
 	# дуга хода: поворот вокруг подвески (ось X) от full_pull до full_push; луч глаз → центр и 4 угла не пересекает цилиндр
 	var a_pull := atan2(bpl.y, -bpl.z)
 	var a_push := atan2(bph.y, -bph.z)
