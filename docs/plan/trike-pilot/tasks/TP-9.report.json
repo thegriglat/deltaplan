@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "TowTrikeSound получил setup_player/update_engine/engine_volume_db: off — тишина, starting/stopping — высота и громкость за prop_rpm, running — как TT-К5; настройки кабины в configs/trike_pilot.json sound. 5 WAV в build/screenshots/trike-pilot/ (tp9_idle/half/full/start/stop).",
+  "commits": [
+    "270b6917 TP-9: звук двигателя дельталёта игрока"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot",
+      "value": "37/37",
+      "pass": true
+    },
+    {
+      "name": "tow",
+      "value": "105/105",
+      "pass": true
+    },
+    {
+      "name": "wav",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "узел в вид игрока ставит TP-8 (вызов setup_player и update_engine каждый кадр)"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli lock cpu TP-9 -- .dpcli/dpcli accept TP-9",
+  "uncertain": [
+    {
+      "where": "configs/trike_pilot.json:sound",
+      "why": "громкость кабины (-3 дБ), unit_size 3 м — игровой выбор, не измерение; громкость ниже холостых ∝ n^4 — допущение",
+      "checked": "контрактные инварианты; WAV на слух не слушал"
+    },
+    {
+      "where": "tests/game test_tow_session.gd::test_game_tick_wiring",
+      "why": "в первом accept упал под нагрузкой, отдельно и во втором accept прошёл",
+      "checked": "перезапуск"
+    }
+  ],
+  "dp_feedback": "Тест-класс с play() должен быть Node (не TestCase); стоит отметить в workflow. accept --dry под lock cpu уходит в job.",
+  "extra": {
+    "wav_dir": "/home/greg/deltaplan/build/screenshots/trike-pilot/",
+    "render": "tools/research/trike-pilot/sound/render_wav.gd"
+  },
+  "t": "2026-10-23T03:35:16",
+  "by": "executor"
+}

@@ -1,0 +1,48 @@
+{
+  "verdict": "accept",
+  "summary": "Контракт TP-К6 выполнен: TrikeRig вынесен из TowTug без изменения чисел, Glider.setup_trike/reset_on_wheels/step как в контракте, старт Game на полосе без TowSession, конец полёта по правилу контракта. Правки в скоупе. Числа взлёта правдоподобны: vs 14 м/с при 325 кг, разбег 35 м, набор 5,1 м/с, это близко к Tanarg/iXess 912 с одним пилотом. Есть 2 падения в game/ сверх известных, вероятно из-за перегрузки машины, их нужно перепроверить.",
+  "issues": [
+    {
+      "file": "tests/game/test_cockpit.gd",
+      "line": 0,
+      "severity": "major",
+      "what": "Мой прогон game/ на ветке TP-6 (машина перегружена): 10 FAIL. Это 8 известных (как в отчёте) и ещё 2: test_cockpit::test_instruments_on_bar («laminar: автостарт — в полёте») и test_qol_cycle::test_control_keys_do_not_skip_unconfirmed. Оба на дельтаплане; путь дельтаплана в game.gd/flight_stats.gd по диффу не изменился, поэтому похоже на нестабильность под нагрузкой. Но доказать это без повторного прогона я не могу.",
+      "fix": "Координатору: под `.dpcli/dpcli lock cpu` перезапустить только эти 2 теста на ветке TP-6 и на базе f679d877. Если падают только на ветке — rework."
+    },
+    {
+      "file": "tests/contracts/test_trike_pilot_k6.gd",
+      "line": 50,
+      "severity": "minor",
+      "what": "Инвариант (1) контракта требует траекторию TowTug за 20 с с точностью ≤ 1 мм. Тест сверяет 15 с, только в 3 точках (5/10/15 с) и только по z и y.",
+      "fix": "Снять эталон до 20 с (лучше каждые 0,5 с, x/y/z) или согласовать 15 с с координатором."
+    },
+    {
+      "file": "scripts/game/flight_stats.gd",
+      "line": 174,
+      "severity": "minor",
+      "what": "_update_finish_trike не использует armed. Любой кадр фазы flying (подскок на разбеге) взводит took_off, после этого остановка на 3 с даёт \"landed\", хотя взлёт был прерван. force_finish для дельталёта всегда даёт \"landed\", даже без отрыва.",
+      "fix": "Передать в TP-7 вместе с посадкой на колёса: решить, нужен ли takeoff_failed по armed, как у дельтаплана."
+    },
+    {
+      "file": "scripts/game/game.gd",
+      "line": 1600,
+      "severity": "minor",
+      "what": "Если TowSite.check не прошёл или на месте нет площадки, при vehicle \"trike\" игра молча стартует дельтапланом на ногах. Предупреждение говорит только «старт без буксировки», settings.vehicle остаётся \"trike\".",
+      "fix": "Сделать понятное предупреждение для дельталёта или отдельное решение в TP-5/TP-8."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "trike_pilot (accept --only --dry)",
+      "value": "32/32, scope 6 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "game (команда карточки, без lock)",
+      "value": "10 FAIL из game/: 8 известных + test_instruments_on_bar, test_control_keys_do_not_skip_unconfirmed (под перегрузкой)",
+      "pass": false
+    }
+  ],
+  "t": "2026-10-23T03:33:24",
+  "by": "reviewer"
+}
