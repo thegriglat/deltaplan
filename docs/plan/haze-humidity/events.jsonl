@@ -287,3 +287,5 @@
 {"t": "2026-10-22T20:24:38", "by": "executor", "task": "HH-10", "ev": "reported", "commits": ["24b716d9"], "note": "done: Скрипт tools/shots/haze_humidity_shots.sh снял 8 кадров (2 места x закат/день x до/после) и README.md в /home/greg/delt…", "dp_feedback": "Нет флага/способа задать час старта кроме 4 фиксированных, пришлось подменять time.speed через user://configs."}
 {"t": "2026-10-22T20:24:47", "by": "coordinator", "task": "HH-10", "ev": "checked", "note": "3/3 frames=ok:8; readme=ok:exit 0; script=ok:exit 0"}
 {"t": "2026-10-22T20:24:53", "by": "coordinator", "task": "HH-10", "ev": "accepted", "note": "по отчёту; кадры в /home/greg/deltaplan/build/screenshots/haze-humidity/ (8 + README); на Алтае солнце за хребтом — свечение у горизонта"}
+{"t": "2026-10-22T20:24:54", "by": "coordinator", "task": "HH-10", "ev": "accepted", "commits": ["641ce3f1"], "note": "3/3 frames=ok:8; readme=ok:exit 0; script=ok:exit 0"}
+{"t": "2026-10-22T20:24:54", "by": "coordinator", "task": "HH-10", "ev": "merged", "commits": ["641ce3f1"]}
