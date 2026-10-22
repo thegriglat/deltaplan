@@ -9,7 +9,7 @@ func test_version() -> void:
 	var t := FileAccess.get_file_as_string(DOC)
 	if t.is_empty():
 		t = FileAccess.get_file_as_string(ProjectSettings.globalize_path(DOC))
-	check(t.contains("## TP-К4 v1."), "TP-К4 v1 в документе")
+	check(t.contains("## TP-К4 v2"), "TP-К4 v2 в документе")
 
 
 func test_needle_angle() -> void:
@@ -26,6 +26,15 @@ func test_config_and_locale() -> void:
 	var sc := GaugeDial.scales()
 	check(float(sc["rpm"]["max_rpm"]) >= float(sc["rpm"]["red_rpm"]), "red_rpm в шкале")
 	check(float(sc["tank_l"]) > 0.0, "бак > 0")
+	var ops: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://configs/trike_pilot.json"))
+	var tach: Dictionary = ops["tachometer"]
+	approx(float(sc["rpm"]["max_rpm"]), float(tach["max_rpm"]), 0.001, "шкала тахометра = trike_pilot.json")
+	approx(float(sc["rpm"]["red_rpm"]), float(tach["red_rpm"]), 0.001, "красная зона = trike_pilot.json")
+	check(sc["rpm"]["green_rpm"] == tach["green_rpm"], "зелёная зона = trike_pilot.json")
+	approx(float(sc["tank_l"]), float(ops["fuel"]["tank_l"]), 0.001, "бак = fuel.tank_l")
+	var inst: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://configs/instruments.json"))
+	var tg: Dictionary = inst["trike_gauges"]
+	check(not tg["tachometer"].has("max_rpm") and not tg["fuel"].has("tank_l_fallback"), "в instruments.json нет копий шкал")
 	for k in ["trike_rpm", "trike_fuel"]:
 		check(TranslationServer.translate(k) != k, "перевод " + k)
 

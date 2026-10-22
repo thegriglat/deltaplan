@@ -28,25 +28,18 @@ static func needle_angle_deg(val: float, vmin: float, vmax: float, amin: float, 
 	return lerpf(amin, amax, t)
 
 
-## Шкалы приборов: instruments.json → trike_gauges; числа тахометра и бака — configs/trike_pilot.json (TP-К1),
-## если он уже есть, иначе запас из instruments.json.
+## Шкалы приборов: вид — instruments.json → trike_gauges; шкалы тахометра и бака — только configs/trike_pilot.json
+## (TP-К1 v2, `tachometer`, `fuel.tank_l`), своих копий чисел нет.
 ## Возвращает {rpm: {...}, fuel: {...}, tank_l: float, face: {...}, panel_3d: {...}, hud: {...}}.
 static func scales() -> Dictionary:
 	var cfg: Dictionary = Config.get_config("instruments").get("trike_gauges", {})
 	var rpm: Dictionary = (cfg.get("tachometer", {}) as Dictionary).duplicate()
 	var fuel: Dictionary = (cfg.get("fuel", {}) as Dictionary).duplicate()
-	var tank := float(fuel.get("tank_l_fallback", 53.0))
-	var has_ops := false
-	for dir in Config.search_dirs():
-		if FileAccess.file_exists(dir.path_join("trike_pilot.json")):
-			has_ops = true
-	if has_ops:
-		var ops: Dictionary = Config.get_config("trike_pilot")
-		var tach: Dictionary = ops.get("tachometer", {})
-		for k in ["max_rpm", "green_rpm", "red_rpm"]:
-			if tach.has(k):
-				rpm[k] = tach[k]
-		tank = float((ops.get("fuel", {}) as Dictionary).get("tank_l", tank))
+	var ops: Dictionary = Config.get_config("trike_pilot")
+	var tach: Dictionary = ops.get("tachometer", {})
+	for k in ["max_rpm", "green_rpm", "red_rpm"]:
+		rpm[k] = tach[k]
+	var tank := float((ops.get("fuel", {}) as Dictionary)["tank_l"])
 	return {
 		"rpm": rpm, "fuel": fuel, "tank_l": tank, "face": cfg.get("face", {}),
 		"panel_3d": cfg.get("panel_3d", {}), "hud": cfg.get("hud", {}),
@@ -57,16 +50,16 @@ static func scales() -> Dictionary:
 func setup_rpm(sc: Dictionary) -> void:
 	var r: Dictionary = sc["rpm"]
 	v_min = 0.0
-	v_max = float(r.get("max_rpm", 8000))
+	v_max = float(r["max_rpm"])
 	a_min = float(r.get("angle_min_deg", 135.0))
 	a_max = float(r.get("angle_max_deg", -135.0))
 	major_step = float(r.get("major_step_rpm", 1000))
 	minor_step = float(r.get("minor_step_rpm", 500))
 	label_div = 1000.0
 	end_labels = []
-	var g: Array = r.get("green_rpm", [2000, 6500])
+	var g: Array = r["green_rpm"]
 	green = Vector2(float(g[0]), float(g[1]))
-	red = Vector2(float(r.get("red_rpm", 6800)), v_max)
+	red = Vector2(float(r["red_rpm"]), v_max)
 	title = tr("trike_rpm")
 	face = sc["face"]
 

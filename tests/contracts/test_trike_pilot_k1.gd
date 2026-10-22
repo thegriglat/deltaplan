@@ -1,5 +1,5 @@
 extends TestCase
-## Контракт TP-К1 v1 (docs/contracts/trike-pilot.md): configs/trike_pilot.json.
+## Контракт TP-К1 v2 (docs/contracts/trike-pilot.md): configs/trike_pilot.json.
 
 const CFG := "res://configs/trike_pilot.json"
 const PARAMS := "res://tools/blender/trike_params.json"
@@ -22,7 +22,7 @@ func _json(path: String) -> Dictionary:
 func test_keys_and_docs() -> void:
 	var c := _json(CFG)
 	check(not c.is_empty(), "конфиг читается")
-	check(c.get("contract", "") == "TP-К1 v1", "contract = TP-К1 v1")
+	check(c.get("contract", "") == "TP-К1 v2", "contract = TP-К1 v2")
 	check(str(c.get("_doc", "")).length() > 0, "_doc")
 	for sec: String in KEYS:
 		var d: Variant = c.get(sec, null)
@@ -57,7 +57,7 @@ func test_invariants() -> void:
 	check(not l.is_empty() and float(l[0]) >= 0.0, "lph ≥ 0")
 	var tank := float(f.get("tank_l", 0))
 	var start := float(f.get("start_l", 0))
-	check(start > 0.0 and start <= tank, "start_l ∈ (0; tank_l]: %s/%s" % [start, tank])
+	check(start > 0.0 and is_equal_approx(start, tank), "start_l = tank_l (v2, полный бак): %s/%s" % [start, tank])
 	var p := _json(PARAMS)
 	var pt := float(p.get("dims", {}).get("tank_volume_l", {}).get("value", -100))
 	check(absf(tank - pt) <= 0.5, "tank_l = trike_params ± 0,5: %s/%s" % [tank, pt])

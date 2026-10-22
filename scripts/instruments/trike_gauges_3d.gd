@@ -73,7 +73,7 @@ func update_readout(engine_rpm: float, fuel_l: float, tank_l: float, _running: b
 	var r: Dictionary = _sc["rpm"]
 	var f: Dictionary = _sc["fuel"]
 	rpm_needle.rotation_degrees.z = GaugeDial.needle_angle_deg(
-		engine_rpm, 0.0, float(r.get("max_rpm", 8000)),
+		engine_rpm, 0.0, float(r["max_rpm"]),
 		float(r.get("angle_min_deg", 135.0)), float(r.get("angle_max_deg", -135.0)))
 	fuel_needle.rotation_degrees.z = GaugeDial.needle_angle_deg(
 		fuel_l, 0.0, tank_l, float(f.get("angle_min_deg", 60.0)), float(f.get("angle_max_deg", -60.0)))
