@@ -23,3 +23,7 @@
 {"t": "2026-10-23T03:13:43", "by": "coordinator", "task": "SNW-1", "ev": "accepted", "note": "по отчёту; порог — решение координатора (Li & Pomeroy как есть)"}
 {"t": "2026-10-23T03:13:52", "by": "coordinator", "task": "SNW-1", "ev": "accepted", "commits": ["17c594d"], "note": "3/3 doc_exists=ok:exit 0; frontmatter=ok:---; k1_keys=ok:0"}
 {"t": "2026-10-23T03:13:52", "by": "coordinator", "task": "SNW-1", "ev": "merged"}
+{"t": "2026-10-23T03:14:09", "by": "executor", "task": "SNW-3", "ev": "reported", "commits": ["2adca4ed"], "note": "done: SnowPlumeRender: пул GPUParticles3D, переназначение по id без restart, шейдер частиц считает положение аналитически (Эр…"}
+{"t": "2026-10-23T03:14:19", "by": "coordinator", "task": "SNW-3", "ev": "checked", "note": "3/3 snow_plume_k3_render=ok:1/1; snow_plume_render=ok:6/6; check_gd=ok:exit 0; scope=FAIL:вне scope: r-SNW-3.json"}
+{"t": "2026-10-23T03:14:36", "by": "coordinator", "task": "SNW-3", "ev": "checked", "note": "3/3 snow_plume_k3_render=ok:1/1; snow_plume_render=ok:6/6; check_gd=ok:exit 0"}
+{"t": "2026-10-23T03:14:42", "by": "coordinator", "task": "SNW-3", "ev": "accepted", "note": "по отчёту; визуал — кадры SNW-5"}

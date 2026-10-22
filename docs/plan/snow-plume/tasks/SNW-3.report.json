@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "SnowPlumeRender: пул GPUParticles3D, переназначение по id без restart, шейдер частиц считает положение аналитически (Эрмит по path/vel) с разлётом и оседанием, билборд-шейдер пятна. Контрактный и свои 6 тестов проходят.",
+  "commits": [
+    "2adca4ed snow-plume SNW-3: отрисовка снежных флагов"
+  ],
+  "checks": [
+    {
+      "name": "snow_plume_k3_render",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "snow_plume_render",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SNW-3",
+  "uncertain": [
+    {
+      "where": "snow_plume_particles.gdshader",
+      "why": "без preprocess шлейф нарастает за lifetime (до ~40 с) после появления источника; визуал не смотрел",
+      "checked": "оба шейдера скомпилировались на Vulkan (окно, RTX 4070, 30 кадров), ошибок шейдера нет; динамическая индексация uniform-массивов path[8]/vel[8] работает"
+    },
+    {
+      "where": "snow_plume_render.gd",
+      "why": "Источник с path<2 или intensity 0 держит слот, но не рисуется (active_count считает слот); числа умолчаний временные до SNW-1",
+      "checked": "тест short_path"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "model_tests_failing_in_filter": "test_snow_plume_k3_model — ждут SNW-2"
+  },
+  "t": "2026-10-23T03:14:09",
+  "by": "executor"
+}
