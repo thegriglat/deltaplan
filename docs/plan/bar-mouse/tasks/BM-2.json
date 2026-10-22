@@ -1,0 +1,41 @@
+{
+  "id": "BM-2",
+  "module": "bar-mouse",
+  "type": "dp-researcher",
+  "title": "Сырой ввод мыши при захвате в Godot 4.7.2 по платформам",
+  "goal": "Записка с источниками (код движка Godot 4.7.2, строки файлов): даёт ли InputEventMouseMotion.relative при MOUSE_MODE_CAPTURED сырые отсчёты мыши без ускорения ОС на Windows (Повышенная точность установки указателя), Linux X11, Wayland, macOS; чем relative отличается от screen_relative (растяжение, HiDPI); если где-то ускорение есть — описать и предложить обход для штанги (BM-К1).",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "BM-К1",
+      "version": "1",
+      "ref": "docs/contracts/bar-mouse.md"
+    }
+  ],
+  "copy": "~/deltaplan-bar-mouse-BM-2",
+  "branch": "bar-mouse/BM-2",
+  "base": "feature/bar-mouse",
+  "scope": [
+    "docs/research/bar-mouse-raw-input.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "doc",
+      "cmd": "test -s docs/research/bar-mouse-raw-input.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА  docs/research/bar-mouse"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:02:25"
+}

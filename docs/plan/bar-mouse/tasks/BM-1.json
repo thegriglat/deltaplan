@@ -1,0 +1,36 @@
+{
+  "id": "BM-1",
+  "module": "bar-mouse",
+  "type": "dp-engineer",
+  "title": "Диагностика: куда идёт мышь по камерам",
+  "goal": "Тест в загруженной сцене полёта числом показывает, куда идёт движение мыши в камерах cockpit/chase/free (штанга control.roll/pitch, голова/камера) и влияет ли look_sensitivity_deg_per_px (0,02 против 0,5) на штангу или камеру без ПКМ, в т.ч. после ПКМ, нажатой/отпущенной на паузе или в меню. Поведение не чинить — найти расхождение с таблицей BM-К2.",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "BM-К2",
+      "version": "1",
+      "ref": "docs/contracts/bar-mouse.md"
+    }
+  ],
+  "copy": "~/deltaplan-bar-mouse-BM-1",
+  "branch": "bar-mouse/BM-1",
+  "base": "feature/bar-mouse",
+  "scope": [
+    "tests/game/test_mouse_routing.gd",
+    "tests/game/test_mouse_routing.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/game/test_mouse_bar_flight.gd"
+  ],
+  "accept": [
+    {
+      "name": "test_mouse_routing",
+      "tests": "test_mouse_routing"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:01:58"
+}
