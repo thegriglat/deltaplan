@@ -1,0 +1,43 @@
+{
+  "id": "HH-10",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Кадры до/после: закат из кабины (20:40, partly, к солнцу) и основание облаков днём",
+  "goal": "Снять для пользователя пары кадров до (main) и после (feature/haze-humidity) с одних ракурсов: закат из кабины 20:40, --sky=partly, взгляд к солнцу; основание облаков днём; с README — что изменено в каждом кадре. Только картинки, в /home/greg/deltaplan/build/screenshots/haze-humidity/.",
+  "plan_ref": "Волна 3",
+  "contracts": [],
+  "copy": "~/deltaplan-haze-humidity-HH-10",
+  "branch": "haze-humidity/HH-10",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/shots/haze_humidity_shots.sh"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "data/",
+    "docs/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=8"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -f /home/greg/deltaplan/build/screenshots/haze-humidity/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "script",
+      "cmd": "test -x tools/shots/haze_humidity_shots.sh",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T19:49:14"
+}

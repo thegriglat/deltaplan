@@ -1,0 +1,78 @@
+{
+  "id": "HH-8",
+  "module": "haze-humidity",
+  "type": "dp-writer",
+  "title": "Волна 3: руководство, находки, CHANGELOG по влажности, дымке и свету облаков",
+  "goal": "docs/guide описывает, как сейчас устроены точка росы и воздух 700 гПа по месту (ClimateGrid, Td дня), дымка по влажности и свет солнца на облаках, с границами модели; выводы закрытых исследований модуля — строками в registry/findings.md; CHANGELOG «В работе» полон и точен.",
+  "plan_ref": "Волна 3",
+  "contracts": [
+    {
+      "name": "HH7",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH3",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH4",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-8",
+  "branch": "haze-humidity/HH-8",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "docs/guide/",
+    "docs/registry/findings.md",
+    "CHANGELOG.md",
+    "docs/INDEX.md",
+    "tools/research/haze_humidity/dew_point/README.md",
+    "tools/research/haze_humidity/td_sky/README.md",
+    "tools/research/haze_humidity/haze/README.md",
+    "tools/research/haze_humidity/sun_transmission/README.md",
+    "tools/research/haze_humidity/cloud_base/README.md",
+    "tools/research/haze_humidity/verify/README.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "data/",
+    "docs/contracts/",
+    "docs/plan/",
+    "site/",
+    "tools/research/haze_humidity/upper_air/",
+    "tools/research/haze_humidity/upper_misc/",
+    "tools/research/haze_humidity/surface_t/"
+  ],
+  "accept": [
+    {
+      "name": "findings",
+      "cmd": "/usr/bin/grep -c '^## haze-humidity' docs/registry/findings.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "guide_td",
+      "cmd": "/usr/bin/grep -l 'ClimateGrid' -r docs/guide/",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_old",
+      "cmd": "! /usr/bin/grep -rn 'dew_point_c\\|td_follow_heat\\|evening_haze' docs/guide/",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T19:48:49",
+  "edited": "2026-10-22T19:49:08"
+}
