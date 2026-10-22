@@ -252,3 +252,5 @@
 {"t": "2026-10-22T15:55:16", "by": "executor", "task": "TK-5", "ev": "reported", "commits": ["16b74668", "0aa11f11"], "note": "done: docs/guide/models/trike.md, строки в models.md/pilot.md/ASSETS.md, раздел trike-model в findings.md; числа посадки v4 и…", "dp_feedback": "task sync удаляет неотслеживаемый r-<ID>.json; task show обрезает дополнения."}
 {"t": "2026-10-22T15:55:30", "by": "coordinator", "task": "TK-5", "ev": "accepted", "note": "4/4 docs=ok:exit 0; guide=ok:trike.md:4; sit=ok:2; assets=ok:1"}
 {"t": "2026-10-22T15:55:36", "by": "coordinator", "task": "TK-5", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-22T15:55:37", "by": "coordinator", "task": "TK-5", "ev": "accepted", "commits": ["6607bc9c"], "note": "4/4 docs=ok:exit 0; guide=ok:trike.md:4; sit=ok:2; assets=ok:1"}
+{"t": "2026-10-22T15:55:37", "by": "coordinator", "task": "TK-5", "ev": "merged"}
