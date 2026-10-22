@@ -235,3 +235,5 @@
 {"t": "2026-10-22T15:49:39", "by": "coordinator", "task": "TK-11", "ev": "accepted", "note": "по отчёту; мачта 18° с прежним низом (y −0.689) — решение Q3 «наклон по источникам», «низ над осью» было лишь предложением TK-18"}
 {"t": "2026-10-22T15:49:50", "by": "coordinator", "task": "TK-11", "ev": "accepted", "commits": ["61064795"], "note": "3/3 trike_model_k2=ok:2/2; trike_model_k1=ok:4/4; textures=ok:exit 0"}
 {"t": "2026-10-22T15:49:51", "by": "coordinator", "task": "TK-11", "ev": "merged"}
+{"t": "2026-10-22T15:49:56", "by": "coordinator", "task": "TK-12", "ev": "started"}
+{"t": "2026-10-22T15:50:03", "by": "coordinator", "task": "TK-12", "ev": "edited", "note": "dont_touch", "diff": {"dont_touch": ["[\"tools/blender/\", \"assets/\", \"tests/\", \"docs/\"]", "[\"tools/blender/trike_params.json\", \"tools/blender/build_trike.py\", \"tools/blender/build_pilot.py\", \"assets/\", \"tests/\", \"docs/\"]"]}}

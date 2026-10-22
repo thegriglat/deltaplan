@@ -25,7 +25,9 @@
     "tools/research/trike-model/"
   ],
   "dont_touch": [
-    "tools/blender/",
+    "tools/blender/trike_params.json",
+    "tools/blender/build_trike.py",
+    "tools/blender/build_pilot.py",
     "assets/",
     "tests/",
     "docs/"
@@ -75,5 +77,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T14:02:06",
-  "edited": "2026-10-22T14:40:49"
+  "edited": "2026-10-22T15:50:03"
 }
