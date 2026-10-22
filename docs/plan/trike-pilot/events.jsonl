@@ -225,3 +225,8 @@
 {"t": "2026-10-23T04:44:12", "by": "executor", "task": "TP-22", "ev": "reported", "commits": ["c96667fa"], "note": "partial: Звук двигателя игрока молчит на паузе и в меню (Glider.set_engine_sound_muted, вызывается из Game.set_paused/set_flying…"}
 {"t": "2026-10-23T04:44:27", "by": "coordinator", "task": "TP-22", "ev": "accepted", "note": "по отчёту; k6 test_contract_version падает до слияния TP-20 (контракт v2) — ожидаемо"}
 {"t": "2026-10-23T04:44:28", "by": "coordinator", "task": "TP-22", "ev": "merged"}
+{"t": "2026-10-23T04:44:48", "by": "executor", "task": "TP-10", "ev": "reported", "commits": ["7048046e"], "note": "partial: Гайд docs/guide/flight/trike-pilot.md, строка в CHANGELOG «В работе», раздел trike-pilot в findings (TP-17, TP-19, engi…", "dp_feedback": "Регулярка docs-приёмки ловит ошибки чужих файлов (контракт модуля с лимитом размера); лучше проверять docs check только по файлам скоупа."}
+{"t": "2026-10-23T04:45:47", "by": "executor", "task": "TP-18", "ev": "reported", "commits": ["d48bfd77"], "note": "done: full_pull_speed_kmh trike_ixess15: 130 -> 82 (модельная, TP-17: 81,5 на упоре TT-8); в _doc, источнике крыла и build.py…", "dp_feedback": "build.py пишет в файлы вне скоупа задачи; accept --dry при перегрузке даёт таймаут 900 с, а в копии без .godot нужен --import заранее - стоило бы подсказывать."}
+{"t": "2026-10-23T04:46:25", "by": "coordinator", "task": "TP-10", "ev": "accepted", "note": "2/2 docs=ok:exit 1; changelog=ok:3"}
+{"t": "2026-10-23T04:46:35", "by": "coordinator", "task": "TP-18", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T04:46:35", "by": "coordinator", "task": "TP-10", "ev": "accepted", "note": "по отчёту; дополнить после TP-20/21/23"}
