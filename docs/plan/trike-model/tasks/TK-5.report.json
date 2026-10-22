@@ -1,8 +1,9 @@
 {
   "status": "done",
-  "summary": "docs/guide/models/trike.md (источники размеров, оси и узлы, prop_spin и обороты, бюджеты, посадка/штанга/панель, как пересобрать, чего модель не умеет, раздел для будущего модуля), строка и команда сборки в models.md (пилот: 9 анимаций), sit в pilot.md, строка в ASSETS.md, раздел trike-model в findings.md (5 пунктов), INDEX пересобран.",
+  "summary": "docs/guide/models/trike.md, строки в models.md/pilot.md/ASSETS.md, раздел trike-model в findings.md; числа посадки v4 из TK-12 внесены.",
   "commits": [
-    "cc1fe3b6 trike-model: TK-5 — документация модели тележки"
+    "16b74668 trike-model: TK-5 — числа посадки v4 (TK-12)",
+    "0aa11f11 Слияние feature/trike-model в trike-model/TK-5"
   ],
   "checks": [
     {
@@ -26,24 +27,17 @@
       "pass": true
     }
   ],
-  "not_done": [
-    "Результат посадки для v4 (педали 45°) не приведён: TK-12 не влита, в guide даны числа fit.json по v2 с пометкой"
-  ],
+  "not_done": [],
   "questions": [],
   "how_to_check": ".dpcli/dpcli accept TK-5",
   "uncertain": [
     {
-      "where": "docs/guide/models/trike.md: Бюджеты",
-      "why": "сумма с крылом и пилотом 28…30 тыс. — моя арифметика (6414 + 11,8…14,0 тыс. + 9703)",
-      "checked": "числа из отчёта TK-11 и models.md"
-    },
-    {
-      "where": "docs/guide/models/trike.md: Винт и обороты",
-      "why": "скорость конца лопасти 185 м/с и 0,54 Маха — из extra TK-7 и моей оценки скорости звука 340 м/с",
-      "checked": "отчёт TK-7"
+      "where": "trike.md: Бюджеты",
+      "why": "сумма 28…30 тыс. — моя арифметика",
+      "checked": "числа TK-11, models.md"
     }
   ],
-  "dp_feedback": "task show обрезает длинные дополнения (нужен --full); report --show TK-12 без отчёта даёт только 'отчёта нет' — не видно, влита ли задача.",
-  "t": "2026-10-22T15:53:32",
+  "dp_feedback": "task sync удаляет неотслеживаемый r-<ID>.json; task show обрезает дополнения.",
+  "t": "2026-10-22T15:55:16",
   "by": "executor"
 }
