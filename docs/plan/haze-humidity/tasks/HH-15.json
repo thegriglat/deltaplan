@@ -87,9 +87,20 @@
       "name": "docs",
       "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "center_brightest",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo2_askarovo.jpg",
+      "expect": "re:center_brightest=1"
+    },
+    {
+      "name": "monotonic",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo2_askarovo.jpg",
+      "expect": "re:monotonic=1"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-23T01:33:54"
+  "created": "2026-10-23T01:33:54",
+  "edited": "2026-10-23T01:46:52"
 }
