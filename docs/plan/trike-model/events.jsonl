@@ -209,3 +209,5 @@
 {"t": "2026-10-22T14:59:55", "by": "coordinator", "task": "TK-15", "ev": "accepted", "commits": ["f0547429"], "note": "3/3 trike_model_k3=ok:2/2; trike_model_k1=ok:4/4; pilot=ok:73/73"}
 {"t": "2026-10-22T14:59:55", "by": "coordinator", "task": "TK-15", "ev": "merged"}
 {"t": "2026-10-22T14:59:56", "by": "coordinator", "task": "TK-11", "ev": "note", "note": "PASS; ждёт влития TK-16 — пересборка под трубы схемы, затем merge"}
+{"t": "2026-10-22T15:00:04", "by": "coordinator", "task": "TK-18", "ev": "checked", "note": "2/2 docs=ok:exit 0; table=ok:25"}
+{"t": "2026-10-22T15:00:26", "by": "coordinator", "task": "TK-18", "ev": "accepted", "note": "по отчёту; вопросы — шлюз Q3"}
