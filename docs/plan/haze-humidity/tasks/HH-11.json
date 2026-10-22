@@ -1,0 +1,92 @@
+{
+  "id": "HH-11",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Ореол и пересвет солнца у горизонта (диск не увеличивать)",
+  "goal": "У горизонта (высота солнца 0–8°) вокруг диска настоящего размера — ореол/пересвет, как на фото телефона: видимое яркое пятно ≈ 3–3,5 геометрического диаметра (на 1080p, vfov 90°: диск ≈ 7 px → пятно 20–28 px), из физики яркости солнца относительно неба и рассеяния аэрозолем вперёд; кадры до/после.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [],
+  "copy": "~/deltaplan-haze-humidity-HH-11",
+  "branch": "haze-humidity/HH-11",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "scripts/world/sky.gdshader",
+    "scripts/world/sun_glare.gdshader",
+    "scripts/world/sun_glare.gd",
+    "configs/world.json",
+    "tests/world/",
+    "tools/shots/sun_halo_measure.py",
+    "tools/shots/haze_humidity_shots.sh",
+    "CHANGELOG.md",
+    "scripts/world/sky_environment.gd",
+    "tools/shots/sun_color_measure.py",
+    "scripts/game/game.gd",
+    "scripts/world/sun_clock.gd",
+    "tests/world/"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/",
+    "configs/weather_model.json",
+    "data/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "sky",
+      "tests": "sky"
+    },
+    {
+      "name": "sun",
+      "tests": "sun"
+    },
+    {
+      "name": "haze_humidity",
+      "tests": "haze_humidity"
+    },
+    {
+      "name": "disk",
+      "cmd": "python3 -c \"import json;r=json.load(open('configs/world.json'))\" && /usr/bin/grep -q '\"radius_deg\": 0.3' configs/world.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity/before_halo_*.jpg /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_*.jpg | wc -l",
+      "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "halo_ratio",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "num:ratio=([\\d.]+) >=2.8"
+    },
+    {
+      "name": "halo_ratio_max",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "num:ratio=([\\d.]+) <=4.0"
+    },
+    {
+      "name": "frame_size",
+      "cmd": "python3 -c \"from PIL import Image;print(Image.open('/home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg').size)\"",
+      "expect": "re:\\(1920, 1080\\)"
+    },
+    {
+      "name": "disk_color",
+      "cmd": "python3 tools/shots/sun_color_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "re:within=1"
+    },
+    {
+      "name": "halo_offset",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "num:offset_px=([\\d.]+) <=3"
+    },
+    {
+      "name": "glow_r",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "num:glow_r_deg=([\\d.]+) <=7"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T20:26:25",
+  "edited": "2026-10-22T22:37:35"
+}

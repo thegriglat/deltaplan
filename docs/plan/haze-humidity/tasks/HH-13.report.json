@@ -1,0 +1,72 @@
+{
+  "status": "done",
+  "summary": "Доработка по ревью: sun_tint (линейный) подаётся в light_color, sky/haze sun_color и SunGlare через linear_to_srgb; тест 18° по контракту (0,89/0,70 ±0,08); sky.valley_msl_m из game.gd; кадры after_suncolor_*/after_everest пересняты, диск перемерен.",
+  "commits": [
+    "cc303100 HH-13: лог цветности диска в линейном виде, CHANGELOG",
+    "e5c85ac0 HH-13: sun_tint в слоты sRGB, valley_msl_m из game.gd, тест 18° по контракту",
+    "1a972e53 HH-13: цвет солнца из пропускания атмосферы (sun_tint) вместо таблицы time.light.sun_color"
+  ],
+  "checks": [
+    {
+      "name": "haze_humidity",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "sun",
+      "value": "20/20",
+      "pass": true
+    },
+    {
+      "name": "sky",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "no_table",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "12",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Ядро диска по-прежнему светлее/белее ожидания (проверки в приёмке нет, яркость диска — HH-11)"
+  ],
+  "questions": [],
+  "images": [
+    "build/screenshots/haze-humidity/after_suncolor_askarovo.jpg",
+    "build/screenshots/haze-humidity/after_everest.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept HH-13",
+  "uncertain": [
+    {
+      "where": "tools/shots/sun_color_measure.py",
+      "why": "диск 1-5 px, ядро смешано с небом и ореолом, насыщение HDR (clip_hdr); центр задан --at вручную по кадру",
+      "checked": "замер --at=955,425 / 962,427 / 917,432; свет рельефа и дымка визуально красно-оранжевые"
+    },
+    {
+      "where": "scripts/world/sky_environment.gd:166",
+      "why": "sun.light_color через sRGB: Godot переводит в линейное, ожидаемо даёт линейный base*tint; на кадрах не сверял числом",
+      "checked": "тест sun_tint сравнивает в линейном; кадры side/everest просмотрены"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "disk_core_lin_g_r": [
+      0.77,
+      0.6,
+      0.48
+    ],
+    "disk_core_lin_b_r": [
+      0.59,
+      0.46,
+      0.43
+    ]
+  },
+  "t": "2026-10-22T22:54:00",
+  "by": "executor"
+}

@@ -1,0 +1,74 @@
+{
+  "id": "HH-13",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Цвет солнца из пропускания атмосферы (свет, диск, ореол), без выбеливания тонмаппингом",
+  "goal": "Цвет прямого солнца — SunTransmission.sun_tint(высота солнца, высота точки) по контракту HH4 v2 вместо ручной таблицы time.light.sun_color: свет рельефа, диск/корона/ореол неба, дымка, засвет; у горизонта (0–3°) почти тёмно-красный; тонмаппинг не выбеливает диск; кадры до/после.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "HH4",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH3",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-13",
+  "branch": "haze-humidity/HH-13",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "scripts/atmosphere/sun_transmission.gd",
+    "scripts/world/sky_environment.gd",
+    "configs/world.json",
+    "configs/atmosphere.json",
+    "tests/atmosphere/test_sun_transmission.gd",
+    "tests/contracts/test_haze_humidity_hh4.gd",
+    "tests/world/",
+    "tools/shots/haze_humidity_shots.sh",
+    "tools/shots/sun_color_measure.py",
+    "CHANGELOG.md",
+    "tools/shots/menu_art.json",
+    "scripts/game/game.gd"
+  ],
+  "dont_touch": [
+    "scripts/world/sky.gdshader",
+    "scripts/world/sun_glare.gdshader",
+    "scripts/world/sun_glare.gd",
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "data/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "haze_humidity",
+      "tests": "haze_humidity"
+    },
+    {
+      "name": "sun",
+      "tests": "sun"
+    },
+    {
+      "name": "sky",
+      "tests": "sky"
+    },
+    {
+      "name": "no_table",
+      "cmd": "python3 -c \"import json;l=json.load(open('configs/world.json'))['time']['light'];assert 'sun_color' not in l\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity/before_suncolor_*.jpg /home/greg/deltaplan/build/screenshots/haze-humidity/after_suncolor_*.jpg | wc -l",
+      "expect": "num:(\\d+) >=4"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T20:58:25",
+  "edited": "2026-10-22T22:39:33"
+}
