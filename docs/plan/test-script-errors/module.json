@@ -1,0 +1,11 @@
+{
+  "module": "test-script-errors",
+  "plan": "docs/plan/test-script-errors.md",
+  "contracts": "docs/contracts/test-script-errors.md",
+  "branch": "feature/test-script-errors",
+  "copy": "~/deltaplan-test-script-errors",
+  "created": "2026-10-22T14:00:10",
+  "code": "TSE",
+  "area": "process",
+  "base": "main"
+}
