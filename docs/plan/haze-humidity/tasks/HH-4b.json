@@ -1,0 +1,87 @@
+{
+  "id": "HH-4b",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Климат места в игре, часть 2: Tmax, суточная амплитуда, тропопауза, перистые, ветер с высотой по сеткам",
+  "goal": "Игра берёт по месту из ClimateGrid (HH7) дневной максимум и суточную амплитуду (HH5), тропопаузу, перистые (HCC × k_sky) и рост ветра с высотой (HH6, WR) вместо таблиц typical_max_c, diurnal.range_k, tropopause_msl_m, cirrus_base, wind.altitude_gain_per_km; β-член Td дня — от Tx места (снять нефизичность вне Алтая); эталоны и тесты — под данные.",
+  "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
+  "contracts": [
+    {
+      "name": "HH7",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH5",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH6",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-4b",
+  "branch": "haze-humidity/HH-4b",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "scripts/atmosphere/weather_model.gd",
+    "scripts/atmosphere/climate_grid.gd",
+    "configs/weather_model.json",
+    "configs/atmosphere.json",
+    "scripts/atmosphere/wind_model.gd",
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/game/game.gd",
+    "scripts/game/flight_settings.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/atmosphere/air_model/air_place.gd",
+    "scripts/atmosphere/air_model/air_window_case.gd",
+    "scripts/atmosphere/surface_heat.gd",
+    "configs/weather/",
+    "tests/atmosphere/",
+    "tests/contracts/test_haze_humidity_contracts.gd",
+    "tests/goals/",
+    "tests/game/",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "data/",
+    "tools/research/",
+    "docs/contracts/",
+    "scripts/world/",
+    "scripts/terrain/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "weather",
+      "tests": "weather"
+    },
+    {
+      "name": "haze_humidity",
+      "tests": "haze_humidity"
+    },
+    {
+      "name": "goal",
+      "tests": "goal"
+    },
+    {
+      "name": "wind",
+      "tests": "wind"
+    },
+    {
+      "name": "surface_heat",
+      "tests": "surface_heat"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:41:41",
+  "edited": "2026-10-23T04:42:06"
+}
