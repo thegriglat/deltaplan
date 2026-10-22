@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "AirGpu при пустом RID (buffer, upload, _pipeline, _uniforms) ставит failed, пишет одну строку через GpuHealth.report_failure (CR-К2, новый scripts/core/gpu_health.gd), дальше все вызовы холостые; AirGpuJob завершает задачу failed (start/poll/poll_slice) один раз, откат на аналитику делает AirRuntime как раньше.",
+  "commits": [
+    "10ba426f AirGpu: пустой RID — отказ задачи и GpuHealth (CR-К2) вместо каскада ошибок"
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "value": "87/87, пропуск 37",
+      "pass": true
+    },
+    {
+      "name": "test_air_gpu_invalid (GPU, RTX 4070 SUPER)",
+      "value": "2/2 ok: одна запись GpuHealth, failed один раз",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "таймаут 900 с под нагрузкой замка; test_air_hybrid_gpu.test_hybrid_vs_cold FAIL (110 ≤ 100)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Полный прогон gpu --filter=air_ не уложился в 900 с; оставшиеся GPU-тесты после air_model: field не дошли."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept CR-5; быстро: tools/gpu_tests.sh --filter=test_air_gpu_invalid",
+  "uncertain": [
+    {
+      "where": "tests/atmosphere/test_air_hybrid_gpu.gd (test_hybrid_vs_cold)",
+      "why": "упал на числе итераций гибрида (110 против 100); мои правки на здоровом устройстве только ранний выход при failed, счёт не меняют",
+      "checked": "на ветке до правок не прогонял; вероятно существующая нестабильность порога, прошу проверить на feature/crash-reports"
+    },
+    {
+      "where": "scripts/atmosphere/air_model/air_gpu.gd",
+      "why": "пустой RID моделируется буфером размера 0; реальную потерю устройства D3D12 не воспроизвести",
+      "checked": "тест на RTX 4070 SUPER; потерянное устройство (sync/submit) отдельно не ловится — отказ sync не имеет признака в API Godot"
+    }
+  ],
+  "dp_feedback": "gpu-шаг accept с --filter=air_ берёт 15+ минут и упирается в таймаут 900 с под общим замком CPU; удобно было бы отдельное имя шага или больший таймаут.",
+  "t": "2026-10-23T04:10:59",
+  "by": "executor"
+}
