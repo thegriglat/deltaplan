@@ -38,7 +38,7 @@ func _run(g: Glider, v: float, turb: float, n: int, skip: int = 0) -> Dictionary
 
 func test_calm_zero() -> void:
 	var g := _glider()
-	var vt: float = g.model.trim_speed()
+	var vt: float = Units.kmh(float(g.model.wing.trim_speed_kmh))
 	for v in [Units.kmh(30.0), Units.kmh(80.0), vt]:
 		var r := _run(g, v, 0.0, 120)
 		check(g.visual.buzz.is_zero_approx(), "спокойный воздух, %.1f м/с: buzz = 0 (%s)" % [v, g.visual.buzz])
@@ -48,7 +48,7 @@ func test_calm_zero() -> void:
 
 func test_frequency_scales_with_speed() -> void:
 	var g := _glider()
-	var vt: float = g.model.trim_speed()
+	var vt: float = Units.kmh(float(g.model.wing.trim_speed_kmh))
 	var n := 1200
 	var base := _run(g, vt, 1.0, n, 120)
 	var fast := _run(g, vt * 1.6, 1.0, n, 120)
@@ -69,7 +69,7 @@ func test_frequency_scales_with_speed() -> void:
 
 func test_amplitude_not_scaled() -> void:
 	var g := _glider()
-	var vt: float = g.model.trim_speed()
+	var vt: float = Units.kmh(float(g.model.wing.trim_speed_kmh))
 	var a := _run(g, vt, 1.0, 900, 300)
 	var b := _run(g, vt * 1.6, 1.0, 900, 300)
 	check(absf(float(a.peak) - float(b.peak)) < 0.004, "амплитуда от скорости не множится (%.4f vs %.4f)" % [a.peak, b.peak])
@@ -78,7 +78,7 @@ func test_amplitude_not_scaled() -> void:
 
 func test_phase_continuous() -> void:
 	var g := _glider()
-	var vt: float = g.model.trim_speed()
+	var vt: float = Units.kmh(float(g.model.wing.trim_speed_kmh))
 	_run(g, vt, 1.0, 300)
 	var maxd := 0.0
 	var prev: Vector3 = g.visual.buzz
