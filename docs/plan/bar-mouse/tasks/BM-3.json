@@ -1,0 +1,73 @@
+{
+  "id": "BM-3",
+  "module": "bar-mouse",
+  "type": "dp-engineer",
+  "title": "Штанга мышью: ход в отсчётах мыши, свой слайдер, мёртвая зона без скачка",
+  "goal": "Реализовать BM-К1 (docs/contracts/bar-mouse.md): класс MouseBar, ключи mouse.bar_travel_px/bar_sensitivity, ход не зависит от окна и FPS, мёртвая зона вычитанием; в настройках слайдер «Чувствительность штанги» с подсказкой ≈ см при 800 DPI, старый слайдер — «Обзор мышью»; контрактный тест test_bar_mouse_contracts зелёный.",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "BM-К1",
+      "version": "1",
+      "ref": "docs/contracts/bar-mouse.md"
+    }
+  ],
+  "copy": "~/deltaplan-bar-mouse-BM-3",
+  "branch": "bar-mouse/BM-3",
+  "base": "feature/bar-mouse",
+  "scope": [
+    "scripts/game/mouse_bar.gd",
+    "scripts/game/mouse_bar.gd.uid",
+    "scripts/game/input_controller.gd",
+    "configs/controls.json",
+    "configs/ui.json",
+    "scripts/ui/settings_panel.gd",
+    "locale/",
+    "tests/game/test_bar_mouse_input.gd",
+    "tests/game/test_bar_mouse_input.gd.uid",
+    "tests/game/test_mouse_bar_flight.gd",
+    "tests/flight/pendulum/",
+    "tests/ui/",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/game/camera_rig.gd",
+    "scripts/game/game.gd",
+    "tests/contracts/",
+    "docs/contracts/",
+    "configs/camera.json"
+  ],
+  "accept": [
+    {
+      "name": "test_bar_mouse",
+      "tests": "test_bar_mouse"
+    },
+    {
+      "name": "test_mouse_bar_flight",
+      "tests": "test_mouse_bar_flight"
+    },
+    {
+      "name": "test_pendulum_symmetry",
+      "tests": "test_pendulum_symmetry"
+    },
+    {
+      "name": "test_pendulum_release_event",
+      "tests": "test_pendulum_release_event"
+    },
+    {
+      "name": "test_control_fix_contracts",
+      "tests": "test_control_fix_contracts"
+    },
+    {
+      "name": "test_settings",
+      "tests": "test_settings"
+    },
+    {
+      "name": "test_control_bar",
+      "tests": "test_control_bar"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:03:43"
+}
