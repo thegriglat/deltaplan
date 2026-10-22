@@ -32,6 +32,10 @@ var _vsync: CheckBox
 var _fps_limit: OptionButton
 var _fps_options: Array = []
 var _window_mode: OptionButton
+var _driver: OptionButton
+var _driver_opts: PackedStringArray = []
+var _driver_at_start := ""  ## выбор на момент открытия панели — от него «нужен перезапуск»
+var _driver_note: HBoxContainer
 var _resolution: OptionButton
 var _resolutions: Array = []
 var _time_speed: OptionButton
@@ -307,6 +311,32 @@ func _build_display_rows(box: Control) -> void:
 			_resolution.add_item("%d × %d" % [v.x, v.y])
 	UiKit.row(box, tr("settings_resolution"), _resolution)
 	_window_mode.item_selected.connect(func(i: int) -> void: _resolution.disabled = i == 1)
+	_build_driver_row(box)
+
+
+## Драйвер рендера (CR-К3): Авто / Vulkan / DirectX 12 (Windows), Авто / Metal / Vulkan (macOS);
+## на Linux выбора нет. Смена действует после перезапуска.
+func _build_driver_row(box: Control) -> void:
+	_driver_opts = RenderDriver.options()
+	if _driver_opts.size() < 2:
+		return
+	_driver = OptionButton.new()
+	for d in _driver_opts:
+		_driver.add_item(tr("render_driver_auto") if d == "auto" else GpuFailureDialog._label(d))
+	UiKit.row(box, tr("settings_render_driver"), _driver)
+	_driver_note = HBoxContainer.new()
+	UiKit.label(_driver_note, tr("settings_render_driver_restart"), "HintLabel")
+	UiKit.button(_driver_note, tr("settings_render_driver_restart_btn"), _on_driver_restart)
+	_driver_note.visible = false
+	box.add_child(_driver_note)
+	_driver.item_selected.connect(
+		func(i: int) -> void: _driver_note.visible = _driver_opts[i] != _driver_at_start
+	)
+
+
+func _on_driver_restart() -> void:
+	if save():
+		RenderDriver.restart(get_tree())
 
 
 ## Зона сети (NET-40/К3): скорость времени не настраивается (game.gd держит ×1) — строка
@@ -343,6 +373,10 @@ func load_values() -> void:
 	var fs := String(Config.value("game", "display.window_mode", "windowed")) == "fullscreen"
 	_window_mode.select(1 if fs else 0)
 	_resolution.disabled = fs
+	if _driver != null:
+		_driver_at_start = RenderDriver.configured()
+		_driver.select(maxi(_driver_opts.find(_driver_at_start), 0))
+		_driver_note.visible = false
 	var ws: Array = Config.value("game", "display.window_size", [0, 0])
 	_resolution.select(maxi(_resolutions.find(Vector2i(int(ws[0]), int(ws[1]))), 0))
 	_grass.value = float(Config.value("vegetation", "grass.density_pct", 100.0))
@@ -469,6 +503,7 @@ func save() -> bool:
 	ok = UserSettings.save_patch("vegetation", gp, config_dir) and ok
 	ok = UserSettings.save_patch("world", {"fog": {"sun_scatter": _haze_sun.value}}, config_dir) and ok
 	# модель ветра: «расчёт» = auto (как по умолчанию), «упрощённый» = off; со следующей загрузки места
+	var wind_before := String(Config.value("atmosphere", "air_model.enabled", "auto"))
 	var wp := {
 		"air_model":
 		{
@@ -477,6 +512,12 @@ func save() -> bool:
 		"air_cache": {"max_mb": int(_air_cache.value)},
 	}
 	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
+	if wind_before != wp.air_model.enabled:
+		ok = RenderDriver.clear_off_reason(config_dir) and ok  # ручной выбор — не «после обрыва»
+	if _driver != null and _driver.selected >= 0:
+		var drv := _driver_opts[_driver.selected]
+		if drv != RenderDriver.configured():
+			ok = RenderDriver.save(drv, config_dir) and ok
 	ok = _save_motion() and ok
 	Config.reload()
 	GraphicsPresets.apply_display(true)

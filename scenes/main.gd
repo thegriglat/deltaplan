@@ -55,6 +55,9 @@ var _hold_box: Control
 var steam_lobby: Node
 ## Вход по приглашению Steam уже ждёт конца загрузки (не запускать второй раз).
 var _steam_join_scheduled := false
+## Окно отказа видеокарты (CR-К3 v2) и опрос GpuHealth.
+var _gpu_dialog: GpuFailureDialog
+var _gpu_timer: Timer
 
 @onready var game: Game = $Game
 @onready var start_menu: StartMenu = $UI/StartMenu
@@ -119,6 +122,7 @@ func _ready() -> void:
 	elif opts.autostart:
 		await _fly(flight)
 	else:
+		_setup_gpu_failure_watch()
 		await _show_menu()
 		# запуск Steam с «+connect_lobby <id>»: сразу экран «Сетевая игра» и вход
 		if steam_lobby != null and int(steam_lobby.pending_lobby) > 0:
@@ -129,6 +133,50 @@ func _ready() -> void:
 		_perf()
 	elif opts.screenshot != "":
 		_screenshot()
+
+
+## Окно «видеокарта не отвечает» (CR-К3 v2): после обрыва прошлого сеанса на стадии wind —
+## сразу; отказ GPU в этом сеансе — по опросу. Окно одно за запуск; на тот же обрыв — один раз.
+## Пилотских запусков нет (headless, служебные аргументы) — не показываем.
+func _setup_gpu_failure_watch() -> void:
+	if DisplayServer.get_name() == "headless" or opts.autostart or opts.smoke or opts.perf_s > 0.0:
+		return
+	var pending := CrashReport.read_json(CrashReport.PENDING_PATH)
+	if RenderDriver.should_offer_after_crash(pending):
+		RenderDriver.mark_offered(RenderDriver.crash_key(pending))
+		_show_gpu_failure.call_deferred()
+		return
+	_gpu_timer = Timer.new()
+	_gpu_timer.wait_time = 1.0
+	_gpu_timer.process_mode = Node.PROCESS_MODE_ALWAYS
+	_gpu_timer.timeout.connect(_poll_gpu_failure)
+	add_child(_gpu_timer)
+	_gpu_timer.start()
+
+
+func _poll_gpu_failure() -> void:
+	if _gpu_failed():
+		_gpu_timer.stop()
+		_show_gpu_failure()
+
+
+## Видеокарта отказала в этом сеансе (GpuHealth, CR-К2).
+func _gpu_failed() -> bool:
+	return false
+
+
+func _show_gpu_failure() -> void:
+	if _gpu_dialog != null:
+		return
+	_gpu_dialog = GpuFailureDialog.new()
+	_gpu_dialog.setup(RenderDriver.current(), RenderDriver.alternative(), user_config_dir)
+	_gpu_dialog.choice_made.connect(
+		func(_c: String) -> void:
+			_gpu_dialog = null
+			start_menu.refresh_wind_note()
+	)
+	$UI.add_child(_gpu_dialog)
+	_gpu_dialog.popup_centered()
 
 
 func _process(delta: float) -> void:

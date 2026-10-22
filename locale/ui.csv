@@ -638,3 +638,16 @@ tow_site_dh,"Перепад высот вдоль полосы больше до
 loc_wilotree_park,"Флорида — Wilotree Park (Quest Air), буксировка","Florida — Wilotree Park (Quest Air), towing"
 site_wilotree_runway_36,"Полоса 36 (на север), южный торец","Runway 36 (north), south end"
 site_wilotree_runway_18,"Полоса 18 (на юг), северный торец","Runway 18 (south), north end"
+gpu_fail_title,Видеокарта не отвечает,Graphics card not responding
+gpu_fail_text,"Видеокарта перестала отвечать (драйвер %s). Игра могла оборваться или считать ветер не так, как должна.",The graphics card stopped responding (driver %s). The game may have crashed or computed wind incorrectly.
+gpu_fail_recommend,Рекомендуем переключиться на %s и перезапустить игру.,We recommend switching to %s and restarting the game.
+gpu_fail_update,"Попробуйте обновить драйвер видеокарты. Можно играть с упрощённым ветром, он не использует видеокарту.","Try updating your graphics driver. You can also play with simplified wind, which does not use the GPU."
+gpu_fail_switch,Перейти на %s и перезапустить,Switch to %s and restart
+gpu_fail_simple_wind,Упрощённый ветер (без видеокарты),Simplified wind (no GPU)
+gpu_fail_retry,Попробовать снова,Try again
+settings_render_driver,Драйвер графики,Graphics driver
+render_driver_auto,Авто,Auto
+settings_render_driver_restart,Нужен перезапуск,Restart required
+settings_render_driver_restart_btn,Перезапустить игру,Restart game
+menu_wind_simplified,Ветер упрощён: прошлый расчёт оборвался,Wind simplified: the last calculation crashed
+menu_wind_restore,Вернуть расчёт,Restore calculation

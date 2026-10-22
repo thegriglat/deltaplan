@@ -33,6 +33,7 @@ var _setup_btn: Button
 var _training_btn: Button
 var _training: TrainingMenu
 var _summary: Label
+var _wind_note: HBoxContainer  ## «Ветер упрощён после обрыва» + «Вернуть расчёт» (CR-К3 v2)
 var _lang_prev: Button
 var _fav_box: VBoxContainer
 
@@ -123,6 +124,7 @@ func _build() -> void:
 	_add_quote(tr("menu_quote"))
 	_add_version()
 	_add_crash_report_note()
+	_add_wind_note()
 	# Полупрозрачная подложка — только под колонкой кнопок, не во весь экран.
 	var box := _scrolling_column()
 	_status = UiKit.label(box, "", "HintLabel")
@@ -305,6 +307,34 @@ func _add_crash_report_note() -> void:
 	l.visible = CrashReporter.sent
 	add_child(l)
 	CrashReporter.report_sent.connect(func() -> void: l.visible = true)
+
+
+## Строка над отчётом о вылете: ветер упрощён из-за обрыва расчёта — кнопка возвращает расчёт.
+func _add_wind_note() -> void:
+	_wind_note = HBoxContainer.new()
+	_wind_note.name = "WindNote"
+	_wind_note.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_wind_note.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_wind_note.offset_left = 16.0
+	_wind_note.offset_bottom = -36.0
+	_wind_note.add_theme_constant_override("separation", 10)
+	var l := UiKit.label(_wind_note, tr("menu_wind_simplified"), "HintLabel")
+	l.name = "WindNoteLabel"
+	var b := UiKit.button(_wind_note, tr("menu_wind_restore"), _on_wind_restore)
+	b.name = "WindRestoreButton"
+	add_child(_wind_note)
+	visibility_changed.connect(refresh_wind_note)
+	refresh_wind_note()
+
+
+func refresh_wind_note() -> void:
+	if _wind_note != null:
+		_wind_note.visible = RenderDriver.wind_off_by_crash()
+
+
+func _on_wind_restore() -> void:
+	RenderDriver.restore_wind()
+	refresh_wind_note()
 
 
 func _add_version() -> void:
