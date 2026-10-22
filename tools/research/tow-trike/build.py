@@ -160,7 +160,7 @@ out = {
   "sink_at_80_kmh_ms": {"value": round(sink80, 3), "src": SRC_P},
  },
  "trim_speed_kmh": {"value": trim, "src": "оценка: скорость наилучшего набора 83,3 км/ч (HADS HM16 Annex D(g), 450 кг) × √(m/450); собственно трим в HADS не указан"},
- "full_pull_speed_kmh": {"value": 130.0, "src": "оценка: 0,8·Vne (164,8, HADS §7(C)); у крыла без VG реальный предел зависит от тележки"},
+ "full_pull_speed_kmh": {"value": 82.0, "src": "модельная скорость полной выборки штангой, ход TT-8 (0,1107 м) на упоре: 81,5 км/ч на нулевом газу (замеры TP-17, docs/research/trike-pilot/speed-range.md). 130 км/ч - Va по HADS (133, только в снижении), не горизонтальная скорость; горизонтальный потолок Rotax 582 по тяге ≈ 120 км/ч"},
  "full_push_speed_kmh": {"value": round(vs_ref * 3.6 * 1.05, 1), "src": "оценка: штанга полностью отдана — на пороге сваливания, 1,05·Vs"},
  "double_surface_pct": {"value": 90, "src": "tools/research/trike-model/wings.json: Wikipedia Air Creation iXess (по пересказу, не перепроверено)"},
  "kingpost": {"value": True, "src": "tools/research/trike-model/wings.json: Wikipedia iXess — крыло с кингпостом; проверить по фото"},

@@ -20,7 +20,8 @@
     "configs/tow_tug.json",
     "tests/contracts/test_trike_pilot_k6.gd",
     "tests/contracts/test_tow_trike_k1.gd",
-    "scripts/game/tow_tug.gd"
+    "scripts/game/tow_tug.gd",
+    "tools/research/tow-trike/build.py"
   ],
   "dont_touch": [
     "scripts/flight/pendulum/",
@@ -52,5 +53,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T04:03:14",
-  "edited": "2026-10-23T04:23:11"
+  "edited": "2026-10-23T04:46:52"
 }

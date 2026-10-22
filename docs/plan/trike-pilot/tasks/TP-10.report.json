@@ -1,0 +1,41 @@
+{
+  "status": "partial",
+  "summary": "Гайд docs/guide/flight/trike-pilot.md, строка в CHANGELOG «В работе», раздел trike-pilot в findings (TP-17, TP-19, engine-ops, wheels), INDEX и реестры пересобраны. Приёмка docs падает на чужом файле: docs/contracts/trike-pilot.md 41 КБ > 40 КБ (вне скоупа).",
+  "commits": [
+    "7048046e TP-10: документация дельталёта игрока, CHANGELOG, findings"
+  ],
+  "checks": [
+    {
+      "name": "changelog",
+      "value": "3",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "6 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ОШИБКА docs/contracts/trike-pilot.md: 41 КБ > 40 КБ",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Раздел «Осталось» плана не обновлён: docs/plan/ в «не трогать». Открыто: Q8, TP-18, TP-21, TP-22, 130 км/ч в configs/wings/trike_ixess15.json."
+  ],
+  "questions": [
+    "Контракт trike-pilot.md (41 КБ > 40 КБ) разбить на файлы или поднять лимит? Это нужно для PASS приёмки docs."
+  ],
+  "how_to_check": ".dpcli/dpcli accept TP-10 --dry",
+  "uncertain": [
+    {
+      "where": "docs/guide/flight/trike-pilot.md, «Колёса»",
+      "why": "TP-21 (подскок без провала), TP-22 (звук на паузе), TP-18 не влиты, отчётов нет; описано как открытое",
+      "checked": "контракт v3, отчёты TP-13, TP-8; код pendulum_model.gd"
+    }
+  ],
+  "dp_feedback": "Регулярка docs-приёмки ловит ошибки чужих файлов (контракт модуля с лимитом размера); лучше проверять docs check только по файлам скоупа.",
+  "t": "2026-10-23T04:44:48",
+  "by": "executor"
+}

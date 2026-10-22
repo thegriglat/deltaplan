@@ -14,9 +14,7 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
 контрактный тест проверяет версию своего раздела по заголовку (шаблон — `tests/contracts/test_trike_model_k1.gd`:
 `const DOC`, `const VERSION`, регулярка заголовка `^## (TP-К\d) v(\d+)\.`).
 
-Форматы tow-trike (ещё не в `main`; читать в копии `~/deltaplan-tow-trike/docs/contracts/tow-trike.md`): TT-К1
-(`configs/tow_tug.json`: `cart`, `engine`, `thrust`, `ground`, `wing`), TT-К3 (колёса в `PendulumModel`), TT-К4
-(`TowTug`). До слияния код этого модуля их файлы не читает и не создаёт: числа TT-К1 — в тестовых словарях.
+Форматы tow-trike — `docs/contracts/tow-trike.md` (TT-К1 `configs/tow_tug.json`, TT-К3 колёса, TT-К4 `TowTug`).
 
 ## TP-К1 v3. Эксплуатация двигателя — `configs/trike_pilot.json`
 Владелец — TP-1. Потребители — TP-2 (`TrikeEngine`), TP-4 (шкала топлива), TP-6. Контрактный тест —
@@ -90,16 +88,12 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
     `look_down` от W/S не срабатывают; `ControlInput.walk` = 0, `run` = false (пилот сидит, разбега нет).
   - Пробел (`engine_toggle`) → `ControlInput.engine_toggle`.
   - На земле (`on_ground`) A/D → `ControlInput.turn` (руление носовым колесом; знак — как сейчас у `turn`:
-    `turn_right − turn_left`); в воздухе A/D — взгляд влево/вправо, как в `"glider"`.
+    `turn_right − turn_left`); в воздухе A/D ничего не делают (v2).
   - Тормоз (`trike_brake`) на земле → `brake`; в воздухе `brake` = false.
   - Штанга (мышь/джойстик → `pitch`, `roll`), `pull_full` (Shift в воздухе), X, C, V, Q, Tab, 1–5, R, Esc, M, F12 — как
     в `"glider"`.
-  - Взгляд вверх/вниз в `"trike"` — действия `look_up`/`look_down` с клавишами без W/S (см. ниже).
-- `configs/controls.json → keys` (с `_doc` у каждого): `throttle_up` `["W"]`, `throttle_down` `["S"]`,
-  `engine_toggle` `["Space"]`, `trike_brake` `["Shift"]` (предложение до ответа пользователя), к `look_up`/`look_down`/
-  `look_left`/`look_right` добавить `Up`/`Down`/`Left`/`Right` (предложение до ответа пользователя; в `"glider"` W/S/A/D
-  остаются). `InputController.register_actions` регистрирует новые действия. Правка по ответу пользователя — только
-  значения в `controls.json` (код от конкретных клавиш не зависит, кроме того, что W/S в `"trike"` — газ).
+- `configs/controls.json → keys` (с `_doc`): `throttle_up` `["W"]`, `throttle_down` `["S"]`, `engine_toggle` `["Space"]`,
+  `trike_brake` `["Shift"]`; `InputController.register_actions` регистрирует их (стрелки у `look_*` — отменены v2).
 - Справка: `configs/ui.json → controls_help` — строки дельталёта (газ, двигатель, руление, тормоз) с ключами
   `locale/ui.csv` (`controls_trike_*`, ru и en).
 - **Инварианты теста** (через `Input.action_press`/`action_release` и `InputController.update`): `"glider"` — W в воздухе
@@ -109,17 +103,12 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
   зарегистрированы (`InputMap.has_action`); у `engine_toggle` нет клавиш, занятых другими действиями (кроме
   `ui_accept` меню).
 - v2 (2026-10-22, Q1, Q2, ревью TP-3). Заменяет пункты v1 о взгляде и Shift:
-  - Q1: в `"trike"` взгляд — **только мышью** (правая кнопка в кабине, как сейчас, `CameraRig._mouse_looks`): клавишного
-    взгляда нет — `InputController.keys_look()` в `"trike"` = false; A/D в воздухе ничего не делают (`turn` 0).
-    Стрелки у `look_*` убрать: `look_up`/`look_down`/`look_left`/`look_right` — снова только W/S/A/D (как до TP-3),
-    `tests/game/test_ui_controls_contracts.gd` — прежние ожидания. Правку общего `InputMap` по режиму
-    (`_apply_look_keys`) убрать: режим не меняет привязки клавиш.
+  - Q1: в `"trike"` взгляд — только мышью (правая кнопка, `CameraRig._mouse_looks`): `keys_look()` = false; `look_*` —
+    только W/S/A/D; режим не меняет `InputMap`.
   - Q2: тормоз — Shift (`trike_brake`). В `"trike"` на земле Shift — только `brake` (`pull_full` = false, `run` =
     false); в воздухе Shift — `pull_full`, `brake` = false.
-  - Инварианты теста v2: `"trike"` в воздухе — W/S/A/D/стрелки не дают взгляда (`keys_look()` false), W → газ;
-    `"glider"` в воздухе — `keys_look()` true, W не газ; привязки `look_*` = W/S/A/D и не зависят от `vehicle`
-    (переключение `vehicle` туда-обратно не меняет `InputMap`); Shift на земле в `"trike"` → `brake` true, `pull_full`
-    false; в воздухе → `pull_full` true, `brake` false; тест проверяет версию раздела TP-К3.
+  - Инварианты v2: `"trike"` в воздухе — `keys_look()` false, W → газ; `"glider"` — `keys_look()` true; `look_*` не
+    зависят от `vehicle`; Shift на земле в `"trike"` → `brake`, не `pull_full`; в воздухе — наоборот; версия раздела.
 
 ## TP-К4 v2. Приборы: обороты и топливо
 Владелец — TP-4. Потребители — TP-8 (монтаж в кабине и HUD в игре). Контрактный тест —
@@ -127,10 +116,8 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
 
 - Общий вход обоих приборов: `update_readout(engine_rpm: float, fuel_l: float, tank_l: float, running: bool) -> void`
   (значения — из `TrikeEngine`, TP-К2; прибор от `TrikeEngine` не зависит).
-- Шкалы — `configs/instruments.json → trike_gauges` (с `_doc`): тахометр `0…tachometer.max_rpm`, зелёная и красная зоны
-  — из TP-К1 `tachometer` (до TP-1 — числа руководства Rotax 582: холостые ≈ 2000, макс. продолжительный 6500, взлётный
-  6800, шкала до 8000; после TP-1 — читать `configs/trike_pilot.json`, свои копии чисел не держать); топливо `0…tank_l`
-  (метки «E»/«F» или литры). Подписи — `locale/ui.csv` (`trike_rpm`, `trike_fuel`, ru/en).
+- Шкалы — из `configs/trike_pilot.json` (TP-К1 `tachometer`, `fuel.tank_l`, v2), вид — `configs/instruments.json →
+  trike_gauges`. Подписи — `locale/ui.csv` (`trike_rpm`, `trike_fuel`, ru/en).
 - Стрелка: статическая `needle_angle_deg(value: float, v_min: float, v_max: float, a_min: float, a_max: float) -> float`
   — линейно, вне шкалы — упор. Один класс/функция для обоих приборов.
 - 3D: `scenes/instruments/trike_gauges_3d.tscn` (корень `TrikeGauges3D`, `Node3D`, скрипт
@@ -164,8 +151,7 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
   "trike"`, `tow_kind = ""`; выбор крыла выключен (крыло дельталёта — TT-К2, выбирать нечего). Другой пункт —
   `"glider"`.
 - CLI (`scripts/game/launch_options.gd`): `vehicle=trike` (как `tow`).
-- `Game` до TP-6: `vehicle == "trike"` → обычный старт дельтапланом и `push_warning` (полёта дельталёта ещё нет);
-  в сети или со стартом в воздухе — всегда `"glider"` (как `_choose_tow_start`).
+- В сети или со стартом в воздухе — всегда `"glider"` (как `_choose_tow_start`); старт дельталёта — TP-К6.
 - **Инварианты теста:** `trike_allowed` — true для места с `tow` без сети, false в сети и без `tow` (`wilotree_park` и
   место без буксировки из `configs/locations/`); `FlightSettings` с `vehicle "trike"` → после сохранения и чтения
   `"trike"`, `tow_kind` пуст; `"bogus"` → `"glider"`; `launch_options` `vehicle=trike` → `"trike"`.
@@ -198,7 +184,7 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
   `engine.reset()` (заглушен, полный бак).
 - `step(dt)` у дельталёта: `engine.step(dt, airspeed_ms, input.throttle_axis, input.engine_toggle)` (ввод — последний
   `set_input`), `trike.thrust_n = engine.thrust_n`, шаг модели, `trike.refresh(dt)`. У дельтаплана `step` — без изменений.
-- Вид до TP-8 — как у дельтаплана с крылом `trike_ixess15` (временно).
+- Вид — TP-К8.
 
 **`Game`** (`scripts/game/game.gd`):
 - `settings.vehicle == "trike"`, без сети и не старт в воздухе (TP-К5) → старт на полосе места буксировки (тот же
@@ -209,7 +195,7 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
   колёса (TP-К7) — `"landed"`, когда путевая скорость < 0,5 м/с непрерывно ≥ 3 с (руление после посадки разрешено);
   столкновения — как у дельтаплана. У дельтаплана — без изменений.
 - **Инварианты теста** (`Glider` в дереве без `Game` для физики; `Game` — по образцу `tests/game/test_tow_*`):
-  (1) `TowTug` с `TrikeRig` — тесты `tow` зелёные, траектория `TowTug` за 20 с равна прежней (≤ 1 мм);
+  (1) тесты `tow` зелёные (равенство траектории `TowTug` снято v2);
   (2) дельталёт на колёсах, двигатель заглушен, 10 с — неподвижен, `thrust_n` 0; (3) `engine_toggle` → через
   `start_s` холостые; (4) полный газ, штанга по простому регулятору (`pitch` 0 до 1,1·vs, затем «от себя» до отрыва,
   дальше скорость ≈ 1,3·vs) — отрыв на полосе ≤ `runway_length_m` места (610 м), набор в установившемся наборе > 0;
