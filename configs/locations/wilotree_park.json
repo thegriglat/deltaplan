@@ -1,0 +1,131 @@
+{
+  "_doc": "Локация «Wilotree Park (Quest Air)» (Грувленд, Флорида, США): равнинная травяная площадка буксировки дельтапланов, OSM-аэродром «Sheets Airport» (FAA FA42), ele 33 м. Полоса 18/36 (OSM way 304948919). Координаты мира: X — восток, −Z — север, Y — высота над уровнем моря, м; начало X/Z — центр локации. Источник и выбор места — docs/research/tow/sites.md; контракт — TW-К6 (docs/contracts/tow.md). Локация собирается из сети при первом выборе (как остальные встроенные без bundled).",
+  "country": "US",
+  "country_doc": "Страна места, ISO 3166-1 alpha-2 (для «Популярных мест»); нет ключа — RU",
+  "name": "loc_wilotree_park",
+  "name_doc": "Название для меню",
+  "center_lat": 28.53502,
+  "center_lat_doc": "Широта центра локации, градусы: середина линии полосы 18/36 (среднее её концов, sites.md → Полоса)",
+  "center_lon": -81.8467,
+  "center_lon_doc": "Долгота центра локации, градусы: то же",
+  "utc_offset_h": -4,
+  "utc_offset_h_doc": "Часовой пояс места, UTC+N: Флорида, восточное время; −4 — летнее (EDT, март–ноябрь), когда там проходят соревнования по буксировке (sites.md, отчёты Quest Air Open). SunClock держит фиксированный сдвиг, зимой реальное поясное время на час меньше",
+  "dem": {
+    "_doc": "Параметры подготовки высот (читает DemStage). Равнина: сглаживание под лесом и постройками оставлено как у Аскарово (деревья вокруг аэродрома, sites.md → Что не подтверждено).",
+    "layers": [
+      {
+        "id": "detail",
+        "size_km": 40,
+        "size_km_doc": "Сторона квадрата детального рельефа, км (зона полётов)",
+        "spacing_m": 25,
+        "spacing_m_doc": "Шаг сетки высот, м",
+        "source": "copernicus",
+        "source_doc": "copernicus — Copernicus GLO-30 (30 м), terrarium — тайлы AWS Terrain Tiles",
+        "zoom": 12,
+        "zoom_doc": "Уровень тайлов Terrarium (если source = terrarium)",
+        "quantize_per_m": 32,
+        "quantize_per_m_doc": "Квантование высот при сохранении: 32 → шаг 1/32 м (для сжатия)",
+        "smooth_sigma_cells": 0.8,
+        "smooth_sigma_cells_doc": "Гауссово сглаживание высот (σ в клетках сетки), MLK-К1: только под кронами и крышами — вес w из маски леса и застройки (см. ниже), на скалах, снегу и камне высоты как в Copernicus; без покрова (офлайн) — везде; 0 — без сглаживания",
+        "smooth_mask_sigma_m": 50,
+        "smooth_mask_sigma_m_doc": "Размытие маски леса/застройки, м (не меньше 2 клеток): переход от сырых высот к сглаженным ~3 таких расстояния от кромки",
+        "smooth_mask_classes": [
+          1,
+          7
+        ],
+        "smooth_mask_classes_doc": "Классы игры, под которыми сглаживать: 1 лес (маска 10 м, канал L), 7 застройка (built10 / класс карты поверхности)"
+      },
+      {
+        "id": "far",
+        "size_km": 160,
+        "size_km_doc": "Сторона квадрата дальнего рельефа (фон до горизонта), км",
+        "spacing_m": 100,
+        "spacing_m_doc": "Шаг сетки высот, м",
+        "source": "terrarium",
+        "zoom": 11,
+        "zoom_doc": "Уровень тайлов Terrarium: z11 ≈ 67 м/пикс на широте 28,5° (шаг сетки 100 м)",
+        "quantize_per_m": 32,
+        "smooth_sigma_cells": 0
+      }
+    ]
+  },
+  "start_sites": [
+    {
+      "id": "runway_36",
+      "name": "site_wilotree_runway_36",
+      "name_doc": "Полоса 36 (на север): начало у южного торца, ось 356,8° истинный (sites.md → Полоса); разбег 610 м (заявленная длина, OSM length=610)",
+      "lat": 28.5311456,
+      "lon": -81.8464567,
+      "heading_deg": 356.8,
+      "tow": {
+        "kinds": [
+          "aerotow",
+          "winch_static"
+        ],
+        "runway_length_m": 610,
+        "runway_width_m": 35
+      }
+    },
+    {
+      "id": "runway_18",
+      "name": "site_wilotree_runway_18",
+      "name_doc": "Полоса 18 (на юг): начало у северного торца, ось 176,8° (обратная к 356,8°); разбег 610 м вдоль той же линии. Линия OSM длиннее заявленной полосы (862 м против 610), поэтому 610 м откладываются от торца, а не до противоположного",
+      "lat": 28.5388934,
+      "lon": -81.8469503,
+      "heading_deg": 176.8,
+      "tow": {
+        "kinds": [
+          "aerotow",
+          "winch_static"
+        ],
+        "runway_length_m": 610,
+        "runway_width_m": 35
+      }
+    }
+  ],
+  "render": {
+    "_doc": "Параметры меша по слоям, как у Аскарово (сетки те же: 40 км/25 м и 160 км/100 м; chunk_cells делит размер слоя). Без раздела TerrainRenderer не строится",
+    "detail": {
+      "chunk_cells": 160,
+      "lod_distances_m": [1500, 3500, 7000, 14000],
+      "skirt_depth_m": 300
+    },
+    "far": {
+      "chunk_cells": 200,
+      "lod_distances_m": [12000, 25000, 45000],
+      "skirt_depth_m": 400
+    }
+  },
+  "start_position_agl_m": 0.0,
+  "start_position_agl_m_doc": "Высота точки старта над землёй, м (0 — пилот на земле у торца полосы)",
+  "_sources_doc": "OSM way 304948919 (aeroway=runway, ref=18/36, surface=grass, length=610, width=35), ODbL; отчёты Quest Air Open 2015–2022 (docs/research/tow/sites.md [10][11][12]). Лебёдка на площадке источниками не подтверждена: winch_static — режим игры.",
+  "start_clearing_radius_m": 70,
+  "start_clearing_radius_m_doc": "Радиус поляны вокруг стартовой площадки, м; для площадок с tow вместо круга — прямоугольник вдоль полосы (Terrain.add_runway_clearing, game.json → tow_site)",
+  "rivers": {
+    "_doc": "Реки по рельефу (RiverStage): сток считается по грубому слою (водосбор из-за края зоны), ширина = width_k·√(площадь водосбора, км²). Параметры как у Аскарово, не подбирались под равнину Флориды (границы модели: на плоском рельефе сток по SRTM/GLO-30 шумный).",
+    "source_layer": "far",
+    "source_layer_doc": "Слой, по которому считается сток",
+    "min_area_km2": 8,
+    "min_area_km2_doc": "Река рисуется, если водосбор больше, км²",
+    "width_k": 2.2,
+    "width_k_doc": "Коэффициент ширины, м/√км²",
+    "min_width_m": 6,
+    "max_width_m": 200,
+    "max_width_m_doc": "Ограничения ширины русла, м",
+    "snap_radius_m": 80,
+    "snap_radius_m_doc": "Радиус поиска дна долины в детальном слое, м"
+  },
+  "surface": {
+    "_doc": "Карта поверхности (VR-4) для SurfaceStage: источник WorldCover (configs/world.json → surface.worldcover), по слоям — уровень COG (0 — 10 м, 1 — 20 м, 2 — 40 м…) и число подвыборок k×k на клетку (класс — самый частый).",
+    "layers": {
+      "detail": {
+        "level": 0,
+        "subsamples": 3
+      },
+      "far": {
+        "level": 2,
+        "subsamples": 3
+      }
+    }
+  }
+}

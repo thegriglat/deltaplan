@@ -25,7 +25,6 @@ func _fly(w: String, src: String, r: float, wind := Vector3.ZERO) -> Array:
 	if src != "direct":
 		ic = InputController.new()
 		root.get_child(root.get_child_count() - 1).add_child(ic)  # корень занят _ready раннера
-		ic.roll_mode = "pendulum"
 		ic.roll_input = "body"
 		ic.on_ground = false
 		ic.set_mouse_captured(true)

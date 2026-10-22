@@ -16,7 +16,7 @@ extends RefCounted
 ##       ("UNSPECIFIED", пока не пришла ни одна фаза);
 ##   id, name, wing ("wings/sport"), colors (WingColors-словарь {hueDeg, sat, value} или
 ##       null — родная текстура), is_bot — последние известные;
-##   control_mode: String — "RATE" | "WEIGHT_SHIFT" | "PENDULUM" | "" (PD-К4; последний известный);
+##   control_mode: String — "RATE" | "PENDULUM" | "" (PD-К4; последний известный);
 ##   pilot_rel: Vector3 — положение пилота относительно подвески (оси крыла, м), интерполяция
 ##       линейная; ключа нет, если в снимках его не было (не «Маятник» или старый клиент);
 ##   t: float — время зоны отрисованного состояния (= render_t, кроме удержания);
@@ -47,7 +47,7 @@ var is_bot := false
 var name := ""
 var wing := ""
 var colors: Variant = null
-## Режим управления (PD-К4): "RATE" / "WEIGHT_SHIFT" / "PENDULUM"; "" — не приходил (старый клиент).
+## Режим управления (PD-К4): "RATE" / "PENDULUM"; "" — не приходил (старый клиент).
 ## Как name/wing — держится последнее известное (приходит в полных пакетах и при смене).
 var control_mode := ""
 ## Время зоны последнего снимка; время получения последнего пакета (часы получателя).
@@ -78,7 +78,7 @@ func push(data: Dictionary, recv_s: float) -> bool:
 		wing = str(data.wing)
 		colors = data.get("colors")
 	var cm := NetMessages.short_enum(str(data.get("controlMode", "")))
-	if cm != "" and cm != PHASE_NONE:
+	if cm == "PENDULUM" or cm == "RATE":  # прочее (в т. ч. номер 2) — как «не передано» (RM-К1)
 		control_mode = cm
 	var phase := short_phase(str(data.get("phase", "")))
 	if t <= _rendered_t:

@@ -35,7 +35,6 @@ func _process(_delta: float) -> bool:
 	var air := func(p: Vector3) -> Vector3: return Vector3(1.5, 0.2 * sin(0.05 * p.x), 0.0)
 	var inp := ControlInput.new()
 	inp.roll = 0.3
-	inp.weight_shift = true
 	var t_fm := INF
 	var t_pd := INF
 	var stretch := 0.0

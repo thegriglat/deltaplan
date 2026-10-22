@@ -3,8 +3,8 @@ type: contract
 status: active
 module: pendulum-default
 area: flight
-updated: 2026-10-15
-summary: "Режим управления по умолчанию — «Маятник» (pendulum): конфиг, запасные значения, порядок списка, подписи UI (PMD-К1)."
+updated: "2026-10-22"
+summary: "Режим управления по умолчанию — «Маятник» (pendulum): умолчание и подписи UI (PMD-К1; заменён RM-К1 — режимов у игрока нет)."
 related: ["docs/plan/pendulum-default.md", "docs/contracts/pendulum.md"]
 contracts: [{"id": "PMD-К1", "version": 1}]
 ---
@@ -13,6 +13,7 @@ contracts: [{"id": "PMD-К1", "version": 1}]
 Контрактный тест — `tests/contracts/test_pendulum_default_contracts.gd` (пишет PMD-1). Правка интерфейса — только через координатора: версия +1, этот файл и тест — в том же шаге.
 
 ## PMD-К1 v1. Режим управления по умолчанию
+**Заменено RM-К1 (`docs/contracts/roll-modes.md`): контракт утрачивает силу целиком. Настройки «Управление креном» и значений `roll_control_mode` нет (ключ удалён из `configs/controls.json`, значение в профиле игнорируется); `SettingsPanel.ROLL_MODES` и `settings_roll_*` удалены; `Glider.model` игрока — всегда `PendulumModel`; `setup_app_pendulum_only` удалён. Текст ниже — история.**
 Владелец — PMD-1; потребители — `Glider.setup` (выбор модели, PD-К1), `InputController`, `SettingsPanel`, `Game`, сеть (PD-К4 `controlMode`), сайт и доки (PMD-3, PMD-4).
 
 - Значения `controls.roll_control_mode`: `"pendulum"` («Маятник», `PendulumModel`), `"weight_shift"` («Смещение веса», `FlightModel`), `"rate"` («Простое», `FlightModel`). Набор не меняется, все три выбираемы.

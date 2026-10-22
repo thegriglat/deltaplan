@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-21"
+updated: "2026-10-22"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -50,6 +50,18 @@ generated: true
   - [tools/research/spin_recovery/README.md](../tools/research/spin_recovery/README.md) — Стенд штопора SR-К1 (spin_run.gd): вход, выходы release/standard/pull_release, таблица вариантов; SR-2 — база, крутка, sport против laminar.
   - [tools/research/spin_recovery/sr1/README.md](../tools/research/spin_recovery/sr1/README.md) — SR-1: стенд и команды воспроизведения — доходит ли ввод мыши до трапеции в штопоре sport.
 - **trike** — Идея: управляемый дельталёт — тележка вместо пилота на той же подвеске, тяга винта к тележке, колёса, газ; модуль не заведён. [idea 2026-10-21] — [план](plan/trike.md)
+- **roll-modes** — Игроку — только «Маятник»: убрать настройку «Управление креном» и режимы «Смещение веса»/«Простое»; FlightModel (rate) — только боты. [closed 2026-10-22] — [план](plan/roll-modes.md) · [контракты](contracts/roll-modes.md) · [решения](plan/roll-modes/decisions.md) · [сводка](plan/roll-modes/summary.md) · полный журнал: `archive/roll-modes`
+- **tow** — Старт буксировкой (лебёдка/самолёт/машина — по исследованию): выбор при старте, управляемое крыло на тросе, модели Blender. [closed 2026-10-22] — [план](plan/tow.md) · [контракты](contracts/tow.md) · [решения](plan/tow/decisions.md) · [сводка](plan/tow/summary.md) · полный журнал: `archive/tow`
+  - [docs/contracts/tow-models.md](contracts/tow-models.md) — Контракт TW-К8 модуля tow: модели Blender winch, release, drogue, dolly — узлы, бюджеты треугольников, оси, материалы. [closed]
+  - [docs/contracts/tow-wave1.md](contracts/tow-wave1.md) — Стыки волны 1 tow (исследование): виды буксировки (К1), обзор кода (К2), модели (К3) — формат документов и обязательные строки. [closed]
+  - [docs/guide/flight/tow.md](guide/flight/tow.md) — Буксировка: лебёдка, Ан-2 с тележки, трос (звено XPBD), уздечка, отцеп, Wilotree Park; что учтено и чего модель не умеет.
+  - [docs/research/tow/code.md](research/tow/code.md) — Трос — внешняя сила в PendulumModel._substep (на пилота и/или крыло с моментом); равнина — по height_at; Волжского в местах нет.
+  - [docs/research/tow/kinds-bhpa.md](research/tow/kinds-bhpa.md) — Выдержки BHPA TM (поправка 24) по буксировке дельтаплана: слабые звенья, уздечки, трос, площадка.
+  - [docs/research/tow/kinds.md](research/tow/kinds.md) — Виды буксировки с числами BHPA; Волжского в OSM нет, рядом Средняя Ахтуба; Ан-2 — только для тестов.
+  - [docs/research/tow/models.md](research/tow/models.md) — Модели буксировки: 9 кандидатов, все строить в Blender (готовых проверенных нет), вершинные цвета без текстур, бюджет по аналогам.
+  - [docs/research/tow/sites.md](research/tow/sites.md) — Площадка буксировки: Wilotree Park (Quest Air, Флорида), травяная полоса 18/36 ≈ 610×35 м; Логиново и Крутиха — запасные.
+  - [docs/research/tow/tow-control.md](research/tow/tow-control.md) — Лебёдка: статика пилота на тросе вперёд-вниз, сверка с моделью, числа для шлюза Q3 — 50/50 или принять.
+  - [tools/research/tow/README.md](../tools/research/tow/README.md) — Код и данные TW-16: статика пилота на тросе, опыты на PendulumModel, сверка; команды воспроизведения.
 
 ## world
 
@@ -132,11 +144,11 @@ generated: true
 - [docs/guide/flight/ground-bank.md](guide/flight/ground-bank.md) — Крен крыла на земле: уравнение моментов, рука пилота, порог бокового ветра, поворот на бегу, границы модели.
 - [docs/guide/flight/ground-pose.md](guide/flight/ground-pose.md) — Поза крыла на земле: зазор над рельефом, крыло стоя на старте (тангаж, флюгер, касания), старт в сильный ветер.
 - [docs/guide/flight/model.md](guide/flight/model.md) — Модель FlightModel: точечная масса с ориентацией, силы, трапеция, крен, срыв, воздух, земля, выравнивание и посадка; допущения.
-- [docs/guide/flight/pendulum.md](guide/flight/pendulum.md) — Режим «Маятник» (основной, по умолчанию): крыло на 16 полосах, пилот на цепи подвески, руки, земля, срыв, границы.
+- [docs/guide/flight/pendulum.md](guide/flight/pendulum.md) — «Маятник» — физика игрока: крыло на 16 полосах, пилот на цепи подвески, руки, земля, срыв, границы.
 - [docs/guide/flight/polar-table.md](guide/flight/polar-table.md) — Таблица поляры в спокойном воздухе: трапеция, скорость, снижение, качество для учебного, мачтового и безмачтового крыла.
 - [docs/guide/flight/sky-shade.md](guide/flight/sky-shade.md) — Тень от неба под парусом: физика закрытия небосвода, параметры, реализация декалью.
 - [docs/guide/flight/wings.md](guide/flight/wings.md) — Параметры (конфиги крыла, пилота, полёта) и каталог из 48 крыльев по группам и классам ветра.
-- [docs/guide/flight.md](guide/flight.md) — Вход в гайд по полёту: FlightModel и Glider (scripts/flight/), три режима крена, земля и посадка, Маятник; оглавление частей.
+- [docs/guide/flight.md](guide/flight.md) — Вход в гайд по полёту: FlightModel и Glider (scripts/flight/), крен, земля и посадка, Маятник; оглавление частей.
 - [docs/guide/game/bots.md](guide/game/bots.md) — Другие пилоты в небе: очередь на старт, разбег, полёт по вариометру, расхождение, вид и имена; число 0–20 (по умолчанию 4).
 - [docs/guide/game/cameras-input.md](guide/game/cameras-input.md) — Камеры (кабина, сзади, свободная), поведение головы, раскладка клавиш/мыши/геймпада, приборы на трапеции и отладочные слои F1–F6.
 - [docs/guide/game/cli-tests.md](guide/game/cli-tests.md) — Аргументы командной строки главной сцены (кадры, smoke, старт в воздухе, замеры, отладка сети), запуск тестов и проверок.

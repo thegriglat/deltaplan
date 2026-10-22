@@ -191,6 +191,10 @@
       "text": "controls_catch_up"
     },
     {
+      "action": "tow_release",
+      "text": "controls_tow_release"
+    },
+    {
       "action": "screenshot",
       "text": "controls_screenshot"
     },

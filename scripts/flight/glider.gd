@@ -21,12 +21,15 @@ enum AutoStart { NONE, IN_AIR, ON_GROUND }
 ## Что делать в _ready, если setup/reset не вызывали (для запуска сцены отдельно).
 @export var auto_start: AutoStart = AutoStart.IN_AIR
 
-## FlightModel или PendulumModel (controls.roll_control_mode == "pendulum"); общая поверхность — PD-К1.
-var model = FlightModel.new()
+## Всегда PendulumModel (RM-К1); общая поверхность с FlightModel — PD-К1.
+var model = PendulumModel.new()
 var control := ControlInput.new()
 var air_fn: Callable = Callable()
 var ground_fn: Callable = Callable()
 var visual: GliderVisual = null
+var _ext_fn: Callable = Callable()  ## TW-К4: внешняя сила (трос)
+var _link_t := 0.0  ## натяжение звена, Н (FlightModel)
+var _link_warned := false
 
 var _configured := false
 var _placed := false
@@ -49,7 +52,7 @@ func _ready() -> void:
 
 
 ## Выбрать крыло и массу пилота (≤0 — по умолчанию). Сбрасывает состояние: потом reset_*.
-## Режим управления креном «pendulum» → PendulumModel (apparatus — настройки «Аппарат», PD-К3).
+## Модель игрока — PendulumModel (apparatus — настройки «Аппарат», PD-К3).
 func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) -> void:
 	wing_id = wing_name
 	var wing: Dictionary = Config.get_config("wings/" + wing_name)
@@ -57,12 +60,10 @@ func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) 
 	var m := mass_kg if mass_kg > 0.0 else float(pilot.mass_kg)
 	pilot.mass_kg = FlightModel.clamp_pilot_mass(wing, m)
 	pilot_mass_kg = pilot.mass_kg
-	if is_pendulum_mode():
-		model = PendulumModel.new()
-		model.setup(wing, pilot, {}, apparatus)
-	else:
-		model = FlightModel.new()
-		model.setup(wing, pilot)
+	model = PendulumModel.new()
+	model.setup(wing, pilot, {}, apparatus)
+	if _ext_fn.is_valid():
+		model.set_external_force(_ext_fn)
 	model.landed.connect(func(r: Dictionary) -> void: landed.emit(r))
 	model.takeoff_failed.connect(func(reason: String) -> void: takeoff_failed.emit(reason))
 	model.took_off.connect(func() -> void: took_off.emit())
@@ -70,13 +71,6 @@ func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) 
 	_vis = Config.get_config("flight").visual
 	if is_node_ready():
 		_build_visual()
-
-
-## Выбран режим управления «Маятник» (controls.roll_control_mode).
-static func is_pendulum_mode() -> bool:
-	# PMD-К1: «Маятник» — умолчание; FlightModel только по явным weight_shift/rate
-	var mode := String(Config.value("controls", "roll_control_mode", "pendulum"))
-	return mode != "weight_shift" and mode != "rate"
 
 
 ## Сейчас модель — PendulumModel.
@@ -104,6 +98,34 @@ func reset_on_ground(pos: Vector3, heading_deg: float) -> void:
 		pos.y = float(ground_fn.call(pos.x, pos.z))
 	model.reset_on_ground(pos, heading_deg)
 	_teleport()
+
+
+## TW-К10: старт с тележки (только «Маятник»): крыло в ложементе, пилот в лётном положении, связка катится
+## по земле под тягой троса до отрыва (took_off), phase() "dolly". dolly — configs/tow_dolly.json (пусто —
+## целиком из файла). В FlightModel тележки нет: push_warning и обычный старт на ногах.
+func reset_on_dolly(pos: Vector3, heading_deg: float, dolly: Dictionary = {}) -> void:
+	if not (model is PendulumModel):
+		push_warning("Glider: тележка есть только в «Маятнике» (TW-К10) — старт на ногах")
+		reset_on_ground(pos, heading_deg)
+		return
+	if ground_fn.is_valid():
+		pos.y = float(ground_fn.call(pos.x, pos.z))
+	model.reset_on_dolly(pos, heading_deg, dolly)
+	_teleport()
+
+
+## Тележка после отрыва (TW-К10): положение и скорость на земле, мир игры; пока крыло в ложементе —
+## dolly_attached. FlightModel — нули.
+func dolly_pos() -> Vector3:
+	return model.dolly_pos if model is PendulumModel else Vector3.ZERO
+
+
+func dolly_vel() -> Vector3:
+	return model.dolly_vel if model is PendulumModel else Vector3.ZERO
+
+
+func dolly_attached() -> bool:
+	return model is PendulumModel and model.dolly_attached
 
 
 ## Старт в воздухе; airspeed_ms ≤ 0 — скорость трима. Ветер берётся из air_fn.
@@ -177,6 +199,51 @@ func _teleport() -> void:
 	telemetry_updated.emit(model.telemetry)
 
 
+## TW-К4: внешняя сила (трос). fn(s: Dictionary) -> {"pilot": Vector3, "hang": Vector3}, Н, мир игры
+## (вход и выход — в docs/contracts/tow.md). «Маятник» зовёт fn на каждом подшаге; FlightModel
+## (weight_shift/rate) — раз в шаг физики, с позицией и скоростью ЦМ, и кладёт pilot + hang в external_force;
+## звено link в FlightModel игнорируется (push_warning), в «Маятнике» — неявное XPBD-звено модели.
+func set_external_force(fn: Callable) -> void:
+	_ext_fn = fn
+	if model is PendulumModel:
+		model.set_external_force(fn)
+	elif not fn.is_valid():
+		model.external_force = Vector3.ZERO
+		_link_t = 0.0
+
+
+func clear_external_force() -> void:
+	set_external_force(Callable())
+
+
+func _step_external_force(dt: float) -> void:
+	var s := {
+		"t": model.time_s, "h": dt, "pilot_pos": model.position, "pilot_vel": model.velocity,
+		"hang_pos": model.position, "hang_vel": model.velocity,
+		"on_ground": model.mode == FlightModel.Mode.GROUND,
+		"wing_basis": model.telemetry.basis, "link_tension_n": _link_t,
+	}
+	var r = _ext_fn.call(s)
+	var f := Vector3.ZERO
+	_link_t = 0.0
+	if r is Dictionary:
+		for k: String in ["pilot", "hang"]:
+			var v = r.get(k, Vector3.ZERO)
+			if v is Vector3 and is_finite(v.x) and is_finite(v.y) and is_finite(v.z):
+				f += v
+		if r.get("link") is Dictionary and not _link_warned:
+			_link_warned = true
+			push_warning("Glider: звено link в FlightModel не поддержано — буксировка только в «Маятнике» (TW-К4)")
+	model.external_force = f
+
+
+## TW-К4: натяжение звена (Н) на последнем шаге; «Маятник» — из модели.
+func link_tension_n() -> float:
+	if model is PendulumModel:
+		return model.link_tension_n
+	return _link_t
+
+
 func _physics_process(dt: float) -> void:
 	step(dt)
 
@@ -186,6 +253,8 @@ func _physics_process(dt: float) -> void:
 func step(dt: float) -> void:
 	if not _configured:
 		return
+	if _ext_fn.is_valid() and not (model is PendulumModel):
+		_step_external_force(dt)
 	model.step(dt, control, air_fn, ground_fn)
 	_prev_xform = _cur_xform
 	_cur_xform = Transform3D(model.telemetry.basis, model.position)
@@ -219,7 +288,7 @@ func _build_visual() -> void:
 
 func _update_pilot(dt: float) -> void:
 	if visual != null:
-		var flying: bool = model.mode == FlightModel.Mode.AIR
+		var flying: bool = model.mode == FlightModel.Mode.AIR or model.phase() == "dolly"
 		if is_pendulum():
 			visual.set_hang_pose(model.pilot_rel, not flying, dt)  # PD-К5: тело по цепи маятника
 		else:
