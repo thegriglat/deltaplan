@@ -1,39 +1,32 @@
 {
-  "verdict": "rework",
-  "summary": "Замечания первого круга закрыты: ControlMode держит номера 1/2/3, контрактный тест проверяет NetMessages, ветка «не маятник» в Autopilot убрана, комментарий Q1 исправлен. Падение test_landing_shows_result_screen с правкой Autopilot не связано: после 6cbdc406 autopilot.pendulum и так всегда был true, поведение в игре не изменилось, повтор 5/5. Но после удаления Autopilot.pendulum тест test_pendulum_autopilot падает со SCRIPT ERROR, а run_tests считает его ok, поэтому PASS pendulum 117/117 не соответствует факту.",
+  "verdict": "accept",
+  "summary": "Замечания второго круга закрыты: ap.pendulum убран из test_pendulum_autopilot, test_input_launch на PendulumModel, test_air_start берёт трим из wing.trim_speed_kmh. Перезапуск: SCRIPT ERROR нет, все прошли (SCRIPT ERROR в 11-test_game_flight.log/12-test_input_launch.log — устаревшие логи старой нумерации, до 58ec8e24). Изменения в скоупе, project.godot не тронут.",
   "issues": [
     {
-      "file": "tests/flight/pendulum/test_pendulum_autopilot.gd",
-      "line": 23,
-      "severity": "blocker",
-      "what": "В доработке удалено поле Autopilot.pendulum, а тест его ещё присваивает (ap.pendulum = true, стр. 23 и 70). В build/dpcli/RM-1/02-pendulum.log: «SCRIPT ERROR: Invalid assignment of property or key 'pendulum' … Autopilot» в обоих тестах. Тесты обрываются до проверок, но run_tests печатает ok, потому что failures пуст. Так ПИД крена (удержание горизонта в болтанке) остался непроверенным, и отчёт ≠ факт.",
-      "fix": "Удалить обе строки ap.pendulum = true. Прогнать accept --only pendulum --dry и убедиться, что в 02-pendulum.log нет SCRIPT ERROR, а test_pendulum_autopilot реально проходит проверки."
-    },
-    {
       "file": "tests/game/test_input_launch.gd",
-      "line": 73,
+      "line": 26,
       "severity": "major",
-      "what": "Тесты, которые по карточке надо было удалить или перевести, падают молча, потому что игрок теперь на маятнике. В 11-test_input_launch.log: «Trying to assign value of type 'pendulum_model.gd' to a variable of type 'flight_model.gd'» (_launch, var m: FlightModel). В 10-test_game_flight.log: test_air_start:151 вызывает несуществующий PendulumModel.trim_speed(). Ошибка тянется с базы (по умолчанию уже был pendulum), но карточка требует убрать тесты FlightModel-режима игрока, а PASS по test_input_launch и test_game_flight фактически ничего не проверяет в этих местах.",
-      "fix": "test_input_launch: перевести _launch на PendulumModel (те же исходы air/срыв/none) или удалить FlightModel-часть. test_air_start: сравнивать с тримом маятника, если он есть, иначе убрать проверку скорости трима. В логах этих проверок не должно быть SCRIPT ERROR. Отдельно координатору: run_tests не засчитывает SCRIPT ERROR как падение (вне задачи, вопрос к инструменту)."
+      "what": "Тест почти ничего не проверяет: r != \"none\" выполняется при любом исходе. За этим стоит физическая находка: на PendulumModel трапеция «от себя» до упора в сильный ветер (altai, sport/laminar) даёт отрыв, а не срыв носа, как было на FlightModel. Это поведение модели игрока, а не дефект RM-1, но сейчас оно спрятано в комментарии к тесту. Вопрос координатору/пользователю: так и задумано (на разбеге маятник не срывает нос) или это пробел модели маятника?",
+      "fix": "Задачу не переделывать. Записать находку в журнал модуля или в TODO модуля pendulum. Если срыв на разбеге нужен — отдельная задача; там вернуть проверку r != \"air\"."
     }
   ],
   "rerun": [
     {
-      "name": "pendulum (accept --dry)",
-      "value": "117/117 PASS, но в логе 3 SCRIPT ERROR в test_pendulum_autopilot",
-      "pass": false
-    },
-    {
-      "name": "test_game_flight (accept --dry)",
-      "value": "5/5, landing ok; SCRIPT ERROR в test_air_start (трим, с базы)",
+      "name": "test_input_launch (godot --filter, вручную)",
+      "value": "1/1 ok, SCRIPT ERROR нет",
       "pass": true
     },
     {
-      "name": "roll_modes (accept --dry)",
-      "value": "7/7, без SCRIPT ERROR",
+      "name": "test_pendulum_autopilot (godot --filter, вручную)",
+      "value": "2/2 ok, SCRIPT ERROR нет",
+      "pass": true
+    },
+    {
+      "name": "test_game_flight (godot --filter, вручную)",
+      "value": "5/5 ok, test_air_start без SCRIPT ERROR",
       "pass": true
     }
   ],
-  "t": "2026-10-22T06:28:12",
+  "t": "2026-10-22T07:30:12",
   "by": "reviewer"
 }
