@@ -106,6 +106,22 @@ func flare_push() -> float:
 	return neutral_rel.length() * sin(flare_reach + flare_reach_soft)
 
 
+## Снимок и восстановление состояния закона рук (интеграл, отпускание, последний расчёт): пробные вызовы compute
+## при поиске равновесия (TT-12) не должны менять состояние.
+func snapshot() -> Array:
+	return [_int, force_b, target_b, phi, _rel_armed, _rel_on, _rel_calm]
+
+
+func restore(s: Array) -> void:
+	_int = s[0]
+	force_b = s[1]
+	target_b = s[2]
+	phi = s[3]
+	_rel_armed = s[4]
+	_rel_on = s[5]
+	_rel_calm = s[6]
+
+
 func reset() -> void:
 	_int = Vector3.ZERO
 	force_b = Vector3.ZERO
