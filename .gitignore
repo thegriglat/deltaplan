@@ -34,6 +34,7 @@ docs/plan/*/.read_*
 # docs: Godot-импорт картинок и .gdignore не храним; Obsidian-просмотрщик
 docs/**/*.import
 docs/**/.gdignore
+!docs/.gdignore
 .obsidian/
 
 # Steam: расширение GodotSteam подкладывается скриптом, бинарники не храним

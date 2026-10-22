@@ -3,7 +3,7 @@ type: contract
 status: closed
 module: feedback-1012
 area: game
-updated: 2026-10-15
+updated: "2026-10-22"
 summary: "Смещение пилота относительно подвески в телеметрии для HUD (FB-К1); флаг начала перехода в лётное положение (FB-К2)."
 related: ["docs/archive/plan/feedback-1012.md", "docs/contracts/control-fix.md"]
 contracts: [{"id": "FB-К1", "version": 1}, {"id": "FB-К2", "version": 1}]
@@ -13,6 +13,7 @@ contracts: [{"id": "FB-К1", "version": 1}, {"id": "FB-К2", "version": 1}]
 Контрактный тест — `tests/contracts/test_feedback_1012_contracts.gd`. Правка интерфейса — только через координатора: версия +1, этот файл и тест — в том же шаге.
 
 ## FB-К1 v1
+**Заменено RM-К1 (`docs/contracts/roll-modes.md`): в абзаце заполнения `FlightModel` («Смещение веса» и прежний режим) режим «Смещение веса» удалён: `FlightModel` только `rate` (боты, инструменты); `x`/`y` для игрока — из `pilot_rel` маятника.**
 Смещение пилота относительно точки подвески — для индикатора HUD (FB-1).
 
 - Владелец: FB-1 (поля телеметрии и их заполнение в обеих моделях). Потребители: виджет индикатора (FB-1); в будущем — кто угодно из HUD/камер.

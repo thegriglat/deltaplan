@@ -2,18 +2,17 @@ extends TestCase
 ## Контракты модуля pilot-view (docs/contracts/pilot-view.md): PV1 v1 — направление крена
 ## (controls.roll_input bar/body), PV2 v1 — X возвращает мышь-трапецию в нейтраль и она там остаётся.
 
-const Sim := preload("res://tests/flight/flight_sim.gd")
+const Sim := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 const DT := 1.0 / 120.0
 
 
-static func _ic(mode: String, roll_input: String) -> InputController:
+static func _ic(roll_input: String) -> InputController:
 	var ic := InputController.new()
 	var root := (Engine.get_main_loop() as SceneTree).root
 	root.get_child(root.get_child_count() - 1).add_child(ic)
 	var cfg: Dictionary = ic._cfg.duplicate(true)
 	cfg.invert_pitch = false
 	ic._cfg = cfg
-	ic.roll_mode = mode
 	ic.roll_input = roll_input
 	ic.mouse_captured = true
 	ic.reset()
@@ -33,8 +32,8 @@ static func _mouse(ic: InputController, dx: float, dy: float) -> void:
 
 
 ## Ввод крена мышью «вправо» (стик идёт тем же знаком; клавиш трапеции нет, У1 v5).
-static func _roll_right(mode: String, roll_input: String, _kind: String) -> float:
-	var ic := _ic(mode, roll_input)
+static func _roll_right(roll_input: String) -> float:
+	var ic := _ic(roll_input)
 	_mouse(ic, 4000.0, 0.0)
 	var r := 0.0
 	for i in 120:
@@ -49,18 +48,14 @@ func test_pv1_default_is_body() -> void:
 
 
 func test_pv1_sign_by_device() -> void:
-	for kind in ["mouse"]:
-		var bar := _roll_right("weight_shift", "bar", kind)
-		var body := _roll_right("weight_shift", "body", kind)
-		check(bar < -0.2, "PV1: bar, %s вправо — roll < 0 (%.2f)" % [kind, bar])
-		check(body > 0.2, "PV1: body, %s вправо — roll > 0 (%.2f)" % [kind, body])
-		var rb := _roll_right("rate", "bar", kind)
-		var ro := _roll_right("rate", "body", kind)
-		check(rb > 0.2 and absf(rb - ro) < 1e-6, "PV1: rate — знак не зависит от roll_input (%.2f/%.2f)" % [rb, ro])
+	var bar := _roll_right("bar")
+	var body := _roll_right("body")
+	check(bar < -0.2, "PV1: bar, мышь вправо — roll < 0 (%.2f)" % bar)
+	check(body > 0.2, "PV1: body, мышь вправо — roll > 0 (%.2f)" % body)
 
 
 func test_pv1_ground_inverts_too() -> void:
-	var ic := _ic("weight_shift", "bar")
+	var ic := _ic("bar")
 	ic.on_ground = true
 	_mouse(ic, 4000.0, 0.0)
 	var r := 0.0
@@ -70,36 +65,37 @@ func test_pv1_ground_inverts_too() -> void:
 	ic.roll_input = "body"
 	ic.update(DT)
 	check(ic.update(DT).roll > 0.2, "PV1 v2: на земле body — вправо (%.2f)" % ic.control.roll)
-	ic.roll_mode = "rate"
-	check(ic.update(DT).roll > 0.2, "PV1 v2: на земле rate — без инверсии")
-	ic.roll_input = "bar"
-	check(ic.update(DT).roll > 0.2, "PV1 v2: на земле rate+bar — без инверсии")
 	_free(ic)
 
 
-## Физика: bar + мышь вправо → крыло кренится влево за ≤ 3 с.
+## Физика («Маятник»): bar + мышь вправо → крыло кренится влево за ≤ 6 с (штиль).
 func test_pv1_wing_banks_left_with_bar() -> void:
 	for pair in [["bar", -1.0], ["body", 1.0]]:
-		var ic := _ic("weight_shift", pair[0])
+		var ic := _ic(pair[0])
 		var m := Sim.make("training")
 		m.reset_in_air(Vector3(0, 3000, 0), 0.0)
-		Sim.run_for(m, 3.0, Sim.input(0.0, 0.0))
+		_run(m, null, 3.0)
 		_mouse(ic, 4000.0, 0.0)
-		for i in int(3.0 / DT):
-			m.step(DT, ic.update(DT), Callable(), Callable())
+		_run(m, ic, 6.0)
 		var b := m.telemetry.bank_deg * float(pair[1])
 		check(b > 5.0, "PV1: %s, мышь вправо — крен в нужную сторону %.1f°" % [pair[0], m.telemetry.bank_deg])
 		_free(ic)
 
 
+static func _run(m: PendulumModel, ic: InputController, seconds: float) -> void:
+	var neutral := ControlInput.new()
+	for i in int(seconds / DT):
+		m.step(DT, ic.update(DT) if ic != null else neutral, Callable(), Callable())
+
+
 ## PV2: мышь на полный ход вбок и вперёд → X одним кадром → через 3 с трапеция в нуле и остаётся.
 func test_pv2_center_once() -> void:
-	for mode in ["weight_shift", "rate"]:
+	for mode in ["pendulum"]:
 		await (Engine.get_main_loop() as SceneTree).process_frame  # свежий кадр: just_pressed прошлой итерации сброшен
-		var ic := _ic(mode, "bar")
+		var ic := _ic("bar")
 		var m := Sim.make("training")
 		m.reset_in_air(Vector3(0, 3000, 0), 0.0)
-		Sim.run_for(m, 3.0, Sim.input(0.0, 0.0))
+		_run(m, null, 3.0)
 		_mouse(ic, 4000.0, -4000.0)
 		for i in 10:
 			m.step(DT, ic.update(DT), Callable(), Callable())
@@ -128,7 +124,7 @@ func test_pv2_center_once() -> void:
 func test_pv1_sign_through_liftoff() -> void:
 	for ri in ["bar", "body"]:
 		await (Engine.get_main_loop() as SceneTree).process_frame  # just_pressed X прошлых тестов
-		var ic := _ic("weight_shift", ri)
+		var ic := _ic(ri)
 		ic.on_ground = true
 		ic._mouse_offset = Vector2(0.3, 0.0)
 		var ground := 0.0

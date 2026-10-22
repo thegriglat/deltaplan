@@ -49,7 +49,6 @@ static func _ic(invert: bool, captured: bool = true) -> InputController:
 	var cfg: Dictionary = ic._cfg.duplicate(true)
 	cfg.invert_pitch = invert
 	ic._cfg = cfg
-	ic.roll_mode = "rate"
 	ic.mouse_captured = captured
 	_air(ic)
 	return ic

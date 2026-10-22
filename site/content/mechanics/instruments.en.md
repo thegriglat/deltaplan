@@ -166,10 +166,10 @@ sideslip angle.
 
 ## Model limits
 
-- In the "Pendulum" mode (the default) sideslip arises on its own and the string shows it. A known error: in a
+- In the player's "Pendulum" physics sideslip arises on its own and the string shows it. A known error: in a
   steady turn of about 30° the string deflects up to 12° inward, while the consultant pilot says that in a turn
-  the string points straight back (docs/guide/flight/pendulum.md, "Model limits"). In the older "Weight shift"
-  and "Simple" modes the flight is without sideslip (the heading follows the airspeed exactly), so in a steady
+  the string points straight back (docs/guide/flight/pendulum.md, "Model limits"). In the bots' model (`FlightModel`; the two former player modes, weight shift and "simple", are no longer in the game)
+  the flight is without sideslip (the heading follows the airspeed exactly), so in a steady
   turn the string points straight back — it responds only to the entry into bank (rotation of the attachment
   point) and to the difference between the wind at the attachment point and at the centre of the wing
   (turbulence); sideslip was not added to those models for the sake of a single string. Bots have no strings.

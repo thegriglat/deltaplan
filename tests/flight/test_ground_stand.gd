@@ -1,5 +1,5 @@
 extends TestCase
-## FB-3: крыло стоя на земле в обоих режимах управления («Смещение веса» — FlightModel + GroundRun,
+## FB-3: крыло стоя на земле в двух моделях (FlightModel + GroundRun — боты,
 ## «Маятник» — PendulumModel + PendulumGround). Стоя 10 с без ввода (штиль и встречный 5 м/с,
 ## ровно и склон) — киль у горизонта, нос вверх [0°, +10°], размах тангажа ≤ 2°; боковой ветер —
 ## крыло без ввода встаёт против ветра (флюгер). FB-К2: касание консолью до перехода в лётное
@@ -41,7 +41,6 @@ static func _wind(v: Vector3) -> Callable:
 
 static func _input(roll := 0.0, run := false) -> ControlInput:
 	var c := ControlInput.new()
-	c.weight_shift = true
 	c.roll = roll
 	c.run = run
 	return c

@@ -3,7 +3,7 @@ type: "contract"
 status: "active"
 module: "pullin-speed"
 area: "flight"
-updated: "2026-10-19"
+updated: "2026-10-22"
 summary: "Стыки pullin-speed для игры: добор Shift и HUD (VM-К3), замеры в игре (VM-К5, VM-К7), отпускание по событию (VM-К8)"
 related: ["docs/contracts/pullin-speed-research.md", "docs/plan/pullin-speed.md", "docs/contracts/pendulum.md", "docs/research/pendulum_pitch.md", "docs/research/pendulum/prototype.md"]
 contracts: [{"id": "VM-К3", "version": 3}, {"id": "VM-К5", "version": 3}, {"id": "VM-К7", "version": 2}, {"id": "VM-К8", "version": 1}]
@@ -16,6 +16,7 @@ contracts: [{"id": "VM-К3", "version": 3}, {"id": "VM-К5", "version": 3}, {"id
 Контракты исследований на прототипе (VM-К0, VM-К1, VM-К2, VM-К4, VM-К6) — `docs/contracts/pullin-speed-research.md`.
 
 ## VM-К3. Добор «на себя» до бёдер — модификатор ввода (v3)
+**Заменено RM-К1 (`docs/contracts/roll-modes.md`): в примечании «`FlightModel` (`weight_shift`/`rate`) поле не читает» — режима `weight_shift` нет, `FlightModel` (`rate`, боты) поле по-прежнему не читает.**
 v3 (2026-10-19, cf92cbf4): обычный геймпад — до груди, до бёдер только с кнопкой; полным ходом — только самодельная трапеция (CB-К1 v4).
 v2 (2026-10-19): после отпускания модификатора предел возвращается плавно (`arms.pull_full_release_m_s`), не скачком.
 Владелец: координатор (по решению пользователя 5855f8a5, 2026-10-19). Реализует VM-3. Потребители: `InputController`,

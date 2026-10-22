@@ -19,11 +19,7 @@ func check(cond: bool, msg: String = "") -> void:
 
 ## Игра в воздухе (--air-start), мышь «захвачена» (headless курсор не захватить —
 ## Input.mouse_mode остаётся VISIBLE, но InputController смотрит на свой mouse_captured).
-func _open(air: bool, mode := "weight_shift") -> Node:
-	# режим крена задан явно, не умолчанием (PMD-2): читается при создании Glider/InputController
-	var cfg := Config.get_config("controls")
-	var old: Variant = cfg.get("roll_control_mode")
-	cfg["roll_control_mode"] = mode
+func _open(air: bool) -> Node:
 	var args := ["--autostart"]
 	if air:
 		args.append("--air-start=600,150")
@@ -34,7 +30,6 @@ func _open(air: bool, mode := "weight_shift") -> Node:
 		if main.get("state") == 2:
 			break
 		await get_tree().process_frame
-	cfg["roll_control_mode"] = old
 	check(main.get("state") == 2, "автостарт — в полёте")
 	if main.get("state") != 2:
 		await _close(main)
@@ -91,47 +86,12 @@ func _fly_with_mouse(game: Game, rel: Vector2, dur: float) -> Array:
 	return [pitch_in, roll_in, t.bank_deg, t.pitch_deg]
 
 
-func test_bar_mouse_moves_bar_and_model_in_air() -> void:
-	var main := await _open(true)
-	if main == null:
-		return
-	var game: Game = main.get_node("Game")
-	var px := get_viewport().get_visible_rect().size.y * 0.5 * 0.3  # 30 % хода
-	var dur := 1.5
-	var neutral := _fly_with_mouse(game, Vector2.ZERO, dur)
-	var right := _fly_with_mouse(game, Vector2(px, 0.0), dur)
-	var left := _fly_with_mouse(game, Vector2(-px, 0.0), dur)
-	var up := _fly_with_mouse(game, Vector2(0.0, -px), dur)
-	var down := _fly_with_mouse(game, Vector2(0.0, px), dur)
-	print(
-		(
-			"CF2 bar: нейтраль крен %.1f° тангаж %.1f° | вправо roll %.2f крен %.1f° | "
-			+ "влево roll %.2f крен %.1f° | вверх pitch %.2f тангаж %.1f° | "
-			+ "вниз pitch %.2f тангаж %.1f°"
-		)
-		% [
-			neutral[2], neutral[3], right[1], right[2], left[1], left[2],
-			up[0], up[3], down[0], down[3]
-		]
-	)
-	check(neutral[0] == 0.0 and neutral[1] == 0.0, "без мыши трапеция в нейтрали")
-	check(right[1] > 0.2, "мышь вправо → roll > 0: %.2f" % right[1])
-	check(left[1] < -0.2, "мышь влево → roll < 0: %.2f" % left[1])
-	check(up[0] > 0.2, "мышь вверх → pitch > 0 (от себя): %.2f" % up[0])
-	check(down[0] < -0.2, "мышь вниз → pitch < 0 (на себя): %.2f" % down[0])
-	check(right[2] > neutral[2] + 5.0, "мышь вправо → крен вправо: %.1f°" % right[2])
-	check(left[2] < neutral[2] - 5.0, "мышь влево → крен влево: %.1f°" % left[2])
-	check(up[3] > neutral[3] + 1.0, "мышь вверх → нос выше: %.1f°" % up[3])
-	check(down[3] < neutral[3] - 1.0, "мышь вниз → нос ниже: %.1f°" % down[3])
-	await _close(main)
-
-
-## То же в «Маятнике»: знаки ввода и тангажа те же; крен — через пилота на подвеске, медленнее,
+## Мышь в «Маятнике»: знаки ввода и тангажа те же; крен — через пилота на подвеске, медленнее,
 ## поэтому окно 6 с. Воздух — штиль (PMD-5): на месте старта поле воздуха порывистое (~4 м/с,
 ## вертикаль до ±1,7 м/с, своё на каждом перезапуске) и за 6 с давало вправо +26,6°, влево −49°,
 ## нейтраль −7°; в штиль ответ симметричен (вправо = −влево, нейтраль 0).
 func test_bar_mouse_in_air_pendulum() -> void:
-	var main := await _open(true, "pendulum")
+	var main := await _open(true)
 	if main == null:
 		return
 	var game: Game = main.get_node("Game")

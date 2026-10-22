@@ -9,6 +9,8 @@ extends EasterEgg
 const RATE := 22050
 const FIRE_HZ := 150  # основной тон вспышек: 9/2 × (2000/60) = 150 Гц
 const PERIOD := RATE / FIRE_HZ  # 147 отсчётов — целое, петля без стыка
+const GEAR_BOTTOM_Y := -2.45  # низ колёс основного шасси в осях модели (центр колеса −1,95, радиус 0,5)
+const TAIL_Z := 6.4  # хвост в осях модели
 
 static var _sound_cache: AudioStreamWAV
 
@@ -207,16 +209,16 @@ static func _mat(c: Color, rough := 0.6, metal := 0.0) -> StandardMaterial3D:
 	return m
 
 
-func _add_surface(st: SurfaceTool, mat: Material) -> void:
+static func _add_surface(parent: Node3D, st: SurfaceTool, mat: Material) -> void:
 	var mesh := st.commit()
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
 	mi.material_override = mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(mi)
+	parent.add_child(mi)
 
 
-func _new_st() -> SurfaceTool:
+static func _new_st() -> SurfaceTool:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	return st
@@ -225,6 +227,13 @@ func _new_st() -> SurfaceTool:
 ## Вперёд — −Z, вправо — +X. Нос в z = −6,3, хвост в z = +6,4.
 func _build_model(_cfg: Dictionary, rng: RandomNumberGenerator) -> void:
 	var scheme := rng.randi_range(0, 2)  # 0 серебро+красный, 1 серебро+синий, 2 зелёный
+	add_child(build_model(scheme))
+
+
+## Модель без звука и трассы (TW-10b: буксировщик в игре): детей добавляет в новый Node3D.
+## Высота колёс над землёй — GEAR_BOTTOM_Y ниже начала, хвост (точка троса) — z = +6,4.
+static func build_model(scheme: int) -> Node3D:
+	var root := Node3D.new()
 	var body_c := Color(0.72, 0.74, 0.77)
 	var accent_c := Color(0.75, 0.10, 0.10)
 	if scheme == 1:
@@ -263,9 +272,9 @@ func _build_model(_cfg: Dictionary, rng: RandomNumberGenerator) -> void:
 	_box(hull, Vector3(0.14, 2.3, 1.9), Vector3(0, 1.5, 6.1))  # киль
 	_box(acc, Vector3(0.16, 0.7, 1.4), Vector3(0, 2.4, 6.3))
 	_cyl(dark, 0.2, 0.2, 0.14, Vector3(0, -0.2, 6.0), Vector3(0, 0, PI / 2), 8)  # хвостовое колесо
-	_add_surface(hull, _mat(body_c, 0.45, 0.35))
-	_add_surface(acc, _mat(accent_c, 0.6, 0.0))
-	_add_surface(dark, _mat(Color(0.10, 0.10, 0.11), 0.8, 0.0))
+	_add_surface(root, hull, _mat(body_c, 0.45, 0.35))
+	_add_surface(root, acc, _mat(accent_c, 0.6, 0.0))
+	_add_surface(root, dark, _mat(Color(0.10, 0.10, 0.11), 0.8, 0.0))
 	# диск винта — полупрозрачный
 	var disc := CylinderMesh.new()
 	disc.top_radius = 1.75
@@ -284,7 +293,8 @@ func _build_model(_cfg: Dictionary, rng: RandomNumberGenerator) -> void:
 	prop.rotation = Vector3(PI / 2, 0, 0)
 	prop.position = Vector3(0, 0, -6.35)
 	prop.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(prop)
+	root.add_child(prop)
+	return root
 
 
 # ---------------------------------------------------------------- звук

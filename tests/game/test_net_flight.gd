@@ -241,13 +241,12 @@ func test_net_flight_rules_in_main_scene() -> void:
 	await get_tree().process_frame
 
 
-## PD-К4: имя режима управления для сети; запасное значение (ключа нет) — «Маятник» (PMD-2).
+## RM-К1: игрок всегда шлёт PENDULUM, конфиг не читается.
 func test_control_mode_name() -> void:
 	var cfg := Config.get_config("controls")
-	var old: Variant = cfg.get("roll_control_mode")
-	for pair in [["rate", "RATE"], ["weight_shift", "WEIGHT_SHIFT"], ["pendulum", "PENDULUM"]]:
-		cfg["roll_control_mode"] = pair[0]
-		check(NetFlight.control_mode_name() == pair[1], "%s → %s" % pair)
-	cfg.erase("roll_control_mode")
-	check(NetFlight.control_mode_name() == "PENDULUM", "нет ключа → PENDULUM")
-	cfg["roll_control_mode"] = old
+	var had := cfg.has("roll_control_mode")
+	for v in ["rate", "weight_shift", "pendulum"]:
+		cfg["roll_control_mode"] = v
+		check(NetFlight.control_mode_name() == "PENDULUM", "%s → PENDULUM" % v)
+	if not had:
+		cfg.erase("roll_control_mode")

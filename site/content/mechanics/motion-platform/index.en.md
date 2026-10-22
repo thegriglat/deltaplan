@@ -70,7 +70,7 @@ How SRS behaves on neutral packets (whether it drops to standby) is unknown: the
 
 ## Where the model lies
 
-- In the control modes without the pendulum (including "Weight shift") the pilot is a single material point: no swing on the suspension, and the angles and rotation rates are the wing's. In the "Pendulum" mode the position and velocity of the pilot's centre of mass and the body orientation on the suspension are taken; this is checked by a test, not tried on hardware.
+- For bots (`FlightModel`) the pilot is a single material point: no swing on the suspension, and the angles and rotation rates are the wing's. For the player ("Pendulum") the position and velocity of the pilot's centre of mass and the body orientation on the suspension are taken; this is checked by a test, not tried on hardware.
 - There are no filters or washout; values are averages over the interval between packets, not instantaneous.
 - Angular acceleration of the head, vibration and turbulence above the physics step rate are not transmitted.
 - Sideslip in the point model is about zero.

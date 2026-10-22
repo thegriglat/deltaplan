@@ -4,12 +4,13 @@ extends Node3D
 ## Рельеф локации (контракт — docs/guide/architecture.md, группа "terrain").
 ##   height_at(x, z)       — высота земли над уровнем моря, м (билинейно по сетке DEM)
 ##   normal_at(x, z)       — нормаль к поверхности
-##   get_start_sites()     — стартовые площадки {id, name, position, heading_deg, lat, lon}
+##   get_start_sites()     — стартовые площадки {id, name, position, heading_deg, lat, lon[, tow]} (tow — TW-К6)
 ##   sun_exposure_at(x, z) — освещённость склона солнцем 0..1
 ##   surface_at(x, z)      — класс поверхности (SurfaceLayer.FOREST, GRASS, CROP…), VR-4;
 ##                           вода и лес — по маске «деталь 10 м», где она есть (как в шейдере;
 ##                           вода — реки/ручьи/озёра OSM, T03, VR-9)
 ##   forest_at(x, z)       — доля леса 0..1 (маска 10 м), get_forest_mask() — сама маска
+##   add_runway_clearing(start, heading, длина, ширина) — полоса под буксировку (TW-К6)
 ##   add_start_clearing(x, z, r), get_start_clearings() — пустыри у стартов (К1 v2, SF-1)
 ##   thermal_source_strength_at(x, z) — сила источника термиков 0..1 (класс × освещённость
 ##                           × сухость), годится как sun_fn для Atmosphere.set_ground
@@ -1143,7 +1144,13 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 		var p: Vector3 = site.position
 		for s in surfaces:
 			s.replace_in_circle(p.x, p.z, site_r, SurfaceLayer.SHRUB, SurfaceLayer.GRASS)
-		_clear_forest(p.x, p.z, clear_r)
+		var tow: Dictionary = site.get("tow", {})
+		if tow.is_empty():
+			_clear_forest(p.x, p.z, clear_r)
+		else:
+			# площадка с буксировкой: полоса вдоль оси вместо круга (TW-К6)
+			var dim := TowSite.clearing_size(tow)
+			_clear_runway(p, float(site.heading_deg), dim.x, dim.y)
 	# Конфиг потока тепла и one-hot доли — заранее на главном потоке (источники зовут из рабочих потоков).
 	_heat_cfg = SurfaceHeat.config()
 	_h_ref = maxf(float(_heat_cfg.get("thermal", {}).get("h_ref_wm2", 362.0)), 1.0)
@@ -1191,6 +1198,34 @@ func add_start_clearing(x: float, z: float, radius_m: float) -> void:
 	if radius_m <= 0.0 or surfaces.is_empty():
 		return
 	_clear_forest(x, z, radius_m)
+	_refresh_after_clearing()
+
+
+## Полоса под буксировку (TW-К6): лес → луг в прямоугольнике от start вперёд по курсу heading_deg
+## (от севера по часовой; мир: X восток, −Z север) длиной length_m и шириной width_m (ось — по
+## центру). Карта классов — цепочкой кругов радиуса hypot(w/2, шаг/2) с шагом w/2 вдоль оси: они
+## накрывают прямоугольник целиком, выступая по бокам не более чем на 12 %; те же круги идут в
+## get_start_clearings (кусты, камни, деревья-импостеры). Сброс кешей и сигналов — как у круга.
+func add_runway_clearing(start: Vector3, heading_deg: float, length_m: float, width_m: float) -> void:
+	if length_m <= 0.0 or width_m <= 0.0 or surfaces.is_empty():
+		return
+	_clear_runway(start, heading_deg, length_m, width_m)
+	_refresh_after_clearing()
+
+
+func _clear_runway(start: Vector3, heading_deg: float, length_m: float, width_m: float) -> void:
+	var hw := width_m * 0.5
+	var step := maxf(hw, 1.0)
+	var r := Vector2(hw, step * 0.5).length()
+	var h := deg_to_rad(heading_deg)
+	var dir := Vector2(sin(h), -cos(h))
+	var n := ceili(length_m / step)
+	for i in n + 1:
+		var c := Vector2(start.x, start.z) + dir * minf(i * step, length_m)
+		_clear_forest(c.x, c.y, r)
+
+
+func _refresh_after_clearing() -> void:
 	surface_revision += 1
 	if renderer != null:
 		for k in surfaces.size():
@@ -1232,16 +1267,14 @@ func _build_sites() -> void:
 	var agl := float(location.get("start_position_agl_m", 0.0))
 	for s in location.get("start_sites", []):
 		var p := latlon_to_local(float(s.lat), float(s.lon))
-		(
-			_sites
-			. append(
-				{
-					"id": String(s.id),
-					"name": String(s.name),
-					"position": Vector3(p.x, height_at(p.x, p.y) + agl, p.y),
-					"heading_deg": float(s.heading_deg),
-					"lat": float(s.lat),
-					"lon": float(s.lon),
-				}
-			)
-		)
+		var site := {
+			"id": String(s.id),
+			"name": String(s.name),
+			"position": Vector3(p.x, height_at(p.x, p.y) + agl, p.y),
+			"heading_deg": float(s.heading_deg),
+			"lat": float(s.lat),
+			"lon": float(s.lon),
+		}
+		if s.get("tow") is Dictionary:
+			site["tow"] = (s.tow as Dictionary).duplicate(true)  # TW-К6: блок tow как есть
+		_sites.append(site)

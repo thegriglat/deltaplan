@@ -12,13 +12,12 @@ extends RefCounted
 
 const ACTIONS: Array[String] = [
 	"run",
+	"walk_forward",
 ]
 ## Ход ручки автопилота, доля полного в секунду: к цели и к нейтрали (прежний клавиатурный ход, У1 v4:
-## тангаж 1,5/1,0, крен в режиме rate 2,0/1,5) — поведение автопилота не меняется.
+## тангаж 1,5/1,0) — поведение автопилота не меняется.
 const PITCH_RATE := 1.5
 const PITCH_RETURN := 1.0
-const ROLL_RATE := 2.0
-const ROLL_RETURN := 1.5
 
 ## Курс, который держать в полёте (−1 — курс в момент отрыва).
 var hold_heading_deg: float = -1.0
@@ -26,10 +25,6 @@ var hold_heading_deg: float = -1.0
 var max_bank_deg: float = 15.0
 ## Крен на 1° ошибки курса.
 var bank_per_deg: float = 0.5
-## Мёртвая зона по крену, °.
-var bank_tol_deg: float = 2.0
-## Упреждение по скорости крена, с (крыло доворачивает с запаздыванием).
-var lead_s: float = 0.8
 
 ## Сколько секунд после отрыва не отпускать Shift, с.
 var hold_after_takeoff_s: float = 0.0
@@ -48,10 +43,7 @@ var circle_after_s: float = -1.0
 ## Крен кружения, ° (+ вправо).
 var circle_bank_deg: float = 15.0
 
-## Режим «Маятник» (R7): крен держит ПИД через положение пилота (roll_command → ControlInput.roll),
-## а не клавиши-rate. Включает зовущий (Game по режиму управления; тест).
-var pendulum := false
-## Положение пилота поперёк, −1…1 (+ вправо): выход ПИД крена в режиме pendulum.
+## Положение пилота поперёк, −1…1 (+ вправо): выход ПИД крена (игрок на «Маятнике», R7).
 var roll_command := 0.0
 ## Тангаж трапеции −1…1 (ControlInput.pitch): нос крыла на разбеге, в полёте — трим (0).
 var pitch_command := 0.0
@@ -60,9 +52,18 @@ var pid_kp := 1.5
 var pid_kd := 0.8
 var pid_ki := 0.3
 
+## Удержание воздушной скорости в полёте (SpeedHold, буксировка), м/с; ≤ 0 — выключено (трапеция в триме).
+## Тангаж трапеции — ввод ControlInput.pitch (игрок всегда на «Маятнике»).
+var hold_airspeed_ms := 0.0
+var speed_hold := SpeedHold.new()
+
 ## Ждать (сеть, NET-43: не первый в очереди на старт или идёт к своему месту): ничего не жать,
 ## замер ветра стоя — заново, когда ожидание кончится.
 var hold := false
+
+## Старт с лебёдки (TW-К7): трос запускает W (walk_forward), Shift его не запускает (TW-10) — вместо бега
+## жмёт W, пока стоит на земле; после отрыва W отпущен. Нос на земле не трогает (тянет трос).
+var tow_start := false
 
 var _time: float = 0.0
 var _air_time: float = 0.0
@@ -85,6 +86,7 @@ func reset() -> void:
 	_prev_basis = Basis.IDENTITY
 	_bank_rate = 0.0
 	_pid_i = 0.0
+	speed_hold.reset()
 	roll_command = 0.0
 	pitch_command = 0.0
 	_heading = hold_heading_deg
@@ -103,17 +105,14 @@ func drive(t: Telemetry, dt: float) -> void:
 	_time += dt
 	_dt = dt
 	if dt > 0.0:
-		if pendulum:
-			# скорость крена — угловая скорость корпуса вокруг оси вперёд (из поворота basis за шаг), как
-			# BankHold на модели: производная угла крена и фильтр lerp 0,2 отставали на ~4 шага и
-			# врали на 30 % (угол крена ≠ проекция угловой скорости), а sport в болтанке на границе
-			# устойчивости ПИД
-			var dr := _prev_basis.orthonormalized().inverse() * t.basis.orthonormalized()
-			# поворот вокруг оси Z basis (вперёд = −Z) — антисимметричная часть dr (малый угол точнее кватерниона)
-			var rz := (dr.x.y - dr.y.x) * 0.5
-			_bank_rate = rad_to_deg(-rz / dt) if _time > 1.5 * dt else 0.0  # первый шаг: prev ещё нет
-		else:
-			_bank_rate = lerpf(_bank_rate, (t.bank_deg - _prev_bank) / dt, 0.2)
+		# скорость крена — угловая скорость корпуса вокруг оси вперёд (из поворота basis за шаг), как
+		# BankHold на модели: производная угла крена и фильтр lerp 0,2 отставали на ~4 шага и
+		# врали на 30 % (угол крена ≠ проекция угловой скорости), а sport в болтанке на границе
+		# устойчивости ПИД
+		var dr := _prev_basis.orthonormalized().inverse() * t.basis.orthonormalized()
+		# поворот вокруг оси Z basis (вперёд = −Z) — антисимметричная часть dr (малый угол точнее кватерниона)
+		var rz := (dr.x.y - dr.y.x) * 0.5
+		_bank_rate = rad_to_deg(-rz / dt) if _time > 1.5 * dt else 0.0  # первый шаг: prev ещё нет
 	_prev_basis = t.basis
 	_prev_bank = t.bank_deg
 	var hold_w := false
@@ -125,7 +124,7 @@ func drive(t: Telemetry, dt: float) -> void:
 				_wind_ms = maxf(_wind_ms, t.airspeed)
 				_wind_seen = true
 			nose = _nose_dir(t)
-			_level_roll(t.bank_deg, 0.0)
+			_pid_roll(t.bank_deg, 0.0)
 		"flying":
 			_air_time += dt
 			# пока ступни не выше takeoff.upright_clear_m, пилот ещё на ногах — бежит дальше
@@ -137,12 +136,22 @@ func drive(t: Telemetry, dt: float) -> void:
 			var want := clampf(err * bank_per_deg, -max_bank_deg, max_bank_deg)
 			if circle_after_s >= 0.0 and _air_time >= circle_after_s:
 				want = circle_bank_deg
-			_level_roll(t.bank_deg, want)
+			_pid_roll(t.bank_deg, want)
 		_:
 			roll_command = 0.0
-	_press("run", hold_w)
+	if tow_start:
+		var on_ground: bool = t.phase in ["standing", "walking", "running"] and _wind_seen
+		_press("run", hold_w)
+		_press("walk_forward", on_ground)
+	else:
+		_press("run", hold_w)
 	# на земле — нос по углу атаки, в полёте — трапеция в триме (ручка к нейтрали)
-	pitch_command = _ramp(pitch_command, float(nose), PITCH_RATE, PITCH_RETURN, dt)
+	if hold_airspeed_ms > 0.0 and t.phase == "flying":
+		speed_hold.target_ms = hold_airspeed_ms
+		pitch_command = move_toward(pitch_command, speed_hold.update(t, dt), PITCH_RATE * dt)
+	else:
+		speed_hold.reset()
+		pitch_command = _ramp(pitch_command, float(nose), PITCH_RATE, PITCH_RETURN, dt)
 
 
 func release_all() -> void:
@@ -169,19 +178,6 @@ func _nose_dir(t: Telemetry) -> int:
 	if alpha < target - alpha_tol_deg:
 		return 1
 	return 0
-
-
-func _level_roll(bank: float, want: float) -> void:
-	if pendulum:
-		_pid_roll(bank, want)
-		return
-	bank += _bank_rate * lead_s
-	var dir := 0.0
-	if bank < want - bank_tol_deg:
-		dir = 1.0
-	elif bank > want + bank_tol_deg:
-		dir = -1.0
-	roll_command = _ramp(roll_command, dir, ROLL_RATE, ROLL_RETURN, _dt)
 
 
 ## ПИД крена: цель want, °; bank, ° — крен; скорость крена — фильтрованная (_bank_rate).

@@ -5,7 +5,7 @@ module: "models"
 area: "flight"
 updated: "2026-10-22"
 summary: "Вход в гайд по 3D-моделям: крылья, пилот, приборы, лагерь, деревья; как их пересобрать (Blender 4.3) и где контракты имён и осей."
-related: ["docs/guide/models/wings.md", "docs/guide/models/wing-contract.md", "docs/guide/models/pilot.md", "docs/guide/models/trike.md", "docs/guide/models/instruments-3d.md", "docs/guide/models/camp.md", "docs/guide/models/sail-shader.md", "docs/guide/models/trees.md", "docs/guide/models/references.md"]
+related: ["docs/guide/models/wings.md", "docs/guide/models/wing-contract.md", "docs/guide/models/pilot.md", "docs/guide/models/instruments-3d.md", "docs/guide/models/camp.md", "docs/guide/flight/tow.md", "docs/guide/models/sail-shader.md", "docs/guide/models/trees.md", "docs/guide/models/references.md", "docs/guide/models/trike.md"]
 ---
 # Модели (крылья, пилот, тележка, приборы, деревья)
 
@@ -24,6 +24,7 @@ related: ["docs/guide/models/wings.md", "docs/guide/models/wing-contract.md", "d
 | тележка трайка (в игру не встроена) | `assets/models/trike/trike.glb` (4472 + 1494 двигатель + 448 винт треугольников LOD0, 3 LOD, анимация `prop_spin`) | [models/trike.md](models/trike.md) |
 | приборы | `instrument.glb` (планшет), `vario_90s.glb`, `watch.glb`, `wrist_compass.glb` | [models/instruments-3d.md](models/instruments-3d.md) |
 | лагерь у старта | `assets/models/world/{start_gear,glider_kit,camp_person,camp_pilot}.glb`, `assets/models/world/rocketbox/` | [models/camp.md](models/camp.md) |
+| буксировка | `assets/models/world/tow_{winch,release,drogue,dolly}.glb`, 3 LOD (release — 2), `tools/blender/build_tow_*.py` | [flight/tow.md](flight/tow.md#модели); контракт — `docs/contracts/tow-models.md` |
 | деревья | `assets/models/trees/tree_<вид>.glb` — 5 пород, 8 вариантов, 3 LOD | [models/trees.md](models/trees.md) |
 | шейдер паруса | `assets/shaders/sail/` | [models/sail-shader.md](models/sail-shader.md) |
 | скриншоты, приёмка по фото, источники | `docs/models/screenshots/` | [models/references.md](models/references.md) |

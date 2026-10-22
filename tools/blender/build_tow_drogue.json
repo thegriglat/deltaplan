@@ -1,0 +1,16 @@
+{
+  "_doc": "Дрог-парашют троса (TW-К8 v2). Метры, оси Blender: +Y вперёд (в Godot −Z), Z вверх. Начало — узел tow_drogue_attach (точка на тросе, сходятся стропы). Купол раскрыт, жёсткий, по −Y Blender (= +Z Godot).",
+  "_size_note": "ОЦЕНКА: в docs/research/tow/kinds.md размеров дрог-парашюта нет (только факт наличия [1], [6]); диаметр 0,9 м, глубина 0,4 м, стропы 1,0 м — порядок величин малого стабилизирующего парашюта, не копия конкретного изделия.",
+  "canopy_radius": 0.45,
+  "canopy_depth": 0.4,
+  "line_length": 1.0,
+  "line_radius": 0.004,
+  "swivel": {"radius": 0.02, "length": 0.06},
+  "lod": [
+    {"segs": 8, "thetas_deg": [0, 35, 65, 90], "lines": 8, "line_sides": 3, "swivel": true},
+    {"segs": 6, "thetas_deg": [0, 60, 90], "lines": 6, "line_sides": 3, "swivel": false},
+    {"segs": 6, "thetas_deg": [0, 90], "lines": 0, "line_sides": 0, "swivel": false}
+  ],
+  "lod_tris_max": [150, 60, 16],
+  "colors": {"gore_a": [0.95, 0.35, 0.05], "gore_b": [0.96, 0.96, 0.92], "line": [0.1, 0.1, 0.11], "steel": [0.62, 0.64, 0.66]}
+}

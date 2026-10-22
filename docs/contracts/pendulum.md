@@ -3,7 +3,7 @@ type: contract
 status: closed
 module: pendulum
 area: flight
-updated: 2026-10-15
+updated: "2026-10-22"
 summary: "Модель полёта «Маятник» (PD-К1), конфиг маятника (PD-К2), настройки «Аппарат» (PD-К3), сеть и поза (PD-К4–К5), касание ногами (PD-К6)."
 related: ["docs/archive/plan/pendulum.md", "docs/research/pendulum.md", "docs/contracts/control-bar.md", "docs/contracts/motion-rig.md"]
 contracts: [{"id": "PD-К1", "version": 5}, {"id": "PD-К2", "version": 9}, {"id": "PD-К3", "version": 2}, {"id": "PD-К4", "version": 2}, {"id": "PD-К5", "version": 2}, {"id": "PD-К6", "version": 2}]
@@ -17,6 +17,7 @@ contracts: [{"id": "PD-К1", "version": 5}, {"id": "PD-К2", "version": 9}, {"id
 Не меняются: CB-К1/К2 (control-bar), MR-К1 v1 (motion-rig — маятник только заполняет `pilot_*`), `ControlInput`, `FlightModel`, `GroundRun`, `LandingFlare`, `LandingJudge` (пороги), боты.
 
 ## PD-К1. Поверхность модели полёта «Маятник» (v5)
+**Заменено RM-К1 (`docs/contracts/roll-modes.md`): выбор модели `Glider` по настройке (абзац «Выбор модели (PD-4)») — `Glider.model` игрока после `setup` всегда `PendulumModel`, `roll_control_mode` не читается; `Glider.is_pendulum_mode()` удалён. Боты — по-прежнему `FlightModel` (`rate`). Строка «`weight_shift` не читается» в абзаце «Ввод» теряет смысл: поля `ControlInput.weight_shift` нет.**
 v5 (19.10, pullin-speed): модель читает `ControlInput.pull_full` — добор «на себя» до `arms.shift_x_pull_full_m` (VM-К3 v2).
 v4 (11.10, PD-35): касание маятника — `PendulumTouchdown` (обёртка над `LandingJudge`, сам он не меняется): вертикальная/крен/авария — пороги `LandingJudge`; горизонтальная ≤ `touchdown.stand_max_ms` — «встал на ноги», ≤ `touchdown.run_max_ms` — «пробежал N шагов», выше — жёстко; в `result` + `touchdown`, `runout_m`, `steps`; `contact` + `"bar"` (трапеция — жёстко), `"tail"` (крыло за вертикалью — авария).
 v3 (11.10, PD-12): пропуски `apparatus` в `setup` — сначала умолчания крыла (`wing.pendulum.apparatus_defaults`, PD-К2 v3), потом общие.
@@ -135,6 +136,7 @@ v2 (11.10, PD-2): + `strips.aero_hz` — частота пересчёта си�
 Инварианты (тест PD-К2, все 48 крыльев): все ключи есть, числа конечны; `root_chord_m > tip_chord_m > 0`; 0 < `static_margin` < 0,4; `|ref.trim_kmh − trim_speed_kmh| ≤ 0,3`; `ref.sink_ms` = поляра на триме ±0,02 м/с; `inertia_kgm2.ixx, iyy, izz > 0`.
 
 ## PD-К3. Настройки «Аппарат» (v2)
+**Заменено RM-К1 (`docs/contracts/roll-modes.md`): подпись «…в других режимах не действуют» — других режимов у игрока нет, `setup_app_pendulum_only` и подпись удалены (если подпись несёт что-то ещё — решает RM-К1 через `contract:` исполнителя RM-1).**
 v2 (11.10): настройки — у каждого крыла свои; умолчания — по крылу (PD-К2 v3).
 Владелец — PD-5 (v1), PD-13 (v2); потребители — PD-4 (`Game` → `Glider.setup(…, apparatus)`), PD-2 (`PendulumModel.setup`).
 
@@ -150,12 +152,14 @@ v2 (11.10): настройки — у каждого крыла свои; умо
 UI: экран «Полёт…» (`scripts/ui/flight_setup_screen.gd`) делится на вкладки «Место» и «Аппарат» (в «Аппарат» — класс и модель крыла, масса пилота, эти 4 ползунка). У всех четырёх — подпись вкладки — «Настройки режима «Маятник»; в других режимах не действуют» (PMD-К1). Строки — `locale/ui.csv`.
 
 ## PD-К4. Сеть: режим управления и положение пилота (v2)
+**Заменено RM-К1 (`docs/contracts/roll-modes.md`): значение `CONTROL_MODE_WEIGHT_SHIFT = 2` — удалено, номер 2 `reserved` (`reserved 2; reserved "CONTROL_MODE_WEIGHT_SHIFT";`); локальный игрок всегда шлёт `PENDULUM` (`NetFlight.control_mode_name()` не читает конфиг), боты — `RATE`; принятое значение, отличное от `PENDULUM`/`RATE`, читается как «не передано» (поза без `pilotRel`).**
 v2 (11.10, PD-7): прирост `PilotState` в двоичном protobuf — ≤ 20 байт (`pilot_rel` — Vec3 из float32, 17 байт; `control_mode` — 2 байта, только в полном пакете раз в секунду); фактически протокол — JSON, `pilotRel` ≈ +45 байт к пакету ≈ 170 байт.
 Владелец — PD-7; потребители — `remote_pilots.gd`, PD-6 (поза чужих пилотов).
 
 `server/proto/deltaplan/v1/net.proto`, `PilotState`: `ControlMode control_mode = 11;` (`enum ControlMode { CONTROL_MODE_UNSPECIFIED = 0; CONTROL_MODE_RATE = 1; CONTROL_MODE_WEIGHT_SHIFT = 2; CONTROL_MODE_PENDULUM = 3; }`), `Vec3 pilot_rel = 12;` (= `PendulumModel.pilot_rel`, оси крыла, м, округление 1 см; только при PENDULUM). JSON-ключи `net_messages.gd` — `controlMode`, `pilotRel` (оба nullable). Нет поля — поза по вводу, как сейчас. Прирост `PilotState` ≤ 20 байт (v2).
 
 ## PD-К5. Поза пилота в визуале и у чужих пилотов (v2)
+**Заменено RM-К1 (`docs/contracts/roll-modes.md`): фраза «Режимы «Смещение веса»/«Упрощённый» — прежний `set_pose`» — режим «Смещение веса» удалён, прежний `set_pose` остаётся для ботов и чужих пилотов без `pilotRel`.**
 v2 (11.10, PD-3): на земле узел `Glider` (формула `position` PD-К1) стоит на 0,2–0,3 м выше и впереди ступней (подвеска физики выше ступней на ≈ 2,2 м, у визуала — `hang_height_m`), поэтому стоящий пилот рисуется ступнями в `pilot_position − 1,0 м·pilot_basis.y` (в осях узла), а не от начала узла.
 Владелец — PD-6 (`GliderVisual`, `BotGlider`, камера); поставщики данных — PD-К1 (`pilot_rel`, `pilot_basis`, `head_position`), PD-7 (`BotAgent.pilot_rel`).
 
@@ -164,6 +168,7 @@ v2 (11.10, PD-3): на земле узел `Glider` (формула `position` P
 - Чужие пилоты: `BotAgent.pilot_rel: Vector3`, `BotAgent.pilot_rel_valid: bool` (по умолчанию false) — пишет `remote_pilots.gd` из `PilotState.pilot_rel` (PD-7); `BotGlider` при `pilot_rel_valid` вызывает `set_hang_pose`, иначе — прежняя поза по вводу. Боты (`pilot_rel_valid = false`) не меняются.
 
 ## PD-К6. Касание земли: гашение вертикальной скорости ногами (v2)
+**Заменено RM-К1 (`docs/contracts/roll-modes.md`): в списке владельцев «наземная модель «Смещение веса»/«Упрощённый»» — режима «Смещение веса» нет, `FlightModel` остаётся для ботов и инструментов; `PendulumModel` и `PendulumGround` — единственная физика игрока.**
 v2 (12.10, PD-39): авария без «деревянного» контакта — во всех местах, где на аварии (вертикальная > `crash_vertical_ms`, касание трапецией/носом/консолью/«на брюхо», в обоих режимах) скорость обнулялась за один шаг, она гасится с ограниченным замедлением `configs/flight.json → landing.crash_decel_g` (≈ 20 g, смятие каркаса/трапеции/тела; `_doc` с физическим смыслом): 8 м/с → ≈ 0,04 с, путь ≈ 0,16 м; пик |f| ≈ 20 g (≤ 21 g) не зависит от шага физики (1/120, 1/240). Момент и признаки аварии (`grade = "crash"`, `LandingJudge`, порог 7 м/с, `landed`/`takeoff_failed`, `mode`, итог полёта) — как в v1: меняется только профиль гашения скорости после касания; задержка итогового экрана/столкновения — не больше этих ≈ 0,04–0,1 с. Защита `MotionSource` (50 g) на аварии не срабатывает.
 v1 (11.10, PD-38): повод — MR-5: посадка 3,5 м/с вниз давала пик удельной силы пилота 261,6 м/с² (≈ 26,7 g) за один пакет 60 Гц, т. е. вертикальная скорость гасилась за 1–2 шага физики (абсолютно жёсткий контакт). У живого пилота ноги и колени дают ход ≈ 0,2–0,3 м: a ≈ v²/(2d).
 Владелец — PD-38 (`FlightModel` и наземная модель «Смещение веса»/«Упрощённый», `PendulumModel` и `PendulumGround` «Маятник»). Потребители — motion-rig (MR-К1: `Telemetry.pilot_position/pilot_velocity`, `MotionSource`), оценка посадки (`LandingJudge`, `PendulumTouchdown`, PD-К1 v4), `Game` (авария, экран посадки), визуал (поза ступней, PD-К5), тесты посадки и разбега.

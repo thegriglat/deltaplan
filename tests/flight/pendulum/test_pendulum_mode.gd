@@ -1,36 +1,27 @@
 extends TestCase
-## Режим управления «Маятник» (PD-4): Glider выбирает модель по controls.roll_control_mode,
+## Режим управления «Маятник» (PD-4, RM-К1): Glider всегда PendulumModel,
 ## apparatus доходит до PendulumModel, старт с земли и разбег (PD-3), телеметрия MR-К1 — из маятника,
 ## перегрузка — по стропе и рукам (PD-К1).
 
 const S := preload("res://tests/flight/pendulum/pendulum_sim.gd")
 
 
-## Glider в заданном режиме управления креном (режим в кэше Config возвращается обратно).
-static func make_glider(mode: String, wing := "sport", apparatus := {}) -> Glider:
-	var cfg := Config.get_config("controls")
-	var old: Variant = cfg.get("roll_control_mode")
-	cfg["roll_control_mode"] = mode
+## Glider игрока (RM-К1: всегда PendulumModel).
+static func make_glider(wing := "sport", apparatus := {}) -> Glider:
 	var g := Glider.new()
 	g.setup(wing, 0.0, apparatus)
-	cfg["roll_control_mode"] = old
 	return g
 
 
-func test_model_selected_by_setting() -> void:
-	for mode in ["rate", "weight_shift"]:
-		var g := make_glider(mode)
-		check(g.model is FlightModel, "%s → FlightModel" % mode)
-		check(not g.is_pendulum(), "%s: is_pendulum = false" % mode)
-		g.free()
-	var gp := make_glider("pendulum")
-	check(gp.model is PendulumModel, "pendulum → PendulumModel")
-	check(gp.is_pendulum(), "pendulum: is_pendulum")
-	gp.free()
+func test_model_always_pendulum() -> void:
+	var g := make_glider()
+	check(g.model is PendulumModel, "Glider.setup → PendulumModel")
+	check(g.is_pendulum(), "is_pendulum")
+	g.free()
 
 
 func test_apparatus_reaches_model() -> void:
-	var g := make_glider("pendulum", "sport", {"hang_shift_cm": 2.0, "hang_length_m": 1.1})
+	var g := make_glider("sport", {"hang_shift_cm": 2.0, "hang_length_m": 1.1})
 	var m: PendulumModel = g.model
 	approx(float(m.apparatus.hang_shift_cm), 2.0, 1e-9, "hang_shift_cm в модели")
 	approx(float(m.apparatus.hang_length_m), 1.1, 1e-9, "hang_length_m в модели")
@@ -43,17 +34,17 @@ func test_apparatus_reaches_model() -> void:
 func test_resolved_apparatus_reaches_model() -> void:
 	var st := FlightSettings.defaults()
 	st.apparatus = {"sport": {"hang_shift_cm": 3.0}, "laminar": {"hang_shift_cm": -2.0}}
-	var g := make_glider("pendulum", "sport", st.resolved_apparatus("sport"))
+	var g := make_glider("sport", st.resolved_apparatus("sport"))
 	approx(float(g.model.apparatus.hang_shift_cm), 3.0, 1e-9, "sport: свой сдвиг")
 	approx(float(g.model.apparatus.hang_length_m), float(st.resolved_apparatus("sport").hang_length_m), 1e-9, "умолчание в модели")
 	g.free()
-	var g2 := make_glider("pendulum", "laminar", st.resolved_apparatus("laminar"))
+	var g2 := make_glider("laminar", st.resolved_apparatus("laminar"))
 	approx(float(g2.model.apparatus.hang_shift_cm), -2.0, 1e-9, "laminar: свой сдвиг")
 	g2.free()
 
 
 func test_start_on_ground_and_telemetry() -> void:
-	var g := make_glider("pendulum")
+	var g := make_glider()
 	var ground := func(_x: float, z: float) -> float: return 0.2 * z  # склон вниз на север
 	g.set_ground_fn(ground)
 	g.set_air_fn(func(_p: Vector3) -> Vector3: return Vector3.ZERO)
@@ -87,7 +78,7 @@ func test_start_on_ground_and_telemetry() -> void:
 
 
 func test_set_kinematic_through_model() -> void:
-	var g := make_glider("pendulum")
+	var g := make_glider()
 	g.set_kinematic(
 		Vector3(0.0, 500.0, 0.0), Vector3(0.0, -1.0, -10.0), 0.0, deg_to_rad(10.0), Basis.IDENTITY
 	)
@@ -95,13 +86,4 @@ func test_set_kinematic_through_model() -> void:
 	check(m.mode == FlightModel.Mode.AIR, "после set_kinematic — AIR")
 	approx(rad_to_deg(m.bank), 10.0, 0.5, "крен задан")
 	check(g.get_telemetry().pilot_position.is_finite(), "pilot_position конечна")
-	g.free()
-
-
-func test_flight_model_telemetry_unchanged() -> void:
-	# FlightModel: пилот — точка крыла (как раньше)
-	var g := make_glider("weight_shift")
-	g.reset_in_air(Vector3(0.0, 1000.0, 0.0), 0.0)
-	var t := g.get_telemetry()
-	check(t.pilot_position.is_equal_approx(g.model.position), "FlightModel: pilot_position = position")
 	g.free()
