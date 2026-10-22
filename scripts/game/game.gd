@@ -338,6 +338,7 @@ func start(s: FlightSettings) -> bool:
 	progress.stage("weather", tr("loading_weather"))
 	await get_tree().process_frame
 	_weather_ctx = _weather_context()
+	sky.valley_msl_m = float(_weather_ctx.get("valley_msl_m", 0.0))
 	_weather_hour = settings.start_hour
 	_peak_spacing = float(
 		WeatherModel.derive(settings.forecast(), _weather_ctx).thermal_spacing_m

@@ -10,7 +10,9 @@ func _sun_color(h: float, month: int, day: int) -> Color:
 	var c: Color = sky.sky_material().get_shader_parameter("sun_color")
 	sky.free()
 	var b: Array = Config.get_config("world").sun.color
-	return Color(c.r / float(b[0]), c.g / float(b[1]), c.b / float(b[2]))  # без sun.color — чистая цветность
+	var bl := Color(float(b[0]), float(b[1]), float(b[2])).srgb_to_linear()
+	c = c.srgb_to_linear()  # в шейдер — sRGB; цветность пропускания — линейная
+	return Color(c.r / bl.r, c.g / bl.g, c.b / bl.b)  # без sun.color — чистая цветность
 
 
 func test_no_manual_table() -> void:
