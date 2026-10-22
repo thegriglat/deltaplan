@@ -238,7 +238,7 @@ def rear_footrests(mb, lod: int) -> None:
 
 
 def tank(mb, lod: int) -> None:
-    """Бак-«кирпич» (tank): скруглённые рёбра, горловина с крышкой на боку."""
+    """Бак-канистра (tank): скруглённые рёбра, вертикальная горловина с крышкой на верху в точке filler."""
     c = V(TK["center"])
     sx, sy, sz = TK["size"]
     if lod == 2:
@@ -248,8 +248,8 @@ def tank(mb, lod: int) -> None:
     pillow(mb, c, (sx / 2, sy / 2, sz / 2), "Tank", e=0.25, seg=seg, rings=rings)
     if lod == 0:
         f = V(TK["filler"])
-        mb.add_tube([V((f.x - 0.02, f.y, f.z)), V((f.x + 0.035, f.y, f.z))], 0.03, "Tank", sides=10)
-        mb.add_tube([V((f.x + 0.035, f.y, f.z)), V((f.x + 0.055, f.y, f.z))], 0.036, "Fitting", sides=10)
+        mb.add_tube([V((f.x, f.y, f.z - 0.02)), V((f.x, f.y, f.z + 0.03))], 0.03, "Tank", sides=10)
+        mb.add_tube([V((f.x, f.y, f.z + 0.03)), V((f.x, f.y, f.z + 0.05))], 0.036, "Fitting", sides=10)
 
 
 def wheel(mb, c: Vector, sign: int, d: float, w: float, lod: int) -> None:
@@ -309,7 +309,7 @@ def main_gear(mb, lod: int) -> None:
             p = lambda t: a.lerp(b, t)
             mb.add_tube([a, p(0.38)], RF * 0.85, "Tube", sides=sdt)
             mb.add_tube([p(0.38), b], 0.009, "Steel", sides=6)
-            spring(mb, p(0.4), p(0.9), 0.034, 0.008, 5, 6, "Spring", 3)
+            spring(mb, p(0.4), p(0.9), 0.034, 0.008, 6, 8, "Spring", 3)
             mb.add_tube([p(0.9) - (b - a).normalized() * 0.01, p(0.9) + (b - a).normalized() * 0.01], 0.04, "Fitting", sides=8)
         else:
             mb.add_tube([a, b], RF * 0.8, "Tube", sides=sdt)
@@ -478,11 +478,20 @@ def engine() -> "U.MeshBuilder":
         # выхлопная труба от головки вниз в резонатор
         tube(fillet([(-0.055, a, 0.14), (-0.15, a, 0.14), (-0.15, a, -0.13)], 0.06, 3), 0.022, "Muffler", 6, up=(0, 1, 0))
     tube([(0.31, cyls[0] - 0.07, 0.0), (0.31, cyls[-1] + 0.07, 0.0)], 0.05, "EngSilver", 8)   # воздушный короб
-    # резонансная труба под двигателем (диаметр engine_exhaust_d) и выхлоп
-    re_ = D["engine_exhaust_d"] / 2
-    tube([(-0.15, 0.52, -0.13), (-0.15, 0.47, -0.13), (-0.15, 0.40, -0.13), (-0.15, 0.30, -0.13), (-0.15, 0.20, -0.13),
-          (-0.15, 0.12, -0.13)], [0.03, re_ * 0.95, re_, re_, re_ * 0.65, re_ * 0.4], "Muffler", 10)
-    tube([(-0.15, 0.12, -0.13), (-0.15, 0.06, -0.13)], re_ * 0.4, "Steel", 8)
+    # резонансная труба под двигателем (engine_exhaust_d, длина engine_exhaust_l: хвост сзади, к редуктору) и
+    # глушитель (muffler_d, muffler_l) ниже неё, вдоль двигателя; выхлоп глушителя — вперёд
+    re_, rl = D["engine_exhaust_d"] / 2, D["engine_exhaust_l"]
+    a_b = 0.08                                                        # хвостовой конец камеры
+    pa = lambda t: a_b + rl * t
+    tube([(-0.15, pa(1.0), -0.13), (-0.15, pa(0.93), -0.13), (-0.15, pa(0.82), -0.13), (-0.15, pa(0.55), -0.13),
+          (-0.15, pa(0.3), -0.13), (-0.15, pa(0.06), -0.13), (-0.15, a_b, -0.13)],
+         [0.03, re_ * 0.9, re_, re_, re_ * 0.7, re_ * 0.4, re_ * 0.3], "Muffler", 10)
+    rm, ml = D["muffler_d"] / 2, D["muffler_l"]
+    zm = -0.13 - re_ - rm - 0.03                                      # глушитель под камерой
+    tube(fillet([(-0.15, a_b, -0.13), (-0.15, a_b, zm + 0.04), (-0.15, a_b + 0.07, zm)], 0.05, 2), 0.022, "Steel", 6)
+    tube([(-0.15, a_b + 0.05, zm), (-0.15, a_b + 0.08, zm), (-0.15, a_b + 0.12, zm), (-0.15, a_b + ml - 0.04, zm),
+          (-0.15, a_b + ml, zm)], [rm * 0.5, rm * 0.9, rm, rm, rm * 0.5], "Muffler", 10)
+    tube([(-0.15, a_b + ml, zm), (-0.15, a_b + ml + 0.07, zm)], 0.022, "Steel", 6)
     return mb
 
 
