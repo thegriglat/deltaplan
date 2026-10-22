@@ -24,3 +24,6 @@
 {"t": "2026-10-23T04:13:15", "by": "coordinator", "task": "BM-1", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-23T04:13:17", "by": "coordinator", "task": "BM-1", "ev": "checked", "commits": ["ea05e103"], "note": "0/1 test_mouse_routing=FAIL:0/0"}
 {"t": "2026-10-23T04:13:17", "by": "coordinator", "task": "BM-1", "ev": "merged"}
+{"t": "2026-10-23T04:14:25", "by": "coordinator", "task": "BM-1", "ev": "accepted", "commits": ["9575d101"], "note": "1/1 test_mouse_routing=ok:2/2"}
+{"t": "2026-10-23T04:14:33", "by": "coordinator", "task": "BM-1", "ev": "note", "note": "merged повторно: первое слияние отказало (грязная копия, docs/registry/research.md); влито 9575d10, accept --here PASS"}
+{"t": "2026-10-23T04:14:34", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: merge при грязной копии печатает отказ, но последней строкой идёт «журнал закоммичен» — легко принять за успех; лучше ненулевой код и отказ последней строкой"}
