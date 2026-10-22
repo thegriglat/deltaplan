@@ -20,13 +20,13 @@ def load(fn):
     return cells(a.values.astype(np.float32))
 
 
-def year(key, y): return load(f"{C}/{key}_{y}.nc")
+def month(key, y, m): return load(f"{C}/{key}_{y}-{m:02d}.nc")
 
 
 def do_year(y):
     fn = f"{D}/{y}.npz"
     if os.path.exists(fn): return
-    c = year("tcc", y); t = year("tmax", y) - 273.15
+    c = np.concatenate([month("tcc", y, m) for m in range(1, 13)]); t = np.concatenate([month("tmax", y, m) for m in range(1, 13)]) - 273.15
     assert len(c) == (366 if calendar.isleap(y) else 365)
     np.savez(fn + ".tmp.npz", tcc=c, tccday=c, tmax=t); os.replace(fn + ".tmp.npz", fn); print(y, "ok", flush=True)
 
@@ -34,7 +34,7 @@ def do_year(y):
 def compare():
     land = np.load(os.path.expanduser("~/data/haze_humidity/climatology.npz"))["lsm"] > 0.5
     w = np.cos(np.radians(-89.5 + np.arange(180)))[:, None] * np.ones((1, 360))
-    c = year("tcc", 2013)[151:181]; t = year("tmax", 2013)[151:181] - 273.15
+    c = month("tcc", 2013, 6); t = month("tmax", 2013, 6) - 273.15
     z = np.load(f"{D}/2013.npz"); k0 = 151
     A = {"tccday": z["tccday"][k0:k0 + 30], "tmax": z["tmax"][k0:k0 + 30], "tcc": z["tcc"][k0:k0 + 30]}
     out = {}
