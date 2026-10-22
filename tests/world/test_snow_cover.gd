@@ -7,6 +7,7 @@ class StubTerrain:
 	var slope_deg := 0.0
 	var cls := SurfaceLayer.SNOW
 	var sl := {}
+	var bounds := Rect2(-1000.0, -1000.0, 2000.0, 2000.0)
 
 	func height_at(_x: float, _z: float) -> float:
 		return h
@@ -20,6 +21,9 @@ class StubTerrain:
 
 	func scene_look_params() -> Dictionary:
 		return sl
+
+	func detail_bounds() -> Rect2:
+		return bounds
 
 
 func _stub() -> StubTerrain:
@@ -87,6 +91,33 @@ func test_snow_disabled() -> void:
 	t.sl = {"snow_enabled": true}
 	t.flight_doy = 200.0  # смена даты — кэш пересчитывается
 	check(SnowCover.snow_fraction(t, 0.0, 0.0) > 0.99, "включили и сменили дату — снег есть")
+	t.free()
+
+
+func test_outside_detail_bounds() -> void:
+	var t := _stub()
+	approx(SnowCover.snow_fraction(t, 0.0, 0.0), 1.0, 1e-5, "внутри слоя — снег")
+	approx(SnowCover.snow_fraction(t, 5000.0, 0.0), 0.0, 1e-5, "вне detail_bounds — 0")
+	t.free()
+
+
+func test_cache_reset_on_look_and_snow_enabled() -> void:
+	var t := _stub()
+	t.cls = SurfaceLayer.BARE
+	t.h = 3000.0
+	SnowCover.frame_override = 10
+	approx(SnowCover.snow_fraction(t, 0.0, 0.0), 1.0, 1e-5, "голый выше линии — снег")
+	t._look["snow_bare_merge"] = 0.0  # тот же словарь, тот же кадр
+	approx(SnowCover.snow_fraction(t, 0.0, 0.0), 0.0, 1e-5, "смена _look сбрасывает кэш")
+	t.cls = SurfaceLayer.GRASS
+	t.h = 6000.0
+	t.sl = {"snow_enabled": true}
+	SnowCover.frame_override = 11
+	check(SnowCover.snow_fraction(t, 0.0, 0.0) > 0.99, "snow_enabled включили — свежий снег в следующем кадре")
+	t.sl = {"snow_enabled": false}
+	SnowCover.frame_override = 12
+	approx(SnowCover.snow_fraction(t, 0.0, 0.0), 0.0, 1e-5, "snow_enabled выключили")
+	SnowCover.frame_override = -1
 	t.free()
 
 
