@@ -45,11 +45,12 @@
     },
     {
       "name": "frames",
-      "cmd": "sh -c 'find /home/greg/deltaplan/build/screenshots/tow-trike -name \"*.jpg\" -newer /home/greg/deltaplan-tow-trike/docs/plan/tow-trike/tasks/TT-11.json | wc -l'",
+      "cmd": "sh -c 'find /home/greg/deltaplan/build/screenshots/tow-trike -name \"*.jpg\" -newer /tmp/claude-1000/-home-greg-deltaplan/063ec612-2244-47a0-80bd-b7b0f7ad5243/scratchpad/tt11.marker | wc -l'",
       "expect": "num:^(\\d+) >=2"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T20:36:52"
+  "created": "2026-10-22T20:36:52",
+  "edited": "2026-10-22T20:37:10"
 }
