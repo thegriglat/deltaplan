@@ -144,16 +144,13 @@ func step(dt: float, glider_height_agl_m: float) -> void:
 			if _rope_force.length() > 0.0:
 				phase = "roll"
 		"roll":
-			# пока дельтаплан не поднялся - скорость ниже скорости отрыва тележки (штангой на колёсах прижать нельзя),
-			# дельтаплан поднялся - полный газ, и на скорости отрыва штанга отдаётся
+			# полный газ; пока дельтаплан не поднялся - штанга на себя (TT-К3 v4) держит тележку на колёсах,
+			# дельтаплан поднялся и скорость отрыва набрана - штанга отдаётся (rotate_bar)
+			_thr_cmd = 1.0
 			var lifted := glider_height_agl_m >= float(tow.glider_hold_agl_m)
-			if lifted:
-				_thr_cmd = 1.0
-			else:
-				_thr_cmd = _speed_throttle(float(tow.rotate_speed_kmh) / 3.6 * float(_ap("roll_hold_frac")), airspeed_ms + float(_ap("roll_hold_lead_s")) * _vdot_f, dt, "roll_hold")
 			if lifted and airspeed_ms >= float(tow.rotate_speed_kmh) / 3.6:
 				_rotating = true
-			ctl.pitch = float(_ap("rotate_bar")) if _rotating else 0.0
+			ctl.pitch = float(_ap("rotate_bar")) if _rotating else float(_ap("hold_bar"))
 			if in_air:
 				phase = "climb"
 				_hdg_tgt = _heading_ref
