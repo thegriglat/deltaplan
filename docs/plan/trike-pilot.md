@@ -113,6 +113,12 @@ related: ["docs/contracts/trike-pilot.md", "docs/plan/trike.md", "docs/contracts
 #### TP-16 Текстуры и шейдеры дельталёта как у дельтапланов
 `dp-engineer` (sonnet), после TP-15 (общий `build_trike.py`), до TP-8 (вид игрока берёт `TowTrikeVisual`). Решение пользователя 2026-10-23: (1) сжатие текстур паруса `trike_ixess15` и встроенных текстур `trike.glb` — как у крыльев игры (`compress/mode=4` Basis Universal, mipmaps); (2) процедурные `FrameMetal`/`frame_wire` (`scripts/flight/frame_metal.gd`, `frame_metal.gdshader`, `frame_wire.gdshader`, как в `glider_visual` для `Tube*/Steel/Fitting/Wire`) — на крыле и трубах/тросах тележки буксировщика и игрока. Кадры до/после в `/home/greg/deltaplan/build/screenshots/trike-pilot/`. Приёмка: `trike_model`, `tow`, `trike_pilot`, `frame_metal` — 0 упало.
 
+#### TP-17 Диапазон скоростей дельталёта штангой: разбор
+`dp-researcher` (sonnet), ревью `dp-reviewer`. Ответ Q6 (2026-10-23): полная выборка штанги должна давать паспортные ≈ 130 км/ч (`configs/wings/trike_ixess15.json full_pull_speed_kmh`), сейчас ≈ 65 км/ч (TP-6). Разобрать по источникам: ход штанги и нулевое положение (TT-8, `tools/research/tow-trike/trapeze.json`), центровку тележки и точку подвески на киле, геометрию трапеции, как «Маятник» переводит ход штанги в тангаж/момент для тележки (мачта жёсткая, рука на штанге); кривая скорость(ход штанги) в модели сейчас; предложение правки модели и чисел с ожидаемой кривой. Без подгонки: не выходит по источникам — числа пользователю (шлюз). Итог — документ и данные; правка кода — TP-18 по нему. Приёмка: `docs check`; кривые и команды воспроизведения в `tools/research/trike-pilot/`.
+
+#### TP-18 Правка «Маятника» для тележки по TP-17
+`dp-engineer`, контракт — по итогам TP-17 (буксировщик тоже меняется: TT-К1/TT-К3/TT-К4, тесты `tow`).
+
 ## 5. Волны
 1. TP-1, TP-2, TP-3, TP-4 параллельно (разные файлы).
 2. TP-5 по освобождению места; TP-11, TP-12 — по ответам Q1–Q3.
