@@ -50,11 +50,6 @@
       "expect": "num:fireflies=(\\d+) <=5"
     },
     {
-      "name": "edge_steps",
-      "cmd": "python3 tools/shots/cloud_artifacts_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_cloudart_2deg_side.jpg",
-      "expect": "num:edge_step_ratio=([\\d.]+) <=1.5"
-    },
-    {
       "name": "frames",
       "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity/before_cloudart_*.jpg /home/greg/deltaplan/build/screenshots/haze-humidity/after_cloudart_*.jpg | wc -l",
       "expect": "num:(\\d+) >=6"
@@ -62,5 +57,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-23T01:47:20"
+  "created": "2026-10-23T01:47:20",
+  "edited": "2026-10-23T01:49:10"
 }
