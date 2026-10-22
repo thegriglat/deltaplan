@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Откат разворота вилки из TT-11: голова вилки, стойки, перемычки, обтекатель приборов и фара снова на прежних местах (вперёд к оси колеса); брызговик оставлен со стороны пилота (дуга назад от оси). Ось колеса и физика не тронуты; trike.glb/blend пересобраны.",
+  "commits": [
+    "ad36dc8e TP-15: откат TT-11 — вилка переднего колеса вперёд, брызговик со стороны пилота"
+  ],
+  "checks": [
+    {
+      "name": "trike_model",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "tow_trike_k6",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot",
+      "value": "34/34",
+      "pass": true
+    },
+    {
+      "name": "shots",
+      "value": "2",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/trike-pilot/tp15_side.png",
+    "build/screenshots/trike-pilot/tp15_front34.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TP-15",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_trike.py:front_gear",
+      "why": "на кадре сбоку брызговик и вилка визуально читаются слабо (тонкая дуга за колесом)",
+      "checked": "кадр side просмотрен: вилка идёт от головы вперёд-вниз к оси, дуга брызговика сзади колеса"
+    }
+  ],
+  "dp_feedback": "Свежая копия без .godot: accept молча висит 900 с на тестах, пока не сделан --import; accept стоит предупреждать или импортировать сам. Вывод accept при перенаправлении в pipe с tail пустой до конца.",
+  "t": "2026-10-23T03:14:47",
+  "by": "executor"
+}
