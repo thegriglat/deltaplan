@@ -20,6 +20,9 @@ extends RefCounted
 ## Чтение: pos (точка tow_hook), vel, hang_pos, wing_basis, cart_basis, basis (= cart_basis), phase: idle / slack / roll /
 ## climb / circuit / away; agl_m (низ колёс над землёй), gone, throttle, prop_rpm, airspeed_ms, model.
 
+## ЦМ тележки в осях trike.glb от HangPoint (Godot: -Z вперёд): 0,13 м вперёд, 1,70 м вниз (docs/research/tow/trike-tug.md).
+const CART_CM_MODEL := Vector3(0.0, -1.70, -0.13)
+const CART_TURN_DEG_S := 20.0  ## предел скорости смены ориентации модели (колёса <-> воздух), град/с
 const WING_DEFAULT := "trike_ixess15"
 
 var pos := Vector3.ZERO  ## точка tow_hook в мире - конец троса
@@ -292,10 +295,42 @@ static func _cart_axes(pilot_p: Vector3, hang_p: Vector3, wb: Basis) -> Basis:
 	return Basis(y.cross(z), y, z)
 
 
+## Ориентация модели trike.glb (TT-К4 v2). На колёсах: +Y по нормали земли, -Z по курсу крыла. В воздухе: вектор
+## «подвеска -> ЦМ тележки» в осях trike.glb (CART_CM_MODEL, tools/research/tow-trike/cart.py) совпадает с направлением
+## подвеска -> ЦМ тележки в модели полёта (pilot_position), -Z - по курсу.
+func _cart_model_basis(pilot_p: Vector3, hang_p: Vector3, wb: Basis, wheels: bool) -> Basis:
+	if wheels:
+		var d := 2.0
+		var gx := _ground(pilot_p.x + d, pilot_p.z) - _ground(pilot_p.x - d, pilot_p.z)
+		var gz := _ground(pilot_p.x, pilot_p.z + d) - _ground(pilot_p.x, pilot_p.z - d)
+		var n := Vector3(-gx, 2.0 * d, -gz).normalized()
+		var f: Vector3 = -wb.z
+		f = (f - n * f.dot(n)).normalized()
+		var z := -f
+		return Basis(n.cross(z), n, z)
+	var b0 := _cart_axes(pilot_p, hang_p, wb)
+	var rm := Basis(Quaternion(CART_CM_MODEL.normalized(), Vector3.DOWN))
+	return b0 * rm
+
+
+## Поворот a к b не быстрее max_rad (ортонормированные базисы).
+static func _turn_toward(a: Basis, b: Basis, max_rad: float) -> Basis:
+	var qa := a.get_rotation_quaternion()
+	var qb := b.get_rotation_quaternion()
+	var ang := qa.angle_to(qb)
+	if ang <= max_rad:
+		return Basis(qb)
+	return Basis(qa.slerp(qb, max_rad / ang))
+
+
 func _refresh(dt: float) -> void:
 	hang_pos = model.hang_position
 	wing_basis = model.wing_basis()
-	cart_basis = _cart_axes(model.pilot_position, hang_pos, wing_basis)
+	var target := _cart_model_basis(model.pilot_position, hang_pos, wing_basis, model.on_wheels)
+	if dt <= 0.0:
+		cart_basis = target
+	else:
+		cart_basis = _turn_toward(cart_basis, target, deg_to_rad(CART_TURN_DEG_S) * dt)
 	basis = cart_basis
 	var np := hang_pos + cart_basis * _hook
 	if dt > 0.0:
