@@ -1,0 +1,64 @@
+{
+  "status": "done",
+  "summary": "trike_params.json v4 (слит с TK-10): seat.pedal_angle_deg 45, pedal_size 0.14x0.34, педали пересчитаны; bar (training) по замеру в игре; panel; тест K1 с проверкой лучей. Описание — tools/research/trike-model/bar_panel.md.",
+  "commits": [
+    "121ffffb trike-model: TK-14 слияние feature/trike-model (TK-10), version 4|36355280 trike-model: TK-14 данные v4 — педали 45°, штанга, приборная панель|cfa79823 trike-model: журнал|"
+  ],
+  "checks": [
+    {
+      "name": "trike_model_k1",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "v4",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "bar trim/full_pull/full_push (y,z от подвески, м)",
+      "value": "(0.721,-1.454) / (0.158,-1.614) / (1.088,-1.203); радиус 1.622; d 0.03; half_width 0.75",
+      "pass": true
+    },
+    {
+      "name": "мин. расстояние луча глаз->панель до оси штанги по дуге (-3°..+3° запас)",
+      "value": "0.108 м при пороге 0.025",
+      "pass": true
+    },
+    {
+      "name": "panel",
+      "value": "center (0,0.655,-1.319), 0.30x0.15, normal (0,-0.866,0.5); низ на 0.30 м выше колен",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Не менялся build_pilot.py (вне скоупа): SIT_FOOT_DEG 80 надо привести к 45 (TK-K3), иначе подошва не параллельна педали."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TK-14",
+  "uncertain": [
+    {
+      "where": "trike_params.json: bar.full_push",
+      "why": "в игре при pitch=+1 значение не установилось (дрейф +0.02 м/с), взят максимум",
+      "checked": "радиус 1.622 сохраняется; в тесте дуга шире на 3°"
+    },
+    {
+      "where": "trike_params.json: seat.foot_*",
+      "why": "центр подошвы выбран так, что голеностоп остаётся как в v2 (1.112,-2.067); трактовка foot_* в build_pilot (точка под голеностопом) может отличаться",
+      "checked": "длина ботинка 0.28 м и положение голеностопа по pilot.glb"
+    },
+    {
+      "where": "bar_panel.md: колени",
+      "why": "z колена -1.68 из IK-модели, не по мешу",
+      "checked": "запас 0.30 м"
+    }
+  ],
+  "dp_feedback": "lock cpu запускает команду как job, вывод не в stdout; task sync при конфликте отменяет слияние, ручное слияние ок.",
+  "t": "2026-10-22T14:49:53",
+  "by": "executor"
+}
