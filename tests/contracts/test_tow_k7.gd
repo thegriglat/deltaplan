@@ -41,7 +41,9 @@ func test_locale_keys() -> void:
 
 func test_refresh_same_place_keeps_choice() -> void:
 	var m: FlightSetupScreen = (load("res://scenes/ui/flight_setup_screen.tscn") as PackedScene).instantiate()
-	(Engine.get_main_loop() as SceneTree).root.add_child(m)
+	# в дерево — под узел раннера (окно root занято, пока раннер в _ready)
+	var tree_root := (Engine.get_main_loop() as SceneTree).root
+	tree_root.get_child(tree_root.get_child_count() - 1).add_child(m)
 	var s := FlightSettings.defaults()
 	s.location_id = "altai"
 	s.site_id = "tugaya_south"

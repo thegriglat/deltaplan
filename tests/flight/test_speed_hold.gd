@@ -31,7 +31,6 @@ func _fly(target: float, t_n: float, eps_deg: float, secs: float) -> Dictionary:
 	if t_n > 0.0:
 		attach_winch(m, t_n, eps_deg)
 	var ap := Autopilot.new()
-	ap.pendulum = true
 	ap.hold_airspeed_ms = target
 	ap.reset()
 	var r := {"err_end": 0.0, "v_min": 1e9, "v_max": -1e9, "shift_max": 0.0, "ok": true}
@@ -76,7 +75,6 @@ func test_on_winch_rope_holds_speed_without_stop() -> void:
 
 func test_autopilot_without_hold_keeps_trim() -> void:
 	var ap := Autopilot.new()
-	ap.pendulum = true
 	var t := Telemetry.new()
 	t.phase = "flying"
 	t.airspeed = 9.0
