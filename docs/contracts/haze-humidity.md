@@ -3,10 +3,10 @@ type: "contract"
 status: "active"
 module: "haze-humidity"
 area: "air"
-updated: "2026-10-21"
-summary: "Стыки haze-humidity: сетки ERA5 (HH1 Td, HH2 700 гПа, HH5 Tmax, HH6 ветер/тропопауза/перистые), HH3 дымка по RH, HH4 свет облаков."
+updated: "2026-10-22"
+summary: "Стыки haze-humidity: сетки ERA5 (HH1 Td, HH2 700 гПа, HH5 Tmax, HH6 ветер/тропопауза/перистые), HH7 чтение, HH3 дымка, HH4 свет."
 related: ["docs/plan/haze-humidity.md", "scripts/atmosphere/weather_model.gd", "configs/weather_model.json"]
-contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 2}, {"id": "HH3", "version": 1}, {"id": "HH4", "version": 1}, {"id": "HH5", "version": 1}, {"id": "HH6", "version": 2}]
+contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 2}, {"id": "HH3", "version": 1}, {"id": "HH4", "version": 1}, {"id": "HH5", "version": 1}, {"id": "HH6", "version": 2}, {"id": "HH7", "version": 1}]
 ---
 
 # Контракты haze-humidity
@@ -271,3 +271,59 @@ Godot — ровно `raw_size`.
 
 **Контрактный тест** (`tests/contracts/test_haze_humidity_contracts.gd`, `test_upper_misc_format`): если файл есть —
 заголовок, размер, `raw_size`, распаковка, диапазоны; нет файла — пропуск (сетку кладёт HH-1f).
+
+## HH7. Климат места в игре: чтение сеток (v1)
+
+Владелец: HH-4 (`scripts/atmosphere/climate_grid.gd`). Потребители: `WeatherModel` (`derive`, `typical_max_c`,
+`diurnal_state`), `Game` (ветер с высотой → `Atmosphere`/`WindModel`), задача сверки с прогнозом, HH-4b. Решения
+пользователя 2026-10-21: все прикидки «одна на все места» → ERA5 по месту и месяцу; эталоны и тесты — под данные.
+
+**Класс:** `class_name ClimateGrid` (`RefCounted`, статический кэш; сетки читаются один раз при первом обращении,
+распаковка brotli — как в контрактном тесте; данные хранятся `PackedByteArray`, чтение `decode_s16`).
+
+**`static func at(lat: float, lon: float, month: int, day: int = 15) -> Dictionary`** — климат ячейки без поправки на
+высоту. Ключи (числа `float`):
+
+| ключ | источник | единицы |
+|---|---|---|
+| `td_c`, `td_sd_k`, `z_cell_m` | HH1 `TD`, `SD`, `Z` | °C, К, м над морем |
+| `t700_c`, `z700_m` | HH2 `T`, `Z` | °C, м над морем |
+| `tx_c`, `dtr_k` | HH5 `TX`, `DTR` | °C, К |
+| `wr`, `trop_m`, `hcc` | HH6 `WR`, `TROP`, `HCC` | —, м над морем, 0..1 |
+| `src` | `{hh1, hh2, hh5, hh6: "data" \| "stub" \| "none"}` (`stub` — HH2 `year0 = 0` или бит HH6 `stub_mask`) | — |
+
+- Пространство — билинейно по центрам 4 соседних ячеек (центр столбца 0 — −179.5°, долгота по кругу; широта зажата
+  в [−89.5, 89.5]). Пропуск HH1 (−32768) — ячейка исключается, веса перенормируются; все 4 пропущены — ближайшая
+  ячейка той же строки с данными.
+- Время — как `WeatherModel.monthly`: значение месяца относится к 15-му числу, между серединами соседних месяцев
+  линейно (декабрь ↔ январь по кругу).
+- Нет файла, неверный заголовок/размер/распаковка — `push_error` один раз на файл, `src.<сетка> = "none"`, ключи этой
+  сетки — из нынешних таблиц `configs/weather_model.json` (`dew_point_c`, σ = `climate.td_sd_fallback_k`,
+  `upper_air.temp_c`/`z_msl_m`, `typical_max_c`, `diurnal.range_k`, `tropopause_msl_m`) и `configs/atmosphere.json →
+  wind.altitude_gain_per_km` (пересчёт в `wr` по формуле заглушки HH6). Заглушки (`stub`) — `print` один раз на сетку.
+
+**`static func place(ctx: Dictionary) -> Dictionary`** — `ctx {lat, lon, month, day, valley_msl_m}`; результат `at()`
+плюс поправки к высоте долины места `dz_km = (valley_msl_m − z_cell_m)/1000`:
+- `td_c += g_td · dz_km`; `g_td` — К/км по поясу и сезону, `configs/weather_model.json → climate.td_gradient_k_per_km`
+  (HH-1, README `tools/research/haze_humidity/dew_point/`: 30–60° — зима −4,5, весна −3,9, лето −3,3, осень −4,2;
+  тропики ±20° — −4,6; прочее — −4,0);
+- `tx_c += g_tx · dz_km`, `dtr_k = max(0, dtr_k + g_dtr · dz_km)`; `g_tx`, `g_dtr` — `climate.tx_gradient_k_per_km`,
+  `climate.dtr_gradient_k_per_km` (HH-1e, `tools/research/haze_humidity/surface_t/gradient.json`);
+- `t700_c`, `z700_m`, `trop_m`, `hcc` — без поправки;
+- `gain_per_km = (wr − 1) · 1000 / max(z700_m − z_cell_m, 500)` — для `wind.altitude_gain_per_km` места.
+Сезон — местный: в южном полушарии месяц сдвигается на 6 (как в HH-1c, полушария слиты по сезонам).
+
+**Точка росы дня** (`WeatherModel.derive`; заменяет `dew_point_c` и `td_follow_heat`, оба ключа удаляются из конфига):
+`td = td_c(place) + μ_sky · td_sd_k + β · (t_max − tx_c(place)) + r · ρ · td_sd_k`, затем `td = min(td, t)`.
+`μ_sky`, `β`, `ρ` (`res_ratio`) — по поясу широты и сезону и облачности дня (`forecast.sky` → `clear|partly|overcast`)
+из `configs/weather_model.json → td_day` (копия таблиц `tools/research/haze_humidity/td_sky/td_sky.json`, источник в
+`_doc`). `r` — детерминированное N(0, 1) от хэша `(month, day, round(lat·100), round(lon·100))` (один и тот же день
+в одном месте — одна и та же Td). `t_max` — температура прогноза.
+
+**Инварианты:** `place()` и `at()` чистые и детерминированные; одно обращение после загрузки ≤ 20 мкс (замер в тесте,
+порог — по факту, не регрессия ×3); в Алтае (51,9° N, 85,9° E), июль, с HH1 `src.hh1 = "data"`, `td_c` совпадает с
+ручным расчётом по сырым байтам ±0,05 К.
+
+**Контрактный тест** (`tests/contracts/test_haze_humidity_contracts.gd`, `test_climate_grid_*`): ключи и типы `at`/`place`;
+билинейность (в центре ячейки — значение ячейки ±1 единица масштаба); долгота ±180 — без разрыва; декабрь↔январь —
+непрерывно; нет файла (подмена пути) → `src = "none"` и значения из конфига; сверка Алтая с сырыми байтами HH1.
