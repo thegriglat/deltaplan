@@ -1,0 +1,72 @@
+{
+  "id": "TP-5",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Меню: выбор старта «Дельталёт»",
+  "goal": "Поле FlightSettings.vehicle и пункт «Дельталёт» в выборе буксировки на местах с буксировкой (выключен в сети), CLI --vehicle=trike, до TP-6 игра стартует дельтапланом с предупреждением; контрактный тест по TP-К5.",
+  "plan_ref": "TP-5",
+  "contracts": [
+    {
+      "name": "TP-К5",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-5",
+  "branch": "trike-pilot/TP-5",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/game/flight_settings.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/game/launch_options.gd",
+    "scripts/game/game.gd",
+    "locale/ui.csv",
+    "tests/contracts/test_trike_pilot_k5.gd",
+    "tests/contracts/test_trike_pilot_k5.gd.uid"
+  ],
+  "dont_touch": [
+    "configs/locations/",
+    "scripts/game/tow_session.gd",
+    "scripts/game/input_controller.gd",
+    "scripts/flight/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot_k5",
+      "tests": "trike_pilot_k5"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "setup_apparatus",
+      "tests": "setup_apparatus"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "start_",
+      "tests": "start_"
+    },
+    {
+      "name": "settings_net_mode",
+      "tests": "settings_net_mode"
+    },
+    {
+      "name": "input_launch",
+      "tests": "input_launch"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/game/flight_settings.gd scripts/ui/flight_setup_screen.gd scripts/game/launch_options.gd scripts/game/game.gd tests/contracts/test_trike_pilot_k5.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T22:49:19"
+}
