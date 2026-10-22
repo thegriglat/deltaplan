@@ -1,0 +1,56 @@
+{
+  "status": "done",
+  "summary": "Группа A: на стадии wind теряется устройство D3D12 (0x887a0005 на буферах любого размера, не OOM); хвост из заявки (buffer_update, uniform_set_create) — следствие: AirGpu.buffer/upload/_uniforms не проверяют пустой RID. В main (1.5.21) не исправлено. Первопричина потери устройства (какое ядро/вызов) не установлена — гипотеза; D3D12 на Linux недоступен, воспроизведена только вторая половина цепочки.",
+  "commits": [
+    "см. git log ветки crash-reports/CR-1: CR-1 диагноз группы A"
+  ],
+  "checks": [
+    {
+      "name": "sections",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "privacy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Первичная причина потери устройства D3D12 не воспроизведена и не локализована (нужна машина с D3D12 на Pascal)",
+    "Аномалия #10 (wind_model off, но буферы решателя создавались) не объяснена"
+  ],
+  "questions": [
+    "Нужен ли пилоту/CR-4 отдельный запуск с --rendering-driver d3d12 под wine для проверки? Ожидаемо не воспроизведёт на RTX"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CR-1",
+  "uncertain": [
+    {
+      "where": "docs/research/crash-reports/cr-1.md, Причина п.1",
+      "why": "потеря устройства — по коду ошибки 0x887a0005, а не по прямому сообщению; источник (ядро ветра или отрисовка) не виден",
+      "checked": "порядок ошибок в 7 отчётах, отсутствие OOM-кода, размеры буферов = сетки решателя"
+    },
+    {
+      "where": "scripts/atmosphere/air_model/air_runtime.gd:175,190",
+      "why": "гипотеза снимка _cfg в _init объясняет аномалию #10 только отчасти",
+      "checked": "чтение кода cd1a8be7, запуск не делался"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения многоточием — полный текст только через inbox; хотелось бы подсказку об этом. Сырые отчёты сохранены в ~/.cache/dp-crash-reports/ (cr4..cr10.json).",
+  "extra": {
+    "issues": "4-10",
+    "version": "1.5.18 (cd1a8be7)",
+    "driver": "d3d12 (fallback: Vulkan VK_KHR_surface not found)",
+    "fixed_in_main": "нет",
+    "failed_buffer_creates_per_report": "83",
+    "error_code": "0x887a0005"
+  },
+  "t": "2026-10-23T03:32:43",
+  "by": "executor"
+}
