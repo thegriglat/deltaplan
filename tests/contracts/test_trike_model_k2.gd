@@ -3,7 +3,7 @@ extends TestCase
 ## Размеры — из tools/blender/trike_params.json (Blender: x вправо, y вперёд, z вверх; Godot = (x, z, −y)).
 
 const DOC := "res://docs/contracts/trike-model.md"
-const VERSION := 2
+const VERSION := 3
 const GLB := "res://assets/models/trike/trike.glb"
 const PARAMS := "res://tools/blender/trike_params.json"
 const BUDGET := {"Trike_LOD0": 4500, "Engine_LOD0": 1500, "Trike_LOD1": 1200, "Trike_LOD2": 250, "Prop_LOD0": 500, "Prop_LOD1": 80}

@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Размеры трайка trike_params.json (TK-K1), модель тележки trike.glb с узлом винта (TK-K2), поза пилота sit в pilot.glb (TK-K3)."
 related: ["docs/plan/trike-model.md", "docs/guide/models.md", "docs/guide/models/pilot.md"]
-contracts: [{"id": "TK-K1", "version": 2}, {"id": "TK-K2", "version": 2}, {"id": "TK-K3", "version": 1}]
+contracts: [{"id": "TK-K1", "version": 3}, {"id": "TK-K2", "version": 3}, {"id": "TK-K3", "version": 1}]
 ---
 
 # Контракты модуля trike-model
@@ -16,13 +16,13 @@ contracts: [{"id": "TK-K1", "version": 2}, {"id": "TK-K2", "version": 2}, {"id":
 (болт на вершине мачты; у пилота — карабин). Контрактные тесты — `tests/contracts/test_trike_model_k<n>.gd`
 (фильтр `trike_model_k<n>`): версия в заголовке раздела; владелец стыка дописывает проверку интерфейса.
 
-## TK-K1. Размеры трайка — tools/blender/trike_params.json (v2)
+## TK-K1. Размеры трайка — tools/blender/trike_params.json (v3)
 
 - Владелец: TK-1 (v2 — TK-7). Потребители: TK-2 (поза), TK-3/TK-8 (модель), TK-4/TK-6 (кадры, проверка посадки). Правка — только
   координатор. v2 (2026-10-22, замечания пользователя по кадрам TK-4): двухлопастный винт с хордой, двигатель по частям, тандем
   с задним сиденьем выше, бак-канистра под задним сиденьем, трубы крепления сидений.
 - Файл JSON, ключи верхнего уровня:
-  - `version`: 2.
+  - `version`: 3.
   - `prototype`: `{"name": str, "seats": 1|2, "sources": [url, …]}` — по чему строится.
   - `dims`: словарь `<ключ>: {"value": число|str, "src": str}`; `src` — url/документ со страницей или «вывод: …» (как получено
     из других чисел/фото). Обязательные ключи (м, если не указано): `length`, `width`, `hang_height` (точка подвески над землёй,
@@ -33,7 +33,8 @@ contracts: [{"id": "TK-K1", "version": 2}, {"id": "TK-K2", "version": 2}, {"id":
     `prop_cw_from_behind` (bool). С v2 ещё: `prop_blades` — 2 или 3 по выбранному двигателю с источником (решение пользователя 2026-10-22: мощный — 3), `prop_chord_max` (наибольшая хорда
     лопасти), `prop_chord_tip` (хорда у законцовки), `prop_hub_d` (диаметр ступицы/кока); двигатель — `engine_cyl_count` (int),
     `engine_cyl_layout` (str: `inline` | `boxer`), `engine_cyl_d` (диаметр рубашки/оребрения цилиндра), `engine_gearbox`
-    (str: тип редуктора, напр. `Rotax B/C/E`), `engine_exhaust_d` (диаметр выхлопной трубы/глушителя); `rear_seat_rise`
+    (str: тип редуктора, напр. `Rotax B/C/E`), `engine_exhaust_d` (v3: наибольший диаметр резонансной трубы), `engine_exhaust_l` (v3: её длина), `muffler_d`,
+    `muffler_l` (v3: глушитель); `rear_seat_rise`
     (подушка заднего сиденья выше передней), `tank_volume_l` (л), `tank_l`, `tank_w`, `tank_h` (габарит бака-канистры); диаметры труб `tube_keel_d`, `tube_mast_d`,
     `tube_strut_d` (передний подкос), `tube_frame_d` (рама сидений и стойки шасси); обороты винта после редуктора
     `prop_rpm_idle` (холостые; дельталёт на стоянке не глушат) и `prop_rpm_max` (полный газ), `prop_spin_period_s` = 1,0
@@ -42,6 +43,8 @@ contracts: [{"id": "TK-K1", "version": 2}, {"id": "TK-K2", "version": 2}, {"id":
     `backrest_angle_deg`, `backrest_size`, `foot_l`, `foot_r` (подножки пассажира); `seat_pan.z` − `seat.seat_pan.z` = `rear_seat_rise`.
   - `tank` (v2): `{"center": [x,y,z], "size": [ширина, длина, высота], "filler": [x,y,z]}` — под задним сиденьем, форма
     канистры: высота ≥ 0,6 ширины, скруглённые рёбра, горловина с крышкой в точке `filler`; объём габарита ≈ `tank_volume_l` (± 15 %).
+    v3 (ответ пользователя на Q1, 2026-10-22): бак меньше (объём — по источникам трайков с Rotax 582) и поднят над килем:
+    `tank.keel_clear` — зазор от низа бака до верха киля, ≥ 0,03 м.
   - `ground_z`: высота земли в осях тележки (= −`hang_height`).
   - `eye_measured`: `{"training": [x,y,z], "apogee": [x,y,z], "how": str}` — замер точки камеры «Сидячая поза» (глаза `PilotHead`
     + `cockpit.back_offset_m`) относительно `HangPoint` в осях пилота, горизонтальный полёт.
@@ -53,7 +56,7 @@ contracts: [{"id": "TK-K1", "version": 2}, {"id": "TK-K2", "version": 2}, {"id":
 - Инварианты: x всех симметричных точек `_l`/`_r` — противоположны (± 1 см); `seat.eye` = `eye_measured.training` (± 1 см);
   у каждого `dims.*` непустой `src`.
 
-## TK-K2. Модель тележки — assets/models/trike/trike.glb (v2)
+## TK-K2. Модель тележки — assets/models/trike/trike.glb (v3)
 
 - Владелец: TK-3 (v2 — TK-8). Потребители: TK-4/TK-6, будущий модуль trike (игра).
 - Сборка: `blender --background --python tools/blender/build_trike.py` (Blender 4.3) читает `tools/blender/trike_params.json`;
@@ -79,6 +82,9 @@ contracts: [{"id": "TK-K1", "version": 2}, {"id": "TK-K2", "version": 2}, {"id":
 - Размеры модели = `dims` (± 2 %): база, колея, диаметры колёс и винта, `hang_height`; сиденье, спинка, подножки и педаль —
   по `seat`; заднее сиденье, его спинка и подножки — по `seat_rear`; бак — по `tank` (v2). Каждое сиденье и спинка соединены
   с рамой трубами крепления (v2).
+- v3 (ответ пользователя на Q1, 2026-10-22): трубы рамы (киль, мачта, передний подкос) — 60 мм (`tube_keel_d`, `tube_mast_d`,
+  `tube_strut_d` = 0,06); пружины амортизаторов — витая спираль (круглая проволока, ≥ 5 витков), не зигзаг; резонансная труба
+  выхлопа и глушитель — крупные, по `engine_exhaust_d/l`, `muffler_d/l`; низ бака выше верха киля на `tank.keel_clear`.
 - Пилот: `pilot.glb` в начале тележки без смещения и поворота, анимация `sit` (TK-K3).
 
 ## TK-K3. Поза пилота sit — assets/models/pilot.glb (v1)

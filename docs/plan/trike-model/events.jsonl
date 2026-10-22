@@ -123,3 +123,5 @@
 {"t": "2026-10-22T05:15:16", "by": "coordinator", "task": "TK-6", "ev": "accepted", "commits": ["301076e2"], "note": "7/7 pilot_shots=ok:5; closeups=ok:3; penetration=ok:1.15; seat_gap=ok:0.58; foot_gap=ok:2.53; docs=ok:exit 0; fresh=ok:0"}
 {"t": "2026-10-22T05:15:17", "by": "coordinator", "task": "TK-6", "ev": "merged"}
 {"t": "2026-10-22T05:15:29", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: task show обрезает длинные дополнения (исполнители просят --full); r-<ID>.json остаётся в копии и валит scope в accept; plan edit --replace по заголовку раздела не находит; accept --dry >120 с без job; первая компиляция ядер Cycles CUDA ~7 мин. Состояние: TK-1,2,3,4,6,7,8,9 приняты и влиты; ждём ответа Q1/Q2 (кадры v2), затем TK-5 (документация)."}
+{"t": "2026-10-22T14:00:42", "by": "coordinator", "task": null, "ev": "plan", "note": "план TK-8. Модель тележки v2 (dp-engineer, sonnet), по…: дописано 10 стр."}
+{"t": "2026-10-22T14:00:42", "by": "coordinator", "task": null, "ev": "plan", "note": "план Волны: дописано 1 стр."}
