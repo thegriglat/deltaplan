@@ -41,11 +41,11 @@ def main():
     sport = json.load(open(os.path.join(ROOT, "configs", "wings", "sport.json")))
     p582, p912 = Prop(R582), Prop(R912)
     m_tug = cart.EMPTY + cart.PILOT + cart.FUEL + 53.0   # тележка + пилот + топливо + iXess 15
-    V = tug["tow_speed_kmh"] / 3.6
+    V = tug["tow"]["tow_speed_kmh"] / 3.6
     mg = 100.0 + sport["wing_mass_kg"]
     roc, T, Dt, ten, gam = solve(p582, wing, m_tug, cda, V, mg, sport)
-    print("climb_ms=%.2f speed_kmh=%.1f thrust_n=%.0f drag_n=%.0f tension_n=%.0f" % (roc, tug["tow_speed_kmh"], T, Dt, ten))
-    out = {"main": dict(climb_ms=roc, speed_kmh=tug["tow_speed_kmh"], thrust_n=T, drag_n=Dt, tension_n=ten, gamma_deg=math.degrees(gam),
+    print("climb_ms=%.2f speed_kmh=%.1f thrust_n=%.0f drag_n=%.0f tension_n=%.0f" % (roc, tug["tow"]["tow_speed_kmh"], T, Dt, ten))
+    out = {"main": dict(climb_ms=roc, speed_kmh=tug["tow"]["tow_speed_kmh"], thrust_n=T, drag_n=Dt, tension_n=ten, gamma_deg=math.degrees(gam),
                         m_tug_kg=m_tug, m_glider_kg=mg, cda_m2=cda)}
     rows = []
     def row(name, prop, mt, mgl, vk):
