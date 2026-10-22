@@ -169,3 +169,5 @@
 {"t": "2026-10-22T14:44:51", "by": "executor", "task": "TK-13", "ev": "reported", "commits": ["see"], "note": "partial: wings.json + wings.md: 3 крыла (Air Creation iXess 15, P&M GT450, Aeros Profi TL) с аппаратами; паспортные размах/площа…", "dp_feedback": "task show обрезает дополнения карточки; нужна --full для полного текста (нашёл не сразу). Проверка wings считает полной запись с src 'не найдено' (GT450 без угла носа)."}
 {"t": "2026-10-22T14:45:08", "by": "coordinator", "task": "TK-13", "ev": "checked", "note": "3/3 docs=ok:exit 0; wings=ok:3; physics=ok:0"}
 {"t": "2026-10-22T14:45:14", "by": "coordinator", "task": "TK-13", "ev": "accepted", "note": "по отчёту; partial: 2 крыла с полным набором (iXess 15, Profi TL), крутка/латты/ЦМ/тяга — н/д"}
+{"t": "2026-10-22T14:45:15", "by": "coordinator", "task": "TK-13", "ev": "accepted", "commits": ["791eebc2"], "note": "3/3 docs=ok:exit 0; wings=ok:3; physics=ok:0"}
+{"t": "2026-10-22T14:45:16", "by": "coordinator", "task": "TK-13", "ev": "merged"}
