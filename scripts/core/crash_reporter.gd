@@ -11,6 +11,8 @@ signal report_sent
 const TOKEN_PATH := "res://data/crash_report_token.txt"
 const API_URL := "https://api.github.com/repos/thegriglat/deltaplan-reports/issues"
 ## Запуски без пилота (проверки, снимки, замеры) метку не ведут.
+## Период «пульса» — записи времени последнего живого кадра в метку, с.
+const PULSE_PERIOD := 2.0
 const SKIP_ARGS := ["--smoke", "--autostart", "--prefetch", "--screenshot", "--perf"]
 
 ## Отчёт отправлен в этом запуске — меню показывает строку.
@@ -21,6 +23,7 @@ var _active := false
 var _token := ""
 var _http: HTTPRequest
 var _test := false
+var _pulse_acc := 0.0
 
 
 func _ready() -> void:
@@ -50,6 +53,8 @@ func _ready() -> void:
 		"started": Time.get_datetime_string_from_system(false, true),
 		"pid": OS.get_process_id(),
 		"stage": "",
+		"stage_at": 0.0,
+		"alive": 0.0,
 		"settings": {"graphics": GraphicsPresets.current()},
 	}
 	_write()
@@ -107,8 +112,34 @@ func note_stage(stage: String) -> void:
 	if _active and _lock.get("stage", "") != stage:
 		_lock["stage"] = stage
 		_lock["vram"] = CrashReport.vram_text()
+		_lock.erase("substage")
+		_lock.erase("substage_at")
+		_lock["stage_at"] = Time.get_ticks_msec() / 1000.0
+		_lock["alive"] = _lock["stage_at"]
 		_lock.merge(CrashReport.stage_snapshot(), true)
 		CrashReport.log_stage_line(stage, _lock)
+		_write()
+
+
+## Подстадия внутри стадии (например, trees/models): строка в лог со сбросом и пометка в метке.
+func note_substage(sub: String) -> void:
+	if _active:
+		_lock["substage"] = sub
+		_lock["substage_at"] = Time.get_ticks_msec() / 1000.0
+		_lock["alive"] = _lock["substage_at"]
+		CrashReport.log_substage(sub, _lock)
+		_write()
+
+
+## Пульс: пока идут кадры, раз в PULSE_PERIOD пишем время в метку. Завис главный поток —
+## пульс остановился, и отчёт покажет, сколько процесс прожил после начала стадии.
+func _process(delta: float) -> void:
+	if not _active:
+		return
+	_pulse_acc += delta
+	if _pulse_acc >= PULSE_PERIOD:
+		_pulse_acc = 0.0
+		_lock["alive"] = Time.get_ticks_msec() / 1000.0
 		_write()
 
 
