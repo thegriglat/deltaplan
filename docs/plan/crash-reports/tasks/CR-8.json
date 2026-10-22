@@ -8,12 +8,12 @@
   "contracts": [
     {
       "name": "CR-К2",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/crash-reports.md"
     },
     {
       "name": "CR-К3",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/crash-reports.md"
     }
   ],
@@ -35,11 +35,17 @@
     "project.godot",
     "tests/game/test_render_driver.gd",
     "tests/game/test_render_driver.gd.uid",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "scripts/core/gpu_loss_logger.gd",
+    "scripts/core/gpu_loss_logger.gd.uid",
+    "tests/core/test_gpu_loss_logger.gd",
+    "tests/core/test_gpu_loss_logger.gd.uid"
   ],
   "dont_touch": [
     "scripts/atmosphere",
-    "scripts/core",
+    "scripts/core/crash_report.gd",
+    "scripts/core/crash_reporter.gd",
+    "scripts/core/gpu_health.gd",
     "tools/build.sh",
     "docs"
   ],
@@ -53,10 +59,15 @@
       "name": "settings",
       "cmd": ".dpcli/dpcli lock cpu cr8-s --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=settings",
       "expect": "tests"
+    },
+    {
+      "name": "logger",
+      "cmd": ".dpcli/dpcli lock cpu cr8-l --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=gpu_loss_logger",
+      "expect": "tests"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T03:45:45",
-  "edited": "2026-10-23T03:49:25"
+  "edited": "2026-10-23T04:18:11"
 }

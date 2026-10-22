@@ -25,6 +25,7 @@ related: ["docs/contracts/crash-reports.md"]
 | B | #11–#15 | 1.5.19 | RTX 5060 Laptop, Windows, Vulkan, graphics high | wind (#11 — objects) | без ошибок; обрыв после `[stage] wind`/`objects`, часто после долгой сессии (повторная загрузка места) |
 | C | #3 | 1.5.15 | RTX 5060 Laptop, Windows, Vulkan, graphics high | trees | повтор `рельеф не загружен: That's the sea` |
 | D | #17 | 1.5.21 | AMD RX 5600 XT, Windows 11, Vulkan (отчёт отправлен с d3d12), graphics low | меню | пусто после строки модели ветра (расчёт ветра выключен) |
+| D | #18 | 1.5.21 | тот же AMD, D3D12, graphics low | полёт, ~84 с | сотни «Can't create buffer … 0x887a0005» при выключенном GPU-ветре — потеря устройства не от AirGpu |
 
 ## 4. Задачи
 ### CR-1 Диагноз группы A (GTX 1050 Ti, D3D12, стадия wind)
