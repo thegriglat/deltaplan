@@ -1,0 +1,86 @@
+{
+  "status": "done",
+  "summary": "Свет окружения облаков (ambient, дымка) следует закату: × horizon_tint и яркость неба из физической таблицы sky_light (0,07 дневной при 2°), вместо дневных констант. Бока облаков при 2° сбоку: G/R 1,00 -> 0,68, B/R 1,13 -> 0,50; днём без изменений. Выравнивание яркости облаков и рельефа и F2 (потолок HDR) не понадобились — см. числа.",
+  "commits": [
+    "517b4022 HH-14: свет окружения облаков следует закату (sky_light, horizon_tint), кадры clouds, замер цвета облаков"
+  ],
+  "checks": [
+    {
+      "name": "cloud",
+      "value": "61/61",
+      "pass": true
+    },
+    {
+      "name": "haze_humidity",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "sun",
+      "value": "21/21",
+      "pass": true
+    },
+    {
+      "name": "warm_2deg",
+      "value": "0.676",
+      "pass": true
+    },
+    {
+      "name": "warm_2deg_b",
+      "value": "0.497",
+      "pass": true
+    },
+    {
+      "name": "day_white",
+      "value": "1.168",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "20",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Свет рельефа (time.light.sun_energy в world.json) не менялся: число показало, что менять не нужно (таблица ниже). Яркость облаков и рельефа не выравнивалась.",
+    "F2 (hue-preserving потолок HDR) не делался: после правки окружения 2° сбоку проходит без него."
+  ],
+  "questions": [
+    "Небо сцены (world.json time.light.sky_energy 0,5 при 2°) в 7 раз ярче физической освещённости неба (0,07): затенённые стороны облаков теперь темнее неба за ними. Нужно ли гасить небо сцены (файл world.json, область HH-11)?"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/haze-humidity/before_clouds_2deg_side.jpg",
+    "/home/greg/deltaplan/build/screenshots/haze-humidity/after_clouds_2deg_side.jpg",
+    "/home/greg/deltaplan/build/screenshots/haze-humidity/after_clouds_2deg_sun.jpg",
+    "/home/greg/deltaplan/build/screenshots/haze-humidity/after_clouds_1deg_sun.jpg",
+    "/home/greg/deltaplan/build/screenshots/haze-humidity/after_clouds_1deg_side.jpg",
+    "/home/greg/deltaplan/build/screenshots/haze-humidity/after_clouds_day.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept HH-14; кадры: .dpcli/dpcli lock gpu hh14 -- tools/shots/haze_humidity_shots.sh <копия> after_ <выход> clouds; замер: python3 tools/shots/cloud_color_measure.py <кадр>",
+  "uncertain": [
+    {
+      "where": "configs/atmosphere.json: clouds.sky_light.k",
+      "why": "таблица яркости рассеянного света неба (0,04/0,07/0,25/0,55/1 при 0/2/8/18/35°) — порядок величины освещённости безоблачным небом по справочным значениям (около 12 клк при 35°, 0,8 клк при 2°), по памяти, без источника в репозитории и без собственного расчёта; точность ±2 раза",
+      "checked": "кадрами: sky_energy мира (0,5) как коэффициент окружения даёт G/R 0,79 B/R 0,72 (не проходит); дополнительный множитель на прямой свет облаков (sunset_exposure=1) делает хуже: G/R 0,88 B/R 1,0 — тёплое теряется на фоне синего окружения"
+    },
+    {
+      "where": "tools/shots/cloud_color_measure.py",
+      "why": "метрика — медиана по 25 % ярких пикселей маски (маска |кадр − кадр без облаков| > 25, нижние 38 % кадра исключены); в яркую четверть попадают и затенённые синеватые стороны, и края с небом; днём B/R > 1 из-за синего неба на краях; кадр без облаков снимается отдельным запуском (полёт автопилота может слегка отличаться)",
+      "checked": "кадры просмотрены глазами: бока золотые, тела тёмно-коричневые"
+    },
+    {
+      "where": "tools/shots/haze_humidity_shots.sh clouds",
+      "why": "ракурс «к солнцу» (рыскание по курсу старта) в кадре 1deg_sun солнце не показал — автопилот летит не по курсу старта; кадры 2deg_sun/1deg_sun — по сути «примерно к солнцу»",
+      "checked": "высота солнца каждого кадра — в README (2,00° и 0,80°)"
+    }
+  ],
+  "dp_feedback": "job wait без вывода при таймауте и расходящиеся часы окружения мешали ожиданию; процесс игры под lock gpu не виден из ps — удобно было бы job log --tail с прогрессом кадров.",
+  "extra": {
+    "brightness_table_haze_k_1.4_valley600_top2800": "высота солнца: [ручной sun_energy рельефа | физика T_G/T_G(35°) в долине | физика на облаке 3200 м R/G/B] 35°: 1,0 | 1,0 | 1,37/1,48/1,68; 18°: 0,88 | 0,65 | 1,32/1,35/1,35; 8°: 0,7 | 0,22 | 1,20/1,08/0,78; 5,7°: ~0,6 | 0,10 | 1,13/0,94/0,55; 2°: 0,45 | 0,002 | 0,87/0,52/0,13; 1°: 0,45 (зажато 2°) | 0,0003 | 0,74/0,35/0,05",
+    "brightness_conclusion": "Облако над дымкой в G при 2° получает 0,52 дневного, рельеф по ручной таблице 0,45 — яркость прямого света согласована в G; в R облако 0,87 против 0,45 (это и есть тёплый оттенок, физика). Физический свет в долине при 2° ничтожен (путь через дымку долины), ручная таблица рельефа физическому не соответствует и ярче его, поэтому причина белизны — не пересвет облаков относительно рельефа, а дневной синий ambient/дымка облаков. Менять sun_energy не потребовалось.",
+    "frame_measures_g_r_b_r": "до: 2deg_sun 0,86/0,85; 2deg_side 1,00/1,13; 1deg_sun 0,85/0,90; 1deg_side 0,89/0,98; day 1,06/1,18. F1 только horizon_tint и sky_energy мира: 0,74/0,64; 0,79/0,72; 0,71/0,74; 0,72/0,74. После (sky_light): 0,66/0,51; 0,68/0,50; 0,66/0,78; 0,61/0,63; day 1,06/1,17",
+    "config_keys": "atmosphere.json clouds.ambient_follows_sunset (true), clouds.sky_light {elevation_deg, k}; false возвращает прежние константы"
+  },
+  "t": "2026-10-23T00:34:09",
+  "by": "executor"
+}
