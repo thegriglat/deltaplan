@@ -65,11 +65,6 @@
       "expect": "num:ratio=([\\d.]+) <=4.0"
     },
     {
-      "name": "frame_size",
-      "cmd": "python3 -c \"from PIL import Image;print(Image.open('/home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg').size)\"",
-      "expect": "re:\\(1920, 1080\\)"
-    },
-    {
       "name": "disk_color",
       "cmd": "python3 tools/shots/sun_color_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
       "expect": "re:within=1"
@@ -83,10 +78,15 @@
       "name": "glow_r",
       "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
       "expect": "num:glow_r_deg=([\\d.]+) <=7"
+    },
+    {
+      "name": "frame_size",
+      "cmd": "identify -format '%wx%h' /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "re:1920x1080"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T20:26:25",
-  "edited": "2026-10-22T22:37:35"
+  "edited": "2026-10-23T01:29:32"
 }
