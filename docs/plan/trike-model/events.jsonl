@@ -186,3 +186,4 @@
 {"t": "2026-10-22T14:50:19", "by": "coordinator", "task": "TK-14", "ev": "merged"}
 {"t": "2026-10-22T14:50:20", "by": "coordinator", "task": "TK-15", "ev": "note", "note": "TK-14 влита: педали pedal_size 0.14×0.34, foot_* — центр подошвы (голеностоп оставлен как в v2 ≈ (±x, 1.112, −2.067)); в build_pilot.py SIT_FOOT_DEG = 80 → привести стопу к плоскости педали 45° (TK-K3 v2). Описание данных — tools/research/trike-model/bar_panel.md.", "addendum": true}
 {"t": "2026-10-22T14:50:20", "by": "coordinator", "task": "TK-11", "ev": "note", "note": "TK-14 влита (v4: педали, bar, panel — tools/research/trike-model/bar_panel.md). Закоммитить своё, .dpcli/dpcli task sync TK-11 и доделать v4 по заметке v4 выше.", "addendum": true}
+{"t": "2026-10-22T14:50:21", "by": "coordinator", "task": "TK-15", "ev": "started"}
