@@ -1,0 +1,62 @@
+{
+  "id": "TP-11",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Ввод дельталёта под ответы Q1, Q2",
+  "goal": "По TP-К3 v2: в режиме trike нет клавишного взгляда (keys_look() false), стрелки у look_* убраны, режим не меняет InputMap, Shift на земле в trike — только тормоз; контрактный тест v2 с проверкой версии.",
+  "plan_ref": "TP-11",
+  "contracts": [
+    {
+      "name": "TP-К3",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-11",
+  "branch": "trike-pilot/TP-11",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/game/input_controller.gd",
+    "configs/controls.json",
+    "configs/ui.json",
+    "locale/ui.csv",
+    "tests/contracts/test_trike_pilot_k3.gd",
+    "tests/game/test_ui_controls_contracts.gd"
+  ],
+  "dont_touch": [
+    "scripts/game/camera_rig.gd",
+    "scripts/game/game.gd",
+    "scripts/core/control_input.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot_k3",
+      "tests": "trike_pilot_k3"
+    },
+    {
+      "name": "input",
+      "tests": "input"
+    },
+    {
+      "name": "ui_controls",
+      "tests": "ui_controls"
+    },
+    {
+      "name": "control_bar",
+      "tests": "control_bar"
+    },
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/game/input_controller.gd tests/contracts/test_trike_pilot_k3.gd tests/game/test_ui_controls_contracts.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T23:55:50"
+}

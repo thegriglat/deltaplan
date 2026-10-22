@@ -1,0 +1,73 @@
+{
+  "id": "TP-12",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Полный бак на старте и шкалы приборов из trike_pilot.json",
+  "goal": "По TP-К1 v2 — на старте полный бак (start_l = tank_l = 53 л); по TP-К4 v2 — шкалы тахометра и бака приборов только из configs/trike_pilot.json, без запасных копий в instruments.json; контрактные тесты k1 и k4 под v2.",
+  "plan_ref": "TP-12",
+  "contracts": [
+    {
+      "name": "TP-К1",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К4",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-12",
+  "branch": "trike-pilot/TP-12",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "configs/trike_pilot.json",
+    "docs/research/trike-pilot/",
+    "configs/instruments.json",
+    "scripts/instruments/gauge_dial.gd",
+    "scripts/instruments/trike_gauges_3d.gd",
+    "scripts/ui/trike_gauges_hud.gd",
+    "tests/contracts/test_trike_pilot_k1.gd",
+    "tests/contracts/test_trike_pilot_k4.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/trike_engine.gd",
+    "scripts/game/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot_k1",
+      "tests": "trike_pilot_k1"
+    },
+    {
+      "name": "trike_pilot_k4",
+      "tests": "trike_pilot_k4"
+    },
+    {
+      "name": "trike_pilot_k2",
+      "tests": "trike_pilot_k2"
+    },
+    {
+      "name": "clock_label",
+      "tests": "clock_label"
+    },
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/instruments/gauge_dial.gd scripts/instruments/trike_gauges_3d.gd scripts/ui/trike_gauges_hud.gd tests/contracts/test_trike_pilot_k1.gd tests/contracts/test_trike_pilot_k4.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1'",
+      "expect": "!re:ОШИБКА.*trike-pilot"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T23:55:55"
+}
