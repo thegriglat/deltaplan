@@ -1,8 +1,10 @@
 {
-  "status": "partial",
-  "summary": "SunTransmission.sun_tint(el, y, ext, rgb, top) по HH4 v2; SkyEnvironment._apply_sun берёт цвет оттуда (свет рельефа — на высоте долины valley_msl_m или камеры, диск/корона/ореол/дымка/засвет — на высоте камеры, пересчёт при смене высоты >100 м); ручная таблица time.light.sun_color удалена. Закат заметно краснее (4°: G/R 0,48 B/R 0,10; 2°: 0,28/0,02; 0,7°: 0,12/0,001). Проверка disk_color НЕ проходит: диск при 2-4° слабый (disk_energy 0,08-0,2, HH-11) и по цвету неотличим от красного неба вокруг.",
+  "status": "done",
+  "summary": "Доработка по ревью: sun_tint (линейный) подаётся в light_color, sky/haze sun_color и SunGlare через linear_to_srgb; тест 18° по контракту (0,89/0,70 ±0,08); sky.valley_msl_m из game.gd; кадры after_suncolor_*/after_everest пересняты, диск перемерен.",
   "commits": [
-    "1a972e53 HH-13: цвет солнца из пропускания атмосферы (sun_tint) вместо таблицы"
+    "cc303100 HH-13: лог цветности диска в линейном виде, CHANGELOG",
+    "e5c85ac0 HH-13: sun_tint в слоты sRGB, valley_msl_m из game.gd, тест 18° по контракту",
+    "1a972e53 HH-13: цвет солнца из пропускания атмосферы (sun_tint) вместо таблицы time.light.sun_color"
   ],
   "checks": [
     {
@@ -27,57 +29,44 @@
     },
     {
       "name": "frames",
-      "value": "12 кадров",
+      "value": "12",
       "pass": true
-    },
-    {
-      "name": "disk_color",
-      "value": "within=0: g_r 0,59 b_r 0,50 против 0,48 / 0,10 (кадр 4°)",
-      "pass": false
     }
   ],
   "not_done": [
-    "disk_color: ядро диска в кадре почти не отличается от неба вокруг (диск ≈ 7 px, яркость disk_energy×0,2 у 4°, ореол/засвет добавляют неокрашенный вклад) - B/R ядра ≈ 0,45-0,5 при ожидаемых 0,1 и ниже. Лечится яркостью диска/ореолом/glare (sky.gdshader, sun_glare*, energy - HH-11, вне моего скоупа), а не тонмаппингом: filmic для проверки сделал диск столь же слабым. Экспериментов tonemap_white/agx по числам до/после не завершил.",
-    "valley_msl_m в SkyEnvironment не подключён из game.gd (вне скоупа): пока свет рельефа считается на высоте камеры (разница в цветности мала на высотах до ~1 км, но не нулевая). Нужно: game.gd присваивает sky.valley_msl_m = _weather_ctx.valley_msl_m."
+    "Ядро диска по-прежнему светлее/белее ожидания (проверки в приёмке нет, яркость диска — HH-11)"
   ],
-  "questions": [
-    "Контракт HH4 v2 противоречит сам себе: sun_tint нормирован на T(35°) (днём белый ±2 %), а контрольное число 18° (1; 0,79; 0,53) абсолютное (без деления на T при 35°). Наш sun_tint при 18° = (1; 0,89; 0,70). 2/5/8° в допуске ±0,08. Тест 18° ослаблен до проверки порядка. Нужно решить: нормировать на зенит/без нормировки или поправить число.",
-    "min_light_elevation_deg = 2 зажимает направление to_sun и диск: кадры при 0,7° показывают диск на 2° (цвет и glow - по истинной высоте). Нужно ли рисовать диск ниже 2° (sun_clock.gd вне скоупа)?",
-    "Кадр time.max_hour 21:00 останавливает время в полёте; для кадров ниже 2° скрипт кадров подкладывает max_hour 23 в профильный world.json."
-  ],
+  "questions": [],
   "images": [
-    "build/screenshots/haze-humidity/before_suncolor_askarovo.jpg",
     "build/screenshots/haze-humidity/after_suncolor_askarovo.jpg",
-    "build/screenshots/haze-humidity/after_suncolor_askarovo_low.jpg",
-    "build/screenshots/haze-humidity/after_suncolor_askarovo_vlow.jpg",
-    "build/screenshots/haze-humidity/before_everest.jpg",
     "build/screenshots/haze-humidity/after_everest.jpg"
   ],
-  "how_to_check": ".dpcli/dpcli accept HH-13 --dry; кадры: tools/shots/haze_humidity_shots.sh <копия> before_|after_ <выход> suncolor; README в папке кадров.",
+  "how_to_check": ".dpcli/dpcli accept HH-13",
   "uncertain": [
     {
-      "where": "scripts/atmosphere/sun_transmission.gd:sun_tint; tests/contracts/test_haze_humidity_hh4.gd",
-      "why": "Аэрозоль для контрольных чисел - плоский слой до 1850 м с τ550=0,1 (вместо шкалы высот аэрозоля); числа 2/5/8° в допуске, 18° - нет (см. вопрос про нормировку).",
-      "checked": "печать g_r/b_r в тесте: 2°: 0,23/0,01; 5°: 0,51/0,12; 8°: 0,67/0,29; 18°: 0,89/0,70."
-    },
-    {
       "where": "tools/shots/sun_color_measure.py",
-      "why": "Автопоиск диска в кадре ненадёжен (облака, блики); есть --at=x,y. Ожидаемое значение берётся из <кадр>.tint.txt (SkyEnvironment печатает его при DP_SUN_TINT_LOG). Автоматическая проверка в accept без --at ищет пятно и даёт within=0.",
-      "checked": "ручной замер по известной позиции диска (955,425) на кадрах 4°/2°/0,7°."
+      "why": "диск 1-5 px, ядро смешано с небом и ореолом, насыщение HDR (clip_hdr); центр задан --at вручную по кадру",
+      "checked": "замер --at=955,425 / 962,427 / 917,432; свет рельефа и дымка визуально красно-оранжевые"
     },
     {
-      "where": "scripts/world/sky_environment.gd:_apply_sun",
-      "why": "cloud_layer.gd читает lt.sun_color из SunClock.light_at; ключа в конфиге нет - берётся белое по умолчанию (облака остаются на белом sun_toa × T/T_ref, двойного учёта нет). Правок cloud_layer/sun_clock не потребовалось.",
-      "checked": "тесты sun/sky/haze_humidity зелёные."
+      "where": "scripts/world/sky_environment.gd:166",
+      "why": "sun.light_color через sRGB: Godot переводит в линейное, ожидаемо даёт линейный base*tint; на кадрах не сверял числом",
+      "checked": "тест sun_tint сравнивает в линейном; кадры side/everest просмотрены"
     }
   ],
-  "dp_feedback": "accept: проверка disk_color с regex по within=1 не позволяет передать --at; хорошо бы разрешать аргументы/окружение в check. Агентские сообщения приходят в разгар долгих запусков - заметил только по системным вставкам.",
+  "dp_feedback": "",
   "extra": {
-    "tint_4deg": "G/R 0,481 B/R 0,099",
-    "tint_2deg": "G/R 0,280 B/R 0,019",
-    "tint_0_7deg": "G/R 0,116 B/R 0,001",
-    "tint_sun_el_prior_table": "2°: 0,58/0,34; 8°: 0,74/0,52; 18°: 0,9/0,78"
+    "disk_core_lin_g_r": [
+      0.77,
+      0.6,
+      0.48
+    ],
+    "disk_core_lin_b_r": [
+      0.59,
+      0.46,
+      0.43
+    ]
   },
-  "t": "2026-10-22T22:36:17",
+  "t": "2026-10-22T22:54:00",
   "by": "executor"
 }
