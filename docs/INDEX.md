@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-21"
+updated: "2026-10-22"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -50,6 +50,7 @@ generated: true
   - [tools/research/spin_recovery/README.md](../tools/research/spin_recovery/README.md) — Стенд штопора SR-К1 (spin_run.gd): вход, выходы release/standard/pull_release, таблица вариантов; SR-2 — база, крутка, sport против laminar.
   - [tools/research/spin_recovery/sr1/README.md](../tools/research/spin_recovery/sr1/README.md) — SR-1: стенд и команды воспроизведения — доходит ли ввод мыши до трапеции в штопоре sport.
 - **trike** — Идея: управляемый дельталёт — тележка вместо пилота на той же подвеске, тяга винта к тележке, колёса, газ; модуль не заведён. [idea 2026-10-21] — [план](plan/trike.md)
+- **roll-modes** — Игроку — только «Маятник»: убрать настройку «Управление креном» и режимы «Смещение веса»/«Простое»; FlightModel (rate) — только боты. [closed 2026-10-22] — [план](plan/roll-modes.md) · [контракты](contracts/roll-modes.md) · [решения](plan/roll-modes/decisions.md) · [сводка](plan/roll-modes/summary.md) · полный журнал: `archive/roll-modes`
 
 ## world
 
@@ -132,11 +133,11 @@ generated: true
 - [docs/guide/flight/ground-bank.md](guide/flight/ground-bank.md) — Крен крыла на земле: уравнение моментов, рука пилота, порог бокового ветра, поворот на бегу, границы модели.
 - [docs/guide/flight/ground-pose.md](guide/flight/ground-pose.md) — Поза крыла на земле: зазор над рельефом, крыло стоя на старте (тангаж, флюгер, касания), старт в сильный ветер.
 - [docs/guide/flight/model.md](guide/flight/model.md) — Модель FlightModel: точечная масса с ориентацией, силы, трапеция, крен, срыв, воздух, земля, выравнивание и посадка; допущения.
-- [docs/guide/flight/pendulum.md](guide/flight/pendulum.md) — Режим «Маятник» (основной, по умолчанию): крыло на 16 полосах, пилот на цепи подвески, руки, земля, срыв, границы.
+- [docs/guide/flight/pendulum.md](guide/flight/pendulum.md) — «Маятник» — физика игрока: крыло на 16 полосах, пилот на цепи подвески, руки, земля, срыв, границы.
 - [docs/guide/flight/polar-table.md](guide/flight/polar-table.md) — Таблица поляры в спокойном воздухе: трапеция, скорость, снижение, качество для учебного, мачтового и безмачтового крыла.
 - [docs/guide/flight/sky-shade.md](guide/flight/sky-shade.md) — Тень от неба под парусом: физика закрытия небосвода, параметры, реализация декалью.
 - [docs/guide/flight/wings.md](guide/flight/wings.md) — Параметры (конфиги крыла, пилота, полёта) и каталог из 48 крыльев по группам и классам ветра.
-- [docs/guide/flight.md](guide/flight.md) — Вход в гайд по полёту: FlightModel и Glider (scripts/flight/), три режима крена, земля и посадка, Маятник; оглавление частей.
+- [docs/guide/flight.md](guide/flight.md) — Вход в гайд по полёту: FlightModel и Glider (scripts/flight/), крен, земля и посадка, Маятник; оглавление частей.
 - [docs/guide/game/bots.md](guide/game/bots.md) — Другие пилоты в небе: очередь на старт, разбег, полёт по вариометру, расхождение, вид и имена; число 0–20 (по умолчанию 4).
 - [docs/guide/game/cameras-input.md](guide/game/cameras-input.md) — Камеры (кабина, сзади, свободная), поведение головы, раскладка клавиш/мыши/геймпада, приборы на трапеции и отладочные слои F1–F6.
 - [docs/guide/game/cli-tests.md](guide/game/cli-tests.md) — Аргументы командной строки главной сцены (кадры, smoke, старт в воздухе, замеры, отладка сети), запуск тестов и проверок.

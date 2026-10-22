@@ -1,6 +1,6 @@
 extends Node
 ## FB-3: диагностика крыла стоя на земле — тангаж (начальный, размах, период за 10 с) и курс,
-## оба режима управления («Смещение веса» — FlightModel + GroundRun, «Маятник» — PendulumModel +
+## оба режима управления (FlightModel + GroundRun (боты), «Маятник» — PendulumModel +
 ## PendulumGround), без ввода и с вводом мыши, штиль / встречный / боковой ветер, ровно и склон.
 ##
 ## Запуск (без окна, ~1 мин):
@@ -93,7 +93,6 @@ func _run(mode: String, w: String, ground: String, wind: String, inp: String) ->
 		m = PS.make(w)
 	m.reset_on_ground(Vector3(0.0, 0.0, 0.0), 0.0)
 	var c := ControlInput.new()
-	c.weight_shift = true
 	var th: PackedFloat64Array = []
 	var n := int(round(T_STAND / DT))
 	var theta0 := NAN

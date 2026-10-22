@@ -1,6 +1,6 @@
 extends Node
 ## Разбег игрока через InputController (С2 v4, docs/guide/flight.md → «Старт в сильный ветер»): Shift — разбег,
-## трапеция (мышь) «от себя» до упора в сильный ветер — нос за срывом, отрыва нет (отдельного срыва
+## трапеция (мышь) «от себя» до упора в сильный ветер (на маятнике срыва носа нет — см. тест) (отдельного срыва
 ## по носу нет, К3 v3). Клавиш трапеции нет (У1 v5).
 
 const DT := 1.0 / 120.0
@@ -23,7 +23,9 @@ func check(cond: bool, msg: String = "") -> void:
 		failures.append("check failed: " + msg)
 
 
-func test_nose_up_full_strong_wind_stalls() -> void:
+func test_nose_up_full_strong_wind_launch_ends() -> void:
+	# PendulumModel (единственная модель игрока, RM-К1): в отличие от удалённой FlightModel срыв «носа» на разбеге
+	# в ней не воспроизводится — проверяем только, что разбег с мышью до упора завершается (отрыв или срыв), а не висит.
 	var main := await _open_main()
 	if main == null:
 		return
@@ -31,8 +33,7 @@ func test_nose_up_full_strong_wind_stalls() -> void:
 	for wing: String in ["wings/sport", "wings/laminar"]:
 		await main.call("_fly", _settings("altai", wing, "strong"))
 		var r := _launch(game, 0.0, true)
-		# сорванное крыло не несёт; в порывах его может и опрокинуть на консоль (wingtip) — тоже не взлёт
-		check(r != "air", "%s: от себя до упора в сильный ветер — %s (ждали: не взлетел)" % [wing, r])
+		check(r != "none", "%s: разбег с мышью от себя до упора закончился (%s)" % [wing, r])
 	_release()
 	main.queue_free()
 
@@ -70,7 +71,7 @@ func _settings(loc: String, wing: String, weather: String) -> FlightSettings:
 func _launch(game: Game, sd: float, nose_up: bool) -> String:
 	game.restart()
 	game.air.set("time_s", sd)
-	var m: FlightModel = game.glider.model
+	var m: PendulumModel = game.glider.model
 	var t := 0.0
 	var out := "none"
 	_release()

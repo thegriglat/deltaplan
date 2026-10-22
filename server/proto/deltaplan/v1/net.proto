@@ -334,8 +334,8 @@ enum ControlMode {
   CONTROL_MODE_UNSPECIFIED = 0;
   // Упрощённый (скорость крена).
   CONTROL_MODE_RATE = 1;
-  // Смещение веса.
-  CONTROL_MODE_WEIGHT_SHIFT = 2;
+  reserved 2;
+  reserved "CONTROL_MODE_WEIGHT_SHIFT";
   // Маятник.
   CONTROL_MODE_PENDULUM = 3;
 }

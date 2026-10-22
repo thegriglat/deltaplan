@@ -61,7 +61,7 @@ class Pilot:
 	var phase: String = "standing"
 	## Сколько прошло с последнего состояния (upsert или set_pose), с.
 	var silent_s: float = 0.0
-	## Режим управления (PD-К4): "RATE" / "WEIGHT_SHIFT" / "PENDULUM"; "" — не пришёл (старый клиент).
+	## Режим управления (PD-К4): "RATE" / "PENDULUM"; "" — не пришёл (старый клиент).
 	var control_mode: String = ""
 	## Положение пилота относительно подвески (оси крыла, м); has_pilot_rel — пришло.
 	var pilot_rel := Vector3.ZERO
@@ -176,7 +176,8 @@ func set_pose(
 func _read_hang(p: Pilot, mode: Variant, rel: Variant) -> void:
 	if mode != null and str(mode) != "":
 		var m := str(mode).trim_prefix("CONTROL_MODE_")
-		p.control_mode = "" if m == "UNSPECIFIED" else m
+		# известны только PENDULUM и RATE (RM-К1); прочее (в т. ч. номер 2) — не передано
+		p.control_mode = m if m == "PENDULUM" or m == "RATE" else ""
 	if rel != null:
 		p.pilot_rel = to_vec3(rel)
 		p.has_pilot_rel = true

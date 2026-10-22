@@ -17,7 +17,7 @@ func check(cond: bool, msg: String = "") -> void:
 
 
 func _glider() -> Glider:
-	var g: Glider = M.make_glider("pendulum", "sport")
+	var g: Glider = M.make_glider("sport")
 	g.set_ground_fn(func(_x: float, _z: float) -> float: return 0.0)
 	g.set_air_fn(func(_p: Vector3) -> Vector3: return _wind)
 	add_child(g)

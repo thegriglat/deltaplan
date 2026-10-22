@@ -2,9 +2,8 @@ class_name InputController
 extends Node
 ## Собирает ControlInput из клавиатуры, мыши и геймпада (FR-30…FR-33).
 ## Крыло (трапеция) — всегда мышь, стик геймпада, самодельная трапеция; клавиатура — пилот (У1 v5): тангажа и
-## крена с клавиатуры нет ни в полёте, ни на земле. Крен — режимы controls.roll_control_mode (rate — ход ручки
-## задаёт скорость крена; weight_shift/pendulum — положение пилота), источник — мышь/стик.
-## X — «в центр»: трапеция в нейтраль и крыло плавно в горизонт. Автопилот (Game.autopilot) пишет
+## крена с клавиатуры нет ни в полёте, ни на земле. Крен — положение пилота («Маятник», RM-К1), источник — мышь/стик.
+## X — «в центр»: трапеция в нейтраль. Автопилот (Game.autopilot) пишет
 ## тангаж и крен в ControlInput напрямую (pitch_command/roll_command).
 ## Мышь — всегда трапеция (и в полёте, и на земле), пока она захвачена (M); не захвачена —
 ## трапецию не двигает, трапеция держит последнее положение мыши. Пока зажата правая кнопка —
@@ -26,16 +25,10 @@ var enabled := true
 ## true — клавиши заняты свободной камерой (WASD двигает её): крыло без рук — трапеция в триме,
 ## на земле стоим.
 var hands_off := false
-## Телеметрия планера для «в центр» (X) в режиме rate: () -> Telemetry.
-## Не задана — берётся у соседнего узла Glider (сцена игры).
-var telemetry_fn: Callable
-## Режим крена: "rate" — как раньше, "weight_shift" — смещение веса, "pendulum" — то же
-## положение пилота, но физика маятника (из controls.json).
-var roll_mode := "pendulum"
 ## Разбег заблокирован (сеть, очередь на старт NET-43: не первый в очереди): Shift не бежит.
 var run_blocked := false
 ## Направление крена (PV1): "bar" — устройство двигает трапецию (вправо = крен влево),
-## "body" — тело (вправо = крен вправо). Только в полёте в weight_shift.
+## "body" — тело (вправо = крен вправо). В полёте и на земле (PV1 v2).
 var roll_input := "body"
 
 var _cfg: Dictionary
@@ -43,7 +36,6 @@ var _mouse_offset := Vector2.ZERO  # накопленное смещение м�
 var _bar_look_held := false  # правая кнопка зажата — мышь крутит голову, не трапецию
 var _center_down := false  # X нажата в прошлом шаге (фронт нажатия, в т.ч. короче шага физики)
 var _centering := false  # «в центр» (X): трапеция в нейтраль, крыло в горизонт
-var _prev_bank := 0.0  # «в центр» в режиме rate: крен прошлого шага, °
 
 
 func _ready() -> void:
@@ -54,9 +46,6 @@ func _ready() -> void:
 func reload_config() -> void:
 	_cfg = Config.get_config("controls")
 	register_actions(_cfg)
-	roll_mode = String(_cfg.get("roll_control_mode", "pendulum"))
-	if roll_mode != "weight_shift" and roll_mode != "rate":
-		roll_mode = "pendulum"  # PMD-К1: неизвестное значение → маятник
 	roll_input = String(_cfg.get("roll_input", "body"))
 
 
@@ -64,15 +53,6 @@ func reload_config() -> void:
 ## (не свободная камера), в полёте. От мыши не зависит; на земле — шаг и поворот.
 func keys_look() -> bool:
 	return enabled and not hands_off and not on_ground
-
-
-## Крен в полёте — смещение веса (иначе — скорость крена, как раньше). Автопилот — всегда rate.
-func weight_shift() -> bool:
-	if roll_mode == "pendulum":
-		return true  # положение пилота (маятник); автопилот задаёт его сам (Autopilot.roll_command)
-	var game := get_parent()
-	var auto := game != null and game.get("autopilot") != null
-	return roll_mode == "weight_shift" and not auto
 
 
 static func register_actions(cfg: Dictionary) -> void:
@@ -134,7 +114,6 @@ func reset() -> void:
 
 ## Вызывать каждый шаг физики.
 func update(dt: float) -> ControlInput:
-	control.weight_shift = weight_shift()
 	if not enabled or hands_off:
 		control.pitch = 0.0
 		control.roll = 0.0
@@ -180,9 +159,9 @@ func _update_air(dt: float) -> void:
 	_update_bar(dt, true)
 
 
-## Знак крена от устройства (PV1): −1 при roll_input = bar, в полёте и на земле при weight_shift (PV1 v2).
+## Знак крена от устройства (PV1): −1 при roll_input = bar, в полёте и на земле (PV1 v2).
 func _roll_sign() -> float:
-	if roll_input == "bar" and control.weight_shift:
+	if roll_input == "bar":
 		return -1.0
 	return 1.0
 
@@ -207,20 +186,6 @@ func _update_bar(dt: float, allow_center: bool) -> void:
 	var m_pitch := -_mouse_offset.y * inv if absf(_mouse_offset.y) > dz else 0.0
 	control.pitch = clampf(m_pitch, -1.0, 1.0)
 	control.roll = clampf(m_roll, -1.0, 1.0)
-	if _centering and not control.weight_shift:
-		control.roll = _level_wing(kb, dt)
-
-
-## «В центр» в режиме rate: ручка крена против крена (с упреждением по скорости крена), пока
-## крыло не выйдет в горизонт. Без телеметрии — просто нейтраль.
-func _level_wing(kb: Dictionary, dt: float) -> float:
-	var t := _telemetry()
-	if t == null:
-		return 0.0
-	var rate := (t.bank_deg - _prev_bank) / dt if dt > 0.0 else 0.0
-	_prev_bank = t.bank_deg
-	var full := maxf(float(kb.center_rate_bank_deg), 1.0)
-	return clampf(-(t.bank_deg + rate * 0.3) / full, -1.0, 1.0)
 
 
 ## «В центр» (X): включается нажатием, держится, пока клавиша зажата, а после — пока
@@ -232,9 +197,6 @@ func _update_centering() -> void:
 	var edge := down and not _center_down
 	_center_down = down
 	if edge or held:
-		if not _centering:
-			var t := _telemetry()
-			_prev_bank = t.bank_deg if t != null else 0.0
 		# PV2: одно нажатие обнуляет накопленное положение мыши по обеим осям
 		_mouse_offset = Vector2.ZERO
 		_centering = true
@@ -244,9 +206,6 @@ func _update_centering() -> void:
 			_centering = false
 			return
 		var settled := absf(control.pitch) < 0.01 and absf(control.roll) < 0.01
-		var t := _telemetry()
-		if not control.weight_shift and t != null:
-			settled = absf(control.pitch) < 0.01 and absf(t.bank_deg) < 1.0  # roll — выравнивание крыла
 		if settled:
 			_centering = false
 
@@ -278,22 +237,13 @@ func apply_stick(raw_roll: float, raw_pitch: float, is_bar := false) -> void:
 	var gy := BarAxis.axis_value(raw_pitch, BarAxis.cal_of(gp, "pitch"), bool(gp.get("invert_pitch", false)), gp)
 	if gx != 0.0 or gy != 0.0:
 		# стик — трапеция и в полёте, и на земле (С2 v3): на земле нос и заданный крен крыла
-		control.roll = gx * _roll_sign()  # ход стика = ручка крена (смещение веса или скорость крена — по режиму)
+		control.roll = gx * _roll_sign()  # ход стика = положение пилота
 		# стик вперёд (ось < 0) = трапеция от себя (pitch +), как у дельтапланериста (У1 v3)
 		control.pitch = -gy * inv
 		# самодельная трапеция (CB-К1 v4, вариант «б»): полный ход устройства — штанга у бёдер, без модификатора;
 		# обычный геймпад — до груди, до бёдер только с pull_full_button
 		if is_bar:
 			control.pull_full = true
-
-
-func _telemetry() -> Telemetry:
-	if not telemetry_fn.is_valid():
-		var g := get_node_or_null("../Glider")
-		if g == null or not g.has_method("get_telemetry"):
-			return null
-		telemetry_fn = g.get_telemetry
-	return telemetry_fn.call() as Telemetry
 
 
 func _strength(action: String) -> float:
