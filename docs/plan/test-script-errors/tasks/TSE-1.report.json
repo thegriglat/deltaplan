@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Раннер ставит OS.add_logger(Logger) и фиксирует ERROR_TYPE_SCRIPT во время теста: такой тест падает (FAIL + сообщение), итог — код 1. Добавлен ключ --file=res://….gd (прогон одного файла вне обычного поиска test_*), фикстура tests/fixtures/script_error/script_error_case.gd и тест test_run_tests_script_error (отдельный процесс: код != 0, «1 упало», «SCRIPT ERROR»).",
+  "commits": [
+    "097d2c56 tests: SCRIPT ERROR во время теста засчитывается падением (Logger), самопроверка на фикстуре"
+  ],
+  "checks": [
+    {
+      "name": "test_run_tests_script_error",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Полный прогон не дошёл до итоговой строки: 1-й раз сегфо (signal 11) в потоке shrub_scatter/terrain.height_at после ~966 ok; 2-й раз завис до таймаута 1500 с на ~981 ok. На базе без моих правок прогон за 580 с тоже не завершился (169 ok, машина нагружена) — причина не установлена, ошибки логгера к ней, по-видимому, не относятся (он только копит строки).",
+    "Тесты, раньше «проходившие» с SCRIPT ERROR, не чинил и известными падениями не помечал."
+  ],
+  "questions": [
+    "Координатору: чинить ли перечисленные ниже тесты отдельными задачами и расследовать ли зависание/сегфо полного прогона (shrub_scatter в потоке после освобождения теста)?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TSE-1",
+  "uncertain": [
+    {
+      "where": "tests/run_tests.gd:ScriptErrorLogger",
+      "why": "Logger вызывается и из других потоков; ошибка скрипта из рабочего потока, пришедшая после конца теста, попадёт в следующий тест (take() перед вызовом чистит буфер, но гонка возможна)",
+      "checked": "Mutex вокруг буфера; фикстура ловится стабильно; ловятся только ERROR_TYPE_SCRIPT, push_error/engine ERROR не считаются"
+    }
+  ],
+  "dp_feedback": "plan test-script-errors: файла docs/plan/test-script-errors.md нет. Полный прогон тестов дольше 10 мин, а job/accept для него нет.",
+  "extra": {
+    "tests_now_failing_by_script_error": [
+      "contracts/test_grass_rocks_contracts.gd::test_g4_mid_nodes_and_no_far_ring (bool-конструктор, :183)",
+      "flight/test_buzz_speed.gd::test_calm_zero, test_frequency_scales_with_speed, test_amplitude_not_scaled, test_phase_continuous (PendulumModel.trim_speed нет)",
+      "flight/test_pilot_look.gd::test_pilot_look (ключ GlovePanel у Dictionary, :34)",
+      "flight/test_roll_weight_shift.gd::test_roll_mode_setting (null.value в control_bar_settings.gd:170)",
+      "flight/test_wing_clearance.gd::test_wing_above_ground_on_launch (присваивание pendulum_model в flight_model; bank_deg у Dictionary)"
+    ],
+    "other_fails_in_full_run_not_checked_whether_script_error": [
+      "test_air_model_atmo::test_config_documented",
+      "test_air_runtime::test_config_without_nn",
+      "test_catch_up_game::test_catch_up_in_main_scene",
+      "test_cockpit::test_bar_center_and_nose_cables_v8"
+    ]
+  },
+  "t": "2026-10-22T14:57:24",
+  "by": "executor"
+}

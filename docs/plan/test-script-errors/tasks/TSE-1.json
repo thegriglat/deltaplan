@@ -1,0 +1,30 @@
+{
+  "id": "TSE-1",
+  "module": "test-script-errors",
+  "type": "dp-engineer",
+  "title": "SCRIPT ERROR = падение теста",
+  "goal": "tests/run_tests.gd засчитывает тест упавшим, если во время его выполнения возникла ошибка скрипта (SCRIPT ERROR, обрыв функции), а итог прогона — ненулевой код; тесты, которые сейчас так «проходят», перечислить в отчёте (полный прогон main), чинить их не нужно — пометить известными падениями только если не чинятся в одну строку.",
+  "plan_ref": "",
+  "contracts": [],
+  "copy": "~/deltaplan-test-script-errors-TSE-1",
+  "branch": "test-script-errors/TSE-1",
+  "base": "feature/test-script-errors",
+  "scope": [
+    "tests/run_tests.gd",
+    "tests/"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "test_run_tests_script_error",
+      "tests": "test_run_tests_script_error"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:00:12",
+  "edited": "2026-10-22T14:00:30"
+}
