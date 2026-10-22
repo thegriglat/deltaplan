@@ -58,6 +58,7 @@ var _steam_join_scheduled := false
 ## Окно отказа видеокарты (CR-К3 v2) и опрос GpuHealth.
 var _gpu_dialog: GpuFailureDialog
 var _gpu_timer: Timer
+var _gpu_offered := false
 
 @onready var game: Game = $Game
 @onready var start_menu: StartMenu = $UI/StartMenu
@@ -77,6 +78,8 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
+	if DisplayServer.get_name() != "headless":
+		GpuLossLogger.install()  # журнал движка: потеря устройства GPU → GpuHealth (CR-К2 v2)
 	if opts == null:  # тесты задают свои
 		opts = LaunchOptions.parse(OS.get_cmdline_user_args())
 	if opts.prefetch_requested:
@@ -145,7 +148,6 @@ func _setup_gpu_failure_watch() -> void:
 	if RenderDriver.should_offer_after_crash(pending):
 		RenderDriver.mark_offered(RenderDriver.crash_key(pending))
 		_show_gpu_failure.call_deferred()
-		return
 	_gpu_timer = Timer.new()
 	_gpu_timer.wait_time = 1.0
 	_gpu_timer.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -158,16 +160,19 @@ func _poll_gpu_failure() -> void:
 	if _gpu_failed():
 		_gpu_timer.stop()
 		_show_gpu_failure()
+	elif _gpu_offered:
+		_gpu_timer.stop()
 
 
 ## Видеокарта отказала в этом сеансе (GpuHealth, CR-К2).
 func _gpu_failed() -> bool:
-	return false
+	return GpuHealth.is_failed()
 
 
 func _show_gpu_failure() -> void:
-	if _gpu_dialog != null:
+	if _gpu_dialog != null or _gpu_offered:
 		return
+	_gpu_offered = true  # окно — один раз за сеанс
 	_gpu_dialog = GpuFailureDialog.new()
 	_gpu_dialog.setup(RenderDriver.current(), RenderDriver.alternative(), user_config_dir)
 	_gpu_dialog.choice_made.connect(

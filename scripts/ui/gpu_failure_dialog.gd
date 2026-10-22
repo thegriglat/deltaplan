@@ -2,12 +2,12 @@ class_name GpuFailureDialog
 extends ConfirmationDialog
 ## Окно «видеокарта перестала отвечать» (CR-К3 v2): после обрыва на стадии wind или отказа GPU.
 ## Варианты по порядку: сменить драйвер и перезапустить (рекомендуется; на Linux пункта нет),
-## упрощённый ветер без GPU, попробовать снова (ничего не меняет). Выбор сохраняется.
+## «Безопасная графика» (GpuSafety), попробовать снова (ничего не меняет). Выбор сохраняется.
 
 signal choice_made(choice: String)
 
 const SWITCH := "switch"
-const SIMPLE_WIND := "simple_wind"
+const SAFE := "safe"
 const RETRY := "retry"
 
 var _driver: String
@@ -31,7 +31,7 @@ func setup(driver: String, alt: String, dir: String = UserSettings.DEFAULT_DIR) 
 	if alt != "":
 		var b := add_button(tr("gpu_fail_switch") % _label(alt), false, SWITCH)
 		b.grab_focus()
-	add_button(tr("gpu_fail_simple_wind"), false, SIMPLE_WIND)
+	add_button(tr("gpu_fail_safe"), false, SAFE)
 	add_button(tr("gpu_fail_retry"), false, RETRY)
 	custom_action.connect(_on_action)
 	canceled.connect(_finish.bind(RETRY))
@@ -62,8 +62,8 @@ func _finish(choice: String) -> void:
 		SWITCH:
 			RenderDriver.save(_alt, _config_dir)
 			RenderDriver.restart(get_tree())
-		SIMPLE_WIND:
-			RenderDriver.set_wind_simple(_config_dir)
+		SAFE:
+			GpuSafety.apply_safe(GpuSafety.CRASH, _config_dir)
 	choice_made.emit(choice)
 	hide()
 	queue_free()

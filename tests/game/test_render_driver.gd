@@ -77,18 +77,6 @@ func test_offered_key_roundtrip() -> void:
 	check(RenderDriver.offered_key(path) == "abc", "запомнили")
 
 
-func test_wind_simple_and_restore() -> void:
-	var dir := _tmp().path_join("configs")
-	check(RenderDriver.set_wind_simple(dir), "set")
-	var path := UserSettings.local_dir(dir).path_join("atmosphere.json")
-	var am: Dictionary = UserSettings.read_json(path).get("air_model", {})
-	check(am.get("enabled") == "off" and am.get("off_reason") == "crash", str(am))
-	check(RenderDriver.restore_wind(dir), "restore")
-	am = UserSettings.read_json(path).get("air_model", {})
-	check(am.get("enabled") == "auto" and not am.has("off_reason"), str(am))
-	Config.reload()
-
-
 func test_dialog_text() -> void:
 	check(GpuFailureDialog.text_for("vulkan", "d3d12").contains("DirectX 12"), "предлагает D3D12")
 	check(not GpuFailureDialog.text_for("vulkan", "").contains("DirectX"), "Linux: без переключения")

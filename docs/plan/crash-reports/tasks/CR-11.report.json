@@ -1,0 +1,78 @@
+{
+  "status": "done",
+  "summary": "Godot 4.7.2 (и master) на D3D12 не вызывает GetDeviceRemovedReason и не включает DRED; 0x887a0005 в логах — состояние, не причина. На Vulkan движок печатает отчёт VK_EXT_device_fault только при потере в vkQueueSubmit и если драйвер поддерживает расширение (на NVIDIA 550 Linux его нет). Сравнено 6 вариантов; рекомендован: GpuLossLogger с классификатором и отдельной строкой [gpu-loss] (CR-К2 v2), затем по согласию пилота — события Windows (Display 4101), GDExtension с DRED (Windows x64, расширение уровня SERVERS успевает до создания устройства) — только если причина останется неясной. Прототип классификатора и проба get_driver_resource/Logger в tools/research/crash-reports/cr-11.",
+  "commits": [
+    "f4ea2eef CR-11: причина потери устройства GPU — исследование вариантов, классификатор, проба"
+  ],
+  "checks": [
+    {
+      "name": "sections",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "privacy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "нет ошибок crash-reports",
+      "pass": true
+    },
+    {
+      "name": "test_classify.gd (headless)",
+      "value": "13 случаев, 0 ошибок",
+      "pass": true
+    },
+    {
+      "name": "probe get_driver_resource на Vulkan",
+      "value": "дескрипторы устройства/очереди ненулевые; класс Logger есть",
+      "pass": true
+    },
+    {
+      "name": "GetDeviceRemovedReason/DRED в drivers/d3d12 4.7.2 и master",
+      "value": "0 вхождений; command_insert_breadcrumb — TODO DRED",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Не проверено на Windows: GetDeviceRemovedReason/DRED, включение DRED из GDExtension, искусственный TDR",
+    "Отчёт VK_EXT_device_fault не воспроизведён (у RTX 4070 SUPER Linux/550 расширения нет); потеря устройства на машине принудительно не вызывалась"
+  ],
+  "questions": [
+    "Делать ли вариант 2 (запрос событий Windows через powershell, только с согласия пилота) отдельной задачей после CR-8?",
+    "Нужна ли проверка GDExtension+DRED на Windows-машине пилота/тестовой (кто даёт машину)?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept CR-11; .dpcli/dpcli lock cpu cr11 --no-tmux -- godot --headless --path tools/research/crash-reports/cr-11 -s test_classify.gd",
+  "uncertain": [
+    {
+      "where": "docs/research/crash-reports/cr-11.md: «Различение по коду»",
+      "why": "Смысл кодов DXGI, DRED, TDR (TdrDelay 2 с, событие Display 4101) взят из документации Microsoft по памяти, не проверен на железе",
+      "checked": "коды HRESULT сверены с текстами ошибок в отчётах; остальное — не проверялось"
+    },
+    {
+      "where": "drivers/vulkan/rendering_device_driver_vulkan.cpp:3266",
+      "why": "Вывод «группа B не теряла устройство в vkQueueSubmit» опирается на отсутствие FATAL/«device was lost» в хвосте логов; журнал мог не дойти до диска",
+      "checked": "grep по всем отчётам B и #3 — совпадений нет"
+    },
+    {
+      "where": "поддержка VK_EXT_device_fault у пилотов",
+      "why": "Проверена только NVIDIA 550 Linux (нет); NVIDIA/AMD Windows не проверены",
+      "checked": "vulkaninfo на этой машине"
+    }
+  ],
+  "dp_feedback": "task show обрезает длинные дополнения карточки (…); полный текст пришлось брать из сообщения запуска. docs check падает на summary > 140 только при проверке — хорошо бы подсказка в docs init.",
+  "extra": {
+    "variants": 6,
+    "godot_tag": "4.7.2-stable",
+    "d3d12_reports": "#4–#10, #18",
+    "hresults_in_logs": [
+      "0x887a0005",
+      "0x80070057",
+      "0x80004005"
+    ]
+  },
+  "t": "2026-10-23T04:29:13",
+  "by": "executor"
+}

@@ -1,7 +1,7 @@
 class_name RenderDriver
 extends RefCounted
 ## Драйвер рендера (CR-К3): текущий, альтернатива по ОС, сохранённый выбор, перезапуск; решение
-## «показать окно после обрыва» (стадия wind или отказ GPU) и пометка «ветер упрощён после обрыва».
+## «показать окно после обрыва» (стадия wind, обрыв на старте/в меню, потеря устройства в логе).
 ## Выбор — game.json → display.rendering_driver (auto | vulkan | d3d12 | metal), машинная настройка.
 ## Движок читает драйвер до старта, поэтому выбор дублируется в файле переопределения проекта
 ## (application/config/project_settings_override → user://render_driver.cfg), для auto файла нет.
@@ -12,6 +12,7 @@ const OVERRIDE_PATH := "user://render_driver.cfg"
 ## Какой обрыв уже предложено разобрать (ключ обрыва): окно — один раз на обрыв.
 const OFFER_PATH := "user://gpu_offer.json"
 const WIND_STAGE := "wind"
+const MENU_STAGE := "меню"
 const ARG := "--rendering-driver"
 
 
@@ -140,12 +141,27 @@ static func crash_key(pending: Dictionary) -> String:
 	return str(String(pending.get("body", "")).hash())
 
 
-## Прошлый сеанс оборвался на стадии wind (по телу ожидающего отчёта: «- стадия: wind»).
-static func pending_is_wind(pending: Dictionary) -> bool:
+## Стадия обрыва по телу ожидающего отчёта («- стадия: wind»); "" — строки нет.
+static func pending_stage(pending: Dictionary) -> String:
 	for line in String(pending.get("body", "")).split("\n"):
 		if line.begins_with("- стадия: "):
-			return line.trim_prefix("- стадия: ").strip_edges() == WIND_STAGE
-	return false
+			return line.trim_prefix("- стадия: ").strip_edges()
+	return ""
+
+
+## Прошлый сеанс оборвался на стадии wind.
+static func pending_is_wind(pending: Dictionary) -> bool:
+	return pending_stage(pending) == WIND_STAGE
+
+
+## Обрыв на старте/в меню: стадия загрузки не успела начаться (в отчёте — «меню»).
+static func pending_is_menu(pending: Dictionary) -> bool:
+	return pending_stage(pending) in ["", MENU_STAGE]
+
+
+## В хвосте лога прошлого сеанса есть признак потери устройства GPU (CR-К2 v2).
+static func pending_has_device_loss(pending: Dictionary) -> bool:
+	return GpuLossLogger.summarize(String(pending.get("body", ""))).lost
 
 
 ## Какой обрыв уже предлагали ("" — никакой).
@@ -160,55 +176,13 @@ static func mark_offered(key: String, path: String = OFFER_PATH) -> void:
 		f.close()
 
 
-## Окно после обрыва на wind нужно: ожидающий отчёт есть, оборван на wind и этот обрыв
-## ещё не предлагали. Отметку не ставит (её ставит показ окна).
+## Окно после обрыва нужно: ожидающий отчёт есть, оборван на wind, на старте/в меню или в хвосте
+## лога потеря устройства, и этот обрыв ещё не предлагали. Отметку не ставит (её ставит показ окна).
 static func should_offer_after_crash(
 	pending: Dictionary, offered: String = offered_key()
 ) -> bool:
-	if pending.is_empty() or not pending_is_wind(pending):
+	if pending.is_empty():
+		return false
+	if not (pending_is_wind(pending) or pending_is_menu(pending) or pending_has_device_loss(pending)):
 		return false
 	return crash_key(pending) != offered
-
-
-# ---- ветер без GPU после обрыва (CR-К3 v2) ----
-
-
-## Упрощённый ветер из-за обрыва: enabled=off + off_reason=crash (машинная настройка).
-static func set_wind_simple(dir: String = UserSettings.DEFAULT_DIR) -> bool:
-	var ok := UserSettings.save_patch(
-		"atmosphere", {"air_model": {"enabled": "off", "off_reason": "crash"}}, dir
-	)
-	Config.reload()
-	return ok
-
-
-## «Вернуть расчёт»: enabled=auto, off_reason удаляется из файла.
-static func restore_wind(dir: String = UserSettings.DEFAULT_DIR) -> bool:
-	var ok := UserSettings.save_patch("atmosphere", {"air_model": {"enabled": "auto"}}, dir)
-	ok = clear_off_reason(dir) and ok
-	Config.reload()
-	return ok
-
-
-## Удалить air_model.off_reason из машинного user-конфига (слияние патчем удалять не умеет).
-static func clear_off_reason(dir: String = UserSettings.DEFAULT_DIR) -> bool:
-	var path := UserSettings.local_dir(dir).path_join("atmosphere.json")
-	var data := UserSettings.read_json(path)
-	var am: Variant = data.get("air_model")
-	if not (am is Dictionary) or not (am as Dictionary).has("off_reason"):
-		return true
-	(am as Dictionary).erase("off_reason")
-	var f := FileAccess.open(path, FileAccess.WRITE)
-	if f == null:
-		return false
-	f.store_string(JSON.stringify(data, "  "))
-	f.close()
-	return true
-
-
-## Ветер упрощён из-за обрыва (для строки в стартовом меню).
-static func wind_off_by_crash() -> bool:
-	return (
-		String(Config.value("atmosphere", "air_model.enabled", "auto")) == "off"
-		and String(Config.value("atmosphere", "air_model.off_reason", "")) == "crash"
-	)

@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "CR-К2",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/crash-reports.md"
     }
   ],
@@ -37,17 +37,17 @@
   "accept": [
     {
       "name": "tests",
-      "cmd": ".dpcli/dpcli lock cpu cr5-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=air_",
+      "cmd": ".dpcli/dpcli lock cpu cr5-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=air_gpu",
       "expect": "tests"
     },
     {
       "name": "gpu",
-      "cmd": ".dpcli/dpcli lock cpu cr5-g --no-tmux -- tools/gpu_tests.sh --filter=air_",
+      "cmd": ".dpcli/dpcli lock cpu cr5-g --no-tmux -- tools/gpu_tests.sh --filter=test_air_gpu_",
       "expect": "tests"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T03:43:09",
-  "edited": "2026-10-23T03:45:02"
+  "edited": "2026-10-23T04:32:57"
 }

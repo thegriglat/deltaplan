@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "AirGpu при пустом RID (buffer, upload, _pipeline, _uniforms) ставит failed, пишет одну строку через GpuHealth.report_failure (CR-К2, новый scripts/core/gpu_health.gd), дальше вызовы холостые; AirGpuJob завершает задачу failed один раз (start/poll/poll_slice), откат на аналитику делает AirRuntime как раньше.",
+  "commits": [
+    "10ba426f AirGpu: пустой RID — отказ задачи и GpuHealth (CR-К2) вместо каскада ошибок"
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "value": "1/1 (air_gpu, пропуск 8)",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "8/9: test_air_gpu_invalid 2/2 ok; test_start_air_gpu::test_start_air_surface_layer FAIL — падает так же на базе feature/crash-reports",
+      "pass": false
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "gpu-проверка с --filter=air_gpu захватывает test_start_air_gpu, падающий на базе независимо от CR-5: принять как известное или сузить фильтр до test_air_gpu_invalid?"
+  ],
+  "how_to_check": "tools/gpu_tests.sh --filter=test_air_gpu_invalid",
+  "uncertain": [
+    {
+      "where": "tests/atmosphere/test_start_air_gpu.gd::test_start_air_surface_layer",
+      "why": "max|θ| за 20 с < 90° не выполняется (164°)",
+      "checked": "тот же FAIL на базе feature/crash-reports (detach), не от моей правки"
+    },
+    {
+      "where": "tests/atmosphere/test_air_hybrid_gpu.gd::test_hybrid_vs_cold",
+      "why": "110 ≤ 100 итераций не выполняется",
+      "checked": "одинаковый FAIL на базе и на ветке CR-5"
+    },
+    {
+      "where": "scripts/atmosphere/air_model/air_gpu.gd",
+      "why": "пустой RID моделируется буфером размера 0; реальную потерю устройства D3D12 не воспроизвести; отказ sync/submit признака не имеет (API Godot ничего не возвращает)",
+      "checked": "тест на RTX 4070 SUPER"
+    }
+  ],
+  "dp_feedback": "Фильтр-подстрока в карточке может цеплять чужие тесты (air_gpu → test_start_air_gpu); удобно видеть в accept --dry список подпавших файлов.",
+  "t": "2026-10-23T04:29:34",
+  "by": "executor"
+}

@@ -1,0 +1,61 @@
+{
+  "id": "CR-12",
+  "module": "crash-reports",
+  "type": "dp-engineer",
+  "title": "Рубильники GPU-нагрузки в настройках: тени солнца, простые облака, расчёт ветра, тяжёлые эффекты",
+  "goal": "В меню настроек (графика) — переключатели по CR-К4: тени солнца, простые облака (без compute), расчёт ветра на видеокарте и по одному на другие тяжёлые GPU-эффекты (кандидаты из CR-10), с понятными подписями; сохраняются в машинных настройках и применяются рендером. Вместо ключа --safe-gpu (решение пользователя 2026-10-23 04:30).",
+  "plan_ref": "§4 CR-12",
+  "contracts": [
+    {
+      "name": "CR-К4",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    }
+  ],
+  "copy": "~/deltaplan-crash-reports-CR-12",
+  "branch": "crash-reports/CR-12",
+  "base": "feature/crash-reports",
+  "scope": [
+    "scripts/ui/settings_panel.gd",
+    "scripts/world",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_shadows.gd",
+    "scripts/vegetation",
+    "scripts/terrain/terrain_renderer.gd",
+    "scripts/game/graphics_presets.gd",
+    "configs/game.json",
+    "locale/ui.csv",
+    "tests/game/test_gpu_toggles.gd",
+    "tests/game/test_gpu_toggles.gd.uid",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model",
+    "scripts/core",
+    "scripts/game/render_driver.gd",
+    "scripts/game/gpu_safety.gd",
+    "scripts/ui/gpu_failure_dialog.gd",
+    "scripts/ui/start_menu.gd",
+    "scripts/game/launch_options.gd",
+    "tools",
+    "project.godot",
+    "docs",
+    "scripts/atmosphere/cloud_compositor_effect.gd"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": ".dpcli/dpcli lock cpu cr12-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=gpu_toggles",
+      "expect": "tests"
+    },
+    {
+      "name": "settings",
+      "cmd": ".dpcli/dpcli lock cpu cr12-s --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=settings",
+      "expect": "tests"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:29:25",
+  "edited": "2026-10-23T04:35:27"
+}

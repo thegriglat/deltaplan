@@ -24,6 +24,8 @@ related: ["docs/contracts/crash-reports.md"]
 | A | #4–#10 | 1.5.18 | GTX 1050 Ti, Windows, D3D12 (API 12_0), graphics low | wind | ошибки RenderingDevice: невалидный буфер в `buffer_update`, пустой storage buffer в `uniform_set_create` |
 | B | #11–#15 | 1.5.19 | RTX 5060 Laptop, Windows, Vulkan, graphics high | wind (#11 — objects) | без ошибок; обрыв после `[stage] wind`/`objects`, часто после долгой сессии (повторная загрузка места) |
 | C | #3 | 1.5.15 | RTX 5060 Laptop, Windows, Vulkan, graphics high | trees | повтор `рельеф не загружен: That's the sea` |
+| D | #17 | 1.5.21 | AMD RX 5600 XT, Windows 11, Vulkan (отчёт отправлен с d3d12), graphics low | меню | пусто после строки модели ветра (расчёт ветра выключен) |
+| D | #18 | 1.5.21 | тот же AMD, D3D12, graphics low | полёт, ~84 с | сотни «Can't create buffer … 0x887a0005» при выключенном GPU-ветре — потеря устройства не от AirGpu |
 
 ## 4. Задачи
 ### CR-1 Диагноз группы A (GTX 1050 Ti, D3D12, стадия wind)
@@ -48,6 +50,11 @@ related: ["docs/contracts/crash-reports.md"]
 ### CR-9 Манифест itch: действия запуска с выбором драйвера (решение 2026-10-23; публикация — только по команде)
 ### CR-4 Гипотеза драйвера рендера Windows
 Исполнитель `dp-researcher`. Решение пользователя 2026-10-23: проверить связь вылетов с Vulkan/D3D12, драйвер Godot 4.7 по умолчанию и откат; варианты — d3d12 по умолчанию, откат, `.itch.toml` с двумя действиями запуска. Публикация в itch — только по команде пользователя. Документ `docs/research/crash-reports/cr-4.md`.
+### CR-10 Диагноз группы D: AMD RX 5600 XT, Win 11, Vulkan, меню (#17)
+Исполнитель `dp-researcher`. Решение пользователя 2026-10-23: компьютер пилота из семьи автора, уточнения — через главную. Документ `docs/research/crash-reports/cr-10.md`.
+### CR-11 Причина потери устройства в отчёте (GetDeviceRemovedReason/DRED, VK_EXT_device_fault) — исследование вариантов (решение 2026-10-23 по #18)
+### CR-12 Рубильники GPU-нагрузки в настройках (CR-К4; решение 2026-10-23 04:30 — вместо ключа --safe-gpu)
+### CR-13 Отчёт сам собирает диагностику: TDR-события Windows (wevtutil), логи, драйвер, оверлеи, рубильники CR-К4, стадии старта/облаков (решение 2026-10-23 04:29; Q4 — вариант 2 автоматически)
 
 ## 5. Волны
 1. CR-1, CR-2, CR-3 параллельно.

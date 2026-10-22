@@ -503,7 +503,6 @@ func save() -> bool:
 	ok = UserSettings.save_patch("vegetation", gp, config_dir) and ok
 	ok = UserSettings.save_patch("world", {"fog": {"sun_scatter": _haze_sun.value}}, config_dir) and ok
 	# модель ветра: «расчёт» = auto (как по умолчанию), «упрощённый» = off; со следующей загрузки места
-	var wind_before := String(Config.value("atmosphere", "air_model.enabled", "auto"))
 	var wp := {
 		"air_model":
 		{
@@ -512,8 +511,6 @@ func save() -> bool:
 		"air_cache": {"max_mb": int(_air_cache.value)},
 	}
 	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
-	if wind_before != wp.air_model.enabled:
-		ok = RenderDriver.clear_off_reason(config_dir) and ok  # ручной выбор — не «после обрыва»
 	if _driver != null and _driver.selected >= 0:
 		var drv := _driver_opts[_driver.selected]
 		if drv != RenderDriver.configured():
