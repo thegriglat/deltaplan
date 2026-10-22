@@ -751,6 +751,7 @@ func _update_buzz(flying: bool, dt: float) -> void:
 
 ## Множитель частот тряски r_f = V / V_трим в пределах buzz.freq_ratio_range (частота встречи с
 ## порывами ∝ V: порывы заморожены в пространстве, SPF-К1). Нет модели или V_трим ≤ 0 → 1.
+## V_трим — при эталонной массе и плотности (wing.trim_speed_kmh), без поправки на текущие.
 func _buzz_freq_ratio(b: Dictionary) -> float:
 	var g := get_parent() as Glider
 	if g == null or g.model == null or not g.model.wing.has("trim_speed_kmh"):

@@ -41,7 +41,7 @@ func test_locale_keys() -> void:
 
 func test_refresh_same_place_keeps_choice() -> void:
 	var m: FlightSetupScreen = (load("res://scenes/ui/flight_setup_screen.tscn") as PackedScene).instantiate()
-	# в дерево — под узел раннера (окно root занято, пока раннер в _ready)
+	# в дерево — под узел раннера (окно root занято, пока раннер в _ready); допущение: раннер — последний узел root
 	var tree_root := (Engine.get_main_loop() as SceneTree).root
 	tree_root.get_child(tree_root.get_child_count() - 1).add_child(m)
 	var s := FlightSettings.defaults()
