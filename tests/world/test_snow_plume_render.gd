@@ -1,5 +1,5 @@
 extends TestCase
-## SnowPlumeRender (SNW-3, контракт SNW-К3): пул, переназначение по id, AABB, плотность, uniforms.
+## SnowPlumeRender (SNW-3/SNW-7, контракт SNW-К3 v3): пул, переназначение по id, AABB, плотность, uniforms струек.
 
 const RENDER := preload("res://scripts/world/snow_plume/snow_plume_render.gd")
 
@@ -8,11 +8,12 @@ func _em(id: int, x: float, inten: float = 0.75, n: int = 6) -> Dictionary:
 	var path := PackedVector3Array()
 	var vel := PackedVector3Array()
 	for i in n:
-		path.append(Vector3(x + 120.0 * i, 3500.0 - 10.0 * i, 5.0 * i))
+		path.append(Vector3(x + 15.0 * i, 3499.0 - 1.0 * i, 0.5 * i))
 		vel.append(Vector3(15.0, -1.2, 0.6))
 	return {
 		"id": id, "pos": Vector3(x, 3498.0, 0.0), "dir": Vector3(1.0, 0.0, 0.0), "u10": 15.0, "u_t": 9.0,
-		"intensity": inten, "snow": 1.0, "width_m": 150.0, "path": path, "vel": vel, "path_dt": 8.0,
+		"intensity": inten, "snow": 1.0, "width_m": 40.0, "path": path, "vel": vel, "path_dt": 1.0,
+		"surf": PackedVector3Array([Vector3(x, 3498.0, -20.0), Vector3(x, 3498.0, 20.0), Vector3(x - 30.0, 3480.0, 0.0)]),
 	}
 
 
@@ -36,13 +37,15 @@ func test_same_id_same_node_no_restart() -> void:
 	r.free()
 
 
-func test_aabb_contains_path() -> void:
+func test_aabb_contains_path_and_surf() -> void:
 	var r: Node3D = RENDER.new()
 	var e := _em(1, 0.0)
 	r.set_emitters([e])
 	var p := _slot(r, e["pos"])
 	for pt: Vector3 in e["path"]:
 		check(p.visibility_aabb.has_point(pt - e["pos"]), "точка path внутри visibility_aabb")
+	for pt: Vector3 in e["surf"]:
+		check(p.visibility_aabb.has_point(pt - e["pos"]), "точка surf внутри visibility_aabb")
 	r.free()
 
 
@@ -58,18 +61,34 @@ func test_amount_ratio_proportional() -> void:
 
 
 func test_uniforms() -> void:
-	var r: Node3D = RENDER.new()
+	var r: Node3D = RENDER.new({"life_s": 2.0, "streak_len_m": 3.5, "layer_h_m": 2.0})
 	var e := _em(1, 0.0, 0.5, 5)
 	r.set_emitters([e])
-	var m := _slot(r, e["pos"]).process_material as ShaderMaterial
+	var p := _slot(r, e["pos"])
+	var m := p.process_material as ShaderMaterial
 	check(int(m.get_shader_parameter(&"path_n")) == 5, "path_n")
-	var pa: PackedVector3Array = m.get_shader_parameter(&"path")
 	var va: PackedVector3Array = m.get_shader_parameter(&"vel")
-	check(pa.size() == 8 and va.size() == 8, "массивы по 8")
-	check(pa[3] == (e["path"] as PackedVector3Array)[3] and va[2] == (e["vel"] as PackedVector3Array)[2], "значения")
-	check(pa[7] == (e["path"] as PackedVector3Array)[4], "хвост добит последней точкой")
-	approx(float(m.get_shader_parameter(&"path_dt")), 8.0, 1e-4, "path_dt")
-	approx(_slot(r, e["pos"]).lifetime, 32.0, 1e-3, "lifetime = path_dt·(n−1)")
+	var sa: PackedVector3Array = m.get_shader_parameter(&"surf")
+	check(va.size() == 8 and sa.size() == 8, "массивы по 8")
+	check(va[2] == (e["vel"] as PackedVector3Array)[2], "vel")
+	check(va[7] == (e["vel"] as PackedVector3Array)[4], "хвост vel добит последней точкой")
+	check(int(m.get_shader_parameter(&"surf_n")) == 3, "surf_n")
+	check(sa[1] == (e["surf"] as PackedVector3Array)[1] and sa[7] == (e["surf"] as PackedVector3Array)[2], "surf, хвост добит")
+	approx(float(m.get_shader_parameter(&"path_dt")), 1.0, 1e-4, "path_dt")
+	approx(float(m.get_shader_parameter(&"streak_len_m")), 3.5, 1e-4, "streak_len_m")
+	approx(float(m.get_shader_parameter(&"layer_h_m")), 2.0, 1e-4, "layer_h_m")
+	approx(p.lifetime, 2.0, 1e-3, "lifetime = life_s")
+	check(p.amount == 48, "particles_per_emitter по умолчанию 48")
+	r.free()
+
+
+func test_no_surf_falls_back_to_pos() -> void:
+	var r: Node3D = RENDER.new()
+	var e := _em(1, 0.0)
+	e.erase("surf")
+	r.set_emitters([e])
+	var m := _slot(r, e["pos"]).process_material as ShaderMaterial
+	check(int(m.get_shader_parameter(&"surf_n")) == 1, "без surf — одна точка pos")
 	r.free()
 
 
@@ -88,4 +107,4 @@ func test_short_path_does_not_break() -> void:
 
 
 func test_shaders_load() -> void:
-	check(RENDER.PARTICLES_SHADER is Shader and RENDER.FLAKE_SHADER is Shader, "шейдеры загружены")
+	check(RENDER.PARTICLES_SHADER is Shader and RENDER.STREAK_SHADER is Shader, "шейдеры загружены")

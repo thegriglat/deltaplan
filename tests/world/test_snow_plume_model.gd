@@ -12,7 +12,7 @@ func _cfg() -> Dictionary:
 	return {
 		"radius_m": 3000.0, "max_emitters": 6, "update_s": 0.5, "max_wind_samples": 80,
 		"scan_step_m": 50.0, "scan_points_per_frame": 500, "rescan_m": 1000.0, "rescan_dir_deg": 10.0,
-		"fetch_m": 200.0, "lee_slope_deg": 15.0, "spacing_m": 150.0, "snow_min": 0.5,
+		"fetch_m": 200.0, "lee_slope_deg": 15.0, "spacing_m": 150.0, "surf_upwind_m": 30.0, "snow_min": 0.5,
 		"start_agl_m": 2.0, "min_agl_m": 3.0, "path_points": 6, "path_dt_s": 8.0, "span_ms": 8.0,
 		"threshold": {"a": 9.0, "b": 0.0, "c": 0.0, "wet_t_c": 0.0, "wet_u10_ms": 12.0},
 	}
@@ -92,6 +92,39 @@ func test_old_list_until_new_scan_done() -> void:
 	var during := m.update(moved, 0.6)
 	check(m.scan_count() == 2, "скан начат")
 	check(not during.is_empty(), "пока скан не готов, отдаётся прежний набор")
+
+
+func test_surf_points() -> void:
+	var m := _model(_ridge, _const_wind(Vector3(15, 0, 0)))
+	var list := _run(m, CAM, 600)
+	check(not list.is_empty(), "источники есть")
+	for e: Dictionary in list:
+		var surf: PackedVector3Array = e.surf
+		check(surf.size() == 5, "surf: 3 вдоль гребня + 2 на наветренном склоне")
+		var p: Vector3 = e.pos
+		# ветер вдоль +X: поперёк — Z; наветренный склон — меньше X
+		approx(surf[0].z - p.z, -75.0, 1e-3, "−width/2 поперёк")
+		approx(surf[2].z - p.z, 75.0, 1e-3, "+width/2 поперёк")
+		approx(surf[1].x, p.x, 1e-3, "центр на гребне")
+		approx(surf[3].x - p.x, -15.0, 1e-3, "склон на upwind/2 против ветра")
+		approx(surf[4].x - p.x, -30.0, 1e-3, "склон на upwind против ветра")
+		for s in surf:
+			approx(s.y, _ridge(s.x, s.z), 0.01, "surf на рельефе")
+
+
+func test_scan_not_restarted_by_drift() -> void:
+	## SNW-5: пустой список при scan_count 3–4 — скан в работе сбрасывался дрейфом ветра. Теперь не сбрасывается.
+	var wind := {"v": Vector3(15, 0, 0)}
+	var m := _model(_ridge, func(_p: Vector3) -> Vector3: return wind.v)
+	var out: Array = []
+	var a := 0.0
+	for i in 600:
+		a += 0.1  # ветер уходит на 0,1° за кадр: > 10° за время скана
+		wind.v = Vector3(15.0 * cos(deg_to_rad(a)), 0.0, 15.0 * sin(deg_to_rad(a)))
+		out = m.update(CAM, 1.0 / 60.0)
+		if m.scan_count() == 1 and not out.is_empty():
+			break
+	check(m.scan_count() == 1 and not out.is_empty(), "первый скан дошёл до конца, scan_count=%d" % m.scan_count())
 
 
 func test_wind_along_ridge() -> void:
