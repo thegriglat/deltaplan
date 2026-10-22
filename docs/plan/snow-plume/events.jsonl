@@ -129,3 +129,5 @@
 {"t": "2026-10-23T04:44:23", "by": "executor", "task": "SNW-10", "ev": "reported", "commits": ["7b135b32"], "note": "done: Удалены scripts/world/snow_plume/snow_plume_flake.gdshader и его .uid; из docs/guide/terrain/snow-plume.md убрано предл…", "dp_feedback": "docs check: 2 ошибки в docs/plan/test-script-errors/ (related → нет файла docs/plan/test-script-errors.md) — не связаны с SNW-10, не трогал."}
 {"t": "2026-10-23T04:44:29", "by": "coordinator", "task": "SNW-10", "ev": "accepted", "note": "2/2 gone=ok:0; no_refs=ok:0"}
 {"t": "2026-10-23T04:44:42", "by": "coordinator", "task": "SNW-10", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T04:44:43", "by": "coordinator", "task": "SNW-10", "ev": "accepted", "commits": ["599927b1"], "note": "2/2 gone=ok:0; no_refs=ok:0"}
+{"t": "2026-10-23T04:44:43", "by": "coordinator", "task": "SNW-10", "ev": "merged"}
