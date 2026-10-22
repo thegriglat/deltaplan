@@ -49,3 +49,7 @@
 {"t": "2026-10-22T23:45:14", "by": "executor", "task": "TP-1", "ev": "reported", "commits": ["TP-1:"], "note": "done: configs/trike_pilot.json (TP-К1 v1) с _doc у каждого числа, расчёт docs/research/trike-pilot/engine-ops.md, контрактный…", "dp_feedback": "accept --dry печатает только 'Завершено' без итога PASS/FAIL (и под rtk, и с --here --no-tmux завис до таймаута); тест пришлось гонять godot напрямую."}
 {"t": "2026-10-22T23:45:27", "by": "coordinator", "task": "TP-1", "ev": "checked", "note": "2/2 trike_pilot_k1=ok:2/2; docs=ok:exit 1"}
 {"t": "2026-10-22T23:45:35", "by": "coordinator", "task": "TP-1", "ev": "accepted", "note": "по отчёту; start_l 40 л — до ответа Q3"}
+{"t": "2026-10-22T23:47:31", "by": "coordinator", "task": "TP-5", "ev": "checked", "commits": ["81a06c65"], "note": "7/8 trike_pilot_k5=ok:3/3; menu_setup=ok:12/12; setup_apparatus=ok:1/1; tow=ok:75/75; start_=FAIL:91/93 (пропуск 5); FAIL test_…; settings_net_mode=ok:1/1; input_launch=ok:1/1; gd=ok:exit 0"}
+{"t": "2026-10-22T23:48:43", "by": "coordinator", "task": "TP-5", "ev": "merged", "note": "accept --here 7/8: start_ — 2 базовых падения"}
+{"t": "2026-10-22T23:48:47", "by": "coordinator", "task": "TP-1", "ev": "accepted", "commits": ["50b55f80"], "note": "2/2 trike_pilot_k1=ok:2/2; docs=ok:exit 1"}
+{"t": "2026-10-22T23:48:47", "by": "coordinator", "task": "TP-1", "ev": "merged"}
