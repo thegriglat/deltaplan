@@ -1,0 +1,61 @@
+{
+  "status": "partial",
+  "summary": "wilotree_park в test_e2e проходит: старт со статической лебёдки (автопилот жмёт W+Shift), отрыв за ~4-6 с, посадка landed. Загрузка места — 2010-2084 кадров (~21 с) против лимита 1200: поставлен лимит 4000 кадров для этого места (замер). accept --dry: test_e2e падает на volcano_island (takeoff_failed short_flight), это есть и до моих правок.",
+  "commits": [
+    "ee3304ce tow: TW-8d — e2e для Wilotree Park: старт с лебёдки, лимит загрузки по месту с замером"
+  ],
+  "checks": [
+    {
+      "name": "test_e2e wilotree_park (DP_E2E_LOCATION=wilotree_park)",
+      "value": "0 упало; загрузка 2010-2084 кадров, отрыв 4.6-6.5 с, посадка landed",
+      "pass": true
+    },
+    {
+      "name": "test_pendulum_autopilot",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "test_input_launch",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "test_speed_hold",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "test_e2e целиком",
+      "value": "падает: volcano_island kind == takeoff_failed (short_flight); без моих правок падает так же (+ wilotree_park по загрузке)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "test_e2e целиком не зелёный из-за volcano_island (вне скоупа: крыло взлетает, но полёт короче порога short_flight, 1.3-2.9 с в воздухе). Воспроизводится и на базе feature/tow без моих правок."
+  ],
+  "questions": [
+    "Кто чинит volcano_island в test_e2e (takeoff_failed short_flight)? Это не буксировка: место без tow, автопилот в обычном режиме."
+  ],
+  "how_to_check": "DP_E2E_LOCATION=wilotree_park godot --headless --path . res://tests/run_tests.tscn -- --filter=test_e2e (DP_E2E_TRACE=1 печатает трассу разбега раз в 0,5 с)",
+  "uncertain": [
+    {
+      "where": "tests/game/test_e2e.gd: MAX_LOAD_FRAMES_BY_LOCATION",
+      "why": "Ускорить загрузку настройками места нельзя: время съедает план домов (199 436 домов, ~6,7 с в потоке) по world_objects.json -> villages и данным BuiltPatches, вне скоупа; кадров в headless ~100/с при ожидании потока, число зависит от машины",
+      "checked": "три прогона: 2010, 2084 кадра (~21 с); лимит 4000 — двойной запас"
+    },
+    {
+      "where": "scripts/game/autopilot.gd: tow_start",
+      "why": "Одним W (без Shift) пилот остаётся в фазе walking на 3-5 м/с и отрыва нет; с W+Shift (run) бежит и взлетает. Отцеп автопилот не жмёт: тест держит курс 60 с на тросе, потом reset_in_air и посадка - достаточно для e2e, но трос не отцепляется",
+      "checked": "трасса: отрыв ~6.5 с, tow ground->climb, высота 50 м к 25 с"
+    }
+  ],
+  "dp_feedback": "job wait без ограничения 10 минут удобен; у task sync отказ при грязной копии - лучше предупреждать. Фоновые run_in_background с job wait дублируют уведомления.",
+  "t": "2026-10-22T06:24:46",
+  "by": "executor"
+}

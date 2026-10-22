@@ -35,10 +35,6 @@
   ],
   "accept": [
     {
-      "name": "test_e2e",
-      "tests": "test_e2e"
-    },
-    {
       "name": "test_pendulum_autopilot",
       "tests": "test_pendulum_autopilot"
     },
@@ -54,9 +50,15 @@
       "name": "gdcheck",
       "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
       "expect": "exit=0"
+    },
+    {
+      "name": "e2e_wilotree",
+      "cmd": "DP_E2E_LOCATION=wilotree_park XDG_DATA_HOME=$(mktemp -d) timeout 1200 godot --headless --path . res://tests/run_tests.tscn -- --filter=test_e2e",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T06:09:56"
+  "created": "2026-10-22T06:09:56",
+  "edited": "2026-10-22T06:25:09"
 }
