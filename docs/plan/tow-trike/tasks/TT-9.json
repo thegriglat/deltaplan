@@ -54,7 +54,8 @@
     "tests/contracts/test_trike_model_k1.gd",
     "tests/contracts/test_trike_model_k2.gd",
     "tests/contracts/test_tow_trike_k2.gd",
-    "tools/research/tow-trike/check_trapeze.py"
+    "tools/research/tow-trike/check_trapeze.py",
+    "tests/flight/test_wing_clearance.gd"
   ],
   "dont_touch": [
     "scripts/",
@@ -96,5 +97,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T19:56:27"
+  "created": "2026-10-22T19:56:27",
+  "edited": "2026-10-22T20:24:29"
 }
