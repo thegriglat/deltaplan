@@ -91,6 +91,25 @@ static func sun_factor(
 	)
 
 
+## Цветность прямого солнца в точке (контракт HH4 v2): c = T(el, y) / T(ref_el, y) по каналам,
+## делённое на R — (1, G/R, B/R); днём (el ≥ ref_el) — белый. Аэрозоль — как в таблице (дымка места).
+## Color(−1, −1, −1) — луч упирается в сферу уровня моря (T = 0): вызывающий берёт прошлую цветность.
+static func sun_tint(
+	el_deg: float, y_msl: float, extinction_550: float, extinction_rgb: Vector3,
+	haze_top_msl: float, p: Dictionary = {}
+) -> Color:
+	var q: Dictionary = p if not p.is_empty() else params()
+	var el := minf(el_deg, float(q.ref_el_deg))
+	var t := transmission(el, y_msl, extinction_550, extinction_rgb, haze_top_msl, q)
+	if t.x <= 0.0:
+		return Color(-1.0, -1.0, -1.0)
+	var r := transmission(
+		float(q.ref_el_deg), y_msl, extinction_550, extinction_rgb, haze_top_msl, q
+	)
+	var c := Vector3(t.x / maxf(r.x, 1.0e-9), t.y / maxf(r.y, 1.0e-9), t.z / maxf(r.z, 1.0e-9))
+	return Color(1.0, c.y / c.x, c.z / c.x)
+
+
 ## Оптическая толща по каналам (R, G, B); (−1, −1, −1) — луч упирается в сферу уровня моря.
 static func optical_depth(
 	el_deg: float, h_m: float, extinction_550: float, extinction_rgb: Vector3,
