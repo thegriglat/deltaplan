@@ -1,0 +1,45 @@
+{
+  "id": "TT-13",
+  "module": "tow-trike",
+  "type": "dp-mechanic",
+  "title": "climb_estimate.py: ключи конфига после TT-4",
+  "goal": "Скрипты tools/research/tow-trike/ читают скорость буксировки и прочие числа из блоков configs/tow_tug.json (tow.tow_speed_kmh …), а не из удалённых ключей верхнего уровня; climb_estimate.py снова печатает climb_ms.",
+  "plan_ref": "§4 TT-1",
+  "contracts": [
+    {
+      "name": "TT-К1",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-13",
+  "branch": "tow-trike/TT-13",
+  "base": "feature/tow-trike",
+  "scope": [
+    "tools/research/tow-trike/"
+  ],
+  "dont_touch": [
+    "configs/",
+    "scripts/"
+  ],
+  "accept": [
+    {
+      "name": "climb_estimate",
+      "cmd": "python3 tools/research/tow-trike/climb_estimate.py",
+      "expect": "re:climb_ms=[0-9.]+"
+    },
+    {
+      "name": "k1",
+      "cmd": "python3 tools/research/tow-trike/check_k1.py",
+      "expect": "exit=0"
+    },
+    {
+      "name": "trapeze",
+      "cmd": "python3 tools/research/tow-trike/check_trapeze.py tools/research/tow-trike/trapeze.json",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T23:42:04"
+}

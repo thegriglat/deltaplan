@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "climb_estimate.py читает скорость буксировки из tug[\"tow\"][\"tow_speed_kmh\"] (3 места); скрипт снова печатает climb_ms=3.02. Других обращений к удалённым ключам в tools/research/tow-trike/*.py нет.",
+  "commits": [
+    "b2270a4d TT-13: climb_estimate.py читает скорость буксировки из блока tow"
+  ],
+  "checks": [
+    {
+      "name": "climb_estimate",
+      "value": "climb_ms=3.02 speed_kmh=60.0, exit=0",
+      "pass": true
+    },
+    {
+      "name": "k1",
+      "value": "TT-К1 ok, exit=0",
+      "pass": true
+    },
+    {
+      "name": "trapeze",
+      "value": "ИТОГ: OK, exit=0",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "3/3 PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TT-13",
+  "uncertain": [],
+  "dp_feedback": "task sync сообщил, что feature/tow-trike уже влит в ветку; нет явного указания, нужен ли sync при этом.",
+  "extra": {},
+  "t": "2026-10-22T23:42:51",
+  "by": "executor"
+}
