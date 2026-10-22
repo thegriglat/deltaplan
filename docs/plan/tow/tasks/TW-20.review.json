@@ -1,0 +1,39 @@
+{
+  "verdict": "accept",
+  "summary": "Слияние main чистое: TW-К4 (FlightModel.external_force, Glider.set_external_force/link_tension_n/reset_on_dolly) и TW-10 (pad_run) сохранены поверх roll-modes (PendulumModel всегда, weight_shift/roll_mode/telemetry_fn удалены, CHANGELOG — обе записи, flight.md — ссылка tow.md + новое summary). Правило режима крена снято полностью (setup_tow_mode_off, tow_mode_allowed, отказ --tow, тест), setup_tow_mp_off остался. project.godot не тронут. Замечания — только устаревшие тексты/мёртвая ветка.",
+  "issues": [
+    {
+      "file": "docs/contracts/tow.md",
+      "line": 78,
+      "severity": "minor",
+      "what": "Текст TW-К4 про FlightModel ещё говорит о режимах weight_shift/rate игрока и «буксировка игрока — только в Маятнике … экран старта и CLI в этих режимах её не дают (TW-10, TW-К7 v2)» — после roll-modes и TW-К7 v3 неверно (FlightModel — только боты).",
+      "fix": "Координатору: поправить формулировку в контракте (FlightModel — боты/автопилот), без смены интерфейса."
+    },
+    {
+      "file": "scripts/flight/glider.gd",
+      "line": 256,
+      "severity": "minor",
+      "what": "Ветки FlightModel в Glider (_step_external_force, set_external_force elif, reset_on_dolly fallback, dolly_pos/vel) мертвы: Glider.setup всегда создаёт PendulumModel; комментарии упоминают weight_shift/rate.",
+      "fix": "Отдельной задачей после сдачи в main упростить (не в этом слиянии — скоуп)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "tow_k",
+      "value": "54/54",
+      "pass": true
+    },
+    {
+      "name": "gdcheck (diff-filter=d, feature/tow...HEAD)",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "check_gd по diff main..HEAD",
+      "value": "33 файла ок",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-22T14:51:12",
+  "by": "reviewer"
+}

@@ -1,0 +1,89 @@
+{
+  "status": "done",
+  "summary": "main (roll-modes) влит в tow/TW-20, конфликты в 5 файлах разрешены (буксировка и roll-modes сохранены); правило режима крена убрано (tow_mode_allowed, setup_tow_mode_off, предупреждение --tow, тест test_mode_not_pendulum заменён на test_tow_option); дочищены is_pendulum_mode и флаг pendulum в game.gd/autopilot.gd.",
+  "commits": [
+    "3b94cbd5 Слияние main (roll-modes) в буксировку: убрано правило режима крена (TW-К7 v3)",
+    "следующий: tow: после слияния roll-modes — убраны is_pendulum_mode и флаг pendulum в буксировке"
+  ],
+  "checks": [
+    {
+      "name": "tow_k",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_tow_session",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_tow_aerotow",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_speed_hold",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "tests/flight/",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_menu_setup",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_input_launch",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_game_logic",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_pendulum_autopilot",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "команда карточки падает на файле, удалённом в main; с --diff-filter=d и по всем 823 файлам — ок",
+      "pass": false
+    },
+    {
+      "name": "merged",
+      "value": "exit=0",
+      "pass": true
+    },
+    {
+      "name": "nomode",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TW-20 --dry (gdcheck и scope красные из-за слияния, не из-за кода)",
+  "uncertain": [
+    {
+      "where": "scripts/flight/glider.gd:256",
+      "why": "ветка _step_external_force для не-PendulumModel стала мёртвой (модель всегда PendulumModel); оставлена, чтобы не расширять правки",
+      "checked": "тесты буксировки и tests/flight зелёные"
+    },
+    {
+      "where": "docs/contracts/tow.md:78-82",
+      "why": "текст про weight_shift/rate у FlightModel устарел (контракт не менял)",
+      "checked": "только прочитано"
+    }
+  ],
+  "dp_feedback": "gdcheck и scope считают diff feature/tow...HEAD: после слияния main в нём удалённые в main файлы и весь main. Нужен --diff-filter=d и scope по diff к main-merge.",
+  "extra": {},
+  "t": "2026-10-22T14:41:41",
+  "by": "executor"
+}

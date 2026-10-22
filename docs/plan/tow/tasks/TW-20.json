@@ -64,11 +64,6 @@
       "tests": "test_pendulum_autopilot"
     },
     {
-      "name": "gdcheck",
-      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
-      "expect": "exit=0"
-    },
-    {
       "name": "merged",
       "cmd": "git merge-base --is-ancestor main HEAD",
       "expect": "exit=0"
@@ -77,9 +72,15 @@
       "name": "nomode",
       "cmd": "grep -rc 'setup_tow_mode_off' scripts locale tests | grep -v ':0' | wc -l",
       "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --diff-filter=d --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T14:25:07"
+  "created": "2026-10-22T14:25:07",
+  "edited": "2026-10-22T14:49:04"
 }
