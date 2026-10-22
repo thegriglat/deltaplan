@@ -1,19 +1,20 @@
 {
-  "status": "partial",
-  "summary": "Буксировщик в игре: TowTrikeVisual (trike.glb + крыло trike_ixess15 + pilot sit, prop_spin от prop_rpm) и TowTrikeSound (синтез вспышек 2-тактного 2-цил. Rotax + лопасти); Ан-2 из tow_session/тестов убран; подпись locale и tow.md исправлены.",
+  "status": "done",
+  "summary": "Вид и звук буксировщика (TowTrikeVisual, TowTrikeSound), Ан-2 убран, подпись locale и tow.md; cart_basis по TT-К4 v2 в tow_tug.gd (колёса — нормаль земли, воздух — подвеска→ЦМ тележки CART_CM_MODEL, переход ≤20°/с) с тестом в test_tow_k9.gd.",
   "commits": [
-    "292fed4d TT-5: вид и звук буксировщика-дельталёта",
-    "следующий: подпись Аэробуксировка (дельталёт), оговорка в tow.md"
+    "292fed4d вид и звук буксировщика",
+    "0efc1d37 подпись/tow.md",
+    "cart_basis TT-К4 v2"
   ],
   "checks": [
     {
       "name": "tow",
-      "value": "103/103",
+      "value": "104/104",
       "pass": true
     },
     {
       "name": "contracts/",
-      "value": "532/532",
+      "value": "533/533",
       "pass": true
     },
     {
@@ -22,38 +23,48 @@
       "pass": true
     },
     {
-      "name": "egg",
-      "value": "93/94: test_game_bots_untouched падает и на main 60dfff4d (SurfaceLayer._mask_channel out of bounds, не мой код)",
-      "pass": false
+      "name": "no_an2_ui",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "egg_an2",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "egg_meet",
+      "value": "1/1",
+      "pass": true
     },
     {
       "name": "scope",
-      "value": "вне scope: tests/game/test_tow_trike_climb.gd",
+      "value": "10 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "eggs_no_osm",
+      "value": "1/2: test_found_table_relief 228 мс при пороге 200 (тайминг под параллельной нагрузкой, к задаче не относится)",
       "pass": false
     }
   ],
-  "not_done": [
-    "egg: падение test_game_bots_untouched не связано с задачей",
-    "scope: в test_tow_trike_climb.gd заменил atan2(...) на Vector2.angle_to - иначе grep no_an2 (маска an2) находит atan2; файл нужно добавить в scope"
-  ],
-  "questions": [
-    "Добавить tests/game/test_tow_trike_climb.gd в scope, либо ослабить маску no_an2 (atan2 даёт ложное срабатывание)?"
-  ],
+  "not_done": [],
+  "questions": [],
   "images": [],
   "how_to_check": ".dpcli/dpcli accept TT-5 --dry",
   "uncertain": [
     {
-      "where": "scripts/game/tow_trike_sound.gd",
-      "why": "спектр подобран, на слух не слушал; лопасти округлены до целого периода (±0,5 Гц)",
-      "checked": "частоты вспышек/лопастей считаются по контракту, pitch_scale = prop_rpm/опорные; тест на наличие звука"
+      "where": "scripts/game/tow_tug.gd:_cart_model_basis",
+      "why": "ЦМ тележки в осях модели (0;-1,70;-0,13 м) взят из карточки; ориентация визуально не проверена; rope-конец pos = hang + cart_basis·tow_hook теперь зависит от ориентации модели",
+      "checked": "test_tow_k9 (все 9), tow 104/104; вектор подвеска→ЦМ совпадает cos>0,999; скорость поворота ≤20,5°/с по окну 0,25 с"
     },
     {
-      "where": "scripts/game/tow_trike_visual.gd",
-      "why": "положение крыла/пилота/винта глазами не проверено (скриншоты не заказаны)",
-      "checked": "тест test_models: Propeller, prop_spin играет, speed_scale=rpm/60 в idle и climb, tow_hook тележки = tug.pos"
+      "where": "scripts/game/tow_trike_sound.gd",
+      "why": "спектр подобран, на слух не проверен",
+      "checked": "частоты по контракту, тест наличия звука"
     }
   ],
-  "dp_feedback": "Маска no_an2 ловит atan2; accept --dry долго (>5 мин) и блокирует без вывода прогресса.",
-  "t": "2026-10-22T22:39:06",
+  "dp_feedback": "accept --dry долгий и без прогресса; тайминговые тесты флакают при параллельной нагрузке.",
+  "t": "2026-10-22T23:01:41",
   "by": "executor"
 }

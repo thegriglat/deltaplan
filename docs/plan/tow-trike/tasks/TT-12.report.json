@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "Пробные вызовы arms.compute в _wh_root обёрнуты в снимок/восстановление состояния рук (PilotArms.snapshot/restore); состояние меняет один итоговый вызов за подшаг. Добавлен тест (7) перехода pitch -1 -> 0 -> +1 на колёсах.",
+  "commits": [
+    "76221743 tow-trike TT-12: пробные вызовы закона рук не меняют состояние"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "4/4 PASS",
+      "pass": true
+    },
+    {
+      "name": "переход pitch -1->0->+1 на колёсах",
+      "value": "скачок сверх a*dt 0.000",
+      "pass": true
+    },
+    {
+      "name": "tow_trike_k3",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "pendulum",
+      "value": "117/117",
+      "pass": true
+    },
+    {
+      "name": "tow",
+      "value": "104/104",
+      "pass": true
+    },
+    {
+      "name": "contracts/",
+      "value": "533/533",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TT-12",
+  "uncertain": [
+    {
+      "where": "tests/contracts/test_tow_trike_k3.gd:test_pitch_transition_on_wheels",
+      "why": "тест не отличает старый код от нового: _rel_calm в сценарии не растёт ни там, ни там (0.0000), так что он проверяет непрерывность, а не чистоту",
+      "checked": "прогон на старом и новом коде дал одинаковые числа; чистота гарантируется снимком/восстановлением в m_of"
+    },
+    {
+      "where": "scripts/game/tow_tug.gd:153",
+      "why": "сценарий рывка 0,177 м/с при переключении штанги в автопилоте (ревью TT-4) не воспроизводил: он в scripts/game, вне скоупа",
+      "checked": "tow-тесты 104/104 проходят; проверить сценарием TT-4 после слияния"
+    }
+  ],
+  "dp_feedback": "Свежий XDG_DATA_HOME без импорта даёт parse-ошибки глобальных классов и тест молча висит до таймаута; task sync отказывает при грязной копии.",
+  "t": "2026-10-22T23:08:04",
+  "by": "executor"
+}
