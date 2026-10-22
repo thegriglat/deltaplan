@@ -6,7 +6,7 @@ area: flight
 updated: "2026-10-22"
 summary: "Стыки дельталёта игрока: двигатель (TP-К1, К2), ввод (К3), приборы (К4), старт (К5), дельталёт в игре (К6), колёса и посадка (К7)."
 related: ["docs/plan/trike-pilot.md", "docs/contracts/trike-model.md", "docs/contracts/control-fix.md", "docs/contracts/pilot-view.md"]
-contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id": "TP-К3", "version": 2}, {"id": "TP-К4", "version": 2}, {"id": "TP-К5", "version": 1}, {"id": "TP-К6", "version": 1}, {"id": "TP-К7", "version": 2}, {"id": "TP-К8", "version": 1}, {"id": "TP-К9", "version": 1}]
+contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id": "TP-К3", "version": 2}, {"id": "TP-К4", "version": 2}, {"id": "TP-К5", "version": 1}, {"id": "TP-К6", "version": 2}, {"id": "TP-К7", "version": 2}, {"id": "TP-К8", "version": 1}, {"id": "TP-К9", "version": 1}]
 ---
 # Контракты trike-pilot (код задач TP)
 
@@ -170,7 +170,7 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
   место без буксировки из `configs/locations/`); `FlightSettings` с `vehicle "trike"` → после сохранения и чтения
   `"trike"`, `tow_kind` пуст; `"bogus"` → `"glider"`; `launch_options` `vehicle=trike` → `"trike"`.
 
-## TP-К6 v1. Дельталёт игрока в игре: `TrikeRig`, `Glider`, `Game`
+## TP-К6 v2. Дельталёт игрока в игре: `TrikeRig`, `Glider`, `Game`
 Владелец — TP-6. Потребители — TP-8 (вид, камера, приборы), TP-9 (звук), `TowTug`. Контрактный тест —
 `tests/contracts/test_trike_pilot_k6.gd` (пишет TP-6). Основание — решения пользователя пп. 1–3, 7–9, Q3, Q4.
 
@@ -216,6 +216,17 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
   числа (разбег, скорость отрыва, вертикальная, скорость горизонтального полёта на полном газе) — в отчёт;
   (5) `Game` с `vehicle "trike"` на `wilotree_park` — старт на колёсах на оси полосы, `input_controller.vehicle ==
   "trike"`, нет `TowSession`; `"glider"` — как раньше.
+- v2 (2026-10-23, TP-19, `docs/research/trike-pilot/pitch-oscillation.md`; решение координатора 2026-10-23): тяга
+  действует по оси винта, а не в ЦМ тележки. `configs/tow_tug.json cart.prop_axis_below_hang_m` (расстояние оси винта от
+  подвески вдоль мачты, с `_doc`; сейчас оценка `tools/research/tow-trike/cart.py` ≈ 1,24 м). `TrikeRig.ext_force`
+  делит силу тяги между `pilot` и `hang` по правилу рычага: доля на `pilot` `a = prop_axis_below_hang_m /
+  cg_below_hang_m`, на `hang` — `1 − a` (то же направление); момент тяги относительно подвески = `T·prop_axis_below_hang_m`.
+  Одна физика у игрока и буксировщика (через `TrikeRig`); инвариант (1) v1 «траектория `TowTug` равна прежней» снят —
+  тесты `tow`/`tow_trike` должны пройти по своим порогам (числа набора/скорости — в отчёт). Режим «штанга от себя на
+  упоре + полный газ» не ограничивается (слабое затухание у порога сваливания — граница модели, Gratton).
+  **Инварианты v2:** (6) полный газ, штанга на упоре «на себя» (ход TT-8), толчок по скорости — отношение размахов
+  скорости за период ≤ 0,6 (TP-19: 0,49), период 9–14 с; (7) газ 0 — как v1 в пределах 1 % по установившейся скорости
+  (`a` не влияет без тяги); (8) сумма сил тяги на `pilot` и `hang` = `T` по модулю и направлению.
 
 ## TP-К7 v2. Колёса дельталёта: руление, тормоз, посадка (`PendulumModel`)
 Владелец — TP-7. Потребитель — TP-6 (`Glider.reset_on_wheels`). Контрактный тест — `tests/contracts/test_trike_pilot_k7.gd`
