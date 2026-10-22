@@ -1,0 +1,62 @@
+{
+  "id": "TW-8d",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "e2e для буксирного места Wilotree Park: старт с лебёдки и время загрузки",
+  "goal": "test_e2e_all_locations проходит для wilotree_park: место с tow запускается со стартом с лебёдки (tow_kind=winch_static, автопилот нажимает W) и укладывается в лимит загрузки — либо ускорением загрузки места (настройки места), либо обоснованным лимитом с замером.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К6",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К7",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-8d",
+  "branch": "tow/TW-8d",
+  "base": "feature/tow",
+  "scope": [
+    "tests/game/test_e2e.gd",
+    "configs/locations/wilotree_park.json",
+    "scripts/game/autopilot.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/game/game.gd",
+    "scripts/game/tow_session.gd",
+    "scripts/terrain",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_e2e",
+      "tests": "test_e2e"
+    },
+    {
+      "name": "test_pendulum_autopilot",
+      "tests": "test_pendulum_autopilot"
+    },
+    {
+      "name": "test_input_launch",
+      "tests": "test_input_launch"
+    },
+    {
+      "name": "test_speed_hold",
+      "tests": "test_speed_hold"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T06:09:56"
+}

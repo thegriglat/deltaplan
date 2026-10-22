@@ -1,0 +1,103 @@
+{
+  "id": "TW-10b",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Игра: аэробуксировка за Ан-2 со старта с тележки",
+  "goal": "Выбор «Аэробуксировка (Ан-2)» в «Маятнике» на площадке с tow: пилот лежит на тележке на полосе, Ан-2 впереди на длину троса; по W буксировщик выбирает слабину и разгоняется, дельтаплан отрывается с тележки и держится низко, пока Ан-2 не взлетит; набор, круги; отцеп (B) — свободный полёт, Ан-2 уходит, тележка остаётся на полосе; трос aerotow_rope 50/50. Подсказок нет.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К4",
+      "version": "8",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К5",
+      "version": "9",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К8",
+      "version": "3",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К9",
+      "version": "3",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К10",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-10b",
+  "branch": "tow/TW-10b",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/game/tow_session.gd",
+    "scripts/game/game.gd",
+    "scripts/world_objects/easter_eggs/an2.gd",
+    "configs/tow.json",
+    "tests/game/test_tow_session.gd",
+    "tests/game/test_tow_aerotow.gd",
+    "tests/game/test_tow_aerotow.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "scripts/game/tow_tug.gd",
+    "configs/tow_tug.json",
+    "configs/tow_dolly.json",
+    "configs/controls.json",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_tow_aerotow",
+      "tests": "test_tow_aerotow"
+    },
+    {
+      "name": "test_tow_session",
+      "tests": "test_tow_session"
+    },
+    {
+      "name": "test_egg_an2",
+      "tests": "test_egg_an2"
+    },
+    {
+      "name": "test_eggs_no_osm",
+      "tests": "test_eggs_no_osm"
+    },
+    {
+      "name": "tow_k9",
+      "tests": "tow_k9"
+    },
+    {
+      "name": "tow_k10",
+      "tests": "tow_k10"
+    },
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
+    },
+    {
+      "name": "test_input_launch",
+      "tests": "test_input_launch"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;json.load(open('configs/tow.json'))\"",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T06:09:17"
+}
