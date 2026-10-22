@@ -570,6 +570,7 @@ setup_tow,Буксировка,Tow
 setup_tow_none,Нет,None
 setup_tow_winch,Лебёдка,Winch
 setup_tow_aerotow,Аэробуксировка (Ан-2),Aerotow (An-2)
+setup_start_trike,Дельталёт,Trike
 setup_tow_mp_off,В сетевой зоне буксировка недоступна,Towing is not available in a network zone
 goals_kind_height,Набор высоты,Height gain
 goals_kind_duration,Время в воздухе,Time aloft
