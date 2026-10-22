@@ -44,3 +44,5 @@
 {"t": "2026-10-23T03:32:43", "by": "executor", "task": "CR-1", "ev": "reported", "commits": ["см."], "note": "done: Группа A: на стадии wind теряется устройство D3D12 (0x887a0005 на буферах любого размера, не OOM); хвост из заявки (buf…", "dp_feedback": "task show обрезает дополнения многоточием — полный текст только через inbox; хотелось бы подсказку об этом. Сырые отчёты сохранены в ~/.cache/dp-crash-reports/ (cr4..cr10.json)."}
 {"t": "2026-10-23T03:32:52", "by": "coordinator", "task": "CR-1", "ev": "checked", "note": "3/3 sections=ok:6; privacy=ok:exit 0; docs=ok:exit 1"}
 {"t": "2026-10-23T03:32:57", "by": "coordinator", "task": "CR-1", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T03:32:59", "by": "coordinator", "task": "CR-1", "ev": "accepted", "commits": ["0b663c47"], "note": "3/3 sections=ok:6; privacy=ok:exit 0; docs=ok:exit 1"}
+{"t": "2026-10-23T03:32:59", "by": "coordinator", "task": "CR-1", "ev": "merged"}
