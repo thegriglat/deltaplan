@@ -183,7 +183,8 @@ void fragment() {
 	vec3 pdir = normalize(vec3((uv.x * 2.0 - 1.0) * tan_half.x, (1.0 - uv.y * 2.0) * tan_half.y, -1.0));
 	float th = degrees(acos(clamp(dot(pdir, normalize(sun_view)), -1.0, 1.0)));
 	float I = glare * v_vis;
-	col *= 1.0 - darken * I;
+	// сам пересвет у солнца не темнеет: сжатие зрачка гасит остальной кадр, а солнце слишком яркое (HH-11)
+	col *= 1.0 - darken * I * smoothstep(0.7, 3.5, th);
 	float veil = I * (
 		veil_core * exp(-th / max(veil_core_deg, 1e-3))
 		+ veil_wide / (1.0 + pow(th / max(veil_wide_deg, 1e-3), 2.0))

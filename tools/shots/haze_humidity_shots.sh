@@ -3,7 +3,7 @@
 # tools/shots/haze_humidity_shots.sh <корень_копии> <префикс> [выход]
 #   корень_копии — копия игры (main для «до», ветка модуля для «после»); префикс — before_ | after_.
 #   выход по умолчанию — /home/greg/deltaplan/build/screenshots/haze-humidity
-# Кадры <префикс>sunset_<место>.jpg и <префикс>day_<место>.jpg, JPEG q88, 1920x1080.
+# Кадры <префикс>sunset_<место>.jpg, <префикс>halo_<место>.jpg (HH-11, замер пятна sun_halo_measure.py) и <префикс>day_<место>.jpg, JPEG q88, 1920x1080.
 # Условия (одни и те же для до и после): 15 июля (по умолчанию), --seed=7, --sky=partly, кабина,
 #   синтетический пилот, без прибора.
 #   Закат: --hour=20 + 40 с полёта при времени ×60 (минута за секунду; world.json → time.speed
@@ -12,6 +12,7 @@
 #   же формулам NOAA, что SunClock.solar_position.
 #   День: --hour=12, старт в воздухе (--air-start: 300 м от старта, 300 м над рельефом; со склона
 #   днём автопилот сразу падает), 20 с полёта, время ×1, взгляд 0,25 (вверх, на основание облаков).
+# HALO_ONLY=1 — только кадры halo (HH-11).
 # Профиль Godot — XDG_DATA_HOME копии (по умолчанию ~/.cache/dp-xdg/<имя папки копии>).
 # Окну нужен настоящий дисплей (DISPLAY=:0); каждый запуск — под timeout 150 с.
 set -euo pipefail
@@ -70,7 +71,8 @@ shot() {  # shot <файл.jpg> <аргументы игры...>
     (cd "$root" && timeout 150 godot --path . --audio-driver Dummy --fullscreen --resolution 1920x1080 \
     -- --autostart --autopilot --no-overlay --sky=partly --camera=cockpit "--seed=$SEED" \
     "$@" "--screenshot=$png" 2>&1 | grep -E "^screenshot:|ERROR" || true)
-    [[ -f "$png" ]] && break
+    # окно бывает вдвое уже экрана (тайлинг) — тогда кадр не годится, повтор
+    [[ -f "$png" && "$(identify -format %w "$png")" -ge 1900 ]] && break
   done
   convert "$png" -quality 88 "$file"
   rm -f "$png"
@@ -82,8 +84,14 @@ for p in "${places[@]}"; do
   yaw="$(python3 -c "print('%.1f' % (($hdg - $az + 180) % 360 - 180))")"
   echo "$name: солнце 20:40 азимут $az высота $el, курс $hdg, взгляд $yaw,$el"
   set_speed 60
-  shot "$out/${prefix}sunset_${name}.jpg" "--location=$name" "--site=$site" --hour=20 --time=40 "--look=$yaw,$el"
+  if [[ "${HALO_ONLY:-0}" != 1 ]]; then
+    shot "$out/${prefix}sunset_${name}.jpg" "--location=$name" "--site=$site" --hour=20 --time=40 "--look=$yaw,$el"
+  fi
+  # halo (HH-11): те же условия, имя для замера tools/shots/sun_halo_measure.py
+  set_speed 60
+  shot "$out/${prefix}halo_${name}.jpg" "--location=$name" "--site=$site" --hour=20 --time=40 "--look=$yaw,$el"
   set_speed 1
+  [[ "${HALO_ONLY:-0}" == 1 ]] && continue
   shot "$out/${prefix}day_${name}.jpg" "--location=$name" "--site=$site" --hour=12 --time=20 --air-start=300,300 --look=0,25
 done
 echo "haze_humidity_shots.sh: кадры $prefix* в $out"

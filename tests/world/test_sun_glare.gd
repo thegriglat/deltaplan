@@ -33,7 +33,7 @@ func test_evening_sun_weaker() -> void:
 	var noon := SunClock.light_at(50.0)
 	var dusk := SunClock.light_at(4.0)
 	check(float(dusk.disk_energy) < float(noon.disk_energy) * 0.5, "диск вечером тусклее")
-	check(float(dusk.glare) < float(noon.glare) * 0.5, "вечером слепит слабее")
+	check(float(dusk.glare) < float(noon.glare) * 0.8, "вечером слепит слабее, но не гаснет (HH-11)")
 
 
 func test_sky_shader_and_glare_created() -> void:
@@ -45,4 +45,26 @@ func test_sky_shader_and_glare_created() -> void:
 	check(day > 6.0, "диск солнца ярче белого тонмаппинга: %.1f" % day)
 	check(sky.glare != null, "SunGlare создан")
 	check(sky.haze_material() != null, "дымка на месте")
+	sky.free()
+
+
+func test_aureole_params_and_glare_not_dimmed_to_nothing() -> void:
+	# HH-11: ореол аэрозоля задан в шейдере неба; вечером слепит не слабее трети дневного
+	var sky: SkyEnvironment = load("res://scenes/world/environment.tscn").instantiate()
+	sky.apply_config()
+	var m := sky.sky_material()
+	check(m.shader.code.contains("aureole_compression"), "ореол аэрозоля в шейдере неба")
+	var info := m.shader.get_shader_uniform_list()
+	check(info.any(func(u): return u.name == "aureole_g"), "асимметрия рассеяния g — параметр")
+	sky.free()
+	check(float(SunClock.light_at(3.0).glare) > 0.33, "вечером глаз ослеплён не слабее трети")
+
+
+func test_sky_disk_radius_not_enlarged() -> void:
+	var sky: SkyEnvironment = load("res://scenes/world/environment.tscn").instantiate()
+	sky.apply_config()
+	approx(
+		rad_to_deg(float(sky.sky_material().get_shader_parameter("disk_radius"))), 0.3, 1e-4,
+		"диск настоящего размера"
+	)
 	sky.free()
