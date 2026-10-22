@@ -1,0 +1,22 @@
+{
+  "verdict": "accept",
+  "summary": "Пустой RID в buffer/upload/_pipeline/_uniforms даёт одну строку через GpuHealth.report_failure (CR-К2 соблюдён: сигнатуры, Mutex, один printerr), дальше вызовы холостые, AirGpuJob завершается failed один раз. Скоуп чист, пороги не ослаблены.",
+  "issues": [
+    {
+      "file": "scripts/atmosphere/air_model/air_gpu.gd",
+      "line": 300,
+      "severity": "minor",
+      "what": "Контракт CR-К2 упоминает отказ sync/submit как повод для report_failure; он не реализован (только пустые RID). Отчёт это честно отмечает. Тест GPU-путь не проверяет на реальной потере устройства.",
+      "fix": "При необходимости добавить в отдельной задаче; для CR-5 не блокирует."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only tests --dry",
+      "value": "PASS 1/1 (пропуск 8), scope ok",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-23T04:35:18",
+  "by": "reviewer"
+}

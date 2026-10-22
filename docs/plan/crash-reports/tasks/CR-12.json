@@ -19,7 +19,6 @@
     "scripts/ui/settings_panel.gd",
     "scripts/world",
     "scripts/atmosphere/cloud_layer.gd",
-    "scripts/atmosphere/cloud_compositor_effect.gd",
     "scripts/atmosphere/cloud_shadows.gd",
     "scripts/vegetation",
     "scripts/terrain/terrain_renderer.gd",
@@ -40,7 +39,8 @@
     "scripts/game/launch_options.gd",
     "tools",
     "project.godot",
-    "docs"
+    "docs",
+    "scripts/atmosphere/cloud_compositor_effect.gd"
   ],
   "accept": [
     {
@@ -57,5 +57,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T04:29:25",
-  "edited": "2026-10-23T04:34:25"
+  "edited": "2026-10-23T04:35:27"
 }
