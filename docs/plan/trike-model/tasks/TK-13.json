@@ -3,7 +3,7 @@
   "module": "trike-model",
   "type": "dp-researcher",
   "title": "Параметры крыла дельталёта с источниками",
-  "goal": "Числа крыльев 2–4 реальных трайков (тандем/буксировщик) с источниками в tools/research/trike-model/wings.json (ключи как в glider_params.json, где есть данные) и wings.md (таблица, источники, чего нет); крыло не строить.",
+  "goal": "Числа 2–4 крыльев реальных трайков (тандем/буксировщик) и их аппаратов — геометрия, аэродинамика и скорости, массы, ЦМ тележки, двигатель/винт/тяга, бак/расход — с источниками в tools/research/trike-model/wings.json (поля как в configs/wings/*.json и glider_params.json) и wings.md; нет данных — «н/д»; крыло не строить.",
   "plan_ref": "TK-13",
   "contracts": [],
   "copy": "~/deltaplan-trike-model-TK-13",
@@ -29,9 +29,15 @@
       "name": "wings",
       "cmd": "python3 -c \"import json;w=json.load(open('tools/research/trike-model/wings.json'))['wings'];ks=['span_m','area_m2','nose_angle_deg','root_chord_m','tip_chord_m','aspect_ratio','mass_kg'];print('n=%d full=%d'%(len(w),sum(1 for x in w if all(str(x.get(k,{}).get('src','')).strip() for k in ks))))\"",
       "expect": "num:full=(\\d+) >=2"
+    },
+    {
+      "name": "physics",
+      "cmd": "python3 -c \"import json;w=json.load(open('tools/research/trike-model/wings.json'))['wings'];ks=['mtow_kg','empty_mass_kg','vs_kmh','trim_speed_kmh','vne_kmh','climb_ms','engine_power_kw','prop_d_m','static_thrust_n','fuel_l','fuel_burn_lph','cg_trike'];print('missing=%d'%sum(1 for x in w for k in ks if k not in x.get('trike',{}) and k not in x))\"",
+      "expect": "num:missing=(\\d+) <=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T14:37:09"
+  "created": "2026-10-22T14:37:09",
+  "edited": "2026-10-22T14:37:45"
 }
