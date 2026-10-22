@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "Записка docs/research/bar-mouse-raw-input.md по исходникам Godot 4.7.2-stable (файл:строка). Windows (WM_INPUT) и X11 (XI_RawMotion raw_values) дают отсчёты без ускорения ОС; Wayland берёт ускоренный dx (dx_unaccel игнорируется) ×масштаб окна; macOS — ускоренный NSEvent.deltaX с усечением до целого ×max_scale. relative == screen_relative при выключенном растяжении; рекомендация для BM-К1 — screen_relative.",
+  "commits": [
+    "4cbd9181 BM-2: записка по сырому вводу мыши при захвате в Godot 4.7.2"
+  ],
+  "checks": [
+    {
+      "name": "doc",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "1 файл",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Замеры на железе не делались (Godot не запускался): предложен тест суммы screen_relative на каждой ОС при разной скорости."
+  ],
+  "questions": [
+    "BM-К1 говорит relative = отсчёты мыши: верно только для Windows/X11; на Wayland/macOS единицы зависят от ускорения ОС и масштаба. Уточнить контракт (screen_relative, оговорка к подсказке «см при 800 DPI»)?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept BM-2",
+  "uncertain": [
+    {
+      "where": "docs/research/bar-mouse-raw-input.md (macOS)",
+      "why": "ускорение NSEvent.deltaX — по документации Apple/практике SDL, не из кода Godot",
+      "checked": "код Godot: только deltaX, нет IOHID/GCMouse"
+    },
+    {
+      "where": "docs/research/bar-mouse-raw-input.md (X11, Wayland)",
+      "why": "присваивание вместо суммы нескольких raw-событий между MotionNotify/frame: потери возможны, доля неизвестна",
+      "checked": "только чтение кода"
+    },
+    {
+      "where": "docs/research/bar-mouse-raw-input.md (XWayland)",
+      "why": "поведение XWayland не проверено",
+      "checked": "нет"
+    }
+  ],
+  "dp_feedback": "rtk-хук обрезает вывод grep (спрятан в tee-лог) — неудобно для чтения исходников.",
+  "extra": {
+    "recommendation": "screen_relative; обход нужен для Wayland (dx_unaccel/плоский профиль) и macOS (скорость указателя)"
+  },
+  "t": "2026-10-23T04:08:25",
+  "by": "executor"
+}
