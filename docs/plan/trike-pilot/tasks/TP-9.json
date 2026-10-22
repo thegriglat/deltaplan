@@ -1,0 +1,60 @@
+{
+  "id": "TP-9",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Звук двигателя дельталёта игрока",
+  "goal": "По TP-К9: TowTrikeSound озвучивает двигатель игрока по состоянию TrikeEngine (заглушен — тишина, запуск/остановка — за оборотами, работа — как TT-К5), плавно, со слышимостью из кабины; буксировщик без изменений; WAV холостые/50 %/полный/запуск/остановка для прослушивания.",
+  "plan_ref": "TP-9",
+  "contracts": [
+    {
+      "name": "TP-К9",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К2",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-9",
+  "branch": "trike-pilot/TP-9",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/game/tow_trike_sound.gd",
+    "configs/trike_pilot.json",
+    "tests/contracts/test_trike_pilot_k9.gd",
+    "tests/contracts/test_trike_pilot_k9.gd.uid",
+    "tools/research/trike-pilot/sound/"
+  ],
+  "dont_touch": [
+    "scripts/game/tow_trike_visual.gd",
+    "scripts/flight/",
+    "scripts/game/game.gd",
+    "tools/sounds/gen/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "wav",
+      "cmd": "bash -c 'ls /home/greg/deltaplan/build/screenshots/trike-pilot/ | grep -c -E \"\\.wav$\"'",
+      "expect": "num:(\\d+) >=5"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/game/tow_trike_sound.gd tests/contracts/test_trike_pilot_k9.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:17:17"
+}
