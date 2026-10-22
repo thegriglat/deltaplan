@@ -54,7 +54,7 @@ related: ["docs/guide/terrain.md", "docs/guide/terrain/surface.md", "docs/contra
 ## Где в коде
 - `scripts/world/snow_plume/snow_cover.gd` (`SnowCover`) — снег на CPU.
 - `snow_plume_model.gd` (`SnowPlumeModel`) — гребни, ветер, порог, список источников.
-- `snow_plume_render.gd` (`SnowPlumeRender`) + `snow_plume_particles.gdshader` и `snow_plume_streak.gdshader` — пул частиц и штрих. Файлы `snow_plume_flake.gdshader` в каталоге остались от прежней версии отрисовки.
+- `snow_plume_render.gd` (`SnowPlumeRender`) + `snow_plume_particles.gdshader` и `snow_plume_streak.gdshader` — пул частиц и штрих.
 - `snow_plume.gd` (`SnowPlume`) — узел под `Terrain`: `SnowPlume.attach(terrain, air, temp_fn)`; вызывается из `WorldLink._link_prep` (`scripts/game/world_link.gd`), температура — `Game.air_temp_c_at`. Повторный `attach` (новое место) пересоздаёт модель.
 
 ## Что проверено
