@@ -33,3 +33,6 @@
 {"t": "2026-10-22T23:05:06", "by": "coordinator", "task": "TP-3", "ev": "checked", "note": "6/6 trike_pilot_k3=ok:7/7; input=ok:1/1; ui_controls=ok:9/9; control_bar=ok:14/14; pilot_hud=ok:18/18; gd=ok:exit 0"}
 {"t": "2026-10-22T23:06:28", "by": "reviewer", "task": "TP-3", "ev": "reviewed", "note": "Ввод дельталёта соответствует TP-К3 v1: поля ControlInput, vehicle, действия с _doc, справка и ключи локали на месте; режим glider не тронут, правки в скоупе, …", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/trike-pilot/tasks/TP-3.review.json"}
 {"t": "2026-10-22T23:06:40", "by": "coordinator", "task": "TP-3", "ev": "accepted", "note": "по ревью; minor: нет проверки версии TP-К3 в тесте, register_actions после _apply_look_keys возвращает W/S во взгляд (учесть в TP-8), Shift на земле в trike — brake и pull_full"}
+{"t": "2026-10-22T23:07:13", "by": "coordinator", "task": null, "ev": "plan", "note": "план После слияния tow-trike в main и `module sync` (к…: дописано 1 стр."}
+{"t": "2026-10-22T23:07:24", "by": "coordinator", "task": "TP-2", "ev": "checked", "commits": ["cd57fd6d"], "note": "1/2 trike_pilot_k2=FAIL:таймаут; gd=ok:exit 0"}
+{"t": "2026-10-22T23:07:25", "by": "coordinator", "task": "TP-2", "ev": "merged"}
