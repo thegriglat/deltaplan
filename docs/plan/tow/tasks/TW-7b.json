@@ -1,0 +1,46 @@
+{
+  "id": "TW-7b",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Ан-2: без скачка при отцепе на разбеге",
+  "goal": "TowTug.release() в фазах slack/roll переводит буксировщика в away без скачка положения (траектория непрерывна, |Δpos| ≤ |vel|·dt + 1 см), буксировщик продолжает разбег и взлетает или тормозит по полосе — как задано, с тестом.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К9",
+      "version": "3",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-7b",
+  "branch": "tow/TW-7b",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/game/tow_tug.gd",
+    "tests/contracts/test_tow_k9.gd"
+  ],
+  "dont_touch": [
+    "scripts/game/tow_session.gd",
+    "scripts/flight",
+    "configs",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "tow_k9",
+      "tests": "tow_k9"
+    },
+    {
+      "name": "test_tow_aerotow",
+      "tests": "test_tow_aerotow"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T06:33:56"
+}
