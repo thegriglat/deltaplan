@@ -1,0 +1,93 @@
+{
+  "status": "done",
+  "summary": "Все кадры (trike_*, pilot_*, seat_closeup_*) перерисованы по модели v4 и добавлены eye_view*.png из seat.eye с штангой в трёх положениях; fit.json пересчитан, лучи глаз->панель штангу не пересекают (0). Пришлось поправить fit_check.py: зазор подошв теперь по нормали наклонной педали 45 градусов.",
+  "commits": [
+    "см. git log ветки trike-model/TK-12: trike-model TK-12: кадры v4, вид из глаз со штангой, лучи глаз-панель"
+  ],
+  "checks": [
+    {
+      "name": "pilot_shots",
+      "value": "5",
+      "pass": true
+    },
+    {
+      "name": "trike_shots",
+      "value": "4",
+      "pass": true
+    },
+    {
+      "name": "fresh",
+      "value": "stale=0",
+      "pass": true
+    },
+    {
+      "name": "penetration",
+      "value": "0.86 см (Pod в подушке седла)",
+      "pass": true
+    },
+    {
+      "name": "seat_gap",
+      "value": "0.86 / спинка 0.06 см",
+      "pass": true
+    },
+    {
+      "name": "foot_gap",
+      "value": "L 0.00 / R 0.78 см (по нормали педали)",
+      "pass": true
+    },
+    {
+      "name": "eye_view",
+      "value": "4 файла",
+      "pass": true
+    },
+    {
+      "name": "ray",
+      "value": "bar_ray_hits=0, мин. расстояние луча до оси штанги 0.038 м (порог 0.025)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/trike-model/eye_view.png",
+    "/home/greg/deltaplan/build/screenshots/trike-model/eye_view_trim.png",
+    "/home/greg/deltaplan/build/screenshots/trike-model/eye_view_push.png",
+    "/home/greg/deltaplan/build/screenshots/trike-model/eye_view_pull.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TK-12",
+  "uncertain": [
+    {
+      "where": "tools/research/trike-model/fit_check.py (ray block)",
+      "why": "запас по лучам мал: 0.038 м до оси при пороге 0.025 м (зазор до трубы 2.3 см); критерий при радиусе d/2 без запаса 1 см дал бы 2.3 см до трубы",
+      "checked": "86 положений дуги от full_pull-3 до full_push+3 (шаг 0.5), 81 луч по сетке 9x9 панели; плоскость YZ, |x|<=half_width; тело/руки/шлем лучи не закрывают в проверке"
+    },
+    {
+      "where": "tools/blender/render_trike.py:eye_views",
+      "why": "pull-положение штанги (y 0.158) позади глаз (0.352), поэтому в кадре его нет; PilotBody и Helmet скрыты (камера внутри головы), руки на кадре отсутствуют",
+      "checked": "по пикселям: trim (зелёная) 105614 px, push (синяя) 51040 px, pull 0; eye_view.png открыт глазами один раз: видны мачта, панель с приборами, штанга"
+    },
+    {
+      "where": "tools/research/trike-model/fit_check.py (foot)",
+      "why": "старый критерий подножки (плоская плита, луч вниз) для педали 45 градусов не находил опору (null); заменён на луч по нормали педали, ближайшая по центру замкнутая деталь (допуск 3 см)",
+      "checked": "найдены по 1 острову на ногу; R 0.78 см заглубление ступни (подошва в педаль), L 0.00"
+    }
+  ],
+  "dp_feedback": "Пути кадров в accept жёстко прописаны на главную копию build/screenshots, а рендер из копии пишет туда же — удобно; замечаний нет.",
+  "extra": {
+    "fit": {
+      "max_penetration_cm": 0.86,
+      "seat_gap_cm": 0.86,
+      "back_gap_cm": 0.06,
+      "foot_gap_l_cm": 0.0,
+      "foot_gap_r_cm": 0.78,
+      "eye_err_cm": 0.05,
+      "hip_err_cm": 1.31,
+      "bar_ray_hits": 0,
+      "bar_ray_min_dist_m": 0.038,
+      "bar_ray_n_rays": 81,
+      "bar_ray_n_arc_steps": 86
+    }
+  },
+  "t": "2026-10-22T15:54:25",
+  "by": "executor"
+}
