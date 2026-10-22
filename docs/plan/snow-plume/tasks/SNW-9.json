@@ -1,0 +1,44 @@
+{
+  "id": "SNW-9",
+  "module": "snow-plume",
+  "type": "dp-researcher",
+  "title": "Кадры струек v3: Эверест и Шымбулак",
+  "goal": "Переснять кадры на отрисовке v3 (SNW-7): те же имена everest|shymbulak_strong|weak_lee.jpg в /home/greg/deltaplan/build/screenshots/snow-plume (перезаписать v2) плюс everest_strong_near.jpg и shymbulak_strong_near.jpg — камера 10–30 м от кромки гребня; оценить вид словами.",
+  "plan_ref": "§4 SNW-9",
+  "contracts": [
+    {
+      "name": "snow-plume",
+      "version": "3",
+      "ref": "docs/contracts/snow-plume.md"
+    }
+  ],
+  "copy": "~/deltaplan-snow-plume-SNW-9",
+  "branch": "snow-plume/SNW-9",
+  "base": "feature/snow-plume",
+  "scope": [
+    "tools/research/snow_plume/SNW-9/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/",
+    "tools/research/snow_plume/SNW-5/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "readme",
+      "cmd": "head -1 tools/research/snow_plume/SNW-9/README.md",
+      "expect": "re:^---"
+    },
+    {
+      "name": "frames_v3",
+      "cmd": "python3 -c \"import os;n=['everest_strong_lee','everest_weak_lee','shymbulak_strong_lee','shymbulak_weak_lee','everest_strong_near','shymbulak_strong_near'];print('old',sum(not os.path.exists('/home/greg/deltaplan/build/screenshots/snow-plume/'+x+'.jpg') or os.path.getmtime('/home/greg/deltaplan/build/screenshots/snow-plume/'+x+'.jpg')<1792712520 for x in n))\"",
+      "expect": "num:old (\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:41:42",
+  "edited": "2026-10-23T04:42:00"
+}
