@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-22"
+updated: "2026-10-23"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -54,7 +54,7 @@ generated: true
 - **tow** — Старт буксировкой (лебёдка/самолёт/машина — по исследованию): выбор при старте, управляемое крыло на тросе, модели Blender. [closed 2026-10-22] — [план](plan/tow.md) · [контракты](contracts/tow.md) · [решения](plan/tow/decisions.md) · [сводка](plan/tow/summary.md) · полный журнал: `archive/tow`
   - [docs/contracts/tow-models.md](contracts/tow-models.md) — Контракт TW-К8 модуля tow: модели Blender winch, release, drogue, dolly — узлы, бюджеты треугольников, оси, материалы. [closed]
   - [docs/contracts/tow-wave1.md](contracts/tow-wave1.md) — Стыки волны 1 tow (исследование): виды буксировки (К1), обзор кода (К2), модели (К3) — формат документов и обязательные строки. [closed]
-  - [docs/guide/flight/tow.md](guide/flight/tow.md) — Буксировка: лебёдка, Ан-2 с тележки, трос (звено XPBD), уздечка, отцеп, Wilotree Park; что учтено и чего модель не умеет.
+  - [docs/guide/flight/tow.md](guide/flight/tow.md) — Буксировка: лебёдка и дельталёт-буксировщик (тележка + iXess 15), трос XPBD, уздечка, отцеп, Wilotree Park; границы модели.
   - [docs/research/tow/code.md](research/tow/code.md) — Трос — внешняя сила в PendulumModel._substep (на пилота и/или крыло с моментом); равнина — по height_at; Волжского в местах нет.
   - [docs/research/tow/kinds-bhpa.md](research/tow/kinds-bhpa.md) — Выдержки BHPA TM (поправка 24) по буксировке дельтаплана: слабые звенья, уздечки, трос, площадка.
   - [docs/research/tow/kinds.md](research/tow/kinds.md) — Виды буксировки с числами BHPA; Волжского в OSM нет, рядом Средняя Ахтуба; Ан-2 — только для тестов.
@@ -68,6 +68,9 @@ generated: true
   - [tools/research/trike-model/summary.md](../tools/research/trike-model/summary.md) — TK-1: краткий итог размеров трайка и точки глаз
 - **trike-pilot** — Дельталёт для игрока: «Маятник» + тяга tow-trike, газ W/S, двигатель пробелом, руление, приборы, звук; одиночная игра. [active 2026-10-22] — [план](plan/trike-pilot.md) · [контракты](contracts/trike-pilot.md)
   - [docs/research/trike-pilot/engine-ops.md](research/trike-pilot/engine-ops.md) — Эксплуатация Rotax 582 UL на трайке: расход по оборотам, запуск и остановка, рычаг газа, топливо на старте, тахометр.
+- **tow-trike** — Буксировщик аэробуксировки — дельталёт (тележка trike.glb + крыло iXess 15) на физике «Маятника» с тягой винта и автопилотом вместо Ан-2. [closed 2026-10-23] — [план](plan/tow-trike.md) · [контракты](contracts/tow-trike.md) · [решения](plan/tow-trike/decisions.md) · [сводка](plan/tow-trike/summary.md) · полный журнал: `archive/tow-trike`
+  - [docs/research/tow/trike-tug.md](research/tow/trike-tug.md) — Буксировщик-дельталёт 582 + iXess 15: массы, тяга T(V), числа крыла, набор связки с sport, трапеция и ход штанги в треугольнике тележки
+  - [tools/research/tow-trike/README.md](../tools/research/tow-trike/README.md) — Скрипты и воспроизведение расчёта параметров буксировщика-дельталёта (TT-1)
 
 ## world
 
@@ -174,7 +177,7 @@ generated: true
 - [docs/guide/models/sail-shader.md](guide/models/sail-shader.md) — Шейдер паруса: просвечивание, анимация вершин, подключение к GliderVisual, стенд и сравнение с фото.
 - [docs/guide/models/trees.md](guide/models/trees.md) — Модели деревьев (5 пород, 8 вариантов, 3 LOD) и их подключение в мире.
 - [docs/guide/models/wing-contract.md](guide/models/wing-contract.md) — Контракт имён и осей модели крыла: ноды Sail, Frame, ControlFrame, маркеры (HangPoint, BaseBar, InstrumentMount, Upright*), материалы.
-- [docs/guide/models/wings.md](guide/models/wings.md) — Модели крыльев (assets/models/glider_*.glb, 48 шт.): таблица, параметры glider_params.json, трапеция, центровка, подвеска.
+- [docs/guide/models/wings.md](guide/models/wings.md) — Модели крыльев (assets/models/glider_*.glb, 49 шт.): таблица, параметры glider_params.json, трапеция, центровка, подвеска.
 - [docs/guide/models.md](guide/models.md) — Вход в гайд по 3D-моделям: крылья, пилот, приборы, лагерь, деревья; как их пересобрать (Blender 4.3) и где контракты имён и осей.
 - [docs/guide/motion-rig.md](guide/motion-rig.md) — Вывод движения пилота на платформы подвижности по UDP (SRS API v102, свой DPMR): величины, знаки, поток, настройки, проверки, границы.
 - [docs/guide/net-protocol.md](guide/net-protocol.md) — Сетевой протокол: транспорт, сообщения, роль ведущего, ключ мира, LAN-поиск, примеры JSON и сценарии; правда — net.proto.

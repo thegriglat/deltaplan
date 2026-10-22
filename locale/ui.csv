@@ -397,6 +397,9 @@ wing_group_kingpost,Мачтовые,Kingpost
 wing_group_kingpost_hint,С мачтой — быстрее и дальше учебных,Kingpost — faster and farther than trainers
 wing_group_topless,Безмачтовые,Topless
 wing_group_topless_hint,"Без мачты — лучшее качество, строже в управлении","No kingpost — best glide, demanding handling"
+wing_group_tug,Буксировщики,Tugs
+wing_group_tug_hint,"Крылья буксировщиков — игроку не показываются","Tug wings — hidden from the player"
+wing_trike_ixess15,Air Creation iXess 15 (буксировщик),Air Creation iXess 15 (tug)
 setup_wing_class,Класс крыла,Wing class
 setup_wing_model,Модель,Model
 setup_wing_class_item,"%s — %s, %s","%s — %s, %s"
@@ -569,7 +572,7 @@ setup_tab_goals,Цели,Goals
 setup_tow,Буксировка,Tow
 setup_tow_none,Нет,None
 setup_tow_winch,Лебёдка,Winch
-setup_tow_aerotow,Аэробуксировка (Ан-2),Aerotow (An-2)
+setup_tow_aerotow,Аэробуксировка (дельталёт),Aerotow (trike)
 setup_start_trike,Дельталёт,Trike
 setup_tow_mp_off,В сетевой зоне буксировка недоступна,Towing is not available in a network zone
 goals_kind_height,Набор высоты,Height gain

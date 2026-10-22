@@ -57,6 +57,8 @@ GROUP_DEFAULTS = {
     "soviet": {"dihedral_eff_deg": 5.0, "sail_flex": 0.45},
     "kingpost": {"dihedral_eff_deg": -1.5, "sail_flex": 0.6},
     "topless": {"dihedral_eff_deg": 0.5, "sail_flex": 0.6},
+    # TT-2: крыло буксировщика (iXess 15, мачтовое с жёсткой поперечиной) — умолчания мачтовых; в источниках н/д
+    "tug": {"dihedral_eff_deg": -1.5, "sail_flex": 0.6},
 }
 GP = json.loads((ROOT / "tools/blender/glider_params.json").read_text())
 R = lambda x, n=4: round(float(x), n)  # noqa: E731

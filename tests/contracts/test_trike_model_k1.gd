@@ -2,7 +2,8 @@ extends TestCase
 ## Контракт TK-K1 (docs/contracts/trike-model.md): версия в заголовке. Владелец стыка дописывает проверку интерфейса.
 
 const DOC := "res://docs/contracts/trike-model.md"
-const VERSION := 4
+const VERSION := 5
+const PARAMS_VERSION := 5
 
 
 func test_doc_heading() -> void:
@@ -48,7 +49,7 @@ func test_trike_params_interface() -> void:
 	check(not p.is_empty(), "trike_params.json читается")
 	if p.is_empty():
 		return
-	check(int(p.get("version", 0)) == VERSION, "version = %d" % VERSION)
+	check(int(p.get("version", 0)) == PARAMS_VERSION, "version = %d" % PARAMS_VERSION)
 	check(p.get("prototype") is Dictionary and p.prototype.has("name") and p.prototype.has("sources"), "prototype")
 	var dims: Dictionary = p.get("dims", {})
 	for k in DIM_KEYS:
@@ -196,7 +197,7 @@ func test_trike_params_v4() -> void:
 		check(panel.has(k), "panel.%s" % k)
 	if not (bar.has("trim") and bar.has("full_pull") and bar.has("full_push") and panel.has("center") and seat.has("eye")):
 		return
-	check(String(bar.wing) == "training", "bar.wing = training (как eye_measured)")
+	check(String(bar.wing) == "trike_ixess15", "bar.wing = trike_ixess15 (TT-К6; eye_measured — на training)")
 	var bt := _v3(bar.trim)
 	var bpl := _v3(bar.full_pull)
 	var bph := _v3(bar.full_push)

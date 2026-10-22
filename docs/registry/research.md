@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-22"
+updated: "2026-10-23"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -131,6 +131,7 @@ generated: true
 - [docs/research/tow/models.md](../research/tow/models.md) — Все 9 моделей строить скриптами Blender в стиле судов и лагеря: вершинные цвета, 3 LOD, текстур нет; трос и парашют — процедурные в коде; приоритет — tow_trike и tow_ultralight. (data: []; applied_in: [])
 - [docs/research/tow/sites.md](../research/tow/sites.md) — Берём Wilotree Park (бывш. Sheets airfield, FAA FA42; площадка Quest Air), Грувленд, Флорида: аэробуксировка Dragonfly подтверждена источниками (Quest Air Open, Национальный чемпионат США 2015–2022),… (data: []; applied_in: [])
 - [docs/research/tow/tow-control.md](../research/tow/tow-control.md) — Упор «на себя» (Q3) на лебёдке — не момент кабрирования от троса: трос вперёд-вниз при фиксированной воздушной скорости ХОД ПИЛОТА УМЕНЬШАЕТ (грудь, ε=45°, V=14 м/с: 0,25 м без троса → 0,16 при 600 Н… (data: ['tools/research/tow/out/statics_table.csv', 'tools/research/tow/out/compare.cs…; applied_in: [])
+- [docs/research/tow/trike-tug.md](../research/tow/trike-tug.md) — Набор связки (582 + sport с пилотом 100 кг, 60 км/ч) по балансу мощности ≈ 3,0 м/с против порога 2,54 (BHPA): запас ≈ 0,5 м/с сопоставим с неопределённостью тяги и масс; метод на паспорте 912 занижае… (data: ['configs/tow_tug.json', 'tools/research/tow-trike/wing_trike_ixess15.json', 't…; applied_in: ['configs/tow_tug.json'])
 - [docs/research/training_island_air.md](../research/training_island_air.md) — Погодой набора без правки глобальных параметров выходит всё: склон 6 м/с — w +1,83 м/с (5 м/с — +1,41, 8 м/с — +2,52, подъём во всех 153 точках); термики 15 июля, 12 ч, переменная облачность, 25 °C —… (data: tools/terrain/island/out/air_check.json (итог), out/check_*.json (сырые), кадры…; applied_in: configs/locations/training_island.json → start_sites[].weather (источник — tool…)
 - [docs/research/trike-pilot/engine-ops.md](../research/trike-pilot/engine-ops.md) — По руководству Rotax: 26,5 л/ч на 6800 об/мин, 20,5 л/ч на 75% мощности, холостые 2000, крейсер 6500, взлётные 6800 (5 мин). Таблица расхода строится по закону P~n^3 и sfc 425 г/кВт·ч. Время запуска,… (data: ['configs/trike_pilot.json']; applied_in: [])
 - [docs/research/vario_sounds.md](../research/vario_sounds.md) — Тембр — меандр до 11-й гармоники + резонанс 3,2 кГц (Q 4, +9 дБ), фронты 2–3 мс, частота 44,1 кГц. (data: нет; applied_in: configs/audio.json (пресет classic_90s, по умолчанию), scripts/audio/vario_audi…)
@@ -209,6 +210,7 @@ generated: true
 - [tools/research/surface_heat/README.md](../../tools/research/surface_heat/README.md) — SH-3: инструмент замера до/после (контракт SH5) — H поля, источники термиков, потолок, подъём на склоне, вода; прогон «до» (data: tools/research/surface_heat/out/)
 - [tools/research/surface_heat/moisture/README.md](../../tools/research/surface_heat/moisture/README.md) — Поле центрировано около 0,47 (медиана по 4 местам 0,475), p10 = 0,26, p90 = 0,68; предложено m_dry = 0,25, m_norm = 0,47, m_wet = 0,70. (data: moisture_percentiles.csv, moisture_percentiles.json; applied_in: docs/research/surface_params.md)
 - [tools/research/tow/README.md](../../tools/research/tow/README.md) — Статика и PendulumModel (трос лебёдки вперёд-вниз) сходятся по ходу пилота ±0,04 м; упор Q3 даёт рост скорости при удержании тангажа, а не момент троса. (data: ['tools/research/tow/out/statics_table.csv', 'tools/research/tow/out/compare.cs…; applied_in: [])
+- [tools/research/tow-trike/README.md](../../tools/research/tow-trike/README.md) — Скрипты и воспроизведение расчёта параметров буксировщика-дельталёта (TT-1)
 - [tools/research/trike-model/README.md](../../tools/research/trike-model/README.md) — Размеры Airborne XT912/Tanarg, глаза сидячей позы (0, 0.352, -1.144) от подвески, seat по замеру; Δ с реальной посадкой < 0.3 м (data: tools/research/trike-model/; applied_in: tools/blender/trike_params.json)
 - [tools/research/tune/README.md](../../tools/research/tune/README.md) — Итог волны 1: ТКЭ Askervein после согласования масштаба 3 χ² 141 → 33; вывод «данные тянут λ/h вверх» оказался артефактом ручного α = 0,17 (см. реестр выводов). (data: tools/research/tune/out/; applied_in: параметры AirCase (λ/h = 0,25, пороги lee.field_*), configs/atmosphere.json)
 - [tools/research/wind_compare/README.md](../../tools/research/wind_compare/README.md) — Сравнение поля ветра main и feature/air-model (Онгудай) — Выгрузка из игры (Atmosphere.air_velocity_at / mean_wind_at), не из air.py. (data: tools/research/wind_compare/)
