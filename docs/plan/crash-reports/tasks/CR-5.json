@@ -1,0 +1,53 @@
+{
+  "id": "CR-5",
+  "module": "crash-reports",
+  "type": "dp-engineer",
+  "title": "AirGpu: пустой RID — отказ задачи вместо каскада ошибок",
+  "goal": "Ошибка создания ресурса RenderingDevice в расчёте ветра (пустой RID, потерянное устройство) — одна строка в логе, GpuHealth.report_failure (CR-К2) и отказ GPU-задачи с откатом на аналитический ветер, вместо сотен ошибок RenderingDevice и вылета (группа A, #4–#10). Сообщение игроку — CR-8, не здесь.",
+  "plan_ref": "§4 CR-5",
+  "contracts": [
+    {
+      "name": "CR-К2",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    }
+  ],
+  "copy": "~/deltaplan-crash-reports-CR-5",
+  "branch": "crash-reports/CR-5",
+  "base": "feature/crash-reports",
+  "scope": [
+    "scripts/atmosphere/air_model/air_gpu.gd",
+    "scripts/atmosphere/air_model/air_gpu_job.gd",
+    "scripts/core/gpu_health.gd",
+    "scripts/core/gpu_health.gd.uid",
+    "tests/atmosphere/test_air_gpu_invalid.gd",
+    "tests/atmosphere/test_air_gpu_invalid.gd.uid",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_model/air_clipmap.gd",
+    "scripts/core/crash_report.gd",
+    "scripts/core/crash_reporter.gd",
+    "scripts/ui",
+    "scripts/game",
+    "project.godot",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": ".dpcli/dpcli lock cpu cr5-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=air_",
+      "expect": "tests"
+    },
+    {
+      "name": "gpu",
+      "cmd": ".dpcli/dpcli lock cpu cr5-g --no-tmux -- tools/gpu_tests.sh --filter=air_",
+      "expect": "tests"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:43:09",
+  "edited": "2026-10-23T03:45:02"
+}

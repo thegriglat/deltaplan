@@ -1,0 +1,50 @@
+{
+  "id": "CR-9",
+  "module": "crash-reports",
+  "type": "dp-engineer",
+  "title": "Манифест itch: действия запуска с выбором драйвера и GPU-параметров",
+  "goal": "Сборка кладёт .itch.toml с действиями запуска: обычный (сохранённый выбор), «DirectX 12» и «Vulkan» для Windows (--rendering-driver), и другими существующими параметрами, влияющими на видеокарту (если есть); генерация вынесена в проверяемый скрипт. В itch не публиковать.",
+  "plan_ref": "§4 CR-9",
+  "contracts": [
+    {
+      "name": "CR-К3",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    }
+  ],
+  "copy": "~/deltaplan-crash-reports-CR-9",
+  "branch": "crash-reports/CR-9",
+  "base": "feature/crash-reports",
+  "scope": [
+    "tools/build.sh",
+    "tools/release/itch_manifest.py",
+    "tools/release/README-options.txt",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts",
+    "project.godot",
+    "export_presets.cfg",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "manifest_win",
+      "cmd": "python3 tools/release/itch_manifest.py --bin deltaplan.exe --platform windows | python3 -I -c 'import sys,tomllib; a=tomllib.loads(sys.stdin.read())[\"actions\"]; n=[x for x in a if x[\"name\"]==\"play\" and not x.get(\"args\")]; d=[x for x in a if \"d3d12\" in x.get(\"args\",[])]; v=[x for x in a if \"vulkan\" in x.get(\"args\",[])]; assert n and d and v, a; print(\"ok\", len(a))'",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "manifest_linux",
+      "cmd": "python3 tools/release/itch_manifest.py --bin deltaplan.x86_64 --platform linux | python3 -I -c 'import sys,tomllib; a=tomllib.loads(sys.stdin.read())[\"actions\"]; assert not any(\"d3d12\" in x.get(\"args\",[]) for x in a); assert a[0][\"name\"]==\"play\"; print(\"ok\")'",
+      "expect": "re:^ok"
+    },
+    {
+      "name": "bash",
+      "cmd": "bash -n tools/build.sh",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:45:49"
+}

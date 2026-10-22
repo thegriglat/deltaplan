@@ -1,0 +1,35 @@
+{
+  "id": "CR-7",
+  "module": "crash-reports",
+  "type": "dp-engineer",
+  "title": "Диагностика отчётов о вылете: подстадии, признак зависания, сжатие повторов",
+  "goal": "Следующие отчёты различают вылет и зависание (время последнего «пульса» процесса относительно последней стадии), показывают подстадию загрузки (деревья, ветер: пересчёт/порции) и сворачивают повторяющиеся строки ошибок в хвосте лога.",
+  "plan_ref": "§4 CR-7",
+  "contracts": [],
+  "copy": "~/deltaplan-crash-reports-CR-7",
+  "branch": "crash-reports/CR-7",
+  "base": "feature/crash-reports",
+  "scope": [
+    "scripts/core/crash_report.gd",
+    "scripts/core/crash_reporter.gd",
+    "scripts/terrain/terrain.gd",
+    "tests/core/test_crash_report.gd",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere",
+    "project.godot",
+    "server",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": ".dpcli/dpcli lock cpu cr7-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=crash_report",
+      "expect": "tests"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:43:16"
+}

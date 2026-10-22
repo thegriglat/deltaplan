@@ -1,0 +1,41 @@
+{
+  "id": "CR-6",
+  "module": "crash-reports",
+  "type": "dp-engineer",
+  "title": "AirRuntime: повторные загрузки места — тест и жизненный цикл RD; «упрощённый ветер» без GPU",
+  "goal": "GPU-тест N≥5 повторных загрузок места со сменой ветра (пересчёт поля) в одном процессе под проверкой RenderingDevice; исправить жизненный цикл общего RD в AirRuntime/клипмапе (гипотеза группы B, #11–#15) и сделать так, чтобы выключенный GPU-ветер не создавал RD (аномалия #10).",
+  "plan_ref": "§4 CR-6",
+  "contracts": [],
+  "copy": "~/deltaplan-crash-reports-CR-6",
+  "branch": "crash-reports/CR-6",
+  "base": "feature/crash-reports",
+  "scope": [
+    "scripts/atmosphere/air_model/air_runtime.gd",
+    "scripts/atmosphere/air_model/air_clipmap.gd",
+    "tests/atmosphere/test_air_runtime_reload_gpu.gd",
+    "tests/atmosphere/test_air_runtime_reload_gpu.gd.uid",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/air_model/air_gpu.gd",
+    "scripts/atmosphere/air_model/air_gpu_job.gd",
+    "scripts/core",
+    "project.godot",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": ".dpcli/dpcli lock cpu cr6-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=air_",
+      "expect": "tests"
+    },
+    {
+      "name": "gpu",
+      "cmd": ".dpcli/dpcli lock cpu cr6-g --no-tmux -- tools/gpu_tests.sh --filter=air_runtime",
+      "expect": "tests"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:43:13"
+}

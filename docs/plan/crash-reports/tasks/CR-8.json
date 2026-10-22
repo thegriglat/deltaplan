@@ -1,0 +1,59 @@
+{
+  "id": "CR-8",
+  "module": "crash-reports",
+  "type": "dp-engineer",
+  "title": "Отказ видеокарты: сообщение игроку, выбор драйвера рендера, перезапуск",
+  "goal": "При отказе видеокарты (GpuHealth, CR-К2) и при запуске после вылета на GPU-стадии игрок видит сообщение с предложением переключиться на другой драйвер (Windows: Vulkan↔D3D12) и перезапуститься; выбор сохраняется в настройках (CR-К3) и меняется в настройках графики. Расчёт молча не отключается.",
+  "plan_ref": "§4 CR-8",
+  "contracts": [
+    {
+      "name": "CR-К2",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    },
+    {
+      "name": "CR-К3",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    }
+  ],
+  "copy": "~/deltaplan-crash-reports-CR-8",
+  "branch": "crash-reports/CR-8",
+  "base": "feature/crash-reports",
+  "scope": [
+    "scripts/game/render_driver.gd",
+    "scripts/game/render_driver.gd.uid",
+    "scripts/ui/gpu_failure_dialog.gd",
+    "scripts/ui/gpu_failure_dialog.gd.uid",
+    "scripts/ui/settings_panel.gd",
+    "scripts/game/graphics_presets.gd",
+    "scenes/main.gd",
+    "configs/game.json",
+    "locale/ui.csv",
+    "project.godot",
+    "tests/game/test_render_driver.gd",
+    "tests/game/test_render_driver.gd.uid",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere",
+    "scripts/core",
+    "tools/build.sh",
+    "docs"
+  ],
+  "accept": [
+    {
+      "name": "tests",
+      "cmd": ".dpcli/dpcli lock cpu cr8-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=render_driver",
+      "expect": "tests"
+    },
+    {
+      "name": "settings",
+      "cmd": ".dpcli/dpcli lock cpu cr8-s --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=settings",
+      "expect": "tests"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:45:45"
+}
