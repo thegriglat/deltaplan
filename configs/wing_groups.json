@@ -4,7 +4,8 @@
     {"id": "soviet", "name": "wing_group_soviet", "hint": "wing_group_soviet_hint"},
     {"id": "trainer", "name": "wing_group_trainer", "hint": "wing_group_trainer_hint"},
     {"id": "kingpost", "name": "wing_group_kingpost", "hint": "wing_group_kingpost_hint"},
-    {"id": "topless", "name": "wing_group_topless", "hint": "wing_group_topless_hint"}
+    {"id": "topless", "name": "wing_group_topless", "hint": "wing_group_topless_hint"},
+    {"id": "tug", "name": "wing_group_tug", "hint": "wing_group_tug_hint", "player": false, "player_doc": "false — группа скрыта от игрока (выбор крыла, экран старта, WingCatalog.player_groups) и ботов; крылья буксировщиков (TT-К2, docs/plan/tow-trike.md)"}
   ],
   "groups_doc": "Группы по порядку: id — значение поля group крыла; name и hint — ключи перевода locale/ui.csv (название и короткая подсказка под названием)"
 }

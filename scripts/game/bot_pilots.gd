@@ -100,7 +100,7 @@ func setup(opts: Dictionary) -> void:
 	)
 	var wings: Array = _cfg.get("wings", [])
 	if wings.is_empty():
-		for w in Config.list_configs("wings"):
+		for w in WingCatalog.player_wings():
 			wings.append(String(w).get_file())
 	var schemes: Array = _cfg.get("visual", {}).get("sail_schemes", [{}])
 	var mass: Array = _cfg.get("mass_kg", [65.0, 95.0])

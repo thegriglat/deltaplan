@@ -383,7 +383,7 @@ static func _same(a: Variant, b: Variant) -> bool:
 ## Id крыла без "wings/"; неизвестное — первое из bots.json → wings (или любое).
 static func _wing_id(w: String) -> String:
 	w = w.trim_prefix("wings/")
-	var all := Config.list_configs("wings")
+	var all := WingCatalog.player_wings()
 	if w != "" and all.has("wings/" + w):
 		return w
 	var wings: Array = Config.get_config("bots").get("wings", [])
