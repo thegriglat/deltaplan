@@ -1580,11 +1580,35 @@ func _choose_tow_start() -> bool:
 	_exact_start = true  # курс — ось полосы, по ветру не выравнивается
 	_tow_site = chk
 	_tow_site["width_m"] = width
+	_tow_site["length_m"] = length
 	if from_site:
 		MotionRig.place = site_name
 	elif settings.has_exact_start():
 		_clear_exact_start(q)
+		if not _site_has_tow_at(q):
+			_clear_tow_runway()
+	else:
+		_clear_tow_runway()  # точка с карты: лес на полосе лебёдки — иначе не разогнаться и не набрать высоту
 	return true
+
+
+func _site_has_tow_at(q: Vector2) -> bool:
+	for st in terrain.get_start_sites():
+		var tw: Dictionary = st.get("tow", {})
+		if not tw.is_empty() and Vector2(st.position.x, st.position.z).distance_to(q) <= 5.0:
+			return true
+	return false
+
+
+## Поляна-полоса вдоль оси _tow_site: от старта на длину до лебёдки, шириной полосы (TW-К6, как TowSite.clearing_size).
+func _clear_tow_runway() -> void:
+	var margin := float(Config.value("game", "tow_site.clearing_margin_m", 30.0))
+	terrain.add_runway_clearing(
+		_start_pos,
+		_start_heading,
+		float(_tow_site.get("length_m", Config.value("tow", "winch_static.rope_length_m", 1000.0))),
+		float(_tow_site.get("width_m", TOW_DEFAULT_WIDTH_M)) + 2.0 * margin
+	)
 
 
 ## Узел буксировки на старт полёта (после _setup_glider): старый — убрать; нет места полосы — внешней силы нет.
@@ -1618,8 +1642,12 @@ func _winch_step(dt: float, c: ControlInput) -> void:
 	var start := false
 	var release := false
 	if input_controller.enabled and not hands_off:
-		start = _action_held("walk_forward") or (autopilot != null and c.run)
+		start = _action_held("walk_forward") or c.run or c.walk > 0.0  # c.run — Shift, кнопка разбега геймпада, автопилот
 		release = InputMap.has_action("tow_release") and Input.is_action_just_pressed("tow_release")
+	# Space — ещё и ui_accept: у кнопки HUD/меню с фокусом он нажал бы её — в полёте фокус не держим
+	var fo := get_viewport().gui_get_focus_owner()
+	if fo != null:
+		fo.release_focus()
 	tow_session.step(dt, start, release)
 
 

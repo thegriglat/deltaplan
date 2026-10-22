@@ -270,5 +270,15 @@ func test_game_tick_wiring() -> void:
 	check(not game.tow_session.is_attached(), "tow_release отцепил: %s" % game.tow_session.line.state)
 	game.restart()
 	check(game.tow_session.is_attached() and game.tow_session.line.phase == "idle", "«Ещё раз» — трос снова лежит")
+	# точка с карты: лес на полосе вычищается кругами вдоль оси (review TW-10)
+	var n0 := game.terrain.get_start_clearings().size()
+	game._start_pos = p0
+	game._start_heading = float(st.heading_deg)
+	game._clear_tow_runway()
+	var cl := game.terrain.get_start_clearings()
+	check(cl.size() > n0, "поляна-полоса добавлена: %d → %d" % [n0, cl.size()])
+	if cl.size() > n0:
+		var far: Vector3 = cl[cl.size() - 1]
+		check(Vector2(far.x - p0.x, far.z - p0.z).length() >= 500.0, "поляна тянется вдоль полосы: %s" % far)
 	main.queue_free()
 	await get_tree().process_frame
