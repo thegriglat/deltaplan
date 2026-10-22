@@ -76,6 +76,10 @@ var _pending_at_start: Dictionary = {}
 ## Язык ставится до _ready экранов (они строят тексты в своих _ready).
 func _enter_tree() -> void:
 	_pending_at_start = CrashReport.read_json(CrashReport.PENDING_PATH)
+	if DisplayServer.get_name() != "headless" and not _service_run():
+		var prev := RenderDriver.previous_crash("user://gpu_session.json", CrashReport.read_previous_log())
+		if _pending_at_start.is_empty():
+			_pending_at_start = prev  # без токена отчёта нет — берём свою метку сеанса
 	Language.apply(Language.configured())
 	_ui_locale = TranslationServer.get_locale()
 
@@ -145,11 +149,10 @@ func _ready() -> void:
 ## потеря устройства в хвосте лога) —
 ## сразу; отказ GPU в этом сеансе — по опросу. Окно одно за запуск; на тот же обрыв — один раз.
 ## Пилотских запусков нет (headless, служебные аргументы) — не показываем.
-## Граница модели: обрыв прошлого сеанса известен только по ожидающему отчёту CrashReport, а его
-## пишет CrashReporter лишь в экспортной сборке с токеном; в сборке без токена окно после обрыва
-## не появится (отказ GPU в этом сеансе — GpuHealth — работает всегда). Отчёт читается в
-## _enter_tree, раньше любой отправки (HTTP-ответ приходит не раньше следующих кадров и
-## стирает файл), так что отправка признак не теряет.
+## Обрыв прошлого сеанса известен по ожидающему отчёту CrashReport (токен) или по своей метке
+## сеанса RenderDriver.SESSION_PATH (токен не нужен; стадия — из user://session.lock CrashReporter,
+## есть в экспортной сборке с окном, иначе стадия «меню»). Оба читаются в _enter_tree, раньше
+## любой отправки отчёта, поэтому отправка признак не стирает.
 func _setup_gpu_failure_watch() -> void:
 	if DisplayServer.get_name() == "headless" or opts.autostart or opts.smoke or opts.perf_s > 0.0:
 		return
@@ -165,11 +168,9 @@ func _setup_gpu_failure_watch() -> void:
 
 
 func _poll_gpu_failure() -> void:
+	RenderDriver.note_session_stage(String(CrashReport.read_json(CrashReport.LOCK_PATH).get("stage", "")))
 	if _gpu_failed():
-		_gpu_timer.stop()
 		_show_gpu_failure()
-	elif _gpu_offered:
-		_gpu_timer.stop()
 
 
 ## Видеокарта отказала в этом сеансе (GpuHealth, CR-К2).
@@ -190,6 +191,20 @@ func _show_gpu_failure() -> void:
 	)
 	$UI.add_child(_gpu_dialog)
 	_gpu_dialog.popup_centered()
+
+
+## Служебный запуск (проверки, снимки, замеры) — метку сеанса не ведёт и чужую не трогает.
+static func _service_run() -> bool:
+	for a in OS.get_cmdline_user_args():
+		for sk in CrashReporter.SKIP_ARGS:
+			if a.begins_with(sk):
+				return true
+	return false
+
+
+func _exit_tree() -> void:
+	if not _service_run():
+		RenderDriver.clear_session()  # штатный выход (в том числе перезапуск) — не обрыв
 
 
 func _process(delta: float) -> void:

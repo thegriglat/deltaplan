@@ -165,3 +165,15 @@ func test_gpu_health_in_session_triggers_dialog() -> void:
 	GpuHealth.report_failure("AirGpu.buffer", "тест")
 	check(GpuHealth.is_failed(), "отказ виден опросу")
 	GpuHealth.reset()
+
+
+func test_session_marker_detects_crash_without_token() -> void:
+	var path := _tmp().path_join("gpu_session.json")
+	check(RenderDriver.previous_crash(path, "", 2000000001).is_empty(), "первого запуска обрыва нет")
+	RenderDriver.note_session_stage("wind", path)
+	var prev := RenderDriver.previous_crash(path, "ERROR: error 0x887a0005.", 2000000002)
+	check(not prev.is_empty() and RenderDriver.pending_is_wind(prev), "метка осталась — обрыв на wind: %s" % prev)
+	check(RenderDriver.should_offer_after_crash(prev, ""), "окно предлагается без токена")
+	RenderDriver.clear_session(path)
+	check(RenderDriver.previous_crash(path, "", 2000000003).is_empty(), "метки нет (штатный выход) — не обрыв")
+	RenderDriver.clear_session(path)

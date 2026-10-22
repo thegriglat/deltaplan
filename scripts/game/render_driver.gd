@@ -176,6 +176,64 @@ static func mark_offered(key: String, path: String = OFFER_PATH) -> void:
 		f.close()
 
 
+# ---- свой маркер сеанса: окно после обрыва не зависит от токена и отправки отчёта ----
+
+## Метка запуска: есть, пока игра идёт; при нормальном выходе удаляется. Нашли метку — прошлый
+## сеанс оборвался. Стадию берём из метки CrashReporter (user://session.lock, есть в экспортной
+## сборке с окном — токен не нужен), хвост лога — CrashReport.read_previous_log().
+const SESSION_PATH := "user://gpu_session.json"
+
+
+## Прошлый обрыв в виде «ожидающего отчёта» ({body}), {} — прошлый сеанс закрылся штатно.
+## Читает метку и ставит свою (pid, время запуска). Чужой живой процесс — не обрыв.
+static func previous_crash(
+	path: String = SESSION_PATH, log_text: String = "", pid: int = OS.get_process_id()
+) -> Dictionary:
+	var old := UserSettings.read_json(path)
+	_write_session({"pid": pid, "started": Time.get_datetime_string_from_system(false, true), "stage": ""}, path)
+	if old.is_empty() or int(old.get("pid", 0)) == pid or _alive(int(old.get("pid", 0))):
+		return {}
+	var stage := String(old.get("stage", ""))
+	return {
+		"body":
+		"- стадия: %s\n- запуск: %s\n````\n%s\n````\n"
+		% [stage if stage != "" else MENU_STAGE, String(old.get("started", "")), log_text]
+	}
+
+
+## Обновить стадию в метке (по метке CrashReporter); пишет только при смене.
+static func note_session_stage(stage: String, path: String = SESSION_PATH) -> void:
+	var cur := UserSettings.read_json(path)
+	if cur.is_empty() or String(cur.get("stage", "")) == stage:
+		return
+	cur["stage"] = stage
+	_write_session(cur, path)
+
+
+## Штатный выход: метку убрать.
+static func clear_session(path: String = SESSION_PATH) -> void:
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+static func _write_session(data: Dictionary, path: String) -> void:
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(data))
+		f.close()
+
+
+static func _alive(pid: int) -> bool:
+	if pid <= 0:
+		return false
+	match OS.get_name():
+		"Windows":
+			return OS.is_process_running(pid)
+		"Linux":
+			return DirAccess.dir_exists_absolute("/proc/%d" % pid)
+	return false
+
+
 ## Окно после обрыва нужно: ожидающий отчёт есть, оборван на wind, на старте/в меню или в хвосте
 ## лога потеря устройства, и этот обрыв ещё не предлагали. Отметку не ставит (её ставит показ окна).
 static func should_offer_after_crash(
