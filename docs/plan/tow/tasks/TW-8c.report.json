@@ -1,0 +1,74 @@
+{
+  "status": "done",
+  "summary": "В wilotree_park.json добавлены country=US и раздел render (его не было: рельеф не строился), место собрано сборщиком игры из сети (199 запросов, complete), фикстура лежит в tests/fixtures/locations/wilotree_park. Тест test_wilotree_park_real_runway в test_tow_k6: TowSite.check на настоящих полосах - ok.",
+  "commits": [
+    "20ce0812 tow: TW-8c - страна US, render, фикстура, проверка настоящей полосы"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "6/6 PASS",
+      "pass": true
+    },
+    {
+      "name": "TowSite.check runway_36 (610x35)",
+      "value": "ok, slope 0.75 deg, dh 1.49 м (0.24%), flat 610 м, start_y 33.5, end_y 32.8",
+      "pass": true
+    },
+    {
+      "name": "TowSite.check runway_18 (610x35)",
+      "value": "ok, slope 0.74 deg, dh 2.32 м (0.38%), flat 610 м, start_y 31.5, end_y 33.8",
+      "pass": true
+    },
+    {
+      "name": "test_menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "tow_k6",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "test_locations",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "test_popular_places",
+      "value": "13/13",
+      "pass": true
+    },
+    {
+      "name": "fixture",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tests/game/test_e2e.gd::test_e2e_all_locations падает для wilotree_park (вне скоупа, tests/game не мой): (1) загрузка мира дольше MAX_LOAD_FRAMES=1200 кадров (при 6000 доходит до FLYING; план домов 199436 за ~6.7 с); (2) при большем лимите - kind==landed: takeoff_failed, т.к. e2e идёт пешим стартом, а на равнине без буксировки взлёт невозможен. Нужно в e2e для мест с tow запускать с tow_kind или пропускать (TW-10/координатор). Падение training_island и volcano_island в том же тесте - не от этой задачи."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TW-8c",
+  "uncertain": [
+    {
+      "where": "configs/locations/wilotree_park.json",
+      "why": "нет trees/terrain_look/landing_sites: деревья и вид - по умолчанию из world.json (не флоридские виды); посадок нет",
+      "checked": "test_locations и tow_k6 проходят; границы модели, не доводил"
+    },
+    {
+      "where": "tests/fixtures/locations/wilotree_park",
+      "why": "высота Copernicus на ровной площадке имеет шум; TowSite.check ok с запасом (0.75 deg против порога 2 deg), но абсолютная точность относительного рельефа не измерена",
+      "checked": "числа выше"
+    }
+  ],
+  "dp_feedback": "В карточке не было указано, что в конфиге нужен render (нашёл по ошибке TerrainRenderer); job wait длиннее 10 минут не удобен в foreground.",
+  "t": "2026-10-22T06:05:41",
+  "by": "executor"
+}

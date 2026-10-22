@@ -1,63 +1,63 @@
 {
   "status": "done",
-  "summary": "Доработка по ревью: поляна-полоса Terrain.add_runway_clearing по оси старта (длина до лебёдки, ширина полосы + 2*clearing_margin_m) для старта с точки карты и точного старта не у площадки с tow; старт лебёдки также по c.run/c.walk (кнопка разбега геймпада, Shift); в полёте снимается фокус с Control (Space = ui_accept). Влит feature/tow (SpeedHold, TW-5b).",
+  "summary": "Вторая доработка: снятие фокуса убрано; tow_release на B (тест: нет в controls.json и в ui_* InputMap); Shift трос не запускает — старт W, автопилот (walk>0) или кнопка разбега геймпада (InputController.pad_run).",
   "commits": [
-    "HEAD TW-10: поляна-полоса для лебёдки с точки карты, старт с геймпада, снятие фокуса"
+    "8a0633af отцеп на B, без снятия фокуса, Shift не стартует"
   ],
   "checks": [
     {
       "name": "test_tow_session",
-      "value": "7/7",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "tow_k5",
-      "value": "10/10",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "tow_k6",
-      "value": "8/8",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "tow_k7",
-      "value": "6/6",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "gdcheck",
-      "value": "exit 0",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "json",
-      "value": "exit 0",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_game_logic",
-      "value": "16/16",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_input_launch",
-      "value": "1/1",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_start_clearing",
-      "value": "3/3",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_start_fixes",
-      "value": "4/4",
+      "value": "PASS",
       "pass": true
     },
     {
       "name": "test_bots",
-      "value": "7/7",
+      "value": "PASS",
       "pass": true
     }
   ],
@@ -66,17 +66,12 @@
   "how_to_check": ".dpcli/dpcli accept TW-10",
   "uncertain": [
     {
-      "where": "scripts/game/game.gd:_winch_step",
-      "why": "c.run теперь стартует лебёдку и на клавиатуре (Shift), не только W",
-      "checked": "тест проводки W; Shift = разбег — естественный старт"
-    },
-    {
-      "where": "scripts/game/game.gd:_winch_step",
-      "why": "фокус снимается каждый шаг при тянущей лебёдке; поведение кнопок HUD мышью не проверялось вручную",
-      "checked": "только тест_tow_session и test_input_launch"
+      "where": "configs/controls.json:91",
+      "why": "B не занята другими действиями; в docs/UI подсказок про Space для отцепа нет",
+      "checked": "тест (5) по ui_* InputMap, grep Space"
     }
   ],
-  "dp_feedback": "После task sync новый class_name (SpeedHold) не виден, пока не сделан godot --import — accept падает на gdcheck; sync мог бы напоминать.",
-  "t": "2026-10-22T05:54:42",
+  "dp_feedback": "task show в параметрах плана не принимает пробелы в названии раздела без кавычек",
+  "t": "2026-10-22T06:02:11",
   "by": "executor"
 }
