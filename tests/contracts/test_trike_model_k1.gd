@@ -2,8 +2,8 @@ extends TestCase
 ## Контракт TK-K1 (docs/contracts/trike-model.md): версия в заголовке. Владелец стыка дописывает проверку интерфейса.
 
 const DOC := "res://docs/contracts/trike-model.md"
-const VERSION := 4
-const PARAMS_VERSION := 5   # trike_params.json: v5 — bar для trike_ixess15 и хват (TT-К6)
+const VERSION := 5
+const PARAMS_VERSION := 5
 
 
 func test_doc_heading() -> void:
