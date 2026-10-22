@@ -1,0 +1,55 @@
+{
+  "verdict": "rework",
+  "summary": "Код ClimateGrid/td_day соответствует HH7 (билинейность, время, сезон юга, β=beta_cat при mu_sigma_uncentered — по README td_sky), проверки weather/goal перезапущены — зелёные. Не выполнены два прямых указания координатора: градиенты Tx/DTR из HH-1e и таблицы до/после и замеры в отчёте.",
+  "issues": [
+    {
+      "file": "configs/weather_model.json",
+      "line": 32,
+      "severity": "major",
+      "what": "tx_gradient_k_per_km = -6.0 и dtr_gradient_k_per_km = 0.0 с _doc «HH-1e не принесён». Координатор в 14:40 дал источник (git show haze-humidity/HH-1e:tools/research/haze_humidity/surface_t/gradient.json; там tx land_global year pooled -6.27, есть сезоны и пояс 30–60N) и значения -6.3 / -0.5. Отчёт (14:43) повторяет устаревшее «uncertain».",
+      "fix": "Взять градиенты из gradient.json HH-1e (-6.3/-0.5 или по поясам/сезонам, как g_td), переписать _doc с источником; убрать пункт из uncertain."
+    },
+    {
+      "file": "report HH-4",
+      "line": 0,
+      "severity": "major",
+      "what": "Отчёт ≠ требованиям карточки: нет таблицы до/после для Алтая 15 июля по эталонам (Td, кромка над землёй, z_dry, margin, сила термиков), нет чисел для Крыма/Дараба/Кэрнса июль/январь, нет замеров времени загрузки 4 сеток и одного place() (тест speed печатает число, но в отчёт оно не попало). В extra только td_altai_july_climate_c и old_table_td_july_c.",
+      "fix": "Добавить в отчёт (extra/summary) таблицы и замеры, как в дополнении координатора 14:06."
+    },
+    {
+      "file": "scripts/atmosphere/climate_grid.gd",
+      "line": 133,
+      "severity": "minor",
+      "what": "Граница модели: пока нет HH5, tx_c = typical_max_c (таблица Алтая) для любой точки мира, и член β·(T_max − tx_c) в Td дня для Крыма/Дараба/Кэрнса считается от алтайского Tmax (январь Кэрнса: β·(30 − (−14))). Td обрезается ≤ T, но смещение может быть большим.",
+      "fix": "Назвать границу в отчёте числами (Кэрнс/Дараб, январь/июль), либо при src.hh5 = none брать β-член = 0 (тогда Td = климат + μσ + rρσ) — решить с координатором."
+    },
+    {
+      "file": "configs/weather_model.json",
+      "line": 36,
+      "severity": "minor",
+      "what": "td_sd_fallback_k = 4.6, в карточке указано 2.5. Обоснование в _doc есть (среднее по суше ERA5), но отклонение от указания в отчёте не названо.",
+      "fix": "Либо 2.5 по карточке, либо явно указать отклонение в отчёте (uncertain) для решения координатора."
+    },
+    {
+      "file": "tests/atmosphere/test_weather_model.gd",
+      "line": 15,
+      "severity": "minor",
+      "what": "Комментарии расходятся с фактом: здесь «Td июля ≈ 11 °C», в tests/goals/test_goal_estimator.gd:123 «≈ 13 °C», в отчёте td_altai_july_climate_c = 14.3; фраза «на 2 °C (средний) и на 2 °C (сильный: +33) жарче/прохладнее» невнятна (средний прохладнее, сильный жарче).",
+      "fix": "Одно число Td июля Алтая (с поправкой на высоту долины) из ClimateGrid.place в обоих комментариях; переписать фразу про сдвиг эталонов."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "weather (accept --only weather --dry)",
+      "value": "18/18, scope 9 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "goal (accept --only goal --dry)",
+      "value": "103/103",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-22T14:48:07",
+  "by": "reviewer"
+}
