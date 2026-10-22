@@ -65,7 +65,9 @@ common_save,Сохранить,Save
 result_total_climb,Суммарный набор высоты: %.0f м,Total climb: %.0f m
 site_altai_tugaya_south,Тугая (Горно-Алтайск) — южный склон,Tugaya (Gorno-Altaysk) — south slope
 menu_controls,Управление,Controls
-settings_mouse_sensitivity,Чувствительность мыши,Mouse sensitivity
+settings_mouse_sensitivity,Обзор мышью,Mouse look
+settings_bar_sensitivity,Чувствительность штанги,Bar sensitivity
+settings_bar_sensitivity_fmt,"%.2f×  ≈ %.1f см (800 DPI)","%.2f×  ≈ %.1f cm (800 DPI)"
 map_hint,"Щёлкните по карте или введите координаты. Старт — в выбранной точке; точнее — «Выбрать старт на рельефе» в главном меню.","Click the map or enter coordinates. The launch is at the chosen point; for a precise spot use "Pick launch on terrain" in the main menu."
 unit_db,дБ,dB
 unit_kg,кг,kg
