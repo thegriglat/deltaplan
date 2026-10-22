@@ -257,6 +257,7 @@ catch_up_landed,на земле,landed
 catch_up_air,в воздухе,flying
 catch_up_bot,бот,bot
 controls_catch_up,"Сетевая игра: меню «Догнать» — выбрать пилота, и крыло само долетит к нему","Online: the «Catch up» menu — pick a pilot and the wing flies you to them"
+controls_tow_release,Отцеп при буксировке (лебёдка): трос снимается и вы летите свободно,Release while winch-towed: the rope drops away and you fly free
 tab_ahead,вперёд,ahead
 tab_not_circling,нет кружения,not circling
 tab_circle_avg,СРЕДНЕЕ КРУГ,CIRCLE AVG

@@ -34,6 +34,8 @@ var telemetry_fn: Callable
 var roll_mode := "pendulum"
 ## Разбег заблокирован (сеть, очередь на старт NET-43: не первый в очереди): Shift не бежит.
 var run_blocked := false
+## Разбег нажат кнопкой геймпада (не Shift): старт буксировки на джойстике (TW-10).
+var pad_run := false
 ## Направление крена (PV1): "bar" — устройство двигает трапецию (вправо = крен влево),
 ## "body" — тело (вправо = крен вправо). Только в полёте в weight_shift.
 var roll_input := "body"
@@ -134,6 +136,7 @@ func reset() -> void:
 
 ## Вызывать каждый шаг физики.
 func update(dt: float) -> ControlInput:
+	pad_run = false
 	control.weight_shift = weight_shift()
 	if not enabled or hands_off:
 		control.pitch = 0.0
@@ -266,6 +269,7 @@ func _apply_gamepad() -> void:
 		control.pull_full = true
 	if on_ground and not run_blocked and Input.is_joy_button_pressed(dev, int(gp.run_button)):
 		control.run = true
+		pad_run = true
 		control.walk = 0.0
 		control.turn = 0.0
 

@@ -53,6 +53,8 @@ var _n_air := 0
 ## Доля ботов в воздухе на старте полёта; < 0 — из bots.json → airborne.share (opts.airborne_share).
 var _air_share := -1.0
 var _names_seed := 0
+## Буксирное место (TW-10): {agl_m, ahead_m: [от, до], lateral_m} — боты стартуют в воздухе над полосой на высоте отцепа.
+var _tow_air := {}
 ## Камни, кусты и деревья у старта, собранные заранее (prefetch_obstacles): {start: Vector2, list} или {}.
 var _pre_obstacles := {}
 ## Вид ботов строится порциями (setup_in_world_async): следующий бот без вида.
@@ -80,6 +82,9 @@ func setup(opts: Dictionary) -> void:
 	_start = opts.get("start", Vector3.ZERO)
 	_heading = float(opts.get("heading_deg", 0.0))
 	_air_share = float(opts.get("airborne_share", -1.0))
+	_tow_air = opts.get("tow_air", {})
+	if not _tow_air.is_empty():
+		_air_share = 1.0  # буксирное место: все боты уже отцепились и летают (Q1)
 	var count := int(opts.get("count", -1))
 	if count < 0:
 		count = int(_cfg.get("count", 4))
@@ -204,7 +209,8 @@ func setup_in_world_async(
 	heading_deg: float,
 	count: int = -1,
 	objects: Node = null,
-	budget_ms: float = 50.0
+	budget_ms: float = 50.0,
+	tow_air: Dictionary = {}
 ) -> void:
 	if _pre_obstacles.is_empty() or Vector2(_pre_obstacles.start) != Vector2(start.x, start.z):
 		await prefetch_obstacles(terrain, start, budget_ms)
@@ -216,6 +222,8 @@ func setup_in_world_async(
 		"count": count,
 		"defer_visuals": true,
 	}
+	if not tow_air.is_empty():
+		opts.tow_air = tow_air
 	if air.has_method("get_cloudbase_msl"):
 		opts.cloudbase_msl = float(air.call("get_cloudbase_msl"))
 	if air is Atmosphere:
@@ -406,6 +414,10 @@ func _start_airborne() -> void:
 	var ahead: Array = ac.get("ahead_m", [250.0, 700.0])
 	var agl: Array = ac.get("agl_m", [200.0, 450.0])
 	var lat := float(ac.get("lateral_m", 300.0))
+	if not _tow_air.is_empty():
+		ahead = _tow_air.ahead_m
+		agl = [_tow_air.agl_m, _tow_air.agl_m]
+		lat = float(_tow_air.lateral_m)
 	for i in _n_air:
 		var p := (
 			_start
