@@ -77,7 +77,22 @@ func test_trike_in_game() -> void:
 	if game.trike_gauges != null:
 		var ang := game.trike_gauges.rpm_needle.rotation_degrees.z
 		var sc: Dictionary = game.trike_gauges._sc
-		check(absf(ang) >= 0.0, "стрелка считана")
+		var rr: Dictionary = sc["rpm"]
+		var want_ang := GaugeDial.needle_angle_deg(g.engine.engine_rpm, 0.0, float(rr["max_rpm"]),
+			float(rr.get("angle_min_deg", 135.0)), float(rr.get("angle_max_deg", -135.0)))
+		check(g.engine.engine_rpm > 100.0 and absf(ang - want_ang) <= 0.5, "стрелка = engine_rpm по шкале: %f против %f" % [ang, want_ang])
+		# каждый кадр: сбить стрелку - tick вернёт
+		game.trike_gauges.rpm_needle.rotation_degrees.z = 1234.0
+		game.tick(DT)
+		check(absf(game.trike_gauges.rpm_needle.rotation_degrees.z - 1234.0) > 1.0, "update_readout доходит до прибора каждый кадр")
+		# пауза гасит звук двигателя, снятие паузы возвращает
+		game.set_paused(true)
+		check(not tv.sound.playing, "пауза: звук двигателя молчит")
+		g._process(0.0)
+		check(not tv.sound.playing, "пауза: звук не оживает по кадрам")
+		game.set_paused(false)
+		g._process(0.0)
+		check(tv.sound.playing, "снятие паузы: звук двигателя вернулся")
 		check(sc.has("tank_l"), "шкалы прибора")
 	# HUD: chase виден, cockpit скрыт
 	game.camera.set_mode("chase")
