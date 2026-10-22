@@ -92,6 +92,14 @@ related: ["docs/contracts/trike-pilot.md", "docs/plan/trike.md", "docs/contracts
 - Хвосты волны 1 (2026-10-22): TP-4 — шкалы тахометра/бака взяты из `configs/instruments.json → trike_gauges`; после TP-1 — читать `configs/trike_pilot.json` (TP-8). TP-3 — `InputController._apply_look_keys` правит общий `InputMap`, поздний `register_actions` в `"trike"` вернёт W/S во взгляд (TP-8, камера); Shift на земле в `"trike"` — и `brake`, и `pull_full` (решить с Q2); в тесте TP-К3 нет проверки версии.
 - После sync 2026-10-23 (tow-trike в main 5364df0e): контракты TP-К6 (`TrikeRig` из `TowTug`, `Glider.setup_trike/reset_on_wheels`, старт в `Game`), TP-К7 (руление, тормоз, посадка на колёса без аварии; числа — блок `wheels` TP-К1 v3). Волна: TP-6 ∥ TP-7 → TP-8 (вид, камера, приборы; контракт TP-К8 по API TP-6) → TP-9 (звук) → TP-10. Открытое из tow-trike — рывок крыла 0,177 м/с при смене штанги на колёсах — проверка (8) TP-К7.
 
+#### TP-6 Дельталёт игрока в игре
+`dp-engineer` (sonnet). Контракт TP-К6 (+ TP-К2, TP-К3, TP-К5). Приёмка: тесты `trike_pilot`, `tow`, `start_`, `game` — 0 упало
+(кроме известных падений main); проверка (4) TP-К6 — числа в отчёте.
+
+#### TP-7 Колёса: руление, тормоз, посадка без аварии
+`dp-engineer` (sonnet), ревью `dp-reviewer` (физика). Контракт TP-К7, TP-К1 v3 (блок `wheels`). Приёмка: тесты
+`trike_pilot`, `tow_trike`, `tow`, `pendulum`, `flight` — 0 упало (кроме известных падений main).
+
 ## 5. Волны
 1. TP-1, TP-2, TP-3, TP-4 параллельно (разные файлы).
 2. TP-5 по освобождению места; TP-11, TP-12 — по ответам Q1–Q3.
