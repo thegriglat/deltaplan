@@ -35,6 +35,7 @@ var _tension := 0.0
 var _away_t := 0.0
 var _away_dh := 0.0  # рад, уже довернуто в away
 var _bank := 0.0
+var _away_ground := false  # отцеп на разбеге: Ан-2 ещё на земле, продолжает разгон
 
 
 func setup(
@@ -55,6 +56,7 @@ func setup(
 	_away_t = 0.0
 	_away_dh = 0.0
 	_bank = 0.0
+	_away_ground = false
 	_update_basis()
 
 
@@ -69,6 +71,8 @@ func set_rope_tension(n: float) -> void:
 
 func release() -> void:
 	if phase != "away":
+		# На разбеге (idle/slack/roll) буксировщик не прыгает в крейсер: продолжает с текущих pos/vel.
+		_away_ground = phase in ["idle", "slack", "roll"]
 		phase = "away"
 		_away_t = 0.0
 		_away_dh = 0.0
@@ -147,6 +151,15 @@ func _move_air(dt: float, omega: float) -> void:
 
 
 func _step_away(dt: float, v_tow: float) -> void:
+	if _away_ground:
+		# Разбег продолжается с тем же ускорением; на v_tow - отрыв и набор, дальше как обычный away.
+		_speed_h = minf(_speed_h + _f("roll_accel_ms2", 1.2) * dt, v_tow)
+		_vz = 0.0
+		_move_ground(dt)
+		if _speed_h >= v_tow - 1e-6:
+			_away_ground = false
+			_away_t = 0.0
+		return
 	_away_t += dt
 	var turn := deg_to_rad(_f("away_turn_deg", 30.0))
 	var turn_s := maxf(_f("away_turn_s", 4.0), 0.1)
@@ -157,7 +170,7 @@ func _step_away(dt: float, v_tow: float) -> void:
 		_away_dh += d
 		omega = -d / dt  # влево
 	_speed_h = v_tow
-	_vz = -_f("away_descent_ms", 2.0)
+	_vz = -_f("away_descent_ms", 2.0) if agl_m > 0.0 or vel.y < 0.0 else _f("climb_rate_ms", 2.5)
 	_move_air(dt, omega)
 	if is_zero_approx(agl_m):
 		_vz = 0.0

@@ -78,3 +78,21 @@ func test_circuit_and_away() -> void:
 	check(not t.gone, "ещё не убран")
 	_run(t, 15.0, 50.0, 0.0)
 	check(t.gone, "gone после away_s")
+
+
+func test_release_on_roll_no_jump() -> void:
+	var t := _tug(90.0)
+	t.start()
+	_run(t, 0.1, 0.0, 5.0)
+	var worst := _run(t, 5.0, 0.0, 50.0)
+	check(t.phase == "roll", "roll")
+	var v0 := t.vel.length()
+	t.release()
+	check(t.phase == "away", "release на разбеге - away")
+	worst = maxf(worst, _run(t, 1.0, 0.0, 0.0))
+	check(t.vel.length() < v0 + 1.3, "скорость не скачет: %f -> %f" % [v0, t.vel.length()])
+	worst = maxf(worst, _run(t, 20.0, 0.0, 0.0))
+	check(worst <= 0.01, "траектория непрерывна, избыток %f м" % worst)
+	check(t.agl_m > 0.0 or t.gone, "разбег закончился взлётом")
+	_run(t, 20.0, 0.0, 0.0)
+	check(t.gone, "gone после отрыва")
