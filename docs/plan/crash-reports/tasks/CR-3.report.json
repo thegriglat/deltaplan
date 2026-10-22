@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Группа C (#3): «sea» — штатный возврат start()=false, не причина вылета; в 1.5.15 проба моря шла по центру ячейки (ложное «море»), исправлено в main (FL-3, 7f0cc805). Сам обрыв на стадии trees не установлен (гипотеза: нативный сбой/потеря устройства на RTX 5060 Laptop); на Linux/4070 загрузка точки с деревьями проходит.",
+  "commits": [
+    "CR-3: диагноз вылета группы C (#3, 1.5.15, стадия trees)"
+  ],
+  "checks": [
+    {
+      "name": "sections",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "privacy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "нет ошибок crash-reports",
+      "pass": true
+    },
+    {
+      "name": "repro Linux 4070 (точка пилота, current code)",
+      "value": "load ok, trees+grass, 111 с",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Обрыв не воспроизведён (нужны Windows/RTX 5060 Laptop); прогон на v1.5.15 и путь sea в игре не запускались (ограничение нагрузки)."
+  ],
+  "questions": [
+    "Есть ли у пилота #3 новые отчёты на версии с [stage]-строками (003d7d62)?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CR-3",
+  "uncertain": [
+    {
+      "where": "docs/research/crash-reports/cr-3.md#Причина",
+      "why": "Причина обрыва на trees — гипотеза; ложное «море» — вероятно",
+      "checked": "код v1.5.15 и main, лог буферизован (flush только на ошибках), repro на Linux не падает"
+    }
+  ],
+  "dp_feedback": "Для docs check у README.md в tools/ нужен frontmatter — неочевидно; summary ≤140 знаков узнаётся только после check.",
+  "t": "2026-10-23T03:33:02",
+  "by": "executor"
+}
