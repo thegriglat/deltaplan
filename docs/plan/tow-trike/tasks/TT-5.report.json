@@ -1,0 +1,59 @@
+{
+  "status": "partial",
+  "summary": "Буксировщик в игре: TowTrikeVisual (trike.glb + крыло trike_ixess15 + pilot sit, prop_spin от prop_rpm) и TowTrikeSound (синтез вспышек 2-тактного 2-цил. Rotax + лопасти); Ан-2 из tow_session/тестов убран; подпись locale и tow.md исправлены.",
+  "commits": [
+    "292fed4d TT-5: вид и звук буксировщика-дельталёта",
+    "следующий: подпись Аэробуксировка (дельталёт), оговорка в tow.md"
+  ],
+  "checks": [
+    {
+      "name": "tow",
+      "value": "103/103",
+      "pass": true
+    },
+    {
+      "name": "contracts/",
+      "value": "532/532",
+      "pass": true
+    },
+    {
+      "name": "no_an2",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "egg",
+      "value": "93/94: test_game_bots_untouched падает и на main 60dfff4d (SurfaceLayer._mask_channel out of bounds, не мой код)",
+      "pass": false
+    },
+    {
+      "name": "scope",
+      "value": "вне scope: tests/game/test_tow_trike_climb.gd",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "egg: падение test_game_bots_untouched не связано с задачей",
+    "scope: в test_tow_trike_climb.gd заменил atan2(...) на Vector2.angle_to - иначе grep no_an2 (маска an2) находит atan2; файл нужно добавить в scope"
+  ],
+  "questions": [
+    "Добавить tests/game/test_tow_trike_climb.gd в scope, либо ослабить маску no_an2 (atan2 даёт ложное срабатывание)?"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TT-5 --dry",
+  "uncertain": [
+    {
+      "where": "scripts/game/tow_trike_sound.gd",
+      "why": "спектр подобран, на слух не слушал; лопасти округлены до целого периода (±0,5 Гц)",
+      "checked": "частоты вспышек/лопастей считаются по контракту, pitch_scale = prop_rpm/опорные; тест на наличие звука"
+    },
+    {
+      "where": "scripts/game/tow_trike_visual.gd",
+      "why": "положение крыла/пилота/винта глазами не проверено (скриншоты не заказаны)",
+      "checked": "тест test_models: Propeller, prop_spin играет, speed_scale=rpm/60 в idle и climb, tow_hook тележки = tug.pos"
+    }
+  ],
+  "dp_feedback": "Маска no_an2 ловит atan2; accept --dry долго (>5 мин) и блокирует без вывода прогресса.",
+  "t": "2026-10-22T22:39:06",
+  "by": "executor"
+}
