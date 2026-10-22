@@ -20,10 +20,13 @@ var _wing_hang := Vector3.ZERO  ## HangPoint крыла в осях корня �
 
 
 func setup(engine_cfg: Dictionary, with_sound := true) -> void:
+	# TP-16: металл труб/тросов/фитингов — те же процедурные шейдеры, что у крыльев игры (flight.json → visual.metal)
+	var metal_cfg: Dictionary = Config.value("flight", "visual.metal", {})
 	cart = _load(CART)
 	if cart != null:
 		cart.name = "Cart"
 		add_child(cart)
+		FrameMetal.apply(cart, metal_cfg)
 		for ap: AnimationPlayer in cart.find_children("*", "AnimationPlayer", true, false):
 			if ap.has_animation("prop_spin"):
 				prop_anim = ap
@@ -50,6 +53,7 @@ func setup(engine_cfg: Dictionary, with_sound := true) -> void:
 	if wing != null:
 		wing.name = "Wing"
 		add_child(wing)
+		FrameMetal.apply(wing, metal_cfg)
 		var hp := wing.find_child("HangPoint", true, false) as Node3D
 		if hp != null:
 			_wing_hang = _relative(wing, hp)
