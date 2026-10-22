@@ -4,7 +4,9 @@
   "commits": [
     "35bb3e31 Слияние feature/crash-reports (CR-12); перед ним c07513f5 доработка v4 и f1c9bfdd первая часть",
     "f6ee5e46 доработка по ревью",
-    "a6dc460d метка сеанса без токена"
+    "a6dc460d метка сеанса без токена",
+    "689d42ba доработка-2",
+    "933aaf72 доработка-2; 689d42ba слияние CR-13 и refresh_switches"
   ],
   "checks": [
     {
@@ -59,11 +61,11 @@
     },
     {
       "where": "scenes/main.gd:_enter_tree, scripts/game/render_driver.gd:previous_crash",
-      "why": "п.3 ревью закрыт без правки crash_reporter.gd: своя метка user://gpu_session.json (pid, стадия из session.lock раз в секунду, удаляется в _exit_tree), обрыв = метка осталась и процесс мёртв. Граница: без session.lock (не экспортная сборка) стадия всегда «меню» — окно на любой обрыв; стадия обновляется раз в секунду; kill во время нормального выхода неотличим от обрыва. Окно от отправки отчёта не зависит: метка и PENDING читаются в _enter_tree",
-      "checked": "test_session_marker_detects_crash_without_token; в окне Windows не проверялось"
+      "why": "п.3 ревью закрыт без правки crash_reporter.gd: своя метка user://gpu_session.json (pid, время; удаляется в _exit_tree), обрыв = метка осталась и процесс мёртв; стадия — последняя строка «[stage]» журнала прошлого сеанса (пишет CrashReporter только в экспортной сборке с окном; иначе «меню» — окно на любой обрыв). macOS: живость через kill -0, на Mac не проверялось. kill при штатном выходе неотличим от обрыва",
+      "checked": "test_session_marker_detects_crash_without_token, test_last_logged_stage"
     }
   ],
   "dp_feedback": "Хук check_gd проверяет все файлы слияния, чужая ошибка блокирует коммит слияния; git checkout -- project.godot стирает правку, когда project.godot в scope.",
-  "t": "2026-10-23T04:46:54",
+  "t": "2026-10-23T04:56:48",
   "by": "executor"
 }
