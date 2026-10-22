@@ -52,7 +52,7 @@ related: ["docs/guide/game/cameras-input.md", "docs/guide/game/launch.md", "docs
 | `scripts/game/favorites.gd`, `recent_places.gd`, `wing_catalog.gd` | избранное, недавние места, каталог крыльев меню |
 | `scripts/game/achievement_feed.gd` (`AchievementFeed`) | поток событий полёта для ачивок (`docs/guide/steam.md`) |
 | `scripts/game/bot_*.gd`, `wander_pilot.gd` | другие пилоты в небе (часть bots.md) |
-| `scripts/game/tow_session.gd`, `tow_tug.gd`, `tow_site.gd` | буксировка: лебёдка, Ан-2, полоса (часть [flight/tow.md](flight/tow.md)) |
+| `scripts/game/tow_session.gd`, `tow_tug.gd`, `tow_site.gd` | буксировка: лебёдка, дельталёт-буксировщик, полоса (часть [flight/tow.md](flight/tow.md)) |
 | `scripts/game/net_flight.gd`, `net_queue.gd`, `net_bots.gd`, `remote_pilots.gd`, `catch_up_tow.gd` | сетевой полёт (часть network.md) |
 | `scripts/game/debug_overlays.gd`, `fkey_hint.gd` | отладочные слои F1/F5/F6 и подсказка клавиш |
 | `scripts/ui/*.gd`, `scenes/ui/*.tscn` | меню, пауза, настройки, «Об игре», итог, сеть, загрузка; `UiKit` — вёрстка; `AssetsCredits` — атрибуция из `ASSETS.md` |

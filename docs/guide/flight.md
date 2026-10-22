@@ -64,7 +64,7 @@ related: ["docs/guide/flight/model.md", "docs/guide/flight/wings.md", "docs/guid
 | [flight/ground-pose.md](flight/ground-pose.md) | Поза крыла на земле (зазор над рельефом); Крыло стоя на старте (тангаж, флюгер, касания до перехода в лётное положение); Старт в сильный ветер |
 | [flight/sky-shade.md](flight/sky-shade.md) | Тень от неба под крылом (физика, параметры, реализация) |
 | [flight/pendulum.md](flight/pendulum.md) | Маятник: модель, включение, ввод, вкладка «Аппарат», земля, срыв и штопор, ленточки, камера, учтённое, границы |
-| [flight/tow.md](flight/tow.md) | Буксировка: виды и выбор, трос (звено XPBD), лебёдка, аэробуксировка за Ан-2 с тележки, отцеп, место, учтённое и границы |
+| [flight/tow.md](flight/tow.md) | Буксировка: виды и выбор, трос (звено XPBD), лебёдка, аэробуксировка за дельталётом с тележки, отцеп, место, учтённое и границы |
 
 Смежное: ленточки на тросах — [telltale.md](telltale.md); приборы и звук — [instruments.md](instruments.md); вывод движения
 на платформу — [motion-rig.md](motion-rig.md); модели крыльев и пилота — [models.md](models.md).
