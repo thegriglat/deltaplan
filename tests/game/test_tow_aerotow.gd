@@ -1,5 +1,5 @@
 extends Node
-## Аэробуксировка в игре (TW-10b; docs/contracts/tow.md → TW-К5/К9/К10): TowSession kind "aerotow" на Glider
+## Аэробуксировка в игре (TW-10b; docs/contracts/tow.md → TW-К5/К10, tow-trike.md → TT-К4): TowSession kind "aerotow" на Glider
 ## («Маятник», крыло sport, шаг 1/120 с, синтетическая ровная земля y = 0, без сети): пилот на тележке, Ан-2 впереди
 ## на длину троса, W, отрыв раньше буксировщика, набор, отцеп. Пилот-испытатель держит скорость (SpeedHold).
 
@@ -77,7 +77,7 @@ func test_idle_before_w() -> void:
 	check(r.g.phase() == "dolly" and r.g.dolly_attached(), "пилот на тележке: %s" % r.g.phase())
 	var x0: Vector3 = r.g.model.pilot_position
 	var tug0 := r.s.tug.pos
-	check(tug0.distance_to(Vector3(0.0, 1.5, -80.0)) < 0.01, "Ан-2 в 80 м впереди старта: %s" % tug0)
+	check(Vector2(tug0.x, tug0.z + 80.0).length() < 0.05 and tug0.y > 0.3 and tug0.y < 1.2, "буксировщик (tow_hook) в 80 м впереди старта: %s" % tug0)
 	for i in int(10.0 / DT):
 		r.step()
 	check(r.tmax == 0.0 and r.s.line.tension_n == 0.0, "до W натяжение 0: %.1f Н" % r.tmax)
@@ -147,7 +147,7 @@ func test_release_on_dolly_and_reset() -> void:
 	check(r.g.phase() == "dolly" and r.g.dolly_vel().length() < 0.01, "отцеп на тележке: стоит, %s" % r.g.phase())
 	r.s.reset()
 	check(r.g.phase() == "dolly" and r.s.tug.phase == "idle" and r.s.is_attached() and r.s.line.phase == "idle", "reset: всё снова лежит")
-	check(r.s.tug.pos.distance_to(Vector3(0.0, 1.5, -80.0)) < 0.01, "Ан-2 вернулся: %s" % r.s.tug.pos)
+	check(Vector2(r.s.tug.pos.x, r.s.tug.pos.z + 80.0).length() < 0.05, "буксировщик вернулся: %s" % r.s.tug.pos)
 	r.dispose()
 
 

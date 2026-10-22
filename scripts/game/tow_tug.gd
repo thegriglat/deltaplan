@@ -70,6 +70,10 @@ func setup(
 	}
 	model = PendulumModel.new()
 	model.setup(wing, pilot, {}, app)
+	# ход штанги в треугольнике тележки (TT-8, trapeze.json): штатные 0,3 / 0,45 м не помещаются
+	model.arms.shift_x_push = float(cart.arms_shift_push_m)
+	model.arms.shift_x_pull = float(cart.arms_shift_pull_m)
+	model.arms.shift_x_pull_full = float(cart.arms_shift_pull_m)
 	var h := deg_to_rad(heading_deg)
 	_heading_ref = h
 	_hdg_tgt = h
@@ -93,7 +97,7 @@ func setup(
 	airspeed_ms = 0.0
 	_rope_force = Vector3.ZERO
 	_thrust_n = 0.0
-	_bar_i = float(_ap("bar_i_init"))
+	_bar_i = float(_ap("bar_i_init_m"))
 	_thr_i = 0.0
 	_vz_f = 0.0
 	_away_t = 0.0
@@ -146,14 +150,14 @@ func step(dt: float, glider_height_agl_m: float) -> void:
 			if lifted:
 				_thr_cmd = 1.0
 			else:
-				_thr_cmd = _speed_throttle(float(tow.rotate_speed_kmh) / 3.6 * float(_ap("roll_hold_frac")), airspeed_ms, dt)
+				_thr_cmd = _speed_throttle(float(tow.rotate_speed_kmh) / 3.6 * float(_ap("roll_hold_frac")), airspeed_ms + float(_ap("roll_hold_lead_s")) * _vdot_f, dt, "roll_hold")
 			if lifted and airspeed_ms >= float(tow.rotate_speed_kmh) / 3.6:
 				_rotating = true
 			ctl.pitch = float(_ap("rotate_bar")) if _rotating else 0.0
 			if in_air:
 				phase = "climb"
 				_hdg_tgt = _heading_ref
-				_bar_i = float(_ap("bar_i_init"))
+				_bar_i = float(_ap("bar_i_init_m"))
 		"climb", "circuit":
 			if phase == "climb" and agl_m >= float(tow.circuit_start_agl_m):
 				phase = "circuit"
@@ -171,7 +175,7 @@ func step(dt: float, glider_height_agl_m: float) -> void:
 			if _away_t >= float(aw.away_s):
 				gone = true
 	# газ - с ограничением скорости изменения
-	var rate := float(_ap("throttle_rate_per_s")) * dt
+	var rate := (float(_ap("throttle_rate_per_s")) if in_air else float(_ap("throttle_rate_ground_per_s"))) * dt
 	throttle = clampf(clampf(_thr_cmd, throttle - rate, throttle + rate), 0.0, 1.0)
 	if in_air:
 		ctl.roll = _roll_cmd(phase)
@@ -180,12 +184,18 @@ func step(dt: float, glider_height_agl_m: float) -> void:
 	_refresh(dt)
 
 
-## ПИ по воздушной скорости -> тангаж штанги: скорость ниже цели -> штанга на себя (pitch < 0).
+## ПИД по воздушной скорости -> ход штанги u (м от нуля ввода, + от себя), далее в pitch ControlInput: ход вперёд и
+## назад в треугольнике тележки разный (arms_shift_push_m / arms_shift_pull_m), поэтому pitch = u / соответствующий ход.
+## Скорость ниже цели -> штанга на себя (u < 0). D-составляющая по ускорению скорости демпфирует фугоиду (без неё обмен
+## скорости на высоту не затухает).
 func _bar(v_tow: float, dt: float) -> float:
 	var e := airspeed_ms - v_tow
-	_bar_i = clampf(_bar_i + float(_ap("bar_ki")) * e * dt, float(_ap("bar_min")), float(_ap("bar_max")))
-	# D-составляющая по ускорению скорости демпфирует фугоиду (без неё обмен скорости на высоту не затухает)
-	return clampf(_bar_i + float(_ap("bar_kp")) * e + float(_ap("bar_kd")) * _vdot_f, float(_ap("bar_min")), float(_ap("bar_max")))
+	var u_min := float(_ap("bar_min_m"))
+	var u_max := float(_ap("bar_max_m"))
+	_bar_i = clampf(_bar_i + float(_ap("bar_ki")) * e * dt, u_min, u_max)
+	var u := clampf(_bar_i + float(_ap("bar_kp")) * e + float(_ap("bar_kd")) * _vdot_f, u_min, u_max)
+	var cart: Dictionary = _cfg.cart
+	return clampf(u / float(cart.arms_shift_push_m) if u >= 0.0 else u / float(cart.arms_shift_pull_m), -1.0, 1.0)
 
 
 ## Газ в наборе: до power_reduce_agl_m полный, выше - ПИ так, чтобы вертикальная скорость не превышала climb_limit_ms.
@@ -201,10 +211,10 @@ func _climb_throttle(dt: float) -> float:
 
 
 ## Газ для скорости по земле (выбор слабины): ПИ.
-func _speed_throttle(v_goal: float, v: float, dt: float) -> float:
+func _speed_throttle(v_goal: float, v: float, dt: float, gains := "slack") -> float:
 	var e := v_goal - v
-	_thr_i = clampf(_thr_i + float(_ap("slack_ki")) * e * dt, 0.0, 1.0)
-	return clampf(_thr_i + float(_ap("slack_kp")) * e, 0.0, 1.0)
+	_thr_i = clampf(_thr_i + float(_ap(gains + "_ki")) * e * dt, 0.0, 1.0)
+	return clampf(_thr_i + float(_ap(gains + "_kp")) * e, 0.0, 1.0)
 
 
 ## ПД по крену: цель - от ошибки курса (climb, away), в circuit - circuit_bank_deg влево.
