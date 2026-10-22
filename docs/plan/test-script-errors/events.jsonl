@@ -7,3 +7,4 @@
 {"t": "2026-10-22T14:57:59", "by": "coordinator", "task": "TSE-1", "ev": "checked", "note": "1/1 test_run_tests_script_error=ok:1/1"}
 {"t": "2026-10-22T14:58:48", "by": "reviewer", "task": "TSE-1", "ev": "reviewed", "note": "Logger (OS.add_logger) ловит ERROR_TYPE_SCRIPT в окне take()…take() вокруг вызова теста (после await), тест падает, код 1. Фикстура вне обычного поиска (имя бе…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/test-script-errors/tasks/TSE-1.review.json"}
 {"t": "2026-10-22T14:58:59", "by": "main", "task": "TSE-1", "ev": "accepted", "commits": ["097d2c56"], "note": "review accept (2 minor)"}
+{"t": "2026-10-22T14:59:00", "by": "main", "task": "TSE-1", "ev": "merged", "commits": ["a3dc44c7"]}
