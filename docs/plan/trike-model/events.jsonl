@@ -254,3 +254,4 @@
 {"t": "2026-10-22T15:55:36", "by": "coordinator", "task": "TK-5", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-22T15:55:37", "by": "coordinator", "task": "TK-5", "ev": "accepted", "commits": ["6607bc9c"], "note": "4/4 docs=ok:exit 0; guide=ok:trike.md:4; sit=ok:2; assets=ok:1"}
 {"t": "2026-10-22T15:55:37", "by": "coordinator", "task": "TK-5", "ev": "merged"}
+{"t": "2026-10-22T15:55:50", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: task show обрезает дополнения (нужен --full, жалобы всех исполнителей); r-<ID>.json в корне копии валит scope в accept — стоит игнорировать; task sync отказывает при грязной копии из-за пересобранных glb/blend; accept --dry без вывода > 120 с и висит без .godot (нужна подсказка про --import); plan edit --replace по заголовку раздела не находит строку заголовка; haiku-механик дважды не выполнил дополнение из inbox. Состояние: TK-1…TK-18 приняты и влиты, ждём Q4 (кадры v4 перед сдачей)."}
