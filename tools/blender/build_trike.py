@@ -105,6 +105,18 @@ EZ = GZ + D["prop_axis_height"]                                  # высота 
 ALPHA = math.radians(D["prop_tilt_deg"])                         # ось винта носом вверх
 
 
+def panel_back() -> Vector:
+    """Центр тыла панели — точка на оси переднего подкоса (крепление)."""
+    pn = P["panel"]
+    return V(pn["center"]) - V(pn["normal"]).normalized() * 0.015
+
+
+PB = panel_back()
+_dir = (PB - V((0, 0, -0.03))).normalized()
+STRUT_CORNER = PB + _dir * 0.35                                  # fillet(d = 0.35) начинается ровно в тыле панели
+RZ = KZ - RK + 0.60                                              # подмоторная рама — на 0.60 м над низом киля
+
+
 def mast_y(z: float) -> float:
     """y оси мачты на высоте z."""
     return MAST_BASE.y * z / KZ
@@ -388,8 +400,8 @@ def panel(mb, lod: int) -> None:
         r = 0.045 if k != 1 else 0.038
         q = c + n * 0.017 + rot @ V((dx, 0, 0))
         mb.add_tube([q, q + n * 0.006], r, "Lamp" if k == 1 else "Fitting", sides=8)
-    for sx in (-1, 1):
-        mb.add_tube([c - n * 0.015 + rot @ V((sx * w * 0.3, 0, 0)), V((sx * 0.03, 0.71, c.z))], 0.008, "Steel", sides=5)
+    for sx in (-1, 1):                                         # кронштейны от тыла панели к оси подкоса
+        mb.add_tube([c - n * 0.015 + rot @ V((sx * w * 0.3, 0, 0)), PB], 0.008, "Steel", sides=5)
 
 
 def engine_simple(mb, lod: int) -> None:
@@ -404,7 +416,7 @@ def engine_simple(mb, lod: int) -> None:
             mb.add_tube([E(0, a, 0.08), E(0, a, 0.25)], 0.06, "EngSilver", sides=5)
         mb.add_tube([E(-0.15, 0.5, -0.13), E(-0.15, 0.12, -0.13)], 0.05, "Muffler", sides=5)
     # рама под двигателем: полозья на мачту и киль
-    rz = EZ - 0.23
+    rz = RZ
     sdt = (6, 4, 3)[lod]
     for s in (-1, 1):
         x = s * 0.14
@@ -424,11 +436,11 @@ def trike(lod: int, M: dict):
     y_f = Y_R + wb
     zc_f, zc_r = GZ + d_f / 2, GZ + d_r / 2
     # ---- рама ----
-    nose = V((0, 1.0, -2.0))
+    nose = V((0, y_f + 0.14, -2.0))                                  # нос киля/подкоса: над передней осью, на 0.14 м вперёд
     keel = [V((0, -0.98, KZ)), V((0, MAST_BASE.y, KZ)), V((0, 0.7, KZ)), nose]
     mb.add_tube(keel, RK, "Tube", sides=sd)
     mb.add_tube([V((0, 0, 0)), MAST_BASE], RM, "Tube", sides=sd)                              # мачта — одна труба
-    strut = [V((0, 0, -0.03)), V((0, 0.88, -1.55)), nose]                                      # передний подкос с изгибом внизу
+    strut = [V((0, 0, -0.03)), STRUT_CORNER, nose]                                             # передний подкос с изгибом внизу; начало изгиба — в тыле панели
     mb.add_tube(fillet(strut, 0.35, 4 if lod == 0 else 2) if lod < 2 else strut[:1] + strut[2:], RS, "Tube", sides=sd,
                 up=(1, 0, 0))
     main_gear(mb, lod)
@@ -458,9 +470,13 @@ def trike(lod: int, M: dict):
 
 def engine_frame(mb) -> None:
     """Подмоторная рама Trike_LOD0 (полозья, ноги к килю и мачте); сам двигатель — меш Engine_LOD0."""
-    rz = EZ - 0.23
+    rz = RZ
+    rt = Matrix.Rotation(ALPHA, 3, "X")
     for s in (-1, 1):
         x = s * 0.14
+        for a in (0.25, 0.43):                                          # стойки от полозьев к лапам двигателя
+            lug = V((0, HUB_Y, EZ)) + rt @ V((s * 0.12, a, -0.205))
+            mb.add_tube([V((x, lug.y, rz)), lug], RF, "Tube", sides=6)
         mb.add_tube([V((x, HUB_Y + 0.12, rz)), V((x, HUB_Y + 0.56, rz))], RF, "Tube", sides=6)
         mb.add_tube([V((x, HUB_Y + 0.12, rz)), V((0, -0.98, KZ))], RF, "Tube", sides=6)
         mb.add_tube([V((x, HUB_Y + 0.56, rz)), V((0, mast_y(-1.48), -1.48))], RF, "Tube", sides=6)
@@ -518,10 +534,10 @@ def engine() -> "U.MeshBuilder":
          [0.03, re_ * 0.9, re_, re_, re_ * 0.7, re_ * 0.4, re_ * 0.3], "Muffler", 8)
     rm, ml = D["muffler_d"] / 2, D["muffler_l"]
     zm = -0.13 - re_ - rm - 0.03                                      # глушитель под камерой
-    tube(fillet([(-0.15, a_b, -0.13), (-0.15, a_b, zm + 0.04), (-0.15, a_b + 0.07, zm)], 0.05, 2), 0.022, "Steel", 6)
-    tube([(-0.15, a_b, zm), (-0.15, a_b + 0.03, zm), (-0.15, a_b + 0.07, zm), (-0.15, a_b + ml - 0.04, zm),
-          (-0.15, a_b + ml, zm)], [rm * 0.5, rm * 0.9, rm, rm, rm * 0.5], "Muffler", 9)
-    tube([(-0.15, a_b + ml, zm), (-0.15, a_b + ml + 0.07, zm)], 0.022, "Steel", 6)
+    tube(fillet([(-0.15, a_b, -0.13), (-0.15, a_b, zm), (-0.26, a_b + 0.07, zm)], 0.05, 2), 0.022, "Steel", 6)
+    tube([(-0.26, a_b, zm), (-0.26, a_b + 0.03, zm), (-0.26, a_b + 0.07, zm), (-0.26, a_b + ml - 0.04, zm),
+          (-0.26, a_b + ml, zm)], [rm * 0.5, rm * 0.9, rm, rm, rm * 0.5], "Muffler", 9)
+    tube([(-0.26, a_b + ml, zm), (-0.26, a_b + ml + 0.07, zm)], 0.022, "Steel", 6)
     return mb
 
 
@@ -595,7 +611,7 @@ def unwrap(ob) -> None:
     ob.select_set(True)
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.004, scale_to_bounds=False)
+    bpy.ops.uv.smart_project(angle_limit=math.radians(45), island_margin=0.004, scale_to_bounds=False)
     bpy.ops.object.mode_set(mode="OBJECT")
     ob.select_set(False)
 

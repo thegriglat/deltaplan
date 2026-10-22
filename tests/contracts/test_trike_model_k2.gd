@@ -319,6 +319,15 @@ func _check_v3(root: Node, p: Dictionary, nodes: Dictionary) -> void:
 			mhi = maxf(mhi, b.x)
 	var dm := float(dims.tube_mast_d.value)
 	check(mhi > mlo and absf((mhi - mlo) - dm) <= 0.05 * dm, "мачта: диаметр %.4f = %.3f ± 5 %%" % [mhi - mlo, dm])
+	# ниже низа киля — только колёса, их вилка и стойки шасси (по бокам |x| > 0,16 или у переднего колеса)
+	var yf := float(dims.axle_front_y.value)
+	var below := 0
+	var lowest := 0.0
+	for b in bl:
+		if b.z < klo - 0.005 and absf(b.x) <= 0.16 and absf(b.y - yf) > 0.4:
+			below += 1
+			lowest = minf(lowest, b.z)
+	check(below == 0, "ниже низа киля %.3f вне колёс и шасси вершин: %d (до z %.3f)" % [klo, below, lowest])
 	# бак: низ выше верха киля на ≥ keel_clear − 0,5 см
 	var c := _bl(p.tank.center)
 	var hs := Vector3(float(p.tank.size[0]), float(p.tank.size[1]), float(p.tank.size[2])) * 0.5
