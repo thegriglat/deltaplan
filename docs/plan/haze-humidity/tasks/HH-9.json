@@ -1,0 +1,61 @@
+{
+  "id": "HH-9",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Сверка климата Td и T700 с прогнозами Open-Meteo и нормами станций",
+  "goal": "Статистически проверить обработку сеток: для 20–50 мест суши доля дней с |прогноз − климат| < σ (≈ 68 % ожидается) и систематический сдвиг для Td и T700 — по прогнозам на весь горизонт (октябрь–ноябрь) и архиву прогнозов лета; плюс нормы 1–2 метеостанций/радиозондов как независимая сверка. Проверка, не подгонка.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "HH1",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH2",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-9",
+  "branch": "haze-humidity/HH-9",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/verify/"
+  ],
+  "dont_touch": [
+    "data/",
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "tools/research/haze_humidity/dew_point/",
+    "tools/research/haze_humidity/upper_air/",
+    "tools/research/haze_humidity/td_sky/"
+  ],
+  "accept": [
+    {
+      "name": "summary",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/haze_humidity/verify/summary.json'));assert {'places','td','t700','stations'}<=set(d);assert d['places']>=20\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "table",
+      "cmd": "test -f tools/research/haze_humidity/verify/places.csv",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/haze_humidity/verify/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:07:33"
+}
