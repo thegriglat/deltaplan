@@ -189,3 +189,12 @@
 {"t": "2026-10-23T04:35:31", "by": "coordinator", "task": "CR-5", "ev": "accepted", "note": "по ревью (sync/submit не ловится — минор; журнал движка ловит CR-8)"}
 {"t": "2026-10-23T04:35:52", "by": "coordinator", "task": "CR-5", "ev": "merged"}
 {"t": "2026-10-23T04:35:53", "by": "coordinator", "task": "CR-5", "ev": "note", "note": "слито 73b419bf (CHANGELOG — обе строки); известные падения на базе: test_start_air_gpu::test_start_air_surface_layer, test_air_hybrid_gpu::test_hybrid_vs_cold"}
+{"t": "2026-10-23T04:36:41", "by": "executor", "task": "CR-6", "ev": "checked", "note": "2/2 gpu=ok:14/14; tests=ok:8/8 (пропуск 6)"}
+{"t": "2026-10-23T04:36:46", "by": "executor", "task": "CR-6", "ev": "reported", "commits": ["43df6249"], "note": "done: AirRuntime: клипмап прежнего места освобождается при смене места, RuntimeGpu.release дожидается отправленной работы (sy…", "dp_feedback": "accept gpu с жёсткими порогами кадра плавает при загруженной машине; полезен повтор упавших тайминговых тестов или пометка flaky."}
+{"t": "2026-10-23T04:37:03", "by": "executor", "task": "CR-6", "ev": "checked", "note": "1/2 gpu=FAIL:13/14; FAIL test_ongudai_runt…; tests=ok:8/8 (пропуск 6)"}
+{"t": "2026-10-23T04:37:03", "by": "executor", "task": "CR-6", "ev": "reported", "commits": ["43df6249"], "note": "done: AirRuntime: клипмап прежнего места освобождается при смене места, RuntimeGpu.release дожидается отправленной работы (sy…", "dp_feedback": "accept gpu с жёсткими порогами кадра плавает при загруженной машине; полезен повтор упавших тайминговых тестов или пометка flaky."}
+{"t": "2026-10-23T04:37:26", "by": "executor", "task": "CR-12", "ev": "reported", "commits": ["49dbe736"], "note": "done: Рубильники GPU-нагрузки в Настройки/Графика по CR-К4: game.json display.gpu {sun_shadows, cloud_shadows, glow} (умолчан…", "dp_feedback": "Смена задачи посреди работы: откат своих изменений прошёл вручную, хватило бы подсказки dpcli. pre-commit check_gd падал, пока .godot не импортирован полностью."}
+{"t": "2026-10-23T04:37:52", "by": "coordinator", "task": "CR-12", "ev": "checked", "note": "2/2 tests=ok:4/4; settings=ok:6/6"}
+{"t": "2026-10-23T04:38:07", "by": "coordinator", "task": "CR-12", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T04:38:14", "by": "coordinator", "task": "CR-12", "ev": "merged"}
+{"t": "2026-10-23T04:38:15", "by": "coordinator", "task": "CR-12", "ev": "note", "note": "слито 5538865e"}
