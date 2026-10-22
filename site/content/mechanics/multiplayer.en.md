@@ -1,12 +1,12 @@
 ---
 title: "Multiplayer"
 weight: 90
-description: "Flying together: zones by code, \"Nearby\" search on the local network, your own Go server, the leader, \"Catch up\" and a deterministic world with no atmosphere sent over the network."
+description: "Flying together: zones by code, \"Nearby\" search on the local network, your own Go server, the leader, \"Catch up\" and a deterministic world: over the network go zone parameters, the choice of thermal sources and a rare snapshot of the cloud field."
 ---
 
 # Multiplayer
 
-Deltaplan is built for a family and friends flying in the same sky at the same time — not for a public service with hundreds of players. The "Multiplayer" screen in the main menu: "Create" — pick a place, the game issues a 4-digit zone code; "Join" — enter a code. Almost nothing is sent over the network — each client computes the atmosphere itself, from shared world parameters.
+Deltaplan is built for a family and friends flying in the same sky at the same time — not for a public service with hundreds of players. The "Multiplayer" screen in the main menu: "Create" — pick a place, the game issues a 4-digit zone code; "Join" — enter a code. Almost nothing is sent over the network — each client computes the atmosphere itself, from shared world parameters; the exceptions are the choice of thermal sources and a snapshot of the cloud field (see "World determinism").
 
 ## Zones and codes
 
@@ -28,7 +28,14 @@ This works through UDP broadcast: while a game with a built-in server has a zone
 
 ### Via Steam
 
-In the Steam build the zone host (the game's built-in server) creates a friends-only lobby of up to 16 members; friends join by an overlay invitation, by "Join" in the friends list, or from the "Friends in game" list on the Multiplayer screen. The protocol frames are the same, but they travel over Steam Networking Messages instead of WebSocket; pilots via Steam, via the local network and via WebSocket can be in one zone. As with "Nearby", the creator leaving closes the zone. Details and what is unverified — [docs/guide/steam.md](/docs/guide/steam.md).
+**Status: the game is not on Steam yet.** Everything below is ready in the code and in a separate Steam build, but not released: the game is not published on Steam, and the itch.io build works without Steam (see [version 1.2.0](/releases/1.2.0/)). Only partly tested — on Steam's shared test App ID 480; what is unverified is listed in [docs/guide/steam.md](/docs/guide/steam.md).
+
+- **Lobby.** The zone host (the game's built-in server) creates a friends-only lobby of up to 16 members; friends join by an overlay invitation, by "Join" in the friends list, or from the "Friends in game" list on the Multiplayer screen. The protocol frames are the same, but they travel over Steam Networking Messages instead of WebSocket; pilots via Steam, via the local network and via WebSocket can be in one zone. As with "Nearby", the creator leaving closes the zone.
+- **Achievements.** The rules live in the game's settings; they unlock on flight events, are counted locally and written to a file even without Steam, silently and with no pop-ups. With Steam active, an unlocked achievement goes to Steam at once, and on every launch all unlocked ones are sent again (a repeat is harmless). On the test App ID there are no achievements of ours in Steam, so there is nothing to check there except the log and the local file.
+- **Cloud saves.** Steam Auto-Cloud is used: there is no code for it in the game, and it is configured only in the app's dashboard. What goes to the cloud is what is shared across the pilot's machines — settings, recent places, records, achievements, the last flight, tasks. Machine settings (graphics, window and frame rate, render scale, clouds, trees, grass, gamepad calibration) and caches are stored separately and not synchronized.
+- **Build.** Steam is connected through the GodotSteam extension (GDExtension 4.22.1, MIT license) — only in the Steam build; the itch build has no extension, and the game runs without Steam. Valve's libraries are not put in the public repository or in the itch build.
+
+Sources: [steam_godotsteam.md](/docs/research/steam_godotsteam.md), [docs/guide/steam.md](/docs/guide/steam.md).
 
 ### Your own Go server
 
@@ -67,7 +74,7 @@ The number of bots in a zone comes from the creator's settings ("Other pilots in
 
 ## World determinism
 
-The atmosphere is not transmitted over the network. Each client builds thermals, clouds and wind itself from place, date, time of day, weather and seed, including a "jump" straight to the zone's current time (no need to compute everything from scratch). One exception — thermal sources from the wind field: the field computed on the GPU differs slightly between clients (noise of about 1e-3 of the wind speed), and without agreement some source columns would diverge (measured: 51 of 229 columns of a 100 m window). So the leader picks the sources on its own field and sends the grid signature and the column bits in `ZoneState.thermalSources` (a 96 × 96 grid is about 1.5 KB in base64); each client computes the strength, ceiling and drift of a thermal from its own field. A client with a different grid or no field picks sources itself; a new leader switches to its own choice. The rest of the traffic is zone parameters, the clock, the start queue and pilot states; no clouds or thermals themselves.
+The atmosphere is not transmitted over the network. Each client builds thermals, clouds and wind itself from place, date, time of day, weather and seed, including a "jump" straight to the zone's current time (no need to compute everything from scratch). One exception — thermal sources from the wind field: the field computed on the GPU differs slightly between clients (noise of about 1e-3 of the wind speed), and without agreement some source columns would diverge (measured: 51 of 229 columns of a 100 m window). So the leader picks the sources on its own field and sends the grid signature and the column bits in `ZoneState.thermalSources` (a 96 × 96 grid is about 1.5 KB in base64); each client computes the strength, ceiling and drift of a thermal from its own field. A client with a different grid or no field picks sources itself; a new leader switches to its own choice. A second exception is cloudiness. Each client also computes the cloud field itself (how it works — [Clouds](/mechanics/clouds/)), but every 30 s (and on request when a new pilot joins) the leader puts a snapshot of it into `ZoneState`: coverage, depth, stage and activity over the field grid, compressed. On a 96 × 96 field that is 10–25 KB every 30 s, under 1 KB/s. The other clients do not replace their field but pull it toward the snapshot over 10 s, so the clouds do not jump; a newcomer accepts the snapshot whole. A snapshot with a different grid or version is rejected — the field is then computed locally, with no warning to the player. The rest of the traffic is zone parameters, the clock, the start queue and pilot states; no clouds or thermals themselves, only this field.
 
 To check that the worlds have not diverged (different generator versions, different rounding), the zone creator puts a "world key" into its parameters — all the world parameters in one string in URL form, for example:
 
@@ -133,7 +140,7 @@ Choices made when designing multiplayer:
 ## Model limits
 
 - **There is no in-game chat** — by design: voice communication goes through external programs (for example, an ordinary voice chat in a messenger), the game does not try to replace it with its own channel.
-- The atmosphere is not transmitted over the network — if two clients' world generator versions have diverged (which is what `worldHash` checks), their thermals and clouds will differ, although the game keeps running, only with a warning in the log. Even with one version the wind field differs slightly between GPUs: thermal sources match (the leader picks them), while strength and drift are within the field noise.
+- The atmosphere is almost not transmitted over the network (the exceptions are thermal sources and the cloud-field snapshot) — if two clients' world generator versions have diverged (which is what `worldHash` checks), their thermals and clouds will differ, although the game keeps running, only with a warning in the log. Even with one version the wind field differs slightly between GPUs: thermal sources match (the leader picks them), while strength and drift are within the field noise.
 - Network latency is smoothed by interpolation and limited extrapolation at the receiver of other pilots' `PilotState`, but this is an estimate of position, not an exact copy — with large latency or packet loss another pilot may for a short time move not quite as they really do.
 - The built-in server (for "Nearby" on the local network) does not survive the creator leaving — there is no leader change there, the zone closes immediately.
 - There are no collisions between live pilots in the game — multiplayer, like single-player, does not compute the physics of wings colliding with each other.
@@ -141,7 +148,9 @@ Choices made when designing multiplayer:
 ## Details
 
 - [docs/guide/game.md](/docs/guide/game.md) — the overall design of the game; [docs/guide/game/network.md](/docs/guide/game/network.md) — network flight inside the game.
-- [docs/guide/steam.md](/docs/guide/steam.md) — multiplayer via Steam (lobby, transport).
+- [docs/guide/steam.md](/docs/guide/steam.md) — Steam (lobby, transport, achievements, cloud); the game is not on Steam.
+- [docs/research/steam_godotsteam.md](/docs/research/steam_godotsteam.md) — the GodotSteam choice, Auto-Cloud, Steam and itch builds.
+- [docs/registry/findings.md](/docs/registry/findings.md#cloud-field) — the cloud field, cost of the network snapshot.
 - [docs/guide/net-protocol.md](/docs/guide/net-protocol.md) — the full protocol: all messages, error codes, JSON examples, scenario diagrams.
 - [server/README.md](/server/README.md) — how to bring up the Go server (locally and on a VPS via Docker).
 - [server/proto/deltaplan/v1/net.proto](/server/proto/deltaplan/v1/net.proto) — the source message contract.

@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-21"
+updated: "2026-10-22"
 summary: "Исследования: вывод, данные, где применено."
 related: []
 generated: true
@@ -192,6 +192,7 @@ generated: true
 - [tools/research/regional_veg/README.md](../../tools/research/regional_veg/README.md) — Сравнение срезов, прямоугольников и дерева решений по (lat, lon) с картой Кёппена; команды воспроизведения
 - [tools/research/sea_mask/README.md](../../tools/research/sea_mask/README.md) — Работает (S1 v2): ложных 0 на Бухтарме, Катуни, Ладоге, Байкале, Верхнем, Мелларене, Мёртвом море; 100 % воды дальше 2 км на трёх морских; два независимых условия (уровень, касание края); считать в с… (data: tools/research/sea_mask/summary.json; applied_in: [])
 - [tools/research/sea_thermals/README.md](../../tools/research/sea_thermals/README.md) — Источники над водой 957 → 0 (вулканический остров), 7 → 0 (точка у Флорианополиса), 0 → 0 (учебный остров); сила термиков над сушей (p90 w0) не изменилась. (data: tools/research/sea_thermals/; applied_in: scripts/atmosphere/air_model/air_thermals.gd, scripts/atmosphere/ground_field.g…)
+- [tools/research/site_coverage/README.md](../../tools/research/site_coverage/README.md) — Сайт покрывает ветер, термики, полёт «Маятник», рельеф и крылья; устарели облака (SCF-1), растительность и дома по региону, en-абзац про переворот в flight; нет вывода про z_i по рельефу и опускание,… (data: нет: аудит чтением, данных не создаёт; applied_in: нет: аудит, код не менялся)
 - [tools/research/speed-feel/README.md](../../tools/research/speed-feel/README.md) — Итог и выводы — docs/research/speed-feel.md; здесь только код, данные и команды воспроизведения. (data: out/jitter.json, out/jitter_ratio.csv, out/theta_view.json, out/flutter_wires.j…; applied_in: SPF-2, SPF-3, SPF-4, SPF-5)
 - [tools/research/spin_recovery/README.md](../../tools/research/spin_recovery/README.md) — стенд повторяет тест штопора (training/standard/1/120 — выход 4,3 с); данные SR-2 в out/sr-2/ (data: tools/research/spin_recovery/out/sr-2/; applied_in: —)
 - [tools/research/spin_recovery/sr1/README.md](../../tools/research/spin_recovery/sr1/README.md) — см. docs/research/pendulum/spin-recovery.md, раздел «Гипотеза 0» (data: tools/research/spin_recovery/out/sr-1/; applied_in: —)

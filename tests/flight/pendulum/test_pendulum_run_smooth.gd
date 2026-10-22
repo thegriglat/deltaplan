@@ -20,7 +20,7 @@ func check(cond: bool, msg: String = "") -> void:
 ## → ряд кадров 60 Гц: высоты над склоном (м) модели и визуала.
 func run_trace(slope_deg: float, wind: float, tmax := 3.4) -> Array:
 	var k := tan(deg_to_rad(slope_deg))
-	var g: Glider = M.make_glider("pendulum", "training")
+	var g: Glider = M.make_glider("training")
 	g.set_ground_fn(func(_x: float, z: float) -> float: return k * z)
 	var a := deg_to_rad(slope_deg)
 	var wv := Vector3(0.0, wind * sin(a), -wind * cos(a)) * -1.0

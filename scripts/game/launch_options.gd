@@ -237,11 +237,6 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 			r.site_id = ""
 	if overrides.has("tow"):
 		r.tow_kind = FlightSettings.normalize_tow(String(overrides.tow))
-		if r.tow_kind != "" and not FlightSettings.tow_mode_allowed():
-			push_warning(
-				"--tow=%s отклонён: буксировка только в режиме крена «Маятник» (controls.roll_control_mode)" % overrides.tow
-			)
-			r.tow_kind = ""
 	if overrides.has("wind"):
 		r.wind_speed_kmh = float(overrides.wind) * 3.6
 	if overrides.has("from"):

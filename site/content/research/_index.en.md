@@ -33,6 +33,22 @@ Status in the document header: `active` means the conclusion is applied in the g
 - **[Askervein measurements](/research/askervein/)** — field data of flow over a hill (Zenodo 4095052, CC BY 4.0) for calibrating the wind speed-up at the brow.
 - The remaining research passports are catalogs with code, tables and reproduction commands (the links lead to GitHub): [reconnaissance before A2](/tools/research/a2pre/README.md), [Morris](/tools/research/morris/README.md), [calibration](/tools/research/tune/README.md) and [Askervein recalibration](/tools/research/recal/README.md), [B1: Askervein + Perdigão](/tools/research/cases/b1/README.md), [the Perdigão case](/tools/research/cases/perdigao/README.md), [thermals from the field](/tools/research/air_thermals/README.md), [perturbations from the field](/tools/research/air_turb/README.md), [clipmap level junction](/tools/research/air_clipmap/README.md), [recomputing the field in flight](/tools/research/air_runtime/README.md), [air at the launch](/tools/research/air_start/README.md), [baseline figures](/tools/research/air_model_baseline/README.md), [comparison of main and air-model branch fields](/tools/research/wind_compare/README.md).
 
+### What the cellular automaton showed {#heat-ca-results}
+
+The model: a 500 m ridge cross-section (a steep slope up to ~33 degrees, a gentle one up to ~16), a 6.4 x 3.2 km domain, slope heating up to 250 W/m². The ground heats the bottom cell, warm air rises, neighbouring cells pull air in from below; mass and heat are conserved by paired fluxes. These are the convection equations written locally, not a textbook calculation.
+
+![Sun on the steep slope: airflow over a heated ridge](/tools/research/heat_ca/out/s1_sun_one_slope/flow.png "Scenario 1, calm: lift up to 1.65 m/s above the upper part of the sunlit slope, inflow from below toward the foot, sink over the valley. Takeaway: the automaton reproduces what pilots describe in words, lift over the slope and a return flow.")
+
+Scenario 1: peak lift 1.65 m/s at 475 m above ground, inflow at the foot +0.49 m/s, up the slope +0.53 m/s, mean sink in the valley -0.08 m/s. An inversion at 1500-1800 m stops the column: it reaches 1550 m instead of 1800. With a 3 m/s wind the picture holds together, but at 4 m/s and above the slope heating adds only about 0.3 m/s to the flow over the ridge.
+
+![Cell-size convergence: scenario 1 with cells from 200 to 6.25 m](/tools/research/heat_ca/out/convergence/conv_flow.png "The same problem with cells from 200 m to 6.25 m: the shape of the lift column stays, the peak grows from 1.21 to 1.95 m/s. Takeaway: the qualitative picture does not depend on the cell, the number does; 50 m is a compromise.")
+
+![Mass and heat balance in scenario 1](/tools/research/heat_ca/out/s1_sun_one_slope/mass_balance.png "Mass residual of about 10⁻¹¹ of the domain mass, heat residual about 10⁻⁵ of the total heating; tolerance 0.1 %. Takeaway: the computation neither loses nor creates anything; the lift is not a rounding artefact.")
+
+![Error versus compute time for three ways to reach the steady field](/tools/research/heat_ca/exp5_adi/out/time_50.png "Cell 50 m, scenarios 'sun on the slope' and 'inversion': time stepping reaches about 0.4 % error in ~8 s on the GPU, line sweeps in 0.4-2 s. Takeaway: the steady field is better found by iteration than by time stepping; the game took the Picard method.")
+
+What the prototype does not cover: it is two-dimensional (a cross-section, no third dimension, no real terrain), the viscosity of 30 m²/s is a coarse 'mixing', the background is nearly neutral (+1 K/km in θ), there is no humidity or clouds; it ran on an NVIDIA GPU and other methods replaced it in the game. The numbers are for this particular ridge, not for any slope. Details: [`out/summary.md`](/research/heat_ca/out/summary/) and the [findings registry](/research/findings/).
+
 ### Neural network instead of the solver
 
 - [The air-nn pilot: can a small network replace the solver](/tools/research/air_nn_pilot/README.md) — code and reports of the pilots P-1, P-2, P-3.
@@ -48,7 +64,9 @@ Status in the document header: `active` means the conclusion is applied in the g
 | [Wing passports → configs](/docs/research/wings_config_sources.md) | What was changed in `configs/wings/*.json`, sources and contradictions; when they disagree, DHV takes priority. |
 | [List of hang glider models](/docs/research/glider_models.md) and [combined set of passports](/tools/research/data/wing_passports/README.md) | DHV and manufacturer passport data; the game's wings are in the ["Glider models"](/wings/) section. |
 | [Specification for 3D wing models from passports](/docs/research/glider_3d_tz.md) | A section per wing, self-sufficient for the implementer. |
-| [Sources on hang glider models](/docs/research/wing_sources.md), ["Atlas" (USSR)](/docs/research/atlas_wing.md), [Ordodi "Hang Gliding" (1984), ch. 3.2](/docs/research/ordodi_1984_konstruktsiya.md) | Where to look for appearance and characteristics; data on the "Atlas" trainer; construction. |
+| [Sources on hang glider models](/docs/research/wing_sources.md), ["Atlas" (USSR)](/docs/research/atlas_wing.md) | Where to look for appearance and characteristics; data on the "Atlas" trainer. |
+| [Zheglov, Rybkin, Matsepuro, "Learn to Fly a Hang Glider" (1983)](/docs/research/zheglov-1983.md) | Qualitative theory and practice: the turn mechanism (weight shift, bank, sideslip, weathercock moment) matches the game; the formulas n = 1/cosγ and r = V²/(g·tgγ) (at 40 km/h and 30° bank the radius is 21.8 m) are used as test references; training bank ≤ 25-30°, take-off and landing at ≈ 25 km/h (the prototype has 32-39 km/h). Limits: the book has no numeric stability derivatives, control response time or stick forces; those come from other sources. Status: applied. |
+| [Ordodi "Hang Gliding" (1984), ch. 3.2](/docs/research/ordodi_1984_konstruktsiya.md) | Frame construction: tubes, joints, fasteners, bending calculations (Hungarian data of the 1970s, Russian translation). The pages read say nothing about flight, stability or polars, so no flight-model numbers come from it. Status: closed. |
 | [References for the control frame and the view from the pilot's seat](/docs/research/control_frame_refs.md) | For procedural control frame models. |
 | [Wing physics check](/tools/research/wing_physics_check/README.md) | Data and tools for checking polars against passports. |
 

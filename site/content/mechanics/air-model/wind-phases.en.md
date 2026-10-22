@@ -19,7 +19,15 @@ There is no neural network here: an early variant with a trained network was rep
 
 One steady computation (the Picard method) is one equation and one closure for the whole field. It works well where the flow has a single steady solution — flow over a hill, separation behind a ridge. And badly where there is none or the game does not need it. The measurements show this: on a corpus of 7320 computations Picard did not converge in about a tenth of cases, and the main cause is neither heating nor one dimensionless parameter but weak wind: with surface wind below 2.5 m/s from a fifth to three quarters of cases did not converge, from 3 m/s only a few percent. At small Fr the non-converged runs wander by tens of percent of the wind speed — physically this looks like the absence of a steady solution, not a computing error.
 
+![Share of non-converged Picard runs against the Froude number](/tools/research/air_phase/out/fig_nonconv_fr_hg.png "Share of non-converged runs (1000 iterations) against Fr = U/(N·h), 7320 cases. Left: without and with heating run together; dotted — a sigmoid with Fr₅₀ = 0.11 and width 1.3 decades. Middle and right: the same data in three groups by w*/U and by slope.")
+
+*Non-convergence depends on Fr smoothly: at Fr ≈ 0.1 about half of the cases do not converge, at Fr > 1 a few percent. Heating and steepness change the curve little — what matters here is weak wind against stability.*
+
 So the field is assembled by phases: a classifier determines the regime in each cell, and the cell gets the mechanism that suits it. The regime is governed by four dimensionless quantities: the Froude number Fr = U/(N·h) (wind against stability and obstacle height), the convection parameter −z<sub>i</sub>/L (heat against mechanical mixing), the slope steepness and the ratio of terrain height to mixing-layer height h/z<sub>i</sub>.
+
+![Schematic phase diagram from the literature](/tools/research/air_phase/out/fig_phase_schematic.png "Phase schematic from the literature in the axes: (a) wind speed and heat flux, (b) Fr and −z_i/L, (c) Fr and lee-slope steepness, (d) inversion")
+
+*This is a schematic from the literature, not a computed result: where boundaries are not measured they are marked as hypotheses. What was measured on ideal terrain is below; the schematic shows how the phases separate along the axes.*
 
 ## Phases in plain words
 
@@ -43,6 +51,24 @@ What is honest in these regimes and what is not:
 
 The boundaries between regimes were measured on ideal terrain (about 8000 computations: hill, ridge, step), then checked on eroded terrain. Blocking, bypass, reverse flow and rotor are **sharp**: the width of the transition in Fr is hundredths of a decade, almost a step. Ground braking, thermal drift and the thermal ceiling change smoothly. No hysteresis (a regime depending on where you came from) was found. On real eroded terrain the transfer of boundaries is partial: lift at the slope and mean speed transfer well, rotor, stagnation and reverse flow worse, and the transition is 5–10 times wider (terrain of many ridges of different heights changes regime one after another). Separation behind the brow depends not on Fr but on steepness: reverse flow begins at a slope of about a quarter and is present at any wind.
 
+## Where Picard finds no solution: the U/N threshold and calm {#picard-limit}
+
+Without heating Picard does not converge at N > N<sub>c</sub>(U): the threshold grows with wind speed as U<sup>0.7</sup>. For a ridge (slope 0.3, height 500 m, wind 3 / 4.5 / 6 m/s) N<sub>c</sub> = 0.0087 / 0.0113 / 0.0142 1/s, that is U/N ≈ 340–440 m. The more stable the air and the weaker the wind, the sooner the iterations stop converging. The ridge height hardly affects the threshold; one threshold on N gives 0–4 errors in 37 cases, on Fr — 0–5.
+
+![Non-convergence threshold against wind speed](/tools/research/air_phase/analysis/AP-13/fig_nc_vs_u.png "N_c (1/s) against wind speed U_sat (m/s) for computation variants: ctrl — as in the game (ω = 1), omega — under-relaxation ω = 0.5 (blue, higher); dotted — the estimate from an earlier measurement")
+
+*The threshold lies on the convergence limit of the iterations, not on a boundary of the flow regime: under-relaxation ω = 0.5 raises it 1.4 times (0.0121 / 0.0155 / > 0.0199 1/s), and 15 of 17 non-convergences are cured with no side effects. So U/N is not part of the phase classifier — it is a property of the solver. In the game ω = 1, convergence has a fallback — see "How the field is assembled" below.*
+
+**Calm.** Fr ≲ 0.25 — at N = 0.01 1/s and h = 500 m this is surface wind up to about 0.5 m/s. Here Picard does not find a steady solution of the model: with ω = 0.5 19–30 % of cases converge, at Fr 0.1–0.2 — 0 of 81, the iterations wander by 0.4–0.6 of the inflow speed, the residual sits on a plateau. Neither under-relaxation nor a longer run helps: it is the same loss of iteration stability, only deeper beyond the threshold. Whether the real atmosphere has a steady solution a steady model cannot say, so the calm field is statistics (mean and spread of late iterations), while the lee zone and thermals come from analytics and the level-2 formulas: the late mean reproduces a true fixed point only up to ~0.1 of the inflow speed. The U/N threshold was checked only at three winds, 3–6 m/s — the U<sup>0.7</sup> law was not tested at lower speeds.
+
+## Separation behind a ridge: the shadow line {#lee-shadow}
+
+The separation zone behind a ridge is set in the game by the shadow line — an inclined line from the brow downwind, below which the flow is considered detached. Its angle in the game is 12° (tan 12° = 0.21), the same for all shapes. Measured on ideal shapes (28 cases with reverse flow, 100 m window, wind across): 9.9° on median — ridge 7.3°, escarpment 10.5°, hill 12.4°; the literature gives 16° for a two-dimensional ridge and 19.7° for Perdigão.
+
+![Along-wind velocity sections behind a ridge with the shadow line](/tools/research/air_phase/analysis/AP-10/fig_sections.png "Along-wind velocity u·e/U behind a brow, Fr = 3. Top to bottom: ridge with slope 0.6 (shadow line 5.5°), ridge with slope 0.3 (8.0°), escarpment (10.6°). Black line — zero velocity, solid orange — the measured shadow line, dashed — the game's 12°.")
+
+*At a ridge the solver gives a lower angle and a reverse-flow bubble longer than in the literature (4–11 obstacle heights against 2.8–3.5): this is a property of the closure with too little mixing in the shear layer. Reverse flow starts at a slope of ≈ 0.20–0.30 and does not depend on Fr over 0.3–5; heating of 100–250 W/m² removes the bubble at slope 0.3.*
+
 ## How the field is assembled
 
 1. The **classifier** computes phase weights for each cell — from terrain, wind, stability (temperature profile and inversion), mixing-layer height and the cell's heating (sun by slope and azimuth). This is a parallel computation on the graphics card; the weights are smoothed to avoid a "checkerboard".
@@ -57,6 +83,7 @@ Recomputation is every 15 game minutes and when the wind or weather changes: in 
 
 - **The classifier thresholds come from the literature and our own measurements on ideal terrain.** Behavior near boundaries is an approximation; on real terrain boundaries transfer partially and are blurred wider.
 - **Phases are determined locally, but real flow is nonlocal**: on a 400 m grid the lower and upper layers may be in different regimes, while the classifier looks at the column as a whole.
+- **The U/N threshold and calm are solver limits, not physics.** N<sub>c</sub> and non-convergence at Fr ≲ 0.25 were measured on ideal terrain without heating; the model cannot separate physical unsteadiness from instability of the iterations. The shadow-line angle is the same for all shapes: at a ridge the measurement is below the game's 12° (7.3°), at a hill close to it (12.4°).
 - **Calm and evening drainage are the weakest spots.** The nocturnal jet is not reproduced; thin drainage layers (units to tens of meters) are not resolved on the grid; cold pools follow accumulation, not computation.
 - **Convection and thermals are statistics**, not a computation of each thermal; more on the [thermals](/mechanics/air-model/thermals/) page.
 - **The mean field is steady.** Evolution within the hour does not live in it, so between recomputations the field is smoothly replaced by a new one.

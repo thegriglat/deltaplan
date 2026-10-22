@@ -80,11 +80,6 @@ static func apparatus_defaults(wing_id: String = "") -> Dictionary:
 
 
 ## Неизвестный вид буксировки → "" (TW-К7).
-## Буксировка только в режиме крена «Маятник» (TW-К7 v2): controls.roll_control_mode, как glider.gd.
-static func tow_mode_allowed() -> bool:
-	return String(Config.value("controls", "roll_control_mode", "pendulum")) == "pendulum"
-
-
 static func normalize_tow(k: String) -> String:
 	return k if k in TOW_KINDS else ""
 

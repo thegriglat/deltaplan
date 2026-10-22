@@ -16,8 +16,8 @@ func check(cond: bool, msg: String = "") -> void:
 		failures.append("check failed: " + msg)
 
 
-func _glider(mode: String, wing := "sport") -> Glider:
-	var g: Glider = M.make_glider(mode, wing)
+func _glider(wing := "sport") -> Glider:
+	var g: Glider = M.make_glider(wing)
 	g.set_ground_fn(func(_x: float, _z: float) -> float: return 0.0)
 	g.set_air_fn(func(_p: Vector3) -> Vector3: return Vector3.ZERO)
 	add_child(g)
@@ -54,7 +54,7 @@ func _settle(g: Glider) -> void:
 func test_head_marker_matches_model() -> void:
 	for w: String in ["training", "sport", "laminar"]:
 		for bank_deg in [0.0, 30.0]:
-			var g := _glider("pendulum", w)
+			var g := _glider(w)
 			_fly(g, 25.0, deg_to_rad(bank_deg))
 			await _settle(g)
 			var m: PendulumModel = g.model
@@ -77,26 +77,8 @@ func test_head_marker_matches_model() -> void:
 			g.queue_free()
 
 
-func test_other_modes_pose_unchanged() -> void:
-	for mode in ["rate", "weight_shift"]:
-		var g := _glider(mode)
-		g.control.roll = 0.6
-		g.control.pitch = -0.4
-		g.model.mode = FlightModel.Mode.AIR
-		g._update_pilot(1.0e6)
-		var ref := GliderVisual.new()
-		add_child(ref)
-		ref.build(g.model.wing, g.model.pilot, Config.get_config("flight").visual)
-		ref.set_pose(0.6, -0.4, true, 1.0e6)
-		check(not g.visual.hang_pose_active, "%s: поза не от маятника" % mode)
-		check(g.visual.pilot.transform.is_equal_approx(ref.pilot.transform), "%s: тело как при set_pose" % mode)
-		check(g.visual.body_shift.is_equal_approx(ref.body_shift), "%s: body_shift как при set_pose" % mode)
-		ref.free()
-		g.queue_free()
-
-
 func test_ground_stands() -> void:
-	var g := _glider("pendulum")
+	var g := _glider()
 	var a := GliderVisual.new()
 	add_child(a)
 	a.build(g.model.wing, g.model.pilot, Config.get_config("flight").visual)
@@ -119,7 +101,7 @@ func test_ground_stands() -> void:
 ## PD-К5 v2: стоящий пилот «Маятника» рисуется ступнями на земле (±5 см), а не на 0,2–0,3 м выше.
 func test_ground_feet_on_ground() -> void:
 	for w: String in ["training", "laminar", "sport"]:
-		var g := _glider("pendulum", w)
+		var g := _glider(w)
 		for i in 120:
 			g.step(DT)
 		await _settle(g)
@@ -139,7 +121,7 @@ func test_ground_feet_on_ground() -> void:
 
 ## Камера «из глаз»: при позе от маятника следование за телом не добавляется.
 func test_camera_no_body_follow_in_pendulum() -> void:
-	var g := _glider("pendulum")
+	var g := _glider()
 	_fly(g, 5.0, 0.0)
 	await _settle(g)
 	var cam := CameraRig.new()

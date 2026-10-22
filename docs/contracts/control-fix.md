@@ -3,7 +3,7 @@ type: "contract"
 status: "closed"
 module: "control-fix"
 area: "flight"
-updated: "2026-10-15"
+updated: "2026-10-22"
 summary: "Тангаж на старте: pitch ∈ [−1, 1], +1 — трапеция от себя (нос вверх); на земле pitch — угол носа крыла."
 related: []
 contracts: [{"id": "С1", "version": 2}, {"id": "С2", "version": 4}, {"id": "С3", "version": 3}]
@@ -13,6 +13,7 @@ contracts: [{"id": "С1", "version": 2}, {"id": "С2", "version": 4}, {"id": "С
 Внутренний документ. План — `docs/archive/plan/control-fix.md`, журнал — `docs/archive/plan/control-fix-progress.md`. Контрактный тест — `tests/game/test_control_fix_contracts.gd` (форма стыков; ломается при смене формата без правки контракта). v1 — то, что есть в коде на v1.0.0 (3820bda). Менять интерфейс — только через координатора: версия +1, что изменилось, потребители правятся в том же шаге.
 
 ## С1. ControlInput — управление пилота за шаг — v2
+**Заменено RM-К1 (`docs/contracts/roll-modes.md`): поле `ControlInput.weight_shift` удалено (в v1 «режим по `weight_shift`», в v2 «`run`, `walk`, `weight_shift` — без изменений»); `roll` в полёте всегда — положение пилота поперёк штанги (маятник); остальные поля С1 без изменений.**
 Владелец: `scripts/core/control_input.gd`. Источники: `InputController`, `Autopilot`, `BotPilot`, сеть. Потребители: `FlightModel.step`, `GroundRun.step`, `Glider`, визуал.
 
 v1 (до CF-3):
@@ -27,6 +28,7 @@ v1 (до CF-3):
 - `run`, `walk`, `weight_shift` — без изменений.
 
 ## С2. InputController → ControlInput — v4
+**Заменено RM-К1 (`docs/contracts/roll-modes.md`): в v4 фраза «Режимы крена (`roll_control_mode` rate/weight_shift) — источник `roll` мышь/стик, как были» — режимов игрока нет, источник `roll` — мышь/стик/трапеция для «Маятника»; `Autopilot` по-прежнему пишет `ControlInput.pitch`/`roll` напрямую.**
 **v4 (19.10, pullin-speed, решения пользователя dceacaaa, 11:14, 11:16):** тангажа и крена с клавиатуры нет ни в полёте, ни на земле — `pitch_pull_in`/`pitch_push_out`, `roll_left`/`roll_right` удалены (действия, привязки, обработка, `keyboard.*` только для них); нос и крен крыла (на земле и в полёте) — мышь, стик, самодельная трапеция; причина — отзыв пилотов «с клавиатуры нет контроля трапеции». На земле клавиатура — только движение: шаг, бег (Shift), поворот. В полёте с клавиатуры — только Shift (добор, VM-К3). `Autopilot` задаёт тангаж и крен, записывая `ControlInput.pitch`/`roll` напрямую (не через действия; ответ главной 19.10). Режимы крена (`roll_control_mode` rate/weight_shift) — источник `roll` мышь/стик, как были. Тесты и сценарии клавиатурного тангажа и крена — удалены. Пункты ниже про стрелки — история.
 Владелец: `scripts/game/input_controller.gd`. Потребитель: `Game.tick` (`input_controller.update(dt)` → `glider.set_input`).
 Не меняется: `update(dt: float) -> ControlInput`; `enabled`, `hands_off`, `on_ground`; `set_mouse_captured(on)`, `mouse_captured`; правая кнопка — осмотреться (`mouse_mode()` — до v3) (трапеция держит положение).

@@ -209,9 +209,6 @@ func _build_apparatus(box: Control) -> void:
 		var sl := UiKit.slider_row(box, tr("setup_app_" + k), sp[0], sp[1], sp[2], fmts[k])
 		_apparatus[k] = sl
 		sl.value_changed.connect(_on_apparatus_changed.bind(k))
-		sl.get_parent().tooltip_text = tr("setup_app_pendulum_only")
-		var hint := UiKit.label(box, tr("setup_app_pendulum_only"), "HintLabel")
-		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 
 func _apply_settings() -> void:
@@ -561,7 +558,7 @@ func _on_place_changed_tow() -> void:
 
 
 func _tow_selected() -> String:
-	if _tow_opt == null or GoalsTab.net_blocked() or not FlightSettings.tow_mode_allowed():
+	if _tow_opt == null or GoalsTab.net_blocked():
 		return ""
 	var i := _tow_opt.selected
 	return _tow_ids[i] if i >= 0 and i < _tow_ids.size() else ""
@@ -572,7 +569,6 @@ func _refresh_tow(preferred: String, reset: bool) -> void:
 	if _tow_opt == null or _row == null:
 		return
 	var mp := GoalsTab.net_blocked()
-	var mode_off := not FlightSettings.tow_mode_allowed()
 	var site := _row.builtin_site()
 	_tow_ids = PackedStringArray([""])
 	_tow_opt.clear()
@@ -586,10 +582,10 @@ func _refresh_tow(preferred: String, reset: bool) -> void:
 	if want != "" and not (want in kinds):
 		want = default_tow_kind(site)
 	_tow_opt.select(maxi(_tow_ids.find(want), 0))
-	_tow_opt.disabled = mp or mode_off
-	_tow_hint.visible = mp or mode_off
-	_tow_hint.text = tr("setup_tow_mp_off") if mp else tr("setup_tow_mode_off")
-	if mp or mode_off:
+	_tow_opt.disabled = mp
+	_tow_hint.visible = mp
+	_tow_hint.text = tr("setup_tow_mp_off")
+	if mp:
 		_tow_opt.select(0)
 
 

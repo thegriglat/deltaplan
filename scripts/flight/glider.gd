@@ -21,8 +21,8 @@ enum AutoStart { NONE, IN_AIR, ON_GROUND }
 ## Что делать в _ready, если setup/reset не вызывали (для запуска сцены отдельно).
 @export var auto_start: AutoStart = AutoStart.IN_AIR
 
-## FlightModel или PendulumModel (controls.roll_control_mode == "pendulum"); общая поверхность — PD-К1.
-var model = FlightModel.new()
+## Всегда PendulumModel (RM-К1); общая поверхность с FlightModel — PD-К1.
+var model = PendulumModel.new()
 var control := ControlInput.new()
 var air_fn: Callable = Callable()
 var ground_fn: Callable = Callable()
@@ -52,7 +52,7 @@ func _ready() -> void:
 
 
 ## Выбрать крыло и массу пилота (≤0 — по умолчанию). Сбрасывает состояние: потом reset_*.
-## Режим управления креном «pendulum» → PendulumModel (apparatus — настройки «Аппарат», PD-К3).
+## Модель игрока — PendulumModel (apparatus — настройки «Аппарат», PD-К3).
 func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) -> void:
 	wing_id = wing_name
 	var wing: Dictionary = Config.get_config("wings/" + wing_name)
@@ -60,13 +60,9 @@ func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) 
 	var m := mass_kg if mass_kg > 0.0 else float(pilot.mass_kg)
 	pilot.mass_kg = FlightModel.clamp_pilot_mass(wing, m)
 	pilot_mass_kg = pilot.mass_kg
-	if is_pendulum_mode():
-		model = PendulumModel.new()
-		model.setup(wing, pilot, {}, apparatus)
-	else:
-		model = FlightModel.new()
-		model.setup(wing, pilot)
-	if _ext_fn.is_valid() and model is PendulumModel:
+	model = PendulumModel.new()
+	model.setup(wing, pilot, {}, apparatus)
+	if _ext_fn.is_valid():
 		model.set_external_force(_ext_fn)
 	model.landed.connect(func(r: Dictionary) -> void: landed.emit(r))
 	model.takeoff_failed.connect(func(reason: String) -> void: takeoff_failed.emit(reason))
@@ -75,13 +71,6 @@ func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) 
 	_vis = Config.get_config("flight").visual
 	if is_node_ready():
 		_build_visual()
-
-
-## Выбран режим управления «Маятник» (controls.roll_control_mode).
-static func is_pendulum_mode() -> bool:
-	# PMD-К1: «Маятник» — умолчание; FlightModel только по явным weight_shift/rate
-	var mode := String(Config.value("controls", "roll_control_mode", "pendulum"))
-	return mode != "weight_shift" and mode != "rate"
 
 
 ## Сейчас модель — PendulumModel.
