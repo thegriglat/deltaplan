@@ -164,3 +164,4 @@
 {"t": "2026-10-23T04:29:34", "by": "executor", "task": "CR-5", "ev": "reported", "commits": ["10ba426f"], "note": "done: AirGpu при пустом RID (buffer, upload, _pipeline, _uniforms) ставит failed, пишет одну строку через GpuHealth.report_fa…", "dp_feedback": "Фильтр-подстрока в карточке может цеплять чужие тесты (air_gpu → test_start_air_gpu); удобно видеть в accept --dry список подпавших файлов."}
 {"t": "2026-10-23T04:29:43", "by": "coordinator", "task": "CR-11", "ev": "checked", "note": "3/3 sections=ok:6; privacy=ok:exit 0; docs=ok:exit 1"}
 {"t": "2026-10-23T04:29:51", "by": "coordinator", "task": "CR-11", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T04:29:52", "by": "coordinator", "task": "CR-11", "ev": "merged"}
