@@ -186,7 +186,7 @@ func test_models_and_no_session() -> void:
 		check(absf(float(o.agl_m) - 0.35 * 300.0) < 0.5, "высота отцепа ботов 35 %% троса: %s" % o.agl_m)
 		g.tow_session.queue_free()
 		g.tow_session = null
-	# aerotow (TW-10b): площадка c — полоса 400 м, трос 80 м, Ан-2 впереди, боты на высоте первого буксира
+	# aerotow (TW-10b): площадка c — полоса 400 м, трос 80 м, буксировщик впереди, боты на высоте первого буксира
 	g.settings.tow_kind = "aerotow"
 	g.settings.site_id = "c"
 	check(g._choose_tow_start(), "площадка c — старт с тележки")

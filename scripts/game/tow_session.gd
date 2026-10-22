@@ -7,8 +7,8 @@ extends Node3D
 ## Шаг — раз в шаг физики до glider.step. Старт по W (start_pressed): до этого трос лежит, натяжения нет.
 ## Отцеп — release_pressed или обрыв слабого звена.
 ## Модель границ: воздух для троса неподвижен, лебёдка не двигается (TowLine); визуал отцепа — на положении
-## пилота (pilot_position модели), а не на кости подвески. Ан-2 — кинематика (честно: так медленно он не летает,
-## струи винта нет); высота дельтаплана для буксировщика — высота основания перекладины над землёй, считается
+## пилота (pilot_position модели), а не на кости подвески. Вид и звук буксировщика — TowTrikeVisual (TT-К5), струи
+## винта нет; высота дельтаплана для буксировщика — высота основания перекладины над землёй, считается
 ## от пилота: cradle_height_m + подъём пилота над стоянкой (при смене позы на лёгкое ±0,5 м неточна).
 
 const WINCH := "res://assets/models/world/tow_winch.glb"
@@ -25,7 +25,7 @@ var release_node: Node3D
 var drogue_node: Node3D
 ## aerotow: буксировщик, его модель, модель тележки.
 var tug: TowTug
-var tug_node: Node3D
+var tug_node: TowTrikeVisual
 var dolly_node: Node3D
 ## Позиция лебёдки и якорь троса (мир), курс полосы.
 var winch_pos := Vector3.ZERO
@@ -40,10 +40,8 @@ var _detached := false
 var _rel_basis := Basis.IDENTITY
 var _drogue_basis := Basis.IDENTITY
 var _rope_out := Vector3(0.0, 1.5, 0.0)  ## точка выхода троса в осях модели лебёдки
-var _tug_sound: AudioStreamPlayer3D
 var _rest_rel := 0.0  ## высота пилота над землёй на тележке в покое
 var _cradle_h := 0.4
-var _tail_h := 1.5
 var _dolly_basis := Basis.IDENTITY
 
 
@@ -64,7 +62,6 @@ func setup(glider_: Glider, ground_fn: Callable, site: Dictionary, kind_: String
 	add_child(rope_view)
 	if is_aerotow():
 		_cradle_h = float(Config.get_config("tow_dolly").get("cradle_height_m", 0.4))
-		_tail_h = 1.5  # модель Ан-2 (пасхалка) стоит хвостом на tow_hook; вид дельталёта - TT-5
 		tug = TowTug.new()
 		tug.setup(_start_pos, heading_deg, _rope_len, ground_fn)
 		if models:
@@ -118,18 +115,10 @@ func _build_aerotow_models() -> void:
 	if release_node != null:
 		release_node.visible = false
 		add_child(release_node)
-	tug_node = EggAn2.build_model(0)
+	tug_node = TowTrikeVisual.new()
 	add_child(tug_node)
-	_tug_sound = AudioStreamPlayer3D.new()  # мотор АШ-62ИР из пасхалки; винт не вращается, струи нет
-	_tug_sound.stream = EggAn2.engine_sound()
-	_tug_sound.bus = "Ambient" if AudioServer.get_bus_index("Ambient") >= 0 else "Master"
-	_tug_sound.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
-	_tug_sound.unit_size = 30.0
-	_tug_sound.max_distance = 1500.0
-	_tug_sound.attenuation_filter_cutoff_hz = 5000.0
-	_tug_sound.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_IDLE_STEP
-	_tug_sound.autoplay = true
-	tug_node.add_child(_tug_sound)
+	tug_node.setup(Config.get_config("tow_tug").engine)
+	tug_node.update(tug)
 
 
 ## Модель .glb с LOD-узлами `<имя>_LOD<k>`: дальности видимости — из ranges (м, граница k → k+1).
@@ -166,8 +155,7 @@ func reset() -> void:
 			_rest_rel = p.y - float(_ground_fn.call(p.x, p.z))
 		if tug_node != null:
 			tug_node.visible = true
-			if _tug_sound != null and _tug_sound.is_inside_tree():
-				_tug_sound.play()
+			tug_node.play_sound()
 		if dolly_node != null:
 			dolly_node.visible = true
 	else:
@@ -238,8 +226,7 @@ func step(dt: float, start_pressed := false, release_pressed := false) -> void:
 		line.anchor_vel = tug.vel
 		if tug.gone and tug_node != null and tug_node.visible:
 			tug_node.visible = false
-			if _tug_sound != null:
-				_tug_sound.stop()
+			tug_node.stop_sound()
 	if _detached and not line.reeled_in and not (tug != null and tug.gone):
 		line.step_free(dt)
 
@@ -269,12 +256,10 @@ func _place_release() -> void:
 	release_node.transform = Transform3D(_rel_basis, p)
 
 
-## Ан-2: хвост модели — в точке троса tug.pos, колёса — на tail_height_m ниже её; тележка — на земле под перекладиной.
+## Буксировщик: вид по состоянию TowTug; тележка — на земле под перекладиной.
 func _place_aerotow() -> void:
 	if tug_node != null:
-		var b := tug.basis
-		var tail := Vector3(0.0, EggAn2.GEAR_BOTTOM_Y + _tail_h, EggAn2.TAIL_Z)
-		tug_node.transform = Transform3D(b, tug.pos - b * tail)
+		tug_node.update(tug)
 	if dolly_node != null and glider != null:
 		var p := glider.dolly_pos()
 		var f := Vector3(sin(deg_to_rad(heading_deg)), 0.0, -cos(deg_to_rad(heading_deg)))
