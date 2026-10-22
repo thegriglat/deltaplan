@@ -72,14 +72,6 @@
       "tests": "tow_k7"
     },
     {
-      "name": "tests/game/",
-      "tests": "tests/game/"
-    },
-    {
-      "name": "test_menu_setup",
-      "tests": "test_menu_setup"
-    },
-    {
       "name": "gdcheck",
       "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
       "expect": "exit=0"
@@ -88,10 +80,30 @@
       "name": "json",
       "cmd": "python3 -c \"import json;json.load(open('configs/controls.json'))\"",
       "expect": "exit=0"
+    },
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
+    },
+    {
+      "name": "test_input_launch",
+      "tests": "test_input_launch"
+    },
+    {
+      "name": "test_start_clearing",
+      "tests": "test_start_clearing"
+    },
+    {
+      "name": "test_start_fixes",
+      "tests": "test_start_fixes"
+    },
+    {
+      "name": "test_bots",
+      "tests": "test_bots"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T04:33:19",
-  "edited": "2026-10-22T05:22:10"
+  "edited": "2026-10-22T05:42:39"
 }

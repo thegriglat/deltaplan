@@ -1,0 +1,61 @@
+{
+  "id": "TW-8c",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Wilotree Park: страна, сборка места и фикстура для тестов, проверка полосы на рельефе",
+  "goal": "Место wilotree_park собирается сборщиком игры из сети, фикстура рельефа лежит в tests/fixtures/locations/wilotree_park, у конфига есть страна US; test_menu_setup::lists_all_locations и e2e для wilotree зелёные; TowSite.check на реальной полосе — ok (числа в отчёте).",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К6",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-8c",
+  "branch": "tow/TW-8c",
+  "base": "feature/tow",
+  "scope": [
+    "configs/locations/wilotree_park.json",
+    "tests/fixtures/locations/wilotree_park",
+    "tests/contracts/test_tow_k6.gd"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs/locations/askarovo.json",
+    "data/places",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_menu_setup",
+      "tests": "test_menu_setup"
+    },
+    {
+      "name": "tow_k6",
+      "tests": "tow_k6"
+    },
+    {
+      "name": "test_locations",
+      "tests": "test_locations"
+    },
+    {
+      "name": "test_popular_places",
+      "tests": "test_popular_places"
+    },
+    {
+      "name": "fixture",
+      "cmd": "test -f tests/fixtures/locations/wilotree_park/build.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;d=json.load(open('configs/locations/wilotree_park.json'));assert d.get('country')=='US'\"",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T05:45:54"
+}

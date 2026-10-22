@@ -1,0 +1,57 @@
+{
+  "id": "TW-18",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Регрессия e2e: training_island takeoff_failed на feature/tow",
+  "goal": "Выяснить, почему test_e2e_all_locations на feature/tow даёт training_island: takeoff_failed (на main — нет), и исправить, если причина в правках модуля tow (модель полёта, разбег, старт); если это нестабильность под нагрузкой — показать прогонами.",
+  "plan_ref": "Волна 2 — физика троса и управление",
+  "contracts": [
+    {
+      "name": "TW-К4",
+      "version": "8",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-18",
+  "branch": "tow/TW-18",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "scripts/flight/pendulum/pilot_chain.gd",
+    "scripts/flight/pendulum/pilot_arms.gd",
+    "scripts/flight/glider.gd",
+    "scripts/game/game.gd"
+  ],
+  "dont_touch": [
+    "configs",
+    "tests/game/test_e2e.gd",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_e2e",
+      "tests": "test_e2e"
+    },
+    {
+      "name": "tow_k4",
+      "tests": "tow_k4"
+    },
+    {
+      "name": "tow_k10",
+      "tests": "tow_k10"
+    },
+    {
+      "name": "tests/flight/",
+      "tests": "tests/flight/"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T05:45:57"
+}
