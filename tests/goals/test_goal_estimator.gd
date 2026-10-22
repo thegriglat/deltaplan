@@ -120,9 +120,10 @@ func test_honesty_weak_weather() -> void:
 
 
 ## GL-К2 v2: в «ясно, сильные» трудное достижимо без облака и задаётся погодой, а не порогом.
+## Сильный день в Онгудае — +34 °C: климат ERA5 влажнее прежней таблицы (Td июля Алтая в ясный день ≈ 11 °C по ClimateGrid.place для долины 304 м против 9 в прежней таблице; Онгудай выше — чуть иначе), база ниже.
 func test_good_weather_reachable() -> void:
 	var c := Config.get_config("goals/estimate")
-	var wx := _ongudai(30.0, 5.0, "clear")
+	var wx := _ongudai(34.0, 5.0, "clear")
 	var h := GoalEstimator.suggest("height", "hard", wx)
 	check(h <= _avail(wx), "ясно: hard height %s ≤ запас до базы %s" % [h, _avail(wx)])
 	check(h > float(c.height.floor_m.hard), "ясно: hard height по погоде, не порог")

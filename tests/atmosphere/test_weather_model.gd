@@ -11,9 +11,12 @@ const PRESET_KEYS: Array[String] = [
 	"cb_top_above_base_m", "wave_strength", "stability_n_per_s", "lens_level_above_crest_m",
 	"dry_thermal_fraction", "thermal_extreme_chance", "thermal_extreme_ms", "dust_devil_chance",
 ]
-## Опорные прогнозы эталонов configs/weather/<id>: [температура °C, ветер км/ч], ветер с 270°.
+## Опорные прогнозы эталонов configs/weather/<id>: [температура °C, ветер км/ч], ветер с 270°, 15 июля, Алтай.
+## Климат ERA5 влажнее прежней таблицы: Td июля в опорном месте (ClimateGrid.place, долина 304 м) — 14,3 °C среднесуточная,
+## 11,1 °C в ясный день (td_day), прежняя таблица — 9 °C. Поэтому прежние +26/+31 °C дают грозовые дни:
+## тот же по силе день — средний на 2 °C прохладнее (+24), сильный на 2 °C жарче (+33); под данные правим температуру, не данные.
 const REFERENCE_FORECASTS := {
-	"weak": [20.0, 7.0], "medium": [26.0, 11.0], "strong": [31.0, 18.0], "storm": [34.0, 14.0],
+	"weak": [20.0, 7.0], "medium": [24.0, 11.0], "strong": [33.0, 18.0], "storm": [34.0, 14.0],
 }
 
 
