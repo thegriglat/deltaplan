@@ -130,6 +130,9 @@ related: ["docs/contracts/trike-pilot.md", "docs/plan/trike.md", "docs/contracts
 #### TP-8 Вид, камера, приборы и звук дельталёта игрока в игре
 `dp-engineer` (sonnet). Контракт TP-К8 (+ TP-К4, TP-К9). После TP-6, TP-9, TP-16. Приёмка: `trike_pilot`, `tow`, `pilot_hud`, `cockpit`, `clock_label` — 0 упало (кроме известных падений main).
 
+#### TP-20 Тяга по оси винта (TP-19)
+`dp-engineer` (sonnet), ревью `dp-reviewer`. Контракт TP-К6 v2: `TrikeRig.ext_force` делит тягу между тележкой и подвеской по высоте оси винта (`cart.prop_axis_below_hang_m`), игрок и буксировщик; фугоида на полном газе затухает. Приёмка: `trike_pilot`, `tow`, `tow_trike` — 0 упало; числа набора буксировщика в отчёт.
+
 ## 5. Волны
 1. TP-1, TP-2, TP-3, TP-4 параллельно (разные файлы).
 2. TP-5 по освобождению места; TP-11, TP-12 — по ответам Q1–Q3.
