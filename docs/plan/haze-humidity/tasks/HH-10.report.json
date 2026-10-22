@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "Скрипт tools/shots/haze_humidity_shots.sh снял 8 кадров (2 места x закат/день x до/после) и README.md в /home/greg/deltaplan/build/screenshots/haze-humidity/. Закат 20:40 — --hour=20 + 40 с полёта при времени x60 (временная правка user://configs/world.json в профиле, восстанавливается); день — --air-start (со склона автопилот днём падает сразу).",
+  "commits": [
+    "24b716d9 HH-10: скрипт кадров до/после"
+  ],
+  "checks": [
+    {
+      "name": "frames",
+      "value": "8",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "script",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-10",
+  "uncertain": [
+    {
+      "where": "tools/shots/haze_humidity_shots.sh",
+      "why": "Диск солнца на закате явно виден только на Аскарово; на Алтае — розовое свечение у горизонта (солнце, вероятно, за хребтом). Дымка до/после различается только по размерам файлов, сами пары не сравнивал. На ClimateGrid нет surface_t_1deg.bin (в обоих деревьях) - значения из конфига.",
+      "checked": "Просмотрены пробные кадры sunset_altai, sunset_askarovo, day_altai; пары не разглядывал."
+    }
+  ],
+  "dp_feedback": "Нет флага/способа задать час старта кроме 4 фиксированных, пришлось подменять time.speed через user://configs.",
+  "t": "2026-10-22T20:24:38",
+  "by": "executor"
+}
