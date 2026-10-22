@@ -64,3 +64,5 @@
 {"t": "2026-10-22T23:59:25", "by": "executor", "task": "TP-11", "ev": "reported", "commits": ["15a96004"], "note": "done: trike: keys_look() false, стрелки у look_* убраны, правка InputMap по режиму (_apply_look_keys и сеттер vehicle) удален…"}
 {"t": "2026-10-23T00:00:07", "by": "coordinator", "task": "TP-11", "ev": "checked", "note": "6/6 trike_pilot_k3=ok:9/9; input=ok:1/1; ui_controls=ok:9/9; control_bar=ok:14/14; pilot_hud=ok:18/18; gd=ok:exit 0; scope=FAIL:вне scope: r-TP-11.json"}
 {"t": "2026-10-23T00:00:12", "by": "coordinator", "task": "TP-11", "ev": "accepted", "note": "по отчёту; геймпадный pull_full на земле в trike не гасится — геймпад вне модуля"}
+{"t": "2026-10-23T00:01:21", "by": "coordinator", "task": "TP-11", "ev": "accepted", "commits": ["464cac27"], "note": "6/6 trike_pilot_k3=ok:9/9; input=ok:1/1; ui_controls=ok:9/9; control_bar=ok:14/14; pilot_hud=ok:18/18; gd=ok:exit 0"}
+{"t": "2026-10-23T00:01:22", "by": "coordinator", "task": "TP-11", "ev": "merged"}
