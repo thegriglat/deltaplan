@@ -1,0 +1,61 @@
+{
+  "status": "partial",
+  "summary": "Ввод дельталёта по TP-К3: ControlInput.throttle_axis/engine_toggle/brake, InputController.vehicle (glider/trike), действия throttle_up/throttle_down/engine_toggle/trike_brake и стрелки у look_* в controls.json, строки справки controls_trike_* (ru/en), контрактный тест 7/7. Приёмка ui_controls падает на устаревшей проверке У2 вне скоупа.",
+  "commits": [
+    "TP-3: ввод дельталёта — газ, двигатель, руление, тормоз"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot_k3",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "input",
+      "value": "1/1",
+      "pass": true
+    },
+    {
+      "name": "ui_controls",
+      "value": "8/9, FAIL test_u2_shape",
+      "pass": false
+    },
+    {
+      "name": "control_bar",
+      "value": "14/14",
+      "pass": true
+    },
+    {
+      "name": "pilot_hud",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "tests/game/test_ui_controls_contracts.gd:131-132 (вне скоупа) требует look_up==[W], look_down==[S], look_left==[A], look_right==[D]; TP-К3 велит добавить стрелки к look_*. Тест нужно обновить на ['W','Up'] и т.д. (владелец теста / координатор)."
+  ],
+  "questions": [
+    "Обновить проверку У2 в tests/game/test_ui_controls_contracts.gd под стрелки в look_*?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TP-3",
+  "uncertain": [
+    {
+      "where": "scripts/game/input_controller.gd:_apply_look_keys",
+      "why": "Чтобы W/S в trike не крутили голову (CameraRig читает look_up/look_down), в режиме trike у этих действий удаляются события с клавишами газа; при возврате в glider раскладка перерегистрируется из controls.json. Побочно: register_actions при смене vehicle сбрасывает события всех действий.",
+      "checked": "контрактный тест: в trike look_up/look_down без W/S, с стрелками; в glider снова W"
+    },
+    {
+      "where": "configs/controls.json trike_brake=Shift",
+      "why": "Shift общий с run/pull_full; в trike run принудительно false, на земле Shift — тормоз, в воздухе — pull_full. Клавиша — предложение до ответа пользователя.",
+      "checked": "тест тормоз на земле/в воздухе"
+    }
+  ],
+  "dp_feedback": "Контрактный тест соседнего контракта (У2) жёстко фиксирует раскладку, а карточка не предупреждает; в карточку стоило включить такие тесты в скоуп.",
+  "t": "2026-10-22T22:53:17",
+  "by": "executor"
+}

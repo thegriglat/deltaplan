@@ -22,7 +22,8 @@
     "configs/ui.json",
     "locale/ui.csv",
     "tests/contracts/test_trike_pilot_k3.gd",
-    "tests/contracts/test_trike_pilot_k3.gd.uid"
+    "tests/contracts/test_trike_pilot_k3.gd.uid",
+    "tests/game/test_ui_controls_contracts.gd"
   ],
   "dont_touch": [
     "scripts/game/game.gd",
@@ -60,5 +61,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T22:47:53"
+  "created": "2026-10-22T22:47:53",
+  "edited": "2026-10-22T23:02:35"
 }

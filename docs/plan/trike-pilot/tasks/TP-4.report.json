@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "Тахометр и указатель топлива: GaugeDial (общий циферблат и needle_angle_deg), 3D TrikeGauges3D (RpmNeedle/FuelNeedle, update_readout), HUD TrikeGaugesHud слева от планшета InstrumentOverlay (низ на линии рамки, часы выше), anchor_px/rect_px, конфиг instruments.json -> trike_gauges, подписи ru/en, контрактный тест.",
+  "commits": [
+    "63bfae7b TP-4: приборы дельталёта — тахометр и топливо (3D и HUD)"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot_k4",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "clock_label",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "pilot_hud",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "vario",
+      "value": "23/23",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TP-4",
+  "uncertain": [
+    {
+      "where": "scripts/instruments/gauge_dial.gd:scales",
+      "why": "configs/trike_pilot.json (TP-1) ещё нет в ветке: числа тахометра и бака берутся из запаса в instruments.json, при появлении файла читаются из него (tachometer.max_rpm/green_rpm/red_rpm, fuel.tank_l); имена ключей TP-К1 взяты из контракта",
+      "checked": "по тексту контракта; на реальном trike_pilot.json не проверено"
+    },
+    {
+      "where": "scripts/instruments/trike_gauges_3d.gd",
+      "why": "Угол стрелки = rotation_degrees.z узла (против часовой от «вверх», тахометр 135..-135, топливо 60..-60); внешний вид циферблатов (SubViewport на квадах) визуально не проверен, только логика в headless",
+      "checked": "тест: поворот RpmNeedle = needle_angle_deg ±0.5, AABB в panel.size"
+    },
+    {
+      "where": "scripts/ui/trike_gauges_hud.gd:anchor_px",
+      "why": "Приборы слева от планшета (не над часами); для углов overlay кроме bottom_right размещение приблизительное (левее часов)",
+      "checked": "окна 1280x720, 1920x1080, 2560x1440: внутри окна, без пересечения с рамкой планшета и часами"
+    }
+  ],
+  "dp_feedback": "accept --dry на первом запуске в копии долго (импорт), стоило бы подсказать про --import заранее.",
+  "extra": {
+    "tach_scale": "0..8000, зелёная 2000..6500, красная от 6800 (Rotax 582)",
+    "fuel_reserve_frac": 0.1
+  },
+  "t": "2026-10-22T23:01:25",
+  "by": "executor"
+}
