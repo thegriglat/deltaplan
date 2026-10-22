@@ -34,7 +34,7 @@ func test_defaults_and_kinds() -> void:
 func test_locale_keys() -> void:
 	var csv := FileAccess.get_file_as_string("res://locale/ui.csv")
 	for k in [
-		"setup_tow", "setup_tow_none", "setup_tow_winch", "setup_tow_aerotow", "setup_tow_mp_off", "setup_tow_mode_off"
+		"setup_tow", "setup_tow_none", "setup_tow_winch", "setup_tow_aerotow", "setup_tow_mp_off"
 	]:
 		check(csv.contains("\n" + k + ","), k)
 
@@ -59,28 +59,6 @@ func test_refresh_same_place_keeps_choice() -> void:
 	m.queue_free()
 
 
-func _set_mode(mode: String) -> void:
-	Config.reload()
-	Config.get_config("controls")["roll_control_mode"] = mode
-
-
-func test_mode_not_pendulum() -> void:
-	for mode in ["weight_shift", "rate"]:
-		_set_mode(mode)
-		var o := LaunchOptions.parse(PackedStringArray(["--tow=winch_static"]))
-		check(o.apply_to(FlightSettings.defaults()).tow_kind == "", "--tow отклонён в %s" % mode)
-		var m: FlightSetupScreen = (load("res://scenes/ui/flight_setup_screen.tscn") as PackedScene).instantiate()
-		(Engine.get_main_loop() as SceneTree).root.add_child(m)
-		var s := FlightSettings.defaults()
-		s.tow_kind = "winch_static"
-		m.set_settings(s)
-		var opt: OptionButton = m.get("_tow_opt")
-		check(opt.disabled, "строка неактивна в %s" % mode)
-		check(String(m.call("_tow_selected")) == "", "значение пусто в %s" % mode)
-		check((m.get("_tow_hint") as Label).visible, "подпись видна в %s" % mode)
-		check(String(Config.value("controls", "roll_control_mode")) == mode, "режим не переключён")
-		m.queue_free()
-	_set_mode("pendulum")
-	var o2 := LaunchOptions.parse(PackedStringArray(["--tow=winch_static"]))
-	check(o2.apply_to(FlightSettings.defaults()).tow_kind == "winch_static", "в Маятнике --tow работает")
-	Config.reload()
+func test_tow_option() -> void:
+	var o := LaunchOptions.parse(PackedStringArray(["--tow=winch_static"]))
+	check(o.apply_to(FlightSettings.defaults()).tow_kind == "winch_static", "--tow работает")

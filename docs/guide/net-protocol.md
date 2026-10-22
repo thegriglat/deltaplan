@@ -3,7 +3,7 @@ type: "guide"
 status: "active"
 module: "net"
 area: "net"
-updated: "2026-10-17"
+updated: "2026-10-22"
 summary: "Сетевой протокол: транспорт, сообщения, роль ведущего, ключ мира, LAN-поиск, примеры JSON и сценарии; правда — net.proto."
 related: ["server/proto/deltaplan/v1/net.proto", "docs/guide/game/network.md", "docs/guide/steam.md", "docs/archive/plan/multiplayer.md"]
 ---
@@ -215,13 +215,13 @@ related: ["server/proto/deltaplan/v1/net.proto", "docs/guide/game/network.md", "
 {"fromId": "7", "pilotState": {"pilotId": "7", "t": 845.4, "pos": {"x": 121.45, "y": 1850.13, "z": -341.35}, "rot": {"y": 0.601, "w": 0.799}, "vel": {"x": 9.48, "y": -1.25, "z": -6.02}}}
 ```
 
-#### PilotState (режим «Маятник», PD-К4)
-Пилот в режиме управления «Маятник»: `controlMode` — в полном пакете (раз в секунду и при смене), `pilotRel` — в каждом пакете.
+#### PilotState (игрок — «Маятник», PD-К4)
+Локальный игрок всегда шлёт `PENDULUM` (RM-К1): `controlMode` — в полном пакете (раз в секунду и при смене), `pilotRel` — в каждом пакете.
 ```json
 {"fromId": "7", "pilotState": {"pilotId": "7", "t": 845.4, "pos": {"x": 121.45, "y": 1850.13, "z": -341.35}, "rot": {"y": 0.601, "w": 0.799}, "vel": {"x": 9.48, "y": -1.25, "z": -6.02}, "controlMode": "CONTROL_MODE_PENDULUM", "pilotRel": {"x": 0.05, "y": -1.18, "z": -0.12}}}
 ```
 
-**Режим управления и положение пилота (PD-К4, v1).** `PilotState.control_mode = 11` (`ControlMode`: `RATE` 1 — «Упрощённый», `WEIGHT_SHIFT` 2 — «Смещение веса», `PENDULUM` 3 — «Маятник») и `PilotState.pilot_rel = 12` (`Vec3`: положение пилота относительно точки подвески в осях крыла, м, округление 1 см; ключи JSON `controlMode`, `pilotRel`). Правила:
+**Режим управления и положение пилота (PD-К4, v1).** `PilotState.control_mode = 11` (`ControlMode`: `RATE` 1 — боты, `PENDULUM` 3 — люди; номер 2 — `reserved` после RM-К1, бывший режим смещения веса; принятое иное значение читается как «не передано») и `PilotState.pilot_rel = 12` (`Vec3`: положение пилота относительно точки подвески в осях крыла, м, округление 1 см; ключи JSON `controlMode`, `pilotRel`). Правила:
 - `control_mode` шлётся в полном пакете (с `name`/`wing`/`colors`) и сразу при смене режима; получатель держит последний известный, как `name`;
 - `pilot_rel` шлётся в каждом пакете, **только** если режим `PENDULUM`; в других режимах и у ботов поля нет;
 - получатель рисует позу по маятнику (`BotAgent.pilot_rel`, `pilot_rel_valid = true`), только если пришли и `PENDULUM`, и `pilot_rel`; интерполяция `pilot_rel` между снимками — линейная. Старый клиент (нет полей) — поза по вводу, как раньше;

@@ -275,7 +275,6 @@ func tick(dt: float) -> void:
 	_publish_activity(phase)
 	if autopilot != null:
 		autopilot.hold = input_controller.run_blocked or not queue_walk.is_empty()
-		autopilot.pendulum = glider.is_pendulum()
 		autopilot.drive(glider.get_telemetry(), dt)
 	input_controller.on_ground = phase != "flying"
 	# Свободная камера занимает WASD — крыло без рук; при автопилоте крыло ведёт он, а камера
@@ -284,7 +283,7 @@ func tick(dt: float) -> void:
 	input_controller.hands_off = free_cam or hands_off
 	camera.free_keys_enabled = autopilot == null
 	var control := input_controller.update(dt)
-	if autopilot != null and autopilot.pendulum:
+	if autopilot != null:
 		control.roll = autopilot.roll_command  # ПИД крена: положение пилота (R7)
 	if not queue_walk.is_empty():
 		_queue_walk_step(control, phase)
@@ -1517,8 +1516,8 @@ func _choose_tow_start() -> bool:
 	if kind != "winch_static" and kind != "aerotow":
 		push_warning("Game: буксировка %s неизвестна, старт без буксировки" % kind)
 		return false
-	if net != null or air_start_m >= 0.0 or not Glider.is_pendulum_mode():
-		push_warning("Game: буксировка — только одиночная игра в режиме «Маятник» с земли, старт без буксировки")
+	if net != null or air_start_m >= 0.0:
+		push_warning("Game: буксировка — только одиночная игра с земли, старт без буксировки")
 		return false
 	var rope_len := float(Config.value("tow", "%s.%s" % [kind, "rope_length_m" if kind == "winch_static" else "runway_length_m"], 1000.0))
 	var x := 0.0

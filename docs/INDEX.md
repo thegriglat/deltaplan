@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-21"
+updated: "2026-10-22"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -27,6 +27,7 @@ generated: true
   - [tools/research/air_weak_wind/AWW-1/README.md](../tools/research/air_weak_wind/AWW-1/README.md) — AWW-1: диагноз 1 (холодный θ′ F) верен — правка θ′·h (TW-3); диагноз 2 (профиль 0,45) не подтверждён; порывы по теории; W1. [closed]
   - [tools/research/air_weak_wind/AWW-2/README.md](../tools/research/air_weak_wind/AWW-2/README.md) — AWW-2: правка 1 AWW-1 — F переносит теплосодержание θ′·h; W1 до/после на 8 стартах и Онгудае/Аскарово (слабый и сильный день). [closed]
   - [tools/research/air_weak_wind/AWW-1/summary.md](../tools/research/air_weak_wind/AWW-1/summary.md) — Вывод AWW-1: диагноз 1 верен (правка θ′·h TW-3: «Термики» 0,44 → 1,27 м/с), диагноз 2 не подтверждён, порывы в полосе теории. [closed]
+- **site-cloud-field** — Сайт: страница «Облака и тени» переписана под поле облачности (CLF-1/9/10) с графиками исследования; одна задача SCF-1. [closed 2026-10-21] — [план](plan/site-cloud-field.md) · [решения](plan/site-cloud-field/decisions.md) · [сводка](plan/site-cloud-field/summary.md) · полный журнал: `archive/site-cloud-field`
 
 ## flight
 
@@ -48,6 +49,8 @@ generated: true
   - [docs/research/pendulum/spin-recovery.md](research/pendulum/spin-recovery.md) — Почему sport не выходит из штопора (1.5.21): ввод и руки, крутка, упоры концов, sport против laminar, C_L max концов — замеры волны 1.
   - [tools/research/spin_recovery/README.md](../tools/research/spin_recovery/README.md) — Стенд штопора SR-К1 (spin_run.gd): вход, выходы release/standard/pull_release, таблица вариантов; SR-2 — база, крутка, sport против laminar.
   - [tools/research/spin_recovery/sr1/README.md](../tools/research/spin_recovery/sr1/README.md) — SR-1: стенд и команды воспроизведения — доходит ли ввод мыши до трапеции в штопоре sport.
+- **trike** — Идея: управляемый дельталёт — тележка вместо пилота на той же подвеске, тяга винта к тележке, колёса, газ; модуль не заведён. [idea 2026-10-21] — [план](plan/trike.md)
+- **roll-modes** — Игроку — только «Маятник»: убрать настройку «Управление креном» и режимы «Смещение веса»/«Простое»; FlightModel (rate) — только боты. [closed 2026-10-22] — [план](plan/roll-modes.md) · [контракты](contracts/roll-modes.md) · [решения](plan/roll-modes/decisions.md) · [сводка](plan/roll-modes/summary.md) · полный журнал: `archive/roll-modes`
 
 ## world
 
@@ -92,6 +95,11 @@ generated: true
   - [docs/guide/fast-load.md](guide/fast-load.md) — Загрузка места: порядок этапов, потоки, кеш поля воздуха (LRU, настройка размера), пирамида высот, PlaceData, числа и границы.
   - [docs/registry/fast-load-findings.md](registry/fast-load-findings.md) — fast-load: тёплая загрузка 29,2 → 12,5 с (Онгудай), 40,2 → 18,0 с (точка) при кеше поля; промах без выигрыша; малый пул.
 
+## release
+
+- **site-research** — Сверка сайта с исследованиями и руководством: каких выводов нет на сайте, что устарело; дописать страницы с графиками. [closed 2026-10-21] — [план](plan/site-research.md) · [контракты](contracts/site-research.md) · [решения](plan/site-research/decisions.md) · [сводка](plan/site-research/summary.md) · полный журнал: `archive/site-research`
+  - [tools/research/site_coverage/README.md](../tools/research/site_coverage/README.md) — SRS-1: 47 тем исследований против сайта (ru+en) и docs/guide: есть 25, частично 13, нет 7, устарело 2; графики, объём.
+
 ## process
 
 - **docs-rework** — dp → dpcli, area и статусы модулей по коду, раскладка docs (действующее / исследования / архив), docs check без ошибок, сайт без планов. [active 2026-10-15] — [план](plan/docs-rework.md) · [контракты](contracts/docs-rework.md)
@@ -125,11 +133,11 @@ generated: true
 - [docs/guide/flight/ground-bank.md](guide/flight/ground-bank.md) — Крен крыла на земле: уравнение моментов, рука пилота, порог бокового ветра, поворот на бегу, границы модели.
 - [docs/guide/flight/ground-pose.md](guide/flight/ground-pose.md) — Поза крыла на земле: зазор над рельефом, крыло стоя на старте (тангаж, флюгер, касания), старт в сильный ветер.
 - [docs/guide/flight/model.md](guide/flight/model.md) — Модель FlightModel: точечная масса с ориентацией, силы, трапеция, крен, срыв, воздух, земля, выравнивание и посадка; допущения.
-- [docs/guide/flight/pendulum.md](guide/flight/pendulum.md) — Режим «Маятник» (основной, по умолчанию): крыло на 16 полосах, пилот на цепи подвески, руки, земля, срыв, границы.
+- [docs/guide/flight/pendulum.md](guide/flight/pendulum.md) — «Маятник» — физика игрока: крыло на 16 полосах, пилот на цепи подвески, руки, земля, срыв, границы.
 - [docs/guide/flight/polar-table.md](guide/flight/polar-table.md) — Таблица поляры в спокойном воздухе: трапеция, скорость, снижение, качество для учебного, мачтового и безмачтового крыла.
 - [docs/guide/flight/sky-shade.md](guide/flight/sky-shade.md) — Тень от неба под парусом: физика закрытия небосвода, параметры, реализация декалью.
 - [docs/guide/flight/wings.md](guide/flight/wings.md) — Параметры (конфиги крыла, пилота, полёта) и каталог из 48 крыльев по группам и классам ветра.
-- [docs/guide/flight.md](guide/flight.md) — Вход в гайд по полёту: FlightModel и Glider (scripts/flight/), три режима крена, земля и посадка, Маятник; оглавление частей.
+- [docs/guide/flight.md](guide/flight.md) — Вход в гайд по полёту: FlightModel и Glider (scripts/flight/), крен, земля и посадка, Маятник; оглавление частей.
 - [docs/guide/game/bots.md](guide/game/bots.md) — Другие пилоты в небе: очередь на старт, разбег, полёт по вариометру, расхождение, вид и имена; число 0–20 (по умолчанию 4).
 - [docs/guide/game/cameras-input.md](guide/game/cameras-input.md) — Камеры (кабина, сзади, свободная), поведение головы, раскладка клавиш/мыши/геймпада, приборы на трапеции и отладочные слои F1–F6.
 - [docs/guide/game/cli-tests.md](guide/game/cli-tests.md) — Аргументы командной строки главной сцены (кадры, smoke, старт в воздухе, замеры, отладка сети), запуск тестов и проверок.
