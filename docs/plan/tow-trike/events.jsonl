@@ -178,3 +178,16 @@
 {"t": "2026-10-22T23:52:20", "by": "coordinator", "task": "TT-13", "ev": "checked", "note": "3/3 climb_estimate=ok:climb_ms=3.02; k1=ok:exit 0; trapeze=ok:exit 0; scope=FAIL:вне scope: r-TT-13.json"}
 {"t": "2026-10-22T23:52:27", "by": "coordinator", "task": "TT-13", "ev": "accepted", "note": "3/3 climb_estimate=ok:climb_ms=3.02; k1=ok:exit 0; trapeze=ok:exit 0"}
 {"t": "2026-10-22T23:52:27", "by": "coordinator", "task": "TT-13", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-22T23:52:28", "by": "coordinator", "task": "TT-13", "ev": "merged"}
+{"t": "2026-10-22T23:58:48", "by": "coordinator", "task": "TT-5", "ev": "accepted", "commits": ["89ba25f4"], "note": "7/7 tow=ok:105/105; contracts/=ok:534/534; no_an2_ui=ok:0; no_an2=ok:0; egg_an2=ok:3/3; egg_meet=ok:1/1; eggs_no_osm=ok:2/2"}
+{"t": "2026-10-22T23:58:49", "by": "coordinator", "task": "TT-6", "ev": "accepted", "commits": ["89ba25f4"], "note": "2/2 docs=ok:clean; no_an2_tug=ok:0"}
+{"t": "2026-10-22T23:58:49", "by": "coordinator", "task": "TT-7", "ev": "accepted", "commits": ["89ba25f4"], "note": "1/1 frames=ok:5"}
+{"t": "2026-10-22T23:58:50", "by": "coordinator", "task": "TT-8", "ev": "accepted", "commits": ["89ba25f4"], "note": "2/2 trapeze=ok:exit 0; docs=ok:clean"}
+{"t": "2026-10-23T00:04:25", "by": "coordinator", "task": "TT-9", "ev": "accepted", "commits": ["89ba25f4"], "note": "7/7 tow_trike=ok:25/25; trike_model=ok:8/8; wing=ok:25/25; pilot=ok:73/73; trapeze=ok:exit 0; others_unchanged=ok:0; frames=ok:5"}
+{"t": "2026-10-23T00:12:15", "by": "coordinator", "task": "TT-10", "ev": "accepted", "commits": ["89ba25f4"], "note": "4/4 tow_trike_k3=ok:11/11; pendulum=ok:117/117 (пропуск 1); tow=ok:105/105; contracts/=ok:534/534"}
+{"t": "2026-10-23T00:12:17", "by": "coordinator", "task": "TT-11", "ev": "accepted", "commits": ["89ba25f4"], "note": "3/3 trike_model=ok:8/8; tow_trike_k6=ok:4/4; frames=ok:2"}
+{"t": "2026-10-23T00:20:47", "by": "coordinator", "task": "TT-12", "ev": "accepted", "commits": ["89ba25f4"], "note": "4/4 tow_trike_k3=ok:11/11; pendulum=ok:117/117 (пропуск 1); tow=ok:105/105; contracts/=ok:534/534"}
+{"t": "2026-10-23T00:20:50", "by": "coordinator", "task": "TT-1", "ev": "accepted", "commits": ["11444944"], "note": "4/4 k1=ok:exit 0; wing_numbers=ok:ok; climb_estimate=ok:climb_ms=3.02; docs=ok:clean"}
+{"t": "2026-10-23T00:20:51", "by": "coordinator", "task": "TT-13", "ev": "accepted", "commits": ["11444944"], "note": "3/3 climb_estimate=ok:climb_ms=3.02; k1=ok:exit 0; trapeze=ok:exit 0"}
+{"t": "2026-10-23T00:21:04", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: accept --here перепрогоняет все тесты задачи (минуты на задачу) и под нагрузкой параллельных копий даёт таймауты 900 с; файл r.json в корне копии ломает scope — исполнители оставляют его постоянно; task new не умеет отвести копию от ветки другой задачи (--from-branch); проверки со своим grep легко ошибаются (маска an2 ловила atan2)."}
+{"t": "2026-10-23T00:21:04", "by": "coordinator", "task": null, "ev": "note", "note": "итог: 13 задач приняты и влиты; связка буксировщик+дельтаплан sport — набор 3,30 м/с при 59,7 км/ч, разбег 83 м, макс. натяжение 75 даН (пороги BHPA выполнены, шлюз не понадобился); остаток: рывок крыла 0,177 м/с один шаг при переключении штанги в автопилоте (ревью TT-4), падение test_game_bots_untouched — и на main"}
