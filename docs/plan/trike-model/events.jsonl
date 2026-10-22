@@ -114,3 +114,5 @@
 {"t": "2026-10-22T05:10:13", "by": "executor", "task": "TK-9", "ev": "reported", "commits": ["9bbd531f"], "note": "done: В build_pilot.py поза sit теперь подгоняется по замеру меша: низ вершин Sole (с учётом скиннинга) ставится на foot_l / …", "dp_feedback": "В карточке замер TK-6 (2,6 см) расходится с реальным (4,6 см по мешу): тест TK-6 считал иначе; дополнение обрезано в task show (нужен --full)."}
 {"t": "2026-10-22T05:11:32", "by": "coordinator", "task": "TK-9", "ev": "checked", "note": "3/3 trike_model_k3=ok:2/2; trike_model_k1=ok:3/3; pilot=ok:73/73"}
 {"t": "2026-10-22T05:11:41", "by": "coordinator", "task": "TK-9", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-22T05:13:12", "by": "coordinator", "task": "TK-9", "ev": "accepted", "commits": ["698ea3e9"], "note": "3/3 trike_model_k3=ok:2/2; trike_model_k1=ok:3/3; pilot=ok:73/73"}
+{"t": "2026-10-22T05:13:12", "by": "coordinator", "task": "TK-9", "ev": "merged"}
