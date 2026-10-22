@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "prototype": {
     "name": "Airborne Edge XT 912 / Streak 3 (габариты, винт) + Air Creation Tanarg (шины, винт)",
     "seats": 2,
@@ -268,20 +268,21 @@
       -2.095
     ],
     "hand_l": [
-      -0.15,
-      0.622,
-      -1.6495
+      -0.19,
+      0.72,
+      -1.51
     ],
     "hand_r": [
-      0.15,
-      0.622,
-      -1.6495
+      0.19,
+      0.72,
+      -1.51
     ],
     "pedal_angle_deg": 45,
     "pedal_size": [
       0.14,
       0.34
-    ]
+    ],
+    "hand_doc": "TT-К6: хват на штанге при bar.trim, симметрично, ширина по плечам пилота (trapeze.json hands)"
   },
   "seat_rear": {
     "seat_pan": [
@@ -333,25 +334,30 @@
     ]
   },
   "bar": {
-    "wing": "training",
+    "wing": "trike_ixess15",
     "d": 0.03,
-    "half_width": 0.75,
+    "half_width": 0.55,
     "trim": [
       0.0,
-      0.721,
-      -1.454
+      0.72,
+      -1.51
     ],
     "full_pull": [
       0.0,
-      0.158,
-      -1.614
+      0.492,
+      -1.5989
     ],
     "full_push": [
       0.0,
-      1.088,
-      -1.203
+      0.8476,
+      -1.4423
     ],
-    "how": "tools/research/trike-model/measure_bar.gd: игра, крыло training, режим «Маятник», полёт; BaseBar − HangPoint в осях тележки (оси визуала при триме, тело пилота повёрнуто маятником): trim — без ввода (0.72, -1.454), full_pull — мышь «на себя» на упоре (pitch=-1, установившееся), full_push — «от себя» (pitch=+1, середина, ещё дрейфует +0.02 м/с); x=0 по симметрии; d = 2·control_frame.basebar_r_m (glider_params.json), half_width = wings.training.basebar_width_m/2; подробности — bar_panel.md"
+    "travel_m": 0.3894,
+    "travel_deg": 13.3377,
+    "push_deg": 4.9483,
+    "pull_deg": 8.3894,
+    "radius_m": 1.6729,
+    "how": "TT-К6 (tools/research/tow-trike/trapeze.json, trapeze_calc.py): trim — кисти на высоте/вылете, выбранных перебором (шаг 2 см) так, чтобы рука согнута (reach 0.533 м при длине руки 0.710), тело не ближе 5 см на всём ходу назад, упор в подкос не раньше 4.9°; full_push — касание подкоса (зазор осей = r_подкоса + r_штанги + 0,01), full_pull — зазор до тела 0,05 м (по вершинам меша pilot.glb, поза sit); дуга радиуса 1.673 м около HangPoint"
   },
   "panel": {
     "center": [

@@ -4,7 +4,7 @@ status: "active"
 module: "models"
 area: "flight"
 updated: "2026-10-15"
-summary: "Модели крыльев (assets/models/glider_*.glb, 48 шт.): таблица, параметры glider_params.json, трапеция, центровка, подвеска."
+summary: "Модели крыльев (assets/models/glider_*.glb, 49 шт.): таблица, параметры glider_params.json, трапеция, центровка, подвеска."
 related: ["docs/guide/models.md"]
 ---
 # Модели крыльев
@@ -59,6 +59,9 @@ related: ["docs/guide/models.md"]
 | `glider_ww_fusion.glb` | безмачтовое продвинутое (в духе Wills Wing Fusion 150): база sport, 128° | 13256 |
 | `glider_ww_talon.glb` | безмачтовое продвинутое (в духе Wills Wing Talon): база sport, 128° | 13256 |
 | `glider_ww_cross_country.glb` | мачтовое продвинутое (в духе Wills Wing Cross Country 155): база magic, 124° | 12564 |
+| `glider_trike_ixess15.glb` | крыло буксировщика-дельталёта (Air Creation iXess 15, TT-К2): мачтовое, 120°, 12 лат, кингпост 1,4 м; группа `tug` скрыта от игрока и ботов; числа — `tools/research/tow-trike/wing_trike_ixess15.json` | 12980 |
+
+Скрытая группа `tug` (`configs/wing_groups.json`, `"player": false`): крылья буксировщиков не видны в меню и не берутся ботами (`WingCatalog.player_groups()`/`player_wings()`).
 
 Крыло — 11,8…14,0 тыс. треугольников, пилот ≈ 9,7 тыс., прибор 1,1…1,6 тыс. (бюджет сцены «крыло + пилот» 30 тыс.;
 мелкие детали в дали упрощает авто-LOD импорта Godot). Модель крыла собирается из `tools/blender/build_gliders.py`; общая

@@ -13,7 +13,7 @@ func test_groups_in_file_order() -> void:
 
 func test_every_wing_in_one_group() -> void:
 	var total := 0
-	for g in WingCatalog.groups():
+	for g in WingCatalog.all_groups():
 		total += WingCatalog.wings_in_group(String(g.id)).size()
 	check(total == Config.list_configs("wings").size(), "каждое крыло в своей группе: %d" % total)
 	check(WingCatalog.group_of("wings/training") == "trainer", "Falcon — учебное")
