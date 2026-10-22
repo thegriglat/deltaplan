@@ -1,0 +1,80 @@
+{
+  "status": "partial",
+  "summary": "upper_misc_1deg.bin (HH6 v2, 1,78 МБ, 2011–2020): HCC и TROP из ERA5 (CDS, месячные средние), WR — заглушка (stub_mask=1), т.к. суточные |V700| ждут шлюза Q4. README, sites.csv, конвейер готовы.",
+  "commits": [
+    "93821f07 конвейер upper_misc",
+    "последний: сетка upper_misc_1deg.bin, README, sites.csv"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "6/6 PASS",
+      "pass": true
+    },
+    {
+      "name": "test_upper_misc_format",
+      "value": "ok, 14 тестов 0 упало",
+      "pass": true
+    },
+    {
+      "name": "размер",
+      "value": "1785406 байт",
+      "pass": true
+    },
+    {
+      "name": "TROP диапазон",
+      "value": "7537…17233 м, найдена в 100% ячеек; экватор 16,6 км, Алтай 10,0–11,1 км",
+      "pass": true
+    },
+    {
+      "name": "HCC",
+      "value": "0…0,94; Алтай 0,39, Дараб 0,14, Кэрнс 0,31 (год)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "WR из данных: нужно 120 запросов derived-era5-pressure-levels-daily-statistics (u,v 700 гПа, по месяцу); не запускал — шлюз Q4. Оценка занижения (u10_2015_01/07) тоже не скачана."
+  ],
+  "questions": [
+    "Q4: разрешить 120 месячных запросов daily_mean u,v 700 гПа (очередь CDS: sl_monthly ждал ~2 ч, tz ~3 ч) или принять WR-заглушку / WR по месячным средним u,v?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept HH-1f",
+  "uncertain": [
+    {
+      "where": "upper_misc/aggregate_cds.py:tropopause",
+      "why": "ВМО по среднему профилю на 14 уровнях (шаг 1–2,5 км): ±300–500 м; у Крыма в июле–августе 15,3/14,9 км (артефакт скачка тропопаузы у струйного течения, реально ~12–13 км)",
+      "checked": "экватор, Алтай, полюса — правдоподобно"
+    },
+    {
+      "where": "sites.csv hcc_med/hcc_lt01",
+      "why": "по выборке ARCO ~22 сут/месяц, шумно",
+      "checked": "7 файлов с NaN обработаны nan-функциями"
+    },
+    {
+      "where": "sites.csv gain_per_km",
+      "why": "z700 — заглушка 3000 м (HH2), wr — заглушка: gain = 0,6 по построению",
+      "checked": "-"
+    }
+  ],
+  "dp_feedback": "Очередь CDS общая на аккаунт: осиротевшие запросы погибших процессов блокируют всех (пришлось удалять через get_jobs/get_remote.delete). Хорошо бы dpcli cds-queue (список/очистка своих запросов) и общий загрузчик под замком. rtk/хук прячет вывод ps/grep.",
+  "extra": {
+    "hcc_year_mean": {
+      "altai": 0.39,
+      "ongudai": 0.36,
+      "askarovo": 0.36,
+      "aushkul": 0.37,
+      "crimea": 0.29,
+      "darab": 0.14,
+      "cairns": 0.31
+    },
+    "trop_year_mean_m": {
+      "altai": 10624,
+      "crimea": 11690,
+      "darab": 16653,
+      "cairns": 16502
+    },
+    "stub_mask": 1
+  },
+  "t": "2026-10-22T07:36:49",
+  "by": "executor"
+}
