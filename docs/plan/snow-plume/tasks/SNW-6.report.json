@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "Новый гайд docs/guide/terrain/snow-plume.md (11,7 КБ), строка в terrain.md, запись в CHANGELOG «В работе», раздел snow-plume в реестре выводов.",
+  "commits": [
+    "919ba9f5 snow-plume SNW-6: документация снежных струек"
+  ],
+  "checks": [
+    {
+      "name": "guide_fm",
+      "value": "---",
+      "pass": true
+    },
+    {
+      "name": "docs_check",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "size",
+      "value": "11997",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SNW-6",
+  "uncertain": [
+    {
+      "where": "docs/guide/terrain/snow-plume.md#что-проверено",
+      "why": "числа SNW-5 (24 источника) сняты до переделки на струйки, при прежнем потолке; после v3 не перемерялись",
+      "checked": "так и сказано в тексте"
+    },
+    {
+      "where": "scripts/world/snow_plume/snow_plume_flake.gdshader",
+      "why": "файл, похоже, остался от прежней отрисовки; в гайде так и написано, использование не проверял через grep",
+      "checked": "render использует particles и streak"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-23T04:42:57",
+  "by": "executor"
+}
