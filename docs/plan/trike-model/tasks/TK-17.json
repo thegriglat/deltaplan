@@ -1,0 +1,42 @@
+{
+  "id": "TK-17",
+  "module": "trike-model",
+  "type": "dp-researcher",
+  "title": "Паспорта аппаратов: новые источники",
+  "goal": "Дополнить tools/research/trike-model/wings.json и wings.md данными Air Création Skypper Evo, Tanarg Neo, La Mouette Samson, P&M QuikR (массы тележки и крыла, MTOW, двигатель, винт, скорости, бак) по проверенным источникам; закрыть н/д прежних записей, где найдётся.",
+  "plan_ref": "TK-17",
+  "contracts": [],
+  "copy": "~/deltaplan-trike-model-TK-17",
+  "branch": "trike-model/TK-17",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/research/trike-model/wings.json",
+    "tools/research/trike-model/wings.md"
+  ],
+  "dont_touch": [
+    "tools/blender/",
+    "assets/",
+    "configs/",
+    "docs/contracts/trike-model.md"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "./.dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "wings",
+      "cmd": "python3 -c \"import json;w=json.load(open('tools/research/trike-model/wings.json'))['wings'];print('n=%d'%len(w))\"",
+      "expect": "num:n=(\\d+) >=5"
+    },
+    {
+      "name": "physics",
+      "cmd": "python3 -c \"import json;w=json.load(open('tools/research/trike-model/wings.json'))['wings'];ks=['mtow_kg','empty_mass_kg','vs_kmh','trim_speed_kmh','vne_kmh','climb_ms','engine_power_kw','prop_d_m','static_thrust_n','fuel_l','fuel_burn_lph','cg_trike'];print('missing=%d'%sum(1 for x in w for k in ks if k not in x.get('trike',{}) and k not in x))\"",
+      "expect": "num:missing=(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:53:37"
+}
