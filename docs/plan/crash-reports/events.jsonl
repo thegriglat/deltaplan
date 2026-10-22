@@ -230,3 +230,4 @@
 {"t": "2026-10-23T04:52:58", "by": "coordinator", "task": "CR-13", "ev": "accepted", "note": "по ревью"}
 {"t": "2026-10-23T04:52:59", "by": "coordinator", "task": "CR-13", "ev": "merged"}
 {"t": "2026-10-23T04:52:59", "by": "coordinator", "task": "CR-13", "ev": "note", "note": "слито a7248405"}
+{"t": "2026-10-23T04:53:09", "by": "coordinator", "task": "CR-8", "ev": "note", "note": "Дополнение (CR-13 слит в feature/crash-reports): после сохранения настроек в settings_panel.gd и в GpuSafety.apply_safe/restore вызвать CrashReporter.refresh_switches() (обновляет снимок рубильников CR-К4 в метке сеанса для отчёта). Перед сдачей — git merge feature/crash-reports (CHANGELOG — обе строки).", "addendum": true}
