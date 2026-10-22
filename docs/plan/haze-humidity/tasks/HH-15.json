@@ -1,0 +1,95 @@
+{
+  "id": "HH-15",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Яркость сцены на закате по физике пропускания + экспозиция заката (Q5 б)",
+  "goal": "Свет рельефа и неба по высоте солнца — из физики пропускания и модели ясного неба (контракт HH4 v3), одна яркость неба для сцены и облаков, зенит не подкрашен, экспозиция заката по яркости сцены; засвет солнца пересчитан под новую экспозицию; кадры до/после.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "HH4",
+      "version": "3",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH3",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-15",
+  "branch": "haze-humidity/HH-15",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "scripts/world/sky_environment.gd",
+    "scripts/world/sun_glare.gdshader",
+    "scripts/world/sun_glare.gd",
+    "scripts/world/sky.gdshader",
+    "scripts/world/haze.gdshader",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/sun_transmission.gd",
+    "configs/world.json",
+    "configs/atmosphere.json",
+    "tests/world/",
+    "tests/atmosphere/",
+    "tests/contracts/test_haze_humidity_hh4.gd",
+    "tools/shots/",
+    "tools/research/haze_humidity/sky_light/",
+    "docs/guide/terrain/forest-sky.md",
+    "docs/guide/atmosphere/",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "data/",
+    "docs/contracts/",
+    "scripts/atmosphere/weather_model.gd",
+    "scripts/atmosphere/climate_grid.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "sky",
+      "tests": "sky"
+    },
+    {
+      "name": "sun",
+      "tests": "sun"
+    },
+    {
+      "name": "cloud",
+      "tests": "cloud"
+    },
+    {
+      "name": "haze_humidity",
+      "tests": "haze_humidity"
+    },
+    {
+      "name": "no_tables",
+      "cmd": "python3 -c \"import json;l=json.load(open('configs/world.json'))['time']['light'];c=json.load(open('configs/atmosphere.json'))['clouds'];assert 'sun_energy' not in l and 'sky_energy' not in l and 'sky_light' not in c\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "research",
+      "cmd": "test -f tools/research/haze_humidity/sky_light/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity/before_scene_*.jpg /home/greg/deltaplan/build/screenshots/haze-humidity/after_scene_*.jpg | wc -l",
+      "expect": "num:(\\d+) >=12"
+    },
+    {
+      "name": "no_masks",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity | /usr/bin/grep -c 'nocloud\\|tint.txt'",
+      "expect": "re:^0$"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T01:33:54"
+}
