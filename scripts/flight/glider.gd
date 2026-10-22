@@ -28,6 +28,10 @@ var air_fn: Callable = Callable()
 var ground_fn: Callable = Callable()
 var visual: GliderVisual = null
 var _ext_fn: Callable = Callable()  ## TW-К4: внешняя сила (трос)
+## TP-К6: дельталёт игрока (null у дельтаплана). Только чтение.
+var trike: TrikeRig = null
+var engine: TrikeEngine = null
+var _trike_wheels: Dictionary = {}
 var _link_t := 0.0  ## натяжение звена, Н (FlightModel)
 var _link_warned := false
 
@@ -54,6 +58,10 @@ func _ready() -> void:
 ## Выбрать крыло и массу пилота (≤0 — по умолчанию). Сбрасывает состояние: потом reset_*.
 ## Модель игрока — PendulumModel (apparatus — настройки «Аппарат», PD-К3).
 func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) -> void:
+	if trike != null:  # снова дельтаплан: тяги тележки нет
+		trike = null
+		engine = null
+		_ext_fn = Callable()
 	wing_id = wing_name
 	var wing: Dictionary = Config.get_config("wings/" + wing_name)
 	var pilot: Dictionary = Config.get_config("pilot").duplicate(true)
@@ -71,6 +79,56 @@ func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) 
 	_vis = Config.get_config("flight").visual
 	if is_node_ready():
 		_build_visual()
+
+
+## TP-К6: дельталёт игрока. cfg - формат TT-К1 (configs/tow_tug.json), ops_cfg - TP-К1 (configs/trike_pilot.json).
+## Масса тележки = пустая + пилот (pilot_mass_kg <= 0 - cart.pilot_mass_kg) + топливо на старте; расход топлива массу
+## в полёте не меняет (граница модели, <= 40 кг из ~325 кг). Сбрасывает состояние: потом reset_on_wheels.
+func setup_trike(cfg: Dictionary, pilot_mass_kg_: float, ops_cfg: Dictionary) -> void:
+	var cart: Dictionary = cfg.cart
+	engine = TrikeEngine.new()
+	engine.setup(cfg.engine, cfg.thrust, ops_cfg)
+	var pm := pilot_mass_kg_ if pilot_mass_kg_ > 0.0 else float(cart.pilot_mass_kg)
+	pilot_mass_kg = pm
+	wing_id = String(cfg.get("wing", TrikeRig.WING_DEFAULT))
+	var mp := TrikeRig.model_params(cfg, float(cart.empty_mass_kg) + pm + engine.fuel_mass_kg)
+	model = PendulumModel.new()
+	model.setup(mp.wing, mp.pilot, {}, mp.apparatus)
+	trike = TrikeRig.new()
+	trike.terrain = func(x: float, z: float) -> float:
+		return float(ground_fn.call(x, z)) if ground_fn.is_valid() else 0.0
+	trike.setup(model, cfg)
+	_trike_wheels = cfg.ground.duplicate(true)
+	_trike_wheels.merge(ops_cfg.get("wheels", {}), true)
+	_trike_wheels["land_on_wheels"] = true
+	_ext_fn = trike.ext_force
+	model.set_external_force(_ext_fn)
+	model.landed.connect(func(r: Dictionary) -> void: landed.emit(r))
+	model.takeoff_failed.connect(func(reason: String) -> void: takeoff_failed.emit(reason))
+	model.took_off.connect(func() -> void: took_off.emit())
+	_configured = true
+	_vis = Config.get_config("flight").visual
+	if is_node_ready():
+		_build_visual()
+
+
+func is_trike() -> bool:
+	return trike != null
+
+
+## TP-К6: дельталёт на колёсах в точке pos (земля под ЦМ тележки), курс heading_deg; двигатель заглушен, бак полный.
+func reset_on_wheels(pos: Vector3, heading_deg: float) -> void:
+	if trike == null:
+		push_warning("Glider: reset_on_wheels без setup_trike - старт на ногах")
+		reset_on_ground(pos, heading_deg)
+		return
+	if ground_fn.is_valid():
+		pos.y = float(ground_fn.call(pos.x, pos.z))
+	model.reset_on_wheels(pos, heading_deg, _trike_wheels)
+	engine.reset()
+	trike.thrust_n = 0.0
+	trike.refresh(0.0)
+	_teleport()
 
 
 ## Сейчас модель — PendulumModel.
@@ -255,7 +313,13 @@ func step(dt: float) -> void:
 		return
 	if _ext_fn.is_valid() and not (model is PendulumModel):
 		_step_external_force(dt)
+	if trike != null:
+		engine.step(dt, model.telemetry.airspeed, control.throttle_axis, control.engine_toggle)
+		control.engine_toggle = false  # нажатие - на один шаг
+		trike.thrust_n = engine.thrust_n
 	model.step(dt, control, air_fn, ground_fn)
+	if trike != null:
+		trike.refresh(dt)
 	_prev_xform = _cur_xform
 	_cur_xform = Transform3D(model.telemetry.basis, model.position)
 	if visual != null:
@@ -288,7 +352,7 @@ func _build_visual() -> void:
 
 func _update_pilot(dt: float) -> void:
 	if visual != null:
-		var flying: bool = model.mode == FlightModel.Mode.AIR or model.phase() == "dolly"
+		var flying: bool = model.mode == FlightModel.Mode.AIR or model.phase() in ["dolly", "wheels"]
 		if is_pendulum():
 			visual.set_hang_pose(model.pilot_rel, not flying, dt)  # PD-К5: тело по цепи маятника
 		else:

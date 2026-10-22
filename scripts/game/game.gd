@@ -96,6 +96,7 @@ var _start_heading := 0.0
 ## Буксировка со статической лебёдки (TW-10): узел-сессия и место полосы (TowSite.check), {} — без буксировки.
 var tow_session: TowSession = null
 var _tow_site: Dictionary = {}
+var _trike_start := false  ## TP-К6: старт дельталёта на полосе места буксировки (без TowSession)
 const TOW_DEFAULT_WIDTH_M := 35.0  # ширина полосы для точки без блока tow (как у единственной полосы места, TW-8b)
 var _exact_start := false  # точный старт пилота применён (SP-К1): курс не выравнивается по ветру
 var _site_heading := 0.0  # курс площадки (до выравнивания по ветру поля)
@@ -794,6 +795,8 @@ func restart(keep_clock: bool = false) -> void:
 	elif net != null:  # в сети — на своё место в очереди на старт (NET-43)
 		var sp := net.queue_start_spot()
 		glider.reset_on_ground(sp.position, float(sp.heading_deg))
+	elif _trike_start:
+		glider.reset_on_wheels(_start_pos, _start_heading)  # TP-К6: начало полосы, заглушен, полный бак
 	else:
 		glider.reset_on_ground(_start_pos, _start_heading)
 	if tow_session != null:
@@ -813,6 +816,7 @@ func restart(keep_clock: bool = false) -> void:
 		if _day != null:
 			_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
 	stats.reset(glider.get_telemetry().position)
+	stats.trike = _trike_start
 	instrument.reset()
 	_goals_reset()
 	for n in mounted:
@@ -1469,6 +1473,7 @@ func _load_terrain() -> bool:
 func _choose_start() -> void:
 	_exact_start = false
 	_tow_site = {}
+	_trike_start = false
 	if _choose_tow_start():
 		return
 	if settings.has_exact_start():
@@ -1510,11 +1515,8 @@ func _choose_start() -> void:
 ## из configs/tow.json. Не вышло (причина — push_warning) — обычный старт без буксировки. aerotow (TW-10b) — та же
 ## полоса, но старт пилота на тележке в начале, Ан-2 впереди на длину троса.
 func _choose_tow_start() -> bool:
-	if settings.vehicle == "trike":
-		# TP-К5: полёта дельталёта ещё нет (TP-6) — стартуем дельтапланом.
-		push_warning("Game: дельталёт ещё не летает (TP-6), старт дельтапланом")
-		return false
-	var kind := settings.tow_kind
+	var trike := settings.vehicle == "trike"
+	var kind := "aerotow" if trike else settings.tow_kind  # дельталёт: полоса как у аэробуксировки, без троса
 	if kind == "":
 		return false
 	if kind != "winch_static" and kind != "aerotow":
@@ -1565,7 +1567,7 @@ func _choose_tow_start() -> bool:
 			if st.id == settings.site_id:
 				site = st
 		var tw: Dictionary = site.get("tow", {})
-		if tw.is_empty() or not (kind in tw.get("kinds", [])):
+		if tw.is_empty() or not (trike or kind in tw.get("kinds", [])):
 			push_warning("Game: на площадке %s нет буксировки %s, старт без буксировки" % [site.get("id", ""), kind])
 			return false
 		x = site.position.x
@@ -1582,6 +1584,7 @@ func _choose_tow_start() -> bool:
 	_start_pos = chk.start_pos
 	_start_heading = float(chk.heading_deg)
 	_exact_start = true  # курс — ось полосы, по ветру не выравнивается
+	_trike_start = trike
 	_tow_site = chk
 	_tow_site["width_m"] = width
 	_tow_site["length_m"] = length
@@ -1620,6 +1623,8 @@ func _make_tow_session() -> void:
 	if tow_session != null:
 		tow_session.queue_free()
 		tow_session = null
+	if _trike_start:
+		return  # TP-К6: внешняя сила дельталёта - его тяга (Glider.setup_trike), троса нет
 	glider.clear_external_force()
 	if _tow_site.is_empty():
 		return
@@ -1678,8 +1683,13 @@ func _setup_glider() -> void:
 		n.queue_free()
 	mounted.clear()
 	var wing_id := settings.wing_id()
-	glider.setup(wing_id, settings.pilot_mass_kg, settings.resolved_apparatus(wing_id))
-	settings.pilot_mass_kg = glider.pilot_mass_kg
+	if _trike_start:
+		glider.setup_trike(Config.get_config("tow_tug"), settings.pilot_mass_kg, Config.get_config("trike_pilot"))
+		input_controller.vehicle = "trike"
+	else:
+		glider.setup(wing_id, settings.pilot_mass_kg, settings.resolved_apparatus(wing_id))
+		settings.pilot_mass_kg = glider.pilot_mass_kg
+		input_controller.vehicle = "glider"
 	camera.set_head(glider.get_marker("PilotHead"))
 	# Смещение центра масс пилота от подвески в полёте (крен/тангаж ручкой), оси планера: голова
 	# кабинной камеры повторяет его долей (camera.json → cockpit.head_follow_body). На земле — ноль.
