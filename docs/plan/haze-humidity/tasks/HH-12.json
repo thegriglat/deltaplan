@@ -1,0 +1,54 @@
+{
+  "id": "HH-12",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Цвет облаков на закате: проверить числами свет HH-7 (бока кучевых белые при солнце 5,7°)",
+  "goal": "Числами найти, где теряется тёплый цвет освещённых боков кучевых на закате (солнце 5,7°, after_sunset_altai.jpg): таблица пропускания HH4, нормировка, вклад неба/окружения, тонмаппинг/пересвет; ожидаемый физический цвет против цвета в кадре; вердикт и предложенная правка (без правки «на глаз»).",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "HH4",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH3",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-12",
+  "branch": "haze-humidity/HH-12",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/sunset_color/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "data/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "result",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/haze_humidity/sunset_color/result.json'));assert {'expected_rgb','table_T','rendered_rgb','verdict','fix'}<=set(d)\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/haze_humidity/sunset_color/README.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T20:27:05"
+}
