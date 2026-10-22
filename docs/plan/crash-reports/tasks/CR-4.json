@@ -1,0 +1,52 @@
+{
+  "id": "CR-4",
+  "module": "crash-reports",
+  "type": "dp-researcher",
+  "title": "Гипотеза драйвера рендера Windows (Vulkan/D3D12) и варианты решения",
+  "goal": "Проверить гипотезу пользователя: связаны ли вылеты на Windows (#3–#15) с драйвером рендера (Vulkan/D3D12); установить, какой драйвер Godot 4.7.2 выбирает на Windows при текущем project.godot и есть ли откат; сравнить варианты: d3d12 по умолчанию, автоматический откат, .itch.toml с двумя действиями запуска — документ по CR-К1.",
+  "plan_ref": "§4 CR-4",
+  "contracts": [
+    {
+      "name": "CR-К1",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    }
+  ],
+  "copy": "~/deltaplan-crash-reports-CR-4",
+  "branch": "crash-reports/CR-4",
+  "base": "feature/crash-reports",
+  "scope": [
+    "docs/research/crash-reports/cr-4.md",
+    "tools/research/crash-reports/cr-4"
+  ],
+  "dont_touch": [
+    "scripts",
+    "scenes",
+    "project.godot",
+    "export_presets.cfg",
+    ".itch.toml",
+    "CHANGELOG.md",
+    "docs/plan",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "sections",
+      "cmd": "grep -cE '^## (Отчёты|Механизм отчёта|Причина|Исправлено ли в main|Воспроизведение|Предложение правки)$' docs/research/crash-reports/cr-4.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "privacy",
+      "cmd": "! grep -rEqs 'pt_-?[0-9]|-?[0-9]{1,3}\\.[0-9]{3,}[, ]+-?[0-9]{1,3}\\.[0-9]{3,}' docs/research/crash-reports/cr-4.md tools/research/crash-reports/cr-4",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА.*crash-reports"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:21:02"
+}
