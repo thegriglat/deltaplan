@@ -1,0 +1,722 @@
+[
+ {
+  "bar_i_m": -0.051,
+  "climb_ms": 3.29,
+  "dur_s": 40.1,
+  "liftoff_m": 84.0,
+  "name": "base",
+  "phase": "circuit",
+  "spec": {
+   "name": "base"
+  },
+  "speed_kmh": 59.7,
+  "t_end": 104.5,
+  "tension_n": 327.0,
+  "throttle": 1.0,
+  "thrust_n": 1353.0,
+  "wing_pitch_deg": 19.2,
+  "series": "out0"
+ },
+ {
+  "bar_i_m": 0.12,
+  "climb_ms": 2.82,
+  "dur_s": 53.1,
+  "liftoff_m": 174.0,
+  "name": "axis_a0.724",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_a0.724"
+  },
+  "speed_kmh": 72.9,
+  "t_end": 113.2,
+  "tension_n": 406.0,
+  "throttle": 1.0,
+  "thrust_n": 1285.0,
+  "wing_pitch_deg": 12.2,
+  "series": "out1"
+ },
+ {
+  "bar_i_m": -0.051,
+  "climb_ms": 3.29,
+  "dur_s": 40.1,
+  "liftoff_m": 84.0,
+  "name": "cg_a1.0",
+  "phase": "circuit",
+  "spec": {
+   "name": "cg_a1.0",
+   "ovr": {
+    "tow_tug.cart.prop_axis_below_hang_m": 1.71
+   }
+  },
+  "speed_kmh": 59.7,
+  "t_end": 104.5,
+  "tension_n": 327.0,
+  "throttle": 1.0,
+  "thrust_n": 1353.0,
+  "wing_pitch_deg": 19.2,
+  "series": "out1"
+ },
+ {
+  "bar_i_m": 0.12,
+  "climb_ms": 2.83,
+  "dur_s": 52.7,
+  "liftoff_m": 173.0,
+  "name": "axis_bar_stop_v40",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_bar_stop_v40",
+   "ovr": {
+    "tow_tug.tow.tow_speed_kmh": 40.0
+   }
+  },
+  "speed_kmh": 72.7,
+  "t_end": 113.3,
+  "tension_n": 406.0,
+  "throttle": 1.0,
+  "thrust_n": 1285.0,
+  "wing_pitch_deg": 12.3,
+  "series": "out1"
+ },
+ {
+  "bar_i_m": 0.12,
+  "climb_ms": 2.82,
+  "dur_s": 53.0,
+  "liftoff_m": 173.0,
+  "name": "axis_v55",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_v55",
+   "ovr": {
+    "tow_tug.tow.tow_speed_kmh": 55.0
+   }
+  },
+  "speed_kmh": 72.9,
+  "t_end": 113.2,
+  "tension_n": 406.0,
+  "throttle": 1.0,
+  "thrust_n": 1285.0,
+  "wing_pitch_deg": 12.2,
+  "series": "out1"
+ },
+ {
+  "bar_i_m": 0.12,
+  "climb_ms": 2.82,
+  "dur_s": 53.1,
+  "liftoff_m": 174.0,
+  "name": "axis_v65",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_v65",
+   "ovr": {
+    "tow_tug.tow.tow_speed_kmh": 65.0
+   }
+  },
+  "speed_kmh": 73.0,
+  "t_end": 113.3,
+  "tension_n": 406.0,
+  "throttle": 1.0,
+  "thrust_n": 1284.0,
+  "wing_pitch_deg": 12.1,
+  "series": "out1"
+ },
+ {
+  "bar_i_m": 0.279,
+  "climb_ms": 3.24,
+  "dur_s": 42.4,
+  "liftoff_m": 136.0,
+  "name": "push_0.2859",
+  "phase": "circuit",
+  "spec": {
+   "name": "push_0.2859",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859
+   }
+  },
+  "speed_kmh": 70.3,
+  "t_end": 110.5,
+  "tension_n": 328.0,
+  "throttle": 1.0,
+  "thrust_n": 1298.0,
+  "wing_pitch_deg": 14.3,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": 0.326,
+  "climb_ms": 3.12,
+  "dur_s": 43.6,
+  "liftoff_m": 128.0,
+  "name": "push_0.3500",
+  "phase": "circuit",
+  "spec": {
+   "name": "push_0.3500",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.35,
+    "tow_tug.cart.arms_shift_push_m": 0.35
+   }
+  },
+  "speed_kmh": 68.8,
+  "t_end": 114.6,
+  "tension_n": 339.0,
+  "throttle": 1.0,
+  "thrust_n": 1304.0,
+  "wing_pitch_deg": 14.5,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": 0.376,
+  "climb_ms": 2.85,
+  "dur_s": 47.3,
+  "liftoff_m": 121.0,
+  "name": "push_0.4500",
+  "phase": "away",
+  "spec": {
+   "name": "push_0.4500",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.45,
+    "tow_tug.cart.arms_shift_push_m": 0.45
+   }
+  },
+  "speed_kmh": 66.8,
+  "t_end": 119.4,
+  "tension_n": 332.0,
+  "throttle": 1.0,
+  "thrust_n": 1314.0,
+  "wing_pitch_deg": 15.1,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": 0.367,
+  "climb_ms": 2.07,
+  "dur_s": 37.1,
+  "liftoff_m": 118.0,
+  "name": "push_0.6000",
+  "phase": "away",
+  "spec": {
+   "name": "push_0.6000",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.6,
+    "tow_tug.cart.arms_shift_push_m": 0.6
+   }
+  },
+  "speed_kmh": 65.9,
+  "t_end": 240.0,
+  "tension_n": 340.0,
+  "throttle": 1.0,
+  "thrust_n": 1319.0,
+  "wing_pitch_deg": 13.4,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": 0.286,
+  "climb_ms": 2.41,
+  "dur_s": 62.3,
+  "liftoff_m": 177.0,
+  "name": "area_x1.15",
+  "phase": "circuit",
+  "spec": {
+   "name": "area_x1.15",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859
+   },
+   "wing_area_k": 1.15
+  },
+  "speed_kmh": 72.9,
+  "t_end": 123.2,
+  "tension_n": 457.0,
+  "throttle": 1.0,
+  "thrust_n": 1284.0,
+  "wing_pitch_deg": 10.0,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": -0.1,
+  "climb_ms": 0.0,
+  "dur_s": 224.4,
+  "liftoff_m": 249.0,
+  "name": "area_x1.30",
+  "phase": "climb",
+  "spec": {
+   "name": "area_x1.30",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859
+   },
+   "wing_area_k": 1.3
+  },
+  "speed_kmh": 1.7,
+  "t_end": 240.0,
+  "tension_n": 473.0,
+  "throttle": 1.0,
+  "thrust_n": 1579.0,
+  "wing_pitch_deg": -3.8,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": -0.111,
+  "climb_ms": 0.0,
+  "dur_s": 224.4,
+  "liftoff_m": -1.0,
+  "name": "area_x1.50",
+  "phase": "climb",
+  "spec": {
+   "name": "area_x1.50",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859
+   },
+   "wing_area_k": 1.5
+  },
+  "speed_kmh": 0.0,
+  "t_end": 240.0,
+  "tension_n": 0.0,
+  "throttle": 1.0,
+  "thrust_n": 1587.0,
+  "wing_pitch_deg": -13.7,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": 0.274,
+  "climb_ms": 2.19,
+  "dur_s": 65.7,
+  "liftoff_m": 159.0,
+  "name": "thrust_x0.80",
+  "phase": "circuit",
+  "spec": {
+   "name": "thrust_x0.80",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859
+   },
+   "thrust_k": 0.8
+  },
+  "speed_kmh": 65.4,
+  "t_end": 151.3,
+  "tension_n": 243.0,
+  "throttle": 1.0,
+  "thrust_n": 1060.0,
+  "wing_pitch_deg": 13.5,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": 0.276,
+  "climb_ms": 2.77,
+  "dur_s": 51.0,
+  "liftoff_m": 147.0,
+  "name": "thrust_x0.90",
+  "phase": "circuit",
+  "spec": {
+   "name": "thrust_x0.90",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859
+   },
+   "thrust_k": 0.9
+  },
+  "speed_kmh": 67.9,
+  "t_end": 127.5,
+  "tension_n": 289.0,
+  "throttle": 1.0,
+  "thrust_n": 1180.0,
+  "wing_pitch_deg": 13.9,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": 0.445,
+  "climb_ms": 2.51,
+  "dur_s": 59.7,
+  "liftoff_m": 180.0,
+  "name": "area1.3_push0.45",
+  "phase": "circuit",
+  "spec": {
+   "name": "area1.3_push0.45",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.45,
+    "tow_tug.cart.arms_shift_push_m": 0.45
+   },
+   "wing_area_k": 1.3
+  },
+  "speed_kmh": 70.4,
+  "t_end": 122.5,
+  "tension_n": 446.0,
+  "throttle": 1.0,
+  "thrust_n": 1298.0,
+  "wing_pitch_deg": 10.3,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": 0.0,
+  "climb_ms": 0.0,
+  "dur_s": 0.0,
+  "liftoff_m": -1.0,
+  "name": "axis_1.000",
+  "phase": "away",
+  "spec": {
+   "name": "axis_1.000",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.0
+   }
+  },
+  "speed_kmh": 0.0,
+  "t_end": 240.0,
+  "tension_n": 0.0,
+  "throttle": 0.0,
+  "thrust_n": 0.0,
+  "wing_pitch_deg": 0.0,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": 0.089,
+  "climb_ms": 3.39,
+  "dur_s": 39.9,
+  "liftoff_m": 96.0,
+  "name": "axis_1.500",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_1.500",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.5
+   }
+  },
+  "speed_kmh": 60.7,
+  "t_end": 104.5,
+  "tension_n": 328.0,
+  "throttle": 1.0,
+  "thrust_n": 1349.0,
+  "wing_pitch_deg": 19.4,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": -0.053,
+  "climb_ms": 3.29,
+  "dur_s": 40.1,
+  "liftoff_m": 80.0,
+  "name": "axis_1.710",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_1.710",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.71
+   }
+  },
+  "speed_kmh": 60.0,
+  "t_end": 104.6,
+  "tension_n": 327.0,
+  "throttle": 1.0,
+  "thrust_n": 1352.0,
+  "wing_pitch_deg": 19.1,
+  "series": "out2"
+ },
+ {
+  "bar_i_m": 0.268,
+  "climb_ms": 3.38,
+  "dur_s": 40.2,
+  "liftoff_m": 124.0,
+  "name": "axis_1.30",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_1.30",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.3
+   }
+  },
+  "speed_kmh": 65.5,
+  "t_end": 105.9,
+  "tension_n": 331.0,
+  "throttle": 1.0,
+  "thrust_n": 1324.0,
+  "wing_pitch_deg": 16.9,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.249,
+  "climb_ms": 3.36,
+  "dur_s": 40.4,
+  "liftoff_m": 117.0,
+  "name": "axis_1.35",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_1.35",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.35
+   }
+  },
+  "speed_kmh": 62.2,
+  "t_end": 104.6,
+  "tension_n": 328.0,
+  "throttle": 1.0,
+  "thrust_n": 1341.0,
+  "wing_pitch_deg": 18.7,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.195,
+  "climb_ms": 3.34,
+  "dur_s": 40.6,
+  "liftoff_m": 109.0,
+  "name": "axis_1.40",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_1.40",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.4
+   }
+  },
+  "speed_kmh": 61.5,
+  "t_end": 104.7,
+  "tension_n": 325.0,
+  "throttle": 1.0,
+  "thrust_n": 1344.0,
+  "wing_pitch_deg": 19.0,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.135,
+  "climb_ms": 3.37,
+  "dur_s": 40.2,
+  "liftoff_m": 102.0,
+  "name": "axis_1.45",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_1.45",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.45
+   }
+  },
+  "speed_kmh": 61.2,
+  "t_end": 105.5,
+  "tension_n": 326.0,
+  "throttle": 1.0,
+  "thrust_n": 1346.0,
+  "wing_pitch_deg": 19.3,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.059,
+  "climb_ms": 3.4,
+  "dur_s": 39.7,
+  "liftoff_m": 90.0,
+  "name": "axis_1.55",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_1.55",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.55
+   }
+  },
+  "speed_kmh": 60.6,
+  "t_end": 103.9,
+  "tension_n": 325.0,
+  "throttle": 1.0,
+  "thrust_n": 1349.0,
+  "wing_pitch_deg": 19.5,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.019,
+  "climb_ms": 3.33,
+  "dur_s": 39.8,
+  "liftoff_m": 86.0,
+  "name": "axis_1.60",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis_1.60",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.6
+   }
+  },
+  "speed_kmh": 60.6,
+  "t_end": 104.3,
+  "tension_n": 325.0,
+  "throttle": 1.0,
+  "thrust_n": 1349.0,
+  "wing_pitch_deg": 19.1,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.243,
+  "climb_ms": 3.22,
+  "dur_s": 41.6,
+  "liftoff_m": 102.0,
+  "name": "axis1.45_v55",
+  "phase": "away",
+  "spec": {
+   "name": "axis1.45_v55",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.45,
+    "tow_tug.tow.tow_speed_kmh": 55.0
+   }
+  },
+  "speed_kmh": 56.4,
+  "t_end": 240.0,
+  "tension_n": 327.0,
+  "throttle": 1.0,
+  "thrust_n": 1367.0,
+  "wing_pitch_deg": 22.1,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.036,
+  "climb_ms": 3.48,
+  "dur_s": 39.3,
+  "liftoff_m": 103.0,
+  "name": "axis1.45_v65",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis1.45_v65",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.45,
+    "tow_tug.tow.tow_speed_kmh": 65.0
+   }
+  },
+  "speed_kmh": 65.5,
+  "t_end": 104.8,
+  "tension_n": 323.0,
+  "throttle": 1.0,
+  "thrust_n": 1325.0,
+  "wing_pitch_deg": 17.0,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.142,
+  "climb_ms": 2.48,
+  "dur_s": 56.0,
+  "liftoff_m": 123.0,
+  "name": "axis1.45_thrust0.85",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis1.45_thrust0.85",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.45
+   },
+   "thrust_k": 0.85
+  },
+  "speed_kmh": 61.0,
+  "t_end": 134.6,
+  "tension_n": 261.0,
+  "throttle": 1.0,
+  "thrust_n": 1145.0,
+  "wing_pitch_deg": 16.6,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.121,
+  "climb_ms": 4.14,
+  "dur_s": 31.2,
+  "liftoff_m": 90.0,
+  "name": "axis1.45_thrust1.15",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis1.45_thrust1.15",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.45
+   },
+   "thrust_k": 1.15
+  },
+  "speed_kmh": 61.2,
+  "t_end": 93.4,
+  "tension_n": 392.0,
+  "throttle": 1.0,
+  "thrust_n": 1548.0,
+  "wing_pitch_deg": 21.6,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.12,
+  "climb_ms": 3.49,
+  "dur_s": 39.2,
+  "liftoff_m": 125.0,
+  "name": "axis1.45_push0.12",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis1.45_push0.12",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.12,
+    "tow_tug.cart.arms_shift_push_m": 0.12,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.45
+   }
+  },
+  "speed_kmh": 62.0,
+  "t_end": 103.7,
+  "tension_n": 327.0,
+  "throttle": 1.0,
+  "thrust_n": 1343.0,
+  "wing_pitch_deg": 18.9,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.021,
+  "climb_ms": 3.7,
+  "dur_s": 35.7,
+  "liftoff_m": 84.0,
+  "name": "axis1.45_lightcart",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis1.45_lightcart",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.mass_kg": 235.0,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.45
+   }
+  },
+  "speed_kmh": 60.3,
+  "t_end": 99.6,
+  "tension_n": 359.0,
+  "throttle": 1.0,
+  "thrust_n": 1350.0,
+  "wing_pitch_deg": 19.5,
+  "series": "out3"
+ },
+ {
+  "bar_i_m": 0.218,
+  "climb_ms": 3.09,
+  "dur_s": 44.7,
+  "liftoff_m": 123.0,
+  "name": "axis1.45_heavycart",
+  "phase": "circuit",
+  "spec": {
+   "name": "axis1.45_heavycart",
+   "ovr": {
+    "tow_tug.autopilot.bar_max_m": 0.2859,
+    "tow_tug.cart.arms_shift_push_m": 0.2859,
+    "tow_tug.cart.mass_kg": 290.0,
+    "tow_tug.cart.prop_axis_below_hang_m": 1.45
+   }
+  },
+  "speed_kmh": 61.2,
+  "t_end": 111.7,
+  "tension_n": 297.0,
+  "throttle": 1.0,
+  "thrust_n": 1346.0,
+  "wing_pitch_deg": 19.7,
+  "series": "out3"
+ }
+]
