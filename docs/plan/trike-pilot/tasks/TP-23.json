@@ -1,0 +1,43 @@
+{
+  "id": "TP-23",
+  "module": "trike-pilot",
+  "type": "dp-researcher",
+  "title": "Буксировщик: как держать 55–65 км/ч на полном газе (Q8: C)",
+  "goal": "По источникам найти, чем реальные буксировщики-дельталёты держат 55–65 км/ч с набором ≥ 2,54 м/с на полном газе с дельтапланом на тросе (триммер, ход «от себя», крыло, винт), и предложить числа для модели с ожидаемыми скоростью и набором при тяге по оси винта; без подгонки.",
+  "plan_ref": "TP-23",
+  "contracts": [
+    {
+      "name": "TP-К6",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-23",
+  "branch": "trike-pilot/TP-23",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "docs/research/trike-pilot/",
+    "tools/research/trike-pilot/tug/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1'",
+      "expect": "!re:ОШИБКА.*trike-pilot"
+    },
+    {
+      "name": "doc",
+      "cmd": "test -f docs/research/trike-pilot/tug-slow-climb.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:44:03"
+}

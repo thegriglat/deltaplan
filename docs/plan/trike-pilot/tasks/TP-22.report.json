@@ -1,0 +1,44 @@
+{
+  "status": "partial",
+  "summary": "Звук двигателя игрока молчит на паузе и в меню (Glider.set_engine_sound_muted, вызывается из Game.set_paused/set_flying/_setup_glider), после снятия возвращается по состоянию двигателя. Тест К8 сверяет стрелку с engine_rpm и обновление каждый кадр; wheels - наземная фаза.",
+  "commits": [
+    "c96667fa TP-22: звук двигателя на паузе, тест К8, wheels"
+  ],
+  "checks": [
+    {
+      "name": "pilot_hud",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "cockpit",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot",
+      "value": "48/49",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "trike_pilot: test_trike_pilot_k6.gd::test_contract_version (версия раздела TP-К6 - v1) падает - файл и docs/contracts вне скоупа, моя правка его не затрагивает"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TP-22",
+  "uncertain": [
+    {
+      "where": "scripts/flight/glider.gd set_engine_sound_muted",
+      "why": "stream_paused в headless не читается обратно (AudioServer dummy), поэтому пауза сделана через stop() + флаг",
+      "checked": "тест К8: на паузе не playing, в _process не оживает, после снятия playing"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-23T04:44:12",
+  "by": "executor"
+}
