@@ -1,0 +1,53 @@
+{
+  "verdict": "rework",
+  "summary": "Удаление weight_shift/настройки сделано чисто: путь rate ботов в FlightModel по числам не изменился, 48 крыльев отличаются только блоком weight_shift, proto reserved. Но в NetMessages.ENUMS[ControlMode] элемент удалён из массива, а декодер переводит номер в имя по индексу, так что номера сместились (RM-К1: 1=RATE, 3=PENDULUM сохраняются; номер 2 читается как \"\").",
+  "issues": [
+    {
+      "file": "scripts/net/net_messages.gd",
+      "line": 184,
+      "severity": "blocker",
+      "what": "decode_value/encode_value для enum переводят номер в имя по индексу массива (names[i]). После удаления CONTROL_MODE_WEIGHT_SHIFT массив стал [UNSPECIFIED, RATE, PENDULUM]: номер 3 (PENDULUM по proto) декодируется как UNSPECIFIED, а номер 2 (бывший WEIGHT_SHIFT) — как CONTROL_MODE_PENDULUM. Сервер (protojson, open enum) пропускает неизвестный номер 2 и выводит его числом. Это противоречит RM-К1 («номера 1 = RATE, 3 = PENDULUM сохраняются», «номер 2 — как \"\"»); координатор прямо писал: при индексации по массиву на месте 2 оставить пустую строку.",
+      "fix": "ControlMode: [\"CONTROL_MODE_UNSPECIFIED\", \"CONTROL_MODE_RATE\", \"\", \"CONTROL_MODE_PENDULUM\"]; убедиться, что \"\" не совпадает с входной строкой и encode не шлёт \"\" (для имени \"\" уже вернётся null). Добавить проверку: decode_value(\"enum:ControlMode\", 3) == \"CONTROL_MODE_PENDULUM\", а decode_value(..., 2) после set_pose/push даёт control_mode \"\"."
+    },
+    {
+      "file": "tests/contracts/test_roll_modes_contracts.gd",
+      "line": 78,
+      "severity": "major",
+      "what": "Контрактный тест закрепляет ошибочный массив из 3 элементов, а соответствие номеров проверяет только по тексту net.proto, а не по поведению NetMessages. Поэтому сдвиг номеров проходит незамеченным.",
+      "fix": "Проверять отсутствие имени CONTROL_MODE_WEIGHT_SHIFT в ENUMS и декодирование номеров 1/2/3 (RATE / \"\" после приёма / PENDULUM), а не точный массив."
+    },
+    {
+      "file": "scripts/game/autopilot.gd",
+      "line": 106,
+      "severity": "minor",
+      "what": "Autopilot создаётся только в game.gd для игрока (боты его не используют), а игрок всегда на маятнике. Ветки «не pendulum» (стр. ≈106, 175) и флаг pendulum стали мёртвым кодом; по дополнению координатора их нужно было удалить. Файл в скоупе (scripts/game), в диффе его нет.",
+      "fix": "Удалить не-маятниковую ветку Autopilot и присваивание autopilot.pendulum в game.gd:274/283 либо в отчёте объяснить, почему они оставлены."
+    },
+    {
+      "file": "tests/game/test_cockpit.gd",
+      "line": 22,
+      "severity": "minor",
+      "what": "Комментарий к пропуску тестов не совпадает с текстом из дополнения Q1: нет конкретики («штанга не видна у sport, руки в кадре, prone у condor_crex3, планшет 0,36 > 0,15»), которая нужна будущей задаче про кабину.",
+      "fix": "Вставить в комментарий текст из дополнения Q1."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "roll_modes (accept --dry)",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "no-ws-net (accept --dry)",
+      "value": "exit 1, совпадений нет",
+      "pass": true
+    },
+    {
+      "name": "configs/wings: JSON до/после без блока weight_shift",
+      "value": "48/48 совпадают",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-22T05:27:39",
+  "by": "reviewer"
+}
