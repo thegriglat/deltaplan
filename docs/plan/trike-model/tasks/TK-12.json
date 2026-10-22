@@ -1,0 +1,67 @@
+{
+  "id": "TK-12",
+  "module": "trike-model",
+  "type": "dp-mechanic",
+  "title": "Кадры модели v3",
+  "goal": "Перерендерить все PNG (trike_*, pilot_*, seat_closeup*) в /home/greg/deltaplan/build/screenshots/trike-model и пересчитать tools/research/trike-model/fit.json готовыми скриптами без правок кода.",
+  "plan_ref": "TK-12",
+  "contracts": [
+    {
+      "name": "TK-K2",
+      "version": "3",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K3",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-12",
+  "branch": "trike-model/TK-12",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/research/trike-model/fit.json"
+  ],
+  "dont_touch": [
+    "tools/blender/",
+    "assets/",
+    "tests/",
+    "docs/"
+  ],
+  "accept": [
+    {
+      "name": "pilot_shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-model/pilot_*.png | wc -l",
+      "expect": "num:(\\d+) >=5"
+    },
+    {
+      "name": "trike_shots",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/trike-model/trike_*.png | wc -l",
+      "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "fresh",
+      "cmd": "python3 -c \"import os;S='/home/greg/deltaplan/build/screenshots/trike-model';g=os.path.getmtime('assets/models/trike/trike.glb');fs=[os.path.join(S,f) for f in os.listdir(S) if f.endswith('.png')];print('stale=%d'%sum(1 for f in fs if os.path.getmtime(f)<g))\"",
+      "expect": "num:stale=(\\d+) <=0"
+    },
+    {
+      "name": "penetration",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('pen=%.2f'%d['max_penetration_cm'])\"",
+      "expect": "num:pen=([\\d.]+) <=2"
+    },
+    {
+      "name": "seat_gap",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('gap=%.2f'%max(d['seat_gap_cm'],d['back_gap_cm']))\"",
+      "expect": "num:gap=([\\d.]+) <=3"
+    },
+    {
+      "name": "foot_gap",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/trike-model/fit.json'));print('foot=%.2f'%max(d['foot_gap_l_cm'],d['foot_gap_r_cm']))\"",
+      "expect": "num:foot=([\\d.]+) <=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:02:06"
+}

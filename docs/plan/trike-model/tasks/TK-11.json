@@ -1,0 +1,57 @@
+{
+  "id": "TK-11",
+  "module": "trike-model",
+  "type": "dp-engineer",
+  "title": "Модель тележки v3 по ответу на Q1",
+  "goal": "build_trike.py по TK-K2 v3: трубы киля/мачты/подкоса 60 мм, бак меньше и над килем (tank.keel_clear), витые пружины амортизаторов, крупные резонансная труба и глушитель; тест K2 v3; бюджеты прежние.",
+  "plan_ref": "TK-11",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "3",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K2",
+      "version": "3",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-11",
+  "branch": "trike-model/TK-11",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/blender/build_trike.py",
+    "assets/models/trike/",
+    "assets/source/trike/",
+    "tests/contracts/test_trike_model_k2.gd"
+  ],
+  "dont_touch": [
+    "tools/blender/trike_params.json",
+    "tools/blender/build_pilot.py",
+    "assets/models/pilot.glb",
+    "assets/textures/",
+    "tools/blender/bl_util.py",
+    "tools/blender/wheel_parts.py",
+    "tools/blender/frame_parts.py",
+    "docs/contracts/trike-model.md"
+  ],
+  "accept": [
+    {
+      "name": "trike_model_k2",
+      "tests": "trike_model_k2"
+    },
+    {
+      "name": "trike_model_k1",
+      "tests": "trike_model_k1"
+    },
+    {
+      "name": "textures",
+      "cmd": "python3 tools/check_textures.py main",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:02:03"
+}
