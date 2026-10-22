@@ -36,18 +36,18 @@
   ],
   "accept": [
     {
-      "name": "tests",
-      "cmd": ".dpcli/dpcli lock cpu cr5-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=air_",
+      "name": "gpu",
+      "cmd": ".dpcli/dpcli lock cpu cr5-g --no-tmux -- tools/gpu_tests.sh --filter=air_gpu",
       "expect": "tests"
     },
     {
-      "name": "gpu",
-      "cmd": ".dpcli/dpcli lock cpu cr5-g --no-tmux -- tools/gpu_tests.sh --filter=air_gpu",
+      "name": "tests",
+      "cmd": ".dpcli/dpcli lock cpu cr5-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=air_gpu",
       "expect": "tests"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T03:43:09",
-  "edited": "2026-10-23T04:18:10"
+  "edited": "2026-10-23T04:26:28"
 }
