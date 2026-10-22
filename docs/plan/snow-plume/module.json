@@ -1,0 +1,11 @@
+{
+  "module": "snow-plume",
+  "plan": "docs/plan/snow-plume.md",
+  "contracts": "docs/contracts/snow-plume.md",
+  "branch": "feature/snow-plume",
+  "copy": "~/deltaplan-snow-plume",
+  "created": "2026-10-23T02:50:06",
+  "code": "SNW",
+  "area": "world",
+  "base": "main"
+}
