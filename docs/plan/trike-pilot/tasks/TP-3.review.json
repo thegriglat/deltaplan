@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Ввод дельталёта соответствует TP-К3 v1: поля ControlInput, vehicle, действия с _doc, справка и ключи локали на месте; режим glider не тронут, правки в скоупе, project.godot не менялся. Повторно прогнаны trike_pilot_k3 7/7 и ui_controls 9/9. Замечания мелкие.",
+  "issues": [
+    {
+      "file": "tests/contracts/test_trike_pilot_k3.gd",
+      "line": 1,
+      "severity": "minor",
+      "what": "Нет проверки версии раздела TP-К3 по заголовку docs/contracts/trike-pilot.md, хотя координатор её просил (образец — test_trike_model_k1.gd). Инвариант «glider: W в воздухе даёт взгляд» проверен только наполовину: проверено, что throttle_axis = 0, а что look_up содержит W — нет.",
+      "fix": "Добавить test_contract_version (TP-К3 v1) и проверку, что в glider у look_up есть клавиша W."
+    },
+    {
+      "file": "scripts/game/input_controller.gd",
+      "line": 63,
+      "severity": "minor",
+      "what": "_apply_look_keys меняет общий InputMap: сеттер vehicle на одном экземпляре влияет на все. Любой последующий вызов register_actions с полным controls.json (переназначение клавиш, перезагрузка конфига) молча вернёт W/S в look_up, даже если активен режим trike.",
+      "fix": "Пока не трогать; для TP-6/TP-8: после register_actions повторно вызывать _apply_look_keys или фильтровать W/S при чтении look_* в CameraRig."
+    },
+    {
+      "file": "scripts/game/input_controller.gd",
+      "line": 163,
+      "severity": "minor",
+      "what": "В режиме trike на земле Shift одновременно включает brake и pull_full (pull_full считается до ветвления, так же как в glider). Если потребитель TP-6/7 применяет pull_full на земле, при торможении штанга уходит к бёдрам. Исполнитель отметил это в uncertain.",
+      "fix": "Решить вместе с ответом Q1 (клавиша тормоза); при необходимости в trike на земле сбрасывать pull_full."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "trike_pilot_k3",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "ui_controls",
+      "value": "9/9",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-22T23:06:28",
+  "by": "reviewer"
+}

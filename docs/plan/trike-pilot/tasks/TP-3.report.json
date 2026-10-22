@@ -1,8 +1,9 @@
 {
-  "status": "partial",
-  "summary": "Ввод дельталёта по TP-К3: ControlInput.throttle_axis/engine_toggle/brake, InputController.vehicle (glider/trike), действия throttle_up/throttle_down/engine_toggle/trike_brake и стрелки у look_* в controls.json, строки справки controls_trike_* (ru/en), контрактный тест 7/7. Приёмка ui_controls падает на устаревшей проверке У2 вне скоупа.",
+  "status": "done",
+  "summary": "Ввод дельталёта по TP-К3 готов; проверка У2 обновлена под стрелки в look_* (scope расширен координатором). Приёмка 6/6.",
   "commits": [
-    "TP-3: ввод дельталёта — газ, двигатель, руление, тормоз"
+    "TP-3: ввод дельталёта — газ, двигатель, руление, тормоз",
+    "TP-3: У2 — стрелки у look_* в проверке раскладки"
   ],
   "checks": [
     {
@@ -17,8 +18,8 @@
     },
     {
       "name": "ui_controls",
-      "value": "8/9, FAIL test_u2_shape",
-      "pass": false
+      "value": "9/9",
+      "pass": true
     },
     {
       "name": "control_bar",
@@ -36,12 +37,8 @@
       "pass": true
     }
   ],
-  "not_done": [
-    "tests/game/test_ui_controls_contracts.gd:131-132 (вне скоупа) требует look_up==[W], look_down==[S], look_left==[A], look_right==[D]; TP-К3 велит добавить стрелки к look_*. Тест нужно обновить на ['W','Up'] и т.д. (владелец теста / координатор)."
-  ],
-  "questions": [
-    "Обновить проверку У2 в tests/game/test_ui_controls_contracts.gd под стрелки в look_*?"
-  ],
+  "not_done": [],
+  "questions": [],
   "how_to_check": ".dpcli/dpcli accept TP-3",
   "uncertain": [
     {
@@ -56,6 +53,6 @@
     }
   ],
   "dp_feedback": "Контрактный тест соседнего контракта (У2) жёстко фиксирует раскладку, а карточка не предупреждает; в карточку стоило включить такие тесты в скоуп.",
-  "t": "2026-10-22T22:53:17",
+  "t": "2026-10-22T23:04:26",
   "by": "executor"
 }
