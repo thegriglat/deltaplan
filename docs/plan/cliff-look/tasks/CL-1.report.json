@@ -1,0 +1,121 @@
+{
+  "status": "done",
+  "summary": "Стенд CL-К1 (4 места, 10 ракурсов; основной — верхняя станция канатки на Талгарском перевале, взгляд на юг), 10 кадров «до» и 150 кадров диагноза. Полосы на крутых склонах дают уступы ledge в нормали по фазе слоёв 7/25,9 м: без них на 8 из 10 ракурсов полос на 62–88 % меньше. Рябь мельче 2 м дают sl_rock (−19…−34 %), нормаль рельефа ±1 узел 25 м (−15…−18 %) и Rock030 (−8…−12 %, тексель растянут в 1,8–2,2 раза). Рекомендация — вариант (а): блоки 5–40 м в шейдере вместо ledge и strata.",
+  "commits": [
+    "bddfef1a CL-1: стенд ракурсов крутых склонов (CL-К1), кадры «до», диагноз полос и ряби"
+  ],
+  "checks": [
+    {
+      "name": "test_cliff_look_contracts",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "views",
+      "value": "10",
+      "pass": true
+    },
+    {
+      "name": "shots_before",
+      "value": "10",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "ERR 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "11 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Замер цены кадра не делался по решению пользователя (CL-К1 v2): tools/bench/cliff_look_cost.sh удалён, режим cost убран из скрипта кадра. Прогон, начатый до решения, остановлен; частичные строки в build/perf/cliff-look/before/rows.jsonl не использованы.",
+    "Варианты (а)/(б)/(в) в README описаны без цены, только эффект и риски"
+  ],
+  "questions": [
+    "Контракт CL-К1: «cam_agl_m над землёй в цели», но там же сказано «смысл — как у osm_place_shot.gd», а он считает высоту над землёй под камерой. Стенд сделан как osm_place_shot (под камерой). Поправить текст контракта?",
+    "Ориентир станции из заявки (43,094; 77,078) лежит на 2901 м, это не станция. Верхняя станция по OSM: конец aerialway mixed_lift 43,11325; 77,11089, 3192 м. Ракурс talgar_pass_south поставлен там"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/cliff-look/before_shymbulak_talgar_pass_south.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/before_shymbulak_wall_mid.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/before_shymbulak_wall_near.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/before_shymbulak_peak_snow.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/before_elbrus_wall_mid.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/before_elbrus_wall_near.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/before_chamonix_wall_mid.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/before_chamonix_wall_near.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/before_everest_snow_mid.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/before_everest_snow_near.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/diag_elbrus_wall_mid_base.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/diag_elbrus_wall_mid_ledge.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept CL-1; таблицы — tools/research/cliff_look/README.md и diag_before.md; повтор диагноза: tools/shots/cliff_look_shots.sh before --diag-only && python3 -I tools/research/cliff_look/diag_metrics.py build/cliff_look_raw/before",
+  "uncertain": [
+    {
+      "where": "tools/research/cliff_look/diag_metrics.py: locked_amp / strata26, strata7",
+      "why": "На chamonix wall_near и shymbulak talgar_pass_south амплитуда полос в исходном кадре на уровне фона (кадр all_off), и число там не различает члены. На talgar скалы занимают 10 % кадра, и при диагнозе склон был под облаком. Кадры диагноза снимаются в другой момент, чем кадры «до», и облака там другие.",
+      "checked": "На глаз (обрезки кадров base и ledge) полосы на talgar есть, без ledge их меньше. На остальных 8 ракурсах ledge-off снимает 62–88 %, а all_off — 66–93 %."
+    },
+    {
+      "where": "tools/shots/cliff_look_shot.gd: DIAG_MEMBERS.grid",
+      "why": "Член grid — не «выключение», а нормаль по ±2 узлам вместо ±1. Вклад сетки 25 м и LOD (фасетки) отделён только косвенно: доля яркости, привязанной к фазе сетки, 2–8 %. Рябь, которая остаётся при all_off (42–60 %), не разложена.",
+      "checked": "Сравнил grid-locked долю base и grid на всех ракурсах. Тени (Godot и рельефа) при солнце 65–82° дают 0."
+    },
+    {
+      "where": "README «Варианты»",
+      "why": "Варианты оценены без замера цены (отменён). Цена (а) — оценка по числу операций, без прототипа.",
+      "checked": "—"
+    },
+    {
+      "where": "cliff_look_shot.gd: _mask_scene",
+      "why": "Маски сняты без света, тонмаппер линейный, облака-компоновщик выключены. Рельеф отделён от остатков неба по различию масок m1/m2. Декодирование sRGB → линейное — по стандартной формуле, тонмаппер Godot считаю линейным при exposure 1.",
+      "checked": "Маски дают ожидаемые величины: медиана уклона 47–62°, метров на пиксель 0,23–1,4, ровно в масштабе дальности 165/400/1500 м."
+    }
+  ],
+  "dp_feedback": "lock cpu — без явного --no-tmux непонятно, синхронный вызов или фоновый. Первый вызов вернул PID и окно tmux, второй дождался конца. job start: --no-tmux надо ставить до имени (после имени ушёл в команду, код 127). job stop убил процесс-обёртку; дочерний Godot (под timeout) пришлось проверять вручную. Хотелось бы task show --full с полным текстом дополнений, сейчас они обрезаны «…», а полный текст есть только в log --full.",
+  "extra": {
+    "ledge_off_strata_left_median": {
+      "near": 0.32,
+      "mid": 0.2,
+      "far": 0.44
+    },
+    "ripple_left_median": {
+      "sl_rock": [
+        0.71,
+        0.66,
+        0.81
+      ],
+      "grid": [
+        0.83,
+        0.85,
+        0.82
+      ],
+      "rock_tex": [
+        0.92,
+        0.88,
+        0.91
+      ],
+      "all_off": [
+        0.6,
+        0.42,
+        0.59
+      ]
+    },
+    "texel_stretch_tri_median_range": [
+      1.82,
+      2.23
+    ],
+    "sun_elev_deg": {
+      "chamonix": 65.3,
+      "elbrus": 68.2,
+      "shymbulak": 68.5,
+      "everest": 82.4
+    }
+  },
+  "t": "2026-10-23T04:57:16",
+  "by": "executor"
+}
