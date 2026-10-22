@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-22"
 summary: "Стыки haze-humidity: сетки ERA5 (HH1 Td, HH2 700 гПа, HH5 Tmax, HH6 ветер/тропопауза/перистые), HH7 чтение, HH3 дымка, HH4 свет."
 related: ["docs/plan/haze-humidity.md", "scripts/atmosphere/weather_model.gd", "configs/weather_model.json"]
-contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 2}, {"id": "HH3", "version": 1}, {"id": "HH4", "version": 1}, {"id": "HH5", "version": 1}, {"id": "HH6", "version": 2}, {"id": "HH7", "version": 1}]
+contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 2}, {"id": "HH3", "version": 1}, {"id": "HH4", "version": 2}, {"id": "HH5", "version": 1}, {"id": "HH6", "version": 2}, {"id": "HH7", "version": 1}]
 ---
 
 # Контракты haze-humidity
@@ -145,11 +145,12 @@ contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 2}, {"id": "HH
 `derive` даёт `haze_k == haze_k_rh(_derived.temperature_c, _derived.dew_point_c)` и `_derived.rh`; в конфиге нет
 `evening_haze_k` и `sky.*.haze_k`.
 
-## HH4. Пропускание атмосферы для света облаков (v1)
+## HH4. Пропускание атмосферы для света облаков и цвета солнца (v2)
 
 Владелец: HH-7. Потребители: шейдеры облаков (`cloud_common.gdshaderinc` и оба хоста: `cloud_volume.gdshader`,
-compute `cloud_raymarch_cs`), `CloudLayer`/`CloudCompositorEffect` (параметры). Рельеф, небо, `DirectionalLight3D`,
-`configs/world.json → time.light` — не меняются.
+compute `cloud_raymarch_cs`), `CloudLayer`/`CloudCompositorEffect` (параметры); с v2 — `SkyEnvironment._apply_sun` (цвет
+солнца: `DirectionalLight3D`, диск/корона/ореол неба, дымка, засвет `SunGlare`). Энергия света `time.light.sun_energy` — не
+меняется.
 
 **Таблица** — `Image.FORMAT_RGBF` (или RGBH), ширина `n_el` × высота `n_h` (по умолчанию 64 × 64), фильтр линейный,
 края — clamp. Ось u (столбец) — высота солнца над математическим горизонтом точки от `el_min_deg` −8° до `el_max_deg`
@@ -166,6 +167,19 @@ T(λ) ∈ [0, 1] по каналам R, G, B (λ = 680, 550, 440 нм) вдол�
 облака свет совпадает с нынешним `sun_color · sun_energy` (± 5 % по каналам). Солнце ниже горизонта земли (свет рельефа
 погас) — облака выше точки касания ещё освещены; облака не освещаются, если T = 0.
 Таблица пересчитывается при смене `extinction`/верха дымки больше чем на 5 % и при старте; не каждый кадр.
+
+**Цвет солнца (v2, решения пользователя 2026-10-22: «солнце на закате слишком жёлтое», «у горизонта почти тёмно-красное»):**
+`SunTransmission.sun_tint(el_deg, y_msl) -> Color` — цветность прямого солнца в точке: `c = T(el, y) / T(35°, y)` по каналам,
+делённое на свой максимум (R), т. е. `(1, T_G/T_R·k_G, T_B/T_R·k_B)` с той же нормировкой, что свет облаков (днём ≥ 35° —
+белый ± 2 %); аэрозоль — тот же, что в таблице (дымка места). `SkyEnvironment._apply_sun`: `sun_color = sun_cfg.color ·
+sun_tint(el_sun, y)` вместо таблицы `time.light.sun_color` (ключ удаляется): для `DirectionalLight3D` (свет рельефа) —
+`y` = высота долины места; для диска, короны, ореола неба, дымки и `SunGlare` — `y` = высота камеры (обновление при
+смене высоты > 100 м или солнца > 0,1°). Солнце ниже горизонта точки (T = 0) — цвет последней ненулевой цветности, энергия
+— как сейчас (`time.light`). Тонмаппинг не должен выбеливать HDR-диск: цветность диска после тонмаппинга (пиксели центра
+диска в кадре) — в пределах ±0,1 по G/R и B/R от `sun_tint` при высоте солнца 2–8°.
+**Контрольные числа** (оценка главной 2026-10-22: Рэлей + аэрозоль τ550 = 0,1, Ангстрем 1,3, масса Кастена–Янга, у моря,
+норм. по R): 2° → (1; 0,24; 0,02), 5° → (1; 0,47; 0,13), 8° → (1; 0,60; 0,25), 18° → (1; 0,79; 0,53); `sun_tint` при тех же
+условиях — в пределах ±0,08 по G/R и B/R (контрактный тест).
 
 **Параметры** (`configs/world.json → clouds` или блок `sun_transmission` — выбирает владелец, с `_doc`): `n_el`, `n_h`,
 `el_min_deg`, `el_max_deg`, `h_max_m`, β_R(550), шкала высот, длины волн.
