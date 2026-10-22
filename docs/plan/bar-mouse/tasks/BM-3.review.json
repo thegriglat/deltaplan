@@ -1,0 +1,36 @@
+{
+  "verdict": "accept",
+  "summary": "BM-К1 v2 реализован по контракту: формулы travel_px/accumulate/apply_deadzone, ключи и числа (2500, [0.25,4], шаг 0.05, 315 отсч./см), screen_relative, подсказка см только Windows/X11, строка про ускорение ОС. Правки в скоупе, dont_touch и project.godot не тронуты, пороги тестов не ослаблены. Замечания мелкие.",
+  "issues": [
+    {
+      "file": "scripts/game/mouse_bar.gd",
+      "line": 3,
+      "severity": "minor",
+      "what": "Комментарий к классу называет источником InputEventMouseMotion.relative; по v2 — screen_relative (код в input_controller верный)",
+      "fix": "Поправить комментарий при случае"
+    },
+    {
+      "file": "tests/game/test_bar_mouse_input.gd",
+      "line": 109,
+      "severity": "minor",
+      "what": "test_window_size_independent в headless может пройти вхолостую, если окно не меняется (исполнитель честно указал в uncertain); независимость фактически держится на отсутствии visible_rect в MouseBar/input_controller — проверено ревьюером grep",
+      "fix": "Не требуется; при желании — проверка через SubViewport другого размера"
+    },
+    {
+      "file": "tests/game/test_bar_mouse_input.gd",
+      "line": 158,
+      "severity": "minor",
+      "what": "test_os_accel_hint_in_locale после проверки ставит локаль 'ru', а не исходную",
+      "fix": "Сохранять TranslationServer.get_locale() и восстанавливать"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "test_bar_mouse (accept --only --dry)",
+      "value": "10/10, scope 11 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-23T04:21:25",
+  "by": "reviewer"
+}

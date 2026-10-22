@@ -1,0 +1,69 @@
+{
+  "status": "done",
+  "summary": "MouseBar (travel_px/accumulate/apply_deadzone), ключи bar_travel_px/bar_sensitivity, слайдер «Чувствительность штанги» с подсказкой см (только Windows/X11) и строкой про ускорение ОС на остальных, источник screen_relative (BM-К1 v2), тесты и CHANGELOG.",
+  "commits": [
+    "BM-3: MouseBar — ход штанги в отсчётах мыши, слайдер, мёртвая зона вычитанием",
+    "BM-3: BM-К1 v2 — screen_relative, подсказка об ускорении ОС"
+  ],
+  "checks": [
+    {
+      "name": "test_bar_mouse",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_mouse_bar_flight",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_pendulum_symmetry",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_pendulum_release_event",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_control_fix_contracts",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_settings",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "test_control_bar",
+      "value": "0 упало",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept BM-3",
+  "uncertain": [
+    {
+      "where": "tests/game/test_bar_mouse_input.gd (окно)",
+      "why": "в headless размер окна может не измениться",
+      "checked": "тест печатает, изменилось ли окно; расчёт MouseBar окна не использует (visible_rect убран из input_controller)"
+    },
+    {
+      "where": "scripts/ui/settings_panel.gd (слайдер штанги)",
+      "why": "вид слайдера и подсказки в реальном окне не смотрел; в headless DisplayServer='headless' идёт по ветке 'не Windows/X11'",
+      "checked": "тест настроек зелёный; подсказка locale проверена тестом"
+    },
+    {
+      "where": "locale/ui.csv",
+      "why": "en-текст подсказки взят из заметки координатора",
+      "checked": "ключ переводится в ru и en"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения на ~300 символов; полный текст пришлось искать grep по docs/plan/<м>/. Хорошо бы task show --full для дополнений.",
+  "t": "2026-10-23T04:16:58",
+  "by": "executor"
+}
