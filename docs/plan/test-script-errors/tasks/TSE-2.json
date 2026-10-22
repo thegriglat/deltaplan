@@ -1,0 +1,44 @@
+{
+  "id": "TSE-2",
+  "module": "test-script-errors",
+  "type": "dp-engineer",
+  "title": "Починить тесты с SCRIPT ERROR",
+  "goal": "Тесты, которые с новым раннером падают из-за ошибки скрипта (список — отчёт TSE-1: test_grass_rocks_contracts::test_g4_mid_nodes_and_no_far_ring, test_buzz_speed (4), test_pilot_look, test_wing_clearance; test_roll_weight_shift удалён в main), снова проверяют то, что задумано, и проходят без SCRIPT ERROR. Чинить тесты под текущий код; если тест вскрывает настоящую поломку игры — не чинить код, а сообщить (blocked/вопрос).",
+  "plan_ref": "",
+  "contracts": [],
+  "copy": "~/deltaplan-test-script-errors-TSE-2",
+  "branch": "test-script-errors/TSE-2",
+  "base": "feature/test-script-errors",
+  "scope": [
+    "tests/",
+    "scripts/flight/glider_visual.gd",
+    "docs/guide/game/launch.md",
+    "tools/flight/wing_clearance.gd"
+  ],
+  "dont_touch": [
+    "configs",
+    "scripts/flight/pendulum"
+  ],
+  "accept": [
+    {
+      "name": "test_grass_rocks_contracts",
+      "tests": "test_grass_rocks_contracts"
+    },
+    {
+      "name": "test_buzz_speed",
+      "tests": "test_buzz_speed"
+    },
+    {
+      "name": "test_pilot_look",
+      "tests": "test_pilot_look"
+    },
+    {
+      "name": "test_wing_clearance",
+      "tests": "test_wing_clearance"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T15:05:55",
+  "edited": "2026-10-22T15:55:17"
+}
