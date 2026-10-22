@@ -1,63 +1,80 @@
 {
-  "status": "partial",
-  "summary": "Td дня против облачности (clear<0.2, partly, overcast>0.6) и жары дня по 4 поясам x 4 сезонам, суша, ERA5 2011-2013 (3 года из 10 плановых: ARCO отдавал NaN-блоки). pooled: ясный -0.28 sigma (-1.2 K), пасмурный +0.13 sigma (+0.6 K); beta Td/Tmax 0.59 K/K, но от -0.28 (тропики JJA) до 1.0 (60-75 зима); единого значения нет, нужны таблицы td_sky.json.",
+  "status": "done",
+  "summary": "Td дня по ERA5 2011-13 (суша 0-75°, 4 пояса x сезоны): ясный день суше на 0,28 σ, пасмурный влажнее на 0,13 σ, beta Td/Tmax pooled 0,59 К/К, но от -0,28 (тропики JJA) до 1,0 (60-75° вне лета) — в HH-4 брать таблицы td_sky.json. README доработан по Q4: погрешность короткого ряда, план докачки CDS снят.",
   "commits": [
-    "ccd4314a HH-1c: Td дня против облачности и жары дня (ERA5 2011-2013)"
+    "см. git log ветки haze-humidity/HH-1c: README — погрешность короткого ряда"
   ],
   "checks": [
     {
+      "name": "coeffs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "table",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
       "name": "accept --dry",
-      "value": "4/4",
+      "value": "4/4 PASS, scope 16 файлов",
       "pass": true
     },
     {
       "name": "pooled mu_sigma clear/partly/overcast",
-      "value": "-0.275 / +0.011 / +0.130",
+      "value": "-0.275 / +0.011 / +0.130 σ",
       "pass": true
     },
     {
-      "name": "pooled beta K/K",
-      "value": "0.586",
+      "name": "beta pooled",
+      "value": "0.586 К/К (beta_cat 0.43/0.51/0.67)",
       "pass": true
     },
     {
-      "name": "чувствительность к смеси с неполными 2014-20",
-      "value": "pooled mu_sigma -0.29/0.00/+0.14, beta 0.60",
+      "name": "джекнайф по годам se_mu_sigma",
+      "value": "медиана 0.033-0.036 σ, максимум 0.11-0.14 σ",
+      "pass": true
+    },
+    {
+      "name": "сверка со смесью с неполными 2014-20",
+      "value": "mu_sigma -0.29/0.00/+0.14, beta 0.60: различие ≤0.02 σ, ≤0.01 К/К",
+      "pass": true
+    },
+    {
+      "name": "облачность окно 10-16 ч vs сутки",
+      "value": "-0.28/+0.13 против -0.30/+0.17 σ; 16.1% дней меняют класс",
       "pass": true
     }
   ],
   "not_done": [
-    "10 лет вместо 3: годы 2014-2020 не докачаны (partial parts в ~/data/haze_humidity/td_sky/parts), SE по джекнайфу 3 лет занижены"
+    "10 лет вместо 3: докачка 2014-2020 отменена пользователем (Q4); fetch_cds_daily.py/build_cds_daily.py оставлены как не запускавшийся конвейер"
   ],
   "questions": [],
   "images": [],
-  "how_to_check": ".dpcli/dpcli accept HH-1c; python analyze.py в tools/research/haze_humidity/td_sky",
+  "how_to_check": ".dpcli/dpcli accept HH-1c",
   "uncertain": [
     {
-      "where": "tools/research/haze_humidity/td_sky/td_sky.json:beta_k_per_k",
-      "why": "3 года; регрессия внутри классов, общая на пояс/сезон; Td дня = среднее 00+12 UTC, не полдень",
-      "checked": "сравнение с прогоном на 10 неполных годах: pooled совпадает"
+      "where": "tools/research/haze_humidity/td_sky/td_sky.json: se_mu_sigma",
+      "why": "джекнайф из 3 блоков-лет грубый, SE занижены; клетки пояс x сезон надёжны лишь до ~±0.1 σ",
+      "checked": "сверка со смесью 2011-13 + неполные 2014-20 и с облачностью по суткам — pooled различия ≤0.04 σ"
+    },
+    {
+      "where": "README: Td дня",
+      "why": "Td дня = среднее 00 и 12 UTC (HH-1), не местный полдень; tcc — реанализ; полушария слиты по сезонам; высота места не учтена",
+      "checked": "ограничения записаны в README"
     }
   ],
-  "dp_feedback": "",
-  "extra": {
-    "beta_pooled": 0.586,
-    "mu_sigma_uncentered_pooled": [
-      -0.456,
-      -0.134,
-      0.641
-    ],
-    "res_ratio_pooled": [
-      0.959,
-      0.995,
-      1.112
-    ],
-    "frac_pooled": [
-      0.246,
-      0.258,
-      0.496
-    ]
-  },
-  "t": "2026-10-22T01:23:38",
+  "dp_feedback": "Усечённый текст дополнений в task show (обрезан '…'): полное содержимое пришлось угадывать; нужна опция --full или inbox-вывод целиком.",
+  "t": "2026-10-22T14:02:20",
   "by": "executor"
 }
