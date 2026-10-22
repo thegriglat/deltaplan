@@ -46,3 +46,6 @@
 {"t": "2026-10-22T23:40:26", "by": "coordinator", "task": "TP-4", "ev": "merged"}
 {"t": "2026-10-22T23:40:27", "by": "coordinator", "task": "TP-3", "ev": "merged"}
 {"t": "2026-10-22T23:40:27", "by": "coordinator", "task": "TP-5", "ev": "accepted", "note": "по отчёту; start_ 2 падения — базовые (test_start_hint_every_flight_hides_on_w, test_default_start: те же на feature/trike-pilot)"}
+{"t": "2026-10-22T23:45:14", "by": "executor", "task": "TP-1", "ev": "reported", "commits": ["TP-1:"], "note": "done: configs/trike_pilot.json (TP-К1 v1) с _doc у каждого числа, расчёт docs/research/trike-pilot/engine-ops.md, контрактный…", "dp_feedback": "accept --dry печатает только 'Завершено' без итога PASS/FAIL (и под rtk, и с --here --no-tmux завис до таймаута); тест пришлось гонять godot напрямую."}
+{"t": "2026-10-22T23:45:27", "by": "coordinator", "task": "TP-1", "ev": "checked", "note": "2/2 trike_pilot_k1=ok:2/2; docs=ok:exit 1"}
+{"t": "2026-10-22T23:45:35", "by": "coordinator", "task": "TP-1", "ev": "accepted", "note": "по отчёту; start_l 40 л — до ответа Q3"}

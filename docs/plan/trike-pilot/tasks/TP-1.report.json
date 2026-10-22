@@ -1,0 +1,59 @@
+{
+  "status": "done",
+  "summary": "configs/trike_pilot.json (TP-К1 v1) с _doc у каждого числа, расчёт docs/research/trike-pilot/engine-ops.md, контрактный тест. Жёсткие числа из руководства Rotax 582 UL: 26,5 л/ч на 6800, 20,5 л/ч на 75% мощности, холостые 2000, крейсер 6500, взлётные 6800; остальное - оценки с разбросом.",
+  "commits": [
+    "TP-1: эксплуатация Rotax 582 - конфиг, расчёт, тест"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot_k1",
+      "value": "2 теста, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок нет",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": "XDG_DATA_HOME=~/.cache/dp-xdg/x godot --headless --path . res://tests/run_tests.tscn -- --filter=trike_pilot_k1",
+  "uncertain": [
+    {
+      "where": "configs/trike_pilot.json fuel.burn.lph",
+      "why": "75% мощности отнесено к 6200 об/мин по закону P~n^3; холостой 2,0 и 3000 об/мин 2,8 л/ч - оценки",
+      "checked": "sfc 425 г/кВт·ч*36 кВт/0,75 = 20,4 л/ч совпало с 20,5 из руководства"
+    },
+    {
+      "where": "configs/trike_pilot.json starter/throttle/tachometer.max_rpm/fuel.start_l",
+      "why": "start_s 3, stop_s 4, rate_per_s 0,5, max_rpm 8000, start_l 40 - оценки без источника",
+      "checked": "stop_s прикинут по инерции винта и двигателя"
+    }
+  ],
+  "dp_feedback": "accept --dry печатает только 'Завершено' без итога PASS/FAIL (и под rtk, и с --here --no-tmux завис до таймаута); тест пришлось гонять godot напрямую.",
+  "extra": {
+    "burn_table": {
+      "rpm": [
+        2000,
+        3000,
+        4000,
+        5000,
+        6200,
+        6500,
+        6800
+      ],
+      "lph": [
+        2.0,
+        2.8,
+        5.5,
+        10.8,
+        20.5,
+        23.5,
+        26.5
+      ]
+    }
+  },
+  "t": "2026-10-22T23:45:14",
+  "by": "executor"
+}
