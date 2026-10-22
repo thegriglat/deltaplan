@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Раздел docs/guide/flight/tow.md (9 разделов), ссылки из flight/game/models, строка CHANGELOG, выводы в findings. По поправке 06:35: влит feature/tow, аэробуксировка описана как работающая в игре, управление W/Shift/B, числа TW-6 с пометкой про тангаж автомата.",
+  "commits": [
+    "6f571531 tow: TW-19 — guide flight/tow.md, ссылки, CHANGELOG, выводы в реестр",
+    "поправка: tow: TW-19 — аэробуксировка в игре, управление W/Shift/B, числа TW-6"
+  ],
+  "checks": [
+    {
+      "name": "headings",
+      "value": "9",
+      "pass": true
+    },
+    {
+      "name": "changelog",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "findings",
+      "value": "7",
+      "pass": true
+    },
+    {
+      "name": "size",
+      "value": "27378",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Визуал тележки, Ан-2, троса глазами не проверялся (отмечено в документе)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TW-19",
+  "uncertain": [],
+  "dp_feedback": "task show обрезает дополнения координатора; полный текст нашёл только через --full.",
+  "t": "2026-10-22T06:37:05",
+  "by": "executor"
+}

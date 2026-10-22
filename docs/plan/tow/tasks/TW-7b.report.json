@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "release() на idle/slack/roll продолжает разбег с текущей скоростью и тем же ускорением до v_tow, затем отрыв, набор climb_rate_ms и обычный away (доворот, gone через away_s после отрыва). Тест test_release_on_roll_no_jump.",
+  "commits": [
+    "20cf44fe TW-7b: Ан-2 без скачка при отцепе на разбеге"
+  ],
+  "checks": [
+    {
+      "name": "tow_k9",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_tow_aerotow",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TW-7b",
+  "uncertain": [
+    {
+      "where": "scripts/game/tow_tug.gd:_step_away",
+      "why": "выбор модели: после разбега взлёт с набором, а не торможение; отцеп в climb по-прежнему меняет vz скачком (+2.5 -> -2), не в задаче",
+      "checked": "тест непрерывности pos и скорости"
+    }
+  ],
+  "dp_feedback": "Первый --import в копии упал segfault, из-за чего test_models падал; повторный прошёл.",
+  "t": "2026-10-22T06:36:25",
+  "by": "executor"
+}
