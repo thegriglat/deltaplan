@@ -1,0 +1,85 @@
+{
+  "id": "TT-4",
+  "module": "tow-trike",
+  "type": "dp-engineer",
+  "title": "Буксировщик-дельталёт: модель полёта, тяга, автопилот, связка",
+  "goal": "TowTug — дельталёт на «Маятнике» (крыло trike_ixess15, тележка TT-К1, колёса TT-К3) с тягой винта T(V,газ) и автопилотом по фазам; игра передаёт силу троса и ветер; связка с дельтапланом проверена числами BHPA (TT-К4).",
+  "plan_ref": "§4 TT-4",
+  "contracts": [
+    {
+      "name": "TT-К4",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TT-К1",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TT-К3",
+      "version": "3",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TW-К4",
+      "version": "9",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TW-К5",
+      "version": "9",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TW-К10",
+      "version": "2",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-4",
+  "branch": "tow-trike/TT-4",
+  "base": "feature/tow-trike",
+  "scope": [
+    "scripts/game/tow_tug.gd",
+    "scripts/game/tow_session.gd",
+    "configs/tow_tug.json",
+    "tests/contracts/test_tow_k9.gd",
+    "tests/contracts/test_tow_trike_k1.gd",
+    "tests/contracts/test_tow_trike_k1.gd.uid",
+    "tests/game/test_tow_trike_climb.gd",
+    "tests/game/test_tow_trike_climb.gd.uid",
+    "tests/game/test_tow_aerotow.gd",
+    "tests/game/test_tow_session.gd",
+    "scripts/game/game.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "configs/wings/",
+    "tools/",
+    "assets/",
+    "scripts/world_objects/"
+  ],
+  "accept": [
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "contracts/",
+      "tests": "contracts/"
+    },
+    {
+      "name": "tow_trike_climb",
+      "tests": "tow_trike_climb"
+    },
+    {
+      "name": "climb",
+      "cmd": "sh -c 'XDG_DATA_HOME=$(mktemp -d) godot --headless --path . res://tests/run_tests.tscn -- --filter=tow_trike_climb 2>&1 | grep -E \"TT_CLIMB\" | tail -1'",
+      "expect": "re:TT_CLIMB climb_ms=[0-9.]+ speed_kmh=[0-9.]+ liftoff_m=[0-9.]+ tmax_dan=[0-9.]+"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T19:38:03"
+}

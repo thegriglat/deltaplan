@@ -1,0 +1,51 @@
+{
+  "id": "TT-8",
+  "module": "tow-trike",
+  "type": "dp-researcher",
+  "title": "Трапеция буксировщика: числа и расчёт положения штанги",
+  "goal": "Геометрия трапеции trike_ixess15 по источникам трайковых крыльев и положения штанги trim/full_push/full_pull внутри треугольника тележки перед пилотом — числа с источниками и проверка check_trapeze.py по TT-К6.",
+  "plan_ref": "§4 TT-8",
+  "contracts": [
+    {
+      "name": "TT-К6",
+      "version": "1",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TK-K1",
+      "version": "4",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-8",
+  "branch": "tow-trike/TT-8",
+  "base": "feature/tow-trike",
+  "scope": [
+    "tools/research/tow-trike/",
+    "docs/research/tow/trike-tug.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "tools/blender/",
+    "assets/",
+    "configs/",
+    "scripts/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "trapeze",
+      "cmd": "python3 tools/research/tow-trike/check_trapeze.py tools/research/tow-trike/trapeze.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "sh -c '.dpcli/dpcli docs check 2>&1 | grep -E \"ОШИБКА.*(tow-trike|trike-tug|research/tow)\" || echo clean'",
+      "expect": "re:^clean"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T19:37:27"
+}
