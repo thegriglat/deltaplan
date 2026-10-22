@@ -1,0 +1,69 @@
+{
+  "id": "TK-5",
+  "module": "trike-model",
+  "type": "dp-writer",
+  "title": "Документация модели тележки",
+  "goal": "docs/guide/models/trike.md (модель тележки: источники размеров, оси и узлы, винт prop_spin и обороты, бюджеты, сборка, чего модель не умеет), строки в docs/guide/models.md, поза sit в docs/guide/models/pilot.md, ASSETS.md, вывод в docs/registry/findings.md.",
+  "plan_ref": "TK-5",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "3",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K2",
+      "version": "3",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K3",
+      "version": "1",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-5",
+  "branch": "trike-model/TK-5",
+  "base": "feature/trike-model",
+  "scope": [
+    "docs/guide/models/trike.md",
+    "docs/guide/models.md",
+    "docs/guide/models/pilot.md",
+    "ASSETS.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "docs/contracts/",
+    "docs/plan/",
+    "CHANGELOG.md",
+    "tools/",
+    "assets/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "./.dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "guide",
+      "cmd": "grep -c 'trike.glb' docs/guide/models.md docs/guide/models/trike.md",
+      "expect": "re:trike.md:[1-9]"
+    },
+    {
+      "name": "sit",
+      "cmd": "grep -c 'sit' docs/guide/models/pilot.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "assets",
+      "cmd": "grep -c -i 'trike' ASSETS.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:02:35"
+}
