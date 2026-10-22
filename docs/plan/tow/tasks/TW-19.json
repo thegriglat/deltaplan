@@ -1,0 +1,65 @@
+{
+  "id": "TW-19",
+  "module": "tow",
+  "type": "dp-writer",
+  "title": "Документация и CHANGELOG: буксировка",
+  "goal": "Описать буксировку так, как она сделана в модуле: новый раздел guide flight/tow.md (виды, трос и лебёдка, уздечка, тележка, Ан-2, отцеп, управление, учтённое и чего модель не умеет), ссылки из flight.md/game.md/models.md, строка в CHANGELOG «В работе», выводы исследований в registry/findings.md.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К5",
+      "version": "9",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-19",
+  "branch": "tow/TW-19",
+  "base": "feature/tow",
+  "scope": [
+    "docs/guide/flight/tow.md",
+    "docs/guide/flight.md",
+    "docs/guide/game.md",
+    "docs/guide/models.md",
+    "CHANGELOG.md",
+    "docs/registry/findings.md",
+    "docs/research/tow"
+  ],
+  "dont_touch": [
+    "scripts",
+    "configs",
+    "tests",
+    "docs/contracts",
+    "docs/plan",
+    "site"
+  ],
+  "accept": [
+    {
+      "name": "headings",
+      "cmd": "grep -cE '^## ' docs/guide/flight/tow.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -ci 'буксир' CHANGELOG.md",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "findings",
+      "cmd": "grep -c 'tow' docs/registry/findings.md",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "size",
+      "cmd": "stat -c %s docs/guide/flight/tow.md",
+      "expect": "num:(\\d+) <=40960"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T06:31:12"
+}
