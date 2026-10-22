@@ -1,0 +1,47 @@
+{
+  "id": "SNW-1",
+  "module": "snow-plume",
+  "type": "dp-researcher",
+  "title": "Порог срыва снега и параметры шлейфа (литература)",
+  "goal": "Найти в литературе порог скорости ветра на 10 м для срыва снега как функцию температуры (сухой/мокрый снег) и параметры видимого шлейфа; выдать числа для configs/snow_plume.json по SNW-К1 с источниками.",
+  "plan_ref": "§4 SNW-1",
+  "contracts": [
+    {
+      "name": "snow-plume",
+      "version": "1",
+      "ref": "docs/contracts/snow-plume.md"
+    }
+  ],
+  "copy": "~/deltaplan-snow-plume-SNW-1",
+  "branch": "snow-plume/SNW-1",
+  "base": "feature/snow-plume",
+  "scope": [
+    "docs/research/snow_plume.md",
+    "tools/research/snow_plume/"
+  ],
+  "dont_touch": [
+    "configs/",
+    "scripts/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "doc_exists",
+      "cmd": "test -f docs/research/snow_plume.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "frontmatter",
+      "cmd": "head -1 docs/research/snow_plume.md",
+      "expect": "re:^---"
+    },
+    {
+      "name": "k1_keys",
+      "cmd": "python3 -c \"t=open('docs/research/snow_plume.md').read();k=['threshold.a','threshold.b','threshold.c','wet_t_c','wet_u10_ms','span_ms','settle_ms','spread_ms','path_dt_s','path_points','lee_slope_deg','fetch_m'];print('missing',sum(x not in t for x in k))\"",
+      "expect": "num:missing (\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:06:07"
+}
