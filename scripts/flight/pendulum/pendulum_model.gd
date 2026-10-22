@@ -202,6 +202,13 @@ var dolly_pos := Vector3.ZERO  ## точка тележки на земле по
 var dolly_vel := Vector3.ZERO  ## скорость тележки (мир игры), м/с
 var dolly_attached := false  ## крыло ещё в ложементе (режим «dolly»)
 var _dolly := false
+## TT-К3: разбег тележки дельталёта на колёсах — тот же режим _dolly (одна степень свободы вдоль курса), но без
+## ложемента: тележка уже в массе «пилота», тангаж крыла = keel + max(0, pitch)·rotate с постоянной времени рук.
+var on_wheels := false  ## только чтение: на колёсах (phase() "wheels")
+var _wheels := false
+var _wh_pitch := 0.0  ## отклонение штанги 0…1 с постоянной времени рук (сглаженное)
+var _wh_cmd := 0.0  ## ввод pitch этого шага, 0…1
+var _wh_rate := 0.0  ## скорость тангажа крыла от штанги, рад/с (нос вверх)
 var _dol: Dictionary = {}  ## параметры: mass_kg, keel_angle_deg, cradle_height_m, wheel_radius_m, rolling_crr
 var _dol_psi := 0.0  ## курс разбега, рад
 var _dol_x0 := 0.0  ## начало разбега (мир игры): x, z
@@ -291,7 +298,7 @@ func setup(
 	_sub_min = int(ch.substeps_min)
 	_head_fwd = float(pendulum.head.forward_m)
 	_head_up = float(pendulum.head.up_m)
-	_pilot_cda = float(pendulum.pilot_cda_m2)
+	_pilot_cda = float(apparatus_cfg.get("pilot_cda_m2", pendulum.pilot_cda_m2))  # TT-К3: тележка — своё CdA
 	aero_hz = float(pendulum.strips.get("aero_hz", 60.0))
 	var ad: Dictionary = flight.air_density
 	_alt_dep = bool(ad.altitude_dependent)
@@ -330,6 +337,8 @@ func setup(
 	_ge_on = bool(pendulum.ground_effect.get("enabled", true))
 	chain.setup(ch, pilot_mass, _hang_len)
 	arms.setup(pendulum.arms)
+	if apparatus_cfg.has("arms_force_max_n"):
+		arms.force_max = float(apparatus_cfg.arms_force_max_n)  # TT-К3: предел рук для массы тележки
 	# земля: ноги, хват за стойки, точки касания крыла
 	var gc: Dictionary = pendulum.ground
 	ground.setup(gc, pilot, flight, wing, pilot_mass, _m_wing)
@@ -450,18 +459,52 @@ func reset_on_dolly(pos: Vector3, heading_deg: float, dolly: Dictionary = {}) ->
 	_update_outputs(Callable(), Callable())
 
 
+## TT-К3: дельталёт на колёсах. pos — точка земли под ЦМ тележки (мир игры), тележка (узел ЦМ пилота) на
+## wheel_base_agl_m над землёй, подвеска над ней на hang_length_m по нормали земли, крен 0, курс heading_deg.
+## wheels = {keel_angle_deg, rotate_deg, rolling_crr, wheel_base_agl_m} (TT-К1 ground). Масса тележки — в массе
+## «пилота». Тангаж крыла keel + max(0, pitch)·rotate (постоянная времени рук arms.tau), ввод roll не действует.
+## Отрыв при N ≤ 0 → полёт, took_off. Посадки на колёса нет. phase() "wheels".
+func reset_on_wheels(pos: Vector3, heading_deg: float, wheels: Dictionary) -> void:
+	reset_on_dolly(pos, heading_deg, {
+		"mass_kg": 0.0, "keel_angle_deg": float(wheels.keel_angle_deg), "cradle_height_m": 0.0,
+		"rolling_crr": float(wheels.rolling_crr), "rotate_deg": float(wheels.rotate_deg),
+		"wheel_base_agl_m": float(wheels.wheel_base_agl_m)})
+	_wheels = true
+	on_wheels = true
+	dolly_attached = false
+	_wh_pitch = 0.0
+	_wh_cmd = 0.0
+	_wh_rate = 0.0
+	_dolly_pose()
+	_update_outputs(Callable(), Callable())
+
+
 ## Поза связки на пути _dol_s: основание перекладины над землёй на cradle_height_m, крыло с тангажом
 ## keel + уклон, пилот под подвеской, цепь прямая (жёстко). Земля — касательная от _dol_hg0.
 func _dolly_pose() -> void:
-	_R = basis_from_euler(_dol_psi, deg_to_rad(float(_dol.keel_angle_deg)) + _dol_phi, 0.0)
+	var pitch_w := deg_to_rad(float(_dol.keel_angle_deg)) + _dol_phi
+	if _wheels:
+		pitch_w += _wh_pitch * deg_to_rad(float(_dol.rotate_deg))
+	_R = basis_from_euler(_dol_psi, pitch_w, 0.0)
 	var f := Vector3(sin(_dol_psi), 0.0, -cos(_dol_psi))
 	var c := cos(_dol_phi)
 	var sn := sin(_dol_phi)
 	_dol_t = ned(Vector3(f.x * c, sn, f.z * c))
 	_dol_n = ned(Vector3(-f.x * sn, c, -f.z * sn))
 	_vel = _dol_t * _dol_v
-	var r := _R * _r_bar_b
 	var g := _dolly_ground_point()
+	if _wheels:
+		# тележка на колёсах под подвеской: мачта по нормали земли, крыло качается около подвески
+		var xp := Vector3(-g.z - _on, g.x - _oe, -g.y - _od) + _dol_n * float(_dol.wheel_base_agl_m)
+		var hp := xp + _dol_n * _hang_len
+		var r_h := _R * _r_hang_b
+		_pos = hp - r_h
+		chain.place(hp, -_dol_n, _vel)
+		# крыло качается около подвески: ЦМ и угловая скорость — по скорости тангажа (непрерывность при отрыве)
+		_w = _R.y * _wh_rate
+		_vel -= _w.cross(r_h)
+		return
+	var r := _R * _r_bar_b
 	_pos = Vector3(
 		-g.z - r.x - _on, g.x - r.y - _oe, -(g.y + float(_dol.cradle_height_m)) - r.z - _od
 	)
@@ -500,6 +543,11 @@ func _dolly_sample_ground(ground_fn: Callable) -> void:
 ## вдоль касательной. N ≤ 0 (подъёмная сила ≥ веса) — отрыв: → false (состояние не тронуто; подшаг пропущен,
 ## дальше — полёт).
 func _dolly_substep(h: float) -> bool:
+	if _wheels:  # штанга отклоняется с постоянной времени рук
+		var d_p := (_wh_cmd - _wh_pitch) * (1.0 - exp(-h / maxf(arms.tau, 1.0e-3)))
+		_wh_pitch += d_p
+		_wh_rate = d_p * deg_to_rad(float(_dol.rotate_deg)) / h
+		_dolly_pose()
 	var R := _R
 	var m_tot := mass + float(_dol.mass_kg)
 	var H: Vector3 = _pos + R * _r_hang_b
@@ -546,18 +594,23 @@ func _dolly_substep(h: float) -> bool:
 	_dol_v = arc / h
 	_dol_s += arc * cos(_dol_phi)
 	_dolly_pose()
-	_w = Vector3.ZERO
+	if not _wheels:
+		_w = Vector3.ZERO
 	return true
 
 
 ## Отрыв с тележки: состояние крыла и пилота — как есть (скорость, ориентация, цепь), дальше обычный полёт.
 func _dolly_release() -> void:
+	var was_wheels := _wheels  # на колёсах _w — скорость тангажа от штанги: сохраняется
 	_dolly = false
+	_wheels = false
+	on_wheels = false
 	dolly_attached = false
 	_cart_s = _dol_s
 	_cart_v = _dol_v * cos(_dol_phi)
 	_dol_hold_until = time_s + DOLLY_HOLD_S
-	_w = Vector3.ZERO
+	if not was_wheels:
+		_w = Vector3.ZERO
 	arms.reset()
 	mode = FlightModel.Mode.AIR
 	_uprights = false
@@ -582,7 +635,7 @@ func _dolly_hold(ground_fn: Callable) -> bool:
 
 ## Тележка после отрыва: катится по курсу, тормозится качением crr·g до остановки (ground_fn — высота земли).
 func _cart_update(dt: float, ground_fn: Callable) -> void:
-	if _dolly or _dol.is_empty():
+	if _dolly or _wheels or _dol.is_empty():
 		return
 	if _cart_v != 0.0:
 		_cart_v = move_toward(_cart_v, 0.0, float(_dol.rolling_crr) * Units.G * dt)
@@ -687,6 +740,7 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var n := maxi(_sub_min, ceili(dt * _sub_per_s - 1.0e-9))
 	var h := dt / n
 	_last_pitch = input.pitch
+	_wh_cmd = clampf(input.pitch, 0.0, 1.0)
 	# добор «на себя» до бёдер (VM-К3 v2): только в полёте, руки на штанге
 	arms.update_pull_limit(inp.pull_full and mode == FlightModel.Mode.AIR and not _uprights, dt)
 	_pull_normal_s = 0.0 if arms.pull_limit > arms.shift_x_pull + 1.0e-6 else _pull_normal_s + dt
@@ -712,7 +766,7 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	_tension_avg = t_sum / n
 	var f_p := f_sum / n
 	load.update(f_p.length(), pilot_mass * Units.G, _lf_filter, dt, _lf_jitter)
-	if _dolly:
+	if _dolly and not _wheels:
 		dolly_pos = _dolly_ground_point()
 		dolly_vel = game(_dol_t) * _dol_v
 	_update_outputs(air_fn, ground_fn)
@@ -874,7 +928,7 @@ func _freeze() -> void:
 ## Значения Telemetry.phase.
 func phase() -> String:
 	if _dolly:
-		return "dolly"
+		return "wheels" if _wheels else "dolly"
 	match mode:
 		FlightModel.Mode.AIR:
 			return "flying"
@@ -917,7 +971,7 @@ func wing_basis() -> Basis:
 func glide_balance(a: float, v0: float) -> Dictionary:
 	var V := v0
 	var gam := 0.1
-	var cda := float(pendulum.pilot_cda_m2)
+	var cda := _pilot_cda
 	for _it in 30:
 		var R := basis_from_euler(0.0, a - gam, 0.0)
 		var vel := Vector3(cos(gam), 0.0, sin(gam)) * V
@@ -1333,6 +1387,11 @@ func _reset_common() -> void:
 	_hands_p = Vector3.ZERO
 	# состояние тележки (TW-К10): reset_on_dolly задаёт его заново, остальные режимы — без тележки
 	_dolly = false
+	_wheels = false
+	on_wheels = false
+	_wh_pitch = 0.0
+	_wh_cmd = 0.0
+	_wh_rate = 0.0
 	dolly_attached = false
 	_dol = {}
 	_dol_hold_until = -1.0
