@@ -12,6 +12,7 @@ extends RefCounted
 
 const ACTIONS: Array[String] = [
 	"run",
+	"walk_forward",
 ]
 ## Ход ручки автопилота, доля полного в секунду: к цели и к нейтрали (прежний клавиатурный ход, У1 v4:
 ## тангаж 1,5/1,0, крен в режиме rate 2,0/1,5) — поведение автопилота не меняется.
@@ -68,6 +69,10 @@ var speed_hold := SpeedHold.new()
 ## Ждать (сеть, NET-43: не первый в очереди на старт или идёт к своему месту): ничего не жать,
 ## замер ветра стоя — заново, когда ожидание кончится.
 var hold := false
+
+## Старт с лебёдки (TW-К7): трос запускает W (walk_forward), Shift его не запускает (TW-10) — вместо бега
+## жмёт W, пока стоит на земле; после отрыва W отпущен. Нос на земле не трогает (тянет трос).
+var tow_start := false
 
 var _time: float = 0.0
 var _air_time: float = 0.0
@@ -146,7 +151,12 @@ func drive(t: Telemetry, dt: float) -> void:
 			_level_roll(t.bank_deg, want)
 		_:
 			roll_command = 0.0
-	_press("run", hold_w)
+	if tow_start:
+		var on_ground: bool = t.phase in ["standing", "walking", "running"] and _wind_seen
+		_press("run", hold_w)
+		_press("walk_forward", on_ground)
+	else:
+		_press("run", hold_w)
 	# на земле — нос по углу атаки, в полёте — трапеция в триме (ручка к нейтрали)
 	if hold_airspeed_ms > 0.0 and pendulum and t.phase == "flying":
 		speed_hold.target_ms = hold_airspeed_ms
