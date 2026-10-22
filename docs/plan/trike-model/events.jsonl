@@ -217,3 +217,5 @@
 {"t": "2026-10-22T15:02:51", "by": "executor", "task": "TK-17", "ev": "reported", "commits": ["см."], "note": "done: В wings.json добавлены 4 записи (Skypper Evo/BioniX15², Tanarg neo/BioniX², La Mouette Samson 14, P&M QuikR) по страниц…", "dp_feedback": "task show обрезает дополнение координатора (многоточие в URL); полный текст пришлось брать из вывода без обрезки."}
 {"t": "2026-10-22T15:03:04", "by": "coordinator", "task": "TK-17", "ev": "checked", "note": "3/3 docs=ok:exit 0; wings=ok:7; physics=ok:0"}
 {"t": "2026-10-22T15:03:10", "by": "coordinator", "task": "TK-17", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-22T15:03:11", "by": "coordinator", "task": "TK-17", "ev": "accepted", "commits": ["930ea48d"], "note": "3/3 docs=ok:exit 0; wings=ok:7; physics=ok:0"}
+{"t": "2026-10-22T15:03:12", "by": "coordinator", "task": "TK-17", "ev": "merged"}
