@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Размеры трайка trike_params.json (TK-K1), модель тележки trike.glb с узлом винта (TK-K2), поза пилота sit в pilot.glb (TK-K3)."
 related: ["docs/plan/trike-model.md", "docs/guide/models.md", "docs/guide/models/pilot.md"]
-contracts: [{"id": "TK-K1", "version": 4}, {"id": "TK-K2", "version": 4}, {"id": "TK-K3", "version": 2}]
+contracts: [{"id": "TK-K1", "version": 5}, {"id": "TK-K2", "version": 4}, {"id": "TK-K3", "version": 2}]
 ---
 
 # Контракты модуля trike-model
@@ -16,7 +16,7 @@ contracts: [{"id": "TK-K1", "version": 4}, {"id": "TK-K2", "version": 4}, {"id":
 (болт на вершине мачты; у пилота — карабин). Контрактные тесты — `tests/contracts/test_trike_model_k<n>.gd`
 (фильтр `trike_model_k<n>`): версия в заголовке раздела; владелец стыка дописывает проверку интерфейса.
 
-## TK-K1. Размеры трайка — tools/blender/trike_params.json (v4)
+## TK-K1. Размеры трайка — tools/blender/trike_params.json (v5)
 
 - Владелец: TK-1 (v2 — TK-7). Потребители: TK-2 (поза), TK-3/TK-8 (модель), TK-4/TK-6 (кадры, проверка посадки). Правка — только
   координатор. v2 (2026-10-22, замечания пользователя по кадрам TK-4): двухлопастный винт с хордой, двигатель по частям, тандем
@@ -64,6 +64,8 @@ contracts: [{"id": "TK-K1", "version": 4}, {"id": "TK-K2", "version": 4}, {"id":
     `backrest_base` (низ спинки по центру), `backrest_angle_deg` (от вертикали назад), `backrest_size` `[ширина, высота]`,
     `foot_l`, `foot_r` (точка опоры подошвы на подножке), `throttle_pedal` (точка педали газа под правой стопой), `hand_l`, `hand_r`
     (кисти на коленях).
+- v5 (2026-10-22, модуль tow-trike, TT-9, контракт TT-К6 `docs/contracts/tow-trike.md`): `bar` — для крыла `trike_ixess15`
+  (трапеция внутри треугольника тележки, хват на штанге при trim); `seat.hand_l`/`hand_r` — на штанге, не на коленях.
 - Инварианты: x всех симметричных точек `_l`/`_r` — противоположны (± 1 см); `seat.eye` = `eye_measured.training` (± 1 см);
   у каждого `dims.*` непустой `src`.
 

@@ -1,0 +1,41 @@
+{
+  "status": "done",
+  "summary": "Вилка переднего колеса развёрнута на 180° вокруг вертикали (зеркало по Y вокруг оси): голова вилки на y = 2*y_f - 1.1 (1.40 м, у носа киля), ось на wheelbase без изменений, брызговик — дуга со стороны пилота. Стойки обтекателя, фара и поперечина сдвинуты вместе с головой. trike.glb и trike.blend пересобраны, кадры side и front34 перерисованы.",
+  "commits": [
+    "79af27be TT-11: вилка переднего колеса назад к пилоту, брызговик к пилоту"
+  ],
+  "checks": [
+    {
+      "name": "trike_model",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "tow_trike_k6",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "2",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/tow-trike/tow_trike_side.jpg",
+    "build/screenshots/tow-trike/tow_trike_front34.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TT-11 --dry",
+  "uncertain": [
+    {
+      "where": "tools/blender/build_trike.py:front_gear",
+      "why": "голова вилки (1.40) почти совпадает с носом киля (1.39): труба nose-head пропускается при длине < 2 см; геометрия угла вилки (вынос ≈0.15 м) не менялась, трейл не рассчитывался",
+      "checked": "кадры side/front34: вилка идёт от носа вниз-назад к оси, брызговик у стороны пилота, обтекатель не завис"
+    }
+  ],
+  "dp_feedback": "первый accept в копии без godot --import висит 900 с до таймаута; task show: маркер кадров в accept указывает на scratchpad-файл, его надо было создать вручную.",
+  "t": "2026-10-22T21:11:32",
+  "by": "executor"
+}

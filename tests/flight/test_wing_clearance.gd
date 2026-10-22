@@ -102,7 +102,9 @@ func test_wing_above_ground_on_launch() -> void:
 				# стоя с A/D на склоне пилот разворачивается поперёк склона — это уже косой склон
 				# (верхняя консоль у земли — правда жизни), зазор только фиксируем
 				var across := kind == "склон 20°" and ph.contains(",") and not ph.contains("нос")
-				if kind != "косой 15°" and not across:
+				# буксировщик не стартует с ног (TT-9): стартовая посадка на ногах к крылу группы tug не относится
+				var is_tug: bool = Config.get_config("wings/" + w).get("group", "") == "tug"
+				if kind != "косой 15°" and not across and not is_tug:
 					check(
 						r.min >= MIN_CLEARANCE_M,
 						(

@@ -2268,9 +2268,9 @@
       "tip_chord_m": 0.63,
       "nose_forward_m": 1.327,
       "hang_source": "cg",
-      "upright_len_m": 1.736,
+      "upright_len_m": 1.7271,
       "crossbar_from_nose_m": 1.24,
-      "upright_tilt_deg": 27.0,
+      "upright_tilt_deg": 24.2392,
       "cg_from_nose_m": 1.342,
       "keel_extra_m": 0.1,
       "dihedral_deg": 1.5,
@@ -2290,7 +2290,7 @@
         0.4,
         0.7
       ],
-      "basebar_width_m": 1.42,
+      "basebar_width_m": 1.1,
       "faired_uprights": false,
       "wheels": false,
       "tube_color": [

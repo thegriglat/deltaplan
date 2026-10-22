@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "Трапеция в моделях применена (glider_params, pendulum, glb крыла и пилота, trike_params v5, тест TT-К6, 5 кадров). Скоуп расширен: исключение tug в test_wing_clearance, TK-К1 v5 в тесте. accept 7/7.",
+  "commits": [
+    "TT-9: трапеция в моделях",
+    "TT-9: исключение tug в test_wing_clearance, TK-К1 v5 в тесте"
+  ],
+  "checks": [
+    {
+      "name": "tow_trike",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "trike_model",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "wing",
+      "value": "25/25",
+      "pass": true
+    },
+    {
+      "name": "pilot",
+      "value": "73/73",
+      "pass": true
+    },
+    {
+      "name": "trapeze",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "others_unchanged",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "5",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/tow-trike/tow_trike_side.jpg",
+    "/home/greg/deltaplan/build/screenshots/tow-trike/tow_trike_front34.jpg",
+    "/home/greg/deltaplan/build/screenshots/tow-trike/tow_trike_rear34.jpg",
+    "/home/greg/deltaplan/build/screenshots/tow-trike/tow_trike_top.jpg",
+    "/home/greg/deltaplan/build/screenshots/tow-trike/tow_trike_flight_below_side.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TT-9",
+  "uncertain": [
+    {
+      "where": "configs/wings/trike_ixess15.json pendulum.bar_z_m",
+      "why": "модель маятника считает штангу плоско: bar_z -1,635 против -1,529 в glb (граница модели)",
+      "checked": "pendulum_params.py штатно, tow_trike 16/16"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-22T20:31:08",
+  "by": "executor"
+}

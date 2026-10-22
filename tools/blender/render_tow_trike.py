@@ -4,10 +4,10 @@
 
 Начало координат обеих моделей — HangPoint (точка подвески): крыло и тележка ставятся началом в одну точку, как в игре
 (scripts/flight/glider_visual.gd: «начало координат модели — HangPoint», тележка висит на нём маятником). Тангаж крыла
-на земле — киль на ground.keel_angle_deg из configs/tow_tug.json (нос вверх) вокруг HangPoint; тележка на колёсах
-горизонтальна, земля — по низу колёс. Пилот — pilot.glb в начале тележки без смещения, действие sit (TK-К3).
-Кадры: side, front34, rear34, top (на земле) и flight_below_side (в полёте: без земли, небо, снизу-сбоку; сборка
-повёрнута как целое на -5 градусов тангажа — планирование без пилотской штанги; взаимное положение крыла и тележки то же).
+относительно тележки — psi (TT-К6: tools/research/tow-trike/trapeze.json → glider_params.psi_deg, нос вверх) вокруг
+HangPoint: так штанга при trim лежит в руках пилота внутри треугольника тележки; тележка на колёсах горизонтальна,
+земля — по низу колёс. Пилот — pilot.glb в начале тележки без смещения, действие sit (TK-К3).
+Кадры: side, front34, rear34, top (на земле) и flight_below_side (в полёте: без земли, небо, снизу-сбоку, сборка горизонтальна).
 Выход: JPEG q88, build/screenshots/tow-trike/tow_trike_<ракурс>.jpg. Оси Blender (glTF): нос +Y, вверх +Z.
 Рендер Eevee (без GPU-замка).
 """
@@ -26,7 +26,7 @@ import render_views as RV  # noqa: E402
 RES = (1600, 1000)
 OUT = "/home/greg/deltaplan/build/screenshots/tow-trike"
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-FLIGHT_PITCH_DEG = -5.0
+FLIGHT_PITCH_DEG = 0.0   # установившийся горизонтальный полёт буксировщика (trim TT-К6)
 
 
 def args() -> dict:
@@ -112,8 +112,8 @@ def main() -> None:
     a = args()
     os.makedirs(a["out"], exist_ok=True)
     only = [s for s in a["only"].split(",") if s]
-    tug = json.load(open(os.path.join(ROOT, "configs", "tow_tug.json")))
-    keel = float(tug["ground"]["keel_angle_deg"])
+    tz = json.load(open(os.path.join(ROOT, "tools", "research", "tow-trike", "trapeze.json"), encoding="utf-8"))
+    keel = float(tz["glider_params"]["psi_deg"]["value"])
     for flight in (False, True):
         if only and not any(s.startswith("flight") == flight for s in only):
             continue

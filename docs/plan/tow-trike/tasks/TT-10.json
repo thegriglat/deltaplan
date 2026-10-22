@@ -1,0 +1,50 @@
+{
+  "id": "TT-10",
+  "module": "tow-trike",
+  "type": "dp-engineer",
+  "title": "Отрыв с колёс без рывка крыла на trike_ixess15",
+  "goal": "Непрерывность отрыва с колёс TT-К3 (5б) на крыле trike_ixess15 с тележкой tow_tug.json: |Δv| ЦМ крыла ≤ 0,15 м/с за шаг — причина найдена числами, артефакт исправлен, тест на обоих крыльях.",
+  "plan_ref": "§4 TT-10",
+  "contracts": [
+    {
+      "name": "TT-К3",
+      "version": "6",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-10",
+  "branch": "tow-trike/TT-10",
+  "base": "feature/tow-trike",
+  "scope": [
+    "scripts/flight/pendulum/",
+    "tests/contracts/test_tow_trike_k3.gd"
+  ],
+  "dont_touch": [
+    "scripts/game/",
+    "configs/",
+    "scripts/flight/glider.gd",
+    "scripts/flight/flight_model.gd"
+  ],
+  "accept": [
+    {
+      "name": "tow_trike_k3",
+      "tests": "tow_trike_k3"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "contracts/",
+      "tests": "contracts/"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T20:24:57",
+  "edited": "2026-10-22T21:51:20"
+}
