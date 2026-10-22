@@ -21,7 +21,6 @@
   "branch": "trike-pilot/TP-13",
   "base": "feature/trike-pilot",
   "scope": [
-    "tests/contracts/test_trike_pilot_k6.gd",
     "tests/contracts/test_trike_pilot_k7.gd",
     "tests/game/test_trike_cycle.gd",
     "tests/game/test_trike_cycle.gd.uid",
@@ -59,5 +58,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-23T03:56:30"
+  "created": "2026-10-23T03:56:30",
+  "edited": "2026-10-23T04:03:13"
 }
