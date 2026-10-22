@@ -1,0 +1,58 @@
+{
+  "id": "TP-22",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Звук двигателя в паузе, хвосты ревью TP-8",
+  "goal": "Звук двигателя дельталёта игрока замолкает на паузе и в меню и возвращается после, как vario/flight_audio; тест TP-К8 проверяет, что показания приборов обновляются каждый кадр; фаза wheels в Glider._update_pilot — наземная.",
+  "plan_ref": "TP-22",
+  "contracts": [
+    {
+      "name": "TP-К8",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К9",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-22",
+  "branch": "trike-pilot/TP-22",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/flight/glider.gd",
+    "scripts/game/game.gd",
+    "tests/contracts/test_trike_pilot_k8.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum/",
+    "scripts/flight/trike_rig.gd",
+    "scripts/game/tow_tug.gd",
+    "scripts/game/tow_trike_sound.gd",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    },
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "cockpit",
+      "tests": "cockpit"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/flight/glider.gd scripts/game/game.gd tests/contracts/test_trike_pilot_k8.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:24:21"
+}

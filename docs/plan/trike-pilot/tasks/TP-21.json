@@ -1,0 +1,60 @@
+{
+  "id": "TP-21",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Подскок на колёсах без провала под землю (TP-К7 v3)",
+  "goal": "По TP-К7 v3: после касания на колёса или на разбеге подскок ниже 0,05 м не отключает проверку касания — дельталёт никогда не проваливается под землю; посадка без выбора штанги заканчивается на колёсах без аварии.",
+  "plan_ref": "TP-21",
+  "contracts": [
+    {
+      "name": "TP-К7",
+      "version": "3",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-21",
+  "branch": "trike-pilot/TP-21",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "tests/contracts/test_trike_pilot_k7.gd",
+    "tests/game/test_trike_cycle.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/trike_rig.gd",
+    "scripts/game/",
+    "configs/",
+    "tests/contracts/test_tow_trike_k3.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    },
+    {
+      "name": "trike_cycle",
+      "tests": "trike_cycle"
+    },
+    {
+      "name": "tow_trike",
+      "tests": "tow_trike"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/flight/pendulum/pendulum_model.gd tests/contracts/test_trike_pilot_k7.gd tests/game/test_trike_cycle.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:23:38"
+}

@@ -133,6 +133,15 @@ related: ["docs/contracts/trike-pilot.md", "docs/plan/trike.md", "docs/contracts
 #### TP-20 Тяга по оси винта (TP-19)
 `dp-engineer` (sonnet), ревью `dp-reviewer`. Контракт TP-К6 v2: `TrikeRig.ext_force` делит тягу между тележкой и подвеской по высоте оси винта (`cart.prop_axis_below_hang_m`), игрок и буксировщик; фугоида на полном газе затухает. Приёмка: `trike_pilot`, `tow`, `tow_trike` — 0 упало; числа набора буксировщика в отчёт.
 
+#### TP-21 Подскок на колёсах без провала под землю
+`dp-engineer` (sonnet), ревью `dp-reviewer`. TP-13: подскок < 0,05 м после касания оставляет `_wh_hold` — касание не проверяется, модель проваливается (до −65 м). Контракт TP-К7 v3. Приёмка: `trike_pilot`, `trike_cycle`, `tow_trike`, `tow`, `pendulum` — 0 упало.
+
+#### TP-22 Звук двигателя в паузе, хвосты ревью TP-8
+`dp-engineer` (sonnet). Ревью TP-8 (minor): на паузе (Esc) и в меню звук двигателя игрока не гаснет (vario/flight_audio гаснут); тавтология в `test_trike_pilot_k8.gd:79` (проверять, что `update_readout` доходит до приборов каждый кадр); фаза `wheels` в `Glider._update_pilot` — наземная. Приёмка: `trike_pilot`, `pilot_hud`, `cockpit` — 0 упало.
+
+#### TP-10 Документация, CHANGELOG, findings
+`dp-writer` (sonnet). По фактам ветки модуля (контракты TP-К1…К9, отчёты, решения Q1–Q8): `docs/guide/` (как летать на дельталёте: старт, клавиши, приборы, границы модели), `CHANGELOG.md` «В работе», `docs/registry/findings.md` (выводы TP-17, TP-19), план — раздел «Осталось». Приёмка: `docs check`.
+
 ## 5. Волны
 1. TP-1, TP-2, TP-3, TP-4 параллельно (разные файлы).
 2. TP-5 по освобождению места; TP-11, TP-12 — по ответам Q1–Q3.
