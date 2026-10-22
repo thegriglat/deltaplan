@@ -1,0 +1,68 @@
+{
+  "status": "done",
+  "summary": "Парус trike_ixess15 переведён на Basis Universal (mode=4, high_quality, uastc 2, mipmaps) как у остальных крыльев; шина тележки уже на общем assets/textures/wheel/tire.png (CompressedTexture2D, mipmaps). В build_trike.py трубы/сталь/фитинги тележки — материалы Tube/Steel/Fitting (цвет в материале, вершинные белые), TowTrikeVisual вызывает FrameMetal.apply на тележке и крыле (flight.json visual.metal), так что и вид игрока (TP-8) получит металл.",
+  "commits": [
+    "bed5d84b TP-16: Basis паруса, FrameMetal на крыле и тележке"
+  ],
+  "checks": [
+    {
+      "name": "trike_model",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "tow",
+      "value": "105/105",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot",
+      "value": "36/36",
+      "pass": true
+    },
+    {
+      "name": "wire_tone",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "aframe",
+      "value": "3/4: test_neutral_every_wing (trike_ixess15 плечо 0.3315 vs 0.3811) — падает и без моих правок (проверено git stash)",
+      "pass": false
+    },
+    {
+      "name": "shots",
+      "value": "2",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "aframe test_neutral_every_wing падает на базе ветки (не связано с TP-16): плечо позади хвата у trike_ixess15"
+  ],
+  "questions": [],
+  "images": [
+    "build/screenshots/trike-pilot/tp16_before.png",
+    "build/screenshots/trike-pilot/tp16_after.png"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TP-16",
+  "uncertain": [
+    {
+      "where": "assets/models/trike/trike.glb.import",
+      "why": "встроенные текстуры glb как Basis (embedded_image_handling=2) в 4.7 дают пурпурную (битую) шину — оставлено 1; шина и так внешний tire.png с mipmaps",
+      "checked": "кадр: при =2 колёса пурпурные, при =1 корректны"
+    },
+    {
+      "where": "tools/blender/build_trike.py:EngSteel",
+      "why": "детали двигателя на цвете Steel переименованы в EngSteel (материал Metal), иначе FrameMetal красил бы их и тест габарита двигателя падал",
+      "checked": "trike_model 8/8"
+    },
+    {
+      "where": "кадры",
+      "why": "before — сырые glb без FrameMetal (новая геометрия), не старая модель; блеск труб на кадре слабо заметен на расстоянии (fade_near/far 3/14 м)",
+      "checked": "кадр after визуально"
+    }
+  ],
+  "dp_feedback": "lock cpu запускает команду фоном: без job wait вывод не виден; хорошо бы писать это в ответе сразу.",
+  "t": "2026-10-23T03:51:18",
+  "by": "executor"
+}
