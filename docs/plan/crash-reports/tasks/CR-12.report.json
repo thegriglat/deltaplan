@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Рубильники GPU-нагрузки в Настройки/Графика по CR-К4: game.json display.gpu {sun_shadows, cloud_shadows, glow} (умолчание true), «Простые облака» (clouds.renderer boxes/auto); «Ветер» уже был (air_model.enabled). Применяются в SkyEnvironment и CloudLayer; ключ --safe-gpu откатан.",
+  "commits": [
+    "49dbe736 CR-12: рубильники GPU-нагрузки в настройках"
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "settings",
+      "value": "6/6",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "GpuSafety.apply_safe (CR-8) не трогал: он перечисляет ключи display.gpu из game.json, новые попадут сами. Список ключей для раздела CR-К4: sun_shadows, cloud_shadows, glow."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CR-12",
+  "uncertain": [
+    {
+      "where": "scripts/ui/settings_panel.gd:_build_gpu_toggles",
+      "why": "подписи строк берутся из locale по ключу display.gpu; для нового ключа без подписи покажется имя ключа",
+      "checked": "тест на три ключа; визуально панель не смотрел"
+    },
+    {
+      "where": "scripts/atmosphere/cloud_layer.gd",
+      "why": "тени облаков и renderer читаются при создании слоя — смена применяется со следующей загрузки места",
+      "checked": "чтение кода; глазами в сборке не проверял"
+    },
+    {
+      "where": "extra",
+      "why": "причина вылетов не доказана; рубильники лишь позволяют проверить гипотезу Godot #122671",
+      "checked": "-"
+    }
+  ],
+  "dp_feedback": "Смена задачи посреди работы: откат своих изменений прошёл вручную, хватило бы подсказки dpcli. pre-commit check_gd падал, пока .godot не импортирован полностью.",
+  "t": "2026-10-23T04:37:26",
+  "by": "executor"
+}
