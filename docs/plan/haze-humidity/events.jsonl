@@ -213,3 +213,5 @@
 {"t": "2026-10-22T14:02:20", "by": "executor", "task": "HH-1c", "ev": "reported", "commits": ["см."], "note": "done: Td дня по ERA5 2011-13 (суша 0-75°, 4 пояса x сезоны): ясный день суше на 0,28 σ, пасмурный влажнее на 0,13 σ, beta Td/…", "dp_feedback": "Усечённый текст дополнений в task show (обрезан '…'): полное содержимое пришлось угадывать; нужна опция --full или inbox-вывод целиком."}
 {"t": "2026-10-22T14:02:32", "by": "coordinator", "task": "HH-1c", "ev": "checked", "note": "4/4 coeffs=ok:exit 0; readme=ok:exit 0; table=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-10-22T14:02:38", "by": "coordinator", "task": "HH-1c", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-22T14:03:06", "by": "coordinator", "task": "HH-1c", "ev": "accepted", "commits": ["55732284"], "note": "4/4 coeffs=ok:exit 0; readme=ok:exit 0; table=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-10-22T14:03:06", "by": "coordinator", "task": "HH-1c", "ev": "merged", "commits": ["55732284"]}
