@@ -23,7 +23,7 @@ const DIM_KEYS := [
 	"tire_rear_w", "mast_tilt_deg", "seat_height", "engine", "engine_l", "engine_w", "engine_h", "prop_d",
 	"prop_blades", "prop_axis_height", "prop_tilt_deg", "prop_rpm", "prop_cw_from_behind", "prop_chord_max",
 	"prop_chord_tip", "prop_hub_d", "engine_cyl_count", "engine_cyl_layout", "engine_cyl_d", "engine_gearbox",
-	"engine_exhaust_d", "rear_seat_rise", "tank_volume_l", "tank_l", "tank_w", "tank_h", "tube_keel_d", "tube_mast_d",
+	"engine_exhaust_d", "engine_exhaust_l", "muffler_d", "muffler_l", "rear_seat_rise", "tank_volume_l", "tank_l", "tank_w", "tank_h", "tube_keel_d", "tube_mast_d",
 	"tube_strut_d", "tube_frame_d", "prop_rpm_idle", "prop_rpm_max", "prop_spin_period_s"
 ]
 const SEAT_REAR_KEYS := [
@@ -85,6 +85,11 @@ func test_trike_params_v2() -> void:
 	check(float(dims.get("prop_chord_max", {}).get("value", 1.0)) < 0.25 * float(dims.get("prop_d", {}).get("value", 0.0)), "лопасть узкая: хорда < 0.25 диаметра")
 	check(["inline", "boxer"].has(String(dims.get("engine_cyl_layout", {}).get("value", ""))), "engine_cyl_layout: inline | boxer")
 	check(int(dims.get("engine_cyl_count", {}).get("value", 0)) >= 1, "engine_cyl_count >= 1")
+	for k in ["tube_keel_d", "tube_mast_d", "tube_strut_d"]:
+		check(absf(float(dims.get(k, {}).get("value", 0.0)) - 0.06) < 1e-6, "v3: dims.%s = 0.06 (решение Q1)" % k)
+	for k in ["engine_exhaust_d", "engine_exhaust_l", "muffler_d", "muffler_l"]:
+		var ev := float(dims.get(k, {}).get("value", 0.0))
+		check(ev > 0.05 and ev < 1.0, "v3: dims.%s в пределах 5-100 см: %s" % [k, ev])
 	for k in ["tube_keel_d", "tube_mast_d", "tube_strut_d", "tube_frame_d"]:
 		var d := float(dims.get(k, {}).get("value", 0.0))
 		check(d >= 0.02 and d <= 0.1, "dims.%s в разумных пределах (2-10 см): %s" % [k, d])
@@ -119,3 +124,10 @@ func test_trike_params_v2() -> void:
 		for i in 3:
 			check(absf(float(tank.filler[i]) - float(tank.center[i])) <= float(sz[i]) * 0.5 + 0.01, "горловина в пределах габарита, ось %d" % i)
 		check(float(tank.center[2]) + float(sz[2]) * 0.5 <= float(rear.seat_pan[2]) + 0.001, "бак под задней подушкой")
+		# v3: бак над килем. Ось киля KZ = −2.12 (tools/blender/build_trike.py), верх киля = KZ + tube_keel_d/2.
+		check(tank.has("keel_clear") and float(tank.get("keel_clear", 0.0)) >= 0.03, "v3: tank.keel_clear >= 0.03")
+		var keel_top := -2.12 + float(dims.get("tube_keel_d", {}).get("value", 0.0)) * 0.5
+		var bottom := float(tank.center[2]) - float(sz[2]) * 0.5
+		check(absf(bottom - keel_top - float(tank.get("keel_clear", 0.0))) <= 0.002, "v3: низ бака = верх киля + keel_clear: %.4f" % (bottom - keel_top))
+		check(float(rear.seat_pan[2]) - (float(tank.center[2]) + float(sz[2]) * 0.5) >= 0.02 - 1e-6, "v3: зазор бак-подушка >= 2 см")
+		check(absf(float(tank.filler[2]) - (float(tank.center[2]) + float(sz[2]) * 0.5)) <= 0.01, "v3: горловина сверху бака")

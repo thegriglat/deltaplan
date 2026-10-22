@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "prototype": {
     "name": "Airborne Edge XT 912 / Streak 3 (габариты, винт) + Air Creation Tanarg (шины, винт)",
     "seats": 2,
@@ -15,7 +15,11 @@
       "https://www.dulv.de/kennblatt/Trike/56104-23.pdf",
       "https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg",
       "https://www.rotax-owner.com/pdf/IM_582ULSeries_Ed1_R0.pdf",
-      "https://en.wikipedia.org/wiki/Rotax_582"
+      "https://en.wikipedia.org/wiki/Rotax_582",
+      "https://www.aircraftspruce.com/cps/pdf/d00287.pdf",
+      "https://en.wikipedia.org/wiki/Cosmos_Phase_II",
+      "https://en.wikipedia.org/wiki/Aeros-2",
+      "https://en.wikipedia.org/wiki/Air_Creation_Skypper"
     ]
   },
   "dims": {
@@ -140,40 +144,52 @@
       "src": "https://www.dulv.de/kennblatt/Trike/10591-871.pdf (582 UL-DCDI, Rotax C, 3.47:1); типы и передаточные числа B/C/E: https://motive.aero/engine-details/rotax-582ul/317"
     },
     "engine_exhaust_d": {
-      "value": 0.1,
-      "src": "вывод: оценка: резонансная труба/глушитель 582 ≈ 0.10 м (масса выхлопа 5.1 кг по https://motive.aero/engine-details/rotax-582ul/317; диаметр в источниках не найден); по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg труба крупная, горизонтально под двигателем"
+      "value": 0.15,
+      "src": "вывод: оценка по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg (масштаб по переднему колесу 14\" = 0.356 м): резонансная труба — наибольший диаметр расширительной камеры ≈ 0.15 м, крупная, над и позади двигателя; размеры в открытых документах Rotax не найдены (только длина трубы по оси: https://www.aircraftspruce.com/cps/pdf/d00287.pdf, разд. 10)"
+    },
+    "engine_exhaust_l": {
+      "value": 0.66,
+      "src": "https://www.aircraftspruce.com/cps/pdf/d00287.pdf (Rotax Installation Manual 447/503/582, разд. 10: средняя длина трубы между фланцем и глушителем 660 мм (26\") для 582 40 кВт; вывод: принята и для 582 UL DCDI 47 кВт, длина по оси с изгибом); на фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg труба сопоставима"
+    },
+    "muffler_d": {
+      "value": 0.12,
+      "src": "вывод: оценка по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg (масштаб по переднему колесу 0.356 м): задний глушитель (after-muffler, масса 1.6 кг по https://www.aircraftspruce.com/cps/pdf/d00287.pdf, разд. 7.2) — цилиндр ≈ 0.12 м; размеры в документах Rotax не найдены, ±25%"
+    },
+    "muffler_l": {
+      "value": 0.3,
+      "src": "вывод: оценка по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg (масштаб по переднему колесу 0.356 м): длина глушителя ≈ 0.30 м (≈ 80 пикс при 280 пикс/м), ±25%; масса 1.6 кг — https://www.aircraftspruce.com/cps/pdf/d00287.pdf"
     },
     "rear_seat_rise": {
       "value": 0.2,
       "src": "вывод: по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg: подушка заднего заметно выше переднего; по пикселям (масштаб по переднему колесу 14\" = 0.356 м) ≈ 0.15-0.25 м; взято 0.20 (оценка ±0.07); образец bizorg_trike_1.jpeg — тандем, задний выше"
     },
     "tank_volume_l": {
-      "value": 70,
-      "src": "https://www.airborne.com.au/pages/ml_xt912_specs.php (Tank capacity 70 л); Aeros-2 53 л — https://en.wikipedia.org/wiki/Aeros-2"
+      "value": 53,
+      "src": "https://en.wikipedia.org/wiki/Cosmos_Phase_II (53 л, версия с Rotax 582); https://en.wikipedia.org/wiki/Aeros-2 (53 л); https://en.wikipedia.org/wiki/Air_Creation_Skypper (582: 55 л); у одноместных/PPG меньше (38 л, ResearchGate Rotax 582 PPG trike); принято 53 л (v2: 70 л — Airborne XT912, больше типичного для 582)"
     },
     "tank_l": {
-      "value": 0.45,
-      "src": "вывод: подбор габарита под 70 л с закруглёнными рёбрами (форма канистры-«кирпича» по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg): 0.32×0.45×0.46 = 66 л в габарите"
+      "value": 0.43,
+      "src": "вывод: подбор габарита под 53 л: 0.34×0.43×0.355 = 51.9 л (−2%) с закруглёнными рёбрами; высота ограничена зазором под задней подушкой (см. v2_sources.md, v3); форма — канистра по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg"
     },
     "tank_w": {
-      "value": 0.32,
-      "src": "вывод: см. tank_l (подбор под 70 л); высота ≥ 0.6 ширины"
+      "value": 0.34,
+      "src": "вывод: см. tank_l; высота 0.355 ≥ 0.6 ширины (0.204)"
     },
     "tank_h": {
-      "value": 0.46,
-      "src": "вывод: см. tank_l; под задней подушкой: верх бака −0.10 м от подушки"
+      "value": 0.355,
+      "src": "вывод: см. tank_l; низ бака = верх киля (−2.12+0.03) + keel_clear 0.03 = −2.06; верх на 0.024 ниже задней подушки (≥ 0.02)"
     },
     "tube_keel_d": {
-      "value": 0.05,
-      "src": "вывод: по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg, масштаб по переднему колесу 14\" (0.356 м) ≈ 280 пикс/м, труба ≈ 13 пикс → ≈ 0.05 м; типичные трубы трайков 40-60 мм (оценка ±30%)"
+      "value": 0.06,
+      "src": "решение пользователя 2026-10-22 (Q1): трубы рамы 60 мм (v2 было по фото 0.045-0.05)"
     },
     "tube_mast_d": {
-      "value": 0.05,
-      "src": "вывод: по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg, масштаб по переднему колесу (0.356 м), мачта ≈ 14 пикс → ≈ 0.05 м (±30%)"
+      "value": 0.06,
+      "src": "решение пользователя 2026-10-22 (Q1): трубы рамы 60 мм (v2 было по фото 0.045-0.05)"
     },
     "tube_strut_d": {
-      "value": 0.045,
-      "src": "вывод: по фото https://motodeltaplan.narod.ru/images/podveska/fregat_big.jpg, масштаб по переднему колесу (0.356 м), передний подкос ≈ 12-13 пикс → ≈ 0.045 м (±30%)"
+      "value": 0.06,
+      "src": "решение пользователя 2026-10-22 (Q1): трубы рамы 60 мм (v2 было по фото 0.045-0.05)"
     },
     "tube_frame_d": {
       "value": 0.04,
@@ -297,17 +313,18 @@
     "center": [
       0.0,
       -0.15,
-      -2.086
+      -1.8825
     ],
     "size": [
-      0.32,
-      0.45,
-      0.46
+      0.34,
+      0.43,
+      0.355
     ],
+    "keel_clear": 0.03,
     "filler": [
-      0.16,
+      0.05,
       -0.2,
-      -1.896
+      -1.705
     ]
   }
 }
