@@ -102,3 +102,4 @@
 {"t": "2026-10-23T03:49:57", "by": "coordinator", "task": "CR-9", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-23T03:49:58", "by": "coordinator", "task": "CR-9", "ev": "accepted", "commits": ["f6e63701"], "note": "3/3 manifest_win=ok:ok; manifest_linux=ok:ok; bash=ok:exit 0"}
 {"t": "2026-10-23T03:49:58", "by": "coordinator", "task": "CR-9", "ev": "merged"}
+{"t": "2026-10-23T03:55:05", "by": "executor", "task": "CR-8", "ev": "reported", "commits": ["f1c9bfdd"], "note": "partial: RenderDriver, окно GpuFailureDialog (3 варианта по CR-К3 v2), выбор драйвера в настройках, строка «Ветер упрощён» в ста…", "dp_feedback": "git checkout -- project.godot стёр мою же правку — стоило бы предупреждение, когда project.godot в scope задачи."}
