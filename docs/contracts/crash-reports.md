@@ -28,3 +28,24 @@ contracts: []
 
 ### Контрактный тест
 Проверки карточек CR-1…CR-3: наличие всех разделов (`grep -c`), отсутствие координат и `pt_` (`grep -E`), `.dpcli/dpcli docs check`.
+
+## CR-К2 GpuHealth — признак отказа видеокарты (версия 1)
+Владелец — CR-5; потребители — CR-6 (AirRuntime), CR-8 (сообщение игроку). Основание — решение пользователя 2026-10-23: при потере видеокарты не отключать расчёт молча, а сообщить игроку.
+
+Файл `scripts/core/gpu_health.gd` (+ `.uid`), `class_name GpuHealth`, только статические члены, без автозагрузки:
+- `static func report_failure(source: String, detail: String) -> void` — первый вызов: запоминает `source` (напр. `"AirGpu.buffer"`), `detail` (текст ошибки/размер), время `Time.get_ticks_msec()`; одна строка `printerr("GPU: отказ ресурса: <source>: <detail>")`; последующие — только счётчик (в лог не пишут).
+- `static func is_failed() -> bool`, `static func source() -> String`, `static func detail() -> String`, `static func count() -> int`.
+- `static func reset() -> void` — только для тестов.
+- Инвариант: сам ничего не отключает и UI не показывает; потоко-безопасен для вызова из потока задачи (запись — под `Mutex`).
+- Когда вызывать: пустой RID из `RenderingDevice` (буфер, текстура, набор uniform, конвейер, шейдер) или отказ `sync`/`submit` в коде расчёта ветра; не вызывать на штатном отсутствии GPU (headless, `RenderingServer.get_rendering_device() == null`) — это не отказ.
+
+Контрактный тест — `tests/atmosphere/test_air_gpu_invalid.gd` (CR-5): буфер заведомо невозможного размера → `GpuHealth.is_failed()`, `count() >= 1`, одна строка в логе.
+
+## CR-К3 Выбор драйвера рендера (версия 1)
+Владелец — CR-8; потребитель — CR-9 (манифест itch), CR-7 (отчёт показывает драйвер). Основание — решение пользователя 2026-10-23.
+
+- Хранение: `game.json` → `display.rendering_driver`: `"auto"` (по умолчанию, ничего не задаёт) | `"vulkan"` | `"d3d12"` | `"metal"`. Применение до старта движка — файл переопределения настроек проекта в `user://` (механизм Godot `application/config/project_settings_override`), строка `rendering/rendering_device/driver.<os>=…`; для `"auto"` файл удаляется. Если механизм не работает в 4.7.2 — исполнитель CR-8 сообщает `contract:` с замером, не обходит молча.
+- Приоритет: `--rendering-driver` в командной строке перекрывает сохранённый выбор (поведение Godot); действия itch с явным драйвером — разовые.
+- Альтернатива для предложения: Windows `vulkan` ↔ `d3d12`; macOS `metal` ↔ `vulkan`; Linux — альтернативы нет (сообщение без переключения).
+- Перезапуск: `OS.set_restart_on_exit(true, <аргументы запуска без --rendering-driver>)` + выход из дерева.
+- Текущий драйвер — `RenderingServer.get_current_rendering_driver_name()`.
