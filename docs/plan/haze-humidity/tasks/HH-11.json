@@ -17,15 +17,16 @@
     "tests/world/",
     "tools/shots/sun_halo_measure.py",
     "tools/shots/haze_humidity_shots.sh",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "scripts/world/sky_environment.gd",
+    "tools/shots/sun_color_measure.py"
   ],
   "dont_touch": [
     "scripts/atmosphere/",
     "configs/weather_model.json",
     "data/",
     "docs/contracts/",
-    "project.godot",
-    "scripts/world/sky_environment.gd"
+    "project.godot"
   ],
   "accept": [
     {
@@ -41,16 +42,6 @@
       "tests": "haze_humidity"
     },
     {
-      "name": "halo_px",
-      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
-      "expect": "num:halo_px=(\\d+) >=18"
-    },
-    {
-      "name": "halo_px_max",
-      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
-      "expect": "num:halo_px=(\\d+) <=32"
-    },
-    {
       "name": "disk",
       "cmd": "python3 -c \"import json;r=json.load(open('configs/world.json'))\" && /usr/bin/grep -q '\"radius_deg\": 0.3' configs/world.json",
       "expect": "exit=0"
@@ -59,10 +50,30 @@
       "name": "frames",
       "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity/before_halo_*.jpg /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_*.jpg | wc -l",
       "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "halo_ratio",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "num:ratio=([\\d.]+) >=2.8"
+    },
+    {
+      "name": "halo_ratio_max",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "num:ratio=([\\d.]+) <=4.0"
+    },
+    {
+      "name": "frame_size",
+      "cmd": "python3 -c \"from PIL import Image;print(Image.open('/home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg').size)\"",
+      "expect": "re:\\(1920, 1080\\)"
+    },
+    {
+      "name": "disk_color",
+      "cmd": "python3 tools/shots/sun_color_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "re:within=1"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T20:26:25",
-  "edited": "2026-10-22T20:58:25"
+  "edited": "2026-10-22T21:41:06"
 }
