@@ -154,3 +154,4 @@
 {"t": "2026-10-23T04:27:05", "by": "executor", "task": "CR-10", "ev": "reported", "commits": ["7fcd0b2c"], "note": "done: Группа D (#17 Vulkan, #18 D3D12, RX 5600 XT, 1.5.21): хвост #17 не потерян (flush_stdout_on_print), обрыв сразу после с…", "dp_feedback": "inbox CR-10 показывает дополнения обрезанными, полный текст только через task show --full; хорошо бы inbox --full по умолчанию для ID."}
 {"t": "2026-10-23T04:27:18", "by": "coordinator", "task": "CR-10", "ev": "checked", "note": "3/3 sections=ok:6; privacy=ok:exit 0; docs=ok:exit 1"}
 {"t": "2026-10-23T04:27:28", "by": "coordinator", "task": "CR-10", "ev": "accepted", "note": "по отчёту; причина — гипотеза (Godot #122671, RDNA1)"}
+{"t": "2026-10-23T04:27:29", "by": "coordinator", "task": "CR-10", "ev": "merged"}
