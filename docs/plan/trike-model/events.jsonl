@@ -178,3 +178,4 @@
 {"t": "2026-10-22T14:48:43", "by": "coordinator", "task": "TK-10", "ev": "merged"}
 {"t": "2026-10-22T14:48:43", "by": "coordinator", "task": "TK-11", "ev": "note", "note": "TK-10 влита (данные v3): бак 53 л 0.34×0.43×0.355 над килем (keel_clear 0.03, до задней подушки 2,4 см), горловина filler — на верху бака: сделать вертикальную горловину с крышкой (сейчас build_trike.py тянет её вбок по x); резонансная труба 0.15×0.66 м, глушитель 0.12×0.30 м. Начинать с v3; v4 (педали, панель) — после влития TK-14: координатор сообщит, тогда task sync TK-11.", "addendum": true}
 {"t": "2026-10-22T14:48:43", "by": "coordinator", "task": "TK-14", "ev": "note", "note": "TK-10 влита в feature/trike-model — закоммитить своё, .dpcli/dpcli task sync TK-14, конфликты взять обе стороны (version = 4), accept --dry.", "addendum": true}
+{"t": "2026-10-22T14:48:46", "by": "coordinator", "task": "TK-11", "ev": "started"}
