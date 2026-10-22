@@ -403,3 +403,4 @@
 {"t": "2026-10-23T02:38:42", "by": "coordinator", "task": "HH-16", "ev": "accepted", "note": "закрыта без правки рендера (решение пользователя: только если несложно); слиты замер cloud_artifacts_measure.py и режим cloudart; причина дырок — TODO"}
 {"t": "2026-10-23T02:40:37", "by": "coordinator", "task": "HH-16", "ev": "checked", "commits": ["b686f253"], "note": "2/3 cloud=FAIL:60/61 (пропуск 3); FAIL test_…; haze_humidity=ok:25/25 (пропуск 1); tools=ok:exit 0"}
 {"t": "2026-10-23T02:40:38", "by": "coordinator", "task": "HH-16", "ev": "merged", "commits": ["b686f253"]}
+{"t": "2026-10-23T02:45:12", "by": "coordinator", "task": "HH-16", "ev": "accepted", "commits": ["b686f253"], "note": "3/3 cloud=ok:61/61 (пропуск 3); haze_humidity=ok:25/25 (пропуск 1); tools=ok:exit 0"}
