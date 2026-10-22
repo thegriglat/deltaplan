@@ -368,3 +368,5 @@
 {"t": "2026-10-23T00:36:45", "by": "coordinator", "task": "HH-14", "ev": "note", "note": "checked 7/7 (2° сбоку G/R 0,68, B/R 0,50; день без изменений); ревью; вопрос о яркости рельефа/неба на закате — шлюз Q5"}
 {"t": "2026-10-23T00:38:07", "by": "reviewer", "task": "HH-14", "ev": "reviewed", "note": "F1 сделан в скоупе, контракты HH3/HH4 не тронуты, днём ambient/дымка облаков без изменений (k=1, tint белый при ≥35°, тест это проверяет), fog_light_color сред…", "verdict": "accept", "issues": {"major": 2, "minor": 3}, "review": "docs/plan/haze-humidity/tasks/HH-14.review.json"}
 {"t": "2026-10-23T00:38:30", "by": "coordinator", "task": "HH-14", "ev": "accepted", "note": "по ревью (accept, 2 major → HH-15 после Q5)"}
+{"t": "2026-10-23T00:40:03", "by": "coordinator", "task": "HH-14", "ev": "accepted", "commits": ["d2f5954c"], "note": "7/7 cloud=ok:61/61 (пропуск 3); haze_humidity=ok:25/25 (пропуск 1); sun=ok:21/21; warm_2deg=ok:0.676; warm_2deg_b=ok:0.497; day_white=ok:1.168; frames=ok:20"}
+{"t": "2026-10-23T00:40:03", "by": "coordinator", "task": "HH-14", "ev": "merged", "commits": ["d2f5954c"]}
