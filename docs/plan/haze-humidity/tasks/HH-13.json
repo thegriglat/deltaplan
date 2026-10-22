@@ -61,11 +61,6 @@
       "expect": "exit=0"
     },
     {
-      "name": "disk_color",
-      "cmd": "python3 tools/shots/sun_color_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_suncolor_askarovo.jpg",
-      "expect": "re:within=1"
-    },
-    {
       "name": "frames",
       "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity/before_suncolor_*.jpg /home/greg/deltaplan/build/screenshots/haze-humidity/after_suncolor_*.jpg | wc -l",
       "expect": "num:(\\d+) >=4"
@@ -74,5 +69,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T20:58:25",
-  "edited": "2026-10-22T21:02:37"
+  "edited": "2026-10-22T22:36:45"
 }

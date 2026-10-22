@@ -19,7 +19,10 @@
     "tools/shots/haze_humidity_shots.sh",
     "CHANGELOG.md",
     "scripts/world/sky_environment.gd",
-    "tools/shots/sun_color_measure.py"
+    "tools/shots/sun_color_measure.py",
+    "scripts/game/game.gd",
+    "scripts/world/sun_clock.gd",
+    "tests/world/"
   ],
   "dont_touch": [
     "scripts/atmosphere/",
@@ -85,5 +88,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T20:26:25",
-  "edited": "2026-10-22T21:42:14"
+  "edited": "2026-10-22T22:37:35"
 }
