@@ -1,0 +1,47 @@
+{
+  "id": "TW-6b",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Трос: правки minor ревью TW-6",
+  "goal": "Закрыть 3 minor ревью TW-6: тест инв. (9) без запаса ×1,25 и со скачком натяжения за подшаг; углы троса и lock-out от точки крепления (attach), а не pilot_pos; инв. (7) — скорость снижения конца троса против установившейся скорости парашюта.",
+  "plan_ref": "Волна 2 — физика троса и управление",
+  "contracts": [
+    {
+      "name": "TW-К5",
+      "version": "8",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-6b",
+  "branch": "tow/TW-6b",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/flight/tow/tow_line.gd",
+    "tests/contracts/test_tow_k5.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum",
+    "configs",
+    "scripts/game",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k5",
+      "tests": "tow_k5"
+    },
+    {
+      "name": "tow_k4",
+      "tests": "tow_k4"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T04:34:01"
+}

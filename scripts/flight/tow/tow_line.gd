@@ -59,6 +59,9 @@ static func create(kind_: String, anchor: Vector3, cfg_: Dictionary = {}) -> Tow
 		else:
 			base[k] = cfg_[k]
 	t.cfg_rope = base.get("rope", {})
+	if kind_ == "aerotow" and base.get("aerotow_rope") is Dictionary:  # трос аэробуксировки: свои ключи поверх rope
+		t.cfg_rope = t.cfg_rope.duplicate()
+		t.cfg_rope.merge(base.aerotow_rope, true)
 	t.cfg = base.get(kind_, {})
 	t.anchor_pos = anchor
 	t._ground_y = anchor.y
@@ -111,7 +114,7 @@ func _force(s: Dictionary) -> Dictionary:
 	if _gone:
 		return {}
 	var h: float = s.h
-	var d_vec: Vector3 = anchor_pos - (s.pilot_pos as Vector3)
+	var d_vec: Vector3 = anchor_pos - p
 	_update_angles(s, d_vec)
 	if not _len_init or not _started:
 		if kind == "winch_static":
@@ -141,7 +144,7 @@ func _force(s: Dictionary) -> Dictionary:
 	return {"link": {
 		"anchor": anchor_pos, "anchor_vel": anchor_vel, "length_m": maxf(length_m, 0.0),
 		"length_rate_ms": _rate, "compliance_m_per_n": maxf(length_m, 0.5) / ea,
-		"damping_s": tau, "at": at,
+		"damping_s": tau, "at": at, "pilot_share": float(cfg_rope.get("bridle_pilot_share", 0.0 if at == "hang" else 1.0)),
 	}}
 
 
@@ -182,6 +185,7 @@ func _regulate(s: Dictionary, t: float, ea: float, h: float) -> void:
 		target = t_ground * minf(_t_phase / ramp, 1.0)
 	else:
 		_climb_t += h
+		# переход T* от tension_ground к tension_climb за ramp_s (плавный, без ступени; К5 даёт только конечное значение)
 		target = lerpf(t_ground, t_climb, minf(_climb_t / ramp, 1.0))
 		var top_a := _c("top_angle_deg")
 		if rope_angle_deg >= top_a:

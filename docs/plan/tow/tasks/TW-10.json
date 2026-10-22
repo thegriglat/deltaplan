@@ -1,0 +1,109 @@
+{
+  "id": "TW-10",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Игра: старт со статической лебёдки (TowSession), отцеп, трос и модели, боты",
+  "goal": "Выбор «Лебёдка» (tow_kind=winch_static) в «Маятнике» на площадке с tow даёт старт на полосе: лебёдка в конце полосы, трос лежит, по W лебёдка тянет, пилот взлетает и набирает, клавиша/кнопка отцепа — свободный полёт, трос с парашютом падает и выбирается; боты на буксирных местах стартуют в воздухе на высоте отцепа. Подсказок нет.",
+  "plan_ref": "Волна 3 — игра и модели",
+  "contracts": [
+    {
+      "name": "TW-К5",
+      "version": "8",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К6",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К7",
+      "version": "2",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К8",
+      "version": "3",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-10",
+  "branch": "tow/TW-10",
+  "base": "feature/tow",
+  "scope": [
+    "scripts/game/tow_session.gd",
+    "scripts/game/tow_session.gd.uid",
+    "scripts/game/tow_rope_view.gd",
+    "scripts/game/tow_rope_view.gd.uid",
+    "scripts/game/game.gd",
+    "scripts/game/input_controller.gd",
+    "configs/controls.json",
+    "scripts/game/bot_pilots.gd",
+    "locale/ui.csv",
+    "tests/game/test_tow_session.gd",
+    "tests/game/test_tow_session.gd.uid",
+    "configs/ui.json"
+  ],
+  "dont_touch": [
+    "scripts/flight",
+    "configs/tow.json",
+    "configs/tow_tug.json",
+    "configs/tow_dolly.json",
+    "scripts/game/tow_tug.gd",
+    "scripts/world_objects",
+    "docs/contracts",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_tow_session",
+      "tests": "test_tow_session"
+    },
+    {
+      "name": "tow_k5",
+      "tests": "tow_k5"
+    },
+    {
+      "name": "tow_k6",
+      "tests": "tow_k6"
+    },
+    {
+      "name": "tow_k7",
+      "tests": "tow_k7"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;json.load(open('configs/controls.json'))\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
+    },
+    {
+      "name": "test_input_launch",
+      "tests": "test_input_launch"
+    },
+    {
+      "name": "test_start_clearing",
+      "tests": "test_start_clearing"
+    },
+    {
+      "name": "test_start_fixes",
+      "tests": "test_start_fixes"
+    },
+    {
+      "name": "test_bots",
+      "tests": "test_bots"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T04:33:19",
+  "edited": "2026-10-22T05:42:39"
+}

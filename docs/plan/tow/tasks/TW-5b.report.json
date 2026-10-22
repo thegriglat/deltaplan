@@ -1,0 +1,87 @@
+{
+  "status": "done",
+  "summary": "Уздечка pilot_share: два параллельных односторонних звена XPBD (пилот α/s, киль у подвески α/(1-s)) решаются вместе со связями цепи (PendulumPilotChain.project_bridle, накопление λ, 8 проходов). TowLine передаёт bridle_pilot_share (лебёдка 1,0; блок aerotow_rope 0,5).",
+  "commits": [
+    "75cdaf5f уздечка pilot_share"
+  ],
+  "checks": [
+    {
+      "name": "tow_k4",
+      "value": "17/17",
+      "pass": true
+    },
+    {
+      "name": "tow_k5",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "tow_k10",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "tests/flight/",
+      "value": "226/226 (пропуск 6)",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "6/6 PASS",
+      "pass": true
+    },
+    {
+      "name": "инв. (11) 50/50, 14 и 16 м/с",
+      "value": "T 213/244 Н, откл 1,2/0,6 Н, пик +0,3 %, v=v_буксировщика",
+      "pass": true
+    },
+    {
+      "name": "сходимость проходов 4/8/16/32",
+      "value": "T средн 213,0/213,2/213,3/213,2",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Рывки at=hang (pilot_share 0) в сценарии ревью НЕ исчезли: решатель сходится (8 и 32 прохода идентичны, шаг 1/120…1/960 не меняет картину), это физика качания пилота; тест требует только конечность."
+  ],
+  "questions": [
+    "Принять ли, что pilot_share < 0,5 вне BHPA (>=50 % пилоту) и не требовать для него гладкости? При 0,25 рывки умеренные (T 110–380 Н), при 0 — слабина/удары до 1,4 кН."
+  ],
+  "how_to_check": ".dpcli/dpcli accept TW-5b",
+  "uncertain": [
+    {
+      "where": "scripts/flight/pendulum/pilot_chain.gd:project_bridle",
+      "why": "Физическая причина неустойчивости 100 % на подвеске не доказана до конца (подозрение: нет демпфирования качания пилота при отсутствии тяги на нём)",
+      "checked": "сходимость по проходам и по шагу; 50/50 и 100/0 гладки; регулятор скорости 0/0,1 на м/с не меняет"
+    },
+    {
+      "where": "tests/contracts/test_tow_k4.gd:_bridle_tow",
+      "why": "Установившаяся буксировка требует набора: якорь идёт под 6° вверх (T≈W(sinγ+cosγ/E)); на горизонтальном якоре крыло медленно тонет и T дрейфует. Свой П-регулятор (0,2/град + 0,1 на м/с), SpeedHold TW-17 не подключён (не влит в копию)",
+      "checked": "T 213–244 Н = 21–24 даН как в kinds.md"
+    },
+    {
+      "where": "scripts/flight/pendulum/pendulum_model.gd:_dolly_substep",
+      "why": "Тележка игнорирует pilot_share (плечо только на пилота)",
+      "checked": "не менял поведение"
+    },
+    {
+      "where": "configs/tow.json:aerotow_rope",
+      "why": "Киль-плечо в точке подвески, а не на 5–20 см впереди (BHPA); EA 3e4 — оценка",
+      "checked": "числа из kinds.md"
+    }
+  ],
+  "dp_feedback": "task sync отказывает при грязной копии — надо коммитить до sync; поиск по тестам --filter сопоставляется по имени файла, не по тесту.",
+  "extra": {},
+  "t": "2026-10-22T05:16:12",
+  "by": "executor"
+}
