@@ -181,6 +181,8 @@ static func mark_offered(key: String, path: String = OFFER_PATH) -> void:
 ## Метка запуска: есть, пока игра идёт; при нормальном выходе удаляется. Нашли метку — прошлый
 ## сеанс оборвался. Стадию берём из метки CrashReporter (user://session.lock, есть в экспортной
 ## сборке с окном — токен не нужен), хвост лога — CrashReport.read_previous_log().
+## Стадию обрыва берём из последней строки «[stage] <имя> …» журнала прошлого сеанса
+## (CrashReporter.note_stage пишет её со сбросом на диск), а не из метки: так она точная.
 const SESSION_PATH := "user://gpu_session.json"
 
 
@@ -193,21 +195,23 @@ static func previous_crash(
 	_write_session({"pid": pid, "started": Time.get_datetime_string_from_system(false, true), "stage": ""}, path)
 	if old.is_empty() or int(old.get("pid", 0)) == pid or _alive(int(old.get("pid", 0))):
 		return {}
-	var stage := String(old.get("stage", ""))
+	var stage := last_logged_stage(log_text)
 	return {
 		"body":
 		"- стадия: %s\n- запуск: %s\n````\n%s\n````\n"
-		% [stage if stage != "" else MENU_STAGE, String(old.get("started", "")), log_text]
+		% [stage, String(old.get("started", "")), log_text]
 	}
 
 
-## Обновить стадию в метке (по метке CrashReporter); пишет только при смене.
-static func note_session_stage(stage: String, path: String = SESSION_PATH) -> void:
-	var cur := UserSettings.read_json(path)
-	if cur.is_empty() or String(cur.get("stage", "")) == stage:
-		return
-	cur["stage"] = stage
-	_write_session(cur, path)
+## Последняя стадия по строкам «[stage] <имя> t=…» журнала; нет строк — обрыв до загрузки ("меню").
+## «[stage] menu» (стадия сброшена после полёта) — тоже «меню».
+static func last_logged_stage(log_text: String) -> String:
+	var stage := MENU_STAGE
+	for line in log_text.split("\n"):
+		if line.begins_with("[stage] "):
+			var name := line.trim_prefix("[stage] ").get_slice(" ", 0)
+			stage = MENU_STAGE if name in ["", "menu"] else name
+	return stage
 
 
 ## Штатный выход: метку убрать.
@@ -231,6 +235,9 @@ static func _alive(pid: int) -> bool:
 			return OS.is_process_running(pid)
 		"Linux":
 			return DirAccess.dir_exists_absolute("/proc/%d" % pid)
+		"macOS":
+			# OS.is_process_running на unix видит только дочерние процессы; kill -0 — любой свой
+			return OS.execute("kill", ["-0", str(pid)]) == 0
 	return false
 
 

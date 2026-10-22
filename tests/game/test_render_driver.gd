@@ -170,10 +170,17 @@ func test_gpu_health_in_session_triggers_dialog() -> void:
 func test_session_marker_detects_crash_without_token() -> void:
 	var path := _tmp().path_join("gpu_session.json")
 	check(RenderDriver.previous_crash(path, "", 2000000001).is_empty(), "первого запуска обрыва нет")
-	RenderDriver.note_session_stage("wind", path)
-	var prev := RenderDriver.previous_crash(path, "ERROR: error 0x887a0005.", 2000000002)
+	var log_text := "[stage] dem t=1\n[stage] wind t=9 mem=1\nERROR: some noise\n"
+	var prev := RenderDriver.previous_crash(path, log_text, 2000000002)
 	check(not prev.is_empty() and RenderDriver.pending_is_wind(prev), "метка осталась — обрыв на wind: %s" % prev)
 	check(RenderDriver.should_offer_after_crash(prev, ""), "окно предлагается без токена")
 	RenderDriver.clear_session(path)
 	check(RenderDriver.previous_crash(path, "", 2000000003).is_empty(), "метки нет (штатный выход) — не обрыв")
 	RenderDriver.clear_session(path)
+
+
+func test_last_logged_stage() -> void:
+	check(RenderDriver.last_logged_stage("[stage] dem t=1\n[stage] wind t=9 mem=1\n") == "wind", "последняя")
+	check(RenderDriver.last_logged_stage("[stage] wind t=9\n[stage] menu t=99\n") == "меню", "menu → меню")
+	check(RenderDriver.last_logged_stage("ERROR: x\n") == "меню", "нет строк — меню")
+	check(RenderDriver.last_logged_stage("[stage] wind t=9\nERROR: [stage] x\n") == "wind", "только начало строки")

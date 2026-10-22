@@ -150,8 +150,8 @@ func _ready() -> void:
 ## сразу; отказ GPU в этом сеансе — по опросу. Окно одно за запуск; на тот же обрыв — один раз.
 ## Пилотских запусков нет (headless, служебные аргументы) — не показываем.
 ## Обрыв прошлого сеанса известен по ожидающему отчёту CrashReport (токен) или по своей метке
-## сеанса RenderDriver.SESSION_PATH (токен не нужен; стадия — из user://session.lock CrashReporter,
-## есть в экспортной сборке с окном, иначе стадия «меню»). Оба читаются в _enter_tree, раньше
+## сеанса RenderDriver.SESSION_PATH (токен не нужен; стадия — последняя строка «[stage]» журнала
+## прошлого сеанса, её пишет CrashReporter в экспортной сборке с окном, иначе стадия «меню»). Оба читаются в _enter_tree, раньше
 ## любой отправки отчёта, поэтому отправка признак не стирает.
 func _setup_gpu_failure_watch() -> void:
 	if DisplayServer.get_name() == "headless" or opts.autostart or opts.smoke or opts.perf_s > 0.0:
@@ -168,7 +168,6 @@ func _setup_gpu_failure_watch() -> void:
 
 
 func _poll_gpu_failure() -> void:
-	RenderDriver.note_session_stage(String(CrashReport.read_json(CrashReport.LOCK_PATH).get("stage", "")))
 	if _gpu_failed():
 		_show_gpu_failure()
 
