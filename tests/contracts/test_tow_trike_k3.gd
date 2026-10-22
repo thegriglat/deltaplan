@@ -32,6 +32,17 @@ func _wheel_model() -> PendulumModel:
 	return m
 
 
+## Тележка TT-К1 из configs/tow_tug.json на крыле trike_ixess15 (числа буксировщика, не тестовые).
+func _tug_model() -> PendulumModel:
+	var cfg: Dictionary = Config.get_config("tow_tug")
+	var cart: Dictionary = cfg.cart
+	var g: Dictionary = cfg.ground
+	var a := {"hang_length_m": float(cart.cg_below_hang_m), "arms_force_max_n": float(cart.arms_force_max_n), "pilot_cda_m2": float(cart.cda_m2)}
+	var m := Sim.make(String(cfg.wing), float(cart.mass_kg), a)
+	m.reset_on_wheels(Vector3.ZERO, 0.0, {"keel_angle_deg": float(g.keel_angle_deg), "rotate_deg": float(g.rotate_deg), "rolling_crr": float(g.rolling_crr), "wheel_base_agl_m": float(g.wheel_base_agl_m)})
+	return m
+
+
 ## (1) Без новых ключей: явные значения по умолчанию дают то же, что их отсутствие, а число — прежнее
 ## (сняты до правки: тот же сценарий на коммите feature/tow-trike).
 func test_defaults_unchanged() -> void:
@@ -156,8 +167,8 @@ func _v_lift_model() -> float:
 	return hi
 
 
-func _pull_fn() -> Callable:
-	return func(_s: Dictionary) -> Dictionary: return {"pilot": Vector3(0.0, 0.0, -PULL_N)}
+func _pull_fn(pull_n: float = PULL_N) -> Callable:
+	return func(_s: Dictionary) -> Dictionary: return {"pilot": Vector3(0.0, 0.0, -pull_n)}
 
 
 ## (5а) pitch 0 на всём разбеге, без break до отрыва: пока N > 0, подъёмная сила модели при киле меньше веса;
@@ -190,12 +201,21 @@ func test_pitch0_run_to_lift() -> void:
 ## (5б, 5в) pitch +1 на ≥ 1,1·vs: отрыв за ≤ 5 с; 1 с после отрыва — скачок скорости обоих тел (тележки и ЦМ крыла)
 ## ≤ 0,15 м/с за шаг, тангаж и крен ≤ 1° за шаг; ложемента нет.
 func test_takeoff_continuity() -> void:
-	var m := _wheel_model()
+	_takeoff_continuity(_wheel_model(), PULL_N)
+
+
+## (5б) то же на trike_ixess15 с числами tow_tug.json (TT-10): тяга — 0,4 веса связки, как порядок тяги винта на разбеге.
+func test_takeoff_continuity_trike() -> void:
+	var m := _tug_model()
+	_takeoff_continuity(m, 0.4 * m.mass * Units.G)
+
+
+func _takeoff_continuity(m: PendulumModel, pull_n: float) -> void:
 	var vs := _vs(m)
 	var took := [false]
 	m.took_off.connect(func() -> void: took[0] = true)
-	m.set_external_force(_pull_fn())
-	var a_max := PULL_N / m.mass + 1.0
+	m.set_external_force(_pull_fn(pull_n))
+	var a_max := pull_n / m.mass + 1.0
 	var pitch := 0.0
 	var t_pitch := -1.0
 	var t_off := -1.0
