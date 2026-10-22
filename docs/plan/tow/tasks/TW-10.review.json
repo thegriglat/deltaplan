@@ -1,0 +1,41 @@
+{
+  "verdict": "rework",
+  "summary": "Поляна-полоса для точки карты/точного старта сделана, ветка синхронизирована с feature/tow, test_tow_session 7/7 перепрогнан. Отцеп остался на Space: вместо смены клавиши фокус GUI снимается каждый физ. шаг, это обход (координатор прямо назвал его не решением) и он ломает навигацию в окнах с фокусом. Shift на клавиатуре тоже стартует лебёдку, а пользователь решил, что до W ничего не происходит.",
+  "issues": [
+    {
+      "file": "scripts/game/game.gd",
+      "line": 1640,
+      "severity": "major",
+      "what": "_winch_step вызывает get_viewport().gui_get_focus_owner().release_focus() на каждом шаге физики, пока жив tow_session, то есть весь полёт и после посадки (tick идёт дальше). Окна, которые берут фокус для клавиатуры/геймпада (result_screen.gd:52-67 grab_focus.call_deferred, меню «Догнать» с ui_*), теряют его через кадр. Это обход замечания про Space, не решение",
+      "fix": "Убрать снятие фокуса. Отцеп перенести на свободную клавишу, которой нет в controls.json и во встроенных ui_* InputMap (Space/Enter — ui_accept)"
+    },
+    {
+      "file": "configs/controls.json",
+      "line": 91,
+      "severity": "major",
+      "what": "tow_release по-прежнему [\"Space\"], хотя Space — встроенный ui_accept Godot. Тест (5) (test_tow_session.gd:213) проверяет только keys controls.json, конфликт с ui_* не проверяет: прошлое minor-замечание не выполнено",
+      "fix": "Другая клавиша. В тест (5) добавить проверку, что её нет ни в одном действии InputMap с префиксом ui_ (InputMap.action_get_events)"
+    },
+    {
+      "file": "scripts/game/game.gd",
+      "line": 1634,
+      "severity": "major",
+      "what": "start = walk_forward or c.run or c.walk > 0. При c.run трос на клавиатуре стартует от Shift без W. Пользователь решил: до W трос лежит, ничего не происходит; Shift — разбег после того, как лебёдка натянула трос. Ревью просило старт с кнопки разбега геймпада, не с Shift",
+      "fix": "Брать c.run только для run_button геймпада (Input.is_joy_button_pressed / отдельный флаг из InputController) и для автопилота; на клавиатуре старт только по W. Тест: Shift без W, 10 с — натяжение 0"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "test_tow_session (accept --only --dry)",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "8 файлов в границах, merge-base = feature/tow (синхронизировано)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-22T05:58:16",
+  "by": "reviewer"
+}
