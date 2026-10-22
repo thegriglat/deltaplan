@@ -203,8 +203,8 @@ void fragment() {
 	vec3 pdir = normalize(vec3((uv.x * 2.0 - 1.0) * tan_half.x, (1.0 - uv.y * 2.0) * tan_half.y, -1.0));
 	float th = degrees(acos(clamp(dot(pdir, normalize(sun_view)), -1.0, 1.0)));
 	float I = glare * v_vis;
-	// сам пересвет у солнца не темнеет: сжатие зрачка гасит остальной кадр, а солнце слишком яркое (HH-11)
-	col *= 1.0 - darken * I * smoothstep(0.7, 3.5, th);
+	// сжатие зрачка гасит весь кадр (без исключений вокруг солнца: пересвет ниже и так добавляется поверх)
+	col *= 1.0 - darken * I;
 	float veil = I * (
 		veil_core / (1.0 + pow(th / max(veil_core_deg, 1e-3), 2.0))
 		+ veil_wide / (1.0 + pow(th / max(veil_wide_deg, 1e-3), 2.0))
@@ -234,14 +234,36 @@ void fragment() {
 		float du = dust_field(p * dust_density, px * dust_density);
 		veil += lit * (scratches * sc + dust * du);
 	}
-	// линейный свет: цвет солнца с R = 1 (отношения каналов — sun_tint), диск — в цвете солнца
+	// линейный свет: цвет солнца с R = 1 (отношения каналов — sun_tint)
 	vec3 tint = to_linear(sun_color);
 	tint /= max(max(tint.r, tint.g), max(tint.b, 1e-6));
 	vec3 lin = to_linear(col);
-	float disk_k = step(1.0e-6, glare) * v_vis_raw * (1.0 - smoothstep(0.8 * disk_deg, 1.6 * disk_deg, th));
-	lin = mix(lin, tint * max(max(lin.r, lin.g), lin.b), disk_k);
+	// диск не перекрашивается (HH-15): тонмаппинг сам делает HDR-диск светлее окружения по каждому каналу; раньше
+	// насыщенные пиксели центра красились в цвет солнца и становились темнее светлого ореола вокруг (по краю
+	// диска пиксели не насыщены и красились слабее — тёмный центр и резкий край)
 	lin += veil * tint;
 	lin /= max(1.0, max(max(lin.r, lin.g), lin.b));
+	// диск — источник света: в каждом канале не темнее окружения (HH-15). Окружение — то, что получится на 3, 5, 8, 16 и 40
+	// угловых радиусах диска (до 20 диаметров) (пиксель кадра + пересвет на этом угле), максимум по каналам; у края диска плавно сходит на нет
+	if (th < 2.0 * disk_deg && glare > 1.0e-6 && v_vis_raw > 0.0) {
+		vec3 ring = vec3(0.0);
+		for (int k = 0; k < 5; k++) {
+			float rr = (k == 0 ? 3.0 : (k == 1 ? 5.0 : (k == 2 ? 8.0 : (k == 3 ? 16.0 : 40.0)))) * disk_deg;
+			vec2 duv = vec2(tan(radians(rr)) / (2.0 * tan_half.x), tan(radians(rr)) / (2.0 * tan_half.y));
+			float vt = I * (
+				veil_core / (1.0 + pow(rr / max(veil_core_deg, 1e-3), 2.0))
+				+ veil_wide / (1.0 + pow(rr / max(veil_wide_deg, 1e-3), 2.0))
+				+ veil_flat
+			);
+			for (int j = 0; j < 4; j++) {
+				float a = float(j) * 1.5708 + 0.4;
+				vec3 t = to_linear(textureLod(screen_tex, sun_uv + duv * vec2(cos(a), sin(a)), 0.0).rgb) + vt * tint;
+				ring = max(ring, t / max(1.0, max(max(t.r, t.g), t.b)));
+			}
+		}
+		float wd = (1.0 - smoothstep(0.0, 2.0 * disk_deg, th)) * clamp(2.0 * v_vis_raw, 0.0, 1.0);
+		lin = max(lin, ring * wd);
+	}
 	col = to_srgb(lin);
 	// козырёк и края каски — ближе всего к глазу, поверх всего
 	col = mix(col, brim_color, brim_mask(uv));

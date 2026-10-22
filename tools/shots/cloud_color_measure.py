@@ -4,7 +4,7 @@
     tools/shots/cloud_color_measure.py <кадр.jpg> [--mask=<кадр без облаков.jpg>] [--lit=0.25]
 
 Маска облаков = |кадр - кадр без облаков| > 25 по любому каналу (sRGB 8 бит); без --mask берётся
-<кадр>.nocloud.jpg рядом (его пишет tools/shots/haze_humidity_shots.sh, режим clouds). Освещённые
+<папка>/_aux/<кадр>.nocloud.jpg (или рядом) (его пишет tools/shots/haze_humidity_shots.sh, режим clouds). Освещённые
 бока = доля --lit (25 %) самых ярких пикселей маски (по среднему линейному RGB). Печатает
 g_r=, b_r= (медиана попиксельных отношений линейного RGB к R), r_med= (медиана R, линейный),
 mask= (доля кадра), n= (число ярких пикселей). Нужны ImageMagick (convert) и numpy.
@@ -29,13 +29,20 @@ def lin(c):
     return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
 
 
+def aux_path(path, suffix):
+    """Служебный файл кадра: <папка>/_aux/<имя><suffix> (HH-15), иначе рядом с кадром."""
+    p = Path(path)
+    a = p.parent / "_aux" / (p.stem + suffix)
+    return a if a.exists() else p.with_suffix(suffix)
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     opts = dict(a[2:].split("=", 1) for a in sys.argv[1:] if a.startswith("--") and "=" in a)
     if not args:
         sys.exit(__doc__)
     path = Path(args[0])
-    mpath = Path(opts["mask"]) if opts.get("mask") else path.with_suffix(".nocloud.jpg")
+    mpath = Path(opts["mask"]) if opts.get("mask") else aux_path(path, ".nocloud.jpg")
     if not mpath.exists():
         sys.exit("нет кадра без облаков: %s (--mask=…)" % mpath)
     a, bg = load(path), load(mpath)

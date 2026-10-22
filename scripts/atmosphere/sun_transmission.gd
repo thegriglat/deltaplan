@@ -32,6 +32,8 @@ static func params(cfg: Dictionary = {}) -> Dictionary:
 		"earth_radius_m": float(c.get("earth_radius_m", 6371000.0)),
 		"top_m": float(c.get("top_m", 100000.0)),
 		"steps": int(c.get("steps", 32)),
+		"sky_el": (c.get("sky_k", {}) as Dictionary).get("elevation_deg", [0.0, 35.0]),
+		"sky_k": (c.get("sky_k", {}) as Dictionary).get("k", [1.0, 1.0]),
 	}
 
 
@@ -179,3 +181,54 @@ static func _seg(
 		var wgt := 1.0 if (i == 0 or i == n2) else (4.0 if (i & 1) == 1 else 2.0)
 		sum += wgt * f
 	return absf(len_s) * sum * du / 3.0
+
+
+## Яркость рассеянного света безоблачного неба относительно 35° (контракт HH4 v3): линейно по таблице
+## clouds.sun_transmission.sky_k (рассеянная освещённость DHI, tools/research/haze_humidity/sky_light/).
+## Ниже первого узла (0°) — его значение (сумерки не моделируются), выше последнего (35°) — 1.
+static func sky_k(el_deg: float, p: Dictionary = {}) -> float:
+	var q: Dictionary = p if not p.is_empty() else params()
+	var xs: Array = q.sky_el
+	var ys: Array = q.sky_k
+	if el_deg <= float(xs[0]):
+		return float(ys[0])
+	for i in range(1, xs.size()):
+		if el_deg <= float(xs[i]):
+			var f := (el_deg - float(xs[i - 1])) / maxf(float(xs[i]) - float(xs[i - 1]), 1.0e-6)
+			return lerpf(float(ys[i - 1]), float(ys[i]), f)
+	return float(ys[ys.size() - 1])
+
+
+## Свет прямого солнца в точке относительно дневного (контракт HH4 v3): T_G(el, y) / T_G(ref_el, y), зелёный
+## канал (550 нм); 0 — луч упирается в сферу уровня моря; выше ref_el_deg — 1. Множитель к sun.energy.
+static func light_ratio(
+	el_deg: float, y_msl: float, extinction_550: float, extinction_rgb: Vector3,
+	haze_top_msl: float, p: Dictionary = {}
+) -> float:
+	var q: Dictionary = p if not p.is_empty() else params()
+	var t := transmission(
+		minf(el_deg, float(q.ref_el_deg)), y_msl, extinction_550, extinction_rgb, haze_top_msl, q
+	)
+	if t.y <= 0.0:
+		return 0.0
+	var r := transmission(
+		float(q.ref_el_deg), y_msl, extinction_550, extinction_rgb, haze_top_msl, q
+	)
+	return clampf(t.y / maxf(r.y, 1.0e-9), 0.0, 1.0)
+
+
+## Яркость сцены относительно дня (контракт HH4 v3): L(el) = light_energy·max(sin el, 0)·ρ + sky_k, отнесённая к
+## тому же при ref_el_deg: light_energy = sun_energy·light (light — light_ratio, sun_energy — world.json → sun.energy),
+## sky_k — SunTransmission.sky_k, ρ — средняя отражательная способность рельефа (параметр
+## rendering.sunset_exposure.albedo). Выше ref_el_deg — 1.
+static func scene_luminance(
+	el_deg: float, light: float, sky: float, albedo: float, sun_energy: float, ref_el_deg: float = 35.0
+) -> float:
+	var s_ref := sin(deg_to_rad(ref_el_deg))
+	var s := sin(deg_to_rad(clampf(el_deg, 0.0, ref_el_deg)))
+	return (sun_energy * light * s * albedo + sky) / (sun_energy * s_ref * albedo + 1.0)
+
+
+## Множитель экспозиции заката E = clamp((1/L)^a, 1, E_max) (контракт HH4 v3), установившееся значение.
+static func exposure_factor(scene_l: float, a: float, e_max: float) -> float:
+	return clampf(pow(1.0 / maxf(scene_l, 1.0e-6), a), 1.0, e_max)

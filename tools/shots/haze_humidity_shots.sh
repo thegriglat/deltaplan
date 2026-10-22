@@ -19,7 +19,7 @@ set -euo pipefail
 root="$(cd "${1:?корень копии}" && pwd)"
 prefix="${2:?префикс: before_ | after_}"
 out="${3:-/home/greg/deltaplan/build/screenshots/haze-humidity}"
-mkdir -p "$out"
+mkdir -p "$out" "$out/_aux"  # служебные файлы (маски без облаков, tint/sun .txt) — в _aux, в $out только кадры
 export DP_SUN_TINT_LOG=1
 export DISPLAY="${DISPLAY:-:0}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.cache/dp-xdg/$(basename "$root")}"
@@ -83,9 +83,10 @@ shot() {  # shot <файл.jpg> <аргументы игры...>
   done
   convert "$png" -quality 88 "$file"
   # ожидаемая цветность диска (SkyEnvironment, DP_SUN_TINT_LOG) — для tools/shots/sun_color_measure.py
-  grep "^sun_tint:" "${png%.png}.log" | tail -1 > "${file%.jpg}.tint.txt" || true
+  grep "^sun_tint:" "${png%.png}.log" | tail -1 > "$out/_aux/$(basename "${file%.jpg}").tint.txt" || true
   # положение центра диска на кадре (проекция камерой, SunGlare, DP_SUN_TINT_LOG) — для sun_halo_measure.py / sun_color_measure.py
-  grep "^sun_px:" "${png%.png}.log" | tail -1 > "${file%.jpg}.sun.txt" || true
+  grep "^sun_px:" "${png%.png}.log" | tail -1 > "$out/_aux/$(basename "${file%.jpg}").sun.txt" || true
+  grep "^scene_light:" "${png%.png}.log" | tail -1 > "$out/_aux/$(basename "${file%.jpg}").scene.txt" || true
   rm -f "$png"
   [[ -n "${KEEP_LOG:-}" ]] || rm -f "${png%.png}.log"
 }
@@ -143,6 +144,66 @@ PY
   exit 0
 fi
 
+# Режим scene (HH-15): яркость сцены по высоте солнца и экспозиция заката. Аскарово (biyagoda_west), 15 июля, высота солнца
+# 35°, 18°, 8° (взгляд в сторону на 70°, тангаж 6°: рельеф и небо без солнца в кадре), 2° и 0,7° (взгляд на солнце), время —
+# по расчёту высоты (NOAA, как SunClock), не по часам; плюс вечерний Эверест (ракурс 26_everest_tele из menu_art.json).
+# + halo2_askarovo (3°, ядро/ореол: sun_halo_measure.py) и scene_backlit_{2deg,1deg} (облака против солнца, --sky=partly); TAG=<имя> — один кадр.
+# <префикс>scene_{el35,el18,el8,sun2,sun07}.jpg, <префикс>scene_everest.jpg; рядом в _aux/ — sun.txt/tint.txt/scene.txt (E, light_energy, sky_k).
+# Старт: 15:00 (35°, 18°; время ×240) или 20:00 (8° и ниже; ×60) — из time.start_hours.
+if [[ "${4:-}" == "scene" ]]; then
+  IFS='|' read -r name site lat lon off hdg <<<"${places[1]}"
+  for tgt in "35:scene_el35:side:15:240:partly" "18:scene_el18:side:15:240:partly" "8:scene_el8:side:20:60:partly" "2:scene_sun2:sun:20:60:clear" "0.7:scene_sun07:sun:20:60:clear" "3:halo2_askarovo:sun:20:60:clear" "2:scene_backlit_2deg:sun:20:60:partly" "0.8:scene_backlit_1deg:sun:20:60:partly"; do
+    IFS=: read -r want tag view hour spd skym <<<"$tgt"
+    [[ -n "${TAG:-}" && "$tag" != "$TAG" ]] && continue
+    [[ -n "${WANT:-}" && "$want" != "$WANT" ]] && continue
+    h="$(python3 - "$want" "$lat" "$lon" "$off" <<'PY'
+import sys, math
+want, lat, lon, off = map(float, sys.argv[1:5])
+doy = 196
+def elev(h):
+    g = 2 * math.pi / 365 * (doy - 1 + (h - 12) / 24)
+    d = (0.006918 - 0.399912 * math.cos(g) + 0.070257 * math.sin(g) - 0.006758 * math.cos(2 * g)
+         + 0.000907 * math.sin(2 * g) - 0.002697 * math.cos(3 * g) + 0.00148 * math.sin(3 * g))
+    e = 229.18 * (0.000075 + 0.001868 * math.cos(g) - 0.032077 * math.sin(g) - 0.014615 * math.cos(2 * g)
+                  - 0.040849 * math.sin(2 * g))
+    s = h + (4 * lon - 60 * off + e) / 60
+    ha = math.radians(15 * (s - 12)); la = math.radians(lat)
+    return math.degrees(math.asin(math.sin(la) * math.sin(d) + math.cos(la) * math.cos(d) * math.cos(ha)))
+lo, hi = 14.0, 23.0  # после полудня высота убывает
+for _ in range(60):
+    m = (lo + hi) / 2
+    if elev(m) > want: lo = m
+    else: hi = m
+print("%.4f" % lo)
+PY
+)"
+    secs="$(python3 -c "print('%.1f' % (($h - $hour) * 3600 / $spd))")"
+    read -r az el < <(sun "$lat" "$lon" "$off" "$h")
+    echo "$name $tag: высота солнца $el, азимут $az (час $h = --hour=$hour --time=$secs при ×$spd)"
+    set_speed "$spd"
+    if [[ "$view" == sun ]]; then
+      yaw="$(python3 -c "print('%.1f' % (($hdg - $az + 180) % 360 - 180))")"; pitch="$el"
+    else
+      yaw="$(python3 -c "print('%.1f' % (($hdg - $az + 180 + 70) % 360 - 180))")"; pitch=6
+    fi
+    shot "$out/${prefix}${tag}.jpg" "--location=$name" "--site=$site" "--hour=$hour" "--time=$secs" --air-start=300,300 "--sky=$skym" "--look=$yaw,$pitch"
+    if [[ "$tag" == *backlit* ]]; then  # тот же кадр без облаков — маска для tools/shots/cloud_backlit_measure.py (в _aux)
+      echo '{"clouds": {"enabled": false}}' > "$acfg"
+      shot "$out/_aux/${prefix}${tag}.nocloud.jpg" "--location=$name" "--site=$site" "--hour=$hour" "--time=$secs" --air-start=300,300 "--sky=$skym" "--look=$yaw,$pitch"
+      echo '{}' > "$acfg"
+    fi
+  done
+  if [[ -z "${WANT:-}${TAG:-}" || "${TAG:-}" == scene_everest ]]; then
+    ev="$(mktemp -d)"
+    echo "-- ${prefix}scene_everest.jpg"
+    (cd "$root" && python3 tools/shots/menu_art.py --only=26 --size=1920x1080 "--out=$ev" 2>&1 | tail -3) || true
+    cp "$ev"/26_*.jpg "$out/${prefix}scene_everest.jpg"
+  fi
+  set_speed 1
+  echo "haze_humidity_shots.sh: scene $prefix* в $out"
+  exit 0
+fi
+
 # Режим clouds (HH-14): цвет освещённых боков облаков при высоте солнца 2° и 0,8° (время — по расчёту
 # высоты, не по часам), ракурсы «к солнцу» и «сбоку» (+70°), и полдень; Алтай, --sky=partly.
 # <префикс>clouds_{2deg,1deg}_{sun,side}.jpg, <префикс>clouds_day.jpg и рядом <кадр>.nocloud.jpg —
@@ -154,7 +215,7 @@ if [[ "${4:-}" == "clouds" ]]; then
   both() {  # both <файл.jpg> <аргументы игры...>: кадр и тот же кадр без облаков
     local f="$1"; shift
     echo "${CLOUD_CFG:-{\}}" > "$acfg"; shot "$f" "$@"
-    echo '{"clouds": {"enabled": false}}' > "$acfg"; shot "${f%.jpg}.nocloud.jpg" "$@"
+    echo '{"clouds": {"enabled": false}}' > "$acfg"; shot "$out/_aux/$(basename "${f%.jpg}").nocloud.jpg" "$@"
     echo '{}' > "$acfg"
   }
   for tgt in "2.0:2deg" "0.8:1deg"; do

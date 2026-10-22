@@ -78,6 +78,34 @@ func test_haze_sky_transmission_falls_toward_horizon() -> void:
 	sky.free()
 
 
+## HH-15: процессорное зеркало формул haze.gdshader сходится с независимым численным интегралом той же плотности
+## (1 ниже верха слоя, линейно до 0 в переходе; чистый воздух у горизонта; max_opacity).
+func test_haze_sky_transmission_matches_shader_formula() -> void:
+	var sky: SkyEnvironment = load("res://scenes/world/environment.tscn").instantiate()
+	sky.apply_config()
+	var m := sky.haze_material()
+	var top: float = m.get_shader_parameter("top_msl")
+	var w: float = m.get_shader_parameter("top_transition_m")
+	var length: float = m.get_shader_parameter("max_distance_m")
+	var ext: float = m.get_shader_parameter("extinction")
+	var rgb: Vector3 = m.get_shader_parameter("extinction_rgb")
+	var crgb: Vector3 = m.get_shader_parameter("clear_rgb")
+	for el in [3.0, 10.0, 40.0]:
+		var sin_e := sin(deg_to_rad(el))
+		var y0 := 600.0
+		var n := 20000
+		var tau := 0.0
+		for i in n:
+			var y := y0 + (float(i) + 0.5) / n * length * sin_e
+			var dens := clampf((top + 0.5 * w - y) / w, 0.0, 1.0)
+			tau += ext * rgb.y * dens * length / n
+		var clear_len := minf(length, float(m.get_shader_parameter("clear_sky_height_m")) / sin_e)
+		tau += float(m.get_shader_parameter("clear_extinction")) * crgb.y * clear_len
+		var expect := maxf(1.0 - minf(1.0 - exp(-tau), float(m.get_shader_parameter("max_opacity"))), 1.0e-3)
+		approx(sky.haze_sky_transmission(el, y0), expect, 0.01, "T дымки по лучу %.0f°" % el)
+	sky.free()
+
+
 func test_sky_shader_and_glare_created() -> void:
 	var sky: SkyEnvironment = load("res://scenes/world/environment.tscn").instantiate()
 	sky.apply_config()  # без дерева: _ready не вызывается

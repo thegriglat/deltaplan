@@ -8,7 +8,7 @@
   disk_px_geom=<диаметр диска>   по radius (0,3°), vfov (90°) и фактической высоте кадра;
   ratio=<halo_px / disk_px_geom> цель 3-3,5 (допуск 2,8-4,0);
   offset_px=<расстояние>         центр ядра (центроид пикселей >= 250) от центра диска: центр диска — из
-                                 <кадр>.sun.txt («sun_px: X Y», пишет игра при DP_SUN_TINT_LOG — проекция
+                                 <папка>/_aux/<кадр>.sun.txt или рядом («sun_px: X Y», пишет игра при DP_SUN_TINT_LOG — проекция
                                  направления на солнце камерой) или --at=X,Y; нет ни того ни другого — 0 (центр = ядро);
   glow_r_px, glow_r_deg          видимый ореол: радиус, где азимутально усреднённое (медиана по кольцу
                                  радиуса, верхняя полуплоскость — над рельефом) превышение линейной яркости над
@@ -16,6 +16,9 @@
                                  кадра) вдали от солнца по азимуту (--bg_deg=35°, медиана): кольцо 25-30° вокруг
                                  солнца у горизонта захватывает естественный градиент неба по высоте; прежний
                                  фон кольцом — --ring=25,30;
+  center_brightest, monotonic, edge_jump (HH-15)
+                                 центр диска ≥ максимума кольца 1,5–20 диаметров по каждому каналу; профиль светлоты Y (кольца 1 px, до 20 диаметров) не растёт (шум 1 %);
+                                 макс. перепад между соседними пикселями профиля в 0,8–1,5 радиуса диска, доля от центра;
   glow_shift_px                 смещение центроида превышения яркости внутри 2·glow_r от диска (в верхней
                                  полуплоскости; рельеф срезает нижнюю часть — смещение вверх неизбежно).
 Фото (не кадр игры): --f=<фокусное в px> (27 мм экв. → горизонтальный угол ≈ 67°, f = ширина/2/tan(33,5°)),
@@ -35,6 +38,13 @@ def lin(v):
 
 
 LIN = [lin(i) for i in range(256)]
+
+
+def aux_path(path, suffix):
+    """Служебный файл кадра: <папка>/_aux/<имя><suffix> (HH-15), иначе рядом с кадром."""
+    p = Path(path)
+    a = p.parent / "_aux" / (p.stem + suffix)
+    return a if a.exists() else p.with_suffix(suffix)
 
 
 def main() -> int:
@@ -105,12 +115,60 @@ def main() -> int:
     if opts.get("at"):
         dcx, dcy = map(float, opts["at"].split(","))
     else:
-        side = path.with_suffix(".sun.txt")
+        side = aux_path(path, ".sun.txt")
         if side.exists():
             mm = re.search(r"sun_px:\s*([-\d.]+)\s+([-\d.]+)", side.read_text())
             if mm:
                 dcx, dcy = float(mm.group(1)), float(mm.group(2))
     print(f"offset_px={math.hypot(cx - dcx, cy - dcy):.1f} disk_center=({dcx:.1f},{dcy:.1f})")
+
+    # HH-15: диск ярче ореола по каждому каналу, профиль монотонный, нет скачка на краю диска.
+    # Профиль канала — медиана линейной яркости по кольцам 1 px вокруг центра диска (верхняя полуплоскость).
+    def chan(x, y, c):
+        return LIN[d[(y * w + x) * 3 + c]]
+
+    # центр профиля — центроид ядра (>= 250): проекция sun.txt бывает на ~2 px в стороне от нарисованного диска
+    # (диск 5–6 px), и профиль вокруг неё «размазан»
+    pcx, pcy = (cx, cy) if best >= 2 else (dcx, dcy)
+    rprof_max = int(min(max(20 * disk, 40), 300))
+    cbins = [{} for _ in range(3)]
+    for y in range(max(int(pcy) - rprof_max, 0), min(int(pcy) + 1, h)):
+        for x in range(max(int(pcx) - rprof_max, 0), min(int(pcx) + rprof_max + 1, w)):
+            r = int(math.hypot(x - pcx, y - pcy))
+            r = 0 if r < 2 else r  # кольца r = 0 и 1 — по 1 и ~8 пикселей: объединены в одно
+            if r <= rprof_max:
+                for c in range(3):
+                    cbins[c].setdefault(r, []).append(chan(x, y, c))
+    cprof = [{r: statistics.median(v) for r, v in b.items() if len(v) >= 3} for b in cbins]
+    if all(cp.get(0) is not None or cp.get(1) is not None for cp in cprof):
+        cen = [max(cp.get(0, 0.0), cp.get(1, 0.0)) for cp in cprof]
+        lo_r, hi_r = int(round(1.5 * disk)), int(round(20 * disk))
+        ring_max = [max([v for r, v in cp.items() if lo_r <= r <= hi_r] or [0.0]) for cp in cprof]
+        ok = all(cen[c] >= ring_max[c] for c in range(3))
+        print("center_brightest=%d center_lin=(%.3f,%.3f,%.3f) ring_max_lin=(%.3f,%.3f,%.3f)"
+              % ((int(ok),) + tuple(cen) + tuple(ring_max)))
+        # монотонность: профиль яркости (линейная светлота Y по кольцам) от центра до 20 диаметров не растёт (кольца 1 px, среднее по 3, шум 1 % от центра)
+        ylum = {r: 0.2126 * cprof[0][r] + 0.7152 * cprof[1][r] + 0.0722 * cprof[2][r] for r in cprof[0] if r in cprof[1] and r in cprof[2]}
+        # скользящее среднее по 3 кольцам: диск — 5–6 px, медиана колец из 8–15 пикселей шумит на 2–3 %
+        ks = sorted(ylum)
+        ylum = {r: sum(ylum[q] for q in ks[max(i - 1, 0):i + 2]) / len(ks[max(i - 1, 0):i + 2]) for i, r in enumerate(ks)}
+        tol = 0.01 * max(ylum.get(0, 0.0), 1e-6)
+        bad, prev = 0, None
+        for r in sorted(ylum):
+            if r > int(round(20 * disk)):
+                break
+            if prev is not None and ylum[r] > prev + tol:
+                bad += 1
+            prev = ylum[r] if prev is None else min(prev, ylum[r]) if ylum[r] <= prev else ylum[r]
+        print("monotonic=%d rises=%d" % (int(bad == 0), bad))
+        # скачок на краю диска: макс. перепад между соседними пикселями профиля (по максимальному каналу) в 0,8–1,5 радиуса диска
+        r_d = disk / 2
+        mxp = {r: max(cprof[c].get(r, 0.0) for c in range(3)) for r in set().union(*[set(cp) for cp in cprof])}
+        jump = 0.0
+        for r in sorted(mxp):
+            if 0.8 * r_d <= r <= 1.5 * r_d and (r + 1) in mxp:
+                jump = max(jump, abs(mxp[r + 1] - mxp[r]))
+        print("edge_jump=%.3f" % (jump / max(max(cen), 1e-6)))
 
     # видимый ореол: профиль превышения яркости по радиусу от центра диска, верхняя полуплоскость.
     # Фон — небо той же высоты (строки кадра) вдали от солнца по азимуту (|x − x_солнца| от --bg_deg=35°):
