@@ -1,0 +1,76 @@
+{
+  "id": "TP-6",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Дельталёт игрока в игре: TrikeRig, Glider, Game",
+  "goal": "По TP-К6: общая тележка TrikeRig вынесена из TowTug без изменения его поведения; Glider.setup_trike/reset_on_wheels с TrikeEngine и тягой; Game стартует дельталёт на колёсах в начале полосы места буксировки (заглушен, полный бак), конец полёта — после посадки и остановки; контрактный тест с числами взлёта.",
+  "plan_ref": "TP-6",
+  "contracts": [
+    {
+      "name": "TP-К6",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К2",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К3",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К5",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-6",
+  "branch": "trike-pilot/TP-6",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/flight/trike_rig.gd",
+    "scripts/flight/trike_rig.gd.uid",
+    "scripts/game/tow_tug.gd",
+    "scripts/flight/glider.gd",
+    "scripts/game/game.gd",
+    "scripts/game/flight_stats.gd",
+    "tests/contracts/test_trike_pilot_k6.gd",
+    "tests/contracts/test_trike_pilot_k6.gd.uid",
+    "tests/contracts/test_trike_pilot_k5.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/pendulum/",
+    "scripts/flight/trike_engine.gd",
+    "scripts/game/input_controller.gd",
+    "configs/",
+    "scripts/flight/glider_visual.gd",
+    "scripts/game/tow_trike_visual.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "game",
+      "cmd": "bash -c 'XDG_DATA_HOME=$(mktemp -d) timeout 2400 godot --headless --path . res://tests/run_tests.tscn -- --filter=game/ 2>&1 | grep -E \"FAIL|тестов\" | grep -v -E \"test_start_hint_every_flight_hides_on_w|test_default_start|test_game_bots_untouched\"'",
+      "expect": "!re:FAIL"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/flight/trike_rig.gd scripts/game/tow_tug.gd scripts/flight/glider.gd scripts/game/game.gd tests/contracts/test_trike_pilot_k6.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T00:45:19"
+}

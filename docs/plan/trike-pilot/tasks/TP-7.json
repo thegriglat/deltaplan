@@ -1,0 +1,75 @@
+{
+  "id": "TP-7",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Колёса дельталёта: руление, тормоз, посадка без аварии",
+  "goal": "По TP-К7 в PendulumModel: руление носовым колесом (turn), тормоз (brake), посадка на колёса после полёта без аварии и повторный взлёт — по необязательным ключам wheels, без них TT-К3 бит в бит; числа блока wheels в configs/trike_pilot.json (TP-К1 v3) с источниками; контрактный тест.",
+  "plan_ref": "TP-7",
+  "contracts": [
+    {
+      "name": "TP-К7",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К1",
+      "version": "3",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-7",
+  "branch": "trike-pilot/TP-7",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/flight/pendulum/pendulum_model.gd",
+    "scripts/flight/pendulum/pendulum_touchdown.gd",
+    "configs/trike_pilot.json",
+    "docs/research/trike-pilot/",
+    "tests/contracts/test_trike_pilot_k7.gd",
+    "tests/contracts/test_trike_pilot_k7.gd.uid",
+    "tests/contracts/test_trike_pilot_k1.gd"
+  ],
+  "dont_touch": [
+    "scripts/game/",
+    "scripts/flight/glider.gd",
+    "configs/tow_tug.json",
+    "tests/contracts/test_tow_trike_k3.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    },
+    {
+      "name": "tow_trike",
+      "tests": "tow_trike"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "flight",
+      "cmd": "bash -c 'XDG_DATA_HOME=$(mktemp -d) timeout 2400 godot --headless --path . res://tests/run_tests.tscn -- --filter=flight/ 2>&1 | grep -E \"FAIL|тестов\"'",
+      "expect": "!re:FAIL"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/flight/pendulum/pendulum_model.gd tests/contracts/test_trike_pilot_k7.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1'",
+      "expect": "!re:ОШИБКА.*trike-pilot"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T00:46:09"
+}
