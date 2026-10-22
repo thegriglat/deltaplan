@@ -12,6 +12,11 @@ const MAX_TAKEOFF_S := 15.0
 const HOLD_COURSE_S := 60.0
 const MAX_MENU_FRAMES := 600
 const MAX_LOAD_FRAMES := 1200
+## Локации с тяжёлым миром: план домов считается дольше (wilotree_park — пригород Орландо, 199 436 домов
+## из BuiltPatches за ~7 с в рабочем потоке, при 2 ядрах/headless кадров уходит в разы больше, чем у остальных).
+## Лимит — запас над замером (число кадров в выводе «загрузка …»); ускорить загрузку настройками места нельзя:
+## план домов задают конфиги вне места (world_objects.json → villages) и доля застройки по данным.
+const MAX_LOAD_FRAMES_BY_LOCATION := {"wilotree_park": 4000}
 const MAX_LAND_S := 30.0
 ## Точка приземления без landing_sites (altai) — в долине по курсу разбега, дальше от подъёма
 ## над склоном (см. _landing_target).
@@ -29,7 +34,10 @@ func check(cond: bool, msg: String = "") -> void:
 func test_e2e_all_locations() -> void:
 	var locations := Config.list_configs("locations")
 	check(not locations.is_empty(), "есть локации в configs/locations")
+	var only := OS.get_environment("DP_E2E_LOCATION")  # отладка: одна локация
 	for loc_name in locations:
+		if only != "" and loc_name.get_file() != only:
+			continue
 		await _run_location(loc_name.get_file())
 
 
@@ -72,16 +80,24 @@ func _run_location(loc_id: String) -> void:
 		return
 	# как выбор пилота в окне «Популярные места» (снимает и точку с карты, которую мог помнить user://)
 	fss.call("_on_place_chosen", place)
+	# место с буксировкой (tow в start_sites): старт с лебёдки, как выбор пилота в строке «Буксировка»
+	var tow_start := _select_winch(fss)
+	game.autopilot.tow_start = tow_start
 	(fss.get("_done_btn") as Button).emit_signal("pressed")  # «Готово» — выбор, назад в меню
 	check(not fss.visible and start_menu.visible, "%s: «Готово» вернула в меню" % loc_id)
 	(start_menu.get("_fly_btn") as Button).emit_signal("pressed")  # «Лететь»
 
 	var loaded := false
-	for i in MAX_LOAD_FRAMES:
+	var load_frames := int(MAX_LOAD_FRAMES_BY_LOCATION.get(loc_id, MAX_LOAD_FRAMES))
+	var load_t0 := Time.get_ticks_msec()
+	var frames_used := 0
+	for i in load_frames:
 		if int(main.get("state")) == 2:  # main.gd State.FLYING
 			loaded = true
 			break
+		frames_used += 1
 		await get_tree().process_frame
+	print("         %s: загрузка %d кадров, %.1f с" % [loc_id, frames_used, (Time.get_ticks_msec() - load_t0) / 1000.0])
 	check(loaded, "%s: состояние FLYING после «Лететь»" % loc_id)
 	if not loaded:
 		await _finish(main, catcher)
@@ -101,6 +117,10 @@ func _run_location(loc_id: String) -> void:
 	while ended.is_empty() and t < max_t:
 		game.tick(DT)
 		t += DT
+		if OS.get_environment("DP_E2E_TRACE") != "" and int(t * DT * 0 + t * 2.0) != int((t - DT) * 2.0):
+			var tl := game.glider.get_telemetry()
+			print("  t=%.1f %s v=%.1f agl=%.1f tow=%s" % [t, tl.phase, tl.airspeed, tl.altitude_agl,
+				(game.tow_session.line.phase + "/" + game.tow_session.line.state) if game.tow_session != null else "-"])
 		var ph := game.glider.phase()
 		if ph == "flying":
 			if took_off_at < 0.0:
@@ -131,7 +151,7 @@ func _run_location(loc_id: String) -> void:
 	if not ended.is_empty():
 		var kind: String = ended[0][0]
 		var info: Dictionary = ended[0][1]
-		check(kind == "landed", "%s: kind == landed (%s)" % [loc_id, kind])
+		check(kind == "landed", "%s: kind == landed (%s %s)" % [loc_id, kind, info.get("reason", "")])
 		check(float(info.get("flight_time_s", 0.0)) > 0.0, "%s: время полёта > 0" % loc_id)
 		check(float(info.get("distance_m", 0.0)) > 0.0, "%s: дистанция > 0" % loc_id)
 		check(info.has("vertical_speed_ms"), "%s: есть скорость касания" % loc_id)
@@ -141,6 +161,17 @@ func _run_location(loc_id: String) -> void:
 		check(int(main.get("state")) == 4, "%s: состояние RESULT" % loc_id)  # State.RESULT
 
 	await _finish(main, catcher)
+
+
+## Выбрать в экране «Полёт…» статическую лебёдку, если место её допускает (tow.kinds); иначе false.
+func _select_winch(fss: FlightSetupScreen) -> bool:
+	var ids: PackedStringArray = fss.get("_tow_ids")
+	var i := ids.find("winch_static")
+	# у площадки без блока tow виды буксировки — «все» (TW-К7), но игра на ней лебёдку не ставит
+	if i < 0 or not (fss.get("_row").builtin_site().get("tow") is Dictionary):
+		return false
+	(fss.get("_tow_opt") as OptionButton).select(i)
+	return true
 
 
 ## Первый старт встроенной локации в каталоге «Популярные места» экрана ({} — нет).
