@@ -22,3 +22,9 @@ var turn: float = 0.0
 ## самодельная трапеция — пока тангаж с неё). В полёте «Маятника» полный «на себя» — штанга у бёдер
 ## (arms.shift_x_pull_full_m) вместо груди; на земле и в FlightModel не читается.
 var pull_full: bool = false
+## Газ дельталёта (TP-К3), ∈ [−1; 1]: W +1, S −1, обе или ни одной — 0. Только vehicle = "trike"; у крыла всегда 0.
+var throttle_axis: float = 0.0
+## Завести/заглушить двигатель (TP-К3): true ровно в одном update после нажатия. У крыла всегда false.
+var engine_toggle: bool = false
+## Тормоз колёс дельталёта (TP-К3): только на земле, vehicle = "trike". У крыла всегда false.
+var brake: bool = false

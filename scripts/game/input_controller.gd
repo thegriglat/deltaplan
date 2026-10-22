@@ -32,6 +32,14 @@ var pad_run := false
 ## Направление крена (PV1): "bar" — устройство двигает трапецию (вправо = крен влево),
 ## "body" — тело (вправо = крен вправо). В полёте и на земле (PV1 v2).
 var roll_input := "body"
+## Что пилотируем (TP-К3): "glider" — крыло (по умолчанию), "trike" — дельталёт: W/S — газ, пробел — двигатель,
+## A/D на земле — руление, тормоз. Взгляд вверх/вниз — look_up/look_down без клавиш газа.
+var vehicle := "glider":
+	set(v):
+		vehicle = v
+		_apply_look_keys()
+
+var _toggle_down := false  # пробел нажат в прошлом шаге (фронт для engine_toggle)
 
 var _cfg: Dictionary
 var _mouse_offset := Vector2.ZERO  # накопленное смещение мыши, доли полного хода
@@ -48,7 +56,30 @@ func _ready() -> void:
 func reload_config() -> void:
 	_cfg = Config.get_config("controls")
 	register_actions(_cfg)
+	_apply_look_keys()
 	roll_input = String(_cfg.get("roll_input", "body"))
+
+
+## В "trike" клавиши газа (W/S) не крутят голову: у look_up/look_down убираем события, совпадающие с
+## throttle_up/throttle_down. В "glider" раскладка как в controls.json.
+func _apply_look_keys() -> void:
+	if _cfg.is_empty():
+		_cfg = Config.get_config("controls")
+	register_actions(_cfg)
+	if vehicle != "trike":
+		return
+	var throttle_codes := []
+	for a in ["throttle_up", "throttle_down"]:
+		if InputMap.has_action(a):
+			for ev in InputMap.action_get_events(a):
+				if ev is InputEventKey:
+					throttle_codes.append(ev.physical_keycode)
+	for a in ["look_up", "look_down"]:
+		if not InputMap.has_action(a):
+			continue
+		for ev in InputMap.action_get_events(a):
+			if ev is InputEventKey and ev.physical_keycode in throttle_codes:
+				InputMap.action_erase_event(a, ev)
 
 
 ## Клавиши look_* (W/S/A/D) сейчас крутят голову (У2 v2): ввод включён, руки на трапеции
@@ -117,7 +148,11 @@ func reset() -> void:
 ## Вызывать каждый шаг физики.
 func update(dt: float) -> ControlInput:
 	pad_run = false
+	control.throttle_axis = 0.0
+	control.engine_toggle = false
+	control.brake = false
 	if not enabled or hands_off:
+		_toggle_down = false
 		control.pitch = 0.0
 		control.roll = 0.0
 		control.walk = 0.0
@@ -126,12 +161,20 @@ func update(dt: float) -> ControlInput:
 		control.pull_full = false
 		return control
 	control.pull_full = _strength("pull_full") > 0.5
-	if on_ground:
+	if vehicle == "trike":
+		_update_trike(dt)
+	elif on_ground:
 		_update_ground(dt)
 	else:
 		_update_air(dt)
 	_apply_gamepad()
 	_apply_autopilot()
+	if vehicle == "trike":
+		control.run = false
+		pad_run = false
+		control.walk = 0.0
+		if not on_ground:
+			control.turn = 0.0
 	control.pitch = clampf(control.pitch, -1.0, 1.0)
 	control.roll = clampf(control.roll, -1.0, 1.0)
 	control.walk = clampf(control.walk, -1.0, 1.0)
@@ -153,6 +196,23 @@ func _update_ground(dt: float) -> void:
 		control.walk = _strength("walk_forward") - _strength("walk_back")
 		control.turn = _strength("turn_right") - _strength("turn_left")
 	_update_bar(dt, false)
+
+
+## Дельталёт (TP-К3): пилот сидит — разбега и шага нет. Газ W/S, пробел — двигатель, на земле A/D — руление
+## и тормоз; штанга (мышь, стик) — как у крыла.
+func _update_trike(dt: float) -> void:
+	control.throttle_axis = clampf(_strength("throttle_up") - _strength("throttle_down"), -1.0, 1.0)
+	var tg := _strength("engine_toggle") > 0.5
+	control.engine_toggle = tg and not _toggle_down
+	_toggle_down = tg
+	control.run = false
+	control.walk = 0.0
+	if on_ground:
+		control.turn = _strength("turn_right") - _strength("turn_left")
+		control.brake = _strength("trike_brake") > 0.5
+	else:
+		control.turn = 0.0
+	_update_bar(dt, not on_ground)
 
 
 func _update_air(dt: float) -> void:

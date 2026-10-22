@@ -128,8 +128,8 @@ static func _has(n: Node, method: String) -> bool:
 
 
 func test_u2_shape() -> void:
-	check(_keys("look_up") == ["W"] and _keys("look_down") == ["S"], "У2: look_up = W, look_down = S")
-	check(_keys("look_left") == ["A"] and _keys("look_right") == ["D"], "У2: look_left = A, look_right = D")
+	check(_keys("look_up") == ["W", "Up"] and _keys("look_down") == ["S", "Down"], "У2: look_up = W+Up, look_down = S+Down")
+	check(_keys("look_left") == ["A", "Left"] and _keys("look_right") == ["D", "Right"], "У2: look_left = A+Left, look_right = D+Right")
 	check(_keys("walk_forward") == ["W"] and _keys("walk_back") == ["S"], "У2: walk_forward = W, walk_back = S")
 	check(_keys("turn_left") == ["A"] and _keys("turn_right") == ["D"], "У2: turn_left = A, turn_right = D")
 	var rate: Variant = Config.value("camera", "cockpit.head.key_rate_deg_s")
