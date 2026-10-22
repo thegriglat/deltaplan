@@ -149,7 +149,6 @@ func step(dt: float, glider_height_agl_m: float) -> void:
 				phase = "climb"
 				_hdg_tgt = _heading_ref
 				_bar_i = float(_ap("bar_i_init_m"))
-				_thr_i = 1.0
 		"climb", "circuit":
 			if phase == "climb" and agl_m >= float(tow.circuit_start_agl_m):
 				phase = "circuit"
@@ -194,12 +193,8 @@ func _bar(v_tow: float, dt: float) -> float:
 func _climb_throttle(dt: float) -> float:
 	var tow: Dictionary = _cfg.tow
 	if agl_m < float(tow.power_reduce_agl_m):
-		# TP-20: газ <= 1; скорость держит штанга, на упоре «от себя» и скорости выше цели газ снижает ПИ скорости
-		var ev := float(tow.tow_speed_kmh) / 3.6 - airspeed_ms
-		var sat := _bar_i >= float(_ap("bar_max_m")) - 1.0e-4
-		if ev > 0.0 or sat:
-			_thr_i = clampf(_thr_i + float(_ap("speed_ki")) * ev * dt, float(_ap("speed_throttle_min")), 1.0)
-		return clampf(_thr_i + (float(_ap("speed_kp")) * minf(ev, 0.0) if sat else 0.0), float(_ap("speed_throttle_min")), 1.0)
+		_thr_i = 1.0
+		return 1.0
 	var e := float(tow.climb_limit_ms) - _vz_f
 	var lo := float(_ap("throttle_min_climb"))
 	_thr_i = clampf(_thr_i + float(_ap("climb_throttle_ki")) * e * dt, lo, 1.0)
