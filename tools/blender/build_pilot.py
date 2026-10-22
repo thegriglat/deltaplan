@@ -315,7 +315,7 @@ def poses(cf: dict, eye: Vector) -> dict:
              Vector((0, -0.2, -1)), pod=1.0, grips=bg, splay=PRONE_SPLAY)
     out["prone"] = [p]
     prone = p
-    out["sit"] = [sit_pose(U.load_json("tools/blender/trike_params.json")["seat"])]
+    out["sit"] = [sit_pose(U.load_json("tools/blender/trike_params.json")["seat"], SIT_DZ)]
     flare = out["flare"][0]
     # после отрыва ноги ещё «бегут в воздухе», шаги затихают (1,5 с)
     n = 36
@@ -361,10 +361,11 @@ SIT_FOOT_DEG = 80.0     # сидя: направление стопы от ве�
 SIT_HEAD = HEAD_PRONE   # сидя голова наклонена так же, как лёжа: пустышка Head смотрит горизонтально
 SIT_BACK_TOL = 5.0      # допуск угла корпуса к спинке, °
 SIT_HIP_TOL = 0.02      # допуск таза от seat.hip (контракт ±3 см), м
+SIT_DZ = [0.0, 0.0]    # поправка высоты голеностопа L/R: низ подошвы (меш) ровно на подножке; main() подбирает по замеру
 SIT_POLE = Vector((0, -0.3, -1))   # локти вниз
 
 
-def sit_pose(seat: dict) -> Pose:
+def sit_pose(seat: dict, dz=(0.0, 0.0)) -> Pose:
     """Поза sit (TK-K3): таз в seat.hip, корпус наклонён так, чтобы глаза (пустышка Head) попали в
     seat.eye, ноги — двухзвенная IK голеностопа к подножкам foot_l / throttle_pedal (подошва — на
     ANKLE_H ниже голеностопа по нормали стопы), руки — к hand_l/hand_r, кокон и фал схлопнуты.
@@ -375,7 +376,7 @@ def sit_pose(seat: dict) -> Pose:
     hands = [Vector(seat["hand_l"]), Vector(seat["hand_r"])]
     fa = math.radians(SIT_FOOT_DEG)
     up_f = Vector((0, math.cos(fa), math.sin(fa)))      # нормаль стопы вверх
-    ank = [f + up_f * D.ANKLE_H for f in feet]
+    ank = [f + up_f * D.ANKLE_H + Vector((0, 0, d)) for f, d in zip(feet, dz)]   # dz — поправка по замеру меша подошв
     # развод ног так, чтобы голеностоп попал по X (одинаково для обеих ног, по левой)
     dx = abs(ank[0].x) - D.HIP_X
     lo, hi = 0.0, 3.0
@@ -1224,6 +1225,24 @@ def skin(ob, arm) -> None:
 REST_HIPS = Vector((0, 0.2, 0))
 
 
+def sole_low(body, arm) -> list:
+    """Мировой z нижней вершины подошв (материал Sole) левого и правого ботинка в текущей позе."""
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = body.evaluated_get(dg)
+    me = ev.to_mesh()
+    idx = [i for i, m in enumerate(body.data.materials) if m and m.name == "Sole"]
+    low = [1e9, 1e9]
+    for poly in me.polygons:
+        if poly.material_index not in idx:
+            continue
+        for vi in poly.vertices:
+            w = ev.matrix_world @ me.vertices[vi].co
+            k = 0 if w.x < 0 else 1
+            low[k] = min(low[k], w.z)
+    ev.to_mesh_clear()
+    return low
+
+
 def main() -> None:
     global REST_HIPS
     params = U.load_json("tools/blender/glider_params.json")
@@ -1367,7 +1386,8 @@ def main() -> None:
     ad.pose_position = "POSE"
     # анимации
     arm.animation_data_create()
-    for aname, frames in all_poses.items():
+
+    def make_action(aname, frames):
         act = bpy.data.actions.new(aname)
         act.use_fake_user = True
         arm.animation_data.action = act
@@ -1409,6 +1429,31 @@ def main() -> None:
         track.name = aname
         track.strips.new(aname, 1, act)
         track.mute = True
+
+    for aname, frames in all_poses.items():
+        make_action(aname, frames)
+
+    # sit: низ подошв по мешу (с учётом скиннинга) — на подножках ± 1 см; поправка к цели голеностопа
+    seat = U.load_json("tools/blender/trike_params.json")["seat"]
+    tgt = (seat["foot_l"][2], seat["throttle_pedal"][2])
+    for it in range(4):
+        act = bpy.data.actions["sit"]
+        arm.animation_data.action = act
+        bpy.context.scene.frame_set(1)
+        bpy.context.view_layer.update()
+        low = sole_low(body, arm)
+        err = [low[i] - tgt[i] for i in range(2)]
+        print("SIT: низ подошв L/R %.4f / %.4f, цель %.4f / %.4f, ошибка %.1f / %.1f мм (итерация %d)" % (
+            low[0], low[1], tgt[0], tgt[1], 1000 * err[0], 1000 * err[1], it))
+        if max(abs(e) for e in err) < 0.002:
+            break
+        SIT_DZ[0] -= err[0]
+        SIT_DZ[1] -= err[1]
+        for tr in [t for t in arm.animation_data.nla_tracks if t.name == "sit"]:
+            arm.animation_data.nla_tracks.remove(tr)
+        bpy.data.actions.remove(act)
+        all_poses["sit"] = [sit_pose(seat, SIT_DZ)]
+        make_action("sit", all_poses["sit"])
     arm.animation_data.action = bpy.data.actions["prone"]
     os.makedirs(U.MODELS, exist_ok=True)
     out_models = os.environ.get("PILOT_OUT") or U.MODELS
