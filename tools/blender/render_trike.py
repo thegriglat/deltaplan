@@ -1,16 +1,16 @@
-"""Кадры и видео тележки трайка (assets/models/trike/trike.glb) — TK-4.
+"""Кадры тележки трайка v2 без пилота и с пилотом (assets/models/trike/trike.glb, pilot.glb в позе sit) — TK-4, TK-6.
 
-    xvfb-run -a blender --background --python tools/blender/render_trike.py [-- [--out DIR] [--pilot] [--only shots|video]]
+    blender --background --python tools/blender/render_trike.py [-- [--out DIR] [--pilot] [--only trike|pilot|closeup]]
 
-Без ключей: 4 PNG 1600x1000 (trike_front34, trike_side, trike_rear34, trike_top) и prop_spin.mp4
-(5 с, 24 кадр/с, rear34 крупно на винт, 2 об/с по анимации prop_spin, motion blur Eevee)
-в build/screenshots/trike-model (переопределить: --out или env TRIKE_OUT).
---pilot — добавить assets/models/pilot.glb в то же начало в позе sit (для TK-6; без ключа пилота нет).
-Оси Blender (импорт glTF): нос +Y, вверх +Z. Кадры из PNG собираются через ffmpeg (libx264, yuv420p).
+Cycles на GPU (OPTIX, иначе CUDA; на этой машине CUDA), 256 выборок без шумодава (в сборке нет OIDN, OPTIX-устройства нет; TRIKE_SAMPLES, TRIKE_DENOISE=1), без xvfb. Только PNG 1600x1000, видео не делается (решение 2026-10-22).
+Без ключей: сначала сцена без пилота — trike_front34, trike_side, trike_rear34, trike_top; затем с пилотом
+(pilot.glb в то же начало без смещения, действие sit) — pilot_front34, pilot_side, pilot_rear34, pilot_front, pilot_top
+и крупно посадка seat_closeup_side, seat_closeup_front, seat_closeup_feet. Каталог: build/screenshots/trike-model
+(переопределить: --out или env TRIKE_OUT). --pilot — рендерить только сцену с пилотом (кадры pilot_* и seat_closeup_*).
+Оси Blender (импорт glTF): нос +Y, вверх +Z. Кадры рамкуются по габариту тележки без пилота, поэтому совпадают в обеих сериях.
 """
 import math
 import os
-import subprocess
 import sys
 
 import bpy
@@ -22,7 +22,8 @@ import render_views as RV  # noqa: E402
 
 RES = (1600, 1000)
 OUT = "/home/greg/deltaplan/build/screenshots/trike-model"
-VIDEO_S, FPS, SPIN_RPS = 5, 24, 2.0
+SAMPLES = int(os.environ.get("TRIKE_SAMPLES", "256"))
+DENOISE = os.environ.get("TRIKE_DENOISE", "0") == "1"
 
 
 def args() -> dict:
@@ -40,7 +41,7 @@ def load(pilot: bool) -> list:
     RV.setup_scene()
     sc = bpy.context.scene
     sc.render.resolution_x, sc.render.resolution_y = RES
-    sc.eevee.taa_render_samples = 48
+    gpu(sc)
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=os.path.join(U.MODELS, "trike", "trike.glb"))
     new = [o for o in bpy.data.objects if o not in before]
@@ -54,11 +55,12 @@ def load(pilot: bool) -> list:
             o.hide_viewport = True
     if pilot:
         pil = RV.import_glb("pilot")
+        for n in [o.name for o in pil if o.name.split(".")[0] == "Icosphere"]:
+            bpy.data.objects.remove(bpy.data.objects[n])  # служебный шар (2 м) из glTF_not_exported
         RV.set_pose("sit")
-        objs += pil
     # земля — тонкая плоскость на уровне низа колёс
     meshes = [o for o in objs if o.type == "MESH" and not o.hide_render]
-    lo, hi = RV.bbox(meshes)
+    lo, hi = RV.bbox(meshes)  # габарит и земля — по тележке без пилота
     bpy.ops.mesh.primitive_plane_add(size=30, location=((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, lo.z))
     gnd = bpy.context.active_object
     gnd.name = "Ground"
@@ -67,70 +69,82 @@ def load(pilot: bool) -> list:
     return meshes
 
 
-def shots(meshes: list, out: str) -> None:
+def gpu(sc) -> None:
+    """Cycles на GPU: OPTIX, иначе CUDA."""
+    sc.render.engine = "CYCLES"
+    cy = sc.cycles
+    cy.samples = SAMPLES
+    cy.use_denoising = DENOISE
+    cy.device = "CPU"
+    pref = bpy.context.preferences.addons["cycles"].preferences
+    for kind in ("OPTIX", "CUDA"):
+        try:
+            pref.compute_device_type = kind
+            pref.get_devices()
+        except Exception:  # noqa: BLE001
+            continue
+        gpus = [d for d in pref.devices if d.type == kind]
+        if gpus:
+            for d in pref.devices:
+                d.use = d.type == kind
+            cy.device = "GPU"
+            try:
+                cy.denoiser = "OPTIX" if kind == "OPTIX" else "OPENIMAGEDENOISE"
+            except TypeError:  # перечень шумодавов зависит от сборки; остаётся по умолчанию
+                pass
+            print("CYCLES", kind, [d.name for d in gpus])
+            return
+    print("CYCLES: GPU не найден, CPU")
+
+
+def shot(cam, path: str) -> None:
+    sc = bpy.context.scene
+    sc.camera = cam
+    sc.render.filepath = path
+    bpy.ops.render.render(write_still=True)
+    print("RENDERED", path)
+
+
+def shots(meshes: list, out: str, prefix: str) -> None:
     lo, hi = RV.bbox(meshes)
     c = (lo + hi) / 2
     size = (hi - lo).length
     d = size * 2.4
     cams = {
-        "trike_front34": RV.camera("c1", c + Vector((-0.75, 0.9, 0.5)).normalized() * d, c, lens=50),
-        "trike_rear34": RV.camera("c2", c + Vector((0.8, -0.85, 0.45)).normalized() * d, c, lens=50),
-        "trike_side": RV.camera("c3", c + Vector((d, 0, 0)), c, ortho=RV.fit(lo, hi, (1, 2))),
-        "trike_top": RV.camera("c4", c + Vector((0, 0, d)), c, up=(0, 1, 0),
-                               ortho=RV.fit(lo, hi, (0, 1))),
+        "front34": RV.camera("c1", c + Vector((-0.75, 0.9, 0.5)).normalized() * d, c, lens=50),
+        "rear34": RV.camera("c2", c + Vector((0.8, -0.85, 0.45)).normalized() * d, c, lens=50),
+        "side": RV.camera("c3", c + Vector((d, 0, 0)), c, ortho=RV.fit(lo, hi, (1, 2))),
+        "top": RV.camera("c4", c + Vector((0, 0, d)), c, up=(0, 1, 0), ortho=RV.fit(lo, hi, (0, 1))),
+    }
+    if prefix == "pilot":  # спереди: между колесом и пилотом, чуть сверху
+        cams["front"] = RV.camera("c5", c + Vector((0, 1, 0.12)).normalized() * d, c, lens=50)
+    for n, cam in cams.items():
+        shot(cam, os.path.join(out, f"{prefix}_{n}.png"))
+
+
+def closeups(out: str) -> None:
+    """Крупно посадка: бок (ортографика), спереди 3/4 и ступни."""
+    tgt = Vector((0, 0.55, -1.65))
+    cams = {
+        "seat_closeup_side": RV.camera("k1", tgt + Vector((4, 0, 0)), tgt, ortho=2.4),
+        "seat_closeup_front": RV.camera("k2", Vector((-1.1, 2.0, -1.0)), tgt, lens=50),
+        "seat_closeup_feet": RV.camera("k3", Vector((0.9, 2.0, -1.55)), Vector((0, 1.1, -2.1)), lens=50),
     }
     for n, cam in cams.items():
-        RV.render(cam, os.path.join(out, n + ".png"))
-
-
-def video(meshes: list, out: str) -> None:
-    sc = bpy.context.scene
-    prop = bpy.data.objects["Propeller"]
-    act = prop.animation_data.action
-    # ускорить анимацию prop_spin до SPIN_RPS: сжать ключи по времени, цикл вне диапазона
-    k = 1.0 / SPIN_RPS
-    for fc in act.fcurves:
-        for kp in fc.keyframe_points:
-            kp.co.x *= k
-            kp.handle_left.x *= k
-            kp.handle_right.x *= k
-            kp.interpolation = "LINEAR"
-        fc.modifiers.new("CYCLES")
-        fc.update()
-    sc.render.fps = FPS
-    sc.render.use_motion_blur = True
-    sc.render.motion_blur_shutter = 0.5
-    sc.eevee.taa_render_samples = 32
-    sc.render.resolution_percentage = 100
-    p = prop.matrix_world.translation
-    c = p + Vector((0, 0.6, 0.0))
-    cam = RV.camera("vid", c + Vector((1.5, -2.4, 0.9)), c, lens=50)
-    sc.camera = cam
-    n = VIDEO_S * FPS
-    frames = os.path.join(out, "_prop_frames")
-    os.makedirs(frames, exist_ok=True)
-    sc.render.filepath = os.path.join(frames, "f_")
-    sc.frame_start, sc.frame_end = 1, n
-    sc.render.image_settings.file_format = "PNG"
-    bpy.ops.render.render(animation=True)
-    mp4 = os.path.join(out, "prop_spin.mp4")
-    subprocess.run(["ffmpeg", "-y", "-v", "error", "-framerate", str(FPS), "-i",
-                    os.path.join(frames, "f_%04d.png"), "-c:v", "libx264", "-pix_fmt", "yuv420p",
-                    mp4], check=True)
-    for f in os.listdir(frames):
-        os.remove(os.path.join(frames, f))
-    os.rmdir(frames)
-    print("VIDEO", mp4)
+        shot(cam, os.path.join(out, n + ".png"))
 
 
 def main() -> None:
     a = args()
     os.makedirs(a["out"], exist_ok=True)
-    meshes = load(a["pilot"])
-    if a["only"] in ("", "shots"):
-        shots(meshes, a["out"])
-    if a["only"] in ("", "video"):
-        video(meshes, a["out"])
+    if a["only"] in ("", "trike") and not a["pilot"]:
+        shots(load(False), a["out"], "trike")
+    if a["only"] in ("", "pilot", "closeup") or a["pilot"]:
+        meshes = load(True)
+        if a["only"] in ("", "pilot"):
+            shots(meshes, a["out"], "pilot")
+        if a["only"] in ("", "closeup"):
+            closeups(a["out"])
 
 
 if __name__ == "__main__":
