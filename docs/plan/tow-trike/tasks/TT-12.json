@@ -1,0 +1,47 @@
+{
+  "id": "TT-12",
+  "module": "tow-trike",
+  "type": "dp-engineer",
+  "title": "Поиск наклона мачты на колёсах без побочных эффектов в руках",
+  "goal": "Пробные вызовы закона рук в _wh_root (pendulum_model.gd) не меняют состояние рук; состояние обновляется один раз за подшаг; переход pitch −1 → 0 → +1 на колёсах без рывка.",
+  "plan_ref": "§4 TT-12",
+  "contracts": [
+    {
+      "name": "TT-К3",
+      "version": "6",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-12",
+  "branch": "tow-trike/TT-12",
+  "base": "feature/tow-trike",
+  "scope": [
+    "scripts/flight/pendulum/",
+    "tests/contracts/test_tow_trike_k3.gd"
+  ],
+  "dont_touch": [
+    "scripts/game/",
+    "configs/"
+  ],
+  "accept": [
+    {
+      "name": "tow_trike_k3",
+      "tests": "tow_trike_k3"
+    },
+    {
+      "name": "pendulum",
+      "tests": "pendulum"
+    },
+    {
+      "name": "tow",
+      "tests": "tow"
+    },
+    {
+      "name": "contracts/",
+      "tests": "contracts/"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T22:00:44"
+}
