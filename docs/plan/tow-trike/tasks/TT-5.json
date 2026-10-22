@@ -42,7 +42,9 @@
     "tests/game/test_tow_session.gd",
     "tests/contracts/test_tow_k9.gd",
     "tests/game/test_tow_trike_visual.gd",
-    "tests/game/test_tow_trike_visual.gd.uid"
+    "tests/game/test_tow_trike_visual.gd.uid",
+    "locale/ui.csv",
+    "docs/guide/flight/tow.md"
   ],
   "dont_touch": [
     "scripts/world_objects/easter_eggs/",
@@ -68,9 +70,15 @@
       "name": "no_an2",
       "cmd": "sh -c 'grep -rniE \"EggAn2|an2|ан-2\" scripts/game/tow_session.gd scripts/game/tow_tug.gd configs/tow_tug.json tests/game/test_tow_*.gd | wc -l'",
       "expect": "num:^(\\d+) <=0"
+    },
+    {
+      "name": "no_an2_ui",
+      "cmd": "sh -c 'grep -ciE \"setup_tow_aerotow,.*(ан-2|an-2)\" locale/ui.csv'",
+      "expect": "num:^(\\d+) <=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T22:20:30"
+  "created": "2026-10-22T22:20:30",
+  "edited": "2026-10-22T22:24:42"
 }
