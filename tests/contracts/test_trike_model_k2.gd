@@ -144,6 +144,8 @@ func test_trike_model() -> void:
 			var q_e: Quaternion = an.rotation_track_interpolate(found, an.length * 0.125)
 			check(absf(rad_to_deg(2.0 * acos(clampf(absf((qs[0].inverse() * q_e).w), 0.0, 1.0))) - 45.0) <= 1.0, "без ускорения: 1/8 клипа = 45°")
 	_check_v2(root, p, nodes)
+	_check_v3(root, p, nodes)
+	_check_v4(root, p, nodes)
 	root.free()
 
 
@@ -174,7 +176,13 @@ func _check_v2(root: Node, p: Dictionary, nodes: Dictionary) -> void:
 		# габарит двигателя ≈ engine_l/w/h (оценки в источниках ±20 %), цилиндры вверх: верх выше оси винта
 		var lo := Vector3(1e9, 1e9, 1e9)
 		var hi := Vector3(-1e9, -1e9, -1e9)
-		for v in pos:
+		# габарит самого двигателя — без выхлопа (резонатор, глушитель: свои размеры, проверка v3)
+		var ecv := _verts_cols(eng)
+		for i in (ecv[0] as PackedVector3Array).size():
+			var cc: Color = (ecv[1] as PackedColorArray)[i]
+			var v: Vector3 = (ecv[0] as PackedVector3Array)[i]
+			if _col_is(cc, 0.133, 0.119, 0.1, 0.02) or (_col_is(cc, 0.26, 0.27, 0.29, 0.03) and v.y < float(p.ground_z) + float(dims.prop_axis_height.value) - 0.15):
+				continue
 			lo = lo.min(v)
 			hi = hi.max(v)
 		var sz := hi - lo
@@ -260,6 +268,207 @@ func _check_v2(root: Node, p: Dictionary, nodes: Dictionary) -> void:
 		check(cnt >= 100, "бак: %d вершин в объёме tank" % cnt)
 		check(_mx(((hi2 - lo2) - hs * 2.0).abs()) <= 0.06, "бак: габарит вершин %s = tank.size %s ± 6 см" % [hi2 - lo2, hs * 2.0])
 		check(_mx(((hi2 + lo2) * 0.5 - c).abs()) <= 0.03, "бак: центр %s = tank.center %s ± 3 см" % [(hi2 + lo2) * 0.5, c])
+
+
+## Цвет вершины (линейный) близок к (r, g, b) ± tol.
+func _col_is(c: Color, r: float, g: float, b: float, tol: float) -> bool:
+	return absf(c.r - r) <= tol and absf(c.g - g) <= tol and absf(c.b - b) <= tol
+
+
+## Вершины и цвета меша (все поверхности).
+func _verts_cols(mi: MeshInstance3D) -> Array:
+	var vs := PackedVector3Array()
+	var cs := PackedColorArray()
+	for s in mi.mesh.get_surface_count():
+		var arr := mi.mesh.surface_get_arrays(s)
+		vs.append_array(arr[Mesh.ARRAY_VERTEX])
+		var c: Variant = arr[Mesh.ARRAY_COLOR]
+		if c is PackedColorArray and (c as PackedColorArray).size() == (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array).size():
+			cs.append_array(c)
+		else:
+			for i in (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array).size():
+				cs.append(Color(0, 0, 0))
+	return [vs, cs]
+
+
+## v3: трубы 60 мм, бак над килем, пружины-спирали, резонатор и глушитель.
+func _check_v3(root: Node, p: Dictionary, nodes: Dictionary) -> void:
+	var dims: Dictionary = p.dims
+	var l0 := nodes.get("Trike_LOD0") as MeshInstance3D
+	if l0 == null:
+		return
+	var vs := _verts(l0)
+	var bl := PackedVector3Array()
+	for v in vs:
+		bl.append(Vector3(v.x, -v.z, v.y))
+	# киль: вершины на оси x≈0 между сиденьями (без отводов): диаметр по z
+	var klo := 1e9
+	var khi := -1e9
+	for b in bl:
+		if absf(b.x) < 0.04 and b.y > 0.65 and b.y < 0.75 and b.z < -2.0 and b.z > -2.25:
+			klo = minf(klo, b.z)
+			khi = maxf(khi, b.z)
+	var dk := float(dims.tube_keel_d.value)
+	check(khi > klo and absf((khi - klo) - dk) <= 0.05 * dk, "киль: диаметр %.4f = %.3f ± 5 %%" % [khi - klo, dk])
+	# мачта: ширина по x на высоте z∈[−1.0, −0.9] вокруг оси x≈0 (без сидений, двигателя)
+	var mlo := 1e9
+	var mhi := -1e9
+	for b in bl:
+		if absf(b.x) < 0.045 and b.z > -2.2 and b.z < -2.05 and absf(b.y + tan(deg_to_rad(float(dims.mast_tilt_deg.value))) * 2.12) < 0.03:
+			mlo = minf(mlo, b.x)
+			mhi = maxf(mhi, b.x)
+	var dm := float(dims.tube_mast_d.value)
+	check(mhi > mlo and absf((mhi - mlo) - dm) <= 0.05 * dm, "мачта: диаметр %.4f = %.3f ± 5 %%" % [mhi - mlo, dm])
+	# ниже низа киля — только колёса, их вилка и стойки шасси (по бокам |x| > 0,16 или у переднего колеса)
+	var yf := float(dims.axle_front_y.value)
+	var below := 0
+	var lowest := 0.0
+	for b in bl:
+		if b.z < klo - 0.005 and absf(b.x) <= 0.16 and absf(b.y - yf) > 0.4:
+			below += 1
+			lowest = minf(lowest, b.z)
+	check(below == 0, "ниже низа киля %.3f вне колёс и шасси вершин: %d (до z %.3f)" % [klo, below, lowest])
+	# бак: низ выше верха киля на ≥ keel_clear − 0,5 см
+	var c := _bl(p.tank.center)
+	var hs := Vector3(float(p.tank.size[0]), float(p.tank.size[1]), float(p.tank.size[2])) * 0.5
+	var tlo := 1e9
+	for b in bl:
+		if absf(b.x - c.x) <= hs.x + 0.01 and absf(b.y - c.y) <= hs.y + 0.01 and absf(b.z - c.z) <= hs.z + 0.01 and b.z < c.z:
+			tlo = minf(tlo, b.z)
+	check(khi > klo and tlo - khi >= float(p.tank.keel_clear) - 0.005, "бак: низ %.3f над верхом киля %.3f на %.3f ≥ keel_clear %.3f − 0,005" % [tlo, khi, tlo - khi, float(p.tank.keel_clear)])
+	# горловина — вертикальная, на верху бака: вершины над верхом бака вокруг filler
+	var f := _bl(p.tank.filler)
+	var fhi := -1e9
+	var fx_lo := 1e9
+	var fx_hi := -1e9
+	for b in bl:
+		if Vector2(b.x - f.x, b.y - f.y).length() < 0.06 and b.z > c.z + hs.z + 0.003:
+			fhi = maxf(fhi, b.z)
+			fx_lo = minf(fx_lo, b.x)
+			fx_hi = maxf(fx_hi, b.x)
+	check(fhi > c.z + hs.z + 0.015 and fx_hi - fx_lo < 0.1, "горловина вертикально над баком: высота +%.3f, ширина %.3f" % [fhi - c.z - hs.z, fx_hi - fx_lo])
+	# пружины: жёлтые вершины вдоль амортизатора, >= 5 витков по развёртке угла вокруг оси
+	var vc := _verts_cols(l0)
+	var cols: PackedColorArray = vc[1]
+	var tilt := deg_to_rad(float(dims.mast_tilt_deg.value))
+	var kz := -2.12
+	var mb_y := -tan(tilt) * (-kz)
+	var m_pt := Vector3(0, mb_y * -1.62 / kz, -1.62)
+	for s in [-1, 1]:
+		var h := Vector3(s * (float(dims.track.value) / 2.0 - float(dims.tire_rear_w.value) / 2.0 - 0.02), float(dims.axle_rear_y.value), float(p.ground_z) + float(dims.wheel_rear_d.value) / 2.0 + 0.03)
+		var ax := (h - m_pt).normalized()
+		var u := ax.cross(Vector3.RIGHT if absf(ax.x) < 0.9 else Vector3.UP).normalized()
+		var w := ax.cross(u)
+		var pts: Array = []
+		for i in bl.size():
+			var cc := cols[i]
+			if cc.r > cc.g * 1.2 and cc.g > cc.b * 5.0 and cc.r > 0.3 and bl[i].x * s > 0.0:
+				var d := bl[i] - m_pt
+				var t := d.dot(ax)
+				var rad := (d - ax * t).length()
+				if rad < 0.06:
+					pts.append([t, atan2(d.dot(w), d.dot(u))])
+		pts.sort_custom(func(a, b): return a[0] < b[0])
+		var turns := 0.0
+		for i in range(1, pts.size()):
+			var dth := wrapf(pts[i][1] - pts[i - 1][1], -PI, PI)
+			turns += dth
+		check(pts.size() >= 20 and absf(turns) / TAU >= 5.0, "пружина %d: %d вершин, %.1f витков ≥ 5" % [s, pts.size(), absf(turns) / TAU])
+	# резонансная труба и глушитель: габарит в осях винта (z — вдоль оси двигателя)
+	var eng := nodes.get("Engine_LOD0") as MeshInstance3D
+	var prop := root.find_child("Propeller", true, false) as Node3D
+	if eng != null and prop != null:
+		var ec := _verts_cols(eng)
+		var inv := _xf(prop, root).affine_inverse()
+		var res_lo := Vector3(1e9, 1e9, 1e9)
+		var res_hi := Vector3(-1e9, -1e9, -1e9)
+		var mu_lo := res_lo
+		var mu_hi := res_hi
+		for i in (ec[0] as PackedVector3Array).size():
+			var cc: Color = (ec[1] as PackedColorArray)[i]
+			if not _col_is(cc, 0.133, 0.119, 0.1, 0.02):
+				continue
+			var q: Vector3 = inv * (_xf(eng, root) * (ec[0] as PackedVector3Array)[i])
+			if q.y < -0.22:
+				mu_lo = mu_lo.min(q)
+				mu_hi = mu_hi.max(q)
+			elif q.y >= -0.22 and q.y < -0.045 and q.x < -0.1:
+				res_lo = res_lo.min(q)
+				res_hi = res_hi.max(q)
+		var rs := res_hi - res_lo
+		var ms := mu_hi - mu_lo
+		var ed := float(dims.engine_exhaust_d.value)
+		var el := float(dims.engine_exhaust_l.value)
+		var md := float(dims.muffler_d.value)
+		var ml := float(dims.muffler_l.value)
+		check(absf(rs.z - el) <= 0.15 * el, "резонансная труба: длина %.3f = %.2f ± 15 %%" % [rs.z, el])
+		check(absf(rs.y - ed) <= 0.15 * ed, "резонансная труба: диаметр %.3f = %.2f ± 15 %%" % [rs.y, ed])
+		check(absf(ms.z - ml) <= 0.15 * ml, "глушитель: длина %.3f = %.2f ± 15 %%" % [ms.z, ml])
+		check(absf(ms.y - md) <= 0.15 * md, "глушитель: диаметр %.3f = %.2f ± 15 %%" % [ms.y, md])
+
+
+## v4: площадки педалей под pedal_angle_deg, приборная панель и маркер InstrumentPanel.
+func _check_v4(root: Node, p: Dictionary, nodes: Dictionary) -> void:
+	var l0 := nodes.get("Trike_LOD0") as MeshInstance3D
+	if l0 == null:
+		return
+	var bl := PackedVector3Array()
+	for v in _verts(l0):
+		bl.append(Vector3(v.x, -v.z, v.y))
+	var s: Dictionary = p.seat
+	var a := deg_to_rad(float(s.pedal_angle_deg))
+	check(absf(float(s.pedal_angle_deg) - 45.0) <= 0.01, "pedal_angle_deg = 45")
+	var n := Vector3(0, -sin(a), cos(a))
+	var u := Vector3(0, cos(a), sin(a))
+	var pw := float(s.pedal_size[0])
+	var pl := float(s.pedal_size[1])
+	for key in ["foot_l", "foot_r", "throttle_pedal"]:
+		var c := _bl(s[key])
+		var k := 1.0 if key != "throttle_pedal" else 0.8
+		var found := 0
+		for sx in [-1.0, 1.0]:
+			for su in [-1.0, 1.0]:
+				var want: Vector3 = c + Vector3(sx * pw * k * 0.5, 0, 0) + u * (su * pl * k * 0.5)
+				var best := 1e9
+				for b in bl:
+					# угол площадки: расстояние от вершины до плоскости педали ≤ 1 см (накладка газа — +0,8 см)
+					best = minf(best, b.distance_to(want + n * (0.0 if key != "throttle_pedal" else 0.008)))
+				if best <= 0.012:
+					found += 1
+		check(found == 4, "%s: площадка %.2f×%.2f под %.0f°, углов на плоскости: %d из 4 (±1 см)" % [key, pw, pl, float(s.pedal_angle_deg), found])
+		# нормаль плоскости 45 ± 2°: вершины вблизи центра лежат в плоскости педали ±1 см
+		var inplane := 0
+		for b in bl:
+			if absf((b - c).dot(n)) <= 0.012 and absf((b - c).dot(u)) <= pl * 0.5 + 0.01 and absf(b.x - c.x) <= pw * 0.5 + 0.01:
+				inplane += 1
+		check(inplane >= 4, "%s: вершин в плоскости педали ±1 см: %d" % [key, inplane])
+	# приборная панель
+	var pn: Dictionary = p.panel
+	var im := root.find_child("InstrumentPanel", true, false) as Node3D
+	check(im != null, "маркер InstrumentPanel")
+	var cb := _bl(pn.center)
+	if im != null:
+		var xf := _xf(im, root)
+		var want := Vector3(cb.x, cb.z, -cb.y)
+		check(xf.origin.distance_to(want) <= 0.01, "InstrumentPanel: позиция %s = %s ± 1 см" % [xf.origin, want])
+		var nb := _bl(pn.normal).normalized()
+		var nw := Vector3(nb.x, nb.z, -nb.y)
+		var ang := rad_to_deg(xf.basis.z.normalized().angle_to(nw))
+		check(ang <= 2.0, "InstrumentPanel: basis.z к normal %.2f° ≤ 2°" % ang)
+	var nbv := _bl(pn.normal).normalized()
+	var up := nbv.cross(Vector3.RIGHT)
+	var pw2 := float(pn.size[0])
+	var ph2 := float(pn.size[1])
+	var got := 0
+	for sx in [-1.0, 1.0]:
+		for su in [-1.0, 1.0]:
+			var want2: Vector3 = cb + Vector3(sx * pw2 * 0.5, 0, 0) + up * (su * ph2 * 0.5)
+			var best2 := 1e9
+			for b in bl:
+				best2 = minf(best2, b.distance_to(want2))
+			if best2 <= 0.02:
+				got += 1
+	check(got == 4, "панель в Trike_LOD0: углов %.2f×%.2f на месте ±2 см: %d из 4" % [pw2, ph2, got])
 
 
 func _mx(v: Vector3) -> float:
