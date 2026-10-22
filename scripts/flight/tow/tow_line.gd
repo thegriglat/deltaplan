@@ -59,6 +59,9 @@ static func create(kind_: String, anchor: Vector3, cfg_: Dictionary = {}) -> Tow
 		else:
 			base[k] = cfg_[k]
 	t.cfg_rope = base.get("rope", {})
+	if kind_ == "aerotow" and base.get("aerotow_rope") is Dictionary:  # трос аэробуксировки: свои ключи поверх rope
+		t.cfg_rope = t.cfg_rope.duplicate()
+		t.cfg_rope.merge(base.aerotow_rope, true)
 	t.cfg = base.get(kind_, {})
 	t.anchor_pos = anchor
 	t._ground_y = anchor.y
@@ -141,7 +144,7 @@ func _force(s: Dictionary) -> Dictionary:
 	return {"link": {
 		"anchor": anchor_pos, "anchor_vel": anchor_vel, "length_m": maxf(length_m, 0.0),
 		"length_rate_ms": _rate, "compliance_m_per_n": maxf(length_m, 0.5) / ea,
-		"damping_s": tau, "at": at,
+		"damping_s": tau, "at": at, "pilot_share": float(cfg_rope.get("bridle_pilot_share", 0.0 if at == "hang" else 1.0)),
 	}}
 
 

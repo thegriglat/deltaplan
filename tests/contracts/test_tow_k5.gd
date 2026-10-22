@@ -245,3 +245,25 @@ func test_free_rope_reeled_in() -> void:
 	check(absf(-fr.end_vel.y - v_term) < 0.1 * v_term, "конец падает с установившейся скоростью купола")
 	check(r.tow.reeled_in, "reeled_in за конечное время: %.1f с" % tt)
 	check(r.tow.points(8).is_empty(), "после выбора points пусто")
+
+
+## TW-К4 v6 / К5 v9: TowLine передаёт pilot_share уздечки из конфига: лебёдка 1,0 (грудь 100/0), аэробуксировка 0,5
+## (50/50, блок aerotow_rope); аэробуксировка берёт EA, массу и долю из aerotow_rope, остальное — из rope.
+func test_bridle_pilot_share_in_link() -> void:
+	var st := {"h": 0.002, "pilot_pos": Vector3(0.0, 1.0, 0.0), "hang_pos": Vector3(0.0, 2.0, 0.0),
+		"pilot_vel": Vector3.ZERO, "hang_vel": Vector3.ZERO, "link_tension_n": 0.0, "on_ground": false,
+		"wing_basis": Basis.IDENTITY, "t": 0.0}
+	for case in [["winch_static", 1.0, 3.0e5], ["aerotow", 0.5, 3.0e4]]:
+		var tow := TowLine.create(case[0], Vector3(0.0, 100.0, -60.0))
+		tow.start()
+		var d: Dictionary = tow.force_fn().call(st)
+		check(d.has("link") and d.link.has("pilot_share"), "%s: link содержит pilot_share" % case[0])
+		if d.has("link"):
+			check(is_equal_approx(d.link.pilot_share, case[1]), "%s: pilot_share %s" % [case[0], d.link.get("pilot_share")])
+			var ea: float = maxf(d.link.length_m, 0.5) / d.link.compliance_m_per_n
+			check(absf(ea - case[2]) < 1.0, "%s: EA = %.0f" % [case[0], ea])
+	var cfg := {"rope": {"bridle_pilot_share": 0.3}}
+	var t2 := TowLine.create("winch_static", Vector3(0.0, 100.0, -60.0), cfg)
+	t2.start()
+	var d2: Dictionary = t2.force_fn().call(st)
+	check(is_equal_approx(d2.link.pilot_share, 0.3), "cfg переопределяет pilot_share: %s" % d2.link.pilot_share)
