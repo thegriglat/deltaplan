@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "TP-К8 соблюдён: update_parts, буксировщик через него, вид дельталёта top_level с интерполяцией по шагам физики, PilotHead/InstrumentPanel, приборы и HUD, камера без back_offset, звук setup_player/update_engine. Правки в скоупе, project.godot не тронут. Камера (priority 10) обрабатывается после Glider, отставания головы на кадр нет. Замечания minor.",
+  "issues": [
+    {
+      "file": "tests/contracts/test_trike_pilot_k8.gd",
+      "line": 79,
+      "severity": "minor",
+      "what": "check(absf(ang) >= 0.0, \"стрелка считана\") — тавтология; тест не проверяет, что update_readout доходит до TrikeGauges3D/HUD каждый кадр (инвариант TP-К8, раздел «Приборы»)",
+      "fix": "после tick при running сравнить показание (стрелку/текст) с engine.engine_rpm по шкале прибора или проверить, что угол стрелки ненулевой и меняется"
+    },
+    {
+      "file": "scripts/flight/glider.gd",
+      "line": 371,
+      "severity": "minor",
+      "what": "звук двигателя игрока на паузе (Esc) и в меню гасит только останов двигателя: set_paused выключает vario/flight_audio, а EngineSound — нет (отмечено исполнителем в uncertain). Если поток не паузится вместе с деревом, двигатель гудит в меню паузы",
+      "fix": "проверить на паузе; при необходимости в Game.set_paused/set_flying глушить glider.trike_visual.sound (stream_paused) — отдельной задачей"
+    },
+    {
+      "file": "scripts/flight/glider.gd",
+      "line": 405,
+      "severity": "minor",
+      "what": "фаза \"wheels\" в _update_pilot осталась flying; у дельталёта visual == null, поэтому на него не влияет — по контракту допустимо, но временная правка TP-6 остаётся в коде без пометки",
+      "fix": "либо вернуть \"wheels\" к наземной фазе, либо оставить комментарий, что ветка недостижима для дельталёта"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "trike_pilot (accept --only --dry под lock cpu)",
+      "value": "49/49",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "5 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-23T04:23:24",
+  "by": "reviewer"
+}

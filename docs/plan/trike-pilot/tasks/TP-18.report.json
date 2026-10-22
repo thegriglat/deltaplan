@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "full_pull_speed_kmh trike_ixess15: 130 -> 82 (модельная, TP-17: 81,5 на упоре TT-8); в _doc, источнике крыла и build.py записано: 130 - Va по HADS (только в снижении), ~120 - горизонтальный потолок по тяге 582. Раздел 6 в speed-range.md и абзац в trike-tug.md.",
+  "commits": [
+    "d48bfd77 TP-18: full_pull_speed_kmh trike_ixess15 = 82"
+  ],
+  "checks": [
+    {
+      "name": "wing_passports",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "wing_physics",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "tow",
+      "value": "105/105",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot",
+      "value": "34/34",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TP-18",
+  "uncertain": [
+    {
+      "where": "tools/research/tow-trike/build.py",
+      "why": "запуск build.py перезаписывает configs/tow_tug.json (вне скоупа)",
+      "checked": "tow_tug.json откатил git checkout, в коммит не попал; wing_trike_ixess15.json и build.py правил вручную, согласованно"
+    },
+    {
+      "where": "configs/wings/trike_ixess15.json:94",
+      "why": "82 округлено из 81,5; потребители full_pull_speed_kmh (flight_model, bot_pilot) используют его как опорную скорость тяги штанги - поведение других тележек с этим крылом не смотрел",
+      "checked": "тесты карточки 4/4"
+    }
+  ],
+  "dp_feedback": "build.py пишет в файлы вне скоупа задачи; accept --dry при перегрузке даёт таймаут 900 с, а в копии без .godot нужен --import заранее - стоило бы подсказывать.",
+  "t": "2026-10-23T04:45:47",
+  "by": "executor"
+}

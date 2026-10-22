@@ -1,0 +1,48 @@
+{
+  "id": "TP-10",
+  "module": "trike-pilot",
+  "type": "dp-writer",
+  "title": "Документация дельталёта игрока, CHANGELOG, findings",
+  "goal": "Описать в docs/guide/ дельталёт игрока как он есть в ветке (старт на местах с буксировкой, клавиши, двигатель и топливо, приборы, камера, звук, физика и её границы), строку в CHANGELOG «В работе», выводы исследований в registry/findings.md.",
+  "plan_ref": "TP-10",
+  "contracts": [
+    {
+      "name": "TP-К6",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-10",
+  "branch": "trike-pilot/TP-10",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "docs/guide/",
+    "CHANGELOG.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "docs/plan/",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1'",
+      "expect": "!re:ОШИБКА.*(guide|findings|trike)"
+    },
+    {
+      "name": "changelog",
+      "cmd": "grep -c -i 'дельталёт' CHANGELOG.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:41:43"
+}
