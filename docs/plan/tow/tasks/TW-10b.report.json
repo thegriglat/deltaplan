@@ -1,0 +1,114 @@
+{
+  "status": "done",
+  "summary": "TowSession поддерживает aerotow: пилот на тележке (reset_on_dolly), Ан-2 (TowTug + EggAn2.build_model) впереди на 80 м, W запускает буксировщика, отрыв с тележки раньше взлёта Ан-2, отцеп -> Ан-2 away и убирается, тележка остаётся. Game._choose_tow_start принимает aerotow; RELEASE_FRACTION перенесён в configs/tow.json.",
+  "commits": [
+    "4c65c3c7 tow: TW-10b — аэробуксировка за Ан-2 со старта с тележки"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "10/10 PASS",
+      "pass": true
+    },
+    {
+      "name": "test_tow_k* (контракты К4-К10)",
+      "value": "53/53",
+      "pass": true
+    },
+    {
+      "name": "отрыв / Ан-2 climb (тест)",
+      "value": "8.7 с / 16.1 с; дельтаплан <=5.2 м, пока Ан-2 на земле; T max 647 Н",
+      "pass": true
+    },
+    {
+      "name": "test_tow_aerotow",
+      "value": "PASS (accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "test_tow_session",
+      "value": "PASS (accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "test_egg_an2",
+      "value": "PASS (accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "test_eggs_no_osm",
+      "value": "PASS (accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "tow_k9",
+      "value": "PASS (accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "tow_k10",
+      "value": "PASS (accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "test_game_logic",
+      "value": "PASS (accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "test_input_launch",
+      "value": "PASS (accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "gdcheck",
+      "value": "PASS (accept --dry)",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "PASS (accept --dry)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Подсказок нет (по заданию). Звук мотора Ан-2 — тот же синтез, что в пасхалке, без доплеровской привязки к скорости винта.",
+    "Скриншоты/тестовая сборка Linux не делались (не заказаны); визуал тележки и Ан-2 в игре глазами не проверен."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TW-10b",
+  "uncertain": [
+    {
+      "where": "scripts/game/tow_session.gd: glider_agl_m",
+      "why": "высота дельтаплана для буксировщика считается от пилота (cradle_height_m + подъём pilot_position над стоянкой), а не от колёс/штанги; при смене позы пилота ошибка порядка 0,5 м; порог 3 м у TowTug поэтому приближённый",
+      "checked": "тест: на разбеге высота держится 0..5,2 м, Ан-2 взлетает на 16.1 с после отрыва дельтаплана на 8.7 с"
+    },
+    {
+      "where": "tests/game/test_tow_aerotow.gd (пилот-испытатель)",
+      "why": "пилот держит высоту ПД-регулятором (3,5 м над колёсами Ан-2). SpeedHold в наборе на тросе не годится: скорость задаёт трос, SpeedHold с целью 13..17 м/с уводит в зуммирование (тангаж 30-40 град) и рвёт слабое звено (T>1250 Н). Управляемость на тросе — шлюз Q3, не здесь",
+      "checked": "три варианта цели SpeedHold (13, 15, скорость Ан-2) давали обрыв за 1-2 с после взлёта Ан-2; ПД по высоте относительно Ан-2 — устойчивый набор, T 200-350 Н"
+    },
+    {
+      "where": "scripts/game/tow_tug.gd (не мой файл), away при отцепе на разбеге",
+      "why": "release() на земле сразу ставит скорость v_tow (скачок от нескольких м/с до 16.7), модель Ан-2 телепортируется вперёд; контракт К9 не запрещает",
+      "checked": "только прочитал код; в игре не смотрел"
+    },
+    {
+      "where": "scripts/game/tow_session.gd: _place_aerotow",
+      "why": "Ан-2 ставится так, что колёса на tail_height_m ниже точки троса (хвост модели в уровне полёта, не на хвостовом колесе); трос визуально крепится у низа хвоста (смещение (0,-0.95,6.4) в осях модели). Тележка — по dolly_pos и курсу полосы, наклон по уклону земли, не по tow_dolly_keel/bar",
+      "checked": "тест test_models: точка крепления модели совпадает с tug.pos, тележка в dolly_pos"
+    }
+  ],
+  "dp_feedback": "Хотелось бы в dpcli команду для запуска одного GDScript-прогона (трассировка состояния) без ручной сцены; pkill -f запрещён, а фоновая задача зависла на ошибке разбора и пришлось ждать таймаут.",
+  "extra": {
+    "rope_length_m": 80,
+    "runway_default_m": 300,
+    "release_height_aerotow_m": 300,
+    "release_height_frac_winch": 0.35,
+    "takeoff_s": 8.7,
+    "tug_climb_s": 16.1,
+    "glider_max_agl_while_tug_on_ground_m": 5.2
+  },
+  "t": "2026-10-22T06:28:25",
+  "by": "executor"
+}
