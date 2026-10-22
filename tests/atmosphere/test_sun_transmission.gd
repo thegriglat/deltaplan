@@ -147,3 +147,33 @@ func test_layer_rebuild_threshold() -> void:
 	layer._update_light()
 	check(layer.sun_tab_builds == 2, "таблица обновлена: %d" % layer.sun_tab_builds)
 	_free(arr)
+
+
+## HH-14: свет окружения облаков (рассеянный свет, дымка) следует закату, днём — как был.
+func test_ambient_follows_sunset() -> void:
+	var arr := _layer()
+	var layer: CloudLayer = arr[0]
+	var sky: SkyEnvironment = arr[1]
+	var m := layer._material
+	var cfg: Dictionary = layer.cfg
+	sky.clock.start_flight(51.0, 85.0, 7, 15, 13.0)
+	layer._update_light()
+	var amb_day: Vector3 = Vector3(cfg.ambient_top[0], cfg.ambient_top[1], cfg.ambient_top[2])
+	var top_day: Color = m.get_shader_parameter("ambient_top")
+	check(absf(top_day.r - amb_day.x) < 1e-5 and absf(top_day.b - amb_day.z) < 1e-5, "днём ambient без поправки")
+	check(absf(float(m.get_shader_parameter("ambient_energy")) - float(cfg.ambient_energy)) < 1e-5, "днём яркость окружения прежняя")
+	var fog_day: Vector3 = m.get_shader_parameter("fog_color")
+	# солнце ≈ 2° (в июле)
+	sky.clock.start_flight(51.0, 85.0, 7, 15, 20.1)
+	layer._update_light()
+	var el: float = sky.clock.angles().y
+	check(el > 1.0 and el < 3.0, "высота солнца вечером %.2f" % el)
+	var e: float = float(m.get_shader_parameter("ambient_energy"))
+	check(absf(e - float(cfg.ambient_energy) * layer.sky_light_k(el)) < 1e-5, "яркость окружения × sky_light.k: %.3f" % e)
+	check(absf(layer.sky_light_k(40.0) - 1.0) < 1e-6 and layer.sky_light_k(2.0) < layer.sky_light_k(8.0), "таблица sky_light: день 1, вечер меньше")
+	check(e < 0.7 * float(cfg.ambient_energy), "окружение вечером темнее")
+	var top: Color = m.get_shader_parameter("ambient_top")
+	check(top.r / top.b > top_day.r / top_day.b * 1.1, "ambient теплее: R/B %.3f" % (top.r / top.b))
+	var fog: Vector3 = m.get_shader_parameter("fog_color")
+	check(fog.x < fog_day.x and fog.x / fog.z > fog_day.x / fog_day.z * 1.1, "дымка облаков темнее и теплее")
+	_free(arr)

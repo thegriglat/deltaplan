@@ -34,8 +34,12 @@ cfg="$cfg_dir/world.json"
 mkdir -p "$cfg_dir"
 backup=""
 if [[ -f "$cfg" ]]; then backup="$(mktemp)"; cp "$cfg" "$backup"; fi
+acfg="$cfg_dir/atmosphere.json"
+abackup=""
+if [[ -f "$acfg" ]]; then abackup="$(mktemp)"; cp "$acfg" "$abackup"; fi
 restore() {
   if [[ -n "$backup" ]]; then cp "$backup" "$cfg"; rm -f "$backup"; else rm -f "$cfg"; fi
+  if [[ -n "$abackup" ]]; then cp "$abackup" "$acfg"; rm -f "$abackup"; else rm -f "$acfg"; fi
 }
 trap restore EXIT
 
@@ -129,6 +133,60 @@ PY
   (cd "$root" && python3 tools/shots/menu_art.py --only=26 --size=1920x1080 "--out=$ev" 2>&1 | tail -3) || true
   cp "$ev"/26_*.jpg "$out/${prefix}everest.jpg"
   echo "haze_humidity_shots.sh: suncolor $prefix* в $out"
+  exit 0
+fi
+
+# Режим clouds (HH-14): цвет освещённых боков облаков при высоте солнца 2° и 0,8° (время — по расчёту
+# высоты, не по часам), ракурсы «к солнцу» и «сбоку» (+70°), и полдень; Алтай, --sky=partly.
+# <префикс>clouds_{2deg,1deg}_{sun,side}.jpg, <префикс>clouds_day.jpg и рядом <кадр>.nocloud.jpg —
+# тот же кадр без облаков (маска для tools/shots/cloud_color_measure.py); <префикс>clouds_README.txt —
+# высота солнца каждого кадра. CLOUD_CFG='{"clouds": {…}}' — правка atmosphere.json для кадров с облаками (пробы). Нужен GPU-замок: .dpcli/dpcli lock gpu hh14 -- <этот скрипт>.
+if [[ "${4:-}" == "clouds" ]]; then
+  IFS='|' read -r name site lat lon off hdg <<<"${places[0]}"
+  readme="$out/${prefix}clouds_README.txt"; : > "$readme"
+  both() {  # both <файл.jpg> <аргументы игры...>: кадр и тот же кадр без облаков
+    local f="$1"; shift
+    echo "${CLOUD_CFG:-{\}}" > "$acfg"; shot "$f" "$@"
+    echo '{"clouds": {"enabled": false}}' > "$acfg"; shot "${f%.jpg}.nocloud.jpg" "$@"
+    echo '{}' > "$acfg"
+  }
+  for tgt in "2.0:2deg" "0.8:1deg"; do
+    want="${tgt%%:*}"; tag="${tgt##*:}"
+    h="$(python3 - "$want" "$lat" "$lon" "$off" <<'PY'
+import sys, math
+want, lat, lon, off = map(float, sys.argv[1:5])
+doy = 196
+def elev(h):
+    g = 2 * math.pi / 365 * (doy - 1 + (h - 12) / 24)
+    d = (0.006918 - 0.399912 * math.cos(g) + 0.070257 * math.sin(g) - 0.006758 * math.cos(2 * g)
+         + 0.000907 * math.sin(2 * g) - 0.002697 * math.cos(3 * g) + 0.00148 * math.sin(3 * g))
+    e = 229.18 * (0.000075 + 0.001868 * math.cos(g) - 0.032077 * math.sin(g) - 0.014615 * math.cos(2 * g)
+                  - 0.040849 * math.sin(2 * g))
+    s = h + (4 * lon - 60 * off + e) / 60
+    ha = math.radians(15 * (s - 12)); la = math.radians(lat)
+    return math.degrees(math.asin(math.sin(la) * math.sin(d) + math.cos(la) * math.cos(d) * math.cos(ha)))
+lo, hi = 18.0, 23.0
+for _ in range(60):
+    m = (lo + hi) / 2
+    if elev(m) > want: lo = m
+    else: hi = m
+print("%.4f" % lo)
+PY
+)"
+    hour=20
+    secs="$(python3 -c "print('%.1f' % (($h - $hour) * 60))")"
+    read -r az el < <(sun "$lat" "$lon" "$off" "$h")
+    echo "$name $tag: высота солнца $el, азимут $az (час $h)" | tee -a "$readme"
+    set_speed 60
+    yaw="$(python3 -c "print('%.1f' % (($hdg - $az + 180) % 360 - 180))")"
+    look_el="$(python3 -c "print(max($el, 2.0))")"
+    both "$out/${prefix}clouds_${tag}_sun.jpg" "--location=$name" "--site=$site" "--hour=$hour" "--time=$secs" --air-start=300,300 "--look=$yaw,$look_el"
+    yaw2="$(python3 -c "print('%.1f' % (($hdg - $az + 180 + 70) % 360 - 180))")"
+    both "$out/${prefix}clouds_${tag}_side.jpg" "--location=$name" "--site=$site" "--hour=$hour" "--time=$secs" --air-start=300,300 "--look=$yaw2,6"
+  done
+  set_speed 1
+  both "$out/${prefix}clouds_day.jpg" "--location=$name" "--site=$site" --hour=12 --time=20 --air-start=300,300 --look=0,25
+  echo "haze_humidity_shots.sh: clouds $prefix* в $out"
   exit 0
 fi
 
