@@ -56,3 +56,5 @@
 {"t": "2026-10-23T03:40:29", "by": "coordinator", "task": "CR-2", "ev": "checked", "note": "3/3 sections=ok:6; privacy=ok:exit 0; docs=ok:exit 1; scope=FAIL:вне scope: r-CR-2.json"}
 {"t": "2026-10-23T03:40:51", "by": "coordinator", "task": "CR-2", "ev": "checked", "note": "3/3 sections=ok:6; privacy=ok:exit 0; docs=ok:exit 1"}
 {"t": "2026-10-23T03:40:57", "by": "coordinator", "task": "CR-2", "ev": "accepted", "note": "по отчёту, partial: причина — гипотеза"}
+{"t": "2026-10-23T03:40:59", "by": "coordinator", "task": "CR-2", "ev": "accepted", "commits": ["e3fd6fcc"], "note": "3/3 sections=ok:6; privacy=ok:exit 0; docs=ok:exit 1"}
+{"t": "2026-10-23T03:40:59", "by": "coordinator", "task": "CR-2", "ev": "merged"}
