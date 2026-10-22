@@ -136,6 +136,9 @@ related: ["docs/contracts/trike-pilot.md", "docs/plan/trike.md", "docs/contracts
 #### TP-21 Подскок на колёсах без провала под землю
 `dp-engineer` (sonnet), ревью `dp-reviewer`. TP-13: подскок < 0,05 м после касания оставляет `_wh_hold` — касание не проверяется, модель проваливается (до −65 м). Контракт TP-К7 v3. Приёмка: `trike_pilot`, `trike_cycle`, `tow_trike`, `tow`, `pendulum` — 0 упало.
 
+#### TP-22 Звук двигателя в паузе, хвосты ревью TP-8
+`dp-engineer` (sonnet). Ревью TP-8 (minor): на паузе (Esc) и в меню звук двигателя игрока не гаснет (vario/flight_audio гаснут); тавтология в `test_trike_pilot_k8.gd:79` (проверять, что `update_readout` доходит до приборов каждый кадр); фаза `wheels` в `Glider._update_pilot` — наземная. Приёмка: `trike_pilot`, `pilot_hud`, `cockpit` — 0 упало.
+
 ## 5. Волны
 1. TP-1, TP-2, TP-3, TP-4 параллельно (разные файлы).
 2. TP-5 по освобождению места; TP-11, TP-12 — по ответам Q1–Q3.
