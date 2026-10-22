@@ -1,0 +1,51 @@
+{
+  "id": "CR-3",
+  "module": "crash-reports",
+  "type": "dp-researcher",
+  "title": "Диагноз вылета группы C: RTX 5060 Laptop, 1.5.15, стадия trees (#3)",
+  "goal": "Найти причину вылета #3 (1.5.15, RTX 5060 Laptop, Windows, Vulkan, graphics high, стадия trees, повтор ошибки «рельеф не загружен: That's the sea») в коде с доказательством, проверить, исправлена ли в main, описать воспроизведение — документ по CR-К1.",
+  "plan_ref": "§4 CR-3",
+  "contracts": [
+    {
+      "name": "CR-К1",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    }
+  ],
+  "copy": "~/deltaplan-crash-reports-CR-3",
+  "branch": "crash-reports/CR-3",
+  "base": "feature/crash-reports",
+  "scope": [
+    "docs/research/crash-reports/cr-3.md",
+    "tools/research/crash-reports/cr-3"
+  ],
+  "dont_touch": [
+    "scripts",
+    "scenes",
+    "shaders",
+    "project.godot",
+    "CHANGELOG.md",
+    "docs/plan",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "sections",
+      "cmd": "grep -cE '^## (Отчёты|Механизм отчёта|Причина|Исправлено ли в main|Воспроизведение|Предложение правки)$' docs/research/crash-reports/cr-3.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "privacy",
+      "cmd": "! grep -rEqs 'pt_-?[0-9]|-?[0-9]{1,3}\\.[0-9]{3,}[, ]+-?[0-9]{1,3}\\.[0-9]{3,}' docs/research/crash-reports/cr-3.md tools/research/crash-reports/cr-3",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА.*crash-reports"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:17:45"
+}

@@ -1,0 +1,51 @@
+{
+  "id": "CR-1",
+  "module": "crash-reports",
+  "type": "dp-researcher",
+  "title": "Диагноз вылетов группы A: GTX 1050 Ti, D3D12, стадия wind (#4–#10)",
+  "goal": "Найти причину вылетов #4–#10 (1.5.18, GTX 1050 Ti, Windows, D3D12, graphics low, стадия wind, ошибки RenderingDevice buffer_update/uniform_set_create) в коде с доказательством, проверить, исправлена ли в main, описать воспроизведение — документ по CR-К1.",
+  "plan_ref": "§4 CR-1",
+  "contracts": [
+    {
+      "name": "CR-К1",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    }
+  ],
+  "copy": "~/deltaplan-crash-reports-CR-1",
+  "branch": "crash-reports/CR-1",
+  "base": "feature/crash-reports",
+  "scope": [
+    "docs/research/crash-reports/cr-1.md",
+    "tools/research/crash-reports/cr-1"
+  ],
+  "dont_touch": [
+    "scripts",
+    "scenes",
+    "shaders",
+    "project.godot",
+    "CHANGELOG.md",
+    "docs/plan",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "sections",
+      "cmd": "grep -cE '^## (Отчёты|Механизм отчёта|Причина|Исправлено ли в main|Воспроизведение|Предложение правки)$' docs/research/crash-reports/cr-1.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "privacy",
+      "cmd": "! grep -rEqs 'pt_-?[0-9]|-?[0-9]{1,3}\\.[0-9]{3,}[, ]+-?[0-9]{1,3}\\.[0-9]{3,}' docs/research/crash-reports/cr-1.md tools/research/crash-reports/cr-1",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА.*crash-reports"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:17:35"
+}
