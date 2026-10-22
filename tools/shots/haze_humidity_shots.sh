@@ -19,6 +19,7 @@ root="$(cd "${1:?корень копии}" && pwd)"
 prefix="${2:?префикс: before_ | after_}"
 out="${3:-/home/greg/deltaplan/build/screenshots/haze-humidity}"
 mkdir -p "$out"
+export DP_SUN_TINT_LOG=1
 export DISPLAY="${DISPLAY:-:0}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.cache/dp-xdg/$(basename "$root")}"
 SEED=7
@@ -38,7 +39,8 @@ restore() {
 }
 trap restore EXIT
 
-set_speed() { echo "{\"time\": {\"speed\": $1}}" > "$cfg"; }
+# max_hour 23: ход часов дальше 21:00 нужен кадрам при солнце < 2° (по умолчанию время в полёте стоит с 21:00)
+set_speed() { echo "{\"time\": {\"speed\": $1, \"max_hour\": 23}}" > "$cfg"; }
 
 # sun <широта> <долгота> <пояс> <часы> → "азимут высота" (15 июля, doy 196)
 sun() {
@@ -69,12 +71,66 @@ shot() {  # shot <файл.jpg> <аргументы игры...>
     rm -f "$png"
     (cd "$root" && timeout 150 godot --path . --audio-driver Dummy --fullscreen --resolution 1920x1080 \
     -- --autostart --autopilot --no-overlay --sky=partly --camera=cockpit "--seed=$SEED" \
-    "$@" "--screenshot=$png" 2>&1 | grep -E "^screenshot:|ERROR" || true)
+    "$@" "--screenshot=$png" 2>&1 | tee "${png%.png}.log" | grep -E "^screenshot:|ERROR" || true)
     [[ -f "$png" ]] && break
   done
   convert "$png" -quality 88 "$file"
-  rm -f "$png"
+  # ожидаемая цветность диска (SkyEnvironment, DP_SUN_TINT_LOG) — для tools/shots/sun_color_measure.py
+  grep "^sun_tint:" "${png%.png}.log" | tail -1 > "${file%.jpg}.tint.txt" || true
+  rm -f "$png" "${png%.png}.log"
 }
+
+# Режим suncolor (HH-13): закат при высоте солнца 4°, 2° и 0,7° (время — по расчёту высоты, не по часам),
+# ракурсы «к солнцу» и «сбоку» (на освещённые бока облаков, солнце сбоку) в Аскарово:
+# <префикс>suncolor_askarovo[_low][_side].jpg; и вечерний Эверест (ракурс 26_everest_tele (= 03_эверест_вечером) из menu_art.json) —
+# <префикс>everest.jpg. Диск рисуется не ниже min_light_elevation_deg (2°), цветность — по истинной высоте.
+if [[ "${4:-}" == "suncolor" ]]; then
+  IFS='|' read -r name site lat lon off hdg <<<"${places[1]}"
+  for tgt in "4.0:" "2.0:_low" "0.7:_vlow"; do
+    want="${tgt%%:*}"; sfx="${tgt##*:}"
+    # час (дробный), когда высота солнца = want (бисекция по вечернему спаду)
+    h="$(python3 - "$want" "$lat" "$lon" "$off" <<'PY'
+import sys
+want, lat, lon, off = sys.argv[1:5]
+import math
+doy = 196
+def elev(h, lat=float(lat), lon=float(lon), off=float(off)):
+    g = 2 * math.pi / 365 * (doy - 1 + (h - 12) / 24)
+    d = (0.006918 - 0.399912 * math.cos(g) + 0.070257 * math.sin(g) - 0.006758 * math.cos(2 * g)
+         + 0.000907 * math.sin(2 * g) - 0.002697 * math.cos(3 * g) + 0.00148 * math.sin(3 * g))
+    e = 229.18 * (0.000075 + 0.001868 * math.cos(g) - 0.032077 * math.sin(g) - 0.014615 * math.cos(2 * g)
+                  - 0.040849 * math.sin(2 * g))
+    s = h + (4 * lon - 60 * off + e) / 60
+    ha = math.radians(15 * (s - 12)); la = math.radians(lat)
+    return math.degrees(math.asin(math.sin(la) * math.sin(d) + math.cos(la) * math.cos(d) * math.cos(ha)))
+lo, hi, w = 18.0, 23.0, float(want)
+for _ in range(60):
+    m = (lo + hi) / 2
+    if elev(m) > w: lo = m
+    else: hi = m
+print("%.4f" % lo)
+PY
+)"
+    hour=20  # старт — из time.start_hours (20:00), дальше время ×60: минута за секунду полёта
+    secs="$(python3 -c "print('%.1f' % (($h - $hour) * 60))")"
+    read -r az el < <(sun "$lat" "$lon" "$off" "$h")
+    echo "$name: высота солнца $el (цель $want), час $h = --hour=$hour --time=$secs, азимут $az"
+    set_speed 60
+    # к солнцу: диск не ниже min_light_elevation_deg (2°)
+    yaw="$(python3 -c "print('%.1f' % (($hdg - $az + 180) % 360 - 180))")"
+    look_el="$(python3 -c "print(max($el, 2.0))")"
+    shot "$out/${prefix}suncolor_${name}${sfx}.jpg" "--location=$name" "--site=$site" "--hour=$hour" "--time=$secs" --air-start=300,300 --sky=clear "--look=$yaw,$look_el"
+    # сбоку: взгляд на 70° левее направления на солнце, чуть вверх (освещённые бока облаков)
+    yaw2="$(python3 -c "print('%.1f' % (($hdg - $az + 180 + 70) % 360 - 180))")"
+    shot "$out/${prefix}suncolor_${name}${sfx}_side.jpg" "--location=$name" "--site=$site" "--hour=$hour" "--time=$secs" --air-start=300,300 "--look=$yaw2,6"
+  done
+  ev="$(mktemp -d)"
+  echo "-- ${prefix}everest.jpg"
+  (cd "$root" && python3 tools/shots/menu_art.py --only=26 --size=1920x1080 "--out=$ev" 2>&1 | tail -3) || true
+  cp "$ev"/26_*.jpg "$out/${prefix}everest.jpg"
+  echo "haze_humidity_shots.sh: suncolor $prefix* в $out"
+  exit 0
+fi
 
 for p in "${places[@]}"; do
   IFS='|' read -r name site lat lon off hdg <<<"$p"

@@ -87,3 +87,49 @@ func test_point_above_earth_shadow() -> void:
 	check(t0 == Vector3.ZERO, "у моря при el = −1°: T = 0, получено %s" % t0)
 	var t2 := SunTransmission.transmission(-2.0, 3000.0, EXT, RGB, TOP, p)
 	check(t2 == Vector3.ZERO, "3 км при el = −2° (глубже провала горизонта 1,76°): T = 0, получено %s" % t2)
+
+
+# --- v2: цвет солнца SunTransmission.sun_tint (контрольные числа главной 2026-10-22) ---
+
+## Аэрозоль τ550 = 0,1, Ангстрем 1,3: слой до 1850 м, extinction = τ / верх.
+const TINT_TOP := 1850.0
+const TINT_EXT := 0.1 / TINT_TOP
+const TINT_RGB := Vector3(0.7603, 1.0, 1.3366)  # (550/λ)^1,3 для 680 / 550 / 440 нм
+
+
+func _tint(el: float, y: float = 0.0) -> Color:
+	return SunTransmission.sun_tint(el, y, TINT_EXT, TINT_RGB, TINT_TOP)
+
+
+func test_tint_day_white() -> void:
+	for el in [35.0, 50.0, 80.0]:
+		var c := _tint(el)
+		approx(c.g, 1.0, 0.02, "G/R днём (el %s)" % el)
+		approx(c.b, 1.0, 0.02, "B/R днём (el %s)" % el)
+	approx(_tint(35.0, 1500.0).b, 1.0, 0.02, "белый и на высоте")
+
+
+func test_tint_reference_numbers() -> void:
+	# 18° — контрольные числа абсолютные (T_G/T_R без деления на T при 35°), sun_tint нормирован
+	# на 35° (днём белый) — на 18° он белее абсолютного: проверяем только порядок (контракт HH4 v2, отчёт HH-13)
+	var ref := {2.0: [0.24, 0.02], 5.0: [0.47, 0.13], 8.0: [0.60, 0.25]}
+	var c18 := _tint(18.0)
+	check(c18.g > 0.79 and c18.g < 1.0 and c18.b > 0.53 and c18.b < 1.0, "18° белее абсолютного: %s" % c18)
+	for el in ref:
+		var c := _tint(el)
+		print("sun_tint el=%s g_r=%.3f b_r=%.3f" % [el, c.g, c.b])
+		approx(c.g, ref[el][0], 0.08, "G/R при %s°" % el)
+		approx(c.b, ref[el][1], 0.08, "B/R при %s°" % el)
+
+
+func test_tint_monotonic_redder_lower() -> void:
+	var prev := _tint(0.0)
+	for el in [1.0, 2.0, 4.0, 8.0, 14.0, 20.0, 30.0]:
+		var c := _tint(el)
+		check(c.g >= prev.g - 1.0e-6 and c.b >= prev.b - 1.0e-6, "ниже солнце — краснее (%s°)" % el)
+		prev = c
+	check(_tint(0.0).g < 0.2 and _tint(0.0).b < 0.03, "у горизонта почти тёмно-красное: %s" % _tint(0.0))
+
+
+func test_tint_below_sea_sphere() -> void:
+	check(SunTransmission.sun_tint(-5.0, 0.0, TINT_EXT, TINT_RGB, TINT_TOP).r < 0.0, "T = 0 — признак")

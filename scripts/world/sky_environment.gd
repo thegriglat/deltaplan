@@ -32,6 +32,11 @@ var _inversion_msl: float = NAN
 var _haze_density: float = 1.0
 var _sky_mat: ShaderMaterial
 var _env: Environment
+## Высота долины места над морем, м (NAN — нет данных: свет рельефа считается на высоте камеры).
+var valley_msl_m: float = NAN
+var _to_sun := Vector3.UP
+var _tint_cam_y := 0.0
+var _last_tint: Array[Color] = [Color.WHITE, Color.WHITE]
 var _haze_base_color := Color.WHITE
 var _clear_air_color := Color.WHITE
 
@@ -150,8 +155,17 @@ func _apply_sun(to_sun: Vector3) -> void:
 	# Свет светит вдоль −Z узла: направляем −Z от солнца к земле.
 	sun.basis = Basis.looking_at(-to_sun, up)
 	var lt := SunClock.light_at(rad_to_deg(asin(clampf(to_sun.y, -1.0, 1.0))))
-	var sun_color: Color = _color(sun_cfg.color) * (lt.sun_color as Color)
-	sun.light_color = sun_color
+	_to_sun = to_sun
+	# цвет — из пропускания атмосферы (HH4 v2): рельеф — на высоте долины, небо/диск/дымка/засвет — камеры
+	var el_true := clock.angles().y if clock != null else rad_to_deg(asin(clampf(to_sun.y, -1.0, 1.0)))
+	_tint_cam_y = _camera_y()
+	var base: Color = _color(sun_cfg.color)
+	var light_y := valley_msl_m if not is_nan(valley_msl_m) else _tint_cam_y
+	sun.light_color = base * _tint(el_true, light_y, 0)
+	var sun_color: Color = base * _tint(el_true, _tint_cam_y, 1)
+	if OS.has_environment("DP_SUN_TINT_LOG"):  # кадры tools/shots: ожидаемая цветность диска
+		var tc := sun_color / maxf(base.r, 1.0e-6)
+		print("sun_tint: el=%.2f y=%.0f g_r=%.3f b_r=%.3f" % [el_true, _tint_cam_y, tc.g / maxf(tc.r, 1e-6), tc.b / maxf(tc.r, 1e-6)])
 	sun.light_energy = float(sun_cfg.energy) * float(lt.sun_energy)
 	var tint: Color = lt.horizon_tint
 	var sky_k := float(lt.sky_energy)
@@ -182,6 +196,42 @@ func _apply_sun(to_sun: Vector3) -> void:
 		_haze_mat.set_shader_parameter(
 			"clear_color", _clear_air_color * tint * lerpf(1.0, sky_k, 0.4)
 		)
+
+
+## Цветность прямого солнца SunTransmission.sun_tint на высоте y_msl; slot — 0 свет, 1 камера;
+## ниже горизонта точки (T = 0) — последняя ненулевая цветность слота.
+func _tint(el_deg: float, y_msl: float, slot: int) -> Color:
+	var ext := 0.0
+	var rgb := Vector3.ONE
+	if _haze_mat != null:
+		var e: Variant = _haze_mat.get_shader_parameter("extinction")
+		var r: Variant = _haze_mat.get_shader_parameter("extinction_rgb")
+		ext = float(e) if e != null else 0.0
+		rgb = r if r is Vector3 else Vector3.ONE
+	var c := SunTransmission.sun_tint(el_deg, y_msl, ext, rgb, get_haze_top_msl())
+	if c.r < 0.0:
+		return _last_tint[slot]
+	_last_tint[slot] = c
+	return c
+
+
+func _camera_y() -> float:
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam != null:
+		return cam.global_position.y
+	return 0.0 if is_nan(valley_msl_m) else valley_msl_m
+
+
+## Камера ушла по высоте больше чем на tint_update_dy_m — цвет солнца пересчитать.
+func _process(_dt: float) -> void:
+	if sun == null or _env == null or not is_inside_tree():
+		return
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var dy := float(Config.value("world", "time.light.tint_update_dy_m", 100.0))
+	if absf(cam.global_position.y - _tint_cam_y) > dy:
+		_apply_sun(_to_sun)
 
 
 ## Высота инверсии (верх слоя перемешивания), м над уровнем моря. Обычно — основание облаков
