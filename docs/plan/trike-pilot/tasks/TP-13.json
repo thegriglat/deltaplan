@@ -1,0 +1,63 @@
+{
+  "id": "TP-13",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Тесты колёс и конца полёта дельталёта: полный цикл",
+  "goal": "Проверки TP-К6/TP-К7 на полном цикле: reset_on_wheels → запуск двигателя → разбег → отрыв → полёт → посадка на колёса → руление → остановка → конец полёта «landed»; касание на −4 м/с; траектория TowTug 20 с; конец полёта дельталёта только после настоящего полёта (armed).",
+  "plan_ref": "TP-13",
+  "contracts": [
+    {
+      "name": "TP-К6",
+      "version": "1",
+      "ref": "docs/contracts/trike-pilot.md"
+    },
+    {
+      "name": "TP-К7",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-13",
+  "branch": "trike-pilot/TP-13",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "tests/contracts/test_trike_pilot_k6.gd",
+    "tests/contracts/test_trike_pilot_k7.gd",
+    "tests/game/test_trike_cycle.gd",
+    "tests/game/test_trike_cycle.gd.uid",
+    "scripts/game/flight_stats.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/game/game.gd",
+    "scripts/game/tow_trike_visual.gd",
+    "configs/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike_pilot",
+      "tests": "trike_pilot"
+    },
+    {
+      "name": "trike_cycle",
+      "tests": "trike_cycle"
+    },
+    {
+      "name": "flight_stats",
+      "tests": "flight_stats"
+    },
+    {
+      "name": "tow_trike",
+      "tests": "tow_trike"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/game/flight_stats.gd tests/game/test_trike_cycle.gd tests/contracts/test_trike_pilot_k6.gd tests/contracts/test_trike_pilot_k7.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:56:30"
+}
