@@ -13,7 +13,6 @@
     "scripts/world/sky.gdshader",
     "scripts/world/sun_glare.gdshader",
     "scripts/world/sun_glare.gd",
-    "scripts/world/sky_environment.gd",
     "configs/world.json",
     "tests/world/",
     "tools/shots/sun_halo_measure.py",
@@ -25,7 +24,8 @@
     "configs/weather_model.json",
     "data/",
     "docs/contracts/",
-    "project.godot"
+    "project.godot",
+    "scripts/world/sky_environment.gd"
   ],
   "accept": [
     {
@@ -63,5 +63,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T20:26:25"
+  "created": "2026-10-22T20:26:25",
+  "edited": "2026-10-22T20:58:25"
 }
