@@ -242,3 +242,4 @@
 {"t": "2026-10-23T04:57:28", "by": "reviewer", "task": "TP-21", "ev": "reviewed", "note": "Фикс TP-К7 v3 минимален и по контракту: в _dolly_hold при _wh_land низ колёс <= земли и vy<0 -> снова _check_touchdown (колёса). Без land_on_wheels поведение б…", "verdict": "accept", "issues": {"minor": 3}, "review": "docs/plan/trike-pilot/tasks/TP-21.review.json"}
 {"t": "2026-10-23T04:57:37", "by": "coordinator", "task": "TP-23", "ev": "accepted", "note": "по отчёту; числа — пользователю (Q9)"}
 {"t": "2026-10-23T04:57:38", "by": "coordinator", "task": "TP-23", "ev": "merged"}
+{"t": "2026-10-23T04:57:50", "by": "coordinator", "task": "TP-21", "ev": "accepted", "note": "по ревью (3 minor: зерно 2 теста (10) не отрывается; подскоки дают landed/took_off — звук и recenter камеры — TP-24)"}
