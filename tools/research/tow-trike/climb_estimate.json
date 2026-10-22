@@ -1,0 +1,157 @@
+{
+ "main": {
+  "climb_ms": 3.018324120983161,
+  "speed_kmh": 60.0,
+  "thrust_n": 1351.7464245019753,
+  "drag_n": 460.70936909470777,
+  "tension_n": 330.5243045348386,
+  "gamma_deg": 10.433806041758636,
+  "m_tug_kg": 315.5,
+  "m_glider_kg": 134.4,
+  "cda_m2": 0.8200000000000001
+ },
+ "passport_check_912": {
+  "roc_model": 4.711422395234921,
+  "roc_passport": 5.49,
+  "rel_err": -0.14181741434700895,
+  "best_roc_model": [
+   4.712075867630694,
+   82
+  ]
+ },
+ "variants": [
+  {
+   "case": "582 + sport 100 кг на тросе",
+   "speed_kmh": 55,
+   "m_tug_kg": 315.5,
+   "m_glider_kg": 134.4,
+   "climb_ms": 2.83,
+   "thrust_n": 1373,
+   "drag_n": 468,
+   "tension_n": 333
+  },
+  {
+   "case": "582 + sport 100 кг на тросе",
+   "speed_kmh": 60,
+   "m_tug_kg": 315.5,
+   "m_glider_kg": 134.4,
+   "climb_ms": 3.02,
+   "thrust_n": 1352,
+   "drag_n": 461,
+   "tension_n": 331
+  },
+  {
+   "case": "582 + sport 100 кг на тросе",
+   "speed_kmh": 65,
+   "m_tug_kg": 315.5,
+   "m_glider_kg": 134.4,
+   "climb_ms": 3.13,
+   "thrust_n": 1330,
+   "drag_n": 467,
+   "tension_n": 326
+  },
+  {
+   "case": "582 + sport 100 кг на тросе",
+   "speed_kmh": 70,
+   "m_tug_kg": 315.5,
+   "m_glider_kg": 134.4,
+   "climb_ms": 3.13,
+   "thrust_n": 1301,
+   "drag_n": 483,
+   "tension_n": 319
+  },
+  {
+   "case": "582 + sport 100 кг на тросе",
+   "speed_kmh": 75,
+   "m_tug_kg": 315.5,
+   "m_glider_kg": 134.4,
+   "climb_ms": 3.04,
+   "thrust_n": 1272,
+   "drag_n": 508,
+   "tension_n": 312
+  },
+  {
+   "case": "582 без дельтаплана",
+   "speed_kmh": 60,
+   "m_tug_kg": 315.5,
+   "m_glider_kg": 0,
+   "climb_ms": 4.87,
+   "thrust_n": 1352,
+   "drag_n": 448,
+   "tension_n": 0
+  },
+  {
+   "case": "582 без дельтаплана, лучший набор",
+   "speed_kmh": 75,
+   "m_tug_kg": 315.5,
+   "m_glider_kg": 0,
+   "climb_ms": 5.18,
+   "thrust_n": 1272,
+   "drag_n": 502,
+   "tension_n": 0
+  },
+  {
+   "case": "582 + sport 80 кг пилот",
+   "speed_kmh": 60,
+   "m_tug_kg": 315.5,
+   "m_glider_kg": 114.4,
+   "climb_ms": 3.2,
+   "thrust_n": 1352,
+   "drag_n": 460,
+   "tension_n": 299
+  },
+  {
+   "case": "582 + sport 100 кг, пустой бак (15 кг)",
+   "speed_kmh": 60,
+   "m_tug_kg": 300.5,
+   "m_glider_kg": 134.4,
+   "climb_ms": 3.21,
+   "thrust_n": 1352,
+   "drag_n": 438,
+   "tension_n": 346
+  },
+  {
+   "case": "912ULS (тележка 197 кг) + sport 100 кг",
+   "speed_kmh": 60,
+   "m_tug_kg": 362.5,
+   "m_glider_kg": 134.4,
+   "climb_ms": 3.78,
+   "thrust_n": 1726,
+   "drag_n": 529,
+   "tension_n": 391
+  },
+  {
+   "case": "912ULS без дельтаплана",
+   "speed_kmh": 60,
+   "m_tug_kg": 362.5,
+   "m_glider_kg": 0,
+   "climb_ms": 5.71,
+   "thrust_n": 1726,
+   "drag_n": 508,
+   "tension_n": 0
+  }
+ ],
+ "wing": {
+  "CD0": 0.03520378855691925,
+  "k": 0.06372570293969783,
+  "CLmax": 1.7708418778674304,
+  "best_ld_cl_ld": [
+   0.7432542214661044,
+   10.556452187871397
+  ]
+ },
+ "props": {
+  "Rotax 582 UL DCDI": {
+   "Ct0": 0.17058286860033917,
+   "Cp0": 0.09368971789128475,
+   "J0": 1.2901295180330894,
+   "T_static": 1586.9970746471802
+  },
+  "Rotax 912 ULS": {
+   "Ct0": 0.20382207894779447,
+   "Cp0": 0.11295450204474115,
+   "J0": 1.3017545744390346,
+   "T_static": 2075.7909615844424
+  }
+ }
+}
