@@ -91,6 +91,12 @@ related: ["docs/contracts/trike-model.md", "docs/plan/trike.md", "docs/guide/mod
 ### TK-12. Кадры v3 (dp-mechanic, haiku), после TK-11
 Прогон `render_trike.py` и `fit_check.py` без правок: все PNG и `fit.json` заново.
 
+### TK-13. Параметры крыла дельталёта (dp-researcher, sonnet), независимо
+Решение пользователя 2026-10-22: крылья реальных трайков (буксировщики/двухместные, к тележкам типа «Фрегат», Air Creation,
+P&M): размах, площадь, угол носа, хорды, удлинение, масса, высота киля/кингпоста, крутка, двойная обшивка %, латты — с источниками;
+по ним потом генерируется крыло (как `build_gliders.py` по `glider_params.json`). Итог — `tools/research/trike-model/wings.json` и
+`wings.md`. Крыло не строить.
+
 ## Волны
 1. TK-1 → при расхождении точки глаз с реальными трайками — шлюз.
 2. TK-2 ∥ TK-3.
