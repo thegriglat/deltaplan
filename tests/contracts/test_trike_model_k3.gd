@@ -26,8 +26,6 @@ func test_doc_heading() -> void:
 
 const PILOT := "res://assets/models/pilot.glb"
 const OLD_ANIMS := ["stand", "walk", "run", "run_air", "climb_in", "prone", "climb_out", "flare"]
-const SIT_FOOT_DEG := 80.0   # направление стопы в sit от вертикали вниз (build_pilot.py: SIT_FOOT_DEG)
-const ANKLE_H := 0.09        # голеностоп над подошвой (D.ANKLE_H из меша; допуск 3 см его покрывает)
 
 
 ## Blender (x вправо, y вперёд, z вверх) -> Godot.
@@ -42,6 +40,43 @@ func _empty_xf(skel: Skeleton3D, n: Node3D) -> Transform3D:
 	if att == null:
 		return n.global_transform
 	return skel.global_transform * skel.get_bone_global_pose(skel.find_bone(att.bone_name)) * n.transform
+
+
+## Мировой Y нижней вершины меша Sole (PilotBody) в текущей позе: [левая, правая] (по знаку x).
+func _sole_low(root: Node, skel: Skeleton3D) -> Array:
+	var mi := root.find_child("PilotBody", true, false) as MeshInstance3D
+	check(mi != null and mi.skin != null, "PilotBody со скином")
+	if mi == null or mi.skin == null:
+		return []
+	var mesh := mi.mesh
+	var bone_of := PackedInt32Array()
+	for b in mi.skin.get_bind_count():
+		var bi := mi.skin.get_bind_bone(b)
+		if bi < 0:
+			bi = skel.find_bone(mi.skin.get_bind_name(b))
+		bone_of.append(bi)
+	var low := [INF, INF]
+	for s in mesh.get_surface_count():
+		var mat := mesh.surface_get_material(s)
+		if mat == null or not (mat.resource_name == "Sole" or mat.resource_name.begins_with("Sole")):
+			continue
+		var arr := mesh.surface_get_arrays(s)
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var bones: PackedInt32Array = arr[Mesh.ARRAY_BONES]
+		var wts: PackedFloat32Array = arr[Mesh.ARRAY_WEIGHTS]
+		var per := bones.size() / maxi(vs.size(), 1)
+		for i in vs.size():
+			var p := Vector3.ZERO
+			for k in per:
+				var w := wts[i * per + k]
+				if w <= 0.0:
+					continue
+				var b := bone_of[bones[i * per + k]]
+				p += w * (skel.get_bone_global_pose(b) * mi.skin.get_bind_pose(bones[i * per + k]) * vs[i])
+			var wp := skel.global_transform * p
+			var idx := 0 if wp.x < 0.0 else 1
+			low[idx] = minf(low[idx], wp.y)
+	return low if low[0] < INF and low[1] < INF else []
 
 
 func test_pilot_sit_pose() -> void:
@@ -81,15 +116,19 @@ func test_pilot_sit_pose() -> void:
 		+ skel.global_transform * skel.get_bone_global_pose(th_r).origin) * 0.5
 	check(hip_mid.distance_to(_g(seat.hip)) <= 0.03,
 		"середина голов Thigh.L/R в seat.hip ± 3 см: %s vs %s" % [hip_mid, _g(seat.hip)])
-	# подошвы: голеностоп + нормаль стопы (вверх, носок чуть вниз) * ANKLE_H -> подошва
-	var up_f := Vector3(0.0, sin(deg_to_rad(SIT_FOOT_DEG)), -cos(deg_to_rad(SIT_FOOT_DEG)))
+	# подошвы: низ вершин меша Sole (PilotBody) в позе sit, со скиннингом — на foot_l / throttle_pedal ± 1 см
+	var low := _sole_low(root, skel)
+	check(low.size() == 2, "вершины Sole: левая и правая")
+	if low.size() == 2:
+		var tl := _g(seat.foot_l)
+		var tr := _g(seat.throttle_pedal)
+		check(absf(low[0] - tl.y) <= 0.01, "низ подошвы L на foot_l ± 1 см: %.4f vs %.4f" % [low[0], tl.y])
+		check(absf(low[1] - tr.y) <= 0.01, "низ подошвы R на throttle_pedal ± 1 см: %.4f vs %.4f" % [low[1], tr.y])
+		check(absf(low[1] - _g(seat.foot_r).y) <= 0.01, "низ подошвы R на foot_r ± 1 см")
 	for side in ["L", "R"]:
 		var ank: Vector3 = skel.global_transform * skel.get_bone_global_pose(skel.find_bone("Foot." + side)).origin
-		var sole := ank - up_f * ANKLE_H
-		var tgt := _g(seat.foot_l if side == "L" else seat.throttle_pedal)
 		var tgt2 := _g(seat.foot_l if side == "L" else seat.foot_r)
-		check(sole.distance_to(tgt) <= 0.03, "подошва %s у подножки ± 3 см: %s vs %s" % [side, sole, tgt])
-		check(sole.distance_to(tgt2) <= 0.04, "подошва %s у foot_%s: %s vs %s" % [side, side.to_lower(), sole, tgt2])
+		check(Vector2(ank.x - tgt2.x, ank.z - tgt2.z).length() <= 0.05, "стопа %s над подножкой по XZ ± 5 см" % side)
 	for side in ["L", "R"]:
 		var hand := root.find_child("Hand" + side, true, false) as Node3D
 		check(hand != null, "пустышка Hand" + side)
