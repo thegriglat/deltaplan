@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "CL-К1",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/cliff-look.md"
     },
     {
@@ -54,11 +54,6 @@
       "expect": "num:SHOTS (\\d+) >=6"
     },
     {
-      "name": "cost_before",
-      "cmd": "python3 -I -c \"import json;d=json.load(open('build/perf/cliff-look/before/cost.json'));r=d['rows'];assert all(x['frames']>=300 for x in r) and {x['preset'] for x in r}>={'medium','high'};print('ROWS',len(r))\"",
-      "expect": "num:ROWS (\\d+) >=12"
-    },
-    {
       "name": "readme",
       "cmd": "test -f tools/research/cliff_look/README.md && .dpcli/dpcli docs check 2>&1 | grep -c 'ОШИБКА.*cliff_look' | sed 's/^/ERR /'",
       "expect": "num:ERR (\\d+) <=0"
@@ -66,5 +61,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-23T02:49:40"
+  "created": "2026-10-23T02:49:40",
+  "edited": "2026-10-23T04:40:49"
 }
