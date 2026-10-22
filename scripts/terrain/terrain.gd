@@ -578,8 +578,10 @@ func _make_trees(trees_cfg: Dictionary, look: Dictionary) -> Node3D:
 	if crosses != null:
 		crosses.queue_free()
 		crosses = null
+	CrashReporter.note_substage("trees/models")
 	if models.setup(layers[0], surfaces[0], trees_cfg):
 		add_child(models)
+		CrashReporter.note_substage("trees/impostors")
 		impostors = ForestImpostors.new()
 		impostors.name = "ForestImpostors"
 		if impostors.setup(
@@ -593,6 +595,7 @@ func _make_trees(trees_cfg: Dictionary, look: Dictionary) -> Node3D:
 		else:
 			impostors.free()
 			impostors = null
+		CrashReporter.note_substage("trees/crosses")
 		crosses = TreeCrosses.new()
 		crosses.name = "TreeCrosses"
 		if crosses.setup(
@@ -613,6 +616,7 @@ func _make_trees(trees_cfg: Dictionary, look: Dictionary) -> Node3D:
 		_pass_forest_mask(models)
 		return models
 	models.free()
+	CrashReporter.note_substage("trees/cones")
 	var cones := TerrainTrees.new()
 	cones.name = "Trees"
 	add_child(cones)

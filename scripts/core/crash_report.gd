@@ -109,6 +109,7 @@ static func build_body(lock: Dictionary, sysinfo: Dictionary, log_text: String, 
 		var v: String = String(lock.get(key, sysinfo.get(key, "")))
 		if v != "":
 			lines.append("- %s: %s" % [pair[0], v])
+	lines.append_array(liveness_lines(lock))
 	lines.append("")
 	lines.append("## Настройки прошлого запуска")
 	var settings: Dictionary = lock.get("settings", {})
@@ -126,8 +127,81 @@ static func build_body(lock: Dictionary, sysinfo: Dictionary, log_text: String, 
 	var head := sanitize("\n".join(lines)) + "\n````\n"
 	var foot := "\n````\n"
 	var room := limit - head.length() - foot.length()
-	var body := trim_log(sanitize(log_text).replace("````", "'''"), room)
+	var body := trim_log(fold_repeats(sanitize(log_text)).replace("````", "'''"), room)
 	return head + body + foot
+
+
+## Строки «признак жизни» и «подстадия» по метке (ключи alive, stage_at, substage, substage_at —
+## секунды с запуска процесса). Вылет и зависание по ним не различить напрямую, но видно, сколько
+## главный поток прожил после начала стадии: пульс идёт из кадров, и если он оборвался вскоре
+## после стадии/подстадии — упали или встали внутри неё.
+static func liveness_lines(lock: Dictionary) -> PackedStringArray:
+	var out: PackedStringArray = []
+	var sub := String(lock.get("substage", ""))
+	if sub != "":
+		var at := float(lock.get("substage_at", 0.0)) - float(lock.get("stage_at", 0.0))
+		out.append("- Подстадия: %s (через %.1f с после начала стадии)" % [sub, maxf(at, 0.0)])
+	if lock.has("alive") and lock.has("stage_at"):
+		var st := String(lock.get("stage", ""))
+		out.append(
+			(
+				"- Последний признак жизни: %.1f с после начала стадии %s"
+				% [maxf(float(lock["alive"]) - float(lock["stage_at"]), 0.0), st if st != "" else "меню"]
+			)
+		)
+	return out
+
+
+static func _log_entry_start(line: String) -> bool:
+	return (
+		line.begins_with("ERROR:")
+		or line.begins_with("WARNING:")
+		or line.begins_with("USER ERROR:")
+		or line.begins_with("USER WARNING:")
+		or line.begins_with("SCRIPT ERROR:")
+	)
+
+
+## Одинаковые подряд записи ошибок («ERROR: …» с хвостом строк «   at: …») → одна с
+## «(повторено N раз)». Остальные строки не трогаем.
+static func fold_repeats(log_text: String) -> String:
+	var lines := log_text.split("\n")
+	var out: PackedStringArray = []
+	var i := 0
+	var prev := ""
+	var prev_at := -1  # индекс в out, куда вставить пометку (после записи)
+	var count := 0
+	while i < lines.size():
+		var entry := lines[i]
+		var j := i + 1
+		if _log_entry_start(lines[i]):
+			while j < lines.size() and lines[j].strip_edges().begins_with("at:"):
+				entry += "\n" + lines[j]
+				j += 1
+			if entry == prev:
+				count += 1
+				i = j
+				continue
+			_flush_repeat(out, prev_at, count)
+			prev = entry
+			count = 1
+			for k in range(i, j):
+				out.append(lines[k])
+			prev_at = out.size()
+		else:
+			_flush_repeat(out, prev_at, count)
+			prev = ""
+			count = 0
+			prev_at = -1
+			out.append(lines[i])
+		i = j
+	_flush_repeat(out, prev_at, count)
+	return "\n".join(out)
+
+
+static func _flush_repeat(out: PackedStringArray, at: int, count: int) -> void:
+	if count > 1 and at >= 0:
+		out.insert(at, "(повторено %d раз)" % count)
 
 
 ## Один раз при каждой отправке: заготовка в файл ожидающих отправки.
@@ -201,6 +275,15 @@ static func stage_line(stage: String, lock: Dictionary) -> String:
 
 static func log_stage_line(stage: String, lock: Dictionary) -> void:
 	printerr(stage_line(stage, lock))
+
+
+## Подстадия внутри стадии: тоже через printerr — сброс лога на диск (см. stage_line).
+static func substage_line(sub: String, lock: Dictionary) -> String:
+	return "[substage] %s stage=%s t=%.1f" % [sub, String(lock.get("stage", "")), Time.get_ticks_msec() / 1000.0]
+
+
+static func log_substage(sub: String, lock: Dictionary) -> void:
+	printerr(substage_line(sub, lock))
 
 
 static func vram_text() -> String:

@@ -85,3 +85,25 @@ func test_stage_snapshot_in_lock_and_body() -> void:
 	check(body.contains("стадия: trees") and body.contains("VRAM"), "стадия и VRAM рядом")
 	var line := CrashReport.stage_line("trees", back)
 	check(line.begins_with("[stage] trees t=") and line.contains("mem="), "строка стадии: " + line)
+
+
+func test_fold_repeats() -> void:
+	var one := "ERROR: Parameter \"x\" is null.\n   at: f (a.cpp:1)"
+	var log := "start\n" + "\n".join([one, one, one]) + "\nmid\nERROR: other\n   at: g (b.cpp:2)\n" + one + "\n" + one + "\nend"
+	var t := CrashReport.fold_repeats(log)
+	check(t.count("Parameter") == 2, "две группы: " + t)
+	check(t.contains("   at: f (a.cpp:1)\n(повторено 3 раз)\nmid"), "первая свёрнута: " + t)
+	check(t.contains("(повторено 2 раз)\nend"), "вторая свёрнута: " + t)
+	check(t.contains("ERROR: other\n   at: g (b.cpp:2)\nERROR: Param"), "одиночная без пометки: " + t)
+	check(CrashReport.fold_repeats("a\na\nERROR: z\nb") == "a\na\nERROR: z\nb", "обычные строки не трогаем")
+	var small := CrashReport.build_body({}, {}, "\n".join([one, one]))
+	check(small.contains("(повторено 2 раз)"), "в теле отчёта свёрнуто")
+
+
+func test_liveness_lines() -> void:
+	var lock := {"stage": "trees", "stage_at": 10.0, "alive": 17.5, "substage": "trees/impostors", "substage_at": 12.0}
+	var body := CrashReport.build_body(lock, {}, "лог")
+	check(body.contains("Последний признак жизни: 7.5 с после начала стадии trees"), "пульс: " + body)
+	check(body.contains("Подстадия: trees/impostors (через 2.0 с после начала стадии)"), "подстадия: " + body)
+	check(not CrashReport.build_body({}, {}, "лог").contains("признак жизни"), "без пульса строки нет")
+	check(CrashReport.substage_line("trees/models", lock).begins_with("[substage] trees/models stage=trees t="), "строка подстадии")
