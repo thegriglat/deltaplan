@@ -19,15 +19,15 @@ contracts: []
 - От SNW-1 также: `render.settle_ms` (скорость оседания частиц в шлейфе, м/с), `render.spread_ms` (скорость роста поперечника шлейфа, м/с), `model.path_points × model.path_dt_s` (время жизни видимого шлейфа, с), `model.lee_slope_deg` и `model.fetch_m` (геометрия гребня, где поток отрывается и снег набирается) — с источниками или пометкой «оценка» и обоснованием.
 - Если литература даёт другую форму порога — SNW-1 сообщает `contract:`, координатор меняет версию.
 
-## SNW-К2 v1. Снег на CPU
+## SNW-К2 v2. Снег на CPU
 Владелец — SNW-2; потребитель — SNW-4 (как `snow_fn` модели).
 - `class_name SnowCover` (`scripts/world/snow_plume/snow_cover.gd`), `static func snow_fraction(terrain: Terrain, x: float, z: float) -> float` — доля снега 0..1 в точке, CPU-зеркало шейдера рельефа без шума:
   - A: `terrain.surface_at(x, z) == SurfaceLayer.SNOW`, или `== BARE` и `terrain.height_at(x, z) > terrain._look.gully_snow_line_m` (при `terrain._look.snow_bare_merge > 0`); множитель крутизны `1 − smoothstep(snow_slope_deg.x, snow_slope_deg.y, slope)` (уклон из `terrain.normal_at`). Сдувание с гребня (`snow_ridge_blow`) не учитывать: это следствие переноса, источник — снег наветренного склона.
   - C: свежий снег `SeasonLook`: `f = smoothstep(line, line + snow_fresh_band_m, h)`, `line = SeasonLook.snow_line(terrain.flight_doy, terrain.center_lat, terrain.scene_look_params())`, множитель `1 − smoothstep(snow_fresh_slope.x, .y, slope)`; при `scene_look.snow_enabled == false` C = 0.
   - Итог `max(A, C)`. Снег в ложбинах (gully) не источник.
-- Только чтение, без побочных эффектов; вне рельефа — 0.
+- Только чтение, без побочных эффектов; вне рельефа (точка вне `terrain.detail_bounds()`) — 0; кэш производных величин (линия снега и т. п.) сбрасывается при смене даты, широты, `scene_look.snow_enabled` или `_look` (v2).
 
-## SNW-К3 v1. Модель → список источников → отрисовка
+## SNW-К3 v2. Модель → список источников → отрисовка
 Владелец — SNW-2 (модель); потребители — SNW-3 (отрисовка), SNW-4. Контрактные тесты — `tests/contracts/test_snow_plume_k3_model.gd` (SNW-2), `tests/contracts/test_snow_plume_k3_render.gd` (SNW-3).
 
 **Модель** `class_name SnowPlumeModel extends RefCounted` (`scripts/world/snow_plume/snow_plume_model.gd`):
@@ -36,7 +36,7 @@ contracts: []
 - `func update(cam: Vector3, dt: float) -> Array` — вызывать каждый кадр в главном потоке; список обновляется не чаще `update_s`, между обновлениями возвращается тот же список. Поиск гребней — в рассрочку (≤ `scan_points_per_frame` вызовов `height_fn`/`snow_fn` за кадр) или в рабочем потоке (там — только `height_fn`/`snow_fn`, если они чистые; `wind_fn`/`temp_fn` — только в главном потоке).
 - `func wind_calls_last() -> int` — вызовов `wind_fn` в последнем обновлении списка.
 - Гребень для направления ветра `d` (горизонтальный единичный): подъём наветренного склона и спад подветренного на `fetch_m` по `d`, спад не круче/положе `lee_slope_deg` по К1; точки гребня не ближе `spacing_m` друг к другу. Снег гребня — среднее `snow_fn` по наветренному отрезку `fetch_m`; источник — только при `snow ≥ snow_min`.
-- Ветер гребня — `wind_fn(pos + (0, 10, 0))`, `u10` — его горизонтальная длина; порог `threshold_u10(temp_fn(pos.y), cfg)` (К1).
+- Ветер гребня — `wind_fn(pos + (0, 10, 0))`, `u10` — его горизонтальная длина; порог `threshold_u10(temp_fn(pos.y), cfg)` (К1). Источник отбрасывается, если местный ветер повёрнут от направления скана больше чем на `dir_tolerance_k · rescan_dir_deg` (v2).
 - Линия тока: `path[0] = pos + (0, start_agl_m, 0)`, `path[i+1] = path[i] + vel[i]·path_dt_s` (или точнее, RK2), `vel[i] = wind_fn(path[i])`; после шага y поднимается до `height_fn + min_agl_m`, если ниже.
 
 **Источник** — `Dictionary` с ключами (типы точно такие):
@@ -48,11 +48,15 @@ contracts: []
 - `func _init(cfg: Dictionary = {})` — раздел `render` конфига (недостающие — по умолчанию К4); `func set_emitters(list: Array) -> void` — источники К3; `func active_count() -> int` — видимых излучателей.
 - Пул из `max_emitters` излучателей создаётся один раз; лишние источники отбрасываются; излучатель переназначается по `id` без перезапуска, если `id` остался. Частицы движутся по `path`/`vel` (интерполяция по времени жизни) с оседанием `settle_ms` и разлётом `spread_ms`; плотность и число частиц ∝ `intensity`; ширина рождения — `width_m` вдоль гребня. Пустой список — `active_count() == 0`.
 
-## SNW-К4 v1. Конфиг и бюджет
+## SNW-К4 v2. Конфиг и бюджет
 Владелец — SNW-2 (`model`), SNW-3 (`render`, читает с умолчаниями), SNW-4 (файл `configs/snow_plume.json` целиком, числа SNW-1). У каждого ключа — `<ключ>_doc` (смысл, единицы, источник).
 - `enabled` (bool, true).
-- `model`: `radius_m` 6000, `max_emitters` 24, `update_s` 0.5, `max_wind_samples` 160, `scan_step_m` 50, `scan_points_per_frame` 4000, `rescan_m` 1000, `rescan_dir_deg` 10, `fetch_m` (К1), `lee_slope_deg` (К1), `spacing_m` 150, `snow_min` 0.5, `start_agl_m` 2, `min_agl_m` 3, `path_points` 6 (≤ 8), `path_dt_s` (К1), `span_ms` (К1), `threshold` {`a`,`b`,`c`,`wet_t_c`,`wet_u10_ms`} (К1).
+- `model`: `radius_m` 6000, `max_emitters` 24, `update_s` 0.5, `max_wind_samples` 200, `scan_step_m` 50, `scan_points_per_frame` 1000, `dir_tolerance_k` 2, `rescan_m` 1000, `rescan_dir_deg` 10, `fetch_m` (К1), `lee_slope_deg` (К1), `spacing_m` 150, `snow_min` 0.5, `start_agl_m` 3, `min_agl_m` 3 (`start_agl_m ≥ min_agl_m`), `path_points` 6 (≤ 8), `path_dt_s` (К1), `span_ms` (К1), `threshold` {`a`,`b`,`c`,`wet_t_c`,`wet_u10_ms`} (К1).
 - `render`: `max_emitters` = `model.max_emitters`, `particles_per_emitter` 64, `settle_ms` (К1), `spread_ms` (К1), `size_m` [мин, макс], `alpha`, `visibility_m` = `radius_m`.
 - Числа без источника до SNW-1 — только в тестах и как умолчания в коде; в конфиг (SNW-4) — числа SNW-1.
 - **Бюджет кадра** (замер SNW-5, Эверест, сильный ветер, пресет high, против `enabled: false`): GPU — прирост среднего ≤ 0,5 мс; CPU кадра — прирост среднего ≤ 0,3 мс; худший 1 % — прирост ≤ 2 мс.
 - Headless узел не создаётся; сеть не нужна (визуал локальный, одинаково в одиночной и сетевой игре).
+
+## История версий
+- v2 (2026-10-23, ревью SNW-2): К2 — «вне рельефа» = вне `detail_bounds()`, сброс кэша; К3 — отсечка `dir_tolerance_k`; К4 — `scan_points_per_frame` 1000 (кадр скана ≤ 2,5 мс в отладке против 19,6 мс при 4000), `max_wind_samples` 200 (24 источника × 7 вызовов + проверки), `start_agl_m` = `min_agl_m` = 3, ключ `dir_tolerance_k`. Потребитель — SNW-4.
+- v1 (2026-10-23): первая версия.

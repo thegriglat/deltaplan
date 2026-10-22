@@ -33,3 +33,6 @@
 {"t": "2026-10-23T03:15:19", "by": "coordinator", "task": "SNW-2", "ev": "checked", "note": "4/4 snow_plume_k3_model=ok:4/4; snow_plume_model=ok:9/9; snow_cover=ok:4/4; check_gd=ok:exit 0"}
 {"t": "2026-10-23T03:16:53", "by": "reviewer", "task": "SNW-2", "ev": "reviewed", "note": "Интерфейсы К1/К2/К3 и ключи источника соответствуют контракту v1, все правки в скоупе, project.godot не тронут. Скан в рассрочку, бюджет ветра, прижим линии то…", "verdict": "accept", "issues": {"minor": 5}, "review": "docs/plan/snow-plume/tasks/SNW-2.review.json"}
 {"t": "2026-10-23T03:17:10", "by": "coordinator", "task": "SNW-2", "ev": "accepted", "note": "по ревью"}
+{"t": "2026-10-23T03:17:35", "by": "coordinator", "task": "SNW-2", "ev": "checked", "commits": ["57f819ad"], "note": "2/4 snow_plume_k3_model=ok:4/4; snow_plume_model=FAIL:0/1; FAIL не; snow_cover=FAIL:0/1; FAIL не; check_gd=ok:exit 0"}
+{"t": "2026-10-23T03:17:36", "by": "coordinator", "task": "SNW-2", "ev": "merged"}
+{"t": "2026-10-23T03:18:19", "by": "coordinator", "task": "SNW-2", "ev": "accepted", "commits": ["57f819ad"], "note": "4/4 snow_plume_k3_model=ok:4/4; snow_plume_model=ok:9/9; snow_cover=ok:4/4; check_gd=ok:exit 0"}
