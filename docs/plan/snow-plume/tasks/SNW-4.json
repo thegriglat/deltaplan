@@ -1,0 +1,64 @@
+{
+  "id": "SNW-4",
+  "module": "snow-plume",
+  "type": "dp-engineer",
+  "title": "Встраивание снежных флагов в игру",
+  "goal": "Узел SnowPlume (модель SNW-2 + отрисовка SNW-3) у Terrain в игре: ветер mean_wind_at, температура по высоте, снег SnowCover; configs/snow_plume.json по SNW-К4 v2 с числами SNW-1; правки v2 в модели и SnowCover; headless узел не создаётся.",
+  "plan_ref": "§4 SNW-4",
+  "contracts": [
+    {
+      "name": "snow-plume",
+      "version": "2",
+      "ref": "docs/contracts/snow-plume.md"
+    }
+  ],
+  "copy": "~/deltaplan-snow-plume-SNW-4",
+  "branch": "snow-plume/SNW-4",
+  "base": "feature/snow-plume",
+  "scope": [
+    "scripts/world/snow_plume/snow_plume.gd",
+    "scripts/world/snow_plume/snow_plume.gd.uid",
+    "scripts/world/snow_plume/snow_plume_model.gd",
+    "scripts/world/snow_plume/snow_cover.gd",
+    "configs/snow_plume.json",
+    "scripts/game/world_link.gd",
+    "scripts/game/game.gd",
+    "tests/world/test_snow_plume_node.gd",
+    "tests/world/test_snow_plume_node.gd.uid",
+    "tests/world/test_snow_plume_model.gd",
+    "tests/world/test_snow_cover.gd"
+  ],
+  "dont_touch": [
+    "tests/contracts/",
+    "configs/world.json",
+    "configs/atmosphere.json",
+    "scripts/terrain/",
+    "scripts/atmosphere/",
+    "scripts/world/snow_plume/snow_plume_render.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "snow_plume",
+      "tests": "snow_plume"
+    },
+    {
+      "name": "snow_cover",
+      "tests": "snow_cover"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/world/snow_plume/snow_plume.gd scripts/world/snow_plume/snow_plume_model.gd scripts/world/snow_plume/snow_cover.gd scripts/game/world_link.gd scripts/game/game.gd tests/world/test_snow_plume_node.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;json.load(open('configs/snow_plume.json'));print('ok')\"",
+      "expect": "re:^ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T03:20:56",
+  "edited": "2026-10-23T03:21:37"
+}
