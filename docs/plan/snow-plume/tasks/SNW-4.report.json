@@ -1,0 +1,60 @@
+{
+  "status": "partial",
+  "summary": "Узел SnowPlume (attach как у RockScatter, headless/enabled=false/без mean_wind_at -> null), configs/snow_plume.json по К4 v2 с числами SNW-1 и _doc, правки v2 в модели (dir_tolerance_k, умолчания) и SnowCover (вне detail_bounds -> 0, сброс кэша по хешу _look и раз в кадр), Game.air_temp_c_at, строка в WorldLink._link_prep, тесты узла. Живой запуск не удался: нет сети.",
+  "commits": [
+    "ba0baccc snow-plume: SNW-4 встраивание снежных флагов в игру, конфиг, правки v2"
+  ],
+  "checks": [
+    {
+      "name": "snow_plume",
+      "value": "27/27",
+      "pass": true
+    },
+    {
+      "name": "snow_cover",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "check_gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "json",
+      "value": "ok",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Живая проверка Эвереста: сервер рельефа недоступен из среды (The terrain server isn't responding), число источников в игре не видел, SCRIPT ERROR до загрузки места нет. Узел в окне не проверен."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SNW-4",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd (air_temp_c_at, конец файла)",
+      "why": "при пустом _weather_ctx возвращаю прогноз меню минус 6,5 К/км * высота (z_m — высота над морем, т.к. модель передаёт pos.y); суточный ход в этой ветке не учтён. Game.air_temp_c_at без загрузки места не тестировал.",
+      "checked": "check_gd; логика по образцу _water_heat_at"
+    },
+    {
+      "where": "scripts/world/snow_plume/snow_cover.gd",
+      "why": "snow_enabled/scene_look перечитываются раз в кадр (Engine.get_process_frames), а не по каждой смене словаря: scene_look_params дорог. Для тестов статический frame_override.",
+      "checked": "тест test_cache_reset_on_look_and_snow_enabled"
+    },
+    {
+      "where": "scripts/world/snow_plume/snow_plume.gd",
+      "why": "повторный attach (каждый _link_prep) пересоздаёт модель и render; при смене места ок, при повторных вызовах на том же месте возможно мигание пула.",
+      "checked": "только чтением кода"
+    },
+    {
+      "where": "configs/snow_plume.json render.size_m/alpha/particles_per_emitter",
+      "why": "умолчания SNW-3, оценка, подбор в SNW-5",
+      "checked": "помечено в _doc"
+    }
+  ],
+  "dp_feedback": "lock cpu запустил accept фоном, а job wait SNW-4 вывел результат - сначала было неочевидно. Живой запуск места требует сети, которой нет - карточке стоит предусмотреть кэшированное место.",
+  "t": "2026-10-23T03:36:54",
+  "by": "executor"
+}
