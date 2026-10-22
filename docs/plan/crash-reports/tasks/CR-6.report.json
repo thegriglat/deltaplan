@@ -1,8 +1,10 @@
 {
   "status": "done",
-  "summary": "AirRuntime: клипмап прежнего места освобождается при смене места, RuntimeGpu.release дожидается отправленной работы (sync), 'упрощённый ветер' читается из конфига при каждом обращении и отдаёт RD. Добавлен GPU-тест 5 загрузок подряд со сменой места и ветра.",
+  "summary": "Доработка по ревью: буферы задач на общем RD освобождаются по стеку (mark/free_from через RuntimeGpu.floor_mark, stop() в порядке, обратном запуску), клипмап/off/sync как раньше; тест расширен: ErrorCatcher, пересчёт с тем же ключом, 3 обрыва stop() посреди расчёта, затем загрузка.",
   "commits": [
-    "43df6249 AirRuntime: жизненный цикл RD при повторных загрузках, упрощённый ветер без RD, GPU-тест"
+    "43df6249 AirRuntime: жизненный цикл RD, упрощённый ветер без RD, GPU-тест",
+    "df0d7645 AirRuntime: освобождение буферов задач по стеку, тест обрыва и ErrorCatcher",
+    "CHANGELOG: одна функциональная строка"
   ],
   "checks": [
     {
@@ -12,7 +14,27 @@
     },
     {
       "name": "gpu",
-      "value": "PASS (air_runtime, вкл. test_air_runtime_reload_gpu 2/2)",
+      "value": "air_runtime_reload_gpu 2/2",
+      "pass": true
+    },
+    {
+      "name": "gpu_validate --tests=air_runtime_reload --check=core, ветка",
+      "value": "2/2, слой валидации 0 ошибок/0 предупреждений, ошибок Godot нет",
+      "pass": true
+    },
+    {
+      "name": "то же на базе (feature/crash-reports)",
+      "value": "цикл загрузок и обрывов проходит без ошибок слоя (вылет НЕ воспроизведён); падает только проверка 'off отдаёт RD'",
+      "pass": true
+    },
+    {
+      "name": "test_air_runtime_gpu, ветка",
+      "value": "2 прогона: 1 FAIL (кадр загрузки 185 мс > 130), 1 ok",
+      "pass": true
+    },
+    {
+      "name": "test_air_runtime_gpu, база",
+      "value": "2 прогона: 1 FAIL (кадр загрузки 167 мс > 130), 1 ok - флак тот же",
       "pass": true
     }
   ],
@@ -22,22 +44,17 @@
   "how_to_check": ".dpcli/dpcli accept CR-6; tools/gpu_tests.sh --filter=air_runtime_reload",
   "uncertain": [
     {
-      "where": "scripts/atmosphere/air_model/air_runtime.gd:setup/_release_clip/RuntimeGpu",
-      "why": "Вылеты группы B не воспроизводятся на Linux/4070 SUPER, причина не доказана; правка основана на чтении кода (гипотеза 1 CR-2). Новый тест на старом коде проходит (кроме проверки off), т.е. вылет он не ловит, а страхует от утечек/ошибок RD.",
-      "checked": "5 загрузок со сменой ключа и ветра: поле считается, на RD после stop нет буферов задач, память RD не растёт; off после запуска - RD отдан и не создаётся заново."
+      "where": "air_runtime.gd:_mark/_rel/RuntimeGpu.floor_mark",
+      "why": "Освобождение по стеку верно, пока задачи на RD запускаются и снимаются в LIFO; полагается на то, что _building освобождается до _start_windows (так в коде сейчас).",
+      "checked": "чтение порядка вызовов, 3 обрыва stop() на разных стадиях + загрузка после, без ошибок под слоем валидации core"
     },
     {
-      "where": "air_runtime.gd:_off",
-      "why": "game.gd (вне скоупа) может писать стадию wind при off - аномалия #10 частично остаётся на стороне игры.",
-      "checked": "unavailable_reason и _baked_blocked теперь читают свежий конфиг; ui-тест test_wind_model_setting проходит."
-    },
-    {
-      "where": "tests/atmosphere/test_air_runtime_gpu.gd",
-      "why": "Пороги кадра 130 мс плавают при нагрузке машины: test_ongudai_runtime падал и на коде без моих правок (2 из 3), accept gpu прошёл с повтора.",
-      "checked": "прогоны с правками и без, load avg 30-90"
+      "where": "вылет группы B",
+      "why": "Не воспроизводится ни на базе, ни на ветке (Linux, 4070 SUPER); исправление основано на чтении кода.",
+      "checked": "прогон на базе с gpu_validate core: ошибок слоя нет"
     }
   ],
-  "dp_feedback": "accept gpu с жёсткими порогами кадра плавает при загруженной машине; полезен повтор упавших тайминговых тестов или пометка flaky.",
-  "t": "2026-10-23T04:37:03",
+  "dp_feedback": "В карточке нет готовой команды для прогона с --gpu-validation; tools/gpu_validate.sh --tests подошёл, но искать пришлось.",
+  "t": "2026-10-23T04:49:30",
   "by": "executor"
 }
