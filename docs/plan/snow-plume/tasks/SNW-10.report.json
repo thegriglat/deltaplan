@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "Удалены scripts/world/snow_plume/snow_plume_flake.gdshader и его .uid; из docs/guide/terrain/snow-plume.md убрано предложение о них. Перед удалением grep по scripts/tests/configs/docs/guide: ссылок на snow_plume_flake не было.",
+  "commits": [
+    "7b135b32 SNW-10: удалить неиспользуемый snow_plume_flake.gdshader"
+  ],
+  "checks": [
+    {
+      "name": "gone",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "no_refs",
+      "value": "0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "2 файла в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept SNW-10 --dry",
+  "uncertain": [],
+  "dp_feedback": "docs check: 2 ошибки в docs/plan/test-script-errors/ (related → нет файла docs/plan/test-script-errors.md) — не связаны с SNW-10, не трогал.",
+  "extra": {},
+  "t": "2026-10-23T04:44:23",
+  "by": "executor"
+}
