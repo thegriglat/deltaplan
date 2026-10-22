@@ -41,7 +41,8 @@
     "scripts/game/bot_pilots.gd",
     "locale/ui.csv",
     "tests/game/test_tow_session.gd",
-    "tests/game/test_tow_session.gd.uid"
+    "tests/game/test_tow_session.gd.uid",
+    "configs/ui.json"
   ],
   "dont_touch": [
     "scripts/flight",
@@ -91,5 +92,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T04:33:19"
+  "created": "2026-10-22T04:33:19",
+  "edited": "2026-10-22T05:22:10"
 }
