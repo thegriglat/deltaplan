@@ -1,0 +1,69 @@
+{
+  "status": "partial",
+  "summary": "Живая проверка на кэшированных Эвересте и Шымбулаке: при 16 м/с 24 источника (потолок), при 2 м/с 0; порог 7,0-7,5 м/с, T гребня -39 и -23 C. 4 кадра сняты. Цена кадра не мерилась (задача остановлена координатором).",
+  "commits": [
+    "3565b94f snow-plume: SNW-5 живая проверка источников, кадры, инструмент snow_bench"
+  ],
+  "checks": [
+    {
+      "name": "emitters_strong",
+      "value": "Эверест 24, Шымбулак 24",
+      "pass": true
+    },
+    {
+      "name": "emitters_weak",
+      "value": "Эверест 0, Шымбулак 0",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "4 jpg в build/screenshots/snow-plume",
+      "pass": true
+    },
+    {
+      "name": "gpu_delta/cpu_delta/worst1_delta",
+      "value": "null, не мерилось",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Замер gpu_delta_ms, cpu_delta_ms, worst1_delta_ms: остановлено координатором. Инструмент готов (snow_bench.gd, поле замер_с), run.sh on/off."
+  ],
+  "questions": [
+    "configs/snow_plume.json: render.size_m 10-60 и particles_per_emitter 160 (попытка 1) оставлены в коммите; откатить, если отрисовка переделывается с нуля?"
+  ],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/snow-plume/everest_strong_lee.jpg",
+    "/home/greg/deltaplan/build/screenshots/snow-plume/everest_weak_lee.jpg",
+    "/home/greg/deltaplan/build/screenshots/snow-plume/shymbulak_strong_lee.jpg",
+    "/home/greg/deltaplan/build/screenshots/snow-plume/shymbulak_weak_lee.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SNW-5 --dry (gpu/cpu/worst1 дадут FAIL: null)",
+  "uncertain": [
+    {
+      "where": "scripts/world/snow_plume/snow_plume_model.gd:_build_list/_maybe_start_scan",
+      "why": "список источников иногда пуст в первые 4-25 с и на ряде поз камеры 3-4 км от гребня (scan_count 3-4, повторные сканы) при той же погоде",
+      "checked": "серия emitters по времени в data/*.jsonl: стабильно 24 с 6-й секунды в ser1, в других прогонах пусто на 25 с; причина не найдена"
+    },
+    {
+      "where": "последние 4 кадра",
+      "why": "после финального прогона кадры не открывались; ранние версии (попытка 1) показывали баннеры через гребень, с подветренной стороны; с наветренной (sw) шлейфа не видно",
+      "checked": "ex3 se/sw открыты"
+    }
+  ],
+  "dp_feedback": "lock cpu -- cmd запускает фоновое задание и сразу возвращается (нужен job wait), а cwd задания иной: нужны абсолютные пути. Это нигде не написано в карточке.",
+  "extra": {
+    "everest_strong_ridge": {
+      "u10": "8.7-27.9",
+      "u_t": 7.45,
+      "t_c": -39.0
+    },
+    "shymbulak_strong_ridge": {
+      "u10": "23.1-32.2",
+      "u_t": 7.03,
+      "t_c": -23.4
+    }
+  },
+  "t": "2026-10-23T04:20:26",
+  "by": "executor"
+}

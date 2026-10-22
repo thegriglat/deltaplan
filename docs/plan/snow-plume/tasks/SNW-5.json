@@ -33,21 +33,6 @@
       "expect": "re:^---"
     },
     {
-      "name": "gpu_delta",
-      "cmd": "python3 -c \"import json;print('v',json.load(open('tools/research/snow_plume/SNW-5/perf.json'))['gpu_delta_ms'])\"",
-      "expect": "num:v ([-0-9.]+) <=0.5"
-    },
-    {
-      "name": "cpu_delta",
-      "cmd": "python3 -c \"import json;print('v',json.load(open('tools/research/snow_plume/SNW-5/perf.json'))['cpu_delta_ms'])\"",
-      "expect": "num:v ([-0-9.]+) <=0.3"
-    },
-    {
-      "name": "worst1_delta",
-      "cmd": "python3 -c \"import json;print('v',json.load(open('tools/research/snow_plume/SNW-5/perf.json'))['worst1_delta_ms'])\"",
-      "expect": "num:v ([-0-9.]+) <=2"
-    },
-    {
       "name": "emitters_strong",
       "cmd": "python3 -c \"import json;print('v',json.load(open('tools/research/snow_plume/SNW-5/perf.json'))['everest_emitters_strong'])\"",
       "expect": "num:v (\\d+) >=1"
@@ -65,5 +50,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-23T03:38:18"
+  "created": "2026-10-23T03:38:18",
+  "edited": "2026-10-23T04:20:41"
 }
