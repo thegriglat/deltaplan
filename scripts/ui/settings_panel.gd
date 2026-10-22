@@ -20,6 +20,7 @@ var config_dir: String = UserSettings.DEFAULT_DIR
 
 var _volume: HSlider
 var _sens: HSlider
+var _bar_sens: HSlider
 var _invert: CheckBox
 var _roll_input: OptionButton
 var _sound: OptionButton
@@ -107,6 +108,28 @@ func _ready() -> void:
 	_sens = UiKit.slider_row(
 		box_ctl, tr("settings_mouse_sensitivity"), float(sr[0]), float(sr[1]), 0.01, "%.2f °/px"
 	)
+	var bsr: Array = ui.get("bar_sensitivity_range", [0.25, 4.0])
+	_bar_sens = UiKit.slider_row(
+		box_ctl, tr("settings_bar_sensitivity"), float(bsr[0]), float(bsr[1]), 0.05, "%.2f×"
+	)
+	# число справа: множитель и ход до упора в см при 800 DPI (315 отсчётов/см), BM-К1
+	var bar_lbl: Label = _bar_sens.get_parent().get_child(1)
+	bar_lbl.custom_minimum_size.x = 210
+	_bar_sens.value_changed.connect(
+		func(x: float) -> void:
+			var travel := float(Config.value("controls", "mouse.bar_travel_px", 2500.0))
+			if _bar_cm_valid():
+				bar_lbl.text = tr("settings_bar_sensitivity_fmt") % [x, travel / maxf(x, 0.05) / 315.0]
+			else:
+				bar_lbl.text = "%.2f×" % x
+	)
+	if not _bar_cm_valid():
+		# Wayland/macOS: ввод с ускорением ОС, см неверны (BM-2) — вместо них подсказка
+		var hint := Label.new()
+		hint.text = tr("settings_bar_os_accel")
+		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hint.modulate = Color(1, 1, 1, 0.7)
+		box_ctl.add_child(hint)
 	_invert = CheckBox.new()
 	_invert.text = tr("settings_invert_pitch_hint")
 	UiKit.row(box_ctl, tr("settings_invert_pitch"), _invert)
@@ -318,6 +341,11 @@ func set_net_mode(on: bool) -> void:
 
 
 ## Показать текущие значения из Config.
+## «≈ N см» у слайдера штанги верно только там, где мышь даёт сырые отсчёты (Windows, X11; BM-К1 v2).
+func _bar_cm_valid() -> bool:
+	return DisplayServer.get_name() in ["Windows", "X11"]
+
+
 func load_values() -> void:
 	_language.select(maxi(_language_codes.find(Language.current()), 0))
 	var saved_name := String(Config.value("game", "net.pilot_name", ""))
@@ -328,6 +356,8 @@ func load_values() -> void:
 	_volume.value_changed.emit(_volume.value)
 	_sens.value = float(Config.value("controls", "mouse.look_sensitivity_deg_per_px"))
 	_sens.value_changed.emit(_sens.value)
+	_bar_sens.value = float(Config.value("controls", "mouse.bar_sensitivity", 1.0))
+	_bar_sens.value_changed.emit(_bar_sens.value)
 	_invert.button_pressed = bool(Config.value("controls", "invert_pitch"))
 	_roll_input.select(1 if String(Config.value("controls", "roll_input", "body")) == "body" else 0)
 	_bar_ui.load_values()
@@ -407,7 +437,11 @@ func save() -> bool:
 				{
 					"invert_pitch": _invert.button_pressed,
 					"roll_input": "body" if _roll_input.selected == 1 else "bar",
-					"mouse": {"look_sensitivity_deg_per_px": _sens.value},
+					"mouse":
+					{
+						"look_sensitivity_deg_per_px": _sens.value,
+						"bar_sensitivity": _bar_sens.value,
+					},
 				},
 				config_dir
 			)

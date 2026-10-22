@@ -100,10 +100,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	# поэтому на отрыве трапеция непрерывна. Свободная камера (hands_off) — мышь крутит её, трапеция
 	# держит положение (иначе после возврата в кабину трапеция стояла бы, куда вела камера).
 	if mouse_captured and event is InputEventMouseMotion and not _bar_look_held and not hands_off:
-		var h := float(get_viewport().get_visible_rect().size.y) * 0.5
-		var k := float(_cfg.mouse.bar_sensitivity) / maxf(h, 1.0)
-		_mouse_offset += event.relative * k  # мышь от себя (вверх по экрану) = трапеция от себя
-		_mouse_offset = _mouse_offset.clamp(Vector2(-1, -1), Vector2(1, 1))
+		# мышь от себя (вверх по экрану) = трапеция от себя; ход — в отсчётах мыши (BM-К1)
+		_mouse_offset = MouseBar.accumulate(_mouse_offset, event.screen_relative, _cfg.mouse)
 
 
 ## Новый полёт: трапеция в нейтраль.
@@ -185,8 +183,8 @@ func _update_bar(dt: float, allow_center: bool) -> void:
 	elif ret > 0.0:
 		_mouse_offset = _mouse_offset.move_toward(Vector2.ZERO, ret * dt)
 	var dz := float(_cfg.mouse.bar_deadzone)
-	var m_roll := _mouse_offset.x * _roll_sign() if absf(_mouse_offset.x) > dz else 0.0
-	var m_pitch := -_mouse_offset.y * inv if absf(_mouse_offset.y) > dz else 0.0
+	var m_roll := MouseBar.apply_deadzone(_mouse_offset.x, dz) * _roll_sign()
+	var m_pitch := -MouseBar.apply_deadzone(_mouse_offset.y, dz) * inv
 	control.pitch = clampf(m_pitch, -1.0, 1.0)
 	control.roll = clampf(m_roll, -1.0, 1.0)
 
