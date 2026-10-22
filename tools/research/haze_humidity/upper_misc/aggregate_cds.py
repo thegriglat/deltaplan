@@ -53,8 +53,11 @@ if __name__ == "__main__":
         sp = cells(np.hypot(d["u"].squeeze().values, d["v"].squeeze().values).astype(np.float64))
         for m in range(12):
             i = tt == m; S[m] += sp[i].sum(0); Nn[m] += i.sum()
-        years.append(int(f[-7:-3])); print(f, flush=True)
-    v7 = S / Nn[:, None, None]; wr = v7 / v10m
+        years.append(int(f[-10:-6])); print(f, flush=True)
+    if years:
+        v7 = S / Nn[:, None, None]; wr = v7 / v10m
+    else:  # суточные |V700| не загружены (шлюз Q4) — WR в сетку не идёт, bake.py ставит заглушку и stub_mask=1
+        v7 = wr = np.full((12, 180, 360), np.nan)
     # тропопауза
     tz = xr.open_dataset(C + "/tz.nc"); tt = tvar(tz); lev = [d for d in ("pressure_level", "level") if d in tz.dims][0]
     order = np.argsort(-tz[lev].values)

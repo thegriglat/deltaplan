@@ -1,5 +1,5 @@
 """Сверка HH6 для мест игры. sites.csv: место,lat,lon,месяц,wr,z700_m,z_cell_m,gain_per_km,trop_m,hcc,hcc_med,hcc_lt01,hcc_sem,v10_ms.
-wr/trop — заглушка (из бина HH6), z700 — HH2 (заглушка 3000 м), z_cell — блок Z из HH1, hcc* — ERA5 (бин и upper_misc_clim.npz).
+wr/trop — из бина HH6, z700 — HH2 (заглушка 3000 м), z_cell — блок Z из HH1, hcc* — ERA5 (бин и upper_misc_clim.npz).
 Запуск: python sites.py"""
 import csv, os, struct
 import numpy as np, brotli
@@ -26,7 +26,14 @@ g = open(D + "dew_point_1deg.bin", "rb").read()
 zs = struct.unpack_from("<f", g, 44)[0]
 n3 = 12 * 180 * 360
 zc = np.frombuffer(brotli.decompress(g[64:]), "<i2")[2 * n3:].reshape(180, 360).astype(float) * zs
-c = np.load(R + "/upper_misc_clim.npz"); v = np.load(H + "/v10_mean.npz")["v10"].astype(float)
+import glob
+c = dict(np.load(R + "/upper_misc_cds_clim.npz")); v = c["v10"]
+# медиана и доля дней hcc<0.1 — по выборке ARCO (сутки 1 и 13 каждого месяца, среднее 00+12 UTC, 2011–2020); в сетке — месячные средние CDS
+smp = [[] for _ in range(12)]
+for f in sorted(glob.glob(R + "/upper_misc/*/*.npz")):
+    smp[int(os.path.basename(f)[:2]) - 1].append(np.load(f)["hcc"])
+smp = [np.array(a) for a in smp]
+c["hcc_med"] = np.array([np.nanmedian(a, 0) for a in smp]); c["hcc_lt01"] = np.array([np.nanmean(np.where(np.isnan(a), np.nan, a < 0.1), 0) for a in smp]); c["n_smp"] = len(smp[0])
 Z700 = 3000.0
 rows = []
 for k, (lat, lon) in SITES.items():
