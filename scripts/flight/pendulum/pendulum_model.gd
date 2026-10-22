@@ -184,6 +184,43 @@ var _fell_h: float = 0.5
 var _slope_d: float = 1.0
 var _tension_avg: float = 0.0
 var _hands_p := Vector3.ZERO  ## сила рук на пилота (NED), последний подшаг
+## TW-К4: внешняя сила (трос). Функция зовётся на каждом подшаге; external_force_n — сумма последнего вызова
+var external_force_n := Vector3.ZERO  ## Н, мир игры, только чтение: явные силы и звено последнего подшага
+var link_tension_n: float = 0.0  ## Н, натяжение звена на последнем подшаге (0 — нет звена/провис), только чтение
+var _link_f := Vector3.ZERO  ## сила звена на тело на прошлом подшаге (NED), для кажущегося веса рук
+var _link_fp := Vector3.ZERO  ## из них — плечо уздечки на пилота (NED)
+var _link_fh := Vector3.ZERO  ## плечо на подвеску крыла (NED)
+## Проходов Гаусса–Зейделя уздечки с долей на подвеске (pilot_share < 1): связи цепи подвески и плечи решаются вместе
+## (TW-К4 v6); сходимость замерена в test_tow_k4 (число проходов — запас по натяжению, не подбор).
+var bridle_iters: int = 8
+var _ext_fn: Callable = Callable()
+var _ext_t := 0.0
+var _ext_warned := false
+## TW-К10: старт с тележки. Связка крыло+пилот+тележка — одна степень свободы вдоль курса (крыло в
+## ложементе, пилот в лётном положении — жёстко в осях крыла). Только чтение снаружи.
+var dolly_pos := Vector3.ZERO  ## точка тележки на земле под основанием перекладины (мир игры), м
+var dolly_vel := Vector3.ZERO  ## скорость тележки (мир игры), м/с
+var dolly_attached := false  ## крыло ещё в ложементе (режим «dolly»)
+var _dolly := false
+var _dol: Dictionary = {}  ## параметры: mass_kg, keel_angle_deg, cradle_height_m, wheel_radius_m, rolling_crr
+var _dol_psi := 0.0  ## курс разбега, рад
+var _dol_x0 := 0.0  ## начало разбега (мир игры): x, z
+var _dol_z0 := 0.0
+var _dol_s := 0.0  ## горизонтальный путь вдоль курса, м
+var _dol_v := 0.0  ## скорость вдоль касательной к земле, м/с
+var _dol_s0 := 0.0  ## путь, при котором взята высота земли _dol_hg0 (начало шага)
+var _dol_hg0 := 0.0
+var _dol_phi := 0.0  ## уклон земли вдоль курса, рад
+var _dol_t := Vector3.ZERO  ## касательная и нормаль земли (NED)
+var _dol_n := Vector3.ZERO
+var _dol_dir_b := Vector3.ZERO  ## пилот под подвеской: направление в осях B (нейтраль рук)
+var _dol_hold_until := -1.0  ## время модели, до которого после отрыва не проверяется касание (лежачий пилот у земли)
+## Граница модели: ступни лежащего пилота после отрыва «под землёй» (поза модели — стоя/в полёте), поэтому
+## проверка касания откладывается до подъёма ступней над землёй, но не дольше DOLLY_HOLD_S; 3 с — запас с
+## набором ≥1 м/с на разбеге; потеря: касание в первые 3 с после отрыва не ловится, если ступни не поднялись.
+const DOLLY_HOLD_S := 3.0
+var _cart_s := 0.0  ## после отрыва: путь и скорость тележки вдоль курса
+var _cart_v := 0.0
 var _contact_pts: Array[Vector3] = []  ## нос, концы консолей (правая, левая), конец киля, трапеция — оси B
 ## Оценка касания (PD-35): пилот встаёт на ноги / пробегает / жёстко (pendulum.json → touchdown).
 var touchdown := PendulumTouchdown.new()
@@ -375,6 +412,188 @@ func reset_on_ground(pos: Vector3, heading_deg: float) -> void:
 	_update_outputs(Callable(), Callable())
 
 
+## TW-К10: старт с тележки. Крыло в ложементе: тангаж = keel_angle_deg (плюс уклон земли), крен 0, курс
+## heading_deg; основание перекладины (середина штанги модели) на cradle_height_m над землёй в pos (мир игры;
+## высота — земля, её даёт Glider). Пилот — в лётном положении под подвеской (нейтраль рук), жёстко с
+## крылом. dolly — configs/tow_dolly.json (ключи, которых нет, берутся из файла). Режим GROUND, phase() "dolly".
+func reset_on_dolly(pos: Vector3, heading_deg: float, dolly: Dictionary = {}) -> void:
+	_reset_common()
+	rho = air_density(pos.y)
+	_dol = Config.get_config("tow_dolly").duplicate(true) if FileAccess.file_exists("res://configs/tow_dolly.json") else {}
+	_dol.merge(dolly, true)
+	var st := solve_trim()  # нейтраль рук — для полёта после отрыва
+	_dol_dir_b = Vector3(st.pilot_dir_b)
+	_h_ground0 = pos.y
+	_on = -pos.z
+	_oe = pos.x
+	_od = -pos.y
+	_dol_psi = deg_to_rad(heading_deg)
+	_dol_x0 = pos.x
+	_dol_z0 = pos.z
+	_dol_s = 0.0
+	_dol_s0 = 0.0
+	_dol_hg0 = pos.y
+	_dol_v = 0.0
+	_dol_phi = 0.0
+	_dol_hold_until = -1.0
+	_cart_s = 0.0
+	_cart_v = 0.0
+	_vel = Vector3.ZERO
+	_w = Vector3.ZERO
+	_uprights = false
+	_fresh = false
+	flight_position_started = true  # пилот уже в лётном положении, руки на штанге
+	_dolly = true
+	dolly_attached = true
+	mode = FlightModel.Mode.GROUND
+	_dolly_pose()
+	_update_outputs(Callable(), Callable())
+
+
+## Поза связки на пути _dol_s: основание перекладины над землёй на cradle_height_m, крыло с тангажом
+## keel + уклон, пилот под подвеской, цепь прямая (жёстко). Земля — касательная от _dol_hg0.
+func _dolly_pose() -> void:
+	_R = basis_from_euler(_dol_psi, deg_to_rad(float(_dol.keel_angle_deg)) + _dol_phi, 0.0)
+	var f := Vector3(sin(_dol_psi), 0.0, -cos(_dol_psi))
+	var c := cos(_dol_phi)
+	var sn := sin(_dol_phi)
+	_dol_t = ned(Vector3(f.x * c, sn, f.z * c))
+	_dol_n = ned(Vector3(-f.x * sn, c, -f.z * sn))
+	_vel = _dol_t * _dol_v
+	var r := _R * _r_bar_b
+	var g := _dolly_ground_point()
+	_pos = Vector3(
+		-g.z - r.x - _on, g.x - r.y - _oe, -(g.y + float(_dol.cradle_height_m)) - r.z - _od
+	)
+	chain.place(_pos + _R * _r_hang_b, _R * _dol_dir_b, _vel)
+
+
+## Точка тележки на земле (мир игры) на пути _dol_s: высота — касательная от _dol_hg0.
+func _dolly_ground_point() -> Vector3:
+	return Vector3(
+		_dol_x0 + sin(_dol_psi) * _dol_s,
+		_dol_hg0 + tan(_dol_phi) * (_dol_s - _dol_s0),
+		_dol_z0 - cos(_dol_psi) * _dol_s
+	)
+
+
+## Начало шага: высота и уклон земли под тележкой (ground_fn; нет — ровная на высоте reset_on_dolly).
+func _dolly_sample_ground(ground_fn: Callable) -> void:
+	var g := _dolly_ground_point()
+	var h0 := FlightModel.ground_height(ground_fn, g.x, g.z)
+	_dol_s0 = _dol_s
+	if h0 == -INF:
+		_dol_hg0 = _h_ground0
+		_dol_phi = 0.0
+		return
+	var d := _slope_d
+	var fx := sin(_dol_psi)
+	var fz := -cos(_dol_psi)
+	var ha := FlightModel.ground_height(ground_fn, g.x + fx * d, g.z + fz * d)
+	var hb := FlightModel.ground_height(ground_fn, g.x - fx * d, g.z - fz * d)
+	_dol_hg0 = h0
+	_dol_phi = atan2(ha - hb, 2.0 * d)
+
+
+## Подшаг на тележке (TW-К10). Силы на связку: аэродинамика крыла, вес (крыло, пилот, тележка), сопротивление
+## пилота, внешняя сила и звено (TW-К4); реакция земли N по нормали; качение crr·N против скорости; тяга —
+## вдоль касательной. N ≤ 0 (подъёмная сила ≥ веса) — отрыв: → false (состояние не тронуто; подшаг пропущен,
+## дальше — полёт).
+func _dolly_substep(h: float) -> bool:
+	var R := _R
+	var m_tot := mass + float(_dol.mass_kg)
+	var H: Vector3 = _pos + R * _r_hang_b
+	var xp: Vector3 = chain.pilot()
+	var va := _vel - _air_p
+	var f := R * _aero_f_b + E3 * (m_tot * Units.G) - va * (0.5 * rho * _pilot_cda * va.length())
+	var link: Dictionary = {}
+	if _ext_fn.is_valid():
+		var fe := _external_force(h, xp, _vel, H, R)
+		f += fe[0] + fe[1]
+		link = fe[2]
+	var n_force := -(f + _link_f).dot(_dol_n)  # реакция земли на колёса без учёта звена этого подшага
+	link_tension_n = 0.0
+	_link_f = Vector3.ZERO
+	_link_fp = Vector3.ZERO
+	_link_fh = Vector3.ZERO
+	# Отрыв — по нормальной силе ложемента: вес тележки (без аэродинамики) в неё не входит, он — в реакции
+	# колёс (и, значит, в качении).
+	var n_cradle := n_force - float(_dol.mass_kg) * Units.G * cos(_dol_phi)
+	if n_cradle <= 0.0:
+		return false
+	var v := _dol_v + f.dot(_dol_t) / m_tot * h
+	v = move_toward(v, 0.0, float(_dol.rolling_crr) * n_force / m_tot * h)
+	var arc := v * h
+	if not link.is_empty():
+		var p := xp + _dol_t * arc
+		var dd: Vector3 = p - link.anchor
+		var dist := dd.length()
+		var c: float = dist - link.length
+		if c > 0.0 and dist > 1.0e-9:
+			var nn := dd / dist
+			var nt := nn.dot(_dol_t)
+			var w := nt * nt / m_tot
+			if w > 1.0e-9:
+				var g: float = link.tau / h
+				var c_dot_h: float = nn.dot(_dol_t * arc - link.avel * h) - link.lrate * h
+				var dl: float = (-c - g * c_dot_h) / ((1.0 + g) * w + link.comp / (h * h))
+				if dl < 0.0:
+					arc += nt * dl / m_tot
+					link_tension_n = -dl / (h * h)
+					_link_f = -nn * link_tension_n
+					_link_fp = _link_f
+					external_force_n += game(_link_f)
+	_dol_v = arc / h
+	_dol_s += arc * cos(_dol_phi)
+	_dolly_pose()
+	_w = Vector3.ZERO
+	return true
+
+
+## Отрыв с тележки: состояние крыла и пилота — как есть (скорость, ориентация, цепь), дальше обычный полёт.
+func _dolly_release() -> void:
+	_dolly = false
+	dolly_attached = false
+	_cart_s = _dol_s
+	_cart_v = _dol_v * cos(_dol_phi)
+	_dol_hold_until = time_s + DOLLY_HOLD_S
+	_w = Vector3.ZERO
+	arms.reset()
+	mode = FlightModel.Mode.AIR
+	_uprights = false
+	took_off.emit()
+
+
+## После отрыва с тележки пилот лежит у земли (ступни модели «под землёй»): касание не проверяется, пока
+## ступни не поднимутся над землёй или не пройдёт DOLLY_HOLD_S. → true, пока проверка отложена.
+func _dolly_hold(ground_fn: Callable) -> bool:
+	if _dol_hold_until < 0.0:
+		return false
+	if time_s >= _dol_hold_until:
+		_dol_hold_until = -1.0
+		return false
+	var feet := pilot_position - pilot_basis.y * _leg_len
+	var gh := FlightModel.ground_height(ground_fn, feet.x, feet.z)
+	if gh > -INF and feet.y - gh > 0.0:
+		_dol_hold_until = -1.0
+		return false
+	return true
+
+
+## Тележка после отрыва: катится по курсу, тормозится качением crr·g до остановки (ground_fn — высота земли).
+func _cart_update(dt: float, ground_fn: Callable) -> void:
+	if _dolly or _dol.is_empty():
+		return
+	if _cart_v != 0.0:
+		_cart_v = move_toward(_cart_v, 0.0, float(_dol.rolling_crr) * Units.G * dt)
+		_cart_s += _cart_v * dt
+	var x := _dol_x0 + sin(_dol_psi) * _cart_s
+	var z := _dol_z0 - cos(_dol_psi) * _cart_s
+	var hg := FlightModel.ground_height(ground_fn, x, z)
+	dolly_pos = Vector3(x, hg if hg > -INF else _h_ground0, z)
+	dolly_vel = Vector3(sin(_dol_psi), 0.0, -cos(_dol_psi)) * _cart_v
+
+
 ## Поза стоя: ступни в feet (локальная NED, на земле), курс ps; ЦМ пилота над ступнями на длину
 ## ноги со статическим сжатием, плечи — хват за стойки, крыло с носом на alpha_neutral к земле.
 func _place_on_ground(ps: float, feet: Vector3) -> void:
@@ -428,6 +647,7 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	if _crash_v != Vector3.ZERO:
 		_crash_step(dt)
 		return
+	_cart_update(dt, ground_fn)
 	if not _simulating():
 		_update_outputs(air_fn, ground_fn)
 		return
@@ -441,6 +661,9 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 		landed_ = false
 		landing_result = {}
 		ground.decel = ground.stop_decel
+	if _dolly:
+		_dolly_sample_ground(ground_fn)
+		_dolly_pose()
 	if _uprights:
 		_sample_ground(ground_fn)
 		if _fresh:
@@ -476,7 +699,12 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 			_aero_update(air_fn, ground_fn)
 			strips.dyn_dt = 0.0
 			_aero_age = 0.0
-		_substep(h, inp)
+		if _dolly:
+			if not _dolly_substep(h):
+				_dolly_release()
+				continue
+		else:
+			_substep(h, inp)
 		f_sum += chain.pilot_force + _hands_p
 		t_sum += chain.tension
 		_aero_age += h
@@ -484,16 +712,21 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	_tension_avg = t_sum / n
 	var f_p := f_sum / n
 	load.update(f_p.length(), pilot_mass * Units.G, _lf_filter, dt, _lf_jitter)
+	if _dolly:
+		dolly_pos = _dolly_ground_point()
+		dolly_vel = game(_dol_t) * _dol_v
 	_update_outputs(air_fn, ground_fn)
 	if mode == FlightModel.Mode.AIR and not _uprights:
 		start_flight_position()  # FB-К2: на штанге (и после set_kinematic) касание крылом — авария
+	if _dolly:
+		return  # на тележке земля держит ложемент: ни падения, ни отрыва ногами
 	match mode:
 		FlightModel.Mode.GROUND:
 			_check_ground(ground_fn)
 		FlightModel.Mode.AIR:
 			if _uprights:
 				_check_after_liftoff(dt, ground_fn)
-			else:
+			elif not _dolly_hold(ground_fn):
 				_check_touchdown(ground_fn)
 
 
@@ -640,6 +873,8 @@ func _freeze() -> void:
 
 ## Значения Telemetry.phase.
 func phase() -> String:
+	if _dolly:
+		return "dolly"
 	match mode:
 		FlightModel.Mode.AIR:
 			return "flying"
@@ -781,6 +1016,88 @@ func _aero_update(air_fn: Callable, ground_fn: Callable = Callable()) -> void:
 	_aero_m_b = strips.moment_b
 
 
+## TW-К4: внешняя сила в точках пилота и подвески. fn(s: Dictionary) -> {"pilot": Vector3, "hang": Vector3}
+## (Н, мир игры; вход s — в docs/contracts/tow.md). Зовётся на каждом подшаге до сборки сил пилота.
+func set_external_force(fn: Callable) -> void:
+	_ext_fn = fn
+	if not fn.is_valid():
+		external_force_n = Vector3.ZERO
+		link_tension_n = 0.0
+		_link_f = Vector3.ZERO
+		_link_fp = Vector3.ZERO
+		_link_fh = Vector3.ZERO
+
+
+func clear_external_force() -> void:
+	set_external_force(Callable())
+
+
+## → [сила на пилота (NED), сила на подвеску (NED), звено]; звено — {} или {anchor (NED), length,
+## comp, tau, hang}. Нечисловое — ноль/без звена и один push_warning.
+func _external_force(h: float, xp: Vector3, vp: Vector3, H: Vector3, R: Basis) -> Array:
+	_ext_t += h
+	var res: Array = [Vector3.ZERO, Vector3.ZERO, {}]
+	var s := {
+		"t": _ext_t, "h": h, "pilot_pos": _world(xp), "pilot_vel": game(vp),
+		"hang_pos": _world(H), "hang_vel": game(_vel + _w.cross(R * _r_hang_b)),
+		"on_ground": _uprights or _dolly, "wing_basis": wing_basis(), "link_tension_n": link_tension_n,
+	}
+	var r = _ext_fn.call(s)
+	var keys := ["pilot", "hang"]
+	var sum := Vector3.ZERO
+	for i in 2:
+		var v = r.get(keys[i], Vector3.ZERO) if r is Dictionary else null
+		if v is Vector3 and is_finite(v.x) and is_finite(v.y) and is_finite(v.z):
+			res[i] = ned(v)
+			sum += v
+		elif v != null:
+			_ext_warn(keys[i])
+	var lk = r.get("link") if r is Dictionary else null
+	if lk is Dictionary:
+		var an = lk.get("anchor")
+		var ln = lk.get("length_m")
+		var cp = lk.get("compliance_m_per_n", 0.0)
+		var dm = lk.get("damping_s", 0.0)
+		var at = lk.get("at", "pilot")
+		var av = lk.get("anchor_vel", Vector3.ZERO)
+		var lr = lk.get("length_rate_ms", 0.0)
+		var ps = lk.get("pilot_share", 0.0 if at == "hang" else 1.0)
+		if (
+			an is Vector3 and is_finite(an.x) and is_finite(an.y) and is_finite(an.z)
+			and (ln is float or ln is int) and is_finite(ln) and ln >= 0.0
+			and (cp is float or cp is int) and is_finite(cp) and cp >= 0.0
+			and (dm is float or dm is int) and is_finite(dm) and dm >= 0.0
+			and (at == "pilot" or at == "hang")
+			and av is Vector3 and is_finite(av.x + av.y + av.z)
+			and (lr is float or lr is int) and is_finite(lr)
+			and (ps is float or ps is int) and is_finite(ps) and ps >= 0.0 and ps <= 1.0
+		):
+			# якорь в локальных NED: мир игры → NED → вычесть локальное начало
+			res[2] = {
+				"anchor": ned(an) - Vector3(_on, _oe, _od), "length": float(ln), "comp": float(cp),
+				"tau": float(dm), "share": float(ps), "avel": ned(av), "lrate": float(lr),
+			}
+		else:
+			_ext_warn("link")
+	external_force_n = sum
+	return res
+
+
+func _ext_warn(key: String) -> void:
+	if not _ext_warned:
+		_ext_warned = true
+		push_warning("PendulumModel: внешняя сила вернула нечисловое значение (%s) — принято за ноль" % key)
+
+
+## TW-К4: звено «якорь — ЦМ пилота» на подшаге (XPBD, после интегрирования, до цепи; уздечка целиком на пилоте,
+## pilot_share = 1). → натяжение, Н; сила на тело — в _link_f (NED). Уздечка с долей на подвеске — chain.project_bridle.
+func _solve_link(h: float, lk: Dictionary) -> float:
+	var t := chain.project_anchor(h, lk.anchor, lk.length, lk.comp, lk.tau, lk.avel, lk.lrate)
+	if t > 0.0:
+		_link_f = (lk.anchor - chain.pilot()).normalized() * t
+	return t
+
+
 func _substep(h: float, input: ControlInput) -> void:
 	var R := _R
 	var Rt := R.transposed()
@@ -796,6 +1113,24 @@ func _substep(h: float, input: ControlInput) -> void:
 	var f_p := E3 * (pilot_mass * Units.G) - va * (0.5 * rho * _pilot_cda * va.length())
 	var rel: Vector3 = Rt * (xp - H)
 	var fb := Vector3.ZERO
+	var ext_p := Vector3.ZERO  # внешняя сила на пилота (NED)
+	var ext_h := Vector3.ZERO  # внешняя сила на подвеску (NED)
+	var link: Dictionary = {}
+	var lnk_p := Vector3.ZERO  # сила звена на прошлом подшаге — только в кажущийся вес рук
+	var lnk_h := Vector3.ZERO
+	if _ext_fn.is_valid():
+		var fe := _external_force(h, xp, vp, H, R)
+		ext_p = fe[0]
+		ext_h = fe[1]
+		link = fe[2]
+		if not link.is_empty():
+			lnk_p = _link_fp
+			lnk_h = _link_fh
+		f_p += ext_p
+		if ext_h != Vector3.ZERO:
+			var fh_b := Rt * ext_h
+			f_wb += fh_b
+			tb += _r_hang_b.cross(fh_b)
 	if _uprights:
 		# руки на стойках: горизонтальная сила — в хвате, вертикальная опора — под ЦМ крыла
 		var rg := R * ground.grip_b
@@ -816,9 +1151,16 @@ func _substep(h: float, input: ControlInput) -> void:
 		var vrel: Vector3 = Rt * (vp - _vel) - wb.cross(_r_hang_b + rel)
 		# кажущийся вес пилота в осях крыла: подвеска ускоряется с системой, (A_крыла + D_п)/M + g
 		var d_p := f_p - E3 * (pilot_mass * Units.G)
-		var load_b: Vector3 = Rt * (d_p - (R * _aero_f_b + d_p) * (pilot_mass / mass))
+		d_p += lnk_p
+		var load_b: Vector3 = Rt * (d_p - (R * _aero_f_b + d_p + ext_h + lnk_h) * (pilot_mass / mass))
+		# вклад внешней силы и звена в кажущийся вес: боковая составляющая — не ввод пилота
+		var ext_b := Vector3.ZERO
+		var e_p := ext_p + lnk_p
+		var e_h := ext_h + lnk_h
+		if e_p != Vector3.ZERO or e_h != Vector3.ZERO:
+			ext_b = Rt * (e_p - (e_p + e_h) * (pilot_mass / mass))
 		fb = arms.compute(
-			rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y, load_b
+			rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y, load_b, ext_b
 		)
 		_hands_p = R * fb
 	if fb != Vector3.ZERO:
@@ -842,9 +1184,31 @@ func _substep(h: float, input: ControlInput) -> void:
 	if ang > 1.0e-12:
 		R = Basis(_w / (ang / h), ang) * R
 	chain.integrate(h, f_p)
-	# связи цепи
-	var iw_inv := R * _I_inv * R.transposed()
-	chain.project(h, _pos, R, _r_hang_b, _m_wing, iw_inv)
+	# TW-К4: звено троса — в той же проекции, до цепи; звена нет на этом подшаге — отцеп мгновенный
+	link_tension_n = 0.0
+	_link_f = Vector3.ZERO
+	_link_fp = Vector3.ZERO
+	_link_fh = Vector3.ZERO
+	if not link.is_empty() and link.share < 1.0:
+		# уздечка с долей на подвеске: оба плеча и связи цепи — вместе (TW-К4 v6)
+		chain.project_bridle(
+			h, _pos, R, _r_hang_b, _m_wing, _I_inv, link, link.share,
+			pos_prev + r_prev * _r_hang_b, bridle_iters
+		)
+		_link_fp = chain.bridle_f_pilot
+		_link_fh = chain.bridle_f_hang
+		_link_f = _link_fp + _link_fh
+		link_tension_n = _link_f.length()
+		external_force_n += game(_link_f)
+	else:
+		if not link.is_empty():
+			link_tension_n = _solve_link(h, link)
+			if link_tension_n > 0.0:
+				_link_fp = _link_f
+				external_force_n += game(_link_f)
+		# связи цепи
+		var iw_inv := R * _I_inv * R.transposed()
+		chain.project(h, _pos, R, _r_hang_b, _m_wing, iw_inv)
 	_pos = chain.wing_pos
 	_R = chain.wing_R
 	# скорости из позиций; поворот за подшаг мал (|ω|·h ≲ 0,01 рад) — ω из кососимметричной
@@ -952,6 +1316,7 @@ func _place_wing(pos: Vector3) -> void:
 
 
 func _reset_common() -> void:
+	_ext_t = 0.0
 	_crash_v = Vector3.ZERO
 	time_s = 0.0
 	_aero_age = INF
@@ -966,6 +1331,15 @@ func _reset_common() -> void:
 	_last_pitch = 0.0
 	_fresh = false
 	_hands_p = Vector3.ZERO
+	# состояние тележки (TW-К10): reset_on_dolly задаёт его заново, остальные режимы — без тележки
+	_dolly = false
+	dolly_attached = false
+	_dol = {}
+	_dol_hold_until = -1.0
+	_cart_s = 0.0
+	_cart_v = 0.0
+	dolly_pos = Vector3.ZERO
+	dolly_vel = Vector3.ZERO
 
 
 ## Касание в полёте (руки на штанге): ступни (ЦМ пилота − длина ноги по его оси) у земли →
@@ -1054,7 +1428,7 @@ func _shift_of(bg: Basis, rel_g: Vector3) -> Vector2:
 	if not (rel_g.is_finite() and pilot_rel.is_finite()):
 		return Vector2.ZERO
 	var neutral := Vector3.ZERO
-	if mode == FlightModel.Mode.AIR and not _uprights and _neutral_ok:
+	if (_dolly or (mode == FlightModel.Mode.AIR and not _uprights)) and _neutral_ok:
 		var n := arms.neutral_rel
 		neutral = Vector3(n.y, -n.z, -n.x)
 	elif mode == FlightModel.Mode.GROUND and _uprights and _ground_neutral != Vector3.ZERO:

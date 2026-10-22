@@ -93,6 +93,10 @@ var inspect_mode := false
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
 var _start_heading := 0.0
+## Буксировка со статической лебёдки (TW-10): узел-сессия и место полосы (TowSite.check), {} — без буксировки.
+var tow_session: TowSession = null
+var _tow_site: Dictionary = {}
+const TOW_DEFAULT_WIDTH_M := 35.0  # ширина полосы для точки без блока tow (как у единственной полосы места, TW-8b)
 var _exact_start := false  # точный старт пилота применён (SP-К1): курс не выравнивается по ветру
 var _site_heading := 0.0  # курс площадки (до выравнивания по ветру поля)
 var _load_error := ""
@@ -285,6 +289,8 @@ func tick(dt: float) -> void:
 		_queue_walk_step(control, phase)
 	glider.set_input(control)
 	bots.tick(dt, glider.get_telemetry())
+	if tow_session != null:
+		_winch_step(dt, control)
 	if tow != null:
 		_tow_step(dt)  # без физики, столкновений и итога полёта
 		return
@@ -445,8 +451,9 @@ func start(s: FlightSettings) -> bool:
 	world_link.place_camp()
 	await get_tree().process_frame
 	# Боты: места и агенты — сразу, вид — порциями вместе с термиками ниже (FL-10).
+	_make_tow_session()
 	await bots.setup_in_world_async(
-		terrain, air, _start_pos, _start_heading, bots_count, world_link.objects
+		terrain, air, _start_pos, _start_heading, bots_count, world_link.objects, 50.0, _tow_bots_opts()
 	)
 	# Поля рельефа (влажность ложбин ослабляет источники термиков) считаются в фоне — термики
 	# рождаются только после них, иначе первые термики зависели бы от скорости машины.
@@ -789,6 +796,8 @@ func restart(keep_clock: bool = false) -> void:
 		glider.reset_on_ground(sp.position, float(sp.heading_deg))
 	else:
 		glider.reset_on_ground(_start_pos, _start_heading)
+	if tow_session != null:
+		tow_session.reset()  # трос снова лежит, ждёт W
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
 	input_controller.reset()
 	collisions.reset()
@@ -1459,6 +1468,9 @@ func _load_terrain() -> bool:
 
 func _choose_start() -> void:
 	_exact_start = false
+	_tow_site = {}
+	if _choose_tow_start():
+		return
 	if settings.has_exact_start():
 		var q := terrain.latlon_to_local(settings.start_lat, settings.start_lon)
 		var chk := StartSpot.check(terrain, q.x, q.y)
@@ -1466,7 +1478,7 @@ func _choose_start() -> void:
 			_start_pos = Vector3(q.x, terrain.height_at(q.x, q.y), q.y)
 			_start_heading = settings.start_heading_deg
 			_exact_start = true
-			terrain.add_start_clearing(q.x, q.y, Terrain.start_clearing_radius_m())
+			_clear_exact_start(q)
 			return
 		push_warning("Game: точный старт недопустим (%s), автостарт" % chk.reason)
 	if settings.has_pick():
@@ -1491,6 +1503,170 @@ func _choose_start() -> void:
 	_start_pos = site.position
 	_start_heading = float(site.heading_deg)
 	MotionRig.place = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
+
+
+## Старт со статической лебёдки (TW-10, TW-К6/К7): настройка tow_kind, «Маятник», одиночная игра, полоса проходит
+## TowSite.check. Площадка с блоком tow — её ось и размеры; точка с карты и точный старт — курс выбранный, длина троса
+## из configs/tow.json. Не вышло (причина — push_warning) — обычный старт без буксировки. aerotow (TW-10b) — та же
+## полоса, но старт пилота на тележке в начале, Ан-2 впереди на длину троса.
+func _choose_tow_start() -> bool:
+	var kind := settings.tow_kind
+	if kind == "":
+		return false
+	if kind != "winch_static" and kind != "aerotow":
+		push_warning("Game: буксировка %s неизвестна, старт без буксировки" % kind)
+		return false
+	if net != null or air_start_m >= 0.0:
+		push_warning("Game: буксировка — только одиночная игра с земли, старт без буксировки")
+		return false
+	var rope_len := float(Config.value("tow", "%s.%s" % [kind, "rope_length_m" if kind == "winch_static" else "runway_length_m"], 1000.0))
+	var x := 0.0
+	var z := 0.0
+	var heading := 0.0
+	var length := rope_len
+	var width := TOW_DEFAULT_WIDTH_M
+	var site_name := ""
+	var q := Vector2.ZERO
+	var from_site := false
+	if settings.has_exact_start() or settings.has_pick():
+		if settings.has_exact_start():
+			q = terrain.latlon_to_local(settings.start_lat, settings.start_lon)
+			heading = settings.start_heading_deg
+		else:
+			q = terrain.latlon_to_local(settings.pick_lat, settings.pick_lon)
+			heading = (
+				settings.start_heading_deg
+				if is_finite(settings.start_heading_deg)
+				else float(StartPlacement.evaluate(terrain.height_at, q.x, q.y, _cfg.start_search).heading_deg)
+			)
+		x = q.x
+		z = q.y
+		for st in terrain.get_start_sites():  # точный старт на площадке с tow — её ось и размеры
+			var tw: Dictionary = st.get("tow", {})
+			if (
+				settings.has_exact_start()
+				and not tw.is_empty()
+				and Vector2(st.position.x, st.position.z).distance_to(q) <= 5.0
+			):
+				heading = float(st.heading_deg)
+				length = float(tw.runway_length_m)
+				width = float(tw.runway_width_m)
+	else:
+		var sites := terrain.get_start_sites()
+		if sites.is_empty():
+			push_warning("Game: буксировка — на месте нет площадки, старт без буксировки")
+			return false
+		var site: Dictionary = sites[0]
+		for st in sites:
+			if st.id == settings.site_id:
+				site = st
+		var tw: Dictionary = site.get("tow", {})
+		if tw.is_empty() or not (kind in tw.get("kinds", [])):
+			push_warning("Game: на площадке %s нет буксировки %s, старт без буксировки" % [site.get("id", ""), kind])
+			return false
+		x = site.position.x
+		z = site.position.z
+		heading = float(site.heading_deg)
+		length = float(tw.runway_length_m)
+		width = float(tw.runway_width_m)
+		from_site = true
+		site_name = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
+	var chk := TowSite.check(terrain, x, z, heading, length, width)
+	if not bool(chk.ok):
+		push_warning("Game: полоса для буксировки не годится (%s), старт без буксировки" % chk.reason)
+		return false
+	_start_pos = chk.start_pos
+	_start_heading = float(chk.heading_deg)
+	_exact_start = true  # курс — ось полосы, по ветру не выравнивается
+	_tow_site = chk
+	_tow_site["width_m"] = width
+	_tow_site["length_m"] = length
+	if from_site:
+		MotionRig.place = site_name
+	elif settings.has_exact_start():
+		_clear_exact_start(q)
+		if not _site_has_tow_at(q):
+			_clear_tow_runway()
+	else:
+		_clear_tow_runway()  # точка с карты: лес на полосе лебёдки — иначе не разогнаться и не набрать высоту
+	return true
+
+
+func _site_has_tow_at(q: Vector2) -> bool:
+	for st in terrain.get_start_sites():
+		var tw: Dictionary = st.get("tow", {})
+		if not tw.is_empty() and Vector2(st.position.x, st.position.z).distance_to(q) <= 5.0:
+			return true
+	return false
+
+
+## Поляна-полоса вдоль оси _tow_site: от старта на длину до лебёдки, шириной полосы (TW-К6, как TowSite.clearing_size).
+func _clear_tow_runway() -> void:
+	var margin := float(Config.value("game", "tow_site.clearing_margin_m", 30.0))
+	terrain.add_runway_clearing(
+		_start_pos,
+		_start_heading,
+		float(_tow_site.get("length_m", Config.value("tow", "winch_static.rope_length_m", 1000.0))),
+		float(_tow_site.get("width_m", TOW_DEFAULT_WIDTH_M)) + 2.0 * margin
+	)
+
+
+## Узел буксировки на старт полёта (после _setup_glider): старый — убрать; нет места полосы — внешней силы нет.
+func _make_tow_session() -> void:
+	if tow_session != null:
+		tow_session.queue_free()
+		tow_session = null
+	glider.clear_external_force()
+	if _tow_site.is_empty():
+		return
+	tow_session = TowSession.new()
+	tow_session.name = "TowSession"
+	add_child(tow_session)
+	tow_session.setup(glider, Callable(terrain, "height_at"), _tow_site, settings.tow_kind)
+
+
+## Боты на буксирном месте стартуют в воздухе над полосой на высоте отцепа (Q1): opts для setup_in_world_async.
+func _tow_bots_opts() -> Dictionary:
+	if tow_session == null:
+		return {}
+	var l := tow_session.rope_length_m()
+	if tow_session.is_aerotow():
+		l = float(_tow_site.get("length_m", l))  # трос 80 м — полоса много длиннее: боты над всей полосой
+	return {
+		"agl_m": tow_session.release_height_m(),
+		"ahead_m": [0.2 * l, 0.8 * l],
+		"lateral_m": 0.5 * float(_tow_site.get("width_m", TOW_DEFAULT_WIDTH_M)),
+	}
+
+
+## Шаг лебёдки до glider.step: старт — W (на геймпаде — кнопка разбега; Shift трос не запускает), tow_release (B / кнопка геймпада) — отцеп.
+func _winch_step(dt: float, c: ControlInput) -> void:
+	var start := false
+	var release := false
+	if input_controller.enabled and not hands_off:
+		start = _action_held("walk_forward") or input_controller.pad_run or c.walk > 0.0  # c.walk — автопилот
+		release = InputMap.has_action("tow_release") and Input.is_action_just_pressed("tow_release")
+	tow_session.step(dt, start, release)
+
+
+static func _action_held(action: String) -> bool:
+	return InputMap.has_action(action) and Input.is_action_pressed(action)
+
+
+## Поляна точного старта: у встроенной площадки с блоком tow (в пределах 5 м) — полоса вдоль оси
+## (TW-К6, ось — heading_deg площадки, не курс пилота; запас по ширине — game.json → tow_site.clearing_margin_m), иначе круг.
+func _clear_exact_start(q: Vector2) -> void:
+	for st in terrain.get_start_sites():
+		var tow: Dictionary = st.get("tow", {})
+		if tow.is_empty() or Vector2(st.position.x, st.position.z).distance_to(q) > 5.0:
+			continue
+		var dim := TowSite.clearing_size(tow)
+		if dim.x > 0.0:
+			terrain.add_runway_clearing(
+				Vector3(q.x, terrain.height_at(q.x, q.y), q.y), float(st.heading_deg), dim.x, dim.y
+			)
+			return
+	terrain.add_start_clearing(q.x, q.y, Terrain.start_clearing_radius_m())
 
 
 func _setup_glider() -> void:

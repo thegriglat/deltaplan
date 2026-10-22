@@ -8254,6 +8254,34 @@
    "orientation": [
     "W"
    ]
+  },
+  {
+   "country": "US",
+   "ele": 33,
+   "heading_deg": 356.8,
+   "id": "builtin/wilotree_park/runway_36",
+   "lat": 28.5311456,
+   "location": "wilotree_park",
+   "lon": -81.8464567,
+   "name": "Wilotree Park (Quest Air) — полоса 36, на север",
+   "orientation": [
+    "N"
+   ],
+   "site": "runway_36"
+  },
+  {
+   "country": "US",
+   "ele": 33,
+   "heading_deg": 176.8,
+   "id": "builtin/wilotree_park/runway_18",
+   "lat": 28.5388934,
+   "location": "wilotree_park",
+   "lon": -81.8469503,
+   "name": "Wilotree Park (Quest Air) — полоса 18, на юг",
+   "orientation": [
+    "S"
+   ],
+   "site": "runway_18"
   }
  ],
  "version": 1

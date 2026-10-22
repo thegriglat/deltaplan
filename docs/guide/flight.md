@@ -5,7 +5,7 @@ module: "flight"
 area: "flight"
 updated: "2026-10-22"
 summary: "Вход в гайд по полёту: FlightModel и Glider (scripts/flight/), крен, земля и посадка, Маятник; оглавление частей."
-related: ["docs/guide/flight/model.md", "docs/guide/flight/wings.md", "docs/guide/flight/api.md", "docs/guide/flight/polar-table.md", "docs/guide/flight/ground-bank.md", "docs/guide/flight/ground-pose.md", "docs/guide/flight/sky-shade.md", "docs/guide/flight/pendulum.md", "docs/research/pendulum.md", "docs/contracts/pendulum.md"]
+related: ["docs/guide/flight/model.md", "docs/guide/flight/wings.md", "docs/guide/flight/api.md", "docs/guide/flight/polar-table.md", "docs/guide/flight/ground-bank.md", "docs/guide/flight/ground-pose.md", "docs/guide/flight/sky-shade.md", "docs/guide/flight/pendulum.md", "docs/guide/flight/tow.md", "docs/research/pendulum.md", "docs/contracts/pendulum.md"]
 ---
 # Модель полёта (scripts/flight/)
 
@@ -64,6 +64,7 @@ related: ["docs/guide/flight/model.md", "docs/guide/flight/wings.md", "docs/guid
 | [flight/ground-pose.md](flight/ground-pose.md) | Поза крыла на земле (зазор над рельефом); Крыло стоя на старте (тангаж, флюгер, касания до перехода в лётное положение); Старт в сильный ветер |
 | [flight/sky-shade.md](flight/sky-shade.md) | Тень от неба под крылом (физика, параметры, реализация) |
 | [flight/pendulum.md](flight/pendulum.md) | Маятник: модель, включение, ввод, вкладка «Аппарат», земля, срыв и штопор, ленточки, камера, учтённое, границы |
+| [flight/tow.md](flight/tow.md) | Буксировка: виды и выбор, трос (звено XPBD), лебёдка, аэробуксировка за Ан-2 с тележки, отцеп, место, учтённое и границы |
 
 Смежное: ленточки на тросах — [telltale.md](telltale.md); приборы и звук — [instruments.md](instruments.md); вывод движения
 на платформу — [motion-rig.md](motion-rig.md); модели крыльев и пилота — [models.md](models.md).

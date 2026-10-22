@@ -21,6 +21,8 @@ const UP := Vector3.UP
 var telemetry := Telemetry.new()
 ## Смещение пилота по последнему вводу (FB-К1): x = roll, y = −pitch; в Telemetry.pilot_shift.
 var last_shift := Vector2.ZERO
+## TW-К4: внешняя сила (трос), Н, мир игры, приложена в ЦМ, без момента; ZERO — нет
+var external_force := Vector3.ZERO
 var mode: Mode = Mode.GROUND
 ## Причина срыва взлёта: "wingtip" (консоль на земле) или "" (GroundRun.failure).
 var takeoff_failure: String = ""
@@ -371,6 +373,8 @@ func _step_air(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Call
 	var c := aero_coefs(dt)
 	var force := lift_dir * (q * c.x) - u * (q * c.y) + UP * (-mass * Units.G)
 	force += _flare.hang_force(self)
+	if external_force != Vector3.ZERO:
+		force += external_force
 	var lf: Dictionary = flight.load_factor
 	load.update(q * c.x, mass * Units.G, float(lf.filter_s), dt, float(lf.jitter_window_s))
 	_accel_t = force.dot(u) / mass

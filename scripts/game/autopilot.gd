@@ -12,6 +12,7 @@ extends RefCounted
 
 const ACTIONS: Array[String] = [
 	"run",
+	"walk_forward",
 ]
 ## Ход ручки автопилота, доля полного в секунду: к цели и к нейтрали (прежний клавиатурный ход, У1 v4:
 ## тангаж 1,5/1,0) — поведение автопилота не меняется.
@@ -51,9 +52,18 @@ var pid_kp := 1.5
 var pid_kd := 0.8
 var pid_ki := 0.3
 
+## Удержание воздушной скорости в полёте (SpeedHold, буксировка), м/с; ≤ 0 — выключено (трапеция в триме).
+## Тангаж трапеции — ввод ControlInput.pitch (игрок всегда на «Маятнике»).
+var hold_airspeed_ms := 0.0
+var speed_hold := SpeedHold.new()
+
 ## Ждать (сеть, NET-43: не первый в очереди на старт или идёт к своему месту): ничего не жать,
 ## замер ветра стоя — заново, когда ожидание кончится.
 var hold := false
+
+## Старт с лебёдки (TW-К7): трос запускает W (walk_forward), Shift его не запускает (TW-10) — вместо бега
+## жмёт W, пока стоит на земле; после отрыва W отпущен. Нос на земле не трогает (тянет трос).
+var tow_start := false
 
 var _time: float = 0.0
 var _air_time: float = 0.0
@@ -76,6 +86,7 @@ func reset() -> void:
 	_prev_basis = Basis.IDENTITY
 	_bank_rate = 0.0
 	_pid_i = 0.0
+	speed_hold.reset()
 	roll_command = 0.0
 	pitch_command = 0.0
 	_heading = hold_heading_deg
@@ -128,9 +139,19 @@ func drive(t: Telemetry, dt: float) -> void:
 			_pid_roll(t.bank_deg, want)
 		_:
 			roll_command = 0.0
-	_press("run", hold_w)
+	if tow_start:
+		var on_ground: bool = t.phase in ["standing", "walking", "running"] and _wind_seen
+		_press("run", hold_w)
+		_press("walk_forward", on_ground)
+	else:
+		_press("run", hold_w)
 	# на земле — нос по углу атаки, в полёте — трапеция в триме (ручка к нейтрали)
-	pitch_command = _ramp(pitch_command, float(nose), PITCH_RATE, PITCH_RETURN, dt)
+	if hold_airspeed_ms > 0.0 and t.phase == "flying":
+		speed_hold.target_ms = hold_airspeed_ms
+		pitch_command = move_toward(pitch_command, speed_hold.update(t, dt), PITCH_RATE * dt)
+	else:
+		speed_hold.reset()
+		pitch_command = _ramp(pitch_command, float(nose), PITCH_RATE, PITCH_RETURN, dt)
 
 
 func release_all() -> void:
