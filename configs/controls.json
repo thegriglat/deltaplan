@@ -89,7 +89,7 @@
     ],
     "catch_up_doc": "Сетевая игра: меню «Догнать» (NET-42) — открыть/закрыть; в меню ↑/↓ — выбор, Enter — догнать, Esc — закрыть. На геймпаде — gamepad.action_buttons.catch_up",
     "tow_release": [
-      "Space"
+      "B"
     ],
     "tow_release_doc": "Буксировка (лебёдка): отцеп — трос снимается, свободный полёт (TW-К5). Вне буксировки ничего не делает. На геймпаде — gamepad.action_buttons.tow_release",
     "look_up": [

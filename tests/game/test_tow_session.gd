@@ -220,6 +220,13 @@ func test_release_action_in_controls() -> void:
 		if a.ends_with("_doc") or a == "tow_release":
 			continue
 		check(not (key in keys[a]), "клавиша %s не занята действием %s" % [key, a])
+	# не встроенные ui_* Godot (Space/Enter/стрелки): иначе отцеп жмёт кнопку HUD с фокусом
+	var ev := InputEventKey.new()
+	ev.keycode = OS.find_keycode_from_string(key)
+	check(ev.keycode != KEY_NONE, "клавиша %s распознана" % key)
+	for a: StringName in InputMap.get_actions():
+		if String(a).begins_with("ui_"):
+			check(not InputMap.action_has_event(a, ev), "клавиша %s не в %s" % [key, a])
 	var btn: Dictionary = c.gamepad.action_buttons
 	check(btn.has("tow_release"), "кнопка геймпада tow_release")
 	for a: String in btn:
@@ -258,6 +265,11 @@ func test_game_tick_wiring() -> void:
 	for i in 240:
 		game.tick(DT)
 	check(game.tow_session.line.phase == "idle" and game.tow_session.line.tension_n == 0.0, "без W 2 с — ничего")
+	Input.action_press("run")
+	for i in 120:
+		game.tick(DT)
+	Input.action_release("run")
+	check(game.tow_session.line.phase == "idle", "Shift без W трос не запускает")
 	Input.action_press("walk_forward")
 	for i in 240:
 		game.tick(DT)

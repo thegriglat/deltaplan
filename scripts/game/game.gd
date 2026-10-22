@@ -1637,17 +1637,13 @@ func _tow_bots_opts() -> Dictionary:
 	}
 
 
-## Шаг лебёдки до glider.step: W на земле — старт (автопилот — Shift), tow_release (Space / кнопка геймпада) — отцеп.
+## Шаг лебёдки до glider.step: старт — W (на геймпаде — кнопка разбега; Shift трос не запускает), tow_release (B / кнопка геймпада) — отцеп.
 func _winch_step(dt: float, c: ControlInput) -> void:
 	var start := false
 	var release := false
 	if input_controller.enabled and not hands_off:
-		start = _action_held("walk_forward") or c.run or c.walk > 0.0  # c.run — Shift, кнопка разбега геймпада, автопилот
+		start = _action_held("walk_forward") or input_controller.pad_run or c.walk > 0.0  # c.walk — автопилот
 		release = InputMap.has_action("tow_release") and Input.is_action_just_pressed("tow_release")
-	# Space — ещё и ui_accept: у кнопки HUD/меню с фокусом он нажал бы её — в полёте фокус не держим
-	var fo := get_viewport().gui_get_focus_owner()
-	if fo != null:
-		fo.release_focus()
 	tow_session.step(dt, start, release)
 
 
