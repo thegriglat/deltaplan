@@ -1,14 +1,14 @@
 class_name SnowPlumeModel
 extends RefCounted
-## Модель снежных флагов (SNW-К1/К3/К4 v1, docs/contracts/snow-plume.md): рельеф, снег, ветер, температура
-## -> список источников шлейфа. Без узлов сцены; вызывать update() каждый кадр из главного потока.
-## Числа DEFAULTS — по К4 v2 и SNW-1 (Li & Pomeroy 1997); игра берёт их из configs/snow_plume.json.
+## Модель снежной позёмки (SNW-К1/К3/К4 v3, docs/contracts/snow-plume.md): рельеф, снег, ветер, температура
+## -> список источников струек (с точками рождения surf). Без узлов сцены; update() каждый кадр из главного потока.
+## Числа DEFAULTS — по К4 v3 и SNW-1 (Li & Pomeroy 1997); игра берёт их из configs/snow_plume.json.
 
 const DEFAULTS := {
-	"radius_m": 6000.0, "max_emitters": 24, "update_s": 0.5, "max_wind_samples": 200,
+	"radius_m": 1500.0, "max_emitters": 32, "update_s": 0.5, "max_wind_samples": 140,
 	"scan_step_m": 50.0, "scan_points_per_frame": 1000, "rescan_m": 1000.0, "rescan_dir_deg": 10.0, "dir_tolerance_k": 2.0,
-	"fetch_m": 300.0, "lee_slope_deg": 15.0, "spacing_m": 150.0, "snow_min": 0.5,
-	"start_agl_m": 3.0, "min_agl_m": 3.0, "path_points": 6, "path_dt_s": 5.0, "span_ms": 8.0,
+	"fetch_m": 300.0, "lee_slope_deg": 15.0, "spacing_m": 40.0, "surf_upwind_m": 30.0, "snow_min": 0.5,
+	"start_agl_m": 1.0, "min_agl_m": 1.0, "path_points": 3, "path_dt_s": 1.0, "span_ms": 8.0,
 	"threshold": {"a": 9.43, "b": 0.18, "c": 0.0033, "wet_t_c": 0.0, "wet_u10_ms": 9.9},
 }
 ## Точки снега на наветренном отрезке (доли fetch_m от гребня против ветра).
@@ -123,13 +123,16 @@ func _refresh(cam: Vector3) -> void:
 
 
 func _maybe_start_scan(cam2: Vector2) -> void:
-	var ref_c := _s_center if _scanning else _scan_center
-	var ref_d := _s_dir if _scanning else _scan_dir
-	var need := not (_scanning or _have_scan)
+	# Скан в работе не перезапускается: дрейф ветра или камеры сбрасывал бы его с нуля, и список оставался
+	# пустым, пока скан не успеет дойти до конца (SNW-5: пусто на 25-й секунде при scan_count 3–4).
+	# Новое условие проверяется против готового скана — после завершения текущего.
+	if _scanning:
+		return
+	var need := not _have_scan
 	if not need:
-		need = cam2.distance_to(ref_c) > float(_cfg.rescan_m)
+		need = cam2.distance_to(_scan_center) > float(_cfg.rescan_m)
 	if not need:
-		need = rad_to_deg(absf(ref_d.angle_to(_cur_dir))) > float(_cfg.rescan_dir_deg)
+		need = rad_to_deg(absf(_scan_dir.angle_to(_cur_dir))) > float(_cfg.rescan_dir_deg)
 	if not need:
 		return
 	var s := float(_cfg.scan_step_m)
@@ -279,6 +282,24 @@ func _build_list(cam: Vector3) -> void:
 			"id": (int(c.ix) * 73856093) ^ (int(c.iz) * 19349663),
 			"pos": pos, "dir": Vector3(wd.x, 0.0, wd.y), "u10": u10, "u_t": u_t,
 			"intensity": inten, "snow": float(c.snow), "width_m": float(_cfg.spacing_m),
-			"path": path, "vel": vel, "path_dt": dt_p,
+			"path": path, "vel": vel, "path_dt": dt_p, "surf": _surf_points(pos, Vector3(wd.x, 0.0, wd.y)),
 		})
 	_list = out
+
+
+## Точки рождения струек (К3 v3): вдоль гребня на −w/2, 0, +w/2 поперёк ветра и на наветренном склоне
+## на surf_upwind_m/2 и surf_upwind_m против ветра; y — рельеф. Вызовов height_fn: 5 (не ветра).
+func _surf_points(pos: Vector3, d: Vector3) -> PackedVector3Array:
+	var side := d.cross(Vector3.UP)
+	var half := 0.5 * float(_cfg.spacing_m)
+	var up_m := float(_cfg.surf_upwind_m)
+	var offs: Array[Vector3] = [-side * half, Vector3.ZERO, side * half]
+	if up_m > 0.0:
+		offs.append(-d * (0.5 * up_m))
+		offs.append(-d * up_m)
+	var out := PackedVector3Array()
+	for o: Vector3 in offs:
+		var x := pos.x + o.x
+		var z := pos.z + o.z
+		out.append(Vector3(x, float(_height_fn.call(x, z)), z))
+	return out

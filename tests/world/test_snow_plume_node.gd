@@ -44,7 +44,7 @@ func _emitters(wind: float, temp_c: float) -> Array:
 	var m := SnowPlume.make_model(t, air, func(_h: float) -> float: return temp_c, cfg.get("model", {}))
 	var out: Array = []
 	for i in 200:
-		out = m.update(Vector3(-1500.0, 3600.0, 0.0), 1.0 / 60.0)
+		out = m.update(Vector3(-800.0, 3600.0, 0.0), 1.0 / 60.0)
 	t.free()
 	air.free()
 	return out
@@ -82,7 +82,7 @@ func test_no_temp_fn_uses_fallback() -> void:
 	var m := SnowPlume.make_model(t, air, Callable(), Config.get_config("snow_plume").get("model", {}))
 	var out: Array = []
 	for i in 200:
-		out = m.update(Vector3(-1500.0, 3600.0, 0.0), 1.0 / 60.0)
+		out = m.update(Vector3(-800.0, 3600.0, 0.0), 1.0 / 60.0)
 	check(not out.is_empty(), "без temp_fn — порог при −10 °C, источники есть")
 	t.free()
 	air.free()
