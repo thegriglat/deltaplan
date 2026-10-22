@@ -77,13 +77,15 @@ static func derive(
 		t = float(diurnal.temperature_c)
 
 	# --- высота термиков и кромка (§2.2), км над морем
-	var ua: Dictionary = c.upper_air
-	var t_u := monthly(ua.temp_c, month, day)
-	var z_u := float(ua.z_msl_m) / 1000.0
-	var gam := float(ua.lapse_k_per_km)
+	var cp := ClimateGrid.place({
+		"lat": lat, "lon": float(ctx.get("lon", 0.0)), "month": month, "day": day,
+		"valley_msl_m": h_v * 1000.0,
+	})
+	var t_u := float(cp.t700_c)
+	var z_u := float(cp.z700_m) / 1000.0
+	var gam := float((c.upper_air as Dictionary).lapse_k_per_km)
 	var dry := float(c.get("dry_adiabat_k_per_km", 9.8))
-	var td := monthly(c.dew_point_c, month, day)
-	td += float(c.get("td_follow_heat", 0.0)) * maxf(t_max - typical_max_c(month, day, c), 0.0)
+	var td := td_day(forecast, cp, ctx, c)
 	td = minf(td, t)
 	var excess := float(c.parcel_excess_k)
 	var z_dry := h_v + (t + excess - t_u - gam * (z_u - h_v)) / (dry - gam)
@@ -188,6 +190,8 @@ static func derive(
 			"temperature_c": t,
 			"upper_temp_c": t_u,
 			"dew_point_c": td,
+			"td_climate_c": float(cp.td_c),
+			"climate_src": cp.src,
 			"valley_msl_m": h_v * 1000.0,
 			"mean_msl_m": h_m,
 			"z_dry_msl_m": z_dry * 1000.0,
@@ -308,6 +312,49 @@ static func diurnal_state(
 		"sunset_h": sunset,
 		"peak_h": peak,
 	}
+
+
+## Точка росы дня (контракт HH7): Td = Td_климат(место) + μ_sky·σ + β·(T_max − Tx_климат) + r·ρ·σ.
+## cp — ClimateGrid.place(ctx); μ, β, ρ — по поясу |φ|, сезону и облачности дня (td_day в конфиге);
+## r — детерминированное N(0, 1) от (месяц, день, место). Верхнюю границу Td ≤ T ставит derive (T часа).
+static func td_day(forecast: Dictionary, cp: Dictionary, ctx: Dictionary, c: Dictionary) -> float:
+	var tdc: Dictionary = c.get("td_day", {})
+	var skies: Dictionary = tdc.get("sky", {})
+	var sky: Dictionary = skies.get(String(forecast.get("sky", "clear")), skies.get("clear", {}))
+	var lat := float(ctx.get("lat", 52.0))
+	var month := clampi(int(ctx.get("month", 7)), 1, 12)
+	var b := ClimateGrid.band_index(lat, tdc.get("bands_abs_lat", [20, 40, 60, 75]))
+	var s := ClimateGrid.season_index(month, lat)
+	var sd := float(cp.td_sd_k)
+	var td := float(cp.td_c)
+	if sky.is_empty():
+		return td
+	var t_max := float(forecast.get("temperature_c", 20.0))
+	var mu := float((sky.mu_sigma[b] as Array)[s])
+	var beta := float((sky.beta[b] as Array)[s])
+	var rho := float((sky.res_ratio[b] as Array)[s])
+	var r := td_noise(month, int(ctx.get("day", 15)), lat, float(ctx.get("lon", 0.0)))
+	r = clampf(r, -float(c.get("climate", {}).get("r_clamp", 3.0)), float(c.get("climate", {}).get("r_clamp", 3.0)))
+	return td + mu * sd + beta * (t_max - float(cp.tx_c)) + r * rho * sd
+
+
+## Детерминированное N(0, 1) от (месяц, день, round(lat·100), round(lon·100)): splitmix64 → Бокс — Мюллер.
+## Одна и та же дата в одном месте — одно число (не зависит от версии движка, в отличие от hash()).
+static func td_noise(month: int, day: int, lat: float, lon: float) -> float:
+	var h := -7046029254386353131
+	for v in [month, day, roundi(lat * 100.0), roundi(lon * 100.0)]:
+		h = _mix64(h ^ (int(v) + 0x632BE59BD9B4E019))
+	var h2 := _mix64(h ^ 0x2545F4914F6CDD1D)
+	var u1 := (float((h >> 11) & 0x1FFFFFFFFFFFFF) + 0.5) / 9007199254740992.0
+	var u2 := float((h2 >> 11) & 0x1FFFFFFFFFFFFF) / 9007199254740992.0
+	return sqrt(-2.0 * log(u1)) * cos(TAU * u2)
+
+
+static func _mix64(x: int) -> int:
+	x += -7046029254386353131
+	x = (x ^ ((x >> 30) & 0x3FFFFFFFF)) * -4658895280553007687  # 0xBF58476D1CE4E5B9
+	x = (x ^ ((x >> 27) & 0x1FFFFFFFFF)) * -7723592293110705685  # 0x94D049BB133111EB
+	return x ^ ((x >> 31) & 0x1FFFFFFFF)
 
 
 ## Давление насыщенного пара над водой, гПа (Магнус, Alduchov–Eskridge 1996).
