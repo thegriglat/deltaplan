@@ -282,3 +282,5 @@
 {"t": "2026-10-22T19:54:04", "by": "executor", "task": "HH-8", "ev": "reported", "commits": ["57a5700a"], "note": "done: weather.md: разделы про Td и воздух 700 гПа по месту (ClimateGrid, Td дня, границы, сверка HH-9) и дымку по RH; clouds.…", "dp_feedback": "docs index переписывает registry/contracts.md и research.md вне скоупа писателя - приходится откатывать руками; лимит 40 КБ findings.md узнаётся только после правки; хотелось бы подсказки в docs check заранее."}
 {"t": "2026-10-22T19:54:11", "by": "coordinator", "task": "HH-8", "ev": "accepted", "note": "4/4 findings=ok:1; guide_td=ok:exit 0; no_old=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-10-22T19:54:15", "by": "coordinator", "task": "HH-8", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-22T19:54:16", "by": "coordinator", "task": "HH-8", "ev": "accepted", "commits": ["0df6c4de"], "note": "4/4 findings=ok:1; guide_td=ok:exit 0; no_old=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-10-22T19:54:17", "by": "coordinator", "task": "HH-8", "ev": "merged", "commits": ["0df6c4de"]}
