@@ -254,3 +254,5 @@
 {"t": "2026-10-22T15:06:33", "by": "coordinator", "task": "HH-4", "ev": "accepted", "note": "по ревью"}
 {"t": "2026-10-22T15:07:45", "by": "coordinator", "task": "HH-4", "ev": "checked", "commits": ["097c2c2e"], "note": "3/7 haze_humidity=FAIL:4/6; FAIL не,не; weather=FAIL:15/18; FAIL test_conditions_c…; goal=FAIL:89/103; FAIL test_tracker_cre…; no_old_keys=ok:exit 0; grid_class=ok:exit 0; docs=ok:ошибок 0; hh7_tests=FAIL:нет совпадения"}
 {"t": "2026-10-22T15:07:45", "by": "coordinator", "task": "HH-4", "ev": "merged", "commits": ["097c2c2e"]}
+{"t": "2026-10-22T15:11:45", "by": "coordinator", "task": "HH-4", "ev": "accepted", "commits": ["097c2c2e"], "note": "7/7 haze_humidity=ok:20/20 (пропуск 2); weather=ok:18/18; goal=ok:103/103; no_old_keys=ok:exit 0; grid_class=ok:exit 0; docs=ok:ошибок 0; hh7_tests=ok:ok test_haze_humidity_contrac…"}
+{"t": "2026-10-22T15:11:45", "by": "coordinator", "task": "HH-4", "ev": "note", "note": "accept --here 7/7 после godot --import в копии модуля (кэш class_name)"}
