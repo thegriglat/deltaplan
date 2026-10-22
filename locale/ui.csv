@@ -635,3 +635,7 @@ tow_site_dh,"Перепад высот вдоль полосы больше до
 loc_wilotree_park,"Флорида — Wilotree Park (Quest Air), буксировка","Florida — Wilotree Park (Quest Air), towing"
 site_wilotree_runway_36,"Полоса 36 (на север), южный торец","Runway 36 (north), south end"
 site_wilotree_runway_18,"Полоса 18 (на юг), северный торец","Runway 18 (south), north end"
+trike_rpm,"ОБОРОТЫ ×1000","RPM ×1000"
+trike_fuel,"ТОПЛИВО","FUEL"
+trike_fuel_empty,"E","E"
+trike_fuel_full,"F","F"
