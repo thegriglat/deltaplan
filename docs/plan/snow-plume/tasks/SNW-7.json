@@ -1,0 +1,62 @@
+{
+  "id": "SNW-7",
+  "module": "snow-plume",
+  "type": "dp-engineer",
+  "title": "Струйки снежной пыли вместо облаков (отрисовка и модель v3)",
+  "goal": "По решению пользователя 2026-10-23: короткие полупрозрачные струйки мелкой снежной пыли 3–4 м у поверхности (0–2 м) и над гребнем по ветру, не облачные клубы; модель — ключ surf и умолчания v3; configs/snow_plume.json по К4 v3; контрактные тесты v3 проходят.",
+  "plan_ref": "§4 SNW-7",
+  "contracts": [
+    {
+      "name": "snow-plume",
+      "version": "3",
+      "ref": "docs/contracts/snow-plume.md"
+    }
+  ],
+  "copy": "~/deltaplan-snow-plume-SNW-7",
+  "branch": "snow-plume/SNW-7",
+  "base": "feature/snow-plume",
+  "scope": [
+    "scripts/world/snow_plume/snow_plume_render.gd",
+    "scripts/world/snow_plume/snow_plume_particles.gdshader",
+    "scripts/world/snow_plume/snow_plume_flake.gdshader",
+    "scripts/world/snow_plume/snow_plume_streak.gdshader",
+    "scripts/world/snow_plume/snow_plume_streak.gdshader.uid",
+    "scripts/world/snow_plume/snow_plume_model.gd",
+    "scripts/world/snow_plume/snow_plume.gd",
+    "configs/snow_plume.json",
+    "tests/world/test_snow_plume_render.gd",
+    "tests/world/test_snow_plume_model.gd",
+    "tests/world/test_snow_plume_node.gd"
+  ],
+  "dont_touch": [
+    "tests/contracts/",
+    "scripts/terrain/",
+    "scripts/atmosphere/",
+    "scripts/game/",
+    "configs/world.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "snow_plume",
+      "tests": "snow_plume"
+    },
+    {
+      "name": "snow_cover",
+      "tests": "snow_cover"
+    },
+    {
+      "name": "check_gd",
+      "cmd": "python3 tools/check_gd.py scripts/world/snow_plume/snow_plume_render.gd scripts/world/snow_plume/snow_plume_model.gd scripts/world/snow_plume/snow_plume.gd tests/world/test_snow_plume_render.gd tests/world/test_snow_plume_model.gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "json",
+      "cmd": "python3 -c \"import json;json.load(open('configs/snow_plume.json'));print('ok')\"",
+      "expect": "re:^ok"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:21:27"
+}
