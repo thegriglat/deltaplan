@@ -1,0 +1,468 @@
+{
+ "version": 1,
+ "_doc": "Параметры крыльев дельталётов и аппаратов (TK-13). Число = {value, src}; «н/д» = не найдено (src — где искали); «вывод» = расчёт по числам из источников. Единицы: м, м², градусы, кг, км/ч (узлы/мили переведены: 1 kt=1,852; 1 mph=1,609344; 1 fpm=0,00508 м/с), Н.",
+ "wings": [
+  {
+   "name": "Air Creation iXess 15",
+   "maker": "Air Creation (Франция); импортёр в Великобритании Flylight",
+   "for_trike": "Air Creation Tanarg / iXess 15 (Rotax 912ULS, 2 места)",
+   "sources": [
+    "https://www.bmaa.org/files/hads_hm16_tanarg.pdf",
+    "https://en.wikipedia.org/wiki/Air_Creation_iXess",
+    "https://www.bmaa.org/files/hads_hm13_ixess.pdf",
+    "https://www.flyrotax.com/assets/files/products/Datasheet-Aircraft-Engine-Rotax-912ULS.pdf"
+   ],
+   "span_m": {
+    "value": 10.0,
+    "src": "https://en.wikipedia.org/wiki/Air_Creation_iXess (Specifications iXess 15: 10 m). Расхождение: Wikipedia Tanarg — 9,85 м/15,1 м²/AR 6,4"
+   },
+   "area_m2": {
+    "value": 15.0,
+    "src": "https://en.wikipedia.org/wiki/Air_Creation_iXess; BMAA HADS HM16 §5(c): «15 m² wing»"
+   },
+   "nose_angle_deg": {
+    "value": 120,
+    "src": "https://en.wikipedia.org/wiki/Air_Creation_iXess (раздел Design: nose angle 120°)"
+   },
+   "root_chord_m": {
+    "value": 2.4,
+    "src": "вывод: R+T=2S/b (трапеция), T/R=0,25 — типичное для топлесс/кингпост-крыльев игры (tools/blender/glider_params.json: 0,23–0,26 при носе 120–130°); измеренных хорд в источниках нет"
+   },
+   "tip_chord_m": {
+    "value": 0.6,
+    "src": "вывод: R+T=2S/b (трапеция), T/R=0,25 — типичное для топлесс/кингпост-крыльев игры (tools/blender/glider_params.json: 0,23–0,26 при носе 120–130°); измеренных хорд в источниках нет"
+   },
+   "aspect_ratio": {
+    "value": 6.66,
+    "src": "https://en.wikipedia.org/wiki/Air_Creation_iXess (6.66:1; проверка b²/S = 6.67)"
+   },
+   "mass_kg": {
+    "value": 53,
+    "src": "https://en.wikipedia.org/wiki/Air_Creation_iXess (53 kg wing weight; первоисточник — WDLA, паспорт производителя не найден)"
+   },
+   "kingpost_m": {
+    "value": "н/д",
+    "src": "не найдено: высота кингпоста iXess; искали HADS HM16/HM13, Wikipedia (крыло с кингпостом, «king post-equipped»)"
+   },
+   "washout_deg": {
+    "value": "н/д",
+    "src": "не найдено: крутка iXess; искали HADS, Wikipedia"
+   },
+   "double_surface_pct": {
+    "value": 90,
+    "src": "https://en.wikipedia.org/wiki/Air_Creation_iXess (90% double surface; по пересказу поиска, лично строку не перепроверял)"
+   },
+   "battens_per_side": {
+    "value": "н/д",
+    "src": "не найдено: число латт iXess; искали HADS, Wikipedia"
+   },
+   "airfoil": {
+    "value": "н/д",
+    "src": "не найдено: профиль iXess; не публикуется"
+   },
+   "vs_kmh": {
+    "value": 59.3,
+    "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §5(d),§12: Vso 32 kt CAS при MTOW (Wikipedia: 60 км/ч)"
+   },
+   "vne_kmh": {
+    "value": 164.8,
+    "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §7(C): VNE 89 kt CAS; VDF 99 kt"
+   },
+   "va_kmh": {
+    "value": 133.3,
+    "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §7(D): манёвренная 72 kt CAS"
+   },
+   "mtow_kg": {
+    "value": 450,
+    "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §7(A)"
+   },
+   "trike": {
+    "empty_mass_kg": {
+     "value": 250,
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §5(f): typical empty weight 250 kg (трайк+крыло, 912S); трайк без крыла ≈ 250−53=197 кг — вывод"
+    },
+    "trim_speed_kmh": {
+     "value": 74.1,
+     "src": "вывод/прокси: пример ASI-плакарда HADS HM16 Annex D(g): glide 40 kt CAS; собственно трим-скорость в HADS не указана"
+    },
+    "best_climb_kmh": {
+     "value": 83.3,
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf Annex D(g): climb 45 kt CAS (пример для iXess 15)"
+    },
+    "climb_ms": {
+     "value": 5.49,
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf Annex F: 1080 fpm, 912S, ISA, MTOW"
+    },
+    "glide_ratio": {
+     "value": 6.6,
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf Annex F: 6.6:1"
+    },
+    "engine_model": {
+     "value": "Rotax 912ULS, редуктор 2,43:1",
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §6"
+    },
+    "engine_power_kw": {
+     "value": 73.5,
+     "src": "https://www.flyrotax.com/assets/files/products/Datasheet-Aircraft-Engine-Rotax-912ULS.pdf: 73,5 кВт (100 л.с.) при 5800 об/мин; max cont. 5500 (HADS §7)"
+    },
+    "engine_rpm_max": {
+     "value": "5800 (5 мин) / 5500 непрерывно",
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §7"
+    },
+    "prop_model": {
+     "value": "Kiev 175/1700-5, 3 лопасти GA (вариант Kiev 183/1800-3)",
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §6"
+    },
+    "prop_d_m": {
+     "value": 1.7,
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §6: 170 cm, шаг 27° на радиусе 34 cm (вариант 180 cm, 31°)"
+    },
+    "prop_static_rpm_engine": {
+     "value": 4600,
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §6: Max static RPM 4600 (вариант с 180 см — 4650); обороты винта ≈ 4600/2,43 = 1893"
+    },
+    "static_thrust_n": {
+     "value": 2070.0,
+     "src": "вывод (оценка, не паспорт): T=(2ρA)^(1/3)·(FM·P)^(2/3), ρ=1,225, D=1,70 м, P=62 кВт (момент 128 Нм по Rotax, постоянный до 4600 об/мин), FM=0,65 (допущение; диапазон FM 0,55–0,75 → 1856–2283 Н). Измеренной тяги в источниках нет"
+    },
+    "fuel_l": {
+     "value": 65,
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §7(F): 65 л, используемо 64,5"
+    },
+    "fuel_burn_lph": {
+     "value": "н/д",
+     "src": "не найдено: расход iXess/Tanarg на крейсерском; HADS даёт лишь 22 л = 1 ч (§5(g)) — как допущение BCAR S для проверки массы (22 л/ч), не измерение"
+    },
+    "fuel_burn_assumed_bcar_lph": {
+     "value": 22,
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §5(g): 1 hr fuel = 22 litres (допущение веса, не расход крейсера)"
+    },
+    "cg_trike": {
+     "value": "н/д",
+     "src": "не найдено: ЦМ тележки относительно точки подвески (HADS HM16, Wikipedia, Wikipedia Tanarg): не публикуется"
+    },
+    "takeoff_roll_m": {
+     "value": 252,
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf Annex F: TODR до 15 м (194 без коэффициента)"
+    },
+    "crew_min_max_kg": {
+     "value": "55–120 на место",
+     "src": "https://www.bmaa.org/files/hads_hm16_tanarg.pdf §7(B)"
+    }
+   }
+  },
+  {
+   "name": "P&M GT450 (крыло GT450)",
+   "maker": "P&M Aviation (Рочдейл, Великобритания)",
+   "for_trike": "P&M Quik GT450 (912UL/ULS или 582, 2 места)",
+   "sources": [
+    "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf",
+    "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html",
+    "https://en.wikipedia.org/wiki/P%26M_GT450",
+    "https://www.bmaa.org/files/tads_bm80_quik_gtr.pdf"
+   ],
+   "span_m": {
+    "value": 9.25,
+    "src": "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html (Wing Span 925 cm); Wikipedia P&M GT450"
+   },
+   "area_m2": {
+    "value": 13.0,
+    "src": "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html (Wing Area 13 sqm); TADS BM70: нагрузка 34,6 кг/м² при 450 кг → 13,0 м²"
+   },
+   "nose_angle_deg": {
+    "value": "н/д",
+    "src": "не найдено: угол носа GT450: искали TADS BM70/BM80, страницу P&M, Wikipedia"
+   },
+   "root_chord_m": {
+    "value": 2.25,
+    "src": "вывод: R+T=2S/b (трапеция), T/R=0,25 — типичное для топлесс/кингпост-крыльев игры (tools/blender/glider_params.json: 0,23–0,26 при носе 120–130°); измеренных хорд в источниках нет"
+   },
+   "tip_chord_m": {
+    "value": 0.56,
+    "src": "вывод: R+T=2S/b (трапеция), T/R=0,25 — типичное для топлесс/кингпост-крыльев игры (tools/blender/glider_params.json: 0,23–0,26 при носе 120–130°); измеренных хорд в источниках нет"
+   },
+   "aspect_ratio": {
+    "value": 6.58,
+    "src": "вывод: b²/S = 9,25²/13 (в источниках не указано)"
+   },
+   "mass_kg": {
+    "value": 51.5,
+    "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf Annex C: «GT 450 wing only 51.5» кг (ориентир при взвешивании); у GTR-крыла 59 кг (TADS BM80)"
+   },
+   "kingpost_m": {
+    "value": "н/д",
+    "src": "не найдено: кингпост GT450; искали TADS и страницу P&M (у GT450 крыло с кингпостом — по общему описанию типа)"
+   },
+   "washout_deg": {
+    "value": "н/д",
+    "src": "не найдено: крутка GT450; не опубликована"
+   },
+   "double_surface_pct": {
+    "value": "н/д",
+    "src": "не найдено: доля двойной обшивки GT450; P&M: «Trilam leading edge, kevlar trailing edge», процента нет"
+   },
+   "battens_per_side": {
+    "value": "н/д",
+    "src": "не найдено: число латт GT450"
+   },
+   "airfoil": {
+    "value": "н/д",
+    "src": "не найдено: профиль GT450"
+   },
+   "vs_kmh": {
+    "value": 61.2,
+    "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §5(d): Vso 38 mph CAS (=61,2 км/ч); P&M/Wikipedia пишут «38 mph (48 km/h)» — перевод неверен, верить 38 mph"
+   },
+   "vne_kmh": {
+    "value": 177.0,
+    "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §7(E): 110 mph IAS; P&M: VNE 177 км/ч"
+   },
+   "va_kmh": {
+    "value": 128.7,
+    "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §7(F): манёвренная 80 mph IAS"
+   },
+   "mtow_kg": {
+    "value": 450,
+    "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §7(A)"
+   },
+   "trike": {
+    "empty_mass_kg": {
+     "value": 217,
+     "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §5(f): typical empty (ZFW) 217 кг (912), 205 кг (582); P&M: 217 (912S)/214 (912); трайк без крыла 167 кг (912), Annex C"
+    },
+    "trike_mass_kg": {
+     "value": 167,
+     "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf Annex C: Quik-912 trike 167 кг"
+    },
+    "trim_speed_kmh": {
+     "value": [
+      88.5,
+      120.7
+     ],
+     "src": "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html: диапазон трима 55–75 mph при макс./мин. весе (47–80 mph), в целом 55–82 mph; одна точка не указана"
+    },
+    "max_level_kmh": {
+     "value": 152,
+     "src": "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html: Max level speed 95 mph"
+    },
+    "best_climb_kmh": {
+     "value": 88.5,
+     "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §12: климб 55 mph IAS"
+    },
+    "climb_ms": {
+     "value": 5.08,
+     "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §12: 1000 fpm при 55 mph IAS (912, MTOW); P&M: 1075 fpm (912), 1250 fpm (912S)"
+    },
+    "sink_rate_fpm": {
+     "value": 517,
+     "src": "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html: Rate of Descent 517 ft/min"
+    },
+    "engine_model": {
+     "value": "Rotax 912ULS (2,43:1) / 912UL (2,27:1) / 582 (3,47:1)",
+     "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §6"
+    },
+    "engine_power_kw": {
+     "value": 73.5,
+     "src": "https://www.flyrotax.com/assets/files/products/Datasheet-Aircraft-Engine-Rotax-912ULS.pdf (912ULS); 912UL — 59,6 кВт (80 л.с.), Wikipedia P&M GT450: 60 кВт"
+    },
+    "engine_rpm_max": {
+     "value": "5800 (5 мин) / 5500 непрерывно",
+     "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §7(I), P&M: Max RPM 5500"
+    },
+    "prop_model": {
+     "value": "Warp Drive 3-лопастной композитный, 172 см",
+     "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §6; https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html"
+    },
+    "prop_d_m": {
+     "value": 1.72,
+     "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §6: 172 cm, 16° на конце (912ULS) / 11° (912UL); P&M: 1,7 м"
+    },
+    "static_thrust_n": {
+     "value": "н/д",
+     "src": "не найдено: тяга GT450; искали TADS BM70/BM80, P&M, Wikipedia; оценку не делаю — статические обороты в источниках не указаны"
+    },
+    "fuel_l": {
+     "value": 65,
+     "src": "https://www.bmaa.org/files/tads_bm70_quik_gt450.pdf §7(H); P&M: 65-л полиэтиленовый бак под сиденьем"
+    },
+    "fuel_burn_lph": {
+     "value": 13,
+     "src": "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html: Fuel consumption @ 75 mph = 13 л/ч (≈120 км/ч)"
+    },
+    "cg_trike": {
+     "value": "н/д",
+     "src": "не найдено: ЦМ относительно точки подвески; TADS §7(B,C): «не критично, фиксированная точка подвески на киле, использовать заднюю из двух», датум — ось носового колеса; координат нет"
+    },
+    "wheel_track_m": {
+     "value": 1.65,
+     "src": "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html: Wheel track 165 cm"
+    },
+    "wheel_base_m": {
+     "value": 1.82,
+     "src": "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html: Wheel base 182 cm"
+    },
+    "trike_length_m": {
+     "value": 2.9,
+     "src": "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html: Trike length 290 cm"
+    },
+    "takeoff_roll_m": {
+     "value": 216,
+     "src": "https://web.archive.org/web/2012/http://www.pmaviation.co.uk/gt450.html: взлёт до 15 м 216 м (912), 202 м (912S)"
+    }
+   }
+  },
+  {
+   "name": "Aeros Profi TL",
+   "maker": "Aeros (Украина, Киев)",
+   "for_trike": "Aeros-2 (Rotax 912UL, 2 места)",
+   "sources": [
+    "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php",
+    "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php",
+    "https://en.wikipedia.org/wiki/Aeros_Profi",
+    "https://en.wikipedia.org/wiki/Aeros-2"
+   ],
+   "span_m": {
+    "value": 10.0,
+    "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: Wing span 10 m"
+   },
+   "area_m2": {
+    "value": 14.5,
+    "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: Wing area 14.5 м²"
+   },
+   "nose_angle_deg": {
+    "value": 128,
+    "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: Nose angle 128°"
+   },
+   "root_chord_m": {
+    "value": 2.32,
+    "src": "вывод: R+T=2S/b (трапеция), T/R=0,25 — типичное для топлесс/кингпост-крыльев игры (tools/blender/glider_params.json: 0,23–0,26 при носе 120–130°); измеренных хорд в источниках нет"
+   },
+   "tip_chord_m": {
+    "value": 0.58,
+    "src": "вывод: R+T=2S/b (трапеция), T/R=0,25 — типичное для топлесс/кингпост-крыльев игры (tools/blender/glider_params.json: 0,23–0,26 при носе 120–130°); измеренных хорд в источниках нет"
+   },
+   "aspect_ratio": {
+    "value": 6.9,
+    "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: Aspect ratio 6,9 (b²/S=6,90)"
+   },
+   "mass_kg": {
+    "value": 52,
+    "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: Wing weight (without covers) 52 kg; торговая карточка — 48 кг без чехлов (avpay.aero)"
+   },
+   "kingpost_m": {
+    "value": 0,
+    "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: «our topless trike wing» (kingpostless)"
+   },
+   "washout_deg": {
+    "value": "н/д",
+    "src": "не найдено: крутка Profi TL; искали сайт Aeros, Wikipedia"
+   },
+   "double_surface_pct": {
+    "value": "н/д",
+    "src": "не найдено: двойная обшивка Profi TL; не опубликована"
+   },
+   "battens_per_side": {
+    "value": "н/д",
+    "src": "не найдено: латты Profi TL"
+   },
+   "airfoil": {
+    "value": "н/д",
+    "src": "не найдено: профиль Profi TL"
+   },
+   "vs_kmh": {
+    "value": 52,
+    "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: Min. speed (with max. load) 52 км/ч"
+   },
+   "vne_kmh": {
+    "value": 140,
+    "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: Max. speed 140 км/ч; Aeros-2 в целом — 130 км/ч (http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php)"
+   },
+   "mtow_kg": {
+    "value": 450,
+    "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: Max takeoff weight 450 кг (для Aeros-2 с 912 — 472,5 кг, http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php)"
+   },
+   "trike": {
+    "empty_mass_kg": {
+     "value": 229.5,
+     "src": "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php: Empty weight 229,5 кг (912, трайк+крыло — по таблице производителя; состав не оговорён)"
+    },
+    "trim_speed_kmh": {
+     "value": [
+      85,
+      125
+     ],
+     "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: Trim speed (with trim device) 85–125 км/ч"
+    },
+    "cruise_kmh": {
+     "value": 90,
+     "src": "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php: Cruise speed 90 км/ч (трайк); Profi TL: 125 (Wikipedia)"
+    },
+    "climb_ms": {
+     "value": 5,
+     "src": "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php: Rate of climb 5 м/с (912, 450 кг)"
+    },
+    "glide_ratio": {
+     "value": 6,
+     "src": "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php: Gliding ratio (90 км/h) 6"
+    },
+    "engine_model": {
+     "value": "Rotax 912 (80 л.с.)",
+     "src": "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php; ещё 582 (64 л.с.) и 912S (100 л.с.)"
+    },
+    "engine_power_kw": {
+     "value": 59.6,
+     "src": "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php: Power 80 hp (=59,6 кВт)"
+    },
+    "engine_rpm_vs_speed": {
+     "value": {
+      "90": [
+       3700,
+       3900
+      ],
+      "100": [
+       3900,
+       4100
+      ],
+      "110": [
+       4100,
+       4300
+      ],
+      "120": [
+       4300,
+       4500
+      ]
+     },
+     "src": "http://web.archive.org/web/2013/http://www.aeros.com.ua/structure/trike/tkprfTL_en.php: об/мин двигателя на скорости, км/ч (1 пилот 100 кг / 2 человека 200 кг)"
+    },
+    "prop_d_m": {
+     "value": "н/д",
+     "src": "не найдено: диаметр винта Aeros-2; искали страницы Aeros (Performance, Aeros-2), Wikipedia"
+    },
+    "static_thrust_n": {
+     "value": "н/д",
+     "src": "не найдено: тяга Aeros-2; искали страницы Aeros, Wikipedia"
+    },
+    "fuel_l": {
+     "value": 53,
+     "src": "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php: Standard fuel tank 53 л"
+    },
+    "fuel_burn_lph": {
+     "value": 12,
+     "src": "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php: Fuel consumption 80%, 12 л/ч (912)"
+    },
+    "cg_trike": {
+     "value": "н/д",
+     "src": "не найдено: ЦМ Aeros-2 относительно подвески; не опубликован"
+    },
+    "takeoff_roll_m": {
+     "value": 70,
+     "src": "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php: разбег 70 м (912; метод не указан)"
+    },
+    "service_ceiling_m": {
+     "value": 3500,
+     "src": "http://web.archive.org/web/20100513003235/http://www.aeros.com.ua/structure/trike/tkaer2_en.php"
+    }
+   }
+  }
+ ]
+}
