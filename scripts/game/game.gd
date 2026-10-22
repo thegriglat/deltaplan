@@ -949,6 +949,13 @@ func set_paused(on: bool) -> void:
 	set_input_enabled(not on)
 	vario_audio.set_enabled(flying_enabled and not on)
 	flight_audio.set_enabled(flying_enabled and not on)
+	_sync_engine_sound_pause()
+
+
+## Звук двигателя дельталёта игрока гаснет на паузе и в меню, как vario/flight_audio (TP-22).
+func _sync_engine_sound_pause() -> void:
+	if glider != null:
+		glider.set_engine_sound_muted(_paused or not flying_enabled)
 
 
 func is_paused() -> bool:
@@ -976,6 +983,7 @@ func set_flying(on: bool) -> void:
 	)
 	vario_audio.set_enabled(on)
 	flight_audio.set_enabled(on)
+	_sync_engine_sound_pause()
 	if on:
 		flight_audio.play_carabiner()
 	_update_overlay()
@@ -1698,6 +1706,7 @@ func _setup_glider() -> void:
 	camera.set_head(glider.get_marker("PilotHead"))
 	camera.eye_offset_enabled = not glider.is_trike()
 	trike_gauges = null
+	_sync_engine_sound_pause()
 	# Смещение центра масс пилота от подвески в полёте (крен/тангаж ручкой), оси планера: голова
 	# кабинной камеры повторяет его долей (camera.json → cockpit.head_follow_body). На земле — ноль.
 	var v := glider.visual
