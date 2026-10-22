@@ -1,0 +1,11 @@
+{
+  "module": "cliff-look",
+  "plan": "docs/plan/cliff-look.md",
+  "contracts": "docs/contracts/cliff-look.md",
+  "branch": "feature/cliff-look",
+  "copy": "~/deltaplan-cliff-look",
+  "created": "2026-10-23T02:45:41",
+  "code": "CL",
+  "area": "world",
+  "base": "main"
+}
