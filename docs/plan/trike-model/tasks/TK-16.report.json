@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "Трубы 0.055/0.055/0.040/0.030, колёса 0.356 (src на схему v2), wheelbase 1.80, панель size [0.30,0.12]; тест K1 обновлён.",
+  "commits": [
+    "205c6095 TK-16 трубы и колёса по схеме пилота"
+  ],
+  "checks": [
+    {
+      "name": "trike_model_k1",
+      "value": "4/4, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "tubes",
+      "value": "tubes=0.055,0.055,0.040,0.030",
+      "pass": true
+    },
+    {
+      "name": "src",
+      "value": "sketch=6",
+      "pass": true
+    },
+    {
+      "name": "q3",
+      "value": "wb=1.80 af=1.25 panel=0.81,-1.32",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TK-16",
+  "uncertain": [],
+  "dp_feedback": "Прогон 1: падал test_trike_params_v4 (панель внутри дуги, 1.549 > 1.598-запас) до уменьшения высоты панели до 0.12.",
+  "t": "2026-10-22T15:38:11",
+  "by": "executor"
+}
