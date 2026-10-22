@@ -1,0 +1,66 @@
+{
+  "status": "done",
+  "summary": "weather.md: разделы про Td и воздух 700 гПа по месту (ClimateGrid, Td дня, границы, сверка HH-9) и дымку по RH; clouds.md: свет облаков через пропускание и проверка основания; findings: раздел haze-humidity (6 строк); CHANGELOG сверен с фактом; applied_in в 5 README исследований; INDEX пересобран.",
+  "commits": [
+    "57a5700a HH-8: руководство, находки, CHANGELOG"
+  ],
+  "checks": [
+    {
+      "name": "findings",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "guide_td",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_old",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "4/4 PASS, scope PASS",
+      "pass": true
+    },
+    {
+      "name": "docs check",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "README в tools/research/haze_humidity/sun_transmission/ нет (есть только frame_cost.md, вне скоупа) - applied_in там не проставлен",
+    "docs/registry/contracts.md и research.md (генерируются docs index) не коммитил - вне скоупа; их обновит координатор через dpcli docs index",
+    "Кадры заката до/после (план п.8) - задача HH-10, не эта"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept HH-8",
+  "uncertain": [
+    {
+      "where": "docs/registry/findings.md",
+      "why": "лимит 40 КБ: разделом в 6 строк уложился (39,3 КБ); следующий модуль потребует вынести выводы в отдельный файл *-findings.md",
+      "checked": "docs check ошибок 0"
+    },
+    {
+      "where": "docs/guide/atmosphere/weather.md (Td дня)",
+      "why": "в таблице td_day конфиг использует mu_sigma_uncentered; в тексте приведены оба набора pooled - сверено с td_sky/README и weather_model.td_day",
+      "checked": "чтение кода"
+    },
+    {
+      "where": "CHANGELOG.md",
+      "why": "строка про ~26 км утром взята из сценария Башкирия README haze (расчёт, не измерение)",
+      "checked": "haze/README.md"
+    }
+  ],
+  "dp_feedback": "docs index переписывает registry/contracts.md и research.md вне скоупа писателя - приходится откатывать руками; лимит 40 КБ findings.md узнаётся только после правки; хотелось бы подсказки в docs check заранее.",
+  "t": "2026-10-22T19:54:04",
+  "by": "executor"
+}
