@@ -11,7 +11,7 @@ func _flat(_x: float, _z: float) -> float:
 	return 0.0
 
 
-func _wheels(extra := true, land := true) -> Dictionary:
+func _wheels(extra := true, land := true, steer := true) -> Dictionary:
 	var g: Dictionary = Config.get_config("tow_tug").ground
 	var w := {
 		"keel_angle_deg": float(g.keel_angle_deg), "rotate_deg": float(g.rotate_deg),
@@ -21,15 +21,17 @@ func _wheels(extra := true, land := true) -> Dictionary:
 		for k: String in ["wheelbase_m", "steer_max_deg", "lat_mu", "brake_mu"]:
 			w[k] = float(tp[k])
 		w["land_on_wheels"] = land
+		if not steer:
+			w.erase("steer_max_deg")
 	return w
 
 
-func _model(extra := true, land := true) -> PendulumModel:
+func _model(extra := true, land := true, steer := true) -> PendulumModel:
 	var cfg: Dictionary = Config.get_config("tow_tug")
 	var cart: Dictionary = cfg.cart
 	var a := {"hang_length_m": float(cart.cg_below_hang_m), "arms_force_max_n": float(cart.arms_force_max_n), "pilot_cda_m2": float(cart.cda_m2)}
 	var m := Sim.make(String(cfg.wing), float(cart.mass_kg), a)
-	m.reset_on_wheels(Vector3.ZERO, 0.0, _wheels(extra, land))
+	m.reset_on_wheels(Vector3.ZERO, 0.0, _wheels(extra, land, steer))
 	return m
 
 
@@ -68,7 +70,7 @@ func _hspeed(m: PendulumModel) -> float:
 ## pitch +1 после 1,1·vs, отрыв и полёт; 14 с. Числа — сняты на коммите без TP-7.
 func test_defaults_unchanged() -> void:
 	var a := _model(false)
-	var b := _model(true, false)
+	var b := _model(true, false, false)  # без steer_max_deg штанга первого порядка (TP-К7 v2)
 	a.set_external_force(_thrust())
 	b.set_external_force(_thrust())
 	var vs := _vs(a)
@@ -224,10 +226,13 @@ func _glide_to_touch(m: PendulumModel) -> Dictionary:
 		res["result"] = r)
 	m.took_off.connect(func() -> void: rs[1] += 1)
 	var prev := m.pilot_velocity
+	var prev_a := Vector2(m.theta, m.bank)
+	res["da"] = 0.0
 	var v_trim := float(m.solve_trim().V)
 	for i in int(40.0 / DT):
 		m.step(DT, _in(_hold(m, v_trim)), Callable(), _flat)
 		if rs[0] > 0:
+			res["da"] = rad_to_deg(maxf(absf(m.theta - prev_a.x), absf(m.bank - prev_a.y)))
 			var f := Vector2(sin(m.heading), -cos(m.heading))
 			var before := Vector2(prev.x, prev.z)
 			res["v_before"] = before.dot(f)
@@ -236,6 +241,7 @@ func _glide_to_touch(m: PendulumModel) -> Dictionary:
 			res["vz"] = prev.y
 			break
 		prev = m.pilot_velocity
+		prev_a = Vector2(m.theta, m.bank)
 	res["landed"] = rs[0] > 0
 	res["n_landed"] = rs[0]
 	res["n_took"] = rs[1]
@@ -250,7 +256,9 @@ func test_glide_landing() -> void:
 	var g := _glide_to_touch(m)
 	var r: Dictionary = g.get("result", {})
 	print("    касание: vz %.2f, v до %.2f после %.2f, боковая %.2f, landed %d раз, took_off %d раз, grade %s" % [g.vz, g.v_before, g.v_after, g.lat_loss, g.n_landed, g.n_took, r.get("grade")])
+	print("    тангаж/крен за шаг касания %.3f°, вертикальная в касание %.2f м/с" % [g.da, g.vz])
 	check(g.landed, "сигнал landed подан")
+	check(float(g.da) <= 1.0, "тангаж и крен за шаг касания <= 1°: %.3f" % g.da)
 	check(bool(r.get("on_wheels", false)), "result.on_wheels")
 	check(m.phase() == "wheels" and m.on_wheels, "phase() = wheels: %s" % m.phase())
 	check(absf(float(g.v_after) - float(g.v_before)) <= 0.5 + float(g.lat_loss), "путевая скорость в шаг касания: %.2f -> %.2f" % [g.v_before, g.v_after])
@@ -317,8 +325,7 @@ func test_retakeoff() -> void:
 	check(Sim.finite(m), "конечна")
 
 
-## (8) Смена штанги на колёсах -1 -> +1: |Δv| ЦМ крыла за шаг. Порог TT-К3 — 0,15 м/с (открытый вопрос tow-trike: 0,177);
-## число измеряется и пишется в отчёт, порог не ослабляется (здесь — граница «не взрыв»; решение за контрактом).
+## (8) Смена штанги на колёсах -1 -> +1: |Δv| ЦМ крыла за шаг <= 0,15 м/с (TP-К7 v2: второй порядок при ключах wheels).
 ## Ввод — ступенью (руки сглаживают с arms.tau) и со скоростью штанги SLEW 2/с (как автопилот TT-К3).
 func test_bar_swing_on_wheels() -> void:
 	var res: Array[float] = []
@@ -341,4 +348,4 @@ func test_bar_swing_on_wheels() -> void:
 		print("    смена штанги -1 -> +1 (slew %.0f): макс. |dv|/шаг ЦМ крыла %.3f м/с, тележки %.3f; на колёсах: %s" % [slew, worst, worst_p, m.on_wheels])
 		check(Sim.finite(m) and m.on_wheels, "slew %.0f: конечна, на колёсах" % slew)
 		res.append(worst)
-	check(res[0] <= 0.5 and res[1] <= 0.5, "|dv| ЦМ крыла за шаг ограничен (измерено %.3f ступенью, %.3f плавно; порог TT-К3 0,15 — в отчёт)" % [res[0], res[1]])
+	check(res[0] <= 0.15 and res[1] <= 0.15, "|dv| ЦМ крыла за шаг <= 0,15 м/с (ступенью %.3f, плавно %.3f)" % [res[0], res[1]])

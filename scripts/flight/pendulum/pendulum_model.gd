@@ -226,6 +226,9 @@ var _wh_steer_max := 0.0  ## наибольший угол носового ко
 var _wh_lat_mu := 0.0  ## предел боковой силы шин, доля веса (0 — без ограничения)
 var _wh_brake_mu := 0.0  ## замедление тормозом, доля веса (0 — тормоза нет)
 var _wh_land := false  ## посадка на колёса (land_on_wheels)
+var _wh_pdot := 0.0  ## TP-К7 v2: скорость _wh_pitch (второй порядок при ключах wheels дельталёта), 1/с
+var _wh_bank := 0.0  ## TP-К7 v2: остаток крена крыла после посадки, рад; затухает к 0 вторым порядком
+var _wh_bank_dot := 0.0
 var _wh_turn := 0.0  ## ввод turn этого шага
 var _wh_brake := false  ## ввод brake этого шага
 ## Установившееся растяжение подвески XPBD в полёте больше податливость·T (шаги по 1/480 с без памяти множителей): измерено в трим-полёте 350 кг, T = 3450 Н: 0,198 м против 0,138 м
@@ -514,7 +517,7 @@ func _dolly_pose() -> void:
 	var pitch_w := deg_to_rad(float(_dol.keel_angle_deg)) + _dol_phi
 	if _wheels:
 		pitch_w += _wh_pitch * deg_to_rad(float(_dol.rotate_deg))
-	_R = basis_from_euler(_dol_psi, pitch_w, 0.0)
+	_R = basis_from_euler(_dol_psi, pitch_w, _wh_bank if _wheels else 0.0)
 	var f := Vector3(sin(_dol_psi), 0.0, -cos(_dol_psi))
 	var c := cos(_dol_phi)
 	var sn := sin(_dol_phi)
@@ -580,7 +583,15 @@ func _dolly_sample_ground(ground_fn: Callable) -> void:
 func _dolly_substep(h: float) -> bool:
 	if _wheels:  # штанга отклоняется с постоянной времени рук
 		var p_prev := _wh_pitch
-		_wh_pitch += (_wh_cmd - _wh_pitch) * (1.0 - exp(-h / maxf(arms.tau, 1.0e-3)))
+		if _wh_steer_max > 0.0:  # TP-К7 v2: критическое затухание, ω = 1/arms.tau; скорость тангажа непрерывна
+			var om := 1.0 / maxf(arms.tau, 1.0e-3)
+			_wh_pdot += (om * om * (_wh_cmd - _wh_pitch) - 2.0 * om * _wh_pdot) * h
+			_wh_pitch += _wh_pdot * h
+			if _wh_bank != 0.0 or _wh_bank_dot != 0.0:
+				_wh_bank_dot += (-om * om * _wh_bank - 2.0 * om * _wh_bank_dot) * h
+				_wh_bank += _wh_bank_dot * h
+		else:
+			_wh_pitch += (_wh_cmd - _wh_pitch) * (1.0 - exp(-h / maxf(arms.tau, 1.0e-3)))
 		_wh_rate = (_wh_pitch - p_prev) * deg_to_rad(float(_dol.rotate_deg)) / h
 		_wheels_steer(h)
 		_dolly_pose()
@@ -675,7 +686,10 @@ func _land_on_wheels(feet: Vector3, gh: float, result: Dictionary) -> void:
 	var vh := Vector2(pilot_velocity.x, pilot_velocity.z)
 	_dol_v = maxf(vh.x * sin(_dol_psi) - vh.y * cos(_dol_psi), 0.0)
 	var rot := maxf(float(_dol.rotate_deg), 1.0e-3)
-	_wh_pitch = clampf((rad_to_deg(theta) - float(_dol.keel_angle_deg)) / rot, -1.0, 1.0)
+	_wh_pitch = (rad_to_deg(theta) - float(_dol.keel_angle_deg)) / rot  # непрерывно: дальше к вводу вторым порядком
+	_wh_pdot = (_R.transposed() * _w).y * 180.0 / PI / rot
+	_wh_bank = bank
+	_wh_bank_dot = roll_rate
 	_wh_rate = 0.0
 	_wh_tilt = 0.0
 	_wh_tilt_rate = 0.0
@@ -695,6 +709,7 @@ func _land_on_wheels(feet: Vector3, gh: float, result: Dictionary) -> void:
 	on_wheels = true
 	dolly_attached = false
 	mode = FlightModel.Mode.GROUND
+	result["vertical_drop_ms"] = pilot_velocity.y
 	result["grade"] = "soft"
 	result["touchdown"] = "wheels"
 	result["on_wheels"] = true
@@ -1637,6 +1652,9 @@ func _reset_common() -> void:
 	_wh_land = false
 	_wh_turn = 0.0
 	_wh_brake = false
+	_wh_pdot = 0.0
+	_wh_bank = 0.0
+	_wh_bank_dot = 0.0
 	dolly_attached = false
 	_dol = {}
 	_dol_hold_until = -1.0
