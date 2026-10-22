@@ -13,7 +13,12 @@
     },
     {
       "name": "CR-К3",
-      "version": "3",
+      "version": "4",
+      "ref": "docs/contracts/crash-reports.md"
+    },
+    {
+      "name": "CR-К4",
+      "version": "1",
       "ref": "docs/contracts/crash-reports.md"
     }
   ],
@@ -39,7 +44,9 @@
     "scripts/core/gpu_loss_logger.gd",
     "scripts/core/gpu_loss_logger.gd.uid",
     "tests/core/test_gpu_loss_logger.gd",
-    "tests/core/test_gpu_loss_logger.gd.uid"
+    "tests/core/test_gpu_loss_logger.gd.uid",
+    "scripts/game/gpu_safety.gd",
+    "scripts/game/gpu_safety.gd.uid"
   ],
   "dont_touch": [
     "scripts/atmosphere",
@@ -69,5 +76,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T03:45:45",
-  "edited": "2026-10-23T04:18:11"
+  "edited": "2026-10-23T04:34:27"
 }

@@ -2,54 +2,60 @@
   "id": "CR-12",
   "module": "crash-reports",
   "type": "dp-engineer",
-  "title": "Диагностический ключ --safe-gpu: без теней солнца, облака-коробки; действие itch",
-  "goal": "Параметр запуска игры --safe-gpu на этот запуск выключает тени солнца и рисует облака боксами (без compute-эффекта); в .itch.toml — действие «Play (safe graphics)»; отчёт о вылете показывает, что запуск был в этом режиме. Проверка гипотезы Godot #122671 (RDNA1) у пилота #17/#18.",
+  "title": "Рубильники GPU-нагрузки в настройках: тени солнца, простые облака, расчёт ветра, тяжёлые эффекты",
+  "goal": "В меню настроек (графика) — переключатели по CR-К4: тени солнца, простые облака (без compute), расчёт ветра на видеокарте и по одному на другие тяжёлые GPU-эффекты (кандидаты из CR-10), с понятными подписями; сохраняются в машинных настройках и применяются рендером. Вместо ключа --safe-gpu (решение пользователя 2026-10-23 04:30).",
   "plan_ref": "§4 CR-12",
-  "contracts": [],
+  "contracts": [
+    {
+      "name": "CR-К4",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    }
+  ],
   "copy": "~/deltaplan-crash-reports-CR-12",
   "branch": "crash-reports/CR-12",
   "base": "feature/crash-reports",
   "scope": [
-    "scripts/game/launch_options.gd",
-    "scripts/core/config.gd",
+    "scripts/ui/settings_panel.gd",
+    "scripts/world",
     "scripts/atmosphere/cloud_layer.gd",
-    "scripts/world/sky_environment.gd",
-    "scripts/core/crash_report.gd",
-    "tools/release/itch_manifest.py",
-    "tools/release/README-options.txt",
-    "tests/game/test_safe_gpu.gd",
-    "tests/game/test_safe_gpu.gd.uid",
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "scripts/atmosphere/cloud_shadows.gd",
+    "scripts/vegetation",
+    "scripts/terrain/terrain_renderer.gd",
+    "scripts/game/graphics_presets.gd",
+    "configs/game.json",
+    "locale/ui.csv",
+    "tests/game/test_gpu_toggles.gd",
+    "tests/game/test_gpu_toggles.gd.uid",
     "CHANGELOG.md"
   ],
   "dont_touch": [
     "scripts/atmosphere/air_model",
-    "scripts/core/gpu_health.gd",
-    "scripts/core/crash_reporter.gd",
+    "scripts/core",
     "scripts/game/render_driver.gd",
-    "scripts/ui",
-    "scenes",
+    "scripts/game/gpu_safety.gd",
+    "scripts/ui/gpu_failure_dialog.gd",
+    "scripts/ui/start_menu.gd",
+    "scripts/game/launch_options.gd",
+    "tools",
     "project.godot",
-    "configs",
     "docs"
   ],
   "accept": [
     {
       "name": "tests",
-      "cmd": ".dpcli/dpcli lock cpu cr12-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=safe_gpu",
+      "cmd": ".dpcli/dpcli lock cpu cr12-t --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=gpu_toggles",
       "expect": "tests"
     },
     {
-      "name": "launch",
-      "cmd": ".dpcli/dpcli lock cpu cr12-l --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=input_launch",
+      "name": "settings",
+      "cmd": ".dpcli/dpcli lock cpu cr12-s --no-tmux -- godot --headless --path . res://tests/run_tests.tscn -- --filter=settings",
       "expect": "tests"
-    },
-    {
-      "name": "manifest",
-      "cmd": "python3 tools/release/itch_manifest.py --bin deltaplan.exe --platform windows | python3 -I -c 'import sys,tomllib; a=tomllib.loads(sys.stdin.read())[\"actions\"]; assert any(\"--safe-gpu\" in x.get(\"args\",[]) for x in a), a; assert a[0][\"name\"]==\"play\" and not a[0].get(\"args\"); print(\"ok\")'",
-      "expect": "re:^ok"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-23T04:29:25"
+  "created": "2026-10-23T04:29:25",
+  "edited": "2026-10-23T04:34:25"
 }
