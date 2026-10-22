@@ -99,7 +99,7 @@ related: ["docs/contracts/trike-pilot.md", "docs/plan/trike.md", "docs/contracts
 #### TP-7 Колёса: руление, тормоз, посадка без аварии
 `dp-engineer` (sonnet), ревью `dp-reviewer` (физика). Контракт TP-К7, TP-К1 v3 (блок `wheels`). Приёмка: тесты
 `trike_pilot`, `tow_trike`, `tow`, `pendulum`, `flight` — 0 упало (кроме известных падений main).
-- TP-9 (решение пользователя 2026-10-23): звук двигателя — сравнить синтез TT-К5 и Stable Audio Open (tools/sounds/gen, только SAO по лицензии, локальная GPU под замком `lock gpu`), лупы по оборотам холостые…максимум со сшивкой, выбор по качеству; файлы для прослушивания — /home/greg/deltaplan/build/screenshots/trike-pilot/. Нет HF-токена — Q5.
+- TP-9 (решение пользователя 2026-10-23): звук двигателя — процедурный синтез, как TT-К5 (уточнение пользователя 2026-10-23): вспышки Rotax 582 (rpm/60·2), лопастная частота винта через редуктор, выхлоп, плавно от оборотов; генерации нейросетью нет (tools/sounds/gen не трогать). Файлы для прослушивания — /home/greg/deltaplan/build/screenshots/trike-pilot/.
 
 ## 5. Волны
 1. TP-1, TP-2, TP-3, TP-4 параллельно (разные файлы).
