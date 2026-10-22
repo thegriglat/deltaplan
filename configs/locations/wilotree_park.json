@@ -1,5 +1,7 @@
 {
   "_doc": "Локация «Wilotree Park (Quest Air)» (Грувленд, Флорида, США): равнинная травяная площадка буксировки дельтапланов, OSM-аэродром «Sheets Airport» (FAA FA42), ele 33 м. Полоса 18/36 (OSM way 304948919). Координаты мира: X — восток, −Z — север, Y — высота над уровнем моря, м; начало X/Z — центр локации. Источник и выбор места — docs/research/tow/sites.md; контракт — TW-К6 (docs/contracts/tow.md). Локация собирается из сети при первом выборе (как остальные встроенные без bundled).",
+  "country": "US",
+  "country_doc": "Страна места, ISO 3166-1 alpha-2 (для «Популярных мест»); нет ключа — RU",
   "name": "loc_wilotree_park",
   "name_doc": "Название для меню",
   "center_lat": 28.53502,
@@ -81,6 +83,19 @@
       }
     }
   ],
+  "render": {
+    "_doc": "Параметры меша по слоям, как у Аскарово (сетки те же: 40 км/25 м и 160 км/100 м; chunk_cells делит размер слоя). Без раздела TerrainRenderer не строится",
+    "detail": {
+      "chunk_cells": 160,
+      "lod_distances_m": [1500, 3500, 7000, 14000],
+      "skirt_depth_m": 300
+    },
+    "far": {
+      "chunk_cells": 200,
+      "lod_distances_m": [12000, 25000, 45000],
+      "skirt_depth_m": 400
+    }
+  },
   "start_position_agl_m": 0.0,
   "start_position_agl_m_doc": "Высота точки старта над землёй, м (0 — пилот на земле у торца полосы)",
   "_sources_doc": "OSM way 304948919 (aeroway=runway, ref=18/36, surface=grass, length=610, width=35), ODbL; отчёты Quest Air Open 2015–2022 (docs/research/tow/sites.md [10][11][12]). Лебёдка на площадке источниками не подтверждена: winch_static — режим игры.",
