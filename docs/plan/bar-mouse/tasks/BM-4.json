@@ -1,0 +1,54 @@
+{
+  "id": "BM-4",
+  "module": "bar-mouse",
+  "type": "dp-engineer",
+  "title": "Залипание ПКМ после меню/паузы",
+  "goal": "ПКМ, отпущенная, пока ввод выключен (меню, пауза: InputController.enabled=false, CameraRig.look_enabled=false), не залипает: после возврата мышь снова двигает штангу (cockpit/chase), голова не крутится без ПКМ. Обычное удержание ПКМ (обзор в кабине) работает как прежде.",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "BM-К2",
+      "version": "1",
+      "ref": "docs/contracts/bar-mouse.md"
+    }
+  ],
+  "copy": "~/deltaplan-bar-mouse-BM-4",
+  "branch": "bar-mouse/BM-4",
+  "base": "feature/bar-mouse",
+  "scope": [
+    "scripts/game/input_controller.gd",
+    "scripts/game/camera_rig.gd",
+    "scripts/game/mouse_bar.gd",
+    "tests/game/test_mouse_routing.gd",
+    "tests/game/test_bar_mouse_input.gd",
+    "tests/game/test_camera_bar_look.gd",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/game/game.gd",
+    "configs/",
+    "docs/contracts/",
+    "tests/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "test_mouse_routing",
+      "tests": "test_mouse_routing"
+    },
+    {
+      "name": "test_bar_mouse",
+      "tests": "test_bar_mouse"
+    },
+    {
+      "name": "test_mouse_bar_flight",
+      "tests": "test_mouse_bar_flight"
+    },
+    {
+      "name": "test_camera",
+      "tests": "test_camera"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:27:37"
+}

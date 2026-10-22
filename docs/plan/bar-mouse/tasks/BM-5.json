@@ -1,0 +1,51 @@
+{
+  "id": "BM-5",
+  "module": "bar-mouse",
+  "type": "dp-writer",
+  "title": "Документация: штанга мышью и сырой ввод",
+  "goal": "docs/guide описывает, как мышь двигает штангу сейчас (ход в отсчётах мыши, множитель «Чувствительность штанги», ≈ см при 800 DPI, мёртвая зона без скачка, независимость от окна и FPS, «Обзор мышью» — только голова/свободная камера, ускорение ОС на Wayland/macOS); в registry/findings.md — выводы BM-1 и BM-2 с числами.",
+  "plan_ref": "3. Задачи",
+  "contracts": [
+    {
+      "name": "BM-К1",
+      "version": "2",
+      "ref": "docs/contracts/bar-mouse.md"
+    },
+    {
+      "name": "BM-К2",
+      "version": "1",
+      "ref": "docs/contracts/bar-mouse.md"
+    }
+  ],
+  "copy": "~/deltaplan-bar-mouse-BM-5",
+  "branch": "bar-mouse/BM-5",
+  "base": "feature/bar-mouse",
+  "scope": [
+    "docs/guide/game/cameras-input.md",
+    "docs/guide/game/menus-settings.md",
+    "docs/registry/findings.md",
+    "docs/INDEX.md",
+    "docs/registry/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "docs/contracts/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА  docs/(guide/game|registry)"
+    },
+    {
+      "name": "mouse_doc",
+      "cmd": "grep -c 'bar_travel_px' docs/guide/game/cameras-input.md",
+      "expect": "num:(\\d+) >=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:28:05"
+}
