@@ -197,6 +197,62 @@ PY
   exit 0
 fi
 
+# Режим cloudart (HH-16): артефакты облаков на закате (светлячки внутри, лестница на краях) при высоте солнца 2°, 1° и 0,5° (время — по расчёту
+# высоты, не по часам), ракурсы «к солнцу» и «сбоку» (+70°), и полдень; Алтай, --sky=partly.
+# <префикс>cloudart_{2deg,1deg,05deg}_{sun,side}.jpg, <префикс>cloudart_day.jpg (в папку вывода — только они и README) и
+# <копия>/build/cloudart/<кадр>.nocloud.jpg — тот же кадр без облаков (маска для tools/shots/cloud_artifacts_measure.py,
+# вне папки пользователя); <префикс>cloudart_README.txt — высота солнца каждого кадра. CLOUD_CFG='{"clouds": {…}}' — правка atmosphere.json для кадров с облаками (пробы). SCENES="2deg_side …" — только эти кадры. Нужен GPU-замок: .dpcli/dpcli lock gpu hh16 -- <этот скрипт>.
+if [[ "${4:-}" == "cloudart" ]]; then
+  IFS='|' read -r name site lat lon off hdg <<<"${places[0]}"
+  readme="$out/${prefix}cloudart_README.txt"; : > "$readme"
+  want_scene() { [[ -z "${SCENES:-}" || " $SCENES " == *" $1 "* ]]; }
+  both() {  # both <файл.jpg> <аргументы игры...>: кадр и тот же кадр без облаков
+    local f="$1"; shift
+    echo "${CLOUD_CFG:-{\}}" > "$acfg"; shot "$f" "$@"
+    echo '{"clouds": {"enabled": false}}' > "$acfg"; mkdir -p "$root/build/cloudart"; shot "$root/build/cloudart/$(basename "${f%.jpg}").nocloud.jpg" "$@"
+    echo '{}' > "$acfg"
+  }
+  for tgt in "2.0:2deg" "1.0:1deg" "0.5:05deg"; do
+    want="${tgt%%:*}"; tag="${tgt##*:}"
+    h="$(python3 - "$want" "$lat" "$lon" "$off" <<'PY'
+import sys, math
+want, lat, lon, off = map(float, sys.argv[1:5])
+doy = 196
+def elev(h):
+    g = 2 * math.pi / 365 * (doy - 1 + (h - 12) / 24)
+    d = (0.006918 - 0.399912 * math.cos(g) + 0.070257 * math.sin(g) - 0.006758 * math.cos(2 * g)
+         + 0.000907 * math.sin(2 * g) - 0.002697 * math.cos(3 * g) + 0.00148 * math.sin(3 * g))
+    e = 229.18 * (0.000075 + 0.001868 * math.cos(g) - 0.032077 * math.sin(g) - 0.014615 * math.cos(2 * g)
+                  - 0.040849 * math.sin(2 * g))
+    s = h + (4 * lon - 60 * off + e) / 60
+    ha = math.radians(15 * (s - 12)); la = math.radians(lat)
+    return math.degrees(math.asin(math.sin(la) * math.sin(d) + math.cos(la) * math.cos(d) * math.cos(ha)))
+lo, hi = 18.0, 23.0
+for _ in range(60):
+    m = (lo + hi) / 2
+    if elev(m) > want: lo = m
+    else: hi = m
+print("%.4f" % lo)
+PY
+)"
+    hour=20
+    secs="$(python3 -c "print('%.1f' % (($h - $hour) * 60))")"
+    read -r az el < <(sun "$lat" "$lon" "$off" "$h")
+    echo "$name $tag: высота солнца $el, азимут $az (час $h)" | tee -a "$readme"
+    set_speed 60
+    yaw="$(python3 -c "print('%.1f' % (($hdg - $az + 180) % 360 - 180))")"
+    look_el="$(python3 -c "print(max($el, 2.0))")"
+    want_scene ${tag}_sun && both "$out/${prefix}cloudart_${tag}_sun.jpg" "--location=$name" "--site=$site" "--hour=$hour" "--time=$secs" --air-start=300,300 "--look=$yaw,$look_el"
+    yaw2="$(python3 -c "print('%.1f' % (($hdg - $az + 180 + 70) % 360 - 180))")"
+    want_scene ${tag}_side && both "$out/${prefix}cloudart_${tag}_side.jpg" "--location=$name" "--site=$site" "--hour=$hour" "--time=$secs" --air-start=300,300 "--look=$yaw2,6"
+  done
+  set_speed 1
+  want_scene day && both "$out/${prefix}cloudart_day.jpg" "--location=$name" "--site=$site" --hour=12 --time=20 --air-start=300,300 --look=0,25
+  echo "haze_humidity_shots.sh: cloudart $prefix* в $out"
+  exit 0
+fi
+
+
 for p in "${places[@]}"; do
   IFS='|' read -r name site lat lon off hdg <<<"$p"
   [[ -n "${ONLY:-}" && "$name" != "$ONLY" ]] && continue
