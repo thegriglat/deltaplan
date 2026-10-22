@@ -1,0 +1,11 @@
+{
+  "module": "crash-reports",
+  "plan": "docs/plan/crash-reports.md",
+  "contracts": "docs/contracts/crash-reports.md",
+  "branch": "feature/crash-reports",
+  "copy": "~/deltaplan-crash-reports",
+  "created": "2026-10-23T03:14:43",
+  "code": "CR",
+  "area": "release",
+  "base": "main"
+}
