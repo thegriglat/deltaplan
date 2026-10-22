@@ -86,20 +86,63 @@ func test_trike_ground_no_walk_run() -> void:
 	_done(ic)
 
 
-func test_trike_look_keys_without_throttle() -> void:
-	var ic := _make("trike", false)
-	for a in ["look_up", "look_down"]:
+func _look_codes() -> Dictionary:
+	var d := {}
+	for a in ["look_up", "look_down", "look_left", "look_right"]:
+		var codes := []
 		for ev in InputMap.action_get_events(a):
 			if ev is InputEventKey:
-				check(ev.physical_keycode != KEY_W and ev.physical_keycode != KEY_S, "%s в trike без W/S" % a)
-		check(InputMap.action_get_events(a).size() > 0, "%s в trike имеет клавишу (стрелки)" % a)
+				codes.append(ev.physical_keycode)
+		d[a] = codes
+	return d
+
+
+## v2 (Q1): в trike клавишного взгляда нет; привязки look_* не зависят от vehicle.
+func test_trike_no_key_look() -> void:
+	var ic := _make("glider", false)
+	var before := _look_codes()
+	check(before.look_up == [KEY_W] and before.look_down == [KEY_S], "look_up/down = W/S")
+	check(before.look_left == [KEY_A] and before.look_right == [KEY_D], "look_left/right = A/D")
+	check(ic.keys_look(), "glider в воздухе: keys_look() true")
+	Input.action_press("throttle_up")
+	check(ic.update(DT).throttle_axis == 0.0, "glider: W не газ")
+	Input.action_release("throttle_up")
+	ic.vehicle = "trike"
+	check(not ic.keys_look(), "trike в воздухе: keys_look() false")
+	check(_look_codes() == before, "trike не меняет InputMap")
+	Input.action_press("throttle_up")
+	var c := ic.update(DT)
+	check(c.throttle_axis == 1.0, "trike: W — газ")
+	Input.action_release("throttle_up")
+	Input.action_press("turn_left")
+	check(ic.update(DT).turn == 0.0, "trike в воздухе: A — turn 0")
 	ic.vehicle = "glider"
-	var has_w := false
-	for ev in InputMap.action_get_events("look_up"):
-		if ev is InputEventKey and ev.physical_keycode == KEY_W:
-			has_w = true
-	check(has_w, "в glider look_up снова на W")
+	check(_look_codes() == before, "обратно в glider: InputMap прежний")
+	check(ic.keys_look(), "glider: keys_look() снова true")
 	_done(ic)
+
+
+## Версия раздела контракта: тест написан под TP-К3 v2.
+func test_contract_version() -> void:
+	var f := FileAccess.open("res://docs/contracts/trike-pilot.md", FileAccess.READ)
+	check(f != null, "контракт читается")
+	if f == null:
+		return
+	check(f.get_as_text().contains("## TP-К3 v2."), "в контракте есть раздел TP-К3 v2")
+
+
+func test_trike_shift_brake_vs_pull_full() -> void:
+	var g := _make("trike", true)
+	Input.action_press("trike_brake")
+	var c := g.update(DT)
+	check(c.brake and not c.pull_full and not c.run, "trike на земле: Shift — только тормоз")
+	_done(g)
+	var a := _make("trike", false)
+	Input.action_press("pull_full")
+	Input.action_press("trike_brake")
+	var c2 := a.update(DT)
+	check(c2.pull_full and not c2.brake, "trike в воздухе: Shift — pull_full, не тормоз")
+	_done(a)
 
 
 func test_trike_engine_toggle_once() -> void:

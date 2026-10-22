@@ -91,10 +91,10 @@ controls_run,"Держать — бежать (разбег); W не нужен,
 controls_ground_wing,"Стоя и шагом: нос и крен крыла — мышь или стик","Standing and walking: wing nose and bank — mouse or stick"
 controls_run_wing,"На бегу: мышь или стик — нос и крен крыла, как в полёте; крыло в крене ведёт бег по дуге","While running: mouse or stick — wing nose and bank, as in flight; a banked wing turns the run into an arc"
 controls_trike,Дельталёт (режим с мотором),Trike (powered mode)
-controls_trike_throttle,"Газ: W — добавить, S — убавить (обе — ноль); взгляд в кабине — стрелки","Throttle: W — more, S — less (both — zero); look around the cockpit with the arrow keys"
+controls_trike_throttle,"Газ: W — добавить, S — убавить (обе — ноль); осмотреться — мышью с правой кнопкой","Throttle: W — more, S — less (both — zero); look around with the mouse, right button held"
 controls_trike_engine,Завести или заглушить двигатель,Start or stop the engine
-controls_trike_steer,"На земле A/D — руление носовым колесом (в воздухе — осмотреться)","On the ground A/D — nosewheel steering (in the air — look around)"
-controls_trike_brake,Держать на земле — тормоз колёс,Hold on the ground — wheel brake
+controls_trike_steer,"На земле A/D — руление носовым колесом","On the ground A/D — nosewheel steering"
+controls_trike_brake,Держать на земле (Shift) — тормоз колёс,Hold on the ground (Shift) — wheel brake
 controls_next_page,"Следующая страница прибора (1, 2, 3, 4, 5 — страница сразу)","Next instrument page (1, 2, 3, 4, 5 — jump to that page)"
 controls_camera,Вид: из кабины → сзади → свободная камера,View: first-person → chase → free camera
 controls_restart,Начать полёт заново с того же старта,Restart the flight from the same launch
