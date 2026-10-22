@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "summary": "Дефолт Godot 4.7.2 на Windows при незаданном driver.windows — vulkan; fallback_to_d3d12/vulkan = true, откат только при сбое инициализации (группа A ушла на D3D12 из-за 'VK_KHR_surface not found', затем DXGI_ERROR_DEVICE_REMOVED 0x887a0005). Вылеты #3–#15 одним драйвером не объясняются: A уже на D3D12, B/C на Vulkan без ошибок движка. Рекомендация: дефолт не менять; дать пилотам переключатель драйвера (.itch.toml с двумя действиями, черновик в tools/research/crash-reports/cr-4) для диагностики.",
+  "commits": [
+    "8ea1a37f crash-reports: CR-4 — драйвер рендера Windows, дефолт Godot 4.7.2, варианты"
+  ],
+  "checks": [
+    {
+      "name": "sections",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "privacy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "нет ОШИБКА crash-reports",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "D3D12 не запускался (Linux; wine-режим gpu_validate.sh не гонял — нужен exe)",
+    "правка project.godot/build.sh не делалась по условию"
+  ],
+  "questions": [
+    "Есть ли у пилотов A и B возможность прогнать оба драйвера? Решение по публикации манифеста в itch — за пользователем"
+  ],
+  "how_to_check": ".dpcli/dpcli accept CR-4",
+  "uncertain": [
+    {
+      "where": "docs/research/crash-reports/cr-4.md (Причина, группа B)",
+      "why": "виновность Vulkan для RTX 5060 Laptop — гипотеза: в логах нет ошибок движка",
+      "checked": "поля отчётов #3,#11–#15; Vulkan-инициализация без ошибок"
+    },
+    {
+      "where": "docs/research/crash-reports/cr-4.md (Отчёты)",
+      "why": "'два пилота' выведено из идентичности отчётов, не из данных",
+      "checked": "совпадение GPU/версии/VRAM внутри групп"
+    }
+  ],
+  "dp_feedback": "accept docs check падает на чужих ошибках не помечено как не мои; README в tools/research требует frontmatter — не очевидно из карточки.",
+  "extra": {
+    "default_driver_windows": "vulkan",
+    "fallback_default": "true/true",
+    "group_A_device_removed_errors": "83-89 на отчёт"
+  },
+  "t": "2026-10-23T03:26:02",
+  "by": "executor"
+}
