@@ -6,7 +6,7 @@ area: flight
 updated: "2026-10-22"
 summary: "Стыки дельталёта игрока: двигатель (TP-К1, К2), ввод (К3), приборы (К4), старт (К5), дельталёт в игре (К6), колёса и посадка (К7)."
 related: ["docs/plan/trike-pilot.md", "docs/contracts/trike-model.md", "docs/contracts/control-fix.md", "docs/contracts/pilot-view.md"]
-contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id": "TP-К3", "version": 2}, {"id": "TP-К4", "version": 2}, {"id": "TP-К5", "version": 1}, {"id": "TP-К6", "version": 1}, {"id": "TP-К7", "version": 2}]
+contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id": "TP-К3", "version": 2}, {"id": "TP-К4", "version": 2}, {"id": "TP-К5", "version": 1}, {"id": "TP-К6", "version": 1}, {"id": "TP-К7", "version": 2}, {"id": "TP-К8", "version": 1}, {"id": "TP-К9", "version": 1}]
 ---
 # Контракты trike-pilot (код задач TP)
 
@@ -254,3 +254,48 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
   отчёт. (г) Числа `wheels` — со ссылками на источники; без источника — «оценка» с разбросом и обоснованием.
   Граница (ревью TP-7): на колёса возвращает только касание тележкой (`contact == "feet"` у `PendulumTouchdown`);
   касание крылом или килем — как у дельтаплана (авария), Q4 касается грубой посадки на колёса.
+
+## TP-К8 v1. Вид, камера и приборы дельталёта игрока
+Владелец — TP-8. Потребитель — игра. Контрактный тест — `tests/contracts/test_trike_pilot_k8.gd` (пишет TP-8). Основание —
+пп. 5, 6, 9; TT-К5 (вид буксировщика), TK-К1 v4 (`InstrumentPanel`), TP-К4 (приборы), TP-К6 (`Glider.trike/engine`).
+
+- `TowTrikeVisual` (`scripts/game/tow_trike_visual.gd`): новый `update_parts(hang_pos: Vector3, cart_basis: Basis,
+  wing_basis: Basis, prop_rpm: float, throttle: float) -> void`; `update(tug: TowTug)` вызывает его (буксировщик — без
+  изменений, тесты `tow` зелёные). Узлы: тележка `trike.glb` (`HangPoint` = `hang_pos`), крыло
+  `glider_trike_ixess15.glb`, `pilot.glb` с `sit`, `prop_spin` `speed_scale = prop_rpm·prop_spin_period_s/60`.
+- `Glider` дельталёта (`is_trike()`): вместо вида дельтаплана — `TowTrikeVisual` (`setup(engine_cfg, false)` — звук в
+  TP-9), каждый кадр `update_parts(trike.hang_pos, trike.cart_basis, trike.wing_basis, engine.prop_rpm,
+  engine.throttle)`. `get_marker("PilotHead")` — голова сидящего пилота (кость `Head` `pilot.glb` в `sit`),
+  `get_marker("InstrumentPanel")` — маркер `trike.glb`; маркеры крыла дельтаплана (`InstrumentMount`, `VarioMount`) у
+  дельталёта отсутствуют → `null`, `Game` их не монтирует (планшет в виде от третьего лица — `InstrumentOverlay` — как
+  сейчас). У дельтаплана — без изменений.
+- Приборы: `Game` у дельталёта ставит `TrikeGauges3D` (TP-К4) в `InstrumentPanel` и `TrikeGaugesHud`; каждый кадр
+  `update_readout(engine.engine_rpm, engine.fuel_l, engine.tank_l, engine.running)` обоим; HUD виден только у дельталёта
+  и при `camera.mode != "cockpit"`.
+- Камера (п. 6): у дельталёта кабина — от головы сидящего пилота (`set_head(PilotHead)`), без смещения назад
+  (`back_offset_m` «сидячей позы» не применяется: позади головы — двигатель и винт); тело пилота скрыто от кабинной камеры,
+  как у дельтаплана; настройка позы глаз на дельталёт не влияет. `CameraRig._apply_body_mode/_follow_body`, рассчитанные
+  на `GliderVisual`, у дельталёта пропускаются (уже безопасно).
+- Поза: у дельталёта пилот всегда `sit` (`PilotAnimator` не переключает на `prone`/`run`/`flare`); фаза `"wheels"` —
+  наземная (TP-6 временно считал её `flying` — вернуть, если влияет только на позу).
+- **Инварианты теста** (`Game` или `Glider` в дереве, `vehicle "trike"`): у визуала есть `trike.glb`-тележка,
+  `Propeller`, `AnimationPlayer` с `prop_spin` и `speed_scale` = `prop_rpm/60` ± 1 % (заглушен → 0); `pilot.glb` играет
+  `sit`; `TrikeGauges3D` — потомок `InstrumentPanel`; HUD виден в `chase`, скрыт в `cockpit`; глаз кабинной камеры ≤
+  0,15 м от `PilotHead`; `vehicle "glider"` — прежний вид и маркеры (тесты `pilot_hud`, `cockpit` зелёные).
+
+## TP-К9 v1. Звук двигателя дельталёта игрока
+Владелец — TP-9. Контрактный тест — `tests/contracts/test_trike_pilot_k9.gd` (пишет TP-9). Основание — п. 4 и уточнение
+пользователя 2026-10-23: процедурный синтез, как TT-К5 (вспышки Rotax 582 `rpm_двигателя/60·2`, лопастная частота
+`prop_rpm/60·prop_blades`, выхлоп), плавно от оборотов; генерации нейросетью нет.
+
+- `TowTrikeSound` (`scripts/game/tow_trike_sound.gd`) — общий синтез; буксировщик — без изменений (тесты `tow`).
+  Для игрока — тот же класс с настройками слышимости из кабины (громкость/затухание — параметры в `setup`, числа в
+  `configs/trike_pilot.json → sound` с `_doc`), узел — потомок вида дельталёта у двигателя.
+- Состояние двигателя (TP-К2): `"off"` — тишина (не играет); `"starting"`/`"stopping"` — звук идёт за `prop_rpm`
+  (высота и громкость от оборотов, без скачков); `"running"` — от `prop_rpm` и `throttle`, как TT-К5.
+- Плавность: высота (`pitch_scale`) и громкость меняются не быстрее, чем обороты (без щелчков при смене газа).
+- Файлы для прослушивания (холостые, 50 %, полный газ, запуск, остановка) — WAV в
+  `/home/greg/deltaplan/build/screenshots/trike-pilot/` (вне репозитория).
+- **Инварианты теста:** `"off"` — не играет; после запуска — играет, `pitch_scale` монотонно растёт с `prop_rpm` и = TT-К5
+  при тех же оборотах ± 1 %; изменение `pitch_scale` за кадр ≤ относительного изменения оборотов + 1 %; буксировщик —
+  тест `tow_aerotow` (TT-К5) зелёный.
