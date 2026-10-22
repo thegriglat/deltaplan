@@ -1,0 +1,49 @@
+{
+  "id": "TK-10",
+  "module": "trike-model",
+  "type": "dp-researcher",
+  "title": "Данные трайка v3: трубы 60 мм, бак, выхлоп",
+  "goal": "trike_params.json по TK-K1 v3: трубы рамы 60 мм, бак меньше по источникам (трайки с Rotax 582) и поднят над килем (tank.keel_clear ≥ 0,03), резонансная труба и глушитель Rotax 582 — размеры с источниками; тест K1 v3.",
+  "plan_ref": "TK-10",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "3",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-10",
+  "branch": "trike-model/TK-10",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/blender/trike_params.json",
+    "tools/research/trike-model/v2_sources.md",
+    "tests/contracts/test_trike_model_k1.gd"
+  ],
+  "dont_touch": [
+    "tools/research/trike-model/README.md",
+    "tools/blender/build_trike.py",
+    "tools/blender/build_pilot.py",
+    "assets/",
+    "docs/contracts/trike-model.md"
+  ],
+  "accept": [
+    {
+      "name": "trike_model_k1",
+      "tests": "trike_model_k1"
+    },
+    {
+      "name": "docs",
+      "cmd": "./.dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "v3",
+      "cmd": "python3 -c \"import json;p=json.load(open('tools/blender/trike_params.json'));d=p['dims'];ks=['engine_exhaust_d','engine_exhaust_l','muffler_d','muffler_l','tank_volume_l'];print('bad=%d tubes=%d clear=%.3f'%(sum(1 for k in ks if not str(d.get(k,{}).get('src','')).strip()),sum(1 for k in ('tube_keel_d','tube_mast_d','tube_strut_d') if abs(d[k]['value']-0.06)<1e-6),p['tank']['keel_clear']))\"",
+      "expect": "re:bad=0 tubes=3 clear=0\\.0[3-9]"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:01:01"
+}
