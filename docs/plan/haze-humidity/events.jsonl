@@ -370,3 +370,4 @@
 {"t": "2026-10-23T00:38:30", "by": "coordinator", "task": "HH-14", "ev": "accepted", "note": "по ревью (accept, 2 major → HH-15 после Q5)"}
 {"t": "2026-10-23T00:40:03", "by": "coordinator", "task": "HH-14", "ev": "accepted", "commits": ["d2f5954c"], "note": "7/7 cloud=ok:61/61 (пропуск 3); haze_humidity=ok:25/25 (пропуск 1); sun=ok:21/21; warm_2deg=ok:0.676; warm_2deg_b=ok:0.497; day_white=ok:1.168; frames=ok:20"}
 {"t": "2026-10-23T00:40:03", "by": "coordinator", "task": "HH-14", "ev": "merged", "commits": ["d2f5954c"]}
+{"t": "2026-10-23T00:58:21", "by": "coordinator", "task": null, "ev": "note", "note": "Q5 (б) — HH-15 после слияния HH-11: свет рельефа (sun_energy) и неба (sky_energy) из физики пропускания + автоэкспозиция; облака на той же яркости неба (major HH-14: одна таблица, horizon_tint не на зенит); кадры 8–35° и 2°/0,5–1° до/после; маски вне папки пользователя; контракт — HH4 v3 до запуска"}
