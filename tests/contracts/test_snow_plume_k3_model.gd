@@ -1,5 +1,5 @@
 extends TestCase
-## Контракт SNW-К1/К3 v1 (docs/contracts/snow-plume.md): модель снежных флагов → список источников.
+## Контракт SNW-К1/К3 v3 (docs/contracts/snow-plume.md): модель снежных флагов → список источников.
 ## Рельеф — синтетический гребень вдоль Z (x = 0, склоны ≈39°), ветер поперёк (+X). Числа порога — тестовые,
 ## не из литературы (настоящие — SNW-1 → configs/snow_plume.json).
 
@@ -8,6 +8,7 @@ const KEYS := {
 	"id": TYPE_INT, "pos": TYPE_VECTOR3, "dir": TYPE_VECTOR3, "u10": TYPE_FLOAT, "u_t": TYPE_FLOAT,
 	"intensity": TYPE_FLOAT, "snow": TYPE_FLOAT, "width_m": TYPE_FLOAT,
 	"path": TYPE_PACKED_VECTOR3_ARRAY, "vel": TYPE_PACKED_VECTOR3_ARRAY, "path_dt": TYPE_FLOAT,
+	"surf": TYPE_PACKED_VECTOR3_ARRAY,
 }
 const CAM := Vector3(-1500.0, 3600.0, 0.0)
 
@@ -17,7 +18,7 @@ func _cfg() -> Dictionary:
 		"radius_m": 3000.0, "max_emitters": 6, "update_s": 0.5, "max_wind_samples": 80,
 		"scan_step_m": 50.0, "scan_points_per_frame": 4000, "rescan_m": 1000.0, "rescan_dir_deg": 10.0,
 		"fetch_m": 200.0, "lee_slope_deg": 15.0, "spacing_m": 150.0, "snow_min": 0.5,
-		"start_agl_m": 2.0, "min_agl_m": 3.0, "path_points": 6, "path_dt_s": 8.0, "span_ms": 8.0,
+		"start_agl_m": 3.0, "min_agl_m": 3.0, "surf_upwind_m": 30.0, "path_points": 6, "path_dt_s": 8.0, "span_ms": 8.0,
 		"threshold": {"a": 9.0, "b": 0.0, "c": 0.0, "wet_t_c": 0.0, "wet_u10_ms": 12.0},
 	}
 
@@ -88,6 +89,13 @@ func test_strong_wind_emitters() -> void:
 		check(path.size() == int(cfg.path_points) and vel.size() == path.size(), "path_points точек")
 		for q in path:
 			check(q.y >= _h(q.x, q.z) + float(cfg.min_agl_m) - 0.01, "линия тока не ниже рельефа + min_agl_m")
+		if e.has("surf"):
+			var surf: PackedVector3Array = e.surf
+			check(surf.size() >= 2 and surf.size() <= 8, "surf: 2…8 точек")
+			var lim := 0.5 * float(e.width_m) + float(cfg.surf_upwind_m) + 1e-3
+			for s in surf:
+				approx(s.y, _h(s.x, s.z), 0.01, "surf на рельефе")
+				check(Vector2(s.x - p.x, s.z - p.z).length() <= lim, "surf у гребня")
 		if path.size() >= 2:
 			check(path[path.size() - 1].x > path[0].x, "шлейф уходит по ветру (+X) на подветренную сторону")
 

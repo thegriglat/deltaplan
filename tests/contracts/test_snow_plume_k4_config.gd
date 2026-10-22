@@ -1,14 +1,17 @@
 extends TestCase
-## Контракт SNW-К4 v2 (docs/contracts/snow-plume.md): configs/snow_plume.json — ключи, описания, числа SNW-1.
+## Контракт SNW-К4 v3 (docs/contracts/snow-plume.md): configs/snow_plume.json — ключи, описания, числа SNW-1.
 
 const PATH := "res://configs/snow_plume.json"
 const MODEL_KEYS := [
 	"radius_m", "max_emitters", "update_s", "max_wind_samples", "scan_step_m", "scan_points_per_frame",
-	"rescan_m", "rescan_dir_deg", "dir_tolerance_k", "fetch_m", "lee_slope_deg", "spacing_m", "snow_min",
+	"rescan_m", "rescan_dir_deg", "dir_tolerance_k", "fetch_m", "lee_slope_deg", "spacing_m", "surf_upwind_m", "snow_min",
 	"start_agl_m", "min_agl_m", "path_points", "path_dt_s", "span_ms", "threshold",
 ]
 const THRESHOLD_KEYS := ["a", "b", "c", "wet_t_c", "wet_u10_ms"]
-const RENDER_KEYS := ["max_emitters", "particles_per_emitter", "settle_ms", "spread_ms", "size_m", "alpha", "visibility_m"]
+const RENDER_KEYS := [
+	"max_emitters", "particles_per_emitter", "streak_len_m", "streak_w_m", "layer_h_m", "life_s", "settle_ms",
+	"spread_ms", "alpha", "visibility_m",
+]
 
 
 func _cfg() -> Dictionary:
@@ -52,5 +55,9 @@ func test_values() -> void:
 	check(float(m.get("start_agl_m", 0.0)) >= float(m.get("min_agl_m", 1.0)), "start_agl_m ≥ min_agl_m")
 	check(int(m.get("path_points", 99)) >= 2 and int(m.get("path_points", 99)) <= 8, "path_points 2…8")
 	check(int(r.get("max_emitters", -1)) == int(m.get("max_emitters", -2)), "render.max_emitters = model.max_emitters")
+	check(not r.has("size_m"), "v3: size_m нет (струйки вместо клубов)")
+	var sl := float(r.get("streak_len_m", 0.0))
+	check(sl >= 3.0 and sl <= 4.0, "streak_len_m 3–4 м (решение пользователя 2026-10-23)")
+	check(float(r.get("layer_h_m", 99.0)) <= 2.0, "layer_h_m ≤ 2 м (позёмка, ВМО)")
 	var per_emitter := 1 + int(m.get("path_points", 0))
 	check(int(m.get("max_wind_samples", 0)) >= per_emitter, "max_wind_samples хватает хотя бы на один источник")

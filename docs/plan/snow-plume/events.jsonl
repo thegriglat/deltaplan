@@ -64,3 +64,7 @@
 {"t": "2026-10-23T03:39:04", "by": "coordinator", "task": "SNW-4", "ev": "merged"}
 {"t": "2026-10-23T03:39:05", "by": "coordinator", "task": "SNW-5", "ev": "started"}
 {"t": "2026-10-23T03:43:42", "by": "coordinator", "task": "SNW-5", "ev": "note", "note": "dpcli b7c8f9c1: lock cpu — очередь со взвешенными слотами (16 на машину; Godot/тесты/кадры/accept 3, --import 2, build 4, прочее 1, или --slots N); все запуски Godot — только через .dpcli/dpcli lock cpu <имя> -- <cmd> / job --lock cpu start; статус — .dpcli/dpcli lock status.", "addendum": true}
+{"t": "2026-10-23T04:01:19", "by": "coordinator", "task": "SNW-5", "ev": "note", "note": "main ddf5ab7f: любой Godot = 10 слотов из 16 (один Godot на машину); запуск Godot (включая --import, gpu_tests.sh, accept) без .dpcli/dpcli lock cpu — запрещён.", "addendum": true}
+{"t": "2026-10-23T04:16:04", "by": "coordinator", "task": null, "ev": "plan", "note": "план 2. Решения пользователя (не обсуждаются): дописано 1 стр."}
+{"t": "2026-10-23T04:16:04", "by": "coordinator", "task": null, "ev": "plan", "note": "план 4. Задачи: дописано 5 стр."}
+{"t": "2026-10-23T04:16:05", "by": "coordinator", "task": null, "ev": "plan", "note": "план 5. Волны: дописано 1 стр."}

@@ -1,5 +1,5 @@
 extends TestCase
-## Контракт SNW-К3 v1 (docs/contracts/snow-plume.md): отрисовка снежных флагов по списку источников.
+## Контракт SNW-К3 v3 (docs/contracts/snow-plume.md): отрисовка снежных флагов по списку источников.
 
 const RENDER_PATH := "res://scripts/world/snow_plume/snow_plume_render.gd"
 
@@ -12,7 +12,8 @@ func _emitter(id: int, x: float) -> Dictionary:
 		vel.append(Vector3(15.0, -1.2, 0.0))
 	return {
 		"id": id, "pos": Vector3(x, 3498.0, 0.0), "dir": Vector3(1.0, 0.0, 0.0), "u10": 15.0, "u_t": 9.0,
-		"intensity": 0.75, "snow": 1.0, "width_m": 150.0, "path": path, "vel": vel, "path_dt": 8.0,
+		"intensity": 0.75, "snow": 1.0, "width_m": 40.0, "path": path, "vel": vel, "path_dt": 1.0,
+		"surf": PackedVector3Array([Vector3(x, 3498.0, -20.0), Vector3(x, 3498.0, 20.0), Vector3(x - 30.0, 3480.0, 0.0)]),
 	}
 
 
