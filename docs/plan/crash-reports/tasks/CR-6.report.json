@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "AirRuntime: клипмап прежнего места освобождается при смене места, RuntimeGpu.release дожидается отправленной работы (sync), 'упрощённый ветер' читается из конфига при каждом обращении и отдаёт RD. Добавлен GPU-тест 5 загрузок подряд со сменой места и ветра.",
+  "commits": [
+    "43df6249 AirRuntime: жизненный цикл RD при повторных загрузках, упрощённый ветер без RD, GPU-тест"
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "value": "8/8",
+      "pass": true
+    },
+    {
+      "name": "gpu",
+      "value": "PASS (air_runtime, вкл. test_air_runtime_reload_gpu 2/2)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept CR-6; tools/gpu_tests.sh --filter=air_runtime_reload",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/air_model/air_runtime.gd:setup/_release_clip/RuntimeGpu",
+      "why": "Вылеты группы B не воспроизводятся на Linux/4070 SUPER, причина не доказана; правка основана на чтении кода (гипотеза 1 CR-2). Новый тест на старом коде проходит (кроме проверки off), т.е. вылет он не ловит, а страхует от утечек/ошибок RD.",
+      "checked": "5 загрузок со сменой ключа и ветра: поле считается, на RD после stop нет буферов задач, память RD не растёт; off после запуска - RD отдан и не создаётся заново."
+    },
+    {
+      "where": "air_runtime.gd:_off",
+      "why": "game.gd (вне скоупа) может писать стадию wind при off - аномалия #10 частично остаётся на стороне игры.",
+      "checked": "unavailable_reason и _baked_blocked теперь читают свежий конфиг; ui-тест test_wind_model_setting проходит."
+    },
+    {
+      "where": "tests/atmosphere/test_air_runtime_gpu.gd",
+      "why": "Пороги кадра 130 мс плавают при нагрузке машины: test_ongudai_runtime падал и на коде без моих правок (2 из 3), accept gpu прошёл с повтора.",
+      "checked": "прогоны с правками и без, load avg 30-90"
+    }
+  ],
+  "dp_feedback": "accept gpu с жёсткими порогами кадра плавает при загруженной машине; полезен повтор упавших тайминговых тестов или пометка flaky.",
+  "t": "2026-10-23T04:37:03",
+  "by": "executor"
+}

@@ -182,6 +182,12 @@ settings_haze_sun,Дымка к солнцу,Haze toward the sun
 settings_wind_model,Ветер над рельефом,Wind over terrain
 settings_wind_model_calc,Расчет на GPU (обтекание рельефа),GPU solver (terrain flow)
 settings_wind_model_simple,Эвристика (профиль ветра без рельефа),Heuristic (wind profile without terrain)
+settings_gpu_hint,Если игра вылетает или видеокарта зависает - выключайте эффекты по одному и перезапускайте полёт. Изменения вступают в силу со следующей загрузки места.,If the game crashes or the graphics card hangs - switch the effects off one by one and restart the flight. Changes apply from the next place load.
+settings_gpu_on,Включено,On
+settings_gpu_sun_shadows,Тени солнца,Sun shadows
+settings_gpu_cloud_shadows,Тени облаков на земле,Cloud shadows on the ground
+settings_gpu_glow,Свечение ярких мест,Glow of bright areas
+settings_gpu_simple_clouds,Простые облака (без вычислительных шейдеров),Simple clouds (no compute shaders)
 settings_air_cache_mb,Кеш ветра на диске,Wind cache on disk
 unit_mb,МБ,MB
 settings_as_in_preset,Как в пресете,From preset
