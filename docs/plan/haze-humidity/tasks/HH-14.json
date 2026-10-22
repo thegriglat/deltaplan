@@ -1,0 +1,79 @@
+{
+  "id": "HH-14",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Цвет облаков на закате: свет окружения облаков и согласованная яркость (по диагнозу HH-12)",
+  "goal": "Освещённые бока кучевых при солнце ≈ 2° и ≈ 0,5–1° — тёплые по физике (свет HH4: G/R 0,54 при 2°, 0,41 при 0,8°), а не белые: свет окружения/туман облаков следуют закату (F1 HH-12), яркость облаков согласована с яркостью сцены (свет рельефа, экспозиция), пересвет не съедает оттенок; днём облака белые как раньше; кадры до/после.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "HH4",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH3",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-14",
+  "branch": "haze-humidity/HH-14",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "scripts/atmosphere/cloud_volume.gdshader",
+    "configs/atmosphere.json",
+    "configs/world.json",
+    "tests/atmosphere/",
+    "tools/shots/cloud_color_measure.py",
+    "tools/shots/haze_humidity_shots.sh",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/world/",
+    "scripts/atmosphere/sun_transmission.gd",
+    "data/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "cloud",
+      "tests": "cloud"
+    },
+    {
+      "name": "haze_humidity",
+      "tests": "haze_humidity"
+    },
+    {
+      "name": "sun",
+      "tests": "sun"
+    },
+    {
+      "name": "warm_2deg",
+      "cmd": "python3 tools/shots/cloud_color_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_clouds_2deg_side.jpg",
+      "expect": "num:g_r=([\\d.]+) <=0.75"
+    },
+    {
+      "name": "warm_2deg_b",
+      "cmd": "python3 tools/shots/cloud_color_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_clouds_2deg_side.jpg",
+      "expect": "num:b_r=([\\d.]+) <=0.55"
+    },
+    {
+      "name": "day_white",
+      "cmd": "python3 tools/shots/cloud_color_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_clouds_day.jpg",
+      "expect": "num:b_r=([\\d.]+) >=0.85"
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity/before_clouds_*.jpg /home/greg/deltaplan/build/screenshots/haze-humidity/after_clouds_*.jpg | wc -l",
+      "expect": "num:(\\d+) >=8"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T22:57:29"
+}
