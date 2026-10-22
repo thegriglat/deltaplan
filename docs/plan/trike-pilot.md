@@ -110,6 +110,9 @@ related: ["docs/contracts/trike-pilot.md", "docs/plan/trike.md", "docs/contracts
 #### TP-15 Откат TT-11: вилка переднего колеса вперёд, брызговик к пилоту
 `dp-engineer` (sonnet). Решение пользователя 2026-10-23 (по словам пилота): вилка/стойка переднего колеса — вперёд, как до TT-11 (`79af27be`); брызговик — со стороны пилота (сзади колеса); ось колеса (`wheelbase`) и физика не меняются. Модель общая с буксировщиком. Пересборка `trike.glb`, кадры side и front34 в `/home/greg/deltaplan/build/screenshots/trike-pilot/`. Приёмка: тесты `trike_model`, `tow_trike_k6`, `trike_pilot` — 0 упало; ≥ 2 новых кадра.
 
+#### TP-16 Текстуры и шейдеры дельталёта как у дельтапланов
+`dp-engineer` (sonnet), после TP-15 (общий `build_trike.py`), до TP-8 (вид игрока берёт `TowTrikeVisual`). Решение пользователя 2026-10-23: (1) сжатие текстур паруса `trike_ixess15` и встроенных текстур `trike.glb` — как у крыльев игры (`compress/mode=4` Basis Universal, mipmaps); (2) процедурные `FrameMetal`/`frame_wire` (`scripts/flight/frame_metal.gd`, `frame_metal.gdshader`, `frame_wire.gdshader`, как в `glider_visual` для `Tube*/Steel/Fitting/Wire`) — на крыле и трубах/тросах тележки буксировщика и игрока. Кадры до/после в `/home/greg/deltaplan/build/screenshots/trike-pilot/`. Приёмка: `trike_model`, `tow`, `trike_pilot`, `frame_metal` — 0 упало.
+
 ## 5. Волны
 1. TP-1, TP-2, TP-3, TP-4 параллельно (разные файлы).
 2. TP-5 по освобождению места; TP-11, TP-12 — по ответам Q1–Q3.
