@@ -75,10 +75,15 @@
       "name": "halo_offset",
       "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
       "expect": "num:offset_px=([\\d.]+) <=3"
+    },
+    {
+      "name": "glow_r",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "num:glow_r_deg=([\\d.]+) <=7"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-22T20:26:25",
-  "edited": "2026-10-22T21:41:46"
+  "edited": "2026-10-22T21:42:14"
 }
