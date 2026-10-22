@@ -1,0 +1,52 @@
+{
+  "id": "TK-14",
+  "module": "trike-model",
+  "type": "dp-researcher",
+  "title": "Данные v4: педали 45°, штанга, приборная панель",
+  "goal": "trike_params.json по TK-K1 v4: seat.pedal_angle_deg = 45 и точки опоры стоп на педалях, bar — положения базовой штанги (training) в осях тележки по замеру в игре, panel — приборная панель между глазами и штангой, не закрываемая штангой во всём ходе; тест K1 v4 с проверкой лучей.",
+  "plan_ref": "TK-14",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "4",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-14",
+  "branch": "trike-model/TK-14",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/blender/trike_params.json",
+    "tools/research/trike-model/bar_panel.md",
+    "tools/research/trike-model/measure_bar.gd",
+    "tests/contracts/test_trike_model_k1.gd"
+  ],
+  "dont_touch": [
+    "tools/research/trike-model/README.md",
+    "tools/blender/build_trike.py",
+    "tools/blender/build_pilot.py",
+    "assets/",
+    "configs/",
+    "scripts/",
+    "docs/contracts/trike-model.md"
+  ],
+  "accept": [
+    {
+      "name": "trike_model_k1",
+      "tests": "trike_model_k1"
+    },
+    {
+      "name": "docs",
+      "cmd": "./.dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "v4",
+      "cmd": "python3 -c \"import json;p=json.load(open('tools/blender/trike_params.json'));print('ver=%d angle=%d bar=%d panel=%d'%(p['version'],round(p['seat']['pedal_angle_deg']),all(k in p['bar'] for k in ('trim','full_pull','full_push','d','half_width')),all(k in p['panel'] for k in ('center','size','normal'))))\"",
+      "expect": "re:ver=4 angle=45 bar=1 panel=1"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:40:01"
+}
