@@ -1,0 +1,11 @@
+{
+  "module": "tow-trike",
+  "plan": "docs/plan/tow-trike.md",
+  "contracts": "docs/contracts/tow-trike.md",
+  "branch": "feature/tow-trike",
+  "copy": "~/deltaplan-tow-trike",
+  "created": "2026-10-22T16:22:27",
+  "code": "TT",
+  "area": "flight",
+  "base": "main"
+}
