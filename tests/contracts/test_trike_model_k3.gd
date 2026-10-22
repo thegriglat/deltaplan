@@ -2,7 +2,7 @@ extends Node
 ## Контракт TK-K3 (docs/contracts/trike-model.md): версия в заголовке. Владелец стыка дописывает проверку интерфейса.
 
 const DOC := "res://docs/contracts/trike-model.md"
-const VERSION := 1
+const VERSION := 2
 
 var failures: PackedStringArray = []
 
