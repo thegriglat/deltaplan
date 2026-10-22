@@ -4,9 +4,9 @@ status: "active"
 module: trike-pilot
 area: flight
 updated: "2026-10-22"
-summary: "Стыки дельталёта игрока: эксплуатация двигателя (TP-К1), TrikeEngine (TP-К2), ввод (TP-К3), приборы (TP-К4), выбор старта (TP-К5)."
+summary: "Стыки дельталёта игрока: двигатель (TP-К1, К2), ввод (К3), приборы (К4), старт (К5), дельталёт в игре (К6), колёса и посадка (К7)."
 related: ["docs/plan/trike-pilot.md", "docs/contracts/trike-model.md", "docs/contracts/control-fix.md", "docs/contracts/pilot-view.md"]
-contracts: [{"id": "TP-К1", "version": 2}, {"id": "TP-К2", "version": 1}, {"id": "TP-К3", "version": 2}, {"id": "TP-К4", "version": 2}, {"id": "TP-К5", "version": 1}]
+contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id": "TP-К3", "version": 2}, {"id": "TP-К4", "version": 2}, {"id": "TP-К5", "version": 1}, {"id": "TP-К6", "version": 1}, {"id": "TP-К7", "version": 1}]
 ---
 # Контракты trike-pilot (код задач TP)
 
@@ -18,7 +18,7 @@ contracts: [{"id": "TP-К1", "version": 2}, {"id": "TP-К2", "version": 1}, {"id
 (`configs/tow_tug.json`: `cart`, `engine`, `thrust`, `ground`, `wing`), TT-К3 (колёса в `PendulumModel`), TT-К4
 (`TowTug`). До слияния код этого модуля их файлы не читает и не создаёт: числа TT-К1 — в тестовых словарях.
 
-## TP-К1 v2. Эксплуатация двигателя — `configs/trike_pilot.json`
+## TP-К1 v3. Эксплуатация двигателя — `configs/trike_pilot.json`
 Владелец — TP-1. Потребители — TP-2 (`TrikeEngine`), TP-4 (шкала топлива), TP-6. Контрактный тест —
 `tests/contracts/test_trike_pilot_k1.gd` (пишет TP-1).
 
@@ -35,6 +35,10 @@ contracts: [{"id": "TP-К1", "version": 2}, {"id": "TP-К2", "version": 1}, {"id
 - **Инварианты теста:** все ключи есть и числовые, у каждого числа есть `_doc`; `burn.*` одной длины, `rpm_engine`
   возрастает, `lph` не убывает; `start_l` ∈ (0; `tank_l`]; `tank_l` = `trike_params.json` ± 0,5; `red_rpm` < `max_rpm`.
 - v2 (2026-10-22, Q3): на старте полный бак — `start_l` = `tank_l` (53 л); инвариант теста: равенство.
+- v3 (2026-10-23, владелец блока — TP-7): блок `wheels` (руление и тормоз, TP-К7) с `_doc` у каждого числа:
+  `wheelbase_m` (= `tools/blender/trike_params.json dims.wheelbase` ± 0,01), `steer_max_deg` (наибольший угол
+  носового колеса), `lat_mu` (предел боковой силы шин на траве, доля веса), `brake_mu` (замедление тормозом, доля веса).
+  Инвариант теста: ключи есть, числа > 0, `wheelbase_m` = `trike_params.json`; `steer_max_deg` ∈ (0; 60].
 
 ## TP-К2 v1. Двигатель — `TrikeEngine`
 Владелец — TP-2. Потребители — TP-4 (приборы), TP-6 (тяга в модели), TP-9 (звук). Контрактный тест —
@@ -165,3 +169,78 @@ contracts: [{"id": "TP-К1", "version": 2}, {"id": "TP-К2", "version": 1}, {"id
 - **Инварианты теста:** `trike_allowed` — true для места с `tow` без сети, false в сети и без `tow` (`wilotree_park` и
   место без буксировки из `configs/locations/`); `FlightSettings` с `vehicle "trike"` → после сохранения и чтения
   `"trike"`, `tow_kind` пуст; `"bogus"` → `"glider"`; `launch_options` `vehicle=trike` → `"trike"`.
+
+## TP-К6 v1. Дельталёт игрока в игре: `TrikeRig`, `Glider`, `Game`
+Владелец — TP-6. Потребители — TP-8 (вид, камера, приборы), TP-9 (звук), `TowTug`. Контрактный тест —
+`tests/contracts/test_trike_pilot_k6.gd` (пишет TP-6). Основание — решения пользователя пп. 1–3, 7–9, Q3, Q4.
+
+**`TrikeRig`** (`scripts/flight/trike_rig.gd`, `class_name TrikeRig extends RefCounted`) — общая «тележка на подвеске»
+буксировщика и игрока, вынесенная из `TowTug` (числа и поведение `TowTug` — **без изменений**: тесты `tow` зелёные).
+- `static func model_params(cfg: Dictionary, cart_mass_kg: float) -> Dictionary` → `{wing, pilot, apparatus}` для
+  `PendulumModel.setup` (как в `TowTug` сейчас: крыло `Config "wings/"+cfg.wing`, `pilot.mass_kg = cart_mass_kg` без
+  ограничения `pilot_mass_min/max`, `apparatus` = `hang_length_m`, `pilot_cda_m2`, `arms_force_max_n` из `cart`).
+- `static func apply_arms(model: PendulumModel, cfg: Dictionary) -> void` — ходы штанги `cart.arms_shift_*_m`.
+- `setup(model: PendulumModel, cfg: Dictionary) -> void`; `cfg` — формат TT-К1 (`configs/tow_tug.json`).
+- Вход: `thrust_n: float` (Н, ≥ 0, ставит владелец каждый шаг), `extra_pilot_force: Vector3`, `extra_hang_force: Vector3`
+  (Н, мир; трос буксировщика). `ext_force(s: Dictionary) -> Dictionary` — функция для `model.set_external_force`
+  (TW-К4): тяга на `pilot` вдоль оси тележки с наклоном `engine.thrust_tilt_deg` (как `TowTug._ext_force`) + extra.
+- `refresh(dt: float) -> void` после шага модели; только чтение: `hang_pos`, `wing_basis`, `cart_basis` (TT-К4 v2: на
+  колёсах по нормали земли и курсу, в воздухе по мачте, поворот ≤ 20°/с), `pilot_pos`, `agl_m` (низ колёс над землёй).
+
+**`Glider`** (`scripts/flight/glider.gd`):
+- `setup_trike(cfg: Dictionary, pilot_mass_kg: float, ops_cfg: Dictionary) -> void` — модель «Маятник» через
+  `TrikeRig.model_params`; масса тележки = `cart.empty_mass_kg` + пилот (`pilot_mass_kg` ≤ 0 → `cart.pilot_mass_kg`) +
+  топливо на старте (`TrikeEngine.fuel_mass_kg` после `reset`, TP-К1 `fuel.start_l`); расход топлива массу в полёте не
+  меняет (граница модели, ≤ 40 кг из ≈ 325 кг). Создаёт `TrikeEngine` (TP-К2) из `cfg.engine`, `cfg.thrust`, `ops_cfg`.
+- Только чтение: `is_trike() -> bool`, `trike: TrikeRig` (null у дельтаплана), `engine: TrikeEngine` (null у дельтаплана).
+- `reset_on_wheels(pos: Vector3, heading_deg: float) -> void` — `model.reset_on_wheels(pos, heading_deg, wheels)`,
+  `wheels` = `cfg.ground` + блок `ops_cfg.wheels` (TP-К1 v3, если есть) + `land_on_wheels: true` (TP-К7); двигатель —
+  `engine.reset()` (заглушен, полный бак).
+- `step(dt)` у дельталёта: `engine.step(dt, airspeed_ms, input.throttle_axis, input.engine_toggle)` (ввод — последний
+  `set_input`), `trike.thrust_n = engine.thrust_n`, шаг модели, `trike.refresh(dt)`. У дельтаплана `step` — без изменений.
+- Вид до TP-8 — как у дельтаплана с крылом `trike_ixess15` (временно).
+
+**`Game`** (`scripts/game/game.gd`):
+- `settings.vehicle == "trike"`, без сети и не старт в воздухе (TP-К5) → старт на полосе места буксировки (тот же
+  `TowSite.check`, что у `_choose_tow_start`; начало полосы, курс полосы), без `TowSession`; `glider.setup_trike(Config
+  "tow_tug", settings.pilot_mass_kg, Config "trike_pilot")`, `glider.reset_on_wheels(...)`; `input_controller.vehicle =
+  "trike"`; заглушка TP-5 (`push_warning`) удаляется. «Ещё раз» (R) — снова `reset_on_wheels` в начале полосы.
+- Конец полёта дельталёта: до первого отрыва — не заканчивается (стоит на колёсах сколько угодно); после посадки на
+  колёса (TP-К7) — `"landed"`, когда путевая скорость < 0,5 м/с непрерывно ≥ 3 с (руление после посадки разрешено);
+  столкновения — как у дельтаплана. У дельтаплана — без изменений.
+- **Инварианты теста** (`Glider` в дереве без `Game` для физики; `Game` — по образцу `tests/game/test_tow_*`):
+  (1) `TowTug` с `TrikeRig` — тесты `tow` зелёные, траектория `TowTug` за 20 с равна прежней (≤ 1 мм);
+  (2) дельталёт на колёсах, двигатель заглушен, 10 с — неподвижен, `thrust_n` 0; (3) `engine_toggle` → через
+  `start_s` холостые; (4) полный газ, штанга по простому регулятору (`pitch` 0 до 1,1·vs, затем «от себя» до отрыва,
+  дальше скорость ≈ 1,3·vs) — отрыв на полосе ≤ `runway_length_m` места (610 м), набор в установившемся наборе > 0;
+  числа (разбег, скорость отрыва, вертикальная, скорость горизонтального полёта на полном газе) — в отчёт;
+  (5) `Game` с `vehicle "trike"` на `wilotree_park` — старт на колёсах на оси полосы, `input_controller.vehicle ==
+  "trike"`, нет `TowSession`; `"glider"` — как раньше.
+
+## TP-К7 v1. Колёса дельталёта: руление, тормоз, посадка (`PendulumModel`)
+Владелец — TP-7. Потребитель — TP-6 (`Glider.reset_on_wheels`). Контрактный тест — `tests/contracts/test_trike_pilot_k7.gd`
+(пишет TP-7). Дополняет TT-К3 v6 (`docs/contracts/tow-trike.md`); без новых ключей — TT-К3 **бит в бит** (тесты
+`tow_trike`, `tow` зелёные). Основание — пп. 1, Q2, Q4 (касание и руление, аварии нет).
+
+- `reset_on_wheels(pos, heading_deg, wheels)` — необязательные ключи `wheels`: `wheelbase_m`, `steer_max_deg`,
+  `lat_mu`, `brake_mu` (TP-К1 v3), `land_on_wheels: bool`.
+- Руление (есть `steer_max_deg`): на колёсах курс меняется: `dψ/dt = v·tan(turn·steer_max)/wheelbase` (`turn` —
+  `ControlInput.turn` ∈ [−1; 1], +1 — вправо, курс по часовой), ограничение `|v·dψ/dt| ≤ lat_mu·g`; крыло и тележка
+  поворачиваются вместе (курс крыла = курс связки); на месте (v = 0) не поворачивает; заднего хода нет.
+- Тормоз (есть `brake_mu`): `ControlInput.brake` на колёсах — замедление `brake_mu·N/m` в добавок к качению, до 0, не
+  назад.
+- Посадка (`land_on_wheels` true): касание низом колёс после полёта → снова режим колёс (`phase()` = `"wheels"`,
+  `on_wheels`), положение непрерывно, курс — текущий курс крыла, скорость — горизонтальная проекция на курс (боковая
+  теряется — граница модели), вертикальная гасится; сигнал `landed(result)` (результат `PendulumTouchdown` с ключом
+  `on_wheels: true`), **аварии нет** (`_crash_start` не вызывается при любой вертикальной скорости, Q4); пилот не встаёт на
+  ноги. С колёс снова можно взлететь (то же правило отрыва, `took_off`).
+- **Инварианты теста** (крыло `trike_ixess15`, тележка из `configs/tow_tug.json` через `TrikeRig.model_params`, если
+  TP-6 ещё не влит — те же числа вручную): (1) без новых ключей — равенство с TT-К3 за 10 с на колёсах и при отрыве;
+  (2) руление: v = 5 м/с, `turn` +1 — `dψ/dt` = формула ± 5 %, `turn` −1 — зеркально, v = 0 — курс не меняется;
+  (3) v = 15 м/с, `turn` +1 — боковое ускорение ≤ `lat_mu·g` + 1 %; (4) тормоз с 10 м/с без тяги — остановка, путь =
+  v²/(2·(`brake_mu`+`rolling_crr`)·g) ± 10 % (без аэродинамики допуск шире — в отчёт), скорость не уходит < 0;
+  (5) планирование без тяги на скорости трима до касания — `"wheels"`, `landed` с `on_wheels`, путевая скорость в шаг
+  касания меняется ≤ 0,5 м/с сверх потери боковой, затем с тормозом — остановка; (6) касание с вертикальной −4 м/с —
+  `"wheels"`, не авария; (7) после посадки тяга 1500 Н на `pilot` и `pitch` +1 после 1,1·vs — снова отрыв;
+  (8) смена штанги на колёсах −1 → +1 на `trike_ixess15` (открытый вопрос tow-trike: 0,177 м/с при пороге 0,15) —
+  |Δv| ЦМ крыла за шаг измерить и записать в отчёт; > 0,15 — `TP-7 contract: …` с числами, порог не ослаблять.
