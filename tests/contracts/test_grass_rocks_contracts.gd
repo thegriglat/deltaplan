@@ -180,7 +180,8 @@ func test_g4_mid_nodes_and_no_far_ring() -> void:
 			for mm in g.mid_materials():
 				check(mm != null and mm.get_shader_parameter("height_tex") == htex, "%s: общие uniform'ы скопированы" % mode)
 				var am: Variant = mm.get_shader_parameter("angle_mode")
-				check(bool(am) == (mode == "angle"), "%s: angle_mode = %s" % [mode, am])
+				# не заданный параметр — значение по умолчанию шейдера слоя (false), get_shader_parameter даёт null
+				check((am != null and bool(am)) == (mode == "angle"), "%s: angle_mode = %s" % [mode, am])
 			if mode == "angle":
 				var cm := g.mid_cards.material
 				check(float(cm.get_shader_parameter("card_angle_full_deg")) == float(cfg.mid.card_angle_full_deg)

@@ -447,6 +447,11 @@ generated: true
 - [tools/research/air_synth/train/README.md](../tools/research/air_synth/train/README.md) — SY-11: обучение сети P2 (U-Net+FiLM) на счёте решателя по местам дельтаплана; сеть заменена фазовой сборкой [closed]
 - [tools/research/air_synth/tune/README.md](../tools/research/air_synth/tune/README.md) — Код и команды воспроизведения настройки параметров генератора рельефа схемой Professor (SY-5): эталон, прогоны, подгонка, облако θ [closed]
 
+### Журналы (journal)
+
+- [docs/plan/test-script-errors/decisions.md](plan/test-script-errors/decisions.md) — Решения (4) и вопросы (0, отвечено 0) модуля test-script-errors [closed]
+- [docs/plan/test-script-errors/summary.md](plan/test-script-errors/summary.md) — Сводка реализации модуля test-script-errors: 2 задач, итоги и оговорки исполнителей [closed]
+
 ### Реестры (registry)
 
 - [docs/registry/air-model-findings.md](registry/air-model-findings.md) — Выводы модуля air-model (вынесены из docs/registry/findings.md по размеру реестра).
