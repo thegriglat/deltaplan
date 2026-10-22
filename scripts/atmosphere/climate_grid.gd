@@ -160,8 +160,10 @@ static func place(ctx: Dictionary) -> Dictionary:
 	var season := season_index(month, lat)
 	r.td_c = float(r.td_c) + td_gradient(lat, season, cl) * dz_km
 	if src.hh5 != "none":  # таблицы-запасные уже относятся к месту
-		r.tx_c = float(r.tx_c) + float(cl.get("tx_gradient_k_per_km", -6.0)) * dz_km
-		r.dtr_k = maxf(0.0, float(r.dtr_k) + float(cl.get("dtr_gradient_k_per_km", 0.0)) * dz_km)
+		r.tx_c = float(r.tx_c) + belt_gradient(lat, season, cl.get("tx_gradient_k_per_km", {}), -6.3) * dz_km
+		r.dtr_k = maxf(
+			0.0, float(r.dtr_k) + belt_gradient(lat, season, cl.get("dtr_gradient_k_per_km", {}), -0.5) * dz_km
+		)
 	if src.hh6 == "none":
 		r.gain_per_km = float(Config.value("atmosphere", "wind.altitude_gain_per_km", 0.6))
 	else:
@@ -173,14 +175,20 @@ static func place(ctx: Dictionary) -> Dictionary:
 
 ## Градиент Td по высоте, К/км: 30–60° — по сезону, тропики (|φ| ≤ 20°) и прочее — своё (HH-1, dew_point/README).
 static func td_gradient(lat: float, season: int, cl: Dictionary) -> float:
-	var g: Dictionary = cl.get("td_gradient_k_per_km", {})
+	return belt_gradient(lat, season, cl.get("td_gradient_k_per_km", {}), -4.0)
+
+
+## Градиент по поясам: mid (30–60°) — массив по сезону, tropics (|φ| ≤ 20°), other — остальное; нет таблицы — default.
+static func belt_gradient(lat: float, season: int, g: Variant, default: float) -> float:
+	if not (g is Dictionary):
+		return float(g) if (g is float or g is int) else default
 	var a := absf(lat)
 	if a >= 30.0 and a <= 60.0:
-		var arr: Array = g.get("mid", [-4.0])
+		var arr: Array = g.get("mid", [default])
 		return float(arr[mini(season, arr.size() - 1)])
 	if a <= 20.0:
-		return float(g.get("tropics", -4.6))
-	return float(g.get("other", -4.0))
+		return float(g.get("tropics", default))
+	return float(g.get("other", default))
 
 
 ## Физический сезон 0..3 = ДЯФ, МАМ, ИИА, СОН; в южном полушарии месяц сдвинут на 6.

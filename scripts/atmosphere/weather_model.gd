@@ -335,6 +335,7 @@ static func td_day(forecast: Dictionary, cp: Dictionary, ctx: Dictionary, c: Dic
 	var rho := float((sky.res_ratio[b] as Array)[s])
 	var r := td_noise(month, int(ctx.get("day", 15)), lat, float(ctx.get("lon", 0.0)))
 	r = clampf(r, -float(c.get("climate", {}).get("r_clamp", 3.0)), float(c.get("climate", {}).get("r_clamp", 3.0)))
+	# Без сетки HH5 Tx_климат — таблица typical_max_c (Алтай): для других мест это граница модели до HH-4b.
 	return td + mu * sd + beta * (t_max - float(cp.tx_c)) + r * rho * sd
 
 

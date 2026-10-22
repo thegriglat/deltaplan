@@ -375,3 +375,12 @@ func test_climate_grid_speed() -> void:
 	var us := float(Time.get_ticks_usec() - t0) / n
 	print("  ClimateGrid.at: %.1f мкс" % us)
 	check(us < PERF_LIMIT_US, "at() %.1f мкс < %.0f" % [us, PERF_LIMIT_US])
+
+
+## Градиенты Tx/DTR по поясам (HH-1e): 30–60° — по сезону, тропики, прочее — глобальный год.
+func test_climate_grid_belt_gradients() -> void:
+	var cl: Dictionary = WeatherModel.config().climate
+	approx(ClimateGrid.belt_gradient(52.0, 1, cl.tx_gradient_k_per_km, 0.0), -7.8, 1e-9, "Tx 30–60°, МАМ")
+	approx(ClimateGrid.belt_gradient(-17.0, 0, cl.tx_gradient_k_per_km, 0.0), -5.43, 1e-9, "Tx тропики")
+	approx(ClimateGrid.belt_gradient(25.0, 0, cl.dtr_gradient_k_per_km, 0.0), -0.5, 1e-9, "DTR прочее")
+	approx(ClimateGrid.belt_gradient(52.0, 0, {}, -6.3), -6.3, 1e-9, "нет таблицы — по умолчанию")
