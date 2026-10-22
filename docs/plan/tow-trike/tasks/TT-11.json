@@ -1,0 +1,56 @@
+{
+  "id": "TT-11",
+  "module": "tow-trike",
+  "type": "dp-engineer",
+  "title": "Переднее колесо: вилка назад к пилоту, брызговик к пилоту",
+  "goal": "В trike.glb вилка переднего колеса развёрнута на 180° вокруг вертикали (колесо «тянется», ось позади головы вилки, брызговик к пилоту); ось колеса на прежнем месте; кадры сбоку и 3/4 спереди.",
+  "plan_ref": "§4 TT-11",
+  "contracts": [
+    {
+      "name": "TK-K2",
+      "version": "4",
+      "ref": "docs/contracts/tow-trike.md"
+    },
+    {
+      "name": "TK-K1",
+      "version": "5",
+      "ref": "docs/contracts/tow-trike.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-trike-TT-11",
+  "branch": "tow-trike/TT-11",
+  "base": "feature/tow-trike",
+  "scope": [
+    "tools/blender/build_trike.py",
+    "assets/models/trike/",
+    "assets/source/trike/",
+    "tools/blender/render_tow_trike.py",
+    "tests/contracts/test_trike_model_k2.gd"
+  ],
+  "dont_touch": [
+    "tools/blender/trike_params.json",
+    "scripts/",
+    "configs/",
+    "assets/models/pilot.glb",
+    "tools/blender/wheel_parts.py"
+  ],
+  "accept": [
+    {
+      "name": "trike_model",
+      "tests": "trike_model"
+    },
+    {
+      "name": "tow_trike_k6",
+      "tests": "tow_trike_k6"
+    },
+    {
+      "name": "frames",
+      "cmd": "sh -c 'find /home/greg/deltaplan/build/screenshots/tow-trike -name \"*.jpg\" -newer /tmp/claude-1000/-home-greg-deltaplan/063ec612-2244-47a0-80bd-b7b0f7ad5243/scratchpad/tt11.marker | wc -l'",
+      "expect": "num:^(\\d+) >=2"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T20:36:52",
+  "edited": "2026-10-22T20:37:10"
+}
