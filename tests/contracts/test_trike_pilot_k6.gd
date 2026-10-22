@@ -45,6 +45,27 @@ func test_contract_version() -> void:
 	check(m != null and m.get_string(1) == "2", "версия раздела TP-К6 - v2")
 
 
+## (1) TowTug с TrikeRig: траектория за 20 с равна снятой до выноса тележки (<= 1 мм).
+func test_tug_trajectory_unchanged() -> void:
+	var t := TowTug.new()
+	t.setup(Vector3(10.0, 5.0, -20.0), 0.0, 80.0, plane_flat, Config.get_config("tow_tug").duplicate(true))
+	check(t.rig is TrikeRig, "у TowTug есть TrikeRig")
+	t.start()
+	var f := Vector3(0.0, -0.0871557, 0.9961947)
+	# t (с): [z, y] до выноса (TowTug из HEAD ad489540), слабина 3 с, затем сила троса 300 Н, дельтаплан на 5 м
+	var want := {5.0: [-108.043556213, 5.959419250], 10.0: [-170.287246704, 6.313977242], 15.0: [-252.141555786, 27.737770081]}
+	for i in 1800:
+		var tt := float(i) * DT
+		t.set_rope_force(f * (0.0 if tt < 3.0 else 300.0))
+		t.step(DT, 5.0)
+		if i % 600 == 0 and i > 0:
+			var w: Array = want[tt]
+			check(
+				absf(t.pos.z - float(w[0])) < 1.0e-3 and absf(t.pos.y - float(w[1])) < 1.0e-3,
+				"TowTug %.0f с: z %.4f y %.4f, было %.4f %.4f" % [tt, t.pos.z, t.pos.y, w[0], w[1]]
+			)
+
+
 ## (8) Тяга по оси винта: сумма сил на pilot и hang = T по модулю и направлению; доля на pilot = prop_axis / cg;
 ## без тяги внешняя сила - только добавки владельца (7).
 func test_thrust_split() -> void:
