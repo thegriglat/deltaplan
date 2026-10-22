@@ -147,3 +147,25 @@ func test_wilotree_park_config() -> void:
 			found += 1
 			check(String(p.get("location", "")) == "wilotree_park", "location в записи каталога")
 	check(found == 2, "в hg_takeoffs.json две записи wilotree_park: %d" % found)
+
+
+## Настоящая полоса wilotree_park на рельефе из фикстуры (TW-8c): обе площадки проходят TowSite.check по заявленным
+## 610 × 35 м; конец полосы далеко от края детального слоя; поверхность не вода и не лес (проверяет check).
+func test_wilotree_park_real_runway() -> void:
+	var t := Terrain.new()
+	t.location_id = ""
+	check(t.load_location("wilotree_park"), "wilotree_park загружен из фикстуры")
+	var sites := t.get_start_sites()
+	check(sites.size() == 2, "две площадки: %d" % sites.size())
+	for s in sites:
+		check(s.get("tow") is Dictionary, "%s: tow в get_start_sites" % s.id)
+		var tow: Dictionary = s.tow
+		var p: Vector3 = s.position
+		var r := TowSite.check(t, p.x, p.z, float(s.heading_deg), float(tow.runway_length_m), float(tow.runway_width_m))
+		print(
+			"TW-8c %s: ok=%s reason=%s slope=%.2f° dh=%.2f м flat=%.0f м start_y=%.1f end_y=%.1f" % [
+				s.id, r.ok, r.reason, r.slope_deg, r.dh_m, r.flat_length_m, r.start_pos.y, r.end_pos.y
+			]
+		)
+		check(bool(r.ok), "%s: TowSite.check ok (%s)" % [s.id, r.reason])
+	t.free()

@@ -1,0 +1,48 @@
+{
+  "attribution": [
+    "Copernicus DEM GLO-30: produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA",
+    "Terrain Tiles (Mapzen/AWS Open Data): SRTM, GMTED2010, ETOPO1 и др.; см. https://github.com/tilezen/joerd/blob/master/docs/attribution.md"
+  ],
+  "center_lat": 28.53502,
+  "center_lon": -81.8467,
+  "earth_radius_m": 6371008.8,
+  "layers": [
+    {
+      "file": "detail.webp",
+      "height": 1601.0,
+      "height_min_m": 12.0,
+      "height_step_m": 0.03125,
+      "id": "detail",
+      "max_height_m": 98.15625,
+      "min_height_m": 12.0,
+      "origin_x_m": -20000.0,
+      "origin_z_m": -20000.0,
+      "smooth_mask_classes": [
+        1.0,
+        7.0
+      ],
+      "smooth_mask_sigma_m": 50.0,
+      "smooth_sigma_cells": 0.8,
+      "source": "copernicus",
+      "spacing_m": 25.0,
+      "water_file": "detail_water.webp",
+      "width": 1601.0
+    },
+    {
+      "file": "far.webp",
+      "height": 1601.0,
+      "height_min_m": -38.28125,
+      "height_step_m": 0.03125,
+      "id": "far",
+      "max_height_m": 112.90625,
+      "min_height_m": -38.28125,
+      "origin_x_m": -80000.0,
+      "origin_z_m": -80000.0,
+      "source": "terrarium",
+      "spacing_m": 100.0,
+      "water_file": "far_water.webp",
+      "width": 1601.0
+    }
+  ],
+  "location": "wilotree_park"
+}
