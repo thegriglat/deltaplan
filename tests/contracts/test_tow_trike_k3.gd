@@ -10,6 +10,9 @@ const APP := {"hang_length_m": 1.2}
 const WHEELS := {"keel_angle_deg": 12.0, "rotate_deg": 8.0, "rolling_crr": 0.04, "wheel_base_agl_m": 0.5}
 const WING := "sport"
 const PULL_N := 1500.0
+## Скорость руки на штанге после окна: ввод pitch меняется не быстрее SLEW в секунду (ход штанги за ≈ 0,5 с — порядок
+## постоянной времени рук arms.tau 0,3 с; ступень ввода в законе рук даёт мгновенный скачок силы до предела).
+const SLEW := 2.0
 
 
 func _flat(_x: float, _z: float) -> float:
@@ -201,33 +204,53 @@ func test_pitch0_run_to_lift() -> void:
 ## (5б, 5в) pitch +1 на ≥ 1,1·vs: отрыв за ≤ 5 с; 1 с после отрыва — скачок скорости обоих тел (тележки и ЦМ крыла)
 ## ≤ 0,15 м/с за шаг, тангаж и крен ≤ 1° за шаг; ложемента нет.
 func test_takeoff_continuity() -> void:
-	_takeoff_continuity(_wheel_model(), PULL_N)
+	_takeoff_continuity(_wheel_model(), _pull_fn(PULL_N))
 
 
-## (5б) то же на trike_ixess15 с числами tow_tug.json (TT-10; тяга — 0,4 веса связки, порядок тяги винта на разбеге).
-## Ввод pitch +1 держат до отрыва и потом ещё 0,3 с (окно скачка при смене модели: колёса → воздух); порог 0,15 м/с.
-## Дальше полный отжим штанги (+1 в воздухе) на тележке — не полёт (тангаж крыла уходит за 25–50°, ход пилота в
-## 1,5–2 раза за предел): отклик на ввод, а не скачок отрыва — см. следующий тест.
+## (5б) то же на trike_ixess15 с числами tow_tug.json (TT-10): тяга — thrust.full_n(V) (газ 1), V — скорость тележки.
+## Ввод pitch +1 держат до отрыва и ещё 0,3 с (окно скачка при смене модели: колёса → воздух); потом — простой
+## регулятор тангажа по скорости к tow.tow_speed_kmh (как автопилот TT-4: штанга «на себя», если медленнее, «от себя»,
+## если быстрее; ход ограничен ±1). Порог 0,15 м/с — на всём 1 с после отрыва (TT-К3 v5).
 func test_takeoff_continuity_trike() -> void:
-	var m := _tug_model()
-	_takeoff_continuity(m, 0.4 * m.mass * Units.G, 1.0, 0.3)
+	_takeoff_continuity(_tug_model(), _tug_thrust_fn(), 1.0, 1.0, _speed_ctl())
 
 
-## То же, но после отрыва пилот отпускает штангу до pitch −0,25 (ход «на себя»; крыло держит атитюду, тележка не
-## садится обратно): весь 1 с после отрыва ≤ 0,15 м/с за шаг.
-func test_takeoff_continuity_trike_eased() -> void:
-	var m := _tug_model()
-	_takeoff_continuity(m, 0.4 * m.mass * Units.G, -0.25, 1.0)
+## То же, но pitch +1 держат и после окна, весь 1 с (прямое чтение (5б)). С v5 это не обязательно (в воздухе дольше
+## окна ввод ведёт автопилот), но после исправления выравнивания «стоя» у земли (flare) на сидящем пилоте — проходит.
+func test_takeoff_continuity_trike_hold() -> void:
+	_takeoff_continuity(_tug_model(), _tug_thrust_fn(), 1.0, 1.0)
 
 
-## window — сколько секунд после отрыва проверяется порог скорости обоих тел (по контракту — 1 с).
-func _takeoff_continuity(m: PendulumModel, pull_n: float, pitch_after := 1.0, window := 1.0) -> void:
+## Тяга винта тележки (газ 1) по tow_tug.json: thrust.full_n(V), линейная интерполяция по thrust.v_ms; V — скорость
+## тележки (узел пилота). Вперёд — по −Z, как _pull_fn.
+func _tug_thrust_fn() -> Callable:
+	var t: Dictionary = Config.get_config("tow_tug").thrust
+	var vs: Array = t.v_ms
+	var fs: Array = t.full_n
+	return func(s: Dictionary) -> Dictionary:
+		var v := (s.pilot_vel as Vector3).length()
+		var f: float = fs[fs.size() - 1]
+		for k in range(1, vs.size()):
+			if v <= float(vs[k]):
+				f = lerpf(float(fs[k - 1]), float(fs[k]), clampf((v - float(vs[k - 1])) / (float(vs[k]) - float(vs[k - 1])), 0.0, 1.0))
+				break
+		return {"pilot": Vector3(0.0, 0.0, -f)}
+
+
+## Регулятор тангажа по скорости к tow.tow_speed_kmh: pitch = clamp(K·(V − V_буксировки), −1; 1), K = 0,3 с/м.
+func _speed_ctl() -> Callable:
+	var v_tow := float(Config.get_config("tow_tug").tow.tow_speed_kmh) / 3.6
+	return func(v: float) -> float: return clampf(0.3 * (v - v_tow), -1.0, 1.0)
+
+
+func _takeoff_continuity(m: PendulumModel, force_fn: Callable, pitch_after := 1.0, window := 1.0, ctl := Callable()) -> void:
 	var vs := _vs(m)
 	var took := [false]
 	m.took_off.connect(func() -> void: took[0] = true)
-	m.set_external_force(_pull_fn(pull_n))
-	var a_max := pull_n / m.mass + 1.0
+	m.set_external_force(force_fn)
+	var a_max := -float((force_fn.call({"pilot_vel": Vector3.ZERO}) as Dictionary).pilot.z) / m.mass + 1.0
 	var pitch := 0.0
+	var pin_prev := 0.0
 	var t_pitch := -1.0
 	var t_off := -1.0
 	var worst_pilot := 0.0
@@ -245,7 +268,14 @@ func _takeoff_continuity(m: PendulumModel, pull_n: float, pitch_after := 1.0, wi
 		if pitch == 0.0 and m.pilot_velocity.length() >= 1.1 * vs:
 			pitch = 1.0
 			t_pitch = m.time_s
-		m.step(DT, Sim.input(pitch if t_off < 0.0 else pitch_after, 0.0), Callable(), _flat)
+		var pin := pitch
+		if t_off >= 0.0 and m.time_s > t_off + 0.3:
+			var target := float(ctl.call(m.pilot_velocity.length())) if ctl.is_valid() else pitch_after
+			pin_prev = move_toward(pin_prev, target, SLEW * DT)
+			pin = pin_prev
+		else:
+			pin_prev = pin
+		m.step(DT, Sim.input(pin, 0.0), Callable(), _flat)
 		finite = finite and Sim.finite(m)
 		var dvp := m.pilot_velocity.distance_to(prev_vp)
 		var dvw := m.velocity.distance_to(prev_vw)
@@ -268,8 +298,8 @@ func _takeoff_continuity(m: PendulumModel, pull_n: float, pitch_after := 1.0, wi
 			worst_da = maxf(worst_da, da)
 			if m.time_s > t_off + 1.0:
 				break
-	print("    vs=%.2f; pitch с t=%.2f, отрыв t=%.2f; после отрыва за 1 с макс. |dv|/шаг: тележка %.3f, ЦМ крыла %.3f м/с; углы %.3f°; на колёсах сверх a·dt %.3f; ЦМ крыла за 1 с (справочно) %.3f"
-		% [vs, t_pitch, t_off, worst_pilot, worst_wing, worst_da, pilot_run, late_wing])
+	print("    vs=%.2f; pitch с t=%.2f, отрыв t=%.2f; после отрыва за %.1f с макс. |dv|/шаг: тележка %.3f, ЦМ крыла %.3f м/с; углы %.3f°; на колёсах сверх a·dt %.3f; ЦМ крыла за 1 с (справочно) %.3f"
+		% [vs, t_pitch, t_off, window, worst_pilot, worst_wing, worst_da, pilot_run, late_wing])
 	check(finite, "конечна")
 	check(t_pitch >= 0.0, "разогналась до 1,1·vs")
 	check(took[0] and t_off >= 0.0 and t_off - t_pitch <= 5.0, "отрыв за <= 5 с после pitch +1: %.2f с" % (t_off - t_pitch))

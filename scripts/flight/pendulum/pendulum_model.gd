@@ -216,6 +216,7 @@ var _wh_aeq := 0.0  ## равновесный наклон по моменту (
 var _wh_t_last := 0.0
 var _wh_stretch := 0.0  ## растяжение подвески от натяжения в полёте (податливость цепи · T), м
 var _wh_base := 0.0  ## после отрыва с колёс: низ колёс под ЦМ тележки, м (0 — не с колёс); касание считается по нему
+var _seated := false  ## после отрыва с колёс пилот сидит в тележке: «выравнивание стоя» у земли (flare) не применяется
 var _wh_hold := false  ## после отрыва с колёс касание не проверяется, пока низ колёс не выше земли на WHEELS_CLEAR_M
 const WHEELS_CLEAR_M := 0.05
 ## Установившееся растяжение подвески XPBD в полёте больше податливость·T (шаги по 1/480 с без памяти множителей): измерено в трим-полёте 350 кг, T = 3450 Н: 0,198 м против 0,138 м
@@ -666,43 +667,56 @@ func _wheel_solve_tilt(h: float, acc: Vector3, ext_p: Vector3, ext_h: Vector3, v
 	_wh_stretch = WHEELS_STRETCH_K * chain.compliance * maxf(_wh_t_last, 0.0) * lift_share * lift_share
 
 
-## Корень f(a) = 0 на [a0 − 0,3; a0 + 0,3] ∩ [−0,7; 0,7], ближайший к a0: сетка 0,01, смена знака, деление пополам;
-## скачок знака без нуля (излом насыщения) — не корень. Корня нет — точка сетки с наименьшим |f|.
+## Корень f(a) = 0, ближайший к a0 (в пределах ±0,3 рад и [−0,7; 0,7]): от a0 шагами 0,01 в обе стороны до смены знака,
+## затем деление пополам (20 раз). Скачок знака без нуля (излом насыщения рук, там |f| сотни Н·м) — не корень:
+## принимается только |f(корня)| < ROOT_TOL_NM. Обычно хватает 2–4 вычислений (корень рядом с прошлым).
+## Корня нет — точка с наименьшим |f|.
+const ROOT_TOL_NM := 20.0  ## ≥ 20 раз ниже скачка на изломе (400–500 Н·м) и на 5 порядков выше точности деления пополам
 func _wh_root(f: Callable, a0: float) -> float:
 	const STEP := 0.01
+	const SPAN := 0.3
+	var f0: float = f.call(a0)
 	var best := a0
-	var best_d := INF
-	var fmin := INF
-	var amin := a0
-	var a_prev := clampf(a0 - 0.3, -0.7, 0.7)
-	var f_prev: float = f.call(a_prev)
-	for k in 1 + int(0.6 / STEP):
-		var a := clampf(a0 - 0.3 + k * STEP, -0.7, 0.7)
-		if a == a_prev:
-			continue
-		var fa: float = f.call(a)
-		if absf(fa) < fmin:
-			fmin = absf(fa)
-			amin = a
-		if (fa <= 0.0) != (f_prev <= 0.0):
-			var lo := a_prev
-			var hi := a
-			var flo := f_prev
-			for _i in 20:
-				var mid := 0.5 * (lo + hi)
-				var fm: float = f.call(mid)
-				if (fm <= 0.0) == (flo <= 0.0):
-					lo = mid
-					flo = fm
-				else:
-					hi = mid
-			var r := 0.5 * (lo + hi)
-			if absf(float(f.call(r))) < 20.0 and absf(r - a0) < best_d:
-				best = r
-				best_d = absf(r - a0)
-		a_prev = a
-		f_prev = fa
-	return best if best_d < INF else amin
+	var best_f := absf(f0)
+	var up := a0
+	var f_up := f0
+	var dn := a0
+	var f_dn := f0
+	for _k in int(SPAN / STEP):
+		var cand_up := minf(up + STEP, 0.7)
+		var cand_dn := maxf(dn - STEP, -0.7)
+		for side in 2:
+			var a_prev: float = up if side == 0 else dn
+			var f_prev: float = f_up if side == 0 else f_dn
+			var a_new: float = cand_up if side == 0 else cand_dn
+			if a_new == a_prev:
+				continue
+			var f_new: float = f.call(a_new)
+			if absf(f_new) < best_f:
+				best_f = absf(f_new)
+				best = a_new
+			if (f_new <= 0.0) != (f_prev <= 0.0):
+				var lo := a_prev
+				var hi := a_new
+				var flo := f_prev
+				for _i in 20:
+					var mid := 0.5 * (lo + hi)
+					var fm: float = f.call(mid)
+					if (fm <= 0.0) == (flo <= 0.0):
+						lo = mid
+						flo = fm
+					else:
+						hi = mid
+				var r := 0.5 * (lo + hi)
+				if absf(float(f.call(r))) < ROOT_TOL_NM:
+					return r
+			if side == 0:
+				up = a_new
+				f_up = f_new
+			else:
+				dn = a_new
+				f_dn = f_new
+	return best
 
 
 ## Отрыв с тележки: состояние крыла и пилота — как есть (скорость, ориентация, цепь), дальше обычный полёт.
@@ -716,6 +730,7 @@ func _dolly_release() -> void:
 		# ложемента нет: тележка уходит вместе с крылом, касание — по низу колёс, как только он выше земли
 		_wh_base = float(_dol.wheel_base_agl_m)
 		_wh_hold = true
+		_seated = true
 		_wh_shape = true
 		_dol = {}
 	else:
@@ -854,7 +869,7 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	# у земли пилот стоит в подвеске, руки на стойках: ход «от себя» — стоящего (PD-29), за 1 м
 	# выше flight.flare.height_m нарастает
 	arms.flare_mix = 0.0
-	if mode == FlightModel.Mode.AIR and not _uprights:
+	if mode == FlightModel.Mode.AIR and not _uprights and not _seated:
 		arms.flare_mix = clampf(_flare_h + 1.0 - _feet_agl, 0.0, 1.0)
 	var n := maxi(_sub_min, ceili(dt * _sub_per_s - 1.0e-9))
 	var h := dt / n
@@ -1061,7 +1076,7 @@ func phase() -> String:
 ## Доля «от себя» (0…1) у земли — ступни ниже flight.flare.height_m (в полёте, руки на штанге),
 ## иначе 0 (v2).
 func flare_amount() -> float:
-	if mode != FlightModel.Mode.AIR or _uprights or _feet_agl > _flare_h:
+	if mode != FlightModel.Mode.AIR or _uprights or _seated or _feet_agl > _flare_h:
 		return 0.0
 	return clampf(_last_pitch, 0.0, 1.0)
 
@@ -1516,6 +1531,7 @@ func _reset_common() -> void:
 	_wh_pitch = 0.0
 	_wh_cmd = 0.0
 	_wh_shape = false
+	_seated = false
 	_wh_rate = 0.0
 	_wh_tilt = 0.0
 	_wh_tilt_rate = 0.0
