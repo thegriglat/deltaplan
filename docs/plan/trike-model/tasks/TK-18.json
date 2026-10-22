@@ -1,0 +1,48 @@
+{
+  "id": "TK-18",
+  "module": "trike-model",
+  "type": "dp-researcher",
+  "title": "Сверка схемы пилота v2 с данными и моделью",
+  "goal": "Таблица расхождений схемы ref/papa_sketch_v2.jpeg с trike_params.json, источниками и моделью trike.glb (база, клиренс киля, высота оси винта над килем, трапеция/штанга, место приборов, ЦТ под подвеской, трубы, колёса) с числами и предложением, что менять; данные и модель не менять.",
+  "plan_ref": "TK-18",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "4",
+      "ref": "docs/contracts/trike-model.md"
+    },
+    {
+      "name": "TK-K2",
+      "version": "4",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-18",
+  "branch": "trike-model/TK-18",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/research/trike-model/sketch_check.md",
+    "tools/research/trike-model/sketch_check.py"
+  ],
+  "dont_touch": [
+    "tools/blender/",
+    "assets/",
+    "tests/",
+    "docs/contracts/trike-model.md"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "./.dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "table",
+      "cmd": "grep -c '^|' tools/research/trike-model/sketch_check.md",
+      "expect": "num:(\\d+) >=10"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:52:47"
+}

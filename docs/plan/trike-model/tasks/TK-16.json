@@ -1,0 +1,47 @@
+{
+  "id": "TK-16",
+  "module": "trike-model",
+  "type": "dp-mechanic",
+  "title": "Трубы и колёса по схеме пилота",
+  "goal": "В trike_params.json: tube_keel_d 0.055, tube_mast_d 0.055, tube_strut_d 0.040, tube_frame_d 0.030, wheel_front_d и wheel_rear_d — проверить по схеме (0.356 в диапазоне — оставить, обновить src); тест K1: проверка труб — эти значения вместо 0.06.",
+  "plan_ref": "TK-16",
+  "contracts": [
+    {
+      "name": "TK-K1",
+      "version": "4",
+      "ref": "docs/contracts/trike-model.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-model-TK-16",
+  "branch": "trike-model/TK-16",
+  "base": "feature/trike-model",
+  "scope": [
+    "tools/blender/trike_params.json",
+    "tests/contracts/test_trike_model_k1.gd"
+  ],
+  "dont_touch": [
+    "tools/blender/build_trike.py",
+    "tools/blender/build_pilot.py",
+    "assets/",
+    "docs/"
+  ],
+  "accept": [
+    {
+      "name": "trike_model_k1",
+      "tests": "trike_model_k1"
+    },
+    {
+      "name": "tubes",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/blender/trike_params.json'))['dims'];print('tubes=%s'%','.join('%.3f'%d[k]['value'] for k in ('tube_keel_d','tube_mast_d','tube_strut_d','tube_frame_d')))\"",
+      "expect": "re:tubes=0\\.055,0\\.055,0\\.040,0\\.030"
+    },
+    {
+      "name": "src",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/blender/trike_params.json'))['dims'];print('sketch=%d'%sum(1 for k in ('tube_keel_d','tube_mast_d','tube_strut_d','tube_frame_d','wheel_front_d','wheel_rear_d') if 'papa_sketch' in d[k]['src']))\"",
+      "expect": "num:sketch=(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:51:57"
+}
