@@ -14,6 +14,10 @@ var _driver: String
 var _alt: String
 var _config_dir: String
 var _chosen := false
+## Подмены для тестов: перезапуск, файл переопределения драйвера, имя ОС.
+var restart_fn: Callable = RenderDriver.restart
+var override_path: String = RenderDriver.OVERRIDE_PATH
+var os_name: String = OS.get_name()
 
 
 ## driver — текущий драйвер, alt — предлагаемый ("" — нет), dir — каталог user-конфигов.
@@ -60,10 +64,11 @@ func _finish(choice: String) -> void:
 	_chosen = true
 	match choice:
 		SWITCH:
-			RenderDriver.save(_alt, _config_dir)
-			RenderDriver.restart(get_tree())
+			RenderDriver.save(_alt, _config_dir, override_path, os_name)
+			restart_fn.call(get_tree())
 		SAFE:
 			GpuSafety.apply_safe(GpuSafety.CRASH, _config_dir)
 	choice_made.emit(choice)
 	hide()
-	queue_free()
+	if is_inside_tree():
+		queue_free()

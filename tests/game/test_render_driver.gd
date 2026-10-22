@@ -1,6 +1,14 @@
-extends TestCase
+extends Node
 ## RenderDriver (CR-К3): альтернатива по ОС, файл переопределения, аргументы перезапуска,
 ## решение «показать окно после обрыва», пометка «ветер упрощён после обрыва».
+
+
+var failures: PackedStringArray = []
+
+
+func check(cond: bool, msg: String = "") -> void:
+	if not cond:
+		failures.append("check failed: " + msg)
 
 
 func _tmp() -> String:
@@ -80,3 +88,80 @@ func test_offered_key_roundtrip() -> void:
 func test_dialog_text() -> void:
 	check(GpuFailureDialog.text_for("vulkan", "d3d12").contains("DirectX 12"), "предлагает D3D12")
 	check(not GpuFailureDialog.text_for("vulkan", "").contains("DirectX"), "Linux: без переключения")
+
+
+func _dialog(alt: String, dir: String, ov: String) -> GpuFailureDialog:
+	var d := GpuFailureDialog.new()
+	d.restart_fn = func(_t: SceneTree) -> void: d.set_meta("restarted", true)
+	d.override_path = ov
+	d.os_name = "Windows"
+	add_child(d)
+	d.setup("vulkan", alt, dir)
+	return d
+
+
+func _local(dir: String, cfg: String) -> Dictionary:
+	return UserSettings.read_json(UserSettings.local_dir(dir).path_join(cfg + ".json"))
+
+
+func test_dialog_switch_saves_driver_and_restarts() -> void:
+	var dir := _tmp().path_join("configs")
+	var ov := _tmp().path_join("render_driver.cfg")
+	var d := _dialog("d3d12", dir, ov)
+	var got: Array = []
+	d.choice_made.connect(func(c: String) -> void: got.append(c))
+	d._finish(GpuFailureDialog.SWITCH)
+	check(got == ["switch"], str(got))
+	check(_local(dir, "game").get("display", {}).get("rendering_driver") == "d3d12", "драйвер сохранён")
+	check(FileAccess.get_file_as_string(ov).contains('driver.windows="d3d12"'), "файл переопределения")
+	check(_local(dir, "atmosphere").is_empty(), "безопасная графика не тронута")
+	Config.reload()
+
+
+func test_dialog_safe_applies_safe_set() -> void:
+	var dir := _tmp().path_join("configs")
+	var d := _dialog("d3d12", dir, _tmp().path_join("render_driver.cfg"))
+	d._finish(GpuFailureDialog.SAFE)
+	var g := _local(dir, "game")
+	check(g.display.safe_reason == "crash" and g.display.gpu.sun_shadows == false, str(g))
+	check(not g.display.has("rendering_driver"), "драйвер не менялся")
+	var a := _local(dir, "atmosphere")
+	check(a.clouds.renderer == "boxes" and a.air_model.enabled == "off", str(a))
+	check(not d.has_meta("restarted"), "без перезапуска")
+	Config.reload()
+
+
+func test_dialog_retry_changes_nothing() -> void:
+	var dir := _tmp().path_join("configs")
+	var ov := _tmp().path_join("render_driver.cfg")
+	var d := _dialog("d3d12", dir, ov)
+	d._finish(GpuFailureDialog.RETRY)
+	check(_local(dir, "game").is_empty() and _local(dir, "atmosphere").is_empty(), "настройки не тронуты")
+	check(not FileAccess.file_exists(ov) and not d.has_meta("restarted"), "ни файла, ни перезапуска")
+
+
+func test_start_menu_note_only_for_crash() -> void:
+	GpuSafety.restore()
+	var menu: StartMenu = StartMenu.new()
+	add_child(menu)
+	var note: Control = menu.get_node("WindNote")
+	check(not note.visible, "по умолчанию строки нет")
+	GpuSafety.apply_safe("manual")
+	menu.refresh_wind_note()
+	check(not note.visible, "safe_reason не crash — строки нет")
+	GpuSafety.apply_safe("crash")
+	menu.refresh_wind_note()
+	check(note.visible, "safe_reason=crash — строка есть")
+	(note.get_node("WindRestoreButton") as Button).pressed.emit()
+	check(not note.visible and not GpuSafety.is_safe_by_crash(), "«Вернуть» убирает пометку")
+	check(String(Config.value("atmosphere", "air_model.enabled", "")) == "auto", "ветер вернулся")
+	menu.free()
+
+
+func test_gpu_health_in_session_triggers_dialog() -> void:
+	# Main опрашивает _gpu_failed() == GpuHealth.is_failed() раз в секунду и показывает окно один раз
+	GpuHealth.reset()
+	check(not GpuHealth.is_failed(), "здорова")
+	GpuHealth.report_failure("AirGpu.buffer", "тест")
+	check(GpuHealth.is_failed(), "отказ виден опросу")
+	GpuHealth.reset()

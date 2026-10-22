@@ -59,6 +59,8 @@ var _steam_join_scheduled := false
 var _gpu_dialog: GpuFailureDialog
 var _gpu_timer: Timer
 var _gpu_offered := false
+## Ожидающий отчёт о вылете на момент входа в дерево (до отправки CrashReporter).
+var _pending_at_start: Dictionary = {}
 
 @onready var game: Game = $Game
 @onready var start_menu: StartMenu = $UI/StartMenu
@@ -73,6 +75,7 @@ var _gpu_offered := false
 
 ## Язык ставится до _ready экранов (они строят тексты в своих _ready).
 func _enter_tree() -> void:
+	_pending_at_start = CrashReport.read_json(CrashReport.PENDING_PATH)
 	Language.apply(Language.configured())
 	_ui_locale = TranslationServer.get_locale()
 
@@ -138,15 +141,20 @@ func _ready() -> void:
 		_screenshot()
 
 
-## Окно «видеокарта не отвечает» (CR-К3 v2): после обрыва прошлого сеанса на стадии wind —
+## Окно «видеокарта не отвечает» (CR-К3 v4): после обрыва прошлого сеанса (стадия wind, старт/меню,
+## потеря устройства в хвосте лога) —
 ## сразу; отказ GPU в этом сеансе — по опросу. Окно одно за запуск; на тот же обрыв — один раз.
 ## Пилотских запусков нет (headless, служебные аргументы) — не показываем.
+## Граница модели: обрыв прошлого сеанса известен только по ожидающему отчёту CrashReport, а его
+## пишет CrashReporter лишь в экспортной сборке с токеном; в сборке без токена окно после обрыва
+## не появится (отказ GPU в этом сеансе — GpuHealth — работает всегда). Отчёт читается в
+## _enter_tree, раньше любой отправки (HTTP-ответ приходит не раньше следующих кадров и
+## стирает файл), так что отправка признак не теряет.
 func _setup_gpu_failure_watch() -> void:
 	if DisplayServer.get_name() == "headless" or opts.autostart or opts.smoke or opts.perf_s > 0.0:
 		return
-	var pending := CrashReport.read_json(CrashReport.PENDING_PATH)
-	if RenderDriver.should_offer_after_crash(pending):
-		RenderDriver.mark_offered(RenderDriver.crash_key(pending))
+	if RenderDriver.should_offer_after_crash(_pending_at_start):
+		RenderDriver.mark_offered(RenderDriver.crash_key(_pending_at_start))
 		_show_gpu_failure.call_deferred()
 	_gpu_timer = Timer.new()
 	_gpu_timer.wait_time = 1.0
