@@ -77,6 +77,7 @@ related: ["docs/contracts/trike-pilot.md", "docs/plan/trike.md", "docs/contracts
   камера «сидячая поза» от головы пилота в тележке.
 - TP-9 Звук двигателя от `TrikeEngine` (синтез TT-К5, общий код с буксировщиком).
 - TP-10 Документация `docs/guide/`, CHANGELOG, findings.
+- Хвосты волны 1 (2026-10-22): TP-4 — шкалы тахометра/бака взяты из `configs/instruments.json → trike_gauges`; после TP-1 — читать `configs/trike_pilot.json` (TP-8). TP-3 — `InputController._apply_look_keys` правит общий `InputMap`, поздний `register_actions` в `"trike"` вернёт W/S во взгляд (TP-8, камера); Shift на земле в `"trike"` — и `brake`, и `pull_full` (решить с Q2); в тесте TP-К3 нет проверки версии.
 
 ## 5. Волны
 1. TP-1, TP-2, TP-3, TP-4 параллельно (разные файлы).
