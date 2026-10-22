@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "TT-К4",
-      "version": "1",
+      "version": "3",
       "ref": "docs/contracts/tow-trike.md"
     },
     {
@@ -18,7 +18,7 @@
     },
     {
       "name": "TT-К3",
-      "version": "3",
+      "version": "4",
       "ref": "docs/contracts/tow-trike.md"
     },
     {
@@ -81,5 +81,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-22T19:38:03"
+  "created": "2026-10-22T19:38:03",
+  "edited": "2026-10-22T20:27:19"
 }
