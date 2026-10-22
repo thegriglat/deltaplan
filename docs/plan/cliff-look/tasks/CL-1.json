@@ -1,0 +1,70 @@
+{
+  "id": "CL-1",
+  "module": "cliff-look",
+  "type": "dp-engineer",
+  "title": "Диагноз полос и ряби на крутых склонах, стенд кадров, «до»",
+  "goal": "Числом и кадром показать, откуда на серых крутых склонах (Шымбулак и др.) полосы и мелкая рябь, и предложить 2–3 варианта крупных неровных скал с оценкой цены; собрать стенд ракурсов и замера цены кадра (CL-К1) и снять «до». Шейдеры не меняются.",
+  "plan_ref": "§CL-1",
+  "contracts": [
+    {
+      "name": "CL-К1",
+      "version": "1",
+      "ref": "docs/contracts/cliff-look.md"
+    },
+    {
+      "name": "CL-К2",
+      "version": "1",
+      "ref": "docs/contracts/cliff-look.md"
+    },
+    {
+      "name": "MLK-К2",
+      "version": "2",
+      "ref": "docs/contracts/cliff-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-cliff-look-CL-1",
+  "branch": "cliff-look/CL-1",
+  "base": "feature/cliff-look",
+  "scope": [
+    "tools/shots/cliff_look_*",
+    "tools/bench/cliff_look_*",
+    "tools/research/cliff_look/**",
+    "tests/contracts/test_cliff_look_contracts.gd*"
+  ],
+  "dont_touch": [
+    "scripts/terrain/",
+    "configs/world.json",
+    "scripts/sky/",
+    "tools/shots/osm_place_shot.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_cliff_look_contracts",
+      "tests": "test_cliff_look_contracts"
+    },
+    {
+      "name": "views",
+      "cmd": "python3 -I -c \"import json;d=json.load(open('tools/shots/cliff_look_views.json'));p=d['places'];assert d['version']==1 and len(p)>=3 and any('shymbulak' in x['tag'] for x in p) and all(len(x['views'])>=2 for x in p);print('VIEWS',sum(len(x['views']) for x in p))\"",
+      "expect": "num:VIEWS (\\d+) >=6"
+    },
+    {
+      "name": "shots_before",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cliff-look/before_*.jpg | wc -l | sed 's/^/SHOTS /'",
+      "expect": "num:SHOTS (\\d+) >=6"
+    },
+    {
+      "name": "cost_before",
+      "cmd": "python3 -I -c \"import json;d=json.load(open('build/perf/cliff-look/before/cost.json'));r=d['rows'];assert all(x['frames']>=300 for x in r) and {x['preset'] for x in r}>={'medium','high'};print('ROWS',len(r))\"",
+      "expect": "num:ROWS (\\d+) >=12"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -f tools/research/cliff_look/README.md && .dpcli/dpcli docs check 2>&1 | grep -c 'ОШИБКА.*cliff_look' | sed 's/^/ERR /'",
+      "expect": "num:ERR (\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T02:49:40"
+}
