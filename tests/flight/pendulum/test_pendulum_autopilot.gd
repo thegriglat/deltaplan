@@ -12,7 +12,7 @@ const SETTLE_S := 10.0
 
 ## → {std_phi_deg, max_roll_cmd, ok}
 func _fly(wing: String) -> Dictionary:
-	var g := M.make_glider("pendulum", wing, {})
+	var g := M.make_glider(wing, {})
 	var m: PendulumModel = g.model
 	g.reset_in_air(S.START_CG, 0.0)
 	var off := S.cg(m) - S.START_CG
@@ -20,7 +20,6 @@ func _fly(wing: String) -> Dictionary:
 	g.set_air_fn(tb.air)
 	g.reset_in_air(S.START_CG - off, 0.0)
 	var ap := Autopilot.new()
-	ap.pendulum = true
 	ap.max_bank_deg = MAXB
 	ap.reset()
 	var phi: PackedFloat64Array = []
@@ -67,7 +66,6 @@ func test_autopilot_holds_horizon_in_turbulence() -> void:
 
 func test_roll_command_bounded_and_resets() -> void:
 	var ap := Autopilot.new()
-	ap.pendulum = true
 	var t := Telemetry.new()
 	t.phase = "flying"
 	t.heading_deg = 0.0

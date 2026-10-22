@@ -338,15 +338,9 @@ func send_local() -> void:
 	)
 
 
-## controls.roll_control_mode → имя ControlMode без префикса ("RATE" / "WEIGHT_SHIFT" / "PENDULUM").
+## Имя ControlMode без префикса: игрок всегда «Маятник» (RM-К1).
 static func control_mode_name() -> String:
-	match String(Config.value("controls", "roll_control_mode", "pendulum")):
-		"pendulum":
-			return "PENDULUM"
-		"rate":
-			return "RATE"
-		_:
-			return "WEIGHT_SHIFT"
+	return "PENDULUM"
 
 
 ## Чужие пилоты из NetPilots — в RemotePilots (себя нет).

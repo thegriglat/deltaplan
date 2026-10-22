@@ -195,9 +195,6 @@ func _make_back(w: String, variant: String) -> Back:
 
 
 func _open(w: String) -> Node:
-	var cfg := Config.get_config("controls")
-	var old: Variant = cfg.get("roll_control_mode")
-	cfg["roll_control_mode"] = "pendulum"
 	var wcfg := Config.get_config("wings/" + w)
 	var args := ["--autostart", "--air-start=600,150", "--wing=" + w, "--bots=0", "--no-overlay",
 		"--mass=%s" % str(float(wcfg.pilot_mass_ref_kg))]
@@ -208,7 +205,6 @@ func _open(w: String) -> Node:
 		if main.get("state") == 2:
 			break
 		await get_tree().process_frame
-	cfg["roll_control_mode"] = old
 	if main.get("state") != 2:
 		push_error("игра не в полёте: " + w)
 		await _close(main)

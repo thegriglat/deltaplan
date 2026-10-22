@@ -44,7 +44,7 @@ func test_settings_tabs() -> void:
 		check(title != "" and not title.begins_with("settings_tab_"), "название вкладки %d переведено: %s" % [i, title])
 		check(_controls_count(tabs.get_tab_control(i)) >= 2, "во вкладке «%s» не меньше двух строк" % title)
 	var members := [
-		"_volume", "_sens", "_invert", "_roll_mode", "_roll_input", "_sound", "_graphics",
+		"_volume", "_sens", "_invert", "_roll_input", "_sound", "_graphics",
 		"_render_scale_auto", "_render_scale", "_vsync", "_fps_limit", "_window_mode", "_resolution",
 		"_time_speed", "_fov", "_helmet", "_eye_mode", "_bots", "_names", "_grass", "_wind_model",
 		"_language", "_pilot_name", "_motion_on", "_motion_addr", "_motion_rate", "_motion_format",
