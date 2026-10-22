@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "В wings.json добавлены 4 записи (Skypper Evo/BioniX15², Tanarg neo/BioniX², La Mouette Samson 14, P&M QuikR) по страницам производителей, проверены сами; wings.md дополнен таблицей и оговорками. Без цифр, которых нет на страницах: диаметры винтов AC, ЦТ, масса крыльев — н/д.",
+  "commits": [
+    "см. git log trike-model/TK-17: trike-model TK-17: паспорта ..."
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "wings",
+      "value": "n=7",
+      "pass": true
+    },
+    {
+      "name": "physics",
+      "value": "missing=0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "ЦТ тележки/точка подвески не опубликованы ни у одного аппарата (cg_trike н/д)",
+    "диаметр винтов Helix H50F и Neuform CL3-95 не найден",
+    "старые н/д TK-13 не закрыты"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TK-17",
+  "uncertain": [
+    {
+      "where": "wings.json: Samson 14 (vne, empty_mass, engine_power, static_thrust)",
+      "why": "в таблице LM по две цифры на ячейку по двум двигателям без подписей; мощность и тяга Thor 303 — из Polini, не из паспорта Samson",
+      "checked": "выбрано первое значение и помечено в src; Aero1000 не найден"
+    },
+    {
+      "where": "wings.json: trim_speed_kmh у AC",
+      "why": "это cruising speed при нейтральной штанге, не паспортный трим",
+      "checked": "помечено допущением"
+    },
+    {
+      "where": "wings.json: QuikR static_thrust_n",
+      "why": "перенос оценки iXess (тот же двигатель, D 1,7 м), редуктор QuikR неизвестен",
+      "checked": "помечено как вывод"
+    },
+    {
+      "where": "wings.json: Tanarg neo fuel_l",
+      "why": "страница: 60 л в таблице и 65 л в тексте",
+      "checked": "взято 60, расхождение в src"
+    },
+    {
+      "where": "страницы AC",
+      "why": "прочитаны первые 100 тыс. из ~900 тыс. знаков",
+      "checked": "все таблицы спецификаций были в этой части"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнение координатора (многоточие в URL); полный текст пришлось брать из вывода без обрезки.",
+  "t": "2026-10-22T15:02:51",
+  "by": "executor"
+}
