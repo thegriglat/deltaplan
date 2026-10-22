@@ -25,7 +25,9 @@ func _air_model(app: Dictionary = {}) -> PendulumModel:
 
 
 func _wheel_model() -> PendulumModel:
-	var m := Sim.make(WING, MASS, APP)
+	var a := APP.duplicate()
+	a["arms_force_max_n"] = 2000.0  # тележка: руки держат штангу на 350 кг (как в связке TT-К4)
+	var m := Sim.make(WING, MASS, a)
 	m.reset_on_wheels(Vector3.ZERO, 0.0, WHEELS)
 	return m
 
@@ -131,54 +133,135 @@ func _vs(m: PendulumModel) -> float:
 	return sqrt(2.0 * m.mass * Units.G / (m._rho_ref * m.area * m._polar.cl_max))
 
 
-## (5) Сила вперёд 1500 Н: разгон, N > 0 до v, где подъёмная сила при киле равна весу; pitch +1 на ≥ 1,1·vs —
-## отрыв за ≤ 5 с без скачков.
-func test_run_and_takeoff() -> void:
+## Подъёмная сила модели (полосы, экранный эффект — как в разбеге) при скорости v вдоль курса и киле на колёсах, Н.
+func _lift_model(v: float) -> float:
+	var m := _wheel_model()
+	m._vel = Vector3(v, 0.0, 0.0)
+	m._aero_age = INF
+	m._aero_update(Callable(), _flat)
+	return -(m._R * m._aero_f_b).z
+
+
+## Скорость, где подъёмная сила модели при киле равна весу, м/с.
+func _v_lift_model() -> float:
+	var w := _wheel_model().mass * Units.G
+	var lo := 3.0
+	var hi := 60.0
+	for i in 40:
+		var mid := 0.5 * (lo + hi)
+		if _lift_model(mid) < w:
+			lo = mid
+		else:
+			hi = mid
+	return hi
+
+
+func _pull_fn() -> Callable:
+	return func(_s: Dictionary) -> Dictionary: return {"pilot": Vector3(0.0, 0.0, -PULL_N)}
+
+
+## (5а) pitch 0 на всём разбеге, без break до отрыва: пока N > 0, подъёмная сила модели при киле меньше веса;
+## отрыв — не раньше 0,95·v_l (v_l — равенство подъёмной силы модели весу).
+func test_pitch0_run_to_lift() -> void:
+	var m := _wheel_model()
+	var w := m.mass * Units.G
+	var v_l := _v_lift_model()
+	m.set_external_force(_pull_fn())
+	var lift_ok := true
+	var worst := 0.0
+	var v_off := -1.0
+	var t_off := -1.0
+	for i in int(60.0 / DT):
+		m.step(DT, Sim.input(), Callable(), _flat)
+		if not m.on_wheels:
+			v_off = m.pilot_velocity.length()
+			t_off = m.time_s
+			break
+		var lift := -(m._R * m._aero_f_b).z
+		worst = maxf(worst, lift / w)
+		lift_ok = lift_ok and lift < w
+	print("    pitch 0: v_l(модель)=%.2f, отрыв t=%.2f при %.2f м/с (%.3f·v_l), макс. L/вес на колёсах %.4f" % [v_l, t_off, v_off, v_off / v_l, worst])
+	check(t_off > 0.0, "отрыв случился без pitch")
+	check(lift_ok, "на колёсах (N > 0) подъёмная сила < веса: макс. %.4f" % worst)
+	check(v_off >= 0.95 * v_l, "отрыв не раньше 0,95·v_l: %.2f против %.2f" % [v_off, 0.95 * v_l])
+	check(Sim.finite(m) and m.phase() == "flying", "после отрыва — полёт")
+
+
+## (5б, 5в) pitch +1 на ≥ 1,1·vs: отрыв за ≤ 5 с; 1 с после отрыва — скачок скорости обоих тел (тележки и ЦМ крыла)
+## ≤ 0,15 м/с за шаг, тангаж и крен ≤ 1° за шаг; ложемента нет.
+func test_takeoff_continuity() -> void:
 	var m := _wheel_model()
 	var vs := _vs(m)
-	var v_l := _v_lift(m, WHEELS.keel_angle_deg)
 	var took := [false]
 	m.took_off.connect(func() -> void: took[0] = true)
-	m.set_external_force(func(_s: Dictionary) -> Dictionary: return {"pilot": Vector3(0.0, 0.0, -PULL_N)})
+	m.set_external_force(_pull_fn())
 	var a_max := PULL_N / m.mass + 1.0
-	var worst_dv := 0.0
-	var worst_da := 0.0
-	var prev_v := m.pilot_velocity
-	var prev_a := Vector3(m.theta, m.bank, m.heading)
 	var pitch := 0.0
 	var t_pitch := -1.0
 	var t_off := -1.0
-	var early := false
+	var worst_pilot := 0.0
+	var worst_wing := 0.0
+	var worst_da := 0.0
+	var pilot_run := 0.0  # на колёсах: скачок сверх a·dt
 	var finite := true
-	var v_off := 0.0
+	var dolly_ok := true
+	var prev_vp := m.pilot_velocity
+	var prev_vw := m.velocity
+	var prev_a := Vector3(m.theta, m.bank, m.heading)
+	var dolly_pos0 := m.dolly_pos
 	for i in int(60.0 / DT):
-		var was := m.on_wheels
-		var v := m.velocity.length()
-		if pitch == 0.0 and v >= 1.1 * vs:
+		if pitch == 0.0 and m.pilot_velocity.length() >= 1.1 * vs:
 			pitch = 1.0
 			t_pitch = m.time_s
 		m.step(DT, Sim.input(pitch, 0.0), Callable(), _flat)
 		finite = finite and Sim.finite(m)
-		var dv := m.pilot_velocity.distance_to(prev_v)
+		var dvp := m.pilot_velocity.distance_to(prev_vp)
+		var dvw := m.velocity.distance_to(prev_vw)
 		var a := Vector3(m.theta, m.bank, m.heading)
-		var da := rad_to_deg(maxf(absf(a.x - prev_a.x), maxf(absf(a.y - prev_a.y), absf(a.z - prev_a.z))))
-		worst_dv = maxf(worst_dv, dv - a_max * DT)
-		worst_da = maxf(worst_da, da)
-		prev_v = m.pilot_velocity
+		var da := rad_to_deg(maxf(absf(a.x - prev_a.x), absf(a.y - prev_a.y)))
+		prev_vp = m.pilot_velocity
+		prev_vw = m.velocity
 		prev_a = a
-		if was and not m.on_wheels:
+		if t_off < 0.0 and not m.on_wheels:
 			t_off = m.time_s
-			v_off = v
-			break
-		if v < 0.98 * v_l and pitch == 0.0 and not m.on_wheels:
-			early = true
-	print("    vs=%.2f v_lift(киль)=%.2f; pitch с t=%.2f, отрыв t=%.2f при %.2f м/с; скачок v сверх a·dt %.3f, углов %.3f°"
-		% [vs, v_l, t_pitch, t_off, v_off, worst_dv, worst_da])
+		if t_off < 0.0:
+			pilot_run = maxf(pilot_run, dvp - a_max * DT)
+			worst_da = maxf(worst_da, da)
+		else:
+			dolly_ok = dolly_ok and not m.dolly_attached and m.dolly_pos == dolly_pos0 and m.dolly_vel == Vector3.ZERO
+			worst_pilot = maxf(worst_pilot, dvp)
+			worst_wing = maxf(worst_wing, dvw)
+			worst_da = maxf(worst_da, da)
+			if m.time_s > t_off + 1.0:
+				break
+	print("    vs=%.2f; pitch с t=%.2f, отрыв t=%.2f; после отрыва за 1 с макс. |dv|/шаг: тележка %.3f, ЦМ крыла %.3f м/с; углы %.3f°; на колёсах сверх a·dt %.3f"
+		% [vs, t_pitch, t_off, worst_pilot, worst_wing, worst_da, pilot_run])
 	check(finite, "конечна")
-	check(1.1 * vs < v_l, "тест осмыслен: 1,1·vs < v_подъёма при киле")
-	check(not early, "до v_подъёма при киле и pitch 0 — на колёсах")
 	check(t_pitch >= 0.0, "разогналась до 1,1·vs")
-	check(took[0] and t_off >= 0.0 and t_off - t_pitch <= 5.0, "отрыв за ≤ 5 с после pitch +1: %.2f с" % (t_off - t_pitch))
-	check(worst_dv <= 0.05, "скачок скорости тележки за шаг ≤ a·dt + 0,05: %.3f" % worst_dv)
-	check(worst_da <= 1.0, "скачок углов за шаг ≤ 1°: %.3f" % worst_da)
-	check(m.mode == FlightModel.Mode.AIR and m.phase() == "flying", "после отрыва — полёт: %s" % m.phase())
+	check(took[0] and t_off >= 0.0 and t_off - t_pitch <= 5.0, "отрыв за <= 5 с после pitch +1: %.2f с" % (t_off - t_pitch))
+	check(pilot_run <= 0.05, "на колёсах скачок скорости тележки за шаг <= a·dt + 0,05: %.3f" % pilot_run)
+	check(worst_pilot <= 0.15, "после отрыва 1 с: тележка |dv| за шаг <= 0,15 м/с: %.3f" % worst_pilot)
+	check(worst_wing <= 0.15, "после отрыва 1 с: ЦМ крыла |dv| за шаг <= 0,15 м/с: %.3f" % worst_wing)
+	check(worst_da <= 1.0, "тангаж и крен за шаг <= 1°: %.3f" % worst_da)
+	check(dolly_ok, "ложемента нет: dolly_attached = false, dolly_pos/vel не меняются")
+
+
+## (5в) Касание не отложено на 3 с: после отрыва проверка включается, как только низ колёс выше земли на 0,05 м
+## (до этого — отложена). Земля — ровная; сигнал landed подан не был.
+func test_touchdown_check_resumes() -> void:
+	var m := _wheel_model()
+	m.set_external_force(_pull_fn())
+	var t_off := -1.0
+	var t_resume := -1.0
+	for i in int(60.0 / DT):
+		m.step(DT, Sim.input(1.0, 0.0), Callable(), _flat)
+		if t_off < 0.0 and not m.on_wheels:
+			t_off = m.time_s
+		if t_off >= 0.0 and not m._wh_hold:
+			t_resume = m.time_s
+			break
+	var bottom := (m.pilot_position - m.pilot_basis.y * m._wh_base).y
+	print("    отрыв t=%.2f, проверка касания включена через %.3f с, низ колёс %.3f м" % [t_off, t_resume - t_off, bottom])
+	check(t_off > 0.0 and t_resume >= t_off, "проверка касания включилась")
+	check(t_resume - t_off < 3.0, "не через 3 с, а по высоте: %.3f с" % (t_resume - t_off))
+	check(bottom > 0.05, "низ колёс выше земли на 0,05 м: %.3f" % bottom)

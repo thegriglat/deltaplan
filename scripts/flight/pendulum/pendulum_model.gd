@@ -206,9 +206,20 @@ var _dolly := false
 ## ложемента: тележка уже в массе «пилота», тангаж крыла = keel + max(0, pitch)·rotate с постоянной времени рук.
 var on_wheels := false  ## только чтение: на колёсах (phase() "wheels")
 var _wheels := false
-var _wh_pitch := 0.0  ## отклонение штанги 0…1 с постоянной времени рук (сглаженное)
-var _wh_cmd := 0.0  ## ввод pitch этого шага, 0…1
+var _wh_pitch := 0.0  ## ввод pitch штанги −1…1 с постоянной времени рук (сглаженный); крыло — по max(0, ·)
+var _wh_cmd := 0.0  ## ввод pitch этого шага, −1…1
+var _wh_shape := false  ## после отрыва с колёс руки видят сглаженный ввод, пока он не сойдётся с настоящим
 var _wh_rate := 0.0  ## скорость тангажа крыла от штанги, рад/с (нос вверх)
+var _wh_tilt := 0.0  ## наклон мачты (пилот — подвеска) в осях крыла, рад, + вперёд: положение рук в равновесии момента
+var _wh_tilt_rate := 0.0
+var _wh_aeq := 0.0  ## равновесный наклон по моменту (без учёта доли подъёмной силы и запаздывания)
+var _wh_t_last := 0.0
+var _wh_stretch := 0.0  ## растяжение подвески от натяжения в полёте (податливость цепи · T), м
+var _wh_base := 0.0  ## после отрыва с колёс: низ колёс под ЦМ тележки, м (0 — не с колёс); касание считается по нему
+var _wh_hold := false  ## после отрыва с колёс касание не проверяется, пока низ колёс не выше земли на WHEELS_CLEAR_M
+const WHEELS_CLEAR_M := 0.05
+## Установившееся растяжение подвески XPBD в полёте больше податливость·T (шаги по 1/480 с без памяти множителей): измерено в трим-полёте 350 кг, T = 3450 Н: 0,198 м против 0,138 м
+const WHEELS_STRETCH_K := 1.43
 var _dol: Dictionary = {}  ## параметры: mass_kg, keel_angle_deg, cradle_height_m, wheel_radius_m, rolling_crr
 var _dol_psi := 0.0  ## курс разбега, рад
 var _dol_x0 := 0.0  ## начало разбега (мир игры): x, z
@@ -484,7 +495,7 @@ func reset_on_wheels(pos: Vector3, heading_deg: float, wheels: Dictionary) -> vo
 func _dolly_pose() -> void:
 	var pitch_w := deg_to_rad(float(_dol.keel_angle_deg)) + _dol_phi
 	if _wheels:
-		pitch_w += _wh_pitch * deg_to_rad(float(_dol.rotate_deg))
+		pitch_w += maxf(_wh_pitch, 0.0) * deg_to_rad(float(_dol.rotate_deg))
 	_R = basis_from_euler(_dol_psi, pitch_w, 0.0)
 	var f := Vector3(sin(_dol_psi), 0.0, -cos(_dol_psi))
 	var c := cos(_dol_phi)
@@ -496,13 +507,19 @@ func _dolly_pose() -> void:
 	if _wheels:
 		# тележка на колёсах под подвеской: мачта по нормали земли, крыло качается около подвески
 		var xp := Vector3(-g.z - _on, g.x - _oe, -g.y - _od) + _dol_n * float(_dol.wheel_base_agl_m)
-		var hp := xp + _dol_n * _hang_len
-		var r_h := _R * _r_hang_b
-		_pos = hp - r_h
-		chain.place(hp, -_dol_n, _vel)
-		# крыло качается около подвески: ЦМ и угловая скорость — по скорости тангажа (непрерывность при отрыве)
+		var l_eff := _hang_len + _wh_stretch
+		var rel_b := Vector3(sin(_wh_tilt), 0.0, cos(_wh_tilt)) * l_eff
+		var hp := xp - _R * rel_b
+		_pos = hp - _R * _r_hang_b
+		var dir_w := _R * rel_b / l_eff
+		chain.place(hp, dir_w, _vel)
+		for i in chain.links:  # звенья растянуты поровну, как в полёте под натяжением
+			chain.x[i] = hp + dir_w * (l_eff * float(i + 1) / chain.links)
+		# крыло качается около подвески, пилот движется по рукам: ЦМ и угловая скорость — по скорости тангажа и
+		# наклона мачты (непрерывность при отрыве)
 		_w = _R.y * _wh_rate
-		_vel -= _w.cross(r_h)
+		var drel := Vector3(cos(_wh_tilt), 0.0, -sin(_wh_tilt)) * (_hang_len * _wh_tilt_rate)
+		_vel -= _w.cross(_R * (rel_b + _r_hang_b)) + _R * drel
 		return
 	var r := _R * _r_bar_b
 	_pos = Vector3(
@@ -544,9 +561,9 @@ func _dolly_sample_ground(ground_fn: Callable) -> void:
 ## дальше — полёт).
 func _dolly_substep(h: float) -> bool:
 	if _wheels:  # штанга отклоняется с постоянной времени рук
-		var d_p := (_wh_cmd - _wh_pitch) * (1.0 - exp(-h / maxf(arms.tau, 1.0e-3)))
-		_wh_pitch += d_p
-		_wh_rate = d_p * deg_to_rad(float(_dol.rotate_deg)) / h
+		var p_prev := maxf(_wh_pitch, 0.0)
+		_wh_pitch += (_wh_cmd - _wh_pitch) * (1.0 - exp(-h / maxf(arms.tau, 1.0e-3)))
+		_wh_rate = (maxf(_wh_pitch, 0.0) - p_prev) * deg_to_rad(float(_dol.rotate_deg)) / h
 		_dolly_pose()
 	var R := _R
 	var m_tot := mass + float(_dol.mass_kg)
@@ -555,9 +572,13 @@ func _dolly_substep(h: float) -> bool:
 	var va := _vel - _air_p
 	var f := R * _aero_f_b + E3 * (m_tot * Units.G) - va * (0.5 * rho * _pilot_cda * va.length())
 	var link: Dictionary = {}
+	var ext_p := Vector3.ZERO
+	var ext_h := Vector3.ZERO
 	if _ext_fn.is_valid():
 		var fe := _external_force(h, xp, _vel, H, R)
 		f += fe[0] + fe[1]
+		ext_p = fe[0]
+		ext_h = fe[1]
 		link = fe[2]
 	var n_force := -(f + _link_f).dot(_dol_n)  # реакция земли на колёса без учёта звена этого подшага
 	link_tension_n = 0.0
@@ -593,10 +614,57 @@ func _dolly_substep(h: float) -> bool:
 					external_force_n += game(_link_f)
 	_dol_v = arc / h
 	_dol_s += arc * cos(_dol_phi)
+	if _wheels:
+		_wheel_solve_tilt(h, _dol_t * (f.dot(_dol_t) / m_tot), ext_p, ext_h, va)
 	_dolly_pose()
 	if not _wheels:
 		_w = Vector3.ZERO
 	return true
+
+
+## Наклон мачты на колёсах: пилот (тележка) стоит на земле, а крыло держит штанга. Чтобы в момент отрыва не было
+## скачка (руки и момент на крыле — те же, что в полёте), положение пилота в осях крыла выбирается из равновесия
+## момента на крыле по тангажу: аэродинамика + сила стропы на подвеске + момент силы рук (закон рук arms.compute
+## при этом положении). Сила стропы T — из уравнения пилота с известным ускорением тележки acc.
+## → _wh_tilt, _wh_tilt_rate.
+func _wheel_solve_tilt(h: float, acc: Vector3, ext_p: Vector3, ext_h: Vector3, va: Vector3) -> void:
+	var R := _R
+	var Rt := R.transposed()
+	var f_o := E3 * (pilot_mass * Units.G) - va * (0.5 * rho * _pilot_cda * va.length()) + ext_p
+	var d_p := f_o - E3 * (pilot_mass * Units.G)
+	var load_b: Vector3 = Rt * (d_p - (R * _aero_f_b + d_p + ext_h) * (pilot_mass / mass))
+	var ext_b := Vector3.ZERO
+	if ext_p != Vector3.ZERO or ext_h != Vector3.ZERO:
+		ext_b = Rt * (ext_p - (ext_p + ext_h) * (pilot_mass / mass))
+	var m_of := func(a: float) -> float:
+		var rel := Vector3(sin(a), 0.0, cos(a)) * (_hang_len + _wh_stretch)
+		var vrel := Vector3(cos(a), 0.0, -sin(a)) * ((_hang_len + _wh_stretch) * _wh_tilt_rate)  # пилот относительно подвески (вращение крыла сокращается)
+		var fb := arms.compute(rel, vrel, 0.0, _wh_pitch, pilot_mass, h, false, NAN, load_b, ext_b)
+		var hat: Vector3 = R * Vector3(sin(a), 0.0, cos(a))
+		var t_n := hat.dot(f_o + R * fb - acc * pilot_mass)
+		_wh_t_last = t_n
+		var fh_b: Vector3 = Rt * (hat * t_n + ext_h)
+		var tb: Vector3 = _aero_m_b + _r_hang_b.cross(fh_b)
+		tb += _r_bar_b.cross(Vector3(-fb.x, 0.0, 0.0))
+		return tb.y
+	# один шаг Ньютона от текущего наклона (решение плавно следует за равновесием, без перескоков между корнями)
+	var a0 := _wh_aeq
+	var m0: float = m_of.call(a0)
+	var dm: float = (float(m_of.call(a0 + 0.01)) - m0) / 0.01
+	var a_new := a0
+	if absf(dm) > 1.0:
+		a_new = clampf(a0 - m0 / dm, a0 - 0.1, a0 + 0.1)
+	a_new = clampf(a_new, -0.7, 0.7)
+	_wh_aeq = a_new
+	# равновесие момента осмысленно, когда крыло несёт вес (в покое пилот держит земля: мачта по нормали земли)
+	var lift_share := clampf((R * _aero_f_b).dot(_dol_n) / (mass * Units.G), 0.0, 1.0)
+	a_new *= lift_share * lift_share
+	# пилот выходит на равновесное положение с постоянной времени рук (цель рук — ступенью при вводе pitch)
+	a_new = _wh_tilt + (a_new - _wh_tilt) * (1.0 - exp(-h / 0.3))
+	_wh_tilt_rate = (a_new - _wh_tilt) / h
+	_wh_tilt = a_new
+	m_of.call(a_new)  # натяжение при выбранном наклоне
+	_wh_stretch = WHEELS_STRETCH_K * chain.compliance * maxf(_wh_t_last, 0.0) * lift_share * lift_share
 
 
 ## Отрыв с тележки: состояние крыла и пилота — как есть (скорость, ориентация, цепь), дальше обычный полёт.
@@ -606,10 +674,16 @@ func _dolly_release() -> void:
 	_wheels = false
 	on_wheels = false
 	dolly_attached = false
-	_cart_s = _dol_s
-	_cart_v = _dol_v * cos(_dol_phi)
-	_dol_hold_until = time_s + DOLLY_HOLD_S
-	if not was_wheels:
+	if was_wheels:
+		# ложемента нет: тележка уходит вместе с крылом, касание — по низу колёс, как только он выше земли
+		_wh_base = float(_dol.wheel_base_agl_m)
+		_wh_hold = true
+		_wh_shape = true
+		_dol = {}
+	else:
+		_cart_s = _dol_s
+		_cart_v = _dol_v * cos(_dol_phi)
+		_dol_hold_until = time_s + DOLLY_HOLD_S
 		_w = Vector3.ZERO
 	arms.reset()
 	mode = FlightModel.Mode.AIR
@@ -620,6 +694,13 @@ func _dolly_release() -> void:
 ## После отрыва с тележки пилот лежит у земли (ступни модели «под землёй»): касание не проверяется, пока
 ## ступни не поднимутся над землёй или не пройдёт DOLLY_HOLD_S. → true, пока проверка отложена.
 func _dolly_hold(ground_fn: Callable) -> bool:
+	if _wh_hold:
+		var bottom := pilot_position - pilot_basis.y * _wh_base
+		var gw := FlightModel.ground_height(ground_fn, bottom.x, bottom.z)
+		if gw > -INF and bottom.y - gw > WHEELS_CLEAR_M:
+			_wh_hold = false
+			return false
+		return true
 	if _dol_hold_until < 0.0:
 		return false
 	if time_s >= _dol_hold_until:
@@ -740,7 +821,7 @@ func step(dt: float, input: ControlInput, air_fn: Callable, ground_fn: Callable)
 	var n := maxi(_sub_min, ceili(dt * _sub_per_s - 1.0e-9))
 	var h := dt / n
 	_last_pitch = input.pitch
-	_wh_cmd = clampf(input.pitch, 0.0, 1.0)
+	_wh_cmd = clampf(input.pitch, -1.0, 1.0)
 	# добор «на себя» до бёдер (VM-К3 v2): только в полёте, руки на штанге
 	arms.update_pull_limit(inp.pull_full and mode == FlightModel.Mode.AIR and not _uprights, dt)
 	_pull_normal_s = 0.0 if arms.pull_limit > arms.shift_x_pull + 1.0e-6 else _pull_normal_s + dt
@@ -1213,8 +1294,13 @@ func _substep(h: float, input: ControlInput) -> void:
 		var e_h := ext_h + lnk_h
 		if e_p != Vector3.ZERO or e_h != Vector3.ZERO:
 			ext_b = Rt * (e_p - (e_p + e_h) * (pilot_mass / mass))
+		var pitch_arms := input.pitch
+		if _wh_shape:  # отрыв с колёс: ввод pitch доходит до рук с той же постоянной времени, что на колёсах (без ступени)
+			_wh_pitch += (clampf(input.pitch, -1.0, 1.0) - _wh_pitch) * (1.0 - exp(-h / maxf(arms.tau, 1.0e-3)))
+			pitch_arms = _wh_pitch
+			_wh_shape = absf(input.pitch - _wh_pitch) > 0.003
 		fb = arms.compute(
-			rel, vrel, input.roll, input.pitch, pilot_mass, h, arms_relaxed, hands_force_y, load_b, ext_b
+			rel, vrel, input.roll, pitch_arms, pilot_mass, h, arms_relaxed, hands_force_y, load_b, ext_b
 		)
 		_hands_p = R * fb
 	if fb != Vector3.ZERO:
@@ -1391,7 +1477,14 @@ func _reset_common() -> void:
 	on_wheels = false
 	_wh_pitch = 0.0
 	_wh_cmd = 0.0
+	_wh_shape = false
 	_wh_rate = 0.0
+	_wh_tilt = 0.0
+	_wh_tilt_rate = 0.0
+	_wh_aeq = 0.0
+	_wh_stretch = 0.0
+	_wh_base = 0.0
+	_wh_hold = false
 	dolly_attached = false
 	_dol = {}
 	_dol_hold_until = -1.0
@@ -1410,7 +1503,7 @@ func _reset_common() -> void:
 func _check_touchdown(ground_fn: Callable) -> void:
 	if not ground_fn.is_valid():
 		return
-	var feet := pilot_position - pilot_basis.y * _leg_len
+	var feet := pilot_position - pilot_basis.y * (_wh_base if _wh_base > 0.0 else _leg_len)  # с колёс — низ колёс
 	var gh := FlightModel.ground_height(ground_fn, feet.x, feet.z)
 	_feet_agl = feet.y - gh
 	var wing_hit := -1
