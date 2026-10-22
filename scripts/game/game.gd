@@ -1510,6 +1510,10 @@ func _choose_start() -> void:
 ## из configs/tow.json. Не вышло (причина — push_warning) — обычный старт без буксировки. aerotow (TW-10b) — та же
 ## полоса, но старт пилота на тележке в начале, Ан-2 впереди на длину троса.
 func _choose_tow_start() -> bool:
+	if settings.vehicle == "trike":
+		# TP-К5: полёта дельталёта ещё нет (TP-6) — стартуем дельтапланом.
+		push_warning("Game: дельталёт ещё не летает (TP-6), старт дельтапланом")
+		return false
 	var kind := settings.tow_kind
 	if kind == "":
 		return false

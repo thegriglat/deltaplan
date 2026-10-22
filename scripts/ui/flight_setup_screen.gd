@@ -229,7 +229,7 @@ func _apply_settings() -> void:
 	_day.value = settings.day
 	_tow_place_key = _place_key()
 	_row.refresh()
-	_refresh_tow(settings.tow_kind, false)
+	_refresh_tow("trike" if settings.vehicle == "trike" else settings.tow_kind, false)
 	_fill_recent()
 	if _goals_tab != null:
 		_goals_tab.load_settings(settings)
@@ -504,6 +504,10 @@ func _collect() -> FlightSettings:
 	s.day = int(_day.value)
 	s.apparatus = FlightSettings.from_dict({"apparatus": _app_user}).apparatus
 	s.tow_kind = _tow_selected()
+	s.vehicle = "glider"
+	if s.tow_kind == "trike":  # пункт «Дельталёт» (TP-К5)
+		s.vehicle = "trike"
+		s.tow_kind = ""
 	StartWeather.apply(s)  # точные значения набора (элементы меню округляют)
 	if _goals_tab != null:
 		s.goals = _goals_tab.collect()
@@ -540,6 +544,16 @@ func _build_tow(box: Control) -> void:
 	UiKit.row(box, tr("setup_tow"), _tow_opt)
 	_tow_hint = UiKit.label(box, tr("setup_tow_mp_off"), "HintLabel")
 	_tow_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_tow_opt.item_selected.connect(func(_i: int) -> void: _sync_wing_enabled())
+
+
+## TP-К5: выбран «Дельталёт» — крыло выбирать нечего (TT-К2), выбор крыла выключен.
+func _sync_wing_enabled() -> void:
+	var trike := _tow_selected() == "trike"
+	if _class_opt != null:
+		_class_opt.disabled = trike
+	if _wing_opt != null:
+		_wing_opt.disabled = trike
 
 
 ## Ключ места: площадка/точка. Выбор буксировки сбрасывается на умолчание только при его смене.
@@ -578,8 +592,17 @@ func _refresh_tow(preferred: String, reset: bool) -> void:
 	for k: String in kinds:
 		_tow_ids.append(k)
 		_tow_opt.add_item(tr(String(names[k])))
-	var want := default_tow_kind(site) if reset else FlightSettings.normalize_tow(preferred)
-	if want != "" and not (want in kinds):
+	var trike_ok := site.get("tow") is Dictionary
+	if trike_ok:
+		_tow_ids.append("trike")
+		_tow_opt.add_item(tr("setup_start_trike"))
+		_tow_opt.set_item_disabled(_tow_ids.size() - 1, not FlightSettings.trike_allowed(site, mp))
+	var want := default_tow_kind(site) if reset else preferred
+	if want != "trike":
+		want = FlightSettings.normalize_tow(want)
+	if want == "trike" and not trike_ok:
+		want = default_tow_kind(site)
+	elif want != "" and want != "trike" and not (want in kinds):
 		want = default_tow_kind(site)
 	_tow_opt.select(maxi(_tow_ids.find(want), 0))
 	_tow_opt.disabled = mp
@@ -587,6 +610,7 @@ func _refresh_tow(preferred: String, reset: bool) -> void:
 	_tow_hint.text = tr("setup_tow_mp_off")
 	if mp:
 		_tow_opt.select(0)
+	_sync_wing_enabled()
 
 
 ## Погода, время и место меняют числа целей (GL-3).
