@@ -122,3 +122,7 @@
 {"t": "2026-10-23T04:43:13", "by": "coordinator", "task": "SNW-6", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-23T04:43:15", "by": "coordinator", "task": "SNW-6", "ev": "accepted", "commits": ["4ac89327"], "note": "4/4 guide_fm=ok:---; docs_check=ok:0; changelog=ok:2; size=ok:11997"}
 {"t": "2026-10-23T04:43:16", "by": "coordinator", "task": "SNW-6", "ev": "merged"}
+{"t": "2026-10-23T04:43:31", "by": "coordinator", "task": null, "ev": "plan", "note": "план 4. Задачи: дописано 2 стр."}
+{"t": "2026-10-23T04:43:31", "by": "coordinator", "task": "SNW-10", "ev": "created", "note": "Удалить неиспользуемый snow_plume_flake.gdshader"}
+{"t": "2026-10-23T04:43:36", "by": "coordinator", "task": "SNW-10", "ev": "note", "note": "Перед удалением проверить: grep -rn snow_plume_flake scripts tests configs — ссылок быть не должно (если есть в .gd/.tscn — не удалять, ответ «SNW-10 blocked: есть ссылки»). Удалить git rm обоих файлов. В docs/guide/terrain/snow-plume.md (строка ~57) убрать предложение «Файлы snow_plume_flake.gdshader в каталоге остались от прежней версии отрисовки.»; updated во frontmatter не менять. Godot не запускать. Коммит — git commit -- <пути>, по-русски, строка Claude-Session.", "addendum": true}
+{"t": "2026-10-23T04:43:46", "by": "coordinator", "task": "SNW-10", "ev": "started"}

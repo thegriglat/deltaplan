@@ -1,0 +1,45 @@
+{
+  "id": "SNW-10",
+  "module": "snow-plume",
+  "type": "dp-mechanic",
+  "title": "Удалить неиспользуемый snow_plume_flake.gdshader",
+  "goal": "Удалить scripts/world/snow_plume/snow_plume_flake.gdshader и его .uid (не используются после SNW-7) и убрать упоминание о нём в docs/guide/terrain/snow-plume.md.",
+  "plan_ref": "§4 SNW-10",
+  "contracts": [
+    {
+      "name": "snow-plume",
+      "version": "3",
+      "ref": "docs/contracts/snow-plume.md"
+    }
+  ],
+  "copy": "~/deltaplan-snow-plume-SNW-10",
+  "branch": "snow-plume/SNW-10",
+  "base": "feature/snow-plume",
+  "scope": [
+    "scripts/world/snow_plume/snow_plume_flake.gdshader",
+    "scripts/world/snow_plume/snow_plume_flake.gdshader.uid",
+    "docs/guide/terrain/snow-plume.md"
+  ],
+  "dont_touch": [
+    "scripts/world/snow_plume/snow_plume_render.gd",
+    "scripts/world/snow_plume/snow_plume_particles.gdshader",
+    "scripts/world/snow_plume/snow_plume_streak.gdshader",
+    "configs/",
+    "tests/"
+  ],
+  "accept": [
+    {
+      "name": "gone",
+      "cmd": "sh -c 'ls scripts/world/snow_plume/snow_plume_flake.gdshader scripts/world/snow_plume/snow_plume_flake.gdshader.uid 2>/dev/null | wc -l'",
+      "expect": "num:(\\d+) <=0"
+    },
+    {
+      "name": "no_refs",
+      "cmd": "sh -c 'grep -rn snow_plume_flake scripts tests configs docs/guide | wc -l'",
+      "expect": "num:(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T04:43:31"
+}
