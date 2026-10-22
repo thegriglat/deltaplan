@@ -154,3 +154,4 @@
 {"t": "2026-10-23T03:35:16", "by": "executor", "task": "TP-9", "ev": "reported", "commits": ["270b6917"], "note": "done: TowTrikeSound получил setup_player/update_engine/engine_volume_db: off — тишина, starting/stopping — высота и громкость…", "dp_feedback": "Тест-класс с play() должен быть Node (не TestCase); стоит отметить в workflow. accept --dry под lock cpu уходит в job."}
 {"t": "2026-10-23T03:38:42", "by": "coordinator", "task": "TP-9", "ev": "checked", "note": "4/4 trike_pilot=ok:37/37; tow=ok:105/105; wav=ok:5; gd=ok:exit 0"}
 {"t": "2026-10-23T03:38:59", "by": "coordinator", "task": "TP-9", "ev": "accepted", "note": "по отчёту; WAV tp9_* — пользователю на прослушивание"}
+{"t": "2026-10-23T03:39:00", "by": "coordinator", "task": "TP-9", "ev": "merged"}
