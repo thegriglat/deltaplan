@@ -107,6 +107,7 @@ generated: true
   - [docs/guide/goals.md](guide/goals.md) — Цели полёта и треки: вкладка «Цели», оценка по погоде, засчёт в полёте, итог, прибор, столбы, запись и показ треков, IGC/GPX.
 - **training-modes** — Тренировочные режимы (T-59) через карточки окна «Тренировка» + цели полёта и загрузка .xctsk из окна «Полёт…» (T-56); код задач TM. [closed 2026-10-17] — [план](plan/training-modes.md) · [решения](plan/training-modes/decisions.md) · [сводка](plan/training-modes/summary.md) · полный журнал: `archive/training-modes`
 - **bar-mouse** — Штанга мышью: ход в отсчётах мыши без привязки к окну, свой слайдер, мёртвая зона без скачка; диагностика камер и сырого ввода. [active 2026-10-23] — [план](plan/bar-mouse.md) · [контракты](contracts/bar-mouse.md)
+  - [docs/research/bar-mouse-raw-input.md](research/bar-mouse-raw-input.md) — Захват мыши в Godot 4.7.2: Windows и X11 — сырые отсчёты, Wayland и macOS — с ускорением ОС; брать screen_relative
 
 ## perf
 

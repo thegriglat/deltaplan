@@ -22,7 +22,7 @@ func test_doc_headings() -> void:
 	var found := {}
 	for m in re.search_all(text):
 		found[m.get_string(1)] = int(m.get_string(2))
-	check(found.get("BM-К1", 0) == 1, "BM-К1 (v1) в заголовках: %s" % found)
+	check(found.get("BM-К1", 0) == 2, "BM-К1 (v2) в заголовках: %s" % found)
 	check(found.get("BM-К2", 0) == 1, "BM-К2 (v1) в заголовках: %s" % found)
 
 
