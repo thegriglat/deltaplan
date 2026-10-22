@@ -753,9 +753,9 @@ func _update_buzz(flying: bool, dt: float) -> void:
 ## порывами ∝ V: порывы заморожены в пространстве, SPF-К1). Нет модели или V_трим ≤ 0 → 1.
 func _buzz_freq_ratio(b: Dictionary) -> float:
 	var g := get_parent() as Glider
-	if g == null or g.model == null or not g.model.has_method("trim_speed"):
+	if g == null or g.model == null or not g.model.wing.has("trim_speed_kmh"):
 		return 1.0
-	var vt: float = g.model.trim_speed()
+	var vt: float = Units.kmh(float(g.model.wing.trim_speed_kmh))
 	if vt <= 0.0 or not is_finite(vt):
 		return 1.0
 	var rr: Array = b.get("freq_ratio_range", [0.7, 2.0])

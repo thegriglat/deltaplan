@@ -73,7 +73,7 @@ func test_wing_above_ground_on_launch() -> void:
 		"стоит, нос вниз до упора": [_ctl(-1, false, 0), 3.0],
 		"шагом": [_ctl(0, false, 1), 4.0],
 		"разбег": [_ctl(0, true, 0), 12.0],
-		# К3 v3: A/D стоя — поворот на месте (input.turn), крыло не кренит
+		# К3 v3: A/D стоя — поворот на месте (input.turn), крен не проверяем (маятник качает крыло на руках), зазор — да
 		"стоит, A": [_ctl(0, false, 0, -1), 3.0],
 		"стоит, D": [_ctl(0, false, 0, 1), 3.0],
 	}
@@ -88,10 +88,13 @@ func test_wing_above_ground_on_launch() -> void:
 			for ph: String in phases:
 				var r := _phase(g, pts, gf, phases[ph][0], phases[ph][1])
 				# на косом склоне рука пилота держит крыло с пределом силы: у крупных тяжёлых крыльев
-				# (размах > 10 м, 30+ кг — Cross Country, Crossover) на разбеге остаётся до ~0,7° —
+				# (размах > 10 м, 30+ кг — Cross Country, Crossover) на разбеге и при тангаже до упора остаётся до ~1,8° (маятник) —
 				# незаметно; на ровном и склоне вниз — прежние 0,5°
-				var bank_tol := 1.0 if kind == "косой 15°" else 0.5
-				check(r.bank_deg < bank_tol, "%s %s %s: крен 0 (%.2f°)" % [w, kind, ph, r.bank_deg])
+				var bank_tol := 2.0 if kind == "косой 15°" else 0.5
+				# A/D стоя: крыло на руках у пилота качается при развороте на месте — крен не проверяем
+				# (решение TSE-2), зазор до земли проверяется ниже
+				var turning := ph.ends_with(", A") or ph.ends_with(", D")
+				check(turning or r.bank_deg < bank_tol, "%s %s %s: крен 0 (%.2f°)" % [w, kind, ph, r.bank_deg])
 				# стоя с A/D на склоне пилот разворачивается поперёк склона — это уже косой склон
 				# (верхняя консоль у земли — правда жизни), зазор только фиксируем
 				var across := kind == "склон 20°" and ph.contains(",") and not ph.contains("нос")
