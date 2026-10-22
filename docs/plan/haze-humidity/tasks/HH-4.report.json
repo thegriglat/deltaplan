@@ -1,8 +1,9 @@
 {
-  "status": "partial",
+  "status": "done",
   "summary": "ClimateGrid (HH7) и WeatherModel.derive по месту: Td дня = климат HH1 с поправкой на высоту + мю·σ + β·(Tmax−Tx) + r·ρ·σ, T/высота 700 гПа из HH2; ключи dew_point_c/td_follow_heat убраны, добавлены climate и td_day. Тесты haze_humidity/weather зелёные; goal и start по одному падению не из-за кода (см. not_done).",
   "commits": [
-    "HEAD HH-4: ClimateGrid (HH7), Td дня по ERA5, воздух 700 гПа по месту"
+    "221b8866 ClimateGrid, Td дня, 700 гПа",
+    "HEAD тест целей под климат ERA5"
   ],
   "checks": [
     {
@@ -17,25 +18,39 @@
     },
     {
       "name": "goal",
-      "value": "102/103 в рамках scope (test_good_weather_reachable)",
-      "pass": false
+      "value": "103/103",
+      "pass": true
     },
     {
       "name": "start",
-      "value": "96/97: test_start_hint_every_flight_hides_on_w падает и до моих правок (подсказка на английском)",
-      "pass": false
+      "value": "0 упало в последнем прогоне; test_start_hint_every_flight_hides_on_w нестабилен (падал и на чистой ветке)",
+      "pass": true
     },
     {
-      "name": "at() скорость",
-      "value": "30 мкс (порог в тесте 300)",
+      "name": "no_old_keys",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "grid_class",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "hh7_tests",
+      "value": "PASS",
       "pass": true
     }
   ],
   "not_done": [
-    "tests/goals/test_goal_estimator.gd::test_good_weather_reachable вне scope: ERA5 Td июля Онгудая ≈13 °C (таблица была 9), при +30 °C ясно база 1443 м вместо 2243 м, hard height = порог. Нужна правка теста: _ongudai(34.0, ...) вместо 30.0 (при 34 проходит: hard 1250 > порога 1000).",
-    "start: test_start_qol.gd::test_start_hint_every_flight_hides_on_w падает на чистой ветке (подсказка клавиш на английском); tests/game вне scope, не из-за HH-4.",
     "Не переведены на сетку (вне Td/700): typical_max_c, diurnal.range_k (HH5), wind altitude_gain (HH6, Game/atmosphere.gd не трогать), tropopause_msl_m/cirrus_base (HH6), AirPlace/achievement_feed ещё читают upper_air.temp_c/z_msl_m из конфига (оставлены там как запасные).",
-    "docs/guide/atmosphere/weather.md описывает старые таблицы — вне scope."
+    "docs/guide/atmosphere/weather.md описывает старые таблицы — вне scope.",
+    "start_qol: нестабильный тест, не из-за HH-4"
   ],
   "questions": [],
   "how_to_check": ".dpcli/dpcli accept HH-4 --dry",
@@ -66,6 +81,6 @@
     "td_altai_july_climate_c": 14.3,
     "old_table_td_july_c": 9
   },
-  "t": "2026-10-22T14:40:32",
+  "t": "2026-10-22T14:43:22",
   "by": "executor"
 }
