@@ -97,10 +97,15 @@
       "name": "monotonic",
       "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo2_askarovo.jpg",
       "expect": "re:monotonic=1"
+    },
+    {
+      "name": "edge_jump",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo2_askarovo.jpg",
+      "expect": "num:edge_jump=([\\d.]+) <=0.15"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T01:33:54",
-  "edited": "2026-10-23T01:46:52"
+  "edited": "2026-10-23T01:47:08"
 }

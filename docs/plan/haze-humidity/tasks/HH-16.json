@@ -1,0 +1,66 @@
+{
+  "id": "HH-16",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Артефакты облаков на закате: рваные «пиксельные» края с границей и белые точки внутри",
+  "goal": "Найти причину и убрать артефакты облаков на закате (after_clouds_*): рваные пиксельные края с видимой границей и белые точки внутри облаков; проверка числом по кадрам до/после, днём без регрессий.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "HH4",
+      "version": "3",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-16",
+  "branch": "haze-humidity/HH-16",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_composite_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "scripts/atmosphere/cloud_volume.gdshader",
+    "configs/atmosphere.json",
+    "tests/atmosphere/",
+    "tools/shots/cloud_artifacts_measure.py",
+    "tools/shots/haze_humidity_shots.sh",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/world/",
+    "configs/world.json",
+    "data/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "cloud",
+      "tests": "cloud"
+    },
+    {
+      "name": "haze_humidity",
+      "tests": "haze_humidity"
+    },
+    {
+      "name": "fireflies",
+      "cmd": "python3 tools/shots/cloud_artifacts_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_cloudart_2deg_side.jpg",
+      "expect": "num:fireflies=(\\d+) <=5"
+    },
+    {
+      "name": "edge_steps",
+      "cmd": "python3 tools/shots/cloud_artifacts_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_cloudart_2deg_side.jpg",
+      "expect": "num:edge_step_ratio=([\\d.]+) <=1.5"
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity/before_cloudart_*.jpg /home/greg/deltaplan/build/screenshots/haze-humidity/after_cloudart_*.jpg | wc -l",
+      "expect": "num:(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T01:47:20"
+}
