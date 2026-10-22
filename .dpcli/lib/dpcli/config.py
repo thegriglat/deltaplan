@@ -47,7 +47,9 @@ DEFAULTS = {
         "cache_dir": "~/.cache/dpcli/{project}",
         "globs": ["docs/**/*.md", "CHANGELOG.md"],
     },
-    "jobs": {"dir": "~/.cache/dpcli/{project}/jobs", "tmux_session": "dp", "cpu_slots": None},
+    # cpu_weights: [{match: регэксп по команде, slots: N}] — вес запуска под lock cpu; cpu_starve_s — порог голодания головы очереди
+    "jobs": {"dir": "~/.cache/dpcli/{project}/jobs", "tmux_session": "dp", "cpu_slots": None, "cpu_weights": [],
+             "cpu_starve_s": 300},
     "locks": None,  # каталог замков lock cpu|gpu; по умолчанию <jobs.dir>/locks
     # сдача модуля (deliver): что из <plan_dir>/<модуль>/ попадает в итоговую ветку; журнал — под архивным тегом
     "deliver": {"keep": ["decisions.md", "summary.md"], "archive_tag": "archive/{module}"},
