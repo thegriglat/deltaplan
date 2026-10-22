@@ -6,7 +6,7 @@ area: "flight"
 updated: "2026-10-22"
 summary: "Стыки буксировщика-дельталёта: параметры (tow_tug.json), крыло trike_ixess15, тележка в «Маятнике» (колёса, перегрузки), TowTug v4, вид."
 related: ["docs/plan/tow-trike.md", "docs/contracts/tow.md", "docs/contracts/trike-model.md", "docs/contracts/pendulum.md"]
-contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id": "TT-К3", "version": 5}, {"id": "TT-К4", "version": 3}, {"id": "TT-К5", "version": 1}, {"id": "TT-К6", "version": 1}]
+contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id": "TT-К3", "version": 6}, {"id": "TT-К4", "version": 3}, {"id": "TT-К5", "version": 1}, {"id": "TT-К6", "version": 1}]
 ---
 # Контракты модуля tow-trike (код задач TT)
 
@@ -66,7 +66,7 @@ contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id
   площадь/размах/масса = `wings.json` iXess 15 (± 1 %); скорость сваливания поляры при `pilot_mass_ref_kg` и паспортная
   `vs_kmh` при MTOW согласованы через √(m/MTOW) (± 10 %).
 
-## TT-К3 v5. Тележка в «Маятнике»: колёса, сопротивление, предел рук
+## TT-К3 v6. Тележка в «Маятнике»: колёса, сопротивление, предел рук
 Владелец — TT-3; потребители — TT-4. Контрактный тест — `tests/contracts/test_tow_trike_k3.gd` (пишет TT-3).
 
 `PendulumModel` (`scripts/flight/pendulum/pendulum_model.gd`), `setup(wing_cfg, pilot_cfg, flight_override, apparatus_cfg)`:
@@ -114,6 +114,9 @@ contracts: [{"id": "TT-К1", "version": 1}, {"id": "TT-К2", "version": 1}, {"id
   0,15 м/с в этом окне; на всём 1 с — с вводом после окна, как у автопилота (напр. `pitch` −0,25). Полный отжим в
   воздухе дольше — не полёт (крыло ≈ 18 рад/с², тангаж 28–50°), не проверяется. Повторное касание колёсами после отрыва
   (посадка) не моделируется — граница модели (скачок ≈ 1,6 м/с за шаг); автопилот его не допускает.
+- v6 (2026-10-22, TT-10): оговорка v5 «полный отжим дольше — не полёт» снята — рывок был артефактом выравнивания
+  стоя (flare) у пилота-тележки; после отрыва с колёс flare не применяется. (5б) на `trike_ixess15` — тяга
+  `thrust.full_n(V)`, после окна 0,3 с регулятор по скорости или `pitch` +1, порог 0,15 на всей 1 с.
 
 ## TT-К4 v3. Буксировщик-дельталёт: `TowTug` (заменяет TW-К9 v3)
 Владелец — TT-4; потребители — TT-5 (игра: модели, звук). Контрактный тест — `tests/contracts/test_tow_k9.gd`
