@@ -107,6 +107,9 @@ related: ["docs/contracts/trike-pilot.md", "docs/plan/trike.md", "docs/contracts
 #### TP-14 Источники чисел колёс
 `dp-researcher` (sonnet). Ревью TP-7 (major): `wheels.lat_mu`, `brake_mu`, `steer_max_deg` — источники со ссылками (FAA-H-8083-5, руководства трайков, данные трения шин о траву) вместо «по памяти»; числа меняются только по источникам. Приёмка: `trike_pilot_k1`, `trike_pilot_k7` — 0 упало; `docs check`.
 
+#### TP-15 Откат TT-11: вилка переднего колеса вперёд, брызговик к пилоту
+`dp-engineer` (sonnet). Решение пользователя 2026-10-23 (по словам пилота): вилка/стойка переднего колеса — вперёд, как до TT-11 (`79af27be`); брызговик — со стороны пилота (сзади колеса); ось колеса (`wheelbase`) и физика не меняются. Модель общая с буксировщиком. Пересборка `trike.glb`, кадры side и front34 в `/home/greg/deltaplan/build/screenshots/trike-pilot/`. Приёмка: тесты `trike_model`, `tow_trike_k6`, `trike_pilot` — 0 упало; ≥ 2 новых кадра.
+
 ## 5. Волны
 1. TP-1, TP-2, TP-3, TP-4 параллельно (разные файлы).
 2. TP-5 по освобождению места; TP-11, TP-12 — по ответам Q1–Q3.
