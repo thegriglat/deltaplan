@@ -1,0 +1,85 @@
+{
+  "id": "TW-20",
+  "module": "tow",
+  "type": "dp-engineer",
+  "title": "Влить main (roll-modes) в буксировку, снять правило режимов, перепрогон тестов",
+  "goal": "Ветка задачи = feature/tow + main без конфликтов: разрешены конфликты в CHANGELOG.md, docs/guide/flight.md, scripts/flight/flight_model.gd, scripts/flight/glider.gd, scripts/game/input_controller.gd с сохранением и буксировки, и roll-modes; правило «буксировка неактивна в weight_shift/rate» (TW-9b, setup_tow_mode_off) убрано (TW-К7 v3); тесты буксировки и затронутые — зелёные.",
+  "plan_ref": "Условия остановки",
+  "contracts": [
+    {
+      "name": "TW-К7",
+      "version": "3",
+      "ref": "docs/contracts/tow.md"
+    },
+    {
+      "name": "TW-К4",
+      "version": "8",
+      "ref": "docs/contracts/tow.md"
+    }
+  ],
+  "copy": "~/deltaplan-tow-TW-20",
+  "branch": "tow/TW-20",
+  "base": "feature/tow",
+  "scope": [
+    "."
+  ],
+  "dont_touch": [
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "tow_k",
+      "tests": "tow_k"
+    },
+    {
+      "name": "test_tow_session",
+      "tests": "test_tow_session"
+    },
+    {
+      "name": "test_tow_aerotow",
+      "tests": "test_tow_aerotow"
+    },
+    {
+      "name": "test_speed_hold",
+      "tests": "test_speed_hold"
+    },
+    {
+      "name": "tests/flight/",
+      "tests": "tests/flight/"
+    },
+    {
+      "name": "test_menu_setup",
+      "tests": "test_menu_setup"
+    },
+    {
+      "name": "test_input_launch",
+      "tests": "test_input_launch"
+    },
+    {
+      "name": "test_game_logic",
+      "tests": "test_game_logic"
+    },
+    {
+      "name": "test_pendulum_autopilot",
+      "tests": "test_pendulum_autopilot"
+    },
+    {
+      "name": "gdcheck",
+      "cmd": "python3 tools/check_gd.py $(git diff --name-only feature/tow...HEAD -- \"*.gd\")",
+      "expect": "exit=0"
+    },
+    {
+      "name": "merged",
+      "cmd": "git merge-base --is-ancestor main HEAD",
+      "expect": "exit=0"
+    },
+    {
+      "name": "nomode",
+      "cmd": "grep -rc 'setup_tow_mode_off' scripts locale tests | grep -v ':0' | wc -l",
+      "expect": "num:(\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-22T14:25:07"
+}
