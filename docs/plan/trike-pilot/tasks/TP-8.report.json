@@ -1,0 +1,64 @@
+{
+  "status": "done",
+  "summary": "Дельталёт игрока: Glider строит TowTrikeVisual (тележка, крыло, сидящий пилот, винт от оборотов) вместо GliderVisual, части интерполируются между шагами физики; PilotHead/InstrumentPanel; Game монтирует TrikeGauges3D и TrikeGaugesHud (chase - виден, cockpit - скрыт); камера кабины из головы без back_offset, тело пилота на скрытом слое; звук setup_player/update_engine. Дельтаплан без изменений.",
+  "commits": [
+    "12bb9af9 TP-8: вид, камера, приборы и звук дельталёта игрока (TP-К8)"
+  ],
+  "checks": [
+    {
+      "name": "trike_pilot",
+      "value": "49/49",
+      "pass": true
+    },
+    {
+      "name": "tow",
+      "value": "105/105",
+      "pass": true
+    },
+    {
+      "name": "pilot_hud",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "cockpit",
+      "value": "5/5 (пропуск 4 - прежние)",
+      "pass": true
+    },
+    {
+      "name": "clock_label",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Фаза wheels осталась считаться flying в Glider._update_pilot: она влияет только на позу GliderVisual, у дельталёта визуала-дельтаплана нет - возвращать нечего."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TP-8",
+  "uncertain": [
+    {
+      "where": "scripts/flight/glider.gd:_update_trike_visual",
+      "why": "вид top_level, интерполяция hang_pos/кватернионов самим Glider; камера кабины берёт Head до/после Glider._process - порядок кадров не проверен визуально",
+      "checked": "только headless-тест: глаз <= 0,15 м от PilotHead, нормаль панели смотрит на пилота"
+    },
+    {
+      "where": "scripts/game/game.gd:_mount_trike_gauges",
+      "why": "читаемость приборов на панели и HUD визуально не смотрел (скриншоты не заказаны)",
+      "checked": "тест: TrikeGauges3D - потомок InstrumentPanel, HUD chase/cockpit"
+    },
+    {
+      "where": "звук",
+      "why": "громкость в кабине на слух не проверена; при паузе/меню звук гасится только остановом двигателя",
+      "checked": "тест: играет при running"
+    }
+  ],
+  "dp_feedback": "dpcli accept --dry в Bash-фоне молча умирал с пустым выводом; помогло job start/wait. Хотелось бы, чтобы accept сам шёл под lock cpu и писал прогресс в stdout.",
+  "t": "2026-10-23T04:20:05",
+  "by": "executor"
+}
