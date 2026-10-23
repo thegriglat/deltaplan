@@ -125,6 +125,7 @@ var _peak_spacing := NAN
 var _heating := SurfaceHeating.new()
 ## Ход дня для атмосферы (погода, солнце, источники — функции времени атмосферы, NET-00).
 var _day: AtmoDay
+var _recentered := false  ## дельталёт: камера уже по центру после первого отрыва полёта (подскоки не в счёт)
 var _touchdown := {}  ## оценка последнего касания (LandingJudge) — для итога
 var _prev_phase := ""
 var _alt_pub_at := -1.0  ## sim_time_s последней публикации высоты в Activity (−1 — ещё нет)
@@ -217,8 +218,7 @@ func _ready() -> void:
 	glider.telemetry_updated.connect(_on_telemetry)
 	glider.landed.connect(_on_landed)
 	feed = AchievementFeed.new(self)
-	glider.took_off.connect(_feed_begin)
-	glider.took_off.connect(camera.recenter)  # после разбега взгляд — по центру (как средняя кнопка)
+	glider.took_off.connect(_on_took_off)
 	_connect_achievements()
 	glider.takeoff_failed.connect(_on_takeoff_failed)
 	_whiteout.setup(_cfg.get("cloud_whiteout", {}))
@@ -814,6 +814,7 @@ func restart(keep_clock: bool = false) -> void:
 	_crashed = false
 	_ended = false
 	_touchdown = {}
+	_recentered = false
 	_prev_phase = ""
 	sim_time_s = 0.0
 	if net == null and not keep_clock:  # в сети мир идёт по часам зоны — «Ещё раз» его не сбрасывает
@@ -878,6 +879,7 @@ func continue_on_foot() -> void:
 	_tracks_finish()
 	_ended = false
 	_touchdown = {}
+	_recentered = false
 	_tracks_begin()
 	stats.reset(glider.get_telemetry().position)
 	_goals_reset()
@@ -1385,6 +1387,7 @@ func _end_catch_up(r: Dictionary) -> void:
 	_crashed = false
 	_ended = false
 	_touchdown = {}
+	_recentered = false
 	stats.reset(pos)
 	stats.armed = glider.phase() == "flying"
 	instrument.reset()
@@ -1902,6 +1905,20 @@ func _on_telemetry(t: Telemetry) -> void:
 	_animator.update(t.phase, t.altitude_agl, t.vario, glider.model.flare_amount(), _dt)
 
 
+## Нужен ли recenter камеры при отрыве: дельтаплан — всегда; дельталёт — только первый отрыв с разбега
+## (подскоки на колёсах шлют took_off на каждом отрыве, взгляд пилота не сбрасываем).
+static func recenter_on_takeoff(trike: bool, already: bool) -> bool:
+	return not (trike and already)
+
+
+## Отрыв (glider.took_off): взгляд по центру (как средняя кнопка), начало потока ачивок.
+func _on_took_off() -> void:
+	if recenter_on_takeoff(glider.is_trike(), _recentered):
+		camera.recenter()
+	_recentered = true
+	_feed_begin()
+
+
 ## Отрыв (glider.took_off) и старт в воздухе: начало потока для ачивок.
 func _feed_begin() -> void:
 	if not _ended and tow == null and not inspect_mode:
@@ -1929,6 +1946,7 @@ func _connect_achievements() -> void:
 		feed.flight_finished.connect(Callable(ach, "on_flight_finished"))
 
 
+## Касание: звук — на каждом касании (у дельталёта и на подскоках), оценка перезаписывается — итог по последнему.
 ## Касание ногами: звук и оценка сейчас, итог — когда FlightStats засчитает посадку.
 func _on_landed(result: Dictionary) -> void:
 	flight_audio.play_landing(result)

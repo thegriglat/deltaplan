@@ -270,3 +270,11 @@ func test_armed_by_distance() -> void:
 	for i in 120:
 		st.update(_tele("flying", Vector3(0.0, 3.0, -float(i)), 3.0, 15.0), DT)
 	check(st.armed, "взведён по удалению >= 50 м")
+
+
+## TP-24: recenter камеры при отрыве - у дельтаплана всегда, у дельталёта только первый отрыв (подскоки не в счёт).
+func test_recenter_only_first_for_trike() -> void:
+	check(Game.recenter_on_takeoff(false, false), "дельтаплан: первый отрыв - recenter")
+	check(Game.recenter_on_takeoff(false, true), "дельтаплан: каждый отрыв - recenter (без изменений)")
+	check(Game.recenter_on_takeoff(true, false), "дельталёт: первый отрыв с разбега - recenter")
+	check(not Game.recenter_on_takeoff(true, true), "дельталёт: подскок - без recenter")
