@@ -31,3 +31,5 @@
 {"t": "2026-10-23T04:57:34", "by": "coordinator", "task": "CL-1", "ev": "checked", "note": "4/4 test_cliff_look_contracts=ok:3/3; views=ok:10; shots_before=ok:10; readme=ok:0; scope=FAIL:вне scope: r-CL-1.json"}
 {"t": "2026-10-23T04:57:44", "by": "coordinator", "task": "CL-1", "ev": "checked", "note": "4/4 test_cliff_look_contracts=ok:3/3; views=ok:10; shots_before=ok:10; readme=ok:0"}
 {"t": "2026-10-23T04:57:52", "by": "coordinator", "task": "CL-1", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T05:02:13", "by": "coordinator", "task": "CL-1", "ev": "accepted", "commits": ["78c1ad9"], "note": "4/4 test_cliff_look_contracts=ok:3/3; views=ok:10; shots_before=ok:10; readme=ok:0"}
+{"t": "2026-10-23T05:02:37", "by": "coordinator", "task": "CL-1", "ev": "merged"}
