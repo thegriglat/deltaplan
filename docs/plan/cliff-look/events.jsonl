@@ -54,3 +54,5 @@
 {"t": "2026-10-23T05:04:50", "by": "coordinator", "task": "CL-3", "ev": "note", "note": "Документы: docs/guide/terrain/surface.md «Скалы и снег» — 1–2 фразы про рельеф снега и ключи snow_relief_*; CHANGELOG.md — строка в «В работе». .dpcli/dpcli docs check без ОШИБОК по своим файлам. Кадры — только картинки в /home/greg/deltaplan/build/screenshots/cliff-look/.", "addendum": true}
 {"t": "2026-10-23T05:05:06", "by": "coordinator", "task": "CL-3", "ev": "note", "note": "Сырые кадры «до» CL-1 лежат в ~/deltaplan-cliff-look-CL-1/build/cliff_look_raw/before — скопируй к себе в build/ (копия CL-1 будет удалена после твоего старта).", "addendum": true}
 {"t": "2026-10-23T05:05:07", "by": "coordinator", "task": "CL-2", "ev": "note", "note": "Сырые кадры «до» CL-1 (если понадобятся) — ~/deltaplan-cliff-look-CL-1/build/cliff_look_raw/before; скопируй к себе в build/ сразу.", "addendum": true}
+{"t": "2026-10-23T05:05:27", "by": "coordinator", "task": "CL-2", "ev": "started"}
+{"t": "2026-10-23T05:05:27", "by": "coordinator", "task": "CL-3", "ev": "started"}
