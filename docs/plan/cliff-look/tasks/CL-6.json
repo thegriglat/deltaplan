@@ -1,0 +1,89 @@
+{
+  "id": "CL-6",
+  "module": "cliff-look",
+  "type": "dp-engineer",
+  "title": "Откат блоков породы CL-2: крутые склоны без полос и без нового рисунка; кадры «после»",
+  "goal": "Убрать из шейдера рельефа и конфига блоки породы CL-2 («брусчатка»), оставив снятые уступы/слои (полос нет) и ослабление мелкой ряби на крутом; снег CL-3 не трогать. Снять кадры «после» всего стенда и таблицу до/после.",
+  "plan_ref": "§CL-6",
+  "contracts": [
+    {
+      "name": "CL-К2",
+      "version": "3",
+      "ref": "docs/contracts/cliff-look.md"
+    },
+    {
+      "name": "CL-К1",
+      "version": "3",
+      "ref": "docs/contracts/cliff-look.md"
+    },
+    {
+      "name": "MLK-К2",
+      "version": "2",
+      "ref": "docs/contracts/cliff-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-cliff-look-CL-6",
+  "branch": "cliff-look/CL-6",
+  "base": "feature/cliff-look",
+  "scope": [
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "configs/world.json",
+    "tools/shots/cliff_look_shot.gd",
+    "tools/research/cliff_look/**",
+    "docs/guide/terrain/surface.md",
+    "docs/guide/terrain/relief.md",
+    "docs/guide/terrain.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/rock_scatter.gd",
+    "scripts/terrain/relief_look.gd",
+    "scripts/sky/",
+    "project.godot",
+    "tools/shots/cliff_look_views.json",
+    "tools/research/cliff_look/snow_compare.py"
+  ],
+  "accept": [
+    {
+      "name": "test_relief",
+      "tests": "test_relief"
+    },
+    {
+      "name": "scene_look",
+      "tests": "scene_look"
+    },
+    {
+      "name": "test_cliff_look_contracts",
+      "tests": "test_cliff_look_contracts"
+    },
+    {
+      "name": "gpu_variants",
+      "cmd": "tools/gpu_tests.sh --filter=test_terrain_variants_gpu 2>&1 | tail -20",
+      "expect": "num:(\\d+) упало <=0"
+    },
+    {
+      "name": "no_blocks",
+      "cmd": "grep -cE 'cliff_block|cliff_bulge|cliff_tilt|cliff_tone|cliff_crack|cliff_ao|cliff_jitter|cliff_fade|ledge_|strata_strength' scripts/terrain/terrain_main.gdshaderinc configs/world.json | awk -F: '{s+=$2} END{print \"LEFT \" s}'",
+      "expect": "num:LEFT (\\d+) <=0"
+    },
+    {
+      "name": "shots_after",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cliff-look/after_*.jpg | wc -l | sed 's/^/SHOTS /'",
+      "expect": "num:SHOTS (\\d+) >=10"
+    },
+    {
+      "name": "stripes",
+      "cmd": "python3 -I tools/research/cliff_look/compare.py tools/research/cliff_look/diag_before.json tools/research/cliff_look/diag_after.json",
+      "expect": "num:STRIPES_RATIO ([0-9.]+) <=0.5"
+    },
+    {
+      "name": "ripple",
+      "cmd": "python3 -I tools/research/cliff_look/compare.py tools/research/cliff_look/diag_before.json tools/research/cliff_look/diag_after.json",
+      "expect": "num:RIPPLE_RATIO ([0-9.]+) <=0.9"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T12:14:52"
+}

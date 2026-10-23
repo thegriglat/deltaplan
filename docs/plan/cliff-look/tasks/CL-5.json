@@ -1,0 +1,118 @@
+{
+  "id": "CL-5",
+  "module": "cliff-look",
+  "type": "dp-engineer",
+  "title": "Смещение вершин на крутых скалах — настоящая неровность",
+  "goal": "На крутых скалах — настоящая геометрическая неровность (выступы и блоки по линии падения, трещины) смещением вершин, у камеры тоже; на пологом и у мест посадки — без смещения; «брусчатки» нет. Физика (height_at) не меняется.",
+  "plan_ref": "§CL-5",
+  "contracts": [
+    {
+      "name": "CL-К3",
+      "version": "1",
+      "ref": "docs/contracts/cliff-look.md"
+    },
+    {
+      "name": "CL-К2",
+      "version": "2",
+      "ref": "docs/contracts/cliff-look.md"
+    },
+    {
+      "name": "CL-К1",
+      "version": "3",
+      "ref": "docs/contracts/cliff-look.md"
+    },
+    {
+      "name": "MLK-К2",
+      "version": "2",
+      "ref": "docs/contracts/cliff-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-cliff-look-CL-5",
+  "branch": "cliff-look/CL-5",
+  "base": "feature/cliff-look",
+  "scope": [
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "scripts/terrain/variants/**",
+    "scripts/terrain/terrain_renderer.gd",
+    "scripts/terrain/relief_look.gd",
+    "configs/world.json",
+    "tests/contracts/test_mountain_look_contracts.gd",
+    "tests/contracts/test_cliff_look_contracts.gd",
+    "tests/terrain/test_relief*",
+    "tests/terrain/test_lod_k_gpu.gd",
+    "tools/bench/cliff_look_*",
+    "tools/research/cliff_look/**",
+    "tools/shots/cliff_look_shot.gd",
+    "tools/shots/cliff_look_shots.sh",
+    "docs/guide/terrain/relief.md",
+    "docs/guide/terrain/surface.md",
+    "docs/guide/terrain.md",
+    "docs/contracts/cliff-look.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/terrain.gd",
+    "scripts/terrain/height_layer.gd",
+    "scripts/terrain/rock_scatter.gd",
+    "scripts/sky/",
+    "project.godot",
+    "tools/shots/cliff_look_views.json"
+  ],
+  "accept": [
+    {
+      "name": "test_mountain_look_contracts",
+      "tests": "test_mountain_look_contracts"
+    },
+    {
+      "name": "test_cliff_look_contracts",
+      "tests": "test_cliff_look_contracts"
+    },
+    {
+      "name": "test_relief",
+      "tests": "test_relief"
+    },
+    {
+      "name": "scene_look",
+      "tests": "scene_look"
+    },
+    {
+      "name": "gpu_variants",
+      "cmd": "tools/gpu_tests.sh --filter=test_terrain_variants_gpu 2>&1 | tail -20",
+      "expect": "num:(\\d+) упало <=0"
+    },
+    {
+      "name": "gpu_relief",
+      "cmd": "tools/gpu_tests.sh --filter=_gpu 2>&1 | grep -E 'тест|упало' | tail -5",
+      "expect": "num:(\\d+) упало <=0"
+    },
+    {
+      "name": "shots_cl5",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cliff-look/cl5_*.jpg | wc -l | sed 's/^/SHOTS /'",
+      "expect": "num:SHOTS (\\d+) >=10"
+    },
+    {
+      "name": "dh_rms",
+      "cmd": "cat tools/research/cliff_look/dh_probe.txt",
+      "expect": "num:CLIFF_DH_RMS_M ([0-9.]+) >=1.5"
+    },
+    {
+      "name": "dh_flat",
+      "cmd": "cat tools/research/cliff_look/dh_probe.txt",
+      "expect": "num:FLAT_DH_MAX_M ([0-9.]+) <=0.01"
+    },
+    {
+      "name": "dh_dist",
+      "cmd": "cat tools/research/cliff_look/dh_probe.txt",
+      "expect": "num:DIST_STEP_MAX_M ([0-9.]+) <=2.0"
+    },
+    {
+      "name": "stripes",
+      "cmd": "python3 -I tools/research/cliff_look/compare.py tools/research/cliff_look/diag_before.json tools/research/cliff_look/diag_cl5.json",
+      "expect": "num:STRIPES_RATIO ([0-9.]+) <=0.5"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T12:14:04"
+}
