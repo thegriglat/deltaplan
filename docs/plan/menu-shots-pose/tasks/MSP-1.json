@@ -1,0 +1,64 @@
+{
+  "id": "MSP-1",
+  "module": "menu-shots-pose",
+  "type": "dp-engineer",
+  "title": "Фиксированная установившаяся поза планера на кадрах фона меню",
+  "goal": "Найти, почему на части кадров menu_art.py планер в крутом крене/пикировании, и снимать кадр с зафиксированной установившейся позой (MSP-К1); переснять 16 номеров 4K с превью 960 px.",
+  "plan_ref": "§3 MSP-1",
+  "contracts": [
+    {
+      "name": "MSP-К1",
+      "version": "1",
+      "ref": "docs/contracts/menu-shots-pose.md"
+    }
+  ],
+  "copy": "~/deltaplan-menu-shots-pose-MSP-1",
+  "branch": "menu-shots-pose/MSP-1",
+  "base": "feature/menu-shots-pose",
+  "scope": [
+    "tools/shots/menu_background.gd",
+    "tools/shots/menu_art.py",
+    "tools/shots/menu_art.json",
+    "tools/shots/menu_pose_check.py",
+    "tools/shots/menu_background.json"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "scenes/",
+    "configs/",
+    "project.godot",
+    "tools/shots/haze_humidity_shots.sh",
+    "tools/store/",
+    "/home/greg/deltaplan/build/shots-menu4k"
+  ],
+  "accept": [
+    {
+      "name": "selftest",
+      "cmd": "python3 tools/shots/menu_pose_check.py --selftest",
+      "expect": "exit=0"
+    },
+    {
+      "name": "pose16",
+      "cmd": "python3 tools/shots/menu_pose_check.py /home/greg/deltaplan/build/screenshots/menu-shots-pose",
+      "expect": "re:pose ok 16/16"
+    },
+    {
+      "name": "png16",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/menu-shots-pose/*.png | wc -l",
+      "expect": "num:(\\d+) >=16"
+    },
+    {
+      "name": "preview16",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/menu-shots-pose/preview/*.jpg | wc -l",
+      "expect": "num:(\\d+) >=16"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py tools/shots/menu_background.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T19:30:49"
+}
