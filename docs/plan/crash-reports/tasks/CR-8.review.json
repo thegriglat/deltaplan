@@ -1,19 +1,11 @@
 {
-  "verdict": "rework",
-  "summary": "Почти всё из доработки-2 закрыто: стадия берётся из последней строки «[stage]» хвоста лога (есть тест), на macOS kill -0, CHANGELOG совпадает с кодом, refresh_switches вызывается в settings_panel и GpuSafety. Перезапуск tests дал PASS 15/15, скоуп чист. Не сделан пункт 3 доработки-2: при запуске из редактора окно после обрыва всё равно появляется, и в отчёте об этом ничего не сказано.",
-  "issues": [
-    {
-      "file": "scenes/main.gd",
-      "line": 78,
-      "severity": "major",
-      "what": "Пункт 3 доработки-2 («запуск из редактора, OS.has_feature(\"editor\"), — окно после обрыва не показывать») не выполнен: в main.gd, render_driver.gd и crash_report*.gd нет проверки has_feature(\"editor\"). _enter_tree вызывает RenderDriver.previous_crash в любом запуске с окном, кроме служебных аргументов. При запуске из редактора CrashReporter неактивен (should_track требует template), поэтому строк «[stage]» нет, и last_logged_stage даёт «меню». Если остановить игру кнопкой Stop (процесс убивается, _exit_tree не вызывается, метка user://gpu_session.json остаётся), то при следующем F5 should_offer_after_crash вернёт true и откроется окно с переключением драйвера или «Безопасной графикой». В отчёте пункт не упомянут: он сдан как выполненный, хотя это не так.",
-      "fix": "В _enter_tree (или в _service_run) при OS.has_feature(\"editor\") не вызывать previous_crash и не вести метку сеанса. Добавить тест или хотя бы вынести условие в статическую функцию с проверкой."
-    }
-  ],
+  "verdict": "accept",
+  "summary": "Замечание ревью-3 закрыто: RenderDriver.watch_enabled(editor/headless/service) гейтит метку сеанса, previous_crash, окно и clear_session; есть тест. Скоуп чист, project.godot — одна своя строка.",
+  "issues": [],
   "rerun": [
     {
-      "name": "tests (accept CR-8 --only tests --dry)",
-      "value": "15/15",
+      "name": "tests (accept --only tests --dry)",
+      "value": "16/16",
       "pass": true
     },
     {
@@ -22,6 +14,6 @@
       "pass": true
     }
   ],
-  "t": "2026-10-23T04:58:19",
+  "t": "2026-10-23T05:01:00",
   "by": "reviewer"
 }
