@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Game: took_off теперь идёт в _on_took_off; recenter камеры у дельталёта только при первом отрыве полёта (флаг _recentered, сброс там же где _touchdown), у дельтаплана каждый раз как раньше. Звук посадки — на каждом landed; _touchdown перезаписывается каждым касанием, значит итог — по последнему.",
+  "commits": [
+    "TP-24 Дельталёт: recenter камеры только при первом отрыве, звук — на каждом касании"
+  ],
+  "checks": [
+    {
+      "name": "trike_cycle",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "flight_stats",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot",
+      "value": "50/51, падает test_trike_pilot_k6::test_contract_version (версия раздела TP-К6 v1, док уже v2)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "trike_pilot: test_contract_version в tests/contracts/test_trike_pilot_k6.gd ждёт TP-К6 v1, а контракт v2 — вне скоупа, к моему изменению не относится"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TP-24",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd _on_took_off",
+      "why": "Game целиком в тесте не поднимался; логика вынесена в static recenter_on_takeoff и проверена юнит-тестом. feed.begin по-прежнему вызывается на каждом отрыве (как было), для дельталёта повторные begin на подскоках не менял",
+      "checked": "trike_cycle 4/4"
+    }
+  ],
+  "dp_feedback": "Первый запуск accept в копии без godot --import зависает молча (trike_pilot упал по таймауту 900 с, без подсказки); dpcli accept мог бы делать import сам.",
+  "t": "2026-10-23T05:51:21",
+  "by": "executor"
+}
