@@ -1,0 +1,109 @@
+{
+  "status": "done",
+  "summary": "Крейт picard_rs (lib + bin picard): полная итерация Пикара AM-01 на f32 с явным rayon-пулом, blocks/solve/bench. Блоки против R1: max_block_rel = 6,3e-7 (допуск 1e-5); 4 случая ref/ сходятся за то же число итераций, что эталон (30/780/60/470), u_rel <= 6,2e-7, th_abs <= 3,6e-7 К; R2 в out/.",
+  "commits": [
+    "e1e1b6f60 air-cascade AC-R1: крейт picard_rs — итерация Пикара AM-01 на Rust, сверка с ref/"
+  ],
+  "checks": [
+    {
+      "name": "contract_crate",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "build_release",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "blocks_dev",
+      "value": "max_block_rel=6.3474e-07",
+      "pass": true
+    },
+    {
+      "name": "solve_ref_release",
+      "value": "worst=6.23e-4 (допуск 1)",
+      "pass": true
+    },
+    {
+      "name": "pure_rust",
+      "value": "нет *-sys/cc/cmake",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Скорость не оптимизировалась (не цель): на малых сетках ref/ 8 потоков медленнее 1 (saddle: 11 мс/ит на 1 поток, 47 мс/ит на 8, при квоте CPU=100% замка) — накладные rayon на ~150 мелких параллельных регионов за итерацию; замеры и тюнинг — AC-R3.",
+    "Не портированы: подготовка случая, тёплый старт, окна (nest), adv2, omega_u (в эталоне выключены или вне шага 0).",
+    "Типы клеток/граней не проверяются на совпадение: они читаются из фикстуры (подготовка не портирована)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": "DPCLI_NO_TMUX=1 .dpcli/dpcli accept AC-R1; подробности и таблица — tools/research/air_cascade/picard_rs/README.md",
+  "uncertain": [
+    {
+      "where": "tools/research/air_cascade/picard_rs/src/solver.rs:divergence",
+      "why": "Дивергенция считается разностями в f64 и округляется в f32 (отход от чистого f32 GPU). Чистый f32 дал на flat_wind ∇·u* 1,04e-5 против f64 от тех же входов (допуск 1e-5): ошибка вычитания f32 сравнима с самой ∇·u на почти бездивергентном потоке.",
+      "checked": "после замены блоки <= 6,3e-7, итерации Rust = эталон на всех 4 случаях. GPU игры проходит этот допуск, вероятно, за счёт иного порядка операций/FMA; чистый f32 на GPU не воспроизводил."
+    },
+    {
+      "where": "tools/research/air_cascade/picard_rs/src/lines.rs:sweep_dir",
+      "why": "Единственный unsafe (util::Shared): параллельная запись в линии Томаса одного цвета зебры. Корректность держится на том, что соседи вне линии — другого цвета.",
+      "checked": "результат на 8 потоках совпадает с эталоном до ~1e-7, итерации те же; запуск с 1/2/8 потоками даёт тот же результат bench. Miri/ThreadSanitizer не гонял."
+    },
+    {
+      "where": "tools/research/air_cascade/picard_rs/README.md (Зависимости)",
+      "why": "Надёжность крейтов (rayon, serde, serde_json, anyhow, clap) оценена по назначению и составу зависимостей, числа загрузок и даты релизов не измерялись (сети для метрик crates.io не запрашивал).",
+      "checked": "cargo tree: только pure-Rust, без *-sys/cc/cmake; лицензии MIT/Apache-2.0."
+    },
+    {
+      "where": "расхождения reference.md и air.py",
+      "why": "k_relax: в тексте reference.md 0,5, в params фикстуры 0,1 (взято из JSON, блоки kloc совпадают до 9e-8). Также в тексте 'Δτ_u 0,3 с/м' vs 600 с в ref/ — взято dtau_u из JSON. Других расхождений порт не выявил.",
+      "checked": "блоки kloc и импульса совпадают с эталоном."
+    },
+    {
+      "where": "первое совпадение",
+      "why": "Не совпало с первого раза одно: ∇·u* на flat_wind (см. выше). Остальные блоки совпали с первого запуска. Наибольшие ошибки блоков: V-цикл (6,3e-7 flat_wind после центрирования), div u* f64 (1,0e-5 до правки, 1e-7..4e-7 после), шаг импульса u (4,5e-7).",
+      "checked": "таблица в stdout picard blocks"
+    }
+  ],
+  "dp_feedback": "1) Под TMUX (окно по умолчанию) вложенный `lock cpu ... -- cargo run` в проверке accept возвращает только строку про PID, stdout уходит в окно/лог job, и проверка с num-regex падает «число не найдено» (blocks_dev). Помог DPCLI_NO_TMUX=1 при запуске accept; лучше, чтобы accept сам выставлял DPCLI_NO_TMUX или передавал --no-tmux для cmd с lock в начале. 2) Мои прямые вызовы `lock cpu` из Bash в tmux-сессии тоже уходят в фон без вывода (нужен --no-tmux). 3) `docs check` выдаёт 94 предупреждения чужих файлов — шум.",
+  "extra": {
+    "max_block_rel": 6.3474e-07,
+    "iters_rust_vs_ref": {
+      "flat_wind": "30/30",
+      "agnesi": "780/780",
+      "heated_slope": "60/60",
+      "saddle": "470/470"
+    },
+    "u_rel": {
+      "flat_wind": 5.69e-07,
+      "agnesi": 5.16e-07,
+      "heated_slope": 3.7e-07,
+      "saddle": 6.23e-07
+    },
+    "th_abs_K": {
+      "flat_wind": 1.66e-07,
+      "agnesi": 0.0,
+      "heated_slope": 8.94e-08,
+      "saddle": 3.58e-07
+    },
+    "worst_tolerance_ratio": 0.000623,
+    "ms_per_iter_saddle_release": {
+      "t1": 11.3,
+      "t2": 13.5,
+      "t8": 46.8
+    }
+  },
+  "t": "2026-10-24T04:49:53",
+  "by": "executor"
+}
