@@ -504,6 +504,7 @@ generated: true
 
 - [docs/registry/air-model-findings.md](registry/air-model-findings.md) — Выводы модуля air-model (вынесены из docs/registry/findings.md по размеру реестра).
 - [docs/registry/findings.md](registry/findings.md) — Реестр выводов закрытых работ: раздел на модуль, пункт — одна строка с числом и ссылкой; отклонённые модули помечены (отклонено).
+- [docs/registry/findings/haze-humidity.md](registry/findings/haze-humidity.md) — Выводы haze-humidity (вынесены из findings.md по размеру): Td, дымка, облака, верхний воздух, Tmax, рост ветра, закат.
 - [docs/registry/pendulum-findings.md](registry/pendulum-findings.md) — Выводы pendulum и pullin-speed: каналы маятника, срыв, Vmax «на себя» (Cm(α), добор), переворот при выходе из разгона.
 - [TODO.md](../TODO.md) — Реестр задач T-NN по блокам (воздух, полёт, мир, графика, сеть, релиз): строка с состоянием и ссылкой на план
 - [REQUIREMENTS.md](../REQUIREMENTS.md) — Требования к игре: физика, атмосфера, мир, интерфейс, звук, управление, визуал (MVP → позже) и нефункциональные NFR-1…7
