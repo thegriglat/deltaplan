@@ -1,0 +1,56 @@
+{
+  "id": "HH-4e",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Рост ветра с высотой от ветра на высоте старта (HH7 v2, Q7 б)",
+  "goal": "ClimateGrid.place считает gain_per_km по контракту HH7 v2 (линейный профиль V10→V700, опора — ветер на высоте старта), Game передаёт высоту старта; в Алтае рост меньше прежних 1,6–2,3 на км; таблица до/после.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "HH7",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH6",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-4e",
+  "branch": "haze-humidity/HH-4e",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "scripts/atmosphere/climate_grid.gd",
+    "scripts/game/game.gd",
+    "tests/atmosphere/",
+    "tests/contracts/test_haze_humidity_contracts.gd",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "data/",
+    "tools/research/",
+    "docs/contracts/",
+    "scripts/world/",
+    "scripts/terrain/",
+    "configs/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "haze_humidity",
+      "tests": "haze_humidity"
+    },
+    {
+      "name": "wind",
+      "tests": "wind"
+    },
+    {
+      "name": "weather",
+      "tests": "weather"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T18:47:34"
+}

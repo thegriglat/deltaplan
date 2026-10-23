@@ -1,0 +1,62 @@
+{
+  "id": "HH-8c",
+  "module": "haze-humidity",
+  "type": "dp-writer",
+  "title": "Документы: рост ветра по данным (HH-1h, Q7), раздел находок модуля в отдельный файл",
+  "goal": "Руководство описывает рост ветра с высотой по ERA5 (WR, опора — ветер на высоте старта, HH7 v2) вместо «заглушки до HH-1h»; раздел haze-humidity из docs/registry/findings.md (43 КБ > 40) вынесен в docs/registry/findings/haze-humidity.md со ссылкой; docs check без ошибок модуля.",
+  "plan_ref": "Волна 3",
+  "contracts": [
+    {
+      "name": "HH7",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH6",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-8c",
+  "branch": "haze-humidity/HH-8c",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "docs/guide/",
+    "docs/registry/findings.md",
+    "docs/registry/findings/",
+    "docs/INDEX.md",
+    "docs/registry/contracts.md",
+    "docs/registry/research.md",
+    "tools/research/haze_humidity/upper_misc/README.md",
+    "tools/research/haze_humidity/era5_source/README.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "data/",
+    "docs/contracts/",
+    "docs/plan/",
+    "CHANGELOG.md"
+  ],
+  "accept": [
+    {
+      "name": "findings_size",
+      "cmd": "stat -c %s docs/registry/findings.md",
+      "expect": "num:(\\d+) <=40960"
+    },
+    {
+      "name": "no_stub_text",
+      "cmd": "! /usr/bin/grep -rn 'заглушка до HH-1h' docs/guide/",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs_mine",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | /usr/bin/grep ОШИБКА | /usr/bin/grep -v test-script-errors | wc -l",
+      "expect": "re:^0$"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T18:47:38"
+}
