@@ -134,3 +134,5 @@
 {"t": "2026-10-23T05:07:38", "by": "executor", "task": "SNW-9", "ev": "reported", "commits": ["e8a57059a"], "note": "done: Сняты 6 кадров v3 (4 старых имени перезаписаны + everest/shymbulak_strong_near). Струйки по форме верные, но редкие: вб…", "dp_feedback": "dpcli lock cpu ... -- cmd возвращается сразу (tmux), ждать надо job wait; первый cp кэша места молча не сработал."}
 {"t": "2026-10-23T05:07:45", "by": "coordinator", "task": "SNW-9", "ev": "checked", "note": "2/2 readme=ok:---; frames_v3=ok:0"}
 {"t": "2026-10-23T05:07:57", "by": "coordinator", "task": "SNW-9", "ev": "accepted", "note": "по отчёту; кадры v3 готовы, струйки редкие — вопрос пользователю"}
+{"t": "2026-10-23T05:07:58", "by": "coordinator", "task": "SNW-9", "ev": "accepted", "commits": ["2cc7505cf"], "note": "2/2 readme=ok:---; frames_v3=ok:0"}
+{"t": "2026-10-23T05:07:58", "by": "coordinator", "task": "SNW-9", "ev": "merged"}
