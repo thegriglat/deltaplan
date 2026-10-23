@@ -337,6 +337,8 @@ Godot — ровно `raw_size`.
 
 **`static func place(ctx: Dictionary) -> Dictionary`** — `ctx {lat, lon, month, day, valley_msl_m}`; результат `at()`
 плюс поправки к высоте долины места `dz_km = (valley_msl_m − z_cell_m)/1000`:
+(уточнение 2026-10-23: нет `valley_msl_m` в ctx или NAN — поправки нет, `dz_km = 0`, значения на средней высоте ячейки; 0 —
+это уровень моря, не «нет данных»; если известна высота старта места — передавать её как `valley_msl_m`)
 - `td_c += g_td · dz_km`; `g_td` — К/км по поясу и сезону, `configs/weather_model.json → climate.td_gradient_k_per_km`
   (HH-1, README `tools/research/haze_humidity/dew_point/`: 30–60° — зима −4,5, весна −3,9, лето −3,3, осень −4,2;
   тропики ±20° — −4,6; прочее — −4,0);
