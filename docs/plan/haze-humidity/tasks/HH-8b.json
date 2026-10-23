@@ -48,7 +48,8 @@
     "tools/research/haze_humidity/sky_light/README.md",
     "tools/research/haze_humidity/sunset_color/README.md",
     "tools/research/haze_humidity/era5_source/README.md",
-    "tools/research/haze_humidity/verify/README.md"
+    "tools/research/haze_humidity/verify/README.md",
+    "docs/registry/findings/"
   ],
   "dont_touch": [
     "scripts/",
@@ -73,5 +74,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-23T14:25:40"
+  "created": "2026-10-23T14:25:40",
+  "edited": "2026-10-23T14:25:55"
 }
