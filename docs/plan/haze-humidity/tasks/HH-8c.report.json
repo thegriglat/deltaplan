@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "weather.md: WR из данных ERA5 2018-2019 (медиана 1,47-1,51, Алтай 3-6, опора - ветер на высоте старта, формула HH7 v2); раздел haze-humidity вынесен в docs/registry/findings/haze-humidity.md (+пункт про WR); findings.md 40949 Б; research.md и INDEX обновлены.",
+  "commits": [
+    "015c9963d docs: рост ветра по данным, находки в отдельный файл"
+  ],
+  "checks": [
+    {
+      "name": "findings_size",
+      "value": "40949",
+      "pass": true
+    },
+    {
+      "name": "no_stub_text",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs_mine",
+      "value": "0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-8c",
+  "uncertain": [
+    {
+      "where": "docs/registry/findings.md",
+      "why": "запас до лимита 40 КБ всего 11 байт",
+      "checked": "stat -c %s"
+    }
+  ],
+  "dp_feedback": "findings.md у лимита 40 КБ: хотелось бы подсказки docs check, что выносить; таблица markdown ломается на | в формулах - docs check не предупреждает.",
+  "t": "2026-10-23T18:49:38",
+  "by": "executor"
+}
