@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-24"
 summary: "Стыки шага 0 air-cascade (Пикар на Rust): вход — случаи формата ref/ (R1), выход решателя — JSON замера (R2), крейт и сборка (R3)."
 related: ["docs/plan/air-cascade.md", "docs/guide/air-model-gpu/picard.md", "tools/research/air3d/reference.md"]
-contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 1}, {"id": "R3", "version": 2}]
+contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 1}, {"id": "R3", "version": 3}]
 ---
 
 # Контракты модуля air-cascade
@@ -71,7 +71,7 @@ Python): `python3 <путь> --ref <case.json>…` (R1), `--results <dir>` (R2),
   `host` = {`cpu`, `rustc`, `git`}.
 - Единицы: м/с, К, с, мс, нс. `u_rel`, `p_rel` — безразмерные.
 
-## R3 v2 — крейт решателя и сборка
+## R3 v3 — крейт решателя и сборка
 Владелец — AC-R1; потребители — AC-R3 (замеры), шаг 1 плана (2D со временем), возможная GDExtension.
 - Место: `tools/research/air_cascade/picard_rs/` — отдельный пакет Cargo (`name = "picard_rs"`, edition
   2024), не член чужого workspace; lib + bin `picard`. Без Godot и без зависимостей от кода игры.
@@ -98,7 +98,10 @@ Python): `python3 <путь> --ref <case.json>…` (R1), `--results <dir>` (R2),
   лицензия, совместимая с open source (MIT/Apache-2.0/BSD и т. п.). Выбор и причина — коротко, таблицей в
   README крейта (раздел «Зависимости»: крейт, версия, зачем, почему надёжен, лицензия). Свой код — только
   численное ядро схемы (трафареты, прогонки, V-цикл), где общий крейт не подходит, — с причиной там же.
-  Без сети в рантайме.
+  Только pure-Rust (v3, указание пользователя 2026-10-24): без C/C++/Fortran-зависимостей, системных
+  библиотек, BLAS/LAPACK через FFI, `build.rs` с `cc`/`cmake` — сборка под Linux/Windows/macOS без
+  внешних инструментов. Крейт с нативной зависимостью — только если pure-Rust аналога нет, с пометкой
+  в таблице «Зависимости». Без сети в рантайме.
 
 ## Допуски сверки (по GPU-тесту `tests/atmosphere/test_air_picard_gpu.gd`)
 - Блоки одной итерации: ≤ 1e-5 отн. (V-цикл — после вычитания среднего); типы клеток/граней — точно.
