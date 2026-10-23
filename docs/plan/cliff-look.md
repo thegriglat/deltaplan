@@ -47,7 +47,7 @@ related: ["docs/contracts/cliff-look.md", "docs/guide/terrain/surface.md", "docs
 Физика, `surface_at`, классы снега не меняются. 
 
 ### CL-4 Кадры «после» и итоговые числа (после CL-2 и CL-3)
-`dp-mechanic`. Стенд CL-К1: `cliff_look_shots.sh after` — все ракурсы на ветке модуля с влитыми CL-2/CL-3, числа `diag_metrics.py`
+`dp-engineer` (opus, решение 2026-10-23 — исполнители opus). Стенд CL-К1: `cliff_look_shots.sh after` — все ракурсы на ветке модуля с влитыми CL-2/CL-3, числа `diag_metrics.py`
 до/после — таблица в `tools/research/cliff_look/README.md`. Сборка Linux — главная сессия.
 ## 4. Волны
 
