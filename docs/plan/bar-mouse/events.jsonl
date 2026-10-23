@@ -50,3 +50,6 @@
 {"t": "2026-10-23T04:30:56", "by": "coordinator", "task": "BM-5", "ev": "accepted", "note": "по отчёту"}
 {"t": "2026-10-23T04:31:05", "by": "coordinator", "task": "BM-5", "ev": "accepted", "commits": ["6f5dcf53"], "note": "2/2 docs=ok:exit 1; mouse_doc=ok:1"}
 {"t": "2026-10-23T04:31:06", "by": "coordinator", "task": "BM-5", "ev": "merged"}
+{"t": "2026-10-23T05:14:51", "by": "executor", "task": "BM-4", "ev": "reported", "commits": ["eb38d58ba"], "note": "done: Состояние ПКМ (_bar_look_held) пишется до проверки enabled/look_enabled в InputController и CameraRig и сбрасывается пр…", "dp_feedback": "accept --dry без вывода в первые 120 с уходит в фон; job wait по имени accept сказал 'не запускался'. Первый запуск в копии без import даёт мусорные parse errors вместо подсказки."}
+{"t": "2026-10-23T05:18:20", "by": "coordinator", "task": "BM-4", "ev": "checked", "note": "4/4 test_mouse_routing=ok:2/2; test_bar_mouse=ok:10/10; test_mouse_bar_flight=ok:4/4; test_camera=ok:10/10"}
+{"t": "2026-10-23T05:18:26", "by": "coordinator", "task": "BM-4", "ev": "accepted", "note": "по отчёту"}

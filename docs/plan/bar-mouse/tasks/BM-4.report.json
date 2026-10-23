@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "summary": "Состояние ПКМ (_bar_look_held) пишется до проверки enabled/look_enabled в InputController и CameraRig и сбрасывается при выключении ввода; отпускание в меню/паузе больше не залипает. Тест залипания ужесточён (6 сценариев ждут not stuck).",
+  "commits": [
+    "eb38d58ba ПКМ, отпущенная в меню/на паузе, не залипает (BM-4)"
+  ],
+  "checks": [
+    {
+      "name": "test_mouse_routing",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "test_bar_mouse",
+      "value": "10/10",
+      "pass": true
+    },
+    {
+      "name": "test_mouse_bar_flight",
+      "value": "4/4",
+      "pass": true
+    },
+    {
+      "name": "test_camera",
+      "value": "10/10",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept BM-4",
+  "uncertain": [
+    {
+      "where": "scripts/game/input_controller.gd, camera_rig.gd (сеттеры enabled/look_enabled)",
+      "why": "Меню (GUI) может съесть отпускание ПКМ, так что до _unhandled_input оно не дойдёт; поэтому флаг ещё и сбрасывается при выключении ввода. Если игрок держит ПКМ через паузу, после возврата обзор не продолжится до нового нажатия.",
+      "checked": "Синтетические события через вьюпорт в 6 сценариях (кабина/внешняя × отпустили в меню / нажали в меню / отпустили на паузе); настоящее меню с мышью не проверялось."
+    },
+    {
+      "where": "tests/game/test_mouse_routing.gd, test_camera_bar_look.gd (_motion)",
+      "why": "Синтетические InputEventMouseMotion не ставили screen_relative, а трапеция считает по нему (BM-К1): тесты BM-1/BM-3 падали и на базе (штанга не двигалась). Добавлено ev.screen_relative = rel.",
+      "checked": "До правки на базе test_mouse_routing падал в test_routing_table; после — 2/2."
+    }
+  ],
+  "dp_feedback": "accept --dry без вывода в первые 120 с уходит в фон; job wait по имени accept сказал 'не запускался'. Первый запуск в копии без import даёт мусорные parse errors вместо подсказки.",
+  "t": "2026-10-23T05:14:51",
+  "by": "executor"
+}
