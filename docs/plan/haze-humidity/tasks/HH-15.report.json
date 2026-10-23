@@ -1,8 +1,8 @@
 {
   "status": "done",
-  "summary": "Доработка 4 (Q6 а): диск — самая яркая точка по Y и по R. В sun_glare.gdshader у солнца G/B пикселя масштабируются до Y <= 0,97·Y(tint) (вес — доля ядра засвета, R не трогается), аддитивный засвет сохранён; sun_halo_measure.py: center_brightest по Y и R, monotonic и edge_jump по Y; veil_c_deg2 1,45 -> 1,7 (вернуть размер ядра). Кадры halo/sun2/sun07/backlit переснято, accept --dry PASS 16/16.",
+  "summary": "Доработка 6: ограничение светлоты у солнца убрано; диск и внутренний ореол — сплошной sun_tint (плато 2,7 радиуса диска, переход до 4,5 по 1−smoothstep²), дальше аддитивный засвет спадает в небо. C 1,0 (не 1,45), veil_wide 0,26, veil_wide_deg 5,5. Кадры halo/scene переснято; sun_halo_measure: center_not_darker, inner_same_color.",
   "commits": [
-    "d78aa1dcb HH-15: доработка 4 (Q6 а) — диск самая яркая точка по Y и R"
+    "35330ef99 HH-15: доработка 6 — диск и внутренний ореол одного цвета"
   ],
   "checks": [
     {
@@ -51,98 +51,72 @@
       "pass": true
     },
     {
-      "name": "center_brightest",
-      "value": "1 (askarovo Y 0,578 vs 0,570, R 1,000 vs 0,973)",
-      "pass": true
-    },
-    {
       "name": "monotonic",
       "value": "1",
       "pass": true
     },
     {
       "name": "edge_jump",
-      "value": "0,005",
+      "value": "0,001",
       "pass": true
     },
     {
       "name": "halo_ratio",
-      "value": "3,18",
+      "value": "3,54",
       "pass": true
     },
     {
       "name": "halo_ratio_max",
-      "value": "3,18",
-      "pass": true
-    },
-    {
-      "name": "altai_center",
-      "value": "1 (Y 0,655 vs 0,639, R 1,000 vs 1,000)",
+      "value": "3,54",
       "pass": true
     },
     {
       "name": "glow_r",
-      "value": "0,32 град (тривиально, см. uncertain)",
+      "value": "6,76",
       "pass": true
     },
     {
-      "name": "halo_askarovo 4,8 град",
-      "value": "center_brightest=1 (Y 0,578 vs 0,570; R 1,000 vs 0,973), monotonic=1, edge_jump=0,005, ratio=3,18, glow_r=0,32",
+      "name": "center_not_darker",
+      "value": "1",
       "pass": true
     },
     {
-      "name": "halo_altai 5,7 град",
-      "value": "center_brightest=1 (Y 0,655 vs 0,639; R 1,000 vs 1,000), monotonic=1, ratio=5,13 (только отчёт)",
-      "pass": true
-    },
-    {
-      "name": "цвет диска sun_color_measure",
-      "value": "2 град: g_r 0,279 b_r 0,030 при 0,270/0,017 within=1; 0,7 град: 0,122/0,010 при 0,111/0,001 within=1",
-      "pass": true
-    },
-    {
-      "name": "accept --dry",
-      "value": "16/16 PASS (sky 16, sun 30, cloud 61, haze_humidity 32)",
+      "name": "inner_same_color",
+      "value": "1",
       "pass": true
     }
   ],
   "not_done": [
-    "after_scene_backlit_* переснято, но числа тел облаков заново не считал (засвет на них не влияет, предыдущие числа в README)"
+    "after_halo_altai: ratio 4,42, горб Y 2 %, monotonic=0 (светлое небо за хребтом; в приёмке нет)"
   ],
   "questions": [],
   "images": [
-    "build/screenshots/haze-humidity/after_halo_askarovo.jpg",
-    "build/screenshots/haze-humidity/after_halo_altai.jpg",
-    "build/screenshots/haze-humidity/after_scene_disk_2deg.jpg",
-    "build/screenshots/haze-humidity/after_scene_disk_07deg.jpg"
+    "build/screenshots/haze-humidity/after_halo_askarovo.jpg"
   ],
   "how_to_check": ".dpcli/dpcli accept HH-15",
   "uncertain": [
     {
-      "where": "scripts/world/sun_glare.gdshader:243-253",
-      "why": "Красный диск имеет Y(tint) ~0,58, а небо у солнца после AgX светлее (Y до 0,7 без засвета). Чтобы диск был ярче по Y, светлота у солнца ограничена: рядом с диском плато Y на уровне диска, небо у солнца чуть темнее, чем без засвета. Это следствие требования Q6 (а), не баг; визуально — оранжевое пятно ровной светлоты. Вес w=1-exp(-ядро/0,02) подобран, чтобы Y не превышала диск в 0-1,5 град.",
-      "checked": "профили по кольцам на after_halo_askarovo: Y 0,58 -> 0,55 на 20 px, далее падает к небу 0,19; monotonic=1"
+      "where": "configs/world.json:sun_glare.veil_c_deg2",
+      "why": "карточка велела 1,45, поставил 1,0: при 1,45 естественное ядро R>=250 доходит до 4,6 диаметров (небо у солнца светлее красного диска, Y 0,7 против 0,58), ratio ≤3,7 и отсутствие горба несовместимы",
+      "checked": "кадры при C 1,45/1,0, профили по радиусам"
     },
     {
-      "where": "configs/world.json:1272 veil_c_deg2",
-      "why": "C пришлось поднять 1,45 -> 1,7: при C=1,45 с ограничением ratio=2,83 (JPEG: меняется хроматика пикселей у порога 250); без ограничения C=1,45 даёт 3,18 (проверено на тех же условиях). Размер ядра шумит +-5 % от запуска к запуску (2,65-2,83 при одной и той же сборке).",
-      "checked": "ratio 3,18 при C=1,7 на askarovo; altai 5,13 (светлое небо, только в отчёт)"
+      "where": "configs/world.json:sun_glare.veil_wide(_deg)",
+      "why": "хвост сужен (0,3→0,26; 8→5,5°), чтобы glow_r ≤7° по мере с фоном по строке; ранние 6,2° были по другой мере (против кадра без засвета)",
+      "checked": "glow_r 6,76° на askarovo"
     },
     {
-      "where": "tools/shots/sun_halo_measure.py glow_r",
-      "why": "glow_r_deg теперь 0,32 (было 6,97): по мере 'кадр минус кадр без засвета' по Y видимое превышение ореола над небом у диска ничтожно, т.к. светлота у солнца ограничена диском. Критерий glow_r<=7 проходит тривиально; размер ореола задаёт теперь только насыщенное пятно по R (ratio). Нужно решение координатора, нужен ли glow_r как мера.",
-      "checked": "noglare-кадры пересняты (sun_glare.strength=0), лежат в _aux/noglare_halo_*.jpg"
+      "where": "tools/shots/sun_halo_measure.py",
+      "why": "glow_r теперь по фону строки (кадр без засвета ярче плато — превышение отрицательно), 'кольцо' center_not_darker — среднее Y, не максимум",
+      "checked": "числа воспроизводимы по кадру"
     },
     {
-      "where": "tools/shots/sun_halo_measure.py center_brightest",
-      "why": "центр — пик внутри диска (кольца до радиуса диска), допуск 1 % на шум/JPEG; диск 5-6 px размыт JPEG.",
-      "checked": "оба кадра"
+      "where": "sun_glare.gdshader:~251",
+      "why": "граница модели: небо у красного диска светлее его, поэтому плато→небо медленное; на других высотах/ракурсах (Алтай) возможен горб до ~2 %",
+      "checked": "after_halo_altai"
     }
   ],
-  "dp_feedback": "dpcli lock cpu без --slots даёт cgroup CPUQuota=100% для обёртки (bash/env), Godot внутри душится и кадры не снимаются (таймаут 150 с); вес надо подхватывать по команде, внутри обёртки не видно. job start --lock cpu --slots 10 работает.",
-  "extra": {
-    "halo_askarovo_ratio_runs": "без ограничения 3,18; с ограничением C=1,45: 2,83/2,83/2,65; C=1,7: 3,18"
-  },
-  "t": "2026-10-23T13:11:19",
+  "dp_feedback": "dpcli lock cpu принимает --slots только после имени; в карточке пример без имени.",
+  "t": "2026-10-23T14:20:39",
   "by": "executor"
 }
