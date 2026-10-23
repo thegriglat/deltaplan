@@ -54,6 +54,9 @@ var _cmd_helmet := ""
 var _log_sun_px := OS.has_environment("DP_SUN_TINT_LOG")
 var _logged_px := Vector2(-1.0e9, -1.0e9)
 var _cmd_checked := false
+## Линия горизонта рельефа по азимутам вокруг солнца (HORIZON_N значений, радианы над горизонтом) — ореол только над ней.
+var horizon_line := PackedFloat32Array()
+const HORIZON_N := 17
 
 
 func _ready() -> void:
@@ -93,6 +96,9 @@ func apply_config() -> void:
 	m.set_shader_parameter(
 		"disk_deg", float(Config.value("world", "sky.sun_disk.radius_deg", 0.3))
 	)
+	m.set_shader_parameter("terrain_halo", float(_cfg.get("terrain_halo", 0.0)))
+	m.set_shader_parameter("horizon_span_deg", float(_cfg.get("horizon_span_deg", 2.0)))
+	m.set_shader_parameter("horizon_soft_deg", float(_cfg.get("horizon_soft_deg", 0.12)))
 	m.set_shader_parameter("plateau_r0", float(_cfg.get("plateau_r0", 2.7)))
 	m.set_shader_parameter("plateau_r1", float(_cfg.get("plateau_r1", 4.5)))
 	m.set_shader_parameter("veil_flat", float(_cfg.get("veil_flat", 0.05)))
@@ -194,6 +200,9 @@ func _process(dt: float) -> void:
 	m.set_shader_parameter("sun_uv", sun_uv)
 	if _log_sun_px:
 		_log_sun_position(cam, vp)
+	_update_horizon(cam)
+	m.set_shader_parameter("cam_basis", cam.global_basis)
+	m.set_shader_parameter("sun_world", _to_sun)
 	m.set_shader_parameter("sun_vis", terrain_visibility)
 	m.set_shader_parameter("cloud_vis", cloud_visibility)
 	m.set_shader_parameter("on_screen", _on_screen(cam))
@@ -213,6 +222,49 @@ func _process(dt: float) -> void:
 		tint = _color(Config.value("helmet", "visor.tint_dark", [0.5, 0.5, 0.5]))
 	m.set_shader_parameter("helmet", HELMET_MODES.find(helmet))
 	m.set_shader_parameter("visor_tint", tint)
+
+
+## Линия горизонта рельефа вокруг азимута солнца для шейдера: только пока солнце низко (horizon_max_sun_deg) и есть рельеф.
+func _update_horizon(cam: Camera3D) -> void:
+	var ground: Callable = cam.ground_fn if cam is CameraRig else Callable()
+	var span := float(_cfg.get("horizon_span_deg", 2.0))
+	var on := (
+		ground.is_valid()
+		and rad_to_deg(asin(clampf(_to_sun.y, -1.0, 1.0))) < float(_cfg.get("horizon_max_sun_deg", 25.0))
+		and Vector2(_to_sun.x, _to_sun.z).length() > 0.05
+	)
+	if on:
+		horizon_line = horizon_elevations(
+			cam.global_position, _to_sun, span, HORIZON_N, ground,
+			float(_cfg.get("horizon_distance_m", 30000.0)), int(_cfg.get("horizon_steps", 28))
+		)
+		_mat.set_shader_parameter("horizon", horizon_line)
+	_mat.set_shader_parameter("horizon_on", 1.0 if on else 0.0)
+
+
+## Высота линии горизонта рельефа (радианы над горизонтальной плоскостью, вид из p) по n азимутам
+## от −span_deg до +span_deg вокруг азимута to_sun: максимум угла atan((h(q) − p.y)/d) по шагам
+## дальности (гуще у глаза до distance_m). Тестируется headless.
+static func horizon_elevations(
+	p: Vector3, to_sun: Vector3, span_deg: float, n: int, ground: Callable, distance_m: float, steps: int
+) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(n)
+	var hs := Vector2(to_sun.x, to_sun.z).normalized()
+	for i in n:
+		var dl := deg_to_rad(lerpf(-span_deg, span_deg, float(i) / float(maxi(n - 1, 1))))
+		var c := cos(dl)
+		var s := sin(dl)
+		var dir := Vector2(hs.x * c - hs.y * s, hs.x * s + hs.y * c)  # поворот на dl вокруг Y: как в шейдере
+		var best := -PI * 0.5
+		for k in range(1, steps + 1):
+			var d := distance_m * pow(float(k) / steps, 2.0)
+			if d < 1.0:
+				continue
+			var h := float(ground.call(p.x + dir.x * d, p.z + dir.y * d))
+			best = maxf(best, atan2(h - p.y, d))
+		out[i] = best
+	return out
 
 
 ## «sun_px: X Y» — центр диска в пикселях окна (проекция направления на солнце камерой), при сдвиге.
