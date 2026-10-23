@@ -15,3 +15,6 @@
 {"t": "2026-10-23T19:54:48", "by": "coordinator", "task": "MSP-1", "ev": "checked", "note": "5/5 selftest=ok:exit 0; pose16=ok:pose ok 16/16; png16=ok:16; preview16=ok:17; gd=ok:exit 0; scope=FAIL:вне scope: r-MSP-1.json"}
 {"t": "2026-10-23T19:55:08", "by": "coordinator", "task": "MSP-1", "ev": "checked", "note": "5/5 selftest=ok:exit 0; pose16=ok:pose ok 16/16; png16=ok:16; preview16=ok:17; gd=ok:exit 0"}
 {"t": "2026-10-23T19:55:30", "by": "coordinator", "task": "MSP-1", "ev": "accepted", "note": "по отчёту; превью проверены координатором: 06 и остальные — крыло горизонтально; 26/30/34 мелкий планер — ракурс как был"}
+{"t": "2026-10-23T19:55:34", "by": "coordinator", "task": "MSP-1", "ev": "accepted", "commits": ["d2a5e7565"], "note": "5/5 selftest=ok:exit 0; pose16=ok:pose ok 16/16; png16=ok:16; preview16=ok:17; gd=ok:exit 0"}
+{"t": "2026-10-23T19:55:35", "by": "coordinator", "task": "MSP-1", "ev": "merged"}
+{"t": "2026-10-23T19:55:42", "by": "coordinator", "task": null, "ev": "note", "note": "MSP-1 принят и влит; кадры 16/16 в build/screenshots/menu-shots-pose (preview/, preview_before/); ждём одобрения пользователя. dpcli: исполнитель оставил r-MSP-1.json в корне копии — accept падает по scope; удобно, если report удаляет/игнорирует r-<ID>.json"}
