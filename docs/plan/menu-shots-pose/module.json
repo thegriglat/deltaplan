@@ -1,0 +1,11 @@
+{
+  "module": "menu-shots-pose",
+  "plan": "docs/plan/menu-shots-pose.md",
+  "contracts": "docs/contracts/menu-shots-pose.md",
+  "branch": "feature/menu-shots-pose",
+  "copy": "~/deltaplan-menu-shots-pose",
+  "created": "2026-10-23T19:28:29",
+  "code": "MSP",
+  "area": "game",
+  "base": "main"
+}
