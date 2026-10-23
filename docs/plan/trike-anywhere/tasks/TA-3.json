@@ -1,0 +1,48 @@
+{
+  "id": "TA-3",
+  "module": "trike-anywhere",
+  "type": "dp-writer",
+  "title": "Руководство и CHANGELOG: старт дельталёта и буксировки в любом месте",
+  "goal": "docs/guide описывает окно выбора старта по «Лететь» (TA-К1) и дельталёт/буксировку на любом месте без проверки рельефа (TA-К2); в CHANGELOG «В работе» — строка о новом.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "trike-anywhere",
+      "version": "1",
+      "ref": "docs/contracts/trike-anywhere.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-anywhere-TA-3",
+  "branch": "trike-anywhere/TA-3",
+  "base": "feature/trike-anywhere",
+  "scope": [
+    "docs/guide/flight/trike-pilot.md",
+    "docs/guide/flight/tow.md",
+    "docs/guide/game.md",
+    "docs/guide/flight.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "scenes/",
+    "tests/",
+    "docs/contracts/",
+    "docs/plan/trike-anywhere.md"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "python3 .dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_place_tow_row",
+      "cmd": "sh -c \"! grep -q 'вкладка «Место», строка «Буксировка»' docs/guide/flight/tow.md\"",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T22:11:00",
+  "edited": "2026-10-23T22:14:24"
+}
