@@ -21,6 +21,10 @@
                                  макс. перепад между соседними пикселями профиля в 0,8–1,5 радиуса диска, доля от центра;
   glow_shift_px                 смещение центроида превышения яркости внутри 2·glow_r от диска (в верхней
                                  полуплоскости; рельеф срезает нижнюю часть — смещение вверх неизбежно).
+Фон без засвета (HH-15, доработка 3): если рядом есть кадр того же ракурса и момента без SunGlare
+(<папка>/_aux/noglare_<имя без after_>.jpg, съёмка с sun_glare.strength = 0; или --ref=<кадр>), то «превышение над фоном»
+в center_brightest / monotonic / edge_jump / glow_r — это кадр − кадр без засвета по пикселям (вклад засвета);
+сам диск (r ≤ 1,6 радиуса) — над небом: кадр − медиана неба без засвета в кольце 1,5–3 диаметра диска.
 Фото (не кадр игры): --f=<фокусное в px> (27 мм экв. → горизонтальный угол ≈ 67°, f = ширина/2/tan(33,5°)),
 --radius=0.27 (Солнце). Нужен ImageMagick (convert), без PIL/numpy.
 """
@@ -59,6 +63,14 @@ def main() -> int:
     m = re.match(rb"P6\s+(\d+)\s+(\d+)\s+255\s", ppm)
     w, h = int(m.group(1)), int(m.group(2))
     d = ppm[m.end():]
+    refd = None
+    refp = Path(opts["ref"]) if "ref" in opts else Path(path).parent / "_aux" / (Path(path).stem.replace("after_", "noglare_", 1) + ".jpg")
+    if refp.exists() and refp != Path(path):
+        rppm = subprocess.run(["convert", str(refp), "-depth", "8", "ppm:-"], capture_output=True, check=True).stdout
+        rm_ = re.match(rb"P6\s+(\d+)\s+(\d+)\s+255\s", rppm)
+        if rm_ and (int(rm_.group(1)), int(rm_.group(2))) == (w, h):
+            refd = rppm[rm_.end():]
+    print("ref_frame=%s" % (refp.name if refd is not None else "нет (фон — небо той же строки вдали от солнца)"))
     f = float(opts["f"]) if "f" in opts else (h / 2) / math.tan(math.radians(vfov) / 2)
     disk = 2 * f * math.tan(math.radians(radius))
 
@@ -131,6 +143,27 @@ def main() -> int:
     # (диск 5–6 px), и профиль вокруг неё «размазан»
     pcx, pcy = (cx, cy) if best >= 2 else (dcx, dcy)
     rprof_max = int(min(max(20 * disk, 40), 300))
+
+    def rchan(x, y, c):
+        return LIN[refd[(y * w + x) * 3 + c]]
+
+    # небо без засвета у диска: медиана канала кадра без засвета в кольце 1,5–3 диаметра (верхняя полуплоскость)
+    skyref = [0.0, 0.0, 0.0]
+    if refd is not None:
+        for c in range(3):
+            vs = []
+            for y in range(max(int(pcy - 3 * disk), 0), min(int(pcy) + 1, h)):
+                for x in range(max(int(pcx - 3 * disk), 0), min(int(pcx + 3 * disk) + 1, w)):
+                    if 1.5 * disk <= math.hypot(x - pcx, y - pcy) <= 3 * disk:
+                        vs.append(rchan(x, y, c))
+            skyref[c] = statistics.median(vs) if vs else 0.0
+
+    def val(x, y, c, r):
+        """Значение для профиля: без кадра без засвета — канал кадра; с ним — вклад засвета (диск — над небом)."""
+        if refd is None:
+            return chan(x, y, c)
+        return chan(x, y, c) - (skyref[c] if r <= 0.8 * disk else rchan(x, y, c))
+
     cbins = [{} for _ in range(3)]
     for y in range(max(int(pcy) - rprof_max, 0), min(int(pcy) + 1, h)):
         for x in range(max(int(pcx) - rprof_max, 0), min(int(pcx) + rprof_max + 1, w)):
@@ -138,7 +171,7 @@ def main() -> int:
             r = 0 if r < 2 else r  # кольца r = 0 и 1 — по 1 и ~8 пикселей: объединены в одно
             if r <= rprof_max:
                 for c in range(3):
-                    cbins[c].setdefault(r, []).append(chan(x, y, c))
+                    cbins[c].setdefault(r, []).append(val(x, y, c, math.hypot(x - pcx, y - pcy)))
     cprof = [{r: statistics.median(v) for r, v in b.items() if len(v) >= 3} for b in cbins]
     if all(cp.get(0) is not None or cp.get(1) is not None for cp in cprof):
         cen = [max(cp.get(0, 0.0), cp.get(1, 0.0)) for cp in cprof]
@@ -151,7 +184,7 @@ def main() -> int:
         for c in range(3):
             vs = [chan(x, y, c) for y in range(max(int(pcy) - 20, 0), min(int(pcy) + 21, h))
                   for x in range(w) if abs(x - pcx) >= gap0]
-            bgc.append(statistics.median(vs) if len(vs) >= 20 else 0.0)
+            bgc.append(0.0 if refd is not None else (statistics.median(vs) if len(vs) >= 20 else 0.0))
         ok = all(cen[c] - bgc[c] >= ring_max[c] - bgc[c] - 1e-6 for c in range(3))
         print("center_brightest=%d center_lin=(%.3f,%.3f,%.3f) ring_max_lin=(%.3f,%.3f,%.3f) bg_lin=(%.3f,%.3f,%.3f)"
               % ((int(ok),) + tuple(cen) + tuple(ring_max) + tuple(bgc)))
@@ -200,21 +233,32 @@ def main() -> int:
                 if r_lo <= math.hypot(x - dcx, y - dcy) <= r_hi:
                     vs.append(luma(x, y))
         ring_bg = statistics.median(vs) if vs else None
+    sky_y = 0.2126 * skyref[0] + 0.7152 * skyref[1] + 0.0722 * skyref[2]
+
+    def exc_y(x, y, r, bg):
+        """Превышение яркости: с кадром без засвета — кадр − он (диск — над небом), иначе кадр − фон строки."""
+        if refd is None:
+            return luma(x, y) - bg
+        if r <= 0.8 * disk:
+            return luma(x, y) - sky_y
+        i = (y * w + x) * 3
+        return luma(x, y) - (0.2126 * LIN[refd[i]] + 0.7152 * LIN[refd[i + 1]] + 0.0722 * LIN[refd[i + 2]])
+
     valid = [v for v in row_bg.values() if v is not None]
-    if not valid and ring_bg is None:
+    if not valid and ring_bg is None and refd is None:
         print("glow_r_px=0 glow_r_deg=0.00 (нет фона)")
         return 0
     bins = {}
     for y in range(y_lo, y_hi):
         bg = ring_bg if ring_bg is not None else row_bg.get(y)
-        if bg is None:
+        if bg is None and refd is None:
             continue
         dy = y - dcy
         for x in range(max(int(dcx - rmax), 0), min(int(dcx + rmax) + 1, w)):
             r = math.hypot(x - dcx, dy)
             if r <= rmax:
-                bins.setdefault(int(r), []).append(luma(x, y) - bg)
-    bg_y = statistics.median(valid) if ring_bg is None else ring_bg
+                bins.setdefault(int(r), []).append(exc_y(x, y, r, bg))
+    bg_y = (statistics.median(valid) if valid else 0.0) if ring_bg is None else ring_bg
     prof = {r: statistics.median(vs) for r, vs in bins.items() if len(vs) >= 5}
     r_edge = max(int(round(disk / 2)), 1)
     near = [v for r, v in prof.items() if r <= r_edge + 1]
@@ -242,7 +286,7 @@ def main() -> int:
             if math.hypot(x - dcx, y - dcy) > r2:
                 continue
             bg = ring_bg if ring_bg is not None else row_bg.get(y)
-            e = luma(x, y) - (bg if bg is not None else bg_y)
+            e = exc_y(x, y, math.hypot(x - dcx, y - dcy), bg if bg is not None else bg_y)
             if e > 0:
                 sx += e * x
                 sy += e * y
