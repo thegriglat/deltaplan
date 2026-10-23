@@ -160,5 +160,15 @@
     0.71
    ]
   }
- ]
+ ],
+ "top_to_depth_max": 1.0,
+ "top_to_depth_cells_p90": 0.604,
+ "sizes_top_after_final": {
+  "size_p90_p10": 4.69,
+  "w_p10_p50_p90_m": [
+   236,
+   422,
+   1108
+  ]
+ }
 }
