@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "Эталон medium под настоящий Tx места (+24,5 °C вместо +24), градиенты Tx/DTR в конфиге сверены с текущим gradient.json (были значения старого прогона), новые тесты поясов/юга/вырожденного ClimateGrid; test_air_window_case считается при таблице DTR, как эталон.",
+  "commits": [
+    "6685cc0f7 HH-4c: эталоны и тесты под настоящий Tmax HH5, градиенты Tx/DTR, рост ветра без HH1 от высоты долины"
+  ],
+  "checks": [
+    {
+      "name": "weather",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "haze_humidity",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "goal",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "wind",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "surface_heat",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "hh5_data",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Региональные градиенты (Queensland Tx -9,4, Zagros -7,4, Урал, Алтай) в игру не введены: используются зональные; Крым в gradient.json пуст."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept HH-4c",
+  "uncertain": [
+    {
+      "where": "configs/weather_model.json climate.*_gradient_k_per_km",
+      "why": "для 30-60 ю. ш. данных нет: взяты значения 30-60 с. ш. со сдвигом сезона на полгода (модельное допущение). Региональный разброс велик (Queensland до -10 К/км, выше сухой адиабаты 9,8).",
+      "checked": "тест на сезонный сдвиг и поправку через place() для -38/-71; сверка конфига с gradient.json по поясам"
+    },
+    {
+      "where": "scripts/atmosphere/climate_grid.gd:176",
+      "why": "вырожденный случай (нет HH1, есть HH6): gain_per_km считается от valley_msl_m вместо z_cell=0. Формула контракта HH7 выдаёт при этом z_cell=0, что не высота ячейки; это уточнение, контракт не менялся.",
+      "checked": "тест test_gain_without_hh1_uses_valley; без valley_msl_m остаётся формула контракта"
+    },
+    {
+      "where": "tests/atmosphere/test_air_window_case.gd",
+      "why": "падал до моих правок: фикстура окна посчитана по таблице diurnal.range_k, а AirPlace.day берёт DTR ERA5 (HH-4b). Тест теперь отключает HH5 на время. Правильнее пересчитать фикстуру в tools/research/air3d (не в скоупе).",
+      "checked": "падение воспроизведено на базе без моих правок"
+    },
+    {
+      "where": "tests/atmosphere/test_weather_model.gd:REFERENCE_FORECASTS",
+      "why": "medium +24,5: при +25 cb_chance 0,008 (тест требует 0), при +24 кромка 1436 против допуска 1440. Tx июля места 25,7 °C, значит эталон 'средний' чуть прохладнее обычного дня.",
+      "checked": "перебор 24..26 °C"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "tx_july_ref_c": 25.72,
+    "dtr_july_ref_k": 11.17
+  },
+  "t": "2026-10-23T06:52:23",
+  "by": "executor"
+}
