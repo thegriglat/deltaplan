@@ -1,0 +1,68 @@
+{
+ "TX1_range": [
+  -61.05948734430069,
+  47.795118509574365
+ ],
+ "DTR1_range": [
+  0.4493451480684847,
+  20.440050938526664
+ ],
+ "Dx_land_p5_50_95": [
+  0.076,
+  0.502,
+  2.199
+ ],
+ "Dx_sea_p5_50_95": [
+  0.116,
+  0.456,
+  1.555
+ ],
+ "Dn_land_p5_50_95": [
+  -2.321,
+  -0.697,
+  -0.079
+ ],
+ "Dn_sea_p5_50_95": [
+  -1.487,
+  -0.454,
+  -0.08
+ ],
+ "Dx_halfdiff_2018_2019_land_p5_50_95": [
+  0.013,
+  0.069,
+  0.338
+ ],
+ "Dn_halfdiff_2018_2019_land_p5_50_95": [
+  0.013,
+  0.075,
+  0.337
+ ],
+ "interannual_std_max_course_10y_land_p5_50_95": [
+  0.599,
+  1.78,
+  3.809
+ ],
+ "interannual_std_min_course_10y_land_p5_50_95": [
+  0.402,
+  1.577,
+  3.946
+ ],
+ "cx2_minus_cx10_land_p5_50_95": [
+  -1.931,
+  0.187,
+  2.467
+ ],
+ "cn2_minus_cn10_land_p5_50_95": [
+  -1.932,
+  0.119,
+  2.246
+ ],
+ "frac_peak_hour_23_0_1UTC_land": 0.0384,
+ "frac_min_hour_23_0_1UTC_land": 0.1464,
+ "frac_peak_hour_23_0_1UTC_all": 0.1188,
+ "frac_min_hour_23_0_1UTC_all": 0.1206,
+ "Dx_land_nodes_peak_near_UTC_boundary_mean": 1.475,
+ "Dx_land_nodes_other_mean": 0.758,
+ "Dn_land_nodes_min_near_UTC_boundary_mean": -1.376,
+ "Dn_land_nodes_other_mean": -0.865
+}
