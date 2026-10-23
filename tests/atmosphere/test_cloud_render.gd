@@ -144,7 +144,8 @@ func test_field_layer_shadow_quad() -> void:
 	check(sm._field_rect.visible, "квад слоя в карте теней виден при облаках в поле")
 	var map: Image = sm._vp.get_texture().get_image()
 	var c := map.get_pixel(map.get_width() / 2, map.get_height() / 2).r
-	check(c < 0.5, "под сплошным слоем 900 м тень густая: пропускание %.3f" % c)
+	# CBS-1: оболочка (низ и верх по 150 м) разрежает слой — порог 0,7 вместо 0,5 (без оболочки было < 0,5).
+	check(c < 0.7, "под сплошным слоем 900 м тень густая: пропускание %.3f" % c)
 	# Пустое поле после скачка времени — без перехода от прошлого шага.
 	layer._cf_t_upd = -1.0e9
 	_set_field(a, 0.0, 0.0, 2.0)
