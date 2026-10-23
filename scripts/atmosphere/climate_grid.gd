@@ -151,9 +151,12 @@ static func place(ctx: Dictionary) -> Dictionary:
 	var day := int(ctx.get("day", 15))
 	var r := at(lat, lon, month, day)
 	var src: Dictionary = r.src
-	var valley := float(ctx.get("valley_msl_m", 0.0))
+	# Нет valley_msl_m (или NAN) — высоты места не знаем: поправки нет, значения на средней высоте ячейки (HH7).
+	var valley := float(ctx.get("valley_msl_m", NAN))
 	# Нет Z ячейки (HH1 не загружена) — таблицы относятся к самому месту: поправки нет.
-	var z_cell := float(r.z_cell_m) if src.hh1 != "none" else valley
+	var z_cell := float(r.z_cell_m)
+	if src.hh1 == "none" or is_nan(valley):
+		valley = z_cell
 	r.z_cell_m = z_cell
 	var dz_km := (valley - z_cell) / 1000.0
 	var cl: Dictionary = WeatherModel.config().get("climate", {})

@@ -102,7 +102,7 @@ static func water_temp_c(month: int, day: int, z_m: float, ctx: Dictionary, wcfg
 	var c2 := ctx.duplicate()
 	c2["month"] = md.x
 	c2["day"] = md.y
-	var t_max := WeatherModel.typical_max_c(md.x, md.y, wm)
+	var t_max := WeatherModel.typical_max_c(md.x, md.y, wm, c2)
 	var sum := 0.0
 	for i in 24:
 		sum += float(WeatherModel.diurnal_state(t_max, i + 0.5, c2, wm).temperature_c)

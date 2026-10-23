@@ -153,6 +153,12 @@ func speed_at(agl: float) -> float:
 	return speed_ref * profile(agl)
 
 
+## Рост ветра с высотой места, 1/км (ClimateGrid.place → gain_per_km, HH6 WR); NAN — оставить из конфига.
+func set_altitude_gain(gain_per_km: float) -> void:
+	if not is_nan(gain_per_km):
+		_alt_gain = gain_per_km
+
+
 ## Множитель ветра от высоты над стартом (ветер прогноза — на старте; в горах выше старта ветер
 ## сильнее, в долине ниже — слабее). 1 — если опорная высота не задана.
 func altitude_factor(msl: float) -> float:

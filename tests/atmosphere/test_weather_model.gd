@@ -141,6 +141,51 @@ func test_typical_max() -> void:
 	approx(WeatherModel.typical_max_c(1, 15), 0.0, 1.0e-6, "зимой — не ниже 0 (снег не рисуем)")
 
 
+## HH-4b: климат места из сеток — Tx, амплитуда, тропопауза, перистые, рост ветра берутся из ClimateGrid.place.
+func test_place_climate_wired() -> void:
+	ClimateGrid.set_paths({})
+	var c := WeatherModel.config()
+	var cairns := {"lat": -16.9, "lon": 145.8, "month": 1, "day": 15, "valley_msl_m": 0.0}
+	var cp := ClimateGrid.place(cairns)
+	approx(WeatherModel.typical_max_c(1, 15, c, cairns), clampf(cp.tx_c, float(c.ui.temperature_c[0]), float(c.ui.temperature_c[1])), 1.0e-9, "Tx места")
+	approx(WeatherModel.diurnal_range_k(cairns, c), cp.dtr_k, 1.0e-9, "амплитуда места")
+	var ctx := cairns.duplicate()
+	ctx.mean_msl_m = 0.0
+	var w := WeatherModel.derive(
+		{"temperature_c": 33.0, "wind_speed_kmh": 10.0, "wind_from_deg": 270.0, "sky": "clear"}, ctx, c
+	)
+	approx(w._derived.trop_msl_m, cp.trop_m, 1.0e-6, "тропопауза места в derive")
+	approx(w._derived.gain_per_km, cp.gain_per_km, 1.0e-9, "рост ветра места в derive")
+	if cp.src.hh6 != "none":
+		var k_clear := WeatherModel.cirrus_base_cover(cp, "clear", ctx, c)
+		var k_over := WeatherModel.cirrus_base_cover(cp, "overcast", ctx, c)
+		check(k_over > k_clear, "перистые: пасмурный день гуще ясного (%.2f > %.2f)" % [k_over, k_clear])
+		approx(k_clear, cp.hcc * c.hcc_sky.k_sky.clear[0][2], 1.0e-9, "ясно, пояс 0–20°, январь юга = ИИА: HCC × k_sky")
+	# Без места (ctx без lat/lon) — таблицы-запас
+	approx(WeatherModel.diurnal_range_k({"month": 7, "day": 15}, c), c.diurnal.range_k[6], 1.0e-9, "амплитуда без места")
+	# Td: β-член от Tx места — в день с Tmax = Tx места поправки на температуру нет
+	var tx := float(cp.tx_c)  # без зажима меню (typical_max_c режет до диапазона)
+	var td0 := WeatherModel.td_day({"temperature_c": tx, "sky": "clear"}, cp, cairns, c)
+	var td1 := WeatherModel.td_day({"temperature_c": tx + 5.0, "sky": "clear"}, cp, cairns, c)
+	var tdc: Dictionary = c.td_day
+	var b := ClimateGrid.band_index(cairns.lat, tdc.bands_abs_lat)
+	var sn := ClimateGrid.season_index(1, cairns.lat)
+	var beta := float(tdc.sky.clear.beta[b][sn])
+	approx(td1 - td0, beta * 5.0, 0.1, "сдвиг Td при Tmax = Tx + 5 К равен β·5")
+	var mu := float(tdc.sky.clear.mu_sigma[b][sn])
+	var rho := float(tdc.sky.clear.res_ratio[b][sn])
+	var r := clampf(WeatherModel.td_noise(1, 15, cairns.lat, cairns.lon), -float(c.climate.r_clamp), float(c.climate.r_clamp))
+	approx(td0, cp.td_c + (mu + r * rho) * cp.td_sd_k, 0.1, "при Tmax = Tx места Td = климат + μσ + rρσ")
+	# Без valley_msl_m поправки на высоту нет (HH7): значения на средней высоте ячейки
+	var nov := {"lat": 51.9, "lon": 85.9, "month": 7, "day": 15}
+	var p0 := ClimateGrid.place(nov)
+	var p1 := ClimateGrid.at(51.9, 85.9, 7, 15)
+	approx(p0.tx_c, p1.tx_c, 1.0e-9, "без valley_msl_m Tx = на высоте ячейки")
+	approx(p0.td_c, p1.td_c, 1.0e-9, "без valley_msl_m Td = на высоте ячейки")
+	nov["valley_msl_m"] = NAN
+	approx(ClimateGrid.place(nov).tx_c, p1.tx_c, 1.0e-9, "valley NAN — без поправки")
+
+
 func test_speed() -> void:
 	var ctx := WeatherModel.reference_context()
 	var cfg := WeatherModel.config()
