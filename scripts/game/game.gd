@@ -1784,6 +1784,9 @@ func _mount_trike_gauges() -> void:
 		return
 	trike_gauges = (load(path) as PackedScene).instantiate() as TrikeGauges3D
 	panel.add_child(trike_gauges)
+	# маркер лежит в толще плиты панели - вынести приборы к её лицу (configs/instruments.json -> panel_3d.mount_z_m)
+	var p3: Dictionary = GaugeDial.scales()["panel_3d"]
+	trike_gauges.position.z = float(p3.get("mount_z_m", 0.0))
 	mounted.append(trike_gauges)
 
 
