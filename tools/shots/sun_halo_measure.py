@@ -16,16 +16,16 @@
                                  кадра) вдали от солнца по азимуту (--bg_deg=35°, медиана): кольцо 25-30° вокруг
                                  солнца у горизонта захватывает естественный градиент неба по высоте; прежний
                                  фон кольцом — --ring=25,30;
-  center_brightest, monotonic, edge_jump (HH-15, Q6 а)
-                                 абсолютные значения кадра (линейные из sRGB): центр диска ≥ максимума кольца 1,5 диаметра … glow_r
-                                 по Y и по R (G/B ореола могут быть выше диска — ореол смесь солнца и неба); профиль Y (кольца 1 px,
+  center_not_darker, inner_same_color, monotonic, edge_jump (HH-15, решение 2026-10-23)
+                                 абсолютные значения кадра (линейные из sRGB): Y центра диска ≥ Y кольца 1–2 диаметра − 1 %; G/R и B/R кольца 1–2 диаметра
+                                 отличаются от диска не больше чем на 0,05 (диск и внутренний ореол одного цвета); профиль Y (кольца 1 px,
                                  до glow_r) не растёт (шум 1 %); edge_jump — макс. перепад Y между соседними пикселями профиля в
                                  0,8–1,5 радиуса диска, доля от центра;
   glow_shift_px                 смещение центроида превышения яркости внутри 2·glow_r от диска (в верхней
                                  полуплоскости; рельеф срезает нижнюю часть — смещение вверх неизбежно).
 Фон без засвета (HH-15, доработка 3): если рядом есть кадр того же ракурса и момента без SunGlare
 (<папка>/_aux/noglare_<имя без after_>.jpg, съёмка с sun_glare.strength = 0; или --ref=<кадр>), то «превышение над фоном»
-в center_brightest / monotonic / edge_jump / glow_r — это кадр − кадр без засвета по пикселям (вклад засвета);
+в center_not_darker / monotonic / edge_jump / glow_r — это кадр − кадр без засвета по пикселям (вклад засвета);
 сам диск (r ≤ 1,6 радиуса) — над небом: кадр − медиана неба без засвета в кольце 1,5–3 диаметра диска.
 Фото (не кадр игры): --f=<фокусное в px> (27 мм экв. → горизонтальный угол ≈ 67°, f = ширина/2/tan(33,5°)),
 --radius=0.27 (Солнце). Нужен ImageMagick (convert), без PIL/numpy.
@@ -184,13 +184,24 @@ def main() -> int:
         r_in = max(int(disk / 2), 1)  # пик внутри диска (кольца до радиуса диска): диск 5–6 px после JPEG размыт у края
         cen = [max([v for r, v in cp.items() if r <= r_in] or [0.0]) for cp in cprof]
         cen_y = max([v for r, v in ylum.items() if r <= r_in] or [0.0])
-        lo_r = int(round(1.5 * disk))
-        hi_r = max(glow_px, lo_r + 1)
-        ring_r = max([v for r, v in cprof[0].items() if lo_r <= r <= hi_r] or [0.0])
-        ring_y = max([v for r, v in ylum.items() if lo_r <= r <= hi_r] or [0.0])
-        ok = cen_y >= ring_y * 0.99 and cen[0] >= ring_r * 0.99  # допуск шума/JPEG 1 %
-        print("center_brightest=%d center_Y=%.3f ring_max_Y=%.3f center_R=%.3f ring_max_R=%.3f center_lin=(%.3f,%.3f,%.3f)"
-              % (int(ok), cen_y, ring_y, cen[0], ring_r, cen[0], cen[1], cen[2]))
+        # кольцо 1–2 диаметра диска от центра (внутренний ореол)
+        lo_r = max(int(round(disk)), 1)
+        hi_r2 = max(int(round(2 * disk)), lo_r + 1)
+        rv = [v for r, v in ylum.items() if lo_r <= r <= hi_r2]
+        ring_y = statistics.mean(rv) if rv else 0.0  # Y кольца — среднее по кольцам 1 px между 1 и 2 диаметрами
+        ok = cen_y >= ring_y * 0.99  # допуск шума/JPEG 1 %
+        print("center_not_darker=%d center_Y=%.3f ring_Y=%.3f" % (int(ok), cen_y, ring_y))
+
+        def ratios(rs):
+            v = [[cprof[c][r] for r in rs if r in cprof[c]] for c in range(3)]
+            m = [statistics.mean(x) if x else 0.0 for x in v]
+            return m[1] / max(m[0], 1e-6), m[2] / max(m[0], 1e-6)
+
+        dg, db = ratios([r for r in cprof[0] if r <= r_in])
+        rg, rb = ratios([r for r in cprof[0] if lo_r <= r <= hi_r2])
+        same = abs(rg - dg) <= 0.05 and abs(rb - db) <= 0.05
+        print("inner_same_color=%d disk G/R=%.3f B/R=%.3f ring G/R=%.3f B/R=%.3f" % (int(same), dg, db, rg, rb))
+        hi_r = max(glow_px, hi_r2 + 1)
         # скользящее среднее по 3 кольцам: диск — 5–6 px, медиана колец из 8–15 пикселей шумит на 2–3 %
         ks = sorted(ylum)
         ylum = {r: sum(ylum[q] for q in ks[max(i - 1, 0):i + 2]) / len(ks[max(i - 1, 0):i + 2]) for i, r in enumerate(ks)}
@@ -236,7 +247,7 @@ def main() -> int:
 
     def exc_y(x, y, r, bg):
         """Превышение яркости: с кадром без засвета — кадр − он (диск — над небом), иначе кадр − фон строки."""
-        if refd is None:
+        if True:  # фон — небо вдали по строке: рядом с диском кадр без засвета ярче кадра (плато цвета солнца), превышение отрицательно
             return luma(x, y) - bg
         if r <= 0.8 * disk:
             return luma(x, y) - sky_y

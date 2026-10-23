@@ -86,13 +86,15 @@ func apply_config() -> void:
 	var m := _mat
 	# ядро засвета: хвост C/θ² (Хоулдей–Стайлс), площадка — тот же закон на угловом радиусе диска θ0
 	var disk_deg := float(Config.value("world", "sky.sun_disk.radius_deg", 0.3))
-	m.set_shader_parameter("veil_core", float(_cfg.get("veil_c_deg2", 1.7)) / maxf(disk_deg * disk_deg, 1.0e-6))
+	m.set_shader_parameter("veil_core", float(_cfg.get("veil_c_deg2", 1.0)) / maxf(disk_deg * disk_deg, 1.0e-6))
 	m.set_shader_parameter("veil_core_deg", disk_deg)
-	m.set_shader_parameter("veil_wide", float(_cfg.get("veil_wide", 0.3)))
-	m.set_shader_parameter("veil_wide_deg", float(_cfg.get("veil_wide_deg", 8.0)))
+	m.set_shader_parameter("veil_wide", float(_cfg.get("veil_wide", 0.26)))
+	m.set_shader_parameter("veil_wide_deg", float(_cfg.get("veil_wide_deg", 5.5)))
 	m.set_shader_parameter(
 		"disk_deg", float(Config.value("world", "sky.sun_disk.radius_deg", 0.3))
 	)
+	m.set_shader_parameter("plateau_r0", float(_cfg.get("plateau_r0", 2.7)))
+	m.set_shader_parameter("plateau_r1", float(_cfg.get("plateau_r1", 4.5)))
 	m.set_shader_parameter("veil_flat", float(_cfg.get("veil_flat", 0.05)))
 	var b: Dictionary = h.get("brim", {})
 	m.set_shader_parameter("brim_height", float(b.get("height", 0.07)))
