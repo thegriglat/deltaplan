@@ -1,0 +1,50 @@
+{
+  "id": "AC-R2",
+  "module": "air-cascade",
+  "type": "dp-researcher",
+  "title": "Онгудай 400 м в формате R1 из эталона AM-01 (f64)",
+  "goal": "Экспорт случаев Онгудая 400 м (12:00, ветер с 150°) в формате R1 из эталона AM-01 (air.py, CuPy, float64): 3 м/с с нагревом и без (пара), 0 и 6 м/с с нагревом — постоянный вход после подготовки и решение; итерации совпадают с фикстурой.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "R1",
+      "version": "1",
+      "ref": "docs/contracts/air-cascade.md"
+    }
+  ],
+  "copy": "~/deltaplan-air-cascade-AC-R2",
+  "branch": "air-cascade/AC-R2",
+  "base": "feature/air-cascade",
+  "scope": [
+    "tools/research/air_cascade/export/ — экспорт Онгудая (export_ongudai.py, README.md)"
+  ],
+  "dont_touch": [
+    "tools/research/air_cascade/picard_rs/",
+    "tools/research/air3d/",
+    "tests/",
+    "scripts/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "contract_ref",
+      "cmd": "ls ~/data/air_cascade/ongudai/ongudai_d400_u3_heat.json ~/data/air_cascade/ongudai/ongudai_d400_u3_mech.json ~/data/air_cascade/ongudai/ongudai_d400_u0_heat.json ~/data/air_cascade/ongudai/ongudai_d400_u6_heat.json && python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --ref ~/data/air_cascade/ongudai/*.json",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "iters_vs_fixture",
+      "cmd": "python3 -c \"import json,os,glob;F=json.load(open('tests/atmosphere/fixtures/air_model/picard/ongudai_d400_h12.json'));R={(r['U10'],r['heat'],r['dtype']):r['iters'] for r in F['runs']};d=0\nfor f in glob.glob(os.path.expanduser('~/data/air_cascade/ongudai/*.json')):\n j=json.load(open(f));s=j['source'];k=(float(s['U10']),bool(s['heat']));ref=R.get(k+('float64',),R.get(k+('float32',)));print(os.path.basename(f),j['solution']['iters'],ref);d=max(d,abs(j['solution']['iters']-ref))\nprint('max_iter_diff=%d'%d)\"",
+      "expect": {
+        "num": "^max_iter_diff=(\\d+)",
+        "max": 10,
+        "exit": 0
+      }
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-24T04:34:06"
+}
