@@ -155,6 +155,9 @@ related: ["docs/contracts/trike-pilot.md", "docs/plan/trike.md", "docs/contracts
 #### TP-26 Ось винта буксировщика 1,45 м (Q9: C)
 `dp-engineer` (sonnet). Ответ Q9 (2026-10-23): у буксировщика своя тележка — ось винта 1,45 м под подвеской (TP-23: 62 км/ч, 3,49 м/с), `TowTug.thrust_split` по ней; игрок — 1,238 (схема пилота). Хвосты ревью TP-20 (явная проверка `thrust_split`, прогон инварианта (7), `_doc` 0,724). Гайд дельталёта — строка про буксировщик. Приёмка: `trike_pilot`, `tow`, `tow_trike` — 0 упало; числа связки в отчёт.
 
+#### TP-27 Слияние main (bar-mouse, crash-reports, snow-plume) и штанга дельталёта мышью
+`dp-engineer` (sonnet). Влить `main` в ветку задачи, разрешить конфликты (`input_controller.gd`, `controls.json`, `ui.json`, `ui.csv`, `CHANGELOG` — разные участки), штанга дельталёта — через тот же `_update_bar` (MouseBar, мёртвая зона); случай трайка в `tests/game/test_bar_mouse_input.gd` (просьба модуля bar-mouse). Приёмка: `trike`, `bar_mouse`, `input`, `ui_controls` — 0 упало.
+
 ## 5. Волны
 1. TP-1, TP-2, TP-3, TP-4 параллельно (разные файлы).
 2. TP-5 по освобождению места; TP-11, TP-12 — по ответам Q1–Q3.
