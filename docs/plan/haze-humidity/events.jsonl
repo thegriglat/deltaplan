@@ -534,3 +534,5 @@
 {"t": "2026-10-23T14:22:39", "by": "coordinator", "task": "HH-15", "ev": "checked", "note": "16/16 sky=ok:16/16 (пропуск 2); sun=ok:30/30; cloud=ok:61/61 (пропуск 3); haze_humidity=ok:32/32 (пропуск 1); no_tables=ok:exit 0; research=ok:exit 0; frames=ok:18; no_masks=ok:0; docs=ok:ошибок 0; monotonic=ok:monotonic=1; edge_jump=ok:0.001; halo_ratio=ok:3.54; halo_ratio_max=ok:3.54; glow_r=ok:6.76; center_not_darker=ok:center_not_darker=1; inner_same_color=ok:inner_same_color=1"}
 {"t": "2026-10-23T14:22:50", "by": "coordinator", "task": "HH-15", "ev": "accepted", "note": "по отчёту (решение координатора: 6 доработок, критерий пользователя выполнен)"}
 {"t": "2026-10-23T14:22:51", "by": "coordinator", "task": "HH-15", "ev": "merged", "commits": ["4933e0a06"]}
+{"t": "2026-10-23T14:23:10", "by": "coordinator", "task": "HH-15", "ev": "note", "note": "слито вручную (конфликт CHANGELOG — обе строки), коммит c462d1b43; запись merged выше — до фактического слияния"}
+{"t": "2026-10-23T14:23:11", "by": "coordinator", "task": "HH-15", "ev": "merged", "commits": ["c462d1b43"]}
