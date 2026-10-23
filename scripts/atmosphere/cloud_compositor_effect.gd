@@ -40,7 +40,7 @@ const FLOAT_PARAMS := [
 const INT_PARAMS := ["coarse_steps", "max_iterations", "light_steps", "detail_enabled"]
 ## Слой поля (CLF-К2 и грубая карта) — сразу за sizes: vec4 и два float (+2 запасных).
 const FIELD_VEC4 := ["cf_rect", "cf_base", "cf_mrect", "cf_misc", "cf_q0", "cf_q1", "cf_q2", "cf_q3"]
-const FIELD_FLOATS := ["cf_edge", "cf_on"]
+const FIELD_FLOATS := ["cf_edge", "cf_on", "cf_base_soft", "cf_shell_w", "cf_shell_dens", "cf_shell_h"]
 
 ## Замер (--perf): сколько заняла последняя сборка шейдеров облаков, мс.
 static var build_ms: float = -1.0

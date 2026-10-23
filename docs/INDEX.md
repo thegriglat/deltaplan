@@ -129,12 +129,15 @@ generated: true
   - [docs/research/house-models.md](research/house-models.md) — Дома: модели вместо коробок только гибридом (малые сельские дома профиля); город и промзона остаются MultiMesh-коробками
 - **cliff-look** — Крутые склоны: вместо серых полос и ряби — крупные неровные скалы и груды камней; диагноз, правка, кадры до/после. [closed 2026-10-23] — [план](plan/cliff-look.md) · [контракты](contracts/cliff-look.md) · [решения](plan/cliff-look/decisions.md) · [сводка](plan/cliff-look/summary.md) · полный журнал: `archive/cliff-look`
   - [tools/research/cliff_look/README.md](../tools/research/cliff_look/README.md) — Откуда полосы и рябь на крутых склонах: полосы — уступы ledge в нормали, рябь — sl_rock, нормаль 25 м и Rock030; стенд ракурсов
+- **cloud-look** — Вид облаков по кадрам меню: свет и тень, ступени, разброс форм, цвет на закате, граница у горизонта, перистые; экспозиция Эльбруса. [active 2026-10-23] — [план](plan/cloud-look.md) · [контракты](contracts/cloud-look.md)
+  - [tools/research/cloud_look/shape/README.md](../tools/research/cloud_look/shape/README.md) — CLK-2: форма кучевых — причины ступеней, зерна, однообразия числами; метрики, числа до/после, команды
 - **snow-plume** — Снежные флаги и позёмка с гребней снежных гор по ветру модели: только где снег и ветер выше порога срыва; частицы у ближайших гребней. [closed 2026-10-23] — [план](plan/snow-plume.md) · [контракты](contracts/snow-plume.md) · [решения](plan/snow-plume/decisions.md) · [сводка](plan/snow-plume/summary.md) · полный журнал: `archive/snow-plume`
   - [docs/guide/terrain/snow-plume.md](guide/terrain/snow-plume.md) — Снежные струйки с гребней: снег, гребень, ветер модели, порог срыва Li & Pomeroy 1997; отрисовка, настройки, границы.
   - [docs/research/snow_plume.md](research/snow_plume.md) — Порог срыва снега u10_t = 9,43+0,18T+0,0033T² (7–8 м/с при −30…−10 °C), шлейф: span 8, settle 0,2, spread 0,6 м/с, 30 с, fetch 300 м.
   - [tools/research/snow_plume/README.md](../tools/research/snow_plume/README.md) — Скрипт SNW-1: порог u10_t(T) по Li & Pomeroy, скорость оседания, u*, длина шлейфа; вывод в snow_plume_params.json.
   - [tools/research/snow_plume/SNW-5/README.md](../tools/research/snow_plume/SNW-5/README.md) — SNW-5 (частично): шлейфы есть при 16 м/с (24 источника, Эверест и Шымбулак), нет при 2 м/с (0); цена кадра не мерилась.
   - [tools/research/snow_plume/SNW-9/README.md](../tools/research/snow_plume/SNW-9/README.md) — SNW-9: кадры струек v3 (Эверест, Шымбулак; ветер 16 и 2 м/с; вблизи гребня). Струйки редкие и бледные, издалека не видны.
+- **cloud-base** — Основания кучевых по кромке инверсии с разбросом 50–150 м между облаками вместо одной плоскости. [closed 2026-10-24] — [план](plan/cloud-base.md) · [решения](plan/cloud-base/decisions.md) · [сводка](plan/cloud-base/summary.md) · полный журнал: `archive/cloud-base`
 
 ## game
 

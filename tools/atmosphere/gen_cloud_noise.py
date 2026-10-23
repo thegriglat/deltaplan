@@ -6,13 +6,19 @@
 
 Шейдер берёт канал R и считает клубы как 1 − R, поэтому сохраняем «перевёрнутую» плотность:
 малое значение — центр клуба.
+
+cloud_shape.png — RGB: R — клубы (как раньше), G — маска отдельных облаков слоя поля (cloud_common.gdshaderinc,
+cf_mask): сумма клеток Уорли 4, 8, 16, 32 на период (2 км … 250 м при периоде 8 км) с весами ∝ клеток^−γ —
+облака разных размеров (степенной ряд размеров кучевых, N(D) ∝ D^−β, β ≈ 1,7–2,5: Plank 1969, Cahalan &
+Joseph 1989, Benner & Curry 1998), B — крупная часть маски (клетки 4 и 8): где она высока, облака шире и выше.
+R не меняется (свой генератор, порядок выборок прежний); G и B — от отдельного генератора.
 """
 import os
 
 import numpy as np
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-OUT = os.path.join(ROOT, "assets", "textures", "clouds")
+OUT = os.environ.get("CLOUD_NOISE_OUT") or os.path.join(ROOT, "assets", "textures", "clouds")
 
 
 def worley(n: int, cells: int, rng: np.random.Generator) -> np.ndarray:
@@ -72,23 +78,46 @@ def remap(v, lo, hi, nlo, nhi):
 
 
 def save(name: str, vol: np.ndarray, cols: int) -> None:
-    """Срезы по z в атлас PNG (cols по горизонтали) + .import для импортёра 3D-текстур Godot."""
+    """Срезы по z в атлас PNG (cols по горизонтали) + .import для импортёра 3D-текстур Godot.
+
+    vol — (n, n, n) для одного канала (L) или (n, n, n, 3) для RGB.
+    """
     from PIL import Image
 
     v = np.clip(vol, 0.0, 1.0)
     n = v.shape[0]
     rows = n // cols
-    atlas = np.zeros((rows * n, cols * n), dtype=np.uint8)
+    ch = 1 if v.ndim == 3 else v.shape[3]
+    atlas = np.zeros((rows * n, cols * n) if ch == 1 else (rows * n, cols * n, ch), dtype=np.uint8)
     for z in range(n):
         r, c = divmod(z, cols)
-        atlas[r * n:(r + 1) * n, c * n:(c + 1) * n] = (v[:, :, z].T * 255.0 + 0.5).astype(np.uint8)
+        sl = v[:, :, z] if ch == 1 else v[:, :, z, :]
+        sl = np.swapaxes(sl, 0, 1)
+        atlas[r * n:(r + 1) * n, c * n:(c + 1) * n] = (sl * 255.0 + 0.5).astype(np.uint8)
     path = os.path.join(OUT, name + ".png")
-    Image.fromarray(atlas, "L").save(path, optimize=True)
+    Image.fromarray(atlas, "L" if ch == 1 else "RGB").save(path, optimize=True)
     with open(path + ".import", "w", encoding="utf-8") as f:
         f.write("[remap]\n\nimporter=\"3d_texture\"\ntype=\"CompressedTexture3D\"\n\n"
                 "[params]\n\ncompress/mode=0\nmipmaps/generate=true\nmipmaps/limit=-1\n"
                 f"slices/horizontal={cols}\nslices/vertical={rows}\n")
     print(name, v.shape, "min/mean/max", float(v.min()), float(v.mean()), float(v.max()))
+
+
+MASK_CELLS = (4, 8, 16, 32)
+MASK_GAMMA = 0.5
+MASK_COARSE = 2
+
+
+def mask_channels(n: int, rng: np.random.Generator):
+    """G: маска отдельных облаков, B: её крупная часть; обе растянуты на 0..1."""
+    parts = [(1.0 - np.clip(worley(n, c, rng) / 0.9, 0.0, 1.0)).astype(np.float32) for c in MASK_CELLS]
+    a = np.array([(c / MASK_CELLS[0]) ** -MASK_GAMMA for c in MASK_CELLS])
+    a = a / a.sum()
+    g = sum(ai * p for ai, p in zip(a, parts))
+    b = sum(ai * p for ai, p in zip(a[:MASK_COARSE], parts[:MASK_COARSE])) / a[:MASK_COARSE].sum()
+    g = (g - g.min()) / (g.max() - g.min())
+    b = (b - b.min()) / (b.max() - b.min())
+    return g, b
 
 
 def main() -> None:
@@ -101,7 +130,8 @@ def main() -> None:
     pw = np.clip(remap(p, w - 1.0, 1.0, 0.0, 1.0), 0.0, 1.0)
     shape = 0.35 * pw + 0.65 * w
     shape = (shape - shape.min()) / (shape.max() - shape.min())
-    save("cloud_shape", 1.0 - shape, 16)
+    mg, mb = mask_channels(n, np.random.default_rng(20261023))
+    save("cloud_shape", np.stack([1.0 - shape, mg, mb], axis=-1), 16)
     # Мелкий шум краёв: Уорли 3 октавы, чаще.
     nd = 64
     wd = 1.0 - np.clip(fbm(worley, nd, 6, 3, rng, 0.55) / 0.9, 0.0, 1.0)
