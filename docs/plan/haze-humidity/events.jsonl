@@ -583,3 +583,6 @@
 {"t": "2026-10-23T18:49:53", "by": "coordinator", "task": "HH-8c", "ev": "accepted", "note": "по отчёту; findings.md 40 949 Б — запас 11 Б (остальные модули)"}
 {"t": "2026-10-23T18:49:54", "by": "coordinator", "task": "HH-8c", "ev": "accepted", "commits": ["883a357e6"], "note": "3/3 findings_size=ok:40949; no_stub_text=ok:exit 0; docs_mine=ok:0"}
 {"t": "2026-10-23T18:49:54", "by": "coordinator", "task": "HH-8c", "ev": "merged", "commits": ["883a357e6"]}
+{"t": "2026-10-23T18:54:14", "by": "executor", "task": "HH-4e", "ev": "reported", "commits": ["6a90bf5e5"], "note": "done: ClimateGrid.place считает gain_per_km по HH7 v2 (f от start_msl_m, нет - valley_msl_m, нет - z_cell; D>=500, f в [0;0,9…"}
+{"t": "2026-10-23T18:56:46", "by": "coordinator", "task": "HH-4e", "ev": "checked", "note": "3/3 haze_humidity=ok:37/37; wind=ok:43/43 (пропуск 4); weather=ok:19/19"}
+{"t": "2026-10-23T18:56:52", "by": "coordinator", "task": "HH-4e", "ev": "accepted", "note": "по отчёту: HH7 v2; Алтай январь, старт 1500 м: gain 1,99 → 0,80/км"}

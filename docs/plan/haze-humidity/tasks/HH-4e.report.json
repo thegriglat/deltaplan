@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "ClimateGrid.place считает gain_per_km по HH7 v2 (f от start_msl_m, нет - valley_msl_m, нет - z_cell; D>=500, f в [0;0,9]); Game передаёт start_msl_m = высота старта. Алтай: рост меньше прежних 1,6-2,3 на км при старте выше долины.",
+  "commits": [
+    "6a90bf5e5 HH-4e: рост ветра от ветра на высоте старта"
+  ],
+  "checks": [
+    {
+      "name": "haze_humidity",
+      "value": "37/37",
+      "pass": true
+    },
+    {
+      "name": "wind",
+      "value": "43/43",
+      "pass": true
+    },
+    {
+      "name": "weather",
+      "value": "19/19",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-4e",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/climate_grid.gd:place",
+      "why": "без HH1 z_ref=valley (как в HH-4c), тогда f=0 при старте=valley; контракт формулирует через z_cell",
+      "checked": "тест test_gain_without_hh1_uses_valley проходит; новый test_gain_from_start_height проверяет f=0,5/0,9/0 и V700/Vs"
+    }
+  ],
+  "dp_feedback": "",
+  "extra": {
+    "table_altai_gain_per_km_old_vs_new_by_start_msl": {
+      "Jan": "zs304: 1.99/1.99; 800: 1.99/1.79; 1500: 1.99/0.80; 2000: 1.99/0.57",
+      "Apr": "304: 1.70/1.70; 800: 1.70/1.55; 1500: 1.70/0.74; 2000: 1.70/0.54",
+      "Jul": "304: 0.80/0.80; 800: 0.80/0.76; 1500: 0.80/0.50; 2000: 0.80/0.40",
+      "Oct": "304: 1.66/1.66; 800: 1.66/1.52; 1500: 1.66/0.74; 2000: 1.66/0.54"
+    }
+  },
+  "t": "2026-10-23T18:54:14",
+  "by": "executor"
+}
