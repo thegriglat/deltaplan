@@ -1,0 +1,41 @@
+{
+  "id": "TP-25",
+  "module": "trike-pilot",
+  "type": "dp-writer",
+  "title": "Документация дельталёта: итог после TP-18…TP-24",
+  "goal": "Гайд дельталёта, CHANGELOG и findings отражают ветку после TP-18…TP-24: тяга по оси винта у игрока, буксировщик временно по прежней схеме (Q9 открыт), подскоки без провала, звук в паузе, скорость полной выборки, исследование буксировщика.",
+  "plan_ref": "TP-25",
+  "contracts": [
+    {
+      "name": "TP-К6",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-25",
+  "branch": "trike-pilot/TP-25",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "docs/guide/",
+    "CHANGELOG.md",
+    "docs/registry/",
+    "docs/INDEX.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "docs/contracts/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": "bash -c '.dpcli/dpcli docs check 2>&1'",
+      "expect": "!re:ОШИБКА.*(guide|findings|trike)"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T06:00:09"
+}
