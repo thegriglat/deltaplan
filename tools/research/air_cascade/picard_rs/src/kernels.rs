@@ -1,0 +1,293 @@
+//! Point-wise kernels of the iteration: boundary conditions, local K (`kloc`), momentum and
+//! heat stencils. Direct port of the reference kernels (`air.py`, `_SRC`); `f32` arithmetic.
+
+use crate::case::Consts;
+use crate::util::Row;
+use rayon::prelude::*;
+
+const G_OVER_T0: f32 = (9.81 / 300.0) as f32;
+
+/// Velocity components (faces), each a halo array.
+pub struct Vel<'a> {
+    pub u: &'a [f32],
+    pub v: &'a [f32],
+    pub w: &'a [f32],
+}
+
+/// Sets the type-2 boundary faces of `u`, `v` from the hard boundary condition
+/// (calm: zero) — reference `Air.apply_bc`.
+pub fn apply_bc(k: &Consts, u: &mut [f32], v: &mut [f32]) {
+    if k.u10_positive {
+        for (q, &i) in k.b_u.iter().enumerate() {
+            u[i] = k.fixed_u[q];
+        }
+        for (q, &i) in k.b_v.iter().enumerate() {
+            v[i] = k.fixed_v[q];
+        }
+    } else {
+        for &i in &k.b_u {
+            u[i] = 0.0;
+        }
+        for &i in &k.b_v {
+            v[i] = 0.0;
+        }
+    }
+}
+
+/// Local eddy viscosity (Prandtl-Blackadar mixing length with stability correction plus
+/// horizontal Smagorinsky), updated with under-relaxation in air cells only
+/// — reference kernel `kloc`. `nu` is vertical K, `nuh` is horizontal K_h.
+pub fn kloc(k: &Consts, vel: &Vel, th: &[f32], nu: &mut [f32], nuh: &mut [f32]) {
+    let (nx, ny) = (k.nxh, k.nyh);
+    let st = [1usize, nx, nx * ny];
+    let h = [k.dx, k.dx, k.dz];
+    let (u, v, w) = (vel.u, vel.v, vel.w);
+    let f = [u, v, w];
+    nu.par_iter_mut()
+        .zip(nuh.par_iter_mut())
+        .enumerate()
+        .with_min_len(256)
+        .for_each(|(idx, (nu_i, nuh_i))| {
+            if k.cell[idx] != 1 {
+                return;
+            }
+            let i = idx % nx;
+            let j = (idx / nx) % ny;
+            let kk = idx / (nx * ny);
+            let cval = |a: usize, p: usize, q: usize| 0.5 * (f[a][p] + f[a][q]);
+            let c = [
+                cval(0, idx, idx + st[0]),
+                cval(1, idx, idx + st[1]),
+                cval(2, idx, idx + st[2]),
+            ];
+            let mut g = [[0.0f32; 3]; 3];
+            for a in 0..3 {
+                for d in 0..3 {
+                    if a == d {
+                        g[a][d] = (f[a][idx + st[a]] - f[a][idx]) / h[d];
+                        continue;
+                    }
+                    let qm = idx - st[d];
+                    let qp = idx + st[d];
+                    let okm = k.cell[qm] != 0;
+                    let okp = k.cell[qp] != 0;
+                    let cm = if okm { cval(a, qm, qm + st[a]) } else { 0.0 };
+                    let cp = if okp { cval(a, qp, qp + st[a]) } else { 0.0 };
+                    g[a][d] = if okm && okp {
+                        (cp - cm) / (2.0 * h[d])
+                    } else if okp {
+                        (cp - c[a]) / h[d]
+                    } else if okm {
+                        (c[a] - cm) / h[d]
+                    } else {
+                        0.0
+                    };
+                }
+            }
+            let s2 = 2.0 * (g[0][0] * g[0][0] + g[1][1] * g[1][1] + g[2][2] * g[2][2])
+                + (g[0][1] + g[1][0]) * (g[0][1] + g[1][0])
+                + (g[0][2] + g[2][0]) * (g[0][2] + g[2][0])
+                + (g[1][2] + g[2][1]) * (g[1][2] + g[2][1]);
+            let dm = k.cell[idx - st[2]] != 0;
+            let dp = k.cell[idx + st[2]] != 0;
+            let dth = if dm && dp {
+                (th[idx + st[2]] - th[idx - st[2]]) / (2.0 * k.dz)
+            } else if dp {
+                (th[idx + st[2]] - th[idx]) / k.dz
+            } else if dm {
+                (th[idx] - th[idx - st[2]]) / k.dz
+            } else {
+                0.0
+            };
+            let n2 = G_OVER_T0 * (k.gam[kk] + dth);
+            let s = s2.sqrt();
+            let ri = n2 / if s2 > 1e-12 { s2 } else { 1e-12 };
+            let fr = if ri > 0.0 {
+                1.0 / ((1.0 + 5.0 * ri) * (1.0 + 5.0 * ri))
+            } else {
+                (1.0 - 16.0 * ri).sqrt()
+            };
+            let mut z = k.z_bot + (kk as f32 - 0.5) * k.dz - k.hcp[j * nx + i];
+            if z < 0.5 * k.dz {
+                z = 0.5 * k.dz;
+            }
+            let l = 1.0 / (1.0 / (0.4 * z) + 1.0 / k.lam[j * nx + i]);
+            let mut kv = l * l * s * fr;
+            let kb = k.nu_bg[idx];
+            if kv < kb {
+                kv = kb;
+            }
+            *nu_i += k.k_relax * (kv - *nu_i);
+            let d2 = (g[0][0] - g[1][1]) * (g[0][0] - g[1][1])
+                + (g[0][1] + g[1][0]) * (g[0][1] + g[1][0]);
+            let mut kh = k.csdx2 * d2.sqrt();
+            if kh < kv {
+                kh = kv;
+            }
+            *nuh_i += k.k_relax * (kh - *nuh_i);
+        });
+}
+
+/// Everything the momentum stencil of one component reads.
+pub struct MomIn<'a> {
+    pub vel: Vel<'a>,
+    pub p: &'a [f32],
+    pub th: &'a [f32],
+    pub nu: &'a [f32],
+    pub nuh: &'a [f32],
+}
+
+/// Momentum stencil (`C`, `b`) of component `comp` (0 u, 1 v, 2 w) from the current state
+/// — reference kernel `build_mom` (first-order upwind, frozen transport velocity).
+pub fn build_mom(k: &Consts, comp: usize, m: &MomIn, out: &mut [Row]) {
+    let (nx, ny) = (k.nxh, k.nyh);
+    let st = [1usize, nx, nx * ny];
+    let h = [k.dx, k.dx, k.dz];
+    let f = [m.vel.u, m.vel.v, m.vel.w];
+    let tt: &[u8] = [&k.tu, &k.tv, &k.tw][comp];
+    let (sp, bg): (&[f32], Option<&[f32]>) = match comp {
+        0 => (&k.sp_u, Some(&k.ubg)),
+        1 => (&k.sp_u, Some(&k.vbg)),
+        _ => (&k.sp_w, None),
+    };
+    let inv_dtau = 1.0 / k.dtau_u;
+    out.par_iter_mut()
+        .enumerate()
+        .with_min_len(128)
+        .for_each(|(idx, row)| {
+            if tt[idx] != 1 {
+                *row = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, f[comp][idx]];
+                return;
+            }
+            let kk = idx / (nx * ny);
+            let sc = st[comp];
+            let c0 = idx - sc;
+            let c1 = idx;
+            let mut a3 = [0.0f32; 3];
+            a3[comp] = f[comp][idx];
+            for d in 0..3 {
+                if d == comp {
+                    continue;
+                }
+                let g = f[d];
+                a3[d] = 0.25 * (g[c0] + g[c0 + st[d]] + g[c1] + g[c1 + st[d]]);
+            }
+            let mut diag = inv_dtau + sp[idx];
+            let bgv = bg.map_or(0.0, |b| b[idx]);
+            let mut rhs = f[comp][idx] * inv_dtau + sp[idx] * bgv;
+            let mut cc = [0.0f32; 7];
+            for d in 0..3 {
+                let ih = 1.0 / h[d];
+                let a = a3[d];
+                let kk_arr = if d == 2 { m.nu } else { m.nuh };
+                for s in 0..2usize {
+                    let o = 1 + 2 * d + s;
+                    let q = if s == 1 { idx + st[d] } else { idx - st[d] };
+                    let kf = if d == comp {
+                        kk_arr[if s == 1 { c1 } else { c0 }]
+                    } else if s == 1 {
+                        0.25 * (kk_arr[c0] + kk_arr[c1] + kk_arr[c0 + st[d]] + kk_arr[c1 + st[d]])
+                    } else {
+                        0.25 * (kk_arr[c0] + kk_arr[c1] + kk_arr[c0 - st[d]] + kk_arr[c1 - st[d]])
+                    };
+                    let vis = kf * ih * ih;
+                    let up = (s == 0 && a > 0.0) || (s == 1 && a < 0.0);
+                    let aa = a.abs();
+                    if tt[q] == 0 {
+                        if d == comp {
+                            diag += vis;
+                            if up {
+                                diag += aa * ih;
+                            }
+                        }
+                    } else {
+                        diag += vis;
+                        let mut cn = -vis;
+                        if up {
+                            diag += aa * ih;
+                            cn -= aa * ih;
+                        }
+                        cc[o] = cn;
+                    }
+                }
+            }
+            rhs -= (m.p[c1] - m.p[c0]) / h[comp];
+            if comp < 2 {
+                if tt[idx - st[2]] == 0 {
+                    let sp2 = a3[0] * a3[0] + a3[1] * a3[1];
+                    diag += k.cd * sp2.sqrt() / k.dz;
+                }
+            } else {
+                rhs += G_OVER_T0 * 0.5 * (m.th[c0] + m.th[c1]);
+                diag += k.cplz[kk];
+                rhs += k.cplz[kk] * f[2][idx];
+            }
+            *row = [diag, cc[1], cc[2], cc[3], cc[4], cc[5], cc[6], rhs];
+        });
+}
+
+/// Source and background terms of one heat template.
+pub struct HeatIn<'a> {
+    pub vel: Vel<'a>,
+    /// The scalar being solved (theta'_d or theta').
+    pub x: &'a [f32],
+    /// Heating, or heating minus theta'_d/tau for the full theta'.
+    pub q: &'a [f32],
+    /// `dtheta_bar/dz` per level for theta', `None` for theta'_d.
+    pub gam: Option<&'a [f32]>,
+    pub nu: &'a [f32],
+    pub nuh: &'a [f32],
+    /// 1/tau on the diagonal (theta'_d) or 0 (theta').
+    pub inv_tau: f32,
+}
+
+/// Heat stencil of one scalar — reference kernel `build_heat` (upwind transport in the
+/// template, turbulent diffusion `K / Pr_t`, sponge toward a zero parent).
+pub fn build_heat(k: &Consts, hin: &HeatIn, out: &mut [Row]) {
+    let (nx, ny) = (k.nxh, k.nyh);
+    let st = [1usize, nx, nx * ny];
+    let h = [k.dx, k.dx, k.dz];
+    let vel = [hin.vel.u, hin.vel.v, hin.vel.w];
+    let inv_dtau = 1.0 / k.dtau_th;
+    out.par_iter_mut()
+        .enumerate()
+        .with_min_len(128)
+        .for_each(|(idx, row)| {
+            if k.cell[idx] != 1 {
+                *row = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, hin.x[idx]];
+                return;
+            }
+            let kk = idx / (nx * ny);
+            let mut diag = inv_dtau + hin.inv_tau + k.spc[idx];
+            let gterm = hin
+                .gam
+                .map_or(0.0, |g| g[kk] * 0.5 * (vel[2][idx] + vel[2][idx + st[2]]));
+            let rhs = hin.x[idx] * inv_dtau + hin.q[idx] - gterm;
+            let mut cc = [0.0f32; 7];
+            for d in 0..3 {
+                let ih = 1.0 / h[d];
+                let kk_arr = if d == 2 { hin.nu } else { hin.nuh };
+                for s in 0..2usize {
+                    let vo = if s == 1 {
+                        vel[d][idx + st[d]]
+                    } else {
+                        -vel[d][idx]
+                    };
+                    let q = if s == 1 { idx + st[d] } else { idx - st[d] };
+                    let mut cn = 0.0;
+                    if vo > 0.0 {
+                        diag += vo * ih;
+                    } else {
+                        cn += vo * ih;
+                    }
+                    if k.cell[q] != 0 {
+                        let dif = 0.5 * (kk_arr[idx] + kk_arr[q]) * ih * ih * k.inv_prt;
+                        diag += dif;
+                        cn -= dif;
+                    }
+                    cc[1 + 2 * d + s] = cn;
+                }
+            }
+            *row = [diag, cc[1], cc[2], cc[3], cc[4], cc[5], cc[6], rhs];
+        });
+}
