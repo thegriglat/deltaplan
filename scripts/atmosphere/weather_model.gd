@@ -25,11 +25,49 @@ static func reference_context(cfg: Dictionary = {}) -> Dictionary:
 
 
 ## Обычный дневной максимум для месяца (и дня — между серединами месяцев линейно), °C.
-## Зажато в диапазон меню (ui.temperature_c).
-static func typical_max_c(month: int, day: int = 15, cfg: Dictionary = {}) -> float:
+## Зажато в диапазон меню (ui.temperature_c). С ctx места {lat, lon[, valley_msl_m]} — Tx_климат ячейки
+## ERA5 (ClimateGrid.place, HH5/HH7; без valley_msl_m — на средней высоте ячейки, без поправки); без ctx или без сетки — таблица typical_max_c (запас, Алтай).
+static func typical_max_c(
+	month: int, day: int = 15, cfg: Dictionary = {}, ctx: Dictionary = {}
+) -> float:
 	var c := cfg if not cfg.is_empty() else config()
 	var r: Array = c.get("ui", {}).get("temperature_c", [-50, 60, 1])
-	return clampf(monthly(c.get("typical_max_c", [20.0]), month, day), float(r[0]), float(r[1]))
+	var v: float
+	if ctx.has("lat") and ctx.has("lon"):
+		var q := ctx.duplicate()
+		q["month"] = month
+		q["day"] = day
+		v = float(ClimateGrid.place(q).tx_c)
+	else:
+		v = monthly(c.get("typical_max_c", [20.0]), month, day)
+	return clampf(v, float(r[0]), float(r[1]))
+
+
+## Суточная амплитуда (Tmax − Tmin) места, К: dtr_k ячейки ERA5 (HH5) с поправкой на высоту долины; ctx без
+## lat/lon — таблица diurnal.range_k (запас). cp — уже посчитанный ClimateGrid.place(ctx) (или пусто).
+static func diurnal_range_k(ctx: Dictionary, c: Dictionary, cp: Dictionary = {}) -> float:
+	if cp.is_empty() and ctx.has("lat") and ctx.has("lon"):
+		cp = ClimateGrid.place(ctx)
+	if not cp.is_empty():
+		return float(cp.dtr_k)
+	var month := clampi(int(ctx.get("month", 7)), 1, 12)
+	return monthly(c.get("diurnal", {}).get("range_k", [10.0]), month, int(ctx.get("day", 15)))
+
+
+## Доля перистых (0..1) на небе дня: HCC места × k_sky(пояс, сезон, облачность дня) — hcc_sky в конфиге
+## (tools/research/haze_humidity/upper_misc/hcc_sky.json). Нет сетки HH6 (src.hh6 = none) — cirrus_base.
+static func cirrus_base_cover(cp: Dictionary, sky: String, ctx: Dictionary, c: Dictionary) -> float:
+	var hs: Dictionary = c.get("hcc_sky", {})
+	if String((cp.get("src", {}) as Dictionary).get("hh6", "none")) == "none" or hs.is_empty():
+		return float(c.get("cirrus_base", 0.1))
+	var ks: Dictionary = hs.get("k_sky", {})
+	var tab: Array = ks.get(sky, ks.get("clear", [])) as Array
+	if tab.is_empty():
+		return float(cp.hcc)
+	var lat := float(ctx.get("lat", 52.0))
+	var b := ClimateGrid.band_index(lat, hs.get("bands_abs_lat", [20, 40, 60, 75]))
+	var sn := ClimateGrid.season_index(clampi(int(ctx.get("month", 7)), 1, 12), lat)
+	return clampf(float(cp.hcc) * float((tab[b] as Array)[sn]), 0.0, 1.0)
 
 
 ## Высоты рельефа вокруг (0, 0): долина (нижняя доля low_percentile) и средняя, м над морем.
@@ -72,18 +110,20 @@ static func derive(
 	var wind_kmh := maxf(float(forecast.get("wind_speed_kmh", 0.0)), 0.0)
 	var t := t_max
 	var diurnal := {}
+	var cp := ClimateGrid.place({
+		"lat": lat, "lon": float(ctx.get("lon", 0.0)), "month": month, "day": day,
+		"valley_msl_m": h_v * 1000.0,
+	})
 	if not is_nan(hour) and bool(c.get("diurnal", {}).get("enabled", false)):
-		diurnal = diurnal_state(t_max, hour, ctx, c)
+		diurnal = diurnal_state(t_max, hour, ctx, c, cp)
 		t = float(diurnal.temperature_c)
 
 	# --- высота термиков и кромка (§2.2), км над морем
-	var ua: Dictionary = c.upper_air
-	var t_u := monthly(ua.temp_c, month, day)
-	var z_u := float(ua.z_msl_m) / 1000.0
-	var gam := float(ua.lapse_k_per_km)
+	var t_u := float(cp.t700_c)
+	var z_u := float(cp.z700_m) / 1000.0
+	var gam := float((c.upper_air as Dictionary).lapse_k_per_km)
 	var dry := float(c.get("dry_adiabat_k_per_km", 9.8))
-	var td := monthly(c.dew_point_c, month, day)
-	td += float(c.get("td_follow_heat", 0.0)) * maxf(t_max - typical_max_c(month, day, c), 0.0)
+	var td := td_day(forecast, cp, ctx, c)
 	td = minf(td, t)
 	var excess := float(c.parcel_excess_k)
 	var z_dry := h_v + (t + excess - t_u - gam * (z_u - h_v)) / (dry - gam)
@@ -167,13 +207,17 @@ static func derive(
 		"street_strength": float(ss.blue) if blue else float(ss.cumulus),
 		"overdevelopment_chance": overdev,
 		"cloud_size_factor": float(a.cloud_size_factor) + float(st.cloud_size_k) * cb,
-		"cirrus_cover": clampf(float(c.cirrus_base) + float(st.cirrus_k) * cb, 0.0, 1.0),
+		"cirrus_cover": clampf(
+			cirrus_base_cover(cp, String(forecast.get("sky", "clear")), ctx, c) + float(st.cirrus_k) * cb,
+			0.0,
+			1.0
+		),
 		"cb_chance": cb,
 		"cb_thermal_chance": cb_th,
 		"thermal_edge_k": 1.0,
 		"mech_turbulence_k": 1.0,
 		"haze_k": 1.0,
-		"cb_top_above_base_m": maxf(float(c.tropopause_msl_m) - z_lcl * 1000.0, 1000.0),
+		"cb_top_above_base_m": maxf(float(cp.trop_m) - z_lcl * 1000.0, 1000.0),
 		"wave_strength": wave_strength,
 		"stability_n_per_s": n_bv,
 		"lens_level_above_crest_m": float(consts.lens_level_above_crest_m),
@@ -188,6 +232,12 @@ static func derive(
 			"temperature_c": t,
 			"upper_temp_c": t_u,
 			"dew_point_c": td,
+			"td_climate_c": float(cp.td_c),
+			"tx_climate_c": float(cp.tx_c),
+			"dtr_k": float(cp.dtr_k),
+			"trop_msl_m": float(cp.trop_m),
+			"gain_per_km": float(cp.gain_per_km),
+			"climate_src": cp.src,
 			"valley_msl_m": h_v * 1000.0,
 			"mean_msl_m": h_m,
 			"z_dry_msl_m": z_dry * 1000.0,
@@ -237,7 +287,7 @@ static func sky_params(sky: String, cfg: Dictionary = {}) -> Dictionary:
 ## heat (поток тепла / полуденный, 0..1), soft (мягкость 0..1), mech_k, sunrise_h, sunset_h,
 ## peak_h}.
 static func diurnal_state(
-	t_max: float, hour: float, ctx: Dictionary, c: Dictionary
+	t_max: float, hour: float, ctx: Dictionary, c: Dictionary, cp: Dictionary = {}
 ) -> Dictionary:
 	var d: Dictionary = c.get("diurnal", {})
 	var month := clampi(int(ctx.get("month", 7)), 1, 12)
@@ -265,7 +315,7 @@ static func diurnal_state(
 		f = fs + (1.0 - fs) * cos(PI * 0.5 * (hour - peak) / maxf(sunset - peak, 0.1))
 	else:
 		f = fs * exp(-(hour - sunset) / float(d.get("night_tau_h", 2.0)))
-	var amp := monthly(d.get("range_k", [10.0]), month, day)
+	var amp := diurnal_range_k(ctx, c, cp)
 	var t := t_max - amp * (1.0 - f)
 	# Утренняя инверсия: пузырь поднимается только в ней, пока не прогреется выше остывшего
 	# за ночь остаточного слоя вчерашнего дня (T + δ ≥ T_max − R).
@@ -297,12 +347,6 @@ static func diurnal_state(
 	var calm_h := float(d.get("evening_calm_h", 2.0))
 	var calm := clampf((hour - (sunset - calm_h)) / maxf(calm_h, 0.01), 0.0, 1.0)
 	var mech_k := lerpf(1.0, float(d.get("evening_mech_k", 0.6)), calm)
-	# Дымка копится после пика прогрева к закату.
-	var haze_k := lerpf(
-		1.0,
-		float(d.get("evening_haze_k", 1.0)),
-		clampf((hour - peak) / maxf(sunset - peak, 0.1), 0.0, 1.0)
-	)
 	return {
 		"temperature_c": t,
 		"cap_agl_m": cap,
@@ -310,11 +354,74 @@ static func diurnal_state(
 		"heat": heat,
 		"soft": soft,
 		"mech_k": mech_k,
-		"haze_k": haze_k,
 		"sunrise_h": sunrise,
 		"sunset_h": sunset,
 		"peak_h": peak,
 	}
+
+
+## Точка росы дня (контракт HH7): Td = Td_климат(место) + μ_sky·σ + β·(T_max − Tx_климат) + r·ρ·σ.
+## cp — ClimateGrid.place(ctx); μ, β, ρ — по поясу |φ|, сезону и облачности дня (td_day в конфиге);
+## r — детерминированное N(0, 1) от (месяц, день, место). Верхнюю границу Td ≤ T ставит derive (T часа).
+static func td_day(forecast: Dictionary, cp: Dictionary, ctx: Dictionary, c: Dictionary) -> float:
+	var tdc: Dictionary = c.get("td_day", {})
+	var skies: Dictionary = tdc.get("sky", {})
+	var sky: Dictionary = skies.get(String(forecast.get("sky", "clear")), skies.get("clear", {}))
+	var lat := float(ctx.get("lat", 52.0))
+	var month := clampi(int(ctx.get("month", 7)), 1, 12)
+	var b := ClimateGrid.band_index(lat, tdc.get("bands_abs_lat", [20, 40, 60, 75]))
+	var s := ClimateGrid.season_index(month, lat)
+	var sd := float(cp.td_sd_k)
+	var td := float(cp.td_c)
+	if sky.is_empty():
+		return td
+	var t_max := float(forecast.get("temperature_c", 20.0))
+	var mu := float((sky.mu_sigma[b] as Array)[s])
+	var beta := float((sky.beta[b] as Array)[s])
+	var rho := float((sky.res_ratio[b] as Array)[s])
+	var r := td_noise(month, int(ctx.get("day", 15)), lat, float(ctx.get("lon", 0.0)))
+	r = clampf(r, -float(c.get("climate", {}).get("r_clamp", 3.0)), float(c.get("climate", {}).get("r_clamp", 3.0)))
+	# Tx_климат места — cp.tx_c (сетка HH5; нет файла — таблица typical_max_c, запас).
+	return td + mu * sd + beta * (t_max - float(cp.tx_c)) + r * rho * sd
+
+
+## Детерминированное N(0, 1) от (месяц, день, round(lat·100), round(lon·100)): splitmix64 → Бокс — Мюллер.
+## Одна и та же дата в одном месте — одно число (не зависит от версии движка, в отличие от hash()).
+static func td_noise(month: int, day: int, lat: float, lon: float) -> float:
+	var h := -7046029254386353131
+	for v in [month, day, roundi(lat * 100.0), roundi(lon * 100.0)]:
+		h = _mix64(h ^ (int(v) + 0x632BE59BD9B4E019))
+	var h2 := _mix64(h ^ 0x2545F4914F6CDD1D)
+	var u1 := (float((h >> 11) & 0x1FFFFFFFFFFFFF) + 0.5) / 9007199254740992.0
+	var u2 := float((h2 >> 11) & 0x1FFFFFFFFFFFFF) / 9007199254740992.0
+	return sqrt(-2.0 * log(u1)) * cos(TAU * u2)
+
+
+static func _mix64(x: int) -> int:
+	x += -7046029254386353131
+	x = (x ^ ((x >> 30) & 0x3FFFFFFFF)) * -4658895280553007687  # 0xBF58476D1CE4E5B9
+	x = (x ^ ((x >> 27) & 0x1FFFFFFFFF)) * -7723592293110705685  # 0x94D049BB133111EB
+	return x ^ ((x >> 31) & 0x1FFFFFFFF)
+
+
+## Давление насыщенного пара над водой, гПа (Магнус, Alduchov–Eskridge 1996).
+static func _e_s(x_c: float) -> float:
+	return 6.1094 * exp(17.625 * x_c / (x_c + 243.04))
+
+
+## Относительная влажность 0..1 (до зажима): e_s(Td) / e_s(T); Td > T — 1.
+static func _rh(t_c: float, td_c: float) -> float:
+	return minf(_e_s(minf(td_c, t_c)) / _e_s(t_c), 1.0)
+
+
+## Густота дымки по влажности (контракт HH3): ((1 − RH_c)/(1 − rh_dry))^(−gamma), RH_c в [rh_dry, rh_max].
+## Множитель к haze.visibility_km сухого воздуха (RH ≤ rh_dry — 1.0).
+static func haze_k_rh(t_c: float, td_c: float, cfg: Dictionary = {}) -> float:
+	var c := cfg if not cfg.is_empty() else config()
+	var h: Dictionary = c.get("haze_humidity", {})
+	var dry := float(h.get("rh_dry", 0.40))
+	var rh := clampf(_rh(t_c, td_c), dry, float(h.get("rh_max", 0.95)))
+	return pow((1.0 - rh) / (1.0 - dry), -float(h.get("gamma", 0.6)))
 
 
 ## Прогрев: ход дня (st — diurnal_state или пусто) и облачность (sky): сила, частота, мягкость,
@@ -354,9 +461,13 @@ static func _apply_heat(w: Dictionary, st: Dictionary, sky: Dictionary, c: Dicti
 	w.sky_duty_k = float(sky.get("duty_k", 1.0))
 	w.thermal_edge_k = 1.0 - float(sd.get("edge_k", 0.4)) * soft
 	w.mech_turbulence_k = float(st.get("mech_k", 1.0))
-	w.haze_k = float(st.get("haze_k", 1.0)) * float(sky.get("haze_k", 1.0))
 	var dv: Dictionary = w._derived
 	dv.merge(st, true)
+	# Дымка — по влажности воздуха этого часа (HH3): T часа (после merge st) и точка росы.
+	var t_c := float(dv.get("temperature_c", 15.0))
+	var td_c := float(dv.get("dew_point_c", 0.0))
+	dv.rh = _rh(t_c, td_c)
+	w.haze_k = haze_k_rh(t_c, td_c, c)
 	dv.heat = heat
 	dv.soft = soft
 

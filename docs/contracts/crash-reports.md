@@ -1,6 +1,6 @@
 ---
 type: "contract"
-status: "active"
+status: "closed"
 module: "crash-reports"
 area: "release"
 updated: "2026-10-23"

@@ -80,6 +80,11 @@ func test_deadzones_give_exact_zero() -> void:
 	ic._mouse_offset = Vector2(0.9 * mdz, -0.99 * mdz)
 	var c := ic.update(1.0e-4)
 	check(c.pitch == 0.0 and c.roll == 0.0, "мышь внутри мёртвой зоны (%.3f): pitch = %s, roll = %s" % [mdz, c.pitch, c.roll])
+	# BM-К1: зона вычитается, на пороге скачка нет, дальше — (|x| − dz)/(1 − dz)
+	ic._mouse_offset = Vector2(mdz + 0.01, -(mdz + 0.01))
+	c = ic.update(1.0e-4)
+	approx(c.roll, 0.01 / (1.0 - mdz), 1e-6, "мышь за зоной: roll без скачка")
+	approx(c.pitch, 0.01 / (1.0 - mdz), 1e-6, "мышь за зоной: pitch без скачка")
 	ic.free()
 
 

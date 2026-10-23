@@ -85,7 +85,8 @@ func _run_location(loc_id: String) -> void:
 	game.autopilot.tow_start = tow_start
 	(fss.get("_done_btn") as Button).emit_signal("pressed")  # «Готово» — выбор, назад в меню
 	check(not fss.visible and start_menu.visible, "%s: «Готово» вернула в меню" % loc_id)
-	(start_menu.get("_fly_btn") as Button).emit_signal("pressed")  # «Лететь»
+	(start_menu.get("_fly_btn") as Button).emit_signal("pressed")  # «Лететь» → окно старта (TA-К1)
+	(start_menu.choice_dialog.glider_btn as Button).emit_signal("pressed")  # «Дельтаплан» (вид — из настроек)
 
 	var loaded := false
 	var load_frames := int(MAX_LOAD_FRAMES_BY_LOCATION.get(loc_id, MAX_LOAD_FRAMES))
@@ -163,14 +164,13 @@ func _run_location(loc_id: String) -> void:
 	await _finish(main, catcher)
 
 
-## Выбрать в экране «Полёт…» статическую лебёдку, если место её допускает (tow.kinds); иначе false.
+## Выбрать статическую лебёдку (TA-К1: окно старта задаёт settings.tow_kind), если место её допускает (tow.kinds).
 func _select_winch(fss: FlightSetupScreen) -> bool:
-	var ids: PackedStringArray = fss.get("_tow_ids")
-	var i := ids.find("winch_static")
-	# у площадки без блока tow виды буксировки — «все» (TW-К7), но игра на ней лебёдку не ставит
-	if i < 0 or not (fss.get("_row").builtin_site().get("tow") is Dictionary):
+	var site: Dictionary = fss.get("_row").builtin_site()
+	# у площадки без блока tow виды буксировки — «все» (TW-К7), но игра на ней лебёдку не ставила (до TA-К2)
+	if not (site.get("tow") is Dictionary) or not ("winch_static" in FlightSetupScreen.tow_kinds_for_site(site)):
 		return false
-	(fss.get("_tow_opt") as OptionButton).select(i)
+	(fss.get("settings") as FlightSettings).tow_kind = "winch_static"
 	return true
 
 

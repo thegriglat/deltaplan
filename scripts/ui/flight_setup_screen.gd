@@ -79,10 +79,6 @@ var _app_user: Dictionary = {}  ## {wing_id: {ключ: значение}} — �
 var _app_wing: String = ""  ## крыло, значения которого сейчас на ползунках
 var _app_loading: bool = false  ## ползунки заполняются программно — в _app_user не писать
 var _fav_btn: Button
-var _tow_opt: OptionButton  ## TW-К7: «Буксировка»
-var _tow_hint: Label
-var _tow_place_key: String = ""
-var _tow_ids: PackedStringArray = []  ## виды пунктов _tow_opt ("" — «Нет»)
 var _recent_section: VBoxContainer
 var _recent_list: VBoxContainer
 var _row: PlacePickRow  ## выбор места: карта, «Популярные места», подпись (общий с экраном сети)
@@ -170,8 +166,6 @@ func _build() -> void:
 	_row.build(self, popular_places_path)
 	_row.changed.connect(_update_dir_hint)
 	_row.changed.connect(_update_weather_lock)
-	_build_tow(box_place)
-	_row.changed.connect(_on_place_changed_tow)
 	_connect_goals_refresh()
 	_build_recent(box_place)
 
@@ -227,9 +221,7 @@ func _apply_settings() -> void:
 	_month_opt.select(clampi(settings.month, 1, 12) - 1)
 	_on_month_selected(_month_opt.selected)
 	_day.value = settings.day
-	_tow_place_key = _place_key()
 	_row.refresh()
-	_refresh_tow(settings.tow_kind, false)
 	_fill_recent()
 	if _goals_tab != null:
 		_goals_tab.load_settings(settings)
@@ -389,10 +381,22 @@ func _build_time(box: Control) -> void:
 func _on_month_selected(i: int) -> void:
 	_day.max_value = SunClock.days_in_month(i + 1)
 	# Смена месяца не двигает ползунок (выбор пилота важнее) — только подсказку «обычно…».
-	if _temp_hint != null:
-		_temp_hint.text = (
-			tr("setup_temperature_typical") % roundi(WeatherModel.typical_max_c(i + 1))
-		)
+	_update_temp_hint(i + 1)
+
+
+## Подсказка «обычно днём…» — для выбранного места (HH5: Tx климата ячейки) и месяца.
+func _update_temp_hint(month: int = 0) -> void:
+	if _temp_hint == null or _month_opt == null:
+		return
+	var m := month if month > 0 else _month_opt.selected + 1
+	var ctx := {}
+	if _row != null and _row.settings != null:
+		var ll := WorldKey.launch_latlon(_row.settings)
+		ctx = {"lat": ll.x, "lon": ll.y}
+	_temp_hint.text = (
+		tr("setup_temperature_typical")
+		% roundi(WeatherModel.typical_max_c(m, int(_day.value) if _day != null else 15, {}, ctx))
+	)
 
 
 ## Прогноз (FR-16): температура днём, ветер на старте (м/с), откуда ветер, облачность.
@@ -455,6 +459,7 @@ func _update_dir_hint() -> void:
 
 ## TI-К2: у старта с фиксированной погодой элементы погоды и времени заблокированы, показан набор.
 func _update_weather_lock() -> void:
+	_update_temp_hint()
 	if _temp == null or _hour == null or _fixed_label == null or _row == null:
 		return
 	var w := StartWeather.for_settings(_row.settings)
@@ -503,7 +508,6 @@ func _collect() -> FlightSettings:
 	s.month = _month_opt.selected + 1
 	s.day = int(_day.value)
 	s.apparatus = FlightSettings.from_dict({"apparatus": _app_user}).apparatus
-	s.tow_kind = _tow_selected()
 	StartWeather.apply(s)  # точные значения набора (элементы меню округляют)
 	if _goals_tab != null:
 		s.goals = _goals_tab.collect()
@@ -533,60 +537,6 @@ static func default_tow_kind(site: Dictionary, multiplayer: bool = false) -> Str
 		return ""
 	var kinds := tow_kinds_for_site(site)
 	return String(kinds[0]) if not kinds.is_empty() else ""
-
-
-func _build_tow(box: Control) -> void:
-	_tow_opt = OptionButton.new()
-	UiKit.row(box, tr("setup_tow"), _tow_opt)
-	_tow_hint = UiKit.label(box, tr("setup_tow_mp_off"), "HintLabel")
-	_tow_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-
-
-## Ключ места: площадка/точка. Выбор буксировки сбрасывается на умолчание только при его смене.
-func _place_key() -> String:
-	var s := _row.settings
-	if s.has_pick():
-		return "pick:%s,%s" % [s.pick_lat, s.pick_lon]
-	return "site:%s/%s" % [s.location_id, s.site_id]
-
-
-func _on_place_changed_tow() -> void:
-	var key := _place_key()
-	var moved := key != _tow_place_key
-	_tow_place_key = key
-	_refresh_tow(_tow_selected(), moved)
-
-
-func _tow_selected() -> String:
-	if _tow_opt == null or GoalsTab.net_blocked():
-		return ""
-	var i := _tow_opt.selected
-	return _tow_ids[i] if i >= 0 and i < _tow_ids.size() else ""
-
-
-## Пересобрать пункты по площадке. preferred — что оставить, если доступно; reset — взять умолчание площадки.
-func _refresh_tow(preferred: String, reset: bool) -> void:
-	if _tow_opt == null or _row == null:
-		return
-	var mp := GoalsTab.net_blocked()
-	var site := _row.builtin_site()
-	_tow_ids = PackedStringArray([""])
-	_tow_opt.clear()
-	_tow_opt.add_item(tr("setup_tow_none"))
-	var names := {"winch_static": "setup_tow_winch", "aerotow": "setup_tow_aerotow"}
-	var kinds := tow_kinds_for_site(site)
-	for k: String in kinds:
-		_tow_ids.append(k)
-		_tow_opt.add_item(tr(String(names[k])))
-	var want := default_tow_kind(site) if reset else FlightSettings.normalize_tow(preferred)
-	if want != "" and not (want in kinds):
-		want = default_tow_kind(site)
-	_tow_opt.select(maxi(_tow_ids.find(want), 0))
-	_tow_opt.disabled = mp
-	_tow_hint.visible = mp
-	_tow_hint.text = tr("setup_tow_mp_off")
-	if mp:
-		_tow_opt.select(0)
 
 
 ## Погода, время и место меняют числа целей (GL-3).

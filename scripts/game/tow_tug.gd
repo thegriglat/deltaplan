@@ -20,10 +20,8 @@ extends RefCounted
 ## Чтение: pos (точка tow_hook), vel, hang_pos, wing_basis, cart_basis, basis (= cart_basis), phase: idle / slack / roll /
 ## climb / circuit / away; agl_m (низ колёс над землёй), gone, throttle, prop_rpm, airspeed_ms, model.
 
-## ЦМ тележки в осях trike.glb от HangPoint (Godot: -Z вперёд): 0,13 м вперёд, 1,70 м вниз (docs/research/tow/trike-tug.md).
-const CART_CM_MODEL := Vector3(0.0, -1.70, -0.13)
-const CART_TURN_DEG_S := 20.0  ## предел скорости смены ориентации модели (колёса <-> воздух), град/с
 const WING_DEFAULT := "trike_ixess15"
+const CART_CM_MODEL := Vector3(0.0, -1.70, -0.13)  ## = TrikeRig.CART_CM_MODEL (для тестов)
 
 var pos := Vector3.ZERO  ## точка tow_hook в мире - конец троса
 var vel := Vector3.ZERO  ## её скорость
@@ -38,6 +36,7 @@ var throttle := 0.0
 var prop_rpm := 0.0
 var airspeed_ms := 0.0
 var model: PendulumModel
+var rig := TrikeRig.new()  ## тележка на подвеске (TP-К6): тяга, оси, ориентация
 
 var _cfg: Dictionary = {}
 var _terrain: Callable
@@ -63,20 +62,12 @@ func setup(
 	_cfg = cfg if not cfg.is_empty() else Config.get_config("tow_tug")
 	_terrain = terrain_height if terrain_height.is_valid() else func(_x: float, _z: float) -> float: return 0.0
 	var cart: Dictionary = _cfg.cart
-	var wing: Dictionary = Config.get_config("wings/" + String(_cfg.get("wing", WING_DEFAULT))).duplicate(true)
-	var pilot: Dictionary = Config.get_config("pilot").duplicate(true)
-	pilot.mass_kg = float(cart.mass_kg)
-	var app := {
-		"hang_length_m": float(cart.cg_below_hang_m),
-		"pilot_cda_m2": float(cart.cda_m2),
-		"arms_force_max_n": float(cart.arms_force_max_n),
-	}
+	var mp := TrikeRig.model_params(_cfg, float(cart.mass_kg))
 	model = PendulumModel.new()
-	model.setup(wing, pilot, {}, app)
-	# ход штанги в треугольнике тележки (TT-8, trapeze.json): штатные 0,3 / 0,45 м не помещаются
-	model.arms.shift_x_push = float(cart.arms_shift_push_m)
-	model.arms.shift_x_pull = float(cart.arms_shift_pull_m)
-	model.arms.shift_x_pull_full = float(cart.arms_shift_pull_m)
+	model.setup(mp.wing, mp.pilot, {}, mp.apparatus)
+	rig = TrikeRig.new()
+	rig.terrain = _terrain
+	rig.setup(model, _cfg)
 	var h := deg_to_rad(heading_deg)
 	_heading_ref = h
 	_hdg_tgt = h
@@ -273,69 +264,25 @@ func _update_thrust() -> void:
 
 ## Внешняя сила модели (подшаг 480 Гц): тяга на тележку вдоль продольной оси, трос - на тележку или подвеску.
 func _ext_force(s: Dictionary) -> Dictionary:
-	var cb := _cart_axes(s.pilot_pos, s.hang_pos, s.wing_basis)
-	var tilt := deg_to_rad(float(_cfg.engine.thrust_tilt_deg))
-	var dir := -cb.z * cos(tilt) + cb.y * sin(tilt)
-	var out := {}
-	var f_p: Vector3 = dir * _thrust_n
 	if String(_cfg.cart.tow_hook_on) == "hang":
-		out["hang"] = _rope_force
+		rig.extra_hang_force = _rope_force
+		rig.extra_pilot_force = Vector3.ZERO
 	else:
-		f_p += _rope_force
-	out["pilot"] = f_p
-	return out
-
-
-## Оси тележки: +Y от ЦМ тележки к подвеске, -Z - курс крыла, ортогонализованный к мачте.
-static func _cart_axes(pilot_p: Vector3, hang_p: Vector3, wb: Basis) -> Basis:
-	var y := (hang_p - pilot_p).normalized()
-	var f: Vector3 = -wb.z
-	f = (f - y * f.dot(y)).normalized()
-	var z := -f
-	return Basis(y.cross(z), y, z)
-
-
-## Ориентация модели trike.glb (TT-К4 v2). На колёсах: +Y по нормали земли, -Z по курсу крыла. В воздухе: вектор
-## «подвеска -> ЦМ тележки» в осях trike.glb (CART_CM_MODEL, tools/research/tow-trike/cart.py) совпадает с направлением
-## подвеска -> ЦМ тележки в модели полёта (pilot_position), -Z - по курсу.
-func _cart_model_basis(pilot_p: Vector3, hang_p: Vector3, wb: Basis, wheels: bool) -> Basis:
-	if wheels:
-		var d := 2.0
-		var gx := _ground(pilot_p.x + d, pilot_p.z) - _ground(pilot_p.x - d, pilot_p.z)
-		var gz := _ground(pilot_p.x, pilot_p.z + d) - _ground(pilot_p.x, pilot_p.z - d)
-		var n := Vector3(-gx, 2.0 * d, -gz).normalized()
-		var f: Vector3 = -wb.z
-		f = (f - n * f.dot(n)).normalized()
-		var z := -f
-		return Basis(n.cross(z), n, z)
-	var b0 := _cart_axes(pilot_p, hang_p, wb)
-	var rm := Basis(Quaternion(CART_CM_MODEL.normalized(), Vector3.DOWN))
-	return b0 * rm
-
-
-## Поворот a к b не быстрее max_rad (ортонормированные базисы).
-static func _turn_toward(a: Basis, b: Basis, max_rad: float) -> Basis:
-	var qa := a.get_rotation_quaternion()
-	var qb := b.get_rotation_quaternion()
-	var ang := qa.angle_to(qb)
-	if ang <= max_rad:
-		return Basis(qb)
-	return Basis(qa.slerp(qb, max_rad / ang))
+		rig.extra_hang_force = Vector3.ZERO
+		rig.extra_pilot_force = _rope_force
+	rig.thrust_n = _thrust_n
+	return rig.ext_force(s)
 
 
 func _refresh(dt: float) -> void:
-	hang_pos = model.hang_position
-	wing_basis = model.wing_basis()
-	var target := _cart_model_basis(model.pilot_position, hang_pos, wing_basis, model.on_wheels)
-	if dt <= 0.0:
-		cart_basis = target
-	else:
-		cart_basis = _turn_toward(cart_basis, target, deg_to_rad(CART_TURN_DEG_S) * dt)
+	rig.refresh(dt)
+	hang_pos = rig.hang_pos
+	wing_basis = rig.wing_basis
+	cart_basis = rig.cart_basis
 	basis = cart_basis
 	var np := hang_pos + cart_basis * _hook
 	if dt > 0.0:
 		vel = (np - _prev_pos) / dt
 	pos = np
 	_prev_pos = np
-	var pp := model.pilot_position
-	agl_m = maxf(pp.y - float(_cfg.ground.wheel_base_agl_m) - _ground(pp.x, pp.z), 0.0)
+	agl_m = rig.agl_m

@@ -1,0 +1,5 @@
+[{"name":"axis_a0.724"},
+ {"name":"cg_a1.0","ovr":{"tow_tug.cart.prop_axis_below_hang_m":1.71}},
+ {"name":"axis_bar_stop_v40","ovr":{"tow_tug.tow.tow_speed_kmh":40}},
+ {"name":"axis_v55","ovr":{"tow_tug.tow.tow_speed_kmh":55}},
+ {"name":"axis_v65","ovr":{"tow_tug.tow.tow_speed_kmh":65}}]

@@ -21,7 +21,11 @@ var mouse_captured := false
 ## Фазу сообщает главная сцена по телеметрии: на земле стоя W/S — шаг, A/D — поворот.
 var on_ground := true
 ## false — ввод игнорируется (меню, итог полёта): update() отдаёт нейтральное управление.
-var enabled := true
+var enabled := true:
+	set(v):
+		if not v:
+			_bar_look_held = false  # ПКМ отпущена в меню/паузе — событие до нас не дойдёт
+		enabled = v
 ## true — клавиши заняты свободной камерой (WASD двигает её): крыло без рук — трапеция в триме,
 ## на земле стоим.
 var hands_off := false
@@ -32,6 +36,11 @@ var pad_run := false
 ## Направление крена (PV1): "bar" — устройство двигает трапецию (вправо = крен влево),
 ## "body" — тело (вправо = крен вправо). В полёте и на земле (PV1 v2).
 var roll_input := "body"
+## Что пилотируем (TP-К3): "glider" — крыло (по умолчанию), "trike" — дельталёт: W/S — газ, пробел — двигатель,
+## A/D на земле — руление, тормоз. Взгляд — только мышью (TP-К3 v2, Q1); тормоз — Shift на земле (Q2).
+var vehicle := "glider"
+
+var _toggle_down := false  # пробел нажат в прошлом шаге (фронт для engine_toggle)
 
 var _cfg: Dictionary
 var _mouse_offset := Vector2.ZERO  # накопленное смещение мыши, доли полного хода
@@ -54,7 +63,7 @@ func reload_config() -> void:
 ## Клавиши look_* (W/S/A/D) сейчас крутят голову (У2 v2): ввод включён, руки на трапеции
 ## (не свободная камера), в полёте. От мыши не зависит; на земле — шаг и поворот.
 func keys_look() -> bool:
-	return enabled and not hands_off and not on_ground
+	return enabled and not hands_off and not on_ground and vehicle != "trike"
 
 
 static func register_actions(cfg: Dictionary) -> void:
@@ -86,6 +95,10 @@ func set_mouse_captured(on: bool) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Состояние ПКМ пишем и при выключенном вводе: отпускание в меню/паузе не теряется.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		_bar_look_held = event.pressed
+		return
 	if not enabled:
 		return
 	if event.is_action_pressed("mouse_capture"):
@@ -93,17 +106,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	# Правая кнопка зажата — осмотреться (CameraRig крутит голову), трапеция
 	# держит последнее положение, пока кнопка не отпущена.
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
-		_bar_look_held = event.pressed
-		return
 	# Мышь — трапеция и на земле, и в полёте (У1 v3): смещение копится всегда (при захвате),
 	# поэтому на отрыве трапеция непрерывна. Свободная камера (hands_off) — мышь крутит её, трапеция
 	# держит положение (иначе после возврата в кабину трапеция стояла бы, куда вела камера).
 	if mouse_captured and event is InputEventMouseMotion and not _bar_look_held and not hands_off:
-		var h := float(get_viewport().get_visible_rect().size.y) * 0.5
-		var k := float(_cfg.mouse.bar_sensitivity) / maxf(h, 1.0)
-		_mouse_offset += event.relative * k  # мышь от себя (вверх по экрану) = трапеция от себя
-		_mouse_offset = _mouse_offset.clamp(Vector2(-1, -1), Vector2(1, 1))
+		# мышь от себя (вверх по экрану) = трапеция от себя; ход — в отсчётах мыши (BM-К1)
+		_mouse_offset = MouseBar.accumulate(_mouse_offset, event.screen_relative, _cfg.mouse)
 
 
 ## Новый полёт: трапеция в нейтраль.
@@ -117,7 +125,11 @@ func reset() -> void:
 ## Вызывать каждый шаг физики.
 func update(dt: float) -> ControlInput:
 	pad_run = false
+	control.throttle_axis = 0.0
+	control.engine_toggle = false
+	control.brake = false
 	if not enabled or hands_off:
+		_toggle_down = false
 		control.pitch = 0.0
 		control.roll = 0.0
 		control.walk = 0.0
@@ -125,13 +137,21 @@ func update(dt: float) -> ControlInput:
 		control.run = false
 		control.pull_full = false
 		return control
-	control.pull_full = _strength("pull_full") > 0.5
-	if on_ground:
+	control.pull_full = _strength("pull_full") > 0.5 and not (vehicle == "trike" and on_ground)
+	if vehicle == "trike":
+		_update_trike(dt)
+	elif on_ground:
 		_update_ground(dt)
 	else:
 		_update_air(dt)
 	_apply_gamepad()
 	_apply_autopilot()
+	if vehicle == "trike":
+		control.run = false
+		pad_run = false
+		control.walk = 0.0
+		if not on_ground:
+			control.turn = 0.0
 	control.pitch = clampf(control.pitch, -1.0, 1.0)
 	control.roll = clampf(control.roll, -1.0, 1.0)
 	control.walk = clampf(control.walk, -1.0, 1.0)
@@ -153,6 +173,23 @@ func _update_ground(dt: float) -> void:
 		control.walk = _strength("walk_forward") - _strength("walk_back")
 		control.turn = _strength("turn_right") - _strength("turn_left")
 	_update_bar(dt, false)
+
+
+## Дельталёт (TP-К3): пилот сидит — разбега и шага нет. Газ W/S, пробел — двигатель, на земле A/D — руление
+## и тормоз; штанга (мышь, стик) — как у крыла.
+func _update_trike(dt: float) -> void:
+	control.throttle_axis = clampf(_strength("throttle_up") - _strength("throttle_down"), -1.0, 1.0)
+	var tg := _strength("engine_toggle") > 0.5
+	control.engine_toggle = tg and not _toggle_down
+	_toggle_down = tg
+	control.run = false
+	control.walk = 0.0
+	if on_ground:
+		control.turn = _strength("turn_right") - _strength("turn_left")
+		control.brake = _strength("trike_brake") > 0.5
+	else:
+		control.turn = 0.0
+	_update_bar(dt, not on_ground)
 
 
 func _update_air(dt: float) -> void:
@@ -185,8 +222,8 @@ func _update_bar(dt: float, allow_center: bool) -> void:
 	elif ret > 0.0:
 		_mouse_offset = _mouse_offset.move_toward(Vector2.ZERO, ret * dt)
 	var dz := float(_cfg.mouse.bar_deadzone)
-	var m_roll := _mouse_offset.x * _roll_sign() if absf(_mouse_offset.x) > dz else 0.0
-	var m_pitch := -_mouse_offset.y * inv if absf(_mouse_offset.y) > dz else 0.0
+	var m_roll := MouseBar.apply_deadzone(_mouse_offset.x, dz) * _roll_sign()
+	var m_pitch := -MouseBar.apply_deadzone(_mouse_offset.y, dz) * inv
 	control.pitch = clampf(m_pitch, -1.0, 1.0)
 	control.roll = clampf(m_roll, -1.0, 1.0)
 

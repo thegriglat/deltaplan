@@ -619,8 +619,12 @@ func set_ground(height_fn: Callable, sun_fn: Callable, surface_fn := Callable())
 ## Ветер: скорость на опорной высоте (км/ч) и направление «откуда» (0 — с севера), FR-16.
 ## ref_msl — высота над морем, где задан ветер прогноза (старт): выше неё ветер сильнее, ниже —
 ## слабее (atmosphere.json → wind.altitude_*); NAN — только профиль над рельефом.
-func set_wind(speed_kmh: float, from_deg: float, ref_msl: float = NAN) -> void:
+## gain_per_km — рост ветра с высотой места (ClimateGrid.place, HH6 WR); NAN — из конфига.
+func set_wind(
+	speed_kmh: float, from_deg: float, ref_msl: float = NAN, gain_per_km: float = NAN
+) -> void:
 	wind.ref_msl = ref_msl
+	wind.set_altitude_gain(gain_per_km)
 	weather.wind_speed_kmh = speed_kmh
 	weather.wind_from_deg = from_deg
 	var old := wind.from_deg

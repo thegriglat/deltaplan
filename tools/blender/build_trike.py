@@ -14,7 +14,7 @@
 маркеры HangPoint, WheelFront, WheelRearL, WheelRearR. Анимация prop_spin: один оборот вокруг локальной Z
 за 1 с (кадры 0–24, 24 к/с); положительный угол вокруг +Z (взгляд сзади) = против часовой, т. е.
 prop_cw_from_behind = false.
-Цвета — вершинные (COLOR_0), материалы Metal/Soft/Composite белые; шина — материал Wheel с общей текстурой
+Цвета — вершинные (COLOR_0), материалы Metal/Soft/Composite белые, Tube/Steel/Fitting — с цветом в материале (вершинные белые, FrameMetal); шина — материал Wheel с общей текстурой
 wheel_tire (wheel_parts.tire_texture()). Колёса LOD0 — свои (шина с UV под текстуру wheel_tire, диск, ступица), размеры по dims.
 """
 import math
@@ -40,9 +40,9 @@ GZ = P["ground_z"]
 
 # логическое имя → (физический материал, цвет sRGB)
 COLORS = {
-    "Tube": ("Metal", (0.72, 0.73, 0.75)),        # алюминиевая труба
-    "Fitting": ("Metal", (0.2, 0.21, 0.22)),
-    "Steel": ("Metal", (0.55, 0.56, 0.58)),
+    "Tube": ("Tube", (0.72, 0.73, 0.75)),         # алюминиевая труба (TP-16: материал Tube → FrameMetal)
+    "Fitting": ("Fitting", (0.2, 0.21, 0.22)),
+    "Steel": ("Steel", (0.55, 0.56, 0.58)),
     "WheelRim": ("Metal", (0.2, 0.21, 0.22)),
     "Seat": ("Soft", (0.07, 0.07, 0.08)),          # тёмная ткань
     "Tank": ("Composite", (0.8, 0.8, 0.77)),       # пластиковая канистра
@@ -50,6 +50,7 @@ COLORS = {
     "Lamp": ("Composite", (0.98, 0.95, 0.8)),
     "Spring": ("Metal", (0.78, 0.62, 0.12)),       # пружина амортизатора (жёлтый цинк)
     "Pedal": ("Soft", (0.1, 0.1, 0.1)),
+    "EngSteel": ("Metal", (0.55, 0.56, 0.58)),     # свеча, патрубки двигателя — вершинный цвет Steel, но материал Metal
     "EngBlack": ("Metal", (0.1, 0.1, 0.11)),       # картер Rotax
     "EngSilver": ("Metal", (0.6, 0.61, 0.63)),     # головки цилиндров, редуктор
     "Muffler": ("Metal", (0.4, 0.38, 0.35)),
@@ -64,6 +65,11 @@ def phys_mats() -> dict:
     tire.filepath_raw = ""          # экспортёр иначе назовёт картинку по файлу ("tire"), а не wheel_tire
     return {
         "Metal": U.material("Metal", (1, 1, 1), rough=0.42, metal=0.55, double=True),
+        # TP-16: имена Tube/Steel/Fitting — как у крыльев игры; в игре FrameMetal заменяет их процедурными шейдерами,
+        # цвет и шероховатость берёт из материала (поэтому цвет здесь, а вершинный — белый)
+        "Tube": U.material("Tube", U.srgb(COLORS["Tube"][1]), rough=0.4, metal=0.5, double=True),
+        "Steel": U.material("Steel", U.srgb(COLORS["Steel"][1]), rough=0.3, metal=0.9, double=True),
+        "Fitting": U.material("Fitting", U.srgb(COLORS["Fitting"][1]), rough=0.5, metal=0.0, double=True),
         "Soft": U.material("Soft", (1, 1, 1), rough=0.9, double=True),
         "Composite": U.material("Composite", (1, 1, 1), rough=0.45, double=True),
         "Wheel": U.material("Wheel", (1, 1, 1), rough=0.88, image=tire),
@@ -85,7 +91,7 @@ def build_mesh(mb, name: str, M: dict, parent=None):
     cols = []
     tint = getattr(mb, "tint", {})          # вершинный множитель тона (дерево винта)
     for f, ln in zip(me.polygons, face_logical):
-        c = U.srgb(COLORS[ln][1])
+        c = (1.0, 1.0, 1.0) if COLORS[ln][0] in ("Tube", "Steel", "Fitting") else U.srgb(COLORS[ln][1])
         for k in range(f.loop_total):
             t = tint.get(me.loops[f.loop_start + k].vertex_index, (1.0, 1.0, 1.0))
             cols.extend((min(c[0] * t[0], 1.0), min(c[1] * t[1], 1.0), min(c[2] * t[2], 1.0), 1.0))
@@ -329,14 +335,11 @@ def main_gear(mb, lod: int) -> None:
 
 def front_gear(mb, lod: int, nose, y_f: float, zc_f: float) -> None:
     sdt = (6, 4, 3)[lod]
-    # вилка «тянется»: голова впереди оси, ось на wheelbase позади неё (TT-11: прежняя вилка зеркально по Y вокруг оси)
-    dy = 2 * (y_f - 1.1)
-    head = V((0, 1.1 + dy, -2.0))
+    head = V((0, 1.1, -2.0))
     if lod == 2:
         mb.add_tube([nose, V((0, y_f, zc_f))], RF, "Tube", sides=sdt)
         return
-    if (nose - head).length > 0.02:
-        mb.add_tube([nose, head], RF, "Tube", sides=sdt)
+    mb.add_tube([nose, head], RF, "Tube", sides=sdt)
     for s in (-1, 1):
         mb.add_tube([head + V((s * 0.075, 0, 0.0)), V((s * 0.075, y_f, zc_f))], RF * 0.85, "Tube", sides=sdt)
     mb.add_tube([head + V((-0.075, 0, 0)), head + V((0.075, 0, 0))], RF * 0.85, "Tube", sides=sdt)
@@ -363,20 +366,20 @@ def front_gear(mb, lod: int, nose, y_f: float, zc_f: float) -> None:
         rear = p - pu * (pl * 0.5 - 0.03) - pn * 0.015
         mb.add_tube([rear, head + V((p.x * 0.5, 0.0, -0.05))], RF * 0.75, "Tube", sides=sdt)
         if lod == 0:
-            mb.add_tube([p - pn * 0.015, V((p.x * 0.3, 1.1 + dy, -2.25))], RF * 0.6, "Tube", sides=sdt)
+            mb.add_tube([p - pn * 0.015, V((p.x * 0.3, 1.1, -2.25))], RF * 0.6, "Tube", sides=sdt)
     tp = V(S["throttle_pedal"])
     box(mb, tp + pn * 0.004, (pw * 0.8, pl * 0.8, 0.008), "Pedal", rot=pr)     # накладка педали газа на подножке
-    mb.add_tube([V((-0.15, 1.1 + dy, -2.25)), V((0.15, 1.1 + dy, -2.25))], RF * 0.7, "Tube", sides=sdt)
+    mb.add_tube([V((-0.15, 1.1, -2.25)), V((0.15, 1.1, -2.25))], RF * 0.7, "Tube", sides=sdt)
     # приборный обтекатель над носом на стойках от головы вилки и фара
     tilt = Matrix.Rotation(math.radians(-14), 3, "X")
     if lod == 0:
         for s in (-1, 1):
-            mb.add_tube([head + V((s * 0.05, 0, 0)), V((s * 0.06, 1.08 + dy, -1.78))], 0.012, "Tube", sides=6)
-        pillow(mb, V((0, 1.1 + dy, -1.72)), (0.15, 0.1, 0.07), "Fairing", rot=tilt, e=0.45, seg=10, rings=6)
-        mb.add_tube([head + V((0, 0.0, 0.0)), V((0, 1.2 + dy, -1.93))], 0.01, "Tube", sides=5)
-        mb.add_tube([V((0, 1.2 + dy, -1.93)), V((0, 1.27 + dy, -1.93))], 0.05, "Lamp", sides=10)
+            mb.add_tube([head + V((s * 0.05, 0, 0)), V((s * 0.06, 1.08, -1.78))], 0.012, "Tube", sides=6)
+        pillow(mb, V((0, 1.1, -1.72)), (0.15, 0.1, 0.07), "Fairing", rot=tilt, e=0.45, seg=10, rings=6)
+        mb.add_tube([head + V((0, 0.0, 0.0)), V((0, 1.2, -1.93))], 0.01, "Tube", sides=5)
+        mb.add_tube([V((0, 1.2, -1.93)), V((0, 1.27, -1.93))], 0.05, "Lamp", sides=10)
     else:
-        pillow(mb, V((0, 1.1 + dy, -1.72)), (0.15, 0.1, 0.07), "Fairing", rot=tilt, e=0.45, seg=8, rings=4)
+        pillow(mb, V((0, 1.1, -1.72)), (0.15, 0.1, 0.07), "Fairing", rot=tilt, e=0.45, seg=8, rings=4)
 
 
 def panel_rot() -> Matrix:
@@ -518,11 +521,11 @@ def engine() -> "U.MeshBuilder":
     for a in cyls:
         tube([(0, a, z) for z in fin_z], fin_r, "EngSilver", 10)
         tube([(0, a, 0.19), (0, a, 0.225), (0, a, 0.25), (0, a, 0.262)], [rc * 0.8, rc * 0.75, rc * 0.55, rc * 0.2], "EngBlack", 10)
-        tube([(0, a, 0.26), (0, a, 0.3)], 0.009, "Steel", 5)                              # свеча
+        tube([(0, a, 0.26), (0, a, 0.3)], 0.009, "EngSteel", 5)                              # свеча
         # карбюратор сбоку: впускной патрубок, корпус, колпак дросселя
         tube([(0.12, a, 0.0), (0.18, a, 0.0)], 0.032, "Pedal", 8)
         tube([(0.18, a, 0.0), (0.27, a, 0.0)], 0.04, "EngBlack", 8)
-        tube([(0.24, a, 0.0), (0.24, a, 0.07)], 0.028, "Steel", 6)
+        tube([(0.24, a, 0.0), (0.24, a, 0.07)], 0.028, "EngSteel", 6)
         tube([(0.27, a, 0.0), (0.31, a, 0.0)], 0.035, "Pedal", 8)
         # выхлопная труба от головки вниз в резонатор
         tube(fillet([(-0.055, a, 0.14), (-0.15, a, 0.14), (-0.15, a, -0.13)], 0.06, 3), 0.022, "Muffler", 6, up=(0, 1, 0))
@@ -537,10 +540,10 @@ def engine() -> "U.MeshBuilder":
          [0.03, re_ * 0.9, re_, re_, re_ * 0.7, re_ * 0.4, re_ * 0.3], "Muffler", 8)
     rm, ml = D["muffler_d"] / 2, D["muffler_l"]
     zm = -0.13 - re_ - rm - 0.03                                      # глушитель под камерой
-    tube(fillet([(-0.15, a_b, -0.13), (-0.15, a_b, zm), (-0.26, a_b + 0.07, zm)], 0.05, 2), 0.022, "Steel", 6)
+    tube(fillet([(-0.15, a_b, -0.13), (-0.15, a_b, zm), (-0.26, a_b + 0.07, zm)], 0.05, 2), 0.022, "EngSteel", 6)
     tube([(-0.26, a_b, zm), (-0.26, a_b + 0.03, zm), (-0.26, a_b + 0.07, zm), (-0.26, a_b + ml - 0.04, zm),
           (-0.26, a_b + ml, zm)], [rm * 0.5, rm * 0.9, rm, rm, rm * 0.5], "Muffler", 9)
-    tube([(-0.26, a_b + ml, zm), (-0.26, a_b + ml + 0.07, zm)], 0.022, "Steel", 6)
+    tube([(-0.26, a_b + ml, zm), (-0.26, a_b + ml + 0.07, zm)], 0.022, "EngSteel", 6)
     return mb
 
 

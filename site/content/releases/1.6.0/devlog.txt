@@ -1,0 +1,66 @@
+Deltaplan 1.6.0 — trike, towing and a physical sky
+
+This is a big one. You can now take off without a hill: from a winch, on aerotow behind a trike, or fly the trike yourself. And the sky got a rework from physics: sun color, sunsets, haze and clouds now come from how light passes through the atmosphere, and the weather of each location comes from real ERA5 climate data instead of one table tuned for Altai.
+
+Press Fly and pick how you start: a hang glider (no tow, winch or aerotow) or a trike. It works at any location, in single player.
+
+Trike:
+- Start on wheels with the engine off and a full 53 l tank
+- W/S - throttle, Space - start/stop the engine, A/D - steer on the ground, Shift - brake
+- Same pendulum physics as the hang glider, Rotax 582 thrust along the propeller axis (1587 N static, 1352 N at 60 km/h)
+- Tachometer and fuel gauge on the panel, visible from the cockpit, and in the HUD
+- Synthesized engine sound
+- Landing on the wheels: a hard landing does not break the trike
+
+Towing:
+- Winch: W takes up the slack and tensions the line (41 daN on the ground, then 80 daN), run to lift off
+- B (gamepad X/Square) releases; the 125 daN weak link breaks by itself, the line falls with a small chute
+- Aerotow is now pulled by a trike instead of the An-2: takeoff roll, climb at 60 km/h, left circuits from 150 m, breaks away after release
+- 80 m line, 50/50 bridle; the An-2 is still around as an easter egg
+- Terrain is not checked: at a steep site the winch line or the tug may hit the ground
+
+Clouds:
+- No more stepped, grainy cumulus: the cloud surface is now found precisely when the ray enters the cloud
+- Clouds of different sizes and thickness, height grows with width, round tops instead of flat-roofed columns
+- Soft edges, bases that fade out instead of a flat cut, rare ragged wisps around
+- Main menu backgrounds reshot with the new clouds
+
+Sun and sunset:
+- Sun color from atmospheric transmittance (Rayleigh + haze, spherical Earth): white by day, deep red at the horizon
+- The same sun color lights the terrain, haze and clouds; cloud bases redden at sunset, high clouds stay lit after sunset on the ground
+- Sky brightness by sun elevation and smooth sunset exposure: darker than day, but not black
+- The sun disk keeps its size near the horizon, with a narrow halo and a glare like on a phone photo
+- The halo no longer spills over the mountains: it is drawn only above the terrain horizon
+- Haze thickens with relative humidity: humid mornings are murkier, evenings thicken as the air cools
+
+Local weather from ERA5:
+- Dew point by location and month (1 degree grid, 1991-2020), corrected for valley height and the day's cloudiness
+- Air at 700 hPa, daily maximum and daily range, thunderstorm ceiling and cirrus - all by location and month
+- Cloud base and day strength now depend on where and when you fly (Altai in July is more humid, cloud base about 640 m lower)
+- Wind growth with height from the forecast wind at launch to the 700 hPa wind of the location
+
+Mountains:
+- Steep rock faces without horizontal grey bands
+- Snow with gullies down steep slopes and large-scale undulation
+- Snow plumes blow off snowy ridges when the wind is above the snow drift threshold
+
+Controls:
+- The roll control setting is gone: you always fly the pendulum model (wing on 16 strips, pilot hanging below)
+- Mouse bar travel is counted in mouse counts: about 7.9 cm to full travel at 800 DPI (it was about 1.5 cm, too twitchy)
+- New Bar sensitivity slider; the old one is now Mouse look and does not affect the bar
+- The right mouse button no longer sticks after menus and pause
+- Spin recovery: full pull-in and opposite to the rotation, then center; all reference wings recover, sport included (the 1.5.21 note was a test error)
+
+Graphics card and crashes:
+- Settings - Graphics: switches for sun shadows, cloud shadows on the ground, glow and simple clouds without compute shaders
+- Renderer choice: Auto, Vulkan, DirectX 12 (Windows) or Metal (macOS), applied after restart
+- If the last run broke off or the graphics card stopped responding, a window offers to switch the renderer, turn on Safe graphics or try again
+- Crash reports collect graphics driver diagnostics by themselves, nothing to answer
+- GPU wind errors no longer crash the game: it falls back to simplified wind
+- Video memory for wind is released properly when you change locations
+
+Known issues:
+- Trike thrust, line forces and bar forces are calculated (about 15 percent), not measured
+- The tug is faster than a real one at full throttle (about 70 km/h instead of 55-65)
+- Fog is not modeled
+- The cause of crashes on some AMD cards is not found yet: the new switches are there to find it, please tell us which one helps

@@ -1,0 +1,11 @@
+{
+  "module": "cloud-look",
+  "plan": "docs/plan/cloud-look.md",
+  "contracts": "docs/contracts/cloud-look.md",
+  "branch": "feature/cloud-look",
+  "copy": "~/deltaplan-cloud-look",
+  "created": "2026-10-23T19:28:41",
+  "code": "CLK",
+  "area": "world",
+  "base": "main"
+}

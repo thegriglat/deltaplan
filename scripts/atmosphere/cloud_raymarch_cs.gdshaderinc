@@ -36,7 +36,7 @@ Cloud cloud_at(int i, vec3 ro, float pix_a) {
 // Без облаков в поле (cf_on = 0) не вызывается.
 void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 		inout float trans, inout vec3 col, inout float t_acc, inout float w_acc) {
-	float y0 = cf_base.x;
+	float y0 = cf_base.x - cf_shell_h;
 	float y1 = cf_base.x + cf_misc.x;
 	float far_m = cf_misc.y;
 	float t0 = 0.0;
@@ -74,13 +74,14 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 	float cell = cf_misc.z * 0.25;
 	float dt_c = min(seg / n_coarse, cell * 0.12);
 	float dt_budget = min(seg, 4.0 * cell) / float(max_iterations) * 1.5;
-	float cos_t = dot(rd, sun_dir);
+	float cos_t = dot(rd, cloud_sun_dir());
 	float phase = mix(cloud_hg(cos_t, phase_forward) * silver, cloud_hg(cos_t, phase_back), phase_mix) * 4.0 * CLOUD_PI;
-	vec3 sun_l = sun_color * sun_energy;
+	vec3 sun_dir_l = cloud_sun_dir();
 	int lsteps = t0 > lod_distance_m ? max(light_steps - 2, 1) : light_steps;
 	float t = t0 + dt_c * ign;
 	float t_exit = t0;
 	bool fine = false;
+	bool was_empty = true;
 	int it = 0;
 	int skips = 0;
 	vec4 box;
@@ -90,7 +91,7 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 		}
 		vec3 p = ro + rd * t;
 		vec2 mb = cf_block(p.xz, box);
-		float y_top = y0 + mb.y + 60.0;
+		float y_top = cf_base.x + mb.y + 60.0;
 		if (mb.x <= 0.0 || p.y > y_top) {
 			// Пустой блок (или выше его верха): прыжок к границе блока или к его верху.
 			if (box.z > box.x && skips < 96) {
@@ -102,6 +103,7 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 				t = max(te + 0.5, t + 1.0);
 				skips++;
 				fine = false;
+				was_empty = true;
 				t_exit = t;
 				continue;
 			}
@@ -119,6 +121,7 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 			if (cf_envelope(p, f, fp) > 0.0) {
 				// Вход в облако: шаг назад (не дальше прошлого выхода — без хождения по кругу).
 				fine = true;
+				was_empty = true;
 				t = max(t - dt_c, t_exit) + dt_fine * ign;
 			} else {
 				t += dt_c;
@@ -128,16 +131,43 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 		float top;
 		float dns = cf_density_top(p, f, 2, max(fp, dt_fine * 0.5), top);
 		// Дальний край слоя тает (дальше — дымка), без среза.
-		dns *= 1.0 - smoothstep(far_m * 0.8, far_m, t);
+		float far_k = 1.0 - smoothstep(far_m * 0.8, far_m, t);
+		dns *= far_k;
 		if (dns <= 0.003 && cf_envelope(p, f, fp) <= 0.0) {
 			fine = false;
+			was_empty = true;
 			t_exit = t;
 			t += dt_c;
 			continue;
 		}
+		// Вход в облако: шаг луча (десятки метров) больше длины пробега в плотном облаке (~10 м), и
+		// поверхность оказывалась на ближайшем узле шагов — «ступени» и зерно по глубине. Поверхность
+		// находим делением отрезка пополам, первый шаг — короче пробега (cloud_look, CLK-2).
+		float dt_s = dt_fine;
+		if (dns > 0.003 && was_empty && dt_fine > CLOUD_ENTRY_MIN_DT) {
+			float ta = max(t - dt_fine, t_exit);
+			float tb = t;
+			for (int k = 0; k < CLOUD_ENTRY_BISECT; k++) {
+				float tm = 0.5 * (ta + tb);
+				vec3 pm = ro + rd * tm;
+				float top_m;
+				if (cf_density_top(pm, cf_sample(pm.xz), 0, fp, top_m) * far_k > 0.003) {
+					tb = tm;
+				} else {
+					ta = tm;
+				}
+			}
+			// Дрожание в пределах точности деления (без решётки), точка — чуть вглубь от поверхности.
+			t = tb - (tb - ta) * ign + CLOUD_ENTRY_FIRST_M * 0.5;
+			p = ro + rd * t;
+			f = cf_sample(p.xz);
+			dns = max(cf_density_top(p, f, 2, max(fp, CLOUD_ENTRY_FIRST_M), top) * far_k, 0.0031);
+			dt_s = min(dt_fine, CLOUD_ENTRY_FIRST_M);
+		}
+		was_empty = dns <= 0.003;
 		if (dns > 0.003) {
 			float sigma = dns * extinction;
-			float h = p.y - y0;
+			float h = p.y - cf_base.x;
 			// К солнцу — шаги растут до ~половины мощности облака.
 			float od = 0.0;
 			float lstep = light_step_m;
@@ -148,7 +178,7 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 				if (j >= lsteps) {
 					break;
 				}
-				lp += sun_dir * lstep;
+				lp += sun_dir_l * lstep;
 				od += cf_density(lp, cf_sample(lp.xz), 0, max(fp, lstep)) * lstep;
 				lstep *= lgrow;
 			}
@@ -156,15 +186,15 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 			// основание темнее («подсос»); бока высоких облаков освещены небом сбоку.
 			float sky = exp(-max(top - h, 0.0) / sky_occlusion_m) * mix(1.0, 0.6, f.w);
 			sky = mix(sky, 1.0, smoothstep(0.0, sky_occlusion_m * 1.5, h));
-			vec3 S = cloud_light(dns, od, sky, clamp(h / max(top, 1.0), 0.0, 1.0), phase, sun_l) * sigma;
-			float tr = exp(-sigma * dt_fine);
+			vec3 S = cloud_light(dns, od, sky, clamp(h / max(top, 1.0), 0.0, 1.0), phase, cloud_sun_l(p.y)) * sigma;
+			float tr = exp(-sigma * dt_s);
 			col += trans * (S - S * tr) / max(sigma, 1e-6);
 			float wgt = trans * (1.0 - tr);
 			t_acc += t * wgt;
 			w_acc += wgt;
 			trans *= tr;
 		}
-		t += dt_fine;
+		t += dt_s;
 	}
 }
 

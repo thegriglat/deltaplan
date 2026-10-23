@@ -1,9 +1,9 @@
 ---
 type: plan
-status: active
+status: "closed"
 module: crash-reports
 area: release
-updated: 2026-10-23
+updated: "2026-10-23"
 summary: "Разбор автоматических отчётов о вылетах (Windows, #3–#15): группы причин, причина в коде с доказательством, правки с тестом."
 related: ["docs/contracts/crash-reports.md"]
 ---

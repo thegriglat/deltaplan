@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-23"
+updated: "2026-10-24"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -28,6 +28,22 @@ generated: true
   - [tools/research/air_weak_wind/AWW-2/README.md](../tools/research/air_weak_wind/AWW-2/README.md) — AWW-2: правка 1 AWW-1 — F переносит теплосодержание θ′·h; W1 до/после на 8 стартах и Онгудае/Аскарово (слабый и сильный день). [closed]
   - [tools/research/air_weak_wind/AWW-1/summary.md](../tools/research/air_weak_wind/AWW-1/summary.md) — Вывод AWW-1: диагноз 1 верен (правка θ′·h TW-3: «Термики» 0,44 → 1,27 м/с), диагноз 2 не подтверждён, порывы в полосе теории. [closed]
 - **site-cloud-field** — Сайт: страница «Облака и тени» переписана под поле облачности (CLF-1/9/10) с графиками исследования; одна задача SCF-1. [closed 2026-10-21] — [план](plan/site-cloud-field.md) · [решения](plan/site-cloud-field/decisions.md) · [сводка](plan/site-cloud-field/summary.md) · полный журнал: `archive/site-cloud-field`
+- **haze-humidity** — Точка росы по климату места (сетка реанализа) + разброс по дням → дымка по влажности; цвет солнца на облаках по пропусканию атмосферы. [closed 2026-10-23] — [план](plan/haze-humidity.md) · [контракты](contracts/haze-humidity.md) · [решения](plan/haze-humidity/decisions.md) · [сводка](plan/haze-humidity/summary.md) · полный журнал: `archive/haze-humidity`
+  - [docs/guide/atmosphere/sunset-light.md](guide/atmosphere/sunset-light.md) — Яркость сцены на закате: свет рельефа из пропускания, небо sky_k, экспозиция E(el); границы модели.
+  - [docs/registry/findings/haze-humidity.md](registry/findings/haze-humidity.md) — Выводы haze-humidity (вынесены из findings.md по размеру): Td, дымка, облака, верхний воздух, Tmax, рост ветра, закат.
+  - [tools/research/haze_humidity/cloud_base/README.md](../tools/research/haze_humidity/cloud_base/README.md) — HH-3: яркость основания кучевых и Cb против неба и вершины — в физической вилке; sky_occlusion_m работает до ~1 км
+  - [tools/research/haze_humidity/dew_point/README.md](../tools/research/haze_humidity/dew_point/README.md) — Td 2 м, ERA5 1991–2020, сетка 1°×12 мес.+σ+Z: 1,5 МБ; градиент Td по высоте −4 К/км; Алтай июль +5,3 К к таблице
+  - [tools/research/haze_humidity/era5_source/README.md](../tools/research/haze_humidity/era5_source/README.md) — Остаток ERA5 качать из ARCO 1° почасового (2-6 МБ/с, T700 к CDS 0.09 K); NCAR S3 и ARCO 0.25° в 10-60x тяжелее [closed]
+  - [tools/research/haze_humidity/haze/README.md](../tools/research/haze_humidity/haze/README.md) — Дымка от влажности: haze_k = ((1−RH)/0,6)^−0,6 при RH ≥ 40 %; evening_haze_k ×1,6 влажностью не объясняется
+  - [tools/research/haze_humidity/sky_light/README.md](../tools/research/haze_humidity/sky_light/README.md) — HH-15: sky_k(el) — яркость рассеянного света ясного неба относительно 35° (однократное рассеяние, сверка ESRA) и экспозиция заката.
+  - [tools/research/haze_humidity/sunset_color/README.md](../tools/research/haze_humidity/sunset_color/README.md) — HH-12: цвет облаков на закате - таблица HH4 верна, тепло теряется в яркости, фазе и тонмаппинге.
+  - [tools/research/haze_humidity/surface_t/README.md](../tools/research/haze_humidity/surface_t/README.md) — Tmax и суточная амплитуда ERA5 2011–2020, сетка 1°×12 мес.: 1,6 МБ; градиент Tmax −5,5…−7,8 К/км
+  - [tools/research/haze_humidity/td_sky/README.md](../tools/research/haze_humidity/td_sky/README.md) — Td дня против облачности и жары, ERA5 2011-13: ясный -0,3 σ, пасмурный +0,13 σ; beta Td/Tmax 0,6 (от -0,3 до 1,0)
+  - [tools/research/haze_humidity/upper_air/README.md](../tools/research/haze_humidity/upper_air/README.md) — Сетка 700 гПа (HH2 v2): ERA5 2011–2020, T и Z по месяцам, 1°; σ T700 по 2018–2019, ошибка ±10–15 %
+  - [tools/research/haze_humidity/upper_misc/README.md](../tools/research/haze_humidity/upper_misc/README.md) — Сетка HH6 v2: HCC, TROP — ERA5 2011–2020 (CDS), WR — ERA5 2018–2019 (ARCO 1°), stub_mask=0
+  - [tools/research/haze_humidity/verify/README.md](../tools/research/haze_humidity/verify/README.md) — Сверка Td и T700 с прогнозом Open-Meteo (38 мест, 16 дней): доля в σ Td 67 %, T700 62 %; сдвиг Td +0,7 К
+  - [tools/research/haze_humidity/era5_source/summary.md](../tools/research/haze_humidity/era5_source/summary.md) — HH-17: остаток ERA5 качать из ARCO-1° почасового; T700 RMSE к CDS 0.09 K, u700 0.19 м/с, T2m max 0.52 K; NCAR и ARCO-0.25° не нужны [closed]
+- **air-cascade** — Каскад на гранях: деление клеток поля Пикара пополам с балансом массы — порывы, болтанка, склон; опыт на 2D-разрезе против Пикара. [idea 2026-10-24] — [план](plan/air-cascade.md)
 
 ## flight
 
@@ -69,6 +85,17 @@ generated: true
 - **tow-trike** — Буксировщик аэробуксировки — дельталёт (тележка trike.glb + крыло iXess 15) на физике «Маятника» с тягой винта и автопилотом вместо Ан-2. [closed 2026-10-23] — [план](plan/tow-trike.md) · [контракты](contracts/tow-trike.md) · [решения](plan/tow-trike/decisions.md) · [сводка](plan/tow-trike/summary.md) · полный журнал: `archive/tow-trike`
   - [docs/research/tow/trike-tug.md](research/tow/trike-tug.md) — Буксировщик-дельталёт 582 + iXess 15: массы, тяга T(V), числа крыла, набор связки с sport, трапеция и ход штанги в треугольнике тележки
   - [tools/research/tow-trike/README.md](../tools/research/tow-trike/README.md) — Скрипты и воспроизведение расчёта параметров буксировщика-дельталёта (TT-1)
+- **trike-anywhere** — Дельталёт и буксировка в любом месте: окно выбора по «Лететь», старт на колёсах в точке старта, без лётных проверок. [closed 2026-10-23] — [план](plan/trike-anywhere.md) · [контракты](contracts/trike-anywhere.md) · [решения](plan/trike-anywhere/decisions.md) · [сводка](plan/trike-anywhere/summary.md) · полный журнал: `archive/trike-anywhere`
+- **trike-pilot** — Дельталёт для игрока: «Маятник» + тяга tow-trike, газ W/S, двигатель пробелом, руление, приборы, звук; одиночная игра. [closed 2026-10-23] — [план](plan/trike-pilot.md) · [контракты](contracts/trike-pilot.md) · [решения](plan/trike-pilot/decisions.md) · [сводка](plan/trike-pilot/summary.md) · полный журнал: `archive/trike-pilot`
+  - [docs/guide/flight/trike-pilot.md](guide/flight/trike-pilot.md) — Дельталёт игрока: старт на колёсах, клавиши, двигатель и топливо, приборы, камера, звук, руление и посадка на колёса; границы модели.
+  - [docs/research/trike-pilot/engine-ops.md](research/trike-pilot/engine-ops.md) — Эксплуатация Rotax 582 UL на трайке: расход по оборотам, запуск и остановка, рычаг газа, топливо на старте, тахометр.
+  - [docs/research/trike-pilot/pitch-oscillation.md](research/trike-pilot/pitch-oscillation.md) — Качания на газу — фугоида от момента тяги ниже ЦМ при жёсткой штанге; тяга по оси винта даёт ζ 0,11–0,15.
+  - [docs/research/trike-pilot/speed-range.md](research/trike-pilot/speed-range.md) — 130 км/ч штангой недостижимы: ход 0,11 м мал, потолок модели ≈117 км/ч, тяга 582 держит горизонт до ≈120; решение за пользователем.
+  - [docs/research/trike-pilot/tug-slow-climb.md](research/trike-pilot/tug-slow-climb.md) — Тяга по оси винта на 0,47 м выше ЦМ не даёт 55-65 км/ч на полном газе; ось не выше 0,36 м над ЦМ - 61 км/ч, 3,3 м/с.
+  - [docs/research/trike-pilot/wheels.md](research/trike-pilot/wheels.md) — Колёса дельталёта в модели: руление носовым колесом, тормоз, посадка на колёса; числа блока wheels и границы модели.
+  - [tools/research/trike-pilot/README.md](../tools/research/trike-pilot/README.md) — Замеры дельталёта: скорость от хода штанги (TP-17), качания на газу и линия тяги (TP-19).
+  - [tools/research/trike-pilot/tug/README.md](../tools/research/trike-pilot/tug/README.md) — TP-23: прогоны связки буксировщик + sport на тросе с подменой линии тяги, хода штанги, площади крыла, тяги и массы.
+- **trike-cockpit** — Приборы дельталёта в виде от первого лица (кабина) ничего не показывают — найти причину и исправить. [closed 2026-10-24] — [план](plan/trike-cockpit.md) · [контракты](contracts/trike-cockpit.md) · [решения](plan/trike-cockpit/decisions.md) · [сводка](plan/trike-cockpit/summary.md) · полный журнал: `archive/trike-cockpit`
 
 ## world
 
@@ -100,12 +127,26 @@ generated: true
   - [tools/research/sea_thermals/README.md](../tools/research/sea_thermals/README.md) — VI-7: источник термика не над водой — число источников над водой до/после правки на трёх местах у моря. [closed]
 - **regional-veg** — Деревья и дома по региону места (T-83, B): дерево Кёппена + исключения, 3 новые породы, набор пород места, профиль домов. [closed 2026-10-18] — [план](plan/regional-veg.md) · [контракты](contracts/regional-veg.md) · [решения](plan/regional-veg/decisions.md) · [сводка](plan/regional-veg/summary.md) · полный журнал: `archive/regional-veg`
   - [docs/research/house-models.md](research/house-models.md) — Дома: модели вместо коробок только гибридом (малые сельские дома профиля); город и промзона остаются MultiMesh-коробками
+- **cliff-look** — Крутые склоны: вместо серых полос и ряби — крупные неровные скалы и груды камней; диагноз, правка, кадры до/после. [closed 2026-10-23] — [план](plan/cliff-look.md) · [контракты](contracts/cliff-look.md) · [решения](plan/cliff-look/decisions.md) · [сводка](plan/cliff-look/summary.md) · полный журнал: `archive/cliff-look`
+  - [tools/research/cliff_look/README.md](../tools/research/cliff_look/README.md) — Откуда полосы и рябь на крутых склонах: полосы — уступы ledge в нормали, рябь — sl_rock, нормаль 25 м и Rock030; стенд ракурсов
+- **cloud-look** — Вид облаков по кадрам меню: свет и тень, ступени, разброс форм, цвет на закате, граница у горизонта, перистые; экспозиция Эльбруса. [active 2026-10-23] — [план](plan/cloud-look.md) · [контракты](contracts/cloud-look.md)
+  - [tools/research/cloud_look/shape/README.md](../tools/research/cloud_look/shape/README.md) — CLK-2: форма кучевых — причины ступеней, зерна, однообразия числами; метрики, числа до/после, команды
+- **snow-plume** — Снежные флаги и позёмка с гребней снежных гор по ветру модели: только где снег и ветер выше порога срыва; частицы у ближайших гребней. [closed 2026-10-23] — [план](plan/snow-plume.md) · [контракты](contracts/snow-plume.md) · [решения](plan/snow-plume/decisions.md) · [сводка](plan/snow-plume/summary.md) · полный журнал: `archive/snow-plume`
+  - [docs/guide/terrain/snow-plume.md](guide/terrain/snow-plume.md) — Снежные струйки с гребней: снег, гребень, ветер модели, порог срыва Li & Pomeroy 1997; отрисовка, настройки, границы.
+  - [docs/research/snow_plume.md](research/snow_plume.md) — Порог срыва снега u10_t = 9,43+0,18T+0,0033T² (7–8 м/с при −30…−10 °C), шлейф: span 8, settle 0,2, spread 0,6 м/с, 30 с, fetch 300 м.
+  - [tools/research/snow_plume/README.md](../tools/research/snow_plume/README.md) — Скрипт SNW-1: порог u10_t(T) по Li & Pomeroy, скорость оседания, u*, длина шлейфа; вывод в snow_plume_params.json.
+  - [tools/research/snow_plume/SNW-5/README.md](../tools/research/snow_plume/SNW-5/README.md) — SNW-5 (частично): шлейфы есть при 16 м/с (24 источника, Эверест и Шымбулак), нет при 2 м/с (0); цена кадра не мерилась.
+  - [tools/research/snow_plume/SNW-9/README.md](../tools/research/snow_plume/SNW-9/README.md) — SNW-9: кадры струек v3 (Эверест, Шымбулак; ветер 16 и 2 м/с; вблизи гребня). Струйки редкие и бледные, издалека не видны.
+- **cloud-base** — Основания кучевых по кромке инверсии с разбросом 50–150 м между облаками вместо одной плоскости. [closed 2026-10-24] — [план](plan/cloud-base.md) · [решения](plan/cloud-base/decisions.md) · [сводка](plan/cloud-base/summary.md) · полный журнал: `archive/cloud-base`
 
 ## game
 
 - **goals** — Цели полёта перед стартом (высота, время, дальность, возврат, треугольник, маршрут, скорость, посадка), зачёт, след попытки, IGC/GPX. [active 2026-10-16] — [план](plan/goals.md) · [контракты](contracts/goals.md)
   - [docs/guide/goals.md](guide/goals.md) — Цели полёта и треки: вкладка «Цели», оценка по погоде, засчёт в полёте, итог, прибор, столбы, запись и показ треков, IGC/GPX.
 - **training-modes** — Тренировочные режимы (T-59) через карточки окна «Тренировка» + цели полёта и загрузка .xctsk из окна «Полёт…» (T-56); код задач TM. [closed 2026-10-17] — [план](plan/training-modes.md) · [решения](plan/training-modes/decisions.md) · [сводка](plan/training-modes/summary.md) · полный журнал: `archive/training-modes`
+- **bar-mouse** — Штанга мышью: ход в отсчётах мыши без привязки к окну, свой слайдер, мёртвая зона без скачка; диагностика камер и сырого ввода. [closed 2026-10-23] — [план](plan/bar-mouse.md) · [контракты](contracts/bar-mouse.md) · [решения](plan/bar-mouse/decisions.md) · [сводка](plan/bar-mouse/summary.md) · полный журнал: `archive/bar-mouse`
+  - [docs/research/bar-mouse-raw-input.md](research/bar-mouse-raw-input.md) — Захват мыши в Godot 4.7.2: Windows и X11 — сырые отсчёты, Wayland и macOS — с ускорением ОС; брать screen_relative
+- **menu-shots-pose** — Кадры фона меню (tools/shots/menu_art.py): планер на всех кадрах — в установившемся полёте, без крутого крена и «кивка». [closed 2026-10-23] — [план](plan/menu-shots-pose.md) · [контракты](contracts/menu-shots-pose.md) · [решения](plan/menu-shots-pose/decisions.md) · [сводка](plan/menu-shots-pose/summary.md) · полный журнал: `archive/menu-shots-pose`
 
 ## perf
 
@@ -117,6 +158,18 @@ generated: true
 
 - **site-research** — Сверка сайта с исследованиями и руководством: каких выводов нет на сайте, что устарело; дописать страницы с графиками. [closed 2026-10-21] — [план](plan/site-research.md) · [контракты](contracts/site-research.md) · [решения](plan/site-research/decisions.md) · [сводка](plan/site-research/summary.md) · полный журнал: `archive/site-research`
   - [tools/research/site_coverage/README.md](../tools/research/site_coverage/README.md) — SRS-1: 47 тем исследований против сайта (ru+en) и docs/guide: есть 25, частично 13, нет 7, устарело 2; графики, объём.
+- **crash-reports** — Разбор автоматических отчётов о вылетах (Windows, #3–#15): группы причин, причина в коде с доказательством, правки с тестом. [closed 2026-10-23] — [план](plan/crash-reports.md) · [контракты](contracts/crash-reports.md) · [решения](plan/crash-reports/decisions.md) · [сводка](plan/crash-reports/summary.md) · полный журнал: `archive/crash-reports`
+  - [docs/research/crash-reports/cr-1.md](research/crash-reports/cr-1.md) — Группа A (#4–#10, 1.5.18, GTX 1050 Ti, D3D12): потеря устройства на стадии wind; AirGpu не проверяет пустой RID; в main не исправлено
+  - [docs/research/crash-reports/cr-10.md](research/crash-reports/cr-10.md) — CR-10: #17/#18, RX 5600 XT: потеря GPU на RDNA1 (известная проблема Godot #122671); кандидаты — облака и тени.
+  - [docs/research/crash-reports/cr-11.md](research/crash-reports/cr-11.md) — CR-11: Godot 4.7.2 не запрашивает причину потери устройства на D3D12; на Vulkan печатает её лишь при потере в vkQueueSubmit.
+  - [docs/research/crash-reports/cr-2.md](research/crash-reports/cr-2.md) — Группа B (#11–#15, RTX 5060, Vulkan): обрыв при повторной загрузке места в сессии; точная причина не найдена, не исправлено.
+  - [docs/research/crash-reports/cr-3.md](research/crash-reports/cr-3.md) — Группа C (#3, 1.5.15, RTX 5060 Laptop, trees): «sea» не причина, ложное «море» исправлено; обрыв на trees не установлен.
+  - [docs/research/crash-reports/cr-4.md](research/crash-reports/cr-4.md) — CR-4: драйвер Windows по умолчанию — Vulkan с автооткатом на D3D12; вылеты #3–#15 драйвером не объясняются.
+  - [tools/research/crash-reports/cr-1/README.md](../tools/research/crash-reports/cr-1/README.md) — Скрипты CR-1: воспроизведение пустого RID и агрегаты отчётов группы A
+  - [tools/research/crash-reports/cr-10/README.md](../tools/research/crash-reports/cr-10/README.md) — Скрипт CR-10: порядок событий старта меню и сборка compute-шейдеров облаков (Linux).
+  - [tools/research/crash-reports/cr-11/README.md](../tools/research/crash-reports/cr-11/README.md) — Скрипты CR-11: классификатор строк потери устройства GPU и проба нативного дескриптора устройства.
+  - [tools/research/crash-reports/cr-3/README.md](../tools/research/crash-reports/cr-3/README.md) — Скрипт повторной загрузки точки для CR-3 и источники данных.
+  - [tools/research/crash-reports/cr-4/README.md](../tools/research/crash-reports/cr-4/README.md) — Скрипты и черновик манифеста CR-4: сводка отчётов и itch.toml с двумя действиями запуска.
 
 ## process
 
@@ -141,9 +194,9 @@ generated: true
 - [docs/guide/air-model.md](guide/air-model.md) — Модель воздуха в трёх масштабах: среднее поле (фазы + Пикар на GPU), термики и возмущения из поля; вход и оглавление частей.
 - [docs/guide/architecture.md](guide/architecture.md) — Архитектура: правила кода и конфигов, координаты, папки модулей, контракты между модулями, заменяемые ассеты.
 - [docs/guide/atmosphere/calibration.md](guide/atmosphere/calibration.md) — Бот-маршрутник и идеальный пилот на матрице погоды, калибровка дней (карточка 03), сила источника термиков из SurfaceHeat.
-- [docs/guide/atmosphere/clouds.md](guide/atmosphere/clouds.md) — Облака из поля облачности, записи (линзы, шапка, Cb), тени, птицы, признаки термиков, Cb, волна, пыль, известные проблемы.
+- [docs/guide/atmosphere/clouds.md](guide/atmosphere/clouds.md) — Облака из поля, записи, тени, птицы, Cb, волна, пыль, свет солнца через пропускание атмосферы, известные проблемы.
 - [docs/guide/atmosphere/ridge-starts.md](guide/atmosphere/ridge-starts.md) — Парение у склона на 10 стартах четырёх локаций: набор за 5 минут, ridge.efficiency 0,85, два слабых старта.
-- [docs/guide/atmosphere/weather.md](guide/atmosphere/weather.md) — Как прогноз пилота (температура, ветер, облачность) превращается в погоду дня: верх термиков, кромка, ход дня, закат.
+- [docs/guide/atmosphere/weather.md](guide/atmosphere/weather.md) — Прогноз пилота → погода дня: кромка, Td, 700 гПа, Tmax, амплитуда, тропопауза, перистые по месту (ERA5), дымка по RH, ход дня.
 - [docs/guide/atmosphere/wind-field.md](guide/atmosphere/wind-field.md) — Из чего складывается скорость воздуха: пульсации, термик, снос, склон, подветренная зона и ротор, подсос облака, слова пилота в числах.
 - [docs/guide/atmosphere.md](guide/atmosphere.md) — Модуль scripts/atmosphere/: API Atmosphere, устройство и части — погода, поле скоростей, облака, калибровка, склон; тесты и конфиги.
 - [docs/guide/crash-report.md](guide/crash-report.md) — Отчёты о вылетах: метка сессии, issue в deltaplan-reports при следующем запуске, токен, проверка --crash-report-test.

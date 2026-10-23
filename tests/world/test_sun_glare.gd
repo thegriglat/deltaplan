@@ -1,6 +1,6 @@
 extends TestCase
 ## Солнце и ослепление: луч к солнцу через рельеф и облака (SunGlare.trace_sun), кольцо лучей
-## по диску, вечером диск и ослепление слабее (time.light), небо — свой шейдер с диском.
+## по диску, вечером диск и ослепление слабее (пропускание атмосферы, HH-11), небо — свой шейдер с диском.
 
 
 func test_trace_sun_clear_terrain_and_cloud() -> void:
@@ -29,11 +29,81 @@ func test_ray_ring_directions() -> void:
 		approx(dirs[i].length(), 1.0, 1e-5, "единичный")
 
 
-func test_evening_sun_weaker() -> void:
-	var noon := SunClock.light_at(50.0)
-	var dusk := SunClock.light_at(4.0)
-	check(float(dusk.disk_energy) < float(noon.disk_energy) * 0.5, "диск вечером тусклее")
-	check(float(dusk.glare) < float(noon.glare) * 0.5, "вечером слепит слабее")
+## Яркость солнца — пропускание атмосферы (HH-11): днём 1, к горизонту падает, ниже горизонта 0.
+func test_sun_luminance_from_transmission() -> void:
+	var sky: SkyEnvironment = load("res://scenes/world/environment.tscn").instantiate()
+	sky.apply_config()
+	approx(sky.sun_luminance_ratio(60.0, 600.0), 1.0, 1e-6, "выше 35° — дневная")
+	var l5 := sky.sun_luminance_ratio(5.0, 600.0)
+	var l2 := sky.sun_luminance_ratio(2.0, 600.0)
+	var l07 := sky.sun_luminance_ratio(0.7, 600.0)
+	check(l5 < 0.4 and l5 > 0.1, "на 5°: %.3f (≈0,2–0,3 дневной)" % l5)
+	check(l2 < l5 * 0.4 and l07 < l2 * 0.3, "ниже — быстро слабее: 2° %.3f, 0,7° %.4f" % [l2, l07])
+	check(l07 > 0.0, "на 0,7° солнце ещё светит")
+	approx(sky.sun_luminance_ratio(-30.0, 600.0), 0.0, 1e-9, "под горизонтом точки — 0")
+	# густая дымка — солнце у горизонта слабее
+	sky.set_haze_density(3.0)
+	check(sky.sun_luminance_ratio(5.0, 600.0) < l5, "гуще дымка — слабее солнце")
+	sky.free()
+
+
+func test_disk_dimmer_in_evening() -> void:
+	# яркость диска, как её видно после квада дымки (он гасит диск; в небе она с компенсацией)
+	var sky := SkyEnvironment.new()
+	sky.apply_config()
+	sky.clock.start_flight(51.0, 85.0, 10, 15, 12.0)
+	var y := 600.0
+	var noon := float(sky.sky_material().get_shader_parameter("disk_energy"))
+	noon *= sky.haze_sky_transmission(sky.clock.angles().y, y)
+	var h := 12.0
+	while h < 20.0 and sky.clock.angles().y > 4.0:
+		h += 0.05
+		sky.clock.set_hour(h)
+	var dusk := float(sky.sky_material().get_shader_parameter("disk_energy"))
+	dusk *= sky.haze_sky_transmission(sky.clock.angles().y, y)
+	check(dusk < noon * 0.7 and dusk > 0.0, "диск вечером тусклее: %.1f против %.1f" % [dusk, noon])
+	check(noon > 6.0, "днём диск ярче белого тонмаппинга: %.1f" % noon)
+	sky.free()
+
+
+## Квад дымки гасит диск тем сильнее, чем ниже солнце; без дымки — не гасит.
+func test_haze_sky_transmission_falls_toward_horizon() -> void:
+	var sky: SkyEnvironment = load("res://scenes/world/environment.tscn").instantiate()
+	sky.apply_config()
+	var t60 := sky.haze_sky_transmission(60.0, 600.0)
+	var t5 := sky.haze_sky_transmission(5.0, 600.0)
+	var t1 := sky.haze_sky_transmission(1.0, 600.0)
+	check(t60 > t5 and t5 > t1 and t1 >= 0.03 - 1e-6, "T дымки: 60° %.3f, 5° %.3f, 1° %.3f" % [t60, t5, t1])
+	approx(sky.haze_sky_transmission(-1.0, 600.0), 1.0, 1e-9, "под горизонтом диска нет — 1")
+	sky.free()
+
+
+## HH-15: процессорное зеркало формул haze.gdshader сходится с независимым численным интегралом той же плотности
+## (1 ниже верха слоя, линейно до 0 в переходе; чистый воздух у горизонта; max_opacity).
+func test_haze_sky_transmission_matches_shader_formula() -> void:
+	var sky: SkyEnvironment = load("res://scenes/world/environment.tscn").instantiate()
+	sky.apply_config()
+	var m := sky.haze_material()
+	var top: float = m.get_shader_parameter("top_msl")
+	var w: float = m.get_shader_parameter("top_transition_m")
+	var length: float = m.get_shader_parameter("max_distance_m")
+	var ext: float = m.get_shader_parameter("extinction")
+	var rgb: Vector3 = m.get_shader_parameter("extinction_rgb")
+	var crgb: Vector3 = m.get_shader_parameter("clear_rgb")
+	for el in [3.0, 10.0, 40.0]:
+		var sin_e := sin(deg_to_rad(el))
+		var y0 := 600.0
+		var n := 20000
+		var tau := 0.0
+		for i in n:
+			var y := y0 + (float(i) + 0.5) / n * length * sin_e
+			var dens := clampf((top + 0.5 * w - y) / w, 0.0, 1.0)
+			tau += ext * rgb.y * dens * length / n
+		var clear_len := minf(length, float(m.get_shader_parameter("clear_sky_height_m")) / sin_e)
+		tau += float(m.get_shader_parameter("clear_extinction")) * crgb.y * clear_len
+		var expect := maxf(1.0 - minf(1.0 - exp(-tau), float(m.get_shader_parameter("max_opacity"))), 1.0e-3)
+		approx(sky.haze_sky_transmission(el, y0), expect, 0.01, "T дымки по лучу %.0f°" % el)
+	sky.free()
 
 
 func test_sky_shader_and_glare_created() -> void:
@@ -46,3 +116,76 @@ func test_sky_shader_and_glare_created() -> void:
 	check(sky.glare != null, "SunGlare создан")
 	check(sky.haze_material() != null, "дымка на месте")
 	sky.free()
+
+
+## Диск, ореол и засвет — по истинной высоте солнца, свет рельефа зажат min_light_elevation_deg (HH-11).
+func test_disk_at_true_elevation_light_clamped() -> void:
+	var sky := SkyEnvironment.new()
+	sky.apply_config()
+	sky.clock.start_flight(51.0, 85.0, 10, 15, 12.0)
+	var h := 12.0
+	while h < 20.0 and sky.clock.angles().y > 1.0:
+		h += 0.05
+		sky.clock.set_hour(h)
+	var el := sky.clock.angles().y
+	check(el < 1.05 and el > 0.0, "высота солнца ≈ 1°: %.2f" % el)
+	var disk: Vector3 = sky.sky_material().get_shader_parameter("sun_dir")
+	approx(rad_to_deg(asin(disk.y)), el, 0.06, "диск — на настоящей высоте")
+	var light := -sky.sun.transform.basis.z
+	var min_el := float(Config.value("world", "time.min_light_elevation_deg", 2.0))
+	approx(rad_to_deg(asin(-light.y)), min_el, 0.06, "свет — зажат")
+	var m := sky.haze_material()
+	if m != null:
+		var hd: Vector3 = m.get_shader_parameter("sun_dir")
+		approx(hd.dot(disk), 1.0, 1e-4, "дымка — к диску")
+	sky.free()
+
+
+## Диск у горизонта ещё различим, но тусклее дневного; засвет шире у более яркого солнца.
+func test_glare_scales_with_sun_brightness() -> void:
+	var sky: SkyEnvironment = load("res://scenes/world/environment.tscn").instantiate()
+	sky.apply_config()
+	var info := sky.glare._mat.shader.get_shader_uniform_list()
+	for n in ["veil_core", "veil_core_deg", "veil_wide", "veil_wide_deg", "disk_deg"]:
+		check(info.any(func(u): return u.name == n), "параметр засвета %s" % n)
+	sky.free()
+
+
+## Цветность при солнце под горизонтом точки (в том числе при старте с ним): не белая, а на ближайшей высоте с T > 0.
+func test_first_tint_below_horizon_not_white() -> void:
+	var sky := SkyEnvironment.new()
+	sky.apply_config()
+	var c: Color = sky._tint(-3.0, 600.0, 1)
+	check(c.r >= 0.0 and c.g < 0.5 and c.b < 0.2, "красная цветность, а не белая: %s" % c)
+	sky.free()
+
+
+func test_sky_disk_radius_not_enlarged() -> void:
+	var sky: SkyEnvironment = load("res://scenes/world/environment.tscn").instantiate()
+	sky.apply_config()
+	approx(
+		rad_to_deg(float(sky.sky_material().get_shader_parameter("disk_radius"))), 0.3, 1e-4,
+		"диск настоящего размера"
+	)
+	sky.free()
+
+
+## Линия горизонта рельефа (HH-19): хребет 300 м на 2 км к северу (−Z) — высота ≈ atan(300/2000) на азимуте солнца,
+## ровная земля — ниже горизонта (глаз выше земли), симметрично по азимутам.
+func test_horizon_elevations() -> void:
+	var p := Vector3(0, 100, 0)
+	var to_sun := Vector3(0, 0.05, -1).normalized()
+	var flat := func(_x: float, _z: float) -> float: return 0.0
+	var h0 := SunGlare.horizon_elevations(p, to_sun, 2.0, 17, flat, 20000.0, 40)
+	check(h0.size() == 17, "17 азимутов")
+	for v in h0:
+		check(v < 0.0, "ровная земля ниже горизонта глаза: %.4f" % v)
+	var ridge := func(_x: float, z: float) -> float: return 300.0 if z < -1900.0 and z > -2300.0 else 0.0
+	var h1 := SunGlare.horizon_elevations(p, to_sun, 2.0, 17, ridge, 20000.0, 400)
+	approx(h1[8], atan2(200.0, 2000.0), 0.02, "хребет над глазом на 200 м за 2 км")
+	# хребет только справа по азимуту (x > 0): справа высоко, слева — нет
+	var right := func(x: float, _z: float) -> float: return 500.0 if x > 30.0 else 0.0
+	var h2 := SunGlare.horizon_elevations(p, to_sun, 2.0, 17, right, 3000.0, 300)
+	var a := h2[0]
+	var b := h2[16]
+	check(absf(a - b) > 0.05, "горизонт различается по азимутам: %.3f vs %.3f" % [a, b])

@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-23"
+updated: "2026-10-24"
 summary: "Контракты стыков по модулям: id и версии из заголовков."
 related: []
 generated: true
@@ -22,9 +22,13 @@ generated: true
 - air-phase: P1 v1, P2 v6, P3 v3, P4 v6, P5 v1, P6 v2, P7 v1 — [docs/contracts/air-phase/experiments-solver.md](../contracts/air-phase/experiments-solver.md)
 - air-phase: P1 v1, P2 v6, P3 v3, P4 v6, P5 v1, P6 v2, P7 v1, P8 v1, P9 v2, P10 v5, P11 v3, P12 v4, P13 v2, P14 v2, P15 v1 — [docs/contracts/air-phase.md](../contracts/air-phase.md)
 - air-weak-wind: W1 v1, W2 v1 — [docs/contracts/air-weak-wind.md](../contracts/air-weak-wind.md)
+- bar-mouse: BM-К1 v2, BM-К2 v1 — [docs/contracts/bar-mouse.md](../contracts/bar-mouse.md)
+- cliff-look: CL-К1 v3, CL-К2 v3 — [docs/contracts/cliff-look.md](../contracts/cliff-look.md)
 - cloud-field: CLF-К1 v1, CLF-К2 v1, CLF-К3 v2, CLF-К4 v1, CLF-К5 v1, CLF-К6 v1 — [docs/contracts/cloud-field.md](../contracts/cloud-field.md)
+- cloud-look: CLK-К1 v1, CLK-К2 v1, CLK-К3 v1 — [docs/contracts/cloud-look.md](../contracts/cloud-look.md)
 - control-bar: CB-К1 v4, CB-К2 v1 — [docs/contracts/control-bar.md](../contracts/control-bar.md)
 - control-fix: С1 v2, С2 v4, С3 v3 — [docs/contracts/control-fix.md](../contracts/control-fix.md)
+- crash-reports: — — [docs/contracts/crash-reports.md](../contracts/crash-reports.md)
 - docs-rework: D1 v1, D2 v1, D3 v1, D4 v1 — [docs/contracts/docs-rework.md](../contracts/docs-rework.md)
 - easter-eggs: К1 v2, К2 v3, К3 v2, К4 v2, К5 v2, К6 v4, К7 v5 — [docs/contracts/easter-eggs/framework.md](../contracts/easter-eggs/framework.md)
 - easter-eggs: К13 v8, К14 v8, К15 v10, К16 v10 — [docs/contracts/easter-eggs/models-sound.md](../contracts/easter-eggs/models-sound.md)
@@ -35,6 +39,8 @@ generated: true
 - feedback-1013: FBW-К2 v3 — [docs/contracts/feedback-1013.md](../contracts/feedback-1013.md)
 - goals: GL-К1 v1, GL-К2 v2, GL-К3 v2, GL-К4 v2, GL-К5 v3, GL-К6 v2 — [docs/contracts/goals.md](../contracts/goals.md)
 - grass-rocks: G1 v1, G2 v2, G3 v2, G4 v5 — [docs/contracts/grass-rocks.md](../contracts/grass-rocks.md)
+- haze-humidity: HH1 v1, HH2 v2, HH3 v1, HH4 v3, HH5 v1, HH6 v2, HH7 v2 — [docs/contracts/haze-humidity.md](../contracts/haze-humidity.md)
+- menu-shots-pose: MSP-К1 v2 — [docs/contracts/menu-shots-pose.md](../contracts/menu-shots-pose.md)
 - motion-rig: MR-К1 v3, MR-К2 v3, MR-К3 v3 — [docs/contracts/motion-rig.md](../contracts/motion-rig.md)
 - mountain-look: MLK-К1 v1, MLK-К2 v2, MLK-К3 v2 — [docs/contracts/mountain-look.md](../contracts/mountain-look.md)
 - no-osm: N1 v1, N2 v2, N3 v1, N4 v3, N5 v1 — [docs/contracts/no-osm.md](../contracts/no-osm.md)
@@ -57,6 +63,7 @@ generated: true
 - sea-ships: S1 v2, S2 v4, S3 v3, S4 v1 — [docs/contracts/sea-ships.md](../contracts/sea-ships.md)
 - site-i18n: SI-К1 v2, SI-К2 v1, SI-К3 v2, SI-К4 v3, SI-К5 v1, SI-К6 v1 — [docs/contracts/site-i18n.md](../contracts/site-i18n.md)
 - site-research: SRS-К1 v1 — [docs/contracts/site-research.md](../contracts/site-research.md)
+- snow-plume: — — [docs/contracts/snow-plume.md](../contracts/snow-plume.md)
 - speed-feel: SPF-К1 v2, SPF-К2 v1, SPF-К3 v1, SPF-К4 v2 — [docs/contracts/speed-feel.md](../contracts/speed-feel.md)
 - spin-recovery: SR-К1 v2, SR-К2 v1, SR-К3 v1 — [docs/contracts/spin-recovery.md](../contracts/spin-recovery.md)
 - start-camp: SC-K1 v1, SC-K2 v1, SC-K3 v1, SC-K4 v3, SC-K5 v1, SC-K6 v1 — [docs/contracts/start-camp.md](../contracts/start-camp.md)
@@ -72,7 +79,10 @@ generated: true
 - tow: — — [docs/contracts/tow-wave1.md](../contracts/tow-wave1.md)
 - tow: TW-К1 v1, TW-К2 v1, TW-К3 v1, TW-К4 v9, TW-К5 v9, TW-К6 v2, TW-К7 v3, TW-К8 v3, TW-К9 v3, TW-К10 v2 — [docs/contracts/tow.md](../contracts/tow.md)
 - training-island: TI-К1 v1, TI-К2 v2, TI-К3 v3 — [docs/contracts/training-island.md](../contracts/training-island.md)
+- trike-anywhere: TA-К1 v1, TA-К2 v1 — [docs/contracts/trike-anywhere.md](../contracts/trike-anywhere.md)
+- trike-cockpit: TC-К1 v1 — [docs/contracts/trike-cockpit.md](../contracts/trike-cockpit.md)
 - trike-model: TK-K1 v5, TK-K2 v4, TK-K3 v2 — [docs/contracts/trike-model.md](../contracts/trike-model.md)
+- trike-pilot: TP-К1 v3, TP-К2 v1, TP-К3 v2, TP-К4 v2, TP-К5 v1, TP-К6 v2, TP-К7 v3, TP-К8 v1, TP-К9 v1 — [docs/contracts/trike-pilot.md](../contracts/trike-pilot.md)
 - ui-controls: У1 v5, У2 v2 — [docs/contracts/ui-controls.md](../contracts/ui-controls.md)
 - volcano-island: VI-К1 v3, VI-К2 v2, VI-К3 v1 — [docs/contracts/volcano-island.md](../contracts/volcano-island.md)
 - wind-limits: WL-К1 v2, WL-К2 v1 — [docs/contracts/wind-limits.md](../contracts/wind-limits.md)

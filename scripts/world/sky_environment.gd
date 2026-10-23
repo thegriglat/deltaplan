@@ -32,8 +32,29 @@ var _inversion_msl: float = NAN
 var _haze_density: float = 1.0
 var _sky_mat: ShaderMaterial
 var _env: Environment
+## Высота долины места над морем, м (NAN — нет данных: свет рельефа считается на высоте камеры).
+var valley_msl_m: float = NAN
+var _to_sun := Vector3.UP
+var _tint_cam_y := 0.0
+var _last_tint: Array[Color] = [Color.WHITE, Color.WHITE]
 var _haze_base_color := Color.WHITE
 var _clear_air_color := Color.WHITE
+## Экспозиция заката (HH4 v3): множитель E к tonemap_exposure — установившееся значение по высоте солнца и
+## текущее (сглаживается во времени, tau_s); базовая экспозиция — world.json → rendering.tonemap_exposure.
+var exposure_target := 1.0
+var exposure_current := 1.0
+var _base_exposure := 1.0
+var _expo_ready := false
+var _disk_dir := Vector3.UP
+var _sun_color_now := Color.WHITE
+## Яркость солнца к дневной (по Y), сила засвета глаза.
+var _glare_lum := 1.0
+## Диск, корона и ореол неба — яркость «на кадре» (после экспозиции): в шейдер — делённая на E (_apply_exposure).
+var _disk_e := 0.0
+var _corona_e := 0.0
+var _halo_e := 0.0
+## Свет прямого солнца в дымке (ореол рассеяния вперёд) — тоже яркость на кадре, делится на E.
+var _haze_sun_lin := Color.WHITE
 
 
 func _ready() -> void:
@@ -54,6 +75,7 @@ func apply_config() -> void:
 		clock.name = "SunClock"
 		add_child(clock)
 		clock.sun_changed.connect(_apply_sun)
+		clock.sun_disk_changed.connect(func() -> void: _apply_sun(clock.to_sun()))
 	if sun == null:
 		sun = DirectionalLight3D.new()
 		sun.name = "Sun"
@@ -84,7 +106,8 @@ func apply_config() -> void:
 	sky_mat.set_shader_parameter("disk_edge", float(disk.get("edge", 0.3)))
 	sky_mat.set_shader_parameter("limb_darkening", float(disk.get("limb_darkening", 0.4)))
 	sky_mat.set_shader_parameter(
-		"corona_width", deg_to_rad(float(disk.get("corona_width_deg", 1.0)))
+		"corona_width",
+		deg_to_rad(float(disk.get("corona_width_disks", 3.0)) * float(disk.get("radius_deg", 0.3)))
 	)
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
@@ -103,7 +126,9 @@ func apply_config() -> void:
 		if String(rend.get("tonemap_mode", "filmic")) == "agx"
 		else Environment.TONE_MAPPER_FILMIC
 	)
-	env.tonemap_exposure = float(rend.tonemap_exposure)
+	_base_exposure = float(rend.tonemap_exposure)
+	_expo_ready = false
+	env.tonemap_exposure = _base_exposure
 	env.tonemap_white = float(rend.tonemap_white)
 	# туман Godot — только если задан (голубая дымка чистого воздуха — в haze.gdshader)
 	env.fog_enabled = float(fog_cfg.density) > 0.0
@@ -150,38 +175,201 @@ func _apply_sun(to_sun: Vector3) -> void:
 	# Свет светит вдоль −Z узла: направляем −Z от солнца к земле.
 	sun.basis = Basis.looking_at(-to_sun, up)
 	var lt := SunClock.light_at(rad_to_deg(asin(clampf(to_sun.y, -1.0, 1.0))))
-	var sun_color: Color = _color(sun_cfg.color) * (lt.sun_color as Color)
-	sun.light_color = sun_color
-	sun.light_energy = float(sun_cfg.energy) * float(lt.sun_energy)
+	_to_sun = to_sun
+	# цвет — из пропускания атмосферы (HH4 v2): рельеф — на высоте долины, небо/диск/дымка/засвет — камеры
+	var el_true := clock.angles().y if clock != null else rad_to_deg(asin(clampf(to_sun.y, -1.0, 1.0)))
+	_tint_cam_y = _camera_y()
+	var base: Color = _color(sun_cfg.color)
+	var light_y := valley_msl_m if not is_nan(valley_msl_m) else _tint_cam_y
+	# sun_tint — линейное отношение пропусканий; в слоты sRGB (light_color, source_color) — через линейное
+	var base_lin := base.srgb_to_linear()
+	var lt_tint := _tint(el_true, light_y, 0)
+	var lg := maxf(lt_tint.g, 1.0e-4)
+	var lt_rel := Color(lt_tint.r / lg, 1.0, lt_tint.b / lg)  # на G: энергия = T_G-доля, цвет — остальные каналы
+	sun.light_color = (base_lin * lt_rel).linear_to_srgb()
+	var sun_color: Color = (base_lin * _tint(el_true, _tint_cam_y, 1)).linear_to_srgb()
+	if OS.has_environment("DP_SUN_TINT_LOG"):  # кадры tools/shots: ожидаемая цветность диска
+		var tc := sun_color.srgb_to_linear() / maxf(base_lin.r, 1.0e-6)
+		print("sun_tint: el=%.2f y=%.0f g_r=%.3f b_r=%.3f" % [el_true, _tint_cam_y, tc.g / maxf(tc.r, 1e-6), tc.b / maxf(tc.r, 1e-6)])
+	# свет рельефа — из пропускания (HH4 v3): sun.energy × T_G(el, долина) / T_G(35°, долина); цвет — отношения
+	# каналов sun_tint, нормированные на G (энергия × цвет = T_c/T_c_ref по каналам); небо — sky_k(el)
+	var p := SunTransmission.params()
+	var hzx := _haze_extinction()
+	var top := get_haze_top_msl()
+	var light_k := SunTransmission.light_ratio(el_true, light_y, hzx[0], hzx[1], top, p)
+	sun.light_energy = float(sun_cfg.energy) * light_k
 	var tint: Color = lt.horizon_tint
-	var sky_k := float(lt.sky_energy)
+	var sky_k := SunTransmission.sky_k(el_true, p)
 	_sky_mat.set_shader_parameter("sky_horizon_color", _color(sky_cfg.horizon_color) * tint)
 	_sky_mat.set_shader_parameter(
 		"ground_horizon_color", _color(sky_cfg.ground_horizon_color) * tint
 	)
-	# небо у горизонта на закате светлое — гасим его слабее, чем окружение
-	_sky_mat.set_shader_parameter(
-		"exposure", float(sky_cfg.energy_multiplier) * lerpf(1.0, sky_k, 0.4)
-	)
-	_sky_mat.set_shader_parameter("sun_dir", to_sun)
+	_sky_mat.set_shader_parameter("exposure", float(sky_cfg.energy_multiplier) * sky_k)
+	# диск, ореол, засвет и дымка к солнцу — по истинной высоте (свет рельефа зажат min_light_elevation_deg)
+	var disk_dir := clock.to_sun_true() if clock != null else to_sun
+	var lum := sun_luminance_ratio(el_true, _tint_cam_y)
+	_sky_mat.set_shader_parameter("sun_dir", disk_dir)
 	_sky_mat.set_shader_parameter("sun_color", sun_color)
-	_sky_mat.set_shader_parameter("halo_energy", sun.light_energy)
 	var disk: Dictionary = sky_cfg.get("sun_disk", {})
-	var dk := float(lt.get("disk_energy", 1.0))
-	_sky_mat.set_shader_parameter("disk_energy", float(disk.get("energy", 40.0)) * dk)
-	_sky_mat.set_shader_parameter("corona_energy", float(disk.get("corona_energy", 3.0)) * dk)
-	if glare != null:
-		glare.set_sun(to_sun, sun_color, float(lt.get("glare", 1.0)))
+	var lum_p := pow(lum, float(disk.get("energy_exponent", 0.5)))
+	# ореол неба вокруг диска — свет прямого солнца со сжатием яркости, как у диска (не освещённость рельефа)
+	_halo_e = float(sun_cfg.energy) * lum_p
+	# квад дымки рисуется поверх неба и гасит диск по лучу в небо — компенсируем, чтобы после дымки диск был
+	# ровно energy × lum^показатель (пропускание дымки уже входит в lum: не учитывать дважды)
+	var dk := lum_p / haze_sky_transmission(el_true, _tint_cam_y)
+	_disk_e = float(disk.get("energy", 40.0)) * dk
+	_corona_e = float(disk.get("corona_energy", 3.0)) * dk
 	_env.ambient_light_energy = float(sky_cfg.ambient_light_energy) * sky_k
+	# экспозиция заката: E по яркости сцены (SunTransmission.scene_luminance), сглаживается в _process
+	var ec: Dictionary = cfg.get("rendering", {}).get("sunset_exposure", {})
+	exposure_target = 1.0
+	if bool(ec.get("enabled", true)):
+		var l := SunTransmission.scene_luminance(
+			el_true, light_k, sky_k, float(ec.get("albedo", 0.2)), float(sun_cfg.energy), float(p.ref_el_deg)
+		)
+		exposure_target = SunTransmission.exposure_factor(
+			l, float(ec.get("a", 0.8)), float(ec.get("e_max", 10.0))
+		)
+	if not _expo_ready:
+		exposure_current = exposure_target
+		_expo_ready = true
+	_disk_dir = disk_dir
+	_sun_color_now = sun_color
+	_glare_lum = lum
+	if OS.has_environment("DP_SUN_TINT_LOG"):  # кадры tools/shots: числа сцены
+		print("scene_light: el=%.2f light_energy=%.5f sky_k=%.4f E=%.3f" % [
+			el_true, sun.light_energy, sky_k, exposure_target])
 	if _haze_mat != null:
-		_haze_mat.set_shader_parameter("sun_dir", to_sun)
-		_haze_mat.set_shader_parameter("sun_color", sun_color)
+		_haze_mat.set_shader_parameter("sun_dir", disk_dir)
+		# ореол дымки (рассеяние вперёд) — свет прямого солнца в дымке: яркость ∝ освещённости (lum), не постоянна
+		_haze_sun_lin = sun_color.srgb_to_linear() * lum
+		_haze_mat.set_shader_parameter("sun_color", _haze_sun_lin.linear_to_srgb())
 		_haze_mat.set_shader_parameter("haze_color", _haze_base_color * tint * sky_k)
-		# чистый воздух — тот же свет, что небо у горизонта: утром и вечером в тон неба,
+		# чистый воздух — тот же свет, что небо у горизонта (одна sky_k): утром и вечером в тон неба,
 		# иначе у горизонта небо и дальний рельеф расходятся по цвету
 		_haze_mat.set_shader_parameter(
-			"clear_color", _clear_air_color * tint * lerpf(1.0, sky_k, 0.4)
+			"clear_color", _clear_air_color * tint * sky_k
 		)
+	_apply_exposure()
+
+
+## Цветность прямого солнца SunTransmission.sun_tint на высоте y_msl; slot — 0 свет, 1 камера.
+## Ниже горизонта точки (T = 0) — цветность на ближайшей высоте выше, где T > 0 (контракт HH4 v2:
+## «цвет последней ненулевой цветности»; при заходе это та же, а при старте с солнцем под горизонтом
+## нет прошлой — не белая). Нет и такой (глубже −5°) — прошлая цветность слота.
+func _tint(el_deg: float, y_msl: float, slot: int) -> Color:
+	var haze := _haze_extinction()
+	var top := get_haze_top_msl()
+	var c := SunTransmission.sun_tint(el_deg, y_msl, haze[0], haze[1], top)
+	var e := el_deg
+	while c.r < 0.0 and e < 5.0:
+		e += 0.1
+		c = SunTransmission.sun_tint(e, y_msl, haze[0], haze[1], top)
+	if c.r < 0.0:
+		return _last_tint[slot]
+	_last_tint[slot] = c
+	return c
+
+
+## Ослабление дымки места: [extinction 1/м на 550 нм, спектр Vector3] (нет дымки — нули).
+func _haze_extinction() -> Array:
+	var ext := 0.0
+	var rgb := Vector3.ONE
+	if _haze_mat != null:
+		var e: Variant = _haze_mat.get_shader_parameter("extinction")
+		var r: Variant = _haze_mat.get_shader_parameter("extinction_rgb")
+		ext = float(e) if e != null else 0.0
+		rgb = r if r is Vector3 else Vector3.ONE
+	return [ext, rgb]
+
+
+## Яркость прямого солнца на высоте el_deg (градусы над горизонтом точки) в точке y_msl относительно
+## дневной (при ref_el_deg): пропускание атмосферы по яркости Y (Рэлей + дымка места, сферическая
+## Земля, SunTransmission) к пропусканию при ref_el_deg. 0..1; 0 — луч упирается в Землю.
+## Днём (выше ref_el_deg) — 1. Множитель яркости диска (степень sky.sun_disk.energy_exponent)
+## и силы засвета (sun_glare, ∝ освещённости от солнца).
+func sun_luminance_ratio(el_deg: float, y_msl: float) -> float:
+	var haze := _haze_extinction()
+	var p := SunTransmission.params()
+	var top := get_haze_top_msl()
+	var t := SunTransmission.transmission(minf(el_deg, float(p.ref_el_deg)), y_msl, haze[0], haze[1], top, p)
+	if t.x <= 0.0:
+		return 0.0
+	var r := SunTransmission.transmission(float(p.ref_el_deg), y_msl, haze[0], haze[1], top, p)
+	var w := Vector3(0.2126, 0.7152, 0.0722)
+	return clampf(t.dot(w) / maxf(r.dot(w), 1.0e-9), 0.0, 1.0)
+
+
+## Доля света, проходящая сквозь квад дымки по лучу в небо на высоте el_deg (диск солнца), 0..1: зелёный канал
+## (по нему квад гасит сцену), мутный слой + чистый воздух у горизонта, как в haze.gdshader. 1 — дымки нет.
+## Зеркало формул haze.gdshader (путь в слое haze_path_m, чистый воздух clear_sky_height_m, max_opacity): менять вместе
+## (тест test_haze_sky_transmission_matches_shader_formula).
+func haze_sky_transmission(el_deg: float, y_msl: float) -> float:
+	var m := _haze_mat
+	if m == null or el_deg <= 0.0:
+		return 1.0
+	var sin_e := sin(deg_to_rad(el_deg))
+	var length := float(m.get_shader_parameter("max_distance_m"))
+	var rgb: Vector3 = m.get_shader_parameter("extinction_rgb")
+	var crgb: Vector3 = m.get_shader_parameter("clear_rgb")
+	var path := haze_path_m(
+		y_msl, sin_e, length, float(m.get_shader_parameter("top_msl")),
+		float(m.get_shader_parameter("top_transition_m"))
+	)
+	var tau := float(m.get_shader_parameter("extinction")) * rgb.y * maxf(path, 0.0)
+	var clear_len := minf(length, float(m.get_shader_parameter("clear_sky_height_m")) / maxf(sin_e, 1.0e-4))
+	tau += float(m.get_shader_parameter("clear_extinction")) * crgb.y * clear_len
+	var opacity := minf(1.0 - exp(-tau), float(m.get_shader_parameter("max_opacity")))
+	return maxf(1.0 - opacity, 1.0e-3)
+
+
+func _camera_y() -> float:
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam != null:
+		return cam.global_position.y
+	return 0.0 if is_nan(valley_msl_m) else valley_msl_m
+
+
+## Экспозиция заката плавно идёт к установившемуся значению (tau_s, реальное время); камера ушла по высоте
+## больше чем на tint_update_dy_m — цвет солнца пересчитать.
+func _process(dt: float) -> void:
+	if sun == null or _env == null or not is_inside_tree():
+		return
+	if absf(exposure_current - exposure_target) > 1.0e-4 * exposure_target:
+		var tau := float(Config.value("world", "rendering.sunset_exposure.tau_s", 3.0))
+		var k := 1.0 - exp(-dt / maxf(tau, 1.0e-3))
+		exposure_current = exp(lerpf(log(exposure_current), log(exposure_target), k))
+		_apply_exposure()
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var dy := float(Config.value("world", "time.light.tint_update_dy_m", 100.0))
+	if absf(cam.global_position.y - _tint_cam_y) > dy:
+		_apply_sun(_to_sun)
+
+
+## E сразу к установившемуся значению (тесты, кадры, перемотка времени).
+func snap_exposure() -> void:
+	exposure_current = exposure_target
+	_apply_exposure()
+
+
+## Множитель E → tonemap_exposure. Диск, корона и ореол неба заданы яркостью на кадре (уже сжаты energy_exponent
+## до отображаемого диапазона), поэтому в шейдер идут делённые на E: экспозиция заката их не раздувает.
+## Сила засвета глаза (после тонмаппинга, в долях белого кадра) от E не зависит: Хоулдей–Стайлс при экспозиции
+## дал бы lum^p·E — ореол вырос бы в 2–3 раза (HH-11: размер ореола утверждён), см. отчёт HH-15.
+func _apply_exposure() -> void:
+	if _env == null:
+		return
+	_env.tonemap_exposure = _base_exposure * exposure_current
+	var e := maxf(exposure_current, 1.0e-3)
+	_sky_mat.set_shader_parameter("disk_energy", _disk_e / e)
+	_sky_mat.set_shader_parameter("corona_energy", _corona_e / e)
+	_sky_mat.set_shader_parameter("halo_energy", _halo_e / e)
+	if _haze_mat != null:
+		_haze_mat.set_shader_parameter("sun_color", (_haze_sun_lin / e).linear_to_srgb())
+	if glare != null:
+		glare.set_sun(_disk_dir, _sun_color_now, _glare_lum)
 
 
 ## Высота инверсии (верх слоя перемешивания), м над уровнем моря. Обычно — основание облаков
@@ -193,7 +381,7 @@ func set_inversion_height_msl(h: float) -> void:
 
 
 ## Густота дымки (1 — как в конфиге, 2 — видимость вдвое меньше): погода по ходу дня
-## (WeatherModel → haze_k: к вечеру дымка гуще).
+## по влажности воздуха (WeatherModel.haze_k_rh).
 func set_haze_density(k: float) -> void:
 	_haze_density = maxf(k, 0.1)
 	if _haze_mat != null:

@@ -1,0 +1,28 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+Terrain: место pt_+43.150_+077.100 загружено за 5.74 с
+Terrain: поля рельефа за 5.15 с
+PlaceData: 'pt_+43.150_+077.100' за 3.84 с — OSM 3.41 с (домов OSM 143005), план домов 0.43 с (2482)
+WorldObjects: снаряжение у 0 стартов — 0 вещей за 0 мс
+WorldObjects: 'pt_+43.150_+077.100' за 7.36 с — ветроуказателей 0, посадок 0, троп к стартам 0, домов 2482, OSM тайлов 9/9
+air_model: analytic (таймаут расчёта (60 с))
+WorldObjects: палаток у старта 1 из 1 за 343 мс
+Мир: deltaplan://world?bots=0&date=2026-07-15&from=270&hour=12.00&lat=43.12800&lon=77.08100&seed=20260927&sky=clear&temp=-10.0&v=2&wind=16.0
+ERROR: NO GRAB
+   at: _mouse_update_mode (platform/linuxbsd/x11/display_server_x11.cpp:588)
+   GDScript backtrace (most recent call first):
+       [0] set_mouse_captured (res://scripts/game/input_controller.gd:85)
+       [1] set_input_enabled (res://scripts/game/game.gd:1160)
+       [2] set_flying (res://scripts/game/game.gd:960)
+       [3] _fly (res://scenes/main.gd:389)
+       [4] start (res://scripts/game/game.gd:484)
+snow_bench: {"cam":[2410.66015625,2956.828125,3560.66015625],"emitters":24,"items":[{"intensity":1.0,"snow":0.51,"t_c":-20.0,"u10":23.14,"u_t":7.15,"x":3050.0,"y":2903.0,"z":3500.0},{"intensity":1.0,"snow":0.51,"t_c":-22.1,"u10":25.14,"u_t":7.06,"x":2300.0,"y":3228.0,"z":4250.0},{"intensity":1.0,"snow":0.87,"t_c":-22.9,"u10":26.48,"u_t":7.04,"x":2350.0,"y":3348.0,"z":4400.0},{"intensity":1.0,"snow":0.92,"t_c":-23.8,"u10":27.58,"u_t":7.02,"x":2250.0,"y":3489.0,"z":4600.0},{"intensity":1.0,"snow":0.99,"t_c":-24.5,"u10":29.6,"u_t":7.0,"x":2200.0,"y":3608.0,"z":4750.0},{"intensity":1.0,"snow":0.97,"t_c":-23.4,"u10":28.02,"u_t":7.02,"x":1350.0,"y":3435.0,"z":2800.0},{"intensity":1.0,"snow":0.88,"t_c":-23.4,"u10":28.65,"u_t":7.02,"x":1250.0,"y":3436.0,"z":2950.0},{"intensity":1.0,"snow":0.96,"t_c":-23.3,"u10":28.32,"u_t":7.03,"x":1450.0,"y":3421.0,"z":2650.0},{"intensity":1.0,"snow":0.92,"t_c":-23.2,"u10":28.15,"u_t":7.03,"x":1150.0,"y":3394.0,"z":3100.0},{"intensity":1.0,"snow":0.69,"t_c":-25.0,"u10":29.54,"u_t":6.99,"x":2150.0,"y":3676.0,"z":4900.0},{"intensity":1.0,"snow":0.95,"t_c":-23.4,"u10":29.44,"u_t":7.02,"x":1550.0,"y":3435.0,"z":2500.0},{"intensity":1.0,"snow":0.67,"t_c":-22.6,"u10":26.18,"u_t":7.05,"x":1000.0,"y":3304.0,"z":3400.0},{"intensity":1.0,"snow":0.83,"t_c":-23.1,"u10":28.04,"u_t":7.03,"x":1000.0,"y":3379.0,"z":3250.0},{"intensity":1.0,"snow":1.0,"t_c":-21.7,"u10":24.82,"u_t":7.08,"x":1000.0,"y":3166.0,"z":3900.0},{"intensity":1.0,"snow":0.98,"t_c":-22.6,"u10":25.92,"u_t":7.05,"x":1550.0,"y":3313.0,"z":2350.0},{"intensity":1.0,"snow":0.99,"t_c":-25.9,"u10":32.21,"u_t":6.98,"x":2150.0,"y":3821.0,"z":5050.0},{"intensity":1.0,"snow":0.67,"t_c":-26.0,"u10":31.86,"u_t":6.98,"x":2150.0,"y":3838.0,"z":5200.0},{"intensity":1.0,"snow":0.57,"t_c":-22.4,"u10":25.85,"u_t":7.06,"x":1400.0,"y":3270.0,"z":2200.0},{"intensity":1.0,"snow":0.58,"t_c":-22.2,"u10":25.59,"u_t":7.06,"x":750.0,"y":3251.0,"z":4150.0},{"intensity":1.0,"snow":0.73,"t_c":-25.8,"u10":30.73,"u_t":6.98,"x":2150.0,"y":3804.0,"z":5350.0},{"intensity":1.0,"snow":0.64,"t_c":-22.6,"u10":25.86,"u_t":7.05,"x":1350.0,"y":3309.0,"z":2050.0},{"intensity":1.0,"snow":0.7,"t_c":-22.8,"u10":27.61,"u_t":7.04,"x":650.0,"y":3344.0,"z":4300.0},{"intensity":1.0,"snow":0.92,"t_c":-22.8,"u10":26.75,"u_t":7.04,"x":1400.0,"y":3346.0,"z":1900.0},{"intensity":1.0,"snow":0.67,"t_c":-26.0,"u10":31.04,"u_t":6.98,"x":2100.0,"y":3826.0,"z":5500.0}],"name":"shymbulak_strong_lee","plume_node":true,"scan_count":3,"series":[[2.0,24,3],[4.0,24,3],[6.1,24,3],[8.1,24,3],[10.1,24,3],[12.1,24,3],[14.1,24,3],[16.1,24,3],[18.1,24,3],[20.1,24,3],[22.1,24,3],[24.1,24,3],[26.2,24,3],[28.2,24,3],[30.2,24,3],[32.2,24,3],[34.2,24,3],[36.2,24,3],[38.2,24,3]],"shot":"/home/greg/deltaplan/build/screenshots/snow-plume/shymbulak_strong_lee.jpg","t_mean_c":-23.4,"tgt":[1350.0,3323.75,2500.0]}

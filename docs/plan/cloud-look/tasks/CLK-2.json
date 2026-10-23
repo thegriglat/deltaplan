@@ -1,0 +1,87 @@
+{
+  "id": "CLK-2",
+  "module": "cloud-look",
+  "type": "dp-engineer",
+  "title": "Форма кучевых: ступени, зернистые края, разброс размеров и оснований (пункты 2, 3, 6, 7)",
+  "goal": "Кучевые без горизонтальных ступеней/пластов и зернистого «попкорна» по краям, с разбросом размеров и мощностей по распределению размеров кучевых и основаниями по стадии развития; поле облачности не меняется.",
+  "plan_ref": "§3 п.2, п.3, п.6, п.7",
+  "contracts": [
+    {
+      "name": "cloud-look",
+      "version": "1",
+      "ref": "docs/contracts/cloud-look.md"
+    },
+    {
+      "name": "cloud-field",
+      "version": "1",
+      "ref": "docs/contracts/cloud-look.md"
+    },
+    {
+      "name": "perf",
+      "version": "2",
+      "ref": "docs/contracts/cloud-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-look-CLK-2",
+  "branch": "cloud-look/CLK-2",
+  "base": "feature/cloud-look",
+  "scope": [
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_temporal_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_composite_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_volume.gdshader",
+    "assets/textures/clouds/",
+    "tools/atmosphere/gen_cloud_noise.py",
+    "configs/atmosphere.json",
+    "tests/atmosphere/",
+    "tools/research/cloud_look/shape/",
+    "docs/guide/atmosphere/clouds.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/cloud_field_sources.gd",
+    "scripts/atmosphere/cloud_field_codec.gd",
+    "scripts/atmosphere/cloud_physics.gd",
+    "scripts/atmosphere/cloud_model.gd",
+    "scripts/atmosphere/sun_transmission.gd",
+    "scripts/atmosphere/cirrus.gdshader",
+    "scripts/atmosphere/cloud_shadow_map.gdshader",
+    "scripts/terrain/cloud_shadow.gdshaderinc",
+    "configs/world.json",
+    "tools/shots/menu_art.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "cloud",
+      "tests": "cloud"
+    },
+    {
+      "name": "banding_09",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/shape/result.json banding_ratio_09",
+      "expect": "num:([0-9.]+) <=0.5"
+    },
+    {
+      "name": "banding_34",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/shape/result.json banding_ratio_34",
+      "expect": "num:([0-9.]+) <=0.5"
+    },
+    {
+      "name": "edge_noise_09",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/shape/result.json edge_noise_ratio_09",
+      "expect": "num:([0-9.]+) <=0.6"
+    },
+    {
+      "name": "size_spread",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/shape/result.json size_p90_p10",
+      "expect": "num:([0-9.]+) >=3"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T19:37:41"
+}

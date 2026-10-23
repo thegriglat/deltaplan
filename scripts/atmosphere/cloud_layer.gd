@@ -90,6 +90,22 @@ var _light_acc: float = 1.0e9
 var _sun: DirectionalLight3D
 var _sun_dir: Vector3 = Vector3.UP
 var _sun_energy: float = 1.3
+## Множитель яркости света окружения облаков по высоте солнца (sky_k сцены; 1 — день), для тестов.
+var ambient_sky_k: float = 1.0
+
+## Пропускание атмосферы для света солнца на облаках (HH4, SunTransmission): таблица, ключ сборки
+## (extinction дымки, верх дымки, спектр), фоновая пересборка, узел неба (дымка и часы).
+var sun_tab_tex: ImageTexture
+## Сколько раз таблица собиралась и сколько мс заняла последняя сборка (для проверок и замеров).
+var sun_tab_builds: int = 0
+var sun_tab_build_ms: float = -1.0
+var _tab_key: Array = []
+var _tab_params: Dictionary = {}
+var _tab_task: int = -1
+var _tab_result: Array = []
+var _tab_pending_key: Array = []
+var _sky: SkyEnvironment
+var _sky_retry: int = 0
 
 ## Слой поля облачности (CLF-5): параметры шейдеров cf_* (CLF-К2 + грубая карта), текстуры поля
 ## (новый и прошлый шаг — переход за step_s), грубая карта блоков (RG8: наибольшие покрытие и
@@ -107,6 +123,8 @@ var _cf_img: Image
 var _cf_quant := PackedFloat32Array()
 ## Квантили маски по текстуре шума (путь → 16 значений) — считаются раз на процесс.
 static var _quant_cache: Dictionary = {}
+## Доля объёма маски выше последнего квантиля (верх шкалы превышения порога, cf_excess).
+const MASK_TOP_TAIL := 1.0e-5
 
 
 func setup(atmosphere: Atmosphere) -> void:
@@ -172,6 +190,8 @@ func setup(atmosphere: Atmosphere) -> void:
 	_material.set_shader_parameter("detail_tex_size", float(cfg.noise_detail_size))
 	_material.set_shader_parameter("ambient_top", _color(cfg.ambient_top))
 	_material.set_shader_parameter("ambient_bottom", _color(cfg.ambient_bottom))
+	sun_tab_tex = ImageTexture.create_from_image(Image.create(1, 1, false, Image.FORMAT_RGBF))
+	_material.set_shader_parameter("sun_tab", sun_tab_tex)
 	_box = BoxMesh.new()
 	_box.size = Vector3.ONE
 	var renderer := String(cfg.renderer)
@@ -393,6 +413,7 @@ func _push_to_effect(recs: Array[PackedFloat32Array]) -> void:
 	_effect.field_tex = field_tex
 	_effect.field_tex_prev = field_tex_prev
 	_effect.field_max_tex = field_max_tex
+	_effect.sun_tab = sun_tab_tex
 
 
 ## Compatibility: боксы от дальних к ближним (порядок смешивания), записи — в float-текстуру.
@@ -429,6 +450,9 @@ func _push_to_multimesh(recs: Array[PackedFloat32Array], eye: Vector3) -> void:
 
 
 func _exit_tree() -> void:
+	if _tab_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_tab_task)
+		_tab_task = -1
 	if _effect != null:
 		_attach_effect(null)
 
@@ -450,21 +474,166 @@ func _update_light() -> void:
 		var az := deg_to_rad(float(cfg.sun_azimuth_deg))
 		_sun_dir = Vector3(sin(az) * cos(el), sin(el), -cos(az) * cos(el))
 	_material.set_shader_parameter("sun_dir", _sun_dir)
-	_material.set_shader_parameter("sun_color", Vector3(color.r, color.g, color.b))
-	_material.set_shader_parameter("sun_energy", _sun_energy * atmo.get_insolation())
+	# Свет окружения (рассеянный свет неба и дымка) следует закату: яркость — sky_k сцены (SunTransmission.sky_k,
+	# одна с рельефом, небом и дымкой SkyEnvironment, HH4 v3); цвет низа окружения и дымки — × horizon_tint,
+	# верх окружения (ambient_top, зенит) не подкрашивается — на закате зенит синий.
+	var tint := Color.WHITE
+	var sky_k := 1.0
+	var sky := _find_sky()
+	if bool(cfg.get("ambient_follows_sunset", true)) and sky != null and sky.clock != null:
+		var el_s: float = sky.clock.angles().y
+		tint = SunClock.light_at(el_s).horizon_tint as Color
+		sky_k = SunTransmission.sky_k(el_s, _tab_params)
+	var toa := Vector3(color.r, color.g, color.b)
+	var energy := _sun_energy * atmo.get_insolation()
+	var tab := _update_sun_transmission()
+	if not tab.is_empty():
+		toa = tab.toa
+		energy = tab.energy_k * atmo.get_insolation()
+	_material.set_shader_parameter("sun_color", toa)
+	_material.set_shader_parameter("sun_energy", energy)
+	var at := _color(cfg.ambient_top)
+	var ab := _color(cfg.ambient_bottom) * tint
+	_material.set_shader_parameter("ambient_top", at)
+	_material.set_shader_parameter("ambient_bottom", ab)
+	_material.set_shader_parameter("ambient_energy", float(cfg.ambient_energy) * sky_k)
+	ambient_sky_k = sky_k
 	var env: Environment = (
 		get_world_3d().environment if is_inside_tree() and get_world_3d() != null else null
 	)
+	var fc_k := Vector3(tint.r, tint.g, tint.b) * sky_k
 	if env != null and env.fog_enabled:
 		var fc := env.fog_light_color.srgb_to_linear() * env.fog_light_energy
-		_material.set_shader_parameter("fog_color", Vector3(fc.r, fc.g, fc.b))
+		_material.set_shader_parameter("fog_color", Vector3(fc.r, fc.g, fc.b) * fc_k)
 		_material.set_shader_parameter("fog_density", env.fog_density)
 	else:
 		var fc2 := _color(cfg.fog_color_fallback).srgb_to_linear()
-		_material.set_shader_parameter("fog_color", Vector3(fc2.r, fc2.g, fc2.b))
+		_material.set_shader_parameter("fog_color", Vector3(fc2.r, fc2.g, fc2.b) * fc_k)
 		_material.set_shader_parameter("fog_density", float(cfg.fog_density_fallback))
 	# «Дымка к солнцу» — то же значение, что у наземной дымки и окружения (SkyEnvironment)
 	_material.set_shader_parameter("fog_sun_scatter", SkyEnvironment.fog_sun_scatter())
+
+
+## Свет облаков по пропусканию атмосферы (HH4): обновляет таблицу, T_ref, настоящее направление на
+## солнце и параметры шейдеров; возвращает {toa: Vector3, energy_k: float} — солнце на опорной высоте
+## (в линейном RGB, с поправкой за краем таблицы) и его яркость без перистой пелены, либо {} —
+## свет прежний (нет дымки/часов или выключено в конфиге).
+func _update_sun_transmission() -> Dictionary:
+	var tc: Dictionary = cfg.get("sun_transmission", {})
+	var sky := _find_sky()
+	var haze: ShaderMaterial = sky.haze_material() if sky != null else null
+	if not bool(tc.get("enabled", true)) or sky == null or haze == null or sky.clock == null:
+		_material.set_shader_parameter("sun_tab_on", 0.0)
+		return {}
+	var p := _tab_params
+	if p.is_empty():
+		p = SunTransmission.params(tc)
+		_tab_params = p
+	var ext_v: Variant = haze.get_shader_parameter("extinction")
+	var rgb_v: Variant = haze.get_shader_parameter("extinction_rgb")
+	var ext := float(ext_v) if ext_v != null else 0.0
+	var rgb: Vector3 = rgb_v if rgb_v is Vector3 else Vector3.ONE
+	var top := sky.get_haze_top_msl()
+	_update_sun_tab(ext, rgb, top, float(tc.get("rebuild_change", 0.05)))
+	if _tab_key.is_empty():
+		_material.set_shader_parameter("sun_tab_on", 0.0)
+		return {}
+	# Нормировка — по параметрам, с которыми собрана таблица (не по текущим: пересборка в фоне).
+	var k_ext: float = _tab_key[0]
+	var k_rgb: Vector3 = _tab_key[1]
+	var k_top: float = _tab_key[2]
+	var valley := float(atmo.weather.get("_derived", {}).get("valley_msl_m", 0.0))
+	var el_true: float = sky.clock.angles().y
+	var t_ref := SunTransmission.transmission(p.ref_el_deg, valley, k_ext, k_rgb, k_top, p)
+	var f := SunTransmission.sun_factor(el_true, k_ext, k_rgb, k_top, valley, p)
+	var world: Dictionary = Config.get_config("world").get("sun", {})
+	var base_c := _color(world.get("color", [1.0, 1.0, 1.0]))
+	base_c = base_c.srgb_to_linear()
+	var toa := Vector3(base_c.r * f.x, base_c.g * f.y, base_c.b * f.z)
+	var energy_k := float(world.get("energy", 1.2))
+	# Настоящее направление: азимут — от света сцены, высота — по часам (не зажатая).
+	var hz := Vector2(_sun_dir.x, _sun_dir.z)
+	hz = hz.normalized() if hz.length() > 1.0e-4 else Vector2(0.0, -1.0)
+	var el := deg_to_rad(el_true)
+	_material.set_shader_parameter(
+		"sun_dir_t", Vector3(hz.x * cos(el), sin(el), hz.y * cos(el))
+	)
+	var n_el: int = p.n_el
+	var n_h: int = p.n_h
+	var u := clampf((el_true - p.el_min_deg) / (p.el_max_deg - p.el_min_deg), 0.0, 1.0)
+	_material.set_shader_parameter("sun_tab_u", (u * (n_el - 1) + 0.5) / n_el)
+	_material.set_shader_parameter("sun_tab_vs", float(n_h - 1) / float(n_h) / float(p.h_max_m))
+	_material.set_shader_parameter("sun_tab_vo", 0.5 / n_h)
+	_material.set_shader_parameter("sun_tref", t_ref)
+	_material.set_shader_parameter("sun_tab", sun_tab_tex)
+	_material.set_shader_parameter("sun_tab_on", 1.0 if t_ref.y > 0.0 else 0.0)
+	return {"toa": toa, "energy_k": energy_k}
+
+
+## Таблица пропускания: первая сборка — сразу (при старте), пересборка при смене extinction дымки
+## или её верха больше чем на `change` — в фоновом потоке (WorkerThreadPool), результат — позже.
+func _update_sun_tab(ext: float, rgb: Vector3, top: float, change: float) -> void:
+	if _tab_task >= 0 and WorkerThreadPool.is_task_completed(_tab_task):
+		WorkerThreadPool.wait_for_task_completion(_tab_task)
+		_tab_task = -1
+		if not _tab_result.is_empty():
+			sun_tab_tex.set_image(_tab_result[0])
+			_tab_key = _tab_pending_key
+			_tab_result = []
+			sun_tab_builds += 1
+	var drift := _tab_key.is_empty()
+	if not drift:
+		var k_ext: float = _tab_key[0]
+		var k_top: float = _tab_key[2]
+		drift = (
+			absf(ext - k_ext) > change * maxf(k_ext, 1.0e-6)
+			or absf(top - k_top) > change * maxf(k_top, 100.0)
+		)
+	if not drift or _tab_task >= 0:
+		return
+	var key := [ext, rgb, top]
+	if _tab_key.is_empty():
+		var t0 := Time.get_ticks_usec()
+		var img := SunTransmission.build(ext, rgb, top, _tab_params)
+		sun_tab_build_ms = (Time.get_ticks_usec() - t0) / 1000.0
+		sun_tab_tex = ImageTexture.create_from_image(img)
+		_material.set_shader_parameter("sun_tab", sun_tab_tex)
+		_tab_key = key
+		sun_tab_builds += 1
+		return
+	_tab_pending_key = key
+	var prm := _tab_params
+	_tab_task = WorkerThreadPool.add_task(
+		func() -> void:
+			var t0 := Time.get_ticks_usec()
+			_tab_result = [SunTransmission.build(ext, rgb, top, prm)]
+			sun_tab_build_ms = (Time.get_ticks_usec() - t0) / 1000.0
+	)
+
+
+func _find_sky() -> SkyEnvironment:
+	if _sky != null and is_instance_valid(_sky):
+		return _sky
+	_sky = null
+	if not is_inside_tree():
+		return null
+	if _sky_retry > 0:
+		_sky_retry -= 1
+		return null
+	_sky = _find_sky_in(get_tree().root)
+	if _sky == null:
+		_sky_retry = 5
+	return _sky
+
+
+func _find_sky_in(n: Node) -> SkyEnvironment:
+	if n is SkyEnvironment:
+		return n
+	for c in n.get_children():
+		var r := _find_sky_in(c)
+		if r != null:
+			return r
+	return null
 
 
 func _find_light(n: Node) -> DirectionalLight3D:
@@ -939,6 +1108,10 @@ func _upload_field(f: CloudField, t: float) -> void:
 	field_params["cf_rect"] = Vector4(x_min, z_min, 1.0 / (f.nx * f.dx), 1.0 / (f.ny * f.dx))
 	field_params["cf_base"] = Vector4(f.base_msl, dmax, f.bg_cover, f.bg_depth)
 	field_params["cf_edge"] = float(fc.get("edge_fade_m", 2000.0))
+	field_params["cf_shell_w"] = float(cfg.get("field_shell_width_m", 40.0))
+	field_params["cf_shell_dens"] = float(cfg.get("field_shell_density", 0.25))
+	field_params["cf_shell_h"] = float(cfg.get("field_shell_out_m", 25.0))
+	field_params["cf_base_soft"] = float(cfg.get("field_base_soft_m", 60.0))
 	field_params["cf_mrect"] = Vector4(
 		x_min, z_min, 1.0 / (mimg.get_width() * b * f.dx), 1.0 / (mimg.get_height() * b * f.dx)
 	)
@@ -1010,8 +1183,8 @@ static func field_max_map(prev: Image, cur: Image, nx: int, ny: int) -> Dictiona
 	return {"image": img, "block": b, "r_max": r_max, "g_max": g_max}
 
 
-## Квантили маски (1 − R крупного шума) на долях 0, 1/15 … 1: порог покрытия c — квантиль 1 − c,
-## над ним ровно доля c объёма шума (площадь под облаком = покрытие поля).
+## Квантили маски на долях 0, 1/15 … 1 (сумма двух выборок канала G текстуры шума): порог покрытия c —
+## квантиль 1 − c, над ним ровно доля c объёма маски (площадь под облаком = покрытие поля).
 func _cf_quantiles() -> PackedFloat32Array:
 	if _cf_quant.size() == 16:
 		return _cf_quant
@@ -1023,35 +1196,50 @@ func _cf_quantiles() -> PackedFloat32Array:
 	return _cf_quant
 
 
-## 16 квантилей значения 1 − R 3D-текстуры (выборка: каждый 4-й срез, каждый 7-й тексель).
+## Последний квантиль — не предел носителя (2·max G — нигде не достижим), а 1 − MASK_TOP_TAIL.
+## 16 квантилей суммы двух независимых выборок канала G 3D-текстуры (cloud_shape.png, RGB; cf_mask в
+## cloud_common.gdshaderinc берёт две выборки в разных точках): гистограмма G (каждый 4-й срез, каждый 7-й
+## тексель) сворачивается сама с собой. Значения — в долях 1 (сумма 0…2).
 static func noise_quantiles(tex: Texture3D) -> PackedFloat32Array:
-	var hist := PackedInt32Array()
+	return slice_quantiles(tex.get_data())
+
+
+## То же по срезам (изображения; без текстуры — тесты читают атлас PNG напрямую).
+static func slice_quantiles(slices: Array[Image]) -> PackedFloat32Array:
+	var hist := PackedFloat64Array()
 	hist.resize(256)
-	var total := 0
-	var slices: Array[Image] = tex.get_data()
+	var total := 0.0
 	for zi in range(0, slices.size(), 4):
 		var im := slices[zi].duplicate() as Image
 		if im.is_compressed():
 			im.decompress()
-		im.convert(Image.FORMAT_R8)
+		im.convert(Image.FORMAT_RGB8)
 		var d := im.get_data()
-		for k in range(0, d.size(), 7):
-			hist[255 - d[k]] += 1
-			total += 1
+		for k in range(1, d.size(), 21):
+			hist[d[k]] += 1.0
+			total += 1.0
 	var q := PackedFloat32Array()
 	q.resize(16)
-	if total == 0:
+	if total == 0.0:
 		for k in 16:
-			q[k] = k / 15.0
+			q[k] = 2.0 * k / 15.0
 		return q
-	var cum := 0
+	var conv := PackedFloat64Array()
+	conv.resize(511)
+	for i in 256:
+		if hist[i] == 0.0:
+			continue
+		for j in 256:
+			conv[i + j] += hist[i] * hist[j]
+	var sum2 := total * total
+	var cum := 0.0
 	var k := 1
 	var lo := -1
-	for v in 256:
-		if hist[v] > 0 and lo < 0:
+	for v in 511:
+		if conv[v] > 0.0 and lo < 0:
 			lo = v
-		cum += hist[v]
-		while k < 16 and cum >= ceili(total * k / 15.0):
+		cum += conv[v]
+		while k < 16 and cum >= sum2 * (float(k) / 15.0 if k < 15 else 1.0 - MASK_TOP_TAIL) - 1e-9:
 			q[k] = v / 255.0
 			k += 1
 	q[0] = maxi(lo, 0) / 255.0

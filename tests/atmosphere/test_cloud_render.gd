@@ -104,6 +104,8 @@ func test_field_layer_draws_from_texture() -> void:
 	await _frames(FRAMES)
 	check(layer.field_uploads >= 2, "текстура поля обновлена по смене данных (%d)" % layer.field_uploads)
 	check(float(layer.field_params.cf_on) == 1.0, "поле с облаками: cf_on = 1")
+	check(is_equal_approx(float(layer.field_params.cf_shell_w), float(layer.cfg.field_shell_width_m)), "оболочка: ширина (м) дошла до слоя")
+	check(is_equal_approx(float(layer.field_params.cf_shell_h), float(layer.cfg.field_shell_out_m)), "оболочка: клочья снаружи (м) дошли до слоя")
 	check(eff.field_tex == layer.field_tex and eff.field_tex != null, "текстура К2 в эффекте")
 	check(eff.field_max_tex == layer.field_max_tex and eff.field_max_tex != null, "грубая карта в эффекте")
 	var img := layer.field_tex.get_image()
@@ -142,7 +144,8 @@ func test_field_layer_shadow_quad() -> void:
 	check(sm._field_rect.visible, "квад слоя в карте теней виден при облаках в поле")
 	var map: Image = sm._vp.get_texture().get_image()
 	var c := map.get_pixel(map.get_width() / 2, map.get_height() / 2).r
-	check(c < 0.5, "под сплошным слоем 900 м тень густая: пропускание %.3f" % c)
+	# CBS-1: оболочка (низ и верх по 150 м) разрежает слой — порог 0,7 вместо 0,5 (без оболочки было < 0,5).
+	check(c < 0.7, "под сплошным слоем 900 м тень густая: пропускание %.3f" % c)
 	# Пустое поле после скачка времени — без перехода от прошлого шага.
 	layer._cf_t_upd = -1.0e9
 	_set_field(a, 0.0, 0.0, 2.0)

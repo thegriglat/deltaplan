@@ -29,6 +29,7 @@ var _inspect_btn: Button
 
 var _status: Label
 var _fly_btn: Button
+var choice_dialog: StartChoiceDialog  ## окно «Лететь» (TA-К1); null до первого показа
 var _setup_btn: Button
 var _training_btn: Button
 var _training: TrainingMenu
@@ -356,7 +357,29 @@ func _add_version() -> void:
 	add_child(l)
 
 
+## «Лететь» (TA-К1): в сети — сразу дельтаплан без буксировки; иначе окно выбора старта.
 func _on_fly() -> void:
+	if GoalsTab.net_blocked():
+		settings.vehicle = "glider"
+		settings.tow_kind = ""
+		fly_requested.emit(settings)
+		return
+	choice_dialog = _new_choice_dialog()
+	choice_dialog.chosen.connect(_on_start_chosen)
+	choice_dialog.open(settings, StartChoiceDialog.site_for(settings))
+
+
+func _new_choice_dialog() -> StartChoiceDialog:
+	if choice_dialog != null and is_instance_valid(choice_dialog):
+		choice_dialog.queue_free()
+	var d := StartChoiceDialog.new()
+	add_child(d)
+	return d
+
+
+func _on_start_chosen(vehicle: String, tow_kind: String) -> void:
+	settings.vehicle = vehicle
+	settings.tow_kind = tow_kind
 	fly_requested.emit(settings)
 
 

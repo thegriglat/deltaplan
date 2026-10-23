@@ -66,7 +66,7 @@ static func domain_case(
 	var cfg := WeatherModel.config()
 	var ctx := context(detail, loc, cfg)
 	if is_nan(t_max):
-		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
+		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg, ctx)
 	var d := day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
 	# z_i по столбцам от рельефа (CLF-К6): опора — слой дня над долиной (valley_msl_m)
@@ -319,7 +319,7 @@ static func day(
 	var dd: Dictionary = cfg.get("diurnal", {})
 	var m := int(ctx.month)
 	var dday := int(ctx.day)
-	var amp := WeatherModel.monthly(dd.get("range_k", [10.0]), m, dday)
+	var amp := WeatherModel.diurnal_range_k(ctx, cfg)
 	var t_res := t_max - float(dd.get("residual_cooling_k", 2.0))
 	var ua: Dictionary = cfg.get("upper_air", {})
 	var skyp := WeatherModel.sky_params(sky, cfg)

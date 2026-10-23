@@ -97,6 +97,7 @@ static func _pitch_after_mouse(invert: bool, dy: float, captured: bool = true) -
 	var ic := _ic(invert, captured)
 	var ev := InputEventMouseMotion.new()
 	ev.relative = Vector2(0.0, dy)
+	ev.screen_relative = ev.relative
 	ic._unhandled_input(ev)
 	ic.update(DT)
 	var p := ic.control.pitch
@@ -105,10 +106,10 @@ static func _pitch_after_mouse(invert: bool, dy: float, captured: bool = true) -
 
 
 func test_u1_mouse_bar_pitch_sign() -> void:
-	var out := _pitch_after_mouse(false, -40.0)
-	var inn := _pitch_after_mouse(false, 40.0)
-	var out_inv := _pitch_after_mouse(true, -40.0)
-	var free := _pitch_after_mouse(false, -40.0, false)
+	var out := _pitch_after_mouse(false, -400.0)
+	var inn := _pitch_after_mouse(false, 400.0)
+	var out_inv := _pitch_after_mouse(true, -400.0)
+	var free := _pitch_after_mouse(false, -400.0, false)
 	print("    У1: мышь — от себя %.2f, на себя %.2f, от себя с инверсией %.2f, без захвата %.2f" % [
 		out, inn, out_inv, free])
 	check(out > 0.0, "У1: мышь от себя — pitch > 0 (%.2f)" % out)

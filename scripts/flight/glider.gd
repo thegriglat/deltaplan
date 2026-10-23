@@ -28,6 +28,17 @@ var air_fn: Callable = Callable()
 var ground_fn: Callable = Callable()
 var visual: GliderVisual = null
 var _ext_fn: Callable = Callable()  ## TW-К4: внешняя сила (трос)
+## TP-К6: дельталёт игрока (null у дельтаплана). Только чтение.
+var trike: TrikeRig = null
+var engine: TrikeEngine = null
+var _trike_wheels: Dictionary = {}
+## TP-К8: вид дельталёта (вместо GliderVisual, который тогда null). top_level: части ставятся в мировых координатах.
+var trike_visual: TowTrikeVisual = null
+var engine_sound_muted := false  ## TP-22: пауза/меню - звук двигателя игрока молчит
+var _trike_engine_cfg: Dictionary = {}
+var _trike_sound_cfg: Dictionary = {}
+var _tv_prev: Array = []  ## [hang_pos, cart_quat, wing_quat] прошлого и текущего шага физики (интерполяция вида)
+var _tv_cur: Array = []
 var _link_t := 0.0  ## натяжение звена, Н (FlightModel)
 var _link_warned := false
 
@@ -54,6 +65,11 @@ func _ready() -> void:
 ## Выбрать крыло и массу пилота (≤0 — по умолчанию). Сбрасывает состояние: потом reset_*.
 ## Модель игрока — PendulumModel (apparatus — настройки «Аппарат», PD-К3).
 func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) -> void:
+	if trike != null:  # снова дельтаплан: тяги тележки нет
+		trike = null
+		engine = null
+		_ext_fn = Callable()
+		_free_trike_visual()
 	wing_id = wing_name
 	var wing: Dictionary = Config.get_config("wings/" + wing_name)
 	var pilot: Dictionary = Config.get_config("pilot").duplicate(true)
@@ -71,6 +87,60 @@ func setup(wing_name: String, mass_kg: float = 0.0, apparatus: Dictionary = {}) 
 	_vis = Config.get_config("flight").visual
 	if is_node_ready():
 		_build_visual()
+
+
+## TP-К6: дельталёт игрока. cfg - формат TT-К1 (configs/tow_tug.json), ops_cfg - TP-К1 (configs/trike_pilot.json).
+## Масса тележки = пустая + пилот (pilot_mass_kg <= 0 - cart.pilot_mass_kg) + топливо на старте; расход топлива массу
+## в полёте не меняет (граница модели, <= 40 кг из ~325 кг). Сбрасывает состояние: потом reset_on_wheels.
+func setup_trike(cfg: Dictionary, pilot_mass_kg_: float, ops_cfg: Dictionary) -> void:
+	var cart: Dictionary = cfg.cart
+	engine = TrikeEngine.new()
+	engine.setup(cfg.engine, cfg.thrust, ops_cfg)
+	var pm := pilot_mass_kg_ if pilot_mass_kg_ > 0.0 else float(cart.pilot_mass_kg)
+	pilot_mass_kg = pm
+	wing_id = String(cfg.get("wing", TrikeRig.WING_DEFAULT))
+	var mp := TrikeRig.model_params(cfg, float(cart.empty_mass_kg) + pm + engine.fuel_mass_kg)
+	model = PendulumModel.new()
+	model.setup(mp.wing, mp.pilot, {}, mp.apparatus)
+	trike = TrikeRig.new()
+	trike.terrain = func(x: float, z: float) -> float:
+		return float(ground_fn.call(x, z)) if ground_fn.is_valid() else 0.0
+	trike.setup(model, cfg)
+	_trike_wheels = cfg.ground.duplicate(true)
+	_trike_wheels.merge(ops_cfg.get("wheels", {}), true)
+	_trike_wheels["land_on_wheels"] = true
+	_trike_engine_cfg = cfg.engine
+	_trike_sound_cfg = ops_cfg.get("sound", {})
+	_ext_fn = trike.ext_force
+	model.set_external_force(_ext_fn)
+	model.landed.connect(func(r: Dictionary) -> void: landed.emit(r))
+	model.takeoff_failed.connect(func(reason: String) -> void: takeoff_failed.emit(reason))
+	model.took_off.connect(func() -> void: took_off.emit())
+	_configured = true
+	_vis = Config.get_config("flight").visual
+	if is_node_ready():
+		_build_visual()
+
+
+func is_trike() -> bool:
+	return trike != null
+
+
+## TP-К6: дельталёт на колёсах в точке pos (земля под ЦМ тележки), курс heading_deg; двигатель заглушен, бак полный.
+func reset_on_wheels(pos: Vector3, heading_deg: float) -> void:
+	if trike == null:
+		push_warning("Glider: reset_on_wheels без setup_trike - старт на ногах")
+		reset_on_ground(pos, heading_deg)
+		return
+	if ground_fn.is_valid():
+		pos.y = float(ground_fn.call(pos.x, pos.z))
+	model.reset_on_wheels(pos, heading_deg, _trike_wheels)
+	engine.reset()
+	trike.thrust_n = 0.0
+	trike.refresh(0.0)
+	_tv_cur = _trike_state()
+	_tv_prev = _tv_cur
+	_teleport()
 
 
 ## Сейчас модель — PendulumModel.
@@ -187,6 +257,8 @@ func phase() -> String:
 ## Маркер визуала по имени: "InstrumentMount" — сюда крепится прибор, "PilotHead" — глаза
 ## пилота (кабинная камера), "HangPoint", "BaseBar", "WingTipL", "WingTipR".
 func get_marker(marker_name: String) -> Node3D:
+	if trike_visual != null:
+		return trike_visual.get_marker(marker_name)
 	return visual.get_marker(marker_name) if visual != null else null
 
 
@@ -255,7 +327,15 @@ func step(dt: float) -> void:
 		return
 	if _ext_fn.is_valid() and not (model is PendulumModel):
 		_step_external_force(dt)
+	if trike != null:
+		engine.step(dt, model.telemetry.airspeed, control.throttle_axis, control.engine_toggle)
+		control.engine_toggle = false  # нажатие - на один шаг
+		trike.thrust_n = engine.thrust_n
 	model.step(dt, control, air_fn, ground_fn)
+	if trike != null:
+		trike.refresh(dt)
+		_tv_prev = _tv_cur
+		_tv_cur = _trike_state()
 	_prev_xform = _cur_xform
 	_cur_xform = Transform3D(model.telemetry.basis, model.position)
 	if visual != null:
@@ -267,6 +347,37 @@ func _process(dt: float) -> void:
 	var f := Engine.get_physics_interpolation_fraction()
 	global_transform = _prev_xform.interpolate_with(_cur_xform, f)
 	_update_pilot(dt)
+	_update_trike_visual(f)
+
+
+## Пауза и меню (TP-22): звук двигателя игрока молчит; после снятия - снова по состоянию двигателя.
+func set_engine_sound_muted(on: bool) -> void:
+	engine_sound_muted = on
+	if on and trike_visual != null and trike_visual.sound != null and trike_visual.sound.playing:
+		trike_visual.sound.stop()
+
+
+func _trike_state() -> Array:
+	return [trike.hang_pos, trike.cart_basis.get_rotation_quaternion(), trike.wing_basis.get_rotation_quaternion()]
+
+
+func _free_trike_visual() -> void:
+	if trike_visual != null:
+		remove_child(trike_visual)
+		trike_visual.queue_free()
+		trike_visual = null
+
+
+## TP-К8: части вида - по интерполированному состоянию TrikeRig; звук - по состоянию двигателя (TP-К9).
+func _update_trike_visual(f: float) -> void:
+	if trike_visual == null or trike == null or _tv_cur.is_empty():
+		return
+	var hp: Vector3 = (_tv_prev[0] as Vector3).lerp(_tv_cur[0], f)
+	var cq: Quaternion = (_tv_prev[1] as Quaternion).slerp(_tv_cur[1], f)
+	var wq: Quaternion = (_tv_prev[2] as Quaternion).slerp(_tv_cur[2], f)
+	trike_visual.update_parts(hp, Basis(cq), Basis(wq), engine.prop_rpm, engine.throttle)
+	if trike_visual.sound != null and not engine_sound_muted:
+		trike_visual.sound.update_engine(engine.state, engine.prop_rpm, engine.throttle)
 
 
 func _build_visual() -> void:
@@ -274,6 +385,17 @@ func _build_visual() -> void:
 		remove_child(visual)
 		visual.queue_free()
 		visual = null
+	_free_trike_visual()
+	if trike != null:
+		trike_visual = TowTrikeVisual.new()
+		trike_visual.name = "TrikeVisual"
+		trike_visual.top_level = true
+		add_child(trike_visual)
+		trike_visual.setup(_trike_engine_cfg, false)
+		trike_visual.setup_player_sound(_trike_engine_cfg, _trike_sound_cfg)
+		if not _tv_cur.is_empty():
+			_update_trike_visual(1.0)
+		return
 	var path := String(_vis.get("scene", ""))
 	var ps: PackedScene = load(path) if path != "" and ResourceLoader.exists(path) else null
 	if ps != null:
@@ -288,6 +410,7 @@ func _build_visual() -> void:
 
 func _update_pilot(dt: float) -> void:
 	if visual != null:
+		# "wheels" - наземная фаза (у дельталёта visual == null, ветка до него не доходит)
 		var flying: bool = model.mode == FlightModel.Mode.AIR or model.phase() == "dolly"
 		if is_pendulum():
 			visual.set_hang_pose(model.pilot_rel, not flying, dt)  # PD-К5: тело по цепи маятника
