@@ -97,6 +97,7 @@ static func _pitch_after_mouse(invert: bool, dy: float, captured: bool = true) -
 	var ic := _ic(invert, captured)
 	var ev := InputEventMouseMotion.new()
 	ev.relative = Vector2(0.0, dy)
+	ev.screen_relative = ev.relative
 	ic._unhandled_input(ev)
 	ic.update(DT)
 	var p := ic.control.pitch
