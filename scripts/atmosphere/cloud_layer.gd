@@ -1111,9 +1111,9 @@ func _upload_field(f: CloudField, t: float) -> void:
 	var sp: Array = cfg.get("field_base_spread_m", [50.0, 150.0])
 	field_params["cf_spread_lo"] = float(sp[0])
 	field_params["cf_spread_hi"] = float(sp[1])
-	field_params["cf_shell_w"] = float(cfg.get("field_shell_width", 0.2))
-	field_params["cf_shell_dens"] = float(cfg.get("field_shell_density", 0.3))
-	field_params["cf_shell_h"] = float(cfg.get("field_shell_height_m", 60.0))
+	field_params["cf_shell_w"] = float(cfg.get("field_shell_width_m", 40.0))
+	field_params["cf_shell_dens"] = float(cfg.get("field_shell_density", 0.25))
+	field_params["cf_shell_h"] = float(cfg.get("field_shell_out_m", 25.0))
 	field_params["cf_base_soft"] = float(cfg.get("field_base_soft_m", 60.0))
 	field_params["cf_mrect"] = Vector4(
 		x_min, z_min, 1.0 / (mimg.get_width() * b * f.dx), 1.0 / (mimg.get_height() * b * f.dx)

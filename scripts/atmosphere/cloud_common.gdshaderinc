@@ -746,7 +746,7 @@ float cf_envelope(vec3 p, vec4 f, float fp) {
 		return -1.0;
 	}
 	float lim;
-	float e = cf_excess(p, f, fp, lim) + cf_shell_w + 0.08;
+	float e = cf_excess(p, f, fp, lim) + 0.12;
 	if (e <= 0.0) {
 		return -1.0;
 	}
@@ -765,25 +765,42 @@ float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
 	}
 	float lim;
 	float e = cf_excess(p, f, fp, lim);
-	// Рыхлая оболочка: снаружи границы облака полоса шириной shell_w (в долях превышения порога) —
-	// малая плотность и рваный шум (вовлечение у края); у растущего уже, у тающего шире.
-	float shell_w = mix(cf_shell_w * 0.5, cf_shell_w * 0.2, max(f.z, 0.0)) + cf_shell_w * 0.5 * max(-f.z, 0.0);
+	// Рыхлая оболочка (турбулентное вовлечение у края), ширины в метрах: ВНУТРИ границы плотность
+	// растёт от 0 на границе до полной за cf_shell_w м (рваная по мелкому шуму), СНАРУЖИ — только
+	// редкие клочья малой плотности (cf_shell_dens) на расстоянии до cf_shell_h м. Граница — бок
+	// (e = 0), низ (h = 0) и верх; расстояние до бока — e / |∇e| по двум сдвинутым выборкам маски.
+	// Растущее облако — край чётче (×0,5), тающее — рыхлее (×1,5).
 	float shell = 1.0;
-	if (e <= 0.0 || h < 0.0) {
-		float u = 1.0;
-		if (e <= 0.0) {
-			if (e < -shell_w) {
+	float shell_w = cf_shell_w * mix(1.0, 0.5, max(f.z, 0.0)) * (1.0 + 0.5 * max(-f.z, 0.0));
+	float shell_out = cf_shell_h * mix(1.0, 0.5, max(f.z, 0.0)) * (1.0 + 0.5 * max(-f.z, 0.0));
+	bool shell_on = cf_shell_w > 0.5;
+	float d_in = 1e9;
+	vec3 hp = (p + wind_offset * 1.1) / (detail_period_m * 0.8) + vec3(boil * 2.0);
+	float hraw = 0.0;
+	if (shell_on && (e < 0.5 || h < shell_w || e <= 0.0)) {
+		hraw = textureLod(noise_detail, hp, cf_lod(fp, detail_period_m * 0.8 / detail_tex_size)).r;
+		float lim2;
+		float ex = cf_excess(p + vec3(30.0, 0.0, 0.0), f, fp, lim2);
+		float ez = cf_excess(p + vec3(0.0, 0.0, 30.0), f, fp, lim2);
+		float g = max(length(vec2(ex - e, ez - e)) / 30.0, 1.0 / 3000.0);
+		float d_side = e / g;
+		if (e <= 0.0 || h < 0.0) {
+			float d_o = max(-d_side, -h);
+			if (d_o > shell_out) {
 				return 0.0;
 			}
-			u = 1.0 + e / shell_w;
-			e = CF_EDGE_E * 0.8;
+			float w = 1.0 - d_o / max(shell_out, 1.0);
+			shell = cf_shell_dens * w * w * smoothstep(0.6, 0.9, hraw);
+			if (e <= 0.0) {
+				e = CF_EDGE_E * 0.8;
+			}
+			h = max(h, 0.0);
+			d_in = 1e9;
+		} else {
+			d_in = min(d_side, h);
 		}
-		// Низ растворяется той же оболочкой: ниже основания — слой cf_shell_h.
-		float ub = h < 0.0 ? 1.0 + h / max(cf_shell_h, 1.0) : 1.0;
-		vec3 hp = (p + wind_offset * 1.1) / (detail_period_m * 0.8) + vec3(boil * 2.0);
-		float hn = smoothstep(0.35, 0.7, textureLod(noise_detail, hp, cf_lod(fp, detail_period_m * 0.8 / detail_tex_size)).r);
-		shell = cf_shell_dens * u * u * ub * ub * hn;
-		h = max(h, 0.0);
+	} else if (e <= 0.0 || h < 0.0) {
+		return 0.0;
 	}
 	top = cf_dome(e, lim);
 	if (h > top * 1.2 + 30.0) {
@@ -835,6 +852,11 @@ float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
 		dns = clamp(cloud_remap(dns, det * mix(0.4, 0.75, decay), 1.0, 0.0, 1.0), 0.0, 1.0);
 	}
 	dns = smoothstep(0.0, mix(surface_sharpness, 1.0, decay), dns);
+	if (shell_on && shell >= 1.0) {
+		d_in = min(d_in, top - h);
+		float ramp = smoothstep(0.0, 1.0, (d_in + (hraw - 0.5) * 0.7 * shell_w) / max(shell_w, 1.0));
+		shell = ramp;
+	}
 	return dns * mix(0.3, 1.0, growth) * mix(1.0, 0.2, decay * decay) * shell;
 }
 
