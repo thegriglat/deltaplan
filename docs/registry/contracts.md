@@ -25,6 +25,7 @@ generated: true
 - cloud-field: CLF-К1 v1, CLF-К2 v1, CLF-К3 v2, CLF-К4 v1, CLF-К5 v1, CLF-К6 v1 — [docs/contracts/cloud-field.md](../contracts/cloud-field.md)
 - control-bar: CB-К1 v4, CB-К2 v1 — [docs/contracts/control-bar.md](../contracts/control-bar.md)
 - control-fix: С1 v2, С2 v4, С3 v3 — [docs/contracts/control-fix.md](../contracts/control-fix.md)
+- crash-reports: — — [docs/contracts/crash-reports.md](../contracts/crash-reports.md)
 - docs-rework: D1 v1, D2 v1, D3 v1, D4 v1 — [docs/contracts/docs-rework.md](../contracts/docs-rework.md)
 - easter-eggs: К1 v2, К2 v3, К3 v2, К4 v2, К5 v2, К6 v4, К7 v5 — [docs/contracts/easter-eggs/framework.md](../contracts/easter-eggs/framework.md)
 - easter-eggs: К13 v8, К14 v8, К15 v10, К16 v10 — [docs/contracts/easter-eggs/models-sound.md](../contracts/easter-eggs/models-sound.md)

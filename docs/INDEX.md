@@ -117,6 +117,18 @@ generated: true
 
 - **site-research** — Сверка сайта с исследованиями и руководством: каких выводов нет на сайте, что устарело; дописать страницы с графиками. [closed 2026-10-21] — [план](plan/site-research.md) · [контракты](contracts/site-research.md) · [решения](plan/site-research/decisions.md) · [сводка](plan/site-research/summary.md) · полный журнал: `archive/site-research`
   - [tools/research/site_coverage/README.md](../tools/research/site_coverage/README.md) — SRS-1: 47 тем исследований против сайта (ru+en) и docs/guide: есть 25, частично 13, нет 7, устарело 2; графики, объём.
+- **crash-reports** — Разбор автоматических отчётов о вылетах (Windows, #3–#15): группы причин, причина в коде с доказательством, правки с тестом. [closed 2026-10-23] — [план](plan/crash-reports.md) · [контракты](contracts/crash-reports.md) · [решения](plan/crash-reports/decisions.md) · [сводка](plan/crash-reports/summary.md) · полный журнал: `archive/crash-reports`
+  - [docs/research/crash-reports/cr-1.md](research/crash-reports/cr-1.md) — Группа A (#4–#10, 1.5.18, GTX 1050 Ti, D3D12): потеря устройства на стадии wind; AirGpu не проверяет пустой RID; в main не исправлено
+  - [docs/research/crash-reports/cr-10.md](research/crash-reports/cr-10.md) — CR-10: #17/#18, RX 5600 XT: потеря GPU на RDNA1 (известная проблема Godot #122671); кандидаты — облака и тени.
+  - [docs/research/crash-reports/cr-11.md](research/crash-reports/cr-11.md) — CR-11: Godot 4.7.2 не запрашивает причину потери устройства на D3D12; на Vulkan печатает её лишь при потере в vkQueueSubmit.
+  - [docs/research/crash-reports/cr-2.md](research/crash-reports/cr-2.md) — Группа B (#11–#15, RTX 5060, Vulkan): обрыв при повторной загрузке места в сессии; точная причина не найдена, не исправлено.
+  - [docs/research/crash-reports/cr-3.md](research/crash-reports/cr-3.md) — Группа C (#3, 1.5.15, RTX 5060 Laptop, trees): «sea» не причина, ложное «море» исправлено; обрыв на trees не установлен.
+  - [docs/research/crash-reports/cr-4.md](research/crash-reports/cr-4.md) — CR-4: драйвер Windows по умолчанию — Vulkan с автооткатом на D3D12; вылеты #3–#15 драйвером не объясняются.
+  - [tools/research/crash-reports/cr-1/README.md](../tools/research/crash-reports/cr-1/README.md) — Скрипты CR-1: воспроизведение пустого RID и агрегаты отчётов группы A
+  - [tools/research/crash-reports/cr-10/README.md](../tools/research/crash-reports/cr-10/README.md) — Скрипт CR-10: порядок событий старта меню и сборка compute-шейдеров облаков (Linux).
+  - [tools/research/crash-reports/cr-11/README.md](../tools/research/crash-reports/cr-11/README.md) — Скрипты CR-11: классификатор строк потери устройства GPU и проба нативного дескриптора устройства.
+  - [tools/research/crash-reports/cr-3/README.md](../tools/research/crash-reports/cr-3/README.md) — Скрипт повторной загрузки точки для CR-3 и источники данных.
+  - [tools/research/crash-reports/cr-4/README.md](../tools/research/crash-reports/cr-4/README.md) — Скрипты и черновик манифеста CR-4: сводка отчётов и itch.toml с двумя действиями запуска.
 
 ## process
 

@@ -25,6 +25,9 @@ const WORST_MIN_W := 100000.0
 
 var rd: RenderingDevice
 var error := ""
+## Ресурс RD не создан (пустой RID) или устройство отказало: дальше всё — холостое, задача
+## (AirGpuJob) завершается отказом, расчёт откатывается на аналитику. Причина — error.
+var failed := false
 var scalars := RID()
 var dispatches := 0
 ## Худшая замеченная цена единицы веса запусков на этом устройстве, мс (AirGpuJob.guard_ms);
@@ -141,6 +144,8 @@ func free_from(m: int) -> void:
 
 ## Буфер из n float32 (данные — по желанию; без данных — нули).
 func buffer(n: int, data := PackedFloat32Array()) -> RID:
+	if failed:
+		return RID()
 	var b: RID
 	if data.size() == n and n > 0:
 		b = rd.storage_buffer_create(n * 4, data.to_byte_array())
@@ -148,13 +153,31 @@ func buffer(n: int, data := PackedFloat32Array()) -> RID:
 		# нули — заливкой на GPU (без массива нулей на CPU: окна клипмапа заводят ~40 буферов
 		# по 1–2 МБ, с массивом — 30–50 мс главного потока)
 		b = rd.storage_buffer_create(n * 4)
-		_close_list()
-		rd.buffer_clear(b, 0, n * 4)
+		if b.is_valid():
+			_close_list()
+			rd.buffer_clear(b, 0, n * 4)
+	if not b.is_valid():
+		_fault("AirGpu.buffer", "буфер не создан: %d float32 (%d байт)" % [n, n * 4])
+		return RID()
 	_owned.append(b)
 	return b
 
 
+## Отказ: одна строка в лог и GpuHealth (CR-К2), failed и error — один раз; дальше вызовы холостые.
+func _fault(source: String, detail: String) -> void:
+	if failed:
+		return
+	failed = true
+	error = "%s: %s" % [source, detail]
+	GpuHealth.report_failure(source, detail)
+
+
 func upload(b: RID, data: PackedFloat32Array, offset := 0) -> void:
+	if failed:
+		return
+	if not b.is_valid():
+		_fault("AirGpu.upload", "пустой буфер")
+		return
 	_close_list()
 	var bytes := data.to_byte_array()
 	rd.buffer_update(b, offset * 4, bytes.size(), bytes)
@@ -162,29 +185,38 @@ func upload(b: RID, data: PackedFloat32Array, offset := 0) -> void:
 
 ## Чтение буфера. Ждёт GPU, если есть незавершённая работа, — в порциях звать только после sync().
 func download(b: RID, n := -1, offset := 0) -> PackedFloat32Array:
+	if failed:
+		return PackedFloat32Array()
 	_close_list()
 	var bytes := rd.buffer_get_data(b, offset * 4, n * 4 if n >= 0 else 0)
 	return bytes.to_float32_array()
 
 
 func read_scalar(i: int) -> float:
-	return download(scalars, 1, i)[0]
+	var d := download(scalars, 1, i)
+	return d[0] if d.size() > 0 else 0.0
 
 
 # ---------------------------------------------------------------- выполнение
 
 
 func submit() -> void:
+	if failed:
+		return
 	_close_list()
 	rd.submit()
 
 
 func sync() -> void:
+	if failed:
+		return
 	rd.sync()
 
 
 ## Метка времени GPU (между списками вычислений).
 func stamp(name: String) -> void:
+	if failed:
+		return
 	_close_list()
 	rd.capture_timestamp(name)
 
@@ -197,6 +229,8 @@ func _close_list() -> void:
 
 
 func _pipeline(shader: String, spec: Array) -> RID:
+	if failed:
+		return RID()
 	var key := shader + str(spec)
 	if _pipe.has(key):
 		return _pipe[key]
@@ -207,11 +241,16 @@ func _pipeline(shader: String, spec: Array) -> RID:
 		c.value = spec[i]
 		consts.append(c)
 	var p := rd.compute_pipeline_create(_shader[shader], consts)
+	if not p.is_valid():
+		_fault("AirGpu._pipeline", "конвейер не создан: %s %s" % [shader, str(spec)])
+		return RID()
 	_pipe[key] = p
 	return p
 
 
 func _uniforms(shader: String, bufs: Array) -> RID:
+	if failed:
+		return RID()
 	var key := shader
 	for b in bufs:
 		key += "#%d," % (b as RID).get_id()
@@ -225,6 +264,9 @@ func _uniforms(shader: String, bufs: Array) -> RID:
 		u.add_id(bufs[i])
 		us.append(u)
 	var s := rd.uniform_set_create(us, _shader[shader], 0)
+	if not s.is_valid():
+		_fault("AirGpu._uniforms", "набор uniform не создан: %s, буферов %d" % [shader, bufs.size()])
+		return RID()
 	_sets[key] = s
 	return s
 
@@ -246,11 +288,15 @@ func _dispatch(
 	shader: String, spec: Array, bufs: Array, pc: PackedByteArray, groups: int, wf := 1.0
 ) -> void:
 	# > 65535 групп — сетка 2D (ядра прогонок считают плоский номер группы)
+	if failed:
+		return
 	var gx := clampi(groups, 1, 65535)
 	var gy := ceili(groups / float(gx))
 	var item := [
 		_pipeline(shader, spec), _uniforms(shader, bufs), pc, gx, gy, LAUNCH_WEIGHT + gx * gy * wf
 	]
+	if failed:
+		return
 	if _capture != null:
 		_capture.append(item)
 		return
@@ -258,6 +304,8 @@ func _dispatch(
 
 
 func _run_item(item: Array) -> void:
+	if failed:
+		return
 	if _cl < 0:
 		_cl = rd.compute_list_begin()
 		_last_pipe = RID()
