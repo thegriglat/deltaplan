@@ -36,7 +36,7 @@ Cloud cloud_at(int i, vec3 ro, float pix_a) {
 // Без облаков в поле (cf_on = 0) не вызывается.
 void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 		inout float trans, inout vec3 col, inout float t_acc, inout float w_acc) {
-	float y0 = cf_base.x;
+	float y0 = cf_base.x - cf_shell_h;
 	float y1 = cf_base.x + cf_misc.x;
 	float far_m = cf_misc.y;
 	float t0 = 0.0;
@@ -91,7 +91,7 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 		}
 		vec3 p = ro + rd * t;
 		vec2 mb = cf_block(p.xz, box);
-		float y_top = y0 + mb.y + 60.0;
+		float y_top = cf_base.x + mb.y + 60.0;
 		if (mb.x <= 0.0 || p.y > y_top) {
 			// Пустой блок (или выше его верха): прыжок к границе блока или к его верху.
 			if (box.z > box.x && skips < 96) {
@@ -167,7 +167,7 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 		was_empty = dns <= 0.003;
 		if (dns > 0.003) {
 			float sigma = dns * extinction;
-			float h = p.y - y0;
+			float h = p.y - cf_base.x;
 			// К солнцу — шаги растут до ~половины мощности облака.
 			float od = 0.0;
 			float lstep = light_step_m;

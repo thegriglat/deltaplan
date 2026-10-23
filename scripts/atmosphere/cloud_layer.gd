@@ -1108,6 +1108,10 @@ func _upload_field(f: CloudField, t: float) -> void:
 	field_params["cf_rect"] = Vector4(x_min, z_min, 1.0 / (f.nx * f.dx), 1.0 / (f.ny * f.dx))
 	field_params["cf_base"] = Vector4(f.base_msl, dmax, f.bg_cover, f.bg_depth)
 	field_params["cf_edge"] = float(fc.get("edge_fade_m", 2000.0))
+	field_params["cf_shell_w"] = float(cfg.get("field_shell_width_m", 40.0))
+	field_params["cf_shell_dens"] = float(cfg.get("field_shell_density", 0.25))
+	field_params["cf_shell_h"] = float(cfg.get("field_shell_out_m", 25.0))
+	field_params["cf_base_soft"] = float(cfg.get("field_base_soft_m", 60.0))
 	field_params["cf_mrect"] = Vector4(
 		x_min, z_min, 1.0 / (mimg.get_width() * b * f.dx), 1.0 / (mimg.get_height() * b * f.dx)
 	)

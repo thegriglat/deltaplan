@@ -642,7 +642,7 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 // по текселю) и cf_rect, cf_base, cf_edge (имена и смысл — CLF-К2), cf_mrect (карта cf_max: x, z
 // угла, 1/ширина, 1/высота блоков, м), cf_misc (верх слоя над основанием по всему полю, м; дальность
 // слоя, м; период маски, м; доля перехода от прошлого шага поля к новому), cf_q0..cf_q3 (квантили
-// маски). Форма: основание плоское (cf_base.x), отдельные облака — порог крупного шума по покрытию
+// маски). Форма: основание — cf_base.x, низ и бока — рыхлая оболочка (хост объявляет ещё cf_base_soft, cf_shell_w, cf_shell_h, cf_shell_dens), отдельные облака — порог крупного шума по покрытию
 // (над порогом ровно доля cover площади: квантиль шума), верх — купол до мощности поля; клубы,
 // края, стадии и свет — те же, что у облаков-записей.
 
@@ -727,11 +727,11 @@ float cf_dome(float e, float lim) {
 // Грубая оболочка слоя (без клубов): > 0 — рядом может быть облако (по ней ищем вход).
 float cf_envelope(vec3 p, vec4 f, float fp) {
 	float h = p.y - cf_base.x;
-	if (h < -30.0 || f.x < 0.004 || f.y < 1.0) {
+	if (h < -30.0 - cf_shell_h || f.x < 0.004 || f.y < 1.0) {
 		return -1.0;
 	}
 	float lim;
-	float e = cf_excess(p, f, fp, lim) + 0.08;
+	float e = cf_excess(p, f, fp, lim) + 0.12;
 	if (e <= 0.0) {
 		return -1.0;
 	}
@@ -745,12 +745,46 @@ float cf_envelope(vec3 p, vec4 f, float fp) {
 float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
 	top = 0.0;
 	float h = p.y - cf_base.x;
-	if (h < 0.0 || f.x < 0.004 || f.y < 1.0) {
+	if (h < -cf_shell_h || f.x < 0.004 || f.y < 1.0) {
 		return 0.0;
 	}
 	float lim;
 	float e = cf_excess(p, f, fp, lim);
-	if (e <= 0.0) {
+	// Рыхлая оболочка (турбулентное вовлечение у края), ширины в метрах: ВНУТРИ границы плотность
+	// растёт от 0 на границе до полной за cf_shell_w м (рваная по мелкому шуму), СНАРУЖИ — только
+	// редкие клочья малой плотности (cf_shell_dens) на расстоянии до cf_shell_h м. Граница — бок
+	// (e = 0), низ (h = 0) и верх; расстояние до бока — e / |∇e| по двум сдвинутым выборкам маски.
+	// Растущее облако — край чётче (×0,5), тающее — рыхлее (×1,5).
+	float shell = 1.0;
+	float shell_w = cf_shell_w * mix(1.0, 0.5, max(f.z, 0.0)) * (1.0 + 0.5 * max(-f.z, 0.0));
+	float shell_out = cf_shell_h * mix(1.0, 0.5, max(f.z, 0.0)) * (1.0 + 0.5 * max(-f.z, 0.0));
+	bool shell_on = cf_shell_w > 0.5;
+	float d_in = 1e9;
+	vec3 hp = (p + wind_offset * 1.1) / (detail_period_m * 0.8) + vec3(boil * 2.0);
+	float hraw = 0.0;
+	if (shell_on && (e < 0.5 || h < shell_w || e <= 0.0)) {
+		hraw = textureLod(noise_detail, hp, cf_lod(fp, detail_period_m * 0.8 / detail_tex_size)).r;
+		float lim2;
+		float ex = cf_excess(p + vec3(30.0, 0.0, 0.0), f, fp, lim2);
+		float ez = cf_excess(p + vec3(0.0, 0.0, 30.0), f, fp, lim2);
+		float g = max(length(vec2(ex - e, ez - e)) / 30.0, 1.0 / 3000.0);
+		float d_side = e / g;
+		if (e <= 0.0 || h < 0.0) {
+			float d_o = max(-d_side, -h);
+			if (d_o > shell_out) {
+				return 0.0;
+			}
+			float w = 1.0 - d_o / max(shell_out, 1.0);
+			shell = cf_shell_dens * w * w * smoothstep(0.6, 0.9, hraw);
+			if (e <= 0.0) {
+				e = CF_EDGE_E * 0.8;
+			}
+			h = max(h, 0.0);
+			d_in = 1e9;
+		} else {
+			d_in = d_side;  // низ тает через base_soft (cf_base_soft), здесь — бока и верх
+		}
+	} else if (e <= 0.0 || h < 0.0) {
 		return 0.0;
 	}
 	top = cf_dome(e, lim);
@@ -778,7 +812,7 @@ float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
 	// Основание в одной воздушной массе общее (LCL), его разброс — от стадии: растущее — клочья (рваная
 	// нижняя кромка), тающее — приподнятое рваное (испарение снизу).
 	float rag = 1.0 + 2.5 * max(f.z, 0.0);
-	float base_soft = mix(10.0, 120.0, decay) + 40.0 * max(f.z, 0.0);
+	float base_soft = mix(max(cf_base_soft, 10.0), max(cf_base_soft, 120.0), decay) + 40.0 * max(f.z, 0.0);
 	float base_lift = (base_relief_m * rag + decay * decay * 0.45 * min(top, 700.0)) * (1.0 - billow);
 	float dns = shape * smoothstep(base_lift, base_lift + base_soft, h);
 	if (dns <= 0.0) {
@@ -803,7 +837,12 @@ float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
 		dns = clamp(cloud_remap(dns, det * mix(0.4, 0.75, decay), 1.0, 0.0, 1.0), 0.0, 1.0);
 	}
 	dns = smoothstep(0.0, mix(surface_sharpness, 1.0, decay), dns);
-	return dns * mix(0.3, 1.0, growth) * mix(1.0, 0.2, decay * decay);
+	if (shell_on && shell >= 1.0) {
+		d_in = min(d_in, top - h);
+		float ramp = smoothstep(0.0, 1.0, (d_in + (hraw - 0.5) * 0.7 * shell_w) / max(shell_w, 1.0));
+		shell = ramp;
+	}
+	return dns * mix(0.3, 1.0, growth) * mix(1.0, 0.2, decay * decay) * shell;
 }
 
 float cf_density(vec3 p, vec4 f, int quality, float fp) {

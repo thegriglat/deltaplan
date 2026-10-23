@@ -82,6 +82,10 @@ uniform sampler2D cf_max : filter_nearest, repeat_disable;
 uniform vec4 cf_rect = vec4(0.0);
 uniform vec4 cf_base = vec4(0.0);
 uniform float cf_edge = 2000.0;
+uniform float cf_base_soft = 10.0;
+uniform float cf_shell_w = 0.0;
+uniform float cf_shell_dens = 0.0;
+uniform float cf_shell_h = 0.0;
 uniform vec4 cf_mrect = vec4(0.0);
 uniform vec4 cf_misc = vec4(0.0);
 uniform vec4 cf_q0 = vec4(0.0);
@@ -122,7 +126,7 @@ void vertex() {
 float field_tau(out float foot) {
 	float sy = max(sun_dir.y, 0.05);
 	vec2 s = sun_dir.xz / sy;
-	float y0 = cf_base.x;
+	float y0 = cf_base.x - cf_shell_h;
 	vec2 at_base = v_w + s * (y0 - map_rect.w);
 	vec4 box;
 	float top = 0.0;
@@ -136,7 +140,7 @@ float field_tau(out float foot) {
 	if (top <= 0.0) {
 		return 0.0;
 	}
-	top = min(top + 60.0, cf_misc.x);
+	top = min(top + 60.0, cf_misc.x) + cf_shell_h;
 	float dy = top / float(shadow_steps);
 	foot = dy / sy;
 	float tau = 0.0;
