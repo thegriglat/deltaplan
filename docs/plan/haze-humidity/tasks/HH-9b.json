@@ -1,0 +1,37 @@
+{
+  "id": "HH-9b",
+  "module": "haze-humidity",
+  "type": "dp-researcher",
+  "title": "Сверка T700: доля в σ по настоящей σ T700 (досчёт HH-9)",
+  "goal": "Досчитать в сверке HH-9 долю дней |прогноз − климат| < σ для T700 по t700_sd.npz (HH-1g) и обновить summary.json/places.csv/README; без новых загрузок API (данные HH-9 в ~/data/haze_humidity/verify/).",
+  "plan_ref": "Решения пользователя",
+  "contracts": [],
+  "copy": "~/deltaplan-haze-humidity-HH-9b",
+  "branch": "haze-humidity/HH-9b",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "tools/research/haze_humidity/verify/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "data/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "t700_frac",
+      "cmd": "python3 -c \"import json;d=json.load(open('tools/research/haze_humidity/verify/summary.json'));v=d['t700'].get('frac_within_sigma');print(v);assert v is not None and v==v\"",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T08:08:39"
+}

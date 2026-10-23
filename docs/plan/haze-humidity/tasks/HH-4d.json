@@ -1,0 +1,53 @@
+{
+  "id": "HH-4d",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Эталоны погоды под настоящий воздух 700 гПа (HH2 ERA5)",
+  "goal": "После слияния настоящей сетки HH2 (HH-1g) test_reference_forecasts_match_presets падает: пересчитать эталоны configs/weather/* и опорные прогнозы теста под данные (решение пользователя 2026-10-21), таблица до/после для Алтая.",
+  "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
+  "contracts": [
+    {
+      "name": "HH7",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH2",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-4d",
+  "branch": "haze-humidity/HH-4d",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "configs/weather/",
+    "tests/atmosphere/",
+    "configs/weather_model.json",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "data/",
+    "tools/research/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "weather",
+      "tests": "weather"
+    },
+    {
+      "name": "goal",
+      "tests": "goal"
+    },
+    {
+      "name": "haze_humidity",
+      "tests": "haze_humidity"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T08:08:35"
+}
