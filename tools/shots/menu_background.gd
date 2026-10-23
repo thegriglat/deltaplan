@@ -19,6 +19,8 @@ var _cam: Camera3D = null
 var _target: Node3D = null
 var _heading_rad := 0.0
 var _locked := false
+var _pose_mode := "fixed"
+var _rates := Vector3.ZERO  ## p, q, r, °/с
 
 
 func _ready() -> void:
@@ -91,14 +93,18 @@ func _run() -> void:
 	_game.overlay.visible = false  # смена режима камеры возвращает прибор (game._update_overlay)
 	_cam.process_mode = Node.PROCESS_MODE_DISABLED
 	_locked = true
+	_apply_pose()
 	_place_camera()
 	# прогрев: облака, трава, шейдеры, тени — как в обычном кадре
 	var warm := int(_cfg.get("warmup_frames", 30))
 	for i in warm:
+		_settle_pilot()
 		_place_camera()
 		await RenderingServer.frame_post_draw
+	_settle_pilot()
 	_place_camera()
 	await RenderingServer.frame_post_draw
+	print(_pose_line())
 	var img := get_viewport().get_texture().get_image()
 	var q := float(_cfg.get("jpeg_quality", 0.91))
 	var err := (
@@ -107,6 +113,59 @@ func _run() -> void:
 	print("menu_background: %s %dx%d (%s), sim t=%.2f с" % [_out, img.get_width(), img.get_height(), error_string(err), game.sim_time_s])
 	print("menu_background: планер %s, курс %.1f°, камера %s" % [_target.global_position, rad_to_deg(_heading_rad), _cam.global_position])
 	get_tree().quit(0 if err == OK else 1)
+
+
+## MSP-К1 v2: поза планера на кадре. fixed (по умолчанию) — крен bank_deg и тангаж pitch_deg (по умолчанию 0),
+## курс текущий, пилот висит под подвеской, ω = 0; physics — как дала симуляция.
+func _apply_pose() -> void:
+	var pose: Dictionary = _cfg.get("pose", {})
+	_pose_mode = String(pose.get("mode", "fixed"))
+	var g: Glider = _game.glider
+	var m: PendulumModel = g.model
+	var w: Vector3 = m.get("_w")
+	var r: Basis = m.get("_R")
+	var wb := r.transposed() * w  # оси тела NED: x вперёд, y вправо, z вниз
+	_rates = Vector3(rad_to_deg(wb.x), rad_to_deg(wb.y), rad_to_deg(wb.z))
+	print(
+		(
+			"menu_background: диагностика скорость=%.1f м/с, сорвано=%s, курс модели=%.1f°, команда_крена=%.2f, вертикальная=%.1f м/с"
+			% [m.telemetry.airspeed, m.stalled, rad_to_deg(m.heading), _ap_roll(), m.telemetry.vario]
+		)
+	)
+	if _pose_mode != "fixed":
+		return
+	_rates = Vector3.ZERO
+	var bank := float(pose.get("bank_deg", 0.0))
+	var pitch := float(pose.get("pitch_deg", 0.0))
+	# пилот в вертикали под подвеской (цепь ставит set_kinematic), крыло — в заданных крене и тангаже, курс текущий
+	m.set_kinematic(m.position, Vector3.ZERO, m.heading, deg_to_rad(bank), deg_to_rad(pitch))
+	FlightTelemetry.fill(m, g.air_fn, g.ground_fn)
+	g._teleport()
+	_settle_pilot()
+
+
+## Пилот и парус в фиксированной позе: зовётся перед каждым кадром прогрева (сим на паузе, _process планера стоит).
+func _ap_roll() -> float:
+	return _game.autopilot.roll_command if _game.autopilot != null else 0.0
+
+
+func _settle_pilot() -> void:
+	if _pose_mode == "fixed":
+		_game.glider._update_pilot(1.0 / 60.0)
+
+
+## Строка позы MSP-К1 по фактической трансформации узла планера.
+func _pose_line() -> String:
+	var b: Basis = _game.glider.global_transform.basis
+	var fwd := -b.z
+	var pitch := rad_to_deg(asin(clampf(fwd.y, -1.0, 1.0)))
+	var cp := maxf(cos(deg_to_rad(pitch)), 1.0e-3)
+	var bank := rad_to_deg(atan2(-b.x.y, b.y.y / cp))
+	var hdg := fposmod(rad_to_deg(atan2(fwd.x, -fwd.z)), 360.0)
+	return (
+		"menu_background: поза режим=%s крен=%.1f тангаж=%.1f курс=%.1f p=%.1f q=%.1f r=%.1f"
+		% [_pose_mode, bank, pitch, hdg, _rates.x, _rates.y, _rates.z]
+	)
 
 
 ## Чистый кадр: без подписей в мире (имена ботов, вершины) и без интерфейса поверх.
