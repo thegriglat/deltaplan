@@ -86,7 +86,7 @@ func apply_config() -> void:
 	var m := _mat
 	# ядро засвета: хвост C/θ² (Хоулдей–Стайлс), площадка — тот же закон на угловом радиусе диска θ0
 	var disk_deg := float(Config.value("world", "sky.sun_disk.radius_deg", 0.3))
-	m.set_shader_parameter("veil_core", float(_cfg.get("veil_c_deg2", 1.45)) / maxf(disk_deg * disk_deg, 1.0e-6))
+	m.set_shader_parameter("veil_core", float(_cfg.get("veil_c_deg2", 1.7)) / maxf(disk_deg * disk_deg, 1.0e-6))
 	m.set_shader_parameter("veil_core_deg", disk_deg)
 	m.set_shader_parameter("veil_wide", float(_cfg.get("veil_wide", 0.3)))
 	m.set_shader_parameter("veil_wide_deg", float(_cfg.get("veil_wide_deg", 8.0)))

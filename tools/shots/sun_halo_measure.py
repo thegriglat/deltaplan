@@ -16,9 +16,11 @@
                                  кадра) вдали от солнца по азимуту (--bg_deg=35°, медиана): кольцо 25-30° вокруг
                                  солнца у горизонта захватывает естественный градиент неба по высоте; прежний
                                  фон кольцом — --ring=25,30;
-  center_brightest, monotonic, edge_jump (HH-15)
-                                 превышение над фоном неба центра диска ≥ ореола (кольца 1,5–20 диаметров) по каждому каналу; профиль светлоты Y (кольца 1 px, до 20 диаметров) не растёт (шум 1 %);
-                                 макс. перепад между соседними пикселями профиля в 0,8–1,5 радиуса диска, доля от центра;
+  center_brightest, monotonic, edge_jump (HH-15, Q6 а)
+                                 абсолютные значения кадра (линейные из sRGB): центр диска ≥ максимума кольца 1,5 диаметра … glow_r
+                                 по Y и по R (G/B ореола могут быть выше диска — ореол смесь солнца и неба); профиль Y (кольца 1 px,
+                                 до glow_r) не растёт (шум 1 %); edge_jump — макс. перепад Y между соседними пикселями профиля в
+                                 0,8–1,5 радиуса диска, доля от центра;
   glow_shift_px                 смещение центроида превышения яркости внутри 2·glow_r от диска (в верхней
                                  полуплоскости; рельеф срезает нижнюю часть — смещение вверх неизбежно).
 Фон без засвета (HH-15, доработка 3): если рядом есть кадр того же ракурса и момента без SunGlare
@@ -164,52 +166,49 @@ def main() -> int:
             return chan(x, y, c)
         return chan(x, y, c) - (skyref[c] if r <= 0.8 * disk else rchan(x, y, c))
 
-    cbins = [{} for _ in range(3)]
-    for y in range(max(int(pcy) - rprof_max, 0), min(int(pcy) + 1, h)):
-        for x in range(max(int(pcx) - rprof_max, 0), min(int(pcx) + rprof_max + 1, w)):
-            r = int(math.hypot(x - pcx, y - pcy))
-            r = 0 if r < 2 else r  # кольца r = 0 и 1 — по 1 и ~8 пикселей: объединены в одно
-            if r <= rprof_max:
-                for c in range(3):
-                    cbins[c].setdefault(r, []).append(val(x, y, c, math.hypot(x - pcx, y - pcy)))
-    cprof = [{r: statistics.median(v) for r, v in b.items() if len(v) >= 3} for b in cbins]
-    if all(cp.get(0) is not None or cp.get(1) is not None for cp in cprof):
-        cen = [max(cp.get(0, 0.0), cp.get(1, 0.0)) for cp in cprof]
-        lo_r, hi_r = int(round(1.5 * disk)), int(round(20 * disk))
-        ring_max = [max([v for r, v in cp.items() if lo_r <= r <= hi_r] or [0.0]) for cp in cprof]
-        # превышение над фоном неба по каждому каналу: фон — медиана канала в строках ±20 px вокруг центра диска
-        # вдали от солнца по азимуту (|x − x_солнца| ≥ 35°); центр диска ≥ ореола по превышению (диск − фон ≥ ореол − фон)
-        gap0 = f * math.tan(math.radians(35.0))
-        bgc = []
-        for c in range(3):
-            vs = [chan(x, y, c) for y in range(max(int(pcy) - 20, 0), min(int(pcy) + 21, h))
-                  for x in range(w) if abs(x - pcx) >= gap0]
-            bgc.append(0.0 if refd is not None else (statistics.median(vs) if len(vs) >= 20 else 0.0))
-        ok = all(cen[c] - bgc[c] >= ring_max[c] - bgc[c] - 1e-6 for c in range(3))
-        print("center_brightest=%d center_lin=(%.3f,%.3f,%.3f) ring_max_lin=(%.3f,%.3f,%.3f) bg_lin=(%.3f,%.3f,%.3f)"
-              % ((int(ok),) + tuple(cen) + tuple(ring_max) + tuple(bgc)))
-        # монотонность: профиль яркости (линейная светлота Y по кольцам) от центра до 20 диаметров не растёт (кольца 1 px, среднее по 3, шум 1 % от центра)
+    def halo_checks(glow_px):
+        """Q6 (а): диск — самая яркая точка по Y и по R (абсолютные значения кадра, линейные из sRGB);
+        профиль Y от центра до glow_r не растёт (шум 1 %); edge_jump — по Y."""
+        cbins = [{} for _ in range(3)]
+        for y in range(max(int(pcy) - rprof_max, 0), min(int(pcy) + 1, h)):
+            for x in range(max(int(pcx) - rprof_max, 0), min(int(pcx) + rprof_max + 1, w)):
+                r = int(math.hypot(x - pcx, y - pcy))
+                r = 0 if r < 2 else r  # кольца r = 0 и 1 — по 1 и ~8 пикселей: объединены в одно
+                if r <= rprof_max:
+                    for c in range(3):
+                        cbins[c].setdefault(r, []).append(chan(x, y, c))
+        cprof = [{r: statistics.median(v) for r, v in b.items() if len(v) >= 3} for b in cbins]
+        if not all(cp.get(0) is not None or cp.get(1) is not None for cp in cprof):
+            return
         ylum = {r: 0.2126 * cprof[0][r] + 0.7152 * cprof[1][r] + 0.0722 * cprof[2][r] for r in cprof[0] if r in cprof[1] and r in cprof[2]}
+        r_in = max(int(disk / 2), 1)  # пик внутри диска (кольца до радиуса диска): диск 5–6 px после JPEG размыт у края
+        cen = [max([v for r, v in cp.items() if r <= r_in] or [0.0]) for cp in cprof]
+        cen_y = max([v for r, v in ylum.items() if r <= r_in] or [0.0])
+        lo_r = int(round(1.5 * disk))
+        hi_r = max(glow_px, lo_r + 1)
+        ring_r = max([v for r, v in cprof[0].items() if lo_r <= r <= hi_r] or [0.0])
+        ring_y = max([v for r, v in ylum.items() if lo_r <= r <= hi_r] or [0.0])
+        ok = cen_y >= ring_y * 0.99 and cen[0] >= ring_r * 0.99  # допуск шума/JPEG 1 %
+        print("center_brightest=%d center_Y=%.3f ring_max_Y=%.3f center_R=%.3f ring_max_R=%.3f center_lin=(%.3f,%.3f,%.3f)"
+              % (int(ok), cen_y, ring_y, cen[0], ring_r, cen[0], cen[1], cen[2]))
         # скользящее среднее по 3 кольцам: диск — 5–6 px, медиана колец из 8–15 пикселей шумит на 2–3 %
         ks = sorted(ylum)
         ylum = {r: sum(ylum[q] for q in ks[max(i - 1, 0):i + 2]) / len(ks[max(i - 1, 0):i + 2]) for i, r in enumerate(ks)}
         tol = 0.01 * max(ylum.get(0, 0.0), 1e-6)
         bad, prev = 0, None
         for r in sorted(ylum):
-            if r > int(round(20 * disk)):
+            if r > hi_r:
                 break
             if prev is not None and ylum[r] > prev + tol:
                 bad += 1
             prev = ylum[r] if prev is None else min(prev, ylum[r]) if ylum[r] <= prev else ylum[r]
         print("monotonic=%d rises=%d" % (int(bad == 0), bad))
-        # скачок на краю диска: макс. перепад между соседними пикселями профиля (по максимальному каналу) в 0,8–1,5 радиуса диска
         r_d = disk / 2
-        mxp = {r: max(cprof[c].get(r, 0.0) for c in range(3)) for r in set().union(*[set(cp) for cp in cprof])}
         jump = 0.0
-        for r in sorted(mxp):
-            if 0.8 * r_d <= r <= 1.5 * r_d and (r + 1) in mxp:
-                jump = max(jump, abs(mxp[r + 1] - mxp[r]))
-        print("edge_jump=%.3f" % (jump / max(max(cen), 1e-6)))
+        for r in sorted(ylum):
+            if 0.8 * r_d <= r <= 1.5 * r_d and (r + 1) in ylum:
+                jump = max(jump, abs(ylum[r + 1] - ylum[r]))
+        print("edge_jump=%.3f" % (jump / max(cen_y, 1e-6)))
 
     # видимый ореол: профиль превышения яркости по радиусу от центра диска, верхняя полуплоскость.
     # Фон — небо той же высоты (строки кадра) вдали от солнца по азимуту (|x − x_солнца| от --bg_deg=35°):
@@ -278,6 +277,7 @@ def main() -> int:
             break
     deg = math.degrees(math.atan(glow / f))
     print(f"bg_lin={bg_y:.3f} edge_excess={edge:.3f} glow_r_px={glow} glow_r_deg={deg:.2f}")
+    halo_checks(glow)
     # центроид превышения внутри 2·glow_r (верхняя полуплоскость)
     sx = sy = sw = 0.0
     r2 = 2 * glow
