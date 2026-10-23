@@ -169,6 +169,25 @@
       "text": "controls_run_wing"
     },
     {
+      "section": "controls_trike"
+    },
+    {
+      "action": "throttle_up",
+      "text": "controls_trike_throttle"
+    },
+    {
+      "action": "engine_toggle",
+      "text": "controls_trike_engine"
+    },
+    {
+      "action": "turn_left",
+      "text": "controls_trike_steer"
+    },
+    {
+      "action": "trike_brake",
+      "text": "controls_trike_brake"
+    },
+    {
       "section": "controls_instrument_camera_game"
     },
     {

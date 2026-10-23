@@ -41,6 +41,9 @@ var glance_nodes: Array[Node3D] = []
 ## Голова повторяет его долей cockpit.head_follow_body со своим сглаживанием — планшет на
 ## штанге не «катается» по кадру вместе с телом. Не задано — голова стоит в маркере PilotHead.
 var body_shift_fn: Callable = Callable()
+## TP-К8: false у дельталёта - камера кабины точно в голове сидящего пилота (back_offset_m «сидячей позы» не
+## применяется: позади головы двигатель и винт).
+var eye_offset_enabled := true
 ## Свободная камера слушает клавиши движения (false — автопилот жмёт run — Shift, «быстрее»).
 var free_keys_enabled := true
 ## Камера сзади — вплотную, без сглаживания (буксир «догнать», NET-42: на 1000 км/ч сглаженная
@@ -350,6 +353,8 @@ func _eye_point(_c: Dictionary) -> Vector3:
 
 ## Смещение камеры от точки: back_hidden — назад от глаз (cockpit.back_offset_m), eyes — offset_m.
 func _eye_offset(c: Dictionary) -> Vector3:
+	if not eye_offset_enabled:
+		return Vector3.ZERO
 	return _vec(c.back_offset_m) if _is_back(c) else _vec(c.offset_m)
 
 

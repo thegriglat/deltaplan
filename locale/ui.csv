@@ -93,6 +93,11 @@ controls_turn_on_ground,Повернуться на месте налево (D �
 controls_run,"Держать — бежать (разбег); W не нужен, на бегу W/S/A/D не действуют","Hold — run (launch run); no W needed, W/S/A/D do nothing while running"
 controls_ground_wing,"Стоя и шагом: нос и крен крыла — мышь или стик","Standing and walking: wing nose and bank — mouse or stick"
 controls_run_wing,"На бегу: мышь или стик — нос и крен крыла, как в полёте; крыло в крене ведёт бег по дуге","While running: mouse or stick — wing nose and bank, as in flight; a banked wing turns the run into an arc"
+controls_trike,Дельталёт (режим с мотором),Trike (powered mode)
+controls_trike_throttle,"Газ: W — добавить, S — убавить (обе — ноль); осмотреться — мышью с правой кнопкой","Throttle: W — more, S — less (both — zero); look around with the mouse, right button held"
+controls_trike_engine,Завести или заглушить двигатель,Start or stop the engine
+controls_trike_steer,"На земле A/D — руление носовым колесом","On the ground A/D — nosewheel steering"
+controls_trike_brake,Держать на земле (Shift) — тормоз колёс,Hold on the ground (Shift) — wheel brake
 controls_next_page,"Следующая страница прибора (1, 2, 3, 4, 5 — страница сразу)","Next instrument page (1, 2, 3, 4, 5 — jump to that page)"
 controls_camera,Вид: из кабины → сзади → свободная камера,View: first-person → chase → free camera
 controls_restart,Начать полёт заново с того же старта,Restart the flight from the same launch
@@ -577,6 +582,7 @@ setup_tow,Буксировка,Tow
 setup_tow_none,Нет,None
 setup_tow_winch,Лебёдка,Winch
 setup_tow_aerotow,Аэробуксировка (дельталёт),Aerotow (trike)
+setup_start_trike,Дельталёт,Trike
 setup_tow_mp_off,В сетевой зоне буксировка недоступна,Towing is not available in a network zone
 goals_kind_height,Набор высоты,Height gain
 goals_kind_duration,Время в воздухе,Time aloft
@@ -647,6 +653,10 @@ tow_site_dh,"Перепад высот вдоль полосы больше до
 loc_wilotree_park,"Флорида — Wilotree Park (Quest Air), буксировка","Florida — Wilotree Park (Quest Air), towing"
 site_wilotree_runway_36,"Полоса 36 (на север), южный торец","Runway 36 (north), south end"
 site_wilotree_runway_18,"Полоса 18 (на юг), северный торец","Runway 18 (south), north end"
+trike_rpm,"ОБОРОТЫ ×1000","RPM ×1000"
+trike_fuel,"ТОПЛИВО","FUEL"
+trike_fuel_empty,"E","E"
+trike_fuel_full,"F","F"
 gpu_fail_title,Видеокарта не отвечает,Graphics card not responding
 gpu_fail_text,"Видеокарта перестала отвечать (драйвер %s). Игра могла оборваться или считать ветер не так, как должна.",The graphics card stopped responding (driver %s). The game may have crashed or computed wind incorrectly.
 gpu_fail_recommend,Рекомендуем переключиться на %s и перезапустить игру.,We recommend switching to %s and restarting the game.

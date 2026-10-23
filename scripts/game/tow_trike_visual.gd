@@ -16,14 +16,18 @@ var wing: Node3D
 var pilot: Node3D
 var prop_anim: AnimationPlayer
 var sound: TowTrikeSound
+var player_sound := false  ## звук - игрока (update_engine зовёт владелец), а не буксировщика
 var _wing_hang := Vector3.ZERO  ## HangPoint крыла в осях корня модели крыла
 
 
 func setup(engine_cfg: Dictionary, with_sound := true) -> void:
+	# TP-16: металл труб/тросов/фитингов — те же процедурные шейдеры, что у крыльев игры (flight.json → visual.metal)
+	var metal_cfg: Dictionary = Config.value("flight", "visual.metal", {})
 	cart = _load(CART)
 	if cart != null:
 		cart.name = "Cart"
 		add_child(cart)
+		FrameMetal.apply(cart, metal_cfg)
 		for ap: AnimationPlayer in cart.find_children("*", "AnimationPlayer", true, false):
 			if ap.has_animation("prop_spin"):
 				prop_anim = ap
@@ -50,6 +54,7 @@ func setup(engine_cfg: Dictionary, with_sound := true) -> void:
 	if wing != null:
 		wing.name = "Wing"
 		add_child(wing)
+		FrameMetal.apply(wing, metal_cfg)
 		var hp := wing.find_child("HangPoint", true, false) as Node3D
 		if hp != null:
 			_wing_hang = _relative(wing, hp)
@@ -57,14 +62,52 @@ func setup(engine_cfg: Dictionary, with_sound := true) -> void:
 
 ## Ставит узлы по состоянию буксировщика: tug — TowTug (hang_pos, cart_basis, wing_basis, prop_rpm, throttle).
 func update(tug: TowTug) -> void:
+	update_parts(tug.hang_pos, tug.cart_basis, tug.wing_basis, tug.prop_rpm, tug.throttle)
+
+
+## TP-К8: то же по отдельным величинам (дельталёт игрока: TrikeRig + TrikeEngine). Координаты - в системе этого узла.
+## Звук буксировщика (sound) идёт от throttle; звук игрока (player_sound) обновляет владелец по состоянию двигателя.
+func update_parts(hang_pos: Vector3, cart_basis: Basis, wing_basis: Basis, prop_rpm: float, throttle: float) -> void:
 	if cart != null:
-		cart.transform = Transform3D(tug.cart_basis, tug.hang_pos)
+		cart.transform = Transform3D(cart_basis, hang_pos)
 	if wing != null:
-		wing.transform = Transform3D(tug.wing_basis, tug.hang_pos - tug.wing_basis * _wing_hang)
+		wing.transform = Transform3D(wing_basis, hang_pos - wing_basis * _wing_hang)
 	if prop_anim != null:
-		prop_anim.speed_scale = tug.prop_rpm * PROP_SPIN_PERIOD_S / 60.0
-	if sound != null:
-		sound.update(tug.prop_rpm, tug.throttle)
+		prop_anim.speed_scale = prop_rpm * PROP_SPIN_PERIOD_S / 60.0
+	if sound != null and not player_sound:
+		sound.update(prop_rpm, throttle)
+
+
+## TP-К9: звук двигателя игрока (TowTrikeSound.setup_player) у винта; ставится после setup(engine_cfg, false).
+func setup_player_sound(engine_cfg: Dictionary, sound_cfg: Dictionary) -> void:
+	if cart == null:
+		return
+	sound = TowTrikeSound.new()
+	sound.name = "EngineSound"
+	cart.add_child(sound)
+	var prop := cart.find_child("Propeller", true, false) as Node3D
+	sound.position = prop.position if prop != null else Vector3(0.0, -1.2, 1.2)
+	sound.setup_player(engine_cfg, sound_cfg)
+	player_sound = true
+
+
+## Маркеры вида: "PilotHead" - нода Head сидящего пилота (pilot.glb), "InstrumentPanel" - маркер trike.glb;
+## остальные (маркеры крыла дельтаплана) - null.
+func get_marker(marker_name: String) -> Node3D:
+	match marker_name:
+		"PilotHead":
+			return pilot.find_child("Head", true, false) as Node3D if pilot != null else null
+		"InstrumentPanel":
+			return cart.find_child("InstrumentPanel", true, false) as Node3D if cart != null else null
+	return null
+
+
+## Тело пилота - на слой layer_bit (камера кабины его не рисует, внешние - рисуют).
+func set_pilot_layers(layer_bit: int) -> void:
+	if pilot == null:
+		return
+	for n in pilot.find_children("*", "VisualInstance3D", true, false):
+		(n as VisualInstance3D).layers = layer_bit
 
 
 func stop_sound() -> void:

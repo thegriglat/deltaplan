@@ -162,3 +162,42 @@ func test_os_accel_hint_in_locale() -> void:
 		var t := TranslationServer.translate("settings_bar_os_accel")
 		check(t != "settings_bar_os_accel" and not t.is_empty(), "locale %s: settings_bar_os_accel" % loc)
 	TranslationServer.set_locale("ru")
+
+
+## Дельталёт (TP-К3 v2): штангу двигает тот же MouseBar — ход в отсчётах мыши, мёртвая зона вычитается.
+func test_trike_bar_same_travel() -> void:
+	var main := await _open()
+	if main == null:
+		return
+	var game: Game = main.get_node("Game")
+	var m := _mouse()
+	var dz := float(m.bar_deadzone)
+	var tr_px := MouseBar.travel_px(m)
+	var saved := float(m.bar_return_to_center_per_s)
+	m["bar_return_to_center_per_s"] = 0.0
+	_restart(game)
+	game.input_controller.vehicle = "trike"
+	for i in 3:
+		game.tick(1.0 / 120.0)
+	_push(Vector2(tr_px, tr_px))
+	game.tick(1.0 / 120.0)
+	var c := game.input_controller.control
+	_approx(c.roll, 1.0, "дельталёт: travel_px вправо → roll = 1")
+	_approx(c.pitch, -1.0, "дельталёт: travel_px на себя → pitch = −1")
+	_restart(game)
+	game.input_controller.vehicle = "trike"
+	for i in 3:
+		game.tick(1.0 / 120.0)
+	_push(Vector2(-tr_px * 0.5, 0.0))
+	game.tick(1.0 / 120.0)
+	_approx(game.input_controller.control.roll, -(0.5 - dz) / (1.0 - dz), "дельталёт: полхода влево, мёртвая зона")
+	_restart(game)
+	game.input_controller.vehicle = "trike"
+	for i in 3:
+		game.tick(1.0 / 120.0)
+	_push(Vector2(tr_px * dz * 0.9, 0.0))
+	game.tick(1.0 / 120.0)
+	_approx(game.input_controller.control.roll, 0.0, "дельталёт: внутри мёртвой зоны → 0")
+	m["bar_return_to_center_per_s"] = saved
+	game.input_controller.vehicle = "glider"
+	await _close(main)

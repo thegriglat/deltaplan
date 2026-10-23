@@ -43,6 +43,14 @@ var touched := false
 ## шаг). До этого подскок и касание — попытка взлёта, полёт не заканчивается («взлёт сорван» нет):
 ## пилот снова на ногах, может бежать ещё раз.
 var flight_position_started := true
+## TP-К6: дельталёт. До первого отрыва полёт не кончается (стоит на колёсах сколько угодно); после посадки -
+## "landed", когда путевая скорость < TRIKE_STOP_SPEED_MS непрерывно >= TRIKE_STOP_S (руление после посадки можно).
+## Только после настоящего полёта (armed - тот же критерий, что у дельтаплана): подскок на разбеге и остановка
+## после него полёт не кончают (TP-13).
+## Ставит Game при старте; reset() не трогает.
+var trike := false
+const TRIKE_STOP_SPEED_MS := 0.5
+const TRIKE_STOP_S := 3.0
 
 var _last_pos := Vector3.ZERO
 var _air_time_total_s: float = 0.0
@@ -57,6 +65,7 @@ var _thermal_time_s: float = 0.0
 var _thermal_alt_start: float = 0.0
 var _glide_horiz_m: float = 0.0
 var _glide_alt_lost_m: float = 0.0
+var _slow_s: float = 0.0
 
 
 func reset(start: Vector3) -> void:
@@ -86,6 +95,7 @@ func reset(start: Vector3) -> void:
 	_thermal_alt_start = start.y
 	_glide_horiz_m = 0.0
 	_glide_alt_lost_m = 0.0
+	_slow_s = 0.0
 
 
 func update(t: Telemetry, dt: float) -> void:
@@ -129,7 +139,10 @@ func update(t: Telemetry, dt: float) -> void:
 		_has_last_track = true
 	_last_pos = t.position
 	if took_off:
-		_update_finish(t, dt)
+		if trike:
+			_update_finish_trike(t, dt)
+		else:
+			_update_finish(t, dt)
 
 
 ## Взведение полёта и «настоящее» окончание (посадка) с отсечкой случайных касаний.
@@ -159,6 +172,30 @@ func _update_finish(t: Telemetry, dt: float) -> void:
 		_finish_reason = "landed" if armed else "takeoff_failed"
 
 
+## Конец полёта дельталёта (TP-К6): не в воздухе и стоит (путевая скорость < порога) непрерывно TRIKE_STOP_S.
+func _update_finish_trike(t: Telemetry, dt: float) -> void:
+	if _finished:
+		return
+	var grounded := t.phase != "flying"
+	if grounded:
+		if not _was_on_ground:
+			_grounded_s = 0.0
+		_grounded_s += dt
+		_slow_s = _slow_s + dt if t.groundspeed < TRIKE_STOP_SPEED_MS else 0.0
+		if armed:
+			touched = true
+	else:
+		_air_time_total_s += dt
+		_grounded_s = 0.0
+		_slow_s = 0.0
+		if not armed and (t.altitude_agl >= ARM_MIN_HEIGHT_AGL_M or distance_from_takeoff(t.position) >= ARM_MIN_HORIZ_M):
+			armed = true
+	_was_on_ground = grounded
+	if _slow_s >= TRIKE_STOP_S and armed:
+		_finished = true
+		_finish_reason = "landed"
+
+
 ## Сколько секунд пилот на земле после полёта, пока посадка не подтверждена (0 — не ждём).
 func grounded_pending_s() -> float:
 	if not flight_position_started:
@@ -170,6 +207,8 @@ func grounded_pending_s() -> float:
 func force_finish() -> bool:
 	if _finished or not took_off or not _was_on_ground or not flight_position_started:
 		return false
+	if trike and not armed:
+		return false  # дельталёт: без настоящего полёта (armed) посадку не засчитываем
 	_finished = true
 	_finish_reason = "landed" if armed else "takeoff_failed"
 	return true

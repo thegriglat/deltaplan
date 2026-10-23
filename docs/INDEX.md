@@ -69,6 +69,15 @@ generated: true
 - **tow-trike** — Буксировщик аэробуксировки — дельталёт (тележка trike.glb + крыло iXess 15) на физике «Маятника» с тягой винта и автопилотом вместо Ан-2. [closed 2026-10-23] — [план](plan/tow-trike.md) · [контракты](contracts/tow-trike.md) · [решения](plan/tow-trike/decisions.md) · [сводка](plan/tow-trike/summary.md) · полный журнал: `archive/tow-trike`
   - [docs/research/tow/trike-tug.md](research/tow/trike-tug.md) — Буксировщик-дельталёт 582 + iXess 15: массы, тяга T(V), числа крыла, набор связки с sport, трапеция и ход штанги в треугольнике тележки
   - [tools/research/tow-trike/README.md](../tools/research/tow-trike/README.md) — Скрипты и воспроизведение расчёта параметров буксировщика-дельталёта (TT-1)
+- **trike-pilot** — Дельталёт для игрока: «Маятник» + тяга tow-trike, газ W/S, двигатель пробелом, руление, приборы, звук; одиночная игра. [closed 2026-10-23] — [план](plan/trike-pilot.md) · [контракты](contracts/trike-pilot.md) · [решения](plan/trike-pilot/decisions.md) · [сводка](plan/trike-pilot/summary.md) · полный журнал: `archive/trike-pilot`
+  - [docs/guide/flight/trike-pilot.md](guide/flight/trike-pilot.md) — Дельталёт игрока: старт на колёсах, клавиши, двигатель и топливо, приборы, камера, звук, руление и посадка на колёса; границы модели.
+  - [docs/research/trike-pilot/engine-ops.md](research/trike-pilot/engine-ops.md) — Эксплуатация Rotax 582 UL на трайке: расход по оборотам, запуск и остановка, рычаг газа, топливо на старте, тахометр.
+  - [docs/research/trike-pilot/pitch-oscillation.md](research/trike-pilot/pitch-oscillation.md) — Качания на газу — фугоида от момента тяги ниже ЦМ при жёсткой штанге; тяга по оси винта даёт ζ 0,11–0,15.
+  - [docs/research/trike-pilot/speed-range.md](research/trike-pilot/speed-range.md) — 130 км/ч штангой недостижимы: ход 0,11 м мал, потолок модели ≈117 км/ч, тяга 582 держит горизонт до ≈120; решение за пользователем.
+  - [docs/research/trike-pilot/tug-slow-climb.md](research/trike-pilot/tug-slow-climb.md) — Тяга по оси винта на 0,47 м выше ЦМ не даёт 55-65 км/ч на полном газе; ось не выше 0,36 м над ЦМ - 61 км/ч, 3,3 м/с.
+  - [docs/research/trike-pilot/wheels.md](research/trike-pilot/wheels.md) — Колёса дельталёта в модели: руление носовым колесом, тормоз, посадка на колёса; числа блока wheels и границы модели.
+  - [tools/research/trike-pilot/README.md](../tools/research/trike-pilot/README.md) — Замеры дельталёта: скорость от хода штанги (TP-17), качания на газу и линия тяги (TP-19).
+  - [tools/research/trike-pilot/tug/README.md](../tools/research/trike-pilot/tug/README.md) — TP-23: прогоны связки буксировщик + sport на тросе с подменой линии тяги, хода штанги, площади крыла, тяги и массы.
 
 ## world
 

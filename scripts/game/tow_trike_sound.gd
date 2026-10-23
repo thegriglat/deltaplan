@@ -16,6 +16,9 @@ const VOL_FULL_DB := -2.0
 var ref_prop_rpm := 1.0  ## обороты винта, на которых записана петля
 var gear_ratio := 3.47
 var blades := 2
+var prop_rpm_idle := 0.0  ## обороты винта на холостых (TP-К9: ниже них громкость падает с оборотами)
+var cabin_offset_db := 0.0
+var _player_mode := false
 
 
 ## gear_ratio, blades — из configs/tow_tug.json engine. Возвращает петлю и опорные обороты винта.
@@ -84,3 +87,40 @@ func blade_hz(prop_rpm: float) -> float:
 func update(prop_rpm: float, throttle: float) -> void:
 	pitch_scale = clampf(prop_rpm / ref_prop_rpm, 0.05, 8.0)
 	volume_db = lerpf(VOL_IDLE_DB, VOL_FULL_DB, clampf(throttle, 0.0, 1.0))
+
+
+## TP-К9: настройка для игрока. engine_cfg — блок engine (configs/tow_tug.json), sound_cfg — configs/trike_pilot.json →
+## sound: volume_offset_db, unit_size_m, max_distance_m, filter_cutoff_hz. Автозапуска нет: звук идёт по update_engine.
+func setup_player(engine_cfg: Dictionary, sound_cfg: Dictionary) -> void:
+	setup(engine_cfg)
+	_player_mode = true
+	prop_rpm_idle = float(engine_cfg.get("prop_rpm_idle", 0.0))
+	cabin_offset_db = float(sound_cfg.get("volume_offset_db", 0.0))
+	unit_size = float(sound_cfg.get("unit_size_m", unit_size))
+	max_distance = float(sound_cfg.get("max_distance_m", max_distance))
+	attenuation_filter_cutoff_hz = float(sound_cfg.get("filter_cutoff_hz", attenuation_filter_cutoff_hz))
+	doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED  ## двигатель едет вместе с слушателем
+	autoplay = false
+	stop()
+	update_engine("off", 0.0, 0.0)
+
+
+## Громкость, дБ, по состоянию (без смещения кабины): газ — как TT-К5; ниже холостых оборотов (запуск/остановка) —
+## мощность звука ∝ n^4 (−40·lg(idle/n) дБ), чтобы не было щелчка на старте и остановке.
+func engine_volume_db(prop_rpm: float, throttle: float) -> float:
+	var v := lerpf(VOL_IDLE_DB, VOL_FULL_DB, clampf(throttle, 0.0, 1.0))
+	if prop_rpm_idle > 0.0 and prop_rpm < prop_rpm_idle:
+		v += 40.0 * log(maxf(prop_rpm, 1.0) / prop_rpm_idle) / log(10.0)
+	return maxf(v, -80.0)
+
+
+## Состояние TrikeEngine (TP-К2): state "off" — тишина; иначе звук идёт за prop_rpm (высота непрерывна по оборотам).
+func update_engine(state: String, prop_rpm: float, throttle: float) -> void:
+	if state == "off" or prop_rpm <= 0.0:
+		if playing:
+			stop()
+		return
+	pitch_scale = clampf(prop_rpm / ref_prop_rpm, 0.05, 8.0)
+	volume_db = engine_volume_db(prop_rpm, throttle) + cabin_offset_db
+	if not playing:
+		play()
