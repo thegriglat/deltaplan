@@ -27,7 +27,9 @@ func test_start_menu_emits_signals() -> void:
 	s.wing = "wings/training"
 	m.set_settings(s)
 	m.call("_on_fly")
-	check(got.size() == 1, "«Лететь» шлёт текущий выбор")
+	check(got.is_empty() and m.choice_dialog.visible, "«Лететь» открывает окно старта (TA-К1)")
+	m.choice_dialog.glider_btn.pressed.emit()
+	check(got.size() == 1, "«Дельтаплан» в окне шлёт текущий выбор")
 	if got.size() == 1:
 		var r: FlightSettings = got[0]
 		check(r.wing == "wings/training", "текущий выбор передаётся как есть")

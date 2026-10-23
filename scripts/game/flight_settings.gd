@@ -94,9 +94,9 @@ static func normalize_vehicle(v: String) -> String:
 	return v if v in VEHICLES else "glider"
 
 
-## Старт дельталётом возможен: у места есть блок `tow` и это не сеть (TP-К5).
-static func trike_allowed(site: Dictionary, multiplayer: bool) -> bool:
-	return not multiplayer and site.get("tow") is Dictionary
+## Старт дельталётом возможен везде, кроме сети (TA-К1).
+static func trike_allowed(multiplayer: bool) -> bool:
+	return not multiplayer
 
 
 static func _clamp_apparatus(k: String, v: float) -> float:
