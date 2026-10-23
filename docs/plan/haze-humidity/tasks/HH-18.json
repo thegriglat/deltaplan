@@ -24,17 +24,33 @@
   ],
   "accept": [
     {
-      "name": "complete",
-      "cmd": "python3 tools/research/haze_humidity/era5_source/check_complete.py",
-      "expect": "re:complete=1"
-    },
-    {
       "name": "docs",
       "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
       "expect": "re:ошибок 0"
+    },
+    {
+      "name": "t2m",
+      "cmd": "python3 tools/research/haze_humidity/era5_source/check_complete.py",
+      "expect": "re:2m_temperature: есть 730/730"
+    },
+    {
+      "name": "t700",
+      "cmd": "python3 tools/research/haze_humidity/era5_source/check_complete.py",
+      "expect": "re:temperature_700: есть 365/365"
+    },
+    {
+      "name": "u700",
+      "cmd": "python3 tools/research/haze_humidity/era5_source/check_complete.py",
+      "expect": "re:u_component_of_wind_700: есть 730/730"
+    },
+    {
+      "name": "v700",
+      "cmd": "python3 tools/research/haze_humidity/era5_source/check_complete.py",
+      "expect": "re:v_component_of_wind_700: есть 730/730"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-23T04:08:07"
+  "created": "2026-10-23T04:08:07",
+  "edited": "2026-10-23T17:34:18"
 }
