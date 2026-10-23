@@ -174,7 +174,15 @@ static func place(ctx: Dictionary) -> Dictionary:
 		# Нет HH1 (Z ячейки неизвестна, 0 — не высота): WR (HH6) относится к земле места, толщину слоя до 700 гПа
 		# считаем от высоты долины, а не от уровня моря — иначе рост ветра занижен на высоких местах.
 		var z_ref := valley_given if (src.hh1 == "none" and not is_nan(valley_given)) else z_cell
-		r.gain_per_km = (float(r.wr) - 1.0) * 1000.0 / maxf(float(r.z700_m) - z_ref, 500.0)
+		# HH7 v2: ветер прогноза задан на высоте старта z_s (ctx.start_msl_m, нет — valley_msl_m, нет — z_ref);
+		# профиль |V| линейный (z_ref, V10)–(z700, V700); множитель выше старта 1 + gain·(z − z_s)/1000 даёт V700 на z700.
+		var zs := float(ctx.get("start_msl_m", NAN))
+		if is_nan(zs):
+			zs = valley_given if not is_nan(valley_given) else z_ref
+		var d := maxf(float(r.z700_m) - z_ref, 500.0)
+		var f := clampf((zs - z_ref) / d, 0.0, 0.9)
+		var wm1 := float(r.wr) - 1.0
+		r.gain_per_km = wm1 * 1000.0 / (d * (1.0 + wm1 * f))
 	return r
 
 

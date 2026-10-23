@@ -454,3 +454,27 @@ func test_gain_without_hh1_uses_valley() -> void:
 	approx(float(p1.gain_per_km), (float(p1.wr) - 1.0) * 1000.0 / maxf(float(p1.z700_m) - 1500.0, 500.0), 1e-9, "от высоты долины")
 	check(absf(float(p1.gain_per_km)) > absf(float(p0.gain_per_km)), "выше место — тоньше слой — больше рост ветра на км")
 	approx(float(p1.td_c), float(p0.td_c), 1e-9, "без HH1 поправки на высоту к Td нет")
+
+
+## HH-4e (HH7 v2): рост ветра от ветра на высоте старта; профиль линейный V10→V700, множитель выше старта даёт V700 на z700.
+func test_gain_from_start_height() -> void:
+	ClimateGrid.set_paths({})
+	var q := {"lat": 51.9, "lon": 85.9, "month": 7, "day": 15, "valley_msl_m": 304.0}
+	var p0 := ClimateGrid.place(q)
+	if p0.src.hh6 == "none" or p0.src.hh1 == "none":
+		return
+	var zc := float(p0.z_cell_m)
+	var d := maxf(float(p0.z700_m) - zc, 500.0)
+	var wm1 := float(p0.wr) - 1.0
+	# старт на высоте долины: f = clamp(...) по valley; без start_msl_m — valley_msl_m
+	q["start_msl_m"] = zc + 0.5 * d
+	var p1 := ClimateGrid.place(q)
+	approx(float(p1.gain_per_km), wm1 * 1000.0 / (d * (1.0 + wm1 * 0.5)), 1e-9, "f = 0,5")
+	check(absf(float(p1.gain_per_km)) < absf(float(p0.gain_per_km)), "старт выше — рост на км меньше (wr > 1)")
+	# множитель выше старта 1 + gain·(z700 − z_s)/1000 даёт wr·(V на старте)/V10 = V700/Vs
+	var vs := 1.0 + wm1 * 0.5
+	approx(1.0 + float(p1.gain_per_km) * (float(p1.z700_m) - float(q.start_msl_m)) / 1000.0, float(p1.wr) / vs, 1e-9, "V700/Vs")
+	q["start_msl_m"] = zc + 5.0 * d  # f ограничен 0,9
+	approx(float(ClimateGrid.place(q).gain_per_km), wm1 * 1000.0 / (d * (1.0 + wm1 * 0.9)), 1e-9, "f ≤ 0,9")
+	q["start_msl_m"] = zc - 500.0  # ниже ячейки: f ≥ 0
+	approx(float(ClimateGrid.place(q).gain_per_km), wm1 * 1000.0 / d, 1e-9, "f ≥ 0")
