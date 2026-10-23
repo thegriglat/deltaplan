@@ -1,0 +1,156 @@
+{
+ "_doc": "Числа крыла iXess 15 для TT-2 (configs/wings/trike_ixess15.json, glider_params.json → wings.trike_ixess15): каждое {value, src}; 'оценка' — без источника, 'вывод' — расчёт. Скрипт: build.py. Масса — тележка Rotax 582 с пилотом и топливом.",
+ "area_m2": {
+  "value": 15.0,
+  "src": "tools/research/trike-model/wings.json: Wikipedia Air Creation iXess; BMAA HADS HM16 §5(c)"
+ },
+ "span_m": {
+  "value": 10.0,
+  "src": "tools/research/trike-model/wings.json: Wikipedia Air Creation iXess (Tanarg: 9,85)"
+ },
+ "wing_mass_kg": {
+  "value": 53.0,
+  "src": "tools/research/trike-model/wings.json: Wikipedia Air Creation iXess (WDLA); паспорта нет"
+ },
+ "pilot_mass_min_kg": {
+  "value": 220.0,
+  "src": "вывод: тележка 150 + мин. один пилот 55 кг (HADS §7(B) 55-120) + 15 кг топлива; масса ТЕЛЕЖКИ с пилотом"
+ },
+ "pilot_mass_max_kg": {
+  "value": 397.0,
+  "src": "вывод: MTOW 450 (HADS §7(A)) − крыло 53 кг = 397 кг тележки с экипажем и топливом"
+ },
+ "pilot_mass_ref_kg": {
+  "value": 262.5,
+  "src": "tools/research/tow-trike: configs/tow_tug.json cart.mass_kg = 150 + 82,5 + 30"
+ },
+ "polar": {
+  "points_kmh_ms": [
+   [
+    49.65,
+    1.831
+   ],
+   [
+    51.64,
+    1.805
+   ],
+   [
+    53.63,
+    1.787
+   ],
+   [
+    57.1,
+    1.77
+   ],
+   [
+    62.07,
+    1.781
+   ],
+   [
+    69.51,
+    1.864
+   ],
+   [
+    79.45,
+    2.096
+   ],
+   [
+    91.86,
+    2.577
+   ],
+   [
+    106.75,
+    3.449
+   ],
+   [
+    124.13,
+    4.907
+   ],
+   [
+    143.99,
+    7.224
+   ],
+   [
+    163.86,
+    10.325
+   ]
+  ],
+  "src": "вывод (tugmodel.py Wing): параболическая поляра CD=CD0+k·CL², k=1/(π e AR), e=0,75, AR 6,66; CD0=0.0352 по HADS HM16 Annex F (качество 6,6 всей связки на 74,1 км/ч, MTOW 450) минус CdA тележки 0.82 м²; CL_max=1.77 по Vso 59,3. Поляра крыла БЕЗ тележки (тележка — cda_m2 в tow_tug.json). Ошибка поляры ≈ ±15 %; скорости при эталонной массе 315.5 кг, ρ=1,225"
+ },
+ "reference": {
+  "stall_speed_kmh": {
+   "value": 49.65,
+   "src": "вывод: HADS HM16 Vso 59,3 км/ч при MTOW 450 → ×√(m/450), m = тележка с пилотом 262.5 + крыло 53 кг"
+  },
+  "min_sink_ms": {
+   "value": 1.77,
+   "src": "вывод (tugmodel.py Wing): параболическая поляра CD=CD0+k·CL², k=1/(π e AR), e=0,75, AR 6,66; CD0=0.0352 по HADS HM16 Annex F (качество 6,6 всей связки на 74,1 км/ч, MTOW 450) минус CdA тележки 0.82 м²; CL_max=1.77 по Vso 59,3. Поляра крыла БЕЗ тележки (тележка — cda_m2 в tow_tug.json). Ошибка поляры ≈ ±15 %"
+  },
+  "min_sink_speed_kmh": {
+   "value": 57.1,
+   "src": "вывод (tugmodel.py Wing): параболическая поляра CD=CD0+k·CL², k=1/(π e AR), e=0,75, AR 6,66; CD0=0.0352 по HADS HM16 Annex F (качество 6,6 всей связки на 74,1 км/ч, MTOW 450) минус CdA тележки 0.82 м²; CL_max=1.77 по Vso 59,3. Поляра крыла БЕЗ тележки (тележка — cda_m2 в tow_tug.json). Ошибка поляры ≈ ±15 %"
+  },
+  "best_glide": {
+   "value": 10.53,
+   "src": "вывод (tugmodel.py Wing): параболическая поляра CD=CD0+k·CL², k=1/(π e AR), e=0,75, AR 6,66; CD0=0.0352 по HADS HM16 Annex F (качество 6,6 всей связки на 74,1 км/ч, MTOW 450) минус CdA тележки 0.82 м²; CL_max=1.77 по Vso 59,3. Поляра крыла БЕЗ тележки (тележка — cda_m2 в tow_tug.json). Ошибка поляры ≈ ±15 %"
+  },
+  "best_glide_speed_kmh": {
+   "value": 79.45,
+   "src": "вывод (tugmodel.py Wing): параболическая поляра CD=CD0+k·CL², k=1/(π e AR), e=0,75, AR 6,66; CD0=0.0352 по HADS HM16 Annex F (качество 6,6 всей связки на 74,1 км/ч, MTOW 450) минус CdA тележки 0.82 м²; CL_max=1.77 по Vso 59,3. Поляра крыла БЕЗ тележки (тележка — cda_m2 в tow_tug.json). Ошибка поляры ≈ ±15 %"
+  },
+  "sink_at_80_kmh_ms": {
+   "value": 2.113,
+   "src": "вывод (tugmodel.py Wing): параболическая поляра CD=CD0+k·CL², k=1/(π e AR), e=0,75, AR 6,66; CD0=0.0352 по HADS HM16 Annex F (качество 6,6 всей связки на 74,1 км/ч, MTOW 450) минус CdA тележки 0.82 м²; CL_max=1.77 по Vso 59,3. Поляра крыла БЕЗ тележки (тележка — cda_m2 в tow_tug.json). Ошибка поляры ≈ ±15 %"
+  }
+ },
+ "trim_speed_kmh": {
+  "value": 69.7,
+  "src": "оценка: скорость наилучшего набора 83,3 км/ч (HADS HM16 Annex D(g), 450 кг) × √(m/450); собственно трим в HADS не указан"
+ },
+ "full_pull_speed_kmh": {
+  "value": 82.0,
+  "src": "модельная скорость полной выборки штангой, ход TT-8 (0,1107 м) на упоре: 81,5 км/ч на нулевом газу (замеры TP-17, docs/research/trike-pilot/speed-range.md). 130 км/ч - Va по HADS (133, только в снижении), не горизонтальная скорость; горизонтальный потолок Rotax 582 по тяге ≈ 120 км/ч"
+ },
+ "full_push_speed_kmh": {
+  "value": 52.1,
+  "src": "оценка: штанга полностью отдана — на пороге сваливания, 1,05·Vs"
+ },
+ "double_surface_pct": {
+  "value": 90,
+  "src": "tools/research/trike-model/wings.json: Wikipedia Air Creation iXess (по пересказу, не перепроверено)"
+ },
+ "kingpost": {
+  "value": true,
+  "src": "tools/research/trike-model/wings.json: Wikipedia iXess — крыло с кингпостом; проверить по фото"
+ },
+ "glider_params": {
+  "nose_angle_deg": {
+   "value": 120,
+   "src": "wings.json: Wikipedia iXess"
+  },
+  "root_chord_m": {
+   "value": 2.4,
+   "src": "wings.json: вывод R+T=2S/b, T/R=0,25"
+  },
+  "tip_chord_m": {
+   "value": 0.6,
+   "src": "wings.json: вывод R+T=2S/b, T/R=0,25"
+  },
+  "kingpost_m": {
+   "value": 1.4,
+   "src": "оценка: н/д в HADS и Wikipedia; training 1,25 м при размахе меньше, пропорционально размаху"
+  },
+  "dihedral_deg": {
+   "value": 1.5,
+   "src": "оценка: как glider_params.json training; в источниках н/д"
+  },
+  "washout_deg": {
+   "value": 10,
+   "src": "оценка: как sport (pendulum.washout_deg 10); в HADS н/д"
+  },
+  "battens_per_side": {
+   "value": 12,
+   "src": "оценка: н/д; крылья 15 м² с двойной обшивкой 90 % — 10-14"
+  }
+ }
+}

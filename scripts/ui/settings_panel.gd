@@ -15,15 +15,13 @@ extends Control
 signal closed(changed: bool)
 
 ## Папка для user-конфигов (тесты подменяют).
-## Значения controls.roll_control_mode по порядку пунктов списка.
-const ROLL_MODES: Array[String] = ["pendulum", "weight_shift", "rate"]
 
 var config_dir: String = UserSettings.DEFAULT_DIR
 
 var _volume: HSlider
 var _sens: HSlider
+var _bar_sens: HSlider
 var _invert: CheckBox
-var _roll_mode: OptionButton
 var _roll_input: OptionButton
 var _sound: OptionButton
 var _graphics: OptionButton
@@ -35,6 +33,10 @@ var _vsync: CheckBox
 var _fps_limit: OptionButton
 var _fps_options: Array = []
 var _window_mode: OptionButton
+var _driver: OptionButton
+var _driver_opts: PackedStringArray = []
+var _driver_at_start := ""  ## выбор на момент открытия панели — от него «нужен перезапуск»
+var _driver_note: HBoxContainer
 var _resolution: OptionButton
 var _resolutions: Array = []
 var _time_speed: OptionButton
@@ -58,6 +60,9 @@ var _compass: CheckBox
 var _grass: HSlider
 var _haze_sun: HSlider
 var _wind_model: OptionButton
+## Рубильники GPU-нагрузки (CR-К4): ключ display.gpu -> CheckBox; «простые облака» — отдельно.
+var _gpu_toggles: Dictionary = {}
+var _simple_clouds: CheckBox
 ## Предел кеша поля воздуха на диске, МБ (FL-К1: atmosphere.json → air_cache.max_mb; 0 — выключен).
 var _air_cache: HSlider
 var _language: OptionButton
@@ -110,14 +115,31 @@ func _ready() -> void:
 	_sens = UiKit.slider_row(
 		box_ctl, tr("settings_mouse_sensitivity"), float(sr[0]), float(sr[1]), 0.01, "%.2f °/px"
 	)
+	var bsr: Array = ui.get("bar_sensitivity_range", [0.25, 4.0])
+	_bar_sens = UiKit.slider_row(
+		box_ctl, tr("settings_bar_sensitivity"), float(bsr[0]), float(bsr[1]), 0.05, "%.2f×"
+	)
+	# число справа: множитель и ход до упора в см при 800 DPI (315 отсчётов/см), BM-К1
+	var bar_lbl: Label = _bar_sens.get_parent().get_child(1)
+	bar_lbl.custom_minimum_size.x = 210
+	_bar_sens.value_changed.connect(
+		func(x: float) -> void:
+			var travel := float(Config.value("controls", "mouse.bar_travel_px", 2500.0))
+			if _bar_cm_valid():
+				bar_lbl.text = tr("settings_bar_sensitivity_fmt") % [x, travel / maxf(x, 0.05) / 315.0]
+			else:
+				bar_lbl.text = "%.2f×" % x
+	)
+	if not _bar_cm_valid():
+		# Wayland/macOS: ввод с ускорением ОС, см неверны (BM-2) — вместо них подсказка
+		var hint := Label.new()
+		hint.text = tr("settings_bar_os_accel")
+		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hint.modulate = Color(1, 1, 1, 0.7)
+		box_ctl.add_child(hint)
 	_invert = CheckBox.new()
 	_invert.text = tr("settings_invert_pitch_hint")
 	UiKit.row(box_ctl, tr("settings_invert_pitch"), _invert)
-	_roll_mode = OptionButton.new()
-	_roll_mode.add_item(tr("settings_roll_pendulum"))  # порядок — как в ROLL_MODES
-	_roll_mode.add_item(tr("settings_roll_weight_shift"))
-	_roll_mode.add_item(tr("settings_roll_simple"))
-	UiKit.row(box_ctl, tr("settings_roll_control"), _roll_mode)
 	_roll_input = OptionButton.new()
 	_roll_input.add_item(tr("settings_roll_input_bar"))
 	_roll_input.add_item(tr("settings_roll_input_body"))
@@ -175,6 +197,7 @@ func _ready() -> void:
 		"%.0f%%"
 	)
 	_haze_sun = UiKit.slider_row(box_gfx, tr("settings_haze_sun"), 0.0, 1.0, 0.05, "%.2f")
+	_build_gpu_toggles(box_gfx)
 	_graphics.item_selected.connect(_on_graphics_selected)
 	_wind_model = OptionButton.new()
 	# id: 0 расчёт (auto), 1 эвристика (off)
@@ -315,6 +338,48 @@ func _build_display_rows(box: Control) -> void:
 			_resolution.add_item("%d × %d" % [v.x, v.y])
 	UiKit.row(box, tr("settings_resolution"), _resolution)
 	_window_mode.item_selected.connect(func(i: int) -> void: _resolution.disabled = i == 1)
+	_build_driver_row(box)
+
+
+## Драйвер рендера (CR-К3): Авто / Vulkan / DirectX 12 (Windows), Авто / Metal / Vulkan (macOS);
+## на Linux выбора нет. Смена действует после перезапуска.
+func _build_driver_row(box: Control) -> void:
+	_driver_opts = RenderDriver.options()
+	if _driver_opts.size() < 2:
+		return
+	_driver = OptionButton.new()
+	for d in _driver_opts:
+		_driver.add_item(tr("render_driver_auto") if d == "auto" else GpuFailureDialog._label(d))
+	UiKit.row(box, tr("settings_render_driver"), _driver)
+	_driver_note = HBoxContainer.new()
+	UiKit.label(_driver_note, tr("settings_render_driver_restart"), "HintLabel")
+	UiKit.button(_driver_note, tr("settings_render_driver_restart_btn"), _on_driver_restart)
+	_driver_note.visible = false
+	box.add_child(_driver_note)
+	_driver.item_selected.connect(
+		func(i: int) -> void: _driver_note.visible = _driver_opts[i] != _driver_at_start
+	)
+
+
+func _on_driver_restart() -> void:
+	if save():
+		RenderDriver.restart(get_tree())
+
+
+## Рубильники GPU-нагрузки (CR-К4): тени солнца, тени облаков, свечение, простые облака. Ключи —
+## из game.json → display.gpu; подпись — settings_gpu_<ключ> (нет в locale — видно имя ключа).
+func _build_gpu_toggles(box: Control) -> void:
+	UiKit.label(box, tr("settings_gpu_hint"), "HintLabel")
+	var keys: Dictionary = Config.get_config("game").get("display", {}).get("gpu", {})
+	for k: String in keys:
+		if not k.begins_with("_"):
+			var cb := CheckBox.new()
+			cb.text = tr("settings_gpu_on")
+			UiKit.row(box, tr("settings_gpu_" + k), cb)
+			_gpu_toggles[k] = cb
+	_simple_clouds = CheckBox.new()
+	_simple_clouds.text = tr("settings_gpu_on")
+	UiKit.row(box, tr("settings_gpu_simple_clouds"), _simple_clouds)
 
 
 ## Зона сети (NET-40/К3): скорость времени не настраивается (game.gd держит ×1) — строка
@@ -326,6 +391,11 @@ func set_net_mode(on: bool) -> void:
 
 
 ## Показать текущие значения из Config.
+## «≈ N см» у слайдера штанги верно только там, где мышь даёт сырые отсчёты (Windows, X11; BM-К1 v2).
+func _bar_cm_valid() -> bool:
+	return DisplayServer.get_name() in ["Windows", "X11"]
+
+
 func load_values() -> void:
 	_language.select(maxi(_language_codes.find(Language.current()), 0))
 	var saved_name := String(Config.value("game", "net.pilot_name", ""))
@@ -336,9 +406,9 @@ func load_values() -> void:
 	_volume.value_changed.emit(_volume.value)
 	_sens.value = float(Config.value("controls", "mouse.look_sensitivity_deg_per_px"))
 	_sens.value_changed.emit(_sens.value)
+	_bar_sens.value = float(Config.value("controls", "mouse.bar_sensitivity", 1.0))
+	_bar_sens.value_changed.emit(_bar_sens.value)
 	_invert.button_pressed = bool(Config.value("controls", "invert_pitch"))
-	var rm := String(Config.value("controls", "roll_control_mode", "pendulum"))
-	_roll_mode.select(maxi(ROLL_MODES.find(rm), 0))
 	_roll_input.select(1 if String(Config.value("controls", "roll_input", "body")) == "body" else 0)
 	_bar_ui.load_values()
 	_graphics.select(maxi(_graphics_names.find(GraphicsPresets.current()), 0))
@@ -353,12 +423,19 @@ func load_values() -> void:
 	var fs := String(Config.value("game", "display.window_mode", "windowed")) == "fullscreen"
 	_window_mode.select(1 if fs else 0)
 	_resolution.disabled = fs
+	if _driver != null:
+		_driver_at_start = RenderDriver.configured()
+		_driver.select(maxi(_driver_opts.find(_driver_at_start), 0))
+		_driver_note.visible = false
 	var ws: Array = Config.value("game", "display.window_size", [0, 0])
 	_resolution.select(maxi(_resolutions.find(Vector2i(int(ws[0]), int(ws[1]))), 0))
 	_grass.value = float(Config.value("vegetation", "grass.density_pct", 100.0))
 	_grass.value_changed.emit(_grass.value)
 	_haze_sun.value = float(Config.value("world", "fog.sun_scatter", 0.35))
 	_haze_sun.value_changed.emit(_haze_sun.value)
+	for k: String in _gpu_toggles:
+		(_gpu_toggles[k] as CheckBox).button_pressed = GraphicsPresets.gpu_effect(k)
+	_simple_clouds.button_pressed = String(Config.value("atmosphere", "clouds.renderer", "auto")) == "boxes"
 	var wm := String(Config.value("atmosphere", "air_model.enabled", "auto"))
 	_wind_model.select(_wind_model.get_item_index(1 if wm == "off" else 0))
 	_air_cache.value = float(Config.value("atmosphere", "air_cache.max_mb", 200.0))
@@ -416,9 +493,12 @@ func save() -> bool:
 				"controls",
 				{
 					"invert_pitch": _invert.button_pressed,
-					"roll_control_mode": ROLL_MODES[clampi(_roll_mode.selected, 0, ROLL_MODES.size() - 1)],
 					"roll_input": "body" if _roll_input.selected == 1 else "bar",
-					"mouse": {"look_sensitivity_deg_per_px": _sens.value},
+					"mouse":
+					{
+						"look_sensitivity_deg_per_px": _sens.value,
+						"bar_sensitivity": _bar_sens.value,
+					},
 				},
 				config_dir
 			)
@@ -456,6 +536,7 @@ func save() -> bool:
 			"max_fps": int(_fps_options[maxi(_fps_limit.selected, 0)]),
 			"window_mode": "fullscreen" if _window_mode.selected == 1 else "windowed",
 			"window_size": [size.x, size.y],
+			"gpu": _gpu_patch(),
 		}
 	}
 	ok = UserSettings.save_patch("game", dp, config_dir) and ok
@@ -488,10 +569,32 @@ func save() -> bool:
 		"air_cache": {"max_mb": int(_air_cache.value)},
 	}
 	ok = UserSettings.save_patch("atmosphere", wp, config_dir) and ok
+	if _driver != null and _driver.selected >= 0:
+		var drv := _driver_opts[_driver.selected]
+		if drv != RenderDriver.configured():
+			ok = RenderDriver.save(drv, config_dir) and ok
+	ok = UserSettings.save_patch("atmosphere", {"clouds": {"renderer": _clouds_renderer()}}, config_dir) and ok
 	ok = _save_motion() and ok
 	Config.reload()
+	CrashReporter.refresh_switches()
 	GraphicsPresets.apply_display(true)
 	return ok
+
+
+## display.gpu из галочек: true — эффект включён.
+func _gpu_patch() -> Dictionary:
+	var d := {}
+	for k: String in _gpu_toggles:
+		d[k] = (_gpu_toggles[k] as CheckBox).button_pressed
+	return d
+
+
+## clouds.renderer по галочке «Простые облака»: boxes; снята — auto (ручной compute не трогаем).
+func _clouds_renderer() -> String:
+	if _simple_clouds.button_pressed:
+		return "boxes"
+	var cur := String(Config.value("atmosphere", "clouds.renderer", "auto"))
+	return "auto" if cur == "boxes" else cur
 
 
 ## «host:port» → {host, port}; пусто, если адрес неверный (тогда вывод выключен).

@@ -41,6 +41,7 @@ generated: true
   - [tools/research/haze_humidity/upper_misc/README.md](../tools/research/haze_humidity/upper_misc/README.md) — Сетка HH6 v2: HCC и TROP — ERA5 2011–2020 (CDS), WR — заглушка (stub_mask=1) до HH-1h
   - [tools/research/haze_humidity/verify/README.md](../tools/research/haze_humidity/verify/README.md) — Сверка Td и T700 с прогнозом Open-Meteo (38 мест, 16 дней): доля в σ Td 67 %, T700 62 %; сдвиг Td +0,7 К
   - [tools/research/haze_humidity/era5_source/summary.md](../tools/research/haze_humidity/era5_source/summary.md) — HH-17: остаток ERA5 качать из ARCO-1° почасового; T700 RMSE к CDS 0.09 K, u700 0.19 м/с, T2m max 0.52 K; NCAR и ARCO-0.25° не нужны [closed]
+- **site-cloud-field** — Сайт: страница «Облака и тени» переписана под поле облачности (CLF-1/9/10) с графиками исследования; одна задача SCF-1. [closed 2026-10-21] — [план](plan/site-cloud-field.md) · [решения](plan/site-cloud-field/decisions.md) · [сводка](plan/site-cloud-field/summary.md) · полный журнал: `archive/site-cloud-field`
 
 ## flight
 
@@ -63,6 +64,34 @@ generated: true
   - [tools/research/spin_recovery/README.md](../tools/research/spin_recovery/README.md) — Стенд штопора SR-К1 (spin_run.gd): вход, выходы release/standard/pull_release, таблица вариантов; SR-2 — база, крутка, sport против laminar.
   - [tools/research/spin_recovery/sr1/README.md](../tools/research/spin_recovery/sr1/README.md) — SR-1: стенд и команды воспроизведения — доходит ли ввод мыши до трапеции в штопоре sport.
 - **trike** — Идея: управляемый дельталёт — тележка вместо пилота на той же подвеске, тяга винта к тележке, колёса, газ; модуль не заведён. [idea 2026-10-21] — [план](plan/trike.md)
+- **roll-modes** — Игроку — только «Маятник»: убрать настройку «Управление креном» и режимы «Смещение веса»/«Простое»; FlightModel (rate) — только боты. [closed 2026-10-22] — [план](plan/roll-modes.md) · [контракты](contracts/roll-modes.md) · [решения](plan/roll-modes/decisions.md) · [сводка](plan/roll-modes/summary.md) · полный журнал: `archive/roll-modes`
+- **tow** — Старт буксировкой (лебёдка/самолёт/машина — по исследованию): выбор при старте, управляемое крыло на тросе, модели Blender. [closed 2026-10-22] — [план](plan/tow.md) · [контракты](contracts/tow.md) · [решения](plan/tow/decisions.md) · [сводка](plan/tow/summary.md) · полный журнал: `archive/tow`
+  - [docs/contracts/tow-models.md](contracts/tow-models.md) — Контракт TW-К8 модуля tow: модели Blender winch, release, drogue, dolly — узлы, бюджеты треугольников, оси, материалы. [closed]
+  - [docs/contracts/tow-wave1.md](contracts/tow-wave1.md) — Стыки волны 1 tow (исследование): виды буксировки (К1), обзор кода (К2), модели (К3) — формат документов и обязательные строки. [closed]
+  - [docs/guide/flight/tow.md](guide/flight/tow.md) — Буксировка: лебёдка и дельталёт-буксировщик (тележка + iXess 15), трос XPBD, уздечка, отцеп, Wilotree Park; границы модели.
+  - [docs/research/tow/code.md](research/tow/code.md) — Трос — внешняя сила в PendulumModel._substep (на пилота и/или крыло с моментом); равнина — по height_at; Волжского в местах нет.
+  - [docs/research/tow/kinds-bhpa.md](research/tow/kinds-bhpa.md) — Выдержки BHPA TM (поправка 24) по буксировке дельтаплана: слабые звенья, уздечки, трос, площадка.
+  - [docs/research/tow/kinds.md](research/tow/kinds.md) — Виды буксировки с числами BHPA; Волжского в OSM нет, рядом Средняя Ахтуба; Ан-2 — только для тестов.
+  - [docs/research/tow/models.md](research/tow/models.md) — Модели буксировки: 9 кандидатов, все строить в Blender (готовых проверенных нет), вершинные цвета без текстур, бюджет по аналогам.
+  - [docs/research/tow/sites.md](research/tow/sites.md) — Площадка буксировки: Wilotree Park (Quest Air, Флорида), травяная полоса 18/36 ≈ 610×35 м; Логиново и Крутиха — запасные.
+  - [docs/research/tow/tow-control.md](research/tow/tow-control.md) — Лебёдка: статика пилота на тросе вперёд-вниз, сверка с моделью, числа для шлюза Q3 — 50/50 или принять.
+  - [tools/research/tow/README.md](../tools/research/tow/README.md) — Код и данные TW-16: статика пилота на тросе, опыты на PendulumModel, сверка; команды воспроизведения.
+- **trike-model** — Модель тележки дельталёта (трайк) в Blender без крыла: размеры реальных аппаратов с источниками, пилот в позе sit, винт отдельным узлом. [closed 2026-10-22] — [план](plan/trike-model.md) · [контракты](contracts/trike-model.md) · [решения](plan/trike-model/decisions.md) · [сводка](plan/trike-model/summary.md) · полный журнал: `archive/trike-model`
+  - [docs/guide/models/trike.md](guide/models/trike.md) — Модель тележки трайка trike.glb: источники размеров, оси и узлы, винт prop_spin и обороты, бюджеты, сборка, чего модель не умеет.
+  - [tools/research/trike-model/README.md](../tools/research/trike-model/README.md) — TK-1: размеры трайка (источники), замер точки глаз сидячей позы, блок seat, расхождение с реальной посадкой, команды
+  - [tools/research/trike-model/summary.md](../tools/research/trike-model/summary.md) — TK-1: краткий итог размеров трайка и точки глаз
+- **tow-trike** — Буксировщик аэробуксировки — дельталёт (тележка trike.glb + крыло iXess 15) на физике «Маятника» с тягой винта и автопилотом вместо Ан-2. [closed 2026-10-23] — [план](plan/tow-trike.md) · [контракты](contracts/tow-trike.md) · [решения](plan/tow-trike/decisions.md) · [сводка](plan/tow-trike/summary.md) · полный журнал: `archive/tow-trike`
+  - [docs/research/tow/trike-tug.md](research/tow/trike-tug.md) — Буксировщик-дельталёт 582 + iXess 15: массы, тяга T(V), числа крыла, набор связки с sport, трапеция и ход штанги в треугольнике тележки
+  - [tools/research/tow-trike/README.md](../tools/research/tow-trike/README.md) — Скрипты и воспроизведение расчёта параметров буксировщика-дельталёта (TT-1)
+- **trike-pilot** — Дельталёт для игрока: «Маятник» + тяга tow-trike, газ W/S, двигатель пробелом, руление, приборы, звук; одиночная игра. [closed 2026-10-23] — [план](plan/trike-pilot.md) · [контракты](contracts/trike-pilot.md) · [решения](plan/trike-pilot/decisions.md) · [сводка](plan/trike-pilot/summary.md) · полный журнал: `archive/trike-pilot`
+  - [docs/guide/flight/trike-pilot.md](guide/flight/trike-pilot.md) — Дельталёт игрока: старт на колёсах, клавиши, двигатель и топливо, приборы, камера, звук, руление и посадка на колёса; границы модели.
+  - [docs/research/trike-pilot/engine-ops.md](research/trike-pilot/engine-ops.md) — Эксплуатация Rotax 582 UL на трайке: расход по оборотам, запуск и остановка, рычаг газа, топливо на старте, тахометр.
+  - [docs/research/trike-pilot/pitch-oscillation.md](research/trike-pilot/pitch-oscillation.md) — Качания на газу — фугоида от момента тяги ниже ЦМ при жёсткой штанге; тяга по оси винта даёт ζ 0,11–0,15.
+  - [docs/research/trike-pilot/speed-range.md](research/trike-pilot/speed-range.md) — 130 км/ч штангой недостижимы: ход 0,11 м мал, потолок модели ≈117 км/ч, тяга 582 держит горизонт до ≈120; решение за пользователем.
+  - [docs/research/trike-pilot/tug-slow-climb.md](research/trike-pilot/tug-slow-climb.md) — Тяга по оси винта на 0,47 м выше ЦМ не даёт 55-65 км/ч на полном газе; ось не выше 0,36 м над ЦМ - 61 км/ч, 3,3 м/с.
+  - [docs/research/trike-pilot/wheels.md](research/trike-pilot/wheels.md) — Колёса дельталёта в модели: руление носовым колесом, тормоз, посадка на колёса; числа блока wheels и границы модели.
+  - [tools/research/trike-pilot/README.md](../tools/research/trike-pilot/README.md) — Замеры дельталёта: скорость от хода штанги (TP-17), качания на газу и линия тяги (TP-19).
+  - [tools/research/trike-pilot/tug/README.md](../tools/research/trike-pilot/tug/README.md) — TP-23: прогоны связки буксировщик + sport на тросе с подменой линии тяги, хода штанги, площади крыла, тяги и массы.
 
 ## world
 
@@ -94,18 +123,45 @@ generated: true
   - [tools/research/sea_thermals/README.md](../tools/research/sea_thermals/README.md) — VI-7: источник термика не над водой — число источников над водой до/после правки на трёх местах у моря. [closed]
 - **regional-veg** — Деревья и дома по региону места (T-83, B): дерево Кёппена + исключения, 3 новые породы, набор пород места, профиль домов. [closed 2026-10-18] — [план](plan/regional-veg.md) · [контракты](contracts/regional-veg.md) · [решения](plan/regional-veg/decisions.md) · [сводка](plan/regional-veg/summary.md) · полный журнал: `archive/regional-veg`
   - [docs/research/house-models.md](research/house-models.md) — Дома: модели вместо коробок только гибридом (малые сельские дома профиля); город и промзона остаются MultiMesh-коробками
+- **cliff-look** — Крутые склоны: вместо серых полос и ряби — крупные неровные скалы и груды камней; диагноз, правка, кадры до/после. [closed 2026-10-23] — [план](plan/cliff-look.md) · [контракты](contracts/cliff-look.md) · [решения](plan/cliff-look/decisions.md) · [сводка](plan/cliff-look/summary.md) · полный журнал: `archive/cliff-look`
+  - [tools/research/cliff_look/README.md](../tools/research/cliff_look/README.md) — Откуда полосы и рябь на крутых склонах: полосы — уступы ledge в нормали, рябь — sl_rock, нормаль 25 м и Rock030; стенд ракурсов
+- **snow-plume** — Снежные флаги и позёмка с гребней снежных гор по ветру модели: только где снег и ветер выше порога срыва; частицы у ближайших гребней. [closed 2026-10-23] — [план](plan/snow-plume.md) · [контракты](contracts/snow-plume.md) · [решения](plan/snow-plume/decisions.md) · [сводка](plan/snow-plume/summary.md) · полный журнал: `archive/snow-plume`
+  - [docs/guide/terrain/snow-plume.md](guide/terrain/snow-plume.md) — Снежные струйки с гребней: снег, гребень, ветер модели, порог срыва Li & Pomeroy 1997; отрисовка, настройки, границы.
+  - [docs/research/snow_plume.md](research/snow_plume.md) — Порог срыва снега u10_t = 9,43+0,18T+0,0033T² (7–8 м/с при −30…−10 °C), шлейф: span 8, settle 0,2, spread 0,6 м/с, 30 с, fetch 300 м.
+  - [tools/research/snow_plume/README.md](../tools/research/snow_plume/README.md) — Скрипт SNW-1: порог u10_t(T) по Li & Pomeroy, скорость оседания, u*, длина шлейфа; вывод в snow_plume_params.json.
+  - [tools/research/snow_plume/SNW-5/README.md](../tools/research/snow_plume/SNW-5/README.md) — SNW-5 (частично): шлейфы есть при 16 м/с (24 источника, Эверест и Шымбулак), нет при 2 м/с (0); цена кадра не мерилась.
+  - [tools/research/snow_plume/SNW-9/README.md](../tools/research/snow_plume/SNW-9/README.md) — SNW-9: кадры струек v3 (Эверест, Шымбулак; ветер 16 и 2 м/с; вблизи гребня). Струйки редкие и бледные, издалека не видны.
 
 ## game
 
 - **goals** — Цели полёта перед стартом (высота, время, дальность, возврат, треугольник, маршрут, скорость, посадка), зачёт, след попытки, IGC/GPX. [active 2026-10-16] — [план](plan/goals.md) · [контракты](contracts/goals.md)
   - [docs/guide/goals.md](guide/goals.md) — Цели полёта и треки: вкладка «Цели», оценка по погоде, засчёт в полёте, итог, прибор, столбы, запись и показ треков, IGC/GPX.
 - **training-modes** — Тренировочные режимы (T-59) через карточки окна «Тренировка» + цели полёта и загрузка .xctsk из окна «Полёт…» (T-56); код задач TM. [closed 2026-10-17] — [план](plan/training-modes.md) · [решения](plan/training-modes/decisions.md) · [сводка](plan/training-modes/summary.md) · полный журнал: `archive/training-modes`
+- **bar-mouse** — Штанга мышью: ход в отсчётах мыши без привязки к окну, свой слайдер, мёртвая зона без скачка; диагностика камер и сырого ввода. [closed 2026-10-23] — [план](plan/bar-mouse.md) · [контракты](contracts/bar-mouse.md) · [решения](plan/bar-mouse/decisions.md) · [сводка](plan/bar-mouse/summary.md) · полный журнал: `archive/bar-mouse`
+  - [docs/research/bar-mouse-raw-input.md](research/bar-mouse-raw-input.md) — Захват мыши в Godot 4.7.2: Windows и X11 — сырые отсчёты, Wayland и macOS — с ускорением ОС; брать screen_relative
 
 ## perf
 
 - **fast-load** — Быстрая загрузка места: кеш поля воздуха на диске (LRU), общие данные места, тяжёлое — в потоки/нативное/кеш, порции без замирания. [closed 2026-10-17] — [план](plan/fast-load.md) · [контракты](contracts/fast-load.md) · [решения](plan/fast-load/decisions.md) · [сводка](plan/fast-load/summary.md) · полный журнал: `archive/fast-load`
   - [docs/guide/fast-load.md](guide/fast-load.md) — Загрузка места: порядок этапов, потоки, кеш поля воздуха (LRU, настройка размера), пирамида высот, PlaceData, числа и границы.
   - [docs/registry/fast-load-findings.md](registry/fast-load-findings.md) — fast-load: тёплая загрузка 29,2 → 12,5 с (Онгудай), 40,2 → 18,0 с (точка) при кеше поля; промах без выигрыша; малый пул.
+
+## release
+
+- **site-research** — Сверка сайта с исследованиями и руководством: каких выводов нет на сайте, что устарело; дописать страницы с графиками. [closed 2026-10-21] — [план](plan/site-research.md) · [контракты](contracts/site-research.md) · [решения](plan/site-research/decisions.md) · [сводка](plan/site-research/summary.md) · полный журнал: `archive/site-research`
+  - [tools/research/site_coverage/README.md](../tools/research/site_coverage/README.md) — SRS-1: 47 тем исследований против сайта (ru+en) и docs/guide: есть 25, частично 13, нет 7, устарело 2; графики, объём.
+- **crash-reports** — Разбор автоматических отчётов о вылетах (Windows, #3–#15): группы причин, причина в коде с доказательством, правки с тестом. [closed 2026-10-23] — [план](plan/crash-reports.md) · [контракты](contracts/crash-reports.md) · [решения](plan/crash-reports/decisions.md) · [сводка](plan/crash-reports/summary.md) · полный журнал: `archive/crash-reports`
+  - [docs/research/crash-reports/cr-1.md](research/crash-reports/cr-1.md) — Группа A (#4–#10, 1.5.18, GTX 1050 Ti, D3D12): потеря устройства на стадии wind; AirGpu не проверяет пустой RID; в main не исправлено
+  - [docs/research/crash-reports/cr-10.md](research/crash-reports/cr-10.md) — CR-10: #17/#18, RX 5600 XT: потеря GPU на RDNA1 (известная проблема Godot #122671); кандидаты — облака и тени.
+  - [docs/research/crash-reports/cr-11.md](research/crash-reports/cr-11.md) — CR-11: Godot 4.7.2 не запрашивает причину потери устройства на D3D12; на Vulkan печатает её лишь при потере в vkQueueSubmit.
+  - [docs/research/crash-reports/cr-2.md](research/crash-reports/cr-2.md) — Группа B (#11–#15, RTX 5060, Vulkan): обрыв при повторной загрузке места в сессии; точная причина не найдена, не исправлено.
+  - [docs/research/crash-reports/cr-3.md](research/crash-reports/cr-3.md) — Группа C (#3, 1.5.15, RTX 5060 Laptop, trees): «sea» не причина, ложное «море» исправлено; обрыв на trees не установлен.
+  - [docs/research/crash-reports/cr-4.md](research/crash-reports/cr-4.md) — CR-4: драйвер Windows по умолчанию — Vulkan с автооткатом на D3D12; вылеты #3–#15 драйвером не объясняются.
+  - [tools/research/crash-reports/cr-1/README.md](../tools/research/crash-reports/cr-1/README.md) — Скрипты CR-1: воспроизведение пустого RID и агрегаты отчётов группы A
+  - [tools/research/crash-reports/cr-10/README.md](../tools/research/crash-reports/cr-10/README.md) — Скрипт CR-10: порядок событий старта меню и сборка compute-шейдеров облаков (Linux).
+  - [tools/research/crash-reports/cr-11/README.md](../tools/research/crash-reports/cr-11/README.md) — Скрипты CR-11: классификатор строк потери устройства GPU и проба нативного дескриптора устройства.
+  - [tools/research/crash-reports/cr-3/README.md](../tools/research/crash-reports/cr-3/README.md) — Скрипт повторной загрузки точки для CR-3 и источники данных.
+  - [tools/research/crash-reports/cr-4/README.md](../tools/research/crash-reports/cr-4/README.md) — Скрипты и черновик манифеста CR-4: сводка отчётов и itch.toml с двумя действиями запуска.
 
 ## process
 
@@ -140,11 +196,11 @@ generated: true
 - [docs/guide/flight/ground-bank.md](guide/flight/ground-bank.md) — Крен крыла на земле: уравнение моментов, рука пилота, порог бокового ветра, поворот на бегу, границы модели.
 - [docs/guide/flight/ground-pose.md](guide/flight/ground-pose.md) — Поза крыла на земле: зазор над рельефом, крыло стоя на старте (тангаж, флюгер, касания), старт в сильный ветер.
 - [docs/guide/flight/model.md](guide/flight/model.md) — Модель FlightModel: точечная масса с ориентацией, силы, трапеция, крен, срыв, воздух, земля, выравнивание и посадка; допущения.
-- [docs/guide/flight/pendulum.md](guide/flight/pendulum.md) — Режим «Маятник» (основной, по умолчанию): крыло на 16 полосах, пилот на цепи подвески, руки, земля, срыв, границы.
+- [docs/guide/flight/pendulum.md](guide/flight/pendulum.md) — «Маятник» — физика игрока: крыло на 16 полосах, пилот на цепи подвески, руки, земля, срыв, границы.
 - [docs/guide/flight/polar-table.md](guide/flight/polar-table.md) — Таблица поляры в спокойном воздухе: трапеция, скорость, снижение, качество для учебного, мачтового и безмачтового крыла.
 - [docs/guide/flight/sky-shade.md](guide/flight/sky-shade.md) — Тень от неба под парусом: физика закрытия небосвода, параметры, реализация декалью.
 - [docs/guide/flight/wings.md](guide/flight/wings.md) — Параметры (конфиги крыла, пилота, полёта) и каталог из 48 крыльев по группам и классам ветра.
-- [docs/guide/flight.md](guide/flight.md) — Вход в гайд по полёту: FlightModel и Glider (scripts/flight/), три режима крена, земля и посадка, Маятник; оглавление частей.
+- [docs/guide/flight.md](guide/flight.md) — Вход в гайд по полёту: FlightModel и Glider (scripts/flight/), крен, земля и посадка, Маятник; оглавление частей.
 - [docs/guide/game/bots.md](guide/game/bots.md) — Другие пилоты в небе: очередь на старт, разбег, полёт по вариометру, расхождение, вид и имена; число 0–20 (по умолчанию 4).
 - [docs/guide/game/cameras-input.md](guide/game/cameras-input.md) — Камеры (кабина, сзади, свободная), поведение головы, раскладка клавиш/мыши/геймпада, приборы на трапеции и отладочные слои F1–F6.
 - [docs/guide/game/cli-tests.md](guide/game/cli-tests.md) — Аргументы командной строки главной сцены (кадры, smoke, старт в воздухе, замеры, отладка сети), запуск тестов и проверок.
@@ -164,7 +220,7 @@ generated: true
 - [docs/guide/models/sail-shader.md](guide/models/sail-shader.md) — Шейдер паруса: просвечивание, анимация вершин, подключение к GliderVisual, стенд и сравнение с фото.
 - [docs/guide/models/trees.md](guide/models/trees.md) — Модели деревьев (5 пород, 8 вариантов, 3 LOD) и их подключение в мире.
 - [docs/guide/models/wing-contract.md](guide/models/wing-contract.md) — Контракт имён и осей модели крыла: ноды Sail, Frame, ControlFrame, маркеры (HangPoint, BaseBar, InstrumentMount, Upright*), материалы.
-- [docs/guide/models/wings.md](guide/models/wings.md) — Модели крыльев (assets/models/glider_*.glb, 48 шт.): таблица, параметры glider_params.json, трапеция, центровка, подвеска.
+- [docs/guide/models/wings.md](guide/models/wings.md) — Модели крыльев (assets/models/glider_*.glb, 49 шт.): таблица, параметры glider_params.json, трапеция, центровка, подвеска.
 - [docs/guide/models.md](guide/models.md) — Вход в гайд по 3D-моделям: крылья, пилот, приборы, лагерь, деревья; как их пересобрать (Blender 4.3) и где контракты имён и осей.
 - [docs/guide/motion-rig.md](guide/motion-rig.md) — Вывод движения пилота на платформы подвижности по UDP (SRS API v102, свой DPMR): величины, знаки, поток, настройки, проверки, границы.
 - [docs/guide/net-protocol.md](guide/net-protocol.md) — Сетевой протокол: транспорт, сообщения, роль ведущего, ключ мира, LAN-поиск, примеры JSON и сценарии; правда — net.proto.
@@ -439,8 +495,14 @@ generated: true
 - [tools/research/air_synth/train/README.md](../tools/research/air_synth/train/README.md) — SY-11: обучение сети P2 (U-Net+FiLM) на счёте решателя по местам дельтаплана; сеть заменена фазовой сборкой [closed]
 - [tools/research/air_synth/tune/README.md](../tools/research/air_synth/tune/README.md) — Код и команды воспроизведения настройки параметров генератора рельефа схемой Professor (SY-5): эталон, прогоны, подгонка, облако θ [closed]
 
+### Журналы (journal)
+
+- [docs/plan/test-script-errors/decisions.md](plan/test-script-errors/decisions.md) — Решения (4) и вопросы (0, отвечено 0) модуля test-script-errors [closed]
+- [docs/plan/test-script-errors/summary.md](plan/test-script-errors/summary.md) — Сводка реализации модуля test-script-errors: 2 задач, итоги и оговорки исполнителей [closed]
+
 ### Реестры (registry)
 
+- [docs/registry/air-model-findings.md](registry/air-model-findings.md) — Выводы модуля air-model (вынесены из docs/registry/findings.md по размеру реестра).
 - [docs/registry/findings.md](registry/findings.md) — Реестр выводов закрытых работ: раздел на модуль, пункт — одна строка с числом и ссылкой; отклонённые модули помечены (отклонено).
 - [docs/registry/pendulum-findings.md](registry/pendulum-findings.md) — Выводы pendulum и pullin-speed: каналы маятника, срыв, Vmax «на себя» (Cm(α), добор), переворот при выходе из разгона.
 - [TODO.md](../TODO.md) — Реестр задач T-NN по блокам (воздух, полёт, мир, графика, сеть, релиз): строка с состоянием и ссылкой на план

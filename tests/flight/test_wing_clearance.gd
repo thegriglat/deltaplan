@@ -45,7 +45,7 @@ static func _ctl(pitch: float, run: bool, walk: float, turn: float = 0.0) -> Con
 
 ## Наименьший зазор за фазу: {min, part, bank_deg (наибольший |крен|), theta_deg}.
 func _phase(g: Glider, pts: Dictionary, gf: Callable, inp: ControlInput, secs: float) -> Dictionary:
-	var m: FlightModel = g.model
+	var m: PendulumModel = g.model
 	m.reset_on_ground(Vector3(0, gf.call(0.0, 0.0), 0), 0.0)
 	var zero := func(_p: Vector3) -> Vector3: return Vector3.ZERO
 	var res := {"min": INF, "part": "", "bank_deg": 0.0, "theta_deg": 0.0}
@@ -58,7 +58,7 @@ func _phase(g: Glider, pts: Dictionary, gf: Callable, inp: ControlInput, secs: f
 		res.bank_deg = maxf(res.bank_deg, absf(rad_to_deg(m.bank)))
 		if n % SAMPLE_EVERY != 0:
 			continue
-		var c := WC.clearance(pts, WC.pose(m), gf)
+		var c := WC.clearance(pts, Transform3D(m.telemetry.basis, m.position), gf)
 		if c.min < res.min:
 			res.min = c.min
 			res.part = c.part
@@ -73,7 +73,7 @@ func test_wing_above_ground_on_launch() -> void:
 		"стоит, нос вниз до упора": [_ctl(-1, false, 0), 3.0],
 		"шагом": [_ctl(0, false, 1), 4.0],
 		"разбег": [_ctl(0, true, 0), 12.0],
-		# К3 v3: A/D стоя — поворот на месте (input.turn), крыло не кренит
+		# К3 v3: A/D стоя — поворот на месте (input.turn), крен не проверяем (маятник качает крыло на руках), зазор — да
 		"стоит, A": [_ctl(0, false, 0, -1), 3.0],
 		"стоит, D": [_ctl(0, false, 0, 1), 3.0],
 	}
@@ -88,14 +88,23 @@ func test_wing_above_ground_on_launch() -> void:
 			for ph: String in phases:
 				var r := _phase(g, pts, gf, phases[ph][0], phases[ph][1])
 				# на косом склоне рука пилота держит крыло с пределом силы: у крупных тяжёлых крыльев
-				# (размах > 10 м, 30+ кг — Cross Country, Crossover) на разбеге остаётся до ~0,7° —
+				# (размах > 10 м, 30+ кг — Cross Country, Crossover) на разбеге и при тангаже до упора остаётся до ~1,8° (маятник) —
 				# незаметно; на ровном и склоне вниз — прежние 0,5°
-				var bank_tol := 1.0 if kind == "косой 15°" else 0.5
-				check(r.bank_deg < bank_tol, "%s %s %s: крен 0 (%.2f°)" % [w, kind, ph, r.bank_deg])
+				var bank_tol := 2.0 if kind == "косой 15°" else 0.5
+				# крыло буксировщика (группа tug, 53 кг + тележка 262 кг) на руках пилота не держат — предел силы руки
+				# к нему не относится (TT-К2); на косом склоне крен фиксируем с запасом
+				if kind == "косой 15°" and Config.get_config("wings/" + w).get("group", "") == "tug":
+					bank_tol = 4.0
+				# A/D стоя: крыло на руках у пилота качается при развороте на месте — крен не проверяем
+				# (решение TSE-2), зазор до земли проверяется ниже
+				var turning := ph.ends_with(", A") or ph.ends_with(", D")
+				check(turning or r.bank_deg < bank_tol, "%s %s %s: крен 0 (%.2f°)" % [w, kind, ph, r.bank_deg])
 				# стоя с A/D на склоне пилот разворачивается поперёк склона — это уже косой склон
 				# (верхняя консоль у земли — правда жизни), зазор только фиксируем
 				var across := kind == "склон 20°" and ph.contains(",") and not ph.contains("нос")
-				if kind != "косой 15°" and not across:
+				# буксировщик не стартует с ног (TT-9): стартовая посадка на ногах к крылу группы tug не относится
+				var is_tug: bool = Config.get_config("wings/" + w).get("group", "") == "tug"
+				if kind != "косой 15°" and not across and not is_tug:
 					check(
 						r.min >= MIN_CLEARANCE_M,
 						(

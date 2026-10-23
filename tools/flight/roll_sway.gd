@@ -6,24 +6,23 @@ extends Node
 ##   godot --headless --path . res://tools/flight/roll_sway.tscn -- [--secs=90] [--dist=1000]
 ##       [--agl=300] [--location=ongudai] [--site=kayancha_south] [--mass=85]
 ##       [--weathers=weak,medium,strong] (WEATHERS) [--wings=training,sport] [--csv=файл.csv]
-##       [--dump=ряд.csv] [--dump_mode=weight_shift]   (по шагам: крен, курс, воздух —
+##       [--dump=ряд.csv] [--dump_mode=pendulum]   (по шагам: крен, курс, воздух —
 ##       прогон «hands» в этом режиме; при нескольких погодах/крыльях — последний)
 ##       [--large_scale=<м>]  подменить atmosphere.json → turbulence.large_scale_m (0 — один
 ##       масштаб, как до правки) — для таблицы «до/после»
 ##
-## Матрица: погода × крыло × режим крена (rate / weight_shift) × пилот:
+## Матрица: погода × крыло × режим крена (pendulum — модель игрока) × пилот:
 ##   hands — руки нейтрально, крен не исправляет;
 ##   human — «как человек»: видит крен с задержкой HUMAN_DELAY_S, ручка против крена
 ##           (полный ход при HUMAN_FULL_DEG), мёртвая зона HUMAN_DEADBAND_DEG.
 ## Шагаем сами: воздух → ввод бота → планер (порядок Game.tick, без InputController —
-## ввод бота прямо в ControlInput, режим крена — control.weight_shift).
+## ввод бота прямо в ControlInput, ввод — положение пилота).
 ##
 ## Метрики (после разгона WARMUP_S): крен — среднее, СКО, размах, max|крен|; период — пик
 ## спектра крена (0,02–2 Гц); курс — СКО отклонения от линейного тренда и СКО скорости рыскания;
 ## маятник — угол тела пилота к крылу (GliderVisual: asin(смещение/L), только от ручки — в модели
 ## полёта у маятника нет своей динамики); n — СКО мгновенной перегрузки (load_raw); p_air —
 ## СКО кренящей угловой скорости от разницы потоков на концах (то, что раскачивает крыло).
-## Отдельно — отклик на толчок в спокойном воздухе: перерегулирование и период (затухание).
 
 const DT := 1.0 / 120.0
 const MAIN_SCENE := preload("res://scenes/main.tscn")
@@ -31,7 +30,7 @@ const WARMUP_S := 5.0
 const HUMAN_DELAY_S := 0.3
 const HUMAN_FULL_DEG := 30.0
 const HUMAN_DEADBAND_DEG := 1.0
-const MODES := ["rate", "weight_shift"]
+const MODES := ["pendulum"]
 const PILOTS := ["hands", "human"]
 ## Погоды для --weathers: прогноз [температура °C, ветер км/ч], встречный ветер на старте.
 const WEATHERS := {
@@ -69,7 +68,7 @@ var _args := {
 	"wings": "training,sport",
 	"csv": "",
 	"dump": "",
-	"dump_mode": "weight_shift",
+	"dump_mode": "pendulum",
 	"large_scale": "",
 }
 var _rows: Array[Dictionary] = []
@@ -84,63 +83,9 @@ func _ready() -> void:
 		# до/после: 0 — прежняя болтанка одного масштаба (atmosphere.json → turbulence)
 		var tb: Dictionary = Config.get_config("atmosphere").turbulence
 		tb.large_scale_m = float(_args.large_scale)
-	_impulse_table()
 	await _run_matrix()
 	_print_table()
 	get_tree().quit(0)
-
-
-# ---------------------------------------------------------------- отклик на толчок
-
-
-## Спокойный воздух, руки нейтрально, толчок по крену 20 °/с: максимум крена, перерегулирование
-## (заброс через ноль / максимум) и период — показывают демпфирование самовыравнивания.
-func _impulse_table() -> void:
-	print("\n== толчок по крену 20 °/с, спокойный воздух, weight_shift, %s кг ==" % _args.mass)
-	print("| крыло | max крен ° | заброс через 0 ° | заброс % | период с | ζ≈ |")
-	print("|---|---|---|---|---|---|")
-	for wing_id in String(_args.wings).split(","):
-		var wing: Dictionary = Config.get_config("wings/" + wing_id)
-		var pilot: Dictionary = Config.get_config("pilot").duplicate(true)
-		pilot.mass_kg = float(_args.mass)
-		var m := FlightModel.new()
-		m.setup(wing, pilot)
-		m.reset_in_air(Vector3(0, 2000, 0), 0.0)
-		var c := ControlInput.new()
-		c.weight_shift = true
-		m.roll_rate = deg_to_rad(20.0)
-		var peak := 0.0
-		var under := 0.0
-		var t_peak := 0.0
-		var t_under := 0.0
-		for i in int(20.0 / DT):
-			m.step(DT, c, Callable(), Callable())
-			var b := rad_to_deg(m.bank)
-			if b > peak:
-				peak = b
-				t_peak = i * DT
-			if b < under:
-				under = b
-				t_under = i * DT
-		var ratio := -under / maxf(peak, 1.0e-6)
-		var period := 2.0 * (t_under - t_peak) if under < -0.01 else NAN
-		var zeta := 1.0
-		if ratio > 1.0e-4:
-			var ln := log(ratio)
-			zeta = -ln / sqrt(PI * PI + ln * ln)
-		print(
-			(
-				"| %s | %.1f | %.2f | %.0f | %s | %.2f |"
-				% [
-					wing_id,
-					peak,
-					under,
-					100.0 * ratio,
-					("%.1f" % period) if not is_nan(period) else "—",
-					zeta
-				]
-			)
-		)
 
 
 # ---------------------------------------------------------------- матрица
@@ -188,7 +133,6 @@ func _fly_straight(game: Game, mode: String, pilot: String) -> Dictionary:
 	game.air.set("time_s", 0.0)
 	var m: FlightModel = game.glider.model
 	var c := ControlInput.new()
-	c.weight_shift = mode == "weight_shift"
 	var delay_n := int(round(HUMAN_DELAY_S / DT))
 	var seen: Array[float] = []
 	var vcfg: Dictionary = Config.get_config("flight").visual

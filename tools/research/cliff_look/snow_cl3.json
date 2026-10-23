@@ -1,0 +1,69 @@
+{
+ "version": 1,
+ "before": "build/cliff_look_raw/before",
+ "after": "build/cliff_look_raw/cl3",
+ "snow_large_ratio": 1.336,
+ "snow_ripple_ratio": 1.092,
+ "views": [
+  {
+   "view": "everest_snow_mid",
+   "snow_px_share": 0.2758,
+   "mpp_med": 0.441,
+   "dist_m": 402,
+   "before": {
+    "mean": 0.6407,
+    "px": 569883,
+    "large": 0.02115,
+    "ripple": 0.0145
+   },
+   "after": {
+    "mean": 0.6233,
+    "px": 569883,
+    "large": 0.03063,
+    "ripple": 0.01583
+   },
+   "large_ratio": 1.448,
+   "ripple_ratio": 1.092
+  },
+  {
+   "view": "everest_snow_near",
+   "snow_px_share": 0.0588,
+   "mpp_med": 0.184,
+   "dist_m": 165,
+   "before": {
+    "mean": 0.616,
+    "px": 119494,
+    "large": 0.02158,
+    "ripple": 0.02957
+   },
+   "after": {
+    "mean": 0.6022,
+    "px": 119494,
+    "large": 0.02884,
+    "ripple": 0.03266
+   },
+   "large_ratio": 1.336,
+   "ripple_ratio": 1.104
+  },
+  {
+   "view": "shymbulak_peak_snow",
+   "snow_px_share": 0.1985,
+   "mpp_med": 0.185,
+   "dist_m": 2284,
+   "before": {
+    "mean": 0.5931,
+    "px": 410047,
+    "large": 0.02237,
+    "ripple": 0.01955
+   },
+   "after": {
+    "mean": 0.5721,
+    "px": 410047,
+    "large": 0.02713,
+    "ripple": 0.02123
+   },
+   "large_ratio": 1.213,
+   "ripple_ratio": 1.086
+  }
+ ]
+}

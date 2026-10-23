@@ -12,6 +12,8 @@ extends RefCounted
 ##   --camera=<режим>      cockpit | chase | free
 ##   --pause | --settings | --about | --controls | --setup   открыть экран перед снимком
 ##   --wing=<id> --mass=<кг> --location=<id> --site=<id>
+##   --tow=<вид>           буксировка (TW-К7): winch_static | aerotow | none; прочее — без буксировки
+##   --vehicle=trike       старт дельталётом (TP-К5); прочее — дельтаплан
 ##   --temp=<°C>           прогноз: температура днём (FR-16)
 ##   --wind=<м/с>          прогноз: ветер у земли
 ##   --from=<град>|launch  откуда ветер: градусы (270 — с запада) или launch — встречный
@@ -208,7 +210,7 @@ static func parse(args: PackedStringArray) -> LaunchOptions:
 				o.net_code_file = val
 			"net-hide-remote":
 				o.net_hide_remote = true
-			"wing", "mass", "site", "wind", "latlon", "location", "hour", "temp", "from", "sky":
+			"wing", "mass", "site", "wind", "latlon", "location", "hour", "temp", "from", "sky", "tow", "vehicle":
 				o.overrides[key] = val
 	if o.open_screen == "pause":
 		o.autostart = true
@@ -234,6 +236,12 @@ func apply_to(s: FlightSettings) -> FlightSettings:
 		r.location_id = String(overrides.location)
 		if not overrides.has("site"):
 			r.site_id = ""
+	if overrides.has("tow"):
+		r.tow_kind = FlightSettings.normalize_tow(String(overrides.tow))
+	if overrides.has("vehicle"):
+		r.vehicle = FlightSettings.normalize_vehicle(String(overrides.vehicle))
+		if r.vehicle == "trike":
+			r.tow_kind = ""
 	if overrides.has("wind"):
 		r.wind_speed_kmh = float(overrides.wind) * 3.6
 	if overrides.has("from"):

@@ -40,7 +40,7 @@ func test_build_state() -> void:
 	var reg := NetPilots.build_state("7", false, 1.1, st, false, false)
 	check(not reg.has("controlMode"), "обычный пакет: без controlMode")
 	check(reg.has("pilotRel"), "обычный пакет: pilotRel есть")
-	for cm: String in ["RATE", "WEIGHT_SHIFT", ""]:
+	for cm: String in ["RATE", ""]:
 		var s2 := st.duplicate()
 		s2.control_mode = cm
 		var d := NetPilots.build_state("7", false, 1.0, s2, true, true, "Я")

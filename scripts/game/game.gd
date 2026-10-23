@@ -78,6 +78,8 @@ var queue_walk: Dictionary = {}
 ## Индикатор смещения пилота внизу экрана (FB-1).
 var shift_indicator: PilotShiftIndicator
 var clock_label: ClockLabel
+var trike_hud: TrikeGaugesHud  ## TP-К4/К8: тахометр и топливо в HUD дельталёта
+var trike_gauges: TrikeGauges3D  ## приборы на панели тележки (кабина)
 ## Цели полёта (GL-4, GL-К3): null — целей нет (пусто, сеть, осмотр карты или неверный список).
 var goals: GoalTracker = null
 var goal_list: GoalList
@@ -93,6 +95,11 @@ var inspect_mode := false
 var _cfg: Dictionary
 var _start_pos := Vector3.ZERO
 var _start_heading := 0.0
+## Буксировка со статической лебёдки (TW-10): узел-сессия и место полосы (TowSite.check), {} — без буксировки.
+var tow_session: TowSession = null
+var _tow_site: Dictionary = {}
+var _trike_start := false  ## TP-К6: старт дельталёта на полосе места буксировки (без TowSession)
+const TOW_DEFAULT_WIDTH_M := 35.0  # ширина полосы для точки без блока tow (как у единственной полосы места, TW-8b)
 var _exact_start := false  # точный старт пилота применён (SP-К1): курс не выравнивается по ветру
 var _site_heading := 0.0  # курс площадки (до выравнивания по ветру поля)
 var _load_error := ""
@@ -118,6 +125,7 @@ var _peak_spacing := NAN
 var _heating := SurfaceHeating.new()
 ## Ход дня для атмосферы (погода, солнце, источники — функции времени атмосферы, NET-00).
 var _day: AtmoDay
+var _recentered := false  ## дельталёт: камера уже по центру после первого отрыва полёта (подскоки не в счёт)
 var _touchdown := {}  ## оценка последнего касания (LandingJudge) — для итога
 var _prev_phase := ""
 var _alt_pub_at := -1.0  ## sim_time_s последней публикации высоты в Activity (−1 — ещё нет)
@@ -187,6 +195,9 @@ func _ready() -> void:
 	clock_label.clock = sky.clock
 	add_child(clock_label)
 	Config.reloaded.connect(clock_label.reload)
+	trike_hud = TrikeGaugesHud.new()
+	trike_hud.name = "TrikeGaugesHud"
+	add_child(trike_hud)
 	goal_list = GoalList.new()
 	goal_list.name = "GoalList"
 	add_child(goal_list)
@@ -207,8 +218,7 @@ func _ready() -> void:
 	glider.telemetry_updated.connect(_on_telemetry)
 	glider.landed.connect(_on_landed)
 	feed = AchievementFeed.new(self)
-	glider.took_off.connect(_feed_begin)
-	glider.took_off.connect(camera.recenter)  # после разбега взгляд — по центру (как средняя кнопка)
+	glider.took_off.connect(_on_took_off)
 	_connect_achievements()
 	glider.takeoff_failed.connect(_on_takeoff_failed)
 	_whiteout.setup(_cfg.get("cloud_whiteout", {}))
@@ -271,7 +281,6 @@ func tick(dt: float) -> void:
 	_publish_activity(phase)
 	if autopilot != null:
 		autopilot.hold = input_controller.run_blocked or not queue_walk.is_empty()
-		autopilot.pendulum = glider.is_pendulum()
 		autopilot.drive(glider.get_telemetry(), dt)
 	input_controller.on_ground = phase != "flying"
 	# Свободная камера занимает WASD — крыло без рук; при автопилоте крыло ведёт он, а камера
@@ -280,12 +289,14 @@ func tick(dt: float) -> void:
 	input_controller.hands_off = free_cam or hands_off
 	camera.free_keys_enabled = autopilot == null
 	var control := input_controller.update(dt)
-	if autopilot != null and autopilot.pendulum:
+	if autopilot != null:
 		control.roll = autopilot.roll_command  # ПИД крена: положение пилота (R7)
 	if not queue_walk.is_empty():
 		_queue_walk_step(control, phase)
 	glider.set_input(control)
 	bots.tick(dt, glider.get_telemetry())
+	if tow_session != null:
+		_winch_step(dt, control)
 	if tow != null:
 		_tow_step(dt)  # без физики, столкновений и итога полёта
 		return
@@ -448,8 +459,9 @@ func start(s: FlightSettings) -> bool:
 	world_link.place_camp()
 	await get_tree().process_frame
 	# Боты: места и агенты — сразу, вид — порциями вместе с термиками ниже (FL-10).
+	_make_tow_session()
 	await bots.setup_in_world_async(
-		terrain, air, _start_pos, _start_heading, bots_count, world_link.objects
+		terrain, air, _start_pos, _start_heading, bots_count, world_link.objects, 50.0, _tow_bots_opts()
 	)
 	# Поля рельефа (влажность ложбин ослабляет источники термиков) считаются в фоне — термики
 	# рождаются только после них, иначе первые термики зависели бы от скорости машины.
@@ -790,8 +802,12 @@ func restart(keep_clock: bool = false) -> void:
 	elif net != null:  # в сети — на своё место в очереди на старт (NET-43)
 		var sp := net.queue_start_spot()
 		glider.reset_on_ground(sp.position, float(sp.heading_deg))
+	elif _trike_start:
+		glider.reset_on_wheels(_start_pos, _start_heading)  # TP-К6: начало полосы, заглушен, полный бак
 	else:
 		glider.reset_on_ground(_start_pos, _start_heading)
+	if tow_session != null:
+		tow_session.reset()  # трос снова лежит, ждёт W
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
 	input_controller.reset()
 	collisions.reset()
@@ -800,6 +816,7 @@ func restart(keep_clock: bool = false) -> void:
 	_crashed = false
 	_ended = false
 	_touchdown = {}
+	_recentered = false
 	_prev_phase = ""
 	sim_time_s = 0.0
 	if net == null and not keep_clock:  # в сети мир идёт по часам зоны — «Ещё раз» его не сбрасывает
@@ -807,6 +824,7 @@ func restart(keep_clock: bool = false) -> void:
 		if _day != null:
 			_day.rebase(float(air.get("time_s")), sky.clock.hour, sky.clock.speed)
 	stats.reset(glider.get_telemetry().position)
+	stats.trike = _trike_start
 	instrument.reset()
 	_goals_reset()
 	for n in mounted:
@@ -863,6 +881,7 @@ func continue_on_foot() -> void:
 	_tracks_finish()
 	_ended = false
 	_touchdown = {}
+	_recentered = false
 	_tracks_begin()
 	stats.reset(glider.get_telemetry().position)
 	_goals_reset()
@@ -934,6 +953,13 @@ func set_paused(on: bool) -> void:
 	set_input_enabled(not on)
 	vario_audio.set_enabled(flying_enabled and not on)
 	flight_audio.set_enabled(flying_enabled and not on)
+	_sync_engine_sound_pause()
+
+
+## Звук двигателя дельталёта игрока гаснет на паузе и в меню, как vario/flight_audio (TP-22).
+func _sync_engine_sound_pause() -> void:
+	if glider != null:
+		glider.set_engine_sound_muted(_paused or not flying_enabled)
 
 
 func is_paused() -> bool:
@@ -961,6 +987,7 @@ func set_flying(on: bool) -> void:
 	)
 	vario_audio.set_enabled(on)
 	flight_audio.set_enabled(on)
+	_sync_engine_sound_pause()
 	if on:
 		flight_audio.play_carabiner()
 	_update_overlay()
@@ -1362,6 +1389,7 @@ func _end_catch_up(r: Dictionary) -> void:
 	_crashed = false
 	_ended = false
 	_touchdown = {}
+	_recentered = false
 	stats.reset(pos)
 	stats.armed = glider.phase() == "flying"
 	instrument.reset()
@@ -1462,6 +1490,10 @@ func _load_terrain() -> bool:
 
 func _choose_start() -> void:
 	_exact_start = false
+	_tow_site = {}
+	_trike_start = false
+	if _choose_tow_start():
+		return
 	if settings.has_exact_start():
 		var q := terrain.latlon_to_local(settings.start_lat, settings.start_lon)
 		var chk := StartSpot.check(terrain, q.x, q.y)
@@ -1469,7 +1501,7 @@ func _choose_start() -> void:
 			_start_pos = Vector3(q.x, terrain.height_at(q.x, q.y), q.y)
 			_start_heading = settings.start_heading_deg
 			_exact_start = true
-			terrain.add_start_clearing(q.x, q.y, Terrain.start_clearing_radius_m())
+			_clear_exact_start(q)
 			return
 		push_warning("Game: точный старт недопустим (%s), автостарт" % chk.reason)
 	if settings.has_pick():
@@ -1496,14 +1528,190 @@ func _choose_start() -> void:
 	MotionRig.place = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
 
 
+## Старт со статической лебёдки (TW-10, TW-К6/К7): настройка tow_kind, «Маятник», одиночная игра, полоса проходит
+## TowSite.check. Площадка с блоком tow — её ось и размеры; точка с карты и точный старт — курс выбранный, длина троса
+## из configs/tow.json. Не вышло (причина — push_warning) — обычный старт без буксировки. aerotow (TW-10b) — та же
+## полоса, но старт пилота на тележке в начале, Ан-2 впереди на длину троса.
+func _choose_tow_start() -> bool:
+	var trike := settings.vehicle == "trike"
+	var kind := "aerotow" if trike else settings.tow_kind  # дельталёт: полоса как у аэробуксировки, без троса
+	if kind == "":
+		return false
+	if kind != "winch_static" and kind != "aerotow":
+		push_warning("Game: буксировка %s неизвестна, старт без буксировки" % kind)
+		return false
+	if net != null or air_start_m >= 0.0:
+		push_warning("Game: буксировка — только одиночная игра с земли, старт без буксировки")
+		return false
+	var rope_len := float(Config.value("tow", "%s.%s" % [kind, "rope_length_m" if kind == "winch_static" else "runway_length_m"], 1000.0))
+	var x := 0.0
+	var z := 0.0
+	var heading := 0.0
+	var length := rope_len
+	var width := TOW_DEFAULT_WIDTH_M
+	var site_name := ""
+	var q := Vector2.ZERO
+	var from_site := false
+	if settings.has_exact_start() or settings.has_pick():
+		if settings.has_exact_start():
+			q = terrain.latlon_to_local(settings.start_lat, settings.start_lon)
+			heading = settings.start_heading_deg
+		else:
+			q = terrain.latlon_to_local(settings.pick_lat, settings.pick_lon)
+			heading = (
+				settings.start_heading_deg
+				if is_finite(settings.start_heading_deg)
+				else float(StartPlacement.evaluate(terrain.height_at, q.x, q.y, _cfg.start_search).heading_deg)
+			)
+		x = q.x
+		z = q.y
+		for st in terrain.get_start_sites():  # точный старт на площадке с tow — её ось и размеры
+			var tw: Dictionary = st.get("tow", {})
+			if (
+				settings.has_exact_start()
+				and not tw.is_empty()
+				and Vector2(st.position.x, st.position.z).distance_to(q) <= 5.0
+			):
+				heading = float(st.heading_deg)
+				length = float(tw.runway_length_m)
+				width = float(tw.runway_width_m)
+	else:
+		var sites := terrain.get_start_sites()
+		if sites.is_empty():
+			push_warning("Game: буксировка — на месте нет площадки, старт без буксировки")
+			return false
+		var site: Dictionary = sites[0]
+		for st in sites:
+			if st.id == settings.site_id:
+				site = st
+		var tw: Dictionary = site.get("tow", {})
+		if tw.is_empty() or not (trike or kind in tw.get("kinds", [])):
+			push_warning("Game: на площадке %s нет полосы (%s), %s" % [site.get("id", ""), kind, "дельталёт стартует дельтапланом" if trike else "старт без буксировки"])
+			return false
+		x = site.position.x
+		z = site.position.z
+		heading = float(site.heading_deg)
+		length = float(tw.runway_length_m)
+		width = float(tw.runway_width_m)
+		from_site = true
+		site_name = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
+	var chk := TowSite.check(terrain, x, z, heading, length, width)
+	if not bool(chk.ok):
+		push_warning("Game: полоса не годится (%s), %s" % [chk.reason, "дельталёт стартует дельтапланом" if trike else "старт без буксировки"])
+		return false
+	_start_pos = chk.start_pos
+	_start_heading = float(chk.heading_deg)
+	_exact_start = true  # курс — ось полосы, по ветру не выравнивается
+	_trike_start = trike
+	_tow_site = chk
+	_tow_site["width_m"] = width
+	_tow_site["length_m"] = length
+	if from_site:
+		MotionRig.place = site_name
+	elif settings.has_exact_start():
+		_clear_exact_start(q)
+		if not _site_has_tow_at(q):
+			_clear_tow_runway()
+	else:
+		_clear_tow_runway()  # точка с карты: лес на полосе лебёдки — иначе не разогнаться и не набрать высоту
+	return true
+
+
+func _site_has_tow_at(q: Vector2) -> bool:
+	for st in terrain.get_start_sites():
+		var tw: Dictionary = st.get("tow", {})
+		if not tw.is_empty() and Vector2(st.position.x, st.position.z).distance_to(q) <= 5.0:
+			return true
+	return false
+
+
+## Поляна-полоса вдоль оси _tow_site: от старта на длину до лебёдки, шириной полосы (TW-К6, как TowSite.clearing_size).
+func _clear_tow_runway() -> void:
+	var margin := float(Config.value("game", "tow_site.clearing_margin_m", 30.0))
+	terrain.add_runway_clearing(
+		_start_pos,
+		_start_heading,
+		float(_tow_site.get("length_m", Config.value("tow", "winch_static.rope_length_m", 1000.0))),
+		float(_tow_site.get("width_m", TOW_DEFAULT_WIDTH_M)) + 2.0 * margin
+	)
+
+
+## Узел буксировки на старт полёта (после _setup_glider): старый — убрать; нет места полосы — внешней силы нет.
+func _make_tow_session() -> void:
+	if tow_session != null:
+		tow_session.queue_free()
+		tow_session = null
+	if _trike_start:
+		return  # TP-К6: внешняя сила дельталёта - его тяга (Glider.setup_trike), троса нет
+	glider.clear_external_force()
+	if _tow_site.is_empty():
+		return
+	tow_session = TowSession.new()
+	tow_session.name = "TowSession"
+	add_child(tow_session)
+	tow_session.setup(glider, Callable(terrain, "height_at"), _tow_site, settings.tow_kind)
+
+
+## Боты на буксирном месте стартуют в воздухе над полосой на высоте отцепа (Q1): opts для setup_in_world_async.
+func _tow_bots_opts() -> Dictionary:
+	if tow_session == null:
+		return {}
+	var l := tow_session.rope_length_m()
+	if tow_session.is_aerotow():
+		l = float(_tow_site.get("length_m", l))  # трос 80 м — полоса много длиннее: боты над всей полосой
+	return {
+		"agl_m": tow_session.release_height_m(),
+		"ahead_m": [0.2 * l, 0.8 * l],
+		"lateral_m": 0.5 * float(_tow_site.get("width_m", TOW_DEFAULT_WIDTH_M)),
+	}
+
+
+## Шаг лебёдки до glider.step: старт — W (на геймпаде — кнопка разбега; Shift трос не запускает), tow_release (B / кнопка геймпада) — отцеп.
+func _winch_step(dt: float, c: ControlInput) -> void:
+	var start := false
+	var release := false
+	if input_controller.enabled and not hands_off:
+		start = _action_held("walk_forward") or input_controller.pad_run or c.walk > 0.0  # c.walk — автопилот
+		release = InputMap.has_action("tow_release") and Input.is_action_just_pressed("tow_release")
+	tow_session.step(dt, start, release)
+
+
+static func _action_held(action: String) -> bool:
+	return InputMap.has_action(action) and Input.is_action_pressed(action)
+
+
+## Поляна точного старта: у встроенной площадки с блоком tow (в пределах 5 м) — полоса вдоль оси
+## (TW-К6, ось — heading_deg площадки, не курс пилота; запас по ширине — game.json → tow_site.clearing_margin_m), иначе круг.
+func _clear_exact_start(q: Vector2) -> void:
+	for st in terrain.get_start_sites():
+		var tow: Dictionary = st.get("tow", {})
+		if tow.is_empty() or Vector2(st.position.x, st.position.z).distance_to(q) > 5.0:
+			continue
+		var dim := TowSite.clearing_size(tow)
+		if dim.x > 0.0:
+			terrain.add_runway_clearing(
+				Vector3(q.x, terrain.height_at(q.x, q.y), q.y), float(st.heading_deg), dim.x, dim.y
+			)
+			return
+	terrain.add_start_clearing(q.x, q.y, Terrain.start_clearing_radius_m())
+
+
 func _setup_glider() -> void:
 	for n in mounted:
 		n.queue_free()
 	mounted.clear()
 	var wing_id := settings.wing_id()
-	glider.setup(wing_id, settings.pilot_mass_kg, settings.resolved_apparatus(wing_id))
-	settings.pilot_mass_kg = glider.pilot_mass_kg
+	if _trike_start:
+		glider.setup_trike(Config.get_config("tow_tug"), settings.pilot_mass_kg, Config.get_config("trike_pilot"))
+		input_controller.vehicle = "trike"
+	else:
+		glider.setup(wing_id, settings.pilot_mass_kg, settings.resolved_apparatus(wing_id))
+		settings.pilot_mass_kg = glider.pilot_mass_kg
+		input_controller.vehicle = "glider"
 	camera.set_head(glider.get_marker("PilotHead"))
+	camera.eye_offset_enabled = not glider.is_trike()
+	trike_gauges = null
+	_sync_engine_sound_pause()
 	# Смещение центра масс пилота от подвески в полёте (крен/тангаж ручкой), оси планера: голова
 	# кабинной камеры повторяет его долей (camera.json → cockpit.head_follow_body). На земле — ноль.
 	var v := glider.visual
@@ -1516,8 +1724,11 @@ func _setup_glider() -> void:
 		v.set_wrist_clock(sky.clock)  # наручные часы — время игры (PH-7)
 	if v != null and v.sky_shade != null:
 		v.sky_shade.env_fn = _sky_shade_env
-	for m: Dictionary in _cfg.get("mounted_instruments", []):
-		_mount_instrument(m)
+	if glider.is_trike():
+		_mount_trike_gauges()  # маркеров крыла дельтаплана у дельталёта нет
+	else:
+		for m: Dictionary in _cfg.get("mounted_instruments", []):
+			_mount_instrument(m)
 	_animator.bind(glider.visual, _cfg.get("pilot_animation", {}))
 	camera.glance_target = null  # Q: середина смонтированных приборов; кадры (--look-at) задают свою цель
 	camera.glance_nodes.clear()
@@ -1549,9 +1760,34 @@ func _reload_wrist() -> void:
 func _hide_from_cockpit() -> void:
 	var ck: Dictionary = Config.get_config("camera").cockpit
 	var bit := 1 << (int(ck.get("hidden_layer", 20)) - 1)
+	if glider.trike_visual != null:  # дельталёт: пилот целиком не виден из кабины
+		glider.trike_visual.set_pilot_layers(bit)
 	for node_name: String in ck.get("hidden_nodes", []):
 		for n in glider.find_children(node_name, "VisualInstance3D", true, false):
 			(n as VisualInstance3D).layers = bit
+
+
+## TP-К8: приборы дельталёта на маркер InstrumentPanel тележки (нормаль панели - +Z маркера, TP-К4).
+func _mount_trike_gauges() -> void:
+	var panel := glider.get_marker("InstrumentPanel")
+	var path := "res://scenes/instruments/trike_gauges_3d.tscn"
+	if panel == null or not ResourceLoader.exists(path):
+		push_warning("Game: у дельталёта нет маркера InstrumentPanel или сцены приборов")
+		return
+	trike_gauges = (load(path) as PackedScene).instantiate() as TrikeGauges3D
+	panel.add_child(trike_gauges)
+	mounted.append(trike_gauges)
+
+
+## Обороты и топливо - приборам (кабина и HUD), TP-К4.
+func _update_trike_gauges() -> void:
+	if not glider.is_trike() or glider.engine == null:
+		return
+	var e := glider.engine
+	if is_instance_valid(trike_gauges):
+		trike_gauges.update_readout(e.engine_rpm, e.fuel_l, e.tank_l, e.running)
+	if trike_hud != null:
+		trike_hud.update_readout(e.engine_rpm, e.fuel_l, e.tank_l, e.running)
 
 
 ## Прибор на маркер крыла (game.json → mounted_instruments).
@@ -1591,6 +1827,10 @@ func _update_overlay() -> void:
 		shift_indicator.set_active(flying_enabled and input_controller.enabled and tow == null)
 	if clock_label != null:  # часы текстом — только в 3-м лице (PH-К2)
 		clock_label.set_active(flying_enabled and input_controller.enabled and camera.mode != "cockpit")
+	if trike_hud != null:  # приборы дельталёта - только у него и не из кабины (TP-К8)
+		trike_hud.set_active(
+			glider != null and glider.is_trike() and flying_enabled and input_controller.enabled and camera.mode != "cockpit"
+		)
 	if goal_list != null:  # список целей — в любой камере, пока есть цели
 		goal_list.set_active(flying_enabled and input_controller.enabled and goals != null)
 
@@ -1636,6 +1876,7 @@ func _rustle_feet(t: Telemetry) -> Array:
 
 
 func _on_telemetry(t: Telemetry) -> void:
+	_update_trike_gauges()
 	if tow != null:  # буксир: без приборов и статистики, писк молчит, поток — по скорости
 		vario_audio.set_vario(0.0)
 		flight_audio.update(t, {"phase": t.phase, "stall_amount": 0.0, "load_factor": 1.0})
@@ -1666,6 +1907,20 @@ func _on_telemetry(t: Telemetry) -> void:
 	_animator.update(t.phase, t.altitude_agl, t.vario, glider.model.flare_amount(), _dt)
 
 
+## Нужен ли recenter камеры при отрыве: дельтаплан — всегда; дельталёт — только первый отрыв с разбега
+## (подскоки на колёсах шлют took_off на каждом отрыве, взгляд пилота не сбрасываем).
+static func recenter_on_takeoff(trike: bool, already: bool) -> bool:
+	return not (trike and already)
+
+
+## Отрыв (glider.took_off): взгляд по центру (как средняя кнопка), начало потока ачивок.
+func _on_took_off() -> void:
+	if recenter_on_takeoff(glider.is_trike(), _recentered):
+		camera.recenter()
+	_recentered = true
+	_feed_begin()
+
+
 ## Отрыв (glider.took_off) и старт в воздухе: начало потока для ачивок.
 func _feed_begin() -> void:
 	if not _ended and tow == null and not inspect_mode:
@@ -1693,6 +1948,7 @@ func _connect_achievements() -> void:
 		feed.flight_finished.connect(Callable(ach, "on_flight_finished"))
 
 
+## Касание: звук — на каждом касании (у дельталёта и на подскоках), оценка перезаписывается — итог по последнему.
 ## Касание ногами: звук и оценка сейчас, итог — когда FlightStats засчитает посадку.
 func _on_landed(result: Dictionary) -> void:
 	flight_audio.play_landing(result)
@@ -1946,3 +2202,12 @@ func _goals_finish(kind: String, info: Dictionary) -> void:
 		flight["task"] = res.route
 	flight.erase("goals")
 	info["new_records"] = FlightRecords.new(records_path).add_flight(flight)
+
+
+## Температура воздуха, °C, на высоте z_m над уровнем моря — для порога снежных флагов (SNW-4).
+## Есть контекст погоды — суточный ход и градиент SurfaceHeat; нет — прогноз меню минус 6,5 К/км.
+func air_temp_c_at(z_m: float) -> float:
+	var t_max := float(settings.forecast().get("temperature_c", 20.0))
+	if _weather_ctx.is_empty():
+		return t_max - 0.0065 * z_m
+	return SurfaceHeat.air_temp_c(sky.clock.hour, t_max, z_m, _weather_ctx, SurfaceHeat.config().water)

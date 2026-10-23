@@ -106,6 +106,22 @@ func flare_push() -> float:
 	return neutral_rel.length() * sin(flare_reach + flare_reach_soft)
 
 
+## Снимок и восстановление состояния закона рук (интеграл, отпускание, последний расчёт): пробные вызовы compute
+## при поиске равновесия (TT-12) не должны менять состояние.
+func snapshot() -> Array:
+	return [_int, force_b, target_b, phi, _rel_armed, _rel_on, _rel_calm]
+
+
+func restore(s: Array) -> void:
+	_int = s[0]
+	force_b = s[1]
+	target_b = s[2]
+	phi = s[3]
+	_rel_armed = s[4]
+	_rel_on = s[5]
+	_rel_calm = s[6]
+
+
 func reset() -> void:
 	_int = Vector3.ZERO
 	force_b = Vector3.ZERO
@@ -129,10 +145,10 @@ func update_pull_limit(pull_full: bool, dt: float) -> void:
 ## rel, vrel — положение и скорость пилота относительно подвески в осях крыла (B);
 ## m_pilot — масса пилота; h — шаг; relaxed — руки отпущены; force_y — заданное поперечное
 ## усилие (NAN — нет); load_b — кажущийся вес пилота в осях B (вес и сопротивление пилота минус
-## m·ускорение подвески), Н. → сила рук на пилота в осях B.
+## m·ускорение подвески), Н; ext_b — вклад внешней силы (трос) в load_b, Н. → сила рук на пилота в осях B.
 func compute(
 	rel: Vector3, vrel: Vector3, roll: float, pitch: float, m_pilot: float, h: float,
-	relaxed: bool, force_y: float, load_b: Vector3
+	relaxed: bool, force_y: float, load_b: Vector3, ext_b := Vector3.ZERO
 ) -> Vector3:
 	if relaxed:
 		reset()
@@ -159,6 +175,9 @@ func compute(
 	if L > 0.1 and tgt.z > 0.1:
 		f.x += load_b.z * tgt.x / tgt.z - load_b.x
 		f.y += (tgt.y - neutral_rel.y) * (m_pilot * Units.G / L)
+		if ext_b != Vector3.ZERO:
+			# TW-К4: внешняя сила (трос) — часть кажущегося веса: поперёк тоже компенсируется подачей
+			f.y += ext_b.z * tgt.y / tgt.z - ext_b.y
 	f.z = 0.0
 	# досягаемость (стоящий пилот): угол крыла к стропе φ (нос вверх — пилот назад в осях крыла);
 	# у вытянутых рук упор «от себя» спадает до нуля — хват ушёл вперёд-вверх, за голову; руки

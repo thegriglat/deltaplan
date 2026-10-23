@@ -80,10 +80,6 @@ uniform vec3 lichen_color : source_color = vec3(0.5, 0.42, 0.2);   // рыжий
 uniform vec3 scree_color : source_color = vec3(0.58, 0.55, 0.5);   // светлая щебёнка
 uniform float rock_tone_scale_m = 180.0;
 uniform float lichen_amount = 0.35;
-uniform float strata_m = 7.0;          // шаг слоёв на обрывах, м
-#ifndef T_ROCK_DETAIL_OFF
-uniform float strata_strength = 0.28;
-#endif
 uniform float gully_snow_line_m = 2500.0;  // ниже снега в кулуарах нет, м
 #ifndef T_GULLY_SNOW_OFF
 uniform float gully_scale_m = 60.0;    // масштаб ложбин (кривизна), м
@@ -212,9 +208,9 @@ uniform vec2 erosion_slope_deg = vec2(5.0, 18.0); // уклон появлени
 uniform vec2 erosion_fade_m = vec2(7000.0, 14000.0);   // гаснут с расстоянием, м
 #endif
 // --- скальная поверхность на крутизне (скалы и выходы породы; terrain_look: rock_macro_*,
-// rock_normal_strength, ledge_*, outcrop_ribs): та же текстура породы крупным масштабом по трём
-// проекциям (рисунок и нормаль видны с километров, где мелкий тайл усреднён мипами), уступы
-// слоёв в нормали, пятна породы на крутом — рёбрами вдоль линии падения ---
+// rock_normal_strength, cliff_*, outcrop_ribs): та же текстура породы крупным масштабом по трём
+// проекциям (рисунок и нормаль видны с километров, где мелкий тайл усреднён мипами), мелкая рябь
+// на крутом ослаблена, пятна породы на крутом — рёбрами вдоль линии падения ---
 uniform float rock_macro_k = 24.0;                // крупный слой: тайл ×k
 #ifndef T_ROCK_TEX_OFF
 uniform float rock_macro_contrast = 1.6;         // степень контраста рисунка крупного слоя (мипы его сглаживают)
@@ -227,10 +223,11 @@ uniform vec2 rock_macro_fade_m = vec2(6000.0, 12000.0);
 #ifndef T_ROCK_TEX_OFF
 uniform float rock_normal_strength = 0.6;         // мелкий слой (тайл rock.tile_m), вблизи
 #endif
-#ifndef T_ROCK_SURFACE_OFF
-uniform float ledge_strength = 0.3;               // уступы слоёв: ± доля уклона (ступень/полка)
-uniform vec2 ledge_slope_deg = vec2(25.0, 45.0);  // уступы появляются / в полную силу, °
-#endif
+// Мелкая рябь на крутом (CL-К2 v3): мелкие масштабы породы (Rock030 — цвет и нормаль, неровность SL-9)
+// на крутом ослаблены до cliff_fine_keep — по диагнозу CL-1 они дают рябь; нового рисунка взамен нет,
+// уступов и слоёв (полос) нет.
+uniform vec2 cliff_slope_deg = vec2(30.0, 45.0);  // ослабление начинается / в полную силу с уклона, °
+uniform float cliff_fine_keep = 0.15;             // доля мелкой фактуры (Rock030, неровность SL-9) на крутом
 #ifndef T_EROSION_OFF
 uniform float erosion_rock_boost = 1.0;          // промоины на скальной поверхности сильнее (× 1 + boost)
 #endif
@@ -546,6 +543,82 @@ uniform vec2 snow_slope_deg = vec2(35.0, 45.0);   // снег WorldCover: дер
 uniform float snow_hollow_deg = 6.0;            // в ложбине снег держится круче на столько градусов (при вогнутости outcrop_convex_k)
 uniform float snow_bare_merge = 1.0;          // выше снеговой линии голый грунт WorldCover — в один пул со снегом (0 — как класс)
 uniform float snow_ridge_blow = 0.6;            // выпуклый гребень: доля снега, сдуваемая ветром (0..1)
+// рельеф снега (CL-3): желоба вдоль линии падения на крутом снегу и крупная волнистость — в нормали и тоне снега
+uniform float snow_relief_flute_m = 10.0;        // шаг желобов (spindrift flutes), м
+uniform float snow_relief_flute_slope = 0.7;    // крутизна борта желоба относительно склона (тангенс)
+uniform vec2 snow_relief_flute_deg = vec2(30.0, 40.0); // желоба появляются / в полную силу с уклона, градусы
+uniform float snow_relief_flute_shade = 0.15;    // дно желоба темнее (рассеянный свет затенён бортами), доля
+uniform float snow_relief_wave_m = 30.0;        // длина крупной волны поверхности снега, м (вторая октава — 0,4×)
+uniform float snow_relief_wave_slope = 0.28;    // крутизна волны (тангенс)
+uniform float snow_relief_tone = 0.2;           // гребни волн темнее на столько (обдутый наст против свежего снега), доля
+
+// Value noise с производной по p: (значение 0..1, d/dp.x, d/dp.y).
+vec3 snow_vnoise_d(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = p - i;
+	vec2 u = f * f * (3.0 - 2.0 * f);
+	vec2 du = 6.0 * f * (1.0 - f);
+	float a = hash12(i);
+	float b = hash12(i + vec2(1.0, 0.0));
+	float c = hash12(i + vec2(0.0, 1.0));
+	float d = hash12(i + vec2(1.0, 1.0));
+	float k = a - b - c + d;
+	return vec3(a + (b - a) * u.x + (c - a) * u.y + k * u.x * u.y,
+			du * vec2(b - a + k * u.y, c - a + k * u.x));
+}
+
+// Желоба: вклад ячейки (шаг 1 = 3 желоба) — гребешки вдоль линии падения (фаза вдоль горизонтали dir),
+// своя фаза у ячейки. (cos фазы, его производная по p).
+vec3 snow_flute_cell(vec2 ip, vec2 fp, vec2 o, vec2 dir) {
+	float hs = hash12(ip + o + vec2(41.7, 13.1));
+	vec2 pp = fp - o - (vec2(hs, fract(hs * 37.17)) - 0.5);
+	float ph = dot(pp, dir) * 3.0 * 6.2832;
+	return vec3(cos(ph), -sin(ph) * 3.0 * 6.2832 * dir);
+}
+
+// Желоба в точке p = xz / (3 · шаг): 4 соседние ячейки, гладкие веса (желоба рвутся и сливаются на границах
+// ячеек — без сетки и без сдвига фазы, растущего с |p| при повороте направления).
+vec3 snow_flutes(vec2 p, vec2 dir) {
+	vec2 ip = floor(p);
+	vec2 fp = p - ip;
+	vec2 u = fp * fp * (3.0 - 2.0 * fp);
+	vec3 a = mix(snow_flute_cell(ip, fp, vec2(0.0, 0.0), dir), snow_flute_cell(ip, fp, vec2(1.0, 0.0), dir), u.x);
+	vec3 b = mix(snow_flute_cell(ip, fp, vec2(0.0, 1.0), dir), snow_flute_cell(ip, fp, vec2(1.0, 1.0), dir), u.x);
+	return mix(a, b, u.y);
+}
+
+// Рельеф снега в точке: xy — добавка к градиенту высоты (м/м), z — множитель тона снега.
+// hg — уклон (градиент высоты), foot — след пикселя, м: форма мельче ~3 пикселей гаснет (без муара).
+vec3 snow_relief(vec2 xz, vec2 hg, float slope_deg, float foot) {
+	vec2 g = vec2(0.0);
+	float tone = 1.0;
+	// крупная волнистость (две октавы); высота волны ≈ крутизна · длина · (шум − 0,5)
+	float lw = max(snow_relief_wave_m, 1.0);
+	float kw1 = 1.0 - smoothstep(0.15 * lw, 0.35 * lw, foot);
+	float kw2 = 1.0 - smoothstep(0.06 * lw, 0.14 * lw, foot);
+	if (kw1 > 0.0) {
+		vec3 w1 = snow_vnoise_d(xz / lw + vec2(5.3, 2.9));
+		vec3 w2 = snow_vnoise_d(xz / (0.4 * lw) + vec2(1.7, 8.1));
+		g += snow_relief_wave_slope * (w1.yz * kw1 + 0.5 * w2.yz * kw2);
+		// гребни волн обдуты ветром (наст, альбедо ниже), во впадинах — свежий снег (цвет snow_color):
+		// только темнее — светлее snow_color снег не бывает (и ALBEDO обрезан на 1)
+		float wv = (w1.x - 0.5) * kw1 + 0.5 * (w2.x - 0.5) * kw2;
+		tone -= snow_relief_tone * smoothstep(0.0, 0.35, wv);
+	}
+	// желоба: на крутом снегу, вдоль линии падения
+	float lf = max(snow_relief_flute_m, 0.5);
+	float kf = smoothstep(snow_relief_flute_deg.x, snow_relief_flute_deg.y, slope_deg)
+			* (1.0 - smoothstep(0.15 * lf, 0.35 * lf, foot));
+	float gl = length(hg);
+	if (kf > 0.0 && gl > 1e-3) {
+		vec2 dir = vec2(-hg.y, hg.x) / gl;
+		vec3 f = snow_flutes(xz / (3.0 * lf), dir);
+		// высота a · cos, a = крутизна · шаг / 2π: градиент = крутизна · (−sin) · dir = f.yz / (3 · 2π)
+		g += snow_relief_flute_slope * kf * f.yz / (3.0 * 6.2832);
+		tone *= 1.0 - snow_relief_flute_shade * kf * 0.5 * (1.0 - f.x);
+	}
+	return vec3(g, tone);
+}
 #ifndef T_OUTCROP_OFF
 uniform float kurum_share = 0.5;              // доля курумника среди выходов (остальное — коренная порода)
 uniform float kurum_block_m = 2.2;            // шаг глыб курумника, м
@@ -904,7 +977,6 @@ vec2 erosion_grad(vec2 xz, vec2 g, float foot, float k) {
 	return dg;
 }
 #endif
-
 
 void fragment() {
 	vec3 wp = v_world;
@@ -1278,6 +1350,8 @@ void fragment() {
 	// посчитанными до ветвления)
 	vec3 rcol = rock_color;
 	vec3 rn_add = vec3(0.0);
+	// мелкая фактура на крутом слабее (рябь, диагноз CL-1)
+	float cl_fine = mix(1.0, cliff_fine_keep, smoothstep(cliff_slope_deg.x, cliff_slope_deg.y, slope_deg));
 #ifndef T_ROCK_TEX_OFF
 	vec2 uv_xy = wp.xy / rock_tex_tile_m;
 	vec2 uv_zy = wp.zy / rock_tex_tile_m;
@@ -1294,11 +1368,6 @@ void fragment() {
 			rtone = fbm(wp.xz / rock_tone_scale_m + vec2(1.3, 8.8), 3);
 			rcol = mix(rock_color, rock_color2, smoothstep(0.3, 0.7, rtone));
 			rcol *= 0.75 + 0.5 * fbm(wp.xz / 12.0 + vec2(wp.y / 8.0), 3);
-			// горизонтальная слоистость (видна издалека на обрывах)
-			float sy = wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0;
-			float strata = 0.5 + 0.5 * sin(6.2832 * sy / strata_m) * 0.7
-					+ 0.3 * sin(6.2832 * sy / (strata_m * 3.7) + 1.3);
-			rcol *= 1.0 - strata_strength * strata * (1.0 - smoothstep(0.7, 0.95, n_class.y));
 			rcol = mix(rock_color, rcol, kfar);
 		}
 #endif
@@ -1314,12 +1383,12 @@ void fragment() {
 			if (by > 0.0) {
 				tsum = mix(tsum, textureGrad(rock_tex, uv_xz + 0.37, dxz.xy, dxz.zw).rgb, by);
 			}
-			rcol = apply_tex(rcol, tsum, rock_tex_avg, tex_w);
+			rcol = apply_tex(rcol, tsum, rock_tex_avg, tex_w * cl_fine);
 			if (use_rock_normal) {
 				vec3 na = textureGrad(rock_normal_tex, uv_xy, dxy.xy, dxy.zw).rgb * 2.0 - 1.0;
 				vec3 nb = textureGrad(rock_normal_tex, uv_zy, dzy.xy, dzy.zw).rgb * 2.0 - 1.0;
 				// касательные возмущения в мировых осях проекций (xy → вдоль x и y, zy → вдоль z и y)
-				rn_add = mix(vec3(na.x, na.y, 0.0), vec3(0.0, nb.y, nb.x), bx) * rock_normal_strength * fade;
+				rn_add = mix(vec3(na.x, na.y, 0.0), vec3(0.0, nb.y, nb.x), bx) * rock_normal_strength * fade * cl_fine;
 			}
 		}
 #endif
@@ -1424,12 +1493,12 @@ void fragment() {
 	col = mix(col, rcol, rock);
 #ifndef T_SL_ROCK_OFF
 	vec3 sl_rg; // SL
-	col = sl_rock_look(col, wp, n_class, dist, max(rock, ocw), scree, clamp(open_w, 0.0, 1.0), slope_deg, slope_up, clamp(v_convex / outcrop_convex_k, -1.0, 1.0), scree_color, rock_tex_tile_m, rock_macro_k, scree_tex_tile_m, sl_rg); // SL
+	col = sl_rock_look(col, wp, n_class, dist, max(rock, ocw) * cl_fine, scree, clamp(open_w, 0.0, 1.0), slope_deg, slope_up, clamp(v_convex / outcrop_convex_k, -1.0, 1.0), scree_color, rock_tex_tile_m, rock_macro_k, scree_tex_tile_m, sl_rg); // SL
 #endif
 
 	// --- скальная поверхность (скалы и выходы породы): крупный слой текстуры породы по трём
 	// проекциям — рисунок (яркость) и нормаль, видны до rock_macro_fade_m, когда мелкий тайл уже
-	// усреднён мипами; уступы слоёв strata_m в нормали (ступень круче, полка положе) ---
+	// усреднён мипами ---
 	float rsw = max(rock, ocw);
 	vec3 rs_n = vec3(0.0);
 #ifndef T_ROCK_SURFACE_OFF
@@ -1499,19 +1568,6 @@ void fragment() {
 			}
 		}
 #endif
-		// уступы: уклон ±ledge_strength по фазе слоёв (шаг strata_m и ×3,7); слой мельче
-		// ~пикселя гаснет (муар)
-		float kl = ledge_strength * smoothstep(ledge_slope_deg.x, ledge_slope_deg.y, slope_deg);
-		if (kl > 0.0) {
-			float sy = wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0;
-			float a1 = 1.0 - smoothstep(0.25 * strata_m, 0.6 * strata_m, foot_px);
-			float a2 = 1.0 - smoothstep(0.9 * strata_m, 2.2 * strata_m, foot_px);
-			float w = sin(6.2832 * sy / strata_m) * 0.3 * a1
-					+ 0.6 * sin(6.2832 * sy / (strata_m * 3.7) + 1.3) * a2;
-			// уступы рвутся пятнами (иначе — сплошные «горизонтали»)
-			w *= smoothstep(0.45, 0.65, vnoise(wp.xz / 70.0 + vec2(8.3, 1.6)));
-			rs_n += vec3(-hg.x, 0.0, -hg.y) * kl * w;
-		}
 	}
 #endif
 
@@ -1535,6 +1591,18 @@ void fragment() {
 #ifndef T_SL_SNOW_OFF
 	col = sl_fresh_snow(col, snow_color, wp.xz, h, slope_deg, forest); // SL
 #endif
+	// рельеф снега (CL-3): нормаль и тон по доле снега — класс 8, снег в кулуарах и свежий снег SL
+	// (его доля — тот же sl_fresh_snow на чёрном с белым: f · (0,94…1)); доли и классы не меняются
+	float snow_w = max(snow, gsnow);
+#ifndef T_SL_SNOW_OFF
+	snow_w = max(snow_w, min(sl_fresh_snow(vec3(0.0), vec3(1.0), wp.xz, h, slope_deg, forest).g / 0.94, 1.0)); // SL
+#endif
+	if (snow_w > 0.001) {
+		vec3 srl = snow_relief(wp.xz, hg, slope_deg, foot_px);
+		vec2 sgn = -n.xz / max(n.y, 0.05) + srl.xy * snow_w;
+		n = normalize(vec3(-sgn.x, 1.0, -sgn.y));
+		col *= mix(1.0, srl.z, snow_w);
+	}
 
 	// --- мелкая детализация (кочки, пятна) ---
 #ifndef T_DETAIL_OFF
@@ -1580,7 +1648,7 @@ void fragment() {
 	n = normalize(n + vec3(grass_bend.x, 0.0, grass_bend.y) + gn_add + rn_add * max(rock, outcrop * (1.0 - kurum))
 			+ rs_n * rsw);
 #ifndef T_SL_ROCK_OFF
-	n = sl_rock_nrm(n, sl_rg, clamp(max(rsw, scree * (1.0 - rock)), 0.0, 1.0)); // SL
+	n = sl_rock_nrm(n, sl_rg, clamp(max(rsw * cl_fine, scree * (1.0 - rock)), 0.0, 1.0)); // SL
 #endif
 	// нормали крон (освещение полога)
 	n = normalize(mix(n, normalize(n + vec3(crown_n.x, 0.0, crown_n.z) * 1.5), forest * crown_k * 0.6));

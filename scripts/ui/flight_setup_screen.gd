@@ -79,6 +79,10 @@ var _app_user: Dictionary = {}  ## {wing_id: {ключ: значение}} — �
 var _app_wing: String = ""  ## крыло, значения которого сейчас на ползунках
 var _app_loading: bool = false  ## ползунки заполняются программно — в _app_user не писать
 var _fav_btn: Button
+var _tow_opt: OptionButton  ## TW-К7: «Буксировка»
+var _tow_hint: Label
+var _tow_place_key: String = ""
+var _tow_ids: PackedStringArray = []  ## виды пунктов _tow_opt ("" — «Нет»)
 var _recent_section: VBoxContainer
 var _recent_list: VBoxContainer
 var _row: PlacePickRow  ## выбор места: карта, «Популярные места», подпись (общий с экраном сети)
@@ -166,6 +170,8 @@ func _build() -> void:
 	_row.build(self, popular_places_path)
 	_row.changed.connect(_update_dir_hint)
 	_row.changed.connect(_update_weather_lock)
+	_build_tow(box_place)
+	_row.changed.connect(_on_place_changed_tow)
 	_connect_goals_refresh()
 	_build_recent(box_place)
 
@@ -203,9 +209,6 @@ func _build_apparatus(box: Control) -> void:
 		var sl := UiKit.slider_row(box, tr("setup_app_" + k), sp[0], sp[1], sp[2], fmts[k])
 		_apparatus[k] = sl
 		sl.value_changed.connect(_on_apparatus_changed.bind(k))
-		sl.get_parent().tooltip_text = tr("setup_app_pendulum_only")
-		var hint := UiKit.label(box, tr("setup_app_pendulum_only"), "HintLabel")
-		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 
 func _apply_settings() -> void:
@@ -224,7 +227,9 @@ func _apply_settings() -> void:
 	_month_opt.select(clampi(settings.month, 1, 12) - 1)
 	_on_month_selected(_month_opt.selected)
 	_day.value = settings.day
+	_tow_place_key = _place_key()
 	_row.refresh()
+	_refresh_tow("trike" if settings.vehicle == "trike" else settings.tow_kind, false)
 	_fill_recent()
 	if _goals_tab != null:
 		_goals_tab.load_settings(settings)
@@ -511,6 +516,11 @@ func _collect() -> FlightSettings:
 	s.month = _month_opt.selected + 1
 	s.day = int(_day.value)
 	s.apparatus = FlightSettings.from_dict({"apparatus": _app_user}).apparatus
+	s.tow_kind = _tow_selected()
+	s.vehicle = "glider"
+	if s.tow_kind == "trike":  # пункт «Дельталёт» (TP-К5)
+		s.vehicle = "trike"
+		s.tow_kind = ""
 	StartWeather.apply(s)  # точные значения набора (элементы меню округляют)
 	if _goals_tab != null:
 		s.goals = _goals_tab.collect()
@@ -520,6 +530,100 @@ func _collect() -> FlightSettings:
 		s.goals = []
 		s.show_last_track = false
 	return s
+
+
+## TW-К7: виды буксировки площадки (`tow.kinds`); у площадки без `tow` и у точки с карты (site пуст) — все.
+static func tow_kinds_for_site(site: Dictionary) -> Array:
+	var tow: Variant = site.get("tow")
+	if tow is Dictionary:
+		var out: Array = []
+		for k: Variant in (tow as Dictionary).get("kinds", []):
+			if String(k) in FlightSettings.TOW_KINDS:
+				out.append(String(k))
+		return out
+	return FlightSettings.TOW_KINDS.duplicate()
+
+
+## TW-К7: умолчание — площадка с `tow` → первый из `tow.kinds`, иначе "Нет"; в мультиплеере всегда "".
+static func default_tow_kind(site: Dictionary, multiplayer: bool = false) -> String:
+	if multiplayer or not (site.get("tow") is Dictionary):
+		return ""
+	var kinds := tow_kinds_for_site(site)
+	return String(kinds[0]) if not kinds.is_empty() else ""
+
+
+func _build_tow(box: Control) -> void:
+	_tow_opt = OptionButton.new()
+	UiKit.row(box, tr("setup_tow"), _tow_opt)
+	_tow_hint = UiKit.label(box, tr("setup_tow_mp_off"), "HintLabel")
+	_tow_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_tow_opt.item_selected.connect(func(_i: int) -> void: _sync_wing_enabled())
+
+
+## TP-К5: выбран «Дельталёт» — крыло выбирать нечего (TT-К2), выбор крыла выключен.
+func _sync_wing_enabled() -> void:
+	var trike := _tow_selected() == "trike"
+	if _class_opt != null:
+		_class_opt.disabled = trike
+	if _wing_opt != null:
+		_wing_opt.disabled = trike
+
+
+## Ключ места: площадка/точка. Выбор буксировки сбрасывается на умолчание только при его смене.
+func _place_key() -> String:
+	var s := _row.settings
+	if s.has_pick():
+		return "pick:%s,%s" % [s.pick_lat, s.pick_lon]
+	return "site:%s/%s" % [s.location_id, s.site_id]
+
+
+func _on_place_changed_tow() -> void:
+	var key := _place_key()
+	var moved := key != _tow_place_key
+	_tow_place_key = key
+	_refresh_tow(_tow_selected(), moved)
+
+
+func _tow_selected() -> String:
+	if _tow_opt == null or GoalsTab.net_blocked():
+		return ""
+	var i := _tow_opt.selected
+	return _tow_ids[i] if i >= 0 and i < _tow_ids.size() else ""
+
+
+## Пересобрать пункты по площадке. preferred — что оставить, если доступно; reset — взять умолчание площадки.
+func _refresh_tow(preferred: String, reset: bool) -> void:
+	if _tow_opt == null or _row == null:
+		return
+	var mp := GoalsTab.net_blocked()
+	var site := _row.builtin_site()
+	_tow_ids = PackedStringArray([""])
+	_tow_opt.clear()
+	_tow_opt.add_item(tr("setup_tow_none"))
+	var names := {"winch_static": "setup_tow_winch", "aerotow": "setup_tow_aerotow"}
+	var kinds := tow_kinds_for_site(site)
+	for k: String in kinds:
+		_tow_ids.append(k)
+		_tow_opt.add_item(tr(String(names[k])))
+	var trike_ok := site.get("tow") is Dictionary
+	if trike_ok:
+		_tow_ids.append("trike")
+		_tow_opt.add_item(tr("setup_start_trike"))
+		_tow_opt.set_item_disabled(_tow_ids.size() - 1, not FlightSettings.trike_allowed(site, mp))
+	var want := default_tow_kind(site) if reset else preferred
+	if want != "trike":
+		want = FlightSettings.normalize_tow(want)
+	if want == "trike" and not trike_ok:
+		want = default_tow_kind(site)
+	elif want != "" and want != "trike" and not (want in kinds):
+		want = default_tow_kind(site)
+	_tow_opt.select(maxi(_tow_ids.find(want), 0))
+	_tow_opt.disabled = mp
+	_tow_hint.visible = mp
+	_tow_hint.text = tr("setup_tow_mp_off")
+	if mp:
+		_tow_opt.select(0)
+	_sync_wing_enabled()
 
 
 ## Погода, время и место меняют числа целей (GL-3).

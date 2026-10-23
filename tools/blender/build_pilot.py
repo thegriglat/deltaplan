@@ -10,7 +10,7 @@
 кабинная камера её прячет). Кости: Hips, Spine, Chest, Head, UpperArm.L/R, Forearm.L/R, Hand.L/R,
 Thigh.L/R, Shin.L/R, Foot.L/R, PodTail (кокон ног), Strap (подвесной фал). Пустышки на костях: Head
 (глаза), HandL/HandR (хват), CockpitCamera. Анимации: stand, walk, run, run_air, climb_in, prone,
-climb_out, flare (docs/guide/models.md).
+climb_out, flare, sit (сидя в трайке, по seat из trike_params.json; docs/guide/models.md).
 
 Тело — MakeHuman (MPFB 2, pilot_mpfb.py): мужчина ~30 лет, 1,78 м, с плавной привязкой к костям
 (веса рига game_engine, слитые в наши 17 костей). Кулаки — кисти MPFB с пальцами, согнутыми вокруг
@@ -46,6 +46,7 @@ POD_SAG_FLY = 0.05      # лёжа: конец провисает вниз, на
 POD_ON = 1.45           # кокон лёжа (надет на ноги)
 HEAD_PRONE = 20         # наклон головы лёжа, °: пустышки Head/CockpitCamera заданы так,
                         # что в позе prone взгляд горизонтален / на 10° вверх
+COLLAPSE = 0.005       # масштаб схлопнутых костей кокона и фала в позе sit (контракт: ≤ 0,01)
 FORE_TWIST = 0.5        # доля поворота кисти вокруг предплечья, которую берёт предплечье
 PRONE_SPLAY = -0.6      # лёжа ноги сведены (в коконе), 1 — естественная стойка MPFB
 # бюджет треугольников после прореживания (тело без кистей и головы / кисти / голова с шеей)
@@ -111,6 +112,8 @@ class Pose:
         self.pod = pod  # 0 — кокон висит за ногами (стоя), 1 — надет на ноги (лёжа)
         self.grips = [Vector(g).normalized() for g in (grips or [(0, 1, 0), (0, 1, 0)])]
         self.splay = splay
+        self.torso_k = 1.0     # растяжение позвоночника и груди по длине (сидя — по замеру глаз)
+        self.collapse = False  # True — кокон и фал схлопнуты (сидя в трайке)
         self.twist = [0.0, 0.0]
         self.reach_gap = [0.0, 0.0]
 
@@ -131,11 +134,12 @@ class Pose:
         """{кость: (голова, направление, опорная ось Z, длина)} в пространстве модели."""
         b = {}
         h, u, f = self.hips, self.u, self.f
-        chest = h + u * D.SPINE
-        neck = chest + u * D.CHEST
+        k_t = self.torso_k
+        chest = h + u * D.SPINE * k_t
+        neck = chest + u * D.CHEST * k_t
         b["Hips"] = (h, u, f, D.PELVIS)
-        b["Spine"] = (h, u, f, D.SPINE)
-        b["Chest"] = (chest, u, f, D.CHEST)
+        b["Spine"] = (h, u, f, D.SPINE * k_t)
+        b["Chest"] = (chest, u, f, D.CHEST * k_t)
         b["Head"] = (neck, self.hu, self.hf, D.HEAD)
         for i, (s, side) in enumerate((("L", -1), ("R", 1))):
             sh = neck - u * D.SHOULDER_DOWN + f * D.SHOULDER_FWD + X * side * D.SHOULDER_X
@@ -311,6 +315,7 @@ def poses(cf: dict, eye: Vector) -> dict:
              Vector((0, -0.2, -1)), pod=1.0, grips=bg, splay=PRONE_SPLAY)
     out["prone"] = [p]
     prone = p
+    out["sit"] = [sit_pose(U.load_json("tools/blender/trike_params.json")["seat"], SIT_DZ)]
     flare = out["flare"][0]
     # после отрыва ноги ещё «бегут в воздухе», шаги затихают (1,5 с)
     n = 36
@@ -350,6 +355,83 @@ def poses(cf: dict, eye: Vector) -> dict:
                          1.0 - _ease(t, 0.0, 0.6), q.grips, q.splay))
     out["climb_out"] = out_
     return out
+
+
+SIT_FOOT_DEG = 135.0    # сидя: направление стопы (пятка→носок) от вертикали вниз; педаль 45° передним краем вверх -> 90 + 45, °
+SIT_ANKLE_BACK = 0.07   # голеностоп позади центра подошвы вдоль стопы (пятка 0.07 до кости, ботинок 0.28 м), м
+SIT_HEAD = HEAD_PRONE   # сидя голова наклонена так же, как лёжа: пустышка Head смотрит горизонтально
+SIT_BACK_TOL = 5.0      # допуск угла корпуса к спинке, °
+SIT_HIP_TOL = 0.02      # допуск таза от seat.hip (контракт ±3 см), м
+SIT_DZ = [0.0, 0.0]    # поправка голеностопа L/R по нормали стопы: низ подошвы (меш) ровно на педали; main() подбирает по замеру
+SIT_POLE = Vector((0, -0.3, -1))   # локти вниз
+
+
+def sit_pose(seat: dict, dz=(0.0, 0.0)) -> Pose:
+    """Поза sit (TK-K3): таз в seat.hip, корпус наклонён так, чтобы глаза (пустышка Head) попали в
+    seat.eye, ноги — двухзвенная IK голеностопа к подножкам foot_l / foot_r (подошва — на
+    ANKLE_H ниже голеностопа по нормали стопы, подошва параллельна педали), руки — к hand_l/hand_r, кокон и фал схлопнуты.
+    Координаты seat — оси Blender от карабина, без перевода."""
+    hip = Vector(seat["hip"])
+    eye_t = Vector(seat["eye"])
+    feet = [Vector(seat["foot_l"]), Vector(seat["foot_r"])]   # throttle_pedal — в 2 см от foot_r на той же плоскости
+    hands = [Vector(seat["hand_l"]), Vector(seat["hand_r"])]
+    fa = math.radians(SIT_FOOT_DEG)
+    up_f = Vector((0, math.cos(fa), math.sin(fa)))      # нормаль стопы вверх
+    toe_f = Vector((0, math.sin(fa), -math.cos(fa)))    # вдоль стопы к носку
+    ank = [f + up_f * (D.ANKLE_H + d) - toe_f * SIT_ANKLE_BACK for f, d in zip(feet, dz)]   # dz — поправка по замеру меша подошв
+    # развод ног так, чтобы голеностоп попал по X (одинаково для обеих ног, по левой)
+    dx = abs(ank[0].x) - D.HIP_X
+    lo, hi = 0.0, 3.0
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        x = D.THIGH * math.sin(math.radians(mid * D.SPLAY_TH)) \
+            + D.SHIN * math.sin(math.radians(mid * D.SPLAY_SH))
+        lo, hi = (mid, hi) if x < dx else (lo, mid)
+    splay = (lo + hi) / 2
+    # корпус: пропорции пилота не меняем (torso_k = 1); наклон корпуса — не дальше SIT_BACK_TOL от спинки,
+    # наклон головы (взгляд ±8° от горизонтали) и сдвиг таза в пределах ±SIT_HIP_TOL подбираются по глазам
+    best = (1e9, 0.0, SIT_HEAD, Vector((0, 0, 0)), 1.0)
+    n_hip = int(SIT_HIP_TOL / 0.005)
+    back = seat["backrest_angle_deg"]
+    for i in range(int(-2 * (back + SIT_BACK_TOL)), int(-2 * (back - SIT_BACK_TOL)) + 1):
+        lean = i / 2.0
+        u = rot_x(-lean) @ Vector((0, 0, 1))
+        for hl in range(SIT_HEAD - 8, SIT_HEAD + 9, 4):
+            hu, hf = rot_x(-hl) @ Vector((0, 0, 1)), rot_x(-hl) @ Vector((0, 1, 0))
+            for iy in range(-n_hip, n_hip + 1):
+                for iz in range(-n_hip, n_hip + 1):
+                    sh = Vector((0, iy * 0.005, iz * 0.005))
+                    d = (hip + sh + u * (D.SPINE + D.CHEST) + hu * D.EYE_UP
+                         + hf * D.EYE_FWD - eye_t).length + 0.01 * sh.length
+                    if d < best[0]:
+                        best = (d, lean, hl, sh, 1.0)
+    u0 = rot_x(back) @ Vector((0, 0, 1))
+    hu0, hf0 = rot_x(-SIT_HEAD) @ Vector((0, 0, 1)), rot_x(-SIT_HEAD) @ Vector((0, 1, 0))
+    print("SIT: таз под глаза при корпусе вдоль спинки (lean %.1f, голова %d): %s" % (
+        -back, SIT_HEAD, eye_t - u0 * (D.SPINE + D.CHEST) - hu0 * D.EYE_UP - hf0 * D.EYE_FWD))
+    lean, head, shift, torso_k = best[1], best[2], best[3], best[4]
+    hip = hip + shift
+    l1 = D.THIGH * math.cos(math.radians(splay * D.SPLAY_TH))
+    l2 = D.SHIN * math.cos(math.radians(splay * D.SPLAY_SH))
+    legs = []
+    for i, side in enumerate((-1, 1)):
+        hp = hip + X * side * D.HIP_X
+        v = ank[i] - hp
+        r = min(math.hypot(v.y, v.z), l1 + l2 - 1e-3)
+        phi = math.degrees(math.atan2(v.y, -v.z))
+        beta = math.degrees(math.acos((l1 * l1 + r * r - l2 * l2) / (2 * l1 * r)))
+        knee = 180 - math.degrees(math.acos((l1 * l1 + l2 * l2 - r * r) / (2 * l1 * l2)))
+        thigh = phi + beta + lean
+        legs.append((thigh, knee, SIT_FOOT_DEG + lean - thigh + knee))
+    p = Pose(hip, lean, head, legs, hands, SIT_POLE, splay=splay)
+    p.torso_k = torso_k
+    p.collapse = True
+    print("SIT: растяжение торса %.3f;" % torso_k)
+    print("SIT: lean %.2f (спинка %.1f), голова %d, сдвиг таза %s, splay %.3f, глаза %s -> %s, ошибка %.1f мм;"
+          " THIGH %.3f SHIN %.3f SPINE %.3f CHEST %.3f" % (
+              lean, seat["backrest_angle_deg"], head, shift, splay, eye_of(p), eye_t,
+              1000 * (eye_of(p) - eye_t).length, D.THIGH, D.SHIN, D.SPINE, D.CHEST))
+    return p
 
 
 def _ease(t: float, t0: float, t1: float) -> float:
@@ -1145,6 +1227,24 @@ def skin(ob, arm) -> None:
 REST_HIPS = Vector((0, 0.2, 0))
 
 
+def sole_low(body, arm, nrm=Vector((0, 0, 1))) -> list:
+    """Нижняя вершина подошв (материал Sole) левого и правого ботинка по направлению nrm в текущей позе."""
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = body.evaluated_get(dg)
+    me = ev.to_mesh()
+    idx = [i for i, m in enumerate(body.data.materials) if m and m.name == "Sole"]
+    low = [1e9, 1e9]
+    for poly in me.polygons:
+        if poly.material_index not in idx:
+            continue
+        for vi in poly.vertices:
+            w = ev.matrix_world @ me.vertices[vi].co
+            k = 0 if w.x < 0 else 1
+            low[k] = min(low[k], w.dot(nrm))
+    ev.to_mesh_clear()
+    return low
+
+
 def main() -> None:
     global REST_HIPS
     params = U.load_json("tools/blender/glider_params.json")
@@ -1288,7 +1388,8 @@ def main() -> None:
     ad.pose_position = "POSE"
     # анимации
     arm.animation_data_create()
-    for aname, frames in all_poses.items():
+
+    def make_action(aname, frames):
         act = bpy.data.actions.new(aname)
         act.use_fake_user = True
         arm.animation_data.action = act
@@ -1300,6 +1401,14 @@ def main() -> None:
             if max(pose.reach_gap) > gap:
                 gap, gap_f = max(pose.reach_gap), fi + 1
             for name, m in pm.items():
+                if pose.collapse and (name in POD_BONES or name == "Strap"):
+                    pb = arm.pose.bones[name]
+                    pb.rotation_mode = "QUATERNION"
+                    pb.location, pb.rotation_quaternion, pb.scale = (
+                        (0, 0, 0), (1, 0, 0, 0), (COLLAPSE, COLLAPSE, COLLAPSE))
+                    for path in ("location", "rotation_quaternion", "scale"):
+                        pb.keyframe_insert(path, frame=fi + 1)
+                    continue
                 rm = rest_m[name]
                 rmn = bone_matrix(rest[name][0], rest[name][1], rest[name][2])
                 corr = rmn.inverted() @ rm   # поправка на крен кости, выставленный Blender
@@ -1322,6 +1431,33 @@ def main() -> None:
         track.name = aname
         track.strips.new(aname, 1, act)
         track.mute = True
+
+    for aname, frames in all_poses.items():
+        make_action(aname, frames)
+
+    # sit: низ подошв по мешу (с учётом скиннинга) — на подножках ± 1 см; поправка к цели голеностопа
+    seat = U.load_json("tools/blender/trike_params.json")["seat"]
+    fa = math.radians(SIT_FOOT_DEG)
+    nrm = Vector((0, math.cos(fa), math.sin(fa)))   # нормаль педали (подошвы) вверх
+    tgt = (Vector(seat["foot_l"]).dot(nrm), Vector(seat["foot_r"]).dot(nrm))
+    for it in range(4):
+        act = bpy.data.actions["sit"]
+        arm.animation_data.action = act
+        bpy.context.scene.frame_set(1)
+        bpy.context.view_layer.update()
+        low = sole_low(body, arm, nrm)
+        err = [low[i] - tgt[i] for i in range(2)]
+        print("SIT: низ подошв L/R %.4f / %.4f, цель %.4f / %.4f, ошибка %.1f / %.1f мм (итерация %d)" % (
+            low[0], low[1], tgt[0], tgt[1], 1000 * err[0], 1000 * err[1], it))
+        if max(abs(e) for e in err) < 0.002:
+            break
+        SIT_DZ[0] -= err[0]
+        SIT_DZ[1] -= err[1]
+        for tr in [t for t in arm.animation_data.nla_tracks if t.name == "sit"]:
+            arm.animation_data.nla_tracks.remove(tr)
+        bpy.data.actions.remove(act)
+        all_poses["sit"] = [sit_pose(seat, SIT_DZ)]
+        make_action("sit", all_poses["sit"])
     arm.animation_data.action = bpy.data.actions["prone"]
     os.makedirs(U.MODELS, exist_ok=True)
     out_models = os.environ.get("PILOT_OUT") or U.MODELS

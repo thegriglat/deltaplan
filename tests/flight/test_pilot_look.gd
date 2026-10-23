@@ -1,5 +1,5 @@
 extends TestCase
-## PilotLook: целевые поверхности получили шейдер, Glove/GlovePanel/Skin не тронуты, enabled:false — как в glb.
+## PilotLook: целевые поверхности получили шейдер, Glove/Skin не тронуты, enabled:false — как в glb.
 
 
 func _load() -> Node:
@@ -30,7 +30,7 @@ func test_pilot_look() -> void:
 	for k: String in PilotLook.KINDS:
 		check(m[k] is ShaderMaterial, "%s получил шейдер" % k)
 		check((m[k] as ShaderMaterial).shader.code.length() > 100, "%s: код шейдера" % k)
-	for k: String in ["Glove", "GlovePanel", "Skin"]:
+	for k: String in ["Glove", "Skin"]:
 		check(m[k] is BaseMaterial3D, "%s не тронут" % k)
 	check(PilotLook.apply(n, cfg) == 0, "повторно не заменяет")
 	n.free()

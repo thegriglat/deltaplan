@@ -1,7 +1,7 @@
 {
   "shoulder_mid": [
     0.0,
-    -1.0421,
+    -1.123,
     0.3478
   ],
   "trim_pitch_deg": {
@@ -42,6 +42,7 @@
     "sport": 6.608,
     "target": 3.978,
     "training": 3.587,
+    "trike_ixess15": -0.1,
     "ww_cross_country": 4.708,
     "ww_eagle": 3.781,
     "ww_fusion": 3.875,

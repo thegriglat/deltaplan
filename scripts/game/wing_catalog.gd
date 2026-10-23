@@ -8,11 +8,42 @@ const GROUPS_CONFIG := "wing_groups"
 const CLASSES_CONFIG := "wing_classes"
 
 
-## Группы по порядку: [{id, name, hint}] (name, hint — ключи перевода).
+## Группы для игрока по порядку: [{id, name, hint}] (name, hint — ключи перевода). Скрытые группы
+## ("player": false в configs/wing_groups.json — крылья буксировщиков, TT-К2) не входят; все — all_groups().
 static func groups() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for g in all_groups():
+		if bool(g.get("player", true)):
+			out.append(g)
+	return out
+
+
+## Все группы файла, включая скрытые от игрока.
+static func all_groups() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for g: Dictionary in Config.get_config(GROUPS_CONFIG).get("groups", []):
 		out.append(g)
+	return out
+
+
+## Крыло ("wings/<id>" или "<id>") доступно игроку и ботам: существует и его группа не скрыта.
+static func is_player_wing(wing_path: String) -> bool:
+	var path := _path(wing_path)
+	if not Config.list_configs("wings").has(path):
+		return false
+	var gid := String(Config.get_config(path).get("group", ""))
+	for g in all_groups():
+		if String(g.get("id", "")) == gid:
+			return bool(g.get("player", true))
+	return true
+
+
+## Все крылья игрока ("wings/<id>"): без крыльев скрытых групп.
+static func player_wings() -> PackedStringArray:
+	var out := PackedStringArray()
+	for w in Config.list_configs("wings"):
+		if is_player_wing(String(w)):
+			out.append(String(w))
 	return out
 
 

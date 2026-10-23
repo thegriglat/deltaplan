@@ -41,10 +41,20 @@ var day: int = 15
 var apparatus: Dictionary = {}
 ## Цели полёта (GL-К1): [GoalSpec-словарь]; пусто — полёт без целей.
 var goals: Array = []
+## Буксировка при старте (TW-К7): "" — нет, "winch_static" — лебёдка, "aerotow" — Ан-2.
+var tow_kind: String = ""
+## Аппарат старта (TP-К5): "glider" — дельталёт-планер (дельтаплан), "trike" — дельталёт (с мотором).
+## При "trike" tow_kind = "".
+var vehicle: String = "glider"
 ## Показать след прошлой попытки на этом месте (GL-К1).
 var show_last_track: bool = false
 ## Загруженные IGC/GPX (GL-К1), абсолютные пути.
 var track_paths: PackedStringArray = []
+
+## Допустимые виды буксировки (TW-К7).
+const TOW_KINDS := ["winch_static", "aerotow"]
+## Допустимые аппараты (TP-К5).
+const VEHICLES := ["glider", "trike"]
 
 ## Ключи PD-К3: [мин, макс, шаг, запасное умолчание] (docs/contracts/pendulum.md).
 const APPARATUS_SPEC := {
@@ -72,6 +82,21 @@ static func apparatus_defaults(wing_id: String = "") -> Dictionary:
 	for k: String in APPARATUS_SPEC:
 		d[k] = _clamp_apparatus(k, float(wing_def.get(k, file.get(k, APPARATUS_SPEC[k][3]))))
 	return d
+
+
+## Неизвестный вид буксировки → "" (TW-К7).
+static func normalize_tow(k: String) -> String:
+	return k if k in TOW_KINDS else ""
+
+
+## Неизвестный аппарат → "glider" (TP-К5).
+static func normalize_vehicle(v: String) -> String:
+	return v if v in VEHICLES else "glider"
+
+
+## Старт дельталётом возможен: у места есть блок `tow` и это не сеть (TP-К5).
+static func trike_allowed(site: Dictionary, multiplayer: bool) -> bool:
+	return not multiplayer and site.get("tow") is Dictionary
 
 
 static func _clamp_apparatus(k: String, v: float) -> float:
@@ -209,6 +234,8 @@ func to_dict() -> Dictionary:
 		"day": day,
 		"apparatus": apparatus.duplicate(true),
 		"goals": goals.duplicate(true),
+		"tow_kind": tow_kind,
+		"vehicle": vehicle,
 		"show_last_track": show_last_track,
 		"track_paths": Array(track_paths),
 	}
@@ -229,6 +256,10 @@ static func from_dict(d: Dictionary, base: FlightSettings = null) -> FlightSetti
 	var lon: Variant = d.get("pick_lon")
 	s.pick_lat = float(lat) if lat != null else NAN
 	s.pick_lon = float(lon) if lon != null else NAN
+	s.tow_kind = normalize_tow(String(d.get("tow_kind", s.tow_kind)))
+	s.vehicle = normalize_vehicle(String(d.get("vehicle", s.vehicle)))
+	if s.vehicle == "trike":
+		s.tow_kind = ""
 	var slat: Variant = d.get("start_lat")
 	var slon: Variant = d.get("start_lon")
 	var shead: Variant = d.get("start_heading_deg")

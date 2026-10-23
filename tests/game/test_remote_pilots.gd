@@ -206,9 +206,13 @@ func test_pilot_rel_pendulum_only() -> void:
 	rp.tick(0.016)
 	check(a.pilot_rel.is_equal_approx(Vector3(0.1, -1.1, 0.0)), "set_pose обновляет pilot_rel")
 	# другой режим → поза по вводу
+	rp.set_pose("1", Vector3(0, 300, 0), Basis.IDENTITY, Vector3.ZERO, "flying", "RATE", null)
+	rp.tick(0.016)
+	check(not a.pilot_rel_valid, "RATE → не valid")
+	# номер 2 (удалённый WEIGHT_SHIFT) — как «не передано» (RM-К1)
 	rp.set_pose("1", Vector3(0, 300, 0), Basis.IDENTITY, Vector3.ZERO, "flying", "WEIGHT_SHIFT", null)
 	rp.tick(0.016)
-	check(not a.pilot_rel_valid, "WEIGHT_SHIFT → не valid")
+	check(not a.pilot_rel_valid and rp.get_pilot("1").control_mode == "", "WEIGHT_SHIFT → как не передано")
 	# pilot_rel без режима (режим не пришёл) → не valid
 	rp.upsert(state("2", "flying", Vector3(0, 300, 0), {"pilotRel": {"x": 0.0, "y": -1.2, "z": 0.0}}))
 	check(not rp.get_pilot("2").agent.pilot_rel_valid, "режима нет → не valid")

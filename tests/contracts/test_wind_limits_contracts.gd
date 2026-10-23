@@ -34,7 +34,7 @@ func test_class_table_complete() -> void:
 
 func test_every_wing_has_class() -> void:
 	var wings := Config.list_configs("wings")
-	check(wings.size() == 48, "крыльев: %d" % wings.size())
+	check(wings.size() == 49, "крыльев: %d" % wings.size())
 	var counts := {1: 0, 2: 0, 3: 0, 4: 0}
 	for w in wings:
 		var cfg := Config.get_config(w)
