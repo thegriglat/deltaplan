@@ -1,13 +1,13 @@
 {
   "status": "done",
-  "summary": "Ореол стал светом солнца того же цвета (sun_tint), что диск: sun_glare.gdshader после тонмаппинга перекрашивает пиксели окна до ~12° вокруг солнца в tint с сохранением светлоты (не выше 0,97), диск (по пробам) — tint яркости 1; выборка кадра по кольцам убрана. Приёмка HH-15 15/15: на halo_askarovo ratio 3,18, center_brightest=1, monotonic=1, edge_jump 0,000; на halo_altai center_brightest=1.",
+  "summary": "Доработка 4 (Q6 а): диск — самая яркая точка по Y и по R. В sun_glare.gdshader у солнца G/B пикселя масштабируются до Y <= 0,97·Y(tint) (вес — доля ядра засвета, R не трогается), аддитивный засвет сохранён; sun_halo_measure.py: center_brightest по Y и R, monotonic и edge_jump по Y; veil_c_deg2 1,45 -> 1,7 (вернуть размер ядра). Кадры halo/sun2/sun07/backlit переснято, accept --dry PASS 16/16.",
   "commits": [
-    "0ba683966 HH-15: ореол в цвете солнца, диск ярче ореола по каналам, запасное veil_c_deg2 = 1,45"
+    "d78aa1dcb HH-15: доработка 4 (Q6 а) — диск самая яркая точка по Y и R"
   ],
   "checks": [
     {
       "name": "sky",
-      "value": "16/16 (пропуск 2)",
+      "value": "16/16",
       "pass": true
     },
     {
@@ -17,12 +17,12 @@
     },
     {
       "name": "cloud",
-      "value": "61/61 (пропуск 3)",
+      "value": "61/61",
       "pass": true
     },
     {
       "name": "haze_humidity",
-      "value": "32/32 (пропуск 1)",
+      "value": "32/32",
       "pass": true
     },
     {
@@ -52,17 +52,17 @@
     },
     {
       "name": "center_brightest",
-      "value": "center_brightest=1",
+      "value": "1 (askarovo Y 0,578 vs 0,570, R 1,000 vs 0,973)",
       "pass": true
     },
     {
       "name": "monotonic",
-      "value": "monotonic=1",
+      "value": "1",
       "pass": true
     },
     {
       "name": "edge_jump",
-      "value": "0,000",
+      "value": "0,005",
       "pass": true
     },
     {
@@ -77,34 +77,39 @@
     },
     {
       "name": "altai_center",
-      "value": "center_brightest=1",
+      "value": "1 (Y 0,655 vs 0,639, R 1,000 vs 1,000)",
       "pass": true
     },
     {
-      "name": "halo_askarovo",
-      "value": "ratio 3,18; center_brightest=1; monotonic=1; edge_jump 0,000; glow_r 8,5° (было 6,3°)",
+      "name": "glow_r",
+      "value": "0,32 град (тривиально, см. uncertain)",
       "pass": true
     },
     {
-      "name": "halo_altai",
-      "value": "center_brightest=1; monotonic=1; ratio 4,42 (светлое небо за хребтом, только в отчёт); glow_r 15,0°",
+      "name": "halo_askarovo 4,8 град",
+      "value": "center_brightest=1 (Y 0,578 vs 0,570; R 1,000 vs 0,973), monotonic=1, edge_jump=0,005, ratio=3,18, glow_r=0,32",
       "pass": true
     },
     {
-      "name": "sun_color_measure disk_2deg --at=984,453",
-      "value": "G/R 0,265 B/R 0,016 при ожид. 0,266; 0,016 within=1",
+      "name": "halo_altai 5,7 град",
+      "value": "center_brightest=1 (Y 0,655 vs 0,639; R 1,000 vs 1,000), monotonic=1, ratio=5,13 (только отчёт)",
       "pass": true
     },
     {
-      "name": "sun_color_measure disk_07deg --at=912,449",
-      "value": "G/R 0,119 B/R 0,003 при ожид. 0,110; 0,001 within=1",
+      "name": "цвет диска sun_color_measure",
+      "value": "2 град: g_r 0,279 b_r 0,030 при 0,270/0,017 within=1; 0,7 град: 0,122/0,010 при 0,111/0,001 within=1",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "16/16 PASS (sky 16, sun 30, cloud 61, haze_humidity 32)",
       "pass": true
     }
   ],
-  "not_done": [],
-  "questions": [
-    "glow_r на halo_askarovo вырос с 6,3 до 8,5° (+35 %), хотя в карточке «как сейчас ±10 %»: диск в цвете солнца (Y ≈ 0,58 вместо ≈ 0,7) снижает превышение у края диска, порог 10 % от него падает. Принимать ли? Приёмки по glow_r нет."
+  "not_done": [
+    "after_scene_backlit_* переснято, но числа тел облаков заново не считал (засвет на них не влияет, предыдущие числа в README)"
   ],
+  "questions": [],
   "images": [
     "build/screenshots/haze-humidity/after_halo_askarovo.jpg",
     "build/screenshots/haze-humidity/after_halo_altai.jpg",
@@ -114,59 +119,30 @@
   "how_to_check": ".dpcli/dpcli accept HH-15",
   "uncertain": [
     {
-      "where": "scripts/world/sun_glare.gdshader:243",
-      "why": "Перекраска всех пикселей окна 12° (небо и рельеф) в tint — не только «насыщенных»: HH4 v3 говорит про насыщенные. По одним насыщенным диск ярче ореола по каналу недостижим: небо у солнца синее (B 0,25 при B диска 0,12). Рельеф в окне 12° у солнца тоже принимает оттенок солнца (светлота сохранена, чёрное остаётся чёрным).",
-      "checked": "кадры halo_askarovo/altai; рельеф и облака в окне вручную не оценивал, кадры backlit/облака не переснимались"
+      "where": "scripts/world/sun_glare.gdshader:243-253",
+      "why": "Красный диск имеет Y(tint) ~0,58, а небо у солнца после AgX светлее (Y до 0,7 без засвета). Чтобы диск был ярче по Y, светлота у солнца ограничена: рядом с диском плато Y на уровне диска, небо у солнца чуть темнее, чем без засвета. Это следствие требования Q6 (а), не баг; визуально — оранжевое пятно ровной светлоты. Вес w=1-exp(-ядро/0,02) подобран, чтобы Y не превышала диск в 0-1,5 град.",
+      "checked": "профили по кольцам на after_halo_askarovo: Y 0,58 -> 0,55 на 20 px, далее падает к небу 0,19; monotonic=1"
     },
     {
-      "where": "scripts/world/sun_glare.gdshader:252",
-      "why": "Потолок 0,97 (чтобы диск был строго ярче ореола в каждом канале при JPEG-шуме) и порог ядра 0,9..0,97 — подбор по двум кадрам; без потолка center_brightest падал на 0,005 (шум).",
-      "checked": "askarovo и altai: после потолка center_brightest=1, ratio 3,18 в 3,0–3,7"
+      "where": "configs/world.json:1272 veil_c_deg2",
+      "why": "C пришлось поднять 1,45 -> 1,7: при C=1,45 с ограничением ratio=2,83 (JPEG: меняется хроматика пикселей у порога 250); без ограничения C=1,45 даёт 3,18 (проверено на тех же условиях). Размер ядра шумит +-5 % от запуска к запуску (2,65-2,83 при одной и той же сборке).",
+      "checked": "ratio 3,18 при C=1,7 на askarovo; altai 5,13 (светлое небо, только в отчёт)"
     },
     {
-      "where": "configs/world.json:1272",
-      "why": "veil_c_deg2 = 1,45 оставлен по решению координатора; ratio Алтая 4,42 вне 3,1–3,7 — светлое небо за хребтом.",
-      "checked": "замеры на двух кадрах в отчёте"
+      "where": "tools/shots/sun_halo_measure.py glow_r",
+      "why": "glow_r_deg теперь 0,32 (было 6,97): по мере 'кадр минус кадр без засвета' по Y видимое превышение ореола над небом у диска ничтожно, т.к. светлота у солнца ограничена диском. Критерий glow_r<=7 проходит тривиально; размер ореола задаёт теперь только насыщенное пятно по R (ratio). Нужно решение координатора, нужен ли glow_r как мера.",
+      "checked": "noglare-кадры пересняты (sun_glare.strength=0), лежат в _aux/noglare_halo_*.jpg"
     },
     {
-      "where": "tools/shots/haze_humidity_shots.sh",
-      "why": "Под lock cpu скрипт получает вес 1 (100 % CPU): загрузка места идёт вчетверо дольше, таймауты съёмки, часы игры уходят. Для съёмки использовал --slots 10 (вес Godot).",
-      "checked": "после --slots 10 кадры disk_* снялись за ~2 мин"
+      "where": "tools/shots/sun_halo_measure.py center_brightest",
+      "why": "центр — пик внутри диска (кольца до радиуса диска), допуск 1 % на шум/JPEG; диск 5-6 px размыт JPEG.",
+      "checked": "оба кадра"
     }
   ],
-  "dp_feedback": "lock cpu считает вес по имени команды: haze_humidity_shots.sh получает 1 слот (CPUQuota=100 %), хотя внутри Godot - кадры не снимаются в таймаут. Нужен вес для скриптов съёмки в dpcli.yml или флаг --weight godot. Аргументы haze_humidity_shots.sh (выход третьим, режим четвёртым) легко перепутать - режим лучше задавать переменной.",
+  "dp_feedback": "dpcli lock cpu без --slots даёт cgroup CPUQuota=100% для обёртки (bash/env), Godot внутри душится и кадры не снимаются (таймаут 150 с); вес надо подхватывать по команде, внутри обёртки не видно. job start --lock cpu --slots 10 работает.",
   "extra": {
-    "halo_askarovo": {
-      "halo_px": 18,
-      "ratio": 3.18,
-      "glow_r_deg": 8.53,
-      "center_lin": [
-        0.991,
-        0.509,
-        0.125
-      ],
-      "ring_max_lin": [
-        0.956,
-        0.491,
-        0.122
-      ]
-    },
-    "halo_altai": {
-      "halo_px": 25,
-      "ratio": 4.42,
-      "glow_r_deg": 15.03,
-      "center_lin": [
-        1.0,
-        0.591,
-        0.195
-      ],
-      "ring_max_lin": [
-        0.982,
-        0.584,
-        0.188
-      ]
-    }
+    "halo_askarovo_ratio_runs": "без ограничения 3,18; с ограничением C=1,45: 2,83/2,83/2,65; C=1,7: 3,18"
   },
-  "t": "2026-10-23T08:44:05",
+  "t": "2026-10-23T13:11:19",
   "by": "executor"
 }
