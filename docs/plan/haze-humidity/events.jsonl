@@ -513,3 +513,4 @@
 {"t": "2026-10-23T08:14:24", "by": "executor", "task": "HH-4d", "ev": "reported", "commits": ["dd296aaeb"], "note": "done: Опорные прогнозы слабого и среднего дня сдвинуты под ERA5 2011-2020: слабый +20->+21 °C, средний +24,5->+26 °C (сильный…"}
 {"t": "2026-10-23T08:24:43", "by": "coordinator", "task": "HH-4d", "ev": "checked", "note": "3/3 weather=ok:19/19; goal=ok:103/103; haze_humidity=ok:29/29"}
 {"t": "2026-10-23T08:24:57", "by": "coordinator", "task": "HH-4d", "ev": "accepted", "note": "по отчёту: опорные прогнозы weak +21, medium +26 (strong/storm без изменений); strong: cb_chance 0,35 против эталона 0 — граница (на ERA5-воздухе Алтая сильный день без Cb не достигается)"}
+{"t": "2026-10-23T08:24:58", "by": "coordinator", "task": "HH-4d", "ev": "merged", "commits": ["75aa77a8d"]}
