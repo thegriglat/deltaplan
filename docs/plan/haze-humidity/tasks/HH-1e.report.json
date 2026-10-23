@@ -1,0 +1,96 @@
+{
+  "status": "done",
+  "summary": "Запечена data/climate/surface_t_1deg.bin (HH5 v1, 1 594 756 Б): TX/DTR по месяцам из среднего хода ERA5 CDS 2011–2020 + поправка недобора по суточным max/min ARCO 1° 2018–2019. Градиент Tmax −5,5…−7,8 К/км, амплитуды 0…−1,5 К/км; сверка таблиц в sites.csv.",
+  "commits": [
+    "haze-humidity HH-1e: сетка Tmax и амплитуды ERA5 2011–2020 (HH5), градиент, сверка, README"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "grid_size",
+      "value": "1594756 байт <= 2097152",
+      "pass": true
+    },
+    {
+      "name": "диапазоны",
+      "value": "TX -61.1..47.8 C; DTR 0.45..20.4 K; клиппинга и пропусков нет",
+      "pass": true
+    },
+    {
+      "name": "Godot filter=haze_humidity",
+      "value": "8 тестов, 0 упало, 1 пропуск (upper_air — не наш)",
+      "pass": true
+    },
+    {
+      "name": "grid_contract",
+      "value": "8 тестов, 0 упало",
+      "pass": true
+    },
+    {
+      "name": "grid_present",
+      "value": "test_surface_t_format ok, не skip",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "sites",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "CDS daily-statistics отменены (очередь 2,5–5 ч на файл): запрос удалён на сервере; поправка из ARCO 1° (HH-18)."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-1e",
+  "uncertain": [
+    {
+      "where": "tools/research/haze_humidity/surface_t/aggregate.py",
+      "why": "Поправка недобора по UTC-суткам, не местным; поправка по 2 годам",
+      "checked": "доля ячеек с пиком у границы UTC: 3,8% суши (макс), 14,6% (мин); Dx там ~0,7 К выше; полуразность 2018/2019 медиана 0,07 К (p95 0,34)"
+    },
+    {
+      "where": "sites.csv",
+      "why": "Градиент Tmax -6..-7 К/км из регрессии по подклеткам 0.25° (p10..p90 -9,7..-3,4); перенос в долину неточен",
+      "checked": "пул по поясам и сезонам, региональные значения в gradient.json"
+    },
+    {
+      "where": "README.md",
+      "why": "1° консервативный пересчёт на побережье смешивает сушу и воду",
+      "checked": "RMSE ARCO 1° против CDS daily 0,4–0,5 К (HH-17); средний ход CDS и ARCO 2018: RMSE 0,39 К, сдвига по часам нет"
+    }
+  ],
+  "dp_feedback": "Godot в accept без предварительного --import под lock упирается в таймаут 900 с; lock cpu при запуске в фоне возвращает управление до конца задачи — результат только в логе job. Корректные 'ждать/опрашивать' тулы нужны вместо sleep.",
+  "extra": {
+    "tx_gradient_k_per_km_30_60N": {
+      "DJF": -5.7,
+      "MAM": -7.8,
+      "JJA": -7.4,
+      "SON": -6.6,
+      "year": -6.9
+    },
+    "tx_gradient_k_per_km_tropics": -5.5,
+    "dtr_gradient_k_per_km_30_60N_year": -1.0,
+    "Dx_land_p50_K": 0.5,
+    "Dn_land_p50_K": -0.7,
+    "table_vs_era5_altai_dTX_mean_K": 3.0,
+    "table_vs_era5_darab_dTX_mean_K": 21.9,
+    "table_vs_era5_cairns_dTX_mean_K": 20.4
+  },
+  "t": "2026-10-23T06:27:15",
+  "by": "executor"
+}

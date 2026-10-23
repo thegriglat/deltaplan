@@ -92,22 +92,37 @@
     },
     {
       "name": "center_brightest",
-      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo2_askarovo.jpg",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
       "expect": "re:center_brightest=1"
     },
     {
       "name": "monotonic",
-      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo2_askarovo.jpg",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
       "expect": "re:monotonic=1"
     },
     {
       "name": "edge_jump",
-      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo2_askarovo.jpg",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
       "expect": "num:edge_jump=([\\d.]+) <=0.15"
+    },
+    {
+      "name": "halo_ratio",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "num:ratio=([\\d.]+) >=3.0"
+    },
+    {
+      "name": "halo_ratio_max",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "num:ratio=([\\d.]+) <=3.7"
+    },
+    {
+      "name": "altai_center",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_altai.jpg",
+      "expect": "re:center_brightest=1"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T01:33:54",
-  "edited": "2026-10-23T03:58:11"
+  "edited": "2026-10-23T06:29:15"
 }

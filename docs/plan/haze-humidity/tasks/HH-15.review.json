@@ -1,0 +1,75 @@
+{
+  "verdict": "rework",
+  "summary": "Скоуп и контракт HH4 v3 по свету/sky_k/экспозиции соблюдены, цвет диска within=1 подтверждён (2°: 0,304/0,038; 0,7°: 0,135/0,011). Но требование пользователя «диск ярче ореола по каждому каналу, профиль монотонный» на настоящем кадре ореола (halo_askarovo 4,8°) не выполнено; приёмочный кадр halo2 проходил и до правки — проверка ничего не доказывает.",
+  "issues": [
+    {
+      "file": "scripts/world/sun_glare.gdshader",
+      "line": 262,
+      "severity": "blocker",
+      "what": "Жалоба пользователя (диск темнее ореола) на after_halo_askarovo.jpg (4,8°) осталась: center_brightest=0, центр (0,939; 0,515; 0,162) против кольца (0,991; 0,680; 0,431), monotonic=0 (rises=6). На after_halo_altai.jpg center_brightest=0, на after_scene_disk_2deg/07deg monotonic=0 (rises 7/6). Ядро перекрашено в tint с R = 1, а ореол рядом белее по G/B после AgX, поэтому оба требования (диск = sun_tint и диск ≥ ореол по каналу) одновременно не выполняются. Физически ореол у солнца того же цвета, что солнце, белеет он из-за тонмаппинга.",
+      "fix": "Сохранять цветность ореола/короны вблизи диска так же, как у диска (то же выбеливание AgX), либо получить у координатора/пользователя решение, какое требование главнее. Перемерить sun_halo_measure.py на halo_askarovo, halo_altai, disk_2deg, disk_07deg и записать все числа в отчёт."
+    },
+    {
+      "file": "tools/shots/sun_halo_measure.py",
+      "line": 0,
+      "severity": "major",
+      "what": "Отчёт ≠ факт: PASS по after_halo2_askarovo не подтверждает исправления. Мера там не нашла ореол (halo_px=2, ratio=0,35, центр (1892,485) у края кадра, offset_px=1029). before_halo2_askarovo тоже даёт center_brightest=1 и edge_jump=0,086 ≤ 0,15. Отказ на halo_askarovo в отчёте не назван, есть только намёк в uncertain.",
+      "fix": "Мерить с позицией солнца (--at/проекция sun_px), чтобы не цеплялась труба трапеции. Координатору: сменить приёмочный кадр на halo_askarovo (ореол виден) или добавить его."
+    },
+    {
+      "file": "configs/world.json",
+      "line": 1272,
+      "severity": "major",
+      "what": "veil_c_deg2 = 1,45 подобран по одному кадру (перебор трёх значений), хотя HH4 v3 требует «не по кадру». На втором кадре after_halo_altai ratio=4,42: это вне 3,1–3,7 и вне допуска HH-11 2,8–4,0. Размер ореола не держится.",
+      "fix": "Проверить ratio/glow_r минимум на двух кадрах (askarovo, altai) и выбрать C, при котором оба в допуске, или объяснить расхождение физикой (высота солнца/дымка). Числа — в отчёт."
+    },
+    {
+      "file": "scripts/world/sun_glare.gdshader",
+      "line": 244,
+      "severity": "minor",
+      "what": "HH4 v3 требует перекрашивать после тонмаппинга «только насыщенные пиксели». Сейчас перекрашивается всё ядро. Яркость поднимается до максимума пикселей кадра на 3–40 радиусах (до 12°), то есть зависит от облаков рядом, и через smoothstep(0,5; 0,9) прижимается к 1. Это особый случай без опоры на модель.",
+      "fix": "Либо обосновать в коде и в руководстве (солнце всегда самое яркое — тогда честнее lvl = 1 при видимом диске, без выборки кадра), либо согласовать формулировку с координатором."
+    },
+    {
+      "file": "scripts/world/sun_glare.gd",
+      "line": 89,
+      "severity": "minor",
+      "what": "Запасное значение veil_c_deg2 в коде 1,08, а в конфиге 1,45 — значения разошлись.",
+      "fix": "Поставить 1,45 или читать через Config.value без своего числа."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "sun_color_measure after_scene_disk_2deg --at=972,449",
+      "value": "g_r 0,304 b_r 0,038 within=1",
+      "pass": true
+    },
+    {
+      "name": "sun_color_measure after_scene_disk_07deg --at=915,446",
+      "value": "g_r 0,135 b_r 0,011 within=1",
+      "pass": true
+    },
+    {
+      "name": "sun_halo_measure after_halo2_askarovo",
+      "value": "center_brightest=1 monotonic=1 edge_jump=0,109, но ratio=0,35 и offset_px=1029 (ореол не найден); before тоже center_brightest=1",
+      "pass": false
+    },
+    {
+      "name": "sun_halo_measure after_halo_askarovo",
+      "value": "ratio 3,18, glow_r 6,34°, center_brightest=0, monotonic=0",
+      "pass": false
+    },
+    {
+      "name": "sun_halo_measure after_halo_altai",
+      "value": "ratio 4,42, center_brightest=0",
+      "pass": false
+    },
+    {
+      "name": "accept --dry no_tables/research/docs/frames/no_masks",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-23T06:28:40",
+  "by": "reviewer"
+}
