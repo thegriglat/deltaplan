@@ -1,0 +1,53 @@
+{
+  "id": "CL-4",
+  "module": "cliff-look",
+  "type": "dp-engineer",
+  "title": "Кадры «после» и итоговые числа",
+  "goal": "Снять стендом CL-К1 кадры «после» всех ракурсов на ветке модуля (CL-2 и CL-3 влиты) и числа diag_metrics до/после; таблица в README. Код игры не меняется.",
+  "plan_ref": "§CL-4",
+  "contracts": [
+    {
+      "name": "CL-К1",
+      "version": "3",
+      "ref": "docs/contracts/cliff-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-cliff-look-CL-4",
+  "branch": "cliff-look/CL-4",
+  "base": "feature/cliff-look",
+  "scope": [
+    "tools/research/cliff_look/README.md",
+    "tools/research/cliff_look/diag_after.*"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tools/shots/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "shots_after",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cliff-look/after_*.jpg | wc -l | sed 's/^/SHOTS /'",
+      "expect": "num:SHOTS (\\d+) >=10"
+    },
+    {
+      "name": "stripes",
+      "cmd": "python3 -I tools/research/cliff_look/compare.py tools/research/cliff_look/diag_before.json tools/research/cliff_look/diag_after.json",
+      "expect": "num:STRIPES_RATIO ([0-9.]+) <=0.5"
+    },
+    {
+      "name": "large",
+      "cmd": "python3 -I tools/research/cliff_look/compare.py tools/research/cliff_look/diag_before.json tools/research/cliff_look/diag_after.json",
+      "expect": "num:LARGE_RATIO ([0-9.]+) >=1.2"
+    },
+    {
+      "name": "readme",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | grep -c 'ОШИБКА.*cliff_look' | sed 's/^/ERR /'",
+      "expect": "num:ERR (\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T07:07:39"
+}
