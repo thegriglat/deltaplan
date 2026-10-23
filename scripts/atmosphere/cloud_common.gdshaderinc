@@ -797,7 +797,7 @@ float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
 			h = max(h, 0.0);
 			d_in = 1e9;
 		} else {
-			d_in = min(d_side, h);
+			d_in = d_side;  // низ тает через base_soft (cf_base_soft), здесь — бока и верх
 		}
 	} else if (e <= 0.0 || h < 0.0) {
 		return 0.0;
@@ -827,7 +827,7 @@ float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
 	// Основание в одной воздушной массе общее (LCL), его разброс — от стадии: растущее — клочья (рваная
 	// нижняя кромка), тающее — приподнятое рваное (испарение снизу).
 	float rag = 1.0 + 2.5 * max(f.z, 0.0);
-	float base_soft = mix(max(cf_base_soft, 10.0), 120.0, decay) + 40.0 * max(f.z, 0.0);
+	float base_soft = mix(max(cf_base_soft, 10.0), max(cf_base_soft, 120.0), decay) + 40.0 * max(f.z, 0.0);
 	float base_lift = (base_relief_m * rag + decay * decay * 0.45 * min(top, 700.0)) * (1.0 - billow);
 	float dns = shape * smoothstep(base_lift, base_lift + base_soft, h);
 	if (dns <= 0.0) {
