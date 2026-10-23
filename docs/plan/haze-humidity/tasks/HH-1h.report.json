@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "summary": "Блок WR сетки HH6 посчитан из суточных u,v 700 гПа 2018–2019 (ARCO-ERA5 1°, 723 из 730 суток) / V10 тех же месяцев; stub_mask=0, файл 1 498 601 байт. README и sites.csv обновлены (WR, gain по HH2 z700, погрешность 2 лет, занижение модулем среднего).",
+  "commits": [
+    "cef81bcf7 HH-1h: клип WR 0,305…9,995 (контрактный тест), размер 1 499 247 байт",
+    "d7a0a8e40 Слияние feature/haze-humidity в haze-humidity/HH-1h"
+  ],
+  "checks": [
+    {
+      "name": "not_stub",
+      "value": "stub_mask=0",
+      "pass": true
+    },
+    {
+      "name": "grid_size",
+      "value": "1499247 <= 2097152",
+      "pass": true
+    },
+    {
+      "name": "WR медиана по ячейкам",
+      "value": "1.47-1.51 по месяцам; суша 1.6; 5-95%: 0.8-4.4 (янв, суша)",
+      "pass": true
+    },
+    {
+      "name": "разброс 2018 vs 2019 |dV700|/V700",
+      "value": "медиана 0.13-0.17 по месяцам",
+      "pass": true
+    },
+    {
+      "name": "сверка ARCO с CDS daily_mean u,v 700",
+      "value": "средняя |d| 0.13-0.15 м/с",
+      "pass": true
+    },
+    {
+      "name": "grid_contract",
+      "value": "тестов 36, 0 упало (accept --dry PASS)",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "docs check: ошибок 3 — все чужие (docs/plan/test-script-errors/*, docs/registry/findings.md 43 КБ); в моих файлах 0",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Поправка на среднее модуля (занижение) в сетку не внесена: оценка +2..+9 % только по июлю 2018 (3 суток); январь не получен (NaN в ARCO 10-12.01.2018)."
+  ],
+  "questions": [],
+  "how_to_check": "/home/greg/deltaplan/.dpcli/dpcli accept HH-1h --dry",
+  "uncertain": [
+    {
+      "where": "tools/research/haze_humidity/upper_misc/bake.py:12",
+      "why": "масштабы сжаты (wr 0.005, trop 10 м, hcc 0.001), иначе файл 2.69 МБ > 2 МБ; прежние trop/hcc перекодированы грубее",
+      "checked": "шаги много меньше погрешностей (TROP ±300-500 м, HCC sem ~0.01, WR ±15 %)"
+    },
+    {
+      "where": "data/climate/upper_misc_1deg.bin WR",
+      "why": "V10 ERA5 на 1° в горах сглажен: WR 3-6 в Алтае (gain 1.6-2.3/км против 0.6 в конфиге); ячейки выше ~2500 м: 700 гПа под землёй, WR<1, gain<0",
+      "checked": "числа по местам в README; читатель берёт max(z700-z_cell,500)"
+    },
+    {
+      "where": "WR 2 года",
+      "why": "погрешность ±15 % (разброс двух лет)",
+      "checked": "v7_diff_2018_2019"
+    },
+    {
+      "where": "accept HH-1h --dry",
+      "why": "grid_contract в accept упал по таймауту 900 с (очередь lock cpu 18/18), docs — 3 чужие ошибки docs check (test-script-errors, findings.md 43 КБ)",
+      "checked": "тест прогнан вручную под lock cpu: 0 упало; docs check ошибки не в моих файлах"
+    }
+  ],
+  "dp_feedback": "accept: grid_contract в очереди lock cpu ждёт >15 мин при занятых 18/18 слотах; docs check падает на чужих ошибках (test-script-errors, findings.md 43 КБ), не относящихся к задаче; job start через tmux-окно лога не пишет до конца (вывод буферизован).",
+  "t": "2026-10-23T18:07:58",
+  "by": "executor"
+}
