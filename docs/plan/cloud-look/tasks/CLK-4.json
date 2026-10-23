@@ -1,0 +1,75 @@
+{
+  "id": "CLK-4",
+  "module": "cloud-look",
+  "type": "dp-engineer",
+  "title": "Перистые: без мазков, завихрений и «древесины» (пункт 8)",
+  "goal": "Перистые без текстуры мазков/завихрений и кольцевого рисунка «древесины»: тонкие волокна и пряди вдоль ветра верхнего уровня; количество и высота перистых (HH6, погода) не меняются.",
+  "plan_ref": "§3 п.8",
+  "contracts": [
+    {
+      "name": "cloud-look",
+      "version": "1",
+      "ref": "docs/contracts/cloud-look.md"
+    },
+    {
+      "name": "haze-humidity",
+      "version": "3",
+      "ref": "docs/contracts/cloud-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-look-CLK-4",
+  "branch": "cloud-look/CLK-4",
+  "base": "feature/cloud-look",
+  "scope": [
+    "scripts/atmosphere/cirrus.gdshader",
+    "scripts/atmosphere/cirrus_layer.gd",
+    "configs/atmosphere.json",
+    "assets/textures/clouds/",
+    "tests/atmosphere/",
+    "tools/research/cloud_look/cirrus/",
+    "docs/guide/atmosphere/clouds.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/weather_model.gd",
+    "assets/textures/clouds/cloud_shape.png",
+    "assets/textures/clouds/cloud_detail.png",
+    "configs/world.json",
+    "tools/shots/menu_art.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "cirrus",
+      "tests": "cirrus"
+    },
+    {
+      "name": "weather_model",
+      "tests": "weather_model"
+    },
+    {
+      "name": "hazards",
+      "tests": "hazards"
+    },
+    {
+      "name": "cloud_look",
+      "tests": "cloud_look"
+    },
+    {
+      "name": "woodgrain_26",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/cirrus/result.json woodgrain_ratio_26",
+      "expect": "num:([0-9.]+) <=0.3"
+    },
+    {
+      "name": "swirl_12",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/cirrus/result.json swirl_ratio_12",
+      "expect": "num:([0-9.]+) <=0.5"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T19:38:14"
+}
