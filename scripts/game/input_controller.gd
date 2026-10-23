@@ -21,7 +21,11 @@ var mouse_captured := false
 ## Фазу сообщает главная сцена по телеметрии: на земле стоя W/S — шаг, A/D — поворот.
 var on_ground := true
 ## false — ввод игнорируется (меню, итог полёта): update() отдаёт нейтральное управление.
-var enabled := true
+var enabled := true:
+	set(v):
+		if not v:
+			_bar_look_held = false  # ПКМ отпущена в меню/паузе — событие до нас не дойдёт
+		enabled = v
 ## true — клавиши заняты свободной камерой (WASD двигает её): крыло без рук — трапеция в триме,
 ## на земле стоим.
 var hands_off := false
@@ -86,6 +90,10 @@ func set_mouse_captured(on: bool) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Состояние ПКМ пишем и при выключенном вводе: отпускание в меню/паузе не теряется.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		_bar_look_held = event.pressed
+		return
 	if not enabled:
 		return
 	if event.is_action_pressed("mouse_capture"):
@@ -93,9 +101,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	# Правая кнопка зажата — осмотреться (CameraRig крутит голову), трапеция
 	# держит последнее положение, пока кнопка не отпущена.
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
-		_bar_look_held = event.pressed
-		return
 	# Мышь — трапеция и на земле, и в полёте (У1 v3): смещение копится всегда (при захвате),
 	# поэтому на отрыве трапеция непрерывна. Свободная камера (hands_off) — мышь крутит её, трапеция
 	# держит положение (иначе после возврата в кабину трапеция стояла бы, куда вела камера).
