@@ -1,0 +1,74 @@
+{
+  "status": "done",
+  "summary": "StartChoiceDialog (окно «Лететь»: буксировка нет/виды места, Дельтаплан, Дельталёт, Отмена), подключён в StartMenu._on_fly и main.gd _on_pick_fly; строка буксировки с вкладки «Место» удалена, trike_allowed(mp), locale, тесты обновлены. Продолжена незавершённая работа прежнего исполнителя.",
+  "commits": [
+    "f2bf20ab9 trike-anywhere: TA-К1 — окно выбора старта по «Лететь»"
+  ],
+  "checks": [
+    {
+      "name": "trike_anywhere_k1",
+      "value": "9/9",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot_k5",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "tow_k7",
+      "value": "6/6",
+      "pass": true
+    },
+    {
+      "name": "menu_setup",
+      "value": "12/12",
+      "pass": true
+    },
+    {
+      "name": "test_ui",
+      "value": "14/15, падает test_controls_screen_lists_keys (падает и на main)",
+      "pass": false
+    },
+    {
+      "name": "favorites",
+      "value": "5/5",
+      "pass": true
+    },
+    {
+      "name": "net_screen",
+      "value": "17/17",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "12 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "test_ui::test_controls_screen_lists_keys падает на main без моих правок (ControlsScreen, не мой скоуп) — кому отдать?"
+  ],
+  "how_to_check": ".dpcli/dpcli accept TA-1 --dry",
+  "uncertain": [
+    {
+      "where": "tests/ui/test_menu_setup.gd:34",
+      "why": "тест «9 кнопок» падал на HEAD: плашка безопасной графики (WindRestoreButton, 10-я кнопка) показывается в headless",
+      "checked": "исключил кнопку по имени в тесте; menu_setup 12/12"
+    },
+    {
+      "where": "scenes/main.gd _on_pick_fly",
+      "why": "ветка «Отмена → остаёмся в осмотре» проверена только чтением, не тестом",
+      "checked": "диалог не трогает панель точки до chosen"
+    }
+  ],
+  "dp_feedback": "lock cpu уводит вывод в лог job'а — неудобно для разовых запусков; --filter по имени теста дал 0 тестов, фильтр работает по имени файла.",
+  "t": "2026-10-23T19:59:08",
+  "by": "executor"
+}

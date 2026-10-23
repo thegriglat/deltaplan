@@ -1,0 +1,57 @@
+{
+  "status": "done",
+  "summary": "_choose_tow_start больше не отказывает по площадке без tow/виду и не проверяет рельеф (отказ только при сеть/воздух/нечисловые входы); площадка без tow — длина из Config, ширина TOW_DEFAULT_WIDTH_M, поляна вырубается. Контрактный тест TA-К2 и test_tow_session переписаны.",
+  "commits": [
+    "0517e1503 TA-К2: дельталёт и буксировка в любом месте без проверки рельефа"
+  ],
+  "checks": [
+    {
+      "name": "trike_anywhere_k2",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "trike_pilot_k6",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "tow_session",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "tow_aerotow",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "tow_k6",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "start_pick_game",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "gd",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TA-2",
+  "uncertain": [
+    {
+      "where": "scripts/game/game.gd:_choose_tow_start",
+      "why": "TowSite.check по-прежнему вызывается ради start_pos/end_pos, ok игнорируется; на крутом склоне лебёдка/Ан-2 упираются в рельеф (по контракту)",
+      "checked": "тесты К2 (горные площадки altai, aushkul, winch/aerotow 2 с tick без NaN) зелёные"
+    }
+  ],
+  "dp_feedback": "Первый --import в копии оказался неполным (rocks.glb не импортирован, SCRIPT ERROR в тестах) — помогла повторная команда импорта; хорошо бы accept подсказывал это.",
+  "t": "2026-10-23T20:15:52",
+  "by": "executor"
+}
