@@ -6,9 +6,9 @@ area: "world"
 updated: "2026-10-22"
 summary: "HH-12: цвет облаков на закате - таблица HH4 верна, тепло теряется в яркости, фазе и тонмаппинге."
 related: ["docs/contracts/haze-humidity.md", "scripts/atmosphere/sun_transmission.gd"]
-conclusion: "Таблица HH4 и sun_l верны (тёплые, совпадают со спектром); оттенок теряется в яркости x фаза x AgX и в дневных ambient/fog облаков; правки - после HH-13."
+conclusion: "Таблица HH4 и sun_l верны (тёплые, совпадают со спектром); оттенок теряется в яркости x фаза x AgX и в дневных ambient/fog облаков; правка F1 (ambient и дымка облаков × horizon_tint и sky_k) сделана в HH-14, F2 (потолок HDR) не потребовалась."
 data: "result.json, analysis.json, ablation_stats.json; данные собственные (расчёт и кадры), внешних наборов нет"
-applied_in: "нет (диагноз)"
+applied_in: ["scripts/atmosphere/cloud_layer.gd (ambient_follows_sunset, HH-14)", "configs/atmosphere.json (clouds.ambient_follows_sunset)"]
 ---
 
 # HH-12: цвет облаков на закате (диагноз света HH-7)

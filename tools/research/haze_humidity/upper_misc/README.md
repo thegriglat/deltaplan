@@ -3,18 +3,18 @@ type: "research"
 status: "active"
 module: "haze-humidity"
 updated: "2026-10-22"
-summary: "Сетка HH6 v2: HCC и TROP — ERA5 2011–2020 (CDS), WR — заглушка (stub_mask=1) до решения Q4 по суточным |V700|"
+summary: "Сетка HH6 v2: HCC и TROP — ERA5 2011–2020 (CDS), WR — заглушка (stub_mask=1) до HH-1h"
 related: ["docs/contracts/haze-humidity.md", "docs/plan/haze-humidity.md", "tools/research/haze_humidity/upper_air/README.md", "tools/research/haze_humidity/dew_point/README.md"]
-conclusion: "HCC 0,29–0,39 в местах игры (cirrus_base 0,1 мало, но hcc включает наковальни); TROP 10,6 км (Алтай/Урал), 16,5 км (Дараб, Кэрнс), 11,7 км Крым против 11 000 м; WR пока заглушка."
+conclusion: "HCC 0,29–0,39 в местах игры (cirrus_base 0,1 мало, но hcc включает наковальни); TROP 10,6 км (Алтай/Урал), 16,5 км (Дараб, Кэрнс), 11,7 км Крым против 11 000 м; WR — заглушка до HH-1h."
 data: "data/climate/upper_misc_1deg.bin"
-applied_in: []
+applied_in: ["data/climate/upper_misc_1deg.bin", "scripts/atmosphere/climate_grid.gd (trop_m, hcc, wr)", "configs/weather_model.json (hcc_sky)"]
 ---
 # Верхний воздух: рост ветра, тропопауза, перистые — сетка 1° (HH-1f)
 
 ## Состояние
 `data/climate/upper_misc_1deg.bin`, HH6 v2: 360×180×12, три блока int16, brotli q11, **1 785 406 байт** (≤ 2 МБ), годы 2011–2020,
 `stub_mask = 1` (**WR — заглушка**: `max(0,3; 1 + 0,6·(3000 − Z_ячейки)/1000)`, Z — HH1). `TROP` и `HCC` — из данных ERA5.
-Причина заглушки WR: |V700| требует 120 запросов `derived-era5-pressure-levels-daily-statistics` (по месяцу, лимит стоимости CDS)
+Рост ветра (WR) — заглушка до HH-1h. Причина: |V700| требует 120 запросов `derived-era5-pressure-levels-daily-statistics` (по месяцу, лимит стоимости CDS)
 по ~часу–часам очереди каждый; запуск приостановлен шлюзом Q4 (координатор). Конвейер готов: достаточно `python fetch_cds.py`
 (пропускает готовые), затем `aggregate_cds.py`, `bake.py` (stub_mask станет 0), `sites.py`. Масштабы: wr 0,001, trop 1 м, hcc 0,0001.
 
