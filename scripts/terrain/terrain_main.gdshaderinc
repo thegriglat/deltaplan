@@ -556,6 +556,82 @@ uniform vec2 snow_slope_deg = vec2(35.0, 45.0);   // снег WorldCover: дер
 uniform float snow_hollow_deg = 6.0;            // в ложбине снег держится круче на столько градусов (при вогнутости outcrop_convex_k)
 uniform float snow_bare_merge = 1.0;          // выше снеговой линии голый грунт WorldCover — в один пул со снегом (0 — как класс)
 uniform float snow_ridge_blow = 0.6;            // выпуклый гребень: доля снега, сдуваемая ветром (0..1)
+// рельеф снега (CL-3): желоба вдоль линии падения на крутом снегу и крупная волнистость — в нормали и тоне снега
+uniform float snow_relief_flute_m = 10.0;        // шаг желобов (spindrift flutes), м
+uniform float snow_relief_flute_slope = 0.7;    // крутизна борта желоба относительно склона (тангенс)
+uniform vec2 snow_relief_flute_deg = vec2(30.0, 40.0); // желоба появляются / в полную силу с уклона, градусы
+uniform float snow_relief_flute_shade = 0.15;    // дно желоба темнее (рассеянный свет затенён бортами), доля
+uniform float snow_relief_wave_m = 30.0;        // длина крупной волны поверхности снега, м (вторая октава — 0,4×)
+uniform float snow_relief_wave_slope = 0.28;    // крутизна волны (тангенс)
+uniform float snow_relief_tone = 0.2;           // гребни волн темнее на столько (обдутый наст против свежего снега), доля
+
+// Value noise с производной по p: (значение 0..1, d/dp.x, d/dp.y).
+vec3 snow_vnoise_d(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = p - i;
+	vec2 u = f * f * (3.0 - 2.0 * f);
+	vec2 du = 6.0 * f * (1.0 - f);
+	float a = hash12(i);
+	float b = hash12(i + vec2(1.0, 0.0));
+	float c = hash12(i + vec2(0.0, 1.0));
+	float d = hash12(i + vec2(1.0, 1.0));
+	float k = a - b - c + d;
+	return vec3(a + (b - a) * u.x + (c - a) * u.y + k * u.x * u.y,
+			du * vec2(b - a + k * u.y, c - a + k * u.x));
+}
+
+// Желоба: вклад ячейки (шаг 1 = 3 желоба) — гребешки вдоль линии падения (фаза вдоль горизонтали dir),
+// своя фаза у ячейки. (cos фазы, его производная по p).
+vec3 snow_flute_cell(vec2 ip, vec2 fp, vec2 o, vec2 dir) {
+	float hs = hash12(ip + o + vec2(41.7, 13.1));
+	vec2 pp = fp - o - (vec2(hs, fract(hs * 37.17)) - 0.5);
+	float ph = dot(pp, dir) * 3.0 * 6.2832;
+	return vec3(cos(ph), -sin(ph) * 3.0 * 6.2832 * dir);
+}
+
+// Желоба в точке p = xz / (3 · шаг): 4 соседние ячейки, гладкие веса (желоба рвутся и сливаются на границах
+// ячеек — без сетки и без сдвига фазы, растущего с |p| при повороте направления).
+vec3 snow_flutes(vec2 p, vec2 dir) {
+	vec2 ip = floor(p);
+	vec2 fp = p - ip;
+	vec2 u = fp * fp * (3.0 - 2.0 * fp);
+	vec3 a = mix(snow_flute_cell(ip, fp, vec2(0.0, 0.0), dir), snow_flute_cell(ip, fp, vec2(1.0, 0.0), dir), u.x);
+	vec3 b = mix(snow_flute_cell(ip, fp, vec2(0.0, 1.0), dir), snow_flute_cell(ip, fp, vec2(1.0, 1.0), dir), u.x);
+	return mix(a, b, u.y);
+}
+
+// Рельеф снега в точке: xy — добавка к градиенту высоты (м/м), z — множитель тона снега.
+// hg — уклон (градиент высоты), foot — след пикселя, м: форма мельче ~3 пикселей гаснет (без муара).
+vec3 snow_relief(vec2 xz, vec2 hg, float slope_deg, float foot) {
+	vec2 g = vec2(0.0);
+	float tone = 1.0;
+	// крупная волнистость (две октавы); высота волны ≈ крутизна · длина · (шум − 0,5)
+	float lw = max(snow_relief_wave_m, 1.0);
+	float kw1 = 1.0 - smoothstep(0.15 * lw, 0.35 * lw, foot);
+	float kw2 = 1.0 - smoothstep(0.06 * lw, 0.14 * lw, foot);
+	if (kw1 > 0.0) {
+		vec3 w1 = snow_vnoise_d(xz / lw + vec2(5.3, 2.9));
+		vec3 w2 = snow_vnoise_d(xz / (0.4 * lw) + vec2(1.7, 8.1));
+		g += snow_relief_wave_slope * (w1.yz * kw1 + 0.5 * w2.yz * kw2);
+		// гребни волн обдуты ветром (наст, альбедо ниже), во впадинах — свежий снег (цвет snow_color):
+		// только темнее — светлее snow_color снег не бывает (и ALBEDO обрезан на 1)
+		float wv = (w1.x - 0.5) * kw1 + 0.5 * (w2.x - 0.5) * kw2;
+		tone -= snow_relief_tone * smoothstep(0.0, 0.35, wv);
+	}
+	// желоба: на крутом снегу, вдоль линии падения
+	float lf = max(snow_relief_flute_m, 0.5);
+	float kf = smoothstep(snow_relief_flute_deg.x, snow_relief_flute_deg.y, slope_deg)
+			* (1.0 - smoothstep(0.15 * lf, 0.35 * lf, foot));
+	float gl = length(hg);
+	if (kf > 0.0 && gl > 1e-3) {
+		vec2 dir = vec2(-hg.y, hg.x) / gl;
+		vec3 f = snow_flutes(xz / (3.0 * lf), dir);
+		// высота a · cos, a = крутизна · шаг / 2π: градиент = крутизна · (−sin) · dir = f.yz / (3 · 2π)
+		g += snow_relief_flute_slope * kf * f.yz / (3.0 * 6.2832);
+		tone *= 1.0 - snow_relief_flute_shade * kf * 0.5 * (1.0 - f.x);
+	}
+	return vec3(g, tone);
+}
 #ifndef T_OUTCROP_OFF
 uniform float kurum_share = 0.5;              // доля курумника среди выходов (остальное — коренная порода)
 uniform float kurum_block_m = 2.2;            // шаг глыб курумника, м
@@ -1609,6 +1685,18 @@ void fragment() {
 #ifndef T_SL_SNOW_OFF
 	col = sl_fresh_snow(col, snow_color, wp.xz, h, slope_deg, forest); // SL
 #endif
+	// рельеф снега (CL-3): нормаль и тон по доле снега — класс 8, снег в кулуарах и свежий снег SL
+	// (его доля — тот же sl_fresh_snow на чёрном с белым: f · (0,94…1)); доли и классы не меняются
+	float snow_w = max(snow, gsnow);
+#ifndef T_SL_SNOW_OFF
+	snow_w = max(snow_w, min(sl_fresh_snow(vec3(0.0), vec3(1.0), wp.xz, h, slope_deg, forest).g / 0.94, 1.0)); // SL
+#endif
+	if (snow_w > 0.001) {
+		vec3 srl = snow_relief(wp.xz, hg, slope_deg, foot_px);
+		vec2 sgn = -n.xz / max(n.y, 0.05) + srl.xy * snow_w;
+		n = normalize(vec3(-sgn.x, 1.0, -sgn.y));
+		col *= mix(1.0, srl.z, snow_w);
+	}
 
 	// --- мелкая детализация (кочки, пятна) ---
 #ifndef T_DETAIL_OFF

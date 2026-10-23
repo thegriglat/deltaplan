@@ -1,0 +1,112 @@
+{
+  "status": "done",
+  "summary": "Рельеф снега во фрагментном шейдере, только нормаль и тон, вес — доля снега (класс 8, снег в кулуарах, свежий снег SL). Два элемента: (1) желоба (spindrift flutes) вдоль линии падения на снегу круче 30→40°, шаг 10 м, борт tan 0,7, дно на 15 % темнее; (2) крупная волнистость 30 и 12 м (tan 0,28), гребни до 20 % темнее (обдутый наст против свежего снега). Ключи terrain_look.snow_relief_* (7 шт., каждый — uniform рядом с snow_*); доля снега, классы, surface_at и физика не менялись.",
+  "commits": [
+    "1b259d292 CL-3: рельеф снега — желоба и крупная волнистость (нормаль и тон), ключи snow_relief_*, замер snow_compare.py",
+    "33fb592df CL-3: строка с sl_fresh_snow помечена // SL (контракт К1 scene-look)"
+  ],
+  "checks": [
+    {
+      "name": "test_relief",
+      "value": "10/10 (пропуск 2)",
+      "pass": true
+    },
+    {
+      "name": "scene_look",
+      "value": "40/40 (пропуск 1)",
+      "pass": true
+    },
+    {
+      "name": "gpu_variants",
+      "value": "0 упало",
+      "pass": true
+    },
+    {
+      "name": "shots_cl3",
+      "value": "6",
+      "pass": true
+    },
+    {
+      "name": "snow_large",
+      "value": "1.336 (mid 1.448, near 1.336, shymbulak 1.213)",
+      "pass": true
+    },
+    {
+      "name": "snow_ripple",
+      "value": "1.092 (1.092 / 1.104 / 1.086)",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "6 файлов в границах",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Сераки, карнизы и связь с ветром не делал: по решению пользователя они не нужны.",
+    "Шымбулак (peak_snow, 2,3 км, солнце 68°): 1,21 — ниже 1,3. Медиана проходит за счёт Эвереста. Вдали желоба 10 м гаснут по следу пикселя (ниже ~3 px), там остаются волны 30 м и тон."
+  ],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/cliff-look/cl3_everest_snow_mid.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/cl3_everest_snow_near.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/cl3_shymbulak_peak_snow.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/cl3_shymbulak_talgar_pass_south.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/cl3_shymbulak_wall_mid.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/cl3_shymbulak_wall_near.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept CL-3. Кадры и сырые данные снимает build/cl3_run.sh cl3 (не в репозитории): cliff_look_shots.sh cl3 --places=everest,shymbulak, затем cliff_look_shot.tscn --mode=diag --members=base с --out=build/cl3_diag_jpg (не перетирает diag_* CL-1) и --raw=build/cliff_look_raw/cl3. Числа — python3 -I tools/research/cliff_look/snow_compare.py, «до» — build/cliff_look_raw/before (сырые кадры CL-1, скопированы в копию).",
+  "uncertain": [
+    {
+      "where": "configs/world.json terrain_look.snow_relief_tone = 0.2, snow_relief_wave_slope = 0.28",
+      "why": "Пришлось сделать сильнее, чем задумывал. При 0,06/0,12 SNOW_LARGE_RATIO был 1,00: солнце на Эвересте 82°, наклон нормали ±7–10° почти не меняет освещённость. Гребни на 20 % темнее (альбедо 0,94 → 0,75) — это граница диапазона «обдутый наст / свежий снег» (0,7–0,9); волна ±2 м при длине 30 м — крупные снежные дюны. Подборов было 4: 1,00 → 1,12 → 1,24 → 1,28 → 1,34. Запас до порога маленький (1,336 при 1,3).",
+      "checked": "Кадры cl3_* на глаз: на near видны желоба вдоль линии падения, на mid — пятна и волны тона, на Шымбулаке на склонах вершины — тонкая вертикальная штриховка желобов. Рябь < 2 м: 1,09 при пороге 1,15."
+    },
+    {
+      "where": "scripts/terrain/terrain_main.gdshaderinc, после sl_fresh_snow",
+      "why": "Долю свежего снега SL беру вызовом sl_fresh_snow(чёрный, белый, …).g / 0,94, а не копией формулы. Значение точное с точностью до 6 % (множитель 0,94…1 по шуму). Без этого рельеф не ложился на снег SL, который на высокогорье закрашивает цвет поверх класса 8; это была причина нулевого эффекта на первом прогоне. Блок стоит после снега в кулуарах и SL-снега, рядом с блоком скал CL-2; конфликт слияния возможен на соседних строках.",
+      "checked": "scene_look 40/40, test_k1: строка помечена // SL; варианты шейдера на GPU — 0 упало (T_SL_SNOW_OFF закрыт #ifndef)."
+    },
+    {
+      "where": "tools/research/cliff_look/snow_compare.py — маска и метрика",
+      "why": "Маска снега — по цвету в обоих кадрах base (luma > 0,5, (max − min)/max < 0,3, синий ≥ зелёный − 4) на рельефе (m1 ≠ m2). Часть бледной травы на переднем плане Шымбулака в маску попадает. Окна усредняют только пиксели маски (нормированная свёртка), иначе кромка снега с тёмной породой давала СКО 5–11 % и прятала эффект. Масштабы считаются по корзинам-октавам м/px из фазы сетки m2. «До» — сырые кадры CL-1 (другая сборка и время); фон шума «до/после» на неизменённом снегу ~1 % (первый прогон: 0,98–1,01).",
+      "checked": "Отношения «сам с собой» = 1,000. Маски проверены глазами (наложение на кадр)."
+    },
+    {
+      "where": "физика и источники",
+      "why": "Желоба (spindrift flutes / runnels) на крутом снегу и льду (Гималаи, Анды) — шаг ~1–10 м вдоль линии падения, глубина до ~1–2 м; беру 10 м и глубину ~1,1 м, у верхней границы. Волнистость — снежные дюны и надувы 10–40 м, высота 0,5–2 м. Альбедо: свежий снег ~0,85–0,95, старый или уплотнённый ~0,7–0,8. Источники — общая гляциологическая литература (Cuffey & Paterson «The Physics of Glaciers»; фото гималайских стен с желобами); точных измерений по месту нет. Это видимая модель, а не снег по ветру: направление волн случайное, желоба — по локальному уклону.",
+      "checked": "Желоба гаснут по следу пикселя (0,15–0,35 шага) и по уклону (30→40°); на пологом их нет."
+    }
+  ],
+  "dp_feedback": "Первый `godot --headless --import` под lock cpu вышел с кодом 0, но импортировал 283 файла из ~1400 (лог зациклен на «20% wind_ears_loop.ogg»), окно потом падало на отсутствующих .ctex; помог повторный --import. Было бы полезно, чтобы dpcli после --import проверял число .godot/imported против числа ассетов. В карточке снимок diag пишет diag_*.jpg в общий каталог кадров без метки — легко перетереть кадры CL-1; я обошёл через --out.",
+  "extra": {
+    "snow_compare": {
+      "everest_snow_mid": {
+        "large": "0.0212 → 0.0306",
+        "ripple": "0.0145 → 0.0158"
+      },
+      "everest_snow_near": {
+        "large": "0.0216 → 0.0288",
+        "ripple": "0.0296 → 0.0327"
+      },
+      "shymbulak_peak_snow": {
+        "large": "0.0224 → 0.0271",
+        "ripple": "0.0196 → 0.0212"
+      }
+    },
+    "keys": {
+      "snow_relief_flute_m": 10,
+      "snow_relief_flute_slope": 0.7,
+      "snow_relief_flute_deg": [
+        30,
+        40
+      ],
+      "snow_relief_flute_shade": 0.15,
+      "snow_relief_wave_m": 30,
+      "snow_relief_wave_slope": 0.28,
+      "snow_relief_tone": 0.2
+    }
+  },
+  "t": "2026-10-23T05:51:58",
+  "by": "executor"
+}
