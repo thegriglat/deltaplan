@@ -75,7 +75,10 @@ build_one() {
 	python3 tools/release/third_party_notices.py --out "build/$dir" --preset "$preset"
 	# Манифест itch: без него приложение itch считает deltaplan.pck вторым кандидатом на запуск
 	# (godot-pck через wine) и спрашивает, что запускать.
-	printf '[[actions]]\nname = "play"\npath = "%s"\n' "$bin" > "build/$dir/.itch.toml"
+	# Windows — ещё и «DirectX 12»/«Vulkan» (--rendering-driver); генерация — tools/release/itch_manifest.py.
+	local itch_platform=linux
+	[[ "$bin" == *.exe ]] && itch_platform=windows
+	python3 tools/release/itch_manifest.py --bin "$bin" --platform "$itch_platform" > "build/$dir/.itch.toml"
 	rm -f "build/deltaplan-$dir.zip"
 	echo "готово: build/$dir/$bin"
 }
