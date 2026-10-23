@@ -1,0 +1,72 @@
+{
+  "id": "HH-4c",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Климат места после сетки HH5: эталоны и тесты под настоящий Tmax, южные градиенты",
+  "goal": "С влитой сеткой HH5 (surface_t_1deg.bin) дневной максимум и амплитуда по месту — из данных: эталоны configs/weather/* и тесты под данные, градиенты Tx/DTR для 30–60° ю. ш. и регионов из gradient.json HH-1e, вырожденный случай ClimateGrid (нет HH1, есть HH6 — рост ветра от высоты долины).",
+  "plan_ref": "Волна 2 — игра (после шлюза волны 1)",
+  "contracts": [
+    {
+      "name": "HH7",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH5",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-4c",
+  "branch": "haze-humidity/HH-4c",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "scripts/atmosphere/weather_model.gd",
+    "scripts/atmosphere/climate_grid.gd",
+    "configs/weather_model.json",
+    "configs/weather/",
+    "tests/atmosphere/",
+    "tests/goals/",
+    "tests/game/",
+    "tests/contracts/test_haze_humidity_contracts.gd",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "data/",
+    "tools/research/",
+    "docs/contracts/",
+    "scripts/world/",
+    "scripts/terrain/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "weather",
+      "tests": "weather"
+    },
+    {
+      "name": "haze_humidity",
+      "tests": "haze_humidity"
+    },
+    {
+      "name": "goal",
+      "tests": "goal"
+    },
+    {
+      "name": "wind",
+      "tests": "wind"
+    },
+    {
+      "name": "surface_heat",
+      "tests": "surface_heat"
+    },
+    {
+      "name": "hh5_data",
+      "cmd": "godot --headless --path . res://tests/run_tests.tscn -- --filter=haze_humidity",
+      "expect": "!re:skip .*test_surface_t_format"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T06:40:52"
+}
