@@ -84,7 +84,9 @@ func start(g: AirGpu = null) -> bool:
 	gpu = g if g != null else AirGpu.new()
 	if gpu.rd == null and not gpu.init(_shaders()):
 		return _fail(gpu.error)
-	if not _setup():
+	if not _setup() or gpu.failed:
+		if gpu.failed:
+			return _fail(gpu.error)
 		return _fail(error if error != "" else "не удалось подготовить расчёт")
 	_t_start = Time.get_ticks_usec()
 	return true
@@ -94,8 +96,13 @@ func start(g: AirGpu = null) -> bool:
 func poll() -> float:
 	if _done or error != "":
 		return progress()
+	if gpu.failed:
+		_fail(gpu.error)
+		return progress()
 	var t_in := Time.get_ticks_usec()
 	var p := _poll()
+	if gpu.failed and error == "":
+		_fail(gpu.error)
 	var dt := (Time.get_ticks_usec() - t_in) / 1000.0
 	poll_cpu_ms += dt
 	max_poll_cpu_ms = maxf(max_poll_cpu_ms, dt)
@@ -163,12 +170,18 @@ func poll_slice(slice_ms: float) -> float:
 	frame_gap_limit = false
 	var t_in := Time.get_ticks_usec()
 	while not _done and error == "":
+		if gpu.failed:
+			_fail(gpu.error)
+			break
 		if _submitted and not _finish_chunk():
 			break
 		if (Time.get_ticks_usec() - _t_start) / 1e6 > timeout_s:
 			_fail("таймаут расчёта (%.0f с)" % timeout_s)
 			break
 		_record_chunk()
+		if gpu.failed:
+			_fail(gpu.error)
+			break
 		if (Time.get_ticks_usec() - t_in) / 1000.0 + 0.5 * _expected_ms >= slice_ms:
 			break
 	var dt := (Time.get_ticks_usec() - t_in) / 1000.0

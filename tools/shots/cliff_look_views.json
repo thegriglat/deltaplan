@@ -1,0 +1,131 @@
+{
+ "version": 1,
+ "date": "2026-07-15",
+ "hour": 12,
+ "sun_min_deg": 35,
+ "_doc": "Стенд cliff-look (CL-К1 v1, docs/contracts/cliff-look.md). Вид pt tools/shots/osm_place_shot.gd: камера на dist_m от цели со стороны az_deg (° от севера), на cam_agl_m над землёй под камерой, смотрит на точку 20 м над землёй цели. Цели подобраны tools/research/cliff_look/find_views.gd (уклон 100 м > 45°, склон смотрит на камеру, глаз ниже гребня). Первый вид Шымбулака — основной ракурс пользователя: верхняя станция канатки на Талгарском перевале (OSM aerialway mixed_lift, конец 43.11325, 77.11089, 3192 м), взгляд на юг. Средний и ближний ракурсы стен — глаз примерно на высоте цели (cam_agl_m = высота цели − земля под камерой − ~20 м): стена во весь кадр, как её видит пилот в воздухе; глаз ниже гребня.",
+ "places": [
+  {
+   "tag": "shymbulak",
+   "name": "Шымбулак",
+   "lat": 43.128,
+   "lon": 77.081,
+   "views": [
+    {
+     "name": "talgar_pass_south",
+     "lat": 43.10015,
+     "lon": 77.11743,
+     "dist_m": 1530,
+     "cam_agl_m": 5,
+     "az_deg": 342,
+     "wait_s": 12
+    },
+    {
+     "name": "wall_mid",
+     "lat": 43.09877,
+     "lon": 77.09518,
+     "dist_m": 400,
+     "cam_agl_m": 220,
+     "az_deg": 311,
+     "wait_s": 8
+    },
+    {
+     "name": "wall_near",
+     "lat": 43.09877,
+     "lon": 77.09518,
+     "dist_m": 160,
+     "cam_agl_m": 130,
+     "az_deg": 311,
+     "wait_s": 8
+    },
+    {
+     "name": "peak_snow",
+     "lat": 43.09343,
+     "lon": 77.11279,
+     "dist_m": 2190,
+     "cam_agl_m": 5,
+     "az_deg": 357.5,
+     "wait_s": 8
+    }
+   ]
+  },
+  {
+   "tag": "elbrus",
+   "name": "Эльбрус, Чегет",
+   "lat": 43.26,
+   "lon": 42.52,
+   "views": [
+    {
+     "name": "wall_mid",
+     "lat": 43.28069,
+     "lon": 42.54902,
+     "dist_m": 400,
+     "cam_agl_m": 280,
+     "az_deg": 351,
+     "wait_s": 10
+    },
+    {
+     "name": "wall_near",
+     "lat": 43.28069,
+     "lon": 42.54902,
+     "dist_m": 160,
+     "cam_agl_m": 170,
+     "az_deg": 351,
+     "wait_s": 8
+    }
+   ]
+  },
+  {
+   "tag": "chamonix",
+   "name": "Монблан, Шамони — Планпра",
+   "lat": 45.9335,
+   "lon": 6.8795,
+   "views": [
+    {
+     "name": "wall_mid",
+     "lat": 45.91191,
+     "lon": 6.91184,
+     "dist_m": 400,
+     "cam_agl_m": 300,
+     "az_deg": 297,
+     "wait_s": 10
+    },
+    {
+     "name": "wall_near",
+     "lat": 45.91191,
+     "lon": 6.91184,
+     "dist_m": 160,
+     "cam_agl_m": 145,
+     "az_deg": 297,
+     "wait_s": 8
+    }
+   ]
+  },
+  {
+   "tag": "everest",
+   "name": "Эверест, Гокио (снег)",
+   "lat": 27.95,
+   "lon": 86.69,
+   "views": [
+    {
+     "name": "snow_mid",
+     "lat": 27.96934,
+     "lon": 86.67575,
+     "dist_m": 400,
+     "cam_agl_m": 230,
+     "az_deg": 348,
+     "wait_s": 10
+    },
+    {
+     "name": "snow_near",
+     "lat": 27.96934,
+     "lon": 86.67575,
+     "dist_m": 160,
+     "cam_agl_m": 160,
+     "az_deg": 348,
+     "wait_s": 8
+    }
+   ]
+  }
+ ]
+}

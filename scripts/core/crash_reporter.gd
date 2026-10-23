@@ -11,6 +11,8 @@ signal report_sent
 const TOKEN_PATH := "res://data/crash_report_token.txt"
 const API_URL := "https://api.github.com/repos/thegriglat/deltaplan-reports/issues"
 ## Запуски без пилота (проверки, снимки, замеры) метку не ведут.
+## Период «пульса» — записи времени последнего живого кадра в метку, с.
+const PULSE_PERIOD := 2.0
 const SKIP_ARGS := ["--smoke", "--autostart", "--prefetch", "--screenshot", "--perf"]
 
 ## Отчёт отправлен в этом запуске — меню показывает строку.
@@ -21,6 +23,10 @@ var _active := false
 var _token := ""
 var _http: HTTPRequest
 var _test := false
+var _pulse_acc := 0.0
+var _first_frame := false
+var _diag_thread: Thread
+var _old_lock: Dictionary = {}
 
 
 func _ready() -> void:
@@ -39,20 +45,55 @@ func _ready() -> void:
 	if not old.is_empty() and _other_instance(old):
 		_active = false  # игра уже запущена в другом окне — её метку не трогаем
 		return
+	var info := CrashReport.system_info()
 	if not old.is_empty() and _token != "":
+		# сначала отчёт без диагностики (на случай обрыва до её конца), потом — с ней (_diag_done)
 		CrashReport.write_json(
 			CrashReport.PENDING_PATH,
-			CrashReport.make_pending(old, CrashReport.system_info(), CrashReport.read_previous_log())
+			CrashReport.make_pending(old, info, CrashReport.read_previous_log())
 		)
-	var info := CrashReport.system_info()
+		_old_lock = old
 	_lock = {
 		"version": info.version,
 		"started": Time.get_datetime_string_from_system(false, true),
 		"pid": OS.get_process_id(),
 		"stage": "",
+		"stage_at": 0.0,
+		"alive": 0.0,
 		"settings": {"graphics": GraphicsPresets.current()},
 	}
+	# сведения о железе и рубильники этого сеанса: если он оборвётся, отчёт возьмёт их из метки
+	for k in ["gpu", "gpu_vendor", "gpu_api", "renderer", "gpu_driver"]:
+		_lock[k] = info.get(k, "")
+	_lock["settings"].merge(CrashDiag.gpu_switches(), true)
 	_write()
+	note_substage("start/window")
+	if _old_lock.is_empty():
+		_try_send_pending()
+	else:
+		_diag_thread = Thread.new()
+		_diag_thread.start(
+			_diag_work.bind(String(_old_lock.get("started", "")), float(_old_lock.get("alive", 0.0)))
+		)
+
+
+## Рабочий поток: диагностика блокирует (wevtutil, tasklist) — кадр не держим.
+func _diag_work(started: String, alive: float) -> void:
+	_diag_done.call_deferred(CrashDiag.collect(started, alive))
+
+
+func _diag_done(d: Dictionary) -> void:
+	if _diag_thread != null:
+		_diag_thread.wait_to_finish()
+		_diag_thread = null
+	if _token != "":
+		CrashReport.write_json(
+			CrashReport.PENDING_PATH,
+			CrashReport.make_pending(
+				_old_lock, CrashReport.system_info(), CrashReport.read_previous_log(), "Вылет", CrashDiag.format(d)
+			)
+		)
+	_old_lock = {}
 	_try_send_pending()
 
 
@@ -107,8 +148,50 @@ func note_stage(stage: String) -> void:
 	if _active and _lock.get("stage", "") != stage:
 		_lock["stage"] = stage
 		_lock["vram"] = CrashReport.vram_text()
+		_lock.erase("substage")
+		_lock.erase("substage_at")
+		_lock["stage_at"] = Time.get_ticks_msec() / 1000.0
+		refresh_switches(false)
+		_lock["alive"] = _lock["stage_at"]
 		_lock.merge(CrashReport.stage_snapshot(), true)
 		CrashReport.log_stage_line(stage, _lock)
+		_write()
+
+
+## Обновить снимок рубильников CR-К4 в метке: настройки применяются со следующей загрузки места, поэтому
+## снимок берётся на каждой смене стадии и (вызовом) после сохранения настроек.
+func refresh_switches(write := true) -> void:
+	if not _active:
+		return
+	var s: Dictionary = _lock.get("settings", {})
+	s.merge(CrashDiag.gpu_switches(), true)
+	_lock["settings"] = s
+	if write:
+		_write()
+
+
+## Подстадия внутри стадии (например, trees/models): строка в лог со сбросом и пометка в метке.
+func note_substage(sub: String) -> void:
+	if _active:
+		_lock["substage"] = sub
+		_lock["substage_at"] = Time.get_ticks_msec() / 1000.0
+		_lock["alive"] = _lock["substage_at"]
+		CrashReport.log_substage(sub, _lock)
+		_write()
+
+
+## Пульс: пока идут кадры, раз в PULSE_PERIOD пишем время в метку. Завис главный поток —
+## пульс остановился, и отчёт покажет, сколько процесс прожил после начала стадии.
+func _process(delta: float) -> void:
+	if not _active:
+		return
+	if not _first_frame:
+		_first_frame = true
+		note_substage("start/first_frame")
+	_pulse_acc += delta
+	if _pulse_acc >= PULSE_PERIOD:
+		_pulse_acc = 0.0
+		_lock["alive"] = Time.get_ticks_msec() / 1000.0
 		_write()
 
 
@@ -129,6 +212,9 @@ func _notification(what: int) -> void:
 
 func _exit_tree() -> void:
 	_clear()
+	if _diag_thread != null:
+		CrashDiag.cancel = true  # программа убивается за ~20 мс, закрытие окна не ждёт таймаутов
+		_diag_thread.wait_to_finish()
 
 
 func _try_send_pending() -> void:
