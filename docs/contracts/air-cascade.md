@@ -43,8 +43,9 @@ Python): `python3 <путь> --ref <case.json>…` (R1), `--results <dir>` (R2),
   heat_thd, Ch/bh, heat_th`.
 - Случаи `ref/` (есть, в git, не менять): `tests/atmosphere/fixtures/air_model/ref/{flat_wind,agnesi,
   heated_slope,saddle}`.
-- Случаи Онгудая (AC-R2, вне git — крупные): `tools/research/air_cascade/picard_rs/data/ongudai/
-  ongudai_d400_u<U10>_<heat|mech>.{json,bin}` — без блоков, плюс ключи `format: "ref-case"`,
+- Случаи Онгудая (AC-R2, вне git — крупные, общий каталог для всех копий): `$AIR_CASCADE_DATA/ongudai/
+  ongudai_d400_u<U10>_<heat|mech>.{json,bin}`, `AIR_CASCADE_DATA` по умолчанию `~/data/air_cascade`
+  (U10 — целое, м/с: `u0`, `u3`, `u6`) — без блоков, плюс ключи `format: "ref-case"`,
   `version: 1`, `source` = {`fixture`: путь к `tests/atmosphere/fixtures/air_model/picard/ongudai_d400_h12`,
   `U10`, `heat`, `dtype: "float64"`, `git`}, `crop` (как в фикстуре Онгудая) и `t_ref_s` (время
   эталона CuPy f64 на RTX 4070 SUPER, справочно). `solution.iters` — проверка, на которой сработал
@@ -74,7 +75,7 @@ Python): `python3 <путь> --ref <case.json>…` (R1), `--results <dir>` (R2),
 Владелец — AC-R1; потребители — AC-R3 (замеры), шаг 1 плана (2D со временем), возможная GDExtension.
 - Место: `tools/research/air_cascade/picard_rs/` — отдельный пакет Cargo (`name = "picard_rs"`, edition
   2024), не член чужого workspace; lib + bin `picard`. Без Godot и без зависимостей от кода игры.
-  `.gitignore` пакета: `target/`, `data/`.
+  `.gitignore` пакета: `target/`.
 - Сборка: `[profile.release] opt-level = 3, lto = "fat", codegen-units = 1, panic = "abort"`.
   Отладка и тесты — dev-профиль (opt-level 0, по умолчанию). Без `target-cpu=native` и без
   `.cargo/config*` с `rustflags`.

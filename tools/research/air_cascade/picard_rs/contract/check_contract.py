@@ -155,7 +155,7 @@ def check_crate() -> None:
         err(f"{p}: .cargo/config is forbidden (rustflags)")
     gi = CRATE / ".gitignore"
     gtxt = gi.read_text() if gi.exists() else ""
-    for k in ("target", "data"):
+    for k in ("target",):
         if not re.search(rf"^/?{k}/?\s*$", gtxt, re.M):
             err(f"{gi}: must ignore {k}/")
     src = CRATE / "src"
