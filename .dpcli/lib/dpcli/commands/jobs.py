@@ -26,11 +26,53 @@ def job_files(name):
     return d / f"{name}.pid", d / f"{name}.log", d / f"{name}.rc"
 
 
+def my_ns():
+    """Пространство PID этого процесса (песочница агента — своё: PID окна tmux оттуда не видны)."""
+    try:
+        return os.readlink("/proc/self/ns/pid")
+    except OSError:
+        return None
+
+
+def job_state(name):
+    """done (есть .rc) | running | gone (умер без кода) | unknown (PID из чужого пространства и окна tmux нет в записи).
+    PID из другого пространства PID (.ns не совпал) не проверяем — смотрим, живо ли окно tmux (.win)."""
+    pidf, _, rcf = job_files(name)
+    d = job_dir()
+    if rcf.exists():
+        return "done"
+    try:
+        pid = int(pidf.read_text())
+    except (OSError, ValueError):
+        return "gone"
+    try:
+        ns = (d / f"{name}.ns").read_text().strip()
+    except OSError:
+        ns = None
+    if not ns or ns == my_ns():
+        if job_alive(pid):
+            return "running"
+    else:
+        try:
+            win = (d / f"{name}.win").read_text().strip()
+        except OSError:
+            return "done" if rcf.exists() else "unknown"
+        if tmux_win_alive(win):
+            return "running"
+    return "done" if rcf.exists() else "gone"
+
+
+def tmux_win_alive(win):
+    r = subprocess.run(["tmux", "display-message", "-p", "-t", win, "#{window_id}"], capture_output=True, text=True)
+    return r.returncode == 0 and r.stdout.strip() == win
+
+
 def job_start(name, limit, cmd, tm=None):
     """tm — сессия tmux (tmux_opts) или None; нет tmux/сессии → фон с предупреждением `dpcli: …`."""
     pidf, log, rcf = job_files(name)
-    rcf.unlink(missing_ok=True)
     d = job_dir()
+    for f in (rcf, pidf, d / f"{name}.ns", d / f"{name}.win"):  # следы прошлого запуска с тем же именем
+        f.unlink(missing_ok=True)
     if tm and tmux_job(name, limit, cmd, tm):
         return
     # setsid — своя группа: при таймауте гасится всё дерево; rc пишется всегда (124 — таймаут)
@@ -38,6 +80,9 @@ def job_start(name, limit, cmd, tm=None):
                            str(d / name), *cmd],
                           stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=False,
                           env={**os.environ, "DPCLI_NO_TMUX": "1"})
+    ns = my_ns()
+    if ns:
+        (d / f"{name}.ns").write_text(ns)
     pidf.write_text(str(pr.pid))
     print(f"{name}: PID {pr.pid}, лог {log}")
 
@@ -46,6 +91,7 @@ def job_start(name, limit, cmd, tm=None):
 TMUX_RUNNER = r"""#!/bin/bash
 # dpcli job: runner <таймаут> <база> <команда…>; PID — этого процесса, код — в <база>.rc
 limit=$1; base=$2; shift 2
+readlink /proc/$$/ns/pid >"$base.ns" 2>/dev/null
 echo $$ >"$base.pid"
 rm -f "$base.rc" "$base.cpid" "$base.fifo"
 printf -v c '%q ' "$@"
@@ -145,11 +191,16 @@ def tmux_job(name, limit, cmd, sess):
     w = tmux_window(name, sess, ["bash", "-c", TMUX_OUTER, "_", str(runner), str(limit), str(d / name), *cmd], env=True)
     if not w:
         return False
-    for _ in range(100):
+    (d / f"{name}.win").write_text(w[0])
+    for _ in range(600):
         if pidf.exists() and pidf.read_text().strip():
             print(f"{name}: PID {pidf.read_text().strip()}, лог {log}, окно tmux {sess}:{w[1]}")
             return True
         time.sleep(0.05)
+    # окно не отозвалось за 30 с — закрываем, чтобы команда не пошла дважды (окно + фон)
+    subprocess.run(["tmux", "kill-window", "-t", w[0]], capture_output=True)
+    (d / f"{name}.win").unlink(missing_ok=True)
+    pidf.unlink(missing_ok=True)
     print(f"dpcli: tmux: окно {sess}:{w[1]} не запустило задачу", file=sys.stderr)
     return False
 
@@ -185,7 +236,14 @@ def job_stop(name):
     except (OSError, ValueError):
         raise DpError(f"{name}: не запускался")
     if not job_alive(pid):
-        return False
+        try:  # PID из чужого пространства (песочница) — гасим окно tmux: runner получит HUP и остановит команду
+            win = (job_dir() / f"{name}.win").read_text().strip()
+        except OSError:
+            return False
+        if job_state(name) != "running":
+            return False
+        subprocess.run(["tmux", "kill-window", "-t", win], capture_output=True)
+        return pid
     if Path(f"/proc/{pid}").stat().st_uid != os.getuid() or \
             str(job_dir() / name) not in Path(f"/proc/{pid}/cmdline").read_bytes().decode(errors="replace"):
         raise DpError(f"PID {pid} — не наш запуск {name}, не трогаю")
@@ -213,11 +271,8 @@ def cmd_job(a):
         for f in job_dir().glob("*.pid"):
             n = f.stem
             rc = job_dir() / f"{n}.rc"
-            try:
-                pid = int(f.read_text() or 0)
-            except ValueError:
-                pid = 0
-            st = f"код {rc.read_text().strip()}" if rc.exists() else "идёт" if job_alive(pid) else "нет данных"
+            js = job_state(n)
+            st = f"код {rc.read_text().strip()}" if rc.exists() else "идёт" if js == "running" else "нет данных"
             mt = max(x.stat().st_mtime for x in (f, rc, job_dir() / f"{n}.log") if x.exists())
             rows.append((st == "идёт", mt, n, st))
         rows.sort(key=lambda r: (not r[0], -r[1]))
@@ -242,20 +297,22 @@ def cmd_job(a):
         limit = a.timeout
         if limit is None:
             raise DpError(f"{CLI} job wait <имя> <таймаут_с> — таймаут обязателен")
-        r = subprocess.run(["timeout", str(limit), "tail", f"--pid={pid}", "-f", "/dev/null"])
+        deadline = time.time() + limit
+        while job_state(a.name) in ("running", "unknown") and time.time() < deadline:
+            time.sleep(0.3)
         if rcf.exists():
             rc = int(rcf.read_text().strip() or 1)
             print(f"{a.name}: код {rc}")
             print("\n".join(log.read_text(errors="replace").splitlines()[-20:]))
             sys.exit(rc)
-        if not job_alive(pid):
+        if job_state(a.name) == "gone":
             print(f"{a.name}: прерван (нет кода выхода — остановлен job stop или убит)")
             sys.exit(143)
         print(f"{a.name}: ещё идёт (PID {pid}) — ожидание прервано по таймауту {limit} с")
-        sys.exit(124 if r.returncode == 124 else 3)
+        sys.exit(124)
     if a.action == "status":
         print(f"{a.name}: " + (f"код {rcf.read_text().strip()}" if rcf.exists()
-                               else "идёт" if pidf.exists() and job_alive(int(pidf.read_text() or 0)) else "нет данных"))
+                               else "идёт" if job_state(a.name) == "running" else "нет данных"))
         return
     if a.action == "stop":
         pid = job_stop(a.name)
@@ -299,6 +356,59 @@ def cpu_weight(cmd):
         except (KeyError, TypeError, ValueError, re.error) as e:
             raise DpError(f"jobs.cpu_weights: неверное правило {r!r} ({e})")
     return 1
+
+
+def cpu_enforce_mode():
+    """cgroup | taskset | off: DPCLI_CPU_ENFORCE, иначе jobs.cpu_enforce (по умолчанию cgroup)."""
+    v = str(os.environ.get("DPCLI_CPU_ENFORCE") or config.get("jobs.cpu_enforce") or "cgroup").strip().lower()
+    if v not in ("cgroup", "taskset", "off"):
+        raise DpError(f"jobs.cpu_enforce / DPCLI_CPU_ENFORCE: {v!r} — нужно cgroup|taskset|off")
+    return v
+
+
+def cpu_avail():
+    try:
+        return sorted(os.sched_getaffinity(0))
+    except (AttributeError, OSError):
+        return list(range(os.cpu_count() or 1))
+
+
+def cpu_pick(holders, n, avail):
+    """N номеров ядер для taskset: сперва не занятые другими держателями (любой набор), не хватает — наименее занятые."""
+    use = {c: 0 for c in avail}
+    for h in holders:
+        for c in h.get("cpus") or []:
+            if c in use:
+                use[c] += 1
+    return sorted(sorted(avail, key=lambda c: (use[c], c))[:max(1, min(n, len(avail)))])
+
+
+def cgroup_ok():
+    """systemd-run --user --scope работает (пробный true; нет systemd/шины, песочница — нет)."""
+    if not shutil.which("systemd-run"):
+        return False
+    try:
+        return subprocess.run(["systemd-run", "--user", "--scope", "--quiet", "-p", "CPUQuota=100%", "true"],
+                              stdin=subprocess.DEVNULL, capture_output=True, timeout=15).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def cpu_enforce_cmd(cmd, n, cpus, mode, probe=cgroup_ok):
+    """Команда с физическим ограничением веса N: cgroup — systemd-run --scope CPUQuota=N×100 % (пробный запуск
+    не удался — откат на taskset); taskset — ядра cpus; off — как есть. → (команда, что применено)."""
+    if mode == "cgroup":
+        if probe():
+            return ["systemd-run", "--user", "--scope", "--quiet", "-p", f"CPUQuota={n * 100}%", "--", *cmd], \
+                f"cgroup CPUQuota={n * 100}%"
+        print("lock cpu: systemd-run --user --scope недоступен — ограничение через taskset", file=sys.stderr)
+        mode = "taskset"
+    if mode == "taskset" and cpus and shutil.which("taskset"):
+        lst = ",".join(map(str, cpus))
+        return ["taskset", "-c", lst, *cmd], f"taskset -c {lst}"
+    if mode == "taskset":
+        print("lock cpu: нет taskset — без ограничения", file=sys.stderr)
+    return list(cmd), "off"
 
 
 def pid_alive(pid):
@@ -367,7 +477,7 @@ def cpu_can_start(data, my_id, total, starve, t):
 
 
 def cpu_acquire(holder, slots, cmd, timeout):
-    """Встать в очередь и дождаться старта; → id держателя. Таймаут — выход 124; SIGTERM/SIGINT — выход из очереди."""
+    """Встать в очередь и дождаться старта; → (id держателя, ядра для taskset). Таймаут — выход 124; SIGTERM/SIGINT — выход из очереди."""
     import signal
     my_id = f"{os.getpid()}-{time.time_ns()}"
     t0 = time.time()
@@ -393,8 +503,9 @@ def cpu_acquire(holder, slots, cmd, timeout):
                 t = time.time()
                 if cpu_can_start(st.data, my_id, total, starve, t):
                     st.data["queue"] = [w for w in st.data["queue"] if w["id"] != my_id]
-                    st.data["holders"].append({**rec, "since": now(), "since_ts": t})
-                    return my_id
+                    cpus = cpu_pick(st.data["holders"], slots, cpu_avail())  # ядра для taskset (если до него дойдёт)
+                    st.data["holders"].append({**rec, "since": now(), "since_ts": t, "cpus": cpus})
+                    return my_id, cpus
             if timeout is not None and time.time() - t0 > timeout:
                 cpu_drop(my_id)
                 print(f"lock cpu: таймаут {timeout:g} с в ожидании", file=sys.stderr)
@@ -445,18 +556,26 @@ def lock_status():
 def run_held(holder, cmd, tm, release):
     """Запустить команду под уже взятым замком; release() — снять замок. Выход — код команды."""
     import signal
-    if tm and re.fullmatch(r"[\w.-]+", holder):  # команда — в окне tmux, замок держим здесь; ждём по PID, код — из .rc
+    if tm and re.fullmatch(r"[\w.-]+", holder):
+        # команда — в окне tmux, замок держим здесь до её конца; код — из .rc. Имя задачи своё на каждый запуск
+        # (<holder>.<случайный суффикс>; PID не годится — в песочницах он мал и повторяется): параллельные lock
+        # с одним holder не делят .pid/.rc. Ждём по job_state — он видит и PID из чужого пространства
+        # (песочница агента): тогда по окну tmux.
+        name = f"{holder}.{os.urandom(3).hex()}"
         try:
-            job_start(holder, 0, cmd, tm)
-            pidf, _, rcf = job_files(holder)
+            job_start(name, 0, cmd, tm)
+            _, _, rcf = job_files(name)
             for sg in (signal.SIGTERM, signal.SIGINT):
-                signal.signal(sg, lambda sig, _: job_stop(holder))
+                signal.signal(sg, lambda sig, _: job_stop(name))
+            while (st := job_state(name)) == "running":
+                time.sleep(0.3)
+            for _ in range(20):  # окно закрыто (kill-window) — runner дописывает .rc уже после
+                if st != "gone":
+                    break
+                time.sleep(0.1)
+                st = job_state(name)
             try:
-                pid = int(pidf.read_text())
-                while job_alive(pid):
-                    time.sleep(0.3)
-                time.sleep(0.2)
-                rc = int(rcf.read_text().strip()) if rcf.exists() else 143
+                rc = int(rcf.read_text().strip()) if st == "done" else 143
             except (OSError, ValueError):
                 rc = 1
         finally:
@@ -512,8 +631,16 @@ def cmd_lock(a):
         if n > total:
             print(f"lock cpu: {n} слотов > всего {total} — беру {total}", file=sys.stderr)
             n = total
-        my_id = cpu_acquire(holder, n, cmd, timeout)
-        run_held(holder, cmd, tm, lambda: cpu_drop(my_id))
+        mode = cpu_enforce_mode()
+        my_id, cpus = cpu_acquire(holder, n, cmd, timeout)
+        try:
+            run_cmd, how = cpu_enforce_cmd(cmd, n, cpus, mode)
+        except BaseException:
+            cpu_drop(my_id)
+            raise
+        if how != "off":
+            print(f"lock cpu: {n} сл., {how}", file=sys.stderr)
+        run_held(holder, run_cmd, tm, lambda: cpu_drop(my_id))
     if slots is not None:
         raise DpError("lock gpu: --slots только для cpu")
     lp = locks_dir() / GPU_LOCK

@@ -114,6 +114,9 @@ jobs:
   #     slots: 3
   # Сколько секунд голова очереди может ждать, пока её обгоняют мелкие задачи (добор); дольше — добор запрещён.
   # cpu_starve_s: 300
+  # Физическое ограничение запуска его весом N (DPCLI_CPU_ENFORCE переопределяет): cgroup — systemd-run --user --scope
+  # с CPUQuota=N×100 % (недоступен — откат на taskset); taskset — N своих ядер (учёт в cpu.json); off — без ограничения.
+  # cpu_enforce: cgroup
 
 # Каталог замков dpcli lock cpu|gpu (по умолчанию — <jobs.dir>/locks).
 # locks: "~/.cache/dpcli/{project}/locks"

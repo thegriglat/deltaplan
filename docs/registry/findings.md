@@ -135,6 +135,12 @@ related: ["docs/archive/README.md"]
 
 - **Управление по умолчанию**: клавиши трапеции только стрелки; W/S/A/D на земле — пилот, в полёте — голова; мышь всегда крыло (захват M); `mouse.mode` убран (контракты У1 v3, У2 v2) — [ui-controls-progress.md](/docs/archive/plan/ui-controls-progress.md#решения)
 
+## bar-mouse
+
+- **Ход штанги — в отсчётах мыши**: `bar_travel_px` 2500 / множитель 0,25…4 → 10000…625 px = 31,7…2,0 см при 800 DPI (315 отсчётов/см); по умолчанию 7,9 см до упора против 1,4–1,7 см (450–540 px = 0,5·H при H = 900–1080) — [bar-mouse.md](/docs/contracts/bar-mouse.md#bm-к1-мышь--штанга-v2)
+- **Ускорение ОС в `screen_relative` (Godot 4.7.2, по исходникам)**: Windows (`WM_INPUT`) и X11 (`XI_RawMotion`) — сырые отсчёты; Wayland — ускоренные `dx/dy` × масштаб 1,25…2; macOS — ускоренные точки, усечение до целого, ×`max_scale`; обхода средствами игры нет, только плоский профиль ОС и множитель; железом не мерилось — [bar-mouse-raw-input.md](/docs/research/bar-mouse-raw-input.md#итог)
+- **Маршрутизация мыши по камерам подтверждена тестом** во всех 12 ячейках (кабина/сзади/свободная × ПКМ × 0,02/0,5 °/px): `look_sensitivity_deg_per_px` на штангу не влияет (60×40 px → голова 1,2/0,8° и 30/20°); расхождение одно — ПКМ, отпущенная при выключенном вводе (меню, пауза), залипает в `InputController` и `CameraRig` (4 сценария из 4) — [cameras-input.md](/docs/guide/game/cameras-input.md#мышь-и-штанга)
+
 ## site-update
 
 - **Рендеры крыльев**: iso45 из `.glb` (под 3/4 форма читается лучше, чем under34); карточки DHV — только номер и ссылка на поиск портала; `hugo --minify` 248 страниц без WARN/ERROR — [site-update-progress.md](/docs/archive/plan/site-update-progress.md#развилки-развилка--решение--почему)

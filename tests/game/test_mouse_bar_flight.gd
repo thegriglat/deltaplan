@@ -54,6 +54,7 @@ func _push_motion(rel: Vector2, p: Vector2) -> void:
 	ev.position = p
 	ev.global_position = p
 	ev.relative = rel
+	ev.screen_relative = rel
 	get_viewport().push_input(ev)
 
 
@@ -97,7 +98,7 @@ func test_bar_mouse_in_air_pendulum() -> void:
 	var game: Game = main.get_node("Game")
 	check(game.glider.is_pendulum(), "модель — PendulumModel")
 	game.glider.set_air_fn(func(_p: Vector3) -> Vector3: return Vector3.ZERO)
-	var px := get_viewport().get_visible_rect().size.y * 0.5 * 0.3
+	var px := MouseBar.travel_px(Config.get_config("controls").mouse) * 0.3
 	var dur := 6.0
 	var neutral := _fly_with_mouse(game, Vector2.ZERO, dur)
 	var right := _fly_with_mouse(game, Vector2(px, 0.0), dur)
@@ -176,7 +177,7 @@ func test_mouse_on_ground_controls_wing() -> void:
 	check(game.glider.phase() != "flying", "на земле")
 	var a0: float = game.glider.model.alpha
 	var b0 := game.glider.get_telemetry().bank_deg
-	var px := get_viewport().get_visible_rect().size.y * 0.5 * 0.5
+	var px := MouseBar.travel_px(Config.get_config("controls").mouse) * 0.5
 	_push_motion(Vector2(px, px), _center())  # полхода вправо и на себя
 	for i in int(2.0 / DT):
 		game.tick(DT)

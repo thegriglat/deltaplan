@@ -181,7 +181,7 @@ func setup(atmosphere: Atmosphere) -> void:
 		_effect.noise_detail = _material.get_shader_parameter("noise_detail")
 	else:
 		_make_multimesh()
-	if bool(cfg.shadows):
+	if bool(cfg.shadows) and GraphicsPresets.gpu_effect("cloud_shadows"):
 		_shadow_map = CloudShadowMap.new()
 		_shadow_map.name = "ShadowMap"
 		add_child(_shadow_map)

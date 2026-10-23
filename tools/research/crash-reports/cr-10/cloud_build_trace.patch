@@ -1,0 +1,13 @@
+diff --git a/scripts/atmosphere/cloud_compositor_effect.gd b/scripts/atmosphere/cloud_compositor_effect.gd
+index f8f5ac43..0808e4d0 100644
+--- a/scripts/atmosphere/cloud_compositor_effect.gd
++++ b/scripts/atmosphere/cloud_compositor_effect.gd
+@@ -131,6 +131,8 @@ static func buffer_size(full: Vector2i, scale: float = 0.5, max_px: int = 0) ->
+ func _render_callback(_type: int, render_data: RenderData) -> void:
+ 	if _rd == null or _failed or noise_shape == null or noise_detail == null:
+ 		return
++	if not _march.is_valid():
++		print("CR10: cloud effect build at frame ", Engine.get_frames_drawn())
+ 	if not _march.is_valid() and not _build():
+ 		_failed = true
+ 		return

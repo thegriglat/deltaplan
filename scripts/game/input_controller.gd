@@ -21,7 +21,11 @@ var mouse_captured := false
 ## Фазу сообщает главная сцена по телеметрии: на земле стоя W/S — шаг, A/D — поворот.
 var on_ground := true
 ## false — ввод игнорируется (меню, итог полёта): update() отдаёт нейтральное управление.
-var enabled := true
+var enabled := true:
+	set(v):
+		if not v:
+			_bar_look_held = false  # ПКМ отпущена в меню/паузе — событие до нас не дойдёт
+		enabled = v
 ## true — клавиши заняты свободной камерой (WASD двигает её): крыло без рук — трапеция в триме,
 ## на земле стоим.
 var hands_off := false
@@ -86,6 +90,10 @@ func set_mouse_captured(on: bool) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Состояние ПКМ пишем и при выключенном вводе: отпускание в меню/паузе не теряется.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		_bar_look_held = event.pressed
+		return
 	if not enabled:
 		return
 	if event.is_action_pressed("mouse_capture"):
@@ -93,17 +101,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	# Правая кнопка зажата — осмотреться (CameraRig крутит голову), трапеция
 	# держит последнее положение, пока кнопка не отпущена.
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
-		_bar_look_held = event.pressed
-		return
 	# Мышь — трапеция и на земле, и в полёте (У1 v3): смещение копится всегда (при захвате),
 	# поэтому на отрыве трапеция непрерывна. Свободная камера (hands_off) — мышь крутит её, трапеция
 	# держит положение (иначе после возврата в кабину трапеция стояла бы, куда вела камера).
 	if mouse_captured and event is InputEventMouseMotion and not _bar_look_held and not hands_off:
-		var h := float(get_viewport().get_visible_rect().size.y) * 0.5
-		var k := float(_cfg.mouse.bar_sensitivity) / maxf(h, 1.0)
-		_mouse_offset += event.relative * k  # мышь от себя (вверх по экрану) = трапеция от себя
-		_mouse_offset = _mouse_offset.clamp(Vector2(-1, -1), Vector2(1, 1))
+		# мышь от себя (вверх по экрану) = трапеция от себя; ход — в отсчётах мыши (BM-К1)
+		_mouse_offset = MouseBar.accumulate(_mouse_offset, event.screen_relative, _cfg.mouse)
 
 
 ## Новый полёт: трапеция в нейтраль.
@@ -185,8 +188,8 @@ func _update_bar(dt: float, allow_center: bool) -> void:
 	elif ret > 0.0:
 		_mouse_offset = _mouse_offset.move_toward(Vector2.ZERO, ret * dt)
 	var dz := float(_cfg.mouse.bar_deadzone)
-	var m_roll := _mouse_offset.x * _roll_sign() if absf(_mouse_offset.x) > dz else 0.0
-	var m_pitch := -_mouse_offset.y * inv if absf(_mouse_offset.y) > dz else 0.0
+	var m_roll := MouseBar.apply_deadzone(_mouse_offset.x, dz) * _roll_sign()
+	var m_pitch := -MouseBar.apply_deadzone(_mouse_offset.y, dz) * inv
 	control.pitch = clampf(m_pitch, -1.0, 1.0)
 	control.roll = clampf(m_roll, -1.0, 1.0)
 
