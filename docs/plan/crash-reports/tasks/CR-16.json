@@ -1,0 +1,60 @@
+{
+  "id": "CR-16",
+  "module": "crash-reports",
+  "type": "dp-engineer",
+  "title": "Debug-шаблон Godot 4.7.2 с отладочными символами для build/linux-debug",
+  "goal": "Собрать из исходников Godot 4.7.2-stable (ed1daf0bf) template_debug с debug_symbols=yes и выложить в /home/greg/deltaplan/build/linux-debug/ игру 1.6.0 (d6df90c8b, pck без токена отчётов) на этом бинаре с README.txt для запуска под gdb — стек должен быть читаемым.",
+  "plan_ref": "§4 CR-2",
+  "contracts": [],
+  "copy": "~/deltaplan-crash-reports-CR-16",
+  "branch": "crash-reports/CR-16",
+  "base": "feature/crash-reports",
+  "scope": [
+    "build/linux-debug"
+  ],
+  "dont_touch": [
+    "scripts",
+    "scenes",
+    "shaders",
+    "project.godot",
+    "CHANGELOG.md",
+    "docs",
+    "tools",
+    "/home/greg/deltaplan/build/linux",
+    "/home/greg/.config/itch",
+    "/home/greg/.local/share/Deltaplan",
+    "/home/greg/.config/deltaplan",
+    "/home/greg/.local/share/godot/export_templates"
+  ],
+  "accept": [
+    {
+      "name": "symbols",
+      "cmd": "file -L /home/greg/deltaplan/build/linux-debug/deltaplan.x86_64",
+      "expect": "re:with debug_info"
+    },
+    {
+      "name": "runs",
+      "cmd": "test -s /home/greg/deltaplan/build/linux-debug/deltaplan.pck -a -x /home/greg/deltaplan/build/linux-debug/deltaplan.x86_64.official",
+      "expect": "exit=0"
+    },
+    {
+      "name": "notoken",
+      "cmd": "! grep -aq 'github_pat_' /home/greg/deltaplan/build/linux-debug/deltaplan.pck",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "grep -ciE 'символ' /home/greg/deltaplan/build/linux-debug/README.txt",
+      "expect": "num:(\\d+) >=1"
+    },
+    {
+      "name": "readme_gdb",
+      "cmd": "grep -cE 'gdb|XDG_DATA_HOME|thread apply all bt|godot.log|stderr' /home/greg/deltaplan/build/linux-debug/README.txt",
+      "expect": "num:(\\d+) >=5"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-24T04:54:50",
+  "edited": "2026-10-24T04:55:29"
+}

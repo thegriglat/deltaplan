@@ -1,0 +1,48 @@
+{
+  "id": "CR-15",
+  "module": "crash-reports",
+  "type": "dp-mechanic",
+  "title": "Отладочная Linux-сборка 1.6.0 (официальный debug-шаблон) в build/linux-debug для gdb у пользователя",
+  "goal": "Собрать игру 1.6.0 (main d6df90c8b) официальным debug-шаблоном Godot 4.7.2 без токена отчётов в /home/greg/deltaplan/build/linux-debug/ и положить рядом README.txt с запуском под gdb и сценарием воспроизведения #20/#21.",
+  "plan_ref": "§4 CR-2",
+  "contracts": [],
+  "copy": "~/deltaplan-crash-reports-CR-15",
+  "branch": "crash-reports/CR-15",
+  "base": "feature/crash-reports",
+  "scope": [
+    "build/linux-debug"
+  ],
+  "dont_touch": [
+    "scripts",
+    "scenes",
+    "shaders",
+    "project.godot",
+    "CHANGELOG.md",
+    "docs",
+    "tools",
+    "/home/greg/deltaplan/build/linux",
+    "/home/greg/.config/itch",
+    "/home/greg/.local/share/Deltaplan",
+    "/home/greg/.config/deltaplan"
+  ],
+  "accept": [
+    {
+      "name": "bin",
+      "cmd": "test -x /home/greg/deltaplan/build/linux-debug/deltaplan.x86_64 -a -s /home/greg/deltaplan/build/linux-debug/deltaplan.pck -a -d /home/greg/deltaplan/build/linux-debug/configs",
+      "expect": "exit=0"
+    },
+    {
+      "name": "notoken",
+      "cmd": "! grep -aq 'github_pat_' /home/greg/deltaplan/build/linux-debug/deltaplan.pck",
+      "expect": "exit=0"
+    },
+    {
+      "name": "readme",
+      "cmd": "grep -cE 'gdb|XDG_DATA_HOME|thread apply all bt|godot.log|stderr' /home/greg/deltaplan/build/linux-debug/README.txt",
+      "expect": "num:(\\d+) >=5"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-24T04:54:00"
+}
