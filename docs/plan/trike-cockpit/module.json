@@ -1,0 +1,11 @@
+{
+  "module": "trike-cockpit",
+  "plan": "docs/plan/trike-cockpit.md",
+  "contracts": "docs/contracts/trike-cockpit.md",
+  "branch": "feature/trike-cockpit",
+  "copy": "~/deltaplan-trike-cockpit",
+  "created": "2026-10-23T22:35:36",
+  "code": "TC",
+  "area": "flight",
+  "base": "main"
+}
