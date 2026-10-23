@@ -40,3 +40,6 @@
 {"t": "2026-10-23T22:15:50", "by": "coordinator", "task": "TA-3", "ev": "checked", "note": "2/2 docs=ok:exit 0; no_place_tow_row=ok:exit 0; scope=FAIL:вне scope: r-TA-3.json"}
 {"t": "2026-10-23T22:15:56", "by": "coordinator", "task": "TA-3", "ev": "accepted", "note": "2/2 docs=ok:exit 0; no_place_tow_row=ok:exit 0"}
 {"t": "2026-10-23T22:15:57", "by": "coordinator", "task": "TA-3", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T22:16:04", "by": "coordinator", "task": "TA-3", "ev": "accepted", "commits": ["d278a026d"], "note": "2/2 docs=ok:exit 0; no_place_tow_row=ok:exit 0"}
+{"t": "2026-10-23T22:16:04", "by": "coordinator", "task": "TA-3", "ev": "merged", "note": "d278a026d"}
+{"t": "2026-10-23T22:16:05", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: копия модуля без .godot — accept --here падает таймаутами без подсказки про --import; r-<ID>.json исполнителя в корне копии валит scope (двое из трёх); test_ui::test_controls_screen_lists_keys падает на базе main 78e5267b2 — не в скоупе модуля"}
