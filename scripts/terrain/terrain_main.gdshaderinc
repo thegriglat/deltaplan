@@ -228,17 +228,17 @@ uniform float rock_normal_strength = 0.6;         // мелкий слой (та
 // в мировых координатах на плоскости стены (две вертикальные проекции xy, zy). Мелкие масштабы (Rock030,
 // неровность SL-9) на крутом ослаблены до cliff_fine_keep — крупная форма вместо ряби.
 uniform vec2 cliff_slope_deg = vec2(30.0, 45.0);  // блоки появляются / в полную силу с уклона, °
-uniform float cliff_fine_keep = 0.35;             // доля мелкой фактуры (Rock030, неровность SL-9) на крутом
+uniform float cliff_fine_keep = 0.15;             // доля мелкой фактуры (Rock030, неровность SL-9) на крутом
 #ifndef T_ROCK_SURFACE_OFF
-uniform vec2 cliff_block_m = vec2(25.0, 7.0);     // шаг блоков: крупные / мелкие, м
-uniform vec2 cliff_tone = vec2(0.4, 0.1);         // разброс яркости граней ± доля: крупные / мелкие
+uniform vec2 cliff_block_m = vec2(20.0, 7.0);     // шаг блоков: крупные / мелкие, м
+uniform vec2 cliff_tone = vec2(0.45, 0.15);        // разброс яркости граней ± доля: крупные / мелкие
 uniform vec2 cliff_tilt = vec2(0.65, 0.2);        // наклон нормали грани (тангенс): крупные / мелкие
-uniform vec2 cliff_bulge = vec2(1.0, 0.5);       // выпуклость блока: наклон нормали у края = bulge · 0,5: крупные / мелкие
+uniform vec2 cliff_bulge = vec2(1.2, 0.5);       // выпуклость блока: наклон нормали у края = bulge · 0,5: крупные / мелкие
 uniform float cliff_jitter = 0.8;                 // сдвиг центров ячеек (доля шага): 0 — решётка
 uniform float cliff_crack_w = 0.03;               // ширина щели, доля шага блока
 uniform vec2 cliff_crack_dark = vec2(0.6, 0.3);   // затемнение щели: крупные / мелкие
-uniform vec2 cliff_ao = vec2(0.3, 0.1);           // затенение у края блока (AO), доля: крупные / мелкие
-uniform float cliff_ao_w = 0.2;                   // ширина затенения от края, доля шага блока
+uniform vec2 cliff_ao = vec2(0.4, 0.1);           // затенение у края блока (AO), доля: крупные / мелкие
+uniform float cliff_ao_w = 0.25;                  // ширина затенения от края, доля шага блока
 uniform vec2 cliff_fade_px = vec2(3.0, 6.0);      // блок мельче / крупнее стольких пикселей — нет / в полную силу
 #endif
 #ifndef T_EROSION_OFF
