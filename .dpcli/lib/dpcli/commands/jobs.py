@@ -260,10 +260,8 @@ def cmd_job(a):
         if not a.cmd or a.timeout is None:
             raise DpError(f"{CLI} job start <имя> <таймаут_с> <команда…>")
         cmd = a.cmd[1:] if a.cmd[:1] == ["--"] else a.cmd
-        if a.slots is not None and a.lock != "cpu":
-            raise DpError("job start: --slots — только с --lock cpu")
         if a.lock:
-            cmd = [*reexec.self_cmd(), "lock", a.lock, a.name, *(["--slots", str(a.slots)] if a.slots is not None else []), "--", *cmd]
+            cmd = [*reexec.self_cmd(), "lock", a.lock, a.name, "--", *cmd]
         job_start(a.name, a.timeout, cmd, tmux_opts(a))
         return
     if a.action == "status" and not a.name:
@@ -614,7 +612,7 @@ def cmd_lock(a):
     args = list(a.args)
     if args[:1] == ["status"]:
         return lock_status()
-    usage = (f"{CLI} lock cpu|gpu <имя> [--slots N (cpu)] [--timeout СЕК] [--no-tmux] [--tmux-session S] -- <команда…>"
+    usage = (f"{CLI} lock cpu|gpu <имя> [--timeout СЕК] [--no-tmux] [--tmux-session S] -- <команда…>"
              f"  |  {CLI} lock status")
     if "--" not in args or len(args) < 4 or args[0] not in ("cpu", "gpu"):
         raise DpError(usage)
@@ -640,6 +638,10 @@ def cmd_lock(a):
         slots = int(opts["--slots"]) if opts["--slots"] is not None else None
     except ValueError:
         raise DpError(usage)
+    if slots is not None and not os.environ.get("DPCLI_TEST_SLOTS"):
+        # вес задаёт только конфиг главной копии (jobs.cpu_weights); --slots оставлен для тестов dpcli
+        print("lock: --slots игнорируется — вес берётся из jobs.cpu_weights", file=sys.stderr)
+        slots = None
     tm = tmux_opts(argparse.Namespace(no_tmux="--no-tmux" in flags, tmux_session=opts["--tmux-session"]))
     if res == "cpu":
         total = cpu_total()
@@ -690,11 +692,10 @@ def register(sp):
     q.add_argument("action", choices=["start", "wait", "status", "stop", "attach", "tmux"]); q.add_argument("name", nargs="?")
     q.add_argument("timeout", nargs="?", type=int); q.add_argument("cmd", nargs=argparse.REMAINDER)
     q.add_argument("--lock", metavar="cpu|gpu", help="start: выполнять под lock cpu|gpu (держатель — имя задачи)")
-    q.add_argument("--slots", type=int, metavar="N", help="start с --lock cpu: занять N слотов (по умолчанию — по jobs.cpu_weights, иначе 1)")
     q.add_argument("--all", action="store_true", help="status без имени: все запуски (по умолчанию идущие + последние 10)")
     tmux_args(q)
     q.set_defaults(func=cmd_job)
 
-    q = sp.add_parser("lock", help="команда под общим замком: lock cpu|gpu <имя> [--slots N] [--timeout СЕК] -- <команда…> | lock status")
+    q = sp.add_parser("lock", help="команда под общим замком: lock cpu|gpu <имя> [--timeout СЕК] -- <команда…> | lock status")
     q.add_argument("args", nargs=argparse.REMAINDER)
     q.set_defaults(func=cmd_lock)

@@ -62,7 +62,7 @@ class CliBase(unittest.TestCase):
 
     def env(self, **kw):
         e = {k: v for k, v in os.environ.items() if not k.startswith("DPCLI_")}
-        e.update({"DPCLI_NO_TMUX": "1", "DPCLI_NO_REEXEC": "1", **kw})
+        e.update({"DPCLI_NO_TMUX": "1", "DPCLI_NO_REEXEC": "1", "DPCLI_TEST_SLOTS": "1", **kw})
         return e
 
     def start(self, *args, **env):
