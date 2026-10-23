@@ -18,6 +18,9 @@
 //     засвет слабее, но не ноль.
 // Углы — от настоящего направления пикселя (tan_half — полуполе зрения), поэтому засвет
 // одинаков при любом fov. Кромка козырька и искажение визора — в долях кадра (у края всегда).
+// Ореол — в небе, не на рельефе (HH-19): пиксель ниже линии горизонта рельефа (высота над горизонтом по азимуту, лучи на
+// процессоре, sun_glare.gd → horizon[]) — не небо; плато цвета солнца и ореол (ядро + хвост) на нём гасятся, остаётся засвет
+// всего кадра veil_flat. Солнце за горой — видимость диска нулевая, ореола нет совсем.
 // Каска: 0 — нет, 1 — открытая (козырёк), 2 — прозрачный визор, 3 — тёмный визор.
 shader_type canvas_item;
 render_mode unshaded;
@@ -43,6 +46,13 @@ uniform float veil_wide_deg = 5.5;            // полуширина хвост
 uniform float veil_flat = 0.05;               // засвет всего кадра (рассеяние в глазу)
 uniform float plateau_r0 = 2.7;               // плато цвета солнца: полная заливка до этого радиуса, в радиусах диска
 uniform float plateau_r1 = 4.5;               // …и переход в аддитивный засвет (квадрат smoothstep: у края плато медленно — светлота сцены вокруг, с небом ярче цвета солнца, не даёт горба) до этого радиуса
+uniform float horizon_on = 0.0;               // 1 — линия горизонта рельефа задана (солнце низко), ореол только над ней
+uniform mat3 cam_basis = mat3(1.0);           // оси камеры в мировых (направление пикселя → мир)
+uniform vec3 sun_world = vec3(0.0, 0.0, -1.0); // направление на солнце в мире (Y вверх)
+uniform float horizon[17];                    // высота линии горизонта рельефа над горизонтальной плоскостью, радианы, по азимуту солнца ± horizon_span_deg
+uniform float horizon_span_deg = 2.0;         // полуширина полосы азимутов линии горизонта, градусы
+uniform float horizon_soft_deg = 0.12;        // мягкость края рельефа: небо полностью выше линии на столько, градусы
+uniform float terrain_halo = 0.0;             // доля ореола (ядро + хвост), остающаяся на рельефе (0 — нет)
 uniform float disk_deg = 0.3;                 // угловой радиус диска, градусы (перекраска в цвет солнца)
 
 uniform int helmet = 0;
@@ -205,11 +215,28 @@ void fragment() {
 	vec3 pdir = normalize(vec3((uv.x * 2.0 - 1.0) * tan_half.x, (1.0 - uv.y * 2.0) * tan_half.y, -1.0));
 	float th = degrees(acos(clamp(dot(pdir, normalize(sun_view)), -1.0, 1.0)));
 	float I = glare * v_vis;
+	// небо ли пиксель: выше линии горизонта рельефа по его азимуту относительно солнца
+	float sky_k = 1.0;
+	if (horizon_on > 0.5) {
+		vec3 w = normalize(cam_basis * pdir);
+		vec2 hs = normalize(sun_world.xz + vec2(1e-6));
+		vec2 hw = normalize(w.xz + vec2(1e-6));
+		float dl = degrees(atan(hs.x * hw.y - hs.y * hw.x, dot(hs, hw)));
+		float f = clamp((dl + horizon_span_deg) / (2.0 * horizon_span_deg), 0.0, 1.0) * 16.0;
+		int i0 = int(floor(f));
+		int i1 = min(i0 + 1, 16);
+		float h = mix(horizon[i0], horizon[i1], f - float(i0));
+		float e = asin(clamp(w.y, -1.0, 1.0));
+		sky_k = smoothstep(h, h + radians(horizon_soft_deg), e);
+	}
+	float halo_k = mix(terrain_halo, 1.0, sky_k);
 	// сжатие зрачка гасит весь кадр (без исключений вокруг солнца: пересвет ниже и так добавляется поверх)
 	col *= 1.0 - darken * I;
 	float veil = I * (
-		veil_core / (1.0 + pow(th / max(veil_core_deg, 1e-3), 2.0))
-		+ veil_wide / (1.0 + pow(th / max(veil_wide_deg, 1e-3), 2.0))
+		halo_k * (
+			veil_core / (1.0 + pow(th / max(veil_core_deg, 1e-3), 2.0))
+			+ veil_wide / (1.0 + pow(th / max(veil_wide_deg, 1e-3), 2.0))
+		)
 		+ veil_flat
 	);
 	if (visor) {
@@ -249,7 +276,7 @@ void fragment() {
 	if (glare > 1.0e-6 && v_vis_raw > 0.0) {
 		float rr = th / max(disk_deg, 1e-4);  // радиусов диска
 		float fs = smoothstep(plateau_r0, plateau_r1, rr);
-		float wd = (1.0 - fs * fs) * clamp(2.0 * v_vis_raw, 0.0, 1.0);
+		float wd = (1.0 - fs * fs) * clamp(2.0 * v_vis_raw, 0.0, 1.0) * halo_k;
 		lin = mix(lin, tint, wd);
 	}
 	col = to_srgb(lin);
