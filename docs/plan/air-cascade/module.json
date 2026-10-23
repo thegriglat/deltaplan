@@ -1,0 +1,11 @@
+{
+  "module": "air-cascade",
+  "plan": "docs/plan/air-cascade.md",
+  "contracts": "docs/contracts/air-cascade.md",
+  "branch": "feature/air-cascade",
+  "copy": "~/deltaplan-air-cascade",
+  "created": "2026-10-24T01:19:45",
+  "code": "AC",
+  "area": "air",
+  "base": "main"
+}
