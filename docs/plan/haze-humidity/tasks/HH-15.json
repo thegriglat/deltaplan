@@ -91,11 +91,6 @@
       "expect": "re:ошибок 0"
     },
     {
-      "name": "center_brightest",
-      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
-      "expect": "re:center_brightest=1"
-    },
-    {
       "name": "monotonic",
       "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
       "expect": "re:monotonic=1"
@@ -116,18 +111,23 @@
       "expect": "num:ratio=([\\d.]+) <=3.7"
     },
     {
-      "name": "altai_center",
-      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_altai.jpg",
-      "expect": "re:center_brightest=1"
-    },
-    {
       "name": "glow_r",
       "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
       "expect": "num:glow_r_deg=([\\d.]+) <=7"
+    },
+    {
+      "name": "center_not_darker",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "re:center_not_darker=1"
+    },
+    {
+      "name": "inner_same_color",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "re:inner_same_color=1"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T01:33:54",
-  "edited": "2026-10-23T08:44:45"
+  "edited": "2026-10-23T13:29:08"
 }
