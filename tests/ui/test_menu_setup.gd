@@ -33,7 +33,7 @@ func test_start_menu_has_six_buttons_in_order() -> void:
 	var buttons := m.find_children("*", "Button", true, false)
 	var texts: Array = []
 	for b in buttons:
-		if not (b as Button).flat:
+		if not (b as Button).flat and b.name != "WindRestoreButton":  # плашка безопасной графики — не меню
 			texts.append((b as Button).text)
 	check(texts.size() == 9, "ровно 9 кнопок, получили %d: %s" % [texts.size(), texts])
 	check(texts == expected, "порядок кнопок FR-27: %s" % [texts])

@@ -171,10 +171,11 @@ func test_models_and_no_session() -> void:
 	g._make_tow_session()
 	check(g.tow_session == null and g._tow_site.is_empty(), "сессия не создаётся")
 	g.settings.tow_kind = "aerotow"
-	check(not g._choose_tow_start(), "aerotow на площадке только с лебёдкой — старт без буксировки")
+	check(g._choose_tow_start(), "aerotow на площадке только с лебёдкой — старт с буксировкой (TA-К2)")
 	g.settings.tow_kind = "winch_static"
 	g.settings.site_id = "b"
-	check(not g._choose_tow_start(), "площадка без tow — старт без буксировки")
+	check(g._choose_tow_start(), "площадка без tow — старт с буксировкой (TA-К2)")
+	check(g._start_heading == 20.0 and absf(float(g._tow_site.width_m) - Game.TOW_DEFAULT_WIDTH_M) < 0.01, "курс площадки, ширина по умолчанию")
 	g.settings.site_id = "a"
 	check(g._choose_tow_start(), "площадка a — старт с лебёдки")
 	check(g._start_heading == 0.0 and g._start_pos.distance_to(Vector3(0.0, 100.0, 0.0)) < 0.5, "старт в начале полосы: %s" % g._start_pos)

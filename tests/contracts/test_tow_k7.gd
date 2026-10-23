@@ -34,30 +34,22 @@ func test_defaults_and_kinds() -> void:
 func test_locale_keys() -> void:
 	var csv := FileAccess.get_file_as_string("res://locale/ui.csv")
 	for k in [
-		"setup_tow", "setup_tow_none", "setup_tow_winch", "setup_tow_aerotow", "setup_tow_mp_off"
+		"setup_tow_none", "setup_tow_winch", "setup_tow_aerotow"
 	]:
 		check(csv.contains("\n" + k + ","), k)
 
 
-func test_refresh_same_place_keeps_choice() -> void:
+## TA-К1: строка «Буксировка» убрана с вкладки «Место»; вид задаётся окном старта.
+func test_setup_screen_has_no_tow_row() -> void:
 	var m: FlightSetupScreen = (load("res://scenes/ui/flight_setup_screen.tscn") as PackedScene).instantiate()
-	# в дерево — под узел раннера (окно root занято, пока раннер в _ready); допущение: раннер — последний узел root
 	var tree_root := (Engine.get_main_loop() as SceneTree).root
 	tree_root.get_child(tree_root.get_child_count() - 1).add_child(m)
 	var s := FlightSettings.defaults()
 	s.location_id = "altai"
 	s.site_id = "tugaya_south"
+	s.tow_kind = "winch_static"
 	m.set_settings(s)
-	var opt: OptionButton = m.get("_tow_opt")
-	opt.select(2)  # вид из списка площадки без tow (все виды)
-	var chosen := String(m.call("_tow_selected"))
-	check(chosen != "", "вид выбран (%s)" % chosen)
-	(m.get("_row") as PlacePickRow).refresh()  # то же место → changed
-	check(String(m.call("_tow_selected")) == chosen, "повторный refresh того же места не сбрасывает выбор")
-	s.site_id = "sinyukha_west"
-	(m.get("_row") as PlacePickRow).settings = s
-	(m.get("_row") as PlacePickRow).refresh()
-	check(String(m.call("_tow_selected")) == "", "смена места → умолчание (без tow — Нет)")
+	check(m.get("_tow_opt") == null, "строки буксировки нет")
 	m.queue_free()
 
 

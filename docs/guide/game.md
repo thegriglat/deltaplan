@@ -3,7 +3,7 @@ type: "guide"
 status: "active"
 module: "game"
 area: "game"
-updated: "2026-10-22"
+updated: "2026-10-23"
 summary: "Сборка игры: главная сцена, Game и порядок шага физики; оглавление частей — камеры и ввод, старт, полёт и итог, мир, меню, боты, сеть."
 related: ["docs/guide/game/cameras-input.md", "docs/guide/game/launch.md", "docs/guide/game/flight-flow.md", "docs/guide/game/world-air-time.md", "docs/guide/game/menus-settings.md", "docs/guide/game/bots.md", "docs/guide/game/network.md", "docs/guide/game/cli-tests.md", "docs/guide/architecture.md", "docs/guide/flight/tow.md"]
 ---

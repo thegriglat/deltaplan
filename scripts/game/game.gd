@@ -1528,9 +1528,9 @@ func _choose_start() -> void:
 	MotionRig.place = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
 
 
-## Старт со статической лебёдки (TW-10, TW-К6/К7): настройка tow_kind, «Маятник», одиночная игра, полоса проходит
-## TowSite.check. Площадка с блоком tow — её ось и размеры; точка с карты и точный старт — курс выбранный, длина троса
-## из configs/tow.json. Не вышло (причина — push_warning) — обычный старт без буксировки. aerotow (TW-10b) — та же
+## Старт со статической лебёдки (TW-10, TW-К6/К7, TA-К2): настройка tow_kind, «Маятник», одиночная игра; рельеф не
+## проверяется (берутся начало линии и курс из TowSite.check). Площадка с блоком tow — её ось и размеры; точка с карты и точный старт — курс выбранный, длина троса
+## из configs/tow.json. Не вышло (сеть, воздух, нечисловые входы) — обычный старт без буксировки. aerotow (TW-10b) — та же
 ## полоса, но старт пилота на тележке в начале, Ан-2 впереди на длину троса.
 func _choose_tow_start() -> bool:
 	var trike := settings.vehicle == "trike"
@@ -1552,6 +1552,7 @@ func _choose_tow_start() -> bool:
 	var site_name := ""
 	var q := Vector2.ZERO
 	var from_site := false
+	var no_tow_site := false  # площадка без блока tow (или место без площадок): поляну вырубаем
 	if settings.has_exact_start() or settings.has_pick():
 		if settings.has_exact_start():
 			q = terrain.latlon_to_local(settings.start_lat, settings.start_lon)
@@ -1577,28 +1578,31 @@ func _choose_tow_start() -> bool:
 				width = float(tw.runway_width_m)
 	else:
 		var sites := terrain.get_start_sites()
-		if sites.is_empty():
-			push_warning("Game: буксировка — на месте нет площадки, старт без буксировки")
-			return false
-		var site: Dictionary = sites[0]
-		for st in sites:
-			if st.id == settings.site_id:
-				site = st
-		var tw: Dictionary = site.get("tow", {})
-		if tw.is_empty() or not (trike or kind in tw.get("kinds", [])):
-			push_warning("Game: на площадке %s нет полосы (%s), %s" % [site.get("id", ""), kind, "дельталёт стартует дельтапланом" if trike else "старт без буксировки"])
-			return false
-		x = site.position.x
-		z = site.position.z
-		heading = float(site.heading_deg)
-		length = float(tw.runway_length_m)
-		width = float(tw.runway_width_m)
-		from_site = true
-		site_name = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
-	var chk := TowSite.check(terrain, x, z, heading, length, width)
-	if not bool(chk.ok):
-		push_warning("Game: полоса не годится (%s), %s" % [chk.reason, "дельталёт стартует дельтапланом" if trike else "старт без буксировки"])
+		var tw: Dictionary = {}
+		if sites.is_empty():  # места без площадок — (0, h, 0), курс 0
+			x = 0.0
+			z = 0.0
+			heading = 0.0
+		else:
+			var site: Dictionary = sites[0]
+			for st in sites:
+				if st.id == settings.site_id:
+					site = st
+			tw = site.get("tow", {})
+			x = site.position.x
+			z = site.position.z
+			heading = float(site.heading_deg)
+			if not tw.is_empty():
+				length = float(tw.get("runway_length_m", length))
+				width = float(tw.get("runway_width_m", width))
+			from_site = true
+			site_name = String(site.get("name", settings.location_id)) if site.get("name") is String else settings.location_id
+		no_tow_site = tw.is_empty()
+	if not (is_finite(x) and is_finite(z) and is_finite(heading) and is_finite(length) and is_finite(width)):
+		push_warning("Game: буксировка — нечисловые входы, старт без буксировки")
 		return false
+	# TA-К2: рельеф не проверяется — берутся начало линии и курс; ok игнорируется
+	var chk := TowSite.check(terrain, x, z, heading, length, width)
 	_start_pos = chk.start_pos
 	_start_heading = float(chk.heading_deg)
 	_exact_start = true  # курс — ось полосы, по ветру не выравнивается
@@ -1608,6 +1612,10 @@ func _choose_tow_start() -> bool:
 	_tow_site["length_m"] = length
 	if from_site:
 		MotionRig.place = site_name
+		if no_tow_site:
+			_clear_tow_runway()
+	elif no_tow_site:
+		_clear_tow_runway()
 	elif settings.has_exact_start():
 		_clear_exact_start(q)
 		if not _site_has_tow_at(q):
