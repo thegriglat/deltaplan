@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Экспорт Онгудая 400 м (u3 heat/mech, u0 heat, u6 heat) в формат R1 v1 из air.py f64; итерации 191/231/201/131 = фикстура (разница 0), поле у старта совпало до 5e-7 м/с.",
+  "commits": [
+    "beb31c8f9 AC-R2: экспорт Онгудая 400 м в формат R1"
+  ],
+  "checks": [
+    {
+      "name": "iters_vs_fixture",
+      "value": "0 (допуск 10)",
+      "pass": true
+    },
+    {
+      "name": "поле у старта u3_heat/mech vs crop_*",
+      "value": "max|d| 4.8e-7 м/с (допуск 6e-3), theta 3e-8 К (0.05)",
+      "pass": true
+    },
+    {
+      "name": "contract_ref",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "t_ref_s",
+      "value": "u3_heat 9.12 (с прогревом CuPy), u3_mech 4.43, u0 4.81, u6 3.12",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept AC-R2; tools/research/heat_ca/.venv/bin/python tools/research/air_cascade/export/export_ongudai.py",
+  "uncertain": [
+    {
+      "where": "export_ongudai.py:solve_case",
+      "why": "слоя рельефа data/terrain/ongudai в копиях нет: вход собран из float32-массивов фикстуры (hc, H, gam)",
+      "checked": "итерации и поле у старта совпали; params/профили сверены assert с умолчаниями Params"
+    }
+  ],
+  "dp_feedback": "Слоя рельефа ongudai нет в копиях и в основной (не сказано в карточке). Установка venv с CuPy >2 мин, лучше фоном.",
+  "extra": {
+    "data_dir": "~/data/air_cascade/ongudai/",
+    "size_mb_per_case_bin": 38.3
+  },
+  "t": "2026-10-24T04:41:19",
+  "by": "executor"
+}
