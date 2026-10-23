@@ -2,7 +2,7 @@ extends SceneTree
 ## Запуск: godot --headless --path <каталог cr-11> -s test_classify.gd  (код выхода 0 — все проверки прошли)
 ## Образцы строк — тексты ошибок движка из отчётов #4–#10, #18 и исходников 4.7.2-stable.
 
-const Cls := preload("res://device_loss_classifier.gd")
+const Cls := preload("res://tools/research/crash-reports/cr-11/device_loss_classifier.gd")
 
 func _init() -> void:
 	var fails := 0
