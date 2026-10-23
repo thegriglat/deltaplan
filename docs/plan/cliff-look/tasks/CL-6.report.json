@@ -1,0 +1,108 @@
+{
+  "status": "done",
+  "summary": "Блоки породы CL-2 убраны вручную из terrain_main.gdshaderinc (cliff_cell/cliff_blocks, вклад в цвет и нормаль, cl_n/cl_foot/cl_col0/cl_snow) и из configs/world.json (10 ключей cliff_* блоков); оставлены cliff_slope_deg и cliff_fine_keep (ослабление мелкой ряби), уступы/слои не возвращены, снег CL-3 не тронут. Член cliff убран из диагноза стенда; документы и CHANGELOG переписаны: полос нет, рябь на крутом ослаблена, нового рисунка нет. Сняты 10 кадров after_ и числа до/после (README «После (CL-6)»).",
+  "commits": [
+    "abfacba40 CL-6: блоки породы CL-2 убраны — крутые склоны без полос и без нового рисунка, мелкая рябь ослаблена; документы",
+    "18b6aec27 CL-6: кадры «после» и числа до/после (diag_after), README «После (CL-6)»"
+  ],
+  "checks": [
+    {
+      "name": "test_relief",
+      "value": "10/10 (пропуск 2)",
+      "pass": true
+    },
+    {
+      "name": "scene_look",
+      "value": "40/40 (пропуск 1)",
+      "pass": true
+    },
+    {
+      "name": "test_cliff_look_contracts",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "gpu_variants",
+      "value": "0 упало; вариантов 33, ошибок шейдера 0",
+      "pass": true
+    },
+    {
+      "name": "no_blocks",
+      "value": "LEFT 0",
+      "pass": true
+    },
+    {
+      "name": "shots_after",
+      "value": "SHOTS 10",
+      "pass": true
+    },
+    {
+      "name": "stripes",
+      "value": "STRIPES_RATIO 0.163 (8 ракурсов)",
+      "pass": true
+    },
+    {
+      "name": "ripple",
+      "value": "RIPPLE_RATIO 0.683 (10 ракурсов)",
+      "pass": true
+    },
+    {
+      "name": "large (без порога)",
+      "value": "LARGE_RATIO 0.996",
+      "pass": true
+    },
+    {
+      "name": "snow_compare (без порога)",
+      "value": "SNOW_LARGE_RATIO 1.378, SNOW_RIPPLE_RATIO 0.975",
+      "pass": true
+    },
+    {
+      "name": "docs check по своим файлам",
+      "value": "ошибок нет",
+      "pass": true
+    },
+    {
+      "name": "accept CL-6 --dry",
+      "value": "8/8 PASS, scope 9 файлов",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "/home/greg/deltaplan/build/screenshots/cliff-look/after_chamonix_wall_mid.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/after_chamonix_wall_near.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/after_elbrus_wall_mid.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/after_elbrus_wall_near.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/after_everest_snow_mid.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/after_everest_snow_near.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/after_shymbulak_peak_snow.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/after_shymbulak_talgar_pass_south.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/after_shymbulak_wall_mid.jpg",
+    "/home/greg/deltaplan/build/screenshots/cliff-look/after_shymbulak_wall_near.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept CL-6; таблица — tools/research/cliff_look/README.md «После (CL-6)»",
+  "uncertain": [
+    {
+      "where": "tools/research/cliff_look/README.md «После (CL-6)», снег",
+      "why": "snow_compare.py зашит на build/cliff_look_raw/cl3 и пишет snow_cl3.json; скрипт не правил — запустил его неизменённую копию во временном дереве (scratchpad), где before -> сырые «до» копии модуля, cl3 -> мои сырые after. snow_cl3.json в репо не перезаписан.",
+      "checked": "числа CL-3 в репо (1.336/1.092) и мои (1.378/0.975) близки по large — рельеф снега сохранился"
+    },
+    {
+      "where": "кадры after_*",
+      "why": "Крупные формы 5–40 м на скалах — как до CL-2 (LARGE_RATIO 0.996): стена без полос, но гладкая (визуально на shymbulak/wall_near — тёмная ровная скала). Это следует из решения «без нового рисунка», но пользователь может счесть стену пустой.",
+      "checked": "смотрел after/before shymbulak_wall_near и talgar_pass_south: полос нет, рябь меньше"
+    },
+    {
+      "where": "tools/shots/cliff_look_shot.gd DIAG_MEMBERS all_off",
+      "why": "из all_off убраны параметры блоков; фон all_off «после» не сравним 1:1 с «до» (там выключались strata/ledge) — compare.py берёт фон только из «до», на пороги не влияет",
+      "checked": "compare.py: bg = all_off из before"
+    }
+  ],
+  "dp_feedback": "task show без --full обрезает дополнения координатора многоточием — легко пропустить существенное; стоило бы подсказку «--full» прямо в обрезанной строке. Остальное удобно: job --lock cpu и accept --dry отработали без вопросов.",
+  "extra": {
+    "ripple_per_view": "chamonix/wall_mid 0.857, chamonix/wall_near 0.697, elbrus/wall_mid 0.529, elbrus/wall_near 0.600, everest/snow_mid 0.667, everest/snow_near 0.570, shymbulak/peak_snow 0.756, talgar_pass_south 0.791, shymbulak/wall_mid 0.553, shymbulak/wall_near 0.718"
+  },
+  "t": "2026-10-23T12:38:44",
+  "by": "executor"
+}
