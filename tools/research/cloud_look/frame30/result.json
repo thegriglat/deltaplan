@@ -1,0 +1,10 @@
+{
+ "frame": 30,
+ "light": "sunset_sun",
+ "clock_hour": 19.5,
+ "clock_hour_before": 20.4,
+ "sun_el_30_deg": 2.12,
+ "sun_el_before_deg": -6.14,
+ "source": "scene_light из лога кадра (DP_SUN_TINT_LOG=1 menu_art.py --only=30): el=2.12, light_energy=0.02756, sky_k=0.1616, E=4.759; sun.py (зеркало SunClock.solar_position, UTC+3, 15 июля) даёт 2.114",
+ "note": "кадр shot/30_elbrus_sunset.jpg; сумерки не моделируются (HH4 v3), поэтому до этого час 20.4 был под горизонтом"
+}
