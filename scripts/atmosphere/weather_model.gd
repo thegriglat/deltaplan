@@ -25,8 +25,8 @@ static func reference_context(cfg: Dictionary = {}) -> Dictionary:
 
 
 ## Обычный дневной максимум для месяца (и дня — между серединами месяцев линейно), °C.
-## Зажато в диапазон меню (ui.temperature_c). С ctx места {lat, lon, valley_msl_m} — Tx_климат ячейки
-## ERA5 (ClimateGrid.place, HH5/HH7); без ctx или без сетки — таблица typical_max_c (запас, Алтай).
+## Зажато в диапазон меню (ui.temperature_c). С ctx места {lat, lon[, valley_msl_m]} — Tx_климат ячейки
+## ERA5 (ClimateGrid.place, HH5/HH7; без valley_msl_m — на средней высоте ячейки, без поправки); без ctx или без сетки — таблица typical_max_c (запас, Алтай).
 static func typical_max_c(
 	month: int, day: int = 15, cfg: Dictionary = {}, ctx: Dictionary = {}
 ) -> float:
