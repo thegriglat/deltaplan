@@ -262,3 +262,4 @@
 {"t": "2026-10-23T06:01:31", "by": "executor", "task": "TP-25", "ev": "reported", "commits": ["d292b9348"], "note": "done: Гайд trike-pilot.md обновлён: убраны закрытые «открытые» (TP-18, TP-21, TP-22), добавлены тяга по оси винта (a=0,724), …", "dp_feedback": "Дополнение координатора в task show обрезано многоточием; полный текст виден только через --full."}
 {"t": "2026-10-23T06:01:47", "by": "coordinator", "task": "TP-25", "ev": "accepted", "note": "1/1 docs=ok:exit 1"}
 {"t": "2026-10-23T06:01:47", "by": "coordinator", "task": "TP-25", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T06:01:48", "by": "coordinator", "task": "TP-25", "ev": "merged"}
