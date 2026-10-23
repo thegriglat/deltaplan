@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Кадры-кандидаты для фона меню и экранов загрузки — пачкой через tools/shots/menu_background.sh.
 
-    tools/shots/menu_art.py [--size=1920x1080] [--out=каталог] [--only=01,07,…] [--jobs=3] [--date=MM-DD]
+    tools/shots/menu_art.py [--size=1920x1080] [--out=каталог] [--only=01,07,…] [--jobs=3] [--date=MM-DD] [--pose=fixed|physics]
 
 --date=MM-DD — дата кадров (по умолчанию в игре 15 июля): сезон scene-look (трава, листва, поля)
 и положение солнца по дате; погода (температура, снег) остаётся как в сюжете. В имя файла дата не
@@ -40,6 +40,13 @@ def bearing(a, b):
 def center(location):
     loc = json.loads((ROOT / "configs/locations" / ("%s.json" % location)).read_text())
     return [loc["center_lat"], loc["center_lon"]]
+
+
+def pose_field(spec, variant):
+    """MSP-К1: поле pose конфига кадра — набор (верхний уровень json) + вариант; нет — {} (в игре fixed)."""
+    pose = dict(spec.get("pose", {}))
+    pose.update(variant.get("pose", {}))
+    return {"pose": pose} if pose else {}
 
 
 def expand(spec):
@@ -86,6 +93,7 @@ def expand(spec):
                     "warmup_frames": spec.get("warmup_frames", 30),
                     "camera": cam,
                     "jpeg_quality": 0.92,
+                    **pose_field(spec, v),
                 },
             })
     for i, s in enumerate(shots, 1):
@@ -139,6 +147,8 @@ def main():
     ap.add_argument("--only", default="")
     ap.add_argument("--jobs", type=int, default=3)
     ap.add_argument("--date", default="", help="MM-DD: дата кадров (сезон и солнце), по умолчанию 15 июля")
+    ap.add_argument("--pose", default="", choices=["", "fixed", "physics"],
+                    help="MSP-К1: режим позы планера (по умолчанию fixed — установившаяся поза; physics — как дала симуляция)")
     ap.add_argument("--xdg", default="/home/greg/deltaplan/build/menu_art_xdg")
     a = ap.parse_args()
     spec = json.loads((ROOT / "tools/shots/menu_art.json").read_text())
@@ -147,6 +157,9 @@ def main():
         date = parse_date(a.date)
         for s in shots:
             s["cfg"]["date"] = date
+    if a.pose:
+        for s in shots:
+            s["cfg"].setdefault("pose", {})["mode"] = a.pose
     if a.only:
         keep = {"%02d" % int(x) for x in a.only.split(",")}
         shots = [s for s in shots if s["n"] in keep]

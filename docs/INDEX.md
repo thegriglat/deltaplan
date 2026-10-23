@@ -140,6 +140,7 @@ generated: true
 - **training-modes** — Тренировочные режимы (T-59) через карточки окна «Тренировка» + цели полёта и загрузка .xctsk из окна «Полёт…» (T-56); код задач TM. [closed 2026-10-17] — [план](plan/training-modes.md) · [решения](plan/training-modes/decisions.md) · [сводка](plan/training-modes/summary.md) · полный журнал: `archive/training-modes`
 - **bar-mouse** — Штанга мышью: ход в отсчётах мыши без привязки к окну, свой слайдер, мёртвая зона без скачка; диагностика камер и сырого ввода. [closed 2026-10-23] — [план](plan/bar-mouse.md) · [контракты](contracts/bar-mouse.md) · [решения](plan/bar-mouse/decisions.md) · [сводка](plan/bar-mouse/summary.md) · полный журнал: `archive/bar-mouse`
   - [docs/research/bar-mouse-raw-input.md](research/bar-mouse-raw-input.md) — Захват мыши в Godot 4.7.2: Windows и X11 — сырые отсчёты, Wayland и macOS — с ускорением ОС; брать screen_relative
+- **menu-shots-pose** — Кадры фона меню (tools/shots/menu_art.py): планер на всех кадрах — в установившемся полёте, без крутого крена и «кивка». [closed 2026-10-23] — [план](plan/menu-shots-pose.md) · [контракты](contracts/menu-shots-pose.md) · [решения](plan/menu-shots-pose/decisions.md) · [сводка](plan/menu-shots-pose/summary.md) · полный журнал: `archive/menu-shots-pose`
 
 ## perf
 
