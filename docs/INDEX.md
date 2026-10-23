@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-23"
+updated: "2026-10-24"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -43,6 +43,7 @@ generated: true
   - [tools/research/haze_humidity/upper_misc/README.md](../tools/research/haze_humidity/upper_misc/README.md) — Сетка HH6 v2: HCC, TROP — ERA5 2011–2020 (CDS), WR — ERA5 2018–2019 (ARCO 1°), stub_mask=0
   - [tools/research/haze_humidity/verify/README.md](../tools/research/haze_humidity/verify/README.md) — Сверка Td и T700 с прогнозом Open-Meteo (38 мест, 16 дней): доля в σ Td 67 %, T700 62 %; сдвиг Td +0,7 К
   - [tools/research/haze_humidity/era5_source/summary.md](../tools/research/haze_humidity/era5_source/summary.md) — HH-17: остаток ERA5 качать из ARCO-1° почасового; T700 RMSE к CDS 0.09 K, u700 0.19 м/с, T2m max 0.52 K; NCAR и ARCO-0.25° не нужны [closed]
+- **air-cascade** — Каскад на гранях: деление клеток поля Пикара пополам с балансом массы — порывы, болтанка, склон; опыт на 2D-разрезе против Пикара. [idea 2026-10-24] — [план](plan/air-cascade.md)
 
 ## flight
 
@@ -94,6 +95,7 @@ generated: true
   - [docs/research/trike-pilot/wheels.md](research/trike-pilot/wheels.md) — Колёса дельталёта в модели: руление носовым колесом, тормоз, посадка на колёса; числа блока wheels и границы модели.
   - [tools/research/trike-pilot/README.md](../tools/research/trike-pilot/README.md) — Замеры дельталёта: скорость от хода штанги (TP-17), качания на газу и линия тяги (TP-19).
   - [tools/research/trike-pilot/tug/README.md](../tools/research/trike-pilot/tug/README.md) — TP-23: прогоны связки буксировщик + sport на тросе с подменой линии тяги, хода штанги, площади крыла, тяги и массы.
+- **trike-cockpit** — Приборы дельталёта в виде от первого лица (кабина) ничего не показывают — найти причину и исправить. [closed 2026-10-24] — [план](plan/trike-cockpit.md) · [контракты](contracts/trike-cockpit.md) · [решения](plan/trike-cockpit/decisions.md) · [сводка](plan/trike-cockpit/summary.md) · полный журнал: `archive/trike-cockpit`
 
 ## world
 
