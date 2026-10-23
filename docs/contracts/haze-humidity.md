@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-22"
 summary: "Стыки haze-humidity: сетки ERA5 (HH1 Td, HH2 700 гПа, HH5 Tmax, HH6 ветер/тропопауза/перистые), HH7 чтение, HH3 дымка, HH4 свет."
 related: ["docs/plan/haze-humidity.md", "scripts/atmosphere/weather_model.gd", "configs/weather_model.json"]
-contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 2}, {"id": "HH3", "version": 1}, {"id": "HH4", "version": 3}, {"id": "HH5", "version": 1}, {"id": "HH6", "version": 2}, {"id": "HH7", "version": 1}]
+contracts: [{"id": "HH1", "version": 1}, {"id": "HH2", "version": 2}, {"id": "HH3", "version": 1}, {"id": "HH4", "version": 3}, {"id": "HH5", "version": 1}, {"id": "HH6", "version": 2}, {"id": "HH7", "version": 2}]
 ---
 
 # Контракты haze-humidity
@@ -305,7 +305,7 @@ Godot — ровно `raw_size`.
 **Контрактный тест** (`tests/contracts/test_haze_humidity_contracts.gd`, `test_upper_misc_format`): если файл есть —
 заголовок, размер, `raw_size`, распаковка, диапазоны; нет файла — пропуск (сетку кладёт HH-1f).
 
-## HH7. Климат места в игре: чтение сеток (v1)
+## HH7. Климат места в игре: чтение сеток (v2)
 
 Владелец: HH-4 (`scripts/atmosphere/climate_grid.gd`). Потребители: `WeatherModel` (`derive`, `typical_max_c`,
 `diurnal_state`), `Game` (ветер с высотой → `Atmosphere`/`WindModel`), задача сверки с прогнозом, HH-4b. Решения
@@ -345,7 +345,11 @@ Godot — ровно `raw_size`.
 - `tx_c += g_tx · dz_km`, `dtr_k = max(0, dtr_k + g_dtr · dz_km)`; `g_tx`, `g_dtr` — `climate.tx_gradient_k_per_km`,
   `climate.dtr_gradient_k_per_km` (HH-1e, `tools/research/haze_humidity/surface_t/gradient.json`);
 - `t700_c`, `z700_m`, `trop_m`, `hcc` — без поправки;
-- `gain_per_km = (wr − 1) · 1000 / max(z700_m − z_cell_m, 500)` — для `wind.altitude_gain_per_km` места.
+- рост ветра (v2, ответ пользователя на Q7 2026-10-23: от ветра на высоте старта): профиль |V| линейный между (z_cell_m, V10) и
+  (z700_m, V700), `wr = V700/V10`; ветер прогноза задан на высоте старта `z_s` = `ctx.start_msl_m` (нет — `valley_msl_m`, нет и его —
+  `z_cell_m`); `f = clamp((z_s − z_cell_m) / D, 0, 0,9)`, `D = max(z700_m − z_cell_m, 500)`;
+  `gain_per_km = (wr − 1) · 1000 / (D · (1 + (wr − 1) · f))` — множитель ветра выше старта 1 + gain·(z − z_s)/1000 даёт V700 на z700;
+  при `f = 0` — прежняя формула v1. `wr` < 1 (ветер слабеет с высотой) — та же формула, gain < 0.
 Сезон — местный: в южном полушарии месяц сдвигается на 6 (как в HH-1c, полушария слиты по сезонам).
 
 **Точка росы дня** (`WeatherModel.derive`; заменяет `dew_point_c` и `td_follow_heat`, оба ключа удаляются из конфига):
