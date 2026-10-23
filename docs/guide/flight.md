@@ -3,7 +3,7 @@ type: "guide"
 status: "active"
 module: "flight"
 area: "flight"
-updated: "2026-10-22"
+updated: "2026-10-23"
 summary: "Вход в гайд по полёту: FlightModel и Glider (scripts/flight/), крен, земля и посадка, Маятник; оглавление частей."
 related: ["docs/guide/flight/model.md", "docs/guide/flight/wings.md", "docs/guide/flight/api.md", "docs/guide/flight/polar-table.md", "docs/guide/flight/ground-bank.md", "docs/guide/flight/ground-pose.md", "docs/guide/flight/sky-shade.md", "docs/guide/flight/pendulum.md", "docs/guide/flight/tow.md", "docs/research/pendulum.md", "docs/contracts/pendulum.md"]
 ---
