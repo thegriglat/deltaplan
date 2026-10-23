@@ -1,0 +1,79 @@
+{
+  "id": "TA-1",
+  "module": "trike-anywhere",
+  "type": "dp-engineer",
+  "title": "Окно выбора старта по «Лететь»: дельтаплан/дельталёт и буксировка",
+  "goal": "По «Лететь» (главное меню и «Лететь отсюда») — одно окно StartChoiceDialog: «Дельтаплан» (с буксировкой: нет/виды места) или «Дельталёт»; в сети окна нет. Строка «Буксировка» с вкладки «Место» экрана старта убрана.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "trike-anywhere",
+      "version": "1",
+      "ref": "docs/contracts/trike-anywhere.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-anywhere-TA-1",
+  "branch": "trike-anywhere/TA-1",
+  "base": "feature/trike-anywhere",
+  "scope": [
+    "scripts/ui/start_choice_dialog.gd",
+    "scripts/ui/start_choice_dialog.gd.uid",
+    "scripts/ui/start_menu.gd",
+    "scenes/main.gd",
+    "scripts/ui/flight_setup_screen.gd",
+    "scripts/game/flight_settings.gd",
+    "locale/ui.csv",
+    "tests/contracts/test_trike_anywhere_k1.gd",
+    "tests/contracts/test_trike_anywhere_k1.gd.uid",
+    "tests/contracts/test_trike_pilot_k5.gd",
+    "tests/contracts/test_tow_k7.gd",
+    "tests/game/test_e2e.gd",
+    "tests/ui/test_menu_setup.gd",
+    "tests/game/test_ui.gd"
+  ],
+  "dont_touch": [
+    "scripts/game/game.gd",
+    "scripts/flight/",
+    "configs/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "trike_anywhere_k1",
+      "tests": "trike_anywhere_k1"
+    },
+    {
+      "name": "trike_pilot_k5",
+      "tests": "trike_pilot_k5"
+    },
+    {
+      "name": "tow_k7",
+      "tests": "tow_k7"
+    },
+    {
+      "name": "menu_setup",
+      "tests": "menu_setup"
+    },
+    {
+      "name": "test_ui",
+      "tests": "test_ui"
+    },
+    {
+      "name": "favorites",
+      "tests": "favorites"
+    },
+    {
+      "name": "net_screen",
+      "tests": "net_screen"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/ui/start_choice_dialog.gd scripts/ui/start_menu.gd scenes/main.gd scripts/ui/flight_setup_screen.gd scripts/game/flight_settings.gd tests/contracts/test_trike_anywhere_k1.gd tests/game/test_e2e.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T19:15:33"
+}

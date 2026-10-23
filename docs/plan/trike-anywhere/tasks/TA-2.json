@@ -1,0 +1,68 @@
+{
+  "id": "TA-2",
+  "module": "trike-anywhere",
+  "type": "dp-engineer",
+  "title": "Game: дельталёт и буксировка в любом месте без проверки рельефа",
+  "goal": "Дельталёт стартует на колёсах в точке старта любого места (курс места), буксировка (лебёдка/аэро) — по линии от точки старта по курсу на любом месте; рельеф не проверяется, подмены на дельтаплан/без буксировки нет (кроме сети и старта в воздухе).",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "trike-anywhere",
+      "version": "1",
+      "ref": "docs/contracts/trike-anywhere.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-anywhere-TA-2",
+  "branch": "trike-anywhere/TA-2",
+  "base": "feature/trike-anywhere",
+  "scope": [
+    "scripts/game/game.gd",
+    "tests/contracts/test_trike_anywhere_k2.gd",
+    "tests/contracts/test_trike_anywhere_k2.gd.uid",
+    "tests/game/test_tow_session.gd",
+    "tests/game/test_tow_aerotow.gd"
+  ],
+  "dont_touch": [
+    "scripts/game/tow_site.gd",
+    "scripts/flight/",
+    "scripts/ui/",
+    "scenes/",
+    "configs/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "trike_anywhere_k2",
+      "tests": "trike_anywhere_k2"
+    },
+    {
+      "name": "trike_pilot_k6",
+      "tests": "trike_pilot_k6"
+    },
+    {
+      "name": "tow_session",
+      "tests": "tow_session"
+    },
+    {
+      "name": "tow_aerotow",
+      "tests": "tow_aerotow"
+    },
+    {
+      "name": "tow_k6",
+      "tests": "tow_k6"
+    },
+    {
+      "name": "start_pick_game",
+      "tests": "start_pick_game"
+    },
+    {
+      "name": "gd",
+      "cmd": "python3 tools/check_gd.py scripts/game/game.gd tests/contracts/test_trike_anywhere_k2.gd tests/game/test_tow_session.gd",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T19:16:34"
+}
