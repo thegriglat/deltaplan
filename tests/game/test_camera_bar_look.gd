@@ -46,6 +46,7 @@ func _close(main: Node) -> void:
 static func _motion(dx: float) -> InputEventMouseMotion:
 	var ev := InputEventMouseMotion.new()
 	ev.relative = Vector2(dx, 0.0)
+	ev.screen_relative = ev.relative  # трапеция считает ход по screen_relative (BM-К1)
 	return ev
 
 

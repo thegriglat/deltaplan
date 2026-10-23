@@ -47,6 +47,7 @@ func _motion(rel: Vector2, cam: CameraRig = null) -> void:
 	ev.position = p
 	ev.global_position = p
 	ev.relative = rel
+	ev.screen_relative = rel  # InputController считает ход по screen_relative (BM-К1)
 	get_viewport().push_input(ev)
 	# Headless не держит CAPTURED, а CameraRig._unhandled_input смотрит на Input.mouse_mode:
 	# ветку «захвачена» повторяем как в camera_rig.gd (_unhandled_input) — решение _mouse_looks()
@@ -163,7 +164,7 @@ func test_routing_table() -> void:
 	await _close(main)
 
 
-## ПКМ нажали/отпустили, пока ввод выключен (меню/пауза): после возврата мышь не залипает в обзоре.
+## ПКМ нажали/отпустили, пока ввод выключен (меню/пауза): после возврата мышь не залипает в обзоре (BM-4).
 func test_rmb_stuck_after_menu_or_pause() -> void:
 	var main := await _open()
 	if main == null:
@@ -203,14 +204,6 @@ func test_rmb_stuck_after_menu_or_pause() -> void:
 			print("BM-1 залипание %s/%s (ПКМ отпущена): ic._bar_look_held=%s cam._bar_look_held=%s; мышь→ голова %s, штанга %s" % [
 				mode, how, ic._bar_look_held, cam._bar_look_held, head_moved, bar_moved])
 			var stuck: bool = ic._bar_look_held or cam._bar_look_held
-			if how == "нажали в меню":
-				check(not stuck, "%s/%s: флаг ПКМ залип" % [mode, how])
-				check(bar_moved and not head_moved, "%s/%s: после отпускания мышь — штанга, не голова" % [mode, how])
-			else:
-				# НАЙДЕННОЕ РАСХОЖДЕНИЕ (отчёт BM-1): отпускание ПКМ при выключенном вводе (меню/пауза)
-				# теряется — InputController/CameraRig выходят из _unhandled_input до записи флага;
-				# флаг _bar_look_held залипает, в кабине мышь крутит голову, а штанга стоит. Тест не красный:
-				# здесь фиксируем ТЕКУЩЕЕ поведение, чтобы починка (BM-3) заметно перевернула проверку.
-				print("BM-1 РАСХОЖДЕНИЕ %s/%s: залипание=%s (ждём false)" % [mode, how, stuck])
-				check(stuck, "%s/%s: залипание исчезло — проверить и ужесточить тест (ждём not stuck)" % [mode, how])
+			check(not stuck, "%s/%s: флаг ПКМ залип" % [mode, how])
+			check(bar_moved and not head_moved, "%s/%s: после отпускания мышь — штанга, не голова" % [mode, how])
 	await _close(main)
