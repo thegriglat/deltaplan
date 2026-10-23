@@ -285,3 +285,4 @@
 {"t": "2026-10-23T13:01:30", "by": "coordinator", "task": "TP-27", "ev": "accepted", "note": "по отчёту: main влит, trike 91/91, bar_mouse 11/11, input 7/7, ui_controls 9/9; вне scope — tests/game/test_ui_controls_contracts.gd (У1: screen_relative — падал в main после bar-mouse)"}
 {"t": "2026-10-23T13:01:30", "by": "coordinator", "task": "TP-27", "ev": "merged"}
 {"t": "2026-10-23T13:01:31", "by": "coordinator", "task": null, "ev": "note", "note": "Состояние: TP-1…TP-27 влиты; main (3c36470e0) влит в feature/trike-pilot через TP-27; trike 91/0, bar_mouse 11/0, input 7/0, ui_controls 9/0; открытых вопросов нет. dpcli: scope в accept после git merge main считает файлы main нарушением (сравнивать с merge-base); job wait — только хвост лога."}
+{"t": "2026-10-23T13:02:17", "by": "main", "task": null, "ev": "delivered", "commits": ["f8a2e5c99"], "note": "squash в main: f8a2e5c99"}
