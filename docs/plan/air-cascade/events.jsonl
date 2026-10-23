@@ -19,3 +19,5 @@
 {"t": "2026-10-24T04:41:19", "by": "executor", "task": "AC-R2", "ev": "reported", "commits": ["beb31c8f9"], "note": "done: Экспорт Онгудая 400 м (u3 heat/mech, u0 heat, u6 heat) в формат R1 v1 из air.py f64; итерации 191/231/201/131 = фикстур…", "dp_feedback": "Слоя рельефа ongudai нет в копиях и в основной (не сказано в карточке). Установка venv с CuPy >2 мин, лучше фоном."}
 {"t": "2026-10-24T04:41:26", "by": "coordinator", "task": "AC-R2", "ev": "checked", "note": "2/2 contract_ref=ok:exit 0; iters_vs_fixture=ok:exit 0; 0"}
 {"t": "2026-10-24T04:41:33", "by": "coordinator", "task": "AC-R2", "ev": "accepted", "note": "по отчёту: итерации = фикстура, поле у старта 4,8e-7 м/с"}
+{"t": "2026-10-24T04:41:44", "by": "coordinator", "task": "AC-R2", "ev": "accepted", "commits": ["1b7e27f"], "note": "2/2 contract_ref=ok:exit 0; iters_vs_fixture=ok:exit 0; 0"}
+{"t": "2026-10-24T04:41:45", "by": "coordinator", "task": "AC-R2", "ev": "merged"}
