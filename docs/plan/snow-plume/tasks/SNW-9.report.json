@@ -1,0 +1,53 @@
+{
+  "status": "done",
+  "summary": "Сняты 6 кадров v3 (4 старых имени перезаписаны + everest/shymbulak_strong_near). Струйки по форме верные, но редкие: вблизи Эвереста ~7 штрихов над гребнем, на Шымбулаке 3-4 бледных, издалека не видны, у поверхности не видны.",
+  "commits": [
+    "e8a57059a snow-plume SNW-9: кадры струек v3, README"
+  ],
+  "checks": [
+    {
+      "name": "readme",
+      "value": "---",
+      "pass": true
+    },
+    {
+      "name": "frames_v3",
+      "value": "old 0",
+      "pass": true
+    },
+    {
+      "name": "accept dry",
+      "value": "PASS 2/2",
+      "pass": true
+    },
+    {
+      "name": "источников сильный/слабый ветер",
+      "value": "25-32 / 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/snow-plume/everest_strong_near.jpg",
+    "build/screenshots/snow-plume/shymbulak_strong_near.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept SNW-9",
+  "uncertain": [
+    {
+      "where": "tools/research/snow_plume/SNW-9/README.md",
+      "why": "струйки у поверхности на белом снегу не различимы; вблизи плотность низкая (единицы штрихов на 32 источника), Шымбулак почти пуст",
+      "checked": "5 поз near на место (ЮВ, сбоку, 12-25 м); число штрихов не считалось программно; вид не подбирался (конфиг не трогали)"
+    }
+  ],
+  "dp_feedback": "dpcli lock cpu ... -- cmd возвращается сразу (tmux), ждать надо job wait; первый cp кэша места молча не сработал.",
+  "extra": {
+    "emitters": {
+      "everest_strong": 32,
+      "shymbulak_strong": 32,
+      "weak": 0
+    }
+  },
+  "t": "2026-10-23T05:07:38",
+  "by": "executor"
+}
