@@ -26,6 +26,12 @@ const float FADE_R0 = 1.35;
 const float FADE_R1 = 1.6;
 const float FADE_H0 = 1.2;
 const float FADE_H1 = 1.35;
+// Вход луча в облако (cloud_march_part, field_march): шаг длиннее этого, м, — поверхность ищется делением
+// отрезка пополам (CLOUD_ENTRY_BISECT делений), первый шаг внутри — CLOUD_ENTRY_FIRST_M, м (короче длины
+// пробега в плотном облаке ~ 1/extinction ≈ 11 м).
+const float CLOUD_ENTRY_MIN_DT = 8.0;
+const int CLOUD_ENTRY_BISECT = 3;
+const float CLOUD_ENTRY_FIRST_M = 8.0;
 
 struct Cloud {
 	vec3 c;      // центр основания (x, кромка, z)
@@ -542,6 +548,22 @@ void cloud_march_part(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 			// Первый отрезок после кромки — случайной длины (IGN): решётка выборок за кромкой
 			// дрожит, как без уточнения (иначе второй шаг — всегда на той же глубине, «кольца»).
 			dt_first = dt_fine * mix(0.15, 1.0, ign);
+		} else if (cl.kind != 3 && dns > 0.003 && was_empty && dt_fine > CLOUD_ENTRY_MIN_DT) {
+			// Остальные виды — как слой поля (field_march): поверхность делением отрезка, короткий первый шаг.
+			float ta = max(t - dt_fine, tn);
+			float tb = t;
+			for (int k = 0; k < CLOUD_ENTRY_BISECT; k++) {
+				float tm = 0.5 * (ta + tb);
+				if (cloud_density(cl, ro + rd * tm, 1) > 0.003) {
+					tb = tm;
+				} else {
+					ta = tm;
+				}
+			}
+			t = tb - (tb - ta) * ign + CLOUD_ENTRY_FIRST_M * 0.5;
+			p = ro + rd * t;
+			dns = max(cloud_density(cl, p, 2), 0.0031);
+			dt_first = min(dt_fine, CLOUD_ENTRY_FIRST_M);
 		}
 		was_empty = dns <= 0.003;
 		// Ливень гладкий и разреженный — шаг по нему крупнее (лучи сквозь него не дорожают).
@@ -624,8 +646,26 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 // (над порогом ровно доля cover площади: квантиль шума), верх — купол до мощности поля; клубы,
 // края, стадии и свет — те же, что у облаков-записей.
 
-// Купол: высота облака ∝ √(превышение порога / CF_DOME_E) — от края к середине облака.
-const float CF_DOME_E = 0.8;
+// Форма облаков слоя (CLK-2). Высота над основанием в точке: min(мощность поля, предел по размеру) × купол.
+// Купол: четверть эллипса по превышению порога e (0 — край облака): √(x(2 − x)), x = min(e / CF_DOME_E, 1) —
+// круглая вершина, без плато и стенки. Предел по размеру — высота/ширина ≈ CF_ASPECT (0,45–0,8: кучевые
+// хорошей погоды): ширина облака оценивается по крупной части маски (канал B текстуры): чем она выше, тем
+// облако шире (CF_W_MIN … CF_W_MAX, м) и выше; мощность поля (depth) остаётся верхней границей.
+const float CF_DOME_E = 0.6;
+const float CF_ASPECT = 0.55;
+// Мощные клетки (congestus: высота ≥ ширины): отношение растёт пропорционально мощности поля сверх CF_D_REF, м —
+// вершина самого широкого облака клетки доходит до мощности поля.
+const float CF_D_REF = 1500.0;
+const float CF_W_MIN = 200.0;
+const float CF_W_MAX = 3000.0;
+// Нормировка крупной части маски (сумма двух выборок канала B: среднее и СКО по текстуре) и её границы.
+const float CF_XI_MU = 0.866;
+const float CF_XI_SD = 0.219;
+const float CF_XI_LO = -1.0;
+const float CF_XI_HI = 2.5;
+// Вторая выборка маски — с другим масштабом и сдвигом (иррациональное отношение: без повтора с периодом 8 км).
+const float CF_MASK_K = 0.7351;
+const vec3 CF_MASK_O = vec3(0.317, 0.642, 0.139);
 // Край облака по превышению порога: ширина мягкого бока в долях превышения.
 const float CF_EDGE_E = 0.12;
 
@@ -645,30 +685,43 @@ float cf_qv(int i) {
 	return k == 0 ? q.x : (k == 1 ? q.y : (k == 2 ? q.z : q.w));
 }
 
-// Порог маски для покрытия c: значения шума выше порога занимают долю c объёма текстуры.
+// Порог маски для покрытия c: сумма маски выше порога занимает долю c объёма (квантили суммы двух выборок G).
 float cf_threshold(float c) {
 	float x = clamp(1.0 - c, 0.0, 1.0) * 15.0;
 	int i = min(int(x), 14);
 	return mix(cf_qv(i), cf_qv(i + 1), x - float(i));
 }
 
-// Маска отдельных облаков: крупный шум (выше — облако), плывёт с клубами (wind_offset). По
-// вертикали почти столб (период ×3,3): основание общее, сечение облака по высоте почти то же.
+// Маска отдельных облаков: сумма двух выборок канала G (облака от 250 м до 2 км — степенной ряд размеров) и
+// крупной части (канал B); плывёт с клубами (wind_offset). По вертикали почти столб (период ×3,3).
 // fp — размер пикселя или шага, м (мип не мельче его, но не больше 1,5: квантили — без размытия).
-float cf_mask(vec3 p, float fp) {
+vec2 cf_mask(vec3 p, float fp) {
 	vec3 q = vec3(p.x + wind_offset.x, (p.y - cf_base.x) * 0.3, p.z + wind_offset.z) / cf_misc.z;
 	float l = clamp(log2(max(fp / (cf_misc.z / shape_tex_size), 1.0)), 0.0, 1.5);
-	return 1.0 - textureLod(noise_shape, q, l).r;
+	vec4 a = textureLod(noise_shape, q, l);
+	vec4 b = textureLod(noise_shape, q * CF_MASK_K + CF_MASK_O, l);
+	return vec2(a.g + b.g, a.b + b.b);
 }
 
 float cf_lod(float fp, float texel_m) {
 	return max(log2(max(fp / texel_m, 1.0)), 0.0);
 }
 
-// Превышение порога маски (0 — край облака, < 0 — между облаками).
-float cf_excess(vec3 p, vec4 f, float fp) {
+// Превышение порога маски (0 — край облака, < 0 — между облаками), в долях разности «наибольшее значение − медиана»
+// суммы (не зависит от покрытия: в облачный день облака не плоскее, чем в ясный);
+// lim — предел высоты в точке, м (меньше мощности поля и размера облака).
+float cf_excess(vec3 p, vec4 f, float fp, out float lim) {
+	vec2 m = cf_mask(p, fp);
 	float thr = cf_threshold(f.x);
-	return (cf_mask(p, fp) - thr) / max(1.0 - thr, 1e-3);
+	float xi = clamp(((m.y - CF_XI_MU) / CF_XI_SD - CF_XI_LO) / (CF_XI_HI - CF_XI_LO), 0.0, 1.0);
+	lim = min(f.y, CF_ASPECT * max(1.0, f.y / CF_D_REF) * CF_W_MIN * pow(CF_W_MAX / CF_W_MIN, xi));
+	return (m.x - thr) / max(cf_qv(15) - cf_qv(8), 1e-3);
+}
+
+// Высота облака над основанием при превышении порога e и пределе lim (купол — четверть эллипса).
+float cf_dome(float e, float lim) {
+	float x = clamp(e / CF_DOME_E, 0.0, 1.0);
+	return lim * sqrt(x * (2.0 - x));
 }
 
 // Грубая оболочка слоя (без клубов): > 0 — рядом может быть облако (по ней ищем вход).
@@ -677,11 +730,12 @@ float cf_envelope(vec3 p, vec4 f, float fp) {
 	if (h < -30.0 || f.x < 0.004 || f.y < 1.0) {
 		return -1.0;
 	}
-	float e = cf_excess(p, f, fp) + 0.08;
+	float lim;
+	float e = cf_excess(p, f, fp, lim) + 0.08;
 	if (e <= 0.0) {
 		return -1.0;
 	}
-	return f.y * sqrt(min(e / CF_DOME_E, 1.0)) * 1.2 + 40.0 - h;
+	return cf_dome(e, lim) * 1.2 + 40.0 - h;
 }
 
 // Плотность слоя 0..1 в точке p; f — поле в её xz (cf_sample); fp — размер пикселя/шага, м;
@@ -694,11 +748,12 @@ float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
 	if (h < 0.0 || f.x < 0.004 || f.y < 1.0) {
 		return 0.0;
 	}
-	float e = cf_excess(p, f, fp);
+	float lim;
+	float e = cf_excess(p, f, fp, lim);
 	if (e <= 0.0) {
 		return 0.0;
 	}
-	top = f.y * sqrt(min(e / CF_DOME_E, 1.0));
+	top = cf_dome(e, lim);
 	if (h > top * 1.2 + 30.0) {
 		return 0.0;
 	}
@@ -720,8 +775,11 @@ float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
 	}
 	// Плоская кромка: резкая у живого облака, приподнятая и рваная у тающего (подъём кромки —
 	// доля мощности, но не больше ~250 м: тает снизу пассивное облако, а не вся башня сразу).
-	float base_soft = mix(10.0, 120.0, decay);
-	float base_lift = (base_relief_m + decay * decay * 0.3 * min(top, 800.0)) * (1.0 - billow);
+	// Основание в одной воздушной массе общее (LCL), его разброс — от стадии: растущее — клочья (рваная
+	// нижняя кромка), тающее — приподнятое рваное (испарение снизу).
+	float rag = 1.0 + 2.5 * max(f.z, 0.0);
+	float base_soft = mix(10.0, 120.0, decay) + 40.0 * max(f.z, 0.0);
+	float base_lift = (base_relief_m * rag + decay * decay * 0.45 * min(top, 700.0)) * (1.0 - billow);
 	float dns = shape * smoothstep(base_lift, base_lift + base_soft, h);
 	if (dns <= 0.0) {
 		return 0.0;
