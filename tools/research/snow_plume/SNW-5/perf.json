@@ -1,0 +1,26 @@
+{
+ "gpu_delta_ms": null,
+ "cpu_delta_ms": null,
+ "worst1_delta_ms": null,
+ "everest_emitters_strong": 24,
+ "everest_emitters_weak": 0,
+ "shymbulak_emitters_strong": 24,
+ "shymbulak_emitters_weak": 0,
+ "note": "замер кадра не проводился: SNW-5 остановлена координатором (отрисовка переделывается); gpu/cpu/worst1 = null",
+ "everest_strong_ridge": {
+  "u10_min": 8.7,
+  "u10_max": 27.9,
+  "u_t_mean": 7.45,
+  "t_mean_c": -39.0,
+  "ridge_y_min": 6824.0,
+  "ridge_y_max": 8405.0
+ },
+ "shymbulak_strong_ridge": {
+  "u10_min": 23.14,
+  "u10_max": 32.21,
+  "u_t_mean": 7.03,
+  "t_mean_c": -23.4,
+  "ridge_y_min": 2903.0,
+  "ridge_y_max": 3838.0
+ }
+}
