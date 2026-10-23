@@ -1,0 +1,268 @@
+{
+ "land_global": {
+  "DJF": {
+   "pooled_k_per_km": -4.99,
+   "median_k_per_km": -4.52,
+   "p10": -8.13,
+   "p90": 0.38,
+   "n_cell_months": 18777
+  },
+  "MAM": {
+   "pooled_k_per_km": -4.69,
+   "median_k_per_km": -4.26,
+   "p10": -9.46,
+   "p90": -0.29,
+   "n_cell_months": 18777
+  },
+  "JJA": {
+   "pooled_k_per_km": -4.42,
+   "median_k_per_km": -4.14,
+   "p10": -9.19,
+   "p90": -0.75,
+   "n_cell_months": 18777
+  },
+  "SON": {
+   "pooled_k_per_km": -4.93,
+   "median_k_per_km": -4.52,
+   "p10": -8.86,
+   "p90": -1.22,
+   "n_cell_months": 18777
+  },
+  "year": {
+   "pooled_k_per_km": -4.76,
+   "median_k_per_km": -4.36,
+   "p10": -8.78,
+   "p90": -0.48,
+   "n_cell_months": 75108
+  }
+ },
+ "land_30_60N": {
+  "DJF": {
+   "pooled_k_per_km": -4.53,
+   "median_k_per_km": -3.47,
+   "p10": -6.31,
+   "p90": 0.21,
+   "n_cell_months": 5778
+  },
+  "MAM": {
+   "pooled_k_per_km": -3.86,
+   "median_k_per_km": -3.38,
+   "p10": -5.82,
+   "p90": -0.43,
+   "n_cell_months": 5778
+  },
+  "JJA": {
+   "pooled_k_per_km": -3.26,
+   "median_k_per_km": -3.2,
+   "p10": -5.51,
+   "p90": -0.59,
+   "n_cell_months": 5778
+  },
+  "SON": {
+   "pooled_k_per_km": -4.24,
+   "median_k_per_km": -3.75,
+   "p10": -6.17,
+   "p90": -1.33,
+   "n_cell_months": 5778
+  },
+  "year": {
+   "pooled_k_per_km": -3.97,
+   "median_k_per_km": -3.47,
+   "p10": -5.95,
+   "p90": -0.53,
+   "n_cell_months": 23112
+  }
+ },
+ "land_tropics_20S_20N": {
+  "DJF": {
+   "pooled_k_per_km": -4.5,
+   "median_k_per_km": -4.56,
+   "p10": -6.35,
+   "p90": -1.31,
+   "n_cell_months": 2601
+  },
+  "MAM": {
+   "pooled_k_per_km": -4.53,
+   "median_k_per_km": -4.49,
+   "p10": -6.2,
+   "p90": -1.28,
+   "n_cell_months": 2601
+  },
+  "JJA": {
+   "pooled_k_per_km": -4.68,
+   "median_k_per_km": -4.28,
+   "p10": -6.17,
+   "p90": -1.44,
+   "n_cell_months": 2601
+  },
+  "SON": {
+   "pooled_k_per_km": -4.74,
+   "median_k_per_km": -4.53,
+   "p10": -6.57,
+   "p90": -1.85,
+   "n_cell_months": 2601
+  },
+  "year": {
+   "pooled_k_per_km": -4.61,
+   "median_k_per_km": -4.49,
+   "p10": -6.3,
+   "p90": -1.5,
+   "n_cell_months": 10404
+  }
+ },
+ "altai_48_56N_80_92E": {
+  "DJF": {
+   "pooled_k_per_km": -3.73,
+   "median_k_per_km": -2.98,
+   "p10": -5.25,
+   "p90": -0.4,
+   "n_cell_months": 138
+  },
+  "MAM": {
+   "pooled_k_per_km": -4.21,
+   "median_k_per_km": -4.07,
+   "p10": -5.72,
+   "p90": -1.05,
+   "n_cell_months": 138
+  },
+  "JJA": {
+   "pooled_k_per_km": -4.0,
+   "median_k_per_km": -4.05,
+   "p10": -5.31,
+   "p90": -1.07,
+   "n_cell_months": 138
+  },
+  "SON": {
+   "pooled_k_per_km": -4.68,
+   "median_k_per_km": -4.47,
+   "p10": -5.76,
+   "p90": -2.56,
+   "n_cell_months": 138
+  },
+  "year": {
+   "pooled_k_per_km": -4.15,
+   "median_k_per_km": -3.97,
+   "p10": -5.58,
+   "p90": -1.01,
+   "n_cell_months": 552
+  }
+ },
+ "s_urals_52_56N_57_61E": {
+  "DJF": {
+   "pooled_k_per_km": -3.19,
+   "median_k_per_km": -3.03,
+   "p10": -4.61,
+   "p90": -1.23,
+   "n_cell_months": 18
+  },
+  "MAM": {
+   "pooled_k_per_km": -3.07,
+   "median_k_per_km": -3.14,
+   "p10": -4.39,
+   "p90": -1.53,
+   "n_cell_months": 18
+  },
+  "JJA": {
+   "pooled_k_per_km": -2.39,
+   "median_k_per_km": -2.42,
+   "p10": -3.65,
+   "p90": -0.62,
+   "n_cell_months": 18
+  },
+  "SON": {
+   "pooled_k_per_km": -3.38,
+   "median_k_per_km": -3.58,
+   "p10": -4.35,
+   "p90": -1.69,
+   "n_cell_months": 18
+  },
+  "year": {
+   "pooled_k_per_km": -3.01,
+   "median_k_per_km": -3.09,
+   "p10": -4.41,
+   "p90": -0.9,
+   "n_cell_months": 72
+  }
+ },
+ "crimea_44_46N_32_36E": {
+  "DJF": null,
+  "MAM": null,
+  "JJA": null,
+  "SON": null,
+  "year": null
+ },
+ "iran_zagros_26_34N_44_56E": {
+  "DJF": {
+   "pooled_k_per_km": -5.37,
+   "median_k_per_km": -4.71,
+   "p10": -7.32,
+   "p90": -2.36,
+   "n_cell_months": 123
+  },
+  "MAM": {
+   "pooled_k_per_km": -3.1,
+   "median_k_per_km": -2.87,
+   "p10": -5.21,
+   "p90": -0.93,
+   "n_cell_months": 123
+  },
+  "JJA": {
+   "pooled_k_per_km": -3.84,
+   "median_k_per_km": -3.19,
+   "p10": -8.17,
+   "p90": -1.88,
+   "n_cell_months": 123
+  },
+  "SON": {
+   "pooled_k_per_km": -4.28,
+   "median_k_per_km": -3.68,
+   "p10": -7.36,
+   "p90": -2.37,
+   "n_cell_months": 123
+  },
+  "year": {
+   "pooled_k_per_km": -4.15,
+   "median_k_per_km": -3.62,
+   "p10": -7.09,
+   "p90": -1.57,
+   "n_cell_months": 492
+  }
+ },
+ "queensland_20_14S_142_147E": {
+  "DJF": {
+   "pooled_k_per_km": -4.15,
+   "median_k_per_km": -4.49,
+   "p10": -6.29,
+   "p90": -2.19,
+   "n_cell_months": 24
+  },
+  "MAM": {
+   "pooled_k_per_km": -3.2,
+   "median_k_per_km": -2.82,
+   "p10": -7.1,
+   "p90": -0.04,
+   "n_cell_months": 24
+  },
+  "JJA": {
+   "pooled_k_per_km": -1.9,
+   "median_k_per_km": -0.57,
+   "p10": -8.22,
+   "p90": 2.34,
+   "n_cell_months": 24
+  },
+  "SON": {
+   "pooled_k_per_km": -2.13,
+   "median_k_per_km": -0.67,
+   "p10": -9.14,
+   "p90": 2.25,
+   "n_cell_months": 24
+  },
+  "year": {
+   "pooled_k_per_km": -2.84,
+   "median_k_per_km": -2.94,
+   "p10": -7.93,
+   "p90": 1.57,
+   "n_cell_months": 96
+  }
+ }
+}

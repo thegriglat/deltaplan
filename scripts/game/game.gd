@@ -349,6 +349,7 @@ func start(s: FlightSettings) -> bool:
 	progress.stage("weather", tr("loading_weather"))
 	await get_tree().process_frame
 	_weather_ctx = _weather_context()
+	sky.valley_msl_m = float(_weather_ctx.get("valley_msl_m", 0.0))
 	_weather_hour = settings.start_hour
 	_peak_spacing = float(
 		WeatherModel.derive(settings.forecast(), _weather_ctx).thermal_spacing_m
@@ -415,7 +416,8 @@ func start(s: FlightSettings) -> bool:
 		"set_wind",
 		settings.wind_speed_kmh,
 		_site_heading if settings.wind_into_launch else settings.wind_from_deg,
-		_start_pos.y
+		_start_pos.y,
+		float(ClimateGrid.place(_weather_ctx.merged({"start_msl_m": _start_pos.y})).gain_per_km)
 	)
 	# Среднее поле на час старта (до термиков: их источники — из поля) и объекты мира — одновременно (FL-10):
 	# поле (запечённое → кеш → расчёт) готовится в рабочих потоках и на GPU порциями, объекты — порциями по
@@ -669,7 +671,7 @@ func _update_day_weather() -> void:
 	_apply_haze()
 
 
-## Дымка: верх — у кромки (инверсия), густота — по ходу дня.
+## Дымка: верх — у кромки (инверсия), густота — по влажности.
 func _apply_haze() -> void:
 	if air.has_method("get_cloudbase_msl") and sky.has_method("set_inversion_height_msl"):
 		sky.set_inversion_height_msl(float(air.call("get_cloudbase_msl")))

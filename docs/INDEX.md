@@ -28,6 +28,21 @@ generated: true
   - [tools/research/air_weak_wind/AWW-2/README.md](../tools/research/air_weak_wind/AWW-2/README.md) — AWW-2: правка 1 AWW-1 — F переносит теплосодержание θ′·h; W1 до/после на 8 стартах и Онгудае/Аскарово (слабый и сильный день). [closed]
   - [tools/research/air_weak_wind/AWW-1/summary.md](../tools/research/air_weak_wind/AWW-1/summary.md) — Вывод AWW-1: диагноз 1 верен (правка θ′·h TW-3: «Термики» 0,44 → 1,27 м/с), диагноз 2 не подтверждён, порывы в полосе теории. [closed]
 - **site-cloud-field** — Сайт: страница «Облака и тени» переписана под поле облачности (CLF-1/9/10) с графиками исследования; одна задача SCF-1. [closed 2026-10-21] — [план](plan/site-cloud-field.md) · [решения](plan/site-cloud-field/decisions.md) · [сводка](plan/site-cloud-field/summary.md) · полный журнал: `archive/site-cloud-field`
+- **haze-humidity** — Точка росы по климату места (сетка реанализа) + разброс по дням → дымка по влажности; цвет солнца на облаках по пропусканию атмосферы. [closed 2026-10-23] — [план](plan/haze-humidity.md) · [контракты](contracts/haze-humidity.md) · [решения](plan/haze-humidity/decisions.md) · [сводка](plan/haze-humidity/summary.md) · полный журнал: `archive/haze-humidity`
+  - [docs/guide/atmosphere/sunset-light.md](guide/atmosphere/sunset-light.md) — Яркость сцены на закате: свет рельефа из пропускания, небо sky_k, экспозиция E(el); границы модели.
+  - [docs/registry/findings/haze-humidity.md](registry/findings/haze-humidity.md) — Выводы haze-humidity (вынесены из findings.md по размеру): Td, дымка, облака, верхний воздух, Tmax, рост ветра, закат.
+  - [tools/research/haze_humidity/cloud_base/README.md](../tools/research/haze_humidity/cloud_base/README.md) — HH-3: яркость основания кучевых и Cb против неба и вершины — в физической вилке; sky_occlusion_m работает до ~1 км
+  - [tools/research/haze_humidity/dew_point/README.md](../tools/research/haze_humidity/dew_point/README.md) — Td 2 м, ERA5 1991–2020, сетка 1°×12 мес.+σ+Z: 1,5 МБ; градиент Td по высоте −4 К/км; Алтай июль +5,3 К к таблице
+  - [tools/research/haze_humidity/era5_source/README.md](../tools/research/haze_humidity/era5_source/README.md) — Остаток ERA5 качать из ARCO 1° почасового (2-6 МБ/с, T700 к CDS 0.09 K); NCAR S3 и ARCO 0.25° в 10-60x тяжелее [closed]
+  - [tools/research/haze_humidity/haze/README.md](../tools/research/haze_humidity/haze/README.md) — Дымка от влажности: haze_k = ((1−RH)/0,6)^−0,6 при RH ≥ 40 %; evening_haze_k ×1,6 влажностью не объясняется
+  - [tools/research/haze_humidity/sky_light/README.md](../tools/research/haze_humidity/sky_light/README.md) — HH-15: sky_k(el) — яркость рассеянного света ясного неба относительно 35° (однократное рассеяние, сверка ESRA) и экспозиция заката.
+  - [tools/research/haze_humidity/sunset_color/README.md](../tools/research/haze_humidity/sunset_color/README.md) — HH-12: цвет облаков на закате - таблица HH4 верна, тепло теряется в яркости, фазе и тонмаппинге.
+  - [tools/research/haze_humidity/surface_t/README.md](../tools/research/haze_humidity/surface_t/README.md) — Tmax и суточная амплитуда ERA5 2011–2020, сетка 1°×12 мес.: 1,6 МБ; градиент Tmax −5,5…−7,8 К/км
+  - [tools/research/haze_humidity/td_sky/README.md](../tools/research/haze_humidity/td_sky/README.md) — Td дня против облачности и жары, ERA5 2011-13: ясный -0,3 σ, пасмурный +0,13 σ; beta Td/Tmax 0,6 (от -0,3 до 1,0)
+  - [tools/research/haze_humidity/upper_air/README.md](../tools/research/haze_humidity/upper_air/README.md) — Сетка 700 гПа (HH2 v2): ERA5 2011–2020, T и Z по месяцам, 1°; σ T700 по 2018–2019, ошибка ±10–15 %
+  - [tools/research/haze_humidity/upper_misc/README.md](../tools/research/haze_humidity/upper_misc/README.md) — Сетка HH6 v2: HCC, TROP — ERA5 2011–2020 (CDS), WR — ERA5 2018–2019 (ARCO 1°), stub_mask=0
+  - [tools/research/haze_humidity/verify/README.md](../tools/research/haze_humidity/verify/README.md) — Сверка Td и T700 с прогнозом Open-Meteo (38 мест, 16 дней): доля в σ Td 67 %, T700 62 %; сдвиг Td +0,7 К
+  - [tools/research/haze_humidity/era5_source/summary.md](../tools/research/haze_humidity/era5_source/summary.md) — HH-17: остаток ERA5 качать из ARCO-1° почасового; T700 RMSE к CDS 0.09 K, u700 0.19 м/с, T2m max 0.52 K; NCAR и ARCO-0.25° не нужны [closed]
 
 ## flight
 
@@ -172,9 +187,9 @@ generated: true
 - [docs/guide/air-model.md](guide/air-model.md) — Модель воздуха в трёх масштабах: среднее поле (фазы + Пикар на GPU), термики и возмущения из поля; вход и оглавление частей.
 - [docs/guide/architecture.md](guide/architecture.md) — Архитектура: правила кода и конфигов, координаты, папки модулей, контракты между модулями, заменяемые ассеты.
 - [docs/guide/atmosphere/calibration.md](guide/atmosphere/calibration.md) — Бот-маршрутник и идеальный пилот на матрице погоды, калибровка дней (карточка 03), сила источника термиков из SurfaceHeat.
-- [docs/guide/atmosphere/clouds.md](guide/atmosphere/clouds.md) — Облака из поля облачности, записи (линзы, шапка, Cb), тени, птицы, признаки термиков, Cb, волна, пыль, известные проблемы.
+- [docs/guide/atmosphere/clouds.md](guide/atmosphere/clouds.md) — Облака из поля, записи, тени, птицы, Cb, волна, пыль, свет солнца через пропускание атмосферы, известные проблемы.
 - [docs/guide/atmosphere/ridge-starts.md](guide/atmosphere/ridge-starts.md) — Парение у склона на 10 стартах четырёх локаций: набор за 5 минут, ridge.efficiency 0,85, два слабых старта.
-- [docs/guide/atmosphere/weather.md](guide/atmosphere/weather.md) — Как прогноз пилота (температура, ветер, облачность) превращается в погоду дня: верх термиков, кромка, ход дня, закат.
+- [docs/guide/atmosphere/weather.md](guide/atmosphere/weather.md) — Прогноз пилота → погода дня: кромка, Td, 700 гПа, Tmax, амплитуда, тропопауза, перистые по месту (ERA5), дымка по RH, ход дня.
 - [docs/guide/atmosphere/wind-field.md](guide/atmosphere/wind-field.md) — Из чего складывается скорость воздуха: пульсации, термик, снос, склон, подветренная зона и ротор, подсос облака, слова пилота в числах.
 - [docs/guide/atmosphere.md](guide/atmosphere.md) — Модуль scripts/atmosphere/: API Atmosphere, устройство и части — погода, поле скоростей, облака, калибровка, склон; тесты и конфиги.
 - [docs/guide/crash-report.md](guide/crash-report.md) — Отчёты о вылетах: метка сессии, issue в deltaplan-reports при следующем запуске, токен, проверка --crash-report-test.

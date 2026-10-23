@@ -4,6 +4,8 @@
 //   - compute-шейдер буфера пониженного разрешения (GLSL 450, cloud_raymarch.gd).
 // Поэтому здесь только общее подмножество GLSL/Godot: функции, struct, const.
 // Хост объявляет глобальные: noise_shape, noise_detail (sampler3D) и параметры:
+//   (при #define CLOUD_SUN_TAB — ещё sun_tab (sampler2D), sun_tab_on, sun_tab_u, sun_tab_vs,
+//   sun_tab_vo, sun_tref, sun_dir_t: пропускание атмосферы, HH4),
 //   sun_dir, sun_color, sun_energy, ambient_top, ambient_bottom, ambient_energy, base_darkness,
 //   wind_offset, boil, shape_period_m, detail_period_m, hf_period_m, top_period_m, shape_tex_size,
 //   detail_tex_size, curl_strength_m, extinction, light_absorb, powder_strength, phase_forward,
@@ -416,6 +418,37 @@ vec3 cloud_light(float dns, float od, float sky, float hh, float phase, vec3 sun
 	return sun_l * beer * phase * powder + amb;
 }
 
+// Прямое солнце облаков (HH4). Хост определяет CLOUD_SUN_TAB и объявляет sun_tab (sampler2D),
+// sun_tab_on, sun_tab_u, sun_tab_vs, sun_tab_vo, sun_tref, sun_dir_t; без определения (карта теней
+// облаков) — прежнее: sun_dir, sun_color × sun_energy.
+#ifdef CLOUD_SUN_TAB
+// Направление на солнце для света облаков: настоящее (в том числе под горизонтом), не зажатое
+// минимальной высотой света рельефа (sun_dir остаётся зажатым — тени на земле, дымка).
+vec3 cloud_sun_dir() {
+	return sun_tab_on < 0.5 ? sun_dir : sun_dir_t;
+}
+
+// Цвет и яркость прямого солнца в точке на высоте y (мир, = над морем): солнце над атмосферой ×
+// пропускание T(высота солнца, y) / T_ref по таблице sun_tab (SunTransmission); sun_color × sun_energy —
+// солнце на опорной высоте, sun_tref — T_ref. sun_tab_on = 0 — прежний свет, одинаковый на всех высотах.
+vec3 cloud_sun_l(float y) {
+	vec3 base = sun_color * sun_energy;
+	if (sun_tab_on < 0.5) {
+		return base;
+	}
+	vec3 t = textureLod(sun_tab, vec2(sun_tab_u, y * sun_tab_vs + sun_tab_vo), 0.0).rgb;
+	return base * t / sun_tref;
+}
+#else
+vec3 cloud_sun_dir() {
+	return sun_dir;
+}
+
+vec3 cloud_sun_l(float y) {
+	return sun_color * sun_energy;
+}
+#endif
+
 // Грубый шаг луча по боксу облака [tn, tf].
 float cloud_dt_coarse(float rx, float rz, float tn, float tf) {
 	// Дальние облака мельче на экране — им хватает меньше грубых шагов.
@@ -448,9 +481,9 @@ void cloud_march_part(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 	bool entered = st.z > 0.5;
 	int it = int(st.w);
 	bool done = false;
-	float cos_t = dot(rd, sun_dir);
+	float cos_t = dot(rd, cloud_sun_dir());
 	float phase = mix(cloud_hg(cos_t, phase_forward) * silver, cloud_hg(cos_t, phase_back), phase_mix) * 4.0 * CLOUD_PI;
-	vec3 sun_l = sun_color * sun_energy;
+	vec3 sun_dir_l = cloud_sun_dir();
 	int lsteps = tn > lod_distance_m ? max(light_steps - 2, 1) : light_steps;
 	for (int i = 0; i < 512; i++) {
 		if (it >= max_iterations || t > tf || trans < 0.01) {
@@ -538,7 +571,7 @@ void cloud_march_part(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 				if (j >= ls) {
 					break;
 				}
-				lp += sun_dir * lstep;
+				lp += sun_dir_l * lstep;
 				od += cloud_density(cl, lp, 0) * lstep;
 				lstep *= lgrow;
 			}
@@ -560,7 +593,7 @@ void cloud_march_part(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 			if (cl.anvil > 0.0 && hh > 0.8) {
 				sky *= mix(0.35, 1.0, smoothstep(0.88, 0.99, hh));
 			}
-			vec3 S = cloud_light(dns, od, sky, hh, phase, sun_l) * sigma;
+			vec3 S = cloud_light(dns, od, sky, hh, phase, cloud_sun_l(p.y)) * sigma;
 			float tr = exp(-sigma * dt_s);
 			col += trans * (S - S * tr) / max(sigma, 1e-6);
 			float wgt = trans * (1.0 - tr);

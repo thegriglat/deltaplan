@@ -389,10 +389,22 @@ func _build_time(box: Control) -> void:
 func _on_month_selected(i: int) -> void:
 	_day.max_value = SunClock.days_in_month(i + 1)
 	# Смена месяца не двигает ползунок (выбор пилота важнее) — только подсказку «обычно…».
-	if _temp_hint != null:
-		_temp_hint.text = (
-			tr("setup_temperature_typical") % roundi(WeatherModel.typical_max_c(i + 1))
-		)
+	_update_temp_hint(i + 1)
+
+
+## Подсказка «обычно днём…» — для выбранного места (HH5: Tx климата ячейки) и месяца.
+func _update_temp_hint(month: int = 0) -> void:
+	if _temp_hint == null or _month_opt == null:
+		return
+	var m := month if month > 0 else _month_opt.selected + 1
+	var ctx := {}
+	if _row != null and _row.settings != null:
+		var ll := WorldKey.launch_latlon(_row.settings)
+		ctx = {"lat": ll.x, "lon": ll.y}
+	_temp_hint.text = (
+		tr("setup_temperature_typical")
+		% roundi(WeatherModel.typical_max_c(m, int(_day.value) if _day != null else 15, {}, ctx))
+	)
 
 
 ## Прогноз (FR-16): температура днём, ветер на старте (м/с), откуда ветер, облачность.
@@ -455,6 +467,7 @@ func _update_dir_hint() -> void:
 
 ## TI-К2: у старта с фиксированной погодой элементы погоды и времени заблокированы, показан набор.
 func _update_weather_lock() -> void:
+	_update_temp_hint()
 	if _temp == null or _hour == null or _fixed_label == null or _row == null:
 		return
 	var w := StartWeather.for_settings(_row.settings)

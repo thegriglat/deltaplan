@@ -1,0 +1,43 @@
+{
+ "gamma_from_f85": {
+  "CAB_continental_south": 0.448,
+  "CAB_continental_east": 0.585,
+  "CAB_all": 0.625,
+  "MEL_all": 0.735,
+  "MHD_polluted": 0.424,
+  "NYA_arctic": 0.885,
+  "JFJ_dust": 0.178
+ },
+ "gamma_used": 0.6,
+ "rh0": 0.4,
+ "rh_max": 0.95,
+ "f85_model": 2.297,
+ "sunrise_sunset": {
+  "dry_steppe": [
+   5.27,
+   21.28
+  ],
+  "humid_valley": [
+   5.08,
+   21.46
+  ]
+ },
+ "min_vis_km": {
+  "dry_steppe/current": [
+   38.2,
+   60.0
+  ],
+  "dry_steppe/proposed": [
+   60.0,
+   60.0
+  ],
+  "humid_valley/current": [
+   38.7,
+   60.0
+  ],
+  "humid_valley/proposed": [
+   26.0,
+   55.5
+  ]
+ }
+}

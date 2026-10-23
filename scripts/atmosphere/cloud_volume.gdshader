@@ -9,6 +9,14 @@ uniform sampler3D noise_shape : filter_linear_mipmap, repeat_enable;
 uniform sampler3D noise_detail : filter_linear_mipmap, repeat_enable;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 uniform sampler2D cloud_data : filter_nearest;
+// Пропускание атмосферы для света солнца (HH4): таблица, её отображение на высоту солнца и точки.
+uniform sampler2D sun_tab : filter_linear, repeat_disable;
+uniform float sun_tab_on = 0.0;
+uniform float sun_tab_u = 0.5;
+uniform float sun_tab_vs = 0.0;
+uniform float sun_tab_vo = 0.5;
+uniform vec3 sun_tref = vec3(1.0);
+uniform vec3 sun_dir_t = vec3(0.0, 1.0, 0.0);
 
 // Солнце и свет.
 uniform vec3 sun_dir = vec3(0.3, 0.77, 0.56);
@@ -70,6 +78,7 @@ uniform float fog_sun_scatter = 0.15;
 
 varying flat int v_idx;
 
+#define CLOUD_SUN_TAB
 #include "res://scripts/atmosphere/cloud_common.gdshaderinc"
 
 void vertex() {

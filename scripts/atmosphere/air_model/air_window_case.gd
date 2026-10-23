@@ -98,7 +98,7 @@ static func window_at(
 	if ctx.is_empty():
 		ctx = AirPlace.context(detail, loc, cfg)
 	if is_nan(t_max):
-		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
+		t_max = WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg, ctx)
 	var d := AirPlace.day(ctx, hour, t_max, sky, cfg)
 	c.z_i = d.z_i
 	# z_i по столбцам (CLF-К6): от родителя в точке; без него — от своего рельефа. Путь без

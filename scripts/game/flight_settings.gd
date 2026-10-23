@@ -141,8 +141,11 @@ static func defaults() -> FlightSettings:
 	s.month = int(t.get("month", s.month))
 	s.day = int(t.get("day", s.day))
 	var dt: Variant = g.get("default_temperature_c")
+	var ll := WorldKey.launch_latlon(s)
 	s.temperature_c = (
-		float(dt) if dt != null else roundf(WeatherModel.typical_max_c(s.month, s.day))
+		float(dt)
+		if dt != null
+		else roundf(WeatherModel.typical_max_c(s.month, s.day, {}, {"lat": ll.x, "lon": ll.y}))
 	)
 	s.wind_speed_kmh = float(g.get("default_wind_speed_kmh", s.wind_speed_kmh))
 	s.wind_into_launch = bool(g.get("default_wind_into_launch", s.wind_into_launch))

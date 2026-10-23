@@ -12,6 +12,9 @@ func test_window_input_vs_reference() -> void:
 	if lw.size() != 2:
 		return
 	var loc := TestAirPlace.load_loc("ongudai")
+	# Эталон AM-01 (weather.py) посчитан по таблице diurnal.range_k, а не по DTR ERA5 места (HH5, HH-4b): окно сравниваем
+	# с ним при таблице-запасе (сетки HH5 нет) — иначе γ слоя расходится из-за другой амплитуды дня, а не окна.
+	ClimateGrid.set_paths({"hh5": "res://data/climate/__none5.bin"})
 	var ctx := AirPlace.context(lw[0], loc, WeatherModel.config())
 	for name in ["ongudai_w100_h12", "ongudai_w50_h12"]:
 		var m := TestAirPicard.load_fix(FIX_W + name)
@@ -36,6 +39,7 @@ func test_window_input_vs_reference() -> void:
 		var t1 := Time.get_ticks_usec()
 		check(c != null, "окно построено")
 		if c == null:
+			ClimateGrid.set_paths({})
 			return
 		check(c.prepare_pair(), "подготовка пары")
 		var t2 := Time.get_ticks_usec()
@@ -80,6 +84,7 @@ func test_window_input_vs_reference() -> void:
 		check(c.col[7 * nyx + mid + 1] == c.col[6 * nyx + mid + 1], "θ′ — та же зона, все бока")
 		check(c.prm[AirCase.P_NEST] == 1.0, "флаг окна в prm")
 		check(c.without_heat() is AirWindowCase, "без нагрева — тоже окно")
+	ClimateGrid.set_paths({})
 
 
 ## Сглаживание окна — то же, что прямая свёртка с отражением (σ больше окна).
