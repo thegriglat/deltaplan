@@ -1615,7 +1615,7 @@ void fragment() {
 	// (его доля — тот же sl_fresh_snow на чёрном с белым: f · (0,94…1)); доли и классы не меняются
 	float snow_w = max(snow, gsnow);
 #ifndef T_SL_SNOW_OFF
-	snow_w = max(snow_w, min(sl_fresh_snow(vec3(0.0), vec3(1.0), wp.xz, h, slope_deg, forest).g / 0.94, 1.0));
+	snow_w = max(snow_w, min(sl_fresh_snow(vec3(0.0), vec3(1.0), wp.xz, h, slope_deg, forest).g / 0.94, 1.0)); // SL
 #endif
 	if (snow_w > 0.001) {
 		vec3 srl = snow_relief(wp.xz, hg, slope_deg, foot_px);
