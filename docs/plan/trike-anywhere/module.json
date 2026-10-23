@@ -1,0 +1,11 @@
+{
+  "module": "trike-anywhere",
+  "plan": "docs/plan/trike-anywhere.md",
+  "contracts": "docs/contracts/trike-anywhere.md",
+  "branch": "feature/trike-anywhere",
+  "copy": "~/deltaplan-trike-anywhere",
+  "created": "2026-10-23T19:09:39",
+  "code": "TA",
+  "area": "flight",
+  "base": "main"
+}
