@@ -1,0 +1,32 @@
+{
+  "status": "done",
+  "summary": "Гайд trike-pilot.md обновлён: убраны закрытые «открытые» (TP-18, TP-21, TP-22), добавлены тяга по оси винта (a=0,724), буксировщик по прежней схеме до Q9, подскоки без провала, пауза глушит звук, камера при подскоках. CHANGELOG и findings дополнены выводом TP-23; docs index пересобран.",
+  "commits": [
+    "d292b9348 TP-25: документация дельталёта после TP-18…TP-24"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "PASS docs, scope",
+      "pass": true
+    },
+    {
+      "name": "docs check",
+      "value": "ошибок по guide/findings/trike нет; остались чужие docs/plan/test-script-errors",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TP-25",
+  "uncertain": [
+    {
+      "where": "docs/guide/flight/trike-pilot.md (Камера)",
+      "why": "поведение Game._on_took_off взято из отчёта TP-24, Game целиком не тестировался",
+      "checked": "сверено с отчётом TP-24"
+    }
+  ],
+  "dp_feedback": "Дополнение координатора в task show обрезано многоточием; полный текст виден только через --full.",
+  "t": "2026-10-23T06:01:31",
+  "by": "executor"
+}
