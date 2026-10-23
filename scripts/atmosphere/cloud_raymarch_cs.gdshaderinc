@@ -36,7 +36,7 @@ Cloud cloud_at(int i, vec3 ro, float pix_a) {
 // Без облаков в поле (cf_on = 0) не вызывается.
 void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 		inout float trans, inout vec3 col, inout float t_acc, inout float w_acc) {
-	float y0 = cf_base.x - cf_spread_hi;
+	float y0 = cf_base.x - cf_spread_hi - cf_shell_h;
 	float y1 = cf_base.x + cf_spread_hi + cf_misc.x;
 	float far_m = cf_misc.y;
 	float t0 = 0.0;

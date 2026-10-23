@@ -40,7 +40,7 @@ const FLOAT_PARAMS := [
 const INT_PARAMS := ["coarse_steps", "max_iterations", "light_steps", "detail_enabled"]
 ## Слой поля (CLF-К2 и грубая карта) — сразу за sizes: vec4 и два float (+2 запасных).
 const FIELD_VEC4 := ["cf_rect", "cf_base", "cf_mrect", "cf_misc", "cf_q0", "cf_q1", "cf_q2", "cf_q3"]
-const FIELD_FLOATS := ["cf_edge", "cf_on", "cf_spread_lo", "cf_spread_hi", "cf_base_soft"]
+const FIELD_FLOATS := ["cf_edge", "cf_on", "cf_spread_lo", "cf_spread_hi", "cf_base_soft", "cf_shell_w", "cf_shell_dens", "cf_shell_h"]
 
 ## Замер (--perf): сколько заняла последняя сборка шейдеров облаков, мс.
 static var build_ms: float = -1.0
@@ -303,7 +303,6 @@ func _header() -> String:
 		h += "\tvec4 %s;\n" % n
 	for n in FIELD_FLOATS:
 		h += "\tfloat %s;\n" % n
-	h += "\tfloat cf_pad0;\n\tfloat cf_pad1;\n\tfloat cf_pad2;\n"
 	for pair in VEC_PARAMS:
 		h += "\tvec3 %s;\n\tfloat %s;\n" % pair
 	for n in FLOAT_PARAMS:
@@ -420,7 +419,6 @@ func _ubo_bytes(
 		f.append_array([q.x, q.y, q.z, q.w])
 	for n in FIELD_FLOATS:
 		f.append(float(params.get(n, 0.0)))
-	f.append_array([0.0, 0.0, 0.0])
 	for pair in VEC_PARAMS:
 		var v: Vector3 = params.get(pair[0], Vector3.ZERO)
 		f.append_array([v.x, v.y, v.z, float(params.get(pair[1], 0.0))])
