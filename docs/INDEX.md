@@ -153,7 +153,7 @@ generated: true
 - **fast-load** — Быстрая загрузка места: кеш поля воздуха на диске (LRU), общие данные места, тяжёлое — в потоки/нативное/кеш, порции без замирания. [closed 2026-10-17] — [план](plan/fast-load.md) · [контракты](contracts/fast-load.md) · [решения](plan/fast-load/decisions.md) · [сводка](plan/fast-load/summary.md) · полный журнал: `archive/fast-load`
   - [docs/guide/fast-load.md](guide/fast-load.md) — Загрузка места: порядок этапов, потоки, кеш поля воздуха (LRU, настройка размера), пирамида высот, PlaceData, числа и границы.
   - [docs/registry/fast-load-findings.md](registry/fast-load-findings.md) — fast-load: тёплая загрузка 29,2 → 12,5 с (Онгудай), 40,2 → 18,0 с (точка) при кеше поля; промах без выигрыша; малый пул.
-- **rust-ext** — Обзор: какие расчёты рантайма вынести в Rust (GDExtension): ветер в точке, воздух, термики, сборка места; что не выносить. [idea 2026-10-24] — [план](plan/rust-ext.md)
+- **rust-ext** — Обзор Rust (GDExtension): воздух по рельефу, объекты, маятник, графика; проба gdext 0.5.5 на Godot 4.7.2 работает. [idea 2026-10-24] — [план](plan/rust-ext.md)
 
 ## release
 
