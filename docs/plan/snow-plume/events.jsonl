@@ -138,3 +138,4 @@
 {"t": "2026-10-23T05:07:58", "by": "coordinator", "task": "SNW-9", "ev": "merged"}
 {"t": "2026-10-23T05:08:10", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: WebFetch на AMS/Wiley/Springer — 403 (SNW-1, литература по пересказам); lock cpu -- cmd уходит в tmux и возвращается сразу, результат — только через job wait/лог (SNW-4, SNW-9); accept --here в копии модуля после слияния нового class_name падает до --import (реестр классов); исполнители оставляют r-<ID>.json в корне копии — FAIL scope; фильтр тестов snow ловит чужие контрактные тесты."}
 {"t": "2026-10-23T12:12:55", "by": "coordinator", "task": null, "ev": "note", "note": "snow-plume done: Q1 — сдавать как есть (струйки редкие, вид — тестовая сборка у главной); сдача — главная (deliver)."}
+{"t": "2026-10-23T12:38:02", "by": "main", "task": null, "ev": "delivered", "commits": ["da4d569a4"], "note": "squash в main: da4d569a4"}
