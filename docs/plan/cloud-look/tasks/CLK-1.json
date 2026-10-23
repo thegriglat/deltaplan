@@ -1,0 +1,98 @@
+{
+  "id": "CLK-1",
+  "module": "cloud-look",
+  "type": "dp-engineer",
+  "title": "Свет кучевых: свет и тень внутри облака, цвет от солнца на закате (пункты 1, 4)",
+  "goal": "Кучевые с перепадом света и тени: освещённые вершины, затенённые бока и основания, клубы затеняют друг друга; на закате освещённые части берут цвет солнца (HH4), а не белеют. Свет — из модели рассеяния (Бир, фаза, многократное рассеяние, небо), без подгонки по картинке.",
+  "plan_ref": "§3 п.1, п.4",
+  "contracts": [
+    {
+      "name": "cloud-look",
+      "version": "1",
+      "ref": "docs/contracts/cloud-look.md"
+    },
+    {
+      "name": "cloud-field",
+      "version": "1",
+      "ref": "docs/contracts/cloud-look.md"
+    },
+    {
+      "name": "haze-humidity",
+      "version": "3",
+      "ref": "docs/contracts/cloud-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-look-CLK-1",
+  "branch": "cloud-look/CLK-1",
+  "base": "feature/cloud-look",
+  "scope": [
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_volume.gdshader",
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "scripts/atmosphere/cloud_layer.gd",
+    "configs/atmosphere.json",
+    "tests/atmosphere/",
+    "tools/research/cloud_look/light/",
+    "docs/guide/atmosphere/clouds.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/cloud_field_sources.gd",
+    "scripts/atmosphere/cloud_field_codec.gd",
+    "scripts/atmosphere/cloud_physics.gd",
+    "scripts/atmosphere/sun_transmission.gd",
+    "scripts/atmosphere/cirrus.gdshader",
+    "scripts/atmosphere/cloud_shadow_map.gdshader",
+    "scripts/atmosphere/cloud_composite_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_temporal_cs.gdshaderinc",
+    "scripts/world/sky_environment.gd",
+    "configs/world.json",
+    "tools/shots/menu_art.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "cloud",
+      "tests": "cloud"
+    },
+    {
+      "name": "haze_humidity_hh4",
+      "tests": "haze_humidity_hh4"
+    },
+    {
+      "name": "base_top_06_lo",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/light/result.json base_top_06",
+      "expect": "num:([0-9.]+) >=0.22"
+    },
+    {
+      "name": "base_top_06_hi",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/light/result.json base_top_06",
+      "expect": "num:([0-9.]+) <=0.66"
+    },
+    {
+      "name": "base_top_12_lo",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/light/result.json base_top_12",
+      "expect": "num:([0-9.]+) >=0.22"
+    },
+    {
+      "name": "base_top_12_hi",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/light/result.json base_top_12",
+      "expect": "num:([0-9.]+) <=0.66"
+    },
+    {
+      "name": "sunset_gr_09",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/light/result.json sunset_top1_gr_09",
+      "expect": "num:([0-9.]+) <=0.85"
+    },
+    {
+      "name": "sunset_br_09",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/light/result.json sunset_top1_br_09",
+      "expect": "num:([0-9.]+) <=0.75"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T19:37:07"
+}

@@ -25,6 +25,7 @@ generated: true
 - bar-mouse: BM-К1 v2, BM-К2 v1 — [docs/contracts/bar-mouse.md](../contracts/bar-mouse.md)
 - cliff-look: CL-К1 v3, CL-К2 v3 — [docs/contracts/cliff-look.md](../contracts/cliff-look.md)
 - cloud-field: CLF-К1 v1, CLF-К2 v1, CLF-К3 v2, CLF-К4 v1, CLF-К5 v1, CLF-К6 v1 — [docs/contracts/cloud-field.md](../contracts/cloud-field.md)
+- cloud-look: CLK-К1 v1, CLK-К2 v1, CLK-К3 v1 — [docs/contracts/cloud-look.md](../contracts/cloud-look.md)
 - control-bar: CB-К1 v4, CB-К2 v1 — [docs/contracts/control-bar.md](../contracts/control-bar.md)
 - control-fix: С1 v2, С2 v4, С3 v3 — [docs/contracts/control-fix.md](../contracts/control-fix.md)
 - crash-reports: — — [docs/contracts/crash-reports.md](../contracts/crash-reports.md)

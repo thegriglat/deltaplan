@@ -116,6 +116,7 @@
    "hour": 20,
    "clock_hour": 20.4
   },
+  "sunset_sun": {"sky": "clear", "temp": 30, "hour": 20, "clock_hour": 19.5},
   "overcast": {
    "sky": "overcast",
    "temp": 22,
@@ -412,7 +413,7 @@
     },
     {
      "name": "sunset",
-     "light": "sunset",
+     "light": "sunset_sun",
      "camera": "peak_behind",
      "desc": "закат"
     }
