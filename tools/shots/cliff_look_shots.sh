@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Стенд cliff-look (CL-К1 v1, docs/contracts/cliff-look.md): кадры всех ракурсов tools/shots/cliff_look_views.json.
-#   tools/shots/cliff_look_shots.sh <before|after|метка> [--views=путь] [--diag|--diag-only] [--places=tag,…] [--preset=high]
+#   tools/shots/cliff_look_shots.sh <before|after|метка> [--views=путь] [--diag|--diag-only] [--places=tag,…] [--preset=high] [--members=base,…]
 # Кадры — /home/greg/deltaplan/build/screenshots/cliff-look/<метка>_<tag>_<view>.jpg (JPEG q88, 1920×1080).
 # --diag — ещё диагноз членов раскраски скал (кадры diag_<tag>_<view>_<член>.jpg там же, сырые RGB8 и маски —
 #   build/cliff_look_raw/<метка>/, числа — python3 -I tools/research/cliff_look/diag_metrics.py build/cliff_look_raw/<метка>).
@@ -15,6 +15,7 @@ views="tools/shots/cliff_look_views.json"
 diag=0
 places=""
 preset="high"
+members=""
 for a in "$@"; do
   case "$a" in
     --views=*) views="${a#--views=}" ;;
@@ -22,6 +23,7 @@ for a in "$@"; do
     --diag-only) diag=2 ;;
     --places=*) places="${a#--places=}" ;;
     --preset=*) preset="${a#--preset=}" ;;
+    --members=*) members="${a#--members=}" ;;
     *) echo "неизвестный аргумент $a" >&2; exit 2 ;;
   esac
 done
@@ -35,7 +37,7 @@ godot --headless --path . res://tools/bench/set_preset.tscn -- --preset="$preset
 fail=0
 run() {  # run <tag> <mode>
   timeout 1800 godot --path . --audio-driver Dummy --fullscreen --resolution 1920x1080 res://tools/shots/cliff_look_shot.tscn -- \
-    "--views=$views" "--place=$1" "--mode=$2" "--label=$label" "--out=$out" "--raw=$raw" 2>&1 \
+    "--views=$views" "--place=$1" "--mode=$2" "--label=$label" "--out=$out" "--raw=$raw" ${members:+"--members=$members"} 2>&1 \
     | grep -E "^cliff_look_shot:|SCRIPT ERROR|^ERROR" | grep -v "диагноз " || true
 }
 for tag in ${places//,/ }; do
