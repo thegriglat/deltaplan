@@ -642,7 +642,7 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 // по текселю) и cf_rect, cf_base, cf_edge (имена и смысл — CLF-К2), cf_mrect (карта cf_max: x, z
 // угла, 1/ширина, 1/высота блоков, м), cf_misc (верх слоя над основанием по всему полю, м; дальность
 // слоя, м; период маски, м; доля перехода от прошлого шага поля к новому), cf_q0..cf_q3 (квантили
-// маски). Форма: основание — cf_base.x + смещение cf_base_off (разброс между облаками и рваная кромка; хост объявляет ещё cf_spread_lo, cf_spread_hi, cf_base_soft, м), отдельные облака — порог крупного шума по покрытию
+// маски). Форма: основание — cf_base.x, низ и бока — рыхлая оболочка (хост объявляет ещё cf_base_soft, cf_shell_w, cf_shell_h, cf_shell_dens), отдельные облака — порог крупного шума по покрытию
 // (над порогом ровно доля cover площади: квантиль шума), верх — купол до мощности поля; клубы,
 // края, стадии и свет — те же, что у облаков-записей.
 
@@ -703,21 +703,6 @@ vec2 cf_mask(vec3 p, float fp) {
 	return vec2(a.g + b.g, a.b + b.b);
 }
 
-// Смещение основания в точке p (м, + вверх), среднее по полю 0: сдвиг всего облака (крупный шум,
-// размах cf_spread_hi — разброс высот оснований между облаками) + рваная нижняя кромка
-// (мелкий шум, размах cf_spread_lo..cf_spread_hi, свой у каждого облака). |off| <= cf_spread_hi.
-float cf_base_off(vec3 p, float fp) {
-	vec2 w = p.xz + wind_offset.xz;
-	float lc = clamp(log2(max(fp / (cf_misc.z * 0.5 / shape_tex_size), 1.0)), 0.0, 1.5);
-	vec3 qc = vec3(w.x, 0.0, w.y) / (cf_misc.z * 0.5);
-	float nc = clamp((textureLod(noise_shape, qc + vec3(0.31, 0.57, 0.13), lc).r - 0.25) * 1.6, 0.0, 1.0);
-	float na = clamp((textureLod(noise_shape, qc + vec3(0.72, 0.21, 0.88), lc).r - 0.25) * 1.6, 0.0, 1.0);
-	float per = shape_period_m * 0.5;
-	float lr = clamp(log2(max(fp / (per / shape_tex_size), 1.0)), 0.0, 1.5);
-	float nr = clamp((textureLod(noise_shape, vec3(w.x, 0.0, w.y) / per + vec3(0.44, 0.09, 0.61), lr).r - 0.25) * 1.6, 0.0, 1.0);
-	return (nc - 0.5) * cf_spread_hi + (nr - 0.5) * mix(cf_spread_lo, cf_spread_hi, na);
-}
-
 float cf_lod(float fp, float texel_m) {
 	return max(log2(max(fp / texel_m, 1.0)), 0.0);
 }
@@ -741,7 +726,7 @@ float cf_dome(float e, float lim) {
 
 // Грубая оболочка слоя (без клубов): > 0 — рядом может быть облако (по ней ищем вход).
 float cf_envelope(vec3 p, vec4 f, float fp) {
-	float h = p.y - cf_base.x - cf_base_off(p, fp);
+	float h = p.y - cf_base.x;
 	if (h < -30.0 - cf_shell_h || f.x < 0.004 || f.y < 1.0) {
 		return -1.0;
 	}
@@ -759,7 +744,7 @@ float cf_envelope(vec3 p, vec4 f, float fp) {
 // основание), < 0 — распад (прозрачное, рваное, приподнятая кромка) — как у облаков-записей.
 float cf_density_top(vec3 p, vec4 f, int quality, float fp, out float top) {
 	top = 0.0;
-	float h = p.y - cf_base.x - cf_base_off(p, fp);
+	float h = p.y - cf_base.x;
 	if (h < -cf_shell_h || f.x < 0.004 || f.y < 1.0) {
 		return 0.0;
 	}

@@ -104,6 +104,8 @@ func test_field_layer_draws_from_texture() -> void:
 	await _frames(FRAMES)
 	check(layer.field_uploads >= 2, "текстура поля обновлена по смене данных (%d)" % layer.field_uploads)
 	check(float(layer.field_params.cf_on) == 1.0, "поле с облаками: cf_on = 1")
+	check(is_equal_approx(float(layer.field_params.cf_shell_w), float(layer.cfg.field_shell_width_m)), "оболочка: ширина (м) дошла до слоя")
+	check(is_equal_approx(float(layer.field_params.cf_shell_h), float(layer.cfg.field_shell_out_m)), "оболочка: клочья снаружи (м) дошли до слоя")
 	check(eff.field_tex == layer.field_tex and eff.field_tex != null, "текстура К2 в эффекте")
 	check(eff.field_max_tex == layer.field_max_tex and eff.field_max_tex != null, "грубая карта в эффекте")
 	var img := layer.field_tex.get_image()
