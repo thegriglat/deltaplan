@@ -18,7 +18,9 @@
     "configs/atmosphere.json",
     "tests/atmosphere/",
     "CHANGELOG.md",
-    "docs/guide/atmosphere/clouds.md"
+    "docs/guide/atmosphere/clouds.md",
+    "scripts/atmosphere/cloud_compositor_effect.gd",
+    "scripts/atmosphere/cloud_shadow_map.gdshader"
   ],
   "dont_touch": [
     "scripts/atmosphere/thermal_field.gd",
@@ -36,5 +38,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-24T00:35:14"
+  "created": "2026-10-24T00:35:14",
+  "edited": "2026-10-24T01:43:21"
 }
