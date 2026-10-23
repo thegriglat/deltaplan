@@ -1,0 +1,53 @@
+{
+  "id": "TP-27",
+  "module": "trike-pilot",
+  "type": "dp-engineer",
+  "title": "Слияние main (bar-mouse) и штанга дельталёта мышью",
+  "goal": "Ветка задачи содержит main (bar-mouse, crash-reports, snow-plume) с разрешёнными конфликтами; ввод дельталёта (TP-К3 v2) работает поверх нового хода штанги MouseBar (_update_bar, мёртвая зона); в test_bar_mouse_input.gd есть случай vehicle \"trike\".",
+  "plan_ref": "TP-27",
+  "contracts": [
+    {
+      "name": "TP-К3",
+      "version": "2",
+      "ref": "docs/contracts/trike-pilot.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-pilot-TP-27",
+  "branch": "trike-pilot/TP-27",
+  "base": "feature/trike-pilot",
+  "scope": [
+    "scripts/game/input_controller.gd",
+    "configs/controls.json",
+    "configs/ui.json",
+    "locale/ui.csv",
+    "CHANGELOG.md",
+    "tests/game/test_bar_mouse_input.gd",
+    "tests/contracts/test_trike_pilot_k3.gd"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "scripts/game/game.gd",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "trike",
+      "tests": "trike"
+    },
+    {
+      "name": "bar_mouse",
+      "tests": "bar_mouse"
+    },
+    {
+      "name": "input",
+      "tests": "input"
+    },
+    {
+      "name": "ui_controls",
+      "tests": "ui_controls"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T12:45:14"
+}
