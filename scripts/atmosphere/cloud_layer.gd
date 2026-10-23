@@ -123,6 +123,8 @@ var _cf_img: Image
 var _cf_quant := PackedFloat32Array()
 ## Квантили маски по текстуре шума (путь → 16 значений) — считаются раз на процесс.
 static var _quant_cache: Dictionary = {}
+## Доля объёма маски выше последнего квантиля (верх шкалы превышения порога, cf_excess).
+const MASK_TOP_TAIL := 1.0e-5
 
 
 func setup(atmosphere: Atmosphere) -> void:
@@ -1181,8 +1183,8 @@ static func field_max_map(prev: Image, cur: Image, nx: int, ny: int) -> Dictiona
 	return {"image": img, "block": b, "r_max": r_max, "g_max": g_max}
 
 
-## Квантили маски (1 − R крупного шума) на долях 0, 1/15 … 1: порог покрытия c — квантиль 1 − c,
-## над ним ровно доля c объёма шума (площадь под облаком = покрытие поля).
+## Квантили маски на долях 0, 1/15 … 1 (сумма двух выборок канала G текстуры шума): порог покрытия c —
+## квантиль 1 − c, над ним ровно доля c объёма маски (площадь под облаком = покрытие поля).
 func _cf_quantiles() -> PackedFloat32Array:
 	if _cf_quant.size() == 16:
 		return _cf_quant
@@ -1194,35 +1196,50 @@ func _cf_quantiles() -> PackedFloat32Array:
 	return _cf_quant
 
 
-## 16 квантилей значения 1 − R 3D-текстуры (выборка: каждый 4-й срез, каждый 7-й тексель).
+## Последний квантиль — не предел носителя (2·max G — нигде не достижим), а 1 − MASK_TOP_TAIL.
+## 16 квантилей суммы двух независимых выборок канала G 3D-текстуры (cloud_shape.png, RGB; cf_mask в
+## cloud_common.gdshaderinc берёт две выборки в разных точках): гистограмма G (каждый 4-й срез, каждый 7-й
+## тексель) сворачивается сама с собой. Значения — в долях 1 (сумма 0…2).
 static func noise_quantiles(tex: Texture3D) -> PackedFloat32Array:
-	var hist := PackedInt32Array()
+	return slice_quantiles(tex.get_data())
+
+
+## То же по срезам (изображения; без текстуры — тесты читают атлас PNG напрямую).
+static func slice_quantiles(slices: Array[Image]) -> PackedFloat32Array:
+	var hist := PackedFloat64Array()
 	hist.resize(256)
-	var total := 0
-	var slices: Array[Image] = tex.get_data()
+	var total := 0.0
 	for zi in range(0, slices.size(), 4):
 		var im := slices[zi].duplicate() as Image
 		if im.is_compressed():
 			im.decompress()
-		im.convert(Image.FORMAT_R8)
+		im.convert(Image.FORMAT_RGB8)
 		var d := im.get_data()
-		for k in range(0, d.size(), 7):
-			hist[255 - d[k]] += 1
-			total += 1
+		for k in range(1, d.size(), 21):
+			hist[d[k]] += 1.0
+			total += 1.0
 	var q := PackedFloat32Array()
 	q.resize(16)
-	if total == 0:
+	if total == 0.0:
 		for k in 16:
-			q[k] = k / 15.0
+			q[k] = 2.0 * k / 15.0
 		return q
-	var cum := 0
+	var conv := PackedFloat64Array()
+	conv.resize(511)
+	for i in 256:
+		if hist[i] == 0.0:
+			continue
+		for j in 256:
+			conv[i + j] += hist[i] * hist[j]
+	var sum2 := total * total
+	var cum := 0.0
 	var k := 1
 	var lo := -1
-	for v in 256:
-		if hist[v] > 0 and lo < 0:
+	for v in 511:
+		if conv[v] > 0.0 and lo < 0:
 			lo = v
-		cum += hist[v]
-		while k < 16 and cum >= ceili(total * k / 15.0):
+		cum += conv[v]
+		while k < 16 and cum >= sum2 * (float(k) / 15.0 if k < 15 else 1.0 - MASK_TOP_TAIL) - 1e-9:
 			q[k] = v / 255.0
 			k += 1
 	q[0] = maxi(lo, 0) / 255.0

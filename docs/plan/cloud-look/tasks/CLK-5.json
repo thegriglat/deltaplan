@@ -1,0 +1,69 @@
+{
+  "id": "CLK-5",
+  "module": "cloud-look",
+  "type": "dp-engineer",
+  "title": "Экспозиция заката у Эльбруса (30) и сумерек Эвереста (26): проверить и исправить, если ошибка (пункт 10)",
+  "goal": "Выяснить числами, ошибка ли тёмный кадр 30 со светящимся белым снегом и тёмно-синий кадр 26 (сверка с физикой яркости сцены и экспозицией HH4 v3); исправить, если ошибка в пределах экспозиции/света сцены без смены модели HH4.",
+  "plan_ref": "§3 п.10, §2",
+  "contracts": [
+    {
+      "name": "cloud-look",
+      "version": "1",
+      "ref": "docs/contracts/cloud-look.md"
+    },
+    {
+      "name": "haze-humidity",
+      "version": "3",
+      "ref": "docs/contracts/cloud-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-cloud-look-CLK-5",
+  "branch": "cloud-look/CLK-5",
+  "base": "feature/cloud-look",
+  "scope": [
+    "configs/world.json",
+    "scripts/world/sky_environment.gd",
+    "tests/world/",
+    "tools/research/cloud_look/exposure/",
+    "docs/guide/atmosphere/sunset-light.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/sun_transmission.gd",
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "scripts/atmosphere/cirrus.gdshader",
+    "configs/atmosphere.json",
+    "tools/shots/menu_art.json",
+    "tools/shots/menu_background.json",
+    "tools/shots/menu_background.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "haze_humidity_hh4",
+      "tests": "haze_humidity_hh4"
+    },
+    {
+      "name": "cloud_look",
+      "tests": "cloud_look"
+    },
+    {
+      "name": "verdict",
+      "cmd": "python3 -c \"import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])\" tools/research/cloud_look/exposure/result.json verdict",
+      "expect": "re:^(error_fixed|no_error|gate)$"
+    },
+    {
+      "name": "test_sun_",
+      "tests": "test_sun_"
+    },
+    {
+      "name": "test_haze",
+      "tests": "test_haze"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T19:38:54",
+  "edited": "2026-10-23T19:39:15"
+}

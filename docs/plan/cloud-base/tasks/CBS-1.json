@@ -1,0 +1,40 @@
+{
+  "id": "CBS-1",
+  "module": "cloud-base",
+  "type": "dp-engineer",
+  "title": "Основания облаков по кромке инверсии с разбросом 50–150 м",
+  "goal": "Основание каждого кучевого облака = кромка инверсии + сдвиг; сдвиги между облаками в пределах 50–150 м (параметр configs/atmosphere.json), вместо одной плоскости. Остальное в облаках не меняется.",
+  "plan_ref": "§3 CBS-1",
+  "contracts": [],
+  "copy": "~/deltaplan-cloud-base-CBS-1",
+  "branch": "cloud-base/CBS-1",
+  "base": "feature/cloud-base",
+  "scope": [
+    "scripts/atmosphere/cloud_common.gdshaderinc",
+    "scripts/atmosphere/cloud_raymarch_cs.gdshaderinc",
+    "scripts/atmosphere/cloud_layer.gd",
+    "scripts/atmosphere/cloud_field.gd",
+    "scripts/atmosphere/cloud_model.gd",
+    "configs/atmosphere.json",
+    "tests/atmosphere/",
+    "CHANGELOG.md",
+    "docs/guide/atmosphere/clouds.md"
+  ],
+  "dont_touch": [
+    "scripts/atmosphere/thermal_field.gd",
+    "scripts/atmosphere/weather_model.gd",
+    "scripts/atmosphere/cirrus.gdshader",
+    "tools/shots/menu_art.json",
+    "configs/ui.json",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "cloud",
+      "tests": "cloud"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-24T00:35:14"
+}
