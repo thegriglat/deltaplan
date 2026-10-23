@@ -581,3 +581,5 @@
 {"t": "2026-10-23T18:49:38", "by": "executor", "task": "HH-8c", "ev": "reported", "commits": ["015c9963d"], "note": "done: weather.md: WR из данных ERA5 2018-2019 (медиана 1,47-1,51, Алтай 3-6, опора - ветер на высоте старта, формула HH7 v2);…", "dp_feedback": "findings.md у лимита 40 КБ: хотелось бы подсказки docs check, что выносить; таблица markdown ломается на | в формулах - docs check не предупреждает."}
 {"t": "2026-10-23T18:49:46", "by": "coordinator", "task": "HH-8c", "ev": "accepted", "note": "3/3 findings_size=ok:40949; no_stub_text=ok:exit 0; docs_mine=ok:0"}
 {"t": "2026-10-23T18:49:53", "by": "coordinator", "task": "HH-8c", "ev": "accepted", "note": "по отчёту; findings.md 40 949 Б — запас 11 Б (остальные модули)"}
+{"t": "2026-10-23T18:49:54", "by": "coordinator", "task": "HH-8c", "ev": "accepted", "commits": ["883a357e6"], "note": "3/3 findings_size=ok:40949; no_stub_text=ok:exit 0; docs_mine=ok:0"}
+{"t": "2026-10-23T18:49:54", "by": "coordinator", "task": "HH-8c", "ev": "merged", "commits": ["883a357e6"]}
