@@ -1,0 +1,51 @@
+{
+  "id": "CR-14",
+  "module": "crash-reports",
+  "type": "dp-researcher",
+  "title": "Нативный стек вылета #20/#21: повторная загрузка другого места (1.6.0, Linux/4070 SUPER)",
+  "goal": "Воспроизвести на этой машине SIGSEGV из #20/#21 (повторная загрузка ДРУГОГО места в сеансе, стадия wind) и снять нативный стек и стек GDScript; по стеку — причина файл:строка или «не воспроизвелось» с тем, что снято.",
+  "plan_ref": "§4 CR-2",
+  "contracts": [
+    {
+      "name": "CR-К1",
+      "version": "1",
+      "ref": "docs/contracts/crash-reports.md"
+    }
+  ],
+  "copy": "~/deltaplan-crash-reports-CR-14",
+  "branch": "crash-reports/CR-14",
+  "base": "feature/crash-reports",
+  "scope": [
+    "docs/research/crash-reports/cr-14.md",
+    "tools/research/crash-reports/cr-14"
+  ],
+  "dont_touch": [
+    "scripts",
+    "scenes",
+    "shaders",
+    "project.godot",
+    "CHANGELOG.md",
+    "docs/plan",
+    "docs/contracts"
+  ],
+  "accept": [
+    {
+      "name": "sections",
+      "cmd": "grep -cE '^## (Отчёты|Механизм отчёта|Причина|Исправлено ли в main|Воспроизведение|Предложение правки)$' docs/research/crash-reports/cr-14.md",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "privacy",
+      "cmd": "! grep -rEqs 'pt_[+-]?[0-9]|lat=-?[0-9]|lon=-?[0-9]|-?[0-9]{1,3}\\.[0-9]{3,}[, ]+-?[0-9]{1,3}\\.[0-9]{3,}' docs/research/crash-reports/cr-14.md tools/research/crash-reports/cr-14",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "!re:ОШИБКА.*crash-reports"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-24T04:29:15"
+}
