@@ -405,7 +405,8 @@ func start(s: FlightSettings) -> bool:
 		"set_wind",
 		settings.wind_speed_kmh,
 		_site_heading if settings.wind_into_launch else settings.wind_from_deg,
-		_start_pos.y
+		_start_pos.y,
+		float(ClimateGrid.place(_weather_ctx).gain_per_km)
 	)
 	# Среднее поле на час старта (до термиков: их источники — из поля) и объекты мира — одновременно (FL-10):
 	# поле (запечённое → кеш → расчёт) готовится в рабочих потоках и на GPU порциями, объекты — порциями по

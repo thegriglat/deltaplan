@@ -141,6 +141,35 @@ func test_typical_max() -> void:
 	approx(WeatherModel.typical_max_c(1, 15), 0.0, 1.0e-6, "зимой — не ниже 0 (снег не рисуем)")
 
 
+## HH-4b: климат места из сеток — Tx, амплитуда, тропопауза, перистые, рост ветра берутся из ClimateGrid.place.
+func test_place_climate_wired() -> void:
+	ClimateGrid.set_paths({})
+	var c := WeatherModel.config()
+	var cairns := {"lat": -16.9, "lon": 145.8, "month": 1, "day": 15, "valley_msl_m": 0.0}
+	var cp := ClimateGrid.place(cairns)
+	approx(WeatherModel.typical_max_c(1, 15, c, cairns), clampf(cp.tx_c, float(c.ui.temperature_c[0]), float(c.ui.temperature_c[1])), 1.0e-9, "Tx места")
+	approx(WeatherModel.diurnal_range_k(cairns, c), cp.dtr_k, 1.0e-9, "амплитуда места")
+	var ctx := cairns.duplicate()
+	ctx.mean_msl_m = 0.0
+	var w := WeatherModel.derive(
+		{"temperature_c": 33.0, "wind_speed_kmh": 10.0, "wind_from_deg": 270.0, "sky": "clear"}, ctx, c
+	)
+	approx(w._derived.trop_msl_m, cp.trop_m, 1.0e-6, "тропопауза места в derive")
+	approx(w._derived.gain_per_km, cp.gain_per_km, 1.0e-9, "рост ветра места в derive")
+	if cp.src.hh6 != "none":
+		var k_clear := WeatherModel.cirrus_base_cover(cp, "clear", ctx, c)
+		var k_over := WeatherModel.cirrus_base_cover(cp, "overcast", ctx, c)
+		check(k_over > k_clear, "перистые: пасмурный день гуще ясного (%.2f > %.2f)" % [k_over, k_clear])
+		approx(k_clear, cp.hcc * c.hcc_sky.k_sky.clear[0][2], 1.0e-9, "ясно, пояс 0–20°, январь юга = ИИА: HCC × k_sky")
+	# Без места (ctx без lat/lon) — таблицы-запас
+	approx(WeatherModel.diurnal_range_k({"month": 7, "day": 15}, c), c.diurnal.range_k[6], 1.0e-9, "амплитуда без места")
+	# Td: β-член от Tx места — в день с Tmax = Tx места поправки на температуру нет
+	var tx := WeatherModel.typical_max_c(1, 15, c, cairns)
+	var td0 := WeatherModel.td_day({"temperature_c": tx, "sky": "clear"}, cp, cairns, c)
+	var td1 := WeatherModel.td_day({"temperature_c": tx + 5.0, "sky": "clear"}, cp, cairns, c)
+	check(absf(td1 - td0) < 15.0, "β·ΔT конечна и ограничена")
+
+
 func test_speed() -> void:
 	var ctx := WeatherModel.reference_context()
 	var cfg := WeatherModel.config()
