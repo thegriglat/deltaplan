@@ -195,6 +195,70 @@ class Cli(CliBase):
         self.assertEqual(jobs.cpu_weight(["python3", "x.py"]), 1)
         self.assertEqual(jobs.cpu_total(), 8)
 
+    def test_config_from_main_worktree(self):
+        """Две копии с разным dpcli.json -> одна ёмкость и веса: из главной."""
+        os.environ.pop("DPCLI_CPU_SLOTS", None)
+        main = self.d / "main"
+        main.mkdir()
+        g = lambda *a, cwd=main: subprocess.run(["git", *a], cwd=cwd, check=True, capture_output=True)
+        g("init", "-q", "-b", "main")
+        g("config", "user.email", "t@t")
+        g("config", "user.name", "t")
+        (main / "dpcli.json").write_text(json.dumps({"project": "t", "jobs": {"cpu_slots": 6, "cpu_weights": [{"match": "heavy", "slots": 4}]}}))
+        g("add", "."); g("commit", "-qm", "x")
+        wt = self.d / "wt"
+        g("worktree", "add", "-q", str(wt), "-b", "side")
+        (wt / "dpcli.json").write_text(json.dumps({"project": "t", "jobs": {"cpu_slots": 3}}))
+        self.addCleanup(config.reset)
+        old = os.getcwd()
+        self.addCleanup(os.chdir, old)
+        for d in (main, wt):
+            os.chdir(d)
+            config.reset()
+            self.assertEqual(jobs.cpu_total(), 6)
+            self.assertEqual(jobs.cpu_weight(["heavy"]), 4)
+
+    def test_clamp_oversized_in_decision(self):
+        data = {"holders": [{"slots": 1}], "queue": [{"id": "a", "slots": 10, "enqueued": 0}]}
+        self.assertFalse(jobs.cpu_can_start(data, "a", 4, 300, 1))
+        data["holders"] = []
+        self.assertTrue(jobs.cpu_can_start(data, "a", 4, 300, 1))
+
+    def test_accept_tests_check_goes_through_queue(self):
+        from dpcli.commands import accept
+        self.conf({"cpu_weights": [{"match": "marker", "slots": 2}]})
+        cfg = json.loads((self.d / "dpcli.json").read_text())
+        cfg["checks"] = {"tests": "sleep 1.5 # marker {filter}"}
+        (self.d / "dpcli.json").write_text(json.dumps(cfg))
+        old = (os.getcwd(), dict(os.environ))
+        def restore():
+            os.chdir(old[0]); os.environ.clear(); os.environ.update(old[1]); config.reset()
+        self.addCleanup(restore)
+        os.chdir(self.d)
+        os.environ.pop("DPCLI_IN_LOCK", None)
+        os.environ.update({"DPCLI_NO_REEXEC": "1", "DPCLI_CPU_ENFORCE": "off", "DPCLI_NO_TMUX": "1"})
+        config.reset()
+        (self.d / "logs").mkdir()
+        import threading
+        res = []
+        th = threading.Thread(target=lambda: res.append(accept.run_check({"tests": "x"}, self.d, self.d / "logs", 1, "T-1")))
+        th.start()
+        s = self.wait_for(lambda s: s["holders"])
+        self.assertEqual(self.held(s), {"T-1": 2})
+        th.join()
+        self.assertTrue(res[0][1], res[0])
+        # внутри lock: слотов второй раз не берём
+        cfg["checks"] = {"tests": "sleep 1 # {filter}"}
+        (self.d / "dpcli.json").write_text(json.dumps(cfg))
+        config.reset()
+        os.environ["DPCLI_IN_LOCK"] = "1"
+        th = threading.Thread(target=lambda: res.append(accept.run_check({"tests": "x"}, self.d, self.d / "logs", 2, "T-2")))
+        th.start()
+        time.sleep(0.5)
+        self.assertEqual(self.state()["holders"], [])
+        th.join()
+        self.assertTrue(res[1][1], res[1])
+
 
 class Enforce(unittest.TestCase):
     """Физическое ограничение веса: команда systemd-run/taskset, выбор ядер, режим из env/конфига."""
@@ -224,6 +288,7 @@ class Enforce(unittest.TestCase):
         os.environ.pop("DPCLI_CPU_ENFORCE", None)
         self.assertEqual(jobs.cpu_enforce_mode(), "cgroup")
         config._CFG = config.merge(config.DEFAULTS, {"jobs": {"cpu_enforce": "off"}})
+        config._PATH = None  # конфиг подменён — главная копия не читается
         self.assertEqual(jobs.cpu_enforce_mode(), "off")
         os.environ["DPCLI_CPU_ENFORCE"] = "taskset"
         self.assertEqual(jobs.cpu_enforce_mode(), "taskset")

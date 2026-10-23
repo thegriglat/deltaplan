@@ -334,22 +334,39 @@ GPU_LOCK = "gpu.lock"
 CPU_STATE = "cpu.json"  # очередь и держатели cpu; меняется только под flock(cpu.json.lock)
 
 
+def cpu_cfg(key):
+    """jobs.<key> из конфига ГЛАВНОЙ копии (замок cpu общий на машину; копии на старых ветках имеют другой dpcli.yml);
+    нет главной копии или файла в ней — из конфига текущей."""
+    from .. import gitx
+    try:
+        mw = gitx.main_worktree() if config.path_of_config() else None
+        if mw:
+            for n in config.NAMES:
+                f = Path(mw) / n
+                if f.is_file():
+                    v = (config.merge(config.DEFAULTS, config.parse_file(f)).get("jobs") or {}).get(key)
+                    return v
+    except (DpError, OSError):
+        pass
+    return config.get("jobs." + key)
+
+
 def cpu_total():
-    """M — всего слотов cpu (по умолчанию половина логических ядер)."""
-    return max(1, int(os.environ.get("DPCLI_CPU_SLOTS") or config.get("jobs.cpu_slots") or max(1, (os.cpu_count() or 8) // 2)))
+    """M — всего слотов cpu (DPCLI_CPU_SLOTS, иначе jobs.cpu_slots главной копии, иначе половина логических ядер)."""
+    return max(1, int(os.environ.get("DPCLI_CPU_SLOTS") or cpu_cfg("cpu_slots") or max(1, (os.cpu_count() or 8) // 2)))
 
 
 def cpu_starve_s():
     v = os.environ.get("DPCLI_CPU_STARVE_S")
     if v is None:
-        v = config.get("jobs.cpu_starve_s")
+        v = cpu_cfg("cpu_starve_s")
     return float(300 if v is None else v)
 
 
 def cpu_weight(cmd):
-    """Вес команды по jobs.cpu_weights (первое совпадение регэкспа по строке команды), иначе 1."""
+    """Вес команды по jobs.cpu_weights главной копии (первое совпадение регэкспа по строке команды), иначе 1."""
     line = " ".join(cmd)
-    for r in config.get("jobs.cpu_weights") or []:
+    for r in cpu_cfg("cpu_weights") or []:
         try:
             if re.search(str(r["match"]), line):
                 return int(r["slots"])
@@ -359,8 +376,8 @@ def cpu_weight(cmd):
 
 
 def cpu_enforce_mode():
-    """cgroup | taskset | off: DPCLI_CPU_ENFORCE, иначе jobs.cpu_enforce (по умолчанию cgroup)."""
-    v = str(os.environ.get("DPCLI_CPU_ENFORCE") or config.get("jobs.cpu_enforce") or "cgroup").strip().lower()
+    """cgroup | taskset | off: DPCLI_CPU_ENFORCE, иначе jobs.cpu_enforce главной копии (по умолчанию cgroup)."""
+    v = str(os.environ.get("DPCLI_CPU_ENFORCE") or cpu_cfg("cpu_enforce") or "cgroup").strip().lower()
     if v not in ("cgroup", "taskset", "off"):
         raise DpError(f"jobs.cpu_enforce / DPCLI_CPU_ENFORCE: {v!r} — нужно cgroup|taskset|off")
     return v
@@ -464,14 +481,15 @@ def cpu_can_start(data, my_id, total, starve, t):
     если влезает и голова ждёт меньше starve с."""
     free = total - sum(int(h["slots"]) for h in data["holders"])
     q = data["queue"]
+    need = lambda w: min(int(w["slots"]), total)  # N > M обрезается до M при каждом решении
     if not q:
         return False
     if q[0]["id"] == my_id:
-        return int(q[0]["slots"]) <= free
+        return need(q[0]) <= free
     if t - float(q[0]["enqueued"]) >= starve:
         return False
     for w in q[1:]:
-        if int(w["slots"]) <= free:
+        if need(w) <= free:
             return w["id"] == my_id
     return False
 
@@ -490,7 +508,6 @@ def cpu_acquire(holder, slots, cmd, timeout):
         got.append(sig)
 
     old = {sg: signal.signal(sg, on_sig) for sg in (signal.SIGTERM, signal.SIGINT)}
-    total, starve = cpu_total(), cpu_starve_s()
     try:
         with CpuState() as st:
             st.data["queue"].append({**rec, "enqueued": t0})
@@ -501,10 +518,11 @@ def cpu_acquire(holder, slots, cmd, timeout):
                 sys.exit(128 + int(got[0]))
             with CpuState() as st:
                 t = time.time()
+                total, starve = cpu_total(), cpu_starve_s()  # перечитываем: конфиг мог смениться
                 if cpu_can_start(st.data, my_id, total, starve, t):
                     st.data["queue"] = [w for w in st.data["queue"] if w["id"] != my_id]
                     cpus = cpu_pick(st.data["holders"], slots, cpu_avail())  # ядра для taskset (если до него дойдёт)
-                    st.data["holders"].append({**rec, "since": now(), "since_ts": t, "cpus": cpus})
+                    st.data["holders"].append({**rec, "slots": min(slots, total), "since": now(), "since_ts": t, "cpus": cpus})
                     return my_id, cpus
             if timeout is not None and time.time() - t0 > timeout:
                 cpu_drop(my_id)
@@ -632,6 +650,7 @@ def cmd_lock(a):
             print(f"lock cpu: {n} слотов > всего {total} — беру {total}", file=sys.stderr)
             n = total
         mode = cpu_enforce_mode()
+        os.environ["DPCLI_IN_LOCK"] = "1"  # вложенные проверки (accept) не берут слоты второй раз
         my_id, cpus = cpu_acquire(holder, n, cmd, timeout)
         try:
             run_cmd, how = cpu_enforce_cmd(cmd, n, cpus, mode)
