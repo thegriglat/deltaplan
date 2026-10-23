@@ -1,0 +1,22 @@
+{
+  "verdict": "accept",
+  "summary": "_choose_tow_start соответствует TA-К2 v1: отказы «нет полосы»/«не годится» сняты, площадка без tow — длина из Config и TOW_DEFAULT_WIDTH_M с вырубкой поляны, место без площадок — (0,h,0) курс 0, ok из TowSite.check игнорируется. Скоуп соблюдён (4 файла, TowSite/контракты/project.godot не тронуты), контрактный тест покрывает инварианты (1)–(3), (4) — trike_pilot_k6 в приёмке; ослабления тестов нет, правка test_tow_session — прямое следствие контракта.",
+  "issues": [
+    {
+      "file": "scripts/game/game.gd",
+      "line": 1600,
+      "severity": "minor",
+      "what": "Проверка входов только is_finite; при length_m<=0 или width_m<=0 (ошибочный блок tow площадки или configs/tow.json) TowSite.check возвращает start_pos = Vector3.ZERO до заполнения, а ok теперь игнорируется — старт окажется в (0,0,0), возможно под землёй, без предупреждения. С текущими конфигами не проявляется.",
+      "fix": "Добавить к условию отказа length > 0 и width > 0 (это те же «нечисловые/недопустимые входы» TA-К2) — при случае, не блокирует."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "tow_session (accept --only tow_session --dry)",
+      "value": "7/7, scope 3 файла в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-23T20:26:52",
+  "by": "reviewer"
+}
