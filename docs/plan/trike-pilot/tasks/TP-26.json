@@ -21,7 +21,8 @@
     "tools/research/tow-trike/build.py",
     "tests/contracts/test_trike_pilot_k6.gd",
     "tests/contracts/test_tow_trike_k1.gd",
-    "docs/guide/flight/trike-pilot.md"
+    "docs/guide/flight/trike-pilot.md",
+    "tools/research/trike-pilot/axis/"
   ],
   "dont_touch": [
     "scripts/flight/",
@@ -52,5 +53,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-23T12:13:40",
-  "edited": "2026-10-23T12:14:16"
+  "edited": "2026-10-23T12:14:25"
 }
