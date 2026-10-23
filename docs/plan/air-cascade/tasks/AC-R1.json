@@ -18,7 +18,7 @@
     },
     {
       "name": "R3",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/air-cascade.md"
     }
   ],
@@ -92,5 +92,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-24T04:33:09",
-  "edited": "2026-10-24T04:34:54"
+  "edited": "2026-10-24T04:35:16"
 }
