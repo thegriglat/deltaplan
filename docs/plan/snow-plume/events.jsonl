@@ -136,3 +136,4 @@
 {"t": "2026-10-23T05:07:57", "by": "coordinator", "task": "SNW-9", "ev": "accepted", "note": "по отчёту; кадры v3 готовы, струйки редкие — вопрос пользователю"}
 {"t": "2026-10-23T05:07:58", "by": "coordinator", "task": "SNW-9", "ev": "accepted", "commits": ["2cc7505cf"], "note": "2/2 readme=ok:---; frames_v3=ok:0"}
 {"t": "2026-10-23T05:07:58", "by": "coordinator", "task": "SNW-9", "ev": "merged"}
+{"t": "2026-10-23T05:08:10", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: WebFetch на AMS/Wiley/Springer — 403 (SNW-1, литература по пересказам); lock cpu -- cmd уходит в tmux и возвращается сразу, результат — только через job wait/лог (SNW-4, SNW-9); accept --here в копии модуля после слияния нового class_name падает до --import (реестр классов); исполнители оставляют r-<ID>.json в корне копии — FAIL scope; фильтр тестов snow ловит чужие контрактные тесты."}
