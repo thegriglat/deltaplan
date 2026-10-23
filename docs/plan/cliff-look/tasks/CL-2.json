@@ -1,0 +1,91 @@
+{
+  "id": "CL-2",
+  "module": "cliff-look",
+  "type": "dp-engineer",
+  "title": "Крупные блоки породы вместо полос на крутых склонах",
+  "goal": "На крутых склонах вместо полос (уступы ledge и слои strata) и мелкой ряби — крупные неровные скалы: блоки породы 5–40 м с гранями и тёмными щелями, видно опасное место; только фрагментный шейдер и ключи terrain_look, физика не меняется.",
+  "plan_ref": "§CL-2",
+  "contracts": [
+    {
+      "name": "CL-К1",
+      "version": "3",
+      "ref": "docs/contracts/cliff-look.md"
+    },
+    {
+      "name": "CL-К2",
+      "version": "2",
+      "ref": "docs/contracts/cliff-look.md"
+    },
+    {
+      "name": "MLK-К2",
+      "version": "2",
+      "ref": "docs/contracts/cliff-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-cliff-look-CL-2",
+  "branch": "cliff-look/CL-2",
+  "base": "feature/cliff-look",
+  "scope": [
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "configs/world.json",
+    "tools/shots/cliff_look_*",
+    "tools/research/cliff_look/**",
+    "tools/bench/cliff_look_probe.gd",
+    "docs/guide/terrain/surface.md",
+    "docs/guide/terrain/relief.md",
+    "docs/guide/terrain.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/rock_scatter.gd",
+    "scripts/terrain/relief_look.gd",
+    "scripts/terrain/terrain.gdshader",
+    "scripts/sky/",
+    "project.godot",
+    "tools/shots/cliff_look_views.json"
+  ],
+  "accept": [
+    {
+      "name": "test_relief",
+      "tests": "test_relief"
+    },
+    {
+      "name": "scene_look",
+      "tests": "scene_look"
+    },
+    {
+      "name": "gpu_variants",
+      "cmd": "tools/gpu_tests.sh --filter=test_terrain_variants_gpu 2>&1 | tail -20",
+      "expect": "num:(\\d+) упало <=0"
+    },
+    {
+      "name": "shots_cl2",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cliff-look/cl2_*.jpg | wc -l | sed 's/^/SHOTS /'",
+      "expect": "num:SHOTS (\\d+) >=10"
+    },
+    {
+      "name": "stripes",
+      "cmd": "python3 -I tools/research/cliff_look/compare.py tools/research/cliff_look/diag_before.json tools/research/cliff_look/diag_cl2.json",
+      "expect": "num:STRIPES_RATIO ([0-9.]+) <=0.5"
+    },
+    {
+      "name": "ripple",
+      "cmd": "python3 -I tools/research/cliff_look/compare.py tools/research/cliff_look/diag_before.json tools/research/cliff_look/diag_cl2.json",
+      "expect": "num:RIPPLE_RATIO ([0-9.]+) <=0.9"
+    },
+    {
+      "name": "large",
+      "cmd": "python3 -I tools/research/cliff_look/compare.py tools/research/cliff_look/diag_before.json tools/research/cliff_look/diag_cl2.json",
+      "expect": "num:LARGE_RATIO ([0-9.]+) >=1.3"
+    },
+    {
+      "name": "no_ledge",
+      "cmd": "grep -cE 'ledge_|strata_strength' scripts/terrain/terrain_main.gdshaderinc | sed 's/^/LEFT /'",
+      "expect": "num:LEFT (\\d+) <=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T05:03:34"
+}

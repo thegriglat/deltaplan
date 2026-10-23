@@ -1,0 +1,74 @@
+{
+  "id": "CL-3",
+  "module": "cliff-look",
+  "type": "dp-engineer",
+  "title": "Рельеф снега: 1–2 крупных простых элемента",
+  "goal": "Снег на вершинах не плоский: 1–2 простых крупных элемента рельефа снега (напр. желоба/рёбра вдоль линии падения на крутом снегу и/или крупная волнистость) в нормали и тоне снега; только фрагментный шейдер и ключи terrain_look.snow_relief_*, физика и доля снега не меняются.",
+  "plan_ref": "§CL-3",
+  "contracts": [
+    {
+      "name": "CL-К1",
+      "version": "3",
+      "ref": "docs/contracts/cliff-look.md"
+    },
+    {
+      "name": "CL-К2",
+      "version": "2",
+      "ref": "docs/contracts/cliff-look.md"
+    }
+  ],
+  "copy": "~/deltaplan-cliff-look-CL-3",
+  "branch": "cliff-look/CL-3",
+  "base": "feature/cliff-look",
+  "scope": [
+    "scripts/terrain/terrain_main.gdshaderinc",
+    "scripts/terrain/terrain_common.gdshaderinc",
+    "configs/world.json",
+    "tools/research/cliff_look/snow_*",
+    "tools/shots/cliff_look_shot.gd",
+    "tools/shots/cliff_look_shots.sh",
+    "docs/guide/terrain/surface.md",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/rock_scatter.gd",
+    "scripts/terrain/relief_look.gd",
+    "scripts/sky/",
+    "project.godot",
+    "tools/shots/cliff_look_views.json",
+    "tools/research/cliff_look/compare.py"
+  ],
+  "accept": [
+    {
+      "name": "test_relief",
+      "tests": "test_relief"
+    },
+    {
+      "name": "scene_look",
+      "tests": "scene_look"
+    },
+    {
+      "name": "gpu_variants",
+      "cmd": "tools/gpu_tests.sh --filter=test_terrain_variants_gpu 2>&1 | tail -20",
+      "expect": "num:(\\d+) упало <=0"
+    },
+    {
+      "name": "shots_cl3",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/cliff-look/cl3_*.jpg | wc -l | sed 's/^/SHOTS /'",
+      "expect": "num:SHOTS (\\d+) >=3"
+    },
+    {
+      "name": "snow_large",
+      "cmd": "python3 -I tools/research/cliff_look/snow_compare.py",
+      "expect": "num:SNOW_LARGE_RATIO ([0-9.]+) >=1.3"
+    },
+    {
+      "name": "snow_ripple",
+      "cmd": "python3 -I tools/research/cliff_look/snow_compare.py",
+      "expect": "num:SNOW_RIPPLE_RATIO ([0-9.]+) <=1.15"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T05:04:41"
+}
