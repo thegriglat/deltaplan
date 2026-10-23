@@ -1,0 +1,79 @@
+{
+  "status": "partial",
+  "summary": "Игра берёт по месту из ClimateGrid.place: Tx (подсказка/умолчание/AirPlace/окна/вода), dtr_k (diurnal_state, AirPlace.day), trop_m (cb_top_above_base_m), перистые HCC×k_sky (hcc_sky в конфиге), gain_per_km (Atmosphere.set_wind 4-м аргументом из Game). β-член Td уже шёл от cp.tx_c (HH-4). Сетки HH5 в ветке нет, поэтому Tx/DTR пока из таблиц-запаса; код включится на данные без правок.",
+  "commits": [
+    "f664d66e5 HH-4b: климат места из сеток — Tx, амплитуда, тропопауза, перистые, рост ветра по месту"
+  ],
+  "checks": [
+    {
+      "name": "weather",
+      "value": "19/19",
+      "pass": true
+    },
+    {
+      "name": "haze_humidity",
+      "value": "25/25 (1 пропуск — формат HH5, нет файла)",
+      "pass": true
+    },
+    {
+      "name": "goal",
+      "value": "103/103",
+      "pass": true
+    },
+    {
+      "name": "wind",
+      "value": "43/43",
+      "pass": true
+    },
+    {
+      "name": "surface_heat",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Пункт 7 (свои градиенты tx/dtr для 30-60 ю.ш., регион queensland из gradient.json): HH-1e не влита, файла нет; осталось как есть (belt_gradient со сдвигом сезона на 6 мес).",
+    "Эталоны configs/weather/* и tests не менялись: до HH5 Tx/DTR из таблицы, эталоны Алтая с HH-4 прежние; тропопауза/HCC Алтая сдвинули cirrus на +0,02 и cb_top на +90 м, тесты проходят без правок.",
+    "flight_settings.defaults(): умолчание температуры считается для места по умолчанию (старт локации), в setup-экране подсказка «обычно» обновляется при смене места/месяца; высоты долины там нет (valley=0), поправка по высоте для подсказки не применяется."
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-4b",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/weather_model.gd: cirrus_base_cover",
+      "why": "k_sky — отношение к среднему по поясу (ARCO 2011-13), применено к HCC ячейки ERA5 (1991-2020 по месяцу): смешение выборок и поясов; не калибровалось по местам. Нет HH6 (src none) — cirrus_base как раньше.",
+      "checked": "формула и индексы пояс/сезон (юг: сезон +6 мес) покрыты тестом test_place_climate_wired; значения Крым/Дараб/Кэрнс разумны (0,18-0,30)."
+    },
+    {
+      "where": "scripts/atmosphere/weather_model.gd: typical_max_c(…, ctx)",
+      "why": "Зажим в ui.temperature_c (нижняя граница 0) срезает зимние Tx; Tx вне Алтая будут не таблицей только после HH5. Сейчас таблица Алтая для всех мест (январь Кэрнс = 0 °C после зажима).",
+      "checked": "после HH5 сработает автоматически; таблица до/после ниже (extra) показывает, что Tmax/DTR/Td до HH5 не меняются."
+    },
+    {
+      "where": "scripts/game/game.gd:405 set_wind",
+      "why": "Рост ветра: WR пока заглушка (stub_mask=1) → gain = 0,6 как раньше; поведение ветра не проверялось на реальных WR.",
+      "checked": "gain_per_km = (wr-1)*1000/max(z700-z_cell,500) при заглушке даёт 0,60 во всех четырёх местах."
+    }
+  ],
+  "dp_feedback": "godot -s скрипт не видит автозагрузки (Config) на этапе компиляции — для разовых таблиц пришлось писать временный тест в tests/. Хорошо бы dpcli-рецепт «разовый расчёт». Лог job-а lock cpu при stdout в файл пуст — смотреть jobs/*.log неочевидно.",
+  "extra": {
+    "table_formatted": "до (таблицы) -> после (сетки HH1/HH2/HH6, HH5 нет). Ясно, 10 км/ч, Tmax=умолчание места",
+    "Altai_Jul": "Tmax 26 DTR 11 Td 11.1 кромка 1721 тропопауза 11000->11091 cirrus 0.123->0.141 gain 0.6",
+    "Crimea_Jul": "Tmax 26 DTR 11 Td 17.2 кромка 969 тропопауза 11000->14203 cirrus 0.275->0.202 cb_top 9831->13033",
+    "Darab_Jul": "Tmax 26 DTR 11 Td 11.0 кромка 1731 тропопауза 11000->17193 cirrus 0.275->0.180 cb_top 8069->14262",
+    "Cairns_Jul": "Tmax 26 DTR 11 Td 15.1 кромка 1234 тропопауза 11000->16253 cirrus 0.275->0.202 cb_top 9656->14908",
+    "Altai_Jan": "Tmax 0 DTR 6 Td -6.0 кромка 627 тропопауза 11000->10034 cirrus 0.100->0.105",
+    "Crimea_Jan": "Tmax 0 DTR 6 Td 0.0 кромка 300 тропопауза 11000->10241 cirrus 0.275->0.305",
+    "Darab_Jan": "Tmax 0 DTR 6 Td -1.5 кромка 300 тропопауза 11000->16486 cirrus 0.275->0.223",
+    "Cairns_Jan": "Tmax 0 DTR 6 Td 0.0 кромка 300 тропопауза 11000->16841 cirrus 0.275->0.247",
+    "note": "Tmax/DTR/Td не изменились: HH5 (surface_t_1deg.bin) в ветке нет, поэтому tx/dtr из таблиц Алтая; кромка/Td зависят от них. Нефизичность Td (Кэрнс, январь +33) уйдёт с HH5: β-член уже берёт cp.tx_c."
+  },
+  "t": "2026-10-23T05:35:03",
+  "by": "executor"
+}

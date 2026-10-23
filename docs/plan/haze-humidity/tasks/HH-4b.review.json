@@ -1,0 +1,41 @@
+{
+  "verdict": "rework",
+  "summary": "Почти всё по HH7 подключено верно (dtr, trop, HCC×k_sky — копия hcc_sky.json сверена побайтно, gain_per_km через set_wind, β от cp.tx_c). Но умолчание температуры и подсказка «обычно днём» зовут ClimateGrid.place без valley_msl_m: valley=0, и после HH5 Tx приводится к уровню моря (+6 К/км × z_cell). То есть данные включатся неверно, а отчёт утверждает обратное.",
+  "issues": [
+    {
+      "file": "scripts/atmosphere/weather_model.gd",
+      "line": 34,
+      "severity": "blocker",
+      "what": "typical_max_c(…, ctx) с ctx {lat, lon} без valley_msl_m (flight_settings.gd:119, flight_setup_screen.gd:~396) → ClimateGrid.place берёт valley_msl_m = 0.0 → при src.hh1 = data и src.hh5 != none dz_km = −z_cell/1000 и tx_c += g_tx·dz. Для Алтая (z_cell ≈ 1–1,5 км) это даёт Tx на ≈ 6–9 К выше, чем у долины. Это уходит в умолчание temperature_c, а через β·(t_max − cp.tx_c) в derive (cp там с настоящей долиной) — в сдвиг Td дня. Сейчас скрыто только потому, что HH5 нет, а карточка требует, чтобы после HH5 всё было верно без правок кода.",
+      "fix": "Без valley_msl_m поправку на высоту не делать: брать ClimateGrid.at(lat, lon, month, day).tx_c (средняя высота ячейки) или передавать высоту старта/долины места (из конфига локации или старта). Добавить тест: ctx без valley_msl_m при наличии HH1 и HH5 (или подменённого пути) → без поправки."
+    },
+    {
+      "file": "docs/plan/haze-humidity (отчёт HH-4b)",
+      "line": 0,
+      "severity": "major",
+      "what": "Отчёт ≠ факт. В not_done написано: «высоты долины там нет (valley=0), поправка по высоте для подсказки не применяется». На деле поправка применяется, причём к уровню моря: valley=0 ≠ «нет поправки». Эту ветку place пропускает только при src.hh1 = none.",
+      "fix": "Исправить вместе с blocker и поправить строку в отчёте."
+    },
+    {
+      "file": "tests/atmosphere/test_weather_model.gd",
+      "line": 169,
+      "severity": "minor",
+      "what": "Проверка β-члена «|td1 − td0| < 15» почти ничего не проверяет: она пройдёт и при β = 0, и при β от таблицы Алтая.",
+      "fix": "Сверить td1 − td0 с β·5 (β из td_day по поясу, сезону и clear) или хотя бы проверить знак и порядок величины."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only weather --dry",
+      "value": "19/19, scope 12 файлов в границах",
+      "pass": true
+    },
+    {
+      "name": "hcc_sky в configs/weather_model.json против tools/research/haze_humidity/upper_misc/hcc_sky.json",
+      "value": "k_sky clear/partly/overcast совпадают",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-23T05:50:53",
+  "by": "reviewer"
+}
