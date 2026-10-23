@@ -87,10 +87,15 @@
         "exit": 0
       },
       "timeout": 1800
+    },
+    {
+      "name": "pure_rust",
+      "cmd": "cargo tree --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml -e normal,build --prefix none",
+      "expect": "!re:^(cc|cmake|pkg-config|bindgen|[A-Za-z0-9_-]+-sys) v"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-24T04:33:09",
-  "edited": "2026-10-24T04:35:16"
+  "edited": "2026-10-24T04:35:23"
 }
