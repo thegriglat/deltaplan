@@ -39,6 +39,22 @@ var _tint_cam_y := 0.0
 var _last_tint: Array[Color] = [Color.WHITE, Color.WHITE]
 var _haze_base_color := Color.WHITE
 var _clear_air_color := Color.WHITE
+## Экспозиция заката (HH4 v3): множитель E к tonemap_exposure — установившееся значение по высоте солнца и
+## текущее (сглаживается во времени, tau_s); базовая экспозиция — world.json → rendering.tonemap_exposure.
+var exposure_target := 1.0
+var exposure_current := 1.0
+var _base_exposure := 1.0
+var _expo_ready := false
+var _disk_dir := Vector3.UP
+var _sun_color_now := Color.WHITE
+## Яркость солнца к дневной (по Y), сила засвета глаза.
+var _glare_lum := 1.0
+## Диск, корона и ореол неба — яркость «на кадре» (после экспозиции): в шейдер — делённая на E (_apply_exposure).
+var _disk_e := 0.0
+var _corona_e := 0.0
+var _halo_e := 0.0
+## Свет прямого солнца в дымке (ореол рассеяния вперёд) — тоже яркость на кадре, делится на E.
+var _haze_sun_lin := Color.WHITE
 
 
 func _ready() -> void:
@@ -90,7 +106,8 @@ func apply_config() -> void:
 	sky_mat.set_shader_parameter("disk_edge", float(disk.get("edge", 0.3)))
 	sky_mat.set_shader_parameter("limb_darkening", float(disk.get("limb_darkening", 0.4)))
 	sky_mat.set_shader_parameter(
-		"corona_width", deg_to_rad(float(disk.get("corona_width_deg", 1.0)))
+		"corona_width",
+		deg_to_rad(float(disk.get("corona_width_disks", 3.0)) * float(disk.get("radius_deg", 0.3)))
 	)
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
@@ -109,7 +126,9 @@ func apply_config() -> void:
 		if String(rend.get("tonemap_mode", "filmic")) == "agx"
 		else Environment.TONE_MAPPER_FILMIC
 	)
-	env.tonemap_exposure = float(rend.tonemap_exposure)
+	_base_exposure = float(rend.tonemap_exposure)
+	_expo_ready = false
+	env.tonemap_exposure = _base_exposure
 	env.tonemap_white = float(rend.tonemap_white)
 	# туман Godot — только если задан (голубая дымка чистого воздуха — в haze.gdshader)
 	env.fog_enabled = float(fog_cfg.density) > 0.0
@@ -164,49 +183,74 @@ func _apply_sun(to_sun: Vector3) -> void:
 	var light_y := valley_msl_m if not is_nan(valley_msl_m) else _tint_cam_y
 	# sun_tint — линейное отношение пропусканий; в слоты sRGB (light_color, source_color) — через линейное
 	var base_lin := base.srgb_to_linear()
-	sun.light_color = (base_lin * _tint(el_true, light_y, 0)).linear_to_srgb()
+	var lt_tint := _tint(el_true, light_y, 0)
+	var lg := maxf(lt_tint.g, 1.0e-4)
+	var lt_rel := Color(lt_tint.r / lg, 1.0, lt_tint.b / lg)  # на G: энергия = T_G-доля, цвет — остальные каналы
+	sun.light_color = (base_lin * lt_rel).linear_to_srgb()
 	var sun_color: Color = (base_lin * _tint(el_true, _tint_cam_y, 1)).linear_to_srgb()
 	if OS.has_environment("DP_SUN_TINT_LOG"):  # кадры tools/shots: ожидаемая цветность диска
 		var tc := sun_color.srgb_to_linear() / maxf(base_lin.r, 1.0e-6)
 		print("sun_tint: el=%.2f y=%.0f g_r=%.3f b_r=%.3f" % [el_true, _tint_cam_y, tc.g / maxf(tc.r, 1e-6), tc.b / maxf(tc.r, 1e-6)])
-	sun.light_energy = float(sun_cfg.energy) * float(lt.sun_energy)
+	# свет рельефа — из пропускания (HH4 v3): sun.energy × T_G(el, долина) / T_G(35°, долина); цвет — отношения
+	# каналов sun_tint, нормированные на G (энергия × цвет = T_c/T_c_ref по каналам); небо — sky_k(el)
+	var p := SunTransmission.params()
+	var hzx := _haze_extinction()
+	var top := get_haze_top_msl()
+	var light_k := SunTransmission.light_ratio(el_true, light_y, hzx[0], hzx[1], top, p)
+	sun.light_energy = float(sun_cfg.energy) * light_k
 	var tint: Color = lt.horizon_tint
-	var sky_k := float(lt.sky_energy)
+	var sky_k := SunTransmission.sky_k(el_true, p)
 	_sky_mat.set_shader_parameter("sky_horizon_color", _color(sky_cfg.horizon_color) * tint)
 	_sky_mat.set_shader_parameter(
 		"ground_horizon_color", _color(sky_cfg.ground_horizon_color) * tint
 	)
-	# небо у горизонта на закате светлое — гасим его слабее, чем окружение
-	_sky_mat.set_shader_parameter(
-		"exposure", float(sky_cfg.energy_multiplier) * lerpf(1.0, sky_k, 0.4)
-	)
+	_sky_mat.set_shader_parameter("exposure", float(sky_cfg.energy_multiplier) * sky_k)
 	# диск, ореол, засвет и дымка к солнцу — по истинной высоте (свет рельефа зажат min_light_elevation_deg)
 	var disk_dir := clock.to_sun_true() if clock != null else to_sun
 	var lum := sun_luminance_ratio(el_true, _tint_cam_y)
 	_sky_mat.set_shader_parameter("sun_dir", disk_dir)
 	_sky_mat.set_shader_parameter("sun_color", sun_color)
-	_sky_mat.set_shader_parameter("halo_energy", sun.light_energy)
 	var disk: Dictionary = sky_cfg.get("sun_disk", {})
+	var lum_p := pow(lum, float(disk.get("energy_exponent", 0.5)))
+	# ореол неба вокруг диска — свет прямого солнца со сжатием яркости, как у диска (не освещённость рельефа)
+	_halo_e = float(sun_cfg.energy) * lum_p
 	# квад дымки рисуется поверх неба и гасит диск по лучу в небо — компенсируем, чтобы после дымки диск был
 	# ровно energy × lum^показатель (пропускание дымки уже входит в lum: не учитывать дважды)
-	var dk := pow(lum, float(disk.get("energy_exponent", 0.5))) / haze_sky_transmission(el_true, _tint_cam_y)
-	_sky_mat.set_shader_parameter("disk_energy", float(disk.get("energy", 40.0)) * dk)
-	_sky_mat.set_shader_parameter("corona_energy", float(disk.get("corona_energy", 3.0)) * dk)
-	if glare != null:
-		glare.set_sun(disk_dir, sun_color, lum)
+	var dk := lum_p / haze_sky_transmission(el_true, _tint_cam_y)
+	_disk_e = float(disk.get("energy", 40.0)) * dk
+	_corona_e = float(disk.get("corona_energy", 3.0)) * dk
 	_env.ambient_light_energy = float(sky_cfg.ambient_light_energy) * sky_k
+	# экспозиция заката: E по яркости сцены (SunTransmission.scene_luminance), сглаживается в _process
+	var ec: Dictionary = cfg.get("rendering", {}).get("sunset_exposure", {})
+	exposure_target = 1.0
+	if bool(ec.get("enabled", true)):
+		var l := SunTransmission.scene_luminance(
+			el_true, light_k, sky_k, float(ec.get("albedo", 0.2)), float(sun_cfg.energy), float(p.ref_el_deg)
+		)
+		exposure_target = SunTransmission.exposure_factor(
+			l, float(ec.get("a", 0.8)), float(ec.get("e_max", 10.0))
+		)
+	if not _expo_ready:
+		exposure_current = exposure_target
+		_expo_ready = true
+	_disk_dir = disk_dir
+	_sun_color_now = sun_color
+	_glare_lum = lum
+	if OS.has_environment("DP_SUN_TINT_LOG"):  # кадры tools/shots: числа сцены
+		print("scene_light: el=%.2f light_energy=%.5f sky_k=%.4f E=%.3f" % [
+			el_true, sun.light_energy, sky_k, exposure_target])
 	if _haze_mat != null:
 		_haze_mat.set_shader_parameter("sun_dir", disk_dir)
 		# ореол дымки (рассеяние вперёд) — свет прямого солнца в дымке: яркость ∝ освещённости (lum), не постоянна
-		_haze_mat.set_shader_parameter(
-			"sun_color", (sun_color.srgb_to_linear() * lum).linear_to_srgb()
-		)
+		_haze_sun_lin = sun_color.srgb_to_linear() * lum
+		_haze_mat.set_shader_parameter("sun_color", _haze_sun_lin.linear_to_srgb())
 		_haze_mat.set_shader_parameter("haze_color", _haze_base_color * tint * sky_k)
-		# чистый воздух — тот же свет, что небо у горизонта: утром и вечером в тон неба,
+		# чистый воздух — тот же свет, что небо у горизонта (одна sky_k): утром и вечером в тон неба,
 		# иначе у горизонта небо и дальний рельеф расходятся по цвету
 		_haze_mat.set_shader_parameter(
-			"clear_color", _clear_air_color * tint * lerpf(1.0, sky_k, 0.4)
+			"clear_color", _clear_air_color * tint * sky_k
 		)
+	_apply_exposure()
 
 
 ## Цветность прямого солнца SunTransmission.sun_tint на высоте y_msl; slot — 0 свет, 1 камера.
@@ -258,6 +302,8 @@ func sun_luminance_ratio(el_deg: float, y_msl: float) -> float:
 
 ## Доля света, проходящая сквозь квад дымки по лучу в небо на высоте el_deg (диск солнца), 0..1: зелёный канал
 ## (по нему квад гасит сцену), мутный слой + чистый воздух у горизонта, как в haze.gdshader. 1 — дымки нет.
+## Зеркало формул haze.gdshader (путь в слое haze_path_m, чистый воздух clear_sky_height_m, max_opacity): менять вместе
+## (тест test_haze_sky_transmission_matches_shader_formula).
 func haze_sky_transmission(el_deg: float, y_msl: float) -> float:
 	var m := _haze_mat
 	if m == null or el_deg <= 0.0:
@@ -284,16 +330,46 @@ func _camera_y() -> float:
 	return 0.0 if is_nan(valley_msl_m) else valley_msl_m
 
 
-## Камера ушла по высоте больше чем на tint_update_dy_m — цвет солнца пересчитать.
-func _process(_dt: float) -> void:
+## Экспозиция заката плавно идёт к установившемуся значению (tau_s, реальное время); камера ушла по высоте
+## больше чем на tint_update_dy_m — цвет солнца пересчитать.
+func _process(dt: float) -> void:
 	if sun == null or _env == null or not is_inside_tree():
 		return
+	if absf(exposure_current - exposure_target) > 1.0e-4 * exposure_target:
+		var tau := float(Config.value("world", "rendering.sunset_exposure.tau_s", 3.0))
+		var k := 1.0 - exp(-dt / maxf(tau, 1.0e-3))
+		exposure_current = exp(lerpf(log(exposure_current), log(exposure_target), k))
+		_apply_exposure()
 	var cam := get_viewport().get_camera_3d()
 	if cam == null:
 		return
 	var dy := float(Config.value("world", "time.light.tint_update_dy_m", 100.0))
 	if absf(cam.global_position.y - _tint_cam_y) > dy:
 		_apply_sun(_to_sun)
+
+
+## E сразу к установившемуся значению (тесты, кадры, перемотка времени).
+func snap_exposure() -> void:
+	exposure_current = exposure_target
+	_apply_exposure()
+
+
+## Множитель E → tonemap_exposure. Диск, корона и ореол неба заданы яркостью на кадре (уже сжаты energy_exponent
+## до отображаемого диапазона), поэтому в шейдер идут делённые на E: экспозиция заката их не раздувает.
+## Сила засвета глаза (после тонмаппинга, в долях белого кадра) от E не зависит: Хоулдей–Стайлс при экспозиции
+## дал бы lum^p·E — ореол вырос бы в 2–3 раза (HH-11: размер ореола утверждён), см. отчёт HH-15.
+func _apply_exposure() -> void:
+	if _env == null:
+		return
+	_env.tonemap_exposure = _base_exposure * exposure_current
+	var e := maxf(exposure_current, 1.0e-3)
+	_sky_mat.set_shader_parameter("disk_energy", _disk_e / e)
+	_sky_mat.set_shader_parameter("corona_energy", _corona_e / e)
+	_sky_mat.set_shader_parameter("halo_energy", _halo_e / e)
+	if _haze_mat != null:
+		_haze_mat.set_shader_parameter("sun_color", (_haze_sun_lin / e).linear_to_srgb())
+	if glare != null:
+		glare.set_sun(_disk_dir, _sun_color_now, _glare_lum)
 
 
 ## Высота инверсии (верх слоя перемешивания), м над уровнем моря. Обычно — основание облаков

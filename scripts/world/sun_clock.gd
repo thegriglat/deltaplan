@@ -228,16 +228,17 @@ static func solar_position(
 	return Vector2(fposmod(rad_to_deg(az), 360.0), rad_to_deg(el))
 
 
-## Свет по высоте солнца (world.json → time.light, линейно между узлами):
-## {sun_color: Color (× sun.color), sun_energy, sky_energy (множители), horizon_tint: Color,
-## (яркость диска и сила засвета — из пропускания атмосферы, SkyEnvironment, не из таблицы).
+## Свет по высоте солнца без дымки на уровне моря (HH4 v3, физика пропускания — SunTransmission, без ручных таблиц):
+## {sun_energy: T_G(el)/T_G(35°) (множитель к sun.energy), sky_energy: sky_k(el) (рассеянный свет неба),
+## horizon_tint: Color (world.json → time.light, узлы по высоте)}. Цвет солнца — SunTransmission.sun_tint
+## (в SkyEnvironment, с дымкой и высотой места); яркость диска и сила засвета — оттуда же.
 static func light_at(elevation_deg: float) -> Dictionary:
 	var l: Dictionary = Config.get_config("world").get("time", {}).get("light", {})
 	var xs: Array = l.get("elevation_deg", [0.0])
+	var p := SunTransmission.params()
 	return {
-		"sun_color": _lerp_color(xs, l.get("sun_color", [[1, 1, 1]]), elevation_deg),
-		"sun_energy": _lerp_f(xs, l.get("sun_energy", [1.0]), elevation_deg),
-		"sky_energy": _lerp_f(xs, l.get("sky_energy", [1.0]), elevation_deg),
+		"sun_energy": SunTransmission.light_ratio(elevation_deg, 0.0, 0.0, Vector3.ONE, 0.0, p),
+		"sky_energy": SunTransmission.sky_k(elevation_deg, p),
 		"horizon_tint": _lerp_color(xs, l.get("horizon_tint", [[1, 1, 1]]), elevation_deg),
 	}
 

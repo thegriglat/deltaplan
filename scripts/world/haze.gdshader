@@ -14,6 +14,9 @@
 // Фаза: чистый воздух — Рэлей (1+cos²θ), мутный слой — Хеньи–Гринстейн (g = haze_g); обе
 // нормированы на 90° от солнца, поэтому сбоку дымка такая же, как была; к солнцу светлее и теплее
 // (цвет солнца), против солнца мутный слой темнее. Зеркало формул — SkyEnvironment.haze_phase_*.
+// Пропускание дымки по лучу в небо (путь в мутном слое + чистый воздух у горизонта, max_opacity) повторено на процессоре
+// в SkyEnvironment.haze_sky_transmission (компенсация яркости диска солнца) — менять формулы вместе; согласие по числам —
+// tests/world/test_sun_glare.gd::test_haze_sky_transmission_matches_shader_formula.
 // Параметры задаёт scripts/world/sky_environment.gd из configs/world.json → haze.
 shader_type spatial;
 render_mode unshaded, blend_premul_alpha, depth_draw_never, depth_test_disabled, cull_disabled, fog_disabled;
