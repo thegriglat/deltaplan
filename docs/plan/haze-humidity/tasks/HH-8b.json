@@ -1,0 +1,77 @@
+{
+  "id": "HH-8b",
+  "module": "haze-humidity",
+  "type": "dp-writer",
+  "title": "Документы по итогам модуля: новые сетки, свет и цвет солнца, экспозиция заката; CHANGELOG и находки",
+  "goal": "docs/guide и registry/findings.md описывают, как сейчас устроено после HH-1e/1f/1g/4b/4c/4d/11/13/14/15/16/17: климат места по сеткам (Tmax, амплитуда, 700 гПа, тропопауза, перистые, рост ветра), цвет и яркость солнца и неба на закате, экспозиция, ореол; CHANGELOG «В работе» сведён в точные строки без устаревших оговорок; рост ветра (WR) — «заглушка до HH-1h» одной фразой.",
+  "plan_ref": "Волна 3",
+  "contracts": [
+    {
+      "name": "HH7",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH4",
+      "version": "3",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH5",
+      "version": "1",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH6",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    },
+    {
+      "name": "HH2",
+      "version": "2",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-8b",
+  "branch": "haze-humidity/HH-8b",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "docs/guide/",
+    "docs/registry/findings.md",
+    "CHANGELOG.md",
+    "docs/INDEX.md",
+    "docs/registry/contracts.md",
+    "docs/registry/research.md",
+    "tools/research/haze_humidity/surface_t/README.md",
+    "tools/research/haze_humidity/upper_air/README.md",
+    "tools/research/haze_humidity/upper_misc/README.md",
+    "tools/research/haze_humidity/sky_light/README.md",
+    "tools/research/haze_humidity/sunset_color/README.md",
+    "tools/research/haze_humidity/era5_source/README.md",
+    "tools/research/haze_humidity/verify/README.md"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "tests/",
+    "data/",
+    "docs/contracts/",
+    "docs/plan/",
+    "site/"
+  ],
+  "accept": [
+    {
+      "name": "no_stale",
+      "cmd": "! /usr/bin/grep -rn 'typical_max_c\\b.*таблиц\\|upper_air.temp_c\\|time.light.sun_color\\|time.light.sun_energy\\|clouds.sky_light' docs/guide/",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check 2>&1 | tail -1",
+      "expect": "re:ошибок 0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T14:25:40"
+}
