@@ -483,3 +483,5 @@
 {"t": "2026-10-23T06:29:15", "by": "coordinator", "task": "HH-15", "ev": "note", "note": "ревью rework 5 (blocker: ореол белее красного диска по G/B); решение — ореол в цвете солнца; новый исполнитель"}
 {"t": "2026-10-23T06:40:13", "by": "coordinator", "task": "HH-4b", "ev": "accepted", "commits": ["d5a4e9d32"], "note": "6/6 weather=ok:19/19; haze_humidity=ok:25/25 (пропуск 1); goal=ok:103/103; wind=ok:43/43 (пропуск 4); surface_heat=ok:16/16; docs=ok:ошибок 0"}
 {"t": "2026-10-23T06:40:14", "by": "coordinator", "task": "HH-4b", "ev": "merged", "commits": ["d5a4e9d32"]}
+{"t": "2026-10-23T06:40:17", "by": "coordinator", "task": "HH-1e", "ev": "checked", "note": "6/6 grid_contract=ok:тестов, 0 упало; grid_present=ok:exit 0; grid_size=ok:1.59476e+06; readme=ok:exit 0; sites=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-10-23T06:40:31", "by": "coordinator", "task": "HH-1e", "ev": "accepted", "note": "по отчёту: HH5 запечена (TX/DTR CDS 2011–2020 + поправка ARCO 2018–2019); сутки UTC, 2 года — оговорки в README"}
