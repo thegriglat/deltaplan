@@ -565,3 +565,4 @@
 {"t": "2026-10-23T17:43:19", "by": "executor", "task": "HH-18", "ev": "reported", "commits": ["see"], "note": "done: Докачано из ARCO-ERA5 1° в ~/data/haze_humidity/era5_arco/ (3.7 ГБ): t2m 2018-19 (730 сут. + суточный ход по месяцам 20…", "dp_feedback": "dpcli job --lock cpu --slots N не принимает --slots (после start). job wait с таймаутом 40000 с вернулся рано. Хотелось бы job wait без ограничения 10 мин для foreground."}
 {"t": "2026-10-23T17:46:16", "by": "coordinator", "task": "HH-18", "ev": "checked", "note": "5/5 docs=ok:ошибок 0; t2m=ok:2m_temperature: есть 730/730; t700=ok:temperature_700: есть 365/365; u700=ok:u_component_of_wind_700: есть…; v700=ok:v_component_of_wind_700: есть…"}
 {"t": "2026-10-23T17:46:31", "by": "coordinator", "task": "HH-18", "ev": "accepted", "note": "по отчёту: ARCO 3,7 ГБ, 7 суток v700 — NaN-заглушки (пропускаются)"}
+{"t": "2026-10-23T17:46:32", "by": "coordinator", "task": "HH-18", "ev": "merged", "commits": ["aa9ec598f"]}
