@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "main влит в trike-pilot/TP-27; конфликты были только в CHANGELOG.md и locale/ui.csv (оставлены обе стороны). input_controller.gd слился автоматически: _update_trike зовёт _update_bar (MouseBar, мёртвая зона). Добавлен test_trike_bar_same_travel; в test_ui_controls_contracts.gd поправлен тест У1 (устарел после bar-mouse).",
+  "commits": [
+    "слияние main + тест трайка",
+    "ui_controls У1: screen_relative"
+  ],
+  "checks": [
+    {
+      "name": "trike",
+      "value": "91/91",
+      "pass": true
+    },
+    {
+      "name": "bar_mouse",
+      "value": "11/11",
+      "pass": true
+    },
+    {
+      "name": "input",
+      "value": "7/7",
+      "pass": true
+    },
+    {
+      "name": "ui_controls",
+      "value": "9/9",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept TP-27",
+  "uncertain": [
+    {
+      "where": "tests/game/test_ui_controls_contracts.gd:_pitch_after_mouse",
+      "why": "файл вне scope; тест У1 в main падает после bar-mouse (событие с relative без screen_relative, 40 px < мёртвой зоны). Поправил: ±400 px и screen_relative",
+      "checked": "ui_controls 9/9"
+    },
+    {
+      "where": "accept: scope",
+      "why": "FAIL scope перечисляет файлы main (177 шт.), пришедшие слиянием, а не правками задачи",
+      "checked": "свои правки: CHANGELOG.md, locale/ui.csv, tests/game/test_bar_mouse_input.gd, tests/game/test_ui_controls_contracts.gd"
+    }
+  ],
+  "dp_feedback": "Проверка scope после git merge main считает файлы слияния нарушением; надо сравнивать с merge-base без файлов, пришедших из main.",
+  "t": "2026-10-23T13:00:59",
+  "by": "executor"
+}
