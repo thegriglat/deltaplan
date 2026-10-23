@@ -1,0 +1,32 @@
+{
+  "status": "done",
+  "summary": "trike-pilot.md «Как стартовать», tow.md (выбор, отказ, место) и CHANGELOG «В работе» описывают окно «Старт» по «Лететь» и дельталёт/буксировку на любом месте без проверки рельефа; updated 2026-10-23 в game.md и flight.md.",
+  "commits": [
+    "5a78eb52e trike-anywhere: TA-3 — руководство и CHANGELOG"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "no_place_tow_row",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept TA-3",
+  "uncertain": [
+    {
+      "where": "docs/guide/flight/tow.md",
+      "why": "описание TowSite.check как не влияющего на старт — по контракту TA-К2, код не читал",
+      "checked": "сверено с контрактом и отчётом TA-2"
+    }
+  ],
+  "dp_feedback": "",
+  "t": "2026-10-23T22:15:44",
+  "by": "executor"
+}
