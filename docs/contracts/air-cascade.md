@@ -14,6 +14,7 @@ contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 1}, {"id": "R3",
 Владелец — координатор модуля. Менять интерфейс — только координатор: версия +1, потребителям — `task note`.
 Контрактный тест — `tools/research/air_cascade/picard_rs/contract/check_contract.py` (только stdlib
 Python): `python3 <путь> --ref <case.json>…` (R1), `--results <dir>` (R2), `--crate` (R3); код 0 — соблюдено.
+Допуски — `contract/tolerance.py <R2.json>… [--iters-tol 20]` → последняя строка `worst=<x>`, проходит при x ≤ 1.
 
 Шаг 0 (план → «Вариант: библиотека на Rust», «Шаг 0»): прототип решателя Пикара 400 м на Rust, сверка с
 эталоном AM-01 (`tools/research/air3d/air.py`, float64) и с GPU игры по допускам GPU-теста. Код игры не
