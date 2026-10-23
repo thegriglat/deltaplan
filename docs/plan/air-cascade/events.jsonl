@@ -26,3 +26,5 @@
 {"t": "2026-10-24T04:52:30", "by": "coordinator", "task": "AC-R1", "ev": "checked", "note": "7/7 contract_crate=ok:exit 0; fmt=ok:exit 0; clippy=ok:exit 0; build_release=ok:exit 0; blocks_dev=ok:exit 0; 6.3474e-07; solve_ref_release=ok:exit 0; 0.000623113; pure_rust=ok:exit 0"}
 {"t": "2026-10-24T04:53:27", "by": "reviewer", "task": "AC-R1", "ev": "reviewed", "note": "Крейт в скоупе (19 файлов, contract/ не тронут), pure-Rust, явный пул через install. blocks_dev перезапущен: 6.3474e-07 = отчёт. Итерации совпадают с эталоном …", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/air-cascade/tasks/AC-R1.review.json"}
 {"t": "2026-10-24T04:53:41", "by": "coordinator", "task": "AC-R1", "ev": "accepted", "note": "по ревью (4 minor → AC-R3)"}
+{"t": "2026-10-24T04:56:31", "by": "coordinator", "task": "AC-R1", "ev": "accepted", "commits": ["4f4331a60"], "note": "7/7 contract_crate=ok:exit 0; fmt=ok:exit 0; clippy=ok:exit 0; build_release=ok:exit 0; blocks_dev=ok:exit 0; 6.3474e-07; solve_ref_release=ok:exit 0; 0.000623113; pure_rust=ok:exit 0"}
+{"t": "2026-10-24T04:56:31", "by": "coordinator", "task": "AC-R1", "ev": "merged"}
