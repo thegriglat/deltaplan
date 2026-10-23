@@ -29,15 +29,16 @@ const HEADER_UNSHADED := "shader_type spatial;\nrender_mode cull_back, unshaded;
 const MASKS := {
 	"m1": "vec3(clamp(rsw, 0.0, 1.0), slope_deg / 90.0, mod(degrees(atan(n_class.x, -n_class.z)) + 360.0, 360.0) / 360.0)",
 	"m2": "vec3(fract((wp.x - layer_origin.x) / layer_spacing), fract(wp.y / 32.0), fract((wp.z - layer_origin.y) / layer_spacing))",
-	# фаза слоёв strata/ledge: sy — как в шейдере (высота + сдвиг fbm 250 м), шаги strata_m · 3,7 и strata_m
-	"m3": "vec3(fract((wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0) / (strata_m * 3.7)), fract((wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0) / strata_m), 0.5)",
+	# фаза прежних слоёв strata/ledge (до CL-2): sy — высота + сдвиг fbm 250 м, шаги 7 · 3,7 = 25,9 и 7 м
+	# (шейдер слоёв больше не рисует — шаги заданы числом, чтобы мерить «до/после» по одной фазе)
+	"m3": "vec3(fract((wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0) / 25.9), fract((wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0) / 7.0), 0.5)",
 }
 ## Члены раскраски скал, выключаемые в диагнозе: p — uniform-ы, def — #define, sub — замены текста тела
 ## шейдера (вариант на лету), shadows — тени солнца Godot. Пусто — исходный кадр.
 const DIAG_MEMBERS := {
 	"base": {},
-	"strata": {"p": {"strata_strength": 0.0}},
-	"ledge": {"p": {"ledge_strength": 0.0}},
+	"cliff": {"p": {"cliff_tone": Vector2.ZERO, "cliff_tilt": Vector2.ZERO, "cliff_bulge": Vector2.ZERO, "cliff_crack_dark": Vector2.ZERO, "cliff_ao": Vector2.ZERO}},
+	"cliff_fine": {"p": {"cliff_fine_keep": 1.0}},
 	"ynoise": {"sub": [["fbm(wp.xz / 12.0 + vec2(wp.y / 8.0), 3)", "fbm(wp.xz / 12.0, 3)"],
 			["fbm(wp.xz / 7.0 + vec2(wp.y / 5.0, 2.7), 3)", "fbm(wp.xz / 7.0 + vec2(0.0, 2.7), 3)"]]},
 	"rock_detail": {"def": ["T_ROCK_DETAIL_OFF"]},
@@ -50,7 +51,7 @@ const DIAG_MEMBERS := {
 	"detail": {"def": ["T_DETAIL_OFF"]},
 	"grid": {"sub": [["vec2 hg = height_grad(wp.xz, n_lod);", "vec2 hg = height_grad(wp.xz, n_lod + 1.0);"]]},
 	"shadows": {"shadows": true, "p": {"relief_shadow_strength": 0.0}},
-	"all_off": {"p": {"strata_strength": 0.0, "ledge_strength": 0.0, "use_rock_tex": false, "rock_crack_dark": 0.0,
+	"all_off": {"p": {"cliff_tone": Vector2.ZERO, "cliff_tilt": Vector2.ZERO, "cliff_bulge": Vector2.ZERO, "cliff_crack_dark": Vector2.ZERO, "cliff_ao": Vector2.ZERO, "use_rock_tex": false, "rock_crack_dark": 0.0,
 			"rock_scree_streaks": 0.0, "rock_tone_var": 0.0, "rock_curv_shade": 0.0, "sl_rock_enabled": false,
 			"erosion_enabled": false, "rock_macro_strength": 0.0, "rock_macro_normal": 0.0},
 			"def": ["T_ROCK_DETAIL_OFF", "T_DETAIL_OFF"]},
@@ -384,7 +385,10 @@ func _diag(place: Dictionary, v: Dictionary, geo: Dictionary) -> void:
 			sun.shadow_enabled = false
 		var img := await _grab_stable(geo)
 		_save_raw("%s/%s_%s.rgb" % [raw, stem, mem], img)
-		img.save_jpg("%s/diag_%s_%s.jpg" % [out, stem, mem], 0.88)
+		# «до» (CL-1) — diag_<tag>_<view>_<член>.jpg; другие метки — со своей меткой (кадры «до» не затираются)
+		var lab := String(_args.get("label", "before"))
+		var pre := "diag_" if lab == "before" else "diag_%s_" % lab
+		img.save_jpg("%s/%s%s_%s.jpg" % [out, pre, stem, mem], 0.88)
 		meta.members.append(mem)
 		print("cliff_look_shot: диагноз ", stem, " ", mem)
 		if sun:

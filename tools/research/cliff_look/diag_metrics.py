@@ -16,6 +16,8 @@
   period_m, coh — период полос по высоте (автокорреляция по столбцам кадра, пик лага × м высоты на строку) и
             сила пика (0..1)
   ripple  — СКО части яркости мельче 2 м / средняя яркость (рябь)
+  large   — СКО части яркости 5–40 м (разность сглаживаний окнами 5 и 40 м) на скалах Mr / средняя яркость
+            скал: крупные формы (блоки, грани) — CL-2
   contrast — СКО части мельче 40 м / средняя яркость
   grid    — доля высокочастотной яркости, привязанной к фазе сетки слоя (25 м): СКО средних по 8×8 корзинам фазы /
             СКО (фасетки треугольников и нормали по узлам)
@@ -33,6 +35,7 @@ import numpy as np
 
 HP_M = 40.0      # верх «высокочастотной» части, м
 RIPPLE_M = 2.0   # рябь — мельче, м
+LARGE_M = (5.0, 40.0)   # крупные формы (блоки породы), м
 
 
 def srgb_to_lin(v):
@@ -185,6 +188,9 @@ def analyze(raw, stem):
     dy = (dy + 16.0) % 32.0 - 16.0
     mv = M[1:, :] & M[:-1, :]
     mpp_v = float(np.median(np.abs(dy[mv])))
+    if not 0.005 < mpp_v < 50.0:   # маска m2 не снялась (кадр окна не захвачен) — иначе окна сглаживания огромны
+        res["note"] = f"маска m2 испорчена (м/строку {mpp_v:.4f})"
+        return res
     # наклон горизонталей на экране: направление градиента высоты (м/px) по строкам и столбцам
     dyx = np.diff(yv, axis=1)
     dyx = (dyx + 16.0) % 32.0 - 16.0
@@ -237,6 +243,8 @@ def analyze(raw, stem):
                "aniso": round(sv / max(sh, 1e-9), 3),
                "period_m": round(per, 1) if per else None, "coh": round(coh, 3) if coh is not None else None,
                "ripple": round(float(rp[M].std()) / mean, 4), "contrast": round(float(hm.std()) / mean, 4),
+               "large": (round(float((box(L, max(LARGE_M[0] / mpp / 2.0, 1.0)) - box(L, LARGE_M[1] / mpp / 2.0))[Mr].std())
+                               / max(float(L[Mr].mean()), 1e-6), 4) if Mr.sum() > 2000 else None),
                "grid": round(float(gmeans.std()) / max(float(hm.std()), 1e-9), 3)}
         if base is not None and mem != "base":
             d = base - L
@@ -295,6 +303,7 @@ def summarize(results):
               "выключен | " + " | ".join(f"{r['tag']}/{r['view']} {r['dist_m']} м" for r in vs),
               "--- | " + " | ".join("---" for _ in vs),
               "base: A (фон all_off) | " + " | ".join(f"{amp(r['members']['base']):.3f} ({amp(r['members']['all_off']):.3f})"
+                                                   if "all_off" in r["members"] else f"{amp(r['members']['base']):.3f}"
                                                    for r in vs)]
     for m in mems:
         cells = []
@@ -319,7 +328,7 @@ def main():
                                                    "stretch_xz_med", "stretch_xz_p90") if k in r))
         if "members" not in r:
             continue
-        cols = ("strata26", "strata7", "band", "band_rock", "aniso", "ripple", "contrast", "grid", "d_rms", "d_band", "d_aniso", "d_ripple",
+        cols = ("strata26", "strata7", "band", "band_rock", "aniso", "ripple", "large", "contrast", "grid", "d_rms", "d_band", "d_aniso", "d_ripple",
                 "d_period_m", "d_coh")
         print("член | " + " | ".join(cols))
         for mem, row in r["members"].items():

@@ -80,10 +80,6 @@ uniform vec3 lichen_color : source_color = vec3(0.5, 0.42, 0.2);   // рыжий
 uniform vec3 scree_color : source_color = vec3(0.58, 0.55, 0.5);   // светлая щебёнка
 uniform float rock_tone_scale_m = 180.0;
 uniform float lichen_amount = 0.35;
-uniform float strata_m = 7.0;          // шаг слоёв на обрывах, м
-#ifndef T_ROCK_DETAIL_OFF
-uniform float strata_strength = 0.28;
-#endif
 uniform float gully_snow_line_m = 2500.0;  // ниже снега в кулуарах нет, м
 #ifndef T_GULLY_SNOW_OFF
 uniform float gully_scale_m = 60.0;    // масштаб ложбин (кривизна), м
@@ -212,9 +208,9 @@ uniform vec2 erosion_slope_deg = vec2(5.0, 18.0); // уклон появлени
 uniform vec2 erosion_fade_m = vec2(7000.0, 14000.0);   // гаснут с расстоянием, м
 #endif
 // --- скальная поверхность на крутизне (скалы и выходы породы; terrain_look: rock_macro_*,
-// rock_normal_strength, ledge_*, outcrop_ribs): та же текстура породы крупным масштабом по трём
-// проекциям (рисунок и нормаль видны с километров, где мелкий тайл усреднён мипами), уступы
-// слоёв в нормали, пятна породы на крутом — рёбрами вдоль линии падения ---
+// rock_normal_strength, cliff_*, outcrop_ribs): та же текстура породы крупным масштабом по трём
+// проекциям (рисунок и нормаль видны с километров, где мелкий тайл усреднён мипами), блоки
+// породы на крутом, пятна породы на крутом — рёбрами вдоль линии падения ---
 uniform float rock_macro_k = 24.0;                // крупный слой: тайл ×k
 #ifndef T_ROCK_TEX_OFF
 uniform float rock_macro_contrast = 1.6;         // степень контраста рисунка крупного слоя (мипы его сглаживают)
@@ -227,9 +223,23 @@ uniform vec2 rock_macro_fade_m = vec2(6000.0, 12000.0);
 #ifndef T_ROCK_TEX_OFF
 uniform float rock_normal_strength = 0.6;         // мелкий слой (тайл rock.tile_m), вблизи
 #endif
+// Блоки породы на крутом (CL-2, CL-К2 v2): скала разбита трещинами отдельности на блоки двух масштабов;
+// у блока своя грань (тон и наклон нормали), по границе — тёмная щель и затенение (AO). Ячейки Вороного
+// в мировых координатах на плоскости стены (две вертикальные проекции xy, zy). Мелкие масштабы (Rock030,
+// неровность SL-9) на крутом ослаблены до cliff_fine_keep — крупная форма вместо ряби.
+uniform vec2 cliff_slope_deg = vec2(30.0, 45.0);  // блоки появляются / в полную силу с уклона, °
+uniform float cliff_fine_keep = 0.15;             // доля мелкой фактуры (Rock030, неровность SL-9) на крутом
 #ifndef T_ROCK_SURFACE_OFF
-uniform float ledge_strength = 0.3;               // уступы слоёв: ± доля уклона (ступень/полка)
-uniform vec2 ledge_slope_deg = vec2(25.0, 45.0);  // уступы появляются / в полную силу, °
+uniform vec2 cliff_block_m = vec2(20.0, 7.0);     // шаг блоков: крупные / мелкие, м
+uniform vec2 cliff_tone = vec2(0.45, 0.15);        // разброс яркости граней ± доля: крупные / мелкие
+uniform vec2 cliff_tilt = vec2(0.65, 0.2);        // наклон нормали грани (тангенс): крупные / мелкие
+uniform vec2 cliff_bulge = vec2(1.2, 0.5);       // выпуклость блока: наклон нормали у края = bulge · 0,5: крупные / мелкие
+uniform float cliff_jitter = 0.8;                 // сдвиг центров ячеек (доля шага): 0 — решётка
+uniform float cliff_crack_w = 0.03;               // ширина щели, доля шага блока
+uniform vec2 cliff_crack_dark = vec2(0.6, 0.3);   // затемнение щели: крупные / мелкие
+uniform vec2 cliff_ao = vec2(0.4, 0.1);           // затенение у края блока (AO), доля: крупные / мелкие
+uniform float cliff_ao_w = 0.25;                  // ширина затенения от края, доля шага блока
+uniform vec2 cliff_fade_px = vec2(3.0, 6.0);      // блок мельче / крупнее стольких пикселей — нет / в полную силу
 #endif
 #ifndef T_EROSION_OFF
 uniform float erosion_rock_boost = 1.0;          // промоины на скальной поверхности сильнее (× 1 + boost)
@@ -981,6 +991,61 @@ vec2 erosion_grad(vec2 xz, vec2 g, float foot, float k) {
 }
 #endif
 
+#ifndef T_ROCK_SURFACE_OFF
+// Блок породы (CL-2): ячейка Вороного (3×3 соседа) в координатах p на плоскости стены, шаг cell, м.
+// x — расстояние до границы ячейки ≈ (F2 − F1)/2, м; yz — номер ячейки; v — от центра ячейки, доля шага.
+vec3 cliff_cell(vec2 p, float cell, out vec2 v) {
+	vec2 g = floor(p / cell);
+	float f1 = 1e9;
+	float f2 = 1e9;
+	vec2 id = g;
+	v = vec2(0.0);
+	for (int j = -1; j <= 1; j++) {
+		for (int i = -1; i <= 1; i++) {
+			vec2 c = g + vec2(float(i), float(j));
+			vec2 pt = (c + 0.5 + (canopy_hash2(c + 41.0) - 0.5) * cliff_jitter) * cell;
+			float d = length(p - pt);
+			f2 = d < f1 ? f1 : min(f2, d);
+			id = d < f1 ? c : id;
+			v = d < f1 ? (p - pt) / cell : v;
+			f1 = min(f1, d);
+		}
+	}
+	return vec3(0.5 * (f2 - f1), id);
+}
+
+// Блоки двух масштабов cliff_block_m в точке p стены (след пикселя foot, м): x — тон грани (± доля),
+// y — затемнение щели и AO у края; tilt — наклон нормали грани и выпуклости блока в осях p. Блок мельче cliff_fade_px
+// пикселей гаснет к среднему (тон и наклон — ноль в среднем); щель тоньше пикселя расширяется до следа
+// пикселя с ослаблением (среднее затемнение то же) — без мерцания.
+vec2 cliff_blocks(vec2 p, float foot, out vec2 tilt) {
+	vec2 r = vec2(0.0);
+	tilt = vec2(0.0);
+	for (int s = 0; s < 2; s++) {
+		float cell = s == 0 ? cliff_block_m.x : cliff_block_m.y;
+		float a = smoothstep(cliff_fade_px.x, cliff_fade_px.y, cell / max(foot, 1e-3));
+		if (a > 0.0) {
+			vec2 v;
+			vec3 c = cliff_cell(p + float(s) * vec2(17.3, 5.9), cell, v);
+			vec2 cid = c.yz + float(s) * 101.0;
+			float tone = s == 0 ? cliff_tone.x : cliff_tone.y;
+			float tl = s == 0 ? cliff_tilt.x : cliff_tilt.y;
+			r.x += (hash12(cid + 13.7) * 2.0 - 1.0) * tone * a;
+			float bl = s == 0 ? cliff_bulge.x : cliff_bulge.y;
+			// грань (наклон по хешу) + выпуклость (нормаль от центра блока к краю)
+			tilt += ((canopy_hash2(cid + 71.0) * 2.0 - 1.0) * tl + v * bl) * a;
+			float cw = cliff_crack_w * cell;
+			float crack = (1.0 - smoothstep(0.0, cw + foot, c.x)) * cw / (cw + foot);
+			float ao = 1.0 - smoothstep(0.0, cliff_ao_w * cell, c.x);
+			r.y += (s == 0 ? cliff_crack_dark.x * crack + cliff_ao.x * ao
+					: cliff_crack_dark.y * crack + cliff_ao.y * ao) * a;
+		}
+	}
+	r.y = min(r.y, 0.9);
+	return r;
+}
+#endif
+
 
 void fragment() {
 	vec3 wp = v_world;
@@ -1354,6 +1419,8 @@ void fragment() {
 	// посчитанными до ветвления)
 	vec3 rcol = rock_color;
 	vec3 rn_add = vec3(0.0);
+	// мелкая фактура на крутом слабее (её место — блоки породы, CL-2)
+	float cl_fine = mix(1.0, cliff_fine_keep, smoothstep(cliff_slope_deg.x, cliff_slope_deg.y, slope_deg));
 #ifndef T_ROCK_TEX_OFF
 	vec2 uv_xy = wp.xy / rock_tex_tile_m;
 	vec2 uv_zy = wp.zy / rock_tex_tile_m;
@@ -1370,11 +1437,6 @@ void fragment() {
 			rtone = fbm(wp.xz / rock_tone_scale_m + vec2(1.3, 8.8), 3);
 			rcol = mix(rock_color, rock_color2, smoothstep(0.3, 0.7, rtone));
 			rcol *= 0.75 + 0.5 * fbm(wp.xz / 12.0 + vec2(wp.y / 8.0), 3);
-			// горизонтальная слоистость (видна издалека на обрывах)
-			float sy = wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0;
-			float strata = 0.5 + 0.5 * sin(6.2832 * sy / strata_m) * 0.7
-					+ 0.3 * sin(6.2832 * sy / (strata_m * 3.7) + 1.3);
-			rcol *= 1.0 - strata_strength * strata * (1.0 - smoothstep(0.7, 0.95, n_class.y));
 			rcol = mix(rock_color, rcol, kfar);
 		}
 #endif
@@ -1390,12 +1452,12 @@ void fragment() {
 			if (by > 0.0) {
 				tsum = mix(tsum, textureGrad(rock_tex, uv_xz + 0.37, dxz.xy, dxz.zw).rgb, by);
 			}
-			rcol = apply_tex(rcol, tsum, rock_tex_avg, tex_w);
+			rcol = apply_tex(rcol, tsum, rock_tex_avg, tex_w * cl_fine);
 			if (use_rock_normal) {
 				vec3 na = textureGrad(rock_normal_tex, uv_xy, dxy.xy, dxy.zw).rgb * 2.0 - 1.0;
 				vec3 nb = textureGrad(rock_normal_tex, uv_zy, dzy.xy, dzy.zw).rgb * 2.0 - 1.0;
 				// касательные возмущения в мировых осях проекций (xy → вдоль x и y, zy → вдоль z и y)
-				rn_add = mix(vec3(na.x, na.y, 0.0), vec3(0.0, nb.y, nb.x), bx) * rock_normal_strength * fade;
+				rn_add = mix(vec3(na.x, na.y, 0.0), vec3(0.0, nb.y, nb.x), bx) * rock_normal_strength * fade * cl_fine;
 			}
 		}
 #endif
@@ -1500,15 +1562,17 @@ void fragment() {
 	col = mix(col, rcol, rock);
 #ifndef T_SL_ROCK_OFF
 	vec3 sl_rg; // SL
-	col = sl_rock_look(col, wp, n_class, dist, max(rock, ocw), scree, clamp(open_w, 0.0, 1.0), slope_deg, slope_up, clamp(v_convex / outcrop_convex_k, -1.0, 1.0), scree_color, rock_tex_tile_m, rock_macro_k, scree_tex_tile_m, sl_rg); // SL
+	col = sl_rock_look(col, wp, n_class, dist, max(rock, ocw) * cl_fine, scree, clamp(open_w, 0.0, 1.0), slope_deg, slope_up, clamp(v_convex / outcrop_convex_k, -1.0, 1.0), scree_color, rock_tex_tile_m, rock_macro_k, scree_tex_tile_m, sl_rg); // SL
 #endif
 
 	// --- скальная поверхность (скалы и выходы породы): крупный слой текстуры породы по трём
 	// проекциям — рисунок (яркость) и нормаль, видны до rock_macro_fade_m, когда мелкий тайл уже
-	// усреднён мипами; уступы слоёв strata_m в нормали (ступень круче, полка положе) ---
+	// усреднён мипами; блоки породы на крутом (грани, щели) ---
 	float rsw = max(rock, ocw);
 	vec3 rs_n = vec3(0.0);
+	vec3 cl_n = vec3(0.0);   // наклон граней блоков породы (гаснет под снегом, см. сборку нормали)
 #ifndef T_ROCK_SURFACE_OFF
+	float cl_foot = max(length(dFdx(wp)), length(dFdy(wp)));   // след пикселя на стене, м (до ветвления)
 	float mk = (1.0 - smoothstep(rock_macro_fade_m.x, rock_macro_fade_m.y, dist)) * kfar;
 	if (rsw > 0.001 && mk > 0.0) {
 		// средняя дистанция: тон пятнами 30–150 м, тёмные трещины-кулуары и светлые полосы осыпей
@@ -1575,21 +1639,31 @@ void fragment() {
 			}
 		}
 #endif
-		// уступы: уклон ±ledge_strength по фазе слоёв (шаг strata_m и ×3,7); слой мельче
-		// ~пикселя гаснет (муар)
-		float kl = ledge_strength * smoothstep(ledge_slope_deg.x, ledge_slope_deg.y, slope_deg);
-		if (kl > 0.0) {
-			float sy = wp.y + 10.0 * (fbm(wp.xz / 250.0, 2) - 0.5) * 2.0;
-			float a1 = 1.0 - smoothstep(0.25 * strata_m, 0.6 * strata_m, foot_px);
-			float a2 = 1.0 - smoothstep(0.9 * strata_m, 2.2 * strata_m, foot_px);
-			float w = sin(6.2832 * sy / strata_m) * 0.3 * a1
-					+ 0.6 * sin(6.2832 * sy / (strata_m * 3.7) + 1.3) * a2;
-			// уступы рвутся пятнами (иначе — сплошные «горизонтали»)
-			w *= smoothstep(0.45, 0.65, vnoise(wp.xz / 70.0 + vec2(8.3, 1.6)));
-			rs_n += vec3(-hg.x, 0.0, -hg.y) * kl * w;
+		// блоки породы: грань (тон, наклон нормали), щель и AO по границе; две вертикальные проекции
+		// (zy, xy) с весами |n|⁴ — без шва на смене экспозиции; блок мельче cliff_fade_px гаснет
+		float ks = smoothstep(cliff_slope_deg.x, cliff_slope_deg.y, slope_deg);
+		if (ks > 0.0) {
+			vec2 bw2 = n_class.xz * n_class.xz;
+			bw2 *= bw2;
+			bw2 /= max(bw2.x + bw2.y, 1e-6);
+			vec2 td = vec2(0.0);   // тон, затемнение
+			vec3 tilt = vec3(0.0);
+			if (bw2.x > 0.02) {   // стена смотрит вдоль x — плоскость zy
+				vec2 t;
+				td += cliff_blocks(wp.zy, cl_foot, t) * bw2.x;
+				tilt += vec3(0.0, t.y, t.x) * bw2.x;
+			}
+			if (bw2.y > 0.02) {   // стена смотрит вдоль z — плоскость xy
+				vec2 t;
+				td += cliff_blocks(wp.xy, cl_foot, t) * bw2.y;
+				tilt += vec3(t.x, t.y, 0.0) * bw2.y;
+			}
+			col *= mix(1.0, (1.0 + td.x) * (1.0 - td.y), ks * rsw * mk);
+			cl_n = tilt * ks * mk;
 		}
 	}
 #endif
+	vec3 cl_col0 = col;   // цвет скал до снега (кулуары, свежий снег) — мера снега поверх блоков
 
 	// снег в кулуарах и ложбинах высоких гор (по высоте, вогнутости, экспозиции), а не шапкой
 #ifndef T_GULLY_SNOW_OFF
@@ -1665,10 +1739,13 @@ void fragment() {
 	}
 #endif
 
+	// снег поверх скал засыпает щели: грани блоков гаснут на долю, на которую цвет ушёл к снегу
+	vec3 cl_ds = snow_color - cl_col0;
+	float cl_snow = clamp(dot(col - cl_col0, cl_ds) / max(dot(cl_ds, cl_ds), 1e-4), 0.0, 1.0);
 	n = normalize(n + vec3(grass_bend.x, 0.0, grass_bend.y) + gn_add + rn_add * max(rock, outcrop * (1.0 - kurum))
-			+ rs_n * rsw);
+			+ (rs_n + cl_n * (1.0 - cl_snow)) * rsw);
 #ifndef T_SL_ROCK_OFF
-	n = sl_rock_nrm(n, sl_rg, clamp(max(rsw, scree * (1.0 - rock)), 0.0, 1.0)); // SL
+	n = sl_rock_nrm(n, sl_rg, clamp(max(rsw * cl_fine, scree * (1.0 - rock)), 0.0, 1.0)); // SL
 #endif
 	// нормали крон (освещение полога)
 	n = normalize(mix(n, normalize(n + vec3(crown_n.x, 0.0, crown_n.z) * 1.5), forest * crown_k * 0.6));
