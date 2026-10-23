@@ -15,3 +15,4 @@
 {"t": "2026-10-24T00:39:25", "by": "coordinator", "task": "TC-1", "ev": "accepted", "commits": ["40752c8e6"], "note": "6/6 trike_cockpit_k1=ok:3/3 (пропуск 1); trike_pilot_k8=ok:4/4; trike_pilot_k4=ok:5/5; pilot_hud=ok:18/18; cockpit=ok:8/8 (пропуск 5); gpu_render=ok:1/1"}
 {"t": "2026-10-24T00:39:38", "by": "coordinator", "task": "TC-1", "ev": "note", "note": "accept --here: первый прогон — таймауты 900 с после чужого pkill -x godot (cloud-look), повтор 6/6 PASS"}
 {"t": "2026-10-24T00:39:38", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: lock cpu с godot возвращается сразу (вывод в jobs/), ждать — job wait <имя> <таймаут>; в accept --here таймаут 900 с на все проверки после убитого godot — нет признака, что процесс убит извне"}
+{"t": "2026-10-24T00:39:56", "by": "main", "task": null, "ev": "delivered", "commits": ["839f22c15"], "note": "squash в main: 839f22c15"}
