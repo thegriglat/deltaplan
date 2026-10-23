@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "weather.md: новый раздел про Tmax, амплитуду, тропопаузу, перистые, рост ветра (WR — заглушка до HH-1h), 700 гПа настоящая; clouds.md — свет окружения на закате; sunset-light.md — диск/ореол, без запрещённых ключей; findings.md +6 пунктов; CHANGELOG «В работе» сведён без устаревших оговорок; applied_in в README.",
+  "commits": [
+    "haze-humidity HH-8b: документы по итогам модуля"
+  ],
+  "checks": [
+    {
+      "name": "no_stale",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "hugo",
+      "value": "без ошибок",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "HH-16 и HH-18 без отчёта, HH-1h в работе — в документах не учтены"
+  ],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept HH-8b --dry",
+  "uncertain": [
+    {
+      "where": "docs/guide/atmosphere/weather.md: раздел «Климат места для остального»",
+      "why": "Источники — отчёты HH-1e/1f/4b/4c и climate_grid.gd; расчёт в игре подсказки 'обычно днём' на средней высоте ячейки взят из отчёта HH-4b, не перепроверен кодом",
+      "checked": "climate_grid.gd place(), weather_model.gd cirrus_base_cover"
+    },
+    {
+      "where": "upper_misc/README.md:18",
+      "why": "строка про шлюз Q4 устарела (в отчёте HH-1f шлюз снят), оставлена как есть — вне задачи переписывать",
+      "checked": "-"
+    }
+  ],
+  "dp_feedback": "docs/registry/findings.md упирается в лимит 40 КБ: нужна подсказка dpcli, куда выносить разделы (скоуп называет только findings.md и findings/).",
+  "extra": {},
+  "t": "2026-10-23T14:31:17",
+  "by": "executor"
+}
