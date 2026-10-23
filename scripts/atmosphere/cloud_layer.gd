@@ -544,9 +544,8 @@ func _update_sun_transmission() -> Dictionary:
 	var el_true: float = sky.clock.angles().y
 	var t_ref := SunTransmission.transmission(p.ref_el_deg, valley, k_ext, k_rgb, k_top, p)
 	var f := SunTransmission.sun_factor(el_true, k_ext, k_rgb, k_top, valley, p)
-	var lt := SunClock.light_at(p.ref_el_deg)
 	var world: Dictionary = Config.get_config("world").get("sun", {})
-	var base_c := _color(world.get("color", [1.0, 1.0, 1.0])) * (lt.sun_color as Color)
+	var base_c := _color(world.get("color", [1.0, 1.0, 1.0]))
 	base_c = base_c.srgb_to_linear()
 	var toa := Vector3(base_c.r * f.x, base_c.g * f.y, base_c.b * f.z)
 	var energy_k := float(world.get("energy", 1.2))

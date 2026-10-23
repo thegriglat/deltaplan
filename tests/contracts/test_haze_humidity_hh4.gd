@@ -218,3 +218,51 @@ func test_v3_glare_and_disk_independent_of_exposure() -> void:
 	var dk := pow(lum, p) / s.haze_sky_transmission(el, s._tint_cam_y)
 	approx(float(s.sky_material().get_shader_parameter("disk_energy")) * s.exposure_current, float(Config.get_config("world").sky.sun_disk.energy) * dk, 1e-3, "диск на кадре = energy × lum^p (E его не раздувает)")
 	s.free()
+
+
+# --- v3 (доработка HH-15): одна цветность солнца у всех потребителей, физический SunClock.light_at ---
+
+
+func test_v3_light_at_physical() -> void:
+	var p := SunTransmission.params()
+	for el in [1.0, 2.0, 8.0, 18.0, 35.0, 60.0]:
+		var lt := SunClock.light_at(el)
+		check(absf(float(lt.sun_energy) - SunTransmission.light_ratio(el, 0.0, 0.0, Vector3.ONE, 0.0, p)) < 1e-6, "sun_energy(%s°) = T_G/T_G(35°)" % el)
+		check(absf(float(lt.sky_energy) - SunTransmission.sky_k(el, p)) < 1e-6, "sky_energy(%s°) = sky_k" % el)
+		check(not lt.has("sun_color"), "цвет солнца не из SunClock.light_at (SunTransmission.sun_tint)")
+	check(float(SunClock.light_at(2.0).sun_energy) < 0.3, "свет прямого солнца на 2° слабый (физика пропускания), а не 1")
+	check(absf(float(SunClock.light_at(40.0).sun_energy) - 1.0) < 1e-6, "днём 1")
+
+
+func _lin_ratio(c: Color) -> Vector2:
+	var b: Array = Config.get_config("world").sun.color  # без sun.color — чистая цветность пропускания
+	var l := c.srgb_to_linear()
+	l = Color(l.r / Color(float(b[0]), float(b[1]), float(b[2])).srgb_to_linear().r, l.g / Color(float(b[0]), float(b[1]), float(b[2])).srgb_to_linear().g, l.b / Color(float(b[0]), float(b[1]), float(b[2])).srgb_to_linear().b)
+	return Vector2(l.g / maxf(l.r, 1e-9), l.b / maxf(l.r, 1e-9))
+
+
+func test_v3_one_sun_chromaticity() -> void:
+	# диск, свет рельефа, дымка, засвет глаза — одна цветность (SunTransmission.sun_tint) ±1 % при одной высоте
+	for hour in [20.0 + 20.0 / 60.0, 20.0 + 45.0 / 60.0, 21.0 + 5.0 / 60.0]:
+		var sky := _sky_at(hour)
+		var el: float = sky.clock.angles().y
+		var hz := sky._haze_extinction()
+		var want: Color = SunTransmission.sun_tint(el, sky._camera_y(), hz[0], hz[1], sky.get_haze_top_msl())
+		if want.r < 0.0:
+			sky.free()
+			continue
+		var w := Vector2(want.g / want.r, want.b / want.r)
+		var got := {
+			"диск": _lin_ratio(sky.sky_material().get_shader_parameter("sun_color")),
+			"свет рельефа": _lin_ratio(sky.sun.light_color),
+			"дымка": _lin_ratio(sky.haze_material().get_shader_parameter("sun_color")),
+		}
+		if sky.glare != null:
+			got["засвет"] = _lin_ratio(sky.glare._sun_color)
+		for k in got:
+			var g: Vector2 = got[k]
+			check(
+				absf(g.x - w.x) <= 0.01 * maxf(w.x, 0.05) + 1e-4 and absf(g.y - w.y) <= 0.01 * maxf(w.y, 0.05) + 1e-4,
+				"%s: g/r,b/r = %s, sun_tint %s (el %.2f°)" % [k, g, w, el]
+			)
+		sky.free()

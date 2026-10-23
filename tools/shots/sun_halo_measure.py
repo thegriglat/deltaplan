@@ -17,7 +17,7 @@
                                  солнца у горизонта захватывает естественный градиент неба по высоте; прежний
                                  фон кольцом — --ring=25,30;
   center_brightest, monotonic, edge_jump (HH-15)
-                                 центр диска ≥ максимума кольца 1,5–20 диаметров по каждому каналу; профиль светлоты Y (кольца 1 px, до 20 диаметров) не растёт (шум 1 %);
+                                 превышение над фоном неба центра диска ≥ ореола (кольца 1,5–20 диаметров) по каждому каналу; профиль светлоты Y (кольца 1 px, до 20 диаметров) не растёт (шум 1 %);
                                  макс. перепад между соседними пикселями профиля в 0,8–1,5 радиуса диска, доля от центра;
   glow_shift_px                 смещение центроида превышения яркости внутри 2·glow_r от диска (в верхней
                                  полуплоскости; рельеф срезает нижнюю часть — смещение вверх неизбежно).
@@ -144,9 +144,17 @@ def main() -> int:
         cen = [max(cp.get(0, 0.0), cp.get(1, 0.0)) for cp in cprof]
         lo_r, hi_r = int(round(1.5 * disk)), int(round(20 * disk))
         ring_max = [max([v for r, v in cp.items() if lo_r <= r <= hi_r] or [0.0]) for cp in cprof]
-        ok = all(cen[c] >= ring_max[c] for c in range(3))
-        print("center_brightest=%d center_lin=(%.3f,%.3f,%.3f) ring_max_lin=(%.3f,%.3f,%.3f)"
-              % ((int(ok),) + tuple(cen) + tuple(ring_max)))
+        # превышение над фоном неба по каждому каналу: фон — медиана канала в строках ±20 px вокруг центра диска
+        # вдали от солнца по азимуту (|x − x_солнца| ≥ 35°); центр диска ≥ ореола по превышению (диск − фон ≥ ореол − фон)
+        gap0 = f * math.tan(math.radians(35.0))
+        bgc = []
+        for c in range(3):
+            vs = [chan(x, y, c) for y in range(max(int(pcy) - 20, 0), min(int(pcy) + 21, h))
+                  for x in range(w) if abs(x - pcx) >= gap0]
+            bgc.append(statistics.median(vs) if len(vs) >= 20 else 0.0)
+        ok = all(cen[c] - bgc[c] >= ring_max[c] - bgc[c] - 1e-6 for c in range(3))
+        print("center_brightest=%d center_lin=(%.3f,%.3f,%.3f) ring_max_lin=(%.3f,%.3f,%.3f) bg_lin=(%.3f,%.3f,%.3f)"
+              % ((int(ok),) + tuple(cen) + tuple(ring_max) + tuple(bgc)))
         # монотонность: профиль яркости (линейная светлота Y по кольцам) от центра до 20 диаметров не растёт (кольца 1 px, среднее по 3, шум 1 % от центра)
         ylum = {r: 0.2126 * cprof[0][r] + 0.7152 * cprof[1][r] + 0.0722 * cprof[2][r] for r in cprof[0] if r in cprof[1] and r in cprof[2]}
         # скользящее среднее по 3 кольцам: диск — 5–6 px, медиана колец из 8–15 пикселей шумит на 2–3 %

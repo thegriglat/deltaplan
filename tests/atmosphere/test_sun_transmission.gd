@@ -178,3 +178,35 @@ func test_ambient_follows_sunset() -> void:
 	var fog: Vector3 = m.get_shader_parameter("fog_color")
 	check(fog.x < fog_day.x and fog.x / fog.z > fog_day.x / fog_day.z * 1.1, "дымка облаков темнее и теплее")
 	_free(arr)
+
+
+func test_cloud_light_one_chromaticity() -> void:
+	# облака (HH-15): свет точки — та же функция пропускания, что и у диска/рельефа (SunTransmission), без повторного
+	# умножения на sun_tint: sun_color слоя — солнце вне атмосферы × sun.color, цветность на точке даёт таблица T(el, y)
+	var p := SunTransmission.params()
+	var img := SunTransmission.build(EXT, RGB, TOP, p)
+	var step_el: float = (p.el_max_deg - p.el_min_deg) / float(p.n_el - 1)
+	var step_h: float = float(p.h_max_m) / float(p.n_h - 1)
+	for ix in [34, 38, 42]:  # узлы таблицы: ≈ 1,8°, 4,2°, 6,7°
+		var el: float = float(p.el_min_deg) + ix * step_el
+		for iy in [1, 3]:
+			var h: float = iy * step_h
+			var c := img.get_pixel(ix, iy)
+			var t: Vector3 = SunTransmission.transmission(el, h, EXT, RGB, TOP, p)
+			var r: Vector3 = SunTransmission.transmission(p.ref_el_deg, h, EXT, RGB, TOP, p)
+			var a := Vector2(c.g / c.r, c.b / c.r)
+			var b := Vector2(t.y / t.x, t.z / t.x)
+			check(absf(a.x - b.x) <= 0.01 * b.x and absf(a.y - b.y) <= 0.01 * maxf(b.y, 0.02), "таблица = функция, узел %d,%d: %s и %s" % [ix, iy, a, b])
+			var tint: Color = SunTransmission.sun_tint(el, h, EXT, RGB, TOP, p)  # цветность относительно T_ref той же высоты
+			var want := Vector2(t.y / t.x * r.x / r.y, t.z / t.x * r.x / r.z)
+			check(absf(tint.g - want.x) <= 1e-4 and absf(tint.b - want.y) <= 1e-4, "sun_tint = T/T_ref по каналам")
+	var arr := _layer()
+	var layer: CloudLayer = arr[0]
+	var sky: SkyEnvironment = arr[1]
+	sky.clock.start_flight(51.0, 85.0, 7, 15, 20.5)
+	layer._update_light()
+	var toa: Vector3 = layer._material.get_shader_parameter("sun_color")
+	var b: Array = Config.get_config("world").sun.color
+	var bl := Color(float(b[0]), float(b[1]), float(b[2])).srgb_to_linear()
+	check(absf(toa.y / toa.x - bl.g / bl.r) < 1e-3 and absf(toa.z / toa.x - bl.b / bl.r) < 1e-3, "sun_color облаков без sun_tint (нет двойного учёта): %s" % toa)
+	_free(arr)

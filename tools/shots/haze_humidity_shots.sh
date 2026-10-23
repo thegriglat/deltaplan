@@ -75,7 +75,7 @@ shot() {  # shot <файл.jpg> <аргументы игры...>
   local try
   for try in 1 2 3; do  # окно иногда не получает экран (NO GRAB) — повтор
     rm -f "$png"
-    (cd "$root" && timeout 150 xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --audio-driver Dummy --resolution 1920x1080 \
+    (cd "$root" && timeout "${SHOT_TIMEOUT:-150}" xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --audio-driver Dummy --resolution 1920x1080 \
     -- --autostart --autopilot --no-overlay --sky=partly --camera=cockpit "--seed=$SEED" \
     "$@" "--screenshot=$png" 2>&1 | tee "${png%.png}.log" | grep -E "^screenshot:|ERROR" || true)
     # окно бывает вдвое уже экрана (тайлинг) — тогда кадр не годится, повтор
@@ -149,7 +149,8 @@ fi
 # по расчёту высоты (NOAA, как SunClock), не по часам; плюс вечерний Эверест (ракурс 26_everest_tele из menu_art.json).
 # + halo2_askarovo (3°, ядро/ореол: sun_halo_measure.py) и scene_backlit_{2deg,1deg} (облака против солнца, --sky=partly); TAG=<имя> — один кадр.
 # <префикс>scene_{el35,el18,el8,sun2,sun07}.jpg, <префикс>scene_everest.jpg; рядом в _aux/ — sun.txt/tint.txt/scene.txt (E, light_energy, sky_k).
-# Старт: 15:00 (35°, 18°; время ×240) или 20:00 (8° и ниже; ×60) — из time.start_hours.
+# Старт: 15:00 (35°, 18°; время ×240) или 20:00 (8° и ниже; ×60) — из time.start_hours. На загруженной машине кадры идут реже, часы игры отстают:
+# TIME_SCALE=<k> умножает --time (подобрать по строке sun_tint: el=… в tint.txt), SHOT_TIMEOUT=<с> — предел одного запуска (по умолчанию 150). — из time.start_hours.
 if [[ "${4:-}" == "scene" ]]; then
   IFS='|' read -r name site lat lon off hdg <<<"${places[1]}"
   for tgt in "35:scene_el35:side:15:240:partly" "18:scene_el18:side:15:240:partly" "8:scene_el8:side:20:60:partly" "2:scene_sun2:sun:20:60:clear" "0.7:scene_sun07:sun:20:60:clear" "3:halo2_askarovo:sun:20:60:clear" "2:scene_backlit_2deg:sun:20:60:partly" "0.8:scene_backlit_1deg:sun:20:60:partly"; do
@@ -177,7 +178,7 @@ for _ in range(60):
 print("%.4f" % lo)
 PY
 )"
-    secs="$(python3 -c "print('%.1f' % (($h - $hour) * 3600 / $spd))")"
+    secs="$(python3 -c "print('%.1f' % (($h - $hour) * 3600 / $spd * ${TIME_SCALE:-1}))")"
     read -r az el < <(sun "$lat" "$lon" "$off" "$h")
     echo "$name $tag: высота солнца $el, азимут $az (час $h = --hour=$hour --time=$secs при ×$spd)"
     set_speed "$spd"
