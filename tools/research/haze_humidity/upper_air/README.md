@@ -7,7 +7,7 @@ summary: "Сетка 700 гПа (HH2 v2): ERA5 2011–2020, T и Z по меся
 related: ["docs/contracts/haze-humidity.md", "docs/plan/haze-humidity.md", "tools/research/haze_humidity/dew_point/README.md"]
 conclusion: "data/climate/upper_air_1deg.bin — настоящая сетка (year0=2011, year1=2020). T700 по Алтаю в среднем на 1,2 °C холоднее таблицы, Δz_dry ≈ −200 м. σ T700 (t700_sd.npz) по 2 годам: Алтай 2,7–5,5 K; ошибка σ ≈ ±10–15 %, смещение среднего двух лет до 2 K."
 data: "data/climate/upper_air_1deg.bin"
-applied_in: []
+applied_in: ["data/climate/upper_air_1deg.bin", "scripts/atmosphere/climate_grid.gd (t700_c, z700_m)"]
 ---
 # Воздух 700 гПа: сетка 1° (HH-1g)
 

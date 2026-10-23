@@ -7,7 +7,7 @@ summary: "Tmax и суточная амплитуда ERA5 2011–2020, сетк
 related: ["docs/contracts/haze-humidity.md", "docs/plan/haze-humidity.md", "tools/research/haze_humidity/dew_point/README.md"]
 conclusion: "Сетка surface_t_1deg.bin (HH5 v1) запечена из ERA5 (CC-BY-4.0): TX −61,1…47,8 °C, DTR 0,45…20,4 К. Tmax падает с высотой на 5,5–7,8 К/км, амплитуда — на 0–1,5 К/км. Нынешние typical_max_c и diurnal.range_k подогнаны под Алтай и для Дараба, Кэрнса и Крыма неверны на 4–28 К."
 data: "data/climate/surface_t_1deg.bin"
-applied_in: []
+applied_in: ["data/climate/surface_t_1deg.bin", "scripts/atmosphere/climate_grid.gd (tx_c, dtr_k)", "configs/weather_model.json (climate.tx_gradient_k_per_km, dtr_gradient_k_per_km)"]
 ---
 # Климат Tmax и суточной амплитуды: сетка 1° (HH-1e)
 
