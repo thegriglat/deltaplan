@@ -303,6 +303,8 @@ func _move(
 		if f_run < 0.0:
 			f_run *= feet_load
 		var f_along := aero.dot(dir3) - weight * dir3.y
+		if m.external_force != Vector3.ZERO:
+			f_along += m.external_force.dot(dir3)  # TW-К4: трос
 		_speed = maxf(_speed + (f_run + f_along) / m.mass * dt, 0.0)
 	else:
 		var slope_factor := clampf(

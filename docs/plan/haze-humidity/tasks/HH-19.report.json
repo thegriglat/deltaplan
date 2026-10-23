@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "Ореол (плато цвета солнца + ядро и хвост засвета) рисуется только над линией горизонта рельефа: 17 лучей по азимутам ±2° вокруг солнца раз в кадр (SunGlare.horizon_elevations), в шейдере высота пикселя сравнивается с линией. На горе остаётся только veil_flat; солнце за горой — без ореола (видимость диска по пробам/лучам, как было).",
+  "commits": [
+    "см. git log ветки haze-humidity/HH-19: sun-glare: ореол только над линией горизонта рельефа"
+  ],
+  "checks": [
+    {
+      "name": "sky",
+      "value": "16/16",
+      "pass": true
+    },
+    {
+      "name": "sun",
+      "value": "31/31",
+      "pass": true
+    },
+    {
+      "name": "frames",
+      "value": "8",
+      "pass": true
+    },
+    {
+      "name": "halo_size",
+      "value": "3.54",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [
+    "build/screenshots/haze-humidity/before_ridge_07.jpg",
+    "build/screenshots/haze-humidity/after_ridge_07.jpg",
+    "build/screenshots/haze-humidity/after_ridge_02.jpg"
+  ],
+  "how_to_check": ".dpcli/dpcli accept HH-19",
+  "uncertain": [
+    {
+      "where": "scripts/world/sun_glare.gd:horizon_elevations",
+      "why": "линия горизонта — по функции высот; деревья, крыло, руки её не меняют, ореол на них ложится как раньше; кривизна Земли не учтена; шаги лучей могут пропустить узкий гребень (мягкий край 0,12°)",
+      "checked": "тест horizon_elevations; кадры ridge до/после: диск срезан рельефом, ореол заканчивается у хребта. Кадры до/после сняты в разных запусках, ракурс чуть отличается"
+    }
+  ],
+  "dp_feedback": "lock gpu через job: lock status показывает свободен сразу после старта задачи, ожидание по нему ненадёжно; job wait удобнее.",
+  "extra": {
+    "terrain_halo": 0.0
+  },
+  "t": "2026-10-23T15:11:46",
+  "by": "executor"
+}

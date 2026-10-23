@@ -80,7 +80,7 @@ func apply_config() -> void:
 		sun = DirectionalLight3D.new()
 		sun.name = "Sun"
 		add_child(sun)
-	sun.shadow_enabled = true
+	sun.shadow_enabled = GraphicsPresets.gpu_effect("sun_shadows")  # CR-К4
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	sun.directional_shadow_max_distance = float(sun_cfg.shadow_max_distance_m)
 	sun.directional_shadow_split_1 = float(sun_cfg.shadow_split_1)
@@ -141,7 +141,7 @@ func apply_config() -> void:
 	env.fog_height = float(fog_cfg.height_m)
 	env.fog_height_density = float(fog_cfg.height_density)
 
-	env.glow_enabled = bool(fx.get("glow_enabled", false))
+	env.glow_enabled = bool(fx.get("glow_enabled", false)) and GraphicsPresets.gpu_effect("glow")
 	env.glow_intensity = float(fx.get("glow_intensity", 0.8))
 	env.glow_bloom = float(fx.get("glow_bloom", 0.0))
 	env.glow_hdr_threshold = float(fx.get("glow_hdr_threshold", 1.0))

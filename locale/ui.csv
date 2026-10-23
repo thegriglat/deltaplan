@@ -65,7 +65,10 @@ common_save,Сохранить,Save
 result_total_climb,Суммарный набор высоты: %.0f м,Total climb: %.0f m
 site_altai_tugaya_south,Тугая (Горно-Алтайск) — южный склон,Tugaya (Gorno-Altaysk) — south slope
 menu_controls,Управление,Controls
-settings_mouse_sensitivity,Чувствительность мыши,Mouse sensitivity
+settings_mouse_sensitivity,Обзор мышью,Mouse look
+settings_bar_sensitivity,Чувствительность штанги,Bar sensitivity
+settings_bar_os_accel,Ускорение мыши в системе меняет ход штанги — выключите его (плоский профиль) в настройках ОС,OS mouse acceleration changes bar travel — turn it off (flat profile) in system settings
+settings_bar_sensitivity_fmt,"%.2f×  ≈ %.1f см (800 DPI)","%.2f×  ≈ %.1f cm (800 DPI)"
 map_hint,"Щёлкните по карте или введите координаты. Старт — в выбранной точке; точнее — «Выбрать старт на рельефе» в главном меню.","Click the map or enter coordinates. The launch is at the chosen point; for a precise spot use "Pick launch on terrain" in the main menu."
 unit_db,дБ,dB
 unit_kg,кг,kg
@@ -77,13 +80,9 @@ controls_on_ground,На земле,On the ground
 controls_instrument_camera_game,"Прибор, камера, игра","Instrument, camera, game"
 controls_pull_full,"Держать в полёте — добор до бёдер: «на себя» дальше обычного, большой разгон; отпустил — штанга плавно к груди; за обычным пределом индикатор подвески красный","Hold in flight — pull the bar to the hips: further than the normal pull-in, much faster; release — the bar eases back to the chest; past the normal limit the hang indicator turns red"
 controls_center,Встать в центр трапеции — крыло выровняется и полетит прямо,Center your weight — the wing levels out and flies straight
-settings_roll_control,Управление креном,Roll control
 settings_roll_input,Крен мышью,Roll by mouse
 settings_roll_input_bar,Как штанга (вправо — крен влево),Like the bar (right — roll left)
 settings_roll_input_body,Как тело (вправо — крен вправо),Like the body (right — roll right)
-settings_roll_simple,Простое (аркадное),Simple (arcade)
-settings_roll_weight_shift,Смещение веса (как на настоящем крыле),Weight shift (like a real wing)
-settings_roll_pendulum,Маятник,Pendulum
 controls_mouse_bar,Мышь — трапеция: от себя / на себя и вбок; средняя кнопка или V — снова смотреть вперёд,Mouse — control bar: push / pull and sideways; middle button or V — look ahead
 controls_glance,Держать — посмотреть на приборы на перекладине,Hold — look at the instruments on the bar
 controls_look_keys,"W/A/S/D — осмотреться в кабине (A/D — влево/вправо, W/S — вверх/вниз); V — снова вперёд","W/A/S/D — look around in the cockpit (A/D — left/right, W/S — up/down); V — look ahead again"
@@ -94,6 +93,11 @@ controls_turn_on_ground,Повернуться на месте налево (D �
 controls_run,"Держать — бежать (разбег); W не нужен, на бегу W/S/A/D не действуют","Hold — run (launch run); no W needed, W/S/A/D do nothing while running"
 controls_ground_wing,"Стоя и шагом: нос и крен крыла — мышь или стик","Standing and walking: wing nose and bank — mouse or stick"
 controls_run_wing,"На бегу: мышь или стик — нос и крен крыла, как в полёте; крыло в крене ведёт бег по дуге","While running: mouse or stick — wing nose and bank, as in flight; a banked wing turns the run into an arc"
+controls_trike,Дельталёт (режим с мотором),Trike (powered mode)
+controls_trike_throttle,"Газ: W — добавить, S — убавить (обе — ноль); осмотреться — мышью с правой кнопкой","Throttle: W — more, S — less (both — zero); look around with the mouse, right button held"
+controls_trike_engine,Завести или заглушить двигатель,Start or stop the engine
+controls_trike_steer,"На земле A/D — руление носовым колесом","On the ground A/D — nosewheel steering"
+controls_trike_brake,Держать на земле (Shift) — тормоз колёс,Hold on the ground (Shift) — wheel brake
 controls_next_page,"Следующая страница прибора (1, 2, 3, 4, 5 — страница сразу)","Next instrument page (1, 2, 3, 4, 5 — jump to that page)"
 controls_camera,Вид: из кабины → сзади → свободная камера,View: first-person → chase → free camera
 controls_restart,Начать полёт заново с того же старта,Restart the flight from the same launch
@@ -186,6 +190,12 @@ settings_haze_sun,Дымка к солнцу,Haze toward the sun
 settings_wind_model,Ветер над рельефом,Wind over terrain
 settings_wind_model_calc,Расчет на GPU (обтекание рельефа),GPU solver (terrain flow)
 settings_wind_model_simple,Эвристика (профиль ветра без рельефа),Heuristic (wind profile without terrain)
+settings_gpu_hint,Если игра вылетает или видеокарта зависает - выключайте эффекты по одному и перезапускайте полёт. Изменения вступают в силу со следующей загрузки места.,If the game crashes or the graphics card hangs - switch the effects off one by one and restart the flight. Changes apply from the next place load.
+settings_gpu_on,Включено,On
+settings_gpu_sun_shadows,Тени солнца,Sun shadows
+settings_gpu_cloud_shadows,Тени облаков на земле,Cloud shadows on the ground
+settings_gpu_glow,Свечение ярких мест,Glow of bright areas
+settings_gpu_simple_clouds,Простые облака (без вычислительных шейдеров),Simple clouds (no compute shaders)
 settings_air_cache_mb,Кеш ветра на диске,Wind cache on disk
 unit_mb,МБ,MB
 settings_as_in_preset,Как в пресете,From preset
@@ -257,6 +267,7 @@ catch_up_landed,на земле,landed
 catch_up_air,в воздухе,flying
 catch_up_bot,бот,bot
 controls_catch_up,"Сетевая игра: меню «Догнать» — выбрать пилота, и крыло само долетит к нему","Online: the «Catch up» menu — pick a pilot and the wing flies you to them"
+controls_tow_release,Отцеп при буксировке (лебёдка): трос снимается и вы летите свободно,Release while winch-towed: the rope drops away and you fly free
 tab_ahead,вперёд,ahead
 tab_not_circling,нет кружения,not circling
 tab_circle_avg,СРЕДНЕЕ КРУГ,CIRCLE AVG
@@ -395,6 +406,9 @@ wing_group_kingpost,Мачтовые,Kingpost
 wing_group_kingpost_hint,С мачтой — быстрее и дальше учебных,Kingpost — faster and farther than trainers
 wing_group_topless,Безмачтовые,Topless
 wing_group_topless_hint,"Без мачты — лучшее качество, строже в управлении","No kingpost — best glide, demanding handling"
+wing_group_tug,Буксировщики,Tugs
+wing_group_tug_hint,"Крылья буксировщиков — игроку не показываются","Tug wings — hidden from the player"
+wing_trike_ixess15,Air Creation iXess 15 (буксировщик),Air Creation iXess 15 (tug)
 setup_wing_class,Класс крыла,Wing class
 setup_wing_model,Модель,Model
 setup_wing_class_item,"%s — %s, %s","%s — %s, %s"
@@ -550,7 +564,6 @@ setup_app_hang_shift_cm,Подвеска вдоль киля,Hang point along ke
 setup_app_hang_length_m,Длина подвески,Hang strap length
 setup_app_sail_flex,Гибкость паруса,Sail flexibility
 setup_app_dihedral_eff_deg,Поперечное V,Effective dihedral
-setup_app_pendulum_only,Настройки режима «Маятник»; в других режимах не действуют,Pendulum mode settings; other modes ignore them
 start_pick_hint,Щёлкните по земле — поставить старт. Протяжка мышью задаёт курс.,Click the ground to set the launch. Drag to set the heading.
 start_pick_coords,Широта %.5f · долгота %.5f,Lat %.5f · lon %.5f
 start_pick_height,%d м,%d m
@@ -565,6 +578,12 @@ start_pick_bad_steep,слишком круто,too steep
 setup_exact_start,Старт уточнён на рельефе · курс %d°,Launch set on terrain · heading %d°
 setup_exact_reset,Сбросить,Reset
 setup_tab_goals,Цели,Goals
+setup_tow,Буксировка,Tow
+setup_tow_none,Нет,None
+setup_tow_winch,Лебёдка,Winch
+setup_tow_aerotow,Аэробуксировка (дельталёт),Aerotow (trike)
+setup_start_trike,Дельталёт,Trike
+setup_tow_mp_off,В сетевой зоне буксировка недоступна,Towing is not available in a network zone
 goals_kind_height,Набор высоты,Height gain
 goals_kind_duration,Время в воздухе,Time aloft
 goals_kind_distance,Дальность,Distance
@@ -626,3 +645,28 @@ training_volcano_thermals,Термики,Thermals
 training_volcano_thermals_what,"поиск и центровка термиков над склонами острова в жаркий полдень",finding and centering thermals over the island slopes at hot midday
 training_volcano_landing,Посадка на плато,Plateau landing
 training_volcano_landing_what,"короткий подлёт и посадка в круг на плато",short approach and landing in the circle on the plateau
+tow_site_bad,"Полоса задана неверно (длина, ширина или курс)",Runway length width or heading is invalid
+tow_site_edge,"Полоса выходит за детальный рельеф или близко к его краю","Runway leaves the detailed terrain or is too close to its edge"
+tow_site_surface,"На полосе вода или лес","Water or forest on the runway"
+tow_site_slope,"Полоса не ровная: уклон больше допустимого","Runway is not flat: slope exceeds the limit"
+tow_site_dh,"Перепад высот вдоль полосы больше допустимого","Height difference along the runway exceeds the limit"
+loc_wilotree_park,"Флорида — Wilotree Park (Quest Air), буксировка","Florida — Wilotree Park (Quest Air), towing"
+site_wilotree_runway_36,"Полоса 36 (на север), южный торец","Runway 36 (north), south end"
+site_wilotree_runway_18,"Полоса 18 (на юг), северный торец","Runway 18 (south), north end"
+trike_rpm,"ОБОРОТЫ ×1000","RPM ×1000"
+trike_fuel,"ТОПЛИВО","FUEL"
+trike_fuel_empty,"E","E"
+trike_fuel_full,"F","F"
+gpu_fail_title,Видеокарта не отвечает,Graphics card not responding
+gpu_fail_text,"Видеокарта перестала отвечать (драйвер %s). Игра могла оборваться или считать ветер не так, как должна.",The graphics card stopped responding (driver %s). The game may have crashed or computed wind incorrectly.
+gpu_fail_recommend,Рекомендуем переключиться на %s и перезапустить игру.,We recommend switching to %s and restarting the game.
+gpu_fail_update,"Попробуйте обновить драйвер видеокарты. Можно включить «Безопасную графику»: тяжёлые эффекты и расчёт ветра на видеокарте выключатся.","Try updating your graphics driver. You can also turn on “Safe graphics”: heavy effects and GPU wind calculation are switched off."
+gpu_fail_switch,Перейти на %s и перезапустить,Switch to %s and restart
+gpu_fail_safe,Безопасная графика (без тяжёлых эффектов),Safe graphics (no heavy effects)
+gpu_fail_retry,Попробовать снова,Try again
+settings_render_driver,Драйвер графики,Graphics driver
+render_driver_auto,Авто,Auto
+settings_render_driver_restart,Нужен перезапуск,Restart required
+settings_render_driver_restart_btn,Перезапустить игру,Restart game
+menu_safe_graphics,Безопасная графика: прошлый запуск оборвался,Safe graphics: the last run crashed
+menu_safe_restore,Вернуть настройки,Restore settings

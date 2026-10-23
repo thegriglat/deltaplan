@@ -101,7 +101,12 @@
     0.02,
     0.5
   ],
-  "look_sensitivity_range_doc": "Диапазон чувствительности мыши, °/пиксель",
+  "look_sensitivity_range_doc": "Диапазон чувствительности обзора мышью, °/пиксель",
+  "bar_sensitivity_range": [
+    0.25,
+    4.0
+  ],
+  "bar_sensitivity_range_doc": "Диапазон множителя чувствительности штанги (слайдер, шаг 0,05): ход до упора = bar_travel_px / значение отсчётов мыши",
   "about_sources": [
     "res://ASSETS.md"
   ],
@@ -164,6 +169,25 @@
       "text": "controls_run_wing"
     },
     {
+      "section": "controls_trike"
+    },
+    {
+      "action": "throttle_up",
+      "text": "controls_trike_throttle"
+    },
+    {
+      "action": "engine_toggle",
+      "text": "controls_trike_engine"
+    },
+    {
+      "action": "turn_left",
+      "text": "controls_trike_steer"
+    },
+    {
+      "action": "trike_brake",
+      "text": "controls_trike_brake"
+    },
+    {
       "section": "controls_instrument_camera_game"
     },
     {
@@ -189,6 +213,10 @@
     {
       "action": "catch_up",
       "text": "controls_catch_up"
+    },
+    {
+      "action": "tow_release",
+      "text": "controls_tow_release"
     },
     {
       "action": "screenshot",

@@ -1,0 +1,59 @@
+{
+  "id": "HH-19",
+  "module": "haze-humidity",
+  "type": "dp-engineer",
+  "title": "Ореол солнца не ложится на горы: за рельефом — небом, солнце за горой — без ореола",
+  "goal": "Ореол/засвет солнца не наслаивается на рельеф (after_scene_disk_07deg.jpg): околосолнечный ореол рисуется в небе (за рельефом по глубине), засвет глаза гаснет по доле видимого диска; солнце за горой — без ореола на горе; кадры до/после. Если несложно.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "HH4",
+      "version": "3",
+      "ref": "docs/contracts/haze-humidity.md"
+    }
+  ],
+  "copy": "~/deltaplan-haze-humidity-HH-19",
+  "branch": "haze-humidity/HH-19",
+  "base": "feature/haze-humidity",
+  "scope": [
+    "scripts/world/sky.gdshader",
+    "scripts/world/sun_glare.gdshader",
+    "scripts/world/sun_glare.gd",
+    "scripts/world/sky_environment.gd",
+    "configs/world.json",
+    "tests/world/",
+    "tools/shots/sun_halo_measure.py",
+    "tools/shots/haze_humidity_shots.sh",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain/",
+    "scripts/atmosphere/",
+    "data/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "sky",
+      "tests": "sky"
+    },
+    {
+      "name": "sun",
+      "tests": "sun"
+    },
+    {
+      "name": "frames",
+      "cmd": "ls /home/greg/deltaplan/build/screenshots/haze-humidity/before_ridge_*.jpg /home/greg/deltaplan/build/screenshots/haze-humidity/after_ridge_*.jpg | wc -l",
+      "expect": "num:(\\d+) >=4"
+    },
+    {
+      "name": "halo_size",
+      "cmd": "python3 tools/shots/sun_halo_measure.py /home/greg/deltaplan/build/screenshots/haze-humidity/after_halo_askarovo.jpg",
+      "expect": "num:ratio=([\\d.]+) <=3.7"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T14:45:25"
+}

@@ -30,7 +30,6 @@ func test_proto_fields() -> void:
 	for pair: Array in [
 		["CONTROL_MODE_UNSPECIFIED", 0],
 		["CONTROL_MODE_RATE", 1],
-		["CONTROL_MODE_WEIGHT_SHIFT", 2],
 		["CONTROL_MODE_PENDULUM", 3],
 	]:
 		check(text.contains("%s = %d;" % pair), "enum %s = %d" % pair)
@@ -46,7 +45,7 @@ func test_messages_schema() -> void:
 		== [
 			"CONTROL_MODE_UNSPECIFIED",
 			"CONTROL_MODE_RATE",
-			"CONTROL_MODE_WEIGHT_SHIFT",
+			"",
 			"CONTROL_MODE_PENDULUM"
 		],
 		"ControlMode в ENUMS"

@@ -209,7 +209,7 @@ static func load_last_flight(path: String = LAST_FLIGHT) -> FlightSettings:
 		return s
 	s = FlightSettings.from_dict(d, s)
 	# Несуществующий конфиг крыла — по умолчанию.
-	if not Config.list_configs("wings").has(s.wing):
+	if not WingCatalog.is_player_wing(s.wing):
 		s.wing = FlightSettings.defaults().wing
 	# Прогноз: мусор и числа вне меню — в диапазон.
 	s.clamp_forecast()

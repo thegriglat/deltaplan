@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+Terrain: место pt_+28.000_+086.850 загружено за 4.21 с
+Terrain: поля рельефа за 3.67 с
+PlaceData: 'pt_+28.000_+086.850' за 0.64 с — OSM 0.64 с (домов OSM 0), план домов 0.00 с (72)
+WorldObjects: снаряжение у 0 стартов — 0 вещей за 0 мс
+WorldObjects: 'pt_+28.000_+086.850' за 0.37 с — ветроуказателей 0, посадок 0, троп к стартам 0, домов 72, OSM тайлов 0/9
+air_model: field (массивы; уровней 3)
+air_model: поле (фазы+Пикар) итераций [0, 0], фазы A 0.00, B 0.03, C 0.00, D 0.06, F 0.91, H 0.00 (531 мс), заморожено 1.00, ω→запас false
+air_model: поле 12:00 ч, 2.0 м/с с 270° (загрузка): 7.62 с, итераций [0, 0], окна ["100 м [180, 210]", "50 м [60, 90]"]; k притока 1.000, U над стартом на 10 м 0.23 м/с (проход 1: 0.23 м/с), проходов 1 ["1.000 → 0.23 м/с за 7.6 с (область 2.8, GPU 0.15)"]
+WorldObjects: у старта нет ровного места для палаток
+air_cache: записано 9cbcd74e179430bb (ok), 0.56 с
+Мир: deltaplan://world?bots=0&date=2026-07-15&from=270&hour=12.00&lat=27.99570&lon=86.82850&seed=20260927&sky=clear&temp=-20.0&v=2&wind=2.0
+ERROR: NO GRAB
+   at: _mouse_update_mode (platform/linuxbsd/x11/display_server_x11.cpp:588)
+   GDScript backtrace (most recent call first):
+       [0] set_mouse_captured (res://scripts/game/input_controller.gd:85)
+       [1] set_input_enabled (res://scripts/game/game.gd:1160)
+       [2] set_flying (res://scripts/game/game.gd:960)
+       [3] _fly (res://scenes/main.gd:389)
+       [4] start (res://scripts/game/game.gd:484)
+snow_bench: {"cam":[9160.66015625,8267.025390625,4560.66015625],"emitters":0,"items":[],"name":"everest_weak_lee","plume_node":true,"scan_count":3,"series":[[2.0,0,3],[4.0,0,3],[6.0,0,3],[8.0,0,3],[10.0,0,3],[12.0,0,3],[14.0,0,3],[16.1,0,3],[18.1,0,3],[20.1,0,3],[22.1,0,3],[24.1,0,3],[26.1,0,3],[28.1,0,3],[30.1,0,3],[32.1,0,3],[34.1,0,3],[36.1,0,3],[38.1,0,3],[40.1,0,3],[42.1,0,3],[44.1,0,3]],"shot":"/tmp/claude-1000/snw9/everest_weak_lee.jpg","t_mean_c":0.0,"tgt":[8100.0,7931.28125,3500.0]}

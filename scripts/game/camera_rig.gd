@@ -27,7 +27,11 @@ var head: Node3D
 ## Высота земли f(x, z) -> м, чтобы внешние камеры не уходили под рельеф.
 var ground_fn: Callable = Callable()
 ## Обзор мышью включён (выключается в меню и на паузе).
-var look_enabled := true
+var look_enabled := true:
+	set(v):
+		if not v:
+			_bar_look_held = false  # ПКМ отпущена в меню/паузе — событие до нас не дойдёт
+		look_enabled = v
 ## Куда смотреть по клавише «взгляд на прибор» (маркер прибора на трапеции).
 var glance_target: Node3D
 ## Приборы, на которые смотрит клавиша «взгляд на прибор» (Q), когда glance_target не задан:
@@ -37,6 +41,9 @@ var glance_nodes: Array[Node3D] = []
 ## Голова повторяет его долей cockpit.head_follow_body со своим сглаживанием — планшет на
 ## штанге не «катается» по кадру вместе с телом. Не задано — голова стоит в маркере PilotHead.
 var body_shift_fn: Callable = Callable()
+## TP-К8: false у дельталёта - камера кабины точно в голове сидящего пилота (back_offset_m «сидячей позы» не
+## применяется: позади головы двигатель и винт).
+var eye_offset_enabled := true
 ## Свободная камера слушает клавиши движения (false — автопилот жмёт run — Shift, «быстрее»).
 var free_keys_enabled := true
 ## Камера сзади — вплотную, без сглаживания (буксир «догнать», NET-42: на 1000 км/ч сглаженная
@@ -134,6 +141,9 @@ func snap() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Состояние ПКМ пишем и при выключенном обзоре: отпускание в меню/паузе не теряется.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		_bar_look_held = event.pressed
 	if not look_enabled:
 		return
 	if event.is_action_pressed("camera_next"):
@@ -145,8 +155,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	)
 	if event.is_action_pressed("look_center") or middle_click:
 		recenter()
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
-		_bar_look_held = event.pressed
 	# Обзор мышью (FR-31): в кабине — поворот головы, снаружи — орбита.
 	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	if event is InputEventMouseMotion and captured and _mouse_looks():
@@ -345,6 +353,8 @@ func _eye_point(_c: Dictionary) -> Vector3:
 
 ## Смещение камеры от точки: back_hidden — назад от глаз (cockpit.back_offset_m), eyes — offset_m.
 func _eye_offset(c: Dictionary) -> Vector3:
+	if not eye_offset_enabled:
+		return Vector3.ZERO
 	return _vec(c.back_offset_m) if _is_back(c) else _vec(c.offset_m)
 
 

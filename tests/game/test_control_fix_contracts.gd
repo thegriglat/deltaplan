@@ -16,7 +16,7 @@ func test_c1_control_input_shape() -> void:
 	check(c.roll is float and c.roll == 0.0, "С1: roll: float, 0")
 	check(c.walk is float and c.walk == 0.0, "С1: walk: float, 0")
 	check(c.run is bool and not c.run, "С1: run: bool, false")
-	check(c.weight_shift is bool, "С1: weight_shift: bool")
+	check(not ("weight_shift" in c), "RM-К1: ControlInput без weight_shift")
 	check("turn" in c and c.turn is float and c.turn == 0.0, "С1 v2: turn: float, 0 (курс стоя/шагом)")
 
 

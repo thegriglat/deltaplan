@@ -2254,6 +2254,103 @@
         "pattern": "laminar",
         "scrim": true
       }
+    },
+    "trike_ixess15": {
+      "config": "trike_ixess15",
+      "basebar": {
+        "shape": "straight",
+        "bow_m": 0.0,
+        "ref": "оценка: дельталёт с тележкой — прямая штанга, в источниках н/д"
+      },
+      "out": "glider_trike_ixess15",
+      "nose_angle_deg": 120,
+      "root_chord_m": 2.54,
+      "tip_chord_m": 0.63,
+      "nose_forward_m": 1.327,
+      "hang_source": "cg",
+      "upright_len_m": 1.7271,
+      "crossbar_from_nose_m": 1.24,
+      "upright_tilt_deg": 24.2392,
+      "cg_from_nose_m": 1.342,
+      "keel_extra_m": 0.1,
+      "dihedral_deg": 1.5,
+      "washout_deg": 10,
+      "camber": [
+        0.03,
+        0.1,
+        0.06
+      ],
+      "double_surface": true,
+      "lower_cover": 0.9,
+      "le_thickness": 0.12,
+      "battens_per_side": 12,
+      "kingpost_m": 1.4,
+      "crossbar_u": 0.58,
+      "luff_lines": [
+        0.4,
+        0.7
+      ],
+      "basebar_width_m": 1.1,
+      "faired_uprights": false,
+      "wheels": false,
+      "tube_color": [
+        0.2,
+        0.21,
+        0.23
+      ],
+      "tube_rough": 0.4,
+      "tube_metal": 0.5,
+      "design": {
+        "base": [
+          0.95,
+          0.95,
+          0.93
+        ],
+        "le": [
+          0.88,
+          0.88,
+          0.9
+        ],
+        "center": [
+          0.21,
+          0.86,
+          0.15
+        ],
+        "accent": [
+          0.4,
+          0.16,
+          0.72
+        ],
+        "te": [
+          0.1,
+          0.1,
+          0.12
+        ],
+        "batten": [
+          0.27,
+          0.27,
+          0.3
+        ],
+        "bottom": [
+          0.96,
+          0.96,
+          0.95
+        ],
+        "bottom_accent": [
+          0.21,
+          0.86,
+          0.15
+        ],
+        "bottom_tip": [
+          0.4,
+          0.16,
+          0.72
+        ],
+        "pattern": "laminar",
+        "scrim": true
+      },
+      "span_m": 10.0,
+      "area_m2": 15.0
     }
   }
 }

@@ -42,19 +42,14 @@ func test_sail_shader_and_flight_params() -> void:
 	var g: Glider = GLIDER_SCENE.instantiate()
 	g.auto_start = Glider.AutoStart.NONE
 	Engine.get_main_loop().current_scene.add_child(g)
-	# срыв по stall_amount — FlightModel; режим задаём явно, не умолчанием (PMD-2)
-	var cfg := Config.get_config("controls")
-	var old: Variant = cfg.get("roll_control_mode")
-	cfg["roll_control_mode"] = "weight_shift"
 	g.setup("sport")
-	cfg["roll_control_mode"] = old
-	check(g.model is FlightModel, "режим weight_shift → FlightModel")
+	check(g.model is PendulumModel, "RM-К1: Glider.setup → PendulumModel")
 	g.reset_in_air(Vector3(0, 500, 0), 0.0)
 	check(g.visual.sail_material != null, "на парусе шейдер SailMaterial")
 	var ci := ControlInput.new()
 	ci.pitch = 1.0
 	g.set_input(ci)
-	for i in 600:
+	for i in 2400:  # «Маятник»: до срыва дольше, чем у FlightModel
 		g.step(1.0 / 120.0)
 	g._process(1.0 / 60.0)
 	check(

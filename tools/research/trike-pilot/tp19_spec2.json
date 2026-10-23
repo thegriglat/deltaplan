@@ -1,0 +1,177 @@
+[
+{
+"name": "prop_u-0.2859_g1",
+"u": -0.2859,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.0_g1",
+"u": 0.0,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.1107_g1",
+"u": 0.1107,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.2_g1",
+"u": 0.2,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.3_g1",
+"u": 0.3,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.4_g1",
+"u": 0.4,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.5_g1",
+"u": 0.5,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u-0.2859_g0.0",
+"u": -0.2859,
+"g": 0.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.0_g0.0",
+"u": 0.0,
+"g": 0.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.1107_g0.0",
+"u": 0.1107,
+"g": 0.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.3_g0.0",
+"u": 0.3,
+"g": 0.0,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u-0.2859_g0.5",
+"u": -0.2859,
+"g": 0.5,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.0_g0.5",
+"u": 0.0,
+"g": 0.5,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.1107_g0.5",
+"u": 0.1107,
+"g": 0.5,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_u0.3_g0.5",
+"u": 0.3,
+"g": 0.5,
+"t": 150,
+"thrust_split": 0.7267
+},
+{
+"name": "prop_f500",
+"u": 0.1107,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267,
+"force": 500
+},
+{
+"name": "prop_f500_u-0.2859",
+"u": -0.2859,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267,
+"force": 500
+},
+{
+"name": "prop_kick_g0.5",
+"u": 0.1107,
+"g": 0.5,
+"t": 150,
+"thrust_split": 0.7267,
+"kick_t": 70,
+"kick_dv": 3.0
+},
+{
+"name": "prop_kick_g1.0",
+"u": 0.1107,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267,
+"kick_t": 70,
+"kick_dv": 3.0
+},
+{
+"name": "prop_kick_g1_u-0.2859",
+"u": -0.2859,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267,
+"kick_t": 70,
+"kick_dv": 3.0
+},
+{
+"name": "prop_kick_g1_u0.3",
+"u": 0.3,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267,
+"kick_t": 70,
+"kick_dv": 3.0
+},
+{
+"name": "prop_handsoff_g1",
+"u": 0.0,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267,
+"relaxed_x": true
+},
+{
+"name": "prop_num_fine",
+"u": 0.1107,
+"g": 1.0,
+"t": 150,
+"thrust_split": 0.7267,
+"dt_div": 2,
+"sub_mul": 2,
+"aero_hz": 120
+}
+]

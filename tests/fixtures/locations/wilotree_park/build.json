@@ -1,0 +1,23 @@
+{
+  "built_utc": "2026-10-22T00:50:36Z",
+  "center_lat": 28.53502,
+  "center_lon": -81.8467,
+  "complete": true,
+  "format_version": 4,
+  "key": "wilotree_park",
+  "missing": [],
+  "net_requests": 199,
+  "seconds": {
+    "dem": 56.52,
+    "osm_tiles": 2.35,
+    "rivers": 24.72,
+    "sea": 8.1,
+    "smooth": 6.45,
+    "surface": 19.82
+  },
+  "sources": [
+    "copernicus",
+    "terrarium",
+    "worldcover"
+  ]
+}

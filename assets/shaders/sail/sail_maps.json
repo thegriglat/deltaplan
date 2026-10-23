@@ -147,6 +147,10 @@
   "normal": "glider_air_sting3",
   "trans": "glider_atlas"
  },
+ "glider_trike_ixess15": {
+  "normal": "glider_aeros_combat_c",
+  "trans": "glider_aeros_combat_c"
+ },
  "glider_ww_cross_country": {
   "normal": "glider_moyes_litespeed_rx",
   "trans": "glider_magic"

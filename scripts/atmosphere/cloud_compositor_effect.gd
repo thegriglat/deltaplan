@@ -136,9 +136,13 @@ static func buffer_size(full: Vector2i, scale: float = 0.5, max_px: int = 0) -> 
 func _render_callback(_type: int, render_data: RenderData) -> void:
 	if _rd == null or _failed or noise_shape == null or noise_detail == null:
 		return
-	if not _march.is_valid() and not _build():
-		_failed = true
-		return
+	if not _march.is_valid():
+		_mark("clouds/build_begin")
+		var built := _build()
+		_mark("clouds/build_end ok=%s" % built)
+		if not built:
+			_failed = true
+			return
 	var sb := render_data.get_render_scene_buffers() as RenderSceneBuffersRD
 	var sd := render_data.get_render_scene_data() as RenderSceneDataRD
 	if sb == null or sd == null:
@@ -182,6 +186,7 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 		_sampler_u(9, _s_nearest, fm_rd),
 		_sampler_u(10, _s_linear_clamp, st_rd),
 	])
+	_mark("clouds/first_dispatch")
 	var cl := _rd.compute_list_begin()
 	_rd.compute_list_bind_compute_pipeline(cl, _march_pipe)
 	_rd.compute_list_bind_uniform_set(cl, set0, 0)
@@ -207,6 +212,21 @@ func _render_callback(_type: int, render_data: RenderData) -> void:
 	_rd.compute_list_set_push_constant(cl, pcb, pcb.size())
 	_rd.compute_list_dispatch(cl, ceili(full.x / 8.0), ceili(full.y / 8.0), 1)
 	_rd.compute_list_end()
+	_mark("clouds/first_frame_recorded")
+
+
+## Одноразовая за процесс строка подстадии (формат CrashReport.substage_line) через printerr — сброс лога
+## на диск: по ней в отчёте о вылете видно, упала игра при сборке шейдеров облаков или позже. Только
+## printerr, без записи метки сессии: обратный вызов может идти не из главного потока.
+static var _marked := {}
+
+
+static func _mark(what: String) -> void:
+	var key := what.get_slice(" ", 0)
+	if _marked.has(key):
+		return
+	_marked[key] = true
+	printerr("[substage] %s stage=clouds t=%.1f" % [what, Time.get_ticks_msec() / 1000.0])
 
 
 ## Собирает буфер облаков из марша по четвертям и истории (cloud_temporal_cs); возвращает

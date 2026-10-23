@@ -1,0 +1,11 @@
+{
+  "test_classify": {"cases": 13, "fails": 0, "godot": "4.7.2.stable.official.ed1daf0bf", "host": "linux, headless"},
+  "probe_driver_resource": {"driver": "vulkan", "adapter": "NVIDIA GeForce RTX 4070 SUPER", "rd": true,
+    "logical_device_handle_nonzero": true, "physical_device_handle_nonzero": true, "command_queue_handle_nonzero": true,
+    "logger_class": true, "logger_methods": ["_log_error", "_log_message"]},
+  "vulkaninfo_linux_nvidia_550": {"VK_EXT_device_fault": false},
+  "godot_source_4_7_2": {
+    "d3d12_GetDeviceRemovedReason_calls": 0, "d3d12_dred_calls": 0, "master_GetDeviceRemovedReason_calls": 0,
+    "vulkan_on_device_lost_called_only_from": "vkQueueSubmit == VK_ERROR_DEVICE_LOST (rendering_device_driver_vulkan.cpp:3266)"
+  }
+}

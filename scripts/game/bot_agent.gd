@@ -380,4 +380,3 @@ func _copy(c: ControlInput) -> void:
 	control.roll = c.roll
 	control.run = false
 	control.walk = 0.0
-	control.weight_shift = false

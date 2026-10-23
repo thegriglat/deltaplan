@@ -3,7 +3,7 @@ type: "guide"
 status: "active"
 module: "flight"
 area: "flight"
-updated: "2026-10-15"
+updated: "2026-10-22"
 summary: "API FlightModel и Glider, визуал крыла и пилота, тень от неба под парусом, оценка усилия на трапеции."
 related: ["docs/guide/flight.md"]
 ---
@@ -28,7 +28,7 @@ func trim_speed() -> float; func stall_speed() -> float; func steady_glide(v) ->
 static func clamp_pilot_mass(wing: Dictionary, mass_kg: float) -> float
 
 # Glider (Node3D, scenes/glider/glider.tscn); начало координат — ноги пилота.
-# Режим «Маятник» (controls.json → roll_control_mode == "pendulum") подставляет PendulumModel
+# Для игрока `Glider.model` — всегда PendulumModel (RM-К1)
 # с той же поверхностью (контракт PD-К1) — см. pendulum.md
 signal telemetry_updated(t: Telemetry)   # каждый шаг физики, один и тот же объект
 signal landed(result: Dictionary)
@@ -84,16 +84,14 @@ func get_marker(name: String) -> Node3D   # PilotHead, InstrumentMount, VarioMou
 
 - **Маятник** — `PendulumModel.bar_force` (сила рук модели, Н, `arms.force_b`, предел `arms.force_max_n` = 300 Н;
   на земле — `ground.grip_force`), спроецированная в оси крыла.
-- **«Смещение веса»** (`FlightModel`) — силы рук в модели нет (тангаж кинематический), усилие оценивается из
+- **`FlightModel`** (боты, инструменты; игрок — только «Маятник») — силы рук в модели нет (тангаж кинематический), усилие оценивается из
   параметров крыла: `FlightModel.bar_force_estimate(v)`.
   1. Скорость v ≠ V_трим держится сдвигом ЦМ пилота против аэродинамического момента (устойчивость по скорости):
      `Δx = (v − V_трим) / (k·s)`, `k = wing.pendulum.ref.kmh_per_cm_hang` (км/ч на см сдвига подвески на эталонной
      массе, из баланса моментов крыла, `tools/flight/pendulum_params.py`), `s = speed_scale()`.
-  2. Крен: в модели установившийся крен держится смещением (`roll_input_for_bank`) — упрощение кинематики; в жизни
-     вираж держится почти без усилия (Ochi < 10 Н). Поэтому усилие — от отклонения ввода от «держащего»:
-     Δy = (roll − `roll_input_for_bank(bank, v)`)·`arms.shift_y_max_m`: есть при вводе в крен и выводе, в
-     установившемся вираже ≈ 0. Замер маятника (sport, вираж 30° под ПИД-регулятором крена): среднее x = −39 Н,
-     |x| ≤ 42 Н, при вводе пик до предела рук (~300 Н) — порог теста 60 Н. В режиме `rate` (ввод — скорость крена) держащий ввод 0: сила только пока крен вводят. В режиме `weight_shift` ввод 0,3 даёт ≈70 Н, полный ввод — предел рук (в маятнике пик при вводе ≈300 Н).
+  2. Крен: ввод `rate` — скорость крена, «держащий» ввод 0 (RM-К1): в `FlightModel` усилие по крену есть только пока крен вводят.
+     (Прежняя оценка через `roll_input_for_bank` удалена вместе с режимом смещения веса.) Замер маятника (sport, вираж 30°
+     под ПИД-регулятором крена): среднее x = −39 Н, |x| ≤ 42 Н, при вводе пик до предела рук (~300 Н) — порог теста 60 Н.
   3. Руки держат пилота на подвеске длиной L (`pilot.visual.hang_length_m`): `F = m_p·g·Δ/L` по каждой оси,
      длина вектора не больше `pendulum.arms.force_max_n`.
   Приближения: Cm(α) линеен около трима, квазистатика (без динамики и инерции пилота), перегрузка n = 1, малые углы
