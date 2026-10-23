@@ -1,0 +1,79 @@
+{
+  "id": "TC-1",
+  "module": "trike-cockpit",
+  "type": "dp-engineer",
+  "title": "Приборы дельталёта показывают из кабины",
+  "goal": "Найти, почему тахометр и топливо дельталёта (TrikeGauges3D на InstrumentPanel) ничего не показывают в виде из кабины, и исправить: из кабины видны оба прибора и стрелки двигаются по оборотам и топливу. Причина — числами в отчёте.",
+  "plan_ref": "§1 Цель",
+  "contracts": [
+    {
+      "name": "trike-cockpit",
+      "version": "TC-К1v1",
+      "ref": "docs/contracts/trike-cockpit.md"
+    },
+    {
+      "name": "trike-pilot",
+      "version": "TP-К4v2",
+      "ref": "docs/contracts/trike-cockpit.md"
+    },
+    {
+      "name": "trike-pilot",
+      "version": "TP-К8v1",
+      "ref": "docs/contracts/trike-cockpit.md"
+    }
+  ],
+  "copy": "~/deltaplan-trike-cockpit-TC-1",
+  "branch": "trike-cockpit/TC-1",
+  "base": "feature/trike-cockpit",
+  "scope": [
+    "scripts/game/",
+    "scripts/instruments/",
+    "scenes/instruments/",
+    "configs/instruments.json",
+    "configs/camera.json",
+    "tests/contracts/test_trike_cockpit_k1.gd",
+    "tests/contracts/test_trike_cockpit_k1.gd.uid",
+    "tests/contracts/test_trike_cockpit_k1_gpu.gd",
+    "tests/contracts/test_trike_cockpit_k1_gpu.gd.uid",
+    "tests/game/"
+  ],
+  "dont_touch": [
+    "scripts/flight/",
+    "tools/blender/",
+    "assets/",
+    "scripts/ui/trike_gauges_hud.gd",
+    "project.godot",
+    "docs/contracts/",
+    "configs/trike_pilot.json"
+  ],
+  "accept": [
+    {
+      "name": "trike_cockpit_k1",
+      "tests": "trike_cockpit_k1"
+    },
+    {
+      "name": "trike_pilot_k8",
+      "tests": "trike_pilot_k8"
+    },
+    {
+      "name": "trike_pilot_k4",
+      "tests": "trike_pilot_k4"
+    },
+    {
+      "name": "pilot_hud",
+      "tests": "pilot_hud"
+    },
+    {
+      "name": "cockpit",
+      "tests": "cockpit"
+    },
+    {
+      "name": "gpu_render",
+      "cmd": "tools/gpu_tests.sh --filter=trike_cockpit_k1_gpu",
+      "expect": "tests"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-23T22:37:53"
+}
