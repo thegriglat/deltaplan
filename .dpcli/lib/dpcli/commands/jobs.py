@@ -659,7 +659,8 @@ def cmd_lock(a):
             raise
         if how != "off":
             print(f"lock cpu: {n} сл., {how}", file=sys.stderr)
-        run_held(holder, run_cmd, tm, lambda: cpu_drop(my_id))
+        # окно tmux не наследует окружение этого процесса — маркер передаём в самой команде
+        run_held(holder, ["env", "DPCLI_IN_LOCK=1", *run_cmd], tm, lambda: cpu_drop(my_id))
     if slots is not None:
         raise DpError("lock gpu: --slots только для cpu")
     lp = locks_dir() / GPU_LOCK
