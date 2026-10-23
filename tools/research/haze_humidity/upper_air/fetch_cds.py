@@ -17,6 +17,7 @@ key = dict(l.split(": ", 1) for l in open(os.path.expanduser("~/.cdsapirc")).rea
 cl = Client(url=key["url"], key=key["key"])
 lock = open(R + "/cds.lock", "w")
 YEARS = [str(y) for y in range(2011, 2021)]
+DAILY_YEARS = ["2018", "2019"]  # решение Q4 2026-10-22: 2 года суточных
 months = [f"{m:02d}" for m in range(1, 13)]
 cur = {"r": None}
 
@@ -78,8 +79,8 @@ base = {"product_type": "reanalysis", "variable": ["temperature"], "pressure_lev
         "day": [f"{d:02d}" for d in range(1, 32)], "daily_statistic": "daily_mean", "time_zone": "utc+00:00",
         "frequency": "1_hourly", "grid": [1.0, 1.0], "data_format": "netcdf"}
 if which in ("daily", "all"):
-    # лимит стоимости CDS 400 (год x 6 месяцев = 366 проходит; год целиком = 730 нет) -> 20 запросов: год x полугодие
-    for y in YEARS:
+    # лимит стоимости CDS 400 (год x 6 месяцев = 366 проходит; год целиком = 730 нет) -> 4 запроса: 2018, 2019 x полугодие
+    for y in DAILY_YEARS:
         for h, ms in ((1, months[:6]), (2, months[6:])):
             retry(f"{D}/{y}_h{h}.nc", "derived-era5-pressure-levels-daily-statistics", dict(base, year=y, month=ms))
 print("все загрузки завершены", flush=True)
