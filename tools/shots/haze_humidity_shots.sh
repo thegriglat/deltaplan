@@ -205,6 +205,46 @@ PY
   exit 0
 fi
 
+# Режим ridge (HH-19): ореол солнца у рельефа. Аскарово, 15 июля, взгляд на солнце при высоте 0,7°, 0,4°, 0,2° и 0° (солнце над
+# хребтом, наполовину за ним, за ним). <префикс>ridge_{07,04,02,00}.jpg; ореол и засвет — только на небе, на рельеф не ложатся.
+if [[ "${4:-}" == "ridge" ]]; then
+  IFS='|' read -r name site lat lon off hdg <<<"${places[1]}"
+  for want in 0.7 0.4 0.2 0.0; do
+    [[ -n "${WANT:-}" && "$want" != "$WANT" ]] && continue
+    tag="$(python3 -c "print('%02d' % round($want*10))")"
+    h="$(python3 - "$want" "$lat" "$lon" "$off" <<'PY'
+import sys, math
+want, lat, lon, off = map(float, sys.argv[1:5])
+doy = 196
+def elev(h):
+    g = 2 * math.pi / 365 * (doy - 1 + (h - 12) / 24)
+    d = (0.006918 - 0.399912 * math.cos(g) + 0.070257 * math.sin(g) - 0.006758 * math.cos(2 * g)
+         + 0.000907 * math.sin(2 * g) - 0.002697 * math.cos(3 * g) + 0.00148 * math.sin(3 * g))
+    e = 229.18 * (0.000075 + 0.001868 * math.cos(g) - 0.032077 * math.sin(g) - 0.014615 * math.cos(2 * g)
+                  - 0.040849 * math.sin(2 * g))
+    s = h + (4 * lon - 60 * off + e) / 60
+    ha = math.radians(15 * (s - 12)); la = math.radians(lat)
+    return math.degrees(math.asin(math.sin(la) * math.sin(d) + math.cos(la) * math.cos(d) * math.cos(ha)))
+lo, hi = 14.0, 23.0
+for _ in range(60):
+    m = (lo + hi) / 2
+    if elev(m) > want: lo = m
+    else: hi = m
+print("%.4f" % lo)
+PY
+)"
+    secs="$(python3 -c "print('%.1f' % (($h - 20) * 60 * ${TIME_SCALE:-1}))")"
+    read -r az el < <(sun "$lat" "$lon" "$off" "$h")
+    echo "$name ridge_$tag: высота солнца $el, азимут $az (час $h)"
+    set_speed 60
+    yaw="$(python3 -c "print('%.1f' % (($hdg - $az + 180) % 360 - 180))")"
+    shot "$out/${prefix}ridge_${tag}.jpg" "--location=$name" "--site=$site" --hour=20 "--time=$secs" --air-start=300,300 --sky=clear "--look=$yaw,${PITCH:-$el}"
+  done
+  set_speed 1
+  echo "haze_humidity_shots.sh: ridge $prefix* в $out"
+  exit 0
+fi
+
 # Режим clouds (HH-14): цвет освещённых боков облаков при высоте солнца 2° и 0,8° (время — по расчёту
 # высоты, не по часам), ракурсы «к солнцу» и «сбоку» (+70°), и полдень; Алтай, --sky=partly.
 # <префикс>clouds_{2deg,1deg}_{sun,side}.jpg, <префикс>clouds_day.jpg и рядом <кадр>.nocloud.jpg —

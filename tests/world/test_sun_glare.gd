@@ -168,3 +168,24 @@ func test_sky_disk_radius_not_enlarged() -> void:
 		"диск настоящего размера"
 	)
 	sky.free()
+
+
+## Линия горизонта рельефа (HH-19): хребет 300 м на 2 км к северу (−Z) — высота ≈ atan(300/2000) на азимуте солнца,
+## ровная земля — ниже горизонта (глаз выше земли), симметрично по азимутам.
+func test_horizon_elevations() -> void:
+	var p := Vector3(0, 100, 0)
+	var to_sun := Vector3(0, 0.05, -1).normalized()
+	var flat := func(_x: float, _z: float) -> float: return 0.0
+	var h0 := SunGlare.horizon_elevations(p, to_sun, 2.0, 17, flat, 20000.0, 40)
+	check(h0.size() == 17, "17 азимутов")
+	for v in h0:
+		check(v < 0.0, "ровная земля ниже горизонта глаза: %.4f" % v)
+	var ridge := func(_x: float, z: float) -> float: return 300.0 if z < -1900.0 and z > -2300.0 else 0.0
+	var h1 := SunGlare.horizon_elevations(p, to_sun, 2.0, 17, ridge, 20000.0, 400)
+	approx(h1[8], atan2(200.0, 2000.0), 0.02, "хребет над глазом на 200 м за 2 км")
+	# хребет только справа по азимуту (x > 0): справа высоко, слева — нет
+	var right := func(x: float, _z: float) -> float: return 500.0 if x > 30.0 else 0.0
+	var h2 := SunGlare.horizon_elevations(p, to_sun, 2.0, 17, right, 3000.0, 300)
+	var a := h2[0]
+	var b := h2[16]
+	check(absf(a - b) > 0.05, "горизонт различается по азимутам: %.3f vs %.3f" % [a, b])
