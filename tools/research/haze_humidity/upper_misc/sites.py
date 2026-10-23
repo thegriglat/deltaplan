@@ -1,5 +1,5 @@
 """Сверка HH6 для мест игры. sites.csv: место,lat,lon,месяц,wr,z700_m,z_cell_m,gain_per_km,trop_m,hcc,hcc_med,hcc_lt01,hcc_sem,v10_ms.
-wr/trop — из бина HH6, z700 — HH2 (заглушка 3000 м), z_cell — блок Z из HH1, hcc* — ERA5 (бин и upper_misc_clim.npz).
+wr/trop — из бина HH6, z700 — HH2 по месяцу, z_cell — блок Z из HH1, hcc* — ERA5 (бин и upper_misc_clim.npz).
 Запуск: python sites.py"""
 import csv, os, struct
 import numpy as np, brotli
@@ -34,13 +34,15 @@ for f in sorted(glob.glob(R + "/upper_misc/*/*.npz")):
     smp[int(os.path.basename(f)[:2]) - 1].append(np.load(f)["hcc"])
 smp = [np.array(a) for a in smp]
 c["hcc_med"] = np.array([np.nanmedian(a, 0) for a in smp]); c["hcc_lt01"] = np.array([np.nanmean(np.where(np.isnan(a), np.nan, a < 0.1), 0) for a in smp]); c["n_smp"] = len(smp[0])
-Z700 = 3000.0
+ua = open(D + "upper_air_1deg.bin", "rb").read()
+uzs, uzo = struct.unpack_from("<ff", ua, 40); assert struct.unpack_from("<I", ua, 56)[0] > 0  # не заглушка HH2
+z700 = np.frombuffer(brotli.decompress(ua[64:]), "<i2")[12 * 180 * 360:].reshape(12, 180, 360).astype(float) * uzs + uzo
 rows = []
 for k, (lat, lon) in SITES.items():
     zcell = float(bil(zc, lat, lon))
     for m in range(12):
-        w = float(bil(wr[m], lat, lon)); gain = (w - 1) / ((Z700 - zcell) / 1000)
-        rows.append([k, lat, lon, m + 1, round(w, 3), Z700, round(zcell, 1), round(gain, 3), round(float(bil(trop[m], lat, lon))),
+        w = float(bil(wr[m], lat, lon)); Z700 = float(bil(z700[m], lat, lon)); gain = (w - 1) / (max(Z700 - zcell, 500.0) / 1000)
+        rows.append([k, lat, lon, m + 1, round(w, 3), round(Z700), round(zcell, 1), round(gain, 3), round(float(bil(trop[m], lat, lon))),
                      round(float(bil(hcc[m], lat, lon)), 3), round(float(bil(c["hcc_med"][m], lat, lon)), 3),
                      round(float(bil(c["hcc_lt01"][m], lat, lon)), 3), round(float(bil(c["hcc_sem"][m], lat, lon)), 3),
                      round(float(bil(v[m], lat, lon)), 2)])

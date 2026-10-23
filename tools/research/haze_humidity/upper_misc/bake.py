@@ -8,10 +8,10 @@ R = os.path.expanduser(RAW)
 CDS = os.path.exists(f"{R}/upper_misc_cds_clim.npz")
 c = np.load(f"{R}/upper_misc_cds_clim.npz" if CDS else f"{R}/upper_misc_clim.npz"); z = np.load(f"{R}/climatology.npz")["z"]
 out = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../../data/climate/upper_misc_1deg.bin"))
-WR_S, TR_S, HC_S = 0.001, 1.0, 0.0001
+WR_S, TR_S, HC_S = 0.005, 10.0, 0.001  # шаги много меньше погрешностей (WR ±15 % по двум годам, TROP ±300–500 м, HCC σ на √n ~0,01); мельче файл > 2 МБ
 if CDS:
     WRSTUB = bool(np.isnan(c["wr"]).any())
-    wr = np.clip(1 + 0.6 * (3000 - z) / 1000, 0.3, 10) * np.ones((12, 1, 1)) if WRSTUB else np.clip(c["wr"], 0.3, 10)
+    wr = np.clip(1 + 0.6 * (3000 - z) / 1000, 0.3, 10) * np.ones((12, 1, 1)) if WRSTUB else np.clip(c["wr"], 0.305, 9.995)
     trop = np.clip(c["trop"], 6000, 19000)
 else:
     wr = np.broadcast_to(np.clip(1 + 0.6 * (3000 - z) / 1000, 0.3, 10), (12, 180, 360))
