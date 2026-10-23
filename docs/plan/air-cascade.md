@@ -1,6 +1,6 @@
 ---
 type: "plan"
-status: "active"
+status: "idea"
 module: "air-cascade"
 area: "air"
 updated: "2026-10-24"
@@ -8,6 +8,10 @@ summary: "Каскад на гранях: деление клеток поля �
 related: ["docs/guide/air-model.md", "docs/guide/air-model/turbulence.md", "docs/guide/air-model-gpu/clipmap.md", "tools/research/heat_ca/exp2_picard/README.md"]
 ---
 # План air-cascade (код задач AC)
+
+## Статус
+Идея, отложена пользователем 2026-10-24 (мало лимитов). Модуль заведён (ветка `feature/air-cascade`), задач не
+запускалось. Возобновить: координатор модуля, первая задача — AC-1.
 
 ## Цель
 Исследование (без правок игры): можно ли из грубого поля Пикара получать мелкий ветер — порывы,
