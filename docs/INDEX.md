@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-23"
+updated: "2026-10-24"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -94,6 +94,7 @@ generated: true
   - [docs/research/trike-pilot/wheels.md](research/trike-pilot/wheels.md) — Колёса дельталёта в модели: руление носовым колесом, тормоз, посадка на колёса; числа блока wheels и границы модели.
   - [tools/research/trike-pilot/README.md](../tools/research/trike-pilot/README.md) — Замеры дельталёта: скорость от хода штанги (TP-17), качания на газу и линия тяги (TP-19).
   - [tools/research/trike-pilot/tug/README.md](../tools/research/trike-pilot/tug/README.md) — TP-23: прогоны связки буксировщик + sport на тросе с подменой линии тяги, хода штанги, площади крыла, тяги и массы.
+- **trike-cockpit** — Приборы дельталёта в виде от первого лица (кабина) ничего не показывают — найти причину и исправить. [closed 2026-10-24] — [план](plan/trike-cockpit.md) · [контракты](contracts/trike-cockpit.md) · [решения](plan/trike-cockpit/decisions.md) · [сводка](plan/trike-cockpit/summary.md) · полный журнал: `archive/trike-cockpit`
 
 ## world
 
