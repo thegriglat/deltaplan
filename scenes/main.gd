@@ -424,6 +424,24 @@ func _on_pick_fly() -> void:
 	if not game.inspect_mode or game.pick.is_empty() or not bool(game.pick.ok):
 		return
 	_on_pick_changed()
+	if GoalsTab.net_blocked():
+		await _fly_from_pick()
+		return
+	# TA-К1: аппарат и буксировка — окном; «Отмена» — остаёмся в осмотре
+	var d := StartChoiceDialog.new()
+	add_child(d)
+	d.chosen.connect(
+		func(vehicle: String, tow_kind: String) -> void:
+			flight.vehicle = vehicle
+			flight.tow_kind = tow_kind
+			d.queue_free()
+			_fly_from_pick()
+	)
+	d.cancelled.connect(d.queue_free)
+	d.open(flight, {})
+
+
+func _fly_from_pick() -> void:
 	_pick_panel.visible = false
 	game.leave_inspect()
 	await _fly(flight)
