@@ -589,3 +589,4 @@
 {"t": "2026-10-23T18:57:28", "by": "coordinator", "task": "HH-4e", "ev": "accepted", "commits": ["d84ae12f1"], "note": "3/3 haze_humidity=ok:37/37; wind=ok:43/43 (пропуск 4); weather=ok:19/19"}
 {"t": "2026-10-23T18:57:28", "by": "coordinator", "task": "HH-4e", "ev": "merged", "commits": ["d84ae12f1"]}
 {"t": "2026-10-23T18:57:38", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: модуль закрыт — все задачи accepted+merged; итог: сетки ERA5 HH1/HH2/HH5/HH6 (WR из данных, HH7 v2), климат места в игре, дымка по RH, цвет и яркость солнца/неба/облаков на закате, экспозиция заката, ореол за рельефом; TODO T-91…T-93; обратная связь по dpcli — в заметках выше"}
+{"t": "2026-10-23T18:58:18", "by": "main", "task": null, "ev": "delivered", "commits": ["78e5267b2"], "note": "squash в main: 78e5267b2"}
