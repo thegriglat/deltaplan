@@ -48,6 +48,8 @@ cfg["cart"] = {
  "mass_kg_doc": "Сумма empty + pilot + fuel; без крыла (53 кг iXess 15 — в configs/wings)",
  "cg_below_hang_m": round(cg_len, 2),
  "cg_below_hang_m_doc": "Расстояние ЦМ тележки с пилотом от подвески: расчёт по узлам trike_params.json (сиденье, бак, ось винта; двигатель, рама и остаток — оценка) — cart.py: ЦМ %.2f м вперёд и %.2f м вниз → %.2f м; без учёта кувыркающегося пилота" % (cg_f, -cg_u, cg_len),
+ "prop_axis_below_hang_m": 1.238,
+ "prop_axis_below_hang_m_doc": "Расстояние оси винта от подвески вдоль мачты, м (TP-К6 v2): оценка tools/research/tow-trike/cart.py; тяга делится между тележкой и подвеской по правилу рычага, доля на тележку = prop_axis/cg_below_hang = 0,727; docs/research/trike-pilot/pitch-oscillation.md",
  "cda_m2": round(cda, 2),
  "cda_m2_doc": "Лобовое сопротивление тележки с пилотом, оценка по составляющим (cart.py): пилот 0,45 (Wilson, Bicycling Science), колёса 0,12, трубы 0,20 (Hoerner), двигатель 0,05; ±30 %. Прямого источника для трайка нет",
  "arms_force_max_n": 500.0,

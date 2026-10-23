@@ -68,6 +68,7 @@ func setup(
 	rig = TrikeRig.new()
 	rig.terrain = _terrain
 	rig.setup(model, _cfg)
+	rig.thrust_split = 1.0  # до TP-23 (Q8): тяга буксировщика в ЦМ тележки, как TT-К4 v4; игрок - по оси винта
 	var h := deg_to_rad(heading_deg)
 	_heading_ref = h
 	_hdg_tgt = h

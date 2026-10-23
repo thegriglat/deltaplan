@@ -1,11 +1,11 @@
 class_name TrikeRig
 extends RefCounted
-## Тележка дельталёта на подвеске (TP-К6 v1, docs/contracts/trike-pilot.md): общая часть буксировщика (TowTug) и
+## Тележка дельталёта на подвеске (TP-К6 v2, docs/contracts/trike-pilot.md): общая часть буксировщика (TowTug) и
 ## дельталёта игрока (Glider). Вынесена из TowTug без изменения чисел: параметры модели «Маятник» из TT-К1,
 ## ходы штанги, внешняя сила (тяга винта вдоль оси тележки с наклоном engine.thrust_tilt_deg + сила владельца),
 ## оси и ориентация тележки (TT-К4 v2), высота колёс над землёй.
 ##
-## ГРАНИЦЫ МОДЕЛИ: тележка - точечная масса; тяга приложена к ЦМ тележки (момента от смещения линии тяги нет);
+## ГРАНИЦЫ МОДЕЛИ: тележка - точечная масса; тяга действует по оси винта (TP-К6 v2): делится между тележкой и подвеской по правилу рычага (cart.prop_axis_below_hang_m);
 ## винт не обдувает крыло и пилота, реактивного момента и гироскопики нет.
 ##
 ## Мир игры: X восток, Y вверх, -Z север. Вход: thrust_n (Н, >= 0), extra_pilot_force / extra_hang_force (Н, мир),
@@ -17,6 +17,7 @@ const CART_CM_MODEL := Vector3(0.0, -1.70, -0.13)
 const CART_TURN_DEG_S := 20.0  ## предел скорости смены ориентации модели (колёса <-> воздух), град/с
 const WING_DEFAULT := "trike_ixess15"
 
+var thrust_split := -1.0  ## доля тяги на тележку (pilot); < 0 - из cart.prop_axis_below_hang_m / cg_below_hang_m. TowTug: 1,0 до TP-23
 var thrust_n := 0.0  ## тяга винта, Н (>= 0), ставит владелец каждый шаг
 var extra_pilot_force := Vector3.ZERO  ## добавка к силе на тележку (трос буксировщика), Н, мир
 var extra_hang_force := Vector3.ZERO  ## добавка к силе на подвеску, Н, мир
@@ -71,7 +72,11 @@ func ext_force(s: Dictionary) -> Dictionary:
 	var cb := cart_axes(s.pilot_pos, s.hang_pos, s.wing_basis)
 	var tilt := deg_to_rad(float(_cfg.engine.thrust_tilt_deg))
 	var dir := -cb.z * cos(tilt) + cb.y * sin(tilt)
-	return {"pilot": dir * thrust_n + extra_pilot_force, "hang": extra_hang_force}
+	# TP-К6 v2: тяга по оси винта, делится по правилу рычага: на тележку a = prop_axis/cg, на подвеску 1 - a
+	var cart: Dictionary = _cfg.cart
+	var a := thrust_split if thrust_split >= 0.0 else clampf(float(cart.prop_axis_below_hang_m) / float(cart.cg_below_hang_m), 0.0, 1.0)
+	var t := dir * thrust_n
+	return {"pilot": t * a + extra_pilot_force, "hang": t * (1.0 - a) + extra_hang_force}
 
 
 ## После шага модели (и после reset: dt = 0 - без ограничения поворота).

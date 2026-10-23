@@ -42,7 +42,7 @@ func test_contract_version() -> void:
 	var txt := FileAccess.get_file_as_string("res://docs/contracts/trike-pilot.md")
 	var re := RegEx.create_from_string("(?m)^## TP-К6 v(\\d+)\\.")
 	var m := re.search(txt)
-	check(m != null and m.get_string(1) == "1", "версия раздела TP-К6 - v1")
+	check(m != null and m.get_string(1) == "2", "версия раздела TP-К6 - v2")
 
 
 ## (1) TowTug с TrikeRig: траектория за 20 с равна снятой до выноса тележки (<= 1 мм).
@@ -64,6 +64,33 @@ func test_tug_trajectory_unchanged() -> void:
 				absf(t.pos.z - float(w[0])) < 1.0e-3 and absf(t.pos.y - float(w[1])) < 1.0e-3,
 				"TowTug %.0f с: z %.4f y %.4f, было %.4f %.4f" % [tt, t.pos.z, t.pos.y, w[0], w[1]]
 			)
+
+
+## (8) Тяга по оси винта: сумма сил на pilot и hang = T по модулю и направлению; доля на pilot = prop_axis / cg;
+## без тяги внешняя сила - только добавки владельца (7).
+func test_thrust_split() -> void:
+	var g := _trike()
+	var cfg := Config.get_config("tow_tug")
+	var a := float(cfg.cart.prop_axis_below_hang_m) / float(cfg.cart.cg_below_hang_m)
+	check(a > 0.5 and a < 0.9, "доля на тележку из геометрии: %.3f" % a)
+	var s := {"pilot_pos": g.model.pilot_position, "hang_pos": g.model.hang_position, "wing_basis": g.model.wing_basis()}
+	var cb := TrikeRig.cart_axes(s.pilot_pos, s.hang_pos, s.wing_basis)
+	var tilt := deg_to_rad(float(cfg.engine.thrust_tilt_deg))
+	var dir := -cb.z * cos(tilt) + cb.y * sin(tilt)
+	g.trike.thrust_n = 1300.0
+	var f: Dictionary = g.trike.ext_force(s)
+	var sum: Vector3 = f.pilot + f.hang
+	check(sum.distance_to(dir * 1300.0) < 1e-6, "сумма = T по модулю и направлению: %s" % sum)
+	check(absf((f.pilot as Vector3).length() / 1300.0 - a) < 1e-5, "доля на pilot = a: %.4f" % ((f.pilot as Vector3).length() / 1300.0))
+	check((f.pilot as Vector3).normalized().distance_to(dir) < 1e-5 and (f.hang as Vector3).normalized().distance_to(dir) < 1e-5, "направление общее")
+	# момент относительно подвески = T * prop_axis (плечо вдоль мачты)
+	var arm_p: Vector3 = s.pilot_pos - s.hang_pos
+	var mom := arm_p.cross(f.pilot as Vector3).length()
+	check(absf(mom - 1300.0 * float(cfg.cart.prop_axis_below_hang_m) * cos(tilt)) < 1.0, "момент тяги относительно подвески: %.1f" % mom)
+	g.trike.thrust_n = 0.0
+	var f0: Dictionary = g.trike.ext_force(s)
+	check((f0.pilot as Vector3).length() < 1e-9 and (f0.hang as Vector3).length() < 1e-9, "без тяги сил нет")
+	g.free()
 
 
 ## (2) Стоит заглушенный 10 с: неподвижен, тяги нет.
@@ -213,6 +240,55 @@ func test_takeoff_and_climb() -> void:
 			thr_level = lerpf(r0.x, r1.x, k)
 	print("    (газ, v, vz) при штанге на упоре: %s; горизонтальный полёт: газ %.2f, v %.1f м/с (%.0f км/ч)" % [rows, thr_level, v_level, v_level * 3.6])
 	check(thr_level > 0.0 and thr_level < 1.0, "горизонтальный полёт достижим при газе < полного: %.2f" % thr_level)
+	g.free()
+
+
+## (6) Фугоида на полном газе, штанга на упоре «на себя» (ход TT-8): толчок по скорости, отношение размахов за
+## период <= 0,6 (TP-19: 0,49), период 9-14 с.
+func test_phugoid_damped() -> void:
+	var g := _trike()
+	var vs := _vs(g)
+	g.set_meta("vs", vs)
+	var p := Pilot.new(g)
+	for i in int(120.0 / DT):
+		p.step(1.3 * vs)
+		if p.t_air > 0.0 and p.t > p.t_air + 40.0:
+			break
+	var pull := ControlInput.new()
+	pull.pitch = -1.0
+	pull.throttle_axis = 1.0
+	for i in int(60.0 / DT):
+		g.set_input(pull)
+		g.step(DT)
+	# толчок +3 м/с вдоль полёта
+	var m: PendulumModel = g.model
+	var dv: Vector3 = m.velocity.normalized() * 3.0
+	m._vel += PendulumModel.ned(dv)
+	for j in m.chain.links:
+		m.chain.v[j] += PendulumModel.ned(dv)
+	var ts: Array = []
+	var vv: Array = []
+	for i in int(80.0 / DT):
+		g.set_input(pull)
+		g.step(DT)
+		if i % 6 == 0:
+			ts.append(float(i) * DT)
+			vv.append(g.get_telemetry().airspeed)
+	# экстремумы (с отсевом мелких пульсаций)
+	var ext: Array = []
+	for i in range(1, vv.size() - 1):
+		if (vv[i] > vv[i - 1] and vv[i] >= vv[i + 1]) or (vv[i] < vv[i - 1] and vv[i] <= vv[i + 1]):
+			if ext.is_empty() or absf(float(vv[i]) - float(vv[ext[-1]])) > 0.3:
+				ext.append(i)
+	check(ext.size() >= 4, "экстремумов скорости: %d" % ext.size())
+	if ext.size() >= 4:
+		var sw0 := absf(float(vv[ext[1]]) - float(vv[ext[0]]))
+		var sw1 := absf(float(vv[ext[3]]) - float(vv[ext[2]]))
+		var period: float = float(ts[ext[2]]) - float(ts[ext[0]])
+		var ratio := sw1 / sw0
+		print("    фугоида, полный газ, упор TT-8: v %.1f км/ч, размах %.2f -> %.2f м/с, отношение за период %.2f, период %.1f с" % [float(vv[-1]) * 3.6, sw0, sw1, ratio, period])
+		check(ratio <= 0.6, "отношение размахов за период %.2f <= 0,6" % ratio)
+		check(period >= 9.0 and period <= 14.0, "период %.1f с в 9-14 с" % period)
 	g.free()
 
 
