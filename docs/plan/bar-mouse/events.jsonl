@@ -58,3 +58,4 @@
 {"t": "2026-10-23T05:22:51", "by": "coordinator", "task": "BM-4", "ev": "merged"}
 {"t": "2026-10-23T05:22:51", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: task show обрезает дополнения на ~300 символов — исполнители (BM-3, BM-5) теряли указания, BM-5 из-за этого ушёл на доработку; нужен task show --full по умолчанию для note. Исполнители оставляют r-<ID>.json в копии → accept FAIL scope (3 из 5 задач); report мог бы удалять файл или accept игнорировать r-*.json. merge при грязной копии: отказ не последней строкой."}
 {"t": "2026-10-23T05:23:06", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli: модуль готов к проверке пользователем — BM-1…BM-5 accepted+merged, фильтры BM-3/BM-4 PASS на feature/bar-mouse 8f8d7364; полный прогон — главная"}
+{"t": "2026-10-23T12:36:51", "by": "main", "task": null, "ev": "delivered", "commits": ["7f45972df"], "note": "squash в main: 7f45972df"}
