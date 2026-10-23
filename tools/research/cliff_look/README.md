@@ -5,9 +5,9 @@ module: "cliff-look"
 updated: "2026-10-23"
 summary: "Откуда полосы и рябь на крутых склонах: полосы — уступы ledge в нормали, рябь — sl_rock, нормаль 25 м и Rock030; стенд ракурсов"
 related: ["docs/plan/cliff-look.md", "docs/contracts/cliff-look.md", "docs/contracts/mountain-look.md", "docs/guide/terrain/surface.md"]
-conclusion: "Полосы на крутых склонах — уступы ledge в нормали по фазе слоёв 7/25,9 м (без них −62…−88 % полос); рябь < 2 м — sl_rock (−19…−34 %), нормаль ±1 узел 25 м, Rock030 ×2 растяжения; рекомендация — блоки 5–40 м в шейдере"
+conclusion: "Полосы на крутых склонах — уступы ledge в нормали по фазе слоёв 7/25,9 м (без них −62…−88 % полос); рябь < 2 м — sl_rock (−19…−34 %), нормаль ±1 узел 25 м, Rock030 ×2 растяжения; блоки CL-2 отменены (CL-6): после — полосы ×0,16, рябь ×0,68, крупные 5–40 м ×1,0"
 applied_in: ["scripts/terrain/terrain_main.gdshaderinc", "configs/world.json"]
-data: "diag_before.json, diag_before.md, diag_cl2.json, diag_cl2.md (CL-2); кадры /home/greg/deltaplan/build/screenshots/cliff-look/ (before_*, diag_*)"
+data: "diag_before.json, diag_before.md, diag_cl2.json, diag_cl2.md (CL-2), diag_after.json, diag_after.md (CL-6); кадры /home/greg/deltaplan/build/screenshots/cliff-look/ (before_*, after_*, diag_*)"
 ---
 # Скалы на крутых склонах: диагноз полос и ряби, стенд, «до» (CL-1)
 
@@ -203,6 +203,50 @@ shymbulak/wall_near | 167 | 0.016 (0.006) → 0.003 | 0.078 → 0.063 | 0.205 �
   десятков), «до» там тоже был фон;
 - крупные формы на Шымбулаке выросли меньше всего (×1,16–1,19): скалы там большей частью под свежим снегом, блоки под ним
   гаснут (так задумано).
+
+## После (CL-6): блоки CL-2 убраны — полос нет, рябь слабее, нового рисунка нет
+
+Решение пользователя (2026-10-23): рисунок скал («брусчатка» блоков CL-2) отменён. Блоки породы убраны из шейдера и конфига
+(`cliff_block_m`, `cliff_tone`, `cliff_tilt`, `cliff_bulge`, `cliff_jitter`, `cliff_crack_*`, `cliff_ao*`, `cliff_fade_px`,
+гашение граней под снегом). Остались: нет уступов `ledge_*` и цветных слоёв `strata_strength` (CL-2) и ослабление мелкой
+фактуры на крутом (`cliff_slope_deg` 30→45°, `cliff_fine_keep` 0,15 — Rock030 цвет и нормаль, SL-9). Снег CL-3 не менялся.
+Член диагноза `cliff` убран из `DIAG_MEMBERS`, `cliff_fine` остался.
+
+Кадры: `tools/shots/cliff_look_shots.sh after` → `/home/greg/deltaplan/build/screenshots/cliff-look/after_<tag>_<view>.jpg`
+(10 ракурсов, те же, что `before_`); числа — `… after --diag-only --members=base,cliff_fine`,
+`diag_metrics.py build/cliff_look_raw/after --out tools/research/cliff_look/diag_after.json` (сводка — `diag_after.md`),
+`python3 -I tools/research/cliff_look/compare.py tools/research/cliff_look/diag_before.json tools/research/cliff_look/diag_after.json`.
+
+ракурс | дальн., м | полосы A до (фон) → после | рябь < 2 м до → после | 5–40 м до → после
+--- | --- | --- | --- | ---
+chamonix/wall_mid | 402 | 0.025 (0.002) → 0.005 | 0.070 → 0.060 | 0.205 → 0.206
+chamonix/wall_near | 165 | 0.032 (0.033) → 0.025 | 0.109 → 0.076 | 0.266 → 0.272
+elbrus/wall_mid | 402 | 0.031 (0.005) → 0.003 | 0.085 → 0.045 | 0.144 → 0.141
+elbrus/wall_near | 165 | 0.037 (0.008) → 0.009 | 0.145 → 0.087 | 0.197 → 0.194
+everest/snow_mid | 402 | 0.067 (0.005) → 0.005 | 0.066 → 0.044 | 0.248 → 0.253
+everest/snow_near | 165 | 0.106 (0.035) → 0.025 | 0.142 → 0.081 | 0.316 → 0.311
+shymbulak/peak_snow | 2284 | 0.033 (0.007) → 0.004 | 0.041 → 0.031 | 0.199 → 0.201
+shymbulak/talgar_pass_south | 1574 | 0.015 (0.011) → 0.003 | 0.043 → 0.034 | 0.174 → 0.173
+shymbulak/wall_mid | 403 | 0.026 (0.004) → 0.005 | 0.038 → 0.021 | 0.155 → 0.150
+shymbulak/wall_near | 167 | 0.016 (0.006) → 0.002 | 0.078 → 0.056 | 0.205 → 0.204
+
+Медианы: **STRIPES_RATIO 0,163** (8 ракурсов; chamonix/wall_near и talgar_pass_south исключены — A «до» на уровне фона),
+**RIPPLE_RATIO 0,683**, **LARGE_RATIO 0,996** (порога нет). Рябь упала на всех 10 ракурсах (−14…−47 %); без ослабления
+мелкой фактуры (`cliff_fine`, keep = 1) она была бы выше в 1,3–1,7 раза (`diag_after.md`, rp). Крупные формы 5–40 м — как «до»
+(0,98–1,02): нового рисунка нет, крупную картину дают те же члены, что до CL-2 (крупный слой породы, кулуары, кривизна, свет).
+
+Снег (`snow_compare.py`; пути в нём зашиты на `build/cliff_look_raw/cl3` — скрипт не правился, запущен без изменений из
+временного дерева, где `cl3` указывает на сырые кадры `after`): everest/snow_mid large ×1,420, ripple ×0,975;
+everest/snow_near ×1,378 / ×0,463; shymbulak/peak_snow ×1,207 / ×1,086; **SNOW_LARGE_RATIO 1,378, SNOW_RIPPLE_RATIO 0,975**
+(у CL-3 — 1,336 и 1,092). Рельеф снега CL-3 сохранился.
+
+Где хуже или без улучшения:
+- крупных форм на скалах больше не стало (LARGE_RATIO ≈ 1, у CL-2 было 1,31): так и задумано — блоки отменены, стена гладкая
+  на масштабе 5–40 м, как до CL-2, только без полос и с меньшей рябью;
+- chamonix/wall_near: полосы 0,032 → 0,025 — «до» там уже был фон (0,033), это не слои;
+- рябь падает меньше всего на chamonix/wall_mid (−14 %) и вдали (peak_snow, talgar_pass_south: −21…−24 %): там в ряби больше
+  доля членов, которых ослабление не касается (нормаль сетки 25 м, кулуары), а на 1,6–2,3 км мелкая фактура уже усреднена мипами;
+- shymbulak/peak_snow — рябь на снегу ×1,086 (желоба CL-3), как и у CL-3.
 
 ## Границы
 
