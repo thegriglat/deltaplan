@@ -153,6 +153,7 @@ static func place(ctx: Dictionary) -> Dictionary:
 	var src: Dictionary = r.src
 	# Нет valley_msl_m (или NAN) — высоты места не знаем: поправки нет, значения на средней высоте ячейки (HH7).
 	var valley := float(ctx.get("valley_msl_m", NAN))
+	var valley_given := valley
 	# Нет Z ячейки (HH1 не загружена) — таблицы относятся к самому месту: поправки нет.
 	var z_cell := float(r.z_cell_m)
 	if src.hh1 == "none" or is_nan(valley):
@@ -163,16 +164,17 @@ static func place(ctx: Dictionary) -> Dictionary:
 	var season := season_index(month, lat)
 	r.td_c = float(r.td_c) + td_gradient(lat, season, cl) * dz_km
 	if src.hh5 != "none":  # таблицы-запасные уже относятся к месту
-		r.tx_c = float(r.tx_c) + belt_gradient(lat, season, cl.get("tx_gradient_k_per_km", {}), -6.3) * dz_km
+		r.tx_c = float(r.tx_c) + belt_gradient(lat, season, cl.get("tx_gradient_k_per_km", {}), -6.31) * dz_km
 		r.dtr_k = maxf(
-			0.0, float(r.dtr_k) + belt_gradient(lat, season, cl.get("dtr_gradient_k_per_km", {}), -0.5) * dz_km
+			0.0, float(r.dtr_k) + belt_gradient(lat, season, cl.get("dtr_gradient_k_per_km", {}), -0.48) * dz_km
 		)
 	if src.hh6 == "none":
 		r.gain_per_km = float(Config.value("atmosphere", "wind.altitude_gain_per_km", 0.6))
 	else:
-		r.gain_per_km = (
-			(float(r.wr) - 1.0) * 1000.0 / maxf(float(r.z700_m) - z_cell, 500.0)
-		)
+		# Нет HH1 (Z ячейки неизвестна, 0 — не высота): WR (HH6) относится к земле места, толщину слоя до 700 гПа
+		# считаем от высоты долины, а не от уровня моря — иначе рост ветра занижен на высоких местах.
+		var z_ref := valley_given if (src.hh1 == "none" and not is_nan(valley_given)) else z_cell
+		r.gain_per_km = (float(r.wr) - 1.0) * 1000.0 / maxf(float(r.z700_m) - z_ref, 500.0)
 	return r
 
 
