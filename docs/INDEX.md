@@ -43,6 +43,7 @@ generated: true
   - [tools/research/haze_humidity/upper_misc/README.md](../tools/research/haze_humidity/upper_misc/README.md) — Сетка HH6 v2: HCC, TROP — ERA5 2011–2020 (CDS), WR — ERA5 2018–2019 (ARCO 1°), stub_mask=0
   - [tools/research/haze_humidity/verify/README.md](../tools/research/haze_humidity/verify/README.md) — Сверка Td и T700 с прогнозом Open-Meteo (38 мест, 16 дней): доля в σ Td 67 %, T700 62 %; сдвиг Td +0,7 К
   - [tools/research/haze_humidity/era5_source/summary.md](../tools/research/haze_humidity/era5_source/summary.md) — HH-17: остаток ERA5 качать из ARCO-1° почасового; T700 RMSE к CDS 0.09 K, u700 0.19 м/с, T2m max 0.52 K; NCAR и ARCO-0.25° не нужны [closed]
+- **air-cascade** — Каскад на гранях: деление клеток поля Пикара пополам с балансом массы — порывы, болтанка, склон; опыт на 2D-разрезе против Пикара. [idea 2026-10-24] — [план](plan/air-cascade.md)
 
 ## flight
 
