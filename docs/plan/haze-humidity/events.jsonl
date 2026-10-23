@@ -544,3 +544,5 @@
 {"t": "2026-10-23T14:31:17", "by": "executor", "task": "HH-8b", "ev": "reported", "commits": ["haze-humidity"], "note": "done: weather.md: новый раздел про Tmax, амплитуду, тропопаузу, перистые, рост ветра (WR — заглушка до HH-1h), 700 гПа настоя…", "dp_feedback": "docs/registry/findings.md упирается в лимит 40 КБ: нужна подсказка dpcli, куда выносить разделы (скоуп называет только findings.md и findings/)."}
 {"t": "2026-10-23T14:31:24", "by": "coordinator", "task": "HH-8b", "ev": "accepted", "note": "2/2 no_stale=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-10-23T14:31:28", "by": "coordinator", "task": "HH-8b", "ev": "accepted", "note": "по отчёту"}
+{"t": "2026-10-23T14:31:34", "by": "coordinator", "task": "HH-8b", "ev": "accepted", "commits": ["ee76bb0"], "note": "2/2 no_stale=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-10-23T14:31:34", "by": "coordinator", "task": "HH-8b", "ev": "merged", "commits": ["ee76bb0"]}
