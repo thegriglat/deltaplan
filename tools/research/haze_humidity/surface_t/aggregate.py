@@ -1,5 +1,5 @@
 """Этап B: TX/TN/DTR = максимум/минимум среднего хода 2011-2020 + поправка недобора (CDS daily-statistics 2018-2019) -> RAW/climatology_t.npz.
-Вход: RAW/surface_t_cds/course_stats.npz (course.py), RAW/surface_t_cds/daily/{daily_maximum,daily_minimum}_utc+0000_<год>_m*.nc (1°, cds_daily.py),
+Вход: RAW/surface_t_cds/course_stats.npz (course.py), RAW/era5_arco/2m_temperature/<дата>.npz и 2m_temperature_diurnal_<год>.npz (ARCO 1°, HH-18),
 RAW/climatology.npz (z, lsm, z025, lsm025 из HH-1).
 Поправка (Dx >= 0 для максимума, Dn <= 0 для минимума) считается в узлах сетки 1° (там живёт daily-statistics): по годам 2018 и 2019
   Dx_y(m) = среднее по дням месяца суточного максимума (UTC-сутки) - max по 24 часам среднего хода года y в том же узле; Dn_y аналогично.
@@ -7,7 +7,7 @@ Dx = среднее Dx_y по двум годам. Неравенство сре
 Перенос: TX = max24(средний ход 2011-2020) + Dx, ячейка 1° = площадное среднее max24 (0.25° -> 1°, common.to_1deg) + среднее Dx четырёх окружающих
 узлов; для градиента 0.25° — билинейная интерполяция Dx узлов. DTR = TX - TN.
 Запуск: python aggregate.py"""
-import glob, json, os
+import json, os
 import numpy as np
 import xarray as xr
 from common import RAW, to_1deg
@@ -17,33 +17,35 @@ cs = np.load(f"{R}/surface_t_cds/course_stats.npz")
 c = np.load(f"{R}/climatology.npz")
 
 
-def load_stat(stat, y):
-    """-> (12,181,360): средний за месяц суточный экстремум, узлы lat 90..-90, lon 0..359; число дней проверено."""
-    out = np.zeros((12, 181, 360)); cnt = np.zeros(12, int)
-    for fn in sorted(glob.glob(f"{R}/surface_t_cds/daily/{stat}_utc+0000_{y}_m*.nc")):
-        d = xr.open_dataset(fn)
-        v = d["t2m"] if "t2m" in d else d[list(d.data_vars)[0]]
-        tname = [k for k in v.dims if "time" in k][0]
-        lat = d["latitude"].values; lon = d["longitude"].values
-        a = v.transpose(tname, "latitude", "longitude").values.astype(np.float64) - 273.15
-        if lat[0] < lat[-1]:
-            a = a[:, ::-1, :]; lat = lat[::-1]
-        assert lat[0] == 90 and lat[-1] == -90 and a.shape[1:] == (181, 360), (fn, a.shape, lat[:2])
-        lon = np.where(lon < 0, lon + 360, lon); o = np.argsort(lon); a = a[:, :, o]; assert (lon[o] == np.arange(360)).all(), fn
-        mon = d[tname].dt.month.values
-        for m in np.unique(mon):
-            s = mon == m
-            out[m - 1] += a[s].sum(0); cnt[m - 1] += s.sum()
+def arco_stat(y):
+    """ARCO-ERA5 1° (HH-18): суточные max/min по 24 ч UTC, файлы era5_arco/2m_temperature/<дата>.npz [lon 360, lat 181 (-90..90)];
+    -> средние по дням месяца (12,181,360) в порядке узлов CDS (lat 90..-90, lon 0..359), °C."""
+    import datetime
+    mx = np.zeros((12, 181, 360)); mn = np.zeros_like(mx); cnt = np.zeros(12, int)
+    d = datetime.date(y, 1, 1)
+    while d.year == y:
+        z = np.load(f"{R}/era5_arco/2m_temperature/{d.isoformat()}.npz")
+        m = d.month - 1
+        mx[m] += z["max"].T[::-1]; mn[m] += z["min"].T[::-1]; cnt[m] += 1
+        d += datetime.timedelta(1)
     dim = np.array([31, 28 + (y % 4 == 0), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
-    assert (cnt == dim).all(), (stat, y, cnt.tolist())
-    assert np.isfinite(out).all()
-    return out / cnt[:, None, None]
+    assert (cnt == dim).all(), (y, cnt.tolist())
+    mx /= cnt[:, None, None]; mn /= cnt[:, None, None]
+    if mx.mean() > 200:
+        mx -= 273.15; mn -= 273.15
+    assert np.isfinite(mx).all() and np.isfinite(mn).all()
+    return mx, mn
+
+
+def arco_course(y):  # средний ход года (12,24,181,360), °C
+    a = np.load(f"{R}/era5_arco/2m_temperature_diurnal_{y}.npz")["mean"].transpose(0, 1, 3, 2)[:, :, ::-1, :]
+    return a - 273.15 if a.mean() > 200 else a
 
 
 D = {}
 for y in (2018, 2019):
-    node = cs[f"node{y}"]  # (12,24,181,360)
-    dx = load_stat("daily_maximum", y) - node.max(1); dn = load_stat("daily_minimum", y) - node.min(1)
+    node = arco_course(y); mx, mn = arco_stat(y)
+    dx = mx - node.max(1); dn = mn - node.min(1)
     D[y] = (dx, dn)
     print(y, "Dx min/med/max", float(dx.min()), float(np.median(dx)), float(dx.max()), "Dn", float(dn.min()), float(np.median(dn)), float(dn.max()), flush=True)
 Dx = (D[2018][0] + D[2019][0]) / 2; Dn = (D[2018][1] + D[2019][1]) / 2
