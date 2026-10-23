@@ -37,7 +37,7 @@ const MASKS := {
 ## шейдера (вариант на лету), shadows — тени солнца Godot. Пусто — исходный кадр.
 const DIAG_MEMBERS := {
 	"base": {},
-	"cliff": {"p": {"cliff_tone": Vector2.ZERO, "cliff_tilt": Vector2.ZERO, "cliff_bulge": Vector2.ZERO, "cliff_crack_dark": Vector2.ZERO, "cliff_ao": Vector2.ZERO}},
+	# ослабление мелкой ряби на крутом (CL-К2 v3) выключено — мелкая фактура как на пологом
 	"cliff_fine": {"p": {"cliff_fine_keep": 1.0}},
 	"ynoise": {"sub": [["fbm(wp.xz / 12.0 + vec2(wp.y / 8.0), 3)", "fbm(wp.xz / 12.0, 3)"],
 			["fbm(wp.xz / 7.0 + vec2(wp.y / 5.0, 2.7), 3)", "fbm(wp.xz / 7.0 + vec2(0.0, 2.7), 3)"]]},
@@ -51,7 +51,7 @@ const DIAG_MEMBERS := {
 	"detail": {"def": ["T_DETAIL_OFF"]},
 	"grid": {"sub": [["vec2 hg = height_grad(wp.xz, n_lod);", "vec2 hg = height_grad(wp.xz, n_lod + 1.0);"]]},
 	"shadows": {"shadows": true, "p": {"relief_shadow_strength": 0.0}},
-	"all_off": {"p": {"cliff_tone": Vector2.ZERO, "cliff_tilt": Vector2.ZERO, "cliff_bulge": Vector2.ZERO, "cliff_crack_dark": Vector2.ZERO, "cliff_ao": Vector2.ZERO, "use_rock_tex": false, "rock_crack_dark": 0.0,
+	"all_off": {"p": {"use_rock_tex": false, "rock_crack_dark": 0.0,
 			"rock_scree_streaks": 0.0, "rock_tone_var": 0.0, "rock_curv_shade": 0.0, "sl_rock_enabled": false,
 			"erosion_enabled": false, "rock_macro_strength": 0.0, "rock_macro_normal": 0.0},
 			"def": ["T_ROCK_DETAIL_OFF", "T_DETAIL_OFF"]},
