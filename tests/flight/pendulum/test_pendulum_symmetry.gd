@@ -29,11 +29,11 @@ func _fly(w: String, src: String, r: float, wind := Vector3.ZERO) -> Array:
 		ic.on_ground = false
 		ic.set_mouse_captured(true)
 		if src == "mouse" and r != 0.0:
-			# смещение мыши на r хода: полный ход — полвысоты окна / чувствительность
+			# смещение мыши на r хода: полный ход — MouseBar.travel_px отсчётов мыши (BM-К1)
 			var sz := root.get_visible_rect().size
-			var sens := float(Config.value("controls", "mouse.bar_sensitivity", 1.0))
 			var ev := InputEventMouseMotion.new()
-			ev.relative = Vector2(r * sz.y * 0.5 / sens, 0.0)
+			ev.relative = Vector2(r * MouseBar.travel_px(Config.get_config("controls").mouse), 0.0)
+			ev.screen_relative = ev.relative
 			ev.position = sz * 0.5
 			ev.global_position = ev.position
 			# напрямую в _unhandled_input: push_input идёт через GUI, и не освобождённое ещё (queue_free)

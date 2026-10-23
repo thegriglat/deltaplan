@@ -65,7 +65,10 @@ common_save,Сохранить,Save
 result_total_climb,Суммарный набор высоты: %.0f м,Total climb: %.0f m
 site_altai_tugaya_south,Тугая (Горно-Алтайск) — южный склон,Tugaya (Gorno-Altaysk) — south slope
 menu_controls,Управление,Controls
-settings_mouse_sensitivity,Чувствительность мыши,Mouse sensitivity
+settings_mouse_sensitivity,Обзор мышью,Mouse look
+settings_bar_sensitivity,Чувствительность штанги,Bar sensitivity
+settings_bar_os_accel,Ускорение мыши в системе меняет ход штанги — выключите его (плоский профиль) в настройках ОС,OS mouse acceleration changes bar travel — turn it off (flat profile) in system settings
+settings_bar_sensitivity_fmt,"%.2f×  ≈ %.1f см (800 DPI)","%.2f×  ≈ %.1f cm (800 DPI)"
 map_hint,"Щёлкните по карте или введите координаты. Старт — в выбранной точке; точнее — «Выбрать старт на рельефе» в главном меню.","Click the map or enter coordinates. The launch is at the chosen point; for a precise spot use "Pick launch on terrain" in the main menu."
 unit_db,дБ,dB
 unit_kg,кг,kg
@@ -182,6 +185,12 @@ settings_haze_sun,Дымка к солнцу,Haze toward the sun
 settings_wind_model,Ветер над рельефом,Wind over terrain
 settings_wind_model_calc,Расчет на GPU (обтекание рельефа),GPU solver (terrain flow)
 settings_wind_model_simple,Эвристика (профиль ветра без рельефа),Heuristic (wind profile without terrain)
+settings_gpu_hint,Если игра вылетает или видеокарта зависает - выключайте эффекты по одному и перезапускайте полёт. Изменения вступают в силу со следующей загрузки места.,If the game crashes or the graphics card hangs - switch the effects off one by one and restart the flight. Changes apply from the next place load.
+settings_gpu_on,Включено,On
+settings_gpu_sun_shadows,Тени солнца,Sun shadows
+settings_gpu_cloud_shadows,Тени облаков на земле,Cloud shadows on the ground
+settings_gpu_glow,Свечение ярких мест,Glow of bright areas
+settings_gpu_simple_clouds,Простые облака (без вычислительных шейдеров),Simple clouds (no compute shaders)
 settings_air_cache_mb,Кеш ветра на диске,Wind cache on disk
 unit_mb,МБ,MB
 settings_as_in_preset,Как в пресете,From preset
@@ -638,3 +647,16 @@ tow_site_dh,"Перепад высот вдоль полосы больше до
 loc_wilotree_park,"Флорида — Wilotree Park (Quest Air), буксировка","Florida — Wilotree Park (Quest Air), towing"
 site_wilotree_runway_36,"Полоса 36 (на север), южный торец","Runway 36 (north), south end"
 site_wilotree_runway_18,"Полоса 18 (на юг), северный торец","Runway 18 (south), north end"
+gpu_fail_title,Видеокарта не отвечает,Graphics card not responding
+gpu_fail_text,"Видеокарта перестала отвечать (драйвер %s). Игра могла оборваться или считать ветер не так, как должна.",The graphics card stopped responding (driver %s). The game may have crashed or computed wind incorrectly.
+gpu_fail_recommend,Рекомендуем переключиться на %s и перезапустить игру.,We recommend switching to %s and restarting the game.
+gpu_fail_update,"Попробуйте обновить драйвер видеокарты. Можно включить «Безопасную графику»: тяжёлые эффекты и расчёт ветра на видеокарте выключатся.","Try updating your graphics driver. You can also turn on “Safe graphics”: heavy effects and GPU wind calculation are switched off."
+gpu_fail_switch,Перейти на %s и перезапустить,Switch to %s and restart
+gpu_fail_safe,Безопасная графика (без тяжёлых эффектов),Safe graphics (no heavy effects)
+gpu_fail_retry,Попробовать снова,Try again
+settings_render_driver,Драйвер графики,Graphics driver
+render_driver_auto,Авто,Auto
+settings_render_driver_restart,Нужен перезапуск,Restart required
+settings_render_driver_restart_btn,Перезапустить игру,Restart game
+menu_safe_graphics,Безопасная графика: прошлый запуск оборвался,Safe graphics: the last run crashed
+menu_safe_restore,Вернуть настройки,Restore settings

@@ -2119,3 +2119,12 @@ func _goals_finish(kind: String, info: Dictionary) -> void:
 		flight["task"] = res.route
 	flight.erase("goals")
 	info["new_records"] = FlightRecords.new(records_path).add_flight(flight)
+
+
+## Температура воздуха, °C, на высоте z_m над уровнем моря — для порога снежных флагов (SNW-4).
+## Есть контекст погоды — суточный ход и градиент SurfaceHeat; нет — прогноз меню минус 6,5 К/км.
+func air_temp_c_at(z_m: float) -> float:
+	var t_max := float(settings.forecast().get("temperature_c", 20.0))
+	if _weather_ctx.is_empty():
+		return t_max - 0.0065 * z_m
+	return SurfaceHeat.air_temp_c(sky.clock.hour, t_max, z_m, _weather_ctx, SurfaceHeat.config().water)

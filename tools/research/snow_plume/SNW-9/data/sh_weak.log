@@ -1,0 +1,32 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.3.277 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 SUPER
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+steam: inactive (no_feature)
+air_model: analytic (нет поля)
+Terrain: место pt_+43.150_+077.100 загружено за 3.96 с
+Terrain: поля рельефа за 3.51 с
+PlaceData: 'pt_+43.150_+077.100' за 2.82 с — OSM 2.59 с (домов OSM 143005), план домов 0.23 с (2482)
+WorldObjects: снаряжение у 0 стартов — 0 вещей за 0 мс
+WorldObjects: 'pt_+43.150_+077.100' за 6.06 с — ветроуказателей 0, посадок 0, троп к стартам 0, домов 2482, OSM тайлов 9/9
+air_model: field (массивы; уровней 3)
+air_model: поле (фазы+Пикар) итераций [0, 0], фазы A 0.00, B 0.01, C 0.00, D 0.09, F 0.90, H 0.00 (524 мс), заморожено 1.00, ω→запас false
+air_model: поле 12:00 ч, 2.0 м/с с 270° (загрузка): 10.67 с, итераций [0, 0], окна ["100 м [190, 210]", "50 м [70, 110]"]; k притока 1.000, U над стартом на 10 м 0.22 м/с (проход 1: 0.22 м/с), проходов 1 ["1.000 → 0.22 м/с за 10.7 с (область 2.5, GPU 0.13)"]
+WorldObjects: палаток у старта 1 из 1 за 235 мс
+air_cache: записано 8177fff584f138aa (ok), 0.45 с
+Мир: deltaplan://world?bots=0&date=2026-07-15&from=270&hour=12.00&lat=43.12800&lon=77.08100&seed=20260927&sky=clear&temp=-10.0&v=2&wind=2.0
+ERROR: NO GRAB
+   at: _mouse_update_mode (platform/linuxbsd/x11/display_server_x11.cpp:588)
+   GDScript backtrace (most recent call first):
+       [0] set_mouse_captured (res://scripts/game/input_controller.gd:85)
+       [1] set_input_enabled (res://scripts/game/game.gd:1160)
+       [2] set_flying (res://scripts/game/game.gd:960)
+       [3] _fly (res://scenes/main.gd:389)
+       [4] start (res://scripts/game/game.gd:484)
+achievements: unlocked ACH_GLORIA
+snow_bench: {"cam":[2410.66015625,2956.828125,3560.66015625],"emitters":0,"items":[],"name":"shymbulak_weak_lee","plume_node":true,"scan_count":4,"series":[[2.0,0,3],[4.0,0,3],[6.0,0,3],[8.0,0,3],[10.0,0,3],[12.1,0,3],[14.1,0,3],[16.1,0,3],[18.1,0,3],[20.1,0,3],[22.1,0,3],[24.1,0,3],[26.1,0,3],[28.2,0,3],[30.2,0,3],[32.2,0,3],[34.2,0,3],[36.2,0,3],[38.2,0,3],[40.2,0,3],[42.3,0,3],[44.3,0,4]],"shot":"/tmp/claude-1000/snw9/shymbulak_weak_lee.jpg","t_mean_c":0.0,"tgt":[1350.0,3323.75,2500.0]}

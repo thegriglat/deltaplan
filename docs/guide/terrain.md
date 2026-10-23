@@ -5,7 +5,7 @@ module: "terrain"
 area: "world"
 updated: "2026-10-23"
 summary: "Рельеф и мир (Terrain): файлы, контракт height_at/surface_at/forest_at, пример подключения; детали — в частях terrain/."
-related: ["docs/guide/terrain/relief.md", "docs/guide/terrain/surface.md", "docs/guide/terrain/forest-sky.md", "docs/guide/terrain/runtime.md", "docs/guide/location-data.md", "docs/guide/vegetation.md", "docs/guide/scene-look.md", "docs/guide/world-objects.md", "docs/research/terrain_sources.md"]
+related: ["docs/guide/terrain/relief.md", "docs/guide/terrain/surface.md", "docs/guide/terrain/forest-sky.md", "docs/guide/terrain/runtime.md", "docs/guide/terrain/snow-plume.md", "docs/guide/location-data.md", "docs/guide/vegetation.md", "docs/guide/scene-look.md", "docs/guide/world-objects.md", "docs/research/terrain_sources.md"]
 ---
 # Рельеф и мир
 
@@ -23,6 +23,7 @@ FR-17…FR-20, VR-3, VR-4, VR-0, NFR-1, NFR-2. Исследование исто
 | [terrain/surface.md](terrain/surface.md) | карта поверхности WorldCover, маска 10 м (лес, вода), пустыри у стартов, источники термиков, раскраска, луг, скалы и снег |
 | [terrain/forest-sky.md](terrain/forest-sky.md) | деревья-модели и средний план леса, полог с высоты, небо, дымка и инверсия, ослепление солнцем, ветер на земле |
 | [terrain/runtime.md](terrain/runtime.md) | выбор точки, рантайм-загрузка и ошибки, как добавить локацию, четыре места, превью-сцена, стенд кадров |
+| [terrain/snow-plume.md](terrain/snow-plume.md) | снежные струйки с гребней: снег, гребень, ветер модели, порог срыва, отрисовка, настройки, чего не умеет |
 
 Смежные гайды: [vegetation.md](vegetation.md) (трава, кусты, расстановка по кромке), [scene-look.md](scene-look.md) (картинка с высоты),
 [world-objects.md](world-objects.md) (ветроуказатели, посадки, лагерь, посёлки, OSM-слой), [location-data.md](location-data.md), [osm-tiles.md](osm-tiles.md).
