@@ -492,3 +492,4 @@
 {"t": "2026-10-23T06:52:23", "by": "executor", "task": "HH-4c", "ev": "reported", "commits": ["6685cc0f7"], "note": "done: Эталон medium под настоящий Tx места (+24,5 °C вместо +24), градиенты Tx/DTR в конфиге сверены с текущим gradient.json …"}
 {"t": "2026-10-23T07:02:06", "by": "coordinator", "task": "HH-4c", "ev": "checked", "note": "6/6 weather=ok:19/19; haze_humidity=ok:29/29; goal=ok:103/103; wind=ok:43/43 (пропуск 4); surface_heat=ok:16/16; hh5_data=ok:exit 0"}
 {"t": "2026-10-23T07:02:29", "by": "coordinator", "task": "HH-4c", "ev": "accepted", "note": "по отчёту: эталоны под HH5, градиенты из gradient.json (юг — северные со сдвигом сезона), вырожденный ClimateGrid; региональные градиенты — не введены"}
+{"t": "2026-10-23T07:02:30", "by": "coordinator", "task": "HH-4c", "ev": "merged", "commits": ["e63026d95"]}
