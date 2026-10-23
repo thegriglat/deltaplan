@@ -223,6 +223,8 @@ contracts: [{"id": "TP-К1", "version": 3}, {"id": "TP-К2", "version": 1}, {"id
   тележки, как TT-К4 v4) и прежний автопилот (`bar_max_m` 0,12, полный газ в `climb`, без регулятора газа); тесты `tow`
   — прежние пороги, зелёные. Игрок — тяга по оси винта (`a` из `cart.prop_axis_below_hang_m`). `TrikeRig`: поле
   `thrust_split: float` (доля на `pilot`; по умолчанию — из конфига, `TowTug` задаёт 1,0 с пометкой «до TP-23»).
+  Q9 (2026-10-23, ответ C): у буксировщика своя тележка — `cart.tug_prop_axis_below_hang_m` 1,45 (TP-23: 62 км/ч,
+  3,49 м/с), `TowTug.thrust_split = tug_prop_axis/cg_below_hang_m` вместо 1,0; игрок — `prop_axis_below_hang_m` 1,238.
 
 ## TP-К7 v3. Колёса дельталёта: руление, тормоз, посадка (`PendulumModel`)
 Владелец — TP-7. Потребитель — TP-6 (`Glider.reset_on_wheels`). Контрактный тест — `tests/contracts/test_trike_pilot_k7.gd`
