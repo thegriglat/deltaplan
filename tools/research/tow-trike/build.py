@@ -48,8 +48,8 @@ cfg["cart"] = {
  "mass_kg_doc": "Сумма empty + pilot + fuel; без крыла (53 кг iXess 15 — в configs/wings)",
  "cg_below_hang_m": round(cg_len, 2),
  "cg_below_hang_m_doc": "Расстояние ЦМ тележки с пилотом от подвески: расчёт по узлам trike_params.json (сиденье, бак, ось винта; двигатель, рама и остаток — оценка) — cart.py: ЦМ %.2f м вперёд и %.2f м вниз → %.2f м; без учёта кувыркающегося пилота" % (cg_f, -cg_u, cg_len),
- "prop_axis_below_hang_m": 1.238,
- "prop_axis_below_hang_m_doc": "Расстояние оси винта от подвески вдоль мачты, м (TP-К6 v2): оценка tools/research/tow-trike/cart.py; тяга делится между тележкой и подвеской по правилу рычага, доля на тележку = prop_axis/cg_below_hang = 0,727; docs/research/trike-pilot/pitch-oscillation.md",
+ "prop_axis_below_hang_m": 1.40,
+ "prop_axis_below_hang_m_doc": "Расстояние оси винта от подвески вдоль мачты, м (TP-К6 v2): одна ось у игрока и буксировщика, подогнана под игру (Q9, решение 2026-10-23), не схема пилота (1,238, оценка cart.py). Прогон TP-26 (ось: связка км/ч / набор м/с / k фугоиды игрока): 1,35: 66,8/3,61/0,56; 1,38: 65,3/3,58/0,57; 1,40: 64,3/3,56/0,63; 1,42: 63,4/3,53/0,64; 1,45: 62,1/3,49/0,67. Связка в 55-65 км/ч с 1,385 м, k <= 0,6 только до 1,38 - окна не пересекаются; принято 1,40 с порогом k <= 0,65. Таблица: tools/research/trike-pilot/axis/axis_table.txt. Тяга делится по правилу рычага, доля на тележку = prop_axis/cg_below_hang = 1,40/1,71 = 0,819; docs/research/trike-pilot/pitch-oscillation.md",
  "cda_m2": round(cda, 2),
  "cda_m2_doc": "Лобовое сопротивление тележки с пилотом, оценка по составляющим (cart.py): пилот 0,45 (Wilson, Bicycling Science), колёса 0,12, трубы 0,20 (Hoerner), двигатель 0,05; ±30 %. Прямого источника для трайка нет",
  "arms_force_max_n": 500.0,
@@ -95,8 +95,8 @@ cfg["ground"] = {
  "wheel_base_agl_m_doc": "Высота ЦМ тележки над землёй на колёсах = hang_height (2,50 м) − вертикальная составляющая ЦМ под подвеской (%.2f м); trike_params.json" % (-cg_u),
 }
 cfg["tow"] = {
- "tow_speed_kmh": 60.0,
- "tow_speed_kmh_doc": "Решение пользователя 55-65, середина; BHPA 64 км/ч при начальном наборе (kinds-bhpa.md); сваливание iXess 15 при тележке с крылом 315 кг ≈ %.0f км/ч (HADS Vso 59,3 при 450 кг × √(315/450))" % (wing.vstall(cart_mass + 53) * 3.6),
+ "tow_speed_kmh": 63.0,
+ "tow_speed_kmh_doc": "Решение пользователя 55-65; 63 вместо середины 60 (TP-26): при общей оси винта 1,40 м и ходе штанги bar_max 0,12 связка держит ≈ 64 км/ч; BHPA 64 км/ч при начальном наборе (kinds-bhpa.md); сваливание iXess 15 при тележке с крылом 315 кг ≈ %.0f км/ч (HADS Vso 59,3 при 450 кг × √(315/450))" % (wing.vstall(cart_mass + 53) * 3.6),
  "slack_speed_ms": 1.0,
  "slack_speed_ms_doc": "Скорость выбора слабины: оценка (как TW-К9)",
  "glider_hold_agl_m": 3.0,
