@@ -1,0 +1,11 @@
+{
+  "module": "cloud-base",
+  "plan": "docs/plan/cloud-base.md",
+  "contracts": "docs/contracts/cloud-base.md",
+  "branch": "feature/cloud-base",
+  "copy": "~/deltaplan-cloud-base",
+  "created": "2026-10-24T00:34:52",
+  "code": "CBS",
+  "area": "world",
+  "base": "main"
+}
