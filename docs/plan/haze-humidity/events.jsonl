@@ -508,3 +508,5 @@
 {"t": "2026-10-23T08:10:19", "by": "executor", "task": "HH-9b", "ev": "reported", "commits": ["HH-9b:"], "note": "done: Досчитана доля дней |прогноз−климат|<σ для T700 по t700_sd.npz (HH-1g): 62,1 % осенью (ДИ95 55,6–68,4; 35 мест) и 63,7 …"}
 {"t": "2026-10-23T08:10:27", "by": "coordinator", "task": "HH-9b", "ev": "checked", "note": "2/2 t700_frac=ok:exit 0; docs=ok:ошибок 0"}
 {"t": "2026-10-23T08:10:32", "by": "coordinator", "task": "HH-9b", "ev": "accepted", "note": "по отчёту: T700 в σ 62 % осень, 64 % июль (ДИ включают 68 %)"}
+{"t": "2026-10-23T08:10:33", "by": "coordinator", "task": "HH-9b", "ev": "accepted", "commits": ["fb0b83dc4"], "note": "2/2 t700_frac=ok:exit 0; docs=ok:ошибок 0"}
+{"t": "2026-10-23T08:10:33", "by": "coordinator", "task": "HH-9b", "ev": "merged", "commits": ["fb0b83dc4"]}
