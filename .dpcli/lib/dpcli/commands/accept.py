@@ -132,8 +132,12 @@ def run_check(c, cwd, logdir, idx, tid):
     safe = re.sub(r"[^\w.-]+", "_", name)
     log = logdir / f"{idx:02d}-{safe}.log"
     t0 = time.time()
+    argv = ["bash", "-c", cmd]
+    if c.get("tests") and not c.get("cmd") and not os.environ.get("DPCLI_IN_LOCK"):
+        # проверки tests (Godot) идут через очередь lock cpu (вес — по jobs.cpu_weights главной копии); внутри lock — напрямую
+        argv = [*reexec.self_cmd(), "lock", "cpu", tid or "accept", "--no-tmux", "--", *argv]
     try:
-        r = subprocess.run(["bash", "-c", cmd], cwd=wd, env=env, capture_output=True, text=True,
+        r = subprocess.run(argv, cwd=wd, env=env, capture_output=True, text=True,
                            timeout=c.get("timeout", 900))
         code, out = r.returncode, r.stdout + ("\n" + r.stderr if r.stderr else "")
     except subprocess.TimeoutExpired as e:

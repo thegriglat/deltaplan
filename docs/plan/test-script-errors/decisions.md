@@ -5,7 +5,7 @@ module: "test-script-errors"
 area: "process"
 updated: "2026-10-22"
 summary: "Решения (4) и вопросы (0, отвечено 0) модуля test-script-errors"
-related: ["docs/plan/test-script-errors.md"]
+related: []
 archive: "archive/test-script-errors"
 generated: true
 ---
