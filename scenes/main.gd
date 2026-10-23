@@ -55,6 +55,12 @@ var _hold_box: Control
 var steam_lobby: Node
 ## Вход по приглашению Steam уже ждёт конца загрузки (не запускать второй раз).
 var _steam_join_scheduled := false
+## Окно отказа видеокарты (CR-К3 v2) и опрос GpuHealth.
+var _gpu_dialog: GpuFailureDialog
+var _gpu_timer: Timer
+var _gpu_offered := false
+## Ожидающий отчёт о вылете на момент входа в дерево (до отправки CrashReporter).
+var _pending_at_start: Dictionary = {}
 
 @onready var game: Game = $Game
 @onready var start_menu: StartMenu = $UI/StartMenu
@@ -69,11 +75,18 @@ var _steam_join_scheduled := false
 
 ## Язык ставится до _ready экранов (они строят тексты в своих _ready).
 func _enter_tree() -> void:
+	_pending_at_start = CrashReport.read_json(CrashReport.PENDING_PATH)
+	if _gpu_watch_enabled():
+		var prev := RenderDriver.previous_crash("user://gpu_session.json", CrashReport.read_previous_log())
+		if _pending_at_start.is_empty():
+			_pending_at_start = prev  # без токена отчёта нет — берём свою метку сеанса
 	Language.apply(Language.configured())
 	_ui_locale = TranslationServer.get_locale()
 
 
 func _ready() -> void:
+	if DisplayServer.get_name() != "headless":
+		GpuLossLogger.install()  # журнал движка: потеря устройства GPU → GpuHealth (CR-К2 v2)
 	if opts == null:  # тесты задают свои
 		opts = LaunchOptions.parse(OS.get_cmdline_user_args())
 	if opts.prefetch_requested:
@@ -119,6 +132,7 @@ func _ready() -> void:
 	elif opts.autostart:
 		await _fly(flight)
 	else:
+		_setup_gpu_failure_watch()
 		await _show_menu()
 		# запуск Steam с «+connect_lobby <id>»: сразу экран «Сетевая игра» и вход
 		if steam_lobby != null and int(steam_lobby.pending_lobby) > 0:
@@ -129,6 +143,75 @@ func _ready() -> void:
 		_perf()
 	elif opts.screenshot != "":
 		_screenshot()
+
+
+## Окно «видеокарта не отвечает» (CR-К3 v4): после обрыва прошлого сеанса (стадия wind, старт/меню,
+## потеря устройства в хвосте лога) —
+## сразу; отказ GPU в этом сеансе — по опросу. Окно одно за запуск; на тот же обрыв — один раз.
+## Пилотских запусков нет (headless, служебные аргументы) — не показываем.
+## Обрыв прошлого сеанса известен по ожидающему отчёту CrashReport (токен) или по своей метке
+## сеанса RenderDriver.SESSION_PATH (токен не нужен; стадия — последняя строка «[stage]» журнала
+## прошлого сеанса, её пишет CrashReporter в экспортной сборке с окном, иначе стадия «меню»). Оба читаются в _enter_tree, раньше
+## любой отправки отчёта, поэтому отправка признак не стирает.
+func _setup_gpu_failure_watch() -> void:
+	if not _gpu_watch_enabled() or opts.autostart or opts.smoke or opts.perf_s > 0.0:
+		return
+	if RenderDriver.should_offer_after_crash(_pending_at_start):
+		RenderDriver.mark_offered(RenderDriver.crash_key(_pending_at_start))
+		_show_gpu_failure.call_deferred()
+	_gpu_timer = Timer.new()
+	_gpu_timer.wait_time = 1.0
+	_gpu_timer.process_mode = Node.PROCESS_MODE_ALWAYS
+	_gpu_timer.timeout.connect(_poll_gpu_failure)
+	add_child(_gpu_timer)
+	_gpu_timer.start()
+
+
+func _poll_gpu_failure() -> void:
+	if _gpu_failed():
+		_show_gpu_failure()
+
+
+## Видеокарта отказала в этом сеансе (GpuHealth, CR-К2).
+func _gpu_failed() -> bool:
+	return GpuHealth.is_failed()
+
+
+func _show_gpu_failure() -> void:
+	if _gpu_dialog != null or _gpu_offered:
+		return
+	_gpu_offered = true  # окно — один раз за сеанс
+	_gpu_dialog = GpuFailureDialog.new()
+	_gpu_dialog.setup(RenderDriver.current(), RenderDriver.alternative(), user_config_dir)
+	_gpu_dialog.choice_made.connect(
+		func(_c: String) -> void:
+			_gpu_dialog = null
+			start_menu.refresh_wind_note()
+	)
+	$UI.add_child(_gpu_dialog)
+	_gpu_dialog.popup_centered()
+
+
+## Метка сеанса и окно после обрыва: запуск из редактора (OS.has_feature("editor")), headless и
+## служебные запуски их не ведут и чужую метку не трогают.
+static func _gpu_watch_enabled() -> bool:
+	return RenderDriver.watch_enabled(
+		OS.has_feature("editor"), DisplayServer.get_name() == "headless", _service_run()
+	)
+
+
+## Служебный запуск (проверки, снимки, замеры) — метку сеанса не ведёт и чужую не трогает.
+static func _service_run() -> bool:
+	for a in OS.get_cmdline_user_args():
+		for sk in CrashReporter.SKIP_ARGS:
+			if a.begins_with(sk):
+				return true
+	return false
+
+
+func _exit_tree() -> void:
+	if _gpu_watch_enabled():
+		RenderDriver.clear_session()  # штатный выход (в том числе перезапуск) — не обрыв
 
 
 func _process(delta: float) -> void:

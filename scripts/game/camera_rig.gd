@@ -27,7 +27,11 @@ var head: Node3D
 ## Высота земли f(x, z) -> м, чтобы внешние камеры не уходили под рельеф.
 var ground_fn: Callable = Callable()
 ## Обзор мышью включён (выключается в меню и на паузе).
-var look_enabled := true
+var look_enabled := true:
+	set(v):
+		if not v:
+			_bar_look_held = false  # ПКМ отпущена в меню/паузе — событие до нас не дойдёт
+		look_enabled = v
 ## Куда смотреть по клавише «взгляд на прибор» (маркер прибора на трапеции).
 var glance_target: Node3D
 ## Приборы, на которые смотрит клавиша «взгляд на прибор» (Q), когда glance_target не задан:
@@ -137,6 +141,9 @@ func snap() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Состояние ПКМ пишем и при выключенном обзоре: отпускание в меню/паузе не теряется.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		_bar_look_held = event.pressed
 	if not look_enabled:
 		return
 	if event.is_action_pressed("camera_next"):
@@ -148,8 +155,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	)
 	if event.is_action_pressed("look_center") or middle_click:
 		recenter()
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
-		_bar_look_held = event.pressed
 	# Обзор мышью (FR-31): в кабине — поворот головы, снаружи — орбита.
 	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	if event is InputEventMouseMotion and captured and _mouse_looks():

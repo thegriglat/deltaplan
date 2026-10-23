@@ -1,0 +1,16 @@
+# ЧЕРНОВИК манифеста itch для Windows-сборки (CR-4). Не применён: tools/build.sh пишет одно действие play.
+# Формат: https://itch.io/docs/itch/integrating/manifest-actions.html (name, path, args, platform).
+# Лежит в корне каталога сборки (рядом с deltaplan.exe), butler заливает каталог целиком.
+# Аргументы движка до «--» (--rendering-driver: ProjectSettings.xml, rendering/rendering_device/driver).
+
+[[actions]]
+name = "play"
+path = "deltaplan.exe"
+platform = "windows"
+args = ["--rendering-driver", "vulkan"]
+
+[[actions]]
+name = "Play (DirectX 12)"
+path = "deltaplan.exe"
+platform = "windows"
+args = ["--rendering-driver", "d3d12"]

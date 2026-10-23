@@ -109,12 +109,22 @@ generated: true
   - [tools/research/sea_thermals/README.md](../tools/research/sea_thermals/README.md) — VI-7: источник термика не над водой — число источников над водой до/после правки на трёх местах у моря. [closed]
 - **regional-veg** — Деревья и дома по региону места (T-83, B): дерево Кёппена + исключения, 3 новые породы, набор пород места, профиль домов. [closed 2026-10-18] — [план](plan/regional-veg.md) · [контракты](contracts/regional-veg.md) · [решения](plan/regional-veg/decisions.md) · [сводка](plan/regional-veg/summary.md) · полный журнал: `archive/regional-veg`
   - [docs/research/house-models.md](research/house-models.md) — Дома: модели вместо коробок только гибридом (малые сельские дома профиля); город и промзона остаются MultiMesh-коробками
+- **cliff-look** — Крутые склоны: вместо серых полос и ряби — крупные неровные скалы и груды камней; диагноз, правка, кадры до/после. [closed 2026-10-23] — [план](plan/cliff-look.md) · [контракты](contracts/cliff-look.md) · [решения](plan/cliff-look/decisions.md) · [сводка](plan/cliff-look/summary.md) · полный журнал: `archive/cliff-look`
+  - [tools/research/cliff_look/README.md](../tools/research/cliff_look/README.md) — Откуда полосы и рябь на крутых склонах: полосы — уступы ledge в нормали, рябь — sl_rock, нормаль 25 м и Rock030; стенд ракурсов
+- **snow-plume** — Снежные флаги и позёмка с гребней снежных гор по ветру модели: только где снег и ветер выше порога срыва; частицы у ближайших гребней. [closed 2026-10-23] — [план](plan/snow-plume.md) · [контракты](contracts/snow-plume.md) · [решения](plan/snow-plume/decisions.md) · [сводка](plan/snow-plume/summary.md) · полный журнал: `archive/snow-plume`
+  - [docs/guide/terrain/snow-plume.md](guide/terrain/snow-plume.md) — Снежные струйки с гребней: снег, гребень, ветер модели, порог срыва Li & Pomeroy 1997; отрисовка, настройки, границы.
+  - [docs/research/snow_plume.md](research/snow_plume.md) — Порог срыва снега u10_t = 9,43+0,18T+0,0033T² (7–8 м/с при −30…−10 °C), шлейф: span 8, settle 0,2, spread 0,6 м/с, 30 с, fetch 300 м.
+  - [tools/research/snow_plume/README.md](../tools/research/snow_plume/README.md) — Скрипт SNW-1: порог u10_t(T) по Li & Pomeroy, скорость оседания, u*, длина шлейфа; вывод в snow_plume_params.json.
+  - [tools/research/snow_plume/SNW-5/README.md](../tools/research/snow_plume/SNW-5/README.md) — SNW-5 (частично): шлейфы есть при 16 м/с (24 источника, Эверест и Шымбулак), нет при 2 м/с (0); цена кадра не мерилась.
+  - [tools/research/snow_plume/SNW-9/README.md](../tools/research/snow_plume/SNW-9/README.md) — SNW-9: кадры струек v3 (Эверест, Шымбулак; ветер 16 и 2 м/с; вблизи гребня). Струйки редкие и бледные, издалека не видны.
 
 ## game
 
 - **goals** — Цели полёта перед стартом (высота, время, дальность, возврат, треугольник, маршрут, скорость, посадка), зачёт, след попытки, IGC/GPX. [active 2026-10-16] — [план](plan/goals.md) · [контракты](contracts/goals.md)
   - [docs/guide/goals.md](guide/goals.md) — Цели полёта и треки: вкладка «Цели», оценка по погоде, засчёт в полёте, итог, прибор, столбы, запись и показ треков, IGC/GPX.
 - **training-modes** — Тренировочные режимы (T-59) через карточки окна «Тренировка» + цели полёта и загрузка .xctsk из окна «Полёт…» (T-56); код задач TM. [closed 2026-10-17] — [план](plan/training-modes.md) · [решения](plan/training-modes/decisions.md) · [сводка](plan/training-modes/summary.md) · полный журнал: `archive/training-modes`
+- **bar-mouse** — Штанга мышью: ход в отсчётах мыши без привязки к окну, свой слайдер, мёртвая зона без скачка; диагностика камер и сырого ввода. [closed 2026-10-23] — [план](plan/bar-mouse.md) · [контракты](contracts/bar-mouse.md) · [решения](plan/bar-mouse/decisions.md) · [сводка](plan/bar-mouse/summary.md) · полный журнал: `archive/bar-mouse`
+  - [docs/research/bar-mouse-raw-input.md](research/bar-mouse-raw-input.md) — Захват мыши в Godot 4.7.2: Windows и X11 — сырые отсчёты, Wayland и macOS — с ускорением ОС; брать screen_relative
 
 ## perf
 
@@ -126,6 +136,18 @@ generated: true
 
 - **site-research** — Сверка сайта с исследованиями и руководством: каких выводов нет на сайте, что устарело; дописать страницы с графиками. [closed 2026-10-21] — [план](plan/site-research.md) · [контракты](contracts/site-research.md) · [решения](plan/site-research/decisions.md) · [сводка](plan/site-research/summary.md) · полный журнал: `archive/site-research`
   - [tools/research/site_coverage/README.md](../tools/research/site_coverage/README.md) — SRS-1: 47 тем исследований против сайта (ru+en) и docs/guide: есть 25, частично 13, нет 7, устарело 2; графики, объём.
+- **crash-reports** — Разбор автоматических отчётов о вылетах (Windows, #3–#15): группы причин, причина в коде с доказательством, правки с тестом. [closed 2026-10-23] — [план](plan/crash-reports.md) · [контракты](contracts/crash-reports.md) · [решения](plan/crash-reports/decisions.md) · [сводка](plan/crash-reports/summary.md) · полный журнал: `archive/crash-reports`
+  - [docs/research/crash-reports/cr-1.md](research/crash-reports/cr-1.md) — Группа A (#4–#10, 1.5.18, GTX 1050 Ti, D3D12): потеря устройства на стадии wind; AirGpu не проверяет пустой RID; в main не исправлено
+  - [docs/research/crash-reports/cr-10.md](research/crash-reports/cr-10.md) — CR-10: #17/#18, RX 5600 XT: потеря GPU на RDNA1 (известная проблема Godot #122671); кандидаты — облака и тени.
+  - [docs/research/crash-reports/cr-11.md](research/crash-reports/cr-11.md) — CR-11: Godot 4.7.2 не запрашивает причину потери устройства на D3D12; на Vulkan печатает её лишь при потере в vkQueueSubmit.
+  - [docs/research/crash-reports/cr-2.md](research/crash-reports/cr-2.md) — Группа B (#11–#15, RTX 5060, Vulkan): обрыв при повторной загрузке места в сессии; точная причина не найдена, не исправлено.
+  - [docs/research/crash-reports/cr-3.md](research/crash-reports/cr-3.md) — Группа C (#3, 1.5.15, RTX 5060 Laptop, trees): «sea» не причина, ложное «море» исправлено; обрыв на trees не установлен.
+  - [docs/research/crash-reports/cr-4.md](research/crash-reports/cr-4.md) — CR-4: драйвер Windows по умолчанию — Vulkan с автооткатом на D3D12; вылеты #3–#15 драйвером не объясняются.
+  - [tools/research/crash-reports/cr-1/README.md](../tools/research/crash-reports/cr-1/README.md) — Скрипты CR-1: воспроизведение пустого RID и агрегаты отчётов группы A
+  - [tools/research/crash-reports/cr-10/README.md](../tools/research/crash-reports/cr-10/README.md) — Скрипт CR-10: порядок событий старта меню и сборка compute-шейдеров облаков (Linux).
+  - [tools/research/crash-reports/cr-11/README.md](../tools/research/crash-reports/cr-11/README.md) — Скрипты CR-11: классификатор строк потери устройства GPU и проба нативного дескриптора устройства.
+  - [tools/research/crash-reports/cr-3/README.md](../tools/research/crash-reports/cr-3/README.md) — Скрипт повторной загрузки точки для CR-3 и источники данных.
+  - [tools/research/crash-reports/cr-4/README.md](../tools/research/crash-reports/cr-4/README.md) — Скрипты и черновик манифеста CR-4: сводка отчётов и itch.toml с двумя действиями запуска.
 
 ## process
 

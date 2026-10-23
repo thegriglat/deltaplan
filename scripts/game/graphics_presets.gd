@@ -5,6 +5,11 @@ extends RefCounted
 ## Первый запуск: пресет по видеокарте (graphics_autodetect) — «Низкое» для встроенной графики.
 
 
+## Рубильник GPU-эффекта (game.json → display.gpu.<ключ>, CR-К4): true — эффект включён.
+static func gpu_effect(key: String) -> bool:
+	return bool(Config.value("game", "display.gpu." + key, true))
+
+
 ## Имена пресетов в порядке показа.
 static func names() -> PackedStringArray:
 	var out: PackedStringArray = []
