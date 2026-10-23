@@ -30,7 +30,7 @@ const float FADE_H1 = 1.35;
 // отрезка пополам (CLOUD_ENTRY_BISECT делений), первый шаг внутри — CLOUD_ENTRY_FIRST_M, м (короче длины
 // пробега в плотном облаке ~ 1/extinction ≈ 11 м).
 const float CLOUD_ENTRY_MIN_DT = 8.0;
-const int CLOUD_ENTRY_BISECT = 4;
+const int CLOUD_ENTRY_BISECT = 3;
 const float CLOUD_ENTRY_FIRST_M = 8.0;
 
 struct Cloud {
@@ -653,6 +653,9 @@ void cloud_march(Cloud cl, vec3 ro, vec3 rd, float tn, float tf, float ign,
 // облако шире (CF_W_MIN … CF_W_MAX, м) и выше; мощность поля (depth) остаётся верхней границей.
 const float CF_DOME_E = 0.6;
 const float CF_ASPECT = 0.55;
+// Мощные клетки (congestus: высота ≥ ширины): отношение растёт пропорционально мощности поля сверх CF_D_REF, м —
+// вершина самого широкого облака клетки доходит до мощности поля.
+const float CF_D_REF = 1500.0;
 const float CF_W_MIN = 200.0;
 const float CF_W_MAX = 3000.0;
 // Нормировка крупной части маски (сумма двух выборок канала B: среднее и СКО по текстуре) и её границы.
@@ -711,7 +714,7 @@ float cf_excess(vec3 p, vec4 f, float fp, out float lim) {
 	vec2 m = cf_mask(p, fp);
 	float thr = cf_threshold(f.x);
 	float xi = clamp(((m.y - CF_XI_MU) / CF_XI_SD - CF_XI_LO) / (CF_XI_HI - CF_XI_LO), 0.0, 1.0);
-	lim = min(f.y, CF_ASPECT * CF_W_MIN * pow(CF_W_MAX / CF_W_MIN, xi));
+	lim = min(f.y, CF_ASPECT * max(1.0, f.y / CF_D_REF) * CF_W_MIN * pow(CF_W_MAX / CF_W_MIN, xi));
 	return (m.x - thr) / max(cf_qv(15) - cf_qv(8), 1e-3);
 }
 

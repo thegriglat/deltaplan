@@ -81,7 +81,8 @@ def field(vol, qs, cover, depth_m, y_m=200.0, extent_m=48000.0, step_m=40.0, see
     thr = threshold(qs, cover)
     e = (s - thr) / max(qs[15] - qs[8], 1e-3)
     xi = np.clip(((c - const("CF_XI_MU")) / const("CF_XI_SD") - const("CF_XI_LO")) / (const("CF_XI_HI") - const("CF_XI_LO")), 0, 1)
-    lim = np.minimum(depth_m, const("CF_ASPECT") * const("CF_W_MIN") * (const("CF_W_MAX") / const("CF_W_MIN")) ** xi)
+    dm = np.asarray(depth_m, np.float32)
+    lim = np.minimum(dm, const("CF_ASPECT") * np.maximum(1.0, dm / const("CF_D_REF")) * const("CF_W_MIN") * (const("CF_W_MAX") / const("CF_W_MIN")) ** xi)
     xx = np.clip(e / const("CF_DOME_E"), 0, 1)
     top = lim * np.sqrt(xx * (2 - xx))
     return e, top, step_m
@@ -143,3 +144,52 @@ if __name__ == "__main__":
     for c in covers:
         print(sizes(c, depth, legacy=True))
         print(sizes(c, depth))
+
+
+def top_to_depth_max(field_json, y_m=200.0, extent_half_m=15000.0, step_m=50.0):
+    """Наибольшее по клеткам отношение вершины облака над основанием к мощности клетки (поле сильного дня из
+    <тег>_field.json top_view_shot.gd: cover, depth; билинейно, как cf_sample). Маска — реплика (сдвиг ветром
+    не учтён: максимум по позициям от него не зависит). Клетки с покрытием < 0,05 и мощностью < 300 м не берутся."""
+    import json
+    f = json.loads(Path(field_json).read_text())["field"]
+    nx, ny, dx = f["nx"], f["ny"], f["dx"]
+    cover = np.array(f["cover"], np.float32).reshape(ny, nx)
+    depth = np.array(f["depth"], np.float32).reshape(ny, nx)
+    vol = load_vol()
+    qs = quantiles(vol)
+    best = 0.0
+    n = int(2 * extent_half_m / step_m)
+    g = (np.arange(n) + 0.5) * step_m - extent_half_m
+    x, z = np.meshgrid(g, g, indexing="ij")
+    # строка массива j — север (z = -(y0 + (j+0.5)dx)); берём клетки в окне вокруг центра сетки
+    ci, cj = nx // 2, ny // 2
+    u = np.clip((x / dx) + ci, 0, nx - 1.001)
+    v = np.clip((-z / dx) + cj, 0, ny - 1.001)
+    from scipy.ndimage import map_coordinates
+    cv = map_coordinates(cover, [v, u], order=1)
+    dp = map_coordinates(depth, [v, u], order=1)
+    # превышение для переменного покрытия: порог по квантилю каждого пикселя
+    k, o = const("CF_MASK_K"), const_vec3("CF_MASK_O").reshape(3, 1, 1)
+    q = np.stack([x.astype(np.float32), np.full(x.shape, y_m * 0.3, np.float32), z.astype(np.float32)]) / PERIOD_M
+    q2 = (q * k + o) % 1.0
+    q = q % 1.0
+    sm = tex(vol, q, 1) + tex(vol, q2, 1)
+    c = tex(vol, q, 2) + tex(vol, q2, 2)
+    xs = np.clip(1.0 - cv, 0, 1) * 15.0
+    i0 = np.minimum(xs.astype(int), 14)
+    thr = qs[i0] + (qs[i0 + 1] - qs[i0]) * (xs - i0)
+    e = (sm - thr) / max(qs[15] - qs[8], 1e-3)
+    xi = np.clip(((c - const("CF_XI_MU")) / const("CF_XI_SD") - const("CF_XI_LO")) / (const("CF_XI_HI") - const("CF_XI_LO")), 0, 1)
+    lim = np.minimum(dp, const("CF_ASPECT") * np.maximum(1.0, dp / const("CF_D_REF")) * const("CF_W_MIN") * (const("CF_W_MAX") / const("CF_W_MIN")) ** xi)
+    xx = np.clip(e / const("CF_DOME_E"), 0, 1)
+    top = lim * np.sqrt(xx * (2 - xx))
+    ok = (cv >= 0.05) & (dp >= 300.0) & (e > 0)
+    ratio = np.where(ok, top / np.maximum(dp, 1.0), 0.0)
+    # по клеткам: максимум по пикселям клетки
+    ci_ = np.floor(u).astype(int) * 100000 + np.floor(v).astype(int)
+    per = {}
+    for key, r in zip(ci_[ok], ratio[ok]):
+        if r > per.get(key, 0.0):
+            per[key] = r
+    vals = np.array(list(per.values())) if per else np.zeros(1)
+    return {"cells": int(len(per)), "top_to_depth_max": round(float(vals.max()), 3), "p90_cells": round(float(np.percentile(vals, 90)), 3)}

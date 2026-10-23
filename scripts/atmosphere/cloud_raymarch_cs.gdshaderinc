@@ -151,7 +151,7 @@ void field_march(vec3 ro, vec3 rd, float scene_t, float pix_a, float ign,
 				float tm = 0.5 * (ta + tb);
 				vec3 pm = ro + rd * tm;
 				float top_m;
-				if (cf_density_top(pm, cf_sample(pm.xz), 1, fp, top_m) * far_k > 0.003) {
+				if (cf_density_top(pm, cf_sample(pm.xz), 0, fp, top_m) * far_k > 0.003) {
 					tb = tm;
 				} else {
 					ta = tm;

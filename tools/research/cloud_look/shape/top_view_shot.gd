@@ -112,6 +112,10 @@ func _run() -> void:
 		"depth_max_m": dmax, "alt_above_base_m": _alt, "fov_deg": _fov, "frames": [],
 		"viewport_px": [get_viewport().size.x, get_viewport().size.y],
 		"start": [sp.x, sp.z],
+		"field": {
+			"nx": f.nx, "ny": f.ny, "dx": f.dx, "x0": f.x0, "y0": f.y0,
+			"cover": Array(f.cover), "depth": Array(f.depth), "stage": Array(f.stage),
+		},
 	}
 	var cam := Camera3D.new()
 	cam.far = 120000.0
