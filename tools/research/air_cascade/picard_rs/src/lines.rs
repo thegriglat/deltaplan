@@ -42,7 +42,9 @@ impl From<Vec<Row>> for RowBuf {
 impl std::ops::Deref for RowBuf {
     type Target = [Row];
     fn deref(&self) -> &[Row] {
-        self.data[self.off..self.off + 8 * self.n].as_chunks::<8>().0
+        self.data[self.off..self.off + 8 * self.n]
+            .as_chunks::<8>()
+            .0
     }
 }
 
@@ -286,7 +288,8 @@ fn solve_group(ln: &Line, g: &Group, interior: bool, dir: usize, cp: &mut [f32],
 }
 
 /// One task: the lines of colour `parity` among `a1` in `a1_lo..a1_hi` of plane `a2`.
-/// Lines whose off-line neighbours all exist are solved together, boundary lines one by one.
+/// Lines whose off-line neighbours all exist are solved together, the lines on the grid
+/// boundary (with per-line flags of the neighbours that exist) as a second group.
 fn solve_block(
     ln: &Line,
     dims: (usize, usize),
@@ -296,31 +299,30 @@ fn solve_block(
     (cp, dp): (&mut [f32], &mut [f32]),
 ) {
     let (d1, d2) = dims;
-    let mut inner = Group {
+    let empty = || Group {
         bases: [0; MAXL],
         ok: [[true; 4]; MAXL],
         nl: 0,
     };
+    let (mut inner, mut edge) = (empty(), empty());
     let first = a1_lo + ((a1_lo + a2) & 1 != parity) as usize;
     for a1 in (first..a1_hi).step_by(2) {
         let ok = [a1 > 0, a1 + 1 < d1, a2 > 0, a2 + 1 < d2];
         let base = base_of(a1, a2);
-        if ok.iter().all(|&b| b) {
-            inner.bases[inner.nl] = base;
-            inner.nl += 1;
+        let g = if ok.iter().all(|&b| b) {
+            &mut inner
         } else {
-            let mut one = Group {
-                bases: [0; MAXL],
-                ok: [ok; MAXL],
-                nl: 1,
-            };
-            one.bases[0] = base;
-            solve_group(ln, &one, false, ln.dir, &mut cp[..ln.n], &mut dp[..ln.n]);
-        }
+            &mut edge
+        };
+        g.bases[g.nl] = base;
+        g.ok[g.nl] = ok;
+        g.nl += 1;
     }
-    if inner.nl > 0 {
-        let len = ln.n * inner.nl;
-        solve_group(ln, &inner, true, ln.dir, &mut cp[..len], &mut dp[..len]);
+    for (g, interior) in [(&inner, true), (&edge, false)] {
+        if g.nl > 0 {
+            let len = ln.n * g.nl;
+            solve_group(ln, g, interior, ln.dir, &mut cp[..len], &mut dp[..len]);
+        }
     }
 }
 
