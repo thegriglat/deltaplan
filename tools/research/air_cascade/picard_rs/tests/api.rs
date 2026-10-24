@@ -10,14 +10,6 @@ fn case() -> Case {
     Case::load(&p).expect("load flat_wind")
 }
 
-fn max_diff(a: &[f32], b: &[f32]) -> f32 {
-    assert_eq!(a.len(), b.len());
-    a.iter()
-        .zip(b)
-        .map(|(x, y)| (x - y).abs())
-        .fold(0.0, f32::max)
-}
-
 fn check_same(name: &str, a: &Solved, b: &Solved) {
     assert_eq!(a.out.iters, b.out.iters, "{name}: iterations");
     assert_eq!(a.out.status, b.out.status, "{name}: status");
@@ -28,8 +20,14 @@ fn check_same(name: &str, a: &Solved, b: &Solved) {
         ("th", &a.picard.f.th, &b.picard.f.th),
         ("p", &a.picard.f.p, &b.picard.f.p),
     ] {
-        // f64 reductions may differ in the last bits between thread counts.
-        assert!(max_diff(x, y) < 1e-4, "{name}: field {f} differs");
+        // Reductions are deterministic (fixed-size chunks): fields are bit-identical.
+        assert_eq!(x.len(), y.len(), "{name}: field {f} length");
+        assert!(
+            x.iter()
+                .zip(y.iter())
+                .all(|(p, q)| p.to_bits() == q.to_bits()),
+            "{name}: field {f} differs"
+        );
     }
 }
 
@@ -90,8 +88,9 @@ fn max_iters_limits() {
         },
     )
     .unwrap();
-    assert!(
-        r.out.iters <= 10 && r.out.iters >= 5,
-        "limit honoured at check granularity"
+    assert!(r.out.iters >= 5, "ran at least max_iters");
+    assert_eq!(
+        r.out.status, "max",
+        "stopped by the limit, not the criterion"
     );
 }

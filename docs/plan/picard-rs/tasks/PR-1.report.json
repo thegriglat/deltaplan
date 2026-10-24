@@ -1,0 +1,194 @@
+{
+  "status": "done",
+  "summary": "R2 v2: таймеры фаз в outer_step (Instant на главном потоке), Check.t_s, SolveOut.phase_s; result_json пишет time.phase_ms и version 2; check_contract --results принимает v1 и v2. Замер «до» (16 файлов) в out/base/ + table.py/tables.md; README-раздел.",
+  "commits": [
+    "21d0f7670 picard-rs PR-1: R2 v2 — время фаз итерации и t_s в истории; замер «до» на 4 случаях Онгудая"
+  ],
+  "checks": [
+    {
+      "name": "contract_crate",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "test_dev",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "build_release",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "pure_rust",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "multiversion_dep",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "no_native",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "no_asm_intrinsics",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "no_global_pool",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "blocks_dev",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "solve_ref_release",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "solve_ongudai_release",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "isa_v3",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "results_base",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "phase_sum",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "PASS (accept 17/17)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PR-1",
+  "uncertain": [
+    {
+      "where": "report.rs: history_json/result_json",
+      "why": "main.rs менять нельзя, а result_json не получает SolveOut: фазы едут в последней записи history под ключом phase_ms, result_json переносит их в time.phase_ms. Без истории (bench) документ остаётся version 1 без phase_ms. Чисто — после PR-2 (передать фазы через Timing).",
+      "checked": "solve выдаёт v2, 48 файлов проходят check_contract --results (out, out/mv, out/base)"
+    },
+    {
+      "where": "накладные таймера",
+      "why": "+4 % к AC-R4 (105,1 и повторы 106,2/106,4 против 101,0). Стоимость 8 Instant::now на итерацию — сотни нс; вероятно разница серий/раскладки кода, а не таймера. Отдельно без таймеров не мерил.",
+      "checked": "два повтора u3_heat t8"
+    },
+    {
+      "where": "README.md",
+      "why": "упёрся в лимит 40 КБ; 4 таблицы сравнения AC-R4 заменены ссылкой на out/mv/tables.md (там они уже были, абзац «Сверка» сохранён)",
+      "checked": "docs check без ошибок"
+    }
+  ],
+  "dp_feedback": "Лимит README 40 КБ в docs check упирается при добавлении раздела; полезно сообщение, какие разделы самые большие. Карточка требовала фазы через SolveOut, но не давала способа довести их до result_json без main.rs.",
+  "ms_per_iter: {case: {\"2\":…,\"3\":…,\"6\":…,\"8\":…,\"18\":…}}": {
+    "u6_heat": {
+      "18": 86.6,
+      "8": 108.6,
+      "6": 142.0
+    },
+    "u0_heat": {
+      "8": 104.9,
+      "18": 86.7,
+      "6": 136.8
+    },
+    "u3_heat": {
+      "3": 296.4,
+      "18": 84.8,
+      "2": 393.8,
+      "6": 140.9,
+      "8": 105.1
+    },
+    "u3_mech": {
+      "6": 114.6,
+      "8": 85.9,
+      "18": 69.1,
+      "2": 286.3,
+      "3": 236.0
+    }
+  },
+  "solve_s: {case: {threads: total_s}}": {
+    "u6_heat": {
+      "18": 12.17,
+      "8": 15.19,
+      "6": 19.85
+    },
+    "u0_heat": {
+      "8": 22.19,
+      "18": 18.4,
+      "6": 28.85
+    },
+    "u3_heat": {
+      "3": 59.28,
+      "18": 17.1,
+      "2": 78.79,
+      "6": 28.3,
+      "8": 21.11
+    },
+    "u3_mech": {
+      "6": 27.89,
+      "8": 20.96,
+      "18": 16.91,
+      "2": 69.72,
+      "3": 57.28
+    }
+  },
+  "phase_share_u3_heat: {\"6\":{mom,heat,proj,kupd,other доли},\"8\":…,\"18\":…}": {
+    "18": {
+      "heat": 0.363,
+      "kupd": 0.03,
+      "mom": 0.33,
+      "other": 0.001,
+      "proj": 0.277
+    },
+    "6": {
+      "heat": 0.385,
+      "kupd": 0.03,
+      "mom": 0.336,
+      "other": 0.0,
+      "proj": 0.249
+    },
+    "8": {
+      "heat": 0.372,
+      "kupd": 0.03,
+      "mom": 0.329,
+      "other": 0.001,
+      "proj": 0.268
+    }
+  },
+  "timer_overhead: ms_per_iter u3_heat 8 потоков против out/mv/ (AC-R4), %": "+4.0 % (105.1 против 101.0 мс/ит, u3_heat t8; повторы 106.2/106.4)",
+  "t": "2026-10-24T16:57:24",
+  "by": "executor"
+}

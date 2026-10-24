@@ -77,6 +77,7 @@ fn solve_case(
     out: Option<PathBuf>,
     diag: bool,
 ) -> Result<()> {
+    let threads = api::resolve_threads(threads);
     let r = api::solve(c, &SolveOpts { threads, max_iters })?;
     let (o, dev, t) = (&r.out, &r.dev, &r.timing);
     let dtab = if diag {
@@ -161,6 +162,7 @@ fn main() -> Result<()> {
         } => {
             let c = Case::load(&case)?;
             for &n in &threads {
+                let n = api::resolve_threads(n);
                 if solve {
                     let path = out_dir.join(format!("{}_{}_t{}.json", c.name, profile(), n));
                     solve_case(&c, n, max_iters, Some(path), false)?;

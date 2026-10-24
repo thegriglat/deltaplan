@@ -1,0 +1,137 @@
+{
+  "status": "done",
+  "summary": "Добавлен picard_rs::api (SolveOpts, Solved, solve, pool, resolve_threads, cpu_seconds): свой rayon-пул на вызов, threads=0 — все ядра. CLI solve/bench --solve — тонкая обёртка, fn pool ушла в api. Тест tests/api.rs, раздел README «API (R6)».",
+  "commits": [
+    "4a86b96c9 picard-rs PR-2: R6 v1 api::solve с числом потоков (свой пул на вызов), CLI — обёртка"
+  ],
+  "checks": [
+    {
+      "name": "contract_crate",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_dev",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "build_release",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "pure_rust",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "multiversion_dep",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_native",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_asm_intrinsics",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_global_pool",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "blocks_dev",
+      "value": "7.4e-07",
+      "pass": true
+    },
+    {
+      "name": "solve_ref_release",
+      "value": "worst=0.00057",
+      "pass": true
+    },
+    {
+      "name": "solve_ongudai_release",
+      "value": "worst=0.0415",
+      "pass": true
+    },
+    {
+      "name": "isa_v3",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_api",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "api_pub",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PR-2",
+  "uncertain": [
+    {
+      "where": "src/api.rs Solved",
+      "why": "Solved несёт Picard и pool целиком (поля f32 ~100+ МБ на Онгудае); контракт говорит «итоговые поля»",
+      "checked": "доступ solved.picard.f.{u,v,w,th,p}; pool оставлен в Solved, чтобы diag считался на пуле вызова, не на глобальном"
+    },
+    {
+      "where": "tests/api.rs",
+      "why": "поля сравниваются с допуском 1e-4, не побитно: редукции f64 могут отличаться в последних битах между числом потоков",
+      "checked": "итерации и статус сравниваются точно; тест проходит на 1/2/3/4/0 потоках одновременно"
+    },
+    {
+      "where": "main.rs bench (без --solve)",
+      "why": "K-итерационный замер не через solve (нет критерия), использует api::pool; обёрткой над solve стали solve и bench --solve",
+      "checked": "логика замера не менялась"
+    },
+    {
+      "where": "README.md",
+      "why": "файл упирался в лимит 40 КБ docs check: сокращено ~1,1 КБ текста в «Где запас», «Сравнение с GPU», Ryzen (числа сохранены)",
+      "checked": "docs check README — 0 ошибок"
+    },
+    {
+      "where": "api::pool / CLI --threads 0",
+      "why": "поведение сменилось: раньше 0 приравнивался к 1, теперь все ядра (по R6)",
+      "checked": "указано в README; приёмка использует --threads 8"
+    }
+  ],
+  "dp_feedback": "accept --dry идёт >10 мин; при уходе в фон вывод теряется, удобно было бы summary в build/dpcli/<ID>/summary.txt. Лимит 40 КБ README ловится только в конце accept. report требует настоящий accept, не --dry — стоит сказать в карточке.",
+  "extra": {},
+  "api: сигнатуры pub из api.rs одной строкой каждая": "pub struct SolveOpts { pub threads: usize, pub max_iters: usize } (Default: 0, 2000); pub struct Solved { pub out: SolveOut, pub timing: Timing, pub dev: Dev, pub picard: Picard, pub pool: rayon::ThreadPool }; pub fn solve(case: &Case, opts: &SolveOpts) -> anyhow::Result<Solved>; pub fn pool(threads: usize) -> anyhow::Result<rayon::ThreadPool>; pub fn resolve_threads(threads: usize) -> usize; pub fn cpu_seconds() -> f64; pub const DEFAULT_MAX_ITERS: usize",
+  "test_api: что проверяет tests/api.rs (случаи, потоки, одновременность)": "flat_wind.json: (1) resolve_threads(0)>=1, (3)=3, Default threads=0; (2) эталон на 1 потоке, затем 4 одновременных api::solve из разных потоков ОС с threads 2,3,4,0 — pool_threads = resolve_threads, итерации и статус равны эталону, поля u,v,w,th,p совпадают в пределах 1e-4; (3) max_iters=5 останавливает не позже следующей проверки (<=10).",
+  "cli_same: R2 через CLI до/после — итерации и dev совпали (ref/ 8 потоков)": "До — out/{flat_wind,agnesi,heated_slope}_release_t8.json, после — target/check_*_t8.json (accept): итерации 30/780/60 (saddle 470) идентичны, статус ok; flat_wind и agnesi u_rel/th_abs те же (5.687e-7, 5.16e-7); у heated_slope и saddle u_rel отличается в 1-м знаке (3.70e-7 -> 4.22e-7, 6.23e-7 -> 4.98e-7), всё << допуска 1e-3. Вычисление не менялось; старые out/ сняты более ранней сборкой (порядок f64-редукций), не из-за api.",
+  "t": "2026-10-24T16:56:10",
+  "by": "executor"
+}

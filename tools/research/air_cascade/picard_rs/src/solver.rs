@@ -38,6 +38,8 @@ pub struct Residuals {
 pub struct Check {
     pub it: usize,
     pub res: Residuals,
+    /// Wall seconds from the start of the iterations to the end of this check (checks included).
+    pub t_s: f64,
 }
 
 /// Outcome of [`Picard::solve`].
@@ -51,6 +53,9 @@ pub struct SolveOut {
     pub iter_s: f64,
     pub check_s: f64,
     pub n_checks: usize,
+    /// Total seconds per phase of the iteration (checks excluded), order
+    /// `[mom, heat, proj, kupd, other]`; sums to `iter_s`.
+    pub phase_s: [f64; 5],
 }
 
 /// The iteration: constants, fields, multigrid and work buffers.
@@ -68,6 +73,8 @@ pub struct Picard {
     pub pfull: Vec<f32>,
     pub div: Vec<f32>,
     pub sc: Scratch,
+    /// Accumulated seconds of `outer_step` phases `[mom, heat, proj, kupd]` (main thread timers).
+    pub phase: [f64; 4],
 }
 
 impl Picard {
@@ -108,6 +115,7 @@ impl Picard {
             rr: z(),
             pfull: z(),
             sc: Scratch::new(n),
+            phase: [0.0; 4],
             k,
         }
     }
@@ -315,11 +323,22 @@ impl Picard {
     /// One Picard iteration (reference `outer_step`).
     pub fn outer_step(&mut self) {
         apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
+        let t = Instant::now();
         self.update_k();
+        let t_k = t.elapsed().as_secs_f64();
+        let t = Instant::now();
         self.build_all_mom();
         self.mom_step();
+        let t_m = t.elapsed().as_secs_f64();
+        let t = Instant::now();
         self.project(self.k.vcycles, true);
+        let t_p = t.elapsed().as_secs_f64();
+        let t = Instant::now();
         self.heat_step();
+        let t_h = t.elapsed().as_secs_f64();
+        for (a, d) in self.phase.iter_mut().zip([t_m, t_h, t_p, t_k]) {
+            *a += d;
+        }
     }
 
     /// Residual of the steady equations in the current state (reference `residuals`).
@@ -421,7 +440,9 @@ impl Picard {
         let mut status = "max";
         let (mut iter_s, mut check_s) = (0.0, 0.0);
         let mut it = crit.pre_steps;
+        let ph0 = self.phase;
         let tp = Instant::now();
+        let t_start = tp;
         for _ in 0..crit.pre_steps {
             self.outer_step();
         }
@@ -436,7 +457,11 @@ impl Picard {
             let t1 = Instant::now();
             let r = self.residuals();
             check_s += t1.elapsed().as_secs_f64();
-            hist.push(Check { it, res: r });
+            hist.push(Check {
+                it,
+                res: r,
+                t_s: t_start.elapsed().as_secs_f64(),
+            });
             let finite = [r.mom_max, r.mom_rms, r.th_rms, r.div_rms]
                 .iter()
                 .all(|x| x.is_finite());
@@ -452,6 +477,11 @@ impl Picard {
                 break;
             }
         }
+        let mut phase_s = [0.0; 5];
+        for i in 0..4 {
+            phase_s[i] = self.phase[i] - ph0[i];
+        }
+        phase_s[4] = (iter_s - phase_s[..4].iter().sum::<f64>()).max(0.0);
         SolveOut {
             status,
             iters: it,
@@ -459,6 +489,7 @@ impl Picard {
             history: hist,
             iter_s,
             check_s,
+            phase_s,
         }
     }
 }

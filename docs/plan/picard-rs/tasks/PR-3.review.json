@@ -1,0 +1,53 @@
+{
+  "verdict": "accept",
+  "summary": "Зонд dump_inputs.gd повторяет AirPlace.domain_case по шагам (day, set_zi_terrain, set_inflow, gamma, surface_flux); R5 соблюдён: warm_from, hour 12.25, changed = {Q, nu_bg} с файл:функция; сетка/params/criterion берутся у T. Утверждения о тёплом старте (греются mech и heat) сверены с air_runtime.gd:_start_picard. Правки только в скоупе, старые случаи по md5 не тронуты. Blocker'ов нет.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/warm/dump_inputs.gd",
+      "line": 42,
+      "severity": "minor",
+      "what": "Граница модели: hc берётся из фикстуры, cell_surface(null, null, null, …) — без поверхности, воды и рельефа места. Поэтому абсолютные H и z_i не совпадают с игровыми (H до 108 Вт/м² против фикстуры), а у игры от реальной поверхности будет и другое ΔH за 15 мин. В README и not_done это сказано.",
+      "fix": "Координатору: для PR-w/R4 считать пару синтетической по поверхности. Когда в копиях появится слой Онгудая, переснять пару тем же зондом."
+    },
+    {
+      "file": "tools/research/air_cascade/export/README.md",
+      "line": 80,
+      "severity": "minor",
+      "what": "Пара mech вырождена: вход и решение h1215 побитно равны h1200, тёплый старт mech сходится сразу. Для R4 это тривиальный случай. В README сказано.",
+      "fix": "Потребителям R5 мерить выигрыш тёплого старта на heat; при желании добавить случай, где у mech меняется вход (скажем, другой U10 или wdir — но это уже не сценарий «15 мин без действий пилота»)."
+    },
+    {
+      "file": "docs/guide/air-model/runtime.md",
+      "line": null,
+      "severity": "minor",
+      "what": "Гид говорит «греется только решение без нагрева», а код с AP-20 (8ffc7180a) греет оба решения. Исполнитель это нашёл, файл вне скоупа, не правил — так и должно быть.",
+      "fix": "Координатору: завести отдельную правку гида в модуле air-model."
+    },
+    {
+      "file": "tools/research/air_cascade/export/export_ongudai.py",
+      "line": null,
+      "severity": "minor",
+      "what": "Столбцовый z_i игры (set_zi_terrain, alpha 0,33) в случай не попадает: R1/air.py несут скалярный z_i. В not_done это отмечено.",
+      "fix": "Нужен ли z_i_col в R1 — решать координатору при следующей версии контракта."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "r5_new",
+      "value": "R5 OK, exit 0",
+      "pass": true
+    },
+    {
+      "name": "r1_new",
+      "value": "contract OK, exit 0",
+      "pass": true
+    },
+    {
+      "name": "source.changed h1215",
+      "value": "heat: nu_bg 8.37, Q 2.1e-4; mech: []; iters 281/341",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T16:38:54",
+  "by": "reviewer"
+}

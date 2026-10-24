@@ -1,0 +1,107 @@
+{
+  "status": "done",
+  "summary": "Сделана новая пара Онгудая 3 м/с со 150° h1200 + h1215 (heat, mech) с входом, снятым кодом игры (GDScript-зонд warm/dump_inputs.gd), и холодным эталоном air.py f64; старые 12:00 тем же путём не воспроизводятся (погода/поверхность игры изменились после фикстуры), поэтому пара новая. check_r5.py и README (разделы T+15, Тёплый старт игры) готовы; accept --dry 5/5.",
+  "commits": [
+    "8c225a123 air-cascade PR-3: случаи Онгудая 12:00/12:15 (R5) от кода игры, check_r5, README"
+  ],
+  "checks": [
+    {
+      "name": "old_cases_intact",
+      "value": "md5_ok",
+      "pass": true
+    },
+    {
+      "name": "r1_new",
+      "value": "contract OK",
+      "pass": true
+    },
+    {
+      "name": "r5_new",
+      "value": "R5 OK",
+      "pass": true
+    },
+    {
+      "name": "r5_changed",
+      "value": "hour 12.25 у обоих",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "docs check 0 ошибок; 2 раздела",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Реальной поверхности Онгудая (классы/влага/реки) и слоя рельефа в копиях нет: hc из фикстуры, поверхность surface=null — абсолютные H не равны игровым (приращение 15 мин — тем же кодом).",
+    "z_i по столбцам игры (set_zi_terrain, alpha 0,33) не представлен: R1/air.py несут скаляр z_i."
+  ],
+  "questions": [
+    "Нужна ли пара ещё и для 0 и 6 м/с (u0_heat, u6_heat) и час 12:30? Зонд и экспорт принимают --u10/--hours, добавление — минуты."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PR-3",
+  "uncertain": [
+    {
+      "where": "tools/research/air_cascade/warm/dump_inputs.gd",
+      "why": "H считается surface_flux с cells без снимка поверхности (класс NONE, m_norm) и hc из фикстуры, не с реальной поверхностью Онгудая: абсолютные H/z_i игры другие (t_max 23,56 °C от ClimateGrid против 26 в старой фикстуре).",
+      "checked": "12:00 из зонда отличается от фикстуры (H до 108 Вт/м², z_i 2930 против 3362) — потому новая пара h1200+h1215 одним генератором; приращение 12:00→12:15 из того же кода игры."
+    },
+    {
+      "where": "docs/guide/air-model/runtime.md (строка «тёплый старт»)",
+      "why": "Гид пишет «греется только решение без нагрева, 70 + 90 итераций»; код сегодня греет оба решения (warm = pair.mech, warm_heat = pair.heat, air_runtime.gd:_start_picard).",
+      "checked": "git log -S warm_heat: 8ffc7180a (AP-20, 07.10.2026); чтение кода, замеров итераций не делал."
+    },
+    {
+      "where": "export_ongudai.py: _h1200/_h1215",
+      "why": "Итерации холодного эталона одинаковы на обоих часах (heat 281/281, mech 341/341): при check_every=10 разница входа (H +2,6 %, z_i +38 м) не меняет число проверок.",
+      "checked": "Вход действительно различается: Q rms ΔQ/Q 16 %, nu_bg до 8,4 из 182; поле heat 12:15 vs 12:00: max|Δu| 0,10, |Δw| 0,028 м/с; mech побитно тот же."
+    }
+  ],
+  "dp_feedback": "task show обрезает длинные примечания координатора (...) — полный текст нашёл через --full только по счастью; report --template даёт длинные строки карточки как ключи JSON, их надо копировать вручную. rtk-обёртка обрезает вывод grep (36+ совпадений) — приходилось sed. lock cpu: godot-запуск без вывода ждёт полный timeout при ошибке компиляции скрипта (первый зонд как --script висел 600 с, потому что Config-автозагрузка недоступна) — быстрее было бы падать.",
+  "extra": {
+    "files": [
+      "~/data/air_cascade/ongudai/ongudai_d400_u3_{heat,mech}_h{1200,1215}.{json,bin}",
+      "~/data/air_cascade/ongudai/warm_inputs/inputs_h{1200,1215}.json"
+    ],
+    "game_input_change_12_00_to_12_15": {
+      "H_wm2": {
+        "max_abs": 12.96,
+        "rms": 5.2,
+        "mean": 4.77,
+        "max_H": 258.4
+      },
+      "Q": {
+        "max_abs": 0.0002055,
+        "max_Q": 0.0002346,
+        "rel_rms": 0.161,
+        "cells_changed_frac": 0.289
+      },
+      "z_i_m": {
+        "old": 2929.5,
+        "new": 2968.1
+      },
+      "nu_bg": {
+        "max_abs": 8.37,
+        "max": 181.8,
+        "rms": 2.72
+      },
+      "gam": 0,
+      "alpha_max_profile_class": "не меняются",
+      "wind": 0
+    },
+    "solution_delta_heat_12_00_to_12_15": {
+      "u_max": 0.1,
+      "v_max": 0.076,
+      "w_max": 0.028,
+      "th_max": 0.057,
+      "mech": 0.0
+    }
+  },
+  "changed: список входов, меняющихся 12:00 → 12:15, с источником файл:функция и величиной изменения (max/rms Q или H, Δ ветра)": "heat: H (scripts/atmosphere/air_model/air_place.gd:surface_flux ← SurfaceHeating.directions(hour), AirPlace.day): max|ΔH| 12,96, rms 5,20, mean +4,77 Вт/м² при max 258 (+2,6 %); Q (air_case.gd:prepare): max|ΔQ| 2,06e-4 при max 2,35e-4, rms ΔQ/Q 16 %, 29 % ячеек; z_i (air_place.gd:day) 2929,5 → 2968,1 м; nu_bg (из w*/z_i/H): max|Δ| 8,4 из 182, rms 2,7. Не меняются: gam, alpha 0,112, max_profile 1,4045, класс B (air_case.gd:set_inflow → wind_profile.gd:apply_to_case), ветер. mech: вход побитно тот же (Q=0), решение mech(12:15)==mech(12:00). Решение heat: max|Δu| 0,10, |Δv| 0,076, |Δw| 0,028 м/с, |Δθ'| 0,057 К.",
+  "warm_in_game: какие решения (mech/heat) и какие поля (u,v,w,th,thd,p,nu,nuh) игра берёт из текущего поля, что сбрасывает; файл:функция": "Греются оба решения: air_runtime.gd:_prev_pair (warm_start and not _loading) → _start_picard: _job.warm = pair.mech (без нагрева), _job.warm_heat = pair.heat (с нагревом); состояния _job.state(false)/_building.state(true) сохраняются в _poll_solve/_read_mech_state и принимаются в _apply (_warm = _warm_next). Поля: u, v, w, th, thd, p (AirPicardJob.state(), N с ореолом float32; нет thd → нули). НЕ греются/сбрасываются: nu, nuh (K замыкания пересчитывается: _record_setup, _kloc/_relax_k), весь вход (Q, nu_bg, gam, z_i, профиль, границы) — от нового часа slot_hour; история, счётчики, late_*, ω, фазы (freeze_*) — заново. Старт: air_picard_job.gd:_program('warm') = _bc(0) + 4 V-цикла проекции вместо _bc(1)+30; второе решение 'reinit_warm' (_record_setup + _bc(0) + 4) вместо 'reinit' (+30). Грубый Пикар при _warm_ok пропускается. Нет тёплого состояния (_warm={}) после запечённого поля/кеша (_load_baked/_load_cached), смены места, аналитики. Ошибка расчёта: _warm сохраняется. Гид runtime.md («греется только mech») устарел.",
+  "iters_ref_h1215: холодный эталон f64 для heat и mech": "heat h1215: 281 итерация (status ok, t_ref 7,2 с, RTX 4070 SUPER); mech h1215: 341 (7,05 с). T-случаи: heat h1200 281, mech h1200 341. Критерий 2e-5/5e-7/1e-6, check_every 10, float64 air.py. (Старые 12:00 фикстурные: 191/231 — иной вход.)",
+  "wind_change: меняется ли ветер в игре за 15 игровых минут без действий пилота (и откуда это известно)": "Нет. AirRuntime.conditions_of берёт ветер из atmo.weather (wind_speed_kmh, wind_from_deg) и настроек (t_max, sky); atmosphere.set_wind вызывается только при загрузке/смене настроек (grep по scripts/: нет расписания ветра от часа; calm_air.gd — учебный режим). Час меняет только солнце/нагрев/z_i (needs_recompute даёт срок slot(hour,15 мин)). В эталонах U10=3, wdir=150 одинаковы на T и T+15 (check_r5 проверяет wdir).",
+  "repro: команды воспроизведения": "cd tools/research/heat_ca && uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt; .dpcli/dpcli lock cpu PR-3 --no-tmux -- timeout 180 env XDG_DATA_HOME=~/.cache/dp-xdg/$(basename \"$PWD\") godot --headless --path . res://tools/research/air_cascade/warm/dump_inputs.tscn -- --hours=12,12.25 --u10=3 --out=$HOME/data/air_cascade/ongudai/warm_inputs; tools/research/heat_ca/.venv/bin/python tools/research/air_cascade/export/export_ongudai.py u3_heat_h1200 u3_mech_h1200 u3_heat_h1215 u3_mech_h1215; python3 tools/research/air_cascade/export/check_r5.py ~/data/air_cascade/ongudai/ongudai_d400_u3_{heat,mech}_h1215.json",
+  "t": "2026-10-24T16:37:08",
+  "by": "executor"
+}
