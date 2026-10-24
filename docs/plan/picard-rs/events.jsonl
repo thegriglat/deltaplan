@@ -17,3 +17,6 @@
 {"t": "2026-10-24T16:37:29", "by": "coordinator", "task": "PR-3", "ev": "checked", "note": "5/5 old_cases_intact=ok:exit 0; md5_ok; r1_new=ok:exit 0; r5_new=ok:exit 0; r5_changed=ok:exit 0; 12.25; readme=ok:exit 0; 2"}
 {"t": "2026-10-24T16:38:54", "by": "reviewer", "task": "PR-3", "ev": "reviewed", "note": "Зонд dump_inputs.gd повторяет AirPlace.domain_case по шагам (day, set_zi_terrain, set_inflow, gamma, surface_flux); R5 соблюдён: warm_from, hour 12.25, changed…", "verdict": "accept", "issues": {"minor": 4}, "review": "docs/plan/picard-rs/tasks/PR-3.review.json"}
 {"t": "2026-10-24T16:39:08", "by": "coordinator", "task": "PR-3", "ev": "accepted", "note": "по ревью"}
+{"t": "2026-10-24T16:39:10", "by": "coordinator", "task": "PR-3", "ev": "accepted", "commits": ["6728178a7"], "note": "5/5 old_cases_intact=ok:exit 0; md5_ok; r1_new=ok:exit 0; r5_new=ok:exit 0; r5_changed=ok:exit 0; 12.25; readme=ok:exit 0; 2"}
+{"t": "2026-10-24T16:39:10", "by": "coordinator", "task": "PR-3", "ev": "merged"}
+{"t": "2026-10-24T16:39:20", "by": "coordinator", "task": null, "ev": "note", "note": "PR-3 принят: пара Онгудая h1200/h1215 синтетическая по поверхности (классы/влага не игровые), mech-пара вырождена — тёплый старт мерить на heat; гид docs/guide/air-model/runtime.md устарел (греются оба решения с AP-20) — вне модуля, сообщить главной"}
