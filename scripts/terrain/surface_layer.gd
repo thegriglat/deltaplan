@@ -61,6 +61,9 @@ var _mask_dirty := false
 ## ширина, шаг и байты всегда согласованы. Внутри снимка ничего не правится после публикации.
 var _mask: MaskSnap = null
 var _cls: ClsSnap = ClsSnap.new()
+var _editing := false
+var _edit_cls := PackedByteArray()
+var _edit_mask: MaskSnap = null
 
 
 ## Снимок классов узлов (один массив под одной ссылкой).
@@ -78,6 +81,18 @@ class MaskSnap:
 	var origin_x: float = 0.0
 	var origin_z: float = 0.0
 	var data: PackedByteArray = PackedByteArray()
+	## Годна для выборки: не меньше 2×2 и данных хватает (считается в seal()).
+	var ok := false
+	var inv_spacing := 0.1
+	var wm1 := 0.0
+	var hm1 := 0.0
+
+	## Вызвать после заполнения полей и data (размер data дальше не меняется).
+	func seal() -> void:
+		ok = width >= 2 and height >= 2 and data.size() >= width * height * 2
+		inv_spacing = 1.0 / spacing
+		wm1 = width - 1.0
+		hm1 = height - 1.0
 
 
 static func from_classes(
@@ -171,6 +186,7 @@ func set_forest_mask(img: Image, step: float, ox: float, oz: float) -> void:
 	m.origin_x = ox
 	m.origin_z = oz
 	m.data = img.get_data()
+	m.seal()
 	_publish_mask(m, img)
 
 
@@ -266,14 +282,13 @@ func _mask_channel(x: float, z: float, ch: int) -> float:
 ## Билинейная выборка канала из снимка (все размеры — из него же). Маска меньше 2×2 или с
 ## неполными данными — 0 (не выходить за массив).
 static func _snap_channel(m: MaskSnap, x: float, z: float, ch: int) -> float:
-	var w := m.width
-	var h := m.height
-	if w < 2 or h < 2 or m.data.size() < w * h * 2:
+	if not m.ok:
 		return 0.0
-	var fx := clampf((x - m.origin_x) / m.spacing, 0.0, w - 1.0)
-	var fz := clampf((z - m.origin_z) / m.spacing, 0.0, h - 1.0)
+	var w := m.width
+	var fx := clampf((x - m.origin_x) * m.inv_spacing, 0.0, m.wm1)
+	var fz := clampf((z - m.origin_z) * m.inv_spacing, 0.0, m.hm1)
 	var i := mini(int(fx), w - 2)
-	var j := mini(int(fz), h - 2)
+	var j := mini(int(fz), m.height - 2)
 	var tx := fx - i
 	var tz := fz - j
 	var d := m.data
@@ -350,7 +365,13 @@ func set_node(i: int, j: int, c: int) -> void:
 func replace_in_circle(cx: float, cz: float, r_in: float, from_class: int, to_class: int) -> void:
 	var r := r_in + spacing * 0.71
 	# правка копии и замена целиком: читатели в других потоках не видят полуправленый массив
-	var cl := classes.duplicate()
+	var cl: PackedByteArray
+	if _editing:
+		# серия правок: рабочая копия своя, публикуется один раз в end_edit
+		cl = _edit_cls
+		_edit_cls = PackedByteArray()
+	else:
+		cl = classes.duplicate()
 	var changed := false
 	var i0 := maxi(0, floori((cx - r - origin_x) * _inv_spacing))
 	var i1 := mini(width - 1, ceili((cx + r - origin_x) * _inv_spacing))
@@ -363,7 +384,9 @@ func replace_in_circle(cx: float, cz: float, r_in: float, from_class: int, to_cl
 			if dx * dx + dz * dz <= r * r and cl[j * width + i] == from_class:
 				cl[j * width + i] = to_class
 				changed = true
-	if changed:
+	if _editing:
+		_edit_cls = cl
+	elif changed:
 		classes = cl
 	if from_class == FOREST and _mask != null and _mask.width > 0:
 		_clear_mask_circle(cx, cz, r_in)
@@ -379,22 +402,61 @@ func _clear_mask_circle(cx: float, cz: float, r_in: float) -> void:
 	var i1 := mini(old.width - 1, ceili((cx + r - old.origin_x) * inv))
 	var j0 := maxi(0, floori((cz - r - old.origin_z) * inv))
 	var j1 := mini(old.height - 1, ceili((cz + r - old.origin_z) * inv))
-	# правка копии: новый снимок вместо правки опубликованного
-	var m := MaskSnap.new()
-	m.width = old.width
-	m.height = old.height
-	m.spacing = old.spacing
-	m.origin_x = old.origin_x
-	m.origin_z = old.origin_z
-	m.data = old.data.duplicate()
+	# правка копии: новый снимок вместо правки опубликованного (в серии — рабочий, публикуется в end_edit)
+	var m: MaskSnap = _edit_mask if _editing else null
+	if m == null:
+		m = MaskSnap.new()
+		m.width = old.width
+		m.height = old.height
+		m.spacing = old.spacing
+		m.origin_x = old.origin_x
+		m.origin_z = old.origin_z
+		m.data = old.data.duplicate()
+		m.seal()
+	var d := m.data
+	m.data = PackedByteArray()
 	for j in range(j0, j1 + 1):
 		for i in range(i0, i1 + 1):
 			var dx := old.origin_x + i * old.spacing - cx
 			var dz := old.origin_z + j * old.spacing - cz
 			if dx * dx + dz * dz <= r * r:
-				m.data[(j * m.width + i) * 2] = 0
-	_mask = m
+				d[(j * m.width + i) * 2] = 0
+	m.data = d
+	if _editing:
+		_edit_mask = m
+	else:
+		_mask = m
 	_mask_dirty = true
+
+
+## Серия правок (поляны у стартов): replace_in_circle правит одну рабочую копию классов и маски,
+## а не копирует массивы на каждый круг; читатели до end_edit видят прежние снимки (CR-18).
+func begin_edit() -> void:
+	_edit_cls = classes.duplicate()
+	if _mask != null:
+		var m := MaskSnap.new()
+		m.width = _mask.width
+		m.height = _mask.height
+		m.spacing = _mask.spacing
+		m.origin_x = _mask.origin_x
+		m.origin_z = _mask.origin_z
+		m.data = _mask.data.duplicate()
+		m.seal()
+		_edit_mask = m
+	_editing = true
+
+
+## Опубликовать рабочие копии одной подстановкой ссылок.
+func end_edit() -> void:
+	if not _editing:
+		return
+	_editing = false
+	classes = _edit_cls
+	_edit_cls = PackedByteArray()
+	if _edit_mask != null:
+		_mask = _edit_mask
+		_mask_dirty = true
+		_edit_mask = null
 
 
 ## Маска 10 м как Image RG8 (с вырезанными полянами), null — маски нет.

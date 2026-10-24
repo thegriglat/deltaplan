@@ -1147,6 +1147,8 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 	# Старты — открытые склоны: лес и кустарник вокруг площадки → луг (и в цвете, и в термиках);
 	# дальше, до пустыря старта с карты (≥ 2 длины разбега, game.json → start_search), — только лес.
 	_start_clearings.clear()
+	for s in surfaces:
+		s.begin_edit()
 	var site_r := float(location.get("start_clearing_radius_m", 0.0))
 	var clear_r := maxf(site_r, start_clearing_radius_m())
 	for site in _sites:
@@ -1160,6 +1162,8 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 			# площадка с буксировкой: полоса вдоль оси вместо круга (TW-К6)
 			var dim := TowSite.clearing_size(tow)
 			_clear_runway(p, float(site.heading_deg), dim.x, dim.y)
+	for s in surfaces:
+		s.end_edit()
 	# Конфиг потока тепла и one-hot доли — заранее на главном потоке (источники зовут из рабочих потоков).
 	_heat_cfg = SurfaceHeat.config()
 	_h_ref = maxf(float(_heat_cfg.get("thermal", {}).get("h_ref_wm2", 362.0)), 1.0)
