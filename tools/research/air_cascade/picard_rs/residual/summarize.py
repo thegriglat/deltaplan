@@ -139,11 +139,11 @@ def main():
         geom = F.Geometry(DATA / f"{case}.json")
         ref = F.load_uvw(ST / f"{case}_ref.json", geom)
         masks = geom.masks(ref["w"], W_THERMAL)
-        spec = [dict(by="iter", N=n, r2=r2d / f"{case}_ref_t8.json", time=r2d / f"{case}_time_t8.json", state=ST / f"{case}_snap/{case}_it{n}.json")
+        spec = [dict(by="iter", N=n, r2=r2d / f"ref/{case}_release_t8.json", time=r2d / f"{case}_time_t8.json", state=ST / f"{case}_snap/{case}_it{n}.json")
                 for n in COLD_N]
         spec += [dict(by="tol_scale", tol=t, r2=r2d / f"{case}_tol{t}_t8.json", state=ST / f"{case}_tol{t}.json")
                  for t in TOLS_COLD]
-        series.append(make_series(case, "cold", None, None, r2d / f"{case}_ref_t8.json", r2d / f"{case}_time_t8.json", spec, (geom, ref, masks)))
+        series.append(make_series(case, "cold", None, None, r2d / f"ref/{case}_release_t8.json", r2d / f"{case}_time_t8.json", spec, (geom, ref, masks)))
         floors[case] = floor_block(case)
     a_, b_ = "ongudai_d400_u3_heat_h1200", "ongudai_d400_u3_heat_h1215"
     geom = F.Geometry(DATA / f"{b_}.json")
@@ -165,7 +165,7 @@ def main():
     start_field = F.deviation(f0, ref, masks, geom)
     floors[b_] = floor_block(b_)
 
-    host = jl(r2d / "ongudai_d400_u3_heat_ref_t8.json")["host"]
+    host = jl(r2d / "ref/ongudai_d400_u3_heat_release_t8.json")["host"]
     th = jl(HERE / "threshold.json")
     d = dict(version=1, threads=8, host=dict(git=host["git"], cpu=host["cpu"]), regions=regions,
              w_thermal_ms=W_THERMAL, slope_min=F.SLOPE_MIN, series=series, floor=floors, warm_early=early, warm_init_vs_ref=start_field, threshold=th)

@@ -9,13 +9,13 @@ mkdir -p $O/r2 $S
 
 run() { # name, then picard solve arguments
   local name=$1; shift
-  .dpcli/dpcli lock cpu PR-8 --no-tmux -- tools/research/air_cascade/picard_rs/target/release/picard solve "$@" --threads 8 --out $O/r2/${name}_t8.json > $S/$name.log
+  .dpcli/dpcli lock cpu PR-8 --no-tmux -- tools/research/air_cascade/picard_rs/target/release/picard solve "$@" --threads 8 --out $O/r2/${name}_t8.json > $S/$(basename $name).log
 }
 
 # cold series: reference with snapshots at N, then tol_scale 3, 5, 7, 10, 30 (5 and 7 are extra, between the contract points)
 for c in u3_heat u3_mech u0_heat u6_heat; do
   n=ongudai_d400_$c
-  run ${n}_ref $D/$n.json --save-state $S/${n}_ref.json --snap-at 30,50,100,150 --snap-dir $S/${n}_snap
+  run ref/${n}_release $D/$n.json --save-state $S/${n}_ref.json --snap-at 30,50,100,150 --snap-dir $S/${n}_snap
   # clean timing run of the reference path: snapshot writes (tens of MB) are inside the iteration clock of the run above
   run ${n}_time $D/$n.json
   for t in 3 5 7 10 30; do

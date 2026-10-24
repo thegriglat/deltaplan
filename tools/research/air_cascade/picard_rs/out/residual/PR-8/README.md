@@ -22,7 +22,7 @@ python3 tools/research/air_cascade/picard_rs/residual/md_tables.py tools/researc
 ```
 `run.sh` гонит `picard solve` (R6 v2: `--tol-scale`, `--snap-at`, `--snap-dir`, `--save-state`, `--init`), потом
 `residual/summarize.py` (читает R4 `.json/.bin` и вход R1, считает отклонения по регионам) и проверку R7. Результаты R2 v3 всех
-прогонов — `r2/`. Снимки и состояния (десятки МБ) — `~/data/air_cascade/picard_rs/residual/PR-8/` (вне git). Входы — `~/data/air_cascade/ongudai/`
+прогонов — `r2/` (ref-прогоны холодных — `r2/ref/<case>_release_t8.json`). Снимки и состояния (десятки МБ) — `~/data/air_cascade/picard_rs/residual/PR-8/` (вне git). Входы — `~/data/air_cascade/ongudai/`
 (R1/R5, только чтение; происхождение и лицензия данных — как в `tools/research/air_cascade/export/README.md`). Код: `residual/fields.py`
 (чтение, регионы, отклонения), `residual/summarize.py`, `residual/md_tables.py`, `residual/table.py`, порог — `residual/threshold.json`.
 
