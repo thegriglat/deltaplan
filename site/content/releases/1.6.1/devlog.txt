@@ -1,0 +1,7 @@
+Deltaplan 1.6.1 — crash fix when changing place
+
+A small fix release for pilots. The game no longer crashes when you load another place after a flight.
+
+Fixes:
+- Fixed a crash when loading another place after a flight (for example Kok-Tobe, then the menu, then Yutsa): cars, trees, landing sites, the dog, geese and bots of the previous place still used its unloaded terrain
+- Fixed "Out of bounds get index" errors after changing place: background placement of rocks and forest no longer reads the surface mask while it is being changed
