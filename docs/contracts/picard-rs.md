@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-24"
 summary: "Стыки picard-rs: случаи R1, результат R2 v2 (фазы, t_s), крейт R3 v4 (без asm/интринсиков), снимок поля R4, случаи T+15 R5, API потоков R6."
 related: ["docs/plan/picard-rs.md", "docs/contracts/air-cascade.md", "tools/research/air_cascade/picard_rs/README.md"]
-contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 2}, {"id": "R3", "version": 4}, {"id": "R4", "version": 2}, {"id": "R5", "version": 1}, {"id": "R6", "version": 1}]
+contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 3}, {"id": "R3", "version": 4}, {"id": "R4", "version": 2}, {"id": "R5", "version": 1}, {"id": "R6", "version": 2}]
 ---
 
 # Контракты модуля picard-rs
@@ -70,14 +70,39 @@ R3 v3 (air-cascade) + (решения пользователя 2026-10-24):
 - Эталон (`sol_*`, `history`, `solution.iters`) — холодный решатель air.py f64, как AC-R2; сетка, область,
   `params`, `criterion` — те же, что у случая на T.
 
-## R6 v1 — API решателя с числом потоков
-Владелец — PR-2; потребители — CLI `picard`, PR-o, PR-n, PR-w, будущая GDExtension.
-- `picard_rs::api::SolveOpts { threads: usize, max_iters: usize }` (`threads = 0` — все логические ядра,
-  `std::thread::available_parallelism`; `Default`: 0 и предел итераций CLI).
-- `picard_rs::api::solve(case: &Case, opts: &SolveOpts) -> anyhow::Result<Solved>` — подготовка, итерации до
-  критерия, finalize; `Solved` несёт `SolveOut`, время (`report::Timing`) и итоговые поля. Каждый вызов
-  строит свой `rayon::ThreadPool` (`ThreadPoolBuilder::new().num_threads(n).build()`) и работает в
-  `pool.install`; `build_global` и глобальный пул rayon не используются нигде в крейте.
-- Одновременные вызовы из разных потоков ОС с разным числом потоков — допустимы и независимы; результат
-  (итерации, поля) не зависит от числа потоков (как в AC-R3: сверка одинакова на всех потоках).
-- CLI `solve`/`bench` — тонкая обёртка над `api::solve`.
+## R6 v2 — API решателя: потоки, критерий, бюджет времени, старт и снимки
+Владелец — PR-2 (v1), PR-5 (v2, решение пользователя 2026-10-24); потребители — CLI `picard`, PR-o, PR-n, PR-w,
+будущая GDExtension.
+- `picard_rs::api::SolveOpts`:
+  - `threads: usize` — `0` — все доступные ядра (`std::thread::available_parallelism`, учитывает квоту
+    cgroup: под замком cpu — 18);
+  - `max_iters: usize`;
+  - `tol_scale: f64` — множитель к порогам `criterion` случая (`tol_mom_rms`, `tol_th_rms`, `tol_div_rms`);
+    `1.0` — как эталон; при `1.0` итерации и поля побитно те же, что в v1;
+  - `time_budget: Option<std::time::Duration>` — стена от начала итераций (после подготовки); проверяется
+    после каждой итерации: исчерпан — остановка после этой итерации, отдаётся текущее поле (с finalize);
+  - `init: Option<State>` — старт от снимка R4 (семантика — R4 «Старт от снимка»); `None` — холодный старт;
+  - `snapshot_at: Vec<usize>` — номера итераций, после которых снять снимок (по возрастанию; больше
+    фактических итераций — не снимаются).
+  `Default`: threads 0, max_iters как CLI, tol_scale 1.0, time_budget None, init None, snapshot_at пусто.
+- `picard_rs::api::solve(case: &Case, opts: &SolveOpts) -> anyhow::Result<Solved>`; `Solved`:
+  - `iters: usize` — итераций выполнено; `stop: StopReason` = `Converged | MaxIters | TimeBudget | Diverged`;
+  - `residuals: Residuals` — невязки отданного поля на итерации `iters` (до finalize; если `iters` не
+    попал на проверку — посчитать дополнительно, как проверку); `history: Vec<Check>`;
+  - `state: State` — отданное поле (после finalize), пригодное как `init` следующего вызова;
+  - `snapshots: Vec<State>` — снимки по `snapshot_at`: поле после N итераций, как если бы решатель
+    остановился на N (finalize — на копии, ход решения не меняется);
+  - `timing` (`report::Timing`, вкл. фазы R2 v2), `SolveOut` — как v1.
+- `picard_rs::state::State` — поля R4 v2 в памяти (`u, v, w, th, thd, p`, опц. `nu, nuh`, `it`, размеры);
+  чтение/запись R4 — `State::read(path)`, `State::write_atomic(path)`.
+- Каждый вызов строит свой `rayon::ThreadPool` и работает в `pool.install`; `build_global` нигде нет;
+  одновременные вызовы с разным числом потоков допустимы и независимы; результат не зависит от числа
+  потоков (побитно).
+- CLI — тонкая обёртка: `picard solve <case> [--threads N] [--max-iters M] [--tol-scale X] [--time-budget S]
+  [--init <state.json>] [--snap-at 30,50,…] [--snap-dir <dir>] [--save-state <state.json>] [--out <R2>]`.
+
+## R2 v3 — дополнения к результату (PR-5)
+R2 v2 + `version: 3`, `stop` (`"converged" | "max_iters" | "time_budget" | "diverged"`), `tol_scale`,
+`time_budget_s` (`null` — нет), `init` (`null` | путь R4), `snapshots` (список путей R4, может быть пуст),
+`residuals` (невязки отданного поля, ключи как `history`). `status` — как раньше. `check_contract.py
+--results` принимает v1, v2, v3.
