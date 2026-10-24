@@ -1,0 +1,29 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп соблюдён (3 файла), утверждения об API сверены с api.rs/report.rs/case.rs, пробелы честно помечены. Приёмка dry 7/7.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/picard_rs/INTEGRATION.md",
+      "line": 107,
+      "severity": "major",
+      "what": "api::solve требует sol_* и solution.iters/history в случае (report.rs, case.rs) - игровой случай без эталона не пройдёт; доки это описывают, но в крейте обхода нет. Вопрос исполнителя к координатору остаётся открытым.",
+      "fix": "Координатору: завести задачу на solve без сверки (или необязательные sol_*) до модуля встраивания; в доке сослаться на неё."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/INTEGRATION.md",
+      "line": 189,
+      "severity": "minor",
+      "what": "Итоговые числа PR-o/PR-w ещё не готовы, раздел «Числа» пока ссылкой и числами PR-8.",
+      "fix": "PR-o впишет итог; не блокирует."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept PR-11 --dry",
+      "value": "7/7 по отчёту; sol_*/check_every/divergence >50/SolveOpts defaults сверены чтением",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T20:10:04",
+  "by": "reviewer"
+}
