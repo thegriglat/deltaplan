@@ -31,14 +31,22 @@ for c in cases:
     ref = json.load(open(os.path.expanduser(f"~/data/air_cascade/ongudai/ongudai_d400_{c}.json")))["t_ref_s"]
     print(f"| {c} | {r['status']} | {r['iters']}/{r['iters_ref']} | {v['u_rel']:.2e} | {v['th_abs']:.2e} | {v['p_rel']:.2e} | {v['div_rms']:.2e}/{v['div_rms_ref']:.2e} | {ref} |")
 
+print("\n### Поле у старта (crop из JSON случая, центры клеток, все уровни; Rust против sol_* эталона f64)\n")
+print("| случай | crop | u max/rms, м/с | v max/rms, м/с | w max/rms, м/с | θ′ max/rms, К |")
+print("|---|---|---|---|---|---|")
+for c in cases:
+    cp = json.load(open(os.path.expanduser(f"~/data/air_cascade/ongudai/ongudai_d400_{c}.json")))["crop"]
+    q = json.load(open(os.path.join(d, f"ongudai_d400_{c}_release_t8.json")))["dev_crop"]
+    print(f"| {c} | i0 {cp['i0']}, j0 {cp['j0']}, n {cp['n']} | " + " | ".join(f"{q[x + '_max']:.1e} / {q[x + '_rms']:.1e}" for x in ("u", "v", "w", "th")) + " |")
+
 print("\n### Скорость и масштабирование (u3_heat, полный solve)\n")
-print("| потоков | мс/итерацию | нс/клетку·итерацию | мс/проверку | подготовка, с | всего, с | ускорение от 4 | эффективность от 4 |")
-print("|---|---|---|---|---|---|---|---|")
+print("| потоков (в пуле) | процесс CPU-с | мс/итерацию | нс/клетку·итерацию | мс/проверку | подготовка, с | всего, с | ускорение от 4 | эффективность от 4 |")
+print("|---|---|---|---|---|---|---|---|---|---|")
 base = rs[("u3_heat", 4)]["time"]["ms_per_iter"]
 for t in sorted(k[1] for k in rs if k[0] == "u3_heat"):
     tm = rs[("u3_heat", t)]["time"]
     sp = base / tm["ms_per_iter"]
-    print(f"| {t}{' (квота 18 ядер)' if t == 20 else ''} | {tm['ms_per_iter']:.1f} | {tm['ns_per_cell_iter']:.0f} | {tm['check_ms']:.1f} | {tm['setup_s']:.2f} | {full(rs[('u3_heat', t)]):.2f} | {sp:.2f} | {sp / (t / 4):.2f} |")
+    print(f"| {t}{' (квота 18 ядер)' if t == 20 else ''} ({tm['pool_threads']}) | {tm['process_cpu_s']:.0f} | {tm['ms_per_iter']:.1f} | {tm['ns_per_cell_iter']:.0f} | {tm['check_ms']:.1f} | {tm['setup_s']:.2f} | {full(rs[('u3_heat', t)]):.2f} | {sp:.2f} | {sp / (t / 4):.2f} |")
 
 print("\n### мс/итерацию по случаям\n")
 print("| случай | " + " | ".join(f"{t}" for t in main_t) + " |")

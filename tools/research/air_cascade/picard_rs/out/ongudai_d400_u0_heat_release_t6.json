@@ -8,6 +8,16 @@
     "u0": 2.571215892523805,
     "u_rel": 0.00004335882507613596
   },
+  "dev_crop": {
+    "th_max": 5.0924718379974365e-6,
+    "th_rms": 4.539168374837602e-7,
+    "u_max": 0.000014826655387878418,
+    "u_rms": 1.9603630639903923e-6,
+    "v_max": 0.000025665853172540665,
+    "v_rms": 2.347057039135045e-6,
+    "w_max": 0.000022977590560913086,
+    "w_rms": 1.4992521557286071e-6
+  },
   "dtype": "f32",
   "format": "picard-rs-result",
   "history": [
@@ -316,7 +326,7 @@
   ],
   "host": {
     "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
-    "git": "8c1fbf0da",
+    "git": "318c88b73",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
   "input": "/home/greg/data/air_cascade/ongudai/ongudai_d400_u0_heat.json",
@@ -326,12 +336,14 @@
   "status": "ok",
   "threads": 6,
   "time": {
-    "check_ms": 20.794530750000003,
-    "ms_per_iter": 136.8127117810945,
+    "check_ms": 20.869149299999997,
+    "ms_per_iter": 136.54031235820892,
     "n_cells": 460800,
-    "ns_per_cell_iter": 296.9025863305002,
-    "setup_s": 0.685941099,
-    "total_s": 28.84251318
+    "ns_per_cell_iter": 296.31144174958536,
+    "pool_threads": 6,
+    "process_cpu_s": 160.81,
+    "setup_s": 0.691644567,
+    "total_s": 28.782061649
   },
   "version": 1
 }

@@ -8,6 +8,16 @@
     "u0": 5.752052101036193,
     "u_rel": 2.155364015400326e-6
   },
+  "dev_crop": {
+    "th_max": 1.4156103134155273e-6,
+    "th_rms": 3.0529531975240653e-7,
+    "u_max": 5.125999450683594e-6,
+    "u_rms": 1.4732509297787885e-6,
+    "v_max": 7.092952728271484e-6,
+    "v_rms": 2.378576717146998e-6,
+    "w_max": 1.564621925354004e-6,
+    "w_rms": 2.0920202957103435e-7
+  },
   "dtype": "f32",
   "format": "picard-rs-result",
   "history": [
@@ -361,7 +371,7 @@
   ],
   "host": {
     "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
-    "git": "8c1fbf0da",
+    "git": "318c88b73",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
   "input": "/home/greg/data/air_cascade/ongudai/ongudai_d400_u3_mech.json",
@@ -371,12 +381,14 @@
   "status": "ok",
   "threads": 8,
   "time": {
-    "check_ms": 16.29105973913044,
-    "ms_per_iter": 82.92296835497835,
+    "check_ms": 16.34883234782609,
+    "ms_per_iter": 83.10317157575756,
     "n_cells": 460800,
-    "ns_per_cell_iter": 179.95435840924122,
-    "setup_s": 0.531565583,
-    "total_s": 20.235263991
+    "ns_per_cell_iter": 180.3454244265572,
+    "pool_threads": 8,
+    "process_cpu_s": 149.47,
+    "setup_s": 0.51172215,
+    "total_s": 20.258716583
   },
   "version": 1
 }
