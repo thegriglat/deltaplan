@@ -118,6 +118,14 @@ python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --ref ~/
 - **Окна 100/50 м** (`AirClipmap`) тёплый старт берут от нового поля области (`set_domain_data`), в полёте — на прежних местах (`_start_windows`).
 - Для R4: снимок = `{u, v, w, th, thd, p}` обоих решений на сетке 400 м с ореолом; K и вход пересоздаются из случая T+15.
 
+### T+30: случай h1230 (PR-10, R5 v1)
+Цепочка тёплых стартов T→T+15→T+30: `ongudai_d400_u3_heat_h1230` (12:30, `source.hour` 12,5, `warm_from` = `ongudai_d400_u3_heat_h1215`), собран
+тем же путём (вход снят `warm/dump_inputs.gd --hours=12.5`, эталон — холодный `air.py` f64). Эталон: 261 итерация, t_ref_s 10,7 (первый
+запуск процесса — с прогревом CuPy). Изменения 12:15 → 12:30: H max|Δ| 12,5 Вт/м² (rms 4,6, среднее +4,0; max H 257), z_i 2968 → 3004 м (+36),
+γ max|Δ| 0,0058 К/м, `sun_elev` 58,1° → 59,2°, α и профиль ветра те же; производные nu_bg max|Δ| 7,9 (из 188), Kz 112 (из 120). Старые файлы не тронуты.
+Команда: `dump_inputs.tscn -- --hours=12.5 --u10=3 --out=$HOME/data/air_cascade/ongudai/warm_inputs`, затем
+`export_ongudai.py u3_heat_h1230` (предыдущий слот `h1215` должен лежать в `ongudai/`); проверки `check_r5.py` и `check_contract.py --ref` — как ниже.
+
 ### Воспроизведение PR-3
 ```
 git -C . status --short                      # venv: tools/research/heat_ca/.venv (см. выше), не коммитится
