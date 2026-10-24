@@ -8,7 +8,7 @@
   "contracts": [
     {
       "name": "R2",
-      "version": "1",
+      "version": "2",
       "ref": "docs/contracts/picard-rs.md"
     },
     {
@@ -30,7 +30,8 @@
     "tools/research/air_cascade/picard_rs/src/lib.rs — pub mod api",
     "tools/research/air_cascade/picard_rs/src/main.rs — solve/bench через api::solve, своя функция pool() уходит в api",
     "tools/research/air_cascade/picard_rs/tests/api.rs — тест R6",
-    "tools/research/air_cascade/picard_rs/README.md — раздел «API (R6)»: сигнатура, пример вызова, поведение threads = 0"
+    "tools/research/air_cascade/picard_rs/README.md — раздел «API (R6)»: сигнатура, пример вызова, поведение threads = 0",
+    "tools/research/air_cascade/picard_rs/src/report.rs — только доработка: фазы (R2 v2 time.phase_ms) передавать через Solved/Timing, убрать перенос через последнюю запись history (временный обход PR-1)"
   ],
   "dont_touch": [
     "scripts/",
@@ -40,7 +41,7 @@
     "docs/contracts/",
     "tools/research/air3d/",
     "tools/research/air_cascade/picard_rs/out/*.json, tools/research/air_cascade/picard_rs/out/mv/, tools/research/air_cascade/picard_rs/out/bench/ (числа AC-R3/AC-R4 — база сравнения, не трогать)",
-    "tools/research/air_cascade/picard_rs/src/solver.rs, tools/research/air_cascade/picard_rs/src/report.rs, tools/research/air_cascade/picard_rs/src/util.rs (меняет PR-1 параллельно; api.rs только вызывает их)",
+    "tools/research/air_cascade/picard_rs/src/solver.rs, tools/research/air_cascade/picard_rs/src/util.rs (численное ядро не меняется)",
     "tools/research/air_cascade/picard_rs/src/lines.rs, tools/research/air_cascade/picard_rs/src/mg.rs, tools/research/air_cascade/picard_rs/src/kernels.rs",
     "tools/research/air_cascade/picard_rs/contract/ (контрактный тест R6 — tests/api.rs)",
     "tools/research/air_cascade/picard_rs/out/",
@@ -183,6 +184,11 @@
         "min": 1,
         "exit": 0
       }
+    },
+    {
+      "name": "results_base_v2",
+      "cmd": "python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out/base/ && .dpcli/dpcli lock cpu PR-2 --no-tmux -- tools/research/air_cascade/picard_rs/target/release/picard solve tests/atmosphere/fixtures/air_model/ref/saddle.json --threads 0 --out tools/research/air_cascade/picard_rs/target/check_saddle_t0.json && python3 -c \"import json; d=json.load(open('tools/research/air_cascade/picard_rs/target/check_saddle_t0.json')); print('v', d['version'], 'threads', d['threads'], 'phases', len(d['time']['phase_ms']), 'hist_phase', sum('phase_ms' in h for h in d['history']))\"",
+      "expect": "re:v 2 threads 20 phases 5 hist_phase 0"
     }
   ],
   "report_extra": [
@@ -191,5 +197,6 @@
     "cli_same: R2 через CLI до/после — итерации и dev совпали (ref/ 8 потоков)"
   ],
   "notes": "",
-  "created": "2026-10-24T16:07:17"
+  "created": "2026-10-24T16:07:17",
+  "edited": "2026-10-24T17:06:57"
 }

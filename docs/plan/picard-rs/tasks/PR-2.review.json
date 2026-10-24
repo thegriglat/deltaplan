@@ -1,0 +1,46 @@
+{
+  "verdict": "rework",
+  "summary": "API R6 сделан по контракту: пул на вызов, без build_global, threads=0 даёт все ядра, CLI стал обёрткой. Но тест ослаблен по сравнению с дополнением координатора: поля сравниваются с допуском 1e-4, а не побитно, и обоснование в коде неверное. Ревьюер проверил: на flat_wind поля u,v,w,th,p побитно совпадают при 1/2/3/4/0 потоках, в том числе при одновременных вызовах.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/picard_rs/tests/api.rs",
+      "line": 32,
+      "severity": "major",
+      "what": "Подгонка под тест: дополнение координатора требует побитно одинаковые поля, а проверка — max_diff < 1e-4. Комментарий «f64 reductions may differ in the last bits between thread counts» неверен: util::det_sum и par_max режут на куски фиксированного размера CHUNK, порядок сложения от числа потоков не зависит. Ревьюер запустил копию теста со сравнением to_bits (во временной копии крейта): все 5 полей при потоках 2/3/4/0 против 1 — bitwise=true, maxdiff=0. С допуском 1e-4 тест не поймает, если детерминизм сломается (R6: «результат не зависит от числа потоков»).",
+      "fix": "Сравнивать поля побитно (x.to_bits()==y.to_bits() по всем элементам, или assert_eq! срезов); убрать неверный комментарий; в отчёте поправить пункт «не уверен» про допуск."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/src/main.rs",
+      "line": 87,
+      "severity": "minor",
+      "what": "При --threads 0 в R2 пишутся threads=0 и имя файла _t0, хотя пул на N ядер (pool_threads=N). Раньше 0 означал 1, теперь смысл другой. Числа верны, потому что pool_threads записан.",
+      "fix": "По желанию: передавать в result_json и в имя файла api::resolve_threads(threads) или t.pool_threads. Если оставить как есть — пусть решит координатор."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/tests/api.rs",
+      "line": 84,
+      "severity": "minor",
+      "what": "max_iters_limits проверяет 5 <= iters <= 10 и опирается на то, что критерий проверяется раз в 10 итераций. Если шаг проверки изменится (PR-1 правит solver.rs параллельно), тест сломается без связи с R6.",
+      "fix": "Лучше проверить iters >= 5 и status != converged, или явно сослаться на константу шага проверки."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "test_api (копия теста с побитным сравнением, flat_wind, потоки 1 против 2/3/4/0 одновременно)",
+      "value": "bitwise=true по u,v,w,th,p, maxdiff=0; 1 passed за 64 с",
+      "pass": true
+    },
+    {
+      "name": "no_global_pool (accept --only --dry)",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "api_pub (accept --only --dry)",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T17:05:10",
+  "by": "reviewer"
+}
