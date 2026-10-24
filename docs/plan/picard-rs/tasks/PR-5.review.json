@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "API v2, state.rs, R2 v3 соответствуют контрактам; скоуп чист, PR-7 влит, тест api/state перезапущен — ok. Замечания незначительные.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/picard_rs/src/solver.rs",
+      "line": 0,
+      "severity": "minor",
+      "what": "Diverged не покрыт тестом (только ветка кода); в отчёте это названо.",
+      "fix": "При случае добавить тест с заведомо расходящимся входом."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/src/solver.rs",
+      "line": 0,
+      "severity": "minor",
+      "what": "Тёплый старт из собственного сошедшегося поля даёт 20 итераций и u_rel 1.17e-2 (K сброшен в nu_bg) — следствие R4 v2 «как в игре», не ошибка; границы модели названы в отчёте.",
+      "fix": "Мерить в PR-w, как решил координатор."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "test_api_state --dry",
+      "value": "ok 7+3",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "10 файлов в границах",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T18:51:08",
+  "by": "reviewer"
+}
