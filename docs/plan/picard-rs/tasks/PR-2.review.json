@@ -1,46 +1,27 @@
 {
   "verdict": "rework",
-  "summary": "API R6 сделан по контракту: пул на вызов, без build_global, threads=0 даёт все ядра, CLI стал обёрткой. Но тест ослаблен по сравнению с дополнением координатора: поля сравниваются с допуском 1e-4, а не побитно, и обоснование в коде неверное. Ревьюер проверил: на flat_wind поля u,v,w,th,p побитно совпадают при 1/2/3/4/0 потоках, в том числе при одновременных вызовах.",
+  "summary": "Замечания первого ревью закрыты: поля сравниваются побитно (to_bits), при threads=0 в R2 и в имени файла пишется фактический размер пула, max_iters_limits больше не зависит от шага проверки. Не сделан пункт (4) дополнения и строка скоупа про report.rs: фазы по-прежнему передаются через последнюю запись history, а report.rs в диффе не менялся. В отчёте об этом ничего нет.",
   "issues": [
     {
-      "file": "tools/research/air_cascade/picard_rs/tests/api.rs",
-      "line": 32,
+      "file": "tools/research/air_cascade/picard_rs/src/report.rs",
+      "line": 234,
       "severity": "major",
-      "what": "Подгонка под тест: дополнение координатора требует побитно одинаковые поля, а проверка — max_diff < 1e-4. Комментарий «f64 reductions may differ in the last bits between thread counts» неверен: util::det_sum и par_max режут на куски фиксированного размера CHUNK, порядок сложения от числа потоков не зависит. Ревьюер запустил копию теста со сравнением to_bits (во временной копии крейта): все 5 полей при потоках 2/3/4/0 против 1 — bitwise=true, maxdiff=0. С допуском 1e-4 тест не поймает, если детерминизм сломается (R6: «результат не зависит от числа потоков»).",
-      "fix": "Сравнивать поля побитно (x.to_bits()==y.to_bits() по всем элементам, или assert_eq! срезов); убрать неверный комментарий; в отчёте поправить пункт «не уверен» про допуск."
-    },
-    {
-      "file": "tools/research/air_cascade/picard_rs/src/main.rs",
-      "line": 87,
-      "severity": "minor",
-      "what": "При --threads 0 в R2 пишутся threads=0 и имя файла _t0, хотя пул на N ядер (pool_threads=N). Раньше 0 означал 1, теперь смысл другой. Числа верны, потому что pool_threads записан.",
-      "fix": "По желанию: передавать в result_json и в имя файла api::resolve_threads(threads) или t.pool_threads. Если оставить как есть — пусть решит координатор."
-    },
-    {
-      "file": "tools/research/air_cascade/picard_rs/tests/api.rs",
-      "line": 84,
-      "severity": "minor",
-      "what": "max_iters_limits проверяет 5 <= iters <= 10 и опирается на то, что критерий проверяется раз в 10 итераций. Если шаг проверки изменится (PR-1 правит solver.rs параллельно), тест сломается без связи с R6.",
-      "fix": "Лучше проверить iters >= 5 и status != converged, или явно сослаться на константу шага проверки."
+      "what": "Карточка (скоуп report.rs и пункт (4) дополнения от 17:06) требует передавать фазы R2 v2 time.phase_ms через Solved/Timing и убрать временный обход PR-1. Этого нет: history_json (стр. ~287-305) кладёт phase_ms в последнюю запись history, result_json (стр. 234-240) вынимает его оттуда, а версия 2/1 определяется по тому, нашлось ли поле. report.rs в диффе feature/picard-rs...picard-rs/PR-2 отсутствует. Проверка results_base_v2 проходит только потому, что обход работает, поэтому она пункт (4) не подтверждает. В отчёте ни в done, ни в uncertain это не упомянуто.",
+      "fix": "Добавить фазы в Timing (например, phase_ms: Option<[f64;5]>, заполнять в api::solve из o.phase_s/iters; в K-итерационном bench ставить None), чтобы result_json брал их из Timing и по ним выбирал версию 2/1. Из history_json убрать вставку phase_ms, из result_json — извлечение. После этого прогнать results_base_v2, check_contract --results и проверку phase_sum."
     }
   ],
   "rerun": [
     {
-      "name": "test_api (копия теста с побитным сравнением, flat_wind, потоки 1 против 2/3/4/0 одновременно)",
-      "value": "bitwise=true по u,v,w,th,p, maxdiff=0; 1 passed за 64 с",
+      "name": "results_base_v2 (accept --only --dry)",
+      "value": "v 2 threads 18 phases 5 hist_phase 0",
       "pass": true
     },
     {
-      "name": "no_global_pool (accept --only --dry)",
-      "value": "PASS",
-      "pass": true
-    },
-    {
-      "name": "api_pub (accept --only --dry)",
-      "value": "PASS",
+      "name": "test_api (accept --only --dry)",
+      "value": "test result: ok. 3, 344 с",
       "pass": true
     }
   ],
-  "t": "2026-10-24T17:05:10",
+  "t": "2026-10-24T17:28:03",
   "by": "reviewer"
 }

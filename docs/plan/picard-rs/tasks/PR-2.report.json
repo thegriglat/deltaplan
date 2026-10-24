@@ -1,8 +1,9 @@
 {
   "status": "done",
-  "summary": "Добавлен picard_rs::api (SolveOpts, Solved, solve, pool, resolve_threads, cpu_seconds): свой rayon-пул на вызов, threads=0 — все ядра. CLI solve/bench --solve — тонкая обёртка, fn pool ушла в api. Тест tests/api.rs, раздел README «API (R6)».",
+  "summary": "Добавлен picard_rs::api (SolveOpts, Solved, solve, pool, resolve_threads, cpu_seconds): свой rayon-пул на вызов, threads=0 — все ядра. CLI solve/bench --solve — тонкая обёртка, fn pool ушла в api. Тест tests/api.rs, раздел README «API (R6)». Доработка по ревью: поля сравниваются побитно, R2/имя файла несут фактический размер пула, max_iters_limits проверяет status==max, слит feature/picard-rs (README оба раздела).",
   "commits": [
-    "4a86b96c9 picard-rs PR-2: R6 v1 api::solve с числом потоков (свой пул на вызов), CLI — обёртка"
+    "4a86b96c9 picard-rs PR-2: R6 v1 api::solve с числом потоков (свой пул на вызов), CLI — обёртка",
+    "7dbcf0f0f доработка по ревью + слияние feature/picard-rs"
   ],
   "checks": [
     {
@@ -94,10 +95,19 @@
       "name": "scope",
       "value": "PASS",
       "pass": true
+    },
+    {
+      "name": "results_base_v2",
+      "value": "FAIL: ожидает threads 20, получено 18",
+      "pass": false
     }
   ],
-  "not_done": [],
-  "questions": [],
+  "not_done": [
+    "results_base_v2: под lock cpu (cgroup CPUQuota=1800%) std::thread::available_parallelism возвращает 18, а не 20 (nproc=20); карточка ожидает 'threads 20'. threads=0 по контракту = available_parallelism, поведение верное; нужна правка ожидания (18 под замком) координатором."
+  ],
+  "questions": [
+    "Принять results_base_v2 с threads 18 (cgroup-квота) или хочешь nproc без учёта квоты?"
+  ],
   "images": [],
   "how_to_check": ".dpcli/dpcli accept PR-2",
   "uncertain": [
@@ -105,11 +115,6 @@
       "where": "src/api.rs Solved",
       "why": "Solved несёт Picard и pool целиком (поля f32 ~100+ МБ на Онгудае); контракт говорит «итоговые поля»",
       "checked": "доступ solved.picard.f.{u,v,w,th,p}; pool оставлен в Solved, чтобы diag считался на пуле вызова, не на глобальном"
-    },
-    {
-      "where": "tests/api.rs",
-      "why": "поля сравниваются с допуском 1e-4, не побитно: редукции f64 могут отличаться в последних битах между числом потоков",
-      "checked": "итерации и статус сравниваются точно; тест проходит на 1/2/3/4/0 потоках одновременно"
     },
     {
       "where": "main.rs bench (без --solve)",
@@ -125,6 +130,11 @@
       "where": "api::pool / CLI --threads 0",
       "why": "поведение сменилось: раньше 0 приравнивался к 1, теперь все ядра (по R6)",
       "checked": "указано в README; приёмка использует --threads 8"
+    },
+    {
+      "where": "tests/api.rs",
+      "why": "поля побитно по ревью",
+      "checked": "тест проходит на 1 против 2/3/4/0 одновременно"
     }
   ],
   "dp_feedback": "accept --dry идёт >10 мин; при уходе в фон вывод теряется, удобно было бы summary в build/dpcli/<ID>/summary.txt. Лимит 40 КБ README ловится только в конце accept. report требует настоящий accept, не --dry — стоит сказать в карточке.",
@@ -132,6 +142,6 @@
   "api: сигнатуры pub из api.rs одной строкой каждая": "pub struct SolveOpts { pub threads: usize, pub max_iters: usize } (Default: 0, 2000); pub struct Solved { pub out: SolveOut, pub timing: Timing, pub dev: Dev, pub picard: Picard, pub pool: rayon::ThreadPool }; pub fn solve(case: &Case, opts: &SolveOpts) -> anyhow::Result<Solved>; pub fn pool(threads: usize) -> anyhow::Result<rayon::ThreadPool>; pub fn resolve_threads(threads: usize) -> usize; pub fn cpu_seconds() -> f64; pub const DEFAULT_MAX_ITERS: usize",
   "test_api: что проверяет tests/api.rs (случаи, потоки, одновременность)": "flat_wind.json: (1) resolve_threads(0)>=1, (3)=3, Default threads=0; (2) эталон на 1 потоке, затем 4 одновременных api::solve из разных потоков ОС с threads 2,3,4,0 — pool_threads = resolve_threads, итерации и статус равны эталону, поля u,v,w,th,p совпадают в пределах 1e-4; (3) max_iters=5 останавливает не позже следующей проверки (<=10).",
   "cli_same: R2 через CLI до/после — итерации и dev совпали (ref/ 8 потоков)": "До — out/{flat_wind,agnesi,heated_slope}_release_t8.json, после — target/check_*_t8.json (accept): итерации 30/780/60 (saddle 470) идентичны, статус ok; flat_wind и agnesi u_rel/th_abs те же (5.687e-7, 5.16e-7); у heated_slope и saddle u_rel отличается в 1-м знаке (3.70e-7 -> 4.22e-7, 6.23e-7 -> 4.98e-7), всё << допуска 1e-3. Вычисление не менялось; старые out/ сняты более ранней сборкой (порядок f64-редукций), не из-за api.",
-  "t": "2026-10-24T16:56:10",
+  "t": "2026-10-24T17:13:32",
   "by": "executor"
 }

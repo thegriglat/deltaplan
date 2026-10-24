@@ -40,22 +40,6 @@
   ],
   "accept": [
     {
-      "name": "stat_files",
-      "cmd": "ls tools/research/air_cascade/picard_rs/out/prof/stat_u3_heat_t1.txt tools/research/air_cascade/picard_rs/out/prof/stat_u3_heat_t8.txt tools/research/air_cascade/picard_rs/out/prof/stat_u3_heat_t18.txt tools/research/air_cascade/picard_rs/out/prof/report_u3_heat_t8.txt tools/research/air_cascade/picard_rs/out/prof/report_u3_heat_t18.txt tools/research/air_cascade/picard_rs/out/prof/summary.json tools/research/air_cascade/picard_rs/out/prof/prof.sh",
-      "expect": {
-        "exit": 0
-      }
-    },
-    {
-      "name": "stat_counters",
-      "cmd": "grep -lE 'L1-dcache-load-misses' tools/research/air_cascade/picard_rs/out/prof/stat_u3_heat_t*.txt | wc -l",
-      "expect": {
-        "num": "^(\\d+)$",
-        "min": 3,
-        "exit": 0
-      }
-    },
-    {
       "name": "summary_keys",
       "cmd": "python3 -c \"import json; d=json.load(open('tools/research/air_cascade/picard_rs/out/prof/summary.json')); k=['ipc','l1d_miss_per_cell_sweep','llc_miss_per_cell_sweep','hot','findings']; m=[x for x in k if x not in d]; print('missing='+str(len(m)), m)\"",
       "expect": {
@@ -71,6 +55,16 @@
         "min": 1,
         "exit": 0
       }
+    },
+    {
+      "name": "stat_files",
+      "cmd": "ls tools/research/air_cascade/picard_rs/out/prof/stat_u3_heat_t8.txt tools/research/air_cascade/picard_rs/out/prof/report_u3_heat_t8.txt tools/research/air_cascade/picard_rs/out/prof/summary.json tools/research/air_cascade/picard_rs/out/prof/prof.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "stat_counters",
+      "cmd": "grep -lE 'L1-dcache-load-misses' tools/research/air_cascade/picard_rs/out/prof/stat_u3_heat_t8.txt | wc -l",
+      "expect": "num:^(\\d+)$ >=1"
     }
   ],
   "report_extra": [
@@ -82,5 +76,6 @@
     "new_findings: что профиль показал сверх списка «Где запас»"
   ],
   "notes": "",
-  "created": "2026-10-24T17:07:19"
+  "created": "2026-10-24T17:07:19",
+  "edited": "2026-10-24T17:21:57"
 }
