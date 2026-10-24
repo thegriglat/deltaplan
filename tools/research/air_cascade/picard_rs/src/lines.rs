@@ -5,7 +5,6 @@
 use crate::kernels::Pos;
 use crate::util::{RHS, Row, fmadd};
 use rayon::prelude::*;
-use std::cell::RefCell;
 
 /// Shape `(nz, ny, nx)` of a flat array, index `(k * ny + j) * nx + i`.
 pub type Shape = (usize, usize, usize);
@@ -354,15 +353,13 @@ fn sweep_dir(rows: &[Row], x: &mut [f32], shape: Shape, dir: usize, parity: usiz
         1 => a2 * ny * nx + a1,
         _ => a2 * nx + a1,
     };
-    (0..d2 * nblk).into_par_iter().for_each(|t| {
-        let (a2, blk) = (t / nblk, t % nblk);
-        let lo = blk * width;
-        WORK.with_borrow_mut(|(cp, dp)| {
-            // Fully overwritten by the forward pass before it is read: no clearing needed.
-            if cp.len() < buf {
-                cp.resize(buf, 0.0);
-                dp.resize(buf, 0.0);
-            }
+    (0..d2 * nblk).into_par_iter().for_each_init(
+        // Work buffers per rayon split; fully overwritten by the forward pass before they are
+        // read, so no clearing is needed.
+        || (vec![0.0f32; buf], vec![0.0f32; buf]),
+        |(cp, dp), t| {
+            let (a2, blk) = (t / nblk, t % nblk);
+            let lo = blk * width;
             solve_block(
                 &ln,
                 (d1, d2),
@@ -371,13 +368,8 @@ fn sweep_dir(rows: &[Row], x: &mut [f32], shape: Shape, dir: usize, parity: usiz
                 parity,
                 (cp, dp),
             );
-        });
-    });
-}
-
-thread_local! {
-    /// Per-thread forward-pass buffers `c'`, `d'` (grown on demand, kept between sweeps).
-    static WORK: RefCell<(Vec<f32>, Vec<f32>)> = const { RefCell::new((Vec::new(), Vec::new())) };
+        },
+    );
 }
 
 /// Flat offsets of the stencil neighbours, slot 0 is the centre.
