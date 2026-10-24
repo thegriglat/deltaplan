@@ -13,6 +13,7 @@ generated: true
 Файл собран `docs index` — руками не править.
 
 - aframe-geometry: A1 v4, A2 v1, A3 v12 — [docs/contracts/aframe-geometry.md](../contracts/aframe-geometry.md)
+- air-cascade: R1 v1, R2 v1, R3 v3 — [docs/contracts/air-cascade.md](../contracts/air-cascade.md)
 - air-model: — — [docs/contracts/air-model/divergences-journal.md](../contracts/air-model/divergences-journal.md)
 - air-model: C4 v4, C5 v1, C6 v1, C7 v4, C8 v2 — [docs/contracts/air-model/field-consumers.md](../contracts/air-model/field-consumers.md)
 - air-model: C1 v2, C2 v9, C3 v2 — [docs/contracts/air-model/input-solver.md](../contracts/air-model/input-solver.md)

@@ -1,0 +1,34 @@
+[package]
+name = "picard_rs"
+version = "0.1.0"
+edition = "2024"
+description = "Picard iteration of the 3D air model (AM-01) on a 400 m grid, research prototype"
+license = "MIT"
+publish = false
+build = "build.rs"
+
+[lib]
+name = "picard_rs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "picard"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+multiversion = "0.9.2"
+rayon = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+
+[features]
+# Test only: build the base (x86-64) code without runtime dispatch.
+base_only = []

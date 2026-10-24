@@ -43,7 +43,9 @@ generated: true
   - [tools/research/haze_humidity/upper_misc/README.md](../tools/research/haze_humidity/upper_misc/README.md) — Сетка HH6 v2: HCC, TROP — ERA5 2011–2020 (CDS), WR — ERA5 2018–2019 (ARCO 1°), stub_mask=0
   - [tools/research/haze_humidity/verify/README.md](../tools/research/haze_humidity/verify/README.md) — Сверка Td и T700 с прогнозом Open-Meteo (38 мест, 16 дней): доля в σ Td 67 %, T700 62 %; сдвиг Td +0,7 К
   - [tools/research/haze_humidity/era5_source/summary.md](../tools/research/haze_humidity/era5_source/summary.md) — HH-17: остаток ERA5 качать из ARCO-1° почасового; T700 RMSE к CDS 0.09 K, u700 0.19 м/с, T2m max 0.52 K; NCAR и ARCO-0.25° не нужны [closed]
-- **air-cascade** — Каскад на гранях: деление клеток поля Пикара пополам с балансом массы — порывы, болтанка, склон; опыт на 2D-разрезе против Пикара. [idea 2026-10-24] — [план](plan/air-cascade.md)
+- **air-cascade** — Каскад на гранях: деление клеток поля Пикара пополам с балансом массы — порывы, болтанка, склон; опыт на 2D-разрезе против Пикара. [closed 2026-10-24] — [план](plan/air-cascade.md) · [контракты](contracts/air-cascade.md) · [решения](plan/air-cascade/decisions.md) · [сводка](plan/air-cascade/summary.md) · полный журнал: `archive/air-cascade`
+  - [tools/research/air_cascade/export/README.md](../tools/research/air_cascade/export/README.md) — AC-R2: Онгудай 400 м в формате R1 из air.py (f64), 4 случая; итерации совпали с фикстурой (разница 0)
+  - [tools/research/air_cascade/picard_rs/README.md](../tools/research/air_cascade/picard_rs/README.md) — picard_rs: Пикар AM-01 на Rust (f32, rayon); Онгудай 400 м — итерации как у эталона, u_rel ≤ 4e-5; solve 11–17 с на 18 потоках
 
 ## flight
 
