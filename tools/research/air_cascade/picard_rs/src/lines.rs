@@ -8,169 +8,253 @@ use rayon::prelude::*;
 /// Shape `(nz, ny, nx)` of a flat array, index `(k * ny + j) * nx + i`.
 pub type Shape = (usize, usize, usize);
 
-/// Scratch arrays of the Thomas forward pass (same size as the array).
-pub struct Scratch {
-    cp: Vec<f32>,
-    dp: Vec<f32>,
-}
+/// Marker for the Thomas forward-pass scratch. The forward pass keeps `c'` and `d'` in small
+/// per-task buffers (layout `[position along the line][line of the group]`), so no array of
+/// the grid size is needed; the type stays because callers own one per level.
+pub struct Scratch(());
 
 impl Scratch {
-    /// Allocates scratch for `n` cells.
-    pub fn new(n: usize) -> Self {
-        Self {
-            cp: vec![0.0; n],
-            dp: vec![0.0; n],
-        }
+    /// Creates the marker for `n` cells (nothing is allocated).
+    pub fn new(_n: usize) -> Self {
+        Self(())
     }
 }
 
-/// True when neighbour `o` (1 -x, 2 +x, 3 -y, 4 +y, 5 -z, 6 +z) of flat cell `idx` is inside the grid.
-fn in_grid(idx: usize, o: usize, (nz, ny, nx): Shape) -> bool {
-    let (i, j, k) = (idx % nx, (idx / nx) % ny, idx / (nx * ny));
-    match o {
-        1 => i > 0,
-        2 => i + 1 < nx,
-        3 => j > 0,
-        4 => j + 1 < ny,
-        5 => k > 0,
-        _ => k + 1 < nz,
-    }
-}
+/// Most lines solved together by one call.
+const MAXL: usize = 16;
 
-/// Everything the solution of one line reads and writes.
+/// Width (in the first free index `a1`) of the block of neighbouring lines one task takes;
+/// only the lines of the pass colour inside the block are solved, so a block holds up to
+/// `BLOCK / 2` lines. Blocks are multiples of a 64-byte line of `f32` apart (no false sharing
+/// of cache lines between tasks for `x`, `cps`, `dps` of the batch).
+const BLOCK: [usize; 3] = [4, 32, 32];
+
+/// Everything the solution of lines along one direction reads and writes.
 struct Line<'a> {
     rows: &'a [Row],
     xs: &'a Shared,
-    cps: &'a Shared,
-    dps: &'a Shared,
     off: [isize; 7],
-    shape: Shape,
-    /// Cells on the line and the flat stride between them.
+    /// Cells on a line and the flat stride between them.
     n: usize,
     stride: usize,
     /// Stencil slots of the in-line neighbours (`lo` before, `hi` after).
     lo: usize,
     hi: usize,
+    /// Stencil slots of the off-line neighbours: `-a1, +a1, -a2, +a2`.
+    slots: [usize; 4],
 }
 
-/// Thomas algorithm on the line starting at flat index `base`: off-line neighbours are taken
-/// from `x` (cells of the other colour, not written in this pass), the line itself is written.
+/// Lines solved together: flat index of the first cell of each line and, for lines on the
+/// grid boundary, which off-line neighbours exist (`-a1, +a1, -a2, +a2`).
+struct Group {
+    bases: [usize; MAXL],
+    ok: [[bool; 4]; MAXL],
+    nl: usize,
+}
+
+/// One cell of the Thomas forward pass for every line of the group. `FIRST`/`LAST` mark the
+/// ends of the lines (no in-line neighbour before/after), `INTERIOR` means every off-line
+/// neighbour of every line exists, so no per-neighbour test is needed. A zero coefficient
+/// leaves `r` untouched (select), as in the reference.
 #[inline(always)]
-fn solve_line_impl<const FUSED: bool>(ln: &Line, base: usize) {
-    let (nz, ny, nx) = ln.shape;
-    let n_all = nz * ny * nx;
-    let (rows, xs, cps, dps) = (ln.rows, ln.xs, ln.cps, ln.dps);
-    let (mut cprev, mut dprev) = (0.0f32, 0.0f32);
-    for m in 0..ln.n {
-        let idx = base + m * ln.stride;
+#[allow(clippy::too_many_arguments)]
+fn fwd_step<const FUSED: bool, const INTERIOR: bool, const FIRST: bool, const LAST: bool>(
+    ln: &Line,
+    g: &Group,
+    m: usize,
+    cpm: &mut [f32],
+    dpm: &mut [f32],
+    cprev: &mut [f32; MAXL],
+    dprev: &mut [f32; MAXL],
+) {
+    let (rows, xs) = (ln.rows, ln.xs);
+    let offs = ln.slots.map(|s| ln.off[s]);
+    for l in 0..g.nl {
+        let idx = g.bases[l] + m * ln.stride;
         let row = &rows[idx];
         let mut r = row[RHS];
-        for (o, (&c, &of)) in row.iter().zip(&ln.off).enumerate().take(7).skip(1) {
-            if o == ln.lo || o == ln.hi {
-                continue;
-            }
-            if c != 0.0 {
-                let q = idx as isize + of;
-                // A non-zero coefficient must point to a cell inside the grid: the flat
-                // offset of an out-of-grid neighbour would wrap into another row or plane.
-                debug_assert!(
-                    q >= 0 && (q as usize) < n_all && in_grid(idx, o, ln.shape),
-                    "stencil coefficient {o} at flat index {idx} points outside the grid"
-                );
-                if q >= 0 && (q as usize) < n_all {
-                    // SAFETY: q lies on a line of the other colour, not written in this pass.
-                    r = fmadd::<FUSED>(-c, unsafe { xs.get(q as usize) }, r);
+        for s in 0..4 {
+            let c = row[ln.slots[s]];
+            if INTERIOR || g.ok[l][s] {
+                let q = (idx as isize + offs[s]) as usize;
+                // SAFETY: q is a cell of the other colour (in the grid), not written in this pass.
+                let xv = unsafe { xs.get(q) };
+                if c != 0.0 {
+                    r = fmadd::<FUSED>(-c, xv, r);
                 }
+            } else {
+                debug_assert!(
+                    c == 0.0,
+                    "stencil coefficient {} at flat index {idx} points outside the grid",
+                    ln.slots[s]
+                );
             }
         }
-        let a = if m > 0 { row[ln.lo] } else { 0.0 };
+        let a = if FIRST { 0.0 } else { row[ln.lo] };
         let bb = row[0];
-        let cc = if m + 1 < ln.n { row[ln.hi] } else { 0.0 };
-        let den = fmadd::<FUSED>(-a, cprev, bb);
+        let cc = if LAST { 0.0 } else { row[ln.hi] };
+        let den = fmadd::<FUSED>(-a, cprev[l], bb);
         let cpv = cc / den;
-        let dpv = fmadd::<FUSED>(-a, dprev, r) / den;
-        // SAFETY: cells of this line are touched by this thread only.
-        unsafe {
-            cps.set(idx, cpv);
-            dps.set(idx, dpv);
-        }
-        cprev = cpv;
-        dprev = dpv;
+        let dpv = fmadd::<FUSED>(-a, dprev[l], r) / den;
+        cpm[l] = cpv;
+        dpm[l] = dpv;
+        cprev[l] = cpv;
+        dprev[l] = dpv;
     }
-    let mut xn = 0.0f32;
-    for m in (0..ln.n).rev() {
-        let idx = base + m * ln.stride;
-        // SAFETY: as above, this line belongs to this thread.
-        unsafe {
-            let v = fmadd::<FUSED>(-cps.get(idx), xn, dps.get(idx));
-            xs.set(idx, v);
-            xn = v;
+}
+
+/// Thomas algorithm on the lines of the group: off-line neighbours are taken from `x` (cells of
+/// the other colour, not written in this pass), the lines themselves are written. `cp`, `dp`
+/// hold `n * nl` values, `[m * nl + lane]`.
+#[inline(always)]
+fn solve_group_impl<const FUSED: bool, const INTERIOR: bool>(
+    ln: &Line,
+    g: &Group,
+    cp: &mut [f32],
+    dp: &mut [f32],
+) {
+    let (n, nl) = (ln.n, g.nl);
+    let (mut cprev, mut dprev) = ([0.0f32; MAXL], [0.0f32; MAXL]);
+    macro_rules! step {
+        ($m:expr, $first:literal, $last:literal) => {{
+            let m = $m;
+            let (cpm, dpm) = (&mut cp[m * nl..(m + 1) * nl], &mut dp[m * nl..(m + 1) * nl]);
+            fwd_step::<FUSED, INTERIOR, $first, $last>(ln, g, m, cpm, dpm, &mut cprev, &mut dprev);
+        }};
+    }
+    if n == 1 {
+        step!(0, true, true);
+    } else {
+        step!(0, true, false);
+        for m in 1..n - 1 {
+            step!(m, false, false);
+        }
+        step!(n - 1, false, true);
+    }
+    let mut xn = [0.0f32; MAXL];
+    for m in (0..n).rev() {
+        let (cpm, dpm) = (&cp[m * nl..(m + 1) * nl], &dp[m * nl..(m + 1) * nl]);
+        for l in 0..nl {
+            let v = fmadd::<FUSED>(-cpm[l], xn[l], dpm[l]);
+            // SAFETY: this line belongs to this task.
+            unsafe { ln.xs.set(g.bases[l] + m * ln.stride, v) };
+            xn[l] = v;
         }
     }
 }
 
-/// One line, hot kernel: fused multiply-add in the x86-64 AVX2+FMA branch (chosen at run
-/// time), plain multiply and add in the base branch and on other architectures.
+/// Lines of one group, hot kernel: fused multiply-add in the x86-64 AVX2+FMA branch (chosen at
+/// run time), plain multiply and add in the base branch and on other architectures.
 #[cfg(all(target_arch = "x86_64", not(feature = "base_only")))]
 #[multiversion::multiversion(targets("x86_64+avx2+fma"))]
-fn solve_line(ln: &Line, base: usize) {
+fn solve_group(ln: &Line, g: &Group, interior: bool, cp: &mut [f32], dp: &mut [f32]) {
     multiversion::target::match_target! {
-        "x86_64+avx2+fma" => solve_line_impl::<true>(ln, base),
-        _ => solve_line_impl::<false>(ln, base),
+        "x86_64+avx2+fma" => if interior {
+            solve_group_impl::<true, true>(ln, g, cp, dp)
+        } else {
+            solve_group_impl::<true, false>(ln, g, cp, dp)
+        },
+        _ => if interior {
+            solve_group_impl::<false, true>(ln, g, cp, dp)
+        } else {
+            solve_group_impl::<false, false>(ln, g, cp, dp)
+        },
     }
 }
 
-/// One line, base code (no dispatch in this build).
+/// Lines of one group, base code (no dispatch in this build).
 #[cfg(not(all(target_arch = "x86_64", not(feature = "base_only"))))]
-fn solve_line(ln: &Line, base: usize) {
-    solve_line_impl::<false>(ln, base)
+fn solve_group(ln: &Line, g: &Group, interior: bool, cp: &mut [f32], dp: &mut [f32]) {
+    if interior {
+        solve_group_impl::<false, true>(ln, g, cp, dp)
+    } else {
+        solve_group_impl::<false, false>(ln, g, cp, dp)
+    }
+}
+
+/// One task: the lines of colour `parity` among `a1` in `a1_lo..a1_hi` of plane `a2`.
+/// Lines whose off-line neighbours all exist are solved together, boundary lines one by one.
+fn solve_block(
+    ln: &Line,
+    dims: (usize, usize),
+    base_of: impl Fn(usize, usize) -> usize,
+    (a1_lo, a1_hi, a2): (usize, usize, usize),
+    parity: usize,
+    (cp, dp): (&mut [f32], &mut [f32]),
+) {
+    let (d1, d2) = dims;
+    let mut inner = Group {
+        bases: [0; MAXL],
+        ok: [[true; 4]; MAXL],
+        nl: 0,
+    };
+    let first = a1_lo + ((a1_lo + a2) & 1 != parity) as usize;
+    for a1 in (first..a1_hi).step_by(2) {
+        let ok = [a1 > 0, a1 + 1 < d1, a2 > 0, a2 + 1 < d2];
+        let base = base_of(a1, a2);
+        if ok.iter().all(|&b| b) {
+            inner.bases[inner.nl] = base;
+            inner.nl += 1;
+        } else {
+            let mut one = Group {
+                bases: [0; MAXL],
+                ok: [ok; MAXL],
+                nl: 1,
+            };
+            one.bases[0] = base;
+            solve_group(ln, &one, false, &mut cp[..ln.n], &mut dp[..ln.n]);
+        }
+    }
+    if inner.nl > 0 {
+        let len = ln.n * inner.nl;
+        solve_group(ln, &inner, true, &mut cp[..len], &mut dp[..len]);
+    }
 }
 
 /// One zebra half-sweep: all lines along `dir` (0 x, 1 y, 2 z) of the given `parity`
 /// (sum of the two other indices mod 2) are solved exactly, off-line neighbours are
-/// taken from the current `x`.
-fn sweep_dir(
-    rows: &[Row],
-    x: &mut [f32],
-    sc: &mut Scratch,
-    shape: Shape,
-    dir: usize,
-    parity: usize,
-) {
+/// taken from the current `x`. Tasks are blocks of neighbouring lines of one colour.
+fn sweep_dir(rows: &[Row], x: &mut [f32], shape: Shape, dir: usize, parity: usize) {
     let (nz, ny, nx) = shape;
-    let (n, stride, nl, d1) = match dir {
-        0 => (nx, 1usize, ny * nz, ny),
-        1 => (ny, nx, nx * nz, nx),
-        _ => (nz, nx * ny, nx * ny, nx),
+    let (n, stride, d1, d2, slots) = match dir {
+        0 => (nx, 1usize, ny, nz, [3, 4, 5, 6]),
+        1 => (ny, nx, nx, nz, [1, 2, 5, 6]),
+        _ => (nz, nx * ny, nx, ny, [1, 2, 3, 4]),
     };
     let xs = Shared::new(x);
-    let cps = Shared::new(&mut sc.cp);
-    let dps = Shared::new(&mut sc.dp);
     let ln = Line {
         rows,
         xs: &xs,
-        cps: &cps,
-        dps: &dps,
         off: offsets(shape),
-        shape,
         n,
         stride,
         lo: 1 + 2 * dir,
         hi: 2 + 2 * dir,
+        slots,
     };
-    (0..nl).into_par_iter().with_min_len(8).for_each(|t| {
-        let a1 = t % d1;
-        let a2 = t / d1;
-        if (a1 + a2) & 1 != parity {
-            return;
-        }
-        let base = match dir {
-            0 => (a2 * ny + a1) * nx,
-            1 => a2 * ny * nx + a1,
-            _ => a2 * nx + a1,
-        };
-        solve_line(&ln, base);
-    });
+    let width = BLOCK[dir];
+    let nblk = d1.div_ceil(width);
+    let buf = n * width.div_ceil(2).min(MAXL);
+    let base_of = |a1: usize, a2: usize| match dir {
+        0 => (a2 * ny + a1) * nx,
+        1 => a2 * ny * nx + a1,
+        _ => a2 * nx + a1,
+    };
+    (0..d2 * nblk).into_par_iter().for_each_init(
+        || (vec![0.0f32; buf], vec![0.0f32; buf]),
+        |(cp, dp), t| {
+            let (a2, blk) = (t / nblk, t % nblk);
+            let lo = blk * width;
+            solve_block(
+                &ln,
+                (d1, d2),
+                base_of,
+                (lo, (lo + width).min(d1), a2),
+                parity,
+                (cp, dp),
+            );
+        },
+    );
 }
 
 /// Flat offsets of the stencil neighbours, slot 0 is the centre.
@@ -187,10 +271,10 @@ fn offsets((_, ny, nx): Shape) -> [isize; 7] {
 }
 
 /// Zebra sweeps over the directions `dirs` in order (parity 0 then 1 for each).
-pub fn sweep(rows: &[Row], x: &mut [f32], sc: &mut Scratch, shape: Shape, dirs: &[usize]) {
+pub fn sweep(rows: &[Row], x: &mut [f32], _sc: &mut Scratch, shape: Shape, dirs: &[usize]) {
     for &d in dirs {
         for par in 0..2 {
-            sweep_dir(rows, x, sc, shape, d, par);
+            sweep_dir(rows, x, shape, d, par);
         }
     }
 }
