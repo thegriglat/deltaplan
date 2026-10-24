@@ -57,7 +57,7 @@ related: ["tools/research/air_cascade/picard_rs/README.md", "docs/contracts/pica
 | `state` | `State` | выданное поле **после** `finalize` (как `AirPicardJob.state()` после фазы final); годится как `init` следующего вызова |
 | `snapshots` | `Vec<State>` | снимки по `snapshot_at` |
 | `timing` | `Timing` | `total_s`, `setup_s`, `iter_s`, `iters_run`, `check_s`, `n_checks`, `pool_threads`, `cpu_s` (только Linux, иначе 0), `phase_s: Option<[f64;5]>` — секунды по фазам `[mom, heat, proj, kupd, other]` |
-| `dev` | `Dev` | отклонение от `sol_*` случая (`u_rel`, `th_abs`, `p_rel`, `div_rms`, …); **требует `sol_u…sol_p` в случае**, иначе `solve` вернёт ошибку (см. «Вход и выход») |
+| `dev` | `Option<Dev>` | отклонение от `sol_*` случая (`u_rel`, `th_abs`, `p_rel`, `div_rms`, …); **`None` для случая без эталона** (игровой вход; R6 v3), `Some` — если у случая есть `solution` и все `sol_u…sol_p` (см. «Вход и выход») |
 | `out` | `SolveOut` | то же, что выше, + `status`, `phase_s`, сырые снимки |
 | `picard`, `pool` | `Picard`, `rayon::ThreadPool` | решатель с полями (`picard.f`) и пул вызова. Держат память; в игре отбросить после копирования `state` |
 
@@ -99,18 +99,20 @@ related: ["tools/research/air_cascade/picard_rs/README.md", "docs/contracts/pica
 | `case, dims, dx, dz, z_bot, nx, ny, nz` | сетка (в метрах); `x0, y0, halo, mg_levels_xyz` читать не обязательно (сеткой V-цикла управляет крейт) |
 | `params` | **все** параметры модели (`tau_cool, z0, pr_t, dtau_u/dtau_per_m, dtau_th, couple, mom_sweeps, heat_sweeps, vcycles, local_k, k_relax, cs_h`) — решатель берёт их из случая, не из умолчаний |
 | `case_params` | `U10`, `U_aloft` |
-| `criterion` | `tol_mom_rms, tol_th_rms, tol_div_rms, check_every`; `solution.iters`, `solution.max_speed` обязательны при чтении, `history` тоже (нужна для `pre_steps`) |
+| `criterion` | `tol_mom_rms, tol_th_rms, tol_div_rms, check_every`; `solution` и `history` **необязательны** (эталон; без `history` `pre_steps` берётся из `criterion.pre_steps`, по умолчанию 0) |
 | `crop` | необязательно: окно у старта (для `dev.crop`) |
 
 Массивы (все длины `NX·NY·NZ` с ореолом): `cell, tu, tv, tw` (типы клеток и граней), `nu_bg, Q, gam, cplz, sp_u, sp_w, spc, ubg, vbg, lam, Kx, Ky, Kz,
 fixed_u, fixed_v, b_u, b_v`; рельеф `hc` — `nx·ny` без ореола. Недостающий ключ или массив, смещение за концом `.bin` — ошибка, не умолчание.
-**`solve` дополнительно читает `sol_u, sol_v, sol_w, sol_th, sol_thd, sol_p`** (для `Solved.dev`): случай без них вернёт ошибку — игровой случай
-должен содержать их (хотя бы нулями; `dev` тогда бессмыслен) либо вызывать `Picard` напрямую (`Picard::new(Consts::from_case(..))`, `solve`, `finalize`,
-минуя `api::solve`; этот путь описан в doc-комментариях `solver.rs`, здесь не проверялся).
+**Случай без эталона (R6 v3, вход игры).** `sol_u, sol_v, sol_w, sol_th, sol_thd, sol_p` (массивы), `solution` и `history` (ключи JSON) необязательны — и в файле, и в `Case`,
+собранном в памяти (`Case.solution = None`, `Case.history_ref = None`, массивы `sol_*` не вставлять; `Case::has_reference()` — есть ли эталон целиком).
+Без эталона `api::solve` решает как обычно, `Solved.dev = None`, остальные поля `Solved` от эталона не зависят; поле `state` побитно такое же, как у
+того же случая с эталоном (тест `no_reference_case_solves_like_with_reference`). Файл R2 такого прогона: `dev` с `null`-полями, `dev_crop`, `iters_ref`,
+`history_ref` — `null`; CLI `--diag` без эталона — ошибка. С эталоном всё как раньше (сверка `dev`, путь решения тот же).
 
 `Case::load(path)` — единственный читатель. Структура `Case` (`case.rs`) состоит из публичных полей, `arrays: HashMap<String, Vec<f32>>` в том числе, поэтому
 случай можно собрать **в памяти** без файлов; такой путь в крейте не тестировался (не проверено), а `pre_steps` в `criterion` тогда задаётся самим
-(`Case::load` выводит его из `history[0].it`).
+(`Case::load` выводит его из `history[0].it`, без `history` оставляет значение из файла/0; для игрового случая без эталона — 0).
 
 Как случай получает игра: `scripts/atmosphere/air_model/air_place.gd:domain_case(detail, water, loc, dx, hour, u10, wdir, …) -> AirCase` собирает вход
 (`AirCase.dims()` = `nx+2, ny+2, nz+2` — та же раскладка с ореолом, `air_case.gd`); в `air_runtime.gd:_start_picard(c)` он уходит в `AirPicardJob`.
