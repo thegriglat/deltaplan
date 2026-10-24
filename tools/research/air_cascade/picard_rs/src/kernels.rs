@@ -7,6 +7,41 @@ use rayon::prelude::*;
 
 const CHUNK: usize = 512;
 
+/// Cell coordinates `(i, j, k)` of a flat halo index, advanced cell by cell so that a loop over
+/// consecutive cells needs no integer division per cell.
+#[derive(Clone, Copy)]
+pub(crate) struct Pos {
+    pub i: usize,
+    pub j: usize,
+    pub k: usize,
+}
+
+impl Pos {
+    /// Coordinates of flat index `idx` in a grid with `nx`, `ny` cells per row/plane.
+    #[inline(always)]
+    pub(crate) fn at(idx: usize, nx: usize, ny: usize) -> Self {
+        Self {
+            i: idx % nx,
+            j: (idx / nx) % ny,
+            k: idx / (nx * ny),
+        }
+    }
+
+    /// Moves to the next flat index.
+    #[inline(always)]
+    pub(crate) fn advance(&mut self, nx: usize, ny: usize) {
+        self.i += 1;
+        if self.i == nx {
+            self.i = 0;
+            self.j += 1;
+            if self.j == ny {
+                self.j = 0;
+                self.k += 1;
+            }
+        }
+    }
+}
+
 const G_OVER_T0: f32 = (9.81 / 300.0) as f32;
 
 /// Velocity components (faces), each a halo array.
@@ -49,15 +84,16 @@ fn kloc_chunk(k: &Consts, vel: &Vel, th: &[f32], start: usize, nu: &mut [f32], n
     let h = [k.dx, k.dx, k.dz];
     let (u, v, w) = (vel.u, vel.v, vel.w);
     let f = [u, v, w];
+    // Cell coordinates are advanced with the loop (one division per chunk, not per cell).
+    let mut pos = Pos::at(start, nx, ny);
     for (di, (nu_i, nuh_i)) in nu.iter_mut().zip(nuh.iter_mut()).enumerate() {
         let idx = start + di;
-        {
+        let (i, j, kk) = (pos.i, pos.j, pos.k);
+        pos.advance(nx, ny);
+        'cell: {
             if k.cell[idx] != 1 {
-                continue;
+                break 'cell;
             }
-            let i = idx % nx;
-            let j = (idx / nx) % ny;
-            let kk = idx / (nx * ny);
             let cval = |a: usize, p: usize, q: usize| 0.5 * (f[a][p] + f[a][q]);
             let c = [
                 cval(0, idx, idx + st[0]),
@@ -169,7 +205,7 @@ fn mom_cell<const COMP: usize>(
     m: &MomIn,
     geo: &MomGeo,
     inv_dtau: f32,
-    idx: usize,
+    (idx, kk): (usize, usize),
 ) -> Row {
     let comp = COMP;
     let (nx, ny) = (k.nxh, k.nyh);
@@ -180,7 +216,6 @@ fn mom_cell<const COMP: usize>(
     if tt[idx] != 1 {
         return [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, f[comp][idx]];
     }
-    let kk = idx / (nx * ny);
     let sc = st[comp];
     let c0 = idx - sc;
     let c1 = idx;
@@ -262,16 +297,19 @@ fn build_all_mom_chunk(
 ) {
     let inv_dtau = 1.0 / k.dtau_u;
     let (gu, gv, gw) = (MomGeo::new(k, 0), MomGeo::new(k, 1), MomGeo::new(k, 2));
+    let (nx, ny) = (k.nxh, k.nyh);
+    let mut pos = Pos::at(start, nx, ny);
     for (di, ((ru, rv), rw)) in cu
         .iter_mut()
         .zip(cv.iter_mut())
         .zip(cw.iter_mut())
         .enumerate()
     {
-        let idx = start + di;
-        *ru = mom_cell::<0>(k, m, &gu, inv_dtau, idx);
-        *rv = mom_cell::<1>(k, m, &gv, inv_dtau, idx);
-        *rw = mom_cell::<2>(k, m, &gw, inv_dtau, idx);
+        let at = (start + di, pos.k);
+        pos.advance(nx, ny);
+        *ru = mom_cell::<0>(k, m, &gu, inv_dtau, at);
+        *rv = mom_cell::<1>(k, m, &gv, inv_dtau, at);
+        *rw = mom_cell::<2>(k, m, &gw, inv_dtau, at);
     }
 }
 
@@ -282,6 +320,9 @@ pub struct HeatIn<'a> {
     pub x: &'a [f32],
     /// Heating, or heating minus theta'_d/tau for the full theta'.
     pub q: &'a [f32],
+    /// Optional `(theta'_d, 1/tau)`: the source is then `q - theta'_d / tau` per cell, formed in
+    /// the kernel (no array of the effective source).
+    pub q_sub: Option<(&'a [f32], f32)>,
     /// `dtheta_bar/dz` per level for theta', `None` for theta'_d.
     pub gam: Option<&'a [f32]>,
     pub nu: &'a [f32],
@@ -302,19 +343,25 @@ fn build_heat_chunk(k: &Consts, hin: &HeatIn, start: usize, out: &mut [Row]) {
     let h = [k.dx, k.dx, k.dz];
     let vel = [hin.vel.u, hin.vel.v, hin.vel.w];
     let inv_dtau = 1.0 / k.dtau_th;
+    let mut pos = Pos::at(start, nx, ny);
     for (di, row) in out.iter_mut().enumerate() {
         let idx = start + di;
+        let kk = pos.k;
+        pos.advance(nx, ny);
         {
             if k.cell[idx] != 1 {
                 *row = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, hin.x[idx]];
                 continue;
             }
-            let kk = idx / (nx * ny);
             let mut diag = inv_dtau + hin.inv_tau + k.spc[idx];
             let gterm = hin
                 .gam
                 .map_or(0.0, |g| g[kk] * 0.5 * (vel[2][idx] + vel[2][idx + st[2]]));
-            let rhs = hin.x[idx] * inv_dtau + hin.q[idx] - gterm;
+            let q = match hin.q_sub {
+                Some((d, inv_tau)) => hin.q[idx] - d[idx] * inv_tau,
+                None => hin.q[idx],
+            };
+            let rhs = hin.x[idx] * inv_dtau + q - gterm;
             let mut cc = [0.0f32; 7];
             for d in 0..3 {
                 let ih = 1.0 / h[d];
