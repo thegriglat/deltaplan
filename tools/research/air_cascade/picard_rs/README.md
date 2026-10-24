@@ -359,29 +359,9 @@ u3_heat, 8 потоков: 105 мс/итерацию = mom 33 % + heat 37 % + pr
 
 ## API v2, снимки и тёплый старт (PR-5)
 
-R6 v2, R4 v2, R2 v3 (`docs/contracts/picard-rs.md`); код — `api.rs`, `state.rs`; CLI — тонкая обёртка.
-
-```rust
-SolveOpts { threads, max_iters, tol_scale: f64, time_budget: Option<Duration>, init: Option<State>, snapshot_at: Vec<usize> }
-solve(&Case, &SolveOpts) -> Result<Solved>   // Solved { iters, stop: StopReason, residuals, history, state, snapshots, out, timing, dev, picard, pool }
-StopReason { Converged, MaxIters, TimeBudget, Diverged }     State::read(&Path) / State::write_atomic(&self, &Path)
-```
-
-CLI: `picard solve <случай> [--tol-scale X] [--time-budget S] [--init <снимок.json>] [--snap-at 30,100 --snap-dir <каталог>]
-[--save-state <снимок.json>]`; снимки по N — `<каталог>/<случай>_it<N>.json`.
-
-- **Цикл `solve`** — по итерациям (порядок прежний: `pre_steps`, проверки через `check_every`): `max_iters`, бюджет и снимки
-  действуют точно после нужной итерации (раньше `max_iters` округлялся до конца блока проверок). `tol_scale` умножает три
-  порога; `1.0` — как эталон (тест: итерации и поля побитно как цикл v1).
-- **`stop`**: `converged` (критерий выполнен), `max_iters`, `time_budget` (стена от начала итераций исчерпана после итерации),
-  `diverged`; приоритет при совпадении — в этом порядке. Если остановка не на проверке, делается дополнительная проверка —
-  `residuals` всегда относятся к отданному полю на итерации `iters` (до finalize). R2 `status` прежний.
-- **Снимок по N**: копия `u, v, w` → `finalize(10)` → копия полей → возврат `u, v, w`; ход решения не меняется, снимок
-  побитно равен итоговому полю прогона с `max_iters = N` (тесты). `N = 0` — начальное поле. `Solved.state` — после finalize.
-- **Тёплый старт** — как в игре (`air_picard_job.gd:_program("warm")`, стр. 869): из снимка `u, v, w, th, thd, p` (нет
-  `thd` — нули); `nu`, `nuh` и весь вход — от нового случая; вместо фона и 30 V-циклов — `apply_bc` от поля и **4** V-цикла
-  без изменения `p`; `pre_steps = 0`. Размеры не совпали с случаем — ошибка. `AirPicardJob.state()` (стр. 1122) отдаёт поле
-  после фазы `final` (finalize) — как `Solved.state`.
-- **R4 v2**: `.json` + `.bin` (float32 LE), `u, v, w, th, thd, p, nu, nuh`; запись через временные файлы и переименование;
-  проверка — `check_contract.py --state`. **R2 v3**: `stop`, `tol_scale`, `time_budget_s`, `init`, `snapshots`, `residuals`;
-  фазы — в `Timing.phase_s`.
+R6 v2 / R4 v2 / R2 v3 (`docs/contracts/picard-rs.md`); подробности — doc-комментарии `src/api.rs`, `src/state.rs`, `src/solver.rs`.
+- `api::solve(&Case, &SolveOpts{threads, max_iters, tol_scale, time_budget, init, snapshot_at})` → `Solved{iters, stop, residuals, history, state, snapshots, …}`; `stop` = converged | max_iters | time_budget | diverged.
+- Цикл `solve` по итерациям: `max_iters`, бюджет, снимки — точно после нужной итерации; `tol_scale = 1` и холодный старт — побитно как v1 (тест).
+- Снимок по N — finalize на копии (ход решения не меняется); R4 v2 — `state::State::{read, write_atomic}`, проверка `check_contract.py --state`.
+- Тёплый старт как в игре (`air_picard_job.gd:_program("warm")`): `u,v,w,th,thd,p` из снимка, K и вход заново, `apply_bc` + 4 V-цикла.
+- CLI: `picard solve <случай> [--tol-scale X] [--time-budget S] [--init s.json] [--snap-at 30,100 --snap-dir D] [--save-state s.json]`.

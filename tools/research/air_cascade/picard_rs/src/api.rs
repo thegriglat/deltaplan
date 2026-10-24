@@ -6,6 +6,16 @@
 //!
 //! R6 v2: criterion scale, time budget, stop reason, start from a snapshot (the game's warm
 //! start) and finalized snapshots after chosen iterations.
+//!
+//! Stop reasons, in priority at the same iteration: diverged, converged, max_iters,
+//! time_budget. If the stop is not at a residual check, one extra check is made, so
+//! `Solved.residuals` always belong to the delivered field at `iters` (before finalize).
+//! A snapshot after N iterations is `finalize(10)` on a copy: bit-identical to the final
+//! state of a separate run with `max_iters = N`, the main run is unchanged. `Solved.state`
+//! is after `finalize`, like `AirPicardJob.state()` of the game (read after the `final`
+//! phase). Warm start (`init`): `u, v, w, th, thd, p` from the snapshot, K and all input
+//! from the case, `apply_bc` + 4 V-cycles without touching `p`
+//! (`air_picard_job.gd:_program("warm")`), checks counted from iteration 0.
 
 use crate::case::{Case, Consts};
 use crate::report::{Dev, Timing, deviation};
