@@ -172,9 +172,9 @@ pub fn check_case(c: &Case) -> Result<Vec<BlockRow>> {
     );
     let rv = rows_from(c.arr("Cm_v")?, c.arr("bm_v")?);
     let rw = rows_from(c.arr("Cm_w")?, c.arr("bm_w")?);
-    s.cu = ru;
-    s.cv = rv;
-    s.cw = rw;
+    s.cu = ru.into();
+    s.cv = rv.into();
+    s.cw = rw.into();
     s.f.u = a("bc_u")?;
     s.f.v = a("bc_v")?;
     s.f.w = a("in_w")?;
@@ -253,7 +253,7 @@ pub fn check_case(c: &Case) -> Result<Vec<BlockRow>> {
     let (cd, bd) = planes(&s.ctd);
     add("heat stencil theta_d C", rel_err(&cd, c.arr("Ch_d")?), true);
     add("heat stencil theta_d b", rel_err(&bd, c.arr("bh_d")?), true);
-    s.ctd = rows_from(c.arr("Ch_d")?, c.arr("bh_d")?);
+    s.ctd = rows_from(c.arr("Ch_d")?, c.arr("bh_d")?).into();
     for _ in 0..s.k.heat_sweeps {
         sweep(&s.ctd, &mut s.f.thd, &mut s.sc, shape, &[2, 0, 1]);
     }
@@ -268,7 +268,7 @@ pub fn check_case(c: &Case) -> Result<Vec<BlockRow>> {
     let (ch, bh) = planes(&s.ct);
     add("heat stencil theta C", rel_err(&ch, c.arr("Ch")?), true);
     add("heat stencil theta b", rel_err(&bh, c.arr("bh")?), true);
-    s.ct = rows_from(c.arr("Ch")?, c.arr("bh")?);
+    s.ct = rows_from(c.arr("Ch")?, c.arr("bh")?).into();
     for _ in 0..s.k.heat_sweeps {
         sweep(&s.ct, &mut s.f.th, &mut s.sc, shape, &[2, 0, 1]);
     }

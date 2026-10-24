@@ -4,10 +4,10 @@
 
 use crate::case::{Consts, Criterion};
 use crate::kernels::{HeatIn, MomIn, Vel, apply_bc, build_all_mom, build_heat, kloc};
-use crate::lines::{Scratch, resid, sweep};
+use crate::lines::{RowBuf, Scratch, resid, sweep};
 use crate::mg::Mg;
 use crate::state::State;
-use crate::util::{Row, det_sum, par_max};
+use crate::util::{det_sum, par_max};
 use anyhow::Result;
 use rayon::prelude::*;
 use std::time::{Duration, Instant};
@@ -124,12 +124,11 @@ pub struct Picard {
     pub k: Consts,
     pub f: Fields,
     pub mg: Mg,
-    pub cu: Vec<Row>,
-    pub cv: Vec<Row>,
-    pub cw: Vec<Row>,
-    pub ct: Vec<Row>,
-    pub ctd: Vec<Row>,
-    pub qeff: Vec<f32>,
+    pub cu: RowBuf,
+    pub cv: RowBuf,
+    pub cw: RowBuf,
+    pub ct: RowBuf,
+    pub ctd: RowBuf,
     pub rr: Vec<f32>,
     pub pfull: Vec<f32>,
     /// Fluid mask in the interior layout `(nz, ny, nx)` (index-free weights of the projection).
@@ -166,7 +165,7 @@ impl Picard {
             k.dz,
         );
         let z = || vec![0.0f32; n];
-        let zr = || vec![[0.0f32; 8]; n];
+        let zr = || RowBuf::zeros(n);
         let f = Fields {
             u: z(),
             v: z(),
@@ -186,7 +185,6 @@ impl Picard {
             cw: zr(),
             ct: zr(),
             ctd: zr(),
-            qeff: z(),
             rr: z(),
             pfull: z(),
             fluid_int: interior(&k, &k.fluid),
@@ -227,7 +225,7 @@ impl Picard {
     /// Pressure projection: `cycles` V-cycles for `div(K grad phi) = div u - mean`,
     /// velocity correction, and `p += phi` when `update_p`.
     ///
-    /// All passes are row-wise in the rayon pool; the halo copy of `phi` writes only the
+    /// All passes are row-wise in the rayon pool; the mean-free `phi` is written only into the
     /// interior of `pfull` (its halo cells are zero from allocation and never written).
     pub fn project(&mut self, cycles: usize, update_p: bool) {
         let k = &self.k;
@@ -235,29 +233,15 @@ impl Picard {
         Self::divergence(k, &self.f.u, &self.f.v, &self.f.w, &mut self.div);
         let fi = &self.fluid_int;
         let mean = (det_sum(self.div.len(), |q| f64::from(self.div[q])) / k.n_fluid) as f32;
-        self.div
-            .par_chunks_mut(nx)
-            .zip(fi.par_chunks(nx))
-            .for_each(|(d, f)| {
-                for (d, &f) in d.iter_mut().zip(f) {
-                    *d -= mean * f;
-                }
-            });
-        self.mg.set_rhs(&self.div);
-        self.mg.zero_phi();
+        // rhs = div - mean * fluid goes straight into the finest-level rows (no pass over `div`),
+        // and phi is zeroed in the same pass.
+        self.mg.set_rhs_shifted_zero(&self.div, mean, fi);
         for _ in 0..cycles {
             self.mg.vcycle();
         }
-        let phi = self.mg.phi_mut();
-        let pm = (det_sum(phi.len(), |q| f64::from(phi[q] * fi[q])) / k.n_fluid) as f32;
-        phi.par_chunks_mut(nx)
-            .zip(fi.par_chunks(nx))
-            .for_each(|(x, f)| {
-                for (x, &f) in x.iter_mut().zip(f) {
-                    *x -= pm * f;
-                }
-            });
         let phi = self.mg.phi();
+        let pm = (det_sum(phi.len(), |q| f64::from(phi[q] * fi[q])) / k.n_fluid) as f32;
+        // phi - pm * fluid is written straight into the interior of `pfull` (no pass over `phi`).
         let (nxh, nyh, ny) = (k.nxh, k.nyh, k.ny);
         self.pfull
             .par_chunks_mut(nxh)
@@ -266,7 +250,10 @@ impl Picard {
                 let (kk, j) = (hr / nyh, hr % nyh);
                 if (1..=k.nz).contains(&kk) && (1..=ny).contains(&j) {
                     let r = (kk - 1) * ny + (j - 1);
-                    row[1..=nx].copy_from_slice(&phi[r * nx..(r + 1) * nx]);
+                    let (x, f) = (&phi[r * nx..(r + 1) * nx], &fi[r * nx..(r + 1) * nx]);
+                    for ((o, &x), &f) in row[1..=nx].iter_mut().zip(x).zip(f) {
+                        *o = x - pm * f;
+                    }
                 }
             });
         Self::apply_phi(k, &self.pfull, &mut self.f, update_p);
@@ -340,6 +327,7 @@ impl Picard {
             },
             x: &f.thd,
             q: &self.k.q,
+            q_sub: None,
             gam: None,
             nu: &f.nu,
             nuh: &f.nuh,
@@ -352,10 +340,6 @@ impl Picard {
     pub fn build_heat_t(&mut self) {
         let k = &self.k;
         let f = &self.f;
-        self.qeff
-            .par_iter_mut()
-            .zip(k.q.par_iter().zip(f.thd.par_iter()))
-            .for_each(|(e, (&q, &d))| *e = q - d * k.inv_tau);
         let h = HeatIn {
             vel: Vel {
                 u: &f.u,
@@ -363,7 +347,8 @@ impl Picard {
                 w: &f.w,
             },
             x: &f.th,
-            q: &self.qeff,
+            q: &k.q,
+            q_sub: Some((&f.thd, k.inv_tau)),
             gam: Some(&k.gam),
             nu: &f.nu,
             nuh: &f.nuh,
