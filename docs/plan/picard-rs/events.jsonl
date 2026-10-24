@@ -165,3 +165,5 @@
 {"t": "2026-10-24T20:25:00", "by": "executor", "task": "PR-13", "ev": "reported", "commits": ["469abdd68"], "note": "done: Эталон необязателен: Case.solution/history_ref — Option, sol_* не читаются при загрузке; Solved.dev: Option<Dev> (None …"}
 {"t": "2026-10-24T20:26:03", "by": "reviewer", "task": "PR-13", "ev": "reviewed", "note": "R6 v3 реализован в скоупе: sol_*/solution/history необязательны, Solved.dev Option, R2 null-поля; путь решения с эталоном не изменён, тест побитно сверяет stat…", "verdict": "accept", "issues": {"minor": 2}, "review": "docs/plan/picard-rs/tasks/PR-13.review.json"}
 {"t": "2026-10-24T20:26:17", "by": "coordinator", "task": "PR-13", "ev": "accepted"}
+{"t": "2026-10-24T20:26:18", "by": "coordinator", "task": "PR-13", "ev": "merged"}
+{"t": "2026-10-24T20:26:27", "by": "coordinator", "task": "PR-9", "ev": "note", "note": "PR-13 влит в feature/picard-rs (case.rs, api.rs, report.rs, main.rs, tests/api.rs, INTEGRATION.md: Solved.dev стал Option). Слияние с твоей веткой чистое; перед отчётом — .dpcli/dpcli task sync PR-9 и перезапуск проверок кода (замеры пачки не переснимать).", "addendum": true}
