@@ -1,0 +1,4 @@
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+dir0 reps 50 threads 8: 2.517 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+dir0 reps 450 threads 8: 2.482 ms/rep

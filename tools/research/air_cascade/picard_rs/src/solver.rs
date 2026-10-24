@@ -3,14 +3,17 @@
 //! `finalize` (`air.py`) with the second-order advection correction off.
 
 use crate::case::{Consts, Criterion};
-use crate::kernels::{HeatIn, MomIn, Vel, apply_bc, build_heat, build_mom, kloc};
-use crate::lines::{Scratch, resid, sweep};
+use crate::kernels::{HeatIn, MomIn, Vel, apply_bc, build_all_mom, build_heat, kloc};
+use crate::lines::{RowBuf, Scratch, resid, sweep};
 use crate::mg::Mg;
-use crate::util::{Row, det_sum, par_max};
+use crate::state::State;
+use crate::util::{det_sum, par_max};
+use anyhow::Result;
 use rayon::prelude::*;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 /// Prognostic fields (halo arrays) and the two eddy viscosities.
+#[derive(Clone)]
 pub struct Fields {
     pub u: Vec<f32>,
     pub v: Vec<f32>,
@@ -38,19 +41,82 @@ pub struct Residuals {
 pub struct Check {
     pub it: usize,
     pub res: Residuals,
+    /// Wall seconds from the start of the iterations to the end of this check (checks included).
+    pub t_s: f64,
+}
+
+/// Why [`Picard::solve`] stopped.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StopReason {
+    /// The criterion (tolerances scaled by `tol_scale`) is met.
+    Converged,
+    /// The iteration limit was reached.
+    MaxIters,
+    /// The time budget was exhausted after an iteration.
+    TimeBudget,
+    /// Non-finite residuals or momentum residual above 50.
+    Diverged,
+}
+
+impl StopReason {
+    /// Name in the R2 `stop` field.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Converged => "converged",
+            Self::MaxIters => "max_iters",
+            Self::TimeBudget => "time_budget",
+            Self::Diverged => "diverged",
+        }
+    }
+
+    /// Legacy R2 `status`: `ok` | `max` | `diverged`.
+    pub fn status(self) -> &'static str {
+        match self {
+            Self::Converged => "ok",
+            Self::MaxIters | Self::TimeBudget => "max",
+            Self::Diverged => "diverged",
+        }
+    }
+}
+
+/// Limits of one [`Picard::solve`] run.
+#[derive(Debug, Clone, Copy)]
+pub struct RunLimits<'a> {
+    /// Stop after exactly this many iterations.
+    pub max_iters: usize,
+    /// Wall seconds since the start of the iterations; checked after every iteration.
+    pub time_budget: Option<Duration>,
+    /// Strictly ascending iteration numbers after which a finalized snapshot is taken.
+    pub snapshot_at: &'a [usize],
+}
+
+/// A finalized copy of the fields taken after `it` iterations.
+pub struct RawSnapshot {
+    pub it: usize,
+    pub f: Fields,
+    /// The residual check of iteration `it`, if there was one.
+    pub res: Option<Check>,
 }
 
 /// Outcome of [`Picard::solve`].
 pub struct SolveOut {
-    /// `"ok"`, `"max"` or `"diverged"`.
+    /// `"ok"`, `"max"` or `"diverged"` (R2 `status`).
     pub status: &'static str,
-    /// Iteration number of the last check.
+    /// Why the run stopped.
+    pub stop: StopReason,
+    /// Iterations done.
     pub iters: usize,
+    /// Residual checks; the last one is at `iters` (an extra check is made if needed).
     pub history: Vec<Check>,
-    /// Seconds spent in iterations (checks excluded) and in checks.
+    /// Seconds spent in iterations (checks and snapshots excluded) and in checks.
     pub iter_s: f64,
     pub check_s: f64,
     pub n_checks: usize,
+    /// Total seconds per phase of the iteration (checks excluded), order
+    /// `[mom, heat, proj, kupd, other]`; sums to `iter_s`.
+    pub phase_s: [f64; 5],
+    /// Snapshots requested by `snapshot_at` and reached.
+    pub snapshots: Vec<RawSnapshot>,
 }
 
 /// The iteration: constants, fields, multigrid and work buffers.
@@ -58,16 +124,31 @@ pub struct Picard {
     pub k: Consts,
     pub f: Fields,
     pub mg: Mg,
-    pub cu: Vec<Row>,
-    pub cv: Vec<Row>,
-    pub cw: Vec<Row>,
-    pub ct: Vec<Row>,
-    pub ctd: Vec<Row>,
-    pub qeff: Vec<f32>,
+    pub cu: RowBuf,
+    pub cv: RowBuf,
+    pub cw: RowBuf,
+    pub ct: RowBuf,
+    pub ctd: RowBuf,
     pub rr: Vec<f32>,
     pub pfull: Vec<f32>,
+    /// Fluid mask in the interior layout `(nz, ny, nx)` (index-free weights of the projection).
+    pub fluid_int: Vec<f32>,
     pub div: Vec<f32>,
     pub sc: Scratch,
+    /// Accumulated seconds of `outer_step` phases `[mom, heat, proj, kupd]` (main thread timers).
+    pub phase: [f64; 4],
+}
+
+/// Interior (no halo) copy of a halo array, layout `(nz, ny, nx)`.
+fn interior(k: &Consts, a: &[f32]) -> Vec<f32> {
+    let mut out = Vec::with_capacity(k.nx * k.ny * k.nz);
+    for kk in 0..k.nz {
+        for j in 0..k.ny {
+            let g = ((kk + 1) * k.nyh + j + 1) * k.nxh + 1;
+            out.extend_from_slice(&a[g..g + k.nx]);
+        }
+    }
+    out
 }
 
 impl Picard {
@@ -84,7 +165,7 @@ impl Picard {
             k.dz,
         );
         let z = || vec![0.0f32; n];
-        let zr = || vec![[0.0f32; 8]; n];
+        let zr = || RowBuf::zeros(n);
         let f = Fields {
             u: z(),
             v: z(),
@@ -104,10 +185,11 @@ impl Picard {
             cw: zr(),
             ct: zr(),
             ctd: zr(),
-            qeff: z(),
             rr: z(),
             pfull: z(),
+            fluid_int: interior(&k, &k.fluid),
             sc: Scratch::new(n),
+            phase: [0.0; 4],
             k,
         }
     }
@@ -117,98 +199,104 @@ impl Picard {
     }
 
     /// Divergence of the face velocities in air cells, interior layout `(nz, ny, nx)`.
+    /// Row-wise: one task per `x` row, no per-element index arithmetic.
     pub fn divergence(k: &Consts, u: &[f32], v: &[f32], w: &[f32], out: &mut [f32]) {
         let (nxh, nyh) = (k.nxh, k.nyh);
         let (nx, ny) = (k.nx, k.ny);
-        out.par_iter_mut()
-            .enumerate()
-            .with_min_len(256)
-            .for_each(|(q, o)| {
-                let i = q % nx;
-                let j = (q / nx) % ny;
-                let kk = q / (nx * ny);
-                let g = ((kk + 1) * nyh + j + 1) * nxh + i + 1;
+        let (dx, dz) = (f64::from(k.dx), f64::from(k.dz));
+        out.par_chunks_mut(nx).enumerate().for_each(|(r, o)| {
+            let (j, kk) = (r % ny, r / ny);
+            let g0 = ((kk + 1) * nyh + j + 1) * nxh + 1;
+            let (u0, u1) = (&u[g0..g0 + nx], &u[g0 + 1..g0 + 1 + nx]);
+            let (v0, v1) = (&v[g0..g0 + nx], &v[g0 + nxh..g0 + nxh + nx]);
+            let (w0, w1) = (&w[g0..g0 + nx], &w[g0 + nxh * nyh..g0 + nxh * nyh + nx]);
+            let fl = &k.fluid[g0..g0 + nx];
+            for i in 0..nx {
                 // f64 differences: with f32 the cancellation error of a nearly divergence-free
                 // field (|u| / dx * 6e-8) is comparable to the divergence itself.
-                let du = (f64::from(u[g + 1]) - f64::from(u[g])) / f64::from(k.dx);
-                let dv = (f64::from(v[g + nxh]) - f64::from(v[g])) / f64::from(k.dx);
-                let dw = (f64::from(w[g + nxh * nyh]) - f64::from(w[g])) / f64::from(k.dz);
-                *o = ((du + dv + dw) * f64::from(k.fluid[g])) as f32;
-            });
-    }
-
-    /// Interior-to-halo index map helper.
-    fn halo_index(k: &Consts, q: usize) -> usize {
-        let i = q % k.nx;
-        let j = (q / k.nx) % k.ny;
-        let kk = q / (k.nx * k.ny);
-        ((kk + 1) * k.nyh + j + 1) * k.nxh + i + 1
+                let du = (f64::from(u1[i]) - f64::from(u0[i])) / dx;
+                let dv = (f64::from(v1[i]) - f64::from(v0[i])) / dx;
+                let dw = (f64::from(w1[i]) - f64::from(w0[i])) / dz;
+                o[i] = ((du + dv + dw) * f64::from(fl[i])) as f32;
+            }
+        });
     }
 
     /// Pressure projection: `cycles` V-cycles for `div(K grad phi) = div u - mean`,
     /// velocity correction, and `p += phi` when `update_p`.
+    ///
+    /// All passes are row-wise in the rayon pool; the mean-free `phi` is written only into the
+    /// interior of `pfull` (its halo cells are zero from allocation and never written).
     pub fn project(&mut self, cycles: usize, update_p: bool) {
         let k = &self.k;
+        let nx = k.nx;
         Self::divergence(k, &self.f.u, &self.f.v, &self.f.w, &mut self.div);
+        let fi = &self.fluid_int;
         let mean = (det_sum(self.div.len(), |q| f64::from(self.div[q])) / k.n_fluid) as f32;
-        {
-            let div = &mut self.div;
-            div.par_iter_mut().enumerate().for_each(|(q, d)| {
-                *d -= mean * k.fluid[Self::halo_index(k, q)];
-            });
-        }
-        self.mg.set_rhs(&self.div);
-        self.mg.phi_mut().fill(0.0);
+        // rhs = div - mean * fluid goes straight into the finest-level rows (no pass over `div`),
+        // and phi is zeroed in the same pass.
+        self.mg.set_rhs_shifted_zero(&self.div, mean, fi);
         for _ in 0..cycles {
             self.mg.vcycle();
         }
-        let phi = self.mg.phi_mut();
-        let pm = (det_sum(phi.len(), |q| {
-            f64::from(phi[q] * k.fluid[Self::halo_index(k, q)])
-        }) / k.n_fluid) as f32;
-        phi.par_iter_mut().enumerate().for_each(|(q, x)| {
-            *x -= pm * k.fluid[Self::halo_index(k, q)];
-        });
         let phi = self.mg.phi();
-        self.pfull.fill(0.0);
-        for (q, &x) in phi.iter().enumerate() {
-            self.pfull[Self::halo_index(k, q)] = x;
-        }
+        let pm = (det_sum(phi.len(), |q| f64::from(phi[q] * fi[q])) / k.n_fluid) as f32;
+        // phi - pm * fluid is written straight into the interior of `pfull` (no pass over `phi`).
+        let (nxh, nyh, ny) = (k.nxh, k.nyh, k.ny);
+        self.pfull
+            .par_chunks_mut(nxh)
+            .enumerate()
+            .for_each(|(hr, row)| {
+                let (kk, j) = (hr / nyh, hr % nyh);
+                if (1..=k.nz).contains(&kk) && (1..=ny).contains(&j) {
+                    let r = (kk - 1) * ny + (j - 1);
+                    let (x, f) = (&phi[r * nx..(r + 1) * nx], &fi[r * nx..(r + 1) * nx]);
+                    for ((o, &x), &f) in row[1..=nx].iter_mut().zip(x).zip(f) {
+                        *o = x - pm * f;
+                    }
+                }
+            });
         Self::apply_phi(k, &self.pfull, &mut self.f, update_p);
     }
 
-    /// Applies a halo-layout correction potential `pf` to the velocities (and to `p`).
+    /// Applies a halo-layout correction potential `pf` to the velocities (and to `p`):
+    /// one pass, one task per halo `x` row.
     pub fn apply_phi(k: &Consts, pf: &[f32], f: &mut Fields, update_p: bool) {
         let (nx, ny) = (k.nxh, k.nyh);
-        f.u.par_iter_mut()
+        let (dx, dz) = (k.dx, k.dz);
+        let Fields { u, v, w, p, .. } = f;
+        u.par_chunks_mut(nx)
+            .zip(v.par_chunks_mut(nx))
+            .zip(w.par_chunks_mut(nx))
+            .zip(p.par_chunks_mut(nx))
             .enumerate()
-            .with_min_len(256)
-            .for_each(|(i, x)| {
-                if i % nx != 0 {
-                    *x -= k.kx[i] * (pf[i] - pf[i - 1]) / k.dx;
+            .for_each(|(r, (((u, v), w), p))| {
+                let o = r * nx;
+                let pc = &pf[o..o + nx];
+                let kx = &k.kx[o..o + nx];
+                for i in 1..nx {
+                    u[i] -= kx[i] * (pc[i] - pc[i - 1]) / dx;
+                }
+                if r % ny != 0 {
+                    let pm = &pf[o - nx..o];
+                    let ky = &k.ky[o..o + nx];
+                    for i in 0..nx {
+                        v[i] -= ky[i] * (pc[i] - pm[i]) / dx;
+                    }
+                }
+                if r >= ny {
+                    let pm = &pf[o - nx * ny..o - nx * ny + nx];
+                    let kz = &k.kz[o..o + nx];
+                    for i in 0..nx {
+                        w[i] -= kz[i] * (pc[i] - pm[i]) / dz;
+                    }
+                }
+                if update_p {
+                    for (p, &d) in p.iter_mut().zip(pc) {
+                        *p += d;
+                    }
                 }
             });
-        f.v.par_iter_mut()
-            .enumerate()
-            .with_min_len(256)
-            .for_each(|(i, x)| {
-                if (i / nx) % ny != 0 {
-                    *x -= k.ky[i] * (pf[i] - pf[i - nx]) / k.dx;
-                }
-            });
-        f.w.par_iter_mut()
-            .enumerate()
-            .with_min_len(256)
-            .for_each(|(i, x)| {
-                if i >= nx * ny {
-                    *x -= k.kz[i] * (pf[i] - pf[i - nx * ny]) / k.dz;
-                }
-            });
-        if update_p {
-            f.p.par_iter_mut()
-                .zip(pf.par_iter())
-                .for_each(|(p, &d)| *p += d);
-        }
     }
 
     /// Momentum stencils of the three components from the current state.
@@ -225,9 +313,7 @@ impl Picard {
             nu: &f.nu,
             nuh: &f.nuh,
         };
-        build_mom(&self.k, 0, &m, &mut self.cu);
-        build_mom(&self.k, 1, &m, &mut self.cv);
-        build_mom(&self.k, 2, &m, &mut self.cw);
+        build_all_mom(&self.k, &m, &mut self.cu, &mut self.cv, &mut self.cw);
     }
 
     /// Heat template for theta'_d from the current state.
@@ -241,6 +327,7 @@ impl Picard {
             },
             x: &f.thd,
             q: &self.k.q,
+            q_sub: None,
             gam: None,
             nu: &f.nu,
             nuh: &f.nuh,
@@ -253,10 +340,6 @@ impl Picard {
     pub fn build_heat_t(&mut self) {
         let k = &self.k;
         let f = &self.f;
-        self.qeff
-            .par_iter_mut()
-            .zip(k.q.par_iter().zip(f.thd.par_iter()))
-            .for_each(|(e, (&q, &d))| *e = q - d * k.inv_tau);
         let h = HeatIn {
             vel: Vel {
                 u: &f.u,
@@ -264,7 +347,8 @@ impl Picard {
                 w: &f.w,
             },
             x: &f.th,
-            q: &self.qeff,
+            q: &k.q,
+            q_sub: Some((&f.thd, k.inv_tau)),
             gam: Some(&k.gam),
             nu: &f.nu,
             nuh: &f.nuh,
@@ -315,11 +399,22 @@ impl Picard {
     /// One Picard iteration (reference `outer_step`).
     pub fn outer_step(&mut self) {
         apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
+        let t = Instant::now();
         self.update_k();
+        let t_k = t.elapsed().as_secs_f64();
+        let t = Instant::now();
         self.build_all_mom();
         self.mom_step();
+        let t_m = t.elapsed().as_secs_f64();
+        let t = Instant::now();
         self.project(self.k.vcycles, true);
+        let t_p = t.elapsed().as_secs_f64();
+        let t = Instant::now();
         self.heat_step();
+        let t_h = t.elapsed().as_secs_f64();
+        for (a, d) in self.phase.iter_mut().zip([t_m, t_h, t_p, t_k]) {
+            *a += d;
+        }
     }
 
     /// Residual of the steady equations in the current state (reference `residuals`).
@@ -405,60 +500,144 @@ impl Picard {
         self.f.p.fill(0.0);
     }
 
+    /// Warm start as in the game (`air_picard_job.gd:_program("warm")`): `u, v, w, th, thd, p`
+    /// from the snapshot, `nu`/`nuh` and the whole input from this case (fresh, as after
+    /// `Picard::new`), boundary conditions from the field (not from the background) and
+    /// 4 projection V-cycles (instead of 30) without touching `p`.
+    pub fn init_warm(&mut self, st: &State) -> Result<()> {
+        st.check_dims(&self.k)?;
+        let f = &mut self.f;
+        f.u.copy_from_slice(&st.u);
+        f.v.copy_from_slice(&st.v);
+        f.w.copy_from_slice(&st.w);
+        f.th.copy_from_slice(&st.th);
+        f.thd.copy_from_slice(&st.thd);
+        f.p.copy_from_slice(&st.p);
+        apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
+        self.project(4, false);
+        Ok(())
+    }
+
+    /// Fields as `finalize` would deliver them now, taken on a copy: the running state
+    /// (velocities) is restored, so the iteration continues unchanged.
+    pub fn finalized_copy(&mut self, cycles: usize) -> Fields {
+        let (u, v, w) = (self.f.u.clone(), self.f.v.clone(), self.f.w.clone());
+        self.finalize(cycles);
+        let out = self.f.clone();
+        self.f.u = u;
+        self.f.v = v;
+        self.f.w = w;
+        out
+    }
+
     /// Final projection to near-exact divergence without changing `p` (`cycles` V-cycles).
     pub fn finalize(&mut self, cycles: usize) {
         apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
         self.project(cycles, false);
     }
 
-    /// Runs the iteration from the cold start until the criterion, `max_iters` or divergence
-    /// (reference `solve`; the first check happens after `check_every` iterations).
-    pub fn solve(&mut self, crit: &Criterion, max_iters: usize) -> SolveOut {
+    /// Residual check now; appends it to `hist` (time `t_s` since `t_start`) and adds its cost to `check_s`.
+    fn check_into(
+        &mut self,
+        it: usize,
+        t_start: Instant,
+        hist: &mut Vec<Check>,
+        check_s: &mut f64,
+    ) {
+        let t = Instant::now();
+        let res = self.residuals();
+        *check_s += t.elapsed().as_secs_f64();
+        hist.push(Check {
+            it,
+            res,
+            t_s: t_start.elapsed().as_secs_f64(),
+        });
+    }
+
+    /// Runs the iteration from the current start state (cold or warm) until the criterion,
+    /// `max_iters`, the time budget or divergence (reference `solve`; the first check happens
+    /// `check_every` iterations after `pre_steps`). The loop is per iteration, so `max_iters`,
+    /// the time budget and snapshots act exactly after the requested iteration; the order of
+    /// operations is that of the reference. A check is added at the last iteration if it was
+    /// not one, so `history.last()` always gives the residuals of the delivered field.
+    pub fn solve(&mut self, crit: &Criterion, run: &RunLimits) -> SolveOut {
         if self.k.no_thd {
             self.f.thd.fill(0.0);
         }
-        let mut hist = Vec::new();
-        let mut status = "max";
+        let mut hist: Vec<Check> = Vec::new();
+        let mut snaps: Vec<RawSnapshot> = Vec::new();
+        let mut stop = StopReason::MaxIters;
         let (mut iter_s, mut check_s) = (0.0, 0.0);
-        let mut it = crit.pre_steps;
-        let tp = Instant::now();
-        for _ in 0..crit.pre_steps {
+        let ph0 = self.phase;
+        let t_start = Instant::now();
+        let mut want = run.snapshot_at.iter().copied().peekable();
+        let mut it = 0usize;
+        if want.next_if_eq(&0).is_some() {
+            snaps.push(RawSnapshot {
+                it,
+                f: self.finalized_copy(10),
+                res: None,
+            });
+        }
+        while it < run.max_iters {
+            let t = Instant::now();
             self.outer_step();
-        }
-        iter_s += tp.elapsed().as_secs_f64();
-        while it < max_iters {
-            let t0 = Instant::now();
-            for _ in 0..crit.check_every {
-                self.outer_step();
+            iter_s += t.elapsed().as_secs_f64();
+            it += 1;
+            let mut verdict = None;
+            if it > crit.pre_steps && (it - crit.pre_steps).is_multiple_of(crit.check_every) {
+                self.check_into(it, t_start, &mut hist, &mut check_s);
+                let r = hist[hist.len() - 1].res;
+                let finite = [r.mom_max, r.mom_rms, r.th_rms, r.div_rms]
+                    .iter()
+                    .all(|x| x.is_finite());
+                if !finite || r.mom_max > 50.0 {
+                    verdict = Some(StopReason::Diverged);
+                } else if r.mom_rms < crit.tol_mom_rms
+                    && r.th_rms < crit.tol_th_rms
+                    && r.div_rms < crit.tol_div_rms
+                {
+                    verdict = Some(StopReason::Converged);
+                }
             }
-            it += crit.check_every;
-            iter_s += t0.elapsed().as_secs_f64();
-            let t1 = Instant::now();
-            let r = self.residuals();
-            check_s += t1.elapsed().as_secs_f64();
-            hist.push(Check { it, res: r });
-            let finite = [r.mom_max, r.mom_rms, r.th_rms, r.div_rms]
-                .iter()
-                .all(|x| x.is_finite());
-            if !finite || r.mom_max > 50.0 {
-                status = "diverged";
+            if want.next_if_eq(&it).is_some() {
+                let res = hist.last().filter(|c| c.it == it).copied();
+                snaps.push(RawSnapshot {
+                    it,
+                    f: self.finalized_copy(10),
+                    res,
+                });
+            }
+            if let Some(v) = verdict {
+                stop = v;
                 break;
             }
-            if r.mom_rms < crit.tol_mom_rms
-                && r.th_rms < crit.tol_th_rms
-                && r.div_rms < crit.tol_div_rms
-            {
-                status = "ok";
+            if it >= run.max_iters {
+                break;
+            }
+            if run.time_budget.is_some_and(|b| t_start.elapsed() >= b) {
+                stop = StopReason::TimeBudget;
                 break;
             }
         }
+        if hist.last().is_none_or(|c| c.it != it) {
+            self.check_into(it, t_start, &mut hist, &mut check_s);
+        }
+        let mut phase_s = [0.0; 5];
+        for i in 0..4 {
+            phase_s[i] = self.phase[i] - ph0[i];
+        }
+        phase_s[4] = (iter_s - phase_s[..4].iter().sum::<f64>()).max(0.0);
         SolveOut {
-            status,
+            status: stop.status(),
+            stop,
             iters: it,
             n_checks: hist.len(),
             history: hist,
             iter_s,
             check_s,
+            phase_s,
+            snapshots: snaps,
         }
     }
 }

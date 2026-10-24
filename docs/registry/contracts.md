@@ -52,6 +52,7 @@ generated: true
 - pendulum-default: PMD-К1 v1 — [docs/contracts/pendulum-default.md](../contracts/pendulum-default.md)
 - pendulum: PD-К1 v5, PD-К2 v9, PD-К3 v2, PD-К4 v2, PD-К5 v2, PD-К6 v2 — [docs/contracts/pendulum.md](../contracts/pendulum.md)
 - perf: PF-К2 v2, PF-К4 v2 — [docs/contracts/perf.md](../contracts/perf.md)
+- picard-rs: R1 v1, R2 v3, R3 v4, R4 v2, R5 v1, R6 v3, R7 v1 — [docs/contracts/picard-rs.md](../contracts/picard-rs.md)
 - pilot-hud: PH-К1 v2, PH-К2 v1, PH-К3 v2, PH-К4 v2, PH-К5 v1, PH-К6 v1, PH-К7 v1 — [docs/contracts/pilot-hud.md](../contracts/pilot-hud.md)
 - pilot-view: PV1 v3, PV2 v1, PV3 v2 — [docs/contracts/pilot-view.md](../contracts/pilot-view.md)
 - popular-places: PP-К1 v3, PP-К2 v1 — [docs/contracts/popular-places.md](../contracts/popular-places.md)

@@ -1,0 +1,5 @@
+# started on Sat Oct 24 19:09:17 2026
+
+57874534068,,cycles,16035443149,87,00,,
+27415006631,,L1-dcache-loads,16021789179,86,00,,
+1158334307,,L1-dcache-load-misses,16029721986,87,00,4,of all L1-dcache accesses

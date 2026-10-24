@@ -1,8 +1,8 @@
-//! Result file R2 (`picard-rs-result`, version 1) and the deviation against the reference
+//! Result file R2 (`picard-rs-result`, version 3: phases, `t_s`, stop reason, snapshots) and the deviation against the reference
 //! solution `sol_*` of the case.
 
 use crate::case::Case;
-use crate::solver::{Picard, SolveOut};
+use crate::solver::{Check, Picard, SolveOut};
 use anyhow::Result;
 use serde_json::{Value, json};
 use std::path::Path;
@@ -100,13 +100,17 @@ fn crop_dev(c: &Case, s: &Picard) -> Result<Option<[(f64, f64); 4]>> {
 }
 
 /// Compares the solved fields with `sol_*` of the case.
-pub fn deviation(c: &Case, s: &Picard) -> Result<Dev> {
+/// `None` when the case has no reference.
+pub fn deviation(c: &Case, s: &Picard) -> Result<Option<Dev>> {
+    let Some(sol) = c.solution.as_ref().filter(|_| c.has_reference()) else {
+        return Ok(None);
+    };
     let (su, sv, sw) = (c.arr("sol_u")?, c.arr("sol_v")?, c.arr("sol_w")?);
-    let u0 = c.case_params.u_aloft.max(c.solution.max_speed);
+    let u0 = c.case_params.u_aloft.max(sol.max_speed);
     let du = max_abs_diff(&s.f.u, su)
         .max(max_abs_diff(&s.f.v, sv))
         .max(max_abs_diff(&s.f.w, sw));
-    Ok(Dev {
+    Ok(Some(Dev {
         u0,
         u_rel: du / u0,
         th_abs: max_abs_diff(&s.f.th, c.arr("sol_th")?)
@@ -115,11 +119,14 @@ pub fn deviation(c: &Case, s: &Picard) -> Result<Dev> {
         div_rms: div_rms_f64(s, &s.f.u, &s.f.v, &s.f.w),
         div_rms_ref: div_rms_f64(s, su, sv, sw),
         crop: crop_dev(c, s)?,
-    })
+    }))
 }
 
 /// Text table of the deviation per field (max with its cell, rms, 99.9th percentile) over air cells.
 pub fn diag(c: &Case, s: &Picard) -> Result<String> {
+    if !c.has_reference() {
+        anyhow::bail!("case {} has no reference: no deviation table", c.name);
+    }
     let k = &s.k;
     let mut out = String::from("field | max | at (i,j,k) | rms | p99.9\n");
     let fields: [(&str, &[f32], &[f32]); 5] = [
@@ -207,9 +214,35 @@ pub struct Timing {
     pub pool_threads: usize,
     /// CPU seconds (user+system) the process used until the result was built.
     pub cpu_s: f64,
+    /// Total seconds per iteration phase `[mom, heat, proj, kupd, other]` (R2 v2 `time.phase_ms`
+    /// is the mean per iteration); `None` for a timing-only run.
+    pub phase_s: Option<[f64; 5]>,
 }
 
-/// Builds the R2 document.
+/// What a solve was asked and what it produced beyond R2 v2 (R2 v3 fields).
+pub struct RunInfo {
+    /// `converged | max_iters | time_budget | diverged`.
+    pub stop: &'static str,
+    pub tol_scale: f64,
+    pub time_budget_s: Option<f64>,
+    /// Path of the R4 snapshot the run started from.
+    pub init: Option<String>,
+    /// Paths of written R4 snapshots.
+    pub snapshots: Vec<String>,
+    /// Residuals of the delivered field (a history record).
+    pub residuals: Check,
+}
+
+/// One history record as JSON `{it, t_s, mom_rms, mom_max, th_rms, thd_rms, div_rms}`.
+pub fn check_json(h: &Check) -> Value {
+    json!({
+        "it": h.it, "t_s": num(h.t_s), "mom_rms": num(h.res.mom_rms), "mom_max": num(h.res.mom_max),
+        "th_rms": num(h.res.th_rms), "thd_rms": num(h.res.thd_rms), "div_rms": num(h.res.div_rms),
+    })
+}
+
+/// Builds the R2 document: version 3 with `run`, else 2 with phases, else 1.
+#[allow(clippy::too_many_arguments)]
 pub fn result_json(
     c: &Case,
     threads: usize,
@@ -218,6 +251,7 @@ pub fn result_json(
     history: Value,
     dev: Option<&Dev>,
     t: &Timing,
+    run: Option<&RunInfo>,
 ) -> Value {
     let n_cells = c.n_cells();
     let ms_it = if t.iters_run > 0 {
@@ -239,9 +273,27 @@ pub fn result_json(
             "u0": null, "u_rel": null, "th_abs": null, "p_rel": null, "div_rms": null, "div_rms_ref": null,
         }),
     };
-    json!({
+    let mut time = json!({
+            "total_s": num(t.total_s), "setup_s": num(t.setup_s), "ms_per_iter": num(ms_it),
+            "check_ms": num(ck), "ns_per_cell_iter": num(ms_it * 1e6 / n_cells as f64),
+            "n_cells": n_cells,
+            "pool_threads": t.pool_threads, "process_cpu_s": num(t.cpu_s),
+    });
+    let version = match (run, &t.phase_s) {
+        (Some(_), _) => 3,
+        (None, Some(_)) => 2,
+        (None, None) => 1,
+    };
+    if let Some(p) = &t.phase_s {
+        let n = t.iters_run.max(1) as f64 * 1e-3;
+        time["phase_ms"] = json!({
+            "mom": num(p[0] / n), "heat": num(p[1] / n), "proj": num(p[2] / n),
+            "kupd": num(p[3] / n), "other": num(p[4] / n),
+        });
+    }
+    let mut doc = json!({
         "format": "picard-rs-result",
-        "version": 1,
+        "version": version,
         "case": c.name,
         "input": c.path,
         "profile": profile(),
@@ -249,7 +301,7 @@ pub fn result_json(
         "dtype": "f32",
         "status": status,
         "iters": iters,
-        "iters_ref": c.solution.iters,
+        "iters_ref": c.solution.as_ref().map(|s| s.iters),
         "history": history,
         "history_ref": c.history_ref,
         "dev": dev_v,
@@ -257,29 +309,23 @@ pub fn result_json(
             "u_max": num(c[0].0), "u_rms": num(c[0].1), "v_max": num(c[1].0), "v_rms": num(c[1].1),
             "w_max": num(c[2].0), "w_rms": num(c[2].1), "th_max": num(c[3].0), "th_rms": num(c[3].1),
         })),
-        "time": {
-            "total_s": num(t.total_s), "setup_s": num(t.setup_s), "ms_per_iter": num(ms_it),
-            "check_ms": num(ck), "ns_per_cell_iter": num(ms_it * 1e6 / n_cells as f64),
-            "n_cells": n_cells,
-            "pool_threads": t.pool_threads, "process_cpu_s": num(t.cpu_s),
-        },
+        "time": time,
         "host": {"cpu": cpu_name(), "rustc": env!("PICARD_RUSTC_VERSION"), "git": git_hash()},
-    })
+    });
+    if let Some(r) = run {
+        doc["stop"] = json!(r.stop);
+        doc["tol_scale"] = num(r.tol_scale);
+        doc["time_budget_s"] = r.time_budget_s.map_or(Value::Null, num);
+        doc["init"] = json!(r.init);
+        doc["snapshots"] = json!(r.snapshots);
+        doc["residuals"] = check_json(&r.residuals);
+    }
+    doc
 }
 
-/// History of a solve as JSON records `{it, mom_rms, mom_max, th_rms, thd_rms, div_rms}`.
+/// History of a solve as JSON records (see [`check_json`]).
 pub fn history_json(o: &SolveOut) -> Value {
-    Value::Array(
-        o.history
-            .iter()
-            .map(|h| {
-                json!({
-                    "it": h.it, "mom_rms": num(h.res.mom_rms), "mom_max": num(h.res.mom_max),
-                    "th_rms": num(h.res.th_rms), "thd_rms": num(h.res.thd_rms), "div_rms": num(h.res.div_rms),
-                })
-            })
-            .collect(),
-    )
+    Value::Array(o.history.iter().map(check_json).collect())
 }
 
 /// Writes JSON to a temporary file and renames it.

@@ -52,6 +52,9 @@ pub struct SolutionRef {
     pub max_speed: f64,
 }
 
+/// Reference arrays; all optional (a case without them is solved without a deviation).
+pub const REF_ARRAYS: [&str; 6] = ["sol_u", "sol_v", "sol_w", "sol_th", "sol_thd", "sol_p"];
+
 /// Window of cells near the launch site (interior indices), as in the case file.
 #[derive(Debug, Clone, Copy, Deserialize)]
 pub struct Crop {
@@ -73,8 +76,10 @@ struct Meta {
     params: Params,
     case_params: CaseParams,
     criterion: Criterion,
-    solution: SolutionRef,
-    history: serde_json::Value,
+    #[serde(default)]
+    solution: Option<SolutionRef>,
+    #[serde(default)]
+    history: Option<serde_json::Value>,
     #[serde(default)]
     crop: Option<Crop>,
     arrays: HashMap<String, [usize; 2]>,
@@ -98,8 +103,10 @@ pub struct Case {
     pub params: Params,
     pub case_params: CaseParams,
     pub criterion: Criterion,
-    pub solution: SolutionRef,
-    pub history_ref: serde_json::Value,
+    /// Reference summary; `None` for a case without a reference (the game's input).
+    pub solution: Option<SolutionRef>,
+    /// Reference residual history; `None` without a reference.
+    pub history_ref: Option<serde_json::Value>,
     /// Start-site window (Ongudai cases), if present.
     pub crop: Option<Crop>,
     /// Pseudo-time step of momentum, s.
@@ -153,9 +160,12 @@ impl Case {
             criterion: Criterion {
                 pre_steps: m
                     .history
-                    .pointer("/0/it")
+                    .as_ref()
+                    .and_then(|h| h.pointer("/0/it"))
                     .and_then(serde_json::Value::as_u64)
-                    .map_or(0, |v| v as usize % m.criterion.check_every),
+                    .map_or(m.criterion.pre_steps, |v| {
+                        v as usize % m.criterion.check_every
+                    }),
                 ..m.criterion
             },
             solution: m.solution,
@@ -179,6 +189,11 @@ impl Case {
     /// Number of cells with halo.
     pub fn n3(&self) -> usize {
         self.nxh * self.nyh * self.nzh
+    }
+
+    /// True when the case carries a reference: `solution` and all of `sol_u … sol_p`.
+    pub fn has_reference(&self) -> bool {
+        self.solution.is_some() && REF_ARRAYS.iter().all(|a| self.arrays.contains_key(*a))
     }
 
     /// Number of cells without halo.

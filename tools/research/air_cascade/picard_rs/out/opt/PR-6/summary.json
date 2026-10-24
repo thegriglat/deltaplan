@@ -1,0 +1,83 @@
+{
+ "ms_per_iter": {
+  "before": 104.131,
+  "after": 69.334
+ },
+ "phase_ms": {
+  "before": {
+   "heat": 38.916,
+   "kupd": 3.167,
+   "mom": 33.977,
+   "other": 0.063,
+   "proj": 28.008
+  },
+  "after": {
+   "heat": 22.545,
+   "kupd": 3.08,
+   "mom": 23.525,
+   "other": 0.053,
+   "proj": 20.131
+  }
+ },
+ "cases_ms_per_iter": {
+  "before": {
+   "u3_heat": 104.131,
+   "u3_mech": 88.847,
+   "u0_heat": 103.17,
+   "u6_heat": 101.408
+  },
+  "after": {
+   "u3_heat": 69.334,
+   "u3_mech": 58.192,
+   "u0_heat": 68.958,
+   "u6_heat": 69.198
+  }
+ },
+ "l1_misses": {
+  "before": 20317808160.0,
+  "after": 9348408792.0
+ },
+ "l1_ratio": 0.4601091179906091,
+ "ipc": {
+  "before": 2.037448755707324,
+  "after": 1.7663578603061283
+ },
+ "perf": {
+  "before": {
+   "cycles": 488183758010.0,
+   "instructions": 994649390314.0,
+   "L1-dcache-loads": 249329803289.0,
+   "L1-dcache-load-misses": 20317808160.0,
+   "LLC-loads": 6359623592.0,
+   "LLC-load-misses": 741290692.0
+  },
+  "after": {
+   "cycles": 321827865074.0,
+   "instructions": 568463179139.0,
+   "L1-dcache-loads": 198203423757.0,
+   "L1-dcache-load-misses": 9348408792.0,
+   "LLC-loads": 3262025430.0,
+   "LLC-load-misses": 381966390.0
+  }
+ },
+ "l1_per_cellsweep": {
+  "x": {
+   "before": 1.092,
+   "after": 0.859,
+   "cycles_before": 63.2,
+   "cycles_after": 46.3
+  },
+  "y": {
+   "before": 7.805,
+   "after": 2.511,
+   "cycles_before": 149.4,
+   "cycles_after": 67.2
+  },
+  "z": {
+   "before": 2.955,
+   "after": 2.359,
+   "cycles_before": 106.5,
+   "cycles_after": 83.9
+  }
+ }
+}
