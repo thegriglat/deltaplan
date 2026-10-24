@@ -5,6 +5,7 @@
 //! arithmetic like the GPU in the game. Every function is pure: inputs in, explicit
 //! `&mut` output buffers out; threads come from an explicit `rayon::ThreadPool`.
 
+pub mod api;
 pub mod blocks;
 pub mod case;
 pub mod kernels;
