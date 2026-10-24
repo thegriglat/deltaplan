@@ -4,9 +4,9 @@ status: "active"
 module: "picard-rs"
 area: "air"
 updated: "2026-10-24"
-summary: "Стыки picard-rs: случаи R1, результат R2 v2 (фазы, t_s), крейт R3 v4 (без asm/интринсиков), снимок поля R4, случаи T+15 R5, API потоков R6."
+summary: "Стыки picard-rs: случаи R1, результат R2 v2 (фазы, t_s), крейт R3 v4 (без asm/интринсиков), снимок поля R4, случаи T+15 R5, API потоков R6, невязка → отклонение R7."
 related: ["docs/plan/picard-rs.md", "docs/contracts/air-cascade.md", "tools/research/air_cascade/picard_rs/README.md"]
-contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 3}, {"id": "R3", "version": 4}, {"id": "R4", "version": 2}, {"id": "R5", "version": 1}, {"id": "R6", "version": 2}]
+contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 3}, {"id": "R3", "version": 4}, {"id": "R4", "version": 2}, {"id": "R5", "version": 1}, {"id": "R6", "version": 2}, {"id": "R7", "version": 1}]
 ---
 
 # Контракты модуля picard-rs
@@ -108,3 +108,25 @@ R2 v2 + `version: 3`, `stop` (`"converged" | "max_iters" | "time_budget" | "dive
 `time_budget_s` (`null` — нет), `init` (`null` | путь R4), `snapshots` (список путей R4, может быть пуст),
 `residuals` (невязки отданного поля, ключи как `history`). `status` — как раньше. `check_contract.py
 --results` принимает v1, v2, v3.
+
+## R7 v1 — невязка → отклонение поля (сводка PR-n)
+Владелец — PR-n (задача 4, решение пользователя 2026-10-24); потребители — PR-w, PR-o, шлюз 2.
+Файл `P/out/residual/<ID>/summary.json` (JSON, числа — float, м/с; `null` нельзя, кроме `tol_scale` у точек по N):
+- `version: 1`, `host.git`, `threads: 8`.
+- `regions` = {имя: определение одной-двумя фразами — какие клетки, по какому полю, откуда порог}; обязательны
+  `domain` (вся жидкая область), `launch` (окно `crop` случая R1), `agl_10_50`, `agl_50_100`, `agl_100_200`,
+  `agl_200_400` (высота центра клетки над рельефом, м), `thermals`, `slopes`.
+- `series` — список: {`case`, `start`: `cold`|`warm`, `warm_from` (случай-источник или `null`),
+  `ref` = {`iters`, `t_s`, `residuals`} — сошедшееся решение (`tol_scale` 1.0) того же случая с холодного старта,
+  `points`: список {`by`: `iter`|`tol_scale`, `N` (итерация снимка или остановки), `tol_scale` (`null` у `iter`),
+  `t_s` (время до точки, с), `residuals` = {`mom_rms`, `div_rms`, `th_rms`}, `dev` = {регион: {`du_max`, `du_rms`,
+  `dw_max`, `dw_rms`}} по всем регионам, `flows` = {`thermal_w_peak_err`, `thermal_w_mean_err`, `slope_w_mean_err`}
+  (ошибка скорости потока против `ref`, м/с, со знаком)}}.
+  `du` — модуль разности горизонтального ветра |Δ(u,v)|, `dw` — |Δw|, против поля `ref`.
+- Холодные серии: 4 случая R1 Онгудая; у каждой точки `by: iter` с N = 30, 50, 100, 150 (если сошлось раньше —
+  N > iters не нужен) и `by: tol_scale` с 3, 10, 30. Тёплые серии: `…u3_heat_h1215` (с `warm_from`
+  `…u3_heat_h1200`), `ref` — холодный сошедшийся `…_h1215`; точки по N 10, 20, 30, 50 и `tol_scale` 3, 10, 30.
+- `threshold` = {`text` (предложение порога и обоснование), `launch_dw_max`, `launch_du_max`, `slopes_dw_max`,
+  `residual` = {`mom_rms`, `div_rms`, `th_rms`} или `tol_scale` (что пороговать в решателе), `sources`: ≥ 2 строки
+  «путь[:строка] — что взято» (вариометр, шум термиков/болтанка в игре)}.
+Проверка — `P/contract/check_residual.py <summary.json>` → код 0 и `ok series=<n> points=<m>`.
