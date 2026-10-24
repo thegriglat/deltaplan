@@ -18,6 +18,10 @@ var building_obstacles: ObstacleIndex
 
 var _data: OsmData
 var _cfg: Dictionary
+## Владелец Callable (PlaceData — RefCounted): Callable держит лишь ObjectID, без этой ссылки вызов после
+## смены места — по освобождённому объекту (вылет, CR-17).
+var _height_owner: Variant
+var _forest_owner: Variant
 var _height_fn: Callable
 var _forest_fn: Callable
 var _obstacles: ObstacleIndex
@@ -59,6 +63,8 @@ func start(
 	_cfg = cfg
 	_height_fn = height_fn
 	_forest_fn = forest_fn
+	_height_owner = height_fn.get_object()
+	_forest_owner = forest_fn.get_object()
 	_obstacles = obstacles
 	_res = {}
 	_parts.clear()

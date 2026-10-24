@@ -25,6 +25,9 @@ var _events: Array = []  ## [[t, ряд→слот K]] смены ведущег
 var _mm: MultiMesh
 var _mmi: MultiMeshInstance3D
 var _player: AudioStreamPlayer3D
+## Владелец Callable (PlaceData — RefCounted): Callable держит лишь ObjectID, без этой ссылки вызов после
+## смены места — по освобождённому объекту (вылет, CR-17).
+var _height_owner: Variant
 var _height_at: Callable
 var _pilot := Vector3.ZERO
 var _last_pos := PackedVector3Array()  ## места птиц после последнего _pose
@@ -86,6 +89,7 @@ func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, _t0: fl
 	_p0 = Vector3(centre.x, 0.0, centre.z) + perp * off - _dir * half
 	_life = 2.0 * half / _speed
 	_height_at = ctx.height_at
+	_height_owner = _height_at.get_object()
 	_base_alt = centre.y + alt_off
 	_build_formation(cfg, rng)
 	_build_mesh(cfg)

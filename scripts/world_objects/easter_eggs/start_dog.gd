@@ -17,6 +17,7 @@ const DT_MAX := 1.0 / 30.0  ## шаг погони, с (длинный кадр 
 const JUMP_S := 2.0  ## прыжок времени длиннее — погоня забыта, собака дома
 
 var _cfg: Dictionary = {}
+var _hf_owner: Variant  # владелец Callable — RefCounted держим (CR-17)
 var _hf := Callable()  ## высота рельефа (ctx.height_at)
 var _ap: AnimationPlayer
 var _model: Node3D
@@ -89,6 +90,7 @@ static func can_appear(ctx: EggContext, cfg: Dictionary) -> bool:
 func begin(ctx: EggContext, cfg: Dictionary, rng: RandomNumberGenerator, _t0: float) -> void:
 	_cfg = cfg
 	_hf = ctx.height_at
+	_hf_owner = _hf.get_object()
 	_seed = rng.randi()
 	_show = OS.get_environment("DP_DOG_CLIP")
 	if _show == "":

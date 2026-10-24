@@ -19,6 +19,8 @@ const CELL := 48.0
 const GARDEN_TYPES: PackedStringArray = ["yes", "house", "detached", "farm", "hut", "cabin", "terrace"]
 
 var cfg: Dictionary = {}
+var _height_owner: Variant  # PlaceData — RefCounted: держим, пока жив план (CR-17)
+var _forest_owner: Variant
 var height_fn: Callable
 ## (x, z) -> доля леса 0..1 (Terrain.forest_at); не задан — деревьев на местах крон нет
 var forest_fn: Callable
@@ -87,6 +89,8 @@ func setup(
 	_cg_cfg = cg
 	_style_cell = style_cell
 	height_fn = hfn
+	_height_owner = hfn.get_object()
+	_forest_owner = ffn.get_object()
 	_tile = float(c.get("tile_m", 192.0))
 	_dm = float(c.get("density_mult", 1.0))
 	variants = maxi(int(c.get("variants", 4)), 1)
