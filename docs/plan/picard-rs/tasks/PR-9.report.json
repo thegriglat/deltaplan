@@ -1,0 +1,141 @@
+{
+  "status": "done",
+  "summary": "Профиль после 1a/1b снят; пачка (ширина пачек и граничные линии прогонок, слитые проходы, выравнивание строк) ускорила u3_heat t8 58,2 -> 50,5 мс/итер. (x0,868), путь решения побитно тот же (identical=4/4).",
+  "commits": [
+    "b612c6141 picard-rs PR-9: буферы через for_each_init (контракт), замеры серии заново",
+    "8b33cfe5e picard-rs PR-9: профиль и пачка 2 — прогонки, память, rayon; 58,3 -> 49,3 мс/итер.",
+    "c031770be Слияние feature/picard-rs в picard-rs/PR-9"
+  ],
+  "checks": [
+    {
+      "name": "contract_crate",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_dev",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "build_release",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "pure_rust",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "multiversion_dep",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_native",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_asm_intrinsics",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_global_pool",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "blocks_dev",
+      "value": "7.4e-07",
+      "pass": true
+    },
+    {
+      "name": "solve_ref_release",
+      "value": "worst=5.7e-4",
+      "pass": true
+    },
+    {
+      "name": "solve_ongudai_release",
+      "value": "worst=0.0415",
+      "pass": true
+    },
+    {
+      "name": "isa_v3",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "batch_files",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "batch_identical",
+      "value": "identical=4/4",
+      "pass": true
+    },
+    {
+      "name": "batch_tolerance",
+      "value": "worst=0.0415",
+      "pass": true
+    },
+    {
+      "name": "speedup",
+      "value": "0.8677",
+      "pass": true
+    },
+    {
+      "name": "profile_files",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Новые правки скорости не начаты по решению пользователя; SIMD по линиям и дробление хвоста задач не делались."
+  ],
+  "how_to_check": ".dpcli/dpcli accept PR-9",
+  "uncertain": [
+    {
+      "where": "lines.rs: BLOCK/MAXL, RowBuf",
+      "why": "ширина 128 подобрана по замерам на этой машине (Xeon E5-2666 v3); на другом кэше оптимум может сместиться; шум серий 2-3 %",
+      "checked": "before/after в одной серии; перебор [4..32,16..128,16..128]; идентичность 4 случаев"
+    }
+  ],
+  "dp_feedback": "Поле perf в карточке: числа с узкими пробелами требуют LC_ALL=C; хотелось бы заготовку run.sh в шаблоне. contract_crate запрещает thread_local — это выяснилось только на accept, стоило написать в карточке.",
+  "profile: доли функций (perf record, u3_heat t8), L1-промахи и такты на клетку·прогонку x/y/z, IPC — текущий код; что из этого выбрано в пачку и почему (по приоритетам)": "solve_group 64,5 % циклов и 83 % L1-промахов; build_all_mom 7,8, build_heat 6,2, kloc 5,0, resid 2,1, prolong 1,8, rayon ~7 %. IPC 1,75. Клетко-прогонка x/y/z: тактов 47,7/74,1/81,4; L1-промахов 0,96/2,54/2,38; инструкций 93/76/74; y,z IPC<1 (память: ~30 % тактов в ожидании L2-промаха). Выбрано: (1) L1/обход: ширина пачек y/z до целой строки (предвыборка), граничные линии пачкой, выравнивание строк по 64 Б; (2) rayon: счётчики вместо делений в kloc/mom/heat/transfers, меньше областей (restrict+resid, rhs+zero); (3) без копий: убраны r уровней, qeff, проход по phi/div.",
+  "changes: список правок пачки (одна строка на правку)": [
+    "BLOCK [16,128,128], MAXL 64: задача y/z = строка целиком",
+    "граничные линии блока — одна группа с флагами соседей (самый крупный выигрыш)",
+    "DIR константный параметр прогонки, Cells (указатель в регистре), c'/d' предыдущего шага из буфера",
+    "RowBuf: строки шаблонов выровнены по 64 Б",
+    "restrict+resid в один проход, массив r уровней убран",
+    "rhs=div-mean*fluid сразу в строки MG вместе с обнулением phi",
+    "pfull = phi - pm*fluid напрямую, без прохода по phi",
+    "qeff убран: q - thd/tau считается в build_heat",
+    "Pos-счётчики вместо целочисленных делений в kloc/mom/heat/restrict/prolong"
+  ],
+  "ms_per_iter_u3_heat_t8: до → после; phase_ms mom/heat/proj/kupd до → после": "58,20 → 50,50 (x0,868); mom 22,2→19,0; heat 22,7→19,9; proj 10,1→8,4; kupd 3,14→3,04",
+  "perf_after: IPC, L1-dcache-load-misses, LLC-load-misses до → после (u3_heat t8)": "IPC 1,749 → 1,761; L1 miss 9,60e9 → 8,85e9 (x0,92); LLC miss 0,391e9 → 0,177e9 (x0,45); инструкции 515e9 → 453e9",
+  "next: что осталось по профилю после пачки и ожидаемый выигрыш (оценка, помечена как оценка)": "Оценки: прогонки ещё ~60 % времени, z/y упираются в задержки памяти (prefetch недоступен в stable без core::arch); дробление хвостовых задач (занятость 86-93 %) 1-2 %; thread_local-буферы вернули бы ~3 % (запрещено контрактом); SIMD по линиям с транспонированием строк до ~10 % (большая правка); построители mom/heat/kloc ~20 % — арифметика, не трогали.",
+  "bisect: если понадобилась — какие правки дали/отняли": "Бисекция по порогу не нужна. По ходу (замеры в серии): граничные группы -13 % y, -7 % z; ширина 128 -12..-16 % y/z; DIR/выравнивание/слияния ~ в шуме. Отброшены: touch-ahead, select вместо ветвления, обратный ход на месте (+6 %), SIMD-рекуррентность (+8 %), конвейер цветов по плоскостям.",
+  "t": "2026-10-24T21:01:33",
+  "by": "executor"
+}

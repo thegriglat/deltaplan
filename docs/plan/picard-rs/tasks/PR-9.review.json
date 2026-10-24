@@ -1,0 +1,27 @@
+{
+  "verdict": "accept",
+  "summary": "Правки только в скоупе (lines/mg/kernels/solver/blocks), путь решения побитно тот же, порог 0,93 выполнен (0,868). Перепроверены batch_identical и speedup.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/picard_rs/src/lines.rs",
+      "line": 0,
+      "severity": "minor",
+      "what": "BLOCK/MAXL/ширина 128 подобраны на одной машине (Xeon E5-2666 v3); исполнитель сам отметил как неуверенность",
+      "fix": "перемерить при смене железа; сейчас не блокирует"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "batch_identical",
+      "value": "identical=4/4",
+      "pass": true
+    },
+    {
+      "name": "speedup",
+      "value": "0.8677",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T21:02:29",
+  "by": "reviewer"
+}
