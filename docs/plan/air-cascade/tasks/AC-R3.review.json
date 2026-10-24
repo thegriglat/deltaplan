@@ -1,0 +1,65 @@
+{
+  "verdict": "rework",
+  "summary": "Ядро верно: pre_steps подтверждён эталоном (air.py capture(): outer_step(); outer += 1), итерации совпали 191/231/201/131, u_rel <= 4,3e-5, скоуп и контракты не тронуты, 12 файлов R2 на месте. Но несколько пунктов карточки молча не сделаны и в not_done не указаны (отчёт ≠ факт). Пересчёт решений не нужен, доделка дешёвая.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/picard_rs/src/lines.rs",
+      "line": 79,
+      "severity": "major",
+      "what": "Пункт 4(а) карточки («minor, исправить») не сделан: lines.rs не менялся в ветке. debug_assert «коэффициент к соседу за краем линии == 0» и комментарий о соседе того же цвета при чётном ny нет. Текущий комментарий SAFETY «q lies on a line of the other colour» для соседа за краем неверен. В not_done пункт не указан.",
+      "fix": "Добавить debug_assert для соседа за краем (сосед по плоскому смещению вне линии: m/строка на границе) и поправить комментарий SAFETY; прогнать blocks_dev и solve_ref в dev или debug, чтобы assert реально исполнился."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/README.md",
+      "line": 90,
+      "severity": "major",
+      "what": "Пункт 5: нет «невязки по итерациям», то есть графика out/residuals_ongudai_u3.png (Rust против history_ref, лог-шкала) и пары строк таблицы. Финальная невязка mom_rms и th_rms Rust против эталона тоже не приведена, есть только div_rms. В not_done не указано.",
+      "fix": "Построить график из history в out/ongudai_d400_u3_*_release_t8.json против history_ref случая, добавить таблицу с несколькими it и финальными mom_rms, th_rms, div_rms Rust и эталона."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/README.md",
+      "line": 102,
+      "severity": "major",
+      "what": "Пункт 1 и пункт 5: сверки «поля у старта» (crop из JSON случая, центры клеток) нет ни в README, ни в out (grep «старт» и «crop» находит только «тёплый старт»). В not_done не указано.",
+      "fix": "Сверить поле в crop старта (u, θ′: max и rms отклонения против эталона) для четырёх случаев и дать строку или столбец в таблице сверки; либо внести в not_done с причиной."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/README.md",
+      "line": 207,
+      "severity": "minor",
+      "what": "В «Выводе» стоит оценка «работает, но медленно», а карточка требует «по числам, без оценок хорошо/плохо».",
+      "fix": "Заменить словами с числами (время solve и кратность против GPU)."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t18.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "host.git = 8c1fbf0da, хотя код с pre_steps вошёл только в 530288ae5: результаты сняты с незакоммиченного дерева, и хеш не воспроизводит код. 16, 18 и 20 потоков дают одинаковые 82,61 мс с разбросом меньше 0,01 %; это уже в uncertain, оставлено как вопрос.",
+      "fix": "В README отметить, что host.git — база плюс незакоммиченные правки, равные 530288ae5. При желании проверить точку 12 потоков, чтобы видеть, где наступает насыщение."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "readme",
+      "value": "PASS (dry)",
+      "pass": true
+    },
+    {
+      "name": "results_committed",
+      "value": "PASS (dry), 12 файлов",
+      "pass": true
+    },
+    {
+      "name": "contract_crate",
+      "value": "PASS (dry)",
+      "pass": true
+    },
+    {
+      "name": "pre_steps против эталона",
+      "value": "tools/research/air3d/air.py:1092-1099 capture() делает outer_step и outer += 1; history Онгудая it=11,21,31, ref/ it=10,20,30",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T06:31:25",
+  "by": "reviewer"
+}
