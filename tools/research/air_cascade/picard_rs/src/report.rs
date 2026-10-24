@@ -15,6 +15,8 @@ pub struct Dev {
     pub p_rel: f64,
     pub div_rms: f64,
     pub div_rms_ref: f64,
+    /// Cell-centre deviation (max, rms) of u, v, w (m/s) and θ′ (K) in the crop window, all levels.
+    pub crop: Option<[(f64, f64); 4]>,
 }
 
 fn max_abs_diff(a: &[f32], b: &[f32]) -> f64 {
@@ -57,6 +59,46 @@ pub fn div_rms_f64(s: &Picard, u: &[f32], v: &[f32], w: &[f32]) -> f64 {
     (sum / n.max(1) as f64).sqrt()
 }
 
+/// Deviation of cell-centre u, v, w (faces averaged) and θ′ in the crop window against `sol_*`.
+fn crop_dev(c: &Case, s: &Picard) -> Result<Option<[(f64, f64); 4]>> {
+    let Some(cr) = c.crop else { return Ok(None) };
+    let k = &s.k;
+    let refs = [
+        c.arr("sol_u")?,
+        c.arr("sol_v")?,
+        c.arr("sol_w")?,
+        c.arr("sol_th")?,
+    ];
+    let mine: [&[f32]; 4] = [&s.f.u, &s.f.v, &s.f.w, &s.f.th];
+    let stride = [1, k.nxh, k.nxh * k.nyh, 0];
+    let mut out = [(0.0f64, 0.0f64); 4];
+    let mut n = 0usize;
+    for kk in 0..k.nz {
+        for j in cr.j0..(cr.j0 + cr.n).min(k.ny) {
+            for i in cr.i0..(cr.i0 + cr.n).min(k.nx) {
+                let g = ((kk + 1) * k.nyh + j + 1) * k.nxh + i + 1;
+                n += 1;
+                for f in 0..4 {
+                    let at = |a: &[f32]| {
+                        if f == 3 {
+                            f64::from(a[g])
+                        } else {
+                            0.5 * (f64::from(a[g]) + f64::from(a[g + stride[f]]))
+                        }
+                    };
+                    let d = (at(mine[f]) - at(refs[f])).abs();
+                    out[f].0 = out[f].0.max(d);
+                    out[f].1 += d * d;
+                }
+            }
+        }
+    }
+    for o in &mut out {
+        o.1 = (o.1 / n.max(1) as f64).sqrt();
+    }
+    Ok(Some(out))
+}
+
 /// Compares the solved fields with `sol_*` of the case.
 pub fn deviation(c: &Case, s: &Picard) -> Result<Dev> {
     let (su, sv, sw) = (c.arr("sol_u")?, c.arr("sol_v")?, c.arr("sol_w")?);
@@ -72,6 +114,7 @@ pub fn deviation(c: &Case, s: &Picard) -> Result<Dev> {
         p_rel: max_abs_diff(&s.f.p, c.arr("sol_p")?) / max_abs(c.arr("sol_p")?).max(1e-30),
         div_rms: div_rms_f64(s, &s.f.u, &s.f.v, &s.f.w),
         div_rms_ref: div_rms_f64(s, su, sv, sw),
+        crop: crop_dev(c, s)?,
     })
 }
 
@@ -160,6 +203,10 @@ pub struct Timing {
     pub iters_run: usize,
     pub check_s: f64,
     pub n_checks: usize,
+    /// Threads actually present in the rayon pool.
+    pub pool_threads: usize,
+    /// CPU seconds (user+system) the process used until the result was built.
+    pub cpu_s: f64,
 }
 
 /// Builds the R2 document.
@@ -206,10 +253,15 @@ pub fn result_json(
         "history": history,
         "history_ref": c.history_ref,
         "dev": dev_v,
+        "dev_crop": dev.and_then(|d| d.crop).map_or(Value::Null, |c| json!({
+            "u_max": num(c[0].0), "u_rms": num(c[0].1), "v_max": num(c[1].0), "v_rms": num(c[1].1),
+            "w_max": num(c[2].0), "w_rms": num(c[2].1), "th_max": num(c[3].0), "th_rms": num(c[3].1),
+        })),
         "time": {
             "total_s": num(t.total_s), "setup_s": num(t.setup_s), "ms_per_iter": num(ms_it),
             "check_ms": num(ck), "ns_per_cell_iter": num(ms_it * 1e6 / n_cells as f64),
             "n_cells": n_cells,
+            "pool_threads": t.pool_threads, "process_cpu_s": num(t.cpu_s),
         },
         "host": {"cpu": cpu_name(), "rustc": env!("PICARD_RUSTC_VERSION"), "git": git_hash()},
     })

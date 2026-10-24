@@ -24,6 +24,19 @@ impl Scratch {
     }
 }
 
+/// True when neighbour `o` (1 -x, 2 +x, 3 -y, 4 +y, 5 -z, 6 +z) of flat cell `idx` is inside the grid.
+fn in_grid(idx: usize, o: usize, (nz, ny, nx): Shape) -> bool {
+    let (i, j, k) = (idx % nx, (idx / nx) % ny, idx / (nx * ny));
+    match o {
+        1 => i > 0,
+        2 => i + 1 < nx,
+        3 => j > 0,
+        4 => j + 1 < ny,
+        5 => k > 0,
+        _ => k + 1 < nz,
+    }
+}
+
 /// One zebra half-sweep: all lines along `dir` (0 x, 1 y, 2 z) of the given `parity`
 /// (sum of the two other indices mod 2) are solved exactly, off-line neighbours are
 /// taken from the current `x`.
@@ -78,6 +91,12 @@ fn sweep_dir(
                 let c = row[o];
                 if c != 0.0 {
                     let q = idx as isize + off[o];
+                    // A non-zero coefficient must point to a cell inside the grid: the flat
+                    // offset of an out-of-grid neighbour would wrap into another row or plane.
+                    debug_assert!(
+                        q >= 0 && (q as usize) < n_all && in_grid(idx, o, shape),
+                        "stencil coefficient {o} at flat index {idx} points outside the grid"
+                    );
                     if q >= 0 && (q as usize) < n_all {
                         // SAFETY: q lies on a line of the other colour, not written in this pass.
                         r -= c * unsafe { xs.get(q as usize) };

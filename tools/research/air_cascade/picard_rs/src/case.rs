@@ -52,6 +52,14 @@ pub struct SolutionRef {
     pub max_speed: f64,
 }
 
+/// Window of cells near the launch site (interior indices), as in the case file.
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub struct Crop {
+    pub i0: usize,
+    pub j0: usize,
+    pub n: usize,
+}
+
 #[derive(Deserialize)]
 struct Meta {
     case: String,
@@ -67,6 +75,8 @@ struct Meta {
     criterion: Criterion,
     solution: SolutionRef,
     history: serde_json::Value,
+    #[serde(default)]
+    crop: Option<Crop>,
     arrays: HashMap<String, [usize; 2]>,
 }
 
@@ -90,6 +100,8 @@ pub struct Case {
     pub criterion: Criterion,
     pub solution: SolutionRef,
     pub history_ref: serde_json::Value,
+    /// Start-site window (Ongudai cases), if present.
+    pub crop: Option<Crop>,
     /// Pseudo-time step of momentum, s.
     pub dtau_u: f32,
     /// Drag coefficient of the first face above ground.
@@ -148,6 +160,7 @@ impl Case {
             },
             solution: m.solution,
             history_ref: m.history,
+            crop: m.crop,
             dtau_u: dtau_u as f32,
             cd: cd as f32,
             arrays,

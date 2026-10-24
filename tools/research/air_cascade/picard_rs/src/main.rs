@@ -65,6 +65,22 @@ fn pool(n: usize) -> Result<rayon::ThreadPool> {
         .build()?)
 }
 
+/// User+system CPU seconds of this process (Linux `/proc/self/stat`, 100 ticks/s; 0 elsewhere).
+fn cpu_seconds() -> f64 {
+    std::fs::read_to_string("/proc/self/stat")
+        .ok()
+        .and_then(|s| {
+            let rest = s.rsplit(')').next()?.to_string();
+            let f: Vec<&str> = rest.split_whitespace().collect();
+            let (u, k) = (
+                f.get(11)?.parse::<f64>().ok()?,
+                f.get(12)?.parse::<f64>().ok()?,
+            );
+            Some((u + k) / 100.0)
+        })
+        .unwrap_or(0.0)
+}
+
 /// Scale the stopping tolerances of the case by `s` (1 = as in the reference).
 fn scale_criterion(c: &mut Case, s: f64) {
     c.criterion.tol_mom_rms *= s;
@@ -103,6 +119,8 @@ fn solve_case(
         iters_run: o.iters,
         check_s: o.check_s,
         n_checks: o.n_checks,
+        pool_threads: pl.current_num_threads(),
+        cpu_s: cpu_seconds(),
     };
     let doc = result_json(
         c,
@@ -118,6 +136,12 @@ fn solve_case(
     });
     write_atomic(&path, &doc)?;
     print!("{dtab}");
+    println!(
+        "pool threads {} (requested {threads}), process cpu {:.1} s, wall {:.1} s",
+        pl.current_num_threads(),
+        cpu_seconds(),
+        t.total_s
+    );
     println!(
         "{}: status {} iters {}/{} u_rel {:.3e} th_abs {:.3e} K ms/iter {:.3} -> {}",
         c.name,
@@ -212,6 +236,8 @@ fn main() -> Result<()> {
                     iters_run: iters,
                     check_s,
                     n_checks: 1,
+                    pool_threads: pl.current_num_threads(),
+                    cpu_s: cpu_seconds(),
                 };
                 let doc = result_json(&c, n, "max", iters, serde_json::json!([]), None, &t);
                 let path: PathBuf = out_dir.join(format!("{}_{}_t{}.json", c.name, profile(), n));
