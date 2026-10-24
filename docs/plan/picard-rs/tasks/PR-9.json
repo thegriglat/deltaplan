@@ -1,0 +1,229 @@
+{
+  "id": "PR-9",
+  "module": "picard-rs",
+  "type": "dp-engineer",
+  "title": "Пачка 2: профиль после пачек 1a/1b и пачка правок памяти и rayon по нему",
+  "goal": "Снять профиль текущего кода (после PR-6/PR-7: u3_heat 8 потоков 56,7 мс/итер; фазы heat 22,0, mom 21,8, proj 9,8, kupd 3,1 мс) тем же способом, что PR-4, и по нему одной пачкой сделать правки в порядке приоритетов пользователя: 1) промахи L1 (обход, тайлы, раскладка; z- и y-прогонки, уровни V-цикла), 2) rayon вместо последовательных/индексных циклов и гранулярность задач, 3) без копий памяти. Арифметику не трогать; путь решения побитно тот же; пачка измерена целиком до/после на 8 потоках.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "R2",
+      "version": "3",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R3",
+      "version": "4",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R6",
+      "version": "2",
+      "ref": "docs/contracts/picard-rs.md"
+    }
+  ],
+  "copy": "~/deltaplan-picard-rs-PR-9",
+  "branch": "picard-rs/PR-9",
+  "base": "feature/picard-rs",
+  "scope": [
+    "tools/research/air_cascade/picard_rs/src/lines.rs",
+    "tools/research/air_cascade/picard_rs/src/mg.rs",
+    "tools/research/air_cascade/picard_rs/src/kernels.rs",
+    "tools/research/air_cascade/picard_rs/src/solver.rs — только вычислительные фазы (mom, heat, proj, kupd); solve(), старт, снимки, критерий остановки не трогать",
+    "tools/research/air_cascade/picard_rs/src/blocks.rs — только если правка раскладки требует (тест blocks_dev)",
+    "tools/research/air_cascade/picard_rs/benches/ — если нужно для замера",
+    "tools/research/air_cascade/picard_rs/out/opt/PR-9/ — profile/ (профиль до: perf stat, perf record report, harness x/y/z), before/, after/ (R2 4 случая × 8 потоков), perf_before_u3_heat_t8.txt, perf_after_u3_heat_t8.txt, summary.json, run.sh, README.md (frontmatter research)"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/air3d/",
+    "tools/research/air_cascade/picard_rs/src/api.rs",
+    "tools/research/air_cascade/picard_rs/src/state.rs",
+    "tools/research/air_cascade/picard_rs/src/main.rs",
+    "tools/research/air_cascade/picard_rs/src/report.rs",
+    "tools/research/air_cascade/picard_rs/src/util.rs (редукции det_sum/par_max — порядок сложения не менять)",
+    "tools/research/air_cascade/picard_rs/contract/",
+    "tools/research/air_cascade/picard_rs/Cargo.toml",
+    "tools/research/air_cascade/picard_rs/README.md (у лимита 40 КБ; всё — в tools/research/air_cascade/picard_rs/out/opt/PR-9/README.md)",
+    "tools/research/air_cascade/picard_rs/out/base/",
+    "tools/research/air_cascade/picard_rs/out/prof/",
+    "tools/research/air_cascade/picard_rs/out/mv/",
+    "tools/research/air_cascade/picard_rs/out/bench/",
+    "tools/research/air_cascade/picard_rs/out/opt/PR-6/",
+    "tools/research/air_cascade/picard_rs/out/opt/PR-7/",
+    "tools/research/air_cascade/picard_rs/out/residual/ (PR-8 параллельно)"
+  ],
+  "accept": [
+    {
+      "name": "contract_crate",
+      "cmd": "python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --crate",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml --check",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "clippy",
+      "cmd": ".dpcli/dpcli lock cpu PR-9 --no-tmux -- cargo clippy --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml --all-targets -- -D warnings",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "test_dev",
+      "cmd": ".dpcli/dpcli lock cpu PR-9 --no-tmux -- cargo test --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 7200
+    },
+    {
+      "name": "build_release",
+      "cmd": ".dpcli/dpcli lock cpu PR-9 --no-tmux -- cargo build --release --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "pure_rust",
+      "cmd": "cargo tree --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml -e normal,build --prefix none",
+      "expect": {
+        "not_re": "^(cc|cmake|pkg-config|bindgen|[A-Za-z0-9_-]+-sys) v"
+      }
+    },
+    {
+      "name": "multiversion_dep",
+      "cmd": "cargo tree --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml -e normal --prefix none",
+      "expect": {
+        "re": "^multiversion v"
+      }
+    },
+    {
+      "name": "no_native",
+      "cmd": "grep -rn -e 'target-cpu' -e 'target_cpu' tools/research/air_cascade/picard_rs/Cargo.toml tools/research/air_cascade/picard_rs/build.rs tools/research/air_cascade/picard_rs/src || true",
+      "expect": {
+        "not_re": "native"
+      }
+    },
+    {
+      "name": "no_asm_intrinsics",
+      "cmd": "grep -rnE '(std|core)::arch|\\basm!|global_asm!' tools/research/air_cascade/picard_rs/src tools/research/air_cascade/picard_rs/tests 2>/dev/null || true",
+      "expect": {
+        "not_re": "arch|asm"
+      }
+    },
+    {
+      "name": "no_global_pool",
+      "cmd": "grep -rn 'build_global' tools/research/air_cascade/picard_rs/src tools/research/air_cascade/picard_rs/tests 2>/dev/null || true",
+      "expect": {
+        "not_re": "build_global"
+      }
+    },
+    {
+      "name": "blocks_dev",
+      "cmd": ".dpcli/dpcli lock cpu PR-9 --no-tmux -- cargo run -q --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml -- blocks tests/atmosphere/fixtures/air_model/ref/flat_wind.json tests/atmosphere/fixtures/air_model/ref/agnesi.json tests/atmosphere/fixtures/air_model/ref/heated_slope.json tests/atmosphere/fixtures/air_model/ref/saddle.json",
+      "expect": {
+        "num": "^max_block_rel=(\\S+)",
+        "max": 1e-05,
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "solve_ref_release",
+      "cmd": ".dpcli/dpcli lock cpu PR-9 --no-tmux -- bash -c 'set -e; for c in flat_wind agnesi heated_slope saddle; do tools/research/air_cascade/picard_rs/target/release/picard solve tests/atmosphere/fixtures/air_model/ref/$c.json --threads 8 --out tools/research/air_cascade/picard_rs/target/check_${c}_release_t8.json; done' && python3 tools/research/air_cascade/picard_rs/contract/tolerance.py tools/research/air_cascade/picard_rs/target/check_flat_wind_release_t8.json tools/research/air_cascade/picard_rs/target/check_agnesi_release_t8.json tools/research/air_cascade/picard_rs/target/check_heated_slope_release_t8.json tools/research/air_cascade/picard_rs/target/check_saddle_release_t8.json",
+      "expect": {
+        "num": "^worst=(\\S+)",
+        "max": 1.0,
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "solve_ongudai_release",
+      "cmd": ".dpcli/dpcli lock cpu PR-9 --no-tmux -- bash -c 'set -e; for c in ongudai_d400_u3_heat ongudai_d400_u3_mech ongudai_d400_u0_heat ongudai_d400_u6_heat; do tools/research/air_cascade/picard_rs/target/release/picard solve ~/data/air_cascade/ongudai/$c.json --threads 8 --out tools/research/air_cascade/picard_rs/target/check_${c}_release_t8.json; done' && python3 tools/research/air_cascade/picard_rs/contract/tolerance.py --iters-tol 10 tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u6_heat_release_t8.json",
+      "expect": {
+        "num": "^worst=(\\S+)",
+        "max": 1.0,
+        "exit": 0
+      },
+      "timeout": 7200
+    },
+    {
+      "name": "isa_v3",
+      "cmd": "tools/research/air_cascade/picard_rs/target/release/picard isa",
+      "expect": {
+        "re": "isa_branch=x86_64\\+avx2\\+fma"
+      }
+    },
+    {
+      "name": "batch_files",
+      "cmd": "ls tools/research/air_cascade/picard_rs/out/opt/PR-9/before/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/opt/PR-9/before/ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/out/opt/PR-9/before/ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/out/opt/PR-9/before/ongudai_d400_u6_heat_release_t8.json tools/research/air_cascade/picard_rs/out/opt/PR-9/after/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/opt/PR-9/after/ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/out/opt/PR-9/after/ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/out/opt/PR-9/after/ongudai_d400_u6_heat_release_t8.json tools/research/air_cascade/picard_rs/out/opt/PR-9/perf_before_u3_heat_t8.txt tools/research/air_cascade/picard_rs/out/opt/PR-9/perf_after_u3_heat_t8.txt tools/research/air_cascade/picard_rs/out/opt/PR-9/summary.json && python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out/opt/PR-9/after/",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "batch_identical",
+      "cmd": "python3 tools/research/air_cascade/picard_rs/contract/compare_r2.py tools/research/air_cascade/picard_rs/out/opt/PR-9/before tools/research/air_cascade/picard_rs/out/opt/PR-9/after --threads 8",
+      "expect": {
+        "re": "identical=4/4",
+        "exit": 0
+      }
+    },
+    {
+      "name": "batch_tolerance",
+      "cmd": "python3 tools/research/air_cascade/picard_rs/contract/tolerance.py --iters-tol 10 tools/research/air_cascade/picard_rs/out/opt/PR-9/after/*.json",
+      "expect": {
+        "num": "^worst=(\\S+)",
+        "max": 1.0,
+        "exit": 0
+      }
+    },
+    {
+      "name": "speedup",
+      "cmd": "python3 tools/research/air_cascade/picard_rs/contract/compare_r2.py tools/research/air_cascade/picard_rs/out/opt/PR-9/before tools/research/air_cascade/picard_rs/out/opt/PR-9/after --threads 8",
+      "expect": {
+        "num": "^ratio_ms_per_iter=(\\S+)",
+        "max": 0.93,
+        "exit": 0
+      }
+    },
+    {
+      "name": "profile_files",
+      "cmd": "ls tools/research/air_cascade/picard_rs/out/opt/PR-9/profile/ && test -s tools/research/air_cascade/picard_rs/out/opt/PR-9/README.md",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "readme",
+      "cmd": ".dpcli/dpcli docs check tools/research/air_cascade/picard_rs/out/opt/PR-9/README.md",
+      "expect": {
+        "exit": 0
+      }
+    }
+  ],
+  "report_extra": [
+    "profile: доли функций (perf record, u3_heat t8), L1-промахи и такты на клетку·прогонку x/y/z, IPC — текущий код; что из этого выбрано в пачку и почему (по приоритетам)",
+    "changes: список правок пачки (одна строка на правку)",
+    "ms_per_iter_u3_heat_t8: до → после; phase_ms mom/heat/proj/kupd до → после",
+    "perf_after: IPC, L1-dcache-load-misses, LLC-load-misses до → после (u3_heat t8)",
+    "next: что осталось по профилю после пачки и ожидаемый выигрыш (оценка, помечена как оценка)",
+    "bisect: если понадобилась — какие правки дали/отняли"
+  ],
+  "notes": "",
+  "created": "2026-10-24T19:02:36"
+}
