@@ -107,13 +107,6 @@
       "timeout": 7200
     },
     {
-      "name": "results_committed",
-      "cmd": "ls tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t1.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t4.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t16.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u6_heat_release_t8.json && python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out",
-      "expect": {
-        "exit": 0
-      }
-    },
-    {
       "name": "readme",
       "cmd": ".dpcli/dpcli docs check tools/research/air_cascade/picard_rs/README.md && grep -c -e 'Rust vs эталон' -e 'Вывод' tools/research/air_cascade/picard_rs/README.md",
       "expect": {
@@ -121,9 +114,15 @@
         "min": 2,
         "exit": 0
       }
+    },
+    {
+      "name": "results_committed",
+      "cmd": "ls tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t4.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t6.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t16.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t20.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u6_heat_release_t8.json && python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out",
+      "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-24T04:57:22"
+  "created": "2026-10-24T04:57:22",
+  "edited": "2026-10-24T05:53:50"
 }
