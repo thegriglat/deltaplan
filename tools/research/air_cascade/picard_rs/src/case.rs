@@ -39,6 +39,10 @@ pub struct Criterion {
     pub tol_th_rms: f64,
     pub tol_div_rms: f64,
     pub check_every: usize,
+    /// Steps done before the first block of `check_every` (reference graph capture runs one step
+    /// and counts it); derived from `history[0].it`, not read from the file.
+    #[serde(default)]
+    pub pre_steps: usize,
 }
 
 /// Reference solution summary.
@@ -46,6 +50,14 @@ pub struct Criterion {
 pub struct SolutionRef {
     pub iters: usize,
     pub max_speed: f64,
+}
+
+/// Window of cells near the launch site (interior indices), as in the case file.
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub struct Crop {
+    pub i0: usize,
+    pub j0: usize,
+    pub n: usize,
 }
 
 #[derive(Deserialize)]
@@ -63,6 +75,8 @@ struct Meta {
     criterion: Criterion,
     solution: SolutionRef,
     history: serde_json::Value,
+    #[serde(default)]
+    crop: Option<Crop>,
     arrays: HashMap<String, [usize; 2]>,
 }
 
@@ -86,6 +100,8 @@ pub struct Case {
     pub criterion: Criterion,
     pub solution: SolutionRef,
     pub history_ref: serde_json::Value,
+    /// Start-site window (Ongudai cases), if present.
+    pub crop: Option<Crop>,
     /// Pseudo-time step of momentum, s.
     pub dtau_u: f32,
     /// Drag coefficient of the first face above ground.
@@ -134,9 +150,17 @@ impl Case {
             z_bot: m.z_bot as f32,
             params: m.params,
             case_params: m.case_params,
-            criterion: m.criterion,
+            criterion: Criterion {
+                pre_steps: m
+                    .history
+                    .pointer("/0/it")
+                    .and_then(serde_json::Value::as_u64)
+                    .map_or(0, |v| v as usize % m.criterion.check_every),
+                ..m.criterion
+            },
             solution: m.solution,
             history_ref: m.history,
+            crop: m.crop,
             dtau_u: dtau_u as f32,
             cd: cd as f32,
             arrays,
