@@ -6,11 +6,12 @@ use picard_rs::api::{self, SolveOpts};
 use picard_rs::blocks::check_case;
 use picard_rs::case::{Case, Consts};
 use picard_rs::report::{
-    Timing, diag as diag_table, history_json, profile, result_json, write_atomic,
+    RunInfo, Timing, diag as diag_table, history_json, profile, result_json, write_atomic,
 };
 use picard_rs::solver::Picard;
+use picard_rs::state::State;
 use std::path::{Path, PathBuf};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 #[derive(Parser)]
 #[command(about = "Picard iteration of the 3D air model (AM-01), Rust prototype")]
@@ -36,12 +37,27 @@ enum Cmd {
         max_iters: usize,
         #[arg(long)]
         out: Option<PathBuf>,
-        /// Multiply the three tolerances of the criterion (diagnostics of the unconverged tail).
+        /// Multiply the three tolerances of the criterion (1 = as the reference).
         #[arg(long, default_value_t = 1.0)]
         tol_scale: f64,
         /// Print the per-field deviation table (max, its cell, rms, 99.9th percentile).
         #[arg(long)]
         diag: bool,
+        /// Stop after the iteration at which this many wall seconds of iterating are used.
+        #[arg(long)]
+        time_budget: Option<f64>,
+        /// Warm start from an R4 snapshot (`.json`).
+        #[arg(long)]
+        init: Option<PathBuf>,
+        /// Iterations after which to snapshot (comma separated, ascending); needs `--snap-dir`.
+        #[arg(long, value_delimiter = ',')]
+        snap_at: Vec<usize>,
+        /// Directory for the snapshots `<case>_it<N>.json`.
+        #[arg(long)]
+        snap_dir: Option<PathBuf>,
+        /// Write the delivered field as an R4 snapshot.
+        #[arg(long)]
+        save_state: Option<PathBuf>,
     },
     /// Print the code branch (multiversion dispatch) selected on this CPU.
     Isa,
@@ -62,30 +78,70 @@ enum Cmd {
     },
 }
 
-/// Scale the stopping tolerances of the case by `s` (1 = as in the reference).
-fn scale_criterion(c: &mut Case, s: f64) {
-    c.criterion.tol_mom_rms *= s;
-    c.criterion.tol_th_rms *= s;
-    c.criterion.tol_div_rms *= s;
+/// Command line options of `solve` beyond the case, threads and output.
+struct SolveArgs {
+    max_iters: usize,
+    tol_scale: f64,
+    time_budget: Option<f64>,
+    init: Option<PathBuf>,
+    snap_at: Vec<usize>,
+    snap_dir: Option<PathBuf>,
+    save_state: Option<PathBuf>,
+    diag: bool,
 }
 
 /// Solve `c` to its criterion on a pool of `threads`, print one line and write the R2 result.
-fn solve_case(
-    c: &Case,
-    threads: usize,
-    max_iters: usize,
-    out: Option<PathBuf>,
-    diag: bool,
-) -> Result<()> {
+fn solve_case(c: &Case, threads: usize, out: Option<PathBuf>, a: &SolveArgs) -> Result<()> {
     let threads = api::resolve_threads(threads);
-    let r = api::solve(c, &SolveOpts { threads, max_iters })?;
+    if !a.snap_at.is_empty() && a.snap_dir.is_none() {
+        anyhow::bail!("--snap-at needs --snap-dir");
+    }
+    let r = api::solve(
+        c,
+        &SolveOpts {
+            threads,
+            max_iters: a.max_iters,
+            tol_scale: a.tol_scale,
+            time_budget: a.time_budget.map(Duration::from_secs_f64),
+            init: a.init.as_deref().map(State::read).transpose()?,
+            snapshot_at: a.snap_at.clone(),
+        },
+    )?;
     let (o, dev, t) = (&r.out, &r.dev, &r.timing);
-    let dtab = if diag {
+    let mut snap_paths = Vec::new();
+    if let Some(dir) = &a.snap_dir {
+        for s in &r.snapshots {
+            let p = dir.join(format!("{}_it{}.json", c.name, s.it));
+            s.write_atomic(&p)?;
+            snap_paths.push(p.display().to_string());
+        }
+    }
+    if let Some(p) = &a.save_state {
+        r.state.write_atomic(p)?;
+    }
+    let dtab = if a.diag {
         r.pool.install(|| diag_table(c, &r.picard))?
     } else {
         String::new()
     };
-    let doc = result_json(c, threads, o.status, o.iters, history_json(o), Some(dev), t);
+    let info = RunInfo {
+        stop: r.stop.as_str(),
+        tol_scale: a.tol_scale,
+        time_budget_s: a.time_budget,
+        init: a.init.as_ref().map(|p| p.display().to_string()),
+        snapshots: snap_paths,
+        residuals: *r.history.last().expect("history ends with a check"),
+    };
+    let doc = result_json(
+        c,
+        threads,
+        o.status,
+        o.iters,
+        history_json(o),
+        Some(dev),
+        t,
+        Some(&info),
+    );
     let path = out.unwrap_or_else(|| {
         PathBuf::from(format!("out/{}_{}_t{}.json", c.name, profile(), threads))
     });
@@ -98,9 +154,10 @@ fn solve_case(
         t.total_s
     );
     println!(
-        "{}: status {} iters {}/{} u_rel {:.3e} th_abs {:.3e} K ms/iter {:.3} -> {}",
+        "{}: status {} stop {} iters {}/{} u_rel {:.3e} th_abs {:.3e} K ms/iter {:.3} -> {}",
         c.name,
         o.status,
+        r.stop.as_str(),
         o.iters,
         c.solution.iters,
         dev.u_rel,
@@ -147,10 +204,24 @@ fn main() -> Result<()> {
             out,
             tol_scale,
             diag,
+            time_budget,
+            init,
+            snap_at,
+            snap_dir,
+            save_state,
         } => {
-            let mut c = Case::load(&case)?;
-            scale_criterion(&mut c, tol_scale);
-            solve_case(&c, threads, max_iters, out, diag)?;
+            let c = Case::load(&case)?;
+            let a = SolveArgs {
+                max_iters,
+                tol_scale,
+                time_budget,
+                init,
+                snap_at,
+                snap_dir,
+                save_state,
+                diag,
+            };
+            solve_case(&c, threads, out, &a)?;
         }
         Cmd::Bench {
             case,
@@ -165,7 +236,17 @@ fn main() -> Result<()> {
                 let n = api::resolve_threads(n);
                 if solve {
                     let path = out_dir.join(format!("{}_{}_t{}.json", c.name, profile(), n));
-                    solve_case(&c, n, max_iters, Some(path), false)?;
+                    let a = SolveArgs {
+                        max_iters,
+                        tol_scale: 1.0,
+                        time_budget: None,
+                        init: None,
+                        snap_at: Vec::new(),
+                        snap_dir: None,
+                        save_state: None,
+                        diag: false,
+                    };
+                    solve_case(&c, n, Some(path), &a)?;
                     continue;
                 }
                 let pl = api::pool(n)?;
@@ -195,8 +276,9 @@ fn main() -> Result<()> {
                     n_checks: 1,
                     pool_threads: pl.current_num_threads(),
                     cpu_s: api::cpu_seconds(),
+                    phase_s: None,
                 };
-                let doc = result_json(&c, n, "max", iters, serde_json::json!([]), None, &t);
+                let doc = result_json(&c, n, "max", iters, serde_json::json!([]), None, &t, None);
                 let path: PathBuf = out_dir.join(format!("{}_{}_t{}.json", c.name, profile(), n));
                 write_atomic(Path::new(&path), &doc)?;
                 println!(

@@ -1,8 +1,8 @@
-//! Result file R2 (`picard-rs-result`, version 2: phases and `t_s`) and the deviation against the reference
+//! Result file R2 (`picard-rs-result`, version 3: phases, `t_s`, stop reason, snapshots) and the deviation against the reference
 //! solution `sol_*` of the case.
 
 use crate::case::Case;
-use crate::solver::{Picard, SolveOut};
+use crate::solver::{Check, Picard, SolveOut};
 use anyhow::Result;
 use serde_json::{Value, json};
 use std::path::Path;
@@ -207,9 +207,35 @@ pub struct Timing {
     pub pool_threads: usize,
     /// CPU seconds (user+system) the process used until the result was built.
     pub cpu_s: f64,
+    /// Total seconds per iteration phase `[mom, heat, proj, kupd, other]` (R2 v2 `time.phase_ms`
+    /// is the mean per iteration); `None` for a timing-only run.
+    pub phase_s: Option<[f64; 5]>,
 }
 
-/// Builds the R2 document.
+/// What a solve was asked and what it produced beyond R2 v2 (R2 v3 fields).
+pub struct RunInfo {
+    /// `converged | max_iters | time_budget | diverged`.
+    pub stop: &'static str,
+    pub tol_scale: f64,
+    pub time_budget_s: Option<f64>,
+    /// Path of the R4 snapshot the run started from.
+    pub init: Option<String>,
+    /// Paths of written R4 snapshots.
+    pub snapshots: Vec<String>,
+    /// Residuals of the delivered field (a history record).
+    pub residuals: Check,
+}
+
+/// One history record as JSON `{it, t_s, mom_rms, mom_max, th_rms, thd_rms, div_rms}`.
+pub fn check_json(h: &Check) -> Value {
+    json!({
+        "it": h.it, "t_s": num(h.t_s), "mom_rms": num(h.res.mom_rms), "mom_max": num(h.res.mom_max),
+        "th_rms": num(h.res.th_rms), "thd_rms": num(h.res.thd_rms), "div_rms": num(h.res.div_rms),
+    })
+}
+
+/// Builds the R2 document: version 3 with `run`, else 2 with phases, else 1.
+#[allow(clippy::too_many_arguments)]
 pub fn result_json(
     c: &Case,
     threads: usize,
@@ -218,6 +244,7 @@ pub fn result_json(
     history: Value,
     dev: Option<&Dev>,
     t: &Timing,
+    run: Option<&RunInfo>,
 ) -> Value {
     let n_cells = c.n_cells();
     let ms_it = if t.iters_run > 0 {
@@ -230,14 +257,6 @@ pub fn result_json(
     } else {
         f64::NAN
     };
-    // Phase times travel inside `history` (see `history_json`); without history (bench) the
-    // document stays R2 v1.
-    let mut history = history;
-    let phase_ms = history
-        .as_array_mut()
-        .and_then(|a| a.last_mut())
-        .and_then(|h| h.as_object_mut())
-        .and_then(|h| h.remove("phase_ms"));
     let dev_v = match dev {
         Some(d) => json!({
             "u0": num(d.u0), "u_rel": num(d.u_rel), "th_abs": num(d.th_abs), "p_rel": num(d.p_rel),
@@ -253,11 +272,19 @@ pub fn result_json(
             "n_cells": n_cells,
             "pool_threads": t.pool_threads, "process_cpu_s": num(t.cpu_s),
     });
-    let version = if phase_ms.is_some() { 2 } else { 1 };
-    if let Some(p) = phase_ms {
-        time["phase_ms"] = p;
+    let version = match (run, &t.phase_s) {
+        (Some(_), _) => 3,
+        (None, Some(_)) => 2,
+        (None, None) => 1,
+    };
+    if let Some(p) = &t.phase_s {
+        let n = t.iters_run.max(1) as f64 * 1e-3;
+        time["phase_ms"] = json!({
+            "mom": num(p[0] / n), "heat": num(p[1] / n), "proj": num(p[2] / n),
+            "kupd": num(p[3] / n), "other": num(p[4] / n),
+        });
     }
-    json!({
+    let mut doc = json!({
         "format": "picard-rs-result",
         "version": version,
         "case": c.name,
@@ -277,35 +304,21 @@ pub fn result_json(
         })),
         "time": time,
         "host": {"cpu": cpu_name(), "rustc": env!("PICARD_RUSTC_VERSION"), "git": git_hash()},
-    })
+    });
+    if let Some(r) = run {
+        doc["stop"] = json!(r.stop);
+        doc["tol_scale"] = num(r.tol_scale);
+        doc["time_budget_s"] = r.time_budget_s.map_or(Value::Null, num);
+        doc["init"] = json!(r.init);
+        doc["snapshots"] = json!(r.snapshots);
+        doc["residuals"] = check_json(&r.residuals);
+    }
+    doc
 }
 
-/// History of a solve as JSON records `{it, t_s, mom_rms, mom_max, th_rms, thd_rms, div_rms}`.
-/// The last record also carries `phase_ms` (ms per iteration, `[mom, heat, proj, kupd, other]`);
-/// `result_json` moves it to `time.phase_ms`.
+/// History of a solve as JSON records (see [`check_json`]).
 pub fn history_json(o: &SolveOut) -> Value {
-    let mut v: Vec<Value> = o
-        .history
-        .iter()
-        .map(|h| {
-            json!({
-                "it": h.it, "t_s": num(h.t_s), "mom_rms": num(h.res.mom_rms), "mom_max": num(h.res.mom_max),
-                "th_rms": num(h.res.th_rms), "thd_rms": num(h.res.thd_rms), "div_rms": num(h.res.div_rms),
-            })
-        })
-        .collect();
-    if let Some(Value::Object(last)) = v.last_mut() {
-        let n = o.iters.max(1) as f64 * 1e-3;
-        let p = &o.phase_s;
-        last.insert(
-            "phase_ms".into(),
-            json!({
-                "mom": num(p[0] / n), "heat": num(p[1] / n), "proj": num(p[2] / n),
-                "kupd": num(p[3] / n), "other": num(p[4] / n),
-            }),
-        );
-    }
-    Value::Array(v)
+    Value::Array(o.history.iter().map(check_json).collect())
 }
 
 /// Writes JSON to a temporary file and renames it.

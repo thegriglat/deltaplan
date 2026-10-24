@@ -13,4 +13,5 @@ pub mod lines;
 pub mod mg;
 pub mod report;
 pub mod solver;
+pub mod state;
 pub mod util;

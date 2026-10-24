@@ -6,11 +6,14 @@ use crate::case::{Consts, Criterion};
 use crate::kernels::{HeatIn, MomIn, Vel, apply_bc, build_heat, build_mom, kloc};
 use crate::lines::{Scratch, resid, sweep};
 use crate::mg::Mg;
+use crate::state::State;
 use crate::util::{Row, det_sum, par_max};
+use anyhow::Result;
 use rayon::prelude::*;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 /// Prognostic fields (halo arrays) and the two eddy viscosities.
+#[derive(Clone)]
 pub struct Fields {
     pub u: Vec<f32>,
     pub v: Vec<f32>,
@@ -42,20 +45,78 @@ pub struct Check {
     pub t_s: f64,
 }
 
+/// Why [`Picard::solve`] stopped.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StopReason {
+    /// The criterion (tolerances scaled by `tol_scale`) is met.
+    Converged,
+    /// The iteration limit was reached.
+    MaxIters,
+    /// The time budget was exhausted after an iteration.
+    TimeBudget,
+    /// Non-finite residuals or momentum residual above 50.
+    Diverged,
+}
+
+impl StopReason {
+    /// Name in the R2 `stop` field.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Converged => "converged",
+            Self::MaxIters => "max_iters",
+            Self::TimeBudget => "time_budget",
+            Self::Diverged => "diverged",
+        }
+    }
+
+    /// Legacy R2 `status`: `ok` | `max` | `diverged`.
+    pub fn status(self) -> &'static str {
+        match self {
+            Self::Converged => "ok",
+            Self::MaxIters | Self::TimeBudget => "max",
+            Self::Diverged => "diverged",
+        }
+    }
+}
+
+/// Limits of one [`Picard::solve`] run.
+#[derive(Debug, Clone, Copy)]
+pub struct RunLimits<'a> {
+    /// Stop after exactly this many iterations.
+    pub max_iters: usize,
+    /// Wall seconds since the start of the iterations; checked after every iteration.
+    pub time_budget: Option<Duration>,
+    /// Strictly ascending iteration numbers after which a finalized snapshot is taken.
+    pub snapshot_at: &'a [usize],
+}
+
+/// A finalized copy of the fields taken after `it` iterations.
+pub struct RawSnapshot {
+    pub it: usize,
+    pub f: Fields,
+    /// The residual check of iteration `it`, if there was one.
+    pub res: Option<Check>,
+}
+
 /// Outcome of [`Picard::solve`].
 pub struct SolveOut {
-    /// `"ok"`, `"max"` or `"diverged"`.
+    /// `"ok"`, `"max"` or `"diverged"` (R2 `status`).
     pub status: &'static str,
-    /// Iteration number of the last check.
+    /// Why the run stopped.
+    pub stop: StopReason,
+    /// Iterations done.
     pub iters: usize,
+    /// Residual checks; the last one is at `iters` (an extra check is made if needed).
     pub history: Vec<Check>,
-    /// Seconds spent in iterations (checks excluded) and in checks.
+    /// Seconds spent in iterations (checks and snapshots excluded) and in checks.
     pub iter_s: f64,
     pub check_s: f64,
     pub n_checks: usize,
     /// Total seconds per phase of the iteration (checks excluded), order
     /// `[mom, heat, proj, kupd, other]`; sums to `iter_s`.
     pub phase_s: [f64; 5],
+    /// Snapshots requested by `snapshot_at` and reached.
+    pub snapshots: Vec<RawSnapshot>,
 }
 
 /// The iteration: constants, fields, multigrid and work buffers.
@@ -424,58 +485,128 @@ impl Picard {
         self.f.p.fill(0.0);
     }
 
+    /// Warm start as in the game (`air_picard_job.gd:_program("warm")`): `u, v, w, th, thd, p`
+    /// from the snapshot, `nu`/`nuh` and the whole input from this case (fresh, as after
+    /// `Picard::new`), boundary conditions from the field (not from the background) and
+    /// 4 projection V-cycles (instead of 30) without touching `p`.
+    pub fn init_warm(&mut self, st: &State) -> Result<()> {
+        st.check_dims(&self.k)?;
+        let f = &mut self.f;
+        f.u.copy_from_slice(&st.u);
+        f.v.copy_from_slice(&st.v);
+        f.w.copy_from_slice(&st.w);
+        f.th.copy_from_slice(&st.th);
+        f.thd.copy_from_slice(&st.thd);
+        f.p.copy_from_slice(&st.p);
+        apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
+        self.project(4, false);
+        Ok(())
+    }
+
+    /// Fields as `finalize` would deliver them now, taken on a copy: the running state
+    /// (velocities) is restored, so the iteration continues unchanged.
+    pub fn finalized_copy(&mut self, cycles: usize) -> Fields {
+        let (u, v, w) = (self.f.u.clone(), self.f.v.clone(), self.f.w.clone());
+        self.finalize(cycles);
+        let out = self.f.clone();
+        self.f.u = u;
+        self.f.v = v;
+        self.f.w = w;
+        out
+    }
+
     /// Final projection to near-exact divergence without changing `p` (`cycles` V-cycles).
     pub fn finalize(&mut self, cycles: usize) {
         apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
         self.project(cycles, false);
     }
 
-    /// Runs the iteration from the cold start until the criterion, `max_iters` or divergence
-    /// (reference `solve`; the first check happens after `check_every` iterations).
-    pub fn solve(&mut self, crit: &Criterion, max_iters: usize) -> SolveOut {
+    /// Residual check now; appends it to `hist` (time `t_s` since `t_start`) and adds its cost to `check_s`.
+    fn check_into(
+        &mut self,
+        it: usize,
+        t_start: Instant,
+        hist: &mut Vec<Check>,
+        check_s: &mut f64,
+    ) {
+        let t = Instant::now();
+        let res = self.residuals();
+        *check_s += t.elapsed().as_secs_f64();
+        hist.push(Check {
+            it,
+            res,
+            t_s: t_start.elapsed().as_secs_f64(),
+        });
+    }
+
+    /// Runs the iteration from the current start state (cold or warm) until the criterion,
+    /// `max_iters`, the time budget or divergence (reference `solve`; the first check happens
+    /// `check_every` iterations after `pre_steps`). The loop is per iteration, so `max_iters`,
+    /// the time budget and snapshots act exactly after the requested iteration; the order of
+    /// operations is that of the reference. A check is added at the last iteration if it was
+    /// not one, so `history.last()` always gives the residuals of the delivered field.
+    pub fn solve(&mut self, crit: &Criterion, run: &RunLimits) -> SolveOut {
         if self.k.no_thd {
             self.f.thd.fill(0.0);
         }
-        let mut hist = Vec::new();
-        let mut status = "max";
+        let mut hist: Vec<Check> = Vec::new();
+        let mut snaps: Vec<RawSnapshot> = Vec::new();
+        let mut stop = StopReason::MaxIters;
         let (mut iter_s, mut check_s) = (0.0, 0.0);
-        let mut it = crit.pre_steps;
         let ph0 = self.phase;
-        let tp = Instant::now();
-        let t_start = tp;
-        for _ in 0..crit.pre_steps {
-            self.outer_step();
-        }
-        iter_s += tp.elapsed().as_secs_f64();
-        while it < max_iters {
-            let t0 = Instant::now();
-            for _ in 0..crit.check_every {
-                self.outer_step();
-            }
-            it += crit.check_every;
-            iter_s += t0.elapsed().as_secs_f64();
-            let t1 = Instant::now();
-            let r = self.residuals();
-            check_s += t1.elapsed().as_secs_f64();
-            hist.push(Check {
+        let t_start = Instant::now();
+        let mut want = run.snapshot_at.iter().copied().peekable();
+        let mut it = 0usize;
+        if want.next_if_eq(&0).is_some() {
+            snaps.push(RawSnapshot {
                 it,
-                res: r,
-                t_s: t_start.elapsed().as_secs_f64(),
+                f: self.finalized_copy(10),
+                res: None,
             });
-            let finite = [r.mom_max, r.mom_rms, r.th_rms, r.div_rms]
-                .iter()
-                .all(|x| x.is_finite());
-            if !finite || r.mom_max > 50.0 {
-                status = "diverged";
+        }
+        while it < run.max_iters {
+            let t = Instant::now();
+            self.outer_step();
+            iter_s += t.elapsed().as_secs_f64();
+            it += 1;
+            let mut verdict = None;
+            if it > crit.pre_steps && (it - crit.pre_steps).is_multiple_of(crit.check_every) {
+                self.check_into(it, t_start, &mut hist, &mut check_s);
+                let r = hist[hist.len() - 1].res;
+                let finite = [r.mom_max, r.mom_rms, r.th_rms, r.div_rms]
+                    .iter()
+                    .all(|x| x.is_finite());
+                if !finite || r.mom_max > 50.0 {
+                    verdict = Some(StopReason::Diverged);
+                } else if r.mom_rms < crit.tol_mom_rms
+                    && r.th_rms < crit.tol_th_rms
+                    && r.div_rms < crit.tol_div_rms
+                {
+                    verdict = Some(StopReason::Converged);
+                }
+            }
+            if want.next_if_eq(&it).is_some() {
+                let res = hist.last().filter(|c| c.it == it).copied();
+                snaps.push(RawSnapshot {
+                    it,
+                    f: self.finalized_copy(10),
+                    res,
+                });
+            }
+            if let Some(v) = verdict {
+                stop = v;
                 break;
             }
-            if r.mom_rms < crit.tol_mom_rms
-                && r.th_rms < crit.tol_th_rms
-                && r.div_rms < crit.tol_div_rms
-            {
-                status = "ok";
+            if it >= run.max_iters {
                 break;
             }
+            if run.time_budget.is_some_and(|b| t_start.elapsed() >= b) {
+                stop = StopReason::TimeBudget;
+                break;
+            }
+        }
+        if hist.last().is_none_or(|c| c.it != it) {
+            self.check_into(it, t_start, &mut hist, &mut check_s);
         }
         let mut phase_s = [0.0; 5];
         for i in 0..4 {
@@ -483,13 +614,15 @@ impl Picard {
         }
         phase_s[4] = (iter_s - phase_s[..4].iter().sum::<f64>()).max(0.0);
         SolveOut {
-            status,
+            status: stop.status(),
+            stop,
             iters: it,
             n_checks: hist.len(),
             history: hist,
             iter_s,
             check_s,
             phase_s,
+            snapshots: snaps,
         }
     }
 }

@@ -3,12 +3,18 @@
 //! Every call builds its own `rayon::ThreadPool` and runs inside `pool.install`; the global
 //! rayon pool is never configured or used for the solve, so concurrent calls with different
 //! thread counts are independent. The result does not depend on the thread count.
+//!
+//! R6 v2: criterion scale, time budget, stop reason, start from a snapshot (the game's warm
+//! start) and finalized snapshots after chosen iterations.
 
 use crate::case::{Case, Consts};
 use crate::report::{Dev, Timing, deviation};
-use crate::solver::{Picard, SolveOut};
-use anyhow::Result;
-use std::time::Instant;
+use crate::solver::{Check, Picard, Residuals, RunLimits, SolveOut};
+use crate::state::State;
+use anyhow::{Result, bail};
+use std::time::{Duration, Instant};
+
+pub use crate::solver::StopReason;
 
 /// Default iteration limit (as the CLI).
 pub const DEFAULT_MAX_ITERS: usize = 2000;
@@ -18,8 +24,18 @@ pub const DEFAULT_MAX_ITERS: usize = 2000;
 pub struct SolveOpts {
     /// Pool threads; `0` = all logical cores (`std::thread::available_parallelism`).
     pub threads: usize,
-    /// Iteration limit.
+    /// Iteration limit (the run stops exactly after this iteration).
     pub max_iters: usize,
+    /// Multiplier of the three tolerances of the case criterion; `1.0` = as the reference.
+    pub tol_scale: f64,
+    /// Wall time since the start of the iterations (after the setup); checked after every
+    /// iteration: when exhausted, stop after that iteration and deliver the current field.
+    pub time_budget: Option<Duration>,
+    /// Start from this snapshot (the game's warm start); `None` = cold start.
+    pub init: Option<State>,
+    /// Strictly ascending iteration numbers after which a finalized snapshot is taken
+    /// (numbers above the iterations actually done are not taken).
+    pub snapshot_at: Vec<usize>,
 }
 
 impl Default for SolveOpts {
@@ -27,12 +43,28 @@ impl Default for SolveOpts {
         Self {
             threads: 0,
             max_iters: DEFAULT_MAX_ITERS,
+            tol_scale: 1.0,
+            time_budget: None,
+            init: None,
+            snapshot_at: Vec::new(),
         }
     }
 }
 
 /// Result of [`solve`].
 pub struct Solved {
+    /// Iterations done.
+    pub iters: usize,
+    /// Why the run stopped.
+    pub stop: StopReason,
+    /// Residuals of the delivered field at iteration `iters` (before the final projection).
+    pub residuals: Residuals,
+    /// Residual checks; the last one is at `iters`.
+    pub history: Vec<Check>,
+    /// The delivered field (after `finalize`), usable as `init` of the next call.
+    pub state: State,
+    /// Snapshots after the iterations of `snapshot_at`, as if the solver had stopped there.
+    pub snapshots: Vec<State>,
     /// Status, iterations, history, phase times of the iterations.
     pub out: SolveOut,
     /// Wall/CPU timing as written to the R2 file.
@@ -77,15 +109,40 @@ pub fn cpu_seconds() -> f64 {
         .unwrap_or(0.0)
 }
 
-/// Prepare, iterate to the criterion of `case`, finalize and compare with the case reference.
+/// Prepare (cold or warm start), iterate to the criterion of `case` scaled by `opts.tol_scale`
+/// (or to another stop reason), finalize and compare with the case reference.
 pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
+    if !(opts.tol_scale.is_finite() && opts.tol_scale > 0.0) {
+        bail!("tol_scale must be finite and > 0, got {}", opts.tol_scale);
+    }
+    if opts.snapshot_at.windows(2).any(|w| w[0] >= w[1]) {
+        bail!(
+            "snapshot_at must be strictly ascending: {:?}",
+            opts.snapshot_at
+        );
+    }
     let t0 = Instant::now();
     let pl = pool(opts.threads)?;
-    let (o, dev, setup_s, s) = pl.install(|| -> Result<_> {
+    let mut crit = case.criterion.clone();
+    crit.tol_mom_rms *= opts.tol_scale;
+    crit.tol_th_rms *= opts.tol_scale;
+    crit.tol_div_rms *= opts.tol_scale;
+    let (mut o, dev, setup_s, s) = pl.install(|| -> Result<_> {
         let mut s = Picard::new(Consts::from_case(case)?);
-        s.init_background();
+        if let Some(st) = &opts.init {
+            s.init_warm(st)?;
+            // The game counts checks from the start of a warm run (no graph-capture step).
+            crit.pre_steps = 0;
+        } else {
+            s.init_background();
+        }
         let setup_s = t0.elapsed().as_secs_f64();
-        let o = s.solve(&case.criterion, opts.max_iters);
+        let run = RunLimits {
+            max_iters: opts.max_iters,
+            time_budget: opts.time_budget,
+            snapshot_at: &opts.snapshot_at,
+        };
+        let o = s.solve(&crit, &run);
         s.finalize(10);
         let dev = deviation(case, &s)?;
         Ok((o, dev, setup_s, s))
@@ -99,8 +156,22 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
         n_checks: o.n_checks,
         pool_threads: pl.current_num_threads(),
         cpu_s: cpu_seconds(),
+        phase_s: Some(o.phase_s),
     };
+    let last = *o.history.last().expect("solve always ends with a check");
+    let k = &s.k;
+    let state = State::capture(k, &case.name, &case.path, o.iters, &s.f, Some(&last));
+    let snapshots = std::mem::take(&mut o.snapshots)
+        .iter()
+        .map(|r| State::capture(k, &case.name, &case.path, r.it, &r.f, r.res.as_ref()))
+        .collect();
     Ok(Solved {
+        iters: o.iters,
+        stop: o.stop,
+        residuals: last.res,
+        history: o.history.clone(),
+        state,
+        snapshots,
         out: o,
         timing,
         dev,
