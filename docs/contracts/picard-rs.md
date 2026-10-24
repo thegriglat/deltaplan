@@ -4,7 +4,7 @@ status: "active"
 module: "picard-rs"
 area: "air"
 updated: "2026-10-24"
-summary: "Стыки picard-rs: случаи R1, результат R2 v2 (фазы, t_s), крейт R3 v4 (без asm/интринсиков), снимок поля R4, случаи T+15 R5, API потоков R6, невязка → отклонение R7."
+summary: "Стыки picard-rs: случаи R1, результат R2, крейт R3 (без asm), снимок R4, пара T+15 R5, API R6, невязка → отклонение R7."
 related: ["docs/plan/picard-rs.md", "docs/contracts/air-cascade.md", "tools/research/air_cascade/picard_rs/README.md"]
 contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 3}, {"id": "R3", "version": 4}, {"id": "R4", "version": 2}, {"id": "R5", "version": 1}, {"id": "R6", "version": 2}, {"id": "R7", "version": 1}]
 ---
