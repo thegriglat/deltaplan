@@ -1,0 +1,12 @@
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+bheat reps 20 threads 8: 3.356 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+bheat reps 120 threads 8: 3.379 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+bheat reps 20 threads 8: 3.402 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+bheat reps 120 threads 8: 3.374 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+bheat reps 20 threads 8: 3.401 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+bheat reps 120 threads 8: 3.378 ms/rep

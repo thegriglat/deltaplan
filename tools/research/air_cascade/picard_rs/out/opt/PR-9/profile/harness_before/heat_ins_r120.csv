@@ -1,0 +1,5 @@
+# started on Sat Oct 24 19:10:15 2026
+
+179499347158,,instructions,32018046847,100,00,,
+1272169632,,LLC-loads,32018046847,100,00,,
+62606743,,LLC-load-misses,32018046847,100,00,4,of all LL-cache accesses

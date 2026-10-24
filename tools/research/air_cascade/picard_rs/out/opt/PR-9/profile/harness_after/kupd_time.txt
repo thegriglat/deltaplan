@@ -1,0 +1,12 @@
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+kupd reps 20 threads 8: 2.976 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+kupd reps 120 threads 8: 2.993 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+kupd reps 20 threads 8: 2.986 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+kupd reps 120 threads 8: 2.984 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+kupd reps 20 threads 8: 2.992 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+kupd reps 120 threads 8: 2.970 ms/rep
