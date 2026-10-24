@@ -117,12 +117,12 @@
     },
     {
       "name": "results_committed",
-      "cmd": "ls tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t4.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t6.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t16.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t20.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u6_heat_release_t8.json && python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out",
+      "cmd": "ls tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t6.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_heat_release_t18.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_mech_release_t6.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u3_mech_release_t18.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u0_heat_release_t6.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u0_heat_release_t18.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u6_heat_release_t6.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u6_heat_release_t8.json tools/research/air_cascade/picard_rs/out/ongudai_d400_u6_heat_release_t18.json && python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out",
       "expect": "exit=0"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-24T04:57:22",
-  "edited": "2026-10-24T05:53:50"
+  "edited": "2026-10-24T05:59:44"
 }
