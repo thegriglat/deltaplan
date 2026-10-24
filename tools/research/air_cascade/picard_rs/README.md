@@ -344,18 +344,18 @@ u3_heat, 8 потоков, 101 мс/итерацию: IPC 2,05, 241 инстру
 
 ## API (R6)
 
-Библиотека даёт `picard_rs::api` (контракт R6 v1; v2 с `tol_scale`, бюджетом, снимками — раздел «API v2» ниже); CLI `solve`/`bench --solve` — тонкая обёртка над ней.
+Библиотека: `picard_rs::api` (контракт R6 v1; v2 с `tol_scale`, бюджетом, снимками — раздел «API v2» ниже); CLI `solve`/`bench --solve` — тонкая обёртка над ней.
 
 ```rust
 pub struct SolveOpts { pub threads: usize, pub max_iters: usize, /* + поля v2 */ }   // Default: threads 0, max_iters 2000
 pub fn solve(case: &Case, opts: &SolveOpts) -> anyhow::Result<Solved>
-pub struct Solved { pub out: SolveOut, pub timing: Timing, pub dev: Dev, pub picard: Picard, pub pool: rayon::ThreadPool }
+pub struct Solved { pub out: SolveOut, pub timing: Timing, pub dev: Option<Dev>, pub picard: Picard, pub pool: rayon::ThreadPool }
 ```
 
 ```rust
 let case = picard_rs::case::Case::load(path)?;
 let r = picard_rs::api::solve(&case, &SolveOpts { threads: 8, ..Default::default() })?;
-println!("{} iterations, u_rel {:e}", r.out.iters, r.dev.u_rel);
+println!("{} it, {:?}", r.out.iters, r.dev.map(|d| d.u_rel));
 ```
 
 - Каждый вызов строит свой `rayon::ThreadPool` (`pool.install`), глобальный пул не используется; одновременные
