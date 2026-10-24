@@ -1,0 +1,111 @@
+{
+  "status": "done",
+  "summary": "Эталон необязателен: Case.solution/history_ref — Option, sol_* не читаются при загрузке; Solved.dev: Option<Dev> (None без эталона); R2 без эталона — dev/iters_ref/history_ref/dev_crop null; INTEGRATION.md обновлён.",
+  "commits": [
+    "469abdd68 picard-rs PR-13: R6 v3 — случай без эталона"
+  ],
+  "checks": [
+    {
+      "name": "contract_crate",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "test_dev",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "build_release",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "pure_rust",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "multiversion_dep",
+      "value": "multiversion v",
+      "pass": true
+    },
+    {
+      "name": "no_native",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "no_asm_intrinsics",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "no_global_pool",
+      "value": "ok",
+      "pass": true
+    },
+    {
+      "name": "blocks_dev",
+      "value": "7.4053e-07",
+      "pass": true
+    },
+    {
+      "name": "solve_ref_release",
+      "value": "worst=0.000568741",
+      "pass": true
+    },
+    {
+      "name": "solve_ongudai_release",
+      "value": "worst=0.0415123",
+      "pass": true
+    },
+    {
+      "name": "isa_v3",
+      "value": "x86_64+avx2+fma",
+      "pass": true
+    },
+    {
+      "name": "test_no_reference",
+      "value": "ok. 1",
+      "pass": true
+    },
+    {
+      "name": "integration_doc",
+      "value": "4",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [
+    "README.md крейта (в dont_touch) всё ещё показывает pub struct Solved { dev: Dev } и r.dev.u_rel (строки 352, 358) — поправить отдельно."
+  ],
+  "how_to_check": ".dpcli/dpcli accept PR-13",
+  "uncertain": [
+    {
+      "where": "case.rs:Case::has_reference",
+      "why": "эталон = solution и все шесть sol_*; частичный набор трактуется как отсутствие эталона (dev None), а не ошибка",
+      "checked": "тест с полным удалением; частичный набор не тестировался"
+    },
+    {
+      "where": "case.rs:pre_steps",
+      "why": "без history pre_steps берётся из criterion.pre_steps файла (0 по умолчанию), а не из history[0].it; итерации игры без эталона могут отличаться от прогона с эталоном на этот сдвиг счёта проверок, если у эталонного файла pre_steps != 0",
+      "checked": "тест в памяти сохраняет pre_steps и даёт побитно то же state; файловый вариант проверен только на загрузку и сходимость"
+    }
+  ],
+  "dp_feedback": "",
+  "api_change: что поменялось в pub (сигнатуры/типы) — одна строка на изменение": "Solved.dev: Dev -> Option<Dev>; Case.solution: SolutionRef -> Option<SolutionRef>; Case.history_ref: Value -> Option<Value>; report::deviation -> Result<Option<Dev>>; новые Case::has_reference() и case::REF_ARRAYS; report::diag — ошибка без эталона",
+  "identical: путь решения с эталоном тот же — чем проверено (solve_ongudai_release, тест)": "accept: solve_ref_release worst=0.00057, solve_ongudai_release worst=0.0415 (PASS, код решателя не тронут); тест no_reference сравнивает state с эталоном и без побитно",
+  "t": "2026-10-24T20:25:00",
+  "by": "executor"
+}

@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "R6 v3 реализован в скоупе: sol_*/solution/history необязательны, Solved.dev Option, R2 null-поля; путь решения с эталоном не изменён, тест побитно сверяет state. Перезапуск test_no_reference и solve_ref_release PASS.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/picard_rs/src/case.rs",
+      "line": 166,
+      "severity": "minor",
+      "what": "pre_steps при истории без /0/it теперь берётся из criterion.pre_steps, а не 0 (раньше). Для случаев с эталоном (history[0].it есть) поведение то же; для пустой history отличие теоретическое.",
+      "fix": "Ничего не делать; при желании зафиксировать в INTEGRATION.md."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/README.md",
+      "line": 352,
+      "severity": "minor",
+      "what": "README крейта (вне скоупа) ещё показывает Solved{dev: Dev} и r.dev.u_rel (исполнитель сообщил).",
+      "fix": "Поправить отдельной задачей/координатором."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "test_no_reference",
+      "value": "ok 1",
+      "pass": true
+    },
+    {
+      "name": "solve_ref_release",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T20:26:03",
+  "by": "reviewer"
+}
