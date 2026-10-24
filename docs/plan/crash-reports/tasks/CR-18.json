@@ -1,0 +1,59 @@
+{
+  "id": "CR-18",
+  "module": "crash-reports",
+  "type": "dp-engineer",
+  "title": "Гонка маски поверхности: потоки разброса читают SurfaceLayer, пока главный поток меняет маску/поляны",
+  "goal": "Сделать чтение маски поверхности (forest_at/surface_at/mask_*) из рабочих потоков разброса согласованным при смене места и вырезании полян: ни одной OOB-ошибки и никакой гонки на членах-Variant; тест поток-читатель против главного-писателя.",
+  "plan_ref": "§4 CR-2",
+  "contracts": [],
+  "copy": "~/deltaplan-crash-reports-CR-18",
+  "branch": "crash-reports/CR-18",
+  "base": "feature/crash-reports",
+  "scope": [
+    "scripts/terrain/surface_layer.gd",
+    "scripts/terrain/shrub_scatter.gd",
+    "scripts/terrain/rock_scatter.gd",
+    "scripts/terrain/tree_placer.gd",
+    "scripts/terrain/grass_field.gd",
+    "scripts/terrain/terrain.gd",
+    "tests/terrain/test_surface_mask_race.gd",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/world_objects",
+    "scripts/game",
+    "scripts/ui",
+    "scenes",
+    "project.godot",
+    "configs",
+    "docs/contracts",
+    "docs/plan",
+    "shaders"
+  ],
+  "accept": [
+    {
+      "name": "test_surface_mask_race",
+      "tests": "test_surface_mask_race"
+    },
+    {
+      "name": "test_surface",
+      "tests": "test_surface"
+    },
+    {
+      "name": "test_rocks",
+      "tests": "test_rocks"
+    },
+    {
+      "name": "test_sea_mask",
+      "tests": "test_sea_mask"
+    },
+    {
+      "name": "test_surface_stage",
+      "tests": "test_surface_stage"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-24T05:41:17",
+  "edited": "2026-10-24T05:41:38"
+}
