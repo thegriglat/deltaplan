@@ -2,10 +2,11 @@
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use picard_rs::api::{self, SolveOpts};
 use picard_rs::blocks::check_case;
 use picard_rs::case::{Case, Consts};
 use picard_rs::report::{
-    Timing, deviation, diag as diag_table, history_json, profile, result_json, write_atomic,
+    Timing, diag as diag_table, history_json, profile, result_json, write_atomic,
 };
 use picard_rs::solver::Picard;
 use std::path::{Path, PathBuf};
@@ -61,28 +62,6 @@ enum Cmd {
     },
 }
 
-fn pool(n: usize) -> Result<rayon::ThreadPool> {
-    Ok(rayon::ThreadPoolBuilder::new()
-        .num_threads(n.max(1))
-        .build()?)
-}
-
-/// User+system CPU seconds of this process (Linux `/proc/self/stat`, 100 ticks/s; 0 elsewhere).
-fn cpu_seconds() -> f64 {
-    std::fs::read_to_string("/proc/self/stat")
-        .ok()
-        .and_then(|s| {
-            let rest = s.rsplit(')').next()?.to_string();
-            let f: Vec<&str> = rest.split_whitespace().collect();
-            let (u, k) = (
-                f.get(11)?.parse::<f64>().ok()?,
-                f.get(12)?.parse::<f64>().ok()?,
-            );
-            Some((u + k) / 100.0)
-        })
-        .unwrap_or(0.0)
-}
-
 /// Scale the stopping tolerances of the case by `s` (1 = as in the reference).
 fn scale_criterion(c: &mut Case, s: f64) {
     c.criterion.tol_mom_rms *= s;
@@ -98,41 +77,15 @@ fn solve_case(
     out: Option<PathBuf>,
     diag: bool,
 ) -> Result<()> {
-    let t0 = Instant::now();
-    let pl = pool(threads)?;
-    let (o, dev, setup_s, dtab) = pl.install(|| -> Result<_> {
-        let mut s = Picard::new(Consts::from_case(c)?);
-        s.init_background();
-        let setup_s = t0.elapsed().as_secs_f64();
-        let o = s.solve(&c.criterion, max_iters);
-        s.finalize(10);
-        let dev = deviation(c, &s)?;
-        let dtab = if diag {
-            diag_table(c, &s)?
-        } else {
-            String::new()
-        };
-        Ok((o, dev, setup_s, dtab))
-    })?;
-    let t = Timing {
-        total_s: t0.elapsed().as_secs_f64(),
-        setup_s,
-        iter_s: o.iter_s,
-        iters_run: o.iters,
-        check_s: o.check_s,
-        n_checks: o.n_checks,
-        pool_threads: pl.current_num_threads(),
-        cpu_s: cpu_seconds(),
+    let threads = api::resolve_threads(threads);
+    let r = api::solve(c, &SolveOpts { threads, max_iters })?;
+    let (o, dev, t) = (&r.out, &r.dev, &r.timing);
+    let dtab = if diag {
+        r.pool.install(|| diag_table(c, &r.picard))?
+    } else {
+        String::new()
     };
-    let doc = result_json(
-        c,
-        threads,
-        o.status,
-        o.iters,
-        history_json(&o),
-        Some(&dev),
-        &t,
-    );
+    let doc = result_json(c, threads, o.status, o.iters, history_json(o), Some(dev), t);
     let path = out.unwrap_or_else(|| {
         PathBuf::from(format!("out/{}_{}_t{}.json", c.name, profile(), threads))
     });
@@ -140,8 +93,8 @@ fn solve_case(
     print!("{dtab}");
     println!(
         "pool threads {} (requested {threads}), process cpu {:.1} s, wall {:.1} s",
-        pl.current_num_threads(),
-        cpu_seconds(),
+        t.pool_threads,
+        api::cpu_seconds(),
         t.total_s
     );
     println!(
@@ -162,7 +115,7 @@ fn main() -> Result<()> {
     match Cli::parse().cmd {
         Cmd::Isa => println!("isa_branch={}", picard_rs::util::isa_branch()),
         Cmd::Blocks { cases, threads } => {
-            let pl = pool(threads)?;
+            let pl = api::pool(threads)?;
             let mut worst = 0.0f64;
             println!("case | block | rel");
             for p in &cases {
@@ -209,12 +162,13 @@ fn main() -> Result<()> {
         } => {
             let c = Case::load(&case)?;
             for &n in &threads {
+                let n = api::resolve_threads(n);
                 if solve {
                     let path = out_dir.join(format!("{}_{}_t{}.json", c.name, profile(), n));
                     solve_case(&c, n, max_iters, Some(path), false)?;
                     continue;
                 }
-                let pl = pool(n)?;
+                let pl = api::pool(n)?;
                 let t0 = Instant::now();
                 let (setup_s, iter_s, check_s) = pl.install(|| -> Result<_> {
                     let mut s = Picard::new(Consts::from_case(&c)?);
@@ -240,7 +194,7 @@ fn main() -> Result<()> {
                     check_s,
                     n_checks: 1,
                     pool_threads: pl.current_num_threads(),
-                    cpu_s: cpu_seconds(),
+                    cpu_s: api::cpu_seconds(),
                 };
                 let doc = result_json(&c, n, "max", iters, serde_json::json!([]), None, &t);
                 let path: PathBuf = out_dir.join(format!("{}_{}_t{}.json", c.name, profile(), n));
