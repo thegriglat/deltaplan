@@ -77,3 +77,4 @@
 {"t": "2026-10-24T10:19:18", "by": "coordinator", "task": "AC-R4", "ev": "accepted", "note": "accept 12/12, ревью accept (после rework 3)"}
 {"t": "2026-10-24T10:19:27", "by": "coordinator", "task": "AC-R4", "ev": "merged", "note": "388b9e087"}
 {"t": "2026-10-24T10:19:28", "by": "coordinator", "task": null, "ev": "note", "note": "dpcli (AC-R4): маска dont_touch с * накрывает подкаталоги (out/*.json задел out/mv/) — report отклоняется при FAIL scope; вес замка cpu по тексту команды: путь бинаря через переменную молча даёт 1 слот — нужно предупреждение; таймаут job start включает ожидание очереди замка; event не знает kind rework (ревью пишет его само — ок, но в help не сказано)."}
+{"t": "2026-10-24T15:31:22", "by": "main", "task": null, "ev": "delivered", "commits": ["421d47685"], "note": "squash в main: 421d47685"}
