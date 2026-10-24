@@ -1,0 +1,41 @@
+{
+  "verdict": "accept",
+  "summary": "Арифметика и порядок операций сохранены, скоуп соблюдён, identical=4/4, выигрыш 0,855 по ms/iter и 0,61 по проекции перепроверены. Замечания некритичные.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/picard_rs/src/solver.rs",
+      "line": 170,
+      "severity": "minor",
+      "what": "pfull.fill(0) убран на допущении, что ореол pfull нулевой и нигде не пишется; проверено grep: пишет только blocks.rs (пересоздаёт нулями) и project (интерьер). Инвариант держится на соглашении.",
+      "fix": "Если PR-5 начнёт писать pfull вне project, вернуть заполнение; сейчас доп. действий не нужно."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/src/solver.rs",
+      "line": 74,
+      "severity": "minor",
+      "what": "Новое поле Picard::fluid_int в struct/new: PR-5 тоже правит Picard, возможен конфликт слияния.",
+      "fix": "При слиянии с PR-5 разрешить вручную."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/out/opt/PR-7/summary.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "Обязательные доли project/build_mom в perf record до/после не сняты (исполнитель честно указал); L1-промахи не упали (1,015), выигрыш объяснён параллельностью, а не кэшем.",
+      "fix": "Не требуется для приёмки; при желании снять perf record в следующей пачке."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "batch_identical",
+      "value": "identical=4/4",
+      "pass": true
+    },
+    {
+      "name": "speedup",
+      "value": "0.8553",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T18:33:51",
+  "by": "reviewer"
+}

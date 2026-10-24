@@ -1,0 +1,154 @@
+{
+  "status": "done",
+  "summary": "Пачка 1b: build_mom u/v/w одним проходом, project/apply_phi/divergence построчно в пуле rayon без halo_index и pfull.fill. Путь решения побитно тот же (identical=4/4), 104,2 -> 89,1 мс/итерацию на 8 потоках.",
+  "commits": [
+    "3ccd08c28 picard-rs PR-7: build_mom одним проходом, project/apply_phi/divergence построчно в пуле"
+  ],
+  "checks": [
+    {
+      "name": "contract_crate",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_dev",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "build_release",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "pure_rust",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "multiversion_dep",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_native",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_asm_intrinsics",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_global_pool",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "blocks_dev",
+      "value": "7.4053e-07",
+      "pass": true
+    },
+    {
+      "name": "solve_ref_release",
+      "value": "worst=5.7e-4",
+      "pass": true
+    },
+    {
+      "name": "solve_ongudai_release",
+      "value": "worst=0.0415",
+      "pass": true
+    },
+    {
+      "name": "isa_v3",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "batch_files",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "batch_identical",
+      "value": "identical=4/4",
+      "pass": true
+    },
+    {
+      "name": "batch_tolerance",
+      "value": "0.0415",
+      "pass": true
+    },
+    {
+      "name": "speedup",
+      "value": "0.8553",
+      "pass": true
+    },
+    {
+      "name": "proj_speedup",
+      "value": "0.6121",
+      "pass": true
+    },
+    {
+      "name": "mom_no_regress",
+      "value": "0.9359",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "perf record (доли функций) до/после не снимался; доли фаз взяты из phase_ms"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PR-7",
+  "uncertain": [
+    {
+      "where": "solver.rs::project (pfull)",
+      "why": "pfull.fill(0) убран: ореол pfull нулевой с выделения и нигде не пишется; blocks.rs пересоздаёт pfull нулями, так что инвариант держится",
+      "checked": "grep по всем записям pfull; побитное совпадение 4 случаев и blocks_dev 7.4e-7"
+    },
+    {
+      "where": "solver.rs: поле Picard::fluid_int",
+      "why": "новое поле структуры (внутренняя маска fluid), PR-5 тоже правит Picard — возможен конфликт слияния в struct/new",
+      "checked": "правка в двух местах, независима от start/snapshot кода"
+    },
+    {
+      "where": "perf L1",
+      "why": "L1-промахи не упали (1,015), выигрыш в проекции дали параллельность и снятие делений, не L1",
+      "checked": "perf stat до/после, out/opt/PR-7/summary.json"
+    }
+  ],
+  "dp_feedback": "perf-вывод локали с узкими пробелами (U+202F) в числах — парсить неудобно; хорошо бы в run.sh/шаблоне готовый парсер perf stat -> summary.json.",
+  "extra": {
+    "ipc": "1,993 -> 2,077",
+    "llc_misses": "9,53e8 -> 7,32e8"
+  },
+  "changes: список правок пачки (одна строка на правку)": [
+    "kernels.rs: build_all_mom — один проход по блокам клеток для cu/cv/cw (mom_cell::<COMP>, те же формулы)",
+    "solver.rs::project: div/phi -= mean*fluid построчно с fluid_int вместо halo_index; перенос phi->pfull построчным copy_from_slice в пуле",
+    "solver.rs::apply_phi: u,v,w,p одним проходом по строкам x вместо четырёх поэлементных с i%nx",
+    "solver.rs::divergence: построчно, срезы вместо q%nx, q/(nx*ny)",
+    "mg.rs: set_rhs и обнуление phi (zero_phi) в пуле"
+  ],
+  "ms_per_iter_u3_heat_t8: до → после; phase_ms mom/heat/proj до → после": "104,2 -> 89,1 (0,855); mom 33,9 -> 31,7; heat 39,1 -> 37,1; proj 28,0 -> 17,1 (0,612)",
+  "perf_after: IPC, L1-dcache-load-misses, LLC-load-misses до → после (u3_heat t8); доля Picard::project и build_mom в perf record до → после": "IPC 1,993 -> 2,077; L1 miss 2,069e10 -> 2,100e10 (1,015); LLC miss 9,53e8 -> 7,32e8; perf record не снимался, доля фазы proj 26,8 % -> 19,2 %, mom 32,6 % -> 35,6 % по phase_ms",
+  "copies_removed: какие копии/временные массивы убраны, байт на итерацию": "pfull.fill(0): 499408*4 = 2,0 МБ записи на project; последовательный перенос phi->pfull 1,84 МБ стал параллельным; три лишних прохода apply_phi; новый постоянный fluid_int 1,84 МБ (один раз)",
+  "bisect: если понадобилась — какие правки дали/отняли": "не понадобилась: пачка прошла пороги speedup, proj_speedup, identical",
+  "t": "2026-10-24T18:33:07",
+  "by": "executor"
+}
