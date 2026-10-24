@@ -15,6 +15,8 @@ contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 3}, {"id": "R3",
 Контрактный тест — `tools/research/air_cascade/picard_rs/contract/check_contract.py` (только stdlib Python):
 `--ref <case.json>…` (R1), `--results <dir>` (R2), `--crate` (R3), `--state <state.json>…` (R4, вводит
 PR-s); R5 — `tools/research/air_cascade/export/check_r5.py <case.json>…` (вводит PR-3); R6 — `cargo test` крейта (`tests/api.rs`, вводит PR-2). Код 0 — соблюдено. Допуски —
+Тождественность пути решения и ускорение пачки — `contract/compare_r2.py <до> <после> [--case …] [--threads 8]`
+→ `identical=<k>/<n>` (итерации, история невязок, `dev` побитно равны), `ratio_ms_per_iter`, `ratio_phase_*`.
 `contract/tolerance.py <R2.json>… [--iters-tol N]` → последняя строка `worst=<x>`, проходит при x ≤ 1.
 Пути: `P = tools/research/air_cascade/picard_rs`, `D = $AIR_CASCADE_DATA` (по умолчанию `~/data/air_cascade`).
 
