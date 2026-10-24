@@ -345,7 +345,8 @@ fn warm_start_from_own_state_converges_fast_and_checks_dims() {
         "warm iters {}",
         warm.iters
     );
-    assert!(warm.dev.u_rel < 1e-3, "u_rel {}", warm.dev.u_rel);
+    let wd = warm.dev.as_ref().expect("case has a reference");
+    assert!(wd.u_rel < 1e-3, "u_rel {}", wd.u_rel);
     let mut bad = cold.state.clone();
     bad.dims[0] += 1;
     let e = api::solve(
@@ -370,4 +371,80 @@ fn warm_start_from_own_state_converges_fast_and_checks_dims() {
         )
         .is_err()
     );
+}
+
+/// R6 v3: a case without `sol_*`, `solution`, `history` (in memory and as a file) is solved;
+/// the state equals the run with the reference bit for bit; `dev` is `None`.
+#[test]
+fn no_reference_case_solves_like_with_reference() {
+    let with = case();
+    assert!(with.has_reference());
+    let mut without = case();
+    for a in picard_rs::case::REF_ARRAYS {
+        without.arrays.remove(a);
+    }
+    without.solution = None;
+    without.history_ref = None;
+    assert!(!without.has_reference());
+    let opts = SolveOpts {
+        threads: 2,
+        ..SolveOpts::default()
+    };
+    let a = api::solve(&with, &opts).unwrap();
+    let b = api::solve(&without, &opts).unwrap();
+    assert!(a.dev.is_some());
+    assert!(b.dev.is_none());
+    assert_eq!(a.iters, b.iters);
+    assert_eq!(a.stop, b.stop);
+    for (f, x, y) in [
+        ("u", &a.state.u, &b.state.u),
+        ("v", &a.state.v, &b.state.v),
+        ("w", &a.state.w, &b.state.w),
+        ("th", &a.state.th, &b.state.th),
+        ("thd", &a.state.thd, &b.state.thd),
+        ("p", &a.state.p, &b.state.p),
+    ] {
+        assert!(
+            x.iter().zip(y).all(|(p, q)| p.to_bits() == q.to_bits()),
+            "state field {f} differs"
+        );
+    }
+    // R2 of a run without reference: dev, iters_ref, history_ref are null.
+    let doc = picard_rs::report::result_json(
+        &without,
+        2,
+        b.out.status,
+        b.iters,
+        picard_rs::report::history_json(&b.out),
+        b.dev.as_ref(),
+        &b.timing,
+        None,
+    );
+    assert!(doc["iters_ref"].is_null() && doc["history_ref"].is_null());
+    assert!(doc["dev"]["u_rel"].is_null() && doc["dev_crop"].is_null());
+    assert!(picard_rs::report::diag(&without, &b.picard).is_err());
+
+    // The same through files: JSON without the reference keys, arrays dropped from the index.
+    let src = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../../tests/atmosphere/fixtures/air_model/ref/flat_wind");
+    let dir = std::env::temp_dir().join(format!("picard_no_ref_{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let mut j: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(src.with_extension("json")).unwrap())
+            .unwrap();
+    let o = j.as_object_mut().unwrap();
+    o.remove("solution");
+    o.remove("history");
+    for a in picard_rs::case::REF_ARRAYS {
+        o["arrays"].as_object_mut().unwrap().remove(a);
+    }
+    let p = dir.join("flat_wind_noref.json");
+    std::fs::write(&p, serde_json::to_string(&j).unwrap()).unwrap();
+    std::fs::copy(src.with_extension("bin"), p.with_extension("bin")).unwrap();
+    let f = Case::load(&p).expect("load case without reference");
+    assert!(f.solution.is_none() && f.history_ref.is_none());
+    let c = api::solve(&f, &opts).unwrap();
+    assert!(c.dev.is_none());
+    assert_eq!(c.stop, StopReason::Converged);
+    std::fs::remove_dir_all(&dir).ok();
 }
