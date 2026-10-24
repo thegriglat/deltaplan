@@ -29,7 +29,6 @@
     "tools/research/air_cascade/picard_rs/ — крейт picard_rs (кроме contract/ и out/*.json AC-R3): src/, out/mv/, README.md, Cargo.toml, Cargo.lock, build.rs"
   ],
   "dont_touch": [
-    "tools/research/air_cascade/picard_rs/out/*.json (числа AC-R3 — база сравнения; новые результаты только в out/mv/)",
     "tools/research/air_cascade/picard_rs/contract/",
     "scripts/",
     "tests/",
@@ -37,7 +36,8 @@
     "tools/research/air_cascade/export/",
     "docs/contracts/",
     "project.godot",
-    "configs/"
+    "configs/",
+    "tools/research/air_cascade/picard_rs/out/[!m]*.json (числа AC-R3 — база сравнения; новые результаты только в out/mv/)"
   ],
   "accept": [
     {
@@ -147,5 +147,6 @@
     "kernels: список ядер под multiversion"
   ],
   "notes": "",
-  "created": "2026-10-24T07:05:20"
+  "created": "2026-10-24T07:05:20",
+  "edited": "2026-10-24T10:08:22"
 }

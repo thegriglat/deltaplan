@@ -1,0 +1,19 @@
+{
+  "verdict": "accept",
+  "summary": "Замечания закрыты: замер 1 потока (603 мс/ит, out/mv/..._t1.json), Вывод и Ryzen пересчитаны с пометкой про шум, пометка про A/B. Ускорения нет, результат честный.",
+  "issues": [],
+  "rerun": [
+    {
+      "name": "results_committed --dry",
+      "value": "worst=0.0415",
+      "pass": true
+    },
+    {
+      "name": "readme --dry",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T10:17:43",
+  "by": "reviewer"
+}
