@@ -278,9 +278,19 @@ impl Mg {
 
     /// Sets the finest-level right-hand side.
     pub fn set_rhs(&mut self, f: &[f32]) {
-        for (r, &v) in self.levels[0].rows.iter_mut().zip(f) {
-            r[RHS] = v;
-        }
+        self.levels[0]
+            .rows
+            .par_iter_mut()
+            .zip(f.par_iter())
+            .for_each(|(r, &v)| r[RHS] = v);
+    }
+
+    /// Zeroes the finest-level solution (in the pool).
+    pub fn zero_phi(&mut self) {
+        self.levels[0]
+            .x
+            .par_chunks_mut(CHUNK)
+            .for_each(|c| c.fill(0.0));
     }
 
     /// One V-cycle on the finest level (2 pre, 2 post smoothing sweeps in z, 20 sweeps of
