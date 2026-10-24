@@ -290,6 +290,73 @@ impl Mg {
     }
 }
 
+/// Cells per parallel task of the point-wise transfers.
+const CHUNK: usize = 1024;
+
+/// Restriction of the fine residual `r` (mean of 2x2 columns) to the coarse right-hand side;
+/// zeroes the coarse solution.
+#[cfg_attr(
+    all(target_arch = "x86_64", not(feature = "base_only")),
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn restrict_chunk(
+    r: &[f32],
+    (ny, nx): (usize, usize),
+    act: &[f32],
+    start: usize,
+    rows: &mut [Row],
+    xc: &mut [f32],
+) {
+    let (cny, cnx) = (ny / 2, nx / 2);
+    for (d, (row, xc)) in rows.iter_mut().zip(xc.iter_mut()).enumerate() {
+        let q = start + d;
+        let i = q % cnx;
+        let j = (q / cnx) % cny;
+        let k = q / (cnx * cny);
+        let mut s = 0.0f32;
+        for dj in 0..2 {
+            for di in 0..2 {
+                s += r[(k * ny + 2 * j + dj) * nx + 2 * i + di];
+            }
+        }
+        row[RHS] = s / 4.0 * act[q];
+        *xc = 0.0;
+    }
+}
+
+/// Restriction to the coarse level `c`, chunks of coarse cells in parallel.
+fn restrict(r: &[f32], dims: (usize, usize), c: &mut Level) {
+    let act = &c.act;
+    c.rows
+        .par_chunks_mut(CHUNK)
+        .zip(c.x.par_chunks_mut(CHUNK))
+        .enumerate()
+        .for_each(|(n, (rows, xc))| restrict_chunk(r, dims, act, n * CHUNK, rows, xc));
+}
+
+/// Piecewise-constant prolongation of the coarse correction `cx`, added to `x` in active cells.
+#[cfg_attr(
+    all(target_arch = "x86_64", not(feature = "base_only")),
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn prolong_chunk(cx: &[f32], act: &[f32], (ny, nx): (usize, usize), start: usize, x: &mut [f32]) {
+    let (cny, cnx) = (ny / 2, nx / 2);
+    for (d, x) in x.iter_mut().enumerate() {
+        let q = start + d;
+        let i = q % nx;
+        let j = (q / nx) % ny;
+        let k = q / (nx * ny);
+        *x += cx[(k * cny + j / 2) * cnx + i / 2] * act[q];
+    }
+}
+
+/// Prolongation, chunks of fine cells in parallel.
+fn prolong_add(cx: &[f32], act: &[f32], dims: (usize, usize), x: &mut [f32]) {
+    x.par_chunks_mut(CHUNK)
+        .enumerate()
+        .for_each(|(n, xc)| prolong_chunk(cx, act, dims, n * CHUNK, xc));
+}
+
 fn vcycle_rec(levels: &mut [Level]) {
     let (cur, rest) = levels.split_at_mut(1);
     let l = &mut cur[0];
@@ -304,37 +371,10 @@ fn vcycle_rec(levels: &mut [Level]) {
     }
     resid(&l.rows, &l.x, l.shape, &mut l.r);
     let (_, ny, nx) = l.shape;
-    let (cny, cnx) = (ny / 2, nx / 2);
     let c = &mut rest[0];
-    {
-        let r = &l.r;
-        c.rows
-            .par_iter_mut()
-            .zip(c.x.par_iter_mut())
-            .enumerate()
-            .for_each(|(q, (row, xc))| {
-                let i = q % cnx;
-                let j = (q / cnx) % cny;
-                let k = q / (cnx * cny);
-                let mut s = 0.0f32;
-                for dj in 0..2 {
-                    for di in 0..2 {
-                        s += r[(k * ny + 2 * j + dj) * nx + 2 * i + di];
-                    }
-                }
-                row[RHS] = s / 4.0 * c.act[q];
-                *xc = 0.0;
-            });
-    }
+    restrict(&l.r, (ny, nx), c);
     vcycle_rec(rest);
-    let c = &rest[0];
-    let act = &l.act;
-    l.x.par_iter_mut().enumerate().for_each(|(q, x)| {
-        let i = q % nx;
-        let j = (q / nx) % ny;
-        let k = q / (nx * ny);
-        *x += c.x[(k * cny + j / 2) * cnx + i / 2] * act[q];
-    });
+    prolong_add(&rest[0].x, &l.act, (ny, nx), &mut l.x);
     for _ in 0..2 {
         sweep(&l.rows, &mut l.x, &mut l.sc, l.shape, &[2]);
     }

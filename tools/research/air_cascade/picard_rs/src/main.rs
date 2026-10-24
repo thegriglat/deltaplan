@@ -42,6 +42,8 @@ enum Cmd {
         #[arg(long)]
         diag: bool,
     },
+    /// Print the code branch (multiversion dispatch) selected on this CPU.
+    Isa,
     /// Time K iterations for each thread count; one R2 file per count.
     Bench {
         case: PathBuf,
@@ -158,6 +160,7 @@ fn solve_case(
 
 fn main() -> Result<()> {
     match Cli::parse().cmd {
+        Cmd::Isa => println!("isa_branch={}", picard_rs::util::isa_branch()),
         Cmd::Blocks { cases, threads } => {
             let pl = pool(threads)?;
             let mut worst = 0.0f64;

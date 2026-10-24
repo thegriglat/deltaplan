@@ -5,6 +5,8 @@ use crate::case::Consts;
 use crate::util::Row;
 use rayon::prelude::*;
 
+const CHUNK: usize = 512;
+
 const G_OVER_T0: f32 = (9.81 / 300.0) as f32;
 
 /// Velocity components (faces), each a halo array.
@@ -37,19 +39,21 @@ pub fn apply_bc(k: &Consts, u: &mut [f32], v: &mut [f32]) {
 /// Local eddy viscosity (Prandtl-Blackadar mixing length with stability correction plus
 /// horizontal Smagorinsky), updated with under-relaxation in air cells only
 /// — reference kernel `kloc`. `nu` is vertical K, `nuh` is horizontal K_h.
-pub fn kloc(k: &Consts, vel: &Vel, th: &[f32], nu: &mut [f32], nuh: &mut [f32]) {
+#[cfg_attr(
+    all(target_arch = "x86_64", not(feature = "base_only")),
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn kloc_chunk(k: &Consts, vel: &Vel, th: &[f32], start: usize, nu: &mut [f32], nuh: &mut [f32]) {
     let (nx, ny) = (k.nxh, k.nyh);
     let st = [1usize, nx, nx * ny];
     let h = [k.dx, k.dx, k.dz];
     let (u, v, w) = (vel.u, vel.v, vel.w);
     let f = [u, v, w];
-    nu.par_iter_mut()
-        .zip(nuh.par_iter_mut())
-        .enumerate()
-        .with_min_len(256)
-        .for_each(|(idx, (nu_i, nuh_i))| {
+    for (di, (nu_i, nuh_i)) in nu.iter_mut().zip(nuh.iter_mut()).enumerate() {
+        let idx = start + di;
+        {
             if k.cell[idx] != 1 {
-                return;
+                continue;
             }
             let i = idx % nx;
             let j = (idx / nx) % ny;
@@ -125,7 +129,8 @@ pub fn kloc(k: &Consts, vel: &Vel, th: &[f32], nu: &mut [f32], nuh: &mut [f32]) 
                 kh = kv;
             }
             *nuh_i += k.k_relax * (kh - *nuh_i);
-        });
+        }
+    }
 }
 
 /// Everything the momentum stencil of one component reads.
@@ -139,7 +144,11 @@ pub struct MomIn<'a> {
 
 /// Momentum stencil (`C`, `b`) of component `comp` (0 u, 1 v, 2 w) from the current state
 /// — reference kernel `build_mom` (first-order upwind, frozen transport velocity).
-pub fn build_mom(k: &Consts, comp: usize, m: &MomIn, out: &mut [Row]) {
+#[cfg_attr(
+    all(target_arch = "x86_64", not(feature = "base_only")),
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn build_mom_chunk(k: &Consts, comp: usize, m: &MomIn, start: usize, out: &mut [Row]) {
     let (nx, ny) = (k.nxh, k.nyh);
     let st = [1usize, nx, nx * ny];
     let h = [k.dx, k.dx, k.dz];
@@ -151,13 +160,12 @@ pub fn build_mom(k: &Consts, comp: usize, m: &MomIn, out: &mut [Row]) {
         _ => (&k.sp_w, None),
     };
     let inv_dtau = 1.0 / k.dtau_u;
-    out.par_iter_mut()
-        .enumerate()
-        .with_min_len(128)
-        .for_each(|(idx, row)| {
+    for (di, row) in out.iter_mut().enumerate() {
+        let idx = start + di;
+        {
             if tt[idx] != 1 {
                 *row = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, f[comp][idx]];
-                return;
+                continue;
             }
             let kk = idx / (nx * ny);
             let sc = st[comp];
@@ -223,7 +231,8 @@ pub fn build_mom(k: &Consts, comp: usize, m: &MomIn, out: &mut [Row]) {
                 rhs += k.cplz[kk] * f[2][idx];
             }
             *row = [diag, cc[1], cc[2], cc[3], cc[4], cc[5], cc[6], rhs];
-        });
+        }
+    }
 }
 
 /// Source and background terms of one heat template.
@@ -243,19 +252,22 @@ pub struct HeatIn<'a> {
 
 /// Heat stencil of one scalar — reference kernel `build_heat` (upwind transport in the
 /// template, turbulent diffusion `K / Pr_t`, sponge toward a zero parent).
-pub fn build_heat(k: &Consts, hin: &HeatIn, out: &mut [Row]) {
+#[cfg_attr(
+    all(target_arch = "x86_64", not(feature = "base_only")),
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn build_heat_chunk(k: &Consts, hin: &HeatIn, start: usize, out: &mut [Row]) {
     let (nx, ny) = (k.nxh, k.nyh);
     let st = [1usize, nx, nx * ny];
     let h = [k.dx, k.dx, k.dz];
     let vel = [hin.vel.u, hin.vel.v, hin.vel.w];
     let inv_dtau = 1.0 / k.dtau_th;
-    out.par_iter_mut()
-        .enumerate()
-        .with_min_len(128)
-        .for_each(|(idx, row)| {
+    for (di, row) in out.iter_mut().enumerate() {
+        let idx = start + di;
+        {
             if k.cell[idx] != 1 {
                 *row = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, hin.x[idx]];
-                return;
+                continue;
             }
             let kk = idx / (nx * ny);
             let mut diag = inv_dtau + hin.inv_tau + k.spc[idx];
@@ -289,5 +301,28 @@ pub fn build_heat(k: &Consts, hin: &HeatIn, out: &mut [Row]) {
                 }
             }
             *row = [diag, cc[1], cc[2], cc[3], cc[4], cc[5], cc[6], rhs];
-        });
+        }
+    }
+}
+
+/// Local eddy viscosity, see [`kloc_chunk`]: chunks of cells in parallel.
+pub fn kloc(k: &Consts, vel: &Vel, th: &[f32], nu: &mut [f32], nuh: &mut [f32]) {
+    nu.par_chunks_mut(CHUNK)
+        .zip(nuh.par_chunks_mut(CHUNK))
+        .enumerate()
+        .for_each(|(c, (nu_c, nuh_c))| kloc_chunk(k, vel, th, c * CHUNK, nu_c, nuh_c));
+}
+
+/// Momentum stencil of component `comp`, see [`build_mom_chunk`]: chunks of cells in parallel.
+pub fn build_mom(k: &Consts, comp: usize, m: &MomIn, out: &mut [Row]) {
+    out.par_chunks_mut(CHUNK)
+        .enumerate()
+        .for_each(|(c, oc)| build_mom_chunk(k, comp, m, c * CHUNK, oc));
+}
+
+/// Heat stencil of one scalar, see [`build_heat_chunk`]: chunks of cells in parallel.
+pub fn build_heat(k: &Consts, hin: &HeatIn, out: &mut [Row]) {
+    out.par_chunks_mut(CHUNK)
+        .enumerate()
+        .for_each(|(c, oc)| build_heat_chunk(k, hin, c * CHUNK, oc));
 }

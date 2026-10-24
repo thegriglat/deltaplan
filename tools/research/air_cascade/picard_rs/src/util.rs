@@ -88,3 +88,28 @@ impl Shared {
         unsafe { *self.ptr.add(i) = v }
     }
 }
+
+/// Name of the code branch the runtime dispatch selects for the hot kernels on this CPU
+/// (`"x86_64+avx2+fma"` or `"base"`); the same dispatcher as the kernels use.
+#[cfg(all(target_arch = "x86_64", not(feature = "base_only")))]
+#[multiversion::multiversion(targets("x86_64+avx2+fma"))]
+pub fn isa_branch() -> &'static str {
+    multiversion::target::match_target! {
+        "x86_64+avx2+fma" => "x86_64+avx2+fma",
+        _ => "base",
+    }
+}
+
+/// Name of the code branch (no dispatch in this build).
+#[cfg(not(all(target_arch = "x86_64", not(feature = "base_only"))))]
+pub fn isa_branch() -> &'static str {
+    "base"
+}
+
+/// `a * b + c`: one fused multiply-add when `FUSED` (instantiated only inside the AVX2+FMA
+/// branch of a multiversioned function, where it is a single instruction), else a plain
+/// multiply and add with two roundings, as in the reference.
+#[inline(always)]
+pub fn fmadd<const FUSED: bool>(a: f32, b: f32, c: f32) -> f32 {
+    if FUSED { a.mul_add(b, c) } else { a * b + c }
+}
