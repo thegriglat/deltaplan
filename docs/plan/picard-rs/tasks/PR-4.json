@@ -1,0 +1,86 @@
+{
+  "id": "PR-4",
+  "module": "picard-rs",
+  "type": "dp-researcher",
+  "title": "Профиль «до»: perf stat / perf record Rust-Пикара на Онгудае u3_heat, горячие места по фазам",
+  "goal": "Измерен профиль текущего кода (ветка x86_64+avx2+fma) на ongudai_d400_u3_heat: аппаратные счётчики perf stat (IPC, промахи L1/LLC/dTLB, ветвления) на 1/8/18 потоках и perf record по функциям и фазам; таблица горячих мест с долями времени и счётчиками на клетку·прогонку; находки README «Где запас» 1–9 подтверждены или опровергнуты числами и ранжированы по ожидаемому выигрышу.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "R2",
+      "version": "2",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R3",
+      "version": "4",
+      "ref": "docs/contracts/picard-rs.md"
+    }
+  ],
+  "copy": "~/deltaplan-picard-rs-PR-4",
+  "branch": "picard-rs/PR-4",
+  "base": "feature/picard-rs",
+  "scope": [
+    "tools/research/air_cascade/picard_rs/out/prof/ — тексты perf stat, сводки perf report (--stdio, верх ≥ 30 строк), скрипт пачки prof.sh и сводка summary.json; perf.data — вне git: ~/data/air_cascade/picard_rs/prof/ (путь в README)",
+    "tools/research/air_cascade/picard_rs/README.md — раздел «Профиль до оптимизации (PR-4)»"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/air3d/",
+    "tools/research/air_cascade/picard_rs/out/*.json, tools/research/air_cascade/picard_rs/out/mv/, tools/research/air_cascade/picard_rs/out/bench/ (числа AC-R3/AC-R4 — база сравнения, не трогать)",
+    "tools/research/air_cascade/picard_rs/src/ (код не меняется: профилируется как есть)",
+    "tools/research/air_cascade/picard_rs/Cargo.toml (профиль release не менять; символы — через переменную окружения, см. note)",
+    "tools/research/air_cascade/picard_rs/contract/",
+    "tools/research/air_cascade/picard_rs/out/base/ (числа PR-1)",
+    "tools/research/air_cascade/export/"
+  ],
+  "accept": [
+    {
+      "name": "stat_files",
+      "cmd": "ls tools/research/air_cascade/picard_rs/out/prof/stat_u3_heat_t1.txt tools/research/air_cascade/picard_rs/out/prof/stat_u3_heat_t8.txt tools/research/air_cascade/picard_rs/out/prof/stat_u3_heat_t18.txt tools/research/air_cascade/picard_rs/out/prof/report_u3_heat_t8.txt tools/research/air_cascade/picard_rs/out/prof/report_u3_heat_t18.txt tools/research/air_cascade/picard_rs/out/prof/summary.json tools/research/air_cascade/picard_rs/out/prof/prof.sh",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "stat_counters",
+      "cmd": "grep -lE 'L1-dcache-load-misses' tools/research/air_cascade/picard_rs/out/prof/stat_u3_heat_t*.txt | wc -l",
+      "expect": {
+        "num": "^(\\d+)$",
+        "min": 3,
+        "exit": 0
+      }
+    },
+    {
+      "name": "summary_keys",
+      "cmd": "python3 -c \"import json; d=json.load(open('tools/research/air_cascade/picard_rs/out/prof/summary.json')); k=['ipc','l1d_miss_per_cell_sweep','llc_miss_per_cell_sweep','hot','findings']; m=[x for x in k if x not in d]; print('missing='+str(len(m)), m)\"",
+      "expect": {
+        "re": "missing=0",
+        "exit": 0
+      }
+    },
+    {
+      "name": "readme",
+      "cmd": ".dpcli/dpcli docs check tools/research/air_cascade/picard_rs/README.md && grep -c -e '^## .*Профиль до оптимизации' tools/research/air_cascade/picard_rs/README.md",
+      "expect": {
+        "num": "^(\\d+)$",
+        "min": 1,
+        "exit": 0
+      }
+    }
+  ],
+  "report_extra": [
+    "ipc: {\"1\":…,\"8\":…,\"18\":…}",
+    "misses_per_cell_sweep: {L1d, LLC, dTLB} на 1/8/18 потоках",
+    "hot_top10: функция — доля времени, % (8 и 18 потоков)",
+    "phase_share: доли mom/heat/proj/kupd/other (из R2 v2 прогона под perf и без)",
+    "findings_ranked: номер находки README «Где запас» — подтверждена/нет — число — ожидаемый выигрыш, по убыванию",
+    "new_findings: что профиль показал сверх списка «Где запас»"
+  ],
+  "notes": "",
+  "created": "2026-10-24T17:07:19"
+}
