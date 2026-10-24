@@ -311,6 +311,13 @@ python3 $P/contract/tolerance.py --iters-tol 20 $P/out/mv/*.json
 cargo build --release --features base_only --manifest-path $P/Cargo.toml   # только база, без диспетчера
 ```
 
+## Профиль до оптимизации (PR-4)
+
+Подробно (счётчики, функции, направления, находки) — `out/prof/README.md`, числа — `out/prof/summary.json`, воспроизведение — `out/prof/prof.sh`.
+u3_heat, 8 потоков, 101 мс/итерацию: IPC 2,05, 241 инструкция и 117 тактов на клетко-прогонку, 5,0 L1d- и 0,18 LLC-промахов; `solve_line` = 74,5 % циклов и 92 % L1-промахов.
+Прогонки: x 63 такта / 1,1 L1-промаха, y 149 / 7,8, z 106 / 3,0 (на клетко-прогонку). Последовательный `Picard::project` — 7 мс/итерацию (6,6 % стены).
+Деление — не упор (один `vdivps`). Ранжирование: 3 (y/z, L1) → 5 (инструкции, ветвления) → 8 (последовательные циклы) → 7 → 4; 1, 2 — исключить.
+
 ## Зависимости (pure-Rust, без `-sys`, `cc`, `cmake`; `cargo tree` проверен)
 
 | Крейт | Версия | Зачем | Почему надёжен | Лицензия |
@@ -365,3 +372,11 @@ R6 v2 / R4 v2 / R2 v3 (`docs/contracts/picard-rs.md`); подробности �
 - Снимок по N — finalize на копии (ход решения не меняется); R4 v2 — `state::State::{read, write_atomic}`, проверка `check_contract.py --state`.
 - Тёплый старт как в игре (`air_picard_job.gd:_program("warm")`): `u,v,w,th,thd,p` из снимка, K и вход заново, `apply_bc` + 4 V-цикла.
 - CLI: `picard solve <случай> [--tol-scale X] [--time-budget S] [--init s.json] [--snap-at 30,100 --snap-dir D] [--save-state s.json]`.
+
+
+## Пачка 1b (PR-7)
+
+build_mom u/v/w — один проход по клеткам; `project`, `apply_phi`, `divergence` — построчно в пуле rayon,
+`pfull.fill` и перенос с `halo_index` убраны. Путь решения побитно тот же (identical=4/4).
+u3_heat, 8 потоков: 104,2 → 89,1 мс/итерацию (0,855); proj 28,0 → 17,1 мс; mom 33,9 → 31,7 мс; IPC 1,99 → 2,08.
+Подробности — `out/opt/PR-7/README.md`.

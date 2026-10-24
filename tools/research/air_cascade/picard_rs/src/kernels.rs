@@ -142,96 +142,136 @@ pub struct MomIn<'a> {
     pub nuh: &'a [f32],
 }
 
-/// Momentum stencil (`C`, `b`) of component `comp` (0 u, 1 v, 2 w) from the current state
-/// — reference kernel `build_mom` (first-order upwind, frozen transport velocity).
-#[cfg_attr(
-    all(target_arch = "x86_64", not(feature = "base_only")),
-    multiversion::multiversion(targets("x86_64+avx2+fma"))
-)]
-fn build_mom_chunk(k: &Consts, comp: usize, m: &MomIn, start: usize, out: &mut [Row]) {
+/// Per-component constant inputs of the momentum stencil (type map, drag/sponge, background).
+struct MomGeo<'a> {
+    tt: &'a [u8],
+    sp: &'a [f32],
+    bg: Option<&'a [f32]>,
+}
+
+impl<'a> MomGeo<'a> {
+    fn new(k: &'a Consts, comp: usize) -> Self {
+        let tt: &[u8] = [&k.tu, &k.tv, &k.tw][comp];
+        let (sp, bg): (&[f32], Option<&[f32]>) = match comp {
+            0 => (&k.sp_u, Some(&k.ubg)),
+            1 => (&k.sp_u, Some(&k.vbg)),
+            _ => (&k.sp_w, None),
+        };
+        Self { tt, sp, bg }
+    }
+}
+
+/// Momentum stencil row (`C`, `b`) of component `COMP` (0 u, 1 v, 2 w) in cell `idx` — reference
+/// kernel `build_mom` (first-order upwind, frozen transport velocity).
+#[inline(always)]
+fn mom_cell<const COMP: usize>(
+    k: &Consts,
+    m: &MomIn,
+    geo: &MomGeo,
+    inv_dtau: f32,
+    idx: usize,
+) -> Row {
+    let comp = COMP;
     let (nx, ny) = (k.nxh, k.nyh);
     let st = [1usize, nx, nx * ny];
     let h = [k.dx, k.dx, k.dz];
     let f = [m.vel.u, m.vel.v, m.vel.w];
-    let tt: &[u8] = [&k.tu, &k.tv, &k.tw][comp];
-    let (sp, bg): (&[f32], Option<&[f32]>) = match comp {
-        0 => (&k.sp_u, Some(&k.ubg)),
-        1 => (&k.sp_u, Some(&k.vbg)),
-        _ => (&k.sp_w, None),
-    };
-    let inv_dtau = 1.0 / k.dtau_u;
-    for (di, row) in out.iter_mut().enumerate() {
-        let idx = start + di;
-        {
-            if tt[idx] != 1 {
-                *row = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, f[comp][idx]];
-                continue;
-            }
-            let kk = idx / (nx * ny);
-            let sc = st[comp];
-            let c0 = idx - sc;
-            let c1 = idx;
-            let mut a3 = [0.0f32; 3];
-            a3[comp] = f[comp][idx];
-            for d in 0..3 {
+    let (tt, sp, bg) = (geo.tt, geo.sp, geo.bg);
+    if tt[idx] != 1 {
+        return [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, f[comp][idx]];
+    }
+    let kk = idx / (nx * ny);
+    let sc = st[comp];
+    let c0 = idx - sc;
+    let c1 = idx;
+    let mut a3 = [0.0f32; 3];
+    a3[comp] = f[comp][idx];
+    for d in 0..3 {
+        if d == comp {
+            continue;
+        }
+        let g = f[d];
+        a3[d] = 0.25 * (g[c0] + g[c0 + st[d]] + g[c1] + g[c1 + st[d]]);
+    }
+    let mut diag = inv_dtau + sp[idx];
+    let bgv = bg.map_or(0.0, |b| b[idx]);
+    let mut rhs = f[comp][idx] * inv_dtau + sp[idx] * bgv;
+    let mut cc = [0.0f32; 7];
+    for d in 0..3 {
+        let ih = 1.0 / h[d];
+        let a = a3[d];
+        let kk_arr = if d == 2 { m.nu } else { m.nuh };
+        for s in 0..2usize {
+            let o = 1 + 2 * d + s;
+            let q = if s == 1 { idx + st[d] } else { idx - st[d] };
+            let kf = if d == comp {
+                kk_arr[if s == 1 { c1 } else { c0 }]
+            } else if s == 1 {
+                0.25 * (kk_arr[c0] + kk_arr[c1] + kk_arr[c0 + st[d]] + kk_arr[c1 + st[d]])
+            } else {
+                0.25 * (kk_arr[c0] + kk_arr[c1] + kk_arr[c0 - st[d]] + kk_arr[c1 - st[d]])
+            };
+            let vis = kf * ih * ih;
+            let up = (s == 0 && a > 0.0) || (s == 1 && a < 0.0);
+            let aa = a.abs();
+            if tt[q] == 0 {
                 if d == comp {
-                    continue;
-                }
-                let g = f[d];
-                a3[d] = 0.25 * (g[c0] + g[c0 + st[d]] + g[c1] + g[c1 + st[d]]);
-            }
-            let mut diag = inv_dtau + sp[idx];
-            let bgv = bg.map_or(0.0, |b| b[idx]);
-            let mut rhs = f[comp][idx] * inv_dtau + sp[idx] * bgv;
-            let mut cc = [0.0f32; 7];
-            for d in 0..3 {
-                let ih = 1.0 / h[d];
-                let a = a3[d];
-                let kk_arr = if d == 2 { m.nu } else { m.nuh };
-                for s in 0..2usize {
-                    let o = 1 + 2 * d + s;
-                    let q = if s == 1 { idx + st[d] } else { idx - st[d] };
-                    let kf = if d == comp {
-                        kk_arr[if s == 1 { c1 } else { c0 }]
-                    } else if s == 1 {
-                        0.25 * (kk_arr[c0] + kk_arr[c1] + kk_arr[c0 + st[d]] + kk_arr[c1 + st[d]])
-                    } else {
-                        0.25 * (kk_arr[c0] + kk_arr[c1] + kk_arr[c0 - st[d]] + kk_arr[c1 - st[d]])
-                    };
-                    let vis = kf * ih * ih;
-                    let up = (s == 0 && a > 0.0) || (s == 1 && a < 0.0);
-                    let aa = a.abs();
-                    if tt[q] == 0 {
-                        if d == comp {
-                            diag += vis;
-                            if up {
-                                diag += aa * ih;
-                            }
-                        }
-                    } else {
-                        diag += vis;
-                        let mut cn = -vis;
-                        if up {
-                            diag += aa * ih;
-                            cn -= aa * ih;
-                        }
-                        cc[o] = cn;
+                    diag += vis;
+                    if up {
+                        diag += aa * ih;
                     }
                 }
-            }
-            rhs -= (m.p[c1] - m.p[c0]) / h[comp];
-            if comp < 2 {
-                if tt[idx - st[2]] == 0 {
-                    let sp2 = a3[0] * a3[0] + a3[1] * a3[1];
-                    diag += k.cd * sp2.sqrt() / k.dz;
-                }
             } else {
-                rhs += G_OVER_T0 * 0.5 * (m.th[c0] + m.th[c1]);
-                diag += k.cplz[kk];
-                rhs += k.cplz[kk] * f[2][idx];
+                diag += vis;
+                let mut cn = -vis;
+                if up {
+                    diag += aa * ih;
+                    cn -= aa * ih;
+                }
+                cc[o] = cn;
             }
-            *row = [diag, cc[1], cc[2], cc[3], cc[4], cc[5], cc[6], rhs];
         }
+    }
+    rhs -= (m.p[c1] - m.p[c0]) / h[comp];
+    if comp < 2 {
+        if tt[idx - st[2]] == 0 {
+            let sp2 = a3[0] * a3[0] + a3[1] * a3[1];
+            diag += k.cd * sp2.sqrt() / k.dz;
+        }
+    } else {
+        rhs += G_OVER_T0 * 0.5 * (m.th[c0] + m.th[c1]);
+        diag += k.cplz[kk];
+        rhs += k.cplz[kk] * f[2][idx];
+    }
+    [diag, cc[1], cc[2], cc[3], cc[4], cc[5], cc[6], rhs]
+}
+
+/// Momentum stencils of all three components for the cells `start..start + cu.len()`: one pass,
+/// the shared inputs (`nu`, `nuh`, `th`, `p`, velocities, masks) are read once per cell block.
+#[cfg_attr(
+    all(target_arch = "x86_64", not(feature = "base_only")),
+    multiversion::multiversion(targets("x86_64+avx2+fma"))
+)]
+fn build_all_mom_chunk(
+    k: &Consts,
+    m: &MomIn,
+    start: usize,
+    cu: &mut [Row],
+    cv: &mut [Row],
+    cw: &mut [Row],
+) {
+    let inv_dtau = 1.0 / k.dtau_u;
+    let (gu, gv, gw) = (MomGeo::new(k, 0), MomGeo::new(k, 1), MomGeo::new(k, 2));
+    for (di, ((ru, rv), rw)) in cu
+        .iter_mut()
+        .zip(cv.iter_mut())
+        .zip(cw.iter_mut())
+        .enumerate()
+    {
+        let idx = start + di;
+        *ru = mom_cell::<0>(k, m, &gu, inv_dtau, idx);
+        *rv = mom_cell::<1>(k, m, &gv, inv_dtau, idx);
+        *rw = mom_cell::<2>(k, m, &gw, inv_dtau, idx);
     }
 }
 
@@ -313,11 +353,14 @@ pub fn kloc(k: &Consts, vel: &Vel, th: &[f32], nu: &mut [f32], nuh: &mut [f32]) 
         .for_each(|(c, (nu_c, nuh_c))| kloc_chunk(k, vel, th, c * CHUNK, nu_c, nuh_c));
 }
 
-/// Momentum stencil of component `comp`, see [`build_mom_chunk`]: chunks of cells in parallel.
-pub fn build_mom(k: &Consts, comp: usize, m: &MomIn, out: &mut [Row]) {
-    out.par_chunks_mut(CHUNK)
+/// Momentum stencils of u, v, w in one pass, see [`build_all_mom_chunk`]: chunks of cells in
+/// parallel, the three output templates are traversed together.
+pub fn build_all_mom(k: &Consts, m: &MomIn, cu: &mut [Row], cv: &mut [Row], cw: &mut [Row]) {
+    cu.par_chunks_mut(CHUNK)
+        .zip(cv.par_chunks_mut(CHUNK))
+        .zip(cw.par_chunks_mut(CHUNK))
         .enumerate()
-        .for_each(|(c, oc)| build_mom_chunk(k, comp, m, c * CHUNK, oc));
+        .for_each(|(c, ((u, v), w))| build_all_mom_chunk(k, m, c * CHUNK, u, v, w));
 }
 
 /// Heat stencil of one scalar, see [`build_heat_chunk`]: chunks of cells in parallel.

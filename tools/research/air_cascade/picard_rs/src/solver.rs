@@ -3,7 +3,7 @@
 //! `finalize` (`air.py`) with the second-order advection correction off.
 
 use crate::case::{Consts, Criterion};
-use crate::kernels::{HeatIn, MomIn, Vel, apply_bc, build_heat, build_mom, kloc};
+use crate::kernels::{HeatIn, MomIn, Vel, apply_bc, build_all_mom, build_heat, kloc};
 use crate::lines::{Scratch, resid, sweep};
 use crate::mg::Mg;
 use crate::state::State;
@@ -132,10 +132,24 @@ pub struct Picard {
     pub qeff: Vec<f32>,
     pub rr: Vec<f32>,
     pub pfull: Vec<f32>,
+    /// Fluid mask in the interior layout `(nz, ny, nx)` (index-free weights of the projection).
+    pub fluid_int: Vec<f32>,
     pub div: Vec<f32>,
     pub sc: Scratch,
     /// Accumulated seconds of `outer_step` phases `[mom, heat, proj, kupd]` (main thread timers).
     pub phase: [f64; 4],
+}
+
+/// Interior (no halo) copy of a halo array, layout `(nz, ny, nx)`.
+fn interior(k: &Consts, a: &[f32]) -> Vec<f32> {
+    let mut out = Vec::with_capacity(k.nx * k.ny * k.nz);
+    for kk in 0..k.nz {
+        for j in 0..k.ny {
+            let g = ((kk + 1) * k.nyh + j + 1) * k.nxh + 1;
+            out.extend_from_slice(&a[g..g + k.nx]);
+        }
+    }
+    out
 }
 
 impl Picard {
@@ -175,6 +189,7 @@ impl Picard {
             qeff: z(),
             rr: z(),
             pfull: z(),
+            fluid_int: interior(&k, &k.fluid),
             sc: Scratch::new(n),
             phase: [0.0; 4],
             k,
@@ -186,98 +201,115 @@ impl Picard {
     }
 
     /// Divergence of the face velocities in air cells, interior layout `(nz, ny, nx)`.
+    /// Row-wise: one task per `x` row, no per-element index arithmetic.
     pub fn divergence(k: &Consts, u: &[f32], v: &[f32], w: &[f32], out: &mut [f32]) {
         let (nxh, nyh) = (k.nxh, k.nyh);
         let (nx, ny) = (k.nx, k.ny);
-        out.par_iter_mut()
-            .enumerate()
-            .with_min_len(256)
-            .for_each(|(q, o)| {
-                let i = q % nx;
-                let j = (q / nx) % ny;
-                let kk = q / (nx * ny);
-                let g = ((kk + 1) * nyh + j + 1) * nxh + i + 1;
+        let (dx, dz) = (f64::from(k.dx), f64::from(k.dz));
+        out.par_chunks_mut(nx).enumerate().for_each(|(r, o)| {
+            let (j, kk) = (r % ny, r / ny);
+            let g0 = ((kk + 1) * nyh + j + 1) * nxh + 1;
+            let (u0, u1) = (&u[g0..g0 + nx], &u[g0 + 1..g0 + 1 + nx]);
+            let (v0, v1) = (&v[g0..g0 + nx], &v[g0 + nxh..g0 + nxh + nx]);
+            let (w0, w1) = (&w[g0..g0 + nx], &w[g0 + nxh * nyh..g0 + nxh * nyh + nx]);
+            let fl = &k.fluid[g0..g0 + nx];
+            for i in 0..nx {
                 // f64 differences: with f32 the cancellation error of a nearly divergence-free
                 // field (|u| / dx * 6e-8) is comparable to the divergence itself.
-                let du = (f64::from(u[g + 1]) - f64::from(u[g])) / f64::from(k.dx);
-                let dv = (f64::from(v[g + nxh]) - f64::from(v[g])) / f64::from(k.dx);
-                let dw = (f64::from(w[g + nxh * nyh]) - f64::from(w[g])) / f64::from(k.dz);
-                *o = ((du + dv + dw) * f64::from(k.fluid[g])) as f32;
-            });
-    }
-
-    /// Interior-to-halo index map helper.
-    fn halo_index(k: &Consts, q: usize) -> usize {
-        let i = q % k.nx;
-        let j = (q / k.nx) % k.ny;
-        let kk = q / (k.nx * k.ny);
-        ((kk + 1) * k.nyh + j + 1) * k.nxh + i + 1
+                let du = (f64::from(u1[i]) - f64::from(u0[i])) / dx;
+                let dv = (f64::from(v1[i]) - f64::from(v0[i])) / dx;
+                let dw = (f64::from(w1[i]) - f64::from(w0[i])) / dz;
+                o[i] = ((du + dv + dw) * f64::from(fl[i])) as f32;
+            }
+        });
     }
 
     /// Pressure projection: `cycles` V-cycles for `div(K grad phi) = div u - mean`,
     /// velocity correction, and `p += phi` when `update_p`.
+    ///
+    /// All passes are row-wise in the rayon pool; the halo copy of `phi` writes only the
+    /// interior of `pfull` (its halo cells are zero from allocation and never written).
     pub fn project(&mut self, cycles: usize, update_p: bool) {
         let k = &self.k;
+        let nx = k.nx;
         Self::divergence(k, &self.f.u, &self.f.v, &self.f.w, &mut self.div);
+        let fi = &self.fluid_int;
         let mean = (det_sum(self.div.len(), |q| f64::from(self.div[q])) / k.n_fluid) as f32;
-        {
-            let div = &mut self.div;
-            div.par_iter_mut().enumerate().for_each(|(q, d)| {
-                *d -= mean * k.fluid[Self::halo_index(k, q)];
+        self.div
+            .par_chunks_mut(nx)
+            .zip(fi.par_chunks(nx))
+            .for_each(|(d, f)| {
+                for (d, &f) in d.iter_mut().zip(f) {
+                    *d -= mean * f;
+                }
             });
-        }
         self.mg.set_rhs(&self.div);
-        self.mg.phi_mut().fill(0.0);
+        self.mg.zero_phi();
         for _ in 0..cycles {
             self.mg.vcycle();
         }
         let phi = self.mg.phi_mut();
-        let pm = (det_sum(phi.len(), |q| {
-            f64::from(phi[q] * k.fluid[Self::halo_index(k, q)])
-        }) / k.n_fluid) as f32;
-        phi.par_iter_mut().enumerate().for_each(|(q, x)| {
-            *x -= pm * k.fluid[Self::halo_index(k, q)];
-        });
+        let pm = (det_sum(phi.len(), |q| f64::from(phi[q] * fi[q])) / k.n_fluid) as f32;
+        phi.par_chunks_mut(nx)
+            .zip(fi.par_chunks(nx))
+            .for_each(|(x, f)| {
+                for (x, &f) in x.iter_mut().zip(f) {
+                    *x -= pm * f;
+                }
+            });
         let phi = self.mg.phi();
-        self.pfull.fill(0.0);
-        for (q, &x) in phi.iter().enumerate() {
-            self.pfull[Self::halo_index(k, q)] = x;
-        }
+        let (nxh, nyh, ny) = (k.nxh, k.nyh, k.ny);
+        self.pfull
+            .par_chunks_mut(nxh)
+            .enumerate()
+            .for_each(|(hr, row)| {
+                let (kk, j) = (hr / nyh, hr % nyh);
+                if (1..=k.nz).contains(&kk) && (1..=ny).contains(&j) {
+                    let r = (kk - 1) * ny + (j - 1);
+                    row[1..=nx].copy_from_slice(&phi[r * nx..(r + 1) * nx]);
+                }
+            });
         Self::apply_phi(k, &self.pfull, &mut self.f, update_p);
     }
 
-    /// Applies a halo-layout correction potential `pf` to the velocities (and to `p`).
+    /// Applies a halo-layout correction potential `pf` to the velocities (and to `p`):
+    /// one pass, one task per halo `x` row.
     pub fn apply_phi(k: &Consts, pf: &[f32], f: &mut Fields, update_p: bool) {
         let (nx, ny) = (k.nxh, k.nyh);
-        f.u.par_iter_mut()
+        let (dx, dz) = (k.dx, k.dz);
+        let Fields { u, v, w, p, .. } = f;
+        u.par_chunks_mut(nx)
+            .zip(v.par_chunks_mut(nx))
+            .zip(w.par_chunks_mut(nx))
+            .zip(p.par_chunks_mut(nx))
             .enumerate()
-            .with_min_len(256)
-            .for_each(|(i, x)| {
-                if i % nx != 0 {
-                    *x -= k.kx[i] * (pf[i] - pf[i - 1]) / k.dx;
+            .for_each(|(r, (((u, v), w), p))| {
+                let o = r * nx;
+                let pc = &pf[o..o + nx];
+                let kx = &k.kx[o..o + nx];
+                for i in 1..nx {
+                    u[i] -= kx[i] * (pc[i] - pc[i - 1]) / dx;
+                }
+                if r % ny != 0 {
+                    let pm = &pf[o - nx..o];
+                    let ky = &k.ky[o..o + nx];
+                    for i in 0..nx {
+                        v[i] -= ky[i] * (pc[i] - pm[i]) / dx;
+                    }
+                }
+                if r >= ny {
+                    let pm = &pf[o - nx * ny..o - nx * ny + nx];
+                    let kz = &k.kz[o..o + nx];
+                    for i in 0..nx {
+                        w[i] -= kz[i] * (pc[i] - pm[i]) / dz;
+                    }
+                }
+                if update_p {
+                    for (p, &d) in p.iter_mut().zip(pc) {
+                        *p += d;
+                    }
                 }
             });
-        f.v.par_iter_mut()
-            .enumerate()
-            .with_min_len(256)
-            .for_each(|(i, x)| {
-                if (i / nx) % ny != 0 {
-                    *x -= k.ky[i] * (pf[i] - pf[i - nx]) / k.dx;
-                }
-            });
-        f.w.par_iter_mut()
-            .enumerate()
-            .with_min_len(256)
-            .for_each(|(i, x)| {
-                if i >= nx * ny {
-                    *x -= k.kz[i] * (pf[i] - pf[i - nx * ny]) / k.dz;
-                }
-            });
-        if update_p {
-            f.p.par_iter_mut()
-                .zip(pf.par_iter())
-                .for_each(|(p, &d)| *p += d);
-        }
     }
 
     /// Momentum stencils of the three components from the current state.
@@ -294,9 +326,7 @@ impl Picard {
             nu: &f.nu,
             nuh: &f.nuh,
         };
-        build_mom(&self.k, 0, &m, &mut self.cu);
-        build_mom(&self.k, 1, &m, &mut self.cv);
-        build_mom(&self.k, 2, &m, &mut self.cw);
+        build_all_mom(&self.k, &m, &mut self.cu, &mut self.cv, &mut self.cw);
     }
 
     /// Heat template for theta'_d from the current state.
