@@ -1,0 +1,159 @@
+{
+  "status": "done",
+  "summary": "API v2, state.rs (R4 v2), R2 v3, CLI-флаги, check_contract --state, тесты api/state; accept PASS 19/19 после правки карточки. Факт: тёплый старт из своего сошедшегося поля — 20 итераций, u_rel 1.17e-2 (K сброшен в nu_bg; решение: R4 v2 как есть, меряет PR-w). После слияния PR-7 (README: конфликт решён, оба раздела) accept снова 19/19; time_budget iters=22 (быстрее итерации).",
+  "commits": [
+    "1cee76745 picard-rs PR-5: раздел README короче, подробности в doc-комментариях api.rs",
+    "d4c102c2f picard-rs PR-5: API v2 (tol_scale, time_budget, причина остановки), снимки R4 v2, тёплый старт как в игре, R2 v3"
+  ],
+  "checks": [
+    {
+      "name": "contract_crate",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_dev",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "build_release",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "pure_rust",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "multiversion_dep",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_native",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_asm_intrinsics",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_global_pool",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "blocks_dev",
+      "value": "7.4e-07",
+      "pass": true
+    },
+    {
+      "name": "solve_ref_release",
+      "value": "worst 5.7e-4",
+      "pass": true
+    },
+    {
+      "name": "solve_ongudai_release",
+      "value": "worst 0.0415",
+      "pass": true
+    },
+    {
+      "name": "isa_v3",
+      "value": "avx2+fma",
+      "pass": true
+    },
+    {
+      "name": "test_api_state",
+      "value": "ok 7+3",
+      "pass": true
+    },
+    {
+      "name": "save_and_snap",
+      "value": "v 3 stop converged snaps 2",
+      "pass": true
+    },
+    {
+      "name": "warm_same_case",
+      "value": "iters=20, u_rel 1.17e-2",
+      "pass": true
+    },
+    {
+      "name": "time_budget",
+      "value": "time_budget iters=22",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "1",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PR-5 --dry",
+  "uncertain": [
+    {
+      "where": "src/solver.rs:solve",
+      "why": "max_iters теперь точный (раньше округлялся до конца блока check_every); поведение v1 меняется только на неполных прогонах",
+      "checked": "сошедшиеся прогоны побитно как цикл v1 (тест); Онгудай — итерации в допуске tolerance.py (worst 0.0415)"
+    },
+    {
+      "where": "src/solver.rs:init_warm",
+      "why": "pre_steps=0 при тёплом старте (проверки с 10-й итерации, как пачки игры); из контракта не следует прямо",
+      "checked": "чтение air_picard_job.gd, пачки по check_every"
+    },
+    {
+      "where": "README.md",
+      "why": "упёрся в лимит 40 КБ: сократил оценку для Ryzen, 'Где запас', зависимости; потом раздел PR-5 сжат по просьбе координатора (38.9 КБ)",
+      "checked": "docs check ok"
+    },
+    {
+      "where": "Diverged",
+      "why": "достижимость diverged тестом не проверена (сложно получить на малом случае)",
+      "checked": "только ветка кода; converged, max_iters, time_budget — тестами"
+    }
+  ],
+  "dp_feedback": "В карточке команды warm_same_case и time_budget содержат python -c \"...f\\\"...\\\"...\" с вложенными двойными кавычками — shell ломает их (SyntaxError/NameError), приёмка не может пройти; нужны одинарные кавычки внутри. Проверка scope помечает все файлы из скоупа (api.rs, state.rs, lib.rs, main.rs, tests/api.rs, tests/state.rs) как вне scope — видимо, разбор первой строки скоупа с запятой/«…»; solve --time-budget и 'number not found' без подсказки причины.",
+  "extra": {
+    "u3_heat_warm": {
+      "iters": 20,
+      "u_rel": 0.0117,
+      "total_s": 2.6
+    },
+    "u3_heat_time_budget_2s": {
+      "iters": 18
+    },
+    "phase_ms_u3_heat_8t": {
+      "mom": 34.0,
+      "heat": 38.5,
+      "proj": 27.9,
+      "kupd": 3.2
+    }
+  },
+  "api_v2: сигнатуры pub из api.rs и state.rs, одной строкой каждая": "api: pub struct SolveOpts{threads:usize,max_iters:usize,tol_scale:f64,time_budget:Option<Duration>,init:Option<State>,snapshot_at:Vec<usize>}; pub struct Solved{iters,stop:StopReason,residuals:Residuals,history:Vec<Check>,state:State,snapshots:Vec<State>,out:SolveOut,timing:Timing,dev:Dev,picard:Picard,pool:ThreadPool}; pub use solver::StopReason{Converged,MaxIters,TimeBudget,Diverged}; pub fn solve(&Case,&SolveOpts)->Result<Solved>; pub fn pool(usize)->Result<ThreadPool>; pub fn resolve_threads(usize)->usize; pub fn cpu_seconds()->f64; pub const DEFAULT_MAX_ITERS. state: pub struct State{case,input,it,dims,halo,n,u,v,w,th,thd,p,nu:Option,nuh:Option,residuals:Option<Value>}; State::capture(&Consts,&str,&str,usize,&Fields,Option<&Check>)->State; State::n3(&self)->usize; State::check_dims(&self,&Consts)->Result<()>; State::write_atomic(&self,&Path)->Result<()>; State::read(&Path)->Result<State>.",
+  "warm_semantics: что берётся из снимка, что считается заново, программа старта (сколько V-циклов) — со ссылкой на air_picard_job.gd": "Из снимка u,v,w,th,thd,p (нет thd — нули). nu,nuh=nu_bg и весь вход от нового случая (kloc релаксирует каждую итерацию). Программа: apply_bc от поля (без фона) + 4 V-цикла проекции без изменения p (air_picard_job.gd:869-871 _program('warm')); вместо холодных bc(фон)+30. pre_steps=0. Размеры не совпали — ошибка.",
+  "game_state_finalized: AirPicardJob.state() — поле до или после finalize (air_picard_job.gd:строка)": "После finalize: state() (стр.1122) читает буферы после фазы 'final' (_bc(0)+10 V-циклов, стр.888-891, FINAL в _step_program стр.922-926). В крейте Solved.state и снимки — после finalize(10).",
+  "bitwise: тест tol_scale=1 / холодный старт против v1 — побитно (как проверено)": "tests/api.rs cold_start_tol_scale_one_is_bitwise_v1: в тесте записан цикл v1 (pre_steps, блоки check_every, residuals, finalize) на публичных методах Picard; api::solve(tol_scale=1.0) на flat_wind даёт те же iters и u,v,w,th,thd,p по to_bits. Плюс снимок на N побитно = прогон с max_iters=N (N=0,3,10,14), основной прогон со снимками побитно = без них; Онгудай — итерации в допуске.",
+  "warm_same_case_iters, time_budget_iters": "warm_same_case_iters=20; time_budget_iters=22 (после PR-7, бюджет 2 с)",
+  "t": "2026-10-24T18:47:55",
+  "by": "executor"
+}

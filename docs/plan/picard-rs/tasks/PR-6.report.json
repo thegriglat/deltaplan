@@ -1,0 +1,143 @@
+{
+  "status": "done",
+  "summary": "lines.rs: прогонки Томаса пачками соседних линий своего цвета, локальные буферы [позиция][линия], края вне внутреннего цикла. u3_heat t8 104,1 -> 69,3 мс/итер (x0,666), L1-промахов x0,46, identical=4/4.",
+  "commits": [
+    "см. git log picard-rs/PR-6: picard-rs PR-6: прогонки пачками линий своего цвета"
+  ],
+  "checks": [
+    {
+      "name": "contract_crate",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "test_dev",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "build_release",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "pure_rust",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "multiversion_dep",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "no_native",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "no_asm_intrinsics",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "no_global_pool",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "blocks_dev",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "solve_ref_release",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "solve_ongudai_release",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "isa_v3",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "batch_files",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "batch_identical",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "batch_tolerance",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "speedup",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "l1_ratio",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "PASS (accept 20/20)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PR-6",
+  "uncertain": [
+    {
+      "where": "src/lines.rs fwd_step",
+      "why": "внеплоскостной сосед вне сетки с c != 0 раньше читал обёрнутую клетку (в debug - assert); теперь пропускается по флагам ok (в debug - тот же assert c == 0)",
+      "checked": "тесты dev, blocks_dev 7.4e-7, identical 4/4, tolerance worst 0.0415"
+    },
+    {
+      "where": "out/opt/PR-6/summary.json l1_per_cellsweep",
+      "why": "до = числа PR-4 (harness_summary.json), после снято тем же harness в другой сессии; разброс 2-3 %",
+      "checked": "общий l1_ratio из perf stat до/после в одной серии"
+    },
+    {
+      "where": "README.md",
+      "why": "README крейта у лимита (40747 Б), мой раздел 3 строки; подробности в out/opt/PR-6/README.md",
+      "checked": "docs check без ошибок"
+    }
+  ],
+  "dp_feedback": "task show обрезает дополнения координатора до ~300 символов; полный текст только с --full - стоит сказать об этом в брифе.",
+  "extra": {},
+  "changes: список правок пачки (одна строка на правку)": [
+    "задача rayon = блок линий (BLOCK=[4,32,32] по a1 для x/y/z) одной плоскости, только линии своего цвета",
+    "прямой ход сразу по всем линиям пачки; c'/d' - локальные буферы на задачу [позиция][линия], Scratch стал пустым маркером",
+    "края вне внутреннего цикла: boundary-линии отдельно (флаги ok), FIRST/LAST как const generic вместо m>0/m+1<n, c!=0 как select",
+    "границы блоков кратны 64 Б; замыкание вокруг inline(always) заменено макросом (иначе fma терялась: 157 мс)"
+  ],
+  "ms_per_iter_u3_heat_t8: до → после; phase_ms mom/heat/proj до → после": "104,131 -> 69,334; mom 33,98 -> 23,53, heat 38,92 -> 22,55, proj 28,01 -> 20,13 (kupd 3,17 -> 3,08); u3_mech 88,8 -> 58,2, u0_heat 103,2 -> 69,0, u6_heat 101,4 -> 69,2",
+  "l1_per_cell_sweep: x/y/z до → после (harness PR-4, out/prof/harness)": "L1-промахи: x 1,09 -> 0,86, y 7,81 -> 2,51, z 2,96 -> 2,36; такты: x 63 -> 46, y 149 -> 67, z 106 -> 84",
+  "perf_after: IPC, L1-dcache-load-misses, LLC-load-misses до → после (u3_heat t8)": "IPC 2,04 -> 1,77 (инструкций 995 -> 568 млрд, циклов 488 -> 322 млрд); L1d-промахов 20,32 -> 9,35 млрд (x0,460); LLC-промахов 0,741 -> 0,382 млрд",
+  "bisect: если понадобилась — какие правки дали/отняли": "не понадобилась (speedup 0,666 <= 0,9, identical 4/4). Размер пачки подбирался по u3_heat: [2,2,2] 83,8; [2,16,16] 72,1; [4,32,32] 69,3 мс/итер.",
+  "t": "2026-10-24T18:47:28",
+  "by": "executor"
+}

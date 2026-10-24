@@ -1,0 +1,32 @@
+{
+  "verdict": "accept",
+  "summary": "Изменения в границах скоупа; арифметика прогонки не тронута, путь решения побитно тот же (identical=4/4). Ускорение 0,666 и L1 0,46 подтверждены перезапуском.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/picard_rs/src/lines.rs",
+      "line": 79,
+      "severity": "minor",
+      "what": "Соседняя клетка вне сетки с c != 0 раньше читала обёрнутую клетку, теперь пропускается (в debug — assert). На валидных матрицах c == 0 на границе, тождественность 4/4 и blocks_dev это подтверждают; изменение поведения только на заведомо некорректных данных.",
+      "fix": "Ничего не делать; при желании упомянуть в out/opt/PR-6/README.md."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "batch_identical",
+      "value": "identical=4/4",
+      "pass": true
+    },
+    {
+      "name": "speedup",
+      "value": "ratio_ms_per_iter=0.6658",
+      "pass": true
+    },
+    {
+      "name": "test_dev",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T18:48:53",
+  "by": "reviewer"
+}
