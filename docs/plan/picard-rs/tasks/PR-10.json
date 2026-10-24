@@ -1,0 +1,97 @@
+{
+  "id": "PR-10",
+  "module": "picard-rs",
+  "type": "dp-researcher",
+  "title": "Случай T+30 для цепочки тёплых стартов: ongudai_d400_u3_heat_h1230 (R5 v1) инструментом PR-3",
+  "goal": "Для цепочки тёплых стартов T→T+15→T+30 (решение пользователя 2026-10-24, PR-w) собрать случай ongudai_d400_u3_heat_h1230 тем же путём, что PR-3 собрал h1200/h1215: вход часа 12:30 снят кодом игры (warm/dump_inputs.gd), экспорт export_ongudai.py, эталон — холодный air.py f64; R1 v1 + R5 v1 с warm_from = ongudai_d400_u3_heat_h1215. Существующие случаи не менять.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "R1",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R5",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    }
+  ],
+  "copy": "~/deltaplan-picard-rs-PR-10",
+  "branch": "picard-rs/PR-10",
+  "base": "feature/picard-rs",
+  "scope": [
+    "tools/research/air_cascade/export/export_ongudai.py — только добавить случай u3_heat_h1230 (час 12.5, warm_from h1215), без изменения остальных",
+    "tools/research/air_cascade/export/README.md — строка/абзац про h1230 в разделе «T+15» и в «Воспроизведение PR-3»",
+    "~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1230.json — новый случай (вне git)",
+    "~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1230.bin — новый случай (вне git)",
+    "~/data/air_cascade/ongudai/warm_inputs/inputs_h1230.json — вход часа от игры (вне git)"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/air3d/",
+    "tools/research/air_cascade/picard_rs/",
+    "tools/research/air_cascade/warm/ (зонд PR-3 — только запускать)",
+    "tools/research/air_cascade/export/check_r5.py",
+    "~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1200.*",
+    "~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1215.*",
+    "~/data/air_cascade/ongudai/ongudai_d400_u3_mech_h1200.*",
+    "~/data/air_cascade/ongudai/ongudai_d400_u3_mech_h1215.*",
+    "~/data/air_cascade/ongudai/ongudai_d400_u0_heat.*",
+    "~/data/air_cascade/ongudai/ongudai_d400_u3_heat.*",
+    "~/data/air_cascade/ongudai/ongudai_d400_u3_mech.*",
+    "~/data/air_cascade/ongudai/ongudai_d400_u6_heat.*"
+  ],
+  "accept": [
+    {
+      "name": "r1_new",
+      "cmd": "python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --ref ~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1230.json",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "r5_new",
+      "cmd": "python3 tools/research/air_cascade/export/check_r5.py ~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1230.json",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "r5_hour",
+      "cmd": "python3 -c \"import json,sys; s=json.load(open(sys.argv[1]))['source']; print(s['hour'], s['warm_from'], s['changed'])\" ~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1230.json",
+      "expect": {
+        "re": "^12\\.5 ongudai_d400_u3_heat_h1215 ",
+        "exit": 0
+      }
+    },
+    {
+      "name": "old_cases_md5",
+      "cmd": "cd ~/data/air_cascade/ongudai && printf '%s\\n' '76ec8f45086f3a9bea2ca47cd0be14fb  ongudai_d400_u3_heat_h1200.json' '0531733843719ec4fd758121619808c0  ongudai_d400_u3_heat_h1215.json' '0b6fb70a9f6596a2515ca921d9e9890c  ongudai_d400_u3_mech_h1200.json' 'c4da6349f83fc337dee3947d66bcd72e  ongudai_d400_u3_mech_h1215.json' '4e1a4a4e30a0e64785fcdcd1e5729b89  ongudai_d400_u3_heat_h1200.bin' 'bcfb1eb631cd87912ecedaaeaa3d731d  ongudai_d400_u3_heat_h1215.bin' '3dd905e1d7bd84cd8855eccec21913ba  ongudai_d400_u3_mech_h1200.bin' '3dd905e1d7bd84cd8855eccec21913ba  ongudai_d400_u3_mech_h1215.bin' | md5sum -c --quiet - && echo md5_ok",
+      "expect": {
+        "re": "md5_ok",
+        "exit": 0
+      }
+    },
+    {
+      "name": "readme",
+      "cmd": ".dpcli/dpcli docs check tools/research/air_cascade/export/README.md && grep -c 'h1230' tools/research/air_cascade/export/README.md",
+      "expect": {
+        "num": "^(\\d+)$",
+        "min": 1,
+        "exit": 0
+      }
+    }
+  ],
+  "report_extra": [
+    "changed_1215_1230: что меняется 12:15 → 12:30 (H, Q, z_i, nu_bg — величины, как таблица PR-3)",
+    "ref: итерации и t_ref_s холодного эталона f64 h1230",
+    "md5: md5 новых файлов и подтверждение, что старые не изменились (до/после)"
+  ],
+  "notes": "",
+  "created": "2026-10-24T19:59:44"
+}

@@ -1,0 +1,124 @@
+{
+  "id": "PR-11",
+  "module": "picard-rs",
+  "type": "dp-writer",
+  "title": "Описание крейта picard_rs для интегратора: публичный API, вход/выход, тёплый старт, нити, сборка, пример",
+  "goal": "Описать публичный API крейта так, чтобы интегратору (новый модуль встраивания в игру, другой координатор) не пришлось читать весь код: типы, функции, поля и единицы, потоки, tol_scale (принят 5), max_iters, time_budget, причины остановки, достигнутые невязки, тёплый старт (оба решения), формат входа и выхода, вызов в фоне, сборка, пример вызова. Связь с игрой — коротко, ссылками файл:функция. Всё — по коду и контрактам, ничего не выдумывать.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "R1",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R2",
+      "version": "3",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R3",
+      "version": "4",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R4",
+      "version": "2",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R6",
+      "version": "2",
+      "ref": "docs/contracts/picard-rs.md"
+    }
+  ],
+  "copy": "~/deltaplan-picard-rs-PR-11",
+  "branch": "picard-rs/PR-11",
+  "base": "feature/picard-rs",
+  "scope": [
+    "tools/research/air_cascade/picard_rs/INTEGRATION.md — новый, frontmatter (type guide или research — как требует docs check; summary, related)",
+    "tools/research/air_cascade/picard_rs/README.md — только одна строка-ссылка на INTEGRATION.md в начале (README у лимита 40 КБ: если не влезает — сократить свою же строку, не чужие разделы)",
+    "tools/research/air_cascade/picard_rs/examples/integrate.rs — новый, минимальный пример вызова из INTEGRATION.md (тот же код)"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/",
+    "project.godot",
+    "docs/contracts/",
+    "docs/guide/",
+    "tools/research/air3d/",
+    "tools/research/air_cascade/picard_rs/src/",
+    "tools/research/air_cascade/picard_rs/tests/",
+    "tools/research/air_cascade/picard_rs/contract/",
+    "tools/research/air_cascade/picard_rs/Cargo.toml",
+    "tools/research/air_cascade/picard_rs/out/",
+    "tools/research/rust_ext/"
+  ],
+  "accept": [
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check tools/research/air_cascade/picard_rs/INTEGRATION.md tools/research/air_cascade/picard_rs/README.md",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "sections",
+      "cmd": "grep -cE '^## .*(API|Вход и выход|Тёплый старт|Нити|Сборка|Пример)' tools/research/air_cascade/picard_rs/INTEGRATION.md",
+      "expect": {
+        "num": "^(\\d+)$",
+        "min": 6,
+        "exit": 0
+      }
+    },
+    {
+      "name": "readme_link",
+      "cmd": "grep -c 'INTEGRATION.md' tools/research/air_cascade/picard_rs/README.md",
+      "expect": {
+        "num": "^(\\d+)$",
+        "min": 1,
+        "exit": 0
+      }
+    },
+    {
+      "name": "example_build",
+      "cmd": ".dpcli/dpcli lock cpu PR-11 --no-tmux -- cargo build --release --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml --example integrate",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "example_run",
+      "cmd": ".dpcli/dpcli lock cpu PR-11 --no-tmux -- tools/research/air_cascade/picard_rs/target/release/examples/integrate tests/atmosphere/fixtures/air_model/ref/flat_wind.json",
+      "expect": {
+        "re": "stop=",
+        "exit": 0
+      },
+      "timeout": 600
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml --check",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "clippy",
+      "cmd": ".dpcli/dpcli lock cpu PR-11 --no-tmux -- cargo clippy --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml --all-targets -- -D warnings",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 3600
+    }
+  ],
+  "report_extra": [
+    "covered: какие публичные типы/функции/поля описаны (списком имён) и что из pub намеренно не описано (внутреннее)",
+    "game_links: ссылки файл:функция на игру, которые проверены чтением",
+    "unverified: что в описании не проверено запуском (Windows/macOS, 200 м, окна 100/50 м)"
+  ],
+  "notes": "",
+  "created": "2026-10-24T20:01:55"
+}
