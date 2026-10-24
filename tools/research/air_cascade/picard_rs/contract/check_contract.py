@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Contract test for air-cascade step 0 (docs/contracts/air-cascade.md, R1 v1, R2 v1, R3 v1).
+"""Contract test for air-cascade step 0 (docs/contracts/air-cascade.md, R1 v1, R2 v1, R3 v1; PR-5: R2 v1-v3, R4 v2).
 
 Stdlib only. Exit code 0 = contract holds, 1 = violation (messages on stderr).
 
     python3 check_contract.py --ref tests/atmosphere/fixtures/air_model/ref/flat_wind.json ...
     python3 check_contract.py --results tools/research/air_cascade/picard_rs/out
     python3 check_contract.py --crate
+    python3 check_contract.py --state D/picard_rs/states/<name>.json ...   # R4 v2
 """
 from __future__ import annotations
 
@@ -34,6 +35,12 @@ R2_DEV = ["u0", "u_rel", "th_abs", "p_rel", "div_rms", "div_rms_ref"]
 R2_TIME = ["total_s", "setup_s", "ms_per_iter", "check_ms", "ns_per_cell_iter", "n_cells"]
 R2_PHASES = ["mom", "heat", "proj", "kupd", "other"]
 R2_HOST = ["cpu", "rustc", "git"]
+R2_STOP = ["converged", "max_iters", "time_budget", "diverged"]
+R2_V3 = ["stop", "tol_scale", "time_budget_s", "init", "snapshots", "residuals"]
+R4_KEYS = ["format", "version", "case", "input", "it", "dims", "halo", "nx", "ny", "nz", "dtype",
+           "residuals", "host", "arrays"]
+R4_REQUIRED = ["u", "v", "w", "th", "thd", "p"]
+R4_OPTIONAL = ["nu", "nuh"]
 R2_HIST = ["it", "mom_rms", "mom_max", "th_rms", "thd_rms", "div_rms"]
 
 errors: list[str] = []
@@ -98,13 +105,13 @@ def finite_or_null(v) -> bool:
 
 
 def check_result(path: Path) -> None:
-    """R2 v1/v2: result JSON fields, enums, numbers."""
+    """R2 v1/v2/v3: result JSON fields, enums, numbers."""
     d = json.loads(path.read_text())
     w = str(path)
     need(d, R2_KEYS, w)
     if errors and any(e.startswith(w) for e in errors):
         return
-    if d["format"] != "picard-rs-result" or d["version"] not in (1, 2):
+    if d["format"] != "picard-rs-result" or d["version"] not in (1, 2, 3):
         err(f"{w}: format/version {d['format']}/{d['version']}")
     if d["profile"] not in ("dev", "release"):
         err(f"{w}: profile {d['profile']}")
@@ -127,8 +134,10 @@ def check_result(path: Path) -> None:
         err(f"{w}: history must be a list")
     elif d["history"]:
         need(d["history"][0], R2_HIST, w + ".history[0]")
-    if d["version"] == 2:
+    if d["version"] >= 2:
         check_r2_v2(d, w)
+    if d["version"] == 3:
+        check_r2_v3(d, w)
     name = path.stem
     if not re.fullmatch(r".+_(dev|release)_t\d+", name):
         err(f"{w}: file name must be <case>_<profile>_t<threads>.json")
@@ -156,6 +165,92 @@ def check_r2_v2(d: dict, w: str) -> None:
             err(f"{w}: history[{i}].t_s = {t!r} (finite, non-decreasing)")
             break
         last = t
+
+
+def check_r2_v3(d: dict, w: str) -> None:
+    """R2 v3: stop (enum), tol_scale, time_budget_s, init, snapshots, residuals."""
+    need(d, R2_V3, w)
+    if any(e.startswith(w) and "no key" in e for e in errors):
+        return
+    if d["stop"] not in R2_STOP:
+        err(f"{w}: stop {d['stop']!r} not in {R2_STOP}")
+    ts = d["tol_scale"]
+    if not isinstance(ts, (int, float)) or not math.isfinite(ts) or ts <= 0:
+        err(f"{w}: tol_scale {ts!r} must be a finite number > 0")
+    tb = d["time_budget_s"]
+    if tb is not None and (not isinstance(tb, (int, float)) or not math.isfinite(tb) or tb < 0):
+        err(f"{w}: time_budget_s {tb!r} must be null or a number >= 0")
+    if d["init"] is not None and not isinstance(d["init"], str):
+        err(f"{w}: init must be null or a path string")
+    sn = d["snapshots"]
+    if not isinstance(sn, list) or not all(isinstance(x, str) for x in sn):
+        err(f"{w}: snapshots must be a list of path strings")
+    r = d["residuals"]
+    if not isinstance(r, dict):
+        err(f"{w}: residuals must be an object")
+    else:
+        need(r, R2_HIST, w + ".residuals")
+        for k, v in r.items():
+            if not finite_or_null(v):
+                err(f"{w}: residuals.{k} = {v!r} (number or null)")
+    status_of = {"converged": "ok", "max_iters": "max", "time_budget": "max", "diverged": "diverged"}
+    if d["stop"] in status_of and d["status"] != status_of[d["stop"]]:
+        err(f"{w}: status {d['status']!r} does not match stop {d['stop']!r}")
+
+
+def check_state(path: Path) -> None:
+    """R4 v2: state JSON + .bin (float32 LE), arrays u, v, w, th, thd, p (+ nu, nuh), sizes, finite."""
+    from array import array
+    w = str(path)
+    d = json.loads(path.read_text())
+    need(d, R4_KEYS, w)
+    if any(e.startswith(w) and "no key" in e for e in errors):
+        return
+    if d["format"] != "picard-rs-state" or d["version"] != 2 or d["dtype"] != "f32":
+        err(f"{w}: format/version/dtype {d['format']}/{d['version']}/{d['dtype']}")
+    dims = d["dims"]
+    if not (isinstance(dims, list) and len(dims) == 3 and all(isinstance(x, int) and x > 0 for x in dims)):
+        err(f"{w}: dims {dims!r}")
+        return
+    if d["halo"] != 1 or [d["nx"], d["ny"], d["nz"]] != [x - 2 for x in dims]:
+        err(f"{w}: dims {dims} do not match halo 1 and nx/ny/nz")
+    if not isinstance(d["it"], int) or d["it"] < 0:
+        err(f"{w}: it {d['it']!r}")
+    if d["residuals"] is not None:
+        if not isinstance(d["residuals"], dict):
+            err(f"{w}: residuals must be null or an object")
+        else:
+            need(d["residuals"], R2_HIST, w + ".residuals")
+    n3 = dims[0] * dims[1] * dims[2]
+    arrays = d["arrays"]
+    for k in R4_REQUIRED:
+        if k not in arrays:
+            err(f"{w}: arrays has no '{k}'")
+    for k in arrays:
+        if k not in R4_REQUIRED + R4_OPTIONAL:
+            err(f"{w}: unknown array '{k}'")
+    binp = path.with_suffix(".bin")
+    if not binp.exists():
+        err(f"{binp}: missing")
+        return
+    raw = binp.read_bytes()
+    nf = len(raw) // 4
+    if len(raw) % 4:
+        err(f"{binp}: size {len(raw)} is not a multiple of 4")
+    data = array("f")
+    data.frombytes(raw[: nf * 4])
+    if sys.byteorder == "big":
+        data.byteswap()
+    for k, ent in arrays.items():
+        if not (isinstance(ent, list) and len(ent) == 2 and all(isinstance(x, int) for x in ent)):
+            err(f"{w}: arrays.{k} = {ent!r} (need [offset, length])")
+            continue
+        off, ln = ent
+        if ln != n3 or off < 0 or off + ln > nf:
+            err(f"{w}: arrays.{k} [{off}, {ln}] (cells {n3}, .bin {nf} float32)")
+            continue
+        if not math.isfinite(math.fsum(data[off: off + ln])):
+            err(f"{w}: array {k} has non-finite values")
 
 
 def check_crate() -> None:
@@ -205,8 +300,9 @@ def main() -> int:
     ap.add_argument("--ref", nargs="*", default=[], help="R1 case .json files")
     ap.add_argument("--results", nargs="*", default=[], help="R2 result dirs or files")
     ap.add_argument("--crate", action="store_true", help="check R3 (crate)")
+    ap.add_argument("--state", nargs="*", default=[], help="R4 v2 state .json files")
     a = ap.parse_args()
-    if not (a.ref or a.results or a.crate):
+    if not (a.ref or a.results or a.crate or a.state):
         ap.error("nothing to check")
     for p in a.ref:
         check_ref(Path(p))
@@ -219,12 +315,14 @@ def main() -> int:
         for f in files:
             check_result(f)
             n_res += 1
+    for p in a.state:
+        check_state(Path(p))
     if a.crate:
         check_crate()
     for e in errors:
         print("CONTRACT FAIL:", e, file=sys.stderr)
     if not errors:
-        print(f"contract OK (ref {len(a.ref)}, results {n_res}, crate {a.crate})")
+        print(f"contract OK (ref {len(a.ref)}, results {n_res}, states {len(a.state)}, crate {a.crate})")
     return 1 if errors else 0
 
 
