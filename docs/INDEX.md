@@ -53,6 +53,7 @@ generated: true
   - [tools/research/air_cascade/picard_rs/out/opt/PR-7/README.md](../tools/research/air_cascade/picard_rs/out/opt/PR-7/README.md) — PR-7: build_mom за один проход, project построчно в пуле; путь решения побитно тот же, 104,2 → 89,1 мс/итерацию (8 потоков)
   - [tools/research/air_cascade/picard_rs/out/opt/PR-9/README.md](../tools/research/air_cascade/picard_rs/out/opt/PR-9/README.md) — PR-9: профиль и пачка 2 (ширина пачек прогонок, граничные линии группой, слитые проходы); побитно тот же путь, 58,2 -> 50,5 мс/итер.
   - [tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md](../tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md) — PR-8: невязка Пикара → отклонение поля в м/с, холодный и тёплый старт, Онгудай 400 м; порог «годно для игры» — tol_scale 5
+- **rust-air-integration** — Встраивание Rust-Пикара в игру: поле, кэш, фоновый пересчёт и вход в крейте, Godot опрашивает точки; оценка 6–11 дней, проба [idea 2026-10-24] — [план](plan/rust-air-integration.md)
 
 ## flight
 
@@ -162,7 +163,8 @@ generated: true
 - **fast-load** — Быстрая загрузка места: кеш поля воздуха на диске (LRU), общие данные места, тяжёлое — в потоки/нативное/кеш, порции без замирания. [closed 2026-10-17] — [план](plan/fast-load.md) · [контракты](contracts/fast-load.md) · [решения](plan/fast-load/decisions.md) · [сводка](plan/fast-load/summary.md) · полный журнал: `archive/fast-load`
   - [docs/guide/fast-load.md](guide/fast-load.md) — Загрузка места: порядок этапов, потоки, кеш поля воздуха (LRU, настройка размера), пирамида высот, PlaceData, числа и границы.
   - [docs/registry/fast-load-findings.md](registry/fast-load-findings.md) — fast-load: тёплая загрузка 29,2 → 12,5 с (Онгудай), 40,2 → 18,0 с (точка) при кеше поля; промах без выигрыша; малый пул.
-- **rust-ext** — Что вынести в Rust (GDExtension); встраивание Rust-Пикара — поле и кэш в крейте, опрос по точкам, оценка 5–9 дней [idea 2026-10-24] — [план](plan/rust-ext.md)
+- **rust-ext** — Что вынести в Rust (GDExtension): горячие циклы и данные места — в крейт; воздух, объекты, маятник, графика; проба gdext работает [idea 2026-10-24] — [план](plan/rust-ext.md)
+  - [docs/plan/rust-air-integration.md](plan/rust-air-integration.md) — Встраивание Rust-Пикара в игру: поле, кэш, фоновый пересчёт и вход в крейте, Godot опрашивает точки; оценка 6–11 дней, проба [idea]
   - [tools/research/rust_ext/gdext_probe/README.md](../tools/research/rust_ext/gdext_probe/README.md) — Проба gdext 0.5.5 (godot-rust) на Godot 4.7.2 Linux: класс Probe, PackedFloat32Array и фоновый поток Rust с опросом из GDScript [closed]
 
 ## release
