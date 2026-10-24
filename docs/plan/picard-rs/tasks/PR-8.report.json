@@ -1,8 +1,9 @@
 {
-  "status": "partial",
-  "summary": "Все прогоны (8 потоков, под замком) и сводка R7 v1 готовы: 5 серий, 43 точки, check_residual ok; предложение порога tol_scale 5 (старт Δw≤0,05, Δ(u,v)≤0,2, склоны ≤0,1 м/с). accept --dry: 7/8, r2_contract падает из-за имён файлов (контракт требует *_release_t*), см. questions.",
+  "status": "done",
+  "summary": "Все прогоны (8 потоков, под замком) и сводка R7 v1 готовы: 5 серий, 43 точки, check_residual ok; предложение порога tol_scale 5 (старт Δw≤0,05, Δ(u,v)≤0,2, склоны ≤0,1 м/с). accept PR-8: 8/8 PASS (ref-прогоны перенесены в r2/ref/ по правке карточки).",
   "commits": [
-    "012db5305 picard-rs PR-8: невязка → отклонение поля Пикара, порог tol_scale 5"
+    "012db5305 picard-rs PR-8: невязка → отклонение поля Пикара, порог tol_scale 5",
+    "0c0019388 picard-rs PR-8: ref-прогоны в r2/ref/ по правке карточки"
   ],
   "checks": [
     {
@@ -17,16 +18,37 @@
     },
     {
       "name": "r2_contract",
-      "value": "FAIL: check_contract.py:142 имя файла должно быть <case>_(dev|release)_t<N>.json, а карточка (ref_tolerance) требует <case>_ref_t8.json",
-      "pass": false
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "build_release",
+      "value": "PASS (accept)",
+      "pass": true
+    },
+    {
+      "name": "isa_v3",
+      "value": "PASS (accept)",
+      "pass": true
+    },
+    {
+      "name": "run_sh",
+      "value": "PASS (accept)",
+      "pass": true
+    },
+    {
+      "name": "no_big_files",
+      "value": "PASS (accept)",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "PASS (accept)",
+      "pass": true
     }
   ],
-  "not_done": [
-    "accept PR-8: r2_contract не может пройти вместе с ref_tolerance (имена файлов)"
-  ],
-  "questions": [
-    "Имена r2/: ref_tolerance в карточке требует *_ref_t8.json, а check_contract.py:142 принимает только .+_(dev|release)_t\\d+. Нужно либо расширить регулярку (ref|tol\\d+|time|deep|warm_*), либо переименовать пути ref_tolerance в *_ref_release_t8.json (тогда исправить и мои имена в run.sh/summarize.py — пара строк)."
-  ],
+  "not_done": [],
+  "questions": [],
   "how_to_check": ".dpcli/dpcli accept PR-8 --dry; README: tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md",
   "uncertain": [
     {
@@ -274,6 +296,6 @@
       }
     }
   },
-  "t": "2026-10-24T19:35:33",
+  "t": "2026-10-24T19:36:39",
   "by": "executor"
 }
