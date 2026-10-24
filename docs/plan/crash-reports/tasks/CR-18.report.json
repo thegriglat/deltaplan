@@ -1,8 +1,9 @@
 {
   "status": "partial",
-  "summary": "Вариант (б): маска и классы узлов SurfaceLayer — неизменяемые снимки (MaskSnap/ClsSnap), читатели берут ссылку один раз; поляны правят копию и подставляют её целиком; Terrain.set_surfaces собирает массив карт локально и подставляет одной ссылкой. Тест поток-читатель против главного-писателя: на старом коде 2 из 3 падают (236 SCRIPT ERROR), на новом 3/3.",
+  "summary": "Маска и классы SurfaceLayer — неизменяемые снимки (вариант б), surfaces Terrain подставляется целиком; серия правок полян идёт на одной рабочей копии (begin_edit/end_edit) вместо копирования 16-48 МБ на каждый круг. Приёмка: 4 из 5 стабильно PASS; test_surface.test_forest_mask_loaded падает только по порогу времени загрузки 2,5 с на загруженной машине.",
   "commits": [
-    "37ef92c04 Маска поверхности: неизменяемые снимки маски и классов, массив карт Terrain подставляется целиком (CR-18)"
+    "37ef92c04 снимки маски и классов",
+    "da9be92ec серия правок полян, предрасчёт снимка"
   ],
   "checks": [
     {
@@ -11,8 +12,8 @@
       "pass": true
     },
     {
-      "name": "test_surface",
-      "value": "39/39",
+      "name": "test_rocks",
+      "value": "8/8 (6 прогонов подряд + 3 в accept)",
       "pass": true
     },
     {
@@ -26,34 +27,52 @@
       "pass": true
     },
     {
-      "name": "test_rocks",
-      "value": "1/8, но и на базовом коммите без правок 1/8 (7 упало)",
+      "name": "test_surface",
+      "value": "38/39: test_forest_mask_loaded, загрузка Онгудая 2.8-3.6 с при пороге 2.5 (load avg машины ~5.5)",
       "pass": false
     }
   ],
   "not_done": [
-    "test_rocks не зелёный: не от этой правки, на чистой ветке падает так же (модели камней не загружаются: 'Out of bounds index 0 on Array[Mesh]' в тесте). Нужен отдельный разбор/задача."
+    "test_surface: порог 'загрузка Онгудая ≤ 2,5 с' в tests/terrain/test_surface.gd (вне скоупа) зависит от нагрузки машины: на базе feature/crash-reports в том же accept получено 2.31 и 2.80 с; изолированно (--filter=test_surface.gd) моя версия 1.99-2.14 с, как база 2.06-2.18. Нужно ослабить порог (например 5 с) или мерить в тихой машине."
   ],
-  "questions": [],
+  "questions": [
+    "Разрешить правку порога в tests/terrain/test_surface.gd (contract)?"
+  ],
+  "images": [],
   "how_to_check": ".dpcli/dpcli accept CR-18 --dry",
   "uncertain": [
     {
-      "where": "scripts/terrain/surface_layer.gd (_mask, _cls)",
-      "why": "Подстановка ссылки на RefCounted без замка опирается на атомарность записи указателя Variant в Godot; формально это не гарантия. Прямая запись classes[i]=v снаружи (test_tow_k6) идёт через свойство get/set и создаёт новый снимок — читатель видит либо старый, либо новый.",
-      "checked": "Тест 300 циклов большая->малая->большая + поляны при читателе в WorkerThreadPool: 0 несогласованных чтений; первый вариант (только копия classes без объекта-снимка) тест ловил (torn read), после объекта-снимка ушло."
+      "where": "tests/terrain/test_rocks.gd (Out of bounds get index 0 on Array, 1-й accept координатора)",
+      "why": "не воспроизвелось: 6 прогонов test_rocks + 3 в accept чисто. Вероятная причина — get_start_sites()[0] на пустом списке при гонке/нагрузке, но подтвердить не удалось",
+      "checked": "прогоны под замком cpu; код в surface_layer/terrain не имеет индекса [0] на общих массивах, surface_for теперь читает локальную ссылку на surfaces"
     },
     {
-      "where": "scripts/terrain/surface_layer.gd:forest_mask_image",
-      "why": "mask_image.set_data при _mask_dirty и публичные mask_width/mask_spacing... — только для главного потока (рендер, air_place); рабочие потоки их не читают (проверено grep), в гонке не участвуют.",
-      "checked": "grep по scripts/ — внешние читатели mask_width/mask_origin: renderer, air_place (setup на главном), terrain.get_forest_mask."
-    },
-    {
-      "where": "scripts/terrain/tree_placer.gd, shrub_scatter.gd, rock_scatter.gd, grass_field.gd",
-      "why": "Не менял: у tree_placer своя копия маски (set_forest_mask хранит mask_data/mask_w вместе — тот же шаблон поле-за-полем, возможна аналогичная гонка при смене маски; в этом задании только SurfaceLayer/Terrain).",
-      "checked": "Прочитан set_forest_mask в tree_placer.gd:396 — присваивание полей по одному."
+      "where": "scripts/terrain/surface_layer.gd begin_edit/end_edit",
+      "why": "между begin и end читатели видят прежние снимки (поляны появляются разом в end_edit) — это намеренно; публичные поля mask_* обновляются только на главном потоке",
+      "checked": "тест гонки + test_start_clearings_have_no_forest"
     }
   ],
-  "dp_feedback": "Агент-подсказка: фильтр теста по подстроке не находит тест по имени метода (test_reader_vs); и нет способа быстро узнать, красен ли check на базе (accept --dry на базовом коммите) — пришлось стэшить вручную.",
-  "t": "2026-10-24T05:49:31",
+  "dp_feedback": "dpcli lock cpu возвращает сразу, а лог в jobs/ появляется позже; ждать удобнее по имени job (job wait). Скрипт godot --script с ошибкой в _init не завершается и держит замок cpu. rtk-переписывание grep ломает grep -h по нескольким файлам.",
+  "extra": {
+    "load_ongudai_s": {
+      "isolated_new": [
+        1.99,
+        2.14
+      ],
+      "isolated_base": [
+        2.06,
+        2.18
+      ],
+      "accept_base": [
+        2.31,
+        2.8
+      ],
+      "accept_new": [
+        2.81,
+        3.59
+      ]
+    }
+  },
+  "t": "2026-10-24T06:54:29",
   "by": "executor"
 }
