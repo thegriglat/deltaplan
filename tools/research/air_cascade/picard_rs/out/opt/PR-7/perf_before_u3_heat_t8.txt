@@ -1,0 +1,18 @@
+# started on Sat Oct 24 18:03:55 2026
+
+
+ Performance counter stats for 'tools/research/air_cascade/picard_rs/target/release/picard solve /home/greg/data/air_cascade/ongudai/ongudai_d400_u3_heat.json --threads 8 --out /tmp/pr7_before.json':
+
+   499 362 521 530      cycles                                                                  (66,59%)
+   995 437 153 708      instructions                     #    1,99  insn per cycle              (83,21%)
+   249 518 280 550      L1-dcache-loads                                                         (81,88%)
+    20 690 072 682      L1-dcache-load-misses            #    8,29% of all L1-dcache accesses   (51,08%)
+     6 464 386 129      LLC-loads                                                               (34,74%)
+       952 844 116      LLC-load-misses                  #   14,74% of all LL-cache accesses    (50,08%)
+
+      21,389525970 seconds time elapsed
+
+     157,922407000 seconds user
+       1,698795000 seconds sys
+
+
