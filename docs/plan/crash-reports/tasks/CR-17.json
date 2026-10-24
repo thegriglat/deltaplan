@@ -12,12 +12,16 @@
   "scope": [
     "scripts/world_objects",
     "tests/world_objects/test_place_change_callables.gd",
-    "CHANGELOG.md"
-  ],
-  "dont_touch": [
+    "CHANGELOG.md",
+    "scripts/game",
     "scripts/terrain",
     "scripts/atmosphere",
-    "scripts/game",
+    "scripts/flight",
+    "scripts/world",
+    "scripts/net",
+    "tests/game"
+  ],
+  "dont_touch": [
     "scripts/ui",
     "scenes",
     "shaders",
@@ -58,5 +62,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-24T05:38:34"
+  "created": "2026-10-24T05:38:34",
+  "edited": "2026-10-24T05:40:27"
 }
