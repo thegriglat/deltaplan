@@ -1,0 +1,93 @@
+{
+  "id": "PR-3",
+  "module": "picard-rs",
+  "type": "dp-researcher",
+  "title": "R5 v1: случаи Онгудая на 12:15 (T+15 игровых минут) как в фоне игры + как игра делает тёплый старт",
+  "goal": "Собраны случаи R5 ongudai_d400_u3_{heat,mech}_h1215 — вход решателя на 12:15 с теми же изменениями, что даёт игра при фоновом пересчёте после загрузки в 12:00 (солнце/нагрев, ветер — что реально меняется), с холодным эталоном air.py f64; в README экспорта описано, что меняется от T к T+15 и как игра делает тёплый старт (какие решения и поля греются, что сбрасывается), со ссылками файл:функция.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "R1",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R4",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R5",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    }
+  ],
+  "copy": "~/deltaplan-picard-rs-PR-3",
+  "branch": "picard-rs/PR-3",
+  "base": "feature/picard-rs",
+  "scope": [
+    "tools/research/air_cascade/export/ — скрипт(ы) экспорта T+15 (можно расширить export_ongudai.py флагом часа), check_r5.py (контрактный тест R5), README.md (разделы «T+15» и «Тёплый старт игры»)",
+    "~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1215.{json,bin}, ~/data/air_cascade/ongudai/ongudai_d400_u3_mech_h1215.{json,bin} — новые случаи (вне git); новая фикстура входа 12:15, если нужна, — тоже в ~/data/air_cascade/ongudai/ (вне git), путь в README",
+    "tools/research/air_cascade/warm/ — если нужен свой зонд (GDScript/py) для снятия входа игры на 12:15; коммитить код и малые сводки"
+  ],
+  "dont_touch": [
+    "scripts/ (код игры только читать)",
+    "configs/",
+    "project.godot",
+    "tests/ (фикстуры и тесты только читать)",
+    "tools/research/air_cascade/picard_rs/ (крейт меняют PR-1/PR-2)",
+    "tools/research/air3d/ (эталон только вызывать; правка — только если без неё нельзя, с причиной в отчёте)",
+    "~/data/air_cascade/ongudai/ongudai_d400_u{3,0,6}_{heat,mech}.{json,bin} — существующие случаи 12:00 не перезаписывать (проверка md5)",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "old_cases_intact",
+      "cmd": "cd ~/data/air_cascade/ongudai && printf '%s\\n' 'a2b2ef2ee324cd284ce0927e64f6e3ca  ongudai_d400_u0_heat.json' 'f516580973677e5d10211abd0e7c7d11  ongudai_d400_u3_heat.json' '45324ed82dd40755cecc7fd7f5a2d45d  ongudai_d400_u3_mech.json' '87158237ec5a46867f2df255f7a11b34  ongudai_d400_u6_heat.json' 'aa8e6adc108997a08b825b32ee72df47  ongudai_d400_u0_heat.bin' 'd2a43949cca7e3adb4b89ce31d19441f  ongudai_d400_u3_heat.bin' 'b1d407a5df115d4e4596f643dbec1d2f  ongudai_d400_u3_mech.bin' '462991ad445b6d77170643877cb70901  ongudai_d400_u6_heat.bin' | md5sum -c --quiet && echo md5_ok",
+      "expect": {
+        "re": "md5_ok",
+        "exit": 0
+      }
+    },
+    {
+      "name": "r1_new",
+      "cmd": "python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --ref ~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1215.json ~/data/air_cascade/ongudai/ongudai_d400_u3_mech_h1215.json",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "r5_new",
+      "cmd": "python3 tools/research/air_cascade/export/check_r5.py ~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1215.json ~/data/air_cascade/ongudai/ongudai_d400_u3_mech_h1215.json",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "r5_changed",
+      "cmd": "python3 -c \"import json; [print(f, json.load(open(f))['source']['hour'], json.load(open(f))['source']['changed']) for f in __import__('sys').argv[1:]]\" $HOME/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1215.json $HOME/data/air_cascade/ongudai/ongudai_d400_u3_mech_h1215.json",
+      "expect": {
+        "re": "12\\.25",
+        "exit": 0
+      }
+    },
+    {
+      "name": "readme",
+      "cmd": ".dpcli/dpcli docs check tools/research/air_cascade/export/README.md && grep -cE '^## .*(T\\+15|Тёплый старт игры)' tools/research/air_cascade/export/README.md",
+      "expect": {
+        "num": "^(\\d+)$",
+        "min": 2,
+        "exit": 0
+      }
+    }
+  ],
+  "report_extra": [
+    "changed: список входов, меняющихся 12:00 → 12:15, с источником файл:функция и величиной изменения (max/rms Q или H, Δ ветра)",
+    "warm_in_game: какие решения (mech/heat) и какие поля (u,v,w,th,thd,p,nu,nuh) игра берёт из текущего поля, что сбрасывает; файл:функция",
+    "iters_ref_h1215: холодный эталон f64 для heat и mech",
+    "wind_change: меняется ли ветер в игре за 15 игровых минут без действий пилота (и откуда это известно)",
+    "repro: команды воспроизведения"
+  ],
+  "notes": "",
+  "created": "2026-10-24T16:07:20"
+}

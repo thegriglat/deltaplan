@@ -1,0 +1,195 @@
+{
+  "id": "PR-2",
+  "module": "picard-rs",
+  "type": "dp-engineer",
+  "title": "R6 v1: API решателя с числом потоков (свой rayon-пул на вызов)",
+  "goal": "Функция библиотеки picard_rs::api::solve(case, &SolveOpts{threads, max_iters}) строит свой rayon::ThreadPool на вызов (threads = 0 — все логические ядра), глобальный пул не трогает; CLI solve/bench — тонкая обёртка над ней; тест: одновременные вызовы с разным числом потоков дают те же итерации и поля.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "R2",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R3",
+      "version": "4",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R6",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    }
+  ],
+  "copy": "~/deltaplan-picard-rs-PR-2",
+  "branch": "picard-rs/PR-2",
+  "base": "feature/picard-rs",
+  "scope": [
+    "tools/research/air_cascade/picard_rs/src/api.rs — новый модуль: SolveOpts, Solved, solve",
+    "tools/research/air_cascade/picard_rs/src/lib.rs — pub mod api",
+    "tools/research/air_cascade/picard_rs/src/main.rs — solve/bench через api::solve, своя функция pool() уходит в api",
+    "tools/research/air_cascade/picard_rs/tests/api.rs — тест R6",
+    "tools/research/air_cascade/picard_rs/README.md — раздел «API (R6)»: сигнатура, пример вызова, поведение threads = 0"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/air3d/",
+    "tools/research/air_cascade/picard_rs/out/*.json, tools/research/air_cascade/picard_rs/out/mv/, tools/research/air_cascade/picard_rs/out/bench/ (числа AC-R3/AC-R4 — база сравнения, не трогать)",
+    "tools/research/air_cascade/picard_rs/src/solver.rs, tools/research/air_cascade/picard_rs/src/report.rs, tools/research/air_cascade/picard_rs/src/util.rs (меняет PR-1 параллельно; api.rs только вызывает их)",
+    "tools/research/air_cascade/picard_rs/src/lines.rs, tools/research/air_cascade/picard_rs/src/mg.rs, tools/research/air_cascade/picard_rs/src/kernels.rs",
+    "tools/research/air_cascade/picard_rs/contract/ (контрактный тест R6 — tests/api.rs)",
+    "tools/research/air_cascade/picard_rs/out/",
+    "tools/research/air_cascade/export/"
+  ],
+  "accept": [
+    {
+      "name": "contract_crate",
+      "cmd": "python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --crate",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml --check",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "clippy",
+      "cmd": ".dpcli/dpcli lock cpu PR-2 --no-tmux -- cargo clippy --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml --all-targets -- -D warnings",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "test_dev",
+      "cmd": ".dpcli/dpcli lock cpu PR-2 --no-tmux -- cargo test --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 7200
+    },
+    {
+      "name": "build_release",
+      "cmd": ".dpcli/dpcli lock cpu PR-2 --no-tmux -- cargo build --release --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "pure_rust",
+      "cmd": "cargo tree --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml -e normal,build --prefix none",
+      "expect": {
+        "not_re": "^(cc|cmake|pkg-config|bindgen|[A-Za-z0-9_-]+-sys) v"
+      }
+    },
+    {
+      "name": "multiversion_dep",
+      "cmd": "cargo tree --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml -e normal --prefix none",
+      "expect": {
+        "re": "^multiversion v"
+      }
+    },
+    {
+      "name": "no_native",
+      "cmd": "grep -rn -e 'target-cpu' -e 'target_cpu' tools/research/air_cascade/picard_rs/Cargo.toml tools/research/air_cascade/picard_rs/build.rs tools/research/air_cascade/picard_rs/src || true",
+      "expect": {
+        "not_re": "native"
+      }
+    },
+    {
+      "name": "no_asm_intrinsics",
+      "cmd": "grep -rnE '(std|core)::arch|\\basm!|global_asm!' tools/research/air_cascade/picard_rs/src tools/research/air_cascade/picard_rs/tests 2>/dev/null || true",
+      "expect": {
+        "not_re": "arch|asm"
+      }
+    },
+    {
+      "name": "no_global_pool",
+      "cmd": "grep -rn 'build_global' tools/research/air_cascade/picard_rs/src tools/research/air_cascade/picard_rs/tests 2>/dev/null || true",
+      "expect": {
+        "not_re": "build_global"
+      }
+    },
+    {
+      "name": "blocks_dev",
+      "cmd": ".dpcli/dpcli lock cpu PR-2 --no-tmux -- cargo run -q --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml -- blocks tests/atmosphere/fixtures/air_model/ref/flat_wind.json tests/atmosphere/fixtures/air_model/ref/agnesi.json tests/atmosphere/fixtures/air_model/ref/heated_slope.json tests/atmosphere/fixtures/air_model/ref/saddle.json",
+      "expect": {
+        "num": "^max_block_rel=(\\S+)",
+        "max": 1e-05,
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "solve_ref_release",
+      "cmd": ".dpcli/dpcli lock cpu PR-2 --no-tmux -- bash -c 'set -e; for c in flat_wind agnesi heated_slope saddle; do tools/research/air_cascade/picard_rs/target/release/picard solve tests/atmosphere/fixtures/air_model/ref/$c.json --threads 8 --out tools/research/air_cascade/picard_rs/target/check_${c}_release_t8.json; done' && python3 tools/research/air_cascade/picard_rs/contract/tolerance.py tools/research/air_cascade/picard_rs/target/check_flat_wind_release_t8.json tools/research/air_cascade/picard_rs/target/check_agnesi_release_t8.json tools/research/air_cascade/picard_rs/target/check_heated_slope_release_t8.json tools/research/air_cascade/picard_rs/target/check_saddle_release_t8.json",
+      "expect": {
+        "num": "^worst=(\\S+)",
+        "max": 1.0,
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "solve_ongudai_release",
+      "cmd": ".dpcli/dpcli lock cpu PR-2 --no-tmux -- bash -c 'set -e; for c in ongudai_d400_u3_heat ongudai_d400_u3_mech ongudai_d400_u0_heat ongudai_d400_u6_heat; do tools/research/air_cascade/picard_rs/target/release/picard solve ~/data/air_cascade/ongudai/$c.json --threads 8 --out tools/research/air_cascade/picard_rs/target/check_${c}_release_t8.json; done' && python3 tools/research/air_cascade/picard_rs/contract/tolerance.py --iters-tol 10 tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u6_heat_release_t8.json",
+      "expect": {
+        "num": "^worst=(\\S+)",
+        "max": 1.0,
+        "exit": 0
+      },
+      "timeout": 7200
+    },
+    {
+      "name": "isa_v3",
+      "cmd": "tools/research/air_cascade/picard_rs/target/release/picard isa",
+      "expect": {
+        "re": "isa_branch=x86_64\\+avx2\\+fma"
+      }
+    },
+    {
+      "name": "test_api",
+      "cmd": ".dpcli/dpcli lock cpu PR-2 --no-tmux -- cargo test --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml --test api",
+      "expect": {
+        "re": "test result: ok\\. [1-9]",
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "api_pub",
+      "cmd": "grep -cE 'pub fn solve|pub struct SolveOpts' tools/research/air_cascade/picard_rs/src/api.rs",
+      "expect": {
+        "num": "^(\\d+)$",
+        "min": 2,
+        "exit": 0
+      }
+    },
+    {
+      "name": "readme",
+      "cmd": ".dpcli/dpcli docs check tools/research/air_cascade/picard_rs/README.md && grep -c -e '^## .*API' tools/research/air_cascade/picard_rs/README.md",
+      "expect": {
+        "num": "^(\\d+)$",
+        "min": 1,
+        "exit": 0
+      }
+    }
+  ],
+  "report_extra": [
+    "api: сигнатуры pub из api.rs одной строкой каждая",
+    "test_api: что проверяет tests/api.rs (случаи, потоки, одновременность)",
+    "cli_same: R2 через CLI до/после — итерации и dev совпали (ref/ 8 потоков)"
+  ],
+  "notes": "",
+  "created": "2026-10-24T16:07:17"
+}

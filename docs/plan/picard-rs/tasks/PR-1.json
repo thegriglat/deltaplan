@@ -1,0 +1,197 @@
+{
+  "id": "PR-1",
+  "module": "picard-rs",
+  "type": "dp-engineer",
+  "title": "R2 v2: время фаз итерации и t_s в истории; замер «до» на 4 случаях Онгудая",
+  "goal": "В результат solve (R2 v2) добавлены время фаз итерации (mom/heat/proj/kupd/other, мс/итерацию) и стена t_s на каждой проверке; снят замер «до» оптимизации: 4 случая Онгудая × 6/8/18 потоков, u3_heat и u3_mech ещё на 2 и 3 потоках → out/base/.",
+  "plan_ref": "Задачи",
+  "contracts": [
+    {
+      "name": "R1",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R2",
+      "version": "2",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R3",
+      "version": "4",
+      "ref": "docs/contracts/picard-rs.md"
+    }
+  ],
+  "copy": "~/deltaplan-picard-rs-PR-1",
+  "branch": "picard-rs/PR-1",
+  "base": "feature/picard-rs",
+  "scope": [
+    "tools/research/air_cascade/picard_rs/src/solver.rs — таймеры фаз в solve/outer_step, поля в SolveOut",
+    "tools/research/air_cascade/picard_rs/src/report.rs — R2 v2: time.phase_ms, history[].t_s, version 2",
+    "tools/research/air_cascade/picard_rs/src/util.rs — только если нужен общий помощник таймера",
+    "tools/research/air_cascade/picard_rs/contract/check_contract.py — --results принимает R2 v1 и v2, для v2 проверяет новые поля и сумму фаз",
+    "tools/research/air_cascade/picard_rs/out/base/ — результаты R2 v2 замера «до» и table.py (таблица)",
+    "tools/research/air_cascade/picard_rs/README.md — раздел «Замер до оптимизации (PR-1)»"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/air3d/",
+    "tools/research/air_cascade/picard_rs/out/*.json, tools/research/air_cascade/picard_rs/out/mv/, tools/research/air_cascade/picard_rs/out/bench/ (числа AC-R3/AC-R4 — база сравнения, не трогать)",
+    "tools/research/air_cascade/picard_rs/src/main.rs (меняет PR-2; фазы — через SolveOut, result_json берёт их оттуда)",
+    "tools/research/air_cascade/picard_rs/src/api.rs, tools/research/air_cascade/picard_rs/src/lib.rs (PR-2)",
+    "tools/research/air_cascade/picard_rs/src/lines.rs, tools/research/air_cascade/picard_rs/src/mg.rs, tools/research/air_cascade/picard_rs/src/kernels.rs (оптимизация — позже, после профиля)",
+    "tools/research/air_cascade/picard_rs/Cargo.toml (новых зависимостей не нужно: std::time::Instant)",
+    "tools/research/air_cascade/export/"
+  ],
+  "accept": [
+    {
+      "name": "contract_crate",
+      "cmd": "python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --crate",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml --check",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "clippy",
+      "cmd": ".dpcli/dpcli lock cpu PR-1 --no-tmux -- cargo clippy --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml --all-targets -- -D warnings",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "test_dev",
+      "cmd": ".dpcli/dpcli lock cpu PR-1 --no-tmux -- cargo test --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 7200
+    },
+    {
+      "name": "build_release",
+      "cmd": ".dpcli/dpcli lock cpu PR-1 --no-tmux -- cargo build --release --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "pure_rust",
+      "cmd": "cargo tree --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml -e normal,build --prefix none",
+      "expect": {
+        "not_re": "^(cc|cmake|pkg-config|bindgen|[A-Za-z0-9_-]+-sys) v"
+      }
+    },
+    {
+      "name": "multiversion_dep",
+      "cmd": "cargo tree --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml -e normal --prefix none",
+      "expect": {
+        "re": "^multiversion v"
+      }
+    },
+    {
+      "name": "no_native",
+      "cmd": "grep -rn -e 'target-cpu' -e 'target_cpu' tools/research/air_cascade/picard_rs/Cargo.toml tools/research/air_cascade/picard_rs/build.rs tools/research/air_cascade/picard_rs/src || true",
+      "expect": {
+        "not_re": "native"
+      }
+    },
+    {
+      "name": "no_asm_intrinsics",
+      "cmd": "grep -rnE '(std|core)::arch|\\basm!|global_asm!' tools/research/air_cascade/picard_rs/src tools/research/air_cascade/picard_rs/tests 2>/dev/null || true",
+      "expect": {
+        "not_re": "arch|asm"
+      }
+    },
+    {
+      "name": "no_global_pool",
+      "cmd": "grep -rn 'build_global' tools/research/air_cascade/picard_rs/src tools/research/air_cascade/picard_rs/tests 2>/dev/null || true",
+      "expect": {
+        "not_re": "build_global"
+      }
+    },
+    {
+      "name": "blocks_dev",
+      "cmd": ".dpcli/dpcli lock cpu PR-1 --no-tmux -- cargo run -q --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml -- blocks tests/atmosphere/fixtures/air_model/ref/flat_wind.json tests/atmosphere/fixtures/air_model/ref/agnesi.json tests/atmosphere/fixtures/air_model/ref/heated_slope.json tests/atmosphere/fixtures/air_model/ref/saddle.json",
+      "expect": {
+        "num": "^max_block_rel=(\\S+)",
+        "max": 1e-05,
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "solve_ref_release",
+      "cmd": ".dpcli/dpcli lock cpu PR-1 --no-tmux -- bash -c 'set -e; for c in flat_wind agnesi heated_slope saddle; do tools/research/air_cascade/picard_rs/target/release/picard solve tests/atmosphere/fixtures/air_model/ref/$c.json --threads 8 --out tools/research/air_cascade/picard_rs/target/check_${c}_release_t8.json; done' && python3 tools/research/air_cascade/picard_rs/contract/tolerance.py tools/research/air_cascade/picard_rs/target/check_flat_wind_release_t8.json tools/research/air_cascade/picard_rs/target/check_agnesi_release_t8.json tools/research/air_cascade/picard_rs/target/check_heated_slope_release_t8.json tools/research/air_cascade/picard_rs/target/check_saddle_release_t8.json",
+      "expect": {
+        "num": "^worst=(\\S+)",
+        "max": 1.0,
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "solve_ongudai_release",
+      "cmd": ".dpcli/dpcli lock cpu PR-1 --no-tmux -- bash -c 'set -e; for c in ongudai_d400_u3_heat ongudai_d400_u3_mech ongudai_d400_u0_heat ongudai_d400_u6_heat; do tools/research/air_cascade/picard_rs/target/release/picard solve ~/data/air_cascade/ongudai/$c.json --threads 8 --out tools/research/air_cascade/picard_rs/target/check_${c}_release_t8.json; done' && python3 tools/research/air_cascade/picard_rs/contract/tolerance.py --iters-tol 10 tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/target/check_ongudai_d400_u6_heat_release_t8.json",
+      "expect": {
+        "num": "^worst=(\\S+)",
+        "max": 1.0,
+        "exit": 0
+      },
+      "timeout": 7200
+    },
+    {
+      "name": "isa_v3",
+      "cmd": "tools/research/air_cascade/picard_rs/target/release/picard isa",
+      "expect": {
+        "re": "isa_branch=x86_64\\+avx2\\+fma"
+      }
+    },
+    {
+      "name": "results_base",
+      "cmd": "ls tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u3_heat_release_t6.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u3_heat_release_t18.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u3_mech_release_t6.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u3_mech_release_t18.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u0_heat_release_t6.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u0_heat_release_t18.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u6_heat_release_t6.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u6_heat_release_t8.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u6_heat_release_t18.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u3_heat_release_t2.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u3_heat_release_t3.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u3_mech_release_t2.json tools/research/air_cascade/picard_rs/out/base/ongudai_d400_u3_mech_release_t3.json && python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out/base/ && python3 tools/research/air_cascade/picard_rs/contract/tolerance.py --iters-tol 10 tools/research/air_cascade/picard_rs/out/base/*.json",
+      "expect": {
+        "num": "^worst=(\\S+)",
+        "max": 1.0,
+        "exit": 0
+      }
+    },
+    {
+      "name": "phase_sum",
+      "cmd": "python3 -c \"import json,glob; fs=glob.glob('tools/research/air_cascade/picard_rs/out/base/*.json'); w=max(abs(sum(d['time']['phase_ms'].values())/d['time']['ms_per_iter']-1) for d in (json.load(open(f)) for f in fs)); print(f'n={len(fs)}'); print(f'phase_dev={w:.4f}')\"",
+      "expect": {
+        "num": "^phase_dev=(\\S+)",
+        "max": 0.02,
+        "exit": 0
+      }
+    },
+    {
+      "name": "readme",
+      "cmd": ".dpcli/dpcli docs check tools/research/air_cascade/picard_rs/README.md && grep -c -e '^## .*до оптимизации' tools/research/air_cascade/picard_rs/README.md",
+      "expect": {
+        "num": "^(\\d+)$",
+        "min": 1,
+        "exit": 0
+      }
+    }
+  ],
+  "report_extra": [
+    "ms_per_iter: {case: {\"2\":…,\"3\":…,\"6\":…,\"8\":…,\"18\":…}}",
+    "solve_s: {case: {threads: total_s}}",
+    "phase_share_u3_heat: {\"6\":{mom,heat,proj,kupd,other доли},\"8\":…,\"18\":…}",
+    "timer_overhead: ms_per_iter u3_heat 8 потоков против out/mv/ (AC-R4), %"
+  ],
+  "notes": "",
+  "created": "2026-10-24T16:07:14"
+}
