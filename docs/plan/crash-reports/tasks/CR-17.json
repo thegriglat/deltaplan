@@ -1,0 +1,62 @@
+{
+  "id": "CR-17",
+  "module": "crash-reports",
+  "type": "dp-engineer",
+  "title": "Вылет при смене места: узлы OSM прошлого места вызывают height_fn освобождённого PlaceData (#20/#21)",
+  "goal": "Убрать use-after-free при загрузке другого места: OsmTraffic, CityTrees и прочие узлы мира, получившие Callable на метод PlaceData (RefCounted), не должны вызывать его после освобождения PlaceData; тест смены места без ошибки «null instance».",
+  "plan_ref": "§4 CR-2",
+  "contracts": [],
+  "copy": "~/deltaplan-crash-reports-CR-17",
+  "branch": "crash-reports/CR-17",
+  "base": "feature/crash-reports",
+  "scope": [
+    "scripts/world_objects",
+    "tests/world_objects/test_place_change_callables.gd",
+    "CHANGELOG.md"
+  ],
+  "dont_touch": [
+    "scripts/terrain",
+    "scripts/atmosphere",
+    "scripts/game",
+    "scripts/ui",
+    "scenes",
+    "shaders",
+    "project.godot",
+    "docs/contracts",
+    "docs/plan",
+    "configs"
+  ],
+  "accept": [
+    {
+      "name": "test_place_change_callables",
+      "tests": "test_place_change_callables"
+    },
+    {
+      "name": "test_osm_traffic",
+      "tests": "test_osm_traffic"
+    },
+    {
+      "name": "test_city_trees",
+      "tests": "test_city_trees"
+    },
+    {
+      "name": "test_osm_threaded",
+      "tests": "test_osm_threaded"
+    },
+    {
+      "name": "test_place_data_threaded",
+      "tests": "test_place_data_threaded"
+    },
+    {
+      "name": "test_osm_wind_cable",
+      "tests": "test_osm_wind_cable"
+    },
+    {
+      "name": "test_osm_chimney_plumes",
+      "tests": "test_osm_chimney_plumes"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-24T05:38:34"
+}
