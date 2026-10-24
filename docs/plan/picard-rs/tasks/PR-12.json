@@ -1,0 +1,150 @@
+{
+  "id": "PR-12",
+  "module": "picard-rs",
+  "type": "dp-researcher",
+  "title": "Итоговые замеры (задачи 3 и 5): до/после оптимизации, холодный и тёплый старт, цепочка T→T+15→T+30, 2/3/6/8 потоков, tol_scale 5 и 1.0",
+  "goal": "На итоговом коде ветки модуля (после пачки 2) снять итоговые числа: (а) до/после оптимизации — 4 случая Онгудая × 2/3/6/8 потоков, tol_scale 1.0 (сравнение с базой PR-1 out/base/) и 5 (принятый порог); (б) тёплый старт как в игре — u3_heat h1200 → h1215 и цепочка h1200 → h1215 → h1230 (тёплый из тёплого), итерации и время на 2/3/6/8 потоках против холодного, при tol_scale 5 и 1.0, и отклонение поля конца цепочки от холодного сошедшегося h1230 (у старта, на склонах, в термиках — регионы PR-8). Вписать итоговые числа в INTEGRATION.md → «Числа». Код решателя не менять.",
+  "plan_ref": "Решения пользователя",
+  "contracts": [
+    {
+      "name": "R1",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R2",
+      "version": "3",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R4",
+      "version": "2",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R5",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R6",
+      "version": "3",
+      "ref": "docs/contracts/picard-rs.md"
+    },
+    {
+      "name": "R7",
+      "version": "1",
+      "ref": "docs/contracts/picard-rs.md"
+    }
+  ],
+  "copy": "~/deltaplan-picard-rs-PR-12",
+  "branch": "picard-rs/PR-12",
+  "base": "feature/picard-rs",
+  "scope": [
+    "tools/research/air_cascade/picard_rs/out/final/ — cold_tol1/, cold_tol5/ (R2: <case>_release_t<n>.json), warm_tol1/, warm_tol5/ (тёплые прогоны h1215 и h1230), coldh_tol1/, coldh_tol5/ (холодные h1215, h1230), summary.json, README.md (frontmatter research), run.sh",
+    "tools/research/air_cascade/picard_rs/residual/ — только добавить скрипт(ы) сводки PR-12 (fields.py/summarize.py PR-8 — переиспользовать, не ломать)",
+    "tools/research/air_cascade/picard_rs/INTEGRATION.md — только раздел «Числа»",
+    "tools/research/air_cascade/picard_rs/README.md — только устаревшие строки про Solved.dev (после R6 v3 dev — Option; PR-13 нашёл строки ~352, ~358), без роста размера"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "tests/",
+    "configs/",
+    "project.godot",
+    "docs/contracts/",
+    "tools/research/air3d/",
+    "tools/research/air_cascade/picard_rs/src/",
+    "tools/research/air_cascade/picard_rs/tests/",
+    "tools/research/air_cascade/picard_rs/contract/",
+    "tools/research/air_cascade/picard_rs/Cargo.toml",
+    "tools/research/air_cascade/picard_rs/examples/",
+    "tools/research/air_cascade/picard_rs/out/base/",
+    "tools/research/air_cascade/picard_rs/out/opt/",
+    "tools/research/air_cascade/picard_rs/out/prof/",
+    "tools/research/air_cascade/picard_rs/out/residual/",
+    "tools/research/air_cascade/picard_rs/out/mv/",
+    "tools/research/air_cascade/picard_rs/out/bench/",
+    "~/data/air_cascade/ongudai/ (случаи — только читать)"
+  ],
+  "accept": [
+    {
+      "name": "build_release",
+      "cmd": ".dpcli/dpcli lock cpu PR-12 --no-tmux -- cargo build --release --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml",
+      "expect": {
+        "exit": 0
+      },
+      "timeout": 3600
+    },
+    {
+      "name": "isa_v3",
+      "cmd": "tools/research/air_cascade/picard_rs/target/release/picard isa",
+      "expect": {
+        "re": "isa_branch=x86_64\\+avx2\\+fma"
+      }
+    },
+    {
+      "name": "cold_files",
+      "cmd": "ls tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u3_heat_release_t2.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u3_heat_release_t3.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u3_heat_release_t6.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u3_mech_release_t2.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u3_mech_release_t3.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u3_mech_release_t6.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u0_heat_release_t2.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u0_heat_release_t3.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u0_heat_release_t6.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u6_heat_release_t2.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u6_heat_release_t3.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u6_heat_release_t6.json tools/research/air_cascade/picard_rs/out/final/cold_tol1/ongudai_d400_u6_heat_release_t8.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u3_heat_release_t2.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u3_heat_release_t3.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u3_heat_release_t6.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u3_mech_release_t2.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u3_mech_release_t3.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u3_mech_release_t6.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u0_heat_release_t2.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u0_heat_release_t3.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u0_heat_release_t6.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u6_heat_release_t2.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u6_heat_release_t3.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u6_heat_release_t6.json tools/research/air_cascade/picard_rs/out/final/cold_tol5/ongudai_d400_u6_heat_release_t8.json && python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out/final/cold_tol1/ && python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out/final/cold_tol5/",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "cold_tol1_tolerance",
+      "cmd": "python3 tools/research/air_cascade/picard_rs/contract/tolerance.py --iters-tol 10 tools/research/air_cascade/picard_rs/out/final/cold_tol1/*.json",
+      "expect": {
+        "num": "^worst=(\\S+)",
+        "max": 1.0,
+        "exit": 0
+      }
+    },
+    {
+      "name": "warm_files",
+      "cmd": "ls tools/research/air_cascade/picard_rs/out/final/warm_tol1/ongudai_d400_u3_heat_h1215_release_t2.json tools/research/air_cascade/picard_rs/out/final/warm_tol1/ongudai_d400_u3_heat_h1215_release_t3.json tools/research/air_cascade/picard_rs/out/final/warm_tol1/ongudai_d400_u3_heat_h1215_release_t6.json tools/research/air_cascade/picard_rs/out/final/warm_tol1/ongudai_d400_u3_heat_h1215_release_t8.json tools/research/air_cascade/picard_rs/out/final/warm_tol1/ongudai_d400_u3_heat_h1230_release_t2.json tools/research/air_cascade/picard_rs/out/final/warm_tol1/ongudai_d400_u3_heat_h1230_release_t3.json tools/research/air_cascade/picard_rs/out/final/warm_tol1/ongudai_d400_u3_heat_h1230_release_t6.json tools/research/air_cascade/picard_rs/out/final/warm_tol1/ongudai_d400_u3_heat_h1230_release_t8.json tools/research/air_cascade/picard_rs/out/final/warm_tol5/ongudai_d400_u3_heat_h1215_release_t2.json tools/research/air_cascade/picard_rs/out/final/warm_tol5/ongudai_d400_u3_heat_h1215_release_t3.json tools/research/air_cascade/picard_rs/out/final/warm_tol5/ongudai_d400_u3_heat_h1215_release_t6.json tools/research/air_cascade/picard_rs/out/final/warm_tol5/ongudai_d400_u3_heat_h1215_release_t8.json tools/research/air_cascade/picard_rs/out/final/warm_tol5/ongudai_d400_u3_heat_h1230_release_t2.json tools/research/air_cascade/picard_rs/out/final/warm_tol5/ongudai_d400_u3_heat_h1230_release_t3.json tools/research/air_cascade/picard_rs/out/final/warm_tol5/ongudai_d400_u3_heat_h1230_release_t6.json tools/research/air_cascade/picard_rs/out/final/warm_tol5/ongudai_d400_u3_heat_h1230_release_t8.json tools/research/air_cascade/picard_rs/out/final/coldh_tol1/ongudai_d400_u3_heat_h1215_release_t2.json tools/research/air_cascade/picard_rs/out/final/coldh_tol1/ongudai_d400_u3_heat_h1215_release_t3.json tools/research/air_cascade/picard_rs/out/final/coldh_tol1/ongudai_d400_u3_heat_h1215_release_t6.json tools/research/air_cascade/picard_rs/out/final/coldh_tol1/ongudai_d400_u3_heat_h1215_release_t8.json tools/research/air_cascade/picard_rs/out/final/coldh_tol1/ongudai_d400_u3_heat_h1230_release_t2.json tools/research/air_cascade/picard_rs/out/final/coldh_tol1/ongudai_d400_u3_heat_h1230_release_t3.json tools/research/air_cascade/picard_rs/out/final/coldh_tol1/ongudai_d400_u3_heat_h1230_release_t6.json tools/research/air_cascade/picard_rs/out/final/coldh_tol1/ongudai_d400_u3_heat_h1230_release_t8.json tools/research/air_cascade/picard_rs/out/final/coldh_tol5/ongudai_d400_u3_heat_h1215_release_t2.json tools/research/air_cascade/picard_rs/out/final/coldh_tol5/ongudai_d400_u3_heat_h1215_release_t3.json tools/research/air_cascade/picard_rs/out/final/coldh_tol5/ongudai_d400_u3_heat_h1215_release_t6.json tools/research/air_cascade/picard_rs/out/final/coldh_tol5/ongudai_d400_u3_heat_h1215_release_t8.json tools/research/air_cascade/picard_rs/out/final/coldh_tol5/ongudai_d400_u3_heat_h1230_release_t2.json tools/research/air_cascade/picard_rs/out/final/coldh_tol5/ongudai_d400_u3_heat_h1230_release_t3.json tools/research/air_cascade/picard_rs/out/final/coldh_tol5/ongudai_d400_u3_heat_h1230_release_t6.json tools/research/air_cascade/picard_rs/out/final/coldh_tol5/ongudai_d400_u3_heat_h1230_release_t8.json && for d in warm_tol1 warm_tol5 coldh_tol1 coldh_tol5; do python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out/final/$d/ || exit 1; done",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "summary",
+      "cmd": "python3 -c \"import json,sys; d=json.load(open(sys.argv[1])); ks=['git','table_cold','table_warm','chain','before_after']; m=[k for k in ks if k not in d]; print('missing=%s' % ','.join(m) if m else 'summary_ok')\" tools/research/air_cascade/picard_rs/out/final/summary.json",
+      "expect": {
+        "re": "^summary_ok",
+        "exit": 0
+      }
+    },
+    {
+      "name": "run_sh",
+      "cmd": "bash -n tools/research/air_cascade/picard_rs/out/final/run.sh && grep -c 'lock cpu PR-12' tools/research/air_cascade/picard_rs/out/final/run.sh",
+      "expect": {
+        "num": "^(\\d+)$",
+        "min": 1,
+        "exit": 0
+      }
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check tools/research/air_cascade/picard_rs/out/final/README.md tools/research/air_cascade/picard_rs/INTEGRATION.md",
+      "expect": {
+        "exit": 0
+      }
+    },
+    {
+      "name": "no_big_files",
+      "cmd": "find tools/research/air_cascade/picard_rs/out/final -type f -size +2M",
+      "expect": {
+        "not_re": ".",
+        "exit": 0
+      }
+    }
+  ],
+  "report_extra": [
+    "before_after: таблица u3_heat/u3_mech/u0_heat/u6_heat × 2/3/6/8 потоков — solve, с: база PR-1 (tol 1, где есть) → итог tol 1 → итог tol 5; мс/итер до → после",
+    "load: время загрузки места (холодный) при tol 5 и tol 1 по той же таблице 2/3/6/8 потоков",
+    "warm: h1200→h1215 и цепочка →h1230: итерации и время тёплого против холодного на 2/3/6/8 потоках, tol 5 и 1.0; доля от срока пересчёта 15 игровых минут — только если срок в реальных секундах найден в коде (configs/atmosphere.json → air_model, источник путь:строка)",
+    "chain_dev: отклонение конца цепочки (тёплый tol 5) от холодного сошедшегося h1230: launch dw_max/du_max, slopes dw_max, thermals dw_max против порога PR-8 (0,05 / 0,2 / 0,1 м/с)",
+    "verdict_data: числа для вердикта шлюза 2 (загрузка и фон) — без вердикта, вердикт даёт пользователь"
+  ],
+  "notes": "",
+  "created": "2026-10-24T21:03:06"
+}
