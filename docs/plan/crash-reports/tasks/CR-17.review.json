@@ -1,0 +1,22 @@
+{
+  "verdict": "accept",
+  "summary": "Сильные ссылки на владельца Callable добавлены во всех долгоживущих держателях PlaceData.height_at; правка минимальная, поведение не меняется, скоуп соблюдён.",
+  "issues": [
+    {
+      "file": "scripts/game",
+      "line": 0,
+      "severity": "minor",
+      "what": "Пункт (2) карточки (порядок удаления WorldObjects прошлого места и PlaceData) не исследован; стенд CR-14 не гонялся.",
+      "fix": "После слияния подтвердить число строк null instance на стенде CR-14."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "test_place_change_callables",
+      "value": "3/3",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T06:15:33",
+  "by": "reviewer"
+}

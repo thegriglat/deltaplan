@@ -1,0 +1,59 @@
+{
+  "status": "partial",
+  "summary": "Вариант (б): маска и классы узлов SurfaceLayer — неизменяемые снимки (MaskSnap/ClsSnap), читатели берут ссылку один раз; поляны правят копию и подставляют её целиком; Terrain.set_surfaces собирает массив карт локально и подставляет одной ссылкой. Тест поток-читатель против главного-писателя: на старом коде 2 из 3 падают (236 SCRIPT ERROR), на новом 3/3.",
+  "commits": [
+    "37ef92c04 Маска поверхности: неизменяемые снимки маски и классов, массив карт Terrain подставляется целиком (CR-18)"
+  ],
+  "checks": [
+    {
+      "name": "test_surface_mask_race",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "test_surface",
+      "value": "39/39",
+      "pass": true
+    },
+    {
+      "name": "test_sea_mask",
+      "value": "18/18",
+      "pass": true
+    },
+    {
+      "name": "test_surface_stage",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "test_rocks",
+      "value": "1/8, но и на базовом коммите без правок 1/8 (7 упало)",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "test_rocks не зелёный: не от этой правки, на чистой ветке падает так же (модели камней не загружаются: 'Out of bounds index 0 on Array[Mesh]' в тесте). Нужен отдельный разбор/задача."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept CR-18 --dry",
+  "uncertain": [
+    {
+      "where": "scripts/terrain/surface_layer.gd (_mask, _cls)",
+      "why": "Подстановка ссылки на RefCounted без замка опирается на атомарность записи указателя Variant в Godot; формально это не гарантия. Прямая запись classes[i]=v снаружи (test_tow_k6) идёт через свойство get/set и создаёт новый снимок — читатель видит либо старый, либо новый.",
+      "checked": "Тест 300 циклов большая->малая->большая + поляны при читателе в WorkerThreadPool: 0 несогласованных чтений; первый вариант (только копия classes без объекта-снимка) тест ловил (torn read), после объекта-снимка ушло."
+    },
+    {
+      "where": "scripts/terrain/surface_layer.gd:forest_mask_image",
+      "why": "mask_image.set_data при _mask_dirty и публичные mask_width/mask_spacing... — только для главного потока (рендер, air_place); рабочие потоки их не читают (проверено grep), в гонке не участвуют.",
+      "checked": "grep по scripts/ — внешние читатели mask_width/mask_origin: renderer, air_place (setup на главном), terrain.get_forest_mask."
+    },
+    {
+      "where": "scripts/terrain/tree_placer.gd, shrub_scatter.gd, rock_scatter.gd, grass_field.gd",
+      "why": "Не менял: у tree_placer своя копия маски (set_forest_mask хранит mask_data/mask_w вместе — тот же шаблон поле-за-полем, возможна аналогичная гонка при смене маски; в этом задании только SurfaceLayer/Terrain).",
+      "checked": "Прочитан set_forest_mask в tree_placer.gd:396 — присваивание полей по одному."
+    }
+  ],
+  "dp_feedback": "Агент-подсказка: фильтр теста по подстроке не находит тест по имени метода (test_reader_vs); и нет способа быстро узнать, красен ли check на базе (accept --dry на базовом коммите) — пришлось стэшить вручную.",
+  "t": "2026-10-24T05:49:31",
+  "by": "executor"
+}

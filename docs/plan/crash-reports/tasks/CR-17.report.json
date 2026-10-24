@@ -1,0 +1,117 @@
+{
+  "status": "done",
+  "summary": "Узлы и объекты, хранящие Callable на PlaceData (RefCounted), теперь держат владельца сильной ссылкой (_height_owner/_forest_owner/_ground_owner = callable.get_object()): OsmTraffic, CityTrees, CityTreePlan, OsmLayer, LandingSite, Geese, StartDog, BotPilots. Тест test_place_change_callables (3 теста, ловец ошибок + weakref) падает 3/3 без правки и проходит 3/3 с ней.",
+  "commits": [
+    "4c1d9feb4 CR-17: узлы мира удерживают владельца Callable (PlaceData) — вылет при смене места"
+  ],
+  "checks": [
+    {
+      "name": "test_place_change_callables",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_osm_traffic",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_city_trees",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_osm_threaded",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_place_data_threaded",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_osm_wind_cable",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "test_osm_chimney_plumes",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Сценарий стенда CR-14 (Кок-Тобе->полёт->меню->Юца) не прогонялся: необязателен; число строк null instance до/после не измерено.",
+    "Пункт (2) карточки (почему узлы прошлого места ещё в _process после освобождения PlaceData): PlaceData живёт в мета Terrain и уходит при смене места, а WorldObjects прежнего места удаляются позже; в scripts/game не менялось. Теперь это безопасно (PlaceData живёт, пока жив любой держатель), порядок удаления не трогал.",
+    "Таблица Callable на Node (Terrain.height_at/forest_at/surface_at; air.air_velocity_at) правок не потребовала, см. extra.table."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept CR-17",
+  "uncertain": [
+    {
+      "where": "scripts/game/*, scripts/flight/*, scripts/atmosphere/*: Callable(terrain, 'height_at') в glider/camera/air/tow/remote_pilots/bot_*",
+      "why": "Вывод «безопасно» — по чтению: держатели и Terrain — потомки одного Game, живут и умирают вместе; смена места перезагружает тот же Terrain-узел (не освобождает его). Автозагрузки (NetPilots/NetZone/NetClient/Activity) Callable рельефа не хранят.",
+      "checked": "grep height_at|ground_fn|forest_at|surface_at по scripts/*, чтение game.gd (_exit_tree, setup), net_*; динамически выход в меню не проверялся."
+    },
+    {
+      "where": "tests/world_objects/test_egg_group.gd::test_game_bots_untouched",
+      "why": "Флейки: падает на полной игре с «Out of bounds get index» в terrain.height_at из rock_scatter (поток, гонка маски/слоёв — зона CR-18). Воспроизводится и на базовом коде без моих правок (1 из 3 прогонов упал, 40 ошибок), и с правками.",
+      "checked": "прогоны baseline и с правками через lock cpu; к CR-17 не относится."
+    },
+    {
+      "where": "OsmWindTurbines/OsmCableCars/Pilot/ChimneyPlumes/Buildings",
+      "why": "Берут height_fn только в build (рабочий поток под ожиданием слоя OsmLayer) и не хранят; OsmLayer теперь держит владельца до конца сборки.",
+      "checked": "grep по scripts/world_objects."
+    }
+  ],
+  "dp_feedback": "lock cpu запускает команду в tmux-job и не возвращает вывод в stdout — неудобно для пачки фильтров; подсказка в карточке про job wait помогла. task show обрезает длинные дополнения (…), --full нужен по умолчанию. Рабочий accept --dry >120 с блокирует Bash — стоит напоминать про run_in_background.",
+  "extra": {
+    "table": [
+      {
+        "place": "OsmTraffic/CityTrees/CityTreePlan/OsmLayer._height_fn,_forest_fn",
+        "owner": "PlaceData.height_at (RefCounted) / Terrain.forest_at (Node)",
+        "survives_owner": "да (старые узлы прошлого места)",
+        "decision": "сильная ссылка _height_owner/_forest_owner"
+      },
+      {
+        "place": "LandingSite._height_fn, Geese._height_at, StartDog._hf",
+        "owner": "Terrain (Node) обычно; PlaceData в части путей WorldObjects",
+        "survives_owner": "может",
+        "decision": "сильная ссылка владельца"
+      },
+      {
+        "place": "BotPilots._ground_fn (GroupBots из easter_eggs/group.gd, ctx.place.height_at)",
+        "owner": "PlaceData",
+        "survives_owner": "может",
+        "decision": "сильная ссылка _ground_owner"
+      },
+      {
+        "place": "game.gd: debug_overlays, camera.ground_fn, air.set_ground, glider.set_ground_fn, CatchUpTow, TowSession, RemoteBots, BotAgent, collision_check",
+        "owner": "Terrain (Node)",
+        "survives_owner": "нет (одно поддерево Game, тот же Terrain при смене места)",
+        "decision": "без изменений"
+      },
+      {
+        "place": "Glider/FlightModel/Sky/TowLine/pendulum ground_fn",
+        "owner": "Terrain (Node)",
+        "survives_owner": "нет",
+        "decision": "без изменений"
+      },
+      {
+        "place": "Atmosphere.set_ground / GroundField / air_thermals",
+        "owner": "Terrain (Node)",
+        "survives_owner": "нет",
+        "decision": "без изменений"
+      },
+      {
+        "place": "WorldObjects._height_fn/_work_fn",
+        "owner": "Terrain / _place (PlaceData поле)",
+        "survives_owner": "нет",
+        "decision": "уже держит _place"
+      }
+    ]
+  },
+  "t": "2026-10-24T06:13:08",
+  "by": "executor"
+}
