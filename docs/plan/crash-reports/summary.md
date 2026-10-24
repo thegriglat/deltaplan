@@ -3,8 +3,8 @@ type: "journal"
 status: "closed"
 module: "crash-reports"
 area: "release"
-updated: "2026-10-23"
-summary: "Сводка реализации модуля crash-reports: 13 задач, итоги и оговорки исполнителей"
+updated: "2026-10-24"
+summary: "Сводка реализации модуля crash-reports: 18 задач, итоги и оговорки исполнителей"
 related: ["docs/plan/crash-reports.md"]
 archive: "archive/crash-reports"
 generated: true
@@ -207,3 +207,62 @@ Godot 4.7.2 (и master) на D3D12 не вызывает GetDeviceRemovedReason 
 - `scripts/core/crash_diag.gd:parse_wevtutil` — формат /f:xml взят по документации: кавычки атрибутов одинарные или двойные, EventData/Data; кодировка вывода консольная (кириллица в Data может исказиться, имена драйверов ASCII) — проверено: синтетический образец; на Windows не запускалось
 - `scripts/core/crash_diag.gd:run_with_timeout` — execute_with_pipe на Windows: неблокирующее чтение канала и код выхода канального процесса — проверено: Linux: таймаут и cancel убивают sleep, echo читается; Windows нет
 - `scripts/core/crash_diag.gd:window` — alive — секунды с запуска процесса, started — метка секундной точности; окно считается как started+alive, ошибка в секунды, запас 2 мин — проверено: тест на арифметику окна
+
+### CR-14 — Нативный стек вылета #20/#21: повторная загрузка другого места (1.6.0, Linux/4070 SUPER)
+
+Статус: **accepted**
+
+SIGSEGV воспроизведён под gdb на 5-й смене места (Y->K) в главном потоке (pthread_mutex_lock, редактор без символов). По debug-логам: после каждой смены места 84 ошибки null::height_at на освобождённом PlaceData (osm_traffic.gd:680/590/507, city_trees.gd:158; Callable из osm_layer.gd:158-180, world_objects.gd:197-205) - вероятная причина; вторая проблема - гонка SurfaceLayer._mask_channel с потоками ShrubScatter/RockScatter. В main не исправлено. Диагноз: docs/research/crash-reports/cr-14.md.
+
+Не сделано:
+- GDScript backtrace самого падения не снят: редактор без символов, в релизе нет проверки; кадры ??
+- Пик памяти VmHWM/VmRSS и время стадий objects/wind по загрузкам не сняты (сценарий напечатал только старт цикла 0; есть времена PlaceData/WorldObjects из лога)
+- Прогон на русском интерфейсе и на build/linux-debug (CR-16) не делался: указание пришло позже, свёрнуто по указанию координатора
+
+Не уверен:
+- `run2.log (вне репозитория)` — лог содержит строку старта моего сценария, но последовательность загрузок не совпадает с --seq (первая загрузка - Y): возможен параллельный ручной сеанс пользователя в том же файле — проверено: статус job cr14r2 завершён кодом 0; атрибуцию строк не проверял
+- `scripts/world_objects/world_objects.gd:197-205` — не доказано, почему старые узлы живут несколько кадров после clear() (queue_free) - 84 ошибки; связь null-instance с SIGSEGV в релизе - по коду и дизассемблеру координатора — проверено: diff main/1.6.0 по трём файлам пуст; чтение кода
+
+### CR-15 — Отладочная Linux-сборка 1.6.0 (официальный debug-шаблон) в build/linux-debug для gdb у пользователя
+
+Статус: **cancelled**
+
+Отменено по уточнению главной: сборка на официальном debug-шаблоне не нужна (CR-14 уже гоняет официальный редактор под gdb); экспорт pck и README перенесены в CR-16.
+
+### CR-16 — Debug-шаблон Godot 4.7.2 с отладочными символами для build/linux-debug
+
+Статус: **cancelled**
+
+Отменено решением пользователя: причина найдена по debug-логу, символы не нужны. Job cr16 остановлен (код 143); build/linux-debug не создан.
+
+### CR-17 — Вылет при смене места: узлы OSM прошлого места вызывают height_fn освобождённого PlaceData (#20/#21)
+
+Статус: **accepted**; ревью: accept
+
+Узлы и объекты, хранящие Callable на PlaceData (RefCounted), теперь держат владельца сильной ссылкой (_height_owner/_forest_owner/_ground_owner = callable.get_object()): OsmTraffic, CityTrees, CityTreePlan, OsmLayer, LandingSite, Geese, StartDog, BotPilots. Тест test_place_change_callables (3 теста, ловец ошибок + weakref) падает 3/3 без правки и проходит 3/3 с ней.
+
+Не сделано:
+- Сценарий стенда CR-14 (Кок-Тобе->полёт->меню->Юца) не прогонялся: необязателен; число строк null instance до/после не измерено.
+- Пункт (2) карточки (почему узлы прошлого места ещё в _process после освобождения PlaceData): PlaceData живёт в мета Terrain и уходит при смене места, а WorldObjects прежнего места удаляются позже; в scripts/game не менялось. Теперь это безопасно (PlaceData живёт, пока жив любой держатель), порядок удаления не трогал.
+- Таблица Callable на Node (Terrain.height_at/forest_at/surface_at; air.air_velocity_at) правок не потребовала, см. extra.table.
+
+Не уверен:
+- `scripts/game/*, scripts/flight/*, scripts/atmosphere/*: Callable(terrain, 'height_at') в glider/camera/air/tow/remote_pilots/bot_*` — Вывод «безопасно» — по чтению: держатели и Terrain — потомки одного Game, живут и умирают вместе; смена места перезагружает тот же Terrain-узел (не освобождает его). Автозагрузки (NetPilots/NetZone/NetClient/Activity) Callable рельефа не хранят. — проверено: grep height_at|ground_fn|forest_at|surface_at по scripts/*, чтение game.gd (_exit_tree, setup), net_*; динамически выход в меню не проверялся.
+- `tests/world_objects/test_egg_group.gd::test_game_bots_untouched` — Флейки: падает на полной игре с «Out of bounds get index» в terrain.height_at из rock_scatter (поток, гонка маски/слоёв — зона CR-18). Воспроизводится и на базовом коде без моих правок (1 из 3 прогонов упал, 40 ошибок), и с правками. — проверено: прогоны baseline и с правками через lock cpu; к CR-17 не относится.
+- `OsmWindTurbines/OsmCableCars/Pilot/ChimneyPlumes/Buildings` — Берут height_fn только в build (рабочий поток под ожиданием слоя OsmLayer) и не хранят; OsmLayer теперь держит владельца до конца сборки. — проверено: grep по scripts/world_objects.
+
+### CR-18 — Гонка маски поверхности: потоки разброса читают SurfaceLayer, пока главный поток меняет маску/поляны
+
+Статус: **accepted**; ревью: accept
+
+Маска и классы SurfaceLayer — неизменяемые снимки (вариант б), surfaces Terrain подставляется целиком; серия правок полян идёт на одной рабочей копии (begin_edit/end_edit) вместо копирования 16-48 МБ на каждый круг. Приёмка: 4 из 5 стабильно PASS; test_surface.test_forest_mask_loaded падает только по порогу времени загрузки 2,5 с на загруженной машине.
+
+Не сделано:
+- test_surface: порог 'загрузка Онгудая ≤ 2,5 с' в tests/terrain/test_surface.gd (вне скоупа) зависит от нагрузки машины: на базе feature/crash-reports в том же accept получено 2.31 и 2.80 с; изолированно (--filter=test_surface.gd) моя версия 1.99-2.14 с, как база 2.06-2.18. Нужно ослабить порог (например 5 с) или мерить в тихой машине.
+
+Не уверен:
+- `tests/terrain/test_rocks.gd (Out of bounds get index 0 on Array, 1-й accept координатора)` — не воспроизвелось: 6 прогонов test_rocks + 3 в accept чисто. Вероятная причина — get_start_sites()[0] на пустом списке при гонке/нагрузке, но подтвердить не удалось — проверено: прогоны под замком cpu; код в surface_layer/terrain не имеет индекса [0] на общих массивах, surface_for теперь читает локальную ссылку на surfaces
+- `scripts/terrain/surface_layer.gd begin_edit/end_edit` — между begin и end читатели видят прежние снимки (поляны появляются разом в end_edit) — это намеренно; публичные поля mask_* обновляются только на главном потоке — проверено: тест гонки + test_start_clearings_have_no_forest
+
+Вопросы исполнителя:
+- Разрешить правку порога в tests/terrain/test_surface.gd (contract)?

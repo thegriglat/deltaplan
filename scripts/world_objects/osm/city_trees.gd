@@ -23,6 +23,9 @@ signal city_mask_ready(image: Image, origin: Vector2, cell_m: float, radius_m: f
 signal shown_changed(shown: bool)
 
 var _cfg: Dictionary = {}
+## Владелец Callable (PlaceData — RefCounted): Callable держит лишь ObjectID, без этой ссылки вызов после
+## смены места — по освобождённому объекту (вылет, CR-17).
+var _height_owner: Variant
 var _height_fn: Callable
 var _mmis: Array[MultiMeshInstance3D] = []
 var _tiles: Dictionary = {}
@@ -77,6 +80,7 @@ func setup(p: CityTreePlan, cfg: Dictionary, height_fn: Callable) -> bool:
 	plan = p
 	_cfg = cfg
 	_height_fn = height_fn
+	_height_owner = height_fn.get_object()
 	var sp: Dictionary = cfg.get("species", {})
 	var shadows := bool(cfg.get("cast_shadows", true))
 	var shadow_lods := int(cfg.get("shadow_lods", 1))

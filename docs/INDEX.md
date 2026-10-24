@@ -163,6 +163,7 @@ generated: true
   - [docs/research/crash-reports/cr-1.md](research/crash-reports/cr-1.md) — Группа A (#4–#10, 1.5.18, GTX 1050 Ti, D3D12): потеря устройства на стадии wind; AirGpu не проверяет пустой RID; в main не исправлено
   - [docs/research/crash-reports/cr-10.md](research/crash-reports/cr-10.md) — CR-10: #17/#18, RX 5600 XT: потеря GPU на RDNA1 (известная проблема Godot #122671); кандидаты — облака и тени.
   - [docs/research/crash-reports/cr-11.md](research/crash-reports/cr-11.md) — CR-11: Godot 4.7.2 не запрашивает причину потери устройства на D3D12; на Vulkan печатает её лишь при потере в vkQueueSubmit.
+  - [docs/research/crash-reports/cr-14.md](research/crash-reports/cr-14.md) — Вылеты #20/#21 (1.6.0): смена места, главный поток; вероятно Callable на освобождённый PlaceData у узлов OSM.
   - [docs/research/crash-reports/cr-2.md](research/crash-reports/cr-2.md) — Группа B (#11–#15, RTX 5060, Vulkan): обрыв при повторной загрузке места в сессии; точная причина не найдена, не исправлено.
   - [docs/research/crash-reports/cr-3.md](research/crash-reports/cr-3.md) — Группа C (#3, 1.5.15, RTX 5060 Laptop, trees): «sea» не причина, ложное «море» исправлено; обрыв на trees не установлен.
   - [docs/research/crash-reports/cr-4.md](research/crash-reports/cr-4.md) — CR-4: драйвер Windows по умолчанию — Vulkan с автооткатом на D3D12; вылеты #3–#15 драйвером не объясняются.

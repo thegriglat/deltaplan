@@ -1046,10 +1046,11 @@ func detail_bounds() -> Rect2:
 
 ## Карта поверхности, покрывающая точку (самая детальная), или null.
 func _surface_layer_at(x: float, z: float) -> SurfaceLayer:
-	for sl in surfaces:
+	var ss := surfaces
+	for sl in ss:
 		if sl != null and sl.contains(x, z):
 			return sl
-	return surfaces[surfaces.size() - 1] if not surfaces.is_empty() else null
+	return ss[ss.size() - 1] if not ss.is_empty() else null
 
 
 func _surface_class(x: float, z: float, n: Vector3) -> int:
@@ -1133,15 +1134,21 @@ func _load_surfaces(
 ## готовые, иначе процедурные; поляны у стартов; коэффициенты источников термиков.
 ## scfg — configs/world.json → surface, look — terrain_look.
 func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dictionary) -> void:
-	surfaces.clear()
+	# новый массив собирается целиком и подставляется одной ссылкой (CR-18): рабочие потоки
+	# разброса читают surfaces (surface_at/forest_at), пока тут идёт смена места
+	var built: Array[SurfaceLayer] = []
 	for k in layers.size():
 		var s: SurfaceLayer = new_surfaces[k] if k < new_surfaces.size() else null
 		if s == null:
 			s = SurfaceClassifier.classify(layers[k], scfg.get("fallback", {}))
-		surfaces.append(s)
+		s.mask_edge_soft = float(look.get("forest_edge_soft", 0.12))
+		built.append(s)
+	surfaces = built
 	# Старты — открытые склоны: лес и кустарник вокруг площадки → луг (и в цвете, и в термиках);
 	# дальше, до пустыря старта с карты (≥ 2 длины разбега, game.json → start_search), — только лес.
 	_start_clearings.clear()
+	for s in surfaces:
+		s.begin_edit()
 	var site_r := float(location.get("start_clearing_radius_m", 0.0))
 	var clear_r := maxf(site_r, start_clearing_radius_m())
 	for site in _sites:
@@ -1155,6 +1162,8 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 			# площадка с буксировкой: полоса вдоль оси вместо круга (TW-К6)
 			var dim := TowSite.clearing_size(tow)
 			_clear_runway(p, float(site.heading_deg), dim.x, dim.y)
+	for s in surfaces:
+		s.end_edit()
 	# Конфиг потока тепла и one-hot доли — заранее на главном потоке (источники зовут из рабочих потоков).
 	_heat_cfg = SurfaceHeat.config()
 	_h_ref = maxf(float(_heat_cfg.get("thermal", {}).get("h_ref_wm2", 362.0)), 1.0)
@@ -1176,8 +1185,6 @@ func set_surfaces(new_surfaces: Array[SurfaceLayer], scfg: Dictionary, look: Dic
 			_edge_pair[a * n + b] = 1
 			_edge_pair[b * n + a] = 1
 	_rock_cos = cos(deg_to_rad(float(look.get("rock_slope_deg", 90.0))))
-	for s in surfaces:
-		s.mask_edge_soft = float(look.get("forest_edge_soft", 0.12))
 
 
 ## Лес в круге → луг во всех картах поверхности (и маска леса 10 м); кустарник остаётся.
