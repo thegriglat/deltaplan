@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-24"
 summary: "Стыки picard-rs: случаи R1, результат R2, крейт R3 (без asm), снимок R4, пара T+15 R5, API R6, невязка → отклонение R7."
 related: ["docs/plan/picard-rs.md", "docs/contracts/air-cascade.md", "tools/research/air_cascade/picard_rs/README.md"]
-contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 3}, {"id": "R3", "version": 4}, {"id": "R4", "version": 2}, {"id": "R5", "version": 1}, {"id": "R6", "version": 2}, {"id": "R7", "version": 1}]
+contracts: [{"id": "R1", "version": 1}, {"id": "R2", "version": 3}, {"id": "R3", "version": 4}, {"id": "R4", "version": 2}, {"id": "R5", "version": 1}, {"id": "R6", "version": 3}, {"id": "R7", "version": 1}]
 ---
 
 # Контракты модуля picard-rs
@@ -130,3 +130,16 @@ R2 v2 + `version: 3`, `stop` (`"converged" | "max_iters" | "time_budget" | "dive
   `residual` = {`mom_rms`, `div_rms`, `th_rms`} или `tol_scale` (что пороговать в решателе), `sources`: ≥ 2 строки
   «путь[:строка] — что взято» (вариометр, шум термиков/болтанка в игре)}.
 Проверка — `P/contract/check_residual.py <summary.json>` → код 0 и `ok series=<n> points=<m>`.
+
+## R6 v3 — случай без эталона (вход игры)
+Владелец — координатор (PR-11: `api::solve` требует `sol_*` — игровой случай без эталона даёт ошибку);
+потребители — интегратор (будущий модуль gdext), PR-12. R6 v2 + :
+- `Case` без эталона — допустим: `sol_u…sol_p`, `solution`, `history` случая могут отсутствовать (в json+bin и в
+  `Case`, собранном в памяти). Обязательно для решения — сетка, поля входа, `params`, `criterion`.
+- `Solved.dev: Option<…>` — `None` без эталона; сверка с эталоном — только если он есть. Остальные поля `Solved`
+  (iters, stop, residuals, history, state, snapshots, timing) — как v2, от наличия эталона не зависят.
+- R2 при прогоне без эталона: `dev: null`, `iters_ref: null`, `history_ref: null`; с эталоном — как v3, побитно
+  тот же путь решения (`compare_r2.py` → identical).
+- Тест: случай с удалёнными `sol_*`/`solution`/`history` решается; поле `state` побитно равно прогону того же
+  случая с эталоном; `dev` = `None`.
+

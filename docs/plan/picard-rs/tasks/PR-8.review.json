@@ -1,0 +1,49 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп чист (49 файлов), R7/R2/ref-допуск перезапущены и проходят; числа README/threshold сходятся с r2 и summary. Порог честно помечен как предложение; оговорки (u0_heat, цепочка тёплых стартов, нет перцептивного порога) раскрыты.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md",
+      "line": 1,
+      "severity": "minor",
+      "what": "Невязки холодных точек N берутся на проверке не раньше N (смещение на 1 итерацию), раскрыто, но таблицы смешивают точные поля и сдвинутые невязки.",
+      "fix": "Принять как есть; PR-o учесть при пересчёте."
+    },
+    {
+      "file": "tools/research/air_cascade/picard_rs/residual/threshold.json",
+      "line": 1,
+      "severity": "minor",
+      "what": "Порог 0,05/0,2 м/с — доли шума игры (15 %), не измеренный предел восприятия; u0_heat порог не проходит ни при каком tol_scale, значит tol_scale 5 не гарантия для штиля.",
+      "fix": "Вынести оба пункта на шлюз пользователя явно (в README уже есть)."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept r7_summary --dry",
+      "value": "ok series=5",
+      "pass": true
+    },
+    {
+      "name": "accept ref_tolerance --dry",
+      "value": "worst=0.0415",
+      "pass": true
+    },
+    {
+      "name": "accept r2_contract --dry",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "accept readme --dry",
+      "value": "pass",
+      "pass": true
+    },
+    {
+      "name": "tol5 r2 vs summary time",
+      "value": "6.94/7.19/3.93/5.17 total_s; ms_per_iter ~57 согласуется",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T19:37:27",
+  "by": "reviewer"
+}

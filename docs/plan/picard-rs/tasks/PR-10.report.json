@@ -1,0 +1,56 @@
+{
+  "status": "done",
+  "summary": "Добавлен случай u3_heat_h1230 (час 12.5, warm_from h1215) в export_ongudai.py (таблица WARM_FROM, старые пути не менялись); вход снят кодом игры, эталон — холодный air.py f64, R1+R5 проверки проходят, старые файлы не тронуты.",
+  "commits": [
+    "89f15cd62 picard-rs PR-10: случай ongudai_d400_u3_heat_h1230"
+  ],
+  "checks": [
+    {
+      "name": "r1_new",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "r5_new",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "r5_hour",
+      "value": "12.5 ongudai_d400_u3_heat_h1215",
+      "pass": true
+    },
+    {
+      "name": "old_cases_md5",
+      "value": "md5_ok",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "3 вхождения h1230",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept PR-10",
+  "uncertain": [
+    {
+      "where": "~/data/air_cascade/ongudai/ongudai_d400_u3_heat_h1230.json:t_ref_s",
+      "why": "10,7 с включает прогрев CuPy (первый запуск процесса); тёплый ~7 с как у h1215",
+      "checked": "сравнение с PR-3 (11,9* h1200, 7,2 h1215)"
+    },
+    {
+      "where": "tools/research/heat_ca/.venv",
+      "why": "venv в копии отсутствовал, создан по requirements.txt (cupy-cuda12x 14.2.0), не коммитился",
+      "checked": "git status чист"
+    }
+  ],
+  "dp_feedback": "venv heat_ca в новых копиях приходится создавать вручную; не хватает команды для общего venv.",
+  "changed_1215_1230: что меняется 12:15 → 12:30 (H, Q, z_i, nu_bg — величины, как таблица PR-3)": "H max|Δ| 12.52 Вт/м² (rms 4.57, mean +4.03, max H 257.0); Q max|Δ| 2.15e-4 (rms 7.6e-6, ref_max 2.41e-4); z_i 2968.15 -> 3004.38 м (+36.23); nu_bg max|Δ| 7.89 (rms 2.58, ref_max 187.7); Kz max|Δ| 111.8 (ref_max 120); cplz max|Δ| 0.114 (ref 0.228); gam max|Δ| 0.0058; sun_elev 58.12 -> 59.19 град; alpha 0.112 и max_profile 1.4045 без изменений; ветер 3 м/с, 150 град не меняется",
+  "ref: итерации и t_ref_s холодного эталона f64 h1230": "261 итерация (status ok), t_ref_s 10.709 (с прогревом CuPy), 38.3 МБ",
+  "md5: md5 новых файлов и подтверждение, что старые не изменились (до/после)": "h1230.bin a4f6df5ae646e0193b73a7e9081576bc; h1230.json 530a840ed2775c7a40ed33a7c0be4bc9; md5sum всех прочих *.json/*.bin каталога до и после идентичны (diff пуст)",
+  "t": "2026-10-24T20:05:36",
+  "by": "executor"
+}

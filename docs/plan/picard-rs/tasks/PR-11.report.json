@@ -1,0 +1,89 @@
+{
+  "status": "done",
+  "summary": "INTEGRATION.md (API, вход/выход R1, тёплый старт, нити, сборка, числа PR-8, ограничения, пример), examples/integrate.rs (тот же код), строка-ссылка в README. Приёмка dry 7/7.",
+  "commits": [
+    "4507b77d7 picard-rs: PR-11 INTEGRATION.md для интегратора и examples/integrate.rs"
+  ],
+  "checks": [
+    {
+      "name": "docs",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "sections",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "readme_link",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "example_build",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "example_run",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "7/7 PASS",
+      "pass": true
+    },
+    {
+      "name": "integrate на flat_wind",
+      "value": "stop=converged iters=10; тёплый вызов от state: iters=10",
+      "pass": true
+    },
+    {
+      "name": "picard isa",
+      "value": "isa_branch=x86_64+avx2+fma",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Итоговые числа PR-o/PR-w (out/final/) в описании только ссылкой: их ещё нет; вписаны числа PR-8 (код до итоговой оптимизации)."
+  ],
+  "questions": [
+    "api::solve требует sol_u..sol_p в случае (report::deviation, Solved.dev): игровой случай без эталона вернёт ошибку. Интегратору нужна версия solve без сверки или заглушка sol_* — менять src вне моего скоупа; решать координатору."
+  ],
+  "how_to_check": ".dpcli/dpcli accept PR-11",
+  "uncertain": [
+    {
+      "where": "INTEGRATION.md: Нити",
+      "why": "available_parallelism учитывает cgroup — по документации std, не проверялось; rayon внутри gdext не пробовался",
+      "checked": "прочитан gdext_probe README и plan/rust-ext.md"
+    },
+    {
+      "where": "INTEGRATION.md: Вход и выход",
+      "why": "сборка Case в памяти без файлов и прямой путь Picard::new/solve — по pub-полям, не запускались",
+      "checked": "чтением case.rs, solver.rs"
+    },
+    {
+      "where": "INTEGRATION.md: State",
+      "why": "единицы p, nu, nuh и привязка осей к сторонам света не определены в коде крейта — помечено",
+      "checked": "state.rs, api.rs"
+    }
+  ],
+  "dp_feedback": "Усечённый task show: дополнения обрезаны до ~300 симв., полный текст нашёл только через --full. docs check: summary > 140 симв. — ошибка, но узнаёшь только после прогона; предупреждения про conclusion/data/applied_in у research шумят на README.",
+  "covered: какие публичные типы/функции/поля описаны (списком имён) и что из pub намеренно не описано (внутреннее)": "Описаны: api::{solve, SolveOpts(threads,max_iters,tol_scale,time_budget,init,snapshot_at), Solved(iters,stop,residuals,history,state,snapshots,timing,dev,out,picard,pool), resolve_threads, pool, DEFAULT_MAX_ITERS (значение), cpu_seconds (кратко)}, solver::{StopReason, Residuals, Check}, state::{State и все поля, read, write_atomic, check_dims, FORMAT/VERSION в формате}, case::{Case::load, поля Case/Criterion, Params, CaseParams}, report::{Timing, Dev (поля)}. Намеренно не описаны: blocks, kernels, lines, mg, util, Consts, Fields, Picard (кроме упоминания прямого пути), RawSnapshot, RunLimits, report::result_json/history_json/diag, CLI picard (кроме isa).",
+  "game_links: ссылки файл:функция на игру, которые проверены чтением": "air_place.gd:domain_case; air_case.gd:dims; air_runtime.gd:_start_picard, _prev_pair, _warm_next.mech (строка 1172); air_picard_job.gd:_program('warm'/'final'/'init'), state(), field()/_field_inputs/_build_field, warm/warm_heat (проверка размера), заголовок (фазы, finalize 10 V-циклов); tools/research/air_cascade/warm/dump_inputs.gd; tools/research/air_cascade/export/README.md; tools/research/rust_ext/gdext_probe (README, rust/Cargo.toml); docs/plan/rust-ext.md 'Проба gdext'.",
+  "unverified: что в описании не проверено запуском (Windows/macOS, 200 м, окна 100/50 м)": "Windows, macOS, aarch64; сетка 200 м, окна 100/50 м; rayon внутри gdext-библиотеки и фон при идущем кадре; сборка WindField из массивов Rust (оси, единицы); Case в памяти без файлов и прямой Picard::solve; cgroup-квота в available_parallelism; тёплый старт проверен запуском только на flat_wind (iters=10), на Онгудае — по числам PR-8.",
+  "t": "2026-10-24T20:09:16",
+  "by": "executor"
+}

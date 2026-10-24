@@ -43,7 +43,8 @@ CASES = {  # имя → (U10, нагрев)
     "u3_heat": (3.0, True), "u3_mech": (3.0, False), "u0_heat": (0.0, True), "u6_heat": (6.0, True),
 }
 WARM_IN = Path(os.environ.get("AIR_CASCADE_WARM_INPUTS", str(OUT / "warm_inputs"))).expanduser()
-HOURS = {"h1200": 12.0, "h1215": 12.25}   # суффикс имени → час (SunClock, ч); T и T+15 (recompute_game_min)
+HOURS = {"h1200": 12.0, "h1215": 12.25, "h1230": 12.5}   # суффикс имени → час (SunClock, ч); T, T+15, T+30 (recompute_game_min)
+WARM_FROM = {"h1215": "h1200", "h1230": "h1215"}         # цепочка тёплых стартов: суффикс предыдущего слота
 ITER_TOL = 10
 FIELD_TOL = 1e-3     # доля u_scale
 THETA_TOL = 0.05     # К
@@ -173,8 +174,8 @@ def export(name, m, arr, ref_stats):
                    profile=dict(alpha=inp["alpha"], max_profile=inp["max_profile"], stab_class=inp["stab_class"],
                                 sun_elev=inp["sun_elev"]),
                    H_range=[inp["H_min"], inp["H_max"]])
-        if suf == "h1215":
-            src["warm_from"] = f"ongudai_d400_{base_name}_h1200"
+        if suf in WARM_FROM:
+            src["warm_from"] = f"ongudai_d400_{base_name}_{WARM_FROM[suf]}"
     meta = dict(
         format="ref-case", version=1, case=f"ongudai_d400_{name}",
         dims=[NX, NY, NZ], halo=1, dx=S.g.dx, dz=S.g.dz, z_bot=S.g.z_bot, x0=S.g.x0, y0=S.g.y0,
@@ -198,14 +199,14 @@ def export(name, m, arr, ref_stats):
               " Постоянный вход после подготовки Air + решение до критерия + "
               "finalize (sol_*), float64 → float32 LE. Без блоков одной итерации. Вход собран из массивов фикстуры "
               "(hc, H, gam — float32), solve как picard_gpu_refs.solve (taper по умолчанию, graph, max_outer 3000).")
-    if suf == "h1215":
-        old = OUT / f"ongudai_d400_{base_name}_h1200"
+    if suf in WARM_FROM:
+        old = OUT / f"ongudai_d400_{base_name}_{WARM_FROM[suf]}"
         a_old, _ = read_case_arrays(old)
         offs = P.arrays
         flat = np.concatenate(P.parts)
         a_new = {k: flat[o:o + n].astype(np.float64) for k, (o, n) in offs.items() if k in INPUT_KEYS}
         ch, same = diff_inputs(a_new, a_old)
-        h0 = load_game_inputs("h1200")
+        h0 = load_game_inputs(WARM_FROM[suf])
         dH = np.asarray(inp["H"]) - np.asarray(h0["H"])
         src["changed"] = ch
         src["unchanged"] = same

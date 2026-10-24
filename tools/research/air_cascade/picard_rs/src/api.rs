@@ -4,6 +4,9 @@
 //! rayon pool is never configured or used for the solve, so concurrent calls with different
 //! thread counts are independent. The result does not depend on the thread count.
 //!
+//! R6 v3: a case without a reference (`sol_*`, `solution`, `history`) is solved as usual,
+//! `Solved.dev` is `None`.
+//!
 //! R6 v2: criterion scale, time budget, stop reason, start from a snapshot (the game's warm
 //! start) and finalized snapshots after chosen iterations.
 //!
@@ -79,8 +82,9 @@ pub struct Solved {
     pub out: SolveOut,
     /// Wall/CPU timing as written to the R2 file.
     pub timing: Timing,
-    /// Deviation of the finalized fields from the case reference.
-    pub dev: Dev,
+    /// Deviation of the finalized fields from the case reference; `None` for a case without
+    /// a reference (R6 v3).
+    pub dev: Option<Dev>,
     /// Solver with the final fields (`picard.f`), after `finalize`.
     pub picard: Picard,
     /// The pool of this call (for further work on `picard` with the same threads).
@@ -120,7 +124,7 @@ pub fn cpu_seconds() -> f64 {
 }
 
 /// Prepare (cold or warm start), iterate to the criterion of `case` scaled by `opts.tol_scale`
-/// (or to another stop reason), finalize and compare with the case reference.
+/// (or to another stop reason), finalize and compare with the case reference (if it has one).
 pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
     if !(opts.tol_scale.is_finite() && opts.tol_scale > 0.0) {
         bail!("tol_scale must be finite and > 0, got {}", opts.tol_scale);

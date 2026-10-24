@@ -1,0 +1,144 @@
+{
+ "id": "PR-8",
+ "module": "picard-rs",
+ "type": "dp-researcher",
+ "title": "Задача 4: невязка → отклонение поля (холодный и тёплый старт), порог «годно для игры»",
+ "goal": "Найти границу невязки, при которой поле Пикара годно для игры: по снимкам после N итераций и остановкам по tol_scale построить зависимость невязки (mom_rms, div_rms, th_rms) → отклонение поля от сошедшегося в том, что чувствует пилот (|Δw|, |Δ(u,v)| в м/с у старта, на склонах, в термиках, по высотам 10–400 м), с временем до каждой точки на 8 потоках; предложить порог с обоснованием по вариометру и шуму термиков в игре. Сводка — R7 v1. Решение о пороге — шлюз пользователю, не в задаче.",
+ "plan_ref": "Решения пользователя",
+ "contracts": [
+  {
+   "name": "R1",
+   "version": "1",
+   "ref": "docs/contracts/picard-rs.md"
+  },
+  {
+   "name": "R2",
+   "version": "3",
+   "ref": "docs/contracts/picard-rs.md"
+  },
+  {
+   "name": "R4",
+   "version": "2",
+   "ref": "docs/contracts/picard-rs.md"
+  },
+  {
+   "name": "R5",
+   "version": "1",
+   "ref": "docs/contracts/picard-rs.md"
+  },
+  {
+   "name": "R6",
+   "version": "2",
+   "ref": "docs/contracts/picard-rs.md"
+  },
+  {
+   "name": "R7",
+   "version": "1",
+   "ref": "docs/contracts/picard-rs.md"
+  }
+ ],
+ "copy": "~/deltaplan-picard-rs-PR-8",
+ "branch": "picard-rs/PR-8",
+ "base": "feature/picard-rs",
+ "scope": [
+  "tools/research/air_cascade/picard_rs/out/residual/PR-8/summary.json — сводка R7 v1",
+  "tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md — новый, frontmatter type research (status, summary, conclusion, data, related); таблицы и обоснование порога",
+  "tools/research/air_cascade/picard_rs/out/residual/PR-8/run.sh — все прогоны и сборка сводки одной командой (фоном), из корня копии",
+  "tools/research/air_cascade/picard_rs/out/residual/PR-8/r2/ — R2 v3 всех прогонов (маленькие JSON)",
+  "tools/research/air_cascade/picard_rs/residual/ — новые скрипты Python (numpy можно): чтение R4, регионы, отклонения, сводка"
+ ],
+ "dont_touch": [
+  "scripts/",
+  "tests/",
+  "configs/",
+  "project.godot",
+  "docs/contracts/",
+  "tools/research/air3d/",
+  "tools/research/air_cascade/picard_rs/src/",
+  "tools/research/air_cascade/picard_rs/tests/",
+  "tools/research/air_cascade/picard_rs/contract/",
+  "tools/research/air_cascade/picard_rs/Cargo.toml",
+  "tools/research/air_cascade/picard_rs/Cargo.lock",
+  "tools/research/air_cascade/picard_rs/README.md (у лимита 40 КБ; всё — в tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md)",
+  "tools/research/air_cascade/picard_rs/out/base/",
+  "tools/research/air_cascade/picard_rs/out/opt/",
+  "tools/research/air_cascade/picard_rs/out/prof/",
+  "tools/research/air_cascade/picard_rs/out/mv/",
+  "tools/research/air_cascade/picard_rs/out/bench/",
+  "~/data/air_cascade/ongudai/ (случаи R1/R5 — только читать)"
+ ],
+ "accept": [
+  {
+   "name": "build_release",
+   "cmd": ".dpcli/dpcli lock cpu PR-8 --no-tmux -- cargo build --release --manifest-path tools/research/air_cascade/picard_rs/Cargo.toml",
+   "expect": {
+    "exit": 0
+   },
+   "timeout": 3600
+  },
+  {
+   "name": "isa_v3",
+   "cmd": "tools/research/air_cascade/picard_rs/target/release/picard isa",
+   "expect": {
+    "re": "isa_branch=x86_64\\+avx2\\+fma"
+   }
+  },
+  {
+   "name": "r7_summary",
+   "cmd": "python3 tools/research/air_cascade/picard_rs/contract/check_residual.py tools/research/air_cascade/picard_rs/out/residual/PR-8/summary.json",
+   "expect": {
+    "re": "^ok series=5 ",
+    "exit": 0
+   }
+  },
+  {
+   "name": "ref_tolerance",
+   "cmd": "python3 tools/research/air_cascade/picard_rs/contract/tolerance.py --iters-tol 10 tools/research/air_cascade/picard_rs/out/residual/PR-8/r2/ref/ongudai_d400_u3_heat_release_t8.json tools/research/air_cascade/picard_rs/out/residual/PR-8/r2/ref/ongudai_d400_u3_mech_release_t8.json tools/research/air_cascade/picard_rs/out/residual/PR-8/r2/ref/ongudai_d400_u0_heat_release_t8.json tools/research/air_cascade/picard_rs/out/residual/PR-8/r2/ref/ongudai_d400_u6_heat_release_t8.json",
+   "expect": {
+    "num": "^worst=(\\S+)",
+    "max": 1.0,
+    "exit": 0
+   }
+  },
+  {
+   "name": "r2_contract",
+   "cmd": "python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --results tools/research/air_cascade/picard_rs/out/residual/PR-8/r2/ref/",
+   "expect": {
+    "exit": 0
+   }
+  },
+  {
+   "name": "run_sh",
+   "cmd": "bash -n tools/research/air_cascade/picard_rs/out/residual/PR-8/run.sh && grep -c 'lock cpu PR-8' tools/research/air_cascade/picard_rs/out/residual/PR-8/run.sh",
+   "expect": {
+    "num": "^(\\d+)$",
+    "min": 1,
+    "exit": 0
+   }
+  },
+  {
+   "name": "no_big_files",
+   "cmd": "find tools/research/air_cascade/picard_rs/out/residual/PR-8 tools/research/air_cascade/picard_rs/residual -type f -size +2M",
+   "expect": {
+    "not_re": ".",
+    "exit": 0
+   }
+  },
+  {
+   "name": "readme",
+   "cmd": ".dpcli/dpcli docs check tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md",
+   "expect": {
+    "exit": 0
+   }
+  }
+ ],
+ "report_extra": [
+  "table_cold: по случаю — N/tol_scale → t_s, mom/div/th_rms, launch dw_max/du_max, slopes dw_max, thermals dw_max, flows (одна строка на точку)",
+  "table_warm: то же для u3_heat_h1200 → h1215 (тёплый) и холодного h1215",
+  "floor: отклонение сошедшегося f32 от эталона f64 у старта (crop фикстуры, export_ongudai.py check_field) — пол точности, ниже которого порог не имеет смысла",
+  "threshold: предложение (|Δw| у старта и на склонах, |Δu|) + какой критерий решателя ему отвечает (tol_scale или невязки), время до него против полного счёта (холодный/тёплый), источники",
+  "regions: как определены thermals и slopes и сколько клеток в каждом регионе по случаю"
+ ],
+ "notes": "",
+ "created": "2026-10-24T19:01:26"
+}

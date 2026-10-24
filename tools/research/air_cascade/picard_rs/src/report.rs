@@ -100,13 +100,17 @@ fn crop_dev(c: &Case, s: &Picard) -> Result<Option<[(f64, f64); 4]>> {
 }
 
 /// Compares the solved fields with `sol_*` of the case.
-pub fn deviation(c: &Case, s: &Picard) -> Result<Dev> {
+/// `None` when the case has no reference.
+pub fn deviation(c: &Case, s: &Picard) -> Result<Option<Dev>> {
+    let Some(sol) = c.solution.as_ref().filter(|_| c.has_reference()) else {
+        return Ok(None);
+    };
     let (su, sv, sw) = (c.arr("sol_u")?, c.arr("sol_v")?, c.arr("sol_w")?);
-    let u0 = c.case_params.u_aloft.max(c.solution.max_speed);
+    let u0 = c.case_params.u_aloft.max(sol.max_speed);
     let du = max_abs_diff(&s.f.u, su)
         .max(max_abs_diff(&s.f.v, sv))
         .max(max_abs_diff(&s.f.w, sw));
-    Ok(Dev {
+    Ok(Some(Dev {
         u0,
         u_rel: du / u0,
         th_abs: max_abs_diff(&s.f.th, c.arr("sol_th")?)
@@ -115,11 +119,14 @@ pub fn deviation(c: &Case, s: &Picard) -> Result<Dev> {
         div_rms: div_rms_f64(s, &s.f.u, &s.f.v, &s.f.w),
         div_rms_ref: div_rms_f64(s, su, sv, sw),
         crop: crop_dev(c, s)?,
-    })
+    }))
 }
 
 /// Text table of the deviation per field (max with its cell, rms, 99.9th percentile) over air cells.
 pub fn diag(c: &Case, s: &Picard) -> Result<String> {
+    if !c.has_reference() {
+        anyhow::bail!("case {} has no reference: no deviation table", c.name);
+    }
     let k = &s.k;
     let mut out = String::from("field | max | at (i,j,k) | rms | p99.9\n");
     let fields: [(&str, &[f32], &[f32]); 5] = [
@@ -294,7 +301,7 @@ pub fn result_json(
         "dtype": "f32",
         "status": status,
         "iters": iters,
-        "iters_ref": c.solution.iters,
+        "iters_ref": c.solution.as_ref().map(|s| s.iters),
         "history": history,
         "history_ref": c.history_ref,
         "dev": dev_v,

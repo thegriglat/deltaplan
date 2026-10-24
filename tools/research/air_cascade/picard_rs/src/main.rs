@@ -138,7 +138,7 @@ fn solve_case(c: &Case, threads: usize, out: Option<PathBuf>, a: &SolveArgs) -> 
         o.status,
         o.iters,
         history_json(o),
-        Some(dev),
+        dev.as_ref(),
         t,
         Some(&info),
     );
@@ -153,18 +153,30 @@ fn solve_case(c: &Case, threads: usize, out: Option<PathBuf>, a: &SolveArgs) -> 
         api::cpu_seconds(),
         t.total_s
     );
-    println!(
-        "{}: status {} stop {} iters {}/{} u_rel {:.3e} th_abs {:.3e} K ms/iter {:.3} -> {}",
-        c.name,
-        o.status,
-        r.stop.as_str(),
-        o.iters,
-        c.solution.iters,
-        dev.u_rel,
-        dev.th_abs,
-        t.iter_s / t.iters_run.max(1) as f64 * 1e3,
-        path.display()
-    );
+    let ms_it = t.iter_s / t.iters_run.max(1) as f64 * 1e3;
+    match (&dev, &c.solution) {
+        (Some(d), Some(sol)) => println!(
+            "{}: status {} stop {} iters {}/{} u_rel {:.3e} th_abs {:.3e} K ms/iter {:.3} -> {}",
+            c.name,
+            o.status,
+            r.stop.as_str(),
+            o.iters,
+            sol.iters,
+            d.u_rel,
+            d.th_abs,
+            ms_it,
+            path.display()
+        ),
+        _ => println!(
+            "{}: status {} stop {} iters {} (no reference) ms/iter {:.3} -> {}",
+            c.name,
+            o.status,
+            r.stop.as_str(),
+            o.iters,
+            ms_it,
+            path.display()
+        ),
+    }
     Ok(())
 }
 

@@ -1,0 +1,301 @@
+{
+  "status": "done",
+  "summary": "Все прогоны (8 потоков, под замком) и сводка R7 v1 готовы: 5 серий, 43 точки, check_residual ok; предложение порога tol_scale 5 (старт Δw≤0,05, Δ(u,v)≤0,2, склоны ≤0,1 м/с). accept PR-8: 8/8 PASS (ref-прогоны перенесены в r2/ref/ по правке карточки).",
+  "commits": [
+    "012db5305 picard-rs PR-8: невязка → отклонение поля Пикара, порог tol_scale 5",
+    "0c0019388 picard-rs PR-8: ref-прогоны в r2/ref/ по правке карточки"
+  ],
+  "checks": [
+    {
+      "name": "r7_summary",
+      "value": "ok series=5 points=43",
+      "pass": true
+    },
+    {
+      "name": "ref_tolerance",
+      "value": "worst=0.0415",
+      "pass": true
+    },
+    {
+      "name": "r2_contract",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "build_release",
+      "value": "PASS (accept)",
+      "pass": true
+    },
+    {
+      "name": "isa_v3",
+      "value": "PASS (accept)",
+      "pass": true
+    },
+    {
+      "name": "run_sh",
+      "value": "PASS (accept)",
+      "pass": true
+    },
+    {
+      "name": "no_big_files",
+      "value": "PASS (accept)",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "PASS (accept)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PR-8 --dry; README: tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md",
+  "uncertain": [
+    {
+      "where": "summary.json → series ongudai_d400_u0_heat",
+      "why": "штиль: сошедшийся по критерию эталон отличается от поля после 1500 итераций на 0,38 м/с по w и 0,73 по (u,v) у старта (до 1,8 м/с по области); глубокое решение само не сошлось (mom_rms 3,5e-6 стоит). Отклонения при любом tol_scale — дрейф медленной моды, порог по u0 не измерить",
+      "checked": "прогон tol_scale 0,1 до 1500 итераций, сравнение с эталоном"
+    },
+    {
+      "where": "residual/fields.py:SLOPE_MIN, W_THERMAL",
+      "why": "регионы slopes (уклон ≥0,3, 10–400 м вместо 10–100 м из карточки: нижняя клетка имеет w≡0) и thermals (w_ref≥0,75 м/с, вне склонов) — мои определения по распределению Онгудая и паре u3 mech/heat",
+      "checked": "распределения уклонов и w; mech содержит 188 таких клеток (механические восходящие)"
+    },
+    {
+      "where": "threshold.json",
+      "why": "перцептивного порога пилота по w и ветру (кроме порога звука вариометра 0,1/гистерезис 0,05) в проекте нет; 0,05 и 0,2 м/с — доли шума игры (≤15 % σ_w, σ_u), не измеренный предел",
+      "checked": "audio.json:17,21; instruments.json:5,7; turbulence.md:45,121,255"
+    },
+    {
+      "where": "холодный N=30,50,100,150",
+      "why": "невязки снимка взяты на ближайшей проверке не раньше N (холодный: итерация N+1; поля и время — точно на N)",
+      "checked": "поле res_it в точках"
+    },
+    {
+      "where": "тёплый ряд",
+      "why": "цепочка тёплых стартов T→T+15→T+30 не мерилась; tol_scale 3/10/30 у тёплого останавливаются на первой проверке (10 итераций) — три точки совпадают; N=30,50 получены прогоном tol_scale 0,001 max_iters 50",
+      "checked": "путь решения до 20 итераций тот же"
+    }
+  ],
+  "dp_feedback": "Акцепт-проверки карточки противоречат друг другу по именам файлов (ref_tolerance vs check_contract.py:142) — стоит проверять пробным dry при выдаче карточки. Снимок по N, не кратному проверке, не несёт невязок (history на итерациях 11,21,…): удобно было бы писать невязки в снимок.",
+  "extra": {
+    "threshold": 5.0,
+    "time_cold_tol5_s": {
+      "ongudai_d400_u3_heat": 6.533296566,
+      "ongudai_d400_u3_mech": 6.771687453,
+      "ongudai_d400_u0_heat": 3.526878908,
+      "ongudai_d400_u6_heat": 4.751601805
+    },
+    "warm_10it_s": 0.63
+  },
+  "table_cold: по случаю — N/tol_scale → t_s, mom/div/th_rms, launch dw_max/du_max, slopes dw_max, thermals dw_max, flows (одна строка на точку)": {
+    "ref": {
+      "ongudai_d400_u3_heat": "ref 191 it, 11.21 s",
+      "ongudai_d400_u3_mech": "ref 231 it, 10.85 s",
+      "ongudai_d400_u0_heat": "ref 201 it, 11.69 s",
+      "ongudai_d400_u6_heat": "ref 131 it, 7.68 s",
+      "ongudai_d400_u3_heat_h1215": "ref 281 it, 16.92 s"
+    },
+    "points": {
+      "ongudai_d400_u3_heat": [
+        "N=30 t=1.80s mom/div/th=3.8e-04/1.7e-07/8.0e-06 launch dw/du=0.018/0.120 slopes dw=0.117 dwt=0.285 thermals dw=0.085 flows=-0.004/-0.009/-0.000",
+        "N=50 t=2.96s mom/div/th=2.6e-04/9.2e-08/5.4e-06 launch dw/du=0.008/0.057 slopes dw=0.047 dwt=0.098 thermals dw=0.042 flows=+0.003/-0.004/+0.000",
+        "N=100 t=5.86s mom/div/th=1.2e-04/4.1e-08/2.5e-06 launch dw/du=0.002/0.008 slopes dw=0.013 dwt=0.025 thermals dw=0.007 flows=-0.002/-0.001/-0.000",
+        "N=150 t=8.80s mom/div/th=4.9e-05/1.8e-08/1.1e-06 launch dw/du=0.001/0.005 slopes dw=0.004 dwt=0.006 thermals dw=0.003 flows=-0.000/-0.000/-0.000",
+        "tol3(151it) t=8.92s mom/div/th=4.9e-05/1.8e-08/1.1e-06 launch dw/du=0.001/0.004 slopes dw=0.004 dwt=0.007 thermals dw=0.003 flows=-0.001/-0.000/-0.000",
+        "tol5(111it) t=6.53s mom/div/th=9.8e-05/3.4e-08/2.1e-06 launch dw/du=0.002/0.016 slopes dw=0.007 dwt=0.013 thermals dw=0.006 flows=-0.000/-0.001/+0.000",
+        "tol7(101it) t=5.95s mom/div/th=1.2e-04/4.1e-08/2.5e-06 launch dw/du=0.001/0.006 slopes dw=0.013 dwt=0.024 thermals dw=0.007 flows=-0.001/-0.001/-0.000",
+        "tol10(71it) t=4.21s mom/div/th=2.0e-04/6.3e-08/4.0e-06 launch dw/du=0.006/0.029 slopes dw=0.021 dwt=0.056 thermals dw=0.026 flows=+0.003/-0.002/+0.000",
+        "tol30(21it) t=1.30s mom/div/th=4.9e-04/4.0e-07/1.1e-05 launch dw/du=0.057/0.321 slopes dw=0.147 dwt=0.343 thermals dw=0.114 flows=-0.018/-0.017/+0.000"
+      ],
+      "ongudai_d400_u3_mech": [
+        "N=30 t=1.41s mom/div/th=4.5e-04/1.6e-07/9.5e-06 launch dw/du=0.347/1.616 slopes dw=0.526 dwt=1.128 thermals dw=0.140 flows=+0.002/+0.009/+0.009",
+        "N=50 t=2.35s mom/div/th=3.5e-04/1.0e-07/6.9e-06 launch dw/du=0.216/0.978 slopes dw=0.313 dwt=0.611 thermals dw=0.084 flows=+0.001/+0.003/+0.005",
+        "N=100 t=4.69s mom/div/th=1.8e-04/5.4e-08/3.7e-06 launch dw/du=0.023/0.133 slopes dw=0.072 dwt=0.151 thermals dw=0.048 flows=-0.000/+0.000/+0.001",
+        "N=150 t=7.05s mom/div/th=7.5e-05/2.5e-08/1.7e-06 launch dw/du=0.003/0.018 slopes dw=0.020 dwt=0.033 thermals dw=0.006 flows=-0.000/+0.000/+0.000",
+        "tol3(161it) t=7.64s mom/div/th=6.0e-05/2.0e-08/1.4e-06 launch dw/du=0.004/0.016 slopes dw=0.013 dwt=0.025 thermals dw=0.006 flows=+0.000/+0.000/+0.000",
+        "tol5(141it) t=6.77s mom/div/th=9.3e-05/3.0e-08/2.0e-06 launch dw/du=0.008/0.034 slopes dw=0.025 dwt=0.064 thermals dw=0.018 flows=+0.000/+0.000/+0.000",
+        "tol7(121it) t=5.80s mom/div/th=1.3e-04/3.9e-08/2.7e-06 launch dw/du=0.014/0.060 slopes dw=0.037 dwt=0.097 thermals dw=0.031 flows=+0.000/+0.000/+0.000",
+        "tol10(101it) t=4.82s mom/div/th=1.8e-04/5.4e-08/3.7e-06 launch dw/du=0.022/0.129 slopes dw=0.068 dwt=0.143 thermals dw=0.048 flows=-0.000/+0.000/+0.001",
+        "tol30(21it) t=1.00s mom/div/th=5.4e-04/2.2e-07/1.2e-05 launch dw/du=0.404/1.968 slopes dw=0.628 dwt=1.395 thermals dw=0.171 flows=+0.001/+0.013/+0.014"
+      ],
+      "ongudai_d400_u0_heat": [
+        "N=30 t=1.75s mom/div/th=1.4e-04/2.5e-07/4.7e-06 launch dw/du=0.309/1.237 slopes dw=0.559 dwt=0.816 thermals dw=0.000 flows=+0.000/+0.000/-0.001",
+        "N=50 t=2.91s mom/div/th=8.8e-05/1.4e-07/2.8e-06 launch dw/du=0.367/1.008 slopes dw=0.484 dwt=0.763 thermals dw=0.000 flows=+0.000/+0.000/-0.004",
+        "N=100 t=5.81s mom/div/th=3.9e-05/6.7e-08/9.3e-07 launch dw/du=0.410/1.236 slopes dw=0.331 dwt=0.468 thermals dw=0.000 flows=+0.000/+0.000/-0.002",
+        "N=150 t=8.72s mom/div/th=2.5e-05/3.6e-08/5.2e-07 launch dw/du=0.270/0.754 slopes dw=0.219 dwt=0.363 thermals dw=0.000 flows=+0.000/+0.000/-0.000",
+        "tol3(81it) t=4.73s mom/div/th=5.1e-05/8.8e-08/1.4e-06 launch dw/du=0.328/1.101 slopes dw=0.383 dwt=0.521 thermals dw=0.000 flows=+0.000/+0.000/-0.003",
+        "tol5(61it) t=3.53s mom/div/th=7.3e-05/1.2e-07/2.1e-06 launch dw/du=0.319/0.996 slopes dw=0.446 dwt=0.644 thermals dw=0.000 flows=+0.000/+0.000/-0.004",
+        "tol7(51it) t=2.96s mom/div/th=8.8e-05/1.4e-07/2.8e-06 launch dw/du=0.362/0.996 slopes dw=0.482 dwt=0.752 thermals dw=0.000 flows=+0.000/+0.000/-0.004",
+        "tol10(31it) t=1.83s mom/div/th=1.4e-04/2.5e-07/4.7e-06 launch dw/du=0.311/1.232 slopes dw=0.559 dwt=0.824 thermals dw=0.000 flows=+0.000/+0.000/-0.002",
+        "tol30(21it) t=1.23s mom/div/th=2.1e-04/6.8e-07/7.7e-06 launch dw/du=0.319/1.223 slopes dw=0.528 dwt=0.753 thermals dw=0.000 flows=+0.000/+0.000/+0.002"
+      ],
+      "ongudai_d400_u6_heat": [
+        "N=30 t=1.81s mom/div/th=4.8e-04/2.0e-07/8.6e-06 launch dw/du=0.068/0.319 slopes dw=0.142 dwt=0.245 thermals dw=0.119 flows=+0.012/+0.005/+0.000",
+        "N=50 t=2.97s mom/div/th=2.2e-04/6.6e-08/3.6e-06 launch dw/du=0.022/0.089 slopes dw=0.065 dwt=0.116 thermals dw=0.061 flows=-0.003/+0.000/-0.001",
+        "N=100 t=5.88s mom/div/th=4.3e-05/1.2e-08/6.5e-07 launch dw/du=0.002/0.009 slopes dw=0.009 dwt=0.019 thermals dw=0.009 flows=-0.000/-0.000/-0.000",
+        "tol3(91it) t=5.28s mom/div/th=5.9e-05/1.7e-08/9.2e-07 launch dw/du=0.003/0.014 slopes dw=0.014 dwt=0.029 thermals dw=0.013 flows=-0.000/+0.000/-0.000",
+        "tol5(81it) t=4.75s mom/div/th=8.2e-05/2.3e-08/1.3e-06 launch dw/du=0.005/0.021 slopes dw=0.020 dwt=0.043 thermals dw=0.019 flows=-0.001/+0.000/-0.000",
+        "tol7(71it) t=4.19s mom/div/th=1.1e-04/3.2e-08/1.8e-06 launch dw/du=0.008/0.033 slopes dw=0.027 dwt=0.058 thermals dw=0.026 flows=-0.002/+0.000/-0.000",
+        "tol10(61it) t=3.64s mom/div/th=1.6e-04/4.6e-08/2.6e-06 launch dw/du=0.013/0.050 slopes dw=0.043 dwt=0.077 thermals dw=0.040 flows=-0.003/+0.000/-0.001",
+        "tol30(31it) t=1.85s mom/div/th=4.8e-04/2.0e-07/8.6e-06 launch dw/du=0.063/0.294 slopes dw=0.134 dwt=0.231 thermals dw=0.116 flows=+0.010/+0.004/-0.000"
+      ]
+    }
+  },
+  "table_warm: то же для u3_heat_h1200 → h1215 (тёплый) и холодного h1215": {
+    "ref(cold h1215)": "281 it, 16.92 s",
+    "warm_points": [
+      "N=10 t=0.63s mom/div/th=1.9e-05/3.4e-08/5.3e-07 launch dw/du=0.025/0.105 slopes dw=0.028 dwt=0.048 thermals dw=0.022 flows=+0.011/+0.007/+0.001",
+      "N=20 t=1.23s mom/div/th=1.6e-05/1.2e-08/3.6e-07 launch dw/du=0.009/0.041 slopes dw=0.012 dwt=0.020 thermals dw=0.010 flows=+0.004/+0.003/+0.000",
+      "N=30 t=1.83s mom/div/th=1.3e-05/5.5e-09/3.0e-07 launch dw/du=0.003/0.013 slopes dw=0.004 dwt=0.008 thermals dw=0.004 flows=+0.002/+0.001/+0.000",
+      "N=50 t=3.04s mom/div/th=9.3e-06/3.2e-09/2.2e-07 launch dw/du=0.001/0.003 slopes dw=0.002 dwt=0.004 thermals dw=0.001 flows=+0.000/+0.000/+0.000",
+      "tol3(10it) t=0.64s mom/div/th=1.9e-05/3.4e-08/5.3e-07 launch dw/du=0.025/0.105 slopes dw=0.028 dwt=0.048 thermals dw=0.022 flows=+0.011/+0.007/+0.001",
+      "tol10(10it) t=0.63s mom/div/th=1.9e-05/3.4e-08/5.3e-07 launch dw/du=0.025/0.105 slopes dw=0.028 dwt=0.048 thermals dw=0.022 flows=+0.011/+0.007/+0.001",
+      "tol30(10it) t=0.62s mom/div/th=1.9e-05/3.4e-08/5.3e-07 launch dw/du=0.025/0.105 slopes dw=0.028 dwt=0.048 thermals dw=0.022 flows=+0.011/+0.007/+0.001",
+      "tol1(20it) t=1.22s mom/div/th=1.6e-05/1.2e-08/3.6e-07 launch dw/du=0.009/0.041 slopes dw=0.012 dwt=0.020 thermals dw=0.010 flows=+0.004/+0.003/+0.000"
+    ],
+    "warm_early_launch_dw_max": {
+      "2": 0.033,
+      "4": 0.038,
+      "6": 0.035,
+      "8": 0.03
+    },
+    "init_h1200_vs_h1215_launch_dw_du": [
+      0.00989621877670288,
+      0.034250456539665824
+    ]
+  },
+  "floor: отклонение сошедшегося f32 от эталона f64 у старта (crop фикстуры, export_ongudai.py check_field) — пол точности, ниже которого порог не имеет смысла": {
+    "ongudai_d400_u3_heat": {
+      "launch_dw_max_f32_vs_f64": 4.76837158203125e-07,
+      "launch_du_max": 2.5788912359218523e-06,
+      "crop_all_levels_du_max": 1.0781687788577093e-05,
+      "crop_th_abs": 2.086162567138672e-06,
+      "ref_vs_deep_launch_dw": 0.0002551078796386719,
+      "ref_vs_deep_launch_du": 0.0010978560735943358
+    },
+    "ongudai_d400_u3_mech": {
+      "launch_dw_max_f32_vs_f64": 1.7881393432617188e-06,
+      "launch_du_max": 9.026119325726483e-06,
+      "crop_all_levels_du_max": 9.026119325726483e-06,
+      "crop_th_abs": 1.3932585716247559e-06,
+      "ref_vs_deep_launch_dw": 0.000577971339225769,
+      "ref_vs_deep_launch_du": 0.002671506212185102
+    },
+    "ongudai_d400_u0_heat": {
+      "launch_dw_max_f32_vs_f64": 4.589557647705078e-06,
+      "launch_du_max": 1.2535977698929643e-05,
+      "crop_all_levels_du_max": 3.813150956748662e-05,
+      "crop_th_abs": 4.909932613372803e-06,
+      "ref_vs_deep_launch_dw": 0.3816530555486679,
+      "ref_vs_deep_launch_du": 0.7335700839757919
+    },
+    "ongudai_d400_u6_heat": {
+      "launch_dw_max_f32_vs_f64": 2.86102294921875e-06,
+      "launch_du_max": 1.564142176328347e-05,
+      "crop_all_levels_du_max": 2.883189479414172e-05,
+      "crop_th_abs": 9.179115295410156e-06,
+      "ref_vs_deep_launch_dw": 0.0006639957427978516,
+      "ref_vs_deep_launch_du": 0.0036543916301360773
+    },
+    "ongudai_d400_u3_heat_h1215": {
+      "launch_dw_max_f32_vs_f64": 5.960464477539062e-07,
+      "launch_du_max": 4.1019083342755445e-06,
+      "crop_all_levels_du_max": 1.0728836059570312e-05,
+      "crop_th_abs": 3.11434268951416e-06,
+      "ref_vs_deep_launch_dw": 0.00035452842712402344,
+      "ref_vs_deep_launch_du": 0.0012325831255214285
+    }
+  },
+  "threshold: предложение (|Δw| у старта и на склонах, |Δu|) + какой критерий решателя ему отвечает (tol_scale или невязки), время до него против полного счёта (холодный/тёплый), источники": {
+    "text": "Предложение (решение — шлюз пользователя): поле годно для игры, если у старта (окно crop, до 400 м над рельефом) |Δw| ≤ 0,05 м/с и |Δ(u,v)| ≤ 0,2 м/с (максимум по клеткам против сошедшегося), на склонах (10–400 м) |Δw| ≤ 0,1 м/с. Обоснование: 0,1 м/с — порог звука подъёма вариометра (audio.json climb_on_ms), гистерезис 0,05 м/с; ошибка поля ниже порога не включает и не выключает писк, у старта берём половину (гистерезис); среднее вариометра (25 с) и фильтр 0,7 с сглаживают шум, но не постоянное смещение, поэтому порог — на максимум, а не на rms. Шум игры поверх поля у старта: σ_w 0,33–1,2 м/с, σ_u 1,4–2,5 м/с (turbulence.md, таблица AS-2), т. е. 0,05 м/с — не более 15 % σ_w, 0,2 м/с — не более 15 % σ_u. В решателе этому отвечает tol_scale = 5 (mom_rms ≤ 1e-4, th_rms ≤ 2,5e-6, div_rms ≤ 5e-6): на u3_heat, u3_mech, u6_heat запас от 1,6 до 10 раз по всем трём порогам (худшее — склон u3_mech: Δwt 0,064 из 0,1 м/с). tol_scale 7 держится на грани (u3_mech: склон 0,097), tol_scale 10 не проходит у u3_mech (склон Δwt 0,143), 30 не проходит нигде. Время холодного счёта на 8 потоках при tol_scale 5: 4,7–6,7 с против 7,7–11,2 с до полной сходимости, выигрыш всего 1,6–1,7×: невязка по N — крутая, ниже tol_scale 10 каждая итерация (≈58 мс) покупает мало. Тёплый старт (u3_heat h1200→h1215): уже через 10 итераций (первая проверка, 0,62 с) у старта Δw 0,025, Δ(u,v) 0,105 м/с, tol_scale 3/10/30 останавливаются на этой же проверке; порог проходит и любой tol_scale; полная сходимость тёплого — 20 итераций, 1,2 с (холодный 17 с). Оговорки: u0_heat (штиль) порог не проходит ни при каком tol_scale — сама сошедшаяся по критерию точка отличается от поля после 1500 итераций на 0,38 м/с по w у старта (медленная мода); для u0 критерий невязки поле не фиксирует.",
+    "launch_dw_max": 0.05,
+    "launch_du_max": 0.2,
+    "slopes_dw_max": 0.1,
+    "tol_scale": 5.0,
+    "residual": {
+      "mom_rms": 0.0001,
+      "div_rms": 5e-06,
+      "th_rms": 2.5e-06
+    },
+    "sources": [
+      "configs/audio.json:17 — climb_on_ms 0,1 м/с: порог звука подъёма вариометра",
+      "configs/audio.json:21 — hysteresis_ms 0,05 м/с: гистерезис порогов звука",
+      "configs/instruments.json:5 — filter_time_constant_s 0,7 с (инерция датчика); :7 average_window_s 25 с (окно среднего)",
+      "docs/guide/instruments.md:74 — раздел «Вариометр» (фильтр, среднее 25 с); :172 «Звук вариометра» (пороги)",
+      "docs/guide/air-model/turbulence.md:121 — таблица AS-2: σ_w 0,33–1,2, σ_u 1,4–2,5 м/с у старта, 1,5 м над землёй (шум игры поверх поля)",
+      "docs/guide/air-model/turbulence.md:45 — σ_w = 1,25 u*, σ_u/σ_v/σ_w = 2,4 : 1,9 : 1,25 (Panofsky & Dutton 1984)",
+      "docs/guide/air-model/turbulence.md:255 — у земли поток идёт вдоль склона, w = U·∇h (основание для Δwt = Δw + Δu·hx + Δv·hy на склонах)"
+    ],
+    "not_proven": [
+      "перцептивный порог пилота по w и ветру (кроме порога звука вариометра) в проекте не измерен; 0,05/0,2 — доли шума игры, не измеренный порог",
+      "цепочка тёплых стартов (T→T+15→T+30) не проверена: ошибка может копиться"
+    ]
+  },
+  "regions: как определены thermals и slopes и сколько клеток в каждом регионе по случаю": {
+    "definitions": {
+      "domain": "All fluid cells (cell type 1) of the case, halo excluded; includes the side and top sponge layers.",
+      "launch": "Fluid cells in the R1 `crop` window (16x16 columns around the launch, as in export_ongudai.py:check_field), up to 400 m above terrain (check_field takes all levels; the pilot layer is below 400 m).",
+      "agl_10_50": "Fluid cells whose centre is 10 <= h < 50 m above the terrain height hc of the column (centre z = z_bot + (k+0.5)dz).",
+      "agl_50_100": "Fluid cells whose centre is 50 <= h < 100 m above the terrain height hc of the column.",
+      "agl_100_200": "Fluid cells whose centre is 100 <= h < 200 m above the terrain height hc of the column.",
+      "agl_200_400": "Fluid cells whose centre is 200 <= h < 400 m above the terrain height hc of the column.",
+      "thermals": "Fluid cells 10-400 m above terrain, outside `slopes` columns, where the REFERENCE w >= 0.75 m/s (about the 99.3rd percentile of w of the mechanical u3_mech case in the same cells; heat cases have ~3x more such cells, so the region is the strong-updraft cores, thermals in heat cases). Same rule for every case; mech has mechanical updrafts there.",
+      "slopes": "Fluid cells 10-400 m above terrain in columns with terrain slope norm(grad hc) >= 0.3 (central differences on the 400 m grid, ~17 deg; upper quintile of Ongudai columns, median 0.22). The lowest fluid cell (agl < 105 m) has w = 0 by the staggering, so raw dw there is 0; `dwt_*` adds the along-terrain term u*hx + v*hy."
+    },
+    "n_cells": {
+      "ongudai_d400_u3_heat": {
+        "domain": 381458,
+        "launch": 973,
+        "agl_10_50": 3490,
+        "agl_50_100": 4331,
+        "agl_100_200": 8783,
+        "agl_200_400": 17566,
+        "slopes": 7396,
+        "thermals": 613
+      },
+      "ongudai_d400_u3_mech": {
+        "domain": 381458,
+        "launch": 973,
+        "agl_10_50": 3490,
+        "agl_50_100": 4331,
+        "agl_100_200": 8783,
+        "agl_200_400": 17566,
+        "slopes": 7396,
+        "thermals": 188
+      },
+      "ongudai_d400_u0_heat": {
+        "domain": 381458,
+        "launch": 973,
+        "agl_10_50": 3490,
+        "agl_50_100": 4331,
+        "agl_100_200": 8783,
+        "agl_200_400": 17566,
+        "slopes": 7396,
+        "thermals": 0
+      },
+      "ongudai_d400_u6_heat": {
+        "domain": 381458,
+        "launch": 973,
+        "agl_10_50": 3490,
+        "agl_50_100": 4331,
+        "agl_100_200": 8783,
+        "agl_200_400": 17566,
+        "slopes": 7396,
+        "thermals": 3146
+      },
+      "ongudai_d400_u3_heat_h1215": {
+        "domain": 381458,
+        "launch": 973,
+        "agl_10_50": 3490,
+        "agl_50_100": 4331,
+        "agl_100_200": 8783,
+        "agl_200_400": 17566,
+        "slopes": 7396,
+        "thermals": 476
+      }
+    }
+  },
+  "t": "2026-10-24T19:36:39",
+  "by": "executor"
+}
