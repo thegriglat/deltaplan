@@ -9,6 +9,8 @@ related: ["docs/plan/air-cascade.md", "docs/contracts/air-cascade.md", "tools/re
 
 # picard_rs — Пикар 400 м на Rust (шаг 0, AC-R1, AC-R3, AC-R4)
 
+Для интегратора: [INTEGRATION.md](INTEGRATION.md) — API, вход/выход, тёплый старт, нити, сборка, пример.
+
 Порт одной итерации Пикара AM-01 (`tools/research/air3d/air.py`, ядра CuPy) на Rust:
 `f32`, плоские массивы с ореолом в раскладке R1 (вход читается без перестановок), явный
 `rayon::ThreadPool`. Подготовка случая (рельеф, K_b, губки, нагрев) **не** портирована — берётся
