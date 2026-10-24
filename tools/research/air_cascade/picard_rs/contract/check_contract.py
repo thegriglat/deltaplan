@@ -32,6 +32,7 @@ R2_KEYS = ["format", "version", "case", "input", "profile", "threads", "dtype", 
            "iters_ref", "history", "history_ref", "dev", "time", "host"]
 R2_DEV = ["u0", "u_rel", "th_abs", "p_rel", "div_rms", "div_rms_ref"]
 R2_TIME = ["total_s", "setup_s", "ms_per_iter", "check_ms", "ns_per_cell_iter", "n_cells"]
+R2_PHASES = ["mom", "heat", "proj", "kupd", "other"]
 R2_HOST = ["cpu", "rustc", "git"]
 R2_HIST = ["it", "mom_rms", "mom_max", "th_rms", "thd_rms", "div_rms"]
 
@@ -97,13 +98,13 @@ def finite_or_null(v) -> bool:
 
 
 def check_result(path: Path) -> None:
-    """R2 v1: result JSON fields, enums, numbers."""
+    """R2 v1/v2: result JSON fields, enums, numbers."""
     d = json.loads(path.read_text())
     w = str(path)
     need(d, R2_KEYS, w)
     if errors and any(e.startswith(w) for e in errors):
         return
-    if d["format"] != "picard-rs-result" or d["version"] != 1:
+    if d["format"] != "picard-rs-result" or d["version"] not in (1, 2):
         err(f"{w}: format/version {d['format']}/{d['version']}")
     if d["profile"] not in ("dev", "release"):
         err(f"{w}: profile {d['profile']}")
@@ -118,15 +119,43 @@ def check_result(path: Path) -> None:
     need(d["host"], R2_HOST, w + ".host")
     for sec in ("dev", "time"):
         for k, v in d[sec].items():
+            if k == "phase_ms":  # R2 v2 dict, checked in check_r2_v2
+                continue
             if not finite_or_null(v):
                 err(f"{w}: {sec}.{k} = {v!r} (number or null)")
     if not isinstance(d["history"], list):
         err(f"{w}: history must be a list")
     elif d["history"]:
         need(d["history"][0], R2_HIST, w + ".history[0]")
+    if d["version"] == 2:
+        check_r2_v2(d, w)
     name = path.stem
     if not re.fullmatch(r".+_(dev|release)_t\d+", name):
         err(f"{w}: file name must be <case>_<profile>_t<threads>.json")
+
+
+def check_r2_v2(d: dict, w: str) -> None:
+    """R2 v2: time.phase_ms (5 keys, sum = ms_per_iter +-2 %) and history[].t_s (non-decreasing)."""
+    ph = d["time"].get("phase_ms")
+    if not isinstance(ph, dict) or sorted(ph) != sorted(R2_PHASES):
+        err(f"{w}: time.phase_ms must have exactly keys {R2_PHASES}")
+    else:
+        bad = [k for k, v in ph.items()
+               if not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0]
+        if bad:
+            err(f"{w}: time.phase_ms {bad} must be finite numbers >= 0")
+        else:
+            ms = d["time"]["ms_per_iter"]
+            tot = sum(ph.values())
+            if not isinstance(ms, (int, float)) or not ms > 0 or abs(tot / ms - 1) > 0.02:
+                err(f"{w}: sum(phase_ms) {tot} != ms_per_iter {ms} (+-2 %)")
+    last = -math.inf
+    for i, h in enumerate(d["history"] if isinstance(d["history"], list) else []):
+        t = h.get("t_s") if isinstance(h, dict) else None
+        if not isinstance(t, (int, float)) or not math.isfinite(t) or t < last:
+            err(f"{w}: history[{i}].t_s = {t!r} (finite, non-decreasing)")
+            break
+        last = t
 
 
 def check_crate() -> None:
