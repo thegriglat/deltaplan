@@ -1,0 +1,16 @@
+# started on Sat Oct 24 17:12:26 2026
+
+
+ Performance counter stats for 'tools/research/air_cascade/picard_rs/target/release/picard solve /home/greg/data/air_cascade/ongudai/ongudai_d400_u3_heat.json --threads 18 --out /home/greg/data/air_cascade/picard_rs/prof/r2_A_t18.json':
+
+   843 699 327 399      cycles                                                                
+ 1 023 522 880 744      instructions                     #    1,21  insn per cycle            
+   237 785 721 715      branches                                                              
+       483 689 071      branch-misses                    #    0,20% of all branches           
+
+      16,501904548 seconds time elapsed
+
+     257,611877000 seconds user
+       7,795286000 seconds sys
+
+

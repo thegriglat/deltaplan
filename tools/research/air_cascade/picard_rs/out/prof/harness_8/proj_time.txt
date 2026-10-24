@@ -1,0 +1,12 @@
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+proj reps 50 threads 8: 27.700 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+proj reps 450 threads 8: 28.275 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+proj reps 50 threads 8: 28.439 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+proj reps 450 threads 8: 28.309 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+proj reps 50 threads 8: 27.772 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+proj reps 450 threads 8: 27.876 ms/rep

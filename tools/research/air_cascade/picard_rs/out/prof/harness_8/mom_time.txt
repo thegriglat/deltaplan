@@ -1,0 +1,12 @@
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+mom reps 50 threads 8: 28.064 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+mom reps 450 threads 8: 28.222 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+mom reps 50 threads 8: 28.134 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+mom reps 450 threads 8: 28.079 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+mom reps 50 threads 8: 45.145 ms/rep
+lock cpu: 18 сл., cgroup CPUQuota=1800%
+mom reps 450 threads 8: 28.857 ms/rep
