@@ -1,0 +1,37 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп соблюдён (73 файла, src/contract не тронуты), числа в INTEGRATION и summary.json согласованы, отклонения конца цепочки в пороге PR-8, срок пересчёта привязан к коду с путь:строка.",
+  "issues": [
+    {
+      "file": "tools/research/air_cascade/picard_rs/out/final/README.md",
+      "line": 129,
+      "severity": "minor",
+      "what": "Тёплый h1230 при tol 1: 90 итераций против 20 у h1215 без объяснения; один прогон на точку (разброс ~2 %). Для основного порога tol 5 не критично.",
+      "fix": "Оставить как открытый вопрос в вердикте шлюза; при необходимости разобрать отдельной задачей."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only summary --dry",
+      "value": "summary_ok",
+      "pass": true
+    },
+    {
+      "name": "accept --only cold_tol1_tolerance --dry",
+      "value": "worst=0.0415",
+      "pass": true
+    },
+    {
+      "name": "scope",
+      "value": "73 файла в границах",
+      "pass": true
+    },
+    {
+      "name": "chain dev vs INTEGRATION (h1230 warm tol5: launch dw 0.009/du 0.036, slopes dw 0.026, thermals 0.015)",
+      "value": "совпадает с summary.json",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-24T21:24:35",
+  "by": "reviewer"
+}

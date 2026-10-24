@@ -1,0 +1,606 @@
+{
+  "status": "done",
+  "summary": "Итоговые замеры на коде b0b128bc2: 4 случая x 2/3/6/8 потоков при tol 1 и 5, цепочка h1200->h1215->h1230 тёплая и холодная, отклонение конца цепочки. Оптимизация x2,0-2,1; tol 5 ещё x1,6-3,1; тёплый tol 5 0,75-3,65 с; отклонения в пороге PR-8.",
+  "commits": [
+    "276960a71 picard-rs PR-12: итоговые замеры"
+  ],
+  "checks": [
+    {
+      "name": "build_release",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "isa_v3",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "cold_files",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "cold_tol1_tolerance",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "warm_files",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "summary",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "run_sh",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_big_files",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "identical across threads (compare_r2)",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "cold_tol1 tolerance worst",
+      "value": "0.0415 (<=1)",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept PR-12",
+  "uncertain": [
+    {
+      "where": "out/final/README.md",
+      "why": "один прогон на точку (разброс ~2 %); база PR-1 снята в другой день",
+      "checked": "итерации и поля идентичны по потокам"
+    },
+    {
+      "where": "out/final/warm_tol1/ongudai_d400_u3_heat_h1230_*",
+      "why": "тёплый h1230 при tol 1 — 90 итераций против 20 у h1215; причину не разбирали",
+      "checked": "только числа"
+    },
+    {
+      "where": "configs/world.json:46",
+      "why": "варианты x10/x60 взяты из значений по умолчанию settings_panel.gd:209",
+      "checked": "срок = 900/speed по sun_clock.gd:80"
+    }
+  ],
+  "dp_feedback": "Шаблон отчёта требует длинные строки карточки как ключи JSON — неудобно; хватило бы коротких ключей.",
+  "extra": {
+    "summary_json": "tools/research/air_cascade/picard_rs/out/final/summary.json",
+    "cold_ms_per_iter_before_after": {
+      "u3_heat": {
+        "2": [
+          393.8,
+          155.1
+        ],
+        "3": [
+          296.4,
+          115.9
+        ],
+        "6": [
+          140.9,
+          62.8
+        ],
+        "8": [
+          105.1,
+          50.7
+        ]
+      },
+      "u3_mech": {
+        "2": [
+          286.3,
+          119.8
+        ],
+        "3": [
+          236.0,
+          90.5
+        ],
+        "6": [
+          114.6,
+          49.3
+        ],
+        "8": [
+          85.9,
+          40.2
+        ]
+      },
+      "u0_heat": {
+        "2": [
+          null,
+          152.8
+        ],
+        "3": [
+          null,
+          116.6
+        ],
+        "6": [
+          136.8,
+          62.2
+        ],
+        "8": [
+          104.9,
+          50.2
+        ]
+      },
+      "u6_heat": {
+        "2": [
+          null,
+          157.4
+        ],
+        "3": [
+          null,
+          117.8
+        ],
+        "6": [
+          142.0,
+          62.5
+        ],
+        "8": [
+          108.6,
+          50.5
+        ]
+      }
+    },
+    "opt_speedup_8t": "u3_heat 2.05x, u6_heat 2.1x, u0_heat 2.07x (tol1)"
+  },
+  "before_after: таблица u3_heat/u3_mech/u0_heat/u6_heat × 2/3/6/8 потоков — solve, с: база PR-1 (tol 1, где есть) → итог tol 1 → итог tol 5; мс/итер до → после": {
+    "u3_heat": {
+      "2": [
+        78.8,
+        31.3,
+        18.7
+      ],
+      "3": [
+        59.3,
+        23.5,
+        14.4
+      ],
+      "6": [
+        28.3,
+        12.7,
+        7.6
+      ],
+      "8": [
+        21.1,
+        10.3,
+        6.2
+      ]
+    },
+    "u3_mech": {
+      "2": [
+        69.7,
+        29.5,
+        19.2
+      ],
+      "3": [
+        57.3,
+        22.3,
+        14.4
+      ],
+      "6": [
+        27.9,
+        12.2,
+        7.6
+      ],
+      "8": [
+        21.0,
+        10.0,
+        6.2
+      ]
+    },
+    "u0_heat": {
+      "2": [
+        null,
+        32.4,
+        10.5
+      ],
+      "3": [
+        null,
+        24.8,
+        8.2
+      ],
+      "6": [
+        28.9,
+        13.3,
+        4.4
+      ],
+      "8": [
+        22.2,
+        10.7,
+        3.5
+      ]
+    },
+    "u6_heat": {
+      "2": [
+        null,
+        22.0,
+        14.8
+      ],
+      "3": [
+        null,
+        16.5,
+        10.4
+      ],
+      "6": [
+        19.8,
+        8.8,
+        5.7
+      ],
+      "8": [
+        15.2,
+        7.2,
+        4.6
+      ]
+    }
+  },
+  "load: время загрузки места (холодный) при tol 5 и tol 1 по той же таблице 2/3/6/8 потоков": {
+    "u3_heat": {
+      "2": {
+        "tol5_s": 18.7,
+        "tol5_it": 111,
+        "tol1_s": 31.3,
+        "tol1_it": 191
+      },
+      "3": {
+        "tol5_s": 14.4,
+        "tol5_it": 111,
+        "tol1_s": 23.5,
+        "tol1_it": 191
+      },
+      "6": {
+        "tol5_s": 7.6,
+        "tol5_it": 111,
+        "tol1_s": 12.7,
+        "tol1_it": 191
+      },
+      "8": {
+        "tol5_s": 6.2,
+        "tol5_it": 111,
+        "tol1_s": 10.3,
+        "tol1_it": 191
+      }
+    },
+    "u3_mech": {
+      "2": {
+        "tol5_s": 19.2,
+        "tol5_it": 141,
+        "tol1_s": 29.5,
+        "tol1_it": 231
+      },
+      "3": {
+        "tol5_s": 14.4,
+        "tol5_it": 141,
+        "tol1_s": 22.3,
+        "tol1_it": 231
+      },
+      "6": {
+        "tol5_s": 7.6,
+        "tol5_it": 141,
+        "tol1_s": 12.2,
+        "tol1_it": 231
+      },
+      "8": {
+        "tol5_s": 6.2,
+        "tol5_it": 141,
+        "tol1_s": 10.0,
+        "tol1_it": 231
+      }
+    },
+    "u0_heat": {
+      "2": {
+        "tol5_s": 10.5,
+        "tol5_it": 61,
+        "tol1_s": 32.4,
+        "tol1_it": 201
+      },
+      "3": {
+        "tol5_s": 8.2,
+        "tol5_it": 61,
+        "tol1_s": 24.8,
+        "tol1_it": 201
+      },
+      "6": {
+        "tol5_s": 4.4,
+        "tol5_it": 61,
+        "tol1_s": 13.3,
+        "tol1_it": 201
+      },
+      "8": {
+        "tol5_s": 3.5,
+        "tol5_it": 61,
+        "tol1_s": 10.7,
+        "tol1_it": 201
+      }
+    },
+    "u6_heat": {
+      "2": {
+        "tol5_s": 14.8,
+        "tol5_it": 81,
+        "tol1_s": 22.0,
+        "tol1_it": 131
+      },
+      "3": {
+        "tol5_s": 10.4,
+        "tol5_it": 81,
+        "tol1_s": 16.5,
+        "tol1_it": 131
+      },
+      "6": {
+        "tol5_s": 5.7,
+        "tol5_it": 81,
+        "tol1_s": 8.8,
+        "tol1_it": 131
+      },
+      "8": {
+        "tol5_s": 4.6,
+        "tol5_it": 81,
+        "tol1_s": 7.2,
+        "tol1_it": 131
+      }
+    }
+  },
+  "warm: h1200→h1215 и цепочка →h1230: итерации и время тёплого против холодного на 2/3/6/8 потоках, tol 5 и 1.0; доля от срока пересчёта 15 игровых минут — только если срок в реальных секундах найден в коде (configs/atmosphere.json → air_model, источник путь:строка)": {
+    "h1215": {
+      "tol1": {
+        "2": {
+          "warm_it": 20,
+          "warm_s": 3.78,
+          "cold_it": 281,
+          "cold_s": 48.0,
+          "share_x1_x10_x60_pct": [
+            0.42,
+            4.2,
+            25.17
+          ]
+        },
+        "3": {
+          "warm_it": 20,
+          "warm_s": 2.78,
+          "cold_it": 281,
+          "cold_s": 35.8,
+          "share_x1_x10_x60_pct": [
+            0.31,
+            3.09,
+            18.54
+          ]
+        },
+        "6": {
+          "warm_it": 20,
+          "warm_s": 1.62,
+          "cold_it": 281,
+          "cold_s": 19.7,
+          "share_x1_x10_x60_pct": [
+            0.18,
+            1.8,
+            10.78
+          ]
+        },
+        "8": {
+          "warm_it": 20,
+          "warm_s": 1.28,
+          "cold_it": 281,
+          "cold_s": 15.8,
+          "share_x1_x10_x60_pct": [
+            0.14,
+            1.43,
+            8.55
+          ]
+        }
+      },
+      "tol5": {
+        "2": {
+          "warm_it": 10,
+          "warm_s": 2.03,
+          "cold_it": 161,
+          "cold_s": 28.0,
+          "share_x1_x10_x60_pct": [
+            0.23,
+            2.25,
+            13.5
+          ]
+        },
+        "3": {
+          "warm_it": 10,
+          "warm_s": 1.56,
+          "cold_it": 161,
+          "cold_s": 21.1,
+          "share_x1_x10_x60_pct": [
+            0.17,
+            1.73,
+            10.4
+          ]
+        },
+        "6": {
+          "warm_it": 10,
+          "warm_s": 0.91,
+          "cold_it": 161,
+          "cold_s": 11.6,
+          "share_x1_x10_x60_pct": [
+            0.1,
+            1.02,
+            6.1
+          ]
+        },
+        "8": {
+          "warm_it": 10,
+          "warm_s": 0.75,
+          "cold_it": 161,
+          "cold_s": 9.3,
+          "share_x1_x10_x60_pct": [
+            0.08,
+            0.83,
+            5.0
+          ]
+        }
+      }
+    },
+    "h1230": {
+      "tol1": {
+        "2": {
+          "warm_it": 90,
+          "warm_s": 15.56,
+          "cold_it": 261,
+          "cold_s": 45.1,
+          "share_x1_x10_x60_pct": [
+            1.73,
+            17.29,
+            103.74
+          ]
+        },
+        "3": {
+          "warm_it": 90,
+          "warm_s": 11.42,
+          "cold_it": 261,
+          "cold_s": 33.2,
+          "share_x1_x10_x60_pct": [
+            1.27,
+            12.69,
+            76.12
+          ]
+        },
+        "6": {
+          "warm_it": 90,
+          "warm_s": 6.24,
+          "cold_it": 261,
+          "cold_s": 18.1,
+          "share_x1_x10_x60_pct": [
+            0.69,
+            6.94,
+            41.63
+          ]
+        },
+        "8": {
+          "warm_it": 90,
+          "warm_s": 5.06,
+          "cold_it": 261,
+          "cold_s": 14.6,
+          "share_x1_x10_x60_pct": [
+            0.56,
+            5.62,
+            33.73
+          ]
+        }
+      },
+      "tol5": {
+        "2": {
+          "warm_it": 20,
+          "warm_s": 3.65,
+          "cold_it": 151,
+          "cold_s": 26.1,
+          "share_x1_x10_x60_pct": [
+            0.41,
+            4.05,
+            24.32
+          ]
+        },
+        "3": {
+          "warm_it": 20,
+          "warm_s": 2.86,
+          "cold_it": 151,
+          "cold_s": 19.7,
+          "share_x1_x10_x60_pct": [
+            0.32,
+            3.17,
+            19.04
+          ]
+        },
+        "6": {
+          "warm_it": 20,
+          "warm_s": 1.57,
+          "cold_it": 151,
+          "cold_s": 10.8,
+          "share_x1_x10_x60_pct": [
+            0.17,
+            1.75,
+            10.5
+          ]
+        },
+        "8": {
+          "warm_it": 20,
+          "warm_s": 1.29,
+          "cold_it": 151,
+          "cold_s": 8.6,
+          "share_x1_x10_x60_pct": [
+            0.14,
+            1.44,
+            8.62
+          ]
+        }
+      }
+    },
+    "period_source": "configs/atmosphere.json:321 recompute_game_min=15; real s = 900/speed; configs/world.json:44 time.speed=1, :46 speed_options; scripts/world/sun_clock.gd:80; network speed=1 game.gd:1419"
+  },
+  "chain_dev: отклонение конца цепочки (тёплый tol 5) от холодного сошедшегося h1230: launch dw_max/du_max, slopes dw_max, thermals dw_max против порога PR-8 (0,05 / 0,2 / 0,1 м/с)": {
+    "h1230_warm_tol5": {
+      "launch_dw_max": 0.0093,
+      "launch_du_max": 0.036,
+      "slopes_dw_max": 0.0258,
+      "slopes_dwt_max": 0.0579,
+      "thermals_dw_max": 0.0151
+    },
+    "h1215_warm_tol5": {
+      "launch_dw_max": 0.0248,
+      "launch_du_max": 0.1023,
+      "slopes_dw_max": 0.0271,
+      "slopes_dwt_max": 0.0433,
+      "thermals_dw_max": 0.0225
+    },
+    "h1230_warm_tol1": {
+      "launch_dw_max": 0.0003,
+      "launch_du_max": 0.0012,
+      "slopes_dw_max": 0.001,
+      "slopes_dwt_max": 0.002,
+      "thermals_dw_max": 0.0008
+    },
+    "threshold": {
+      "launch_dw": 0.05,
+      "launch_du": 0.2,
+      "slopes_dw(t)": 0.1,
+      "thermals_dw": 0.1
+    },
+    "all_within": true,
+    "note": "error does not accumulate on this pair; worst margin slopes dwt 0.058 of 0.1"
+  },
+  "verdict_data: числа для вердикта шлюза 2 (загрузка и фон) — без вердикта, вердикт даёт пользователь": {
+    "load_tol5_8t_s": {
+      "u3_heat": 6.2,
+      "u3_mech": 6.2,
+      "u0_heat": 3.5,
+      "u6_heat": 4.6
+    },
+    "warm_tol5_8t_s": {
+      "h1215": 0.75,
+      "h1230": 1.29
+    },
+    "background_share_pct_x1_x10_x60_8t": [
+      0.14,
+      1.44,
+      8.62
+    ],
+    "background_share_pct_x1_x10_x60_2t": [
+      0.41,
+      4.05,
+      24.32
+    ],
+    "note": "без вердикта"
+  },
+  "t": "2026-10-24T21:23:50",
+  "by": "executor"
+}
