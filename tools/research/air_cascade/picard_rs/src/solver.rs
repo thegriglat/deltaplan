@@ -420,7 +420,12 @@ impl Picard {
         let mut hist = Vec::new();
         let mut status = "max";
         let (mut iter_s, mut check_s) = (0.0, 0.0);
-        let mut it = 0;
+        let mut it = crit.pre_steps;
+        let tp = Instant::now();
+        for _ in 0..crit.pre_steps {
+            self.outer_step();
+        }
+        iter_s += tp.elapsed().as_secs_f64();
         while it < max_iters {
             let t0 = Instant::now();
             for _ in 0..crit.check_every {

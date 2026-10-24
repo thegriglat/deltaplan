@@ -75,6 +75,46 @@ pub fn deviation(c: &Case, s: &Picard) -> Result<Dev> {
     })
 }
 
+/// Text table of the deviation per field (max with its cell, rms, 99.9th percentile) over air cells.
+pub fn diag(c: &Case, s: &Picard) -> Result<String> {
+    let k = &s.k;
+    let mut out = String::from("field | max | at (i,j,k) | rms | p99.9\n");
+    let fields: [(&str, &[f32], &[f32]); 5] = [
+        ("u", &s.f.u, c.arr("sol_u")?),
+        ("v", &s.f.v, c.arr("sol_v")?),
+        ("w", &s.f.w, c.arr("sol_w")?),
+        ("th", &s.f.th, c.arr("sol_th")?),
+        ("thd", &s.f.thd, c.arr("sol_thd")?),
+    ];
+    for (name, a, b) in fields {
+        let mut ds: Vec<f64> = Vec::new();
+        let (mut best, mut at) = (0.0f64, (0, 0, 0));
+        let mut sq = 0.0f64;
+        for kk in 0..k.nz {
+            for j in 0..k.ny {
+                for i in 0..k.nx {
+                    let g = ((kk + 1) * k.nyh + j + 1) * k.nxh + i + 1;
+                    if k.cell[g] != 1 {
+                        continue;
+                    }
+                    let d = (f64::from(a[g]) - f64::from(b[g])).abs();
+                    sq += d * d;
+                    ds.push(d);
+                    if d > best {
+                        best = d;
+                        at = (i, j, kk);
+                    }
+                }
+            }
+        }
+        ds.sort_by(f64::total_cmp);
+        let p = ds.get(ds.len() * 999 / 1000).copied().unwrap_or(0.0);
+        let rms = (sq / ds.len().max(1) as f64).sqrt();
+        out += &format!("{name} | {best:.3e} | {at:?} | {rms:.3e} | {p:.3e}\n");
+    }
+    Ok(out)
+}
+
 fn num(x: f64) -> Value {
     if x.is_finite() { json!(x) } else { Value::Null }
 }

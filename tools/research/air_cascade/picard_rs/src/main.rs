@@ -4,7 +4,9 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use picard_rs::blocks::check_case;
 use picard_rs::case::{Case, Consts};
-use picard_rs::report::{Timing, deviation, history_json, profile, result_json, write_atomic};
+use picard_rs::report::{
+    Timing, deviation, diag as diag_table, history_json, profile, result_json, write_atomic,
+};
 use picard_rs::solver::Picard;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
@@ -33,6 +35,12 @@ enum Cmd {
         max_iters: usize,
         #[arg(long)]
         out: Option<PathBuf>,
+        /// Multiply the three tolerances of the criterion (diagnostics of the unconverged tail).
+        #[arg(long, default_value_t = 1.0)]
+        tol_scale: f64,
+        /// Print the per-field deviation table (max, its cell, rms, 99.9th percentile).
+        #[arg(long)]
+        diag: bool,
     },
     /// Time K iterations for each thread count; one R2 file per count.
     Bench {
@@ -43,6 +51,11 @@ enum Cmd {
         iters: usize,
         #[arg(long, default_value = "out")]
         out_dir: PathBuf,
+        /// Solve to the criterion instead of timing K iterations (result with deviation).
+        #[arg(long)]
+        solve: bool,
+        #[arg(long, default_value_t = 2000)]
+        max_iters: usize,
     },
 }
 
@@ -50,6 +63,73 @@ fn pool(n: usize) -> Result<rayon::ThreadPool> {
     Ok(rayon::ThreadPoolBuilder::new()
         .num_threads(n.max(1))
         .build()?)
+}
+
+/// Scale the stopping tolerances of the case by `s` (1 = as in the reference).
+fn scale_criterion(c: &mut Case, s: f64) {
+    c.criterion.tol_mom_rms *= s;
+    c.criterion.tol_th_rms *= s;
+    c.criterion.tol_div_rms *= s;
+}
+
+/// Solve `c` to its criterion on a pool of `threads`, print one line and write the R2 result.
+fn solve_case(
+    c: &Case,
+    threads: usize,
+    max_iters: usize,
+    out: Option<PathBuf>,
+    diag: bool,
+) -> Result<()> {
+    let t0 = Instant::now();
+    let pl = pool(threads)?;
+    let (o, dev, setup_s, dtab) = pl.install(|| -> Result<_> {
+        let mut s = Picard::new(Consts::from_case(c)?);
+        s.init_background();
+        let setup_s = t0.elapsed().as_secs_f64();
+        let o = s.solve(&c.criterion, max_iters);
+        s.finalize(10);
+        let dev = deviation(c, &s)?;
+        let dtab = if diag {
+            diag_table(c, &s)?
+        } else {
+            String::new()
+        };
+        Ok((o, dev, setup_s, dtab))
+    })?;
+    let t = Timing {
+        total_s: t0.elapsed().as_secs_f64(),
+        setup_s,
+        iter_s: o.iter_s,
+        iters_run: o.iters,
+        check_s: o.check_s,
+        n_checks: o.n_checks,
+    };
+    let doc = result_json(
+        c,
+        threads,
+        o.status,
+        o.iters,
+        history_json(&o),
+        Some(&dev),
+        &t,
+    );
+    let path = out.unwrap_or_else(|| {
+        PathBuf::from(format!("out/{}_{}_t{}.json", c.name, profile(), threads))
+    });
+    write_atomic(&path, &doc)?;
+    print!("{dtab}");
+    println!(
+        "{}: status {} iters {}/{} u_rel {:.3e} th_abs {:.3e} K ms/iter {:.3} -> {}",
+        c.name,
+        o.status,
+        o.iters,
+        c.solution.iters,
+        dev.u_rel,
+        dev.th_abs,
+        t.iter_s / t.iters_run.max(1) as f64 * 1e3,
+        path.display()
+    );
+    Ok(())
 }
 
 fn main() -> Result<()> {
@@ -85,60 +165,28 @@ fn main() -> Result<()> {
             threads,
             max_iters,
             out,
+            tol_scale,
+            diag,
         } => {
-            let t0 = Instant::now();
-            let c = Case::load(&case)?;
-            let pl = pool(threads)?;
-            let (o, dev, setup_s) = pl.install(|| -> Result<_> {
-                let mut s = Picard::new(Consts::from_case(&c)?);
-                s.init_background();
-                let setup_s = t0.elapsed().as_secs_f64();
-                let o = s.solve(&c.criterion, max_iters);
-                s.finalize(10);
-                let dev = deviation(&c, &s)?;
-                Ok((o, dev, setup_s))
-            })?;
-            let t = Timing {
-                total_s: t0.elapsed().as_secs_f64(),
-                setup_s,
-                iter_s: o.iter_s,
-                iters_run: o.iters,
-                check_s: o.check_s,
-                n_checks: o.n_checks,
-            };
-            let doc = result_json(
-                &c,
-                threads,
-                o.status,
-                o.iters,
-                history_json(&o),
-                Some(&dev),
-                &t,
-            );
-            let path = out.unwrap_or_else(|| {
-                PathBuf::from(format!("out/{}_{}_t{}.json", c.name, profile(), threads))
-            });
-            write_atomic(&path, &doc)?;
-            println!(
-                "{}: status {} iters {}/{} u_rel {:.3e} th_abs {:.3e} K ms/iter {:.3} -> {}",
-                c.name,
-                o.status,
-                o.iters,
-                c.solution.iters,
-                dev.u_rel,
-                dev.th_abs,
-                t.iter_s / t.iters_run.max(1) as f64 * 1e3,
-                path.display()
-            );
+            let mut c = Case::load(&case)?;
+            scale_criterion(&mut c, tol_scale);
+            solve_case(&c, threads, max_iters, out, diag)?;
         }
         Cmd::Bench {
             case,
             threads,
             iters,
             out_dir,
+            solve,
+            max_iters,
         } => {
             let c = Case::load(&case)?;
             for &n in &threads {
+                if solve {
+                    let path = out_dir.join(format!("{}_{}_t{}.json", c.name, profile(), n));
+                    solve_case(&c, n, max_iters, Some(path), false)?;
+                    continue;
+                }
                 let pl = pool(n)?;
                 let t0 = Instant::now();
                 let (setup_s, iter_s, check_s) = pl.install(|| -> Result<_> {

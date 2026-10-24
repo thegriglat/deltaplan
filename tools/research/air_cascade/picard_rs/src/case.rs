@@ -39,6 +39,10 @@ pub struct Criterion {
     pub tol_th_rms: f64,
     pub tol_div_rms: f64,
     pub check_every: usize,
+    /// Steps done before the first block of `check_every` (reference graph capture runs one step
+    /// and counts it); derived from `history[0].it`, not read from the file.
+    #[serde(default)]
+    pub pre_steps: usize,
 }
 
 /// Reference solution summary.
@@ -134,7 +138,14 @@ impl Case {
             z_bot: m.z_bot as f32,
             params: m.params,
             case_params: m.case_params,
-            criterion: m.criterion,
+            criterion: Criterion {
+                pre_steps: m
+                    .history
+                    .pointer("/0/it")
+                    .and_then(serde_json::Value::as_u64)
+                    .map_or(0, |v| v as usize % m.criterion.check_every),
+                ..m.criterion
+            },
             solution: m.solution,
             history_ref: m.history,
             dtau_u: dtau_u as f32,
