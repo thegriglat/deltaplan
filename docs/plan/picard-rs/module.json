@@ -1,0 +1,11 @@
+{
+  "module": "picard-rs",
+  "plan": "docs/plan/picard-rs.md",
+  "contracts": "docs/contracts/picard-rs.md",
+  "branch": "feature/picard-rs",
+  "copy": "~/deltaplan-picard-rs",
+  "created": "2026-10-24T15:59:59",
+  "code": "PR",
+  "area": "air",
+  "base": "main"
+}
