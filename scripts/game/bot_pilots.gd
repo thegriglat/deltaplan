@@ -35,6 +35,7 @@ var spot_fn := Callable()
 
 var _cfg: Dictionary = {}
 var _air_fn: Callable
+var _ground_owner: Variant  # владелец Callable (PlaceData — RefCounted): держим (CR-17)
 var _ground_fn: Callable
 var _start := Vector3.ZERO
 var _heading := 0.0
@@ -79,6 +80,7 @@ func setup(opts: Dictionary) -> void:
 	_cfg = Config.get_config("bots")
 	_air_fn = opts.get("air_fn", Callable())
 	_ground_fn = opts.get("ground_fn", Callable())
+	_ground_owner = _ground_fn.get_object()
 	_start = opts.get("start", Vector3.ZERO)
 	_heading = float(opts.get("heading_deg", 0.0))
 	_air_share = float(opts.get("airborne_share", -1.0))

@@ -16,6 +16,9 @@ const KMH := 1.0 / 3.6
 const SEG_CELL := 500.0
 
 var _c: Dictionary = {}
+## Владелец Callable (PlaceData — RefCounted): Callable держит лишь ObjectID, без этой ссылки вызов после
+## смены места — по освобождённому объекту (вылет, CR-17).
+var _height_owner: Variant
 var _height_fn: Callable
 var _rng := RandomNumberGenerator.new()
 
@@ -103,6 +106,7 @@ func _init() -> void:
 func setup(tc: Dictionary, _cfg: Dictionary, height_fn: Callable, with_models: bool) -> void:
 	_c = tc
 	_height_fn = height_fn
+	_height_owner = height_fn.get_object()
 	_rng.seed = 12345
 	var tnames: Array = []
 	for k in (tc.types as Dictionary):

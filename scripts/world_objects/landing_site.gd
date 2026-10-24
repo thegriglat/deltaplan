@@ -23,6 +23,9 @@ var axis_deg: float = 0.0
 
 var _site: Dictionary = {}
 var _cfg: Dictionary = {}
+## Владелец Callable (PlaceData — RefCounted): Callable держит лишь ObjectID, без этой ссылки вызов после
+## смены места — по освобождённому объекту (вылет, CR-17).
+var _height_owner: Variant
 var _height_fn: Callable
 
 
@@ -33,6 +36,7 @@ func setup(
 	_site = site
 	_cfg = cfg
 	_height_fn = height_fn
+	_height_owner = height_fn.get_object()
 	site_id = String(site.id)
 	site_name = String(site.get("name", site_id))
 	length_m = float(site.length_m)
