@@ -23,7 +23,7 @@
     },
     {
       "name": "W6",
-      "version": "2",
+      "version": "3",
       "ref": "docs/contracts/rust-wind.md"
     },
     {
@@ -87,5 +87,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-26T03:49:44",
-  "edited": "2026-10-26T04:07:31"
+  "edited": "2026-10-26T04:47:34"
 }
