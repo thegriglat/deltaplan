@@ -7,6 +7,7 @@
 //! `(k·ny + j)·nx + i` с ореолом, `nx, ny, nz` — размеры С ореолом (`dims` State).
 
 use crate::error::Error;
+use rayon::prelude::*;
 
 /// Положение значения в клетке: грань `u` — в узле по x, грань `v` — в узле по y,
 /// `w` и центр `C` (`th`, `thd`, `p`) — в середине клетки по x и y. По z у всех один и тот же
@@ -151,28 +152,9 @@ fn run(
         if stag == Stag::V { 1.0 } else { 0.5 },
     );
     let (nx, ny) = (fine.nx, fine.ny);
-    let rows = ny * fine.nz;
-    let threads = std::thread::available_parallelism()
-        .map_or(1, |n| n.get())
-        .min(rows.div_ceil(16))
-        .max(1);
-    let per = rows.div_ceil(threads);
-    let work = |first: usize, chunk: &mut [f32]| {
-        for (r, out) in chunk.chunks_exact_mut(nx).enumerate() {
-            let g = first + r;
-            row(coarse, src, fine, m, s, g / ny, g % ny, out);
-        }
-    };
-    if threads == 1 {
-        work(0, dst);
-    } else {
-        std::thread::scope(|sc| {
-            for (c, chunk) in dst.chunks_mut(per * nx).enumerate() {
-                let work = &work;
-                sc.spawn(move || work(c * per, chunk));
-            }
-        });
-    }
+    dst.par_chunks_mut(nx).enumerate().for_each(|(g, out)| {
+        row(coarse, src, fine, m, s, g / ny, g % ny, out);
+    });
     Ok(())
 }
 
