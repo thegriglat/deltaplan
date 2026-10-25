@@ -52,7 +52,7 @@ impl AirModel for Calm {
     }
 
     fn set_conditions(&mut self, _c: &Conditions) -> Result<(), Error> {
-        self.need_place()
+        Ok(())
     }
 
     fn set_sun_direction(&mut self, _to_sun: Option<[f32; 3]>) {}
@@ -61,7 +61,7 @@ impl AirModel for Calm {
         if list.iter().flatten().any(|v| !v.is_finite()) {
             return Err(Error::bad_input("thermals: NaN/inf"));
         }
-        self.need_place()
+        Ok(())
     }
 
     fn set_focuses(&mut self, f: &[Focus]) -> Result<(), Error> {
@@ -70,7 +70,7 @@ impl AirModel for Calm {
         }) {
             return Err(Error::bad_input("focuses: NaN/inf or negative weight"));
         }
-        self.need_place()
+        Ok(())
     }
 
     fn advance_to(&mut self, t: f64) -> Result<(), Error> {
@@ -134,15 +134,21 @@ impl AirModel for Calm {
         [0.0; 4]
     }
 
-    fn cores(&self, _center: [f32; 3], _radius: f32, _out: &mut Vec<Core>) {}
+    fn cores(&self, _center: [f32; 3], _radius: f32, out: &mut Vec<Core>) {
+        out.clear();
+    }
 
-    fn clouds(&self, _center: [f32; 3], _radius: f32, _out: &mut Vec<Cloud>) {}
+    fn clouds(&self, _center: [f32; 3], _radius: f32, out: &mut Vec<Cloud>) {
+        out.clear();
+    }
 
     fn cloud_raster(&self) -> Option<Arc<Raster>> {
         None
     }
 
-    fn wave_crests(&self, _c: [f32; 2], _r: f32, _min_eta: f32, _sp: f32, _out: &mut Vec<Crest>) {}
+    fn wave_crests(&self, _c: [f32; 2], _r: f32, _min_eta: f32, _sp: f32, out: &mut Vec<Crest>) {
+        out.clear();
+    }
 
     fn decompose(&self, _p: [f32; 3]) -> Decomposition {
         Decomposition::default()

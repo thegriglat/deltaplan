@@ -9,11 +9,12 @@ mod place;
 mod types;
 
 pub use calm::Calm;
-pub use conditions::{Conditions, Forecast, Source, WindRef};
+pub use conditions::{Conditions, Forecast, InflowMode, Source, WindRef};
 pub use error::{Code, Error};
 pub use place::{Grid, Loc, Place, PlaceHeader, StartSite};
 pub use types::{
-    Cloud, Configs, Core, Crest, Decomposition, Focus, Raster, SampleMode, State, Status,
+    Cloud, Configs, Core, Crest, Decomposition, F32Record, Focus, Raster, SampleMode, State,
+    Status, as_f32s,
 };
 
 /// Версия границы; равна версии в заголовке W2 `docs/contracts/rust-wind.md`.

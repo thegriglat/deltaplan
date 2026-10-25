@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["dp-air", "picard_rs"]
+members = ["dp-air", "dp-gd", "picard_rs"]
 
 # Профили задаёт только workspace (W9).
 [profile.dev]
