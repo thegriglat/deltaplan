@@ -3,9 +3,9 @@ type: "plan"
 status: "idea"
 module: "rust-ext"
 area: "perf"
-updated: "2026-10-24"
-summary: "Что вынести в Rust (GDExtension): горячие циклы и данные места — в крейт; воздух, объекты, маятник, графика; проба gdext работает"
-related: ["docs/plan/air-cascade.md", "docs/plan/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/guide/fast-load.md", "docs/guide/air-model/field-cpu.md", "docs/perf/frame_profile/after-fixes.md", "docs/research/crash-reports/cr-2.md", "tools/research/load_profile/README.md", "tools/research/rust_ext/gdext_probe/README.md"]
+updated: "2026-10-25"
+summary: "Что вынести в Rust (GDExtension): весь ветер и данные места — в крейт; объекты, маятник, графика; проба gdext работает"
+related: ["docs/plan/air-cascade.md", "docs/plan/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-wind.md", "docs/guide/fast-load.md", "docs/guide/air-model/field-cpu.md", "docs/perf/frame_profile/after-fixes.md", "docs/research/crash-reports/cr-2.md", "tools/research/load_profile/README.md", "tools/research/rust_ext/gdext_probe/README.md"]
 ---
 # План rust-ext — что ещё вынести в Rust (обзор)
 
@@ -140,6 +140,9 @@ cd tools/research/rust_ext/gdext_probe && ./run.sh debug     # или ./run.sh r
 
 ## Встраивание Rust-Пикара (после picard-rs, 2026-10-24)
 Вынесено в `docs/plan/rust-air-integration.md`: архитектура (поле, кэш, фоновый пересчёт и подготовка входа — в крейте; Godot опрашивает точки), чего нет в крейте, оценка 6–11 дней, проба перед модулем.
+
+## Весь ветер в крейте (идея пользователя, 2026-10-25)
+Вынесено в `docs/plan/rust-wind.md`: весь расчёт ветра (поле, болтанка, аналитика, термики, грозы, волны, погода и ход дня) — в крейте за одной границей; игра не знает, как получается ветер. Снимает исключения термиков (A4) и упрощённого ветра.
 
 ## Порядок (предложение)
 1. Шаг 0 `air-cascade.md` (Пикар 400 м, отдельный крейт без Godot) — уже решено; пробу gdext считать пройденной на Linux.
