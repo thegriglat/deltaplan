@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-26"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md"]
-contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3", "version": 1}, {"id": "W4", "version": 1}, {"id": "W5", "version": 1}, {"id": "W6", "version": 1}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}]
+contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3", "version": 1}, {"id": "W4", "version": 2}, {"id": "W5", "version": 1}, {"id": "W6", "version": 1}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}]
 ---
 
 # Контракты модуля rust-wind
@@ -88,7 +88,7 @@ contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3",
 - **Главный поток не ждёт фон.** Опросы читают последний готовый снимок (подмена указателя, `Arc`), блокировки на время расчёта нет; `advance_to` на главном потоке ≤ 0,5 мс (без учёта фоновой работы). Фоновый пересчёт, подготовка места, `start_at` — в потоках крейта, один `rayon`-пул на процесс, размер — `air.threads` в `configs/atmosphere.json` (`0` — все ядра минус одно).
 - Жизненный цикл: выход из игры посреди фоновой работы — работа прерывается при `Drop`/`unload_place`, без зависания больше 1 с.
 
-## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v1)
+## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v2)
 Владелец — RW-4 (трейт, заглушка `Calm`), RW-6…12 (`Formula`), будущий живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`.
 ```rust
 pub const API_VERSION: u32 = 1;
@@ -128,6 +128,9 @@ pub trait AirModel: Send + Sync {
 }
 ```
 - Опросы (`&self`) — из любого потока одновременно; несовпадение длин `out`/`pts` — паники нет: обрабатывается `min` длин, остальное не трогается.
+- **v2 (RW-4, ревью):** выходные `Vec` (`cores`, `clouds`, `wave_crests`) **заменяются** — реализация сначала очищает `out` (`clear()`, ёмкость сохраняется), потом пишет.
+- **Порядок команд (v2; та же семантика в W2/W3):** `set_conditions`, `set_sun_direction`, `set_static_thermals`, `set_focuses` до `load_place` — `Ok`, вход запоминается и применяется при загрузке; `advance_to`, `start_at` без места — `NoPlace`. `unload_place` сбрасывает место, время, статические термики и фокусы; конфиги, сид, условия и солнце остаются. После `load_place` `time_s = 0`. `t < 0` или не конечно в `advance_to`/`start_at` — `BadInput`.
+- **Структуры описаний (v2)** — поля в порядке смещений W6, все `f32`: `Core` — `id, flags, x, z, y_src, top, w, radius, lean_x, lean_z, age_s, life_s, stage, vis_seed, storm` (15); `Cloud` — `id, core_id, x, z, base_msl, top_msl, radius, growth, decay, flags` (10); `Crest` — `x, z, eta, crest` (4); `#[repr(C)]`, чтобы `dp-gd` отдавал их в `PackedFloat32Array` одним копированием. `Raster` — `version: u64, nx, ny: u32, dx, x0, z0: f32` (оси W1), `base_msl, time_s` (для облаков; у отладочных — NaN), `layers: Vec<(String, Vec<f32>)>` (`nx·ny`, строка — к +Z): у растра облаков — `cover, depth, stage, activity, bg_cover, bg_depth` (W6), у отладочного — один слой `data` (W7).
 - `dp-air` не зависит от `godot`; `picard_rs` переносится в workspace как крейт (или модуль `dp-air::picard`) с сохранением R6 v3 (`docs/contracts/picard-rs.md`) — расчёт Пикара берётся готовый, не пишется заново (решение пользователя 2026-10-26).
 - Реализации: `Calm` (RW-4: всё по W1, ветер 0, сразу Ready — для контрактных тестов и пустого запуска), `Formula` (RW-6…12), `Live` (вне модуля).
 
@@ -200,3 +203,4 @@ pub trait AirModel: Send + Sync {
 
 ## История
 - v1 (2026-10-26, RW-0) — заведены до первых исполнителей; допуски T1 (вопрос 3 плана) — W8.
+- W4 v2 (2026-10-26, ревью RW-4) — `out` заменяется; порядок команд до места и сброс при `unload_place`; `t < 0` — `BadInput`; поля `Core`/`Cloud`/`Crest`/`Raster`. Потребители: `dp-gd` (RW-4b), `Formula` (RW-6…12), стенд RW-5.
