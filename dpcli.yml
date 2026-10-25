@@ -74,6 +74,16 @@ jobs:
     # Замер Rust-Пикара на 1/4/8/16 потоках (air-cascade) — вся машина, чтобы время не шумело.
     - match: "picard_rs/target/release/picard (bench|solve)"
       slots: 18
+    # Rust (rust-wind, решение пользователя 2026-10-26: агенты не должны зря стоять в очереди). Под cgroup слот = ядро.
+    # Формат и разбор — одно ядро.
+    - match: "cargo (fmt|metadata|tree)|rustfmt"
+      slots: 1
+    # Релиз (fat LTO, codegen-units = 1) и кросс-сборка — долгая компоновка, 8 ядер.
+    - match: "build_rust\\.sh.*release|cargo .*(--release|--profile release)|cargo-xwin|zigbuild"
+      slots: 8
+    # Прочее cargo (dev/dev-opt: build, test, check, clippy, bench, run) — 4 ядра на параллельную компиляцию крейтов.
+    - match: "cargo |build_rust\\.sh"
+      slots: 4
   # Голова очереди ждёт дольше — мелкие задачи её больше не обгоняют.
   cpu_starve_s: 300
 
