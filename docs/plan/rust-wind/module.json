@@ -1,0 +1,11 @@
+{
+  "module": "rust-wind",
+  "plan": "docs/plan/rust-wind.md",
+  "contracts": "docs/contracts/rust-wind.md",
+  "branch": "feature/rust-wind",
+  "copy": "~/worktrees/deltaplan/rust-wind",
+  "created": "2026-10-26T02:42:29",
+  "code": "RW",
+  "area": "air",
+  "base": "main"
+}
