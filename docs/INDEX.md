@@ -48,7 +48,11 @@ generated: true
 - **picard-rs** — Rust-Пикар на CPU: оптимизация без asm, API числа потоков, время до/после, сколько итераций нужно, тёплый старт как в фоне игры. [closed 2026-10-24] — [план](plan/picard-rs.md) · [контракты](contracts/picard-rs.md) · [решения](plan/picard-rs/decisions.md) · [сводка](plan/picard-rs/summary.md) · полный журнал: `archive/picard-rs`
 - **rust-air-integration** — Встраивание Rust-Пикара в игру: поле, кэш, фоновый пересчёт и вход в крейте, Godot опрашивает точки; оценка 6–11 дней, проба [idea 2026-10-24] — [план](plan/rust-air-integration.md)
 - **rust-wind** — Весь ветер — в Rust-крейте за одной границей под живой воздух: фасад, контракт, перенос по слагаемым, тесты по TDD [idea 2026-10-25] — [план](plan/rust-wind.md) · [контракты](contracts/rust-wind.md)
+  - [docs/contracts/rust-wind/descriptions.md](contracts/rust-wind/descriptions.md) — W6 rust-wind: описания — ядра подъёма, облака, растр облаков, гребни волн; поля, шаги, инвариант найденного ядра.
   - [docs/contracts/rust-wind/fixtures-tolerances.md](contracts/rust-wind/fixtures-tolerances.md) — W8 rust-wind: формат фикстур T1 (json + f32), допуски сверки Rust против GDScript, пороги скорости.
+  - [docs/research/rust-wind-field-path.md](research/rust-wind-field-path.md) — RW-6a: путь поля Пикара в игре от места до опроса точки, что есть в picard_rs, разбиение RW-6 на задачи, окна 100/50 м на CPU
+  - [tools/research/rust_wind/README.md](../tools/research/rust_wind/README.md) — RW-6a: расчёт размера окон 100/50 м и времени picard_rs на CPU, приложение с таблицами шагов и задач RW-6
+  - [tools/research/rust_wind/summary.md](../tools/research/rust_wind/summary.md) — RW-6a вывод: в крейте нет сборщика случая, грубого старта, заморозки и фаз; окна переносить последним отключаемым хвостом
 
 ## flight
 

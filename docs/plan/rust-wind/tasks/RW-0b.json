@@ -1,0 +1,37 @@
+{
+  "id": "RW-0b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Починить test_c2_surface_input (String formatting error в SurfaceHeat.mix_flux)",
+  "goal": "test_air_contracts.gd::test_c2_surface_input снова зелёный: найдена и устранена причина ошибки форматирования строки в пути SurfaceHeat.mix_flux (scripts/atmosphere/surface_heat.gd:156); физика (числа потока тепла) не меняется.",
+  "plan_ref": "План переноса",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-0b",
+  "branch": "rust-wind/RW-0b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/atmosphere/surface_heat.gd",
+    "tests/contracts/test_air_contracts.gd"
+  ],
+  "dont_touch": [
+    "configs/",
+    "rust/",
+    "tests/fixtures/",
+    "scripts/atmosphere/atmosphere.gd",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_air_contracts",
+      "tests": "test_air_contracts"
+    },
+    {
+      "name": "fixtures_unchanged",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T04:04:45"
+}

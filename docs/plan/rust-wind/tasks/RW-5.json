@@ -1,0 +1,91 @@
+{
+  "id": "RW-5",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Стенд без Godot: читалка фикстур W8 и CLI dp-stand",
+  "goal": "Модуль dp_air::fixtures читает фикстуры W8 (места, случаи, .bin, .desc.json); бинарный крейт rust/dp-stand по месту, условиям, моменту и модели (сейчас calm) выдаёт ветер в точках, разрезы, статистики, разложение и сверку с фикстурой по допускам W8 (раннер T1 для RW-6…12).",
+  "plan_ref": "План переноса / Этап 2 / RW-5",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-5",
+  "branch": "rust-wind/RW-5",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-stand/",
+    "rust/dp-air/src/fixtures.rs",
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/tests/fixtures.rs",
+    "rust/dp-air/Cargo.toml",
+    "rust/Cargo.toml",
+    "rust/Cargo.lock"
+  ],
+  "dont_touch": [
+    "rust/dp-gd/",
+    "rust/dp-air/src/calm.rs",
+    "rust/dp-air/tests/contract.rs",
+    "rust/picard_rs/",
+    "scripts/",
+    "tests/fixtures/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air -p dp-stand",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fixtures_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test fixtures",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p dp-air -p dp-stand --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "help",
+      "cmd": "cargo run -q --manifest-path rust/Cargo.toml -p dp-stand -- --help",
+      "expect": "re:compare"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -s rust/dp-stand/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T03:17:41"
+}

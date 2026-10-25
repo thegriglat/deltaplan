@@ -234,6 +234,7 @@ name = "dp-air"
 version = "0.1.0"
 dependencies = [
  "criterion",
+ "rayon",
  "serde",
  "serde_json",
 ]
@@ -244,6 +245,16 @@ version = "0.1.0"
 dependencies = [
  "dp-air",
  "godot",
+ "rayon",
+ "serde_json",
+]
+
+[[package]]
+name = "dp-stand"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dp-air",
  "rayon",
  "serde_json",
 ]

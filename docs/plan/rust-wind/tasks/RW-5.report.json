@@ -1,0 +1,90 @@
+{
+  "status": "done",
+  "summary": "dp_air::fixtures читает места/случаи/.bin/.desc.json W8 (Err с текстом на неверную длину/версию); бинарный крейт dp-stand с подкомандами sample, slice, stats, decompose, compare (раннер T1 с таблицей допусков W8) и README.",
+  "commits": [
+    "0a913e915 rust-wind RW-5: читалка фикстур W8 и стенд dp-stand"
+  ],
+  "checks": [
+    {
+      "name": "cargo_test",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fixtures_test",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "help",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "compare Calm vs нули",
+      "value": "PASS, exit 0",
+      "pass": true
+    },
+    {
+      "name": "compare Calm vs 1 м/с",
+      "value": "FAIL, exit 1, точек вне допуска = 10 (5 точек x 2 момента), max d/tol 14.286",
+      "pass": true
+    },
+    {
+      "name": "sha1",
+      "value": "собственная реализация, тест на векторах RFC",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-5",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/fixtures.rs: parse_place / parse_desc / parse_case",
+      "why": "W8 не фиксирует точные ключи: h_offset и h_scale взяты верхнеуровневыми в заголовке места; .desc.json — массив кадров (или {frames}) со строками-массивами полей W6 (null = NaN) либо плоским массивом; static_thermals — массив [x,y,z,w] или {list,mode} (mode по умолчанию 0)",
+      "checked": "только на синтетике из тестов; генератор RW-1 должен писать именно так, иначе поправить читалку после слияния RW-1"
+    },
+    {
+      "where": "rust/dp-stand/src/compare.rs: compare_frame",
+      "why": "гребни в таблице допусков W8 не заданы — сверяется только число; ядра/облака берутся опросом cores/clouds с радиусом 1e9 от (0,0,0)",
+      "checked": "логика на синтетике (число ядер); допуски полей ядер/облаков не прогонялись на реальных данных"
+    },
+    {
+      "where": "rust/dp-stand/src/compare.rs: terms",
+      "why": "слагаемые сверяются по decompose(p) по имени из terms; отсутствие имени — нарушение; σ слагаемого сверяется допуском σ",
+      "checked": "только отсутствие слагаемых у Calm"
+    },
+    {
+      "where": "rust/dp-stand/src/setup.rs: config_warnings",
+      "why": "имя в configs_sha1 сопоставляется с файлом configs/ как есть или без .json; sha1 — от байтов файла",
+      "checked": "расхождение дает предупреждение в тесте; реальные имена ключей в фикстуре неизвестны"
+    },
+    {
+      "where": "rust/dp-stand/src/ops.rs: slice",
+      "why": "ключи vertical: --from/--to (x,z) и --ys; вместо xy/zy из карточки — одна линия произвольного направления",
+      "checked": "размеры сетки в тесте"
+    }
+  ],
+  "dp_feedback": "lock cpu запускает команду фоном и возвращает job-id; удобно, но для одиночного прогона нужен флаг ожидания (приходится grep id из вывода и job wait).",
+  "extra": {
+    "tests": "dp-air fixtures 5, dp-stand cli 5 + sha1 1"
+  },
+  "t": "2026-10-26T03:25:51",
+  "by": "executor"
+}

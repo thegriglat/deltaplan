@@ -1,0 +1,45 @@
+{
+	"bin": {
+		"bytes": 3208005,
+		"h_max_err_m": 0.0250000000000909,
+		"layout": "heights int16 LE, water u8, cls u8, moist u8 (x 1/255); подряд, width*height узлов, строка j к +Z (W1)"
+	},
+	"grid": {
+		"height": 801,
+		"origin_x": -8500.0,
+		"origin_z": -12500.0,
+		"spacing": 25.0,
+		"width": 801
+	},
+	"h_offset": 882.0,
+	"h_scale": 0.05,
+	"loc": {
+		"center_lat": 51.5,
+		"center_lon": 86.5,
+		"day": 15,
+		"id": "synthetic",
+		"month": 7,
+		"utc_offset_h": 6.0
+	},
+	"name": "synthetic",
+	"note": "аналитический мир atmo_fingerprint.gd: heights = AtmoFingerprint.height, moist = _surface_k (множитель поверхности источников, 0,3..1), cls = луг; сила источников в генераторе — AtmoFingerprint.source_static (по нормали и _surface_k)",
+	"start_sites": [
+		{
+			"h_msl": 1068.58936711564,
+			"x": 1500.0,
+			"z": -2500.0
+		}
+	],
+	"surface_classes": {
+		"bare": 5,
+		"built": 7,
+		"crop": 3,
+		"forest": 1,
+		"grass": 2,
+		"none": 0,
+		"shrub": 4,
+		"snow": 8,
+		"water": 6
+	},
+	"version": 1
+}
