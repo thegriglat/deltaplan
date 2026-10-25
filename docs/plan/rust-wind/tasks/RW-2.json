@@ -1,0 +1,91 @@
+{
+  "id": "RW-2",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Фасад Atmosphere по W2 на текущем коде + контрактный тест и храповик чистоты",
+  "goal": "Atmosphere получает фасад W2 (configure, load_place(AirPlaceData), unload_place, set_conditions, set_sun_direction, set_static_thermals, advance_to, start_at, pump, status, set_focuses, sample_many/sample и обёртки, cloud_density_many, cloudbase_msl, background_wind, weather, sun_state, описания W6 v2, decompose/debug_raster W7, сигналы) поверх текущего расчёта без изменения физики; CalmAir реализует тот же набор; tests/contracts/test_rust_wind_contracts.gd (T5, T6 фасада) зелёный; храповик чистоты W10 не даёт добавить новых обращений во внутренности.",
+  "plan_ref": "План переноса / Этап 1 / RW-2",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W2",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W10",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-2",
+  "branch": "rust-wind/RW-2",
+  "base": "feature/rust-wind",
+  "scope": [
+    "scripts/atmosphere/atmosphere.gd",
+    "scripts/atmosphere/air_place_data.gd",
+    "scripts/atmosphere/air_place_data.gd.uid",
+    "scripts/game/calm_air.gd",
+    "tests/contracts/test_rust_wind_contracts.gd",
+    "tests/contracts/test_rust_wind_contracts.gd.uid",
+    "tests/contracts/test_rust_wind_purity.gd",
+    "tests/contracts/test_rust_wind_purity.gd.uid",
+    "tests/contracts/rust_wind_purity_baseline.txt"
+  ],
+  "dont_touch": [
+    "configs/",
+    "scripts/game/game.gd",
+    "scripts/glider/",
+    "rust/",
+    "tests/fixtures/",
+    "tools/wind_fixtures/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_rust_wind_contracts",
+      "tests": "test_rust_wind_contracts"
+    },
+    {
+      "name": "test_rust_wind_purity",
+      "tests": "test_rust_wind_purity"
+    },
+    {
+      "name": "test_air_contracts",
+      "tests": "test_air_contracts"
+    },
+    {
+      "name": "tests/atmosphere/",
+      "tests": "tests/atmosphere/"
+    },
+    {
+      "name": "fixtures_unchanged",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T03:49:44",
+  "edited": "2026-10-26T04:47:34"
+}

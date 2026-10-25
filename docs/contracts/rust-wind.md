@@ -5,8 +5,8 @@ module: "rust-wind"
 area: "air"
 updated: "2026-10-26"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
-related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md"]
-contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3", "version": 1}, {"id": "W4", "version": 2}, {"id": "W5", "version": 2}, {"id": "W6", "version": 2}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}]
+related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md"]
+contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3", "version": 1}, {"id": "W4", "version": 2}, {"id": "W5", "version": 3}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 1}]
 ---
 
 # Контракты модуля rust-wind
@@ -134,12 +134,12 @@ pub trait AirModel: Send + Sync {
 - `dp-air` не зависит от `godot`; `picard_rs` переносится в workspace как крейт (или модуль `dp-air::picard`) с сохранением R6 v3 (`docs/contracts/picard-rs.md`) — расчёт Пикара берётся готовый, не пишется заново (решение пользователя 2026-10-26).
 - Реализации: `Calm` (RW-4: всё по W1, ветер 0, сразу Ready — для контрактных тестов и пустого запуска), `Formula` (RW-6…12), `Live` (вне модуля).
 
-## W5. Вход: место, конфиги, условия (v2)
+## W5. Вход: место, конфиги, условия (v3)
 Владелец — RW-2 (сборка `AirPlaceData` из `AirRuntime.place_of`, `air_runtime.gd:270`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8.
 
 **`AirPlaceData`** (`RefCounted`, `scripts/atmosphere/air_place_data.gd`, создаёт RW-2) — то, что крейт получает один раз при загрузке:
 - `header` (json в W3):
-  - `version: 1`; `loc: {id: String, center_lat, center_lon: float (град), utc_offset_h: float, month: int, day: int}`;
+  - `version: 1`; `loc: {id: String, center_lat, center_lon: float (град), utc_offset_h: float, month: int, day: int, climate: {tx_c: float (°C, дневной максимум HH5), dtr_k: float (К, суточная амплитуда), z_cell_m: float (м, средняя высота ячейки HH1, 0 — нет), has_hh1: bool, has_hh5: bool}}` (v3: климат места — `ClimateGrid.place` у центра места на `month/day`, считает фасад при сборке `AirPlaceData`; нет сетки — `has_* = false` и запасные значения, как сейчас; крейт файлы климата не читает);
   - `grid: {origin_x, origin_z, spacing, width, height}` — сетка W1 (сейчас слой `detail` 25 м `HeightLayer`); покрывает область поля (квадрат 38,4 км у центра) и ≥ 2 км запаса вокруг для аналитики (`GroundField`, просмотр с наветра до 1600 м);
   - `surface_classes: {имя: код}` — коды `cls` как в `AirPlace.Surface` (`air_place.gd`); список фиксирует RW-2 в тесте;
   - `start_sites: [{x, z, h_msl}]` — старты места (для отладки и фокуса по умолчанию).
@@ -158,7 +158,7 @@ pub trait AirModel: Send + Sync {
 - Посторонний ключ, оба вида сразу или ни одного — BAD_INPUT.
 - Сид — только `configure`; статические термики — `set_static_thermals`; солнце — `set_sun_direction`.
 
-## W6. Описания — найденное, а не заданное (v2)
+## W6. Описания — найденное, а не заданное (v3)
 Владелец — RW-2 (из текущего кода), RW-10/RW-11 (из крейта). Поля, шаги `CORE_STRIDE`/`CLOUD_STRIDE`/`CREST_STRIDE`, растр облаков, гребни и инвариант найденного ядра — `docs/contracts/rust-wind/descriptions.md`.
 
 ## W7. Разложение для отладки (v1)
@@ -191,8 +191,14 @@ pub trait AirModel: Send + Sync {
 - Список файлов реализации тест держит явным (RW-2 фиксирует); новый файл реализации — правка теста и W10 через координатора.
 - Тесты в `tests/` под запрет не подпадают, но тесты поведения через `Atmosphere` после RW-3 пользуются фасадом (T7).
 
+## W11. Решатель Пикара в крейте (v1)
+Владелец — RW-6g, RW-6h. Потребители — RW-6j, RW-6n, фазы RW-6k–6m. R6 v3 + заморозка колонн, отмена, `AllFrozen`/`Cancelled` — `docs/contracts/rust-wind/solver.md`.
+
 ## История
 - v1 (2026-10-26, RW-0) — заведены до первых исполнителей; допуски T1 (вопрос 3 плана) — W8.
 - W4 v2 (2026-10-26, ревью RW-4) — `out` заменяется; порядок команд до места и сброс при `unload_place`; `t < 0` — `BadInput`; поля `Core`/`Cloud`/`Crest`/`Raster`. Потребители: `dp-gd` (RW-4b), `Formula` (RW-6…12), стенд RW-5.
 - W6 v2 (2026-10-26, итог RW-1) — `id` в `[0, 2²⁴)`; инвариант ядра — местный избыток подъёма против кольца 2–3·radius, ядра Cb исключены. Потребители: RW-2 (фасад `gd`), RW-4b (общий suite contract.rs), RW-5 (compare — по ближайшему). Уточнение W2 без смены версии (норматив прежний — «без неразрешённой болтанки и порывов»): `SAMPLE_MEAN` — весь ветер, как `SAMPLE_FULL` при выключенной болтанке и порывах (поле, аналитика, термики, гроза, волна, облака), не «`mean_wind_at` + вертикаль поля»; так сняты фикстуры RW-1.
 - W5 v2 (2026-10-26, разбор RW-6a) — ключ условий `inflow_mode`. Потребители: RW-4b/dp-air (разбор `Conditions`), RW-2 (фасад), RW-6j.
+- W5 v3 (2026-10-26, итог RW-6c) — `loc.climate` в заголовке места (ячейка климата у центра). Потребители: RW-2 (`AirPlaceData`), RW-1b (фикстуры мест), dp-air (`PlaceHeader`, `field_weather` — климат из заголовка вместо трейта `Climate`).
+- W11 v1 (2026-10-26, постановка RW-6g) — решатель в крейте: заморозка колонн и отмена поверх R6 v3 (picard-rs закрыт, расширение — здесь).
+- W6 v3 (2026-10-26, ревью RW-2) — инвариант найденного ядра только для `w ≥ 1,5 м/с`; охват описаний — вокруг фокусов. Потребители: RW-2, RW-3, RW-10.

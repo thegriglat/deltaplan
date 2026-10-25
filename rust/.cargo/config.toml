@@ -1,0 +1,4 @@
+# Кросс-сборка DLL под Windows с Linux: mingw-w64 из пакетов Debian (gcc-mingw-w64-x86-64).
+[target.x86_64-pc-windows-gnu]
+linker = "x86_64-w64-mingw32-gcc"
+rustflags = ["-C", "link-arg=-static-libgcc"]

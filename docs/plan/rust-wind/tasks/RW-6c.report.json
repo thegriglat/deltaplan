@@ -1,0 +1,94 @@
+{
+  "status": "done",
+  "summary": "Погода и солнце для поля перенесены в dp_air::field (weather_core, surface_heat, sun, wind_profile): diurnal_state, sky_params, typical_max_c, diurnal_range_k, ground_context, день и профиль theta/gamma/z_i, block_mean/cell_surface/cell_z0, SunClock.solar_position, SurfaceHeating, SurfaceHeat.mix_flux, surface_flux, температура воды, WindProfile. Совпадение с GDScript на дампе (синтетика и Онгудай, 11 сценариев): H до 5e-5 Вт/м2, солнце 2.6e-7 рад, класс и max_profile точно.",
+  "commits": [
+    "803043023 rust-wind RW-6c: погода и солнце для поля в Rust (weather_core, surface_heat, sun, wind_profile) против дампа GD"
+  ],
+  "checks": [
+    {
+      "name": "weather_core_test",
+      "value": "15 тестов ok",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "дамп воспроизводится побитно",
+      "pass": true
+    },
+    {
+      "name": "H max diff по ячейке (11 сценариев)",
+      "value": "4.5e-5 Вт/м2 при допуске 1",
+      "pass": true
+    },
+    {
+      "name": "положение солнца (448 точек)",
+      "value": "2.6e-7 рад при допуске 1e-4",
+      "pass": true
+    },
+    {
+      "name": "hc блочное среднее",
+      "value": "1.2e-4 м (дамп хранит f32)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Чтение сеток ERA5 (ClimateGrid.at, brotli data/climate/*.bin) в крейт не входит: нужна зависимость brotli, Cargo.toml вне скоупа. Климат ячейки даёт вызывающий через трейт Climate (ClimateCell: tx_c, dtr_k, z_cell_m, has_hh1, has_hh5); поправки на высоту долины (ClimateGrid.place) сделаны в Rust.",
+    ".gd.uid не создан: tools/research/.gdignore, Godot uid не пишет (хук uid не требует)."
+  ],
+  "questions": [
+    "Нужен ли отдельный шаг чтения ClimateGrid в Rust (brotli в Cargo.toml dp-air)? Предлагаю RW-6d или RW-12; пока climate передаётся входом."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-6c",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/weather_core.rs: field_weather",
+      "why": "Сигнатура шире карточной (cond, place, cfg, hour, dx): добавлены configs (для пресета по имени), climate: &dyn Climate и Domain (синтетика 20 км не вмещает область 38,4 км, у Онгудая Domain::standard(400)). RW-6d склеивает.",
+      "checked": "тест гоняет обе формы области; Domain::standard(400.0) даёт 96x96 как domain_case."
+    },
+    {
+      "where": "weather_core.rs: block_mean/cell_surface",
+      "why": "Дублируют часть RW-6b (hc, доли классов, z0 клеток): RW-6b должен взять свои, либо RW-6d подставить hc/Cells из place_input в surface_flux (принимает срезы). Требования: шаг места 25 м, начало кратно 25 м.",
+      "checked": "hc до 1.2e-4 м, fr и m побитно, z0 1e-6 отн. против GD."
+    },
+    {
+      "where": "weather_core.rs: WeatherInputs::from_conditions (preset)",
+      "why": "Ключи пресета temperature_c и sky необязательны (нет в configs/weather/*): t_max тогда из климата (typical_max_c), небо clear; wind_speed_kmh/3,6, wind_from_deg по умолчанию 0 и 270.",
+      "checked": "только forecast прогонялся через дамп; ветка preset по ключам не сравнивалась с GD."
+    },
+    {
+      "where": "weather_core.rs: water_mean_air_c",
+      "why": "Температура воды считается из T среднего один раз, max(0, T - lapse(z)) для клетки: математически то же, что прямой вызов GD, но без 24 diurnal_state на клетку при T <= 0.",
+      "checked": "январь Онгудай (лёд, вода как SNOW) и выше/ниже долины: до 1e-3 К."
+    },
+    {
+      "where": "tests/weather_core.rs: допуски",
+      "why": "Эталон GD хранит углы солнца как f32 (Vector2 SunClock), поэтому реальная точность сравнения ~1e-7 рад; поток тепла в дампе f32.",
+      "checked": "расхождения на 4-5 порядков ниже допусков, подгонки не было."
+    }
+  ],
+  "dp_feedback": "Godot -s не видит автозагрузку Config при компиляции: дампер пришлось запускать сценой, временный tscn пишется из .sh. tools/research под .gdignore: .gd.uid не создаётся, а в скоупе карточки он значится. Хорошо бы в шаблоне карточки писать .uid как необязательный.",
+  "extra": {
+    "tests": 15,
+    "scenarios": 11,
+    "H_max_diff_wm2": 4.5e-05,
+    "sun_max_rad": 2.6e-07,
+    "hc_max_diff_m": 0.00012
+  },
+  "t": "2026-10-26T04:06:11",
+  "by": "executor"
+}

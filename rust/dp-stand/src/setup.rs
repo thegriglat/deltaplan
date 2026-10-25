@@ -14,21 +14,33 @@ pub fn make_model(name: &str) -> Result<Box<dyn AirModel>, String> {
     }
 }
 
-/// Все `*.json` каталога (без вложенных), по имени.
+/// Все `*.json` каталога, включая подкаталоги: имя — путь от каталога через `/` (`weather/weak.json`),
+/// по имени.
 pub fn load_configs(dir: &Path) -> Result<Configs, String> {
-    let rd = std::fs::read_dir(dir).map_err(|e| format!("configs '{}': {e}", dir.display()))?;
     let mut files = Vec::new();
+    collect_configs(dir, "", &mut files)?;
+    files.sort();
+    Ok(Configs::new(files))
+}
+
+fn collect_configs(
+    dir: &Path,
+    prefix: &str,
+    files: &mut Vec<(String, String)>,
+) -> Result<(), String> {
+    let rd = std::fs::read_dir(dir).map_err(|e| format!("configs '{}': {e}", dir.display()))?;
     for ent in rd {
         let p = ent.map_err(|e| e.to_string())?.path();
-        if p.extension().is_some_and(|e| e == "json") && p.is_file() {
-            let name = p.file_name().unwrap().to_string_lossy().into_owned();
+        let name = format!("{prefix}{}", p.file_name().unwrap().to_string_lossy());
+        if p.is_dir() {
+            collect_configs(&p, &format!("{name}/"), files)?;
+        } else if p.extension().is_some_and(|e| e == "json") && p.is_file() {
             let text =
                 std::fs::read_to_string(&p).map_err(|e| format!("'{}': {e}", p.display()))?;
             files.push((name, text));
         }
     }
-    files.sort();
-    Ok(Configs::new(files))
+    Ok(())
 }
 
 /// Предупреждения о расхождении sha1 конфигов с записанным в случае.

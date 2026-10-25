@@ -1,0 +1,81 @@
+{
+  "status": "partial",
+  "summary": "Фасад W2 на текущем коде (Atmosphere + CalmAir), AirPlaceData (W5 v3, loc.climate, from_terrain), контрактный тест T5/T6/W7 (22 теста, gd и calm) и храповик чистоты W10 с базой. Приёмка: контракты, чистота, test_air_contracts 31/31 и fixtures_unchanged зелёные; tests/atmosphere/ — 3 падения test_air_place (mix_flux), код которых я не трогал.",
+  "commits": [
+    "68b81aa33 rust-wind RW-2: фасад Atmosphere W2 (gd), AirPlaceData, CalmAir, контрактный тест и храповик чистоты",
+    "2357bc09d rust-wind RW-2: W5 v3 — loc.climate в AirPlaceData, тест места из рельефа Онгудая"
+  ],
+  "checks": [
+    {
+      "name": "test_rust_wind_contracts",
+      "value": "22/22",
+      "pass": true
+    },
+    {
+      "name": "test_rust_wind_purity",
+      "value": "2/2",
+      "pass": true
+    },
+    {
+      "name": "test_air_contracts",
+      "value": "31/31",
+      "pass": true
+    },
+    {
+      "name": "fixtures_unchanged",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "tests/atmosphere/",
+      "value": "242/245 (пропуск 45); падают test_domain_input_vs_reference, test_cell_fractions_synthetic, test_surface_determinism_ongudai",
+      "pass": false
+    }
+  ],
+  "not_done": [
+    "Второй набор фикстур по слагаемым (W8, terms) не снимался: tests/fixtures и tools/wind_fixtures вне скоупа карточки.",
+    "decompose у gd — три слагаемых (wind, flow, turb), без деления flow на поле/рельеф/термики/грозу/волну."
+  ],
+  "questions": [
+    "Контракт W2: weather() и configure(seed) конфликтуют с нынешними именами (var weather; configure(atmo_cfg, weather_cfg)). Сделано переходно: get_weather() и configure(Variant, Variant = null) (int = сид, Dictionary = прежний вызов). Подтвердить, что RW-3 переименует (поле weather -> weather() после перевода потребителей) и RW-13 уберёт прежний configure.",
+    "start_at при загруженном месте асинхронен (state LOADING до pump), без места — прежний синхронный путь (так не ломаются 28 вызовов); NO_PLACE без места только после первой фасадной команды (_f_used). Допустимо как переходное?",
+    "Три падения test_air_place (H клетки = mix_flux, z_i, dθ/dz) — та же семья, что RW-0b (SurfaceHeat.mix_flux); мои правки AirPlace/SurfaceHeat не касаются. Нужна отдельная задача или проверка на feature/rust-wind."
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-2 --dry",
+  "uncertain": [
+    {
+      "where": "scripts/atmosphere/atmosphere.gd: cores()",
+      "why": "Ядро = термик из ThermalField._active (радиус физики 6 км вокруг фокуса) с w > 0; термики дальше радиуса есть в наборе, но на воздух не действуют, и инвариант W6 для них не выполняется (в круге 0,5r vy = фону). Читаю приватное _active.",
+      "checked": "Тест test_found_core_is_a_local_updraft на синтетике t=900: 4 сильнейших ядра без Cb проходят; без фильтра падали 3 из 4."
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd: cores()/clouds()",
+      "why": "Состояние ядер — на последнее обновление термиков (до state_update_interval_s), th.update_time не зову, чтобы описания не сдвигали воздух между опросами. id = id & 0xFFFFFF (у статических id отрицательны).",
+      "checked": "Два опроса равны после cores()/decompose()."
+    },
+    {
+      "where": "scripts/atmosphere/atmosphere.gd: set_conditions/_f_resolve",
+      "why": "Прогноз: AtmoDay без source_fn (сила источников без времени из place.source_at), inflow_mode только валидируется (проходов k нет без поля), speed влияет лишь в AtmoDay; wind_ref null -> ref_msl = старт[0].",
+      "checked": "Сборка и мягкая смена прогноза/эталона, rebuild, сигналы weather_updated/weather_changed в тестах."
+    },
+    {
+      "where": "scripts/atmosphere/air_place_data.gd: source_at",
+      "why": "Для места без рельефа сила источника — нормаль растра x влажность (формула AtmoFingerprint.source_static); для места из рельефа путь прежний (terrain.thermal_source_strength_at).",
+      "checked": "Синтетика даёт конечный ветер, оси и ядра по контракту; побитного сравнения с фикстурами RW-1 фасад не делает (это работа RW-1b/RW-6)."
+    },
+    {
+      "where": "tests/contracts/rust_wind_purity_baseline.txt",
+      "why": "База снята на текущем main-подобном коде; регулярки W10 широкие (.field, .wind, step( ...) и считают совпадения не только на узле воздуха.",
+      "checked": "Тест классифицирует каждый файл scripts/atmosphere (реализация/потребитель); новое или выросшее падает."
+    }
+  ],
+  "dp_feedback": "lock cpu возвращает управление сразу (задача в tmux), результата нет в stdout — удобнее флаг ожидания (--wait) или явная строка 'job wait'; accept tests/atmosphere/ идёт ~10 мин без промежуточного вывода.",
+  "extra": {
+    "tests_contracts": 22,
+    "purity_baseline_lines": 150,
+    "facade_methods": "configure load_place unload_place set_conditions set_sun_direction set_static_thermals advance_to start_at pump status is_ready set_focuses sample_many sample cloud_density_many cloudbase_msl background_wind get_weather sun_state cores clouds cloud_raster cloud_raster_version wave_crests decompose debug_raster debug_raster_names last_error"
+  },
+  "t": "2026-10-26T04:41:02",
+  "by": "executor"
+}

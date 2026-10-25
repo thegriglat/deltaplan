@@ -1,0 +1,89 @@
+{
+  "id": "RW-6i",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Поле в Rust: Field (from_mac, sample, приземный слой) и FieldSet с подменой blend_s",
+  "goal": "Модули dp_air::field::wind_field и field_set: построение поля из решённого состояния Пикара (from_mac: центры без ореола, w_conv = w − w_mech, клэмп), опрос точки и пачки (скорость, θ, w_conv) с приземным слоем (лог-профиль, z0, u*, колонны u*/w*/hmix, edge_weight у края), FieldSet — набор уровней и подмена за blend_s; совпадает с GDScript (wind_field.gd, air_field_set.gd) на том же состоянии.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6i",
+  "branch": "rust-wind/RW-6i",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/wind_field.rs",
+    "rust/dp-air/src/field/field_set.rs",
+    "rust/dp-air/src/field/mod.rs",
+    "rust/dp-air/tests/wind_field.rs",
+    "rust/dp-air/tests/data/wind_field/",
+    "tools/research/rust_wind/dump_wind_field.gd",
+    "tools/research/rust_wind/dump_wind_field.sh",
+    "tools/research/rust_wind/dump_wind_field.tscn",
+    "rust/dp-stand/src/setup.rs",
+    "rust/dp-air/Cargo.toml",
+    "rust/Cargo.lock"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/picard_rs/src/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/field/place_input.rs",
+    "rust/dp-air/src/field/weather_core.rs",
+    "rust/dp-air/src/calm.rs",
+    "rust/dp-air/tests/contract.rs",
+    "tests/fixtures/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "wind_field_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test wind_field",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air -p dp-stand",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p dp-air -p dp-stand --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dump_repro",
+      "cmd": "tools/research/rust_wind/dump_wind_field.sh --verify",
+      "expect": "exit=0"
+    },
+    {
+      "name": "stand_config_lookup",
+      "cmd": "cargo run -q --manifest-path rust/Cargo.toml -p dp-stand -- compare --case tests/fixtures/wind/cases/synth_weak.json --max-violations 0 2>&1",
+      "expect": "!re:not in configs dir"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T04:17:04",
+  "edited": "2026-10-26T04:17:13"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "RW-0c",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Починить 3 падения test_air_place (H клетки, z_i, dθ/dz — t_max без климата места)",
+  "goal": "test_air_place.gd: test_domain_input_vs_reference, test_cell_fractions_synthetic, test_surface_determinism_ongudai снова зелёные; причина найдена (вероятно, как в RW-0b: эталонный хелпер expected_heat/вход теста считает typical_max_c без ctx климата места при t_max = NAN); физика не меняется.",
+  "plan_ref": "План переноса",
+  "contracts": [],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-0c",
+  "branch": "rust-wind/RW-0c",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tests/atmosphere/test_air_place.gd"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/",
+    "tests/fixtures/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_air_place",
+      "tests": "test_air_place"
+    },
+    {
+      "name": "test_air_contracts",
+      "tests": "test_air_contracts"
+    },
+    {
+      "name": "fixtures_unchanged",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T04:42:27"
+}

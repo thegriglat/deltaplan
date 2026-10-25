@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "dp_air::level: Level, Stag, prolong, prolong_state — построчный перенос K_PROLONG (билинейно по x,y, сдвиг ksh по z, зажим на краях грубой области, ореол той же формулой). 7 тестов T4a (модульная часть) зелёные. Параллельность — rayon par_chunks_mut по строкам (пул не создаётся).",
+  "commits": [
+    "2d6766c62 dp_air::level — prolong",
+    "4f997ff1f clippy в тесте level",
+    "e3da0f13a prolong на rayon par_chunks_mut"
+  ],
+  "checks": [
+    {
+      "name": "level_test",
+      "value": "7 passed",
+      "pass": true
+    },
+    {
+      "name": "поток через внешние грани (x-грани, r=3, гладкое u) против аналитики",
+      "value": "8.5e-4 относительно среднего |потока| (порог 1e-2)",
+      "pass": true
+    },
+    {
+      "name": "accept --dry",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6f",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/level.rs (Level.x0)",
+      "why": "Договорённость об x0: координата первой внутренней грани (индекс 1); центр i — x0+(i-1/2)dx. Выведена из формулы ядра (сдвиг sx). RW-6j должен задавать x0 обоих уровней одинаково.",
+      "checked": "линейные тесты по формулам положения совпали с ядром при несовпадающих началах (1300/2150, 457/311) и сдвигах z (ksh 2, 0, -1)"
+    },
+    {
+      "where": "prolong_state",
+      "why": "В ядре при неверном размере грубого массива dst заполняется нулями (gpu.fill); здесь — Err BadInput, решение остаётся за склейкой RW-6j (отказ грубого → старт с фона).",
+      "checked": "тест: при Err приёмники не тронуты"
+    },
+    {
+      "where": "границы модели",
+      "why": "За краем грубой области значение края (зажим); w и центры переносятся одинаково (как KIND_C); баланс массы на мелкой сетке не восстанавливается (только интерполяция)",
+      "checked": "тест edges_clamp"
+    }
+  ],
+  "dp_feedback": "Расхождение скоупа и просьбы карточки (rayon vs Cargo.toml) стоило заметить при выдаче; sleep-ожидание лога lock cpu неудобно — хотелось бы синхронного режима.",
+  "extra": {
+    "flux_rel_diff": 0.0008499
+  },
+  "t": "2026-10-26T03:50:29",
+  "by": "executor"
+}

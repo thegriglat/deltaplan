@@ -1,0 +1,32 @@
+{
+  "status": "done",
+  "summary": "Причина не в SurfaceHeat.mix_flux: тест звал window_at с t_max=NAN (там typical_max_c с ctx климата места), а хелпер expected_heat считает без ctx, отсюда расхождение H в водных клетках (-24.0 vs -21.4). Теперь t_max задан явно в тесте. Ошибки String formatting — в test_c2_params_match_reference (строки 580/581): '%s' % r с массивом, исправлено на % [r].",
+  "commits": [
+    "54f33e76d RW-0b: test_c2_surface_input"
+  ],
+  "checks": [
+    {
+      "name": "test_air_contracts",
+      "value": "31/31",
+      "pass": true
+    },
+    {
+      "name": "fixtures_unchanged",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-0b",
+  "uncertain": [
+    {
+      "where": "tests/atmosphere/test_air_place.gd:expected_heat",
+      "why": "хелпер вне скоупа считает typical_max_c без ctx при NAN; другой вызывающий с NAN получит то же расхождение",
+      "checked": "в скоупе обошёл явным t_max; physics/surface_heat.gd не менялся"
+    }
+  ],
+  "dp_feedback": "Формулировка карточки указывала на mix_flux; реальные причины были в тесте.",
+  "t": "2026-10-26T04:12:44",
+  "by": "executor"
+}

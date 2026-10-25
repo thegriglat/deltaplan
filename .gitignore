@@ -54,3 +54,6 @@ build/dpcli/
 
 # Rust workspace (rust/)
 /rust/target/
+
+# Расширение DpAir: бинарники собирает tools/build_rust.sh
+/addons/dp_air/bin/
