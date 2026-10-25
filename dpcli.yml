@@ -4,9 +4,9 @@ main_branch: main
 module_branch: "feature/{module}"
 task_branch: "{module}/{task}"
 
-copies_dir: "~"
-module_copy: "{copies}/{project}-{module}"
-task_copy: "{copies}/{project}-{module}-{task}"
+copies_dir: "~/worktrees"
+module_copy: "{copies}/{project}/{module}"
+task_copy: "{copies}/{project}/{module}-{task}"
 
 # Новые копии: хуки — абсолютный core.hooksPath (tools/hooks), игнорируемого для переноса нет.
 # Первый запуск Godot в копии — godot --headless --path . --import (делает исполнитель, когда нужен Godot).
