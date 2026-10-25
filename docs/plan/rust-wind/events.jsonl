@@ -105,3 +105,5 @@
 {"t": "2026-10-26T03:50:34", "by": "coordinator", "task": "RW-2", "ev": "started"}
 {"t": "2026-10-26T03:50:34", "by": "coordinator", "task": "RW-6b", "ev": "started"}
 {"t": "2026-10-26T03:50:34", "by": "coordinator", "task": null, "ev": "note", "note": "известное: dp-stand ищет конфиг случая 'weather/weak' не как configs/weather/weak.json (предупреждение «not in configs dir») — поправить в ближайшей задаче, трогающей dp-stand (RW-6i); на реальных фикстурах RW-1 читалка W8 работает (8 случаев, Calm → FAIL по допускам, как и должно)"}
+{"t": "2026-10-26T03:50:48", "by": "coordinator", "task": "RW-6f", "ev": "checked", "note": "4/4 level_test=ok:test result: ok. 7; cargo_test=ok:exit 0; fmt=ok:exit 0; clippy=ok:exit 0"}
+{"t": "2026-10-26T03:50:57", "by": "coordinator", "task": "RW-6f", "ev": "accepted", "note": "по отчёту: перенос ядра 30 строк, свойства T4a покрыты, поточечно — от числа потоков не зависит"}
