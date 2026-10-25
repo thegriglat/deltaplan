@@ -54,6 +54,7 @@ fn suite(make: Make) {
     bad_input_keeps_state(make);
     concurrent_queries(make);
     cores_lift_invariant(make);
+    out_is_replaced(make);
 }
 
 fn empty_state(make: Make) {
@@ -125,15 +126,52 @@ fn point_outside_place(make: Make) {
 
 fn commands_before_place(make: Make) {
     let mut m = make();
-    assert_eq!(code(m.set_conditions(&forecast_cond())), Code::NoPlace);
+    // v2: настройки до места запоминаются — Ok; время без места — NoPlace
+    assert_eq!(code(m.set_conditions(&forecast_cond())), Code::Ok);
+    assert_eq!(code(m.set_focuses(&[])), Code::Ok);
+    assert_eq!(code(m.set_static_thermals(&[], 0)), Code::Ok);
+    m.set_sun_direction(Some([0.0, 1.0, 0.0]));
     assert_eq!(code(m.advance_to(1.0)), Code::NoPlace);
     assert_eq!(code(m.start_at(1.0)), Code::NoPlace);
-    assert_eq!(code(m.set_focuses(&[])), Code::NoPlace);
-    assert_eq!(code(m.set_static_thermals(&[], 0)), Code::NoPlace);
-    m.set_sun_direction(Some([0.0, 1.0, 0.0]));
     m.unload_place(); // без места — не ошибка
     assert_eq!(m.status().state, State::Empty);
     assert_eq!(code(m.configure(&Configs::default(), 5)), Code::Ok);
+    // запомненное применяется при загрузке: место грузится и после настроек
+    m.load_place(place()).unwrap();
+    assert_eq!(m.status().state, State::Ready);
+    // unload сбрасывает место и время: снова NoPlace
+    m.advance_to(4.0).unwrap();
+    m.unload_place();
+    assert_eq!(code(m.advance_to(5.0)), Code::NoPlace);
+    assert_eq!(m.status().time_s, 0.0);
+    // плохой вход отвергается и до места
+    assert_eq!(
+        code(m.set_static_thermals(&[[f32::NAN, 0.0, 1.0, 1.0]], 0)),
+        Code::BadInput
+    );
+}
+
+/// v2: `cores`/`clouds`/`wave_crests` заменяют `out` (очищают), а не дописывают.
+fn out_is_replaced(make: Make) {
+    let m = ready(make);
+    let mut cores = vec![Core::default(); 3];
+    m.cores([0.0; 3], 1000.0, &mut cores);
+    let n = cores.len();
+    m.cores([0.0; 3], 1000.0, &mut cores);
+    assert_eq!(cores.len(), n, "second call must not append");
+    let mut clouds = vec![Cloud::default(); 3];
+    m.clouds([0.0; 3], 1000.0, &mut clouds);
+    let n = clouds.len();
+    m.clouds([0.0; 3], 1000.0, &mut clouds);
+    assert_eq!(clouds.len(), n);
+    let mut crests = vec![Crest::default(); 3];
+    m.wave_crests([0.0; 2], 1000.0, 0.0, 10.0, &mut crests);
+    let n = crests.len();
+    m.wave_crests([0.0; 2], 1000.0, 0.0, 10.0, &mut crests);
+    assert_eq!(crests.len(), n);
+    if n == 0 {
+        assert!(crests.is_empty());
+    }
 }
 
 fn reload_place(make: Make) {
@@ -170,6 +208,8 @@ fn advance_only_forward(make: Make) {
     assert_eq!(m.status().time_s, 10.0);
     assert_eq!(code(m.advance_to(f64::NAN)), Code::BadInput);
     assert_eq!(code(m.advance_to(f64::INFINITY)), Code::BadInput);
+    assert_eq!(code(m.advance_to(-1.0)), Code::BadInput);
+    assert_eq!(code(m.start_at(-1.0)), Code::BadInput);
     m.advance_to(11.0).unwrap();
     assert_eq!(m.status().time_s, 11.0);
 }
@@ -257,29 +297,47 @@ fn concurrent_queries(make: Make) {
     });
 }
 
-/// T6: у найденного ядра средний `vy` по `sample_many` в круге `0,5·radius` на высоте
-/// `(y_src + top)/2` положителен. На `Calm` ядер нет — проверка пуста; готова для `Formula`.
+/// T6 / W6 v2: у ядра без флага Cb (бит 2) средний `vy` по `sample_many` в круге `0,5·radius`
+/// на высоте `(y_src + top)/2` положителен и больше среднего `vy` в кольце 2–3·radius на той же
+/// высоте; id — целое в [0, 2^24). На `Calm` ядер нет — проверка пуста; готова для `Formula`.
 fn cores_lift_invariant(make: Make) {
     let m = ready(make);
     let mut cores = Vec::new();
     m.cores([0.0, 0.0, 0.0], 20_000.0, &mut cores);
     for c in &cores {
+        assert!(
+            c.id.fract() == 0.0 && (0.0..16_777_216.0).contains(&c.id),
+            "core id {} must be an integer in [0, 2^24)",
+            c.id
+        );
+        if (c.flags as u32) & 4 != 0 {
+            continue; // Cb пропускаем
+        }
         let y = 0.5 * (c.y_src + c.top);
-        let r = 0.5 * c.radius;
-        let pts: Vec<[f32; 3]> = (0..16)
-            .map(|k| {
-                let a = k as f32 * std::f32::consts::TAU / 16.0;
-                [
-                    c.x + c.lean_x * (y - c.y_src) + r * a.cos(),
-                    y,
-                    c.z + c.lean_z * (y - c.y_src) + r * a.sin(),
-                ]
-            })
-            .collect();
-        let mut out = vec![[0.0f32; 4]; pts.len()];
-        m.sample_many(&pts, SampleMode::Mean, &mut out);
-        let vy = out.iter().map(|o| o[1] as f64).sum::<f64>() / out.len() as f64;
-        assert!(vy > 0.0, "core {} has mean vy {vy} <= 0", c.id);
+        let mean_vy = |r: f32| {
+            let pts: Vec<[f32; 3]> = (0..16)
+                .map(|k| {
+                    let a = k as f32 * std::f32::consts::TAU / 16.0;
+                    [
+                        c.x + c.lean_x * (y - c.y_src) + r * a.cos(),
+                        y,
+                        c.z + c.lean_z * (y - c.y_src) + r * a.sin(),
+                    ]
+                })
+                .collect();
+            let mut out = vec![[0.0f32; 4]; pts.len()];
+            m.sample_many(&pts, SampleMode::Mean, &mut out);
+            out.iter().map(|o| o[1] as f64).sum::<f64>() / out.len() as f64
+        };
+        let inside = mean_vy(0.5 * c.radius);
+        let ring =
+            (mean_vy(2.0 * c.radius) + mean_vy(2.5 * c.radius) + mean_vy(3.0 * c.radius)) / 3.0;
+        assert!(inside > 0.0, "core {} has mean vy {inside} <= 0", c.id);
+        assert!(
+            inside > ring,
+            "core {}: vy inside {inside} <= ring {ring}",
+            c.id
+        );
     }
 }
 
@@ -502,4 +560,57 @@ fn conditions_reject_bad() {
         assert_eq!(code(cond(&body)), Code::BadInput, "{what}");
     }
     assert_eq!(code(Conditions::from_json("[]")), Code::BadInput);
+}
+
+#[test]
+fn calm_clears_out_vecs() {
+    let m = Calm::new();
+    let mut cores = vec![Core::default(); 3];
+    m.cores([0.0; 3], 10.0, &mut cores);
+    assert!(cores.is_empty());
+    let mut clouds = vec![Cloud::default(); 3];
+    m.clouds([0.0; 3], 10.0, &mut clouds);
+    assert!(clouds.is_empty());
+    let mut crests = vec![Crest::default(); 3];
+    m.wave_crests([0.0; 2], 10.0, 0.0, 1.0, &mut crests);
+    assert!(crests.is_empty());
+}
+
+#[test]
+fn records_flatten_in_w6_order() {
+    let c = Core {
+        id: 1.0,
+        storm: 14.0,
+        ..Core::default()
+    };
+    let one = [c];
+    let f = as_f32s(&one);
+    assert_eq!(f.len(), 15);
+    assert_eq!((f[0], f[14]), (1.0, 14.0));
+    let (cl, cr) = ([Cloud::default(); 2], [Crest::default(); 3]);
+    assert_eq!(as_f32s(&cl).len(), 20);
+    assert_eq!(as_f32s(&cr).len(), 12);
+}
+
+#[test]
+fn conditions_inflow_mode() {
+    let base = r#""preset":"weather/medium","start_hour":12,"speed":1"#;
+    assert_eq!(cond(base).unwrap().inflow_mode, InflowMode::Start);
+    for (v, want) in [("start", InflowMode::Start), ("inflow", InflowMode::Inflow)] {
+        let c = cond(&format!(r#"{base},"inflow_mode":"{v}""#)).unwrap();
+        assert_eq!(c.inflow_mode, want);
+    }
+    let fc = format!(r#"{FC},"quantum_h":0.5,"start_hour":12,"speed":1,"inflow_mode":"inflow""#);
+    assert_eq!(cond(&fc).unwrap().inflow_mode, InflowMode::Inflow);
+    for bad in [
+        r#""inflow_mode":"warm""#,
+        r#""inflow_mode":1"#,
+        r#""inflow_mode":"""#,
+    ] {
+        assert_eq!(
+            code(cond(&format!("{base},{bad}"))),
+            Code::BadInput,
+            "{bad}"
+        );
+    }
 }
