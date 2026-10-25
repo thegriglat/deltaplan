@@ -5,12 +5,12 @@ module: "rust-ext"
 area: "air"
 updated: "2026-10-24"
 summary: "Встраивание Rust-Пикара в игру: поле, кэш, фоновый пересчёт и вход в крейте, Godot опрашивает точки; оценка 6–11 дней, проба"
-related: ["docs/plan/rust-ext.md", "docs/plan/picard-rs.md", "tools/research/air_cascade/picard_rs/INTEGRATION.md", "docs/guide/air-model/runtime.md"]
+related: ["docs/plan/rust-ext.md", "docs/plan/picard-rs.md", "rust/picard_rs/INTEGRATION.md", "docs/guide/air-model/runtime.md"]
 ---
 
 # Встраивание Rust-Пикара в игру (после picard-rs, 2026-10-24)
 
-Итог `docs/plan/picard-rs.md`: крейт `tools/research/air_cascade/picard_rs/` (API — `INTEGRATION.md`), оптимизация ×2. Порог `tol_scale = 5` принят пользователем.
+Итог `docs/plan/picard-rs.md`: крейт `rust/picard_rs/` (API — `INTEGRATION.md`), оптимизация ×2. Порог `tol_scale = 5` принят пользователем.
 - Загрузка u3_heat (холодный старт): 6,2 / 7,6 / 14,4 / 18,7 с на 8 / 6 / 3 / 2 потоках (Xeon E5-2666 v3).
 - Фон с тёплого старта: 0,75–1,3 с на 8 потоках, 2–3,7 с на 2 (`out/final/`).
 Следующий шаг — модуль встраивания с отдельным координатором.

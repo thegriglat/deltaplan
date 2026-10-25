@@ -1,0 +1,21 @@
+[workspace]
+resolver = "3"
+members = ["dp-air", "picard_rs"]
+
+# Профили задаёт только workspace (W9).
+[profile.dev]
+opt-level = 0
+
+# Разработка и настройка игры.
+[profile.tune]
+inherits = "dev"
+opt-level = 2
+debug = true
+incremental = true
+
+# Только выпуск.
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"

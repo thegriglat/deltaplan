@@ -51,3 +51,6 @@ scripts/terrain/variants/_bench/
 /data/crash_report_token.txt
 .read_*
 build/dpcli/
+
+# Rust workspace (rust/)
+/rust/target/
