@@ -1,0 +1,40 @@
+---
+type: "contract"
+status: "active"
+module: "rust-wind"
+area: "air"
+updated: "2026-10-26"
+summary: "W8 rust-wind: формат фикстур T1 (json + f32), допуски сверки Rust против GDScript, пороги скорости."
+related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md", "docs/contracts/air-cascade.md"]
+contracts: [{"id": "W8", "version": 1}]
+---
+
+# W8. Фикстуры T1 и допуски (v1)
+
+Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W8). Менять — только координатор.
+Владелец — RW-1 (снимает на текущем коде до правок атмосферы), RW-2 (второй набор — по слагаемым W7). Потребители — `cargo test` (RW-6…12), GDScript-тесты T7.
+**Формат** (`tests/fixtures/wind/`, json + двоичный f32 LE, как R1 picard-rs: GDScript пишет, Rust читает без зависимостей; запись — во временный файл и переименование):
+- `places/<имя>.json` + `.bin` — `AirPlaceData` (W5): заголовок; в `.bin` подряд `heights` (int16 со смещением `h_offset` и шагом `h_scale` из заголовка, ≤ 0,1 м), `water` u8, `cls` u8, `moist` u8 (×1/255). Мест — 2: синтетическое (аналитический мир `atmo_fingerprint.gd`) и одно реальное с полем (предложение — Онгудай, как в air-cascade). Всё в git ≤ 20 МБ; больше — локально, путь и команда пересъёмки в `tests/fixtures/wind/README.md`.
+- `cases/<имя>.json` — `{version: 1, place, conditions (W5), seed, static_thermals, configs_sha1: {имя: sha1}, times_s: [..], focuses: [[x,y,z,w]..], points: [[x,y,z]..], point_tags: [..], terms: [..] | null, generator: "<коммит>"}`; `point_tags` из набора `ground, lee, thermal, field_edge, above_base, storm, wave, far`.
+- `cases/<имя>.bin` — f32 LE `[time][point][k][4]`: `k = 0` — итог `(vx, vy, vz, σ)` `SAMPLE_FULL`, `k = 1` — `SAMPLE_MEAN`, `k ≥ 2` — слагаемые по `terms` (второй набор).
+- `cases/<имя>.desc.json` — описания W6 на каждый `t`: `cores`, `clouds`, `crests`, `cloudbase_msl`.
+- Случаев — не меньше 6: слабый/средний/сильный ветер, термики днём, гроза, волна; каждый на 3 момента (старт, +15 мин после пересчёта, +60 мин).
+- RW-1 идёт до RW-2 (`AirPlaceData` ещё нет): генератор пишет поля W5 сам — из `AirRuntime.place_of` (`air_runtime.gd:270`: `detail` `HeightLayer`, `water`, `surface`, `loc`, `start_sites`) для реального места и из аналитического мира для синтетического.
+- Генератор — `tools/wind_fixtures/gen_fixtures.gd` (headless, под `lock cpu`); повторный запуск на той же ревизии даёт побитно те же файлы.
+
+**Допуски T1** (решение вопроса 3 плана; Rust против фикстуры GDScript, по точке и моменту):
+| Величина | Допуск |
+|---|---|
+| итог `SAMPLE_MEAN` и детерминированные слагаемые (аналитика, гребень, термики, гроза, волна, облака) | `|Δv| ≤ 0,05 м/с + 2 % |v_ref|` по каждой компоненте |
+| слагаемое поля Пикара | поле — допуски air-cascade («Допуски сверки»: `u_rel ≤ 1e-3`, `th_abs ≤ 0,05 К`) после одинакового числа итераций; в точке — `|Δv| ≤ 0,1 м/с + 3 %` (другой решатель и критерий, `tol_scale = 5`) |
+| σ | `|Δσ| ≤ 0,02 м/с + 5 %` |
+| итог `SAMPLE_FULL` | при воспроизведённом шуме — как `SAMPLE_MEAN`; при заменённом шуме (вопрос 5 плана) — поточечно не сравнивается, только T3 (статистика) и `SAMPLE_MEAN` |
+| ядра | тот же набор (по id или ближайшему): число равно; место `≤ max(25 м, 2 % radius)`; `w`, `radius` `≤ 3 %`; `top` `≤ 10 м`; `stage` `≤ 0,05` |
+| облака | число равно; центр `≤ 50 м`; база/верх `≤ 10 м`; `growth/decay` `≤ 0,05` |
+| база облаков | `≤ 5 м` |
+| доля точек вне допуска | 0 (поточечно); исключение — точка, где расхождение объяснено высотой рельефа (W5: билинейно по 25 м против `terrain.height_at`), отмечается в отчёте с числом |
+
+Допуск, который не сходится по честной причине (другой решатель, растр вместо `terrain.height_at`), — `contract:` с замером, W8 v2. Подгонять реализацию под фикстуру вне физики нельзя.
+
+**Скорость** (бенч `cargo bench`, release-профиль W9; игровой замер — под `lock gpu`): `sample_many` 18 точек ≤ 50 мкс, 1000 точек ≤ 2 мс (один вызов, главный поток); `advance_to` ≤ 0,5 мс; базовая линия — `rust/dp-air/benches/baseline.json` (снимает RW-4 на `Calm`, RW-6…12 обновляют на `Formula`); регрессия > 20 % от базовой — FAIL.
+

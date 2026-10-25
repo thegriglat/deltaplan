@@ -2,7 +2,7 @@
 type: "registry"
 status: "active"
 module: ""
-updated: "2026-10-25"
+updated: "2026-10-26"
 summary: "Точка входа: модули docs/ по подпроектам, прочие документы по типам."
 related: []
 generated: true
@@ -54,7 +54,8 @@ generated: true
   - [tools/research/air_cascade/picard_rs/out/opt/PR-9/README.md](../tools/research/air_cascade/picard_rs/out/opt/PR-9/README.md) — PR-9: профиль и пачка 2 (ширина пачек прогонок, граничные линии группой, слитые проходы); побитно тот же путь, 58,2 -> 50,5 мс/итер.
   - [tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md](../tools/research/air_cascade/picard_rs/out/residual/PR-8/README.md) — PR-8: невязка Пикара → отклонение поля в м/с, холодный и тёплый старт, Онгудай 400 м; порог «годно для игры» — tol_scale 5
 - **rust-air-integration** — Встраивание Rust-Пикара в игру: поле, кэш, фоновый пересчёт и вход в крейте, Godot опрашивает точки; оценка 6–11 дней, проба [idea 2026-10-24] — [план](plan/rust-air-integration.md)
-- **rust-wind** — Весь ветер — в Rust-крейте за одной границей под живой воздух: фасад, контракт, перенос по слагаемым, тесты по TDD [idea 2026-10-25] — [план](plan/rust-wind.md)
+- **rust-wind** — Весь ветер — в Rust-крейте за одной границей под живой воздух: фасад, контракт, перенос по слагаемым, тесты по TDD [idea 2026-10-25] — [план](plan/rust-wind.md) · [контракты](contracts/rust-wind.md)
+  - [docs/contracts/rust-wind/fixtures-tolerances.md](contracts/rust-wind/fixtures-tolerances.md) — W8 rust-wind: формат фикстур T1 (json + f32), допуски сверки Rust против GDScript, пороги скорости.
 
 ## flight
 
