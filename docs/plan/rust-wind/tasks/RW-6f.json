@@ -1,0 +1,63 @@
+{
+  "id": "RW-6f",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Общая операция «грубый уровень → мелкий» (prolong) для грубого старта 1200 → 400 м",
+  "goal": "Модуль dp_air::level: описание уровня (разнесённая сетка MAC, начало, dx, dz, z_bot, ореол) и операция prolong грубого состояния (u, v, w, θ′, θ′_d, p) на мелкий уровень — построчный перенос K_PROLONG (air_picard.glsl:666, air_picard_job.gd:_prolong 389), написанный как общая операция иерархии уровней; модульная часть T4a зелёная.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6f",
+  "branch": "rust-wind/RW-6f",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/level.rs",
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/tests/level.rs"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/field/",
+    "rust/dp-air/src/calm.rs",
+    "rust/dp-air/tests/contract.rs",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "level_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test level",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p dp-air --all-targets -- -D warnings",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T03:45:38"
+}

@@ -30,6 +30,11 @@
       "name": "W6",
       "version": "2",
       "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
     }
   ],
   "copy": "~/worktrees/deltaplan/rust-wind-RW-4b",
@@ -50,7 +55,8 @@
     "tests/contracts/test_dp_air_ext.gd.uid",
     ".gitignore",
     "export_presets.cfg",
-    "rust/.cargo/"
+    "rust/.cargo/",
+    "rust/dp-air/src/conditions.rs"
   ],
   "dont_touch": [
     "scripts/",
@@ -110,5 +116,5 @@
   "report_extra": [],
   "notes": "",
   "created": "2026-10-26T03:16:52",
-  "edited": "2026-10-26T03:42:55"
+  "edited": "2026-10-26T03:44:20"
 }

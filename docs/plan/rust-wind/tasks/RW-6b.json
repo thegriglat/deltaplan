@@ -1,0 +1,78 @@
+{
+  "id": "RW-6b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Вход области поля в Rust: block_mean, сетка, gam, z_i, AirZiTerrain, cell_surface/z0",
+  "goal": "Модуль dp_air::field::place_input строит из растров места W5 вход области Пикара на 400 м (и на 1200 м — тот же код с другим dx): рельеф block_mean 25 → dx, сетка и nz, gam, z_i (поиск по θ̄), z_i_col (AirZiTerrain), cell_surface/cell_z0/доли воды — и совпадает с GDScript (air_place.gd:domain_case) на тех же растрах в допусках.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6b",
+  "branch": "rust-wind/RW-6b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/",
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/tests/field_input.rs",
+    "rust/dp-air/tests/data/field_input/",
+    "tools/research/rust_wind/dump_field_input.gd",
+    "tools/research/rust_wind/dump_field_input.gd.uid",
+    "tools/research/rust_wind/dump_field_input.sh"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/calm.rs",
+    "rust/dp-air/src/conditions.rs",
+    "rust/dp-air/tests/contract.rs",
+    "tests/fixtures/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "field_input_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test field_input",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p dp-air --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dump_repro",
+      "cmd": "tools/research/rust_wind/dump_field_input.sh --verify",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T03:44:40"
+}
