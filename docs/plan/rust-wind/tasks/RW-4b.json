@@ -1,0 +1,107 @@
+{
+  "id": "RW-4b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "dp-gd: класс DpAir (W3) на Calm, .gdextension, сборка Linux/Windows, дымовой тест поставки",
+  "goal": "Крейт rust/dp-gd (gdext 0.5.5, cdylib) отдаёт класс DpAir по W3 поверх dp-air (пока Calm); addons/dp_air/dp_air.gdextension и tools/build_rust.sh собирают tune/release под Linux и Windows; tools/build.sh собирает release до экспорта; игра и тесты без бинарника не падают; экспортированная Linux-сборка headless грузит расширение (api_version == 1). Calm и contract.rs приведены к W4 v2.",
+  "plan_ref": "План переноса / Этап 2 / RW-4",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W9",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-4b",
+  "branch": "rust-wind/RW-4b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-gd/",
+    "rust/Cargo.toml",
+    "rust/Cargo.lock",
+    "rust/dp-air/src/calm.rs",
+    "rust/dp-air/tests/contract.rs",
+    "addons/dp_air/",
+    "tools/build_rust.sh",
+    "tools/build.sh",
+    "tools/dp_air_smoke.sh",
+    "tools/dp_air_nobin_check.sh",
+    "tests/contracts/test_dp_air_ext.gd",
+    "tests/contracts/test_dp_air_ext.gd.uid",
+    ".gitignore",
+    "export_presets.cfg"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/picard_rs/",
+    "docs/contracts/",
+    "dpcli.yml",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "build_linux_tune",
+      "cmd": "tools/build_rust.sh tune linux",
+      "expect": "exit=0"
+    },
+    {
+      "name": "build_windows_release",
+      "cmd": "tools/build_rust.sh release windows && ls addons/dp_air/bin/",
+      "expect": "re:\\.dll"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "ext_test",
+      "cmd": "tools/build_rust.sh tune linux && (godot --headless --path . --import >/dev/null 2>&1; godot --headless --path . --import >/dev/null 2>&1; godot --headless --path . res://tests/run_tests.tscn -- --filter=test_dp_air_ext)",
+      "expect": "tests"
+    },
+    {
+      "name": "nobin",
+      "cmd": "tools/dp_air_nobin_check.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "smoke",
+      "cmd": "tools/dp_air_smoke.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "bin_ignored",
+      "cmd": "git check-ignore -q addons/dp_air/bin/x.so",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T03:16:52"
+}
