@@ -1,0 +1,59 @@
+{
+  "id": "RW-6a",
+  "module": "rust-wind",
+  "type": "dp-researcher",
+  "title": "Разбор пути поля Пикара: что переносить в RW-6 и в каком порядке",
+  "goal": "Документ docs/research/rust-wind-field-path.md: текущий путь поля от загрузки места до опроса точки (подготовка входа, грубый старт, фазы и заморозка колонн, z_i, adv2, решение mech/heat, окна 100/50 м, WindField и приземный слой, пересчёт и подмена) с файлами/функциями, входами, ключами конфига и их нынешними значениями; что из этого есть в rust/picard_rs, чего нет; разбиение RW-6 на задачи с порядком, скоупом и тестами (T1 field, T4, T4a); варианты по окнам 100/50 м (вопрос 4) с размерами и оценкой времени на CPU.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W4",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6a",
+  "branch": "rust-wind/RW-6a",
+  "base": "feature/rust-wind",
+  "scope": [
+    "docs/research/rust-wind-field-path.md",
+    "tools/research/rust_wind/"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/",
+    "docs/contracts/",
+    "docs/plan/"
+  ],
+  "accept": [
+    {
+      "name": "doc",
+      "cmd": "test -s docs/research/rust-wind-field-path.md",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "sections",
+      "cmd": "grep -c '^## ' docs/research/rust-wind-field-path.md",
+      "expect": "num:(\\d+) >=6"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T03:27:50"
+}
