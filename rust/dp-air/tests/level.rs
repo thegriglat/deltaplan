@@ -176,7 +176,7 @@ fn bad_lengths_are_errors() {
     let e = prolong(&c, &src, &f, &mut dst[1..], Stag::C).unwrap_err();
     assert_eq!(e.code, Code::BadInput);
     let tiny = lvl([1, 5, 5], 0.0, 0.0, 1200.0, 0.0);
-    assert!(prolong(&tiny, &vec![0.0; 25], &f, &mut dst, Stag::C).is_err());
+    assert!(prolong(&tiny, &[0.0; 25], &f, &mut dst, Stag::C).is_err());
     let mut bad = f;
     bad.dx = 0.0;
     assert!(prolong(&c, &src, &bad, &mut dst, Stag::C).is_err());
