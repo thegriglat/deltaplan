@@ -131,7 +131,7 @@ related: ["docs/guide/air-model.md", "docs/guide/air-model/turbulence.md", "docs
 - Дальше — по решению пользователя на шлюзе (модельный Онгудай, плоский рельеф, другие эффекты).
 
 **Шаг 0 — Пикар 400 м на Rust (этап R, 2026-10-24).** Указания пользователя: отдельный крейт без Godot
-(`tools/research/air_cascade/picard_rs/`, контракт R3), базовые структуры (сетка, поля, граничные условия,
+(`rust/picard_rs/`, контракт R3), базовые структуры (сетка, поля, граничные условия,
 состояние итерации) определяет исполнитель; отладка на dev-профиле (-O0), релиз — `opt-level=3,
 lto="fat", codegen-units=1, panic="abort"`, без `target-cpu=native`; функции чистые (fat LTO);
 комментарии на английском; `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo build --release` —

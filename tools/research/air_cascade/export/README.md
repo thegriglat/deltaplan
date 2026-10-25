@@ -21,7 +21,7 @@ z_i 3362 м. Эталон — `tools/research/air3d/air.py` (CuPy, float64, кр
 ```
 cd tools/research/heat_ca && uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt && cd -
 tools/research/heat_ca/.venv/bin/python tools/research/air_cascade/export/export_ongudai.py   # ~1 мин, RTX 4070 SUPER
-python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --ref ~/data/air_cascade/ongudai/*.json
+python3 rust/picard_rs/contract/check_contract.py --ref ~/data/air_cascade/ongudai/*.json
 ```
 Выход — `$AIR_CASCADE_DATA/ongudai/` (по умолчанию `~/data/air_cascade/ongudai/`, вне git). Запись во
 временный файл и переименование. Код выходит с 1, если итерации расходятся с фикстурой более чем на 10
@@ -134,7 +134,7 @@ git -C . status --short                      # venv: tools/research/heat_ca/.ven
   res://tools/research/air_cascade/warm/dump_inputs.tscn -- --hours=12,12.25 --u10=3 --out=$HOME/data/air_cascade/ongudai/warm_inputs
 tools/research/heat_ca/.venv/bin/python tools/research/air_cascade/export/export_ongudai.py u3_heat_h1200 u3_mech_h1200 u3_heat_h1215 u3_mech_h1215   # ~1 мин
 python3 tools/research/air_cascade/export/check_r5.py ~/data/air_cascade/ongudai/ongudai_d400_u3_{heat,mech}_h1215.json
-python3 tools/research/air_cascade/picard_rs/contract/check_contract.py --ref ~/data/air_cascade/ongudai/ongudai_d400_u3_{heat,mech}_h12{00,15}.json
+python3 rust/picard_rs/contract/check_contract.py --ref ~/data/air_cascade/ongudai/ongudai_d400_u3_{heat,mech}_h12{00,15}.json
 ```
 Данные (вне git, 4 × 38 МБ + `warm_inputs/inputs_h12{00,15}.json` с H, γ, z_i, профилем часа от игры): `~/data/air_cascade/ongudai/`.
 Эталон f64 (холодный, итерации / t_ref_s): heat h1200 281 / 11,9*, h1215 281 / 7,2; mech h1200 341 / 7,1, h1215 341 / 7,1 (\* прогрев CuPy).

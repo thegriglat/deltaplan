@@ -1,0 +1,16 @@
+{
+  "unit": "us",
+  "stat": "median",
+  "model": "Calm",
+  "profile": "release",
+  "date": "2026-10-26",
+  "machine": {
+    "cpu": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+    "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41"
+  },
+  "median_us": {
+    "advance_to": 0.003167,
+    "sample_many_1000": 0.15535,
+    "sample_many_18": 0.006727
+  }
+}

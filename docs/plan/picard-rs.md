@@ -5,16 +5,16 @@ module: "picard-rs"
 area: "air"
 updated: "2026-10-24"
 summary: "Rust-Пикар на CPU: оптимизация без asm, API числа потоков, время до/после, сколько итераций нужно, тёплый старт как в фоне игры."
-related: ["tools/research/air_cascade/picard_rs/README.md", "docs/contracts/picard-rs.md", "docs/contracts/air-cascade.md", "docs/guide/air-model/runtime.md"]
+related: ["rust/picard_rs/README.md", "docs/contracts/picard-rs.md", "docs/contracts/air-cascade.md", "docs/guide/air-model/runtime.md"]
 ---
 # План picard-rs (код задач PR)
 
 ## Статус
 Заведён 2026-10-24 от `main` @ 7087ca8b5 (после сдачи шага 0 air-cascade, 421d47685; полный журнал —
 тег `archive/air-cascade`). Контракты — `docs/contracts/picard-rs.md`. Крейт —
-`tools/research/air_cascade/picard_rs/` (README §7–17 и «multiversion против AC-R3» — исходные числа).
+`rust/picard_rs/` (README §7–17 и «multiversion против AC-R3» — исходные числа).
 
-**2026-10-24 — готов к сдаче** (PR-1…PR-13 влиты). Итог на 8 потоках: оптимизация ×2,0–2,1 (u3_heat 105,1 → 50,7 мс/итер, путь решения побитно тот же); загрузка (холодный, tol_scale 5) 3,5–6,2 с, при tol 1 — 7,2–10,7 с; фон (тёплый, tol 5) h1215 0,75 с, h1230 1,29 с; цепочка T→T+15→T+30 в пороге PR-8, ошибка не копится. Числа — `tools/research/air_cascade/picard_rs/out/final/`, описание для интегратора — `INTEGRATION.md`. Открыто: тёплый h1230 при tol 1 — 90 итераций против 20 у h1215 (причину не разбирали; для tol 5 не важно); BLOCK/ширины прогонок подобраны на Xeon E5-2666 v3.
+**2026-10-24 — готов к сдаче** (PR-1…PR-13 влиты). Итог на 8 потоках: оптимизация ×2,0–2,1 (u3_heat 105,1 → 50,7 мс/итер, путь решения побитно тот же); загрузка (холодный, tol_scale 5) 3,5–6,2 с, при tol 1 — 7,2–10,7 с; фон (тёплый, tol 5) h1215 0,75 с, h1230 1,29 с; цепочка T→T+15→T+30 в пороге PR-8, ошибка не копится. Числа — `rust/picard_rs/out/final/`, описание для интегратора — `INTEGRATION.md`. Открыто: тёплый h1230 при tol 1 — 90 итераций против 20 у h1215 (причину не разбирали; для tol 5 не важно); BLOCK/ширины прогонок подобраны на Xeon E5-2666 v3.
 
 ## Цель
 Понять, годится ли Rust-Пикар на CPU для обоих случаев игры: расчёт поля при загрузке места (все ядра) и
@@ -44,7 +44,7 @@ related: ["tools/research/air_cascade/picard_rs/README.md", "docs/contracts/pica
 тесты на -O0, release `opt-level=3, lto="fat", codegen-units=1, panic="abort"`; multiversion оставить;
 CPU без AVX2 не поддерживаем — базовую ветку не оптимизировать и не мерить; `cargo clippy` чисто,
 `cargo fmt`; надёжный крейт вместо своего кода, pure-Rust; f32 в расчёте, f64 в редукциях — не менять
-без замера. Замеры — только под `.dpcli/dpcli lock cpu <ID> -- tools/research/air_cascade/picard_rs/target/release/picard bench|solve …`
+без замера. Замеры — только под `.dpcli/dpcli lock cpu <ID> -- rust/target/release/picard bench|solve …`
 (18 слотов); время без замка или на фоне Godot не принимается; Godot — только под замком cpu с `timeout`.
 - **Оптимизация пачками** (2026-10-24): правки не мерить по одной (выигрыш каждой — в пределах шума ~2 %); правки делать пачкой и мерить пачку целиком — время solve и perf-счётчики до/после; точность (итерации, u_rel против эталона) — после каждой пачки; пачка не ускорила или сломала точность — бисекция по её правкам.
 - **Приоритеты оптимизации** (2026-10-24): 1) промахи L1 — главный акцент: порядок обхода, плитки/блоки, раскладка данных, мерить L1-dcache-load-misses; 2) rayon вместо последовательных/индексных циклов — вся работа в пуле параллельно; 3) не копировать память — без лишних clone/collect/временных массивов, буферы переиспользовать, срезы/представления; деления в прогонке и прочее — после этих трёх.
