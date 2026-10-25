@@ -1,0 +1,101 @@
+{
+  "id": "RW-4",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Workspace rust/: dp-air (трейт W4, Calm, разбор W5) + перенос Пикара",
+  "goal": "Workspace rust/ с крейтом dp-air (без Godot): типы и трейт AirModel W4, заглушка Calm по W1, разбор Configs/Place/Conditions W5, API_VERSION = 1; picard_rs перенесён в workspace git mv с сохранением R6 v3; профили dev/tune/release W9; контрактные тесты rust/dp-air/tests/contract.rs (T5, T6 на Calm) зелёные; базовая линия бенча на Calm.",
+  "plan_ref": "План переноса / Этап 2 / RW-4",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W9",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-4",
+  "branch": "rust-wind/RW-4",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/",
+    "tools/research/air_cascade/",
+    "docs/",
+    ".gitignore"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "project.godot",
+    "addons/",
+    "tools/build.sh",
+    "docs/contracts/rust-wind.md",
+    "docs/contracts/rust-wind/",
+    "docs/plan/rust-wind.md",
+    "dpcli.yml"
+  ],
+  "accept": [
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "contract_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test contract",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "no_godot_in_dp_air",
+      "cmd": "cargo tree --manifest-path rust/Cargo.toml -p dp-air -e normal",
+      "expect": "!re:godot"
+    },
+    {
+      "name": "picard_moved",
+      "cmd": "test ! -e tools/research/air_cascade/picard_rs/Cargo.toml && test -f rust/.gdignore && test -s rust/dp-air/benches/baseline.json",
+      "expect": "exit=0"
+    },
+    {
+      "name": "profiles",
+      "cmd": "cargo build --manifest-path rust/Cargo.toml -p dp-air --profile tune",
+      "expect": "exit=0"
+    },
+    {
+      "name": "docs",
+      "cmd": ".dpcli/dpcli docs check",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T03:00:05",
+  "edited": "2026-10-26T03:00:30"
+}

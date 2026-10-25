@@ -1,0 +1,80 @@
+{
+  "id": "RW-1",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Эталоны ветра до правок (фикстуры T1, W8)",
+  "goal": "Генератор tools/wind_fixtures/gen_fixtures.gd снимает на текущем коде атмосферы фикстуры W8 (2 места, ≥ 6 случаев × 3 момента, итог FULL/MEAN, σ, описания W6) в tests/fixtures/wind/; повторный запуск на той же ревизии даёт те же файлы; формат проверяет GDScript-тест.",
+  "plan_ref": "План переноса / Этап 1 / RW-1",
+  "contracts": [
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-1",
+  "branch": "rust-wind/RW-1",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tools/wind_fixtures/",
+    "tests/fixtures/wind/",
+    "tests/contracts/test_wind_fixtures_format.gd",
+    "tests/contracts/test_wind_fixtures_format.gd.uid"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "project.godot",
+    "docs/contracts/",
+    "rust/"
+  ],
+  "accept": [
+    {
+      "name": "test_wind_fixtures_format",
+      "tests": "test_wind_fixtures_format"
+    },
+    {
+      "name": "fixtures_repro",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fixtures_size_mb",
+      "cmd": "du -sm tests/fixtures/wind | cut -f1",
+      "expect": "num:(\\d+) <=20"
+    },
+    {
+      "name": "cases_count",
+      "cmd": "ls tests/fixtures/wind/cases/*.desc.json | wc -l",
+      "expect": "num:(\\d+) >=6"
+    },
+    {
+      "name": "places_count",
+      "cmd": "ls tests/fixtures/wind/places/*.json | wc -l",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "readme",
+      "cmd": "test -s tests/fixtures/wind/README.md",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T02:59:25"
+}
