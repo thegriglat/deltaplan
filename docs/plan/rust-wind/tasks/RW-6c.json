@@ -1,0 +1,83 @@
+{
+  "id": "RW-6c",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Погода и солнце для поля в Rust (weather_core): нагрев поверхности, surface_flux, WindProfile",
+  "goal": "Модули dp_air::field::weather_core и surface_heat считают из условий W5 v2, конфигов и растров места то, что domain_case берёт из погоды: diurnal_state, sky_params, typical_max_c, diurnal_range_k, ground_context, положение солнца (SunClock.solar_position), SurfaceHeating/SurfaceHeat/mix_flux (поток тепла H по ячейкам), температура воды, WindProfile (α, класс устойчивости, z_sat, max_profile) — и совпадают с GDScript на тех же входах.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6c",
+  "branch": "rust-wind/RW-6c",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/weather_core.rs",
+    "rust/dp-air/src/field/surface_heat.rs",
+    "rust/dp-air/src/field/sun.rs",
+    "rust/dp-air/src/field/wind_profile.rs",
+    "rust/dp-air/src/field/mod.rs",
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/tests/weather_core.rs",
+    "rust/dp-air/tests/data/weather_core/",
+    "tools/research/rust_wind/dump_weather_core.gd",
+    "tools/research/rust_wind/dump_weather_core.gd.uid",
+    "tools/research/rust_wind/dump_weather_core.sh"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/field/place_input.rs",
+    "rust/dp-air/src/calm.rs",
+    "rust/dp-air/src/conditions.rs",
+    "rust/dp-air/tests/contract.rs",
+    "tests/fixtures/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "weather_core_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test weather_core",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml -p dp-air --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "dump_repro",
+      "cmd": "tools/research/rust_wind/dump_weather_core.sh --verify",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T03:51:53"
+}

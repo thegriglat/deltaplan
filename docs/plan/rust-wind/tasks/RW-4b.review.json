@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "DpAir соответствует W3 (все методы, коды W1, страйды W6 15/10/4, вход — as_slice, выход — одно копирование). Calm и общий suite приведены к W4 v2, inflow_mode — к W5 v2, тест подъёма ядер — к W6 v2 (lean в м/м, как в descriptions.md). Всё в scope, project.godot не тронут, скрипты его восстанавливают. cargo_test и nobin перезапущены, оба PASS.",
+  "issues": [
+    {
+      "file": "tools/dp_air_nobin_check.sh",
+      "line": 33,
+      "severity": "minor",
+      "what": "Код 1 раннера (упавшие тесты) допускается, поэтому проверка не заметит новых красных тестов воздуха без бинарника. Карточка требует «не краснеют». Сейчас красный один, test_c2_surface_input, и он красный и в feature/rust-wind.",
+      "fix": "Когда test_c2_surface_input починят в модуле, требовать rc == 0 или сверять список FAIL с эталоном."
+    },
+    {
+      "file": "tools/build.sh",
+      "line": 105,
+      "severity": "minor",
+      "what": "Не видно, что macOS-экспорт с .gdextension без строк macos проверяли. Godot может напечатать «No suitable library found for GDExtension». Падает ли при этом экспорт, в отчёте не сказано.",
+      "fix": "При первой сборке под macOS (выпуск) проверить, что экспорт проходит; при необходимости исключить addons/dp_air/*.gdextension в пресете macOS."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "cargo_test",
+      "value": "exit 0 (15 с)",
+      "pass": true
+    },
+    {
+      "name": "nobin",
+      "value": "exit 0, NOBIN OK (42 с)",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-26T04:10:14",
+  "by": "reviewer"
+}

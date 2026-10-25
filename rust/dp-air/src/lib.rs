@@ -5,13 +5,16 @@
 mod calm;
 mod conditions;
 mod error;
+pub mod field;
 pub mod fixtures;
+mod level;
 mod place;
 mod types;
 
 pub use calm::Calm;
 pub use conditions::{Conditions, Forecast, Source, WindRef};
 pub use error::{Code, Error};
+pub use level::{Level, Stag, prolong, prolong_state};
 pub use place::{Grid, Loc, Place, PlaceHeader, StartSite};
 pub use types::{
     Cloud, Configs, Core, Crest, Decomposition, Focus, Raster, SampleMode, State, Status,

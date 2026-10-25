@@ -1,0 +1,104 @@
+{
+  "status": "done",
+  "summary": "dp-gd: класс DpAir по W3 поверх Box<dyn AirModel> (Calm), .gdextension, tools/build_rust.sh (linux tune/release, windows-gnu через mingw), build.sh собирает расширение до экспорта, nobin-проверка и дымовой тест поставки (экспорт Linux, DP_AIR_SMOKE OK). Calm и contract.rs приведены к W4 v2, добавлены W6 v2 (инвариант ядра) и W5 v2 (inflow_mode). accept: 9/9 PASS (scope расширен координатором).",
+  "commits": [
+    "231fe7371 rust-wind RW-4b: dp-gd (DpAir на Calm), .gdextension, build_rust.sh, дымовой тест поставки"
+  ],
+  "checks": [
+    {
+      "name": "DLL (objdump -p)",
+      "value": "api-ms-win-core-synch-l1-2-0, bcryptprimitives, KERNEL32, msvcrt, ntdll, USERENV, WS2_32 - только системные, без libgcc/winpthread/libstdc++",
+      "pass": true
+    },
+    {
+      "name": "smoke",
+      "value": "DP_AIR_SMOKE OK из экспортированного Linux release",
+      "pass": true
+    },
+    {
+      "name": "nobin",
+      "value": "NOBIN OK; предупреждения: 'ERROR: Can't open dynamic library, file not found: .../addons/dp_air/bin/libdp_air_tune.so' + 'Error loading extension' + 'GDExtension dynamic library not found: res://addons/dp_air/dp_air.gdextension'",
+      "pass": true
+    },
+    {
+      "name": "build_linux_tune",
+      "value": "PASS (accept 9/9)",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "PASS (accept 9/9)",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS (accept 9/9)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS (accept 9/9)",
+      "pass": true
+    },
+    {
+      "name": "ext_test",
+      "value": "PASS (accept 9/9)",
+      "pass": true
+    },
+    {
+      "name": "nobin",
+      "value": "PASS (accept 9/9)",
+      "pass": true
+    },
+    {
+      "name": "smoke",
+      "value": "PASS (accept 9/9)",
+      "pass": true
+    },
+    {
+      "name": "bin_ignored",
+      "value": "PASS (accept 9/9)",
+      "pass": true
+    },
+    {
+      "name": "build_windows_release",
+      "value": "PASS (accept 9/9)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "macOS - по решению пользователя не делается (строк macos в .gdextension нет, build_rust.sh macos - сообщение, exit 0)."
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-4b --dry",
+  "uncertain": [
+    {
+      "where": "tools/dp_air_nobin_check.sh",
+      "why": "test_air_contracts.gd::test_c2_surface_input падает (SurfaceHeat.mix_flux, 'String formatting error') - не связано с расширением: падает и в feature/rust-wind без моих правок и с бинарником. Скрипт поэтому допускает код 1 раннера (упавшие тесты печатаются), ломается только на крэше/SCRIPT ERROR/отсутствии итога.",
+      "checked": "тот же тест в копии rust-wind (без расширения) - 1 упало, тот же FAIL"
+    },
+    {
+      "where": "tools/dp_air_smoke.sh",
+      "why": "релизный шаблон Godot без path overrides: ни -s, ни путь сцены не работают; главная сцена подменяется override.cfg рядом с бинарём.",
+      "checked": "работает, DP_AIR_SMOKE OK"
+    },
+    {
+      "where": "rust/dp-gd/src/lib.rs",
+      "why": "Vector3-срез -> &[[f32;3]] через unsafe cast (const-assert размера/выравнивания); выход пишется прямо в PackedFloat32Array.as_mut_slice (одно выделение, без промежуточных Vec). Calm не использует rayon: пул создаётся в configure по air.threads (нет ключа - ядра-1), тест на размер пула есть. decompose отдаёт [vx,vy,vz,sigma] по слагаемым и затем total (4*(n+1)). Сигналов у DpAir нет (фасад сам по weather_version). build.sh: export-debug собирает ещё tune (ключ debug).",
+      "checked": "cargo test/clippy/fmt, test_dp_air_ext 4/4, 7 тестов dp-gd без Godot"
+    },
+    {
+      "where": "tools/build_rust.sh",
+      "why": "Windows - x86_64-pc-windows-gnu + mingw-w64, rust/.cargo/config.toml (-static-libgcc); release windows собирается ~8 мин. Без mingw - SKIP, exit 0.",
+      "checked": "DLL собрана, зависимости выше"
+    }
+  ],
+  "dp_feedback": "accept --dry без вывода при запуске в фоне через pipe tail; cargo/godot в lock cpu запускаются как job и возвращают управление сразу (ждать через job wait). task show обрезает дополнения - --full нужен по умолчанию.",
+  "extra": {
+    "windows_toolchain": "mingw-w64 (x86_64-pc-windows-gnu); cargo-zigbuild/zig пробовались и убраны",
+    "dll_mb": 14.5,
+    "tune_so_mb": 162.5
+  },
+  "t": "2026-10-26T04:07:20",
+  "by": "executor"
+}
