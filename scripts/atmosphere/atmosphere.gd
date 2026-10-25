@@ -20,6 +20,60 @@ extends Node3D
 signal weather_changed
 ## Погода мягко обновлена (update_weather: ход дня) — термики и облака не пересоздаются.
 signal weather_updated
+## Фасад W2: состояние воздуха сменилось (STATE_*).
+signal state_changed(state: int)
+
+# ---- Фасад W2 (docs/contracts/rust-wind.md): константы ----
+const WIND_API_VERSION := 1
+const STATE_EMPTY := 0
+const STATE_LOADING := 1
+const STATE_READY := 2
+const STATE_FAILED := 3
+const OK := 0
+const BAD_INPUT := 1
+const NO_PLACE := 2
+const NOT_READY := 3
+const SAMPLE_FULL := 0
+const SAMPLE_MEAN := 1
+## Описания W6 (docs/contracts/rust-wind/descriptions.md): смещения и шаги.
+const CORE_ID := 0
+const CORE_FLAGS := 1
+const CORE_X := 2
+const CORE_Z := 3
+const CORE_Y_SRC := 4
+const CORE_TOP := 5
+const CORE_W := 6
+const CORE_RADIUS := 7
+const CORE_LEAN_X := 8
+const CORE_LEAN_Z := 9
+const CORE_AGE := 10
+const CORE_LIFE := 11
+const CORE_STAGE := 12
+const CORE_VIS_SEED := 13
+const CORE_STORM := 14
+const CORE_STRIDE := 15
+const CLOUD_ID := 0
+const CLOUD_CORE_ID := 1
+const CLOUD_X := 2
+const CLOUD_Z := 3
+const CLOUD_BASE := 4
+const CLOUD_TOP := 5
+const CLOUD_RADIUS := 6
+const CLOUD_GROWTH := 7
+const CLOUD_DECAY := 8
+const CLOUD_FLAGS := 9
+const CLOUD_STRIDE := 10
+const CREST_X := 0
+const CREST_Z := 1
+const CREST_ETA := 2
+const CREST_CREST := 3
+const CREST_STRIDE := 4
+## Ключи set_conditions (W5): общие, прогноз, эталон.
+const COND_KEYS_COMMON: Array[String] = [
+	"start_hour", "speed", "blend_s", "rebuild", "inflow_mode"
+]
+const COND_KEYS_FORECAST: Array[String] = ["forecast", "quantum_h", "wind_ref", "overrides"]
+const COND_KEYS_PRESET: Array[String] = ["preset"]
 
 ## Журнал режима поля: последняя напечатанная строка (одна строка на смену режима, не на мир).
 static var _air_log_last := ""
@@ -62,6 +116,26 @@ var seed_value: int = -1
 var day: AtmoDay
 
 var _focus: Vector3 = Vector3.ZERO
+## Фасад W2 (реализация gd): место, запомненные команды, состояние. Переходное (до RW-13).
+var _f_place: AirPlaceData
+var _f_seed: int = -1
+var _f_cond: Dictionary = {}
+var _f_cond_set := false
+var _f_sun := Vector3.ZERO
+var _f_sun_set := false
+var _f_statics := PackedFloat32Array()
+var _f_static_mode := 0
+var _f_focus_pts := PackedVector3Array()
+var _f_focus_w := PackedFloat32Array()
+var _f_focus_manual := false
+var _f_state := STATE_EMPTY
+## Стадия загрузки в pump: 0 — собрать воздух, 1 — начать обновление, 2 — порции обновления.
+var _f_stage := 0
+var _f_t_req := 0.0
+var _f_progress := 0.0
+var _f_err := ""
+## Фасадные команды уже звали: start_at без места тогда — NO_PLACE, а не прежний синхронный путь.
+var _f_used := false
 var _configured: bool = false
 var _refresh_acc: float = 1.0e9
 var _refresh_interval: float = 0.5
@@ -172,7 +246,7 @@ func set_weather(preset: Variant, blend_s: float = -1.0) -> void:
 	if blend_s >= 0.0 and _configured:
 		_update_weather(w, blend_s)
 	else:
-		configure(Config.get_config("atmosphere"), w)
+		_configure_legacy(Config.get_config("atmosphere"), w)
 
 
 ## Полная настройка (для тестов можно передать свои словари).
@@ -182,7 +256,23 @@ func _exit_tree() -> void:
 		field.air_wait(false)
 
 
-func configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
+## Фасад W2: configure(seed: int) -> int — сид до первого load_place. Прежний вызов
+## configure(atmo_cfg: Dictionary, weather_cfg: Dictionary) — переходный, до RW-3.
+func configure(a: Variant, weather_cfg: Variant = null) -> int:
+	if a is Dictionary:
+		_configure_legacy(a, weather_cfg)
+		return OK
+	if (a is int or a is float) and weather_cfg == null:
+		if _f_place != null:
+			return _f_fail(BAD_INPUT, "configure после load_place")
+		_f_used = true
+		_f_seed = int(a)
+		seed_value = _f_seed
+		return OK
+	return _f_fail(BAD_INPUT, "configure: ожидается seed (int)")
+
+
+func _configure_legacy(atmo_cfg: Dictionary, weather_cfg: Dictionary) -> void:
 	cfg = atmo_cfg
 	_ra_pending = false
 	weather = weather_cfg.duplicate(true)
@@ -351,13 +441,20 @@ func set_day(d: AtmoDay) -> void:
 
 ## Начать сразу с момента t (время атмосферы/зоны, с): то же состояние, что при прогоне от 0
 ## до t с любым шагом (сеть: догнать время зоны, NET-40). Статичные термики остаются.
-func start_at(t: float) -> void:
+func start_at(t: float) -> int:
+	if _f_place != null:
+		return _f_start_at_place(t)
+	if _f_used and not (ground != null and ground.has_ground):
+		if not _f_time_ok(t):
+			return _f_fail(BAD_INPUT, "start_at: t < 0 или не конечно")
+		return NO_PLACE
 	if not _configured:
 		set_weather(String(Config.value("atmosphere", "default_weather")))
 	time_s = t
 	_target.clear()
 	field.reset_dynamic()
 	refresh_now()
+	return OK
 
 
 ## Обновить набор термиков, облака и сетку поиска на текущий time_s сразу (не ждать интервала).
@@ -641,7 +738,14 @@ func set_wind(
 ## Направление на солнце (единичный вектор, мир) — для теней облаков на источниках термиков.
 ## Главная сцена передаёт солнце мира; по умолчанию — из конфига (clouds.sun_*).
 func set_sun_direction(to_sun: Vector3) -> void:
-	field.sun_dir = to_sun.normalized()
+	if not (is_finite(to_sun.x) and is_finite(to_sun.y) and is_finite(to_sun.z)):
+		return
+	if to_sun.length_squared() < 1.0e-12:
+		return
+	_f_sun = to_sun.normalized()
+	_f_sun_set = true
+	if field != null:
+		field.sun_dir = _f_sun
 
 
 ## Нижняя кромка облаков над уровнем моря, м. По умолчанию — средняя высота земли + пресет.
@@ -746,6 +850,8 @@ func _day_active() -> bool:
 
 
 func _update_focus() -> void:
+	if _f_focus_manual:
+		return  # точки внимания заданы фасадом (set_focuses), узел и камера не нужны
 	if focus_node != null and is_instance_valid(focus_node) and focus_node.is_inside_tree():
 		_focus = focus_node.global_position
 	elif is_inside_tree():
@@ -1140,6 +1246,724 @@ func thermals_near(pos: Vector3, radius: float) -> Array[Dictionary]:
 	for th in field.near(pos, radius):
 		out.append(th.to_dict())
 	return out
+
+
+# ================================================================ фасад W2
+# Фасад rust-wind (docs/contracts/rust-wind.md, W2) поверх нынешнего расчёта: физика не меняется,
+# команды переводятся в прежние входы (set_ground, set_day, set_wind, start_at, step).
+# Игра пока зовёт прежние методы; потребителей на фасад переводит RW-3.
+# Переходное: weather() фасада называется get_weather() (имя weather занято полем); configure
+# принимает и сид, и прежние словари; start_at при загруженном месте асинхронен (pump), без места —
+# прежний синхронный.
+
+
+func _f_fail(code: int, msg: String) -> int:
+	_f_err = msg
+	return code
+
+
+## Текст последней ошибки; пусто — не было.
+func last_error() -> String:
+	return _f_err
+
+
+func _f_set_state(s: int) -> void:
+	if s == _f_state:
+		return
+	_f_state = s
+	state_changed.emit(s)
+
+
+## Состояние для опросов: с местом фасада — его состояние; без — READY, если воздух собран
+## прежним путём (set_ground), иначе EMPTY.
+func _f_state_eff() -> int:
+	if _f_place != null:
+		return _f_state
+	if _configured and ground != null and ground.has_ground:
+		return STATE_READY
+	return STATE_EMPTY
+
+
+func _f_queryable() -> bool:
+	return _configured and ground != null and ground.has_ground and field != null
+
+
+## Растры места один раз (W5). Возвращает сразу; подготовка — в pump (state = LOADING).
+func load_place(place: AirPlaceData) -> int:
+	if place == null:
+		return _f_fail(BAD_INPUT, "load_place: место null")
+	var why := place.validate()
+	if why != "":
+		return _f_fail(BAD_INPUT, "load_place: " + why)
+	_f_used = true
+	if _f_place != null:
+		unload_place()
+	_f_place = place
+	_f_err = ""
+	_f_stage = 0
+	_f_t_req = 0.0
+	_f_progress = 0.0
+	_f_set_state(STATE_LOADING)
+	return OK
+
+
+## Сброс всего, что связано с местом: время, термики, фокусы, статические термики.
+## Конфиги, сид, условия и солнце остаются.
+func unload_place() -> void:
+	if field != null:
+		field.abort_refresh()
+		field.air_wait(false)
+	_ra_pending = false
+	_ld_stage = 0
+	if ground != null:
+		ground.set_functions(Callable(), Callable())
+		ground.surface_fn = Callable()
+	if field != null:
+		field.clear_static()
+		field.reset_dynamic()
+		field.day = null
+	day = null
+	time_s = 0.0
+	_target.clear()
+	_f_place = null
+	_f_statics = PackedFloat32Array()
+	_f_static_mode = 0
+	_f_focus_pts = PackedVector3Array()
+	_f_focus_w = PackedFloat32Array()
+	_f_focus_manual = false
+	_focus = Vector3.ZERO
+	_f_stage = 0
+	_f_t_req = 0.0
+	_f_progress = 0.0
+	_f_set_state(STATE_EMPTY)
+
+
+## Погода и ход дня (W5): ровно один вид — прогноз или эталон. Не горячий путь.
+func set_conditions(cond: Dictionary) -> int:
+	var why := _f_check_conditions(cond)
+	if why != "":
+		return _f_fail(BAD_INPUT, "set_conditions: " + why)
+	_f_used = true
+	_f_cond = cond.duplicate(true)
+	_f_cond_set = true
+	if _f_place == null or _f_stage == 0:
+		return OK  # место не загружено или воздух ещё не собран — применится при сборке
+	if bool(cond.get("rebuild", false)):
+		_f_stage = 0
+		_f_t_req = time_s
+		_f_progress = 0.0
+		_f_set_state(STATE_LOADING)
+		return OK
+	_f_apply_soft(_f_cond)
+	return OK
+
+
+func _f_check_conditions(cond: Dictionary) -> String:
+	var has_fc := cond.has("forecast")
+	var has_pr := cond.has("preset")
+	if has_fc == has_pr:
+		return "нужен ровно один из ключей forecast / preset"
+	var allowed: Array[String] = COND_KEYS_COMMON.duplicate()
+	allowed.append_array(COND_KEYS_FORECAST if has_fc else COND_KEYS_PRESET)
+	for k: Variant in cond:
+		if not allowed.has(String(k)):
+			return "посторонний ключ %s" % str(k)
+	for k in ["start_hour", "speed", "quantum_h"]:
+		if cond.has(k) and not (typeof(cond[k]) in [TYPE_INT, TYPE_FLOAT] and is_finite(float(cond[k]))):
+			return "%s: не число" % k
+	if cond.has("speed") and float(cond.speed) <= 0.0:
+		return "speed ≤ 0"
+	if cond.has("quantum_h") and float(cond.quantum_h) <= 0.0:
+		return "quantum_h ≤ 0"
+	if cond.get("blend_s") != null and not (
+		typeof(cond.blend_s) in [TYPE_INT, TYPE_FLOAT] and is_finite(float(cond.blend_s))
+	):
+		return "blend_s: не число"
+	if cond.has("inflow_mode") and not (String(cond.inflow_mode) in ["start", "inflow"]):
+		return "inflow_mode: start | inflow"
+	if has_fc:
+		var fc: Variant = cond.forecast
+		if not fc is Dictionary:
+			return "forecast не словарь"
+		for k in ["temperature_c", "wind_speed_kmh", "wind_from_deg"]:
+			if not (fc as Dictionary).has(k) or not is_finite(float(fc[k])):
+				return "forecast.%s отсутствует или не число" % k
+		if not (fc as Dictionary).has("sky"):
+			return "forecast.sky отсутствует"
+		var wr: Variant = cond.get("wind_ref")
+		if wr != null and not (wr is Dictionary and wr.has("ref_msl") and wr.has("gain_per_km")):
+			return "wind_ref: {ref_msl, gain_per_km} или null"
+		if cond.has("overrides") and not cond.overrides is Dictionary:
+			return "overrides не словарь"
+	else:
+		var p: Variant = cond.preset
+		if p is String:
+			if not FileAccess.file_exists("res://configs/%s.json" % p):
+				return "preset %s не найден" % p
+		elif not p is Dictionary:
+			return "preset: имя или словарь"
+	return ""
+
+
+## Место для погоды (WeatherModel.derive): дата, координаты, пояс, высоты долины и средней земли.
+func _f_weather_ctx() -> Dictionary:
+	var g: Dictionary = Config.get_config("atmosphere").ground
+	var ctx := WeatherModel.ground_context(
+		_f_height_callable(),
+		float(g.reference_radius_m),
+		int(g.reference_samples),
+		float(WeatherModel.config().valley_percentile)
+	)
+	var loc: Dictionary = _f_place.header.loc
+	ctx.merge(
+		{
+			"month": int(loc.get("month", 7)),
+			"day": int(loc.get("day", 15)),
+			"lat": float(loc.get("center_lat", 52.0)),
+			"lon": float(loc.get("center_lon", 0.0)),
+			"utc_offset_h": float(loc.get("utc_offset_h", NAN)),
+		}
+	)
+	return ctx
+
+
+func _f_height_callable() -> Callable:
+	var t: Node = _f_place.terrain
+	if t != null and is_instance_valid(t):
+		return Callable(t, "height_at")
+	return Callable(_f_place, "height_at")
+
+
+## Погода условий: {weather, day (AtmoDay | null), ref_msl, gain}. t0 — время атмосферы, которому
+## соответствует start_hour (сборка — 0, мягкая смена — текущее).
+func _f_resolve(cond: Dictionary, t0: float) -> Dictionary:
+	var out := {"weather": {}, "day": null, "ref_msl": NAN, "gain": NAN}
+	var sites: Array = _f_place.header.start_sites
+	if not sites.is_empty():
+		out.ref_msl = float((sites[0] as Dictionary).get("h_msl", NAN))
+	if cond.has("preset"):
+		var p: Variant = cond.preset
+		out.weather = (Config.get_config(p) if p is String else p).duplicate(true)
+	else:
+		var fc: Dictionary = cond.forecast
+		var ctx := _f_weather_ctx()
+		var hour0 := float(cond.get("start_hour", 12.0))
+		var peak := float(WeatherModel.derive(fc, ctx).thermal_spacing_m)
+		var ov: Dictionary = cond.get("overrides", {})
+		var derive_fn := func(h: float) -> Dictionary:
+			var dw := WeatherModel.derive(fc, ctx, {}, h)
+			dw.thermal_spacing_m = peak
+			for k: Variant in ov:
+				dw[k] = ov[k]
+			dw.erase("static_thermals")
+			return dw
+		out.weather = derive_fn.call(hour0)
+		var d := AtmoDay.new()
+		d.start_hour = hour0
+		d.t0 = t0
+		d.speed = float(cond.get("speed", 1.0))
+		var diurnal: Dictionary = WeatherModel.config().get("diurnal", {})
+		d.quantum_h = float(cond.get("quantum_h", float(diurnal.get("update_s", 60.0)) / 3600.0))
+		d.weather_fn = derive_fn
+		var loc: Dictionary = _f_place.header.loc
+		d.sun_fn = AtmoDay.sun_direction.bind(
+			float(loc.get("center_lat", 52.0)),
+			float(loc.get("center_lon", 0.0)),
+			int(loc.get("month", 7)),
+			int(loc.get("day", 15)),
+			float(loc.get("utc_offset_h", NAN))
+		)
+		out.day = d
+		var wr: Variant = cond.get("wind_ref")
+		if wr is Dictionary:
+			out.ref_msl = float(wr.ref_msl)
+			out.gain = float(wr.gain_per_km)
+	(out.weather as Dictionary).erase("static_thermals")
+	return out
+
+
+## Собрать воздух места по запомненным условиям (стадия 0 загрузки): прежние configure,
+## set_ground, set_day, статические термики, set_wind.
+func _f_build() -> void:
+	var cond := _f_cond if _f_cond_set else {"preset": String(Config.value("atmosphere", "default_weather"))}
+	var r := _f_resolve(cond, 0.0)
+	var w: Dictionary = r.weather
+	seed_value = _f_seed
+	day = null
+	_configure_legacy(Config.get_config("atmosphere"), w)
+	var t: Node = _f_place.terrain
+	if t != null and is_instance_valid(t):
+		var src := (
+			Callable(t, "thermal_source_strength_at")
+			if t.has_method("thermal_source_strength_at")
+			else Callable(t, "sun_exposure_at")
+		)
+		set_ground(Callable(t, "height_at"), src, Callable(t, "surface_at"))
+	else:
+		set_ground(
+			Callable(_f_place, "height_at"),
+			Callable(_f_place, "source_at"),
+			Callable(_f_place, "surface_at")
+		)
+	if r.day != null:
+		set_day(r.day)
+	if _f_sun_set:
+		field.sun_dir = _f_sun
+	_f_apply_statics()
+	set_wind(float(w.wind_speed_kmh), float(w.wind_from_deg), float(r.ref_msl), float(r.gain))
+	_f_apply_focus()
+
+
+## Мягкая смена погоды (W5): подмена за blend_s, без пересоздания поля.
+func _f_apply_soft(cond: Dictionary) -> void:
+	var r := _f_resolve(cond, time_s)
+	var w: Dictionary = r.weather
+	var blend: Variant = cond.get("blend_s")
+	if blend == null:
+		var dc: Dictionary = WeatherModel.config().get("diurnal", {})
+		blend = float(dc.get("blend_s", 300.0)) / maxf(float(cond.get("speed", 1.0)), 1.0)
+	set_wind(float(w.wind_speed_kmh), float(w.wind_from_deg), float(r.ref_msl), float(r.gain))
+	if r.day != null:
+		set_day(r.day)
+	else:
+		day = null
+		field.day = null
+		_update_weather(w, float(blend))
+
+
+func _f_apply_statics() -> void:
+	if field == null:
+		return
+	clear_static_thermals()
+	set_thermal_mode(["dynamic", "static", "both"][clampi(_f_static_mode, 0, 2)])
+	for i in range(0, _f_statics.size() - 3, 4):
+		add_static_thermal(_f_statics[i], _f_statics[i + 1], _f_statics[i + 2], _f_statics[i + 3])
+
+
+func _f_apply_focus() -> void:
+	if _f_focus_manual:
+		_focus = _f_focus_pts[0] if _f_focus_pts.size() > 0 else Vector3(0.0, _f_origin_height(), 0.0)
+
+
+func _f_origin_height() -> float:
+	return _f_place.height_at(0.0, 0.0) if _f_place != null else 0.0
+
+
+## Статические термики шага 4: [x_m, z_m, strength_ms, radius_m]; mode 0 dynamic, 1 static, 2 both.
+func set_static_thermals(list: PackedFloat32Array, mode: int) -> int:
+	if list.size() % 4 != 0 or mode < 0 or mode > 2:
+		return _f_fail(BAD_INPUT, "set_static_thermals: длина кратна 4, mode 0..2")
+	for i in range(0, list.size(), 4):
+		for k in 4:
+			if not is_finite(list[i + k]):
+				return _f_fail(BAD_INPUT, "set_static_thermals: не число")
+		if list[i + 3] <= 0.0:
+			return _f_fail(BAD_INPUT, "set_static_thermals: radius ≤ 0")
+	_f_used = true
+	_f_statics = list
+	_f_static_mode = mode
+	if _f_place != null and _f_stage > 0:
+		_f_apply_statics()
+	return OK
+
+
+## Точки внимания (индекс 0 — игрок), вес > 0; размеры равны. Детализацию выбирает реализация;
+## gd использует точку 0 как нынешний фокус (остальные запоминает).
+func set_focuses(points: PackedVector3Array, weights: PackedFloat32Array) -> int:
+	if points.size() != weights.size():
+		return _f_fail(BAD_INPUT, "set_focuses: размеры points и weights различаются")
+	for i in points.size():
+		var p := points[i]
+		if not (is_finite(p.x) and is_finite(p.y) and is_finite(p.z)):
+			return _f_fail(BAD_INPUT, "set_focuses: точка не конечна")
+		if not (is_finite(weights[i]) and weights[i] > 0.0):
+			return _f_fail(BAD_INPUT, "set_focuses: вес ≤ 0")
+	_f_used = true
+	_f_focus_pts = points
+	_f_focus_w = weights
+	_f_focus_manual = true
+	_f_apply_focus()
+	return OK
+
+
+func _f_time_ok(t: float) -> bool:
+	return is_finite(t) and t >= 0.0
+
+
+## Продвинуть воздух до t. t меньше текущего — BAD_INPUT; равно — OK; идёт загрузка — NOT_READY
+## (t запоминается как момент старта).
+func advance_to(t: float) -> int:
+	if not _f_time_ok(t):
+		return _f_fail(BAD_INPUT, "advance_to: t < 0 или не конечно")
+	if _f_place == null:
+		if not _f_queryable():
+			return NO_PLACE
+	elif _f_state == STATE_LOADING:
+		if t < _f_t_req:
+			return _f_fail(BAD_INPUT, "advance_to: t меньше текущего")
+		_f_t_req = t
+		return NOT_READY
+	if t < time_s:
+		return _f_fail(BAD_INPUT, "advance_to: t меньше текущего")
+	if t == time_s:
+		return OK
+	step(t - time_s)
+	time_s = t
+	return OK
+
+
+func _f_start_at_place(t: float) -> int:
+	if not _f_time_ok(t):
+		return _f_fail(BAD_INPUT, "start_at: t < 0 или не конечно")
+	_f_t_req = t
+	if _f_state == STATE_LOADING and _f_stage == 0:
+		return NOT_READY  # воздух ещё не собран: момент старта запомнен
+	_f_stage = 1
+	_f_progress = 0.1
+	_f_set_state(STATE_LOADING)
+	return OK
+
+
+## Время главного потока реализации: сборка воздуха и порции первого обновления. Звать каждый
+## кадр, пока state = LOADING.
+func pump(budget_us: int) -> void:
+	if _f_place == null or _f_state != STATE_LOADING:
+		return
+	if _f_stage == 0:
+		_f_build()
+		_f_stage = 1
+		_f_progress = 0.1
+	if _f_stage == 1:
+		time_s = _f_t_req
+		_target.clear()
+		field.reset_dynamic()
+		begin_load_refresh()
+		_f_stage = 2
+		_f_progress = 0.3
+	if _f_stage == 2:
+		if load_refresh_step(maxi(budget_us, 1)):
+			_f_stage = 3
+			_f_progress = 1.0
+			if _f_sun_set:
+				field.sun_dir = _f_sun
+			_f_set_state(STATE_READY)
+
+
+## {state, progress 0..1, time_s, reason}.
+func status() -> Dictionary:
+	var s := _f_state_eff()
+	return {
+		"state": s,
+		"progress": 1.0 if s == STATE_READY else (_f_progress if s == STATE_LOADING else 0.0),
+		"time_s": time_s,
+		"reason": _f_err if s == STATE_FAILED else "",
+	}
+
+
+func is_ready() -> bool:
+	return _f_state_eff() == STATE_READY
+
+
+func _f_finite3(p: Vector3) -> bool:
+	return is_finite(p.x) and is_finite(p.y) and is_finite(p.z)
+
+
+## Пачка точек → [vx, vy, vz, σ] на точку (длина 4N). SAMPLE_FULL — весь ветер; SAMPLE_MEAN — то же
+## без неразрешённой болтанки и порывов (air_velocity_at при turbulence_enabled = false, как
+## сняты эталоны RW-1); σ в обоих режимах — полная. Не конечная точка и пустое место — нули.
+func sample_many(points: PackedVector3Array, mode: int = SAMPLE_FULL) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(points.size() * 4)
+	if not _f_queryable():
+		return out
+	var was := turbulence_enabled
+	for i in points.size():
+		var p := points[i]
+		if not _f_finite3(p):
+			continue
+		turbulence_enabled = true
+		var v := air_velocity_at(p)
+		var sg := _last_sigma
+		if mode == SAMPLE_MEAN:
+			turbulence_enabled = false
+			v = air_velocity_at(p)
+		if not (_f_finite3(v) and is_finite(sg)):
+			continue
+		out[4 * i] = v.x
+		out[4 * i + 1] = v.y
+		out[4 * i + 2] = v.z
+		out[4 * i + 3] = sg
+	turbulence_enabled = was
+	return out
+
+
+## Одна точка: (vx, vy, vz, σ).
+func sample(pos: Vector3, mode: int = SAMPLE_FULL) -> Vector4:
+	var r := sample_many(PackedVector3Array([pos]), mode)
+	return Vector4(r[0], r[1], r[2], r[3])
+
+
+func cloud_density_many(points: PackedVector3Array) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(points.size())
+	if not _f_queryable() or cloud_phys == null:
+		return out
+	for i in points.size():
+		if _f_finite3(points[i]):
+			var d := cloud_phys.density_at(points[i])
+			out[i] = d if is_finite(d) else 0.0
+	return out
+
+
+func cloudbase_msl() -> float:
+	return field.cloudbase_msl if _f_queryable() else 0.0
+
+
+## Фоновый (синоптический) ветер по высоте MSL без рельефа и термиков: длина 2N [vx, vz].
+func background_wind(heights_msl: PackedFloat32Array) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(heights_msl.size() * 2)
+	if not _f_queryable():
+		return out
+	for i in heights_msl.size():
+		var h := heights_msl[i]
+		if not is_finite(h):
+			continue
+		var u := wind.speed_at_pos(maxf(h - _ground_ref, 0.0), h)
+		out[2 * i] = wind.dir.x * u
+		out[2 * i + 1] = wind.dir.z * u
+	return out
+
+
+## Выведенная погода (копия, только чтение): ключи пресета и _derived. Фасад W2 `weather()`;
+## имя занято полем weather — переходное, до RW-3.
+func get_weather() -> Dictionary:
+	return weather.duplicate(true) if _f_queryable() else {}
+
+
+## (на солнце x, y, z; прогрев 0..1) на текущий момент.
+func sun_state() -> Vector4:
+	if not _f_queryable():
+		return Vector4(0.0, 0.0, 0.0, 0.0)
+	var s := field.sun_dir
+	return Vector4(s.x, s.y, s.z, clampf(field.insolation, 0.0, 1.0))
+
+
+# ---- описания W6 ----
+
+
+## Ядра подъёма (шаг CORE_STRIDE) с осью ближе radius к center по горизонтали. Состояние — на
+## последнее обновление термиков (до state_update_interval_s); время не сдвигается.
+func cores(center: Vector3, radius: float) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	if not _f_queryable():
+		return out
+	var c2 := Vector2(center.x, center.z)
+	var t := time_s
+	var ids: Array = field.thermals.keys()
+	ids.sort()
+	# Ядро — то, что реально действует на воздух: термики в радиусе физики вокруг фокуса
+	# (ThermalField._active), живые (w > 0). Остальные в наборе — ещё не рождённые/доживающие.
+	var active := {}
+	for ath: AtmoThermal in field._active:
+		active[ath.id] = true
+	for id: int in ids:
+		var th: AtmoThermal = field.thermals[id]
+		if not active.has(id) or th.strength * th.env <= 0.0:
+			continue
+		var ax := th.axis_at(th.src.y)
+		if c2.distance_to(ax) > radius:
+			continue
+		var age := t - th.t_birth
+		var stage := 1.5
+		if not th.is_static:
+			if age < th.t_grow:
+				stage = clampf(age / maxf(th.t_grow, 1.0e-6), 0.0, 1.0)
+			elif age <= th.t_grow + th.t_mature:
+				stage = 1.0 + (age - th.t_grow) / maxf(th.t_mature, 1.0e-6)
+			else:
+				stage = 2.0 + th.decay_progress(t)
+		var flags := (1 if th.is_static else 0) | (2 if th.has_cloud else 0) | (4 if th.is_cb else 0)
+		var storm_k := storm.intensity(th, t) if th.is_cb else 0.0
+		var life := NAN if th.is_static else th.t_end() - th.t_birth
+		out.append_array(
+			PackedFloat32Array(
+				[
+					id & 0xFFFFFF, flags, ax.x, ax.y, th.src.y, th.top, th.strength * th.env,
+					th.radius, th.lean.x, th.lean.y, age, life, stage, th.noise_seed, storm_k,
+				]
+			)
+		)
+	return out
+
+
+## Облака (шаг CLOUD_STRIDE): облака поля и грозовые Cb-объекты (флаг 4).
+func clouds(center: Vector3, radius: float) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	if not _f_queryable():
+		return out
+	var c2 := Vector2(center.x, center.z)
+	var t := time_s
+	var ids: Array = field.thermals.keys()
+	ids.sort()
+	var fld := cloud_phys.field
+	var cid := 0
+	if fld != null and fld.nx > 0:
+		for cl: Dictionary in cloud_phys.visible_clouds(field.thermals, t, _focus):
+			var cc: Vector2 = cl.center
+			if c2.distance_to(cc) > radius:
+				continue
+			var s := fld.sample(Vector3(cc.x, fld.base_msl, cc.y))
+			var core_id := -1
+			for id: int in ids:
+				var th2: AtmoThermal = field.thermals[id]
+				if not th2.is_cb and th2.axis_at(fld.base_msl) == cc:
+					core_id = id & 0xFFFFFF
+					break
+			cid += 1
+			out.append_array(
+				PackedFloat32Array(
+					[cid, core_id, cc.x, cc.y, s.y, s.z, cl.radius, cl.growth, cl.decay, 0]
+				)
+			)
+	for id: int in ids:
+		var th3: AtmoThermal = field.thermals[id]
+		if not th3.is_cb:
+			continue
+		var st := cloud_phys.model.stage(th3, t)
+		if st.x < 0.0:
+			continue
+		var c3 := cloud_phys.model.center(th3, t)
+		if c2.distance_to(c3) > radius:
+			continue
+		var sz := cloud_phys.model.size(th3, st)
+		out.append_array(
+			PackedFloat32Array(
+				[
+					(100000 + id) & 0xFFFFFF, id & 0xFFFFFF, c3.x, c3.y, th3.top, th3.top + sz.z,
+					maxf(sz.x, sz.y), st.x, st.y, 4,
+				]
+			)
+		)
+	return out
+
+
+## Растр облаков {version, nx, ny, dx, x0, z0, base_msl, time_s, cover, depth, stage, activity,
+## bg_cover, bg_depth} в осях W1: строка растёт к +Z, x0, z0 — центр ячейки (0, 0). Нет поля —
+## {version: 0}.
+func cloud_raster() -> Dictionary:
+	if not _f_queryable() or cloud_phys == null or cloud_phys.field == null:
+		return {"version": 0}
+	var f := cloud_phys.field
+	if f.nx <= 0:
+		return {"version": 0}
+	var n := f.nx * f.ny
+	var out := {
+		"version": cloud_raster_version(),
+		"nx": f.nx,
+		"ny": f.ny,
+		"dx": f.dx,
+		"x0": f.x0 + 0.5 * f.dx,
+		"z0": -(f.y0 + (f.ny - 0.5) * f.dx),
+		"base_msl": f.base_msl,
+		"time_s": f.time,
+	}
+	out.cover = _f_flip_rows(f.cover, f.nx, f.ny)
+	out.depth = _f_flip_rows(f.depth, f.nx, f.ny)
+	out.stage = _f_flip_rows(f.stage, f.nx, f.ny)
+	out.activity = _f_flip_rows(f.activity, f.nx, f.ny)
+	var bgc := PackedFloat32Array()
+	bgc.resize(n)
+	bgc.fill(f.bg_cover)
+	var bgd := PackedFloat32Array()
+	bgd.resize(n)
+	bgd.fill(f.bg_depth)
+	out.bg_cover = bgc
+	out.bg_depth = bgd
+	return out
+
+
+## Поле облаков хранит строки к −Z (y = −Z); наружу — к +Z.
+func _f_flip_rows(src: PackedFloat32Array, nx: int, ny: int) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(nx * ny)
+	for j in ny:
+		for i in nx:
+			out[j * nx + i] = src[(ny - 1 - j) * nx + i]
+	return out
+
+
+## Растёт при обновлении поля облаков; 0 — поля нет.
+func cloud_raster_version() -> int:
+	if not _f_queryable() or cloud_phys == null or cloud_phys.field == null:
+		return 0
+	return 0 if cloud_phys.field.nx <= 0 else cloud_phys.field_version + 1
+
+
+## Гребни волн [x, z, eta, crest] (шаг CREST_STRIDE); волн нет — пусто.
+func wave_crests(
+	center: Vector2, radius: float, min_eta: float, spacing: float = 5000.0
+) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	if not _f_queryable() or wave == null or not wave.enabled or not wave.ground.has_ground:
+		return out
+	for cr: Dictionary in wave.crests(Vector3(center.x, 0.0, center.y), radius, min_eta, spacing):
+		var p2: Vector2 = cr.pos
+		out.append_array(PackedFloat32Array([p2.x, p2.y, cr.eta, cr.crest]))
+	return out
+
+
+# ---- разложение и отладка W7 ----
+
+
+## Слагаемые ветра в точке: {names, vel, sigma, total}. Реализация gd — три слагаемых: wind
+## (профиль ветра по высоте), flow (всё среднее остальное: поле, рельеф, термики, гроза, волна,
+## облака), turb (болтанка и порывы). total = sample(pos) побитно, Σ vel = total.xyz.
+func decompose(pos: Vector3) -> Dictionary:
+	var names := PackedStringArray(["wind", "flow", "turb"])
+	var vel := PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO])
+	var sigma := PackedFloat32Array([0.0, 0.0, 0.0])
+	if not _f_queryable() or not _f_finite3(pos):
+		return {"names": names, "vel": vel, "sigma": sigma, "total": Vector4()}
+	var tot := sample(pos, SAMPLE_FULL)
+	var mean := sample(pos, SAMPLE_MEAN)
+	var gh := ground.sample(pos.x, pos.z).x
+	var u := wind.speed_at_pos(maxf(pos.y - gh, 0.0), pos.y)
+	var w0 := Vector3(wind.dir.x * u, 0.0, wind.dir.z * u)
+	var mv := Vector3(mean.x, mean.y, mean.z)
+	var tv := Vector3(tot.x, tot.y, tot.z)
+	vel[0] = w0
+	vel[1] = mv - w0
+	vel[2] = tv - mv
+	sigma[2] = tot.w
+	return {"names": names, "vel": vel, "sigma": sigma, "total": tot}
+
+
+func debug_raster_names() -> PackedStringArray:
+	var names := PackedStringArray()
+	if _f_place != null:
+		names.append("terrain_height")
+	if cloud_raster_version() > 0:
+		names.append_array(["cloud_cover", "cloud_depth", "cloud_activity"])
+	return names
+
+
+## Растр для оверлеев {nx, ny, dx, x0, z0, data} (оси W1); неизвестное имя — {}.
+func debug_raster(raster_name: String) -> Dictionary:
+	if raster_name == "terrain_height" and _f_place != null:
+		var g: Dictionary = _f_place.header.grid
+		return {
+			"nx": int(g.width), "ny": int(g.height), "dx": float(g.spacing),
+			"x0": float(g.origin_x), "z0": float(g.origin_z), "data": _f_place.heights,
+		}
+	if raster_name.begins_with("cloud_") and cloud_raster_version() > 0:
+		var r := cloud_raster()
+		var key := raster_name.substr(6)
+		if r.has(key) and key in ["cover", "depth", "activity"]:
+			return {
+				"nx": r.nx, "ny": r.ny, "dx": r.dx, "x0": r.x0, "z0": r.z0, "data": r[key],
+			}
+	return {}
 
 
 # ================================================================ визуал
