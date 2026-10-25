@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-26"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md"]
-contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3", "version": 1}, {"id": "W4", "version": 2}, {"id": "W5", "version": 1}, {"id": "W6", "version": 2}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}]
+contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3", "version": 1}, {"id": "W4", "version": 2}, {"id": "W5", "version": 2}, {"id": "W6", "version": 2}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}]
 ---
 
 # Контракты модуля rust-wind
@@ -134,7 +134,7 @@ pub trait AirModel: Send + Sync {
 - `dp-air` не зависит от `godot`; `picard_rs` переносится в workspace как крейт (или модуль `dp-air::picard`) с сохранением R6 v3 (`docs/contracts/picard-rs.md`) — расчёт Пикара берётся готовый, не пишется заново (решение пользователя 2026-10-26).
 - Реализации: `Calm` (RW-4: всё по W1, ветер 0, сразу Ready — для контрактных тестов и пустого запуска), `Formula` (RW-6…12), `Live` (вне модуля).
 
-## W5. Вход: место, конфиги, условия (v1)
+## W5. Вход: место, конфиги, условия (v2)
 Владелец — RW-2 (сборка `AirPlaceData` из `AirRuntime.place_of`, `air_runtime.gd:270`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8.
 
 **`AirPlaceData`** (`RefCounted`, `scripts/atmosphere/air_place_data.gd`, создаёт RW-2) — то, что крейт получает один раз при загрузке:
@@ -154,6 +154,7 @@ pub trait AirModel: Send + Sync {
 **Условия** (`set_conditions`, Dictionary в W2 / json в W3) — ровно один из двух видов:
 - Прогноз: `{forecast: {temperature_c, wind_speed_kmh, wind_from_deg, sky: String}, start_hour: float, speed: float (игровых с на с времени t; 1 — реальное), quantum_h: float, wind_ref: {ref_msl: float, gain_per_km: float} | null, overrides: {ключ пресета: значение}, blend_s: float | null, rebuild: bool}` — реализация сама выводит погоду по часу (`WeatherModel.derive`, `AtmoDay`; в `gd` — как сейчас, в крейте — RW-12). `overrides` — то, что игра правит поверх (сейчас `thermal_spacing_m` пикового часа, `game.gd:612`; ветер из настроек вместо `set_wind`).
 - Эталон: `{preset: String ("weather/medium") | Dictionary (ключи пресета), start_hour, speed, blend_s, rebuild}` — без вывода по часу (превью, тесты, фикстуры).
+- **v2:** в обоих видах — необязательный ключ `inflow_mode: "start" | "inflow"` (по умолчанию `"start"`; сейчас `StartWeather.wind_ref_of`, `air_runtime.gd:957`): `"start"` — ветер условий — у старта, приток подбирается проходами `k`; `"inflow"` — ветер условий — набегающий поток, `k = 1`. Другое значение — BAD_INPUT. Не путать с `wind_ref` прогноза (опорная высота и прирост).
 - Посторонний ключ, оба вида сразу или ни одного — BAD_INPUT.
 - Сид — только `configure`; статические термики — `set_static_thermals`; солнце — `set_sun_direction`.
 
@@ -194,3 +195,4 @@ pub trait AirModel: Send + Sync {
 - v1 (2026-10-26, RW-0) — заведены до первых исполнителей; допуски T1 (вопрос 3 плана) — W8.
 - W4 v2 (2026-10-26, ревью RW-4) — `out` заменяется; порядок команд до места и сброс при `unload_place`; `t < 0` — `BadInput`; поля `Core`/`Cloud`/`Crest`/`Raster`. Потребители: `dp-gd` (RW-4b), `Formula` (RW-6…12), стенд RW-5.
 - W6 v2 (2026-10-26, итог RW-1) — `id` в `[0, 2²⁴)`; инвариант ядра — местный избыток подъёма против кольца 2–3·radius, ядра Cb исключены. Потребители: RW-2 (фасад `gd`), RW-4b (общий suite contract.rs), RW-5 (compare — по ближайшему). Уточнение W2 без смены версии (норматив прежний — «без неразрешённой болтанки и порывов»): `SAMPLE_MEAN` — весь ветер, как `SAMPLE_FULL` при выключенной болтанке и порывах (поле, аналитика, термики, гроза, волна, облака), не «`mean_wind_at` + вертикаль поля»; так сняты фикстуры RW-1.
+- W5 v2 (2026-10-26, разбор RW-6a) — ключ условий `inflow_mode`. Потребители: RW-4b/dp-air (разбор `Conditions`), RW-2 (фасад), RW-6j.
