@@ -154,3 +154,6 @@
 {"t": "2026-10-26T04:17:22", "by": "coordinator", "task": "RW-6i", "ev": "started"}
 {"t": "2026-10-26T04:23:04", "by": "coordinator", "task": "RW-4b", "ev": "accepted", "commits": ["f9557a084"], "note": "9/9 build_linux_tune=ok:exit 0; cargo_test=ok:exit 0; fmt=ok:exit 0; clippy=ok:exit 0; ext_test=ok:4/4; nobin=ok:exit 0; smoke=ok:exit 0; bin_ignored=ok:exit 0; build_windows_release=ok:.dll"}
 {"t": "2026-10-26T04:23:22", "by": "coordinator", "task": "RW-4b", "ev": "merged", "note": "f9557a084 после разрешения конфликта workspace (dp-gd + dp-stand); accept --here 9/9"}
+{"t": "2026-10-26T04:25:34", "by": "coordinator", "task": "RW-0b", "ev": "accepted", "commits": ["3aafc92d5"], "note": "2/2 test_air_contracts=ok:31/31; fixtures_unchanged=ok:exit 0"}
+{"t": "2026-10-26T04:25:34", "by": "coordinator", "task": "RW-0b", "ev": "merged"}
+{"t": "2026-10-26T04:25:44", "by": "coordinator", "task": "RW-2", "ev": "note", "note": "RW-0b влита в feature/rust-wind (test_c2_surface_input починен в тесте), RW-4b тоже (DpAir, .gdextension без бинарника — 3 строки ERROR о недостающей библиотеке нормальны): .dpcli/dpcli task sync RW-2, после — test_air_contracts должен быть 31/31.", "addendum": true}
