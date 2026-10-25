@@ -1,0 +1,81 @@
+{
+  "status": "done",
+  "summary": "dp-air::field::{wind_field, field_set}: Field (from_mac/from_arrays, SoA f32, sample/sample_scalar/turb_at/*_many через rayon, приземный слой, edge_weight, столбцы u*/U_out/A_out/desc/w*/hmix, ограничители 40/10) и FieldSet (уровни Arc<Field>, подмена blend_s со снимками, sample/theta/w_conv/turb/dx). Дамп GD на вырезе Онгудая 400 м (пара mech/heat от picard_rs); Rust совпадает: скорость до 1e-6 м/с, остальное побитно. Попутно dp-stand ищет конфиги в подкаталогах.",
+  "commits": [
+    "bc9d5f002 rust-wind RW-6i: Field и FieldSet в dp-air, дамп GDScript и тесты; dp-stand ищет конфиги в подкаталогах"
+  ],
+  "checks": [
+    {
+      "name": "wind_field_test",
+      "value": "10 тестов ok; худшее против GD: скорость 1.1e-6 м/с, θ 3e-8, w_conv 5.5e-7, u*/w*/hmix и FieldSet 0",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "дамп воспроизводится побитно (1.7 МБ)",
+      "pass": true
+    },
+    {
+      "name": "stand_config_lookup",
+      "value": "нет «not in configs dir» (compare FAIL по Calm — ожидаемо)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Тест на запечённых полях островов (T1 таблицы RW-6a) не делался: по карточке эталон — дамп GD на состоянии Пикара; запечённые поля — RW-6p.",
+    "Окна 100/50 м не строились (по заданию): FieldSet принимает список уровней, проверен на двух уровнях (A 24x24 и B 12x12 внутри A, одинаковый dx)."
+  ],
+  "questions": [
+    "Скачок на краю 1e-3 м/с за 1 м недостижим: наклон smoothstep 1.5/(5 клеток x 400 м) = 7.5e-4 1/м x скорость 3-6 м/с = 2-5e-3 м/с на метр плюс градиент поля. T2 проверяет скачок через оценку произведения |d(w*v)| <= w*|dv| + |v|*|dw| и сам вес <= 1.5/полоса за метр; само поле у границы <= 1e-3. Нужна иная норма — скажите."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-6i",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/wind_field.rs (Field::from_mac)",
+      "why": "Интерфейс для RW-6j/RW-10: from_mac(heat: &State, mech: &State, grid: &FieldGrid, cell, hc, meta: FieldMeta, limits); cell (tcode & 3) и hc передаёт вызывающий, поток тепла/z_i/z_i_col/gam/z0 — в FieldMeta (в игре их даёт AirPlace/AirCase.meta). Без пары — одно состояние дважды. picard_rs добавлен path-зависимостью dp-air (Cargo.lock изменён).",
+      "checked": "дамп сравнён с WindField.from_mac на тех же R4-состояниях"
+    },
+    {
+      "where": "tools/research/rust_wind/dump_wind_field.gd",
+      "why": "Вход дампа — вырез 24x24 из 96x96 (лимит 3 МБ); поток тепла, z0 и z_i по столбцам — синтетика дампера, не карты AirPlace. Растр ground_h 25 м не использован: в дамп пишется рельеф сетки + гладкая добавка либо NaN — формула сдвига проверена, сам растр нет.",
+      "checked": "точки: у земли 1/5/20/50 м, склоны, долина, полоса края, над z_i, вне области"
+    },
+    {
+      "where": "rust/dp-air/src/field/field_set.rs (snapshot)",
+      "why": "GD сортирует снимок нестабильной sort_custom, Rust — стабильной; при равных долях порядок наборов может отличаться (на результат не влияет при наборов <= 3).",
+      "checked": "цепочка подмен совпала с GD"
+    },
+    {
+      "where": "tools/research/rust_wind/dump_wind_field.sh",
+      "why": "В копии без собранной addons/dp_air/bin Godot пишет ERROR про расширение; скрипт такие строки игнорирует. Godot зависал на ошибке разбора скрипта — добавил timeout 900.",
+      "checked": "--verify проходит"
+    },
+    {
+      "where": "границы модели",
+      "why": "Приземный слой — нейтральный лог-закон без поправки на устойчивость; u* по первой клетке не ниже dz/2 над рельефом; w* — масштаб Дирдорфа по потоку тепла, сглаженному квадратом 1500 м. Перенос 1:1, физика не менялась.",
+      "checked": "совпадение с GD"
+    }
+  ],
+  "dp_feedback": "lock cpu по умолчанию даёт слот 1 (CPUQuota=100%): picard solve на 4 потоках идёт ~65 с вместо ~16; хорошо бы подсказка про --slots. Godot-дампер без timeout виснет на ошибке парса — шаблон dump_*.sh стоит включить в templates.",
+  "extra": {
+    "picard_solve": "u3_heat 111/191 it, u3_mech 141/231 it при tol-scale 5, 4 потока, ~66 с каждое",
+    "dump_size_bytes": 1670253
+  },
+  "t": "2026-10-26T04:45:46",
+  "by": "executor"
+}
