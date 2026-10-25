@@ -98,12 +98,12 @@
     },
     {
       "name": "build_windows_release",
-      "cmd": "if command -v x86_64-w64-mingw32-gcc >/dev/null; then tools/build_rust.sh release windows && ls addons/dp_air/bin/; else echo 'SKIP: нет mingw-w64'; fi",
-      "expect": "re:\\.dll|SKIP: нет mingw-w64"
+      "cmd": "tools/build_rust.sh release windows && ls addons/dp_air/bin/",
+      "expect": "re:\\.dll"
     }
   ],
   "report_extra": [],
   "notes": "",
   "created": "2026-10-26T03:16:52",
-  "edited": "2026-10-26T03:34:07"
+  "edited": "2026-10-26T03:35:51"
 }
