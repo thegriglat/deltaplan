@@ -5,6 +5,7 @@
 mod calm;
 mod conditions;
 mod error;
+pub mod fixtures;
 mod place;
 mod types;
 

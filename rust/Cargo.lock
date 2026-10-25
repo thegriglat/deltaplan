@@ -239,6 +239,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "dp-stand"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dp-air",
+ "rayon",
+ "serde_json",
+]
+
+[[package]]
 name = "either"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
