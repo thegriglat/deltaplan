@@ -1,0 +1,99 @@
+{
+  "status": "done",
+  "summary": "Документ docs/research/rust-wind-field-path.md (33 КБ, 12 разделов) и tools/research/rust_wind/ (расчёт окон, таблицы 17 шагов и 16 задач RW-6b…6q). Главное: в picard_rs нет сборщика случая (AirCase.prepare + K_SETUP), грубого старта, заморозки, фаз, окон, WindField; adv2 в игре нет. Рекомендации по всем развилкам в документе.",
+  "commits": [
+    "11410d7e4 rust-wind RW-6a: разбор пути поля Пикара и разбиение RW-6 на задачи"
+  ],
+  "checks": [
+    {
+      "name": "doc",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "exit 0, ошибок 0",
+      "pass": true
+    },
+    {
+      "name": "sections",
+      "value": "12",
+      "pass": true
+    },
+    {
+      "name": "окна: ячеек с ореолом (Онгудай)",
+      "value": "100 м: 278784 (0,56 области), 50 м: 496584 (0,99), область 499408",
+      "pass": true
+    },
+    {
+      "name": "окна: время пары mech+heat, 8 потоков (расчёт, не замер)",
+      "value": "сдвиг 50 м 2,7–4,7 с; 100 м 1,3–2,3 с; 2 потока: 8–14 с и 4–7 с",
+      "pass": true
+    },
+    {
+      "name": "загрузка на CPU без запечённого поля (оценка)",
+      "value": "20–30 с (8 потоков), 70–100 с (2)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Окна на CPU не измерены: в picard_rs нет nest, R1-случая окна нет — только расчёт по ячейкам и мс/итерацию области",
+    "Доля замороженных колонн для фикстур W8 не определена (нужен GPU-запуск игры)"
+  ],
+  "questions": [
+    "W5 v2: добавить inflow_mode (start|inflow) в условия (StartWeather.wind_ref_of); без него проходы k загрузки не воспроизвести",
+    "picard-rs R6 -> v4: заморозка колонн, отмена solve, граница от родителя (RW-6g, RW-6n) меняют контракт крейта",
+    "Допустимое время загрузки на CPU (20–30 с на 8 потоках без запечённого поля) — решение координатора/пользователя",
+    "Генератор фикстур RW-1 (gen_fixtures.gd) по W8 headless, а в headless поле не считается (air_runtime.gd:unavailable_reason): нужен запуск с RenderingDevice под замком GPU"
+  ],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6a; python3 tools/research/rust_wind/window_estimate.py",
+  "uncertain": [
+    {
+      "where": "docs/research/rust-wind-field-path.md, раздел «Окна 100/50 м»",
+      "why": "время окон на CPU — линейное масштабирование по ячейкам; число итераций окон взято от GPU игры (tol 1), нижняя граница ×0,58 не измерена для окон",
+      "checked": "ячейки по фикстурам window/*.json; мс/итерацию из rust/picard_rs/out/final/README.md"
+    },
+    {
+      "where": "docs/research/rust-wind-field-path.md, раздел «Карта фаз и заморозка колонн»",
+      "why": "вывод «отложить фазы без расхождения T1 нельзя при слабом ветре» — по документам phases.md и limits.md, доля заморозки в фикстурах не известна",
+      "checked": "air_picard_job.gd, air_phase.gd, configs/atmosphere.json air_phase"
+    },
+    {
+      "where": "docs/research/rust-wind-field-path.md, разбиение на задачи",
+      "why": "оценки 13–15 агент-дней и ≤1 дня на задачу — по строкам GD, не опыт переноса; RW-6c, 6g, 6i на верхней границе",
+      "checked": "размеры файлов GD, картa picard_rs"
+    },
+    {
+      "where": "air_runtime.gd:378 load_field",
+      "why": "запечённые поля и кеш диска (AirBakedField, AirFieldCache, 45 МБ, model_hash по коду air_model) в плане не упомянуты; предложено RW-6p, решение о перепечке не согласовано",
+      "checked": "заголовки data/locations/*/air/*.json"
+    }
+  ],
+  "dp_feedback": "Команда из карточки `.dpcli/dpcli plan rust-wind План переноса / Этап 2 / RW-6` не находит раздел (составной путь через «/» не поддержан) — пришлось читать файл плана напрямую; хотелось бы поиск по подстроке заголовка или номеру из оглавления. `docs check` лимит 40 КБ считает в байтах (кириллица ×2) — об этом нигде не сказано; пришлось выносить таблицы в tools/research/.",
+  "extra": {
+    "window_cells_halo": {
+      "domain": 499408,
+      "w100": 278784,
+      "w50": 496584
+    },
+    "window_shift_period_s_at_10ms": {
+      "w50": 80,
+      "w100": 160
+    },
+    "tasks": "RW-6b…RW-6q (16), потоки A вход, B решатель, C поле, D фазы, E окна",
+    "picard_rs_gaps": [
+      "case builder (prepare + K_SETUP)",
+      "prolong/warm_coarse",
+      "freeze/fixrow/rmask",
+      "omega fallback + late/nonconv",
+      "cancel",
+      "phases",
+      "nest windows",
+      "WindField",
+      "runtime orchestration"
+    ]
+  },
+  "t": "2026-10-26T03:42:12",
+  "by": "executor"
+}

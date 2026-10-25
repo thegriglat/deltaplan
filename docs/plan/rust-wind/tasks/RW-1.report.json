@@ -1,0 +1,83 @@
+{
+  "status": "done",
+  "summary": "Генератор tools/wind_fixtures (run.sh, verify.sh) снимает на текущем коде 2 места (синтетика 801x801, Онгудай 1601x1601 с полем Пикара на GPU) и 8 случаев x 3 момента (0/900/3600 с): FULL/MEAN, σ, описания W6; все 8 меток покрыты. Повторная съёмка побитно та же (в т.ч. GPU-поле); читалка dp-air fixtures.rs из feature/rust-wind разбирает все файлы.",
+  "commits": [
+    "b4f494512 rust-wind RW-1: эталоны ветра до правок"
+  ],
+  "checks": [
+    {
+      "name": "test_wind_fixtures_format",
+      "value": "3/3",
+      "pass": true
+    },
+    {
+      "name": "fixtures_repro",
+      "value": "exit 0, побитно",
+      "pass": true
+    },
+    {
+      "name": "fixtures_size_mb",
+      "value": "17",
+      "pass": true
+    },
+    {
+      "name": "cases_count",
+      "value": "8",
+      "pass": true
+    },
+    {
+      "name": "places_count",
+      "value": "2",
+      "pass": true
+    },
+    {
+      "name": "readme",
+      "value": "exit 0",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "Пересчёта поля Пикара на +15 мин нет: поле одно на случай (400 м, без окон 100/50 м и без второго прохода калибровки старта — в генераторе нет focus_fn)",
+    "Дневной ход AtmoDay не использован: условия — эталон-пресет W5 (час только в extra)"
+  ],
+  "questions": [
+    "MEAN: инструкция «mean_wind_at + вертикаль без болтанки» с полем даёт вертикаль только поля (без термиков, грозы, волны). Снял MEAN = air_velocity_at при turbulence_enabled=false (весь воздух без порывов и бурления). Подтвердить или W2 v2 с этим определением.",
+    "W6: id ядер — 32-битные хеши (до 1.8e9), в f32 не точны (контракт: точны до 2^24); для сопоставления «по id» нужен либо int-канал, либо ближайшее ядро."
+  ],
+  "how_to_check": ".dpcli/dpcli accept RW-1",
+  "uncertain": [
+    {
+      "where": "tools/wind_fixtures/gen_fixtures.gd:_describe",
+      "why": "clouds: visible_clouds даёт только центр/радиус/рост/распад; base/top взяты из поля облаков, core_id найден по совпадению оси; Cb-объекты (флаг 4) добавлены с id=100000+id ядра — это моя трактовка W6",
+      "checked": "формат читается Rust, длины кратны 10"
+    },
+    {
+      "where": "tests/fixtures/wind/places/synthetic",
+      "why": "сила источников синтетики в игре — AtmoFingerprint.source_static (формула по нормали и _surface_k); в растре только moist=_surface_k и cls=луг, крейту нужно знать эту формулу (RW-9/10)",
+      "checked": "записано в README и note места"
+    },
+    {
+      "where": "ядра Cb",
+      "why": "под Cb средний vy на оси ядра < 0 (нисходящий ливня) — инвариант W6 «у ядра vy>0» для кадров с Cb не выполняется; тест их пропускает",
+      "checked": "synth_storm: -1.3…-2.5 м/с при w ядра 3-4 м/с"
+    },
+    {
+      "where": "wave: ядро слабое",
+      "why": "в synth_wave у слабого ядра (0.85 м/с) vy<0 из-за волны; тест берёт ядра w>=2",
+      "checked": "tests/fixtures/wind 10+ проверенных ядер без нарушений"
+    },
+    {
+      "where": "lee на синтетике",
+      "why": "в аналитическом мире линии тени нет (холмы пологие), тег lee только на Онгудае",
+      "checked": "лучшая тень -1..-3 м на сетке ±4 км"
+    }
+  ],
+  "dp_feedback": "job start: опция --lock должна стоять до подкоманды (иначе уходит в команду, код 127) — в help не очевидно. lock cpu при прямом вызове уходит в tmux и не возвращает вывод в stdout.",
+  "extra": {
+    "cases": 8,
+    "points_per_case": "37-63",
+    "gen_full_run_s": 117
+  },
+  "t": "2026-10-26T03:39:20",
+  "by": "executor"
+}
