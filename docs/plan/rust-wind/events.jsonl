@@ -73,3 +73,5 @@
 {"t": "2026-10-26T03:42:56", "by": "coordinator", "task": "RW-6a", "ev": "checked", "note": "3/3 doc=ok:exit 0; docs=ok:exit 0; sections=ok:12; scope=FAIL:вне scope: r-RW-6a.json"}
 {"t": "2026-10-26T03:43:04", "by": "coordinator", "task": "RW-6a", "ev": "checked", "note": "3/3 doc=ok:exit 0; docs=ok:exit 0; sections=ok:12"}
 {"t": "2026-10-26T03:43:38", "by": "coordinator", "task": "RW-6a", "ev": "accepted", "note": "по отчёту (разбор, не код); риск 3 отчёта неверен — RW-1 сняла поле на GPU не headless"}
+{"t": "2026-10-26T03:43:39", "by": "coordinator", "task": "RW-6a", "ev": "accepted", "commits": ["bcbaf3917"], "note": "3/3 doc=ok:exit 0; docs=ok:exit 0; sections=ok:12"}
+{"t": "2026-10-26T03:43:39", "by": "coordinator", "task": "RW-6a", "ev": "merged"}
