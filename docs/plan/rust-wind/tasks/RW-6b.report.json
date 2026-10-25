@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "place_input переведён на weather_core (Day, block_mean, cell_surface, cell_z0 — одна реализация, без копий); в place_input остались сетка/nz, gam, z_i_col (AirZiTerrain, gauss2d), water_fraction, ZiCfg. Дамп GD пересобран (Node-сцена), Rust совпадает с GD на обоих местах и dx 400/1200 с нулевой невязкой.",
+  "commits": [
+    "1b1efe6cb rust-wind RW-6b: вход области на weather_core, дамп GD, тест"
+  ],
+  "checks": [
+    {
+      "name": "field_input_test",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "max невязки hc/gam/z_i_col/z0/доли/влажность/water_fraction",
+      "value": "0.0 (побитно)",
+      "pass": true
+    }
+  ],
+  "not_done": [
+    "z_i (скаляр) не сверяется в этом тесте: берётся из weather_core::Day (проверен в RW-6c); тест передаёт Day из дампа",
+    "путь доли воды без снимка поверхности (surface_map=false) оставлен как water_fraction, но cell_surface без снимка не строится"
+  ],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6b",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/place_input.rs:build_domain_input",
+      "why": "интерфейс для RW-6d: build_domain_input(place, &SurfaceHeatCfg, &ZiCfg, &Domain, &Day) -> DomainInput{dom,nz,dz,z_bot,hc,gam,z_i,z_i_col,z0_map,cells}; zi_min=300 зашит как в AirCase.p",
+      "checked": "совпадение с GD, domain_case Онгудая сошёлся с разбором дампера побитно"
+    },
+    {
+      "where": "weather_core::block_mean",
+      "why": "наивная (f^2 билинейных на клетку) — медленнее прежней оптимизированной; скорость не мерил",
+      "checked": "тесты по времени 0.6 с на все места"
+    }
+  ],
+  "dp_feedback": "Дамперы через -s не видят автозагрузки; нужен общий шаблон Node-сцены в dpcli. Предупреждение о libdp_air_tune.so в логе Godot шумит.",
+  "extra": {
+    "dumps_bytes": "~830 КБ"
+  },
+  "t": "2026-10-26T04:56:22",
+  "by": "executor"
+}
