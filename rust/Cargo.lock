@@ -234,6 +234,7 @@ name = "dp-air"
 version = "0.1.0"
 dependencies = [
  "criterion",
+ "picard_rs",
  "rayon",
  "serde",
  "serde_json",

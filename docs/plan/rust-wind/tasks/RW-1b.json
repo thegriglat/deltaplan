@@ -1,0 +1,80 @@
+{
+  "id": "RW-1b",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Эталоны ветра, набор 2: прогноз и ход дня, пересчёт поля в полёте, окна 100/50 м, проход 2; климат в заголовке мест",
+  "goal": "Генератор RW-1 дополнен: заголовки мест несут loc.climate (W5 v3); новый набор случаев на Онгудае с условиями-прогнозом (ход дня AtmoDay, inflow_mode start → два прохода k), окнами 100/50 м у фокуса и пересчётом поля в полёте (recompute_game_min) снят детерминированно на моментах до и после пересчёта; верификация пересъёмкой побитная.",
+  "plan_ref": "План переноса / Этап 1 / RW-1",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W6",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-1b",
+  "branch": "rust-wind/RW-1b",
+  "base": "feature/rust-wind",
+  "scope": [
+    "tools/wind_fixtures/",
+    "tests/fixtures/wind/",
+    "tests/contracts/test_wind_fixtures_format.gd"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "configs/",
+    "rust/",
+    "docs/contracts/",
+    "project.godot"
+  ],
+  "accept": [
+    {
+      "name": "test_wind_fixtures_format",
+      "tests": "test_wind_fixtures_format"
+    },
+    {
+      "name": "fixtures_repro",
+      "cmd": "tools/wind_fixtures/verify.sh",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fixtures_size_mb",
+      "cmd": "du -sm tests/fixtures/wind | cut -f1",
+      "expect": "num:(\\d+) <=20"
+    },
+    {
+      "name": "day_cases",
+      "cmd": "ls tests/fixtures/wind/cases/ | grep -c '^ongudai_day.*\\.desc\\.json'",
+      "expect": "num:(\\d+) >=3"
+    },
+    {
+      "name": "climate_in_places",
+      "cmd": "grep -l '\"climate\"' tests/fixtures/wind/places/*.json | wc -l",
+      "expect": "num:(\\d+) >=2"
+    },
+    {
+      "name": "rust_reader",
+      "cmd": "cargo run -q --manifest-path rust/Cargo.toml -p dp-stand -- compare --case tests/fixtures/wind/cases/ongudai_day_1.json --max-violations 0 2>&1 || true",
+      "expect": "re:quantity"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T04:26:24",
+  "edited": "2026-10-26T04:26:37"
+}
