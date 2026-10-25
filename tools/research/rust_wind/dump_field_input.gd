@@ -1,4 +1,4 @@
-extends SceneTree
+extends Node
 ## RW-6b: эталонный дамп входа области Пикара (GDScript: AirPlace) для сверки с Rust
 ## (rust/dp-air/src/field/place_input.rs, тест tests/field_input.rs).
 ##
@@ -20,7 +20,7 @@ const VARIANTS := [[13.0, "clear"], [8.0, "overcast"]]
 const FIX := "res://tests/fixtures/wind/places/"
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	var out_dir := ""
 	for a in OS.get_cmdline_user_args():
 		if String(a).begins_with("--out="):
@@ -31,7 +31,7 @@ func _initialize() -> void:
 	var ok := true
 	for pname in PLACES:
 		ok = _place(pname, float(PLACES[pname]), out_dir) and ok
-	quit(0 if ok else 1)
+	get_tree().quit(0 if ok else 1)
 
 
 func _place(pname: String, dom_l: float, out_dir: String) -> bool:

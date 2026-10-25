@@ -1,0 +1,114 @@
+{
+	"arrays": {
+		"cell_fr": {
+			"count": 82944,
+			"dtype": "f32",
+			"offset": 147456
+		},
+		"cell_m": {
+			"count": 9216,
+			"dtype": "f32",
+			"offset": 479232
+		},
+		"gam_13.0_clear": {
+			"count": 52,
+			"dtype": "f64",
+			"offset": 589824
+		},
+		"gam_8.0_overcast": {
+			"count": 52,
+			"dtype": "f64",
+			"offset": 627104
+		},
+		"hc": {
+			"count": 9216,
+			"dtype": "f64",
+			"offset": 0
+		},
+		"scal": {
+			"count": 26,
+			"dtype": "f64",
+			"offset": 664384
+		},
+		"water_fraction": {
+			"count": 9216,
+			"dtype": "f64",
+			"offset": 516096
+		},
+		"z0_map": {
+			"count": 9216,
+			"dtype": "f64",
+			"offset": 73728
+		},
+		"z_i_col_13.0_clear": {
+			"count": 9216,
+			"dtype": "f32",
+			"offset": 590240
+		},
+		"z_i_col_8.0_overcast": {
+			"count": 9216,
+			"dtype": "f32",
+			"offset": 627520
+		}
+	},
+	"cfg": {
+		"m_norm": 0.47,
+		"z0_m": [
+			0.03,
+			1.0,
+			0.03,
+			0.1,
+			0.3,
+			0.01,
+			0.0002,
+			1.0,
+			0.001
+		],
+		"zi_alpha": 0.33,
+		"zi_min": 300.0,
+		"zi_smooth_m": 5000.0
+	},
+	"class_count": 9,
+	"dx": 400.0,
+	"dz": 105.0,
+	"l": 38400.0,
+	"nx": 96,
+	"ny": 96,
+	"nz": 50,
+	"place": "ongudai",
+	"scal_fields": [
+		"t",
+		"cap",
+		"valley_msl_m",
+		"t_u",
+		"z_u_km",
+		"gam_u",
+		"t_min",
+		"t_res",
+		"t_full",
+		"dep_km",
+		"parcel_excess_k",
+		"theta_s",
+		"z_i"
+	],
+	"variants": [
+		{
+			"cap_inf": true,
+			"hour": 13.0,
+			"scal": 0,
+			"sky": "clear",
+			"tag": "13.0_clear"
+		},
+		{
+			"cap_inf": false,
+			"hour": 8.0,
+			"scal": 13,
+			"sky": "overcast",
+			"tag": "8.0_overcast"
+		}
+	],
+	"version": 1,
+	"x0": -19200.0,
+	"y0": -19200.0,
+	"z_bot": 420.0
+}

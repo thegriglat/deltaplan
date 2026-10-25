@@ -11,7 +11,16 @@ verify=0
 profile="$(mktemp -d)"
 pg_backup="$profile/project.godot.bak"
 cp project.godot "$pg_backup"
-trap 'cmp -s project.godot "$pg_backup" || cp "$pg_backup" project.godot; rm -rf "$profile"' EXIT
+scene="$(mktemp --suffix=.tscn)"
+cat >"$scene" <<'T'
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/research/rust_wind/dump_field_input.gd" id="1"]
+
+[node name="DumpFieldInput" type="Node"]
+script = ExtResource("1")
+T
+trap 'rm -f "$scene"; cmp -s project.godot "$pg_backup" || cp "$pg_backup" project.godot; rm -rf "$profile"' EXIT
 XDG_DATA_HOME="$profile" godot --headless --path . --import >/dev/null 2>&1 || true
 if [ "$verify" = 1 ]; then
 	out="$profile/out"
@@ -19,8 +28,9 @@ else
 	out="$PWD/$ref"
 fi
 mkdir -p "$out"
-XDG_DATA_HOME="$profile" godot --headless --path . -s res://tools/research/rust_wind/dump_field_input.gd -- --out="$out" \
+XDG_DATA_HOME="$profile" timeout 600 godot --headless --path . "$scene" -- --out="$out" \
 	>"$profile/run.log" 2>&1 || { tail -30 "$profile/run.log"; echo "dump_field_input: дампер упал"; exit 2; }
+grep -q "SCRIPT ERROR" "$profile/run.log" && { grep -A2 "SCRIPT ERROR" "$profile/run.log" | head -20; echo "dump_field_input: ошибки скрипта"; exit 2; }
 [ "$verify" = 1 ] || { echo "dump_field_input: записано в $ref"; exit 0; }
 bad=0
 for f in $(cd "$out" && ls); do
