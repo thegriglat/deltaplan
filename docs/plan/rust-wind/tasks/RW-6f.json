@@ -23,7 +23,9 @@
   "scope": [
     "rust/dp-air/src/level.rs",
     "rust/dp-air/src/lib.rs",
-    "rust/dp-air/tests/level.rs"
+    "rust/dp-air/tests/level.rs",
+    "rust/dp-air/Cargo.toml",
+    "rust/Cargo.lock"
   ],
   "dont_touch": [
     "scripts/",
@@ -59,5 +61,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-26T03:45:38"
+  "created": "2026-10-26T03:45:38",
+  "edited": "2026-10-26T03:49:33"
 }
