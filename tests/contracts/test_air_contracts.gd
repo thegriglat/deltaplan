@@ -445,11 +445,15 @@ func test_c2_surface_input() -> void:
 	)
 	var loc := {id = "syn", center_lat = 50.75, center_lon = 86.13, utc_offset_h = 7.0}
 	var wa := Callable(AirWindowCase, "window_at")
+	# t_max явно: «обычный для даты» берётся по климату места (ctx), хелпер expected_heat считает без ctx
+	var wcfg := WeatherModel.config()
+	var ctx_c := AirPlace.context(layer, loc, wcfg)
+	var tmx := WeatherModel.typical_max_c(int(ctx_c.month), int(ctx_c.day), wcfg, ctx_c)
 	var w: AirCase = wa.callv(
-		[layer, p[1], loc, 400.0, -800.0, -800.0, 12.0, 3.0, 150.0, NAN, "clear", true, {}, 4, 1.0, sf]
+		[layer, p[1], loc, 400.0, -800.0, -800.0, 12.0, 3.0, 150.0, tmx, "clear", true, {}, 4, 1.0, sf]
 	)
 	check(w != null and w.heat.size() == 16, "window_at(…, inflow_k, surface)")
-	var ex := TestAirPlace.expected_heat(w, layer, p[1], loc, 12.0, 3.0, NAN, sf)
+	var ex := TestAirPlace.expected_heat(w, layer, p[1], loc, 12.0, 3.0, tmx, sf)
 	check(w != null and TestAirPlace._max_diff_64(w.heat, ex) < 1e-9, "H = SurfaceHeat.mix_flux по клетке")
 	var wn: AirCase = wa.callv(
 		[layer, p[1], loc, 400.0, -800.0, -800.0, 12.0, 3.0, 150.0, NAN, "clear", false, {}, 4, 1.0, sf]
@@ -577,8 +581,8 @@ func test_c2_params_match_reference() -> void:
 	]
 	for r: Array in ctl_s:
 		var mp := WindProfile.max_profile(r[0], r[1], r[2], r[3], r[4])
-		approx(WindProfile.z_sat(r[1], r[2], r[3], r[4]), r[5], 1.0e-9 * r[5], "z_sat E/F %s" % r)
-		approx(mp, r[6], 1.0e-9 * r[6], "max_profile E/F %s" % r)
+		approx(WindProfile.z_sat(r[1], r[2], r[3], r[4]), r[5], 1.0e-9 * r[5], "z_sat E/F %s" % [r])
+		approx(mp, r[6], 1.0e-9 * r[6], "max_profile E/F %s" % [r])
 	approx(WindProfile.z_sat(3.0, 0.1, 1.13e-4, 3), ctl[0][4], 1.0e-6, "D — как rules.py")
 	# класс Тёрнера → α (Irwin 1979 к D): полдень ясно — A (штиль), B (3 м/с), D (6 м/с);
 	# облачно 3 м/с — D; ночь ясно 3 м/с — F, облачно — E

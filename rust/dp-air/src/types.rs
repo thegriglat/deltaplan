@@ -67,6 +67,7 @@ pub struct Status {
 
 /// Ядро подъёма (W6, `CORE_STRIDE = 15`).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[repr(C)]
 pub struct Core {
     pub id: f32,
     /// бит 0 — статическое, 1 — есть облако, 2 — грозовое Cb
@@ -89,6 +90,7 @@ pub struct Core {
 
 /// Облако (W6, `CLOUD_STRIDE = 10`).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[repr(C)]
 pub struct Cloud {
     pub id: f32,
     /// -1 — нет
@@ -106,6 +108,7 @@ pub struct Cloud {
 
 /// Гребень волны (W6, `CREST_STRIDE = 4`).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[repr(C)]
 pub struct Crest {
     pub x: f32,
     pub z: f32,
@@ -135,4 +138,26 @@ pub struct Decomposition {
     pub vel: Vec<[f32; 3]>,
     pub sigma: Vec<f32>,
     pub total: [f32; 4],
+}
+
+const _: () = {
+    assert!(std::mem::size_of::<Core>() == 15 * 4);
+    assert!(std::mem::size_of::<Cloud>() == 10 * 4);
+    assert!(std::mem::size_of::<Crest>() == 4 * 4);
+};
+
+/// Запись описания из одних `f32` без отступов (`#[repr(C)]`).
+///
+/// # Safety
+/// Реализуют только `#[repr(C)]`-структуры, где все поля `f32` (размер проверяется const-assert).
+pub unsafe trait F32Record: Copy {}
+// SAFETY: см. const-assert выше — размер равен числу полей `f32`.
+unsafe impl F32Record for Core {}
+unsafe impl F32Record for Cloud {}
+unsafe impl F32Record for Crest {}
+
+/// Описания как плоский `&[f32]` без копирования.
+pub fn as_f32s<T: F32Record>(v: &[T]) -> &[f32] {
+    // SAFETY: F32Record — repr(C) из одних f32 без отступов; выравнивание то же.
+    unsafe { std::slice::from_raw_parts(v.as_ptr().cast::<f32>(), std::mem::size_of_val(v) / 4) }
 }
