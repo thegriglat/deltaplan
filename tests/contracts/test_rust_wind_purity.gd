@@ -20,7 +20,7 @@ const PATTERNS: Array[String] = [
 const CONSUMERS: Array[String] = [
 	"cloud_layer.gd", "cloud_shadow_map.gd", "cirrus_layer.gd", "gust_dust.gd", "dust_devils.gd",
 	"bird_flock.gd", "thermal_signs.gd", "atmo_fingerprint.gd", "atmosphere_preview.gd",
-	"wind_field_debug.gd", "debug_overlays.gd",
+	"wind_field_debug.gd", "debug_overlays.gd", "atmo_fingerprint_cli.gd", "atmo_fingerprint_main.gd",
 ]
 ## Файлы реализации (явный список): scripts/atmosphere/*.gd, не потребители. Новый файл — правка
 ## этого списка и W10 через координатора. scripts/atmosphere/air_model/** — реализация целиком.
@@ -28,8 +28,6 @@ const IMPL_FILES: Array[String] = [
 	"res://scripts/atmosphere/air_field_cache.gd",
 	"res://scripts/atmosphere/air_place_data.gd",
 	"res://scripts/atmosphere/atmo_day.gd",
-	"res://scripts/atmosphere/atmo_fingerprint_cli.gd",
-	"res://scripts/atmosphere/atmo_fingerprint_main.gd",
 	"res://scripts/atmosphere/atmo_thermal.gd",
 	"res://scripts/atmosphere/atmosphere.gd",
 	"res://scripts/atmosphere/climate_grid.gd",

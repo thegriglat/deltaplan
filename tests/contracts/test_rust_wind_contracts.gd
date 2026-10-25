@@ -10,7 +10,7 @@ extends TestCase
 
 ## Версии разделов — те же, что в заголовках docs/contracts/rust-wind.md и rust-wind/*.md.
 const CONTRACTS := {
-	W1 = 1, W2 = 1, W3 = 1, W4 = 2, W5 = 3, W6 = 2, W7 = 1, W8 = 1, W9 = 1, W10 = 1
+	W1 = 1, W2 = 1, W3 = 1, W4 = 2, W5 = 3, W6 = 3, W7 = 1, W8 = 1, W9 = 1, W10 = 1, W11 = 1
 }
 const DOCS: Array[String] = [
 	"res://docs/contracts/rust-wind.md",
@@ -600,45 +600,41 @@ func test_descriptions_format() -> void:
 	c.free()
 
 
-## Найденное ядро — местный избыток подъёма: у ядра без Cb средний vy в круге 0,5·r на высоте
-## (y_src + top)/2 больше, чем в кольце 2–3·r (W6 v2).
+## Найденное ядро — местный избыток подъёма (W6 v3): у ядра без Cb и с w ≥ 1,5 м/с средний vy в
+## круге 0,5·r на высоте (y_src + top)/2 больше, чем в кольце 2–3·r. Проверяются ВСЕ такие ядра,
+## на нескольких моментах и двух погодах.
 func test_found_core_is_a_local_updraft() -> void:
-	var a := _up("gd", _preset(14.0, 230.0))
-	check(a.start_at(900.0) == 0, "start_at(900)")
-	check(_pump(a), "READY")
-	var cores: PackedFloat32Array = a.cores(CENTER, 8000.0)
 	var checked := 0
-	var cb := false
-	for j in range(0, cores.size(), Atmosphere.CORE_STRIDE):
-		cb = cb or (int(cores[j + 1]) & 4) != 0
-	check(not cb, "в обычном дне нет Cb (инвариант для ядер без Cb)")
-	var rows: Array = []
-	for j in range(0, cores.size(), Atmosphere.CORE_STRIDE):
-		if (int(cores[j + 1]) & 4) != 0 or cores[j + Atmosphere.CORE_W] < 1.5:
-			continue
-		rows.append(cores.slice(j, j + Atmosphere.CORE_STRIDE))
-	rows.sort_custom(func(p: PackedFloat32Array, q: PackedFloat32Array) -> bool: return p[6] > q[6])
-	for row: PackedFloat32Array in rows.slice(0, 4):
-		var y := 0.5 * (row[4] + row[5])
-		var ax := row[2] + row[8] * (y - row[4])
-		var az := row[3] + row[9] * (y - row[4])
-		var rad := row[7]
-		var inner := PackedVector3Array([Vector3(ax, y, az)])
-		for rr in [0.25, 0.5]:
-			for k in 8:
-				var an := TAU * k / 8.0
-				inner.append(Vector3(ax + cos(an) * rr * rad, y, az + sin(an) * rr * rad))
-		var outer := PackedVector3Array()
-		for rr in [2.0, 2.5, 3.0]:
-			for k in 16:
-				var an := TAU * (k + 0.5) / 16.0
-				outer.append(Vector3(ax + cos(an) * rr * rad, y, az + sin(an) * rr * rad))
-		var vi := _mean_vy(a.sample_many(inner, 1))
-		var vo := _mean_vy(a.sample_many(outer, 1))
-		checked += 1
-		check(vi > vo, "ядро %d: средний vy в круге %.2f ≤ в кольце %.2f" % [int(row[0]), vi, vo])
-	check(checked >= 1, "найдено хотя бы одно ядро без Cb: %d" % checked)
-	a.free()
+	for preset in [_preset(14.0, 230.0), _preset(32.0, 300.0)]:
+		var a = _up("gd", preset)
+		for t in [0.0, 900.0, 3600.0]:
+			check(a.start_at(t) == 0, "start_at(%d)" % int(t))
+			check(_pump(a), "READY на t = %d" % int(t))
+			var cores: PackedFloat32Array = a.cores(CENTER, 8000.0)
+			for j in range(0, cores.size(), Atmosphere.CORE_STRIDE):
+				if (int(cores[j + Atmosphere.CORE_FLAGS]) & 4) != 0 or cores[j + Atmosphere.CORE_W] < 1.5:
+					continue
+				var row := cores.slice(j, j + Atmosphere.CORE_STRIDE)
+				var y := 0.5 * (row[Atmosphere.CORE_Y_SRC] + row[Atmosphere.CORE_TOP])
+				var ax := row[Atmosphere.CORE_X] + row[Atmosphere.CORE_LEAN_X] * (y - row[Atmosphere.CORE_Y_SRC])
+				var az := row[Atmosphere.CORE_Z] + row[Atmosphere.CORE_LEAN_Z] * (y - row[Atmosphere.CORE_Y_SRC])
+				var rad := row[Atmosphere.CORE_RADIUS]
+				var inner := PackedVector3Array([Vector3(ax, y, az)])
+				for rr in [0.25, 0.5]:
+					for k in 8:
+						var an := TAU * k / 8.0
+						inner.append(Vector3(ax + cos(an) * rr * rad, y, az + sin(an) * rr * rad))
+				var outer := PackedVector3Array()
+				for rr in [2.0, 2.5, 3.0]:
+					for k in 16:
+						var an := TAU * (k + 0.5) / 16.0
+						outer.append(Vector3(ax + cos(an) * rr * rad, y, az + sin(an) * rr * rad))
+				var vi := _mean_vy(a.sample_many(inner, 1))
+				var vo := _mean_vy(a.sample_many(outer, 1))
+				checked += 1
+				check(vi > vo, "t=%d, ядро %d (w %.2f): средний vy в круге %.2f ≤ в кольце %.2f" % [int(t), int(row[0]), row[Atmosphere.CORE_W], vi, vo])
+		a.free()
+	check(checked >= 10, "проверено ядер без Cb с w ≥ 1,5: %d (нужно ≥ 10)" % checked)
 
 
 static func _mean_vy(r: PackedFloat32Array) -> float:
@@ -675,6 +671,31 @@ func test_decompose() -> void:
 	var bad: Dictionary = a.decompose(Vector3(NAN, 0, 0))
 	check((bad.total as Vector4) == Vector4(), "decompose(NaN): total — нули")
 	a.free()
+
+
+## CalmAir несёт тот же набор методов W2, что Atmosphere (в т. ч. обёртки).
+func test_calm_has_facade_methods() -> void:
+	var methods: Array[String] = [
+		"configure", "load_place", "unload_place", "set_conditions", "set_sun_direction",
+		"set_static_thermals", "advance_to", "start_at", "pump", "status", "is_ready", "set_focuses",
+		"sample_many", "sample", "air_velocity_at", "mean_wind_at", "turbulence_intensity_at",
+		"thermals_near", "cloud_density_many", "cloud_density_at", "cloudbase_msl",
+		"get_cloudbase_msl", "background_wind", "get_weather", "sun_state", "cores", "clouds",
+		"cloud_raster", "cloud_raster_version", "wave_crests", "decompose", "debug_raster",
+		"debug_raster_names", "last_error",
+	]
+	for impl in IMPLS:
+		var a := _make(impl)
+		for m in methods:
+			check(a.has_method(m), "%s: есть метод %s" % [impl, m])
+		a.free()
+	var c := _up("calm")
+	var p := Vector3(100.0, 500.0, 100.0)
+	check(c.turbulence_intensity_at(p) == 0.0, "CalmAir: turbulence_intensity_at = 0")
+	check(c.thermals_near(p, 1000.0).is_empty(), "CalmAir: thermals_near пусто")
+	check(c.cloud_density_at(p) == 0.0, "CalmAir: cloud_density_at = 0")
+	check(c.get_cloudbase_msl() == c.cloudbase_msl(), "CalmAir: get_cloudbase_msl = cloudbase_msl()")
+	c.free()
 
 
 func test_debug_rasters() -> void:

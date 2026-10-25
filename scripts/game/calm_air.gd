@@ -234,6 +234,22 @@ func cloudbase_msl() -> float:
 	return 0.0
 
 
+func get_cloudbase_msl() -> float:
+	return cloudbase_msl()
+
+
+func turbulence_intensity_at(_pos: Vector3) -> float:
+	return 0.0
+
+
+func thermals_near(_pos: Vector3, _radius: float) -> Array[Dictionary]:
+	return []
+
+
+func cloud_density_at(_pos: Vector3) -> float:
+	return 0.0
+
+
 func background_wind(heights_msl: PackedFloat32Array) -> PackedFloat32Array:
 	var out := PackedFloat32Array()
 	out.resize(heights_msl.size() * 2)
