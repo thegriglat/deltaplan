@@ -1,0 +1,46 @@
+{
+	"bin": {
+		"bytes": 12816005,
+		"h_max_err_m": 0.0,
+		"layout": "heights int16 LE, water u8, cls u8, moist u8 (x 1/255); подряд, width*height узлов, строка j к +Z (W1)"
+	},
+	"grid": {
+		"height": 1601,
+		"origin_x": -20000.0,
+		"origin_z": -20000.0,
+		"spacing": 25.0,
+		"width": 1601
+	},
+	"h_offset": 1508.59375,
+	"h_scale": 0.03125,
+	"loc": {
+		"center_lat": 50.79,
+		"center_lon": 86.13,
+		"day": 15,
+		"id": "ongudai",
+		"month": 7,
+		"utc_offset_h": 7.0
+	},
+	"name": "ongudai",
+	"note": "Онгудай (tests/fixtures/locations/ongudai): слой detail 25 м, AirRuntime.place_of; water — узел по ближайшему пикселю маски (> 127), cls/moist — снимок поверхности AirPlace.Surface",
+	"start_sites": [
+		{
+			"h_msl": 1868.75671386719,
+			"id": "kayancha_south",
+			"x": 7224.77490234375,
+			"z": 324.689636230469
+		}
+	],
+	"surface_classes": {
+		"bare": 5,
+		"built": 7,
+		"crop": 3,
+		"forest": 1,
+		"grass": 2,
+		"none": 0,
+		"shrub": 4,
+		"snow": 8,
+		"water": 6
+	},
+	"version": 1
+}
