@@ -10,7 +10,7 @@ extends TestCase
 
 ## Версии разделов — те же, что в заголовках docs/contracts/rust-wind.md и rust-wind/*.md.
 const CONTRACTS := {
-	W1 = 1, W2 = 1, W3 = 1, W4 = 2, W5 = 2, W6 = 2, W7 = 1, W8 = 1, W9 = 1, W10 = 1
+	W1 = 1, W2 = 1, W3 = 1, W4 = 2, W5 = 3, W6 = 2, W7 = 1, W8 = 1, W9 = 1, W10 = 1
 }
 const DOCS: Array[String] = [
 	"res://docs/contracts/rust-wind.md",
@@ -66,6 +66,7 @@ static func _synthetic() -> AirPlaceData:
 		bin.slice(3 * n, 4 * n),
 		moist
 	)
+	_place.fill_climate()
 	return _place
 
 
@@ -178,6 +179,58 @@ func test_surface_classes_fixed() -> void:
 
 
 # ------------------------------------------------------------------ место и условия (W5)
+
+
+func _check_climate(p: AirPlaceData, label: String) -> void:
+	var cl: Variant = p.header.loc.get("climate")
+	check(cl is Dictionary, "%s: loc.climate есть" % label)
+	if not cl is Dictionary:
+		return
+	for k in ["tx_c", "dtr_k", "z_cell_m"]:
+		check((cl as Dictionary).has(k) and is_finite(float(cl[k])), "%s: climate.%s — конечное число" % [label, k])
+	for k in ["has_hh1", "has_hh5"]:
+		check((cl as Dictionary).has(k) and cl[k] is bool, "%s: climate.%s — bool" % [label, k])
+	check(float(cl.dtr_k) >= 0.0, "%s: суточная амплитуда ≥ 0" % label)
+
+
+func test_place_climate() -> void:
+	_check_climate(_synthetic(), "синтетика")
+	# load_place сам дополняет заголовок без климата
+	var g := _synthetic()
+	var h: Dictionary = g.header.duplicate(true)
+	(h.loc as Dictionary).erase("climate")
+	var p := AirPlaceData.from_arrays(h, g.heights, g.water, g.surface_cls, g.surface_moist)
+	var a := _make("gd")
+	check(a.load_place(p) == 0, "load_place без climate — OK")
+	_check_climate(p, "после load_place")
+	a.free()
+
+
+## Онгудай: место из рельефа игры (from_terrain), климат заполнен; has_hh5 соответствует сетке.
+func test_place_from_terrain_ongudai() -> void:
+	var t := Terrain.new()
+	t.location_id = ""
+	check(t.load_location("ongudai"), "Онгудай загрузился")
+	t.wait_relief()
+	var utc := float(Config.get_config("locations/ongudai").get("utc_offset_h", NAN))
+	var p := AirPlaceData.from_terrain(t, utc, 7, 15)
+	check(p != null, "from_terrain вернул место")
+	if p != null:
+		check(p.validate() == "", "место проходит validate: %s" % p.validate())
+		_check_climate(p, "Онгудай")
+		var cl: Dictionary = p.header.loc.climate
+		var grid_present: bool = ClimateGrid.at(float(p.header.loc.center_lat), float(p.header.loc.center_lon), 7, 15).src.hh5 != "none"
+		check(bool(cl.has_hh5) == grid_present, "has_hh5 соответствует наличию сетки")
+		var sites: Array = p.header.start_sites
+		check(sites.size() >= 1, "стартовые площадки есть")
+		check(absf(p.height_at(0.0, 0.0) - t.height_at(0.0, 0.0)) < 1.0e-3, "высота — рельеф игры")
+		check(p.raster_height(0.0, 0.0) > 0.0, "растр высот заполнен")
+		var a := _make("gd")
+		check(a.load_place(p) == 0, "load_place места из рельефа")
+		check(_pump(a), "READY на месте из рельефа (аналитика)")
+		check(_all_finite(a.sample_many(PackedVector3Array([Vector3(0, p.height_at(0, 0) + 50.0, 0)]))), "ответ конечен")
+		a.free()
+	t.free()
 
 
 func test_place_validation() -> void:

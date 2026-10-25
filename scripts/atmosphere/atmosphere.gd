@@ -1298,6 +1298,8 @@ func load_place(place: AirPlaceData) -> int:
 	_f_used = true
 	if _f_place != null:
 		unload_place()
+	if not (place.header.loc as Dictionary).has("climate"):
+		place.fill_climate()  # W5 v3: климат центра места считает фасад
 	_f_place = place
 	_f_err = ""
 	_f_stage = 0
