@@ -1,0 +1,51 @@
+{
+  "verdict": "accept",
+  "summary": "Трейт совпадает с W4 по именам и сигнатурам, Calm ведёт себя как в карточке, разбор W5 строгий и проверен тестами, picard_rs перенесён через git mv (поменялись только пути), запретные пути не тронуты. Блокеров нет. Есть один major, о котором нет в отчёте: после переноса 7 research-README picard_rs выпали из docs/INDEX.md и docs/registry/research.md.",
+  "issues": [
+    {
+      "file": "docs/registry/research.md",
+      "line": 167,
+      "severity": "major",
+      "what": "Отчёт расходится с фактом. После git mv в rust/picard_rs 7 README с выводами (picard_rs, out/final, opt/PR-6/7/9, prof, residual/PR-8) выпали из docs/INDEX.md и docs/registry/research.md: в dpcli.yml в шаблонах docs есть только tools/research/**/README.md. Теперь `dpcli docs find picard_rs` отвечает «ничего не найдено». В отчёте и в dp_feedback упомянута только маска cpu_weights.",
+      "fix": "До слияния в main главной сессии добавить в dpcli.yml шаблоны docs (обе секции, строки ~59 и ~88) путь rust/**/README.md и пересобрать индекс через `dpcli docs index`. Исполнителю дописать это в dp_feedback."
+    },
+    {
+      "file": "rust/dp-air/src/calm.rs",
+      "line": 138,
+      "severity": "minor",
+      "what": "cores/clouds/wave_crests в Calm не очищают out. W4 не задаёт, дописывает реализация в out или заменяет его содержимое. Если вызывающий переиспользует Vec, у Calm останутся старые записи, а это расходится с «описаний нет».",
+      "fix": "Вызывать out.clear() в Calm. Уточнить семантику (замена) в W4 v2 через координатора."
+    },
+    {
+      "file": "rust/dp-air/tests/contract.rs",
+      "line": 139,
+      "severity": "minor",
+      "what": "Общий suite(make), который потом будет прогоняться на Formula, закрепляет решения, которых нет в W4: time_s = 0 после повторного load_place, NoPlace у set_conditions/set_focuses/set_static_thermals до места, отказ при t < 0. Исполнитель сам вынес это в uncertain.",
+      "fix": "Координатору либо утвердить эти правила (внести в W4 v2), либо перенести такие проверки в тесты только для Calm."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "contract_test (accept --dry)",
+      "value": "12 passed (cargo test вручную)",
+      "pass": true
+    },
+    {
+      "name": "picard_moved (accept --dry)",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "no_godot_in_dp_air (accept --dry)",
+      "value": "godot в дереве нет",
+      "pass": true
+    },
+    {
+      "name": "scope / dont_touch",
+      "value": "523 файла в границах; scripts, configs, project.godot, dpcli.yml не тронуты",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-26T03:14:09",
+  "by": "reviewer"
+}

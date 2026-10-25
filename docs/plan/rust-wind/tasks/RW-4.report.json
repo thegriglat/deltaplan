@@ -1,0 +1,92 @@
+{
+  "status": "done",
+  "summary": "Workspace rust/ (dp-air + picard_rs): трейт W4, Calm, разбор W5 (PlaceHeader/Place/Conditions/Configs), API_VERSION=1, профили dev/tune/release, contract.rs (12 тестов, набор suite(make) для Formula), бенч Calm; picard_rs перенесён git mv, поведение не менялось.",
+  "commits": [
+    "1667146dc rust-wind RW-4: workspace rust/ (dp-air: трейт W4, Calm, разб"
+  ],
+  "checks": [
+    {
+      "name": "accept --dry",
+      "value": "8/8 PASS",
+      "pass": true
+    },
+    {
+      "name": "picard_rs тесты в -O0",
+      "value": "~150 с (api 102 с); override opt-level не нужен",
+      "pass": true
+    },
+    {
+      "name": "бенч Calm release, медианы нс",
+      "value": "sample_many_18 6.7; sample_many_1000 155; advance_to 3.2",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "contract_test",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "no_godot_in_dp_air",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "picard_moved",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "profiles",
+      "value": "PASS",
+      "pass": true
+    },
+    {
+      "name": "docs",
+      "value": "PASS",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "how_to_check": ".dpcli/dpcli accept RW-4",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/calm.rs",
+      "why": "W4 не фиксирует: Raster (мои поля: version,nx,ny,dx,x0,z0,base_msl,time_s,layers), Core/Cloud/Crest как структуры f32 (stride W6 в dp-gd), start_at/advance_to отвергают t<0 и NaN, фокус с weight<0 — BadInput, load_place обнуляет время, Calm.cloudbase_msl=0",
+      "checked": "тесты в contract.rs; при необходимости уточнить в W4 v2"
+    },
+    {
+      "where": "rust/dp-air/src/conditions.rs",
+      "why": "Строгость сверх карточки: speed>0, quantum_h обязателен и >0 для прогноза, start_hour/speed обязательны, ключи quantum_h/wind_ref/overrides с preset — BadInput; rebuild по умолчанию false",
+      "checked": "тесты conditions_*"
+    },
+    {
+      "where": "rust/picard_rs/out/**/run.sh",
+      "why": "Пути поправлены на rust/picard_rs и rust/target/release/picard; маска замка cpu 'picard_rs/target/release/picard' больше не совпадёт (dpcli.yml jobs.cpu_weights не трогал)",
+      "checked": "sed по .sh/.py/живым md; исторические json/txt и README в out/ не менял"
+    }
+  ],
+  "dp_feedback": "dpcli.yml jobs.cpu_weights: заменить маску на rust/target/release/picard (правит главная). lock cpu без --no-tmux запускает в tmux и не печатает вывод - легко принять за молчаливый запуск. Раздел плана в карточке ('Этап 2 / RW-4') не находится через plan; пришлось смотреть оглавление.",
+  "extra": {
+    "bench_baseline": "rust/dp-air/benches/baseline.json (collect_baseline.py после cargo bench)",
+    "picard_gitignore": "picard_rs/.gitignore удалён, target/ — в корневом .gitignore как /rust/target/",
+    "Cargo.lock": "rust/Cargo.lock (взят из picard_rs, версии сохранены)"
+  },
+  "t": "2026-10-26T03:11:18",
+  "by": "executor"
+}
