@@ -8,13 +8,24 @@ extends TestCase
 
 const BASELINE := "res://tests/contracts/rust_wind_purity_baseline.txt"
 const ROOT := "res://scripts"
+## Получатель-узел воздуха: air / atmo / atmosphere, с подчёркиванием и продолжением имени
+## (_air, atmo_cfg, air_runtime…). Шаблоны «на узле воздуха» (W10) ловят обращение к члену только
+## у такого получателя — иначе d.field(…) прибора, model.step(…) или terrain.ground (не воздух) —
+## ложные срабатывания.
+const AIR := "\\b_?(?:air|atmo|atmosphere)\\w*"
 ## Запрещённые вне реализации обращения (W10 v1), регулярные выражения.
 const PATTERNS: Array[String] = [
-	"\\.field\\b", "\\.wind\\b", "\\.ground\\b", "\\.cloud_phys", "\\.wave\\b", "\\.storm\\b",
-	"\\.air_field", "_ground_ref", "_rmin", "_last_sigma", "\\bAirRuntime\\b", "\\bThermalField\\b",
+	# члены внутренностей — только у узла воздуха
+	AIR + "\\.(?:field|wind|ground|cloud_phys|wave|storm)\\b", AIR + "\\.air_field",
+	# то же строкой: air.get("field"), air.call("step", …), air.set("time_s", …)
+	AIR + "\\.(?:get|set|call)\\(\"(?:field|wind|ground|cloud_phys|wave|storm|air_field|time_s|step|set_ground|set_day|set_wind|set_weather|set_air_field)\"",
+	# внутренние имена и типы реализации — где бы ни стояли
+	"_ground_ref", "_rmin", "_last_sigma", "\\bAirRuntime\\b", "\\bThermalField\\b",
 	"\\bWindField\\b", "\\bWindModel\\b", "\\bGroundField\\b", "\\bCloudPhysics\\b",
-	"\\bCloudField\\b", "\\bAtmoThermal\\b", "\\bAirFieldSet\\b", "\\bstep\\(", "time_s =",
-	"set_air_field", "set_ground", "set_day", "set_wind", "set_weather",
+	"\\bCloudField\\b", "\\bAtmoThermal\\b", "\\bAirFieldSet\\b",
+	# переходные входы и шаг — только у узла воздуха
+	AIR + "\\.step\\(", AIR + "\\.time_s\\s*=[^=]",
+	AIR + "\\.(?:set_air_field|set_ground|set_day|set_wind|set_weather)\\b",
 ]
 ## Потребители внутри scripts/atmosphere/ — под запретом (W10), где бы ни лежали.
 const CONSUMERS: Array[String] = [

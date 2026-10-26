@@ -322,7 +322,7 @@ func test_k1_public_api() -> void:
 	check(int((res.get("air_cache", {}) as Dictionary).get("max_mb", -1)) == 200, "по умолчанию 200 МБ")
 	check(UserSettings.is_local_key("atmosphere.air_cache.max_mb"), "машинный ключ (LOCAL_KEYS)")
 	var game_src := FileAccess.get_file_as_string("res://scripts/game/game.gd")
-	check(game_src.contains("air_runtime.cache_enabled = true"), "Game включает кеш")
+	check(game_src.contains("air_cache_enabled"), "Game включает кеш")
 	var src := FileAccess.get_file_as_string("res://scripts/atmosphere/air_field_cache.gd")
 	check(src.contains("class_name AirFieldCache"), "AirFieldCache — scripts/atmosphere/air_field_cache.gd")
 	check(not FileAccess.file_exists("res://scripts/atmosphere/air_model/air_field_cache.gd"), "не в air_model/ (code_hash)")

@@ -1,150 +1,35 @@
 # Храповик чистоты W10: файл:шаблон<TAB>число вхождений. Только вниз; обновление — см. test_rust_wind_purity.gd
-scripts/atmosphere/atmo_fingerprint.gd:\.cloud_phys	2
-scripts/atmosphere/atmo_fingerprint.gd:\.field\b	3
-scripts/atmosphere/atmo_fingerprint.gd:\.ground\b	1
 scripts/atmosphere/atmo_fingerprint.gd:\bAtmoThermal\b	1
 scripts/atmosphere/atmo_fingerprint.gd:\bCloudField\b	1
 scripts/atmosphere/atmo_fingerprint.gd:\bGroundField\b	1
-scripts/atmosphere/atmo_fingerprint.gd:\bstep\(	1
-scripts/atmosphere/atmo_fingerprint.gd:set_day	1
-scripts/atmosphere/atmo_fingerprint.gd:set_ground	1
-scripts/atmosphere/atmo_fingerprint.gd:set_wind	1
-scripts/atmosphere/atmo_fingerprint.gd:time_s =	1
-scripts/atmosphere/atmosphere_preview.gd:\.cloud_phys	2
-scripts/atmosphere/atmosphere_preview.gd:\.field\b	4
-scripts/atmosphere/atmosphere_preview.gd:\.wave\b	1
-scripts/atmosphere/atmosphere_preview.gd:\.wind\b	1
 scripts/atmosphere/atmosphere_preview.gd:\bAtmoThermal\b	3
-scripts/atmosphere/atmosphere_preview.gd:\bstep\(	4
-scripts/atmosphere/atmosphere_preview.gd:set_ground	3
-scripts/atmosphere/atmosphere_preview.gd:set_weather	1
-scripts/atmosphere/atmosphere_preview.gd:set_wind	2
-scripts/atmosphere/atmosphere_preview.gd:time_s =	1
-scripts/atmosphere/bird_flock.gd:\.field\b	1
-scripts/atmosphere/bird_flock.gd:\.wind\b	2
+scripts/atmosphere/atmosphere_preview.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	7
+scripts/atmosphere/atmosphere_preview.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:set_air_field|set_ground|set_day|set_wind|set_weather)\b	6
+scripts/atmosphere/atmosphere_preview.gd:\b_?(?:air|atmo|atmosphere)\w*\.step\(	4
+scripts/atmosphere/atmosphere_preview.gd:\b_?(?:air|atmo|atmosphere)\w*\.time_s\s*=[^=]	1
 scripts/atmosphere/bird_flock.gd:\bAtmoThermal\b	9
-scripts/atmosphere/cirrus_layer.gd:\.wind\b	1
-scripts/atmosphere/cloud_layer.gd:\.cloud_phys	5
-scripts/atmosphere/cloud_layer.gd:\.field\b	7
-scripts/atmosphere/cloud_layer.gd:\.ground\b	3
-scripts/atmosphere/cloud_layer.gd:\.storm\b	4
-scripts/atmosphere/cloud_layer.gd:\.wave\b	5
-scripts/atmosphere/cloud_layer.gd:\.wind\b	3
+scripts/atmosphere/bird_flock.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	3
+scripts/atmosphere/cirrus_layer.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	1
 scripts/atmosphere/cloud_layer.gd:\bAtmoThermal\b	7
 scripts/atmosphere/cloud_layer.gd:\bCloudField\b	3
 scripts/atmosphere/cloud_layer.gd:\bCloudPhysics\b	1
 scripts/atmosphere/cloud_layer.gd:\bThermalField\b	2
+scripts/atmosphere/cloud_layer.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	21
 scripts/atmosphere/cloud_layer.gd:_ground_ref	1
-scripts/atmosphere/cloud_shadow_map.gd:\.ground\b	2
+scripts/atmosphere/cloud_shadow_map.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	2
 scripts/atmosphere/cloud_shadow_map.gd:_ground_ref	1
-scripts/atmosphere/dust_devils.gd:\.field\b	2
-scripts/atmosphere/dust_devils.gd:\.ground\b	3
-scripts/atmosphere/dust_devils.gd:\.wind\b	1
 scripts/atmosphere/dust_devils.gd:\bAtmoThermal\b	2
-scripts/atmosphere/gust_dust.gd:\.ground\b	2
-scripts/atmosphere/gust_dust.gd:\.wind\b	3
-scripts/atmosphere/gust_dust.gd:set_weather	2
-scripts/atmosphere/thermal_signs.gd:\.field\b	4
+scripts/atmosphere/dust_devils.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	6
+scripts/atmosphere/gust_dust.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	5
 scripts/atmosphere/thermal_signs.gd:\bAtmoThermal\b	10
 scripts/atmosphere/thermal_signs.gd:\bThermalField\b	1
+scripts/atmosphere/thermal_signs.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:field|wind|ground|cloud_phys|wave|storm)\b	4
 scripts/atmosphere/wind_field_debug.gd:\bAirRuntime\b	3
-scripts/audio/flight_sound_mix.gd:time_s =	1
 scripts/core/pool_for.gd:\bAirRuntime\b	1
-scripts/flight/flight_model.gd:\bstep\(	2
-scripts/flight/flight_model.gd:time_s =	1
-scripts/flight/flight_telemetry.gd:time_s =	1
-scripts/flight/glider.gd:\.ground\b	1
-scripts/flight/glider.gd:\bstep\(	4
-scripts/flight/glider.gd:set_ground	2
-scripts/flight/glider_visual.gd:\bstep\(	1
-scripts/flight/ground_run.gd:\bstep\(	1
-scripts/flight/pendulum/pendulum_model.gd:\.ground\b	1
-scripts/flight/pendulum/pendulum_model.gd:\bstep\(	1
-scripts/flight/pendulum/pendulum_model.gd:time_s =	2
-scripts/flight/trike_engine.gd:\bstep\(	1
-scripts/flight/trike_rig.gd:\.ground\b	1
-scripts/game/bot_agent.gd:\bstep\(	2
-scripts/game/bot_pilots.gd:\.cloud_phys	1
-scripts/game/bot_pilots.gd:\.field\b	1
-scripts/game/bot_pilots.gd:\bCloudPhysics\b	1
-scripts/game/bot_pilots.gd:\bstep\(	1
-scripts/game/bot_pilots.gd:time_s =	2
-scripts/game/calm_air.gd:\bstep\(	2
-scripts/game/calm_air.gd:set_ground	2
-scripts/game/calm_air.gd:set_weather	3
-scripts/game/calm_air.gd:set_wind	3
-scripts/game/calm_air.gd:time_s =	4
-scripts/game/catch_up_tow.gd:\bstep\(	4
 scripts/game/debug_overlays.gd:\bAtmoThermal\b	2
 scripts/game/debug_overlays.gd:\bThermalField\b	1
 scripts/game/debug_overlays.gd:\bWindField\b	2
+scripts/game/debug_overlays.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:get|set|call)\("(?:field|wind|ground|cloud_phys|wave|storm|air_field|time_s|step|set_ground|set_day|set_wind|set_weather|set_air_field)"	3
 scripts/game/debug_overlays.gd:_rmin	2
-scripts/game/flight_stats.gd:time_s =	5
-scripts/game/game.gd:\.ground\b	1
-scripts/game/game.gd:\bAirRuntime\b	5
-scripts/game/game.gd:\bstep\(	4
-scripts/game/game.gd:set_day	4
-scripts/game/game.gd:set_ground	2
-scripts/game/game.gd:set_weather	2
-scripts/game/game.gd:set_wind	1
-scripts/game/game.gd:time_s =	1
-scripts/game/launch_options.gd:\.wind\b	1
-scripts/game/launch_options.gd:\bWindField\b	1
-scripts/game/launch_options.gd:time_s =	1
-scripts/game/net_flight.gd:\.cloud_phys	3
-scripts/game/net_flight.gd:\.field\b	9
-scripts/game/net_flight.gd:\bAtmoThermal\b	1
-scripts/game/net_flight.gd:\bCloudPhysics\b	3
-scripts/game/net_flight.gd:\bThermalField\b	2
-scripts/game/tow_session.gd:\bstep\(	2
-scripts/game/tow_tug.gd:\.ground\b	1
-scripts/game/tow_tug.gd:\bstep\(	3
-scripts/game/wing_catalog.gd:\.wind\b	4
-scripts/game/world_key.gd:\.wind\b	1
-scripts/game/world_link.gd:set_wind	2
-scripts/instruments/flight_instrument.gd:\.wind\b	1
-scripts/instruments/instrument_page_flight.gd:\.field\b	9
-scripts/instruments/instrument_page_map.gd:\.field\b	3
-scripts/instruments/instrument_page_thermal.gd:\.field\b	4
-scripts/instruments/instrument_page_wind.gd:\.field\b	8
-scripts/instruments/instrument_page_wind.gd:\.wind\b	4
-scripts/instruments/instrument_preview.gd:time_s =	1
-scripts/instruments/telltale.gd:\bstep\(	2
-scripts/instruments/telltale_model.gd:\bstep\(	1
-scripts/instruments/vario.gd:time_s =	3
-scripts/motion_rig/motion_output.gd:\bstep\(	2
-scripts/motion_rig/motion_rig.gd:\bstep\(	2
-scripts/net/net_zone.gd:\bCloudField\b	1
-scripts/tasks/flight_records.gd:time_s =	1
-scripts/tasks/task.gd:time_s =	1
-scripts/tasks/task_tracker.gd:time_s =	11
-scripts/terrain/shrub_scatter.gd:\.wind\b	1
-scripts/terrain/terrain.gd:set_ground	2
-scripts/terrain/terrain.gd:set_wind	2
-scripts/terrain/terrain.gd:time_s =	2
-scripts/terrain/terrain_preview.gd:\.wind\b	1
-scripts/terrain/terrain_preview.gd:set_wind	1
 scripts/terrain/terrain_wind.gd:\bAirFieldSet\b	2
-scripts/terrain/terrain_wind.gd:set_wind	1
-scripts/world_objects/easter_eggs.gd:\bstep\(	2
-scripts/world_objects/easter_eggs.gd:time_s =	1
-scripts/world_objects/easter_eggs/an2.gd:time_s =	1
-scripts/world_objects/easter_eggs/eagle.gd:\bAtmoThermal\b	3
-scripts/world_objects/field_plots.gd:\bstep\(	1
-scripts/world_objects/osm/osm_cable_cars.gd:\bstep\(	2
-scripts/world_objects/osm/osm_pilot.gd:\.wind\b	2
-scripts/world_objects/osm/osm_wind_turbines.gd:\.wind\b	2
-scripts/world_objects/osm/osm_wind_turbines.gd:\bstep\(	2
-scripts/world_objects/osm_data.gd:time_s =	2
-scripts/world_objects/osm_layer.gd:\bstep\(	4
-scripts/world_objects/place_data.gd:time_s =	3
-scripts/world_objects/wind_cloth_model.gd:\bstep\(	1
-scripts/world_objects/wind_indicator.gd:\bstep\(	1
-scripts/world_objects/wind_indicator.gd:set_wind	1
-scripts/world_objects/world_clearings.gd:time_s =	1
-scripts/world_objects/world_objects.gd:\bstep\(	1
-scripts/world_objects/world_objects.gd:set_wind	1
-scripts/world_objects/world_objects.gd:time_s =	1
-scripts/world_objects/world_objects_preview.gd:set_ground	1
-scripts/world_objects/world_objects_preview.gd:set_weather	1
-scripts/world_objects/world_objects_preview.gd:set_wind	1
+scripts/world_objects/world_objects_preview.gd:\b_?(?:air|atmo|atmosphere)\w*\.(?:set_air_field|set_ground|set_day|set_wind|set_weather)\b	3
