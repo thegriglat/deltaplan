@@ -53,7 +53,7 @@
 //!   область сжимается до помещающейся (кратно `dx·coarse_factor`), меньше 12 клеток — отказ.
 //! - Климат места — из `weather_model.json` (`typical_max_c`, `diurnal.range_k`), как GD без
 //!   сеток ERA5: `Loc.climate` (W5 v3) в заголовке пока не разбирается (`place.rs`).
-//! - Время решения ограничено `timeout_s` на проход (остановка по бюджету — отказ прохода).
+//! - Время решения не ограничено (W5 v7): остановка — только отмена и ошибки.
 use super::baked::{BakedField, BakedQuery, Cond, FORMAT, VERSION, baked_lookup, parse_baked};
 use super::case_build::{SolverCfg, build_solver_case};
 use super::case_prepare::{AirCaseRs, CaseOpts, PreparedPlanes, build_case};
@@ -71,7 +71,7 @@ use super::weather_core::{
 use super::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
 use super::window::tcode;
 use crate::level::{Level, prolong_state};
-use crate::{Conditions, Configs, Error, InflowMode, LocClimate, Place};
+use crate::{Conditions, Configs, Error, InflowMode, Loc, LocClimate, Place};
 use picard_rs::api::{Fallback, Freeze, NonConv, SolveOpts, Solved, StopReason, solve};
 use picard_rs::case::Case;
 use picard_rs::state::State;
@@ -79,7 +79,7 @@ use serde_json::{Map, Value, json};
 use sha2::{Digest, Sha256};
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 pub use picard_rs::api::StopReason as Stop;
 
@@ -134,24 +134,43 @@ impl Climate for TableClimate {
 
 /// Климат места: ячейка из заголовка (`loc.climate`, W5 v3), где есть сетка HH5 / HH1; иначе
 /// запасные таблицы (`ClimateGrid.place`: без HH5 `tx_c`/`dtr_k` — из `weather_model.json`).
-pub(crate) struct PlaceClimate<'a> {
-    pub(crate) table: &'a TableClimate,
-    pub(crate) loc: Option<LocClimate>,
+/// Для воды (W5 v7) — тем же правилом ячейка `loc.climate_lag`.
+pub struct PlaceClimate<'a> {
+    pub table: &'a TableClimate,
+    pub loc: Option<LocClimate>,
+    pub lag: Option<LocClimate>,
+}
+
+impl<'a> PlaceClimate<'a> {
+    pub fn of(table: &'a TableClimate, loc: &Loc) -> Self {
+        PlaceClimate {
+            table,
+            loc: loc.climate,
+            lag: loc.climate_lag,
+        }
+    }
+}
+
+fn merged(t: ClimateCell, c: Option<LocClimate>) -> ClimateCell {
+    match c {
+        None => t,
+        Some(c) => ClimateCell {
+            tx_c: if c.has_hh5 { c.tx_c } else { t.tx_c },
+            dtr_k: if c.has_hh5 { c.dtr_k } else { t.dtr_k },
+            z_cell_m: if c.has_hh1 { c.z_cell_m } else { 0.0 },
+            has_hh1: c.has_hh1,
+            has_hh5: c.has_hh5,
+        },
+    }
 }
 
 impl Climate for PlaceClimate<'_> {
     fn cell(&self, lat: f64, lon: f64, month: i64, day: i64) -> ClimateCell {
-        let t = self.table.cell(lat, lon, month, day);
-        match self.loc {
-            None => t,
-            Some(c) => ClimateCell {
-                tx_c: if c.has_hh5 { c.tx_c } else { t.tx_c },
-                dtr_k: if c.has_hh5 { c.dtr_k } else { t.dtr_k },
-                z_cell_m: if c.has_hh1 { c.z_cell_m } else { 0.0 },
-                has_hh1: c.has_hh1,
-                has_hh5: c.has_hh5,
-            },
-        }
+        merged(self.table.cell(lat, lon, month, day), self.loc)
+    }
+
+    fn water_cell(&self, lat: f64, lon: f64, month: i64, day: i64) -> ClimateCell {
+        merged(self.table.cell(lat, lon, month, day), self.lag)
     }
 }
 
@@ -186,7 +205,6 @@ pub struct RtCfg {
     pub blend_s: f64,
     pub edge_blend_cells: f64,
     pub limits: Limits,
-    pub timeout_s: f64,
     pub max_iters: usize,
     pub omega_after: usize,
     pub omega: f32,
@@ -314,7 +332,6 @@ impl RtCfg {
                 max_speed: am("max_speed_ms", 40.0),
                 max_w: am("max_w_ms", 10.0),
             },
-            timeout_s: num(&atm, "/air/timeout_s", 180.0),
             max_iters: MAX_OUTER,
             omega_after: num(&atm, "/air_phase/omega/fallback_iters", 300.0).max(0.0) as usize,
             omega: num(&atm, "/air_phase/omega/fallback_omega", 0.5) as f32,
@@ -924,10 +941,7 @@ pub(crate) fn cancelled(cancel: &AtomicBool) -> Result<(), JobErr> {
 
 /// Погода поля для области `dom` и часа задачи (`field_weather`): общая у области и окон.
 pub(crate) fn weather_for(job: &JobIn, dom: &Domain) -> Result<FieldWeather, Error> {
-    let climate = PlaceClimate {
-        table: &job.cfg.climate,
-        loc: job.place.header().loc.climate,
-    };
+    let climate = PlaceClimate::of(&job.cfg.climate, &job.place.header().loc);
     field_weather(
         &job.cond,
         &job.place,
@@ -1102,34 +1116,23 @@ pub(crate) struct Spec {
     pub(crate) init_cycles: Option<u32>,
 }
 
-fn solve_one(
-    job: &JobIn,
-    case: &Case,
-    init: Option<State>,
-    spec: Spec,
-    deadline: Instant,
-) -> Result<Solved, JobErr> {
-    solve_with(&job.cfg, &job.cancel, case, init, spec, deadline)
+fn solve_one(job: &JobIn, case: &Case, init: Option<State>, spec: Spec) -> Result<Solved, JobErr> {
+    solve_with(&job.cfg, &job.cancel, case, init, spec)
 }
 
-/// Одно решение `picard_rs` с отменой, пределом времени и разбором причины остановки.
+/// Одно решение `picard_rs` с отменой и разбором причины остановки (без предела по времени).
 pub(crate) fn solve_with(
     cfg: &RtCfg,
     cancel: &Arc<AtomicBool>,
     case: &Case,
     init: Option<State>,
     spec: Spec,
-    deadline: Instant,
 ) -> Result<Solved, JobErr> {
     cancelled(cancel)?;
-    let left = deadline
-        .saturating_duration_since(Instant::now())
-        .max(Duration::from_secs(1));
     let opts = SolveOpts {
         threads: cfg.threads,
         max_iters: cfg.max_iters,
         tol_scale: cfg.tol_scale,
-        time_budget: Some(left),
         init,
         freeze: spec.freeze,
         init_cycles: spec.init_cycles,
@@ -1145,10 +1148,6 @@ pub(crate) fn solve_with(
     let s = solve(case, &opts).map_err(|e| JobErr::Failed(format!("solver: {e:#}")))?;
     match s.stop {
         StopReason::Cancelled => Err(JobErr::Cancelled),
-        StopReason::TimeBudget => Err(JobErr::Failed(format!(
-            "timeout: {} iterations in {:.0} s",
-            s.iters, cfg.timeout_s
-        ))),
         StopReason::Diverged => Err(JobErr::Failed(format!(
             "solver diverged at iteration {}",
             s.iters
@@ -1164,10 +1163,9 @@ fn coarse_start(
     coarse: &LevelCase,
     fine_dom: &Domain,
     coarse_dom: &Domain,
-    deadline: Instant,
 ) -> Result<(Pair, [usize; 2]), JobErr> {
-    let sm = solve_one(job, &coarse.case_m, None, Spec::default(), deadline)?;
-    let sh = solve_one(job, &coarse.case_h, None, Spec::default(), deadline)?;
+    let sm = solve_one(job, &coarse.case_m, None, Spec::default())?;
+    let sh = solve_one(job, &coarse.case_h, None, Spec::default())?;
     let (cl, fl) = (
         level_of(&coarse.planes_h, coarse_dom),
         level_of(&lc.planes_h, fine_dom),
@@ -1189,7 +1187,6 @@ fn solve_pass(
 ) -> Result<PassOut, JobErr> {
     let cfg = &job.cfg;
     let t0 = Instant::now();
-    let deadline = t0 + Duration::from_secs_f64(cfg.timeout_s.max(1.0));
     check_cancel(job)?;
     set_progress(job, pass, passes, 0.0);
     let fine_dom = domain_for(&job.place, cfg)?;
@@ -1268,7 +1265,7 @@ fn solve_pass(
         if cfg.faults.coarse {
             notes.push("coarse step failed (injected): start from the background".into());
         } else {
-            match coarse_start(job, &fine, c, &fine_dom, &coarse_dom, deadline) {
+            match coarse_start(job, &fine, c, &fine_dom, &coarse_dom) {
                 Ok((pair, it)) => {
                     init_m = Some(pair.mech);
                     init_h = Some(pair.heat);
@@ -1297,15 +1294,9 @@ fn solve_pass(
         nonconv,
         init_cycles: None,
     };
-    let sm = solve_one(
-        job,
-        &fine.case_m,
-        init_m,
-        spec(fr_m, nonconv.clone()),
-        deadline,
-    )?;
+    let sm = solve_one(job, &fine.case_m, init_m, spec(fr_m, nonconv.clone()))?;
     set_progress(job, pass, passes, 0.6);
-    let sh = solve_one(job, &fine.case_h, init_h, spec(fr_h, nonconv), deadline)?;
+    let sh = solve_one(job, &fine.case_h, init_h, spec(fr_h, nonconv))?;
     set_progress(job, pass, passes, 0.9);
     let t_solve = t2.elapsed().as_secs_f64();
     let t3 = Instant::now();
@@ -1434,10 +1425,9 @@ fn windows_of(
             alpha_on: cfg.zi.alpha > 0.0,
         },
     });
-    let deadline = Instant::now() + Duration::from_secs_f64(cfg.timeout_s.max(1.0));
     let corners = plan.corners.clone();
     let progress = |x: f32| set_progress(job, pass, passes, 0.9 + 0.1 * x);
-    match solve_windows(job, &area, area_field, k, plan, deadline, &progress) {
+    match solve_windows(job, &area, area_field, k, plan, &progress) {
         Ok(w) => Ok((w.clip.levels(), Some(w.clip), w.reports, None)),
         Err(JobErr::Cancelled) => Err(JobErr::Cancelled),
         Err(JobErr::Failed(m)) => {

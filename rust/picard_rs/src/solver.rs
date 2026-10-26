@@ -1056,7 +1056,28 @@ impl Picard {
 
     /// Boundary condition of the whole state: type-2 faces of `u`, `v` (and, for a window, the
     /// type-2 faces of `w` and `theta'`, `theta'_d` of the halo cells), as the game's `K_BC`.
+    ///
+    /// W11 v9: also zeroes `u, v, w` on the wall faces (type 0) and `theta'`, `theta'_d` in the
+    /// ground cells (`cell == 0`), as `K_BC` does for any start (a warm state may carry values
+    /// there, e.g. a coarse 1200 m field interpolated onto the finer grid).
     pub fn apply_bc_all(&mut self) {
+        let k = &self.k;
+        let f = &mut self.f;
+        for i in 0..k.n3() {
+            if k.tu[i] == 0 {
+                f.u[i] = 0.0;
+            }
+            if k.tv[i] == 0 {
+                f.v[i] = 0.0;
+            }
+            if k.tw[i] == 0 {
+                f.w[i] = 0.0;
+            }
+            if k.cell[i] == 0 {
+                f.th[i] = 0.0;
+                f.thd[i] = 0.0;
+            }
+        }
         apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
         self.apply_bc_nest();
     }

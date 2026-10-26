@@ -165,9 +165,11 @@ func validate() -> String:
 	return ""
 
 
-## Климат центра места на дату loc.month/day (W5 v3): loc.climate = {tx_c, dtr_k, z_cell_m,
-## has_hh1, has_hh5} — ClimateGrid.place так, как строит ctx weather_model.gd (высота долины
-## из рельефа места). Нет сетки — has_* = false и запасные значения ClimateGrid. Возвращает climate.
+## Климат центра места (W5 v3, v7): loc.climate на дату loc.month/day и loc.climate_lag на дату
+## month/day − round(water.lag_days) (с переходом через год, как SurfaceHeat.water_temp_c) — для
+## температуры воды. Оба = {tx_c, dtr_k, z_cell_m, has_hh1, has_hh5} — ClimateGrid.place так,
+## как строит ctx weather_model.gd (высота долины из рельефа места). Нет сетки — has_* = false
+## и запасные значения ClimateGrid. Возвращает climate.
 func fill_climate() -> Dictionary:
 	var loc: Dictionary = header.loc
 	var g: Dictionary = Config.get_config("atmosphere").ground
@@ -177,26 +179,42 @@ func fill_climate() -> Dictionary:
 		int(g.reference_samples),
 		float(WeatherModel.config().valley_percentile)
 	)
+	var month := int(loc.get("month", 7))
+	var day := int(loc.get("day", 15))
 	ctx.merge(
 		{
-			"month": int(loc.get("month", 7)),
-			"day": int(loc.get("day", 15)),
+			"month": month,
+			"day": day,
 			"lat": float(loc.get("center_lat", 52.0)),
 			"lon": float(loc.get("center_lon", 0.0)),
 		}
 	)
+	var climate := _climate_cell(ctx)
+	# Дата воды: SurfaceHeat.water_temp_c (surface_heat.gd:93-98).
+	var lag := int(round(float(SurfaceHeat.config().get("water", {}).get("lag_days", 30.0))))
+	var doy := SunClock.day_of_year(month, day) - lag
+	if doy < 1:
+		doy += 365
+	var md := SurfaceHeat._month_day(doy)
+	var ctx_lag := ctx.duplicate()
+	ctx_lag["month"] = md.x
+	ctx_lag["day"] = md.y
+	loc.climate = climate
+	loc.climate_lag = _climate_cell(ctx_lag)
+	header.loc = loc
+	return climate
+
+
+static func _climate_cell(ctx: Dictionary) -> Dictionary:
 	var cp := ClimateGrid.place(ctx)
 	var src: Dictionary = cp.src
-	var climate := {
+	return {
 		"tx_c": float(cp.tx_c),
 		"dtr_k": float(cp.dtr_k),
 		"z_cell_m": float(cp.z_cell_m),
 		"has_hh1": String(src.hh1) != "none",
 		"has_hh5": String(src.hh5) != "none",
 	}
-	loc.climate = climate
-	header.loc = loc
-	return climate
 
 
 func grid_width() -> int:

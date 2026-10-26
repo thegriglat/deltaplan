@@ -27,6 +27,10 @@ pub struct Loc {
     /// Нет ключа — запасные таблицы `weather_model.json`.
     #[serde(default)]
     pub climate: Option<LocClimate>,
+    /// W5 v7: климат той же ячейки на дату `month/day − round(water.lag_days)`; нужен для
+    /// температуры воды. Обязателен, если есть `climate` (пара считается фасадом вместе).
+    #[serde(default)]
+    pub climate_lag: Option<LocClimate>,
 }
 
 /// Сетка W1: узлы, `origin_*` — координаты узла (0, 0).
@@ -79,6 +83,9 @@ impl PlaceHeader {
         }
         if !(1..=12).contains(&l.month) || !(1..=31).contains(&l.day) {
             return bad("loc: month/day out of range");
+        }
+        if l.climate.is_some() && l.climate_lag.is_none() {
+            return bad("loc.climate_lag is required with loc.climate");
         }
         let g = &self.grid;
         if !(g.origin_x.is_finite() && g.origin_z.is_finite()) {

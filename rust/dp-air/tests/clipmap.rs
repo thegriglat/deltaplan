@@ -933,7 +933,7 @@ fn pair_matches_gpu() {
             assert_eq!(inputs.warm, warm, "{tag}");
             let level = inputs.level;
             let t = Instant::now();
-            let sol = solve_pair(&cfg, &cancel, &mut inputs, t + Duration::from_secs(900)).unwrap();
+            let sol = solve_pair(&cfg, &cancel, &mut inputs).unwrap();
             let secs = t.elapsed().as_secs_f64();
             report += &format!(
                 "\n  {tag} {threads} пот.: {secs:.2} с, итерации mech/heat {:?}",
