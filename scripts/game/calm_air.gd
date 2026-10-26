@@ -7,6 +7,25 @@ extends Node3D
 ## Облаков не рисует. Замена на настоящую атмосферу — строка game.json → air.script.
 
 signal weather_changed
+signal weather_updated
+signal state_changed(state: int)
+
+# Фасад W2 (docs/contracts/rust-wind.md): те же константы, что у Atmosphere (копия — запасной
+# воздух не должен зависеть от основной атмосферы).
+const WIND_API_VERSION := 1
+const STATE_EMPTY := 0
+const STATE_LOADING := 1
+const STATE_READY := 2
+const STATE_FAILED := 3
+const OK := 0
+const BAD_INPUT := 1
+const NO_PLACE := 2
+const NOT_READY := 3
+const SAMPLE_FULL := 0
+const SAMPLE_MEAN := 1
+const CORE_STRIDE := 15
+const CLOUD_STRIDE := 10
+const CREST_STRIDE := 4
 
 @export var focus_node: Node3D
 
@@ -18,6 +37,8 @@ var _wind := Vector3.ZERO
 var _height_fn: Callable = Callable()
 var _thermals: Array[Dictionary] = []  # {x, z, w, r}
 var _top_agl: float = 1800.0
+var _f_err := ""
+var _f_place: AirPlaceData
 
 
 func _ready() -> void:
@@ -98,3 +119,185 @@ func air_velocity_at(pos: Vector3) -> Vector3:
 
 func mean_wind_at(_pos: Vector3) -> Vector3:
 	return _wind
+
+
+# ================================================================ фасад W2
+# Ветер 0, состояние READY сразу (без места тоже): опросы дают нули нужной длины, команды
+# проверяют вход и возвращают коды W1. Прежние методы выше — переходные (до RW-3).
+
+
+func last_error() -> String:
+	return _f_err
+
+
+func _f_fail(msg: String) -> int:
+	_f_err = msg
+	return BAD_INPUT
+
+
+func configure(_seed: int) -> int:
+	return OK
+
+
+func load_place(place: AirPlaceData) -> int:
+	if place == null:
+		return _f_fail("load_place: место null")
+	var why := place.validate()
+	if why != "":
+		return _f_fail("load_place: " + why)
+	_f_place = place
+	time_s = 0.0
+	return OK
+
+
+func unload_place() -> void:
+	_f_place = null
+	time_s = 0.0
+	_thermals.clear()
+
+
+func set_conditions(cond: Dictionary) -> int:
+	if cond.has("forecast") == cond.has("preset"):
+		return _f_fail("set_conditions: нужен ровно один из ключей forecast / preset")
+	var allowed: Array[String] = [
+		"start_hour", "speed", "blend_s", "rebuild", "inflow_mode", "forecast", "quantum_h",
+		"wind_ref", "overrides", "preset",
+	]
+	for k: Variant in cond:
+		if not allowed.has(String(k)):
+			return _f_fail("set_conditions: посторонний ключ %s" % str(k))
+	return OK
+
+
+func set_sun_direction(_to_sun: Vector3) -> void:
+	pass
+
+
+func set_static_thermals(list: PackedFloat32Array, mode: int) -> int:
+	if list.size() % 4 != 0 or mode < 0 or mode > 2:
+		return _f_fail("set_static_thermals: длина кратна 4, mode 0..2")
+	return OK
+
+
+func set_focuses(points: PackedVector3Array, weights: PackedFloat32Array) -> int:
+	if points.size() != weights.size():
+		return _f_fail("set_focuses: размеры различаются")
+	for w in weights:
+		if not (is_finite(w) and w > 0.0):
+			return _f_fail("set_focuses: вес ≤ 0")
+	return OK
+
+
+func advance_to(t: float) -> int:
+	if not is_finite(t) or t < 0.0 or t < time_s:
+		return _f_fail("advance_to: t < 0, не конечно или меньше текущего")
+	time_s = t
+	return OK
+
+
+func start_at(t: float) -> int:
+	if not is_finite(t) or t < 0.0:
+		return _f_fail("start_at: t < 0 или не конечно")
+	time_s = t
+	return OK
+
+
+func pump(_budget_us: int) -> void:
+	pass
+
+
+func status() -> Dictionary:
+	return {"state": STATE_READY, "progress": 1.0, "time_s": time_s, "reason": ""}
+
+
+func is_ready() -> bool:
+	return true
+
+
+func sample_many(points: PackedVector3Array, _mode: int = SAMPLE_FULL) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(points.size() * 4)
+	return out
+
+
+func sample(_pos: Vector3, _mode: int = SAMPLE_FULL) -> Vector4:
+	return Vector4()
+
+
+func cloud_density_many(points: PackedVector3Array) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(points.size())
+	return out
+
+
+func cloudbase_msl() -> float:
+	return 0.0
+
+
+func get_cloudbase_msl() -> float:
+	return cloudbase_msl()
+
+
+func turbulence_intensity_at(_pos: Vector3) -> float:
+	return 0.0
+
+
+func thermals_near(_pos: Vector3, _radius: float) -> Array[Dictionary]:
+	return []
+
+
+func cloud_density_at(_pos: Vector3) -> float:
+	return 0.0
+
+
+func background_wind(heights_msl: PackedFloat32Array) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(heights_msl.size() * 2)
+	return out
+
+
+func get_weather() -> Dictionary:
+	return weather.duplicate(true)
+
+
+func sun_state() -> Vector4:
+	return Vector4(0.0, 1.0, 0.0, 1.0)
+
+
+func cores(_center: Vector3, _radius: float) -> PackedFloat32Array:
+	return PackedFloat32Array()
+
+
+func clouds(_center: Vector3, _radius: float) -> PackedFloat32Array:
+	return PackedFloat32Array()
+
+
+func cloud_raster() -> Dictionary:
+	return {"version": 0}
+
+
+func cloud_raster_version() -> int:
+	return 0
+
+
+func wave_crests(
+	_center: Vector2, _radius: float, _min_eta: float, _spacing: float = 5000.0
+) -> PackedFloat32Array:
+	return PackedFloat32Array()
+
+
+func decompose(_pos: Vector3) -> Dictionary:
+	return {
+		"names": PackedStringArray(),
+		"vel": PackedVector3Array(),
+		"sigma": PackedFloat32Array(),
+		"total": Vector4(),
+	}
+
+
+func debug_raster_names() -> PackedStringArray:
+	return PackedStringArray()
+
+
+func debug_raster(_raster_name: String) -> Dictionary:
+	return {}
