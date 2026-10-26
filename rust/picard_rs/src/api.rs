@@ -117,6 +117,9 @@ pub struct SolveOpts {
     pub cancel: Option<Arc<AtomicBool>>,
     /// W11 v3: fallback convergence rules; `None` = bit-identical to v2.
     pub fallback: Option<Fallback>,
+    /// W11 v7: only with `init`: `p := 0`, then this many V-cycles (window start from the
+    /// parent: 30); `None` = as v6 (4 V-cycles, `p` from `init`).
+    pub init_cycles: Option<u32>,
 }
 
 impl Default for SolveOpts {
@@ -131,6 +134,7 @@ impl Default for SolveOpts {
             freeze: None,
             cancel: None,
             fallback: None,
+            init_cycles: None,
         }
     }
 }
@@ -218,6 +222,9 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
             opts.snapshot_at
         );
     }
+    if opts.init_cycles.is_some() && opts.init.is_none() {
+        bail!("init_cycles needs init");
+    }
     let t0 = Instant::now();
     let pl = pool(opts.threads)?;
     let mut crit = case.criterion.clone();
@@ -235,7 +242,10 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
             s.set_fallback(fb)?;
         }
         if let Some(st) = &opts.init {
-            s.init_warm(st)?;
+            match opts.init_cycles {
+                Some(n) => s.init_parent(st, n as usize)?,
+                None => s.init_warm(st)?,
+            }
             // The game counts checks from the start of a warm run (no graph-capture step).
             crit.pre_steps = 0;
         } else if !cancelled(opts) || opts.freeze.as_ref().is_some_and(|f| f.field.is_none()) {

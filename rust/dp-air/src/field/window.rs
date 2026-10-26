@@ -15,10 +15,11 @@
 //! 4. старт: «родитель» ([`init_from_boundary`] — `K_BC` в режиме 1, дальше 30 V-циклов, p = 0) и
 //!    тёплый сдвиг ([`warm_from_previous`] — то же + [`shift_warm`], дальше 4 V-цикла);
 //! 5. [`window_solver_case`] — `picard_rs::Case` окна: всё от `build_solver_case`, граница по
-//!    u, v — от родителя.
+//!    u, v, w, θ′, θ′_d — от родителя (`Case.nest`).
 //!
-//! Решения окна в этой задаче **нет**: решателю `picard_rs` не хватает входа окна — см. «Границы
-//! модели» (контракт W11, запрос координатору в отчёте RW-6n).
+//! Решение окна — `picard_rs::api::solve` с `Case`, который собирает [`window_solver_case`]
+//! (W11 v7: `Case.nest`), и стартом: от родителя — `SolveOpts { init: Some(state),
+//! init_cycles: Some(30) }`, тёплый сдвиг — `init: Some(state)` без `init_cycles` (4 V-цикла).
 //!
 //! ## Внутренний интерфейс для RW-6o
 //! ```text
@@ -37,11 +38,6 @@
 //! ```
 //!
 //! ## Границы модели
-//! - `picard_rs` (W11 v6) не умеет: (а) фон и жёсткие значения граней `w` типа 2 (верх окна),
-//!   (б) θ′ и θ′_d ореола (`thb`, `thbd`) и цель зоны релаксации для θ′/θ′_d (у области она 0),
-//!   (в) старт «родитель + 30 V-циклов при p = 0» из заданного поля (`init` — только 4 цикла без
-//!   p). [`window_solver_case`] поэтому кладёт в `Case` границу по u, v (`ubg`/`vbg`, `fixed_u/v`)
-//!   и больше ничего: решение таким `Case` — оценка стоимости, не поле игры.
 //! - Окно с `u10 = 0` (штиль): жёсткие грани u, v берутся из границы, а решатель включает их по
 //!   `u10 > 0` — [`window_solver_case`] передаёт ему `u10 ≥ 1e-6`.
 //! - `zi_alpha` родителя в крейте у случая не хранится (метаданные игры); `z_i` по столбцам окна
@@ -60,7 +56,7 @@ use super::surface_heat::SurfaceHeatCfg;
 use super::weather_core::{Day, Domain, block_mean, cell_surface, cell_z0};
 use super::wind_profile::CaseProfile;
 use crate::Error;
-use picard_rs::case::Case;
+use picard_rs::case::{Case, NestBc as SolverNest};
 use rayon::prelude::*;
 
 pub use crate::level::{
@@ -612,10 +608,9 @@ pub fn warm_from_previous(
 // случай решателя
 // ---------------------------------------------------------------------------------------------
 
-/// `picard_rs::Case` окна: сборка области (`build_solver_case`) с границей по u, v от родителя —
-/// фон `ubg`/`vbg` (цель зоны релаксации импульса) и жёсткие значения граней типа 2
-/// (`fixed_u`/`fixed_v`) из `bc`. Фон и грани `w`, θ′/θ′_d ореола и цель релаксации скаляров в
-/// `Case` пока не входят (см. «Границы модели»).
+/// `picard_rs::Case` окна: сборка области (`build_solver_case`) с границей от родителя — фон
+/// `ubg`/`vbg` (цель зоны релаксации импульса) и жёсткие значения граней типа 2 (`fixed_u`/
+/// `fixed_v`) из `bc`, `Case.nest` (грани `w` типа 2, θ′ и θ′_d ореола и цель релаксации).
 pub fn window_solver_case(
     pl: &PreparedPlanes,
     p: &CaseParams,
@@ -649,5 +644,10 @@ pub fn window_solver_case(
         case.arrays.insert(fixed.to_string(), vals);
         case.arrays.insert(name.to_string(), src.clone());
     }
+    case.nest = Some(SolverNest {
+        ubw: bc.ubw.clone(),
+        thb: bc.thb.clone(),
+        thbd: Some(bc.thbd.clone()),
+    });
     Ok(case)
 }

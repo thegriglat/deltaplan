@@ -191,7 +191,7 @@ impl<'a> MomGeo<'a> {
         let (sp, bg): (&[f32], Option<&[f32]>) = match comp {
             0 => (&k.sp_u, Some(&k.ubg)),
             1 => (&k.sp_u, Some(&k.vbg)),
-            _ => (&k.sp_w, None),
+            _ => (&k.sp_w, k.nest.as_ref().map(|n| n.ubw.as_slice())),
         };
         Self { tt, sp, bg }
     }
@@ -330,6 +330,8 @@ pub struct HeatIn<'a> {
     pub nuh: &'a [f32],
     /// 1/tau on the diagonal (theta'_d) or 0 (theta').
     pub inv_tau: f32,
+    /// Sponge target (window: the parent's theta' / theta'_d); `None` = zero (domain).
+    pub bg: Option<&'a [f32]>,
 }
 
 /// Heat stencil of one scalar — reference kernel `build_heat` (upwind transport in the
@@ -362,7 +364,10 @@ fn build_heat_chunk(k: &Consts, hin: &HeatIn, start: usize, out: &mut [Row]) {
                 Some((d, inv_tau)) => hin.q[idx] - d[idx] * inv_tau,
                 None => hin.q[idx],
             };
-            let rhs = hin.x[idx] * inv_dtau + q - gterm;
+            let mut rhs = hin.x[idx] * inv_dtau + q - gterm;
+            if let Some(b) = hin.bg {
+                rhs += k.spc[idx] * b[idx];
+            }
             let mut cc = [0.0f32; 7];
             for d in 0..3 {
                 let ih = 1.0 / h[d];

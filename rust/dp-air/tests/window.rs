@@ -870,41 +870,77 @@ fn init_state_respects_walls_and_zero_pressure() {
 }
 
 // ---------------------------------------------------------------------------------------------
-// решатель (оценка стоимости; поле игры — после расширения W11)
+// F. решение окна против GPU (release: окно 280–500 тыс. клеток)
 // ---------------------------------------------------------------------------------------------
 
-/// Оценка стоимости решения окна текущим `picard_rs` с границей по u, v (θ′, w границ решатель
-/// не знает — поле не равно полю игры). Печатает итерации и время. `--release`, `--ignored`:
-/// `cargo test --release -p dp-air --test window -- --ignored --nocapture solver_cost`.
+/// Коробка `n × n` вокруг центра окна, все плоскости `k`, из поля с ореолом (раскладка дампа).
+fn box_of(a: &[f32], lv: &Level, i0: usize, j0: usize, n: usize) -> Vec<f32> {
+    let mut out = Vec::with_capacity(n * n * lv.nz);
+    for k in 0..lv.nz {
+        for j in 0..n {
+            let b = (k * lv.ny + j0 + j) * lv.nx + i0;
+            out.extend_from_slice(&a[b..b + n]);
+        }
+    }
+    out
+}
+
+/// Решение окон `picard_rs` против GPU игры: итерации (|Δ| ≤ max(20, iters/10)), скорость
+/// (`u_rel` ≤ 1e-3 от масштаба скорости коробки), θ′ (≤ 0,05 К). Загрузка 100/50 м mech/heat —
+/// старт от родителя (30 V-циклов); сдвиг 100 м — тёплый старт (4 V-цикла). Печатает итерации и
+/// время на 8 и 2 потоках. `cargo test --release -p dp-air --test window -- --ignored --nocapture solve_matches_gpu`.
 #[test]
-#[ignore = "оценка стоимости: cargo test --release -p dp-air --test window -- --ignored --nocapture"]
-fn solver_cost_estimate() {
+#[ignore = "release: cargo test --release -p dp-air --test window -- --ignored --nocapture solve_matches_gpu"]
+fn solve_matches_gpu() {
     use dp_air::field::case_build::SolverCfg;
     use picard_rs::api::{SolveOpts, solve};
     use picard_rs::state::State;
     let inp = Dump::inputs();
     let g = Dump::gpu();
+    let mut report = String::new();
+    let mut worst_u = 0.0f64;
+    let mut worst_th = 0.0f64;
     for w in g.meta["windows"].as_array().unwrap() {
         let tag = w["tag"].as_str().unwrap();
         let b = build(&inp, tag);
+        let wi = inp.meta["windows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|x| x["tag"] == tag)
+            .unwrap();
+        let (heat, mech) = window_a(&inp, wi);
         for s in w["sets"].as_array().unwrap() {
             let mode = s["mode"].as_str().unwrap();
-            let (wi, pl) = (
-                inp.meta["windows"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .find(|x| x["tag"] == tag)
-                    .unwrap(),
-                if mode == "heat" { &b.heat } else { &b.mech },
-            );
-            let (heat, mech) = window_a(&inp, wi);
-            let case_rs = if mode == "heat" { &heat } else { &mech };
+            let (pl, case_rs) = if mode == "heat" {
+                (&b.heat, &heat)
+            } else {
+                (&b.mech, &mech)
+            };
+            let level = window_level(pl);
             let par = parent_of(&g, w, mode);
             let bc = window_boundary(&par.level, &src_of(&par), pl, &b.tc).unwrap();
             let cfg = SolverCfg::new(case_rs.case.u10);
             let case = window_solver_case(pl, &case_rs.case.p, &cfg, &bc).unwrap();
-            let st0 = init_from_boundary(&b.tc, &bc);
+            let warm = w["warm"].as_bool().unwrap();
+            let st0 = if warm {
+                let sh = &w["shift"];
+                let oa = |c: &str| g.f32s(sh["old"][c].as_str().unwrap());
+                let old = WindowState {
+                    u: oa("u"),
+                    v: oa("v"),
+                    w: oa("w"),
+                    th: oa("th"),
+                    thd: oa("thd"),
+                    p: oa("p"),
+                };
+                let ol = window_level(&build(&inp, "w100").heat);
+                warm_from_previous(&ol, &old, &level, &b.tc, &bc)
+                    .unwrap()
+                    .unwrap()
+            } else {
+                init_from_boundary(&b.tc, &bc)
+            };
             let st = State {
                 case: tag.into(),
                 input: String::new(),
@@ -922,23 +958,64 @@ fn solver_cost_estimate() {
                 nuh: None,
                 residuals: None,
             };
+            let gpu_it = s["iters"].as_u64().unwrap() as i64;
+            let bx = &s["box"];
+            let (i0, j0, n) = (
+                bx["i0"].as_u64().unwrap() as usize,
+                bx["j0"].as_u64().unwrap() as usize,
+                bx["n"].as_u64().unwrap() as usize,
+            );
+            let mut times = String::new();
             for threads in [8usize, 2] {
                 let opts = SolveOpts {
                     threads,
                     init: Some(st.clone()),
+                    init_cycles: (!warm).then_some(30),
                     max_iters: 400,
                     ..SolveOpts::default()
                 };
                 let t = std::time::Instant::now();
                 let r = solve(&case, &opts).unwrap();
-                println!(
-                    "{tag} {mode}: потоков {threads}, итераций {} (GPU {}), {:?}, {:.2} с",
+                let secs = t.elapsed().as_secs_f64();
+                times += &format!(" {threads} пот. {secs:.2} с;");
+                if threads != 8 {
+                    continue;
+                }
+                let t = format!("{tag} {mode}");
+                assert!(
+                    (r.iters as i64 - gpu_it).abs() <= 20.max(gpu_it / 10),
+                    "{t}: итераций {} (GPU {gpu_it})",
+                    r.iters
+                );
+                let gb = |c: &str| g.f32s(bx["arrays"][c].as_str().unwrap());
+                let rb = |a: &[f32]| box_of(a, &level, i0, j0, n);
+                let scale = ["u", "v", "w"]
+                    .iter()
+                    .flat_map(|c| gb(c))
+                    .fold(0.0f32, |m, x| m.max(x.abs())) as f64;
+                let du = [(&r.state.u, "u"), (&r.state.v, "v"), (&r.state.w, "w")]
+                    .iter()
+                    .map(|(a, c)| max_diff(&rb(a), &gb(c)).0)
+                    .fold(0.0, f64::max);
+                let dth = max_diff(&rb(&r.state.th), &gb("th")).0;
+                let dthd = max_diff(&rb(&r.state.thd), &gb("thd")).0;
+                assert!(du / scale <= 1e-3, "{t}: u_rel {:.2e}", du / scale);
+                assert!(
+                    dth <= 0.05 && dthd <= 0.05,
+                    "{t}: θ′ {dth:.3e}, θ′_d {dthd:.3e} К"
+                );
+                worst_u = worst_u.max(du / scale);
+                worst_th = worst_th.max(dth);
+                report += &format!(
+                    "\n  {t}: итераций {} (GPU {gpu_it}), u_rel {:.1e}, θ′ {dth:.1e} К, θ′_d {dthd:.1e} К;",
                     r.iters,
-                    s["iters"],
-                    r.stop,
-                    t.elapsed().as_secs_f64()
+                    du / scale
                 );
             }
+            report += &times;
         }
     }
+    println!(
+        "F: решение окон против GPU (худшее u_rel {worst_u:.1e}, θ′ {worst_th:.1e} К):{report}"
+    );
 }

@@ -560,6 +560,7 @@ impl Picard {
             nu: &f.nu,
             nuh: &f.nuh,
             inv_tau: self.k.inv_tau,
+            bg: self.k.nest.as_ref().map(|n| n.thbd.as_slice()),
         };
         build_heat(&self.k, &h, &mut self.ctd);
     }
@@ -581,6 +582,7 @@ impl Picard {
             nu: &f.nu,
             nuh: &f.nuh,
             inv_tau: 0.0,
+            bg: k.nest.as_ref().map(|n| n.thb.as_slice()),
         };
         build_heat(k, &h, &mut self.ct);
     }
@@ -886,7 +888,7 @@ impl Picard {
 
     /// One Picard iteration (reference `outer_step`).
     pub fn outer_step(&mut self) {
-        apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
+        self.apply_bc_all();
         let relax = self.relax_on();
         let t = Instant::now();
         if relax {
@@ -959,7 +961,7 @@ impl Picard {
     pub fn residuals(&mut self) -> Residuals {
         let shape = self.shape();
         let n = self.k.n3();
-        apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
+        self.apply_bc_all();
         self.build_all_mom();
         let mut mom_max = 0.0f64;
         let mut mom_sq = 0.0f64;
@@ -1031,6 +1033,25 @@ impl Picard {
         }
     }
 
+    /// Boundary condition of the whole state: type-2 faces of `u`, `v` (and, for a window, the
+    /// type-2 faces of `w` and `theta'`, `theta'_d` of the halo cells), as the game's `K_BC`.
+    pub fn apply_bc_all(&mut self) {
+        apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
+        self.apply_bc_nest();
+    }
+
+    fn apply_bc_nest(&mut self) {
+        if let Some(n) = &self.k.nest {
+            for &i in &n.b_w {
+                self.f.w[i] = n.ubw[i];
+            }
+            for &i in &n.b_cell {
+                self.f.th[i] = n.thb[i];
+                self.f.thd[i] = n.thbd[i];
+            }
+        }
+    }
+
     /// Cold start: background wind on type-1 faces, zero theta', 30 projection V-cycles,
     /// `p = 0` (reference `init_background`).
     pub fn init_background(&mut self) {
@@ -1062,6 +1083,7 @@ impl Picard {
             }
         }
         apply_bc(k, &mut f.u, &mut f.v);
+        self.apply_bc_nest();
         self.project(30, true);
         self.f.p.fill(0.0);
     }
@@ -1079,8 +1101,24 @@ impl Picard {
         f.th.copy_from_slice(&st.th);
         f.thd.copy_from_slice(&st.thd);
         f.p.copy_from_slice(&st.p);
-        apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
+        self.apply_bc_all();
         self.project(4, false);
+        Ok(())
+    }
+
+    /// Window start from the parent (W11 v7): `u, v, w, th, thd` from the snapshot, `p := 0`,
+    /// the boundary condition and `cycles` projection V-cycles without touching `p`.
+    pub fn init_parent(&mut self, st: &State, cycles: usize) -> Result<()> {
+        st.check_dims(&self.k)?;
+        let f = &mut self.f;
+        f.u.copy_from_slice(&st.u);
+        f.v.copy_from_slice(&st.v);
+        f.w.copy_from_slice(&st.w);
+        f.th.copy_from_slice(&st.th);
+        f.thd.copy_from_slice(&st.thd);
+        f.p.fill(0.0);
+        self.apply_bc_all();
+        self.project(cycles, false);
         Ok(())
     }
 
@@ -1098,7 +1136,7 @@ impl Picard {
 
     /// Final projection to near-exact divergence without changing `p` (`cycles` V-cycles).
     pub fn finalize(&mut self, cycles: usize) {
-        apply_bc(&self.k, &mut self.f.u, &mut self.f.v);
+        self.apply_bc_all();
         self.project(cycles, false);
     }
 
