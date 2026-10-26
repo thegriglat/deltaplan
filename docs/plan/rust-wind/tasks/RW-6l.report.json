@@ -1,0 +1,76 @@
+{
+  "status": "done",
+  "summary": "Механизмы A (моды Джексона-Ханта, синтез DCT-II, slab_at), B (пузырь срыва), D (слои Лапласа, красно-чёрный SOR) и H (через D, смесь mix) в dp_air::field::phase::{linear,bubble,layers,calm,mech}. Поля в точках совпали с AirPhaseCpu.mech побитно (ошибка 0), моды, слой A и слои D целиком - не хуже 1e-6 поэлементно.",
+  "commits": [
+    "bc4c7feda rust-wind RW-6l: механизмы A, B, D, H в Rust"
+  ],
+  "checks": [
+    {
+      "name": "phase_mech_test",
+      "value": "7 passed",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "exit 0",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "дамп воспроизводится побитно",
+      "pass": true
+    },
+    {
+      "name": "точки mech_at против дампа",
+      "value": "макс. ошибка 0e0; B 946 и D 7075 точек",
+      "pass": true
+    },
+    {
+      "name": "детерминизм 1 и 4 потока",
+      "value": "побитно",
+      "pass": true
+    }
+  ],
+  "not_done": [],
+  "questions": [],
+  "images": [],
+  "how_to_check": ".dpcli/dpcli accept RW-6l",
+  "uncertain": [
+    {
+      "where": "rust/dp-air/src/field/phase/prepare.rs",
+      "why": "Добавил в Prepared поле alpha (f64 без округления до f32): u_prof в GDScript читает p.alpha, а Prm.alpha округлён",
+      "checked": "сверка с дампом"
+    },
+    {
+      "where": "rust/dp-air/src/field/phase/layers.rs, calm.rs",
+      "why": "Градиенты слоя D и смесь mix округляются до f32 как Vector2/Vector3 GDScript (обычная, не double, сборка Godot)",
+      "checked": "совпадение с дампом"
+    },
+    {
+      "where": "rust/dp-air/src/field/phase/linear.rs",
+      "why": "DCT наивная как в GD (побитность важнее скорости); на больших сетках медленнее быстрого DCT, параллельно по высотам и строкам",
+      "checked": "быстрый вариант не пробовал"
+    },
+    {
+      "where": "rust/dp-air/tests/phase_mech.rs",
+      "why": "Пузырь B на фикстурах почти не действует, добавлен случай t_contract_env (угол огибающей 1 градус). Числа P10 про штиль (разброс, дрейф) требуют сборки по клеткам - RW-6m; H здесь - слияние весов H+D в поле D",
+      "checked": "оси фаз уже в phase_classifier"
+    }
+  ],
+  "dp_feedback": "godot --import в свежем профиле иногда виснет на 100% CPU (10+ мин) или падает segfault; в dump-скрипте добавил timeout 180 и двойной import. job wait не принимает id фоновых задач Bash.",
+  "extra": {
+    "dump_size": "2.4 МБ"
+  },
+  "t": "2026-10-26T06:10:05",
+  "by": "executor"
+}
