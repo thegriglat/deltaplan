@@ -93,7 +93,8 @@ pub struct Fallback {
 pub struct SolveOpts {
     /// Pool threads; `0` = all logical cores (`std::thread::available_parallelism`).
     pub threads: usize,
-    /// Iteration limit (the run stops exactly after this iteration).
+    /// Iteration limit in the game's count (without the cold-start `pre_steps`): the run stops
+    /// exactly after iteration `max_iters + pre_steps` (`Solved.iters` is the raw count).
     pub max_iters: usize,
     /// Multiplier of the three tolerances of the case criterion; `1.0` = as the reference.
     pub tol_scale: f64,

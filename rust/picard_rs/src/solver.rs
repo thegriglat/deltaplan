@@ -1158,7 +1158,9 @@ impl Picard {
                 res: None,
             });
         }
-        while it < run.max_iters && !all_frozen && !pre_cancel {
+        // The game's count: `max_outer` against `_iters`, which has no cold-start `pre_steps`.
+        let limit = run.max_iters + crit.pre_steps;
+        while it < limit && !all_frozen && !pre_cancel {
             let t = Instant::now();
             self.outer_step();
             iter_s += t.elapsed().as_secs_f64();
@@ -1191,7 +1193,7 @@ impl Picard {
                 stop = v;
                 break;
             }
-            if it >= run.max_iters {
+            if it >= limit {
                 break;
             }
             if it > crit.pre_steps && (it - crit.pre_steps).is_multiple_of(crit.check_every) {

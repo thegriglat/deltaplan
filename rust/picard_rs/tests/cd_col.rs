@@ -150,7 +150,7 @@ fn thresholds_count_like_the_game() {
         api::solve(
             &c,
             &SolveOpts {
-                max_iters: end,
+                max_iters: end - c.criterion.pre_steps,
                 tol_scale: 1e-9,
                 fallback,
                 ..base()
@@ -190,4 +190,27 @@ fn thresholds_count_like_the_game() {
     // history[i] is the check at pre + (i + 1) ce; the switch is after check 2 (game it = 2 ce),
     // the first different check is the 3rd.
     assert_eq!(first_diff, 2);
+}
+
+/// `max_iters` in the game's count too: with a cold-start `pre_steps = 3` the run stops after
+/// `max_iters + pre_steps` raw iterations, i.e. at the check where the game's `_iters` reaches
+/// `max_outer` (a multiple of `check_every`), not `pre_steps` earlier.
+#[test]
+fn max_iters_counts_like_the_game() {
+    let mut c = load("flat_wind");
+    let ce = c.criterion.check_every;
+    c.criterion.pre_steps = 3;
+    let r = api::solve(
+        &c,
+        &SolveOpts {
+            max_iters: 2 * ce,
+            tol_scale: 1e-9,
+            ..base()
+        },
+    )
+    .unwrap();
+    assert_eq!(r.stop, StopReason::MaxIters);
+    assert_eq!(r.iters, 3 + 2 * ce);
+    assert_eq!(r.history.len(), 2, "checks at game iterations ce and 2 ce");
+    assert_eq!(r.history.last().unwrap().it, 3 + 2 * ce);
 }

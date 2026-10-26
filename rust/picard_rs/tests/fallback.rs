@@ -157,7 +157,7 @@ fn omega_rollback_switches_after_omega_after() {
         let sw_raw = max_at_check(&c, 2);
         let end = max_at_check(&c, 6);
         let hard = |max_iters, fallback| SolveOpts {
-            max_iters,
+            max_iters: max_iters - c.criterion.pre_steps,
             tol_scale: 1e-9,
             fallback,
             ..base(2)
@@ -217,7 +217,7 @@ fn late_mean_and_nonconv_at_max_iters() {
     let n_mask = mask.iter().filter(|&&m| m != 0).count();
     let field = scaled(&plain, (0.9, 1.1, 0.5, 1.2, 0.7));
     let hard = |threads, nonconv: Option<NonConv>| SolveOpts {
-        max_iters: end,
+        max_iters: end - c.criterion.pre_steps,
         tol_scale: 1e-9,
         fallback: Some(fb(0, 0.5, late_from, nonconv)),
         ..base(threads)
@@ -349,7 +349,7 @@ fn late_mean_and_nonconv_at_max_iters() {
     let last = api::solve(
         &c,
         &SolveOpts {
-            max_iters: end,
+            max_iters: end - c.criterion.pre_steps,
             tol_scale: 1e-9,
             ..base(2)
         },
@@ -388,7 +388,7 @@ fn rollback_late_mean_and_freeze_threads() {
         api::solve(
             &c,
             &SolveOpts {
-                max_iters: end,
+                max_iters: end - c.criterion.pre_steps,
                 tol_scale: 1e-9,
                 freeze: Some(fz.clone()),
                 fallback: Some(fb(
