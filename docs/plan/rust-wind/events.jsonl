@@ -444,3 +444,7 @@
 {"t": "2026-10-27T04:12:06", "by": "coordinator", "task": null, "ev": "plan", "note": "план План переноса: замена «Удаление GDScript-расчёт…»"}
 {"t": "2026-10-27T04:12:06", "by": "coordinator", "task": null, "ev": "plan", "note": "план Тесты (TDD): замена «| T7 | **Одна граница, д…»"}
 {"t": "2026-10-27T04:12:06", "by": "coordinator", "task": null, "ev": "plan", "note": "план Тесты (TDD): замена «распределения вариометра…»"}
+{"t": "2026-10-27T04:12:31", "by": "coordinator", "task": "RW-3a", "ev": "note", "note": "Координатор 2026-10-27: контракт W9 → v2 (переключатель gd|rust убран). CONTRACTS в test_rust_wind_contracts.gd сверять с заголовками после task sync (сейчас W1 2, W2 2, W3 2, W4 3, W5 7, W9 2, W11 9).", "addendum": true}
+{"t": "2026-10-27T04:14:14", "by": "coordinator", "task": null, "ev": "plan", "note": "план Тесты (TDD): замена «| T7 | **Одна граница** …»"}
+{"t": "2026-10-27T04:14:14", "by": "coordinator", "task": null, "ev": "plan", "note": "план Тесты (TDD): замена «| T9 | **Полёт** | `test…»"}
+{"t": "2026-10-27T04:14:15", "by": "coordinator", "task": null, "ev": "plan", "note": "план План переноса: замена «Сверка — эталоны RW-1/RW…»"}
