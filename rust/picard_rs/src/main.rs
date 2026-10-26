@@ -105,6 +105,7 @@ fn solve_case(c: &Case, threads: usize, out: Option<PathBuf>, a: &SolveArgs) -> 
             time_budget: a.time_budget.map(Duration::from_secs_f64),
             init: a.init.as_deref().map(State::read).transpose()?,
             snapshot_at: a.snap_at.clone(),
+            ..SolveOpts::default()
         },
     )?;
     let (o, dev, t) = (&r.out, &r.dev, &r.timing);

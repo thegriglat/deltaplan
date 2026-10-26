@@ -4,6 +4,10 @@
 //! rayon pool is never configured or used for the solve, so concurrent calls with different
 //! thread counts are independent. The result does not depend on the thread count.
 //!
+//! W11 (`docs/contracts/rust-wind/solver.md`): `SolveOpts.freeze` (frozen columns, as the game's
+//! `K_FREEZE`/`K_RMASK`/`K_FIXROW`) and `SolveOpts.cancel`, stop reasons `AllFrozen` and
+//! `Cancelled`. Without them the call is bit-identical to R6 v3.
+//!
 //! R6 v3: a case without a reference (`sol_*`, `solution`, `history`) is solved as usual,
 //! `Solved.dev` is `None`.
 //!
@@ -25,12 +29,36 @@ use crate::report::{Dev, Timing, deviation};
 use crate::solver::{Check, Picard, Residuals, RunLimits, SolveOut};
 use crate::state::State;
 use anyhow::{Result, bail};
+use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use std::time::{Duration, Instant};
 
 pub use crate::solver::StopReason;
 
 /// Default iteration limit (as the CLI).
 pub const DEFAULT_MAX_ITERS: usize = 2000;
+
+/// Values of the frozen columns (layout of [`State`], R4 v2: halo arrays `(nzh, nyh, nxh)`).
+#[derive(Clone, Debug)]
+pub struct FrozenField {
+    pub u: Vec<f32>,
+    pub v: Vec<f32>,
+    pub w: Vec<f32>,
+    pub th: Vec<f32>,
+    pub thd: Vec<f32>,
+}
+
+/// Frozen columns (W11). The frozen columns hold the values of `field` (none: those of the
+/// start field after `init`/background, as the game's snapshot) and the iterations do not
+/// change them; residuals and the criterion are over the free columns only. `nu`, `nuh` of the
+/// frozen columns stay at the start values.
+#[derive(Clone, Debug)]
+pub struct Freeze {
+    /// `ny * nx` columns without halo, row-major in `y` of the case; non-zero = frozen.
+    pub mask: Vec<u8>,
+    /// Values of the frozen columns; `None` = the start field.
+    pub field: Option<FrozenField>,
+}
 
 /// Options of one [`solve`] call.
 #[derive(Clone, Debug)]
@@ -49,6 +77,12 @@ pub struct SolveOpts {
     /// Strictly ascending iteration numbers after which a finalized snapshot is taken
     /// (numbers above the iterations actually done are not taken).
     pub snapshot_at: Vec<usize>,
+    /// W11: frozen columns; `None` (or an all-zero mask) = the plain iteration.
+    pub freeze: Option<Freeze>,
+    /// W11: set to `true` (from any thread) to stop; checked after every iteration and before
+    /// the start. The run ends no later than the end of the current iteration with
+    /// [`StopReason::Cancelled`] and delivers the current field (finalized).
+    pub cancel: Option<Arc<AtomicBool>>,
 }
 
 impl Default for SolveOpts {
@@ -60,6 +94,8 @@ impl Default for SolveOpts {
             time_budget: None,
             init: None,
             snapshot_at: Vec::new(),
+            freeze: None,
+            cancel: None,
         }
     }
 }
@@ -89,6 +125,12 @@ pub struct Solved {
     pub picard: Picard,
     /// The pool of this call (for further work on `picard` with the same threads).
     pub pool: rayon::ThreadPool,
+}
+
+fn cancelled(opts: &SolveOpts) -> bool {
+    opts.cancel
+        .as_ref()
+        .is_some_and(|c| c.load(std::sync::atomic::Ordering::Relaxed))
 }
 
 /// Resolve the thread count: `0` = all logical cores.
@@ -143,12 +185,20 @@ pub fn solve(case: &Case, opts: &SolveOpts) -> Result<Solved> {
     crit.tol_div_rms *= opts.tol_scale;
     let (mut o, dev, setup_s, s) = pl.install(|| -> Result<_> {
         let mut s = Picard::new(Consts::from_case(case)?);
+        s.cancel.clone_from(&opts.cancel);
+        if let Some(fr) = &opts.freeze {
+            // Validate before the (long) start; the columns are declared after it.
+            Picard::new_check_freeze(&s.k, fr)?;
+        }
         if let Some(st) = &opts.init {
             s.init_warm(st)?;
             // The game counts checks from the start of a warm run (no graph-capture step).
             crit.pre_steps = 0;
-        } else {
+        } else if !cancelled(opts) {
             s.init_background();
+        }
+        if let Some(fr) = &opts.freeze {
+            s.set_freeze(&fr.mask, fr.field.as_ref())?;
         }
         let setup_s = t0.elapsed().as_secs_f64();
         let run = RunLimits {

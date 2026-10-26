@@ -2,14 +2,17 @@
 //! criterion, finalize — reference `Air.outer_step`, `project`, `residuals`, `solve`,
 //! `finalize` (`air.py`) with the second-order advection correction off.
 
+use crate::api::FrozenField;
 use crate::case::{Consts, Criterion};
 use crate::kernels::{HeatIn, MomIn, Vel, apply_bc, build_all_mom, build_heat, kloc};
 use crate::lines::{RowBuf, Scratch, resid, sweep};
 use crate::mg::Mg;
 use crate::state::State;
-use crate::util::{det_sum, par_max};
+use crate::util::{Row, det_sum, par_max};
 use anyhow::Result;
 use rayon::prelude::*;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 /// Prognostic fields (halo arrays) and the two eddy viscosities.
@@ -56,6 +59,10 @@ pub enum StopReason {
     TimeBudget,
     /// Non-finite residuals or momentum residual above 50.
     Diverged,
+    /// W11: every column is frozen, nothing to solve (`iters = 0`).
+    AllFrozen,
+    /// W11: the cancel flag was set; the current field is delivered.
+    Cancelled,
 }
 
 impl StopReason {
@@ -66,14 +73,16 @@ impl StopReason {
             Self::MaxIters => "max_iters",
             Self::TimeBudget => "time_budget",
             Self::Diverged => "diverged",
+            Self::AllFrozen => "all_frozen",
+            Self::Cancelled => "cancelled",
         }
     }
 
     /// Legacy R2 `status`: `ok` | `max` | `diverged`.
     pub fn status(self) -> &'static str {
         match self {
-            Self::Converged => "ok",
-            Self::MaxIters | Self::TimeBudget => "max",
+            Self::Converged | Self::AllFrozen => "ok",
+            Self::MaxIters | Self::TimeBudget | Self::Cancelled => "max",
             Self::Diverged => "diverged",
         }
     }
@@ -119,6 +128,109 @@ pub struct SolveOut {
     pub snapshots: Vec<RawSnapshot>,
 }
 
+/// Frozen-column data of one run (W11; the game's `K_FREEZE`/`K_RMASK`/`K_FIXROW` state).
+///
+/// Column maps are `nyh * nxh` (halo columns are never frozen). A `u` face is frozen when its
+/// own column or the column on its `-x` side is frozen, a `v` face likewise in `y`
+/// (`air_picard.glsl:frozen_at`); cell centres and `w` faces follow their own column.
+pub struct FreezeCtx {
+    /// Frozen map of `u` faces, `v` faces, centres/`w` faces.
+    fu: Vec<u8>,
+    fv: Vec<u8>,
+    fc: Vec<u8>,
+    /// Frozen values `u, v, w, th, thd, nu, nuh` (halo layout).
+    xf: [Vec<f32>; 7],
+    /// Unknowns of `u, v, w` and fluid cells (`theta'`) outside the frozen columns.
+    n_unk: [f64; 4],
+    /// Fluid cells outside the frozen columns.
+    n_free: f64,
+    /// Fluid weights of the interior layout `(nz, ny, nx)`, zero in the frozen columns.
+    fluid_free: Vec<f32>,
+}
+
+impl FreezeCtx {
+    /// Frozen map of the unknown type `comp` (0 `u`, 1 `v`, else centre).
+    fn cols(&self, comp: usize) -> &[u8] {
+        match comp {
+            0 => &self.fu,
+            1 => &self.fv,
+            _ => &self.fc,
+        }
+    }
+
+    /// Fraction of frozen columns of the case (halo excluded).
+    pub fn frozen_frac(&self, k: &Consts) -> f64 {
+        let mut n = 0usize;
+        for j in 1..=k.ny {
+            n += self.fc[j * k.nxh + 1..j * k.nxh + 1 + k.nx]
+                .iter()
+                .filter(|&&c| c != 0)
+                .count();
+        }
+        n as f64 / (k.nx * k.ny).max(1) as f64
+    }
+
+    /// No unknown is left: every fluid column is frozen.
+    pub fn all_frozen(&self) -> bool {
+        self.n_free == 0.0
+    }
+}
+
+/// `x[t] <- xf[t]` in the frozen points (one task per halo row).
+fn freeze_copy(x: &mut [f32], xf: &[f32], cols: &[u8], (nxh, nyh): (usize, usize)) {
+    x.par_chunks_mut(nxh)
+        .zip(xf.par_chunks(nxh))
+        .enumerate()
+        .for_each(|(r, (x, f))| {
+            let c = &cols[(r % nyh) * nxh..][..nxh];
+            for ((x, &f), &c) in x.iter_mut().zip(f).zip(c) {
+                if c != 0 {
+                    *x = f;
+                }
+            }
+        });
+}
+
+/// Template rows of the frozen points become the identity `x = xf` (`K_FIXROW`).
+fn freeze_fixrow(rows: &mut [Row], xf: &[f32], cols: &[u8], (nxh, nyh): (usize, usize)) {
+    rows.par_chunks_mut(nxh)
+        .zip(xf.par_chunks(nxh))
+        .enumerate()
+        .for_each(|(r, (rows, f))| {
+            let c = &cols[(r % nyh) * nxh..][..nxh];
+            for ((row, &f), &c) in rows.iter_mut().zip(f).zip(c) {
+                if c != 0 {
+                    *row = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, f];
+                }
+            }
+        });
+}
+
+/// Residual of the frozen points to zero (`K_RMASK`, halo layout).
+fn freeze_rmask(r: &mut [f32], cols: &[u8], (nxh, nyh): (usize, usize)) {
+    r.par_chunks_mut(nxh).enumerate().for_each(|(i, r)| {
+        let c = &cols[(i % nyh) * nxh..][..nxh];
+        for (r, &c) in r.iter_mut().zip(c) {
+            if c != 0 {
+                *r = 0.0;
+            }
+        }
+    });
+}
+
+/// Values of the interior layout `(nz, ny, nx)` of the frozen columns to zero (`K_RMASK`, kind 3).
+fn freeze_imask(d: &mut [f32], fc: &[u8], k: &Consts) {
+    let (nx, ny, nxh) = (k.nx, k.ny, k.nxh);
+    d.par_chunks_mut(nx).enumerate().for_each(|(r, d)| {
+        let c = &fc[(r % ny + 1) * nxh + 1..][..nx];
+        for (d, &c) in d.iter_mut().zip(c) {
+            if c != 0 {
+                *d = 0.0;
+            }
+        }
+    });
+}
+
 /// The iteration: constants, fields, multigrid and work buffers.
 pub struct Picard {
     pub k: Consts,
@@ -137,6 +249,10 @@ pub struct Picard {
     pub sc: Scratch,
     /// Accumulated seconds of `outer_step` phases `[mom, heat, proj, kupd]` (main thread timers).
     pub phase: [f64; 4],
+    /// Frozen columns (W11); `None` = the plain R6 v3 iteration.
+    pub freeze: Option<FreezeCtx>,
+    /// Cancel flag (W11), read after every iteration.
+    pub cancel: Option<Arc<AtomicBool>>,
 }
 
 /// Interior (no halo) copy of a halo array, layout `(nz, ny, nx)`.
@@ -190,6 +306,8 @@ impl Picard {
             fluid_int: interior(&k, &k.fluid),
             sc: Scratch::new(n),
             phase: [0.0; 4],
+            freeze: None,
+            cancel: None,
             k,
         }
     }
@@ -228,14 +346,34 @@ impl Picard {
     /// All passes are row-wise in the rayon pool; the mean-free `phi` is written only into the
     /// interior of `pfull` (its halo cells are zero from allocation and never written).
     pub fn project(&mut self, cycles: usize, update_p: bool) {
+        self.project_impl(cycles, update_p, false);
+    }
+
+    /// [`Self::project`]; `masked` (W11, only with frozen columns): the divergence of the
+    /// frozen columns does not enter the right-hand side and the compatibility mean is over the
+    /// free fluid cells (`_prog_project(masked)` of the game). The correction `phi` is still
+    /// applied everywhere.
+    fn project_impl(&mut self, cycles: usize, update_p: bool, masked: bool) {
         let k = &self.k;
         let nx = k.nx;
         Self::divergence(k, &self.f.u, &self.f.v, &self.f.w, &mut self.div);
         let fi = &self.fluid_int;
-        let mean = (det_sum(self.div.len(), |q| f64::from(self.div[q])) / k.n_fluid) as f32;
+        let (mean, wr) = match self.freeze.as_ref().filter(|_| masked) {
+            Some(z) => {
+                freeze_imask(&mut self.div, &z.fc, k);
+                let div = &self.div;
+                let m = det_sum(div.len(), |q| f64::from(div[q])) / z.n_free.max(1.0);
+                (m as f32, &z.fluid_free)
+            }
+            None => (
+                (det_sum(self.div.len(), |q| f64::from(self.div[q])) / k.n_fluid) as f32,
+                fi,
+            ),
+        };
         // rhs = div - mean * fluid goes straight into the finest-level rows (no pass over `div`),
-        // and phi is zeroed in the same pass.
-        self.mg.set_rhs_shifted_zero(&self.div, mean, fi);
+        // and phi is zeroed in the same pass (masked: the weights are zero in the frozen
+        // columns, so is the right-hand side there).
+        self.mg.set_rhs_shifted_zero(&self.div, mean, wr);
         for _ in 0..cycles {
             self.mg.vcycle();
         }
@@ -357,6 +495,149 @@ impl Picard {
         build_heat(k, &h, &mut self.ct);
     }
 
+    /// Frozen points of the momentum templates become the identity `x = xf` (`K_FIXROW`).
+    fn fix_mom_rows(&mut self) {
+        if let Some(z) = &self.freeze {
+            let hd = (self.k.nxh, self.k.nyh);
+            freeze_fixrow(&mut self.cu, &z.xf[0], &z.fu, hd);
+            freeze_fixrow(&mut self.cv, &z.xf[1], &z.fv, hd);
+            freeze_fixrow(&mut self.cw, &z.xf[2], &z.fc, hd);
+        }
+    }
+
+    /// Frozen points of `u, v, w, theta', theta'_d, nu, nuh` take the frozen values
+    /// (`_rec_freeze`: after every iteration, and for an all-frozen run before `finalize`).
+    pub fn freeze_apply(&mut self) {
+        let Some(z) = &self.freeze else { return };
+        let hd = (self.k.nxh, self.k.nyh);
+        let f = &mut self.f;
+        freeze_copy(&mut f.u, &z.xf[0], &z.fu, hd);
+        freeze_copy(&mut f.v, &z.xf[1], &z.fv, hd);
+        freeze_copy(&mut f.w, &z.xf[2], &z.fc, hd);
+        freeze_copy(&mut f.th, &z.xf[3], &z.fc, hd);
+        freeze_copy(&mut f.thd, &z.xf[4], &z.fc, hd);
+        freeze_copy(&mut f.nu, &z.xf[5], &z.fc, hd);
+        freeze_copy(&mut f.nuh, &z.xf[6], &z.fc, hd);
+    }
+
+    /// Lengths of a [`crate::api::Freeze`] against the grid of `k` (an error, never a panic).
+    pub fn new_check_freeze(k: &Consts, fr: &crate::api::Freeze) -> Result<()> {
+        Self::new_check_freeze_parts(k, &fr.mask, fr.field.as_ref())
+    }
+
+    fn new_check_freeze_parts(k: &Consts, mask: &[u8], field: Option<&FrozenField>) -> Result<()> {
+        let (nx, ny) = (k.nx, k.ny);
+        if mask.len() != nx * ny {
+            anyhow::bail!(
+                "freeze.mask has {} columns, the case has ny*nx = {}",
+                mask.len(),
+                nx * ny
+            );
+        }
+        if let Some(fl) = field {
+            for (nm, a) in [
+                ("u", &fl.u),
+                ("v", &fl.v),
+                ("w", &fl.w),
+                ("th", &fl.th),
+                ("thd", &fl.thd),
+            ] {
+                if a.len() != k.n3() {
+                    anyhow::bail!(
+                        "freeze.field.{nm} has {} values, the grid with halo has {}",
+                        a.len(),
+                        k.n3()
+                    );
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// Declares frozen columns (W11); call after the start (`init_background`/`init_warm`):
+    /// channels `field` does not give, and `nu`, `nuh`, are taken from the current fields
+    /// (the game's `fsnap`). `mask` is `ny * nx` without halo (halo columns are not frozen);
+    /// an all-zero mask leaves the iteration untouched (bitwise the plain one).
+    pub fn set_freeze(&mut self, mask: &[u8], field: Option<&FrozenField>) -> Result<()> {
+        Self::new_check_freeze_parts(&self.k, mask, field)?;
+        let k = &self.k;
+        let (nxh, nyh, nx, ny) = (k.nxh, k.nyh, k.nx, k.ny);
+        self.freeze = None;
+        if mask.iter().all(|&m| m == 0) {
+            return Ok(());
+        }
+        let mut fc = vec![0u8; nxh * nyh];
+        for j in 1..=ny {
+            for i in 1..=nx {
+                fc[j * nxh + i] = u8::from(mask[(j - 1) * nx + i - 1] != 0);
+            }
+        }
+        let (mut fu, mut fv) = (fc.clone(), fc.clone());
+        for j in 0..nyh {
+            for i in 0..nxh {
+                let q = j * nxh + i;
+                if i > 0 {
+                    fu[q] |= fc[q - 1];
+                }
+                if j > 0 {
+                    fv[q] |= fc[q - nxh];
+                }
+            }
+        }
+        let cur = &self.f;
+        let own = |a: &Vec<f32>, g: Option<&Vec<f32>>| g.unwrap_or(a).clone();
+        let xf = [
+            own(&cur.u, field.map(|f| &f.u)),
+            own(&cur.v, field.map(|f| &f.v)),
+            own(&cur.w, field.map(|f| &f.w)),
+            own(&cur.th, field.map(|f| &f.th)),
+            own(&cur.thd, field.map(|f| &f.thd)),
+            cur.nu.clone(),
+            cur.nuh.clone(),
+        ];
+        // Counts are sums of 0/1 weights: exact in f64 in any order.
+        let count = |w: &[f32], cols: &[u8]| -> f64 {
+            w.par_chunks(nxh)
+                .enumerate()
+                .map(|(r, w)| {
+                    let c = &cols[(r % nyh) * nxh..][..nxh];
+                    w.iter()
+                        .zip(c)
+                        .filter(|&(_, &c)| c == 0)
+                        .map(|(&w, _)| f64::from(w))
+                        .sum::<f64>()
+                })
+                .collect::<Vec<f64>>()
+                .iter()
+                .sum()
+        };
+        let n_unk = [
+            count(&k.mu[0], &fu),
+            count(&k.mu[1], &fv),
+            count(&k.mu[2], &fc),
+            count(&k.fluid, &fc),
+        ];
+        let mut fluid_free = self.fluid_int.clone();
+        freeze_imask(&mut fluid_free, &fc, k);
+        self.freeze = Some(FreezeCtx {
+            n_free: n_unk[3],
+            fu,
+            fv,
+            fc,
+            xf,
+            n_unk,
+            fluid_free,
+        });
+        Ok(())
+    }
+
+    /// True once the cancel flag is set.
+    fn cancelled(&self) -> bool {
+        self.cancel
+            .as_ref()
+            .is_some_and(|c| c.load(Ordering::Relaxed))
+    }
+
     /// Momentum step: `mom_sweeps` times (u, v, w) line sweeps in (z, x, y).
     pub fn mom_step(&mut self) {
         let shape = self.shape();
@@ -373,11 +654,19 @@ impl Picard {
         let shape = self.shape();
         if !self.k.no_thd {
             self.build_heat_d();
+            if let Some(z) = &self.freeze {
+                let hd = (self.k.nxh, self.k.nyh);
+                freeze_fixrow(&mut self.ctd, &z.xf[4], &z.fc, hd);
+            }
             for _ in 0..self.k.heat_sweeps {
                 sweep(&self.ctd, &mut self.f.thd, &mut self.sc, shape, &[2, 0, 1]);
             }
         }
         self.build_heat_t();
+        if let Some(z) = &self.freeze {
+            let hd = (self.k.nxh, self.k.nyh);
+            freeze_fixrow(&mut self.ct, &z.xf[3], &z.fc, hd);
+        }
         for _ in 0..self.k.heat_sweeps {
             sweep(&self.ct, &mut self.f.th, &mut self.sc, shape, &[2, 0, 1]);
         }
@@ -404,13 +693,15 @@ impl Picard {
         let t_k = t.elapsed().as_secs_f64();
         let t = Instant::now();
         self.build_all_mom();
+        self.fix_mom_rows();
         self.mom_step();
         let t_m = t.elapsed().as_secs_f64();
         let t = Instant::now();
-        self.project(self.k.vcycles, true);
+        self.project_impl(self.k.vcycles, true, self.freeze.is_some());
         let t_p = t.elapsed().as_secs_f64();
         let t = Instant::now();
         self.heat_step();
+        self.freeze_apply();
         let t_h = t.elapsed().as_secs_f64();
         for (a, d) in self.phase.iter_mut().zip([t_m, t_h, t_p, t_k]) {
             *a += d;
@@ -432,27 +723,55 @@ impl Picard {
                 _ => (&self.cw, &self.f.w),
             };
             resid(rows, x, shape, &mut self.rr);
+            if let Some(z) = &self.freeze {
+                freeze_rmask(&mut self.rr, z.cols(comp), (self.k.nxh, self.k.nyh));
+            }
             let m = &self.k.mu[comp];
             let rr = &self.rr;
             let mx = par_max(n, |q| f64::from((rr[q] * m[q]).abs()));
             let s2 = det_sum(n, |q| f64::from(rr[q] * m[q]).powi(2));
-            let cnt = det_sum(n, |q| f64::from(m[q]));
+            let cnt = match &self.freeze {
+                Some(z) => z.n_unk[comp].max(1.0),
+                None => det_sum(n, |q| f64::from(m[q])),
+            };
             mom_max = if mx.is_nan() { mx } else { mom_max.max(mx) };
             mom_sq += s2 / cnt;
         }
         self.build_heat_d();
         self.build_heat_t();
-        let nf = self.k.n_fluid;
+        let nf = self
+            .freeze
+            .as_ref()
+            .map_or(self.k.n_fluid, |z| z.n_free.max(1.0));
         let fl = &self.k.fluid;
+        let hd = (self.k.nxh, self.k.nyh);
         resid(&self.ct, &self.f.th, shape, &mut self.rr);
+        if let Some(z) = &self.freeze {
+            freeze_rmask(&mut self.rr, &z.fc, hd);
+        }
         let rr = &self.rr;
         let th_max = par_max(n, |q| f64::from((rr[q] * fl[q]).abs()));
         let th_rms = (det_sum(n, |q| f64::from(rr[q] * fl[q]).powi(2)) / nf).sqrt();
         resid(&self.ctd, &self.f.thd, shape, &mut self.rr);
+        if let Some(z) = &self.freeze {
+            freeze_rmask(&mut self.rr, &z.fc, hd);
+        }
         let rr = &self.rr;
         let thd_max = par_max(n, |q| f64::from((rr[q] * fl[q]).abs()));
         let thd_rms = (det_sum(n, |q| f64::from(rr[q] * fl[q]).powi(2)) / nf).sqrt();
         Self::divergence(&self.k, &self.f.u, &self.f.v, &self.f.w, &mut self.div);
+        if let Some(z) = &self.freeze {
+            // Free columns only, minus their mean: the constant compatibility part of the
+            // frozen field's flux through shared faces is not a solution error.
+            freeze_imask(&mut self.div, &z.fc, &self.k);
+            let d = &self.div;
+            let mean = (det_sum(d.len(), |q| f64::from(d[q])) / nf) as f32;
+            let fl = &z.fluid_free;
+            self.div
+                .par_iter_mut()
+                .zip(fl.par_iter())
+                .for_each(|(d, &w)| *d -= mean * w);
+        }
         let d = &self.div;
         let div_rms = (det_sum(d.len(), |q| f64::from(d[q]).powi(2)) / nf).sqrt();
         Residuals {
@@ -564,9 +883,21 @@ impl Picard {
         if self.k.no_thd {
             self.f.thd.fill(0.0);
         }
+        // Nothing to solve: the frozen field (the game goes straight to `final`).
+        let all_frozen = self.freeze.as_ref().is_some_and(FreezeCtx::all_frozen);
+        if all_frozen {
+            self.freeze_apply();
+        }
+        let pre_cancel = !all_frozen && self.cancelled();
         let mut hist: Vec<Check> = Vec::new();
         let mut snaps: Vec<RawSnapshot> = Vec::new();
-        let mut stop = StopReason::MaxIters;
+        let mut stop = if all_frozen {
+            StopReason::AllFrozen
+        } else if pre_cancel {
+            StopReason::Cancelled
+        } else {
+            StopReason::MaxIters
+        };
         let (mut iter_s, mut check_s) = (0.0, 0.0);
         let ph0 = self.phase;
         let t_start = Instant::now();
@@ -579,7 +910,7 @@ impl Picard {
                 res: None,
             });
         }
-        while it < run.max_iters {
+        while it < run.max_iters && !all_frozen && !pre_cancel {
             let t = Instant::now();
             self.outer_step();
             iter_s += t.elapsed().as_secs_f64();
@@ -613,6 +944,10 @@ impl Picard {
                 break;
             }
             if it >= run.max_iters {
+                break;
+            }
+            if self.cancelled() {
+                stop = StopReason::Cancelled;
                 break;
             }
             if run.time_budget.is_some_and(|b| t_start.elapsed() >= b) {

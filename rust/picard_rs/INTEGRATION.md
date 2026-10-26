@@ -45,6 +45,8 @@ related: ["rust/picard_rs/README.md", "docs/contracts/picard-rs.md", "docs/contr
 | `time_budget` | `Option<Duration>` (None) | реальное время итераций, считается от начала итераций (подготовка не входит); проверяется после каждой итерации — когда исчерпан, остановка после неё и выдача текущего поля. Предел точный до одной итерации (≈ 60–90 мс на 8 потоках, 400 м), но подготовка и `finalize` идут сверх бюджета |
 | `init` | `Option<State>` (None) | тёплый старт от этого снимка; `None` — холодный (фон + 30 V-циклов) |
 | `snapshot_at` | `Vec<usize>` (пусто) | строго возрастающие номера итераций, после которых брать `finalize`-снимок в `Solved.snapshots` (номера больше сделанных итераций не берутся). Не строго возрастающий список — ошибка. Для игры не нужно |
+| `freeze` | `Option<Freeze>` (None) | W11: заморозка колонн, см. «Заморозка колонн и отмена (W11)». `None` и маска из нулей — побитно R6 v3 |
+| `cancel` | `Option<Arc<AtomicBool>>` (None) | W11: флаг отмены, см. там же |
 
 ### Solved (результат)
 
@@ -62,8 +64,8 @@ related: ["rust/picard_rs/README.md", "docs/contracts/picard-rs.md", "docs/contr
 | `picard`, `pool` | `Picard`, `rayon::ThreadPool` | решатель с полями (`picard.f`) и пул вызова. Держат память; в игре отбросить после копирования `state` |
 
 `StopReason` (`solver.rs`): `Converged` — критерий выполнен (все три невязки `rms` меньше допуска × `tol_scale`); `MaxIters`; `TimeBudget`;
-`Diverged` — невязки не конечны или `mom_max > 50`. При совпадении на одной итерации приоритет: Diverged, Converged, MaxIters, TimeBudget.
-`.as_str()` → `"converged" | "max_iters" | "time_budget" | "diverged"`.
+`Diverged` — невязки не конечны или `mom_max > 50`; `AllFrozen` (W11) — заморожены все колонны, итераций нет; `Cancelled` (W11) — взведён `cancel`. При совпадении на одной итерации приоритет: Diverged, Converged, MaxIters, TimeBudget.
+`.as_str()` → `"converged" | "max_iters" | "time_budget" | "diverged" | "all_frozen" | "cancelled"`.
 
 `Residuals` (все `f64`): `mom_max`, `mom_rms`, `th_max`, `th_rms`, `thd_rms`, `div_rms`. Критерий — `mom_rms`, `th_rms`, `div_rms`.
 Первая проверка — после `check_every` (10) итераций (у холодного случая Онгудая плюс 1 предварительный шаг: `it` = 11, 21, …; у тёплого — 10, 20, …).
@@ -153,6 +155,33 @@ fixed_u, fixed_v, b_u, b_v`; рельеф `hc` — `nx·ny` без ореола.
 ≈ 20 итераций (`out/residual/PR-8/README.md`). Пара mech h1200/h1215 вырождена (PR-3). Окончательное время тёплого старта и цепочка T→T+15→T+30 — в итогах PR-w
 (см. «Числа»). Если снимок уже сошёлся на тех же условиях, тёплый вызов остановится на первой проверке (проверено на `flat_wind`: `iters=10`).
 
+## Заморозка колонн и отмена (W11)
+
+`SolveOpts.freeze = Some(Freeze { mask, field })`: `mask` — `ny·nx` без ореола (строка по `y` сетки случая, не ноль — колонна заморожена), `field: Option<FrozenField>` —
+`u, v, w, th, thd` в раскладке `State` (с ореолом). Нет `field` — значения старта (после фона/тёплого старта, как `fsnap` игры); `nu`, `nuh` замороженных точек — всегда
+значения старта. Неверная длина — `Err` (текст называет `mask` или канал). Построчное соответствие игре (`air_picard_job.gd`, `air_picard.glsl`):
+
+| Игра | Rust (`solver.rs`) |
+|---|---|
+| `frozen_at`: грань `u` заморожена, если заморожена колонна `i` или `i−1`; `v` — `j` или `j−1`; центр и грань `w` — своя колонна; ореол не заморожен | `FreezeCtx.fu/fv/fc` (карты `nyh·nxh`) |
+| `K_FREEZE` после каждой итерации: `u, v, w, th, thd, nu, nuh` ← поле | `Picard::freeze_apply` в конце `outer_step` (после шага тепла) |
+| `K_FIXROW`: строки шаблонов `Cu, Cv, Cw` и тепла замороженных точек — тождество `x = xf` | `freeze_fixrow` после `build_all_mom`, `build_heat_d`, `build_heat_t` |
+| `K_RMASK` на невязках `u, v, w, θ′, θ′_d` | `freeze_rmask` после `resid` в `residuals()` |
+| `_count_free`: неизвестные по незамороженным | `n_unk[comp]` = Σ `mu[comp]` по незамороженным точкам, `n_free` = Σ `fluid` (счёт игры по `col_kf` даёт то же число при `mu` = «воздух выше `kf`»; сверка с GPU не делалась — нет GPU в тестах) |
+| проекция итерации с маской: `∇·u` замороженных клеток в `rhs` не идёт, среднее — по `n_free`, `rhs` снова под маску | `project_impl(masked)`: `div` обнуляется в замороженных колоннах, вес `fluid_free` |
+| проверка: `∇·u` только незамороженных за вычетом их среднего (`_rec_div_stats(masked)`) | конец `residuals()`: тот же порядок, `div_rms = √(Σ/n_free)` (T4) |
+| `finalize` (`final`) — без маски, сшивка всего поля | `finalize` без изменений |
+| `_all_frozen` (`n_fluid_free == 0`): `INIT`, затем сразу `final`, перед ним `_rec_freeze` | `StopReason::AllFrozen`, `iters = 0`, поле = заморозка + `finalize` |
+
+Поэтому: `th` и `thd` замороженных колонн в `Solved.state` побитно равны `field`, а `u, v, w` — только **до** `finalize` (он без маски сшивает поле, как в игре; тесты сверяют
+через `Picard::set_freeze` + `Picard::solve` без `finalize`). Старт (холодный `init_background` и тёплый) идёт без маски, поле заморозки на старт не накладывается:
+первая итерация видит его через `fixrow`. Состояние `p` не замораживается.
+
+`SolveOpts.cancel`: `Arc<AtomicBool>`, читается (Relaxed) после каждой итерации и в `Picard::solve` до первой; `true` → остановка не позже конца текущей итерации,
+`stop = Cancelled` (`status = "max"`), выдаётся текущее поле с `finalize`, `history.last()` на `iters`. Взведён до вызова: холодный старт (30 V-циклов) пропускается,
+итераций 0, поле — начальное (нули, конечное); тёплый старт делается (дёшев). Прерывать внутри итерации и `finalize` нельзя. Приоритет при совпадении на одной итерации:
+Diverged, Converged, MaxIters, Cancelled, TimeBudget. Запасные правила (ω-откат, `late_mean`, `nonconv`) — W11 v2 (RW-6h), здесь нет.
+
 ## Нити и вызов в фоне
 
 - `solve` **блокирует**. Звать из своего потока Rust (`std::thread::spawn`), не из главного потока Godot и не из `_process`. Внутри вызова работает свой
@@ -166,7 +195,7 @@ fixed_u, fixed_v, b_u, b_v`; рельеф `hc` — `nx·ny` без ореола.
   «Проба gdext на Godot 4.7.2» (`.dpcli/dpcli docs section docs/plan/rust-ext.md "Проба gdext"`). Rayon внутри gdext-библиотеки пробой **не проверялся** (не проверено).
 - `time_budget` — для фонового пересчёта: поле выдаётся по истечении бюджета (`stop = TimeBudget`), невязки в `residuals`; годность неполностью сошедшегося поля
   решает порог `tol_scale` (ниже) — бюджет отдаёт то, что есть.
-- Отменить идущий `solve` нельзя (флага отмены нет): ограничивать `max_iters` / `time_budget`. Паники: `panic = "abort"` в release-профиле — паника убивает процесс
+- Отмена — `SolveOpts.cancel` (W11, ниже); дополнительно можно ограничивать `max_iters` / `time_budget`. Паники: `panic = "abort"` в release-профиле — паника убивает процесс
   (профиль применяет корневой крейт сборки, не зависимость; в gdext-проекте он задаётся в его `Cargo.toml`).
 - Память: на Онгудае 400 м (98×98×52 ≈ 0,5 млн клеток с ореолом, 2 МБ на массив) `State` ≈ 16 МБ (8 массивов), столько же — рабочие поля `Picard` внутри `Solved`.
 
