@@ -21,7 +21,9 @@
 //! (W11 v7: `Case.nest`), и стартом: от родителя — `SolveOpts { init: Some(state),
 //! init_cycles: Some(30) }`, тёплый сдвиг — `init: Some(state)` без `init_cycles` (4 V-цикла).
 //!
-//! ## Внутренний интерфейс для RW-6o
+//! ## Внутренний интерфейс (RW-6o: клипмап `clipmap.rs` зовёт [`window_pair_inputs`])
+//! Пара окна целиком — [`window_pair_inputs`]: плоскости mech/heat, граница каждого решения от
+//! своего родителя, старт «родитель» или тёплый, `Case` решателя. По шагам то же самое:
 //! ```text
 //! let dom   = window_domain(100.0, cx, cy, N_WINDOW);
 //! let fw    = weather_core::field_weather(cond, place, &wc, configs, climate, hour, &dom)?;
@@ -575,11 +577,7 @@ pub fn warm_from_previous(
     tc: &[u8],
     bc: &NestBc,
 ) -> Result<Option<WindowState>, Error> {
-    let Some(sh) = shift_between(old_level, new_level) else {
-        return Ok(None);
-    };
-    let mut s = init_from_boundary(tc, bc);
-    shift_warm(
+    warm_from_src(
         old_level,
         &ShiftSrc {
             u: &old.u,
@@ -589,6 +587,27 @@ pub fn warm_from_previous(
             thd: &old.thd,
             p: &old.p,
         },
+        new_level,
+        tc,
+        bc,
+    )
+}
+
+/// То же, прошлое окно — срезы состояния решателя (без копий).
+pub fn warm_from_src(
+    old_level: &Level,
+    old: &ShiftSrc,
+    new_level: &Level,
+    tc: &[u8],
+    bc: &NestBc,
+) -> Result<Option<WindowState>, Error> {
+    let Some(sh) = shift_between(old_level, new_level) else {
+        return Ok(None);
+    };
+    let mut s = init_from_boundary(tc, bc);
+    shift_warm(
+        old_level,
+        old,
         new_level,
         tc,
         sh,
@@ -650,4 +669,92 @@ pub fn window_solver_case(
         thbd: Some(bc.thbd.clone()),
     });
     Ok(case)
+}
+
+// ---------------------------------------------------------------------------------------------
+// пара mech/heat окна (RW-6o)
+// ---------------------------------------------------------------------------------------------
+
+/// Родитель окна: уровень и два решения — без нагрева (`mech`, граница решения без нагрева) и с
+/// нагревом (`heat`); типы клеток у обоих одни (`AirPicardJob.parent_data()`).
+#[derive(Clone, Copy, Debug)]
+pub struct ParentPair<'a> {
+    pub level: &'a Level,
+    pub heat: NestSrc<'a>,
+    pub mech: NestSrc<'a>,
+}
+
+/// Прошлое окно той же клетки: уровень и два решения (тёплый старт каждого — своим).
+#[derive(Clone, Copy, Debug)]
+pub struct PrevPair<'a> {
+    pub level: &'a Level,
+    pub heat: ShiftSrc<'a>,
+    pub mech: ShiftSrc<'a>,
+}
+
+/// Одно решение пары до итераций: плоскости, случай решателя, старт.
+pub struct SetInput {
+    pub planes: PreparedPlanes,
+    pub case: Case,
+    pub start: WindowState,
+    /// Поправка потока границы, м/с (`corr`).
+    pub corr: f32,
+}
+
+/// Пара окна до итераций (`AirWindowJob` для `mech = true`): решение без нагрева идёт от
+/// родителя без нагрева, с нагревом — от родителя с нагревом, каждое со своей границей. Старт
+/// «родитель» (`init_cycles = 30`) или тёплый — прошлое окно того же набора (`mech` — прошлое
+/// `mech`, `heat` — прошлое `heat`, 4 V-цикла).
+pub struct PairInputs {
+    pub level: Level,
+    pub tc: Vec<u8>,
+    pub heat: SetInput,
+    pub mech: SetInput,
+    /// Старт тёплый (сдвиг прошлого окна).
+    pub warm: bool,
+}
+
+/// Вход пары: плоскости обоих случаев, граница от родителя и старт. `heat` — окно с нагревом.
+pub fn window_pair_inputs(
+    heat: &AirWindowCase,
+    parent: &ParentPair,
+    prev: Option<&PrevPair>,
+) -> Result<PairInputs, Error> {
+    let mech = heat.without_heat();
+    let (ph, pm) = rayon::join(|| heat.prepare(), || mech.prepare());
+    let (ph, pm) = (ph?, pm?);
+    let tc = tcode(&ph);
+    let level = window_level(&ph);
+    let prev = prev.filter(|p| shift_between(p.level, &level).is_some());
+    let u10 = heat.case.u10;
+    let set = |pl: PreparedPlanes,
+               w: &AirWindowCase,
+               src: &NestSrc,
+               old: Option<ShiftSrc>|
+     -> Result<SetInput, Error> {
+        let bc = window_boundary(parent.level, src, &pl, &tc)?;
+        let warm = match (prev, old) {
+            (Some(p), Some(o)) => warm_from_src(p.level, &o, &level, &tc, &bc)?,
+            _ => None,
+        };
+        let start = warm.unwrap_or_else(|| init_from_boundary(&tc, &bc));
+        let case = window_solver_case(&pl, &w.case.p, &SolverCfg::new(u10), &bc)?;
+        Ok(SetInput {
+            planes: pl,
+            case,
+            start,
+            corr: bc.corr,
+        })
+    };
+    let (h, m) = rayon::join(
+        || set(ph, heat, &parent.heat, prev.map(|p| p.heat)),
+        || set(pm, &mech, &parent.mech, prev.map(|p| p.mech)),
+    );
+    Ok(PairInputs {
+        level,
+        tc,
+        heat: h?,
+        mech: m?,
+        warm: prev.is_some(),
+    })
 }

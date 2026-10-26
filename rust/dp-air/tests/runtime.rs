@@ -21,6 +21,15 @@ use std::time::{Duration, Instant};
 
 // ---------------------------------------------------------------- вспомогательное
 
+/// Тесты оркестровки области (RW-6j/6t) идут без окон клипмапа: проходы `k` и `U` над стартом
+/// считаются по области, как до RW-6o. Окна — `tests/clipmap.rs`.
+const NO_WIN: Faults = Faults {
+    coarse: false,
+    fail_pass: None,
+    no_phase: false,
+    no_windows: true,
+};
+
 fn repo() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
@@ -101,7 +110,7 @@ fn wait_ready(m: &Formula, limit: f64) {
 }
 
 fn formula(cfg: &Configs, pl: Place, c: &Conditions, focus: Option<Focus>) -> Formula {
-    let mut m = Formula::new();
+    let mut m = Formula::new().with_faults(NO_WIN);
     m.configure(cfg, 1).unwrap();
     m.set_conditions(c).unwrap();
     if let Some(f) = focus {
@@ -155,6 +164,7 @@ fn job_in(
     warm: Option<Arc<Pair>>,
 ) -> JobIn {
     let mut cfg = RtCfg::from_configs(cfgs).unwrap();
+    cfg.faults = NO_WIN;
     mutate(&mut cfg);
     let inputs = WeatherInputs::from_conditions(c, cfgs).unwrap();
     let rec = CondRec::new(&inputs, c, hour_at(c, 0.0));
@@ -174,6 +184,8 @@ fn job_in(
         baked: Arc::new(Vec::new()),
         cache: None,
         place_hash: Arc::new(std::sync::OnceLock::new()),
+        clip: None,
+        win_fail: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
     }
 }
 
@@ -240,7 +252,7 @@ fn load_without_conditions_is_ready_without_field_then_first_advance_computes() 
     let cfg = configs_with(cheap);
     let pl = place("synthetic");
     let pts = probes(&pl);
-    let mut m = Formula::new();
+    let mut m = Formula::new().with_faults(NO_WIN);
     m.configure(&cfg, 1).unwrap();
     m.load_place(pl).unwrap();
     assert_eq!(m.status().state, State::Ready);
@@ -284,7 +296,7 @@ fn failed_load_answers_zeros_and_recovers() {
     wait_ready(&m, 600.0);
     assert_eq!(m.status().time_s, 0.0);
     // нет конфигов погоды — Failed с причиной
-    let mut m2 = Formula::new();
+    let mut m2 = Formula::new().with_faults(NO_WIN);
     m2.configure(&Configs::default(), 1).unwrap();
     m2.set_conditions(&cond("medium")).unwrap();
     m2.load_place(place("synthetic")).unwrap();
@@ -309,7 +321,7 @@ fn ongudai_loads_ready_release() {
             weight: 1.0,
         });
         let t0 = Instant::now();
-        let mut m = Formula::new();
+        let mut m = Formula::new().with_faults(NO_WIN);
         m.configure(&cfg, 1).unwrap();
         m.set_conditions(&cond("strong")).unwrap();
         if let Some(f) = focus {
@@ -1588,7 +1600,7 @@ fn baked_field_is_taken_without_picard() {
 
     // порядок игры: условия, фокус, место, затем поля (load_place уже запустил загрузку)
     let t0 = Instant::now();
-    let mut m = Formula::new();
+    let mut m = Formula::new().with_faults(NO_WIN);
     m.configure(&cfg, 1).unwrap();
     m.set_conditions(&landing_cond()).unwrap();
     m.set_focuses(&[landing_focus()]).unwrap();
@@ -1622,7 +1634,7 @@ fn baked_field_is_taken_without_picard() {
     assert_eq!(n_levels, 3, "windows 50/100 m and the 400 m area");
 
     // порядок до условий: файлы, потом условия и фокус — тот же результат
-    let mut m2 = Formula::new();
+    let mut m2 = Formula::new().with_faults(NO_WIN);
     m2.configure(&cfg, 1).unwrap();
     m2.load_place(pl.clone()).unwrap();
     add_island(&mut m2);
@@ -1643,7 +1655,7 @@ fn baked_misses_compute_and_say_why() {
     let cfg = configs_with(cheap);
     let hash = file_model_hash();
     let run = |pl: Place, c: &Conditions, focus: Option<Focus>| {
-        let mut m = Formula::new();
+        let mut m = Formula::new().with_faults(NO_WIN);
         m.configure(&cfg, 1).unwrap();
         m.set_conditions(c).unwrap();
         if let Some(f) = focus {
@@ -1728,7 +1740,7 @@ fn add_baked_field_follows_the_command_order() {
     let cfg = configs_with(cheap);
     let (h, b) = island_files().into_iter().next().unwrap();
     // без места
-    let mut m = Formula::new();
+    let mut m = Formula::new().with_faults(NO_WIN);
     m.configure(&cfg, 1).unwrap();
     assert_eq!(m.add_baked_field(&h, &b).unwrap_err().code, Code::NoPlace);
     m.set_cache_dir("").unwrap();
@@ -1808,7 +1820,7 @@ fn wait_cache_file(dir: &Path) -> PathBuf {
 }
 
 fn load_with_cache(cfg: &Configs, dir: &Path, pl: Place, c: &Conditions) -> (Formula, JobReport) {
-    let mut m = Formula::new();
+    let mut m = Formula::new().with_faults(NO_WIN);
     m.configure(cfg, 1).unwrap();
     m.set_cache_dir(dir.to_str().unwrap()).unwrap();
     m.set_conditions(c).unwrap();

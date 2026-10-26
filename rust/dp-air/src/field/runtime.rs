@@ -44,8 +44,11 @@
 //! не дольше `JOIN_LIMIT` (0,5 с) и отпускает её сменой поколения места.
 //!
 //! ## Границы модели
-//! - Окон 100/50 м в расчёте нет (RW-6n/6o): `U` над стартом берётся с уровня 400 м (в игре — с
-//!   окон); запечённое поле их несёт.
+//! - Окна 100/50 м (RW-6o, `field::clipmap`): после области каждого прохода считаются окна
+//!   `window_levels_m` с центром на старте (первый фокус; нет фокуса — нет окон), проход 2 и
+//!   пересчёт в полёте — на прежних местах с тёплого старта; `U` над стартом берётся с набора
+//!   уровней. Ошибка окон не отказ прохода: поле — только область, причина в
+//!   `JobReport.windows_error`. Сдвиг окон за фокусом — отдельная задача (`clipmap::run_shift`).
 //! - Область — квадрат вокруг (0, 0), `domain_l_m` (по умолчанию 38,4 км); место меньше —
 //!   область сжимается до помещающейся (кратно `dx·coarse_factor`), меньше 12 клеток — отказ.
 //! - Климат места — из `weather_model.json` (`typical_max_c`, `diurnal.range_k`), как GD без
@@ -54,6 +57,7 @@
 use super::baked::{BakedField, BakedQuery, Cond, FORMAT, VERSION, baked_lookup, parse_baked};
 use super::case_build::{SolverCfg, build_solver_case};
 use super::case_prepare::{AirCaseRs, CaseOpts, PreparedPlanes, build_case};
+use super::clipmap::{ClipMap, ParentArea, Plan, WinReport, ZiArea, solve_windows};
 use super::field_cache::{FieldCache, Miss};
 use super::field_set::FieldSet;
 use super::phase::assembly::{PhaseResult, assemble};
@@ -61,9 +65,11 @@ use super::phase::config::PhaseCfg;
 use super::phase::prepare::PhaseCase;
 use super::place_input::{ZiCfg, build_domain_input};
 use super::weather_core::{
-    Climate, ClimateCell, Domain, WeatherConfigs, WeatherInputs, field_weather, monthly,
+    Climate, ClimateCell, Domain, FieldWeather, WeatherConfigs, WeatherInputs, field_weather,
+    monthly,
 };
 use super::wind_field::{Field, FieldGrid, FieldMeta, Limits, Z0};
+use super::window::tcode;
 use crate::level::{Level, prolong_state};
 use crate::{Conditions, Configs, Error, InflowMode, LocClimate, Place};
 use picard_rs::api::{Fallback, Freeze, NonConv, SolveOpts, Solved, StopReason, solve};
@@ -71,7 +77,7 @@ use picard_rs::case::Case;
 use picard_rs::state::State;
 use serde_json::{Map, Value, json};
 use sha2::{Digest, Sha256};
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
 use std::time::{Duration, Instant};
 
@@ -102,6 +108,8 @@ pub const PASS_TOL: f64 = 0.03;
 pub const MAX_OUTER: usize = 3000;
 /// Меньше клеток по стороне (с учётом грубого шага) область не собирается.
 pub const MIN_CELLS: usize = 12;
+/// Пауза после отказа окон до новой попытки, с времени атмосферы (`AirClipmap._retry_at`: 10 с).
+pub const SHIFT_RETRY_S: f64 = 10.0;
 
 // ---------------------------------------------------------------- конфиг
 
@@ -126,9 +134,9 @@ impl Climate for TableClimate {
 
 /// Климат места: ячейка из заголовка (`loc.climate`, W5 v3), где есть сетка HH5 / HH1; иначе
 /// запасные таблицы (`ClimateGrid.place`: без HH5 `tx_c`/`dtr_k` — из `weather_model.json`).
-struct PlaceClimate<'a> {
-    table: &'a TableClimate,
-    loc: Option<LocClimate>,
+pub(crate) struct PlaceClimate<'a> {
+    pub(crate) table: &'a TableClimate,
+    pub(crate) loc: Option<LocClimate>,
 }
 
 impl Climate for PlaceClimate<'_> {
@@ -156,6 +164,8 @@ pub struct Faults {
     pub fail_pass: Option<usize>,
     /// Фазы не считаются: Пикар без заморозки и `nonconv` (сравнение итераций в тестах).
     pub no_phase: bool,
+    /// Окна клипмапа не считаются при непустых `window_levels_m` (проходы `k` идут по области).
+    pub no_windows: bool,
 }
 
 /// Всё, что оркестровке нужно из конфигов.
@@ -187,8 +197,14 @@ pub struct RtCfg {
     pub faults: Faults,
     /// Блок `air_phase` (фазы поля).
     pub phase: PhaseCfg,
-    /// Шаги окон `window_levels_m` (ключ запечённого поля).
+    /// Шаги окон `window_levels_m` (ключ запечённого поля и список окон клипмапа), м, от грубого
+    /// к мелкому.
     pub window_dx: Vec<f64>,
+    /// Сдвиг окна, когда фокус ушёл от его центра дальше этой доли стороны
+    /// (`air_model.window_shift_frac`).
+    pub shift_frac: f64,
+    /// После отказа окон новая попытка не раньше чем через столько секунд времени атмосферы.
+    pub shift_retry_s: f64,
     /// Предел кеша, байт (`air_cache.max_mb`; 0 — кеш выключен).
     pub cache_max_bytes: u64,
     /// Хеш текстов конфигов (ключ кеша).
@@ -312,6 +328,8 @@ impl RtCfg {
             faults: Faults::default(),
             phase: PhaseCfg::from_configs(c)?,
             window_dx: nums(&atm, "/air_model/window_levels_m"),
+            shift_frac: am("window_shift_frac", 0.25),
+            shift_retry_s: SHIFT_RETRY_S,
             cache_max_bytes: (num(&atm, "/air_cache/max_mb", 200.0).max(0.0) * 1048576.0) as u64,
             configs_hash: configs_hash(c),
         })
@@ -784,10 +802,18 @@ pub struct PassReport {
     pub frozen_frac: [f64; 2],
     /// Колонны запасного пути переданы решениям.
     pub nonconv_cols: bool,
+    /// Окна клипмапа этого прохода (от грубого к мелкому); пусто — без окон или отказ.
+    pub windows: Vec<WinReport>,
+    /// Окна не посчитались: причина (поле — только область).
+    pub win_error: Option<String>,
+    /// Секунды окон (вход, решения, поля).
+    pub win_s: f64,
 }
 
 struct PassOut {
-    field: Field,
+    /// Уровни от мелкого к грубому: окна и область (или одна область).
+    levels: Vec<Arc<Field>>,
+    clip: Option<Arc<ClipMap>>,
     pair: Arc<Pair>,
     report: PassReport,
 }
@@ -830,6 +856,11 @@ pub struct JobIn {
     pub cache: Option<FieldCache>,
     /// Хеш места — считается при первой надобности и живёт с местом.
     pub place_hash: Arc<OnceLock<String>>,
+    /// Окна прошлого поля (пересчёт в полёте: те же места и тёплый старт); `None` — окна с
+    /// центром в `focus`.
+    pub clip: Option<Arc<ClipMap>>,
+    /// Подставные отказы окон (тесты): сколько ближайших расчётов окон должны не удаться.
+    pub win_fail: Arc<AtomicUsize>,
 }
 
 /// Итог задачи.
@@ -842,6 +873,10 @@ pub struct JobOut {
     pub rec: CondRec,
     /// Состояния для тёплого старта следующего пересчёта (`None` — поле из файла или кеша).
     pub pair: Option<Arc<Pair>>,
+    /// Окна клипмапа и область-родитель (`None` — окон нет: выключены, нет фокуса, поле из файла).
+    /// Окна не посчитались — `ClipMap` без окон (`ready() == false`): область и места для новой
+    /// попытки.
+    pub clip: Option<Arc<ClipMap>>,
     pub report: JobReport,
     /// Запись в кеш после подачи (забирает вызывающий).
     pub cache_put: Option<CachePut>,
@@ -863,6 +898,10 @@ pub struct JobReport {
     pub source: Source,
     /// Заметки: почему запечённое и кеш не взяты, ошибки записи кеша.
     pub notes: Vec<String>,
+    /// Окна поданного поля (последний проход / сдвиг), от грубого к мелкому.
+    pub windows: Vec<WinReport>,
+    /// Окна не посчитались — подана только область: причина (в `Status.reason`).
+    pub windows_error: Option<String>,
 }
 
 fn set_progress(job: &JobIn, pass: usize, passes: usize, x: f32) {
@@ -871,12 +910,33 @@ fn set_progress(job: &JobIn, pass: usize, passes: usize, x: f32) {
         .store(v.min(0.999).to_bits(), Ordering::Relaxed);
 }
 
-fn check_cancel(job: &JobIn) -> Result<(), JobErr> {
-    if job.cancel.load(Ordering::Relaxed) {
+pub(crate) fn check_cancel(job: &JobIn) -> Result<(), JobErr> {
+    cancelled(&job.cancel)
+}
+
+pub(crate) fn cancelled(cancel: &AtomicBool) -> Result<(), JobErr> {
+    if cancel.load(Ordering::Relaxed) {
         Err(JobErr::Cancelled)
     } else {
         Ok(())
     }
+}
+
+/// Погода поля для области `dom` и часа задачи (`field_weather`): общая у области и окон.
+pub(crate) fn weather_for(job: &JobIn, dom: &Domain) -> Result<FieldWeather, Error> {
+    let climate = PlaceClimate {
+        table: &job.cfg.climate,
+        loc: job.place.header().loc.climate,
+    };
+    field_weather(
+        &job.cond,
+        &job.place,
+        &job.cfg.wc,
+        &job.configs,
+        &climate,
+        job.rec.hour,
+        dom,
+    )
 }
 
 /// Уровень решения: два случая (mech и heat), плоскости не нужны после сборки случая.
@@ -889,20 +949,8 @@ struct LevelCase {
 
 fn build_level(job: &JobIn, dom: &Domain, k: f64) -> Result<LevelCase, JobErr> {
     let cfg = &job.cfg;
-    let climate = PlaceClimate {
-        table: &cfg.climate,
-        loc: job.place.header().loc.climate,
-    };
     check_cancel(job)?;
-    let fw = field_weather(
-        &job.cond,
-        &job.place,
-        &cfg.wc,
-        &job.configs,
-        &climate,
-        job.rec.hour,
-        dom,
-    )?;
+    let fw = weather_for(job, dom)?;
     check_cancel(job)?;
     let inp = build_domain_input(&job.place, &cfg.wc.sh, &cfg.zi, dom, &fw.day)?;
     check_cancel(job)?;
@@ -990,7 +1038,7 @@ fn phases_of(cfg: &PhaseCfg, lc: &LevelCase) -> Result<PhaseResult, String> {
     )
 }
 
-fn level_of(p: &PreparedPlanes, dom: &Domain) -> Level {
+pub(crate) fn level_of(p: &PreparedPlanes, dom: &Domain) -> Level {
     Level {
         nx: p.nx_h,
         ny: p.ny_h,
@@ -1044,12 +1092,14 @@ fn prolong_to(coarse: &Level, src: &State, fine: &Level) -> Result<State, JobErr
     Ok(dst)
 }
 
-/// Что решению сверх случая и старта: запасные правила, заморозка колонн, `nonconv`.
+/// Что решению сверх случая и старта: запасные правила, заморозка колонн, `nonconv`, число
+/// V-циклов старта (окно от родителя — 30).
 #[derive(Default)]
-struct Spec {
-    fallback: bool,
-    freeze: Option<Freeze>,
-    nonconv: Option<NonConv>,
+pub(crate) struct Spec {
+    pub(crate) fallback: bool,
+    pub(crate) freeze: Option<Freeze>,
+    pub(crate) nonconv: Option<NonConv>,
+    pub(crate) init_cycles: Option<u32>,
 }
 
 fn solve_one(
@@ -1059,8 +1109,19 @@ fn solve_one(
     spec: Spec,
     deadline: Instant,
 ) -> Result<Solved, JobErr> {
-    check_cancel(job)?;
-    let cfg = &job.cfg;
+    solve_with(&job.cfg, &job.cancel, case, init, spec, deadline)
+}
+
+/// Одно решение `picard_rs` с отменой, пределом времени и разбором причины остановки.
+pub(crate) fn solve_with(
+    cfg: &RtCfg,
+    cancel: &Arc<AtomicBool>,
+    case: &Case,
+    init: Option<State>,
+    spec: Spec,
+    deadline: Instant,
+) -> Result<Solved, JobErr> {
+    cancelled(cancel)?;
     let left = deadline
         .saturating_duration_since(Instant::now())
         .max(Duration::from_secs(1));
@@ -1071,8 +1132,9 @@ fn solve_one(
         time_budget: Some(left),
         init,
         freeze: spec.freeze,
-        cancel: Some(job.cancel.clone()),
-        fallback: spec.fallback.then(|| Fallback {
+        init_cycles: spec.init_cycles,
+        cancel: Some(cancel.clone()),
+        fallback: spec.fallback.then_some(Fallback {
             omega_after: cfg.omega_after,
             omega: cfg.omega,
             late_from: cfg.late_from,
@@ -1121,6 +1183,7 @@ fn solve_pass(
     job: &JobIn,
     k: f64,
     prev: Option<&Pair>,
+    prev_clip: Option<&Arc<ClipMap>>,
     pass: usize,
     passes: usize,
 ) -> Result<PassOut, JobErr> {
@@ -1232,6 +1295,7 @@ fn solve_pass(
         fallback: true,
         freeze,
         nonconv,
+        init_cycles: None,
     };
     let sm = solve_one(
         job,
@@ -1245,43 +1309,64 @@ fn solve_pass(
     set_progress(job, pass, passes, 0.9);
     let t_solve = t2.elapsed().as_secs_f64();
     let t3 = Instant::now();
-    let nz = fine.heat.nz;
-    let grid = FieldGrid {
-        dx: fine_dom.dx,
-        dz: fine.heat.dz,
-        x0: fine_dom.x0,
-        y0: fine_dom.y0,
-        z_bot: fine.heat.z_bot,
-        nx: fine_dom.nx,
-        ny: fine_dom.ny,
-        nz,
-    };
-    let meta = FieldMeta {
-        // z0 — как его хранит файл поля (f32): поле из кеша побитно равно посчитанному
-        z0: if fine.heat.z0_map.is_empty() {
-            Z0::Uniform(f64::from(fine.heat.p.z0 as f32))
-        } else {
-            Z0::Map(
-                fine.heat
-                    .z0_map
-                    .iter()
-                    .map(|&z| f64::from(z as f32))
-                    .collect(),
-            )
+    let field = build_field(
+        &fine.heat,
+        &fine.planes_h,
+        &fine.case_h,
+        &sh.state,
+        &sm.state,
+        cfg,
+    )?;
+    let area_field = FieldSet::prepare(vec![field], cfg.limits, cfg.edge_blend_cells)
+        .pop()
+        .ok_or_else(|| JobErr::Failed("empty field set".into()))?;
+    let t_build = t3.elapsed().as_secs_f64();
+    let pair = Arc::new(Pair {
+        mech: sm.state,
+        heat: sh.state,
+    });
+    // окна клипмапа: от области этого прохода
+    let t4 = Instant::now();
+    let want_win = cfg.windows_wanted && !cfg.faults.no_windows;
+    let (levels, clip, windows, win_error) = match prev_clip.filter(|c| c.ready()).cloned() {
+        _ if !want_win => (vec![area_field.clone()], None, Vec::new(), None),
+        Some(old) => {
+            let plan = Plan {
+                corners: old.corners.clone(),
+                keep: Vec::new(),
+                prev: old.wins.clone(),
+            };
+            windows_of(
+                job,
+                &fine,
+                &fine_dom,
+                &pair,
+                &area_field,
+                k,
+                plan,
+                pass,
+                passes,
+            )?
+        }
+        None => match job.focus {
+            Some(f) => {
+                let plan = Plan::fresh(&cfg.window_dx, [f[0] as f64, -(f[1] as f64)]);
+                windows_of(
+                    job,
+                    &fine,
+                    &fine_dom,
+                    &pair,
+                    &area_field,
+                    k,
+                    plan,
+                    pass,
+                    passes,
+                )?
+            }
+            None => (vec![area_field.clone()], None, Vec::new(), None),
         },
-        gam: fine.heat.gam[1..=nz].iter().map(|&g| g as f32).collect(),
-        heat: fine.planes_h.heat_used.iter().map(|&h| h as f32).collect(),
-        z_i: fine.heat.z_i,
-        z_i_col: fine.heat.z_i_col.clone(),
     };
-    let hc32: Vec<f32> = fine.heat.hc.iter().map(|&h| h as f32).collect();
-    let cell = fine
-        .case_h
-        .arrays
-        .get("cell")
-        .ok_or_else(|| JobErr::Failed("case has no 'cell' array".into()))?;
-    let mut field = Field::from_mac(&sh.state, &sm.state, &grid, cell, &hc32, meta, cfg.limits)?;
-    field.edge_cells = cfg.edge_blend_cells;
+    let win_s = t4.elapsed().as_secs_f64();
     let report = PassReport {
         k,
         iters: [sm.iters, sh.iters],
@@ -1291,21 +1376,130 @@ fn solve_pass(
         stop: [sm.stop, sh.stop],
         omega_fallback: sm.omega_fallback_used || sh.omega_fallback_used,
         nonconv_fallback: sm.nonconv_fallback || sh.nonconv_fallback,
-        secs: [t_prep, t_coarse, t_solve, t3.elapsed().as_secs_f64()],
+        secs: [t_prep, t_coarse, t_solve, t_build],
         phases: fr_some,
         phase_s,
         frozen_frac,
         nonconv_cols,
+        windows,
+        win_error,
+        win_s,
     };
     set_progress(job, pass, passes, 1.0);
     Ok(PassOut {
-        field,
-        pair: Arc::new(Pair {
-            mech: sm.state,
-            heat: sh.state,
-        }),
+        levels,
+        clip,
+        pair,
         report,
     })
+}
+
+/// Окна по `plan` от области прохода: набор уровней, `ClipMap`, итоги и причина отказа. Отказ окон
+/// не отказ прохода (`_on_windows_failed`): поле — только область, `ClipMap` без окон помнит
+/// область и места для новой попытки. Отмена — наружу.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn windows_of(
+    job: &JobIn,
+    fine: &LevelCase,
+    fine_dom: &Domain,
+    pair: &Arc<Pair>,
+    area_field: &Arc<Field>,
+    k: f64,
+    plan: Plan,
+    pass: usize,
+    passes: usize,
+) -> Result<
+    (
+        Vec<Arc<Field>>,
+        Option<Arc<ClipMap>>,
+        Vec<WinReport>,
+        Option<String>,
+    ),
+    JobErr,
+> {
+    check_cancel(job)?;
+    let cfg = &job.cfg;
+    let area = Arc::new(ParentArea {
+        level: level_of(&fine.planes_h, fine_dom),
+        tc: tcode(&fine.planes_h),
+        pair: pair.clone(),
+        zi: ZiArea {
+            nx: fine_dom.nx,
+            ny: fine_dom.ny,
+            dx: fine_dom.dx,
+            x0: fine_dom.x0,
+            y0: fine_dom.y0,
+            z_i: fine.heat.z_i,
+            z_i_col: fine.heat.z_i_col.clone(),
+            alpha_on: cfg.zi.alpha > 0.0,
+        },
+    });
+    let deadline = Instant::now() + Duration::from_secs_f64(cfg.timeout_s.max(1.0));
+    let corners = plan.corners.clone();
+    let progress = |x: f32| set_progress(job, pass, passes, 0.9 + 0.1 * x);
+    match solve_windows(job, &area, area_field, k, plan, deadline, &progress) {
+        Ok(w) => Ok((w.clip.levels(), Some(w.clip), w.reports, None)),
+        Err(JobErr::Cancelled) => Err(JobErr::Cancelled),
+        Err(JobErr::Failed(m)) => {
+            let clip = ClipMap::unplaced(
+                &cfg.window_dx,
+                corners,
+                area,
+                area_field.clone(),
+                job.cond.clone(),
+                job.rec.clone(),
+                k,
+            );
+            Ok((
+                vec![area_field.clone()],
+                Some(Arc::new(clip)),
+                Vec::new(),
+                Some(m),
+            ))
+        }
+    }
+}
+
+/// Поле Пикара из пары решений (`Field::from_mac`): сетка и метаданные из случая.
+pub(crate) fn build_field(
+    c: &AirCaseRs,
+    planes_h: &PreparedPlanes,
+    case_h: &Case,
+    sh: &State,
+    sm: &State,
+    cfg: &RtCfg,
+) -> Result<Field, JobErr> {
+    let nz = c.nz;
+    let grid = FieldGrid {
+        dx: c.dom.dx,
+        dz: c.dz,
+        x0: c.dom.x0,
+        y0: c.dom.y0,
+        z_bot: c.z_bot,
+        nx: c.dom.nx,
+        ny: c.dom.ny,
+        nz,
+    };
+    let meta = FieldMeta {
+        // z0 — как его хранит файл поля (f32): поле из кеша побитно равно посчитанному
+        z0: if c.z0_map.is_empty() {
+            Z0::Uniform(f64::from(c.p.z0 as f32))
+        } else {
+            Z0::Map(c.z0_map.iter().map(|&z| f64::from(z as f32)).collect())
+        },
+        gam: c.gam[1..=nz].iter().map(|&g| g as f32).collect(),
+        heat: planes_h.heat_used.iter().map(|&h| h as f32).collect(),
+        z_i: c.z_i,
+        z_i_col: c.z_i_col.clone(),
+    };
+    let hc32: Vec<f32> = c.hc.iter().map(|&h| h as f32).collect();
+    let cell = case_h
+        .arrays
+        .get("cell")
+        .ok_or_else(|| JobErr::Failed("case has no 'cell' array".into()))?;
+    let mut field = Field::from_mac(sh, sm, &grid, cell, &hc32, meta, cfg.limits)?;
+    field.edge_cells = cfg.edge_blend_cells;
+    Ok(field)
 }
 
 /// `U` над стартом на 10 м (`start_speed`): горизонталь поля на `START_AGL_M` над землёй точки
@@ -1324,6 +1518,42 @@ pub fn start_speed(f: &Field, place: &Place, p: Option<[f32; 2]>, u10: f64, wdir
     (vx - a.sin() * rest).hypot(vz + a.cos() * rest)
 }
 
+/// `U` над стартом по набору уровней (`start_speed` игры с окнами): горизонталь на `START_AGL_M`
+/// над землёй точки с весами краёв уровней (мелкий первым), непокрытая доля — ветер меню.
+pub fn start_speed_levels(
+    levels: &[Arc<Field>],
+    place: &Place,
+    p: Option<[f32; 2]>,
+    u10: f64,
+    wdir: f64,
+) -> f64 {
+    let Some(p) = p else {
+        return f64::NAN;
+    };
+    if levels.is_empty() {
+        return f64::NAN;
+    }
+    let h = ground_height(place, p[0], p[1]);
+    let pos = [p[0], h + START_AGL_M as f32, p[1]];
+    let (mut vx, mut vz, mut rem) = (0.0f64, 0.0f64, 1.0f64);
+    for f in levels {
+        let w = f.edge_weight(pos);
+        if w <= 0.0 {
+            continue;
+        }
+        let s = f.sample(pos, h);
+        vx += s[0] as f64 * (rem * w);
+        vz += s[2] as f64 * (rem * w);
+        rem *= 1.0 - w;
+        if rem <= 0.0 {
+            break;
+        }
+    }
+    let rest = u10 * rem;
+    let a = wdir.to_radians();
+    (vx - a.sin() * rest).hypot(vz + a.cos() * rest)
+}
+
 /// Проход упёрся в предел итераций (`_hit_iter_limit`).
 fn hit_iter_limit(r: &PassReport) -> bool {
     r.iters.iter().any(|&n| n >= MAX_OUTER)
@@ -1337,6 +1567,7 @@ fn from_file(job: JobIn, b: BakedField, source: Source, t0: Instant, notes: Vec<
         k: b.inflow_k,
         rec: job.rec,
         pair: None,
+        clip: None,
         report: JobReport {
             passes: Vec::new(),
             planned: 0,
@@ -1346,6 +1577,8 @@ fn from_file(job: JobIn, b: BakedField, source: Source, t0: Instant, notes: Vec<
             wall_s: t0.elapsed().as_secs_f64(),
             source,
             notes,
+            windows: Vec::new(),
+            windows_error: None,
         },
         cache_put: None,
     }
@@ -1402,12 +1635,23 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
         wall_s: 0.0,
         source: Source::Computed,
         notes,
+        windows: Vec::new(),
+        windows_error: None,
     };
     let mut pass = 1usize;
     let mut warm: Option<Arc<Pair>> = job.warm.clone();
+    // окна прошлого поля (пересчёт) или прохода 1 (проход 2 загрузки — на тех же местах)
+    let mut clip: Option<Arc<ClipMap>> = job.clip.clone();
     let mut prev_ok: Option<PassOut> = None;
     loop {
-        let r = solve_pass(&job, k, warm.as_deref(), pass, passes.max(pass));
+        let r = solve_pass(
+            &job,
+            k,
+            warm.as_deref(),
+            clip.as_ref(),
+            pass,
+            passes.max(pass),
+        );
         let out = match r {
             Ok(o) => o,
             Err(JobErr::Cancelled) => return Err(JobErr::Cancelled),
@@ -1420,7 +1664,7 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
                 return Err(JobErr::Failed(m));
             }
         };
-        let u = start_speed(&out.field, &job.place, job.focus, u10, job.rec.wdir);
+        let u = start_speed_levels(&out.levels, &job.place, job.focus, u10, job.rec.wdir);
         report.log.push(PassLog { k, u });
         report.passes.push(out.report.clone());
         let mut more = pass < passes;
@@ -1442,6 +1686,7 @@ pub fn run_job(job: JobIn) -> Result<JobOut, JobErr> {
             return Ok(finish(job, out, report, t0, ckey));
         }
         warm = Some(out.pair.clone());
+        clip = out.clip.clone();
         prev_ok = Some(out);
         pass += 1;
         k = k1;
@@ -1458,8 +1703,14 @@ fn finish(
     report.wall_s = t0.elapsed().as_secs_f64();
     job.progress.store(1.0f32.to_bits(), Ordering::Relaxed);
     let k = p.report.k;
-    let levels = FieldSet::prepare(vec![p.field], job.cfg.limits, job.cfg.edge_blend_cells);
-    let cache_put = match (ckey, job.cache.clone()) {
+    let levels = p.levels;
+    report.windows = p.report.windows.clone();
+    report.windows_error = p.report.win_error.clone();
+    // поле без окон из-за отказа в кеш не кладётся: следующая загрузка посчитает окна заново
+    let cache_put = match (
+        ckey,
+        job.cache.clone().filter(|_| report.windows_error.is_none()),
+    ) {
         (Some(key), Some(cache)) => {
             let status = if report.pass_failed.is_some() {
                 "previous_pass"
@@ -1501,6 +1752,7 @@ fn finish(
         k,
         rec: job.rec,
         pair: Some(p.pair),
+        clip: p.clip,
         report,
         cache_put,
     }
