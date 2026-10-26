@@ -596,14 +596,24 @@ fn t4a_failed_coarse_and_warm_skip() {
 }
 
 /// AP-20 (ориентир, не паритет): грубый старт сокращает итерации тонкой сетки 1140 → 793 на 6
-/// случаях GPU (tol 1). Здесь Онгудай, `tol_scale` 1 (как GPU игры) и 5, две погоды.
+/// случаях GPU (tol 1). Здесь Онгудай, `tol_scale` 5 (две погоды) и 1 (`strong`; `medium` — в замере).
 #[test]
 #[ignore = "release, тяжёлый: cargo test --release -p dp-air --test acceptance -- --ignored --nocapture"]
 fn t4a_iterations_ongudai() {
     let _g = heavy();
     let (mut sum_coarse, mut sum_cold) = (0usize, 0usize);
-    for tol in [1.0, 5.0] {
-        for preset in ["medium", "strong"] {
+    // `medium` при tol 1 (218 с) входит только в замер (`RW6Q_MEASURE=1`): приёмка укладывается в 15 мин
+    let all = measure_on();
+    for (tol, preset) in [
+        (5.0, "medium"),
+        (5.0, "strong"),
+        (1.0, "strong"),
+        (1.0, "medium"),
+    ] {
+        if preset == "medium" && tol == 1.0 && !all {
+            continue;
+        }
+        {
             let mk = |start: &str| {
                 let start = start.to_string();
                 configs_with(move |v| {

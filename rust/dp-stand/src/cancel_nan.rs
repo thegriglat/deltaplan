@@ -1,9 +1,9 @@
-//! RW-6q: история решателя при отмене до первой итерации несёт NaN-невязки (ревью RW-6t) — стенд
+//! Тест RW-6q (`cargo test -p dp-stand`): история решателя при отмене до первой итерации несёт NaN-невязки (ревью RW-6t) — стенд
 //! не падает и не сравнивает их: сессия `formula`, у которой первая загрузка отменена на старте
 //! (`start_at` второй раз сразу после первого), доходит до `Ready`; сверка с фикстурой идёт до конца,
 //! числа отчёта конечны, текст отчёта собирается.
-use dp_stand::compare::{self, Options};
-use dp_stand::setup::{OpenArgs, open};
+use crate::compare::{self, Options};
+use crate::setup::{OpenArgs, open};
 use serde_json::{Value, json};
 use std::fs;
 use std::path::{Path, PathBuf};

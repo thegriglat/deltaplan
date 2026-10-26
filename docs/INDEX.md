@@ -54,7 +54,6 @@ generated: true
   - [docs/contracts/rust-wind/solver.md](contracts/rust-wind/solver.md) — W11 rust-wind: решатель Пикара в крейте — R6 v3 + заморозка колонн, отмена, новые причины остановки; пустая маска — побитно R6 v3.
   - [docs/contracts/rust-wind/trait.md](contracts/rust-wind/trait.md) — W4 rust-wind: трейт AirModel крейта dp-air (без Godot) — типы, методы, порядок команд, структуры описаний, реализации Calm/Formula/Live.
   - [docs/research/rust-wind-field-path.md](research/rust-wind-field-path.md) — RW-6a: путь поля Пикара в игре от места до опроса точки, что есть в picard_rs, разбиение RW-6 на задачи, окна 100/50 м на CPU
-  - [docs/research/rust-wind-rw6-acceptance.md](research/rust-wind-rw6-acceptance.md) — RW-6q: T1 по 8 запечённым полям не сходится (две причины найдены), T2/T4/T4a/T8, бенч Formula, загрузка Онгудая против GPU
   - [tools/research/rust_wind/README.md](../tools/research/rust_wind/README.md) — RW-6a: расчёт размера окон 100/50 м и времени picard_rs на CPU, приложение с таблицами шагов и задач RW-6
   - [tools/research/rust_wind/summary.md](../tools/research/rust_wind/summary.md) — RW-6a вывод: в крейте нет сборщика случая, грубого старта, заморозки и фаз; окна переносить последним отключаемым хвостом
 
