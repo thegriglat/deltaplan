@@ -1,6 +1,7 @@
 extends TestCase
-## Формат эталонов ветра tests/fixtures/wind/ (rust-wind W8, RW-1): схема json, длины .bin, конечные
-## числа, теги точек, растры мест, согласие описаний ядер с выборкой (в ядре средний vy > 0).
+## Формат эталонов ветра tests/fixtures/wind/ (rust-wind W8, RW-1, RW-1b): схема json, длины .bin,
+## конечные числа, теги точек, растры мест, климат в заголовках мест (W5 v3), дневные случаи
+## (t_apply, подписи точек, моменты), согласие описаний ядер с выборкой (в ядре средний vy > 0).
 ## Снятие — tools/wind_fixtures/run.sh, состав — tests/fixtures/wind/README.md.
 
 const ROOT := "res://tests/fixtures/wind"
@@ -22,6 +23,21 @@ func _cases() -> PackedStringArray:
 	return out
 
 
+## loc.climate (W5 v3): {tx_c, dtr_k, z_cell_m, has_hh1, has_hh5}.
+func _check_climate(n: String, loc: Dictionary) -> void:
+	check(loc.get("climate") is Dictionary, "%s: loc.climate — словарь" % n)
+	if not loc.get("climate") is Dictionary:
+		return
+	var cl: Dictionary = loc.climate
+	for k in ["tx_c", "dtr_k", "z_cell_m"]:
+		check(cl.get(k) is float and is_finite(float(cl[k])), "%s: climate.%s — конечное число" % [n, k])
+	for k in ["has_hh1", "has_hh5"]:
+		check(cl.get(k) is bool, "%s: climate.%s — bool" % [n, k])
+	check(float(cl.get("tx_c", 99.0)) > -60.0 and float(cl.get("tx_c", 99.0)) < 60.0, "%s: tx_c правдоподобен" % n)
+	check(float(cl.get("dtr_k", -1.0)) >= 0.0 and float(cl.get("dtr_k", 99.0)) < 40.0, "%s: dtr_k правдоподобен" % n)
+	check(float(cl.get("z_cell_m", -1.0)) >= 0.0, "%s: z_cell_m ≥ 0" % n)
+
+
 func test_places() -> void:
 	var names := PackedStringArray()
 	for f in DirAccess.get_files_at(ROOT.path_join("places")):
@@ -41,6 +57,7 @@ func test_places() -> void:
 			check(g.has(k), "%s: grid.%s" % [n, k])
 		var cells := int(g.width) * int(g.height)
 		check(float(h.h_scale) > 0.0 and float(h.h_scale) <= 0.1, "%s: шаг высоты ≤ 0,1 м" % n)
+		_check_climate(n, h.loc)
 		var bin := FileAccess.get_file_as_bytes(ROOT.path_join("places/%s.bin" % n))
 		check(bin.size() == 5 * cells, "%s: .bin %d байт, нужно %d (heights i16, water, cls, moist)" % [n, bin.size(), 5 * cells])
 		if bin.size() != 5 * cells:
@@ -80,7 +97,9 @@ func test_cases_format() -> void:
 		check(int(c.version) == 1, "%s: version 1" % n)
 		check(FileAccess.file_exists(ROOT.path_join("places/%s.json" % c.place)), "%s: место %s есть" % [n, c.place])
 		check((c.conditions as Dictionary).has("preset") != (c.conditions as Dictionary).has("forecast"), "%s: условия — ровно один вид" % n)
-		check((c.times_s as Array).size() == 3, "%s: три момента" % n)
+		var is_day := n.begins_with("ongudai_day")
+		var nt := (c.times_s as Array).size()
+		check(nt == (4 if is_day else 3), "%s: моментов %d" % [n, nt])
 		var np := (c.points as Array).size()
 		check(np > 0 and (c.point_tags as Array).size() == np, "%s: тегов столько же, сколько точек" % n)
 		for p: Array in c.points:
@@ -91,6 +110,8 @@ func test_cases_format() -> void:
 		for f: Array in c.focuses:
 			check(f.size() == 4 and float(f[3]) > 0.0, "%s: фокус [x, y, z, w>0]" % n)
 		check(c.terms == null, "%s: слагаемых нет (первый набор)" % n)
+		if is_day:
+			_check_day(n, c)
 		# данные
 		var bin := FileAccess.get_file_as_bytes(ROOT.path_join("cases/%s.bin" % n))
 		var need: int = (c.times_s as Array).size() * np * 2 * 4 * 4
@@ -108,7 +129,7 @@ func test_cases_format() -> void:
 					break
 		# описания
 		var d: Variant = _json(ROOT.path_join("cases/%s.desc.json" % n))
-		check(d is Dictionary and (d.frames as Array).size() == 3, "%s: описания на три момента" % n)
+		check(d is Dictionary and (d.frames as Array).size() == nt, "%s: описания на каждый момент" % n)
 		if d is Dictionary:
 			for fr: Dictionary in d.frames:
 				check((fr.cores as Array).size() % 15 == 0, "%s: ядра кратны 15" % n)
@@ -117,6 +138,71 @@ func test_cases_format() -> void:
 				check(is_finite(float(fr.cloudbase_msl)), "%s: база облаков конечна" % n)
 	for t in TAGS:
 		check(seen.has(t), "метка %s встречается хотя бы в одном случае" % t)
+
+
+## Дневной случай (набор 2): условия-прогноз, t_apply и моменты, подписи точек.
+func _check_day(n: String, c: Dictionary) -> void:
+	var cond: Dictionary = c.conditions
+	check(cond.has("forecast") and not cond.has("preset"), "%s: условия — прогноз" % n)
+	var fc: Dictionary = cond.get("forecast", {})
+	for k in ["temperature_c", "wind_speed_kmh", "wind_from_deg"]:
+		check(fc.get(k) is float and is_finite(float(fc[k])), "%s: forecast.%s" % [n, k])
+	check(["clear", "partly", "overcast"].has(String(fc.get("sky", ""))), "%s: forecast.sky" % n)
+	var sh := float(cond.get("start_hour", 0.0))
+	check(sh >= 10.0 and sh <= 12.0, "%s: start_hour 10…12" % n)
+	check(float(cond.get("speed", 0.0)) == 1.0, "%s: speed 1" % n)
+	check(float(cond.get("quantum_h", 0.0)) > 0.0, "%s: quantum_h" % n)
+	check(["start", "inflow"].has(String(cond.get("inflow_mode", ""))), "%s: inflow_mode" % n)
+	check((cond.get("overrides", {}) as Dictionary).has("thermal_spacing_m"), "%s: overrides.thermal_spacing_m" % n)
+	var wr: Dictionary = cond.get("wind_ref", {})
+	check(wr.has("ref_msl") and wr.has("gain_per_km"), "%s: wind_ref" % n)
+	var x: Dictionary = c.extra
+	var ta: Array = x.get("t_apply", [])
+	check(ta.size() >= 1, "%s: extra.t_apply — хотя бы одна подача поля в полёте" % n)
+	for t: Variant in ta:
+		check(t is float and is_finite(float(t)) and float(t) > 0.0 and float(t) <= 3600.0, "%s: t_apply в (0, 3600]" % n)
+	var blend := float(x.get("blend_s", 0.0))
+	check(blend > 0.0, "%s: extra.blend_s > 0" % n)
+	check(x.get("window_levels_m") is Array and (x.window_levels_m as Array).size() == 2, "%s: окна 100/50" % n)
+	var ts: Array = c.times_s
+	if ts.size() == 4 and ta.size() >= 1:
+		check(float(ts[0]) == 0.0, "%s: момент 0 — после загрузки" % n)
+		check(float(ts[3]) == 3600.0, "%s: последний момент 3600 с" % n)
+		var dt := float(x.get("dt_s", 0.25))
+		check(absf(float(ts[1]) - (float(ta[0]) + 0.5 * blend)) <= dt, "%s: момент 1 — середина подмены" % n)
+		check(absf(float(ts[2]) - (float(ta[0]) + blend + 30.0)) <= dt, "%s: момент 2 — подмена + 30 с" % n)
+	var labels: Array = x.get("point_labels", [])
+	check(labels.size() == (c.points as Array).size(), "%s: подписей точек столько же, сколько точек" % n)
+	var edges := {}
+	for i in mini(labels.size(), (c.point_tags as Array).size()):
+		if String(labels[i]).begins_with("edge_"):
+			check(c.point_tags[i] == "field_edge", "%s: подпись edge_* только у field_edge" % n)
+			edges[String(labels[i])] = true
+	check(edges.has("edge_50_100") and edges.has("edge_100_400"), "%s: есть точки на границах окон 100/50 и 100/400" % n)
+	check(labels.has("L50"), "%s: есть точки внутри окна 50 м" % n)
+
+
+## Набор 2: дневных случаев не меньше трёх, есть inflow и start, есть ветер ≥ 25 км/ч и ≤ 15 км/ч.
+func test_day_cases_set() -> void:
+	var days := 0
+	var inflow := 0
+	var start := 0
+	var strong := 0
+	var weak := 0
+	for n in _cases():
+		if not n.begins_with("ongudai_day"):
+			continue
+		days += 1
+		var c: Dictionary = _json(ROOT.path_join("cases/%s.json" % n))
+		var mode := String((c.conditions as Dictionary).get("inflow_mode", ""))
+		inflow += 1 if mode == "inflow" else 0
+		start += 1 if mode == "start" else 0
+		var w := float((c.conditions.forecast as Dictionary).get("wind_speed_kmh", 0.0))
+		strong += 1 if w >= 25.0 else 0
+		weak += 1 if w >= 10.0 and w <= 15.0 else 0
+	check(days >= 3, "дневных случаев не меньше трёх: %d" % days)
+	check(inflow >= 1 and start >= 1, "есть inflow (%d) и start (%d)" % [inflow, start])
+	check(strong >= 1 and weak >= 1, "есть ветер ≥ 25 км/ч (%d) и 10…15 км/ч (%d)" % [strong, weak])
 
 
 ## В найденном сильном ядре (в кадре без Cb) средний vy на оси в середине столба > 0 по выборке MEAN.
