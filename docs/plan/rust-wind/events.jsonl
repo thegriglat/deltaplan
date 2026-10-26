@@ -273,3 +273,5 @@
 {"t": "2026-10-26T06:12:09", "by": "coordinator", "task": "RW-6l", "ev": "accepted", "commits": ["0c813bb4c"], "note": "5/5 phase_mech_test=ok:test result: ok. 7; cargo_test=ok:exit 0; fmt=ok:exit 0; clippy=ok:exit 0; dump_repro=ok:exit 0"}
 {"t": "2026-10-26T06:12:09", "by": "coordinator", "task": "RW-6l", "ev": "merged"}
 {"t": "2026-10-26T06:12:17", "by": "coordinator", "task": "RW-6h", "ev": "accepted", "note": "по ревью; minor: пороги omega_after/late_from от it с pre_steps — при некратных check_every на проверку раньше игры — в RW-6r"}
+{"t": "2026-10-26T06:16:55", "by": "coordinator", "task": "RW-6h", "ev": "accepted", "commits": ["70ec478d4"], "note": "4/4 fallback_test=ok:test result: ok. 6; picard_tests=ok:exit 0; fmt=ok:exit 0; clippy=ok:exit 0"}
+{"t": "2026-10-26T06:16:55", "by": "coordinator", "task": "RW-6h", "ev": "merged"}
