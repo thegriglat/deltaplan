@@ -18,7 +18,7 @@
     },
     {
       "name": "W11",
-      "version": "6",
+      "version": "7",
       "ref": "docs/contracts/rust-wind.md"
     }
   ],
@@ -37,11 +37,13 @@
     "tools/research/rust_wind/dump_window.tscn",
     "tools/research/rust_wind/README.md",
     "rust/dp-air/Cargo.toml",
-    "rust/Cargo.lock"
+    "rust/Cargo.lock",
+    "rust/picard_rs/src/",
+    "rust/picard_rs/tests/",
+    "rust/dp-air/src/lib.rs"
   ],
   "dont_touch": [
     "scripts/",
-    "rust/picard_rs/",
     "rust/dp-air/src/formula.rs",
     "rust/dp-air/src/field/runtime.rs",
     "rust/dp-air/src/field/phase/",
@@ -84,5 +86,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-26T07:47:14"
+  "created": "2026-10-26T07:47:14",
+  "edited": "2026-10-26T08:12:58"
 }
