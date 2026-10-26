@@ -1,0 +1,95 @@
+{
+  "id": "RW-6j",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Formula: оркестровка поля в крейте — загрузка, грубый старт, проходы k, пересчёт на сроке, подмена, фон, отмена",
+  "goal": "Реализация Formula трейта AirModel (W4) ведёт поле Пикара сама: load_place → вход области (6b/6c/6d) → грубый старт 1200 м (6f) → пара mech/heat (6e, решатель W11) → FieldSet (6i); два прохода k как AirRuntime; пересчёт на сроке recompute_game_min и по смене условий с тёплого старта, подмена за blend_s; фон — в своём rayon-пуле, отмена при unload/Drop ≤ 1 с; детерминированный режим W1 v2; sample_many/decompose отдают слагаемое field; общий контрактный suite проходит на Formula.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "4",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W7",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6j",
+  "branch": "rust-wind/RW-6j",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/runtime.rs",
+    "rust/dp-air/src/field/mod.rs",
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/tests/runtime.rs",
+    "rust/dp-air/tests/contract.rs",
+    "rust/dp-air/Cargo.toml",
+    "rust/Cargo.lock",
+    "rust/dp-stand/src/",
+    "configs/atmosphere.json"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/picard_rs/",
+    "rust/dp-gd/",
+    "rust/dp-air/src/field/phase/",
+    "rust/dp-air/src/field/baked.rs",
+    "rust/dp-air/src/field/field_cache.rs",
+    "tests/fixtures/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "runtime_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test runtime",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "contract_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test contract",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "stand_formula",
+      "cmd": "cargo run -q --release --manifest-path rust/Cargo.toml -p dp-stand -- sample --case tests/fixtures/wind/cases/ongudai_strong.json --model formula 2>&1 | tail -3",
+      "expect": "!re:(?i)error|panic"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T06:17:48"
+}
