@@ -23,6 +23,13 @@
 			"tx_c": 20.1899995487183,
 			"z_cell_m": 1136.0
 		},
+		"climate_lag": {
+			"dtr_k": 11.459999743849,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 19.4799995645881,
+			"z_cell_m": 1136.0
+		},
 		"day": 15,
 		"id": "synthetic",
 		"month": 7,

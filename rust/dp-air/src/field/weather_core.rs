@@ -54,6 +54,20 @@ pub struct ClimateCell {
 /// Источник климата: ячейка на (широта, долгота, месяц, день).
 pub trait Climate: Sync {
     fn cell(&self, lat: f64, lon: f64, month: i64, day: i64) -> ClimateCell;
+    /// W5 v7: ячейка для температуры воды (дата сдвинута на `lag_days` вызывающим). По умолчанию
+    /// та же, что [`Climate::cell`]; климат места отдаёт `loc.climate_lag`.
+    fn water_cell(&self, lat: f64, lon: f64, month: i64, day: i64) -> ClimateCell {
+        self.cell(lat, lon, month, day)
+    }
+}
+
+/// Вид климата для воды: `cell` отдаёт [`Climate::water_cell`].
+struct WaterClimate<'a>(&'a dyn Climate);
+
+impl Climate for WaterClimate<'_> {
+    fn cell(&self, lat: f64, lon: f64, month: i64, day: i64) -> ClimateCell {
+        self.0.water_cell(lat, lon, month, day)
+    }
 }
 
 impl<F: Fn(f64, f64, i64, i64) -> ClimateCell + Sync> Climate for F {
@@ -603,6 +617,7 @@ fn lapse(z_m: f64, ctx: &Ctx, sh: &SurfaceHeatCfg) -> f64 {
 /// (24 часовых отсчёта `diurnal_state` при `typical_max_c` сдвинутой даты). Температура воды
 /// на высоте `z` — `max(0, T̄ − lapse(z))` ([`water_temp_c`]).
 pub fn water_mean_air_c(cfg: &WeatherConfigs, ctx: &Ctx, climate: &dyn Climate) -> f64 {
+    let climate = &WaterClimate(climate);
     let mut doy = day_of_year(ctx.month, ctx.day) - cfg.sh.water.lag_days.round() as i64;
     if doy < 1 {
         doy += 365;

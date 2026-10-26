@@ -336,7 +336,6 @@ pub fn solve_pair(
     cfg: &super::runtime::RtCfg,
     cancel: &Arc<AtomicBool>,
     inputs: &mut PairInputs,
-    deadline: Instant,
 ) -> Result<PairSolved, JobErr> {
     let cycles = (!inputs.warm).then_some(INIT_CYCLES);
     let level = inputs.level;
@@ -351,7 +350,6 @@ pub fn solve_pair(
         &inputs.mech.case,
         Some(to_state(&level, take(&mut inputs.mech.start))),
         spec(),
-        deadline,
     )?;
     let sh = solve_with(
         cfg,
@@ -359,7 +357,6 @@ pub fn solve_pair(
         &inputs.heat.case,
         Some(to_state(&level, take(&mut inputs.heat.start))),
         spec(),
-        deadline,
     )?;
     Ok(PairSolved {
         iters: [sm.iters, sh.iters],
@@ -422,7 +419,6 @@ pub fn solve_windows(
     area_field: &Arc<Field>,
     k: f64,
     plan: Plan,
-    deadline: Instant,
     progress: &dyn Fn(f32),
 ) -> Result<Windows, JobErr> {
     let cfg = &job.cfg;
@@ -479,7 +475,7 @@ pub fn solve_windows(
         let start_s = t0.elapsed().as_secs_f64();
         check_cancel(job)?;
         let t1 = Instant::now();
-        let solved = solve_pair(cfg, &job.cancel, &mut inputs, deadline)?;
+        let solved = solve_pair(cfg, &job.cancel, &mut inputs)?;
         let solve_s = t1.elapsed().as_secs_f64();
         let t2 = Instant::now();
         let field = build_field(
@@ -541,17 +537,8 @@ pub fn run_shift(job: JobIn, q: usize, pilot: [f64; 2]) -> Result<JobOut, JobErr
         return Err(JobErr::Failed("shift: no clipmap".into()));
     };
     let plan = clip.plan_shift(q, pilot);
-    let deadline = t0 + std::time::Duration::from_secs_f64(job.cfg.timeout_s.max(1.0));
     let none = |_: f32| {};
-    let w = solve_windows(
-        &job,
-        &clip.area,
-        &clip.area_field,
-        clip.k,
-        plan,
-        deadline,
-        &none,
-    )?;
+    let w = solve_windows(&job, &clip.area, &clip.area_field, clip.k, plan, &none)?;
     Ok(JobOut {
         levels: w.clip.levels(),
         k: clip.k,
