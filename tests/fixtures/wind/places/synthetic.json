@@ -16,6 +16,13 @@
 	"loc": {
 		"center_lat": 51.5,
 		"center_lon": 86.5,
+		"climate": {
+			"dtr_k": 10.3699997682124,
+			"has_hh1": true,
+			"has_hh5": true,
+			"tx_c": 20.1899995487183,
+			"z_cell_m": 1136.0
+		},
 		"day": 15,
 		"id": "synthetic",
 		"month": 7,
