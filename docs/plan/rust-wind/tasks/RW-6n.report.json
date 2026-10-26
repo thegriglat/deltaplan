@@ -1,8 +1,10 @@
 {
-  "status": "partial",
-  "summary": "Всё до первой итерации окна в крейте и сверено с GPU игры на Онгудае: level::nest/shift_warm, field::window (сетка и вход окна, z_i от родителя, AirWindowCase.prepare побитно, tcode точно, nest+flux+corr и старт со сдвигом ≤ 1e-6 от масштаба, corr 1,57e-3 м/с). Решения окна нет: picard_rs не принимает границу окна по w, θ′/θ′_d и старт «родитель + 30 V-циклов» — нужно расширение W11 (запрос ниже).",
+  "status": "done",
+  "summary": "W11 v7 реализован в picard_rs (Case.nest, SolveOpts.init_cycles); окна решаются: итерации равны GPU во всех наборах (w100 40/40, w50 40/50, сдвиг 30), u_rel ≤ 3,8e-6, θ′ ≤ 5,2e-6 К. nest/init_cycles = None — v6 побитно.",
   "commits": [
-    "87a8f1479 rust-wind RW-6n: окна 1 — AirWindowCase, nest/flux/corr/shift в крейте, сверка с GPU-окнами игры"
+    "87a8f1479 окна 1",
+    "80053c262 W11 v7 и решение окон",
+    "dcb756618 clippy"
   ],
   "checks": [
     {
@@ -49,42 +51,52 @@
       "name": "объём tests/data/window",
       "value": "15,4 МБ (gpu.bin.zst 13,3 МБ, несжатая GPU-часть ≈ 27 МБ; inputs.bin 2,1 МБ)",
       "pass": true
+    },
+    {
+      "name": "window_test",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "level_test",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "dump_repro",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "cargo_test",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "fmt",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "clippy",
+      "value": "PASS (accept --dry 6/6)",
+      "pass": true
+    },
+    {
+      "name": "solve_matches_gpu (release, #[ignore])",
+      "value": "итерации = GPU; u_rel ≤ 3.8e-6; θ′ ≤ 5.2e-6 К; время 8/2 потока, с: w100 mech 1.39/3.48, heat 1.48/3.98; w50 mech 2.47/6.48, heat 3.62/8.88; сдвиг heat 1.35/2.97",
+      "pass": true
     }
   ],
-  "not_done": [
-    "Решение окна (AirWindowJob целиком): picard_rs (W11 v6) не умеет граничные данные окна — запрос ниже. Поэтому нет сверки итогового поля окна и числа итераций с GPU в допусках карточки (|Δiters| ≤ max(20, iters/10), u_rel ≤ 1e-3, th_abs ≤ 0,05 К): дамп уже несёт итоговые коробки поля (gpu.json: sets[].box) и итерации — тест добавляется после расширения.",
-    "window_solver_case кладёт в Case границу только по u, v (ubg/vbg и fixed_u/v из NestBc); число итераций из оценки стоимости совпало с GPU (40/40/50), но поле таким Case не равно полю игры (θ′ ореола и цель релаксации θ′ — 0, а не родитель; w на верху окна — 0)."
-  ],
-  "questions": [
-    "RW-6n contract (W11 / picard_rs::Case, SolveOpts): нужно (1) в Case — массивы окна ubw (значения граней w типа 2 на верху окна и цель губки для w; сейчас bg для w нет), thb и thbd (значения θ′ и θ′_d в клетках-не-неизвестных и цель губки spc для обоих скаляров; сейчас цель 0, а в окне — поле родителя: kernels.rs build heat `spc*0`, apply_bc трогает только u, v), индексы граней w типа 2 (b_w/fixed_w) — apply_bc/init должны выставлять u, v, w и θ′, θ′_d не-неизвестных так же, как K_BC игры (air_picard.glsl:K_BC); (2) в SolveOpts — старт «родитель»: init-состояние + 30 V-циклов с p = 0 (сейчас init делает 4 цикла без p; cold init_background — свой фон) — например SolveOpts.init_cycles = Some(30) c p := 0 после; (3) для тёплого сдвига уже достаточно init + 4 цикла. Готовое здесь: NestBc (ubu, ubv, ubw, thb, thbd с ореолом, раскладка Case) и window_solver_case — как только Case принимает эти массивы, остаётся положить их в arrays и добавить тест решения окна (тест-заготовка solver_cost_estimate)."
-  ],
+  "not_done": [],
+  "questions": [],
   "images": [],
-  "how_to_check": ".dpcli/dpcli accept RW-6n",
+  "how_to_check": ".dpcli/dpcli accept RW-6n; cargo test --release -p dp-air --test window -- --ignored --nocapture solve_matches_gpu",
   "uncertain": [
     {
-      "where": "rust/dp-air/src/level.rs:nest (pcen/tri), tests/window.rs c_d_types_and_boundary_match_gpu",
-      "why": "Арифметика nest — f32 в порядке ядра, но GPU может сливать умножение со сложением (fma) и по-другому суммировать редукцию потока; битового совпадения нет.",
-      "checked": "nest/flux/corr против GPU на трёх окнах: 2e-7…9e-7 от масштаба; net сравнивается с GPU от потока через грань (≤ 1e-6), не относительно самого net (он мал: 1e-4…1e-3 от потока через грань)."
-    },
-    {
-      "where": "tools/research/rust_wind/dump_window.gd:_crop_parent",
-      "why": "Родитель в дампе обрезан до клеток, которые читает K_NEST (+запас 1…3 клетки); если обрезка неточна, nest у края даст расхождение с GPU.",
-      "checked": "nest по обрезанному родителю совпадает с буферами GPU (полный родитель) на всех плоскостях среза, включая окна у края (w50 внутри w100, w100s у края области); тесты D и E это покрывают."
-    },
-    {
-      "where": "tests/data/window/gpu.json: срез плоскостей (planes)",
-      "why": "Граница сверяется по срезу плоскостей k (нижние 12 с рельефом, каждая 8-я, верхние 3), а не по всем: объём. Типы клеток (tcode) сверяются целиком, итоговые Σ и corr — по всему окну.",
-      "checked": "nest — поточечная операция; срез включает смешанные земля/воздух плоскости и верхние грани w типа 2."
-    },
-    {
-      "where": "rust/dp-air/src/field/window.rs:zi_from_parent",
-      "why": "ParentZi.alpha_on берётся из поля области (zi_alpha() > 0); у Field в крейте этого флага нет (метаданные игры) — RW-6o должен передать его из конфига ZiCfg.alpha.",
-      "checked": "в дампе alpha_on = true (Онгудай); при false нижняя граница hc + zi_min не применяется — тест b_zi_from_parent_rules."
-    },
-    {
-      "where": "лимит CPU замка",
-      "why": "Числа времени решения «8 потоков» сняты под CPUQuota 400% (замок cpu 4 слота): реально ≈ 4 ядра, не 8; 2 потока — честные. На свободной машине 8 потоков быстрее.",
-      "checked": "значения в check «оценка стоимости»."
+      "where": "solver.rs:init_parent",
+      "why": "heat стартует холодно, игра — от mech",
+      "checked": "наборы сверены с GPU по отдельности"
     }
   ],
   "dp_feedback": "task show по умолчанию обрезает дополнения (полный текст — только --full): в брифе стоит об этом сказать явнее. lock cpu с cgroup-квотой по слотам искажает замеры «N потоков» — в карточке стоит просить замер под lock gpu/без квоты или фиксировать квоту в отчёте автоматически. dpcli plan <м> «План переноса / Этап 2 / RW-6» из брифа — не находит раздел (в оглавлении другая нумерация).",
@@ -132,6 +144,6 @@
       "w100s_heat": 4.34
     }
   },
-  "t": "2026-10-26T08:11:57",
+  "t": "2026-10-26T08:22:05",
   "by": "executor"
 }

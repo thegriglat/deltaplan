@@ -1,0 +1,22 @@
+{
+  "verdict": "accept",
+  "summary": "Скоуп чист (19 файлов), W11 v7 аддитивен (nest/init_cycles = None даёт путь v6), пороги не ослаблены, solve_gpu перезапущен — PASS.",
+  "issues": [
+    {
+      "file": "rust/picard_rs/src/solver.rs",
+      "line": 1,
+      "severity": "minor",
+      "what": "init_parent: heat-набор стартует холодно, игра — от mech; сверка с GPU идёт по наборам отдельно и проходит",
+      "fix": "не требуется; учесть в RW-6o при подключении клипмапа"
+    }
+  ],
+  "rerun": [
+    {
+      "name": "accept --only solve_gpu --dry",
+      "value": "ok, 44 с",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-26T08:26:43",
+  "by": "reviewer"
+}
