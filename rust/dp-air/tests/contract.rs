@@ -1,14 +1,38 @@
-//! Контрактные тесты W4/W5 (T5, T6). Набор `suite` принимает фабрику модели, чтобы потом
-//! прогнать тот же набор на `Formula`.
+//! Контрактные тесты W4/W5 (T5, T6). Набор `suite` принимает окружение модели — фабрику, конфиги и
+//! место, — один и тот же набор идёт на `Calm` и на `Formula` (RW-6j: настоящие конфиги игры,
+//! синтетика W8, детерминированный режим, малая область; загрузка `Formula` — фон, тесты ждут
+//! `Ready` после `load_place`).
 use dp_air::*;
+use std::time::{Duration, Instant};
 
-type Make<'a> = &'a dyn Fn() -> Box<dyn AirModel>;
+/// Окружение набора: фабрика модели, конфиги для `configure`, место для `load_place`.
+struct Env {
+    make: Box<dyn Fn() -> Box<dyn AirModel>>,
+    configs: Configs,
+    place: fn() -> Place,
+}
+
+type Make<'a> = &'a Env;
+
+/// Ждёт конца загрузки (`Loading`); `Failed` — провал теста.
+fn settle(m: &dyn AirModel) {
+    let t0 = Instant::now();
+    loop {
+        match m.status().state {
+            State::Loading => {}
+            State::Failed => panic!("model failed: {}", m.status().reason),
+            _ => return,
+        }
+        assert!(t0.elapsed() < Duration::from_secs(900), "Loading too long");
+        std::thread::sleep(Duration::from_millis(2));
+    }
+}
 
 const HEADER: &str = r#"{"version":1,"loc":{"id":"t","center_lat":50.0,"center_lon":86.0,
 "utc_offset_h":7.0,"month":7,"day":1},"grid":{"origin_x":-100,"origin_z":-100,"spacing":50,
 "width":5,"height":4},"surface_classes":{"grass":1,"rock":2},"start_sites":[{"x":0,"z":0,"h_msl":10}]}"#;
 
-fn place() -> Place {
+fn tiny_place() -> Place {
     let h = PlaceHeader::from_json(HEADER).unwrap();
     let n = h.cells();
     Place::new(h, vec![100.0; n], vec![0; n], vec![1; n], vec![0.5; n]).unwrap()
@@ -30,9 +54,10 @@ fn code<T>(r: Result<T, Error>) -> Code {
 }
 
 fn ready(make: Make) -> Box<dyn AirModel> {
-    let mut m = make();
-    m.configure(&Configs::default(), 1).unwrap();
-    m.load_place(place()).unwrap();
+    let mut m = (make.make)();
+    m.configure(&make.configs, 1).unwrap();
+    m.load_place((make.place)()).unwrap();
+    settle(&*m);
     m
 }
 
@@ -58,7 +83,7 @@ fn suite(make: Make) {
 }
 
 fn empty_state(make: Make) {
-    let m = make();
+    let m = (make.make)();
     let s = m.status();
     assert_eq!(s.state, State::Empty);
     let mut out = [[1.0f32; 4]; 2];
@@ -125,7 +150,7 @@ fn point_outside_place(make: Make) {
 }
 
 fn commands_before_place(make: Make) {
-    let mut m = make();
+    let mut m = (make.make)();
     // v2: настройки до места запоминаются — Ok; время без места — NoPlace
     assert_eq!(code(m.set_conditions(&forecast_cond())), Code::Ok);
     assert_eq!(code(m.set_focuses(&[])), Code::Ok);
@@ -135,9 +160,10 @@ fn commands_before_place(make: Make) {
     assert_eq!(code(m.start_at(1.0)), Code::NoPlace);
     m.unload_place(); // без места — не ошибка
     assert_eq!(m.status().state, State::Empty);
-    assert_eq!(code(m.configure(&Configs::default(), 5)), Code::Ok);
+    assert_eq!(code(m.configure(&make.configs, 5)), Code::Ok);
     // запомненное применяется при загрузке: место грузится и после настроек
-    m.load_place(place()).unwrap();
+    m.load_place((make.place)()).unwrap();
+    settle(&*m);
     assert_eq!(m.status().state, State::Ready);
     // unload сбрасывает место и время: снова NoPlace
     m.advance_to(4.0).unwrap();
@@ -177,12 +203,14 @@ fn out_is_replaced(make: Make) {
 fn reload_place(make: Make) {
     let mut m = ready(make);
     m.advance_to(10.0).unwrap();
-    m.load_place(place()).unwrap();
+    m.load_place((make.place)()).unwrap();
+    settle(&*m);
     assert_eq!(m.status().state, State::Ready);
     assert_eq!(m.status().time_s, 0.0, "reload starts from zero");
     m.unload_place();
     assert_eq!(m.status().state, State::Empty);
-    m.load_place(place()).unwrap();
+    m.load_place((make.place)()).unwrap();
+    settle(&*m);
     assert_eq!(m.status().state, State::Ready);
 }
 
@@ -215,7 +243,7 @@ fn advance_only_forward(make: Make) {
 }
 
 fn start_at_defined(make: Make) {
-    let mut m = make();
+    let mut m = (make.make)();
     assert_eq!(code(m.start_at(100.0)), Code::NoPlace); // до Ready — определённый ответ
     let mut m = ready(make);
     assert_eq!(code(m.start_at(f64::NAN)), Code::BadInput);
@@ -297,9 +325,9 @@ fn concurrent_queries(make: Make) {
     });
 }
 
-/// T6 / W6 v2: у ядра без флага Cb (бит 2) средний `vy` по `sample_many` в круге `0,5·radius`
+/// T6 / W6 v3: у ядра без флага Cb (бит 2) и с w ≥ 1,5 м/с средний `vy` по `sample_many` в круге `0,5·radius`
 /// на высоте `(y_src + top)/2` положителен и больше среднего `vy` в кольце 2–3·radius на той же
-/// высоте; id — целое в [0, 2^24). На `Calm` ядер нет — проверка пуста; готова для `Formula`.
+/// высоте; id — целое в [0, 2^24). На `Calm` и `Formula` (до RW-10) ядер нет — проверка пуста.
 fn cores_lift_invariant(make: Make) {
     let m = ready(make);
     let mut cores = Vec::new();
@@ -310,8 +338,8 @@ fn cores_lift_invariant(make: Make) {
             "core id {} must be an integer in [0, 2^24)",
             c.id
         );
-        if (c.flags as u32) & 4 != 0 {
-            continue; // Cb пропускаем
+        if (c.flags as u32) & 4 != 0 || c.w < 1.5 {
+            continue; // Cb и слабые ядра (W6 v3: инвариант — только для w ≥ 1,5 м/с)
         }
         let y = 0.5 * (c.y_src + c.top);
         let mean_vy = |r: f32| {
@@ -343,7 +371,71 @@ fn cores_lift_invariant(make: Make) {
 
 #[test]
 fn calm_suite() {
-    suite(&|| Box::new(Calm::new()));
+    suite(&Env {
+        make: Box::new(|| Box::new(Calm::new())),
+        configs: Configs::default(),
+        place: tiny_place,
+    });
+}
+
+// ---- Formula (RW-6j) ----
+
+fn collect_configs(dir: &std::path::Path, prefix: &str, out: &mut Vec<(String, String)>) {
+    for e in std::fs::read_dir(dir).unwrap() {
+        let p = e.unwrap().path();
+        let name = format!("{prefix}{}", p.file_name().unwrap().to_string_lossy());
+        if p.is_dir() {
+            collect_configs(&p, &format!("{name}/"), out);
+        } else if p.extension().is_some_and(|x| x == "json") {
+            out.push((name, std::fs::read_to_string(&p).unwrap()));
+        }
+    }
+}
+
+/// Конфиги игры; `air`: детерминизм, область 7,2 км, tol_scale 5 (критерий игры).
+fn formula_configs() -> Configs {
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../configs");
+    let mut files = Vec::new();
+    collect_configs(&root, "", &mut files);
+    for (n, t) in &mut files {
+        if n == "atmosphere.json" {
+            let mut v: serde_json::Value = serde_json::from_str(t).unwrap();
+            v["air"]["deterministic"] = true.into();
+            v["air"]["domain_l_m"] = 7200.0.into();
+            v["air"]["tol_scale"] = 5.0.into();
+            v["air"]["threads"] = 4.into();
+            v["air"]["timeout_s"] = 600.0.into();
+            *t = serde_json::to_string(&v).unwrap();
+        }
+    }
+    files.sort();
+    Configs::new(files)
+}
+
+/// Синтетика W8 (20 км, сетка 25 м): область сжимается до помещающейся.
+fn synthetic_place() -> Place {
+    static P: std::sync::OnceLock<Place> = std::sync::OnceLock::new();
+    P.get_or_init(|| {
+        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../tests/fixtures/wind/places/synthetic.json");
+        fixtures::read_place(&path).unwrap()
+    })
+    .clone()
+}
+
+#[test]
+fn formula_suite() {
+    suite(&Env {
+        make: Box::new(|| Box::new(Formula::new())),
+        configs: formula_configs(),
+        place: synthetic_place,
+    });
+}
+
+#[test]
+fn formula_is_send_sync() {
+    fn is<T: Send + Sync>() {}
+    is::<Formula>();
 }
 
 #[test]
@@ -356,7 +448,7 @@ fn calm_is_send_sync() {
 fn calm_ready_after_load_is_immediate() {
     let mut m = Calm::new();
     assert_eq!(m.status().state, State::Empty);
-    m.load_place(place()).unwrap();
+    m.load_place(tiny_place()).unwrap();
     let s = m.status();
     assert_eq!((s.state, s.progress), (State::Ready, 1.0));
     let mut out = [[1.0f32; 4]; 3];

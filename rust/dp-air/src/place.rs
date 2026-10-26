@@ -3,6 +3,19 @@ use crate::error::Error;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
+/// Климат у центра места (W5 v3, `ClimateGrid.place`): ячейка ERA5 на `month/day`.
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize)]
+pub struct LocClimate {
+    /// Дневной максимум HH5, °C.
+    pub tx_c: f64,
+    /// Суточная амплитуда, К.
+    pub dtr_k: f64,
+    /// Средняя высота ячейки HH1, м (0 — нет).
+    pub z_cell_m: f64,
+    pub has_hh1: bool,
+    pub has_hh5: bool,
+}
+
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Loc {
     pub id: String,
@@ -11,6 +24,9 @@ pub struct Loc {
     pub utc_offset_h: f64,
     pub month: u32,
     pub day: u32,
+    /// Нет ключа — запасные таблицы `weather_model.json`.
+    #[serde(default)]
+    pub climate: Option<LocClimate>,
 }
 
 /// Сетка W1: узлы, `origin_*` — координаты узла (0, 0).
