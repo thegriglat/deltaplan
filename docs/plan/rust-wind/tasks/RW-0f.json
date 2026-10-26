@@ -30,6 +30,7 @@
     "rust/dp-air/tests/contract.rs",
     "rust/dp-gd/src/lib.rs",
     "rust/dp-gd/src/bridge.rs",
+    "rust/dp-gd/tests/bridge.rs",
     "tests/contracts/test_dp_air_ext.gd",
     "tools/wind_fixtures/verify.sh"
   ],
@@ -68,5 +69,6 @@
   ],
   "report_extra": [],
   "notes": "",
-  "created": "2026-10-27T01:23:02"
+  "created": "2026-10-27T01:23:02",
+  "edited": "2026-10-27T02:38:59"
 }
