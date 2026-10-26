@@ -1,0 +1,34 @@
+{
+  "verdict": "accept",
+  "summary": "W11 v3 реализован по эталону air_picard_job.gd: порядок релаксации (K после замыкания, u,v,w после проекции, до нагрева и заморозки), накопление late_mean на проверках без остановки (состояние на max не входит), ω-переключение elif после сходимости/max, подмена late_mean → nonconv-поле (kind-карты как freeze), замороженные не восстанавливаются (как игра, по доработке координатора). fallback=None не задевает путь v2; скоуп чист. Блокеров нет.",
+  "issues": [
+    {
+      "file": "rust/picard_rs/src/solver.rs",
+      "line": 1195,
+      "severity": "minor",
+      "what": "Пороги omega_after/late_from сравниваются с it, где для холодного старта есть pre_steps; игра считает _iters без шага захвата. При порогах, кратных check_every (игра: 300/500), номер проверки совпадает; при некратных — переключение/начало late на одну проверку раньше игры.",
+      "fix": "Сравнивать (it - pre_steps) с порогом или записать в INTEGRATION.md, что пороги должны быть кратны check_every."
+    },
+    {
+      "file": "rust/picard_rs/tests/fallback.rs",
+      "line": 510,
+      "severity": "minor",
+      "what": "В отчёте нет команды и итога долгих #[ignore]-тестов (требование дополнения). Ревьюер прогнал: cargo test --release -p picard_rs --test fallback -- --ignored → 2 passed; штиль 12:00 сошёлся за 201 итерацию (в игре 161), без запасного пути. Расхождение 201/161 — ориентир, не паритет; при отсутствии файла тест молча проходит.",
+      "fix": "Вписать команду и итог в INTEGRATION.md/следующий отчёт; разница 201 vs 161 — на заметку для RW-6j."
+    }
+  ],
+  "rerun": [
+    {
+      "name": "fallback_test (accept --only --dry)",
+      "value": "test result: ok. 6; scope 4 файла в границах",
+      "pass": true
+    },
+    {
+      "name": "fallback --ignored (release, Онгудай 400 м)",
+      "value": "2 passed; calm Converged 201 iters, omega_used false, nonconv false",
+      "pass": true
+    }
+  ],
+  "t": "2026-10-26T06:11:32",
+  "by": "reviewer"
+}
