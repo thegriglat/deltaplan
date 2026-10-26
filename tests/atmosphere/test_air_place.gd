@@ -35,6 +35,13 @@ static func load_loc(loc_id: String) -> Dictionary:
 
 
 func test_domain_input_vs_reference() -> void:
+	# эталон снят по таблицам (Python, без климата места): суточная амплитуда — таблица diurnal.range_k
+	ClimateGrid.set_paths({"hh5": "res://data/climate/__none5.bin"})
+	_domain_input_vs_reference()
+	ClimateGrid.set_paths({})
+
+
+func _domain_input_vs_reference() -> void:
 	var lw := load_detail("ongudai")
 	check(lw.size() == 2 and lw[0] != null, "слой detail Онгудая")
 	if lw.size() != 2:
@@ -42,8 +49,9 @@ func test_domain_input_vs_reference() -> void:
 	var loc := load_loc("ongudai")
 	for dx in [400.0, 200.0]:
 		var m := TestAirPicard.load_fix(FIX + "ongudai_d%d_h12" % int(dx))
+		var tm := float(m.day.t_max)  # Tmax, с которой снят эталон (без климата места)
 		var t0 := Time.get_ticks_msec()
-		var c := AirPlace.domain_case(lw[0], lw[1], loc, dx, 12.0, 3.0, 150.0)
+		var c := AirPlace.domain_case(lw[0], lw[1], loc, dx, 12.0, 3.0, 150.0, tm)
 		var t_ms := Time.get_ticks_msec() - t0
 		check(c != null, "случай построен")
 		if c == null:
@@ -54,7 +62,7 @@ func test_domain_input_vs_reference() -> void:
 		)
 		var dat: Dictionary = m.data
 		var e_h := _max_diff(c.hc, dat.hc)
-		var e_q := _max_diff_64(c.heat, expected_heat(c, lw[0], lw[1], loc, 12.0, 3.0, NAN, null))
+		var e_q := _max_diff_64(c.heat, expected_heat(c, lw[0], lw[1], loc, 12.0, 3.0, tm, null))
 		var e_g := _max_diff(c.gam, dat.gam)
 		var fmt := TestAirPicard.sci
 		print(
@@ -70,7 +78,7 @@ func test_domain_input_vs_reference() -> void:
 		check(absf(c.z_i - float(m.z_i)) < 0.5, "z_i: %.2f против %.2f" % [c.z_i, float(m.z_i)])
 		# профиль притока (C2 v4): α и max_profile случая игры = эталона на тот же час и ветер
 		for u in [0.0, 3.0, 6.0]:
-			var cu := c if u == 3.0 else AirPlace.domain_case(lw[0], lw[1], loc, dx, 12.0, u, 150.0)
+			var cu := c if u == 3.0 else AirPlace.domain_case(lw[0], lw[1], loc, dx, 12.0, u, 150.0, tm)
 			var pr: Dictionary = m.profiles["%d" % int(u)]
 			print(
 				(
@@ -85,6 +93,13 @@ func test_domain_input_vs_reference() -> void:
 				1e-9 * float(pr.max_profile),
 				"max_profile %d м/с как в эталоне" % int(u)
 			)
+
+
+## Tmax таблицы typical_max_c без климата места (так сняты эталоны и так считает случай при тесте без ctx).
+static func table_t_max(detail: HeightLayer, loc: Dictionary) -> float:
+	var cfg := WeatherModel.config()
+	var ctx := AirPlace.context(detail, loc, cfg)
+	return WeatherModel.typical_max_c(int(ctx.month), int(ctx.day), cfg)
 
 
 static func _max_diff(a: PackedFloat64Array, b: PackedFloat32Array) -> float:
@@ -269,13 +284,14 @@ func test_cell_fractions_synthetic() -> void:
 	)
 	# H окна на этой сетке = mix_flux по долям; вода днём в июле холоднее воздуха → H < 0, лес > 0
 	var loc := {id = "syn", center_lat = 50.75, center_lon = 86.13, utc_offset_h = 7.0}
+	var tm := table_t_max(layer, loc)
 	var c := AirWindowCase.window_at(
-		layer, riv, loc, 400.0, -800.0, -800.0, 12.0, 3.0, 150.0, NAN, "clear", true, {}, 4, 1.0, sf
+		layer, riv, loc, 400.0, -800.0, -800.0, 12.0, 3.0, 150.0, tm, "clear", true, {}, 4, 1.0, sf
 	)
 	check(c != null and c.heat.size() == 16, "окно 4 × 4 на синтетике")
 	if c == null:
 		return
-	var e := _max_diff_64(c.heat, expected_heat(c, layer, riv, loc, 12.0, 3.0, NAN, sf))
+	var e := _max_diff_64(c.heat, expected_heat(c, layer, riv, loc, 12.0, 3.0, tm, sf))
 	check(e < 1e-9, "H клетки = mix_flux по её долям: %s" % e)
 	check(c.heat[0 * 4 + 3] < 0.0, "вода в июльский полдень: H < 0 (%.1f)" % c.heat[3])
 	check(c.heat[0] > 50.0, "лес в полдень: H > 50 (%.1f)" % c.heat[0])
@@ -372,11 +388,12 @@ func test_surface_determinism_ongudai() -> void:
 	print("  класс узла ≠ Terrain.surface_at: %d из %d; max|Δm| %s" % [diff, n_cmp, dm])
 	check(diff <= n_cmp / 200, "класс узла снимка = Terrain.surface_at (≤ 0,5 %%): %d из %d" % [diff, n_cmp])
 	check(dm < 1e-6, "влажность узла = Terrain.moisture_at: %s" % dm)
-	var a := AirPlace.domain_case(p1.detail, p1.water, p1.loc, 400.0, 12.0, 3.0, 150.0, NAN, "clear", true, 1.0, s1)
-	var b := AirPlace.domain_case(p2.detail, p2.water, p2.loc, 400.0, 12.0, 3.0, 150.0, NAN, "clear", true, 1.0, s2)
+	var tm := table_t_max(p1.detail, p1.loc)
+	var a := AirPlace.domain_case(p1.detail, p1.water, p1.loc, 400.0, 12.0, 3.0, 150.0, tm, "clear", true, 1.0, s1)
+	var b := AirPlace.domain_case(p2.detail, p2.water, p2.loc, 400.0, 12.0, 3.0, 150.0, tm, "clear", true, 1.0, s2)
 	check(a != null and b != null and a.heat == b.heat, "две сборки — побитно одинаковое heat")
 	if a != null:
-		var e := _max_diff_64(a.heat, expected_heat(a, p1.detail, p1.water, p1.loc, 12.0, 3.0, NAN, s1))
+		var e := _max_diff_64(a.heat, expected_heat(a, p1.detail, p1.water, p1.loc, 12.0, 3.0, tm, s1))
 		check(e < 1e-9, "H клетки = mix_flux по её долям (снимок): %s" % e)
 		var cells := AirPlace.cell_surface(s1, p1.water, p1.detail, a.x0, a.y0, 400.0, a.nx, a.ny)
 		var wf := AirPlace.water_fraction(p1.water, p1.detail, a.x0, a.y0, 400.0, a.nx, a.ny)
