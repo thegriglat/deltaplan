@@ -62,7 +62,7 @@ fn scaled(s: &Solved, (u, v, w, th, thd): (f32, f32, f32, f32, f32)) -> FrozenFi
         v: sc(&s.state.v, v),
         w: sc(&s.state.w, w),
         th: sc(&s.state.th, th),
-        thd: sc(&s.state.thd, thd),
+        thd: Some(sc(&s.state.thd, thd)),
     }
 }
 
@@ -285,7 +285,7 @@ fn late_mean_and_nonconv_at_max_iters() {
                                 ('v', &mut f.v, &field.v),
                                 ('w', &mut f.w, &field.w),
                                 ('c', &mut f.th, &field.th),
-                                ('c', &mut f.thd, &field.thd),
+                                ('c', &mut f.thd, field.thd.as_ref().unwrap()),
                             ] {
                                 if masked(&c, &mask, kind, i, j) {
                                     x[t] = y[t];
@@ -321,7 +321,10 @@ fn late_mean_and_nonconv_at_max_iters() {
                     let t = (k * nyh + j) * nxh + i;
                     n_in += 1;
                     assert_eq!(r.state.th[t].to_bits(), field.th[t].to_bits());
-                    assert_eq!(r.state.thd[t].to_bits(), field.thd[t].to_bits());
+                    assert_eq!(
+                        r.state.thd[t].to_bits(),
+                        field.thd.as_ref().unwrap()[t].to_bits()
+                    );
                 }
             }
         }
@@ -417,7 +420,10 @@ fn rollback_late_mean_and_freeze_threads() {
                     // constant field (3 states: checks 3, 4, 5), summed in f32 and scaled.
                     let mean = |x: f32| (x + x + x) * ((1.0f64 / 3.0) as f32);
                     assert_eq!(a.state.th[t].to_bits(), mean(fld.th[t]).to_bits());
-                    assert_eq!(a.state.thd[t].to_bits(), mean(fld.thd[t]).to_bits());
+                    assert_eq!(
+                        a.state.thd[t].to_bits(),
+                        mean(fld.thd.as_ref().unwrap()[t]).to_bits()
+                    );
                 }
             }
         }

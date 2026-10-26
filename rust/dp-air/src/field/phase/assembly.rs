@@ -19,9 +19,8 @@
 //!   (игра тогда не передаёт маску);
 //! - `warm` — [`State`] для `SolveOpts.init` решения с нагревом, `warm_mech` — без нагрева.
 //!
-//! Граница: игра не передаёт канал `thd` (θ′_d) полей заморозки и запасного пути — замороженные
-//! колонны там держат `thd` старта; у [`FrozenField`] канал обязателен, поэтому здесь `thd` = 0
-//! (как `thd` тёплого старта «с нуля»).
+//! Игра не передаёт канал `thd` (θ′_d) полей заморозки и запасного пути: здесь `thd = None` —
+//! замороженные колонны держат `thd` старта, `nonconv` берёт `thd` из `late_mean` (W11 v5).
 use super::classifier::{Classified, PhaseMaps, classify_pair};
 use super::config::PhaseCfg;
 use super::convection::{Updraft, convection_profile, theta, uml};
@@ -158,14 +157,14 @@ fn nonconv(p: &Prepared, wf: &[f32], freeze: &[u8], field: &State) -> Option<Non
     })
 }
 
-/// Поле для заморозки из состояния: `thd` — нули (см. «Граница» в описании модуля).
+/// Поле для заморозки из состояния: `thd = None` (см. описание модуля).
 fn frozen(s: &State) -> FrozenField {
     FrozenField {
         u: s.u.clone(),
         v: s.v.clone(),
         w: s.w.clone(),
         th: s.th.clone(),
-        thd: vec![0.0; s.thd.len()],
+        thd: None,
     }
 }
 

@@ -45,7 +45,9 @@ pub struct FrozenField {
     pub v: Vec<f32>,
     pub w: Vec<f32>,
     pub th: Vec<f32>,
-    pub thd: Vec<f32>,
+    /// `None` = theta'_d of the start field (frozen) / of `late_mean` (nonconv), as the game,
+    /// which passes no theta'_d channel.
+    pub thd: Option<Vec<f32>>,
 }
 
 /// Frozen columns (W11). The frozen columns hold the values of `field` (none: those of the
@@ -94,7 +96,8 @@ pub struct SolveOpts {
     /// Pool threads; `0` = all logical cores (`std::thread::available_parallelism`).
     pub threads: usize,
     /// Iteration limit in the game's count (without the cold-start `pre_steps`): the run stops
-    /// exactly after iteration `max_iters + pre_steps` (`Solved.iters` is the raw count).
+    /// at the nearest check from above: after iteration `pre_steps + ceil(max_iters / check_every)
+    /// * check_every` (`Solved.iters` is the raw count).
     pub max_iters: usize,
     /// Multiplier of the three tolerances of the case criterion; `1.0` = as the reference.
     pub tol_scale: f64,

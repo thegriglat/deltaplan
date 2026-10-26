@@ -2,9 +2,10 @@
 //! `air_picard.glsl:393`) and the game's count of the fallback thresholds (`air_picard_job.gd`:
 //! `_iters` in whole checks, without the cold-start `pre_steps`).
 //!
-//! Cases: `flat_wind` and `heated_slope` of the repository fixtures. The Ongudai test (400 m,
-//! 38 MB, `~/data/air_cascade/ongudai`) is `#[ignore]`d: run it with
-//! `cargo test --release -p picard_rs --test cd_col -- --ignored --nocapture`.
+//! Cases: `flat_wind` and `heated_slope` of the repository fixtures. The Ongudai 400 m
+//! measurement (one `C_d` against the map) is `rust/dp-air/tests/case_build.rs`
+//! (`cd_col_vs_one_cd_ongudai`, `#[ignore]`): `cargo test --release -p dp-air --test case_build
+//! cd_col_vs_one -- --ignored --nocapture`.
 
 use picard_rs::api::{self, Fallback, SolveOpts, Solved, StopReason};
 use picard_rs::case::Case;
@@ -192,25 +193,37 @@ fn thresholds_count_like_the_game() {
     assert_eq!(first_diff, 2);
 }
 
-/// `max_iters` in the game's count too: with a cold-start `pre_steps = 3` the run stops after
-/// `max_iters + pre_steps` raw iterations, i.e. at the check where the game's `_iters` reaches
-/// `max_outer` (a multiple of `check_every`), not `pre_steps` earlier.
+/// `max_iters` in the game's count too (W11 v5): with a cold-start `pre_steps = 3` the run stops
+/// at the nearest check from above, `pre_steps + ceil(max_iters / ce) * ce` raw iterations, as
+/// `_iters >= max_outer` of the game, also for a `max_iters` that is not a multiple of
+/// `check_every`; with `pre_steps = 0` the same rule on the raw count.
 #[test]
 fn max_iters_counts_like_the_game() {
     let mut c = load("flat_wind");
     let ce = c.criterion.check_every;
+    assert!(ce >= 2);
+    let run = |c: &Case, max_iters| {
+        api::solve(
+            c,
+            &SolveOpts {
+                max_iters,
+                tol_scale: 1e-9,
+                ..base()
+            },
+        )
+        .unwrap()
+    };
+    for pre in [3, 0] {
+        c.criterion.pre_steps = pre;
+        for (m, checks) in [(2 * ce, 2), (ce + 1, 2), (2 * ce - 1, 2), (1, 1)] {
+            let r = run(&c, m);
+            assert_eq!(r.stop, StopReason::MaxIters, "pre {pre} max {m}");
+            assert_eq!(r.iters, pre + checks * ce, "pre {pre} max {m}");
+            assert_eq!(r.history.len(), checks, "pre {pre} max {m}");
+            assert_eq!(r.history.last().unwrap().it, r.iters);
+        }
+    }
+    // The nonmultiple limit is the same run as the multiple above it, bit for bit.
     c.criterion.pre_steps = 3;
-    let r = api::solve(
-        &c,
-        &SolveOpts {
-            max_iters: 2 * ce,
-            tol_scale: 1e-9,
-            ..base()
-        },
-    )
-    .unwrap();
-    assert_eq!(r.stop, StopReason::MaxIters);
-    assert_eq!(r.iters, 3 + 2 * ce);
-    assert_eq!(r.history.len(), 2, "checks at game iterations ce and 2 ce");
-    assert_eq!(r.history.last().unwrap().it, 3 + 2 * ce);
+    same("ce+1 = 2ce", &run(&c, ce + 1), &run(&c, 2 * ce));
 }

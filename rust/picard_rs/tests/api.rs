@@ -91,7 +91,8 @@ fn max_iters_limits() {
         },
     )
     .unwrap();
-    assert_eq!(r.iters, 5, "stops exactly after max_iters");
+    // W11 v5: the limit acts at the nearest check from above (check_every = 10).
+    assert_eq!(r.iters, 10, "stops at the check above max_iters");
     assert_eq!(r.stop, StopReason::MaxIters);
     assert_eq!(
         r.out.status, "max",
@@ -99,7 +100,7 @@ fn max_iters_limits() {
     );
     assert_eq!(
         r.history.last().unwrap().it,
-        5,
+        10,
         "residuals of the delivered field"
     );
 }
@@ -210,7 +211,7 @@ fn every_stop_reason_is_reachable() {
         },
     )
     .unwrap();
-    assert_eq!((max.stop, max.iters), (StopReason::MaxIters, 7));
+    assert_eq!((max.stop, max.iters), (StopReason::MaxIters, 10));
     // Budget zero: exhausted after the first iteration.
     let tb = api::solve(
         &c,
@@ -302,6 +303,13 @@ fn snapshots_equal_separate_runs_and_do_not_change_the_run() {
     state_eq("main run with snapshots", &plain.state, &snap.state);
     assert!(bits_eq(&plain.picard.f.u, &snap.picard.f.u));
     for (s, &n) in snap.snapshots.iter().zip(&at) {
+        // Check iterations carry their residuals, others none.
+        let at_check = snap.history.iter().any(|h| h.it == n);
+        assert_eq!(s.residuals.is_some(), at_check, "snapshot {n}: residuals");
+        // A separate run stops at a check (W11 v5): only the snapshots at checks have one.
+        if n != 0 && !at_check {
+            continue;
+        }
         let sep = api::solve(
             &c,
             &SolveOpts {
@@ -313,9 +321,6 @@ fn snapshots_equal_separate_runs_and_do_not_change_the_run() {
         .unwrap();
         assert_eq!(sep.iters, n);
         state_eq(&format!("snapshot {n}"), &sep.state, s);
-        // Check iterations carry their residuals, others none.
-        let at_check = snap.history.iter().any(|h| h.it == n);
-        assert_eq!(s.residuals.is_some(), at_check, "snapshot {n}: residuals");
     }
 }
 
