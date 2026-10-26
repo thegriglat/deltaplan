@@ -1,0 +1,107 @@
+{
+  "id": "RW-6t",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Formula: фазы, запечённые поля и кеш в оркестровке; отмена в подготовке Пикара ≤ 1 с; DpAir.add_baked_field/set_cache_dir",
+  "goal": "Formula (RW-6j) ведёт поле как AirRuntime целиком, кроме окон: (1) фазы (RW-6k/6l/6m, field::phase::assembly::assemble → PhaseResult {freeze, freeze_mech, nonconv, warm, warm_mech}) подключены в точку TODO(RW-6m) — SolveOpts.freeze/fallback.nonconv/init как air_runtime.gd _after_phases и _start_picard; (2) запечённые поля (field::baked, W4 v3 add_baked_field, W5 v5 header.model_hash) и кеш (field::field_cache, W4 v3 set_cache_dir) подключены в точку TODO(RW-6p) в порядке air_runtime.gd load_field; (3) отмена (W11 v6) проверяется в подготовке picard_rs, unload_place/Drop возвращаются ≤ 1 с и на 2 потоках, JOIN_LIMIT ≤ 1 с; (4) dp-gd DpAir.add_baked_field/set_cache_dir (W3 v2) и header.model_hash доходят до трейта.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W3",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W4",
+      "version": "3",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W5",
+      "version": "5",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6t",
+  "branch": "rust-wind/RW-6t",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/runtime.rs",
+    "rust/dp-air/src/field/mod.rs",
+    "rust/dp-air/src/field/field_set.rs",
+    "rust/dp-air/src/lib.rs",
+    "rust/dp-air/src/types.rs",
+    "rust/dp-air/src/calm.rs",
+    "rust/dp-air/src/place.rs",
+    "rust/dp-air/tests/runtime.rs",
+    "rust/dp-air/tests/contract.rs",
+    "rust/dp-air/Cargo.toml",
+    "rust/picard_rs/src/",
+    "rust/picard_rs/tests/",
+    "rust/dp-gd/src/",
+    "rust/dp-stand/src/",
+    "rust/Cargo.toml",
+    "rust/Cargo.lock"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/dp-air/src/field/phase/",
+    "rust/dp-air/src/field/baked.rs",
+    "rust/dp-air/src/field/field_cache.rs",
+    "rust/dp-air/src/field/wind_field.rs",
+    "tests/fixtures/",
+    "docs/contracts/",
+    "data/"
+  ],
+  "accept": [
+    {
+      "name": "runtime_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test runtime",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "picard_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p picard_rs",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    },
+    {
+      "name": "win_build",
+      "cmd": "cargo build --manifest-path rust/Cargo.toml --target x86_64-pc-windows-gnu -p dp-gd",
+      "expect": "exit=0"
+    },
+    {
+      "name": "stand_formula",
+      "cmd": "cargo run -q --release --manifest-path rust/Cargo.toml -p dp-stand -- sample --case tests/fixtures/wind/cases/ongudai_strong.json --model formula 2>&1 | tail -3",
+      "expect": "!re:(?i)error|panic"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T07:45:27"
+}

@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-26"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md"]
-contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3", "version": 2}, {"id": "W4", "version": 2}, {"id": "W5", "version": 4}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 6}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3", "version": 2}, {"id": "W4", "version": 3}, {"id": "W5", "version": 5}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 6}]
 ---
 
 # Контракты модуля rust-wind
@@ -90,10 +90,10 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3",
 - **Главный поток не ждёт фон.** Опросы читают последний готовый снимок (подмена указателя, `Arc`), блокировки на время расчёта нет; `advance_to` на главном потоке ≤ 0,5 мс (без учёта фоновой работы). Фоновый пересчёт, подготовка места, `start_at` — в потоках крейта, один `rayon`-пул на процесс, размер — `air.threads` в `configs/atmosphere.json` (`0` — все ядра минус одно).
 - Жизненный цикл: выход из игры посреди фоновой работы — работа прерывается при `Drop`/`unload_place`, без зависания больше 1 с.
 
-## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v2)
+## W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v3)
 Владелец — RW-4 (трейт, `Calm`), RW-6…12 (`Formula`), живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`. Трейт, типы, порядок команд, структуры описаний — `docs/contracts/rust-wind/trait.md`.
 
-## W5. Вход: место, конфиги, условия (v4)
+## W5. Вход: место, конфиги, условия (v5)
 Владелец — RW-2 (сборка `AirPlaceData` из `AirRuntime.place_of`, `air_runtime.gd:270`), RW-4 (разбор в крейте). Потребители — W2–W4, фикстуры W8.
 
 **`AirPlaceData`** (`RefCounted`, `scripts/atmosphere/air_place_data.gd`, создаёт RW-2) — то, что крейт получает один раз при загрузке:
@@ -106,6 +106,7 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3",
 - `water: PackedByteArray` — та же сетка, 0/1.
 - `surface_cls: PackedByteArray`, `surface_moist: PackedFloat32Array` (0..1) — та же сетка.
 - v4: `baked: Array` — запечённые поля места (TI-К3 v3, `docs/contracts/training-island.md`: `data/locations/<id>/air/*.json` + `.bin`, f16, zstd) как есть: `[{header_json: String, data: PackedByteArray}]`; фасад читает файлы места при сборке `AirPlaceData`, реализация выбирает подходящее по условиям (как `AirRuntime.baked_lookup`) — без файлового доступа к данным игры; нет — пусто.
+- v5: `header.model_hash: String` (необязательный, по умолчанию `""`) — хеш модели воздуха, как его сейчас считает `AirRuntime` для запечённых полей и кеша (до RW-13 — хеш GD-модели, считает фасад); реализация сравнивает его с `model_hash` заголовков запечённых полей и кладёт в ключ кеша; пусто — запечённые поля и кеш не используются (расчёт всегда).
 - Производные поля (уклоны, линия тени, рельеф гребня, `valley_msl_m`, `mean_msl_m`, сила источников термиков `thermal_source_strength`, нагрев и `surface_flux`, `domain_case`, грубая задача 1200 м) — считает реализация из этих растров (решение пользователя 2026-10-26: «всё тяжёлое считает Rust»). Не хватает данных для производного (например, для `thermal_source_strength_water`) — `contract:` координатору, W5 v2, а не колбэк.
 - Высота у реализации — билинейно по `heights`; это заменяет `terrain.height_at` во всех слагаемых ветра. Разница с нынешней высотой — в допусках W8.
 
@@ -169,3 +170,4 @@ contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3",
 - W11 v4 (2026-10-26, постановка RW-6r) — C_d стенки по столбцу (`Case.cd_col`); отсчёт порогов запасных правил как в игре.
 - W11 v5 (2026-10-26, ревью RW-6r, итог RW-6m) — `cd_col` с ореолом; счёт итераций и останов по `max_iters` как в игре; `FrozenField.thd` необязателен.
 - W11 v6 (2026-10-26, ревью RW-6j) — отмена и в подготовке решения.
+- W4 v3, W5 v5 (2026-10-26, постановка RW-6t) — `AirModel::add_baked_field`/`set_cache_dir` (как W3 v2), `header.model_hash`. Потребители: RW-6t (Formula, dp-gd), RW-7 (фасад).

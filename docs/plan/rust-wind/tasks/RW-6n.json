@@ -1,0 +1,88 @@
+{
+  "id": "RW-6n",
+  "module": "rust-wind",
+  "type": "dp-engineer",
+  "title": "Окна 1: AirWindowCase, вложенная граница nest, поправка потока flux/corr, тёплый сдвиг shift — в крейте, сверка с GPU-окнами игры",
+  "goal": "dp-air умеет собрать и решить окно 100/50 м как игра (AirWindowCase + AirWindowJob): сетка окна 64×64 (dx 100/50, dz = dx/2, потолок 2000 м над рельефом окна) из места и родителя; граница от родителя — общая операция level::nest «грубый уровень → мелкий» (поле родителя в центрах клеток трилинейно во все грани и клетки окна → граничные грани, θ′/θ′_d ореола, цель зоны релаксации 4 клетки); поправка потока Σ = 0 (flux → corr); старт — родитель + 30 V-циклов (p = 0), сдвиг — старое окно со сдвигом на целое число клеток + 4 V-цикла; пара mech/heat. Решение совпадает с GPU-окнами игры на Онгудае в допусках air-cascade. Клипмап (очередь, сдвиг за фокусом) и подключение в Formula — RW-6o, не здесь.",
+  "plan_ref": "План переноса / Этап 2 / RW-6",
+  "contracts": [
+    {
+      "name": "W1",
+      "version": "2",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W8",
+      "version": "1",
+      "ref": "docs/contracts/rust-wind.md"
+    },
+    {
+      "name": "W11",
+      "version": "6",
+      "ref": "docs/contracts/rust-wind.md"
+    }
+  ],
+  "copy": "~/worktrees/deltaplan/rust-wind-RW-6n",
+  "branch": "rust-wind/RW-6n",
+  "base": "feature/rust-wind",
+  "scope": [
+    "rust/dp-air/src/field/window.rs",
+    "rust/dp-air/src/level.rs",
+    "rust/dp-air/src/field/mod.rs",
+    "rust/dp-air/tests/window.rs",
+    "rust/dp-air/tests/level.rs",
+    "rust/dp-air/tests/data/window/",
+    "tools/research/rust_wind/dump_window.gd",
+    "tools/research/rust_wind/dump_window.sh",
+    "tools/research/rust_wind/dump_window.tscn",
+    "tools/research/rust_wind/README.md",
+    "rust/dp-air/Cargo.toml",
+    "rust/Cargo.lock"
+  ],
+  "dont_touch": [
+    "scripts/",
+    "rust/picard_rs/",
+    "rust/dp-air/src/formula.rs",
+    "rust/dp-air/src/field/runtime.rs",
+    "rust/dp-air/src/field/phase/",
+    "rust/dp-air/src/field/baked.rs",
+    "rust/dp-gd/",
+    "tests/fixtures/",
+    "docs/contracts/"
+  ],
+  "accept": [
+    {
+      "name": "window_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test window",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "level_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml -p dp-air --test level",
+      "expect": "re:test result: ok\\. [1-9]"
+    },
+    {
+      "name": "dump_repro",
+      "cmd": "tools/research/rust_wind/dump_window.sh --verify",
+      "expect": "exit=0"
+    },
+    {
+      "name": "cargo_test",
+      "cmd": "cargo test --manifest-path rust/Cargo.toml --workspace",
+      "expect": "exit=0"
+    },
+    {
+      "name": "fmt",
+      "cmd": "cargo fmt --manifest-path rust/Cargo.toml --all --check",
+      "expect": "exit=0"
+    },
+    {
+      "name": "clippy",
+      "cmd": "cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets -- -D warnings",
+      "expect": "exit=0"
+    }
+  ],
+  "report_extra": [],
+  "notes": "",
+  "created": "2026-10-26T07:47:14"
+}

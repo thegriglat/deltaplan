@@ -9,7 +9,7 @@ related: ["docs/contracts/rust-wind.md", "docs/plan/rust-wind.md"]
 contracts: [{"id": "W4", "version": 2}]
 ---
 
-# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v2)
+# W4. Трейт `AirModel` (крейт `dp-air`, без Godot) (v3)
 
 Часть `docs/contracts/rust-wind.md` (версия — там, заголовок W4). Менять — только координатор.
 Владелец — RW-4 (трейт, заглушка `Calm`), RW-6…12 (`Formula`), будущий живой воздух (`Live`). Потребители — `dp-gd`, стенд RW-5, `cargo test`, `cargo bench`.
@@ -48,6 +48,9 @@ pub trait AirModel: Send + Sync {
     fn decompose(&self, p: [f32; 3]) -> Decomposition;                              // W7
     fn debug_raster(&self, name: &str) -> Option<std::sync::Arc<Raster>>;
     fn debug_raster_names(&self) -> Vec<String>;
+    // v3: по умолчанию — Ok(()) и ничего (Calm)
+    fn add_baked_field(&mut self, header_json: &str, data: &[u8]) -> Result<(), Error> { Ok(()) }
+    fn set_cache_dir(&mut self, dir: Option<&std::path::Path>) -> Result<(), Error> { Ok(()) }
 }
 ```
 - Опросы (`&self`) — из любого потока одновременно; несовпадение длин `out`/`pts` — паники нет: обрабатывается `min` длин, остальное не трогается.
@@ -56,4 +59,4 @@ pub trait AirModel: Send + Sync {
 - **Структуры описаний (v2)** — поля в порядке смещений W6, все `f32`: `Core` — `id, flags, x, z, y_src, top, w, radius, lean_x, lean_z, age_s, life_s, stage, vis_seed, storm` (15); `Cloud` — `id, core_id, x, z, base_msl, top_msl, radius, growth, decay, flags` (10); `Crest` — `x, z, eta, crest` (4); `#[repr(C)]`, чтобы `dp-gd` отдавал их в `PackedFloat32Array` одним копированием. `Raster` — `version: u64, nx, ny: u32, dx, x0, z0: f32` (оси W1), `base_msl, time_s` (для облаков; у отладочных — NaN), `layers: Vec<(String, Vec<f32>)>` (`nx·ny`, строка — к +Z): у растра облаков — `cover, depth, stage, activity, bg_cover, bg_depth` (W6), у отладочного — один слой `data` (W7).
 - `dp-air` не зависит от `godot`; `picard_rs` переносится в workspace как крейт (или модуль `dp-air::picard`) с сохранением R6 v3 (`docs/contracts/picard-rs.md`) — расчёт Пикара берётся готовый, не пишется заново (решение пользователя 2026-10-26).
 - Реализации: `Calm` (RW-4: всё по W1, ветер 0, сразу Ready — для контрактных тестов и пустого запуска), `Formula` (RW-6…12), `Live` (вне модуля).
-
+- **v3 (постановка RW-6t):** `add_baked_field` — то же, что W3 v2 (`DpAir.add_baked_field`): после `load_place` и до Ready — `Ok` (поле запоминается; разбор TI-К3 v3 — `field::baked::parse_baked`; битое — `BadInput` с причиной), без места — `NoPlace`, после Ready — `BadInput`; при загрузке реализация ищет подходящее поле как `AirRuntime.baked_lookup` (`field::baked::baked_lookup`) и при попадании пропускает Пикар. `set_cache_dir` — W3 v2: `None` — без кеша; каталог создаёт реализация; ошибка создания — `BadInput`, кеш выключен. Обе — `&mut self`, из потока владельца, как остальные команды.
