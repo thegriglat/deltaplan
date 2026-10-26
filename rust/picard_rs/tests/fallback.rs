@@ -411,8 +411,11 @@ fn rollback_late_mean_and_freeze_threads() {
             for i in 0..nxh {
                 if masked(&c, &fz.mask, 'c', i, j) {
                     let t = (k * nyh + j) * nxh + i;
-                    assert_eq!(a.state.th[t].to_bits(), fld.th[t].to_bits());
-                    assert_eq!(a.state.thd[t].to_bits(), fld.thd[t].to_bits());
+                    // As in the game: not restored after the late mean, the mean of the
+                    // constant field (3 states: checks 3, 4, 5), summed in f32 and scaled.
+                    let mean = |x: f32| (x + x + x) * ((1.0f64 / 3.0) as f32);
+                    assert_eq!(a.state.th[t].to_bits(), mean(fld.th[t]).to_bits());
+                    assert_eq!(a.state.thd[t].to_bits(), mean(fld.thd[t]).to_bits());
                 }
             }
         }

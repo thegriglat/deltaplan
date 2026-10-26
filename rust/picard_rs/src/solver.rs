@@ -792,7 +792,8 @@ impl Picard {
     }
 
     /// Stopped at `max_iters` unconverged: field := `late_mean`, in the `nonconv` columns :=
-    /// `nonconv.field`. Returns whether it was applied. Frozen columns keep their field.
+    /// `nonconv.field`. Returns whether it was applied. As in the game, frozen columns are not restored: they hold
+    /// the mean of their constant field (may differ in the last bit).
     fn fb_apply_late(&mut self) -> bool {
         let Some(b) = self.fb.as_mut() else {
             return false;
@@ -827,7 +828,6 @@ impl Picard {
             freeze_copy(&mut f.th, &fl.th, &nc.fc, hd);
             freeze_copy(&mut f.thd, &fl.thd, &nc.fc, hd);
         }
-        self.freeze_apply();
         true
     }
 

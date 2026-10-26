@@ -79,7 +79,7 @@ pub struct NonConv {
 ///   (`0` = not accumulated, unless `nonconv` is given, as in the game);
 /// - at `max_iters` without convergence the field becomes `late_mean`, in the `nonconv.mask`
 ///   columns `nonconv.field` (none: `late_mean`), then `finalize`. Frozen columns (`freeze`)
-///   keep their field. `Solved.residuals`/`history` stay those of the last iterate.
+///   are not restored (as in the game: the mean of their constant field, maybe 1 ulp off). `Solved.residuals`/`history` stay those of the last iterate.
 #[derive(Clone, Debug)]
 pub struct Fallback {
     pub omega_after: usize,
