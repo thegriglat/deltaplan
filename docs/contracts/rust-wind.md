@@ -6,7 +6,7 @@ area: "air"
 updated: "2026-10-26"
 summary: "Граница ветра в Rust: фасад Atmosphere, DpAir (gdext), трейт dp-air, место, описания, разложение, допуски, сборка, чистота."
 related: ["docs/plan/rust-wind.md", "docs/contracts/picard-rs.md", "docs/plan/rust-air-integration.md", "docs/plan/rust-ext.md", "docs/plan/air-cascade.md", "tools/research/rust_ext/gdext_probe/README.md", "docs/contracts/rust-wind/fixtures-tolerances.md", "docs/contracts/rust-wind/descriptions.md", "docs/contracts/rust-wind/solver.md", "docs/contracts/rust-wind/trait.md"]
-contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3", "version": 2}, {"id": "W4", "version": 2}, {"id": "W5", "version": 4}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 3}]
+contracts: [{"id": "W1", "version": 2}, {"id": "W2", "version": 1}, {"id": "W3", "version": 2}, {"id": "W4", "version": 2}, {"id": "W5", "version": 4}, {"id": "W6", "version": 3}, {"id": "W7", "version": 1}, {"id": "W8", "version": 1}, {"id": "W9", "version": 1}, {"id": "W10", "version": 1}, {"id": "W11", "version": 3}]
 ---
 
 # Контракты модуля rust-wind
@@ -20,7 +20,7 @@ contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3",
 - Rust — `rust/dp-air/tests/contract.rs` (T5, T6 на трейте, на заглушке и на `Formula`) и `rust/dp-gd/tests/` (версия, разбор массивов) — первым шагом RW-4.
 - Версия: константа `Atmosphere.WIND_API_VERSION`, `DpAir.api_version()` и `dp_air::API_VERSION` равны 1 и равны версии W2 здесь; тест сверяет с заголовками этого файла (как `test_air_contracts.gd`: `CONTRACTS` против заголовков `## Wn … (vK)`).
 
-## W1. Соглашения (v1)
+## W1. Соглашения (v2)
 Владелец — координатор. Потребители — все слои.
 - **Оси мира:** X — восток, −Z — север, Y — вверх; **Y = высота над уровнем моря (MSL)**, метры (`docs/guide/architecture.md`). AGL на границе не передаётся: где нужна высота над землёй — реализация берёт её из рельефа места (W5).
 - **Скорость** — м/с в осях мира: `(vx, vy, vz)`, `vy` — вертикальная (подъём > 0). км/ч — только во входе прогноза (W5, `wind_speed_kmh`), как сейчас.
@@ -32,6 +32,7 @@ contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3",
 - **Ошибки.** Ни один вызов не роняет игру (`panic = "abort"` в релизе — значит, входы проверяет граница до расчёта). Команды (W2/W3) возвращают `int`-код: `0` OK, `1` BAD_INPUT (вход отвергнут, состояние не изменилось), `2` NO_PLACE (место не загружено), `3` NOT_READY (идёт загрузка/разгон, команда принята в очередь или не нужна). Текст — `last_error() -> String` (последняя ошибка, пусто — нет). Опросы ошибок не возвращают — отдают определённый ответ (ниже по каждому).
 - **Состояние** `state`: `0` EMPTY (нет места), `1` LOADING (подготовка места или разгон `start_at`), `2` READY, `3` FAILED (подготовка не удалась; опросы работают по запасному пути реализации — у `Formula` аналитика без поля, — `last_error()` объясняет). FAILED не заразен: следующий `load_place` начинает с нуля.
 - **Детерминизм.** Один вход (место, конфиги, условия, сид, фокусы, последовательность `advance_to`) → одни выходы. От числа потоков (2/4/20) выход не зависит в допусках W8; желательно побитно. Ради тестов и отладки, не ради сети.
+- **Детерминированный режим (v2):** ключ `air.deterministic` в `configs/atmosphere.json` (по умолчанию `false`; тесты, стенд, фикстуры — `true`). При `true` всё, что делается в фоне (пересчёт поля на сроке, проходы `k`, окна), подаётся в игровой момент, заданный только игровым временем и входом (срок `recompute_game_min` и т. п.): `advance_to` на этом моменте ждёт готовности фоновой задачи. При `false` (игра) главный поток не ждёт (W3), подача — по готовности, и выход зависит от скорости машины. Тот же порядок держит генератор фикстур RW-1b.
 - **Сеть — не цель** (решение пользователя 2026-10-25): у каждого клиента свой воздух от общей погоды и сида; выгрузки/загрузки состояния воздуха и синхронизации нет. Нынешняя синхронизация термиков и `CloudField` в `net_flight.gd` (`air_forced_sig`, `set_air_forced`, `air_sources_mask`, `apply_net_snapshot`) удаляется в RW-3, не переносится.
 - **Колбэков из крейта в Godot нет.** `height_fn`, `surface_fn`, `sun_fn`, `AtmoDay.weather_fn/sun_fn/source_fn` — не часть W3/W4; всё нужное — данными (W5).
 
@@ -164,3 +165,4 @@ contracts: [{"id": "W1", "version": 1}, {"id": "W2", "version": 1}, {"id": "W3",
 - W6 v3 (2026-10-26, ревью RW-2) — инвариант найденного ядра только для `w ≥ 1,5 м/с`; охват описаний — вокруг фокусов. Потребители: RW-2, RW-3, RW-10.
 - W11 v2 (2026-10-26, итог RW-6g) — равенство замороженных колонн полю заморозки — до `finalize`; `finalize` — как в игре, без маски.
 - W11 v3 (2026-10-26, постановка RW-6h) — запасные правила сходимости (`Fallback`, `NonConv`), флаги в `Solved`; `AllFrozen` при отмене до старта — с фоном.
+- W1 v2 (2026-10-26, постановка RW-6j) — детерминированный режим `air.deterministic`.
