@@ -448,3 +448,6 @@
 {"t": "2026-10-27T04:14:14", "by": "coordinator", "task": null, "ev": "plan", "note": "план Тесты (TDD): замена «| T7 | **Одна граница** …»"}
 {"t": "2026-10-27T04:14:14", "by": "coordinator", "task": null, "ev": "plan", "note": "план Тесты (TDD): замена «| T9 | **Полёт** | `test…»"}
 {"t": "2026-10-27T04:14:15", "by": "coordinator", "task": null, "ev": "plan", "note": "план План переноса: замена «Сверка — эталоны RW-1/RW…»"}
+{"t": "2026-10-27T04:15:00", "by": "coordinator", "task": "RW-6v", "ev": "checked", "note": "7/7 test_air_place_climate_lag=ok:3/3; cargo_test=ok:exit 0; w11v9_w5v7=ok:test result: ok. 6; clippy=ok:exit 0; fmt=ok:exit 0; fixtures_unchanged=ok:exit 0; no_timeout=ok:exit 0"}
+{"t": "2026-10-27T04:16:34", "by": "reviewer", "task": "RW-6v", "ev": "reviewed", "note": "W11 v9 и W5 v7 выполнены по тексту контрактов: обнуление стенок и земли совпадает с K_BC (air_picard.glsl:234), pin_far_faces вызывается только в init_warm и i…", "verdict": "accept", "issues": {"minor": 1}, "review": "docs/plan/rust-wind/tasks/RW-6v.review.json"}
+{"t": "2026-10-27T04:16:48", "by": "coordinator", "task": "RW-6v", "ev": "accepted", "note": "по ревью; minor: field_has_no_time_limit зависит от скорости машины (подготовка > 1 с) — в RW-6w"}
